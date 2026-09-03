@@ -16,18 +16,17 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 9 |
+| US no SPEC | 10 |
 | CU no SDD | 14 |
 | Telas (.tsx) | 8 |
-| Telas com `casos.md` | 11 |
-| UC declarados | 54 |
-| UC com teste que os cita | 54 |
+| Telas com `casos.md` | 12 |
+| UC declarados | 76 |
+| UC com teste que os cita | 75 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
 | Lacuna | O que falta escrever |
 |---|---|
-| Tela `Unificado/Index` sem `casos.md` | o contrato da tela (trio incompleto) |
 | `CU-PROD-09` sem UC | caso de uso que o exercite — Código de barras + etiqueta |
 | `CU-PROD-12` sem UC | caso de uso que o exercite — Correção de valor / agregação de inventário |
 
@@ -48,6 +47,7 @@ authority: generated
 | US-PROD-025 | `todo` | [G-06] UI de BOM drag-drop + baixa-de-componente do kit no PDV |
 | US-PROD-026 | `todo` | Fornecedores/cotação por produto (melhor preço no drawer) |
 | US-PROD-027 | `todo` | [V0] Travar o acidente do 0-row: preço zero em tabela é inerte só por sorte do P |
+| US-PROD-029 | `todo` | Cadastro de produto em ROTA PARALELA (o `ProductController` da Larissa não é toc |
 
 ## UC por status
 
@@ -107,6 +107,28 @@ authority: generated
 | UC-PTAB-02 | SellingPrices | 🧪 aguarda veredito da lane |
 | UC-PTAB-03 | SellingPrices | 🧪 aguarda veredito da lane |
 | UC-PTAB-04 | SellingPrices | 🧪 aguarda veredito da lane |
+| UC-PUNI-01 | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-PUNI-02 | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-PUNI-02B | Unificado/Index | 📝 sem_teste |
+| UC-PUNI-03 | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-PUNI-04 | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-PUNI-05 | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-PUNI-06 | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-PUNI-07 | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-PUNI-08 | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-PUNI-09 | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-PUNI-10 | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-PUNI-11 | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-PUNI-11B | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-PUNI-11C | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-PUNI-11D | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-PUNI-12 | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-PUNI-12B | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-PUNI-13 | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-PUNI-14 | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-PUNI-15 | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-PUNI-16 | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-PUNI-17 | Unificado/Index | 🧪 aguarda veredito da lane |
 
 ---
 

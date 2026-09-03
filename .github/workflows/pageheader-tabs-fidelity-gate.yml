@@ -14,7 +14,9 @@ name: PageHeaderTabs Fidelity Gate — aba ativa fiel ao protótipo (não regrid
 #       · ADR 0258 (gate só vale se o controle-negativo roda no CI).
 
 on:
+  workflow_dispatch:
   pull_request:
+    types: [opened, reopened, ready_for_review]
     paths:
       - 'resources/js/Components/shared/PageHeaderTabs.tsx'
       - 'tests/pageHeaderTabsFidelity.spec.tsx'

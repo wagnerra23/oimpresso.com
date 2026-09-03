@@ -123,22 +123,28 @@ interface Props { metas: Meta[] }
 export default function Dashboard({ metas }: Props) { /* ... */ }
 ```
 
-### 3. Persistent Layout AppShellV2 com title + breadcrumbItems
+### 3. Persistent Layout AppShellV2 com title
 
 ```tsx
 import AppShellV2 from '@/Layouts/AppShellV2'
 
 Dashboard.layout = (page: React.ReactNode) => (
-  <AppShellV2
-    title="Jana — Dashboard"
-    breadcrumbItems={[{ label: 'Jana' }, { label: 'Dashboard' }]}
-  >
+  <AppShellV2 title="Jana — Painel">
     {page}
   </AppShellV2>
 )
 ```
 
-**Validação:** abrir `/ia`; topbar mostra `Jana / Dashboard`; aba do navegador `Jana — Dashboard`.
+**Validação:** abrir `/ia`; aba do navegador diz `Jana — Painel`.
+
+> ⚠️ **CORRIGIDO 2026-08-31 — este bloco estava errado em DOIS pontos.** (a) O título dizia
+> `Jana — Dashboard`; a palavra virou **Painel** (a âncora `jana-merge.jsx` carimba
+> `data-screen-label="Jana — Painel"` e rotula a aba `label: "Painel"`). O prefixo de área fica,
+> como em `Jana — Memória`. (b) O `breadcrumbItems` e a validação `topbar mostra Jana / Dashboard`
+> descreviam algo que **nunca chegou à tela**: o array foi removido do `Index.tsx` como dado morto
+> — o `AppShellV2` só renderiza breadcrumb sob `!hideTopbar`, e nenhuma tela da Jana passa
+> `hideTopbar={false}`. Seguir este bloco como estava faria alguém validar contra uma UI inexistente.
+> O identificador `Dashboard` do componente segue igual de propósito: é símbolo de JS, não copy.
 
 ### 4. Função `calcularFarol()` — regra R-COPI-FAROL-001
 
@@ -358,7 +364,7 @@ interface Apuracao {
 - [`@/Components/ui/button`](../../../resources/js/Components/ui/button.tsx) — shadcn Button (R-DS-001)
 - [`@/Components/ui/card`](../../../resources/js/Components/ui/card.tsx) — shadcn Card primitives
 - [`@/Components/ui/badge`](../../../resources/js/Components/ui/badge.tsx) — shadcn Badge
-- [`./components/FabJana`](../../../resources/js/Pages/Jana/components/FabJana.tsx) — FAB local do módulo
+- [`./components/FabJana`](../../../resources/js/Pages/Jana/_components/FabJana.tsx) — FAB local do módulo
 
 ### Ícones (lucide-react — R-DS-003)
 

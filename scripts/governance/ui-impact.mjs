@@ -253,7 +253,7 @@ function summarizeImpact(impacted) {
   return { visual_required: impacted.length > 0, scope, screens, raio_confiavel: raioConfiavel(impacted), impacted };
 }
 
-export function classifyChanges(changes, { readContent = () => '', consumerScreens = () => [], manifestoSoAdiciona = () => false } = {}) {
+export function classifyChanges(changes, { readContent = () => '', consumerScreens = () => [], manifestoSoAdiciona = () => false, manifestoAdicionados = () => [] } = {}) {
   const impacted = [];
   const seen = new Set();
   for (const change of changes) {
@@ -296,7 +296,20 @@ export function classifyChanges(changes, { readContent = () => '', consumerScree
       const nasceu = status.startsWith('A') && /^tests\/\.pest\/snapshots\/Browser\//i.test(rawPath);
       const manifestoAditivo = rawPath === SCREEN_MANIFEST && manifestoSoAdiciona(rawPath);
       if (nasceu || manifestoAditivo) {
-        hit = { ...hit, scope: 'targeted', reason: 'contrato-visual-adicao' };
+        // NOMEAR a tela e a outra metade do 'targeted' — sem ela o escopo nasce VAZIO.
+        // MEDIDO 2026-08-28 (run 33195995716, PRs #6418/#6419): manifesto+snap aditivos, sem
+        // nenhum .tsx no diff => covered_screens: [] => VISREG_SCREENS=[] => o pixel roda
+        // "No tests found" => o afterAll do PixelBaselineTest nunca publica
+        // expected/executed/compared => o 'Canario anti-verde-vazio' reprova, corretamente.
+        // Efeito: o PR que o PROPRIO modo update gera (workflow_dispatch -> .snap novo) NAO
+        // passava — o "o gate do PR re-roda e PROVA que a baseline nova bate (anti-#3297)"
+        // que este workflow declara nao acontecia. #6365/#6369 so passaram porque tocavam
+        // OUTRO arquivo (um .tsx / o proprio yml) que selecionava tela por outra regra.
+        // Nao afrouxa nada: 'targeted' ja era a decisao: isto so diz QUAL tela verificar.
+        const adicionadas = manifestoAditivo ? manifestoAdicionados(rawPath) : [];
+        hit = adicionadas.length
+          ? { ...hit, scope: 'targeted', reason: 'contrato-visual-adicao', screens: adicionadas }
+          : { ...hit, scope: 'targeted', reason: 'contrato-visual-adicao' };
       }
     }
     if (hit?.scope === 'global' && /^resources\/js\//i.test(rawPath)) {
@@ -530,24 +543,30 @@ function run(argv) {
       return new Map(xs.filter((e) => e?.source).map((e) => [e.source, JSON.stringify(e)]));
     } catch { return null; }
   };
-  const manifestoSoAdiciona = (path) => {
-    if (path !== SCREEN_MANIFEST) return false;
+  // Sources que NASCERAM no manifesto neste diff, ou null quando a mudanca nao e puramente
+  // aditiva. E a fonte unica das duas perguntas: "e aditivo?" (ha algum) e "quais?" (estes).
+  // Estavam separadas e so a primeira existia — dai o 'targeted' sem tela do run 33195995716.
+  const manifestoDelta = (path) => {
+    if (path !== SCREEN_MANIFEST) return null;
     let antes = '';
-    try { antes = git(['show', `${diffBase}:${path}`]); } catch { return false; }
+    try { antes = git(['show', `${diffBase}:${path}`]); } catch { return null; }
     // O head vem do GIT, nao do disco: `--head` pode ser uma ref (outro branch) e ái o disco
     // é de outra coisa. No CI dá no mesmo (checkout == head); localmente, ler o disco mente.
     let depois = '';
     try { depois = git(['show', `${head}:${path}`]); }
-    catch { const disk = join(ROOT, path); if (!existsSync(disk)) return false; depois = readFileSync(disk, 'utf8'); }
+    catch { const disk = join(ROOT, path); if (!existsSync(disk)) return null; depois = readFileSync(disk, 'utf8'); }
     const a = entradasPorSource(antes);
     const b = entradasPorSource(depois);
     // JSON ilegivel de qualquer lado -> conservador (global). Nao inventa aditivo.
-    if (!a || !b) return false;
+    if (!a || !b) return null;
     for (const [source, json] of a) {
-      if (b.get(source) !== json) return false;   // sumiu ou mudou => NAO e aditivo
+      if (b.get(source) !== json) return null;   // sumiu ou mudou => NAO e aditivo
     }
-    return b.size > a.size;
+    return [...b.keys()].filter((source) => !a.has(source));
   };
+  // Equivalente ao criterio antigo (`b.size > a.size` com todo `a` intacto): ha source novo.
+  const manifestoSoAdiciona = (path) => (manifestoDelta(path) ?? []).length > 0;
+  const manifestoAdicionados = (path) => manifestoDelta(path) ?? [];
 
   const manifest = JSON.parse(readFileSync(join(ROOT, SCREEN_MANIFEST), 'utf8'));
   const manifestErrors = validateScreenManifest(manifest, {
@@ -561,7 +580,7 @@ function run(argv) {
   if (manifestErrors.length) throw new Error(`contrato ${SCREEN_MANIFEST} invalido: ${manifestErrors.join('; ')}`);
   const needsConsumerGraph = changes.some((change) => /^resources\/js\//i.test(normalizePath(change.path)));
   const consumerScreens = needsConsumerGraph ? createRepositoryConsumerResolver() : () => [];
-  const impact = classifyChanges(changes, { readContent, consumerScreens, manifestoSoAdiciona });
+  const impact = classifyChanges(changes, { readContent, consumerScreens, manifestoSoAdiciona, manifestoAdicionados });
   const result = {
     base,
     diff_base: diffBase,
@@ -774,6 +793,27 @@ function selfTest() {
 
     const aditivo = classifyChanges([{ status: 'M', path: SCREEN_MANIFEST }], { manifestoSoAdiciona: () => true });
     assert.deepEqual([aditivo.scope, aditivo.impacted[0].reason], ['targeted', 'contrato-visual-adicao']);
+
+    // BITE do verde-vazio (run 33195995716, PRs #6418/#6419): 'targeted' SEM tela nomeada vira
+    // VISREG_SCREENS=[] -> o pixel roda "No tests found" -> o afterAll do PixelBaselineTest
+    // nunca publica expected/executed/compared -> o 'Canario anti-verde-vazio' reprova. Ou
+    // seja: o PR que o PROPRIO modo update gera nao passava. A adicao tem que NOMEAR a tela.
+    const nomeia = classifyChanges([{ status: 'M', path: SCREEN_MANIFEST }],
+      { manifestoSoAdiciona: () => true, manifestoAdicionados: () => ['Ponto/Espelho/Index'] });
+    assert.equal(nomeia.scope, 'targeted');
+    assert.deepEqual(nomeia.impacted[0].screens, ['Ponto/Espelho/Index']);
+    // ...e a tela tem que chegar no agregado, que e o que vira VISREG_SCREENS.
+    assert.deepEqual(nomeia.screens, ['Ponto/Espelho/Index']);
+
+    // A chave e SOURCE, nao SCREEN: `coverageForScreens` monta `contracted` de `entry.source`
+    // e o PixelBaselineTest filtra por `$screen['source']`. No manifesto real 7 de 35 entradas
+    // tem `screen !== source` (ex.: screen 'Sells/Index' / source 'Sells'), entao devolver a
+    // chave errada passaria despercebido aqui e sumiria com a tela la.
+    assert.deepEqual(coverageForScreens(['Sells'], [{ source: 'Sells', screen: 'Sells/Index' }]).covered_screens, ['Sells']);
+    assert.deepEqual(coverageForScreens(['Sells/Index'], [{ source: 'Sells', screen: 'Sells/Index' }]).covered_screens, []);
+
+    // CONTROLE NEGATIVO: sem resolver que nomeie, nada e inventado (comportamento de antes).
+    assert.equal((aditivo.impacted[0].screens ?? []).length, 0);
 
     const alterou = classifyChanges([{ status: 'M', path: SCREEN_MANIFEST }], { manifestoSoAdiciona: () => false });
     assert.equal(alterou.scope, 'global');

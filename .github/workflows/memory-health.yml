@@ -8,6 +8,7 @@ name: Memory Health — ADR 0256
 
 on:
   pull_request:
+    types: [opened, reopened, ready_for_review]
     branches: [main]
     paths:
       - 'memory/**'
@@ -22,6 +23,10 @@ on:
     # Daily 06h30 BRT (09h30 UTC) — batimento cardíaco da memória (após health-check dados).
     - cron: '30 9 * * *'
   workflow_dispatch:
+
+concurrency:
+  group: memory-health-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   health:

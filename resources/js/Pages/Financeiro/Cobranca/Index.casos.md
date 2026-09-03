@@ -17,16 +17,18 @@ last_run: "2026-08-17"
 Personas: **Eliana [E]** + **Larissa [Cliente Piloto]**. Tela de acompanhamento (read-only); emissão vive em POST dedicado.
 
 ## UC-COB-01 — "Quem pagou hoje? O que vence amanhã?"
-Status: 🧪 (`CobrancaControllerTest` — shape `cobrancas/kpis/funil/contas/gateways/filtros`)
+Status: 🧪 (`CobrancaControllerTest` — shape `cobrancas/kpis/funil/contas/gateways/filtros` · em quarentena na lane financeiro-pest em 2026-09-03 — estado vivo em `.github/financeiro-pest-quarantine.list`; eixo RENDER em `CobrancaIndexTest` — Browser)
 Quando Eliana abre a tela · Então vê os 4 KPIs (Pago no mês · Vencido · Em aberto · 1 contextual) e a tabela densa por vencimento com pagador, chip composto gateway+tipo, conta destino, nosso nº, valor e status com ícone.
 
 ## UC-COB-02 — Funil de 5 etapas espelha o estado real
-Status: 🧪 (`CobrancaControllerTest` — funil `aberto/lembrete/cobranca_ativa/vencido_5d/protesto`)
+Status: 🧪 (`CobrancaControllerTest` — funil `aberto/lembrete/cobranca_ativa/vencido_5d/protesto` · em quarentena na lane financeiro-pest em 2026-09-03 — estado vivo em `.github/financeiro-pest-quarantine.list`; eixo RENDER + concordância funil×KPI em `CobrancaIndexTest` — Browser)
 As 5 etapas somam as cobranças do período; "Protesto" é derivação de UI (sem job real — Non-Goal declarado).
+Resíduo: nenhum dos dois prova a ARITMÉTICA da soma — o servidor prova o shape, o Browser prova que a etapa "Em aberto" e o KPI homônimo não se contradizem na tela.
 
 ## UC-COB-03 — Filtros e busca são deep-linkáveis
-Status: 🧪 (`CobrancaControllerTest` — filtro por status/tipo/gateway/conta/origem via querystring)
+Status: 🧪 (`CobrancaControllerTest` — filtro por status/tipo/gateway/conta/origem via querystring · em quarentena na lane financeiro-pest em 2026-09-03 — estado vivo em `.github/financeiro-pest-quarantine.list`)
 Trocar tab/chip/dropdown reflete na URL e a volta pela URL reproduz a visão.
+⚠️ **Contestado (2026-09-03, [CC] — HIPÓTESE de leitura, sem execução):** os cinco `useState(() => lsGet<string>(…))` do `Index.tsx` (`tab`/`tipo`/`gateway`/`account`/`origem`) fazem `lsGet('tab', filtros.status || 'all')` — o localStorage VENCE a querystring em 5 dos 6 filtros (tab · tipo · gateway · account · origem; só `busca` (`useState(filtros.busca || '')`) não persiste). Se procede, `?status=vencida` filtra no servidor e a aba restaurada refiltra no cliente, podendo esvaziar a tabela. Qual lado corrigir (este UC ou o `.tsx`) é decisão [W] — não foi tocado neste PR.
 
 ## UC-COB-04 — Cobrança paga cria o título no caixa
 Status: 🧪 (`OnCobrancaPagaCreateFinanceiroTituloTest`)
@@ -41,7 +43,7 @@ Status: 🧪 (`Onda26InterWebhookIntegrationTest`, `ProcessAsaasPixWebhookListen
 Re-entrega do mesmo webhook não duplica baixa nem título.
 
 ## UC-COB-07 — Tier 0, read-only e sem side-effect no render
-Status: 🧪 (`CobrancaControllerTest` — global scope + GET não muta)
+Status: 🧪 (`CobrancaControllerTest` — global scope + GET não muta · em quarentena na lane financeiro-pest em 2026-09-03 — estado vivo em `.github/financeiro-pest-quarantine.list`)
 Abrir a tela não dispara e-mail/WhatsApp, não chama API de gateway e não enxerga outro business ([ADR 0093]). Redirect 301 de `/financeiro/boletos` preservado.
 
 ## Backlog de casos (sem id)
@@ -51,6 +53,7 @@ Abrir a tela não dispara e-mail/WhatsApp, não chama API de gateway e não enxe
 - **[BACKLOG] Atalhos KB-9.75** (`/` `J/K` `Enter` `Esc` `?`) e persistência dos filtros em `localStorage`.
 
 ## Trilha do tempo
+- 2026-09-03 · [CC] E2E de render `tests/Browser/Financeiro/CobrancaIndexTest.php` (fecha o `e2e (Browser) ✗` do `screen-coverage-map`), wirado ADVISORY no `visual-regression.yml`. `UC-COB-02`/`UC-COB-07` saíram do docblock pro TÍTULO do `CobrancaControllerTest`. **Achado que reenquadra a tela:** o "7/7 UC citados por teste" é string-match — 5 dos 7 (`UC-COB-01/02/03/05/07`) apontam pra arquivo em `.github/financeiro-pest-quarantine.list`, e o manifesto G-7 (`scripts/casos-test-results.json`) só tem `UC-COB-04` e `UC-COB-06`: **2 de 7 com prova de execução**. Sair da quarentena exige consertar os 4 vermelhos anotados na lista — decisão [W].
 - 2026-08-17 · [CC] criado no espelho Cowork (preparo da leva 2). Charter v1 rico, 0 `casos.md` — os `it()` do `CobrancaControllerTest` precisam citar os ids (G-2).
 
 [ADR 0264]: ../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md

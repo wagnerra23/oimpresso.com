@@ -31,11 +31,13 @@ on:
   # se algo do Arquivos mudou; se não, pula o pesado e conclui verde. push segue
   # path-filtered (contém custo no main).
   pull_request:
+    types: [opened, reopened, ready_for_review]
     branches: [main]
   push:
     branches: [main]
     paths:
       - 'Modules/Arquivos/**'
+      - 'resources/js/Pages/Arquivos/**'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/arquivos-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -73,6 +75,7 @@ jobs:
           filters: |
             arq:
               - 'Modules/Arquivos/**'
+              - 'resources/js/Pages/Arquivos/**'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/arquivos-pest.yml'
               - '.github/actions/pest-mysql-setup/**'

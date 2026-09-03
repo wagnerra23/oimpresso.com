@@ -18,6 +18,7 @@ name: block-brl-values selftest (hook Tier 0 dinheiro — advisory)
 
 on:
   pull_request:
+    types: [opened, reopened, ready_for_review]
     branches: [main]
     paths:
       - '.claude/hooks/block-brl-values-in-memory.mjs'

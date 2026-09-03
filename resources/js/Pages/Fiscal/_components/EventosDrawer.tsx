@@ -10,6 +10,8 @@
 // Refactor onda 1 (2026-05-26): shell migrado pra <DrawerBase> compartilhado.
 
 import { router } from '@inertiajs/react';
+import { btnProps } from '../_lib/botao-fiscal';
+import { Button } from '@/Components/ui/button';
 import { Activity, ExternalLink } from 'lucide-react';
 
 import { sefazLabel, sefazTone } from '../_lib/sefaz-codes';
@@ -73,16 +75,16 @@ export default function EventosDrawer({ open, eventos, onClose }: EventosDrawerP
             Janelas legais: CC-e 30d · cancelamento 24h NFC-e / 168h NF-e · inutilização faixas
           </small>
           <div className="fx-drawer-f-r">
-            <button
+            <Button
               type="button"
-              className="fx-btn ghost"
+              {...btnProps('ghost')}
               onClick={() => {
                 onClose();
                 router.visit('/fiscal/eventos');
               }}
             >
               <ExternalLink size={12} /> Ver tudo
-            </button>
+            </Button>
           </div>
         </>
       }

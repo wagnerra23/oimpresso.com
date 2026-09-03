@@ -6,11 +6,16 @@
 //
 // Layout por PRIMITIVOS (ADR 0253): Stack/Inline/Grid, nunca `flex`/`grid` solto.
 //
+// Gráficos (US-DASH-002) e abas de grade + drawer (US-DASH-005) JÁ ESTÃO nesta tela — o
+// comentário anterior dizia o contrário e apodreceu no dia em que as ondas entraram.
+//
 // Fora desta onda, por motivo declarado:
-//   · gráficos (US-DASH-002) — não há lib de chart no package.json; entra com ADR própria
-//   · abas de grade e Pendências (US-DASH-005) — consomem os 4 endpoints AJAX existentes
 //   · "Papel simulado" / "Simular falha" — instrumentos do protótipo. Em produção quem
 //     decide é a permissão real e a resposta real do endpoint.
+//   · widgets pluggable de outros módulos (US-DASH-003) — o ponto de extensão é o método
+//     `dashboard_widget()` em `Modules\<X>\Http\Controllers\DataController`, e ele tem
+//     ZERO produtores nos 32 DataControllers (medido 2026-08-28). Era o único motivo
+//     restante pra abrir o Blade legado, e não tinha conteúdo — por isso o Blade saiu.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Icon } from '@/Components/Icon';
@@ -21,7 +26,6 @@ import KpiCard from '@/Components/shared/KpiCard';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import { PageHeader } from '@/Components/PageHeader';
 import { PeriodBar, type Period } from '@/Components/shared/PeriodBar';
-import { Alert, AlertDescription } from '@/Components/ui/alert';
 import type { PaginatorShape } from '@/Components/shared/DataTable';
 import GradesPainel, { type Aba, type LinhaDaGrade } from './_components/GradesPainel';
 import { Deferred, router } from '@inertiajs/react';
@@ -55,7 +59,6 @@ interface Props {
   aba: string | null;
   /** Linhas da aba aberta. Prop DEFERIDA: chega no segundo round-trip. */
   grade: PaginatorShape<LinhaDaGrade> | null;
-  legacy_url: string;
   endpoints: {
     totals: string;
     stock_alert: string;
@@ -137,7 +140,6 @@ function HomeIndex({
   abas,
   aba,
   grade,
-  legacy_url,
 }: Props) {
   const lojas = Object.entries(all_locations);
   const mostraLoja = is_admin && lojas.length > 1;
@@ -276,19 +278,6 @@ function HomeIndex({
           description="A permissão dashboard.data não está atribuída ao seu papel. A tela abre sem erro — nenhum indicador é carregado."
         />
       )}
-
-      <Alert>
-        <Icon name="info" size={16} />
-        <AlertDescription>
-          <p>
-            Os widgets de outros módulos ainda não foram portados para esta tela.{' '}
-            <a href={legacy_url} className="font-medium text-primary underline-offset-2 hover:underline">
-              Abrir versão completa
-            </a>
-            .
-          </p>
-        </AlertDescription>
-      </Alert>
     </Stack>
   );
 }
@@ -338,6 +327,56 @@ function Contrapartidas({ totals }: { totals: Totals }) {
  * Os 2 gráficos da Visão geral. Lê `charts` DEPOIS do first paint (Deferred).
  * O <Chart> é o do DS portado 1:1 — SVG puro, sem lib.
  */
+/**
+ * SerieAcessivel — a MESMA série do gráfico, em texto, só pra leitor de tela.
+ *
+ * O `<Chart>` desenha em SVG: quem não enxerga o desenho não recebe número
+ * nenhum. O `aria-label` do `PainelGrafico` anuncia o TÍTULO ("Vendas por dia")
+ * e para aí — diz que existe um gráfico, não o que ele mostra.
+ *
+ * Tabela (e não um parágrafo) porque a série é tabular: leitor de tela navega
+ * célula a célula e anuncia o cabeçalho de cada linha. O `<caption>` carrega a
+ * leitura de relance — total e pico — pra quem não quer percorrer 30 linhas.
+ *
+ * Usa `brl` (moeda por extenso), não `brlCurto`: a forma abreviada é
+ * pensada pro olho num eixo estreito; em áudio o valor cheio é mais claro.
+ */
+function SerieAcessivel({
+  titulo,
+  dados,
+}: {
+  titulo: string;
+  dados: Array<{ label: string; value: number }>;
+}) {
+  const primeiro = dados[0];
+  if (!primeiro) return null; // série vazia: nada a anunciar (e satisfaz o strict)
+
+  const total = dados.reduce((soma, p) => soma + p.value, 0);
+  const pico = dados.reduce((maior, p) => (p.value > maior.value ? p : maior), primeiro);
+
+  return (
+    <table className="sr-only">
+      <caption>
+        {titulo}: total de {brl(total)} no período; maior valor em {pico.label}, {brl(pico.value)}.
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col">Período</th>
+          <th scope="col">Valor</th>
+        </tr>
+      </thead>
+      <tbody>
+        {dados.map((p) => (
+          <tr key={p.label}>
+            <th scope="row">{p.label}</th>
+            <td>{brl(p.value)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
 function GraficosVendas({ charts }: { charts: Props['charts'] }) {
   if (!charts) return null;
 
@@ -345,9 +384,11 @@ function GraficosVendas({ charts }: { charts: Props['charts'] }) {
     <Grid cols={1} gap={4} className="lg:grid-cols-2" data-contract="graficos">
       <PainelGrafico titulo="Vendas por dia" meta="últimos 30 dias">
         <Chart type="area" data={charts.dia} height={132} formatValue={brlCurto} />
+        <SerieAcessivel titulo="Vendas por dia, últimos 30 dias" dados={charts.dia} />
       </PainelGrafico>
       <PainelGrafico titulo="Vendas por mês" meta="ano fiscal">
         <Chart type="bar" data={charts.mes} height={132} highlightLast formatValue={brlCurto} />
+        <SerieAcessivel titulo="Vendas por mês, ano fiscal" dados={charts.mes} />
       </PainelGrafico>
     </Grid>
   );

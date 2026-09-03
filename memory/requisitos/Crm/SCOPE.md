@@ -48,6 +48,8 @@ related_adrs:
   - 0080-trust-tiers-operacional-audit-findings
 url_prefixes:
   - /crm/*
+  - /cliente/* (drawer 760 — draft · lookup · {id}; o miolo e co-provido pelo NUCLEO, routes/web.php:591 e :607)
+  - /contact/* (portal do cliente — profile · ledger · purchases · sells · bookings · order-request)
 drift_alerts: []
 ---
 

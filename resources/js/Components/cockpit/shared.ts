@@ -100,6 +100,22 @@ export interface ShellMenuItem {
    *                conhecimento | dashboard | jana | governanca | plataforma
    */
   group?: string;
+  /**
+   * Atalho de teclado declarado pelo DataController do módulo (ADR 0180
+   * Fase 4). Formato validado no backend por `App\Sidebar\SidebarMenuItem`:
+   * `G X` ou `G X Y`. Chega ao React via pass-through do `LegacyMenuAdapter`.
+   * Consumido por `useSidebarShortcut` (índice + listener) e pelo slot
+   * `.sb-item-end` do `SidebarMenuItem` (dica visual no hover/foco).
+   */
+  shortcut?: string;
+  /**
+   * Sub-telas do item ("ghosts"), declaradas pelo DataController do módulo
+   * (ADR 0180 Fase 4) e repassadas pelo `LegacyMenuAdapter`. O protótipo Cowork
+   * as renderiza no SIDEBAR, sob o item ATIVO, com teto de 5 + "⋯ mais N", e usa
+   * o total como contador no slot direito do item.
+   * Ver ADR UI-0028 (protótipo soberano na FORMA).
+   */
+  ghosts?: Array<{ key?: string; label: string; href: string }>;
   children?: ShellMenuItem[];
 }
 
@@ -155,6 +171,19 @@ export const LS = {
 } as const;
 
 export type SidebarMode = 'expanded' | 'rail';
+
+// ── Auto-rail responsivo (ADR UI-0030) ─────────────────────────────────────
+// Até esta largura o shell NASCE em rail (56px) em vez de expandido (260px),
+// como o shell do protótipo Cowork (`prototipo-ui/cowork/app.jsx`).
+//
+// Por que 1280 INCLUSIVE, se o protótipo usa `innerWidth < 1280` (rail só a
+// partir de 1279)? Medido no espelho em 2026-09-02 (tabela na ADR UI-0030):
+// a `cockpit.css` já trata `@media (max-width: 1280px)` como a banda estreita
+// do shell — é onde o painel Linked colapsa pra 0. Dois limiares de "estreito"
+// no mesmo shell (≤1280 pro painel, ≤1279 pro rail) seria drift; 1280 é a
+// largura do monitor do [W], e é justamente o caso que motivou o pedido.
+export const AUTO_RAIL_MAX_W = 1280;
+export const AUTO_RAIL_MQ = `(max-width: ${AUTO_RAIL_MAX_W}px)`;
 
 // Hue OKLCH por grupo (espelha GROUP_META do prototipo Cowork
 // _cowork-export-2026-05-15/data.jsx). Aplicado via CSS var --gh nos

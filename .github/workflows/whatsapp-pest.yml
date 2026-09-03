@@ -36,11 +36,13 @@ on:
   # Whatsapp mudou, pula o pesado e conclui verde. Promovível a required sem deadlock
   # "Expected — waiting" (ADR 0271 onda 2). push segue path-filtered (contém custo no main).
   pull_request:
+    types: [opened, reopened, ready_for_review]
     branches: [main]
   push:
     branches: [main]
     paths:
       - 'Modules/Whatsapp/**'
+      - 'resources/js/Pages/Whatsapp/**'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/whatsapp-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -78,6 +80,7 @@ jobs:
           filters: |
             whatsapp:
               - 'Modules/Whatsapp/**'
+              - 'resources/js/Pages/Whatsapp/**'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/whatsapp-pest.yml'
               - '.github/actions/pest-mysql-setup/**'

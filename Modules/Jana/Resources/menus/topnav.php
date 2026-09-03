@@ -21,9 +21,10 @@ return [
         ['label' => 'copiloto::copiloto.menu.conversar',  'href' => '/ia/conversa',         'icon' => 'MessageSquare',   'can' => 'jana.chat'],
         ['label' => 'copiloto::copiloto.menu.dashboard',  'href' => '/ia',                  'icon' => 'LayoutDashboard', 'can' => 'jana.access'],
         ['label' => 'copiloto::copiloto.menu.metas',      'href' => '/ia/metas',            'icon' => 'Target',          'can' => 'jana.metas.manage'],
-        // Wagner 2026-05-25: /ia/alertas REMOVIDO do topnav legacy — tela é STUB
-        // ("spec-ready ver US-COPI-060"). Reativar quando US-COPI-060 entregar.
-        // ['label' => 'copiloto::copiloto.menu.alertas',    'href' => '/ia/alertas',          'icon' => 'Bell',            'can' => 'jana.access'],
+        // /ia/alertas voltou em 2026-09-02: a tela deixou de ser stub (Inertia
+        // `Jana/Alertas`). Tinha saído em 2026-05-25 ("spec-ready ver US-COPI-060").
+        ['label' => 'copiloto::copiloto.menu.alertas',    'href' => '/ia/alertas',          'icon' => 'Bell',            'can' => 'jana.access'],
+        ['label' => 'copiloto::copiloto.menu.acoes',      'href' => '/ia/acoes',            'icon' => 'Lightbulb',       'can' => 'jana.access'],
         // Repontado 2026-08-05: a tela foi fundida no painel da Governança
         // (ADR 0366 §D-C item 1). Mantido o item pra não perder o acesso de quem
         // já usava o topnav da IA; o `can` segue `jana.mcp.usage.all`, que é o

@@ -130,13 +130,36 @@ citado depois do prazo vira afirmação. Antes de usar qualquer linha daqui como
 
 | # | protótipo | tela viva | veredito |
 |---|---|---|---|
-| 1 | Receita mês | **Receita mês** | ✅ **(rótulo alinhado em #5881)** |
+| 1 | Receita mês | **Receita 30 dias** | ✅ **divergência DELIBERADA** — ver nota |
 | 2 | A receber vencido (com `emphasize`) | **A receber vencido** | ✅ **(#5881)** — e o nome novo é mais preciso: é `overdueValue`, o que venceu e não foi pago |
 | 3 | Ticket médio | Ticket médio | ✅ |
-| 4 | **Frota utilização** | PIX hoje | 🟡 divergem — ver nota |
-| — | KPI clicável quando existe análise do mesmo dado (`JM_KPI_DRILL`) | 2 dos 4 abrem drill | ✅ |
+| — | *(o protótipo não tem 4º KPI)* | ~~PIX hoje~~ **removido 2026-08-31** | ✅ **paridade fechada** (UC-JPAIN-18) |
+| — | KPI clicável quando existe análise do mesmo dado (`JM_KPI_DRILL`) | 2 dos **3** abrem drill | ✅ |
 
-> **Nota sobre o 4º KPI.** O protótipo retrata o cockpit do Martinho (`biz=164`), onde frota é o negócio. A tela `/ia` do núcleo atende ROTA LIVRE (vestuário). Com o Non-Goal removido (charter v7), **não há mais proibição** de construir — mas também **não há fonte**: `Modules/OficinaAuto/Entities/Vehicle` é do OficinaAuto. Copiar exige decidir de onde vem o dado para um business que não tem frota.
+> **O 4º KPI: fechado em 2026-08-31, e a nota anterior estava errada.** Ela dizia que o protótipo
+> traz `Frota utilização` no 4º slot. **Medido e falso:** `grep -in 'frota\|truck' jana-merge.jsx`
+> → **rc=1, zero ocorrências**, com controle positivo no mesmo arquivo (`grep -c JM_KPI_DRILL` →
+> 2, rc=0). E `getJanaData().kpis` publica **3** entradas, não 4 — não existe 4º slot pra disputar.
+> A frota sobrevive só no `chat-jana.jsx` (não-âncora), e **nem lá é KPI**: é o ícone `truck:` e a
+> classe CSS `jc-an-frota`.
+>
+> O que a nota antiga acertava e **segue valendo**: o veredito [W] de 2026-08-07 (*"Frota
+> utilização são alucinação, ninguém usa"*) e a ausência de fonte (`Vehicle` é do `OficinaAuto`;
+> a `/ia` do núcleo atende ROTA LIVRE, vestuário). Nada disso muda — só deixou de haver tentação
+> na âncora. Por decisão [W], o slot foi **fechado** removendo o `PIX hoje`, e a ordem dos três
+> restantes passou a casar 1:1 com a do protótipo (`KpiGrid cols={3}`).
+>
+> ⛔ **[W] revogou a objeção em 2026-08-31** — textual: *"essa ressalva deve ser por isso que não
+> fica igual. deve ser revogado. que igual."* A regra: **o conjunto de KPIs é o que a âncora
+> renderiza**, e não se re-litiga. O **dado** (`pixHojeTotal`) ficou — a ação "PIX adoção" e a
+> linha do brief seguem consumindo. Segue valendo só a regra de FONTE: derivar do `chat-jana.jsx`
+> o que ele **não** renderiza (frota) é proibido; espelhar o que a âncora renderiza é paridade.
+
+> **Nota sobre o 1º KPI — a divergência de rótulo é intencional.** O protótipo diz `Receita mês`;
+> a tela viva diz `Receita 30 dias`, porque o dado é `whereBetween(transaction_date, [hoje-29,
+> hoje])` — 30 dias **deslizantes**. O UC-JPAIN-14 corrigiu a palavra com esse fundamento, e no
+> protótipo ela é coerente só porque lá o delta ao lado é "vs mai/25" (mês contra mês). **Aqui é o
+> protótipo que está atrás**; copiar a copy dele reintroduziria bug conhecido.
 
 ## R5 · Metas
 
@@ -544,3 +567,24 @@ Dois trabalhos atacaram este documento no mesmo dia. O crédito fica separado po
 - **Golden PT-04 `draft` → `live`** — aprovação de screenshot (F1.5); trava o `ciclo-completo` desta tela **e** de outras duas.
 - **`related_prototype`** — hoje `jana-merge.jsx`; o check `pt_declarado` só casa `PT-0X`, então o ciclo reprova enquanto ficar assim.
 - **Título "Dashboard" × "Painel"** — a aba diz Painel, a rota é `/ia`, mas título, breadcrumb e o componente exportado dizem Dashboard.
+
+## Paridade das ABAS — fechada em 2026-09-02 (3 PRs, uma aba cada)
+
+> Fecha a linha *"abas: protótipo 6 × prod 3"* do handoff 2026-08-31 §Paridade Painel. Fonte
+> provada antes de comparar: `jana-merge.jsx` re-baixado do Cowork vivo pela máquina (#6600 — o
+> `JmTabs` passou a renderizar por `CliTabs`; a LISTA de abas não mudou) e `jana-telas-novas.jsx`
+> re-lido pelo `get_file` (inline, 616 linhas nos dois lados). D0: os símbolos são `JmTabs` /
+> `JmAlertas` / `JmAcoesFila` / `JmPlataforma`, não o cockpit de cobrança.
+
+| aba (ordem da âncora) | protótipo | tela viva | veredito |
+|---|---|---|---|
+| Painel · Conversa | `JmTabs` | ghosts `dashboard` · `copiloto` | ✅ já era |
+| **Alertas** (3ª) | `JmAlertas` — lista de desvios, chips, config em `localStorage` | `Jana/Alertas` (#6607): lista do `AlertaService::calcular`, chips de severidade, kebab "Abrir a meta" | ✅ **estrutura** · 🟡 **decisão** — silenciar/perguntar/config ficaram fora (servidor não honra; charter §Anti-hooks) |
+| **Ações** (4ª) | `JmAcoesFila` — 5 ações fixas, recibo por `setTimeout` | `Jana/Acoes` (#6608): `AcaoHitlService::fila()`, `JanaAcaoModal` reusado, recibo gravado | ✅ |
+| Memória | `JmTabs` | ghost `memorias` | ✅ já era |
+| **Plataforma** (6ª, só superadmin) | `JmPlataforma` — alerta de gate + 2 listas + instalação `21·4·24` | `Jana/Plataforma`: gate REAL no menu e na rota, listas cruas, contagens do disco | ✅ · 🟡 alerta da âncora **caducou** (#6421) e ficou fora |
+| contador `n` nas abas | `nConversas` · `nAlertas` | — | ❌ segue **backend** (R2) |
+
+**O que ainda diverge do protótipo nesta tela (Painel):** o card **Cheques** × `metodos` — sem
+fonte (ver `Index.casos.md` §Pendência do UC-JPAIN-18); decisão [W] sobre migrar
+`FINANCEIRO_CHEQUE`. Medido em 2026-08-31, não re-litigado.

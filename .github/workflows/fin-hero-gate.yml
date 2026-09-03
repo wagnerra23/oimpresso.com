@@ -12,7 +12,9 @@ name: Fin Hero Gate — KPI hero claro (anti-regressão Onda 28)
 # controle-negativo roda no CI) · ADR 0281 (.dark bridge).
 
 on:
+  workflow_dispatch:
   pull_request:
+    types: [opened, reopened, ready_for_review]
     paths:
       - 'resources/css/fin-cowork.css'
       - 'resources/js/Pages/Financeiro/_shared/FinStatStrip.tsx'

@@ -7744,6 +7744,12 @@ parameters:
 			path: Modules/Manufacturing/Services/RecipeBomService.php
 
 		-
+			message: '#^Relation ''ingredients'' is not found in Modules\\Manufacturing\\Entities\\MfgRecipe model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: Modules/Manufacturing/Services/RecipeBomService.php
+
+		-
 			message: '#^Relation ''variation'' is not found in Modules\\Manufacturing\\Entities\\MfgRecipeIngredient model\.$#'
 			identifier: larastan.relationExistence
 			count: 1

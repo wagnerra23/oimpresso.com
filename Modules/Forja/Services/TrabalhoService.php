@@ -83,6 +83,39 @@ class TrabalhoService
     public const FILTROS_ATALHO_GANTT = ['cycle', 'owner', 'priority', 'module'];
 
     /**
+     * Agrupamentos da Lista — os SEIS do protótipo (`FJ_GROUPS` em
+     * `prototipo-ui/cowork/forja-page.jsx`), na mesma ordem. PARIDADE §11 Onda 4.
+     *
+     * Nenhum deles toca a consulta: agrupar é como se OLHA a mesma lista. Viajam
+     * na query string pelo mesmo motivo de `visao`/`eixo` — compartilhar o link
+     * leva a pessoa ao que se está vendo — e por isso saem da chave de cache.
+     *
+     * `UC-TRAB-11` cruza esta lista com a do protótipo: se o Cowork mudar os
+     * agrupamentos, o caso cai em vez de a tela divergir em silêncio.
+     */
+    public const GRUPOS = ['onda', 'frente', 'fase', 'papel', 'prioridade', 'modulo'];
+
+    /**
+     * O KPI-filtro do protótipo (`healthFilter`): clicar o cartão recorta a lista.
+     *
+     * ⚠️ Ele recorta a LISTA, nunca os KPIs — no protótipo o número vem do `pool`,
+     * não do `filtered`. Se os KPIs respondessem ao próprio filtro, clicar "P0"
+     * zeraria "Fazendo" e "Bloqueadas", e o painel deixaria de dizer o tamanho do
+     * problema. Por isso {@see self::build} devolve o pool e a régua, e
+     * {@see self::filtrar} corta depois.
+     */
+    public const SAUDE = ['p0', 'fazendo', 'bloqueadas'];
+
+    /**
+     * Papéis do loop (`FORJA_ACTORS` do protótipo) — filtro da barra de baixo.
+     *
+     * Espelho consciente da FONTE DE DESIGN, não do código: `forja_papel` é
+     * texto livre em `custom_fields`, então sem allowlist a barra desenharia
+     * botão para qualquer sujeira digitada. `UC-TRAB-12` cruza os dois lados.
+     */
+    public const PAPEIS = ['W', 'CC', 'CD', 'CL', 'CA', 'AN', 'W2'];
+
+    /**
      * Filtros default — o que a tela usa quando o [W] não pediu nada.
      *
      * @return array<string,mixed>
@@ -104,6 +137,17 @@ class TrabalhoService
             // mesmos filtros). Ficam nos filtros pra viajar na URL.
             'visao'    => 'lista',
             'eixo'     => 'execucao',
+            // PARIDADE §11 Onda 4 — os três controles que o protótipo tem e a
+            // tela não tinha. Nenhum entra na chave de cache (ver `build`).
+            //
+            // `grupo` default = `frente`, NÃO `onda` como no protótipo. Os dois
+            // são [W] e não se contradizem: o protótipo oferece os seis, e o
+            // default é preferência — a de 2026-08-08 ("o recorte por projeto se
+            // faz agrupando por Frente") é a que vale, e o mock do Cowork tem
+            // onda em toda issue enquanto `forja_onda` em produção é raro.
+            'grupo'    => 'frente',
+            'saude'    => null,
+            'papel'    => null,
         ];
     }
 
@@ -122,8 +166,11 @@ class TrabalhoService
         // A chave IGNORA `visao`/`eixo`: eles mudam como se OLHA, não o que se
         // consulta. Sem isto, alternar Lista↔Quadro refaria a query inteira por
         // nada — o pool é o mesmo, e é justamente esse o ponto da fusão.
+        // `grupo`/`saude`/`papel` saem pela MESMA razão: nenhum toca a consulta.
+        // Agrupar é como se olha; `saude`/`papel` recortam a coleção depois, em
+        // {@see self::filtrar}, pra que os KPIs sigam medindo o pool inteiro.
         $paraChave = $filtros;
-        unset($paraChave['visao'], $paraChave['eixo']);
+        unset($paraChave['visao'], $paraChave['eixo'], $paraChave['grupo'], $paraChave['saude'], $paraChave['papel']);
         $chave = md5(serialize($paraChave));
         if (isset($this->cache[$chave])) {
             return $this->cache[$chave];
@@ -166,6 +213,52 @@ class TrabalhoService
 
             return ['tasks' => $tasks, 'kpis' => $this->kpis($tasks)];
         });
+    }
+
+    /**
+     * O recorte que o KPI-filtro e a barra de Papel fazem SOBRE o pool.
+     *
+     * Fica fora de {@see self::build} de propósito: os KPIs têm que continuar
+     * medindo o pool inteiro enquanto a lista encolhe (é o que o protótipo faz —
+     * o cartão diz o tamanho do problema, o clique mostra quais são). Se isto
+     * virasse `where` na query, clicar "P0" zeraria "Fazendo" e "Bloqueadas".
+     *
+     * ⚠️ Recorta DEPOIS do teto de 500 de {@see self::LIMIT}. Com o pool cheio, o
+     * resultado é o recorte das 500 primeiras da ordem pedida, não das 500
+     * primeiras que casam — mesmo teto que a tela já tinha, agora declarado.
+     *
+     * @param  Collection<int,array<string,mixed>>  $tasks
+     * @param  array<string,mixed>  $filtros
+     * @return Collection<int,array<string,mixed>>
+     */
+    public function filtrar(Collection $tasks, array $filtros): Collection
+    {
+        $saude = $filtros['saude'] ?? null;
+        if (in_array($saude, self::SAUDE, true)) {
+            $tasks = $tasks->filter(fn (array $t): bool => match ($saude) {
+                // Mesmas três definições do protótipo (bloco `kp` do forja-page.jsx):
+                // P0 conta só o que segue ABERTO — P0 concluída não é problema.
+                'p0'         => ($t['priority'] ?? null) === 'p0' && ($t['status'] ?? null) !== 'done',
+                'fazendo'    => ($t['status'] ?? null) === 'doing',
+                // "Bloqueada" é o status OU ter bloqueio declarado: task com
+                // `blocked_by` cheio está travada mesmo que ninguém tenha virado
+                // o status — e é justamente essa que precisa aparecer.
+                //
+                // `default` em vez do literal `'bloqueadas'`: o `in_array` acima já
+                // estreitou o tipo pra allowlist, então depois dos dois arms o
+                // PHPStan sabe que só resta esse valor — e acusa o arm literal como
+                // sempre-verdadeiro. Ele está certo, e o `default => true` que vinha
+                // depois era inalcançável.
+                default      => ($t['status'] ?? null) === 'blocked' || ($t['blocked_by'] ?? []) !== [],
+            });
+        }
+
+        $papel = $filtros['papel'] ?? null;
+        if (in_array($papel, self::PAPEIS, true)) {
+            $tasks = $tasks->filter(fn (array $t): bool => ($t['forja_papel'] ?? null) === $papel);
+        }
+
+        return $tasks->values();
     }
 
     /**

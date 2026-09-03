@@ -9,6 +9,7 @@ name: ADR Index Gate — ADR 0258
 
 on:
   pull_request:
+    types: [opened, reopened, ready_for_review]
     branches: [main]
     paths:
       - 'memory/decisions/**'
@@ -16,6 +17,10 @@ on:
       - 'tests/governanceAdrScripts.spec.ts'
       - '.github/workflows/adr-index-gate.yml'
   workflow_dispatch:
+
+concurrency:
+  group: adr-index-gate-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   check:

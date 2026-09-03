@@ -42,7 +42,7 @@ const SCHEMA_REL = 'scripts/memory-schemas/charter.schema.json';
 
 // --- pattern canônico de slug US — lido do schema (fonte única; sem hard-code divergente) ---
 function loadSlugPattern() {
-  const fallback = '^US-[A-Za-z0-9]+(?:-[A-Za-z0-9]+)+$';
+  const fallback = '^US-_?[A-Za-z0-9]+(?:-[A-Za-z0-9]+)+$';
   try {
     const schema = JSON.parse(readFileSync(join(ROOT, SCHEMA_REL), 'utf8'));
     const p = schema?.properties?.related_us?.items?.pattern;

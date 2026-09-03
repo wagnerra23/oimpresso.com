@@ -24,9 +24,9 @@ export default function CheatSheetSettings({ onClose }: { onClose: () => void })
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-40 grid place-items-center p-6" onClick={onClose} role="dialog" aria-modal="true" aria-label="Atalhos do teclado">
-      <div className="absolute inset-0 bg-stone-900/40" />
-      <div className="relative w-[460px] bg-white rounded-lg shadow-2xl border border-stone-200 p-5" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 z-40 grid place-items-center p-6">
+      <button type="button" tabIndex={-1} aria-hidden="true" onClick={onClose} className="absolute inset-0 bg-stone-900/40" />
+      <div role="dialog" aria-modal="true" aria-label="Atalhos do teclado" className="relative w-[460px] bg-white rounded-lg shadow-2xl border border-stone-200 p-5">
         <h3 className="text-[14px] font-semibold text-stone-900 mb-3">Atalhos · Gateways</h3>
         <div className="space-y-1.5 text-[12.5px]">
           {ATALHOS.map(({ k, d }) => (

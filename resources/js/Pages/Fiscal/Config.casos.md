@@ -5,12 +5,31 @@ irmaos: Config.charter.md (lei) · memory/requisitos/Fiscal/SDD-cockpit-fiscal-v
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-07-27"
+last_run: "2026-09-01"
 last_run_ci: "0 UC executado nesta corrida — 2 UC herdam testes que JÁ existem e 1 nasce com teste novo; veredito pendente da lane Pest Fiscal + suíte noturna CT 100"
 related_us: [US-FISCAL-009]
 ---
 
 # Casos de Uso & Aceite — Configuração Fiscal
+
+> **Revalidação `last_run` 2026-09-01 — Onda 1 Fiscal (saneamento `fx-*` → DS):** mudança de
+> **apresentação apenas** — 5 `fx-btn` → `<Button>` (dois deles `asChild` sobre `<a>`,
+> preservando o href) e 2 `<input>` hand-rolled → `<Input>`, o que apagou o `style` inline de
+> `padding`/`border`/`radius` que ambos carregavam (a primitiva já dá).
+> Conferi os 3 UC: **todos são Tier 0 de backend** — a senha do A1 nunca chega à tela, o
+> certificado de outro business não aparece, e o gate `fiscal.config.edit`. **Nenhum toca o
+> `.tsx`.** O campo de senha preservou `type="password"`, `autoComplete="off"` e `maxLength`.
+>
+> **O que NÃO foi migrado, e por quê (declarado, não esquecido):**
+> · `fx-cert-*` (grid, card, head, ic, validade, bar, actions) — o CSS estiliza por **seletor
+>   descendente** (`.fx-cert-card h3`, `.fx-cert-card .lead`), então trocar o container por
+>   `<Card>` perderia esses estilos. É chrome bespoke, sem gêmeo 1:1 no DS.
+> · os 3 `fx-callout` — dois carregam **cor condicional de status** (`--ok-soft`/`--bad-soft`)
+>   e o `<Alert>` só tem `default`/`destructive`; mapear exigiria decidir tom por token novo.
+>   Fica para leva própria, com o antes→depois visível.
+> **Nenhum teste re-executado** (Pest = CT 100).
+
+> **Revalidação `last_run` 2026-08-28 — o que foi conferido:** este PR muda a tela em **um único ponto**: o atributo `data-contract="fiscal-config-cert-regime"` no wrapper, âncora do mapa [`fiscal-config.map.json`](../../../../memory/requisitos/Fiscal/fiscal-config.map.json). Conferi o diff do `.tsx` contra a lista de UC deste arquivo — **nenhum UC depende de atributo de DOM**, logo nenhum aceite mudou. **Nenhum teste foi re-executado** nesta revalidação (Pest = CT 100); os vereditos seguem como estavam.
 
 > Persona: **Wagner [W]** (admin) — confere certificado, regime, série e ambiente sem abrir o módulo NfeBrasil.
 >
@@ -42,6 +61,7 @@ related_us: [US-FISCAL-009]
 | UC-FCFG-01 | segredo do certificado não viaja | `[must]` `[T0]` | CU-FISC-14 | `ConfigControllerTest` | 🧪 |
 | UC-FCFG-02 | certificado de outro business não aparece | `[must]` `[T0]` | CU-FISC-12 | `ConfigControllerTest` | 🧪 |
 | UC-FCFG-03 | gate de permissão da tela | `[must]` `[T0]` | CU-FISC-13 | `GatesPermissaoFiscalTest` | 🧪 |
+| UC-FCFG-04 | estado da contingência e sua DURAÇÃO chegam do servidor | `[must]` | US-NFE-006 | `ConfigControllerTest` | 🧪 |
 
 ---
 
@@ -75,6 +95,26 @@ related_us: [US-FISCAL-009]
 - **Âncora de contrato:** `R-FISCAL-003` do [SPEC.md](../../../../memory/requisitos/Fiscal/SPEC.md) §3 + guard em `ConfigController@index`.
 - **Regressão que defende:** esta tela mostra CNPJ titular, regime, numeração fiscal e o ambiente SEFAZ em uso — e, hoje, **oferece dois formulários de mutação** (ver aviso acima). O gate é a única barreira.
 - **Teste:** `Modules/Fiscal/Tests/Feature/GatesPermissaoFiscalTest.php` — `it('UC-FCFG-03 · GET /fiscal/config aborta 403 sem fiscal.config.edit nem superadmin')`
+- **Status:** 🧪 teste nasce nesta corrida; veredito pendente.
+
+---
+
+## UC-FCFG-04 — O estado da contingência e sua DURAÇÃO chegam do servidor `[must]`
+
+**Dado** um business com a contingência SEFAZ ativa há 3 dias, com motivo declarado
+**Quando** a tela `/fiscal/config` é montada
+**Então** o payload traz `ativa=true`, `diasAtiva=3`, o motivo e o instante de ativação;
+**E** com a contingência desligada, `diasAtiva` é `null` — **nunca `0`**.
+
+- **Âncora de contrato:** `US-NFE-006` + `ADR TECH-0002 (NfeBrasil)` §"Consequências → risco
+  operacional", que mitiga *"tenant esquecer de desativar contingência"* com um aviso de **duração**
+  (*"Contingência ATIVA há 2 dias — desativar?"*).
+- **Regressão que defende:** duas, e a segunda é sutil.
+  1. Calcular a duração **no browser** faria o aviso depender do relógio da máquina do operador —
+     e é justamente esse número que sustenta a mitigação da ADR.
+  2. Exibir `0` quando está **desligada** confundiria "ligada hoje" com "não ligada". São estados
+     diferentes; o controle negativo do teste trava isso.
+- **Teste:** `Modules/Fiscal/Tests/Feature/ConfigControllerTest.php` — `it('UC-FCFG-04 · o payload da tela carrega o estado da contingência com a duração vinda do SERVIDOR')`
 - **Status:** 🧪 teste nasce nesta corrida; veredito pendente.
 
 ---

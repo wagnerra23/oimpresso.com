@@ -6,23 +6,22 @@ related_prototype: prototipo-ui/cowork/jana-merge.jsx
 states: [default]  # gate L2 — o `default` desta tela é semeado com UMA venda VENCIDA (routes/web.php `$seedJanaVisregFlow`), pra que o KpiCard `tone="danger"` do "A receber vencido" entre em baseline; sync com tests/Browser/visreg-states.json
 owner: wagner
 status: live
-last_validated: "2026-08-18"
+last_validated: "2026-08-31"
 parent_module: Jana
 parent_adr: memory/decisions/0052-memoria-jana-3-angulos-faturamento.md
 related_adrs: [26, 31, 35, 36, 52, 93, 94, 107, 114]
 related_us: [US-COPI-010, US-COPI-011, US-COPI-012, US-COPI-146, US-COPI-148]
 related_charters:
   - resources/js/Pages/Jana/Chat.charter.md
-  - resources/js/Pages/Jana/Cockpit.charter.md
 related_specs:
   - memory/requisitos/Jana/SPEC.md (US-COPI-010, US-COPI-011, US-COPI-012)
 runbook: memory/requisitos/Jana/RUNBOOK-index.md
 tier: A
-charter_version: 10
-permissao: copiloto.access
+charter_version: 12
+permissao: jana.access
 ---
 
-# Page Charter — `/copiloto/dashboard`
+# Page Charter — `/ia`
 
 > **Status:** `live` — implementada e em uso prod biz=1 desde 2026-04. Charter retroativo Wave M 2026-05-16.
 
@@ -38,7 +37,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 
 ## Goals
 
-- **Barra ÚNICA da área Jana** — `JanaAreaHeader` (em `Pages/Jana/components/`) É o `<PageHeader>` canon: título `Jana · Analista IA` + business/`biz=` + "Atualizado HH:MM" (botão de reapuração) na Zona L, `JanaSubNav` no slot `subnav`, ações da tela + primary "Conversar" na Zona R. Compartilhado com Chat.tsx e Memoria.tsx. Ver `memory/requisitos/Jana/Chat-header-tabs-visual-comparison.md` (gate F1.5).
+- **Barra ÚNICA da área Jana** — `JanaAreaHeader` (em `Pages/Jana/_components/`) É o `<PageHeader>` canon: título `Jana · Analista IA` + business/`biz=` + "Atualizado HH:MM" (botão de reapuração) na Zona L, `JanaSubNav` no slot `subnav`, ações da tela + primary "Conversar" na Zona R. Compartilhado com Chat.tsx e Memoria.tsx. Ver `memory/requisitos/Jana/Chat-header-tabs-visual-comparison.md` (gate F1.5).
 - Render < 200ms p95 com `Inertia::defer()` em `metas` paginated + `apuracoes` 12 janelas
 - Farol calculado server-side via `ApuracaoService::farol(meta, agora)` — frontend só consome
 - **Click em meta → drawer NA PRÓPRIA TELA** (`_components/JanaMetaDrawer.tsx`) com situação
@@ -54,9 +53,9 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 - **Drill-down "de onde vem esse número" (v3 — 2026-08-07):** card de análise abre drawer
   (`_components/JanaDrillDrawer.tsx`) com **Fonte** (tabelas · regra do recorte · método que
   calcula) + **Escopo** (`business_id` da sessão). Um KPI só é clicável quando existe análise
-  do **MESMO dado** — "ticket médio não abre faturamento". Hoje 2 dos 4 KPIs abrem
-  (Receita mês → Faturamento; A receber vencido → Inadimplência); Ticket médio e PIX hoje
-  não têm análise do mesmo dado e permanecem estáticos. Âncora:
+  do **MESMO dado** — "ticket médio não abre faturamento". Hoje 2 dos **3** KPIs abrem
+  (Receita 30 dias → Faturamento; A receber vencido → Inadimplência); Ticket médio
+  não tem análise do mesmo dado e permanece estático. Âncora:
   `prototipo-ui/cowork/jana-merge.jsx` §`JmDrillDrawer` + §`JM_KPI_DRILL` — âncora de SÍMBOLO
   (ref de linha apodrece no 1º refactor, §5 2026-07-26; re-localize com
   `grep -n "JmDrillDrawer\|JM_KPI_DRILL" prototipo-ui/cowork/jana-merge.jsx`).
@@ -193,6 +192,39 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 `brief-first` (Tier A) · `multi-tenant-patterns` (Tier A) · `inertia-defer-default` (Tier B) · `mwart-process` (Tier A)
 
 ## Charter version log
+
+- **v12 (2026-09-02)** — **dois ponteiros podres do frontmatter, gap #23 do [AUDIT-GAPS](../../../../memory/requisitos/Jana/AUDIT-GAPS-2026-08-10.md).** (a) `related_charters` apontava pra `Cockpit.charter.md`, **apagado** — removido; medido no repo inteiro: **280 charters, 3 usam `related_charters`, 1 entrada morta** (esta). (b) `permissao: copiloto.access` — a key não existe; a real é **`jana.access`**, aplicada no grupo `/ia` ([`routes.php:50`](../../../../Modules/Jana/Http/routes.php)). (c) o título do corpo dizia `/copiloto/dashboard`, rota que hoje é 301 — a lista de ponteiros podres da [emenda do Cowork](../../../../prototipo-ui/design-docs/cowork-inbox/JANA-CASOS-EMENDA-PERMISSAO-2026-08-27.md) registra que foi de cabeçalho assim que saiu o `/jana` errado da rodada 1: comentário podre não é inerte, ensina errado ao próximo executor.
+  ⚠️ **Nenhum script valida `related_charters`, e isso segue assim de propósito:** o `deadlink-gate` **já varre** `Pages/**/*.charter.md` (desde 2026-08-10, FP medido) mas só o CORPO markdown — e o próprio `deadlink-gate.test.mjs` usa **este caso** como fixture do limite (*"charter LIMITE: frontmatter related_charters NAO e validado por este gate"*). Com adoção de 3/280 e 1 entrada morta, ampliar seria catraca sobre campo quase não usado; two-strikes ([ADR 0344](../../../../memory/decisions/0344-two-strikes-cobre-processo.md)): 1ª ocorrência conserta, não codifica.
+
+- v11 (2026-08-31) — **O conjunto de KPIs cai pra 3, na paridade com a âncora** (item 4
+  da lista de 2026-08-28). Sai o `PIX hoje`; `KpiGrid` passa a `cols={3}`; a ordem dos
+  três que ficaram (`Receita 30 dias` · `A receber vencido` · `Ticket médio`) casa 1:1
+  com a do protótipo. Contrato novo: **UC-JPAIN-18** no `Index.casos.md`.
+
+  **O que a medição corrigiu no caminho, e fica registrado:**
+  - este charter dizia *"2 dos **4** KPIs abrem"*. Vira **2 dos 3** — mesma regra, o
+    número é que era do conjunto antigo.
+  - o `JanaCockpit.tsx` afirmava, em presente, que a âncora *"traz `Frota utilização`"*.
+    **Falso, medido em 2026-08-31**: `grep -in 'frota\|truck' jana-merge.jsx` → rc=1,
+    zero, com controle positivo no mesmo arquivo (`grep -c JM_KPI_DRILL` → 2, rc=0). A
+    frota só existe no `chat-jana.jsx` (não-âncora) e **nem lá é KPI** — é ícone e
+    classe CSS. O veredito [W] de 2026-08-07 sobre não construir frota segue de pé; o
+    que caiu foi a afirmação de que a âncora ainda a oferece.
+  - o rótulo do 1º card **não** foi copiado do protótipo. Lá é `Receita mês`; aqui fica
+    `Receita 30 dias`, porque o dado são 30 dias deslizantes e o UC-JPAIN-14 corrigiu a
+    palavra com esse fundamento. **Neste ponto é o protótipo que está atrás.**
+
+  ⛔ **Regra, não ressalva — [W] revogou a objeção em 2026-08-31.** Levantei uma vez que
+  o array `kpis` é autorado no `chat-jana.jsx` e que o mock é do Martinho, logo a ausência
+  do PIX poderia ser premissa deles (§5 2026-07-16). [W], textual: *"essa ressalva deve
+  ser por isso que não fica igual. deve ser revogado. que igual."* **Fica assim:** o
+  conjunto de KPIs desta tela é **o que a âncora renderiza**, e isso não se re-litiga por
+  sessão. Ressalva pendurada em canon é recusa disfarçada — é ela que mantém a tela
+  diferente do protótipo (ADR 0382 · §5 2026-08-24).
+
+  Segue valendo o que é regra de FONTE: derivar do `chat-jana.jsx` o que ele **não**
+  renderiza (a frota) continua proibido. Espelhar o que a âncora renderiza é paridade,
+  que é o oposto.
 
 - v10 (2026-08-18) — **Ação HITL: prévia + aprovação registrada** (ordem 1 do
   `Index-visual-comparison.md` — a única linha do §Resumo cuja trava era literalmente

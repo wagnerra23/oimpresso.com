@@ -26,28 +26,28 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 681,
-    "edges": 958,
+    "nodes": 707,
+    "edges": 987,
     "by_node_type": {
       "module": 39,
-      "table": 101,
-      "adr": 105,
-      "component": 391,
-      "api": 45
+      "table": 102,
+      "adr": 107,
+      "component": 385,
+      "api": 74
     },
     "by_edge_type": {
-      "ownsTable": 90,
+      "ownsTable": 91,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 45,
+      "providesApi": 78,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 391,
+      "hasComponent": 385,
       "dependsOn": 115,
       "delegatesTo": 107,
       "migratesTo": 1,
       "supersedes": 15,
-      "supersedesPartially": 48,
+      "supersedesPartially": 49,
       "supersededBy": 19
     },
     "dangling": 0
@@ -643,6 +643,13 @@
       "exists": true
     },
     {
+      "id": "adr:0244",
+      "type": "adr",
+      "num": "0244",
+      "slug": "0244-ds-v5-canon-oficina-padrao",
+      "exists": true
+    },
+    {
       "id": "adr:0256",
       "type": "adr",
       "num": "0256",
@@ -790,27 +797,117 @@
       "exists": true
     },
     {
-      "id": "api:/ads/admin/projects/*",
+      "id": "adr:0386",
+      "type": "adr",
+      "num": "0386",
+      "slug": "0386-ambar-da-oficina-revogado-roxo-e-a-unica-identidade",
+      "exists": true
+    },
+    {
+      "id": "api:/ads/admin/*",
       "type": "api",
-      "prefix": "/ads/admin/projects/*",
+      "prefix": "/ads/admin/*",
       "providers": [
         "Forja"
       ]
     },
     {
-      "id": "api:/ads/admin/team-scopes/*",
+      "id": "api:/advisor/*",
       "type": "api",
-      "prefix": "/ads/admin/team-scopes/*",
+      "prefix": "/advisor/*",
+      "providers": [
+        "Financeiro"
+      ]
+    },
+    {
+      "id": "api:/all-subscriptions",
+      "type": "api",
+      "prefix": "/all-subscriptions",
+      "providers": [
+        "Superadmin"
+      ]
+    },
+    {
+      "id": "api:/api/atendimento/*",
+      "type": "api",
+      "prefix": "/api/atendimento/*",
+      "providers": [
+        "Whatsapp"
+      ]
+    },
+    {
+      "id": "api:/api/cc/*",
+      "type": "api",
+      "prefix": "/api/cc/*",
       "providers": [
         "Forja"
       ]
     },
     {
-      "id": "api:/ads/admin/tools/*",
+      "id": "api:/api/kb/ping",
       "type": "api",
-      "prefix": "/ads/admin/tools/*",
+      "prefix": "/api/kb/ping",
       "providers": [
-        "Forja"
+        "KB"
+      ]
+    },
+    {
+      "id": "api:/api/mcp/*",
+      "type": "api",
+      "prefix": "/api/mcp/*",
+      "providers": [
+        "Forja",
+        "Jana"
+      ]
+    },
+    {
+      "id": "api:/api/mcp/kb/*",
+      "type": "api",
+      "prefix": "/api/mcp/kb/*",
+      "providers": [
+        "KB"
+      ]
+    },
+    {
+      "id": "api:/api/officeimpresso/*",
+      "type": "api",
+      "prefix": "/api/officeimpresso/*",
+      "providers": [
+        "Officeimpresso"
+      ]
+    },
+    {
+      "id": "api:/api/v1/*",
+      "type": "api",
+      "prefix": "/api/v1/*",
+      "providers": [
+        "Financeiro",
+        "NfeBrasil",
+        "RecurringBilling"
+      ]
+    },
+    {
+      "id": "api:/api/webhooks/*",
+      "type": "api",
+      "prefix": "/api/webhooks/*",
+      "providers": [
+        "RecurringBilling"
+      ]
+    },
+    {
+      "id": "api:/api/whatsapp/*",
+      "type": "api",
+      "prefix": "/api/whatsapp/*",
+      "providers": [
+        "Whatsapp"
+      ]
+    },
+    {
+      "id": "api:/aprovar-os/*",
+      "type": "api",
+      "prefix": "/aprovar-os/*",
+      "providers": [
+        "OficinaAuto"
       ]
     },
     {
@@ -822,9 +919,9 @@
       ]
     },
     {
-      "id": "api:/assetmanagement/*",
+      "id": "api:/asset/*",
       "type": "api",
-      "prefix": "/assetmanagement/*",
+      "prefix": "/asset/*",
       "providers": [
         "AssetManagement"
       ]
@@ -846,6 +943,30 @@
       ]
     },
     {
+      "id": "api:/c/*",
+      "type": "api",
+      "prefix": "/c/*",
+      "providers": [
+        "Cms"
+      ]
+    },
+    {
+      "id": "api:/catalogue/*",
+      "type": "api",
+      "prefix": "/catalogue/*",
+      "providers": [
+        "ProductCatalogue"
+      ]
+    },
+    {
+      "id": "api:/cliente/*",
+      "type": "api",
+      "prefix": "/cliente/*",
+      "providers": [
+        "Crm"
+      ]
+    },
+    {
       "id": "api:/cms/*",
       "type": "api",
       "prefix": "/cms/*",
@@ -854,17 +975,17 @@
       ]
     },
     {
-      "id": "api:/cobranca/*",
+      "id": "api:/compras/*",
       "type": "api",
-      "prefix": "/cobranca/*",
+      "prefix": "/compras/*",
       "providers": [
-        "PaymentGateway"
+        "Compras"
       ]
     },
     {
-      "id": "api:/com-visual/*",
+      "id": "api:/comunicacao-visual/*",
       "type": "api",
-      "prefix": "/com-visual/*",
+      "prefix": "/comunicacao-visual/*",
       "providers": [
         "ComunicacaoVisual"
       ]
@@ -878,19 +999,27 @@
       ]
     },
     {
-      "id": "api:/consultaos/*",
+      "id": "api:/consulta-os/*",
       "type": "api",
-      "prefix": "/consultaos/*",
+      "prefix": "/consulta-os/*",
       "providers": [
         "ConsultaOs"
       ]
     },
     {
-      "id": "api:/copiloto/admin/memoria/*",
+      "id": "api:/contact/*",
       "type": "api",
-      "prefix": "/copiloto/admin/memoria/*",
+      "prefix": "/contact/*",
       "providers": [
-        "KB"
+        "Crm"
+      ]
+    },
+    {
+      "id": "api:/copiloto/*",
+      "type": "api",
+      "prefix": "/copiloto/*",
+      "providers": [
+        "Jana"
       ]
     },
     {
@@ -926,6 +1055,14 @@
       ]
     },
     {
+      "id": "api:/financeiro/rb-invoices/*",
+      "type": "api",
+      "prefix": "/financeiro/rb-invoices/*",
+      "providers": [
+        "RecurringBilling"
+      ]
+    },
+    {
       "id": "api:/fiscal/*",
       "type": "api",
       "prefix": "/fiscal/*",
@@ -934,11 +1071,35 @@
       ]
     },
     {
+      "id": "api:/forja/*",
+      "type": "api",
+      "prefix": "/forja/*",
+      "providers": [
+        "Forja"
+      ]
+    },
+    {
       "id": "api:/governance/*",
       "type": "api",
       "prefix": "/governance/*",
       "providers": [
         "Governance"
+      ]
+    },
+    {
+      "id": "api:/hrm/*",
+      "type": "api",
+      "prefix": "/hrm/*",
+      "providers": [
+        "Essentials"
+      ]
+    },
+    {
+      "id": "api:/ia/*",
+      "type": "api",
+      "prefix": "/ia/*",
+      "providers": [
+        "Jana"
       ]
     },
     {
@@ -963,6 +1124,14 @@
       "prefix": "/manufacturing/*",
       "providers": [
         "Manufacturing"
+      ]
+    },
+    {
+      "id": "api:/nfe-brasil/*",
+      "type": "api",
+      "prefix": "/nfe-brasil/*",
+      "providers": [
+        "NfeBrasil"
       ]
     },
     {
@@ -998,9 +1167,25 @@
       ]
     },
     {
-      "id": "api:/payment-gateway/*",
+      "id": "api:/old",
       "type": "api",
-      "prefix": "/payment-gateway/*",
+      "prefix": "/old",
+      "providers": [
+        "Cms"
+      ]
+    },
+    {
+      "id": "api:/page/{slug}",
+      "type": "api",
+      "prefix": "/page/{slug}",
+      "providers": [
+        "Superadmin"
+      ]
+    },
+    {
+      "id": "api:/paymentgateway/*",
+      "type": "api",
+      "prefix": "/paymentgateway/*",
       "providers": [
         "PaymentGateway"
       ]
@@ -1030,17 +1215,41 @@
       ]
     },
     {
-      "id": "api:/productcatalogue/*",
+      "id": "api:/post-repair-status",
       "type": "api",
-      "prefix": "/productcatalogue/*",
+      "prefix": "/post-repair-status",
+      "providers": [
+        "Repair"
+      ]
+    },
+    {
+      "id": "api:/pricing/*",
+      "type": "api",
+      "prefix": "/pricing/*",
+      "providers": [
+        "Superadmin"
+      ]
+    },
+    {
+      "id": "api:/product-catalogue/*",
+      "type": "api",
+      "prefix": "/product-catalogue/*",
       "providers": [
         "ProductCatalogue"
       ]
     },
     {
-      "id": "api:/projectmgmt/*",
+      "id": "api:/project-mgmt/install/*",
       "type": "api",
-      "prefix": "/projectmgmt/*",
+      "prefix": "/project-mgmt/install/*",
+      "providers": [
+        "Forja"
+      ]
+    },
+    {
+      "id": "api:/project-mgmt/roadmap",
+      "type": "api",
+      "prefix": "/project-mgmt/roadmap",
       "providers": [
         "Forja"
       ]
@@ -1062,11 +1271,51 @@
       ]
     },
     {
+      "id": "api:/repair-status",
+      "type": "api",
+      "prefix": "/repair-status",
+      "providers": [
+        "Repair"
+      ]
+    },
+    {
       "id": "api:/repair/*",
       "type": "api",
       "prefix": "/repair/*",
       "providers": [
         "Repair"
+      ]
+    },
+    {
+      "id": "api:/reports/activity-log",
+      "type": "api",
+      "prefix": "/reports/activity-log",
+      "providers": [
+        "Auditoria"
+      ]
+    },
+    {
+      "id": "api:/settings/payment-gateways/*",
+      "type": "api",
+      "prefix": "/settings/payment-gateways/*",
+      "providers": [
+        "PaymentGateway"
+      ]
+    },
+    {
+      "id": "api:/show-catalogue/*",
+      "type": "api",
+      "prefix": "/show-catalogue/*",
+      "providers": [
+        "ProductCatalogue"
+      ]
+    },
+    {
+      "id": "api:/sops/*",
+      "type": "api",
+      "prefix": "/sops/*",
+      "providers": [
+        "KB"
       ]
     },
     {
@@ -1078,11 +1327,27 @@
       ]
     },
     {
+      "id": "api:/subscription/*",
+      "type": "api",
+      "prefix": "/subscription/*",
+      "providers": [
+        "Superadmin"
+      ]
+    },
+    {
       "id": "api:/superadmin/*",
       "type": "api",
       "prefix": "/superadmin/*",
       "providers": [
         "Superadmin"
+      ]
+    },
+    {
+      "id": "api:/team-mcp/*",
+      "type": "api",
+      "prefix": "/team-mcp/*",
+      "providers": [
+        "Forja"
       ]
     },
     {
@@ -1094,43 +1359,28 @@
       ]
     },
     {
-      "id": "api:/webhooks/asaas",
+      "id": "api:/voz-do-cliente/*",
       "type": "api",
-      "prefix": "/webhooks/asaas",
+      "prefix": "/voz-do-cliente/*",
       "providers": [
-        "PaymentGateway"
+        "VozDoCliente"
       ]
     },
     {
-      "id": "api:/webhooks/bcb-pix",
+      "id": "api:/webhook/*",
       "type": "api",
-      "prefix": "/webhooks/bcb-pix",
+      "prefix": "/webhook/*",
       "providers": [
-        "PaymentGateway"
+        "Woocommerce"
       ]
     },
     {
-      "id": "api:/webhooks/c6",
+      "id": "api:/webhooks/inter/*",
       "type": "api",
-      "prefix": "/webhooks/c6",
+      "prefix": "/webhooks/inter/*",
       "providers": [
-        "PaymentGateway"
-      ]
-    },
-    {
-      "id": "api:/webhooks/inter",
-      "type": "api",
-      "prefix": "/webhooks/inter",
-      "providers": [
-        "PaymentGateway"
-      ]
-    },
-    {
-      "id": "api:/webhooks/pagarme",
-      "type": "api",
-      "prefix": "/webhooks/pagarme",
-      "providers": [
-        "PaymentGateway"
+        "PaymentGateway",
+        "RecurringBilling"
       ]
     },
     {
@@ -2235,13 +2485,6 @@
       "desc": ""
     },
     {
-      "id": "component:Forja/ActivityController",
-      "type": "component",
-      "module": "Forja",
-      "name": "ActivityController",
-      "desc": "atividade recente"
-    },
-    {
       "id": "component:Forja/Admin/ProjectsController",
       "type": "component",
       "module": "Forja",
@@ -2277,32 +2520,11 @@
       "desc": "não migram; renomear URL é decisão separada"
     },
     {
-      "id": "component:Forja/BacklogController",
-      "type": "component",
-      "module": "Forja",
-      "name": "BacklogController",
-      "desc": "backlog priorizado"
-    },
-    {
-      "id": "component:Forja/BoardController",
-      "type": "component",
-      "module": "Forja",
-      "name": "BoardController",
-      "desc": "Kanban view"
-    },
-    {
       "id": "component:Forja/BriefFetchController",
       "type": "component",
       "module": "Forja",
       "name": "BriefFetchController",
       "desc": "endpoint HTTP da tool MCP `brief-fetch` (POST /api/mcp/tools/brief-fetch); Daily Brief L7"
-    },
-    {
-      "id": "component:Forja/BurndownController",
-      "type": "component",
-      "module": "Forja",
-      "name": "BurndownController",
-      "desc": "burndown chart por cycle"
     },
     {
       "id": "component:Forja/CcSessionsController",
@@ -2354,13 +2576,6 @@
       "desc": ""
     },
     {
-      "id": "component:Forja/InboxController",
-      "type": "component",
-      "module": "Forja",
-      "name": "InboxController",
-      "desc": "caixa de entrada per-user (mcp_inbox_notifications); paridade tool MCP `my-inbox`"
-    },
-    {
       "id": "component:Forja/Mcp/CcIngestController + CcIngestService + CcIngestRequest",
       "type": "component",
       "module": "Forja",
@@ -2387,13 +2602,6 @@
       "module": "Forja",
       "name": "Mcp/Tools/Handoff{Pending,Ack,Submit,Lever}",
       "desc": "registradas pelo OimpressoMcpServer da Jana; URLs/nomes de tool inalterados"
-    },
-    {
-      "id": "component:Forja/MyWorkController",
-      "type": "component",
-      "module": "Forja",
-      "name": "MyWorkController",
-      "desc": "tasks do owner logado"
     },
     {
       "id": "component:Forja/RoadmapController",
@@ -2463,14 +2671,7 @@
       "type": "component",
       "module": "Forja",
       "name": "TrabalhoController + TrabalhoService",
-      "desc": "lista única (/forja/trabalho): funde os TRÊS backlogs que respondiam a mesma pergunta com escopos diferentes (Pages/Forja/Backlog rica project=FORJA · _components/ForjaBacklog enxuta · team-mcp/Tasks todas). Base é a NATIVA (filtros/KPIs/memoização) + a projeção forja_* do cockpit + escopo sem recorte de projeto. US-FORJA-006; a remoção da implementação perdedora é decisão [W] e NÃO aconteceu nesta onda — as três convivem"
-    },
-    {
-      "id": "component:Forja/TriageController",
-      "type": "component",
-      "module": "Forja",
-      "name": "TriageController",
-      "desc": "tasks órfãs (sem owner/priority/backlog); paridade tool MCP `triage`"
+      "desc": "lista única (/forja/trabalho): funde os TRÊS backlogs que respondiam a mesma pergunta com escopos diferentes (Pages/Forja/Backlog rica project=FORJA · _components/ForjaBacklog enxuta · team-mcp/Tasks todas). Base é a NATIVA (filtros/KPIs/memoização) + a projeção forja_* do cockpit + escopo sem recorte de projeto. US-FORJA-006 DECIDIDA por [W] em 2026-09-02 (PARIDADE §11): venceu o protótipo. A Onda 11 revogou a implementação de /project-mgmt (Pages/Forja/Backlog e Board); as do cockpit (_components/ForjaBacklog e ForjaQuadro) seguem no ar porque o Cockpit ainda as importa — só saem na Onda 3, quando Aprovações virar a landing"
     },
     {
       "id": "component:Governance/ActionGate middleware",
@@ -2814,6 +3015,13 @@
       "module": "NfeBrasil",
       "name": "ConfigDefaultController",
       "desc": "Nível 4 cascade (defaults business)"
+    },
+    {
+      "id": "component:NfeBrasil/ContingenciaController",
+      "type": "component",
+      "module": "NfeBrasil",
+      "name": "ContingenciaController",
+      "desc": "liga/desliga contingencia SEFAZ por tenant (US-NFE-006, ADR TECH-0002)"
     },
     {
       "id": "component:NfeBrasil/DataController",
@@ -5508,6 +5716,17 @@
       "ownership_mode": "single"
     },
     {
+      "id": "table:nfe_sefaz_status",
+      "type": "table",
+      "name": "nfe_sefaz_status",
+      "owners": [
+        "NfeBrasil"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
       "id": "table:payment_gateway_credentials",
       "type": "table",
       "name": "payment_gateway_credentials",
@@ -6013,6 +6232,12 @@
       "source": "supersedes_partially"
     },
     {
+      "from": "adr:0386",
+      "to": "adr:0244",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
       "from": "module:Arquivos",
       "to": "adr:0123",
       "type": "charteredByAdr",
@@ -6192,7 +6417,7 @@
     },
     {
       "from": "module:AssetManagement",
-      "to": "api:/assetmanagement/*",
+      "to": "api:/asset/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -6325,6 +6550,12 @@
       "source": "url_prefixes"
     },
     {
+      "from": "module:Auditoria",
+      "to": "api:/reports/activity-log",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
       "from": "module:Cms",
       "to": "adr:0080",
       "type": "charteredByAdr",
@@ -6416,7 +6647,19 @@
     },
     {
       "from": "module:Cms",
+      "to": "api:/c/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Cms",
       "to": "api:/cms/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Cms",
+      "to": "api:/old",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -6497,6 +6740,12 @@
       "to": "component:Compras/InstallController",
       "type": "hasComponent",
       "source": "contains"
+    },
+    {
+      "from": "module:Compras",
+      "to": "api:/compras/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
     },
     {
       "from": "module:ComunicacaoVisual",
@@ -6612,7 +6861,7 @@
     },
     {
       "from": "module:ComunicacaoVisual",
-      "to": "api:/com-visual/*",
+      "to": "api:/comunicacao-visual/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -6942,7 +7191,7 @@
     },
     {
       "from": "module:ConsultaOs",
-      "to": "api:/consultaos/*",
+      "to": "api:/consulta-os/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -7176,6 +7425,18 @@
     },
     {
       "from": "module:Crm",
+      "to": "api:/cliente/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Crm",
+      "to": "api:/contact/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Crm",
       "to": "api:/crm/*",
       "type": "providesApi",
       "source": "url_prefixes"
@@ -7315,6 +7576,12 @@
     {
       "from": "module:Essentials",
       "to": "api:/essentials/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Essentials",
+      "to": "api:/hrm/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -7539,6 +7806,18 @@
       "to": "component:Financeiro/UnificadoController",
       "type": "hasComponent",
       "source": "contains"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "api:/advisor/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "api:/api/v1/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
     },
     {
       "from": "module:Financeiro",
@@ -7810,12 +8089,6 @@
     },
     {
       "from": "module:Forja",
-      "to": "component:Forja/ActivityController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Forja",
       "to": "component:Forja/Admin/ProjectsController",
       "type": "hasComponent",
       "source": "contains"
@@ -7846,25 +8119,7 @@
     },
     {
       "from": "module:Forja",
-      "to": "component:Forja/BacklogController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Forja",
-      "to": "component:Forja/BoardController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Forja",
       "to": "component:Forja/BriefFetchController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Forja",
-      "to": "component:Forja/BurndownController",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -7912,12 +8167,6 @@
     },
     {
       "from": "module:Forja",
-      "to": "component:Forja/InboxController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Forja",
       "to": "component:Forja/Mcp/CcIngestController + CcIngestService + CcIngestRequest",
       "type": "hasComponent",
       "source": "contains"
@@ -7937,12 +8186,6 @@
     {
       "from": "module:Forja",
       "to": "component:Forja/Mcp/Tools/Handoff{Pending,Ack,Submit,Lever}",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Forja",
-      "to": "component:Forja/MyWorkController",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -8003,12 +8246,6 @@
     {
       "from": "module:Forja",
       "to": "component:Forja/TrabalhoController + TrabalhoService",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Forja",
-      "to": "component:Forja/TriageController",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -8326,25 +8563,43 @@
     },
     {
       "from": "module:Forja",
-      "to": "api:/ads/admin/projects/*",
+      "to": "api:/ads/admin/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
     {
       "from": "module:Forja",
-      "to": "api:/ads/admin/team-scopes/*",
+      "to": "api:/api/cc/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
     {
       "from": "module:Forja",
-      "to": "api:/ads/admin/tools/*",
+      "to": "api:/api/mcp/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
     {
       "from": "module:Forja",
-      "to": "api:/projectmgmt/*",
+      "to": "api:/forja/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Forja",
+      "to": "api:/project-mgmt/install/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Forja",
+      "to": "api:/project-mgmt/roadmap",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Forja",
+      "to": "api:/team-mcp/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -9003,6 +9258,24 @@
     },
     {
       "from": "module:Jana",
+      "to": "api:/api/mcp/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Jana",
+      "to": "api:/copiloto/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Jana",
+      "to": "api:/ia/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Jana",
       "to": "api:/jana/*",
       "type": "providesApi",
       "source": "url_prefixes"
@@ -9287,13 +9560,25 @@
     },
     {
       "from": "module:KB",
-      "to": "api:/copiloto/admin/memoria/*",
+      "to": "api:/api/kb/ping",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:KB",
+      "to": "api:/api/mcp/kb/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
     {
       "from": "module:KB",
       "to": "api:/kb/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:KB",
+      "to": "api:/sops/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -9473,6 +9758,12 @@
     },
     {
       "from": "module:NfeBrasil",
+      "to": "component:NfeBrasil/ContingenciaController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:NfeBrasil",
       "to": "component:NfeBrasil/DataController",
       "type": "hasComponent",
       "source": "contains"
@@ -9566,6 +9857,24 @@
       "to": "table:nfe_inutilizacoes",
       "type": "ownsTable",
       "source": "db_tables_owned"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "table:nfe_sefaz_status",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "api:/api/v1/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "api:/nfe-brasil/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
     },
     {
       "from": "module:NfeBrasil",
@@ -9761,6 +10070,12 @@
     },
     {
       "from": "module:Officeimpresso",
+      "to": "api:/api/officeimpresso/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Officeimpresso",
       "to": "api:/officeimpresso/*",
       "type": "providesApi",
       "source": "url_prefixes"
@@ -9896,6 +10211,12 @@
       "to": "component:OficinaAuto/VehicleController",
       "type": "hasComponent",
       "source": "contains"
+    },
+    {
+      "from": "module:OficinaAuto",
+      "to": "api:/aprovar-os/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
     },
     {
       "from": "module:OficinaAuto",
@@ -10179,43 +10500,19 @@
     },
     {
       "from": "module:PaymentGateway",
-      "to": "api:/cobranca/*",
+      "to": "api:/paymentgateway/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
     {
       "from": "module:PaymentGateway",
-      "to": "api:/payment-gateway/*",
+      "to": "api:/settings/payment-gateways/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
     {
       "from": "module:PaymentGateway",
-      "to": "api:/webhooks/asaas",
-      "type": "providesApi",
-      "source": "url_prefixes"
-    },
-    {
-      "from": "module:PaymentGateway",
-      "to": "api:/webhooks/bcb-pix",
-      "type": "providesApi",
-      "source": "url_prefixes"
-    },
-    {
-      "from": "module:PaymentGateway",
-      "to": "api:/webhooks/c6",
-      "type": "providesApi",
-      "source": "url_prefixes"
-    },
-    {
-      "from": "module:PaymentGateway",
-      "to": "api:/webhooks/inter",
-      "type": "providesApi",
-      "source": "url_prefixes"
-    },
-    {
-      "from": "module:PaymentGateway",
-      "to": "api:/webhooks/pagarme",
+      "to": "api:/webhooks/inter/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -10455,7 +10752,19 @@
     },
     {
       "from": "module:ProductCatalogue",
-      "to": "api:/productcatalogue/*",
+      "to": "api:/catalogue/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:ProductCatalogue",
+      "to": "api:/product-catalogue/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:ProductCatalogue",
+      "to": "api:/show-catalogue/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -10587,6 +10896,24 @@
     },
     {
       "from": "module:RecurringBilling",
+      "to": "api:/api/v1/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:RecurringBilling",
+      "to": "api:/api/webhooks/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:RecurringBilling",
+      "to": "api:/financeiro/rb-invoices/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:RecurringBilling",
       "to": "api:/recurring-billing/*",
       "type": "providesApi",
       "source": "url_prefixes"
@@ -10594,6 +10921,12 @@
     {
       "from": "module:RecurringBilling",
       "to": "api:/recurringbilling/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:RecurringBilling",
+      "to": "api:/webhooks/inter/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -10722,6 +11055,18 @@
       "to": "component:Repair/RepairStatusController",
       "type": "hasComponent",
       "source": "contains"
+    },
+    {
+      "from": "module:Repair",
+      "to": "api:/post-repair-status",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Repair",
+      "to": "api:/repair-status",
+      "type": "providesApi",
+      "source": "url_prefixes"
     },
     {
       "from": "module:Repair",
@@ -10973,6 +11318,30 @@
     },
     {
       "from": "module:Superadmin",
+      "to": "api:/all-subscriptions",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Superadmin",
+      "to": "api:/page/{slug}",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Superadmin",
+      "to": "api:/pricing/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Superadmin",
+      "to": "api:/subscription/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Superadmin",
       "to": "api:/superadmin/*",
       "type": "providesApi",
       "source": "url_prefixes"
@@ -11114,6 +11483,12 @@
       "to": "component:VozDoCliente/SinalController",
       "type": "hasComponent",
       "source": "contains"
+    },
+    {
+      "from": "module:VozDoCliente",
+      "to": "api:/voz-do-cliente/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
     },
     {
       "from": "module:Whatsapp",
@@ -11381,6 +11756,18 @@
     },
     {
       "from": "module:Whatsapp",
+      "to": "api:/api/atendimento/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Whatsapp",
+      "to": "api:/api/whatsapp/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Whatsapp",
       "to": "api:/atendimento/*",
       "type": "providesApi",
       "source": "url_prefixes"
@@ -11480,6 +11867,12 @@
       "to": "component:Woocommerce/WoocommerceWebhookController",
       "type": "hasComponent",
       "source": "contains"
+    },
+    {
+      "from": "module:Woocommerce",
+      "to": "api:/webhook/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
     },
     {
       "from": "module:Woocommerce",

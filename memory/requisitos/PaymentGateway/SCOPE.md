@@ -71,13 +71,11 @@ related_adrs:
   - 0094-constituicao-v2-7-camadas-8-principios
   - 0143-fsm-pipeline-live-prod-marco-2026-05-12
 url_prefixes:
-  - /payment-gateway/*
-  - /cobranca/*
-  - /webhooks/inter (migrado de RecurringBilling, redirect 301 das URLs antigas durante 30d)
-  - /webhooks/c6 (migrado)
-  - /webhooks/asaas (migrado)
-  - /webhooks/bcb-pix (novo)
-  - /webhooks/pagarme (Onda 4e)
+  # Medido em 2026-09-02: os webhooks vivem sob /paymentgateway/webhooks/* — o cutover
+  # pro topo (/webhooks/<driver>) é a Onda 3.5, que NÃO aconteceu. Rotas em Routes/web.php:102.
+  - /paymentgateway/* (install + webhooks/{inter,c6,asaas,bcb-pix,pagarme,sicoob-api})
+  - /settings/payment-gateways/* (UI de credenciais — health-check · quota · toggle · cnab-retorno)
+  - /webhooks/inter/* (único no topo; o PIX de /webhooks/inter/pix/ é servido por Modules/RecurringBilling)
 db_tables_owned:
   - payment_gateway_credentials
   - cobrancas

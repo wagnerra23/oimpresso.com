@@ -1,6 +1,8 @@
 ---
 page: /atendimento/macros
 component: Modules/Whatsapp/Resources/js/Pages/Atendimento/Macros/Index.tsx
+related_prototype: n/a (herda PT-01 Lista; o inbox-page.jsx desenha o USO das macros no composer, não a gestão — medido 2026-08-31)
+related_us: [US-WA-048]
 owner: wagner
 status: draft
 last_validated: "2026-05-16"

@@ -11,6 +11,8 @@
 // pegou número mas não autorizou) — fecha anualmente sem multa.
 
 import { router } from '@inertiajs/react';
+import { btnProps } from '../_lib/botao-fiscal';
+import { Button } from '@/Components/ui/button';
 import { Eraser, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -202,12 +204,12 @@ export default function InutilizacaoModal({
         </div>
 
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <button className="fx-btn ghost" onClick={onClose} disabled={busy}>
+          <Button {...btnProps('ghost')} onClick={onClose} disabled={busy}>
             Voltar
-          </button>
-          <button className="fx-btn warn" onClick={handleEnviar} disabled={!podeEnviar}>
+          </Button>
+          <Button {...btnProps('warn')} onClick={handleEnviar} disabled={!podeEnviar}>
             {busy ? 'Enviando…' : `Inutilizar ${faixaValida ? `[${nDe}..${nAte}]` : 'faixa'}`}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

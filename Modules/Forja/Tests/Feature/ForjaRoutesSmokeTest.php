@@ -82,6 +82,10 @@ function forjaRotasAbas(): array
         '/forja/mcp'       => ['forja.mcp',       'mcp'],
         // 6ª aba desde 2026-08-08: handoffs saiu de DENTRO da aba MCP e virou tela.
         '/forja/handoffs'  => ['forja.handoffs',  'handoffs'],
+        '/forja/integrador' => ['forja.integrador', 'integrador'],
+        // Saúde ganhou rota própria na Onda 7 (PARIDADE §11) — até 2026-09-02 a pílula
+        // do topnav apontava pro /team-mcp/scorecard, que segue vivo como drill.
+        '/forja/saude'      => ['forja.saude',      'saude'],
     ];
 }
 
@@ -258,7 +262,10 @@ it('UC-FORJA-05 · rota de aba da Forja é GET-only (o shell não escreve estado
 })->with(forjaRotasNomes());
 
 // -------------------------------------------------------------------------
-// UC-FORJA-02 — topnav do hub: 10 itens, nenhum apontando pra rota fantasma
+// UC-FORJA-02 — topnav do hub: a conta bate, e nenhum item aponta pra rota fantasma
+//
+// (O cabeçalho dizia "10 itens" enquanto o assert dizia 13 — número em prosa
+//  apodrece, então aqui ele não se repete: quem manda é o `toHaveCount` abaixo.)
 // -------------------------------------------------------------------------
 //
 // NÃO é tautológico: cruza DUAS fontes independentes — `config/core_topnavs.php`
@@ -267,15 +274,16 @@ it('UC-FORJA-05 · rota de aba da Forja é GET-only (o shell não escreve estado
 // meses apontando pra uma rota que nunca existiu (#4887). Testar o config contra
 // ele mesmo é que seria tautologia (§5 proibicoes.md, 2026-06-05).
 
-it('UC-FORJA-02 · topnav do hub tem 13 itens (9 Forja + 4 TeamMcp absorvidos)', function () {
+it('UC-FORJA-02 · topnav do hub tem os 6 destinos do protótipo, em 3 grupos', function () {
     $items = config('core_topnavs.Forja.items');
 
     expect($items)->toBeArray();
-    expect($items)->toHaveCount(13,
-        'Fusão de 2026-06-16: `config/core_topnavs.php[Forja]` é o ÚNICO grupo que casa '.
-        '/team-mcp/* no useAutoModuleNav, então carrega as abas próprias MAIS as 4 telas '.
-        'absorvidas (Tarefas · Equipe · CC Sessions · Saúde). Mudou a conta? O hub ganhou ou '.
-        'perdeu tela — atualize Cockpit.casos.md e o §5.3 F6 do SDD junto.'
+    expect($items)->toHaveCount(6,
+        '9 → 6 em 2026-09-02 (PARIDADE §11 Onda 2, ADR 0388): a lista É a do protótipo '.
+        'forja-page.jsx — Aprovações · Trabalho · Saúde · MCP · Changelog · Integrador, em 3 '.
+        'grupos. Saíram do TOPO (rotas vivas): Triagem, Handoffs, Equipe, CC Sessions; cada um '.
+        'vira seção/segmento na onda da view receptora. Mudou a conta? O hub ganhou ou perdeu '.
+        'ENTRADA — atualize Cockpit.casos.md junto, e confira que FORJA_TABS bateu (UC-FORJA-14).'
     );
 });
 

@@ -4,12 +4,17 @@
 //   stories: US-FISCAL-008 (DF-e manifesto sub-página 4 do design KB-9.75)
 //   adrs: 0093, 0094, 0101, 0104
 
+import { Inline } from '@/Components/layout';
+import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
+import { Button } from '@/Components/ui/button';
+import { Input } from '@/Components/ui/input';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, router } from '@inertiajs/react';
 import { Check, CheckCircle2, Eye, FileSearch, Info, ShieldAlert, XCircle } from 'lucide-react';
 import { useState } from 'react';
 
 import FxShell from './_components/FxShell';
+import { chipCount, chipProps } from './_lib/chip-filtro';
 import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
 import { brl, formatDoc, truncKey } from './_lib/fiscal-helpers';
 
@@ -137,9 +142,9 @@ export default function Dfe({ activeTab, filters: initialFilters, counts, rows, 
         env={counts.pendentes > 0 ? `${counts.pendentes} aguardando` : 'tudo manifestado'}
         envTone={counts.pendentes > 10 ? 'warn' : counts.pendentes > 0 ? 'ok' : 'ok'}
         actions={
-          <button type="button" className="fx-btn primary" disabled title="Bulk manifestar (PR seguinte)">
+          <Button type="button" variant="cowork-primary" disabled title="Bulk manifestar (PR seguinte)">
             Manifestar selecionadas <kbd>E</kbd>
-          </button>
+          </Button>
         }
       >
         {/* DS Onda 3 — barra de abas CANÔNICA (PageHeaderTabs) em faixa própria,
@@ -157,46 +162,80 @@ export default function Dfe({ activeTab, filters: initialFilters, counts, rows, 
 
         {tab === 'pendente' && (<>
         {/* Callout informativo (port do fiscal-page.jsx §10 FiscalDFePage) */}
-        <div className="fx-callout" role="region" aria-label="O que é manifestação">
+        {/* `role="region"` + `aria-label` MANTIDOS: o <Alert> traz `role="alert"`
+            embutido (live-region assertiva), errado pra banner informativo estático. */}
+        <Alert className="mb-3" role="region" aria-label="O que é manifestação">
           <Info size={16} />
-          <div>
-            <b>O que é manifestação?</b>
-            <small>
+          <AlertTitle>O que é manifestação?</AlertTitle>
+          <AlertDescription>
+            <span>
               Toda NF-e emitida com o seu CNPJ no destinatário deve ser manifestada
               em até <b>90 dias</b>. 4 respostas: <b>ciência</b> · <b>confirmação</b> ·
               {' '}<b>desconhecimento</b> · <b>não realizada</b>. Sem manifestar, escrita
               fiscal e CIAP ficam inconsistentes.
-            </small>
-          </div>
-        </div>
+            </span>
+          </AlertDescription>
+        </Alert>
 
-        <div className="fx-filters" data-contract="fiscal-dfe-filters">
-          <div className="fx-search">
-            <FileSearch size={13} />
-            <input
+        <Inline gap={2} align="center" wrap className="mb-3" data-contract="fiscal-dfe-filters">
+          {/* Espaço da lupa pela utilitária canon `.cw-input-icon-left`, NÃO `pl-*`:
+              a Tailwind é layered e perde pro `.cw-input` unlayered (cowork-fields.css). */}
+          <div className="relative min-w-[240px] flex-1">
+            <FileSearch
+              size={13}
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            />
+            <Input
               type="search"
+              className="cw-input-icon-left"
               placeholder="Buscar chave (44d), CNPJ ou nome emitente…"
+              aria-label="Buscar DF-e por chave, CNPJ ou nome do emitente"
               value={filters.search}
               onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
               onKeyDown={(e) => e.key === 'Enter' && apply({ search: filters.search })}
             />
           </div>
-          <button type="button" className={`fx-chip warn${filters.status === 'pendentes' ? ' active' : ''}`} onClick={() => apply({ status: 'pendentes' })}>
-            Pendentes <span>{counts.pendentes}</span>
-          </button>
-          <button type="button" className={`fx-chip${filters.status === 'confirmadas' ? ' active' : ''}`} onClick={() => apply({ status: 'confirmadas' })}>
-            Confirmadas <span>{counts.confirmadas}</span>
-          </button>
-          <button type="button" className={`fx-chip danger${filters.status === 'desconhecidas' ? ' active' : ''}`} onClick={() => apply({ status: 'desconhecidas' })}>
-            Desconhecidas <span>{counts.desconhecidas}</span>
-          </button>
-          <button type="button" className={`fx-chip danger${filters.status === 'nao_realizadas' ? ' active' : ''}`} onClick={() => apply({ status: 'nao_realizadas' })}>
-            Não realizadas <span>{counts.naoRealizadas}</span>
-          </button>
-          <button type="button" className={`fx-chip${filters.status === 'todas' ? ' active' : ''}`} onClick={() => apply({ status: 'todas' })}>
-            Todas <span>{counts.total}</span>
-          </button>
-        </div>
+          <Button
+            type="button"
+            {...chipProps(filters.status === 'pendentes', 'warn')}
+            aria-pressed={filters.status === 'pendentes'}
+            onClick={() => apply({ status: 'pendentes' })}
+          >
+            Pendentes <span className={chipCount(filters.status === 'pendentes')}>{counts.pendentes}</span>
+          </Button>
+          <Button
+            type="button"
+            {...chipProps(filters.status === 'confirmadas')}
+            aria-pressed={filters.status === 'confirmadas'}
+            onClick={() => apply({ status: 'confirmadas' })}
+          >
+            Confirmadas <span className={chipCount(filters.status === 'confirmadas')}>{counts.confirmadas}</span>
+          </Button>
+          <Button
+            type="button"
+            {...chipProps(filters.status === 'desconhecidas', 'danger')}
+            aria-pressed={filters.status === 'desconhecidas'}
+            onClick={() => apply({ status: 'desconhecidas' })}
+          >
+            Desconhecidas <span className={chipCount(filters.status === 'desconhecidas')}>{counts.desconhecidas}</span>
+          </Button>
+          <Button
+            type="button"
+            {...chipProps(filters.status === 'nao_realizadas', 'danger')}
+            aria-pressed={filters.status === 'nao_realizadas'}
+            onClick={() => apply({ status: 'nao_realizadas' })}
+          >
+            Não realizadas <span className={chipCount(filters.status === 'nao_realizadas')}>{counts.naoRealizadas}</span>
+          </Button>
+          <Button
+            type="button"
+            {...chipProps(filters.status === 'todas')}
+            aria-pressed={filters.status === 'todas'}
+            onClick={() => apply({ status: 'todas' })}
+          >
+            Todas <span className={chipCount(filters.status === 'todas')}>{counts.total}</span>
+          </Button>
+        </Inline>
 
         <Deferred data="rows" fallback={
           <div className="fx-empty"><b>Carregando DF-e…</b><small>Busca em NfeDfeRecebido scoped</small></div>
@@ -253,30 +292,50 @@ export default function Dfe({ activeTab, filters: initialFilters, counts, rows, 
                         <td onClick={(e) => e.stopPropagation()}>
                           {podeManifestar ? (
                             <div style={{ display: 'flex', gap: 4 }}>
-                              <button className="fx-btn ghost" style={{ padding: '3px 6px' }}
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="icon-xs"
+                                className="shrink-0"
                                 disabled={isBusy}
                                 title="Confirmar operação (210200)"
+                                aria-label="Confirmar operação"
                                 onClick={() => dispatchManifest(d.id, 'confirmar')}>
                                 <CheckCircle2 size={11} />
-                              </button>
-                              <button className="fx-btn ghost" style={{ padding: '3px 6px' }}
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="icon-xs"
+                                className="shrink-0"
                                 disabled={isBusy}
                                 title="Ciência (210210)"
+                                aria-label="Dar ciência"
                                 onClick={() => dispatchManifest(d.id, 'cienciar')}>
                                 <Eye size={11} />
-                              </button>
-                              <button className="fx-btn ghost" style={{ padding: '3px 6px', color: 'var(--bad)' }}
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="icon-xs"
+                                className="shrink-0 text-destructive-fg"
                                 disabled={isBusy}
                                 title="Desconhecer (210220 — exige motivo)"
+                                aria-label="Desconhecer operação"
                                 onClick={() => openModal(d.id, 'desconhecer')}>
                                 <XCircle size={11} />
-                              </button>
-                              <button className="fx-btn ghost" style={{ padding: '3px 6px', color: 'var(--warn)' }}
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="icon-xs"
+                                className="shrink-0 text-warning-fg"
                                 disabled={isBusy}
                                 title="Não realizada (210240 — exige motivo)"
+                                aria-label="Marcar não realizada"
                                 onClick={() => openModal(d.id, 'nao_realizada')}>
                                 <Check size={11} />
-                              </button>
+                              </Button>
                             </div>
                           ) : (
                             <small style={{ color: 'var(--fx-text-mute)' }}>manifestada</small>
@@ -393,16 +452,22 @@ export default function Dfe({ activeTab, filters: initialFilters, counts, rows, 
               {justificativa.length}/255 · {justificativa.trim().length < 15 ? `faltam ${15 - justificativa.trim().length} chars` : '✅ ok'}
             </div>
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-              <button className="fx-btn ghost" onClick={() => setModal(null)} disabled={busyId !== null}>
+              <Button type="button" variant="cowork-ghost" onClick={() => setModal(null)} disabled={busyId !== null}>
                 Voltar
-              </button>
-              <button
-                className={`fx-btn ${modal.acao === 'desconhecer' ? 'danger' : 'warn'}`}
+              </Button>
+              {/* Tom por token semântico. O DS não tem variante `warning` no Button e
+                  criar uma é soberania [W] — por isso o ramo "warn" é `outline` +
+                  classes de token, não variante nova. */}
+              <Button
+                type="button"
+                variant={modal.acao === 'desconhecer' ? 'destructive' : 'outline'}
+                size="cowork"
+                className={modal.acao === 'desconhecer' ? undefined : 'border-warning bg-warning text-white hover:bg-warning/90'}
                 onClick={confirmModal}
                 disabled={busyId !== null || justificativa.trim().length < 15}
               >
                 {busyId !== null ? 'Enviando…' : 'Confirmar'}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

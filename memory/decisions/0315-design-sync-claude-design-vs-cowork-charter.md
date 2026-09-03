@@ -81,6 +81,8 @@ Pelos **mesmos** critérios da 0299 + 0239:
 
 Só como **canal de export read-mostly**, com Wagner dizendo explícito, p.ex.: gerar um catálogo visual compartilhável (o "Design System pane") **a partir** do DS git já aprovado, pra mostrar a cliente/sócio — **git continua a fonte**, claude.ai/design é só vitrine derivada. Nunca o inverso (claude.ai/design → git).
 
+> **⚠️ EMENDA NO CORPO — [W] 2026-09-01** (verbatim: *"meu protocolo deve ser ajustado para aceitar e tratar esse arquivo [o `github.md` do Cowork] e remover adrs antigas conflitantes"*; sobre o mecanismo: *"adr não é mais read only"* + *"pode modificar, removo possíveis conflitos"*). A frase final do parágrafo acima — **"Nunca o inverso (claude.ai/design → git)"** — **não vige mais como absoluto**. Leitura vigente: *"nunca o inverso para o **Design System**"* (tokens/componentes — a [ADR 0374](0374-emenda-0315-espelho-cowork-e-rota-prevista.md) já relia assim); para o projeto **Cowork**, descer é a **rota prevista** — o build para `prototipo-ui/cowork/` (0374) e os `.md` de processo para `prototipo-ui/design-docs/` (decisão [W] 2026-08-20; a [ADR 0387](0387-github-md-diario-cowork-aceito-e-tratado.md) formaliza e põe o `github.md` no read-order do protocolo). Emenda pela exceção da [ADR 0377](0377-append-only-adr-excecao-por-label-emenda-0094.md) — o PR desta emenda leva a label `adr-body-edit-W`. O texto original acima fica como registro datado de 2026-06-30.
+
 ## Não-goals
 
 - ❌ **Não desinstala/desconecta** a skill `/design-sync` — ela é legítima sob opt-in (igual ao Figma na 0299).

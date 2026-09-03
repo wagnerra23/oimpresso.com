@@ -4576,7 +4576,8 @@ body{
 .vco-rules th{ font-size:11px; color:oklch(0.50 0.02 250); font-weight:500; }
 
 /* ──── RELATÓRIOS ──── */
-.vrep-tabs{ display:flex; gap:6px; padding:0 20px 12px; }
+/* 24px lateral = canon do shell (era 20px). O 12px inferior é do desenho da tela. */
+.vrep-tabs{ display:flex; gap:6px; padding:0 24px 12px; }
 .vrep-tabs button{ padding:6px 14px; border:1px solid oklch(0.88 0.01 250); border-radius:20px; background:#fff; cursor:pointer; font-size:12px; }
 .vrep-tabs button.active{ background:var(--accent); border-color:var(--accent); color:#fff; }
 .vrep-summary{

@@ -246,20 +246,42 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
 
         // Onda 19 (2026-05-19) #49 — Conciliação OFX MVP.
         // Upload arquivo OFX → parser → linhas pendentes → fuzzy match → user aprova.
-        Route::get('/conciliacao', [ConciliacaoController::class, 'index'])
-            ->name('conciliacao.index');
-        Route::post('/conciliacao/upload', [ConciliacaoController::class, 'upload'])
-            ->name('conciliacao.upload');
-        Route::post('/conciliacao/{lineId}/match', [ConciliacaoController::class, 'match'])
-            ->whereNumber('lineId')
-            ->name('conciliacao.match');
-        Route::post('/conciliacao/{lineId}/ignorar', [ConciliacaoController::class, 'ignorar'])
-            ->whereNumber('lineId')
-            ->name('conciliacao.ignorar');
-        // Reabrir (undo) conciliação/ignore → volta a pendente + audit-log.
-        Route::post('/conciliacao/{lineId}/reabrir', [ConciliacaoController::class, 'reabrir'])
-            ->whereNumber('lineId')
-            ->name('conciliacao.reabrir');
+        //
+        // `SetSessionData` explícito (2026-09-03): o grupo pai (linha 57) NÃO tem esse
+        // middleware — diverge da stack canônica UltimatePOS que o CLAUDE.md documenta
+        // (`['web', 'SetSessionData', 'auth', …]`). Em produção passa despercebido porque
+        // o login popula `session('user')` e a sessão PERSISTE entre requests. No gate
+        // visual não: o bridge `/_visreg-login/{id}` (routes/web.php:316) faz
+        // `session()->forget(['user', …])` de propósito (anti-vazamento entre tenants) e
+        // conta com o `SetSessionData` da rota alvo pra repopular. Sem ele,
+        // `session('user.business_id')` fica null → `(int) null = 0` no
+        // `ConciliacaoController::index()` → `where('business_id', 0)` → lista VAZIA, com
+        // a tela renderizando normal (o sub-nav "Conciliação" vem do DataController, não
+        // das linhas). Foi o que fez o `ConciliacaoIndexTest` nascer vermelho em #6476.
+        //
+        // O middleware é IDEMPOTENTE (`if (! has('user') || $stale)`): onde a sessão já
+        // está populada — todo o fluxo de produção — é no-op. Escopo deliberadamente
+        // limitado às 5 rotas de conciliação: nenhuma tem baseline de pixel
+        // (`tests/Browser/visreg-screens.json`), então a correção não pode mexer em
+        // snapshot já assado. Estender ao grupo inteiro alcançaria `/financeiro/unificado`
+        // e `/financeiro/contas-bancarias`, que TÊM baseline — decisão separada, com o
+        // gate visual rodado (resíduo declarado, não conserto silencioso).
+        Route::middleware('SetSessionData')->group(function () {
+            Route::get('/conciliacao', [ConciliacaoController::class, 'index'])
+                ->name('conciliacao.index');
+            Route::post('/conciliacao/upload', [ConciliacaoController::class, 'upload'])
+                ->name('conciliacao.upload');
+            Route::post('/conciliacao/{lineId}/match', [ConciliacaoController::class, 'match'])
+                ->whereNumber('lineId')
+                ->name('conciliacao.match');
+            Route::post('/conciliacao/{lineId}/ignorar', [ConciliacaoController::class, 'ignorar'])
+                ->whereNumber('lineId')
+                ->name('conciliacao.ignorar');
+            // Reabrir (undo) conciliação/ignore → volta a pendente + audit-log.
+            Route::post('/conciliacao/{lineId}/reabrir', [ConciliacaoController::class, 'reabrir'])
+                ->whereNumber('lineId')
+                ->name('conciliacao.reabrir');
+        });
 
         // Onda 23 (2026-05-20) US-FIN-029 — OCR boleto upload (OpenAI Vision).
         // KILLER feature vs Conta Azul. Endpoint não cria titulo direto —

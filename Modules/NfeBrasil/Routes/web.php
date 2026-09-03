@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\NfeBrasil\Http\Controllers\CertificadoController;
 use Modules\NfeBrasil\Http\Controllers\ConfigDefaultController;
+use Modules\NfeBrasil\Http\Controllers\ContingenciaController;
 use Modules\NfeBrasil\Http\Controllers\ImportRegrasController;
 use Modules\NfeBrasil\Http\Controllers\InstallController;
 use Modules\NfeBrasil\Http\Controllers\NfeBrasilController;
@@ -51,6 +52,21 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
             ->name('nfe-brasil.certificado.testar');
         Route::post('certificado/ambiente', [CertificadoController::class, 'updateAmbiente'])
             ->name('nfe-brasil.certificado.ambiente');
+    });
+
+// US-NFE-006 / ADR TECH-0002 — contingência SEFAZ (EPEC / off-line NFC-e).
+// Permissão `nfe.contingencia.manage` (nome fixado pela ADR) validada no
+// AtivarContingenciaRequest; o desativar checa no controller (não tem FormRequest
+// porque não tem payload a validar).
+// Só POST: ativar contingência é ATO, e ato não entra por GET — link/prefetch/crawler
+// não pode mudar o modo de emissão fiscal de um tenant.
+Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
+    ->prefix('nfe-brasil/contingencia')
+    ->group(function () {
+        Route::post('ativar', [ContingenciaController::class, 'ativar'])
+            ->name('nfe-brasil.contingencia.ativar');
+        Route::post('desativar', [ContingenciaController::class, 'desativar'])
+            ->name('nfe-brasil.contingencia.desativar');
     });
 
 // US-NFE-010 fase 2 — UI tributação (regras NCM + config default).

@@ -24,6 +24,14 @@ use Illuminate\Database\Eloquent\Model;
  *   }
  *
  * Pré-populado pelo wizard de onboarding por regime (MEI/Simples/Presumido/Real).
+ *
+ * US-NFE-006 / ADR TECH-0002 — estado de contingência POR TENANT. As anotações
+ * abaixo existem porque Larastan não infere atributo dinâmico de Eloquent a partir
+ * da migration: sem elas, todo acesso vira "undefined property" no ratchet do PHPStan.
+ *
+ * @property bool $em_contingencia
+ * @property \Illuminate\Support\Carbon|null $contingencia_ativada_em
+ * @property string|null $contingencia_motivo
  */
 class NfeBusinessConfig extends Model
 {
@@ -35,11 +43,16 @@ class NfeBusinessConfig extends Model
         'business_id', 'regime', 'auto_emission_enabled', 'tributacao_default',
         // US-FISCAL-021 (PR-C): flag Reforma Tributária. legacy (default) | hybrid_2026 | full.
         'reforma_tributaria_modo',
+        // US-NFE-006 / ADR TECH-0002: contingência é decisão POR TENANT (a ADR rejeitou
+        // auto-ativação). A observação de que a SEFAZ caiu é global, em nfe_sefaz_status.
+        'em_contingencia', 'contingencia_ativada_em', 'contingencia_motivo',
     ];
 
     protected $casts = [
         'auto_emission_enabled' => 'boolean',
         'tributacao_default' => 'array',
+        'em_contingencia' => 'boolean',
+        'contingencia_ativada_em' => 'datetime',
     ];
 
     public function scopeDoBusinessAtual(Builder $q): Builder

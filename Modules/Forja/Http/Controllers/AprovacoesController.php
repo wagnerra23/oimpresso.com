@@ -66,6 +66,13 @@ class AprovacoesController extends Controller
             'decisoes' => $svc->decisoesPossiveis(),
             'fila'     => Inertia::defer(fn () => $svc->fila()),
             'contagem' => Inertia::defer(fn () => $svc->contagem()),
+            // As tres faixas que a Onda 3 (PARIDADE §11) trouxe do protótipo:
+            // "Ao vivo no MCP", o placar por papel e o alerta de handoff. Todas
+            // rodam query, então todas vão deferidas — a mesa pinta primeiro e as
+            // faixas chegam depois (skill inertia-defer-default).
+            'aoVivo'           => Inertia::defer(fn () => $svc->aoVivo()),
+            'placar'           => Inertia::defer(fn () => $svc->placar()),
+            'handoffsProblema' => Inertia::defer(fn () => $svc->handoffsComProblema()),
         ]);
     }
 

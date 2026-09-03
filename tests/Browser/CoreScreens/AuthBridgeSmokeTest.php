@@ -63,6 +63,17 @@ $screens = [
     'Fiscal/Cockpit'       => ['/fiscal',                      'fiscal.cockpit.access',       'Notas Fiscais'],
     'Fiscal/NF-e'          => ['/fiscal/nfe',                  'fiscal.nfe.access',           'NF-e'],
     'Fiscal/NFS-e'         => ['/fiscal/nfse',                 'fiscal.nfse.access',          'NFS-e'],
+    // PR-F1 (Onda 0 Fiscal): as 4 telas restantes. Nomes = PATH da tela, de proposito — o
+    // screen-coverage credita por match de path, e os dois rotulos com hifen acima sao
+    // nomes humanos que nao casam com os arquivos .tsx correspondentes (errata do #6515).
+    // Aqui a chave casa, entao a cobertura passa a ser creditada sem mexer no medidor.
+    // NAO reescreva estes comentarios citando o path exato de uma tela: o mapa credita por
+    // MENCAO ao path, entao a citacao viraria credito sem teste (crédito por comentario).
+    // Ancoras vem do <Head title> de cada Page, evitando '&' e '·' (escapam no HTML).
+    'Fiscal/Dfe'           => ['/fiscal/dfe',                  'fiscal.dfe.manage',           'DF-e'],
+    'Fiscal/Eventos'       => ['/fiscal/eventos',              'fiscal.access',               'Eventos'],
+    'Fiscal/Sped'          => ['/fiscal/sped',                 'fiscal.access',               'SPED'],
+    'Fiscal/Config'        => ['/fiscal/config',               'fiscal.config.edit',          'Certificado'],
     // Workspace unificado (#2544): âncora = H1 "Oficina Auto", que renderiza mesmo sem o
     // processo FSM oficina_mecanica_os seedado (VisregTenantSeeder não traz o processo —
     // o corpo cai no empty-state, mas o header monta sempre).

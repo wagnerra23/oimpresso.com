@@ -11,6 +11,8 @@
 // Substitui o visual 6-KPI grid + quick links pelo padrão "Notas Fiscais"
 // (header chips + ribbon estreito + tabela unificada NF-e/NFC-e/NFS-e).
 
+import { Button } from '@/Components/ui/button';
+import { Input } from '@/Components/ui/input';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, router } from '@inertiajs/react';
 import {
@@ -125,7 +127,7 @@ interface CockpitProps {
   kpis: Kpis;
   sparklines: Sparklines;
   alerts: Alert[];
-  notasMock: NotaRow[];
+  notas: NotaRow[];
   savedViewCounts: SavedViewCounts;
   sefazStatus: SefazStatus;
   // Onda 2 — drawers do header (Eventos + Enviar p/ contabilidade)
@@ -225,7 +227,7 @@ function mapToNFSeDrawerData(n: NotaRow): NFSeDrawerData {
 }
 
 export default function Cockpit({
-  kpis, alerts, notasMock, savedViewCounts, sefazStatus,
+  kpis, alerts, notas, savedViewCounts, sefazStatus,
   eventosMock = [], contabilData = null, writeOffSummary = null,
 }: CockpitProps) {
   const goto = (path: string) => router.visit(path);
@@ -241,7 +243,7 @@ export default function Cockpit({
 
   // Drawer focus (id da nota aberta). Resolve qual drawer abrir pelo tipo.
   const [openedId, setOpenedId] = useState<string | null>(null);
-  const openedNota = useMemo(() => notasMock.find((n) => n.id === openedId) ?? null, [notasMock, openedId]);
+  const openedNota = useMemo(() => notas.find((n) => n.id === openedId) ?? null, [notas, openedId]);
   const openedNfe = openedNota && openedNota.kind === 'nfe'
     ? mapToNotaDrawerData(openedNota)
     : null;
@@ -270,7 +272,7 @@ export default function Cockpit({
   };
 
   const rows = useMemo<NotaRow[]>(() => {
-    let r = notasMock;
+    let r = notas;
     if (tipo !== 'todos') r = r.filter((n) => n.tipo === tipo);
     if (status === 'autorizadas') r = r.filter(isAuthorized);
     if (status === 'rejeitadas')  r = r.filter(isRejected);
@@ -287,7 +289,7 @@ export default function Cockpit({
       );
     }
     return r;
-  }, [notasMock, tipo, status, clienteFilter, search]);
+  }, [notas, tipo, status, clienteFilter, search]);
 
   // Limpa seleção quando filtra
   useEffect(() => { setSelected(new Set()); }, [tipo, status, search, clienteFilter]);
@@ -335,29 +337,31 @@ export default function Cockpit({
         ]}
         actions={
           <>
-            <button type="button" className="fx-chip-action" onClick={() => setEventosOpen(true)}>
+            <Button type="button" variant="cowork-ghost" onClick={() => setEventosOpen(true)}>
               <RefreshCw size={12} /> Eventos
-              {eventosMock.length > 0 && <span style={{ marginLeft: 4, fontSize: 10, fontWeight: 700, color: 'var(--fx-text-mute)' }}>{eventosMock.length}</span>}
-            </button>
-            <button
+              {eventosMock.length > 0 && (
+                <span className="ml-1 text-[10px] font-bold text-muted-foreground">{eventosMock.length}</span>
+              )}
+            </Button>
+            <Button
               type="button"
-              className="fx-chip-action"
+              variant="cowork-ghost"
               onClick={() => setContabilOpen(true)}
               disabled={!contabilData}
               title={contabilData ? 'Abrir fluxo de envio mensal' : 'Backend stub — TODO[CL]'}
             >
               <Archive size={12} /> Enviar p/ contabilidade
-            </button>
+            </Button>
             <div ref={emitirRef} className="fx-popmenu-wrap">
-              <button
+              <Button
                 type="button"
-                className="fx-chip-action primary"
+                variant="cowork-primary"
                 onClick={() => setEmitirOpen((v) => !v)}
                 aria-haspopup="menu"
                 aria-expanded={emitirOpen}
               >
                 <Plus size={12} /> Emitir <ChevronDown size={11} />
-              </button>
+              </Button>
               {emitirOpen && (
                 <div role="menu" className="fx-popmenu">
                   <button role="menuitem" className="fx-popmenu-item" onClick={() => { setEmitirOpen(false); goto('/fiscal/nfe'); }}>
@@ -406,9 +410,9 @@ export default function Cockpit({
             <small>Faturado fiscal</small>
             <b>{brl(kpis.faturamentoFiscal).replace('R$ ', 'R$ ')}</b>
           </span>
-          <button type="button" className="fx-ribbon-cta" onClick={() => goto('/fiscal/sped')}>
+          <Button type="button" variant="outline" size="xs" className="ml-auto shrink-0 self-center" onClick={() => goto('/fiscal/sped')}>
             Fechar mês →
-          </button>
+          </Button>
         </div>
 
         {/* Onda 3 L — Write-off auditoria mensal (só renderiza se houver candidatos) */}
@@ -416,13 +420,21 @@ export default function Cockpit({
 
         {/* Toolbar minimalista — search + 3 selects + density */}
         <div className="fx-notas-toolbar">
-          <div className="fx-search">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          {/* Espaço da lupa pela utilitária canon `.cw-input-icon-left`, NÃO `pl-*`:
+              a Tailwind é layered e perde pro `.cw-input` unlayered (cowork-fields.css). */}
+          <div className="relative min-w-[240px] flex-1">
+            <svg
+              width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+              aria-hidden="true"
+            >
               <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
             </svg>
-            <input
+            <Input
               type="search"
+              className="cw-input-icon-left"
               placeholder="Buscar nº, cliente, CNPJ, chave…"
+              aria-label="Buscar notas por número, cliente, CNPJ ou chave"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -447,10 +459,10 @@ export default function Cockpit({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="todos">Todos os tipos · {notasMock.length}</SelectItem>
-              <SelectItem value="NF-e">NF-e · {notasMock.filter((n) => n.tipo === 'NF-e').length}</SelectItem>
-              <SelectItem value="NFC-e">NFC-e · {notasMock.filter((n) => n.tipo === 'NFC-e').length}</SelectItem>
-              <SelectItem value="NFS-e">NFS-e · {notasMock.filter((n) => n.tipo === 'NFS-e').length}</SelectItem>
+              <SelectItem value="todos">Todos os tipos · {notas.length}</SelectItem>
+              <SelectItem value="NF-e">NF-e · {notas.filter((n) => n.tipo === 'NF-e').length}</SelectItem>
+              <SelectItem value="NFC-e">NFC-e · {notas.filter((n) => n.tipo === 'NFC-e').length}</SelectItem>
+              <SelectItem value="NFS-e">NFS-e · {notas.filter((n) => n.tipo === 'NFS-e').length}</SelectItem>
             </SelectContent>
           </Select>
 
@@ -459,11 +471,11 @@ export default function Cockpit({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="todos">Todos status · {notasMock.length}</SelectItem>
-              <SelectItem value="autorizadas">Autorizadas · {notasMock.filter(isAuthorized).length}</SelectItem>
-              <SelectItem value="rejeitadas">Rejeitadas · {notasMock.filter(isRejected).length}</SelectItem>
-              <SelectItem value="cancelaveis">Janela 24h · {notasMock.filter((n) => n.kind === 'nfe' && n.prazoCancel != null).length}</SelectItem>
-              <SelectItem value="processando">Processando · {notasMock.filter(isProcessing).length}</SelectItem>
+              <SelectItem value="todos">Todos status · {notas.length}</SelectItem>
+              <SelectItem value="autorizadas">Autorizadas · {notas.filter(isAuthorized).length}</SelectItem>
+              <SelectItem value="rejeitadas">Rejeitadas · {notas.filter(isRejected).length}</SelectItem>
+              <SelectItem value="cancelaveis">Janela 24h · {notas.filter((n) => n.kind === 'nfe' && n.prazoCancel != null).length}</SelectItem>
+              <SelectItem value="processando">Processando · {notas.filter(isProcessing).length}</SelectItem>
             </SelectContent>
           </Select>
 
@@ -493,10 +505,10 @@ export default function Cockpit({
         {selected.size > 0 && (
           <div className="fx-bulk-bar" role="region" aria-label="Ações em lote">
             <span><b>{selected.size}</b> nota{selected.size > 1 ? 's' : ''} selecionada{selected.size > 1 ? 's' : ''}</span>
-            <button type="button" className="fx-btn">Baixar XMLs (ZIP)</button>
-            <button type="button" className="fx-btn">Baixar DANFEs (PDF)</button>
-            <button type="button" className="fx-btn">Reenviar por e-mail</button>
-            <button type="button" className="fx-btn" onClick={() => setSelected(new Set())}>Limpar seleção</button>
+            <Button type="button" variant="cowork-ghost">Baixar XMLs (ZIP)</Button>
+            <Button type="button" variant="cowork-ghost">Baixar DANFEs (PDF)</Button>
+            <Button type="button" variant="cowork-ghost">Reenviar por e-mail</Button>
+            <Button type="button" variant="cowork-ghost" onClick={() => setSelected(new Set())}>Limpar seleção</Button>
           </div>
         )}
 

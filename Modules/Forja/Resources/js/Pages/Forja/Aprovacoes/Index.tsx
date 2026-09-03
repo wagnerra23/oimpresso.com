@@ -3,14 +3,43 @@
 // @memcofre
 //   tela: /forja/aprovacoes
 //   module: Forja
-//   adrs: 0368 (funil de admissão) · 0070 (Jira-style) · UI-0013 (Constituição UI v2)
+//   adrs: 0368 (funil de admissão) · 0070 (Jira-style) · UI-0013 (Constituição UI v2) · 0388 (réplica primeiro)
 //   permissao: jana.mcp.usage.all
 //   paridade: fila = McpTask::AWAITING_HUMAN; decisão = TaskCrudService (mesmo
 //             chokepoint da tool MCP `tasks-update`)
 //
-// A ADR 0368 fechou a política em 2026-08-04 e deixou o código pra "PR próprio".
-// O estado e as travas vieram em #5283/#5288 — faltava a tela. Sem ela a fila
-// existia no banco e o [W] não tinha onde olhar.
+// ── 2026-09-02 · PARIDADE §11 Onda 3 — esta tela É a view `hoje` do protótipo ──
+// Decisão [W] (ADR 0388, "réplica primeiro"): onde existe âncora, a aparência a
+// entregar é a do protótipo, e regra de conformidade do DS vira item de lista, não
+// veto. A fonte é `prototipo-ui/cowork/forja-aprova.jsx` — NÃO o `forja-page.jsx`
+// que o charter apontava (ele só monta a view; o markup mora no `forja-aprova`).
+// Provado SYNC contra o Cowork vivo em 2026-09-02T11:17Z, sha cc4cde3692da.
+//
+// Markup copiado 1:1: `.ap-page` › `.ap-head` (número-herói + sub + alerta de
+// handoff) › `.ap-vivo` (faixa "Ao vivo no MCP") › `.ap-mesa` (fila à esquerda,
+// painel do artefato à direita) › `.fj-hj-team` (placar por papel) › `.ap-toast`.
+// As classes vêm do bundle `cowork-forja-bundle.css` (Onda 1), importado pelo
+// <ForjaHub>. Saíram daqui o `PageHeader` canon e o `KpiGrid`: o protótipo põe o
+// número no herói, e um segundo cabeçalho não existe na view.
+//
+// ⚠️ AS TRÊS DIVERGÊNCIAS DELIBERADAS (categoria, não bug de paridade — ADR 0385):
+//
+//   1. VERBOS DOS BOTÕES. O protótipo escreve "Aprovar aplicação"; aqui eles vêm
+//      de `decisoes`, derivados de `McpTask::TRANSITIONS` — Admitir · Parquear ·
+//      Recusar. Duas leis mandam nisso e nenhuma é de aparência: a ADR 0368 §6
+//      proíbe "aprovado" (a palavra já significa outra coisa no
+//      CAPTERRA-INVENTARIO) e o anti-hook do charter proíbe hardcodar a lista.
+//      A ADR 0388 é de LAYOUT e diz, em D-5, que réplica não toca comportamento.
+//
+//   2. O CAMPO DE NOTA. No protótipo ele pertence ao "Devolver c/ comentário";
+//      aqui ele abre na decisão que declara `exige_motivo` (Recusar, ADR 0368 §5).
+//      Mesma caixa (`.ap-devolver`), mesmo lugar, dono diferente — o dono é o FSM.
+//
+//   3. OS 4 TIPOS DE SUBMISSÃO. Plano/Modificação/Design/Proposta são mock: só
+//      `Proposta` tem estado canônico (`pending_approval`); os outros vivem em
+//      `cowork_handoffs` e já têm dono. Fundir as duas fontes numa fila é decisão
+//      [W] (ForjaAprovacoesService, docblock). Então não há `ArtefatoPlano`,
+//      `ArtefatoMod` nem lightbox de screenshot: eles não teriam o que mostrar.
 //
 // ⚠️ `<ForjaHub>` é OBRIGATÓRIO em Page sob /forja/*: o hub esconde a topbar do
 // AppShellV2 e desenha a própria faixa. Sem montar aqui, a tela abre sem
@@ -27,24 +56,9 @@
 // atraso que torna o desfazer real em vez de decorativo.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { router } from '@inertiajs/react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Card, CardContent } from '@/Components/ui/card';
-import { Button } from '@/Components/ui/button';
-import { Textarea } from '@/Components/ui/textarea';
-// PageHeader canon (named, `@/Components/PageHeader`) — o mesmo do Gantt, que é a
-// tela irmã sob /forja/*. O `shared/PageHeader` (default) é o das telas nativas
-// /project-mgmt/*; misturar os dois no mesmo hub dá dois cabeçalhos diferentes.
-import { PageHeader } from '@/Components/PageHeader';
-import KpiGrid from '@/Components/shared/KpiGrid';
-import KpiCard from '@/Components/shared/KpiCard';
-import { PRIORITY_BADGE, type Priority } from '@/Components/board/badges';
+import { Deferred, router } from '@inertiajs/react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import ForjaHub from '../../team-mcp/Forja/_components/ForjaHub';
-// Layout é COMPOSIÇÃO destes primitivos, nunca `<div className="flex gap-4">` solto
-// (ADR 0253 — enforçado pelo `layout-primitives-guard`).
-import { Grid, Inline, Stack } from '@/Components/layout';
-import { cn } from '@/Lib/utils';
-import { CheckCircle2, PauseCircle, Undo2, XCircle } from 'lucide-react';
 
 /** Faixa de espera calculada no backend (ForjaAprovacoesService::sla). */
 type Sla = 'ok' | 'atencao' | 'urgente';
@@ -55,7 +69,7 @@ interface ItemFila {
   title: string;
   module: string | null;
   type: string | null;
-  priority: Priority | null;
+  priority: string | null;
   owner: string | null;
   created_at: string | null;
   created_at_human: string | null;
@@ -72,37 +86,141 @@ interface Decisao {
   atalho: string;
 }
 
+/** Uma pessoa/agente da equipe na faixa "Ao vivo no MCP". */
+interface AtorVivo {
+  slug: string;
+  pessoa: string;
+  /** `mcp_actors.type` — human · ai_agent · service. O eixo do schema, não o do mock. */
+  tipo: string;
+  /** `mcp_actors.trust_level` — L0..L4. */
+  confianca: string;
+  status: 'executando' | 'aguardando' | 'offline';
+  fazendo: string;
+  custo_hoje: number;
+  ha: string | null;
+}
+
+/** Uma linha do placar, por papel do loop (`cowork_handoffs.created_by`). */
+interface LinhaPlacar {
+  papel: string;
+  sinal: string | null;
+  sinal_ok: boolean;
+  critique: number | null;
+  critique_serie: number[];
+  critique_baixo: boolean;
+  entregas: number;
+  retrabalho: number;
+  retrabalho_pct: number;
+  /** Sem fonte por papel — o backend manda `null` de propósito. Ver o docblock do service. */
+  sessoes_hoje: number | null;
+  custo_hoje: number | null;
+  quota_dia: number | null;
+}
+
 interface Props {
   titulo: string;
   subtitle: string;
   decisoes: Decisao[];
-  // `fila`/`contagem` chegam por Inertia::defer → `undefined` no 1º paint.
-  // Default no destructuring pra não crashar antes do defer (skill
-  // inertia-defer-default; o sintoma sem isso é tela branca — PR #1940).
+  // Props caras chegam por Inertia::defer → `undefined` no 1º paint. Default no
+  // destructuring pra não crashar antes do defer (skill inertia-defer-default;
+  // o sintoma sem isso é tela branca — PR #1940).
   fila?: ItemFila[];
   contagem?: number;
+  aoVivo?: AtorVivo[];
+  placar?: LinhaPlacar[];
+  handoffsProblema?: number;
 }
 
 /** Segundos de arrependimento antes da decisão sair pro servidor. */
 const JANELA_DESFAZER_S = 6;
 
-const SLA_CLASSE: Record<Sla, string> = {
-  ok: 'text-muted-foreground',
-  atencao: 'text-warning',
-  urgente: 'text-destructive',
+/** Rótulo do estado na faixa ao vivo — o mesmo mapa do protótipo (`st`). */
+const ESTADO_VIVO: Record<AtorVivo['status'], { label: string; cls: string }> = {
+  executando: { label: 'executando', cls: 'run' },
+  aguardando: { label: 'espera você', cls: 'wait' },
+  offline: { label: 'offline', cls: 'off' },
 };
 
-const SLA_TITULO: Record<Sla, string> = {
-  ok: 'Esperando há pouco.',
-  atencao: 'Esperando há mais de 30 minutos.',
-  urgente: 'Esperando há mais de 2 horas.',
+/** Matiz do avatar por tipo de ator — o que `mcp_actors` declara, não o nível do mock. */
+const MATIZ_TIPO: Record<string, number> = {
+  human: 250,
+  ai_agent: 295,
+  service: 195,
 };
 
-const ICONE_DECISAO: Record<string, typeof CheckCircle2> = {
-  todo: CheckCircle2,
-  backlog: PauseCircle,
-  cancelled: XCircle,
+/**
+ * Papéis do loop e suas cores — copiado do `FORJA_ACTORS` do protótipo
+ * (`forja-data.jsx:6`). Isto é DESIGN, não dado: a cor e o nome de cada papel
+ * são decisão do Cowork, e o `--rc` do `.fj-role-tag` os consome. O que é DADO
+ * (quantas entregas, que critique, quando foi o último sinal) vem do backend.
+ * Papel fora do mapa cai no cinza neutro em vez de sumir.
+ */
+const PAPEIS: Record<string, { nome: string; cor: string; agente: boolean }> = {
+  W: { nome: 'Wagner', cor: 'oklch(0.57 0.16 25)', agente: false },
+  CC: { nome: 'Claude Cowork', cor: 'oklch(0.55 0.15 295)', agente: true },
+  CD: { nome: 'Claude Design', cor: 'oklch(0.60 0.13 60)', agente: true },
+  CL: { nome: 'Claude Code', cor: 'oklch(0.52 0.10 195)', agente: true },
+  CA: { nome: 'Claude A11y', cor: 'oklch(0.55 0.13 150)', agente: true },
+  AN: { nome: 'Claude Analista', cor: 'oklch(0.50 0.10 195)', agente: true },
 };
+
+const PAPEL_NEUTRO = { nome: '', cor: 'oklch(0.55 0.02 250)', agente: true };
+
+/** Selo do papel (`fj-role`) — o `RoleBadge` do protótipo (`forja-page.jsx:60`). */
+function SeloPapel({ papel }: { papel: string }) {
+  const a = PAPEIS[papel] ?? PAPEL_NEUTRO;
+  return (
+    <span
+      className="fj-role"
+      style={{ '--rc': a.cor } as CSSProperties}
+      title={a.nome ? `${a.nome} · ${a.agente ? 'agente' : 'humano'}` : papel}
+    >
+      <span className="fj-role-av" style={{ background: a.cor }}>
+        {a.agente ? (
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" aria-hidden>
+            <rect x="4" y="8" width="16" height="11" rx="2.5" />
+            <path d="M12 4v4M9 13h.01M15 13h.01" />
+          </svg>
+        ) : (
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" aria-hidden>
+            <circle cx="12" cy="8" r="3.4" />
+            <path d="M5 20c0-3.3 3-5.5 7-5.5s7 2.2 7 5.5" />
+          </svg>
+        )}
+      </span>
+      <span className="fj-role-tag">[{papel}]</span>
+      {a.nome && <span className="fj-role-name">{a.nome}</span>}
+    </span>
+  );
+}
+
+const brl = (v: number) => `R$ ${v.toFixed(2).replace('.', ',')}`;
+
+/** Iniciais do avatar (`ap-av`) — mesma regra do protótipo. */
+function iniciais(nome: string): string {
+  return nome
+    .split(/\s+/)
+    .map((p) => p[0] ?? '')
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+}
+
+/** Sparkline do critique (`fj-spark`) — polilinha, igual ao `ApSpark` do protótipo. */
+function Spark({ data }: { data: number[] }) {
+  if (data.length < 2) return null;
+  const pts = data
+    .map((d, i) => {
+      const n = Math.max(0, Math.min(1, (d - 70) / 30));
+      return `${i * (60 / (data.length - 1))},${17 - n * 15}`;
+    })
+    .join(' ');
+  return (
+    <svg className="fj-spark" viewBox="0 0 60 18" preserveAspectRatio="none" aria-hidden>
+      <polyline points={pts} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 interface Pendente {
   item: ItemFila;
@@ -111,28 +229,37 @@ interface Pendente {
   restam: number;
 }
 
-export default function Aprovacoes({ titulo, subtitle, decisoes, fila = [], contagem = 0 }: Props) {
+export default function Aprovacoes({
+  titulo,
+  subtitle,
+  decisoes,
+  fila = [],
+  contagem = 0,
+  aoVivo = [],
+  placar = [],
+  handoffsProblema = 0,
+}: Props) {
   const [motivo, setMotivo] = useState('');
   const [erro, setErro] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
   /** Decisão tomada, ainda NÃO enviada — a janela de arrependimento. */
   const [pendente, setPendente] = useState<Pendente | null>(null);
+  /** Caixa de nota aberta (`ap-devolver`). Abre pela decisão que exige motivo. */
+  const [anotando, setAnotando] = useState(false);
+  const notaRef = useRef<HTMLTextAreaElement | null>(null);
 
-  // Enquanto há decisão pendente, o item sai da vista (a mesa já andou), mas o
-  // POST ainda não saiu. `fila[0]` é sempre o mais antigo — a ordem é do backend.
   // Item em foco na mesa. `null` = ninguém escolheu ainda, e aí vale o mais antigo
   // (`fila[0]`) — a ordem é do backend, não da UI. Escolher na fila só MOVE o foco;
   // não reordena e não decide nada. Se o escolhido sai da fila (decidido aqui ou por
   // outra sessão), o `find` falha e o foco volta sozinho pro mais antigo.
   const [selId, setSelId] = useState<string | null>(null);
-  const atual = pendente
-    ? null
-    : (fila.find((i) => i.task_id === selId) ?? fila[0] ?? null);
+  const atual = pendente ? null : (fila.find((i) => i.task_id === selId) ?? fila[0] ?? null);
 
-  // Item novo na mesa = motivo/erro do anterior não valem mais.
+  // Item novo na mesa = motivo/erro/nota do anterior não valem mais.
   useEffect(() => {
     setMotivo('');
     setErro(null);
+    setAnotando(false);
   }, [atual?.task_id]);
 
   /** Manda a decisão pro servidor. Só chamado quando a janela de desfazer expira. */
@@ -151,7 +278,7 @@ export default function Aprovacoes({ titulo, subtitle, decisoes, fila = [], cont
           ),
         onFinish: () => {
           setEnviando(false);
-          router.reload({ only: ['fila', 'contagem'] });
+          router.reload({ only: ['fila', 'contagem', 'aoVivo'] });
         },
       },
     );
@@ -185,12 +312,16 @@ export default function Aprovacoes({ titulo, subtitle, decisoes, fila = [], cont
 
       if (decisao.exige_motivo && motivo.trim() === '') {
         // Espelha a trava do backend (ADR 0368 §5) pra dar o retorno na hora —
-        // mas quem de fato barra é o TaskCrudService, não este if.
+        // mas quem de fato barra é o TaskCrudService, não este if. Abre a caixa
+        // em vez de só reclamar: o [W] precisa do lugar pra escrever.
+        setAnotando(true);
+        setTimeout(() => notaRef.current?.focus(), 30);
         setErro('Recusar exige motivo — ele vai pro inventário e evita que a mesma proposta volte em três meses.');
         return;
       }
 
       setErro(null);
+      setAnotando(false);
       setPendente({ item: atual, decisao, motivo: motivo.trim(), restam: JANELA_DESFAZER_S });
     },
     [atual, enviando, pendente, motivo],
@@ -200,12 +331,25 @@ export default function Aprovacoes({ titulo, subtitle, decisoes, fila = [], cont
   const desfazer = useCallback(() => setPendente(null), []);
 
   // Atalhos: cada decisão traz o seu (a/d/x), vindos do backend junto do FSM.
+  // `j`/`k` andam na fila — navegação, não decisão: não declaram fluxo nenhum.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const alvo = e.target as HTMLElement | null;
       // Não sequestrar tecla enquanto o [W] digita o motivo.
       if (alvo && ['INPUT', 'TEXTAREA', 'SELECT'].includes(alvo.tagName)) return;
+      if (alvo?.isContentEditable) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+      if ((e.key === 'j' || e.key === 'k') && fila.length > 0) {
+        e.preventDefault();
+        const i = atual ? fila.findIndex((x) => x.task_id === atual.task_id) : 0;
+        const alvoIdx = e.key === 'j' ? Math.min(fila.length - 1, i + 1) : Math.max(0, i - 1);
+        // `noUncheckedIndexedAccess`: o indice esta clampado ao tamanho da fila,
+        // mas o compilador nao prova isso — entao o item ausente e tratado, nao suposto.
+        const proximo = fila[alvoIdx];
+        if (proximo) setSelId(proximo.task_id);
+        return;
+      }
 
       const d = decisoes.find((x) => x.atalho === e.key.toLowerCase());
       if (d) {
@@ -216,218 +360,349 @@ export default function Aprovacoes({ titulo, subtitle, decisoes, fila = [], cont
 
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [decisoes, decidir]);
+  }, [decisoes, decidir, fila, atual]);
 
-  const urgentes = useMemo(() => fila.filter((i) => i.sla === 'urgente').length, [fila]);
+  /** O herói conta o que está na mesa. `contagem` é a fonte; a fila é o teto de 200. */
+  const naMesa = contagem || fila.length;
+
+  const dicas = useMemo(
+    () => decisoes.map((d) => ({ atalho: d.atalho, verbo: d.verbo.toLowerCase() })),
+    [decisoes],
+  );
 
   return (
-    <AppShellV2
-      title="Forja — Aprovações"
-      breadcrumbItems={[{ label: 'Forja' }, { label: 'Aprovações' }]}
-    >
-      <ForjaHub active="aprovacoes" />
+    <AppShellV2 title={`Forja — ${titulo}`} breadcrumbItems={[{ label: 'Forja' }, { label: titulo }]}>
+      <ForjaHub active="aprovacoes" pendencias={naMesa} />
 
-      <div className="space-y-6">
-        <PageHeader title={titulo} subtitle={subtitle} />
+      <div className="ap-page">
+        {/* ── cabeçalho: o número é o herói ─────────────────────────────── */}
+        <div className="ap-head">
+          <div className="fj-hj-n" data-testid="mesa-heroi">
+            <b>{naMesa}</b>
+            <span>esperando o seu aval</span>
+          </div>
+          <p className="fj-hj-sub">
+            {subtitle} Sua equipe trabalha no Claude Code conectada ao MCP; nada aplica sem você.
+            {dicas.map((d) => (
+              <span key={d.atalho}>
+                {' '}
+                <kbd>{d.atalho}</kbd> {d.verbo}
+              </span>
+            ))}
+            .
+          </p>
+          {handoffsProblema > 0 && (
+            <button
+              type="button"
+              className="ap-handoff-alert"
+              data-testid="mesa-handoff-alerta"
+              onClick={() => router.visit('/forja/handoffs')}
+            >
+              {handoffsProblema} handoff{handoffsProblema > 1 ? 's' : ''} com problema →
+            </button>
+          )}
+        </div>
 
-        <KpiGrid>
-          <KpiCard label="Esperando você" value={contagem} icon="Inbox" />
-          <KpiCard label="Há mais de 2h" value={urgentes} icon="AlarmClock" />
-        </KpiGrid>
-
-        {pendente && (
-          <Card data-testid="mesa-desfazer">
-            <Inline asChild gap={3} align="center" justify="between" wrap>
-              <CardContent className="py-3">
-                <p className="text-sm text-foreground">
-                  <strong>{pendente.decisao.verbo}</strong>{' '}
-                  {pendente.item.identifier ?? pendente.item.task_id} — {pendente.item.title}
-                </p>
-                <Inline gap={3} align="center">
-                  <span className="text-xs text-muted-foreground tabular-nums" aria-live="polite">
-                    vale em {pendente.restam}s
-                  </span>
-                  <Button variant="outline" size="sm" onClick={desfazer} data-testid="mesa-desfazer-btn">
-                    <Undo2 className="mr-1.5 h-3.5 w-3.5" aria-hidden />
-                    Desfazer
-                  </Button>
-                </Inline>
-              </CardContent>
-            </Inline>
-          </Card>
-        )}
+        {/* ── faixa "Ao vivo no MCP" ────────────────────────────────────── */}
+        <Deferred data="aoVivo" fallback={null}>
+          {aoVivo.length > 0 && (
+            <div className="ap-vivo" data-testid="mesa-ao-vivo">
+              <span className="ap-vivo-lbl">Ao vivo no MCP</span>
+              {aoVivo.map((p) => {
+                const st = ESTADO_VIVO[p.status];
+                return (
+                  <div
+                    key={p.slug}
+                    className={`ap-vivo-card ${st.cls}`}
+                    title={p.fazendo}
+                    data-testid={`mesa-vivo-${p.slug}`}
+                  >
+                    <span
+                      className="ap-av"
+                      style={{ '--ah': MATIZ_TIPO[p.tipo] ?? 250 } as CSSProperties}
+                      title={`${p.pessoa} · ${p.tipo} · ${p.confianca}`}
+                    >
+                      {iniciais(p.pessoa)}
+                    </span>
+                    <div className="ap-vivo-tx">
+                      <span className="ap-vivo-nome">
+                        <span className="ap-vivo-n-tx">{p.pessoa}</span>
+                        <span
+                          className="ap-nivel"
+                          style={{ '--ah': MATIZ_TIPO[p.tipo] ?? 250 } as CSSProperties}
+                        >
+                          {p.confianca}
+                        </span>
+                      </span>
+                      <span className="ap-vivo-fazendo">{p.fazendo}</span>
+                    </div>
+                    <div className="ap-vivo-meta">
+                      <span className={`ap-vivo-st ${st.cls}`}>
+                        <i />
+                        {st.label}
+                      </span>
+                      <span className="ap-vivo-custo">
+                        {brl(p.custo_hoje)} hoje{p.ha ? ` · ${p.ha}` : ''}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </Deferred>
 
         {erro && (
-          <p role="alert" className="text-sm text-destructive" data-testid="mesa-erro">
+          <p role="alert" className="ap-regra" data-testid="mesa-erro">
             {erro}
           </p>
         )}
 
-        {!atual && !pendente && (
-          <Card data-testid="mesa-vazia">
-            <CardContent className="py-12 text-center">
-              <CheckCircle2 className="mx-auto mb-3 h-8 w-8 text-muted-foreground" aria-hidden />
-              <p className="text-sm font-medium text-foreground">Nada esperando por você.</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Quando uma proposta entrar no funil, ela aparece aqui — mais antiga primeiro.
+        {/* ── a mesa: fila à esquerda, artefato à direita ───────────────── */}
+        {!atual && !pendente ? (
+          <div className="fj-mcp-card" data-testid="mesa-vazia">
+            <div className="fj-hj-zero">
+              <p>
+                <b>Fila zerada.</b> Ninguém espera você — quando uma proposta entrar no funil, ela
+                aparece aqui, mais antiga primeiro.
               </p>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
+        ) : (
+          atual && (
+            <div className="ap-mesa">
+              {/* `role=listbox/option` + `tabIndex` + `onKeyDown`: o protótipo usa
+                  `<li onClick>` cru, que não abre por teclado. Aqui a ESTRUTURA e a
+                  classe são as dele (o `.ap-item` é `display:flex` e o `:last-child`
+                  tira a última borda — só funciona com a classe no próprio `<li>`),
+                  e a operabilidade é acrescentada por cima. A ADR 0388 tira o veto
+                  da CONFORMIDADE do DS, não da acessibilidade: a versão anterior
+                  desta tela já era navegável por teclado, e réplica não regride isso. */}
+              <ul className="ap-fila" data-testid="mesa-fila" role="listbox" aria-label="Fila de aprovações">
+                {fila.map((i) => (
+                  <li
+                    key={i.task_id}
+                    className={`ap-item${i.task_id === atual.task_id ? ' sel' : ''}`}
+                    role="option"
+                    tabIndex={0}
+                    aria-selected={i.task_id === atual.task_id}
+                    onClick={() => setSelId(i.task_id)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setSelId(i.task_id);
+                      }
+                    }}
+                    data-testid={`mesa-fila-item-${i.task_id}`}
+                  >
+                    <span className="ap-av sm" title={i.owner ?? 'sem dono'}>
+                      {iniciais(i.owner ?? '—')}
+                    </span>
+                    <div className="ap-item-tx">
+                      <span className="ap-item-top">
+                        <b>{i.owner ?? 'sem dono'}</b>
+                        {i.priority && <span className="ap-nivel">{i.priority}</span>}
+                        {i.module && <span className="ap-tipo">{i.module}</span>}
+                      </span>
+                      <span className="ap-item-t">{i.title}</span>
+                    </div>
+                    <span
+                      className={`ap-espera${i.sla === 'urgente' ? ' bad' : i.sla === 'atencao' ? ' warn' : ''}`}
+                      title={
+                        i.sla === 'urgente'
+                          ? 'SLA estourado: espera acima de 2h'
+                          : i.sla === 'atencao'
+                            ? 'esperando há mais de 30 min'
+                            : 'esperando há pouco'
+                      }
+                    >
+                      {i.created_at_human ?? `${i.espera_min} min`}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+
+              <section className="ap-painel" data-testid="mesa-artefato">
+                <header className="ap-p-head">
+                  <div className="ap-p-head-l">
+                    {atual.type && <span className="ap-tipo lg">{atual.type}</span>}
+                    <h2>{atual.title}</h2>
+                    <p className="ap-p-sub">
+                      <b>{atual.owner ?? 'sem dono'}</b>
+                      {atual.module ? ` · ${atual.module}` : ''} · esperando{' '}
+                      {atual.created_at_human ?? `${atual.espera_min} min`}
+                    </p>
+                  </div>
+                  <span className="ap-item-id mono">{atual.identifier ?? atual.task_id}</span>
+                </header>
+
+                {/* O artefato: o que `mcp_tasks` guarda de uma proposta. Sem diff, sem
+                    passos e sem screenshot — esses vivem em `cowork_handoffs`, e
+                    fundir as duas fontes é decisão [W] (divergência 3 do cabeçalho). */}
+                <div className="ap-art">
+                  <p className="ap-art-obj">{atual.title}</p>
+                  <div className="ap-art-meta">
+                    {atual.module && (
+                      <span>
+                        módulo <b>{atual.module}</b>
+                      </span>
+                    )}
+                    {atual.priority && (
+                      <span>
+                        prioridade <b>{atual.priority}</b>
+                      </span>
+                    )}
+                    <span>
+                      id <b className="mono">{atual.identifier ?? atual.task_id}</b>
+                    </span>
+                  </div>
+                </div>
+
+                <p className="ap-regra">
+                  Sua decisão move a proposta no funil de admissão — recusar exige motivo, que vai
+                  pro inventário e evita que a mesma capacidade volte em três meses.
+                </p>
+
+                {anotando && (
+                  <div className="ap-devolver">
+                    <textarea
+                      ref={notaRef}
+                      id="mesa-motivo"
+                      data-testid="mesa-motivo"
+                      rows={2}
+                      value={motivo}
+                      onChange={(e) => setMotivo(e.target.value)}
+                      placeholder="Por que esta proposta é recusada? O texto vai pro inventário."
+                      aria-label="Motivo da recusa"
+                    />
+                    <button type="button" className="os-btn ghost" onClick={() => setAnotando(false)}>
+                      Cancelar
+                    </button>
+                  </div>
+                )}
+
+                {/* Os verbos vêm do FSM, não do protótipo — divergência 1 do cabeçalho. */}
+                <footer className="ap-acoes">
+                  {decisoes.map((d, idx) => (
+                    <button
+                      key={d.status}
+                      type="button"
+                      data-testid={`mesa-decisao-${d.status}`}
+                      className={
+                        idx === 0
+                          ? 'os-btn primary ap-ok'
+                          : d.exige_motivo
+                            ? 'os-btn ghost ap-no'
+                            : 'os-btn ghost'
+                      }
+                      disabled={enviando}
+                      title={d.descricao}
+                      onClick={() => decidir(d)}
+                    >
+                      {d.verbo}
+                      <kbd>{d.atalho}</kbd>
+                    </button>
+                  ))}
+                </footer>
+              </section>
+            </div>
+          )
         )}
 
-        {/* 1fr + coluna fixa de decisões: `cols` do primitivo é uniforme, então a
-            proporção vai em className — o `Grid` segue dono do display e do gap. */}
-        {atual && (
-          <Grid
-            gap={4}
-            className={cn(
-              // A coluna da fila só existe quando a fila existe (>1). Sem isto o
-              // grid reservaria uma faixa de 15rem vazia no caso de item único.
-              fila.length > 1
-                ? 'lg:grid-cols-[15rem_1fr_18rem]'
-                : 'lg:grid-cols-[1fr_18rem]',
-            )}
-          >
-            {/* A fila (`ap-fila` do protótipo). Antes daqui a mesa mostrava só o mais
-                antigo e um contador "N na fila" — dava o número, não deixava olhar.
-                O dado já vinha do controller (`ForjaAprovacoesService::fila()`, teto
-                200); faltava a superfície. Some com 1 item: lista de um é ruído. */}
-            {fila.length > 1 && (
-              <Card data-testid="mesa-fila" className="hidden lg:block">
-                <CardContent className="p-0">
-                  <p className="border-b border-border px-3 py-2 text-xs font-medium text-muted-foreground tabular-nums">
-                    {fila.length} esperando
-                  </p>
-                  <Stack asChild gap={0}>
-                    <ul>
-                      {fila.map((item) => {
-                        const emFoco = item.task_id === atual?.task_id;
-                        return (
-                          <li key={item.task_id}>
-                            <button
-                              type="button"
-                              data-testid={`mesa-fila-item-${item.task_id}`}
-                              aria-current={emFoco ? 'true' : undefined}
-                              onClick={() => setSelId(item.task_id)}
-                              className={cn(
-                                'w-full border-l-2 px-3 py-2 text-left transition-colors',
-                                'hover:bg-muted focus-visible:bg-muted focus-visible:outline-none',
-                                emFoco
-                                  ? 'border-l-primary bg-muted'
-                                  : 'border-l-transparent',
-                              )}
-                            >
-                              <Inline gap={1} align="center" wrap>
-                                <span className="font-mono text-[11px] text-muted-foreground">
-                                  {item.identifier ?? item.task_id}
-                                </span>
-                                <span
-                                  className={cn(
-                                    'ml-auto text-[11px] tabular-nums',
-                                    SLA_CLASSE[item.sla],
-                                  )}
-                                  title={SLA_TITULO[item.sla]}
-                                >
-                                  {item.espera_min}min
-                                </span>
-                              </Inline>
-                              <span className="mt-0.5 block truncate text-xs text-foreground">
-                                {item.title}
-                              </span>
-                            </button>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </Stack>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* O artefato no centro — é o que se decide, não a linha da lista. */}
-            <Card data-testid="mesa-artefato">
-              <CardContent className="space-y-4 py-5">
-                <Inline gap={2} align="center" wrap>
-                  <span className="font-mono text-xs text-muted-foreground">
-                    {atual.identifier ?? atual.task_id}
+        {/* ── placar por papel do loop ──────────────────────────────────── */}
+        <Deferred data="placar" fallback={null}>
+          {placar.length > 0 && (
+            <section className="fj-mcp-card fj-hj-team" data-testid="mesa-placar">
+              <div className="fj-hj-team-head">
+                <h3>Equipe de agentes · placar</h3>
+                {placar.some((a) => !a.sinal_ok) && (
+                  <span className="fj-hj-team-alert">
+                    {placar.filter((a) => !a.sinal_ok).length} sem sinal
                   </span>
-                  {atual.priority && (
-                    <span
-                      className={cn(
-                        'rounded px-1.5 py-0.5 text-[11px] font-medium uppercase',
-                        PRIORITY_BADGE[atual.priority],
-                      )}
-                    >
-                      {atual.priority}
-                    </span>
-                  )}
-                  {atual.module && (
-                    <span className="rounded bg-muted px-1.5 py-0.5 text-[11px] text-muted-foreground">
-                      {atual.module}
-                    </span>
-                  )}
-                  <span
-                    className={cn('ml-auto text-xs tabular-nums', SLA_CLASSE[atual.sla])}
-                    title={SLA_TITULO[atual.sla]}
-                  >
-                    espera {atual.created_at_human ?? `${atual.espera_min} min`}
-                  </span>
-                </Inline>
+                )}
+                <span className="fj-hj-team-note">
+                  cowork_handoffs + gates — medido, nada auto-relatado
+                </span>
+              </div>
+              <table className="fj-team-tbl">
+                <thead>
+                  <tr>
+                    <th>Agente</th>
+                    <th>Sinal</th>
+                    <th className="num">Sessões hoje</th>
+                    <th>Custo hoje / quota</th>
+                    <th>Critique F1.5</th>
+                    <th className="num">Retrabalho</th>
+                    <th className="num">Entregas 7d</th>
+                    <th />
+                  </tr>
+                </thead>
+                <tbody>
+                  {placar.map((a) => (
+                    <tr key={a.papel} className={a.sinal_ok ? '' : 'warn'}>
+                      <td>
+                        <SeloPapel papel={a.papel} />
+                      </td>
+                      <td>
+                        <span className={`fj-hb${a.sinal_ok ? '' : ' bad'}`}>
+                          <span className="fj-hb-dot" />
+                          {a.sinal ?? 'sem sinal'}
+                        </span>
+                      </td>
+                      {/* Sem fonte por papel: não existe vínculo papel→usuário no schema,
+                          e `mcp_cc_sessions`/`mcp_audit_log`/`mcp_quotas` são por usuário.
+                          Inventar o vínculo seria dado fantasma. */}
+                      <td className="num mono" title="Sem fonte: mcp_cc_sessions é por usuário e não há vínculo papel→usuário no schema.">
+                        —
+                      </td>
+                      <td title="Sem fonte: mcp_audit_log e mcp_quotas são por usuário e não há vínculo papel→usuário no schema.">
+                        —
+                      </td>
+                      <td>
+                        <span className="fj-crit">
+                          <b className={a.critique_baixo ? 'low' : ''}>{a.critique ?? '—'}</b>
+                          <Spark data={a.critique_serie} />
+                        </span>
+                      </td>
+                      <td className="num mono">
+                        {a.retrabalho}
+                        {a.retrabalho > 0 && <small className="fj-ret-pct"> · {a.retrabalho_pct}%</small>}
+                      </td>
+                      <td className="num mono">{a.entregas}</td>
+                      {/* 8ª coluna do protótipo: a saída pra quem está mudo. */}
+                      <td className="act">
+                        {!a.sinal_ok && (
+                          <button
+                            type="button"
+                            className="os-btn ghost"
+                            onClick={() => router.visit('/forja/handoffs')}
+                          >
+                            verificar
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="fj-hj-team-foot">
+                Critique = <code>gate_status.critique_score</code> do ack (o mesmo piso 80 que o
+                <code> handoff-ack</code> exige) · retrabalho = handoff <code>rejected</code>{' '}
+                devolvido ao autor · janela de 7 dias.
+              </p>
+            </section>
+          )}
+        </Deferred>
 
-                <h2 className="text-lg font-semibold leading-snug text-foreground">{atual.title}</h2>
-
-                <div>
-                  <label htmlFor="mesa-motivo" className="mb-1.5 block text-xs font-medium text-foreground">
-                    Motivo <span className="font-normal text-muted-foreground">(obrigatório para recusar)</span>
-                  </label>
-                  <Textarea
-                    id="mesa-motivo"
-                    data-testid="mesa-motivo"
-                    rows={3}
-                    value={motivo}
-                    onChange={(e) => setMotivo(e.target.value)}
-                    placeholder="Por que esta proposta é recusada? O texto vai pro inventário."
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Stack gap={3}>
-              {decisoes.map((d) => {
-                const Icone = ICONE_DECISAO[d.status] ?? CheckCircle2;
-                return (
-                  <Button
-                    key={d.status}
-                    data-testid={`mesa-decisao-${d.status}`}
-                    variant={d.status === 'todo' ? 'default' : 'outline'}
-                    className="h-auto w-full justify-start py-2.5 text-left"
-                    disabled={enviando}
-                    onClick={() => decidir(d)}
-                  >
-                    <Icone className="mr-2 h-4 w-4 shrink-0" aria-hidden />
-                    <span className="min-w-0">
-                      <span className="block text-sm font-medium">
-                        {d.verbo}
-                        <kbd className="ml-1.5 rounded border border-border px-1 text-[10px] uppercase">
-                          {d.atalho}
-                        </kbd>
-                      </span>
-                      <span className="block text-xs font-normal opacity-80">{d.descricao}</span>
-                    </span>
-                  </Button>
-                );
-              })}
-
-              {/* O contador "N na fila" saiu daqui: virou o cabeçalho da própria fila
-                  (`mesa-fila`), que mostra o número E deixa olhar. Em telas estreitas,
-                  onde a coluna da fila não renderiza, ele continua valendo. */}
-              {fila.length > 1 && (
-                <p className="pt-1 text-xs text-muted-foreground tabular-nums lg:hidden">
-                  {fila.length} na fila
-                </p>
-              )}
-            </Stack>
-          </Grid>
+        {/* ── toast com a janela de arrependimento ──────────────────────── */}
+        {pendente && (
+          <div className="ap-toast" data-testid="mesa-desfazer" aria-live="polite">
+            {pendente.item.identifier ?? pendente.item.task_id} · {pendente.decisao.verbo} — vale em{' '}
+            {pendente.restam}s
+            <button type="button" className="ap-undo" onClick={desfazer} data-testid="mesa-desfazer-btn">
+              Desfazer
+            </button>
+          </div>
         )}
       </div>
     </AppShellV2>

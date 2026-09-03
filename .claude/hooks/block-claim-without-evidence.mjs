@@ -197,7 +197,7 @@ export const COMPLETUDE_CHECKS = [
   {
     id: 'BACKLOG',
     // Antídoto: citou US/task — ou disse explicitamente que nao existe.
-    tem: /US-[A-Z]{2,6}-\d{3}|tasks-list|Refs:|n[aã]o existe US|nenhuma task|sem US/i,
+    tem: /US-_?[A-Z]{2,12}-\d{3}|tasks-list|Refs:|n[aã]o existe US|nenhuma task|sem US/i,
     falta: 'BACKLOG: nao citou US/task nem disse que NAO existe. Consulte `tasks-list` e declare — em branco nao distingue "nao tem" de "nao olhei".',
   },
 ];

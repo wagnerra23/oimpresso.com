@@ -22,11 +22,13 @@ on:
   # se nada do Essentials mudou, pula o pesado e conclui verde (mesmo padrão do
   # jana-pest.yml, ADR 0271 onda 2 — required-ready sem deadlock).
   pull_request:
+    types: [opened, reopened, ready_for_review]
     branches: [main]
   push:
     branches: [main]
     paths:
       - 'Modules/Essentials/**'
+      - 'resources/js/Pages/Essentials/**'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/essentials-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -64,6 +66,7 @@ jobs:
           filters: |
             essentials:
               - 'Modules/Essentials/**'
+              - 'resources/js/Pages/Essentials/**'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/essentials-pest.yml'
               - '.github/actions/pest-mysql-setup/**'

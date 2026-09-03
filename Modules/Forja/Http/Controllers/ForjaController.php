@@ -21,6 +21,7 @@ use Modules\Forja\Services\ForjaBacklogService;
 use Modules\Forja\Services\ForjaChangelogService;
 use Modules\Forja\Services\ForjaMcpService;
 use Modules\Forja\Services\ForjaQuadroService;
+use Modules\Forja\Services\ForjaSaudeService;
 use Modules\Forja\Services\HandoffLeverService;
 
 /**
@@ -67,6 +68,13 @@ class ForjaController extends Controller
         // MCP é vitrine MOCKADA do contrato. Operação diária enterrada numa
         // vitrine é operação que ninguém olha.
         'handoffs'  => ['label' => 'Handoffs',  'subtitle' => 'O loop de design Cowork → Code (F1 → F3): o que está pendente, o que travou no gate e o que envelheceu.'],
+        // Integrador — view `integra` do protótipo (PARIDADE §11 Onda 2). Estática por
+        // construção: inventário da fusão Forja ↔ TeamMcp, sem query.
+        'integrador' => ['label' => 'Integrador', 'subtitle' => 'Forja ↔ TeamMcp: o que absorve, o que alinha, o que falta.'],
+        // Saúde — view `saude` do protótipo (PARIDADE §11 Onda 7). Até 2026-09-02 a
+        // pílula apontava pro /team-mcp/scorecard; agora tem tela própria, e o
+        // Scorecard vira o destino do drill "ver →" em vez do destino da aba.
+        'saude'      => ['label' => 'Saúde',      'subtitle' => 'Semáforo do loop: chamadas e devs no MCP, movimentação das tasks, WIP por fase, aging do backlog e os checks do scorecard.'],
     ];
 
     public function __construct()
@@ -119,16 +127,51 @@ class ForjaController extends Controller
         ));
     }
 
+    /** GET /forja/integrador — view `integra` do protótipo: inventário estático da absorção Forja ↔ TeamMcp. */
+    public function integrador(): Response
+    {
+        return Inertia::render('team-mcp/Forja/Cockpit', $this->tabPayload('integrador'));
+    }
+
+    /**
+     * GET /forja/saude — view `saude` do protótipo (PARIDADE §11 Onda 7).
+     *
+     * O payload REUSA o `ScorecardBuilderService` (o mesmo do /team-mcp/scorecard) mais
+     * Quadro e Changelog, via {@see ForjaSaudeService} — sem duplicar consulta. Deferido
+     * como as outras abas com query (rule pages.md): são facts + checks + board + séries.
+     */
+    public function saude(): Response
+    {
+        $projectId = $this->resolveForjaProjectId();
+
+        return Inertia::render('team-mcp/Forja/Cockpit', array_merge(
+            $this->tabPayload('saude'),
+            ['saude' => Inertia::defer(fn () => app(ForjaSaudeService::class)->build($projectId))],
+        ));
+    }
+
     public function mcp(): Response
     {
-        // Fase 1 (ADR 0283): a aba MCP deixa de ser 100% mock — projeta os handoffs
-        // REAIS de `cowork_handoffs` (+ heartbeat do ingest) via Inertia::defer,
-        // espelhando triagem()/quadro(). Contrato/tokens/auditoria seguem MOCKADO
-        // (vitrine de design); só a seção Handoffs é dado vivo. Sem auto-merge: as
-        // levers roteiam pelas tools MCP e o merge é o 1-clique do [W] (ADR 0283).
-        // Sem prop: contrato/tokens/auditoria são estáticos (vitrine). Os handoffs,
-        // que eram o único dado vivo desta aba, foram pra handoffs() abaixo.
-        return Inertia::render('team-mcp/Forja/Cockpit', $this->tabPayload('mcp'));
+        // Fase 1 (ADR 0283): a aba MCP não é 100% mock — projeta os handoffs REAIS de
+        // `cowork_handoffs` (+ heartbeat do ingest) via Inertia::defer, espelhando
+        // triagem()/quadro(). Contrato/tokens/auditoria seguem MOCKADO (vitrine de
+        // design); só a seção Handoffs é dado vivo. Sem auto-merge: as levers roteiam
+        // pelas tools MCP e o merge é o 1-clique do [W] (ADR 0283).
+        //
+        // PARIDADE §11 Onda 8: as duas props VOLTARAM (tinham ido pra handoffs() em
+        // 2026-08-08, quando a seção virou tela) porque o protótipo desenha o painel
+        // DENTRO da view `mcp`. Mesmo service, mesma projeção de handoffs() abaixo —
+        // e `defer` só executa a closure quando a prop é pedida, então a aba não paga
+        // a consulta duas vezes nem no primeiro render.
+        $svc = app(ForjaMcpService::class);
+
+        return Inertia::render('team-mcp/Forja/Cockpit', array_merge(
+            $this->tabPayload('mcp'),
+            [
+                'handoffs'  => Inertia::defer(fn () => $svc->handoffs()),
+                'heartbeat' => Inertia::defer(fn () => $svc->heartbeat()),
+            ],
+        ));
     }
 
     /**

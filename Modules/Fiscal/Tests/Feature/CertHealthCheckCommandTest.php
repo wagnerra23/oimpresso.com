@@ -10,6 +10,10 @@ use Illuminate\Support\Str;
 uses(Tests\TestCase::class);
 
 /**
+ * @see memory/requisitos/Fiscal/_telas/cert-health-check.casos.md — UC-FCERT-01..06
+ *
+ * @covers-us US-FISCAL-022
+ *
  * US-FISCAL-022 — Comando `fiscal:cert-health-check` (cap #13 CAPTERRA Fiscal).
  *
  * Aceite (ADR 0101 — biz=1 dogfood, NUNCA biz=4 cliente):
@@ -91,12 +95,12 @@ beforeEach(function () {
     }
 });
 
-it('comando registrado em php artisan list', function () {
+it('UC-FCERT-01 · comando registrado em php artisan list', function () {
     Artisan::call('list');
     expect(Artisan::output())->toContain('fiscal:cert-health-check');
 });
 
-it('cert vencendo em 15d gera alerta escopado ao business (ADR 0093)', function () {
+it('UC-FCERT-02 · cert vencendo em 15d gera alerta escopado ao business (ADR 0093)', function () {
     $uuid = inserirCertTeste(now()->addDays(15)->toDateString());
     $chave = 'cert_a1_vencimento:' . CERT_HC_BIZ . ":{$uuid}";
 
@@ -116,7 +120,7 @@ it('cert vencendo em 15d gera alerta escopado ao business (ADR 0093)', function 
     }
 });
 
-it('cert válido 200d NÃO gera alerta', function () {
+it('UC-FCERT-03 · cert válido 200d NÃO gera alerta', function () {
     $uuid = inserirCertTeste(now()->addDays(200)->toDateString());
     $chave = 'cert_a1_vencimento:' . CERT_HC_BIZ . ":{$uuid}";
 
@@ -130,7 +134,7 @@ it('cert válido 200d NÃO gera alerta', function () {
     }
 });
 
-it('cert vencido gera alerta severidade critical', function () {
+it('UC-FCERT-04 · cert vencido gera alerta severidade critical', function () {
     $uuid = inserirCertTeste(now()->subDays(5)->toDateString());
     $chave = 'cert_a1_vencimento:' . CERT_HC_BIZ . ":{$uuid}";
 
@@ -145,7 +149,7 @@ it('cert vencido gera alerta severidade critical', function () {
     }
 });
 
-it('idempotente — rodar 2× não duplica o alerta (dedup por business+cert)', function () {
+it('UC-FCERT-05 · idempotente — rodar 2× não duplica o alerta (dedup por business+cert)', function () {
     $uuid = inserirCertTeste(now()->addDays(10)->toDateString());
     $chave = 'cert_a1_vencimento:' . CERT_HC_BIZ . ":{$uuid}";
 
@@ -160,7 +164,7 @@ it('idempotente — rodar 2× não duplica o alerta (dedup por business+cert)', 
     }
 });
 
-it('dry-run não persiste alerta', function () {
+it('UC-FCERT-06 · dry-run não persiste alerta', function () {
     $uuid = inserirCertTeste(now()->addDays(15)->toDateString());
     $chave = 'cert_a1_vencimento:' . CERT_HC_BIZ . ":{$uuid}";
 

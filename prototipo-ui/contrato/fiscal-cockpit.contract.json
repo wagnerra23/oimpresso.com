@@ -1,0 +1,28 @@
+{
+  "_nota": "Contrato de Tela do Cockpit fiscal (módulo Fiscal). Declara copy literal + âncora que a Onda 1 (saneamento fx-* → DS) tem de preservar. Schema: prototipo-ui/contrato/contract.schema.json (ADR 0286). Copy extraída da TELA VIVA (frescor 🔵 produção-à-frente), não do protótipo.",
+  "tela": "Fiscal/Cockpit",
+  "fonte": "prototipo-ui/cowork/fiscal-page.jsx",
+  "_nota_fonte": "Protótipo declarado no related_prototype do charter da tela. A copy deste contrato NÃO veio dele — veio da tela viva, que tem frescor produção-à-frente (o protótipo é que está atrás).",
+  "alvo": [
+    "resources/js/Pages/Fiscal/Cockpit.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "fiscal-cockpit-kpis",
+      "copy": [
+        "Emitidas",
+        "Autorizadas",
+        "Rejeitadas",
+        "DF-e p/ manifestar",
+        "Certif. A1",
+        "Faturado fiscal"
+      ]
+    }
+  ],
+  "ordem": [
+    "fiscal-cockpit-kpis"
+  ],
+  "_pendente_w": [
+    "As 3 sparklines do ribbon: a prop chega em Cockpit.tsx e não é usada; o charter promete no Goal #2. Decisão [W] #2 do plano de 7 ondas (PR-C3)."
+  ]
+}

@@ -147,7 +147,15 @@ export const PREFLIGHT_GATES = [
   'node scripts/casos-coverage-guard.mjs',
   'npm run lint:baseline:check',
   'node_modules/.bin/tsc --noEmit',
-  'node prototipo-ui/ds-guard.mjs <arquivos-tocados>',
+  'node prototipo-ui/ds-guard.mjs <arquivos-tocados>            # em RÉPLICA de protótipo: --report (ADR 0388) — o achado vai pra lista, não veta',
+  // ADR 0388 — réplica primeiro: a conformidade do DS vira LISTA pós-aplicação, gerada no MESMO PR
+  'node scripts/governance/replica-inconsistencias.mjs --modulo <Mod> [--prototipo <jsx do espelho>]   # NUNCA bloqueia; exit 2 só se NÃO mediu',
+  //   ^ cobre também o eixo ESLINT-DS (13 regras `ds/*`), delegando a `ds-report.mjs --by-file`.
+  //     Precisa de node_modules (o dono invoca o ESLint); sem ele o item sai NÃO MEDIDO e o
+  //     exit vira 2 — use `--sem-eslint` pra medir só o resto. O `ds/*` NÃO aparecia na lista
+  //     antes: o baseline agrega tudo sob o ruleId `no-restricted-syntax` (o prefixo `ds/` só
+  //     existe na mensagem), então só se via quando o required `ESLint · ratchet vs baseline`
+  //     avermelhava — e some de novo quando é absorvido com `BASELINE-ABSORB:` (PR #6553).
   'node scripts/governance/cowork-ssot-guard.mjs',
   // REQUIRED do domínio que faltavam (2026-08-21) — ver mapeamento provado acima
   'node scripts/governance/cowork-mirror-freshness.mjs --unverified --check   # espelho editado sem prova de fidelidade',
@@ -233,6 +241,22 @@ export const FASES = [
   // ponteiro, nao da rota. O README real desceu pelo transporte e vive no git desde entao.
   { fase: '-1', nome: 'Importar/baixar o design', comandos: [
       '# [ROTA PRINCIPAL] bundle v2 — snapshot inicial; depois delta por manifesto anterior',
+      '# ⚠ A EMISSAO DESTE BUNDLE NAO TEM DONO NEM AUTOMACAO (medido 2026-08-31, contado):',
+      '#   os UNICOS invocadores de `gerar-payload-partes` no repo sao o .test.mjs e o workflow que roda',
+      '#   esse teste. Zero cron, zero hook, zero step de producao. E NAO E BURACO A TAPAR AQUI: o proprio',
+      '#   docblock do script declara que ele roda "na maquina que TEM os arquivos em disco (o lado do',
+      '#   design/Cowork)" — o repo nao os tem, entao hook post-merge daqui e impossivel por construcao.',
+      '#   O irmao `ds-push` (git->espelho) tampouco fecha por CI: ele mesmo diz que NAO faz o upload,',
+      '#   porque finalize_plan/write_files exigem login claude.ai interativo (ADR 0315).',
+      '#   CONSEQUENCIA PRATICA, e e a parte que muda o que voce conclui: o espelho fica atras do vivo por',
+      '#   PADRAO, logo "nao achei no espelho" NUNCA prova ausencia — exige o projeto Cowork por ID.',
+      '#   Numeros e formulacao completa (nao repetidos aqui de proposito — §5 2026-07-17) em',
+      '#   prototipo-ui/COWORK_NOTES.md §"Teto de transporte" e',
+      '#   memory/requisitos/Arquivos/Index-visual-comparison.md. Lapide §5 2026-08-27: o que fecha esta',
+      '#   classe nao e maquina, e a regeracao do bundle do lado Cowork ao fim de todo ciclo de design.',
+      '#   PEDIDO FORMAL dessa regra enviado em 2026-09-01 (recibo: pacote congelado em 24/08 com 3',
+      '#   ciclos fora): prototipo-ui/CODE_NOTES.prompt-cowork-regenerar-bundle-por-ciclo-2026-09-01.md',
+      '#   — o recibo de cumprimento e a linha "bundle regenerado" no github.md (ADR 0387).',
       'node scripts/design-sync/gerar-payload-partes.mjs --root <design-vivo> --out <sync> [--previous <bundle.manifest.json>]',
       'node scripts/design-sync/aplicar-payload.mjs <payload.part*.json> --dry --require-complete-shell  # valida lote + estado-alvo em staging',
       'node scripts/design-sync/aplicar-payload.mjs <payload.part*.json> --require-complete-shell        # promove atomicamente ou restaura tudo',
@@ -274,12 +298,23 @@ export const FASES = [
       '  ^ TRAGA o pedido/handoff (PEDIDO-*, PROMPT-*): sem ele a proveniencia do charter fica so no corpo do PR.',
       '  ^ NAO traga rascunho de charter/casos/contract: PROTOCOL 10.4 = nao trazer rascunho pro canon.',
       '    O canon nasce em resources/js/Pages/<Mod>/ via criar-tela.mjs, reconciliado contra SPEC/ADR.',
+      '# [DIARIO / HANDOFF DO DESIGN] github.md = diario de sync do [CC] (ADR 0387, PROTOCOL 10.7):',
+      '#   Last sync, achados, erratas e decisoes pendentes [W]. TRATE-O: leia ANTES de decidir o ciclo —',
+      '#   e o indice do que o design fez e do que espera de voce. Copia tratada =',
+      '#   prototipo-ui/design-docs/github.md (raiz; _projeto-cowork/** e retrato interno do projeto).',
+      '#   Registro, NAO fonte: achado do diario vira trabalho DEPOIS de verificado contra o main.',
+      'DesignSync.get_file(projectId=COWORK_PROJECT_ID, path=github.md)                # LER e livre (0315 Eixo B); pouso fiel = bundle/--export-from (transcricao proibida, 0374)',
     ], selftest: 'node prototipo-ui/handoff-changed.mjs --selftest' },
   { fase: '0/0.5', nome: 'Detectar + manifesto', comandos: [
       'node prototipo-ui/detectar-telas.mjs --staging <dir> --json --strict',
     ], selftest: 'node prototipo-ui/detectar-telas.mjs --selftest' },
   { fase: '1', nome: 'Mapear / comparar', comandos: [
       'node prototipo-ui/ancora.mjs <Mod/Tela>',
+      '# ⚠ A ORDEM DOS DOIS E INVERTIDA ENTRE SI — trocar produz relatorio plausivel com os lados espelhados.',
+      '#   style-fingerprint = PROTO primeiro · design-diff = PROD primeiro. Nao e simetria, e pegadinha.',
+      '#   design-diff MORDE na troca (deriva o lado de `location.href`: espelho e file:/localhost, prod e https).',
+      '#   style-fingerprint nao consegue derivar (a sonda dele grava so `location.pathname`) — a defesa la e a',
+      '#   trava de ancora do `--tela`, e quem passa `--sem-ancora` fica sem defesa contra inversao.',
       'node prototipo-ui/style-fingerprint.mjs --compare proto.json prod.json --tela <Mod/Tela>',
       'node prototipo-ui/design-diff.mjs --compare prod.json design.json --check',
       'node prototipo-ui/gerar-map.mjs <gap.md>   # esqueleto do <tela>.map.json (ponte design↔código persistente)',

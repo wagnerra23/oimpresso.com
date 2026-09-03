@@ -36,7 +36,7 @@ last_run_ci: "NAO RODEI a suite nesta leva - o bump de last_run e por REVALIDACA
 
 | Fato | Onde |
 |---|---|
-| Nada gateia a tela. O TODO pede middleware, mas o padrão canônico do módulo **não é middleware**: a lista irmã aborta 403 **dentro do controller** (`product.view` **ou** `product.create`) | `routes/web.php:449-451 (verificado@70c36b4)` + `ProductController@index:66` |
+| Nada gateia a tela. O TODO pede middleware, mas o padrão canônico do módulo **não é middleware**: a lista irmã aborta 403 **dentro do controller** (`product.view` **ou** `product.create`) | `routes/web.php:665-667 (verificado@e2c8397)` + `ProductController@index:66` |
 | `produtos()` monta `price`, `cost` e `margin` para **toda** linha, sem consultar permissão | `:122-124` |
 | Varredura contada de `view_purchase_price\|access_default_selling_price` no controller | **0 ocorrências** |
 | `historico()` devolve `value` = qty × `unit_price_inc_tax` — preço de venda por linha, sem gate | `:249`, `:260` |
@@ -61,7 +61,7 @@ last_run_ci: "NAO RODEI a suite nesta leva - o bump de last_run e por REVALIDACA
 | UC-PUNI-03 | Tabelas de preço seguem o **mesmo** gate do preço de venda | must | decisão 2026-08-11 (abaixo) | `ProdutoUnificadoContratoTest` | ✅ verde — a prop `tabelas` nasce `[]` sem o direito |
 | UC-PUNI-04 | Composição (BOM) só aparece com módulo Manufacturing **e** `manufacturing.access_recipe` | must | permissões `Modules/Manufacturing` + camada 1/3 ([feedback-habilitar-modulo-por-business](../../../../../memory/reference/feedback-habilitar-modulo-por-business.md)) | `ProdutoUnificadoContratoTest` | ✅ verde — `insumos` vazio e `bomCount` ausente sem as camadas 1+3 |
 | UC-PUNI-05 | Nenhuma prop enxerga outro business | must `[T0]` | `CU-PROD-10.2` + [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `ProdutoUnificadoContratoTest` | ✅ verde — guard cross-tenant confirmado |
-| UC-PUNI-06 | A tela exige `product.view` **ou** `product.create` | should | `ProductController@index:66` (a lista irmã) + `routes/web.php:449 (verificado@70c36b4)` (TODO) | `ProdutoUnificadoContratoTest` | ✅ verde — 403 sem `product.view` nem `product.create` |
+| UC-PUNI-06 | A tela exige `product.view` **ou** `product.create` | should | `ProductController@index:66` (a lista irmã) + `routes/web.php:665 (verificado@e2c8397)` (TODO) | `ProdutoUnificadoContratoTest` | ✅ verde — 403 sem `product.view` nem `product.create` |
 | UC-PUNI-07 | O contador "Margem baixa" segue o gate do custo | must | handoff §9 + `AR-PROD-015` | `ProdutoUnificadoIndiceContratoTest` | ✅ verde — run 32141318494 |
 | UC-PUNI-08 | A aba recorta por TIPO derivado e conta só ativos | must | handoff §4.2 + §6 exceção 6 | `ProdutoUnificadoIndiceContratoTest` | ✅ verde — run 32141318494 |
 | UC-PUNI-09 | "Não estocável" e "sem estoque" são estados diferentes | must | handoff §4.6 + §6 exceção 6 | `ProdutoUnificadoIndiceContratoTest` | ✅ verde — run 32141318494 |
@@ -167,7 +167,7 @@ last_run_ci: "NAO RODEI a suite nesta leva - o bump de last_run e por REVALIDACA
 
 - **Aceite:** Dado um usuário autenticado **sem** `product.view` **nem** `product.create` · Quando pede `/products/unificado` ·
   Então recebe 403 — não a página.
-- **Estado hoje:** nada gateia a tela. O TODO em `routes/web.php:449 (verificado@70c36b4)` pede middleware, mas o padrão
+- **Estado hoje:** nada gateia a tela. O TODO em `routes/web.php:665 (verificado@e2c8397)` pede middleware, mas o padrão
   canônico do módulo **não é middleware**: a lista irmã aborta dentro do controller
   (`ProductController@index:66`). Vermelho esperado.
 - **Teste:** [`ProdutoUnificadoContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoContratoTest.php) — `UC-PUNI-06`.

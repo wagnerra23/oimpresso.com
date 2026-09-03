@@ -1,7 +1,7 @@
 {
   "screen": "Forja/Trabalho/_components/TrabalhoQuadro",
-  "path": "resources/js/Pages/Forja/Trabalho/_components/TrabalhoQuadro.tsx",
-  "measured_against_sha": "b414fd3c163",
+  "path": "Modules/Forja/Resources/js/Pages/Forja/Trabalho/_components/TrabalhoQuadro.tsx",
+  "measured_against_sha": "c1263f2e53",
   "generated_by": "scripts/design-spec-gen.mjs (DERIVADO — não editar à mão)",
   "shell": [],
   "components": {

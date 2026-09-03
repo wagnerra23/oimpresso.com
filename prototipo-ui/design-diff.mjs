@@ -49,6 +49,33 @@
  *    no juiz manual ao deletar o pr-ui-judge.yml — e valor cru de UMA palavra, indistinguível
  *    de palavra legítima por forma. §"não-goals".)
  *
+ *   ── SHELL / SIDEBAR (2026-08-28) — escopo NOVO, não dimensão nova ──────────────
+ *   Tudo acima mede a TELA. O SHELL (sidebar) ficava fora de TODA máquina de comparação,
+ *   e não por esquecimento: o `style-fingerprint.mjs` o EXCLUI de propósito (`window.__ROOT__`,
+ *   "mata o ruído de shell/sidebar ~600 miss/célula na Unificado"). Resultado medido em
+ *   2026-08-28: o sidebar divergia do design em 19 propriedades e nenhuma máquina disse nada —
+ *   3 foram achadas por amostragem no olho, as outras 16 só apareceram quando alguém ENUMEROU.
+ *   O valor desta parte é ENUMERAR; amostrar já se sabia fazer.
+ *
+ *   Config em `window.__SB_ROLES` = { <papel>: '<seletor CSS DESTE lado>' } — mesma premissa
+ *   do resto: o SELETOR difere por lado, o PAPEL é o mesmo. `--shell-roles` imprime o mapa
+ *   medido pra colar nos dois lados.
+ *
+ *   ⚠️ O QUE ESTE ESCOPO NÃO FAZ, E É DE PROPÓSITO: ele NÃO diz de quem é a culpa. Diferença
+ *   de shell tem três causas e nenhuma é decidível por medição —
+ *      DECIDIDA      alguém escolheu (ex.: a prod ter um atalho que o design não tem)
+ *      DERIVA        ninguém escolheu; foi acontecendo
+ *      DESIGN-ANDOU  o design mudou e a prod ficou na versão anterior
+ *   Por isso o veredito é `DIVERGE (a classificar)`, nunca `(bug)`: a máquina REPORTA,
+ *   o humano CLASSIFICA. O que já foi classificado como DECIDIDA entra por `--declarado
+ *   <arquivo.json>` (allowlist por ENTRADA, com motivo obrigatório — nunca embutida aqui,
+ *   senão a régua fica vermelha permanente e vira ruído que se aprende a ignorar).
+ *
+ *   Enforcement não se declara aqui em tempo presente (apodrece): quem manda em "isto
+ *   bloqueia merge?" é a branch protection, e o dono é `governance/required-checks-baseline.json`.
+ *   O que este arquivo oferece é a flag `--check-shell`, que existe para quem quiser exit≠0.
+ *   O `--check` histórico segue olhando SÓ `DIVERGE (bug)` — shell não avermelha o que já existia.
+ *
  * ── TOLERÂNCIA (chip G8, 2026-08-14) ─────────────────────────────────────────────
  *   As bandas destas dimensões estavam inline (±2px de título, ±8° de matiz, ±0,1 de luminância).
  *   Agora vêm de `TOLERANCIAS` (style-fingerprint.mjs) — UM dono para os dois comparadores, senão
@@ -61,14 +88,20 @@
  *   node prototipo-ui/design-diff.mjs --compare prod.json design.json          # relatório
  *   node prototipo-ui/design-diff.mjs --compare prod.json design.json --check  # exit 1 se DIVERGE(bug)
  *   node prototipo-ui/design-diff.mjs --compare prod.json design.json --json   # saída JSON
+ *   node prototipo-ui/design-diff.mjs --compare prod.json design.json --contrato <c.json>
+ *                                                                   # D0: prova que os 2 lados sao a MESMA tela
+ *   node prototipo-ui/design-diff.mjs --shell-roles                 # mapa de papéis do SHELL, pra colar nos 2 lados
+ *   node prototipo-ui/design-diff.mjs --compare p.json d.json --check-shell            # exit 1 se o SHELL divergir
+ *   node prototipo-ui/design-diff.mjs --compare p.json d.json --declarado decl.json    # allowlist {campo,motivo}
  *   node prototipo-ui/design-diff.mjs --selftest                    # fixture hermético (reproduz 07/07)
  */
 
 import { readFileSync, existsSync, writeFileSync, rmSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { TOLERANCIAS } from './style-fingerprint.mjs';
+import { TOLERANCIAS, diffCampo } from './style-fingerprint.mjs';
 
 /**
  * Ledger de frescor do espelho — MESMO caminho que o `cowork-mirror-freshness`
@@ -308,10 +341,72 @@ export const PROBE_SOURCE = /* js */ `(() => {
     }
     return { nome: el.getAttribute('data-contract'), classes, exemplos };
   });
+  // ── SHELL (sidebar) — 2026-08-28 ──────────────────────────────────────────────
+  // Config em 'window.__SB_ROLES' = { <papel>: '<seletor CSS DESTE lado>' }. Aceita também
+  // '__DD_ROLES.shell' pra quem preferir passar um objeto só. Ausente ⇒ 'shell: null' ⇒ o
+  // comparador diz SEM-DADO — nunca "igual" por omissão (§5 2026-07-29).
+  //
+  // Mede o PRIMEIRO elemento VISÍVEL de cada papel (rect > 0). Item de sidebar é população
+  // homogênea por construção: o que diverge do design diverge no conjunto, e medir o primeiro
+  // visível evita que um item colapsado (rail fechado, grupo recolhido) dite a medida.
+  const S = window.__SB_ROLES || R.shell || null;
+  const CSS_SHELL = ['height', 'minHeight', 'padding', 'margin', 'gap', 'display', 'alignItems',
+    'fontFamily', 'fontSize', 'fontWeight', 'lineHeight', 'letterSpacing', 'textTransform',
+    'color', 'backgroundColor', 'borderRadius', 'borderWidth', 'borderColor', 'opacity', 'width',
+    'boxShadow', 'textDecorationLine'];
+  const normFam = (v) => String(v || '').replace(/["']/g, '').replace(/,\\s*/g, ',');
+  const px1 = (n) => Math.round(n * 10) / 10;
+  const papelInfo = (sel) => {
+    const els = qa(sel).filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0; });
+    if (!els.length) return { seletor: sel, n: 0, css: null, caixa: null, icone: null };
+    const el = els[0], c = cs(el), r = el.getBoundingClientRect();
+    const css = {};
+    for (const k of CSS_SHELL) {
+      // borderColor: o lado TOPO é o representativo — mesma escolha que o 'primary.border'
+      // acima. Shorthand de 4 lados vira string irregular entre engines e forkaria a
+      // comparação por NOTAÇÃO, não por design.
+      // fontFamily: aspas e espaço depois da vírgula são notação, não decisão — normalizados.
+      css[k] = k === 'borderColor' ? c.borderTopColor : k === 'fontFamily' ? normFam(c.fontFamily) : c[k];
+    }
+    const svg = el.querySelector('svg');
+    const rs = svg ? svg.getBoundingClientRect() : null;
+    return {
+      seletor: sel, n: els.length, css,
+      caixa: { w: px1(r.width), h: px1(r.height) },
+      icone: svg ? { w: px1(rs.width), h: px1(rs.height), strokeWidth: cs(svg).strokeWidth } : null,
+    };
+  };
+  const shell = S ? (() => {
+    const papeis = {};
+    for (const nome of Object.keys(S)) papeis[nome] = papelInfo(S[nome]);
+    // SEQUÊNCIA dos atalhos de topo. Ordem de navegação é CONTRATO, não estética — e é a
+    // única parte do shell que computed-style nenhum alcança: dois sidebars podem ter cada
+    // pixel idêntico e a ordem trocada. Rótulo vem do aria-label quando existe (ícone-only
+    // não tem texto), senão do textContent.
+    const atalhos = S.atalhoTopo
+      ? qa(S.atalhoTopo).map((el, i) => {
+          const marcado = el.getAttribute('aria-current') || (el.closest('[aria-current]') ? el.closest('[aria-current]').getAttribute('aria-current') : null);
+          return {
+            i,
+            rotulo: (el.getAttribute('aria-label') || el.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 32),
+            atual: marcado || null,
+          };
+        })
+      : null;
+    return { papeis, atalhos };
+  })() : null;
   return {
     url: location.href,
     theme: document.documentElement.getAttribute('data-theme') || (document.documentElement.classList.contains('dark') ? 'dark' : 'light'),
-    roles: { kpi, title, primary, filterRows: filterEls.length ? visualRows(filterEls) : null, contratos, celulas, tabela },
+    // D0 — ASSINATURA da view. (Sem crase neste bloco: ele vive DENTRO do template
+    // string do PROBE_SOURCE, e uma crase aqui fecha a string no meio — foi o que
+    // quebrou o --probe em 2026-08-28.)
+    // Existe porque ancora.mjs responde QUAL ARQUIVO, nunca QUAL VIEW dentro dele:
+    // medido, 38 telas apontam pra uma âncora compartilhada (ponto-telas.jsx serve
+    // 17). Num shell que carrega vários protótipos juntos, comparar sem provar a
+    // view mede a TELA ERRADA e devolve veredito plausível — o pior tipo de erro.
+    assinatura: textoVisivel(document.body).slice(0, 20000),
+    roles: { kpi, title, primary, filterRows: filterEls.length ? visualRows(filterEls) : null, contratos, celulas, tabela, shell },
   };
 })()`;
 
@@ -595,15 +690,260 @@ function dimCelulas(prod, design) {
   return rows;
 }
 
-const DIMENSIONS = [dimLayout, dimTipografia, dimCor, dimAlinhamento, dimTexto, dimCelulas];
+/* ─────────────────────────────────────────────────────────────────────────────
+ * SHELL (sidebar) — escopo novo, 2026-08-28.
+ *
+ * As dimensões acima medem a TELA. O shell não era medido por máquina nenhuma — e o
+ * `style-fingerprint.mjs` o exclui DE PROPÓSITO (`window.__ROOT__`: "mata o ruído de
+ * shell/sidebar"). Custo medido: 19 propriedades divergentes que nenhum gate viu; 3 saíram
+ * por amostragem no olho, 16 só por enumeração.
+ *
+ * O veredito aqui é `DIVERGE (a classificar)`, NUNCA `(bug)`. Não é timidez: as três causas
+ * possíveis — DECIDIDA · DERIVA · DESIGN-ANDOU — não são distinguíveis por medição, e chamar
+ * de bug mandaria consertar o lado errado (foi assim que `hard_delete` chegou à tela na D9:
+ * veio desenhado). A máquina REPORTA; o humano CLASSIFICA. O que já foi classificado como
+ * DECIDIDA entra por `--declarado`, nunca embutido aqui.
+ * ─────────────────────────────────────────────────────────────────────────── */
 
-/** @param {any} prodSnap @param {any} designSnap */
-export function compare(prodSnap, designSnap) {
+/**
+ * Mapa CAMPO DO SHELL → CAMPO CANÔNICO do dono das bandas (`TOLERANCIAS`, style-fingerprint).
+ *
+ * Por que mapear em vez de escolher bandas próprias: banda duplicada drifa no primeiro ajuste,
+ * e o §5 desta casa já enterrou "abrir régua paralela ao dono do tema". Aqui o eixo é do
+ * `style-fingerprint` — se a banda de cor mudar lá, muda aqui junto, de graça.
+ *
+ * Duas escolhas que merecem estar escritas:
+ *  · `borderWidth` → eixo `padding` (listaPx, ±0,5px) e não `borderW` (px simples): o computed
+ *    de borda pode voltar com 4 lados ("1px 0px 0px 0px") e o eixo px lê só o primeiro número,
+ *    ficando cego pros outros três. A banda numérica é a MESMA (0,5) — muda a leitura, não o rigor.
+ *  · `backgroundColor` → `bgProprio` (não `bgEfetivo`): aqui interessa o fundo DECLARADO no
+ *    elemento. Fundo herdado é do container, e atribuí-lo ao item mentiria sobre quem pinta.
+ *  · `icone.strokeWidth` → eixo `tipografia` (banda 0) e NÃO `borda` (±0,5px). Medido ao
+ *    escrever o selftest: o passo real do traço no lucide é 0,5 (1,5px → 2px), então a banda
+ *    de `borda` engoliria o passo INTEIRO e o eixo nasceria MUDO — exatamente o defeito que a
+ *    lápide do próprio eixo `borda` descreve no style-fingerprint ("o TOL_PX herdado engolia
+ *    |0-1|=1 → o eixo era mudo"). Traço de ícone é valor DECLARADO, não medida de rect: não
+ *    tem ruído sub-pixel pra absorver, e a régua honesta é igualdade numérica. O detalhe vai
+ *    imprimir "banda tipografia ±0" — leia como "banda 0"; o eixo emprestado é o do valor 0.
+ */
+export const EIXO_SHELL = {
+  height: 'h', minHeight: 'h', width: 'w', 'caixa.w': 'w', 'caixa.h': 'h',
+  'icone.w': 'w', 'icone.h': 'h', 'icone.strokeWidth': 'fontSize',
+  padding: 'padding', margin: 'padding', gap: 'padding',
+  borderRadius: 'radius', borderWidth: 'padding',
+  fontSize: 'fontSize', lineHeight: 'lineHeight', letterSpacing: 'letterSpacing',
+  color: 'color', backgroundColor: 'bgProprio', borderColor: 'borderColor',
+  opacity: 'opacity',
+  display: 'display', alignItems: 'display', textDecorationLine: 'display',
+  fontFamily: 'fontFamily', fontWeight: 'fontWeight', textTransform: 'textTransform',
+  boxShadow: 'boxShadow',
+};
+
+/**
+ * Diverge? Devolve a linha de detalhe (com Δ e banda), ou `null` se está dentro da banda.
+ * A CONTA é do `diffCampo` (dono único); aqui só se troca o RÓTULO impresso, pro relatório
+ * falar o vocabulário do shell (`minHeight`) e não o do fingerprint (`h`).
+ */
+export function divergenciaShell(nome, a, b) {
+  const canonico = EIXO_SHELL[nome] || nome;
+  const linha = diffCampo(canonico, a, b);
+  if (!linha) return null;
+  return linha.startsWith(canonico + ':') ? nome + linha.slice(canonico.length) : linha;
+}
+
+/**
+ * Allowlist de divergência DECLARADA — por ENTRADA, nunca embutida no código.
+ *
+ * Sem isto a régua fica vermelha permanente (a prod tem `Forja` no topo e o design não; isso é
+ * DECIDIDO, não deriva) e vermelho permanente é ruído que se aprende a ignorar — o mesmo defeito
+ * que este projeto já catalogou em gate que nunca pode ficar verde.
+ *
+ * `motivo` é OBRIGATÓRIO e a ausência dele REJEITA o arquivo inteiro: allowlist sem razão escrita
+ * é silenciamento cego, que é o que ela deveria impedir. Aceita `{ itens: [...] }` ou o array cru.
+ */
+export function validarDeclaracao(obj) {
+  const itens = Array.isArray(obj) ? obj : (obj && Array.isArray(obj.itens) ? obj.itens : null);
+  if (!itens) throw new Error('declaração: esperado { "itens": [ { "campo": "...", "motivo": "..." } ] } (ou o array direto)');
+  itens.forEach((it, i) => {
+    if (!it || typeof it.campo !== 'string' || !it.campo.trim()) throw new Error(`declaração[${i}]: "campo" ausente ou vazio`);
+    if (typeof it.motivo !== 'string' || !it.motivo.trim()) {
+      throw new Error(`declaração[${i}] (${it.campo}): "motivo" ausente — declarar divergência sem dizer POR QUE é exatamente o vetor que esta exigência fecha`);
+    }
+  });
+  return itens.map((it) => ({ campo: it.campo.trim(), motivo: it.motivo.trim() }));
+}
+
+/**
+ * Aplica a declaração — SÓ no escopo SHELL, e isso é fail-closed de propósito: silenciar
+ * `DIVERGE (bug)` de tela é outra decisão, e não se toma por arquivo de allowlist deste modo.
+ * Item que aponta pra fora do shell simplesmente não casa e sai reportado como SEM EFEITO.
+ *
+ * Casa por igualdade exata, ou por prefixo quando o campo termina em `*`. O relatório imprime
+ * QUANTAS linhas cada entrada silenciou — assim declaração ampla demais fica VISÍVEL em vez de
+ * virar um cobertor mudo.
+ */
+export function aplicarDeclaracao(rows, itens = []) {
+  const usos = itens.map(() => 0);
+  const out = rows.map((r) => {
+    if (r.dim !== 'SHELL' || !String(r.veredito).startsWith('DIVERGE')) return r;
+    for (let i = 0; i < itens.length; i++) {
+      const alvo = String(itens[i].campo);
+      const casa = alvo.endsWith('*') ? String(r.campo).startsWith(alvo.slice(0, -1)) : String(r.campo) === alvo;
+      if (casa) { usos[i] += 1; return { ...r, veredito: 'DIVERGE (declarada)', detalhe: itens[i].motivo }; }
+    }
+    return r;
+  });
+  return {
+    rows: out,
+    declaradas: usos.reduce((a, b) => a + b, 0),
+    porItem: itens.map((it, i) => ({ campo: it.campo, motivo: it.motivo, silenciou: usos[i] })),
+    semEfeito: itens.filter((_, i) => usos[i] === 0).map((it) => it.campo),
+  };
+}
+
+/**
+ * Mapa de papéis MEDIDO e validado em 2026-08-28 (fato datado — não é lei).
+ *
+ * O seletor difere por lado; o PAPEL é o mesmo. Isto é ponto de partida pra colar, não verdade
+ * perene: seletor muda com o DOM. Antes de ler qualquer veredito, confira que o papel casou
+ * elemento visível dos DOIS lados — a sonda reporta `presenca` como SEM-DADO quando não casa,
+ * justamente pra "0 divergências" não poder significar "0 elementos medidos".
+ */
+export const SB_ROLES_SUGERIDO = {
+  design: {
+    atalhoTopo: '.sb-menu > .sb-item',
+    itemGrupo: '.sb-group .sb-item, .sb-group-body .sb-item',
+    grupoHeader: '.sb-group-h',
+    containerMenu: '.sb-menu',
+  },
+  prod: {
+    atalhoTopo: '.sb-shortcuts .sb-shortcut',
+    itemGrupo: '.sb-item',
+    grupoHeader: '.sb-group-h',
+    containerMenu: '.sb-menu-grouped',
+  },
+};
+
+const SEM_DADO_SHELL = (campo, prod, design, detalhe) => ({ dim: 'SHELL', campo, prod, design, veredito: 'SEM-DADO', detalhe });
+const A_CLASSIFICAR = (campo, prod, design, detalhe) => ({ dim: 'SHELL', campo, prod, design, veredito: 'DIVERGE (a classificar)', detalhe });
+
+/** @param {any} prod @param {any} design */
+function dimShell(prod, design) {
+  const P = prod.shell, D = design.shell;
+  if (!P || !D) {
+    return [SEM_DADO_SHELL('shell', P ? 'ok' : 'não medido', D ? 'ok' : 'não medido',
+      'declare window.__SB_ROLES nos DOIS lados — node prototipo-ui/design-diff.mjs --shell-roles imprime o mapa')];
+  }
+  const rows = [];
+  const pp = P.papeis || {}, dp = D.papeis || {};
+  const papeis = [...new Set([...Object.keys(pp), ...Object.keys(dp)])].sort();
+  if (!papeis.length) rows.push(SEM_DADO_SHELL('shell.papeis', 'vazio', 'vazio', '__SB_ROLES não declarou papel nenhum'));
+
+  for (const papel of papeis) {
+    const a = pp[papel], b = dp[papel];
+    const cp = 'shell.' + papel;
+    if (!a || !b) {
+      rows.push(SEM_DADO_SHELL(cp, a ? 'presente' : 'ausente', b ? 'presente' : 'ausente', 'papel declarado só de um lado'));
+      continue;
+    }
+    // Seletor que não casa elemento visível NÃO pode virar "igual": zero medido lido como zero
+    // divergente é o mesmo defeito de "0 failed" numa suíte que não rodou.
+    if (!a.n || !b.n) {
+      rows.push(SEM_DADO_SHELL(cp + '.presenca', `${a.n} el (${a.seletor})`, `${b.n} el (${b.seletor})`,
+        'o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto'));
+      continue;
+    }
+    if (a.n !== b.n) {
+      rows.push(A_CLASSIFICAR(cp + '.n', a.n, b.n, 'quantidade de elementos do papel'));
+    }
+    const chaves = [...new Set([...Object.keys(a.css || {}), ...Object.keys(b.css || {})])];
+    for (const k of chaves) {
+      const va = (a.css || {})[k], vb = (b.css || {})[k];
+      if (va === undefined || vb === undefined) {
+        rows.push(SEM_DADO_SHELL(`${cp}.${k}`, va === undefined ? 'não medido' : va, vb === undefined ? 'não medido' : vb,
+          'campo só existe num dos snapshots — re-injete a sonda atual (--probe) nos DOIS lados'));
+        continue;
+      }
+      const det = divergenciaShell(k, va, vb);
+      if (det) rows.push(A_CLASSIFICAR(`${cp}.${k}`, va, vb, det));
+    }
+    // Snapshot é DADO EXTERNO: `caixa` pode vir null (papel sem elemento, sonda antiga, JSON
+    // editado à mão). Ler `a.caixa[eixo]` direto derrubava o comparador inteiro com TypeError —
+    // pego pelo teste de mutação de 2026-08-28, não por revisão. Instrumento não morre lendo
+    // dado incompleto: ele diz que não mediu.
+    for (const eixo of ['w', 'h']) {
+      const va = a.caixa ? a.caixa[eixo] : undefined;
+      const vb = b.caixa ? b.caixa[eixo] : undefined;
+      const det = divergenciaShell('caixa.' + eixo, va, vb);
+      if (det) rows.push(A_CLASSIFICAR(`${cp}.caixa.${eixo}`, va === undefined ? 'não medido' : va, vb === undefined ? 'não medido' : vb, det));
+    }
+    if (!!a.icone !== !!b.icone) {
+      rows.push(A_CLASSIFICAR(cp + '.icone', a.icone ? 'com svg' : 'sem svg', b.icone ? 'com svg' : 'sem svg', 'presença do ícone'));
+    } else if (a.icone && b.icone) {
+      for (const eixo of ['w', 'h', 'strokeWidth']) {
+        const det = divergenciaShell('icone.' + eixo, a.icone[eixo], b.icone[eixo]);
+        if (det) rows.push(A_CLASSIFICAR(`${cp}.icone.${eixo}`, a.icone[eixo], b.icone[eixo], det));
+      }
+    }
+  }
+
+  // SEQUÊNCIA dos atalhos de topo. Ordem de navegação é contrato — e é o único sinal do shell
+  // que computed-style nenhum alcança: dois sidebars com cada pixel idêntico podem ter a ordem
+  // trocada, e o diff de estilo diria IGUAL.
+  const pa = P.atalhos, da = D.atalhos;
+  if (!Array.isArray(pa) || !Array.isArray(da)) {
+    rows.push(SEM_DADO_SHELL('shell.atalhoTopo.sequencia', Array.isArray(pa) ? 'ok' : 'não medido', Array.isArray(da) ? 'ok' : 'não medido',
+      'declare o papel `atalhoTopo` nos dois lados pra medir a ordem'));
+  } else {
+    const rp = pa.map((x) => x.rotulo), rd = da.map((x) => x.rotulo);
+    if (rp.join('|') !== rd.join('|')) {
+      rows.push(A_CLASSIFICAR('shell.atalhoTopo.sequencia', '[' + rp.join(', ') + ']', '[' + rd.join(', ') + ']',
+        'ordem de navegação é contrato — classifique (DECIDIDA/DERIVA/DESIGN-ANDOU) antes de mexer'));
+      const soProd = rp.filter((x) => !rd.includes(x));
+      const soDesign = rd.filter((x) => !rp.includes(x));
+      if (soProd.length) rows.push(A_CLASSIFICAR('shell.atalhoTopo.so-na-prod', soProd.join(', '), '—', 'candidato típico a DECIDIDA — se for, declare em --declarado'));
+      if (soDesign.length) rows.push(A_CLASSIFICAR('shell.atalhoTopo.so-no-design', '—', soDesign.join(', '), 'candidato típico a DESIGN-ANDOU — confira a data das duas fontes'));
+      if (!soProd.length && !soDesign.length) rows.push(A_CLASSIFICAR('shell.atalhoTopo.ordem', rp.join(' > '), rd.join(' > '), 'mesmo conjunto, ordem diferente'));
+    }
+    // `aria-current` depende de QUAL tela está aberta em cada lado — é dado, não design.
+    // Sinal pro humano, nunca veredito duro (mesma regra de `blocos` e `estado de linha`).
+    const atual = (l) => (l.find((x) => x.atual) || {}).rotulo || null;
+    if (atual(pa) !== atual(da)) {
+      rows.push({ dim: 'SHELL', campo: 'shell.atalhoTopo.aria-current', prod: atual(pa) || 'nenhum', design: atual(da) || 'nenhum',
+        veredito: 'DIVERGE (dado?)', detalhe: 'depende de qual tela está aberta em cada lado — confira antes de tratar como defeito' });
+    }
+  }
+  if (!rows.length) rows.push({ dim: 'SHELL', campo: 'shell', prod: 'ok', design: 'ok', veredito: 'IGUAL' });
+  return rows;
+}
+
+const DIMENSIONS = [dimLayout, dimTipografia, dimCor, dimAlinhamento, dimTexto, dimCelulas, dimShell];
+
+/**
+ * @param {any} prodSnap @param {any} designSnap
+ * @param {{declarado?: {campo:string,motivo:string}[]}} [opts]
+ *
+ * `bugs` conta SÓ `DIVERGE (bug)` — o shell NÃO entra ali de propósito: escopo novo não
+ * avermelha o que já existia (`--check` histórico segue com o mesmo significado). A contagem
+ * do shell sai separada, em `shell`, e quem quiser exit≠0 nela usa `--check-shell`.
+ */
+export function compare(prodSnap, designSnap, opts = {}) {
   const prod = { ...prodSnap.roles, __theme: prodSnap.theme };
   const design = { ...designSnap.roles, __theme: designSnap.theme };
-  const rows = DIMENSIONS.flatMap((fn) => fn(prod, design));
+  const brutas = DIMENSIONS.flatMap((fn) => fn(prod, design));
+  const decl = aplicarDeclaracao(brutas, opts.declarado || []);
+  const rows = decl.rows;
   const bugs = rows.filter((r) => r.veredito === 'DIVERGE (bug)');
-  return { rows, bugs: bugs.length, sameTheme: prodSnap.theme === designSnap.theme };
+  const shell = rows.filter((r) => r.dim === 'SHELL' && r.veredito === 'DIVERGE (a classificar)');
+  return {
+    rows,
+    bugs: bugs.length,
+    shell: shell.length,
+    declaradas: decl.declaradas,
+    porDeclaracao: decl.porItem,
+    declaracoesSemEfeito: decl.semEfeito,
+    sameTheme: prodSnap.theme === designSnap.theme,
+  };
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -611,7 +951,14 @@ export function compare(prodSnap, designSnap) {
  * ─────────────────────────────────────────────────────────────────────────── */
 function fmt(rows) {
   return rows.map((r) => {
-    const mark = r.veredito === 'IGUAL' ? '✓' : r.veredito === 'SEM-DADO' ? '⬜' : /tema|dado?|impl/.test(r.veredito) ? '🟡' : '✗';
+    // `a classificar` tem marca PRÓPRIA (▲) e não reusa a de bug (✗): o relatório não pode
+    // sugerir culpa que a medição não estabelece. `declarada` (▫) é divergência já classificada
+    // por humano — some do contador, mas continua VISÍVEL na listagem, nunca apagada.
+    const mark = r.veredito === 'IGUAL' ? '✓'
+      : r.veredito === 'SEM-DADO' ? '⬜'
+      : r.veredito === 'DIVERGE (a classificar)' ? '▲'
+      : r.veredito === 'DIVERGE (declarada)' ? '▫'
+      : /tema|dado?|impl/.test(r.veredito) ? '🟡' : '✗';
     return `  ${mark} [${r.dim}] ${r.campo}: prod=${r.prod} · design=${r.design} → ${r.veredito}${r.detalhe ? ' (' + r.detalhe + ')' : ''}`;
   }).join('\n');
 }
@@ -626,6 +973,32 @@ function fmt(rows) {
  */
 export function ehEspelhoLocal(url) {
   return /^(?:file:|https?:\/\/(?:localhost|127\.0\.0\.1|\[::1\])(?::\d+)?(?:[/?#]|$))/i.test(String(url || ''));
+}
+
+/**
+ * Os dois snapshots chegaram na ordem que ESTE script espera?
+ *
+ * `design-diff --compare` recebe `(prod, design)`; o irmão `style-fingerprint --compare`
+ * recebe `(proto, prod)` — ordem INVERTIDA entre os dois, e trocar por engano produz um
+ * relatório plausível com os lados espelhados. É o pior tipo de erro: parece certo.
+ *
+ * A checagem é DERIVADA, não declarada: a sonda já grava `url: location.href`, e o
+ * espelho local roda por `file:`/localhost enquanto prod é https num domínio real.
+ * Campo auto-declarado (`"lado": "design"`) seria a forma que o §5 já enterrou —
+ * catraca sobre o que o autor digita, não sobre o que a máquina mede.
+ *
+ * LIMITE HONESTO, e por isso o terceiro estado: quando os dois lados são remotos
+ * (prod×prod, ou design servido em domínio real) a URL não discrimina e este guarda
+ * NÃO CONSEGUE MEDIR — devolve `indeterminado` e não morde. Instrumento que não mediu
+ * não afirma nada (§5 2026-07-29).
+ */
+export function ladosTrocados(prodUrl, designUrl) {
+  const p = ehEspelhoLocal(prodUrl);
+  const d = ehEspelhoLocal(designUrl);
+  if (p && !d) return { trocados: true, motivo: `o 1º arquivo é espelho local (${prodUrl}) e o 2º é remoto (${designUrl})` };
+  if (!p && !d) return { trocados: false, indeterminado: true, motivo: 'os dois lados são remotos — a URL não discrimina' };
+  if (p && d) return { trocados: false, indeterminado: true, motivo: 'os dois lados são locais — a URL não discrimina' };
+  return { trocados: false };
 }
 
 /**
@@ -664,19 +1037,222 @@ export function rodadaDeFrescorCompleta(ledgerPath) {
   return { completa: true, motivo: `rodada completa em ${u.date} (${total} arquivos)` };
 }
 
-function runCompare(argv) {
+/* ─────────────────────────────────────────────────────────────────────────────
+ * D0 — IDENTIDADE DA VIEW (pré-condição, não dimensão)
+ *
+ * POR QUE EXISTE. `ancora.mjs` responde QUAL ARQUIVO é a âncora — nunca QUAL VIEW
+ * dentro dele. Medido em 2026-08-28: 38 telas apontam pra uma âncora que desenha
+ * várias telas (ponto-telas.jsx sozinho serve 17; jana-merge.jsx, 3). O shell do
+ * Cowork carrega os protótipos JUNTOS, então "abrir a âncora" não diz em que tela
+ * você está. Sem esta trava, comparar mede a TELA ERRADA e devolve um veredito
+ * PLAUSÍVEL — o pior tipo de erro, porque nada nele denuncia o engano.
+ *
+ * Aconteceu comigo na mesma data: medi "3 KPIs no protótipo × 4 na prod" e ia
+ * reportar divergência, olhando a view do cockpit de cobrança em vez do Painel.
+ *
+ * COMO DECIDE. A copy pinada no `contrato/<tela>.contract.json` é a assinatura da
+ * tela — ela já é lei ([W] aprova copy) e já existe. Casamos as copies contra o
+ * texto visível de cada lado, case-insensitive e com espaço normalizado.
+ *
+ * O QUE NÃO É. Não mede fidelidade nem conta como dimensão: só responde "os dois
+ * lados são a MESMA tela?". Estado alternativo (vazio, sem-histórico, plano
+ * Grátis) legitimamente não aparece num render com dados — por isso o critério é
+ * PISO (≥1 casamento), não igualdade.
+ * ──────────────────────────────────────────────────────────────────────────── */
+const normalizar = (t) => String(t || '').replace(/\s+/g, ' ').trim().toLowerCase();
+
+export function copiesDoContrato(contrato) {
+  const secs = contrato?.secoes || contrato?.sections || [];
+  const out = [];
+  for (const s of secs) {
+    for (const c of (s.copy || s.copies || s.textos || [])) {
+      if (typeof c === 'string' && c.trim()) out.push({ secao: s.id || '?', copy: c });
+    }
+  }
+  return out;
+}
+
+export function verificarIdentidade(snap, contrato) {
+  const copies = copiesDoContrato(contrato);
+  if (!copies.length) return { estado: 'SEM-DADO', motivo: 'contrato sem copy pinada', achadas: 0, total: 0 };
+  if (typeof snap?.assinatura !== 'string') {
+    // Snapshot de sonda ANTERIOR ao D0. Não mente por omissão (mesma regra do D9).
+    return { estado: 'SEM-DADO', motivo: 'snapshot sem `assinatura` — re-injete a sonda atual (--probe)', achadas: 0, total: copies.length };
+  }
+  const corpo = normalizar(snap.assinatura);
+  const achadas = copies.filter((c) => corpo.includes(normalizar(c.copy)));
+  const faltando = copies.filter((c) => !corpo.includes(normalizar(c.copy)));
+  return {
+    // NÃO crava veredito sozinho: um lado isolado não responde "é a MESMA tela?".
+    // Medido ao vivo em 2026-08-28: a view Conversa casou 1/9 só por "plano Pro",
+    // copy do HEADER compartilhado — passaria num piso de >=1. O veredito é
+    // RELACIONAL e mora em `identidadeRelacional`.
+    estado: achadas.length >= 1 ? 'CASOU' : 'ZERO',
+    achadas: achadas.length,
+    total: copies.length,
+    quais: achadas.map((c) => c.copy),
+    faltando: faltando.map((c) => c.copy),
+  };
+}
+
+/**
+ * O veredito RELACIONAL — os dois lados são a MESMA tela?
+ *
+ * Copy de shell (header, sidebar, selo de plano) aparece em TODA view, então
+ * contagem absoluta não distingue. O que distingue é a ASSIMETRIA: se um lado
+ * casa as copies de seção e o outro só as do shell, eles não são a mesma tela.
+ *
+ * Critério (medido no caso real Painel×Conversa: 3 × 1):
+ *   · qualquer lado com ZERO           -> OUTRA-TELA
+ *   · menor < metade do maior E dif>=2 -> OUTRA-TELA  (assimetria estrutural)
+ *   · senão                            -> OK
+ * O `dif>=2` evita acusar 2×1 e 1×0.5, onde a diferença cabe em ruído de estado.
+ */
+export function identidadeRelacional(vProd, vDesign) {
+  if (vProd.estado === 'SEM-DADO' || vDesign.estado === 'SEM-DADO') {
+    return { estado: 'SEM-DADO', motivo: vProd.motivo || vDesign.motivo };
+  }
+  const a = vProd.achadas, b = vDesign.achadas;
+  if (a === 0 || b === 0) {
+    return { estado: 'OUTRA-TELA', motivo: 'um dos lados nao casou NENHUMA copy do contrato' };
+  }
+  const menor = Math.min(a, b), maior = Math.max(a, b);
+  if (menor * 2 < maior && (maior - menor) >= 2) {
+    return { estado: 'OUTRA-TELA', motivo: 'assimetria estrutural: ' + a + ' x ' + b + ' copies — um lado so casou copy de shell' };
+  }
+  return { estado: 'OK', motivo: a + ' x ' + b + ' copies' };
+}
+
+/**
+ * `--declarado <arquivo>` — o valor NÃO começa com `--`, então cairia no filtro de arquivos
+ * posicionais e seria lido como snapshot. Extrai-se o par antes de qualquer outra leitura.
+ */
+function extrairDeclarado(argv) {
+  const i = argv.indexOf('--declarado');
+  if (i < 0) return { itens: [], argvLimpo: argv };
+  const caminho = argv[i + 1];
+  if (!caminho || caminho.startsWith('--')) { console.error('uso: --declarado <arquivo.json>'); process.exit(2); }
+  let itens;
+  try {
+    itens = validarDeclaracao(JSON.parse(readFileSync(caminho, 'utf8')));
+  } catch (e) {
+    console.error(`\n  ⛔ declaração inválida (${caminho}): ${e.message}\n`);
+    process.exit(2);
+  }
+  return { itens, argvLimpo: argv.filter((_, k) => k !== i && k !== i + 1) };
+}
+
+function runCompare(argvBruto) {
+  const { itens: declarado, argvLimpo: argv } = extrairDeclarado(argvBruto);
   const files = argv.filter((a) => !a.startsWith('--'));
   if (files.length < 2) { console.error('uso: --compare <prod.json> <design.json>'); process.exit(2); }
   const prodSnap = JSON.parse(readFileSync(files[0], 'utf8'));
   const designSnap = JSON.parse(readFileSync(files[1], 'utf8'));
-  const res = compare(prodSnap, designSnap);
+
+  // ── DUAS GUARDAS ANTES DE COMPARAR, E A ORDEM ENTRE ELAS IMPORTA ──────────
+  // Elas respondem perguntas DIFERENTES e ambas ficam (merge 2026-08-31, #6480 × #6490):
+  //   ORDEM (esta)  os lados estão na POSIÇÃO certa?  → (prod, design)
+  //   D0 (abaixo)   os dois lados são a MESMA TELA?
+  // ORDEM roda PRIMEIRO de propósito: se os argumentos vierem trocados, o D0 ainda
+  // funciona (o veredito dele é relacional) mas IMPRIME os rótulos `prod`/`design`
+  // invertidos — diagnostica certo e reporta mentindo. Provar a posição antes faz o
+  // resto do relatório nomear cada lado pelo que ele é.
+  // ORDEM DOS LADOS (2026-08-31) — este script recebe (prod, design); o irmão
+  // style-fingerprint recebe (proto, prod). Invertido entre os dois, e o relatório
+  // espelhado sai plausível. Morde ANTES de comparar, senão o número já saiu errado.
+  const ordem = ladosTrocados(prodSnap.url, designSnap.url);
+  if (ordem.trocados) {
+    console.error(
+      `\n  ⛔ LADOS TROCADOS — ${ordem.motivo}.` +
+      '\n     `design-diff --compare` recebe <prod.json> <design.json>, NESTA ordem.' +
+      '\n     (o irmão `style-fingerprint --compare` recebe <proto.json> <prod.json> — invertido; é a pegadinha)' +
+      '\n     Inverta os dois arquivos e rode de novo.\n',
+    );
+    process.exit(2);
+  }
+
+  // ── D0 · IDENTIDADE — os dois lados são a MESMA tela? ─────────────────────
+  // Roda ANTES de qualquer dimensão: comparar telas diferentes produz veredito
+  // plausível e errado. Opt-in por --contrato (não quebra uso existente), mas
+  // quando passado é FAIL-CLOSED — mesmo vocabulário da guarda de proveniência
+  // logo abaixo: exit 2 = NÃO MEDI, nunca 0.
+  const iContrato = argv.indexOf('--contrato');
+  if (iContrato !== -1) {
+    const arq = argv[iContrato + 1];
+    if (!arq || arq.startsWith('--')) { console.error('uso: --contrato <arquivo.contract.json>'); process.exit(2); }
+    const contrato = JSON.parse(readFileSync(arq, 'utf8'));
+    const lados = [['prod', prodSnap], ['design', designSnap]];
+    const vereditos = lados.map(([nome, snap]) => [nome, verificarIdentidade(snap, contrato)]);
+    console.log('');
+    console.log('  D0 · IDENTIDADE DA VIEW  (contrato: ' + arq + ')');
+    for (const [nome, v] of vereditos) {
+      console.log('    ' + nome.padEnd(7) + v.estado.padEnd(11) + v.achadas + '/' + v.total + ' copies'
+        + (v.motivo ? '  — ' + v.motivo : '')
+        + (v.quais && v.quais.length ? '  ✓ ' + v.quais.slice(0, 2).join(' · ') : ''));
+    }
+    const rel = identidadeRelacional(vereditos[0][1], vereditos[1][1]);
+    console.log('    veredito ' + rel.estado + '  — ' + (rel.motivo || ''));
+    const ruins = rel.estado === 'OK' ? [] : [['identidade', rel]];
+    if (ruins.length) {
+      console.error('');
+      console.error('  ⛔ NÃO MEDI — identidade da view não provada: ' + (rel.motivo || rel.estado));
+      console.error('     Nenhuma copy pinada do contrato apareceu no render, ou a sonda é anterior ao D0.');
+      console.error('');
+      console.error('  Isto NÃO é divergência de fidelidade: é sinal de que o render pode ser OUTRA TELA.');
+      console.error('  O shell do Cowork carrega vários protótipos juntos, e 38 telas compartilham âncora.');
+      console.error('  Navegue até a view certa (ou re-injete a sonda atual) e rode de novo.');
+      process.exit(2);
+    }
+  }
+
+  const res = compare(prodSnap, designSnap, { declarado });
   if (argv.includes('--json')) { console.log(JSON.stringify(res, null, 2)); }
   else {
     console.log(`\n  DESIGN-DIFF — prod(${prodSnap.theme}) × design(${designSnap.theme})${res.sameTheme ? '' : '  ⚠ TEMAS DIFERENTES — compare no mesmo tema (regra do protocolo)'}\n`);
     console.log(fmt(res.rows));
-    console.log(`\n  ✗ DIVERGE(bug): ${res.bugs}\n`);
+    console.log(`\n  ✗ DIVERGE(bug): ${res.bugs}`);
+    console.log(`  ▲ SHELL a classificar: ${res.shell}${res.declaradas ? `   ▫ declaradas: ${res.declaradas}` : ''}`);
+    if (res.shell > 0) {
+      console.log(
+        '\n  As 3 categorias de divergência de SHELL — a máquina NÃO as distingue, quem classifica é humano:' +
+        '\n    DECIDIDA      alguém escolheu (ex.: a prod ter um atalho que o design não tem)' +
+        '\n    DERIVA        ninguém escolheu — foi acontecendo' +
+        '\n    DESIGN-ANDOU  o design mudou e a prod ficou na versão anterior' +
+        '\n  O que for DECIDIDA vira entrada em --declarado <arquivo.json>: { "itens": [ { "campo": "...", "motivo": "..." } ] }',
+      );
+    }
+    for (const d of res.porDeclaracao) {
+      if (d.silenciou > 0) console.log(`  ▫ declarado ${d.campo} → silenciou ${d.silenciou} linha(s): ${d.motivo}`);
+    }
+    if (res.declaracoesSemEfeito.length) {
+      console.log(`\n  ⚠ declaração SEM EFEITO (não casou nada — campo errado, ou a divergência já sumiu): ${res.declaracoesSemEfeito.join(', ')}`);
+    }
+    console.log('');
   }
   if (argv.includes('--check') && res.bugs > 0) process.exit(1);
+
+  // ── NÃO MEDI ≠ MEDI E BATEU (auditoria adversarial 2026-08-28) ────────────
+  // `res.shell` conta só `DIVERGE (a classificar)`; `SEM-DADO` não entrava em
+  // contador nenhum, então shell ausente saía **exit 0** — o código que um
+  // script lê como "pode seguir". E esse era o caminho DEFAULT: nenhum dos três
+  // donos do processo (skill `comparar-design-prod`, PROTOCOLO-COMPARACAO-RUNTIME,
+  // hook `design-compare-protocol`) ensinava a declarar `__SB_ROLES`, então quem
+  // seguisse o protocolo injetava a sonda sem ele → `shell: null` → verde tendo
+  // medido NADA. Zero medido lido como zero divergente é o mesmo defeito de
+  // "0 failed" numa suíte que não rodou.
+  // Sai 2 (não 1) pelo mesmo vocabulário do guarda de proveniência logo abaixo:
+  // 1 = medi e divergiu · 2 = não consegui medir.
+  if (argv.includes('--check-shell')) {
+    const semDadoShell = res.rows.filter((r) => r.dim === 'SHELL' && r.veredito === 'SEM-DADO');
+    if (semDadoShell.length) {
+      console.error(
+        `\n  ⛔ NÃO MEDI — ${semDadoShell.length} linha(s) de shell sem dado. "0 divergências" aqui NÃO significa "igual".` +
+        `\n     Declare window.__SB_ROLES nos DOIS lados antes de injetar a sonda:` +
+        `\n       node prototipo-ui/design-diff.mjs --shell-roles\n`);
+      process.exit(2);
+    }
+    if (res.shell > 0) process.exit(1);
+  }
 
   // ── PROVENIÊNCIA: "igual" exige saber DE ONDE veio o lado design ───────────
   // Sem isto o `--check` saía 0 (= igual) mesmo com o design vindo de espelho
@@ -688,7 +1264,7 @@ function runCompare(argv) {
   //
   // Só morde quando o design veio do ESPELHO LOCAL. prod×prod (dois ambientes)
   // não depende da fidelidade do espelho e segue livre — por isso zero FP.
-  if (argv.includes('--check') && ehEspelhoLocal(designSnap.url)) {
+  if ((argv.includes('--check') || argv.includes('--check-shell')) && ehEspelhoLocal(designSnap.url)) {
     const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
     const { completa, motivo } = rodadaDeFrescorCompleta(join(ROOT, LEDGER_FRESCOR_REL));
     if (!completa) {
@@ -730,6 +1306,38 @@ function selftest() {
     ['D6 pega texto KPI escuro no dark', has('D6', 'kpi texto')],
     ['D4 pega VALOR do KPI (campo que a sonda media e o compare ignorava)', has('D4', 'kpi valor')],
     ['--check sairia 1 (tem bug)', res.bugs > 0],
+
+    // ── D0 · IDENTIDADE — bite-test: MORDE na view errada, PASSA na certa.
+    // Gate que só sabe passar é carimbo; por isso o caso negativo vem junto.
+    ...(() => {
+      const contrato = { secoes: [
+        { id: 'painel-metas-header', copy: ['Metas ativas', 'Acompanhamento contínuo'] },
+        { id: 'painel-meta-apurando', copy: ['Aguardando apuração…'] },
+      ] };
+      // BOA: a view certa. Só UMA copy casa — é o PISO, de propósito: estado
+      // alternativo (vazio, sem-histórico) legitimamente não renderiza com dados.
+      const boa = { assinatura: 'METAS ATIVAS mai/2026 Faturamento mensal Aguardando apuração…' };
+      // RUIM: outra tela do MESMO shell — foi exatamente o engano de 2026-08-28.
+      const ruim = { assinatura: 'RECEITA MÊS R$ 47k A RECEBER VENCIDO TICKET MÉDIO' };
+      // ANTIGA: sonda anterior ao D0 — não pode virar OK por omissão.
+      const antiga = { roles: {} };
+      const vB = verificarIdentidade(boa, contrato);
+      const vR = verificarIdentidade(ruim, contrato);
+      const vA = verificarIdentidade(antiga, contrato);
+      return [
+        ['D0 PASSA quando os dois lados sao a mesma tela', identidadeRelacional(vB, vB).estado === 'OK'],
+        ['D0 MORDE view errada que casa ZERO copy', identidadeRelacional(vB, vR).estado === 'OUTRA-TELA'],
+        ['D0 nao mente com sonda antiga (SEM-DADO, nao OK)', identidadeRelacional(vB, vA).estado === 'SEM-DADO'],
+        ['D0 e case/espaco-insensivel (METAS ATIVAS = Metas ativas)', vB.quais.includes('Metas ativas')],
+        // O CASO QUE ME PEGOU AO VIVO em 2026-08-28: a view errada casou 1 copy —
+        // "plano Pro", do HEADER compartilhado — e passaria num piso de >=1.
+        // Só a ASSIMETRIA (3 x 1) a denuncia. Sem este caso o gate seria carimbo.
+        ['D0 MORDE view errada que casa so copy de SHELL (3 x 1)',
+          identidadeRelacional({ estado: 'CASOU', achadas: 3 }, { estado: 'CASOU', achadas: 1 }).estado === 'OUTRA-TELA'],
+        ['D0 NAO acusa diferenca pequena (3 x 2, ruido de estado)',
+          identidadeRelacional({ estado: 'CASOU', achadas: 3 }, { estado: 'CASOU', achadas: 2 }).estado === 'OK'],
+      ];
+    })(),
   ];
   // controle: dois lados IGUAIS não acusam bug
   const eq = compare(design, design);
@@ -815,7 +1423,10 @@ function selftest() {
   checks.push(['célula: blocos NUNCA vira DIVERGE (bug)', !rc.rows.some((r) => r.campo.includes('blocos') && r.veredito === 'DIVERGE (bug)')]);
   checks.push(['célula: pega a pílula que perdeu o dot (D6)', temC('col2.pílula.dot', 'D6')]);
   // Rotula com a dimensão CANÔNICA do protocolo — nada de número novo.
-  checks.push(['célula: usa D2/D4/D6/D8, não inventa dimensão', rc.rows.every((r) => ['D2', 'D4', 'D6', 'D8', 'D9'].includes(r.dim))]);
+  // (O escopo SHELL fica FORA deste universo de propósito: ele não é dimensão do protocolo,
+  //  é outro objeto medido — o shell, não a tela. A intenção do check é intacta: as linhas de
+  //  CÉLULA continuam obrigadas a falar D2/D4/D6/D8/D9.)
+  checks.push(['célula: usa D2/D4/D6/D8, não inventa dimensão', rc.rows.filter((r) => r.dim !== 'SHELL').every((r) => ['D2', 'D4', 'D6', 'D8', 'D9'].includes(r.dim))]);
   // Controles negativos: iguais não acusam, e coluna intocada (col0) fica fora do relatório.
   checks.push(['célula CONTROLE: design×design = 0 divergência', compare(designCel, designCel).rows.filter((r) => /^col/.test(r.campo) && r.veredito.startsWith('DIVERGE')).length === 0]);
   checks.push(['célula CONTROLE: prod×prod = 0 divergência', compare(prodCel, prodCel).rows.filter((r) => /^col/.test(r.campo) && r.veredito.startsWith('DIVERGE')).length === 0]);
@@ -895,6 +1506,26 @@ function selftest() {
   // Guarda que nunca reprova é carimbo; guarda que reprova sempre trava o certo.
   // Os dois lados abaixo são o bite-test.
   const L = (url) => ehEspelhoLocal(url);
+
+  // ── ORDEM DOS LADOS (2026-08-31) — morde na troca, LIBERA no uso correto ──────
+  // Sem o controle negativo o guarda seria carimbo às avessas: reprovaria o caso normal.
+  const PROD_URL = 'https://oimpresso.com/financeiro';
+  const DESIGN_URL = 'http://localhost:5500/cowork/financeiro.html';
+  checks.push(
+    ['ordem: (prod remoto, design local) → LIBERA (é o uso correto)',
+      ladosTrocados(PROD_URL, DESIGN_URL).trocados === false],
+    ['ordem: (local, remoto) → MORDE (argumentos invertidos)',
+      ladosTrocados(DESIGN_URL, PROD_URL).trocados === true],
+    ['ordem: file:// no 1º arg também morde',
+      ladosTrocados('file:///D:/espelho/x.html', PROD_URL).trocados === true],
+    ['ordem: dois remotos → indeterminado, NÃO morde (não medi ≠ está errado)',
+      ladosTrocados(PROD_URL, 'https://staging.oimpresso.com/financeiro').indeterminado === true],
+    ['ordem: dois locais → indeterminado, NÃO morde',
+      ladosTrocados(DESIGN_URL, 'file:///D:/espelho/y.html').indeterminado === true],
+    ['ordem: url ausente nos dois → indeterminado, nunca acusa',
+      ladosTrocados(undefined, undefined).trocados === false],
+  );
+
   let seqLedger = 0;
   const tmpLedger = (conteudo) => {
     const p = join(tmpdir(), `dd-ledger-${process.pid}-${++seqLedger}.json`);
@@ -929,14 +1560,204 @@ function selftest() {
   );
   for (const p of [parcial, completa, comStale, quebrado]) { try { rmSync(p, { force: true }); } catch { /* best-effort */ } }
 
+  // ── SHELL / SIDEBAR (2026-08-28) — o escopo que nenhuma máquina media ────────
+  // O caso real: o sidebar divergia do design em 19 propriedades e nenhum gate falou. Três
+  // saíram por amostragem no olho; as outras 16 só apareceram quando alguém ENUMEROU. O
+  // fixture reproduz a FORMA disso — divergência espalhada por muitos eixos ao mesmo tempo,
+  // que é exatamente o que a amostragem perde. Os valores são FIXTURE (construídos pra pinar
+  // a lógica do comparador), não medição de produção: aqui não se afirma o estado da prod.
+  const papelBase = (over = {}) => ({
+    seletor: '.x',
+    n: over.n != null ? over.n : 1,
+    css: {
+      height: '36px', minHeight: '0px', padding: '0px 10px', margin: '0px', gap: '10px',
+      display: 'flex', alignItems: 'center', fontFamily: 'Inter,sans-serif', fontSize: '13px',
+      fontWeight: '500', lineHeight: '20px', letterSpacing: 'normal', textTransform: 'none',
+      color: 'rgb(226, 232, 240)', backgroundColor: 'rgba(0, 0, 0, 0)', borderRadius: '8px',
+      borderWidth: '0px', borderColor: 'rgb(30, 41, 59)', opacity: '1', width: '220px',
+      boxShadow: 'none', textDecorationLine: 'none', ...(over.css || {}),
+    },
+    caixa: { w: 220, h: 36, ...(over.caixa || {}) },
+    icone: over.icone === null ? null : { w: 16, h: 16, strokeWidth: '1.5px', ...(over.icone || {}) },
+  });
+  const comShell = (shell) => ({ theme: 'dark', roles: { ...comTexto([]).roles, shell } });
+  const shellDesign = {
+    papeis: {
+      atalhoTopo: papelBase(),
+      itemGrupo: papelBase(),
+      grupoHeader: papelBase({ css: { fontSize: '11px', textTransform: 'uppercase' }, icone: null }),
+      containerMenu: papelBase({ icone: null }),
+    },
+    atalhos: [{ i: 0, rotulo: 'Início', atual: 'page' }, { i: 1, rotulo: 'Jana', atual: null }],
+  };
+  const shellProd = {
+    papeis: {
+      atalhoTopo: papelBase({
+        css: {
+          height: '32px', padding: '0px 8px', gap: '8px', fontSize: '12px', fontWeight: '400',
+          color: 'rgb(148, 163, 184)', borderRadius: '6px', letterSpacing: '0.2px',
+          textTransform: 'uppercase', boxShadow: '0 1px 2px rgba(0,0,0,.4)', textDecorationLine: 'underline',
+        },
+        caixa: { w: 200, h: 32 },
+        icone: { w: 14, h: 14, strokeWidth: '2px' },
+      }),
+      itemGrupo: papelBase(),
+      grupoHeader: papelBase({ css: { fontSize: '11px', textTransform: 'uppercase' }, icone: null }),
+      containerMenu: papelBase({ icone: null }),
+    },
+    atalhos: [{ i: 0, rotulo: 'Início', atual: 'page' }, { i: 1, rotulo: 'Jana', atual: null }, { i: 2, rotulo: 'Forja', atual: null }],
+  };
+  const rsh = compare(comShell(shellProd), comShell(shellDesign));
+  const linhasShell = (r) => r.rows.filter((x) => x.dim === 'SHELL' && x.veredito === 'DIVERGE (a classificar)');
+  const temS = (campo) => linhasShell(rsh).some((r) => r.campo === campo);
+  checks.push(
+    ['shell: ENUMERA — ≥12 divergências onde a amostragem enxergou 3', linhasShell(rsh).length >= 12],
+    ['shell: pega a altura do item', temS('shell.atalhoTopo.height')],
+    ['shell: pega a cor do texto', temS('shell.atalhoTopo.color')],
+    ['shell: pega tipografia (size + weight + tracking + caixa-alta)',
+      temS('shell.atalhoTopo.fontSize') && temS('shell.atalhoTopo.fontWeight')
+      && temS('shell.atalhoTopo.letterSpacing') && temS('shell.atalhoTopo.textTransform')],
+    ['shell: pega raio, sombra e sublinhado',
+      temS('shell.atalhoTopo.borderRadius') && temS('shell.atalhoTopo.boxShadow') && temS('shell.atalhoTopo.textDecorationLine')],
+    ['shell: pega espaçamento (padding + gap)', temS('shell.atalhoTopo.padding') && temS('shell.atalhoTopo.gap')],
+    ['shell: pega a CAIXA medida (w/h), não só o CSS declarado', temS('shell.atalhoTopo.caixa.w') && temS('shell.atalhoTopo.caixa.h')],
+    ['shell: pega o ÍCONE (tamanho + espessura do traço)', temS('shell.atalhoTopo.icone.w') && temS('shell.atalhoTopo.icone.strokeWidth')],
+    ['shell: pega a SEQUÊNCIA dos atalhos de topo (ordem é contrato)',
+      temS('shell.atalhoTopo.sequencia') && temS('shell.atalhoTopo.so-na-prod')],
+    // Sem estímulo, silêncio — senão a régua mede ruído e o relatório vira parede.
+    ['shell CONTROLE: papel idêntico (itemGrupo) não vira linha', !linhasShell(rsh).some((r) => r.campo.startsWith('shell.itemGrupo'))],
+    ['shell CONTROLE: design×design = 0 divergência', linhasShell(compare(comShell(shellDesign), comShell(shellDesign))).length === 0],
+    ['shell CONTROLE: prod×prod = 0 divergência', linhasShell(compare(comShell(shellProd), comShell(shellProd))).length === 0],
+    // A máquina REPORTA; quem classifica é humano. Se alguém "promover" isto a bug, cai aqui.
+    ['shell: NUNCA emite DIVERGE (bug) — classificar é humano, não medição',
+      !rsh.rows.some((r) => r.dim === 'SHELL' && r.veredito === 'DIVERGE (bug)')],
+    ['shell: não avermelha o --check histórico (bugs segue contando só a TELA)', rsh.bugs === 0],
+    ['shell ausente nos dois lados sai SEM-DADO, não IGUAL',
+      compare(comTexto([]), comTexto([])).rows.some((r) => r.dim === 'SHELL' && r.veredito === 'SEM-DADO')],
+  );
+
+  // Seletor que não casa elemento: ZERO MEDIDO não pode ser lido como ZERO DIVERGENTE — é o
+  // mesmo defeito de "0 failed" numa suíte que não rodou.
+  const shellVazio = { papeis: { atalhoTopo: { seletor: '.nao-existe', n: 0, css: null, caixa: null, icone: null } }, atalhos: [] };
+  const rvazio = compare(comShell(shellVazio), comShell(shellDesign));
+  checks.push(
+    ['shell: seletor que não casa sai SEM-DADO (zero medido ≠ zero divergente)',
+      rvazio.rows.some((r) => r.campo === 'shell.atalhoTopo.presenca' && r.veredito === 'SEM-DADO')],
+    ['shell: papel sem elemento NÃO gera linha de estilo (não compara o que não mediu)',
+      !rvazio.rows.some((r) => /^shell\.atalhoTopo\.(height|color|fontSize)$/.test(r.campo))],
+    ['shell: papel declarado só de um lado sai SEM-DADO',
+      compare(comShell({ papeis: {}, atalhos: [] }), comShell(shellDesign)).rows.some((r) => r.campo === 'shell.atalhoTopo' && r.veredito === 'SEM-DADO')],
+  );
+
+  // `aria-current` depende de QUAL tela está aberta em cada lado — é dado, não design.
+  const shellOutraPagina = { ...shellDesign, atalhos: [{ i: 0, rotulo: 'Início', atual: null }, { i: 1, rotulo: 'Jana', atual: 'page' }] };
+  checks.push(
+    ['shell: aria-current sai como SINAL (dado?), nunca "a classificar"',
+      compare(comShell(shellOutraPagina), comShell(shellDesign)).rows.some((r) => r.campo === 'shell.atalhoTopo.aria-current' && r.veredito === 'DIVERGE (dado?)')],
+    ['shell: mesmo conjunto em ordem diferente é acusado como ordem, não como falta',
+      compare(
+        comShell({ ...shellDesign, atalhos: [{ i: 0, rotulo: 'Jana', atual: null }, { i: 1, rotulo: 'Início', atual: 'page' }] }),
+        comShell(shellDesign),
+      ).rows.some((r) => r.campo === 'shell.atalhoTopo.ordem')],
+  );
+
+  // BANDA — o dono é `TOLERANCIAS` (style-fingerprint). Aqui só se troca o RÓTULO; se alguém
+  // criar banda própria neste arquivo, estes pares caem.
+  const dS = divergenciaShell;
+  checks.push(
+    ['shell banda: 36px × 36.4px (dentro de caixa ±1.5) → não acusa', dS('height', '36px', '36.4px') === null],
+    ['shell banda: 36px × 40px → acusa', dS('height', '36px', '40px') !== null],
+    ['shell banda: cor igual em NOTAÇÃO diferente não acusa (ΔEOK, não string)',
+      dS('color', 'rgb(255,255,255)', 'rgb(255, 255, 255)') === null],
+    ['shell banda: cor de fato diferente acusa', dS('color', 'rgb(226, 232, 240)', 'rgb(148, 163, 184)') !== null],
+    ['shell: o rótulo impresso é o do SHELL e a banda é a do dono',
+      /^minHeight:/.test(String(dS('minHeight', '40px', '48px'))) && /banda caixa/.test(String(dS('minHeight', '40px', '48px')))],
+    ['shell: borderWidth de 4 lados é comparado como LISTA (não lê só o 1º número)',
+      dS('borderWidth', '0px 0px 0px 0px', '0px 0px 1px 0px') !== null],
+    ['shell: valor não-mensurável não é absorvido em silêncio (cai em texto)',
+      dS('gap', 'normal', '8px') !== null && dS('gap', 'normal', 'normal') === null],
+    // FRONTEIRA do traço de ícone: 1,5px → 2px é o MENOR passo real do lucide. Se alguém
+    // remapear este campo pro eixo `borda` (±0,5px), o passo inteiro é engolido e este par cai.
+    ['shell: traço de ícone 1.5px → 2px ACUSA (banda de borda engoliria o passo real)',
+      dS('icone.strokeWidth', '1.5px', '2px') !== null],
+    ['shell CONTROLE: traço de ícone idêntico não acusa', dS('icone.strokeWidth', '1.5px', '1.5px') === null],
+  );
+
+  // ── ALLOWLIST DECLARADA ─────────────────────────────────────────────────────
+  // Sem ela a régua fica vermelha permanente (a prod TEM `Forja` e isso foi decidido) e
+  // vermelho permanente é ruído que se aprende a ignorar.
+  const declForja = [{ campo: 'shell.atalhoTopo.so-na-prod', motivo: 'DECIDIDA: Forja é atalho da prod; o design ainda não tem' }];
+  const rdecl = compare(comShell(shellProd), comShell(shellDesign), { declarado: declForja });
+  checks.push(
+    ['allowlist: declarada sai do contador mas CONTINUA visível na listagem',
+      rdecl.shell === rsh.shell - 1 && rdecl.rows.some((r) => r.campo === 'shell.atalhoTopo.so-na-prod' && r.veredito === 'DIVERGE (declarada)')],
+    ['allowlist: o MOTIVO chega ao relatório (declarar sem razão é o vetor)',
+      rdecl.rows.some((r) => r.veredito === 'DIVERGE (declarada)' && /Forja/.test(String(r.detalhe)))],
+    ['allowlist: conta quantas linhas cada entrada silenciou (ampla demais fica VISÍVEL)',
+      rdecl.porDeclaracao.length === 1 && rdecl.porDeclaracao[0].silenciou === 1],
+    ['allowlist: entrada que não casa nada é reportada como SEM EFEITO (allowlist podre)',
+      compare(comShell(shellProd), comShell(shellDesign), { declarado: [{ campo: 'shell.inexistente', motivo: 'x' }] }).declaracoesSemEfeito.length === 1],
+    ['allowlist: wildcard cobre o papel inteiro',
+      compare(comShell(shellProd), comShell(shellDesign), { declarado: [{ campo: 'shell.atalhoTopo.*', motivo: 'tudo decidido' }] }).shell === 0],
+    // FAIL-CLOSED: a declaração NÃO alcança a TELA. Silenciar `DIVERGE (bug)` é outra decisão.
+    ['allowlist NÃO silencia bug de TELA (escopo travado no shell)',
+      compare(prodCel, designCel, { declarado: [{ campo: 'col1.mono', motivo: 'tentativa de silenciar bug de tela' }] }).bugs
+      === compare(prodCel, designCel).bugs],
+    ['allowlist: item SEM motivo é REJEITADO', (() => { try { validarDeclaracao([{ campo: 'x' }]); return false; } catch { return true; } })()],
+    ['allowlist: motivo só de espaço é REJEITADO', (() => { try { validarDeclaracao([{ campo: 'x', motivo: '   ' }]); return false; } catch { return true; } })()],
+    ['allowlist: forma válida é aceita (objeto ou array cru)',
+      validarDeclaracao({ itens: [{ campo: 'x', motivo: 'y' }] }).length === 1 && validarDeclaracao([{ campo: 'x', motivo: 'y' }]).length === 1],
+  );
+
+  // ── BITE-TEST DO CLI ────────────────────────────────────────────────────────
+  // §5 2026-07-30: assert sobre helper exportado NÃO prova contrato de pipeline — o CLI tem de
+  // ser exercitado DE FORA. É a prova que importa pra quem for ligar isto em algum lugar:
+  // fixture BOA → exit 0, fixture RUIM → exit ≠ 0. URLs https de propósito: o guarda de
+  // proveniência só morde espelho local, e aqui o alvo do teste é outro.
+  const EU = fileURLToPath(import.meta.url);
+  const comUrl = (s) => ({ ...s, url: 'https://oimpresso.com/x' });
+  const tmpJson = (obj) => { const p = join(tmpdir(), `dd-shell-${process.pid}-${++seqLedger}.json`); writeFileSync(p, JSON.stringify(obj)); return p; };
+  const fBoa = tmpJson(comUrl(comShell(shellDesign)));
+  const fRuim = tmpJson(comUrl(comShell(shellProd)));
+  const fDecl = tmpJson({ itens: [{ campo: 'shell.atalhoTopo.*', motivo: 'DECIDIDA: o atalho Forja e o visual dele são escolha da prod' }] });
+  const fSemMotivo = tmpJson({ itens: [{ campo: 'shell.atalhoTopo.*' }] });
+  const cli = (args) => spawnSync(process.execPath, [EU, ...args], { encoding: 'utf8' });
+  const rBoa = cli(['--compare', fBoa, fBoa, '--check-shell']);
+  const rRuim = cli(['--compare', fRuim, fBoa, '--check-shell']);
+  const rDeclarada = cli(['--compare', fRuim, fBoa, '--check-shell', '--declarado', fDecl]);
+  const rSemMotivo = cli(['--compare', fRuim, fBoa, '--check-shell', '--declarado', fSemMotivo]);
+  const rSemFlag = cli(['--compare', fRuim, fBoa]);
+  checks.push(
+    ['BITE CLI: fixture BOA (shell idêntico) + --check-shell → exit 0', rBoa.status === 0],
+    ['BITE CLI: fixture RUIM (shell divergente) + --check-shell → exit ≠ 0', rRuim.status !== 0],
+    ['BITE CLI: RUIM com tudo DECLARADO → volta a exit 0', rDeclarada.status === 0],
+    ['BITE CLI: declaração SEM motivo é RECUSADA (exit 2) em vez de silenciar', rSemMotivo.status === 2 && /motivo/i.test(String(rSemMotivo.stderr))],
+    ['BITE CLI: sem --check-shell, shell divergente NÃO derruba', rSemFlag.status === 0],
+    ['BITE CLI: o relatório NOMEIA as 3 categorias pro humano classificar',
+      /DECIDIDA/.test(String(rRuim.stdout)) && /DERIVA/.test(String(rRuim.stdout)) && /DESIGN-ANDOU/.test(String(rRuim.stdout))],
+    ['BITE CLI: --declarado não é lido como snapshot posicional', !/ENOENT|Unexpected/.test(String(rDeclarada.stderr))],
+    ['BITE CLI: a listagem mostra o que foi declarado e por quê', /silenciou/.test(String(rDeclarada.stdout))],
+  );
+  for (const p of [fBoa, fRuim, fDecl, fSemMotivo]) { try { rmSync(p, { force: true }); } catch { /* best-effort */ } }
+
+
   let ok = true;
   for (const [label, pass] of checks) { console.log(`  [${pass ? 'PASS' : 'FAIL'}] ${label}`); if (!pass) ok = false; }
-  console.log(ok ? '\nSELFTEST OK — mede o que o olho perdeu em 07/07 (D8 align + D2 overflow + D6 dark) + recusa veredito de fonte não provada.' : '\nSELFTEST FALHOU');
+  console.log(ok ? '\nSELFTEST OK — mede o que o olho perdeu em 07/07 (D8 align + D2 overflow + D6 dark), enumera o SHELL que máquina nenhuma media, e recusa veredito de fonte não provada.' : '\nSELFTEST FALHOU');
   process.exit(ok ? 0 : 1);
 }
 
 const argv = process.argv.slice(2);
 if (argv.includes('--selftest')) selftest();
 else if (argv.includes('--probe')) console.log(PROBE_SOURCE);
+else if (argv.includes('--shell-roles')) {
+  console.log('// cole no console de CADA lado ANTES de injetar a sonda (--probe).');
+  console.log('// Mapa MEDIDO em 2026-08-28 — ponto de partida, não lei: seletor muda com o DOM.');
+  console.log('// Confira `presenca` no relatório: papel que não casa elemento visível sai SEM-DADO.');
+  for (const lado of ['prod', 'design']) {
+    console.log(`\n/* ${lado.toUpperCase()} */`);
+    console.log('window.__SB_ROLES = ' + JSON.stringify(SB_ROLES_SUGERIDO[lado], null, 2) + ';');
+  }
+}
 else if (argv.includes('--compare')) runCompare(argv);
-else { console.error('uso: --probe | --compare <prod.json> <design.json> [--check|--json] | --selftest'); process.exit(2); }
+else { console.error('uso: --probe | --shell-roles | --compare <prod.json> <design.json> [--check|--check-shell|--json|--declarado <f.json>] | --selftest'); process.exit(2); }

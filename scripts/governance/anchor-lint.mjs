@@ -196,8 +196,8 @@ const TESTADO_RE = /^(?:>\s*)?\*\*Testado em:\*\*\s*(.*)$/;
 // G1b-entry (gate de entrada · regra de aceite): marcadores de DoD/aceite reais nos SPECs
 // (medido em main: **DoD:** 168× · **Definition of Done:** 63× · **Aceite:** 16×).
 const DOD_RE = /^(?:>\s*)?\*\*(?:Definition of Done|DoD|Aceite|Crit[ée]rios? de [Aa]ceite|Acceptance [Cc]riteria(?: do epic)?)\s*:\*\*/;
-const US_HEAD_RE = /^(#{2,4})\s+.*\bUS-[A-Z][A-Za-z0-9]*-\d/;
-const US_ID_RE = /US-[A-Z][A-Za-z0-9]*-\d+(?:\.\.\d+)?/;
+const US_HEAD_RE = /^(#{2,4})\s+.*\bUS-_?[A-Z][A-Za-z0-9]*-\d/;
+const US_ID_RE = /US-_?[A-Z][A-Za-z0-9]*-\d+(?:\.\.\d+)?/;
 const HEAD_RE = /^(#{1,6})\s/;
 // taxonomia de placeholder legado (ADR 0273 "Contexto") — pendente/parcial têm precedência
 const PLACEHOLDER_RE = /TODO|_\[path\]_|\ba criar\b|_xx_/i;
@@ -600,7 +600,7 @@ function collectCoversIndex(testadoLines, specDir) {
     if (seenFiles.has(abs)) return;
     seenFiles.add(abs);
     const rel = relative(ROOT, abs).replace(/\\/g, '/');
-    for (const m of readFileSync(abs, 'utf8').matchAll(/@covers-us\s+(US-[A-Z][A-Za-z0-9]*-\d+)/g)) {
+    for (const m of readFileSync(abs, 'utf8').matchAll(/@covers-us\s+(US-_?[A-Z][A-Za-z0-9]*-\d+)/g)) {
       coveredUs.add(m[1]);
       if (!usFiles.has(m[1])) usFiles.set(m[1], new Set());
       usFiles.get(m[1]).add(rel);

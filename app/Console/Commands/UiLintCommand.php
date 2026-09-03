@@ -95,6 +95,47 @@ class UiLintCommand extends Command
     private const HEX_ALLOWED = ['#ffffff', '#000000', '#fff', '#000'];
 
     /**
+     * Linha que ABRE comentário — R1 e R3 pulam essas linhas.
+     *
+     * FONTE ÚNICA de propósito: a mesma regex vivia COPIADA em `checkR1` e em
+     * `checkR3`, e duas cópias que deveriam ser iguais são a semente do drift
+     * (mesma lição de `scripts/lib/uc-regex.mjs`, que existe exatamente porque
+     * quatro regex de UC-id drifaram entre si).
+     *
+     * A quarta alternativa — a abertura do comentário do JSX, chave seguida de
+     * barra-asterisco — foi ACRESCENTADA em 2026-08-28. Sem ela o skip só
+     * reconhecia as três formas do JS puro, e a do JSX (a única disponível no
+     * meio do render de um .tsx) era ESCANEADA. Efeito perverso: quem
+     * documentasse a cor ou o emoji proibido CITANDO o nome dele criava a
+     * própria violação.
+     *
+     * Não é hipótese — no corpus havia TRÊS instâncias independentes, todas
+     * comentários que registravam a REMOÇÃO da coisa proibida:
+     *   Fiscal/Sped.tsx:78          "antes hex cru (#d4f4dd/#2da764)"
+     *   Financeiro/Unificado:1792   "emoji trocado por lucide Archive"
+     *   Ponto/Intercorrencias/Edit  (a que motivou este conserto)
+     * — mais 4 falso-positivos de referência a PR/OS lidos como hex
+     * (`PR #1496` duas vezes, `PR #729`, `PR #1051`, `OS #103`: os dígitos de
+     * 1496 são todos hex válidos).
+     *
+     * Impacto MEDIDO no corpus (486 arquivos em resources/js):
+     *   R1  101 -> 94 hits (-7)   ·   R3  55 -> 54 (-1)
+     *   ZERO cor real deixou de ser contada — os 8 eram todos falso-positivo.
+     * A catraca só falha em AUMENTO (ver `reportRatchet`), então a queda entra
+     * como "improvement" e NÃO exige regravar `config/ui-lint-baseline.json`.
+     *
+     * RESIDUAL DECLARADO: o skip é por PREFIXO DE LINHA, então a linha de
+     * CONTINUAÇÃO de um comentário multi-linha do JSX (que começa em texto)
+     * segue escaneada — mesmo comportamento que o comentário de bloco do JS
+     * sempre teve. Rastrear o bloco de verdade foi MEDIDO e REJEITADO: uma
+     * máquina de estado ingênua classificou como "dentro de comentário" os hex
+     * REAIS de `PwaInstallBanner.tsx:112-114` (background em inline-style) — ou
+     * seja, esconderia violação de verdade. Lint que erra pra menos é pior que
+     * lint com ponto cego conhecido e testado.
+     */
+    private const COMMENT_LINE_RE = '/^\s*(\/\/|\*|\/\*|\{\/\*)/';
+
+    /**
      * @return int Exit code (0 ok · 1 falha)
      */
     public function handle(): int
@@ -320,8 +361,8 @@ class UiLintCommand extends Command
         $hexRegex = '/#[0-9a-fA-F]{3,8}\b/';
 
         foreach ($lines as $i => $line) {
-            // Skip block comments / line comments
-            if (preg_match('/^\s*(\/\/|\*|\/\*)/', $line)) {
+            // Skip block comments / line comments — inclusive a forma do JSX.
+            if (preg_match(self::COMMENT_LINE_RE, $line)) {
                 continue;
             }
 
@@ -393,7 +434,9 @@ class UiLintCommand extends Command
      * Range excluído (são texto, não emoji):
      *   - \x{2600}-\x{26FF}    Miscellaneous symbols (✓ ✗ ⚠ ☀ ☎ ★ — caracteres texto)
      *   - \x{2700}-\x{27BF}    Dingbats (✂ ✈ ✓ ✗ — caracteres texto)
-     * Exclui emojis em comments (linhas começando com `//`, `*`, `/*`).
+     * Exclui emojis em comments — ver `COMMENT_LINE_RE` (a lista de aberturas
+     * reconhecidas mora lá, não aqui: repetir a enumeração neste docblock foi
+     * o que deixou a forma do JSX de fora por tanto tempo).
      *
      * @return array<int, array{rule:string, file:string, line:int, match:string, detail:string}>
      */
@@ -413,8 +456,8 @@ class UiLintCommand extends Command
             $lineNum = substr_count(substr($content, 0, (int) $offset), "\n") + 1;
             $lineText = $lines[$lineNum - 1] ?? '';
 
-            // Skip se está em linha de comment
-            if (preg_match('/^\s*(\/\/|\*|\/\*)/', $lineText)) {
+            // Skip se está em linha de comment — inclusive a forma do JSX.
+            if (preg_match(self::COMMENT_LINE_RE, $lineText)) {
                 continue;
             }
 

@@ -18,7 +18,9 @@ on:
       - '.jscpd.json'
       - 'package.json'
       - '.github/workflows/jscpd-gate.yml'
+  workflow_dispatch:
   pull_request:
+    types: [opened, reopened, ready_for_review]
     paths:
       - 'resources/js/**'
       - '.jscpd.json'

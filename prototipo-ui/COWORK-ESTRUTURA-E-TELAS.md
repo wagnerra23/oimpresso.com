@@ -17,8 +17,16 @@ Você (Cowork) tem que **adotar a estrutura nova + reconstruir** como exporta:
 1. Pegue a tela no **FRESCOR** (🟠 = desenvolver · 🔵 = puxe o vivo, não refaça · ⚪ = espera [W]).
 2. Leia o **charter** dela no `main` → o que a tela é + seus **dados/props/estado**.
 3. Desenvolva → exporte o **build** pro `cowork/`.
-4. Pendência sua → `COWORK_NOTES.md` "📥 Pendentes"; leia o retorno do Code em `CODE_NOTES.md` + `FRESCOR`.
-5. **Nunca**: memória própria · despejo de sessão · transporte (PNG/dupes) · duplicar charter/process-doc.
+4. **AO FECHAR O CICLO, REGENERE O PACOTE.** É a regra de **saída** — sem ela o ciclo não tem como descer:
+
+   ```
+   node scripts/design-sync/gerar-payload-partes.mjs --root <dir-do-projeto> --out sync/ --previous sync/bundle.manifest.json
+   ```
+
+   Suba `sync/bundle.manifest.json` + as partes, e escreva no `github.md`, junto do bloco do ciclo, a linha `bundle regenerado (<data> · N arquivos)` — é o **recibo** que o Code audita ao abrir ciclo ([ADR 0387](../memory/decisions/0387-github-md-diario-cowork-aceito-e-tratado.md)).
+   > **Por que é você, e não uma máquina do repo:** o gerador só roda de onde os arquivos estão em disco — [`gerar-payload-partes.mjs`](../scripts/design-sync/gerar-payload-partes.mjs) declara no cabeçalho *"NÃO roda do lado do agente consumidor"*, porque lá o conteúdo chegaria pelo contexto do agente, e escrever de lá é transcrição (proibida — ADR 0374). Sem pacote fresco, a descida cai na rota arquivo-a-arquivo, que esquece css/js por natureza. A **forma** do pacote (tamanho de parte, digest, delta × snapshot) já está acordada em [`CODE_NOTES.prompt-cowork-payload-gerador-2026-08-22.md`](CODE_NOTES.prompt-cowork-payload-gerador-2026-08-22.md) — nada muda nela.
+5. Pendência sua → `COWORK_NOTES.md` "📥 Pendentes"; leia o retorno do Code em `CODE_NOTES.md` + `FRESCOR`.
+6. **Nunca**: memória própria · despejo de sessão · transporte (PNG/dupes) · duplicar charter/process-doc.
 > A máquina `cowork-ssot-guard` **dá erro** se quebrar isso (`.md` no `cowork/` · bundle datado · protótipo fora do lugar).
 
 ## Por que mudou
@@ -98,4 +106,6 @@ Cada tela tem um **charter** (`<Tela>.charter.md`) = o contrato: missão, goals/
 [`scripts/governance/cowork-ssot-guard.mjs`](../scripts/governance/cowork-ssot-guard.mjs) (roda no `design-memory-gate.yml`) **dá erro** se: `.md` no `cowork/` · bundle datado `cowork-*` · protótipo fora do `cowork/`. Allowlist transitório (`compras-grade-matrix`, `inventario-migracao`) = telas que VOCÊ deve exportar pro `cowork/` pra zerar.
 
 ---
+_O passo 4 da ROTINA (regenerar o pacote) entrou em **2026-09-01**. O pedido já existia desde 2026-08-22 em `CODE_NOTES.prompt-*`, mas a medição daquele dia mostrou que **nenhum** dos 6 documentos do read-order do Cowork o mencionava — a instrução estava fora do caminho que a sessão de design percorre. Sintoma que a denunciou: `sync/bundle.manifest.json` congelado em 2026-08-24T22:49Z, com 3 ciclos de design fechados fora dele._
+
 _Origem: handoff 2026-06-23 + red-team adversarial da integração de memória. Pareado com a [ADR-proposta SSOT](../memory/decisions/proposals/2026-06-23-prototipo-ssot-unico-com-historico.md) (método) e [`FRESCOR-PRODUCAO-vs-PROTOTIPO.md`](FRESCOR-PRODUCAO-vs-PROTOTIPO.md) (frescor por-tela)._

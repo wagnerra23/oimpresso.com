@@ -346,25 +346,29 @@ it('a paleta da documentacao nao drifa dos tokens do DS', function () {
     expect($localLight['--sans'])->toBe($dsLight['--font-sans']);
     expect($localLight['--mono'])->toBe($dsLight['--font-mono']);
 
-    // No escuro o DS não redeclara accent nem fontes — só os neutros e o accent-soft.
-    // O accent local (0.74) é divergência DECLARADA: aqui ele é cor de link em texto
-    // corrido, uso que o DS não cobre. Se um dia o DS passar a declarar accent no dark,
-    // esta linha vira o lembrete de reconciliar conscientemente.
+    // 2026-09-02 (ADR UI-0031): o lembrete que o comentário anterior deixou marcado
+    // DISPAROU — o DS passou a declarar `--accent` no escuro. A divergência local (0.74)
+    // existia porque o dark HERDAVA oklch(0.55 …), que sobre este papel dá contraste 3.02
+    // e reprova o AA de texto. O par escuro novo do DS é oklch(0.70 0.15 295) = 5.55,
+    // acima de 4.5 — a causa da exceção sumiu, então a exceção sumiu junto e o `--accent`
+    // do layout voltou a ser paridade pura com o DS, como no claro.
     $dsEscuro = $bloco($dsDark, '.cockpit[data-theme="dark"]');
     $localEscuro = $bloco($layout, ':root[data-theme="dark"]');
 
     foreach (['--paper' => '--bg', '--surface' => '--bg-2', '--ink' => '--text',
         '--ink-soft' => '--text-dim', '--ink-mute' => '--text-mute',
         '--rule' => '--border', '--rule-soft' => '--border-2',
-        '--accent-bg' => '--accent-soft'] as $local => $token) {
+        '--accent' => '--accent', '--accent-bg' => '--accent-soft'] as $local => $token) {
+        // `toHaveKey($k, $v)` compara o VALOR no 2º argumento — não é mensagem. Pra dar
+        // mensagem própria, o assert é sobre o booleano. (Custou um CI vermelho em 2026-09-02.)
+        expect(array_key_exists($token, $dsEscuro))->toBeTrue(
+            "o DS parou de declarar {$token} no dark — se foi de propósito, reconcilie o layout junto"
+        );
         expect($localEscuro[$local])->toBe(
             $dsEscuro[$token],
             "{$local} (dark) divergiu de {$token} do DS"
         );
     }
-
-    expect($dsEscuro)->not->toHaveKey('--accent');          // premissa da divergência acima
-    expect($localEscuro['--accent'])->toBe('oklch(0.74 0.13 295)');
 });
 
 it('resolve link de documento em subpasta contra a pasta dele, nao contra memory/', function () {

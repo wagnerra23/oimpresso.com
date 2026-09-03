@@ -4,7 +4,8 @@ id: requisitos-design-system-adr-ui-0022-border-dark-clareado-fidelidade
 
 # ADR UI-0022 · Border/input neutro no dark clareado 0.30→0.335 (emenda à ADR UI-0020)
 
-- **Status**: accepted
+- **Status**: superseded
+- **Superseded por**: [UI-0027](0027-dark-hue-240-supersede-0020-0022.md) — dark em hue 240. Status virado em 2026-08-28 (normalização de metadado): a UI-0027 (aceita no mesmo dia) já a supersede **integralmente** no próprio título e mediu que 0 de 3 tokens desta ADR sobrevive, mas a linha `Status` nunca acompanhou. Corpo preservado (append-only).
 - **Data**: 2026-07-08
 - **Aprovado em**: 2026-07-08 — Wagner autorizou o merge ("merge e salve tudo"), confirmando o escopo **app-wide** recomendado. PR #3958 (merge `4b666ed4f1`).
 - **Decisores**: Wagner (aprovação + escopo), Claude Code (medição + execução)

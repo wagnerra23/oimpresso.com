@@ -18,11 +18,14 @@
 //   node scripts/design-spec-gen.mjs --write-all           # regenera todos os specs commitados
 
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 import { execSync } from 'node:child_process';
+// Fonte unica de "onde mora uma tela" e "qual e o namespace dela" (scripts/qa/page-path.mjs).
+// Antes daqui o gerador tinha regex propria e enxergava so o nucleo: os 2 specs sob
+// Modules/Forja/ ficavam FORA do --check, que anunciava "1 spec em sincronia" sem medi-los.
+import { raizesDePages, pageNamespacePath, normalizeRepoPath } from './qa/page-path.mjs';
 
 const ROOT = process.cwd();
-const PAGES = 'resources/js/Pages';
 
 function sha() { try { return execSync('git rev-parse --short HEAD', { cwd: ROOT }).toString().trim(); } catch { return 'unknown'; } }
 
@@ -63,8 +66,8 @@ function genSpec(file) {
     native_input: count(/<input\b/g),
   };
   return {
-    screen: file.replace(/^.*resources\/js\/Pages\//, '').replace(/\.tsx$/, ''),
-    path: file.replace(/\\/g, '/'),
+    screen: pageNamespacePath(file).replace(/\.tsx$/, ''),
+    path: normalizeRepoPath(file),
     measured_against_sha: sha(),
     generated_by: 'scripts/design-spec-gen.mjs (DERIVADO — não editar à mão)',
     shell: comp.shell,
@@ -84,16 +87,26 @@ function genSpec(file) {
 const VOLATILE = new Set(['measured_against_sha', 'generated_by']);
 const stable = (spec) => JSON.stringify(spec, (k, v) => (VOLATILE.has(k) ? undefined : v), 2);
 
-// acha todos os .design-spec.json commitados sob Pages/
-function findSpecs(dir = PAGES, out = []) {
+// acha todos os .design-spec.json commitados sob QUALQUER raiz de Pages.
+// Sao N raizes, nao uma: o nucleo (resources/js/Pages) e uma por modulo dono
+// (Modules/<X>/Resources/js/Pages) — ver raizesDePages em scripts/qa/page-path.mjs.
+// Medido em 2026-09-03: dos 3 .design-spec.json versionados, 2 moravam em modulo e
+// NENHUM era checado — o gate anunciava "1 spec em sincronia" e saia verde sem medi-los.
+function findSpecsIn(absDir, out) {
   let entries;
-  try { entries = readdirSync(join(ROOT, dir), { withFileTypes: true }); } catch { return out; }
+  try { entries = readdirSync(absDir, { withFileTypes: true }); } catch { return out; }
   for (const e of entries) {
-    const rel = join(dir, e.name);
-    if (e.isDirectory()) findSpecs(rel, out);
-    else if (e.name.endsWith('.design-spec.json')) out.push(rel.replace(/\\/g, '/'));
+    const abs = join(absDir, e.name);
+    if (e.isDirectory()) findSpecsIn(abs, out);
+    else if (e.name.endsWith('.design-spec.json')) out.push(normalizeRepoPath(relative(ROOT, abs)));
   }
   return out;
+}
+
+export function findSpecs() {
+  const out = [];
+  for (const raiz of raizesDePages(ROOT)) findSpecsIn(raiz, out);
+  return out.sort();
 }
 
 const write = (file, spec) => writeFileSync(join(ROOT, file.replace(/\.tsx$/, '.design-spec.json')), JSON.stringify(spec, null, 2) + '\n');

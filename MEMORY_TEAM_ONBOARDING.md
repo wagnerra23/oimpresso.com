@@ -39,9 +39,14 @@ node scripts/generate-dxt.js --all
 > como *recomendado*. Removido em **2026-08-10**: medido que `McpGenerateDxtCommand` existe no
 > disco mas **nunca esteve** no `commands([...])` do `JanaServiceProvider`, e o `app/Console/Kernel.php`
 > só faz `$this->load()` de `app/Console/Commands` — nunca de `Modules/`. O comando não existe no
-> artisan, em host nenhum. A assinatura ainda carrega o prefixo `copiloto:`, morto desde a
-> [ADR 0088](memory/decisions/0088-module-rename-php-only.md). Reativar exige registrar **e**
-> renomear pra `jana:` — decisão [W], não conserto silencioso.
+> artisan, em host nenhum.
+>
+> **Resolvido em 2026-09-02: o comando foi DELETADO** — não reativado. O caminho vivo é o
+> `scripts/generate-dxt.js` acima, e manter os dois seria um 2º dono do mesmo tema. Correção
+> de fato: a redação de 2026-08-10 dizia que o prefixo `copiloto:` estava "morto desde a
+> [ADR 0088](memory/decisions/0088-module-rename-php-only.md)" — **a 0088 é PHP-only** (o
+> próprio quadro de escopo dela mantém `copiloto::`) e não fala de assinatura de artisan;
+> medido em 2026-09-02, **7 comandos registrados e vivos** ainda usam `copiloto:`.
 
 ### Entregar o arquivo
 - ✅ **Vaultwarden** (`vault.oimpresso.com`) — recomendado

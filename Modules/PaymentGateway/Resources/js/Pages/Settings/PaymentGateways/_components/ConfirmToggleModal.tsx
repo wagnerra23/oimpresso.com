@@ -24,9 +24,9 @@ export default function ConfirmToggleModal({ gateway, newValue, affectedCount = 
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-40 grid place-items-center p-6" onClick={onClose} role="dialog" aria-modal="true" aria-label={isDisabling ? 'Confirmar desativação' : 'Confirmar ativação'}>
-      <div className="absolute inset-0 bg-stone-900/40" />
-      <div className="relative w-[460px] bg-white rounded-lg shadow-2xl border border-stone-200" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 z-40 grid place-items-center p-6">
+      <button type="button" tabIndex={-1} aria-hidden="true" onClick={onClose} className="absolute inset-0 bg-stone-900/40" />
+      <div role="dialog" aria-modal="true" aria-label={isDisabling ? 'Confirmar desativação' : 'Confirmar ativação'} className="relative w-[460px] bg-white rounded-lg shadow-2xl border border-stone-200">
         <div className="p-5">
           <div className="flex items-start gap-3">
             <span className={cn(

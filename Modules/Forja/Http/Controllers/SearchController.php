@@ -15,7 +15,7 @@ use Modules\Jana\Entities\Mcp\McpTask;
 /**
  * SearchController — Cmd+K command palette (PMG-002, ADR 0100).
  *
- * GET /project-mgmt/search?q={query}
+ * GET /forja/search?q={query}
  *
  * Busca cross-resource em tasks/epics/cycles/projects (mcp_*),
  * limitada a `jana.mcp.usage.all`. Resultados agrupados por tipo
@@ -75,7 +75,7 @@ class SearchController extends Controller
                 'owner' => $t->owner,
                 'module' => $t->module,
                 'project_key' => optional($t->project)->key,
-                'url' => '/project-mgmt/board?project=' . optional($t->project)->key,
+                'url' => '/forja/trabalho?q=' . urlencode((string) $t->getDisplayIdAttribute()),
             ])
             ->all();
 
@@ -116,7 +116,7 @@ class SearchController extends Controller
                 'name' => $c->name,
                 'status' => $c->status,
                 'project_key' => optional($c->project)->key,
-                'url' => '/project-mgmt/board?project=' . optional($c->project)->key . '&cycle=' . $c->id,
+                'url' => '/forja/trabalho?visao=quadro&cycle=' . $c->id,
             ])
             ->all();
 
@@ -134,7 +134,7 @@ class SearchController extends Controller
                 'key' => $p->key,
                 'name' => $p->name,
                 'status' => $p->status ?? 'active',
-                'url' => '/project-mgmt/board?project=' . $p->key,
+                'url' => '/forja/trabalho',
             ])
             ->all();
 

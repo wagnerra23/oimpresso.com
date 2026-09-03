@@ -20,6 +20,10 @@ on:
   push:
     branches: [main]
 
+concurrency:
+  group: anchor-content-required-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   anchor-content:
     name: Ancora de design nao-shell (F2/F6 required)

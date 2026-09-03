@@ -1,0 +1,76 @@
+{
+  "_nota": "Contrato de tela da aba Ações da Jana (/ia/acoes — a fila HITL). Nasceu em 2026-09-02 com a COPY LITERAL da âncora `prototipo-ui/cowork/jana-telas-novas.jsx` §JmAcoesFila (re-lida do Cowork vivo na data via DesignSync.get_file, path do manifesto). Os rótulos de CTA NÃO são pinados aqui: são `AcaoHitlService::ACOES` (dado do servidor), amarrados pelo UC-ACAO-01 e pelo UC-JPAIN-12 do Painel. Roda no CI via contrato-de-tela.yml.",
+  "tela": "Jana/Acoes",
+  "fonte": "prototipo-ui/cowork/jana-telas-novas.jsx",
+  "alvo": [
+    "resources/js/Pages/Jana/Acoes.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "acoes-aviso",
+      "_papel": "aviso de topo — o que aprovar faz e não faz (Alert tone=info da âncora)",
+      "copy": [
+        "Aprovar registra a decisão. Nada é enviado.",
+        "O disparo (WhatsApp/e-mail) é trabalho próprio — por isso o",
+        "botão diz “Revisar”, e não “Disparar”."
+      ]
+    },
+    {
+      "id": "acoes-toolbar",
+      "_papel": "chips sugeridas · aprovadas + a nota da direita (`jmc-count`)",
+      "copy": [
+        "sugeridas",
+        "aprovadas",
+        "prévia e alcance vêm do servidor"
+      ]
+    },
+    {
+      "id": "acoes-fila",
+      "_papel": "a lista de cards — chip envio/leitura, alcance, CTA do servidor, recibo",
+      "copy": [
+        "leitura",
+        "envio",
+        "não manda mensagem pra ninguém",
+        "destinatário(s), um por cliente",
+        "Ver o recibo",
+        "Recibo da aprovação",
+        "Contexto gravado com a aprovação",
+        "null — é leitura"
+      ]
+    },
+    {
+      "id": "acoes-vazio",
+      "_papel": "os dois empty states (fila revisada × nenhuma aprovada)",
+      "copy": [
+        "Nenhuma ação aprovada ainda.",
+        "Todas as sugestões de hoje já foram revisadas.",
+        "O recibo aparece aqui no instante em que você aprova — com quem aprovou e quando.",
+        "A Jana propõe de novo na próxima apuração, se o número continuar pedindo."
+      ],
+      "estados": [
+        "sugeridas",
+        "aprovadas",
+        "vazio"
+      ]
+    },
+    {
+      "id": "acoes-nota",
+      "_papel": "rodapé — escopo por empresa e 404 de chave desconhecida (`jtn-nota`)",
+      "copy": [
+        "vem da sessão, nunca do request. Chave desconhecida",
+        "volta 404 no controller e no service — quem chama o service direto (job, tinker) topa no mesmo muro."
+      ]
+    }
+  ],
+  "ordem": [
+    "acoes-aviso",
+    "acoes-toolbar",
+    "acoes-fila",
+    "acoes-vazio",
+    "acoes-nota"
+  ],
+  "_pendente_w": [
+    "DISPARO — a âncora e esta tela param no recibo. Ligar o envio (WhatsApp/e-mail) muda a copy do CTA (\"Revisar\" → verbo de envio) e é decisão de produto [W].",
+    "RECUSAR — `jana_acao_aprovacoes.status` prevê `recusada`, mas nenhuma rota escreve isso; a âncora também não desenha. Se virar produto, é backend + copy nova."
+  ]
+}

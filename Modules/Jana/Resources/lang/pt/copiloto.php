@@ -26,6 +26,7 @@ return [
         'dashboard'  => 'Dashboard',
         'metas'      => 'Metas',
         'alertas'    => 'Alertas',
+        'acoes'      => 'Ações',
         'plataforma' => 'Plataforma',
         'custos'     => 'Custos de IA',
     ],

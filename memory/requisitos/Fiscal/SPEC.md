@@ -564,18 +564,29 @@ Then deve receber 403 Forbidden
 
 ### US-FISCAL-022 · Health-check certificado A1 (cron alerta vencimento)
 
-> owner: — · priority: p1 · estimate: 4h · status: todo · type: story
+> owner: — · priority: p1 · estimate: 4h · status: done · type: story
 > blocked_by: —
+
+**Implementado em:** [`Modules/Fiscal/Console/Commands/CertHealthCheckCommand.php`](../../../Modules/Fiscal/Console/Commands/CertHealthCheckCommand.php) · [`app/Console/Kernel.php`](../../../app/Console/Kernel.php) (schedule 06:30 BRT) · [`Modules/Fiscal/Providers/FiscalServiceProvider.php`](../../../Modules/Fiscal/Providers/FiscalServiceProvider.php) (registro)
+
+**Testado em:** [`Modules/Fiscal/Tests/Feature/CertHealthCheckCommandTest.php`](../../../Modules/Fiscal/Tests/Feature/CertHealthCheckCommandTest.php) — 6 casos.
+
+**Contrato:** [`_telas/cert-health-check.casos.md`](_telas/cert-health-check.casos.md) (`UC-FCERT-01..06`). ⚠️ A suíte **skipa** em SQLite e sem `nfe_certificados`/`mcp_alertas_eventos` MySQL: leia *assertions*, não `0 failed`.
 
 **Origem:** CAPTERRA-INVENTARIO Fiscal 2026-07-03 (cap #13, 🟡 PARCIAL) — mercado (todos middlewares + Bling/Omie) alerta vencimento de cert; oimpresso só exibe validade estática.
 
-**Acceptance:**
-- [ ] Comando artisan `fiscal:cert-health-check` (registrado em `app/Console/Kernel.php`, schedule diário)
-- [ ] Por business com cert A1: calcula dias-a-vencer
-- [ ] dias-a-vencer ≤ 30 → cria/atualiza entry em `mcp_alertas` (dedup por business+cert)
-- [ ] Multi-tenant scope (ADR 0093) — itera businesses com cert configurado
-- [ ] Pest biz=1 (ADR 0101): cert vencendo em 15d gera alerta; cert válido 200d não gera
-- [ ] Log estruturado
+**DoD:**
+- [x] Comando artisan `fiscal:cert-health-check` — registrado no [`FiscalServiceProvider:33`](../../../Modules/Fiscal/Providers/FiscalServiceProvider.php) (padrão nWidart, não no Kernel) e **agendado** em [`app/Console/Kernel.php:236`](../../../app/Console/Kernel.php): `dailyAt('06:30')` · `America/Sao_Paulo` · `withoutOverlapping()` · `environments(['live'])`
+- [x] Por business com cert A1: calcula dias-a-vencer
+- [x] dias-a-vencer ≤ 30 → cria/atualiza entry em **`mcp_alertas_eventos`** (dedup por `chave_idempotencia = cert_a1_vencimento:{business}:{uuid}`). _A redação original dizia `mcp_alertas`; o próprio Command documenta a distinção — `mcp_alertas` são as **regras/config** (enum fixo, sem "cert"), `mcp_alertas_eventos` são as **instâncias disparadas** (ADR 0055). Corrigido aqui, não no código._
+- [x] Multi-tenant scope (ADR 0093) — cada alerta escopado ao business do cert
+- [x] Pest: cert vencendo em 15d gera alerta · cert válido 200d não gera · cert vencido gera `critical` · idempotente (2× não duplica) · `--dry-run` não persiste · comando aparece em `artisan list`
+- [x] Log estruturado — `Log::info('fiscal:cert-health-check', $stats)`
+
+> ⚠️ **Dívida herdada, fora do escopo desta correção:** o teste ancora em `CERT_HC_BIZ = 1` citando a
+> ADR 0101. A [ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md) supersede
+> a 0101 e move o tenant de teste para o fictício **98**. Trocar isso mexe em asserção e é intent
+> próprio — registrado aqui para não virar "descoberta" futura.
 
 **Refs:** CAPTERRA-FICHA Fiscal §9 automation_targets `health-check-cert-a1` · ConfigController (fonte da validade).
 

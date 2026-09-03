@@ -24,13 +24,17 @@ on:
   # É a família LC-15 (mecanismo anuncia saída que ele não honra) na variante branda: a saída
   # existe, mas não se aplica pelo caminho documentado.
   pull_request:
-    types: [opened, synchronize, reopened, edited]
+    types: [opened, reopened, edited, ready_for_review]
     branches: [main]
   workflow_dispatch:
     inputs:
       pr:
         description: 'Número do PR pra checar (manual)'
         required: true
+
+concurrency:
+  group: dup-detector-gate-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read

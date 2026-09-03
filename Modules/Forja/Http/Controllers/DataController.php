@@ -110,99 +110,17 @@ class DataController extends Controller
             return;
         }
 
-        // Wagner 2026-05-22 P0: Forja entry REMOVIDA — virou 6 ghosts
-        // do hub Equipe (Modules/TeamMcp DataController). Zera 6 órfãs.
-        // Tela /project-mgmt/* continua acessível via URL direta + ghost.
+        // Wagner 2026-05-22 P0: a entry da Forja saiu DAQUI — virou ghost do
+        // hub Equipe. Este `return` e INCONDICIONAL: tudo abaixo dele nunca
+        // executa, o dropdown de /forja + /team-mcp inclusive. Se ele volta ou
+        // nao, e a fusao dos dois menus — decisao [W], fora da Onda 11.
+        //
+        // Onda 11 (2026-09-02): o dropdown que apontava /project-mgmt/* foi
+        // APAGADO, nao apenas desativado. Ele chamava route('project-mgmt.
+        // board.index') e 5 irmas — nomes que a revogacao removeu. Deixa-lo
+        // ali seria plantar RouteNotFoundException pro dia em que alguem
+        // tirasse este return.
         return;
-
-        // ↓ Código legacy preservado pra retomada futura se necessário ↓
-        $background_color = config('app.env') == 'demo' ? '#a8d8ea' : '';
-        $segmento_ativo = request()->segment(1) == 'project-mgmt';
-
-        Menu::modify(
-            'admin-sidebar-menu',
-            function ($menu) use ($background_color, $segmento_ativo) {
-                // ADR 0180 Fase 4 Wave C TOPO (2026-05-21): entry dropdown Forja
-                // declara `group: 'equipe'` pro frontend Sidebar.tsx (v3) renderizar
-                // Forja no TOPO junto com TeamMcp (ghost de Equipe).
-                //
-                // Forja NÃO declara shortcut próprio (instrução Wave C —
-                // ghost de Equipe, atalho G E do TeamMcp cobre).
-                // NÃO declara `primary` — primary canon do grupo Equipe é "Nova task"
-                // mas vive em TeamMcp (tabela tasks). Quando module-grades elevar
-                // Forja pra primário do grupo, mover primary aqui.
-                //
-                // Ghosts canônicos espelham as 6 sub-views do dropdown atual:
-                //   my-work / board / backlog / roadmap / activity / burndown
-                $menu->dropdown(
-                    'Forja',
-                    function ($sub) {
-                        $sub->url(
-                            route('project-mgmt.my-work.index'),
-                            'My Work + Inbox',
-                            [
-                                'icon'   => 'fa fas fa-check-square',
-                                'active' => request()->segment(2) == 'my-work',
-                            ]
-                        );
-                        $sub->url(
-                            route('project-mgmt.board.index'),
-                            'Board (Kanban)',
-                            [
-                                'icon'   => 'fa fas fa-columns',
-                                'active' => request()->segment(2) == 'board',
-                            ]
-                        );
-                        $sub->url(
-                            route('project-mgmt.backlog.index'),
-                            'Backlog',
-                            [
-                                'icon'   => 'fa fas fa-list',
-                                'active' => request()->segment(2) == 'backlog',
-                            ]
-                        );
-                        $sub->url(
-                            route('project-mgmt.roadmap.index'),
-                            'Roadmap',
-                            [
-                                'icon'   => 'fa fas fa-calendar-alt',
-                                'active' => request()->segment(2) == 'roadmap',
-                            ]
-                        );
-                        $sub->url(
-                            route('project-mgmt.activity.index'),
-                            'Activity feed',
-                            [
-                                'icon'   => 'fa fas fa-stream',
-                                'active' => request()->segment(2) == 'activity',
-                            ]
-                        );
-                        $sub->url(
-                            route('project-mgmt.burndown.index'),
-                            'Burndown',
-                            [
-                                'icon'   => 'fa fas fa-chart-line',
-                                'active' => request()->segment(2) == 'burndown',
-                            ]
-                        );
-                    },
-                    [
-                        'icon'   => 'fa fas fa-project-diagram',
-                        'style'  => 'background-color:' . $background_color,
-                        'active' => $segmento_ativo,
-                        'group'  => 'equipe',
-                        'ghosts' => [
-                            ['key' => 'my-work',  'label' => 'My Work',  'href' => '/project-mgmt/my-work'],
-                            ['key' => 'board',    'label' => 'Board',    'href' => '/project-mgmt/board'],
-                            ['key' => 'backlog',  'label' => 'Backlog',  'href' => '/project-mgmt/backlog'],
-                            ['key' => 'roadmap',  'label' => 'Roadmap',  'href' => '/project-mgmt/roadmap'],
-                            ['key' => 'activity', 'label' => 'Activity', 'href' => '/project-mgmt/activity'],
-                            ['key' => 'burndown', 'label' => 'Burndown', 'href' => '/project-mgmt/burndown'],
-                        ],
-                    ]
-                )->order(92); // Logo após TeamMcp (91)
-            }
-        );
 
         // ------------------------------------------------------------------
         // Menu herdado do Modules/TeamMcp (apagado em 2026-07-31). Bloco
@@ -334,18 +252,12 @@ class DataController extends Controller
                             ['key' => 'team',        'label' => 'Equipe',      'href' => '/team-mcp/team'],
                             ['key' => 'tasks',       'label' => 'Tarefas',     'href' => '/team-mcp/tasks'],
                             ['key' => 'cc-sessions', 'label' => 'CC Sessions', 'href' => '/team-mcp/cc-sessions'],
-                            // Wagner 2026-05-22 P0: ProjectMgmt absorvido como ghosts do hub Equipe.
-                            // Zera 6 órfãs da matriz. PageHeaderTabs auto-overflow após 5 ghosts.
-                            // 2026-05-29: + Triagem + Caixa de entrada (estavam só acessíveis
-                            // por URL direta — sem entrada de navegação). hrefs single-prefix
-                            // /project-mgmt/{triage,inbox} (NÃO dobrar prefixo). Ao lado de My Work.
-                            ['key' => 'board',       'label' => 'Board',       'href' => '/project-mgmt/board'],
-                            ['key' => 'my-work',     'label' => 'My Work',     'href' => '/project-mgmt/my-work'],
-                            ['key' => 'triage',      'label' => 'Triagem (PM)',      'href' => '/project-mgmt/triage'],
-                            ['key' => 'inbox',       'label' => 'Caixa de entrada',  'href' => '/project-mgmt/inbox'],
-                            ['key' => 'backlog',     'label' => 'Backlog (PM)',      'href' => '/project-mgmt/backlog'],
-                            ['key' => 'activity',    'label' => 'Activity',    'href' => '/project-mgmt/activity'],
-                            ['key' => 'burndown',    'label' => 'Burndown',    'href' => '/project-mgmt/burndown'],
+                            // Onda 11 (2026-09-02): os 7 ghosts de /project-mgmt/* sairam
+                            // com as telas (ADR 0367 D1 + PARIDADE §11). Board e Backlog
+                            // sao hoje segmentos de /forja/trabalho; a Triagem e aba do
+                            // hub; My Work, Caixa de entrada, Activity e Burndown foram
+                            // perda consciente (D5/D1). Fica so o quarter view, que a D7
+                            // preserva ate o Gantt provar que substitui.
                             ['key' => 'roadmap',     'label' => 'Roadmap',     'href' => '/project-mgmt/roadmap'],
                             // Gantt recebido do Modules/Jana em 2026-08-05 (ADR 0366 §D-B +
                             // ADR 0367 D4). Key e label DIFEREM do ghost 'roadmap' acima de

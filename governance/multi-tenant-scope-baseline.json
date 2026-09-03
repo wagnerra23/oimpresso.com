@@ -73,9 +73,9 @@
                           "Modules/Woocommerce/Entities/WoocommerceSyncLog.php"
                       ],
     "allowlist":  [
-
+                      "Modules/NfeBrasil/Models/NfeSefazStatus.php"
                   ],
     "allowlist_razoes":  {
-
+                             "Modules/NfeBrasil/Models/NfeSefazStatus.php":  "Entidade system-wide, nao dado de negocio: guarda a saude do autorizador SEFAZ por UF (PK natural = uf). 'SEFAZ-SC esta fora' e o MESMO fato para todo tenant - escopar por business duplicaria a linha N vezes e deixaria a falha de rede de um tenant contaminar a leitura do outro. O isolamento por tenant vive na DECISAO, nao na observacao: nfe_business_configs.em_contingencia e por business e so o tenant liga (a ADR TECH-0002 rejeitou auto-ativacao). Schema especificado pela ADR TECH-0002 (NfeBrasil) secao 'Schema additions' com PRIMARY KEY (uf) e sem business_id. NAO e divida - por isso entra em allowlist (excecao permanente), nunca em grandfathered."
                          }
 }

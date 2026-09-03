@@ -314,7 +314,7 @@ export default function DashboardIndex({
           <div className="lg:col-span-2 space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Últimos 7 dias</CardTitle>
+                <CardTitle className="text-[length:var(--fs-3,12.5px)]">Últimos 7 dias</CardTitle>
                 <CardDescription className="text-xs">
                   Minutos trabalhados + horas extras por dia
                 </CardDescription>
@@ -333,7 +333,7 @@ export default function DashboardIndex({
             <Card data-contract="painel-fila-aprovacoes">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <div>
-                  <CardTitle className="text-base flex items-center gap-1.5">
+                  <CardTitle className="text-[length:var(--fs-3,12.5px)] flex items-center gap-1.5">
                     <CheckCheck size={16} className="text-primary" /> Fila de aprovações
                   </CardTitle>
                   {/* Contagem vem de `kpis.aprovacoes_pendentes`, NAO de `aprovacoes.length`:

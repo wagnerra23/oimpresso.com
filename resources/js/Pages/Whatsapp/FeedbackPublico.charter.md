@@ -2,6 +2,7 @@
 id: resources-js-pages-whatsapp-feedback-publico-charter
 page: /feedback
 component: resources/js/Pages/Whatsapp/FeedbackPublico.tsx
+related_prototype: n/a (tela pública fora do AppShellV2, declarado no próprio .tsx; não segue um dos 5 Padrões de Tela)
 owner: wagner
 status: live
 # smoke datado = sinal de prod que o gate charter-live-signal exige (não é "claim sem

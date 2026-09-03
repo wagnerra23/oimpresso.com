@@ -114,7 +114,7 @@ export function extrairUS(specSrc) {
   const linhas = specSrc.split(/\r?\n/);
   const out = [];
   linhas.forEach((ln, i) => {
-    const m = ln.match(/^###\s+(US-[A-Z]{2,8}-\d{3,4})\s*·?\s*(.*)$/);
+    const m = ln.match(/^###\s+(US-_?[A-Z]{2,12}-\d{3,4})\s*·?\s*(.*)$/);
     if (!m) return;
     /**
      * O status vive no BLOCO da US (até o próximo heading), não nas 3 primeiras linhas.

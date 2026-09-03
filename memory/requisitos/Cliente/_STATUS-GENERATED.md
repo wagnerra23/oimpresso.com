@@ -16,7 +16,7 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 22 |
+| US no SPEC | 23 |
 | CU no SDD | 15 |
 | Telas (.tsx) | 7 |
 | Telas com `casos.md` | 7 |
@@ -58,6 +58,7 @@ authority: generated
 | US-CRM-083 | `todo` | — UI de consentimento (opt-in/opt-out) + base legal por finalidade |
 | US-CRM-084 | `todo` | — Extrato (Ledger) render inline 100% — parar de abrir Blade legacy ao filtrar |
 | US-CRM-085 | `todo` | — Export de portabilidade do titular (registro completo CSV/JSON) — LGPD Art. 18 |
+| US-CRM-091 | `todo` | — Mapa de clientes: trocar o iframe hardcoded por provedor tokenizado |
 
 ## UC por status
 

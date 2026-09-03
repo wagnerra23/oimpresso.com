@@ -22,6 +22,7 @@ on:
       - 'package.json'
       - '.github/workflows/handoff-integrity.yml'
   pull_request:
+    types: [opened, reopened, ready_for_review]
     paths:
       - 'prototipo-ui/COWORK_NOTES.md'
       - 'prototipo-ui/PROMPT_PARA_CODE_*.md'

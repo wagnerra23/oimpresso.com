@@ -369,14 +369,21 @@ export default function ConversationThreadV4({
                         Antes UI mostrava body literal "[imagem]"/"[áudio]" pq backend
                         msgToUiArray não enviava media_url + frontend não checava. */}
                     {m.media_url && m.type === 'image' && (
-                      <img
-                        src={m.media_thumbnail_url || m.media_url}
-                        alt={m.media_filename || 'imagem'}
-                        // Polish V2 §4 — lightbox in-app em vez de aba nova
+                      // Polish V2 §4 — lightbox in-app em vez de aba nova.
+                      // O <button> dá teclado/foco nativos ao "ampliar" (a11y).
+                      <button
+                        type="button"
                         onClick={() => setLightboxIndex(imageMessages.findIndex(im => im.id === m.id))}
-                        className="rounded-md max-w-full max-h-64 cursor-pointer object-cover mb-1"
-                        loading="lazy"
-                      />
+                        aria-label={`Ampliar ${m.media_filename || 'imagem'}`}
+                        className="block mb-1 rounded-md"
+                      >
+                        <img
+                          src={m.media_thumbnail_url || m.media_url}
+                          alt={m.media_filename || 'imagem'}
+                          className="rounded-md max-w-full max-h-64 cursor-pointer object-cover"
+                          loading="lazy"
+                        />
+                      </button>
                     )}
                     {m.media_url && m.type === 'video' && (
                       <video

@@ -13,7 +13,7 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Bot, GitBranch, User } from 'lucide-react';
+import { ArrowRight, Bot, GitBranch, User } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
@@ -237,7 +237,7 @@ function CcSessionsIndex({ sessions, filters, kpis, devs, projects, permissions 
                 href="https://github.com/wagnerra23/oimpresso.com/blob/main/memory/requisitos/Jana/SPEC-cc-sessions.md"
                 target="_blank" rel="noopener noreferrer"
                 className="text-sm text-primary hover:underline"
-              >Ver SPEC do watcher →</a>
+              >Ver SPEC do watcher <ArrowRight className="inline h-3.5 w-3.5" /></a>
             }
           />
         </div>

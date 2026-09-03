@@ -17,7 +17,9 @@ on:
       - 'scripts/components-tree-guard.mjs'
       - 'package.json'
       - '.github/workflows/components-tree-guard.yml'
+  workflow_dispatch:
   pull_request:
+    types: [opened, reopened, ready_for_review]
     paths:
       - 'resources/js/**'
       - 'scripts/components-tree-guard.mjs'

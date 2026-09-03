@@ -19,7 +19,10 @@ O conteúdo precisa vir do payload/JSON do DesignSync e ser escrito pelo script;
 
 ## Consumidores
 
-- o preview materializa este snapshot no slug `_ds/<project-id>/` derivado do shell;
+- o preview materializa este snapshot no slug `_ds/<project-id>/` derivado do shell — e, desde
+  2026-09-02, o hook SessionStart `.claude/hooks/ds-preview-materialize.mjs` invoca esse preview
+  sozinho quando o `_ds/` do worktree está ausente ou incompleto (antes, todo worktree novo abria
+  o espelho sem tokens/fontes/bundle; [W]: "não pode ser assim");
 - o sentinela de drift usa os CSS versionados porque o CI não possui login no claude.ai/design;
 - o applier do payload encaminha `_ds/**` para este diretório, sem criar uma segunda cópia
   versionada no espelho Cowork.

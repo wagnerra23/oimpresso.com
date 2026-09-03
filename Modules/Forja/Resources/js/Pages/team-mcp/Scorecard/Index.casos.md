@@ -4,12 +4,21 @@ casos: Saúde do MCP · Scorecard Facts+Checks · /team-mcp/scorecard
 irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-08-12"
+last_run: "2026-09-02"
 ---
 
 # Casos de uso — /team-mcp/scorecard
 
 > **Status:** ✅ passa (provado por teste) · 🧪 em teste (Pest escrito, aguarda run verde) · ⬜ não verificado · ❌ quebrou.
+
+> **Revalidação 2026-09-02** (`last_run` bumpado por G-6, [PR #6570](https://github.com/wagnerra23/oimpresso.com/pull/6570)).
+> A tela mudou em **1 linha**: o glifo `⚠` do parágrafo de aviso (`mcp_audit_log ausente / Rodar
+> migrations`) virou `<AlertTriangle className="inline h-3 w-3 mr-1 -mt-0.5" />` (regra R3 · ícone
+> lucide no lugar de glifo de texto). Reconferido UC a UC: **nenhum status muda**. O UC-SC-04 fala
+> dos ícones da LISTA de checks (`CheckCircle2`/`AlertCircle`), que é outra linha e ficou intacta;
+> o UC-SC-06 (DS v6) só melhora, porque o glifo cru some. Os demais UC não tocam nesse parágrafo.
+> Nenhum UC subiu de status — os 🧪 seguem 🧪 (a lane do `ScorecardContratoTest` continua ausente,
+> ver a nota no fim do arquivo), e o ⬜ segue ⬜.
 
 > Forja PR-3. A rota existia mas o componente nunca existiu (route quebrada) — este trio nasce com a Page. Padrão Facts+Checks (ADR 0091): Facts = números sem juízo, Checks = semáforo ok/fail. Persona: Wagner [W] (superadmin). Tela read-only.
 

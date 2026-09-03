@@ -21,6 +21,8 @@ related_adrs:
   - 0080-trust-tiers-operacional-audit-findings
 url_prefixes:
   - /cms/*
+  - /c/* (paginas publicas — page · blog · blogs · contact-us · submit-contact-form)
+  - /old (landing legacy)
 drift_alerts: []
 ---
 

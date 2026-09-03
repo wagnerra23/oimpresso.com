@@ -1,6 +1,6 @@
 ---
 owner: W
-last_validated: "2026-08-27"
+last_validated: "2026-08-28"
 slug: ponto-runbook-configuracoes
 title: "Ponto — Runbook das Configurações (/ponto/configuracoes · Configuracoes/Index + Configuracoes/Reps)"
 type: runbook
@@ -70,20 +70,37 @@ Vale a regra-mestre de [proibicoes.md](../../proibicoes.md):
 | `Reps.casos.md` | ❌ **não existe** |
 | Scorecard | ✅ `ponto-configuracoes-index.yaml` · `ponto-configuracoes-reps.yaml` |
 | E2E / a11y / VRT | ❌ nenhum (o módulo tinha VRT 0/20 até o PR #6365) |
-| Token de cor | ❌ **2 sites crus** — `Index.tsx:74` (`border-t-blue-500`) e `:104` (`border-t-violet-500`) |
+| Token de cor | ❌ **3 sites crus** — `Index.tsx:74` (`border-t-blue-500`) · `:104` (`border-t-violet-500`) · `:124` (`border-t-amber-500`) — ⚠️ **ver errata abaixo** |
 
 Fonte dos números: `npm run screen-coverage:report` e `npm run casos:report` — não os
 reproduza à mão aqui, **rode as portas** (§5 2026-07-17: doc canônico não restateia número
 que outro sistema sabe melhor).
 
+> ⚠️ **Errata 2026-08-28 — a contagem de token estava errada NO PRÓPRIO DIA, não apodreceu.**
+> A linha dizia "2 sites crus" e listava `blue` e `violet`. São **3**: `:124 border-t-amber-500`
+> (card *AFD & eSocial*) nunca foi contado. Medido no histórico: o amber está no arquivo desde
+> `1676c196ca` (**2026-05-08**) e atravessou todos os commits seguintes — nunca foram 2.
+>
+> **Por que corrigir uma medição datada, em vez de preservá-la.** A doutrina preserva o que
+> **era verdade** numa data; ela não protege um número que nunca foi verdade. "2" nunca foi.
+> O que se preserva aqui é o *fato datado real* — em 2026-08-27 havia 3 — e a errata declara
+> a diferença em vez de reescrever a história em silêncio.
+
 ---
 
-## 4. O trabalho que este RUNBOOK destrava
+## 4. O trabalho que este RUNBOOK destravou
 
-Ele existe para permitir **um** Edit específico, já medido e pendente:
+> ⚠️ **Errata 2026-08-28 — este bloco descrevia como *pendente* um trabalho que o PRÓPRIO
+> commit deste RUNBOOK já tinha feito.** Medido: `149f1e5b0f` (o commit que criou este
+> arquivo, [#6369](https://github.com/wagnerra23/oimpresso.com/pull/6369)) sai com **1** cor
+> crua; o commit anterior, `424b23523f`, tinha **3**. Os dois fixes entraram no mesmo diff.
+> Afirmação de pendência em **tempo presente** é a forma que apodrece (LC-10) — vai a passado.
 
-- `Index.tsx:74` → `border-t-blue-500` deve virar `border-t-info`
-- `Index.tsx:104` → `border-t-violet-500` deve virar `border-t-primary`
+Ele existiu para permitir **um** Edit específico, e ele **foi aplicado**:
+
+- `Index.tsx:74` — `border-t-blue-500` → **`border-t-info`** ✅ aplicado
+- `Index.tsx:104` — `border-t-violet-500` → **`border-t-primary`** ✅ aplicado
+- `Index.tsx:124` — `border-t-amber-500` → **segue cru**, e nunca esteve nesta lista (§3 errata)
 
 É a continuação do PR-A1 ([#6362](https://github.com/wagnerra23/oimpresso.com/pull/6362)),
 que fez o mesmo no `Espelho/Show` mas **não pôde** tocar esta tela: o guard barrou, e a

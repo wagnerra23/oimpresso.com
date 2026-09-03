@@ -18,7 +18,9 @@ related_adrs:
   - 0079-constituicao-oimpresso-7-camadas-governanca
   - 0080-trust-tiers-operacional-audit-findings
 url_prefixes:
-  - /productcatalogue/*
+  - /product-catalogue/* (catalogue-qr + install)
+  - /catalogue/* (catalogo publico por business)
+  - /show-catalogue/* (catalogo publico por business)
 drift_alerts: []
 ---
 

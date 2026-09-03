@@ -1461,3 +1461,65 @@ O `jana-merge.jsx` segue com as 4 prévias fixas e os 6 `Analise*Service` fictí
 `cowork-inbox/JANA-MODULO-ONDAS-PR-2026-08-09.md` nunca rodou. Não "consertei" o protótipo aqui:
 `prototipo-ui/cowork/**` é espelho de leitura (ADR 0374) e edição minha some no próximo
 `--export-from`. O durável nasce no Cowork vivo e desce.
+
+---
+
+## 2026-08-31 [CL] → [W]/[CC] — guard de pele paralela instalado + esteira limpa (T1–T6)
+
+Pedido `[CC]` de 2026-08-31, medido em `main@84b62eb785` (o mesmo SHA que ele cita).
+PRs: [#6489](https://github.com/wagnerra23/oimpresso.com/pull/6489) (T1+T2+T4) ·
+[#6490](https://github.com/wagnerra23/oimpresso.com/pull/6490) (T5+T6).
+
+**O bloco pronto do pedido pedia entrada no `COWORK_NOTES.md` — não foi pra lá**, e o motivo está
+escrito no cabeçalho daquele arquivo: *"CONGELADA pra NOVOS itens (…) Não adicionar item novo aqui"*.
+Registro de Code→[W] é este outbox. Segue o bloco, corrigido onde a medição divergiu.
+
+### O guard
+
+`scripts/qa/cowork-pele-paralela.mjs` — 5 regras (R1 abas · R2 segmented · R3 mini-DS ·
+R4 nome duplicado · R5 colisão com o DS), waivers com motivo no próprio arquivo, ligado no job
+`gates` do `design-memory-gate.yml`. **13/13 asserts de mordida pelo CLI de fora**, as 5 regras.
+
+### Cinco divergências do pedido que a medição corrigiu
+
+1. **Os 3 donos declarados não existem no espelho.** `cli-tabs.jsx` · `cli-seg.js` ·
+   `cli-pagehead.jsx` = **0 arquivo** no repo inteiro (`CliTabs`/`CliSeg` = 0 hits). São LIVE-ONLY.
+   O `.cli-seg` que existe em `styles.css` é a pele do módulo **CLI**entes — uma das 18 famílias —,
+   não o dono. Por isso o guard nasceu **DELTA vs baseline**, nunca absoluto: sem dono, "fora do
+   dono" acusa 100% da população e o gate nasceria vermelho permanente.
+2. **T2 não é independente de T1 — é pré-requisito.** Com o `prototipo-ui-patch/` presente, R4
+   acusa **22** duplicatas, **19** delas o próprio armazém. Baseline gravado antes da limpeza
+   descreveria lixo. Limpou → R4 = **4**.
+3. **T3 já estava feito.** Zero arquivos com `?` no nome em `origin/main` inteiro (controle
+   positivo: `app.jsx` = 3 hits, então a varredura funciona). Nada a apagar.
+4. **T4: os "20 avisos" são 2.** Com o linter do repo, os arquivos **vivos** acusam 2, e nenhum é
+   `11px`/`13px`/`#fff` — são dois gradientes oklch de marca no Hero do `ProvaViva`. E não é defeito
+   da tela: **não existe token de gradiente no DS** e **8 telas vivas** usam gradiente inline.
+   Fechar isso é criar token novo — soberania [W] — e migrar as 8.
+5. **T6: as duas automações propostas são impossíveis, pelo mesmo motivo.**
+   `gerar-payload-partes` roda *do lado Cowork* (o repo não tem os arquivos em disco), e `ds-push`
+   não faz o upload porque `finalize_plan`/`write_files` exigem login claude.ai interativo. A lápide
+   §5 2026-08-27 já dizia que o que fecha essa classe **não é máquina**. O que faltava e foi feito:
+   o painel `protocolo.config.mjs` agora **declara** que a emissão não tem dono — logo *"não achei
+   no espelho"* nunca prova ausência.
+
+### R3 subconta, e isso está declarado
+
+O [#6488](https://github.com/wagnerra23/oimpresso.com/pull/6488) auditou o mesmo território melhor:
+**23 namespaces** de mini-DS, 39 símbolos apelidados, e lá o número é declarado **piso**. Meu R3 acha
+6 (sufixo `UI|DS`). Tentei alinhar e medi: "namespace com ≥3 membros" devolve 4, dos quais 2 são ruído
+(`I`, `MOCK`) e nenhum dos 6 verdadeiros. R3 não é censo e parou de parecer censo — aponta o #6488.
+
+### Pendente [CC] — o que só o lado do design fecha
+
+- **Os 3 donos precisam DESCER** pro espelho (`cli-tabs.jsx`, `cli-seg.js`, `cli-pagehead.jsx`).
+  Enquanto não descem, R1/R2 medem um mundo sem dono e a dívida de 29 chaves não tem como ser paga.
+- **As 6 mini-DS** (`AcessosDS` · `PBUI` · `HrmUI` · `CBUI` · `CatchupUI` · `PontoUI`) — sobem pro DS,
+  viram adaptador, ou morrem. Decisão [W]/[CC], com o mapa do #6488.
+- **O DS aceitar no `TabBar`** `className`/`aria-label`/`pad`/`data-contract`/`off`/`size`/`icon` no
+  próprio `<nav>` (destrava as 3 telas de Produto, hoje em waiver); publicar `Segmented`; `PageHeader`
+  com glyph/contexto/frescor — o que aposentaria `cli-seg.js` e `cli-pagehead.jsx`.
+- **Regerar o bundle** ao fim de todo ciclo de design. Sem isso o espelho fica atrás por padrão.
+
+Como sempre: não editei `prototipo-ui/cowork/**` pra "consertar" nada — é espelho de leitura
+(ADR 0374) e edição minha some no próximo `--export-from`. O durável nasce no Cowork vivo e desce.

@@ -9,15 +9,17 @@ use Illuminate\Support\Facades\Schema;
  * Smoke das rotas principais do Modules/Forja + checagem do
  * middleware auth aplicado na stack canônica UltimatePOS.
  *
+ * ONDA 11 (2026-09-02): 7 das 8 telas de /project-mgmt foram revogadas
+ * (ADR 0367 D1 + PARIDADE §11). Este smoke deixou de exercitar rotas mortas e
+ * passou a ser o GUARD DA PRÓPRIA REVOGAÇÃO — se alguém ressuscitar um dos
+ * prefixos, ou quebrar um 301, ele reprova.
+ *
  * Valida que:
- *   1. GET /project-mgmt/board (board.index) responde <500
- *   2. GET /project-mgmt/backlog (backlog.index) responde <500
- *   3. GET /project-mgmt/roadmap (roadmap.index) responde <500
- *   4. GET /project-mgmt/my-work (my-work.index) responde <500
- *   5. GET /project-mgmt/activity (activity.index) responde <500
- *   6. GET /project-mgmt/burndown (burndown.index) responde <500
- *   7. GET /project-mgmt/search (search) responde <500
- *   8. Acesso anônimo a /board é redirecionado/bloqueado por middleware 'auth'
+ *   1. GET /project-mgmt/roadmap responde <500 (sobrevive — ADR 0367 D7)
+ *   2. GET /forja/search responde <500 (a busca mudou de prefixo, não morreu)
+ *   3. os 7 caminhos revogados respondem 301 pro receptor MEDIDO de cada um
+ *   4. o 301 vale SEM sessão (está fora do grupo auth de propósito)
+ *   5. acesso anônimo ao que sobrou segue bloqueado por middleware 'auth'
  *
  * Stack UltimatePOS canônica: ['web','SetSessionData','auth','language',
  * 'timezone','AdminSidebarMenu','CheckUserLogin'] (Http/routes.php).
@@ -46,54 +48,57 @@ beforeEach(function () {
 });
 
 // ------------------------------------------------------------------
-// Smoke routes — GET cada rota principal não deve crashar com 500
+// 1-2) O que sobreviveu segue de pé
 // ------------------------------------------------------------------
-
-it('GET /project-mgmt/board (board.index) responde com status < 500', function () {
-    $response = $this->get(route('project-mgmt.board.index'));
-    expect($response->getStatusCode())->toBeLessThan(500);
-});
-
-it('GET /project-mgmt/backlog (backlog.index) responde com status < 500', function () {
-    $response = $this->get(route('project-mgmt.backlog.index'));
-    expect($response->getStatusCode())->toBeLessThan(500);
-});
-
-it('GET /project-mgmt/roadmap (roadmap.index) responde com status < 500', function () {
+it('GET /project-mgmt/roadmap (quarter view, ADR 0367 D7) responde com status < 500', function () {
     $response = $this->get(route('project-mgmt.roadmap.index'));
     expect($response->getStatusCode())->toBeLessThan(500);
 });
 
-it('GET /project-mgmt/my-work (my-work.index) responde com status < 500', function () {
-    $response = $this->get(route('project-mgmt.my-work.index'));
+it('GET /forja/search (busca global do ⌘K) responde com status < 500', function () {
+    $response = $this->get(route('forja.search', ['q' => 'smoke']));
     expect($response->getStatusCode())->toBeLessThan(500);
 });
 
-it('GET /project-mgmt/activity (activity.index) responde com status < 500', function () {
-    $response = $this->get(route('project-mgmt.activity.index'));
-    expect($response->getStatusCode())->toBeLessThan(500);
+// ------------------------------------------------------------------
+// 3-4) A revogação: cada caminho morto aponta pro receptor certo.
+// O destino NÃO é decorativo — foi medido contra os filtros que o
+// TrabalhoController aceita (visao/cycle/q existem; `project` não).
+// ------------------------------------------------------------------
+dataset('rotas revogadas', [
+    'board vira o quadro da lista única'      => ['/project-mgmt/board',    '/forja/trabalho?visao=quadro'],
+    'backlog vira a lista única'              => ['/project-mgmt/backlog',  '/forja/trabalho?visao=lista'],
+    'triagem virou aba do hub (D6)'           => ['/project-mgmt/triage',   '/forja'],
+    'my-work sem receptor (D5) cai na lista'  => ['/project-mgmt/my-work',  '/forja/trabalho'],
+    'inbox sem receptor (D5) cai no hub'      => ['/project-mgmt/inbox',    '/forja'],
+    'activity sem receptor (D1)'              => ['/project-mgmt/activity', '/forja/changelog'],
+    'burndown sem receptor (D5)'              => ['/project-mgmt/burndown', '/forja'],
+]);
+
+it('rota revogada responde 301 pro receptor', function (string $velho, string $novo) {
+    $response = $this->get($velho);
+
+    expect($response->getStatusCode())->toBe(301);
+    expect($response->headers->get('Location'))->toEndWith($novo);
+})->with('rotas revogadas');
+
+it('o 301 das rotas revogadas NÃO exige sessão', function () {
+    // Fora do grupo auth de propósito: link velho em doc/handoff tem de
+    // resolver pro destino novo mesmo sem login — quem pede sessão é o destino.
+    auth()->logout();
+
+    $response = $this->get('/project-mgmt/board');
+
+    expect($response->getStatusCode())->toBe(301);
 });
 
-it('GET /project-mgmt/burndown (burndown.index) responde com status < 500', function () {
-    $response = $this->get(route('project-mgmt.burndown.index'));
-    expect($response->getStatusCode())->toBeLessThan(500);
-});
+// ------------------------------------------------------------------
+// 5) O que sobrou continua atrás do middleware auth
+// ------------------------------------------------------------------
+it('rota /project-mgmt/roadmap bloqueia acesso anônimo via middleware auth', function () {
+    auth()->logout();
 
-it('GET /project-mgmt/search (search) responde com status < 500', function () {
-    $response = $this->get(route('project-mgmt.search', ['q' => 'smoke']));
-    expect($response->getStatusCode())->toBeLessThan(500);
-});
+    $response = $this->get(route('project-mgmt.roadmap.index'));
 
-it('rota /project-mgmt/board bloqueia acesso anônimo via middleware auth', function () {
-    // Sem login — middleware 'auth' da stack canônica UltimatePOS deve
-    // interceptar e redirecionar pra /login ou retornar 401/403.
-    $response = $this->get(route('project-mgmt.board.index'));
-
-    $statusCode = $response->getStatusCode();
-    $isAuthBlocked = in_array($statusCode, [302, 401, 403], true);
-
-    expect($isAuthBlocked)->toBeTrue(
-        "Esperado status 302/401/403 (auth middleware) — recebeu {$statusCode}. " .
-        'Se 200, middleware auth NÃO está aplicado em /project-mgmt/board — violação stack canônica UltimatePOS.'
-    );
+    expect($response->getStatusCode())->not->toBe(200);
 });

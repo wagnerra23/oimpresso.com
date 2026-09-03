@@ -16,10 +16,10 @@ use Spatie\Permission\Models\Permission;
  * US-DASH-001 — guard da tela /home (F6 Soft wrapper).
  *
  * Cobre invariantes:
- *  1. Inertia component path + shape esperado (user_name, is_admin, totals, legacy_url, endpoints)
+ *  1. Inertia component path + shape esperado (user_name, is_admin, totals, endpoints)
  *  2. Customer redirect preservado (user_type=user_customer → 302 pra Crm dashboard)
  *  3. Sem permission `dashboard.data` → totals null (shell minimal)
- *  4. ?legacy=1 retorna Blade legacy (não Inertia)
+ *  4. ?legacy=1 é INERTE — o Blade legado foi removido em 2026-08-28
  *  5. Tier 0 multi-tenant — não vaza locations de outro business
  *
  * Skip gracioso (convention oimpresso) quando DB greenfield ou subscription gate.
@@ -59,7 +59,7 @@ function homeBootstrap(): User
     return $user;
 }
 
-it('renderiza Inertia component Home/Index com shape esperado', function () {
+it('UC-DASH-01 · renderiza Inertia component Home/Index com shape esperado', function () {
     $user = homeBootstrap();
 
     $response = $this->actingAs($user)->get('/dashboard-legacy');
@@ -71,16 +71,14 @@ it('renderiza Inertia component Home/Index com shape esperado', function () {
         ->has('is_admin')
         ->has('can_dashboard_data')
         ->has('all_locations')
-        ->has('legacy_url')
         ->has('endpoints.totals')
         ->has('endpoints.stock_alert')
         ->has('endpoints.purchase_dues')
         ->has('endpoints.sales_dues')
-        ->where('legacy_url', '/dashboard-legacy?legacy=1')
     );
 });
 
-it('customer redirect preservado (user_type=user_customer → 302)', function () {
+it('UC-DASH-02 · customer redirect preservado (user_type=user_customer → 302)', function () {
     $business = $this->seededTenant(); // biz=1 canônico (ADR 0101) — skip acionável se o seed faltar
 
     $customer = User::where('business_id', $business->id)
@@ -102,7 +100,7 @@ it('customer redirect preservado (user_type=user_customer → 302)', function ()
     expect($response->status())->toBe(302);
 });
 
-it('sem permission dashboard.data → totals null (shell minimal)', function () {
+it('UC-DASH-03 · sem permission dashboard.data → totals null (shell minimal)', function () {
     $user = homeBootstrap();
 
     if ($user->hasPermissionTo('dashboard.data')) {
@@ -119,17 +117,19 @@ it('sem permission dashboard.data → totals null (shell minimal)', function () 
     );
 });
 
-it('?legacy=1 retorna Blade legacy (não Inertia)', function () {
+it('UC-DASH-04 · ?legacy=1 é inerte — não existe mais fallback Blade', function () {
     $user = homeBootstrap();
 
+    // Até 2026-08-28 esta query servia `view('home.index')`. O Blade foi removido junto
+    // com o ramo que o chamava; a query sobrevive apenas como link velho em favorito, e
+    // tem de cair na MESMA tela React — nunca em 500 nem numa view fantasma.
     $response = $this->actingAs($user)->get('/dashboard-legacy?legacy=1');
 
     $response->assertStatus(200);
-    // Blade legacy não tem header X-Inertia
-    expect($response->headers->get('X-Inertia'))->toBeNull();
+    $response->assertInertia(fn (AssertableInertia $page) => $page->component('Home/Index'));
 });
 
-it('Tier 0 multi-tenant — não vaza locations de outro business', function () {
+it('UC-DASH-05 · Tier 0 multi-tenant — não vaza locations de outro business', function () {
     $userA = homeBootstrap();
     $businessA = Business::find($userA->business_id);
     $businessB = Business::where('id', '!=', $businessA->id)->first();
@@ -186,7 +186,7 @@ it('Tier 0 multi-tenant — não vaza locations de outro business', function () 
     \DB::table('business_locations')->where('id', $locBId)->delete();
 });
 
-it('totals expõe 8 campos canônicos (guard charter v2)', function () {
+it('UC-DASH-06 · totals expõe 8 campos canônicos (guard charter v2)', function () {
     $user = homeBootstrap();
 
     $response = $this->actingAs($user)->get('/dashboard-legacy');

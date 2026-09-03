@@ -1280,3 +1280,42 @@ Perceived performance no `Sells/Create`: skeleton inicial enquanto carrega + alv
 - Charter: [`CreateV3.charter.md`](../../../resources/js/Pages/Sells/CreateV3.charter.md) · casos: [`CreateV3.casos.md`](../../../resources/js/Pages/Sells/CreateV3.casos.md) · RUNBOOK: [RUNBOOK-create-v3.md](RUNBOOK-create-v3.md)
 - Âncora de design: `prototipo-ui/design-oimpresso/04-modulos/vendas/sells-create.jsx`
 - Landado em [#5356](https://github.com/wagnerra23/oimpresso.com/pull/5356) — [L] não mergeia sozinho ([F] ou [W] aprova).
+
+---
+
+### US-SELL-059 · Editar venda existente (`/sells/{id}/edit`) — guards de prazo, devolução e tenant
+
+**Implementado em:** `resources/js/Pages/Sells/Edit.tsx` · `app/Http/Controllers/SellController.php` (`edit()`) · `resources/js/Pages/Sells/Edit.charter.md` · verificado@17f1c0c052 (2026-08-31) — a **capacidade** já estava viva em produção (`route-hits: 14hit@2026-08-22`); o que faltava era o **contrato declarado**. Esta US é retroativa: registra o que existe e passa a ancorá-lo, em vez de propor trabalho novo
+
+**Testado em:** `tests/Feature/Sells/SellsEditContratoTest.php` (covers US-SELL-059) — UC-SEDIT-01 tenant · 02 permissão · 03 devolução · 04 prazo · 05 `defer` · 06 GET é leitura pura · 07 pré-fill `[V0]`. Na allowlist da lane `Pest (Sells · MySQL)` e **verde** no job 99463057234 (`47 passed · 228 assertions`; era `43 · 208` antes deste arquivo), com os 7 UCs nominalmente ✓
+
+> owner: wagner · priority: p1 · estimate: 0h · type: story
+> blocked_by: —
+
+<!-- Sem `status:` de propósito (ADR 0302: a fonte única de done-ness é
+     `**Implementado em:**`). A capacidade está completa e provada por teste
+     verde; o resíduo declarado abaixo é de COBERTURA (e2e/axe), não de
+     funcionalidade — por isso a âncora não leva `_parcial_`. -->
+
+**Origem:** lacuna encontrada em 2026-08-31 pelo `charter-us-lint`, ao levar a tela à cobertura sustentável. A busca nas 52 US então existentes do SPEC e nas âncoras `**Implementado em:**` não achou **nenhuma** que cobrisse EDIÇÃO de venda — as `US-SELL-001..009` são todas sobre `/sells/create`. A tela existia, era usada em produção e não tinha US.
+
+**Problema:** `Sells/Edit` move **VALOR e ESTOQUE** (REGRA MESTRE de `memory/proibicoes.md`) e é a segunda tela mais sensível do módulo depois do cadastro. Ainda assim parecia coberta e não estava: os 5 arquivos de teste com o nome dela — `Wave1EditBaselineTest`, `Wave1EditInertiaTest`, `SellsEditCoworkTest`, `SellsEditParkingLotP1P2P3Test`, `SellsEditPrefillContractTest` — tinham, medido em 2026-08-31, **zero invocadores** (`git grep <basename> -- .github/ phpunit.xml package.json .github/ci-sqlite-pest.list`, com controle positivo). Existiam no repo e não rodavam em lane nenhuma.
+
+**Aceite:**
+- [x] Venda de outro business não abre para edição — `firstOrFail` escopado devolve 404 (Tier 0, ADR 0093).
+- [x] Sem `direct_sell.update` nem `so.update`, o editor é negado.
+- [x] Venda com devolução associada não é editável (422).
+- [x] Passado o `transaction_edit_days`, a venda trava (422); dentro do prazo, abre.
+- [x] O formulário pesado não viaja na primeira resposta — `Inertia::defer()` + `<Deferred data="form">`.
+- [x] Abrir o editor não altera a venda — GET é leitura pura (FSM safety, ADR 0143).
+- [x] O pré-fill traz os valores do banco sem fallback nem arredondamento `[V0]`.
+- [ ] Cobertura e2e/axe da tela renderizada — hoje `Sells/Edit` não tem teste Browser; os UCs acima provam contrato de resposta, não visibilidade.
+- [ ] Decidir o destino dos 5 arquivos de teste órfãos acima: pôr na allowlist ou aposentar. O precedente do `Wave1ShowInertiaTest` (vermelho por 2 meses sem ninguém ver) diz que podem nascer vermelhos, então é intent próprio.
+
+**Achados abertos (reportados, não consertados neste escopo):**
+- Os guards `canBeEdited`/`isReturnExist` rodam **antes** do `findOrFail` escopado (`SellController@edit:2643-2668` vs `:2673`): venda de outro business **fora do prazo** devolve 422 "prazo expirou" em vez de 404, confirmando ao chamador que o id existe e é antigo. Não é vazamento de dado, é vazamento de **existência** cross-tenant.
+- `TransactionUtil::isReturnExist:4259` não escopa por business (`App\Transaction` não tem global scope) — defesa em profundidade, sem vazamento provado.
+- O charter promete "Header + stage FSM", mas o `headline` entrega `current_stage_key => null` fixo (`:2955`). Pela regra de precedência, corrigir o perdedor é ato de quem fechar o item.
+
+- Charter: [`Edit.charter.md`](../../../resources/js/Pages/Sells/Edit.charter.md) · casos: [`Edit.casos.md`](../../../resources/js/Pages/Sells/Edit.casos.md) · RUNBOOK: [RUNBOOK-edit.md](RUNBOOK-edit.md)
+- Landado em [#6455](https://github.com/wagnerra23/oimpresso.com/pull/6455).

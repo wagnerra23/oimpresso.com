@@ -1,4 +1,13 @@
 import * as React from 'react';
+import {
+  AlertTriangle,
+  Check,
+  ChevronUp,
+  ChevronsUp,
+  Clock,
+  X as XIcon,
+  type LucideIcon,
+} from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/Components/ui/tooltip';
 import { cn, formatMinutes } from '@/Lib/utils';
 
@@ -9,6 +18,15 @@ import { cn, formatMinutes } from '@/Lib/utils';
  *   - cor de fundo por saldo (falta=danger, atraso=warning, HE=success fraca/forte, normal=muted)
  *   - borda âmbar quando tem divergência
  *   - tooltip com detalhes do dia
+ *
+ * A11y — o estado NUNCA é só cor (WCAG 2.2 SC 1.4.1 "Use of Color"). Cada estado
+ * carrega, além do fundo, um GLIFO próprio (`stateIcons`) ao lado do valor, e a
+ * divergência carrega um `AlertTriangle` no canto da célula — não só o anel âmbar,
+ * que some em greyscale e em daltonismo. O `aria-label` de cada dia repete estado,
+ * valor e divergência em texto; a legenda repete o mesmo glifo, pra que a associação
+ * glifo→estado seja descobrível sem depender do tooltip (que não existe no toque nem
+ * no papel). As CORES são intocadas de propósito: o verde de HE é semântica de estado
+ * e a escolha do token é decisão de design pendente do [W].
  *
  * Uso:
  *   <MonthHeatmap mes="2026-04" linhas={linhas} onDayClick={(linha) => scrollToRow(linha.data)} />
@@ -70,6 +88,27 @@ const stateLabels: Record<DayState, string> = {
   vazio:    'Sem registro',
 };
 
+/** O sinal NÃO-COR de cada estado. `weekend`/`vazio` não têm valor na célula, então
+ *  também não recebem glifo — a borda tracejada do `vazio` já os separa em greyscale. */
+const stateIcons: Record<DayState, LucideIcon | null> = {
+  falta:    XIcon,
+  atraso:   Clock,
+  he_alta:  ChevronsUp,
+  he_media: ChevronUp,
+  normal:   Check,
+  weekend:  null,
+  vazio:    null,
+};
+
+/** Valor mostrado na célula. O sinal do número já separa HE (+) de falta (−); o
+ *  glifo é o que separa atraso de jornada normal, que têm o mesmo formato. */
+function valorDoDia(l: Linha, state: DayState): string {
+  if (state === 'he_alta' || state === 'he_media') return `+${formatMinutes(l.he)}`;
+  if (state === 'falta') return `-${formatMinutes(l.falta)}`;
+  if (state === 'atraso') return formatMinutes(l.atraso);
+  return formatMinutes(l.trabalhado);
+}
+
 export default function MonthHeatmap({ mes, linhas, onDayClick, className }: Props) {
   // Índice rápido por dia do mês
   const byDay = React.useMemo(() => {
@@ -120,6 +159,8 @@ export default function MonthHeatmap({ mes, linhas, onDayClick, className }: Pro
     {} as Record<DayState, number>,
   );
 
+  const divergentes = linhas.filter((l) => l.divergencia).length;
+
   const mesLabel = firstDay.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
 
   return (
@@ -157,24 +198,34 @@ export default function MonthHeatmap({ mes, linhas, onDayClick, className }: Pro
             }
             const { linha, state } = cell;
             const cellClasses = cn(
-              'aspect-square flex flex-col items-center justify-center rounded-md text-xs font-mono transition-transform',
+              'relative aspect-square flex flex-col items-center justify-center rounded-md text-xs font-mono transition-transform',
               stateStyles[state],
               linha?.divergencia && 'ring-2 ring-amber-500 ring-offset-1 ring-offset-card',
               onDayClick && linha && 'cursor-pointer hover:scale-110',
             );
 
+            const StateIcon = stateIcons[state];
+            const valor =
+              linha && state !== 'vazio' && state !== 'weekend' ? valorDoDia(linha, state) : null;
+
             const content = (
               <>
+                {/* Divergência tem sinal PRÓPRIO, não só o anel âmbar: o anel some em
+                    greyscale e é indistinguível de "selecionado". Herda currentColor
+                    pra não introduzir cor nova em cima do fundo do estado. */}
+                {linha?.divergencia && (
+                  <AlertTriangle
+                    size={9}
+                    strokeWidth={3}
+                    aria-hidden
+                    className="absolute right-0.5 top-0.5"
+                  />
+                )}
                 <span className="text-[11px] leading-none font-semibold">{cell.dia}</span>
-                {linha && state !== 'vazio' && state !== 'weekend' && (
-                  <span className="text-[8px] leading-none opacity-80 mt-0.5 font-normal">
-                    {state === 'he_alta' || state === 'he_media'
-                      ? `+${formatMinutes(linha.he)}`
-                      : state === 'falta'
-                        ? `-${formatMinutes(linha.falta)}`
-                        : state === 'atraso'
-                          ? formatMinutes(linha.atraso)
-                          : formatMinutes(linha.trabalhado)}
+                {valor && (
+                  <span className="mt-0.5 inline-flex items-center gap-0.5 text-[8px] leading-none opacity-90 font-normal">
+                    {StateIcon && <StateIcon size={8} strokeWidth={3} aria-hidden />}
+                    {valor}
                   </span>
                 )}
               </>
@@ -196,7 +247,13 @@ export default function MonthHeatmap({ mes, linhas, onDayClick, className }: Pro
                     onClick={onDayClick ? () => onDayClick(linha) : undefined}
                     disabled={!onDayClick}
                     className={cellClasses}
-                    aria-label={`Dia ${cell.dia}: ${stateLabels[state]}`}
+                    aria-label={[
+                      `Dia ${cell.dia}: ${stateLabels[state]}`,
+                      valor,
+                      linha.divergencia ? 'divergência na apuração' : null,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
                   >
                     {content}
                   </button>
@@ -205,7 +262,9 @@ export default function MonthHeatmap({ mes, linhas, onDayClick, className }: Pro
                   <div className="font-semibold">
                     {String(linha.dia).padStart(2, '0')} · {linha.dow}
                     {linha.divergencia && (
-                      <span className="ml-1 text-amber-500">· divergência</span>
+                      <span className="ml-1 inline-flex items-center gap-0.5 text-amber-500">
+                        <AlertTriangle size={10} strokeWidth={3} aria-hidden /> divergência
+                      </span>
                     )}
                   </div>
                   <div className="mt-1 space-y-0.5 min-w-[180px]">
@@ -224,13 +283,24 @@ export default function MonthHeatmap({ mes, linhas, onDayClick, className }: Pro
         {/* Legenda + contadores */}
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 pt-2 border-t border-border text-[10px] text-muted-foreground">
           <div className="flex flex-wrap gap-x-2.5 gap-y-1">
-            {(['normal', 'he_media', 'he_alta', 'atraso', 'falta', 'weekend'] as DayState[]).map((s) => (
-              <span key={s} className="inline-flex items-center gap-1">
-                <span className={cn('h-2.5 w-2.5 rounded-sm', stateStyles[s])} />
-                {stateLabels[s]}
-                {counts[s] ? <span className="font-semibold tabular-nums">· {counts[s]}</span> : null}
-              </span>
-            ))}
+            {(['normal', 'he_media', 'he_alta', 'atraso', 'falta', 'weekend'] as DayState[]).map((s) => {
+              const LegendIcon = stateIcons[s];
+              return (
+                <span key={s} className="inline-flex items-center gap-1">
+                  <span className={cn('h-2.5 w-2.5 rounded-sm', stateStyles[s])} />
+                  {LegendIcon && <LegendIcon size={9} strokeWidth={3} aria-hidden className="shrink-0" />}
+                  {stateLabels[s]}
+                  {counts[s] ? <span className="font-semibold tabular-nums">· {counts[s]}</span> : null}
+                </span>
+              );
+            })}
+            {/* Divergência entra na legenda com o MESMO glifo da célula — sem esta
+                entrada o anel âmbar era um sinal sem chave de leitura. */}
+            <span className="inline-flex items-center gap-1">
+              <AlertTriangle size={9} strokeWidth={3} aria-hidden className="shrink-0" />
+              Divergência
+              {divergentes ? <span className="font-semibold tabular-nums">· {divergentes}</span> : null}
+            </span>
           </div>
         </div>
       </div>

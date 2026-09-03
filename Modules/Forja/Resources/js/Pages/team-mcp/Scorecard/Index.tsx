@@ -12,7 +12,7 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router } from '@inertiajs/react';
 import { useEffect, type ReactNode } from 'react';
-import { AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react';
+import { AlertCircle, AlertTriangle, CheckCircle2, RefreshCw } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { PageHeader } from '@/Components/PageHeader';
 import ForjaHub from '../Forja/_components/ForjaHub';
@@ -132,7 +132,7 @@ function ScorecardIndex({ facts, checks, meta }: Props) {
           )}
           {(!facts!.audit_log_present || !facts!.tokens_table_present) && (
             <p className="mt-2 text-[11px] text-warning-fg">
-              ⚠ {!facts!.audit_log_present && 'mcp_audit_log ausente. '}{!facts!.tokens_table_present && 'mcp_tokens ausente. '}Rodar migrations.
+              <AlertTriangle className="inline h-3 w-3 mr-1 -mt-0.5" />{!facts!.audit_log_present && 'mcp_audit_log ausente. '}{!facts!.tokens_table_present && 'mcp_tokens ausente. '}Rodar migrations.
             </p>
           )}
         </div>

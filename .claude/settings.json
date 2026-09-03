@@ -48,6 +48,10 @@
           },
           {
             "type": "command",
+            "command": "node .claude/hooks/ds-preview-materialize.mjs"
+          },
+          {
+            "type": "command",
             "command": "node scripts/governance/hook-bites.mjs --heartbeat --dias 14 --throttle-horas 20"
           }
         ]

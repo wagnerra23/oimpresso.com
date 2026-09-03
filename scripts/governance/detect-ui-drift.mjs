@@ -35,7 +35,9 @@
  *     pra sempre (o buraco da anistia-por-tela do reconcile).
  *   - `related_prototype` prova só ANCORAGEM/AUTORIZAÇÃO, nunca aplicação. O estado
  *     recebido→comparado→aplicado→testado→validado pertence exclusivamente ao ledger
- *     `scripts/design-sync/state/applications.json` e ao `status.mjs` (ADR 0384).
+ *     `scripts/design-sync/state/applications.json` e ao `status.mjs` — interface documentada em
+ *     `scripts/design-sync/state/README.md` (a ADR que a especifica ainda está `proposto`;
+ *     citação direta volta quando [W] ratificar — Check L do memory-health).
  *   - NÃO julga estética (cor/spacing/densidade). Isso é o `design-diff.mjs` (ADR 0299,
  *     medido) + o olho do Wagner no screenshot = juiz final. Esta máquina só sabe se a
  *     mudança foi AUTORIZADA, não se ficou bonita. São eixos ortogonais, de propósito.
@@ -64,6 +66,11 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+// Fonte unica de "onde mora uma tela" e "qual o namespace dela" (scripts/qa/page-path.mjs).
+// Antes daqui o runner tinha regex propria ancorada em resources/js/Pages e ficava CEGO
+// pras telas que moram no modulo dono (Modules/<X>/Resources/js/Pages) — 88 .tsx, 45 com
+// charter irmao, medido 2026-09-03. Gate cego nao acusa: saia "Nenhuma .tsx tocada. OK.".
+import { isUnderPagesRoot, pageNamespacePath } from '../qa/page-path.mjs';
 
 const ROOT = process.cwd();
 const IN_CI = !!process.env.GITHUB_ACTIONS;
@@ -146,9 +153,20 @@ function siblingCharter(tsxRel) {
   const charterRel = tsxRel.replace(/\.tsx$/, '.charter.md');
   return existsSync(join(ROOT, charterRel)) ? charterRel : null;
 }
+/**
+ * .tsx sob QUALQUER raiz de Pages — nucleo OU modulo dono.
+ *
+ * Extensao de RAIZ apenas: o predicado por arquivo continua identico ao de antes
+ * (`termina em .tsx`), preservando de proposito o `_components/` no denominador — o
+ * docblock do topo o classifica como NOTA advisory (sem charter irmao), nao como flag.
+ * Exportada porque o self-test precisa morder ESTA funcao, e nao uma reimplementacao.
+ */
+export const selecionarPagesTsx = (files) =>
+  files.filter((f) => f.endsWith('.tsx') && isUnderPagesRoot(f));
+
 /** tokens que identificam a tela numa linha de SYNC_LOG (evita "Index" solto). */
-function telaTokensFor(tsxRel) {
-  const rel = tsxRel.replace(/^resources\/js\/Pages\//, '').replace(/\.tsx$/, ''); // Sells/Index
+export function telaTokensFor(tsxRel) {
+  const rel = pageNamespacePath(tsxRel).replace(/\.tsx$/, ''); // Sells/Index — igual nas 2 raizes
   return [rel, 'Pages/' + rel, rel.replace(/\//g, '\\')];
 }
 
@@ -158,7 +176,7 @@ function run(argv) {
   const asJson = argv.includes('--json');
 
   const files = changedFiles(base);
-  const pagesTsx = files.filter((f) => /^resources\/js\/Pages\/.+\.tsx$/.test(f));
+  const pagesTsx = selecionarPagesTsx(files);
 
   const syncLogDiff = fileDiff(base, 'prototipo-ui/SYNC_LOG.md');
   const syncLogAdded = syncLogDiff.split(/\r?\n/).filter((l) => l.startsWith('+') && !l.startsWith('+++'));

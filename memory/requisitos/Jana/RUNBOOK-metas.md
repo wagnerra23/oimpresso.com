@@ -341,9 +341,29 @@ view Blade em `Modules/Jana/Resources/views/metas/` **e** `fontes/show.blade.php
 `staleList` do ledger vazio para `jana-merge.jsx` na rodada que precede o merge · smoke real em
 prod colado no PR do cutover (R1).
 
-**Fora desta DoD, por sinal e não por completude** ([ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)):
-`alertas/{index,config}`, `superadmin/metas` e `emails/weekly-digest` (e-mail é Blade por
-definição). São as outras 4 das 9.
+**Fora desta DoD** — mas ⛔ **NÃO "por falta de sinal", como esta linha dizia até 2026-08-28.**
+A redação anterior invocava a [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)
+para `alertas/{index,config}`, `superadmin/metas` e `emails/weekly-digest`. **Três das quatro já
+tinham desenho pronto quando isso foi escrito** — o [#6379](https://github.com/wagnerra23/oimpresso.com/pull/6379)
+trouxe `jana-telas-novas.jsx` no mesmo commit que trouxe o `jana-metas.jsx`, e eu li um e não o
+outro. Achado de [W] em 2026-08-28. Cobertura real das 9 Blade, medida nos cabeçalhos das fontes:
+
+| Blade | Fonte de design |
+|---|---|
+| `metas/{index,create,edit,show}` · `fontes/show` | `jana-metas.jsx` |
+| `alertas/{index,config}` | `jana-telas-novas.jsx` §`JmAlertas` |
+| `superadmin/metas` | `jana-telas-novas.jsx` §`JmPlataforma` |
+| `emails/weekly-digest` | — (e-mail é Blade **por definição**; único legitimamente fora) |
+
+⇒ **8 das 9 têm desenho.** O `jana-telas-novas.jsx` ainda desenha `/ia/acoes` (fila HITL), que
+**não tem Blade** — é tela nova, não migração. Ele também registra, do `main`: `alertas/index` é
+**stub** e `alertas/config` *"valida e DESCARTA"*; e modela **permissão como camada de tela**
+(papéis `funcionaria · dona · superadmin`), que é o eixo do §4.1 deste RUNBOOK.
+
+Elas seguem fora **deste** RUNBOOK por **escopo** — este documento é a F1 de *Metas*, e cada
+tela migrada pede a sua F1 (o hook `block-mwart-violation` cobra por nome de arquivo). O que muda
+é o motivo: **não é ausência de sinal, é divisão de trabalho** — e a ADR 0105 não se aplica a
+trabalho dirigido por [W] ([ADR 0382](../../decisions/0382-remove-trava-de-sinal-para-trabalho-dirigido-por-w.md)).
 
 ---
 

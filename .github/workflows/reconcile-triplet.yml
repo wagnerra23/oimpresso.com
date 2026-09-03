@@ -12,6 +12,7 @@ name: Reconcile triplet (advisory)
 
 on:
   pull_request:
+    types: [opened, reopened, ready_for_review]
     branches: [main]
     paths:
       - 'resources/js/Pages/**/*.tsx'
@@ -22,6 +23,10 @@ on:
       - 'scripts/governance/charter-blueprint-pointers.mjs'
       - '.github/workflows/reconcile-triplet.yml'
   workflow_dispatch:
+
+concurrency:
+  group: reconcile-triplet-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read

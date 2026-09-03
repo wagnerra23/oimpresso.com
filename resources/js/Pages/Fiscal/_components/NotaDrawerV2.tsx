@@ -12,6 +12,8 @@
 // ESC delegado pro DrawerBase via closeOnEsc=true; atalhos R/X/C ficam local.
 
 import { useEffect, useRef, useState } from 'react';
+import { btnProps, type BotaoKind } from '../_lib/botao-fiscal';
+import { Button } from '@/Components/ui/button';
 import { RefreshCw } from 'lucide-react';
 
 import { brl, formatDoc, prazoCancel, prazoCCe, type Urgency } from '../_lib/fiscal-helpers';
@@ -121,14 +123,14 @@ function SefazActionCard({ recipe, status }: { recipe: SefazActionRecipe; status
       {(recipe.primary || recipe.secondary) && (
         <div className="fx-action-btns">
           {recipe.primary && (
-            <button type="button" className={`fx-btn ${recipe.primary.kind}`} disabled title="Em breve">
+            <Button type="button" {...btnProps(recipe.primary.kind as BotaoKind)} disabled title="Em breve">
               {recipe.primary.label} <kbd>⏎</kbd>
-            </button>
+            </Button>
           )}
           {recipe.secondary && (
-            <button type="button" className="fx-btn ghost" disabled title="Em breve">
+            <Button type="button" {...btnProps('ghost')} disabled title="Em breve">
               {recipe.secondary.label}
-            </button>
+            </Button>
           )}
         </div>
       )}
@@ -252,21 +254,21 @@ export default function NotaDrawerV2({ nota, onClose, onQuickFilterCliente }: No
       }
       footer={
         <>
-          <button type="button" className="fx-btn ghost" disabled title="Em breve">
+          <Button type="button" {...btnProps('ghost')} disabled title="Em breve">
             Reconsultar <kbd>R</kbd>
-          </button>
+          </Button>
           <div className="fx-drawer-f-r">
-            <button type="button" className="fx-btn ghost" disabled title="Download XML">XML</button>
-            <button type="button" className="fx-btn ghost" disabled title="Download DANFE">DANFE</button>
+            <Button type="button" {...btnProps('ghost')} disabled title="Download XML">XML</Button>
+            <Button type="button" {...btnProps('ghost')} disabled title="Download DANFE">DANFE</Button>
             {nota.status === 100 && cancelW && (
-              <button type="button" className="fx-btn danger" disabled title="Em breve">
+              <Button type="button" {...btnProps('danger')} disabled title="Em breve">
                 Cancelar <kbd>X</kbd>
-              </button>
+              </Button>
             )}
             {rejected && (
-              <button type="button" className="fx-btn primary" disabled title="Em breve">
+              <Button type="button" {...btnProps('primary')} disabled title="Em breve">
                 Retransmitir <kbd>⏎</kbd>
-              </button>
+              </Button>
             )}
           </div>
         </>

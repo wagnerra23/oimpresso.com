@@ -46,7 +46,7 @@ Migrar 4 telas Blade legacy + 1 superadmin pra Inertia/React seguindo padrão Co
 - [`metas/create.blade.php`](../../../Modules/Jana/Resources/views/metas/create.blade.php) — 28 linhas, form vanilla
 - [`metas/show.blade.php`](../../../Modules/Jana/Resources/views/metas/show.blade.php) — não inspecionado em detalhe nesta fase, mas inclui `route('jana.fontes.show')` cross-link
 - [`metas/edit.blade.php`](../../../Modules/Jana/Resources/views/metas/edit.blade.php) — não inspecionado
-- [`superadmin/metas.blade.php`](../../../Modules/Jana/Resources/views/superadmin/metas.blade.php) — visão plataforma vs cliente, controller `SuperadminController@metas`
+- ~~`superadmin/metas.blade.php`~~ — **migrado em 2026-09-02** (#6609): virou [`Pages/Jana/Plataforma.tsx`](../../../resources/js/Pages/Jana/Plataforma.tsx), controller `SuperadminController@metas` → Inertia; a aba Plataforma da área
 
 ### Domain models
 

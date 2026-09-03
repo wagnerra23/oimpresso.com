@@ -8,6 +8,8 @@
 // (TODO[CL]) com lista filtrada pra revisão manual.
 
 import { Archive, AlertTriangle, TrendingDown } from 'lucide-react';
+import { btnProps } from '../_lib/botao-fiscal';
+import { Button } from '@/Components/ui/button';
 
 export interface WriteOffSummary {
   totalCandidates: number;
@@ -48,15 +50,15 @@ export default function WriteOffAuditoriaCard({ summary, onReview }: WriteOffAud
             mais antigo {summary.oldestAge}d · {CATEGORY_LABEL[summary.category]}
           </small>
         </div>
-        <button
+        <Button
           type="button"
-          className="fx-btn ghost"
+          {...btnProps('ghost')}
           onClick={onReview}
           disabled={!onReview}
           title={onReview ? 'Abrir lista pra revisar candidatos' : 'Em breve'}
         >
           <TrendingDown size={12} /> Revisar
-        </button>
+        </Button>
       </div>
       <ul className="fx-writeoff-bullets">
         <li>

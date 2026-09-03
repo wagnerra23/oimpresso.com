@@ -52,6 +52,12 @@ interface Relatorio {
   icone: IconKey;
   cor: CorKey;
   disponivel: boolean;
+  /**
+   * O relatório sai POR COLABORADOR (não em lote)? Quem decide é o backend — o
+   * front não hardcoda a chave, senão a regra passa a viver em 2 lugares e drifa
+   * no primeiro relatório novo. Ausente = false (compatível com payload antigo).
+   */
+  requer_colaborador?: boolean;
   /** Categoria opcional vinda do backend; default agrupa em "Geral". */
   categoria?: string;
 }
@@ -181,6 +187,20 @@ export default function RelatoriosIndex({ relatorios, colaboradores }: Props) {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
               {itens.map((r) => {
                 const Icon = iconMap[r.icone];
+
+                // O espelho de ponto é peça de fiscalização e sai POR PESSOA — não
+                // existe "espelho de todos". Enquanto o operador não escolher um
+                // colaborador, o botão fica travado: entregar o documento de outra
+                // pessoa numa auditoria é pior que não entregar.
+                const semColaboradores = listaColaboradores.length === 0;
+                const precisaEscolher = r.requer_colaborador === true && colaborador === 'todos';
+                const podeGerar = r.disponivel && !precisaEscolher;
+                const rotuloTravado = !r.disponivel
+                  ? 'Em desenvolvimento'
+                  : semColaboradores
+                    ? 'Nenhum colaborador com ponto'
+                    : 'Escolha um colaborador';
+
                 return (
                   <Card key={r.chave} className="flex flex-col">
                     <CardHeader>
@@ -200,20 +220,25 @@ export default function RelatoriosIndex({ relatorios, colaboradores }: Props) {
 
                     <CardContent className="flex-1" />
 
-                    <CardFooter>
+                    <CardFooter className="flex-col items-stretch gap-2">
                       <Button
                         size="sm"
-                        variant={r.disponivel ? 'default' : 'outline'}
-                        disabled={!r.disponivel}
-                        asChild={r.disponivel}
+                        variant={podeGerar ? 'default' : 'outline'}
+                        disabled={!podeGerar}
+                        asChild={podeGerar}
                         className="w-full"
                       >
-                        {r.disponivel ? (
+                        {podeGerar ? (
                           <a href={hrefGerar(r.chave)}>Gerar</a>
                         ) : (
-                          <span>Em desenvolvimento</span>
+                          <span>{rotuloTravado}</span>
                         )}
                       </Button>
+                      {precisaEscolher && !semColaboradores && (
+                        <p className="text-xs text-muted-foreground">
+                          Sai por colaborador — escolha um no filtro acima.
+                        </p>
+                      )}
                     </CardFooter>
                   </Card>
                 );

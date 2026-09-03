@@ -187,6 +187,6 @@ Sem PII de cliente nessas telas (tasks + notificações de governança interna).
 - [ADR 0114 — aprovação por SCREENSHOT (Cowork loop)](../../decisions/0114-prototipo-ui-cowork-loop-formalizado.md)
 - [ADR UI-0013 — Constituição UI v2](../_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md)
 - [PT-01 Lista](../_DesignSystem/padroes-tela/PT-01-Lista.md)
-- Charters: [`Triage/Index.charter.md`](../../../Modules/Forja/Resources/js/Pages/Forja/Triage/Index.charter.md) · [`Inbox/Index.charter.md`](../../../Modules/Forja/Resources/js/Pages/Forja/Inbox/Index.charter.md)
+- Charters: `Modules/Forja/Resources/js/Pages/Forja/Triage/Index.charter.md` · `Modules/Forja/Resources/js/Pages/Forja/Inbox/Index.charter.md` — **como TEXTO, não link: os dois foram revogados com as telas na Onda 11 (2026-09-02, ADR 0367 D1/D6).** Este documento é um retrato datado do que existia; o path fica pra quem for procurar no histórico do git.
 - Padrão fonte: `Board/Index.tsx` (J/K + ⌘K via AppShellV2 PMG-002) + `MyWork/Index.tsx` (J/K + R)
 - PR #1940 — code-complete; segue DRAFT aguardando gate visual Wagner

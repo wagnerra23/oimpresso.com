@@ -236,9 +236,9 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
   if (!d) return null;
 
   return (
-    <div className="fixed inset-0 z-30 flex justify-end" onClick={onClose} role="dialog" aria-modal="true" aria-label={`Gateway ${gateway.nome}`}>
-      <div className="absolute inset-0 bg-stone-900/30" />
-      <div ref={drawerRef} className="relative w-[640px] bg-white h-full shadow-xl border-l border-stone-200 flex flex-col" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 z-30 flex justify-end">
+      <button type="button" tabIndex={-1} aria-hidden="true" onClick={onClose} className="absolute inset-0 bg-stone-900/30" />
+      <div ref={drawerRef} role="dialog" aria-modal="true" aria-label={`Gateway ${gateway.nome}`} className="relative w-[640px] bg-white h-full shadow-xl border-l border-stone-200 flex flex-col">
 
         <div className="px-5 py-3 border-b border-stone-200 flex items-center gap-3">
           <span className={cn('w-9 h-9 rounded-md grid place-items-center text-white text-[12px] font-bold shrink-0', d.dot)}>{d.sigla}</span>

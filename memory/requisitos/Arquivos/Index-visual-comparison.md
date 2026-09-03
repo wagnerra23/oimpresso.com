@@ -242,18 +242,70 @@ cherry-pick incremental de classes.
 
 Nao decido isto: token/componente novo do DS e soberania [W].
 
+## Emenda de 2026-09-01 · **D6 MEDIDA** — e o bloqueio do 403 era FALSO
+
+> Teste prático de ponta a ponta do processo design→produção ([W] escolheu esta tela em
+> 2026-09-01). O primeiro achado não foi da tela: foi **deste documento**.
+
+**O "403 bloqueia D6" nunca valeu para quem lê a tela.** As três rodadas anteriores (PR-2, PR-4 e
+a emenda de 25/08) declararam *"D6 continua NÃO medida pelo mesmo bloqueio de sempre: `arquivos.access`
+nasce `false`, a produção devolve 403, e não há render pra injetar a sonda"*. O `default => false`
+é verdade (`DataController:46`) e o `can:arquivos.access` na rota também (`Routes/web.php:37`) — mas
+o `Gate::before` de [`AuthServiceProvider:34`](../../../app/Providers/AuthServiceProvider.php)
+**libera qualquer ability não-superadmin para quem tem `Admin#{business_id}`**. O próprio repo diz
+isso em três sites independentes (`SalesCommissionAgentController:25-26`, `EnsureSupportAccess:18-20`,
+`SupportAuditService:17-19`). Medido em 2026-09-01: `https://oimpresso.com/arquivos` **renderizou**,
+sem 403, com as 4 seções `data-contract`. O [#6345](https://github.com/wagnerra23/oimpresso.com/pull/6345)
+já tinha medido "produção **logada** × protótipo vivo" em 27/08 — o recibo existia e este documento
+seguiu afirmando o contrário.
+
+Lição de classe conhecida (§5 2026-07-17 · LC-08): **a permissão foi lida no lugar certo, mas o
+oráculo era o runtime** — e um doc canon que afirma bloqueio inexistente não é inércia, é instrução
+ativa pra próxima sessão desistir.
+
+**Como foi medido** (protocolo D1–D8, sem eyeball): tema `dark` nos dois lados · sonda canônica
+`design-diff.mjs --probe` · protótipo servido do espelho (`--preview-ds` exit 0, 10 deps repostas)
+· equivalência das duas cópias da sonda provada por controle A×B no mesmo DOM (`SONDAS EQUIVALENTES`,
+5 952 bytes idênticos) · guarda de URL na medição (a primeira tentativa foi descartada porque a aba
+navegou para `/ia` no meio — a D0 pegou).
+
+**Veredito do comparador** (`--compare prod.json design.json --check` → `exit 1`, 5 `DIVERGE(bug)`).
+A triagem separa defeito de escopo, porque a máquina não conhece o charter — detalhe por item em
+[`arquivos-index-gap.md`](arquivos-index-gap.md):
+
+| Item medido | Classificação |
+|---|---|
+| col2 e col5: pílula **sem `dot`** | **Defeito real, e não é desta tela.** AP7 ([PRE-MERGE-UI](../_DesignSystem/PRE-MERGE-UI.md):69) exige *"dot + texto colorido"*; `Badge`/`StatusBadge` do repo não implementam dot (0 ocorrências). Raio medido: **66 telas**. **Nenhum gate mede AP7** — o único script que o cita (`prototipo-ui/audit/backlog.mjs`) não é invocado por workflow nenhum. Decisão [W]. |
+| col2: sub-linha sem `mono` | Divergência de forma, local. Decisão. |
+| col0 sem `mono` | **NÃO é defeito** — é o refino A6 aplicado de propósito (`<code>` slug → `CONTEXTO_PT`). Prod à frente; o protótipo é que está atrás. |
+| col6 herda cor / 0 blocos | **NÃO é defeito** — leitura pura da onda 1; ações são onda 2+. |
+| `colunasDeclaradas` 7 × 0 | **Prod à frente** (declara `<colgroup>`; o protótipo não). |
+
+**O pedido do Cowork já estava 13/13 aplicado**, verificado item a item no arquivo vivo: os 10 refinos
+de `ARQUIVOS-REFINOS-PRODUCAO-2026-08-26.md` (A1 e A8 no primitivo — `DataTable` com as longhands
+`cw-input-icon-*`, `Badge` nos pares SOFT) e os 3 achados de `ARQUIVOS-PARIDADE-3-ACHADOS-2026-08-26.md`,
+entregues por [#6325](https://github.com/wagnerra23/oimpresso.com/pull/6325) ·
+[#6339](https://github.com/wagnerra23/oimpresso.com/pull/6339) ·
+[#6345](https://github.com/wagnerra23/oimpresso.com/pull/6345) ·
+[#6350](https://github.com/wagnerra23/oimpresso.com/pull/6350). O que **não** havia fechado era o
+**recibo**: a tela estava `ANCHORED` no lifecycle da [ADR 0384](../../decisions/0384-design-sync-recibos-executaveis-por-tela.md)
+com o trabalho em produção há 5 dias. Agora está `APPLIED` (mapa + evidência versionados).
+
+⚠️ **`tested` NÃO foi marcado, e o motivo é medição, não escolha:** o CT 100 — único lugar onde Pest
+pode rodar (Tier 0) — está **offline há 4 dias** (`tailscale status`: *"offline, last seen 4d ago"*;
+`rc=255` em duas tentativas). A catraca confirma e se recusa a mentir: `--check-lifecycle --minimum
+applied` → `exit 0`; `--minimum tested` → `exit 1`.
+
 ## O que falta pra fechar
 
 | Dimensao | Estado | Bloqueio |
 |---|---|---|
-| D1 rede / partial-reload | nao medida | precisa render de producao |
+| D1 rede / partial-reload | nao medida | — (o render existe; falta medir) |
 | D3 icones | nao medida | idem |
 | D5 footer / somatorios | parcial — o rodape existe nos dois, texto diferente | — |
-| D6 CSS computado | **nao medida** | 403 sem `arquivos.access` |
-| D8 contraste par-a-par | nao medida | idem |
-
-Sequencia pra destravar: marcar `arquivos.access` numa funcao -> `design-diff.mjs --probe` ->
-injetar a MESMA sonda nos dois lados -> `--compare prod.json design.json --check`.
+| D6 CSS computado | ✅ **MEDIDA em 2026-09-01** | — (o "403" era falso: `Gate::before`) |
+| D8 alinhamento / contraste | ✅ medida junto (D8 kpi align IGUAL; col1/col6 `A`×`BUTTON` = impl) | — |
+| SHELL (sidebar) | nao medida | falta declarar `window.__SB_ROLES` nos dois lados (`--shell-roles`) |
 
 ## Refs
 

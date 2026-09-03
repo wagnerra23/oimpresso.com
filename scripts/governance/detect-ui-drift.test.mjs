@@ -9,12 +9,16 @@
 //   (f) related_prototype n/a → n/a                     → FLAG          (semântico: n/a→n/a não é aplicar)
 //   (g) linha VELHA de desvio (fora do diff)            → FLAG          (freshness: charterDiff vazio não limpa)
 //   (h) SYNC_LOG cita OUTRA tela                        → FLAG          (não casa token)
+//   (i) .tsx do NUCLEO entra na selecao                → selecionado  (nao-regressao)
+//   (j) .tsx do MODULO DONO entra na selecao           → selecionado  (a cegueira que isto mata)
+//   (k) .tsx fora de raiz de Pages / nao-.tsx          → ignorado     (controle negativo)
+//   (l) tokens da tela = NAMESPACE nas 2 raizes        → casa SYNC_LOG (ponta a ponta)
 //
 // Puro: exercita classifyTela() com fixtures em memória (sem git, sem fs). Contrato ancorado
 // em RESPEITAR-PROTOTIPO.md + proibicoes §5 (L-24 presença≠correção), NÃO na implementação.
 // Rodar: node scripts/governance/detect-ui-drift.test.mjs — exit 0 = passa.
 
-import { classifyTela, isNoneReason, isRealPrototype } from './detect-ui-drift.mjs';
+import { classifyTela, isNoneReason, isRealPrototype, selecionarPagesTsx, telaTokensFor } from './detect-ui-drift.mjs';
 
 let fails = 0;
 const check = (name, cond, extra = '') => {
@@ -80,6 +84,44 @@ check('(h) SYNC_LOG cita Compras/Index (outra tela) → FLAG',
     syncLogAdded: ['+2026-07-12 10:00 [W2] merged PR #998 Compras/Index'],
     telaTokens: TOK,
   }).estado === 'FLAG');
+
+// ── RAIZ: a tela mora no nucleo OU no modulo dono. O runner selecionava so a primeira,
+//    entao um PR que so tocasse Modules/ saia "Nenhuma .tsx de tela tocada. OK." — verde
+//    sem ter medido nada (proibicoes §5 · LC-11 presence/cegueira). Estes casos mordem a
+//    funcao REAL do runner (selecionarPagesTsx / telaTokensFor), nunca uma copia local.
+const NUCLEO = 'resources/js/Pages/Sells/Index.tsx';
+const MODULO = 'Modules/Forja/Resources/js/Pages/Forja/Trabalho/Index.tsx';
+
+// (i) nao-regressao: o nucleo continua entrando
+check('(i) .tsx do nucleo entra na selecao',
+  selecionarPagesTsx([NUCLEO]).length === 1);
+
+// (j) BITE: o modulo dono passa a entrar — este e o caso que ficava invisivel
+check('(j) .tsx do modulo dono entra na selecao (a cegueira)',
+  selecionarPagesTsx([MODULO]).length === 1,
+  JSON.stringify(selecionarPagesTsx([MODULO])));
+
+// (k) controle negativo: fora de raiz de Pages, ou nao-.tsx, fica de fora
+check('(k) fora de raiz de Pages / nao-.tsx → ignorado',
+  selecionarPagesTsx([
+    'resources/js/Components/ui/Button.tsx',
+    'Modules/Forja/Http/Controllers/X.php',
+    'Modules/Forja/Resources/js/Pages/Forja/Trabalho/Index.charter.md',
+  ]).length === 0);
+
+// (l) ponta a ponta: o token da tela e o NAMESPACE nas duas raizes, entao o SYNC_LOG
+//     que cita "Forja/Trabalho/Index" limpa a tela do modulo. Antes, o token era o
+//     caminho inteiro (Modules/Forja/Resources/...) e NUNCA casava — flag eterna.
+const tokModulo = telaTokensFor(MODULO);
+check('(l) token do modulo = namespace (nao o caminho inteiro)',
+  tokModulo[0] === 'Forja/Trabalho/Index' && !tokModulo.some((t) => t.includes('Modules/')),
+  JSON.stringify(tokModulo));
+check('(l) SYNC_LOG citando o namespace limpa a tela do modulo → CLEARED',
+  classifyTela({
+    charterDiff: '',
+    syncLogAdded: ['+2026-09-03 10:00 [C] merged PR #1 Forja/Trabalho/Index (paridade §11)'],
+    telaTokens: tokModulo,
+  }).estado === 'CLEARED');
 
 // helpers semânticos (contrato de baixo nível)
 check('isNoneReason("none") = true', isNoneReason('none') === true);

@@ -5,12 +5,12 @@ component: Modules/Forja/Resources/js/Pages/Forja/Trabalho/Index.tsx
 related_prototype: prototipo-ui/cowork/forja-page.jsx
 owner: wagner
 status: draft
-last_validated: "2026-08-10"
+last_validated: "2026-09-02"
 parent_module: Forja
 related_us: [US-FORJA-006]
-related_adrs: [70, 93, 253]
+related_adrs: [70, 93, 253, 388]
 tier: B
-charter_version: 4
+charter_version: 5
 ---
 
 # Page Charter — /forja/trabalho
@@ -171,3 +171,61 @@ revogado, em minúsculas. Nunca heurística de nome.
   Pest local é proibido — [ADR 0062](../../../../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)).
 - **Sem smoke visual ainda** — obrigatório antes de declarar pronto (R1).
 - **A decisão da US-FORJA-006 continua aberta.** Esta tela é a candidata; qual das outras sai é [W].
+
+---
+
+## PARIDADE §11 Onda 4 (2026-09-02) — a tela é a RÉPLICA do protótipo
+
+Decisão [W] de 2026-09-02, textual: *"pode fazer igual ao protótipo e revogar todo o resto (…) Eu apenas quero que trace uma meta de conseguir fazer o mesmo layout."* A lei é a [ADR 0388](../../../../../../../memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md) — **réplica primeiro**: onde existe âncora (`related_prototype`, resolvida por `ancora.mjs`), a aparência a entregar é a do protótipo, e a conformidade do DS vira item em [`INCONSISTENCIAS-replica.md`](../../../../../../../memory/requisitos/Forja/INCONSISTENCIAS-replica.md).
+
+**O que a sonda mediu antes** ([forja-cockpit-visual-comparison.md §2026-09-02](../../../../../../../memory/requisitos/TeamMcp/forja-cockpit-visual-comparison.md)) e o que esta onda fecha:
+
+| dimensão | prod (antes) × protótipo | o que mudou |
+|---|---|---|
+| D2 filtros | **1** linha × **3** | as três barras do protótipo: `fj-frentebar` · `fj-toolbar` · `fj-filterbar2` |
+| D2 linha | **3** colunas × **13** | a `fj-row` densa, com os slots que têm dado real |
+| D4 KPI valor | **22px** × **17px** | `tf-kpi-v` do bundle, no lugar do `KpiCard` canon |
+| D8 KPI | `DIV` × `BUTTON` | o KPI **volta a filtrar** — clicar recorta a lista |
+| D6 primary | **0,55** × **0,70** | herdado do `[data-theme="dark"] .fj-page` (bloco da Onda 2.1) |
+
+### Diferenças declaradas — o que do protótipo NÃO veio, e por quê
+
+> Nenhuma é "não deu tempo". As quatro exigem **comportamento** novo, e a ADR 0388 D-5 diz com todas
+> as letras que réplica **não** é licença pra *"tocar comportamento (rota, permissão, dado, cálculo)"*.
+> Cada uma está na lista de inconsistências com `origem = prototipo`.
+
+| do protótipo | por que ficou de fora |
+|---|---|
+| checkbox por linha + `.fj-bulkbar` (fase/papel/prio/onda/status em massa) | é **mutação em massa** e não existe endpoint; escrever fora do `TaskCrudService` (que valida o FSM) é o segundo caminho de escrita que a Mesa evitou de propósito. Renderizar a caixa sem poder agir seria afordância falsa (LC-15) |
+| botões `Papéis` e `Perguntar ✦` | abrem painéis (runbook de papéis e IA) que **não existem** nesta tela |
+| chip `carry ×N` e pílula de `frescor` | campos que `mcp_tasks` não tem. Os dois são **condicionais** no protótipo, então a falta do dado já os apaga lá — inventar valor seria dado fantasma |
+| hint `j` `k` `↵` `?` no rodapé | anunciaria atalho de teclado que esta tela não escuta |
+| DSL de busca (`is:p0 @CL ~FA-1 tipo:bug`) | o backend busca por título, id, dono e módulo; o placeholder diz o que ele **de fato** faz |
+| `fj-onda-meta` no cabeçalho do grupo (estado · janela · carga · **encerrar onda** · **✦ resumir**) | exige o catálogo `window.FORJA.ONDAS` (onda como entidade, com estado, janela e dependências) — em produção `forja_onda` é um `custom_field` de texto, sem entidade atrás. E os dois botões são **ação**: `encerrar onda` é mutação em cascata, `resumir` chama IA |
+| `3 não-verificados` na barra de totais | mesmo campo `frescor` da penúltima linha |
+| chevron de sub-issues + `EpicRoll` (barras por fase, `n/N` em F4) | **a hierarquia não existe aqui.** No protótipo o pai é um issue da MESMA lista (`kidsOf[issue.id]`); em `mcp_tasks`, `epic_id` é FK pra **`McpEpic`** — outra entidade, que não é linha desta lista. Chegou a ser implementado indexando por `epic_id` e teria ficado **mudo pra sempre**; removido antes do merge (LC-08 — derivar do nome do campo em vez de abrir a relação). O slot vira o recuo fixo, que é o que o protótipo mostra em linha sem filhas |
+
+### Reconciliações — dois pontos deste charter que a réplica toca
+
+**1. O Non-Goal do pin continua valendo, e a réplica não o fere.** Ele diz *"rank híbrido com pin
+**persistido**… depende de user-pref gravada"*. O que entrou é `localStorage` **do próprio viewer** —
+que é exatamente o que o protótipo faz (`forja-page.jsx` linhas 787-830: `fav`, `pin`, `views`,
+`denso` e `collapsed` são todos `localStorage`). **Nada** vira coluna em `mcp_tasks` nem user-pref no
+banco; o backend não sabe que o pin existe. Se um dia a fixação precisar valer entre máquinas, aí sim
+é o PR próprio que o Non-Goal previu.
+
+**2. O anti-hook do `aria-pressed` no Gantt continua valendo, e a réplica o cumpre por outro
+caminho.** O protótipo põe Lista·Quadro·Gantt num segmentado só (`window.CliSeg` → `Segmented` do DS),
+e a réplica faz o mesmo. O que o anti-hook proíbe é **dizer ao leitor de tela que a pessoa continua
+onde estava**: aqui o valor do segmentado nunca é `gantt` — escolher Gantt **navega na hora** para
+`/forja/roadmap-gantt`, então o item nunca fica no estado ativo. A honestidade sobre a troca de tela
+segue explícita (seta `↗` + `title`), como o anti-hook pede.
+
+### Onde a réplica encosta no shell, e o desvio declarado
+
+`.fj-page` no protótipo **é a página** (shell próprio, `height:100%; overflow:hidden`, scroll
+interno). Em produção quem rola é o `.cockpit .main-body` — um filho com `overflow:hidden` ali
+**corta** a lista na primeira dobra. O bundle ganhou uma regra escopada
+(`.cockpit .fj-page{ height:auto; overflow:visible }`) que devolve o scroll ao shell e não toca mais
+nada: os tokens `--dev*` e o `--accent` dark 0,70 seguem valendo, que é o motivo de a tela usar esse
+root. Mesmo precedente do `.fj-hub .os-page-h` da Onda 2 — **o shell se adapta, a aparência não.**

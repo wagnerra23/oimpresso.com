@@ -47,7 +47,9 @@ export default function JanaSubNav({ active, extraOverflowItems, hidePrimary }: 
       ghosts={janaItem.ghosts}
       activeGhostKey={active}
       group="ia"
-      maxVisible={5}
+      // 6 desde 2026-09-02: a área tem 6 abas com Plataforma (só superadmin), e a âncora
+      // (`jana-merge.jsx` §JmTabs) mostra todas inline — nada cai no "⋯ Mais".
+      maxVisible={6}
       extraOverflowItems={extraOverflowItems}
     />
   );

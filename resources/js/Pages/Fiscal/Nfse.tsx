@@ -9,12 +9,16 @@
 //
 // Origem: design Cowork fiscal-page.jsx §10 FiscalNFSePage. NFS-e nacional NT 2024-001.
 
+import { Inline } from '@/Components/layout';
+import { Button } from '@/Components/ui/button';
+import { Input } from '@/Components/ui/input';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, router } from '@inertiajs/react';
 import { FileSearch, FileText } from 'lucide-react';
 import { useState } from 'react';
 
 import FxShell from './_components/FxShell';
+import { chipCount, chipProps } from './_lib/chip-filtro';
 import { brl, formatDoc } from './_lib/fiscal-helpers';
 
 import '../../../css/fiscal-cockpit.css';
@@ -100,44 +104,75 @@ export default function Nfse({ filters: initialFilters, counts, rows }: NfseProp
           { keys: ['2'], label: 'NF-e' },
         ]}
         actions={
-          <input
+          <Input
             type="month"
-            className="fx-search"
+            className="w-auto"
             value={filters.mes}
             onChange={(e) => apply({ mes: e.target.value })}
-            style={{ padding: '4px 8px', border: '1px solid var(--fx-border)', borderRadius: 7 }}
             aria-label="Filtrar competência"
           />
         }
       >
         {/* Filtros */}
-        <div className="fx-filters" data-contract="fiscal-nfse-filters">
-          <div className="fx-search">
-            <FileSearch size={13} />
-            <input
+        <Inline gap={2} align="center" wrap className="mb-3" data-contract="fiscal-nfse-filters">
+          {/* Espaço da lupa pela utilitária canon `.cw-input-icon-left`, NÃO `pl-*`:
+              a Tailwind é layered e perde pro `.cw-input` unlayered (cowork-fields.css). */}
+          <div className="relative min-w-[240px] flex-1">
+            <FileSearch
+              size={13}
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            />
+            <Input
               type="search"
+              className="cw-input-icon-left"
               placeholder="Buscar nº NFS-e, código verificação, ou documento tomador…"
+              aria-label="Buscar NFS-e por número, código de verificação ou documento do tomador"
               value={filters.search}
               onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
               onKeyDown={(e) => e.key === 'Enter' && apply({ search: filters.search })}
             />
           </div>
-          <button type="button" className={`fx-chip${filters.status === 'todas' ? ' active' : ''}`} onClick={() => apply({ status: 'todas' })}>
-            Todas <span>{counts.total}</span>
-          </button>
-          <button type="button" className={`fx-chip${filters.status === 'autorizadas' ? ' active' : ''}`} onClick={() => apply({ status: 'autorizadas' })}>
-            Autorizadas <span>{counts.autorizadas}</span>
-          </button>
-          <button type="button" className={`fx-chip danger${filters.status === 'rejeitadas' ? ' active' : ''}`} onClick={() => apply({ status: 'rejeitadas' })}>
-            Rejeitadas <span>{counts.rejeitadas}</span>
-          </button>
-          <button type="button" className={`fx-chip warn${filters.status === 'processando' ? ' active' : ''}`} onClick={() => apply({ status: 'processando' })}>
-            Processando <span>{counts.processando}</span>
-          </button>
-          <button type="button" className={`fx-chip${filters.status === 'canceladas' ? ' active' : ''}`} onClick={() => apply({ status: 'canceladas' })}>
-            Canceladas <span>{counts.canceladas}</span>
-          </button>
-        </div>
+          <Button
+            type="button"
+            {...chipProps(filters.status === 'todas')}
+            aria-pressed={filters.status === 'todas'}
+            onClick={() => apply({ status: 'todas' })}
+          >
+            Todas <span className={chipCount(filters.status === 'todas')}>{counts.total}</span>
+          </Button>
+          <Button
+            type="button"
+            {...chipProps(filters.status === 'autorizadas')}
+            aria-pressed={filters.status === 'autorizadas'}
+            onClick={() => apply({ status: 'autorizadas' })}
+          >
+            Autorizadas <span className={chipCount(filters.status === 'autorizadas')}>{counts.autorizadas}</span>
+          </Button>
+          <Button
+            type="button"
+            {...chipProps(filters.status === 'rejeitadas', 'danger')}
+            aria-pressed={filters.status === 'rejeitadas'}
+            onClick={() => apply({ status: 'rejeitadas' })}
+          >
+            Rejeitadas <span className={chipCount(filters.status === 'rejeitadas')}>{counts.rejeitadas}</span>
+          </Button>
+          <Button
+            type="button"
+            {...chipProps(filters.status === 'processando', 'warn')}
+            aria-pressed={filters.status === 'processando'}
+            onClick={() => apply({ status: 'processando' })}
+          >
+            Processando <span className={chipCount(filters.status === 'processando')}>{counts.processando}</span>
+          </Button>
+          <Button
+            type="button"
+            {...chipProps(filters.status === 'canceladas')}
+            aria-pressed={filters.status === 'canceladas'}
+            onClick={() => apply({ status: 'canceladas' })}
+          >
+            Canceladas <span className={chipCount(filters.status === 'canceladas')}>{counts.canceladas}</span>
+          </Button>
+        </Inline>
 
         {/* Tabela deferred */}
         <Deferred data="rows" fallback={

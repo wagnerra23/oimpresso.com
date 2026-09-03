@@ -122,3 +122,44 @@ passa — como tem de ser._
   na **CTA primária**, que era o alvo natural do Tab e não o tinha (2026-08-18). Segue ⬜ como *contrato
   verificado*: nenhum teste mede o anel, e medir classe CSS não é medir foco renderizado. Card de prova
   legível a ~1m: ⬜.
+
+---
+
+## UC-JPERM-08 — `/ia/pro` e o preview admin são DUAS telas, não uma
+Status: 🧪 (`Modules/Jana/Tests/Feature/ProPreviewPermissaoTest.php` — 4 `it()`. Aguarda run verde
+na lane `jana-pest.yml`, onde o alvo entrou no MESMO PR: registrar o teste no repo não é a lane
+executá-lo, e aquela lane roda allowlist.)
+
+Derivado do `routes.php` (linhas 120 e 240) + ADR 0140 e da emenda de casos do Cowork — **não** do
+`.tsx` (§5 2026-06-05).
+
+São duas telas com públicos opostos:
+
+| tela | rota | quem entra | `business_id` |
+|---|---|---|---|
+| comercial do cliente | `/ia/pro` | qualquer um com `jana.access` | **da sessão** — UC-PRO-05 prova que input é ignorado |
+| preview admin | `/ia/admin/jana-pro/preview` | superadmin de plataforma | **aceito por query**, de propósito (roda o BriefDiarioService de outro tenant) |
+
+Fundir as duas — ou reescrever "a tela Pro" sem separá-las — expõe o preview. Este UC não duplica
+o UC-PRO-05: lá o eixo é *a tela do cliente ignora o input*; aqui é *o preview aceita o input, mas
+só de quem é superadmin de verdade*.
+
+⚠️ **Onde está a defesa real — e o comentário do controller afirma o contrário.** A rota declara
+`->middleware('can:jana.superadmin')`, e o docblock do `JanaProController::preview` diz *"Middleware
+can:jana.superadmin já garante mas defense-in-depth não custa"*. **Medido em 2026-08-28: é o
+inverso.** O `Gate::before` (`AuthServiceProvider:34-47`) devolve `true` em qualquer ability fora de
+`['backup','superadmin','manage_modules']` pra quem tem `Admin#{business_id}`, e `jana.superadmin`
+não está nessa allowlist — o middleware **não** barra o dono do negócio. Quem barra é o `user_type`
+em `JanaProController:48`, justamente a "defense-in-depth que não custa". É o mesmo buraco que
+vazou no `SuperadminController` ([#6421](https://github.com/wagnerra23/oimpresso.com/pull/6421)),
+aqui tapado por acidente feliz.
+
+O 1º caso do teste **pina essa verdade**: assere que o dono PASSA no `can()` e NÃO tem a permissão
+real. Se um dia o middleware passar a barrar sozinho, o caso quebra e alguém relê este bloco.
+
+**Pronto quando:** dono do negócio → `/ia/pro` não-403 e `preview?business_id=<alheio>` **403 com
+`error: tenant_violation`** (o 403 do controller, não um genérico — é o que prova qual trava mordeu);
+superadmin → preview alheio não-403 **e a sessão continua no business dele**.
+
+**Anti-vácuo:** os casos positivos asserem `not 403` **e** `< 500` — sem a segunda perna, uma rota
+quebrada satisfaria os dois lados do par.

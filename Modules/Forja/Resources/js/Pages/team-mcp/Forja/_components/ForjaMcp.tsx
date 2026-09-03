@@ -1,257 +1,186 @@
-// Forja — aba MCP do cockpit.
+// Forja — aba MCP do cockpit. Réplica da view `mcp` do protótipo (PARIDADE §11 Onda 8).
 //
-// UMA CAMADA SÓ, desde 2026-08-08: CONTRATO / TOKENS / AUDITORIA, **MOCKADO por
-// design** — vitrine do contrato; o enforce real é do servidor TeamMcp ([CL]).
-// Default = read + propose; merge e constituicao.edit NEGADOS no contrato, não
-// por convenção.
+// @memcofre
+//   tela: /forja/mcp
+//   module: Forja
+//   adrs: 0388 (réplica primeiro) · 0283 (loop de handoff) · 0081 (token raw nunca exposto) · UI-0013
+//   fonte visual: prototipo-ui/cowork/forja-mcp.jsx `function ForjaMCPView`
+//   paridade: memory/requisitos/TeamMcp/forja-cockpit-visual-comparison.md
 //
-// Os HANDOFFS saíram daqui e viraram tela própria em `/forja/handoffs`
-// ({@link ./ForjaHandoffs.tsx}). O motivo é de natureza, não de tamanho: handoff
-// é DADO VIVO (o loop de design rodando agora, com `stale` e conflito de gate),
-// e este arquivo é vitrine estática. Operação diária enterrada dentro de uma
-// vitrine é operação que ninguém olha — e o arquivo tinha 694 linhas misturando
-// as duas coisas.
+// ORDEM DO PROTÓTIPO, que é o contrato de layout desta onda:
+//   intro (selo "mockado") → HANDOFFS F1→F3 → grid [contrato | tokens] → auditoria
 //
-// DS v6: só tokens semânticos (primary/success/warning/info/destructive/muted/
-// foreground/border), tabular-nums em números/horários, layout via inline-flex/
-// inline-grid (nunca flex/grid solto), máx rounded-lg, data-testid locators.
+// Os HANDOFFS voltaram pra cá (eram tela própria desde 2026-08-08). O componente é o
+// MESMO que /forja/handoffs renderiza ({@link ./ForjaHandoffs.tsx}) — uma projeção,
+// dois pontos de render. O motivo e o que se perdeu/manteve estão no cabeçalho de lá.
 //
-// Tier 0 (ADR 0081): NUNCA exibir/logar token raw — só o nome lógico do token.
+// CONTRATO / TOKENS / AUDITORIA seguem **MOCKADOS por design** — é o que o protótipo
+// desenha (selo `fj-mcp-tag` "mockado" é copy do contrato visual) e o que o charter
+// declara: vitrine do contrato, cujo enforce real é do servidor TeamMcp ([CL]).
+// Existem fontes vivas equivalentes (`mcp_tokens`, `mcp_scopes`, `mcp_audit_log`);
+// ligá-las MUDA a natureza da aba e a copy do selo — decisão [W], registrada em
+// memory/requisitos/Forja/INCONSISTENCIAS-replica.md, não desta onda de paridade.
+//
+// Tier 0 (ADR 0081): NUNCA exibir/logar token raw — só o nome LÓGICO do token.
+// Tier 0 (ADR 0093): `mcp_*` é repo-wide, sem business_id por design — nenhum scope
+// é inventado aqui (esta aba não consulta nada; os handoffs vêm do ForjaMcpService).
 
-import { AlertTriangle, KeyRound, ScrollText, ShieldCheck } from 'lucide-react';
-import { cn } from '@/Lib/utils';
-
-// Os tipos seguem morando aqui? NÃO — foram com a seção pro ForjaHandoffs, que é
-// quem os usa. O ForjaMcp não conhece mais handoff nenhum.
+import { Deferred } from '@inertiajs/react';
+import ForjaHandoffs, { HandoffsSkeleton, type HandoffItem, type HeartbeatInfo } from './ForjaHandoffs';
+import ForjaRoleBadge from './ForjaRoleBadge';
 
 // --- Contrato de ferramentas (estático, do protótipo aprovado) ----------------
 
-type Perm = 'PERMITIDO' | 'PROPÕE' | 'NEGADO';
+type Perm = 'ok' | 'propoe' | 'deny';
+
+const PERM_LABEL: Record<Perm, string> = {
+  ok: 'permitido',
+  propoe: 'propõe',
+  deny: 'negado',
+};
 
 interface Tool {
-  ferramenta: string;
+  tool: string;
   acao: string;
-  permissao: Perm;
-  // Texto-extra do contrato (ex.: "→[W] aprova", "→transporte", "(só [W2])").
-  detalhe?: string;
+  perm: Perm;
+  nota: string;
 }
 
+// VERBATIM de prototipo-ui/cowork/forja-data.jsx `FORJA_MCP_TOOLS`.
 const TOOLS: Tool[] = [
-  { ferramenta: 'backlog.read', acao: 'ler issues/filtros', permissao: 'PERMITIDO' },
-  { ferramenta: 'changelog.read', acao: 'o que shippou', permissao: 'PERMITIDO' },
-  { ferramenta: 'issue.transition', acao: 'mover fase', permissao: 'PROPÕE', detalhe: '→ [W] aprova' },
-  { ferramenta: 'changelog.append', acao: 'registrar entrega', permissao: 'PROPÕE', detalhe: '→ transporte' },
-  { ferramenta: 'adr.propose', acao: 'cria _PROPOSTA', permissao: 'PROPÕE', detalhe: 'nunca decisions/NNNN' },
-  { ferramenta: 'git.merge', acao: 'fechar PR', permissao: 'NEGADO', detalhe: 'só [W2]' },
-  { ferramenta: 'constituicao.edit', acao: 'ADR/PROTOCOL/BRIEFING', permissao: 'NEGADO', detalhe: 'só [W]' },
-  // PR-C (ADR 0283 · Fase 1): as tools do loop de handoff. Elas seguem no contrato
-  // porque o contrato é do servidor MCP inteiro — a TELA que as consome é que se
-  // mudou pra /forja/handoffs.
-  { ferramenta: 'handoff-pending', acao: 'puxar handoff F1→F3', permissao: 'PERMITIDO', detalhe: 'assinado' },
-  { ferramenta: 'handoff-ack', acao: 'confirmar aplicado + gate', permissao: 'PROPÕE', detalhe: '422 sem gate verde' },
+  { tool: 'backlog.read', acao: 'ler issues / filtros', perm: 'ok', nota: 'leitura livre' },
+  { tool: 'changelog.read', acao: 'o que shippou', perm: 'ok', nota: 'leitura livre' },
+  { tool: 'issue.transition', acao: 'mover fase', perm: 'propoe', nota: 'propõe → [W] aprova' },
+  { tool: 'changelog.append', acao: 'registrar entrega', perm: 'propoe', nota: 'propõe → transporte' },
+  { tool: 'adr.propose', acao: 'cria _PROPOSTA', perm: 'propoe', nota: 'nunca decisions/NNNN' },
+  { tool: 'git.merge', acao: 'fechar PR', perm: 'deny', nota: 'só [W2]' },
+  { tool: 'constituicao.edit', acao: 'ADR/PROTOCOL/BRIEFING', perm: 'deny', nota: 'só [W]' },
+  { tool: 'handoff-pending', acao: 'puxar handoff F1→F3', perm: 'ok', nota: 'Code lê, assinado' },
+  { tool: 'handoff-ack', acao: 'confirmar aplicado + gate', perm: 'propoe', nota: '422 sem gate verde' },
 ];
-
-// Pílula de permissão por token semântico DS v6:
-//   PERMITIDO = success · PROPÕE = warning · NEGADO = destructive.
-const PERM_PILL: Record<Perm, string> = {
-  PERMITIDO: 'bg-success/15 text-success-fg',
-  PROPÕE: 'bg-warning-soft text-warning-fg',
-  NEGADO: 'bg-destructive-soft text-destructive-fg',
-};
 
 // --- Tokens ativos (estático) -------------------------------------------------
 // Tier 0 (ADR 0081): só o nome LÓGICO do token — nunca o valor raw.
 
 interface Token {
-  nome: string;
-  ator: string; // selo [CC]/[CL]/[CD]
+  id: string;
+  papel: string;
   escopo: string;
   exp: string;
   uso: string;
 }
 
+// VERBATIM de `FORJA_MCP_TOKENS`.
 const TOKENS: Token[] = [
-  { nome: 'frj_cc_live', ator: 'CC', escopo: 'read + propose', exp: 'exp 30d', uso: 'uso há 2 min' },
-  { nome: 'frj_cl_ci', ator: 'CL', escopo: 'read + propose', exp: 'exp 90d', uso: 'uso há 1 h' },
-  { nome: 'frj_cd_rev', ator: 'CD', escopo: 'read', exp: 'exp 30d', uso: 'uso há 3 h' },
+  { id: 'frj_cc_live', papel: 'CC', escopo: 'read + propose', exp: '30d', uso: 'há 2 min' },
+  { id: 'frj_cl_ci', papel: 'CL', escopo: 'read + propose', exp: '90d', uso: 'há 1 h' },
+  { id: 'frj_cd_rev', papel: 'CD', escopo: 'read', exp: '30d', uso: 'há 3 h' },
 ];
 
 // --- Auditoria (estático) — toda ação de agente, regra 6 mecanizada -----------
 
-type Resultado = 'ok' | 'pendente' | 'negado';
-
 interface AuditRow {
   ts: string;
   ator: string;
-  acao: string;
-  detalhe: string;
-  resultado: Resultado;
-  resultadoLabel: string;
+  tool: string;
+  args: string;
+  res: string;
+  deny: boolean;
 }
 
+// VERBATIM de `FORJA_MCP_AUDIT`.
 const AUDIT: AuditRow[] = [
-  { ts: '14:21', ator: 'CC', acao: 'backlog.read', detalhe: 'onda=FA-1', resultado: 'ok', resultadoLabel: 'ok' },
-  { ts: '14:19', ator: 'CC', acao: 'adr.propose', detalhe: '--origin-DEV', resultado: 'ok', resultadoLabel: 'proposta criada' },
-  { ts: '13:50', ator: 'CL', acao: 'issue.transition', detalhe: 'FORJA-141 → F3', resultado: 'pendente', resultadoLabel: 'aguarda [W]' },
-  { ts: '12:30', ator: 'CC', acao: 'git.merge', detalhe: 'PR 2417', resultado: 'negado', resultadoLabel: 'NEGADO — só [W2]' },
-  { ts: '11:05', ator: 'CD', acao: 'changelog.read', detalhe: 'desde 09/06', resultado: 'ok', resultadoLabel: 'ok' },
-  { ts: '10:02', ator: 'CC', acao: 'constituicao.edit', detalhe: 'ADR 0235', resultado: 'negado', resultadoLabel: 'NEGADO — só [W]' },
+  { ts: '14:21', ator: 'CC', tool: 'backlog.read', args: 'onda=FA-1', res: 'ok · 3 issues', deny: false },
+  { ts: '14:19', ator: 'CC', tool: 'adr.propose', args: '--origin-DEV', res: 'proposta criada', deny: false },
+  { ts: '13:50', ator: 'CL', tool: 'issue.transition', args: 'FORJA-141 →F3', res: 'aguarda [W]', deny: false },
+  { ts: '12:30', ator: 'CC', tool: 'git.merge', args: '#2417', res: 'NEGADO — só [W2]', deny: true },
+  { ts: '11:05', ator: 'CD', tool: 'changelog.read', args: 'desde 09/06', res: 'ok · 8 entradas', deny: false },
+  { ts: '10:02', ator: 'CC', tool: 'constituicao.edit', args: 'ADR 0235', res: 'NEGADO — só [W]', deny: true },
 ];
 
-const RESULTADO_TONE: Record<Resultado, string> = {
-  ok: 'text-success-fg',
-  pendente: 'text-warning-fg',
-  negado: 'text-destructive-fg',
-};
-
-// Sem `Props`: este componente não recebe nada. Contrato/tokens/auditoria são
-// MOCKADOS por design (vitrine — o enforce real é do servidor), e os handoffs,
-// que eram o único dado VIVO daqui, viraram tela própria em /forja/handoffs
-// (2026-08-08). Um tipo de prop vazio só existiria pra ser tipo de nada — e o
-// ESLint reprova (`no-empty-object-type`), com razão.
-export default function ForjaMcp() {
+export default function ForjaMcp({
+  handoffs,
+  heartbeat,
+}: {
+  handoffs?: HandoffItem[];
+  heartbeat?: HeartbeatInfo;
+}) {
   return (
-    <div data-testid="forja-mcp" className="inline-flex w-full flex-col gap-6">
-      {/* 2. CONTRATO / TOKENS / AUDITORIA — MOCKADO por design (vitrine do contrato). */}
-      {/* Banner topo — tom muted/aviso. Estabelece o contrato mental: MOCKADO. */}
-      <div className="inline-flex w-full items-start gap-2 rounded-lg border border-warning-soft bg-warning-soft px-4 py-3 text-warning-fg">
-        <AlertTriangle size={16} className="mt-0.5 shrink-0" />
-        <p className="text-xs leading-relaxed">
-          <strong>MOCKADO</strong> — Contrato e auditoria como design — o enforce real é do servidor{' '}
-          <span className="font-medium">TeamMcp</span> ([CL]). Default ={' '}
-          <span className="font-mono">read + propose</span>; <span className="font-mono">merge</span> e{' '}
-          <span className="font-mono">constituicao.edit</span> negados no contrato, não por convenção.
-        </p>
+    <div data-testid="forja-mcp" className="fj-mcp">
+      <div className="fj-mcp-intro">
+        <span className="fj-mcp-tag">mockado</span>
+        Contrato e auditoria como <b>design</b> — o enforcement real é do servidor TeamMcp ([CL]).
+        Default = <b>read + propose</b>; <code>merge</code> e <code>constituicao.edit</code> negados no
+        contrato, não por convenção.
       </div>
 
-      {/* CONTRATO DE FERRAMENTAS */}
-      <section className="inline-flex w-full flex-col gap-2">
-        <div className="inline-flex items-center gap-2">
-          <ShieldCheck size={14} className="text-muted-foreground" />
-          <h2 className="text-xs font-semibold tracking-wide text-muted-foreground">
-            CONTRATO DE FERRAMENTAS
-          </h2>
-        </div>
+      {/* HANDOFFS F1→F3 — o único dado VIVO desta aba (ForjaMcpService). */}
+      <Deferred data={['handoffs', 'heartbeat']} fallback={<HandoffsSkeleton />}>
+        <ForjaHandoffs handoffs={handoffs} heartbeat={heartbeat} />
+      </Deferred>
 
-        <div className="overflow-hidden rounded-lg border">
-          {/* Cabeçalho (grid de 3 zonas) */}
-          <div className="inline-grid w-full grid-cols-[minmax(9rem,1.2fr)_minmax(0,2fr)_minmax(8rem,auto)] gap-3 border-b bg-muted/40 px-4 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-            <span>Ferramenta</span>
-            <span>Ação</span>
-            <span className="text-right">Permissão</span>
-          </div>
-
-          <div className="divide-y">
-            {TOOLS.map((t) => (
-              <div
-                key={t.ferramenta}
-                className="inline-grid w-full grid-cols-[minmax(9rem,1.2fr)_minmax(0,2fr)_minmax(8rem,auto)] items-center gap-3 px-4 py-2.5"
-              >
-                <span className="font-mono text-xs text-foreground">{t.ferramenta}</span>
-                <span className="min-w-0 truncate text-xs text-muted-foreground">{t.acao}</span>
-                <span className="inline-flex items-center justify-end gap-1.5">
-                  <span
-                    className={cn(
-                      'shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold',
-                      PERM_PILL[t.permissao],
-                    )}
-                    data-testid="forja-mcp-perm"
-                  >
-                    {t.permissao}
-                  </span>
-                  {t.detalhe && (
-                    <span className="hidden text-[10px] text-muted-foreground sm:inline">
-                      {t.detalhe}
+      <div className="fj-mcp-grid">
+        <section className="fj-mcp-card">
+          <h3>Contrato de ferramentas</h3>
+          <table className="fj-mcp-tbl">
+            <thead>
+              <tr>
+                <th>Ferramenta</th>
+                <th>Ação</th>
+                <th>Permissão</th>
+              </tr>
+            </thead>
+            <tbody>
+              {TOOLS.map((t) => (
+                <tr key={t.tool}>
+                  <td className="mono">{t.tool}</td>
+                  <td>{t.acao}</td>
+                  <td>
+                    <span className={`fj-perm fj-perm-${t.perm}`} data-testid="forja-mcp-perm">
+                      {PERM_LABEL[t.perm]}
                     </span>
-                  )}
+                    <span className="fj-perm-nota">{t.nota}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+
+        <section className="fj-mcp-card">
+          <h3>Tokens ativos</h3>
+          <ul className="fj-token-list">
+            {TOKENS.map((tk) => (
+              <li key={tk.id} data-testid="forja-mcp-token">
+                <ForjaRoleBadge role={tk.papel} />
+                {/* Nome LÓGICO do token — NUNCA o valor raw (Tier 0 · ADR 0081). */}
+                <span className="fj-token-id mono">{tk.id}</span>
+                <span className="fj-token-scope">{tk.escopo}</span>
+                <span className="fj-token-meta">
+                  exp {tk.exp} · uso {tk.uso}
                 </span>
-              </div>
+                <button type="button" className="fj-token-revoke" data-testid="forja-mcp-revogar">
+                  revogar
+                </button>
+              </li>
             ))}
-          </div>
-        </div>
-      </section>
+          </ul>
+        </section>
+      </div>
 
-      {/* TOKENS ATIVOS */}
-      <section className="inline-flex w-full flex-col gap-2">
-        <div className="inline-flex items-center gap-2">
-          <KeyRound size={14} className="text-muted-foreground" />
-          <h2 className="text-xs font-semibold tracking-wide text-muted-foreground">
-            TOKENS ATIVOS
-          </h2>
-        </div>
-
-        <div className="inline-grid w-full grid-cols-1 gap-3 sm:grid-cols-3">
-          {TOKENS.map((tk) => (
-            <div
-              key={tk.nome}
-              className="inline-flex flex-col gap-2 rounded-lg border p-3"
-              data-testid="forja-mcp-token"
-            >
-              <div className="inline-flex items-center justify-between gap-2">
-                {/* Nome LÓGICO do token — NUNCA o valor raw (Tier 0 ADR 0081). */}
-                <span className="font-mono text-xs font-medium text-foreground">{tk.nome}</span>
-                <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
-                  [{tk.ator}]
-                </span>
-              </div>
-              <div className="inline-flex flex-wrap items-center gap-1.5 text-[10px] text-muted-foreground">
-                <span className="rounded bg-muted px-1.5 py-0.5">{tk.escopo}</span>
-                <span className="tabular-nums">· {tk.exp}</span>
-                <span className="tabular-nums">· {tk.uso}</span>
-              </div>
-              <button
-                type="button"
-                className="mt-1 inline-flex w-fit items-center rounded-md border border-destructive/30 px-2 py-1 text-[11px] font-medium text-destructive-fg transition-colors hover:bg-destructive-soft"
-                data-testid="forja-mcp-revogar"
-              >
-                revogar
-              </button>
-            </div>
+      <section className="fj-mcp-card">
+        <h3>Auditoria · toda ação de agente (Regra 6 mecanizada)</h3>
+        <ul className="fj-audit">
+          {AUDIT.map((a, i) => (
+            <li key={`${a.ts}-${a.tool}-${i}`} className={a.deny ? 'deny' : ''} data-testid="forja-mcp-audit-row">
+              <span className="fj-audit-ts mono">{a.ts}</span>
+              <ForjaRoleBadge role={a.ator} />
+              <span className="fj-audit-tool mono">{a.tool}</span>
+              <span className="fj-audit-args mono">{a.args}</span>
+              <span className={`fj-audit-res${a.deny ? ' deny' : ''}`}>{a.res}</span>
+            </li>
           ))}
-        </div>
-      </section>
-
-      {/* AUDITORIA — toda ação de agente (regra 6 mecanizada) */}
-      <section className="inline-flex w-full flex-col gap-2">
-        <div className="inline-flex items-center gap-2">
-          <ScrollText size={14} className="text-muted-foreground" />
-          <h2 className="text-xs font-semibold tracking-wide text-muted-foreground">
-            AUDITORIA · TODA AÇÃO DE AGENTE (regra 6 mecanizada)
-          </h2>
-        </div>
-
-        <div className="overflow-hidden rounded-lg border">
-          {/* Cabeçalho */}
-          <div className="inline-grid w-full grid-cols-[3rem_3rem_minmax(8rem,1.2fr)_minmax(0,1.5fr)_minmax(7rem,auto)] gap-3 border-b bg-muted/40 px-4 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-            <span>ts</span>
-            <span>ator</span>
-            <span>ação</span>
-            <span>detalhe</span>
-            <span className="text-right">resultado</span>
-          </div>
-
-          <div className="divide-y">
-            {AUDIT.map((row, i) => (
-              <div
-                key={`${row.ts}-${row.acao}-${i}`}
-                className={cn(
-                  'inline-grid w-full grid-cols-[3rem_3rem_minmax(8rem,1.2fr)_minmax(0,1.5fr)_minmax(7rem,auto)] items-center gap-3 px-4 py-2 text-xs',
-                  // Linhas NEGADO com tom destructive sutil.
-                  row.resultado === 'negado' && 'bg-destructive-soft/40',
-                )}
-                data-testid="forja-mcp-audit-row"
-              >
-                <span className="font-mono tabular-nums text-muted-foreground">{row.ts}</span>
-                <span className="font-mono text-[11px] text-muted-foreground">[{row.ator}]</span>
-                <span className="font-mono text-foreground">{row.acao}</span>
-                <span className="min-w-0 truncate text-muted-foreground">{row.detalhe}</span>
-                <span className={cn('text-right font-medium', RESULTADO_TONE[row.resultado])}>
-                  {row.resultadoLabel}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
+        </ul>
       </section>
     </div>
   );

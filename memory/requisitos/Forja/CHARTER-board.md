@@ -2,6 +2,16 @@
 id: requisitos-project-mgmt-charter-board
 ---
 
+> # ⛔ REVOGADO — documento HISTÓRICO, não é lei viva
+>
+> A tela que este charter governava (`/project-mgmt/board`) foi **revogada em 2026-09-02**
+> pela Onda 11 (ADR 0367 D1 + PARIDADE §11). O papel de quadro é hoje de
+> `/forja/trabalho?visao=quadro`, que tem charter próprio.
+>
+> **Não implemente nada a partir daqui.** Fica no repo porque 4 docs vivos o citam e
+> porque é o registro do que a tela prometia — inclusive do que se PERDEU na revogação
+> (atalhos `E`/`A`, overlay `?`, filtros cycle/epic/owner), perda aceita por [W].
+
 # Charter — `/project-mgmt/board` (Kanban Jira-like — em prod)
 
 > **Charter > Spec** ([ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md) §3).
@@ -16,8 +26,8 @@ id: requisitos-project-mgmt-charter-board
 ## 1. Identidade
 
 - **URL canônica**: `/project-mgmt/board` (rename pra `/project/board` em Fase 3.9)
-- **Page React**: [`Modules/Forja/Resources/js/Pages/Forja/Board/Index.tsx`](../../../Modules/Forja/Resources/js/Pages/Forja/Board/Index.tsx) (441 LoC, em prod)
-- **Controller**: [`Modules/Forja/Http/Controllers/BoardController.php`](../../../Modules/Forja/Http/Controllers/BoardController.php) — métodos `index()` + `updateStatus(PATCH)`
+- **Page React**: `Modules/Forja/Resources/js/Pages/Forja/Board/Index.tsx` (441 LoC, em prod)
+- **Controller**: `Modules/Forja/Http/Controllers/BoardController.php` — métodos `index()` + `updateStatus(PATCH)`
 - **Layout persistente**: `AppShellV2` via `Page.layout` pattern (preferência preservada do CLAUDE.md)
 - **Escopo deste Charter**: redesign **incremental** das gaps. NÃO substitui Page existente — refina.
 

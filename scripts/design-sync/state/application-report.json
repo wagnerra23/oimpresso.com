@@ -1,6 +1,6 @@
 {
   "schema": "oimpresso-design-application-report/3",
-  "generatedAt": "2026-08-28T13:42:18.230Z",
+  "generatedAt": "2026-09-01T14:38:42.150Z",
   "bundle": {
     "id": "5023b274183d849dcc925eae85cef61a991c3541ca1daeb680267c1afda99e4d",
     "baseId": null,
@@ -10,17 +10,19 @@
   },
   "summary": {
     "transportChanges": 255,
-    "screens": 100,
+    "screens": 90,
     "tested": 0,
     "smoked": 0,
     "lifecycle": {
-      "anchored": 66,
-      "to-create": 9,
+      "applied": 1,
+      "anchored": 56,
+      "to-create": 8,
       "blocked": 18,
       "compared": 7
     },
-    "pending": 73,
-    "to-create": 9,
+    "applied": 1,
+    "pending": 63,
+    "to-create": 8,
     "blocked": 18
   },
   "transportChanges": [
@@ -1818,13 +1820,27 @@
       "module": "Arquivos",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
-      "applicationState": "pending",
-      "compared": false,
+      "lifecycleState": "applied",
+      "applicationState": "applied",
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Arquivos/arquivos-index.map.json",
+          "mapSha256": "cdda4800cd56c033e2aa8c2dcbba10173329169f3ba5e39f7b88e9e7192e642e",
+          "recordedAt": "2026-09-01T14:38:16.591Z"
+        },
+        "application": {
+          "evidence": "memory/requisitos/Arquivos/arquivos-index-gap.md",
+          "evidenceSha256": "bd82b675f47424a712588686eb9e95f88a52930cc9a7e75265da98b1b0a18ab8",
+          "recordedAt": "2026-09-01T14:38:42.010Z"
+        },
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "95d5f19ee9e189cdd22ba632e1a3e3ca4db13ee7797e19853eb8166ea8f5588f"
+      },
+      "nextAction": "executar teste pelo registrador para produzir recibo verificável"
     },
     {
       "source": "backup-page.jsx",
@@ -2232,51 +2248,6 @@
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
-      "source": "export-ponto/ponto-page.jsx",
-      "bundleChange": "unchanged",
-      "target": "resources/js/Pages/Ponto/Dashboard/Index.tsx",
-      "module": "Ponto",
-      "mapping": "charter.component",
-      "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
-      "applicationState": "pending",
-      "compared": false,
-      "tested": false,
-      "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
-    },
-    {
-      "source": "export-ponto/ponto-page.jsx",
-      "bundleChange": "unchanged",
-      "target": "resources/js/Pages/Ponto/Espelho/Index.tsx",
-      "module": "Ponto",
-      "mapping": "charter.component",
-      "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
-      "applicationState": "pending",
-      "compared": false,
-      "tested": false,
-      "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
-    },
-    {
-      "source": "export-ponto/ponto-page.jsx",
-      "bundleChange": "unchanged",
-      "target": "resources/js/Pages/Ponto/Espelho/Show.tsx",
-      "module": "Ponto",
-      "mapping": "charter.component",
-      "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
-      "applicationState": "pending",
-      "compared": false,
-      "tested": false,
-      "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
-    },
-    {
       "source": "financeiro-page.jsx",
       "bundleChange": "added",
       "target": "resources/js/Pages/Financeiro/Unificado/Index.tsx",
@@ -2306,8 +2277,8 @@
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Fiscal/fiscal-cockpit.map.json",
-          "mapSha256": "d40c750f94b80e7209a01bf7942c25812adef1a04688dfc920ea37be62119297",
-          "recordedAt": "2026-08-28T13:27:08.492Z"
+          "mapSha256": "2a5d1e3a16741a56cc7f53554f3bea1a9326af9896885c5a42c28a3a6e2b4efa",
+          "recordedAt": "2026-08-28T17:13:33.112Z"
         },
         "application": null,
         "tests": [],
@@ -2331,8 +2302,8 @@
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Fiscal/fiscal-config.map.json",
-          "mapSha256": "aac9be167b39227211f3bf38e5fc63a39fdaf54799ce7e7b74b61c57845ec389",
-          "recordedAt": "2026-08-28T13:27:11.816Z"
+          "mapSha256": "f02cf90f5f8a105123fd8e1f0337e60b569fc3d5024eb0d3453e0bead2a28df3",
+          "recordedAt": "2026-08-28T17:13:33.413Z"
         },
         "application": null,
         "tests": [],
@@ -2356,8 +2327,8 @@
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Fiscal/fiscal-dfe.map.json",
-          "mapSha256": "fadf54a67e25c9b76255ce0d668c2f78a4336930a69f458e1a55f74157433e59",
-          "recordedAt": "2026-08-28T13:27:10.117Z"
+          "mapSha256": "2261bbf81a78b646d66a9d3578a6738437f2ee1be97843cd59b1fcad50565dc7",
+          "recordedAt": "2026-08-28T17:13:33.708Z"
         },
         "application": null,
         "tests": [],
@@ -2381,8 +2352,8 @@
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Fiscal/fiscal-eventos.map.json",
-          "mapSha256": "866cf863c9a3c67c35de3741ce025a89ce60429481fd97f7df8a86fd34327114",
-          "recordedAt": "2026-08-28T13:27:10.632Z"
+          "mapSha256": "c744206dd95280366878536feeb5324c2ed0ace51d7b40495aa367e35ecb417a",
+          "recordedAt": "2026-08-28T17:13:34.005Z"
         },
         "application": null,
         "tests": [],
@@ -2406,8 +2377,8 @@
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Fiscal/fiscal-nfe.map.json",
-          "mapSha256": "cb39abc111b41092fdee81d28e70a09693879956ef28eb7a32c904d5de3cb078",
-          "recordedAt": "2026-08-28T13:27:09.048Z"
+          "mapSha256": "fc6de6d02779373322657cc217b65e5e5ad078255953bb0058f09e731b14b5a9",
+          "recordedAt": "2026-08-28T17:13:34.289Z"
         },
         "application": null,
         "tests": [],
@@ -2431,8 +2402,8 @@
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Fiscal/fiscal-nfse.map.json",
-          "mapSha256": "55af607d4fffa2f01f8b477a4479f2c7f5df1c722754b350805a0056277509c0",
-          "recordedAt": "2026-08-28T13:27:09.594Z"
+          "mapSha256": "44b680fbec3231207141298ce5437ce854c53d66785dd11aeb64f20ef293bb18",
+          "recordedAt": "2026-08-28T17:13:34.584Z"
         },
         "application": null,
         "tests": [],
@@ -2456,8 +2427,8 @@
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Fiscal/fiscal-sped.map.json",
-          "mapSha256": "212464597410d92b5de5e2cf7842ea4618b4432aaef4af1afc0e454a47d4ee47",
-          "recordedAt": "2026-08-28T13:27:11.189Z"
+          "mapSha256": "917f6e7c3492f92cc49c86d2f5d56c4ee30b3e77a0949d3acf2bc4bfc5b8939f",
+          "recordedAt": "2026-08-28T17:13:34.876Z"
         },
         "application": null,
         "tests": [],
@@ -2635,6 +2606,21 @@
       "source": "inbox-page.jsx",
       "bundleChange": "added",
       "target": "Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx",
+      "module": "Whatsapp",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+    },
+    {
+      "source": "inbox-page.jsx",
+      "bundleChange": "added",
+      "target": "Modules/Whatsapp/Resources/js/Pages/Atendimento/Macros/Index.tsx",
       "module": "Whatsapp",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
@@ -2990,126 +2976,6 @@
       "smoked": false,
       "applicationEvidence": null,
       "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
-    },
-    {
-      "source": "prototipo-ui-patch/prototipos/caixa-unificada/inbox-page.jsx",
-      "bundleChange": "unchanged",
-      "target": "Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx",
-      "module": "Whatsapp",
-      "mapping": "charter.component",
-      "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
-      "applicationState": "pending",
-      "compared": false,
-      "tested": false,
-      "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
-    },
-    {
-      "source": "prototipo-ui-patch/prototipos/os/os-page.jsx",
-      "bundleChange": "unchanged",
-      "target": "—",
-      "module": null,
-      "mapping": "registro a-criar",
-      "comparison": "A-CRIAR",
-      "lifecycleState": "to-create",
-      "applicationState": "to-create",
-      "compared": false,
-      "tested": false,
-      "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
-    },
-    {
-      "source": "prototipo-ui-patch/resources/js/Pages/Financeiro/Conciliacao/Index.tsx",
-      "bundleChange": "unchanged",
-      "target": "resources/js/Pages/Financeiro/Conciliacao/Index.tsx",
-      "module": "Financeiro",
-      "mapping": "path-espelhado",
-      "comparison": "ALTERADO",
-      "lifecycleState": "anchored",
-      "applicationState": "pending",
-      "compared": false,
-      "tested": false,
-      "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
-    },
-    {
-      "source": "prototipo-ui-patch/resources/js/Pages/Financeiro/DRE/Index.tsx",
-      "bundleChange": "unchanged",
-      "target": "resources/js/Pages/Financeiro/DRE/Index.tsx",
-      "module": "Financeiro",
-      "mapping": "path-espelhado",
-      "comparison": "ALTERADO",
-      "lifecycleState": "anchored",
-      "applicationState": "pending",
-      "compared": false,
-      "tested": false,
-      "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
-    },
-    {
-      "source": "prototipo-ui-patch/resources/js/Pages/Financeiro/Fluxo/Index.tsx",
-      "bundleChange": "unchanged",
-      "target": "resources/js/Pages/Financeiro/Fluxo/Index.tsx",
-      "module": "Financeiro",
-      "mapping": "path-espelhado",
-      "comparison": "ALTERADO",
-      "lifecycleState": "anchored",
-      "applicationState": "pending",
-      "compared": false,
-      "tested": false,
-      "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
-    },
-    {
-      "source": "prototipo-ui-patch/resources/js/Pages/Financeiro/PlanoContas/Index.tsx",
-      "bundleChange": "unchanged",
-      "target": "resources/js/Pages/Financeiro/PlanoContas/Index.tsx",
-      "module": "Financeiro",
-      "mapping": "path-espelhado",
-      "comparison": "ALTERADO",
-      "lifecycleState": "anchored",
-      "applicationState": "pending",
-      "compared": false,
-      "tested": false,
-      "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
-    },
-    {
-      "source": "prototipo-ui-patch/resources/js/Pages/Financeiro/Unificado/Index.tsx",
-      "bundleChange": "unchanged",
-      "target": "resources/js/Pages/Financeiro/Unificado/Index.tsx",
-      "module": "Financeiro",
-      "mapping": "path-espelhado",
-      "comparison": "ALTERADO",
-      "lifecycleState": "anchored",
-      "applicationState": "pending",
-      "compared": false,
-      "tested": false,
-      "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
-    },
-    {
-      "source": "prototipo-ui-patch/resources/js/Pages/Produto/Unificado/Index.tsx",
-      "bundleChange": "unchanged",
-      "target": "resources/js/Pages/Produto/Unificado/Index.tsx",
-      "module": "Produto",
-      "mapping": "path-espelhado",
-      "comparison": "ALTERADO",
-      "lifecycleState": "anchored",
-      "applicationState": "pending",
-      "compared": false,
-      "tested": false,
-      "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "prototipos/payment-gateway-ui/cobranca-page.jsx",

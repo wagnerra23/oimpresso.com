@@ -4,7 +4,7 @@ casos: Forja · cockpit do cowork loop · /forja
 irmaos: Cockpit.charter.md (lei) · Cockpit.tsx (tela)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-08-12"
+last_run: "2026-09-02"
 ---
 
 # Casos de uso — /forja (cockpit Forja · shell)
@@ -17,13 +17,18 @@ last_run: "2026-08-12"
 
 ## UC-FORJA-01 — As rotas /forja respondem (shell no ar)
 Status: 🧪 (o Pest foi consertado e passou a rodar em lane — [#4887](https://github.com/wagnerra23/oimpresso.com/pull/4887). Segue 🧪 e não ✅ porque o ✅ vem do manifesto `scripts/casos-test-results.json`, derivado do JUnit do CI pelo `casos-results-publish` — não se escreve à mão.)
-`ForjaController` serve **6** rotas GET de aba: `/forja` (Triagem), `/forja/backlog`, `/forja/quadro`, `/forja/changelog`, `/forja/mcp` e `/forja/handoffs` (esta desde 2026-08-08). Não há `/forja/saude` — Saúde foi fundida no Scorecard real (`/team-mcp/scorecard`), conforme o comentário em `Modules/TeamMcp/Http/routes.php`.
-Recibo: `docker exec oimpresso-staging php artisan route:list --path=forja --json` (CT 100, 2026-07-27) devolveu 5 GET de aba + os POST de lever/triagem, **sem** `forja.saude`.
-**Pronto quando:** cada uma das 6 rotas renderiza `team-mcp/Forja/Cockpit` com a prop `tab` certa (sem 500 / tela branca).
+`ForjaController` serve **8** rotas GET de aba: `/forja` (Triagem), `/forja/backlog`, `/forja/quadro`, `/forja/changelog`, `/forja/mcp`, `/forja/handoffs` (desde 2026-08-08), `/forja/integrador` (Onda 2) e `/forja/saude` (Onda 7).
+Recibo do número (2026-09-02): o dataset `forjaRotasAbas()` do `ForjaRoutesSmokeTest` — a fonte que o teste de fato percorre — tem 8 entradas; `sed -n '/^function forjaRotasAbas/,/^}/p' … | grep -cE "=> \['forja\."` = **8**. A contagem não se escreve à mão: re-rode o comando.
+**Atualização 2026-09-02 (Onda 7):** `/forja/saude` **passou a existir**. A errata de 2026-07-27 acima segue verdadeira **na data dela** — naquele dia a rota era item fantasma do topnav e do teste, e foi removida por isso. O que mudou não é o fato, é o mundo: a PARIDADE §11 mandou construir a view `saude` do protótipo, e o `/team-mcp/scorecard` deixou de ser o destino da pílula pra ser o destino do drill "ver →" dentro dela.
+**Pronto quando:** cada uma das 8 rotas renderiza `team-mcp/Forja/Cockpit` com a prop `tab` certa (sem 500 / tela branca).
 
 ## UC-FORJA-02 — Topnav do hub aparece e navega
-Status: 🧪 (2 testes de `ForjaRoutesSmokeTest` citam este UC — a contagem de **13** itens e, mais importante, que **todo `href` resolve pra rota registrada**. Este segundo cruza DUAS fontes independentes — `config/core_topnavs.php` × registro de rotas do Laravel — e é exatamente a classe do `forja.saude`, item fantasma que sobreviveu meses. Testar o config contra ele mesmo seria tautologia. Rodam em qualquer driver: leem config e router, sem DB. A perna visual — "aparece no header e destaca o ativo" — segue manual.)
-O topnav vem de `config/core_topnavs.php['Forja']` via `useAutoModuleNav`. São **13** itens: 9 próprios (`Aprovações · Triagem · Trabalho · Backlog · Quadro · Roadmap (Gantt) · Handoffs · Changelog · MCP`) + 4 do hub TeamMcp absorvido (`Tarefas · Equipe · CC Sessions · Saúde→/team-mcp/scorecard`). Desde a fusão de 2026-06-16 este é o ÚNICO topnav que casa `/team-mcp/*` — a nav é a mesma em todo o hub.
+Status: 🧪 (2 testes de `ForjaRoutesSmokeTest` citam este UC — a contagem de **9** itens (era 13 ate 2026-09-01) e, mais importante, que **todo `href` resolve pra rota registrada**. Este segundo cruza DUAS fontes independentes — `config/core_topnavs.php` × registro de rotas do Laravel — e é exatamente a classe do `forja.saude`, item fantasma que sobreviveu meses. Testar o config contra ele mesmo seria tautologia. Rodam em qualquer driver: leem config e router, sem DB. A perna visual — "aparece no header e destaca o ativo" — segue manual.)
+O topnav vem de `config/core_topnavs.php['Forja']` via `useAutoModuleNav`. São **6** itens, os do protótipo, em 3 grupos: Trabalho (`Aprovações · Trabalho`) · Esteira (`Saúde→/team-mcp/scorecard · MCP`) · Histórico (`Changelog · Integrador`).
+
+> **9 → 6 em 2026-09-02** (PARIDADE §11 Onda 2, [ADR 0388](../../../../../../memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md)). O header passou a ser o do protótipo: topnav em pílulas de grupo **na linha do título**, não numa segunda linha. Saíram do topo, com as rotas vivas, `Triagem` (vira tipo Proposta em Aprovações, Onda 3), `Handoffs` e `Equipe` (seções do MCP, Onda 8) e `CC Sessions` (segmento Sessões do Changelog, Onda 9). `Integrador` nasce (`/forja/integrador`, view estática do protótipo). A conta 9 no parágrafo anterior é fato datado de 2026-09-01.
+
+> **13 → 9 em 2026-09-01.** [W] mandou convergir a faixa com o protótipo (`forja-page.jsx`, 6 destinos em 3 pílulas), destravando a `US-FORJA-006` — textual: *"remova a proibição, estou mandando"*. Saíram do TOPO `Backlog`, `Quadro`, `Roadmap (Gantt)` e `Tarefas`; **as rotas seguem vivas** e os quatro continuam a um clique por dentro do `Trabalho` (segmentos `Lista` · `Quadro` · `Gantt`, este último **navegando** pra `/forja/roadmap-gantt`). Só saíram os que tiveram a absorção **medida em produção** — os outros 3 que o protótipo também não mostra (`Triagem`, `Handoffs`, `Equipe`/`CC Sessions`) ficaram, porque o receptor deles aqui ainda não existe: `/forja/mcp` é MOCKADO e não tem seção de handoffs nem tokens de equipe, o Changelog não projeta sessão com título, e `Aprovações` abre vazia enquanto a `Triagem` tem 3 tickets vivos. Medição nos dois renders: [PARIDADE-area-forja §6-bis](../../../../../../memory/requisitos/Forja/PARIDADE-area-forja-diagnostico-e-ondas.md). Desde a fusão de 2026-06-16 este é o ÚNICO topnav que casa `/team-mcp/*` — a nav é a mesma em todo o hub.
 
 > **9 → 10 em 2026-08-06** ([W]: *"quero que registre"*). O `Roadmap (Gantt)` chegou da Jana no [#5310](https://github.com/wagnerra23/oimpresso.com/pull/5310) (ADR 0366 §D-C item 3) e abria **sem faixa nenhuma** em produção: o ghost estava no `DataController`, mas a faixa de `/forja/*` sai deste config — duas superfícies distintas, e só uma tinha sido preenchida. O `can` da aba é `jana.mcp.tasks.read` (gate real do `RoadmapGanttController@index`), não o `jana.mcp.usage.all` das vizinhas — aba que aparece e dá 403 é pior que aba ausente. Convive com o quarter view `/project-mgmt/roadmap` por decisão da [ADR 0367 D7](../../../../memory/decisions/0367-cockpit-unico-forja-project-mgmt-morre.md): são leituras incomensuráveis (epic × task), e o quarter só sai "quando o Gantt provar que substitui".
 
@@ -35,7 +40,7 @@ O topnav vem de `config/core_topnavs.php['Forja']` via `useAutoModuleNav`. São 
 
 > **12 → 13 em 2026-08-09.** Entrou `Trabalho` (`/forja/trabalho`), a lista única da `US-FORJA-006` que funde os três backlogs. **Convive** com Backlog e Tarefas de propósito nesta onda: deletar implementação em uso é irreversível, e a US exige que [W] veja qual sobrevive — a comparação é olhando as duas no ar. Quando a perdedora sair, a faixa volta a encolher.
 
-**Pronto quando:** os 13 itens aparecem no header sob os 3 rótulos, navegam e destacam o ativo por URL.
+**Pronto quando:** os 9 itens aparecem no header sob os 3 rótulos, navegam e destacam o ativo por URL.
 
 ## UC-FORJA-14 — As duas superfícies de navegação servem os mesmos destinos
 Status: 🧪 (1 teste de `ForjaRoutesSmokeTest` cita este UC. **Não é tautológico**: cruza `config/core_topnavs.php` — que alimenta o SHELL (`AppShellV2`) — contra `FORJA_TABS` do `ForjaHub.tsx` — que alimenta a FAIXA do hub, a que as telas sob `/forja/*` de fato renderizam. Arquivos distintos, linguagens distintas, mantidos à mão. Tem **guarda anti-falso-verde**: se o parse do `.tsx` não extrair href nenhum, o teste falha em vez de comparar duas listas vazias e passar.)
@@ -44,13 +49,27 @@ Existe por um defeito **real**: em 2026-08-06 o Roadmap (Gantt) foi registrado s
 
 **Pronto quando:** as duas listas de `href` são iguais **e na mesma ordem**; item registrado em um só dos lados reprova, com a mensagem dizendo qual lado está faltando.
 
+## UC-FORJA-15 — Saúde projeta o loop com dado real, e o sparkline só existe onde há série
+Status: 🧪 (a rota entra no dataset de `UC-FORJA-01`/`UC-FORJA-05`, que provam render + GET-only. A perna própria deste UC — "cada número vem de uma fonte real e o card sem histórico não desenha linha" — é **prosa verificável por leitura do serviço**, ainda sem Pest dedicado; por isso 🧪 e não ✅. O ✅ vem do manifesto derivado do JUnit, nunca escrito à mão.)
+
+`/forja/saude` renderiza a view `saude` do protótipo (`prototipo-ui/cowork/forja-page.jsx`, `SaudeView`) com o markup e as classes do protótipo (`fj-saude`, `fj-metric`, `fj-spark`, `fj-wip`, `fj-flux-*`, `fj-age`, `fj-gate-health`), conforme [ADR 0388](../../../../memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md) — réplica primeiro. O dado é REAL, via `ForjaSaudeService`, que **reusa** `ScorecardBuilderService` (o mesmo do `/team-mcp/scorecard`), `ForjaQuadroService` e `ForjaChangelogService` em vez de refazer as consultas.
+
+A regra dura, e é o que separa este UC de "tem 4 cards bonitos": **o sparkline só é desenhado onde a série É a história da própria métrica.** Chamadas MCP, Movimentações e Devs ativos têm série diária real (`mcp_audit_log.ts`, `mcp_task_events.occurred_at`); "Checks verdes" **não tem histórico persistido em tabela nenhuma**, então o serviço manda `serie: null` e o componente **não renderiza o `<svg>`**. Desenhar ali uma linha derivada de outra grandeza seria rotular como histórico uma coisa que não é — a classe de erro do §5 2026-07-16.
+
+**Diferenças declaradas vs o protótipo** (nenhuma é layout; as três estão na lista de inconsistências):
+- a seção **"Automação"** (3 toggles de regra) **não é replicada** — produção não tem motor de regras, e toggle que não liga nada é controle falso;
+- **"Gates de CI por fase"** vira **"Checks do MCP"**: mesmo markup (`fj-gate-health`), dado real (`buildChecks()`), porque não há fonte de runtime pro estado verde/âmbar/vermelho dos gates de CI;
+- o **custo em BRL** que `buildFacts()` traz **não entra nesta tela** — o cockpit é a superfície que mais recebe screenshot e smoke, e valor monetário nesses artefatos é proibição Tier 0.
+
+**Pronto quando:** a rota responde 200 com `tab=saude`; os 4 cards mostram número vindo de query real; o card sem série não tem `<svg class="fj-spark">`; e a comparação medida com o protótipo (`design-diff --compare --check`, tema dark nos dois lados) dá **0 `DIVERGE(bug)`** em D2/D4/D6/D8 — o critério de fechamento da Onda 7 no [PARIDADE §11](../../../../memory/requisitos/Forja/PARIDADE-area-forja-diagnostico-e-ondas.md).
+
 ## UC-FORJA-03 — Entry "Forja" na sidebar
 Status: ⬜ (manual/visual)
 `DataController@modifyAdminMenu` injeta o dropdown "Forja" (ícone martelo, atalho `G F`), separado do hub Equipe; os ghosts espelham os itens do topnav acima.
 **Pronto quando:** "Forja" aparece na sidebar e leva ao cockpit; os ghosts batem 1:1 com `config/core_topnavs.php['Forja']['items']`.
 
 ## UC-FORJA-05 — Read-only (o shell não muta nada)
-Status: 🧪 (1 teste de `ForjaRoutesSmokeTest` cita este UC — cada uma das 6 rotas de aba é GET-only, lido do registro de rotas. Roda em qualquer driver, inclusive sqlite, ao contrário dos casos de request que só pulam. Escopo honesto: prova que **a aba** não escreve; as rotas POST dedicadas — lever/aprovar/rejeitar/fundir — existem por design e são cobertas pelo `UC-FORJA-09`/`UC-FORJA-10`.)
+Status: 🧪 (1 teste de `ForjaRoutesSmokeTest` cita este UC — cada uma das 8 rotas de aba é GET-only, lido do registro de rotas. Roda em qualquer driver, inclusive sqlite, ao contrário dos casos de request que só pulam. Escopo honesto: prova que **a aba** não escreve; as rotas POST dedicadas — lever/aprovar/rejeitar/fundir — existem por design e são cobertas pelo `UC-FORJA-09`/`UC-FORJA-10`.)
 Nenhuma rota desta onda escreve estado; todas são GET de render.
 **Pronto quando:** não há ação na tela que escreva no banco.
 
@@ -81,10 +100,37 @@ Status: 🧪 (12 testes de `ForjaMcpServiceTest` **citam este UC no título** �
 A aba MCP deixou de ser 100% mock: `ForjaController@mcp` projeta `cowork_handoffs` (+ heartbeat do ingest) via `Inertia::defer` (`handoffs`/`heartbeat`) — `ForjaMcpService`. Status REAIS `pending/applied/rejected/stale/superseded`; `stale` derivado na leitura (>3d); gate derivado do `gate_status` com a MESMA regra verde do `handoff-ack` (`conformance && critique_score>=80 && a11y`). A seção fica no topo (`data-testid="forja-mcp-handoffs"`); contrato/tokens/auditoria seguem MOCKADO embaixo (sem regressão de 1º paint — `Deferred` só na seção nova).
 **Pronto quando:** `/forja/mcp` lista os handoffs reais (status correto + gate do `gate_status` + ⚿ sig + `N arq` + PR drill), filtros por status com contagem funcionam, empty-state mostra o heartbeat ("transporte sem sinal" vira alerta), e o contrato lista `handoff-pending`/`handoff-ack`. Levers (re-disparar/devolver/supersede) ficam `disabled`+TODO (Fase 2); **SEM merge** (1-clique do [W]).
 
+> **Reconciliação 2026-09-02 (duas frases deste UC ficaram stale, corrigidas aqui e não no histórico).**
+> (1) *"Levers ficam `disabled`+TODO"* — caducou na **Fase 2** ([PR-7b](https://github.com/wagnerra23/oimpresso.com/pull/2924), rota `POST /forja/handoff/{slug}/lever` → `HandoffLeverService`): elas operam, sob confirmação. O "SEM merge" segue valendo, e é Tier 0.
+> (2) *"A seção fica no topo"* — a seção **saiu** da aba em 2026-08-08 (virou `/forja/handoffs`) e **voltou** na Onda 8 (2026-09-02), agora **abaixo da intro `mockado`**, que é onde o protótipo a desenha (`forja-mcp.jsx::ForjaMCPView`). Medido no protótipo servido: `.fj-mcp` contém `.fj-ho`. O `data-testid="forja-mcp-handoffs"` foi **preservado** nas três mudanças — por isso nenhum teste deste UC quebrou. Detalhe no `UC-FORJA-15`.
+
 ## UC-FORJA-13 — Badge `conflito` quando o ack mente sobre o gate (Gap 2 · ADR 0283)
 Status: 🧪 (7 testes de `ForjaMcpServiceTest` **citam este UC no título** — conflito em check vermelho/pendente, mantém verde com checks verdes, só cruza ack verde, degrada sem token/API/branch-protection; GitHub API mockada via `Http::fake`, sqlite lane `ci-sqlite-pest.list`. Mesmo run verde de 2026-07-27 do UC-FORJA-12; segue 🧪 pelo mesmo motivo — o ✅ é derivado do manifesto, não declarado.)
 O `gate_status` é AUTO-REPORTADO pelo [CC] e pode divergir dos required checks REAIS do PR no GitHub. `ForjaMcpService::deriveGate` cruza o ack VERDE com o estado real do PR (`PrChecksResolver` → GitHub API: PR → branch protection → check-runs). Se a realidade não está verde (vermelho/pendente) → badge `conflito` (dot destructive pulsando, drill pro PR, hint no hover). Best-effort: sem token/rede/branch-protection legível → segue o `gate_status` (comportamento da Fase 1, sem conflito falso por check advisory).
 **Pronto quando:** um handoff `applied` com `gate_status` verde + `pr_url` cujo required check está vermelho/pendente mostra `conflito ack×checks`; com checks verdes mostra `gate ok`; e a leitura nunca quebra quando o GitHub está indisponível.
+
+## UC-FORJA-15 — A view MCP é a réplica do protótipo, com o painel Handoffs dentro (PARIDADE §11 Onda 8)
+Status: 🧪 (3 testes de `ForjaMcpHandoffsInlineTest` **citam este UC no título** — `/forja/mcp` entrega `handoffs`+`heartbeat`, `/forja/handoffs` segue entregando, e as duas rotas servem a MESMA lista. Registrado nas DUAS lanes: `ci-sqlite-pest.list` (pega erro de binding; o happy-path *pula* sem schema MySQL) e a lane MySQL `forja-pest.yml`, que é quem executa. ⬜→🧪 e não ✅ porque o ✅ vem do manifesto `scripts/casos-test-results.json`, derivado do JUnit do CI — não se escreve à mão.
+**O que este Pest NÃO cobre, de propósito:** a perna **visual** (classe, mono, cor, alinhamento). Ela tem dono — `design-diff` medindo os dois renders — e um Pest que assertasse className seria régua paralela a régua consolidada ([proibicoes.md §5](../../../../memory/proibicoes.md) 2026-07-09). O Pest defende o que some em SILÊNCIO: sem as props deferidas, o `<Deferred>` fica em fallback eterno, sem erro no console.)
+
+`/forja/mcp` renderiza no vocabulário do bundle (`fj-mcp*`, `fj-perm*`, `fj-token*`, `fj-audit*`, `fj-ho-*`), na ordem do protótipo: **intro `mockado` → Handoffs F1→F3 → grid [contrato | tokens] → auditoria**. O painel de handoffs é o MESMO componente que `/forja/handoffs` renderiza (`ForjaHandoffs.tsx`), com a MESMA projeção (`ForjaMcpService`) — uma consulta, dois pontos de render; `Inertia::defer` só executa a closure quando a prop é pedida.
+
+Valores-alvo **medidos** no protótipo servido (dark · 1440 · espelho provado SYNC · portão `--preview-ds` verde), 2026-09-02:
+`.fj-mcp-tbl` = 9 linhas · col0 mono `oklch(0.94 0.005 90)` · col1/col2 não-mono `oklch(0.72 0.005 90)` · **os 3 `th` `left`** (produção tinha `text-right` na col2) · `.fj-perm-ok` `oklch(0.84 0.13 150)` sobre `oklch(0.275 0.06 150)`, mono · `.fj-perm-deny` `oklch(0.84 0.18 25)` · e os 6 pontos `.mono` (`fj-token-id`, `fj-audit-ts|tool|args`, `fj-ho-slug`, `fj-ho-pr`) todos monoespaçados.
+
+**Pronto quando:** `design-diff --compare prod.json design.json --check` fecha **0 `DIVERGE(bug)`** em D2/D4/D6/D8 pro par `/forja/mcp` × view `mcp`, tema dark e mesma viewport nos dois lados; e `/forja/handoffs` segue servindo o mesmo painel (a rota não morreu).
+
+**Desvios declarados** (por DADO, não por estilo — o mock tem campo que a tabela real não tem): sem `~onda` (não existe coluna em `cowork_handoffs`); 5 abas de filtro em vez de 6 (o mock tem `merged`, que o dado real não produz; o real tem `superseded`, que o mock não previu e que ganhou pílula neutra); selo de gate omitido quando `gate = 'na'`, como no protótipo.
+
+## UC-FORJA-16 — Changelog desenha o feed do protótipo (dot + corpo), com selo e módulo de coluna REAL
+Status: 🧪 (4 testes de `ForjaChangelogServiceTest` **citam este UC no título** — shape completo, `flags` filtrado, `modules` da coluna, `date_label` dd/mm. Segue 🧪 e não ✅ porque o ✅ vem do manifesto `scripts/casos-test-results.json`, derivado do JUnit do CI pelo `casos-results-publish` — não se escreve à mão.)
+PARIDADE §11 Onda 9 ([ADR 0388](../../../../../../memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md)): a linha do changelog deixa de ser uma tabela achatada de **5 colunas** (dot · id · título · ator · data) e passa a ser a do `ChangelogFeed` de `prototipo-ui/cowork/forja-page.jsx` — **2** colunas (`.fj-feed-dot` + `.fj-feed-body`), com o corpo em topo (`.fj-feed-ref` · `.fj-flag-*` · `.fj-feed-when`), resumo (`.fj-feed-resumo`) e meta (`.fj-role` + `.fj-mod sm`). Zero CSS novo — as classes vieram no bundle da Onda 1. `ForjaChangelogService` passa a servir `flags`, `modules` e `date_label`: `flags` é a interseção das `tags` reais do doc com as **duas** que o protótipo estiliza (`tier-0`, `breaking`); `modules` sai da coluna `module` (a string literal `'null'` do frontmatter legado conta como ausência); `date_label` é a MESMA data de `date`, em `dd/mm`.
+**Pronto quando:** `/forja/changelog` renderiza `.fj-feed-item` com dot + corpo; tag real fora do par renderizável **não** vira selo sem cor; doc sem `module` não desenha chip; e `date` continua ISO (é ele que ordena e vai pro `title` do `.fj-feed-when`).
+
+## UC-FORJA-17 — Sessão sem resumo herda o 1º prompt — acaba a parede "Sessão Claude Code"
+Status: 🧪 (3 testes de `ForjaChangelogServiceTest` **citam este UC no título** — deriva do 1º prompt por `ts`, vazio honesto sem prompt, corte em 160 + PII redigida. Mesmo motivo do UC-FORJA-16 pra seguir 🧪.)
+Medido em 2026-09-02 ([forja-cockpit-visual-comparison.md](../../../../../../memory/requisitos/TeamMcp/forja-cockpit-visual-comparison.md)): produção projetava a string fixa `"Sessão Claude Code"` toda vez que `mcp_cc_sessions.summary_auto` era vazio — uma parede de linhas idênticas. O título agora cai, nesta ordem: (1) `summary_auto`, (2) o **primeiro** prompt do usuário da sessão (`mcp_cc_messages` com `msg_type='user'`, ordenado por `ts` asc) e (3) **string vazia** — e aí o componente omite o parágrafo em vez de inventar rótulo. A derivação roda DEPOIS do corte da lista (≤30 linhas), então são no máximo 30 leituras no índice `cc_msg_sess_ts_idx`. O trecho passa por `PiiRedactor` e é cortado em 160 chars. Sem alargamento de exposição: `/forja/changelog` é `can:jana.mcp.usage.all` (superadmin), mais estreita que a `/team-mcp/cc-sessions` (`jana.cc.read.team`), que já serve `content_text` inteiro.
+**Pronto quando:** sessão sem `summary_auto` mostra o 1º prompt (o mais antigo por `ts`, não o de menor `id`); sessão sem prompt algum fica com título vazio; e e-mail no prompt sai como `[REDACTED:EMAIL]`.
 
 ---
 

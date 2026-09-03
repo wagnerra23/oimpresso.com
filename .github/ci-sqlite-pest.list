@@ -18,6 +18,8 @@
 Modules/Jana/Tests/Feature/Ai/PrUiJudgeAgentTest.php
 Modules/Jana/Tests/Feature/Ai/UiJudgeConsensusTest.php
 Modules/Jana/Tests/Feature/Ai/UiJudgeRunMeasurementTest.php
+Modules/Jana/Tests/Feature/Mcp/Ct100CircuitBreakerTest.php
+Modules/Jana/Tests/Feature/Mcp/HealthCheckCt100ConsolidacaoTest.php
 Modules/Jana/Tests/Feature/Mcp/McpAuthCostEstimateTest.php
 # Scopes MCP visíveis na tela de roles (incidente 2026-07-29 — save de role fazia
 # syncPermissions e apagava os 17 `jana.mcp.*`, derrubando o MCP do time inteiro).
@@ -32,6 +34,12 @@ Modules/Jana/Tests/Feature/MemoryHistoryPruneCommandTest.php
 # padrão do MemoryHistoryPruneCommandTest acima. Medido pelo eixo 2 do
 # test-lane-coverage (--mudos) em 2026-08-10.
 Modules/Jana/Tests/Feature/Ai/BriefDiarioAgentTest.php
+# O IRMÃO do arquivo acima rodava em lane NENHUMA — medido em 2026-09-02 com
+# `git grep BriefDiarioChatTriggerTest -- .github scripts package.json` = 0 hits.
+# Ele guarda o chokepoint que o cliente percorre (detecção do intent "brief" +
+# invocação do agente + curadoria da saída, UC-JCHAT-14): verde que não roda é pior
+# que vermelho. Mesmo guard sqlite-only do vizinho, então é aqui que ele executa.
+Modules/Jana/Tests/Feature/BriefDiarioChatTriggerTest.php
 Modules/Jana/Tests/Feature/Mcp/TaskParserDetectaDivergenciaDescritivaTest.php
 Modules/Jana/Tests/Feature/Mcp/WorkLeaseServiceTest.php
 Modules/Jana/Tests/Feature/Mcp/PlanDriftCommandTest.php
@@ -73,6 +81,10 @@ Modules/Forja/Tests/Feature/HandoffLeverToolTest.php
 # checks reais do PR via GitHub API mockada com Http::fake). Sqlite-safe: tabelas
 # sintéticas em beforeEach, sem rede. Gap 2 do adversário, ADR 0283 (follow-up #2921).
 Modules/Forja/Tests/Feature/ForjaMcpServiceTest.php
+# Forja view Saúde (PARIDADE §11 Onda 7): GUARD do contrato do sparkline — só desenha
+# onde a série É a história da própria métrica. Sqlite-safe: build(null) não semeia nada
+# e todo builder consultado guarda com Schema::hasTable, então degrada pra zeros.
+Modules/Forja/Tests/Feature/ForjaSaudeServiceTest.php
 tests/Feature/Form
 tests/Feature/Services/FeatureFlagServiceTest.php
 Modules/Jana/Tests/Feature/TaskRegistry/FsmTransitionGuardTest.php
@@ -279,6 +291,7 @@ Modules/Forja/Tests/Feature/ForjaQuadroServiceTest.php
 # erro de BINDING, lançado antes do guard de driver. Esta lane o teria pego. A
 # execução real do happy-path (UC-FORJA-01) mora na lane MySQL forja-pest.yml.
 Modules/Forja/Tests/Feature/ForjaRoutesSmokeTest.php
+Modules/Forja/Tests/Feature/ForjaMcpHandoffsInlineTest.php
 Modules/Forja/Tests/Feature/HandoffStaleAlertTest.php
 Modules/Forja/Tests/Feature/HandoffToolsTest.php
 Modules/Forja/Tests/Feature/McpActorsSeederTest.php
@@ -509,3 +522,21 @@ tests/Feature/Sidebar/Biz4RotaLivreSidebarTest.php
 # ⚠️ NAO rodei o Pest (CT 100 only, ADR 0062). A prova de que passou a executar e
 # o CONTADOR da lane no run deste PR — nao este comentario.
 Modules/Jana/Tests/Feature/Smoke/DistillerFreshnessAdvisoryTest.php
+# GUARD do acoplamento label<->group da entry "Visao geral" (landing, topo fixo).
+# Medido 2026-08-28: trocar o label sem declarar `group => 'landing'` joga a
+# entry do destino pos-login em MAIS, porque 'Visao geral' nao aparece em
+# `SIDEBAR_GROUPS.items[]` de grupo nenhum no Sidebar.tsx. O guard so serve se
+# RODAR: `tests/Feature/Sidebar/` tinha 1 unico arquivo nesta allowlist, entao
+# registrar no phpunit.xml nao bastaria (LC-13, "verde por nao-execucao").
+# Sqlite-safe: Menu em memoria via Menu::create + LegacyMenuAdapter->build(),
+# `action()` sobre rota declarada e `trans()` — DB-less, igual ao vizinho da L447.
+tests/Feature/Sidebar/VisaoGeralLandingTest.php
+# Tela de Fabricacao (/manufacturing/recipe): o bloco de CALCULO e DB-less (models em
+# memoria) e roda aqui — R-11/R-12/R-13 do handoff. O bloco de rota pula em sqlite.
+Modules/Manufacturing/Tests/Feature/Wave29RecipeInertiaTest.php
+# Caminho de ERRO do RagasJudgeService (2026-09-02): prende a DISTINCAO entre
+# `insufficient_quota` (billing, fora do repo) e `rate_limit_exceeded` (falta de
+# backoff, aqui dentro) — os dois chegam como HTTP 429 e tem acoes OPOSTAS. O
+# arquivo ja existia e NAO estava nesta lane: estava so no phpunit.xml, que a lane
+# nao usa (ela roda a lista via mapfile). DB-less (Http::fake + Log::spy), sqlite-safe.
+tests/Feature/Ragas/RagasJudgeServiceTest.php

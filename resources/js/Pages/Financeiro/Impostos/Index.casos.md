@@ -34,9 +34,16 @@ NÃO duplica (idempotente por `metadata.guia`). Valor é recalculado no servidor
 **Pronto quando:** título aparece no Unificado (lente A pagar) e re-POST devolve o mesmo numero.
 
 ## UC-IMP-04 — Guia paga vira histórico
-Status: ⬜ (manual — quitar guia no Unificado e conferir status paga)
+Status: 🧪 (ImpostosContractTest C4 — o teste do UC-IMP-11, que refina este, passou a citar UC-IMP-04 no título; lane `financeiro-pest`)
 Título de guia quitado no Unificado aparece na tabela com status **paga** e sai do KPI
 A recolher e do calendário.
+
+> Não é teste novo (2026-08-31): o UC-IMP-11 nasceu declarando-se "refina UC-IMP-04 pra
+> asserção backend" e o C4 já provava o critério — faltava o id no **título**, de onde o
+> veredito é extraído (UC citado só em docblock nunca vira ✅). Mesmo caminho do UC-IMP-05
+> em 2026-07-27. No mesmo passo, a metade "sai do KPI A recolher" deixou de ser inferida:
+> o C4 agora assere `kpis.a_recolher` contra as abertas, em vez de repetir o assert do
+> calendário.
 
 ## UC-IMP-05 — Costura NF↔título (aviso pré-fechamento)
 Status: 🧪 (ImpostosContractTest C3 — o teste do UC-IMP-10, que refina este, passou a citar UC-IMP-05 no título; lane `financeiro-pest`)
@@ -49,9 +56,29 @@ Guias, KPIs, calendário e painel NF nunca misturam business (ADR 0093). Coberto
 `ImpostosGuardTest` (I4).
 
 ## UC-IMP-07 — Disclaimer sempre visível
-Status: ⬜ (manual/visual — disclaimer fixo no rodapé)
+Status: 🧪 (ImpostosContractTest C5a copy na fonte + C5b prop `das_rate`; lane `financeiro-pest`)
 Rodapé fixo: "Estimativa visual … apuração oficial … módulo Fiscal". Anti-pattern do charter:
 nunca apresentar a estimativa como apuração.
+
+> **Era o único UC órfão desta tela** (`uc-orphan:…#UC-IMP-07` no baseline do casos-gate) e o
+> único órfão de risco de negócio do projeto — fechado em 2026-08-31 por duas pernas
+> deliberadamente separadas, porque o coletor resolve o UC como `pass` se ≥1 testcase rodou e
+> nenhum falhou (skip não conta): **C5a** é filesystem puro e nunca pula; **C5b** depende de
+> DB/module gate e pode pular. Juntas num teste só, um env sem banco silenciaria também o
+> guard de copy, que é o que defende o anti-hook.
+>
+> **Limite declarado — o que estas duas pernas NÃO provam:** que o disclaimer está *visível*
+> na tela renderizada. C5a prova que a copy não sumiu da fonte (com os 3 fragmentos do
+> contrato, na ordem do contrato) e C5b que o dado que a alimenta (`das_rate` ≈ 6%) continua
+> vindo do servidor — sem ele a frase renderiza "NaN%", ou seja, existe e mente. Visibilidade
+> real exige e2e/axe ou visual-regression, que esta tela **não tem** (`screen:files` →
+> `e2e (Browser): nenhum teste Browser cita o path`). Enquanto não tiver, o resíduo é este
+> parágrafo, não um ✅.
+>
+> Pegadinha medida ao escrever o C5a, registrada porque ela quase produziu um gate mudo: o
+> cabeçalho do `Index.tsx` (linhas 11-12) **repete a copy em prosa**, então varrer o arquivo
+> inteiro deixava o assert verde mesmo com o `<p>` do disclaimer apagado. O guard só morde
+> porque tira comentários antes de procurar — provado por controle negativo.
 
 ---
 

@@ -10,15 +10,15 @@ use Illuminate\Support\Facades\DB;
  * baseado em mcp_cc_messages (Claude Code sessions ingestadas).
  *
  * Uso:
- *   php artisan copiloto:metricas-reflexivas --days=7
- *   php artisan copiloto:metricas-reflexivas --days=30 --user=1
+ *   php artisan jana:metricas-reflexivas --days=7
+ *   php artisan jana:metricas-reflexivas --days=30 --user=1
  *
  * Permite Wagner verificar: "Claude tá realmente usando MCP primeiro?"
  * sem precisar lembrar manualmente em cada sessão.
  */
 class MetricasReflexivasCommand extends Command
 {
-    protected $signature = 'copiloto:metricas-reflexivas
+    protected $signature = 'jana:metricas-reflexivas
         {--days=7 : Janela em dias retroativos}
         {--user= : Filtra por user_id (Wagner=1, Felipe, etc)}';
 

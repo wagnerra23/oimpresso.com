@@ -308,3 +308,145 @@ it('UC-TRAB-12 — o slug `claude` está no Mesh como AGENTE (o selo lê dado, n
     // dado; heurística de nome erra e mente com confiança (Non-Goal do charter).
     expect(app(TrabalhoService::class)->agentes())->toContain('claude');
 });
+
+/* ════════════════════════════════════════════════════════════════════════════
+ * PARIDADE §11 Onda 4 — a lista virou a RÉPLICA do `forja-page.jsx`.
+ *
+ * Os casos abaixo defendem as DUAS coisas que a réplica trouxe e que nenhum
+ * caso anterior cobria:
+ *
+ *   (a) o VOCABULÁRIO VISUAL agora é espelho da fonte de design (papéis e
+ *       agrupamentos). Espelho sem trava vira segunda declaração que diverge na
+ *       primeira mudança — foi exatamente o incidente que criou o
+ *       `PipelineParidadeTest` (o agente derivou o quadro do CÓDIGO em vez de
+ *       abrir `forja-data.jsx`, e escreveu "F4 não é coluna" como se fosse lei).
+ *
+ *   (b) o KPI virou BOTÃO e FILTRA. O risco novo é o filtro comer o próprio
+ *       painel: se os números respondessem ao recorte que eles mesmos aplicam,
+ *       clicar "P0" zeraria "Fazendo" e "Bloqueadas", e o cartão deixaria de
+ *       dizer o tamanho do problema justamente quando se investiga um.
+ *
+ * Todos leem o protótipo do ESPELHO em `prototipo-ui/cowork/` — a mesma fonte
+ * que o `PipelineParidadeTest` já usa (ADR 0299/0282: a fonte de design é o
+ * protótipo Cowork, não o código).
+ * ══════════════════════════════════════════════════════════════════════════ */
+
+/** Lê um bloco `const NOME = [...]` (ou `{...}`) do protótipo Cowork. */
+function forjaBlocoDoPrototipo(string $arquivo, string $nome, string $abre, string $fecha): string
+{
+    $src = file_get_contents(base_path('prototipo-ui/cowork/'.$arquivo));
+    expect($src)->not->toBeFalse($arquivo.' sumiu — é a âncora de design do hub Forja.');
+
+    $re = '/const '.preg_quote($nome, '/').'\s*=\s*'.preg_quote($abre, '/').'(.*?)'.preg_quote($fecha, '/').';/s';
+    preg_match($re, (string) $src, $m);
+    expect($m[1] ?? null)->not->toBeNull($nome.' mudou de forma no protótipo ('.$arquivo.').');
+
+    return $m[1];
+}
+
+it('UC-TRAB-13 — os PAPÉIS da barra de filtro são os da fonte de design', function () {
+    // O papel é o vocabulário do loop (quem responde por cada fase). Se o
+    // backend inventar uma sigla que o Cowork não conhece, a barra desenha um
+    // botão que nunca casa nada — filtro que devolve vazio sempre, sem erro.
+    $bloco = forjaBlocoDoPrototipo('forja-data.jsx', 'FORJA_ACTORS', '{', '}');
+    preg_match_all('/^\s*(\w+):\s*\{\s*role:/m', $bloco, $m);
+    $doPrototipo = $m[1];
+
+    // Guarda anti-falso-verde: dois vazios seriam "iguais" (mesma guarda do
+    // UC-TRAB-07 e do UC-PIPE-01).
+    expect(count($doPrototipo))->toBeGreaterThan(3, 'Nenhum papel extraído do protótipo.');
+
+    expect(TrabalhoService::PAPEIS)->toBe($doPrototipo,
+        "Os papéis divergiram da fonte de design.\n".
+        '  protótipo (FORJA_ACTORS): '.implode(' · ', $doPrototipo)."\n".
+        '  backend   (PAPEIS)      : '.implode(' · ', TrabalhoService::PAPEIS)."\n".
+        'Papel se inventa no protótipo, não no Service.'
+    );
+});
+
+it('UC-TRAB-14 — os AGRUPAMENTOS da lista são os do protótipo, na mesma ordem', function () {
+    // `FJ_GROUPS` é a barra "Agrupar" do protótipo. A ordem importa: é a ordem
+    // dos botões na tela, e trocá-la muda o que a pessoa acha primeiro.
+    $bloco = forjaBlocoDoPrototipo('forja-page.jsx', 'FJ_GROUPS', '[', ']');
+    preg_match_all('/id:\s*"([^"]+)"/', $bloco, $m);
+    $doPrototipo = $m[1];
+
+    expect(count($doPrototipo))->toBeGreaterThan(3, 'Nenhum agrupamento extraído do protótipo.');
+
+    // O protótipo fala `assignee`/`prio`; o backend fala o vocabulário do
+    // domínio em PT (`papel`/`prioridade`). A tradução é DECLARADA aqui — é a
+    // única diferença aceita, e ela existe porque o resto do módulo já usa
+    // esses nomes (custom_field `forja_papel`, coluna `priority`).
+    $traducao = ['onda' => 'onda', 'frente' => 'frente', 'fase' => 'fase',
+        'assignee' => 'papel', 'prio' => 'prioridade', 'modulo' => 'modulo'];
+    $esperado = array_map(fn (string $g): string => $traducao[$g] ?? $g, $doPrototipo);
+
+    expect(TrabalhoService::GRUPOS)->toBe($esperado,
+        "Os agrupamentos divergiram do protótipo.\n".
+        '  protótipo (FJ_GROUPS): '.implode(' · ', $doPrototipo)."\n".
+        '  backend   (GRUPOS)   : '.implode(' · ', TrabalhoService::GRUPOS)."\n".
+        'Se o Cowork ganhar ou perder um agrupamento, o backend acompanha.'
+    );
+});
+
+it('UC-TRAB-15 — o KPI-filtro recorta a LISTA e NÃO os KPIs', function () {
+    trabalhoExigeSchema();
+
+    // Três tasks de saúdes diferentes: uma P0 aberta, uma fazendo, uma calma.
+    trabalhoTask('KPI-P0', null, 'todo', 'p0');
+    trabalhoTask('KPI-DOING', null, 'doing', 'p2');
+    trabalhoTask('KPI-CALMA', null, 'todo', 'p2');
+
+    $svc = app(TrabalhoService::class);
+    $semFiltro = array_merge(TrabalhoService::filtrosPadrao(), ['sort' => 'id']);
+    $comP0     = array_merge($semFiltro, ['saude' => 'p0']);
+
+    $pool  = $svc->build($comP0)['tasks'];
+    $kpis  = $svc->build($comP0)['kpis'];
+    $lista = $svc->filtrar($pool, $comP0);
+
+    $idsLista = $lista->pluck('task_id')->all();
+
+    // (1) A LISTA recortou: só a P0 aberta sobrevive.
+    expect($idsLista)->toContain('TRAB-TEST-KPI-P0');
+    expect($idsLista)->not->toContain('TRAB-TEST-KPI-DOING');
+    expect($idsLista)->not->toContain('TRAB-TEST-KPI-CALMA');
+
+    // (2) Os KPIs NÃO: `fazendo` segue contando a task que a lista escondeu.
+    //     É o coração do caso — sem ele o painel mentiria sobre o tamanho do
+    //     problema exatamente quando alguém está investigando um.
+    expect($kpis['fazendo'])->toBeGreaterThan(0,
+        'O KPI "Fazendo" zerou sob o filtro P0 — o recorte comeu o próprio painel. '.
+        'Os números vêm do POOL (build); o recorte é do filtrar().'
+    );
+
+    // (3) E o pool que alimenta os KPIs é o mesmo com e sem filtro de saúde:
+    //     `saude` não pode ter entrado na consulta nem na chave de cache.
+    expect($svc->build($comP0)['kpis'])->toBe($svc->build($semFiltro)['kpis'],
+        'Mudar `saude` mudou os KPIs — o filtro vazou pra query (ou pra chave de cache).'
+    );
+});
+
+it('UC-TRAB-16 — grupo, saude e papel têm default e allowlist', function () {
+    // Mesma razão do `sort` (UC-TRAB-03): valor livre viraria estado desconhecido
+    // no front, que renderiza vazio SEM ERRO. Em `saude`/`papel` seria pior —
+    // recorte silencioso que ninguém pediu e ninguém vê.
+    $padrao = TrabalhoService::filtrosPadrao();
+
+    expect($padrao['grupo'])->toBe('frente');
+    expect($padrao['saude'])->toBeNull();
+    expect($padrao['papel'])->toBeNull();
+
+    expect(TrabalhoService::GRUPOS)->toContain('frente');
+    expect(TrabalhoService::SAUDE)->toBe(['p0', 'fazendo', 'bloqueadas']);
+
+    // O `filtrar()` IGNORA valor fora da allowlist em vez de devolver lista
+    // vazia: filtro desconhecido não pode APAGAR a tela.
+    $tasks = collect([[
+        'task_id' => 'X', 'priority' => 'p2', 'status' => 'todo',
+        'blocked_by' => [], 'forja_papel' => null,
+    ]]);
+    $svc = app(TrabalhoService::class);
+    expect($svc->filtrar($tasks, ['saude' => 'inventado'])->count())->toBe(1);
+    expect($svc->filtrar($tasks, ['papel' => 'ZZ'])->count())->toBe(1);
+});

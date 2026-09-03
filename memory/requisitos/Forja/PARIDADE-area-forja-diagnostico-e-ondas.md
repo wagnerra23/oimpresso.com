@@ -71,6 +71,7 @@ Presença no espelho não é pedido (lápide §5 2026-08-17). Para cada uma, a p
 
 - **`saude` → o receptor É o Scorecard, e a rota própria nunca existiu.** O `Cockpit.casos.md` carrega a errata de 2026-07-27, textual: *"A rota `/forja/saude` **nunca existiu** nesta versão — `ForjaRoutesSmokeTest` a listava e por isso falhava; removida em #4887"*. "Saúde" no topnav aponta pro `/team-mcp/scorecard` real. Logo `SaudeView` não abre tela nova: é âncora **do Scorecard** (Onda 6).
 - **`integra` → propósito já cumprido; é fóssil.** `ForjaIntegrador` desenha a ponte "Forja ↔ TeamMcp". Essa fusão **aconteceu** em 2026-07-31 (o `SCOPE.md` registra o TeamMcp deletado e as capacidades movidas pra cá). Uma tela pra integrar dois módulos que hoje são um só não tem alvo. **Nenhuma onda.** Se [W] discordar, é decisão dele — não é gap a fechar.
+  - ⚠️ **[W] DISCORDOU — 2026-09-01.** A cláusula de escape acima foi acionada: [W] mandou o render do `ForjaIntegrador` com a legenda textual *"isso que é esperado"*, e o topnav desse render tem `Integrador` como um dos **6** destinos (grupo Histórico). O raciocínio de 08-18 continua registrado e não era errado — a fusão de fato aconteceu; o que ele não podia saber é que o dono queria a tela **como referência viva da absorção**, não como registro de uma migração encerrada. Consequência: `integra` **sai** de "sem onda" e o §9.4 fecha (ver lá). A onda dela ainda não está numerada — depende da Onda 0, como as demais do Cockpit.
 - **`ForjaNotifs`** desenha notificações, cujo receptor natural (`Inbox`) a 0367 D5 **mata sem receptor**. Fica em §9 como pergunta, não como onda.
 
 ## 5 · O conflito que bloqueia metade das ondas: 3 implementações da mesma pergunta
@@ -104,6 +105,50 @@ Medido em **2026-08-18** com `npm run screen-coverage:report` e `npm run casos:r
 Com `casos.md` hoje: `Aprovacoes` · `Board` · `Inbox` · `Roadmap/Gantt` · `Trabalho` · `Triage` · `Cockpit` · `Scorecard`. Sem: `Activity` · `Backlog` · `Burndown` · `MyWork` · `Roadmap/Index` · `Tasks` · `Team` · `CcSessions`.
 
 ⛔ **Zerar essa coluna em lote é proibido**, e o dono já escreveu por quê: `US-FORJA-008` — *"Big-bang é proibido… `casos.md` com UC sem teste **quebra o `casos-gate` G-2**, bloqueando o merge de quem for atender a US"*. O caminho é **oportunístico**: o `casos.md` nasce **só na tela que a onda tocar**, no mesmo PR, com ≥1 teste citando cada UC, e o UC **derivado do contrato** (SDD/charter/SPEC) — nunca lido do `.tsx`.
+
+## 6-bis · Primeira medição de fidelidade da área — topnav do Cockpit (2026-09-01)
+
+> O bloco **"Limite deste documento"** no topo dizia que **nenhuma** medição de fidelidade tinha
+> rodado nesta área. Rodou hoje, em **um** eixo: o topnav do hub (`ForjaHub.tsx`, compartilhado
+> pelas 6 rotas do Cockpit). Isto **não** fecha o §9.5 — o `--compare` do espelho segue órfão; o
+> que rodou foi a **sonda nos dois renders**, que é a outra metade do que aquele bloco exigia.
+
+**Como reproduzir.** Protótipo: servir `prototipo-ui/cowork` por HTTP estático (o
+`.claude/launch.json` já tem entradas prontas apontando pro espelho — não crie mais uma pro seu
+worktree, ela vira caminho morto quando ele sair) → abrir `oimpresso.com.html` →
+`localStorage["oimpresso.route"]="teammcp"` (a chave de rota do shell; `"forja"` **não** é
+o valor — `app.jsx` casa `projects`/`teammcp`) → esperar
+`window.__oiLazyDone` **e** duas leituras iguais de `document.querySelectorAll('*').length`
+antes de medir (997/997 — §5 2026-08-24, não medir durante o lazy-load). Produção:
+`https://oimpresso.com/forja` autenticado, mesma espera (722/722). Sonda: soma das larguras dos
+filhos do nav + `gap × (n−1)`, e `getComputedStyle` no rótulo de grupo — **o que o browser
+resolveu**, nunca a classe declarada (§5 2026-07-16).
+
+| campo | protótipo | produção | veredito |
+|---|---|---|---|
+| destinos no topnav | 6 | 13 | DIVERGE (a classificar) |
+| largura do conteúdo do nav | 784,4px | 1447,6px | — |
+| cabe em 972px (1280 − sidebar 260 − padding 48)? | sim, sobra 188 | **não, falta 476** | DIVERGE (bug) |
+| contêiner do grupo | pílula `.fj-navgroup` — `bg oklch(0.23 0.006 240)` · borda 1px `oklch(0.34 0.008 240)` · `radius 8px` · `padding 2px` · `gap 2px` | sem contêiner; divisor de 1px entre grupos | DIVERGE (a classificar) |
+| `letter-spacing` do rótulo de grupo | **+0,665px** (`.07em`) | **−0,2375px** (`tracking-tight`) | DIVERGE (bug) |
+| rótulo visível a 1427px | sim (`display:block`) | não (`hidden … 2xl:inline`, só ≥1536) | DIVERGE — consequência da linha acima |
+
+**O que estes números mudam na ordem das ondas.** A pílula e o rótulo sempre-visível do protótipo
+só cabem **porque lá são 6 destinos**. Aplicá-los sobre os 13 de hoje agravaria um nav que já
+estoura 476px a 1280. No eixo topnav, portanto, **reduzir precede vestir** — e reduzir **é** a
+Onda 0 (§5 + §9.2), não um passo de CSS da Onda 5. Quem tentar "só deixar parecido com o
+protótipo" antes da Onda 0 vai piorar a barra.
+
+**Onde cada destino removido vai parar** — medido clicando as 6 views do protótipo servido, não
+inferido do `.jsx`:
+
+| destino que sai do topo | receptor no protótipo |
+|---|---|
+| Backlog · Quadro · Tarefas | segmento de **Trabalho** — a linha de migração do `localStorage` já colapsa as três (§3) |
+| Triagem | tipo `Proposta` dentro de **Aprovações** |
+| Handoffs · Equipe | seções de **MCP**: `HANDOFFS F1→F3 · COWORK · CODE` (chips todas/pendente/aplicado/mergeado/bloqueado/parado) + `CONTRATO DE FERRAMENTAS` + `TOKENS ATIVOS` |
+| CC Sessions | segmento `Sessões` de **Changelog** (`Tudo · PRs · ADRs · Sessões · Ondas`) |
+| Roadmap (Gantt) | **sem receptor no protótipo** — único dos 8 sem destino declarado; vira pergunta pro §9 |
 
 ## 7 · As ondas
 
@@ -144,8 +189,29 @@ Com `casos.md` hoje: `Aprovacoes` · `Board` · `Inbox` · `Roadmap/Gantt` · `T
 1. **Ratificar (ou não) a ADR 0367.** Ela está `proposto` com decisão datada. Enquanto não ratificada, as 8 telas seguem vivas em produção enquanto o manual as trata como mortas — divergência declarada, não silenciosa.
 2. **`US-FORJA-006` — qual implementação sobrevive** por pergunta (backlog / quadro / triagem), e a perdedora **removida**. É a Onda 0; nada de 2-5 deveria começar antes.
 3. **`US-TR-305`/`US-TR-306` (Inbox) — matar de fato ou reabrir?** A 0367 D5 as declarou perda consciente; o Daily Brief **ainda as lista em voo**. Enquanto isso não fecha, alguém pode entregar trabalho que a decisão manda deletar.
-4. **`integra` e `ForjaNotifs`** — confirmar que são fósseis (§4) ou declarar receptor.
+4. ~~**`integra` e `ForjaNotifs`** — confirmar que são fósseis (§4) ou declarar receptor.~~
+   **`integra`: RESPONDIDA por [W] em 2026-09-01** — não é fóssil, é o esperado (§4, errata). Vira
+   onda quando a Onda 0 destravar; a tela **não existe** em produção hoje (nenhum `.tsx` a serve),
+   então é construção, não re-skin. **`ForjaNotifs` segue em aberto** — o receptor natural (`Inbox`)
+   continua morto pela 0367 D5.
 5. **Teto de fidelidade do `DesignSync.get_file`** — ⚠️ **CORRIGIDO 2026-08-27: a frase original dizia "arquivo grande" e estava INVERTIDA.** Ela não era refutável quando escrita (este doc é de 08-18; a fronteira foi medida em 08-20) — caducou. O medido (`protocolo.config.mjs:214-217`): conteúdo **acima de ~48 KB volta PERSISTIDO em disco** e é justamente o que desce fiel por `get_file → --export-from`; **abaixo do piso volta INLINE** e é o que não desce. O `#5757` é a mesa do arquivo **pequeno**, a metade oposta da citada. No corpus desta área, **1 de 6** `forja-*.jsx` é grande (`forja-page.jsx` 90.503 B); os outros cinco (7 KB–31 KB) é que ficam de fora da rota avulsa — e a rota que resolve os dois é o bundle v2. Prova por consequência: os 8 arquivos do Ponto desceram por essa rota em 08-20 (`SYNC_LOG.md:255`), incluindo `ponto-telas.jsx` de 66.169 B. **O bloqueio real desta área é outro, e é mais barato:** o `--compare` nunca rodou aqui — aborta com *"exige um snapshot.json existente"* (`:8`). É **medição órfã**, não teto.
+6. **`Roadmap (Gantt)` tem receptor no protótipo?** Ele está no topnav de produção (13º destino) e
+   **não aparece** nas 6 views do protótipo (§6-bis) — único dos 8 destinos absorvidos sem receptor
+   medido. Ou o protótipo está atrás do produto neste eixo, ou o Gantt sai do topo junto com os
+   outros 7. A Onda 4 depende dessa resposta.
+7. ~~**A redução 13 → 6 do topnav**~~ — **DESTRAVADA por [W] em 2026-09-01**, textual:
+   *"remova a proibição, estou mandando"*. A trava era a `US-FORJA-006` ("não remover antes de [W]
+   decidir qual sobrevive"); [W] decidiu mandando o render do protótipo. **Executado em parte no
+   mesmo dia: 13 → 9.** Saíram os **4 cuja absorção foi medida em produção** — `Backlog`→segmento
+   Lista, `Quadro`→segmento Quadro, `Tarefas`→a lista já é o universo (`SEM FRENTE — 375`),
+   `Roadmap (Gantt)`→o segmento Gantt **navega** pra `/forja/roadmap-gantt` (clicado e conferido).
+   Rotas intactas; saiu o item do topo, não a tela.
+   **Os 3 que faltam pra chegar em 6 dependem de construção, não de decisão** — e por isso não
+   saíram: `Handoffs` e `Equipe` são seções do MCP no protótipo, mas o `/forja/mcp` de produção
+   é **MOCKADO** e não tem nenhuma das duas; `CC Sessions` é o segmento `Sessões` do Changelog, e o
+   Changelog de produção projeta só sessão sem título (parede de "Sessão Claude Code" idênticas);
+   `Triagem` vira tipo `Proposta` em Aprovações, que abre **vazia** enquanto a Triagem tem 3
+   tickets vivos. Removê-los agora encurtaria a barra perdendo produto.
 
 ## 10 · Como manter este documento
 
@@ -154,3 +220,128 @@ Com `casos.md` hoje: `Aprovacoes` · `Board` · `Inbox` · `Roadmap/Gantt` · `T
 3. Onda concluída: marque **aqui** com o PR e o recibo do smoke; o contrato da tela mora no `casos.md` dela, não nesta tabela.
 4. Mudou a fronteira/proveniência: o dono é o `SCOPE.md`. Mudou requisito: `SPEC.md`/charter/casos. Este arquivo só reconcilia **ordem e veredito**.
 5. Fases/comandos do protocolo: **nunca** copiar pra cá — apontar pro painel.
+
+## 11 · Decisão [W] de 2026-09-02 e a META (o que "igual ao protótipo" significa em número)
+
+**Decisão, textual:** *"pode fazer igual ao protótipo e revogar todo o resto (…) se tiver que apagar para refazer de novo, faça. Eu apenas quero que trace uma meta de conseguir fazer o mesmo layout. O resto não importa. Não uso ainda essa tela."* Isso responde de uma vez os itens 2, 4, 6 e 7 do §9 e a Onda 0 do §7: **o protótipo é a implementação que sobrevive**; as três por pergunta (§5) e as 8 telas de §2.2 são a perdedora e **saem**, não ficam mortas ao lado. O item 1 (ratificar a 0367) já aconteceu — ela está `aceito`.
+
+**A meta é medida, não olhada** (skill `comparar-design-prod`; primeira rodada em [forja-cockpit-visual-comparison.md §2026-09-02](../TeamMcp/forja-cockpit-visual-comparison.md)):
+
+| eixo | alvo | como se prova |
+|---|---|---|
+| views | as **6** do `forja-page.jsx` servidas pelo `Cockpit` em 6 rotas `/forja/*` (Aprovações é a landing) | `route:list --path=forja` + render de cada uma |
+| topnav | **6** destinos em **3** grupos-pílula, **na linha do header**, cabendo a 1280 | sonda do §6-bis |
+| fidelidade por view | `design-diff --compare --check` com **0 `DIVERGE(bug)`** em D2/D4/D6/D8, tema dark nos dois lados, roles iguais | 1 par por view, JSON no PR |
+| rede | D1 parcial (marcador sobrevive ao clique) em toda ação de filtro/aba | `read_network_requests` |
+| revogação | 0 rota `/project-mgmt/*`, 0 `.tsx` das 8 telas de §2.2, 0 componente `_components/Forja{Backlog,Quadro,Triage}` | `git grep` contado + `route:list` |
+| vocabulário | as telas usam o bundle `cowork-forja-bundle.css` (classes `fj-`/`ap-`/`tf-`), zero utilitária Tailwind de cor/espaço no que o bundle já cobre | `ds-guard` + `conformance-gate` |
+
+**Ondas (1 PR cada, ≤300 linhas de prosa; CSS/JSX copiado de máquina não conta):**
+
+| # | onda | fecha com |
+|---|---|---|
+| 0 | esta decisão registrada (SPEC US-FORJA-006 + este §) | merge |
+| 1 | `cowork-forja-bundle.css` inteiro no chão + tokens `--dev*` na fundação | gates CSS verdes |
+| 2 | shell: header com topnav inline 6/3 grupos, 6 rotas, `Cockpit` roteando por view | sonda do topnav = protótipo — **✅ [#6553](https://github.com/wagnerra23/oimpresso.com/pull/6553)** (merge `e1412acef3`, deploy 2026-09-02 16:00Z): 6/6 · 3/3 · mesma linha · pílula/rótulo idênticos; a sonda pegou **3 DIVERGE** (line-height do preflight, padding copiado do `@media`, `--accent` dark 0,55×0,70) → **Onda 2.1 ✅ [#6563](https://github.com/wagnerra23/oimpresso.com/pull/6563)** (deploy `a91ce0cd5c`): os 3 re-medidos em prod = protótipo (88,4px · 25px · `oklch(0.7 …)`); recibo em [forja-cockpit-visual-comparison.md §2026-09-02 tarde](../TeamMcp/forja-cockpit-visual-comparison.md). Ressalva medida: a 1280 o **shell** do protótipo vira rail 56px e o header quebra em 3 linhas — prod só faz rail por toggle; é fundação, não Forja |
+| 3 | Aprovações (view `hoje`) | compare 0 bug — **código aplicado, medição pendente**: a tela virou o markup do [`forja-aprova.jsx`](../../../prototipo-ui/cowork/forja-aprova.jsx) (herói + faixa "Ao vivo no MCP" + mesa + placar), com backend novo pros 2 itens que o [W] pediu em 2026-08-08 e estavam sem fonte. **Achado:** a âncora do charter apontava o `forja-page.jsx`, que só MONTA a view — o markup mora no `forja-aprova.jsx`; corrigido. 3 divergências declaradas (verbos do FSM, dono da caixa de nota, os 4 tipos) e 2 colunas do placar sem fonte, que mostram "—" em vez de número inventado. Gates locais verdes; a11y da fila **melhorou** vs o protótipo. Falta deploy + sonda nos dois lados — recibo em [forja-cockpit-visual-comparison.md §2026-09-02 noite](../TeamMcp/forja-cockpit-visual-comparison.md) |
+| 4 | Trabalho · lista | compare 0 bug — **🟡 [#6577](https://github.com/wagnerra23/oimpresso.com/pull/6577) aberto, aguardando merge [W]**: as 3 barras de filtro, a `fj-row` densa, o KPI que FILTRA (`BUTTON`, valor 17px) e o `--accent` dark 0,70. ALVO medido no protótipo antes de codar (dark, `__oiLazyDone` + 2 leituras iguais — recibo em [forja-cockpit-visual-comparison.md §2026-09-02 noite](../TeamMcp/forja-cockpit-visual-comparison.md)): filtro **3** linhas · KPI **4/BUTTON/17px/left** · `.fj-row` **13** filhos. A réplica entrega **11 de 13** — os 2 ausentes são DECLARADOS (`fj-rowcheck`, que exige mutação em massa sem endpoint; `fj-fresco`, campo que `mcp_tasks` não tem). **A sonda pareada ainda NÃO rodou** — ela exige o deploy, e nada foi declarado "0 bug" antes dela |
+| 5 | Trabalho · quadro (2 eixos) | compare 0 bug |
+| 6 | Trabalho · gantt | compare 0 bug |
+| 7 | Saúde | compare 0 bug |
+| 8 | MCP + Handoffs dentro | compare 0 bug — **🧪 código no ar em PR** (2026-09-02): a view virou réplica (`fj-mcp*`/`fj-perm*`/`fj-token*`/`fj-audit*`/`fj-ho-*`) na ordem do protótipo (intro `mockado` → **Handoffs F1→F3** → grid [contrato \| tokens] → auditoria), e o painel voltou pra dentro — mesmo componente que `/forja/handoffs` (rota viva), mesma projeção `ForjaMcpService`, `Inertia::defer` nos dois. Causa-raiz do D4 medida e corrigida: `.mono` é do **shell** do protótipo (`styles.css:1740`) e **não existe em produção** (0 ocorrências globais) — desceu escopada. Valores-alvo do lado design medidos em [forja-cockpit-visual-comparison.md §Onda 8](../TeamMcp/forja-cockpit-visual-comparison.md). **O `compare 0 bug` NÃO está fechado**: exige prod deployada, e merge de `.tsx` é humano ([ADR 0283](../../decisions/0283-handoff-loop-zero-paste.md)) |
+| 9 | Changelog | compare 0 bug — **réplica aplicada** (PR desta onda, 2026-09-02): a linha virou a do `ChangelogFeed` (**2** células, dot + corpo em 3 blocos) contra as **5** colunas achatadas que a medição da manhã pegou, e a parede de `"Sessão Claude Code"` acabou (o título cai em `summary_auto` → 1º prompt de `mcp_cc_messages` → **vazio honesto**). `flags`/`modules` passam a vir de coluna real (`tags` ∩ {`tier-0`,`breaking`} · `module`). Zero CSS novo. **O `compare --check` segue PENDENTE** — precisa do deploy, e o merge de `.tsx` é humano ([ADR 0283](../../decisions/0283-handoff-loop-zero-paste.md)); o alvo do protótipo e a estrutura da réplica já estão medidos em [forja-cockpit-visual-comparison.md §2026-09-02 (Onda 9)](../TeamMcp/forja-cockpit-visual-comparison.md), com o comando do pós-deploy escrito lá |
+| 10 | Integrador | compare 0 bug |
+| 11 | revogação: `/project-mgmt/*`, duplicatas, rotas, testes, `SCOPE §cockpit` | **✅ PARCIAL — 7 das 8 telas** — [#6617](https://github.com/wagnerra23/oimpresso.com/pull/6617) (merge `e2c8397031`, 2026-09-03 12:38Z). Smoke em prod no §11.2. Ver §11.1 pro que ficou |
+
+**Ressalva que continua valendo:** o segmentado Lista|Quadro|Gantt do protótipo depende do `Segmented` do DS, que o snapshot local (pacote de 24/08) não publica. Em produção ele existe (`Components/ui`), então a onda 4 não fica bloqueada — o que fica cego é a **medição local** dessa peça até o Cowork regerar o pacote.
+
+### 11.1 · Onda 11 executada em PARTE (2026-09-02) — o que saiu, o que ficou e por quê
+
+A onda foi pedida "depois das Ondas 3-10". **Medido em `origin/main`: as Ondas 3-10
+não existem** — 0 commit, 0 PR aberto (mergearam 0 · 1 · 2 · 2.1). A revogação
+correu só onde o receptor está **no ar e medido**; o resto fica declarado, não
+esquecido.
+
+**Saíram (7 telas + controllers + rotas + navegação + testes):**
+
+| tela | receptor | como foi medido |
+|---|---|---|
+| `Backlog/Index` | `/forja/trabalho?visao=lista` | `SCOPE.md:13` — "funde os TRÊS backlogs" |
+| `Board/Index` (+`DetailSheet`) | `/forja/trabalho?visao=quadro` | `TrabalhoController:95` allowlist da `visao` |
+| `Triage/Index` | aba `/forja` | ADR 0367 **D6**: "morre a tela, fica a aba" |
+| `MyWork` · `Inbox` · `Burndown` | — | ADR 0367 **D5**: perda consciente, custo aceito |
+| `Activity` | — | ADR 0367 **D1** |
+
+**FICOU `Roadmap/Index`** (o 8º). A **D7** condiciona a saída a *"o Gantt provar que
+substitui (filtro por cycle efetivo + volume domado)"*.
+
+⚠️ **Atualizado 2026-09-03: a Onda 6 RODOU ([#6624](https://github.com/wagnerra23/oimpresso.com/pull/6624)) e a D7 continua NÃO satisfeita.** Medido: o #6624 tocou **só o frontend** (`Gantt.tsx` + charter + casos, 58 linhas) — âncora e barra de totais, fidelidade visual. O `RoadmapGanttController` não mudou, e ele **já tinha** as duas peças que a D7 pede (`MAX_TASKS = 500` e filtro por cycle). Ou seja: a condição da D7 nunca dependeu da Onda 6. O que decide é o que o próprio `SCOPE.md` registra sobre os dois — *"nenhuma responde a pergunta da outra (o quarter não tem due_date/blocked_by, o Gantt não tem epic_id)"*. Enquanto isso valer, o Gantt **não substitui** o quarter view, e a saída dele é decisão [W], não consequência de uma onda.
+Revogá-la seria eu sobrepor ADR aceita — decisão [W], não minha.
+
+**FICARAM os 3 `_components/Forja{Backlog,Quadro,Triage}`**, que o §11 também lista.
+`Cockpit.tsx:19-21` **importa os três**, e `ForjaTriage` serve `/forja` — a landing
+do módulo e o alvo do botão primário "Novo issue" (`ForjaHub.tsx:136`). Apagar hoje
+derruba a landing. Destrava na **Onda 3**, que faz Aprovações virar a landing.
+
+**Dois achados que o §11 não previa** — e o primeiro era um buraco real:
+
+1. **A navegação da área tem TRÊS superfícies, não uma.** O §11 listava "rotas,
+   testes e SCOPE". Faltava `Modules/Forja/Resources/menus/topnav.php` — a superfície
+   **viva** (`LegacyMenuAdapter` → `shell.topnavs.Forja`), que tinha **8 itens, todos
+   apontando pras telas revogadas**. Sem tocá-la, as telas morriam e o menu seguia
+   oferecendo-as. A 3ª superfície é o `DataController::modifyAdminMenu()`, onde um
+   `return` **incondicional** na linha 116 já tornava tudo abaixo código morto.
+2. **Um bug vivo, achado pelo caminho.** `SearchController` devolvia `url` de
+   resultado do ⌘K apontando pra `/project-mgmt/board?project=X`. O 301 teria
+   **descartado o `?project=`**. Reapontado pros filtros que o receptor de fato
+   aceita (`q`, `cycle`); `project` não existe lá por decisão [W], então o resultado
+   de Projeto vai pra lista inteira — perda declarada.
+
+**Placar honesto contra a meta do §11** (a meta pedia `git grep` = 0):
+
+| alvo | antes | depois | por quê não zerou |
+|---|---|---|---|
+| rotas nomeadas `project-mgmt.*` | 32 | **5** | 4 são `install.*`, **obrigatórias** pela ADR 0024 (sem elas o botão Install fica sem ação); 1 é o `roadmap` da D7 |
+| `.tsx` das 8 telas de §2.2 | 8 | **1** | `Roadmap/Index`, pela D7 |
+| `_components/Forja{Backlog,Quadro,Triage}` | 3 | **3** | deps vivas do `Cockpit` — Onda 3 |
+
+Os caminhos revogados viram **301 sem nome de rota**: medi **113 citações** de
+`/project-mgmt/*` em `memory/**`, e o time que entra pelo MCP segue esses links.
+Rota morta não volta pelo nome; caminho velho continua levando a algum lugar.
+
+### 11.2 · Recibo do smoke em produção (2026-09-03, pós-deploy do `e2c8397031`)
+
+O Infra Contract do PR previu um flip falsificável: **antes**, as 8 rotas afetadas
+respondiam `302 → /login` (medido em 2026-09-03 pré-merge); **depois**, só as 7 revogadas
+deveriam virar `301` pro receptor, com os controles intactos. Medido em prod:
+
+| rota | antes | depois | veredito |
+|---|---|---|---|
+| `/project-mgmt/board` | 302 | **301** → `/forja/trabalho?visao=quadro` | ✅ |
+| `/project-mgmt/backlog` | 302 | **301** → `/forja/trabalho?visao=lista` | ✅ |
+| `/project-mgmt/triage` | 302 | **301** → `/forja` | ✅ |
+| `/project-mgmt/my-work` | 302 | **301** → `/forja/trabalho` | ✅ |
+| `/project-mgmt/inbox` | 302 | **301** → `/forja` | ✅ |
+| `/project-mgmt/activity` | 302 | **301** → `/forja/changelog` | ✅ |
+| `/project-mgmt/burndown` | 302 | **301** → `/forja` | ✅ |
+| `/project-mgmt` (raiz) | — | **301** → `/forja` | ✅ |
+| `/project-mgmt/roadmap` (D7) | 302 | **302** → `/login` | ✅ controle |
+| `/forja/trabalho` | 302 | **302** → `/login` | ✅ controle |
+| `/forja/aprovacoes` | 302 | **302** → `/login` | ✅ controle |
+
+Duas verificações além da tabela:
+
+- **A busca global mudou de prefixo e sobreviveu.** `/forja/search` responde `302 → /login`
+  (existe, atrás do auth) e `/project-mgmt/search` responde **404** — correto: ela nunca foi
+  tela, é o endpoint que o `CommandPalette.tsx` consome, e o consumidor foi reapontado no
+  MESMO PR. Não deixei 301 nela de propósito (endpoint de API, não caminho que humano digita).
+  Resíduo honesto: numa janela curta pós-deploy, um browser com bundle JS em cache ainda
+  chama o path velho e recebe 404 — o ⌘K volta ao normal no primeiro reload.
+- **A cadeia resolve, não só o primeiro hop.** `curl -L` em `/project-mgmt/board` termina em
+  `200` após **2 hops** (`301` → receptor, `302` → `/login`) — o 301 aponta pra rota viva,
+  não pra outro caminho morto.
+
+**O que este recibo NÃO prova:** que as telas receptoras *renderizam certo* — todo controle
+parou no `/login`, porque o smoke rodou sem sessão. Fidelidade visual das views é das Ondas
+3-10 e se mede por `design-diff`, não por status HTTP.
+

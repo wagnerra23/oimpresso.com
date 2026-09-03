@@ -157,13 +157,27 @@ export default function KpiCard({
                 que este ajuste fundiu:
                   `emphasize`            → `.jc-kpi.emph`  = borda + fundo, NÃO toca o valor
                   `deltaCls === "red big"` → `.jc-kpi-v.red` = a cor do VALOR
-                E o `JanaCockpit.tsx` declara que `tone` mapeia a `emphasize` ("1 de 4 com
+                E o `JanaCockpit.tsx` declara que `tone` mapeia a `emphasize` ("1 de **3** com
                 `emphasize:true`"). Ou seja: pendurou-se no eixo do FUNDO um efeito que a âncora
                 pendura no eixo do DELTA. Passou despercebido porque o dataset tem N=1 — o único
                 KPI marcado ("A receber vencido") carrega os DOIS campos, e com um ponto só os
                 eixos são indistinguíveis. A conclusão foi INTERPOLADA, não lida do contrato.
-                Some-se que o bloco de dados que a sustenta é o retrato do Martinho — o mesmo que
-                renderiza "Frota utilização", banido pelo §5 de 2026-08-10.
+                Some-se que o bloco de dados que a sustenta é o retrato do Martinho.
+
+                ⚠️ DOIS NÚMEROS DESTE PARÁGRAFO FORAM CORRIGIDOS EM 2026-08-31, medidos:
+                  · era "1 de 4" — o `chat-jana.jsx` publica **3** KPIs, não 4
+                    (`grep -c emphasize` → 2: o dado em `:94` e o render em `:256`).
+                    O `JanaCockpit.tsx` foi corrigido no mesmo diff; esta linha o CITA, então
+                    tinha que cair junto, senão vira canon citando canon que já mudou.
+                  · era "…o mesmo que renderiza 'Frota utilização'". **O dataset NÃO renderiza
+                    frota.** As análises publicadas são 5 — `inad fat conc churn cheq` — e a
+                    classe `jc-an-frota` (`:371`) é o ramo de `a.kind === "donut"`, kind que
+                    **nenhuma** delas usa: ramo morto. E na âncora oficial (`jana-merge.jsx`)
+                    frota não existe de forma alguma (`grep -in 'frota\|truck'` → rc=1, zero,
+                    com controle positivo `grep -c JM_KPI_DRILL` → 2, rc=0).
+                O **veredito** [W] de 2026-08-10 sobre não construir frota segue de pé — o que
+                caiu foi a afirmação de que este dataset a exibe. N=1 e o argumento do eixo
+                continuam INTACTOS: a dúvida deste bloco não depende desses dois números.
                 NÃO revertido porque a decisão é de produto ([W]), e porque o efeito (número que
                 dói em vermelho) é defensável por si. Mas NÃO se apoie nisto como "a âncora manda":
                 ela manda no `deltaCls`, e este componente não tem esse campo.

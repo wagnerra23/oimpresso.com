@@ -7,6 +7,7 @@ namespace Modules\Jana\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Modules\Jana\Services\AcaoHitlService;
 
 /**
@@ -32,6 +33,26 @@ use Modules\Jana\Services\AcaoHitlService;
  */
 class AcaoHitlController extends Controller
 {
+    /**
+     * A fila (`GET /ia/acoes`) — aba Ações da área Jana (2026-09-02). Era o "PR
+     * próprio" que o docblock acima prometia: lista as 5 ações com prévia do
+     * servidor e o último recibo de cada uma. Aprovar continua sendo `aprovar()`
+     * (o modal do Painel é reusado); o disparo segue fora.
+     */
+    public function index(Request $request, AcaoHitlService $hitl)
+    {
+        $businessId = (int) $request->session()->get('user.business_id');
+
+        return Inertia::render('Jana/Acoes', [
+            'acoes' => $hitl->fila($businessId),
+            'janaContext' => [
+                'businessId'   => $businessId,
+                'businessName' => (string) ($request->session()->get('business.name') ?? ''),
+                'userName'     => optional(auth()->user())->name,
+            ],
+        ]);
+    }
+
     public function previa(Request $request, string $acao, AcaoHitlService $hitl): JsonResponse
     {
         abort_unless($hitl->existe($acao), 404);

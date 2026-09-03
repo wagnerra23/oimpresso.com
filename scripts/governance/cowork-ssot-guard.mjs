@@ -21,7 +21,10 @@
 // Falha (exit 1) se:
 //   R1  qualquer .md dentro de cowork/        (knowledge = canon: memory/ + prototipo-ui root, não aqui)
 //   R2  bundle datado prototipo-ui/cowork-*/  (SSOT é UM cowork/, sem datados = sem 2ª fonte)
-//   R3  prototipo-ui/prototipos/<dir> fora do allowlist transitório
+//   R3  prototipo-ui/prototipos/<dir> fora do allowlist transitório OU da lista histórica
+//   R4  .html na RAIZ de cowork/ que não seja o host oimpresso.com.html (host único — pedido
+//       do lado design 2026-09-01; nasceu limpo: a 2ª cópia da raiz [Prova Viva] foi movida
+//       pra prototipos/ no mesmo PR que criou a regra, então dívida herdada = 0 por medição)
 //
 // Uso: node scripts/governance/cowork-ssot-guard.mjs [--json]
 import { readdirSync, existsSync } from 'node:fs';
@@ -35,6 +38,16 @@ const COWORK = 'prototipo-ui/cowork';
 // 'perfil' = baseline da Fase 0 do protocolo aplicar-prototipo (2026-06-24, handoff ComVis);
 // transitório como os outros — sai daqui quando o design exportar pro cowork/.
 const PROTOTIPOS_ALLOWLIST = new Set(['compras-grade-matrix', 'inventario-migracao', 'perfil']);
+
+// NATUREZA DIFERENTE do allowlist acima (que é transitório, meta = 0): estes são ÂNCORAS
+// HISTÓRICAS — protótipo cuja cópia upstream foi APOSENTADA por decisão [W], mas que um
+// charter vivo ainda declara em `related_prototype`. Não têm prazo pra sair: saem daqui
+// só quando o charter deixar de ancorar neles. Misturá-los no transitório apodreceria a
+// meta "allowlist = 0".
+// 'financeiro-prova-viva' — âncora do ProvaViva.charter.md; upstream apagado por [W]
+// 2026-09-01 (a cópia da raiz do espelho moveu pra cá no mesmo PR — fidelidade provada
+// por hash idêntico entre o espelho de 06/23 e o download do vivo na véspera da deleção).
+const PROTOTIPOS_HISTORICOS = new Set(['financeiro-prova-viva']);
 
 const errors = [];
 
@@ -63,11 +76,27 @@ if (existsSync(pu)) {
   }
 }
 
-// R3 — prototipos/ só allowlist transitório
+// R3 — prototipos/ só allowlist transitório OU âncora histórica declarada
 const proto = join(ROOT, 'prototipo-ui/prototipos');
 if (existsSync(proto)) {
   for (const e of readdirSync(proto, { withFileTypes: true })) {
-    if (e.isDirectory() && !PROTOTIPOS_ALLOWLIST.has(e.name)) errors.push(`R3 protótipo fora do cowork/ (mova o build pro cowork/): prototipo-ui/prototipos/${e.name}`);
+    if (e.isDirectory() && !PROTOTIPOS_ALLOWLIST.has(e.name) && !PROTOTIPOS_HISTORICOS.has(e.name)) {
+      errors.push(`R3 protótipo fora do cowork/ (mova o build pro cowork/): prototipo-ui/prototipos/${e.name}`);
+    }
+  }
+}
+
+// R4 — host único na RAIZ do espelho: o único .html de raiz é o próprio host.
+// Subdiretórios ficam FORA da regra de propósito (venda-v3/index.html é de OUTRA conta —
+// FORA_DESTA_CONTA no protocolo.config — e ds-v6/produto-preco-especial são gabaritos
+// declarados). O exportPlan pousa qualquer não-.md do vivo em cowork/<path>, então um
+// .html novo de raiz É notícia, nunca herança (raiz medida limpa em 2026-09-01).
+const coworkAbs = join(ROOT, COWORK);
+if (existsSync(coworkAbs)) {
+  for (const e of readdirSync(coworkAbs, { withFileTypes: true })) {
+    if (e.isFile() && e.name.toLowerCase().endsWith('.html') && e.name !== 'oimpresso.com.html') {
+      errors.push(`R4 segundo .html na raiz do espelho (host único é oimpresso.com.html; protótipo standalone aposentado vai pra prototipos/ com decisão [W]): ${COWORK}/${e.name}`);
+    }
   }
 }
 
@@ -80,6 +109,6 @@ if (process.argv.includes('--json')) {
   console.error('ADR: memory/decisions/proposals/2026-06-23-prototipo-ssot-unico-com-historico.md');
   if (PROTOTIPOS_ALLOWLIST.size) console.error(`Allowlist transitório (design deve exportar pro cowork/): ${[...PROTOTIPOS_ALLOWLIST].join(', ')}`);
 } else {
-  console.log('✓ cowork-ssot-guard: fonte única OK (cowork/ build-only · sem bundles datados · prototipos só allowlist transitório).');
+  console.log('✓ cowork-ssot-guard: fonte única OK (cowork/ build-only · sem bundles datados · prototipos só allowlist/histórico · host único na raiz).');
 }
 process.exit(errors.length ? 1 : 0);

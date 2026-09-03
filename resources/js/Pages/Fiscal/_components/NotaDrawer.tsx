@@ -9,6 +9,8 @@
 // nenhum modal nested aberto; useEffect local lida com ESC quando modal aberto.
 
 import { Link, router } from '@inertiajs/react';
+import { btnProps, type BotaoKind } from '../_lib/botao-fiscal';
+import { Button } from '@/Components/ui/button';
 import { Bot, FileText, PenLine, RefreshCw } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -137,14 +139,14 @@ function SefazActionCard({ cstat }: { cstat: number }) {
       </ol>
       <div className="fx-action-btns">
         {recipe.primary && (
-          <button className={`fx-btn ${recipe.primary.kind}`} disabled title="Ação em PR seguinte">
+          <Button {...btnProps(recipe.primary.kind as BotaoKind)} disabled title="Ação em PR seguinte">
             {recipe.primary.label}
-          </button>
+          </Button>
         )}
         {recipe.secondary && (
-          <button className="fx-btn ghost" disabled title="Ação em PR seguinte">
+          <Button {...btnProps('ghost')} disabled title="Ação em PR seguinte">
             {recipe.secondary.label}
-          </button>
+          </Button>
         )}
       </div>
       <small className="fx-action-foot">fonte: receita SEFAZ-SP · revisada por contadora</small>
@@ -261,41 +263,41 @@ export default function NotaDrawer({ nota, sefazCodes, onClose }: NotaDrawerProp
         }
         footer={
           <>
-            <button className="fx-btn ghost" disabled title="PR seguinte">
+            <Button {...btnProps('ghost')} disabled title="PR seguinte">
               <RefreshCw size={12}/> Reconsultar SEFAZ <kbd className="fx-kbd-inline">R</kbd>
-            </button>
+            </Button>
             <div className="fx-drawer-f-r">
-              <button className="fx-btn" disabled title="PR seguinte">XML</button>
-              <button className="fx-btn" disabled title="PR seguinte">DANFE</button>
+              <Button {...btnProps()} disabled title="PR seguinte">XML</Button>
+              <Button {...btnProps()} disabled title="PR seguinte">DANFE</Button>
               {nota.status === 'autorizada' && cce && (
-                <button
-                  className="fx-btn warn"
+                <Button
+                  {...btnProps('warn')}
                   onClick={() => setCceOpen(true)}
                   disabled={busy}
                   title="Carta de Correção Eletrônica (CONFAZ Art. 14 — janela 30d)"
                 >
                   <PenLine size={12}/> CC-e <kbd className="fx-kbd-inline">C</kbd>
-                </button>
+                </Button>
               )}
               {nota.status === 'autorizada' && cancel && (
-                <button
-                  className="fx-btn danger"
+                <Button
+                  {...btnProps('danger')}
                   onClick={() => setCancelOpen(true)}
                   disabled={busy}
                   title="Cancela NFe — FSM cascade ADR 0143"
                 >
                   Cancelar <kbd className="fx-kbd-inline">X</kbd>
-                </button>
+                </Button>
               )}
               {['rejeitada', 'denegada', 'erro_envio'].includes(nota.status) && (
-                <button
-                  className="fx-btn primary"
+                <Button
+                  {...btnProps('primary')}
                   onClick={() => setRetransmitOpen(true)}
                   disabled={busy}
                   title="Retransmite NFe — gera novo número fiscal + nova chave de acesso"
                 >
                   Retransmitir <kbd className="fx-kbd-inline">⏎</kbd>
-                </button>
+                </Button>
               )}
             </div>
           </>
@@ -403,16 +405,16 @@ export default function NotaDrawer({ nota, sefazCodes, onClose }: NotaDrawerProp
               {textoCce.length}/1000 · {textoCce.trim().length < 15 ? `faltam ${15 - textoCce.trim().length} chars` : '✅ ok'}
             </div>
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-              <button className="fx-btn ghost" onClick={() => setCceOpen(false)} disabled={busy}>
+              <Button {...btnProps('ghost')} onClick={() => setCceOpen(false)} disabled={busy}>
                 Voltar
-              </button>
-              <button
-                className="fx-btn warn"
+              </Button>
+              <Button
+                {...btnProps('warn')}
                 onClick={handleCCe}
                 disabled={busy || textoCce.trim().length < 15}
               >
                 {busy ? 'Enviando…' : 'Enviar CC-e'}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -455,12 +457,12 @@ export default function NotaDrawer({ nota, sefazCodes, onClose }: NotaDrawerProp
               ⚠️ Se a rejeição foi por cadastro (NCM/CST/CFOP/dest), corrija ANTES de retransmitir — caso contrário a SEFAZ vai rejeitar de novo com mesma causa.
             </p>
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-              <button className="fx-btn ghost" onClick={() => setRetransmitOpen(false)} disabled={busy}>
+              <Button {...btnProps('ghost')} onClick={() => setRetransmitOpen(false)} disabled={busy}>
                 Voltar
-              </button>
-              <button className="fx-btn primary" onClick={handleRetransmitir} disabled={busy}>
+              </Button>
+              <Button {...btnProps('primary')} onClick={handleRetransmitir} disabled={busy}>
                 {busy ? 'Retransmitindo…' : 'Confirmar retransmissão'}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -511,16 +513,16 @@ export default function NotaDrawer({ nota, sefazCodes, onClose }: NotaDrawerProp
               {motivo.length}/255 · {motivo.trim().length < 15 ? `faltam ${15 - motivo.trim().length} chars` : '✅ ok'}
             </div>
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-              <button className="fx-btn ghost" onClick={() => setCancelOpen(false)} disabled={busy}>
+              <Button {...btnProps('ghost')} onClick={() => setCancelOpen(false)} disabled={busy}>
                 Voltar
-              </button>
-              <button
-                className="fx-btn danger"
+              </Button>
+              <Button
+                {...btnProps('danger')}
                 onClick={handleCancelar}
                 disabled={busy || motivo.trim().length < 15}
               >
                 {busy ? 'Cancelando…' : 'Confirmar cancelamento'}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

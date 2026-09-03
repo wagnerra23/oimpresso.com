@@ -6,6 +6,7 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, router } from '@inertiajs/react';
 import { Stack, Inline } from '@/Components/layout'; // F3b — layout via primitivos (ADR 0253)
+import Chart from '@/Components/shared/Chart'; // R2/R4 — gráfico é do shared, não hand-roll
 // Onda 12/13/18 v9,75 — sub-components Cowork refinos
 import TroubleshooterOverlay from './_components/TroubleshooterOverlay';
 import PresentationMode from './_components/PresentationMode';
@@ -293,48 +294,6 @@ function MethodIcon({ method, size = 12 }: { method: PaymentMethod; size?: numbe
   return <Icon size={size} className="text-stone-500" />;
 }
 
-// Onda 11 v9,75 — sparkline SVG real (substituiu TrendingUp icon estático).
-// Gera SVG path normalizado dos últimos N pontos.
-function Sparkline({ points, color = 'oklch(0.75 0.13 145)', width = 80, height = 24 }: {
-  points: number[];
-  color?: string;
-  width?: number;
-  height?: number;
-}) {
-  if (!points.length) return null;
-  const max = Math.max(...points, 1);
-  const min = Math.min(...points, 0);
-  const range = Math.max(max - min, 1);
-  const step = width / Math.max(points.length - 1, 1);
-  const linePath = points
-    .map((p, i) => {
-      const x = i * step;
-      const y = height - ((p - min) / range) * height;
-      return `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`;
-    })
-    .join(' ');
-  const areaPath = `${linePath} L${width},${height} L0,${height} Z`;
-  return (
-    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
-      <defs>
-        <linearGradient id={`sparkG-${color}`} x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.45" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <path d={areaPath} fill={`url(#sparkG-${color})`} />
-      <path
-        d={linePath}
-        stroke={color}
-        strokeWidth="1.5"
-        fill="none"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
 function KpiCard({ label, value, delta, deltaTone = 'neutral', hero = false, sparkline }: {
   label: string;
   value: ReactNode;
@@ -361,8 +320,19 @@ function KpiCard({ label, value, delta, deltaTone = 'neutral', hero = false, spa
       <div className="rounded-lg bg-stone-900 p-4 text-white shadow-sm ring-1 ring-stone-800">
         <div className="flex items-center justify-between text-[11px] font-medium uppercase tracking-wider text-stone-400">
           <span>{label}</span>
+          {/* Chart do shared (porte 1:1 do DS vivo) no lugar do hand-roll: a cor sai de
+              token, não de literal. w-20 = os 80px que a caixa antiga tinha. */}
           {sparkline && sparkline.length > 0 ? (
-            <Sparkline points={sparkline} color="oklch(0.75 0.13 145)" />
+            <div className="w-20">
+              <Chart
+                type="area"
+                data={sparkline}
+                height={24}
+                color="var(--color-success)"
+                strokeWidth={1.5}
+                formatValue={BRLshort}
+              />
+            </div>
           ) : (
             <TrendingUp size={14} className="text-emerald-400" />
           )}
@@ -694,23 +664,23 @@ export default function RecurringBillingIndex(props: PageProps) {
                 <Stack gap={2} className="mt-2 rounded-lg border border-input bg-white p-2">
                   <Inline gap={2} justify="between">
                     <span className="text-[12px] text-muted-foreground">De</span>
-                    <input
+                    <Input
                       type="date"
                       value={customFrom}
                       max={customTo || undefined}
                       onChange={(e) => { setCustomFrom(e.target.value); applyFilters({ when: 'custom', from: e.target.value }); }}
-                      className="rounded-md border border-input bg-white px-1.5 py-1 text-[12px] text-foreground focus:outline-none focus:border-ring"
+                      className="w-auto"
                       aria-label="Próxima cobrança de"
                     />
                   </Inline>
                   <Inline gap={2} justify="between">
                     <span className="text-[12px] text-muted-foreground">Até</span>
-                    <input
+                    <Input
                       type="date"
                       value={customTo}
                       min={customFrom || undefined}
                       onChange={(e) => { setCustomTo(e.target.value); applyFilters({ when: 'custom', to: e.target.value }); }}
-                      className="rounded-md border border-input bg-white px-1.5 py-1 text-[12px] text-foreground focus:outline-none focus:border-ring"
+                      className="w-auto"
                       aria-label="Próxima cobrança até"
                     />
                   </Inline>
@@ -777,9 +747,9 @@ export default function RecurringBillingIndex(props: PageProps) {
             {/* COL 2 · LISTA */}
             <section className="overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-stone-200">
               <div className="flex items-center gap-2 border-b border-stone-200 p-2.5">
-                <div className="flex flex-1 items-center gap-2 rounded-lg bg-stone-100 px-3 py-1.5">
-                  <Search size={14} className="text-stone-400" />
-                  <input
+                <div className="relative flex-1">
+                  <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <Input
                     ref={searchRef}
                     type="text"
                     value={search}
@@ -788,9 +758,10 @@ export default function RecurringBillingIndex(props: PageProps) {
                       if (e.key === 'Enter') applyFilters({ q: search });
                     }}
                     placeholder="Buscar (/) — cliente, CNPJ, OS"
-                    className="flex-1 bg-transparent text-sm outline-none placeholder:text-stone-400"
+                    className="cw-input-icon-left cw-input-icon-right"
+                    aria-label="Buscar assinaturas"
                   />
-                  <kbd className="rounded bg-white px-1.5 py-0.5 text-[10px] font-mono text-stone-500 ring-1 ring-stone-200">
+                  <kbd className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded bg-white px-1.5 py-0.5 text-[10px] font-mono text-stone-500 ring-1 ring-stone-200">
                     /
                   </kbd>
                 </div>
@@ -1307,7 +1278,7 @@ function SubscriptionTimeline({ subId, subStatus }: { subId: number; subStatus: 
 
       {subStatus !== 'cancelada' && (
         <div className="mb-3 flex items-center gap-2">
-          <input
+          <Input
             type="text"
             value={noteText}
             onChange={(e) => setNoteText(e.target.value)}
@@ -1318,7 +1289,8 @@ function SubscriptionTimeline({ subId, subStatus }: { subId: number; subStatus: 
               }
             }}
             placeholder="Anotar internamente…"
-            className="flex-1 rounded border border-stone-200 bg-white px-2 py-1 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary/30"
+            className="flex-1"
+            aria-label="Anotar internamente"
             maxLength={5000}
           />
           <button

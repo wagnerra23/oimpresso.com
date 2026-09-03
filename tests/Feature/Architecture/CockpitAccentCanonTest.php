@@ -30,11 +30,20 @@ it('AppShellV2 usa hue default 295 (roxo canon), não 220 (azul)', function () {
         ->and($src)->not->toContain('return 220;');
 });
 
-it('AppShellV2 escreve --accent inline com L/C do canon (0.55 0.15)', function () {
+it('AppShellV2 escreve --accent inline com os L/C do canon nos DOIS temas', function () {
     $src = file_get_contents(accentRepoRoot().'/resources/js/Layouts/AppShellV2.tsx');
 
-    expect($src)->toContain('oklch(0.55 0.15 ${accentHue})')   // --accent + --bubble-me
-        ->and($src)->toContain('oklch(0.62 0.15 ${accentHue})') // --accent-2
+    // Até 2026-09-02 este teste casava a string inteira `oklch(0.55 0.15 ${accentHue})`, porque
+    // --accent e --accent-2 eram `dark_absent` e tinham UM valor só. A ADR UI-0031 deu par escuro
+    // aos dois (protótipo Cowork: 0.70 / 0.76), então o L/C passou a sair de uma variável e a
+    // string inteira deixou de existir. O que o gate protege é o mesmo: os L/C canônicos estão
+    // ancorados no source, e os valores off-canon não voltam. Agora cobre claro E escuro — o
+    // par escuro ausente era justamente o bug que a UI-0031 fechou.
+    expect($src)->toContain('0.55 0.15')  // --accent claro (ADR 0190) + --bubble-me
+        ->and($src)->toContain('0.62 0.15')  // --accent-2 claro
+        ->and($src)->toContain('0.70 0.15')  // --accent escuro (UI-0031)
+        ->and($src)->toContain('0.76 0.15')  // --accent-2 escuro (= --accent-hi do protótipo)
+        ->and($src)->toContain('${accentHue}') // o hue continua vindo do tweak, não hardcoded
         ->and($src)->not->toContain('oklch(0.58 0.12 ${accentHue})'); // valor antigo off-canon
 });
 
@@ -139,7 +148,8 @@ it('--accent-soft inline carrega os DOIS pares, e a escolha depende do tema', fu
     $src = file_get_contents(accentRepoRoot().'/resources/js/Layouts/AppShellV2.tsx');
 
     // Instancia concreta do gate A3 - o token que motivou o guard.
+    // O par escuro saiu de 0.32 0.06 para 0.33 0.09 na ADR UI-0031 (valor do protótipo Cowork).
     expect($src)->toContain('0.95 0.04')    // par claro, canon DTCG
-        ->and($src)->toContain('0.32 0.06')  // par escuro, canon DTCG
+        ->and($src)->toContain('0.33 0.09')  // par escuro, canon DTCG (UI-0031)
         ->and($src)->toContain('userTheme'); // a escolha do par depende do tema
 });

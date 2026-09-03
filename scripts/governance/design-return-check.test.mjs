@@ -6,6 +6,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   RETURN_CHANNELS,
+  UI_PATTERNS,
   evaluateDesignReturn,
   normalizeChangedPaths,
   validateReturnDocuments,
@@ -16,6 +17,47 @@ const check = (name, condition, detail = '') => {
   console.log(`${condition ? '[OK]' : '[FAIL]'} ${name}${condition ? '' : ` — ${detail}`}`);
   if (!condition) failures++;
 };
+
+// Glob do GitHub Actions -> RegExp. Aproximação MÍNIMA, só para os asserts deste arquivo:
+// `*` não atravessa `/`; `**` atravessa e aceita zero diretórios. Existe porque o assert antigo
+// media PRESENÇA da string no YAML — e presença é exatamente o que fica verde quando o padrão não
+// casa nada. Os dois controles abaixo provam o matcher ANTES de qualquer veredito depender dele.
+const META_REGEX = '.^$+?()[]{}|';
+const segmentoParaRegex = (segmento) => [...segmento]
+  .map((c) => {
+    if (c === '*') return '[^/]*';
+    return META_REGEX.includes(c) ? `\\${c}` : c;
+  })
+  .join('');
+
+function casaGlob(glob, caminho) {
+  const segmentos = glob.split('/');
+  const corpo = segmentos.map((segmento, i) => {
+    const ultimo = i === segmentos.length - 1;
+    if (segmento === '**') return ultimo ? '.*' : '(?:[^/]+/)*';
+    return segmentoParaRegex(segmento) + (ultimo ? '' : '/');
+  }).join('');
+  return new RegExp(`^${corpo}$`).test(caminho);
+}
+
+function globsDoWorkflow(texto) {
+  const linhas = texto.split('\n');
+  const inicio = linhas.findIndex((linha) => linha.trim() === 'paths:');
+  if (inicio === -1) return [];
+  const globs = [];
+  for (const linha of linhas.slice(inicio + 1)) {
+    const item = linha.trim();
+    if (item.startsWith('#')) continue;
+    if (!item.startsWith('- ')) break;
+    globs.push(item.slice(2).trim().replace(/^'|'$/g, ''));
+  }
+  return globs;
+}
+
+check('matcher de glob: `*` não atravessa `/`',
+  casaGlob('a/*/b', 'a/x/b') && !casaGlob('a/*/b', 'a/x/y/b'));
+check('matcher de glob: `**` atravessa e aceita zero diretórios',
+  casaGlob('a/**', 'a/x/y') && casaGlob('a/**/c.tsx', 'a/c.tsx') && !casaGlob('a/**', 'b/x'));
 
 const complete = [
   'resources/js/Pages/Financeiro/Index.tsx',
@@ -31,8 +73,18 @@ check('arquivo do espelho Cowork torna o retorno aplicável',
 check('componentes/layouts compartilhados também exigem retorno',
   evaluateDesignReturn(['resources/js/Components/Button.tsx']).applicable
     && evaluateDesignReturn(['resources/js/Layouts/AppLayout.tsx']).applicable);
-check('UI dentro de Modules também exige retorno',
+// Path REAL da árvore, não inventado. Re-derivar assim:
+//   git ls-tree -r --name-only --full-tree origin/main | grep -E '^Modules/[^/]+/Resources/(js|css)/'
+// O fixture anterior usava `resources/` minúsculo, que não existe em módulo nenhum: o assert media
+// comportamento sobre um path fantasma e ficava verde com a perna cega no runner Linux.
+const TELA_MODULO_REAL = 'Modules/Forja/Resources/js/Pages/Forja/Board/Index.tsx';
+const BACKEND_MODULO = 'Modules/Forja/app/Models/Board.php';
+check('UI dentro de Modules (path REAL da árvore) exige retorno',
+  evaluateDesignReturn([TELA_MODULO_REAL]).applicable);
+check('tolerância de caixa: `resources/` minúsculo em módulo também casa (política de page-path.mjs)',
   evaluateDesignReturn(['Modules/Financeiro/resources/js/Pages/Index.tsx']).applicable);
+check('controle negativo: backend de módulo não vira tela',
+  !evaluateDesignReturn([BACKEND_MODULO]).applicable);
 check('arquivo de backend não exige retorno',
   evaluateDesignReturn(['Modules/Financeiro/app/Models/Conta.php']).complete);
 check('extensão parecida não vira falso positivo',
@@ -120,12 +172,40 @@ try {
       && !/grep -qx ['"]?prototipo-ui\/SYNC_LOG\.md/.test(workflow));
   check('workflow nasce advisory: não passa --check ao verificador',
     !/design-return-check\.mjs[^\n]*--check/.test(workflow));
-  check('path filter inclui os três canais canônicos',
-    RETURN_CHANNELS.every((channel) => workflow.includes(`'${channel}'`)));
-  check('workflow mede o push inteiro via before/after e cobre UI compartilhada/modular',
-    /github\.event\.before/.test(workflow)
-      && workflow.includes("'resources/js/Components/**'")
-      && workflow.includes("'Modules/*/resources/js/**'"));
+  const globs = globsDoWorkflow(workflow);
+  check('paths: do workflow foi lido — sem lista, os asserts abaixo seriam vácuo',
+    globs.length > 0, JSON.stringify(globs));
+  check('os três canais canônicos disparam o workflow',
+    RETURN_CHANNELS.every((channel) => globs.some((glob) => casaGlob(glob, channel))));
+  check('workflow mede o push inteiro via before/after',
+    /github\.event\.before/.test(workflow));
+  check('UI compartilhada do núcleo dispara o workflow',
+    globs.some((glob) => casaGlob(glob, 'resources/js/Components/Button.tsx')));
+
+  // ÂNCORA DE REALIDADE: a população vem da ÁRVORE, não de path que eu digitei. Era isto que
+  // faltava — o assert antigo conferia a string no YAML, então a perna de módulo podia estar cega
+  // (caixa errada) com o teste verde. Se um dia nenhum módulo tiver UI, isto fica vermelho e alguém
+  // decide conscientemente se a perna ainda faz sentido; silêncio verde é o que não pode voltar.
+  let arvore = null;
+  try {
+    arvore = execFileSync('git', ['ls-files', '-z', '--', 'Modules'], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+  } catch {
+    arvore = null;
+  }
+  check('árvore legível (sem universo, sem veredito)', arvore !== null, 'git ls-files falhou');
+  const uiDeModulo = String(arvore || '').split(String.fromCharCode(0)).filter(Boolean)
+    .filter((caminho) => UI_PATTERNS.some((padrao) => padrao.test(caminho)));
+  console.log(`     (medido: ${uiDeModulo.length} arquivo(s) de UI sob Modules/ casam UI_PATTERNS)`);
+  check('a perna de módulo tem população REAL na árvore',
+    uiDeModulo.length > 0,
+    'zero arquivos: ou a perna voltou a ficar cega (caixa/padrão errado), ou nenhum módulo tem UI');
+  const orfaos = uiDeModulo.filter((caminho) =>
+    !globs.some((glob) => casaGlob(glob, caminho)) || !evaluateDesignReturn([caminho]).applicable);
+  check('todo arquivo real de UI de módulo dispara o workflow E é aplicável no verificador',
+    uiDeModulo.length > 0 && orfaos.length === 0, JSON.stringify(orfaos.slice(0, 5)));
+  check('controle negativo: backend de módulo não dispara o workflow nem é aplicável',
+    !globs.some((glob) => casaGlob(glob, BACKEND_MODULO))
+      && !evaluateDesignReturn([BACKEND_MODULO]).applicable);
 } finally {
   rmSync(tmp, { recursive: true, force: true });
 }

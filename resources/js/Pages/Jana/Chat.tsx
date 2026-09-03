@@ -16,7 +16,7 @@ import { toast } from 'sonner';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { ThreadHeader } from '@/Components/cockpit/Thread';
-import { JanaAreaHeader } from './components/JanaAreaHeader';
+import { JanaAreaHeader } from './_components/JanaAreaHeader';
 import JanaConfigDrawer from './_components/JanaConfigDrawer';
 import { JanaPlanoBadge } from './_components/JanaPlanoBadge';
 import { useJanaPro } from './_components/useJanaPro';

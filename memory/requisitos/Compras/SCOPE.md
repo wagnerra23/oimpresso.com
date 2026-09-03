@@ -18,6 +18,8 @@ charter_adr: 0079
 related_adrs:
   - 0079-constituicao-oimpresso-7-camadas-governanca
   - 0180-sidebar-v3-5-grupos-ghosts-header
+url_prefixes:
+  - /compras/* (única superfície — cockpit `GET /` · `GET /{id}/detalhe` sob throttle:60,1, Routes/web.php:36; install 1-clique em :23. O CRUD vive em /purchases do núcleo, não aqui)
 ---
 
 # Modules/Compras — SCOPE

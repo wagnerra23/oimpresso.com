@@ -88,7 +88,7 @@ function chavesDasAbas(array $abas): array
     return array_map(static fn ($a) => $a['key'], $abas);
 }
 
-it('aba sem permissão NÃO aparece — cada grade tem o seu próprio gate', function () {
+it('UC-DASH-07 · aba sem permissão NÃO aparece — cada grade tem o seu próprio gate', function () {
     $user = gradesBootstrap(['dashboard.data', 'sell.view']);
 
     $response = $this->actingAs($user)->get('/dashboard-legacy');
@@ -104,7 +104,7 @@ it('aba sem permissão NÃO aparece — cada grade tem o seu próprio gate', fun
     });
 });
 
-it('sem dashboard.data NÃO há aba nenhuma, mesmo com a permissão da grade', function () {
+it('UC-DASH-08 · sem dashboard.data NÃO há aba nenhuma, mesmo com a permissão da grade', function () {
     // No Blade legado TODAS as grades vivem dentro do `@if(can('dashboard.data'))`
     // que abre na linha 369 e fecha na 1013 — medido em 2026-08-27.
     $user = gradesBootstrap(['sell.view', 'purchase.view', 'stock_report.view']);
@@ -120,7 +120,7 @@ it('sem dashboard.data NÃO há aba nenhuma, mesmo com a permissão da grade', f
     );
 });
 
-it('setting desligado esconde a aba condicional (Lotes a vencer)', function () {
+it('UC-DASH-09 · setting desligado esconde a aba condicional (Lotes a vencer)', function () {
     $user = gradesBootstrap(['dashboard.data', 'stock_report.view']);
 
     session(['business.enable_product_expiry' => 0]);
@@ -141,7 +141,7 @@ it('setting desligado esconde a aba condicional (Lotes a vencer)', function () {
     });
 });
 
-it('aba desconhecida na query string cai na primeira PERMITIDA, sem estourar', function () {
+it('UC-DASH-10 · aba desconhecida na query string cai na primeira PERMITIDA, sem estourar', function () {
     $user = gradesBootstrap(['dashboard.data', 'purchase.view']);
 
     // `caixa` é a 9ª aba do protótipo — ela não existe no Blade e não existe aqui.
@@ -151,7 +151,7 @@ it('aba desconhecida na query string cai na primeira PERMITIDA, sem estourar', f
     $response->assertInertia(fn (AssertableInertia $page) => $page->where('aba', 'venc-compra'));
 });
 
-it('aba que o usuário NÃO pode ver não é servida nem quando pedida na URL', function () {
+it('UC-DASH-10 · aba que o usuário NÃO pode ver não é servida nem quando pedida na URL', function () {
     $user = gradesBootstrap(['dashboard.data', 'purchase.view']);
 
     $response = $this->actingAs($user)->get('/dashboard-legacy?aba=venc-venda');
@@ -161,7 +161,7 @@ it('aba que o usuário NÃO pode ver não é servida nem quando pedida na URL', 
     $response->assertInertia(fn (AssertableInertia $page) => $page->where('aba', 'venc-compra'));
 });
 
-it('Tier 0 multi-tenant — a grade não devolve linha de outro business', function () {
+it('UC-DASH-11 · Tier 0 multi-tenant — a grade não devolve linha de outro business', function () {
     $user = gradesBootstrap(['dashboard.data', 'sell.view']);
     $businessId = (int) session('user.business_id');
 
@@ -185,7 +185,7 @@ it('Tier 0 multi-tenant — a grade não devolve linha de outro business', funct
     expect(array_intersect($idsServidos, $outro->all()))->toBe([]);
 });
 
-it('PARIDADE com o endpoint legado — mesmo total de títulos de venda vencendo', function () {
+it('UC-DASH-12 · PARIDADE com o endpoint legado — mesmo total de títulos de venda vencendo', function () {
     // Esta é a trava da duplicação que o Non-Goal do charter impõe: o service tem
     // query PRÓPRIA porque `/home/sales-payment-dues` devolve HTML, e não pode ser
     // tocado. Se um dos dois critérios derivar, este teste cai.
@@ -210,7 +210,7 @@ it('PARIDADE com o endpoint legado — mesmo total de títulos de venda vencendo
     expect($totalNovo)->toBe((int) $totalLegado);
 });
 
-it('Non-Goal GUARD — os 4 endpoints AJAX do Blade seguem respondendo', function () {
+it('UC-DASH-13 · Non-Goal GUARD — os 4 endpoints AJAX do Blade seguem respondendo', function () {
     // O charter proíbe TOCAR esses endpoints. O guard não prova que o corpo é
     // idêntico — prova que eles continuam de pé e servindo o Blade legado.
     $user = gradesBootstrap(['dashboard.data', 'sell.view', 'purchase.view', 'stock_report.view']);
@@ -229,7 +229,7 @@ it('Non-Goal GUARD — os 4 endpoints AJAX do Blade seguem respondendo', functio
     }
 });
 
-it('catálogo declara as 8 grades do Blade — e nenhuma inventada', function () {
+it('UC-DASH-14 · catálogo declara as 8 grades do Blade — e nenhuma inventada', function () {
     // O protótipo desenha 9 abas; o Blade tem 8. A 9ª ("Fluxo de caixa") não tem
     // fonte e por isso não pode existir aqui.
     $catalogo = GradesDoPainelService::catalogo();
@@ -248,7 +248,7 @@ it('catálogo declara as 8 grades do Blade — e nenhuma inventada', function ()
     expect($catalogo)->not->toHaveKey('caixa');
 });
 
-it('ordenacao: coluna da allowlist ordena de verdade', function () {
+it('UC-DASH-15 · ordenacao: coluna da allowlist ordena de verdade', function () {
     $user = gradesBootstrap(['dashboard.data', 'sell.view']);
     $businessId = (int) session('user.business_id');
     $this->actingAs($user); // o service le auth()->user() em abasPermitidas()
@@ -267,7 +267,7 @@ it('ordenacao: coluna da allowlist ordena de verdade', function () {
     expect($asc)->toBe(array_reverse($desc));
 });
 
-it('ordenacao: coluna FORA da allowlist nao vira SQL', function () {
+it('UC-DASH-15 · ordenacao: coluna FORA da allowlist nao vira SQL', function () {
     // `sort` vem da query string. Chave desconhecida cai na ordenacao padrao em vez de
     // ser interpolada — senao a allowlist seria decorativa. Payload com aspas e parenteses
     // quebraria a query se chegasse crua no orderBy.
@@ -282,7 +282,7 @@ it('ordenacao: coluna FORA da allowlist nao vira SQL', function () {
     expect($linhas)->not->toBeNull();
 });
 
-it('ordenaveis() espelha o sortable da ancora — situacao NAO ordena', function () {
+it('UC-DASH-16 · ordenaveis() espelha o sortable da ancora — situacao NAO ordena', function () {
     // O prototipo marca `sortable: true` em documento/contato/data/valor, e NAO em situacao.
     expect(GradesDoPainelService::ordenaveis('venc-venda'))->toContain('documento', 'contato', 'vencimento')
         ->and(GradesDoPainelService::ordenaveis('venc-venda'))->not->toContain('situacao')

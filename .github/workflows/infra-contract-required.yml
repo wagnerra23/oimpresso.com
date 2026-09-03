@@ -36,6 +36,10 @@ on:
       - 'Modules/**/Providers/*ServiceProvider.php'
       - 'Modules/**/Http/Controllers/**/*Webhook*.php'
 
+concurrency:
+  group: infra-contract-required-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
   pull-requests: read

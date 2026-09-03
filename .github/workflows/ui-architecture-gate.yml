@@ -69,7 +69,9 @@ on:
   # required (ADR 0263); required + path-scoped = deadlock "Expected" em PR que não
   # toca UI (mesmo incidente 2026-06-08 que destravou adr-lint/ui-lint/conformance).
   # Os 3 testes são filesystem-puros e baratos — rodar sempre é seguro.
+  workflow_dispatch:
   pull_request:
+    types: [opened, reopened, ready_for_review]
 
 concurrency:
   group: ui-architecture-gate-${{ github.ref }}

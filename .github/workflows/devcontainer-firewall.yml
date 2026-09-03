@@ -25,6 +25,7 @@ name: devcontainer firewall (egress default-deny · chip C7)
 
 on:
   pull_request:
+    types: [opened, reopened, ready_for_review]
     branches: [main]
     paths:
       - '.devcontainer/**'

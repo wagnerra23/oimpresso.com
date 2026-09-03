@@ -4,12 +4,17 @@
 //   stories: US-FISCAL-010 (SPED placeholder), US-FISCAL-016 (gerador EFD-ICMS/IPI MVP — PR #8)
 //   adrs: 0093, 0094, 0101, 0104
 
+import { Inline } from '@/Components/layout';
+import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
+import { Button } from '@/Components/ui/button';
+import { Input } from '@/Components/ui/input';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head } from '@inertiajs/react';
 import { Archive, CheckCircle2, Download, Eye, FileSearch, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import FxShell from './_components/FxShell';
+import { chipCount, chipProps } from './_lib/chip-filtro';
 import { brl } from './_lib/fiscal-helpers';
 
 import '../../../css/fiscal-cockpit.css';
@@ -75,44 +80,80 @@ export default function Sped({ periodos, notice }: SpedProps) {
         env="em desenvolvimento"
         envTone="warn"
       >
-        {/* Callout do MVP — antes hex cru (#d4f4dd/#2da764) + inline-style.
-            Agora fx-callout canon (mesmo padrão Dfe/Eventos), tokens only. */}
-        <div className="fx-callout" data-contract="fiscal-sped-status" role="region" aria-label="Status do gerador SPED">
+        {/* Callout do MVP na primitiva <Alert> do DS (era a classe hand-rolled
+            `fx-callout`). O `role="region"` + `aria-label` são MANTIDOS de propósito:
+            o <Alert> traz `role="alert"` embutido, que é live-region assertiva — errado
+            pra um banner informativo estático. Como o `{...props}` do Alert vem DEPOIS
+            do role padrão, passar `role` aqui sobrescreve. */}
+        <Alert
+          className="mb-3"
+          data-contract="fiscal-sped-status"
+          role="region"
+          aria-label="Status do gerador SPED"
+        >
           <CheckCircle2 size={16} />
-          <div>
-            <b>Gerador EFD-ICMS/IPI MVP disponível (PR #8)</b>
-            <small>{notice}</small>
-            <small>
+          <AlertTitle>Gerador EFD-ICMS/IPI MVP disponível (PR #8)</AlertTitle>
+          <AlertDescription>
+            <span>{notice}</span>
+            <span>
               <b>Próximas Waves:</b> Bloco E (apuração ICMS · saldo mês anterior) · Bloco H (inventário anual)
               {' '}· EFD-Contribuições (PIS/COFINS arquivo separado) · Entradas via DF-e manifestada.
-            </small>
-          </div>
-        </div>
+            </span>
+          </AlertDescription>
+        </Alert>
 
-        {/* Filtro + busca — padrão fx-filters (idêntico Dfe/Eventos) */}
-        <div className="fx-filters">
-          <div className="fx-search">
-            <FileSearch size={13} />
-            <input
+        {/* Filtro + busca — primitivas do DS (<Inline> + <Input>). Dfe/Eventos ainda
+            usam a classe hand-rolled `fx-filters`; migram nas levas seguintes da Onda 1. */}
+        <Inline gap={2} align="center" wrap className="mb-3">
+          {/* Espaço da lupa pela utilitária canon `.cw-input-icon-left`, NÃO `pl-*`:
+              a Tailwind é layered e perde pro `.cw-input` unlayered (cowork-fields.css). */}
+          <div className="relative min-w-[240px] flex-1">
+            <FileSearch
+              size={13}
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            />
+            <Input
               type="search"
+              className="cw-input-icon-left"
               placeholder="Buscar competência (mm/aaaa)…"
+              aria-label="Buscar competência (mm/aaaa)"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <button type="button" className={`fx-chip${status === 'todos' ? ' active' : ''}`} onClick={() => setStatus('todos')}>
-            Todos <span>{counts.todos}</span>
-          </button>
-          <button type="button" className={`fx-chip warn${status === 'aberto' ? ' active' : ''}`} onClick={() => setStatus('aberto')}>
-            Em curso <span>{counts.aberto}</span>
-          </button>
-          <button type="button" className={`fx-chip${status === 'pronto' ? ' active' : ''}`} onClick={() => setStatus('pronto')}>
-            Pronto <span>{counts.pronto}</span>
-          </button>
-          <button type="button" className={`fx-chip${status === 'entregue' ? ' active' : ''}`} onClick={() => setStatus('entregue')}>
-            Entregue <span>{counts.entregue}</span>
-          </button>
-        </div>
+          <Button
+            type="button"
+            {...chipProps(status === 'todos')}
+            aria-pressed={status === 'todos'}
+            onClick={() => setStatus('todos')}
+          >
+            Todos <span className={chipCount(status === 'todos')}>{counts.todos}</span>
+          </Button>
+          <Button
+            type="button"
+            {...chipProps(status === 'aberto', 'warn')}
+            aria-pressed={status === 'aberto'}
+            onClick={() => setStatus('aberto')}
+          >
+            Em curso <span className={chipCount(status === 'aberto')}>{counts.aberto}</span>
+          </Button>
+          <Button
+            type="button"
+            {...chipProps(status === 'pronto')}
+            aria-pressed={status === 'pronto'}
+            onClick={() => setStatus('pronto')}
+          >
+            Pronto <span className={chipCount(status === 'pronto')}>{counts.pronto}</span>
+          </Button>
+          <Button
+            type="button"
+            {...chipProps(status === 'entregue')}
+            aria-pressed={status === 'entregue'}
+            onClick={() => setStatus('entregue')}
+          >
+            Entregue <span className={chipCount(status === 'entregue')}>{counts.entregue}</span>
+          </Button>
+        </Inline>
 
         {filtered.length === 0 ? (
           <div className="fx-empty">
@@ -248,20 +289,21 @@ export default function Sped({ periodos, notice }: SpedProps) {
 
               <div className="fx-drawer-f">
                 <div className="fx-drawer-f-r">
-                  <button type="button" className="fx-btn ghost" onClick={() => setPreview(null)}>Fechar</button>
+                  <Button type="button" variant="cowork-ghost" onClick={() => setPreview(null)}>Fechar</Button>
                   {preview.notasAutorizadas > 0 ? (
-                    <a
-                      href={efdHref(preview.mesIso)}
-                      className="fx-btn primary"
-                      title={`Baixar EFD-ICMS-IPI ${preview.mes} (.txt CONFAZ v3.1.1)`}
-                      download
-                    >
-                      <Download size={13} /> Baixar .txt
-                    </a>
+                    <Button asChild variant="cowork-primary">
+                      <a
+                        href={efdHref(preview.mesIso)}
+                        title={`Baixar EFD-ICMS-IPI ${preview.mes} (.txt CONFAZ v3.1.1)`}
+                        download
+                      >
+                        <Download size={13} /> Baixar .txt
+                      </a>
+                    </Button>
                   ) : (
-                    <button type="button" className="fx-btn primary" disabled title="Sem notas autorizadas no período">
+                    <Button type="button" variant="cowork-primary" disabled title="Sem notas autorizadas no período">
                       <Download size={13} /> Baixar .txt
-                    </button>
+                    </Button>
                   )}
                 </div>
               </div>

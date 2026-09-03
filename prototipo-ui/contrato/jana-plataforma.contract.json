@@ -1,0 +1,64 @@
+{
+  "_nota": "Contrato de tela da aba Plataforma da Jana (/ia/superadmin/metas — só jana.superadmin REAL). Nasceu em 2026-09-02 com a COPY LITERAL da âncora `prototipo-ui/cowork/jana-telas-novas.jsx` §JmPlataforma (re-lida do Cowork vivo na data via DesignSync.get_file, path do manifesto). Roda no CI via contrato-de-tela.yml.",
+  "tela": "Jana/Plataforma",
+  "fonte": "prototipo-ui/cowork/jana-telas-novas.jsx",
+  "alvo": [
+    "resources/js/Pages/Jana/Plataforma.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "plat-metas-plataforma",
+      "_papel": "metas com business_id NULL — título, subtítulo e colunas da âncora",
+      "copy": [
+        "Metas da plataforma",
+        "business_id NULL",
+        "Meta",
+        "Unidade",
+        "Origem",
+        "cadastro manual"
+      ]
+    },
+    {
+      "id": "plat-metas-clientes",
+      "_papel": "metas de clientes, cross-business, cruas — colunas + a nota que declara a agregação ausente",
+      "copy": [
+        "Metas de clientes",
+        "cross-business",
+        "Business",
+        "Período atual",
+        "Última apuração",
+        "nunca apurada",
+        "Listagem crua, de propósito",
+        "Somar aqui na tela seria inventar total de plataforma no cliente"
+      ]
+    },
+    {
+      "id": "plat-instalacao",
+      "_papel": "bloco de instalação — 4 células (contagens do servidor), os 2 botões (só can superadmin) e a nota",
+      "copy": [
+        "Instalação do módulo",
+        "/ia/install · nWidart",
+        "migrations",
+        "seeders",
+        "permissões",
+        "situação",
+        "Rodar atualização",
+        "Desinstalar módulo",
+        "Desinstalar o módulo Jana",
+        "Não há lixeira.",
+        "Roda as migrations pendentes e grava a versão nova no módulo. Nada é apagado.",
+        "e é irreversível sem backup."
+      ]
+    }
+  ],
+  "ordem": [
+    "plat-metas-plataforma",
+    "plat-metas-clientes",
+    "plat-instalacao"
+  ],
+  "_nota_caducadas": "DUAS peças da âncora ficaram FORA de propósito, e o UC-PLAT-02 asserta o negativo da primeira: (1) o `Alert tone=danger` de topo — \"Gate desta tela não separa dono de empresa de superadmin\" — era verdade em 27/08/2026 (data do protótipo) e deixou de ser em 28/08 (#6421 fechou o P0 com hasPermissionTo + user_type). Copy que afirma bug fechado é falsa. (2) os 3 bullets do modal de confirmação — \"Roda como job no servidor\" / \"Ambiente atual: CT 100 (Proxmox)\" / \"Migrations são idempotentes\" — as rotas /ia/install rodam SÍNCRONAS em GET e o app web vive no Hostinger (ADR 0062). O parágrafo do modal (o que o rollback apaga) FICOU.",
+  "_pendente_w": [
+    "AGREGAÇÃO CROSS-BUSINESS — o docblock antigo prometia; não existe. O que a plataforma quer medir é produto, decisão [W]; enquanto isso a nota declara a pendência (copy da âncora).",
+    "ORIGEM DA META — a âncora mapeia `sistema` → \"consulta do sistema\" e `manual` → \"cadastro manual\"; o enum real é `chat_ia|manual|seed`. Só `manual` ganhou copy (é literal); `seed`/`chat_ia` ficam crus até [W] decidir o rótulo."
+  ]
+}

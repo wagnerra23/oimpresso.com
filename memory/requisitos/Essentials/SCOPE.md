@@ -35,6 +35,7 @@ related_adrs:
   - 0080-trust-tiers-operacional-audit-findings
 url_prefixes:
   - /essentials/*
+  - /hrm/* (RH — attendance · leave · payroll · shift · sales-target · holiday)
 drift_alerts: []
 ---
 

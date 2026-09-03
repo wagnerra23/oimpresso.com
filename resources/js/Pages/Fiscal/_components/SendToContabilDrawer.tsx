@@ -11,6 +11,8 @@
 // Refactor onda 1 (2026-05-26): shell migrado pra <DrawerBase> compartilhado.
 
 import { useState } from 'react';
+import { btnProps } from '../_lib/botao-fiscal';
+import { Button } from '@/Components/ui/button';
 import { Archive, CheckCircle2, ExternalLink, FileText, Mail, ShieldAlert } from 'lucide-react';
 
 import DrawerBase from './_shared/DrawerBase';
@@ -105,15 +107,15 @@ export default function SendToContabilDrawer({ open, data, onClose }: SendToCont
             </small>
           )}
           <div className="fx-drawer-f-r">
-            <button type="button" className="fx-btn ghost" onClick={onClose}>Cancelar</button>
-            <button
+            <Button type="button" {...btnProps('ghost')} onClick={onClose}>Cancelar</Button>
+            <Button
               type="button"
-              className="fx-btn primary"
+              {...btnProps('primary')}
               disabled={!podeEnviar}
               title={!podeEnviar ? 'Resolver bloqueios + selecionar pelo menos 1 item do pacote' : 'Em breve · envio automático em preparação'}
             >
               <Archive size={12} /> Gerar e enviar pacote
-            </button>
+            </Button>
           </div>
         </>
       }

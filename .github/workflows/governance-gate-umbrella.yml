@@ -18,6 +18,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+concurrency:
+  group: governance-gate-umbrella-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   governance:
     name: Governance Gate (índice + memory-health + meta-teste)

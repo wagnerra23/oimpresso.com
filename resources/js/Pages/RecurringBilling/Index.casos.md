@@ -5,7 +5,8 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o comportamento de cobrar é durável — a assinatura que fatura hoje tem que faturar depois do refactor.
 owner: wagner
-last_run: "2026-08-25"
+last_run: "2026-08-28"
+last_run_ci: "2026-08-28 (PR desta sessão) — REVALIDAÇÃO ANALÍTICA, suíte NÃO executada. Por quê: Pest só roda no CT 100 (proibição Tier 0), e o checkout de lá está em 2026-07-23 — não conteria esta mudança, então rodar ali produziria recibo de OUTRO código. O que FOI feito: a mudança é 100% de camada de apresentação (4 `<input>` nativos -> `<Input>` do DS; `Sparkline` hand-rolled -> `Chart` do shared com cor por token). Revisei os 8 UC um a um: todos afirmam comportamento de BACKEND/presenter (mapeamento de forma de pagamento, validação, isolamento cross-tenant, MRR/churn, derivação de status, ciclo de vida) — nenhum afirma componente, cor, tipografia ou marcação. Medido, não lido: grep por `sparkline|<svg|<input|oklch|className|cw-input|Chart` nos 5 arquivos de teste citados (Wave21NewSubscription, Wave23EditarAssinatura, PlanoSemFaturaContrato, Wave4PresenterIndex, CustomerJourney) devolveu 0 hits em todos, com controle positivo (11 asserts casam no Wave4PresenterIndex, logo o grep funciona). Nenhum critério de aceite muda. Isto NÃO substitui execução: o veredito de Status continua vindo do manifesto G-7, que a lane do PR alimenta. ---- REGISTRO ANTERIOR: last_run 2026-08-25."
 ---
 
 # Casos de Uso & Aceite — Carteira de assinaturas (`/recurring-billing`)

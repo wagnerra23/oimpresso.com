@@ -36,6 +36,13 @@ review_triggers:
 
 # ADR 0182 — PageHeaderTabs pattern canon: header obrigatório de telas Inertia com sub-navegação
 
+> **ERRATA 2026-08-31** ([ADR 0377](0377-append-only-adr-excecao-por-label-emenda-0094.md) — dois ponteiros podres):
+>
+> 1. **Esta ADR já tinha uma errata, e não apontava pra ela.** A [ADR 0260](0260-errata-0182-pageheader-cor-roxo-universal.md) (2026-06-07) corrigiu a cor do primário: é **roxo universal `oklch(0.55 0.15 295)`**, NÃO o `oklch(0.6 0.15 {hue})` hue-por-grupo que o corpo abaixo ainda manda usar na Zona R. Quem implementar lendo só esta ADR nasce com a cor errada — que é exatamente o risco que a 0260 dizia fechar.
+> 2. **A cadeia de supersede está quebrada.** O frontmatter marca esta ADR como superseded parcial pela [ADR 0190](0190-primary-button-roxo-universal-295.md), que está **`superseded`** desde 2026-05-29 pela [ADR 0235 DS v4](0235-ds-v4-accent-roxo-universal.md) — e a 0235 não menciona esta ADR nem a [0189](0189-pageheader-canon-v3-1-cadastro-roxo.md). O efeito prático **não muda** (o roxo 295 universal que a 0190 trouxe é o mesmo que a 0235 reafirma), mas o ponteiro passava por uma ADR morta.
+>
+> **Vale hoje:** o *pattern* de PageHeaderTabs deste documento (3 zonas · ghosts · overflow `⋮` · anti-duplicação) — intacto. A *cor* vem da 0235, via errata 0260.
+
 ## Contexto
 
 [ADR 0180](0180-sidebar-v3-5-grupos-ghosts-header.md) estabeleceu o sidebar v3 (5 grupos canon + ghosts) e Fase 5 piloto Financeiro/Unificado canonizou o **header de tela** correspondente. Após:

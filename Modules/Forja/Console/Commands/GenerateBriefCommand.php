@@ -5,6 +5,8 @@ namespace Modules\Forja\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Modules\Forja\Services\BriefGeneratorService;
 use Modules\Forja\Services\BriefValidator;
 use Modules\Forja\Services\LeaseBriefSectionService;
@@ -16,6 +18,7 @@ use Modules\Governance\Services\ObraParadaBriefLineService;
 use Modules\Governance\Services\PlanHealthBriefLineService;
 use Modules\Governance\Services\ShippedLogBriefLineService;
 use Modules\Governance\Services\SddBriefLineService;
+use Modules\Jana\Entities\Mcp\McpInboxNotification;
 use Modules\Jana\Services\TasksSemDonoBriefLineService;
 use Throwable;
 
@@ -36,6 +39,9 @@ use Throwable;
  */
 final class GenerateBriefCommand extends Command
 {
+    /** Prefixo machine-detectável do body do alerta (mesma convenção do handoff:stale-alert). */
+    private const ALERT_MARKER = '[brief-generate]';
+
     protected $signature = 'brief:generate {--dry-run : Imprime brief sem gravar no banco}';
 
     protected $description = 'Gera o Daily Brief (camada L7) via Brain B e grava em mcp_briefs';
@@ -173,21 +179,49 @@ final class GenerateBriefCommand extends Command
     }
 
     /**
-     * Posta alerta no MCP inbox (channel ops). Best-effort:
-     * se mcp_inbox não existir ainda, log local + segue.
+     * Posta alerta de ops no inbox do MCP (`mcp_inbox_notifications`).
+     *
+     * **Tabela:** escrevia em `mcp_inbox`, que NUNCA existiu — nem migration, nem
+     * schema em prod. Toda chamada caía no catch e o alerta virava uma linha de log
+     * que ninguém lê (medido em prod 2026-09-02: `SQLSTATE[42S02] ... 'mcp_inbox'
+     * doesn't exist`). A tabela real é `mcp_inbox_notifications`.
+     *
+     * **Mapeamento "channel ops" -> modelo do main:** `McpInboxNotification` é
+     * per-user com `type` enum — NÃO tem `channel` nem `severity`. Então o alerta
+     * vira 1 notificação `type='due_soon'` pro user de ops
+     * (`config('admin.wagner_user_id')`; sem arquivo de config hoje -> default 1).
+     * É o MESMO mapeamento que o `handoff:stale-alert` já fixou e documentou
+     * (ADR 0283) — reuso do dono do tema, não um 2º caminho de escrita.
+     *
+     * **Best-effort por contrato:** tabela ausente ou insert falhando vira
+     * `Log::warning` e retorno normal. Este método NUNCA muda o exit code do
+     * comando — quem decide o exit é a geração do brief, ANTES desta chamada.
+     *
+     * @see \Modules\Forja\Console\Commands\HandoffStaleAlertCommand
+     * @see \Modules\Jana\Entities\Mcp\McpInboxNotification
      */
     private function alertOps(string $message): void
     {
         try {
-            DB::table('mcp_inbox')->insert([
-                'channel' => 'ops',
-                'severity' => 'critical',
-                'message' => '🚨 '.$message,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+            if (! Schema::hasTable('mcp_inbox_notifications')) {
+                Log::warning('[brief:generate] alertOps pulado: tabela mcp_inbox_notifications ausente', [
+                    'original_message' => $message,
+                ]);
+
+                return;
+            }
+
+            McpInboxNotification::notify(
+                userId: (int) config('admin.wagner_user_id', 1),
+                type: 'due_soon',
+                body: self::ALERT_MARKER.' 🚨 '.$message,
+                payload: [
+                    'kind' => 'brief_generate_failure',
+                    'origem' => 'brief:generate',
+                ],
+            );
         } catch (Throwable $e) {
-            \Log::error('[brief:generate] alertOps falhou: '.$e->getMessage(), [
+            Log::warning('[brief:generate] alertOps falhou: '.$e->getMessage(), [
                 'original_message' => $message,
             ]);
         }

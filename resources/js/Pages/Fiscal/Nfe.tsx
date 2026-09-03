@@ -9,9 +9,14 @@
 //
 // Origem: design Cowork "Oimpresso ERP — Chat" / fiscal-page.jsx §9 (FiscalNFePage), aprovado por [W] 2026-05-20.
 // Persona: Eliana (contadora) + Wagner (operador fiscal).
-// Tokens: var(--fis) rosa fiscal, var(--ok), var(--warn), var(--bad).
+// Tokens: var(--fis) — acento do Fiscal; desde 2026-09-01 é o roxo canônico do DS
+//   oklch(0.55 0.15 295) (ADR 0235), não mais o hue 30 herdado do port. Mais
+//   var(--ok), var(--warn), var(--bad). Definidos em resources/css/fiscal-cockpit.css.
 // Não-duplica: lê Modules/NfeBrasil/Models/NfeEmissao via NfeCockpitController.
 
+import { Inline } from '@/Components/layout';
+import { Button } from '@/Components/ui/button';
+import { Input } from '@/Components/ui/input';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, router } from '@inertiajs/react';
 import { Eraser, FileSearch, Plus, RefreshCw } from 'lucide-react';
@@ -20,6 +25,7 @@ import { useEffect, useMemo, useState } from 'react';
 import FxShell from './_components/FxShell';
 import InutilizacaoModal from './_components/InutilizacaoModal';
 import NotaDrawer, { type NotaRow } from './_components/NotaDrawer';
+import { chipCount, chipProps } from './_lib/chip-filtro';
 import {
   brl,
   formatDoc,
@@ -133,20 +139,26 @@ export default function Nfe({ filters: initialFilters, counts, sefazCodes, rows 
         ]}
         actions={
           <>
-            <button className="fx-btn ghost" disabled title="PR seguinte">
+            <Button variant="cowork-ghost" disabled title="PR seguinte">
               Importar XML
-            </button>
-            <button
+            </Button>
+            {/* Tom "warn" não existe como variante do Button, e NÃO uso `cowork-ghost`
+                + utilitária de cor: `.cw-btn-*` mora unlayered e VENCE a Tailwind, que é
+                layered (armadilha documentada em cowork-fields.css:168-176). Por isso
+                aqui é `outline` + `size="cowork"` — ambos layered, então compõem. */}
+            <Button
               type="button"
-              className="fx-btn warn"
+              variant="outline"
+              size="cowork"
+              className="border-warning bg-warning text-white hover:bg-warning/90"
               onClick={() => setInutOpen(true)}
               title="Inutiliza faixa numérica de NFe (SEFAZ cstat=102 — fecha buracos fiscais)"
             >
               <Eraser size={12}/> Inutilizar faixa
-            </button>
-            <button className="fx-btn primary" disabled title="PR seguinte">
+            </Button>
+            <Button variant="cowork-primary" disabled title="PR seguinte">
               <Plus size={12}/> Emitir <kbd className="fx-kbd-inline">E</kbd>
-            </button>
+            </Button>
           </>
         }
       >
@@ -187,12 +199,22 @@ export default function Nfe({ filters: initialFilters, counts, sefazCodes, rows 
         ) : (
           <>
             {/* Filtros chip-row */}
-            <div className="fx-filters" data-contract="fiscal-nfe-filters">
-              <div className="fx-search">
-                <FileSearch size={13}/>
-                <input
+            <Inline gap={2} align="center" wrap className="mb-3" data-contract="fiscal-nfe-filters">
+              {/* Busca na primitiva <Input> do DS. O espaço da lupa vem da utilitária
+                  canon `.cw-input-icon-left` (cowork-fields.css), NÃO de `pl-*`: a
+                  Tailwind é layered e perde pro `.cw-input` unlayered. Mesmo idioma de
+                  Jana/Memoria.tsx e Cliente/Index.tsx. `InputGroup` não serve — ele é
+                  addon em caixa AO LADO, não ícone DENTRO do campo. */}
+              <div className="relative min-w-[240px] flex-1">
+                <FileSearch
+                  size={13}
+                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                />
+                <Input
                   type="search"
+                  className="cw-input-icon-left"
                   placeholder="Buscar nº, chave (últimos 6 dígitos), ou motivo SEFAZ…"
+                  aria-label="Buscar notas por número, chave ou motivo SEFAZ"
                   value={filters.search}
                   onChange={(e) => setFilters(f => ({ ...f, search: e.target.value }))}
                   onKeyDown={(e) => {
@@ -200,34 +222,39 @@ export default function Nfe({ filters: initialFilters, counts, sefazCodes, rows 
                   }}
                 />
               </div>
-              <button
+              <Button
                 type="button"
-                className={`fx-chip${filters.status === 'todas' ? ' active' : ''}`}
+                {...chipProps(filters.status === 'todas')}
+                aria-pressed={filters.status === 'todas'}
                 onClick={() => applyFilters({ status: 'todas' })}
-              >Todas <span>{counts.total}</span></button>
-              <button
+              >Todas <span className={chipCount(filters.status === 'todas')}>{counts.total}</span></Button>
+              <Button
                 type="button"
-                className={`fx-chip${filters.status === 'autorizadas' ? ' active' : ''}`}
+                {...chipProps(filters.status === 'autorizadas')}
+                aria-pressed={filters.status === 'autorizadas'}
                 onClick={() => applyFilters({ status: 'autorizadas' })}
-              >Autorizadas <span>{counts.autorizadas}</span></button>
-              <button
+              >Autorizadas <span className={chipCount(filters.status === 'autorizadas')}>{counts.autorizadas}</span></Button>
+              <Button
                 type="button"
-                className={`fx-chip danger${filters.status === 'rejeitadas' ? ' active' : ''}`}
+                {...chipProps(filters.status === 'rejeitadas', 'danger')}
+                aria-pressed={filters.status === 'rejeitadas'}
                 onClick={() => applyFilters({ status: 'rejeitadas' })}
-              >Rejeitadas <span>{counts.rejeitadas}</span></button>
-              <button
+              >Rejeitadas <span className={chipCount(filters.status === 'rejeitadas')}>{counts.rejeitadas}</span></Button>
+              <Button
                 type="button"
-                className={`fx-chip warn${filters.status === 'cancelaveis' ? ' active' : ''}`}
+                {...chipProps(filters.status === 'cancelaveis', 'warn')}
+                aria-pressed={filters.status === 'cancelaveis'}
                 onClick={() => applyFilters({ status: 'cancelaveis' })}
               >
-                <RefreshCw size={11}/> Janela 24h <span>{counts.cancelaveis}</span>
-              </button>
-              <button
+                <RefreshCw size={11}/> Janela 24h <span className={chipCount(filters.status === 'cancelaveis')}>{counts.cancelaveis}</span>
+              </Button>
+              <Button
                 type="button"
-                className={`fx-chip${filters.status === 'processando' ? ' active' : ''}`}
+                {...chipProps(filters.status === 'processando')}
+                aria-pressed={filters.status === 'processando'}
                 onClick={() => applyFilters({ status: 'processando' })}
-              >Processando <span>{counts.processando}</span></button>
-            </div>
+              >Processando <span className={chipCount(filters.status === 'processando')}>{counts.processando}</span></Button>
+            </Inline>
 
             {/* Tabela com Deferred (Inertia partial reload) */}
             <Deferred data="rows" fallback={

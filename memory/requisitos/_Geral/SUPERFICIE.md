@@ -14,13 +14,12 @@ module: _Geral
 >
 > **O que isto é:** a porta geral para componentes, layouts e templates herdáveis por mais de um módulo. A lista é derivada das raízes compartilhadas declaradas em `module-surface.mjs::RAIZES_GERAIS`. **O que NÃO é:** autorização para importar qualquer item sem verificar contrato, status e consumidores; para decidir reuso, consulte também `node scripts/reuse-index.mjs "<símbolo ou intenção>"` e o registry do Design System.
 
-**Total mapeado:** 127 arquivos em 5 papéis.
+**Total mapeado:** 129 arquivos em 6 papéis.
 
 ## Componentes compartilhados (React) — 87
 
 - [CommandPalette.tsx](../../../resources/js/Components/CommandPalette.tsx)
 - [Icon.tsx](../../../resources/js/Components/Icon.tsx)
-- [MentionInput.tsx](../../../resources/js/Components/MentionInput.tsx)
 - [FiscalStatusBadge.tsx](../../../resources/js/Components/NfeBrasil/FiscalStatusBadge.tsx)
 - [NfceStatusBadge.tsx](../../../resources/js/Components/NfeBrasil/NfceStatusBadge.tsx)
 - [fiscalStatus.ts](../../../resources/js/Components/NfeBrasil/fiscalStatus.ts)
@@ -48,6 +47,7 @@ module: _Geral
 - [Thread.tsx](../../../resources/js/Components/cockpit/Thread.tsx)
 - [TweaksPanel.tsx](../../../resources/js/Components/cockpit/TweaksPanel.tsx)
 - [shared.ts](../../../resources/js/Components/cockpit/shared.ts)
+- [useSidebarShortcut.ts](../../../resources/js/Components/cockpit/useSidebarShortcut.ts)
 - [box.tsx](../../../resources/js/Components/layout/box.tsx)
 - [container.tsx](../../../resources/js/Components/layout/container.tsx)
 - [grid.tsx](../../../resources/js/Components/layout/grid.tsx)
@@ -157,3 +157,8 @@ module: _Geral
 
 - [PageHeader-LEARNINGS.md](../../../memory/requisitos/_DesignSystem/templates/PageHeader-LEARNINGS.md)
 - [PageHeader-canon-v3-1.md](../../../memory/requisitos/_DesignSystem/templates/PageHeader-canon-v3-1.md)
+
+## Demais arquivos (manifestos, docs, assets e misc) — 2
+
+- [AppShellV2.casos.md](../../../resources/js/Layouts/AppShellV2.casos.md)
+- [AppShellV2.charter.md](../../../resources/js/Layouts/AppShellV2.charter.md)

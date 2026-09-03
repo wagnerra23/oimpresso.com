@@ -10,7 +10,7 @@
  * chamam `new Date()` no NAVEGADOR seguiam lendo o relógio real da máquina, no
  * instante do render. Exemplos medidos em 2026-08-14:
  *
- *   - resources/js/Pages/Jana/components/JanaAreaHeader.tsx:80
+ *   - resources/js/Pages/Jana/_components/JanaAreaHeader.tsx:80
  *       new Date().toLocaleTimeString('pt-BR', {hour,minute})  → "Atualizado 17:17"
  *   - resources/js/Pages/Jana/_components/JanaCockpit.tsx:356
  *       new Date().toLocaleDateString('pt-BR', {day,month,year}) → "14 de agosto de 2026"

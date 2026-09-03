@@ -8,11 +8,16 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\Jana\Services\CharterHealthChecker;
+use Modules\Jana\Services\Mcp\Ct100CircuitBreaker;
+use Modules\Jana\Services\TaskRegistry\HitlEscalationService;
 
 /**
  * Sentinela operacional da Jana + Constituição v2.
  *
- * 5 checks SQL rodam 1×/dia (cron agendado em routes/console.php).
+ * A cadência NÃO se declara aqui — ela apodrece. O oráculo é `php artisan schedule:list`
+ * (§5 2026-07-17); medido em prod 2026-09-03, são DUAS entradas: `0 6 * * *` e
+ * `7 * * * *`. A contagem de checks tampouco: quem se auto-reporta é a `$description`.
+ * (A redação anterior dizia "5 checks SQL rodam 1×/dia" — errada nos dois eixos.)
  * Output: tabela no stdout + log estruturado.
  * Exit code: 0 se tudo OK, 1 se qualquer check falhou (cron alerta por email).
  *
@@ -49,10 +54,20 @@ use Modules\Jana\Services\CharterHealthChecker;
  *      no git AUSENTE de mcp_memory_documents OU vivo sem heartbeat de sync
  *      (indexed_at >7d). Classe do incidente BRIEFINGs: -11pp recall@5
  *      invisível por semanas (#3815). Fonte única: slugsEsperados() do sync.
+ *  10g. LLM provider quota (incidente 2026-08-31→09-02) — a conta do provedor está
+ *      sem crédito? Sonda o oráculo e lê o enum `error.type`/`error.code`. Fecha o
+ *      buraco em que `brief_uptime_24h` dizia STALE e `custo_brain_b_24h` pintava
+ *      VERDE com R$ 0,00 (custo zero por provedor morto passa no teto "custo <= X"),
+ *      sem nenhum check NOMEAR a causa. `sem-credito` vira task HITL pro [W].
  *  10f. MCP token sem gate (incidente 2026-07-28) — user com token MCP ativo
  *      (não revogado/expirado) que NÃO tem a permission `jana.mcp.use` que o
  *      McpAuthMiddleware exige. Toda chamada dele vira 403. A classe ficou
  *      INVISÍVEL por ~6h porque o cache do Spatie segurava o estado antigo.
+ *  10g. ct100_reachability (incidente 2026-09-02) — mcp, langfuse e meilisearch
+ *      moram na MESMA máquina: 2+ fora ao mesmo tempo é UM fato ("CT 100 fora
+ *      desde X"), não N investigações. Não sonda nada — correlaciona o que os
+ *      donos de cada sinal mediram neste run e rebaixa a advisory os sintomas
+ *      que a causa raiz explica.
  *  11. Lesson ledger graduation (ADVISORY · Reflexion runtime) — toda lição de
  *      operação em LICOES-OPERACAO.md nasceu graduada (MEC→check / JULG→regra);
  *      acende amarelo se há entrada malformada ou `status:pendente`.
@@ -78,7 +93,7 @@ class HealthCheckCommand extends Command
                             {--json : Output JSON em vez de tabela}
                             {--notify : Loga ALERT em jana-health channel se algo falhou}';
 
-    protected $description = 'Health check diário Jana + Constituição v2 (11 checks DUROS + distiller_freshness advisory + ledger de lições + charter/loop advisory)';
+    protected $description = 'Health check diário Jana + Constituição v2 (12 checks DUROS + distiller_freshness advisory + ledger de lições + charter/loop advisory)';
 
     /**
      * Margem de segurança da invariante de valor (check 1b). Desconto só REDUZ;
@@ -126,6 +141,7 @@ class HealthCheckCommand extends Command
             $this->checkMemoriaRecallBackend(),
             $this->checkLangfuseTraceUptime24h(),
             $this->checkOnlineEvalScoreUptime7d(),
+            $this->checkLlmProviderQuota(),
             $this->checkDbWriteCanary(),
             $this->checkDbStorageQuota(),
             $this->checkMcpIndexSyncGap(),
@@ -136,6 +152,10 @@ class HealthCheckCommand extends Command
             // Charter health (advisory — não falha exit/cron). PROTOCOL §6.
             ...CharterHealthChecker::fromApp()->checks(),
         ];
+
+        // Consolida as pernas CT 100 num veredito só. NÃO sonda nada de novo:
+        // lê o que os donos de cada sinal já mediram neste mesmo run.
+        $checks = self::consolidateCt100($checks, Ct100CircuitBreaker::healthLeg());
 
         // Advisory checks (charter) reportam mas não derrubam o exit code:
         // contam como "ok" pro gate enquanto não viram ratchet.
@@ -184,6 +204,118 @@ class HealthCheckCommand extends Command
     public static function allChecksOk(array $checks): bool
     {
         return collect($checks)->every(fn ($c) => ($c['ok'] ?? false) || ($c['advisory'] ?? false));
+    }
+
+    /**
+     * Check 10g — `ct100_reachability`: UM veredito no lugar de N sintomas.
+     *
+     * PROBLEMA (medido 2026-09-02): o CT 100 caiu ~27-28/08 e a tabela do
+     * health-check passou a mostrar sintomas soltos — `memoria_recall_backend`
+     * down, `langfuse_trace_uptime_24h` inacessível — cada um pedindo
+     * investigação própria, nenhum dizendo a única coisa que importa: *a máquina
+     * caiu*. Um operador lendo três linhas vermelhas de três serviços persegue
+     * três causas.
+     *
+     * POR QUE ISTO NÃO É UM 4º PROBE (a régua já tem dono — §5 2026-07-09):
+     * este método não fala com a rede. Ele CORRELACIONA o que os donos de cada
+     * sinal já mediram no mesmo run — `memoria_recall_backend` é o dono do MCP,
+     * o probe do Langfuse é o dono do Langfuse — mais a perna meilisearch/sync,
+     * que vem do `Ct100CircuitBreaker` porque quem de fato atravessa aquele
+     * caminho é o cron de 5min (288x/dia), não um health-check diário.
+     *
+     * REGRA DO VEREDITO — 2 de N: um serviço fora é problema DELE (o dono
+     * continua duro e reporta sozinho). Dois ou mais fora ao mesmo tempo é o
+     * host, não os serviços. Só nesse caso a consolidação acontece: nasce
+     * `ct100_reachability` DURO (pagina) e os sintomas que ele explica viram
+     * advisory — deixam de pedir investigação separada sem sumir da tabela.
+     *
+     * O QUE FICA DE FORA, e é decisão, não esquecimento: `mcp_webhook_5xx_2h`
+     * NÃO é perna. Ele pergunta ao GitHub quais entregas voltaram 5xx — mede a
+     * leitura que o GitHub tem do webhook, não se o CT 100 atende. Entrega que
+     * nem conectou não é 5xx, então ele pode ficar verde com o CT 100 no chão.
+     * ⚠️ Isso é leitura da semântica da API, ainda NÃO medido contra as
+     * entregas reais; se alguém medir e mostrar 5xx durante esta queda, ele vira
+     * perna com uma linha.
+     *
+     * @param  array<int, array<string, mixed>>  $checks
+     * @param  array{service: string, reachable: ?bool, since: ?string}  $syncLeg
+     * @return array<int, array<string, mixed>>
+     */
+    public static function consolidateCt100(array $checks, array $syncLeg): array
+    {
+        $name = 'ct100_reachability';
+        $threshold = '< 2 serviços fora';
+
+        // Pernas medidas: `reachable === null` = não medido (dev/CI, skip) e é
+        // ignorado — ausência de medição nunca vira estado do objeto medido.
+        $pernas = [];
+        foreach ($checks as $idx => $c) {
+            $leg = $c['ct100'] ?? null;
+            if (is_array($leg) && isset($leg['service']) && ($leg['reachable'] ?? null) !== null) {
+                $pernas[] = ['idx' => $idx, 'service' => (string) $leg['service'], 'up' => (bool) $leg['reachable']];
+            }
+        }
+        if (($syncLeg['reachable'] ?? null) !== null) {
+            $pernas[] = ['idx' => null, 'service' => (string) $syncLeg['service'], 'up' => (bool) $syncLeg['reachable']];
+        }
+
+        $fora = array_values(array_filter($pernas, fn ($p) => ! $p['up']));
+        $nomes = implode(', ', array_map(fn ($p) => $p['service'], $fora));
+
+        if ($pernas === []) {
+            $checks[] = [
+                'name' => $name, 'ok' => true, 'value' => 'n/a', 'threshold' => $threshold,
+                'message' => 'Skipped (nenhuma perna CT 100 medida neste runtime — dev/CI)',
+            ];
+
+            return $checks;
+        }
+
+        if (count($fora) < 2) {
+            $checks[] = [
+                'name' => $name,
+                'ok' => true,
+                'value' => count($fora) === 0 ? 'up' : 'parcial',
+                'threshold' => $threshold,
+                'message' => count($fora) === 0
+                    ? sprintf('CT 100 alcançável nas %d perna(s) medida(s)', count($pernas))
+                    : "Só {$nomes} fora — problema do serviço, não do host (o check dono dele reporta)",
+            ];
+
+            return $checks;
+        }
+
+        // Início da série: quem tem resolução é o cron de 5min. Sem registro dele
+        // NÃO se inventa "desde agora" — diz-se que não foi registrado.
+        $desde = is_string($syncLeg['since'] ?? null) && $syncLeg['since'] !== ''
+            ? $syncLeg['since']
+            : null;
+
+        foreach ($fora as $p) {
+            if ($p['idx'] !== null) {
+                $checks[$p['idx']]['advisory'] = true;
+                $checks[$p['idx']]['message'] = (string) ($checks[$p['idx']]['message'] ?? '')
+                    . ' [causa raiz em ct100_reachability — não investigar isolado]';
+            }
+        }
+
+        $checks[] = [
+            'name' => $name,
+            'ok' => false,
+            'value' => 'down',
+            'threshold' => $threshold,
+            'message' => sprintf(
+                'ALERTA: CT 100 fora %s — %d de %d serviços inacessíveis (%s). '
+                . 'Sync de memória e recall param até voltar. 1a hipótese é o CABO DE REDE '
+                . '(hardware conhecido): memory/requisitos/Infra/RUNBOOK-acesso-ct100.md',
+                $desde !== null ? "desde {$desde}" : '(início não registrado pelo cron do sync)',
+                count($fora),
+                count($pernas),
+                $nomes,
+            ),
+        ];
+
+        return $checks;
     }
 
     /**
@@ -1192,6 +1324,8 @@ class HealthCheckCommand extends Command
                 'ok' => true,
                 'value' => 'n/a',
                 'threshold' => 'reachable',
+                // null = não medido; o consolidador CT 100 ignora pernas assim.
+                'ct100' => ['service' => 'mcp', 'reachable' => null],
                 'message' => 'Skipped (recall MCP não configurado — dev/CI usa fallback local)',
             ];
         }
@@ -1217,6 +1351,9 @@ class HealthCheckCommand extends Command
                 'ok' => $ok,
                 'value' => $ok ? 'up' : (string) $response->status(),
                 'threshold' => 'reachable',
+                // RESPONDEU (mesmo 5xx) = alcançável. Só silêncio de rede conta
+                // como "CT 100 fora" — mesma regra do Ct100CircuitBreaker::probe().
+                'ct100' => ['service' => 'mcp', 'reachable' => true],
                 'message' => $ok
                     ? 'Recall backend (MCP/Meilisearch) respondendo — memória ativa'
                     : "ALERTA: recall backend não-OK ({$response->status()}) — chat degrada SEM memória (não estoura 500). Checar MCP server + Meilisearch CT 100.",
@@ -1227,6 +1364,7 @@ class HealthCheckCommand extends Command
                 'ok' => false,
                 'value' => 'down',
                 'threshold' => 'reachable',
+                'ct100' => ['service' => 'mcp', 'reachable' => false],
                 'message' => 'ALERTA: recall backend inacessível (' . mb_substr($e->getMessage(), 0, 80)
                     . ') — chat degrada SEM memória. Checar Meilisearch/MCP CT 100.',
             ];
@@ -1310,6 +1448,13 @@ class HealthCheckCommand extends Command
             'advisory' => $r['advisory'] ?? false,
             'value' => $r['count'] ?? $r['state'],
             'threshold' => ">= {$threshold}",
+            // Perna Langfuse do consolidador CT 100. Só 'inacessivel' é queda de
+            // transporte: 'mudo' (0 traces) é servidor VIVO e calado — sintoma
+            // diferente, dono diferente. Não configurado = não medido (null).
+            'ct100' => [
+                'service' => 'langfuse',
+                'reachable' => $configured ? ($r['state'] !== 'inacessivel') : null,
+            ],
             'message' => $messages[$r['state']] ?? $r['state'],
         ];
     }
@@ -1466,6 +1611,242 @@ class HealthCheckCommand extends Command
         return $count >= $threshold
             ? ['ok' => true, 'state' => 'vivo', 'count' => $count]
             : ['ok' => false, 'state' => 'mudo', 'count' => $count];
+    }
+
+    /**
+     * Códigos que o provedor devolve quando a CONTA está sem crédito. São enums do
+     * contrato HTTP (`error.type` / `error.code`) — nunca a `error.message`, que é
+     * prosa, muda sem aviso e não é contrato.
+     */
+    public const QUOTA_CODIGOS_SEM_CREDITO = ['insufficient_quota', 'credit_balance_exhausted'];
+
+    /**
+     * Modelo da sonda: o mais barato do catálogo. A quota é da CONTA/projeto, não do
+     * modelo — sondar com o mais barato responde a MESMA pergunta pagando o mínimo
+     * (~10 tokens de input por chamada). Sem crédito, é recusada antes de faturar.
+     *
+     * FREQUÊNCIA — medida no oráculo, não deduzida (§5 2026-07-17). A 1ª redação deste
+     * bloco dizia "1×/dia" por eu ter suposto a cadência a partir do docblock do topo do
+     * arquivo, em vez de perguntar ao runtime. `php artisan schedule:list` em prod mostra
+     * DUAS entradas de `jana:health-check --notify`:
+     *   0 6 * * *   → diária 06:00
+     *   7 * * * *   → DE HORA EM HORA, minuto 7
+     * Logo ~25 sondas/dia (~250 tokens de input/dia ≈ US$ 0,01/ano no gpt-4o-mini — segue
+     * desprezível, mas o número anterior estava errado). Confirmado pelo rastro real: a
+     * task HITL-LLM-QUOTA acumulou 9 eventos `re-escalado` entre 02/09 20:30 e 03/09
+     * 06:54, um por execução — e continuou sendo UMA task, que é a idempotência do
+     * `HitlEscalationService` provada em produção.
+     */
+    public const QUOTA_PROBE_MODEL = 'gpt-4o-mini';
+
+    /**
+     * Check 10g — Provedor LLM sem crédito (incidente 2026-08-31 20:02 → 2026-09-02).
+     *
+     * O BURACO (história completa na L-OP-005): sem crédito a Jana emudeceu e os checks
+     * só viam SINTOMA — um pintou VERDE, porque `custo_brain_b_24h` mede `custo <= teto`
+     * e custo zero por provedor morto passa no teto (§5 2026-07-29).
+     *
+     * POR QUE SONDA, E NÃO LOG (medido em prod 2026-09-02, não suposto) — a fonte
+     * preferida seria o log estruturado do provider, e ela NÃO tem o dado:
+     *
+     *   # canal `copiloto-ai`, 14 arquivos diários → ZERO ocorrências:
+     *   grep -c "429" storage/logs/copiloto-ai-2026-*.log       # 0 em 14 de 14
+     *   # `laravel.log` (1,0 GB) TEM o dado, mas nenhuma ocorrência é DATÁVEL:
+     *   grep -E "insufficient_quota|credit_balance_exhausted" storage/logs/laravel.log \
+     *     | grep -cE "^\[20[0-9]{2}-"                           # 0 de 40
+     *
+     * O par (timestamp, motivo) nunca coexiste na mesma linha — o motivo cai no corpo
+     * JSON da exceção e o cabeçalho datado carrega outra mensagem, então um check "nas
+     * últimas 24h" teria que remontar blocos multi-linha: o parse frágil que a regra
+     * proíbe. Perguntamos ao ORÁCULO em vez de deduzir do rastro (§5 2026-07-17).
+     *
+     * FP MEDIDO ANTES DE LIGAR (proibicoes §"LIGUE A MÁQUINA" #4) — corpus de 30d de log
+     * de prod, via `grep -oE ... | wc -l`: insufficient_quota=30 ·
+     * credit_balance_exhausted=30 · rate_limit_exceeded=0 · tokens/requests_exceeded=0.
+     * **FP = 0 de 30.** O predicado por enum separa os dois erros que chegam com o MESMO
+     * 429 e pedem ações OPOSTAS — recarregar crédito ([W]) vs backoff (nosso) —
+     * distinção que o `RagasJudgeService` já aprendera a logar (PR #6540).
+     *
+     * ESCALAÇÃO: `sem-credito` é falha DURA e vira UMA task HITL `blocked`/`wagner`
+     * (`HITL-LLM-QUOTA`), canal que o `brief-fetch` imprime. `[C]` não manuseia chave nem
+     * billing (US-COPI-145). Idempotente: re-escalar atualiza a MESMA task.
+     *
+     * Reproduzir a sonda à mão (a chave nunca é ecoada):
+     *   K=$(grep -m1 '^OPENAI_API_KEY=' .env | cut -d= -f2-)
+     *   curl -s -w '\nHTTP=%{http_code}\n' -H "Authorization: Bearer $K" \
+     *     -H 'Content-Type: application/json' \
+     *     -d '{"model":"gpt-4o-mini","max_tokens":1,"messages":[{"role":"user","content":"ping"}]}' \
+     *     https://api.openai.com/v1/chat/completions
+     *
+     * @see Modules\Jana\Services\TaskRegistry\HitlEscalationService
+     * @see memory/requisitos/Jana/LICOES-OPERACAO.md  L-OP-005
+     */
+    protected function checkLlmProviderQuota(): array
+    {
+        // A sonda faz UMA chamada externa à conta paga: só em produção. Em dev/CI não
+        // mediria nada útil e ainda sairia pela rede a cada run da suíte. Mesmo gate do
+        // checkLangfuseTraceUptime24h, alinhado ao schedule `->environments(['live'])`.
+        $probe = app()->environment(['production', 'live'])
+            ? $this->probeLlmProviderQuota()
+            : ['configured' => false, 'reachable' => false, 'status' => null,
+                'error_code' => null, 'detail' => 'fora de produção'];
+
+        $r = self::evaluateLlmProviderQuota(
+            $probe['configured'], $probe['reachable'], $probe['status'], $probe['error_code'],
+        );
+
+        if ($r['state'] === 'sem-credito') {
+            $this->escalarQuotaParaHitl($probe['error_code']);
+        }
+
+        $codigo = $probe['error_code'] ?? 'sem código';
+
+        $messages = [
+            'nao-configurado' => "Skipped ({$probe['detail']} — a sonda só roda em produção e com chave)",
+            'nao-medido' => "SEM MEDIÇÃO: provedor inacessível ({$probe['detail']}) — não afirma "
+                . 'crédito nem falta dele. Advisory: erro de instrumento não vira veredito.',
+            'sem-credito' => "PROVEDOR SEM CRÉDITO (HTTP {$probe['status']} · {$codigo}) — chat, metas, "
+                . 'PR UI Judge e Daily Brief param juntos. Escalado como HITL-LLM-QUOTA '
+                . '(blocked/wagner) no canal do brief-fetch; recarregar ou trocar de provedor é [W].',
+            'credencial-recusada' => "ALERTA: credencial recusada (HTTP {$probe['status']} · "
+                . "{$codigo}) — chave inválida, revogada ou sem acesso ao projeto.",
+            'rate-limit' => "Advisory: 429 de CONCORRÊNCIA ({$codigo}), não de crédito — transitório, "
+                . 'resolve com backoff.',
+            'erro-provedor' => "Advisory: provedor respondeu HTTP {$probe['status']} ({$codigo}) — "
+                . 'falha do lado deles, geralmente transitória.',
+            'ok' => 'Provedor aceitou a chamada — conta com crédito',
+        ];
+
+        return [
+            'name' => 'llm_provider_quota',
+            'ok' => $r['ok'],
+            'advisory' => $r['advisory'] ?? false,
+            'value' => $r['state'],
+            'threshold' => 'provedor aceita chamada',
+            'message' => $messages[$r['state']] ?? $r['state'],
+        ];
+    }
+
+    /**
+     * Sonda o provedor com a chamada mais barata possível. Não julga — quem julga é o
+     * `evaluateLlmProviderQuota`.
+     *
+     * @return array{configured: bool, reachable: bool, status: ?int, error_code: ?string, detail: string}
+     */
+    protected function probeLlmProviderQuota(): array
+    {
+        // config() e não env(): sob `config:cache` o env() fora de config/ devolve null
+        // e o check ficaria eternamente "nao-configurado" em prod (config/services.php:54).
+        $apiKey = (string) config('services.openai.api_key', '');
+
+        if ($apiKey === '') {
+            return [
+                'configured' => false, 'reachable' => false,
+                'status' => null, 'error_code' => null, 'detail' => 'sem chave',
+            ];
+        }
+
+        try {
+            $response = \Illuminate\Support\Facades\Http::withToken($apiKey)
+                ->acceptJson()
+                ->timeout(20)
+                ->post('https://api.openai.com/v1/chat/completions', [
+                    'model' => self::QUOTA_PROBE_MODEL,
+                    'max_tokens' => 1,
+                    'messages' => [['role' => 'user', 'content' => 'ping']],
+                ]);
+
+            // `error.code` é o específico (credit_balance_exhausted), `error.type` o
+            // guarda-chuva (insufficient_quota). Enums; a `message` é prosa e NÃO entra.
+            $codigo = $response->json('error.code') ?? $response->json('error.type');
+
+            return [
+                'configured' => true, 'reachable' => true, 'status' => $response->status(),
+                'error_code' => is_string($codigo) && $codigo !== '' ? $codigo : null,
+                'detail' => '',
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'configured' => true, 'reachable' => false, 'status' => null,
+                'error_code' => null, 'detail' => mb_substr($e->getMessage(), 0, 80),
+            ];
+        }
+    }
+
+    /**
+     * Veredito puro — estático pra ser testável sem HTTP nem DB (padrão do
+     * `evaluateTraceUptime`). Contrato, NÃO derivado da implementação:
+     *   sem chave → pula · inacessível → "nao-medido" ADVISORY ("não consegui medir"
+     *   não é estado do objeto medido, §5 2026-07-29) · 200 → verde · enum de quota →
+     *   DURO "sem-credito" (escala HITL) · 401/403 → DURO "credencial-recusada" ·
+     *   429 com outro enum → ADVISORY "rate-limit" · resto → ADVISORY "erro-provedor".
+     *
+     * A ordem importa: o enum de quota vem ANTES do 429 genérico, senão o caso que
+     * exige [W] (recarregar) é engolido pelo que se resolve sozinho (backoff).
+     *
+     * @return array{ok: bool, state: string, advisory?: bool}
+     */
+    public static function evaluateLlmProviderQuota(
+        bool $configured,
+        bool $reachable,
+        ?int $status,
+        ?string $errorCode,
+    ): array {
+        if (! $configured) {
+            return ['ok' => true, 'state' => 'nao-configurado'];
+        }
+
+        if (! $reachable) {
+            return ['ok' => false, 'state' => 'nao-medido', 'advisory' => true];
+        }
+
+        if ($status === 200) {
+            return ['ok' => true, 'state' => 'ok'];
+        }
+
+        if (in_array((string) $errorCode, self::QUOTA_CODIGOS_SEM_CREDITO, true)) {
+            return ['ok' => false, 'state' => 'sem-credito'];
+        }
+
+        if ($status === 401 || $status === 403) {
+            return ['ok' => false, 'state' => 'credencial-recusada'];
+        }
+
+        if ($status === 429) {
+            return ['ok' => false, 'state' => 'rate-limit', 'advisory' => true];
+        }
+
+        return ['ok' => false, 'state' => 'erro-provedor', 'advisory' => true];
+    }
+
+    /**
+     * Materializa a pendência no canal HITL que o `brief-fetch` imprime. Fail-open:
+     * o transporte nunca derruba o sentinela — o check já reportou `sem-credito` e o
+     * exit code cai de qualquer jeito.
+     */
+    private function escalarQuotaParaHitl(?string $codigo): void
+    {
+        try {
+            app(HitlEscalationService::class)->escalar(
+                chave: 'LLM-QUOTA',
+                titulo: 'Provedor LLM sem crédito — Jana, brief e PR UI Judge mudos',
+                descricao: 'A sonda diária do `jana:health-check` recebeu do provedor o código `'
+                    . ($codigo ?? 'insufficient_quota') . "`.\n\nImpacto: chat da Jana, sugestão "
+                    . 'de metas, PR UI Judge e Daily Brief param juntos — o brief é o sintoma mais '
+                    . "visível (`brief_uptime_24h` fica STALE).\n\nSaídas (decisão [W] — `[C]` não "
+                    . 'manuseia chave nem billing, US-COPI-145): recarregar crédito na conta do '
+                    . 'provedor, OU pôr `ANTHROPIC_API_KEY` no .env de prod e apontar a Jana pro '
+                    . "provedor secundário (US-COPI-135).\n\nFechar esta task (done/cancelled) "
+                    . 'silencia o escalonamento — o sentinela não reabre.',
+                modulo: 'Jana',
+                prioridade: 'p0',
+                origem: 'jana:health-check',
+            );
+        } catch (\Throwable $e) {
+            Log::channel('single')->warning('llm_provider_quota: escalação HITL falhou', [
+                'erro' => mb_substr($e->getMessage(), 0, 120),
+            ]);
+        }
     }
 
     /** Tabela-alvo do write-canary (check 10b). @see migration create_jana_health_write_canary_table. */
@@ -2144,7 +2525,9 @@ class HealthCheckCommand extends Command
             $total = count($checks);
             $msg = "✓ {$total} checks sem falha dura. Sistema saudável.";
             if ($advisoryWarn > 0) {
-                $msg .= " ⚠ {$advisoryWarn} advisory (charter) pra revisar.";
+                // Sem o rótulo "(charter)": desde o ct100_reachability, advisory
+                // também vem de sintoma rebaixado por causa raiz.
+                $msg .= " ⚠ {$advisoryWarn} advisory pra revisar.";
             }
             $this->info($msg);
         } else {

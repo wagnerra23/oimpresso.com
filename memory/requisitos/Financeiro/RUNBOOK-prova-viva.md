@@ -7,7 +7,7 @@ status: ativo
 last_validated: "2026-06-07"
 owner: W
 applies_to: resources/js/Pages/Financeiro/ProvaViva.tsx + Modules/Financeiro/Http/Controllers/ProvaVivaController.php
-canonical_session: design-handoff Cowork "Financeiro - Prova Viva (primitivos).html" (chat46, 2026-06-07)
+canonical_session: design-handoff Cowork "Financeiro - Prova Viva (primitivos).html" (chat46, 2026-06-07; o arquivo vive versionado em prototipo-ui/prototipos/financeiro-prova-viva/ desde 2026-09-01 — a cópia do projeto Cowork foi aposentada por decisão [W])
 ---
 
 # RUNBOOK — /financeiro/prova-viva

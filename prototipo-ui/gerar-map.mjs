@@ -208,7 +208,15 @@ export function fundirComExistente(esqueleto, existente) {
       acao: antiga.acao || nova.acao,
     };
   });
-  return { mapa: { ...esqueleto, partes }, preservadas, novas: partes.length - preservadas, removidas: [...antigas.keys()] };
+  // Chaves de TOPO que o esqueleto não produz (ex.: `mapping`, do design-sync) sobrevivem à
+  // fusão. Sem isto, `--atualizar` — o comando que a própria mensagem de STALE do
+  // design-code-map-check manda rodar — apagava `mapping` e derrubava `compared: true` →
+  // `false` em SILÊNCIO (medido 2026-08-28: 4 dos 7 mapas do Fiscal, onde o fallback por
+  // `partes[]` não casa porque a parte aponta a sub-página e o `mapping.source` é o bundle).
+  // Só chaves AUSENTES do esqueleto: o derivado (prototipo_sha, gerado_em, partes) continua
+  // vindo do gap.md, como o docblock acima manda — o assert do sha abaixo é o controle disso.
+  const extras = Object.fromEntries(Object.entries(existente || {}).filter(([k]) => !(k in esqueleto)));
+  return { mapa: { ...esqueleto, ...extras, partes }, preservadas, novas: partes.length - preservadas, removidas: [...antigas.keys()] };
 }
 
 function relPosix(root, p) {
@@ -277,6 +285,14 @@ function selftest() {
     t('fundir: sha vem do esqueleto novo (regenerado), não do map velho', f.mapa.prototipo_sha === g.mapa.prototipo_sha && f.mapa.prototipo_sha !== 'sha256:velho000000');
     t('fundir: parte que saiu do gap.md é removida e reportada', f.removidas.includes('parte-fantasma') && !f.mapa.partes.some((p) => p.id === 'parte-fantasma'));
     t('fundir: partes novas do gap nascem TODO (não preenchidas)', f.mapa.partes.filter((p) => p.id !== 'parte-a').every((p) => p.vivo.linhas === 'TODO'));
+
+    // BITE do fix 2026-08-28 — chave de topo que o esqueleto NÃO produz sobrevive.
+    // Sem ele, `--atualizar` apagava `mapping` e derrubava `compared` em silêncio.
+    const comExtra = fundirComExistente(g.mapa, { ...preenchido, mapping: { source: 'x.jsx', target: 'resources/js/Pages/X/Index.tsx' } });
+    t('MORDE: chave de topo desconhecida do esqueleto (`mapping`) sobrevive ao --atualizar',
+      comExtra.mapa.mapping?.source === 'x.jsx' && comExtra.mapa.mapping?.target === 'resources/js/Pages/X/Index.tsx');
+    t('controle-negativo: chave que o esqueleto PRODUZ segue vindo dele (não do map velho)',
+      fundirComExistente(g.mapa, { ...preenchido, gap_fonte: 'MENTIRA.md' }).mapa.gap_fonte === g.mapa.gap_fonte);
   } else { t('fixtures presentes', false); }
 
   console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — esqueleto do map.json deriva do gap.md; verificação = design-code-map-check.mjs.');

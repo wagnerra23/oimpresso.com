@@ -11,6 +11,9 @@ return [
     |
     */
     'home' => 'Home',
+    // Own key for the internal panel sidebar entry — 'home.home' also
+    // labels the CUSTOMER dashboard (Modules/Crm), a different audience.
+    'visao_geral' => 'Overview',
     'welcome_message' => 'Welcome :name, 👋',
     'total_sell' => 'Total Sales',
     'total_purchase' => 'Total purchase',

@@ -2,8 +2,8 @@
 id: requisitos-manufacturing-briefing
 module: Manufacturing
 status: parcial
-status_nota: "Legacy UltimatePOS estável (recipes/BOM + ordens de produção) + migração Inertia parcial — 1 página v2 (Wave J). Sem pilot dedicado próprio; provê custeio/BOM."
-updated_at: "2026-07-18"
+status_nota: "Legacy UltimatePOS estável (recipes/BOM + ordens de produção) + migração Inertia parcial — 2 páginas: a lista de produções (Wave J) e a consulta de receitas em /manufacturing/recipe (Wave 29). Sem pilot dedicado próprio; provê custeio/BOM."
+updated_at: "2026-09-02"
 owner: W
 related_adrs:
   - 0011-alinhamento-padrao-jana
@@ -20,7 +20,7 @@ related_adrs:
 
 Módulo Manufacturing herdado UltimatePOS — gestão de **receitas/BOM (Bill of Materials)** + ordem de produção (`production_purchase`) + custeio dinâmico via chain `Variation→Product`. Modular monolith nWidart. Multi-tenant indireto (chain `products.business_id`).
 
-**Backend:** `Modules/Manufacturing/` · **Frontend:** Blade legacy + 1 página Inertia (`resources/js/Pages/Manufacturing/Index.tsx`).
+**Backend:** `Modules/Manufacturing/` · **Frontend:** Blade legacy + 2 páginas Inertia — `Pages/Manufacturing/Index.tsx` (produções) e `Pages/Manufacturing/Recipes.tsx` (consulta de receitas, servida em `/manufacturing/recipe`).
 
 ## Sem nova capacidade desde jun/2026 (honesto)
 
@@ -60,14 +60,17 @@ A versão anterior afirmava "Frontend Inertia/React ❌ pendente" e "Charter pá
 | Log LGPD com PiiRedactor | ✅ | `ProductionService::logProductionEvent` |
 | Multi-tenant isolation Pest | ✅ | `Tests/Feature/MultiTenantIsolationTest` |
 | BOM integrity + Smoke routes + Scaffold Pest | ✅ | `RecipeBomIntegrityTest`, `SmokeRoutesTest`, `ScaffoldManufacturingTest` |
-| Charter página Inertia | 🟡 draft (não `live`) | `Index.charter.md` |
+| **Consulta de receitas Inertia** (KPIs · busca · drawer de custo · ficha PT-07) | 🟢 **novo (Wave 29)** | `Pages/Manufacturing/Recipes.tsx` + `RecipeController@index` + `RecipeBomService::listRecipesWithCost` |
+| Charter páginas Inertia | 🟡 2 em draft (não `live`) | `Index.charter.md` · `Recipes.charter.md` |
 
 ## Gaps catalogados
 
 - **Charter draft → live** — `Index.charter.md` segue `status: draft`; promover exige Wagner aprovar UX screenshot (anti-hook do charter).
 - **Cobertura Spatie permissions** — `R-MANU-001..005` no SPEC ainda com `_lacuna_` (`PermissionsTest` não existe; reconciliação 2026-07-01 pendente).
-- **US-MANU** — SPEC sem user stories escritas (US-MANU-001 é placeholder `_pendente_`).
-- **MWART parcial** — só a lista v2 migrou; create/edit/destroy + Recipes/BOM seguem Blade legacy (Non-Goal explícito da Wave J).
+- ~~**US-MANU** — SPEC sem user stories escritas~~ — **fechado em 2026-09-02**: `US-MANU-001` foi escrita a partir do handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" (§2 + §17), com DoD e `**Testado em:**` ancorados.
+- **MWART parcial** — migraram a lista de produções (Wave J) e a **consulta** de receitas (Wave 29). Seguem Blade: create/edit/destroy da receita, o editor de ingredientes, o formulário de ordem, relatório e configurações. A tela nova aponta pra elas em vez de duplicá-las.
+- **Aba Insumos não existe** — o handoff (§18.3) declara que `usosDoInsumo` é cálculo novo sem backend: "sem isso, a aba não sai".
+- **Atualizar preço de venda em massa não implementado** — §18.1 proíbe o `custo × 2` do protótipo, e a regra de markup real não foi decidida. É Tier 0 de valor.
 
 ## Decisões canônicas relacionadas
 
@@ -78,8 +81,8 @@ A versão anterior afirmava "Frontend Inertia/React ❌ pendente" e "Charter pá
 ## Próximos passos sugeridos
 
 1. Reverificar (grep) se OficinaAuto/ComunicacaoVisual realmente consomem `RecipeBomService`/`ProductionService` — confirmar ou remover o claim acima.
-2. Escrever US-MANU no SPEC + `PermissionsTest` fechando `R-MANU-001..005`.
-3. Promover `Index.charter.md` draft → live após screenshot aprovado por Wagner.
+2. `PermissionsTest` fechando `R-MANU-001..005` (a US-MANU-001 já foi escrita em 2026-09-02).
+3. Promover os charters draft → live após screenshot aprovado por Wagner (agora são dois: `Index` e `Recipes`).
 4. Migração MWART do CRUD/Recipes avaliada quando OficinaAuto consumir BOM via UI Inertia.
 
 ## Nota atual
@@ -87,4 +90,7 @@ A versão anterior afirmava "Frontend Inertia/React ❌ pendente" e "Charter pá
 **?/100 (stale)** — última medição registrada **48/100** em 2026-05-16 (Wave Massive). O código evoluiu depois (Wave J v2 list + Wave 14/17/26/27 observ./dashboard/LGPD), então o 48 já não reflete o estado. **Reavaliar via `php artisan module:grade Manufacturing --detail`** (CT 100 — não medido nesta sessão; anti-fabricação: sem número inventado).
 
 ---
-**Atualizado:** 2026-07-18 — refresh de frescor briefing↔código [CC]
+**Atualizado:** 2026-09-02 — a consulta de receitas entra em `/manufacturing/recipe` (Wave 29,
+porte do handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1"). O dono vivo da nota do módulo é o
+`Module Grades Gate`, que a publica no corpo de cada PR — este briefing aponta pra ele em vez
+de repetir o número, que apodreceria aqui. [CC]

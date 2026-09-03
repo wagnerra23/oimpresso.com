@@ -83,6 +83,19 @@ class ConfigController extends Controller
                 'regime'              => $config->regime ?? 'lucro_presumido',
                 'autoEmissionEnabled' => (bool) ($config->auto_emission_enabled ?? false),
                 'tributacaoDefault'   => $config->tributacao_default ?? [],
+                // US-NFE-006 / ADR TECH-0002 — estado da contingência SEFAZ deste tenant.
+                // `diasAtiva` vem CALCULADO NO SERVIDOR de propósito: a ADR mitiga o risco
+                // "tenant esquece ligado" com um aviso de DURAÇÃO, e duração calculada no
+                // browser dependeria do relógio da máquina do operador.
+                'contingencia'        => [
+                    'ativa'        => (bool) ($config->em_contingencia ?? false),
+                    'ativadaEmIso' => $config->contingencia_ativada_em?->toIso8601String(),
+                    'ativadaEmBr'  => $config->contingencia_ativada_em?->format('d/m/Y H:i'),
+                    'diasAtiva'    => $config->contingencia_ativada_em
+                        ? (int) $config->contingencia_ativada_em->diffInDays(now())
+                        : null,
+                    'motivo'       => $config->contingencia_motivo,
+                ],
             ] : null,
             // Painel fiscal — espelha CertificadoController::status() do NfeBrasil
             'painel' => $painel,

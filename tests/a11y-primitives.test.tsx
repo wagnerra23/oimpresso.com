@@ -22,6 +22,7 @@ import { Label } from "@/Components/ui/label"
 import { Checkbox } from "@/Components/ui/checkbox"
 import { Textarea } from "@/Components/ui/textarea"
 import { Badge } from "@/Components/ui/badge"
+import StatusBadge from "@/Components/shared/StatusBadge"
 import { Card, CardHeader, CardTitle, CardContent } from "@/Components/ui/card"
 import { Popover, PopoverTrigger, PopoverContent } from "@/Components/ui/popover"
 import {
@@ -93,6 +94,32 @@ describe("a11y axe (jsdom) — componentes canon, uso válido, 0 violações ser
         </DropdownMenu>
       </div>,
     )
+    expect(await impactfulViolations(container)).toEqual([])
+  })
+
+  // ── AP7 · o dot ────────────────────────────────────────────────────────────────
+  // Estes asserts existem por causa da LC-30 ("correção que passa no CI inteiro e é INERTE
+  // no runtime"): typecheck + lint + build verdes NÃO provam que o elemento chegou ao DOM.
+  // O dot é a 3ª perna do AP7 (PRE-MERGE-UI:69) e nasceu em 2026-09-01; aqui se prova que ele
+  // RENDERIZA, com controle negativo — sem o negativo, um `dot` sempre-ligado passaria igual.
+  it("AP7: StatusBadge renderiza o dot, e Badge cru só com opt-in", async () => {
+    const { container } = render(
+      <div>
+        <span data-t="status"><StatusBadge kind="arquivo_prazo" value="vencendo" /></span>
+        <span data-t="opt-in"><Badge variant="danger" dot>Sensível</Badge></span>
+        <span data-t="sem-dot"><Badge variant="danger">Sensível</Badge></span>
+      </div>,
+    )
+    const dots = (sel: string) =>
+      container.querySelectorAll(`[data-t="${sel}"] [data-slot="badge-dot"]`).length
+
+    expect(dots("status")).toBe(1) // status é status por definição → dot por padrão
+    expect(dots("opt-in")).toBe(1) // Badge cru honra o opt-in
+    expect(dots("sem-dot")).toBe(0) // CONTROLE NEGATIVO: sem a prop, nada muda nas 82 telas
+
+    // decorativo: o texto ao lado já diz o estado, então o dot não pode virar ruído de leitor
+    const dot = container.querySelector('[data-slot="badge-dot"]')
+    expect(dot?.getAttribute("aria-hidden")).toBe("true")
     expect(await impactfulViolations(container)).toEqual([])
   })
 })

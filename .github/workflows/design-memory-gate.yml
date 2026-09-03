@@ -55,6 +55,7 @@ name: Design-memory gate (advisory)
 
 on:
   pull_request:
+    types: [opened, reopened, ready_for_review]
     branches: [main]
     paths:
       - 'resources/js/Components/ui/**'
@@ -86,6 +87,10 @@ on:
       - '.github/workflows/design-memory-gate.yml'
       - 'scripts/governance/design-gate-bites.mjs'
       - 'memory/governance/design-gate-bites.jsonl'
+      # o arquivo SOB TESTE entra no gatilho, senão mexer no guard não dispara o guard
+      # (§5 2026-08-02: "gate mudo com cara de cobertura")
+      - 'scripts/qa/cowork-pele-paralela.mjs'
+      - 'scripts/qa/cowork-pele-paralela.baseline.json'
   workflow_dispatch:
 
 concurrency:
@@ -139,6 +144,19 @@ jobs:
       # dono dessa resposta é `governance/required-checks-baseline.json` (§5 2026-07-16).
       - name: Cowork SSOT guard (fonte única · build-only)
         run: node scripts/governance/cowork-ssot-guard.mjs
+
+      # Pele paralela (2026-08-31, pedido Cowork [CC] T1): a tela reimplementa com nome
+      # próprio o que já tem dono — aba, segmented, header, mini-DS inteiro. Predicado é
+      # DELTA vs baseline ("este PR INTRODUZ?"), nunca absoluto ("existe?"): os 3 donos
+      # (cli-tabs.jsx · cli-seg.js · cli-pagehead.jsx) são LIVE-ONLY e não estão no
+      # espelho, então absoluto acusaria 100% da população e nasceria vermelho permanente
+      # (§5 2026-07-28 · 2026-08-24). O selftest roda ANTES e prova mordida das 5 regras
+      # pelo CLI de fora — se ele parar de morder, quebra aqui.
+      - name: pele-paralela selftest (as 5 regras mordem?)
+        run: node scripts/qa/cowork-pele-paralela.mjs --selftest
+
+      - name: pele paralela no espelho (delta vs baseline)
+        run: node scripts/qa/cowork-pele-paralela.mjs
 
       # detect-handoff (2026-07-27): ligado aqui porque é AQUI que o sinal nasce — o
       # workflow já dispara em `prototipo-ui/**`. Estava órfão desde que nasceu (o sweep
@@ -359,6 +377,40 @@ jobs:
             echo "_O CI não mede live-only (exige auth do DesignSync — ADR 0315); ele audita o registro no ledger._"
           } >> "$GITHUB_STEP_SUMMARY"
           exit $rc
+      # T1 do programa de testes persistentes design↔code (session 2026-09-01): frescor dos
+      # .md POUSADOS em prototipo-ui/design-docs/ (github.md — ADR 0387 —, PEDIDOs da
+      # cowork-inbox). O --compare cobre o espelho cowork/; este eixo cobre a cópia pousada
+      # dos .md, que não tinha medidor nenhum — a classe do incidente "HANDOFF 15d stale".
+      # Mesma divisão do vizinho de cima: o agente logado mede (--docs-compare --ledger) e o
+      # CI audita o REGISTRO. Predicado é DELTA (stale que ENTROU desde a medição anterior);
+      # passivo herdado é contagem, nunca vermelho (§5 2026-08-24). Bites no
+      # cowork-mirror-freshness.test.mjs (6 asserts de CLI, incl. "nunca verde mudo").
+      # Advisory, como os vizinhos; dono de `required` é governance/required-checks-baseline.json.
+      - name: cowork docs SLA (os .md pousados foram comparados com o vivo? · ledger · advisory)
+        if: always()
+        continue-on-error: true
+        run: |
+          set +e
+          OUT="${RUNNER_TEMP:-.}/cowork-docs-sla.txt"
+          node scripts/governance/cowork-mirror-freshness.mjs --sla-docs > "$OUT" 2>&1
+          rc=$?
+          cat "$OUT"
+          {
+            echo "### Espelho Cowork — frescor dos .md pousados (advisory)"
+            echo ""
+            if [ "$rc" -eq 0 ]; then
+              echo "✅ medição de docs registrada e sem stale novo."
+            else
+              echo "⚠️ **docs sem medição recente, ou stale novo** — \`rc=$rc\`"
+            fi
+            echo ""
+            echo '```'
+            sed -n '1,20p' "$OUT"
+            echo '```'
+            echo ""
+            echo "_O CI não mede docs (exige auth do DesignSync — ADR 0315); ele audita o registro no ledger._"
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit $rc
       # Poda do espelho (PR #5763, 96 arquivos): ao contrário do --compare acima, ESTE é 100%
       # local — não precisa da auth interativa do DesignSync, então roda headless no CI. Só
       # olha o que o PR APAGA sob prototipo-ui/cowork/ e pergunta se sobrou alguém apontando
@@ -369,6 +421,21 @@ jobs:
         if: always()
         continue-on-error: true
         run: node scripts/governance/cowork-mirror-freshness.mjs --check-refs
+      # Adição ao espelho (T2, session 2026-09-01): o INVERSO do cowork-refs — aquele vigia o
+      # que o PR APAGA, este o que o PR ADICIONA sob prototipo-ui/cowork/. É a metade C2 do
+      # `cowork-paridade.mjs` do Cowork (o script existe no projeto vivo e nunca desceu —
+      # LC-19: a regra entra no dono, não como script paralelo; avaliação check-a-check na
+      # session 2026-09-01). DELTA e não absoluto: FP do absoluto remedido em 2026-09-01 =
+      # 26 de 29 órfãos herdados legítimos por proveniência declarada (~90%) — venda-v3/ e
+      # produto-preco-especial/ são FORA_DESTA_CONTA (protocolo.config.mjs). PR que não
+      # adiciona nada ao espelho passa sem ter o que medir (diff-aware). Mordida provada em
+      # gate-selftest (fixture cowork-orfaos boa/ruim). Fail-closed sem shell (exit 2 —
+      # "não consegui medir" nunca vira verde, §5 2026-07-29).
+      # Advisory de nascença (ADR 0275); promoção só por mordida provada (ADR 0336).
+      - name: cowork-orfaos (o PR adiciona ao espelho arquivo que o shell não declara? · advisory)
+        if: always()
+        continue-on-error: true
+        run: node scripts/governance/cowork-mirror-freshness.mjs --check-orfaos
       # ABSENT-LOCAL — "o espelho pegou todos os componentes, subpáginas, CSS e JS?" ([W]
       # 2026-08-14). É o 4º flanco do cabeçalho do script e, até este PR, era MEDIDO e
       # INCAPAZ DE REPROVAR: `reportAbsentLocal` só imprimia e o exit do --manifest vem do

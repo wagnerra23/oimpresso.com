@@ -1,0 +1,26 @@
+{
+  "_nota": "Contrato de Tela do lista de NF-e/NFC-e (módulo Fiscal). Declara copy literal + âncora que a Onda 1 (saneamento fx-* → DS) tem de preservar. Schema: prototipo-ui/contrato/contract.schema.json (ADR 0286). Copy extraída da TELA VIVA (frescor 🔵 produção-à-frente), não do protótipo.",
+  "tela": "Fiscal/Nfe",
+  "fonte": "prototipo-ui/cowork/fiscal-page.jsx",
+  "_nota_fonte": "Protótipo declarado no related_prototype do charter da tela. A copy deste contrato NÃO veio dele — veio da tela viva, que tem frescor produção-à-frente (o protótipo é que está atrás).",
+  "alvo": [
+    "resources/js/Pages/Fiscal/Nfe.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "fiscal-nfe-filters",
+      "copy": [
+        "Todas",
+        "Autorizadas",
+        "Rejeitadas",
+        "Processando"
+      ]
+    }
+  ],
+  "ordem": [
+    "fiscal-nfe-filters"
+  ],
+  "_pendente_w": [
+    "Select \"Filtrar por tipo\" + radiogroup de densidade existem no protótipo e não na tela. Decisão [W] #1 (PR-C1): construir ou rejeitar por escrito (vira Non-Goal)."
+  ]
+}

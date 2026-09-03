@@ -19,6 +19,11 @@ on:
     branches: [main, 6.7-react]
     paths:
       - 'resources/js/**'
+      # 2ª raiz de telas Inertia (2026-08-28). Sem ela, mexer numa tela de módulo não
+      # dispara o ratchet: o gate ficaria MUDO justamente na superfície que este PR
+      # passou a cobrir — proibicoes §5 2026-08-02 ("incluir o arquivo-sob-teste no
+      # trigger, senão gate mudo com cara de cobertura").
+      - 'Modules/*/Resources/js/**'
       - 'eslint.config.js'
       - 'config/eslint-baseline.json'
       - 'scripts/eslint-baseline.mjs'
@@ -55,6 +60,9 @@ jobs:
           filters: |
             relevant:
               - 'resources/js/**'
+              # 2ª raiz de telas Inertia — sem ela um PR que só toca tela de módulo cai
+              # em skip-as-pass e o ratchet NÃO roda (verde que não mediu nada).
+              - 'Modules/*/Resources/js/**'
               - 'eslint.config.js'
               - 'config/eslint-baseline.json'
               - 'scripts/eslint-baseline.mjs'

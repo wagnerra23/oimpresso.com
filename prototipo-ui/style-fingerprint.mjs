@@ -1449,7 +1449,15 @@ else if (argv.includes('--snippet')) {
 } else if (argv.includes('--compare')) {
   const i = argv.indexOf('--compare');
   const [fa, fb] = [argv[i + 1], argv[i + 2]];
-  if (!fa || !fb) { console.error('uso: --compare proto.json prod.json (--tela <Mod/Tela> | --sem-ancora <razão>)'); process.exit(2); }
+  // ⚠ ORDEM: aqui é (proto, prod). O irmão `design-diff --compare` é (prod, design) —
+  // INVERTIDO entre os dois, e trocar por engano produz relatório plausível com os lados
+  // espelhados. Este script não consegue derivar o lado pela URL como o design-diff faz:
+  // a sonda dele grava `location.pathname` (só o caminho), não `location.href`, então a
+  // origem não discrimina. A defesa AQUI é a trava de âncora logo abaixo — ela verifica o
+  // 1º arquivo contra o `related_prototype` do charter, e é fail-closed (exit 3 sem
+  // `--tela` nem `--sem-ancora`). Corolário honesto: quem passa `--sem-ancora` fica sem
+  // defesa nenhuma contra inversão.
+  if (!fa || !fb) { console.error('uso: --compare <proto.json> <prod.json> (--tela <Mod/Tela> | --sem-ancora <razão>)\n     ⚠ ordem PROTO primeiro — o irmão design-diff é ao contrário: --compare <prod.json> <design.json>'); process.exit(2); }
   const A = JSON.parse(readFileSync(fa, 'utf8'));
   const B = JSON.parse(readFileSync(fb, 'utf8'));
   // ── TRAVA DE ÂNCORA (fail-closed, 2026-07-08) — exige `--tela <X>` (verifica a captura contra o

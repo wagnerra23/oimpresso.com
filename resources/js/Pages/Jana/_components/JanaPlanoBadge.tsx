@@ -1,4 +1,5 @@
-// JanaPlanoBadge — o selo `plano Pro` / `plano Grátis` do header da área Jana.
+// JanaPlanoBadge — o selo de plano do header da área Jana (as duas copies estão no
+// JSX lá embaixo, e SÓ lá — ver a nota sobre o contrato-de-tela).
 //
 // POR QUE ELE NÃO EXISTIA ATÉ AGORA (e por que agora pode existir):
 // a onda 4 da paridade deixou este item como **BLOQUEADO por ausência de fonte**
@@ -22,8 +23,15 @@
 //   Posição: `chat-jana.jsx:217` → slot `{plano}` na zona DIREITA (`jc-header-r`),
 //   depois de "Atualizado HH:MM" e antes de Configurar/Exportar.
 //
-// COPY É CONTRATO: `plano Pro` / `plano Grátis` são literais do protótipo aprovado,
-// com o "plano" em minúscula. Não são frase minha e não se reescrevem aqui.
+// COPY É CONTRATO: as duas frases do selo são literais do protótipo aprovado, com a
+// primeira palavra em minúscula. Não são frase minha e não se reescrevem aqui.
+//
+// ⚠️ E NÃO SE REPETEM EM COMENTÁRIO — nem aqui, nem em nenhum arquivo do `alvo` do
+// contrato. O `contrato-de-tela` procura a copy no TEXTO INTEIRO do arquivo
+// (`files.map(readFileSync).join()`), sem distinguir código de comentário. Medido por
+// bite-test em 2026-08-28: com as frases citadas no docblock, trocar a copy do JSX por
+// outra deixava o gate VERDE — o comentário sustentava sozinho a verificação, e o
+// contrato virava decoração. Removidas as citações, a mesma mutação passa a reprovar.
 //
 // DIVERGÊNCIA declarada (1, e é de token — não de posição nem de copy): a âncora pinta
 // com as cores cruas `--accent`/`--pos`; aqui vai pelo par semântico do `Badge` canon
@@ -63,8 +71,19 @@ export function JanaPlanoBadge({ pro, onConfigurar }: JanaPlanoBadgeProps) {
       variant={pro ? 'success' : 'info'}
       className="cursor-pointer font-mono text-[10.5px] tracking-tight"
     >
-      <button type="button" onClick={onConfigurar} title="Plano atual · abre Configurar">
-        plano {pro ? 'Pro' : 'Grátis'}
+      <button
+        type="button"
+        data-contract="painel-plano"
+        onClick={onConfigurar}
+        title="Plano atual · abre Configurar"
+      >
+        {/* Copy INTEIRA em cada ramo, e não `plano {pro ? 'Pro' : 'Grátis'}`. O texto
+            renderizado é idêntico nos dois casos; o que muda é que cada frase passa a
+            existir INTEIRA no fonte — que é como o `contrato-de-tela` procura copy.
+            Interpolado, nenhuma das duas existia contígua e o contrato não teria como
+            pinar nenhuma delas. Estas duas linhas são a ÚNICA ocorrência de cada uma
+            no arquivo, e é isso que dá ao gate o que morder. */}
+        {pro ? 'plano Pro' : 'plano Grátis'}
       </button>
     </Badge>
   );

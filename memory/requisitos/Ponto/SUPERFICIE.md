@@ -14,7 +14,7 @@ module: Ponto
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Ponto/**` + `resources/js/Pages/Ponto/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 199 arquivos em 18 papéis.
+**Total mapeado:** 203 arquivos em 18 papéis.
 
 ## Controllers — 13
 
@@ -137,7 +137,7 @@ module: Ponto
 - [index.blade.php](../../../Modules/Ponto/Resources/views/relatorios/index.blade.php)
 - [espelho-pdf.blade.php](../../../Modules/Ponto/Resources/views/reports/espelho-pdf.blade.php)
 
-## Telas (Inertia/React) — 20
+## Telas (Inertia/React) — 21
 
 - [Index.tsx](../../../resources/js/Pages/Ponto/Aprovacoes/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Ponto/BancoHoras/Index.tsx)
@@ -155,6 +155,7 @@ module: Ponto
 - [Index.tsx](../../../resources/js/Pages/Ponto/Importacoes/Index.tsx)
 - [Show.tsx](../../../resources/js/Pages/Ponto/Importacoes/Show.tsx)
 - [Create.tsx](../../../resources/js/Pages/Ponto/Intercorrencias/Create.tsx)
+- [Edit.tsx](../../../resources/js/Pages/Ponto/Intercorrencias/Edit.tsx)
 - [Index.tsx](../../../resources/js/Pages/Ponto/Intercorrencias/Index.tsx)
 - [Show.tsx](../../../resources/js/Pages/Ponto/Intercorrencias/Show.tsx)
 - [Index.tsx](../../../resources/js/Pages/Ponto/Relatorios/Index.tsx)
@@ -168,7 +169,7 @@ module: Ponto
 - [PresenceStrip.tsx](../../../resources/js/Pages/Ponto/_components/PresenceStrip.tsx)
 - [PontoSubNav.tsx](../../../resources/js/Pages/Ponto/_shared/PontoSubNav.tsx)
 
-## Charters (lei da tela) — 20
+## Charters (lei da tela) — 21
 
 - [Index.charter.md](../../../resources/js/Pages/Ponto/Aprovacoes/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Ponto/BancoHoras/Index.charter.md)
@@ -186,12 +187,13 @@ module: Ponto
 - [Index.charter.md](../../../resources/js/Pages/Ponto/Importacoes/Index.charter.md)
 - [Show.charter.md](../../../resources/js/Pages/Ponto/Importacoes/Show.charter.md)
 - [Create.charter.md](../../../resources/js/Pages/Ponto/Intercorrencias/Create.charter.md)
+- [Edit.charter.md](../../../resources/js/Pages/Ponto/Intercorrencias/Edit.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Ponto/Intercorrencias/Index.charter.md)
 - [Show.charter.md](../../../resources/js/Pages/Ponto/Intercorrencias/Show.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Ponto/Relatorios/Index.charter.md)
 - [Welcome.charter.md](../../../resources/js/Pages/Ponto/Welcome.charter.md)
 
-## Casos (contrato UC) — 14
+## Casos (contrato UC) — 15
 
 - [Index.casos.md](../../../resources/js/Pages/Ponto/Aprovacoes/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Ponto/BancoHoras/Index.casos.md)
@@ -204,13 +206,14 @@ module: Ponto
 - [Index.casos.md](../../../resources/js/Pages/Ponto/Importacoes/Index.casos.md)
 - [Show.casos.md](../../../resources/js/Pages/Ponto/Importacoes/Show.casos.md)
 - [Create.casos.md](../../../resources/js/Pages/Ponto/Intercorrencias/Create.casos.md)
+- [Edit.casos.md](../../../resources/js/Pages/Ponto/Intercorrencias/Edit.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Ponto/Intercorrencias/Index.casos.md)
 - [Show.casos.md](../../../resources/js/Pages/Ponto/Intercorrencias/Show.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Ponto/Relatorios/Index.casos.md)
 
-## Testes (Pest) — 40
+## Testes (Pest) — 41
 
-- 38 em [Modules/Ponto/Tests/Feature/](../../../Modules/Ponto/Tests/Feature)
+- 39 em [Modules/Ponto/Tests/Feature/](../../../Modules/Ponto/Tests/Feature)
 - 2 em [Modules/Ponto/Tests/Unit/](../../../Modules/Ponto/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 

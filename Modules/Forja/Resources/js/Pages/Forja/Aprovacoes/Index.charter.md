@@ -2,15 +2,15 @@
 page_id: forja-aprovacoes
 page: /forja/aprovacoes
 component: Modules/Forja/Resources/js/Pages/Forja/Aprovacoes/Index.tsx
-related_prototype: prototipo-ui/cowork/forja-page.jsx
+related_prototype: prototipo-ui/cowork/forja-aprova.jsx
 owner: wagner
 status: draft
-last_validated: "2026-08-08"
+last_validated: "2026-09-02"
 parent_module: Forja
 related_us: [US-FORJA-010]
-related_adrs: [70, 93, 368]
+related_adrs: [70, 93, 368, 385, 388]
 tier: B
-charter_version: 1
+charter_version: 2
 ---
 
 # Page Charter — /forja/aprovacoes
@@ -43,6 +43,9 @@ tarefas nem backlog: é **mesa de decisão**, e sai da mesa assim que decidida.
 | `decisoes` | **derivado** de `McpTask::TRANSITIONS['pending_approval']` | eager (a UI desenha os botões no 1º paint) |
 | `fila` | `ForjaAprovacoesService::fila()` — `pending_approval`, `created_at` ASC, teto 200 | **defer** |
 | `contagem` | `ForjaAprovacoesService::contagem()` | **defer** |
+| `aoVivo` | `ForjaAprovacoesService::aoVivo()` — `mcp_actors` × `mcp_cc_sessions` × `mcp_audit_log` | **defer** |
+| `placar` | `ForjaAprovacoesService::placar()` — `cowork_handoffs` agrupado por `created_by`, janela 7d | **defer** |
+| `handoffsProblema` | `ForjaAprovacoesService::handoffsComProblema()` — delega ao `ForjaMcpService::handoffs()` | **defer** |
 
 Escrita: **exclusivamente** `POST /forja/aprovacoes/{taskId}/decidir` →
 [`TaskCrudService::update`](../../../../../../../Modules/Jana/Services/TaskRegistry/TaskCrudService.php),
@@ -60,6 +63,54 @@ Permissão `jana.mcp.usage.all`; a [ADR 0368 §4](../../../../../../../memory/de
 `admitida` (→ `todo`) · `admitida-parqueada` (→ `backlog`) · `recusada` (→ `cancelled`, **motivo
 obrigatório**). **Nunca "aprovado"**: no `CAPTERRA-INVENTARIO.md` essa palavra já significa outra
 coisa ("a capacidade existe no sistema"), e dois sentidos lado a lado é ambiguidade garantida.
+
+---
+
+## Paridade com o protótipo (Onda 3 · 2026-09-02)
+
+A [ADR 0388](../../../../../../../memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md)
+("réplica primeiro") pôs o protótipo como **contrato de layout**. Esta tela é a view `hoje`
+de [`forja-aprova.jsx`](../../../../../../../prototipo-ui/cowork/forja-aprova.jsx) — e **não** do
+`forja-page.jsx`, que o charter apontava até aqui: aquele arquivo só **monta** a view (linha 1229),
+o markup mora no `forja-aprova`. A âncora foi corrigida no frontmatter; o espelho estava **SYNC**
+contra o Cowork vivo em 2026-09-02T11:17Z (sha `cc4cde3692da`, ledger de frescor).
+
+Saíram da tela o `PageHeader` canon e o `KpiGrid`/`KpiCard`: o protótipo põe o número no
+**herói** (`.fj-hj-n`) e não tem um segundo cabeçalho. O `ui:lint` R4 (que pede o PageHeader
+canon) vira item da lista de inconsistências, não veto — é exatamente o que a 0388 D-2 decide.
+
+### As três divergências DELIBERADAS
+
+São **categoria, não bug de paridade** ([ADR 0385](../../../../../../../memory/decisions/0385-sidebar-alinhado-ao-prototipo-diferenca-em-tres-categorias.md)):
+a 0388 é de **aparência** e diz, em D-5, que réplica **não toca comportamento**.
+
+| # | o protótipo | esta tela | por quê |
+|---|---|---|---|
+| 1 | botões "Aprovar aplicação / Devolver / Rejeitar" | verbos vindos de `decisoes` (**Admitir · Parquear · Recusar**) | ADR 0368 §6 proíbe "aprovado" **e** o anti-hook abaixo proíbe hardcodar a lista |
+| 2 | caixa de nota pertence ao "Devolver" | abre na decisão que declara `exige_motivo` | o dono da regra é o FSM (ADR 0368 §5), não o layout |
+| 3 | 4 tipos (Plano/Modificação/Design/Proposta) com diff, passos e screenshot | só o artefato que `mcp_tasks` guarda | só `Proposta` tem estado canônico; os outros vivem em `cowork_handoffs` e **fundir as fontes é decisão [W]** |
+
+### O que NÃO tem fonte, e por isso mostra "—"
+
+As colunas **Sessões hoje** e **Custo hoje / quota** do placar são por **usuário**
+(`mcp_cc_sessions`, `mcp_audit_log` e `mcp_quotas` são todos `user_id`), e o schema **não tem
+vínculo papel→usuário**: os atores semeados são `wagner`/`felipe`/`maira`/`luiz`/`eliana`/
+`claude-code-wagner-laptop`, nunca `CC`/`CD`/`CL`. Preenchê-las exigiria inventar o vínculo —
+dado fantasma. O backend manda `null` e a célula diz o motivo no `title`. **Criar o vínculo é
+decisão [W]** (campo novo = ADR mãe).
+
+Pelo mesmo critério, o eixo `nivel` do protótipo (sênior/júnior/artista/agente) **não existe**:
+`mcp_actors` declara `type` (human/ai_agent/service) e `trust_level` (L0..L4), que é outra coisa.
+O selo mostra o que É declarado.
+
+### O que a réplica NÃO regrediu
+
+A fila do protótipo é `<li onClick>` cru, que **não abre por teclado**. Aqui a estrutura e a
+classe são as dele (`.ap-item` é `display:flex` e o `:last-child` tira a última borda — só
+funciona com a classe no próprio `<li>`), com `role=listbox/option` + `tabIndex` + `onKeyDown`
+por cima. A 0388 tira o veto da **conformidade do DS**, nunca o da **acessibilidade**: a versão
+anterior desta tela já era navegável por teclado, e réplica não regride isso. Medido: as duas
+regressões `jsx-a11y` que a 1ª versão introduziu foram a zero.
 
 ---
 

@@ -241,6 +241,8 @@ A cada PR mergeado, `[CL]` escreve nos **3 canais que `[CC]` lê via MCP** (webh
 Placar canônico: **`npm run ds:report`** (`scripts/ds-report.mjs`) — quebra `ds/*` por **regra × módulo** (o baseline agrega tudo sob `no-restricted-syntax`; este separa). Modos:
 - **`npm run ds:report:write`** (= `-- --write`) — regenera o **checklist da fila** no `DS_ADOCAO_INDICE.md` (**✅ = `ds/*`=0 concluído · ☐ = pendente**), derivado do estado real. **Rodar a cada PR** — é o "tarefa concluída" que `[CC]` lê (Sync now) pra não regerar o já-feito.
 - `-- --worklist` mostra só o checklist no stdout · `-- --json` alimenta a dimensão "Adoção DS" do GovernanceV4.
+- `-- --module <Mod> --json --by-file` acrescenta `by_file_rule` (`"<path>|<ds/regra>": {count,msg}`) — quebra por **arquivo×regra** com a mensagem canônica. Consumido por `scripts/governance/replica-inconsistencias.mjs` (ADR 0388), que lista o `ds/*` junto das demais inconsistências pós-réplica. Opt-in: sem a flag o cartão de evidência (ADR 0240) sai idêntico.
+- `-- --selftest` — bite-test do filtro `ds/*` e do agrupamento (não do linter), com controle negativo de regra não-`ds/`.
 
 `[CC]` lê esses 3 via MCP e solta a próxima fila **só do que está ☐** — sem o Wagner copiar status na mão, sem regerar tarefa já concluída.
 
@@ -345,6 +347,25 @@ mantêm o estado anterior. O inventário pós-recepção lista fonte, Page React
 o relatório do que mudou e as provas de aplicação ficam fora dele, em `scripts/design-sync/state/`.
 Comandos e destinos executáveis continuam tendo [`protocolo.config.mjs`](protocolo.config.mjs)
 como fonte única.
+
+### 10.7 `github.md` — o diário de sync do lado design (aceito e tratado — ADR 0387)
+
+O projeto Cowork mantém um diário de bordo, `github.md`: `## Last sync` (data + hash de árvore),
+um bloco `### Updated in this project` por ciclo (o que mudou no protótipo, achados 🔴 lidos do
+código vivo, erratas do próprio `[CC]`, decisões pendentes `[W]`) e o `## Screen map`
+(protótipo ↔ arquivos do repo). É o **handoff do lado design** — contraparte do
+`memory/handoffs/` do lado code ([ADR 0387](../memory/decisions/0387-github-md-diario-cowork-aceito-e-tratado.md)).
+
+- **Cópia tratada:** `prototipo-ui/design-docs/github.md` (a **raiz** — a que o export atualiza).
+  `design-docs/_projeto-cowork/**` é retrato interno do próprio projeto, não a cópia tratada.
+- **Quando ler:** na fase −1, **antes** de decidir o ciclo — o bloco `[DIARIO]` do
+  [`protocolo.config.mjs`](protocolo.config.mjs) tem os comandos (fonte única; não os copie pra cá).
+- **O que é / não é:** **registro, não fonte** — achado 🔴 do diário vira trabalho **depois** de
+  verificado contra o `main` (regra do próprio `[CC]`: fato sobre o repo exige leitura do `main`
+  no turno); decisão pendente `[W]` listada nele entra na fila de decisão, não se resolve sozinha.
+- **Frescor:** a cópia tratada vale o seu `Last sync` — citou pra decidir, date a citação; em
+  dúvida, refresque pelo transporte (bundle/`--export-from`; transcrição à mão proibida —
+  [ADR 0374](../memory/decisions/0374-emenda-0315-espelho-cowork-e-rota-prevista.md)).
 
 ## 11. Links
 

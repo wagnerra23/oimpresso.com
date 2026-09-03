@@ -4,7 +4,7 @@
 //   DS v6: bolha por tipo via tokens semânticos; tool chip neutro. data-testid locators.
 
 import { useEffect, useRef, useState } from 'react';
-import { Bot, FolderOpen, GitBranch, Loader2, User } from 'lucide-react';
+import { AlertTriangle, ArrowDown, ArrowUp, Bot, FolderOpen, GitBranch, Loader2, User } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -77,7 +77,7 @@ function MessageBubble({ m }: { m: Message }) {
         {m.ts && <span>{new Date(m.ts).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>}
         {(m.tokens_in || m.tokens_out) && (
           <span className="ml-auto font-mono tabular-nums">
-            ↓{m.tokens_in ?? 0} ↑{m.tokens_out ?? 0}{m.cache_read ? ` (${m.cache_read} cache)` : ''}
+            <ArrowDown className="inline h-3 w-3" />{m.tokens_in ?? 0} <ArrowUp className="inline h-3 w-3" />{m.tokens_out ?? 0}{m.cache_read ? ` (${m.cache_read} cache)` : ''}
           </span>
         )}
       </div>
@@ -192,7 +192,7 @@ export default function SessionDrawer({ sessionUuid, onClose }: Props) {
               )}
               {detail.truncated && (
                 <div className="py-4 text-center text-xs text-muted-foreground">
-                  ⚠️ Truncado em 500 mensagens. Total: {num(detail.session.total_messages)}.
+                  <AlertTriangle className="inline h-3 w-3 mr-1 -mt-0.5" />Truncado em 500 mensagens. Total: {num(detail.session.total_messages)}.
                 </div>
               )}
             </div>

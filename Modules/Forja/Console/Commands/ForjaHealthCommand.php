@@ -164,7 +164,7 @@ class ForjaHealthCommand extends Command
         if ($count >= 5) {
             return $this->makeCheck('unowned_tasks_p0', 'FAIL', $count, '<5',
                 "{$count} tasks P0 SEM owner",
-                'Debt crítico — atribua ownership. Rode `mcp-tasks-triage` ou tela /project-mgmt/backlog?priority=p0&owner=null.'
+                'Debt crítico — atribua ownership. Rode `mcp-tasks-triage` ou tela /forja/trabalho?priority=p0&owner=null.'
             );
         }
 

@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **910 tarefas abertas** em **52 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **916 tarefas abertas** em **52 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -10,7 +10,7 @@
 |---|---:|---:|---:|---:|---:|
 | [`Jana`](#jana) | 83 | 2 | 0 | 0 | 81 |
 | [`Whatsapp`](#whatsapp) | 67 | 0 | 0 | 0 | 67 |
-| [`Sells`](#sells) | 52 | 0 | 0 | 0 | 52 |
+| [`Sells`](#sells) | 53 | 0 | 0 | 0 | 53 |
 | [`Governance`](#governance) | 47 | 0 | 0 | 3 | 44 |
 | [`Infra`](#infra) | 46 | 0 | 0 | 0 | 46 |
 | [`Financeiro`](#financeiro) | 45 | 0 | 0 | 0 | 45 |
@@ -21,7 +21,7 @@
 | [`Inventory`](#inventory) | 25 | 0 | 0 | 0 | 25 |
 | [`Marketplaces`](#marketplaces) | 25 | 0 | 0 | 0 | 25 |
 | [`Crm`](#crm) | 23 | 0 | 0 | 0 | 23 |
-| [`Fiscal`](#fiscal) | 23 | 0 | 0 | 0 | 23 |
+| [`Fiscal`](#fiscal) | 22 | 0 | 0 | 0 | 22 |
 | [`Connector`](#connector) | 20 | 0 | 0 | 0 | 19 |
 | [`Pcp`](#pcp) | 20 | 0 | 0 | 0 | 20 |
 | [`Vestuario`](#vestuario) | 19 | 0 | 0 | 0 | 19 |
@@ -45,6 +45,7 @@
 | [`TaskRegistry`](#taskregistry) | 9 | 0 | 0 | 0 | 9 |
 | [`KB`](#kb) | 8 | 0 | 0 | 0 | 8 |
 | [`EvolutionAgent`](#evolutionagent) | 7 | 0 | 0 | 0 | 7 |
+| [`Manufacturing`](#manufacturing) | 7 | 0 | 0 | 0 | 7 |
 | [`TeamMcp`](#teammcp) | 7 | 0 | 0 | 0 | 7 |
 | [`SRS`](#srs) | 6 | 0 | 0 | 0 | 6 |
 | [`Woocommerce`](#woocommerce) | 6 | 0 | 0 | 0 | 6 |
@@ -58,7 +59,6 @@
 | [`Repair`](#repair) | 2 | 0 | 0 | 0 | 2 |
 | [`Admin`](#admin) | 1 | 0 | 0 | 0 | 1 |
 | [`Auditoria`](#auditoria) | 1 | 0 | 0 | 0 | 1 |
-| [`Manufacturing`](#manufacturing) | 1 | 0 | 0 | 0 | 1 |
 | [`Mcp`](#mcp) | 1 | 0 | 0 | 0 | 1 |
 
 
@@ -284,6 +284,7 @@
 - **US-SELL-052** — Fechar paridade Sells V2 vs Blade (configure-search · quick-add · preço-diferenciado)
 - **US-SELL-053** — FieldError por campo + auto-open details em erro
 - **US-SELL-058** — Redesenho do cadastro de venda em tela PARALELA (`/sells/create-v3`) — sem tocar na tela que a ROTA LIVRE opera
+- **US-SELL-059** — Editar venda existente (`/sells/{id}/edit`) — guards de prazo, devolução e tenant
 
 ## Governance
 
@@ -685,7 +686,6 @@
 ### todo
 
 - **US-FISCAL-021** — IBS/CBS cálculo no MotorTributarioService (Onda 6 — sair do scaffold) _(`p0` · @wagner)_
-- **US-FISCAL-022** — Health-check certificado A1 (cron alerta vencimento) _(`p1`)_
 - **US-FISCAL-024** — IBS/CBS — split UF/Município na régua fiscal (coluna de schema) _(`p2`)_
 - **US-FISCAL-001** — Cockpit NF-e · NFC-e (sub-página 2)
 - **US-FISCAL-002** — Cockpit (sub-página 1) — ✅ PR #2 Wave
@@ -1177,6 +1177,19 @@
 - **US-EVOL-006** — Tier-2 autonomia: comentar PR
 - **US-EVOL-007** — Tier-3 autonomia: PR-draft autônomo
 
+## Manufacturing
+
+
+### todo
+
+- **US-MANU-001** — Quanto custa produzir, com o preço de insumo de hoje
+- **US-MANU-002** — Relatório de produção do período
+- **US-MANU-003** — Configurações do módulo
+- **US-MANU-004** — Ordens de produção — as 8 colunas e as duas marcas do §4.5
+- **US-MANU-005** — Insumos — impacto reverso e simulador de preço
+- **US-MANU-006** — Editor de ingredientes
+- **US-MANU-007** — Formulário de ordem de produção
+
 ## TeamMcp
 
 
@@ -1299,13 +1312,6 @@
 ### todo
 
 - **US-AUDIT-009** — Pages Inertia Index + Detail `parcial`
-
-## Manufacturing
-
-
-### todo
-
-- **US-MANU-001** — [TODO — título]
 
 ## Mcp
 

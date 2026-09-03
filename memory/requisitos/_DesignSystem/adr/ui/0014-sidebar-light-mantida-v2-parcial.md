@@ -4,7 +4,8 @@ id: requisitos-design-system-adr-ui-0014-sidebar-light-mantida-v2-parcial
 
 # ADR UI-0014 · Sidebar light mantida — Constituição UI v2 adotada parcialmente (sem dark sempre)
 
-- **Status**: accepted
+- **Status**: superseded
+- **Superseded por**: [UI-0023](0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md) — sidebar DARK-FIXO (preto) definitivo. Status virado em 2026-08-28 (normalização de metadado): a UI-0019 §Decisão-2 e a UI-0023 já declaravam esta ADR histórica, mas a linha `Status` nunca acompanhou — ela seguia lendo como lei viva e afirmando "sidebar light", que contradiz o código (`cockpit.css` bloco `Sidebar — DARK FIXO`) e o protótipo Cowork. Corpo preservado (append-only): o que está escrito abaixo era verdade na data.
 - **Data**: 2026-05-24
 - **Aprovado em**: 2026-05-24 — Wagner explícito "eu realmente gosto como esta hoje. não gostaria de mudar"
 - **Decisores**: Wagner (preferência declarada), Claude Code (executor)

@@ -19,6 +19,7 @@ name: Lógica pura Pest (event-time · histórico · audit-chain · migração B
 
 on:
   pull_request:
+    types: [opened, reopened, ready_for_review]
     branches: [main]
     paths:
       - 'Modules/Jana/Services/Memoria/BiTemporalResolver.php'
@@ -75,6 +76,14 @@ on:
       # paths o teste do fix nasceria mudo (o serviço não dispara a lane dele).
       - 'Modules/Jana/Tests/Unit/IndexarMemoryRedactorRunIdTest.php'
       - 'Modules/Jana/Services/Mcp/IndexarMemoryGitParaDb.php'
+      # 2026-09-02 — curadoria do brief do negócio (UC-JCHAT-14). `curar()` é pura
+      # (markdown + snapshot entram, markdown sai; sem DB/LLM/FS), então é lógica
+      # pura por natureza e cabe aqui. Os 3 paths andam juntos de propósito: o
+      # serviço, o TRIGGER que o invoca (se alguém desligar a chamada, o teste da
+      # classe segue verde e o cliente volta a receber o defeito) e o teste.
+      - 'Modules/Jana/Tests/Unit/BriefCuradoriaTest.php'
+      - 'Modules/Jana/Services/BriefCuradoria.php'
+      - 'Modules/Jana/Services/BriefDiarioChatTrigger.php'
       # 2026-08-09 — onda 5 do pedido [CC] "verdade nos botões": as views de tela
       # de /ia/* mostravam "STUB spec-ready" PRO CLIENTE. O teste varre o diretório
       # (puro filesystem, sem DB) e falha se a string voltar. O `Resources/views/**`
@@ -83,6 +92,12 @@ on:
       - 'Modules/Jana/Resources/views/**'
       - 'Modules/Jana/Database/Migrations/*_add_event_time_to_jana_memoria_facts.php'
       - 'Modules/Forja/Database/Migrations/*_add_hash_chain_to_mcp_audit_log.php'
+      # GUARD: todo comando de Console/Commands existe no artisan (Artisan::all()).
+      # O sujeito sao o DIRETORIO de comandos e o provider que os registra — sem os
+      # dois, nascer/registrar comando nao dispara o guard dele (gate mudo · §5 2026-08-02).
+      - 'Modules/Jana/Console/Commands/**'
+      - 'Modules/Jana/Providers/JanaServiceProvider.php'
+      - 'Modules/Jana/Tests/Unit/JanaCommandsRegistradosTest.php'
       - '.github/workflows/jana-logica-pura-pest.yml'
   workflow_dispatch:
 
@@ -170,6 +185,8 @@ jobs:
             Modules/Jana/Tests/Unit/IndexarMemoryRedactorRunIdTest.php \
             Modules/Jana/Tests/Unit/JanaViewsSemAndaimeTest.php \
             Modules/Jana/Tests/Unit/McpToolsNaoCitamComandoInexistenteTest.php \
+            Modules/Jana/Tests/Unit/JanaCommandsRegistradosTest.php \
+            Modules/Jana/Tests/Unit/BriefCuradoriaTest.php \
             Modules/Governance/Tests/Unit/BladeMigrationSentinelVerdictTest.php \
             Modules/Governance/Tests/Unit/GovernanceMigrationsRegisteredTest.php \
             --no-coverage \

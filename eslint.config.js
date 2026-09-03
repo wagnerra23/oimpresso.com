@@ -43,6 +43,13 @@ export default [
       // Vendor JS legacy UPOS
       'public/js/**',
       'public/vendor/**',
+      // Vendor/jQuery legacy DENTRO dos módulos (`Resources/assets/`, irmão de
+      // `public/js/**` acima). NÃO é tela React — é o JS AdminLTE/jQuery herdado do
+      // UPOS + plugins minificados (easy.qrcode.min.js). Medido 2026-08-28 ao ampliar
+      // o escopo pra `Modules/`: 15 arquivos, 543 violações (455 `no-undef` de globals
+      // jQuery). Sem este ignore, qualquer `eslint Modules` arrasta esse legado pro
+      // baseline e o ratchet passa a vigiar vendor em vez de tela.
+      'Modules/*/Resources/assets/**',
     ],
   },
 
@@ -50,8 +57,17 @@ export default [
   js.configs.recommended,
 
   // TypeScript files
+  //
+  // ESCOPO (2026-08-28): telas Inertia vivem em DOIS lugares — `resources/js/` (núcleo)
+  // e `Modules/<X>/Resources/js/` (telas extraídas pros módulos, ex. Forja em #5089).
+  // O 2º nunca esteve aqui, então os 90 `.ts/.tsx` de módulo NUNCA foram linados: sem
+  // parser TS eles nem parseiam (medido — 90/90 erro fatal quando só o bloco ds/* casa).
+  // Este bloco e o bloco ds/* mais abaixo andam JUNTOS: o parser mora aqui.
   {
-    files: ['resources/js/**/*.{ts,tsx}'],
+    files: [
+      'resources/js/**/*.{ts,tsx}',
+      'Modules/*/Resources/js/**/*.{ts,tsx}',
+    ],
     languageOptions: {
       parser: tsParser,
       ecmaVersion: 'latest',
@@ -123,7 +139,8 @@ export default [
   },
 
   // === DS guard (ds/*) — anti-drift · ratchet ADR 0209 ===
-  // Escopo: TELAS (Pages/** + Modules/**). NÃO roda em Components/ui/** (camada
+  // Escopo: TELAS nas 2 raízes — `resources/js/Pages/**` (núcleo) e
+  // `Modules/*/Resources/js/**` (módulos). NÃO roda em Components/ui/** (camada
   // canônica onde os padrões legitimamente vivem) nem em Pages/_Showcase/** (stories).
   // Severidade `warn` — o ratchet (config/eslint-baseline.json) trata como gate por
   // delta>0: baseline absorve o hand-roll atual; PR novo que hand-rolar regride.
@@ -140,7 +157,14 @@ export default [
   {
     files: [
       'resources/js/Pages/**/*.{ts,tsx}',
-      'resources/js/Modules/**/*.{ts,tsx}',
+      // CORRIGIDO 2026-08-28: aqui havia `resources/js/Modules/**/*.{ts,tsx}`, que era a
+      // MIRA CERTA no path ERRADO — `resources/js/Modules/` nunca existiu no repo (medido:
+      // `git ls-tree origin/main -- resources/js/Modules` = vazio), então o padrão casava
+      // ZERO arquivo. As telas de módulo moram em `Modules/<X>/Resources/js/Pages/**` desde
+      // que os módulos passaram a ter árvore própria (ex. extração da Forja, #5089). Efeito
+      // do glob morto: as 13 regras ds/* nunca rodaram em NENHUMA tela de módulo — o
+      // baseline tinha 216 arquivos e ZERO sob `Modules/`.
+      'Modules/*/Resources/js/**/*.{ts,tsx}',
     ],
     ignores: [
       'resources/js/Components/ui/**',

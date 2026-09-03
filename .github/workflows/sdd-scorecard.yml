@@ -22,6 +22,7 @@ name: SDD Scorecard (advisory)
 
 on:
   pull_request:
+    types: [opened, reopened, ready_for_review]
     branches: [main]
     paths: # diff-aware: fontes vivas do scorecard
       - 'memory/requisitos/**'        # SPECs (anchor_coverage) + BRIEFINGs/docs (ghost_count, front_door)

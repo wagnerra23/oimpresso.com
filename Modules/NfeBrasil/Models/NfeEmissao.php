@@ -19,13 +19,36 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * UPos = no-op. Sequência única por (business_id, modelo, serie, numero) —
  * regra fiscal (não pode haver lacuna sem inutilização registrada).
  *
- * Status canônicos:
+ * Status canônicos (lista conferida contra o ENUM real da tabela em 2026-09-01 —
+ * 'enviando' e 'erro_envio' existiam no schema desde 2026_05_10 e faltavam aqui):
  *   pendente     — aguardando envio SEFAZ
+ *   enviando     — TX curta abriu, SEFAZ ainda não respondeu (PR #434, 3 fases)
  *   autorizada   — SEFAZ retornou cstat=100 (NF-e) ou 104 (NFC-e)
  *   rejeitada    — cstat 200..600 (erro de validação) — pode retentar
  *   denegada     — cstat 110, 301, 302, 205 — emitente irregular, NÃO emite
  *   cancelada    — evento 110111 com cstat=135
  *   inutilizada  — número pulado via processo de inutilização
+ *   erro_envio   — falha de transporte antes de resposta SEFAZ
+ *   contingencia — US-NFE-006: emitida offline (tp_emis 4 ou 9), XML persistido,
+ *                  aguardando RetentarContingenciaJob. NÃO é erro: é nota válida
+ *                  ainda não transmitida. Perder esse estado é problema fiscal.
+ *
+ * As anotações abaixo existem porque Larastan não infere atributo dinâmico de
+ * Eloquent a partir da migration — sem elas o acesso vira "undefined property".
+ *
+ * `$status` é anotado como `string` DE PROPÓSITO, e não como união literal. O
+ * Larastan deriva o tipo de `database/schema/mysql-schema.sql`, que é um baseline
+ * DATADO: as migrations posteriores rodam por cima dele e NÃO o atualizam (medido —
+ * o dump não tem `reforma_tributaria_modo`, de 2026_07_03, nem as colunas da
+ * US-NFE-006). Sem esta anotação o Larastan enxerga só os 8 valores do dump e
+ * "prova" que `!== 'contingencia'` é sempre verdadeiro — derrubando o gate por um
+ * fato que o schema real desmente. A lista canônica dos 9 status é a do topo deste
+ * docblock; anotar a união aqui só criaria um segundo lugar pra apodrecer.
+ *
+ * @property string $status
+ * @property int $tp_emis
+ * @property int $retry_count
+ * @property \Illuminate\Support\Carbon|null $last_retry_at
  */
 class NfeEmissao extends Model
 {
@@ -42,6 +65,8 @@ class NfeEmissao extends Model
         'status', 'cstat', 'motivo',
         'xml_path', 'danfe_path',
         'valor_total', 'emitido_em', 'metadata',
+        // US-NFE-006 / ADR TECH-0002 — contingência.
+        'tp_emis', 'retry_count', 'last_retry_at',
     ];
 
     protected $casts = [
@@ -49,7 +74,20 @@ class NfeEmissao extends Model
         'valor_total' => 'decimal:2',
         'emitido_em'  => 'datetime',
         'metadata'    => 'array',
+        'tp_emis'     => 'integer',
+        'retry_count' => 'integer',
+        'last_retry_at' => 'datetime',
     ];
+
+    /** tpEmis SEFAZ — só os números; o rótulo do 9 diverge entre docs canon (ver migration). */
+    public const TP_EMIS_NORMAL = 1;
+
+    public const TP_EMIS_EPEC = 4;          // NF-e modelo 55
+
+    public const TP_EMIS_OFFLINE_NFCE = 9;  // NFC-e modelo 65
+
+    /** ADR TECH-0002: 5 falhas de retransmissão => status=rejeitada + alerta ao gestor. */
+    public const MAX_RETRIES_CONTINGENCIA = 5;
 
     public function eventos(): HasMany
     {

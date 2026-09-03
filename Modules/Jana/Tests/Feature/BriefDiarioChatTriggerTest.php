@@ -34,7 +34,10 @@ beforeEach(function () {
     }
 
     // Setup mínimo de schema pra Conversa
-    foreach (['jana_conversas', 'jana_mensagens'] as $t) {
+    // `transactions` entra na limpeza porque o R-COPI-203-005 a cria pra medir o
+    // negócio VAZIO. Sem dropar aqui, ela vazaria pros casos seguintes e a
+    // curadoria passaria a enxergar "sem movimento" em teste que não pediu isso.
+    foreach (['jana_conversas', 'jana_mensagens', 'transactions', 'activity_log'] as $t) {
         Schema::dropIfExists($t);
     }
 
@@ -46,6 +49,23 @@ beforeEach(function () {
         $t->string('status', 20)->default('ativa');
         $t->timestamp('iniciada_em')->nullable();
         $t->json('metadata')->nullable();
+        $t->timestamps();
+    });
+
+    // `Conversa` usa LogsActivity (Spatie) — todo `create()` escreve em `activity_log`.
+    // Sem esta tabela os 3 casos morrem em `QueryException: no such table`, o que ficou
+    // INVISÍVEL enquanto o arquivo não rodava em lane nenhuma. Dívida que apareceu ao
+    // ligar, não regressão de quem ligou. Schema espelha o do `DsrServiceTest` (irmão
+    // Jana que já resolvia isto) pra não inventar uma segunda forma da mesma tabela.
+    Schema::create('activity_log', function (Blueprint $t) {
+        $t->bigIncrements('id');
+        $t->string('log_name')->nullable();
+        $t->text('description');
+        $t->nullableMorphs('subject', 'subject');
+        $t->string('event')->nullable();
+        $t->nullableMorphs('causer', 'causer');
+        $t->json('properties')->nullable();
+        $t->uuid('batch_uuid')->nullable();
         $t->timestamps();
     });
 });
@@ -126,6 +146,63 @@ it('R-COPI-203-003 — gerar() com fakeAgent retorna markdown nao-vazio', functi
     expect($result)->toContain('Brief Diário')
         ->and($result)->toContain('Vendas')
         ->and(mb_strlen($result))->toBeGreaterThan(50);
+});
+
+/**
+ * UC-JCHAT-14 — a curadoria está LIGADA no caminho que o cliente percorre.
+ *
+ * O `BriefCuradoriaTest` prova que a classe morde; este prova que ela é CHAMADA.
+ * São perguntas diferentes, e só a segunda responde "o cliente para de receber o
+ * defeito" — desligar a linha do trigger deixaria o teste da classe verde e o
+ * brief defeituoso de volta na tela.
+ *
+ * Tenant fictício 98 (ADR 0358 — biz=4 é do cliente e não entra em teste).
+ */
+it('R-COPI-203-005 — gerar() cura o markdown do LLM antes de devolver (UC-JCHAT-14)', function () {
+    // Negócio VAZIO: a tabela existe e não tem UMA venda — é o cenário do smoke
+    // de 2026-08-09. Sem a tabela, `vendasPeriodo()` devolveria ok=false e a regra
+    // do tom neutro (3) não teria como disparar.
+    Schema::dropIfExists('transactions');
+    Schema::create('transactions', function (Blueprint $t) {
+        $t->bigIncrements('id');
+        $t->unsignedInteger('business_id');
+        $t->string('type', 20);
+        $t->string('status', 20)->default('final');
+        $t->decimal('final_total', 22, 4)->default(0);
+        $t->dateTime('transaction_date');
+        $t->timestamps();
+    });
+
+    $defeituoso = "# 🌅 Brief Diário — Test Co\n\n"
+        ."## ⭐ Destaque do dia\n\n> Zerado, mas ainda tem potencial para ser amplamente produtivo!\n\n---\n\n"
+        ."## 📈 Projeção do mês\n\nNo ritmo atual (0 vendas/dia), fecha em ~R\$ 0,00 (±0%).\n\n---\n\n"
+        ."## 💡 Ideia da semana\n\n| Produto | Saídas em 90d |\n|---|---:|\n| PRODUTO BEST-SELLER | 0 |\n\n"
+        ."Sugestão: criar campanha focada nos best-sellers.\n\n---\n\n"
+        ."*JANA PRO · gerado agora · próximo brief: amanhã, 8h*";
+
+    Ai::fakeAgent(BriefDiarioAgent::class, [$defeituoso]);
+
+    $conv = Conversa::create([
+        'business_id' => 98,
+        'user_id' => 1,
+        'titulo' => 'Test',
+        'status' => 'ativa',
+        'iniciada_em' => now(),
+    ]);
+
+    $result = (new BriefDiarioChatTrigger())->gerar($conv);
+
+    // Os 3 defeitos do smoke real não atravessam o trigger.
+    expect($result)->not->toContain('próximo brief')
+        ->and($result)->not->toContain('PRODUTO BEST-SELLER')
+        ->and($result)->not->toContain('campanha focada nos best-sellers')
+        ->and($result)->not->toContain('ainda tem potencial')
+        ->and($result)->not->toContain('0 vendas/dia');
+
+    // E o brief continua sendo um brief — a curadoria poda, não esvazia.
+    expect($result)->toContain('Brief Diário')
+        ->and($result)->toContain('Sem dado suficiente em 90 dias.')
+        ->and($result)->toContain('Sem vendas no período.');
 });
 
 it('R-COPI-203-004 — gerar() em erro NAO vaza stack trace (fallback amigavel)', function () {

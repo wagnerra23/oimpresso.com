@@ -208,8 +208,9 @@ function ToolCard({ tool }: { tool: ToolItem }) {
         {showRun && (
           <div className="space-y-2 pt-2 border-t">
             <div>
-              <label className="text-xs font-medium text-muted-foreground">Input JSON</label>
+              <label htmlFor={`tool-input-${tool.name}`} className="text-xs font-medium text-muted-foreground">Input JSON</label>
               <Textarea
+                id={`tool-input-${tool.name}`}
                 value={inputJson}
                 onChange={e => setInputJson(e.target.value)}
                 rows={4}

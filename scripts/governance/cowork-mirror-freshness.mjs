@@ -59,9 +59,14 @@
  *   node scripts/governance/cowork-mirror-freshness.mjs --sla               # headless: rotina rodou ≤14d? última limpa? + eixo NOVO desqualifica a leitura?
  *   node scripts/governance/cowork-mirror-freshness.mjs --live-only <lista.json> --ledger  # + registra a medição
  *   node scripts/governance/cowork-mirror-freshness.mjs --sla-live-only     # headless: live-only foi MEDIDO ≤7d? cresceu?
+ *   node scripts/governance/cowork-mirror-freshness.mjs --docs-compare <dir-jsons> --ledger  # .md pousado em design-docs ainda bate com o vivo? (T1)
+ *   node scripts/governance/cowork-mirror-freshness.mjs --sla-docs         # headless: docs foi MEDIDO ≤7d? apareceu stale novo?
  *   node scripts/governance/cowork-mirror-freshness.mjs --check-refs        # a poda deste PR quebrou o grafo do espelho? (exit 1 = sim)
  *   node scripts/governance/cowork-mirror-freshness.mjs --check-refs --range <a>..<b>
  *   node scripts/governance/cowork-mirror-freshness.mjs --check-refs --deleted-from <lista.txt>   # fixture/manual
+ *   node scripts/governance/cowork-mirror-freshness.mjs --check-orfaos      # este PR ADICIONA ao espelho arquivo que o shell não declara? (exit 1 = sim)
+ *   node scripts/governance/cowork-mirror-freshness.mjs --check-orfaos --range <a>..<b>
+ *   node scripts/governance/cowork-mirror-freshness.mjs --check-orfaos --added-from <lista.txt>   # fixture/manual
  *
  * ── OS 3 MODOS DE VERIFICAÇÃO, E QUAL PERGUNTA CADA UM RESPONDE ──────────────────
  * Não são redundantes; cada um cobre um flanco que os outros NÃO veem:
@@ -71,6 +76,9 @@
  * O ABSENT-LOCAL (dentro do --manifest) é o quarto: "o shell carrega algo que o espelho não tem?".
  * --check-refs e ABSENT-LOCAL se completam: aquele deriva o universo do DIFF, este do SHELL — então
  * apagar o espelho inteiro passa vazio no primeiro e é pego pelo segundo.
+ * --check-orfaos é o quinto, o INVERSO do ABSENT-LOCAL na direção da ADIÇÃO: "este PR ADICIONA ao
+ * espelho arquivo que o shell não declara?" (DELTA, 100% local → gateável; a metade do
+ * `cowork-paridade` do Cowork que nenhum dono cobria — ver docblock do modo).
  */
 
 import { readFileSync, writeFileSync, readdirSync, statSync, existsSync, mkdirSync, mkdtempSync, renameSync, rmSync } from 'node:fs';
@@ -186,7 +194,7 @@ export function veredictoFinal(nStale, cobertura = null) {
  *  `.png` segue FORA: imagem não é fonte de construção e o `block-ancora-no-olho` já trata
  *  o eixo dela. E os filtros de `_arquivo/` (morto declarado upstream) e `prototipo-ui/`
  *  (cópia do próprio espelho) continuam — são de PROVENIÊNCIA, não de extensão. */
-export function liveOnly(livePaths, manifest, { exts = null, jaEmDocs = null } = {}) {
+export function liveOnly(livePaths, manifest, { exts = null, jaEmDocs = null, jaEmRuntime = null } = {}) {
   const noEspelho = new Set(manifest.map((f) => f.cowork));
   // [W] 2026-08-24: "remova os filtros isso esta gerando muito problemas". MEDIDO no dia:
   // de 428 arquivos do vivo ausentes do espelho, o filtro de EXTENSAO escondia 76 — entre
@@ -195,7 +203,7 @@ export function liveOnly(livePaths, manifest, { exts = null, jaEmDocs = null } =
   // Os dois de PROVENIENCIA continuam, mas agora RETORNAM em `ignorados` — reportado, nunca
   // escondido (mesmo contrato do absentLocal). `liveOnly()` segue devolvendo ARRAY pra nao
   // quebrar chamador; use liveOnlyDetalhado() pra ver o que foi ignorado e por que.
-  return liveOnlyDetalhado(livePaths, manifest, { exts, jaEmDocs }).faltando;
+  return liveOnlyDetalhado(livePaths, manifest, { exts, jaEmDocs, jaEmRuntime }).faltando;
 }
 
 /** Paths presentes em `prototipo-ui/design-docs/` — o 4º destino do `--export-from`.
@@ -220,9 +228,27 @@ export function buildDocsSet(root = ROOT, rel = 'prototipo-ui/design-docs') {
   return out;
 }
 
+/** Paths presentes no snapshot de RUNTIME do DS (`scripts/design-sync/mirror-snapshot/`) —
+ *  o destino do `--ds-runtime`, relativos ao dir (ex.: `_ds_bundle.js`, `assets/fonts/x.woff2`).
+ *  Dir ausente → Set vazio (o detector volta ao comportamento de antes — nunca "tudo isento"). */
+export function buildRuntimeSet(root = ROOT, rel = 'scripts/design-sync/mirror-snapshot') {
+  const base = join(root, rel);
+  const out = new Set();
+  const walk = (dir) => {
+    if (!existsSync(dir)) return;
+    for (const e of readdirSync(dir)) {
+      const f = join(dir, e);
+      if (statSync(f).isDirectory()) walk(f);
+      else out.add(f.slice(base.length + 1).split('\\').join('/'));
+    }
+  };
+  walk(base);
+  return out;
+}
+
 /** Igual ao liveOnly, mas devolve tambem o que foi ignorado por PROVENIENCIA e o motivo.
  *  `exts = null` (default) = nenhum filtro de extensao: conta .json, .php, .tsx, .png, tudo. */
-export function liveOnlyDetalhado(livePaths, manifest, { exts = null, jaEmDocs = null } = {}) {
+export function liveOnlyDetalhado(livePaths, manifest, { exts = null, jaEmDocs = null, jaEmRuntime = null } = {}) {
   const noEspelho = new Set(manifest.map((f) => f.cowork));
   const temExtensao = (p) => /\.[a-z0-9]+$/i.test(p);   // diretorio nao e arquivo faltando
   const faltando = [];
@@ -259,6 +285,21 @@ export function liveOnlyDetalhado(livePaths, manifest, { exts = null, jaEmDocs =
     if (jaEmDocs && p.toLowerCase().endsWith('.md') && jaEmDocs.has(p)) {
       ignorados.push({ path: p, motivo: 'ja desceu: existe em prototipo-ui/design-docs/ (roteamento por extensao do --export-from)' });
       continue;
+    }
+    // `jaEmRuntime` = paths presentes em scripts/design-sync/mirror-snapshot/ (o destino do
+    // `--ds-runtime`). So isenta o que a regua do PROPRIO destino aceita — `dsRuntimeRelPath`
+    // (bundle/CSS/asset), a MESMA fonte do exportador, nao copia. MEDIDO 2026-09-01: a rodada
+    // live-only acusou os `_ds/**` como "nunca desceu" com bundle + 2 CSS + fontes JA pousados
+    // no runtime — o mesmo FP de mecanismo proprio que o bloco dos `.md` acima matou em 08-28.
+    // `_ds` fora da classe runtime (styles.css, manifest, oxlintrc) segue acusado: e honesto,
+    // esses nunca desceram pra lugar nenhum.
+    if (jaEmRuntime && p.startsWith('_ds/')) {
+      let relRt = null;
+      try { relRt = dsRuntimeRelPath(p); } catch { relRt = null; }
+      if (relRt && jaEmRuntime.has(relRt)) {
+        ignorados.push({ path: p, motivo: 'ja desceu: runtime do preview (mirror-snapshot — destino --ds-runtime)' });
+        continue;
+      }
     }
     if (exts && !exts.some((e) => p.toLowerCase().endsWith(e))) { ignorados.push({ path: p, motivo: 'extensao' }); continue; }
     // IMAGEM fica fora da lista de FALTANDO por decisao datada (imagem nao e fonte de
@@ -444,6 +485,14 @@ export function liveOnlyEntry(faltando, denom, dateIso) {
  *  (§5 2026-07-29) nem em "cresceu" — são três estados, não dois. */
 export function liveOnlyVerdict(entries, nowIso, days = LIVE_ONLY_SLA_DAYS) {
   const meds = (Array.isArray(entries) ? entries : []).filter((e) => e && e.kind === KIND_LIVE_ONLY);
+  return deltaVerdict(meds, nowIso, days, 'liveOnlyList');
+}
+
+/** Núcleo genérico do veredito por DELTA (idade + delta de lista + denominador) — um só dono
+ *  da lógica pros eixos live-only e docs: os estados são os MESMOS por construção, e duplicar
+ *  este bloco convidaria os dois vereditos a divergirem em silêncio. Contrato provado pelos
+ *  asserts existentes do liveOnlyVerdict (comportamento inalterado na extração). */
+function deltaVerdict(meds, nowIso, days, listKey) {
   if (meds.length === 0) return { veredito: 'NEVER-RAN', last: null, ageDays: null, novos: [] };
   const last = meds[meds.length - 1];
   const ageDays = Math.floor((Date.parse(nowIso) - Date.parse(last.date)) / 86400000);
@@ -453,10 +502,40 @@ export function liveOnlyVerdict(entries, nowIso, days = LIVE_ONLY_SLA_DAYS) {
   if (prev.denom !== last.denom) {
     return { veredito: 'SCOPE-CHANGED', last, prev, ageDays, novos: [] };
   }
-  const antes = new Set(prev.liveOnlyList || []);
-  const novos = (last.liveOnlyList || []).filter((p) => !antes.has(p));
+  const antes = new Set(prev[listKey] || []);
+  const novos = (last[listKey] || []).filter((p) => !antes.has(p));
   if (novos.length > 0) return { veredito: 'GREW', last, prev, ageDays, novos };
   return { veredito: 'OK', last, prev, ageDays, novos: [] };
+}
+
+// ── FRESCOR DOS .md POUSADOS EM design-docs/ (T1 · session 2026-09-01) ───────────
+// O --compare cobre as âncoras+deps do espelho cowork/; os .md que o roteamento manda pra
+// prototipo-ui/design-docs/ (github.md — ADR 0387 —, PEDIDOs da cowork-inbox) não tinham
+// medidor NENHUM de "a cópia pousada ficou atrás do vivo?" — a classe do incidente
+// "HANDOFF 15d stale". Mesma divisão do live-only: o agente logado mede (--docs-compare,
+// auth ADR 0315) e REGISTRA; o CI audita o REGISTRO via --sla-docs. Herdado nunca é
+// vermelho: o predicado é DELTA (stale que ENTROU desde a medição anterior — §5 2026-08-24).
+export const KIND_DOCS = 'docs';
+export const DOCS_SLA_DAYS = 7;
+
+/** Entrada de ledger pra uma medição de frescor dos .md pousados (pura, testável).
+ *  `denom` = quantos .md do vivo alimentaram a medição; `medidos` = quantos tinham cópia
+ *  pousada pra comparar (sem cópia = eixo do --live-only, não deste). */
+export function docsEntry(staleList, medidos, denom, dateIso) {
+  return {
+    date: dateIso,
+    kind: KIND_DOCS,
+    stale: staleList.length,
+    medidos,
+    denom,
+    staleList: [...staleList].sort(),
+  };
+}
+
+/** Veredito do eixo docs — mesmos estados do liveOnlyVerdict (deltaVerdict é o dono). */
+export function docsVerdict(entries, nowIso, days = DOCS_SLA_DAYS) {
+  const meds = (Array.isArray(entries) ? entries : []).filter((e) => e && e.kind === KIND_DOCS);
+  return deltaVerdict(meds, nowIso, days, 'staleList');
 }
 
 // ── DESQUALIFICAÇÃO: o eixo NOVO invalida a leitura do eixo MODIFICADO ───────────
@@ -1188,6 +1267,55 @@ function posixJoin(base, rel) {
 }
 export const MIRROR_REL = 'prototipo-ui/cowork';
 
+// ── ÓRFÃO NA ADIÇÃO (--check-orfaos) ─────────────────────────────────────────
+// O QUE DEFENDE: a direção que faltava da paridade host↔espelho. O lado Cowork autorou um
+// `scripts/cowork-paridade.mjs` (existe no projeto vivo, nunca desceu — e não desce: seria
+// script paralelo a este dono, LC-19; avaliação completa na session 2026-09-01) cujo check C2
+// é "arquivo em cowork/ que o host não declara". A metade C1 (declarado→presente) já é o
+// --absent-local; esta é a metade C2 (presente→declarado), em forma DELTA.
+//
+// POR QUE DELTA E NUNCA ABSOLUTO (FP medido ANTES — §5 "ligar ≠ criar"): remedido 2026-09-01
+// no espelho real: 29 órfãos de 280 rastreados com extensão de build, dos quais 26 têm
+// proveniência declarada — 21 `venda-v3/` + 2 `produto-preco-especial/` (FORA_DESTA_CONTA,
+// telas de [L]/[M] — protocolo.config.mjs, [W] 2026-08-13), 2 `ds-v6/`, 1 `prototipos/`.
+// Predicado absoluto = ~90% FP no dia 1 (família §5 2026-08-24, delta vs absoluto). Os 3 da
+// raiz (`Financeiro - Prova Viva (primitivos).html` + 2 `.js` citados só em PROSA de mockup)
+// são sinal real porém HERDADO — grandfathered (ADR 0275, forward-only): entram no relatório
+// do lado Cowork, nunca no vermelho de PR alheio.
+//
+// A EXCEÇÃO É POR PROVENIÊNCIA DECLARADA, não por adivinhação de nome: cada prefixo cita a
+// decisão escrita que o sustenta, é REPORTADO como `ignorados` (nunca some calado — mesmo
+// contrato do absentLocal), e SAI da lista quando a proveniência mudar (lista que só cresce
+// vira allowlist — §5 2026-08-02).
+export const ORFAO_POR_DESIGN = [
+  { prefixo: 'venda-v3/', motivo: 'FORA_DESTA_CONTA: tela Venda vem de outra conta de design ([L]/[M]) — protocolo.config.mjs, [W] 2026-08-13' },
+  { prefixo: 'produto-preco-especial/', motivo: 'FORA_DESTA_CONTA: tela Produto vem de outra conta de design ([L]/[M]) — protocolo.config.mjs, [W] 2026-08-13' },
+  { prefixo: 'ds-v6/', motivo: 'ds-v6/ não é build do shell (o próprio cowork-paridade do Cowork o isenta — IGNORAR_ORFAO)' },
+  { prefixo: 'prototipos/', motivo: 'prototipos/ não é build do shell (idem IGNORAR_ORFAO do Cowork)' },
+  { prefixo: '_shared/', motivo: '_shared/ não é build do shell (idem IGNORAR_ORFAO do Cowork)' },
+  { prefixo: 'pipeline/', motivo: 'pipeline/ não é build do shell (idem IGNORAR_ORFAO do Cowork)' },
+];
+
+/** Adições ao espelho que o shell NÃO declara (pura, testável — irmã de refsParaDeletado).
+ *  `adicionados`: paths relativos à raiz do repo (do diff --diff-filter=AR ou fixture).
+ *  `declarados`: Set de paths relativos à raiz (deps do shell + o próprio shell).
+ *  Só extensões de build (jsx/tsx/css/js/html) entram no universo — `.md` em cowork/ é
+ *  problema do R1 do cowork-ssot-guard, não daqui (não duplicar régua, §5 2026-07-09).
+ *  Devolve { orfaos, ignorados } — `ignorados` é reportado, nunca escondido. */
+export function orfaosNaAdicao(adicionados, declarados) {
+  const orfaos = [], ignorados = [];
+  for (const f of adicionados) {
+    if (!f.startsWith(`${MIRROR_REL}/`)) continue;
+    const r = f.slice(MIRROR_REL.length + 1);
+    if (!/\.(jsx|tsx|css|js|html)$/i.test(r)) continue;
+    if (declarados.has(f)) continue;
+    const ex = ORFAO_POR_DESIGN.find((e) => r.startsWith(e.prefixo));
+    if (ex) { ignorados.push({ path: f, motivo: ex.motivo }); continue; }
+    orfaos.push(f);
+  }
+  return { orfaos, ignorados };
+}
+
 // ── CLI ───────────────────────────────────────────────────────────────────────
 function main() {
   const argv = process.argv.slice(2);
@@ -1295,6 +1423,70 @@ function main() {
     process.exit(1);
   }
 
+  // --check-orfaos: este PR ADICIONA ao espelho arquivo que o shell não declara? DELTA,
+  // diff-aware, 100% LOCAL — mesmo desenho do --check-refs (aquele vigia a PODA, este a
+  // ADIÇÃO). Universo: `git diff --diff-filter=AR` (A adiciona · R renomeia PARA dentro —
+  // enumerar os status antes de escolher as letras, §5 2026-08-08) ou --added-from (fixture).
+  // Racional + FP medido no docblock de ORFAO_POR_DESIGN/orfaosNaAdicao acima.
+  if (argv.includes('--check-orfaos')) {
+    const addIdx = argv.indexOf('--added-from');
+    let adicionados;
+    if (addIdx !== -1) {
+      const ap = argv[addIdx + 1];
+      if (!ap || !existsSync(ap)) {
+        console.error('✗ --added-from exige um arquivo com um path por linha.');
+        process.exit(2);
+      }
+      adicionados = readFileSync(ap, 'utf8').split('\n').map((s) => s.trim()).filter(Boolean);
+    } else {
+      const rIdx = argv.indexOf('--range');
+      const range = rIdx !== -1 && argv[rIdx + 1] ? argv[rIdx + 1] : 'origin/main...HEAD';
+      if (!range.includes('..')) {
+        console.error(`✗ --check-orfaos: --range espera UM token de range ("a..b" ou "a...b"), recebi "${range}".`);
+        console.error('  Passar duas revisões separadas faz o git diffar contra a working tree.');
+        process.exit(2);
+      }
+      let saida;
+      try {
+        saida = execFileSync('git', ['diff', '--name-only', '--diff-filter=AR', range, '--', `${MIRROR_REL}/`],
+          { encoding: 'utf8', maxBuffer: 1 << 28 });
+      } catch (e) {
+        // Vazio de comando que FALHOU não é "nada adicionado" (§5 2026-07-31 · 2026-08-11).
+        console.error(`✗ --check-orfaos: git diff falhou no range "${range}" — sem universo, sem veredito.`);
+        console.error(`  ${String(e.message || e).split('\n')[0]}`);
+        process.exit(2);
+      }
+      adicionados = saida.split('\n').map((s) => s.trim()).filter(Boolean);
+    }
+
+    console.log(`  adicionados ao espelho neste diff: ${adicionados.length}`);
+    if (!adicionados.length) {
+      console.log('  ✓ nenhuma adição ao espelho neste diff — nada a verificar.');
+      process.exit(0);
+    }
+    const shellHtml = lerShellHtml();
+    if (!shellHtml) {
+      // FAIL-CLOSED: sem shell não há "declarado", logo não há veredito (§5 2026-07-29).
+      console.error('✗ --check-orfaos: shell do espelho não encontrado — sem universo, sem veredito.');
+      process.exit(2);
+    }
+    const declarados = new Set([
+      `${MIRROR_REL}/oimpresso.com.html`,
+      ...parseShellDeps(shellHtml).map((d) => `${MIRROR_REL}/${d}`),
+    ]);
+    const { orfaos, ignorados } = orfaosNaAdicao(adicionados, declarados);
+    for (const i of ignorados) console.log(`  ⬜ ignorado por proveniência: ${i.path}\n       ${i.motivo}`);
+    if (!orfaos.length) {
+      console.log(`  ✓ toda adição ao espelho está declarada pelo shell (ou tem proveniência declarada).`);
+      process.exit(0);
+    }
+    console.error(`\n  ⛔ ${orfaos.length} arquivo(s) que este diff ADICIONA ao espelho e o shell NÃO declara:`);
+    for (const f of orfaos) console.error(`     ${f}`);
+    console.error('\n  Órfão nasce invisível: nenhuma rota o alcança e nenhum <link>/<script> o carrega.');
+    console.error('  Declare-o no shell (oimpresso.com.html), remova-o do PR, ou registre a proveniência em ORFAO_POR_DESIGN.');
+    process.exit(1);
+  }
+
   // --lista-download <list_files.json>: A LISTA, derivada — nunca um .md commitado.
   //
   // Responde as DUAS perguntas com o MESMO insumo (1 chamada de `list_files`, sem conteúdo,
@@ -1372,7 +1564,7 @@ function main() {
     const raw = JSON.parse(readFileSync(lp, 'utf8'));
     const paths = Array.isArray(raw) ? raw : (raw.paths || []);
     const manifest = buildManifest(ROOT, { all: true, shellHtml: lerShellHtml() });
-    const faltando = liveOnly(paths, manifest, { jaEmDocs: buildDocsSet(ROOT) });
+    const faltando = liveOnly(paths, manifest, { jaEmDocs: buildDocsSet(ROOT), jaEmRuntime: buildRuntimeSet(ROOT) });
     // Classifica pra o humano decidir sem ler 25 linhas iguais. NÃO é filtro — tudo é
     // listado; filtro escondido aqui recriaria o ponto cego que este modo existe pra abrir.
     const ehTela = (p) => !p.includes('/') && /\.(jsx|css)$/.test(p);
@@ -1401,6 +1593,56 @@ function main() {
     }
     return;
   }
+
+  // --docs-compare <dir> [--ledger]: frescor dos .md POUSADOS em design-docs/ (T1 · session
+  // 2026-09-01). Recebe o dir de JSONs do get_file (o MESMO insumo do --export-from) e
+  // responde, por .md: a cópia pousada em prototipo-ui/design-docs/ ainda bate com o vivo?
+  // Produzir o insumo exige auth (ADR 0315) — o CI não roda isto; audita via --sla-docs.
+  const dcIdx = argv.indexOf('--docs-compare');
+  if (dcIdx !== -1) {
+    const dir = argv[dcIdx + 1];
+    if (!dir || !existsSync(dir)) {
+      console.error('✗ --docs-compare exige um diretório com os JSONs do get_file dos .md do vivo.');
+      process.exit(2);
+    }
+    let denom = 0, medidos = 0;
+    const staleList = []; const semCopia = [];
+    for (const j of readdirSync(dir).filter((f) => f.endsWith('.json') || f.endsWith('.txt'))) {
+      let vivo;
+      try { vivo = decodeDesignSyncPayload(JSON.parse(readFileSync(join(dir, j), 'utf8')), j); }
+      catch (e) { console.error(`✗ ${e.message}`); process.exit(2); }
+      if (!vivo.path.endsWith('.md')) continue; // este eixo é só dos .md roteados pra design-docs
+      denom++;
+      const abs = join(ROOT, 'prototipo-ui', 'design-docs', vivo.path);
+      if (!existsSync(abs)) { semCopia.push(vivo.path); continue; } // nunca desceu → dono é o --live-only
+      medidos++;
+      const local = artifactHash(readFileSync(abs, 'utf8'), false);
+      const remoto = artifactHash(vivo.content, vivo.binary);
+      const nota = local === remoto ? 'sync' : 'STALE';
+      if (nota === 'STALE') staleList.push(vivo.path);
+      console.log(`  ${nota.padEnd(6)} design-docs/${vivo.path}`);
+    }
+    console.log(`\n  DOCS — ${medidos} pousado(s) comparado(s) de ${denom} .md do insumo · ${staleList.length} STALE · ${semCopia.length} sem cópia (eixo do --live-only)`);
+    if (staleList.length) console.log(`  Pra atualizar: --export-from ${dir} (o roteamento pousa .md em design-docs/) — transcrição é proibida (ADR 0374).`);
+    if (argv.includes('--ledger')) {
+      const lpz = join(ROOT, LEDGER_REL);
+      let entries = [];
+      try { entries = existsSync(lpz) ? JSON.parse(readFileSync(lpz, 'utf8')) : []; } catch { entries = []; }
+      if (!Array.isArray(entries)) entries = entries.runs || [];
+      entries.push(docsEntry(staleList, medidos, denom, new Date().toISOString()));
+      writeFileSync(lpz, JSON.stringify(entries, null, 2) + '\n');
+      console.log(`  ledger: medição registrada em ${LEDGER_REL} (${staleList.length} stale de ${denom} .md). Commite o ledger.`);
+      console.log('  O CI headless não mede isto (auth ADR 0315) — ele audita ESTE registro via --sla-docs.\n');
+    }
+    return;
+  }
+
+  // NOTA (2026-09-01): um modo `--conferir-descida` chegou a ser esboçado aqui e foi
+  // DESCARTADO antes de nascer — duplicaria régua consolidada (§5 2026-07-09): a pergunta
+  // "o que pousou confere?" já tem donos — a rota BUNDLE responde por construção
+  // (aplicar-payload: manifesto + sha256 + staging + rollback) e a rota pontual responde
+  // com --snapshot-from → --compare --check + --preview-ds (deps/DS). O buraco real era o
+  // detector live-only não conhecer o 3º destino (mirror-snapshot) — consertado acima.
 
   // --check-novos <base> [--vivos <list.json>]: arquivo que ENTROU no espelho e nasceu
   // fora de qualquer rodada de frescor. Diff-aware/forward-only (ADR 0275).
@@ -1770,6 +2012,46 @@ function main() {
         console.log(`\n✓ nasce-sem-medição: os ${nascidos.length} arquivo(s) novos entram no manifesto.`);
       }
     }
+    return;
+  }
+
+  // --sla-docs: headless-safe (lê SÓ o ledger). Audita o REGISTRO da medição de frescor dos
+  // .md pousados em design-docs/ (github.md — ADR 0387 —, PEDIDOs). Mesma divisão do
+  // --sla-live-only: o agente logado mede (--docs-compare --ledger), o CI cobra o registro.
+  // Predicado é DELTA (stale que ENTROU) — passivo herdado é contagem, nunca vermelho.
+  if (argv.includes('--sla-docs')) {
+    const lp = join(ROOT, LEDGER_REL);
+    let entries = [];
+    try { entries = existsSync(lp) ? JSON.parse(readFileSync(lp, 'utf8')) : []; } catch { entries = []; }
+    if (!Array.isArray(entries)) entries = entries.runs || [];
+    const r = docsVerdict(entries, new Date().toISOString());
+    const receita = 'get_file dos .md → salve os JSON num dir → --docs-compare <dir> --ledger';
+    console.log(`\n  DOCS SLA — os .md pousados em design-docs/ foram comparados com o vivo nos últimos ${DOCS_SLA_DAYS}d?\n`);
+    if (r.veredito === 'NEVER-RAN') {
+      console.error(`  ✗ NUNCA MEDIDO — nenhuma entrada de docs no ledger. Rode: ${receita}`);
+      process.exit(1);
+    }
+    const idade = `medido em ${r.last.date.slice(0, 10)} (há ${r.ageDays}d): ${r.last.stale} stale de ${r.last.medidos} pousado(s) comparado(s)`;
+    if (r.veredito === 'OVERDUE') {
+      console.error(`  ✗ VENCIDO — ${idade}. SLA é ${DOCS_SLA_DAYS}d. Rode: ${receita}`);
+      process.exit(1);
+    }
+    if (r.veredito === 'GREW') {
+      console.error(`  ✗ STALE NOVO — ${idade}; ${r.novos.length} .md ficou atrás do vivo desde ${r.prev.date.slice(0, 10)}:`);
+      for (const p of r.novos) console.error(`     + design-docs/${p}`);
+      console.error('  Advisory: atualizar é pelo transporte (--export-from), nunca transcrição (ADR 0374).');
+      process.exit(1);
+    }
+    if (r.veredito === 'SCOPE-CHANGED') {
+      console.log(`  ⬜ SEM COMPARAÇÃO — ${idade}, mas o denominador mudou (${r.prev.denom} → ${r.last.denom}).`);
+      console.log('     Delta não é comparável entre escopos diferentes; medição registrada, crescimento NÃO avaliado.');
+      return;
+    }
+    if (r.veredito === 'BASELINE') {
+      console.log(`  ⬜ BASELINE — ${idade}. Primeira medição registrada; não há anterior pra comparar.`);
+      return;
+    }
+    console.log(`  ✓ ${idade} — nenhum stale novo desde ${r.prev.date.slice(0, 10)}.`);
     return;
   }
 

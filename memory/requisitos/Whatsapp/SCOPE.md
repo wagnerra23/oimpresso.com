@@ -58,6 +58,8 @@ url_prefixes:
   - /whatsapp/*
   - /atendimento/*
   - /feedback/*
+  - /api/atendimento/*
+  - /api/whatsapp/* (grupo whatsapp/webhook, api.php:30 — serve 4 drivers: meta :32/:36 · zapi :41 · baileys :46 · whatsmeow :54)
 drift_alerts: []
 ---
 

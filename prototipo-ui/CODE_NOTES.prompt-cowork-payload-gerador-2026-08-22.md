@@ -113,3 +113,70 @@ Me diga no fim **quantas partes e quantos arquivos** — o gerador imprime os do
 O aviso 🔵 sobre **atendimento** (`Atendimento/CaixaUnificada/`) e **clientes/crm** (`Cliente/`)
 estarem à frente em produção: mantido. Se o apply marcar `~` nessas telas, eu paro e pergunto antes
 de escrever.
+
+---
+
+## Rodapé 2026-09-02 — o `sync/` existe, mas é o lote de 24/08; o bundle vivo tem 57 e não desce
+
+Fui buscar o pacote v2 antes de qualquer outra coisa. **As partes existem** — `sync/bundle.manifest.json`
++ `sync/payload.part01..part43.json` no projeto ERP (`019dcfd3-…`). Não são novas:
+
+```
+schema      oimpresso-design-manifest/2      mode        snapshot
+bundleId    5023b274183d849dcc925eae85cef61a991c3541ca1daeb680267c1afda99e4d
+generatedAt 2026-08-24T22:49:15.818Z         files       255   (7.163.784 B)
+roles       cowork-source 245 · preview-cache 10
+```
+
+O `_ds_bundle.js` que esse manifesto declara tem `sha256 9d2f6ce4808e5c94…` — **o mesmo byte a byte
+do que já está em `scripts/design-sync/mirror-snapshot/_ds_bundle.js`**. Ou seja: aplicar o pacote
+que está lá hoje **não traria nada novo**; o pedido de [2026-09-01](CODE_NOTES.prompt-cowork-regenerar-bundle-por-ciclo-2026-09-01.md)
+segue **integralmente em aberto**, e o `github.md` segue sem a linha `bundle regenerado`.
+
+### O teto do `get_file`, medido nesta rodada (não é lembrança)
+
+Puxei o `_ds_bundle.js` **vivo** do projeto DS (`019dd02f-…`). Números:
+
+| | |
+|---|---|
+| `content` devolvido | **262.144 bytes — exatamente 256 KiB** |
+| envelope | **`truncated: true`** (a própria tool declara) |
+| onde corta | no meio de uma string (`border: '1px s`), sem o `})();` final |
+| `offset` / `range` no schema da tool | **não existe** — li o schema, não há parâmetro |
+
+Então a rota avulsa está **bloqueada com número**, não por impressão. E a rota do pacote também não
+resolve este arquivo: o gerador **exclui `_ds/**`** por desenho (o DS é linkado, o git é dono dele),
+e o próprio docblock dele já registra que `_ds_bundle.js` em JSON dá 303.415 B, acima do teto de
+parte de 256 KiB.
+
+### O que o header truncado ENTREGOU de graça (e é a parte útil)
+
+O header `@ds-bundle` fica nos primeiros bytes, então **veio íntegro** mesmo com o corte. Conta de
+componentes, feita por mim nos dois lados:
+
+- espelho (24/08, `9d2f6ce4…`): **44**
+- vivo: **57** — não 55
+
+Faltam **13**, e é superset limpo (nada se perdeu):
+`ColumnManager · ColumnPrefs · DataGrid · Kebab · PresenterMode · Segmented · Timeline · Toolbar ·
+ToolbarButton · ToolbarDivider · ToolbarSearch · ToolbarSpacer · Widget`.
+
+O `Segmented` que a Lista|Quadro|Gantt da Forja usa (`window.CliSeg`) está entre eles — segue sem
+renderizar localmente.
+
+### A rota que TEM precedente, e é bem mais barata que regerar o pacote
+
+Em **2026-08-18** este mesmo teto foi vencido sem pacote nenhum: [W] baixou o arquivo por fora e o
+repo **provou** que era *"continuação exata dos 259.769 caracteres do `get_file` truncado"*
+([handoff](../memory/handoffs/2026-08-18-1400-design-sync-runtime-completo-drawers.md)). A prova é
+determinística e eu tenho a metade que falta pra repetir: **os 262.144 bytes de prefixo do bundle
+vivo**. Qualquer candidato se verifica em segundos — começa com esse prefixo exato? o parser do Node
+aceita? o header declara 57?
+
+Reconstruir o bundle a partir dos 49 `components/*/*.jsx` **não** é caminho: já está registrado como
+*"build FABRICADO — possível, não feito"* ([handoff 2026-08-17](../memory/handoffs/2026-08-17-1810-jana-instrumentos-que-calam-e-o-outage.md)),
+e continua valendo.
+
+**Nada foi escrito no espelho por causa disso** — e não por zelo meu: o `--export-from` tem guarda
+dura (`raw.truncated === true` ⇒ erro antes de escrever, `cowork-mirror-freshness.mjs:399`), fruto
+do [#5910](https://github.com/wagnerra23/oimpresso.com/pull/5910). Ela funcionou.

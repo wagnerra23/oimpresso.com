@@ -258,6 +258,33 @@ Resultado: **0 assertions, sempre.** Inclui LGPD (`DsrServiceTest`,
 |---|---|---|
 | 33 | `Modules/Jana/Tests/Feature/Ai/BriefDiarioAgentTest.php` | ✅ Está em `jana-pest.yml:136`, **última linha do bloco rotulado `ALLOWLIST VERDE (catraca)`** — lane que roda `DB_CONNECTION: mysql` (`:113`). Mas o arquivo faz `markTestSkipped` quando o driver **não é sqlite** (`:32-33`). **Não está** em `.github/ci-sqlite-pest.list` (arquivo existe, 29KB; grep rc=1). A nightly também é MySQL. ⇒ **nunca roda, em nenhuma superfície, e sai verde.** Seus **6 casos** incluem `R-COPI-202-003 — Tier 0 cross-tenant: 5 Tools(biz=1) NUNCA expoem dados de biz=99` — **trava multi-tenant Tier 0 ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md), IRREVOGÁVEL) que nunca correu**, dentro de um bloco que se chama "catraca" |
 
+> ⚠️ **ERRATA 2026-09-02 do item 33 — o achado ERA verdade em 2026-08-10 e foi FECHADO no
+> mesmo dia; a linha acima é fóssil datado e fica como está.** O que caducou, medido em
+> `origin/main`:
+>
+> - O arquivo **saiu** da allowlist MySQL e **entrou** na lane sqlite —
+>   [`.github/ci-sqlite-pest.list:34`](../../../.github/ci-sqlite-pest.list). O
+>   `jana-pest.yml:414-418` registra a remoção e o porquê.
+> - Ele **roda e passa** na lane `PHP / Pest (Unit)` do `ci.yml`, que consome aquela lista.
+>   Recibo: run [33666893228](https://github.com/wagnerra23/oimpresso.com/actions/runs/33666893228)
+>   (2026-09-02, sha `d97fd979`) — `PASS Modules\Jana\Tests\Feature\Ai\BriefDiarioAgentTest`,
+>   os 6 casos com `✓`, o `R-COPI-202-003` entre eles.
+> - E essa lane é **required** (`governance/required-checks-baseline.json`, união
+>   classic ∪ ruleset = 45 contextos). **Nenhum** contexto da Jana é required — então
+>   "consertar" isto movendo o arquivo pra `jana-pest.yml` **rebaixaria** a trava Tier 0
+>   de required pra advisory.
+>
+> **Por que a errata existe:** em 2026-09-02 esta linha gerou uma tarefa pra "fazer o teste
+> rodar em MySQL", cuja premissa (`nunca roda`) já era falsa havia 23 dias. Registro datado
+> não se reescreve, mas também não pode seguir emitindo trabalho fantasma.
+>
+> **O gap que sobrou é OUTRO, e é pior** — não era falta de execução, era falta de mordida:
+> `contacts.is_default` não existia no schema sintético, `oportunidadesUpsell` lê essa coluna
+> em dois `whereRaw`, a exceção caía no `catch` e virava `ok:false`. As asserções do
+> `R-COPI-202-003` são de AUSÊNCIA (`not->toContain`), e ausência passa sobre payload de erro.
+> Corrigido no [PR #6602](https://github.com/wagnerra23/oimpresso.com/pull/6602), com controle
+> negativo (commit vermelho) provando o vácuo antes do conserto.
+
 ### Outros achados do eixo
 
 | # | Item | Problema |

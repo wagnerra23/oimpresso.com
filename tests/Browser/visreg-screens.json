@@ -16,6 +16,14 @@
     "baseline": "it_Compras_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   },
   {
+    "screen": "Home",
+    "source": "Home",
+    "component": "Home/Index",
+    "route": "/dashboard-legacy",
+    "anchor": "Contrapartidas",
+    "baseline": "it_Home_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
     "screen": "Oficina/OS",
     "source": "OficinaAuto/ServiceOrders/Board",
     "component": "OficinaAuto/ServiceOrders/Board",
@@ -216,11 +224,91 @@
     "baseline": "it_Ponto_Espelho_Show_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   },
   {
+    "screen": "Ponto/Espelho/Index",
+    "source": "Ponto/Espelho/Index",
+    "component": "Ponto/Espelho/Index",
+    "route": "/ponto/espelho?mes=2026-06",
+    "anchor": "Matrícula",
+    "baseline": "it_Ponto_Espelho_Index_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
     "screen": "Ponto/Configuracoes",
     "source": "Ponto/Configuracoes",
     "component": "Ponto/Configuracoes/Index",
     "route": "/ponto/configuracoes",
     "anchor": "Banco de Horas",
     "baseline": "it_Ponto_Configuracoes_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Ponto/Dashboard",
+    "source": "Ponto/Dashboard",
+    "component": "Ponto/Dashboard/Index",
+    "route": "/ponto",
+    "anchor": "com controle de ponto",
+    "baseline": "it_Ponto_Dashboard_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Fiscal/Cockpit",
+    "source": "Fiscal/Cockpit",
+    "component": "Fiscal/Cockpit",
+    "route": "/fiscal",
+    "anchor": "Notas Fiscais",
+    "baseline": "it_Fiscal_Cockpit_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Fiscal/Nfe",
+    "source": "Fiscal/Nfe",
+    "component": "Fiscal/Nfe",
+    "route": "/fiscal/nfe",
+    "anchor": "NF-e",
+    "baseline": "it_Fiscal_Nfe_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Fiscal/Nfse",
+    "source": "Fiscal/Nfse",
+    "component": "Fiscal/Nfse",
+    "route": "/fiscal/nfse",
+    "anchor": "NFS-e",
+    "baseline": "it_Fiscal_Nfse_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Fiscal/Eventos",
+    "source": "Fiscal/Eventos",
+    "component": "Fiscal/Eventos",
+    "route": "/fiscal/eventos",
+    "anchor": "Eventos fiscais",
+    "baseline": "it_Fiscal_Eventos_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Fiscal/Dfe",
+    "source": "Fiscal/Dfe",
+    "component": "Fiscal/Dfe",
+    "route": "/fiscal/dfe",
+    "anchor": "Manifestação do destinatário",
+    "baseline": "it_Fiscal_Dfe_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Fiscal/Config",
+    "source": "Fiscal/Config",
+    "component": "Fiscal/Config",
+    "route": "/fiscal/config",
+    "anchor": "Certificado",
+    "baseline": "it_Fiscal_Config_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Fiscal/Sped",
+    "source": "Fiscal/Sped",
+    "component": "Fiscal/Sped",
+    "route": "/fiscal/sped",
+    "anchor": "SPED",
+    "baseline": "it_Fiscal_Sped_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "RecurringBilling",
+    "source": "RecurringBilling",
+    "component": "RecurringBilling/Index",
+    "route": "/recurring-billing",
+    "anchor": "Cobrança recorrente",
+    "baseline": "it_RecurringBilling_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   }
 ]

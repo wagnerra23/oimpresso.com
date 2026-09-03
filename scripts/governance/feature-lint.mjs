@@ -49,7 +49,7 @@ const OWNER_RE = /^(?:W|F|M|L|E)(?:\/(?:W|F|M|L|E))*$/;
 const PLACEHOLDER_RE = /\{\{[^}\n]+\}\}/g;
 
 // ── regexes do contrato (fonte: _TEMPLATE_FEATURE) ───────────────────────────────────────
-const US_ID_RE = /US-[A-Z][A-Za-z0-9]*-\d+/g;
+const US_ID_RE = /US-_?[A-Z][A-Za-z0-9]*-\d+/g;
 const AC_DEF_RE = /^-\s+\*\*(AC-\d+)\*\*/;          // definição: `- **AC-1** — QUANDO ...`
 const TASK_HEAD_RE = /^###\s+(T-\d+)\s+·\s*(.+)$/;  // `### T-01 · título`
 const TASK_META_RE = /^>\s*blocked_by:/;            // blockquote de metadados da task
@@ -279,7 +279,7 @@ export function scaffoldFeature({
   const [module, slug] = parts;
   if (!MODULE_RE.test(module)) throw new Error(`modulo invalido: ${module} (esperado PascalCase)`);
   if (!FEATURE_SLUG_RE.test(slug)) throw new Error(`slug invalido: ${slug} (esperado kebab-case)`);
-  if (!/^US-[A-Z][A-Z0-9]*-\d+$/.test(String(us || ''))) throw new Error('US invalida/ausente: use --us US-MOD-001');
+  if (!/^US-_?[A-Z][A-Z0-9]*-\d+$/.test(String(us || ''))) throw new Error('US invalida/ausente: use --us US-MOD-001');
 
   const created = date || localToday();
   if (!DATE_RE.test(created)) throw new Error(`data invalida: ${created} (esperado YYYY-MM-DD)`);

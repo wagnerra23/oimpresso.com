@@ -2,15 +2,16 @@
 page_id: forja-roadmap-gantt
 page: /forja/roadmap-gantt
 component: Modules/Forja/Resources/js/Pages/Forja/Roadmap/Gantt.tsx
+related_prototype: prototipo-ui/cowork/forja-page.jsx
 owner: wagner
 status: draft
 last_validated: "2026-08-05"
 parent_module: Forja
 related_us: [US-COPI-111]
 related_runbook: memory/requisitos/Forja/RUNBOOK-gantt.md
-related_adrs: [70, 87, 93, 94, 110, 253, 366, 367]
+related_adrs: [70, 87, 93, 94, 110, 253, 366, 367, 388]
 tier: B
-charter_version: 1
+charter_version: 2
 ---
 
 # Page Charter — /forja/roadmap-gantt
@@ -190,3 +191,31 @@ substitui"*. Recibo da não-duplicação:
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-08-05 | [C] | Charter criado no porte Jana→Forja (Wave C). Non-Goals + Anti-hooks copiados **literalmente** do charter de origem. Segue `draft` — promover é ato de [W]. |
+
+---
+
+## PARIDADE §11 Onda 6 (2026-09-03) — réplica PARCIAL, e a parte que não veio é medida
+
+A [ADR 0388](../../../../../../../memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md) ("réplica primeiro") vale aqui como nas outras telas do hub, e a âncora passa a estar **declarada** no frontmatter — antes não estava, e `ancora.mjs` respondia *"sem protótipo declarado"* para esta rota, embora o [PARIDADE §2.1](../../../../../../../memory/requisitos/Forja/PARIDADE-area-forja-diagnostico-e-ondas.md) já a nomeasse (view `trabalho` · `trabVis=gantt` → `GanttView`).
+
+**O que esta onda entregou:** os dois elementos do `GanttView` que vivem FORA da área desenhada pelo motor — o parágrafo-âncora (`.fj-quadro-ancora`, `forja-page.jsx` :553) e a barra de totais com legenda (`.fj-totalbar.fj-g-foot`, :594-601). Zero CSS novo; as classes já estavam no bundle da Onda 1, e chegam aqui porque o `<ForjaHub>` importa o bundle.
+
+### O que NÃO veio — e por que é medição, não preguiça
+
+O corpo do gantt do protótipo é **markup próprio** (`.fj-g-scale` · `.fj-g-body` · `.fj-g-row` · `.fj-g-bar`, barras posicionadas em `%`). Esta tela usa a biblioteca **`@svar-ui/react-gantt`**. Trocar uma pela outra não é aplicar aparência: é trocar o motor, e o custo foi **medido em produção em 2026-09-03**, não estimado:
+
+| medida (`mcp_tasks`, prod) | valor | o que decorre |
+|---|---:|---|
+| tasks totais | 1186 | |
+| **com `due_date` real** | **7** (0,6%) | o gantt como cronograma tem 7 pontos de dado |
+| **com `blocked_by`** | **163** (13,7%) | as setas de dependência **têm** o que desenhar |
+| cycle ativo | **nenhum** (de 17) | o filtro default não recorta — a tela renderiza até o teto de 500 |
+
+E o protótipo **não desenha setas de dependência** (só um cadeado no card). Ou seja: adotar o motor dele custaria a capacidade que tem dado (163 dependências, servidas hoje como links SVAR `{source,target,type:'e2s'}`) para melhorar o desenho de uma linha do tempo que quase não tem prazo. A ADR 0388 D-5 é explícita que réplica **não** é licença para tocar comportamento — e perder as setas seria exatamente isso.
+
+**Fica registrado como decisão em aberto de [W]**, não como dívida do agente: trocar o motor exigiria ou aceitar a perda das setas, ou desenhá-las em SVG — e o desenho delas o protótipo não define, então seria inventar design, que é o que a 0388 evita.
+
+### Duas escolhas de honestidade dentro do que veio
+
+- **O contador de vencidas lê `due_date` REAL**, não a janela que o `toGanttTasks` inventa quando falta data (`start + 3d`, `Gantt.tsx` :196). Aquele default existe para a barra ter largura, não para afirmar prazo; contar vencida em cima dele transformaria um default de desenho em fato de negócio. Consequência assumida: com 7 prazos reais em 1186 tasks, o contador normalmente mostra **0** — e isso é a verdade do dado.
+- **A promessa de arrastar é condicional a `can_edit`.** O protótipo anuncia "arraste a barra pra reagendar o prazo" sempre; aqui, sem `jana.mcp.tasks.write` a barra é `readonly` e a frase sairia anunciando um gesto que a pessoa não pode fazer (LC-15). O parágrafo e a hint do rodapé omitem a parte do arrasto nesse caso.
