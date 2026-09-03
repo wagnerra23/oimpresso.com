@@ -20,6 +20,7 @@ use Modules\Manufacturing\Entities\MfgIngredientGroup;
 use Modules\Manufacturing\Entities\MfgRecipe;
 use Modules\Manufacturing\Http\Requests\StoreProductionRequest;
 use Modules\Manufacturing\Services\ProductionService;
+use Modules\Manufacturing\Services\RecipeBomService;
 use Modules\Manufacturing\Utils\ManufacturingUtil;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -949,5 +950,54 @@ class ProductionController extends Controller
         $business_locations = BusinessLocation::forDropdown($business_id, true);
 
         return view('manufacturing::production.report')->with(compact('business_locations'));
+    }
+
+    /**
+     * MWART US-MANU-002 (SPEC.md) — porte Inertia do relatório de produção do período,
+     * agrupado por produto. Rota ADITIVA `/manufacturing/v2/report`: `/manufacturing/report`
+     * (Blade, acima) segue intocado — mesmo padrão da Onda 1 de Ordens de produção (Wave J
+     * `indexV2`), não o cutover-no-mesmo-endereço que a tela de Receitas usou (aquele foi
+     * decisão [W] explícita — {@see RUNBOOK-report.md}).
+     *
+     * Mesmo gate do Blade legado acima: só o pacote `manufacturing_module`, sem permissão
+     * Spatie granular própria (o legado nunca teve uma pra "relatório" — não inauguro
+     * restrição nova que o usuário de hoje não tem em `/manufacturing/report`).
+     */
+    public function reportV2(ProductionService $productionService, RecipeBomService $bomService)
+    {
+        $business_id = request()->session()->get('user.business_id');
+
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module'))) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // Sem Inertia::defer aqui, de propósito: `indexV2()` acima documenta o rollback do
+        // Wave L/W7 (PR #963) — defer quebrava o initial render desta mesma tela (props
+        // undefined). `relatorio`/`recipes_count` seguem eager, igual ao resto do módulo v2.
+        $filters = [
+            'start_date' => request()->get('start_date'),
+            'end_date'   => request()->get('end_date'),
+            // R-DoD "Só finalizadas com default LIGADO" — ausência do param = true, não false.
+            'is_final'   => ! request()->has('is_final') || request()->boolean('is_final'),
+        ];
+
+        $ordens = $productionService->summary($business_id);
+
+        return Inertia::render('Manufacturing/Report', [
+            'relatorio' => $productionService->reportByProduct($business_id, $filters),
+            'filters'   => [
+                'start_date' => $filters['start_date'],
+                'end_date'   => $filters['end_date'],
+                'is_final'   => $filters['is_final'],
+            ],
+            'permissions' => [
+                'prod' => auth()->user()->can('manufacturing.access_production'),
+            ],
+            'producao' => [
+                'total'     => (int) $ordens['total_count'],
+                'rascunhos' => (int) $ordens['pending_count'],
+            ],
+            'recipes_count' => $bomService->countRecipes($business_id),
+        ]);
     }
 }

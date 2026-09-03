@@ -301,6 +301,24 @@ class RecipeBomService
     }
 
     /**
+     * Conta receitas do business — usado só pra badge de navegação (§4.1 nav das telas v2),
+     * NUNCA pra decisão de negócio. Mesma cadeia de tenant de `listRecipesWithCost`, mas sem
+     * o `with()` pesado de ingredientes (a badge não precisa da ficha inteira).
+     */
+    public function countRecipes(int $businessId): int
+    {
+        return OtelHelper::spanBiz('manufacturing.recipe.count', function () use ($businessId) {
+            return MfgRecipe::query()
+                ->join('variations as v', 'mfg_recipes.variation_id', '=', 'v.id')
+                ->join('products as p', 'v.product_id', '=', 'p.id')
+                ->where('p.business_id', $businessId)
+                ->count();
+        }, [
+            'module' => 'Manufacturing',
+        ]);
+    }
+
+    /**
      * Lista recipes do business em formato dropdown — wrapper sobre MfgRecipe::forDropdown()
      * com tipagem explícita pra DI em Controllers.
      *

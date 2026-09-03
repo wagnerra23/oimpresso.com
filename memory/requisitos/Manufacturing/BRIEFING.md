@@ -2,8 +2,8 @@
 id: requisitos-manufacturing-briefing
 module: Manufacturing
 status: parcial
-status_nota: "Legacy UltimatePOS estável (recipes/BOM + ordens de produção) + migração Inertia parcial — 2 páginas: a lista de produções (Wave J) e a consulta de receitas em /manufacturing/recipe (Wave 29). Sem pilot dedicado próprio; provê custeio/BOM."
-updated_at: "2026-09-02"
+status_nota: "Legacy UltimatePOS estável (recipes/BOM + ordens de produção) + migração Inertia parcial — 3 páginas: a lista de produções (Wave J), a consulta de receitas em /manufacturing/recipe (Wave 29) e o relatório do período em /manufacturing/v2/report (Wave 30). Sem pilot dedicado próprio; provê custeio/BOM."
+updated_at: "2026-09-03"
 owner: W
 related_adrs:
   - 0011-alinhamento-padrao-jana
@@ -61,16 +61,19 @@ A versão anterior afirmava "Frontend Inertia/React ❌ pendente" e "Charter pá
 | Multi-tenant isolation Pest | ✅ | `Tests/Feature/MultiTenantIsolationTest` |
 | BOM integrity + Smoke routes + Scaffold Pest | ✅ | `RecipeBomIntegrityTest`, `SmokeRoutesTest`, `ScaffoldManufacturingTest` |
 | **Consulta de receitas Inertia** (KPIs · busca · drawer de custo · ficha PT-07) | 🟢 **novo (Wave 29)** | `Pages/Manufacturing/Recipes.tsx` + `RecipeController@index` + `RecipeBomService::listRecipesWithCost` |
-| Charter páginas Inertia | 🟡 2 em draft (não `live`) | `Index.charter.md` · `Recipes.charter.md` |
+| **Relatório de produção do período, agrupado por produto** | 🟢 **novo (Wave 30, US-MANU-002)** — código escrito, Pest ainda não rodou no CT 100 | `Pages/Manufacturing/Report.tsx` + `ProductionController@reportV2` + `ProductionService::reportByProduct` (reusa `RecipeBomService::calculateUnitCost`, prova algébrica em `RUNBOOK-report.md §1`) |
+| Charter páginas Inertia | 🟡 3 em draft (não `live`) | `Index.charter.md` · `Recipes.charter.md` · `Report.charter.md` |
 
 ## Gaps catalogados
 
-- **Charter draft → live** — `Index.charter.md` segue `status: draft`; promover exige Wagner aprovar UX screenshot (anti-hook do charter).
+- **Charter draft → live** — `Index.charter.md` e `Report.charter.md` seguem `status: draft` (sem `smoke:` ainda); promover exige Wagner aprovar UX screenshot (anti-hook do charter).
+- **Wave 30 (US-MANU-002, Relatório) sem verificação real ainda** — código completo (backend + frontend + charter + casos + Pest), `php -l`/`tsc` limpos, mas **Pest não rodou no CT 100** e **smoke prod não foi feito**. Não declarar "pronto" até isso fechar — proibicoes.md §"Claim sem evidência".
 - ~~**Cobertura Spatie permissions** — `R-MANU-001..005` no SPEC ainda com `_lacuna_`~~ — **fechado em 2026-09-03**: `Modules/Manufacturing/Tests/Feature/PermissionsTest.php` criado (R-MANU-002/003/005 por HTTP real; R-MANU-001 já estava em `MultiTenantIsolationTest`, linha do SPEC só desatualizada). **Achado durante o fix:** R-MANU-004 (`manufacturing.edit_recipe`) protege uma rota que não existe — `UpdateRecipeRequest` não está wired a nenhum PUT/PATCH (`Route::resource(...)->except('edit','update')`). Fica registrado no SPEC, não escondido.
 - ~~**US-MANU** — SPEC sem user stories escritas~~ — **fechado em 2026-09-02**: `US-MANU-001` foi escrita a partir do handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" (§2 + §17), com DoD e `**Testado em:**` ancorados.
-- **MWART parcial** — migraram a lista de produções (Wave J) e a **consulta** de receitas (Wave 29). Seguem Blade: create/edit/destroy da receita, o editor de ingredientes, o formulário de ordem, relatório e configurações. A tela nova aponta pra elas em vez de duplicá-las.
+- **MWART parcial** — migraram a lista de produções (Wave J), a **consulta** de receitas (Wave 29) e o **relatório do período** (Wave 30). Seguem Blade: create/edit/destroy da receita, o editor de ingredientes, o formulário de ordem e configurações — nessa ordem de custo crescente (decisão [M] 2026-09-02).
 - **Aba Insumos não existe** — o handoff (§18.3) declara que `usosDoInsumo` é cálculo novo sem backend: "sem isso, a aba não sai".
 - **Atualizar preço de venda em massa não implementado** — §18.1 proíbe o `custo × 2` do protótipo, e a regra de markup real não foi decidida. É Tier 0 de valor.
+- **E2E de `Recipes.tsx` deixado pendente por decisão explícita ([F] 2026-09-03)** — `Recipes.casos.md` tem 8 itens no "Backlog de casos" (comportamento de navegador: busca/atalho `/`, KPI-filtro, ordenação, seleção, cor da margem, drawer, ficha sem valor). `e2e/manufacturing-recipes.spec.ts` já rascunha 4 deles como `test.fixme` — não rodam porque falta fixture Playwright autenticada (sessão + business com receitas semeadas) pro módulo Manufacturing; os outros 4 nem chegaram a ser esboçados. Não quebra gate nenhum hoje (backlog declarado ≠ UC órfão), mas fica sem cobertura de regressão de navegador. **Retomar quando alguém for mexer na tela de novo, ou se pedirem explicitamente.**
 
 ## Decisões canônicas relacionadas
 
@@ -81,9 +84,11 @@ A versão anterior afirmava "Frontend Inertia/React ❌ pendente" e "Charter pá
 ## Próximos passos sugeridos
 
 1. ~~Reverificar (grep) se OficinaAuto/ComunicacaoVisual realmente consomem `RecipeBomService`/`ProductionService`~~ — **fechado 2026-09-03**: reverificado, 0 arquivos, claim removido (ver seção acima).
-2. `PermissionsTest` fechando `R-MANU-001..005` (a US-MANU-001 já foi escrita em 2026-09-02).
-3. Promover os charters draft → live após screenshot aprovado por Wagner (agora são dois: `Index` e `Recipes`). Smoke autenticado de `/manufacturing/recipe` (nova) e `?legacy=1` (rollback) feito 2026-09-03 — 200, sem erro de console, os dois renderizam a tela certa; falta só o `smoke:` datado no charter + aprovação do screenshot.
-4. Migração MWART do CRUD/Recipes avaliada quando OficinaAuto consumir BOM via UI Inertia (segue sem consumo — item 1 acima).
+2. ~~`PermissionsTest` fechando `R-MANU-001..005`~~ — **fechado 2026-09-03** (ver Gaps catalogados).
+3. Promover os charters draft → live após screenshot aprovado por Wagner (agora são três: `Index`, `Recipes`, `Report`). Smoke de `Recipes.charter.md` **fechado 2026-09-03** — falta a aprovação do screenshot pelo Wagner (`Index.charter.md` e `Report.charter.md` seguem sem smoke registrado).
+4. **Rodar `Wave30ReportInertiaTest.php` no CT 100** (ver bloco novo acima) — é o item que falta pra US-MANU-002 sair de "código escrito" pra "verificado". Depois, smoke prod em `/manufacturing/v2/report`.
+5. **US-MANU-003 (Configurações do módulo)** é a próxima onda na ordem de custo crescente decidida por [M] — backend já existe (`SettingsController@index/@store`), 3 campos, escreve.
+6. Migração MWART do CRUD/Recipes avaliada quando OficinaAuto consumir BOM via UI Inertia (segue sem consumo — item 1 acima).
 
 ## Nota atual
 

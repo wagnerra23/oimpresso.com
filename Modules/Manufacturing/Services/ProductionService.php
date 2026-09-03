@@ -7,6 +7,7 @@ use App\Util\OtelHelper;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use App\Support\Privacy\PiiRedactor;
+use Modules\Manufacturing\Entities\MfgRecipe;
 
 /**
  * ProductionService — orquestração thin de queries de produção (Manufacturing).
@@ -25,9 +26,11 @@ class ProductionService
 {
     public function __construct(
         private ?PiiRedactor $piiRedactor = null,
+        private ?RecipeBomService $bomService = null,
     ) {
         // Resolve do container se não injetado (Manufacturing legacy usa instanciação direta)
         $this->piiRedactor = $piiRedactor ?? app(PiiRedactor::class);
+        $this->bomService = $bomService ?? app(RecipeBomService::class);
     }
 
     /**
@@ -204,6 +207,116 @@ class ProductionService
         }, [
             'module'      => 'Manufacturing',
             'window_days' => $windowDays,
+        ]);
+    }
+
+    /**
+     * Relatório de produção do período, agrupado por produto — US-MANU-002 (SPEC.md).
+     *
+     * Custo de cada ordem = `RecipeBomService::calculateUnitCost($recipe) × quantidade
+     * produzida NA ORDEM` (não a `total_quantity` canônica da receita). REUSA o método já
+     * testado (UC-RECIPE-03/04) em vez de reimplementar a fórmula — prova algébrica de que
+     * isso reproduz `consumoOP()` do protótipo pras 3 fórmulas de `production_cost_type` em
+     * `RUNBOOK-report.md §1` (proibicoes.md §5 2026-06-05 "não deriva do código", aqui deriva
+     * de um método já provado, não de leitura nova de código).
+     *
+     * Não há custo CONGELADO ainda — `transactions` não tem `custoSnap` (US-MANU-007 §9 é
+     * quem o introduz). Todo custo aqui é live, igual à tela de Receitas.
+     *
+     * Tier 0 ({@see ADR 0093}): `transactions.business_id` já é direto (core scoped); a
+     * cadeia até a recipe some defesa em profundidade via `products.business_id` no JOIN.
+     *
+     * @param  int  $businessId  Tier 0 — nunca session() em Job.
+     * @param  array{start_date?:string|null,end_date?:string|null,is_final?:bool}  $filters
+     * @return array{linhas: array<int, array{recipe_id:int,nome:string,unidade:string,ordens:int,quantidade:float,custo_total:float,custo_medio:float,percentual:float}>, total: float}
+     */
+    public function reportByProduct(int $businessId, array $filters = []): array
+    {
+        return OtelHelper::spanBiz('manufacturing.production.report_by_product', function () use ($businessId, $filters) {
+            $query = Transaction::query()
+                ->where('business_id', $businessId)
+                ->where('type', 'production_purchase')
+                ->with(['purchase_lines' => function ($q) {
+                    $q->select('id', 'transaction_id', 'variation_id', 'quantity');
+                }]);
+
+            if (! empty($filters['is_final'])) {
+                $query->where('mfg_is_final', 1);
+            }
+
+            if (! empty($filters['start_date']) && ! empty($filters['end_date'])) {
+                $query->whereDate('transaction_date', '>=', $filters['start_date'])
+                    ->whereDate('transaction_date', '<=', $filters['end_date']);
+            }
+
+            $orders = $query->get();
+
+            $variationIds = $orders->pluck('purchase_lines')
+                ->flatten()
+                ->pluck('variation_id')
+                ->filter()
+                ->unique()
+                ->values();
+
+            $recipes = MfgRecipe::query()
+                ->join('variations as v', 'mfg_recipes.variation_id', '=', 'v.id')
+                ->join('products as p', 'v.product_id', '=', 'p.id')
+                ->leftJoin('units as u', 'p.unit_id', '=', 'u.id')
+                ->whereIn('mfg_recipes.variation_id', $variationIds)
+                ->where('p.business_id', $businessId) // Tier 0 — defesa em profundidade
+                ->with(['ingredients', 'ingredients.variation', 'ingredients.sub_unit'])
+                ->select('mfg_recipes.*', 'p.name as product_name', 'u.short_name as unit_name')
+                ->get()
+                ->keyBy('variation_id');
+
+            $acc = [];
+
+            foreach ($orders as $order) {
+                foreach ($order->purchase_lines as $line) {
+                    $recipe = $recipes->get($line->variation_id);
+                    if (! $recipe) {
+                        continue; // Ordem cujo item produzido não tem receita (dado legado) — não entra no relatório.
+                    }
+
+                    $qty = (float) $line->quantity;
+                    $custo = $this->bomService->calculateUnitCost($recipe) * $qty;
+
+                    // `??=`, não `if (!isset)` — este é acumulador (1ª ocorrência da chave
+                    // inicia o balde), não fallback silencioso de input ausente. PHPStan
+                    // custom rule NoSilentFallbackRule (ADR 0212) não detecta `??=` de
+                    // propósito (ver docblock da rule); mesmo idioma de
+                    // RecipeBomService::presentRecipe() (`$grupos[$nomeGrupo] ??= [...]`).
+                    $key = (string) $recipe->variation_id;
+                    $acc[$key] ??= [
+                        'recipe_id'   => (int) $recipe->id,
+                        'nome'        => $recipe->getAttribute('product_name') ?: '—',
+                        'unidade'     => $recipe->getAttribute('unit_name') ?: '',
+                        'ordens'      => 0,
+                        'quantidade'  => 0.0,
+                        'custo_total' => 0.0,
+                    ];
+
+                    $acc[$key]['ordens']++;
+                    $acc[$key]['quantidade'] += $qty;
+                    $acc[$key]['custo_total'] += $custo;
+                }
+            }
+
+            $total = array_sum(array_column($acc, 'custo_total'));
+
+            // §7.3 — divisão por zero devolve 0, nunca NaN/Infinity (mesma defesa da tela de Receitas).
+            $linhas = array_map(function ($l) use ($total) {
+                $l['custo_medio'] = $l['quantidade'] > 0 ? $l['custo_total'] / $l['quantidade'] : 0.0;
+                $l['percentual']  = $total > 0 ? $l['custo_total'] / $total * 100 : 0.0;
+
+                return $l;
+            }, array_values($acc));
+
+            usort($linhas, fn ($a, $b) => $b['custo_total'] <=> $a['custo_total']);
+
+            return ['linhas' => $linhas, 'total' => $total];
+        }, [
+            'module' => 'Manufacturing',
         ]);
     }
 }

@@ -44,8 +44,11 @@ depois que um insumo subiu
 - [x] Ficha técnica PT-07 em duas variantes; a **via de produção** não mostra nenhum valor de
       compra (R-22)
 - [x] Nenhuma rota Blade legada removida; `?legacy=1` devolve a tela antiga no mesmo endereço
-- [ ] Smoke real em prod (`curl` + screenshot) — só existe depois do deploy; receita no
-      [RUNBOOK-recipes.md](RUNBOOK-recipes.md) §5
+- [x] Smoke real em prod (`curl` + screenshot) — feito 2026-09-03: `curl -sv` nas 4 rotas do
+      §5 (sem cookie) devolve `302→/login` nas quatro; screenshot autenticado (Chrome MCP,
+      sessão WR2 Sistemas) confirma `/manufacturing/recipe` e `?legacy=1` renderizando a tela
+      certa, 0 erro de console, e as rotas Blade adjacentes (`production`/`settings`)
+      inalteradas. Registrado em `Recipes.charter.md` (`smoke:`)
 
 **Fora do escopo desta US** (declarado, com a razão):
 - Atualizar preço de venda em massa — §18.1 do handoff proíbe o `custo × 2` do protótipo e a regra
@@ -71,17 +74,32 @@ depois que um insumo subiu
 **Quero** ver quanto custou produzir no período, agrupado por produto
 **Para** saber para onde o dinheiro de produção foi antes de fechar o mês
 
-**Fonte:** handoff §4.6. **Backend: já existe** — `ProductionController@getManufacturingReport`.
+**Fonte:** handoff §4.6. **Backend original: `ProductionController@getManufacturingReport`** —
+achado ao construir (2026-09-03): esse método legado **não agrupa por produto** (só 3 totais
+soltos: `total_production`/`total_production_cost`/`total_sold`). O agrupamento por produto é
+capacidade **nova**: `ProductionService::reportByProduct()`, que REUSA
+`RecipeBomService::calculateUnitCost()` (já testado em US-MANU-001) — não reimplementa a
+fórmula de custo. Prova algébrica em `RUNBOOK-report.md §1`.
 **Custo: o menor da fila** — leitura pura, uma tabela agrupada + barra proporcional, zero escrita.
 
-**Implementado em:** _pendente_
+**Implementado em:** `resources/js/Pages/Manufacturing/Report.tsx` ·
+`Modules/Manufacturing/Http/Controllers/ProductionController.php` (`@reportV2`) ·
+`Modules/Manufacturing/Services/ProductionService.php` (`reportByProduct`) — rota ADITIVA
+`/manufacturing/v2/report` (`/manufacturing/report` Blade segue intocado; sem decisão [W] sobre
+tomar o endereço legado, como aconteceu em Recipes)
+
+**Testado em:** `Modules/Manufacturing/Tests/Feature/Wave30ReportInertiaTest.php`
+(`@covers-us US-MANU-002`) — ⚠️ escrito e com `php -l` limpo, **ainda não rodou** (Pest só roda
+no CT 100, proibicoes.md). Verificação real fica pendente até a próxima sessão rodar lá.
 
 **Definition of Done:**
-- [ ] Período (De/Até) + `Só finalizadas` com default **ligado**
-- [ ] Agrupa por produto: ordens · quantidade · custo total · custo médio · `% do período` com barra
-- [ ] Ordenado por custo desc
-- [ ] Rodapé verbatim: `Custo de produção do período R$ X · lançado como entrada de estoque no Financeiro`
-- [ ] Divisão por zero no `% do período` devolve 0 (§7.3)
+- [x] Período (De/Até) + `Só finalizadas` com default **ligado** (`ProductionController::reportV2`)
+- [x] Agrupa por produto: ordens · quantidade · custo total · custo médio · `% do período` com barra
+- [x] Ordenado por custo desc
+- [x] Rodapé verbatim: `Custo de produção do período R$ X · lançado como entrada de estoque no Financeiro`
+- [x] Divisão por zero no `% do período` devolve 0 (§7.3)
+- [ ] Pest rodado no CT 100 (verde) — pendente
+- [ ] Smoke real em prod (`curl` + screenshot) — pendente, receita em `RUNBOOK-report.md §3`
 
 ### US-MANU-003 · Configurações do módulo
 

@@ -7738,6 +7738,24 @@ parameters:
 			path: Modules/Manufacturing/Routes/web.php
 
 		-
+			message: '#^Relation ''purchase_lines'' is not found in App\\Transaction model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: Modules/Manufacturing/Services/ProductionService.php
+
+		-
+			message: '#^Access to an undefined property App\\Transaction\:\:\$purchase_lines\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Manufacturing/Services/ProductionService.php
+
+		-
+			message: '#^Relation ''ingredients'' is not found in Modules\\Manufacturing\\Entities\\MfgRecipe model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: Modules/Manufacturing/Services/ProductionService.php
+
+		-
 			message: '#^Access to an undefined property Modules\\Manufacturing\\Entities\\MfgRecipe\:\:\$ingredients\.$#'
 			identifier: property.notFound
 			count: 1
