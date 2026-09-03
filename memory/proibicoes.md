@@ -1023,6 +1023,10 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **O limite (variantes também proibidas):** **(a)** não concluir *"não-determinístico / flaky / render instável"* a partir de **repetição** de um número — repetição é determinismo; a evidência de não-determinismo é **variância medida entre execuções**, e sem ela a palavra não se usa. Vale pra baseline visual, teste flaky, drift e watchdog. **(b)** não regravar baseline sem antes **comparar as ÁRVORES que os dois modos fotografam** (não só os steps): quando um modo faz checkout de merge ref e o outro do ref cru, eles renderizam mundos diferentes por construção, e o rebake só troca uma foto velha por outra. É o eixo **árvore** da família que este §5 já cobre nos eixos *flag* (2026-07-28), *job* (2026-07-29) e *modo/conjunto-de-steps* (2026-08-26). **(c)** corolário que teria matado o ciclo na 1ª rodada, e é o mais barato: **divergência que volta idêntica após rebake refuta a hipótese "a foto envelheceu"** — rebake só conserta drift monotônico (já era a lápide de 2026-08-26; o que faltava era aplicá-la ao número que **não** mudou).
 
+### 2026-09-03 — EMENDA da lápide de 2026-08-11 (transcrever conteúdo): a proibição era ABSOLUTA e criava um impasse onde a máquina não tem entrada
+
+- **O limite, agora estreitado:** não transcrever **onde existe rota de máquina** — e aí a violação é escolher a mão tendo o arquivo em disco. Onde a rota não existe (`get_file` inline), o agente escreve, sob as quatro condições da 0389: **(1)** origem única resolvida por `list_files` antes, com o path canônico vindo do manifesto do consumidor (o erro de 2026-08-11 foi exatamente pegar a cópia errada de duas homônimas, e ele **continua proibido**); **(2)** `truncated: false`; **(3)** verificação pós-escrita rodando o consumidor do arquivo, com a saída colada no PR; **(4)** a escrita inline declarada no corpo do PR.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
