@@ -4,10 +4,21 @@ casos: Forja · cockpit do cowork loop · /forja
 irmaos: Cockpit.charter.md (lei) · Cockpit.tsx (tela)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-09-02"
+last_run: "2026-09-03"
 ---
 
 # Casos de uso — /forja (cockpit Forja · shell)
+
+> **Revalidação de 2026-09-03 (o que o `last_run` deste bump cobre, e o que não cobre).**
+> O `last_run` anterior era `2026-09-02`; desde então o `Cockpit.tsx` recebeu **1** commit —
+> [#6591](https://github.com/wagnerra23/oimpresso.com/pull/6591) (`0521bfe36e`), cujo diff no
+> arquivo é **só a classe do wrapper**: `className={tab === 'changelog' ? 'fj-hub' : tab === 'mcp'
+> ? '' : 'px-6 pt-4'}` mais o comentário que a justifica. Conferido caso a caso: `triagem` continua
+> caindo no `px-6 pt-4` de sempre, então `UC-FORJA-08/09/10` e `UC-FORJA-01` seguem descrevendo o
+> comportamento sem alteração; `UC-FORJA-16/17` são da própria onda do #6591 e já nasceram com ela.
+> **O que este bump NÃO afirma:** nenhum `Status:` mudou, e nenhuma suíte foi executada nesta
+> sessão — os ⬜/🧪 seguem como estavam. A revalidação foi por **leitura do diff** desde o
+> `last_run` anterior, mais a medição de código da Triagem registrada no `UC-FORJA-08`.
 
 > **Status:** ✅ passa (provado por teste) · 🧪 em teste (Pest escrito, aguarda run verde) · ⬜ não verificado · ❌ quebrou.
 
