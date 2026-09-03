@@ -62,6 +62,45 @@ const mappings: Record<string, Record<string, StatusEntry>> = {
     alta:    { variant: 'destructive', label: 'Alta' },
     urgente: { variant: 'destructive', label: 'Urgente', className: 'animate-pulse' },
   },
+  /**
+   * `documento` — `transactions.status` de pedido de venda, ordem de compra e requisição.
+   *
+   * POR QUE ESTE KIND EXISTE (medido 2026-09-03): a Visão geral chama
+   * `colunaSituacao('documento')` em 3 abas (GradesPainel.tsx:163,170,177) e
+   * `colunaSituacao('os')` numa quarta (:184). Nenhum dos dois existia aqui, então o
+   * fallback abaixo pintava badge cinza com `toTitle(valor_cru)` — a tela mostrava
+   * **"Ordered", "Received", "Packed", "Shipped"** em inglês, num ERP PT-BR.
+   *
+   * Os rótulos NÃO são escolha minha: vêm do dicionário que o projeto já usa nos
+   * Blades — `lang/pt/lang_v1.php` (`received`/`pending`/`ordered`/`partial`/`final`)
+   * e `lang/pt/sale.php` (`draft`). As chaves são os valores que o service devolve
+   * cru de `transactions.status` (GradesDoPainelService.php:502), filtrados em
+   * `:415` (`partial`,`ordered`) e `:433` (tudo menos `completed`).
+   */
+  documento: {
+    draft:      { variant: 'outline',   label: 'Rascunho' },
+    pending:    { variant: 'secondary', label: 'Pendente' },
+    ordered:    { variant: 'secondary', label: 'Solicitado' },
+    partial:    { variant: 'default',   label: 'Parcial',   className: 'bg-warning text-warning-foreground hover:bg-warning/90' },
+    received:   { variant: 'default',   label: 'Recebido',  className: 'bg-success text-success-foreground hover:bg-success/90' },
+    final:      { variant: 'default',   label: 'Final',     className: 'bg-success text-success-foreground hover:bg-success/90' },
+    completed:  { variant: 'default',   label: 'Concluído', className: 'bg-success text-success-foreground hover:bg-success/90' },
+    cancelled:  { variant: 'outline',   label: 'Cancelado' },
+  },
+  /**
+   * `os` — `transactions.shipping_status` (expedição).
+   *
+   * As 5 chaves são exatamente as de `Util::shipping_statuses()` (app/Utils/Util.php:1342),
+   * a lista que os Blades de venda/compra já oferecem no `<select>`; os rótulos são os
+   * mesmos `lang/pt/lang_v1.php` que aquele método resolve. Uma fonte só, não duas.
+   */
+  os: {
+    ordered:    { variant: 'secondary', label: 'Solicitado' },
+    packed:     { variant: 'default',   label: 'Embalado',  className: 'bg-info text-info-foreground hover:bg-info/90' },
+    shipped:    { variant: 'default',   label: 'Enviado',   className: 'bg-info text-info-foreground hover:bg-info/90' },
+    delivered:  { variant: 'default',   label: 'Entregue',  className: 'bg-success text-success-foreground hover:bg-success/90' },
+    cancelled:  { variant: 'outline',   label: 'Cancelado' },
+  },
   payment: {
     pending:        { variant: 'secondary',   label: 'Pendente' },
     partial:        { variant: 'default',     label: 'Parcial',    className: 'bg-warning text-warning-foreground hover:bg-warning/90' },
