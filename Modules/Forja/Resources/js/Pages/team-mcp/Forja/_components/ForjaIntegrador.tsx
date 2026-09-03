@@ -5,11 +5,21 @@
 // [CC] e ancorado no git (`Modules/TeamMcp · SCOPE.md · routes.php`), e [W] a
 // pediu como tela viva em 2026-09-01 ("isso que é esperado").
 //
-// Diferença única em relação ao protótipo: as abas usam `.fj-int-tabs` com <button>
-// (a versão anterior do próprio protótipo) em vez de `window.CliTabs` — o TabBar do DS
-// do Cowork não existe no repo. Mesmo CSS, mesma copy.
+// Onda 10 (PARIDADE §11) fechou a única diferença que este cabeçalho declarava: as
+// abas usavam `.fj-int-tabs` com <button> — a versão ANTERIOR do próprio protótipo —
+// em vez do `window.CliTabs`. A premissa registrada aqui ("o TabBar do DS do Cowork
+// não existe no repo") estava desatualizada: ele existe, versionado, no snapshot do
+// DS em `scripts/design-sync/mirror-snapshot/_ds_bundle.js`. Portado em
+// {@link ./ForjaTabBar.tsx}, que carrega a medição e o desvio de ARIA declarado.
+//
+// Nota de higiene: `.fj-int-tabs` continua no bundle (`cowork-forja-bundle.css`)
+// porque continua no `forja-page.css` do protótipo — nos DOIS lados é regra MORTA,
+// já que o TabBar do DS ignora `className` e o <nav> real nasce sem classe (medido).
+// Removê-la só de um lado faria o bundle divergir da cópia verbatim.
 
 import { useState, type CSSProperties } from 'react';
+
+import ForjaTabBar from './ForjaTabBar';
 
 type Absorb = { forja: string; rota: string; ctrl: string; tabela: string; estado: 'existe' | 'parcial' | 'falta'; acao: Acao; nota: string };
 type Impact = { modulo: string; tela: string; mudanca: string; acao: Acao; conf: 'alta' | 'média' | 'baixa' };
@@ -67,10 +77,15 @@ export default function ForjaIntegrador() {
         <span className="fj-int-src">✓ lido @main · wagnerra23/oimpresso.com · Modules/TeamMcp</span>
       </div>
 
-      <div className="fj-int-tabs" role="tablist" aria-label="Integrador">
-        <button type="button" role="tab" aria-selected={tab === 'absorb'} className={tab === 'absorb' ? 'active' : ''} onClick={() => setTab('absorb')}>Forja ↔ TeamMcp <span className="fj-tab-badge neutro">{FORJA_ABSORB.length}</span></button>
-        <button type="button" role="tab" aria-selected={tab === 'impact'} className={tab === 'impact' ? 'active' : ''} onClick={() => setTab('impact')}>Telas impactadas <span className="fj-tab-badge neutro">{FORJA_IMPACT.length}</span></button>
-      </div>
+      <ForjaTabBar
+        ariaLabel="Integrador"
+        active={tab}
+        onChange={setTab}
+        tabs={[
+          { key: 'absorb', label: 'Forja ↔ TeamMcp', count: FORJA_ABSORB.length },
+          { key: 'impact', label: 'Telas impactadas', count: FORJA_IMPACT.length },
+        ]}
+      />
 
       {tab === 'absorb' && (
         <div className="fj-int-table">

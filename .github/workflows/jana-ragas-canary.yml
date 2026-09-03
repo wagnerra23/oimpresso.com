@@ -368,7 +368,7 @@ jobs:
                 ``,
                 `| \`erro=\` | causa | onde se resolve |`,
                 `|---|---|---|`,
-                `| \`insufficient_quota\` | cota/billing da conta OpenAI esgotada | fora do repo — decisão [W] |`,
+                `| \`insufficient_quota\` · \`credit_balance_exhausted\` | conta OpenAI sem crédito (os dois códigos são a mesma família) | fora do repo — decisão [W] |`,
                 `| \`rate_limit_exceeded\` | rajada de chamadas sem backoff | dentro do repo — \`RagasJudgeService\` |`,
                 `| outro / \`(sem corpo)\` | key ausente, rede, exceção | ler o stderr completo |`,
                 ``,

@@ -16,6 +16,8 @@ excludes:
   - "Contagem no brief diário (previsto na US-INFRA-002, PR seguinte)"
 owner: wagner
 status: em construção
+url_prefixes:
+  - /voz-do-cliente/* (única superfície — caixa de triagem `GET /` · gravação `POST /sinal`, Routes/web.php:15; install 1-clique em :33)
 ---
 
 # Modules/VozDoCliente
