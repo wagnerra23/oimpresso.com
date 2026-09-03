@@ -17,6 +17,10 @@ on:
       - '.github/workflows/adr-index-gate.yml'
   workflow_dispatch:
 
+concurrency:
+  group: adr-index-gate-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check:
     name: índice de ADR em dia (--check + supersede-integrity)
