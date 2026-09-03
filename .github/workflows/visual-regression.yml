@@ -728,11 +728,13 @@ jobs:
       # como verde seria o presence-gate de sempre, e é pra isso que serve o `always()`.
       - name: Contrato do shell · auto-rail ≤1280 (ADVISORY · ADR UI-0030)
         if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        id: e2e-shell-rail
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Shell/SidebarAutoRailTest.php
 
       - name: E2E de render · Financeiro/Conciliacao (ADVISORY)
         if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        id: e2e-conciliacao
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Financeiro/ConciliacaoIndexTest.php
 
@@ -741,13 +743,20 @@ jobs:
       # trio ✓ · scorecard ✓ · 5/5 UC citados por teste — e `e2e (Browser) ✗`. O contrato vive
       # na lane required do Financeiro; nada exercitava a tela RENDERIZADA.
       #
-      # Este arquivo é INDEPENDENTE DE DADO de propósito, e a razão está medida no docblock
-      # dele: o step do Conciliacao acima está VERMELHO (6/6, `esperado '2', último '0'`) desde
-      # que entrou, porque as telas deste grupo de rotas renderizam com business 0 sob o
-      # auth-bridge. O vermelho não aparece porque `continue-on-error` publica
-      # `conclusion=success` (o `outcome` é que é `failure`). Um segundo step permanentemente
-      # vermelho ensina o time a ignorar vermelho — então aqui só entram asserts que valem com
-      # a lista vazia E continuam valendo quando ela voltar a ter turno.
+      # Este arquivo é INDEPENDENTE DE DADO de propósito, e a razão é história datada: entre
+      # #6476 (2026-08-31) e #6632 (2026-09-03) o step do Conciliacao acima ficou VERMELHO
+      # (6/6, `esperado '2', último '0'`), porque as telas daquele grupo de rotas renderizavam
+      # com business 0 sob o auth-bridge; o vermelho não aparecia porque `continue-on-error`
+      # publica `conclusion=success` (o `outcome` é que fica `failure`). Um segundo step
+      # permanentemente vermelho ensina o time a ignorar vermelho — então aqui só entram
+      # asserts que valem com a lista vazia E continuam valendo quando ela tiver turno.
+      #
+      # ERRATA 2026-09-03: aquela causa FOI corrigida — o #6632 pôs `SetSessionData` nas 5
+      # rotas de conciliação (`Modules/Financeiro/Routes/web.php:269`), escopado às rotas SEM
+      # baseline de pixel. Medido no run 33762382505: Conciliacao `6 passed (39 assertions)`,
+      # este Caixa `8 passed (46 assertions)`. Quem quiser o estado de AGORA lê a coluna
+      # `outcome` do step "Veredito dos advisory de Browser" — não esta prosa, que é retrato
+      # de uma data.
       #
       # Não semeia NADA no banco (zero risco de mexer em baseline de pixel de outra tela) e não
       # captura screenshot (não gera baseline). ADVISORY no nascimento (ADR 0261/0275): não pôde
@@ -756,6 +765,7 @@ jobs:
       # o presence-gate de sempre — é pra isso que serve o `always()`, idêntico aos steps acima).
       - name: E2E de render · Financeiro/Caixa (ADVISORY)
         if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        id: e2e-caixa
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Financeiro/CaixaIndexTest.php
       # ── E2E DE RENDER POR TELA — Financeiro/Cobranca (NASCE ADVISORY) ────────────────
@@ -766,12 +776,21 @@ jobs:
       # client-side, funil × KPI, badge por status, atalho `/` + busca client-side e axe
       # CRITICAL.
       #
-      # ⚠️ Diferente do Conciliacao acima, aqui o servidor NÃO está segurando a tela: o
-      # `CobrancaControllerTest` (UC-COB-01/02/03/07) e o `BoletoMockEmissaoTest`
-      # (UC-COB-05) estão em `.github/financeiro-pest-quarantine.list`, e o
-      # `scripts/casos-test-results.json` tem só `UC-COB-04`/`UC-COB-06` — 2 de 7 UC com
-      # prova de execução. Enquanto a quarentena não cair, este step é a única cobertura
-      # desta tela que EXECUTA numa lane de PR. Razão a mais pra ele não ficar mudo.
+      # ⚠️ ERRATA 2026-09-03 — a frase que estava aqui ("diferente do Conciliacao, aqui o
+      # servidor NÃO está segurando a tela") era HIPÓTESE DE LEITURA, e a medição a REFUTOU:
+      # no run 33762382505 este step saiu `FAIL … 6 failed`, com `esperado '3', último '0'` —
+      # a assinatura de lista vazia, o mesmo sintoma que o Conciliacao tinha. O grupo de rotas
+      # de cobrança segue SEM `SetSessionData` (o #6632 escopou o middleware só às 5 rotas de
+      # conciliação), então business 0 é o primeiro suspeito aqui também — primeiro suspeito,
+      # não causa provada. O #6650 já pôs um probe de diagnóstico no próprio teste pra separar
+      # servidor × cliente × `Inertia::defer`; o veredito sai do probe, não desta prosa.
+      #
+      # O que SEGUE valendo da redação original: `CobrancaControllerTest` (UC-COB-01/02/03/07)
+      # e o `BoletoMockEmissaoTest` (UC-COB-05) estão em
+      # `.github/financeiro-pest-quarantine.list`, e o `scripts/casos-test-results.json` tem
+      # só `UC-COB-04`/`UC-COB-06` — 2 de 7 UC com prova de execução. Enquanto a quarentena
+      # não cair, este step é a única cobertura desta tela que EXECUTA numa lane de PR. Razão
+      # a mais pra ele não ficar mudo.
       #
       # DEPOIS do Conciliacao, e por ÚLTIMO entre os E2E: a fixture escreve em `cobrancas` e
       # `payment_gateway_credentials`. O teste apaga no `afterEach`; rodar depois de TODAS as
@@ -784,6 +803,7 @@ jobs:
       # presence-gate de sempre, e é pra isso que serve o `always()`.
       - name: E2E de render · Financeiro/Cobranca (ADVISORY)
         if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        id: e2e-cobranca
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Financeiro/CobrancaIndexTest.php
 
@@ -795,7 +815,8 @@ jobs:
       # RENDERIZADA.
       #
       # INDEPENDENTE DE DADO, pela mesma razão do step do Caixa acima: o do Conciliacao
-      # afirma sobre LINHA e está vermelho desde que entrou (business 0 sob o auth-bridge).
+      # afirma sobre LINHA e ficou vermelho de #6476 (2026-08-31) a #6632 (2026-09-03), por
+      # business 0 sob o auth-bridge (ver a errata no step do Caixa — já corrigido).
       # O grupo de rotas do Manufacturing TEM `SetSessionData` (`Modules/Manufacturing/
       # Routes/web.php:8`), diferente do grupo do Financeiro — então a lista PODE renderizar
       # aqui; mas isso é hipótese de leitura, não medição, e um step permanentemente
@@ -814,8 +835,108 @@ jobs:
       # presence-gate de sempre — é pra isso que serve o `always()`).
       - name: E2E de render · Manufacturing/Recipes (ADVISORY)
         if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        id: e2e-recipes
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Manufacturing/RecipesIndexTest.php
+
+      # ── VEREDITO DOS 5 ADVISORY DE BROWSER (visibilidade, NÃO enforcement) ───────
+      # O PROBLEMA, medido em 2026-09-03: `continue-on-error: true` faz o GitHub publicar
+      # `conclusion=success` NO STEP; o veredito real fica só no campo `outcome`, que nem a
+      # UI de checks nem `gh pr checks` mostram. Nos runs 33747138995 e 33762382505 o step do
+      # Conciliacao veio `conclusion=success` pela API enquanto o log do MESMO run trazia
+      # `FAIL Tests\Browser\Financeiro\ConciliacaoIndexTest` / `6 failed` — e foi assim que
+      # ele atravessou de #6476 (2026-08-31) até #6632 (2026-09-03) sem ninguém notar.
+      #
+      # O IDIOMA NÃO É NOVO — é o do step "Veredito advisory L5 perf budget", mais abaixo
+      # NESTE arquivo (`id:` no step + leitura de `steps.<id>.outcome`), e o mesmo de
+      # `deploy.yml:818` e `ds-gate.yml:122`. O que faltava era aplicá-lo aos advisory de
+      # BROWSER: o L5 tinha veredito, estes cinco não tinham.
+      #
+      # DUAS DIFERENÇAS deliberadas em relação ao veredito do L5:
+      #   1. `skipped` NÃO é dobrado em verde. O `else` do L5 chama de OK tudo que não é
+      #      `failure`, e estes cinco steps são pulados DE VERDADE (medido no run
+      #      33768527434: os 5 `skipped`, porque aquele PR não tocou UI). Verde que não
+      #      mediu é o mesmo formato de `0 failed` numa suíte que não rodou.
+      #   2. imprime o DENOMINADOR (quantos executaram de quantos), pelo mesmo motivo.
+      #
+      # NÃO MUDA ENFORCEMENT: nenhum `continue-on-error` saiu, e este step termina em
+      # `exit 0` (última linha do `run`) — ele relata, não decide. Promover um destes cinco
+      # é remover o `continue-on-error` DELE, e isso é flip [W] (ADR 0336, mordida provada);
+      # quem é required vive em `governance/required-checks-baseline.json`.
+      - name: Veredito dos advisory de Browser (visível no resumo do run)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        env:
+          A_SHELL: ${{ steps.e2e-shell-rail.outcome }}
+          A_CONCILIACAO: ${{ steps.e2e-conciliacao.outcome }}
+          A_CAIXA: ${{ steps.e2e-caixa.outcome }}
+          A_COBRANCA: ${{ steps.e2e-cobranca.outcome }}
+          A_RECIPES: ${{ steps.e2e-recipes.outcome }}
+        run: |
+          resumo="$(mktemp)"
+          {
+            echo "## Veredito dos advisory de Browser"
+            echo ""
+            echo "| | step | outcome |"
+            echo "|---|---|---|"
+          } > "$resumo"
+
+          total=0; executaram=0; falharam=0; pulados=0; indefinidos=0; falhos=""
+          bt='`'   # crase em variavel: o bloco fica sem barra invertida
+
+          registrar() {
+            nome="$1"; oc="${2:-}"
+            total=$((total + 1))
+            case "$oc" in
+              success)
+                executaram=$((executaram + 1)); icone="✅" ;;
+              failure)
+                executaram=$((executaram + 1)); falharam=$((falharam + 1))
+                icone="🔴"; falhos="${falhos}${nome} / " ;;
+              skipped)
+                pulados=$((pulados + 1)); icone="⏭ pulado" ;;
+              *)
+                indefinidos=$((indefinidos + 1)); icone="❓ não avaliado"; oc="${oc:-vazio}" ;;
+            esac
+            echo "| ${icone} | ${nome} | ${bt}${oc}${bt} |" >> "$resumo"
+          }
+
+          registrar "Contrato do shell · auto-rail <=1280" "$A_SHELL"
+          registrar "E2E de render · Financeiro/Conciliacao" "$A_CONCILIACAO"
+          registrar "E2E de render · Financeiro/Caixa" "$A_CAIXA"
+          registrar "E2E de render · Financeiro/Cobranca" "$A_COBRANCA"
+          registrar "E2E de render · Manufacturing/Recipes" "$A_RECIPES"
+
+          {
+            echo ""
+            echo "**${total} advisory de Browser** — ${executaram} executaram · ${falharam} falharam · ${pulados} pulados · ${indefinidos} não avaliados."
+          } >> "$resumo"
+
+          if [ "$executaram" -eq 0 ]; then
+            {
+              echo ""
+              echo "**NÃO HOUVE MEDIÇÃO neste run.** Nenhum dos ${total} executou — logo este resumo não afirma que as telas estão sãs, afirma que ninguém mediu."
+            } >> "$resumo"
+          fi
+
+          if [ "$falharam" -gt 0 ]; then
+            {
+              echo ""
+              echo "**${falharam} de ${executaram} executados FALHARAM:** ${falhos}"
+              echo ""
+              echo 'Estes steps têm `continue-on-error: true`, logo o step publica `conclusion=success` e o vermelho NÃO aparece em `gh pr checks` nem na UI de checks — o veredito real é a coluna `outcome` acima. Abra o log do step para o `FAIL` do Pest.'
+            } >> "$resumo"
+            echo "::warning title=Advisory de Browser vermelho::${falharam} de ${executaram} executados falharam: ${falhos}"
+          fi
+
+          cat "$resumo"
+          if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
+            cat "$resumo" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          # `exit 0` SEMPRE, e é o ponto: fazer este step reprovar promoveria os cinco
+          # advisory a enforcing de uma vez — flip [W] (ADR 0336), nunca efeito colateral
+          # de um step de relatório.
+          exit 0
 
       # ── MODO UPDATE (dispatch): PROVA o relógio congelado ANTES de assar baseline ──
       # Ordem é o ponto: se o shim de VISREG_FREEZE_CLOCK estiver quebrado, a baseline

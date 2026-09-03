@@ -68,6 +68,18 @@ export interface PageHeaderProps {
   actions?: React.ReactNode;
   /** Mobile fallback nav (renderizado abaixo do flex inner, `md:hidden`). Opcional. */
   mobileNav?: React.ReactNode;
+  /**
+   * Faixa PRÓPRIA abaixo da linha título/ações, dentro do `<header>` (herda o sticky
+   * e a `border-b`). É a posição canônica da barra de abas de topo — protótipo
+   * `.cli-moduletopnav` / `jm-tabs` ("header em cima, abas abaixo") e
+   * `Pages/Cliente/Index.tsx` (que hand-rola o header e põe `<PageHeaderTabs>`
+   * logo após a linha do título). Antes desta prop, quem usava o canon só tinha o
+   * slot `subnav` INLINE (Zona C) — e a Jana ficou com as abas espremidas à direita
+   * do título, divergindo do protótipo em todas as 6 telas da área (medido em
+   * 2026-09-03: tablist a `left=1654px` numa viewport de 2560, no mesmo `top` do
+   * h1; na âncora a barra ocupa a largura toda, 14px abaixo do header).
+   */
+  below?: React.ReactNode;
   /** Escape hatch · render livre dentro do flex inner (substitui subnav+actions). */
   children?: React.ReactNode;
   /** Classes extras pro `<header>` raiz. Use com parcimônia · canon override discouraged. */
@@ -82,6 +94,7 @@ export function PageHeader({
   subnav,
   actions,
   mobileNav,
+  below,
   children,
   className = '',
 }: PageHeaderProps) {
@@ -149,6 +162,9 @@ export function PageHeader({
           </>
         )}
       </div>
+
+      {/* Faixa própria abaixo do título (barra de abas de topo, canon) */}
+      {below}
 
       {/* Mobile fallback nav (renderizado se prop passada) */}
       {mobileNav}

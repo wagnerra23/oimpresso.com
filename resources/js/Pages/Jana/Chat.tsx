@@ -357,14 +357,25 @@ export default function Chat({
             {/* Selo de plano — ANTES de Configurar, como na âncora
                 (`chat-jana.jsx:217`: `{plano}` precede os botões da zona direita). */}
             <JanaPlanoBadge pro={pro} onConfigurar={() => setConfigAberto(true)} />
+            {/* Onda 1 da paridade (2026-09-03): na aba Conversa a âncora põe "Nova
+                conversa" no header (`JanaHeader isChat onNew`) e o Configurar vira
+                só-ícone (`jm-icon-only`, rótulo acessível). Mesmo destino do `+` do
+                painel lateral — é a 2ª porta, não uma capacidade nova. */}
+            <Button asChild variant="outline" size="sm">
+              <a href="/ia/conversas/nova" title="Nova conversa · ⌘N">
+                <Plus className="h-3.5 w-3.5" /> Nova conversa
+              </a>
+            </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={() => setConfigAberto(true)}
               aria-haspopup="dialog"
               aria-expanded={configAberto}
+              aria-label="Configurar"
+              title="Configurar"
             >
-              <Settings className="h-3.5 w-3.5" /> Configurar
+              <Settings className="h-3.5 w-3.5" />
             </Button>
           </>
         }
