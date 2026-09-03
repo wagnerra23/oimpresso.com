@@ -787,6 +787,36 @@ jobs:
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Financeiro/CobrancaIndexTest.php
 
+      # ── E2E DE RENDER POR TELA — Manufacturing/Recipes (NASCE ADVISORY) ─────────────
+      # Buraco medido em 2026-09-03 no `memory/governance/screen-coverage-baseline.json`
+      # (gravado 2026-08-31): `Manufacturing: {total:1, charter:1, scorecard:1, e2e:0,
+      # a11y:0}` — e o baseline nem conta a tela nova, que entrou em 2026-09-02 (#6546).
+      # O contrato dela vive no `Wave29RecipeInertiaTest`; nada exercitava a tela
+      # RENDERIZADA.
+      #
+      # INDEPENDENTE DE DADO, pela mesma razão do step do Caixa acima: o do Conciliacao
+      # afirma sobre LINHA e está vermelho desde que entrou (business 0 sob o auth-bridge).
+      # O grupo de rotas do Manufacturing TEM `SetSessionData` (`Modules/Manufacturing/
+      # Routes/web.php:8`), diferente do grupo do Financeiro — então a lista PODE renderizar
+      # aqui; mas isso é hipótese de leitura, não medição, e um step permanentemente
+      # vermelho ensina o time a ignorar vermelho. Os asserts valem com a lista vazia E
+      # continuam valendo quando ela vier cheia. O caso da concordância MEDE a contagem sem
+      # cravá-la: no dia em que houver 1 verde que executou com linha, os 6 casos de
+      # interação do `[BACKLOG]` do casos.md são o ratchet-up.
+      #
+      # Não semeia NADA no banco (zero risco de mexer em baseline de pixel de outra tela) e
+      # não captura screenshot (não gera baseline). ADVISORY no nascimento (ADR 0261/0275):
+      # não pôde ser executado antes do PR — Pest Browser é CI/CT-100 only e o Tailscale da
+      # máquina do autor está em `NoState`. As 5 probes JS foram rodadas em jsdom (23
+      # checagens, com controles positivos e negativos) e foi ali que o `ordenaveis` saiu de
+      # 8 pra 7 — a grade tem 7 colunas ordenáveis, não 8. Promoção a ENFORCING = REMOVER o
+      # `continue-on-error`, após 2 verdes que EXECUTARAM (`skipped` lido como verde é o
+      # presence-gate de sempre — é pra isso que serve o `always()`).
+      - name: E2E de render · Manufacturing/Recipes (ADVISORY)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        continue-on-error: true
+        run: ./vendor/bin/pest tests/Browser/Manufacturing/RecipesIndexTest.php
+
       # ── MODO UPDATE (dispatch): PROVA o relógio congelado ANTES de assar baseline ──
       # Ordem é o ponto: se o shim de VISREG_FREEZE_CLOCK estiver quebrado, a baseline
       # nasceria com o relógio VIVO e voltaria a drifar por minuto — que é exatamente o
