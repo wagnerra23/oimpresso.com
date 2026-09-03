@@ -4,12 +4,12 @@ component: resources/js/Pages/Jana/Chat.tsx
 related_prototype: prototipo-ui/cowork/jana-merge.jsx
 owner: wagner
 status: live
-last_validated: "2026-08-07"
+last_validated: "2026-09-03"
 parent_module: Jana
 related_us: [US-COPI-001, US-COPI-005, US-COPI-148]
 related_adrs: [110, 94, 107, 114, 180]
 tier: A
-charter_version: 3
+charter_version: 4
 ---
 
 # Page Charter — /ia/conversa
@@ -33,13 +33,15 @@ Conversar com a Jana (IA assistente do oimpresso) pra **consultar dados** (venda
 - **Histórico recolhível**: painel de conversas colapsa pra rail de 40px (⌘⇧H / Ctrl+⇧H, ou o chevron no header), com dica visível `J K anda · ⌘⇧H recolhe` no rodapé do painel. Estado persistido em `localStorage['oimpresso.jana.hist']`. Recolhido, o rail mantém o rótulo vertical "Histórico" + contagem — nunca fica inalcançável
 - **Sobreposição ≤1100px**: em tela estreita o histórico vira overlay sobre a thread (com scrim clicável), em vez de sumir. Escolher conversa fecha o overlay
 - **Região viva `aria-live="polite"`** anuncia a troca de conversa (`Conversa: <título>`) — cobre tanto clique quanto J/K
+- **Cabeçalho da thread** no vocabulário da âncora (`jana-merge.jsx` §`JmConversa`, `.jm-conv-h`): título 13px/600 + `só sua` em mono + pílula `arquivada` quando `conversa.status` for isso. Sem avatar circular, sem subtítulo de contato e sem ações de mensageiro (ligar / detalhes / ⋯) — v4 substitui o `ThreadHeader` de `@/Components/cockpit/Thread`, que trazia as três e cujo avatar circular violava o §UX Anti-pattern logo abaixo. `só sua` é constante porque **é** o modelo: `abort_unless($conversa->user_id === auth()->id(), 403)` em 4 pontos do `ChatController`
+- **Chips de sugestão abaixo do composer** — `Quem deve mais?` · `Onde estou perdendo?` · `Quais ações hoje?`, copy e ícones literais de `data.suggestions` da âncora. Só com a conversa em andamento; no vazio quem aparece são os prompts grandes. Cada chip **envia de verdade** (`autoSend` do runtime já existente) — UC-JPAIN-16 por analogia
 - Thread central com bubbles separadas por papel: `user` (direita, `bg-primary/5`) e `assistant` (esquerda, `bg-card`)
 - Cada mensagem do assistente pode renderizar **blocos estruturados** alinhados com o output do Brain B:
   - `tool_use` — chip mostrando ferramenta acionada (ex: "Consultou /sells-list-json")
   - `data_table` — tabela inline read-only quando resposta traz lista (ex: "5 vendas atrasadas")
   - `action_card` — confirmação de ação executada (ex: "Pagamento R$ [redacted Tier 0] registrado em fatura #1234")
   - `markdown` — fallback texto quando resposta livre
-- Composer fixo no bottom, multi-line, com `⌘+Enter` / `Ctrl+Enter` pra enviar
+- Composer fixo no bottom, multi-line, com `⌘+Enter` / `Ctrl+Enter` pra enviar. **Placeholder = copy literal da âncora** (`Pergunte algo à Jana sobre vendas, OS, financeiro…  ( / para focar )`) — e como ele anuncia o `/`, o binding é obrigatório, não opcional: rótulo que promete atalho inexistente é a LC-15
 - Indicador "Jana está pensando..." (`animate-pulse` curto, sem skeleton infinito) durante stream
 - Streaming token-a-token (resposta aparece progressiva, não em bloco)
 - Atalhos teclado: `/` foca composer, **`J/K` navega entre CONVERSAS do histórico** (v3 — era "entre mensagens da thread"; ver §Histórico), `⌘⇧H` recolhe o histórico, `Esc` desfoca. J/K são letras cruas: inertes enquanto o foco está em `input`/`textarea`/`contentEditable`
@@ -167,4 +169,5 @@ it('pauses auto-scroll when user scrolls up mid-stream')
 |---|---|---|
 | 2026-05-09 | [CC] (Cowork) + [W] | Charter criado em P2 do TELAS_REVIEW_QUEUE.md, antes de qualquer refator visual. Disparado pela auditoria dos 9 charters P0/P1 (sessão 2026-05-09). |
 | 2026-08-07 | [CL] Claude Code | charter_version → 3 (fatia C da fusão Jana, pacote `JANA-FUSAO-2026-08-06`; fonte: `prototipo-ui/cowork/jana-merge.jsx` §`JmConversa` no DesignSync). **(a) `page:` corrigido `/jana/chat` → `/ia/conversa`** — a URL mudou na onda 3 ([routes.php](../../../../Modules/Jana/Http/routes.php), route name `jana.chat.index` preservado) e o charter tinha ficado para trás. **(b) J/K passa a navegar CONVERSAS, não mensagens** — trocar de conversa é o que se faz o dia todo; rolar mensagem é ↑/↓ nativo. Revoga a redação v1/v2 do goal de atalhos. ⚠️ Nota honesta: J/K **nunca chegou a existir** pra mensagens — era goal não-implementado (zero handler de teclado no `.tsx` até aqui), então não há regressão, há goal reescrito antes de nascer. **(c) filtros 4 → 2 abas.** As 3 abas extras mostravam empty state "Em breve"; medido no backend, duas eram estruturalmente impossíveis, não "flag pendente": `Minhas` é TAUTOLÓGICA (`buildConversasListPayload` já faz `where('user_id', $userId)`) e `Compartilhadas` seria SEMPRE vazia (não existe compartilhamento — `abort_unless($conversa->user_id === auth()->id(), 403)` em 4 pontos do ChatController). `Arquivadas` ficou porque a coluna `status` já existia e o PATCH já a aceitava. Reabrir `Compartilhadas` = modelar participantes + afrouxar o 403 → PR próprio e decisão [W]. **(d) histórico recolhível (⌘⇧H) + dica visível + sobreposição ≤1100px + `aria-live`.** O `display:none` em ≤1023px do [cockpit.css](../../../css/cockpit.css) foi removido: ele deixava a lista inalcançável em tela estreita. |
+| 2026-09-03 | [CL] Claude Code | charter_version → 4 (**onda 3b** da paridade × `jana-merge.jsx` §`JmConversa`; fonte: `Chat-visual-comparison.md` §"Rodada MEDIDA de 2026-09-03"). **(a) Cabeçalho da thread** passa a ser o da âncora (`.jm-conv-h`) em `_components/JanaConversaHeader.tsx`; o `ThreadHeader` compartilhado **não foi tocado**, só deixou de ser consumido. Errata de premissa, medida: ele NÃO era usado pelo Whatsapp — `@/Components/cockpit/Thread` tinha **um** importador no repo inteiro, este `.tsx`. **(b) Placeholder** vira a copy literal da âncora e o `/` que ela anuncia ganha binding real (`Esc` desfoca; inerte com foco em campo). **(c) 3 chips** abaixo do composer, com envio real pelo `autoSend` do runtime — zero endpoint novo. Escopo **layout-only** herdado ([W] 2026-05-15): `ConversaResumo` e `ChatController` intocados. UCs 15/16/17 em `Chat.casos.md`, 7 casos jsdom na lane `jana-conversas-gate`, mordida provada por 5 mutações. |
 | 2026-05-18 | [CL] Claude Code + [W] | charter_version → 2. Goal novo: header sticky com tabs `Dashboard | Chat` espelhando `app.jsx` Header function (linhas 247-336 protótipo Cockpit). Componente compartilhado `JanaAreaHeader` em Chat.tsx + Dashboard.tsx. Gate F1.5: `memory/requisitos/Jana/Chat-header-tabs-visual-comparison.md`. Pareado com PR #1053 (Fase 1+2 sidebar reordenada: shortcut Chat→IA). |
