@@ -96,8 +96,36 @@ A tela viva é `Sells/Create.tsx` (`/pos/create`), e quem a usa é a **ROTA LIVR
 | Editar `Pages/Sells/Create.tsx` | é a tela deles |
 | Editar `SellPosController@create` | serve a tela deles |
 | Editar componente compartilhado que `Create.tsx` importa | a alteração vaza pra tela deles pelo import |
+| Editar qualquer coisa de **estoque** | tem bloqueio de alteração — declaração de [L], 2026-08-31 |
+| Editar qualquer coisa de **financeiro** (`Modules/Financeiro/**`) | idem — bloqueado |
 
 Precisando de variação de um componente existente, **nasce cópia local** em `Pages/Sells/_components/v3/` — nunca edição do original. A subpasta `v3/` é deliberada: deixa óbvio, no path, que aquele arquivo nasceu para esta tela e **não** é consumido por `Create.tsx`.
+
+### Por que o trabalho fica inteiro aqui dentro — e o que vem depois
+
+Declaração literal de [L] em 2026-08-31, não inferência minha:
+
+> *"O que é estoque e financeiro tem bloqueio de alteração. Por isso estamos
+> limitados dentro do create v3, pois ele é meu e tenho liberdade de utilização.
+> A ligação com os outros módulos é posterior eu terminar todo layout e
+> funcionamento interno."*
+
+Três coisas caem daí, e a terceira é a que mais engana:
+
+1. **Estoque e financeiro estão travados** — não é "evite tocar", é bloqueio.
+2. **Esta tela é do [L]**, e é por isso que ela é o espaço de trabalho.
+3. **A ligação com os outros módulos é FASE POSTERIOR**, depois de layout e
+   funcionamento internos prontos.
+
+⚠️ **Corolário pro agente:** persistência, baixa de estoque e integração
+financeira **não são lacunas desta tela** — são trabalho que ainda não chegou a
+vez. A tela **não gravar** (UC-V302: sem `store()`, sem POST) é decisão, não
+pendência. Lê-las como "o que falta" empurra o trabalho contra um bloqueio real,
+e foi como eu li até [L] corrigir.
+
+**Ler** dado de outro módulo segue permitido — a aba Preço puxa o preço de tabela
+do catálogo (`porSku`, a mesma fonte do `LancarItem`) e isso é leitura, não
+ligação. **Escrever** em outro módulo, não.
 
 ---
 

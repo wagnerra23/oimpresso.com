@@ -1,6 +1,6 @@
 {
   "modulo": "Forja",
-  "gerado_em": "2026-09-03T09:54:43.992Z",
+  "gerado_em": "2026-09-03T11:46:33.857Z",
   "comando": "node scripts/governance/replica-inconsistencias.mjs --modulo Forja --prototipo …",
   "arquivos_medidos": 47,
   "itens": [
@@ -452,7 +452,7 @@
       "nome": "glifo/emoji em UI de produto",
       "dono": "UiLintCommand.php R3",
       "arquivo": "Modules/Forja/Resources/js/Pages/Forja/Roadmap/Gantt.tsx",
-      "contagem": 7,
+      "contagem": 8,
       "exemplo": "→ ⚠",
       "origem": "aplicado",
       "status": "aberta",
@@ -759,6 +759,19 @@
       "aberta_em": "2026-09-02"
     },
     {
+      "id": "R1:Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaChangelog.tsx",
+      "regra": "R1",
+      "nome": "cor crua em Page/CSS",
+      "dono": "UiLintCommand.php R1 · conformance-gate",
+      "arquivo": "Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaChangelog.tsx",
+      "contagem": 4,
+      "exemplo": "oklch(0.52 0.10 195) · oklch(0.55 0.16 270)",
+      "origem": "aplicado",
+      "status": "aberta",
+      "nota": "",
+      "aberta_em": "2026-09-03"
+    },
+    {
       "id": "R3:Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaChangelog.tsx",
       "regra": "R3",
       "nome": "glifo/emoji em UI de produto",
@@ -766,19 +779,6 @@
       "arquivo": "Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaChangelog.tsx",
       "contagem": 1,
       "exemplo": "→",
-      "origem": "aplicado",
-      "status": "aberta",
-      "nota": "",
-      "aberta_em": "2026-09-02"
-    },
-    {
-      "id": "FLEX-CRU:Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaChangelog.tsx",
-      "regra": "FLEX-CRU",
-      "nome": "flex/grid cru em className (sem Stack/Inline/Grid)",
-      "dono": "layout-primitives-guard.mjs",
-      "arquivo": "Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaChangelog.tsx",
-      "contagem": 3,
-      "exemplo": "",
       "origem": "aplicado",
       "status": "aberta",
       "nota": "",
