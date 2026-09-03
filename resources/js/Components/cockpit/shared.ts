@@ -14,6 +14,18 @@ export interface ConversaResumo {
   /** 'ativa' | 'arquivada' — filtro Todas|Arquivadas do Chat da Jana. */
   status?: string | null;
   ativa?: boolean;
+  /**
+   * Resumo de UMA linha da ultima mensagem da conversa (90 chars, reticencia).
+   * Vem de `ChatController::resumirParaPreview` sobre `jana_mensagens`, NAO de
+   * coluna de `jana_conversas` — provado por UC-JCHAT-12.
+   */
+  preview?: string | null;
+  /**
+   * ISO-8601 da ultima mensagem. CRU de proposito: formatar no servidor
+   * herdaria o shift +3h que `format_date` aplica pra cliente legado (ADR 0066)
+   * e o card mostraria hora errada. Quem formata e o browser, que sabe o fuso.
+   */
+  ultima_em?: string | null;
 }
 
 export interface Rotina {
@@ -238,6 +250,37 @@ export const SIDEBAR_GROUP_HUE: Record<string, number> = {
 export function gradientFor(id: number): string {
   const hue = (id * 47) % 360;
   return `linear-gradient(135deg, oklch(0.55 0.15 ${hue}), oklch(0.65 0.15 ${(hue + 60) % 360}))`;
+}
+
+/**
+ * Instante da ultima mensagem em rotulo curto, como a ancora (`t.quando`).
+ *
+ * Formatado AQUI e nao no servidor de proposito: `ChatController` manda
+ * `ultima_em` em ISO-8601 cru porque formatar la herdaria o shift +3h que
+ * `format_date` aplica pra cliente legado (ADR 0066) — o card mostraria hora
+ * errada pra quem cair naquele caminho. O browser sabe o fuso e o locale.
+ *
+ * Escala da ancora: hoje -> "09:38" · ontem -> "ontem" · dentro da semana ->
+ * dia curto ("ter") · mais velho -> "05/mai". Devolve null quando nao ha dado,
+ * e o card simplesmente nao desenha a linha — nao inventa "agora".
+ */
+export function rotuloQuando(iso?: string | null, agora: Date = new Date()): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+
+  const dia = (x: Date) => Math.floor((x.getTime() - x.getTimezoneOffset() * 60000) / 86400000);
+  const delta = dia(agora) - dia(d);
+
+  if (delta <= 0) return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  if (delta === 1) return 'ontem';
+  if (delta < 7) return d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '');
+  // Montado a mao: `toLocaleDateString('pt-BR', {day, month:'short'})` devolve
+  // "05 de mai." — MEDIDO — e a ancora escreve "05/mai". Formato longo num
+  // rotulo de 10.5px estouraria a linha do titulo.
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mes = d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
+  return `${dd}/${mes}`;
 }
 
 // Wagner 2026-05-22 REVIVED: cascata "Superadmin" do user dropdown footer

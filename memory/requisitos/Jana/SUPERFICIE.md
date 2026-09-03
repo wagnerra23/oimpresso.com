@@ -321,6 +321,7 @@ module: Jana
 - [JanaCockpit.tsx](../../../resources/js/Pages/Jana/_components/JanaCockpit.tsx)
 - [JanaCockpitSkeleton.tsx](../../../resources/js/Pages/Jana/_components/JanaCockpitSkeleton.tsx)
 - [JanaConfigDrawer.tsx](../../../resources/js/Pages/Jana/_components/JanaConfigDrawer.tsx)
+- [JanaConversaHeader.tsx](../../../resources/js/Pages/Jana/_components/JanaConversaHeader.tsx)
 - [JanaDrillDrawer.tsx](../../../resources/js/Pages/Jana/_components/JanaDrillDrawer.tsx)
 - [JanaKpiCard.tsx](../../../resources/js/Pages/Jana/_components/JanaKpiCard.tsx)
 - [JanaMetaDrawer.tsx](../../../resources/js/Pages/Jana/_components/JanaMetaDrawer.tsx)

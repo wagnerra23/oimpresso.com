@@ -308,6 +308,87 @@ rótulo + número.
 
 ---
 
+## UC-JCHAT-15 — O card mostra resumo e tempo, e NÃO fabrica o que não veio
+Status: 🧪 (`tests/jana-chat-conversas.test.tsx` — 10 casos sob os dois describes que citam este UC) — o vitest rodou VERDE local nesta data (**36 passed**, de 18 antes; delta +18 batendo com os casos novos), mas o G-7 lê o **manifesto commitado**, e o dono dele é o workflow `casos-results-publish`, que roda TODAS as lanes. Gerar o manifesto aqui, de **um** relatório, encolheria `sources` de 18 pra 1 — recibo parcial com cara de completo. `✅` quando o manifesto oficial aterrissar
+
+**Narrativa.** Larissa abre a Jana com seis conversas no histórico. Antes, todas eram uma linha de
+30px com um bullet e o título — para saber qual era qual, tinha que entrar. Agora cada conversa é um
+card: título com a hora da última mensagem ao lado, o resumo de uma linha do que foi dito por último,
+e um rodapé dizendo `última em 09:38`. A que está fixada carrega o selo `fixada`.
+
+**De onde vem o contrato.** Da âncora `prototipo-ui/cowork/jana-merge.jsx` §`JmThreadItem` —
+lida do Cowork **vivo** em 2026-09-03 via `DesignSync.get_file` e **byte-idêntica** ao espelho
+(hash do arquivo inteiro, `truncated:false`). Não foi derivado do `.tsx` (§5 2026-06-05).
+
+**Critério de aceite.**
+1. Vindo `preview` no payload, o card o desenha em uma linha (`.cs-thread-p`).
+2. Vindo `ultima_em`, a hora aparece na linha do título (`.cs-thread-q`) e o rodapé diz `última em`.
+3. **Controle negativo:** sem os dois campos, nenhuma das duas linhas é desenhada — e o título continua lá.
+4. Conversa do grupo `fixadas` mostra o selo; a recente não.
+5. `rotuloQuando` escala como a âncora: hoje → `09:38` · ontem → `ontem` · na semana → `seg` · velho → `05/mai`; lixo ou vazio → `null`, nunca `"agora"`.
+
+**Tipografia: o ramp do DS vence o px literal da âncora.** Três dos seis tamanhos do card batem
+**exatos** com o type ramp (`10.5px` = `--fs-1`, `12.5px` = `--fs-3`) — prova de que o protótipo
+derivou dele. Os outros dois (`11px` no rótulo e no resumo, `10px` na seção) **não existem no ramp**
+e foram snapados pro token mais próximo (`--fs-2` = 11.5px · `--fs-1` = 10.5px), diferença de 0,5px.
+Não é licença poética: Fundações é a camada mais baixa da Constituição UI v2 e a camada de cima
+**herda, nunca contradiz** — e o próprio `jana-merge.css` se declara *"só tokens do DS vivo"*. O
+`conformance-gate` (LEI) mede isso e reprovou a primeira versão deste PR, com `font-size px fora do
+ramp subiu 3→6`.
+
+**Por que o rótulo é montado no cliente.** O servidor manda ISO-8601 cru de propósito: formatar lá
+herdaria o shift +3h que `format_date` aplica pra cliente legado ([ADR 0066](../../../../memory/decisions/0066-format-date-shift-3h-preservado-legacy-clientes.md)) e o card mostraria
+hora errada. E o `dd/mmm` é montado à mão porque `toLocaleDateString('pt-BR', {day,month:'short'})`
+devolve `"05 de mai."` — **medido** —, que estoura a linha do título num rótulo de 10.5px.
+
+**Divergência DELIBERADA da âncora, registrada pra não virar "achado" depois.** O
+`JmThreadItem` escreve **`criada agora`** no rodapé quando `t.quando === "agora"`. A produção
+**não reproduz isso**, e não é esquecimento: no protótipo `quando` é uma string mockada; aqui o
+equivalente seria a conversa **sem nenhuma mensagem**, e o payload não diz quando ela nasceu
+(`iniciada_em` é lido no Controller mas **não trafega**). Escrever `criada agora` pra toda conversa
+sem mensagem faria uma conversa vazia do mês passado se anunciar como recém-criada — inventar dado.
+Então o rodapé simplesmente não aparece. Fechar isso de verdade é backend (mandar `iniciada_em`),
+e aí vira PR próprio.
+
+**O que este UC NÃO prova.** Fidelidade visual ao pixel. Ele prova que o dado chega à tela e que a
+ausência dele não vira invenção. A medida de fidelidade é a sonda do `design-diff`, pós-deploy (R1).
+
+## UC-JCHAT-16 — O painel de conversas lista conversas, e só isso
+Status: 🧪 (`tests/jana-chat-conversas.test.tsx` — 5 casos sob o describe que cita este UC) — o vitest rodou VERDE local nesta data (**36 passed**, de 18 antes; delta +18 batendo com os casos novos), mas o G-7 lê o **manifesto commitado**, e o dono dele é o workflow `casos-results-publish`, que roda TODAS as lanes. Gerar o manifesto aqui, de **um** relatório, encolheria `sources` de 18 pra 1 — recibo parcial com cara de completo. `✅` quando o manifesto oficial aterrissar
+
+**Narrativa.** O painel do histórico carregava três atalhos de navegação global — `Tarefas`,
+`Despachos Beta`, `Personalizar` — e um botão `Filtros`. Nenhum pertencia ali.
+
+**Por que saíram — três eixos medidos em 2026-09-03, cada um suficiente.**
+
+| eixo | medição |
+|---|---|
+| âncora | não estão em `JmConversa`. São da `SidebarChat` de UI-0008, que a UI-0011 removeu; no protótipo seguem vivos em `sidebar.jsx` — o painel de conversa nunca foi o lugar deles |
+| contrato | `Chat.charter.md` e `Chat.casos.md`: **0 menções** aos três, em ambos (grep contado) |
+| código | `Despachos` e `Personalizar` eram `<div>` **sem `onClick`** — rótulo inerte. `Filtros` idem. `Tarefas` contraria decisão [W] de 2026-05-22 (*"Tarefas REMOVIDO, módulo ainda não definido"*, `Sidebar.tsx`), e `Personalizar` já tem lugar canônico em `SUPERADMIN_LABELS`, na cascata do rodapé do avatar |
+
+**Critério de aceite.** Nenhum dos três rótulos existe no painel; o contêiner `.sb-actions` não sobra;
+não há botão acessível por `Filtros`; e as duas abas que de fato filtram continuam lá. É catraca: se
+voltarem, quebra.
+
+**Precedência aplicada.** Forma é do protótipo ([UI-0029](../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)). Como nem charter nem casos os
+sustentavam, não houve perdedor a reescrever — só o Non-Goal novo a registrar, feito no charter v4.
+
+## UC-JCHAT-17 — ⌘K foca a busca (o rótulo deixa de mentir)
+Status: 🧪 (`tests/jana-chat-conversas.test.tsx` — 3 casos sob o describe que cita este UC) — o vitest rodou VERDE local nesta data (**36 passed**, de 18 antes; delta +18 batendo com os casos novos), mas o G-7 lê o **manifesto commitado**, e o dono dele é o workflow `casos-results-publish`, que roda TODAS as lanes. Gerar o manifesto aqui, de **um** relatório, encolheria `sources` de 18 pra 1 — recibo parcial com cara de completo. `✅` quando o manifesto oficial aterrissar
+
+**Narrativa.** O campo de busca exibia `⌘K` num `kbd` desde 2026-05-15. Apertar `⌘K` não fazia nada:
+**medido** — nenhum handler para a tecla, nenhum `ref` no input. Rótulo que anuncia atalho inexistente
+é afordância falsa, e a âncora diz isso em comentário próprio: *"atalho que não funciona é rótulo
+mentindo"*.
+
+**Critério de aceite.**
+1. `⌘K` move o foco pro campo de busca; `Ctrl+K` também (Larissa e Wagner estão no Windows).
+2. **Controle negativo:** `k` CRU segue andando na lista (UC-JCHAT-02) — o combo não sequestra a tecla.
+
+**Corrigido implementando, não apagando o rótulo:** a âncora tem o comportamento, então a promessa
+estava certa e a implementação é que faltava.
+
 ## Inventário de cobertura — cada Goal e Anti-hook do charter, medido
 
 > Os 4 UCs acima cobrem **o painel de histórico e o teclado**. O charter promete muito mais. Esta
@@ -403,16 +484,23 @@ como `[BACKLOG]` sem id, logo abaixo, em vez de virarem UC otimista.
 > no `visual-regression`. Esse PR pôs a tela no manifesto e gerou a baseline. Para saber o estado
 > **de hoje**, rode `node scripts/governance/ui-impact.mjs` — não confie nesta linha.
 
-- `[BACKLOG]` **`preview` e `quando` no card** — o protótipo mostra um resumo de uma linha e um
-  tempo adaptativo (`"09:38"` · `"ontem"` · `"ter"` · `"05/mai"`, e `"criada agora"` no recém-nascido).
-  **Não é trabalho de tela: é falta de dado.** O `buildConversasListPayload` manda
-  `id · titulo · unread · origem · status · ativa`, e `jana_conversas` não tem coluna de preview
-  nem de última atividade — `iniciada_em` **não** serve, é quando a conversa nasceu. Sairia de
-  `MAX(jana_mensagens.created_at)` + o conteúdo da última mensagem. Backend primeiro, pixel depois.
+- ~~`[BACKLOG]` **`preview` e `quando` no card**~~ → **FECHADO na Onda 3a (2026-09-03), e já estava meio fechado antes.**
+  A redação anterior dizia *"não é trabalho de tela: é falta de dado"* e listava o payload como
+  `id · titulo · unread · origem · status · ativa`. **Isso caducou em 2026-08-17** (PR #5901): o
+  `buildConversasListPayload` passou a mandar `preview` e `ultima_em`, tirados de
+  `MAX(jana_mensagens.id)` numa query só — exatamente a saída que o bullet previa — e o
+  **UC-JCHAT-12** passou a provar o payload. O bullet ficou para trás por 17 dias afirmando
+  ausência de um dado que já trafegava (o próprio UC-12 avisava: *"renderizar é outro PR"*).
+  Quem desenha é o **UC-JCHAT-15**, abaixo. Fica como recibo de que ponteiro não se herda: se
+  relerem, re-meçam.
+
 - `[BACKLOG]` **`com {pessoa}` no card + escopo no cabeçalho da thread** (*"só sua"* / *"da equipe"*).
   **Bloqueado pelo modelo de dados, não por prioridade:** não existe compartilhamento — sem tabela
   de participantes, e `abort_unless($conversa->user_id === auth()->id(), 403)` em quatro pontos do
-  `ChatController`. Implementar hoje seria inventar dado. Mesmo bloqueio que levou o charter v3 a
+  `ChatController`. Implementar hoje seria inventar dado. ⚠️ **Errata de 2026-09-03: metade
+  disto caducou.** O `com {pessoa}` no card segue bloqueado; o **escopo no cabeçalho, não** —
+  `só sua` é a afirmação verdadeira do modelo de hoje, e é assim que a âncora resolve. Entregue
+  no **UC-JCHAT-15**; o que continua proibido é o `da equipe`, que aí sim seria inventar dado. Mesmo bloqueio que levou o charter v3 a
   remover a aba `Compartilhadas`. Reabrir é PR próprio e decisão [W]. _(O cabeçalho da thread em si
   **existe** — `th-head`, com avatar, título e "Assistente IA · Jana"; o que falta nele é o rótulo
   de escopo.)_
@@ -426,8 +514,18 @@ como `[BACKLOG]` sem id, logo abaixo, em vez de virarem UC otimista.
 
 Registrado porque paridade não é via de mão única — apagar isto para "ficar igual" seria regressão:
 
-- **Busca por texto** na lista, com `normalizeSearch` (ignora acento). O protótipo não tem busca.
-- **Agrupamento fixadas + recentes**. O protótipo tem lista única.
+> ⚠️ **Errata de 2026-09-03 — os dois itens desta lista CADUCARAM.** Eles descreviam o
+> `chat.jsx` de 2026-05-09. A âncora vigente (`jana-merge.jsx`, lida do Cowork **vivo** nesta
+> data) tem **as duas coisas**, e o comentário dela diz de onde vieram, com todas as letras:
+> *"Busca acento-insensível + Fixadas/Recentes — as duas coisas que a Conversa viva tem e o
+> protótipo não tinha"*. Ou seja: o protótipo **copiou a produção**, e o que era divergência
+> virou **paridade**. Não há nada a apagar nem a defender aqui.
+
+- ~~**Busca por texto** na lista~~ → paridade: `.jm-hist-busca` + `norm()` na âncora.
+- ~~**Agrupamento fixadas + recentes**~~ → paridade: `.jm-hist-sec` · Fixadas / Recentes.
+
+**O que a tela viva ainda tem a mais** (e segue verdadeiro): o **`aria-live`** que anuncia a
+troca de conversa (UC-JCHAT-04) — a âncora tem `jm-sr`, mas quem tem contrato é a produção.
 
 ## ⚠️ Nenhuma lane do CI executa estes testes hoje — medido em 2026-08-17
 
@@ -835,3 +933,102 @@ import não é comportamento. Nenhum `Status:` muda.
 **Não rodei a suíte** — CT 100 respondeu 502 durante toda a sessão e Pest local é proibido
 (ADR 0062). O bump é por revalidação de CONTRATO, e digo porque o G-6 aceita a data e só o
 leitor percebe a diferença.
+
+---
+
+## UC-JCHAT-15 — o cabeçalho da thread é o da âncora, não o de mensageiro
+Status: 🧪 (`tests/jana-chat-composer-chips.test.tsx` — 2 casos sob o describe que cita este UC) — ✅ volta quando o manifesto G-7 capturar o veredito da lane
+
+Derivado de `prototipo-ui/cowork/jana-merge.jsx` §`JmConversa` (`.jm-conv-h`) e do
+`Chat.charter.md` §UX Anti-patterns — **não** do `.tsx` (§5 2026-06-05).
+
+O cabeçalho da conversa mostra **o título** (13px/600) e o rótulo **`só sua`** em mono, mais a
+pílula **`arquivada`** quando `conversa.status` for isso. Não mostra avatar circular, subtítulo
+de contato nem ações de mensageiro (ligar / detalhes / ⋯) — a âncora não as desenha, e o avatar
+circular é literalmente um §UX Anti-pattern do charter: *"❌ Avatar circular emoji-style"*.
+
+⚠️ **`só sua` constante NÃO é dado inventado, e isto corrige o `[BACKLOG]` abaixo.** A seção
+"Ainda sem UC" listava *"escopo no cabeçalho da thread (`só sua` / `da equipe`)"* como **bloqueado
+pelo modelo de dados**. Metade daquilo procede e metade não: `da equipe` seria inventar dado —
+e segue proibido —, mas `só sua` é a afirmação **verdadeira** do modelo de hoje, e a âncora a
+carrega como constante com o comentário que a justifica (*"Conversa é sempre só sua: não existe
+compartilhamento na produção"*). O `ChatController` prova com `abort_unless($conversa->user_id
+=== auth()->id(), 403)` em quatro pontos. Se um dia existir participante, o rótulo passa a vir
+do payload. **Regra de precedência aplicada: o perdedor foi corrigido no mesmo PR.**
+
+**Pronto quando:** título e `só sua` aparecem, `arquivada` só com o status, e o cabeçalho não
+tem botão nenhum.
+
+## UC-JCHAT-16 — o composer anuncia `/`, e o `/` funciona
+Status: 🧪 (mesmo arquivo — 3 casos; o describe cita este UC) — ✅ volta quando o manifesto G-7 capturar o veredito
+
+Derivado do `ConverseComJana` que a âncora renderiza dentro de `.jm-conv-thread` e do charter
+§Goals (*"Atalhos teclado: `/` foca composer (…) `Esc` desfoca"*).
+
+O placeholder é a copy **literal** da âncora — `Pergunte algo à Jana sobre vendas, OS,
+financeiro…  ( / para focar )`, dois espaços antes do parêntese inclusive — e o atalho que ele
+anuncia **existe**: `/` foca o composer, `Esc` desfoca, e a tecla é inerte quando o foco já está
+num campo (controle negativo). Um dos três casos é justamente esse não-sequestro.
+
+⚠️ **O binding não é enfeite da copy: é condição dela.** Placeholder que promete atalho
+inexistente é a LC-15 (*mecanismo anuncia saída que não implementa*) — e a própria âncora
+carrega a regra por escrito: *"os rótulos já prometem — atalho que não funciona é rótulo
+mentindo"*. Por isso copy e binding entraram no mesmo PR.
+
+**Pronto quando:** o atributo `placeholder` é a string literal, `/` foca, `Esc` desfoca e `/`
+não rouba o foco de quem digita.
+
+## UC-JCHAT-17 — os 3 chips têm a copy da âncora, e nenhum nasce mudo
+Status: 🧪 (mesmo arquivo — 2 casos; o describe cita este UC) — ✅ volta quando o manifesto G-7 capturar o veredito
+
+Derivado de `data.suggestions` do `ConverseComJana` (`.jc-sugg`) — **não** do `.tsx`.
+
+Abaixo do composer há **três** chips: `Quem deve mais?` · `Onde estou perdendo?` ·
+`Quais ações hoje?`. Eles aparecem **com a conversa em andamento**; no vazio quem aparece são os
+prompts grandes (o `QuickPrompts`, que é o `jc-prompts` da âncora) — os dois não competem, é a
+mesma alternância de lá.
+
+⚠️ **UC-JPAIN-16 por analogia — nenhum chip nasce clicável sem fazer nada.** O caso não confere
+que o botão existe: ele **clica** e mede que a pergunta chegou ao
+`/ia/conversas/{id}/mensagens/stream` com a copy literal no corpo. Trocar o
+`ThreadPrimitive.Suggestion` por um `<button>` decorativo derruba o teste — provado por mutação
+antes do merge (`1 failed`, restore `7/7` verde). Nenhum endpoint novo: o `autoSend` é o mesmo
+mecanismo que o `QuickPrompts` já usava.
+
+**Pronto quando:** os três chips existem com a copy literal, não aparecem no vazio, e clicar em
+um deles envia a pergunta de verdade.
+
+---
+
+## Revalidação de 2026-09-03 (onda 3b) — três linhas ❌ da rodada medida viraram teste
+
+Fecha as linhas `thread header` e `composer` da tabela de
+`memory/requisitos/Jana/Chat-visual-comparison.md` §"Rodada MEDIDA de 2026-09-03" (PR #6654,
+ainda aberto — o veredito daquelas linhas é atualizado **lá**, não aqui, pra não editar em
+paralelo o doc que outro PR já tem em mão).
+
+| medido | como | resultado |
+|---|---|---|
+| a suíte jsdom cresceu pelo arquivo novo | `npx vitest run` com e sem o spec | 42 → **43** arquivos · 534 → **541** testes (Δ +1 / +7, bate com os 7 casos) |
+| o spec entra no run-set do CI | comando exato da lane `jana-conversas-gate` | `4 passed · 33 tests` (com os specs vizinhos) |
+| cada caso **morde** | 5 mutações, controle nos dois extremos | controle `7/7` · cada mutação `1 failed` |
+| nada de tipo regrediu | `tsc --noEmit` na branch × em `origin/main` | **314 × 314** — Δ0 (dívida pré-existente do repo) |
+| a **fonte** estava fresca | `DesignSync.get_file` do projeto Cowork por ID × espelho | `jana-merge.jsx` **byte-idêntico** — 60.055 B, `sha256:b56a0385da6b4259` nos dois lados, `truncated:false` |
+| a copy veio da fonte, não da memória | mesmo `get_file` em `chat-jana.jsx` | as 4 strings conferidas **no vivo**: `( / para focar )` e os 3 rótulos de `data.suggestions` |
+
+⚠️ **Isto NÃO reabre a lápide §5 2026-08-10** (*"usar o `chat-jana.jsx` como âncora de design da
+Jana"*). A âncora desta tela é e continua `jana-merge.jsx` §`JmConversa` — o `chat-jana.jsx` entra
+porque a âncora **o renderiza dentro dela**: `.jm-conv-thread` monta `<ConverseComJana>`, que vem
+de lá por `window.*`. O critério da emenda de 2026-08-11 é **estrutural** — *não usar como âncora
+um protótipo que desenha OUTRA tela* —, e aqui não é outra tela: é o composer que a própria
+âncora compõe. Nenhum KPI, nenhum cockpit, nenhum `biz=164` atravessou.
+
+**O `ThreadHeader` NÃO foi tocado** — só deixou de ser consumido aqui. ⚠️ Errata de premissa,
+medida nesta sessão: o enunciado da onda dizia que ele é *"compartilhado com o Whatsapp"*. Não
+é. `git grep` no repo inteiro: `@/Components/cockpit/Thread` tinha **um** importador,
+`Pages/Jana/Chat.tsx`, e só do `ThreadHeader`. A decisão de não editar o compartilhado
+continua valendo por outro motivo — ele é `Components/cockpit/`, genérico por endereço, e o
+cabeçalho da âncora é vocabulário **da Jana**.
+
+**Escopo layout-only preservado:** `ConversaResumo`, `ChatController` e as migrations não foram
+tocados. **Não rodei Pest** — é CT 100 apenas (ADR 0062) e o diff não sai de `.tsx`/`.test.tsx`.
