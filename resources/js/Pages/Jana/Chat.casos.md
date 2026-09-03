@@ -769,6 +769,51 @@ O caso defende três coisas, e a terceira é a que dói se quebrar:
 
 ---
 
+## UC-JCHAT-14 — o brief não fabrica linha, não promete cadência e não anima zero
+Status: 🧪 (`Modules/Jana/Tests/Unit/BriefCuradoriaTest.php` — 6 `it()` que citam este UC; ligado na lane `Lógica pura Pest`, aguarda run verde)
+
+Derivado do smoke real de **2026-08-09** (biz=1, chat `/ia/conversa`), registrado na proposal
+[`2026-08-09-jana-plano-de-teste-de-uso`](../../../../memory/decisions/proposals/2026-08-09-jana-plano-de-teste-de-uso-decisao-w.md) §5.2 — **não** do `.tsx` nem do prompt.
+
+Quem digita `brief` aqui recebe texto escrito por um LLM. Os três defeitos que chegaram ao
+cliente naquele teste **não eram de dado** — as 5 tools SQL estavam certas; era **curadoria**:
+
+| # | O que saiu na tela | Por que é dano |
+|---|---|---|
+| 1 | `PRODUTO BEST-SELLER · Saídas em 90d: 0` + *"criar campanha focada nos best-sellers"* | o modelo copiou o **placeholder do template** e escreveu conselho **por cima da linha vazia** |
+| 2 | rodapé *"próximo brief: amanhã, 8h"* | **não existe cron** deste brief — ele nasce sob demanda, no `BriefDiarioChatTrigger`. LC-15 na cara do cliente: quem confia, para de pedir |
+| 3 | *"ainda tem potencial para ser amplamente produtivo!"* + `0 vendas/dia → ±0%` | aritmética de zero vestida de análise |
+
+⚠️ **Por que o UC nasce agora, se o [PR #5505](https://github.com/wagnerra23/oimpresso.com/pull/5505) já consertou os três.** Aquele conserto vive
+**no prompt**, e o teste que o pina (`R-COPI-202-006`) asserta sobre a string `instructions()`
+— ele mede a **instrução dada ao modelo**, nunca o **texto entregue ao cliente**. É presença,
+não comportamento (LC-11). Instrução de prompt é *pedido*; foi desatendendo o pedido que os três
+chegaram lá. O `BriefCuradoria` é a metade determinística: roda **depois** do LLM, sobre o
+markdown, sem consultar modelo nenhum.
+
+**O escopo é o que segura o falso-positivo** — denylist de vocabulário é a família reprovada 5×
+no §5 de [`proibicoes.md`](../../../../memory/proibicoes.md):
+
+- o **zero-drop** vale só dentro da "Ideia da semana". `Inadimplência | 0` é notícia **boa**;
+- a **promessa** exige a palavra do artefato (*brief/relatório/resumo/panorama*) perto do termo de
+  recorrência — *"entrega marcada pra amanhã às 8h"* não casa;
+- o **tom neutro** só dispara quando a fonte `vendas` de fato **mediu** (`ok === true`). Fonte cega
+  não vira "sem movimento": não medir não é um estado do negócio (§5 2026-07-29);
+- o cabeçalho de tabela é reconhecido pela **posição** (linha antes do `|---|`), não pelo texto da
+  célula — casar vocabulário confundiria um produto chamado "Produto X" com cabeçalho.
+
+**Pronto quando:** o brief defeituoso medido em prod entra e sai sem a linha fabricada, sem a
+promessa e sem a projeção de zero; a oportunidade com dado real (`ANTONELLA`, 412 dias) atravessa
+**intacta**; e um brief saudável sai **byte-idêntico** — se a curadoria reescreve texto legítimo,
+não é ganho, é dano.
+
+⚠️ **Resíduo declarado, não coberto:** entusiasmo que o modelo escreva **fora** do "Destaque do
+dia" e da "Projeção" (ex.: dentro do "Plano do dia") sobrevive. Cobri-lo exigiria denylist de
+adjetivo, que apagaria o bloco **bom** do brief — num negócio parado, a reativação é justamente
+o que fala em potencial de retorno. Limite honesto no lugar de cobertura fingida.
+
+---
+
 ## Revalidação de 2026-08-28 — o `.tsx` mudou de PATH de import, e só isso
 
 O `casos-gate` acusou `stale:` nesta tela. A causa é mecânica: a pasta
