@@ -143,7 +143,8 @@ O protótipo Cowork ([`fiscal-subpages.jsx:33`](../../../../prototipo-ui/cowork/
 | `nfe_eventos.emissao_id` | FK **NOT NULL** para `nfe_emissoes` (migration `2026_05_06_002002`). Todo evento pertence a uma nota que **existe**. |
 | Inutilização, por definição | É sobre faixa de numeração **nunca usada** — não há nota, logo não há `emissao_id` possível. Não cabe nesta tabela por construção. |
 | `nfe_inutilizacoes` | Tabela própria (`modelo`/`serie`/`numero_de`/`numero_ate`/`cstat`), sem `emissao_id`. Tem Model, Controller e Service próprios. |
-| `102` é **cStat** | Código de *status de retorno*, não `tpEvento`. Os chips desta tela filtram por `tipo` (tpEvento). Misturar 102 com 110110/110111 põe duas dimensões na mesma lista. |
+| `102` é **cStat**, não `tpEvento` | É o código de *retorno* que autoriza a inutilização — `NfeInutilizacaoService:142` faz literalmente `$status = $cstat === '102' ? 'autorizado' : 'rejeitado'`. Os chips desta tela filtram por `tipo` (tpEvento). Pôr `102` ao lado de `110110`/`110111` mistura duas dimensões: um chip "Inutilização" filtraria, em `nfe_eventos`, um valor que **nunca** existe ali — chip morto por construção. |
+| Lei | A inutilização é serviço SEFAZ próprio (`nfeInutilizacaoNF`), ancorado em **CONFAZ Ajuste SINIEF 07/2005 Art. 14** (docblock de `NfeInutilizacaoService`) — a mesma lei que sustenta o append-only do UC-FEVT-02. |
 | `110140` (EPEC) | `tpEvento` legítimo de NF-e, gravado em `nfe_eventos`. Permanece. |
 
 **Nada foi trocado**, e a decisão já era canon antes desta medição: o charter declara Non-Goal *"Inutilização (vive em NfeInutilizacao — Model separado, sub-página futura)"*, e o UC-FEVT-03 abaixo já registrava a fronteira. Esta seção acrescenta a **prova estrutural**, que faltava. Trocar o chip exigiria mudar o schema — decisão [W], não conserto de onda.

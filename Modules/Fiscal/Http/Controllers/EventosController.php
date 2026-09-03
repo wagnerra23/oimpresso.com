@@ -138,6 +138,11 @@ class EventosController extends Controller
             fclose($out);
         }, $nome, [
             'Content-Type' => 'text/csv; charset=UTF-8',
+            // Espelha o outro download do módulo (`SpedController::gerar`, headers
+            // em :106-112): arquivo com dado fiscal de um tenant não entra em
+            // índice de buscador. O `Content-Disposition: attachment` já vem do
+            // `streamDownload`.
+            'X-Robots-Tag' => 'noindex',
         ]);
     }
 
