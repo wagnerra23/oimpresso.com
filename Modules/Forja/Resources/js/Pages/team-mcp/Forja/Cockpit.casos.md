@@ -9,6 +9,17 @@ last_run: "2026-09-03"
 
 # Casos de uso — /forja (cockpit Forja · shell)
 
+> **Revalidação de 2026-09-03 (o que o `last_run` deste bump cobre, e o que não cobre).**
+> O `last_run` anterior era `2026-09-02`; desde então o `Cockpit.tsx` recebeu **1** commit —
+> [#6591](https://github.com/wagnerra23/oimpresso.com/pull/6591) (`0521bfe36e`), cujo diff no
+> arquivo é **só a classe do wrapper**: `className={tab === 'changelog' ? 'fj-hub' : tab === 'mcp'
+> ? '' : 'px-6 pt-4'}` mais o comentário que a justifica. Conferido caso a caso: `triagem` continua
+> caindo no `px-6 pt-4` de sempre, então `UC-FORJA-08/09/10` e `UC-FORJA-01` seguem descrevendo o
+> comportamento sem alteração; `UC-FORJA-16/17` são da própria onda do #6591 e já nasceram com ela.
+> **O que este bump NÃO afirma:** nenhum `Status:` mudou, e nenhuma suíte foi executada nesta
+> sessão — os ⬜/🧪 seguem como estavam. A revalidação foi por **leitura do diff** desde o
+> `last_run` anterior, mais a medição de código da Triagem registrada no `UC-FORJA-08`.
+
 > **Status:** ✅ passa (provado por teste) · 🧪 em teste (Pest escrito, aguarda run verde) · ⬜ não verificado · ❌ quebrou.
 
 > Onda Forja: cockpit do cowork loop, projetando `mcp_tasks` project=FORJA + git/ADR/sessão + gates (sem dado fantasma; contrato/tokens/auditoria da aba MCP seguem MOCKADOS por design). Persona: Wagner [W] (superadmin). A Triagem só muta sob confirmação [W]. Referência: [forja-cockpit-visual-comparison.md](../../../../memory/requisitos/TeamMcp/forja-cockpit-visual-comparison.md).
@@ -116,6 +127,43 @@ Status: 🧪 (as DUAS pernas cobertas desde [#4887](https://github.com/wagnerra2
 Status: ⬜ (smoke pós-merge — depende do seeder rodar; sem DB no worktree)
 `/forja` projeta `mcp_tasks` project=FORJA em estado de triagem (`McpTask::triage()`) via `Inertia::defer` (`tickets`). Após `db:seed --class=…ForjaDemoTicketsSeeder`: FORJA-152 (Tela·KB·[CC]), FORJA-151 (Bug·Financeiro·[CC]), FORJA-150 (Refino·Atendimento·[CC]).
 **Pronto quando:** as 3 linhas aparecem com ID mono · badge de tipo colorido (Tela=roxo·Bug=âmbar·Refino=azul) · título · tag de módulo · selo `[CC]` · botão roxo Analisar; aba mostra badge 3.
+
+> **Desfecho da Onda 11 (Triagem) — 2026-09-03: a tela FICA como está, e o motivo é medido.**
+> A onda pedia replicar `prototipo-ui/cowork/forja-triagem.jsx` aqui. **Não foi replicada, e não foi
+> absorvida** — as duas premissas do pedido caíram na medição, e [W] decidiu fechar declarando.
+>
+> 1. **A fonte não monta a view.** `FjTriagemView` existe como arquivo e global no build do
+>    protótipo, mas **nenhum ponto de render do shell o monta** (§8 do pacote de export +
+>    `github.md` do Cowork). Replicar uma view órfã seria copiar um alvo que o app do espelho não
+>    renderiza — logo não mensurável por `design-diff --probe`, que é como esta área prova
+>    fidelidade. Some-se que `forja-triagem.jsx` **ainda não desceu** para `prototipo-ui/cowork/`
+>    (é um dos que o espelho não conhece; regeneração pedida no [#6671](https://github.com/wagnerra23/oimpresso.com/pull/6671)).
+> 2. **Aprovações não contém a Triagem — os filtros são diferentes.** Triagem projeta
+>    `McpTask::scopeTriage()` = `owner IS NULL OR priority IS NULL OR status='backlog'`;
+>    `ForjaAprovacoesService::fila()` projeta `status='pending_approval'` apenas. Nenhum é
+>    subconjunto do outro: uma proposta em `backlog` com dono e prioridade cai só na Triagem; um
+>    item em `pending_approval` com dono e prioridade cai só em Aprovações. Absorver sem mexer no
+>    filtro perde todo ticket que não esteja em `pending_approval` — que é exatamente a perda já
+>    medida e registrada no `UC-FORJA-02` e na
+>    [PARIDADE §9.7](../../../../../../memory/requisitos/Forja/PARIDADE-area-forja-diagnostico-e-ondas.md):
+>    *"`Aprovações` abre vazia enquanto a `Triagem` tem 3 tickets vivos"*.
+> 3. **O slot `Proposta` já está ocupado.** O protótipo absorve a Triagem como *tipo `Proposta`* em
+>    Aprovações; aqui `Proposta` é o único dos 4 tipos com estado canônico, e esse estado é
+>    `pending_approval` (`Aprovacoes/Index.tsx:38-39`) — o estado **depois** da triagem. Triagem é o
+>    **F0** (antes de entrar no backlog), Aprovações é o **gate de decisão** (depois). São etapas
+>    distintas do mesmo funil, não duplicatas: a premissa do protótipo não vale neste produto.
+> 4. **A meta das 6 views já está cumprida sem ela.** O topnav vivo
+>    (`Modules/Forja/Resources/menus/topnav.php`) tem 6 destinos — Aprovações · Trabalho · Saúde ·
+>    MCP · Changelog · Integrador — e a Triagem saiu dele na Onda 2 (2026-09-02). Ela **não disputa
+>    espaço na barra**: sobrevive como a landing `/forja` (`routes.php:267` →
+>    `ForjaController@triagem`), destino de 4 redirects permanentes (`/triage`, `/inbox`,
+>    `/burndown`, `/`) e alvo do botão primário `Novo issue` (`ForjaHub.tsx:141`), que fica no
+>    `ForjaHub` e portanto é alcançável das 6 abas.
+>
+> **Consequência para quem herdar isto:** os `UC-FORJA-08/09/10` seguem valendo sem alteração — a
+> Triagem não mudou. O que muda é que **não há onda de re-skin pendente para ela**; reabrir exige
+> ou a fonte passar a montar a view, ou uma onda de **construção** que faça Aprovações projetar
+> também `McpTask::triage()` e flipe a landing — decisão [W], não conserto de layout.
 
 ## UC-FORJA-09 — Analisar abre o dossiê lateral (Aprovar/Rejeitar/Fundir)
 Status: 🧪 (cobertura: endpoints `/forja/{id}/{dossier,aprovar,rejeitar,fundir}` espelham TriageController PR-5a; aguarda Pest verde)
