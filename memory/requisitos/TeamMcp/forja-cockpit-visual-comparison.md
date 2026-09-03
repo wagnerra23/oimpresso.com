@@ -1195,6 +1195,132 @@ gantt — `grep` contado); o comando para criá-lo está no [#6624](https://gith
 achado:** o cabeçalho diz `Timeline (530 linhas)` e a barra diz `500 tarefas`. São contagens de
 coisas diferentes — linhas incluem as *summary* por módulo, tarefas é o teto `MAX_TASKS = 500` —
 mas a proximidade convida à leitura errada.
+
+## 2026-09-03 (Onda 4 · fecho) — Quadro: o alvo §3.4 já estava entregue, e as 2 diferenças são decisão [W] anterior, não bug
+
+> **Onda 4 do export** = **linha 5** da tabela do [PARIDADE §11](../Forja/PARIDADE-area-forja-diagnostico-e-ondas.md) = `PARIDADE §11 Onda 5` no
+> `Index.casos.md`. O offset de 1 entre as duas numerações é antigo e fica declarado aqui para
+> ninguém concluir que são ondas diferentes.
+>
+> Âncora: [`TrabalhoQuadro.tsx`](../../../Modules/Forja/Resources/js/Pages/Forja/Trabalho/_components/TrabalhoQuadro.tsx) (279 ln) · alvo: `KanbanView` do
+> [`forja-page.jsx`](../../../prototipo-ui/cowork/forja-page.jsx) `:467-503`. Medido em `origin/main` `da03d82c93`, rebase 0/0.
+
+### A armadilha do §3.4, e por que ela NÃO se conserta
+
+O alvo diz **6** `.fj-kcol`. Produção tem **7**. Contado nos quatro lados, com `grep -o` (não `-c`,
+que conta linha e aqui devolveria 8 e 10 por causa da assinatura de tipo e da mensagem de erro):
+
+| lado | fases | inclui `F4`? |
+|---|---|---|
+| fonte de design — `forja-data.jsx` `FORJA_PHASES` | **7** (`F0 · F1 · F1.5 · F2 · F3 · F3.5 · F4`) | **sim** |
+| `KanbanView` do protótipo — filtro `p.id !== "F4"` | **6** | não (filtro de **view**) |
+| backend — `ForjaQuadroService::FASES` | **7** | **sim** |
+| front — `TrabalhoQuadro.tsx` `const FASES` | **7** | **sim** |
+
+A fonte de design **tem** F4; quem o remove é o filtro do `KanbanView`, que é view, não dado. [W]
+decidiu em **2026-08-11** que *"F4 Merge É coluna — merge é estado de trabalho com dono humano, não
+arquivo"*; foi essa decisão que fez o backend ganhar a fase e esvaziou a `DIVERGENCIA_DECLARADA` do
+[`PipelineParidadeTest`](../../../Modules/Forja/Tests/Feature/PipelineParidadeTest.php) (`:49` — lista vazia, com o comentário `fechada por [W] em 2026-08-11`).
+Copiar o filtro reverteria a decisão em silêncio. O charter já registra isso em
+§"Diferenças declaradas do Quadro" (`:256`) e o docblock do componente em `:44-58`.
+
+**Segunda diferença, também declarada:** eixo Execução é `todo · doing · review · blocked` em
+produção × `todo · doing · review · done` no protótipo (`BOARD`, em `forja-page.jsx`). Vem da regra
+do charter (`:71`): o eixo mostra **toda task ativa**, e `done`/`cancelled` ficam fora. `blocked` é
+trabalho ativo; `done` não é. Produção é internamente consistente — o protótipo é que se contradiz,
+porque rotula "4 colunas ativas" e inclui Concluído entre elas.
+
+### Estrutura — contada no arquivo, contra o protótipo vivo
+
+A árvore é 1:1 com `KanbanView`, e o docblock do componente (`:3-15`) já a desenha:
+`.fj-quadro-wrap` → `[.fj-quadro-ancora, .fj-kanban]` → `.fj-kcol[--ph]` → `.fj-kcol-head`
+(`.fj-kcol-top` · `.fj-kcol-quem` · `.fj-kcol-sai`) + `.fj-kcol-body` → `.fj-kc` / `.fj-kcol-empty`.
+As duas últimas linhas do cabeçalho são condicionais ao eixo Pipeline nos **dois** lados
+(no protótipo `:491-492`; na réplica `:250-256`).
+
+### Tipografia/gap — o diff de VALOR, folha × folha
+
+20 seletores da seção comparados corpo-a-corpo entre `cowork-forja-bundle.css` e
+`prototipo-ui/cowork/forja-page.css`:
+
+- **15 idênticos byte-a-byte** — incluindo os que o alvo nomeia: `.fj-kcol` (`flex:0 0 248px` +
+  `width:248px`), `.fj-kanban` (`overflow:auto` — o alvo reportou o eixo x porque foi lido por
+  `getComputedStyle`, e `overflow:auto` computa `auto` nos dois eixos), `.fj-quadro-wrap`
+  (`overflow:hidden`, o recorte proposital), `.fj-kc`, `.fj-kcol-empty`, `.fj-kcol-top`,
+  `.fj-kcol-quem`, `.fj-kcol-sai`.
+- **5 divergem só por token inlinado, com o MESMO px:** `.fj-kcol-lbl`, `.fj-kcol-faz`,
+  `.fj-onda-chip`, `.fj-kcol-count` (`10.5`/`11.5px` literais × `var(--fs-1)`/`var(--fs-2)`) e
+  `.fj-kc-title` (`12.5px` × `var(--fs-3)`). **Os tokens valem o mesmo nos dois lados** e isso foi
+  medido, não suposto: `--fs-1: 10.5px` · `--fs-2: 11.5px` · `--fs-3: 12.5px`, idênticos em
+  `prototipo-ui/cowork/ds-v6/tokens.css` `:105-107` e em
+  `resources/css/tokens/_generated-foundations-light.css` `:7-9`. Zero divergência de pixel. É a
+  **mesma classe** que a Onda 10 catalogou ("6 font-size literais… MESMO px; dona é a Onda 1") —
+  não é achado novo, e a dona continua sendo a Onda 1.
+- **0 ausente · 0 bug de valor.**
+
+### O "13,5px" do alvo — e o achado falso que a medição evitou
+
+O §3.4 diz que `.fj-kc` é "13,5px", e o bundle declara `.fj-kc-title` com **12,5px**. Parece
+divergência e **não é**: são elementos diferentes. `.fj-kc` não declara `font-size` — herda o corpo
+padrão, que é `--fs-4: 13.5px` (comentado na fonte como *corpo padrão (= body)*), e esse token
+**existe em produção** com a mesma descrição (`_generated-foundations-light.css` `:10` +
+`resources/css/tokens/base.tokens.json` `:36`). O `.fj-kc-title` é `--fs-3` = 12,5px nos dois lados.
+As duas leituras do alvo estão certas; eu quase registrei uma como bug por ter comparado o filho com
+o número do pai.
+
+### ⚠️ O gap de DEFESA que esta medição encontrou (declarado, não consertado)
+
+A decisão das 7 colunas está defendida por **prosa em três lugares** (charter `:256`, docblock
+`:44-58`, `casos.md` §PARIDADE §11 Onda 5) e por **nenhuma máquina**. Medido:
+
+- `UC-TRAB-07` ([`TrabalhoListaTest.php`](../../../Modules/Forja/Tests/Feature/TrabalhoListaTest.php) `:164`) cruza `ForjaQuadroService` × `TrabalhoQuadro.tsx`
+  extraindo o bloco `const FASES` por regex. Um filtro acrescentado ao `FASES.map(` (`:176`) **não
+  altera aquele bloco** — o caso seguiria verde.
+- `PipelineParidadeTest` cruza fonte de design × backend. Também não vê o render.
+- Specs de render `.tsx` da Forja: **0** (de 25 no repo). E2E Browser da Forja: **0**.
+
+Ou seja: se uma sessão futura "corrigir" as 7 para 6 obedecendo o §3.4, **nada reprova**. O gap é o
+mesmo que o export §7-bis já nomeia ("E2E = 0 na Forja"), agora com o vetor concreto. **Não armei
+gate aqui**, por três razões: seria intent diferente do PR de fechamento; a forma sintática
+(procurar o filtro perto do `map`) é a família de guard sintático que o §5 já enterrou; e a forma
+honesta — contar `.fj-kcol` renderizadas por eixo — exige infra de render que a Forja não tem, logo
+é escopo próprio com FP a medir antes. Fica como chip, não como afirmação de cobertura.
+
+### PLACAR — Quadro (§3.4)
+
+```
+entregue 6 de 7 elementos do alvo
+  ✓ .fj-quadro-wrap display:flex com 2 filhos [fj-quadro-ancora, fj-kanban]
+  ✓ scroller é o .fj-kanban (overflow auto); o wrap é overflow:hidden de propósito
+  ✓ .fj-kcol de 248px (flex:0 0 248px + width:248px, byte-idêntico ao protótipo)
+  ✓ .fj-kcol-head de 3 linhas (dot·id·rótulo·count · quem/faz · sai), as 2 últimas só no Pipeline
+  ✓ .fj-kc com 3 filhos na ordem [fj-kc-top, fj-kc-title, fj-kc-foot]
+  ✓ eixo alternável (pipeline × execução), uma forma só no JSX
+  ⏳ altura 111px do card — derivada do conteúdo, não declarada; exige render (T7)
+ausentes: draggable no .fj-kc — mover card é mutação, e mutação fora do TaskCrudService seria
+          um 2º caminho de escrita. Non-Goal do charter, não esquecimento; por isso a coluna
+          vazia diz "vazia" e não "arraste aqui" (anunciar gesto que a tela não escuta = LC-15)
+divergências declaradas:
+  · 7 .fj-kcol no eixo Pipeline onde o KanbanView desenha 6 — [W] 2026-08-11: "F4 Merge É
+    coluna". A fonte de design TEM F4; quem filtra é a view. Copiar o filtro reverteria a
+    decisão em silêncio
+  · copy do parágrafo-âncora diz (F0 → F4) onde o protótipo diz (F0 → F3.5) + a frase do
+    changelog — adaptação obrigatória: a copy literal contradiria as 7 colunas abaixo dela
+  · eixo Execução todo·doing·review·blocked × todo·doing·review·done do protótipo — regra do
+    charter :71 (board mostra o ativo; done/cancelled saem)
+  · FrescorPill fora do rodapé do card — campo que mcp_tasks não tem
+  · 5 font-size literais no bundle onde o protótipo usa var(--fs-N) — MESMO px medido; dona
+    é a Onda 1
+```
+
+### O que esta seção NÃO prova
+
+O mesmo limite das Ondas 9 e 10, re-testado hoje: `curl` em
+`https://oimpresso.com/forja/trabalho?visao=quadro` devolve **`302 → /login`** (e `/forja/trabalho`
+idem). O `compare --check` exige prod autenticada; sem ele **nada aqui é "0 bug"** (lei 6 do
+export). O que esta seção fecha é o eixo folha × folha, a estrutura contra o protótipo vivo e a
+contagem das fases nos quatro lados — não o T7. A altura de 111px do card e os estados
+hover/focus/disabled dos átomos seguem fora do medido, como o §7 do export já declarava.
 ## 2026-09-03 (Onda 2 do export · fecho) — Trabalho · chrome: o alvo §3.2 já estava no `main`, e o `padding` do alvo era o do `@media`
 
 Fui executar a **Onda 2 do export** (`Trabalho · chrome` — §3.2: frentebar · KPI · toolbar ·
