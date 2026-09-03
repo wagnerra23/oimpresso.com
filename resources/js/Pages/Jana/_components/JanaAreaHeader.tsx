@@ -58,17 +58,12 @@ export type JanaAreaTab =
   | 'dashboard' // = o Painel; a key vira 'painel' quando o ghost for rekeyado
   | 'memoria'   // = memorias
   | 'alertas'   // = ghost `alertas` (2026-09-02, 3ª aba da âncora `JmTabs`) — key = ghost key
+  | 'acoes'     // = ghost `acoes` (2026-09-02, 4ª aba — a fila HITL)
+  | 'plataforma' // = ghost `plataforma` (2026-09-02, 6ª aba — só jana.superadmin real)
   // Ghost keys canon — ninguém passa hoje, mas são os alvos do map abaixo e
   // valem como valor direto (o PageHeaderTabs casa por key).
   | 'copiloto'
-  | 'memorias'
-  // `plataforma` entrou em 2026-08-31 com a migração de /ia/superadmin/metas pra
-  // Inertia (RUNBOOK-plataforma.md). Diferente dos 9 removidos acima, este NÃO é
-  // membro órfão: o ghost existe no DataController E a Page o passa. A aba só é
-  // DECLARADA pelo servidor pra quem passa nas duas portas do gate
-  // (SuperadminController::podeVerPlataforma) — aba visível que dá 403 ao clicar
-  // seria pior que aba ausente.
-  | 'plataforma';
+  | 'memorias';
 
 // Map retrocompat — telas antigas passam 'chat'/'memoria'; convertemos pro
 // ghost key canon do DataController Jana. O 'cockpit' saiu do type na onda 4

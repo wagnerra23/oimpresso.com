@@ -1,6 +1,5 @@
 {
-  "_nota": "Contrato de tela de Jana/Plataforma (/ia/superadmin/metas), F3 do MWART em 2026-08-31. Gerado por criar-tela.mjs a partir do PT-01 e depois ajustado para as seções REAIS: a tela não tem faixa de filtros (a seção `filtros` do arquétipo saiu) e tem DUAS listas em seções, não uma. Roda em `node scripts/contrato-de-tela.mjs --contract <este-arquivo>`, no mesmo job que já varre todos os *.contract.json.",
-  "_nota_copy": "A copy abaixo NÃO é decisão nova de [W]: é o contrato JÁ EM PRODUÇÃO, transcrito literal da view Blade que esta tela substitui (Modules/Jana/Resources/views/superadmin/metas.blade.php) e inventariado no RUNBOOK-plataforma.md §3. Pinar aqui é o que impede a migração de reescrever a tela em silêncio — em especial as DUAS copies de vazio, que são o que a tela de fato mostra em produção hoje (jana_metas = 0 linhas, medido em 31/08/2026). Copy NOVA continua sendo decisão [W].",
+  "_nota": "Contrato de tela da aba Plataforma da Jana (/ia/superadmin/metas — só jana.superadmin REAL). Nasceu em 2026-09-02 com a COPY LITERAL da âncora `prototipo-ui/cowork/jana-telas-novas.jsx` §JmPlataforma (re-lida do Cowork vivo na data via DesignSync.get_file, path do manifesto). Roda no CI via contrato-de-tela.yml.",
   "tela": "Jana/Plataforma",
   "fonte": "prototipo-ui/cowork/jana-telas-novas.jsx",
   "alvo": [
@@ -8,38 +7,58 @@
   ],
   "secoes": [
     {
-      "id": "cabecalho",
-      "copy": []
-    },
-    {
-      "id": "metas-plataforma",
+      "id": "plat-metas-plataforma",
+      "_papel": "metas com business_id NULL — título, subtítulo e colunas da âncora",
       "copy": [
-        "Metas da plataforma (business_id NULL)",
-        "Nome",
+        "Metas da plataforma",
+        "business_id NULL",
+        "Meta",
         "Unidade",
         "Origem",
-        "Nenhuma meta da plataforma cadastrada."
+        "cadastro manual"
       ]
     },
     {
-      "id": "metas-clientes",
+      "id": "plat-metas-clientes",
+      "_papel": "metas de clientes, cross-business, cruas — colunas + a nota que declara a agregação ausente",
       "copy": [
-        "Metas de clientes (cross-business)",
+        "Metas de clientes",
+        "cross-business",
         "Business",
         "Período atual",
         "Última apuração",
-        "Nenhum cliente configurou metas ainda.",
-        "nunca apurada"
+        "nunca apurada",
+        "Listagem crua, de propósito",
+        "Somar aqui na tela seria inventar total de plataforma no cliente"
+      ]
+    },
+    {
+      "id": "plat-instalacao",
+      "_papel": "bloco de instalação — 4 células (contagens do servidor), os 2 botões (só can superadmin) e a nota",
+      "copy": [
+        "Instalação do módulo",
+        "/ia/install · nWidart",
+        "migrations",
+        "seeders",
+        "permissões",
+        "situação",
+        "Rodar atualização",
+        "Desinstalar módulo",
+        "Desinstalar o módulo Jana",
+        "Não há lixeira.",
+        "Roda as migrations pendentes e grava a versão nova no módulo. Nada é apagado.",
+        "e é irreversível sem backup."
       ]
     }
   ],
   "ordem": [
-    "cabecalho",
-    "metas-plataforma",
-    "metas-clientes"
+    "plat-metas-plataforma",
+    "plat-metas-clientes",
+    "plat-instalacao"
   ],
+  "_nota_caducadas": "DUAS peças da âncora ficaram FORA de propósito, e o UC-PLAT-02 asserta o negativo da primeira: (1) o `Alert tone=danger` de topo — \"Gate desta tela não separa dono de empresa de superadmin\" — era verdade em 27/08/2026 (data do protótipo) e deixou de ser em 28/08 (#6421 fechou o P0 com hasPermissionTo + user_type). Copy que afirma bug fechado é falsa. (2) os 3 bullets do modal de confirmação — \"Roda como job no servidor\" / \"Ambiente atual: CT 100 (Proxmox)\" / \"Migrations são idempotentes\" — as rotas /ia/install rodam SÍNCRONAS em GET e o app web vive no Hostinger (ADR 0062). O parágrafo do modal (o que o rollback apaga) FICOU.",
   "_pendente_w": [
-    "ESTADOS — a tela tem os três (vazio · carregando · erro) e eles são reais, não decorativos: o vazio é a copy literal da Blade; o carregando é `<Deferred fallback>` de verdade, porque as duas props vêm por `Inertia::defer`; o erro só aparece se a prop deferida voltar com forma inesperada. Declarar `estados` no contrato exige que [W] fixe a copy dos dois últimos — a do vazio já está pinada acima.",
-    "A seção `cabecalho` fica com `copy: []` de propósito: quem a renderiza é o `JanaAreaHeader` compartilhado (título e abas vêm dele e do shell.menu do servidor), então pinar string aqui cobraria de um componente que não é desta tela."
+    "AGREGAÇÃO CROSS-BUSINESS — o docblock antigo prometia; não existe. O que a plataforma quer medir é produto, decisão [W]; enquanto isso a nota declara a pendência (copy da âncora).",
+    "ORIGEM DA META — a âncora mapeia `sistema` → \"consulta do sistema\" e `manual` → \"cadastro manual\"; o enum real é `chat_ia|manual|seed`. Só `manual` ganhou copy (é literal); `seed`/`chat_ia` ficam crus até [W] decidir o rótulo."
   ]
 }

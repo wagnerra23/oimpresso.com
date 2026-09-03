@@ -251,7 +251,7 @@ inferido do `.jsx`:
 | 8 | MCP + Handoffs dentro | compare 0 bug — **🧪 código no ar em PR** (2026-09-02): a view virou réplica (`fj-mcp*`/`fj-perm*`/`fj-token*`/`fj-audit*`/`fj-ho-*`) na ordem do protótipo (intro `mockado` → **Handoffs F1→F3** → grid [contrato \| tokens] → auditoria), e o painel voltou pra dentro — mesmo componente que `/forja/handoffs` (rota viva), mesma projeção `ForjaMcpService`, `Inertia::defer` nos dois. Causa-raiz do D4 medida e corrigida: `.mono` é do **shell** do protótipo (`styles.css:1740`) e **não existe em produção** (0 ocorrências globais) — desceu escopada. Valores-alvo do lado design medidos em [forja-cockpit-visual-comparison.md §Onda 8](../TeamMcp/forja-cockpit-visual-comparison.md). **O `compare 0 bug` NÃO está fechado**: exige prod deployada, e merge de `.tsx` é humano ([ADR 0283](../../decisions/0283-handoff-loop-zero-paste.md)) |
 | 9 | Changelog | compare 0 bug — **réplica aplicada** (PR desta onda, 2026-09-02): a linha virou a do `ChangelogFeed` (**2** células, dot + corpo em 3 blocos) contra as **5** colunas achatadas que a medição da manhã pegou, e a parede de `"Sessão Claude Code"` acabou (o título cai em `summary_auto` → 1º prompt de `mcp_cc_messages` → **vazio honesto**). `flags`/`modules` passam a vir de coluna real (`tags` ∩ {`tier-0`,`breaking`} · `module`). Zero CSS novo. **O `compare --check` segue PENDENTE** — precisa do deploy, e o merge de `.tsx` é humano ([ADR 0283](../../decisions/0283-handoff-loop-zero-paste.md)); o alvo do protótipo e a estrutura da réplica já estão medidos em [forja-cockpit-visual-comparison.md §2026-09-02 (Onda 9)](../TeamMcp/forja-cockpit-visual-comparison.md), com o comando do pós-deploy escrito lá |
 | 10 | Integrador | compare 0 bug |
-| 11 | revogação: `/project-mgmt/*`, duplicatas, rotas, testes, `SCOPE §cockpit` | **⚠️ PARCIAL — 7 das 8 telas.** Ver §11.1 |
+| 11 | revogação: `/project-mgmt/*`, duplicatas, rotas, testes, `SCOPE §cockpit` | **✅ PARCIAL — 7 das 8 telas** — [#6617](https://github.com/wagnerra23/oimpresso.com/pull/6617) (merge `e2c8397031`, 2026-09-03 12:38Z). Smoke em prod no §11.2. Ver §11.1 pro que ficou |
 
 **Ressalva que continua valendo:** o segmentado Lista|Quadro|Gantt do protótipo depende do `Segmented` do DS, que o snapshot local (pacote de 24/08) não publica. Em produção ele existe (`Components/ui`), então a onda 4 não fica bloqueada — o que fica cego é a **medição local** dessa peça até o Cowork regerar o pacote.
 
@@ -308,3 +308,40 @@ derruba a landing. Destrava na **Onda 3**, que faz Aprovações virar a landing.
 Os caminhos revogados viram **301 sem nome de rota**: medi **113 citações** de
 `/project-mgmt/*` em `memory/**`, e o time que entra pelo MCP segue esses links.
 Rota morta não volta pelo nome; caminho velho continua levando a algum lugar.
+
+### 11.2 · Recibo do smoke em produção (2026-09-03, pós-deploy do `e2c8397031`)
+
+O Infra Contract do PR previu um flip falsificável: **antes**, as 8 rotas afetadas
+respondiam `302 → /login` (medido em 2026-09-03 pré-merge); **depois**, só as 7 revogadas
+deveriam virar `301` pro receptor, com os controles intactos. Medido em prod:
+
+| rota | antes | depois | veredito |
+|---|---|---|---|
+| `/project-mgmt/board` | 302 | **301** → `/forja/trabalho?visao=quadro` | ✅ |
+| `/project-mgmt/backlog` | 302 | **301** → `/forja/trabalho?visao=lista` | ✅ |
+| `/project-mgmt/triage` | 302 | **301** → `/forja` | ✅ |
+| `/project-mgmt/my-work` | 302 | **301** → `/forja/trabalho` | ✅ |
+| `/project-mgmt/inbox` | 302 | **301** → `/forja` | ✅ |
+| `/project-mgmt/activity` | 302 | **301** → `/forja/changelog` | ✅ |
+| `/project-mgmt/burndown` | 302 | **301** → `/forja` | ✅ |
+| `/project-mgmt` (raiz) | — | **301** → `/forja` | ✅ |
+| `/project-mgmt/roadmap` (D7) | 302 | **302** → `/login` | ✅ controle |
+| `/forja/trabalho` | 302 | **302** → `/login` | ✅ controle |
+| `/forja/aprovacoes` | 302 | **302** → `/login` | ✅ controle |
+
+Duas verificações além da tabela:
+
+- **A busca global mudou de prefixo e sobreviveu.** `/forja/search` responde `302 → /login`
+  (existe, atrás do auth) e `/project-mgmt/search` responde **404** — correto: ela nunca foi
+  tela, é o endpoint que o `CommandPalette.tsx` consome, e o consumidor foi reapontado no
+  MESMO PR. Não deixei 301 nela de propósito (endpoint de API, não caminho que humano digita).
+  Resíduo honesto: numa janela curta pós-deploy, um browser com bundle JS em cache ainda
+  chama o path velho e recebe 404 — o ⌘K volta ao normal no primeiro reload.
+- **A cadeia resolve, não só o primeiro hop.** `curl -L` em `/project-mgmt/board` termina em
+  `200` após **2 hops** (`301` → receptor, `302` → `/login`) — o 301 aponta pra rota viva,
+  não pra outro caminho morto.
+
+**O que este recibo NÃO prova:** que as telas receptoras *renderizam certo* — todo controle
+parou no `/login`, porque o smoke rodou sem sessão. Fidelidade visual das views é das Ondas
+3-10 e se mede por `design-diff`, não por status HTTP.
+

@@ -7,13 +7,13 @@
   "metrics": {
     "faithfulness": {
       "value": 1.0,
-      "last_updated": "2026-07-01T14:08:15+00:00",
+      "last_updated": "2026-09-03T12:49:03+00:00",
       "evaluated_questions": 51,
       "mode": "real"
     },
     "answer_relevancy": {
       "value": 0.851,
-      "last_updated": "2026-07-01T14:08:15+00:00",
+      "last_updated": "2026-09-03T12:49:03+00:00",
       "evaluated_questions": 51,
       "mode": "real"
     }

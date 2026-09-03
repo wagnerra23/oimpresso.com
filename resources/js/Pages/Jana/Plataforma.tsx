@@ -1,287 +1,209 @@
-// Jana/Plataforma — /ia/superadmin/metas (F3 do MWART, ADR 0104).
+// Jana/Plataforma — a aba Plataforma da área Jana (`/ia/superadmin/metas`), só superadmin.
 //
-//   F1      : memory/requisitos/Jana/RUNBOOK-plataforma.md
-//   design  : prototipo-ui/cowork/jana-telas-novas.jsx §JmPlataforma (+ .css), descido no #6379
-//   PT      : PT-01 Lista (duas listas de entidade em seções — RUNBOOK §5)
-//   Tier 0  : ADR 0093 — esta tela mostra dado de OUTROS tenants POR DESENHO. O
-//             `withoutGlobalScope` do controller é o caso legítimo; o gate é o QUEM.
+// Âncora de design: `prototipo-ui/cowork/jana-telas-novas.jsx` §`JmPlataforma` — âncora de
+// SÍMBOLO (`grep -n "function JmPlataforma" prototipo-ui/cowork/jana-telas-novas.jsx`; resolva
+// com `node prototipo-ui/ancora.mjs Jana/Plataforma`). A ABA vem do `JmTabs` de `jana-merge.jsx`
+// (6ª, `can(papel, "jana.superadmin")`) e aqui nasce do ghost `plataforma` do `DataController`,
+// que usa o MESMO gate real da rota (P0 #6421) — menu e rota concordam.
 //
-// Substitui `copiloto::superadmin.metas` (Blade AdminLTE cru). O contrato da Blade —
-// títulos das duas seções, colunas e as DUAS copies de vazio — está preservado literal
-// (RUNBOOK §3) e pinado no contrato de tela `prototipo-ui/contrato/jana-plataforma.contract.json`.
-//
-// ⚠️ DUAS coisas do protótipo NÃO entram, e não é esquecimento (RUNBOOK §3.2):
-//   1. o `<Alert tone="danger">` sobre o gate — ele descreve o vazamento que o #6421
-//      FECHOU em 28/08, um dia depois de o protótipo ser desenhado. Renderizar hoje um
-//      aviso de vulnerabilidade já corrigida é a classe LC-10 (artefato afirmando em
-//      presente um estado que já é falso). A fonte é soberana na FORMA, não em fato datado.
-//   2. a seção "Instalação do módulo" — ela é de `/ia/install` (outro grupo de rotas,
-//      outro controller), e `uninstall` derruba as tabelas `jana_*`. Superfície
-//      destrutiva de outra rota não entra de carona; é F1 própria.
-import type { ReactNode } from 'react'
-import { Deferred } from '@inertiajs/react'
+// Listagem CRUA, de propósito: a agregação cross-business não existe no controller, e somar aqui
+// na tela seria inventar total de plataforma no cliente. As contagens do bloco de instalação
+// vêm do servidor (disco/registry), não do "21 · 4 · 24" fixo da âncora.
+import React, { useMemo, useState } from 'react'
 import AppShellV2 from '@/Layouts/AppShellV2'
-import EmptyState from '@/Components/shared/EmptyState'
-import { Inline, Stack } from '@/Components/layout'
-import { Skeleton } from '@/Components/ui/skeleton'
-import { JanaAreaHeader } from '@/Pages/Jana/_components/JanaAreaHeader'
+import { Button } from '@/Components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/Components/ui/dialog'
+import DataTable from '@/Components/shared/DataTable'
+import { Grid, Inline, Stack } from '@/Components/layout'
+import { Settings } from 'lucide-react'
+import type { ColumnDef } from '@tanstack/react-table'
+import FabJana from './_components/FabJana'
+import { JanaAreaHeader } from './_components/JanaAreaHeader'
+import JanaConfigDrawer from './_components/JanaConfigDrawer'
+import { JanaPlanoBadge } from './_components/JanaPlanoBadge'
+import { useJanaPro } from './_components/useJanaPro'
+import { useJanaConfig } from './_components/useJanaConfig'
 
-// ── Props (de SuperadminController@metas) ────────────────────────────────────
-// As duas chegam por `Inertia::defer`, logo são `undefined` no primeiro paint —
-// é isso que dá à tela um estado de CARREGANDO real, e não um spinner decorativo.
-interface MetaDaPlataforma {
-  id: number
-  slug: string
-  nome: string
-  unidade: string
-  origem: string
-}
-
-interface MetaDeCliente {
+interface MetaPlataforma { id: number; nome: string; slug: string; unidade: string; origem: string }
+interface MetaCliente {
   id: number
   business_id: number
-  slug: string
+  empresa: string | null
   nome: string
   unidade: string
-  periodo_atual: { data_ini: string | null; data_fim: string | null } | null
-  ultima_apuracao: string | null
+  periodo: { data_ini: string | null; data_fim: string | null } | null
+  /** `YYYY-MM-DD` da última apuração, ou `null` = nunca apurada. */
+  ultima: string | null
 }
-
 interface Props {
-  metasPlataforma?: MetaDaPlataforma[]
-  metasDeClientes?: MetaDeCliente[]
+  metasPlataforma: MetaPlataforma[]
+  metasDeClientes: MetaCliente[]
+  instalacao: { migrations: number; seeders: number; permissoes: number; versao: string | null; podeOperar: boolean }
+  janaContext?: { businessId: number | null; businessName: string; userName?: string | null }
 }
 
-// ── Datas ────────────────────────────────────────────────────────────────────
-// Parse MANUAL da string ISO, sem `new Date(iso)`: o construtor trata "YYYY-MM-DD"
-// como UTC e, num fuso negativo como o BRT, devolve o DIA ANTERIOR. Numa tela de
-// auditoria de plataforma isso não é detalhe cosmético — é a data errada.
-// (E `format_date` do app está fora de questão: carrega o shift +3h preservado
-// pra clientes legados, ADR 0066.)
-const diaMes = (iso: string | null | undefined): string => {
-  if (!iso) return '—'
-  const [, m, d] = iso.split('-')
-  return m && d ? `${d}/${m}` : '—'
+const dm = (iso: string | null | undefined): string => {
+  const m = iso ? /^(\d{4})-(\d{2})-(\d{2})/.exec(iso) : null
+  return m ? `${m[3]}/${m[2]}` : '—'
 }
-
-const diaMesAno = (iso: string | null | undefined): string => {
-  if (!iso) return '—'
-  const [a, m, d] = iso.split('-')
-  return a && m && d ? `${d}/${m}/${a}` : '—'
+const dmy = (iso: string | null): string => {
+  const m = iso ? /^(\d{4})-(\d{2})-(\d{2})/.exec(iso) : null
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : '—'
 }
+// Paginador de uma página: a lista inteira vem na prop; sem endpoint inventado.
+const umaPagina = <T,>(rows: T[]) => ({ data: rows, total: rows.length, current_page: 1, last_page: 1, from: rows.length ? 1 : null, to: rows.length, links: [] })
 
-const periodoLegivel = (p: MetaDeCliente['periodo_atual']): string => {
-  if (!p?.data_ini || !p?.data_fim) return '—'
-  return `${diaMes(p.data_ini)}–${diaMes(p.data_fim)}`
-}
-
-// O protótipo mostra a origem por extenso; o dado gravado é a chave curta.
-//
-// ⚠️ AS CHAVES VÊM DO ENUM DO BANCO, NÃO DO PROTÓTIPO. A migration declara
-// `enum('origem', ['chat_ia','manual','seed'])->default('manual')`; o protótipo usa
-// `origem: "sistema"`, que NÃO EXISTE no schema. Este mapa nasceu com `sistema`/`manual`
-// — ou seja, errado para 2 dos 3 valores reais, que cairiam no fallback e mostrariam a
-// chave crua ao superadmin. Pego pelo `UC-PLATAF-02` no primeiro run da lane MySQL
-// (2026-09-03), que reprovou com `-'sistema' +''`: o MySQL não-estrito grava string
-// VAZIA quando o valor não está no enum — falha silenciosa, sem erro.
-//
-// A fonte de design é soberana na FORMA (mostrar por extenso), nunca no DOMÍNIO DE DADOS.
-// Derivar chave de banco do protótipo é derivar da fonte errada.
-const ORIGEM_LEGIVEL: Record<string, string> = {
-  chat_ia: 'proposta pela Jana',
-  manual: 'cadastro manual',
-  seed: 'carga inicial',
-}
-
-// ── Peças de tabela (classes canônicas — Pages/Auditoria/Index.tsx é o precedente) ──
-const TH = 'px-4 py-2 font-semibold text-muted-foreground'
-const TD = 'px-4 py-2'
-
-function TabelaSkeleton(): ReactNode {
+function Secao({ titulo, sub, children }: { titulo: string; sub: string; children: React.ReactNode }) {
   return (
-    <Stack gap={2} className="p-2">
-      {Array.from({ length: 4 }).map((_, i) => (
-        <Skeleton key={i} className="h-10 w-full" />
-      ))}
+    // Primitivos de layout (ADR 0253) — o layout-primitives-guard conta flex/grid solto por arquivo.
+    <Stack gap={2} asChild>
+      <section>
+        <Inline gap={2} align="baseline">
+          <h3 className="m-0 text-[13.5px] font-semibold text-foreground">{titulo}</h3>
+          <small className="font-mono text-[10.5px] text-muted-foreground">{sub}</small>
+        </Inline>
+        {children}
+      </section>
     </Stack>
   )
 }
 
-/**
- * Cabeçalho de seção — título + contagem.
- *
- * ⚠️ A contagem é do que ESTÁ LISTADO, e só. Não é agregado de plataforma: a agregação
- * cross-business que o docblock antigo do controller prometia não existe (medido 27/08 e
- * re-medido 31/08 — zero sum/count/groupBy), e somar aqui inventaria um total que ninguém
- * definiu. O protótipo toma a mesma posição e escreve a razão na tela (ver a nota abaixo
- * da 2ª tabela). RUNBOOK-plataforma.md §6.1.
- */
-function SecaoHeader({ titulo, meta }: { titulo: string; meta: string }): ReactNode {
-  return (
-    <Inline gap={2} align="baseline">
-      <h2 className="text-sm font-semibold text-foreground">{titulo}</h2>
-      <small className="font-mono text-[10.5px] text-muted-foreground">{meta}</small>
-    </Inline>
-  )
-}
+export default function Plataforma({ metasPlataforma, metasDeClientes, instalacao, janaContext }: Props) {
+  const [configAberto, setConfigAberto] = useState(false)
+  const { config, alternarAnalise } = useJanaConfig()
+  const pro = useJanaPro()
+  const [confirmar, setConfirmar] = useState<'update' | 'uninstall' | null>(null)
 
-/** Estado de erro: prop deferida que voltou com forma inesperada. */
-function TabelaQuebrada({ o_que }: { o_que: string }): ReactNode {
-  return (
-    <EmptyState
-      variant="error"
-      icon="alert-triangle"
-      title="Não foi possível carregar esta lista."
-      description={`${o_que} Recarregue a página; se persistir, o payload do servidor mudou de forma.`}
-    />
-  )
-}
+  const nEmpresas = new Set(metasDeClientes.map((c) => c.business_id)).size
 
-// ── Seção 1 — metas da plataforma (business_id NULL) ─────────────────────────
-function MetasDaPlataforma({ metas }: { metas?: MetaDaPlataforma[] }): ReactNode {
-  if (!Array.isArray(metas)) {
-    return <TabelaQuebrada o_que="A lista de metas da plataforma não veio como esperado." />
-  }
+  const colsPlat = useMemo((): ColumnDef<MetaPlataforma>[] => [
+    { accessorKey: 'nome', header: 'Meta', cell: ({ row }) => (
+      <div className="min-w-0"><div className="truncate font-medium text-foreground">{row.original.nome}</div><div className="truncate font-mono text-[10.5px] text-muted-foreground">{row.original.slug}</div></div>
+    ) },
+    { accessorKey: 'unidade', header: 'Unidade', meta: { mono: true } },
+    // `manual` → copy da âncora; os demais valores do enum (`seed`, `chat_ia`) são dado, ficam crus.
+    { accessorKey: 'origem', header: 'Origem', cell: ({ row }) => <span className="text-muted-foreground">{row.original.origem === 'manual' ? 'cadastro manual' : row.original.origem}</span> },
+  ], [])
 
-  if (metas.length === 0) {
-    // Copy LITERAL da Blade (RUNBOOK §3) — é o que a tela mostra em produção hoje.
-    return <EmptyState title="Nenhuma meta da plataforma cadastrada." />
-  }
-
-  return (
-    <div className="overflow-x-auto rounded-lg border border-border">
-      <table className="w-full text-sm">
-        <thead className="bg-muted/50 border-b border-border">
-          <tr className="text-left">
-            <th className={TH}>Nome</th>
-            <th className={TH}>Unidade</th>
-            <th className={TH}>Origem</th>
-          </tr>
-        </thead>
-        <tbody>
-          {metas.map((m) => (
-            <tr key={m.id} className="border-b border-border last:border-0 hover:bg-muted/40 transition-colors">
-              <td className={TD}>
-                <span className="block text-foreground">{m.nome}</span>
-                <span className="block font-mono text-[10.5px] text-muted-foreground">{m.slug}</span>
-              </td>
-              <td className={`${TD} font-mono tabular-nums text-muted-foreground`}>{m.unidade}</td>
-              <td className={`${TD} text-muted-foreground`}>{ORIGEM_LEGIVEL[m.origem] ?? m.origem}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  )
-}
-
-// ── Seção 2 — metas de clientes (cross-business) ─────────────────────────────
-function MetasDeClientes({ metas }: { metas?: MetaDeCliente[] }): ReactNode {
-  if (!Array.isArray(metas)) {
-    return <TabelaQuebrada o_que="A lista de metas de clientes não veio como esperado." />
-  }
-
-  if (metas.length === 0) {
-    // Copy LITERAL da Blade (RUNBOOK §3).
-    return <EmptyState title="Nenhum cliente configurou metas ainda." />
-  }
-
-  return (
-    <div className="overflow-x-auto rounded-lg border border-border">
-      <table className="w-full text-sm">
-        <thead className="bg-muted/50 border-b border-border">
-          <tr className="text-left">
-            <th className={TH}>Business</th>
-            <th className={TH}>Nome</th>
-            <th className={TH}>Unidade</th>
-            <th className={TH}>Período atual</th>
-            <th className={TH}>Última apuração</th>
-          </tr>
-        </thead>
-        <tbody>
-          {metas.map((m) => {
-            // `archived` do protótipo: meta que nunca foi apurada fica esmaecida.
-            const nuncaApurada = !m.ultima_apuracao
-            return (
-              <tr
-                key={m.id}
-                className={`border-b border-border last:border-0 hover:bg-muted/40 transition-colors${
-                  nuncaApurada ? ' opacity-60' : ''
-                }`}
-              >
-                {/* O `#` antes do id é literal da Blade — contrato (RUNBOOK §3). */}
-                <td className={`${TD} font-mono tabular-nums`}>#{m.business_id}</td>
-                <td className={TD}>
-                  <span className="block text-foreground">{m.nome}</span>
-                  <span className="block font-mono text-[10.5px] text-muted-foreground">{m.slug}</span>
-                </td>
-                <td className={`${TD} font-mono tabular-nums text-muted-foreground`}>{m.unidade}</td>
-                <td className={`${TD} font-mono tabular-nums text-muted-foreground`}>
-                  {periodoLegivel(m.periodo_atual)}
-                </td>
-                <td className={`${TD} font-mono tabular-nums text-muted-foreground`}>
-                  {nuncaApurada ? 'nunca apurada' : diaMesAno(m.ultima_apuracao)}
-                </td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
-    </div>
-  )
-}
-
-export default function Plataforma({ metasPlataforma, metasDeClientes }: Props) {
-  const nPlataforma = Array.isArray(metasPlataforma) ? metasPlataforma.length : 0
-  const nClientes = Array.isArray(metasDeClientes) ? metasDeClientes.length : 0
-  const nEmpresas = Array.isArray(metasDeClientes)
-    ? new Set(metasDeClientes.map((m) => m.business_id)).size
-    : 0
+  const colsCli = useMemo((): ColumnDef<MetaCliente>[] => [
+    { accessorKey: 'business_id', header: 'Business', cell: ({ row }) => (
+      <div className="min-w-0"><div className="font-mono font-medium text-foreground">#{row.original.business_id}</div><div className="truncate text-[10.5px] text-muted-foreground">{row.original.empresa ?? '—'}</div></div>
+    ) },
+    { accessorKey: 'nome', header: 'Meta' },
+    { accessorKey: 'unidade', header: 'Unidade', meta: { mono: true } },
+    { id: 'periodo', header: 'Período atual', meta: { mono: true }, cell: ({ row }) => (
+      <span className="text-muted-foreground">{row.original.periodo ? `${dm(row.original.periodo.data_ini)}–${dm(row.original.periodo.data_fim)}` : '—'}</span>
+    ) },
+    { accessorKey: 'ultima', header: 'Última apuração', meta: { mono: true }, cell: ({ row }) => (
+      <span className="text-muted-foreground">{row.original.ultima ? dmy(row.original.ultima) : 'nunca apurada'}</span>
+    ) },
+  ], [])
 
   return (
     <>
-      {/* `data-contract` = âncora do contrato de tela (prototipo-ui/contrato/). NÃO remova o
-          atributo sem tirar a seção do .contract.json — o gate contrato-de-tela cobra os dois. */}
-      <div data-contract="cabecalho">
-        <JanaAreaHeader active="plataforma" />
-      </div>
+      <JanaAreaHeader
+        active="plataforma"
+        businessName={janaContext?.businessName || undefined}
+        businessId={janaContext?.businessId ?? undefined}
+        actions={
+          <>
+            <JanaPlanoBadge pro={pro} onConfigurar={() => setConfigAberto(true)} />
+            <Button variant="outline" size="sm" onClick={() => setConfigAberto(true)} aria-haspopup="dialog" aria-expanded={configAberto}>
+              <Settings className="h-3.5 w-3.5" /> Configurar
+            </Button>
+          </>
+        }
+      />
+      <JanaConfigDrawer open={configAberto} onClose={() => setConfigAberto(false)} config={config} onAlternarAnalise={alternarAnalise} />
 
-      <Stack gap={4} className="p-4">
-        <Stack asChild gap={2}>
-          <section data-contract="metas-plataforma">
-          <SecaoHeader
-            titulo="Metas da plataforma (business_id NULL)"
-            meta={`business_id NULL · ${nPlataforma} ${nPlataforma === 1 ? 'meta' : 'metas'}`}
-          />
-          <Deferred data="metasPlataforma" fallback={<TabelaSkeleton />}>
-            <MetasDaPlataforma metas={metasPlataforma} />
-          </Deferred>
-          </section>
-        </Stack>
+      <Stack gap={4} className="p-6">
+        {/* Âncora LITERAL: o gate contrato-de-tela lê `data-contract="…"` no fonte, não em runtime. */}
+        <div data-contract="plat-metas-plataforma">
+        <Secao titulo="Metas da plataforma" sub={`business_id NULL · ${metasPlataforma.length} metas`}>
+          <DataTable<MetaPlataforma> columns={colsPlat} data={metasPlataforma} pagination={umaPagina(metasPlataforma)} endpoint="/ia/superadmin/metas" showSearch={false} rowKey={(r) => r.id} emptyMessage="Nenhuma meta da plataforma cadastrada." />
+        </Secao>
+        </div>
 
-        <Stack asChild gap={2}>
-          <section data-contract="metas-clientes">
-          <SecaoHeader
-            titulo="Metas de clientes (cross-business)"
-            meta={`cross-business · ${nClientes} ${nClientes === 1 ? 'meta' : 'metas'} em ${nEmpresas} ${
-              nEmpresas === 1 ? 'empresa' : 'empresas'
-            }`}
-          />
-          <Deferred data="metasDeClientes" fallback={<TabelaSkeleton />}>
-            <MetasDeClientes metas={metasDeClientes} />
-          </Deferred>
+        {/* Âncora LITERAL: o gate contrato-de-tela lê `data-contract="…"` no fonte, não em runtime. */}
+        <div data-contract="plat-metas-clientes">
+        <Secao titulo="Metas de clientes" sub={`cross-business · ${metasDeClientes.length} metas em ${nEmpresas} empresas`}>
+          <DataTable<MetaCliente> columns={colsCli} data={metasDeClientes} pagination={umaPagina(metasDeClientes)} endpoint="/ia/superadmin/metas" showSearch={false} rowKey={(r) => r.id} rowState={(r) => (r.ultima ? undefined : 'archived')} emptyMessage="Nenhum cliente configurou metas ainda." />
+          {/* Copy literal da âncora — o "27/08/2026" é fato datado (a medição), não presente. */}
           <p className="m-0 max-w-[82ch] text-[11px] leading-relaxed text-muted-foreground">
-            Listagem crua, de propósito: a <b>agregação cross-business</b> que o docblock antigo
-            prometia não existe no controller (nenhum <code>sum</code>/<code>count</code>/
-            <code>groupBy</code>, medido em 27/08/2026 e re-medido em 31/08/2026). Somar aqui na
-            tela seria inventar total de plataforma no cliente — a pendência fica declarada até
-            alguém decidir o que a plataforma quer medir.
+            Listagem crua, de propósito: a <b>agregação cross-business</b> que o docblock antigo prometia não
+            existe no controller (nenhum <code>sum</code>/<code>count</code>/<code>groupBy</code>, medido em
+            27/08/2026). Somar aqui na tela seria inventar total de plataforma no cliente — a pendência fica
+            declarada até alguém decidir o que a plataforma quer medir.
           </p>
-          </section>
-        </Stack>
+        </Secao>
+        </div>
+
+        {/* Âncora LITERAL: o gate contrato-de-tela lê `data-contract="…"` no fonte, não em runtime. */}
+        <div data-contract="plat-instalacao">
+        <Secao titulo="Instalação do módulo" sub="/ia/install · nWidart">
+          {/* `min="sm"` = auto-fill 14rem — o mais perto do minmax(150px) da âncora com token do DS. */}
+          <Grid min="sm" gap={2}>
+            {([
+              [instalacao.migrations, 'migrations'],
+              [instalacao.seeders, 'seeders'],
+              [instalacao.permissoes, 'permissões'],
+              [instalacao.versao ? 'instalado' : 'não instalado', 'situação'],
+            ] as Array<[number | string, string]>).map(([v, k]) => (
+              <div key={k} className="rounded-[10px] border border-border bg-card px-3 py-2.5">
+                <b className="block font-mono text-sm font-semibold tabular-nums text-foreground">{v}</b>
+                <small className="mt-0.5 block text-[10.5px] uppercase tracking-wider text-muted-foreground">{k}</small>
+              </div>
+            ))}
+          </Grid>
+          {/* Só nascem com `can('superadmin')` REAL — é o gate de `BaseModuleInstallController`
+              (mais estreito que `jana.superadmin`). Botão que levaria a 403 é botão que mente. */}
+          {instalacao.podeOperar && (
+            <Inline gap={2} wrap>
+              <Button variant="outline" size="sm" onClick={() => setConfirmar('update')}>Rodar atualização</Button>
+              <Button variant="destructive" size="sm" onClick={() => setConfirmar('uninstall')}>Desinstalar módulo</Button>
+            </Inline>
+          )}
+          <p className="m-0 max-w-[82ch] text-[11px] leading-relaxed text-muted-foreground">
+            Disparado hoje pelo <code>/manage-modules</code> do superadmin. Desinstalar derruba as tabelas
+            <code> jana_*</code> — conversas, memória, metas e apurações — e é irreversível sem backup.
+          </p>
+        </Secao>
+        </div>
       </Stack>
+
+      {/* Confirmação destrutiva da âncora. Navegação FULL (`<a href>`): as rotas de /ia/install
+          são GET que rodam migrations e redirecionam — não são resposta Inertia. */}
+      <Dialog open={!!confirmar} onOpenChange={(aberto) => !aberto && setConfirmar(null)}>
+        <DialogContent className="sm:max-w-[440px]">
+          <DialogHeader>
+            <DialogTitle className="text-base">{confirmar === 'uninstall' ? 'Desinstalar o módulo Jana' : 'Rodar atualização'}</DialogTitle>
+            <DialogDescription>
+              {confirmar === 'uninstall'
+                ? 'O rollback apaga as tabelas jana_* deste ambiente: conversas, mensagens, fatos de memória, metas, períodos e apurações. Não há lixeira.'
+                : 'Roda as migrations pendentes e grava a versão nova no módulo. Nada é apagado.'}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button variant="ghost" onClick={() => setConfirmar(null)}>Cancelar</Button>
+            <Button variant={confirmar === 'uninstall' ? 'destructive' : 'default'} asChild>
+              <a href={confirmar === 'uninstall' ? '/ia/install/uninstall' : '/ia/install/update'}>
+                {confirmar === 'uninstall' ? 'Desinstalar' : 'Atualizar'}
+              </a>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <FabJana contextRoute="/ia/superadmin/metas" />
     </>
   )
 }
 
-Plataforma.layout = (page: ReactNode) => <AppShellV2 title="Jana — Superadmin">{page}</AppShellV2>
+Plataforma.layout = (page: React.ReactNode) => <AppShellV2 title="Jana — Plataforma">{page}</AppShellV2>

@@ -40,6 +40,7 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  *   mediria a ausência do bypass em vez da presença da defesa.
  *
  * @see Modules/Jana/Http/Controllers/SuperadminController.php
+ * @see Modules/Jana/Http/Controllers/DataController.php (podeVerPlataforma — o predicado das 2 portas, dono do menu)
  * @see Modules/Jana/Tests/Feature/MetasControllerBaselineTest.php (harness base)
  * @see Modules/Jana/Tests/Feature/JanaAccessGateTest.php (sentinela do Gate::before)
  */
@@ -175,7 +176,7 @@ it('a porta `user_type` é INALCANÇÁVEL no grupo /ia — o CheckUserLogin barr
     $this->user->forgetCachedPermissions();
 
     // CONTROLE POSITIVO: o predicado do controller diz SIM para este usuário...
-    expect(\Modules\Jana\Http\Controllers\SuperadminController::podeVerPlataforma($this->user->fresh()))
+    expect(\Modules\Jana\Http\Controllers\DataController::podeVerPlataforma($this->user->fresh()))
         ->toBeTrue('o gate do controller deixaria passar — se a request chegasse nele');
 
     // ...e mesmo assim a request leva 403, porque o middleware do grupo aborta antes.

@@ -263,6 +263,16 @@ class DataController extends Controller
                             ]
                         );
 
+                        // Ações (fila HITL) — entrou em 2026-09-02 com a tela `Jana/Acoes`.
+                        $sub->url(
+                            route('jana.acoes.index'),
+                            __('copiloto::copiloto.menu.acoes'),
+                            [
+                                'icon'   => 'fa fas fa-lightbulb',
+                                'active' => request()->segment(2) == 'acoes',
+                            ]
+                        );
+
                         // Custos de IA MOVIDO pra Modules/Governance em 2026-08-05
                         // (ADR 0366 §D-B). Este bloco tinha que sair JUNTO com a rota:
                         // ele chamava `route('jana.admin.custos.index')`, e um nome de
@@ -270,8 +280,10 @@ class DataController extends Controller
                         // sidebar INTEIRO, não só este item. A entrada agora vive no
                         // ghost `custos` do DataController da Governança.
 
-                        // Plataforma (superadmin-only)
-                        if (auth()->user()->can('superadmin') || auth()->user()->can('jana.superadmin')) {
+                        // Plataforma (superadmin-only). O gate é o REAL — `can('jana.superadmin')`
+                        // é bypassado pelo `Gate::before` pra todo Admin#{biz} (P0 #6421), e o
+                        // link aparecia pra dono de empresa que depois tomava 403.
+                        if (self::podeVerPlataforma()) {
                             $sub->url(
                                 route('jana.superadmin.metas'),
                                 __('copiloto::copiloto.menu.plataforma'),
@@ -326,6 +338,9 @@ class DataController extends Controller
                             // (paridade com o protótipo, handoff 2026-08-31 §Paridade Painel).
                             // key = segmento da URL, casada com `JanaAreaHeader active="alertas"`.
                             ['key' => 'alertas',   'label' => 'Alertas',  'href' => '/ia/alertas'],
+                            // Ações — 4ª aba da âncora (`JmTabs`); a fila HITL de `/ia/acoes`
+                            // (2026-09-02). key = segmento da URL, casada com `active="acoes"`.
+                            ['key' => 'acoes',     'label' => 'Ações',    'href' => '/ia/acoes'],
                             // Ghost 'brief' removido 2026-06-15 (Wagner): /ia/brief era stub
                             // redundante (brief vive no chat + brief-fetch MCP + seção "Brief
                             // diário" do dashboard). Rota + BriefController + Page apagados.
@@ -335,24 +350,10 @@ class DataController extends Controller
                             // do ghost `kb` neste mesmo bloco em 2026-08-05 (ADR 0366). A key
                             // `memorias` fica: é o alvo do `mapActiveToGhostKey('memoria')`.
                             ['key' => 'memorias',  'label' => 'Memória',  'href' => '/ia/memoria'],
-                            // Plataforma — /ia/superadmin/metas. Entrou em 2026-08-31, quando a
-                            // tela deixou de ser Blade (RUNBOOK-plataforma.md). Antes disso ela
-                            // NÃO podia estar aqui pela mesma razão literal que tirou o ghost
-                            // `metas` logo abaixo: controller devolvendo Blade faz o `<Link>` do
-                            // PageHeaderTabs silenciar (click no-op).
-                            //
-                            // ⛔ O predicado é `SuperadminController::podeVerPlataforma`, NÃO
-                            // `can('jana.superadmin')`. O `Gate::before` (AuthServiceProvider:34-47)
-                            // devolve true em qualquer ability pra quem tem `Admin#{business_id}`,
-                            // então `can()` acenderia esta aba pra TODO dono de negócio — que
-                            // levaria 403 ao clicar, porque a rota usa as duas portas reais.
-                            // Aba visível que não abre é pior que aba ausente.
-                            //
-                            // É de propósito que o item do dropdown legacy (mais acima neste
-                            // arquivo) siga com `can(...)`: mudá-lo altera quem enxerga o menu
-                            // hoje e é decisão [W], não conserto de passagem. O ghost é código
-                            // novo — nasce com o predicado certo.
-                            ...(SuperadminController::podeVerPlataforma(auth()->user())
+                            // Plataforma — 6ª aba da âncora (`JmTabs`), só com `jana.superadmin`
+                            // REAL (2026-09-02; tela Inertia `Jana/Plataforma`). O spread vazio
+                            // some da lista pra quem não pode — o protótipo faz o mesmo (`can(...)`).
+                            ...(self::podeVerPlataforma()
                                 ? [['key' => 'plataforma', 'label' => 'Plataforma', 'href' => '/ia/superadmin/metas']]
                                 : []),
                             // Ghost 'kb' removido 2026-08-05 ([W]: "governança, KB, saem"):
@@ -429,5 +430,23 @@ class DataController extends Controller
                 )->order(90); // Logo após PontoWr2 (88)
             }
         );
+    }
+
+    /**
+     * Quem pode ver a aba/tela Plataforma — ESPELHA `SuperadminController::metas()`.
+     * Duas portas, e nenhuma é o `can()` sozinho: `hasPermissionTo` consulta o Spatie
+     * direto (imune ao `Gate::before`), e `user_type` é coluna, não ability.
+     */
+    public static function podeVerPlataforma(?\App\User $user = null): bool
+    {
+        $user ??= auth()->user();
+
+        try {
+            $temPermissaoReal = (bool) $user?->hasPermissionTo('jana.superadmin');
+        } catch (\Throwable $e) {
+            $temPermissaoReal = false; // permissão não cadastrada no guard ⇒ ninguém a tem
+        }
+
+        return $temPermissaoReal || in_array($user?->user_type, ['superadmin', 'user_oimpresso'], true);
     }
 }

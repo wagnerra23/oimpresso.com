@@ -47,7 +47,67 @@ class AcaoHitlService
         'preventivo-pendentes' => 'Revisar lembrete',
     ];
 
+    /**
+     * Título de cada ação na FILA (`/ia/acoes`) — copy literal da âncora
+     * (`jana-telas-novas.jsx` §JTN_HITL). O Painel monta título próprio, com o número
+     * da linha; a fila lista as 5 sempre, então o título é fixo e mora ao lado da chave.
+     */
+    public const TITULOS = [
+        'regua-whatsapp'       => 'Régua de cobrança no WhatsApp',
+        'negociar-top'         => 'Negociar com o maior devedor',
+        'investigar-ticket'    => 'Investigar a queda do ticket médio',
+        'pix-adocao'           => 'Adoção de PIX contra o faturado',
+        'preventivo-pendentes' => 'Lembrete antes do vencimento',
+    ];
+
     public function __construct(private SellsCockpitAggregator $aggregator) {}
+
+    /**
+     * A fila de `/ia/acoes`: as 5 ações com prévia do SERVIDOR (o mesmo agregado que
+     * pinta a linha do Painel) e o último recibo de aprovação de cada uma.
+     *
+     * Escopo Tier 0: `business_id` da sessão — `AcaoAprovacao` já carrega o
+     * `HasBusinessScope`; o `where` explícito é cinto e suspensório.
+     *
+     * @return list<array{key: string, titulo: string, cta: string, previa: string, contexto: array<string, mixed>, alcance: int|null, recibo: array{quem: string|null, quando: string|null, previa: string, contexto: array<string, mixed>}|null}>
+     */
+    public function fila(int $businessId): array
+    {
+        $recibos = AcaoAprovacao::where('business_id', $businessId)
+            ->where('status', 'aprovada')
+            ->orderByDesc('aprovada_em')
+            ->get()
+            ->unique('acao_key')
+            ->keyBy('acao_key');
+
+        $nomes = \App\User::whereIn('id', $recibos->pluck('user_id')->unique()->all())
+            ->pluck('first_name', 'id');
+
+        $fila = [];
+
+        foreach (self::ACOES as $key => $cta) {
+            $p = $this->previa($key, $businessId);
+            /** @var AcaoAprovacao|null $r */
+            $r = $recibos->get($key);
+
+            $fila[] = [
+                'key'      => $key,
+                'titulo'   => self::TITULOS[$key],
+                'cta'      => $cta,
+                'previa'   => $p['previa'],
+                'contexto' => $p['contexto'],
+                'alcance'  => $p['alcance'],
+                'recibo'   => $r ? [
+                    'quem'     => $nomes->get($r->user_id),
+                    'quando'   => $r->aprovada_em?->toIso8601String(),
+                    'previa'   => $r->previa,
+                    'contexto' => (array) ($r->contexto ?? []),
+                ] : null,
+            ];
+        }
+
+        return $fila;
+    }
 
     public function existe(string $acaoKey): bool
     {

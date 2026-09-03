@@ -1,109 +1,97 @@
 ---
+id: resources-js-pages-jana-plataforma-charter
 page: /ia/superadmin/metas
 component: resources/js/Pages/Jana/Plataforma.tsx
 owner: wagner
 status: draft
+last_validated: "2026-09-02"
 parent_module: Jana
+parent_adr: memory/decisions/0093-multi-tenant-isolation-tier-0.md
 related_prototype: prototipo-ui/cowork/jana-telas-novas.jsx
-# US-COPI-148 é a fusão da área `/ia` — a US que de fato cobre esta tela. NÃO uso
-# US-COPI-010/011 ("listar metas" / "detalhe"): aquelas são o CRUD do tenant, em outra
-# rota e outro controller (`MetasController`), e amarrá-las aqui faria o anchor apontar
-# para código que esta tela não toca. Mesma escolha do charter irmão de Alertas (#6607)
-# e do #6608. Se um dia nascer US própria da visão de plataforma, ela entra aqui.
+related_adrs: [52, 93, 94, 104, 180, 182]
+related_charters:
+  - resources/js/Pages/Jana/Index.charter.md
 related_us: [US-COPI-148]
 runbook: memory/requisitos/Jana/RUNBOOK-plataforma.md
 related_casos:
   - resources/js/Pages/Jana/Plataforma.casos.md
 alcance:
   rota: /ia/superadmin/metas
-  rota_nome: jana.superadmin.metas   # a rota JÁ EXISTIA — não foi criada nesta migração
-  permission: jana.access            # gate do GRUPO /ia; o gate da TELA são as 2 portas do §Gate
+  rota_nome: jana.superadmin.metas
+  permission: jana.superadmin
   menu_hook: Modules/Jana/Http/Controllers/DataController.php::modifyAdminMenu
-  pacote: jana_module                # superadmin_package
-tier: B
+  pacote: jana_module
+tier: A
 charter_version: 1
+permissao: jana.superadmin
 ---
 
-# Page Charter — Jana/Plataforma (DRAFT · carimbado do PT-01)
+# Page Charter — `/ia/superadmin/metas` (aba Plataforma da área Jana)
 
-> Esqueleto carimbado do Padrão de Tela **PT-01 Lista** via `criar-tela.mjs` (UI-0013).
-> Golden do arquétipo: [PT-01](../../../../memory/requisitos/_DesignSystem/padroes-tela/PT-01-Lista.md).
->
-> ⚠️ **Quem mede esta tela é o `contrato-de-tela`, NÃO o `pt-conformance`** — e isso é o desenho,
-> não uma lacuna: o `pt-conformance` só avalia telas cujo `related_prototype` declara um token
-> `PT-0X`; tela ancorada em protótipo Cowork fica **fora do escopo** dele de propósito (o
-> `--selftest` dele carimba isso: `related_prototype: prototipo-ui/cowork/…` → sem PT declarado).
-> Aqui a fonte de verdade visual é o protótipo, e a régua é
-> [`prototipo-ui/contrato/jana-plataforma.contract.json`](../../../../prototipo-ui/contrato/jana-plataforma.contract.json),
-> com mordida provada em 31/08 (mutar copy → `exit 1`; restaurar → `exit 0`).
-> F1 do MWART: [`RUNBOOK-plataforma.md`](../../../../memory/requisitos/Jana/RUNBOOK-plataforma.md).
-> Casos: [`Plataforma.casos.md`](./Plataforma.casos.md).
-> Sobe de `draft` → `live` com screenshot aprovado por [W].
+> **Status:** `draft` — nasceu em 2026-09-02 como a 6ª aba da paridade com a âncora
+> (`jana-merge.jsx` §`JmTabs`, só com `jana.superadmin`). Vira `live` com o screenshot pós-merge
+> aprovado por [W] (R1). **Tier A** porque é a única tela da área que lê cross-tenant.
 
 ## Mission
 
-Dar a quem administra a plataforma a visão das metas que **não** são de um tenant só: as da
-própria plataforma (`business_id NULL`) e as de todos os clientes, lado a lado — a única tela
-do produto que lê fora do escopo do negócio **por desenho**.
+A visão de **plataforma** da Jana: metas com `business_id NULL` e as metas de **todos** os clientes,
+listadas cruas, mais o bloco de instalação do módulo. Substitui o Blade AdminLTE
+(`superadmin/metas.blade.php`) sem mudar o que ele mostrava — muda só que agora a tela **diz** o que
+não existe (a agregação) e o gate do menu passou a concordar com o da rota.
 
-## Goals — Features (faz)
+## Goals
 
-- Lista as **metas da plataforma** (`business_id NULL`): Nome · Unidade · Origem
-- Lista as **metas de clientes** (cross-business): Business · Nome · Unidade · Período atual ·
-  Última apuração — as 2 últimas colunas vindas do eager load `periodoAtual`/`ultimaApuracao`
-  que o controller **já fazia** e a Blade não usava
-- Esmaece a linha de meta **nunca apurada** (o `state: "archived"` da fonte de design)
-- Estados reais: **vazio** (as 2 copies literais da Blade), **carregando** (`<Deferred>` de
-  verdade — as props vêm por `Inertia::defer`) e **erro** (prop deferida com forma inesperada)
-- PT-BR em todo label/placeholder/mensagem
+- **Aba na barra ÚNICA da área** — ghost `plataforma` (label `Plataforma`, `/ia/superadmin/metas`),
+  6ª posição, **só** para quem passa em `DataController::podeVerPlataforma()` — o MESMO gate real de
+  `SuperadminController::metas` (`hasPermissionTo('jana.superadmin')` ou `user_type` superadmin, P0
+  #6421). `JanaSubNav` sobe `maxVisible` para 6: a âncora mostra as seis inline.
+- **Metas da plataforma** (`business_id NULL`): Meta (nome + slug) · Unidade · Origem
+  (`manual` → *cadastro manual*, copy da âncora; outros valores do enum ficam crus).
+- **Metas de clientes** (cross-business, `withoutGlobalScope` deliberado — o caso legítimo do ADR
+  0093): Business (`#id` + nome da empresa) · Meta · Unidade · Período atual (`dd/mm–dd/mm`) ·
+  Última apuração (`nunca apurada` + linha `archived` quando não há). Subtítulo
+  `cross-business · N metas em M empresas` derivado do payload.
+- **Instalação do módulo**: contagens de migrations · seeders · permissões **derivadas do
+  disco/registry** no servidor (a âncora traz `21 · 4 · 24` fixos — e 24 já estava errado: são 22),
+  situação por `System::getProperty('jana_version')`, e os botões *Rodar atualização* /
+  *Desinstalar módulo* (confirmação antes) **só** com `can('superadmin')` real, que é o gate de
+  `BaseModuleInstallController` — mais estreito que `jana.superadmin`.
+- Copy literal da âncora pinada em `prototipo-ui/contrato/jana-plataforma.contract.json`.
 
-## Non-Goals — Features (NÃO faz)
+## Non-Goals
 
-> ⚠️ Os dois itens abaixo **não são inferência** — cada um cita a fonte que o sustenta, como
-> manda a lápide §5 2026-08-10. Non-Goal inventado parece canon e a próxima sessão obedece.
-> Non-Goal **novo** é decisão [W]; estes só registram o que a fonte e a arquitetura já dizem.
+- ⛔ Agregar (somar/contar/agrupar) metas de clientes — não existe no controller; somar na tela
+  seria inventar total de plataforma no cliente. A nota de rodapé declara a pendência.
+- ⛔ Editar/criar meta da plataforma — Blade `/ia/metas/*` (MetasController).
+- ⛔ Instalar (`/ia/install` POST) — o fluxo canônico segue `/manage-modules`.
 
-- ❌ **Não agrega, soma nem totaliza cross-business.** A agregação que o docblock antigo do
-  controller prometia não existe (medido em 27/08 e re-medido em 31/08/2026: zero
-  `sum`/`count`/`groupBy`). **Fonte:** o próprio protótipo escreve a razão na tela —
-  *"Somar aqui na tela seria inventar total de plataforma no cliente"*
-  (`jana-telas-novas.jsx` §JmPlataforma). Os contadores de cabeçalho de seção são contagem
-  **do que está listado**, não total de plataforma. O que a plataforma quer medir é decisão [W].
-- ❌ **Não instala, atualiza nem desinstala o módulo.** A seção "Instalação do módulo" do
-  `JmPlataforma` pertence a **`/ia/install`** — outro grupo de rotas, outro controller
-  (`InstallController`), e `uninstall` derruba as tabelas `jana_*`. **Fonte:** as duas rotas são
-  distintas em `Modules/Jana/Http/routes.php` (o protótipo as junta porque nele tudo é aba da
-  tela única). Superfície destrutiva de outra rota não entra de carona — é F1 própria.
-- ❌ **Não renderiza o `<Alert tone="danger">` do protótipo sobre o gate.** Ele descreve o
-  vazamento cross-tenant que o [#6421](https://github.com/wagnerra23/oimpresso.com/pull/6421)
-  **fechou em 28/08**, um dia depois de a fonte ser desenhada. **Fonte:** o próprio commit do
-  fix. Exibir hoje um aviso de vulnerabilidade já corrigida é a classe LC-10.
+## UX targets
 
-## Gate — as DUAS portas (Tier 0, ADR 0093)
+- 1280px sem scroll horizontal; duas `DataTable` shared (PT-01) com paginador de uma página.
+- Dark mode por token; cards de contagem em `bg-card` + `border-border`.
 
-⛔ **`can('jana.superadmin')` NÃO é gate nesta tela.** O `Gate::before`
-(`app/Providers/AuthServiceProvider.php:34-47`) devolve `true` em qualquer ability fora de
-`['backup','superadmin','manage_modules']` para quem tem `Admin#{business_id}` — ou seja, para
-**todo dono de negócio**. As portas legítimas, ambas em
-`SuperadminController::podeVerPlataforma`:
+## Anti-hooks
 
-1. `hasPermissionTo('jana.superadmin')` — Spatie direto, sem passar pelo Gate;
-2. `user_type` em `('superadmin','user_oimpresso')` — coluna, fora do alcance do Gate.
+- ⛔ **Gate do menu diferente do gate da rota.** Até 2026-09-02 o dropdown usava
+  `can('jana.superadmin')`, que o `Gate::before` devolve `true` para todo `Admin#{biz}` — o dono
+  via o link e tomava 403. Aba e dropdown usam `podeVerPlataforma()`, espelho do controller.
+- ⛔ **Repetir o alerta da âncora** (*"Gate desta tela não separa dono de empresa de superadmin"*).
+  Era verdade em 27/08 e **deixou de ser em 28/08** (#6421). Copy literal que afirma bug fechado é
+  mentira com selo de autoridade — fica registrada no contrato como caducada, não na tela.
+- ⛔ **Bullets do modal da âncora** (*"Roda como job no servidor"*, *"Ambiente atual: CT 100
+  (Proxmox)"*): as rotas de `/ia/install` rodam **síncronas em GET** e o app web vive no
+  **Hostinger** (ADR 0062). Ficam fora; o parágrafo do modal (o que o rollback apaga) fica.
+- ⛔ **Contagem digitada** no bloco de instalação — vem do servidor; número escrito à mão apodrece
+  (§5 2026-07-17).
+- ⛔ `<Link>` do Inertia para `/ia/install/*` — são GET que rodam migrations e redirecionam.
 
-O **ghost da faixa de abas usa o mesmo predicado**: aba visível que dá 403 ao clicar seria pior
-que aba ausente. Recibo da medição em produção (quem de fato alcança, com controle positivo):
-[`RUNBOOK-plataforma.md` §1.1](../../../../memory/requisitos/Jana/RUNBOOK-plataforma.md).
+## Skills relevantes
 
-## UX Targets
+`multi-tenant-patterns` (Tier A) · `mwart-process` · `comparar-design-prod`
 
-- Cabe em 1280px sem scroll horizontal (monitor da Larissa/ROTA LIVRE). As duas tabelas rolam
-  dentro do próprio wrapper (`overflow-x-auto`), nunca o `body`
-- A tela renderiza **vazia em produção hoje** (`jana_metas` = 0 linhas, medido em 31/08/2026),
-  então o estado vazio não é caso de borda: é o caso comum, e a copy dele é contrato
+## Charter version log
 
-## Refs
-
-- Padrão de Tela: PT-01 Lista (DataTable + PageHeader + filtros)
-- Constituição UI v2: UI-0013
-- Processo: ADR 0104 (MWART) · Tier 0: ADR 0093 · Teste: ADR 0358 (tenant 98 × 99)
-- Trava de sinal não se aplica (trabalho dirigido por [W]): ADR 0382
+- v1 (2026-09-02) — Tela nasce da paridade das abas (handoff 2026-08-31 §Paridade Painel; fecha
+  *"abas: protótipo 6 × prod 3"*). `SuperadminController@metas` → Inertia (gate intacto);
+  `DataController::podeVerPlataforma()`; `JanaSubNav maxVisible 6`; Blade apagado. Contrato:
+  UC-PLAT-00..04 em `Plataforma.casos.md`.
