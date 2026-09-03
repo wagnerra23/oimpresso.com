@@ -22,7 +22,8 @@
 > `tests/Feature/Console/ArquivosHealthCheckScheduleTest.php`.
 >
 > ❌ **A entrada nº 1 (`authh`) está REFUTADA** — era instrução ativa para remover um middleware
-> legítimo (`IsInstalled`). Errata medida dentro da própria seção.
+> legítimo (`IsInstalled`), e a remoção que ela declara já tinha atingido o scaffold deste draft.
+> Errata medida dentro da própria seção; o scaffold foi corrigido em 2026-09-03.
 
 ---
 
@@ -65,21 +66,34 @@ criar-modulo)"*), registrado em
 do template exatamente o que tinha acabado de ser reposto no módulo vivo.
 
 **Onde o dano ficou (correção de escopo — importa pra quem for medir):** o "fix aplicado" **existe**,
-mas no *draft*, que é o arquivo que esta entrada cita. Em 2026-09-03:
+mas no *draft*, que é o arquivo que esta entrada cita. Medido em 2026-09-03, **antes** da correção
+descrita logo abaixo:
 
 - `memory/decisions/proposals/drafts/modules-comunicacao-visual-scaffold/Routes/web.php:27` →
-  `['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu']` — **sem** `authh`,
-  ou seja o scaffold carrega o defeito;
+  `['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu']` — **sem** `authh`:
+  era o **scaffold** que carregava o defeito;
 - `Modules/ComunicacaoVisual/Routes/web.php:35` (módulo **vivo**) →
   `['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu']` —
   **correto**; ele nasceu pelo RUNBOOK canônico, não por cópia deste scaffold.
 
-Quem medir o módulo vivo conclui "o fix nunca foi aplicado"; quem medir o arquivo citado vê que foi,
-e que é o **scaffold** que está errado. O risco residual é o scaffold ser usado como template.
+Quem medisse o módulo vivo concluiria "o fix nunca foi aplicado"; quem medisse o arquivo citado veria
+que foi — e que era o **scaffold** o errado.
 
-**Não corrigido aqui, de propósito:** nenhum `Routes/web.php` foi tocado — nem o do scaffold, nem
-`Modules/*/Routes/*.php`. Repor o `authh` no draft é mudança de escopo, e o draft está parado desde
-2026-05-10 (ver STATUS no topo). Fica declarado, não silencioso.
+**Corrigido em 2026-09-03:** o `authh` foi reposto no **grupo Install** do scaffold, alinhando a
+stack **literalmente** à [ADR 0024](../../0024-instalacao-1-clique-modulos.md) (linha 97) e ao
+[RUNBOOK-criar-modulo](../../../requisitos/Infra/RUNBOOK-criar-modulo.md) (linha 176) — as três
+strings conferidas idênticas caractere a caractere. Base da escolha, medida no mesmo dia: entre os
+módulos que têm `InstallController`, **14 de 17** usam essa forma no grupo Install (as 3 exceções
+são Cms, Compras e Woocommerce).
+
+**O grupo admin do scaffold NÃO foi tocado**, e isso é decisão, não esquecimento: ele já reproduz a
+stack do `CLAUDE.md` §"Sempre fazer"
+(`['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin']`),
+que é **sem** `authh`. No agregado dos 22 arquivos de rota a convenção não é uniforme — 14
+ocorrências com `authh` contra 10 sem, na mesma forma — então repor em bloco trocaria um erro por
+outro. `authh` é legítimo e dominante **no grupo Install**; não é obrigatório em toda rota.
+
+**Nenhum `Modules/*/Routes/*.php` foi tocado** — os módulos vivos já estavam certos.
 
 <details>
 <summary>Texto original de 2026-05-10, preservado (append-only) — hipótese refutada acima</summary>
