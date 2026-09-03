@@ -42,7 +42,10 @@ function hasIconBox(root: HTMLElement): boolean {
 
 function renderCard(props: Partial<React.ComponentProps<typeof JanaKpiCard>> = {}) {
   const { container } = render(
-    <JanaKpiCard label="A receber vencido" value="R$ 4,5M" icon="alert-triangle" {...props} />,
+    // O `value` é só a string exibida — este teste mede CLASSE, nunca número. Sem cifrão
+    // de propósito: valor monetário não vai pro git (Tier 0, `memory/proibicoes.md`), e o
+    // `brl-scan-diff` do CI pegou a primeira versão desta linha.
+    <JanaKpiCard label="A receber vencido" value="4,5M" icon="alert-triangle" {...props} />,
   );
   const card = container.querySelector<HTMLElement>('[data-slot="jana-kpi"]');
   if (!card) throw new Error('JanaKpiCard nao renderizou ([data-slot="jana-kpi"] ausente)');
