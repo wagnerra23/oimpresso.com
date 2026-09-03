@@ -168,3 +168,29 @@ Conferindo contra [`prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../../pr
 - [ADR 0110 — Cockpit Pattern V2](../../decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
 - [ADR 0094 — Constituição v2](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md)
 - [LICOES_F3_FINANCEIRO_REJEITADO.md (anti-padrões)](../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md)
+
+---
+
+## Rodada MEDIDA de 2026-09-03 — Conversa × `jana-merge.jsx` §`JmConversa` (mesma sonda, dark × dark, viewport 2560)
+
+> ⚠️ Este doc nasceu em 2026-05-15 contra `chat.jsx` (ui_kit); a âncora vigente é
+> `prototipo-ui/cowork/jana-merge.jsx` (charter v3, `ancora.mjs Jana/Chat`). Fonte provada
+> (#6600, `--preview-ds` completo); render pelo shell do espelho com `oimpresso.jana.tab=conversa`
+> × `/ia/conversa` em prod. D0: `data-screen-label="Jana — Conversa"` × `AppShellV2 title="Jana — Chat"`.
+
+| região | âncora | produção | veredito |
+|---|---|---|---|
+| grid | `.jm-conv` `280px 1fr` · gap 10 · **histórico é CARD** (`.jm-hist`: bg surface, borda, **r12**, pad 8) | `.copiloto-chat-layout` `280px 1fr` · gap 0 · painel **colado** (bg `bg-2`, `border-right`, r0, pad `12px 8px`) | ❌ (**Onda 3a**) |
+| cabeçalho do histórico | `[toggle] CONVERSAS · 3 · [+]` (11px/600 uppercase) | `[<] Chat · 3 · [filtros] [+]` (`cs-head h2`) | 🟡 copy + ícone extra |
+| filtros | chips `todas` / `arquivadas` (11px, r99, ativa `accent 12%`) | pills `Todas` / `Arquivadas` (`cs-tab`, 11.5px, ativa **sólida** `oklch(0.94…)`) | 🟡 ativa sólida × soft (AP7) |
+| links extras no painel | — | `Tarefas` · `Despachos BETA` · `Personalizar` (`sb-action`) | ❌ **só na prod** — não estão na âncora; classificar (charter não os cita) |
+| item da lista | `.jm-thread` `h=66`: **título + hora** · preview 1 linha · `última em HH:MM` · `fixada` | `.sb-conv` `h=30`: bullet + título | ❌ (**Onda 3a**; preview/hora exigem `ConversaResumo` expor `preview`/`updated_at` — backend) |
+| atalhos | `J K anda · ⌘K busca · ⌘⇧H recolhe` no rodapé do card | idem no rodapé do painel | ✅ |
+| thread header | `.jm-conv-h`: **título 13px/600 + `só sua` mono** (+ `arquivada`) | `.th-head` `h=56`: avatar `JA` + "Nova conversa / Assistente IA · Jana" + **3 ícones** (telefone/info/⋯) | ❌ (**Onda 3b**) — header estilo WhatsApp não é da âncora |
+| composer | placeholder *"Pergunte algo à Jana sobre vendas, OS, financeiro… ( / para focar )"* · **3 chips** abaixo (`Quem deve mais?` · `Onde estou perdendo?` · `Quais ações hoje?`) | placeholder *"Pergunte algo à Jana…"* · **0 chips** | ❌ (**Onda 3b**) |
+| rodapé | `PROPOSTAS DE METAS · 2 · ver` | bloco "Propostas de metas" só quando há sugestão pendente | 🟡 dado |
+| header da área | `Nova conversa` + Configurar **só-ícone** + Exportar | Configurar com rótulo · **Conversar** primary | ❌ → **corrigido na Onda 1** (#PR desta rodada) |
+
+**Regra de escopo herdada deste doc (2026-05-15, [W]): layout-only.** Onda 3a/3b não mudam
+`ConversaResumo` nem o `ChatController`; onde a âncora depende de dado que o payload não tem
+(preview, hora), a linha fica ❌ com a dependência nomeada — não se inventa dado.
