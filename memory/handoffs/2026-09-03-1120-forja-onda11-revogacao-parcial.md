@@ -10,6 +10,7 @@ next_steps:
   - "Onda 3 (Aprovações vira a landing) — destrava os 3 _components de uma vez"
   - "smoke pós-deploy do Infra Contract: as 7 revogadas viram 301, roadmap e /forja/* seguem 302"
   - "flipar a landing /forja pra Aprovações — a Onda 3 entregou a view, não a landing; é o que falta pros 3 _components"
+  - "decidir [W] sobre o quarter view: a D7 não sai por onda nenhuma — Gantt e quarter respondem perguntas diferentes"
 ---
 
 # Forja Onda 11 — revogação parcial, e o que a próxima sessão precisa saber
@@ -43,7 +44,7 @@ o que segue é medido em git/gh, que responderam.
 
 | ficou | por quê | destrava com |
 |---|---|---|
-| `Forja/Roadmap/Index.tsx` + rota `project-mgmt.roadmap.index` | ADR 0367 **D7** condiciona a saída a *"o Gantt provar que substitui (filtro por cycle efetivo + volume domado)"* | **Onda 6** (Trabalho · gantt) |
+| `Forja/Roadmap/Index.tsx` + rota `project-mgmt.roadmap.index` | ADR 0367 **D7** condiciona a saída a *"o Gantt provar que substitui"* | **NÃO é a Onda 6** — ela rodou ([#6624](https://github.com/wagnerra23/oimpresso.com/pull/6624)) e não destravou. É decisão [W] (ver abaixo) |
 | `_components/Forja{Backlog,Quadro,Triage}` | `Cockpit.tsx:19-21` importa os três; `ForjaTriage` serve `/forja` — a **landing** e o alvo do botão "Novo issue" (`ForjaHub.tsx:136`) | **Onda 3** (Aprovações vira a landing) |
 | 4 rotas `project-mgmt.install.*` | **ADR 0024**: sem elas o botão Install em `/manage-modules` fica sem ação. Não são tela | — (ficam) |
 
@@ -61,6 +62,22 @@ o que segue é medido em git/gh, que responderam.
    `.fontramp-baseline.json` acumulam drift de arquivos que esta onda não tocou (`fin-output`,
    `sells-cowork*`, `cowork-arquivos`, `manufacturing`, `venda-v3`). Quem for regenerá-los, que seja
    num PR que **assuma** essa dívida — não de carona.
+
+## Por que o `Roadmap/Index` não sai com uma onda
+
+Escrevi neste handoff que a **Onda 6** destravaria o quarter view. Ela mergeou no mesmo dia
+([#6624](https://github.com/wagnerra23/oimpresso.com/pull/6624)) e **não destravou** — pelo segundo
+dia seguido eu inferi "a onda X destrava Y" a partir do título da onda, e errei (a primeira foi a
+Onda 3 e o `ForjaTriage`).
+
+Medido: o #6624 tocou **só o frontend** do Gantt (58 linhas em `Gantt.tsx`, mais charter e casos).
+O `RoadmapGanttController` não mudou — e ele **já tinha** `MAX_TASKS = 500` e filtro por cycle, as
+duas peças que a D7 nomeia. A condição nunca dependeu da onda.
+
+O que de fato segura está no `SCOPE.md`: quarter view e Gantt *"são duas leituras do mesmo backlog e
+**nenhuma responde a pergunta da outra**"* — o quarter agrupa EPICS por trimestre, o Gantt agrupa
+TASKS no tempo. Enquanto isso valer, nenhuma onda de fidelidade visual vai satisfazer a D7:
+**a saída do quarter view é decisão [W]**, e a D7 já diz que é *"reversível numa linha"*.
 
 ## Verificação pendente (não feita, e não pode ser fingida)
 

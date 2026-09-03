@@ -273,7 +273,9 @@ esquecido.
 | `Activity` | — | ADR 0367 **D1** |
 
 **FICOU `Roadmap/Index`** (o 8º). A **D7** condiciona a saída a *"o Gantt provar que
-substitui (filtro por cycle efetivo + volume domado)"* e a **Onda 6 não rodou**.
+substitui (filtro por cycle efetivo + volume domado)"*.
+
+⚠️ **Atualizado 2026-09-03: a Onda 6 RODOU ([#6624](https://github.com/wagnerra23/oimpresso.com/pull/6624)) e a D7 continua NÃO satisfeita.** Medido: o #6624 tocou **só o frontend** (`Gantt.tsx` + charter + casos, 58 linhas) — âncora e barra de totais, fidelidade visual. O `RoadmapGanttController` não mudou, e ele **já tinha** as duas peças que a D7 pede (`MAX_TASKS = 500` e filtro por cycle). Ou seja: a condição da D7 nunca dependeu da Onda 6. O que decide é o que o próprio `SCOPE.md` registra sobre os dois — *"nenhuma responde a pergunta da outra (o quarter não tem due_date/blocked_by, o Gantt não tem epic_id)"*. Enquanto isso valer, o Gantt **não substitui** o quarter view, e a saída dele é decisão [W], não consequência de uma onda.
 Revogá-la seria eu sobrepor ADR aceita — decisão [W], não minha.
 
 **FICARAM os 3 `_components/Forja{Backlog,Quadro,Triage}`**, que o §11 também lista.
