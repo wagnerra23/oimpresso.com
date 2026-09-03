@@ -71,6 +71,31 @@ Dar à pessoa fiscal (Eliana contadora + Wagner operador) a **lista navegável d
 - **Drawer:** largura 480px desktop, full-width mobile, ESC fecha, click-outside fecha.
 - **Foco visual:** linha cursor (J/K) com `outline: 2px solid var(--fis)`.
 
+## Contrato de teclado — destilado (2026-09-03, Onda 2)
+
+> **Fato, não intenção.** Mission, Goals, Non-Goals, Anti-hooks e UX targets acima não foram
+> tocados — este bloco só destila o que a tela **passou a garantir** e quem prova. A intenção que
+> ele serve já era do [W]: **Goal 5** ("atalhos J/K + Enter pra navegar lista e abrir drawer") e o
+> §UX targets ("linha cursor com `outline: 2px solid var(--fis)`").
+
+| O que a lista garante | Como se prova |
+|---|---|
+| Toda linha é **focável** e alcançável na ordem do DOM (`tabIndex={0}`) | `document.activeElement` após `.focus()` real — sem o atributo, o foco cai no `<body>` |
+| **Enter** abre o drawer da linha **focada**, não o da primeira | o `<h2>` do drawer traz o número da nota da 3ª linha |
+| **Space** abre **e cancela o default** — a página não rola | `fireEvent` devolve `false` só quando houve `preventDefault` |
+| Tab e J/K compartilham **um** cursor (um anel, não dois) | focar a 2ª + `j` global acende a 3ª; sem o `onFocus`, acenderia a 2ª |
+| A linha **continua sendo linha** — nada de `role="button"` | `getAttribute('role')` é `null` nas três linhas |
+| O anel de foco usa o **token** `--fis`, e o do UA é substituído, nunca suprimido | `:focus-visible` em `fiscal-cockpit.css`; zero `outline: none` no arquivo |
+
+**Quem defende:** [`tests/js/fiscal-nfe-teclado.test.tsx`](../../../../tests/js/fiscal-nfe-teclado.test.tsx)
+(6 casos) na lane advisory `fiscal-teclado-gate.yml`. Contrato por UC em
+[`Nfe.casos.md`](Nfe.casos.md) → **`UC-FNFE-10`**, com as 4 mutações da mordida tabeladas lá.
+
+**Limite declarado:** o Enter é servido por **dois** caminhos (o `onKeyDown` da linha e o handler
+global de `window`) e o teste não os distingue — ele prova o que o operador observa. E o jsdom não
+implementa a travessia por Tab, então "Tab alcança todas" é medido como focabilidade real de cada
+linha. Anel pintado e leitor de tela seguem sendo olho humano no smoke (R1).
+
 ## Automation hooks (futuros — não-bloqueantes PR #1)
 
 - `Modules/Jana` consome `sefazCodes` + receitas SEFAZ_ACTIONS pra responder dúvidas em chat ("o que significa rejeição 539?").
