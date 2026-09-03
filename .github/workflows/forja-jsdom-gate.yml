@@ -1,0 +1,133 @@
+name: "Forja jsdom Gate — o que a tela DESENHA (Quadro: coluna por fase · painel de papéis)"
+
+# POR QUE ESTA LANE EXISTE
+#
+# A Forja tinha uma cadeia de paridade inteira e ela era toda DECLARATIVA — lê
+# constantes de arquivo, nunca o que a tela desenha:
+#
+#   protótipo ──PipelineParidadeTest──▶ backend ──UC-TRAB-07──▶ `const FASES`
+#                                                                    │
+#                                                        NINGUÉM     │
+#                                                                    ▼
+#                                                        colunas RENDERIZADAS
+#
+# O custo disso está medido. A decisão [W] de 2026-08-11 — "F4 Merge É coluna" —
+# mantém 7 colunas no eixo Pipeline e diverge DE PROPÓSITO do protótipo, que
+# filtra F4 e desenha 6. Um `.filter(f => f.key !== 'F4')` no `FASES.map(` do
+# `TrabalhoQuadro.tsx` NÃO altera o bloco `const FASES`: reproduzi o extrator do
+# UC-TRAB-07 em node contra o arquivo mutado e a saída veio IDÊNTICA
+# (`F0 · F1 · F1.5 · F2 · F3 · F3.5 · F4` antes e depois). Ou seja, quem
+# "corrigisse" 7→6 obedecendo o protótipo reverteria a decisão [W] em silêncio,
+# com todos os gates verdes.
+#
+# `tests/forjaQuadroColunas.spec.tsx` fecha esse elo montando o componente em
+# jsdom e CONTANDO `.fj-kcol` no DOM. Ele não crava o número 7: compara o render
+# contra a declaração, então fase nova legítima passa e corte reprova.
+#
+# NÃO é render-diff protótipo×produção (morto 2×: ADR 0290 + §5 2026-07-09).
+# Não há protótipo, screenshot, par, rede nem auth — é jsdom hermético sobre o
+# nosso componente, afirmando a decisão de produto, não fidelidade ao protótipo.
+#
+# BITE-TEST antes do merge (mutação + restore byte-idêntico ao commit):
+#   `.filter(f => f.key !== 'F4')` no map do Pipeline   → 2 failed  (exit 1)
+#   `slice(0, 6)` no mesmo ponto (variante SEM .filter) → falhou    (exit 1)
+#   `.filter(s => s !== 'blocked')` no eixo Execução    → falhou    (exit 1)
+# FALSO-POSITIVO medido nas mudanças LEGÍTIMAS (todas exit 0):
+#   fase NOVA declarada (`F5 Canary`)  · rótulo renomeado (`Merge`→`Fusão`)
+#   · baseline intacto.
+# Sob a mesma mutação, o UC-TRAB-07 fica VERDE — é o buraco, não redundância.
+#
+# ESCOPO: HOME dos specs jsdom da Forja, como a `jana-conversas-gate` é o da Jana.
+# Entrou junto `tests/js/forja-runbook.test.tsx` (UC-TRAB-18), que rodava em lane
+# NENHUMA: medido com `git grep` no repo inteiro + controle positivo (o spec da
+# Jana aparece em `.github/`, o da Forja só aparecia na prosa do `.casos.md`).
+# Spec fora de workflow é verde-por-não-execução (LC-13) — pior que teste ausente,
+# porque parece cobertura. Ele já roda verde (5/5), então adotá-lo não importa
+# dívida de terceiro.
+#
+# Os arquivos SOB TESTE entram no gatilho junto com os specs (§5 2026-08-02):
+# sem isso, mexer no componente não acorda o teste que o defende.
+#
+# `synchronize` no gatilho, ao contrário da maioria das lanes de fidelidade: sem
+# ele, um PR que introduza o corte num push POSTERIOR ao `opened` não reexecuta o
+# gate — e a defesa que este arquivo existe pra dar não aconteceria justamente no
+# caso que importa. Não é convenção nova: 5 workflows do repo já usam (brl-scan,
+# cobranca-filtros-gate, dup-detector-gate, infra-contract-required,
+# visual-regression). Custo: npm ci + vitest, só quando estes paths mudam.
+#
+# Enforcement (classe/terminal) mora no `scripts/governance/gates-registry.json`;
+# o que bloqueia merge mora no `governance/required-checks-baseline.json`. Esta
+# lane não afirma o próprio enforcement — quem afirma é o dono (LC-10).
+#
+# Comando local (vitest não é Pest; roda fora do CT 100 sem violar a ADR 0062):
+#   npx vitest run tests/forjaQuadroColunas.spec.tsx tests/js/forja-runbook.test.tsx
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, reopened, ready_for_review, synchronize]
+    paths:
+      # Sob teste — o Quadro e os módulos de onde ele lê fase, status e átomos.
+      - 'Modules/Forja/Resources/js/Pages/Forja/Trabalho/_components/TrabalhoQuadro.tsx'
+      - 'Modules/Forja/Resources/js/Pages/Forja/Trabalho/_components/trabalhoTokens.ts'
+      - 'Modules/Forja/Resources/js/Pages/Forja/Trabalho/_components/trabalhoAtomos.tsx'
+      - 'Modules/Forja/Resources/js/Pages/Forja/Trabalho/_components/TrabalhoLista.tsx'
+      # Sob teste — o painel de papéis (UC-TRAB-18).
+      - 'Modules/Forja/Resources/js/Pages/Forja/Trabalho/_components/ForjaRunbook.tsx'
+      # Os specs e este workflow.
+      - 'tests/forjaQuadroColunas.spec.tsx'
+      - 'tests/js/forja-runbook.test.tsx'
+      - '.github/workflows/forja-jsdom-gate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'Modules/Forja/Resources/js/Pages/Forja/Trabalho/_components/TrabalhoQuadro.tsx'
+      - 'Modules/Forja/Resources/js/Pages/Forja/Trabalho/_components/trabalhoTokens.ts'
+      - 'Modules/Forja/Resources/js/Pages/Forja/Trabalho/_components/trabalhoAtomos.tsx'
+      - 'Modules/Forja/Resources/js/Pages/Forja/Trabalho/_components/TrabalhoLista.tsx'
+      - 'Modules/Forja/Resources/js/Pages/Forja/Trabalho/_components/ForjaRunbook.tsx'
+      - 'tests/forjaQuadroColunas.spec.tsx'
+      - 'tests/js/forja-runbook.test.tsx'
+
+concurrency:
+  group: forja-jsdom-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  forja-jsdom:
+    name: Forja · specs jsdom (Quadro do Trabalho · painel de papéis)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install deps
+        run: npm ci
+
+      # UMA invocação, UM XML — o coletor por-UC varre todos os `<testcase>`, e o
+      # `junit-lanes.mjs` deriva esta lane sozinho pelo par
+      # (`--outputFile` no comando × `path:` do artifact). Não há lista a manter.
+      - name: specs jsdom da Forja — Quadro (colunas) + painel de papéis (vitest/jsdom)
+        run: |
+          npx vitest run \
+            tests/forjaQuadroColunas.spec.tsx \
+            tests/js/forja-runbook.test.tsx \
+            --reporter=default \
+            --reporter=junit \
+            --outputFile=test-results/vitest-forja-jsdom-junit.xml
+
+      # `!cancelled()` e não `success()`: veredito VERMELHO é exatamente o que o
+      # G-7 precisa registrar — `Status: ✅` com teste vermelho é a mentira que
+      # ele pega.
+      - name: Upload JUnit (veredito por-UC — casos:results)
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-forja-jsdom-junit
+          path: test-results/vitest-forja-jsdom-junit.xml
+          retention-days: 14
+          if-no-files-found: error
