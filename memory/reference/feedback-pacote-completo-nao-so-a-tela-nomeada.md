@@ -1,8 +1,14 @@
 ---
 id: reference-feedback-pacote-completo
-tipo: feedback
-origem: "Maiara [M], 2026-09-02, no fechamento do PR #6546 (tela de Fabricação)"
-aplica_a: "todo pedido de 'coloca em produção' que venha acompanhado de handoff, protótipo ou ZIP"
+name: "Pedido de \"colocar em produção\" = PACOTE COMPLETO, não só a tela nomeada"
+description: "Quando a Maiara manda handoff/protótipo/ZIP e pede pra colocar em produção, o entregável é a FAMÍLIA de telas que o documento cobre — não só a tela que ela nomeou no endereço. O escopo sai da seção de diff do handoff (no de Fabricação, o §15.2); as ondas se apresentam com custo, da menor pra maior, e a ordem é decisão dela. O que o próprio handoff proíbe entregar vira onda própria com a razão citada, nunca silêncio."
+type: feedback
+authority: canonical
+lifecycle: ativo
+date_captured: 2026-09-02
+captured_in_session: "fechamento do PR #6546 (tela de Fabricação em /manufacturing/recipe)"
+applies_to: "todo pedido de 'coloca em produção' que venha acompanhado de handoff, protótipo ou ZIP"
+severity: alta
 ---
 
 # Pedido de "colocar em produção" = PACOTE COMPLETO, não só a tela nomeada
