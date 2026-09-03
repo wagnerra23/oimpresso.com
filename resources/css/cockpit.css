@@ -1603,7 +1603,7 @@
 .cockpit .copiloto-chat-convs .cs-head h2 {
   flex: 1 1 auto;
   margin: 0;
-  font-size: 11px;
+  font-size: var(--fs-2); /* 11.5px — snap do 11px da âncora no type ramp */
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1825,7 +1825,7 @@
      min-content e o título longo vaza pra fora do card. */
   flex: 1;
   min-width: 0;
-  font-size: 12.5px;
+  font-size: var(--fs-3); /* 12.5px — bate exato com o ramp */
   font-weight: 600;
   color: var(--text);
   overflow: hidden;
@@ -1835,11 +1835,11 @@
 .cockpit .copiloto-chat-convs .cs-thread-q {
   flex: 0 0 auto;
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: var(--fs-1); /* 10.5px — bate exato com o ramp */
   color: var(--text-dim);
 }
 .cockpit .copiloto-chat-convs .cs-thread-p {
-  font-size: 11px;
+  font-size: var(--fs-2); /* 11.5px — snap do 11px da âncora */
   color: var(--text-dim);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1849,7 +1849,7 @@
   display: flex;
   gap: 8px;
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: var(--fs-1); /* 10.5px — bate exato com o ramp */
   color: var(--text-dim);
 }
 .cockpit .copiloto-chat-convs .cs-thread-fix { color: var(--accent); }
@@ -1859,7 +1859,7 @@
    `.cockpit .sb-section-h` global serve outros lugares e não é mexido. */
 .cockpit .copiloto-chat-convs .sb-section-h {
   padding: 8px 4px 2px;
-  font-size: 10px;
+  font-size: var(--fs-1); /* 10.5px — snap do 10px da âncora */
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;

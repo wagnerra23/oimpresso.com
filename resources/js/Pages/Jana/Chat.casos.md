@@ -327,6 +327,15 @@ lida do Cowork **vivo** em 2026-09-03 via `DesignSync.get_file` e **byte-idênti
 4. Conversa do grupo `fixadas` mostra o selo; a recente não.
 5. `rotuloQuando` escala como a âncora: hoje → `09:38` · ontem → `ontem` · na semana → `seg` · velho → `05/mai`; lixo ou vazio → `null`, nunca `"agora"`.
 
+**Tipografia: o ramp do DS vence o px literal da âncora.** Três dos seis tamanhos do card batem
+**exatos** com o type ramp (`10.5px` = `--fs-1`, `12.5px` = `--fs-3`) — prova de que o protótipo
+derivou dele. Os outros dois (`11px` no rótulo e no resumo, `10px` na seção) **não existem no ramp**
+e foram snapados pro token mais próximo (`--fs-2` = 11.5px · `--fs-1` = 10.5px), diferença de 0,5px.
+Não é licença poética: Fundações é a camada mais baixa da Constituição UI v2 e a camada de cima
+**herda, nunca contradiz** — e o próprio `jana-merge.css` se declara *"só tokens do DS vivo"*. O
+`conformance-gate` (LEI) mede isso e reprovou a primeira versão deste PR, com `font-size px fora do
+ramp subiu 3→6`.
+
 **Por que o rótulo é montado no cliente.** O servidor manda ISO-8601 cru de propósito: formatar lá
 herdaria o shift +3h que `format_date` aplica pra cliente legado ([ADR 0066](../../../../memory/decisions/0066-format-date-shift-3h-preservado-legacy-clientes.md)) e o card mostraria
 hora errada. E o `dd/mmm` é montado à mão porque `toLocaleDateString('pt-BR', {day,month:'short'})`
