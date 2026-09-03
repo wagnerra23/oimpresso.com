@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "generated_at": "2026-09-03T10:31:11.249Z",
-    "total_violations": 2340,
+    "generated_at": "2026-09-03T12:41:28.483Z",
+    "total_violations": 2339,
     "eslint_version": "flat-config 9.x",
     "adr": "0209"
   },
@@ -20,7 +20,6 @@
     "Modules/Forja/Resources/js/Pages/ads/Admin/Tools.tsx|no-restricted-syntax": 5,
     "Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaChangelog.tsx|no-restricted-syntax": 1,
     "Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaHub.tsx|no-restricted-syntax": 1,
-    "Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaIntegrador.tsx|no-restricted-syntax": 1,
     "Modules/Forja/Resources/js/Pages/team-mcp/Scorecard/Index.tsx|no-restricted-syntax": 1,
     "Modules/Forja/Resources/js/Pages/team-mcp/Tasks/_components/TaskDrawer.tsx|no-restricted-syntax": 1,
     "Modules/Forja/Resources/js/Pages/team-mcp/Team/Index.tsx|no-restricted-syntax": 1,

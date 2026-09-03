@@ -26,20 +26,20 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 703,
-    "edges": 983,
+    "nodes": 707,
+    "edges": 987,
     "by_node_type": {
       "module": 39,
       "table": 102,
       "adr": 107,
       "component": 385,
-      "api": 70
+      "api": 74
     },
     "by_edge_type": {
       "ownsTable": 91,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 74,
+      "providesApi": 78,
       "charteredByAdr": 30,
       "governedByAdr": 78,
       "hasComponent": 385,
@@ -844,12 +844,28 @@
       ]
     },
     {
+      "id": "api:/api/kb/ping",
+      "type": "api",
+      "prefix": "/api/kb/ping",
+      "providers": [
+        "KB"
+      ]
+    },
+    {
       "id": "api:/api/mcp/*",
       "type": "api",
       "prefix": "/api/mcp/*",
       "providers": [
         "Forja",
         "Jana"
+      ]
+    },
+    {
+      "id": "api:/api/mcp/kb/*",
+      "type": "api",
+      "prefix": "/api/mcp/kb/*",
+      "providers": [
+        "KB"
       ]
     },
     {
@@ -956,6 +972,14 @@
       "prefix": "/cms/*",
       "providers": [
         "Cms"
+      ]
+    },
+    {
+      "id": "api:/compras/*",
+      "type": "api",
+      "prefix": "/compras/*",
+      "providers": [
+        "Compras"
       ]
     },
     {
@@ -1332,6 +1356,14 @@
       "prefix": "/vestuario/*",
       "providers": [
         "Vestuario"
+      ]
+    },
+    {
+      "id": "api:/voz-do-cliente/*",
+      "type": "api",
+      "prefix": "/voz-do-cliente/*",
+      "providers": [
+        "VozDoCliente"
       ]
     },
     {
@@ -6710,6 +6742,12 @@
       "source": "contains"
     },
     {
+      "from": "module:Compras",
+      "to": "api:/compras/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
       "from": "module:ComunicacaoVisual",
       "to": "adr:0121",
       "type": "charteredByAdr",
@@ -9522,6 +9560,18 @@
     },
     {
       "from": "module:KB",
+      "to": "api:/api/kb/ping",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:KB",
+      "to": "api:/api/mcp/kb/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:KB",
       "to": "api:/kb/*",
       "type": "providesApi",
       "source": "url_prefixes"
@@ -11433,6 +11483,12 @@
       "to": "component:VozDoCliente/SinalController",
       "type": "hasComponent",
       "source": "contains"
+    },
+    {
+      "from": "module:VozDoCliente",
+      "to": "api:/voz-do-cliente/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
     },
     {
       "from": "module:Whatsapp",
