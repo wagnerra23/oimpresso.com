@@ -4,7 +4,7 @@ casos: Forja · cockpit do cowork loop · /forja
 irmaos: Cockpit.charter.md (lei) · Cockpit.tsx (tela)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-09-02"
+last_run: "2026-09-03"
 ---
 
 # Casos de uso — /forja (cockpit Forja · shell)
@@ -63,6 +63,38 @@ A regra dura, e é o que separa este UC de "tem 4 cards bonitos": **o sparkline 
 
 **Pronto quando:** a rota responde 200 com `tab=saude`; os 4 cards mostram número vindo de query real; o card sem série não tem `<svg class="fj-spark">`; e a comparação medida com o protótipo (`design-diff --compare --check`, tema dark nos dois lados) dá **0 `DIVERGE(bug)`** em D2/D4/D6/D8 — o critério de fechamento da Onda 7 no [PARIDADE §11](../../../../memory/requisitos/Forja/PARIDADE-area-forja-diagnostico-e-ondas.md).
 
+### Alvo medido (§3.7 do pacote de export) × produção — 2026-09-03
+
+> **Fonte do alvo, declarada:** o pacote mediu o build de 2026-09-03 (`forja-saude.jsx`, 1 arquivo por tela). **Esse build não desceu** — `git ls-files prototipo-ui/cowork/ | grep forja` devolve **7** arquivos, e `forja-saude.jsx` não está entre eles; o `--sla` do espelho reporta **157 arquivos que existem só no vivo**. O alvo estrutural abaixo vem do §3.7 do pacote; a conferência de CSS foi feita contra o que o espelho TEM: o monolito `forja-page.jsx` (2026-09-01, `SaudeView` na L628) + `forja-page.css` (2026-09-03). A regeneração do bundle está pedida na [#6671](https://github.com/wagnerra23/oimpresso.com/pull/6671).
+
+| elemento do alvo | §3.7 | produção | veredito |
+|---|---:|---:|---|
+| `.fj-saude` filhos | 5 | **4** | ⚠ falta 1 `.fj-mcp-card` — consequência da Automação ausente |
+| `.fj-metric` (3 filhos cada) | 4 | **4** | ✅ idêntico |
+| `.fj-spark` | 4 | **3** | ⚠ dado: "Checks verdes" não tem histórico persistido (`serie: null`) |
+| `.fj-wip-col` | 7 | **7** | ✅ idêntico (`ForjaQuadroService::FASES` F0→F4) |
+| `.fj-gate` (1 filho `fj-gate-dot`) | 7 | **5** | ⚠ dado: `buildChecks()` produz 5 checks reais; o protótipo mocka 7 gates |
+| `.fj-rules` (3 filhos nus) | 3 | **0** | ⚠ ausente — sem motor de regras |
+
+**PLACAR — Saúde (Onda 7): estrutura entregue em 3 de 6 famílias com contagem exata; as 3 restantes divergem por ausência declarada, nenhuma por erro de layout.**
+
+- `.fj-rules` — **sem fonte**: varredura contada no repo por tabela/serviço de regras de automação (`automation_rules|forja_rules|mcp_rules|regras_automacao`) = **0 ocorrências**; os únicos hits de `fj-rules` fora do protótipo são o CSS do bundle e um arquivo de OficinaAuto sem relação. Os toggles são **escrita**, e escrita aqui é **proposta** — mas não existe endpoint de proposta pra gravar, então um toggle renderizado seria afordância falsa ([§5 LC-15](../../../../memory/proibicoes.md)). Mantido ausente, não substituído por placeholder.
+- `.fj-spark` 3 de 4 e `.fj-gate` 5 de 7 — **divergência de DADO, não de estrutura**: onde o elemento existe, o markup é 1:1. Desenhar a 4ª série ou inventar 2 gates seria número inventado.
+
+### Tipografia e gap — o que o §7 do pacote deixou aberto, agora MEDIDO
+
+O pacote declara: *"Aprovações, Saúde, MCP, Changelog, Integrador: medi a estrutura; **não** medi tipografia/gap por seção"*. Medido aqui, por comparação determinística de regra CSS entre `prototipo-ui/cowork/forja-page.css` e `resources/css/cowork-forja-bundle.css`, nos 61 seletores `fj-*` desta view:
+
+```
+IDENTICO=52  DIVERGE=9  SO_PROTO=0  SO_PROD=0
+```
+
+As **9** divergências são todas da MESMA família e **nenhuma muda o valor computado**: o protótipo escreve o token da escala (`var(--fs-1)`, `var(--fs-8)`…) e o bundle escreve o literal. Os dois lados definem a MESMA escala — `prototipo-ui/cowork/ds-v6/tokens.css` e `resources/css/tokens/_generated-foundations-light.css` batem em **9 de 9** valores (`--fs-1:10.5px` · `--fs-2:11.5px` · `--fs-3:12.5px` · `--fs-7:22px` · `--fs-8:28px`). Afetados: `.fj-metric-val` (28px), `.fj-metric-foot`, `.fj-gate`, `.fj-gate-fase`, `.fj-mcp-intro` (+ `code`), `.fj-flux-stat` (`b` e `span`), `.fj-rule-tx b`.
+
+**Veredito: tipografia e gap são idênticos em VALOR; a divergência é de FORMA (token × literal).** Não foi corrigida aqui por três motivos somados: o bundle é da Onda 1 (`NÃO TOCAR` nesta onda), a regra da onda é **zero CSS novo**, e o ganho visual é **nulo por medição**. Fica como dívida de conformidade de DS — o caminho da [ADR 0388](../../../../memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md), que manda conformidade virar lista, não veto.
+
+**O que este PR NÃO afirma:** que a tela está "igual ao protótipo". Isso é o T7 do pacote e exige `design-diff --compare --check` nos dois renders, com prod deployada e autenticada — não rodado aqui. O que está medido é o CSS e a estrutura declarada; o par renderizado, não.
+
 ## UC-FORJA-03 — Entry "Forja" na sidebar
 Status: ⬜ (manual/visual)
 `DataController@modifyAdminMenu` injeta o dropdown "Forja" (ícone martelo, atalho `G F`), separado do hub Equipe; os ghosts espelham os itens do topnav acima.
@@ -102,14 +134,20 @@ A aba MCP deixou de ser 100% mock: `ForjaController@mcp` projeta `cowork_handoff
 
 > **Reconciliação 2026-09-02 (duas frases deste UC ficaram stale, corrigidas aqui e não no histórico).**
 > (1) *"Levers ficam `disabled`+TODO"* — caducou na **Fase 2** ([PR-7b](https://github.com/wagnerra23/oimpresso.com/pull/2924), rota `POST /forja/handoff/{slug}/lever` → `HandoffLeverService`): elas operam, sob confirmação. O "SEM merge" segue valendo, e é Tier 0.
-> (2) *"A seção fica no topo"* — a seção **saiu** da aba em 2026-08-08 (virou `/forja/handoffs`) e **voltou** na Onda 8 (2026-09-02), agora **abaixo da intro `mockado`**, que é onde o protótipo a desenha (`forja-mcp.jsx::ForjaMCPView`). Medido no protótipo servido: `.fj-mcp` contém `.fj-ho`. O `data-testid="forja-mcp-handoffs"` foi **preservado** nas três mudanças — por isso nenhum teste deste UC quebrou. Detalhe no `UC-FORJA-15`.
+> (2) *"A seção fica no topo"* — a seção **saiu** da aba em 2026-08-08 (virou `/forja/handoffs`) e **voltou** na Onda 8 (2026-09-02), agora **abaixo da intro `mockado`**, que é onde o protótipo a desenha (`forja-mcp.jsx::ForjaMCPView`). Medido no protótipo servido: `.fj-mcp` contém `.fj-ho`. O `data-testid="forja-mcp-handoffs"` foi **preservado** nas três mudanças — por isso nenhum teste deste UC quebrou. Detalhe no `UC-FORJA-18`.
 
 ## UC-FORJA-13 — Badge `conflito` quando o ack mente sobre o gate (Gap 2 · ADR 0283)
 Status: 🧪 (7 testes de `ForjaMcpServiceTest` **citam este UC no título** — conflito em check vermelho/pendente, mantém verde com checks verdes, só cruza ack verde, degrada sem token/API/branch-protection; GitHub API mockada via `Http::fake`, sqlite lane `ci-sqlite-pest.list`. Mesmo run verde de 2026-07-27 do UC-FORJA-12; segue 🧪 pelo mesmo motivo — o ✅ é derivado do manifesto, não declarado.)
 O `gate_status` é AUTO-REPORTADO pelo [CC] e pode divergir dos required checks REAIS do PR no GitHub. `ForjaMcpService::deriveGate` cruza o ack VERDE com o estado real do PR (`PrChecksResolver` → GitHub API: PR → branch protection → check-runs). Se a realidade não está verde (vermelho/pendente) → badge `conflito` (dot destructive pulsando, drill pro PR, hint no hover). Best-effort: sem token/rede/branch-protection legível → segue o `gate_status` (comportamento da Fase 1, sem conflito falso por check advisory).
 **Pronto quando:** um handoff `applied` com `gate_status` verde + `pr_url` cujo required check está vermelho/pendente mostra `conflito ack×checks`; com checks verdes mostra `gate ok`; e a leitura nunca quebra quando o GitHub está indisponível.
 
-## UC-FORJA-15 — A view MCP é a réplica do protótipo, com o painel Handoffs dentro (PARIDADE §11 Onda 8)
+## UC-FORJA-18 — A view MCP é a réplica do protótipo, com o painel Handoffs dentro (PARIDADE §11 Onda 8)
+
+> **Renumerado de `UC-FORJA-15` para `UC-FORJA-18` em 2026-09-03 — colisão de id entre duas ondas paralelas.** A Onda 7 (Saúde, [#6572](https://github.com/wagnerra23/oimpresso.com/pull/6572), mergeada 2026-09-02T22:48:23Z) e a Onda 8 (MCP, [#6575](https://github.com/wagnerra23/oimpresso.com/pull/6575), mergeada 2026-09-03T00:41:50Z, **1h53 depois**) escolheram o MESMO id. Quem chegou depois cede: este UC virou o **18** (primeiro id livre — 01 a 17 estão todos em uso), e o `UC-FORJA-15` fica com a Saúde, que o registrou primeiro.
+>
+> **O dano era medível, não teórico:** `scripts/casos-test-results.json` — manifesto derivado do JUnit do CI (ADR 0264 G-7) — trazia `"UC-FORJA-15": { "tests": 9 }`, somando num id só os **6** `it` distintos dos dois arquivos (`ForjaSaudeServiceTest` 3 · `ForjaMcpHandoffsInlineTest` 3, este último registrado em 2 lanes). Quem fosse do teste ao contrato podia cair no UC da outra onda. **O manifesto não foi editado à mão** — é derivado, e o próximo run do CI o reparte sozinho.
+>
+> O `casos-gate` **não detecta id duplicado** hoje (medido: zero predicado de unicidade em `scripts/casos-coverage-guard.mjs`). Fica registrado como par candidato, **não armado** — [ADR 0344](../../../../memory/decisions/0344-two-strikes-cobre-processo.md) two-strikes: 1ª ocorrência conserta, não codifica; e gate novo exige FP medido antes.
 Status: 🧪 (3 testes de `ForjaMcpHandoffsInlineTest` **citam este UC no título** — `/forja/mcp` entrega `handoffs`+`heartbeat`, `/forja/handoffs` segue entregando, e as duas rotas servem a MESMA lista. Registrado nas DUAS lanes: `ci-sqlite-pest.list` (pega erro de binding; o happy-path *pula* sem schema MySQL) e a lane MySQL `forja-pest.yml`, que é quem executa. ⬜→🧪 e não ✅ porque o ✅ vem do manifesto `scripts/casos-test-results.json`, derivado do JUnit do CI — não se escreve à mão.
 **O que este Pest NÃO cobre, de propósito:** a perna **visual** (classe, mono, cor, alinhamento). Ela tem dono — `design-diff` medindo os dois renders — e um Pest que assertasse className seria régua paralela a régua consolidada ([proibicoes.md §5](../../../../memory/proibicoes.md) 2026-07-09). O Pest defende o que some em SILÊNCIO: sem as props deferidas, o `<Deferred>` fica em fallback eterno, sem erro no console.)
 
@@ -155,6 +193,19 @@ Medido em 2026-09-02 ([forja-cockpit-visual-comparison.md](../../../../../../mem
 **Badge "3" da aba Triagem é estático.** Vem de `config/core_topnavs.php` (nº de propostas-semente). O contador vivo da fila chega pela prop deferida `triagemCount`, usada no badge do sino. O topnav não suporta badge por-request hoje (`LegacyMenuAdapter::buildTopNavs` lê config estática). Quando o shell ganhar badge dinâmico, migrar o da aba.
 
 > **Rebaixado de `UC-FORJA-11` em 2026-07-27 (justificativa).** O próprio bloco se declarava "nota de fidelidade", não caso de uso: descreve uma **limitação da plataforma**, não um comportamento que o produto promete e que um teste possa defender. Vira prosa honesta — o padrão canônico pra o que não tem teste (ver [how-trabalhar.md §Pedido de tela](../../../../memory/how-trabalhar.md)).
+
+## UC-FORJA-18 — O badge de pendências vive em TODA tela do hub, não só na mesa (Onda 1 do export · §3.1)
+Status: 🧪 (7 casos de `ForjaBadgePendenciasTest` **citam este UC no título** — um por controller do hub, na lane MySQL `forja-pest.yml`. Segue 🧪 e não ✅ porque o ✅ vem do manifesto `scripts/casos-test-results.json`, derivado do JUnit do CI — não se escreve à mão.)
+
+O alvo §3.1 do export pede *"badge de pendências no destino Aprovações"*. No `forja-page.jsx:1123` o badge é renderizado no destino `hoje` em **qualquer** view: `pendencias` é estado da página inteira, não da aba aberta. É o que avisa que há algo esperando decisão enquanto você está em OUTRA tela.
+
+Até aqui só `Forja/Aprovacoes/Index` passava a prop — o badge aparecia justamente na única tela onde é redundante (a fila já está na frente) e sumia nas outras oito. O `forja-cockpit-visual-comparison.md` já tinha **medido** o efeito colateral sem nomear a causa: os **−35px** de largura do nav entre protótipo e produção, que ele classificou como *"dado (badge de pendências), não CSS"*.
+
+Os 7 controllers do hub passam a servir `pendencias` (`Inertia::defer` sobre `ForjaAprovacoesService::contagem()`, um COUNT indexado), e o `ForjaHub` lê a prop **da página** via `usePage()` — assim a próxima Page do hub nasce com o badge, em vez de a prop ser repetida nas nove. A explícita vence: `Aprovacoes/Index` já tem a fila em mãos e passa o número que ela mesma mostra, sem esperar o 2º round-trip do defer.
+
+**O que este Pest NÃO cobre, de propósito:** a perna **visual** (`fj-tab-badge`: cor, raio, posição). Ela tem dono — `design-diff` medindo os dois renders — e um Pest que assertasse className seria régua paralela a régua consolidada ([proibicoes.md §5](../../../../../../../memory/proibicoes.md) 2026-07-09). O Pest defende o que some em SILÊNCIO: apagar a linha de um controller tira o badge daquela tela sem erro, sem console, sem vermelho.
+
+**Pronto quando:** as 7 rotas do hub entregam `pendencias` no partial reload, como inteiro, com o **mesmo** valor de `ForjaAprovacoesService::contagem()`; e o badge aparece no destino Aprovações estando você em qualquer view.
 
 ## Dívida SALDADA — o Pest das rotas estava quebrado E mudo (resolvido em #4887)
 

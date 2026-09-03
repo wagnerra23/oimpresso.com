@@ -16,7 +16,9 @@ use Illuminate\Console\Scheduling\Schedule;
  * já registra TestCase pra toda pasta `tests/Feature/`. Redeclarar gera
  * "The folder already uses the test case [Tests\TestCase]" e bloqueia
  * `vendor/bin/pest --filter`. Catalogado em
- * memory/decisions/proposals/drafts/_AGENT_A_AUDIT_FINDINGS.md:210-229.
+ * memory/decisions/proposals/drafts/_AGENT_A_AUDIT_FINDINGS.md
+ * secao "## Bug ambiental Pest local" (ancora por secao: a ref de linha :210-229
+ * quebrou em 2026-09-03 quando o doc ganhou a errata da entrada 1).
  */
 
 it('agenda arquivos:health-check daily 06:30 BRT', function () {

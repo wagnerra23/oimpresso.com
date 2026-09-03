@@ -839,7 +839,47 @@ jobs:
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Manufacturing/RecipesIndexTest.php
 
-      # ── VEREDITO DOS 5 ADVISORY DE BROWSER (visibilidade, NÃO enforcement) ───────
+      # ── E2E DE RENDER POR TELA — Home/Visão geral (NASCE ADVISORY) ─────────────
+      # Buraco medido em 2026-09-03 por `node scripts/qa/screen-coverage-map.mjs`: a linha
+      # `Home` sai `Telas 1 · Charter 1 · E2E 1 · Score 1 · VRT 1 · L2 0`, e esse `E2E 1` é da
+      # UNIÃO `Browser ∪ VRT` — a perna Browser está VAZIA (`git grep "Pages/Home/Index" --
+      # tests/Browser/` = ZERO). Como o eixo `a11y` do mesmo report é
+      # `e2e.some((b) => b.hasAxe)` (screen-coverage-map.mjs:654), a tela tem `a11y=false`
+      # POR CONSTRUÇÃO enquanto nenhum teste Browser citar o path dela — e não está entre
+      # os 8/211 do agregado.
+      #
+      # O QUE ESTE STEP COBRE, e que nenhum outro alcança:
+      #   1. as âncoras `data-contract` chegam ao DOM RENDERIZADO na ordem do contrato. O
+      #      gate `contrato-de-tela` lê o FONTE (o próprio Index.tsx:287 diz isso), e a
+      #      diferença JÁ MORDEU nesta tela: o #6395 (2026-08-28) corrigiu literalmente "a
+      #      âncora do cabeçalho nunca chegou ao DOM", com o gate verde o tempo todo —
+      #      classe LC-30. O risco é estrutural: 4 das 5 âncoras estão em COMPONENTES React
+      #      e só chegam ao HTML porque `KpiGrid.tsx:61` e `layout/grid.tsx:52` espalham
+      #      `{...rest}`; trocar um deles apaga a âncora sem tocar no `Index.tsx`.
+      #   2. axe CRITICAL (level 0, o mesmo ratchet do `A11yAxeBrowserTest`).
+      #   3. todo gráfico desenhado tem a sua tabela `sr-only`. O `Chart` do DS é SVG puro:
+      #      sem alternativa textual, quem não enxerga não recebe número nenhum.
+      #
+      # NÃO semeia dado e NÃO captura screenshot: a tela JÁ tem baseline de pixel via
+      # `tests/Browser/visreg-screens.json` (âncora `Contrapartidas`) e este step não a toca.
+      # Todo caso é independente de dado, pela razão literal do step do Caixa acima.
+      #
+      # DIFERENTE de Conciliacao/Cobranca num ponto MEDIDO: a causa daqueles vermelhos
+      # (grupo de rotas sem `SetSessionData` → business 0 sob o auth-bridge) NÃO se aplica
+      # aqui — `/dashboard-legacy` (routes/web.php:527) está no grupo de routes/web.php:473,
+      # que declara `SetSessionData`. Isso é razão pra ESPERAR verde, não recibo de que
+      # ficou: o veredito sai da coluna `outcome` do step de veredito abaixo, nunca desta prosa.
+      #
+      # ADVISORY no nascimento (ADR 0261/0275): Pest Browser é CI/CT-100 only e o autor não
+      # pôde executá-lo antes do PR. Promoção a ENFORCING = REMOVER o `continue-on-error`,
+      # após 2 verdes que EXECUTARAM — `skipped` lido como verde é o presence-gate de sempre.
+      - name: E2E de render · Home/Visão geral (ADVISORY)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        id: e2e-visao-geral
+        continue-on-error: true
+        run: ./vendor/bin/pest tests/Browser/Home/VisaoGeralIndexTest.php
+
+      # ── VEREDITO DOS 6 ADVISORY DE BROWSER (visibilidade, NÃO enforcement) ───────
       # O PROBLEMA, medido em 2026-09-03: `continue-on-error: true` faz o GitHub publicar
       # `conclusion=success` NO STEP; o veredito real fica só no campo `outcome`, que nem a
       # UI de checks nem `gh pr checks` mostram. Nos runs 33747138995 e 33762382505 o step do
@@ -871,6 +911,7 @@ jobs:
           A_CAIXA: ${{ steps.e2e-caixa.outcome }}
           A_COBRANCA: ${{ steps.e2e-cobranca.outcome }}
           A_RECIPES: ${{ steps.e2e-recipes.outcome }}
+          A_VISAO_GERAL: ${{ steps.e2e-visao-geral.outcome }}
         run: |
           resumo="$(mktemp)"
           {
@@ -905,6 +946,7 @@ jobs:
           registrar "E2E de render · Financeiro/Caixa" "$A_CAIXA"
           registrar "E2E de render · Financeiro/Cobranca" "$A_COBRANCA"
           registrar "E2E de render · Manufacturing/Recipes" "$A_RECIPES"
+          registrar "E2E de render · Home/Visao geral" "$A_VISAO_GERAL"
 
           {
             echo ""
