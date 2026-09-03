@@ -4,7 +4,7 @@
 //   stories: US-FISCAL-010 (SPED placeholder), US-FISCAL-016 (gerador EFD-ICMS/IPI MVP — PR #8)
 //   adrs: 0093, 0094, 0101, 0104
 
-import { Inline } from '@/Components/layout';
+import { Inline, Stack } from '@/Components/layout';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -322,32 +322,38 @@ export default function Sped({ periodos, notice, previaTxt }: SpedProps) {
                         : 'Geração bloqueada'}
                     </AlertTitle>
                     <AlertDescription>
-                      <ul className="mt-1 flex flex-col gap-1.5">
-                        {(preview.checagens ?? []).map((c) => (
-                          <li key={c.id} className="flex items-start gap-2">
-                            {c.ok ? (
-                              <CheckCircle2 size={13} aria-hidden className="mt-0.5 shrink-0" />
-                            ) : (
-                              <XCircle size={13} aria-hidden className="mt-0.5 shrink-0" />
-                            )}
-                            <span>
-                              <b>{c.rotulo}</b> — <span>{c.ok ? 'aprovado' : 'reprovado'}</span>
-                              <br />
-                              <small>{c.motivo}</small>
-                            </span>
-                          </li>
-                        ))}
-                        {preview.notasAutorizadas === 0 && (
-                          <li className="flex items-start gap-2">
-                            <XCircle size={13} aria-hidden className="mt-0.5 shrink-0" />
-                            <span>
-                              <b>Notas autorizadas no período</b> — <span>reprovado</span>
-                              <br />
-                              <small>Sem notas autorizadas no período</small>
-                            </span>
-                          </li>
-                        )}
-                      </ul>
+                      <Stack asChild gap={1}>
+                        <ul className="mt-1">
+                          {(preview.checagens ?? []).map((c) => (
+                            <Inline key={c.id} asChild align="start" gap={2}>
+                              <li>
+                                {c.ok ? (
+                                  <CheckCircle2 size={13} aria-hidden className="mt-0.5 shrink-0" />
+                                ) : (
+                                  <XCircle size={13} aria-hidden className="mt-0.5 shrink-0" />
+                                )}
+                                <span>
+                                  <b>{c.rotulo}</b> — <span>{c.ok ? 'aprovado' : 'reprovado'}</span>
+                                  <br />
+                                  <small>{c.motivo}</small>
+                                </span>
+                              </li>
+                            </Inline>
+                          ))}
+                          {preview.notasAutorizadas === 0 && (
+                            <Inline asChild align="start" gap={2}>
+                              <li>
+                                <XCircle size={13} aria-hidden className="mt-0.5 shrink-0" />
+                                <span>
+                                  <b>Notas autorizadas no período</b> — <span>reprovado</span>
+                                  <br />
+                                  <small>Sem notas autorizadas no período</small>
+                                </span>
+                              </li>
+                            </Inline>
+                          )}
+                        </ul>
+                      </Stack>
                     </AlertDescription>
                   </Alert>
                 </div>
