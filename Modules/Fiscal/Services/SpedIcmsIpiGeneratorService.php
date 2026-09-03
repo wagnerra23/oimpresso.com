@@ -212,7 +212,14 @@ class SpedIcmsIpiGeneratorService
         $qtdNoveCemNoveCem = count($regsExistentes) + 3;
 
         foreach ($regsExistentes as $reg => $cnt) {
-            $linhas[] = $this->registro9900($reg, $cnt);
+            // (string) obrigatorio: PHP coage chave de array numerica canonica
+            // para int ('9001'/'9900'/'9990'/'9999' viram integer; '0000' e
+            // 'C100' ficam string por causa do zero a esquerda / da letra).
+            // Sem o cast, registro9900(string $reg) recebe int e lanca
+            // TypeError — o gerador NUNCA chegava ao fim (medido 2026-09-03,
+            // CT 100, ao produzir o golden do UC-FSF1-05). Zero efeito no
+            // conteudo: o valor emitido e o mesmo de antes.
+            $linhas[] = $this->registro9900((string) $reg, $cnt);
         }
         $linhas[] = $this->registro9900('9900', $qtdNoveCemNoveCem);
         $linhas[] = $this->registro9900('9990', 1);
@@ -239,6 +246,31 @@ class SpedIcmsIpiGeneratorService
                 "Cross-tenant attempt: session biz={$sessionBiz} tentou gerar SPED biz={$businessId}"
             );
         }
+
+        // UC-FSF1-03 — competencia em aberto e recusada AQUI, antes de qualquer
+        // query. O registro 0000 declara DT_INI/DT_FIN do periodo de apuracao
+        // (Guia Pratico EFD-ICMS/IPI v3.1.1, perfil A, COD_VER 018): um mes que
+        // ainda nao terminou produziria um arquivo com movimento parcial se
+        // apresentando como a apuracao fechada daquele periodo. Ate esta onda,
+        // so a TELA bloqueava; o Service aceitava.
+        if (! $this->competenciaFechada($ano, $mes)) {
+            throw new InvalidArgumentException(
+                "Competencia em aberto: {$mes}/{$ano} ainda nao encerrou. "
+                . 'A EFD so pode ser gerada apos o ultimo dia do periodo de apuracao (DT_FIN do registro 0000).'
+            );
+        }
+    }
+
+    /**
+     * Competencia fechada = o ultimo instante do mes ja passou.
+     *
+     * Nao confundir com PRAZO DE ENTREGA: o prazo e fixado por cada UF e nao
+     * entra aqui (charter Fiscal/Sped: "NAO sugerir prazo de entrega via cron
+     * auto"). Fechada fala so do periodo de apuracao ter terminado.
+     */
+    private function competenciaFechada(int $ano, int $mes): bool
+    {
+        return CarbonImmutable::create($ano, $mes, 1)->endOfMonth()->isPast();
     }
 
     /**
