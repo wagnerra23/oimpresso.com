@@ -56,6 +56,41 @@ function plataformaBootstrap(): array
     return [$business, $user];
 }
 
+/**
+ * A entry da Jana no `shell.menu` é gated pela ASSINATURA (Camada 1 — `jana_module` no
+ * `package_details`, `ModuleUtil::hasThePermissionInSubscription`), não só pela permission.
+ * O tenant do seed pode não ter assinatura: garantimos uma (transação, rollback no fim) —
+ * é o mesmo eixo que o `JanaPlanoTierTest` escreve. Sem isto o UC-00 media o pacote, não a aba.
+ */
+function plataformaGaranteAssinaturaJana(Business $business, User $user): void
+{
+    if (! class_exists(\Modules\Superadmin\Entities\Subscription::class)) {
+        return; // sem Superadmin, `hasThePermissionInSubscription` devolve true sozinho
+    }
+
+    $sub = \Modules\Superadmin\Entities\Subscription::active_subscription($business->id);
+
+    if (! $sub) {
+        $pkg = \Modules\Superadmin\Entities\Package::query()->first()
+            ?: \Modules\Superadmin\Entities\Package::query()->forceCreate([
+                'name' => 'Pacote de teste (Jana)', 'description' => 'fixture', 'location_count' => 0,
+                'user_count' => 0, 'product_count' => 0, 'invoice_count' => 0, 'interval' => 'months',
+                'interval_count' => 1, 'trial_days' => 0, 'price' => 0, 'custom_permissions' => [],
+                'created_by' => $user->id, 'is_active' => 1,
+            ]);
+        $sub = \Modules\Superadmin\Entities\Subscription::query()->forceCreate([
+            'business_id' => $business->id, 'package_id' => $pkg->id,
+            'start_date' => now()->subDay()->toDateString(), 'end_date' => now()->addMonth()->toDateString(),
+            'package_price' => 0, 'package_details' => [], 'created_id' => $user->id, 'status' => 'approved',
+        ]);
+    }
+
+    $detalhes = (array) ($sub->package_details ?? []);
+    $detalhes['jana_module'] = 1;
+    $sub->package_details = $detalhes;
+    $sub->save();
+}
+
 function plataformaGhosts(array $props): array
 {
     $jana = collect($props['shell']['menu'] ?? [])
@@ -65,7 +100,8 @@ function plataformaGhosts(array $props): array
 }
 
 it('UC-PLAT-00: sem jana.superadmin REAL a rota dá 403 e a aba não existe; com ela, 200 e 6ª aba', function () {
-    [, $user] = plataformaBootstrap();
+    [$business, $user] = plataformaBootstrap();
+    plataformaGaranteAssinaturaJana($business, $user);
 
     // MORDE: sem a permissão atribuída, 403 — mesmo que `can()` dissesse true (Gate::before).
     $this->get('/ia/superadmin/metas')->assertStatus(403);
