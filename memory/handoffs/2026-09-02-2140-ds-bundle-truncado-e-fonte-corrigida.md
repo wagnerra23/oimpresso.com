@@ -10,8 +10,9 @@
 
 O bundle v2 **não desceu** — e agora o bloqueio tem número em vez de impressão; as inconsistências
 da Forja cuja receita era "na fonte" foram **aplicadas na fonte do Cowork** e desceram pelo
-`--export-from`, levando a lista de **123 → 121** (`FONTRAMP 291 → 192`, `SINTAXE` e `IMPORTANT`
-zerados).
+`--export-from`, tirando as linhas `SINTAXE` e `IMPORTANT` da lista e cortando o `FONTRAMP` de
+**291 → 192**. (O total absoluto não entra aqui: é o denominador da Forja inteira e mudou 4× em um
+dia — 101 → 107 → 123 → 126. O delta é o que a mudança causa; o total, rode o comando.)
 
 ## O que está pronto (2 PRs empilhados, a partir de `origin/main` fresco)
 

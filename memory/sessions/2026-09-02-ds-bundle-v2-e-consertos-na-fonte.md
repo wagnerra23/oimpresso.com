@@ -16,7 +16,7 @@ related_adrs: ["0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias
 
 O bundle v2 **não desceu** e o bloqueio agora tem número (`get_file` corta em 262.144 B com
 `truncated:true`, e o `sync/` que existe é o lote de 24/08); as inconsistências cuja receita era
-"na fonte" foram **aplicadas na fonte** e a lista caiu de **123 → 121**, com `FONTRAMP 291 → 192`.
+"na fonte" foram **aplicadas na fonte** e a lista perdeu as linhas `SINTAXE` e `IMPORTANT` e o `FONTRAMP` caiu **291 → 192**.
 
 ## Base
 
@@ -58,7 +58,12 @@ Nada foi escrito no espelho por causa disso — e a guarda funcionou sozinha:
 
 Escrevi no projeto Cowork ERP e desci por `get_file` → `--export-from`. **Nada transcrito**: o
 conteúdo saiu do dado, por script, e o vivo pós-push bateu byte a byte com o que gerei nas duas
-rodadas. Lista regenerada pela máquina: **123 → 121**.
+rodadas. Lista regenerada pela máquina: **−2 linhas** (`SINTAXE`, `IMPORTANT`) e `FONTRAMP 291 → 192`.
+
+> ⚠️ **Não cito o total absoluto de propósito.** Ele é o denominador da Forja inteira e se moveu
+> quatro vezes em um dia — 101 (cabeçalho do pedido) → 107 (com o `.css` no comando) → 123 (o #6569
+> passou a cobrir ESLint `ds/*`) → 126 (quatro PRs da Forja entraram na madrugada). O que a minha
+> mudança causa é o delta acima, e **esse** não se mexe. Pra o número do dia, rode o comando.
 
 | regra | antes | depois | quem |
 |---|---:|---:|---|

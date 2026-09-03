@@ -38,12 +38,15 @@ Linha no `github.md` ("inconsistências Forja: N → M") + **bundle regenerado**
 > (ADR 0315). O Code escreveu no projeto Cowork ERP (`019dcfd3-…`) e desceu pro espelho por
 > `get_file` → `--export-from` (ADR 0374). Nada foi transcrito: o conteúdo saiu do dado, por script.
 
-**Lista: 123 → 121** (`replica-inconsistencias.mjs`, mesmo comando do cabeçalho + o `.css`).
+**Lista: −2 linhas (`SINTAXE`, `IMPORTANT`) e `FONTRAMP` 291 → 192** (`replica-inconsistencias.mjs`,
+mesmo comando do cabeçalho + o `.css`).
 
-> ⚠️ O denominador NÃO é mais o 101 do cabeçalho deste pedido: o [#6569](https://github.com/wagnerra23/oimpresso.com/pull/6569)
-> estendeu o reporter pros avisos ESLint `ds/*` e a Forja passou a **117** sem o `.css`. Com o `.css`
-> no comando (como o cabeçalho manda), a base virou **123**. Medi rodando o mesmo comando contra o
-> `forja-page.css` de `origin/main`, pra o antes→depois falar da mesma régua nos dois lados.
+> ⚠️ **Esqueça o total absoluto — inclusive o 101 do cabeçalho deste pedido.** Ele é o denominador da
+> Forja inteira e se moveu **quatro vezes em 24h**: 101 (aqui) → 107 (com o `.css` no comando) → 123
+> (o [#6569](https://github.com/wagnerra23/oimpresso.com/pull/6569) passou a cobrir os avisos ESLint
+> `ds/*`) → 126 (quatro PRs da Forja entraram na madrugada de 02→03/09). Citar o par antes→depois
+> apodrece em horas. O que a correção causa é o delta acima, e ele não se mexe. Pro número do dia,
+> **rode o comando** — é a porta viva.
 
 | regra | antes | depois | quem fez |
 |---|---:|---:|---|
