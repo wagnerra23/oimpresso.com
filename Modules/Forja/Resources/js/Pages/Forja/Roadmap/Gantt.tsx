@@ -697,7 +697,9 @@ function RoadmapGantt(props: Props) {
               do protótipo (lá `fjGanttRange` deriva as datas de um hash do id — é
               mock, e copiá-lo seria dado fantasma). Consequência medida em produção
               em 2026-09-03: só **7 de 1186** tasks têm `due_date`, então este contador
-              costuma ficar em 0. Isso é a verdade do dado, não um bug do contador. */}
+              MEDIDO em prod 2026-09-03: mostra **5** — das 7 com prazo, 5 já
+              venceram. (A versão anterior deste comentário previa "0"; era
+              afirmação sem medição, e o smoke a corrigiu.) */}
           <div className="fj-totalbar fj-g-foot" data-testid="gantt-totalbar">
             <span><b>{tasks.length}</b> tarefa{tasks.length === 1 ? '' : 's'}</span>
             <span className="fj-total-warn"><b data-testid="gantt-vencidas">{vencidas}</b> com prazo vencido</span>
