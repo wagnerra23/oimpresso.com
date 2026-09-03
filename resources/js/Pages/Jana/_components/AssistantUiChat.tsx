@@ -15,7 +15,10 @@
 // v0.10 da lib só exporta primitives (não Thread pré-cozido) — então a gente
 // compõe nossa própria Thread aqui, com nossas classes Tailwind 4.
 
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import {
+  useCallback, useEffect, useRef, useState,
+  type ReactNode, type RefObject,
+} from 'react';
 import {
   AssistantRuntimeProvider,
   useExternalStoreRuntime,
@@ -31,7 +34,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { router } from '@inertiajs/react';
 import { toast } from 'sonner';
-import { ArrowDown, ArrowUp, Square } from 'lucide-react';
+import { ArrowDown, ArrowUp, Coins, Compass, Square, Target } from 'lucide-react';
 
 // ---- Tipos do nosso backend Laravel -----------------------------------
 
@@ -81,6 +84,24 @@ function getCsrfToken(): string {
 }
 
 // ---- Componentes Compondo Thread ---------------------------------------
+
+// ── Onda 3b da paridade × `jana-merge.jsx` §JmConversa ────────────────────
+//
+// Copy LITERAL do protótipo (`chat-jana.jsx`, o `ConverseComJana` que a âncora
+// §JmConversa renderiza dentro de `.jm-conv-thread`). Dois espaços antes do
+// parêntese são os do arquivo-fonte — copy é lei [W], inclusive o espaçamento.
+export const COMPOSER_PLACEHOLDER =
+  'Pergunte algo à Jana sobre vendas, OS, financeiro…  ( / para focar )';
+
+// Os 3 chips de `data.suggestions` (`.jc-sugg-chip`), com os mesmos ícones.
+// A âncora só os mostra com a thread já iniciada (`!empty`) — antes disso ela
+// desenha os prompts grandes, que aqui são o `QuickPrompts`. Por isso os dois
+// não competem: um é o vazio, o outro é a conversa em andamento.
+export const SUGESTOES_RAPIDAS = [
+  { Icone: Coins,   label: 'Quem deve mais?'      },
+  { Icone: Compass, label: 'Onde estou perdendo?' },
+  { Icone: Target,  label: 'Quais ações hoje?'    },
+] as const;
 
 const SUGESTOES_DEFAULT = [
   'Qual o faturamento de hoje?',
@@ -262,13 +283,73 @@ function ScrollToBottomBtn() {
   );
 }
 
+/**
+ * Chips de sugestão abaixo do composer (`.jc-sugg` da âncora).
+ *
+ * UC-JPAIN-16 por analogia — *nenhum botão novo nasce clicável sem fazer nada*:
+ * cada chip é um `ThreadPrimitive.Suggestion` com `autoSend`, o MESMO mecanismo
+ * que o `QuickPrompts` acima já usa. Nenhum endpoint novo: clicar manda a
+ * pergunta pelo `onNew` do runtime, que é quem fala com o `/mensagens/stream`.
+ */
+function SugestoesRapidas() {
+  return (
+    <div className="mt-[11px] flex flex-wrap gap-[7px]" data-jana-sugestoes>
+      {SUGESTOES_RAPIDAS.map(({ Icone, label }) => (
+        <ThreadPrimitive.Suggestion
+          key={label}
+          prompt={label}
+          method="replace"
+          autoSend
+          className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted px-3 py-1.5 text-[11.5px] font-medium text-muted-foreground transition hover:border-ring hover:bg-card hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          <Icone className="h-[13px] w-[13px]" aria-hidden />
+          {label}
+        </ThreadPrimitive.Suggestion>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * `/` foca o composer, `Esc` desfoca — Charter §Goals (*"Atalhos teclado: `/`
+ * foca composer (…) `Esc` desfoca"*) e §JmConversa da âncora, que carrega a
+ * regra por escrito: *"os rótulos já prometem — atalho que não funciona é rótulo
+ * mentindo"*. O placeholder passa a anunciar `( / para focar )`, então o binding
+ * é obrigatório: sem ele o próprio texto do campo seria a promessa vazia que a
+ * LC-15 cataloga.
+ *
+ * O alvo é buscado no DOM (e não por `ref` no `ComposerPrimitive.Input`) porque
+ * quem renderiza o `<textarea>` é a lib; o wrapper é nosso e é estável.
+ */
+function useAtalhoFocoComposer(alvoRef: RefObject<HTMLDivElement | null>) {
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const ta = alvoRef.current?.querySelector('textarea') ?? null;
+      if (!ta) return;
+      const el = document.activeElement as HTMLElement | null;
+      const digitando =
+        !!el &&
+        (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
+
+      if (e.key === '/' && !digitando && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        ta.focus();
+        return;
+      }
+      if (e.key === 'Escape' && el === ta) ta.blur();
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [alvoRef]);
+}
+
 function Composer() {
   return (
     <ComposerPrimitive.Root className="relative flex w-full items-end gap-2 rounded-lg border border-border bg-card p-2 shadow-sm focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-1 focus-within:ring-offset-background">
       <ComposerPrimitive.Input
         autoFocus
         rows={1}
-        placeholder="Pergunte algo à Jana…"
+        placeholder={COMPOSER_PLACEHOLDER}
         className="min-h-[40px] max-h-[40vh] flex-1 resize-y bg-transparent px-2 py-2 text-sm leading-relaxed outline-none placeholder:text-muted-foreground"
       />
       <ThreadPrimitive.If running={false}>
@@ -310,6 +391,9 @@ export function JanaAssistantUiChat({
   );
   const [isRunning, setIsRunning] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+  const composerRef = useRef<HTMLDivElement | null>(null);
+
+  useAtalhoFocoComposer(composerRef);
 
   // Sync mensagens quando vier partial reload (após stream salvo no DB)
   useEffect(() => {
@@ -451,8 +535,14 @@ export function JanaAssistantUiChat({
 
         {belowThread}
 
-        <div className="shrink-0 border-t border-border bg-background/80 px-4 py-3 backdrop-blur">
+        <div
+          ref={composerRef}
+          className="shrink-0 border-t border-border bg-background/80 px-4 py-3 backdrop-blur"
+        >
           <Composer />
+          {/* Onda 3b: chips só com a conversa em andamento — no vazio quem
+              aparece é o `QuickPrompts`, como na âncora. */}
+          {hasUserMessage && <SugestoesRapidas />}
         </div>
       </ThreadPrimitive.Root>
     </AssistantRuntimeProvider>
