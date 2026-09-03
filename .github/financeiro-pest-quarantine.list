@@ -78,7 +78,6 @@ Modules/Financeiro/Tests/Feature/CashRegisterBridgeFinanceiroTest.php  # 6 faile
 Modules/Financeiro/Tests/Feature/Onda22AnexosPillPermissionTest.php  # 3 failed, 1 skipped, 7 passed (26 assertions) — ex-B
 Modules/Financeiro/Tests/Feature/TransactionPaymentInertiaSmokeTest.php  # 7 failed, 1 passed (8 assertions) — ex-B
 Modules/Financeiro/Tests/Unit/FinanceiroAuditLoggerTest.php  # 4 failed, 1 passed (8 assertions) — ex-B
-Modules/Financeiro/Tests/Feature/CobrancaControllerTest.php  # 4 failed, 11 passed (51 assertions)
 Modules/Financeiro/Tests/Feature/DreControllerTest.php  # 4 failed, 7 passed (103 assertions)
 Modules/Financeiro/Tests/Feature/FluxoRealizadoControllerTest.php  # 6 failed, 4 passed (42 assertions)
 Modules/Financeiro/Tests/Feature/ResyncFromCoreCommandTest.php  # 4 failed, 1 passed (1 assertions)
@@ -256,7 +255,13 @@ Modules/Financeiro/Tests/Feature/Onda23OcrBoletoTest.php  # VOLTOU 2026-08-03 �
 # de permissão. 20+ arquivos que RODAM na lane mexem em permissão
 # (givePermissionTo/revokePermissionTo/syncPermissions/assignRole). O padrão mais
 # perigoso é `syncPermissions`, que SUBSTITUI o conjunto do role em vez de somar
-# — CobrancaControllerTest:45 faz isso, mas segue quarentenado, então não é ele.
+# — CobrancaControllerTest:45 faz isso, mas estava FORA do run-set naquele run,
+# então não era ele. (Fato datado preservado; o ponteiro é que apodreceu: ele SAIU
+# da quarentena em 2026-09-03, PR #6649. Medido no run 33765806568, com ele dentro
+# e `RODANDO: 63`: os outros deram 374 passed — o `syncPermissions` não envenenou
+# ninguém. Ele segue sendo o ÚNICO do run-set que usa esse verbo: os demais mexem
+# em permissão só por `givePermissionTo`, que SOMA. Contado no mesmo dia:
+# syncPermissions 0 · assignRole 0 · setPermissionsTeamId 0 · role "Admin#" 0.)
 # Identificar o vazador exige rodar a lane com seed fixo e bisseccionar. NÃO FIZ.
 #
 # O QUE ISTO NÃO É: não é defeito do fix do #5200. Aquele fix (tornar a ausência
