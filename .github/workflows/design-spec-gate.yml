@@ -13,12 +13,20 @@ on:
   push:
     branches: [main]
     paths:
+      # Raizes de Pages: o nucleo E o modulo dono (Modules/<X>/Resources/js/Pages).
+      # Sem a 2a raiz aqui, um PR que so toque Modules/ nao dispara este workflow e,
+      # com skip-as-pass, sai VERDE sem ter medido nada. Espelha raizesDePages
+      # (scripts/qa/page-path.mjs), que aceita as duas grafias de Resources.
       - 'resources/js/Pages/**'
+      - 'Modules/*/Resources/js/Pages/**'
+      - 'Modules/*/resources/js/Pages/**'
       - 'scripts/design-spec-gen.mjs'
       - '.github/workflows/design-spec-gate.yml'
   pull_request:
     paths:
       - 'resources/js/Pages/**'
+      - 'Modules/*/Resources/js/Pages/**'
+      - 'Modules/*/resources/js/Pages/**'
       - 'scripts/design-spec-gen.mjs'
       - '.github/workflows/design-spec-gate.yml'
 
