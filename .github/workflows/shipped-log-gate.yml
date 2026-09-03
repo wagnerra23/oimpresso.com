@@ -29,6 +29,10 @@ on:
     - cron: '0 12 * * *'   # 09:00 BRT — backstop diário
   workflow_dispatch:
 
+concurrency:
+  group: shipped-log-gate-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
