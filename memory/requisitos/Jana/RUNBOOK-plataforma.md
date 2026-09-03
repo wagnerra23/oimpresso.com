@@ -231,11 +231,22 @@ lista renderizada, não total de plataforma. O que a plataforma quer medir é **
   `SuperadminMetasCrossTenantTest.php` (#6421) cobre as 2 portas, o 403 do dono e o **controle
   positivo** de que `can()` é `true` (sem ele o 403 poderia vir de outra trava). O que falta é
   baseline do **payload**: hoje a Blade recebe `$metasPlataforma` e `$metasDeClientes`.
-- **PR-1 · a tela** — `Inertia::render('Jana/Plataforma')` no lugar do `view()`, `Plataforma.tsx`
-  no PT-01, trio (charter + casos + contrato de tela) pelo `criar-tela.mjs` com `--prototipo`, e
-  o ghost `plataforma` na faixa com o **mesmo predicado das duas portas**.
-- **PR-2 · cutover** — remover `superadmin/metas.blade.php`, lápide no lugar.
-  ⚠️ **Só depois de o smoke do §8 passar em produção.**
+- **PR-1 · a tela + cutover** — `Inertia::render('Jana/Plataforma')` no lugar do `view()`,
+  `Plataforma.tsx` no PT-01, trio (charter + casos + contrato de tela) pelo `criar-tela.mjs` com
+  `--prototipo`, o ghost `plataforma` na faixa com o **mesmo predicado das duas portas**, e a
+  remoção de `superadmin/metas.blade.php`.
+
+  > **Emenda 2026-09-03 — o cutover era PR-2 e virou o mesmo PR.** Duas razões, e nenhuma é
+  > pressa: (a) **precedente do módulo, da mesma semana** — o [#6607](https://github.com/wagnerra23/oimpresso.com/pull/6607)
+  > entregou a aba Alertas e apagou a `alertas/index.blade.php` no mesmo PR; abrir exceção aqui
+  > seria divergir do irmão sem motivo; (b) trocado o `view()` pelo `Inertia::render`, a Blade é
+  > **órfã imediata** — varredura contada em 2026-09-03: nenhum consumidor de código, só a rota
+  > (que fica) e prosa histórica em docs. Deixá-la seria código morto que a próxima sessão não
+  > sabe se pode apagar.
+  >
+  > O argumento que sustentava o PR-2 — *"só depois do smoke"* — **não se sustenta**: revert de
+  > PR é atômico no git, então a Blade voltaria junto com o controller de qualquer forma. Ela
+  > nunca foi rede de segurança separada.
 
 **Fora destas ondas, e nomeado:** a seção "Instalação do módulo" (§3.2 item 2) — F1 própria,
 rota `/ia/install`, superfície destrutiva.

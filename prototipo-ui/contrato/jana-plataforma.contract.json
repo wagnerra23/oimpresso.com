@@ -1,0 +1,45 @@
+{
+  "_nota": "Contrato de tela de Jana/Plataforma (/ia/superadmin/metas), F3 do MWART em 2026-08-31. Gerado por criar-tela.mjs a partir do PT-01 e depois ajustado para as seções REAIS: a tela não tem faixa de filtros (a seção `filtros` do arquétipo saiu) e tem DUAS listas em seções, não uma. Roda em `node scripts/contrato-de-tela.mjs --contract <este-arquivo>`, no mesmo job que já varre todos os *.contract.json.",
+  "_nota_copy": "A copy abaixo NÃO é decisão nova de [W]: é o contrato JÁ EM PRODUÇÃO, transcrito literal da view Blade que esta tela substitui (Modules/Jana/Resources/views/superadmin/metas.blade.php) e inventariado no RUNBOOK-plataforma.md §3. Pinar aqui é o que impede a migração de reescrever a tela em silêncio — em especial as DUAS copies de vazio, que são o que a tela de fato mostra em produção hoje (jana_metas = 0 linhas, medido em 31/08/2026). Copy NOVA continua sendo decisão [W].",
+  "tela": "Jana/Plataforma",
+  "fonte": "prototipo-ui/cowork/jana-telas-novas.jsx",
+  "alvo": [
+    "resources/js/Pages/Jana/Plataforma.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "cabecalho",
+      "copy": []
+    },
+    {
+      "id": "metas-plataforma",
+      "copy": [
+        "Metas da plataforma (business_id NULL)",
+        "Nome",
+        "Unidade",
+        "Origem",
+        "Nenhuma meta da plataforma cadastrada."
+      ]
+    },
+    {
+      "id": "metas-clientes",
+      "copy": [
+        "Metas de clientes (cross-business)",
+        "Business",
+        "Período atual",
+        "Última apuração",
+        "Nenhum cliente configurou metas ainda.",
+        "nunca apurada"
+      ]
+    }
+  ],
+  "ordem": [
+    "cabecalho",
+    "metas-plataforma",
+    "metas-clientes"
+  ],
+  "_pendente_w": [
+    "ESTADOS — a tela tem os três (vazio · carregando · erro) e eles são reais, não decorativos: o vazio é a copy literal da Blade; o carregando é `<Deferred fallback>` de verdade, porque as duas props vêm por `Inertia::defer`; o erro só aparece se a prop deferida voltar com forma inesperada. Declarar `estados` no contrato exige que [W] fixe a copy dos dois últimos — a do vazio já está pinada acima.",
+    "A seção `cabecalho` fica com `copy: []` de propósito: quem a renderiza é o `JanaAreaHeader` compartilhado (título e abas vêm dele e do shell.menu do servidor), então pinar string aqui cobraria de um componente que não é desta tela."
+  ]
+}

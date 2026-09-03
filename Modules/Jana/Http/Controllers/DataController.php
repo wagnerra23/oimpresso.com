@@ -335,6 +335,26 @@ class DataController extends Controller
                             // do ghost `kb` neste mesmo bloco em 2026-08-05 (ADR 0366). A key
                             // `memorias` fica: é o alvo do `mapActiveToGhostKey('memoria')`.
                             ['key' => 'memorias',  'label' => 'Memória',  'href' => '/ia/memoria'],
+                            // Plataforma — /ia/superadmin/metas. Entrou em 2026-08-31, quando a
+                            // tela deixou de ser Blade (RUNBOOK-plataforma.md). Antes disso ela
+                            // NÃO podia estar aqui pela mesma razão literal que tirou o ghost
+                            // `metas` logo abaixo: controller devolvendo Blade faz o `<Link>` do
+                            // PageHeaderTabs silenciar (click no-op).
+                            //
+                            // ⛔ O predicado é `SuperadminController::podeVerPlataforma`, NÃO
+                            // `can('jana.superadmin')`. O `Gate::before` (AuthServiceProvider:34-47)
+                            // devolve true em qualquer ability pra quem tem `Admin#{business_id}`,
+                            // então `can()` acenderia esta aba pra TODO dono de negócio — que
+                            // levaria 403 ao clicar, porque a rota usa as duas portas reais.
+                            // Aba visível que não abre é pior que aba ausente.
+                            //
+                            // É de propósito que o item do dropdown legacy (mais acima neste
+                            // arquivo) siga com `can(...)`: mudá-lo altera quem enxerga o menu
+                            // hoje e é decisão [W], não conserto de passagem. O ghost é código
+                            // novo — nasce com o predicado certo.
+                            ...(SuperadminController::podeVerPlataforma(auth()->user())
+                                ? [['key' => 'plataforma', 'label' => 'Plataforma', 'href' => '/ia/superadmin/metas']]
+                                : []),
                             // Ghost 'kb' removido 2026-08-05 ([W]: "governança, KB, saem"):
                             // `/ia/kb` é `Route::redirect(…, '/kb', 302)` — apontava pro
                             // redirect de uma tela que é do Modules/KB e tem entrada própria.

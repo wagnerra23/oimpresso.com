@@ -191,6 +191,8 @@ jobs:
             Modules/Jana/Tests/Feature/FarolServerSideTest.php \
             Modules/Jana/Tests/Feature/PainelContratoTest.php \
             Modules/Jana/Tests/Feature/AlertasContratoTest.php \
+            Modules/Jana/Tests/Feature/SuperadminPlataformaContratoTest.php \
+            Modules/Jana/Tests/Feature/SuperadminMetasCrossTenantTest.php \
             Modules/Jana/Tests/Feature/Chat/ChatConversasPreviewTest.php \
             Modules/Jana/Tests/Feature/Chat/ChatAntiHooksAcaoTest.php \
             Modules/Jana/Tests/Feature/Mcp/IndexarMemoryGitShaPreservaTest.php \
@@ -259,6 +261,34 @@ jobs:
             Modules/Jana/Tests/Feature/ProPreviewPermissaoTest.php \
             Modules/Jana/Tests/Feature/Http/MemoriaPermissaoTest.php \
             Modules/Jana/Tests/Feature/Telemetry/LlmHttpCallSitesLangfuseTest.php
+          #
+          # ══ 2026-09-03 — a tela Plataforma entra, e traz o órfão que a cobria ══
+          #
+          # DOIS arquivos, e o segundo é o ponto:
+          #  · SuperadminPlataformaContratoTest — novo, nasce com a tela
+          #    (`/ia/superadmin/metas` virou Inertia `Jana/Plataforma`). Registrar o
+          #    teste no repo NÃO é a lane executá-lo — a lição do PainelContratoTest,
+          #    repetida aqui de propósito.
+          #  · SuperadminMetasCrossTenantTest — criado pelo #6421 (P0 Tier 0: a rota
+          #    entregava metas de TODOS os tenants pro dono de qualquer negócio) e
+          #    ÓRFÃO desde então: não estava aqui nem em .github/ci-sqlite-pest.list,
+          #    e ele SKIPA em sqlite por desenho (`markTestSkipped` no driver). Ou
+          #    seja, o teste do vazamento nunca teve veredito de CI. Ele cobre a MESMA
+          #    rota cujo gate o PR da Plataforma altera — deixá-lo mudo enquanto se
+          #    mexe no controller seria mexer sem rede.
+          #
+          # Elegíveis pela regra desta allowlist, medido nos dois: DatabaseTransactions,
+          # zero RefreshDatabase / migrate:fresh / dropIfExists. Usam o tenant canônico
+          # biz=98 (ADR 0358) + adversário 99 — e o `pest-mysql-setup` provisiona o 98
+          # (linhas 156-167 da action), então não skipam por tenant ausente.
+          #
+          # ⚠️ ENTRAM SEM VEREDITO DESTA LANE, e isso é declarado, não omitido: o CT 100
+          # estava fora (502 no Tailscale) quando o PR foi montado, e esta lane só roda
+          # no CI. O veredito é o do próprio PR. Se algum reprovar por AMBIENTE — o caso
+          # do ProContractTest, que passava no CT 100 e dava 403 aqui porque a DB de lá é
+          # persistente e esta semeia o mínimo — ele sai com a razão registrada, como
+          # aquele saiu. O critério de aceite é o da leva anterior: `assertions > 0` com
+          # zero failure/error, porque `0 failed` não prova execução (LC-13).
           #
           # ══ LEVA 2026-08-26 — 59 órfãos da Jana entram de uma vez ═══════════
           #
