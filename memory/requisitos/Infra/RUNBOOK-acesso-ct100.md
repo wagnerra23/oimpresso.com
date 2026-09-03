@@ -326,6 +326,31 @@ exit=1
 ⚠️ **Não leia o `exit` através de um pipe.** `... --entrega | tail` devolve o código do `tail`
 (medido nesta sessão: `rc=0` com o script saindo **1**). Rode sem pipe, ou use `PIPESTATUS`.
 
+#### Esses 2 vermelhos NÃO são do outage — e não se apagam bumpando data
+
+Diagnosticado em **2026-09-03**, seguindo o que o próprio gate manda (*"varra os escritores do
+path — sem escritor, não é (a)"*). Vale registrar porque eles reprovam o check advisory
+**`crons de governança vivos? (watchdog G6 · ADR 0317)`** em **todo PR aberto**, e a leitura fácil
+— *"o outage quebrou isto"* — está errada:
+
+| Artefato | Quem escreve | Veredito |
+|---|---|---|
+| `governance/jana-ragas-real-baseline.json` | **ninguém automático** — o `JanaRagasRealEvalCommand` **LÊ** dali (é o dono único dos pisos, US-COPI-136) | curado à mão |
+| `governance/jana-ragas-baseline.json` | só `jana-ragas-canary.yml` em **`workflow_dispatch` manual** (`--update-baseline`, input rotulado *"use após calibrar"*), via auto-PR | curado à mão |
+
+Logo é o **caso (b)** do gate — *artefato curado à mão cuja revisão envelheceu* —, não o (a). O
+limite é **60d** e a data interna dos dois é `2026-07-01`: eles cruzaram a linha por volta de
+**30/08**, e ficariam vermelhos com ou sem queda do CT 100.
+
+⛔ **Não "conserte" mexendo na data.** Regravar baseline para o vermelho sumir é o anti-padrão que
+o [§5](../../proibicoes.md) enterra em duas lápides (drift-sentinel 2026-07-17 · rebake 2026-08-26).
+Re-curar de verdade exige números frescos do `jana:ragas-real-eval` — que roda **no CT 100**, e
+portanto **depende deste runbook** para voltar. E mexer nos pisos é decisão do dono da Jana / [W],
+não do plantão do retorno.
+
+**Ordem certa, quando o CT 100 voltar:** Passos 0-3 → Passo 6 (evals produzem números reais) →
+**só então** [W] decide re-curar ou aposentar o consumidor.
+
 ### Passo 6 — os evals semanais da Jana (o que o outage comeu)
 
 Os 2 evals de staging **não têm scheduler** — quem invoca é um cron do host (`0 6 * * 0`, domingo
