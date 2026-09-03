@@ -69,6 +69,13 @@ function alertasBootstrap(): array
  */
 function alertasGaranteAssinaturaJana(Business $business, User $user): void
 {
+    // `AdminSidebarMenu` só invoca o `modifyAdminMenu` de módulo INSTALADO — `ModuleUtil::isModuleInstalled`
+    // lê `system.jana_version`, que só o InstallController grava. O CI migra do zero e nunca o roda: sem a
+    // property, nenhuma entry da Jana nasce, com ou sem assinatura. Gravada na transação (rollback no fim).
+    if (! \App\System::getProperty('jana_version')) {
+        \App\System::addProperty('jana_version', (string) config('copiloto.module_version', '0.1'));
+    }
+
     if (! class_exists(\Modules\Superadmin\Entities\Subscription::class)) {
         return; // sem Superadmin, `hasThePermissionInSubscription` devolve true sozinho
     }
