@@ -209,7 +209,7 @@ Então só vê registros com `business_id = A`
 ```
 
 **Implementação:** Controllers fazem `where('business_id', session('business.id'))`  
-**Testado em:** _lacuna — Modules/Manufacturing/Tests/Feature/PermissionsTest não existe (stub pendente; reconciliação 2026-07-01, cobertura a criar)_
+**Testado em:** `Modules/Manufacturing/Tests/Feature/MultiTenantIsolationTest.php` (cadeia `mfg_recipes.variation_id → variations.product_id → products.business_id`) — corrigido 2026-09-03, o teste já existia e a linha estava desatualizada.
 
 ### R-MANU-002 · Autorização Spatie `manufacturing.access_recipe`
 
@@ -220,7 +220,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('manufacturing.access_recipe')`  
-**Testado em:** _lacuna — Modules/Manufacturing/Tests/Feature/PermissionsTest não existe (stub pendente; reconciliação 2026-07-01, cobertura a criar)_
+**Testado em:** `Modules/Manufacturing/Tests/Feature/PermissionsTest.php` (dataset `manufacturing_permission_routes` — GET `/manufacturing/recipe`), criado 2026-09-03. Lane MySQL only (auto-skip em sqlite).
 
 ### R-MANU-003 · Autorização Spatie `manufacturing.add_recipe`
 
@@ -231,7 +231,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('manufacturing.add_recipe')`  
-**Testado em:** _lacuna — Modules/Manufacturing/Tests/Feature/PermissionsTest não existe (stub pendente; reconciliação 2026-07-01, cobertura a criar)_
+**Testado em:** `Modules/Manufacturing/Tests/Feature/PermissionsTest.php` (dataset `manufacturing_permission_routes` — GET `/manufacturing/recipe/create`), criado 2026-09-03.
 
 ### R-MANU-004 · Autorização Spatie `manufacturing.edit_recipe`
 
@@ -241,8 +241,14 @@ Quando ele tenta acessar a funcionalidade correspondente
 Então recebe `403 Unauthorized`
 ```
 
-**Implementação:** Controllers checam `$user->can('manufacturing.edit_recipe')`  
-**Testado em:** _lacuna — Modules/Manufacturing/Tests/Feature/PermissionsTest não existe (stub pendente; reconciliação 2026-07-01, cobertura a criar)_
+> ⚠️ **Achado 2026-09-03 (medido, não suposto):** hoje **não existe rota** que exercite este
+> gate. `Routes/web.php` faz `Route::resource('/recipe', ...)->except('edit', 'update')`, e
+> nenhuma rota manual referencia `UpdateRecipeRequest` (onde o `can('manufacturing.edit_recipe')`
+> vive). O gate é código real, só sem porta HTTP que o alcance — o gherkin acima descreve um
+> cenário hoje inalcançável via navegador.
+
+**Implementação:** `UpdateRecipeRequest::authorize()` checa `$user->can('manufacturing.edit_recipe')` — classe **não wired** a nenhuma rota  
+**Testado em:** `Modules/Manufacturing/Tests/Feature/PermissionsTest.php` (par permission+`can()` + trava que quebra se uma rota PUT/PATCH `/manufacturing/recipe/{id}` reaparecer), criado 2026-09-03. Não é teste HTTP — não há rota pra testar.
 
 ### R-MANU-005 · Autorização Spatie `manufacturing.access_production`
 
@@ -253,4 +259,4 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('manufacturing.access_production')`  
-**Testado em:** _lacuna — Modules/Manufacturing/Tests/Feature/PermissionsTest não existe (stub pendente; reconciliação 2026-07-01, cobertura a criar)_
+**Testado em:** `Modules/Manufacturing/Tests/Feature/PermissionsTest.php` (dataset `manufacturing_permission_routes` — GET `/manufacturing/production`), criado 2026-09-03.
