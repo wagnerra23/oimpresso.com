@@ -5,10 +5,22 @@ irmaos: Nfe.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-09-02"
+last_run: "2026-09-03"
 ---
 
 # Casos de Uso & Aceite — Notas NF-e / NFC-e
+
+> **Revalidação `last_run` 2026-09-03 — o que foi conferido (Onda 2 Fiscal, teclado na lista):**
+> a `<tr>` da lista ganhou `tabIndex`, `aria-label`, `onFocus` e `onKeyDown` (Enter/Space), e o
+> `fiscal-cockpit.css` ganhou o anel `:focus-visible` no mesmo token `--fis` que o `.fx-row-focus`
+> já usava. **Um UC novo: `UC-FNFE-10`** — e ele é o primeiro desta tela a provar comportamento de
+> **UI**, não de backend. Os 8 anteriores seguem intactos: conferi que nenhum deles toca a tabela,
+> o foco ou o teclado, logo nenhum aceite mudou. O que **mudou de fato** é o §Backlog: o item
+> "atalhos J/K + Enter … sem cobertura Feature nem E2E", aberto desde 2026-07-03, deixa de ser
+> integralmente descoberto — a metade de teclado agora tem teste que morde, e o restante dele
+> (mapa "Jana sugere", pílula temporal) segue declarado.
+> **O que esta revalidação NÃO cobre:** os 8 UC de backend não foram re-executados (Pest = CT 100),
+> e o `UC-FNFE-01` continua skipando por falta de `nfe_emissoes` na lane — inalterado por esta onda.
 
 > **Revalidação `last_run` 2026-09-02 — o que foi conferido (conflito semântico do merge):**
 > o `update-branch` do #6530 trouxe do `main` a versão do `.tsx` que declarava `chipProps`/
@@ -104,6 +116,7 @@ não tem as migrations do NfeBrasil. É lacuna de ambiente, não defeito do test
 | UC-FNFE-07 | manifestação: 4 ações, justificativa condicional | `[must]` | CU-FISC-07 | `AcoesContratoTest` | 🧪 |
 | UC-FNFE-08 | ⚠️ **id sobrecarregado** — (a) a superfície das ações existe · (b) o gate `fiscal.nfe.view` devolve 403 | `[must]` `[T0]` | CU-FISC-13 (só o gate) · ver nota | `AcoesControllerTest` (5) · `GatesPermissaoFiscalTest` (2) | 🧪 |
 | UC-FNFE-09 | retransmitir preserva a nota antiga (nunca deleta) | `[must]` `[reg]` | CU-FISC-11 | `AcoesContratoTest` | 🧪 |
+| UC-FNFE-10 | a lista é operável só pelo teclado (linha focável, não botão) | `[must]` | **—** (ver nota) | `fiscal-nfe-teclado.test.tsx` | 🧪 |
 
 > **Por que esta tabela nasceu em 2026-09-01 (e o que ela NÃO fez):** os 8 UC desta tela já eram
 > provados por teste desde 2026-07-27 — nenhum deles declarava, porém, **qual CU do SDD §6 atende**.
@@ -112,6 +125,15 @@ não tem as migrations do NfeBrasil. É lacuna de ambiente, não defeito do test
 > saíam atribuídos a `Eventos`/`Dfe` — as telas irmãs os citam em prosa (corretamente, dizendo que o
 > contrato mora aqui) e o gerador cai no fallback alfabético quando a tela **dona** não os declara em
 > tabela. **Nenhuma asserção de teste mudou:** isto é rastreabilidade, não comportamento.
+
+> **Por que o `UC-FNFE-10` tem `—` na coluna CU (e não um CU plausível):** os 16 CU do SDD §6
+> cobrem *o que a pessoa fiscal faz* (conferir status, cancelar, manifestar, inutilizar,
+> retransmitir, isolar tenant) — **nenhum** trata de acessibilidade ou de operação por teclado. O
+> mais próximo, `CU-FISC-02`, é sobre o status SEFAZ ser **legível**, não sobre a lista ser
+> **navegável**. Ancorar ali fecharia a lacuna do painel derivado sem lastro — a classe LC-11 que
+> este projeto persegue. Abrir um CU de acessibilidade no SDD é decisão do dono daquele documento,
+> não desta onda; até lá o travessão é a resposta honesta. A âncora de contrato do UC existe e está
+> declarada na seção dele: o **Goal 5 + §UX targets do charter**.
 
 > **⚠️ `UC-FNFE-08` ancora DOIS contratos diferentes (achado de 2026-09-01).** O mesmo id nomeia
 > 5 casos em `AcoesControllerTest` (a superfície das ações) **e** 2 casos em
@@ -215,12 +237,42 @@ trocar o `update` por um delete, ou mexer na whitelist, **derruba o caso**. A di
 teste, então ele continuaria verde se o Service mudasse; é a lápide §5 2026-06-05. O caso de runtime
 permanece declarado no backlog abaixo.
 
+## UC-FNFE-10 — A lista é operável só pelo teclado: a linha é focável, e não virou botão
+Status: 🧪 (`tests/js/fiscal-nfe-teclado.test.tsx` — 6 casos, **passam**; lane `Fiscal Teclado Gate`)
+Dado a lista de notas · Quando o operador percorre as linhas com Tab e pressiona **Enter** ou
+**Space** · Então a linha focada abre o drawer **daquela** nota (não a primeira da lista), o Space
+**não rola a página**, e o anel de foco do Tab é o **mesmo** cursor do J/K — um anel, não dois.
+A `<tr>` permanece com o papel implícito `row`: o alvo é linha **focável**, nunca `role="button"`,
+que destruiria a semântica de tabela para leitor de tela.
+Âncora: `Nfe.charter.md` **Goal 5** ("atalhos J/K + Enter pra navegar lista e abrir drawer") +
+§UX targets ("linha cursor com `outline: 2px solid var(--fis)`") + o item de §Backlog abaixo.
+**Pronto quando:** as 4 mutações abaixo derrubam o caso e o restore devolve 6/6.
+
+**Mordida provada (contrafactual medido 2026-09-03 — restore byte-idêntico ao backup = 6/6):**
+
+| Mutação no `Nfe.tsx` | Efeito |
+|---|---|
+| remover `tabIndex={0}` | o foco cai no `<body>` → *"linha 0 não recebeu foco"*, 1 failed |
+| remover `e.preventDefault()` | *"Space NÃO teve o default cancelado — a página rolaria"*, 1 failed |
+| remover o `onKeyDown` inteiro | 1 failed (só o Space — ver limite abaixo) |
+| remover `onFocus={() => setCursor(idx)}` | o anel para na 2ª linha em vez da 3ª, 1 failed |
+
+**Limite honesto — o que este UC NÃO prova.** A mutação 3 mostrou que o **Enter é servido por dois
+caminhos**: o `onKeyDown` da linha e o handler global de `window` (o J/K, que já existia). Com o
+cursor sincronizado pelo `onFocus`, remover o handler da linha **não** derruba o caso do Enter — o
+global abre a mesma nota. O que o caso prova do Enter é o que o operador **observa** (abre a nota da
+linha focada), e isso vale por qualquer um dos dois caminhos; o valor próprio do handler da linha é
+não depender do listener de `window`, e o `stopPropagation` é o que evita a abertura dupla quando os
+dois veem a tecla. Segundo limite: o jsdom não implementa a travessia por Tab do browser, então
+"Tab alcança todas" é medido como "toda linha é de fato focável, na ordem do DOM" — a condição que
+a torna possível. A travessia física, o anel pintado e o leitor de tela são olho humano no smoke (R1).
+
 ## Backlog de casos (sem id — entram quando um teste de COMPORTAMENTO os cobrir)
 
 - **[~~BACKLOG~~ · 🧪 tem teste, NÃO executa · Tier 0] Gate de permissão `fiscal.nfe.view` bloqueia a leitura da lista** — Dado usuário sem `fiscal.nfe.view` nem `superadmin` · Quando faz `GET /fiscal/nfe` · Então 403. **Corrigido em 2026-09-01:** a redação anterior dizia *"nenhum teste o exercita"* e isso era **falso** — o caso existe em [`GatesPermissaoFiscalTest.php:72`](../../../../Modules/Fiscal/Tests/Feature/GatesPermissaoFiscalTest.php), **com controle negativo** em `:79` (superadmin não recebe 403), e ancora `UC-FNFE-08`. O que é verdade é outra coisa, e a distinção importa: o arquivo inteiro **pula** (`:49-55`) em SQLite e sem `nfe_emissoes`, então o caso **não executa** em nenhuma lane de hoje. *Teste ausente* e *teste que não roda* pedem trabalhos diferentes — o primeiro é escrever, o segundo é dar lane ao módulo (o item de maior alavancagem do plano: 15 de 21 arquivos de teste do Fiscal chamam `markTestSkipped`).
 - **[BACKLOG · ⬜ sem teste] Lista deferida filtra por tab/status/busca com paginação 50** — `rows` é `Inertia::defer`; sem teste do payload filtrado (`buildRowsPayload`, ordem `emitido_em DESC`).
 - **[BACKLOG · ⬜ sem teste] Retransmitir só aceita nota `rejeitada`/`denegada`/`erro_envio`** — Dado nota em outro status · Quando pede retransmissão · Então volta com erro sem chamar o Service. **Não é testável sem banco**: no `AcoesController::retransmitir` a whitelist é checada **depois** do `firstOrFail()`, logo exige `nfe_emissoes` — indisponível nas duas lanes de hoje (ver §recibo). O caso que existia aqui assertava um array literal escrito no próprio teste e foi removido em 2026-07-28 (não defendia nada). _Parcialmente coberto desde 2026-09-01 pelo `UC-FNFE-09`, que prova **estaticamente** que a whitelist do Service é exatamente essa e que ela rejeita — o que falta aqui é o caminho de **runtime**, e ele segue esperando lane com as migrations do NfeBrasil._
-- **[BACKLOG · ⬜ sem teste] Drawer: mapa "Jana sugere" por cstat rejeitado, atalhos J/K + Enter, pílula temporal na linha** — comportamento de UI; sem cobertura Feature nem E2E (a tela não aparece em `tests/Browser`).
+- **[BACKLOG · 🟡 parcialmente coberto] Drawer: mapa "Jana sugere" por cstat rejeitado, pílula temporal na linha** — comportamento de UI, sem cobertura Feature nem E2E (a tela não aparece em `tests/Browser`). **Reduzido em 2026-09-03:** a metade "atalhos J/K + Enter" saiu deste item e virou `UC-FNFE-10`, com teste de render que morde (4 mutações provadas). O que fica aqui é o que segue descoberto: o mapa guiado por `cstat` e a pílula temporal.
 
 ## Como rodar a suíte
 1. **Pest:** lane Fiscal no CT 100 (ADR 0062) — comando no §recibo acima. `AcoesContratoTest` roda em
@@ -243,6 +295,13 @@ permanece declarado no backlog abaixo.
   tela `Fiscal/Dfe` (anotados por outra sessão enquanto este trabalho corria) — removê-los
   orfanaria UC de tela alheia. O comportamento real deles já é provado por `UC-FNFE-07`;
   re-apontar o DF-e pra lá é decisão do dono daquela tela. Nenhum UC perdeu lastro.
+- 2026-09-03 · [C] Onda 2 Fiscal (teclado na lista). **`UC-FNFE-10` criado** — o primeiro UC desta
+  tela que prova comportamento de **UI** em vez de backend, e o primeiro a rodar em lane `vitest`
+  (`fiscal-teclado-gate.yml`, criada no mesmo PR porque NENHUMA lane roda `vitest run` sem
+  argumento e spec sem lane nunca executa). Metade do item de §Backlog de teclado saiu de
+  "⬜ sem teste" para UC com mordida provada. Coluna CU fica `—` de propósito: não existe CU de
+  acessibilidade no SDD §6 e inventar um seria LC-11. Os 8 UC de backend: intactos, não
+  re-executados.
 - 2026-09-01 · [CC] Onda 1 Fiscal (saneamento `fx-*` → DS). `last_run` bumpado para 09-01 em duas
   revalidações — a do flip do token `--fis` e a da troca de primitivas —, cada uma no MESMO commit
   do `.tsx` que a motivou, para pegar a isenção por SHA do G-6 (a via por data reabre o staleness

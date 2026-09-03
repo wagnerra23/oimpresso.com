@@ -311,6 +311,15 @@
   outline: 2px solid var(--fis);
   outline-offset: -2px;
 }
+/* Foco de TECLADO na linha (Tab). Irmão do `.fx-row-focus` acima, que é o cursor
+ * J/K — este é o foco REAL do browser, e sem ele a linha focável não teria anel
+ * próprio. Mesmo token de acento (`--fis`), zero cor crua. `:focus-visible` (e não
+ * `:focus`) porque o clique de mouse não deve acender anel. Sem `outline: none` em
+ * lugar nenhum: o anel do UA é SUBSTITUÍDO pelo do design, nunca suprimido. */
+.fx-table tbody tr:focus-visible {
+  outline: 2px solid var(--fis);
+  outline-offset: -2px;
+}
 .fx-mono { font-family: "IBM Plex Mono", ui-monospace, monospace; }
 .fx-mono b { font-size: 13.5px; display: block; line-height: 1.2; }
 .fx-mono small { font-size: 10.5px; color: var(--fx-text-mute); }

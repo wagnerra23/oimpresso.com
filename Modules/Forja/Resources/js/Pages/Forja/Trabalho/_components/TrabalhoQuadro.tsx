@@ -46,11 +46,20 @@
 // desenha **6** colunas; este board desenha **7**. Medido no protótipo rodando
 // em 2026-09-03: `ids = [F0, F1, F1.5, F2, F3, F3.5]`.
 //
-// Copiar aquele filtro REVERTERIA a decisão [W] de 2026-08-11 em silêncio — foi
-// ela que fez o backend ganhar a fase e esvaziou a `DIVERGENCIA_DECLARADA` do
+// Copiar aquele filtro REVERTERIA a decisão [W] de 2026-08-11 — foi ela que fez
+// o backend ganhar a fase e esvaziou a `DIVERGENCIA_DECLARADA` do
 // `PipelineParidadeTest`. Por isso a divergência está declarada no charter
 // §"Diferenças declaradas do Quadro" em vez de "corrigida": aqui o protótipo é
 // que está atrás do produto, não o contrário.
+//
+// Até 2026-09-03 isso era prosa em três lugares e defesa em nenhum: a cadeia de
+// paridade toda lê CONSTANTES (`PipelineParidadeTest` liga protótipo↔backend,
+// `UC-TRAB-07` liga backend↔`const FASES`) e ninguém lia o RENDER. Medido: um
+// `.filter` no `FASES.map()` logo abaixo não altera o bloco `const FASES`, então
+// o extrator do UC-TRAB-07 devolve a mesma lista antes e depois. Quem hoje
+// "corrigir" 7→6 encontra `tests/forjaQuadroColunas.spec.tsx` (UC-TRAB-19), que
+// monta este componente em jsdom e conta `.fj-kcol` contra a declaração — e por
+// contar o DOM, não procurar sintaxe, `slice`/`if`/índice fixo caem igual.
 //
 // Consequência de copy, e ela é obrigatória: o parágrafo-âncora daqui diz
 // `(F0 → F4)` onde o protótipo diz `(F0 → F3.5)` + "no merge (F4) ele sai do

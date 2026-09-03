@@ -4,7 +4,7 @@ casos: Forja · lista única de trabalho · /forja/trabalho
 irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-09-02"
+last_run: "2026-09-03"
 ---
 
 # Casos de uso — /forja/trabalho
@@ -153,3 +153,12 @@ Daí as duas metades deste caso. **Derivar:** a lista de papéis, a contagem do 
 Terceira perna, a que impede affordância falsa (LC-15): o painel é **leitura pura** — zero query, zero escrita. Se um dia ganhar ação, ela precisa de rota antes do botão.
 
 **Pronto quando:** a contagem de `<li>` de papéis bate com `Object.keys(PAPEIS).length` (e falha se a fonte esvaziar); acrescentar um papel à fonte faz surgir a linha **sem editar o componente**; realocar o `desc` do `[CC]` migra o badge de fase junto; o texto renderizado **não** contém `/design-override`, `/screenshot-override`, `/a11y-override` nem "Aprovação visual síncrona", **e** contém a declaração da ausência; o drawer tem `role="dialog"` + `aria-modal` + `aria-label` e fecha no `Esc`.
+## PARIDADE §11 — o Quadro (o que a tela DESENHA, não o que ela declara)
+
+## UC-TRAB-19 — Toda fase declarada vira coluna RENDERIZADA, na mesma ordem
+Status: 🧪 (1 teste cita este UC — `tests/forjaQuadroColunas.spec.tsx`, 5 casos em jsdom; monta o `TrabalhoQuadro` nos dois eixos e conta `.fj-kcol` no DOM, com guarda anti-falso-verde se as declarações esvaziarem.)
+A decisão [W] de 2026-08-11 — **F4 Merge É coluna** — mantém 7 colunas no Pipeline e diverge **de propósito** do protótipo, que filtra F4 e desenha 6. A divergência estava declarada em três lugares em prosa (charter, docblock do componente, `PipelineParidadeTest`) e defendida por **nenhum**: toda a cadeia de paridade é declarativa e lê constantes, nunca o render. Medido em 2026-09-03: um `.filter(f => f.key !== 'F4')` no `FASES.map(` não toca o bloco `const FASES`, então o `UC-TRAB-07` extrai a mesma lista antes e depois e segue verde — a decisão [W] seria revertida em silêncio por quem "corrigisse" 7→6 obedecendo o protótipo.
+
+O caso fecha o último elo da cadeia: `protótipo → backend → declaração → **colunas desenhadas**`. Ele **não** crava o número 7 — comparar o render contra a declaração é o que impede o falso-positivo no dia em que o protocolo ganhar uma fase legítima (aí os dois lados crescem juntos e o caso passa). E não é guard sintático: ele renderiza e conta o DOM, então `slice`, `if` ou índice fixo caem igual ao `.filter` (medido: FP 0/3 em mudanças legítimas, mordida 2/2 em regressões, incluindo a variante sem `.filter`).
+
+**Pronto quando:** no eixo Pipeline a contagem de `.fj-kcol` é igual a `FASES_PIPELINE.length` e os IDs saem na mesma ordem da declaração; `F4` é uma das colunas **e** recebe card (não cai no "fora do board"); no eixo Execução as colunas são exatamente `STATUS_ATIVOS` com o rótulo PT do canon, e `done` segue fora com a contagem visível.
