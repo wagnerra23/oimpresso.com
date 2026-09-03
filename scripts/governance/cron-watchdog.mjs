@@ -51,6 +51,10 @@
  * limite. Não precisa de `gh`, não precisa de rede, não precisa saber QUEM deveria
  * ter escrito — mas TAMBÉM NÃO CONCLUI que existe um escritor (ver errata acima): o
  * que ele entrega é "este artefato de estado parou há Nd", e a causa é da investigação.
+ * ⚠️ Ele PRECISA de `git` (a enumeração é `git ls-files`) — e desde 2026-09-03 essa
+ * dependência se DECLARA: enumeração falha = ⛔ NÃO MEDIDA + exit != 0, nunca "✓ nada
+ * parado". Antes o `catch` devolvia `[]` e o eixo 2 reencenava, calado, o mesmo colapso
+ * que o eixo 1 já tinha consertado em 2026-07-29.
  *
  * Cobertura honesta: dos 290 arquivos de estado em `governance/` + `memory/governance/`,
  * só 13 declaram data interna — os outros 277 são baselines sem carimbo e ficam FORA
@@ -66,10 +70,11 @@
  *      node scripts/governance/cron-watchdog.mjs --selftest (núcleo puro morde e libera)
  * Refs: ADR 0317 §2 (auto-canário) · 0256 (sentinela). Molde: memory-health.yml job cron-liveness.
  */
-import { readdirSync, readFileSync } from 'node:fs';
-import { execSync } from 'node:child_process';
+import { readdirSync, readFileSync, mkdtempSync, rmSync } from 'node:fs';
+import { execSync, spawnSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { pathToFileURL, fileURLToPath } from 'node:url';
 
 const ROOT = process.cwd();
 const WF_DIR = '.github/workflows';
@@ -491,12 +496,27 @@ const CHAVES_DATA = ['generated_at', 'updated_at', 'last_grade_at', 'last_update
   'gerado_em', 'atualizado_em', 'gerado_por_em', 'ultima_data'];
 
 /** Artefatos de estado versionados (JSON/YAML sob governance/ e memory/governance/). */
+/**
+ * ⛔ CEGO ≠ "nada parado". Até 2026-09-03 este `catch` devolvia `[]`, e o relatório
+ * então imprimia "✓ nenhum artefato de estado além do limite" com exit 0 — tendo
+ * enumerado ZERO. É o MESMO colapso que o eixo 1 sofria até 2026-07-29 (ver cabeçalho:
+ * "o colapso fazia o relatório afirmar '✓ todos os N crons' tendo medido ZERO"),
+ * reencenado no eixo 2 porque a correção de lá não atravessou pra cá. Ausência de
+ * medição não é estado do artefato — nos dois eixos.
+ *
+ * O eixo 2 se anuncia como "não precisa de `gh`, não precisa de rede" (verdade), mas
+ * ele PRECISA de `git`: a enumeração é `git ls-files`. Essa dependência era muda —
+ * fora de um repo (ou sem o binário) o gate virava carimbo. Agora ela se declara.
+ */
 function arquivosDeEstado() {
   try {
-    return execSync('git ls-files', { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 })
+    const arquivos = execSync('git ls-files', { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 })
       .split('\n')
       .filter((p) => /^(memory\/)?governance\/.*\.(json|ya?ml)$/.test(p));
-  } catch { return []; }
+    return { arquivos, erro: null };
+  } catch (e) {
+    return { arquivos: [], erro: `git ls-files falhou (${String(e?.message ?? e).split('\n')[0]})` };
+  }
 }
 
 /**
@@ -525,8 +545,9 @@ export function paradosEntre(entradas, nowMs, limiteDias) {
 }
 
 function checarEntrega(nowMs) {
+  const { arquivos, erro } = arquivosDeEstado();
   const entradas = [];
-  for (const arquivo of arquivosDeEstado()) {
+  for (const arquivo of arquivos) {
     let txt;
     try { txt = readFileSync(join(ROOT, arquivo), 'utf8'); } catch { continue; }
     entradas.push({ arquivo, data: dataInterna(txt) });
@@ -535,6 +556,11 @@ function checarEntrega(nowMs) {
   return {
     gate: 'obra-parada',
     limite_dias: ENTREGA_LIMITE_DIAS,
+    // `cego` é ADITIVO no shape do --json (consumidor: ObraParadaBriefLineService).
+    // Quem só lê {gate,limite_dias,parados} segue funcionando; quem quiser distinguir
+    // "não medi" de "nada parado" agora TEM como — antes os dois eram `parados: []`.
+    cego: Boolean(erro),
+    erro_enumeracao: erro,
     total_estado: entradas.length,
     total_datados: datados.length,
     parados: paradosEntre(datados, nowMs, ENTREGA_LIMITE_DIAS),
@@ -542,6 +568,12 @@ function checarEntrega(nowMs) {
 }
 
 function reportarEntrega(r) {
+  // Cego vem ANTES de qualquer contagem: com a enumeração falha, `total_estado: 0` e
+  // `parados: []` não são medição, são o buraco. Sai != 0 pelo mesmo motivo do eixo 1.
+  if (r.cego) {
+    console.error(`\n⛔ entrega NÃO MEDIDA: ${r.erro_enumeracao} — a enumeração dos artefatos de estado usa 'git ls-files', e ela falhou. NADA pode ser afirmado sobre obra parada (nem que há, nem que não há). Rode dentro do checkout do repo, com 'git' no PATH.`);
+    return 1;
+  }
   console.log(`\n📦 entrega — ${r.total_datados} artefato(s) de estado com data interna (de ${r.total_estado}) · limite ${r.limite_dias}d · ${r.parados.length} 🔴 parado(s)`);
   for (const p of r.parados) console.error(`🔴 ${p.arquivo} — parado há ${p.dias}d (última data interna: ${p.data})`);
   if (!r.parados.length) { console.log(`✓ nenhum artefato de estado além do limite.`); return 0; }
@@ -580,6 +612,31 @@ if (EH_MAIN && ARGS.has('--selftest')) {
 
   const ordem = paradosEntre([{ arquivo: 'novo', data: '2026-05-20' }, { arquivo: 'velho', data: '2026-01-01' }], NOW, 60);
   ok(ordem[0].arquivo === 'velho', 'ordena do mais parado pro menos');
+
+  // ── BITE-TEST do eixo 2 CEGO: exercita o CLI DE FORA, não um helper puro ──────
+  // Por que subprocesso e não assert em função pura: o colapso morava no caminho
+  // enumerar→reportar→exit, e assert sobre satélite exportado não prova contrato de
+  // pipeline (§5 2026-07-30). Rodar `--entrega` com cwd fora de qualquer repo faz
+  // `git ls-files` falhar de verdade — a MESMA falha do mundo real, não simulada.
+  {
+    const tmp = mkdtempSync(join(tmpdir(), 'cw-cego-'));
+    const r = spawnSync(process.execPath, [fileURLToPath(import.meta.url), '--entrega'],
+      { cwd: tmp, encoding: 'utf8' });
+    const saida = `${r.stdout ?? ''}${r.stderr ?? ''}`;
+    ok(r.status !== 0, `MORDE: fora de repo git, --entrega sai != 0 (rc=${r.status})`);
+    ok(/NÃO MEDIDA/.test(saida), 'MORDE: diz "NÃO MEDIDA" em vez de afirmar verde');
+    // Controle negativo — a frase falsa que existia antes NÃO pode voltar a aparecer
+    // no caminho cego. Sem este assert, reintroduzir o `catch { return [] }` deixaria
+    // o selftest verde (foi assim que o defeito sobreviveu no eixo 2).
+    ok(!/nenhum artefato de estado além do limite/.test(saida),
+      'NÃO AFIRMA: o "✓ nenhum ... além do limite" não aparece quando nada foi enumerado');
+    rmSync(tmp, { recursive: true, force: true });
+  }
+
+  // LIBERA: dentro do repo a enumeração funciona e o eixo NÃO se declara cego —
+  // controle positivo, senão "morde sempre" passaria por "morde certo".
+  ok(checarEntrega(Date.now()).cego === false,
+    'LIBERA: dentro do checkout, cego=false (a enumeração de fato mediu)');
 
   // ── EIXO 1: "não consegui perguntar" ≠ "nunca rodou" (defeito medido 2026-07-29) ──
   // Sem `gh` no host, os 8 workflows saíam como 🟡 bootstrap e o relatório terminava em
