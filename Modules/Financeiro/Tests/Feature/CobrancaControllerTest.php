@@ -58,10 +58,15 @@ uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::
  * Os 4 GUARDs de partial reload mandavam `X-Inertia-Version: '1'`. A lane cria um stub em
  * `public/build-inertia/manifest.json` (step "Stub Vite manifest", financeiro-pest.yml:113)
  * e `HandleInertiaRequests::version()` devolve o `md5_file` dele — que não é '1'. Version
- * divergente num GET Inertia é 409 por contrato do Inertia, então o servidor respondia 409:
- * cru no `assertOk()` do UC-COB-07, e como "Not a valid Inertia response." nos três
- * `assertInertia` (o helper do Inertia falha ao ler `props/url/version` de um 409).
- * Medido no run 33765806568.
+ * divergente num GET Inertia é 409 por contrato do Inertia, e era isso que o UC-COB-07
+ * recebia — visível porque ele é o único dos 4 que faz `assertOk()` direto. Run 33765806568.
+ *
+ * ⚠️ ERRATA (run 33767262130): a 1ª redação disto dizia que os OUTROS TRÊS também eram 409.
+ * Era dedução minha, não medição — e caiu. Com a versão corrigida, o UC-COB-07 passou e os
+ * três seguiram falhando; o `assertOk()` que adicionei neles PASSOU, então recebem **200**,
+ * não 409. A causa dos três é outra e está sendo medida por `cobrancaDiagInertia()`. Fica
+ * registrado em vez de reescrito: eu tinha um caso medido e estendi a conclusão a três casos
+ * que não medi, que é exatamente a classe LC-08.
  *
  * Perguntar ao middleware em vez de recalcular o md5 aqui é de propósito: replicar a regra
  * criaria um segundo dono que drifa no dia em que o `version()` mudar (o próprio motivo de o
@@ -70,6 +75,31 @@ uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::
 function cobrancaInertiaVersion(): string
 {
     return (string) app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+}
+
+/**
+ * Revela O QUE veio quando a resposta é 200 mas não é Inertia — não conserta, INSTRUMENTA.
+ *
+ * `assertInertia` sozinho diz só "Not a valid Inertia response.", que APAGA o veredito: a
+ * mesma frase cobre 409, 302, 403, 500 e 200-com-outro-corpo. Duas rodadas de medição já
+ * mostraram que a frase esconde coisas diferentes — o `assertOk()` do run 33767262130 PASSOU
+ * nos três, então não é status: é um 200 cujo corpo não tem `component/props/url/version`.
+ * Sem ver o corpo, o próximo passo seria adivinhar de novo (LC-08).
+ */
+function cobrancaDiagInertia($response)
+{
+    $ct = (string) $response->headers->get('content-type');
+    $raw = (string) $response->getContent();
+    $json = json_decode($raw, true);
+    $chaves = is_array($json) ? implode(',', array_keys($json)) : '(corpo nao e JSON)';
+
+    if (! is_array($json) || ! isset($json['component'], $json['props'], $json['url'], $json['version'])) {
+        \PHPUnit\Framework\Assert::fail(
+            "resposta 200 NAO-Inertia · content-type={$ct} · chaves={$chaves} · corpo[0..400]=".substr($raw, 0, 400)
+        );
+    }
+
+    return $response;
 }
 
 beforeEach(function () {
@@ -143,10 +173,12 @@ it('expõe 4 KPIs (pago_mes, vencido, aberto, mandatos_ativos, mrr_pago) quando 
         'idempotency_key' => 'idem-paga',
     ]);
 
-    $this->actingAs($this->user)
+    $resp = $this->actingAs($this->user)
         ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
-        ->get('/financeiro/cobranca?only=kpis', ['X-Inertia' => 'true', 'X-Inertia-Version' => cobrancaInertiaVersion(), 'X-Inertia-Partial-Component' => 'Financeiro/Cobranca/Index', 'X-Inertia-Partial-Data' => 'kpis'])
-        ->assertOk() // revela o STATUS: assertInertia sozinho vira "Not a valid Inertia response." em QUALQUER nao-Inertia (409/302/500)
+        ->get('/financeiro/cobranca?only=kpis', ['X-Inertia' => 'true', 'X-Inertia-Version' => cobrancaInertiaVersion(), 'X-Inertia-Partial-Component' => 'Financeiro/Cobranca/Index', 'X-Inertia-Partial-Data' => 'kpis']);
+
+    $resp->assertOk();
+    cobrancaDiagInertia($resp)
         ->assertInertia(fn ($page) => $page
             ->has('kpis.pago_mes.qtd')
             ->has('kpis.pago_mes.valor')
@@ -158,10 +190,12 @@ it('expõe 4 KPIs (pago_mes, vencido, aberto, mandatos_ativos, mrr_pago) quando 
 });
 
 it('UC-COB-02 · expõe funil 5 etapas (aberto, lembrete, cobranca_ativa, vencido_5d, protesto)', function () {
-    $this->actingAs($this->user)
+    $resp = $this->actingAs($this->user)
         ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
-        ->get('/financeiro/cobranca?only=funil', ['X-Inertia' => 'true', 'X-Inertia-Version' => cobrancaInertiaVersion(), 'X-Inertia-Partial-Component' => 'Financeiro/Cobranca/Index', 'X-Inertia-Partial-Data' => 'funil'])
-        ->assertOk() // revela o STATUS: assertInertia sozinho vira "Not a valid Inertia response." em QUALQUER nao-Inertia (409/302/500)
+        ->get('/financeiro/cobranca?only=funil', ['X-Inertia' => 'true', 'X-Inertia-Version' => cobrancaInertiaVersion(), 'X-Inertia-Partial-Component' => 'Financeiro/Cobranca/Index', 'X-Inertia-Partial-Data' => 'funil']);
+
+    $resp->assertOk();
+    cobrancaDiagInertia($resp)
         ->assertInertia(fn ($page) => $page
             ->has('funil.aberto.qtd')
             ->has('funil.lembrete.qtd')
@@ -193,15 +227,17 @@ it('UC-COB-03 · filtra por status via querystring', function () {
         'idempotency_key' => 'idem-emit-'.uniqid(),
     ]);
 
-    $this->actingAs($this->user)
+    $resp = $this->actingAs($this->user)
         ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
         ->get('/financeiro/cobranca?status=paga&only=filtros', [
             'X-Inertia' => 'true',
             'X-Inertia-Version' => cobrancaInertiaVersion(),
             'X-Inertia-Partial-Component' => 'Financeiro/Cobranca/Index',
             'X-Inertia-Partial-Data' => 'filtros',
-        ])
-        ->assertOk() // revela o STATUS: assertInertia sozinho vira "Not a valid Inertia response." em QUALQUER nao-Inertia (409/302/500)
+        ]);
+
+    $resp->assertOk();
+    cobrancaDiagInertia($resp)
         ->assertInertia(fn ($page) => $page->where('filtros.status', 'paga'));
 });
 
