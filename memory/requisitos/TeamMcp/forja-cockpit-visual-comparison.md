@@ -524,3 +524,41 @@ Ou seja: a ≤1280 o auto-rail **elimina o corte** — é o defeito concreto que
 **Limites declarados.** (1) **Não medi o protótipo a 1280 com `localStorage` limpo** — pela errata ele tem os mesmos 1020px de conteúdo, então é de se esperar que corte um destino também; isso **não foi verificado** e não deve ser citado como medido. (2) O `@media (max-width:1280px)` do [`cockpit.css`](../../../resources/css/cockpit.css) L57-59 que eu inspecionei colapsa a coluna direita (`320px → 0`, batendo com o `0px` medido) e **não** fazia auto-rail — retrato da base **anterior** à UI-0030; quem for conferir depois dela deve re-medir, não citar esta linha.
 
 **Nota de método que vale além desta tela:** `resize_window` do Chrome MCP devolve `"Successfully resized"` **sem redimensionar** (`innerWidth` ficou em 2560) — o veredito só sobreviveu porque foi conferido pelo `innerWidth`, nunca pela mensagem da tool. E **não há Chrome** neste ambiente: a extensão roda no **Brave**. Some-se o `innerWidth: 0` do Browser pane que a errata documenta: **toda medição de largura aqui precisa provar a largura antes de medir qualquer outra coisa.**
+
+## 2026-09-02 (Onda 9) — Changelog: alvo do protótipo medido + estrutura da réplica provada em harness ANTES do deploy
+
+> **O que rodou (recibo).** Fonte provada por **hash**, não por afirmação: `forja-page.jsx` e `forja-page.css` do espelho batem byte-a-byte (normalizado) com o `DesignSync.get_file` do projeto vivo `019dcfd3` — `e4339537…62a43a9` e `9c180a5d…f21ed44`, iguais ao `repoHash` do `--manifest`. O render local só ficou VÁLIDO depois de duas correções que valem registrar: (1) `colors_and_type.css` e `cockpit_domains.css` do `_ds/` vinham com **0 regras** (`--text`/`--bg` não resolviam e o `h1` saía preto) — repostos pelo `--preview-ds`, que existe exatamente pra isso; (2) a aba do Browser pane estava com `innerWidth = 0` (o shell entrava em `app--mobile`) — resolvido com `resize_window` 2560×1440. Medir antes disso teria devolvido número plausível e errado.
+>
+> **Limite declarado desta rodada:** a metade de produção **não foi medida** — o código desta onda ainda não foi deployado, e o merge de `.tsx` é humano ([ADR 0283](../../decisions/0283-handoff-loop-zero-paste.md)). O que foi medido do lado da réplica veio de um **harness**: os dois componentes (`ForjaChangelog` + `ForjaRoleBadge`, React puro) compilados com esbuild e renderizados sob `html.cockpit[data-theme=dark]` + `resources/css/cowork-forja-bundle.css` (o CSS que produção serve — a 1ª tentativa carregou o CSS do protótipo por engano e foi refeita). O harness prova **estrutura e cascata de token**; **não** prova geometria (a cadeia do shell colapsa fora dele: `secA` mediu 56px de largura) nem a cascata real de produção (preflight do Tailwind + fundação). O `compare --check` 0-`DIVERGE(bug)` continua pendente e é pós-deploy.
+
+**Alvo — protótipo (`changelog` de `forja-page.jsx`), dark, 2560, `__oiLazyDone` + 3 leituras estáveis:**
+
+| campo | protótipo |
+|---|---|
+| linha `.fj-feed-item` | **2 células** (dot + corpo) · corpo em **3 blocos** (topo · resumo · meta) · `flex` · gap 14px |
+| `.fj-feed-dot` | 12×12 · radius 50% · `oklch(0.52 0.1 195)` (kind `pr`) |
+| `.fj-feed-ref` | 12,5px · 600 · `IBM Plex Mono` |
+| `.fj-feed-when` | 10,5px · `oklch(0.58 0.005 90)` |
+| `.fj-feed-resumo` | 13px / 19,5px · `oklch(0.72 0.005 90)` |
+| `.fj-clog-tab` | 27px · 12px · `line-height: normal` · `5px 13px` · radius 999px |
+| `.fj-clog-tab.active` | cor `oklch(0.7 0.15 295)` · bg `oklch(0.32 0.06 295)` · borda `oklch(0.47 0.13 295)` |
+| `.fj-changelog` · `.fj-feed` | padding `18px 32px 40px` · max-width **760px** |
+
+**Réplica no harness (mesmas 8 linhas do mock, pra a contagem não confundir a comparação):**
+
+| campo | protótipo | réplica (harness) | veredito |
+|---|---|---|---|
+| células por linha | 2 | **2** | IGUAL (produção tinha **5** — era o DIVERGE de D2 desta onda) |
+| blocos no corpo | 3 | **3** | IGUAL |
+| `.fj-changelog` padding | `18px 32px 40px` | **`18px 32px 40px`** | IGUAL |
+| `.fj-feed` max-width | 760px | **760px** | IGUAL |
+| chips · linhas · selos de ator · módulos · flags | 5 · 8 · 8 · 8 · 3 | **5 · 8 · 8 · 8 · 3** | IGUAL |
+| altura do chip | 27px | 28px | **artefato do harness** — `document.fonts.check('12px "IBM Plex Sans"')` = `false`; sem a Plex a fallback muda o `normal`. Não é diferença de código |
+
+**Achado que a medição pegou e que teria virado bug em produção:** no `Cockpit.tsx` a `<section>` das abas é **irmã** do `<ForjaHub>` (que é quem renderiza `.fj-hub`), e o bundle escopa a família `--accent*` do dark a `[data-theme="dark"] .fj-hub, .fj-page` (Onda 2.1, linha 1227). Fora desse escopo os chips herdariam o `--accent` **0,55** da fundação em vez do **0,70** do protótipo, e os `<button>` herdariam o `button{line-height:inherit}` do preflight do Tailwind — a MESMA causa que a Onda 2.1 mediu no botão do topnav (28px → 25px). Corrigido pondo `fj-hub` na `<section>` do changelog. Medido antes de aplicar: `.fj-hub` **não tem regra própria** — as 20 regras dela são todas de descendente, então a classe não carrega layout. `.fj-page` foi testada e **descartada**: tem `height:100%; overflow:hidden` e clipou o feed (1440px de wrapper para 2603px de conteúdo).
+
+**Errata de si mesma, no mesmo dia (o #6581 mergeou depois desta medição):** o parágrafo anterior desta seção apontava como residual o `--accent-soft` dark do bundle (`oklch(0.33 0.09 295)`) contra o do protótipo vivo (`oklch(0.32 0.06 295)`), e dizia que mexer nele era decisão de [W]. **[W] decidiu**: o [#6581](https://github.com/wagnerra23/oimpresso.com/pull/6581) levou `--accent` e `--accent-soft` para a fundação no escuro (0,55 → 0,70) e **encolheu** o bloco escopado `[data-theme="dark"] .fj-hub, .fj-page` de **4 tokens para 2**. Re-medido no bundle depois do merge: o bloco tem hoje só `--accent-hi` e `--accent-line` (linhas 1242-1243). Logo o residual **não existe mais**, e a razão do escopo `fj-hub` na `<section>` mudou — ela agora vale por **duas** coisas, medidas: (a) `--accent-line`, que o `.fj-clog-tab.active` e o `.fj-flag-tier-0` pedem como `var(--accent-line, var(--accent))` — sem o escopo a borda cai no fallback e vira o accent CHEIO (0,70) no lugar da linha sutil (0,47); e (b) `.fj-hub button{line-height:normal}` (linha 1239), o fix de altura do chip. **Fica registrado que a premissa que eu escrevi de manhã caducou à noite** — é o eixo que a LC-10 nomeia: afirmação em presente sobre estado medido apodrece.
+
+**O selo de ator NÃO é componente meu:** o `ForjaRoleBadge` já tinha nascido na **Onda 8** ([#6575](https://github.com/wagnerra23/oimpresso.com/pull/6575)) para a view MCP, com o mesmo `FORJA_ACTORS` verbatim. Eu havia escrito um igual sem saber (não rodei `whats-active` — LC-19); no merge **descartei o meu e usei o dele**, que é o canônico. Diferença que isso traz, declarada: o componente da Onda 8 devolve `null` para papel fora dos 7 do protótipo, igual ao `RoleBadge` do `forja-page.jsx`. Medido no corpus, `decided_by` traz `[W]` em 313 dos 393 ADRs, mas também `[E]` e `[F]` — nesses o selo **não desenha**, e a linha mostra só os módulos. É o comportamento do protótipo; se incomodar, é mudança no componente compartilhado da Onda 8, não aqui.
+
+**Pendente pós-deploy (1 comando cada):** injetar a MESMA sonda (`design-diff.mjs --probe`, papéis `filterControls: .fj-clog-tabs` · `tableRow: .fj-feed-item`) em `https://oimpresso.com/forja/changelog` autenticado, dark, 2560 → `--compare prod.json design.json --check`; e o D1 (clicar um chip e provar que `window.__marker` sobrevive — o filtro é client-side, então o esperado é **zero** requisição).
