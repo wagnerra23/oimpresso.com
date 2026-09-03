@@ -67,11 +67,22 @@
             <input type="hidden" id="__is_localhost" value="true">
         @endif
 
+        {{-- MESMA classe do bloco acima, uma chave adiante: `session('currency')` é null
+             fora de uma sessão de negócio montada, e `null['code']` estoura
+             ErrorException → ViewException → 500 em QUALQUER tela Blade que estenda
+             esta layout. Com a sessão presente o resultado é idêntico ao de antes.
+             As quatro linhas levam a guarda juntas de propósito: consertar uma e deixar
+             as irmãs é o §5 2026-08-03 ("consertar UMA de N e não medir os irmãos").
+             Medido em 2026-09-03 (run 33791868476, job 100770134269): era o que fazia
+             `production.index` devolver 500 no primeiro run da lane
+             `manufacturing-pest.yml` — `business_id=98`, `user_id=2`, stack apontando
+             para `layouts/app.blade.php:71`. Pra reproduzir, remova o `?? ''` e rode
+             qualquer teste que dê `$this->get()` numa tela Blade desta layout. --}}
         <!-- Add currency related field-->
-        <input type="hidden" id="__code" value="{{ session('currency')['code'] }}">
-        <input type="hidden" id="__symbol" value="{{ session('currency')['symbol'] }}">
-        <input type="hidden" id="__thousand" value="{{ session('currency')['thousand_separator'] }}">
-        <input type="hidden" id="__decimal" value="{{ session('currency')['decimal_separator'] }}">
+        <input type="hidden" id="__code" value="{{ session('currency')['code'] ?? '' }}">
+        <input type="hidden" id="__symbol" value="{{ session('currency')['symbol'] ?? '' }}">
+        <input type="hidden" id="__thousand" value="{{ session('currency')['thousand_separator'] ?? '' }}">
+        <input type="hidden" id="__decimal" value="{{ session('currency')['decimal_separator'] ?? '' }}">
         <input type="hidden" id="__symbol_placement" value="{{ session('business.currency_symbol_placement') }}">
         <input type="hidden" id="__precision" value="{{ session('business.currency_precision', 2) }}">
         <input type="hidden" id="__quantity_precision" value="{{ session('business.quantity_precision', 2) }}">
