@@ -1025,7 +1025,7 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 ### 2026-09-03 — EMENDA da lápide de 2026-08-11 (transcrever conteúdo): a proibição era ABSOLUTA e criava um impasse onde a máquina não tem entrada
 
-- **O limite, agora estreitado:** não transcrever **onde existe rota de máquina** — e aí a violação é escolher a mão tendo o arquivo em disco. Onde a rota não existe (`get_file` inline), o agente escreve, sob as quatro condições da 0389: **(1)** origem única resolvida por `list_files` antes, com o path canônico vindo do manifesto do consumidor (o erro de 2026-08-11 foi exatamente pegar a cópia errada de duas homônimas, e ele **continua proibido**); **(2)** `truncated: false`; **(3)** verificação pós-escrita rodando o consumidor do arquivo, com a saída colada no PR; **(4)** a escrita inline declarada no corpo do PR.
+- **O limite, agora estreitado — esta é a EMENDA DA LÁPIDE de 2026-08-11, mesma família (transcrever conteúdo entre sistemas), não classe nova:** não transcrever **onde existe rota de máquina** — e aí a violação é escolher a mão tendo o arquivo em disco. Onde a rota não existe (`get_file` inline), o agente escreve, sob as quatro condições da 0389: **(1)** origem única resolvida por `list_files` antes, com o path canônico vindo do manifesto do consumidor (o erro de 2026-08-11 foi exatamente pegar a cópia errada de duas homônimas, e ele **continua proibido**); **(2)** `truncated: false`; **(3)** verificação pós-escrita rodando o consumidor do arquivo, com a saída colada no PR; **(4)** a escrita inline declarada no corpo do PR.
 
 ## Sempre fazer
 
