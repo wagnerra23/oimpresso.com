@@ -6,7 +6,7 @@ related_prototype: prototipo-ui/cowork/jana-merge.jsx
 states: [default]  # gate L2 — o `default` desta tela é semeado com UMA venda VENCIDA (routes/web.php `$seedJanaVisregFlow`), pra que o KpiCard `tone="danger"` do "A receber vencido" entre em baseline; sync com tests/Browser/visreg-states.json
 owner: wagner
 status: live
-last_validated: "2026-08-31"
+last_validated: "2026-09-03"
 parent_module: Jana
 parent_adr: memory/decisions/0052-memoria-jana-3-angulos-faturamento.md
 related_adrs: [26, 31, 35, 36, 52, 93, 94, 107, 114]
@@ -17,7 +17,7 @@ related_specs:
   - memory/requisitos/Jana/SPEC.md (US-COPI-010, US-COPI-011, US-COPI-012)
 runbook: memory/requisitos/Jana/RUNBOOK-index.md
 tier: A
-charter_version: 12
+charter_version: 13
 permissao: jana.access
 ---
 
@@ -37,7 +37,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 
 ## Goals
 
-- **Barra ÚNICA da área Jana** — `JanaAreaHeader` (em `Pages/Jana/_components/`) É o `<PageHeader>` canon: título `Jana · Analista IA` + business/`biz=` + "Atualizado HH:MM" (botão de reapuração) na Zona L, `JanaSubNav` no slot `subnav`, ações da tela + primary "Conversar" na Zona R. Compartilhado com Chat.tsx e Memoria.tsx. Ver `memory/requisitos/Jana/Chat-header-tabs-visual-comparison.md` (gate F1.5).
+- **Barra ÚNICA da área Jana** — `JanaAreaHeader` (em `Pages/Jana/_components/`) É o `<PageHeader>` canon, na FORMA da âncora `jana-merge.jsx` §`JanaHeader` + `{tabs}` (v13, UI-0029): título `Jana · Analista IA` + subtítulo mono `TENANT · biz=N` na Zona L; "Atualizado HH:MM" (botão de reapuração, dot verde) + selo de plano + ações da tela na Zona R; **`JanaSubNav` em FAIXA PRÓPRIA abaixo da linha do título** (slot `below`, largura toda, ícone por aba), **sem primary "Conversar"** — a Conversa é uma aba, e "Nova conversa" só existe no header da própria aba Conversa. Compartilhado com as 6 telas da área. _Até a v12 este bullet mandava `JanaSubNav` no slot `subnav` (inline, Zona C) + primary "Conversar" — medido em 2026-09-03 contra a âncora com a mesma sonda: tablist a `left=1654 w=451` no `top` do h1 × âncora `left=284 w=2237` 14px abaixo do header. Corrigido no MESMO PR do código (precedência: charter era o perdedor). Rodada em `memory/requisitos/Jana/Index-visual-comparison.md` §2026-09-03._
 - Render < 200ms p95 com `Inertia::defer()` em `metas` paginated + `apuracoes` 12 janelas
 - Farol calculado server-side via `ApuracaoService::farol(meta, agora)` — frontend só consome
 - **Click em meta → drawer NA PRÓPRIA TELA** (`_components/JanaMetaDrawer.tsx`) com situação
@@ -193,6 +193,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 
 ## Charter version log
 
+- **v13 (2026-09-03)** — **Onda 1 da paridade com o protótipo: a barra de abas sai da linha do título e vira FAIXA PRÓPRIA abaixo do header** (UC-JPAIN-19; UI-0029 "protótipo soberano sobre ADR UI"). Medido com a MESMA sonda nos dois lados (design-diff, dark × dark, viewport 2560; render do `jana-merge.jsx` pelo shell do espelho × `/ia` em prod): (a) abas — âncora `nav` filho de `.jc-page`, `left=284 w=2237 h=36`, 14px abaixo do header, itens 13px/500 (ativa 600, underline accent, pill accent-soft), ícone 14px por aba; prod tablist INLINE na Zona C do `PageHeader`, `left=1654 w=451`, no `top` do h1. (b) header — âncora `.jc-header-r` = `Atualizado HH:MM` (dot verde) → selo → Configurar → Exportar, **sem** primary; prod tinha "Atualizado" no subtítulo e um primary "Conversar" que duplicava a aba. (c) subtítulo — âncora mono 11.5px; prod sans 12px. Conserto: `PageHeader` canon ganha o slot `below` (faixa própria dentro do `<header>`, posição que `Cliente/Index.tsx` já usava hand-rolado — [W] 2026-07-14 "mesma posição do Clientes/protótipo em todas"); `JanaSubNav` mapeia ícone por key (`JANA_TAB_ICON`, FORMA → cliente, o `SidebarGhost` PHP não tem `icon`); `PageHeaderPrimary` sai; Conversa ganha "Nova conversa" + Configurar só-ícone no header (âncora `isChat`). §Goals reescrito no mesmo PR. **Divergência que FICA declarada, decisão [W]:** título 22px (canon `PageHeader`, ADR 0189) × 19px da âncora — é Fundação/Shell compartilhada (37 telas), não desta tela. Teste: `tests/janaAreaHeaderParidade.spec.tsx` (vitest, jsdom — mede o DOM renderizado, não o texto do arquivo).
 - **v12 (2026-09-02)** — **dois ponteiros podres do frontmatter, gap #23 do [AUDIT-GAPS](../../../../memory/requisitos/Jana/AUDIT-GAPS-2026-08-10.md).** (a) `related_charters` apontava pra `Cockpit.charter.md`, **apagado** — removido; medido no repo inteiro: **280 charters, 3 usam `related_charters`, 1 entrada morta** (esta). (b) `permissao: copiloto.access` — a key não existe; a real é **`jana.access`**, aplicada no grupo `/ia` ([`routes.php:50`](../../../../Modules/Jana/Http/routes.php)). (c) o título do corpo dizia `/copiloto/dashboard`, rota que hoje é 301 — a lista de ponteiros podres da [emenda do Cowork](../../../../prototipo-ui/design-docs/cowork-inbox/JANA-CASOS-EMENDA-PERMISSAO-2026-08-27.md) registra que foi de cabeçalho assim que saiu o `/jana` errado da rodada 1: comentário podre não é inerte, ensina errado ao próximo executor.
   ⚠️ **Nenhum script valida `related_charters`, e isso segue assim de propósito:** o `deadlink-gate` **já varre** `Pages/**/*.charter.md` (desde 2026-08-10, FP medido) mas só o CORPO markdown — e o próprio `deadlink-gate.test.mjs` usa **este caso** como fixture do limite (*"charter LIMITE: frontmatter related_charters NAO e validado por este gate"*). Com adoção de 3/280 e 1 entrada morta, ampliar seria catraca sobre campo quase não usado; two-strikes ([ADR 0344](../../../../memory/decisions/0344-two-strikes-cobre-processo.md)): 1ª ocorrência conserta, não codifica.
 
