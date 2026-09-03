@@ -770,6 +770,105 @@ não medido: compare pareado pós-deploy (D2/D4/D6/D8) — o código não está 
 ```
 ---
 
+## 2026-09-03 (Onda 9 · fecho) — Changelog: a tipografia/gap que o §7 do export declarou NÃO medida
+
+> **Por que esta seção existe.** O `COLAR-NO-CODE-EXPORT-FORJA-MODULO.md` §7 declara, com todas as
+> letras, o que ficou de fora da medição de 03/09: *"Aprovações, Saúde, MCP, Changelog, Integrador:
+> medi a **estrutura** (filhos e ordem) e as contagens; **não** medi tipografia/gap por seção como
+> fiz na lista/quadro."* A réplica já tinha sido aplicada ([#6591](https://github.com/wagnerra23/oimpresso.com/pull/6591))
+> e a estrutura provada em harness (seção de 2026-09-02 acima). O que faltava era o eixo de
+> **valor**: a folha que produção serve entrega os mesmos px/cor que a do protótipo? Esta seção
+> mede isso e **não** repete o que já estava medido.
+
+### O alvo mudou de arquivo — e não mudou de conteúdo
+
+A build de 03/09 quebrou o protótipo em **1 arquivo por tela**: o `ChangelogFeed`, que vivia dentro
+do `forja-page.jsx` (a âncora que a Onda 9 portou), agora é o `forja-changelog.jsx`. Esse arquivo
+**não está no espelho** — é um dos 157 que o `cowork-mirror-freshness --sla` lista como presentes só
+no vivo (`⬜ existem no VIVO e não estão no espelho`, medido 2026-09-01; a regeneração do bundle é o
+[#6671](https://github.com/wagnerra23/oimpresso.com/pull/6671)). Foi lido pelo `DesignSync.get_file`
+do projeto `019dcfd3`, `truncated: false`, 1.699 B.
+
+**Risco real:** portar de uma âncora que a refatoração do build podia ter mudado. Medido — não
+mudou. A sequência de classes que cada lado escreve no JSX, na ordem:
+
+```
+protótipo vivo : fj-changelog → fj-clog-tabs → fj-clog-tab → fj-feed → fj-feed-item →
+                 fj-feed-dot → fj-feed-body → fj-feed-top → fj-feed-ref → fj-flag →
+                 fj-feed-when → fj-feed-resumo → fj-feed-meta → fj-mod
+réplica (main) : … idêntica, com fj-empty a mais …
+```
+
+Único delta: **`fj-empty`**, a divergência que o docblock do `ForjaChangelog.tsx` já declarava
+(estado vazio usando o idioma do próprio protótipo, `forja-page.jsx:588`) — o protótipo não precisa
+dele porque o mock nunca fica vazio, e produção filtrando por `PRs`/`Ondas` sempre dá zero.
+
+**Isto corrige uma dúvida que o §3.9 do export podia induzir.** Ele descreve `.fj-feed-top` como
+`[fj-feed-ref, fj-feed-when]` e o 3º bloco como `flags/módulos`. O `forja-changelog.jsx` vivo põe as
+**flags no topo** (entre ref e data) e o 3º bloco é `[selo de ator, módulos]` — que é exatamente o
+que a réplica faz. A leitura do §3.9 casa com itens do mock **sem flag** (3 dos 8 têm); a estrutura
+do protótipo é a da réplica.
+
+### Tipografia/gap: o diff de VALOR, seletor a seletor
+
+Regras de `.fj-changelog`/`.fj-clog*`/`.fj-feed*`/`.fj-flag`/`.fj-mod` no `forja-page.css` do
+protótipo × `resources/css/cowork-forja-bundle.css` (a folha que produção serve), comparadas por
+corpo normalizado — não por presença do seletor, que seria presence-gate (LC-11):
+
+| | |
+|---|---|
+| seletores da seção no protótipo | **17** |
+| corpo **idêntico** no bundle | **14** |
+| corpo divergente | **3** |
+| ausentes no bundle | **0** |
+
+As 3 divergências são **a mesma**, e não mudam um pixel:
+
+| seletor | protótipo | bundle | efeito |
+|---|---|---|---|
+| `.fj-mod.sm` | `font-size:var(--fs-1)` | `font-size:10.5px` | idêntico |
+| `.fj-feed-ref` | `font-size:var(--fs-3)` | `font-size:12.5px` | idêntico |
+| `.fj-feed-when` | `font-size:var(--fs-1)` | `font-size:10.5px` | idêntico |
+
+O bundle **inlinou o token**. Os dois lados definem os mesmos valores — protótipo em
+`prototipo-ui/cowork/styles.css:6407-6409`, repo em
+`resources/css/tokens/_generated-foundations-light.css:7-9`: `--fs-1: 10.5px` · `--fs-2: 11.5px` ·
+`--fs-3: 12.5px`. Logo o px computado é o mesmo e **não há bug de tamanho**. O que há é perda de
+aderência ao DS (literal onde existe token), e ela é do **bundle**, cuja dona é a Onda 1 — esta onda
+**reporta, não conserta**, porque mexer no CSS aqui violaria o `NÃO TOCAR: bundle CSS (Onda 1)` do
+§1-bis e a lei 5 (`zero CSS novo`).
+
+### PLACAR — Changelog (§3.9)
+
+```
+entregue 6 de 6 elementos do alvo
+  ✓ .fj-changelog com 2 filhos [fj-clog-tabs, fj-feed]
+  ✓ .fj-feed-item com 2 filhos [fj-feed-dot, fj-feed-body]
+  ✓ .fj-feed-top começando em fj-feed-ref e terminando em fj-feed-when
+  ✓ corpo em 3 blocos (topo · resumo · meta)
+  ✓ segmentos Tudo · PRs · ADRs · Sessões · Ondas
+  ✓ tipografia/gap: 14 de 17 seletores idênticos, 3 equivalentes, 0 bug
+ausentes: nenhuma
+divergências declaradas:
+  · fj-empty — estado vazio; o mock do protótipo nunca fica vazio, produção fica
+  · resumo condicional — sessão sem summary e sem 1º prompt não ganha rótulo sintético
+  · 3 font-size literais no bundle onde o protótipo usa var(--fs-N) — MESMO px; dona é a Onda 1
+contagem do alvo: os "8 .fj-feed-item" do §3.9 são o MOCK. Em produção o teto é
+  ForjaChangelogService::MAX_ENTRIES = 30 — não é divergência de estrutura.
+```
+
+### O que esta seção NÃO prova
+
+O `design-diff --compare --check` pós-deploy **segue pendente**, exatamente como a seção de
+2026-09-02 registrou e o §11 da PARIDADE marca. Re-testado hoje, não herdado (a §5 2026-09-01 proíbe
+herdar afirmação de bloqueio): `curl` em `https://oimpresso.com/forja/changelog` devolve
+**`302 → /login`** — o compare exige sessão autenticada, e sem ela nenhum número aqui autoriza
+dizer "igual ao design" (lei 6 do export: nada é 0-bug antes do T7). O comando continua escrito na
+seção de 2026-09-02. Esta medição é do eixo **folha × folha**, que não depende de deploy; a cascata
+real de produção (preflight do Tailwind + fundação) continua fora dela.
+
+---
+
 ## 2026-09-03 (Onda 10 · fecho) — Integrador: tipografia/gap medida, e o TabBar do DS confirmado por leitura do bundle
 
 > **Mesmo motivo da seção anterior.** O §7 do `COLAR-NO-CODE-EXPORT-FORJA-MODULO.md` lista o
@@ -866,3 +965,120 @@ O mesmo limite da Onda 9, pela mesma razão e re-testado hoje: `curl` em
 `https://oimpresso.com/forja/integrador` devolve **`302 → /login`**. O `compare --check` exige prod
 autenticada; sem ele, **nada aqui é "0 bug"** (lei 6 do export). O que esta seção fecha é o eixo
 folha × folha e a estrutura contra o protótipo vivo — não o T7.
+
+---
+
+## 2026-09-03 (Onda 3 do export · fecho da lista) — Trabalho · lista: a onda já estava entregue; o que faltava era o registro
+
+> **Numeração:** esta é a **Onda 3** do `COLAR-NO-CODE-EXPORT-FORJA-MODULO.md` §1 (`Trabalho · lista`) e a
+> **linha 4** da tabela de ondas do [PARIDADE](../Forja/PARIDADE-area-forja-diagnostico-e-ondas.md) — as duas
+> numerações são independentes e sempre foram. Quem procurar "Onda 3" naquela tabela cai em *Aprovações*.
+>
+> **Escopo deste PR: zero código.** A réplica e a a11y já estão no `main`; o que este PR faz é medir de novo,
+> declarar o desfecho e corrigir uma linha de tabela que estava factualmente errada.
+
+### 1 · Quem entregou o quê — e a errata que este PR paga
+
+Medido com `gh pr view` + `git log` do próprio arquivo (`git rev-parse --is-shallow-repository` = `false`,
+então a história vale — a lápide §5 2026-07-24 não se aplica aqui):
+
+| PR | estado medido | commit no `main` | o que trouxe |
+|---|---|---|---|
+| [#6577](https://github.com/wagnerra23/oimpresso.com/pull/6577) | **CLOSED**, `mergedAt = null`, fechado 2026-09-02 19:05Z | — | **nada** |
+| [#6582](https://github.com/wagnerra23/oimpresso.com/pull/6582) | MERGED 2026-09-02 23:44Z | `ae7689d8d8` | a réplica da lista (3 barras de filtro, `.fj-row` densa, KPI que filtra) |
+| [#6669](https://github.com/wagnerra23/oimpresso.com/pull/6669) | MERGED 2026-09-03 18:09Z | `63b9fecba1` | `role="list"` / `group` / `listitem` + `role="status" aria-live="polite"` |
+
+A linha 4 do PARIDADE afirmava **"🟡 #6577 aberto, aguardando merge [W]"**. Estava errada nos dois pontos: o PR
+não está aberto, e não foi ele que entregou. `git log --oneline origin/main -- .../TrabalhoLista.tsx` devolve
+exatamente **2** commits, os da tabela acima. Corrigido na mesma leva.
+
+### 2 · A ordem dos slots, re-medida nos DOIS lados (não citada)
+
+Abri os dois arquivos e comparei a sequência de emissão, não a lembrança dela:
+
+| # | protótipo — `forja-page.jsx:414-441` (`IssueRow`) | produção — `TrabalhoLista.tsx` |
+|---|---|---|
+| 1 | `fj-rowcheck` (BUTTON) | — *(ausência declarada)* |
+| 2 | `fj-epic-chev` **ou** `fj-row-indent` | `fj-row-indent` *(sempre — ver §3)* |
+| 3 | `fj-prio-dot` | `PrioDot` |
+| 4 | `fj-id` | `fj-id` |
+| 5 | `TypeChip` | `TypeChip` |
+| 6 | `fj-title` | `fj-title` |
+| 7 | `fj-carry` *(condicional)* | — *(ausência declarada)* |
+| 8 | `fj-tam` *(condicional)* | `fj-tam` *(condicional)* |
+| 9 | `EpicRoll` *(condicional)* | — *(ausência declarada)* |
+| 10 | `fj-row-mid` | `fj-row-mid` |
+| 11 | `LockIco` *(condicional)* | `LockIco` *(condicional)* |
+| 12 | `FrescorPill` *(condicional)* | — *(ausência declarada)* |
+| 13 | `PhaseBadge` **ou** `StatusPill` | `PhaseBadge` **ou** `StatusPill` |
+| 14 | `OwnerSeal` | `OwnerSeal` |
+| 15 | `Pin` | `Pin` |
+| 16 | `Star` | `Star` |
+
+**Veredito:** removidos os 4 slots sem dado, a sequência é **idêntica posição a posição**. A ordem é parte do
+alvo (§3.3 do export), e é o item que este fecho estava devendo por medição própria em vez de herdada.
+
+### 3 · PLACAR — Trabalho · lista (§3.3)
+
+```
+entregue 11 de 13 elementos do alvo (linha) · 4 de 6 (.fj-totalbar)
+ausentes:
+  · fj-rowcheck + .fj-bulkbar — mutação em massa sem endpoint. O charter proíbe escrita fora do
+    TaskCrudService (que valida o FSM); selecionar sem poder agir é afordância falsa (LC-15)
+  · fj-fresco / FrescorPill  — exige carimbo de verificação contra o main; não existe fora do mock
+  · fj-epic-chev / EpicRoll  — no protótipo o pai é issue da MESMA lista (kidsOf); em mcp_tasks
+    epic_id é FK pra McpEpic, OUTRA entidade. Chegou a ser implementado e ficaria mudo pra
+    sempre; removido antes do merge (LC-08)
+  · carry xN                 — exige histórico de ondas, que mcp_tasks não guarda
+  · fj-total-warn            — depende do mesmo frescor acima
+  · fj-total-hint (kbd j k ? )— a tela não escuta esses atalhos; anunciar seria afordância falsa
+divergências declaradas:
+  · .fj-row é role="listitem", não role="row"/button — ela NÃO tem onClick nesta tela (não há
+    drawer aqui); prometer navegação 2D por teclado seria o mesmo LC-15, só que invisível.
+    Produção à frente do protótipo, que tem 0 papel de lista
+  · role="status" aria-live="polite" no span de issues, e não na barra inteira: role="status" é
+    atômico, e na barra todo pin re-anunciaria os quatro números
+```
+
+As 6 ausências estão escritas no docblock do `TrabalhoLista.tsx`, com o motivo de cada uma. Nenhuma
+renderiza placeholder no lugar.
+
+### 4 · O `gap 14px` do §3.3 × o `gap:20px` da folha — dissolvido pela medição
+
+O export §3.3 pede `.fj-totalbar` com **gap 14px**; as duas folhas dizem **20px**. Não é divergência:
+
+- `grep -n "fj-totalbar"` devolve as **mesmas 4 regras** nos dois arquivos, com os **mesmos valores** —
+  base `gap:20px` (`cowork-forja-bundle.css:133` · `prototipo-ui/cowork/forja-page.css:114`) e
+  `gap:14px` dentro de `@media (max-width:1100px)` (`:296` · `:277`). O `diff` do bloco `.fj-totalbar`
+  volta **vazio**.
+- O **§7 do próprio export declara** que a medição rodou a **924px** de viewport. 924 < 1100 ⇒ o media
+  query estava ativo ⇒ **14px é o valor certo naquela viewport, nos dois lados**. A 1280 (a do DoD) os
+  dois dão 20px.
+
+**Resíduo honesto:** o build de 03/09 não desceu ao espelho (§6 abaixo), então não dá pra *excluir* que ele
+tenha mudado o valor-base. Só que nada do que é mensurável hoje sustenta isso — e o export §5 proíbe CSS
+novo. **Nenhuma folha foi tocada neste PR.**
+
+### 5 · O que já estava verde, e não se mexeu
+
+- **UC:** `Index.casos.md` tem **17** `UC-TRAB-*`, e o `TrabalhoListaTest.php` cita os **17** — cobertura
+  17/17, contada com `grep -o … | sort -u` nos dois arquivos.
+- **`design-spec.json`:** `node scripts/design-spec-gen.mjs --check` → *"3 spec(s) por-tela em sincronia"*,
+  `rc=0`. O `measured_against_sha: c1263f2e53` do `Index.design-spec.json` aponta pra um commit anterior ao
+  #6616 e ao #6669, mas isso **não é drift**: o campo está em `VOLATILE` (`design-spec-gen.mjs:87`), que a
+  comparação de frescor descarta por desenho — ela mede a **estrutura derivada**
+  (`stable(committed) !== stable(fresh)`, `:125`). Ler o `sha` como régua seria medir a propriedade errada;
+  o spec **não foi regravado**.
+- **Pest:** não rodou aqui. Teste é CT 100 ou CI, nunca local (proibição Tier 0).
+
+### 6 · O que esta seção NÃO prova
+
+1. **T7 continua pendente**, pelo mesmo motivo das Ondas 9 e 10: prod pede auth (`302 → /login`), e o
+   `design-diff --compare --check` exige os dois renders. **Nada aqui é "0 bug"** (lei 6 do export).
+2. **O espelho não está fechado.** `node scripts/governance/cowork-mirror-freshness.mjs --sla` acusa
+   rodada **PARCIAL**: mediu **1 de 258** (1 sync · 0 stale · **257 unchecked**), e reporta **157**
+   arquivos que existem no vivo e não estão no espelho. A regeneração do bundle é pedida no
+   [#6671](https://github.com/wagnerra23/oimpresso.com/pull/6671) e **não roda do lado do agente**
+   ([ADR 0374](../../decisions/0374-emenda-0315-espelho-cowork-e-rota-prevista.md)) — logo o `forja-page.jsx`
+   que a §2 mede é o do espelho, que pode estar atrás do build de 03/09.
+3. **A a11y não foi re-auditada** — a §3 registra o que o #6669 entregou, não uma varredura axe nova.
