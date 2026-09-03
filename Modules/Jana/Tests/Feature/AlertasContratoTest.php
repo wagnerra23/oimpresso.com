@@ -61,6 +61,41 @@ function alertasBootstrap(): array
     return [$business, $user];
 }
 
+/**
+ * A entry da Jana no `shell.menu` é gated pela ASSINATURA (Camada 1 — `jana_module` no
+ * `package_details`, `ModuleUtil::hasThePermissionInSubscription`), não só pela permission.
+ * O tenant do seed pode não ter assinatura: garantimos uma (transação, rollback no fim) —
+ * é o mesmo eixo que o `JanaPlanoTierTest` escreve. Sem isto o UC-00 media o pacote, não a aba.
+ */
+function alertasGaranteAssinaturaJana(Business $business, User $user): void
+{
+    if (! class_exists(\Modules\Superadmin\Entities\Subscription::class)) {
+        return; // sem Superadmin, `hasThePermissionInSubscription` devolve true sozinho
+    }
+
+    $sub = \Modules\Superadmin\Entities\Subscription::active_subscription($business->id);
+
+    if (! $sub) {
+        $pkg = \Modules\Superadmin\Entities\Package::query()->first()
+            ?: \Modules\Superadmin\Entities\Package::query()->forceCreate([
+                'name' => 'Pacote de teste (Jana)', 'description' => 'fixture', 'location_count' => 0,
+                'user_count' => 0, 'product_count' => 0, 'invoice_count' => 0, 'interval' => 'months',
+                'interval_count' => 1, 'trial_days' => 0, 'price' => 0, 'custom_permissions' => [],
+                'created_by' => $user->id, 'is_active' => 1,
+            ]);
+        $sub = \Modules\Superadmin\Entities\Subscription::query()->forceCreate([
+            'business_id' => $business->id, 'package_id' => $pkg->id,
+            'start_date' => now()->subDay()->toDateString(), 'end_date' => now()->addMonth()->toDateString(),
+            'package_price' => 0, 'package_details' => [], 'created_id' => $user->id, 'status' => 'approved',
+        ]);
+    }
+
+    $detalhes = (array) ($sub->package_details ?? []);
+    $detalhes['jana_module'] = 1;
+    $sub->package_details = $detalhes;
+    $sub->save();
+}
+
 /** Meta ativa + período vigente (hoje no meio) + apuração — o mínimo pra existir alerta. */
 function alertasMetaComDesvio(?int $businessId, string $slug, float $alvo, float $realizado): Meta
 {
@@ -109,7 +144,8 @@ function alertasMetaMemoria(float $alvo, float $realizado, bool $comPeriodo = tr
 // ── RUNTIME ──────────────────────────────────────────────────────────────────
 
 it('UC-ALERTA-00: a aba Alertas existe na barra da área, na 3ª posição, e leva a /ia/alertas', function () {
-    alertasBootstrap();
+    [$business, $user] = alertasBootstrap();
+    alertasGaranteAssinaturaJana($business, $user);
 
     $resposta = $this->get('/ia/alertas')->assertStatus(200);
     $resposta->assertInertia(fn ($page) => $page->component('Jana/Alertas')->has('shell.menu'));
