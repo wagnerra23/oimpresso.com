@@ -29,6 +29,7 @@ on:
   # Dispara também quando a própria sentinela muda — se alguém mexer na classificação,
   # o efeito no número real aparece na hora, não só na segunda seguinte.
   pull_request:
+    types: [opened, reopened, ready_for_review]
     branches: [main]
     paths:
       - 'scripts/governance/negocio-vs-governanca-ratio.mjs'

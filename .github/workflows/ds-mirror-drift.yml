@@ -7,6 +7,7 @@ name: ds-mirror-drift (advisory)
 
 on:
   pull_request:
+    types: [opened, reopened, ready_for_review]
     paths:
       - 'resources/css/tokens/**'
       - 'scripts/design-sync/**'

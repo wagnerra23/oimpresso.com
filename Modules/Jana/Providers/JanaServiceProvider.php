@@ -91,6 +91,10 @@ class JanaServiceProvider extends ServiceProvider
                 \Modules\Jana\Console\Commands\DesignMineRawCommand::class, // plano vectorized-badger PR-3 — minera raw→candidatos 🔍 (human-gated)
                 \Modules\Jana\Console\Commands\ProfileDistillCommand::class, // COPI-26 — job que faltava: regenera jana_business_profile (distiller nunca foi agendado; L-OP-002)
                 \Modules\Jana\Console\Commands\SkillScaffoldCommand::class,  // vindo do ADS 2026-07-31 — as tabelas mcp_skills* sempre foram da Jana
+                \Modules\Jana\Console\Commands\AutomationsSyncCommand::class,     // ADR 0234 (aceito/ativo) especifica `jana:automations:sync`; é o ÚNICO escritor de mcp_automations, que a AutomationsListTool (viva) lê
+                \Modules\Jana\Console\Commands\CacheStatsCommand::class,          // ADR 0054 (aceito/ativo) lista na cadência diária; renomeado copiloto: → jana: (sem caller possível: não existia no artisan)
+                \Modules\Jana\Console\Commands\ContextualizeBackfillCommand::class, // ADR 0148 (aceito/ativo) Onda 6; config.php + IndexarMemoryGitParaDb + migration o apontam como O caminho de backfill
+                \Modules\Jana\Console\Commands\MetricasReflexivasCommand::class,  // fechador nomeado da fraqueza `ev-trajectory` (memory/reguas), que estava SEM INVOCADOR; renomeado copiloto: → jana:
             ]);
         }
     }

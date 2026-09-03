@@ -21,6 +21,7 @@ on:
   # (baseline-tamper-guard.mjs:35). Rodar em todo PR é barato (1 git diff + N git show) e habilita a
   # promoção a required (fecha o furo "no-new-lie sobre guard não-required" — avaliação SDD 2026-07-02).
   pull_request:
+    types: [opened, reopened, ready_for_review]
     branches: [main]
   workflow_dispatch:
 
