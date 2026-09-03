@@ -146,6 +146,7 @@ it('expõe 4 KPIs (pago_mes, vencido, aberto, mandatos_ativos, mrr_pago) quando 
     $this->actingAs($this->user)
         ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
         ->get('/financeiro/cobranca?only=kpis', ['X-Inertia' => 'true', 'X-Inertia-Version' => cobrancaInertiaVersion(), 'X-Inertia-Partial-Component' => 'Financeiro/Cobranca/Index', 'X-Inertia-Partial-Data' => 'kpis'])
+        ->assertOk() // revela o STATUS: assertInertia sozinho vira "Not a valid Inertia response." em QUALQUER nao-Inertia (409/302/500)
         ->assertInertia(fn ($page) => $page
             ->has('kpis.pago_mes.qtd')
             ->has('kpis.pago_mes.valor')
@@ -160,6 +161,7 @@ it('UC-COB-02 · expõe funil 5 etapas (aberto, lembrete, cobranca_ativa, vencid
     $this->actingAs($this->user)
         ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
         ->get('/financeiro/cobranca?only=funil', ['X-Inertia' => 'true', 'X-Inertia-Version' => cobrancaInertiaVersion(), 'X-Inertia-Partial-Component' => 'Financeiro/Cobranca/Index', 'X-Inertia-Partial-Data' => 'funil'])
+        ->assertOk() // revela o STATUS: assertInertia sozinho vira "Not a valid Inertia response." em QUALQUER nao-Inertia (409/302/500)
         ->assertInertia(fn ($page) => $page
             ->has('funil.aberto.qtd')
             ->has('funil.lembrete.qtd')
@@ -199,12 +201,27 @@ it('UC-COB-03 · filtra por status via querystring', function () {
             'X-Inertia-Partial-Component' => 'Financeiro/Cobranca/Index',
             'X-Inertia-Partial-Data' => 'filtros',
         ])
+        ->assertOk() // revela o STATUS: assertInertia sozinho vira "Not a valid Inertia response." em QUALQUER nao-Inertia (409/302/500)
         ->assertInertia(fn ($page) => $page->where('filtros.status', 'paga'));
 });
 
 it('UC-COB-07 · Tier 0 IRREVOGÁVEL: Cobranca respeita business_id global scope', function () {
-    // Cria business B (diferente) + cobrança "vazia" do business B
-    $otherBiz = Business::query()->firstOrCreate(['id' => 99], ['name' => 'Other Biz', 'currency_id' => 1]);
+    // O tenant adversário é o biz=2 que a lane SEMEIA — não se cria um aqui.
+    //
+    // Antes: `firstOrCreate(['id' => 99], ['name' => 'Other Biz', ...])`. Duas coisas
+    // erradas, e a segunda é de substância:
+    //  1. `id` não é fillable em Business, então o 99 era descartado no create e o INSERT
+    //     saía sem `owner_id` (NOT NULL, FK pra users) → SQLSTATE[23000] 1452 contra MySQL
+    //     real. Medido no run 33766642609. Nunca ia funcionar fora de SQLite.
+    //  2. o 99 é PROIBIDO como adversário: é o SUPPORT_CLIENT_TENANT_ID (Modo Suporte), e
+    //     `.github/actions/pest-mysql-setup/action.yml` avisa literalmente "NÃO usar 99 aqui
+    //     — agente e cliente no mesmo id fariam o cross-tenant ficar verde sem provar nada".
+    //
+    // O canônico é o biz=2, que a action semeia com este papel declarado: "segundo tenant
+    // MÍNIMO pros testes de isolamento multi-tenant terem um segundo business real"
+    // (ADR 0093 · ADR 0358). `findOrFail` de propósito: ausente, o teste FALHA ALTO —
+    // skip aqui seria guard Tier 0 anunciado e não exercido (LC-13).
+    $otherBiz = Business::query()->findOrFail(2);
 
     $credOther = PaymentGatewayCredential::withoutGlobalScopes()->create([
         'business_id' => $otherBiz->id,
