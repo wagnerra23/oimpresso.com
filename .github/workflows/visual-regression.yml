@@ -758,6 +758,34 @@ jobs:
         if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Financeiro/CaixaIndexTest.php
+      # ── E2E DE RENDER POR TELA — Financeiro/Cobranca (NASCE ADVISORY) ────────────────
+      # Mesmo buraco, mesma forma do step acima. Medido em 2026-09-03 por `node
+      # scripts/qa/screen-coverage-map.mjs --screen Financeiro/Cobranca/Index`: trio ✓ ·
+      # scorecard ✓ · visual-comparison ✓ · charter LIGADA · 7/7 UC citados por teste — e
+      # `e2e (Browser) ✗`. O que este step cobre: contrato de colunas, máscara de PII
+      # client-side, funil × KPI, badge por status, atalho `/` + busca client-side e axe
+      # CRITICAL.
+      #
+      # ⚠️ Diferente do Conciliacao acima, aqui o servidor NÃO está segurando a tela: o
+      # `CobrancaControllerTest` (UC-COB-01/02/03/07) e o `BoletoMockEmissaoTest`
+      # (UC-COB-05) estão em `.github/financeiro-pest-quarantine.list`, e o
+      # `scripts/casos-test-results.json` tem só `UC-COB-04`/`UC-COB-06` — 2 de 7 UC com
+      # prova de execução. Enquanto a quarentena não cair, este step é a única cobertura
+      # desta tela que EXECUTA numa lane de PR. Razão a mais pra ele não ficar mudo.
+      #
+      # DEPOIS do Conciliacao, e por ÚLTIMO entre os E2E: a fixture escreve em `cobrancas` e
+      # `payment_gateway_credentials`. O teste apaga no `afterEach`; rodar depois de TODAS as
+      # capturas garante que nem uma limpeza que falhe alcance baseline já assada.
+      #
+      # ADVISORY no nascimento (ADR 0261/0275), pelo motivo literal dos dois steps acima:
+      # Pest Browser é CI/CT-100 only e o autor não pôde executá-lo antes do PR (`php`/
+      # `vendor` não existem na worktree). Promoção a ENFORCING = REMOVER o
+      # `continue-on-error`, após 2 verdes que EXECUTARAM — `skipped` lido como verde seria o
+      # presence-gate de sempre, e é pra isso que serve o `always()`.
+      - name: E2E de render · Financeiro/Cobranca (ADVISORY)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        continue-on-error: true
+        run: ./vendor/bin/pest tests/Browser/Financeiro/CobrancaIndexTest.php
 
       # ── MODO UPDATE (dispatch): PROVA o relógio congelado ANTES de assar baseline ──
       # Ordem é o ponto: se o shim de VISREG_FREEZE_CLOCK estiver quebrado, a baseline

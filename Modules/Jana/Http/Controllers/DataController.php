@@ -437,9 +437,9 @@ class DataController extends Controller
      * Duas portas, e nenhuma é o `can()` sozinho: `hasPermissionTo` consulta o Spatie
      * direto (imune ao `Gate::before`), e `user_type` é coluna, não ability.
      */
-    private static function podeVerPlataforma(): bool
+    public static function podeVerPlataforma(?\App\User $user = null): bool
     {
-        $user = auth()->user();
+        $user ??= auth()->user();
 
         try {
             $temPermissaoReal = (bool) $user?->hasPermissionTo('jana.superadmin');

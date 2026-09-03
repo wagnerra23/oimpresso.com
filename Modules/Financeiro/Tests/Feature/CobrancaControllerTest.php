@@ -17,13 +17,37 @@ uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::
  *
  * 8 GUARDs conforme Charter (Index.charter.md §"Métricas vivas"):
  *   1) renderiza Inertia component Financeiro/Cobranca/Index
- *   2) expõe Props no shape esperado
+ *   2) UC-COB-01 · expõe Props no shape esperado
  *   3) expõe 4 KPIs (3 fixos + 1 contextual condicional)
  *   4) UC-COB-02 · expõe funil 5 etapas
- *   5) filtra por status/tipo/gateway/account/origem via querystring
+ *   5) UC-COB-03 · filtra por status/tipo/gateway/account/origem via querystring
  *   6) UC-COB-07 · Tier 0 IRREVOGÁVEL: Cobranca respeita business_id global scope
  *   7) /financeiro/boletos continua acessível (redirect ainda não — preservado 60d)
- *   8) não dispara mutação em GET /cobranca (read-only puro)
+ *   8) não dispara mutação em GET /cobranca (read-only puro) — 2ª metade do UC-COB-07
+ *
+ * ⚠️ UC-COB-02 e UC-COB-07 estavam PRESOS NESTE DOCBLOCK (2026-09-03): o coletor do
+ * manifesto G-7 lê o atributo `name` do <testcase> do JUnit, então id citado só em
+ * comentário nunca vira ✅ — os dois constavam em `scripts/casos-coverage-baseline.json`
+ * como dívida "teto_so_docblock". Movidos pro TÍTULO dos MESMOS testes que o
+ * `Index.casos.md` já declarava como prova ("funil aberto/…/protesto" e "global scope +
+ * GET não muta"). Nenhum assert foi tocado: é rastreabilidade, não cobertura nova.
+ *
+ * ⛔ E O MOVE **NÃO** DESTRAVA O MANIFESTO, porque há um 2º bloqueio, SUBTRATIVO e maior:
+ * ESTE ARQUIVO ESTÁ EM QUARENTENA. Ele consta em `.github/financeiro-pest-quarantine.list`
+ * (anotação da lista: `# 4 failed, 11 passed (51 assertions)`), e a lane `financeiro-pest`
+ * monta o run-set com `comm -23 <árvore> <quarentena>` — reproduzido em 2026-09-03: árvore
+ * 83 · quarentena 23 · RODANDO 60, com este arquivo FORA (controle positivo:
+ * `AccountTransactionIdorTest` dentro). Logo nenhum <testcase> deste arquivo entra no JUnit
+ * e nenhum UC daqui vira `execução-backed`. Confirmado na outra ponta: o
+ * `scripts/casos-test-results.json` tem SÓ `UC-COB-04` e `UC-COB-06` (os dois cujos testes
+ * NÃO estão na quarentena) — 2 de 7. O id no título é o pré-requisito que faltava; o
+ * destravamento de verdade é sair da quarentena, e isso exige consertar os 4 vermelhos.
+ *
+ * LIMITE HONESTO do que estes dois provam quando rodarem: o GUARD 4 prova o SHAPE do funil
+ * (as 5 etapas existem com `qtd`), não a aritmética de "as 5 etapas somam as cobranças do
+ * período"; a metade de RENDER do UC-COB-02 (o funil chega à tela e concorda com o KPI "Em
+ * aberto") vive em tests/Browser/Financeiro/CobrancaIndexTest.php — que é, hoje, a ÚNICA
+ * cobertura desta tela que de fato EXECUTA numa lane de PR. A soma em si segue sem prova.
  *
  * ADR 0101: testes biz=1 (não usar biz=4 ROTA LIVRE cliente real).
  */
@@ -112,7 +136,7 @@ it('expõe 4 KPIs (pago_mes, vencido, aberto, mandatos_ativos, mrr_pago) quando 
         );
 });
 
-it('expõe funil 5 etapas (aberto, lembrete, cobranca_ativa, vencido_5d, protesto)', function () {
+it('UC-COB-02 · expõe funil 5 etapas (aberto, lembrete, cobranca_ativa, vencido_5d, protesto)', function () {
     $this->actingAs($this->user)
         ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
         ->get('/financeiro/cobranca?only=funil', ['X-Inertia' => 'true', 'X-Inertia-Version' => '1', 'X-Inertia-Partial-Component' => 'Financeiro/Cobranca/Index', 'X-Inertia-Partial-Data' => 'funil'])
@@ -158,7 +182,7 @@ it('UC-COB-03 · filtra por status via querystring', function () {
         ->assertInertia(fn ($page) => $page->where('filtros.status', 'paga'));
 });
 
-it('Tier 0 IRREVOGÁVEL: Cobranca respeita business_id global scope', function () {
+it('UC-COB-07 · Tier 0 IRREVOGÁVEL: Cobranca respeita business_id global scope', function () {
     // Cria business B (diferente) + cobrança "vazia" do business B
     $otherBiz = Business::query()->firstOrCreate(['id' => 99], ['name' => 'Other Biz', 'currency_id' => 1]);
 
