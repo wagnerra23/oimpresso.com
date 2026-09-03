@@ -234,7 +234,7 @@ it('UC-JPAIN-07: sparkline sem série declara "Sem histórico" em vez de desenha
  *
  * A asserção é de ARQUIVO porque o defeito é de render, e Pest não monta React.
  * Ela morde no que importa: apagar o `carregandoCockpit`, ou voltar a passar o
- * `<KpiCard>` direto, derruba o caso. O par visual (screenshot 1280/1440) é o
+ * `<JanaKpiCard>` direto, derruba o caso. O par visual (screenshot 1280/1440) é o
  * portão F1.5 e vive fora daqui.
  */
 it('UC-JPAIN-08: o cockpit declara carregando em vez de pintar zero', function () {
@@ -942,7 +942,7 @@ it('UC-JPAIN-16: nenhum botão novo do Painel nasce clicável sem fazer nada', f
 });
 
 /**
- * Extrai, na ORDEM de arquivo, os rótulos dos `<KpiCard>` que vivem dentro do
+ * Extrai, na ORDEM de arquivo, os rótulos dos `<JanaKpiCard>` que vivem dentro do
  * `<KpiGrid>` do cockpit.
  *
  * Por que o recorte é o bloco, e não o arquivo: `label="Receita 30 dias"` aparece
@@ -950,7 +950,14 @@ it('UC-JPAIN-16: nenhum botão novo do Painel nasce clicável sem fazer nada', f
  * `Sells/Index.tsx` tem KPIs próprios. Contar no arquivo inteiro mediria outra
  * coisa e daria um número plausível — a armadilha do §5 2026-08-01.
  *
- * `<KpiCard\s` não casa `<KpiCardSkeleton` porque exige espaço logo após o nome.
+ * ⚠️ O NOME mudou em 2026-09-03 (Onda 2 da paridade · UC-JPAIN-20): o card deixou de
+ * ser o `KpiCard` shared (anatomia PT-04) e passou a ser a RÉPLICA do `.jc-kpi` da
+ * âncora, `_components/JanaKpiCard.tsx` (ADR 0388 §D-1 · precedência de FORMA da ADR
+ * UI-0029). Se este regex não tivesse acompanhado, ele voltaria `[]` e o caso ficaria
+ * VERDE por não achar nada — LC-11 na forma silenciosa.
+ *
+ * `<JanaKpiCard\s` não casa `<KpiCardSkeleton` (outro nome) porque exige o espaço
+ * logo após o nome.
  */
 function painelKpisDoGrid(string $src): array
 {
@@ -958,7 +965,7 @@ function painelKpisDoGrid(string $src): array
         return [];
     }
 
-    preg_match_all('/<KpiCard\s+label="([^"]+)"/u', $bloco[0], $m);
+    preg_match_all('/<JanaKpiCard\s+label="([^"]+)"/u', $bloco[0], $m);
 
     return $m[1];
 }
@@ -988,9 +995,9 @@ it('UC-JPAIN-18: o grid tem os 3 KPIs da âncora e o PIX saiu como CARD, não co
 
     // ── BITE-TEST do extrator: ele mede o que diz medir? ─────────────────────
     // Controle positivo E negativo antes de confiar no número real (§5 2026-08-01).
-    $fixtureBoa  = '<KpiGrid cols={3}><KpiCard label="A" /><KpiCard label="B" /></KpiGrid>';
-    $fixtureSkel = '<KpiGrid cols={3}><KpiCardSkeleton label="X" /><KpiCard label="A" /></KpiGrid>';
-    $fixtureFora = '<KpiCard label="Z" /><KpiGrid cols={3}><KpiCard label="A" /></KpiGrid>';
+    $fixtureBoa  = '<KpiGrid cols={4}><JanaKpiCard label="A" /><JanaKpiCard label="B" /></KpiGrid>';
+    $fixtureSkel = '<KpiGrid cols={4}><KpiCardSkeleton label="X" /><JanaKpiCard label="A" /></KpiGrid>';
+    $fixtureFora = '<JanaKpiCard label="Z" /><KpiGrid cols={4}><JanaKpiCard label="A" /></KpiGrid>';
 
     expect(painelKpisDoGrid($fixtureBoa))->toBe(['A', 'B']);   // conta os cards
     expect(painelKpisDoGrid($fixtureSkel))->toBe(['A']);       // ignora o skeleton
@@ -1005,9 +1012,19 @@ it('UC-JPAIN-18: o grid tem os 3 KPIs da âncora e o PIX saiu como CARD, não co
         'Ticket médio',
     ]);
 
-    // ── 2. o grid declara 3 colunas ──────────────────────────────────────────
-    // Sem isto, remover o card deixaria um vão de 1 coluna no desktop (`lg`).
-    expect($cockpit)->toContain('<KpiGrid cols={3}>');
+    // ── 2. o grid declara as 4 colunas da ÂNCORA, com o gap dela ─────────────
+    // A `jc-kpis` é `grid-template-columns: repeat(4, 1fr); gap: 10px`, e os 3 cards
+    // ocupam 3/4 — o vão à direita é do DESENHO, não sobra de card removido. Era
+    // `cols={3}` até 2026-09-03, quando a Onda 2 mediu a âncora (`gap-2.5` = 10px).
+    expect($cockpit)->toContain('<KpiGrid cols={4} className="gap-2.5">');
+
+    // ── 2b. e o card é a RÉPLICA, não o shared PT-04 ─────────────────────────
+    // Sem este par, trocar `JanaKpiCard` de volta por `KpiCard` deixaria o extrator
+    // devolvendo `[]` — um caso verde por ausência de alvo, que é o que o docblock
+    // do extrator acabou de avisar.
+    expect($cockpit)
+        ->toContain("import JanaKpiCard from './JanaKpiCard';")
+        ->not->toContain("from '@/Components/shared/KpiCard'");
 
     // ── 3. o PIX saiu como CARD ──────────────────────────────────────────────
     expect($cockpit)
