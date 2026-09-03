@@ -21,7 +21,9 @@ on:
   # (Required path-filtrado trava PRs que não tocam o path — footgun do GitHub.)
   # O short-circuit por `git diff` no job evita o imposto de CI: sem mudança em
   # componente/dep a11y, o job passa em segundos, sem npm ci/vitest.
+  workflow_dispatch:
   pull_request:
+    types: [opened, reopened, ready_for_review]
     branches: [main]
 
 concurrency:
