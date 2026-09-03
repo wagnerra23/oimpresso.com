@@ -401,6 +401,14 @@
       "terminal": "required",
       "anchor": "ADR 0370 (emenda 0314) — 3 mordidas (episódio das branches ads-*), step \"--check\" acusando aresta pendurada / catalog.json fora da derivada. FP crônico descartado: exit 0 no main. Required-readiness paga no mesmo PR: \"paths\" removido, custo medido ~33s. Job renomeado pra tirar \"(advisory)\" antes de virar required (§5 2026-07-16). | sinal de custo: grade do catálogo 2026-07-21 identificou descritores isolados sem grafo consultável; uma IA não conseguia responder mecanicamente que módulos dependem de uma fronteira alterada. Deriva 38 módulos/627 nós/950 arestas dos donos existentes, sem criar segunda fonte. Advisory por ADR 0314; promote_by força revisão após janela de falsos positivos, sem promoção silenciosa."
     },
+    "manufacturing-pest.yml": {
+      "nome": "Manufacturing · Pest (MySQL)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-12-03",
+      "anchor": "sinal de custo MEDIDO 2026-09-03: NENHUMA das 19 lanes *-pest.yml executa Modules/Manufacturing/Tests/. O modulo so aparece em modules-pest.yml, que roda DB_CONNECTION=sqlite (:135), e 12 dos 19 arquivos abrem com guarda `if (driver === 'sqlite') markTestSkipped`. Medido no run 33784448850 (main, antes do PR): `WARN ... PermissionsTest` com os 7 casos em traco amarelo e `Tests: 47 skipped, 78 passed` — skip sai exit 0, logo a lane fica verde sem ter provado nada (LC-13; sec.5 2026-08-02 'registro nao e execucao'). O proprio cabecalho do modules-pest.yml registra que Manufacturing entrou na matrix em 2026-09-03 porque 'os outros 18 eram falsa cobertura' — aquilo resolveu METADE (saiu de 'nao roda' para 'roda e pula'), esta lane fecha a outra. O conteudo mudo inclui o MultiTenantIsolationTest, que defende a UNICA barreira de tenant do modulo: mfg_recipes NAO tem business_id direto, o isolamento vem do JOIN com products.business_id (ADR 0093). Descoberta (diretorio inteiro), nao allowlist, porque nenhum dos 19 tem execucao conhecida sob MySQL e escolher a dedo seria adivinhar.",
+      "promote_by_razao": "Nasce advisory (ADR 0275) porque a area nunca teve execucao conhecida sob MySQL — promocao so com mordida provada (ADR 0336). Espera-se vermelho no primeiro run: e o achado, nao o defeito da lane. O conteudo e Tier 0 (ADR 0093 via MultiTenantIsolationTest) e por isso candidato natural a required assim que os vermelhos herdados forem resolvidos e a lane acumular mordida; o flip e de [W]. Sem continue-on-error de proposito: advisory = nao bloqueia merge, nunca = nao pode ficar vermelha (lapide 2026-07-09)."
+    },
     "modules-pest.yml": {
       "nome": "Modules Pest",
       "classe": "gate"

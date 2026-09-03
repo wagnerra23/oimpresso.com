@@ -18,7 +18,7 @@ lifecycle: ativo
 > - Hooks → `.claude/hooks/_HOOKS-INDEX.md` · Skills → `.claude/skills/_SKILLS-INDEX.md`
 > - Gates/Workflows → `scripts/governance/gates-registry.json` · Required → `governance/required-checks-baseline.json`
 
-## 1. Workflows / Gates de CI — 127 (45 contexts required)
+## 1. Workflows / Gates de CI — 128 (45 contexts required)
 
 > `Invocador` = gatilho `on:` do YAML · `Documento` = doc canônico de maior precedência que o cita.
 > **Evidência não é derivável aqui** (medido: 0 de 123): o `gate-selftest` prova que o SCRIPT morde,
@@ -102,6 +102,7 @@ lifecycle: ativo
 | `kb-pest.yml` | pr+push+manual | `memory/requisitos/KB/SDD-tela-kb-unificado-v1.0.md` +15 | KB · Pest (MySQL) |
 | `knowledge-ghost-gate.yml` | pr+manual | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +3 | Knowledge Ghost Gate (catraca anti-ghost · baseline por módulo · ADVISORY — KL-A2) |
 | `layout-primitives-guard.yml` | pr+push+manual | `memory/requisitos/Financeiro/RUNBOOK-paridade-ondas.md` +9 | Layout primitives guard (flex/grid solto) |
+| `manufacturing-pest.yml` | pr+push+manual | — | Manufacturing · Pest (MySQL) |
 | `mcp-drift-sentinel.yml` | cron+manual | `memory/requisitos/Infra/AUDITORIA-OPS-DR-2026-07.md` +3 | MCP Drift Sentinel — servido vs main (ADR 0256 + 0062) |
 | `memory-health.yml` | pr+cron+manual | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +79 | Memory Health — ADR 0256 |
 | `memory-schema-gate.yml` | pr+push | `memory/decisions/0343-promove-adr-gate-required-emenda-0341.md` +42 | Memory schema gate (ONDA 5 S1 · FUNDIDO ADR 0314 F2: matrix AJV/frontmatter + sub-checks do corpo via validate-memory-schema.sh, ex-memory-schema-gate-extended D6 #4) |
@@ -455,10 +456,10 @@ lifecycle: ativo
 | `hue-canon-check.mjs` | agente, ci | 🟢 só lê | test | `.claude/skills/pageheader-canon/SKILL.md` +1 | verificador da fonte única do hue primário (US-GOV-052 P32). |
 | `junit-lanes.mjs` | ci, script | 🔴 disco | — | `memory/08-handoff.md` +2 | fonte ÚNICA e DERIVADA das lanes de CI que alimentam o manifesto por-UC |
 | `knowledge-drift.mjs` | agente, ci, script | 🔴 disco | selftest | `memory/decisions/0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes.md` +46 | primeira batida do "batimento" (ADR 0270 / sessão 2026-06-11). |
-| `lapide-recheck.mjs` | agente, ci, script | 🟢 só lê | test | `memory/decisions/0376-sec5-derivado-limite-no-contexto-arqueologia-na-fonte.md` +10 | re-verificação de FRESCOR das lápides §5 (memory/proibicoes.md, |
+| `lapide-recheck.mjs` | agente, ci, script | 🟢 só lê | test | `memory/decisions/0376-sec5-derivado-limite-no-contexto-arqueologia-na-fonte.md` +12 | re-verificação de FRESCOR das lápides §5 (memory/proibicoes.md, |
 | `ledger-check.mjs` | agente, ci, script | 🟢 só lê | selftest | `memory/decisions/0291-distiller-modulo-verdade-contrato-emenda-0270-f3.md` +29 | enforcement do PROTOCOLO-REFUTADOR-BACKFILL (frente GT-G5, |
 | `ledger-hash-chain.mjs` | ci | 🔴 disco | test | (só sessão/handoff · 2) | transparency-log (Rekor/Sigstore-style) sobre o |
-| `maquinas-inventario.mjs` | agente, ci | 🔴 disco | test | `memory/requisitos/Infra/SPEC.md` +15 | DERIVA um índice único e legível de TODAS as "máquinas" |
+| `maquinas-inventario.mjs` | agente, ci | 🔴 disco | test | `memory/proibicoes.md` +17 | DERIVA um índice único e legível de TODAS as "máquinas" |
 | `mcp-drift-sentinel.mjs` | ci, script | 🔴 disco | — | `memory/decisions/proposals/2026-07-23-sentinelas-staleness-prontidao-required.md` +5 | sentinela EXTERNA de drift do MCP server (ADR 0256 + 0062). |
 | `memory-health.mjs` | ci, script | 🔴 disco | selftest | `memory/decisions/0317-maquina-revisao-adr-quando-rever-gatilhos.md` +112 | sentinela de saúde da base de conhecimento (ADR 0256, Onda 1). |
 | `module-group-resolve.mjs` | — (só `.test`) | 🟢 só lê | test | `memory/decisions/proposals/2026-08-11-o-que-pode-existir-em-memory-requisitos.md` +1 | resolve O GRUPO DE MEMÓRIA de um módulo a partir da ÁRVORE. |
@@ -483,7 +484,7 @@ lifecycle: ativo
 | `reguas-cross-model.mjs` | agente, script | 🔴 disco | test | `memory/reguas/README.md` +2 | braço de verificação CROSS-MODEL (cross-VENDOR) da grade de réguas. |
 | `reguas-indexar.mjs` | agente, ci, npm | 🔴 disco | — | `memory/decisions/0353-maquina-evolucao-reguas-looping.md` +8 | Órgão 4 da máquina de réguas em looping (ADR proposta reguas-loop-maquina-evolucao). |
 | `reguas-ledger-check.mjs` | ci | 🔴 disco | — | `memory/proibicoes.md` +4 | o ledger de réguas contradiz a si mesmo? |
-| `replica-inconsistencias.mjs` | script | 🔴 disco | — | `memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md` +3 | LISTA DE INCONSISTÊNCIAS pós-aplicação do protótipo (ADR 0388). |
+| `replica-inconsistencias.mjs` | script | 🔴 disco | — | `memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md` +4 | LISTA DE INCONSISTÊNCIAS pós-aplicação do protótipo (ADR 0388). |
 | `required-always-run.mjs` | ci | 🔴 disco | — | `memory/decisions/0373-screen-grades-ratchet-required-emenda-0314.md` +11 | todo context REQUIRED nasce em TODO PR? |
 | `requisitos-status.mjs` | ci, npm, script | 🔴 disco | — | `memory/decisions/0364-trio-de-tela-mora-em-memory-emenda-0264.md` +64 | a CADEIA DE RASTREABILIDADE de um módulo, derivada e com STATUS. |
 | `resolver-reclamacao.mjs` | ci, npm | 🟢 só lê | — | `memory/decisions/proposals/2026-07-21-resolvedor-reclamacao-cadeia.md` +4 | resolvedor reclamação → cadeia de responsabilidade. |
@@ -541,13 +542,13 @@ lifecycle: ativo
 | `domain-dict-guard.mjs` | ci, npm, script | 🔴 disco | — | `memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md` +16 | scripts/domain-dict-guard.mjs — Gate G-4 (dicionário de domínio) da Governança executável (ADR 0264). |
 | `ds-canon-color-guard.mjs` | ci, npm | 🟢 só lê | — | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +6 | scripts/ds-canon-color-guard.mjs — catraca: a camada canônica NÃO usa paleta crua |
 | `ds-ledger.mjs` | ci, npm | 🔴 disco | — | `memory/requisitos/_DesignSystem/CHANGELOG.md` +8 | scripts/ds-ledger.mjs — Ledger de Conformidade DS (censo Onda 0, por tela). |
-| `ds-report.mjs` | ci, npm, script | 🔴 disco | — | `memory/decisions/0240-task-ledger-git-native-cowork-code.md` +8 | scripts/ds-report.mjs — placar de adoção do Design System (ds/* por regra × módulo) |
+| `ds-report.mjs` | ci, npm, script | 🔴 disco | — | `memory/decisions/0240-task-ledger-git-native-cowork-code.md` +9 | scripts/ds-report.mjs — placar de adoção do Design System (ds/* por regra × módulo) |
 | `dsih-gate.mjs` | ci, script | 🔴 disco | — | `memory/decisions/0283-handoff-loop-zero-paste.md` | porque NENHUM gate mordia CONTEUDO em .tsx (so canal: lint/build/conformance). |
 | `eslint-baseline.mjs` | ci, npm, script | 🔴 disco | selftest | `memory/decisions/0254-design-identity-grade-deterministico.md` +11 | scripts/eslint-baseline.mjs — Onda 1.2 (ADR 0209) |
 | `foundation-guard.mjs` | ci, npm, script | 🔴 disco | — | `memory/decisions/0255-contrato-view-deterministico-charter-design-spec.md` +13 | Determinístico, sem browser, sem dependência. Roda em CI (exit≠0 = bloqueia merge) E local. |
 | `generate-dxt.js` | script | 🔴 disco | — | `memory/08-handoff.md` | Gera arquivo .dxt (Claude Desktop Extension) para membros do time oimpresso. |
 | `handoff-integrity-guard.mjs` | ci, npm, script | 🔴 disco | test | `memory/requisitos/Governance/SPEC.md` +6 | scripts/handoff-integrity-guard.mjs — catraca de Integridade do Handoff (PROCESSO_MEMORIA_CC.md §16 · IT8). |
-| `layout-primitives-guard.mjs` | ci, npm, script | 🔴 disco | selftest | `memory/requisitos/Forja/INCONSISTENCIAS-replica.md` +11 | scripts/layout-primitives-guard.mjs — enforcement da ADR 0253 (primitivos de layout) |
+| `layout-primitives-guard.mjs` | ci, npm, script | 🔴 disco | selftest | `memory/requisitos/Forja/INCONSISTENCIAS-replica.md` +12 | scripts/layout-primitives-guard.mjs — enforcement da ADR 0253 (primitivos de layout) |
 | `no-mock-in-prod.mjs` | ci, npm, script | 🔴 disco | — | `memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md` +5 | scripts/no-mock-in-prod.mjs — Frente 6 (plano anti-duplicacao 2026-06-06) |
 | `pageheader-migration-guard.mjs` | ci, npm, script | 🔴 disco | — | `memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md` +2 | scripts/pageheader-migration-guard.mjs — F4 do roadmap de convergência UI (MANUAL-CSS-JS.md §5) |
 | `perf-static-guard.mjs` | script | 🔴 disco | — | `memory/requisitos/KB/SPEC.md` +7 | scripts/perf-static-guard.mjs — catraca da Onda 4 lente 5b (AUDITORIA-PERFORMANCE-2026-07). |
