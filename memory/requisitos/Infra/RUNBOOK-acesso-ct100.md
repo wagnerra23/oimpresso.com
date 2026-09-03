@@ -351,6 +351,25 @@ não do plantão do retorno.
 **Ordem certa, quando o CT 100 voltar:** Passos 0-3 → Passo 6 (evals produzem números reais) →
 **só então** [W] decide re-curar ou aposentar o consumidor.
 
+⚠️ **E eles não são a única causa do vermelho.** Medido em 2026-09-03: o mesmo check reprova por
+**dois eixos ao mesmo tempo**, e resolver um só não o deixa verde.
+
+| Eixo | Estado |
+|---|---|
+| **1 · heartbeat** | os 24 crons **dispararam** no prazo — mas `jana-ragas-canary.yml` **concluiu `failure`** nas runs agendadas de 01, 02 e **03/09** (passou em 30 e 31/08) |
+| **2 · entrega** | os 2 baselines acima, parados há 64d |
+
+Cuidado com a leitura de *"24 vivos"*: **heartbeat mede que o cron RODOU, não que ele entregou** —
+um cron pode estar fresquíssimo e vermelho. O canary começou a falhar em **01/09**, quando o
+CT 100 já estava fora desde 27/08; logo **não é o outage**, e a causa ficou por determinar (o
+`--log-failed` devolve o job sem delimitar step, `UNKNOWN STEP`).
+
+O eixo 1 tem saída declarada — `governance/cron-vermelho-esperado.json`, que exige razão,
+`expira_em` ≤ 30d e `declarado_por`, e cujo próprio código diz que **"merge de [W] é o ato que
+aprova"**. O eixo 2 **não tem** silêncio: o único botão é o limiar global `OBRA_PARADA_DIAS`, e
+afrouxá-lo mudaria a régua de todo mundo. Ou seja: **nem silenciando o canary o check fica verde**
+— e silenciar não é ato de quem está de plantão no retorno.
+
 ### Passo 6 — os evals semanais da Jana (o que o outage comeu)
 
 Os 2 evals de staging **não têm scheduler** — quem invoca é um cron do host (`0 6 * * 0`, domingo
