@@ -131,8 +131,15 @@ it('UC-ACAO-01: a fila traz as 5 ações do serviço, CTA byte-idêntico e prév
             ->and($a['alcance'])->toBe($p['alcance'])
             ->and($a)->toHaveKey('recibo');
     }
-    // Ninguém aprovou nada neste tenant de teste (transação): a fila inteira é "sugeridas".
-    expect(collect($acoes)->pluck('recibo')->filter()->all())->toBe([]);
+    // Recibo é `null` OU tem a forma completa. NÃO se assume fila vazia: outros testes da lane
+    // (PainelContratoTest, sem DatabaseTransactions) aprovam ações no MESMO tenant e o registro
+    // persiste — medido no CI em 2026-09-03 (`quem => 'CI Tenant98'`). Asserir "ninguém aprovou"
+    // media o estado do banco compartilhado, não o contrato desta tela.
+    foreach ($acoes as $a) {
+        if ($a['recibo'] !== null) {
+            expect(array_keys($a['recibo']))->toBe(['quem', 'quando', 'previa', 'contexto']);
+        }
+    }
 });
 
 it('UC-ACAO-02: aprovar grava o recibo (prévia do servidor), e recibo de OUTRO business não vaza', function () {
@@ -146,6 +153,10 @@ it('UC-ACAO-02: aprovar grava o recibo (prévia do servidor), e recibo de OUTRO 
             'status' => 'aprovada', 'previa' => 'PREVIA DE OUTRO BUSINESS', 'contexto' => [], 'aprovada_em' => now(),
         ]);
     }
+
+    // Foto ANTES: o que as outras 4 chaves tinham de recibo (pode não ser vazio — ver UC-01).
+    $antes = collect($this->get('/ia/acoes')->inertiaPage()['props']['acoes'])
+        ->where('key', '!=', 'investigar-ticket')->pluck('recibo', 'key')->all();
 
     $this->post('/ia/acoes/investigar-ticket/aprovar')->assertRedirect();
 
@@ -161,8 +172,8 @@ it('UC-ACAO-02: aprovar grava o recibo (prévia do servidor), e recibo de OUTRO 
         ->and($linha['recibo']['quando'])->not->toBeNull()
         ->and($linha['recibo']['quem'])->toBe($user->first_name);
 
-    // As outras 4 seguem sem recibo — aprovar uma não "aprova" a fila.
-    expect($acoes->where('key', '!=', 'investigar-ticket')->pluck('recibo')->filter()->all())->toBe([]);
+    // Aprovar UMA não "aprova" a fila: as outras 4 ficam exatamente como estavam (com ou sem recibo).
+    expect($acoes->where('key', '!=', 'investigar-ticket')->pluck('recibo', 'key')->all())->toEqual($antes);
 });
 
 // ── ARQUIVO ──────────────────────────────────────────────────────────────────
