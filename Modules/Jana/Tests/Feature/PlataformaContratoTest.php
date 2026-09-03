@@ -6,6 +6,8 @@ use App\Business;
 use App\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Modules\Jana\Entities\Meta;
+use Modules\Jana\Entities\MetaApuracao;
+use Modules\Jana\Entities\MetaPeriodo;
 use Spatie\Permission\Models\Permission;
 
 uses(Tests\TestCase::class, DatabaseTransactions::class);
@@ -185,4 +187,50 @@ it('UC-PLAT-02: copy e ordem do contrato no alvo — e o alerta caducado da ânc
 
     // Negativo: o P0 fechou em 28/08 (#6421) — copy que o afirma aberto não pode voltar.
     expect(file_get_contents(base_path(PLAT_ALVO)))->not->toContain('não separa dono de empresa de superadmin');
+});
+
+// ── FILHAS FORA DO ESCOPO (bug de produção achado por teste, 2026-09-03) ─────
+
+it('UC-PLAT-03: meta de OUTRO tenant chega com período atual e última apuração preenchidos — as filhas saem do escopo junto com a Meta', function () {
+    [$business, $user] = plataformaBootstrap();
+    $user->givePermissionTo('jana.superadmin');
+    app()->make(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
+    $outro = Business::where('id', '!=', $business->id)->first();
+    if (! $outro) {
+        test()->markTestSkipped('Só um business no seed — sem como provar o cross-business.');
+    }
+
+    // MORDE: `MetaPeriodo`/`MetaApuracao` carregam `ScopeByBusinessViaParent`. Com eager load
+    // puro (`->with(...)`) — e também com `withoutGlobalScopes()` na closure, porque
+    // `latestOfMany` reinstancia o model — as duas voltam null para o tenant alheio, e a
+    // tela mostra "—" / "nunca apurada" para TODOS os clientes. UC-PLAT-01 não pega isso:
+    // lá a meta alheia não tem filhas, e null é o esperado.
+    $alheia = Meta::create(['business_id' => $outro->id, 'slug' => 'uc-plat-03-'.uniqid(), 'nome' => 'Alheia com filhas', 'unidade' => 'qtd', 'tipo_agregacao' => 'soma', 'ativo' => true, 'origem' => 'manual']);
+    $ini = now()->startOfMonth()->toDateString();
+    $fim = now()->addMonth()->toDateString(); // > hoje com folga: a borda "termina HOJE" é pré-existente na relação
+    MetaPeriodo::create(['meta_id' => $alheia->id, 'tipo_periodo' => 'mensal', 'data_ini' => $ini, 'data_fim' => $fim, 'valor_alvo' => 10]);
+    MetaApuracao::create(['meta_id' => $alheia->id, 'data_ref' => now()->toDateString(), 'valor_realizado' => 3, 'calculado_em' => now()]);
+
+    $props = $this->get('/ia/superadmin/metas')->assertStatus(200)->inertiaPage()['props'];
+    $linha = collect($props['metasDeClientes'])->firstWhere('id', $alheia->id);
+
+    expect($linha)->not->toBeNull('a meta do outro tenant não apareceu — a visão cross-business quebrou')
+        ->and($linha['periodo'])->toBe(['data_ini' => $ini, 'data_fim' => $fim])
+        // ISO Y-m-d: formatar no backend traria o shift +3h do `format_date` (ADR 0066).
+        ->and($linha['ultima'])->toBe(now()->toDateString());
+})->group('tier0');
+
+it('UC-PLAT-04: o payload NÃO agrega — nenhuma chave de total/soma cross-business', function () {
+    [$business, $user] = plataformaBootstrap();
+    $user->givePermissionTo('jana.superadmin');
+    app()->make(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
+    // Non-Goal do charter: a agregação cross-business é decisão [W]. Este caso impede a
+    // promessa de voltar por um `sum()` de conveniência num PR futuro.
+    $props = $this->get('/ia/superadmin/metas')->assertStatus(200)->inertiaPage()['props'];
+
+    foreach (['totais', 'total', 'agregado', 'resumo', 'kpis'] as $proibida) {
+        expect(array_key_exists($proibida, $props))->toBeFalse('o payload ganhou a chave agregada "'.$proibida.'" — ver Non-Goal do charter');
+    }
 });

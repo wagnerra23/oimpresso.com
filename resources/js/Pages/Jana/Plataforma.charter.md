@@ -94,4 +94,4 @@ não existe (a agregação) e o gate do menu passou a concordar com o da rota.
 - v1 (2026-09-02) — Tela nasce da paridade das abas (handoff 2026-08-31 §Paridade Painel; fecha
   *"abas: protótipo 6 × prod 3"*). `SuperadminController@metas` → Inertia (gate intacto);
   `DataController::podeVerPlataforma()`; `JanaSubNav maxVisible 6`; Blade apagado. Contrato:
-  UC-PLAT-00..02 em `Plataforma.casos.md`.
+  UC-PLAT-00..04 em `Plataforma.casos.md`.

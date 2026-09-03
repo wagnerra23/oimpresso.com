@@ -45,7 +45,8 @@
     "Ponto/Relatorios/Index",
     "Produto/SellingPrices",
     "RecurringBilling/Index",
-    "Sells/Index"
+    "Sells/Index",
+    "Forja/Roadmap/Gantt"
   ],
   "ciclo": [
     {
@@ -69,11 +70,51 @@
       ]
     },
     {
+      "tela": "Jana/Acoes",
+      "arquivo": "resources/js/Pages/Jana/Acoes.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/jana-telas-novas.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Jana/Alertas",
+      "arquivo": "resources/js/Pages/Jana/Alertas.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/jana-telas-novas.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Jana/Plataforma",
+      "arquivo": "resources/js/Pages/Jana/Plataforma.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/jana-telas-novas.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
       "tela": "kb/Index.v2",
       "arquivo": "resources/js/Pages/kb/Index.v2.tsx",
       "modulo": "core",
       "status": "1-ciclo",
       "prototipo": "prototipo-ui/cowork/kb-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Manufacturing/Recipes",
+      "arquivo": "resources/js/Pages/Manufacturing/Recipes.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/manufacturing-page.jsx",
       "falta": [
         "scorecard"
       ]
@@ -163,7 +204,7 @@
       "arquivo": "Modules/Forja/Resources/js/Pages/Forja/Aprovacoes/Index.tsx",
       "modulo": "Forja",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/forja-page.jsx",
+      "prototipo": "prototipo-ui/cowork/forja-aprova.jsx",
       "falta": [
         "scorecard"
       ]
@@ -259,5 +300,5 @@
       ]
     }
   ],
-  "total": 67
+  "total": 72
 }

@@ -120,3 +120,92 @@ nenhum PR aberto tocando ragas/canary/watchdog (zero colisão detectável por es
 - [session 2026-09-02](2026-09-02-ragas-real-colapso-diagnostico-bloqueado-ct100.md) — colapso do eval real
 - [handoff 2026-09-02 20:12](../handoffs/2026-09-02-2012-ct100-retorno-pos-outage-preparado.md) — retorno do CT 100
 - L-OP-005 em [LICOES-OPERACAO.md](../requisitos/Jana/LICOES-OPERACAO.md) · ADR 0317 · ADR 0318
+
+---
+
+## Desfecho da mesma tarde — sessão irmã (append, não reescrita)
+
+> Esta seção foi acrescentada por outra sessão de 2026-09-03, depois do fechamento acima. Nada
+> do que está escrito antes foi alterado: o retrato daquele momento era honesto e fica. O que
+> mudou foi o mundo, em duas horas — e uma atribuição precisa de correção.
+
+### O que mudou: [W] recarregou o crédito, e a medição pós-recarga é decisiva
+
+`credit_balance_exhausted` (a causa do Achado 1, corretamente diagnosticada acima e ancorada em
+L-OP-005) foi resolvido por [W] durante a tarde. Medido depois, com `update_baseline=false` para
+não tocar em nada — run `33755023279`:
+
+| métrica | referência 2026-07-01 | medido 2026-09-03 | delta |
+|---|---|---|---|
+| `faithfulness` | 1,0 | **1,0** | 0,00% |
+| `answer_relevancy` | 0,851 | **0,851** | 0,00% |
+
+`gate_status: pass` · `regressions: []`. **A referência de julho estava certa o tempo todo.** Os
+64 dias do eixo 2 mediam ausência de revisão, nunca conteúdo inválido — o que fecha o veredito
+(b) com prova, não só com a varredura de escritores.
+
+### Correção de atribuição: o canary baseline NÃO dependia do CT 100
+
+O parágrafo `⛔ Re-curar não é regravar` acima conclui: *"Nos dois casos a data só se move quando
+houver medição confiável — e ela depende do CT 100"*. **Para o canary isso é falso**, e a
+[sessão de 2026-08-31](2026-08-31-ragas-obra-parada-veredito-b.md) já havia refutado essa
+atribuição na sua §Reconciliação: o canary é medido **no GitHub Actions**, e o CT 100 não
+participa desse caminho. A consequência prática do erro foi concreta — levou a concluir que a
+re-cura estava bloqueada, quando ela só dependia do crédito.
+
+A metade da frase que valia para o `real-baseline` **segue valendo inteira**: aquele depende do
+CT 100, e continua parado.
+
+### Re-cura do canary baseline: executada pelo caminho sancionado
+
+Autorizada por [W] depois de ver o antes→depois. Feita por `workflow_dispatch` com
+`update_baseline=true` (o arquivo proíbe edição à mão na sua própria `_meta.description`), run
+`33756454462` → [#6638](https://github.com/wagnerra23/oimpresso.com/pull/6638), mergeado
+`15dbe59d11`. Diff medido com `--numstat`, não com regex sobre o texto: **`2 2`**, e as duas
+linhas são os dois `last_updated`. Valores intactos — a medição de hoje não achou nada a
+corrigir na referência.
+
+Efeito medido rodando o watchdog na base já com o merge: o eixo 2 caiu de **2 🔴 para 1 🔴**, e
+o `rc` do node **segue 1** pelo `real-baseline`. (O `rc` foi lido do `node` direto; num pipeline
+`node … | grep`, o `$?` é do grep — §5 2026-08-13.)
+
+### Enforcement medido: o G6 é advisory, e nenhum PR estava bloqueado por ele
+
+Contra a proteção viva, lendo a **união** clássica ∪ rulesets (§5 2026-08-08, onde ler uma fonte
+só produziu deadlock): `classic_protection.contexts` = 44 · `rulesets` = 1 adicional · união =
+**45**, e `crons de governança vivos? (watchdog G6 · ADR 0317)` não estava entre eles. O job
+também não tem `continue-on-error`, e isso está correto — advisory significa *fora do required*,
+nunca *não pode ficar vermelho* (§5 2026-07-09). Registrado porque uma sessão irmã relatou o
+vermelho como se reprovasse o PR dela.
+
+### As 4 issues auto-abertas foram fechadas com recibo
+
+#6491 · #6521 · #6536 · #6619 descreviam condição extinta. Cada uma recebeu comentário com o
+`erro=` extraído do log, a tabela antes→depois e o ponteiro pro #6638 antes de fechar. Os
+títulos "regrediu > 5%" das três primeiras seguem registrados como má descrição do que houve —
+a progressão da instrumentação (#6518, #6540) já está explicada acima.
+
+### O `real-baseline` fica vermelho, e a razão mudou
+
+O que era *"causa NÃO medida"* passou a ser **hipótese nomeada por [W]**: perguntado sobre
+re-curar os pisos, ele respondeu *"as antigas historicamente estão sempre erradas pois estou
+trocando o layout"* e confirmou estar **reorganizando o corpus** que o `mcp_memory_documents`
+indexa. Se procede, a queda de `context_recall` (0,3951 → 0,0314) e as duas semanas com
+`no_context=51` são efeito da reorganização, não regressão da Jana — e o piso derivado em julho
+descreve um corpus que não existe mais. Registrado no próprio arquivo em
+`gaps_conhecidos._errata_2026_09_03_causa_nomeada_por_w`, **sem** tocar pisos nem data interna.
+
+[W] havia escolhido re-curar os pisos hoje; não foi feito, e o motivo é que o insumo não existe:
+sem CT 100 não há medição pós-reorganização, e derivar piso do histórico é exatamente o que ele
+declarou não valer. Carimbar a data interna zeraria o relógio de 60d até novembro, silenciando
+por dois meses a defasagem que ele acabou de confirmar ser real.
+
+### O que esta sessão deliberadamente não fez
+
+- **Não registrou silêncio.** `governance/cron-vermelho-esperado.json` segue `{"silencios": []}`.
+  A medição desta seção concorda com a de cima: o silêncio alcança só o eixo 3.
+- **Não tocou piso nem data interna** do `real-baseline` — e provou, rodando o watchdog depois
+  da edição, que o conjunto de datas que ele enxerga é idêntico ao de antes (LC-22: mudança em
+  artefato que a máquina lê se valida rodando a máquina, não revisando o texto).
+- **Não mexeu no watchdog.** Ele acertou nos dois eixos, incluindo o eixo 3 — que era falha real
+  e foi consertada na origem, não silenciada.

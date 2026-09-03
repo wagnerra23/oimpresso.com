@@ -194,6 +194,7 @@ jobs:
             Modules/Jana/Tests/Feature/AlertasContratoTest.php \
             Modules/Jana/Tests/Feature/AcoesContratoTest.php \
             Modules/Jana/Tests/Feature/PlataformaContratoTest.php \
+            Modules/Jana/Tests/Feature/SuperadminMetasCrossTenantTest.php \
             Modules/Jana/Tests/Feature/Chat/ChatConversasPreviewTest.php \
             Modules/Jana/Tests/Feature/Chat/ChatAntiHooksAcaoTest.php \
             Modules/Jana/Tests/Feature/Mcp/IndexarMemoryGitShaPreservaTest.php \
@@ -262,6 +263,17 @@ jobs:
             Modules/Jana/Tests/Feature/ProPreviewPermissaoTest.php \
             Modules/Jana/Tests/Feature/Http/MemoriaPermissaoTest.php \
             Modules/Jana/Tests/Feature/Telemetry/LlmHttpCallSitesLangfuseTest.php
+          #
+          # ══ 2026-09-03 — SuperadminMetasCrossTenantTest: o órfão do P0 #6421 ═══
+          #
+          # Criado pelo #6421 (Tier 0: a rota entregava metas de TODOS os tenants pro dono
+          # de qualquer negócio) e ÓRFÃO desde então: não estava aqui nem em
+          # .github/ci-sqlite-pest.list, e skipa em sqlite por desenho. O teste do
+          # vazamento nunca teve veredito de CI. Cobre a MESMA rota da Plataforma — o 1º
+          # run real dele derrubou a afirmação "superadmin por user_type segue entrando"
+          # (o CheckUserLogin do grupo /ia barra antes; errata no RUNBOOK-plataforma §3).
+          # Elegível pela regra desta allowlist: DatabaseTransactions, zero RefreshDatabase.
+          # Critério de aceite: `assertions > 0` com zero failure (LC-13).
           #
           # ══ LEVA 2026-08-26 — 59 órfãos da Jana entram de uma vez ═══════════
           #
