@@ -70,6 +70,23 @@ on:
       - 'resources/js/Pages/Sells/CreateV3.tsx'
       - 'resources/js/Pages/Sells/_components/v3/ResumoParcelas.tsx'
       - 'resources/js/Pages/Sells/_components/v3/ItemDetalhe.tsx'
+      # Onda VALOR (2026-09-03): 3 specs que existiam e rodavam em ZERO lanes — medido
+      # contra origin/main casando o basename de cada um dos 46 specs do include do
+      # vitest contra os 128 workflows E os alias npm de fato invocados por workflow:
+      # 17 dos 46 nunca executavam. Estes 3 são o subconjunto que toca VALOR, e por isso
+      # entram aqui e não na fila: `numberPtBR` é o parser do bug de valor inflado da Larissa (biz=4,
+      # 2026-05-27); `br-inputs` prova o NumericInputPtBR, que nasceu do MESMO bug; e
+      # `scanner-race` prova o autocomplete que alimenta o carrinho. O arquivo SOB TESTE
+      # entra no gatilho junto — sem ele aqui, mexer no parser não acorda o teste dele
+      # (gate mudo com cara de cobertura, a mesma armadilha das 3 reincidências acima).
+      - 'tests/numberPtBR.test.ts'
+      - 'tests/br-inputs.test.tsx'
+      - 'tests/scanner-race.test.tsx'
+      - 'resources/js/Lib/numberPtBR.ts'
+      - 'resources/js/Components/ui/numeric-input-ptbr.tsx'
+      - 'resources/js/Components/ui/document-input.tsx'
+      - 'resources/js/Components/ui/phone-input.tsx'
+      - 'resources/js/Pages/Sells/_components/ProductSearchAutocomplete.tsx'
       - 'tests/js/setup.ts'
       - '.github/workflows/sells-v3-dominio-gate.yml'
   push:
@@ -86,6 +103,23 @@ on:
       - 'resources/js/Pages/Sells/CreateV3.tsx'
       - 'resources/js/Pages/Sells/_components/v3/ResumoParcelas.tsx'
       - 'resources/js/Pages/Sells/_components/v3/ItemDetalhe.tsx'
+      # Onda VALOR (2026-09-03): 3 specs que existiam e rodavam em ZERO lanes — medido
+      # contra origin/main casando o basename de cada um dos 46 specs do include do
+      # vitest contra os 128 workflows E os alias npm de fato invocados por workflow:
+      # 17 dos 46 nunca executavam. Estes 3 são o subconjunto que toca VALOR, e por isso
+      # entram aqui e não na fila: `numberPtBR` é o parser do bug de valor inflado da Larissa (biz=4,
+      # 2026-05-27); `br-inputs` prova o NumericInputPtBR, que nasceu do MESMO bug; e
+      # `scanner-race` prova o autocomplete que alimenta o carrinho. O arquivo SOB TESTE
+      # entra no gatilho junto — sem ele aqui, mexer no parser não acorda o teste dele
+      # (gate mudo com cara de cobertura, a mesma armadilha das 3 reincidências acima).
+      - 'tests/numberPtBR.test.ts'
+      - 'tests/br-inputs.test.tsx'
+      - 'tests/scanner-race.test.tsx'
+      - 'resources/js/Lib/numberPtBR.ts'
+      - 'resources/js/Components/ui/numeric-input-ptbr.tsx'
+      - 'resources/js/Components/ui/document-input.tsx'
+      - 'resources/js/Components/ui/phone-input.tsx'
+      - 'resources/js/Pages/Sells/_components/ProductSearchAutocomplete.tsx'
       - 'tests/js/setup.ts'
       # o workflow entra no gatilho de push (as lanes irmãs omitem) porque é o run de
       # `main` que o publisher colhe: mexer na lane sem re-rodar deixaria o artifact
@@ -131,6 +165,20 @@ jobs:
       # testes → 7/104 (+8). É `.tsx` de propósito: teste de domínio verde não prova que a
       # tela CONSOME o domínio, e foi exatamente esse vão que deixou o grid ignorar a
       # preferência por 15 dias com os 21 testes de `colunas-dominio` verdes.
+      # REINCIDIU pela 4ª vez, agora em LEVA (2026-09-03): `numberPtBR.test.ts`,
+      # `br-inputs.test.tsx` e `scanner-race.test.tsx` — 3 dos 17 specs que a varredura
+      # dos 46 do include contra as invocações reais de CI devolveu como órfãos. Os três
+      # defendem o eixo VALOR e nunca tinham rodado: o próprio cabeçalho do numberPtBR
+      # registra que a redação BRL de 2026-06-08 comeu os fixtures de moeda dele e o
+      # suite ficou VERMELHO sem ninguém ver, "porque este spec não tem lane no CI".
+      # É a definição de verde-por-não-execução (LC-13): 0 failed num teste que não roda.
+      #
+      # Por que nesta lane e não numa nova: ela já é a dona do eixo valor da venda e já
+      # emite JUnit (o `br-inputs` declara @covers-us US-CRM-073, então o G-7 passa a ter
+      # veredito dele). Estender o dono é o canon; abrir lane paralela seria LC-19.
+      # Por que não na `a11y-axe-gate`, que por path seria dona do `br-inputs`: ela é
+      # REQUIRED — ligar spec nunca-executado lá trancaria o merge de todo mundo se ele
+      # nascesse vermelho. Aqui é advisory (ADR 0271/0314), então failing-first é seguro.
       - name: domínio do preview de venda (vitest/jsdom)
         run: |
           npx vitest run \
@@ -144,6 +192,9 @@ jobs:
             tests/js/resumo-parcelas.test.tsx \
             tests/js/item-fiscal-calculo.test.ts \
             tests/js/item-tributacao.test.tsx \
+            tests/numberPtBR.test.ts \
+            tests/br-inputs.test.tsx \
+            tests/scanner-race.test.tsx \
             --reporter=default \
             --reporter=junit \
             --outputFile=test-results/vitest-sells-v3-dominio-junit.xml
