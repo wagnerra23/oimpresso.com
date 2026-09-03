@@ -1,8 +1,8 @@
 {
   "modulo": "Forja",
-  "gerado_em": "2026-09-02T23:48:20.791Z",
+  "gerado_em": "2026-09-03T00:20:08.838Z",
   "comando": "node scripts/governance/replica-inconsistencias.mjs --modulo Forja --prototipo …",
-  "arquivos_medidos": 45,
+  "arquivos_medidos": 46,
   "itens": [
     {
       "id": "FLEX-CRU:Modules/Forja/Resources/js/Pages/ads/Admin/Projects.tsx",
@@ -829,21 +829,8 @@
       "nome": "glifo/emoji em UI de produto",
       "dono": "UiLintCommand.php R3",
       "arquivo": "Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaHandoffs.tsx",
-      "contagem": 11,
-      "exemplo": "→",
-      "origem": "aplicado",
-      "status": "aberta",
-      "nota": "",
-      "aberta_em": "2026-09-02"
-    },
-    {
-      "id": "FLEX-CRU:Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaHandoffs.tsx",
-      "regra": "FLEX-CRU",
-      "nome": "flex/grid cru em className (sem Stack/Inline/Grid)",
-      "dono": "layout-primitives-guard.mjs",
-      "arquivo": "Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaHandoffs.tsx",
-      "contagem": 14,
-      "exemplo": "",
+      "contagem": 17,
+      "exemplo": "→ ⚠ ⚿ ↗",
       "origem": "aplicado",
       "status": "aberta",
       "nota": "",
@@ -876,12 +863,25 @@
       "aberta_em": "2026-09-02"
     },
     {
+      "id": "R1:Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaMcp.tsx",
+      "regra": "R1",
+      "nome": "cor crua em Page/CSS",
+      "dono": "UiLintCommand.php R1 · conformance-gate",
+      "arquivo": "Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaMcp.tsx",
+      "contagem": 1,
+      "exemplo": "#2417",
+      "origem": "aplicado",
+      "status": "aberta",
+      "nota": "",
+      "aberta_em": "2026-09-03"
+    },
+    {
       "id": "R3:Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaMcp.tsx",
       "regra": "R3",
       "nome": "glifo/emoji em UI de produto",
       "dono": "UiLintCommand.php R3",
       "arquivo": "Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaMcp.tsx",
-      "contagem": 6,
+      "contagem": 9,
       "exemplo": "→",
       "origem": "aplicado",
       "status": "aberta",
@@ -894,7 +894,7 @@
       "nome": "flex/grid cru em className (sem Stack/Inline/Grid)",
       "dono": "layout-primitives-guard.mjs",
       "arquivo": "Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaMcp.tsx",
-      "contagem": 17,
+      "contagem": 1,
       "exemplo": "",
       "origem": "aplicado",
       "status": "aberta",
@@ -926,6 +926,19 @@
       "status": "aberta",
       "nota": "",
       "aberta_em": "2026-09-02"
+    },
+    {
+      "id": "R1:Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaRoleBadge.tsx",
+      "regra": "R1",
+      "nome": "cor crua em Page/CSS",
+      "dono": "UiLintCommand.php R1 · conformance-gate",
+      "arquivo": "Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaRoleBadge.tsx",
+      "contagem": 7,
+      "exemplo": "oklch(0.57 0.16 25) · oklch(0.55 0.15 295)",
+      "origem": "aplicado",
+      "status": "aberta",
+      "nota": "",
+      "aberta_em": "2026-09-03"
     },
     {
       "id": "R1:Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaSaude.tsx",
