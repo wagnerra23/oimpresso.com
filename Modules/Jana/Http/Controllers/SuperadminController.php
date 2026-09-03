@@ -5,6 +5,8 @@ namespace Modules\Jana\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Inertia\Inertia;
 use Modules\Jana\Entities\Meta;
+use Modules\Jana\Entities\MetaApuracao;
+use Modules\Jana\Entities\MetaPeriodo;
 use App\Scopes\ScopeByBusiness;
 
 /**
@@ -109,49 +111,67 @@ class SuperadminController extends Controller
     /**
      * Metas de clientes — cross-business por desenho.
      *
-     * ⚠️ O eager load de `periodoAtual`/`ultimaApuracao` NÃO é conveniência: `MetaApuracao`
-     * e `MetaPeriodo` não têm coluna `business_id` (o escopo deles é indireto, via `meta_id`).
-     * Partir daqui — da `Meta` já resolvida — é o que mantém a leitura correta; tocar apuração
-     * a partir de um `$id` cru vazaria entre tenants (RUNBOOK-plataforma.md §6 item 5).
+     * POR QUE AQUI NAO HA EAGER LOAD — e as duas tentativas que o run real derrubou.
      *
-     * ⚠️⚠️ E O `withoutGlobalScopes()` DENTRO DO EAGER LOAD É OBRIGATÓRIO — não é zelo.
-     * As duas filhas usam `App\Concerns\BelongsToBusinessViaParent`, que aplica
-     * `ScopeByBusinessViaParent` NELAS. Tirar o scope só da `Meta` (a linha acima) resolve a
-     * lista, mas o eager load das filhas continua filtrando pela sessão: para toda meta de
-     * OUTRO tenant, `periodoAtual` e `ultimaApuracao` voltavam `null` — isto é, as duas colunas
-     * novas desta tela apareceriam vazias justamente nas linhas que ela existe para mostrar.
+     * `MetaPeriodo` e `MetaApuracao` NAO tem coluna `business_id`: usam
+     * `App\Concerns\BelongsToBusinessViaParent`, que aplica `ScopeByBusinessViaParent`
+     * NELAS, via `meta_id`. Consequencia: tirar o escopo so da `Meta` conserta a LISTA,
+     * nao as filhas.
      *
-     * Achado pelo `UC-PLATAF-03` no primeiro run da lane MySQL (2026-09-03), não por leitura:
-     * `Failed asserting that null is identical to '2026-09-03'`. Defeito de produção, não de
-     * fixture — a tela mostraria "—" e "nunca apurada" para todos os clientes.
+     *   1a tentativa — `->with('periodoAtual', 'ultimaApuracao')` puro. O `UC-PLATAF-03`
+     *     reprovou no 1o run da lane MySQL (2026-09-03): `null is identical to '2026-09-03'`.
+     *     Defeito de PRODUCAO, nao de fixture — a tela mostraria "—" e "nunca apurada" para
+     *     TODOS os clientes, justamente as 2 colunas que ela existe para mostrar.
+     *   2a tentativa — `->with(['ultimaApuracao' => fn ($q) => $q->withoutGlobalScopes()])`.
+     *     Reprovou IGUAL no 2o run. A closure tira o escopo da query externa da relacao, mas
+     *     `ultimaApuracao` e `latestOfMany('data_ref')`, e o `ofMany` monta uma SUBQUERY de
+     *     agregacao com uma instancia nova do model — que nasce com os scopes de volta.
      *
-     * // SUPERADMIN: visão de plataforma (ADR 0093 — o caso legítimo de sair do escopo). O QUEM
-     * // é defendido pelas duas portas em `podeVerPlataforma`; o escopo sai de propósito.
+     * Por isso as filhas viram DUAS queries explicitas, agregadas e sem escopo. Nao e
+     * preferencia de estilo: e a forma que nao depende do que o `ofMany` faz por dentro.
+     * Segue sem N+1 (uma query cada, `whereIn` nos ids ja resolvidos) e seguindo partindo
+     * das `Meta` ja carregadas — tocar apuracao a partir de um `$id` cru de URL seria o
+     * vazamento que o RUNBOOK-plataforma.md §6 item 5 nomeia.
      */
     private function payloadDeClientes(): \Illuminate\Support\Collection
     {
-        return Meta::withoutGlobalScope(ScopeByBusiness::class)
+        $metas = Meta::withoutGlobalScope(ScopeByBusiness::class)
             ->whereNotNull('business_id')
-            ->with([
-                // As filhas carregam `ScopeByBusinessViaParent`; sem tirá-lo aqui, as 2
-                // colunas desta tela viriam vazias para todo tenant alheio. O QUEM é
-                // defendido por `podeVerPlataforma` — o escopo sai de propósito.
-                // SUPERADMIN: visão de plataforma (ADR 0093 — caso legítimo de sair do escopo).
-                'periodoAtual' => fn ($q) => $q->withoutGlobalScopes(),
-                'ultimaApuracao' => fn ($q) => $q->withoutGlobalScopes(),
-            ])
+            ->get();
+
+        $ids = $metas->pluck('id')->all();
+
+        // Período vigente por meta, em UMA query (sem N+1).
+        //
+        // O predicado é o MESMO de `Meta::periodoAtual()` — `where`, não `whereDate` —
+        // de propósito: esta refatoração troca o CAMINHO (relação → query explícita), e
+        // não pode trocar o RESULTADO de carona.
+        // ⚠️ Achado que fica DECLARADO e não consertado: com `data_fim` sendo DATE e
+        // `now()` trazendo hora, um período que termina HOJE já não casa (o MySQL lê
+        // `2026-09-03 00:00:00 >= 2026-09-03 12:00:00` como falso). É borda pré-existente
+        // da relação, não regressão daqui; consertar muda comportamento e pede teste
+        // próprio — não entra numa refatoração de leitura.
+        //
+        // SUPERADMIN: visão de plataforma (ADR 0093 — caso legítimo de sair do escopo).
+        $periodos = MetaPeriodo::withoutGlobalScopes()
+            ->whereIn('meta_id', $ids)
+            ->where('data_ini', '<=', now())
+            ->where('data_fim', '>=', now())
             ->get()
-            ->map(function (Meta $m) {
-                // `@var` local em vez de ler `$m->periodoAtual->data_ini` direto: as relações
-                // da `Meta` devolvem `HasOne` SEM generic, então o PHPStan infere o `Model`
-                // base e acusa `Access to an undefined property Model::$data_ini` (3 erros no
-                // ratchet, run de 2026-09-03). Tipar aqui resolve no raio deste PR; pôr o
-                // generic nas relações da entity é melhoria real, mas muda contrato lido por
-                // outros consumidores — PR próprio, não carona.
+            ->keyBy('meta_id');
+
+        // SUPERADMIN: idem. `MAX(data_ref)` agregado em vez da relação `latestOfMany`.
+        $ultimas = MetaApuracao::withoutGlobalScopes()
+            ->whereIn('meta_id', $ids)
+            ->selectRaw('meta_id, MAX(data_ref) as ultima_data_ref')
+            ->groupBy('meta_id')
+            ->pluck('ultima_data_ref', 'meta_id');
+
+        return $metas
+            ->map(function (Meta $m) use ($periodos, $ultimas) {
                 /** @var \Modules\Jana\Entities\MetaPeriodo|null $periodo */
-                $periodo = $m->periodoAtual;
-                /** @var \Modules\Jana\Entities\MetaApuracao|null $apuracao */
-                $apuracao = $m->ultimaApuracao;
+                $periodo = $periodos->get($m->id);
+                $ultima = $ultimas->get($m->id);
 
                 return [
                     'id'          => $m->id,
@@ -166,7 +186,9 @@ class SuperadminController extends Controller
                         'data_ini' => $periodo->data_ini?->format('Y-m-d'),
                         'data_fim' => $periodo->data_fim?->format('Y-m-d'),
                     ] : null,
-                    'ultima_apuracao' => $apuracao?->data_ref?->format('Y-m-d'),
+                    // `MAX()` volta string do banco — normaliza pra Y-m-d sem passar por
+                    // timezone (a string já É a data; `Carbon::parse` aqui só arriscaria shift).
+                    'ultima_apuracao' => $ultima ? substr((string) $ultima, 0, 10) : null,
                 ];
             })
             ->values();
