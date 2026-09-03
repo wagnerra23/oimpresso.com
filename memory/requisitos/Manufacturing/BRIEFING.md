@@ -41,10 +41,10 @@ A versão anterior afirmava "Frontend Inertia/React ❌ pendente" e "Charter pá
 - Rota `GET /manufacturing/v2/production` → `ProductionController@indexV2` → `ProductionService` (scoped por `business_id`, Tier 0 ADR 0093), **coexiste** com Blade legacy `/manufacturing/production`.
 - Charter existe: `Index.charter.md` (`status: draft`, page_id `manufacturing-index`).
 
-## Onde é usado (claim herdado — não reverificado no código nesta sessão)
+## Onde é usado (reverificado por grep 2026-09-03)
 
-- **Modules/OficinaAuto** (prod Martinho, biz=164) e **Modules/ComunicacaoVisual** (em construção) — consumo de BOM/custeio afirmado no briefing anterior. **Não reverificado por grep nesta sessão** — tratar como claim, não fato.
-- Núcleo: qualquer biz com `manufacturing_module` na assinatura.
+- **Modules/OficinaAuto** e **Modules/ComunicacaoVisual** — **NÃO consomem** `RecipeBomService`/`ProductionService`/`MfgRecipe`/`ManufacturingUtil`. Varredura (`Manufacturing|mfg_recipe|MfgRecipe`, case-insensitive) nos dois módulos: **0 arquivos**. O claim herdado do briefing anterior ("consumo de BOM/custeio afirmado") era falso — corrigido aqui, não repetido.
+- Núcleo: qualquer biz com `manufacturing_module` na assinatura (não reverificado — é o pacote UltimatePOS, não um consumo de código).
 
 ## Capacidades atuais (estado real — pelo código)
 
@@ -66,7 +66,7 @@ A versão anterior afirmava "Frontend Inertia/React ❌ pendente" e "Charter pá
 ## Gaps catalogados
 
 - **Charter draft → live** — `Index.charter.md` segue `status: draft`; promover exige Wagner aprovar UX screenshot (anti-hook do charter).
-- **Cobertura Spatie permissions** — `R-MANU-001..005` no SPEC ainda com `_lacuna_` (`PermissionsTest` não existe; reconciliação 2026-07-01 pendente).
+- ~~**Cobertura Spatie permissions** — `R-MANU-001..005` no SPEC ainda com `_lacuna_`~~ — **fechado em 2026-09-03**: `Modules/Manufacturing/Tests/Feature/PermissionsTest.php` criado (R-MANU-002/003/005 por HTTP real; R-MANU-001 já estava em `MultiTenantIsolationTest`, linha do SPEC só desatualizada). **Achado durante o fix:** R-MANU-004 (`manufacturing.edit_recipe`) protege uma rota que não existe — `UpdateRecipeRequest` não está wired a nenhum PUT/PATCH (`Route::resource(...)->except('edit','update')`). Fica registrado no SPEC, não escondido.
 - ~~**US-MANU** — SPEC sem user stories escritas~~ — **fechado em 2026-09-02**: `US-MANU-001` foi escrita a partir do handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" (§2 + §17), com DoD e `**Testado em:**` ancorados.
 - **MWART parcial** — migraram a lista de produções (Wave J) e a **consulta** de receitas (Wave 29). Seguem Blade: create/edit/destroy da receita, o editor de ingredientes, o formulário de ordem, relatório e configurações. A tela nova aponta pra elas em vez de duplicá-las.
 - **Aba Insumos não existe** — o handoff (§18.3) declara que `usosDoInsumo` é cálculo novo sem backend: "sem isso, a aba não sai".
@@ -80,10 +80,10 @@ A versão anterior afirmava "Frontend Inertia/React ❌ pendente" e "Charter pá
 
 ## Próximos passos sugeridos
 
-1. Reverificar (grep) se OficinaAuto/ComunicacaoVisual realmente consomem `RecipeBomService`/`ProductionService` — confirmar ou remover o claim acima.
+1. ~~Reverificar (grep) se OficinaAuto/ComunicacaoVisual realmente consomem `RecipeBomService`/`ProductionService`~~ — **fechado 2026-09-03**: reverificado, 0 arquivos, claim removido (ver seção acima).
 2. `PermissionsTest` fechando `R-MANU-001..005` (a US-MANU-001 já foi escrita em 2026-09-02).
-3. Promover os charters draft → live após screenshot aprovado por Wagner (agora são dois: `Index` e `Recipes`).
-4. Migração MWART do CRUD/Recipes avaliada quando OficinaAuto consumir BOM via UI Inertia.
+3. Promover os charters draft → live após screenshot aprovado por Wagner (agora são dois: `Index` e `Recipes`). Smoke autenticado de `/manufacturing/recipe` (nova) e `?legacy=1` (rollback) feito 2026-09-03 — 200, sem erro de console, os dois renderizam a tela certa; falta só o `smoke:` datado no charter + aprovação do screenshot.
+4. Migração MWART do CRUD/Recipes avaliada quando OficinaAuto consumir BOM via UI Inertia (segue sem consumo — item 1 acima).
 
 ## Nota atual
 
