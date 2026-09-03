@@ -1,0 +1,51 @@
+name: Cobrança filtros gate — precedência localStorage × querystring (UC-COB-03)
+
+# Trava o comportamento que o UC-COB-03 descreve DEPOIS de ser reescrito com prova
+# (2026-09-03): o servidor filtra pela querystring e o cliente aplica por cima a preferência
+# salva em localStorage dos 5 filtros que o charter exige na linha 45.
+#
+# Por que um gate e não só o spec no repo: 26 de 41 specs vitest do projeto estão wirados em
+# CI (medido 2026-09-03); os outros 15 são dívida. Spec commitado que ninguém invoca é bug,
+# não neutralidade — e esta é uma tela de DINHEIRO cuja cobertura de execução hoje é ZERO
+# (CobrancaControllerTest em quarentena; CobrancaIndexTest Browser vermelho sob
+# continue-on-error). Comando local: npm run test:cobranca-filtros
+#
+# `paths` inclui o ARQUIVO SOB TESTE de propósito: sem ele, mexer no Index.tsx não dispararia
+# o teste do Index.tsx — gate mudo com cara de cobertura (§5 2026-08-02).
+#
+# Refs: ADR 0264 (trio) · ADR 0298 (teto de governança: terminal + anchor + promote_by) ·
+#       ADR 0275 (nasce advisory, promoção é flip [W]).
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, reopened, ready_for_review, synchronize]
+    paths:
+      - 'resources/js/Pages/Financeiro/Cobranca/Index.tsx'
+      - 'resources/js/Pages/Financeiro/Cobranca/_lib/cobranca-shared.ts'
+      - 'tests/js/cobranca-filtros-deeplink.test.tsx'
+      - '.github/workflows/cobranca-filtros-gate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'resources/js/Pages/Financeiro/Cobranca/Index.tsx'
+      - 'resources/js/Pages/Financeiro/Cobranca/_lib/cobranca-shared.ts'
+      - 'tests/js/cobranca-filtros-deeplink.test.tsx'
+
+concurrency:
+  group: cobranca-filtros-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cobranca-filtros:
+    name: Cobrança · precedência dos filtros (localStorage × querystring)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install deps
+        run: npm ci
+      - name: UC-COB-03 — precedência dos filtros (vitest)
+        run: npm run test:cobranca-filtros

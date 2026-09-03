@@ -52,6 +52,58 @@ uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::
  * ADR 0101: testes biz=1 (não usar biz=4 ROTA LIVRE cliente real).
  */
 
+/**
+ * Versão do Inertia DERIVADA do próprio middleware — nunca hardcodada.
+ *
+ * Os 4 GUARDs de partial reload mandavam `X-Inertia-Version: '1'`. A lane cria um stub em
+ * `public/build-inertia/manifest.json` (step "Stub Vite manifest", financeiro-pest.yml:113)
+ * e `HandleInertiaRequests::version()` devolve o `md5_file` dele — que não é '1'. Version
+ * divergente num GET Inertia é 409 por contrato do Inertia, e era isso que o UC-COB-07
+ * recebia — visível porque ele é o único dos 4 que faz `assertOk()` direto. Run 33765806568.
+ *
+ * ⚠️ ERRATA (run 33767262130): a 1ª redação disto dizia que os OUTROS TRÊS também eram 409.
+ * Era dedução minha, não medição — e caiu. Com a versão corrigida, o UC-COB-07 passou e os
+ * três seguiram falhando; o `assertOk()` que adicionei neles PASSOU, então recebem **200**,
+ * não 409. A causa dos três era outra e está no comentário abaixo (o `assertInertia` não lê
+ * resposta JSON). Fica registrado em vez de reescrito: eu tinha UM caso medido e estendi a
+ * conclusão a três que não medi, que é exatamente a classe LC-08.
+ *
+ * O conserto DESTE docblock — a versão derivada do middleware — segue necessário e provado: é
+ * o que fez o UC-COB-07 sair do 409 e passar.
+ *
+ * Perguntar ao middleware em vez de recalcular o md5 aqui é de propósito: replicar a regra
+ * criaria um segundo dono que drifa no dia em que o `version()` mudar (o próprio motivo de o
+ * `FinanceiroTestCase::inertiaGet` já existir). O produto está CERTO — quem mentia era o header.
+ */
+function cobrancaInertiaVersion(): string
+{
+    return (string) app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+}
+
+/*
+ * POR QUE OS 3 PARTIAL RELOADS NÃO USAM `assertInertia` — medido em 3 rodadas.
+ *
+ * `assertInertia` NÃO serve para resposta de partial reload. `AssertableInertia::fromTestResponse`
+ * (vendor/inertiajs/inertia-laravel, linha 73) começa por `$response->assertViewHas('page')` e lê
+ * `viewData('page')` — ou seja, ele espera a resposta **HTML** com a view. Um partial reload
+ * devolve **JSON puro**, onde não existe view; o `assertViewHas` lança, o `catch` engole e vira
+ * `PHPUnit::fail('Not a valid Inertia response.')`.
+ *
+ * Essa frase APAGA o veredito: a mesma string cobre 409, 302, 403, 500 e 200-JSON-válido. Ela
+ * escondeu DUAS causas diferentes nesta investigação, e cada rodada só andou porque o teste
+ * passou a medir mais:
+ *   run 33765806568 — 4 vermelhos. O UC-COB-07 (único com `assertOk()` direto) mostrou 409.
+ *   run 33767262130 — 3 vermelhos. O `assertOk()` que adicionei nos 3 PASSOU: era 200, não 409.
+ *   run 33767816023 — 3 vermelhos, e o diagnóstico que imprimia o corpo NÃO disparou: o JSON
+ *                     tem `component/props/url/version`. Logo o servidor está CERTO e quem não
+ *                     sabia ler era o assert.
+ *
+ * Os asserts seguem os MESMOS: `->has(x)` virou `assertJsonStructure`, e `->where(k, v)` virou
+ * `assertJsonPath` — presença continua presença, valor continua valor, só sob o prefixo `props.`.
+ * O teste que renderiza a página inteira (sem header de partial) segue com `assertInertia`, que
+ * é onde ele funciona.
+ */
+
 beforeEach(function () {
     // Ajusta Spatie team_id pra biz=1 (UPOS canon)
     setPermissionsTeamId(1);
@@ -123,31 +175,34 @@ it('expõe 4 KPIs (pago_mes, vencido, aberto, mandatos_ativos, mrr_pago) quando 
         'idempotency_key' => 'idem-paga',
     ]);
 
-    $this->actingAs($this->user)
+    $resp = $this->actingAs($this->user)
         ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
-        ->get('/financeiro/cobranca?only=kpis', ['X-Inertia' => 'true', 'X-Inertia-Version' => '1', 'X-Inertia-Partial-Component' => 'Financeiro/Cobranca/Index', 'X-Inertia-Partial-Data' => 'kpis'])
-        ->assertInertia(fn ($page) => $page
-            ->has('kpis.pago_mes.qtd')
-            ->has('kpis.pago_mes.valor')
-            ->has('kpis.vencido.qtd')
-            ->has('kpis.aberto.qtd')
-            ->has('kpis.mandatos_ativos')
-            ->has('kpis.mrr_pago')
-        );
+        ->get('/financeiro/cobranca?only=kpis', ['X-Inertia' => 'true', 'X-Inertia-Version' => cobrancaInertiaVersion(), 'X-Inertia-Partial-Component' => 'Financeiro/Cobranca/Index', 'X-Inertia-Partial-Data' => 'kpis']);
+
+    $resp->assertOk();
+    $resp->assertJsonStructure(['props' => ['kpis' => [
+        'pago_mes' => ['qtd', 'valor'],
+        'vencido' => ['qtd'],
+        'aberto' => ['qtd'],
+        'mandatos_ativos',
+        'mrr_pago',
+    ]]]);
 });
 
 it('UC-COB-02 · expõe funil 5 etapas (aberto, lembrete, cobranca_ativa, vencido_5d, protesto)', function () {
-    $this->actingAs($this->user)
+    $resp = $this->actingAs($this->user)
         ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
-        ->get('/financeiro/cobranca?only=funil', ['X-Inertia' => 'true', 'X-Inertia-Version' => '1', 'X-Inertia-Partial-Component' => 'Financeiro/Cobranca/Index', 'X-Inertia-Partial-Data' => 'funil'])
-        ->assertInertia(fn ($page) => $page
-            ->has('funil.aberto.qtd')
-            ->has('funil.lembrete.qtd')
-            ->has('funil.cobranca_ativa.qtd')
-            ->has('funil.vencido_5d.qtd')
-            ->has('funil.protesto.qtd')
-            ->has('funil.mandatos_cancelados')
-        );
+        ->get('/financeiro/cobranca?only=funil', ['X-Inertia' => 'true', 'X-Inertia-Version' => cobrancaInertiaVersion(), 'X-Inertia-Partial-Component' => 'Financeiro/Cobranca/Index', 'X-Inertia-Partial-Data' => 'funil']);
+
+    $resp->assertOk();
+    $resp->assertJsonStructure(['props' => ['funil' => [
+        'aberto' => ['qtd'],
+        'lembrete' => ['qtd'],
+        'cobranca_ativa' => ['qtd'],
+        'vencido_5d' => ['qtd'],
+        'protesto' => ['qtd'],
+        'mandatos_cancelados',
+    ]]]);
 });
 
 it('UC-COB-03 · filtra por status via querystring', function () {
@@ -171,20 +226,36 @@ it('UC-COB-03 · filtra por status via querystring', function () {
         'idempotency_key' => 'idem-emit-'.uniqid(),
     ]);
 
-    $this->actingAs($this->user)
+    $resp = $this->actingAs($this->user)
         ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
         ->get('/financeiro/cobranca?status=paga&only=filtros', [
             'X-Inertia' => 'true',
-            'X-Inertia-Version' => '1',
+            'X-Inertia-Version' => cobrancaInertiaVersion(),
             'X-Inertia-Partial-Component' => 'Financeiro/Cobranca/Index',
             'X-Inertia-Partial-Data' => 'filtros',
-        ])
-        ->assertInertia(fn ($page) => $page->where('filtros.status', 'paga'));
+        ]);
+
+    $resp->assertOk();
+    $resp->assertJsonPath('props.filtros.status', 'paga');
 });
 
 it('UC-COB-07 · Tier 0 IRREVOGÁVEL: Cobranca respeita business_id global scope', function () {
-    // Cria business B (diferente) + cobrança "vazia" do business B
-    $otherBiz = Business::query()->firstOrCreate(['id' => 99], ['name' => 'Other Biz', 'currency_id' => 1]);
+    // O tenant adversário é o biz=2 que a lane SEMEIA — não se cria um aqui.
+    //
+    // Antes: `firstOrCreate(['id' => 99], ['name' => 'Other Biz', ...])`. Duas coisas
+    // erradas, e a segunda é de substância:
+    //  1. `id` não é fillable em Business, então o 99 era descartado no create e o INSERT
+    //     saía sem `owner_id` (NOT NULL, FK pra users) → SQLSTATE[23000] 1452 contra MySQL
+    //     real. Medido no run 33766642609. Nunca ia funcionar fora de SQLite.
+    //  2. o 99 é PROIBIDO como adversário: é o SUPPORT_CLIENT_TENANT_ID (Modo Suporte), e
+    //     `.github/actions/pest-mysql-setup/action.yml` avisa literalmente "NÃO usar 99 aqui
+    //     — agente e cliente no mesmo id fariam o cross-tenant ficar verde sem provar nada".
+    //
+    // O canônico é o biz=2, que a action semeia com este papel declarado: "segundo tenant
+    // MÍNIMO pros testes de isolamento multi-tenant terem um segundo business real"
+    // (ADR 0093 · ADR 0358). `findOrFail` de propósito: ausente, o teste FALHA ALTO —
+    // skip aqui seria guard Tier 0 anunciado e não exercido (LC-13).
+    $otherBiz = Business::query()->findOrFail(2);
 
     $credOther = PaymentGatewayCredential::withoutGlobalScopes()->create([
         'business_id' => $otherBiz->id,
@@ -213,7 +284,7 @@ it('UC-COB-07 · Tier 0 IRREVOGÁVEL: Cobranca respeita business_id global scope
         ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
         ->get('/financeiro/cobranca?only=cobrancas', [
             'X-Inertia' => 'true',
-            'X-Inertia-Version' => '1',
+            'X-Inertia-Version' => cobrancaInertiaVersion(),
             'X-Inertia-Partial-Component' => 'Financeiro/Cobranca/Index',
             'X-Inertia-Partial-Data' => 'cobrancas',
         ]);
