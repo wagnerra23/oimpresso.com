@@ -289,7 +289,19 @@ export default function Nfe({ filters: initialFilters, counts, sefazCodes, rows 
                           <tr
                             key={n.id}
                             className={isFocus ? 'fx-row-focus' : ''}
+                            tabIndex={0}
+                            aria-label={`Abrir ${n.modelo === 65 ? 'NFC-e' : 'NF-e'} ${n.num} · ${n.dest || '—'}`}
                             onClick={() => setOpened(n)}
+                            onFocus={() => setCursor(idx)}
+                            onKeyDown={(e) => {
+                              if (e.key !== 'Enter' && e.key !== ' ') return;
+                              // preventDefault: sem ele o Space ROLA a página (default do browser
+                              // em elemento focável). stopPropagation: sem ele o Enter sobe pro
+                              // handler global de window (o J/K acima) e o drawer abriria duas vezes.
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setOpened(n);
+                            }}
                           >
                             <td className="fx-mono">
                               <b>{n.num}</b>

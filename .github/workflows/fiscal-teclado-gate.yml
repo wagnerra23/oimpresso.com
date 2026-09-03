@@ -1,0 +1,98 @@
+name: Fiscal Teclado Gate — a lista de notas é operável por teclado (vitest · JUnit)
+
+# O QUE TRAVA: o contrato de teclado da lista de NF-e/NFC-e (`/fiscal/nfe`) — que a
+# linha é FOCÁVEL pelo Tab, que Enter e Space abrem o drawer da linha focada, que o
+# Space NÃO rola a página, e que o cursor J/K e o foco do Tab são o mesmo cursor.
+# Contrato por UC em resources/js/Pages/Fiscal/Nfe.casos.md (UC-FNFE-10).
+#
+# POR QUE A LANE EXISTE (medido 2026-09-03, não herdado): NENHUMA lane roda
+# `vitest run` sem argumento — re-medido nos 12 workflows que citam vitest, cada um
+# aponta pro seu arquivo. Spec sem lane nunca executa, e verde-por-não-execução
+# (LC-13) é PIOR que teste ausente porque parece cobertura. Não há lane vitest dona
+# do Fiscal (`modules-pest.yml` casa `Pages/Fiscal` mas é Pest/PHP, outro runtime),
+# então estender um dono existente não era opção: a lane nasce, como nasceram
+# forja-shortcuts-gate, jana-conversas-gate e sells-v3-dominio-gate.
+#
+# POR QUE ESTE TESTE É DE RENDER e não de contrato estático: o Pest do Fiscal não
+# alcança teclado, e um assert sobre o texto do `.tsx` mediria PRESENÇA do atributo,
+# não comportamento (LC-11). Aqui a focabilidade é medida pelo `document.activeElement`
+# depois de um `.focus()` real — sem `tabIndex` o foco cai no `<body>` e o caso morde.
+#
+# ⚠️ O ARQUIVO SOB TESTE ENTRA NO GATILHO junto com o spec. Sem `Nfe.tsx` no `paths`,
+# mexer na tela não acorda o teste que a defende — gate mudo com cara de cobertura,
+# a armadilha que o sells-v3-dominio-gate registra ter reincidido 4 vezes. O CSS e o
+# NotaDrawer entram pelo mesmo motivo: o anel de foco vive no primeiro e o drawer que
+# os casos assertam é o segundo.
+#
+# Comando local: npx vitest run tests/js/fiscal-nfe-teclado.test.tsx
+#
+# Advisory (ADR 0271/0314): acessibilidade de teclado numa tela de LEITURA é
+# qualidade, não Tier-0 — nenhum caminho aqui move dinheiro, estoque ou tenant.
+# Promoção a required é flip [W] com mordida real coletada em main (ADR 0336 DR-2);
+# não se auto-promove.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, reopened, ready_for_review, synchronize]
+    paths:
+      - 'resources/js/Pages/Fiscal/Nfe.tsx'
+      - 'resources/js/Pages/Fiscal/_components/NotaDrawer.tsx'
+      - 'resources/css/fiscal-cockpit.css'
+      - 'tests/js/fiscal-nfe-teclado.test.tsx'
+      - 'tests/js/setup.ts'
+      - '.github/workflows/fiscal-teclado-gate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'resources/js/Pages/Fiscal/Nfe.tsx'
+      - 'resources/js/Pages/Fiscal/_components/NotaDrawer.tsx'
+      - 'resources/css/fiscal-cockpit.css'
+      - 'tests/js/fiscal-nfe-teclado.test.tsx'
+      - 'tests/js/setup.ts'
+      # o workflow entra no gatilho de push porque é o run de `main` que o publisher
+      # colhe: mexer na lane sem re-rodar deixaria o artifact envelhecer até expirar,
+      # e lane sem artifact é lane pulada no publisher.
+      - '.github/workflows/fiscal-teclado-gate.yml'
+
+concurrency:
+  group: fiscal-teclado-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  teclado:
+    name: Fiscal · teclado na lista de notas (vitest/jsdom)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install deps
+        run: npm ci
+
+      # `--reporter=default` mantém a saída legível pra humano; `--reporter=junit`
+      # escreve o XML que vira veredito por-UC no manifesto que o G-7 do casos-gate
+      # (REQUIRED) lê. Sem o par, o UC-FNFE-10 valeria 0 no painel para sempre.
+      - name: teclado da lista de notas (vitest/jsdom)
+        run: |
+          npx vitest run \
+            tests/js/fiscal-nfe-teclado.test.tsx \
+            --reporter=default \
+            --reporter=junit \
+            --outputFile=test-results/vitest-fiscal-teclado-junit.xml
+
+      # `!cancelled()` (não `success()`): o veredito de um run VERMELHO é justamente o
+      # que o G-7 precisa registrar — `Status: ✅` com teste vermelho é a mentira que
+      # ele existe pra pegar.
+      - name: Upload JUnit (veredito por-UC — casos:results)
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-fiscal-teclado-junit
+          path: test-results/vitest-fiscal-teclado-junit.xml
+          retention-days: 14
