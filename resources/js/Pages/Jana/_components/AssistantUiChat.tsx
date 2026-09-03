@@ -35,6 +35,7 @@ import remarkGfm from 'remark-gfm';
 import { router } from '@inertiajs/react';
 import { toast } from 'sonner';
 import { ArrowDown, ArrowUp, Coins, Compass, Square, Target } from 'lucide-react';
+import { Inline } from '@/Components/layout';
 
 // ---- Tipos do nosso backend Laravel -----------------------------------
 
@@ -293,7 +294,9 @@ function ScrollToBottomBtn() {
  */
 function SugestoesRapidas() {
   return (
-    <div className="mt-[11px] flex flex-wrap gap-[7px]" data-jana-sugestoes>
+    // `Inline` (ADR 0253) em vez de `flex` solto. `gap-[7px]` vence o token pelo
+    // `twMerge`: a âncora mede 7px (`.jc-sugg{gap:7px}`), fora da escala.
+    <Inline wrap className="mt-[11px] gap-[7px]" data-jana-sugestoes>
       {SUGESTOES_RAPIDAS.map(({ Icone, label }) => (
         <ThreadPrimitive.Suggestion
           key={label}
@@ -306,7 +309,7 @@ function SugestoesRapidas() {
           {label}
         </ThreadPrimitive.Suggestion>
       ))}
-    </div>
+    </Inline>
   );
 }
 

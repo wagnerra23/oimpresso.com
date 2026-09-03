@@ -20,6 +20,8 @@
 // dia existir participante, o rótulo passa a vir do payload; hoje ele descreve o
 // modelo real. Já `arquivada` lê `conversa.status`, que o payload JÁ manda.
 
+import { Inline } from '@/Components/layout';
+
 const STATUS_ARQUIVADA = 'arquivada';
 
 export function JanaConversaHeader({
@@ -32,15 +34,21 @@ export function JanaConversaHeader({
   const arquivada = (status ?? '').toLowerCase() === STATUS_ARQUIVADA;
 
   return (
-    <header className="jana-conv-h flex flex-wrap items-baseline gap-2.5 px-4 pt-3 pb-2">
-      <b className="text-[13px] font-semibold text-foreground">{titulo}</b>
-      <span className="font-mono text-[10.5px] text-muted-foreground">só sua</span>
-      {arquivada && (
-        <span className="rounded-full border border-border px-2 py-0.5 font-mono text-[10.5px] text-muted-foreground">
-          arquivada
-        </span>
-      )}
-    </header>
+    // `Inline` é o primitivo canônico do eixo horizontal (ADR 0253) — `flex` solto
+    // aqui reprovaria no `layout-primitives-guard`. O `gap-2.5` na className é
+    // deliberado e o `twMerge` do `cn` faz ele vencer o token: a âncora mede 10px
+    // (`.jm-conv-h{gap:10px}`) e a escala de token só tem 8 e 12.
+    <Inline asChild align="baseline" wrap className="gap-2.5 px-4 pt-3 pb-2">
+      <header className="jana-conv-h">
+        <b className="text-[13px] font-semibold text-foreground">{titulo}</b>
+        <span className="font-mono text-[10.5px] text-muted-foreground">só sua</span>
+        {arquivada && (
+          <span className="rounded-full border border-border px-2 py-0.5 font-mono text-[10.5px] text-muted-foreground">
+            arquivada
+          </span>
+        )}
+      </header>
+    </Inline>
   );
 }
 
