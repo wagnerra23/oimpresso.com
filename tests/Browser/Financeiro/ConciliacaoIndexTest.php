@@ -212,6 +212,24 @@ function concProbe(string $js, array $subs): string
     return str_replace(array_keys($subs), array_values($subs), $js);
 }
 
+/** O que a tela REALMENTE mostra quando a espera estoura. Sem isto, "esperado '2', último
+ *  '0'" é uma charada: não distingue "a lista veio vazia do servidor" de "a tela nem é esta".
+ *  Foi essa mudez que levou a sessão de 2026-09-02 a diagnosticar regressão de pixel onde
+ *  havia `business_id` 0 por sessão não populada. Só lê o DOM — não afirma causa. */
+const CONC_JS_DIAGNOSTICO = <<<'JS'
+(() => {
+  const url = window.location.pathname + window.location.search;
+  const tbody = document.querySelector('tbody');
+  if (!tbody) return 'rota=' + url + ' | SEM <tbody>: esta tela não é a lista de Conciliação';
+  const trs = [...tbody.querySelectorAll('tr')];
+  const dados = trs.filter((r) => r.querySelectorAll('td').length > 1);
+  const vazio = trs.find((r) => r.querySelectorAll('td').length === 1);
+  return 'rota=' + url
+    + ' | tr=' + trs.length + ' (com dado: ' + dados.length + ')'
+    + (vazio ? ' | EMPTY-STATE: "' + (vazio.textContent || '').trim().slice(0, 90) + '"' : '');
+})()
+JS;
+
 /** Espera o React estabilizar. Ver o cabeçalho não significa que a tabela montou — mesma
  *  razão do `aguardarAlvoVisual` do FinanceiroFlowBaselineTest. */
 function concEsperar($page, string $js, string $esperado, string $oque): void
@@ -225,7 +243,18 @@ function concEsperar($page, string $js, string $esperado, string $oque): void
         $page->wait(0.25);
     }
 
-    throw new RuntimeException("Não estabilizou: {$oque} — esperado '{$esperado}', último '{$ultimo}'.");
+    // O diagnóstico é BEST-EFFORT de propósito: se o probe em si falhar, a falha que
+    // interessa é a original — não a do instrumento que foi medir.
+    try {
+        $diag = (string) $page->script(CONC_JS_DIAGNOSTICO);
+    } catch (\Throwable $e) {
+        $diag = 'diagnóstico indisponível (' . $e->getMessage() . ')';
+    }
+
+    throw new RuntimeException(
+        "Não estabilizou: {$oque} — esperado '{$esperado}', último '{$ultimo}'."
+        . PHP_EOL . "  DOM: {$diag}"
+    );
 }
 
 it('UC-FCC-10 · render — a lista mostra a linha com chip de origem e o KPI concorda', function (int $w, int $h) {
