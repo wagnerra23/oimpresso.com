@@ -178,9 +178,9 @@ export default function Recipes({ recipes = [], permissions, producao, settings 
             </span>
           </Link>
         )}
-        <a className="mfg-tab" href="/manufacturing/report">
+        <Link className="mfg-tab" href="/manufacturing/v2/report">
           Relatório
-        </a>
+        </Link>
         <a className="mfg-tab" href="/manufacturing/settings">
           Configurações
         </a>

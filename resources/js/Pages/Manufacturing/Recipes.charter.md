@@ -16,6 +16,7 @@ alcance:
   pacote: manufacturing_module            # superadmin_package
 tier: B
 charter_version: 1
+smoke: "2026-09-03 — render prod OK (Chrome MCP, sessão WR2 Sistemas): /manufacturing/recipe (tela nova, KPIs + 1 receita listada) e /manufacturing/recipe?legacy=1 (rollback Blade) renderizam a tela certa, 0 erro no console. Regressão adjacente OK: /manufacturing/production e /manufacturing/settings (Blade legacy) inalterados. curl -sv sem cookie: 302→/login nas 4 rotas (RUNBOOK-recipes.md §5)."
 ---
 
 # Page Charter — Manufacturing/Recipes (DRAFT · PT-01 Lista)

@@ -24,6 +24,10 @@ Route::middleware('throttle:60,1', 'web', 'authh', 'SetSessionData', 'auth', 'la
     Route::get('/v2/production', [Modules\Manufacturing\Http\Controllers\ProductionController::class, 'indexV2'])
         ->name('manufacturing.production.v2.index');
 
+    // MWART US-MANU-002 — Relatório Inertia v2 (coexiste com /report Blade legacy abaixo).
+    Route::get('/v2/report', [Modules\Manufacturing\Http\Controllers\ProductionController::class, 'reportV2'])
+        ->name('manufacturing.report.v2.index');
+
     Route::resource('/settings', 'Modules\Manufacturing\Http\Controllers\SettingsController')->only('index', 'store');
 
     Route::get('/report', [Modules\Manufacturing\Http\Controllers\ProductionController::class, 'getManufacturingReport']);
