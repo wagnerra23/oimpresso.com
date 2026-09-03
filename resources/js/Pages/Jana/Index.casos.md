@@ -803,7 +803,7 @@ Rodados aqui: `casos-coverage-guard` nos 4 modos, `module-surface --all --check`
 
 ## UC-JPAIN-19 — a barra de abas é FAIXA PRÓPRIA abaixo do header, e o header não tem primary "Conversar"
 
-**Status:** ✅ passa — `npx vitest run tests/janaAreaHeaderParidade.spec.tsx` → 4 passed (jsdom, 2026-09-03); o CI re-prova em `npm test`
+**Status:** 🧪 — `npx vitest run tests/janaAreaHeaderParidade.spec.tsx` → 4 passed (jsdom local, 2026-09-03); vira ✅ quando o manifesto `casos-results` aterrissar (G-7 lê o manifesto commitado, não esta linha)
 
 **Fonte:** âncora `prototipo-ui/cowork/jana-merge.jsx` §`JanaPage` — todo `tab` renderiza
 `<JanaHeader/>` e SÓ DEPOIS `{tabs}` (`JmTabs`, via `CliTabs`/TabBar do DS); `JanaHeader` tem na
