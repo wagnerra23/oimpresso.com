@@ -237,9 +237,22 @@ export default function GradesPainel({ abas, aba, grade, filtros }: Props) {
   return (
     <Stack gap={3} asChild>
       <section aria-label="Grades do painel" data-contract="grades">
+        {/*
+          `maxVisible` default do componente e 5 (PageHeaderTabs.tsx:119) — com as 8 abas do
+          catalogo, 3 sumiam atras de um gatilho que renderiza SO o icone `...`, sem rotulo:
+          Ordens de compra, Requisicoes e Expedicoes pendentes. A ancora mostra TODAS
+          (TabBar com overflowX:auto).
+
+          O `className` chega ao wrapper externo, e `md:flex-wrap` vence o `md:flex-nowrap`
+          do componente por ordem no `cn()` — sem isso, 8 rotulos longos (~1100px de texto)
+          nao caberiam nos ~972px disponiveis a 1280 e estourariam, ja que acima de 768 o
+          tablist tambem nao rola.
+        */}
         <PageHeaderTabs
           ghosts={abas.map((a) => ({ key: a.key, label: a.label, href: href(a.key) }))}
           activeGhostKey={aba}
+          maxVisible={abas.length}
+          className="md:flex-wrap"
         />
 
         <Deferred data="grade" fallback={<Skeleton className="h-64 w-full rounded-lg" />}>
