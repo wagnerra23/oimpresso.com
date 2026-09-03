@@ -78,15 +78,24 @@ class SuperadminController extends Controller
             'metasPlataforma' => $metasPlataforma->map(fn (Meta $m) => [
                 'id' => $m->id, 'nome' => $m->nome, 'slug' => $m->slug, 'unidade' => $m->unidade, 'origem' => $m->origem,
             ])->values(),
-            'metasDeClientes' => $metasDeClientes->map(fn (Meta $m) => [
-                'id'          => $m->id,
-                'business_id' => $m->business_id,
-                'empresa'     => $empresas->get($m->business_id),
-                'nome'        => $m->nome,
-                'unidade'     => $m->unidade,
-                'periodo'     => $m->periodoAtual ? ['data_ini' => $data($m->periodoAtual->data_ini), 'data_fim' => $data($m->periodoAtual->data_fim)] : null,
-                'ultima'      => $m->ultimaApuracao ? $data($m->ultimaApuracao->data_ref) : null,
-            ])->values(),
+            'metasDeClientes' => $metasDeClientes->map(function (Meta $m) use ($empresas, $data) {
+                // @var: as relações são `HasOne` e o PHPStan vê `Model` genérico — sem isto
+                // acusa `property.notFound` (mesmo motivo do `ApuracaoService::projecao`).
+                /** @var \Modules\Jana\Entities\MetaPeriodo|null $periodo */
+                $periodo = $m->periodoAtual;
+                /** @var \Modules\Jana\Entities\MetaApuracao|null $ultima */
+                $ultima = $m->ultimaApuracao;
+
+                return [
+                    'id'          => $m->id,
+                    'business_id' => $m->business_id,
+                    'empresa'     => $empresas->get($m->business_id),
+                    'nome'        => $m->nome,
+                    'unidade'     => $m->unidade,
+                    'periodo'     => $periodo ? ['data_ini' => $data($periodo->data_ini), 'data_fim' => $data($periodo->data_fim)] : null,
+                    'ultima'      => $ultima ? $data($ultima->data_ref) : null,
+                ];
+            })->values(),
             // Bloco "Instalação do módulo" — contagens DERIVADAS do disco/registry, não
             // digitadas (a âncora carrega "21 · 4 · 24" fixos; o 24 já estava errado: são 22).
             'instalacao' => [
