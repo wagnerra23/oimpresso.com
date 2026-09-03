@@ -19,12 +19,14 @@ use Modules\Jana\Entities\Mcp\McpTask;
  * (US-FORJA-006 · medido 2026-08-08). A lógica está no {@see TrabalhoService};
  * aqui só se resolve filtro de request e se defere o que é caro.
  *
- * ⚠️ **ESTA ONDA NÃO DELETA NEM REDIRECIONA NADA.** `/project-mgmt/backlog`,
- * `/forja/backlog` e `/team-mcp/tasks` seguem no ar, intactos. O motivo é
- * deliberado: remover implementação em uso é irreversível na prática, e a
- * US-FORJA-006 exige que [W] veja qual sobrevive. Com as duas no ar lado a lado,
- * a comparação é olhando — não lendo diff. Os 301 e a remoção da perdedora são a
- * onda seguinte, depois do smoke.
+ * HISTÓRICO da US-FORJA-006: esta tela nasceu (2026-08-08) convivendo com
+ * `/project-mgmt/backlog`, `/forja/backlog` e `/team-mcp/tasks` de propósito —
+ * [W] precisava ver as três no ar pra escolher qual sobrevivia.
+ *
+ * ESCOLHIDO. Em 2026-09-02 [W] decidiu pelo protótipo (PARIDADE §11) e a Onda 11
+ * revogou `/project-mgmt/backlog`: virou 301 pra cá (`?visao=lista`). `/forja/backlog`
+ * e `/team-mcp/tasks` seguem no ar — saíram do topnav, não da árvore, e a remoção
+ * deles depende da Onda 3 (o Cockpit ainda os serve).
  *
  * Sem filtro de FRENTE por decisão [W] (2026-08-08): a lista abre com TODAS as
  * `mcp_tasks`; o recorte por projeto se faz agrupando ou buscando, não por um chip
