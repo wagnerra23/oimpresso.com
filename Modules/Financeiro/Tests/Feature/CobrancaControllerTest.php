@@ -64,9 +64,12 @@ uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::
  * ⚠️ ERRATA (run 33767262130): a 1ª redação disto dizia que os OUTROS TRÊS também eram 409.
  * Era dedução minha, não medição — e caiu. Com a versão corrigida, o UC-COB-07 passou e os
  * três seguiram falhando; o `assertOk()` que adicionei neles PASSOU, então recebem **200**,
- * não 409. A causa dos três é outra e está sendo medida por `cobrancaDiagInertia()`. Fica
- * registrado em vez de reescrito: eu tinha um caso medido e estendi a conclusão a três casos
- * que não medi, que é exatamente a classe LC-08.
+ * não 409. A causa dos três era outra e está no comentário abaixo (o `assertInertia` não lê
+ * resposta JSON). Fica registrado em vez de reescrito: eu tinha UM caso medido e estendi a
+ * conclusão a três que não medi, que é exatamente a classe LC-08.
+ *
+ * O conserto DESTE docblock — a versão derivada do middleware — segue necessário e provado: é
+ * o que fez o UC-COB-07 sair do 409 e passar.
  *
  * Perguntar ao middleware em vez de recalcular o md5 aqui é de propósito: replicar a regra
  * criaria um segundo dono que drifa no dia em que o `version()` mudar (o próprio motivo de o
@@ -77,30 +80,29 @@ function cobrancaInertiaVersion(): string
     return (string) app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
 }
 
-/**
- * Revela O QUE veio quando a resposta é 200 mas não é Inertia — não conserta, INSTRUMENTA.
+/*
+ * POR QUE OS 3 PARTIAL RELOADS NÃO USAM `assertInertia` — medido em 3 rodadas.
  *
- * `assertInertia` sozinho diz só "Not a valid Inertia response.", que APAGA o veredito: a
- * mesma frase cobre 409, 302, 403, 500 e 200-com-outro-corpo. Duas rodadas de medição já
- * mostraram que a frase esconde coisas diferentes — o `assertOk()` do run 33767262130 PASSOU
- * nos três, então não é status: é um 200 cujo corpo não tem `component/props/url/version`.
- * Sem ver o corpo, o próximo passo seria adivinhar de novo (LC-08).
+ * `assertInertia` NÃO serve para resposta de partial reload. `AssertableInertia::fromTestResponse`
+ * (vendor/inertiajs/inertia-laravel, linha 73) começa por `$response->assertViewHas('page')` e lê
+ * `viewData('page')` — ou seja, ele espera a resposta **HTML** com a view. Um partial reload
+ * devolve **JSON puro**, onde não existe view; o `assertViewHas` lança, o `catch` engole e vira
+ * `PHPUnit::fail('Not a valid Inertia response.')`.
+ *
+ * Essa frase APAGA o veredito: a mesma string cobre 409, 302, 403, 500 e 200-JSON-válido. Ela
+ * escondeu DUAS causas diferentes nesta investigação, e cada rodada só andou porque o teste
+ * passou a medir mais:
+ *   run 33765806568 — 4 vermelhos. O UC-COB-07 (único com `assertOk()` direto) mostrou 409.
+ *   run 33767262130 — 3 vermelhos. O `assertOk()` que adicionei nos 3 PASSOU: era 200, não 409.
+ *   run 33767816023 — 3 vermelhos, e o diagnóstico que imprimia o corpo NÃO disparou: o JSON
+ *                     tem `component/props/url/version`. Logo o servidor está CERTO e quem não
+ *                     sabia ler era o assert.
+ *
+ * Os asserts seguem os MESMOS: `->has(x)` virou `assertJsonStructure`, e `->where(k, v)` virou
+ * `assertJsonPath` — presença continua presença, valor continua valor, só sob o prefixo `props.`.
+ * O teste que renderiza a página inteira (sem header de partial) segue com `assertInertia`, que
+ * é onde ele funciona.
  */
-function cobrancaDiagInertia($response)
-{
-    $ct = (string) $response->headers->get('content-type');
-    $raw = (string) $response->getContent();
-    $json = json_decode($raw, true);
-    $chaves = is_array($json) ? implode(',', array_keys($json)) : '(corpo nao e JSON)';
-
-    if (! is_array($json) || ! isset($json['component'], $json['props'], $json['url'], $json['version'])) {
-        \PHPUnit\Framework\Assert::fail(
-            "resposta 200 NAO-Inertia · content-type={$ct} · chaves={$chaves} · corpo[0..400]=".substr($raw, 0, 400)
-        );
-    }
-
-    return $response;
-}
 
 beforeEach(function () {
     // Ajusta Spatie team_id pra biz=1 (UPOS canon)
@@ -178,15 +180,13 @@ it('expõe 4 KPIs (pago_mes, vencido, aberto, mandatos_ativos, mrr_pago) quando 
         ->get('/financeiro/cobranca?only=kpis', ['X-Inertia' => 'true', 'X-Inertia-Version' => cobrancaInertiaVersion(), 'X-Inertia-Partial-Component' => 'Financeiro/Cobranca/Index', 'X-Inertia-Partial-Data' => 'kpis']);
 
     $resp->assertOk();
-    cobrancaDiagInertia($resp)
-        ->assertInertia(fn ($page) => $page
-            ->has('kpis.pago_mes.qtd')
-            ->has('kpis.pago_mes.valor')
-            ->has('kpis.vencido.qtd')
-            ->has('kpis.aberto.qtd')
-            ->has('kpis.mandatos_ativos')
-            ->has('kpis.mrr_pago')
-        );
+    $resp->assertJsonStructure(['props' => ['kpis' => [
+        'pago_mes' => ['qtd', 'valor'],
+        'vencido' => ['qtd'],
+        'aberto' => ['qtd'],
+        'mandatos_ativos',
+        'mrr_pago',
+    ]]]);
 });
 
 it('UC-COB-02 · expõe funil 5 etapas (aberto, lembrete, cobranca_ativa, vencido_5d, protesto)', function () {
@@ -195,15 +195,14 @@ it('UC-COB-02 · expõe funil 5 etapas (aberto, lembrete, cobranca_ativa, vencid
         ->get('/financeiro/cobranca?only=funil', ['X-Inertia' => 'true', 'X-Inertia-Version' => cobrancaInertiaVersion(), 'X-Inertia-Partial-Component' => 'Financeiro/Cobranca/Index', 'X-Inertia-Partial-Data' => 'funil']);
 
     $resp->assertOk();
-    cobrancaDiagInertia($resp)
-        ->assertInertia(fn ($page) => $page
-            ->has('funil.aberto.qtd')
-            ->has('funil.lembrete.qtd')
-            ->has('funil.cobranca_ativa.qtd')
-            ->has('funil.vencido_5d.qtd')
-            ->has('funil.protesto.qtd')
-            ->has('funil.mandatos_cancelados')
-        );
+    $resp->assertJsonStructure(['props' => ['funil' => [
+        'aberto' => ['qtd'],
+        'lembrete' => ['qtd'],
+        'cobranca_ativa' => ['qtd'],
+        'vencido_5d' => ['qtd'],
+        'protesto' => ['qtd'],
+        'mandatos_cancelados',
+    ]]]);
 });
 
 it('UC-COB-03 · filtra por status via querystring', function () {
@@ -237,8 +236,7 @@ it('UC-COB-03 · filtra por status via querystring', function () {
         ]);
 
     $resp->assertOk();
-    cobrancaDiagInertia($resp)
-        ->assertInertia(fn ($page) => $page->where('filtros.status', 'paga'));
+    $resp->assertJsonPath('props.filtros.status', 'paga');
 });
 
 it('UC-COB-07 · Tier 0 IRREVOGÁVEL: Cobranca respeita business_id global scope', function () {
