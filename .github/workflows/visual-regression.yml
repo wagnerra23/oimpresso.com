@@ -736,6 +736,29 @@ jobs:
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Financeiro/ConciliacaoIndexTest.php
 
+      # ── E2E DE RENDER POR TELA — Financeiro/Caixa (NASCE ADVISORY) ───────────────────
+      # Buraco medido em 2026-09-03 por `screen-coverage-map.mjs --screen Financeiro/Caixa/Index`:
+      # trio ✓ · scorecard ✓ · 5/5 UC citados por teste — e `e2e (Browser) ✗`. O contrato vive
+      # na lane required do Financeiro; nada exercitava a tela RENDERIZADA.
+      #
+      # Este arquivo é INDEPENDENTE DE DADO de propósito, e a razão está medida no docblock
+      # dele: o step do Conciliacao acima está VERMELHO (6/6, `esperado '2', último '0'`) desde
+      # que entrou, porque as telas deste grupo de rotas renderizam com business 0 sob o
+      # auth-bridge. O vermelho não aparece porque `continue-on-error` publica
+      # `conclusion=success` (o `outcome` é que é `failure`). Um segundo step permanentemente
+      # vermelho ensina o time a ignorar vermelho — então aqui só entram asserts que valem com
+      # a lista vazia E continuam valendo quando ela voltar a ter turno.
+      #
+      # Não semeia NADA no banco (zero risco de mexer em baseline de pixel de outra tela) e não
+      # captura screenshot (não gera baseline). ADVISORY no nascimento (ADR 0261/0275): não pôde
+      # ser executado antes do PR — Pest Browser é CI/CT-100 only. Promoção a ENFORCING =
+      # REMOVER o `continue-on-error`, após 2 verdes que EXECUTARAM (`skipped` lido como verde é
+      # o presence-gate de sempre — é pra isso que serve o `always()`, idêntico aos steps acima).
+      - name: E2E de render · Financeiro/Caixa (ADVISORY)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        continue-on-error: true
+        run: ./vendor/bin/pest tests/Browser/Financeiro/CaixaIndexTest.php
+
       # ── MODO UPDATE (dispatch): PROVA o relógio congelado ANTES de assar baseline ──
       # Ordem é o ponto: se o shim de VISREG_FREEZE_CLOCK estiver quebrado, a baseline
       # nasceria com o relógio VIVO e voltaria a drifar por minuto — que é exatamente o
