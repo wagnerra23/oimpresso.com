@@ -14,7 +14,7 @@ module: Jana
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 535 arquivos em 19 papéis.
+**Total mapeado:** 537 arquivos em 19 papéis.
 
 ## Controllers — 11
 
@@ -44,7 +44,7 @@ module: Jana
 
 - [McpAuthMiddleware.php](../../../Modules/Jana/Http/Middleware/McpAuthMiddleware.php)
 
-## Services — 91
+## Services — 92
 
 - [AcaoHitlService.php](../../../Modules/Jana/Services/AcaoHitlService.php)
 - [ProximaPerguntaService.php](../../../Modules/Jana/Services/Advisor/ProximaPerguntaService.php)
@@ -69,6 +69,7 @@ module: Jana
 - [DsrService.php](../../../Modules/Jana/Services/Lgpd/DsrService.php)
 - [AuditChainService.php](../../../Modules/Jana/Services/Mcp/AuditChainService.php)
 - [AutomationRegistrySync.php](../../../Modules/Jana/Services/Mcp/AutomationRegistrySync.php)
+- [Ct100CircuitBreaker.php](../../../Modules/Jana/Services/Mcp/Ct100CircuitBreaker.php)
 - [ImportarSkillsDoGitService.php](../../../Modules/Jana/Services/Mcp/ImportarSkillsDoGitService.php)
 - [IndexarMemoryGitParaDb.php](../../../Modules/Jana/Services/Mcp/IndexarMemoryGitParaDb.php)
 - [QuotaEnforcer.php](../../../Modules/Jana/Services/Mcp/QuotaEnforcer.php)
@@ -338,7 +339,7 @@ module: Jana
 - [Memoria.casos.md](../../../resources/js/Pages/Jana/Memoria.casos.md)
 - [Pro.casos.md](../../../resources/js/Pages/Jana/Pro.casos.md)
 
-## Testes (Pest) — 173
+## Testes (Pest) — 174
 
 - 36 em [Modules/Jana/Tests/Feature/](../../../Modules/Jana/Tests/Feature)
 - 12 em [Modules/Jana/Tests/Feature/Ai/](../../../Modules/Jana/Tests/Feature/Ai)
@@ -348,7 +349,7 @@ module: Jana
 - 4 em [Modules/Jana/Tests/Feature/Chat/](../../../Modules/Jana/Tests/Feature/Chat)
 - 3 em [Modules/Jana/Tests/Feature/Console/](../../../Modules/Jana/Tests/Feature/Console)
 - 2 em [Modules/Jana/Tests/Feature/Kb/](../../../Modules/Jana/Tests/Feature/Kb)
-- 38 em [Modules/Jana/Tests/Feature/Mcp/](../../../Modules/Jana/Tests/Feature/Mcp)
+- 39 em [Modules/Jana/Tests/Feature/Mcp/](../../../Modules/Jana/Tests/Feature/Mcp)
 - 14 em [Modules/Jana/Tests/Feature/Memoria/](../../../Modules/Jana/Tests/Feature/Memoria)
 - 1 em [Modules/Jana/Tests/Feature/Memoria/Freshness/](../../../Modules/Jana/Tests/Feature/Memoria/Freshness)
 - 1 em [Modules/Jana/Tests/Feature/Memoria/Telemetry/](../../../Modules/Jana/Tests/Feature/Memoria/Telemetry)
