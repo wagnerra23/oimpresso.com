@@ -133,6 +133,10 @@ class SuperadminController extends Controller
         return Meta::withoutGlobalScope(ScopeByBusiness::class)
             ->whereNotNull('business_id')
             ->with([
+                // As filhas carregam `ScopeByBusinessViaParent`; sem tirá-lo aqui, as 2
+                // colunas desta tela viriam vazias para todo tenant alheio. O QUEM é
+                // defendido por `podeVerPlataforma` — o escopo sai de propósito.
+                // SUPERADMIN: visão de plataforma (ADR 0093 — caso legítimo de sair do escopo).
                 'periodoAtual' => fn ($q) => $q->withoutGlobalScopes(),
                 'ultimaApuracao' => fn ($q) => $q->withoutGlobalScopes(),
             ])
