@@ -38,41 +38,54 @@ it('cenário 1b: nome antigo ProjectMgmt não resolve mais em nWidart', function
     );
 });
 
-it('cenário 2: rota nomeada project-mgmt.index existe', function () {
-    expect(\Route::has('project-mgmt.index'))->toBeTrue(
-        'Rota project-mgmt.index deveria existir per Http/routes.php'
-    );
+it('cenário 2: os nomes de rota das telas revogadas NÃO existem (Onda 11)', function () {
+    // ADR 0367 D1 + PARIDADE §11: 7 das 8 telas de /project-mgmt saíram.
+    // Este cenário era o inverso — afirmava que elas existiam. Invertido de
+    // propósito: agora ele reprova se alguém as ressuscitar pelo nome.
+    $revogadas = [
+        'project-mgmt.index',
+        'project-mgmt.board.index',
+        'project-mgmt.backlog.index',
+        'project-mgmt.my-work.index',
+        'project-mgmt.triage.index',
+        'project-mgmt.inbox.index',
+        'project-mgmt.activity.index',
+        'project-mgmt.burndown.index',
+        'project-mgmt.search',
+    ];
+
+    foreach ($revogadas as $nome) {
+        expect(\Route::has($nome))->toBeFalse(
+            "Rota {$nome} foi revogada na Onda 11 e não deve voltar pelo nome"
+        );
+    }
 });
 
-it('cenário 3: rota nomeada project-mgmt.board.index existe', function () {
-    expect(\Route::has('project-mgmt.board.index'))->toBeTrue(
-        'Rota project-mgmt.board.index deveria existir (Kanban — US-TR-201)'
-    );
-});
-
-it('cenário 4: rota nomeada project-mgmt.backlog.index existe', function () {
-    expect(\Route::has('project-mgmt.backlog.index'))->toBeTrue(
-        'Rota project-mgmt.backlog.index deveria existir (US-TR-202)'
-    );
-});
-
-it('cenário 5: rota nomeada project-mgmt.roadmap.index existe', function () {
+it('cenário 3: o quarter view sobrevive (ADR 0367 D7)', function () {
+    // D7 condiciona a saída a "o Gantt provar que substitui" — e a Onda 6 não
+    // rodou. Enquanto isso, esta rota é a única de tela que fica no prefixo.
     expect(\Route::has('project-mgmt.roadmap.index'))->toBeTrue(
-        'Rota project-mgmt.roadmap.index deveria existir (US-TR-203)'
+        'Rota project-mgmt.roadmap.index deveria existir (US-TR-203 · ADR 0367 D7)'
     );
 });
 
-it('cenário 6: rota nomeada project-mgmt.my-work.index existe', function () {
-    expect(\Route::has('project-mgmt.my-work.index'))->toBeTrue(
-        'Rota project-mgmt.my-work.index deveria existir (US-TR-204)'
+it('cenário 4: a busca global mudou de prefixo, não morreu', function () {
+    // Ela nunca foi tela: serve o ⌘K do AppShellV2 (CommandPalette.tsx).
+    expect(\Route::has('forja.search'))->toBeTrue(
+        'Rota forja.search deveria existir (PMG-002 Cmd+K, movida na Onda 11)'
     );
 });
 
-it('cenário 7: rota nomeada project-mgmt.search existe', function () {
-    expect(\Route::has('project-mgmt.search'))->toBeTrue(
-        'Rota project-mgmt.search deveria existir (PMG-002 Cmd+K)'
-    );
+it('cenário 5: os 7 caminhos revogados respondem por redirect, não por 404', function () {
+    // Medido: 113 citações de /project-mgmt/* em memory/**. O link velho tem
+    // de levar a algum lugar — a rota some, o caminho não.
+    foreach (['/project-mgmt/board', '/project-mgmt/backlog', '/project-mgmt/triage'] as $caminho) {
+        expect(app('router')->getRoutes()->match(
+            \Illuminate\Http\Request::create($caminho, 'GET')
+        ))->not->toBeNull("Caminho {$caminho} deveria ter um 301 registrado");
+    }
 });
+
 
 it('cenário 8: rotas de instalação 1-clique existem (ADR 0024)', function () {
     expect(\Route::has('project-mgmt.install.index'))->toBeTrue('install.index missing');

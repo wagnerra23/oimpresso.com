@@ -268,7 +268,9 @@ PROMPT;
 
             if (! $response->successful()) {
                 // O CODIGO do erro separa duas causas com acoes OPOSTAS, e ambas chegam
-                // aqui como "429": `insufficient_quota` (billing/cota — fora do repo, decisao [W])
+                // aqui como "429": `insufficient_quota`/`credit_balance_exhausted` (conta sem
+                // credito — fora do repo, decisao [W]; a lista canonica desses codigos e
+                // HealthCheckCommand::QUOTA_CODIGOS_SEM_CREDITO, nao esta linha)
                 // vs `rate_limit_exceeded` (concorrencia — este service nao tem backoff nem retry
                 // e dispara as chamadas em rajada). Logar so o status colapsa as duas: em
                 // 2026-09-02 o canary somou 20x "Judge HTTP 429" sem nenhum campo capaz de
