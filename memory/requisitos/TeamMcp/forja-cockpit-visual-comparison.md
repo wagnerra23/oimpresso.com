@@ -740,7 +740,7 @@ Não é comparação pareada com o protótipo, e não podia ser: o corpo do gant
 | direita na ordem `[fj-bell, fj-kbtn, fj-viewtabs, os-btn]` | **já entregue** | idem — e medido IGUAL na Onda 2 |
 | 6 destinos em 3 `.fj-navgroup` (Trabalho/Esteira/Histórico) | **já entregue** | `FORJA_GRUPOS` + `FORJA_TABS`, defendidos por UC-FORJA-02/14 |
 | `--accent` dark `oklch(0.70 0.15 295)` | **já entregue** | `resources/css/tokens/_generated-cockpit-dark.css` (função, não escopo) |
-| **badge de pendências no destino Aprovações** | **→ ERA O ÚNICO ABERTO** | fechado aqui (UC-FORJA-18) |
+| **badge de pendências no destino Aprovações** | **→ ERA O ÚNICO ABERTO** | fechado aqui (UC-FORJA-19) |
 
 **O que estava errado, e por que ninguém viu.** A prop `pendencias` existia no `ForjaHub` desde a Onda 2, mas
 só `Forja/Aprovacoes/Index` a passava — o badge aparecia na única tela onde é redundante (a fila já está na
