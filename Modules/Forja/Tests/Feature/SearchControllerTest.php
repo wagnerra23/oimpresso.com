@@ -13,7 +13,7 @@ uses(Tests\TestCase::class);
  * PMG-002 (ADR 0100) — Cmd+K Search Global.
  *
  * Cobertura mínima do SearchController:
- *  - GET /project-mgmt/search sem permission → 403
+ *  - GET /forja/search sem permission → 403
  *  - GET com query < 2 chars → 200 + results vazios
  *  - GET com query válida + permission → 200 + tasks/epics/cycles/projects shape
  *  - GET com query que combina título de task → retorna a task no group
@@ -98,12 +98,12 @@ afterEach(function () {
     }
 });
 
-it('GET /project-mgmt/search sem permission retorna 403', function () {
+it('GET /forja/search sem permission retorna 403', function () {
     $user = searchBootstrapUser();
     searchRevokePerm($user);
 
     $response = $this->actingAs($user)
-        ->getJson('/project-mgmt/search?q=teste');
+        ->getJson('/forja/search?q=teste');
 
     expect($response->status())->toBe(403);
 });
@@ -113,7 +113,7 @@ it('GET com query < 2 chars retorna 200 + results vazios', function () {
     searchGivePerm($user);
 
     $response = $this->actingAs($user)
-        ->getJson('/project-mgmt/search?q=a');
+        ->getJson('/forja/search?q=a');
 
     if ($response->status() === 403) {
         test()->markTestSkipped('Permission gate inesperado.');
@@ -136,7 +136,7 @@ it('GET com query válida retorna shape canônico (tasks/epics/cycles/projects)'
     searchGivePerm($user);
 
     $response = $this->actingAs($user)
-        ->getJson('/project-mgmt/search?q=zz_naoexisteprovavelmente_zz');
+        ->getJson('/forja/search?q=zz_naoexisteprovavelmente_zz');
 
     if ($response->status() === 403) {
         test()->markTestSkipped('Permission gate inesperado.');
@@ -159,7 +159,7 @@ it('GET com query que combina título de task — retorna a task', function () {
     $task = searchCreateTask($project, "TEST-SEARCH task com termo {$unique}");
 
     $response = $this->actingAs($user)
-        ->getJson('/project-mgmt/search?q=' . $unique);
+        ->getJson('/forja/search?q=' . $unique);
 
     if ($response->status() === 403) {
         test()->markTestSkipped('Permission gate inesperado.');
