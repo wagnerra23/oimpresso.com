@@ -36,7 +36,28 @@ prototypes: [prototipo-ui/cowork/fiscal-subpages.jsx]
 - ❌ Drill-down drawer pro evento (apenas timeline horizontal — payload_json fica em audit log)
 - ❌ Emitir novo evento (CC-e/Cancelar) — flow via /fiscal/nfe drawer (PR #4 mutations)
 - ❌ Inutilização (vive em NfeInutilizacao — Model separado, sub-página futura)
-- ❌ Export CSV (backlog)
+- ~~❌ Export CSV (backlog)~~ → **NON-GOAL REVOGADO na Onda 7 (2026-09-03)**, no mesmo PR que entregou a capacidade (precedência: *teste verde > casos > charter > SPEC* · [`proibicoes.md`](../../../../memory/proibicoes.md)). Era adiamento declarado — o `(backlog)` diz isso — e não anti-hook: nenhum Pest GUARD o defendia (varredura de `Modules/Fiscal/Tests`: 13/13 matches de `csv|export` são de SPED, zero de eventos). Mesma forma do precedente do módulo, em [`SpedControllerTest.php:14-25`](../../../../Modules/Fiscal/Tests/Feature/SpedControllerTest.php), que revogou o `❌ Gerador SPED real` quando a capacidade nasceu. O contrato do que foi entregue está em §Contrato do export CSV abaixo.
+
+## Contrato do export CSV (Onda 7 · 2026-09-03)
+
+`GET /fiscal/eventos/export` — mesmo gate (`fiscal.access`), `throttle:6,1`.
+
+| Regra | Valor | Onde é defendida |
+|---|---|---|
+| Escopo do arquivo | o **conjunto filtrado** (tipo + período) — não a página de 50, não a tabela inteira | `UC-FEVT-06` |
+| Isolamento | global scope `HasBusinessScope`, nunca `where` manual | `UC-FEVT-05` `[T0]` |
+| Janela | clampada em `{7, 30, 90}`; fora disso → 30 | `UC-FEVT-07` |
+| Teto de volume | `EXPORT_MAX_LINHAS = 10000`, streaming em lotes de 500; ao estourar, última linha avisa | — |
+| Formato | BOM UTF-8 + separador `;` (Excel pt-BR abre sem wizard) | `UC-FEVT-05` |
+| Headers | `Content-Disposition: attachment` (do `streamDownload`) + `X-Robots-Tag: noindex` — espelha `SpedController::gerar`, o outro download do módulo | — |
+| Colunas | `Quando · Tipo · Sequência · Documento · Justificativa · Autor · cstat` (as 7 do protótipo) | — |
+| PII | justificativa truncada em 200 chars, igual à tela — o anti-hook abaixo vale para o CSV | — |
+
+**Duas colunas saem `—` por ausência de fonte, não por esquecimento:**
+- **Sequência** — `nfe_eventos` não tem coluna; `n_seq_evento` só existe dentro de `payload_json` e só a CC-e o grava. Lemos **essa chave escalar** (não-PII), o que não fere o anti-hook do `payload_json` completo. Nos demais tipos, `—`.
+- **Autor** — não existe `user_id` em `nfe_eventos`, e nenhum dos dois produtores grava causer. Preencher via `activity_log` mentiria a autoria: evento vindo de job/webhook SEFAZ não tem usuário.
+
+**Fronteira mantida:** o CSV **lê** a timeline; não a altera. O append-only, a ordem cronológica e os 5 chips seguem intactos.
 
 ## Anti-hooks
 
