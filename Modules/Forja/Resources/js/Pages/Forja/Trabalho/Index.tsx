@@ -392,7 +392,15 @@ export default function Trabalho({
         )}
 
         <div className="fj-totalbar" data-testid="trabalho-total">
-          <span><b>{totais.n}</b> issues</span>
+          {/* A ÚNICA região viva da tela. Filtrar (KPI, papel, busca, ★) troca a
+              lista inteira sem mover o foco — sem isto o leitor de tela não é
+              avisado de nada, e a pessoa fica sem saber se o clique fez efeito.
+              `role="status"` já implica `aria-live="polite"`; o atributo vai
+              explícito porque a medição que motivou este PR contou `aria-live`.
+              Fica NESTE span, não na barra: `role="status"` é atômico, e na
+              barra inteira todo pin re-anunciaria os quatro números. Aqui só o
+              que muda com o filtro é anunciado. */}
+          <span role="status" aria-live="polite"><b>{totais.n}</b> issues</span>
           <span><b>{totais.p0}</b> P0</span>
           <span><b>{totais.bloqueados}</b> bloqueados</span>
           <span className="fj-total-rank" title="Ordem vem do backend (rank = estado do trabalho, depois prioridade). Fixado fura a fila.">

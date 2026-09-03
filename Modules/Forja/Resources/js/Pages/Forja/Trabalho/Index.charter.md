@@ -10,7 +10,7 @@ parent_module: Forja
 related_us: [US-FORJA-006]
 related_adrs: [70, 93, 253, 388]
 tier: B
-charter_version: 6
+charter_version: 7
 ---
 
 # Page Charter — /forja/trabalho
@@ -260,3 +260,23 @@ O front passou a espelhá-los da fonte de design, pelo mesmo caminho e pelo mesm
 O anti-hook abaixo diz *"não hand-rolar selo de prioridade/ator no card; existe canon em `shared/TaskBadges`"*. Ele foi escrito em 2026-08-08, **antes** da ADR 0388, e a Onda 4 já o resolveu de outro jeito na lista: os selos passaram a ser os átomos-réplica de `trabalhoAtomos.tsx`, que são cópia declarada do protótipo, com política escrita e travados contra a fonte (`UC-TRAB-11`/`12`/`13`). O Quadro agora usa os mesmos — o card do board e a linha da lista mostram o mesmo selo, que é o que o protótipo faz.
 
 **O que aquele anti-hook protege continua honrado, e é o que importa:** não perder a distinção **agente × humano**. É exatamente o que o `OwnerSeal` faz, lendo a allowlist `agents` que vem do backend (`TrabalhoService::agentes()`, ator `ai_agent` não revogado) — nunca heurística de nome. O anti-hook segue valendo com este alcance: **não invente um selo terceiro**; use o canon do DS, ou o átomo-réplica que já existe e é travado. O que ele não pode mais exigir é `shared/TaskBadges` especificamente numa tela cuja lei é replicar o protótipo.
+
+---
+
+## Acessibilidade (2026-09-03) — a produção à frente do protótipo, declarado
+
+Não é onda de réplica. Saiu de uma **medição pareada** feita ao conferir o relato do lado design contra `origin/main`, e o resultado inverteu a premissa do relato: dois dos três defeitos listados como *"só existem no protótipo"* existiam **nos dois lados**.
+
+| medido em 2026-09-03 | protótipo (`forja-page.jsx`) | produção (antes) |
+|---|---|---|
+| `aria-live` / região viva | **0** | **0** |
+| `.fj-row` | `<div>` **com `onClick`** (:418) | `<div>` **sem** `onClick` |
+| papel de lista (`list`/`group`/`listitem`) | **0** | **0** |
+| `aria-expanded` no `fj-group-toggle` | **não tem** | **tem** |
+| `data-testid` | **não tem** | 4 (contêineres) |
+
+**Por que isto não fere a ADR 0388.** A lei rege **aparência**; papel ARIA e região viva não desenham pixel nenhum. E a direção da divergência é *produção à frente* — a mesma direção do `aria-expanded` e dos `data-testid`, que já estavam aqui desde a Onda 4 sem nunca terem sido declarados. Ficam declarados agora, junto.
+
+**Por que `listitem` e não `row`/`grid`/`button`.** Porque a `.fj-row` daqui **não navega**: o `onClick` do protótipo abre o issue-drawer, que nesta tela não existe (é um dos receptáculos que a Forja ainda não tem). Dar `role="row"` dentro de um `grid` prometeria navegação 2D por teclado que a tela não implementa — a mesma afordância falsa do checkbox de seleção em massa (LC-15), só que invisível para quem enxerga. `UC-TRAB-17` trava a premissa: no dia em que a linha ganhar `onClick`, o caso reprova pedindo o papel novo **com o teclado que ele promete**, em vez de deixar `listitem` mentindo.
+
+⚠️ **Sem smoke visual, de propósito** — a mudança não tem pixel. As `.snap` da baseline continuam válidas; se alguma mexer, é sinal de que algo além do ARIA entrou junto.

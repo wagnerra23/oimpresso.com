@@ -450,3 +450,84 @@ it('UC-TRAB-16 — grupo, saude e papel têm default e allowlist', function () {
     expect($svc->filtrar($tasks, ['saude' => 'inventado'])->count())->toBe(1);
     expect($svc->filtrar($tasks, ['papel' => 'ZZ'])->count())->toBe(1);
 });
+
+/* ════════════════════════════════════════════════════════════════════════════
+ * ACESSIBILIDADE (2026-09-03) — o que este caso defende que nenhum outro pega.
+ *
+ * A medição que originou o PR contou, nos dois lados: `aria-live` = 0 na
+ * produção E no protótipo. Ou seja, não era dívida de réplica ("o protótipo tem
+ * e nós não") — era buraco dos DOIS, e por isso ninguém ia tropeçar nele
+ * comparando um com o outro. É exatamente o tipo de defeito que só aparece
+ * quando se mede a propriedade certa em vez de comparar as duas cópias.
+ *
+ * O caso trava DUAS coisas, e a segunda é a que importa mais:
+ *
+ *   (a) os papéis existem (`list` / `group` / `listitem` + a região viva);
+ *   (b) a PREMISSA que escolheu esses papéis continua verdadeira — a linha NÃO
+ *       é clicável. `listitem` só está certo enquanto a linha for um item que
+ *       não navega. No dia em que ela ganhar `onClick` (o issue-drawer que o
+ *       protótipo tem e esta tela ainda não), `listitem` passa a MENTIR e o
+ *       papel tem que virar `row`/`button` junto com o teclado que ele promete.
+ *       Sem (b) este caso seria só presença — a classe LC-11 do ledger.
+ * ══════════════════════════════════════════════════════════════════════════ */
+
+/** 1ª linha do fonte que contém o trecho. Falha ALTO se sumiu (anti-falso-verde). */
+function trabalhoLinhaQueContem(string $src, string $trecho, string $seSumiu): string
+{
+    foreach (explode("\n", $src) as $linha) {
+        if (str_contains($linha, $trecho)) {
+            return $linha;
+        }
+    }
+
+    expect(false)->toBeTrue($seSumiu);
+
+    return '';
+}
+
+it('UC-TRAB-17 — a lista tem papéis ARIA, e a linha NÃO é interativa (a premissa do papel)', function () {
+    $base = 'Modules/Forja/Resources/js/Pages/Forja/Trabalho/';
+
+    $lista = file_get_contents(base_path($base.'_components/TrabalhoLista.tsx'));
+    expect($lista)->not->toBeFalse('TrabalhoLista.tsx sumiu — é o dono da lista.');
+
+    // Se a árvore for redesenhada, estes três estouram com o nome do que sumiu,
+    // em vez de passarem porque não acharam nada.
+    $raiz  = trabalhoLinhaQueContem((string) $lista, "'fj-list'", 'A raiz .fj-list sumiu da TrabalhoLista.');
+    $grupo = trabalhoLinhaQueContem((string) $lista, "'fj-group'", 'O contêiner .fj-group sumiu da TrabalhoLista.');
+    $linha = trabalhoLinhaQueContem((string) $lista, "'fj-row'", 'A .fj-row sumiu da TrabalhoLista.');
+
+    // (a) Os papéis. Sem eles o leitor de tela lê os 13 filhos da linha em
+    //     sequência, sem fronteira entre uma issue e a próxima.
+    expect(str_contains($raiz, 'role="list"'))->toBeTrue(
+        'A .fj-list perdeu role="list" — sem ela os `listitem` ficam órfãos e a AT os ignora.'
+    );
+    expect(str_contains($grupo, 'role="group"'))->toBeTrue(
+        'O .fj-group perdeu role="group" — o agrupamento some pra quem não enxerga.'
+    );
+    expect(str_contains($grupo, 'aria-label='))->toBeTrue(
+        'O .fj-group perdeu o aria-label — grupo sem nome não diz de que frente/onda é.'
+    );
+    expect(str_contains($linha, 'role="listitem"'))->toBeTrue(
+        'A .fj-row perdeu role="listitem" — volta a ser 13 spans sem fronteira.'
+    );
+
+    // (b) A PREMISSA. Ver o bloco acima: `listitem` só vale enquanto a linha não
+    //     navega. Cobre a tag de abertura, que é onde o handler entraria.
+    expect(str_contains($linha, 'onClick'))->toBeFalse(
+        "A .fj-row ganhou onClick — e aí role=\"listitem\" MENTE.\n".
+        "  Uma linha que age precisa do papel que promete a ação (row/button/link)\n".
+        "  E do teclado que vem junto (foco, Enter/Espaço). Escolha o papel novo e\n".
+        '  atualize o docblock §"OS PAPÉIS ARIA" — não apague este caso.'
+    );
+
+    // A região viva: filtrar troca a lista inteira sem mover o foco. Sem isto
+    // o clique no KPI é mudo pra quem usa leitor de tela.
+    $index = file_get_contents(base_path($base.'Index.tsx'));
+    expect($index)->not->toBeFalse('Index.tsx sumiu — é a tela.');
+
+    $totais = trabalhoLinhaQueContem((string) $index, '</b> issues', 'A contagem de issues sumiu da barra de totais.');
+    expect(str_contains($totais, 'role="status"'))->toBeTrue(
+        'A contagem de issues perdeu role="status" — filtrar voltou a ser silencioso na AT.'
+    );
+});

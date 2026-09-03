@@ -128,3 +128,15 @@ Mesma razão do `sort` (UC-TRAB-03): valor livre viraria estado desconhecido no 
 Status: 🧪 (1 teste cita este UC em [`PipelineParidadeTest.php`](../../../../Tests/Feature/PipelineParidadeTest.php) — extrai os trios dos DOIS lados linha a linha, com guarda anti-falso-verde e mensagem que diz qual fase e qual campo divergiu.)
 O `.fj-kcol-quem` diz **quem responde** pela fase e o `.fj-kcol-sai` diz **o que faz o card sair dela** — é o protocolo do loop Cowork↔Code escrito na própria coluna, e foi por isso que o protótipo o pôs ali. Como o payload não carrega esses campos, a tela os espelha da fonte; se o espelho drifar, a coluna passa a afirmar sobre o protocolo uma coisa que o design não diz — e afirma com a autoridade de estar na tela. É a mesma doença que o `PipelineParidadeTest` já trava nas fases, agora no cabeçalho delas.
 **Pronto quando:** para cada fase do espelho, o trio `owner`/`faz`/`sai` é idêntico ao de `FORJA_PHASES` no protótipo; o extrator prova que achou papel dos dois lados (não compara dois vazios); e fase que exista só no front reprova com o nome dela na mensagem.
+
+## Acessibilidade — o buraco que a comparação com o protótipo NÃO acha
+
+> Este caso não nasceu de uma onda de réplica. Nasceu de uma **medição nos dois lados** (2026-09-03): `aria-live` = **0** na produção **e** `0` no protótipo; `.fj-row` é `<div>` nos **dois**. Não era dívida de réplica — era buraco comum, e por isso comparar uma cópia com a outra jamais o encontraria. A ADR 0388 rege **aparência**; papel ARIA é invisível, e a produção já estava à frente do protótipo aqui (o `aria-expanded` do `fj-group-toggle` e os `data-testid` não existem no `forja-page.jsx`). A divergência está declarada no charter §"Reconciliações".
+
+## UC-TRAB-17 — A lista tem papéis ARIA, e a linha NÃO é interativa (a premissa do papel)
+Status: 🧪 (1 teste cita este UC — casa a linha de cada nó pelo `className`, com guarda anti-falso-verde que estoura dizendo qual nó sumiu.)
+São treze filhos inline por linha. Sem papel, o leitor de tela os lê em sequência e não há fronteira entre uma issue e a próxima — nem posição (*"3 de 17"*). E filtrar (KPI, papel, busca, ★) troca a lista inteira **sem mover o foco**: sem região viva, o clique é mudo pra quem não enxerga, e a pessoa não sabe se fez efeito.
+
+A metade que **não** é presença é a premissa: `listitem` só está correto enquanto a linha for um item que **não navega**. No protótipo ela tem `onClick` (abre o issue-drawer, que nesta tela não existe); aqui não tem. Se ganhar, `listitem` passa a mentir e o papel tem que virar `row`/`button` **junto com o teclado que ele promete** — prometer navegação 2D que a tela não implementa é a mesma afordância falsa do checkbox de seleção em massa (LC-15), só que invisível pra quem enxerga. Sem essa perna o caso seria presence-gate puro (LC-11).
+
+**Pronto quando:** `.fj-list` tem `role="list"`, `.fj-group` tem `role="group"` + `aria-label`, `.fj-row` tem `role="listitem"`, a contagem de issues da barra de totais tem `role="status"` — **e** a `.fj-row` continua sem `onClick`, reprovando com a instrução de rever o papel (não de apagar o caso) no dia em que ganhar.
