@@ -1523,3 +1523,56 @@ O [#6488](https://github.com/wagnerra23/oimpresso.com/pull/6488) auditou o mesmo
 
 Como sempre: não editei `prototipo-ui/cowork/**` pra "consertar" nada — é espelho de leitura
 (ADR 0374) e edição minha some no próximo `--export-from`. O durável nasce no Cowork vivo e desce.
+
+---
+
+## 2026-09-03 [CL] → [W]/[CC] — Export da Forja chegou sem o pacote: 16 arquivos de fonte sem como descer
+
+**O pedido, e é a única coisa que este bloco pede:** regenerar o pacote deste ciclo. A regra em si já
+está no [passo 4 da ROTINA](COWORK-ESTRUTURA-E-TELAS.md) com o comando — não repito aqui.
+
+### O que medi (03/09, contra `origin/main` fresco + projeto Cowork por ID)
+
+O ciclo da Forja fechou e o `github.md` (Last sync `2026-09-03T17:10Z`) traz, no lugar do recibo, a
+frase **"Não afirmo que regenerei."** A linha `bundle regenerado (<data> · N arquivos)` que a
+[ADR 0387](../memory/decisions/0387-github-md-diario-cowork-aceito-e-tratado.md) usa como recibo não
+aparece no arquivo.
+
+Consequência medida, não estimada — `forja-*.jsx`: **22 no vivo · 6 no espelho**. Os 16 que nunca
+desceram: `forja-atomos` · `forja-lista` · `forja-quadro` · `forja-gantt` · `forja-saude` ·
+`forja-changelog` · `forja-issue-drawer` · `forja-cmdk` · `forja-triagem` · `forja-rag` · `forja-ia` ·
+`forja-novo-issue` · `forja-runbook` · `forja-handoff` · `forja-dossie` · `forja-notifs`.
+
+As duas rotas de transporte estão fechadas pra eles:
+
+- **PRINCIPAL (pacote):** o `sync/bundle.manifest.json` vivo ainda é a emissão de **24/08**, pré-split.
+  Conferido com controle positivo — `forja-page.jsx` e `forja-mcp.jsx` dão 2 hits cada no manifesto;
+  os 16 novos dão **0**.
+- **pontual (`get_file` → `--export-from`):** são 16, não "1-3 avulsos", e arquivo pequeno volta
+  inline — escrever de lá é transcrição (ADR 0374).
+
+### O que isso segura — e o que não segura
+
+O `COLAR-NO-CODE-EXPORT-FORJA-MODULO.md` pede 11 ondas de réplica. Medi o que dá pra executar sem o
+pacote: as **25 classes-chave do §3** estão nos 6 arquivos do espelho, e o `forja-page.css` é de
+03/09 — então as Ondas 1–11 têm alvo, ainda que medido no monolito de 01/09 e não na build split.
+
+Sem fonte no espelho estão 4 das 8 construções "sem receptor": `fj-cmdk`, `fj-notifs`, `fj-runbook` e
+`fj-composer` dão 0 no espelho **e** no CSS fresco. (Sondei por nome de classe adivinhado; se elas
+usam outro prefixo, o 0 é meu, não delas.)
+
+[W] optou por esperar a fonte fiel antes da Onda 1 — a fila da Forja está parada neste bloco.
+
+### 2 correções pro pacote de export (na fonte, não aqui)
+
+- **§8** afirma "17 arquivos `forja-*.jsx` + `forja-page.css` no `prototipo-ui/cowork/`". O espelho
+  tem 6 `.jsx` + 1 `.css`; o vivo tem 22 `.jsx`. Nenhum dos dois é 17.
+- **§1 Onda 1** aponta `team-mcp/Forja/ForjaHub.tsx`; o arquivo está em
+  `team-mcp/Forja/_components/ForjaHub.tsx`. As outras 15 âncoras conferem.
+
+### Por que este bloco está aqui, e não num `CODE_NOTES.prompt-*` novo
+
+Porque o de 01/09 já provou que ali não chega: a errata dele mediu que **nenhum** dos 6 documentos do
+read-order citava a regra, e por isso ela foi pro passo 4 da ROTINA. A regra está lá — conferi hoje,
+7 hits em `COWORK-ESTRUTURA-E-TELAS.md` — e o ciclo fechou sem cumprir. Logo o que falta não é texto
+novo, é a execução; abrir mais um arquivo de pedido repetiria o erro que a errata registrou.

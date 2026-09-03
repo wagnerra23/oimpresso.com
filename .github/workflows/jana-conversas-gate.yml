@@ -37,13 +37,36 @@ name: Jana Conversas Gate — histórico do chat (filtro real + J/K + ⌘⇧H + 
 # doc de `memory/` — zero ocorrência em `.github/`. Nenhuma lane roda `vitest run` sem
 # argumento, então spec fora de workflow é verde-por-não-execução (LC-13).
 #
+# AMPLIADO DE NOVO EM 2026-09-03 — entrou `tests/jana-memoria-linha.test.tsx`
+# (UC-MEM-09/10 do `resources/js/Pages/Jana/Memoria.casos.md`), da onda 4 da paridade
+# da Memória. Mesmo motivo estrutural das duas anteriores: nenhuma lane roda `vitest run`
+# sem argumento, então spec fora de workflow é verde-por-não-execução (LC-13). Re-medido
+# com `rg --hidden` no repo inteiro ANTES de escrever esta linha: segue zero.
+#   UC-MEM-09 — as ações da linha do fato são TEXTO ("Editar"/"Apagar"), não ícone mudo.
+#   UC-MEM-10 — a linha abre pelo FATO; a meta que o qualifica vem depois.
+# Mordida provada por mutação antes do merge (restore = 4/4 verde, arquivo byte-idêntico):
+#   os 2 botões viram ícone mudo com `title`  → 2 failed (UC-MEM-09)
+#   a meta sobe pra antes do `<p>` do fato    → 1 failed (UC-MEM-10)
+# O assert do 09 é de `textContent`, não de nome acessível, de propósito: botão-ícone com
+# `title` TEM nome acessível e passaria por `getByRole` sem rótulo nenhum na tela.
+#
 # Os `name:` do workflow e do job seguem falando só de "conversas" DE PROPÓSITO: o job
 # `name:` é o context do check, e renomeá-lo derruba o check nos PRs já abertos (§5
 # 2026-08-08). O escopo real de quem roda está no `name:` do step e no comando.
 #
+# ESCOPO AMPLIADO EM 2026-09-03 — entrou `tests/jana-chat-composer-chips.test.tsx`
+# (onda 3b da paridade × `jana-merge.jsx` §JmConversa: cabeçalho da thread, `/` no
+# composer e os 3 chips). Mesma razão das duas entradas anteriores: nenhuma lane roda
+# `vitest run` sem argumento, então spec fora de workflow é verde-por-não-execução
+# (LC-13). Os arquivos SOB TESTE entram no gatilho junto com o spec — `AssistantUiChat`
+# e `JanaConversaHeader` —, senão mexer neles não acorda o teste que os defende (§5
+# 2026-08-02). O `name:` do job segue intocado de propósito: renomear derruba o check
+# nos PRs já abertos (§5 2026-08-08).
+#
 # Path-scoped (faz npm ci): roda quando a Page, o tipo do payload, o spec ou este
 # workflow mudam. Comando local:
 #   npx vitest run tests/jana-chat-conversas.test.tsx tests/jana-pro-voltar.test.tsx
+#     tests/jana-memoria-linha.test.tsx tests/jana-chat-composer-chips.test.tsx
 #
 # Advisory (ADR 0271/0314 — atalho e filtro de tela é qualidade/higiene, não
 # Tier-0). Promoção a required, se um dia fizer sentido, é flip [W] com mordida
@@ -62,6 +85,14 @@ on:
       # 2026-08-17 no PainelContratoTest (§5 2026-08-02: "inclua o arquivo SOB TESTE").
       - 'resources/js/Pages/Jana/Pro.tsx'
       - 'tests/jana-pro-voltar.test.tsx'
+      # Memória (2026-09-03): a Page entra junto com o spec, senão mexer no
+      # `Memoria.tsx` não acorda o teste que o defende (§5 2026-08-02).
+      - 'resources/js/Pages/Jana/Memoria.tsx'
+      - 'tests/jana-memoria-linha.test.tsx'
+      # Onda 3b (2026-09-03): o spec e os dois arquivos que ele defende.
+      - 'resources/js/Pages/Jana/_components/AssistantUiChat.tsx'
+      - 'resources/js/Pages/Jana/_components/JanaConversaHeader.tsx'
+      - 'tests/jana-chat-composer-chips.test.tsx'
       - '.github/workflows/jana-conversas-gate.yml'
   push:
     branches: [main]
@@ -71,6 +102,12 @@ on:
       - 'tests/jana-chat-conversas.test.tsx'
       - 'resources/js/Pages/Jana/Pro.tsx'
       - 'tests/jana-pro-voltar.test.tsx'
+      - 'resources/js/Pages/Jana/Memoria.tsx'
+      - 'tests/jana-memoria-linha.test.tsx'
+      # Onda 3b (2026-09-03): o spec e os dois arquivos que ele defende.
+      - 'resources/js/Pages/Jana/_components/AssistantUiChat.tsx'
+      - 'resources/js/Pages/Jana/_components/JanaConversaHeader.tsx'
+      - 'tests/jana-chat-composer-chips.test.tsx'
 
 concurrency:
   group: jana-conversas-gate-${{ github.ref }}
@@ -97,17 +134,20 @@ jobs:
       # cairam em `status:unverified` — declaravam ✅ com teste real, sem prova capturada.
       # Mesma correcao que a sells-v3-dominio-gate ja tinha; o `junit-lanes` deriva sozinho
       # (nao ha lista a manter), entao o proximo `casos-results-publish` carimba o ✅.
-      # UMA invocação, DOIS specs, UM XML — de propósito. Rodar o Pro num step próprio
-      # com artifact próprio custaria uma 2ª entrada em `junit-lanes.mjs` e um 2º
-      # download no publisher pra medir a mesma coisa; e um step separado sob o
+      # UMA invocação, TODOS os specs jsdom da Jana, UM XML — de propósito. Rodar cada
+      # um num step próprio
+      # com artifact próprio custaria uma entrada extra em `junit-lanes.mjs` e um
+      # download a mais no publisher pra medir a mesma coisa; e um step separado sob o
       # `success()` implícito nem rodaria quando o spec de cima ficasse vermelho.
-      # O coletor por-UC varre TODOS os `<testcase>` do XML, então os dois vereditos
+      # O coletor por-UC varre TODOS os `<testcase>` do XML, então todos os vereditos
       # chegam ao G-7 pelo transporte que já existe.
-      - name: specs jsdom da Jana — histórico de conversas + Pro (vitest/jsdom)
+      - name: specs jsdom da Jana — conversas + Pro + Memória + composer/chips (vitest/jsdom)
         run: |
           npx vitest run \
             tests/jana-chat-conversas.test.tsx \
             tests/jana-pro-voltar.test.tsx \
+            tests/jana-memoria-linha.test.tsx \
+            tests/jana-chat-composer-chips.test.tsx \
             --reporter=default \
             --reporter=junit \
             --outputFile=test-results/vitest-jana-conversas-junit.xml

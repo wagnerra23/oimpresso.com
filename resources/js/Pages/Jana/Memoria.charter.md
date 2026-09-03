@@ -3,7 +3,7 @@ page: /ia/memoria
 component: resources/js/Pages/Jana/Memoria.tsx
 owner: wagner
 status: draft
-last_validated: "2026-08-07"
+last_validated: "2026-09-03"
 parent_module: Jana
 parent_adr: memory/decisions/0052-memoria-jana-3-angulos-faturamento.md
 related_prototype: prototipo-ui/cowork/jana-merge.jsx
@@ -15,7 +15,7 @@ related_runbook: memory/requisitos/Jana/RUNBOOK-memoria.md
 related_casos:
   - resources/js/Pages/Jana/Memoria.casos.md
 tier: A
-charter_version: 3
+charter_version: 4
 permissao: jana.access
 lgpd_sensitive: true
 ---
@@ -40,7 +40,7 @@ Audiência primária: **dono/gestor do business** (Wagner, Larissa). Acesso `bus
 
 - Listar fatos com filtro por `categoria`, busca fulltext em `fato`, sort por `valid_from DESC`
 - Editar fato inline (texto + categoria + relevância) com `activitylog` registrando autor/quando/motivo
-- Apagar fato (soft delete `deleted_at`) com `AlertDialog` "você tem certeza" — apaga embeddings Meilisearch async via job
+- Apagar fato (soft delete `deleted_at`) com **confirmação inline na própria linha** ("Apagar é irreversível." · Apagar/Manter) — apaga embeddings Meilisearch async via job
 - Mostrar `origem` do fato (chat / brief auto / inserção manual) — transparência
 - Wagner como superadmin vê fatos cross-business via toggle `?escopo=plataforma` (audit log)
 
@@ -56,7 +56,7 @@ Audiência primária: **dono/gestor do business** (Wagner, Larissa). Acesso `bus
 - Render < 250ms p95 com `Inertia::defer()` em `fatos` paginated
 - Empty state "Jana ainda não aprendeu nada sobre seu negócio" + CTA Chat
 - Edit mode toggle inline (sem rota separada) — `useForm` Inertia
-- Confirmação delete AlertDialog explicitando "esta ação é irreversível"
+- Confirmação de delete **inline**, explicitando "Apagar é irreversível." ao lado do fato em questão
 - Mobile responsivo — accordion por categoria
 
 ## Anti-hooks
@@ -141,6 +141,27 @@ segue ⬜ de propósito).
   a origem plausível desta e da key fantasma do `Index.charter.md`. Fica fora deste PR porque a
   `description` é propagada pra `memory/modulos/Jana.md` por gerador com guarda, e a mesma frase
   está em `Modules/Ponto/module.json` — consertar 1 de N à mão é outro intent.
+
+- **v4 (2026-09-03)** — **O `AlertDialog` deste charter era o PERDEDOR, e a onda 4 tocou a região.**
+  O charter pedia `AlertDialog` em dois pontos (Goal do apagar + UX target); a tela usa confirmação
+  **inline na própria linha** desde sempre, por decisão registrada no `Memoria.tsx` (o `confirm()`
+  nativo sai do fluxo, é bloqueante e não diz *qual* fato) e já contratada no
+  [`Memoria.casos.md`](Memoria.casos.md). Pela regra de precedência (`teste verde > casos > charter
+  > SPEC`, [proibicoes.md](../../../../memory/proibicoes.md)), o charter perde — e a mesma regra
+  manda **corrigir o perdedor no MESMO PR** que alguém tocar a região. A onda 4 reescreveu
+  exatamente essa região (as ações da linha), então a correção sai aqui em vez de virar dívida.
+  O [`Memoria-visual-comparison.md`](../../../../memory/requisitos/Jana/Memoria-visual-comparison.md)
+  §R7 já apontava o charter como perdedor desde 2026-08-17 e dizia "fica registrado, não mexido
+  nesta leva" — esta é a leva.
+
+  **Junto, a onda 4 da paridade** (forma da linha do fato + largura), com dois UCs novos e teste
+  que os cita: `UC-MEM-09` (ações em TEXTO, não ícone mudo) e `UC-MEM-10` (o fato antes da meta),
+  em `tests/jana-memoria-linha.test.tsx`, ligados à lane `jana-conversas-gate.yml` — que é o home
+  declarado dos specs jsdom da Jana. Os deltas medidos contra a âncora (raio 8px × 10px, padding
+  12px × 11/13, corpo 13.5px × 13px) estão tabelados no `casos.md`, não escondidos.
+
+  ⚠️ **NÃO mexido aqui, e de propósito:** o §Gap de permissão segue aberto (decisão [W]), e o
+  `status: draft` do frontmatter × `live` do corpo segue por resolver — promover é ato [W].
 
 > ⚠️ **Divergência de status não resolvida aqui:** o frontmatter diz `draft`, o corpo diz `live`
 > ("em uso prod biz=1 desde 2026-04"). Promover `draft→live` é decisão [W], não do agente — fica

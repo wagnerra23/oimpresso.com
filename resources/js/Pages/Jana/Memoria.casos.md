@@ -4,7 +4,7 @@ casos: Jana Memória · fatos aprendidos · LGPD Art. 18 · /ia/memoria
 irmaos: Memoria.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-memoria.md (runbook)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-09-02"
+last_run: "2026-09-03"
 ---
 
 # Casos de uso — /ia/memoria (Memória da Jana)
@@ -276,3 +276,93 @@ então é trocá-lo pelo `UC-JPERM-07` da [emenda do Cowork](../../../../prototi
 propósito: **qual key trava a escrita é decisão [W]** (§Gap de permissão do charter), e escrever o
 UC antes da trava quebraria o G-2 do casos-gate — a própria emenda manda *"cada UC entra no mesmo PR
 do seu teste, nunca antes"*.
+
+---
+
+## Revalidação de 2026-09-03 — a onda 4 da paridade mexeu na FORMA da linha
+
+O `casos-gate` vai acusar `stale:` porque o `Memoria.tsx` mudou depois do `last_run`. **Desta vez
+não é inerte** — a onda 4 mudou a forma da linha do fato e a largura da tela —, então o `last_run`
+sobe **com dois UCs novos**, não só com a nota.
+
+**Interseção com os 8 UCs anteriores: nenhuma.** Medido, não presumido: UC-MEM-01..05 são de
+servidor (motivo obrigatório, trilha, PII, esquecer), UC-MEM-06 é a fonte do selo de plano e
+UC-MEM-07/08 são permissão e Tier 0. O diff não toca controller, validação, rota nem payload —
+`git diff --stat` desta leva lista `Memoria.tsx`, o spec novo e a lane. Nenhum `Status:` mudou.
+
+## UC-MEM-09 — as ações da linha do fato se anunciam por TEXTO
+Status: 🧪 (`tests/jana-memoria-linha.test.tsx`, 2 `it()` · lane `jana-conversas-gate.yml`, jsdom)
+
+Derivado da âncora `JmMemoria` (`prototipo-ui/cowork/jana-merge.jsx`) — `.jm-fato-acts` são
+`<button class="jm-btn ghost">Editar</button>` e `<button class="jm-btn ghost danger">Apagar</button>`,
+rótulo visível — e do charter, cuja Mission é o titular **exercer** o Art. 18. **Não** do `.tsx`
+(§5 2026-06-05). Até 2026-09-03 a produção usava botão-ícone (`Pencil`/`Trash2`) com `title`: numa
+tela LGPD, a ação destrutiva só se identificava no hover.
+
+**Pronto quando:** os botões da linha têm `textContent` "Editar" e "Apagar".
+
+_(O assert é de `textContent`, **não** de nome acessível, e é o que faz o caso morder: um
+botão-ícone com `title="Esquecer"` TEM nome acessível e passaria por `getByRole` sem exibir
+rótulo nenhum — mediria o que eu escrevi, não o que a tela mostra.)_
+
+## UC-MEM-10 — a linha apresenta o FATO antes da meta que o qualifica
+Status: 🧪 (`tests/jana-memoria-linha.test.tsx`, 2 `it()` · mesma lane)
+
+Derivado da âncora: `.jm-fato-bd` é `<p>{f.fato}</p>` e **só depois** `.jm-fato-meta` (categoria ·
+origem · desde · relevância, numa linha só, mono 10.5px). A produção trazia invertido — pill,
+relevância, origem e data no topo, texto embaixo —, então a linha abria pelo rótulo em vez de
+abrir pelo que a Jana aprendeu, que é o objeto do direito de acesso.
+
+**Pronto quando:** no DOM, o texto do fato precede a pill de categoria; e origem, data e
+relevância vivem no mesmo container da pill.
+
+_(A busca da pill é escopada à linha de propósito: "Preferência" aparece **duas** vezes na tela —
+pill do fato e chip do filtro, que é derivado do dado. Buscar no documento casaria as duas e o
+caso passaria por acidente.)_
+
+### ⬜ Por que NÃO há UC de LARGURA, embora a onda 4 a tenha mudado
+
+A onda tirou o `max-w-4xl mx-auto` (896px numa viewport de 2560) — era a única das quatro telas da
+área presa numa coluna central, enquanto `Index.tsx`, `Chat.tsx` e a âncora ocupam a largura toda.
+**Isso não vira UC aqui**: largura é propriedade **computada**, e jsdom não computa Tailwind.
+Assertar a ausência da classe mediria o que eu escrevi, não o que o browser resolveu
+(§5 2026-07-16). Quem mede é o `visual-regression` (esta tela está no `visreg-screens.json`) e a
+sonda do `design-diff.mjs` — e o veredito de pixel é aprovação [W] no gate F1.5, não deste arquivo.
+
+### Deltas MEDIDOS que a onda 4 aceitou (e não escondeu)
+
+| item | âncora | entregue | por quê |
+|---|---|---|---|
+| raio da linha | 10px (cru, fora da própria rampa dela) | `rounded="lg"` = **8px** | o token do DS vale mais que o px cru do protótipo |
+| padding | `11px 13px` | `p={3}` = **12px** | a escala do `Box` é enumerada por CVA, que recusa px cru em compilação |
+| corpo | 13px / 1.5 | `--fs-4` = **13.5px** / 1.45 | a rampa `--fs-1..9` é a âncora única de tipografia (ADR 0253) |
+| meta | 10.5px mono | `--fs-1` = **10.5px** mono | exato |
+| pill | 10.5px · `2px 8px` · full | `Badge` = **12px** · `2px 8px` · full | padding e raio exatos; o tamanho é do componente do DS |
+
+⚠️ **Fora desta onda, de propósito:** o rastro `editado por … · motivo` que a âncora mostra na meta
+(é **backend** — o payload é `MemoriaPersistida::toArray()`, DTO `final readonly` de 8 chaves, e o
+Controller não lê `activity_log`; ordem 1 do `Memoria-visual-comparison.md`) e os campos `Categoria`
+e `Relevância` da edição inline (o `update` valida só `fato`/`motivo`; ordem 2 do mesmo doc).
+Renderizá-los agora seria UI prometendo o que o servidor não cumpre.
+
+## Achado colateral de 2026-09-03 — o empty state estava CERTO
+
+A rodada medida de 2026-09-03 registrou que `jana_memoria_facts` tem **19 linhas** em `business_id=1`
+enquanto `/ia/memoria` exibia o empty state, e mandou conferir o filtro antes de tratar como bug.
+**Conferido em produção (2026-09-03) — é filtro legítimo, não defeito.**
+
+A listagem não é por business: é `MemoriaFato::doUser($businessId, $userId)->ativos()`, que soma
+três filtros — `business_id`, `user_id` e `valid_until` — mais o soft delete do trait. Medido:
+
+| pergunta | resposta |
+|---|---|
+| linhas em `business_id=1` | **19** |
+| distribuição por `user_id` | **`{"1": 19}`** — todas do usuário 1 |
+| soft-deleted (`deleted_at` não nulo) | **14** |
+| com `valid_until` no passado | **0** |
+| `listar(1, 1)` pelo contrato ligado (`MeilisearchDriver`) | **5** |
+
+Ou seja: o usuário 1 vê 5 fatos; **qualquer outro usuário do mesmo business vê o empty state, e
+corretamente** — memória da Jana é por titular, não por empresa. O 19 é uma contagem de business
+que ignora `user_id` e `deleted_at`; o denominador da tela é outro (§5 2026-07-27: denominador
+inventado). Nada a corrigir no controller.

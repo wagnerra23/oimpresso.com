@@ -975,13 +975,20 @@ jobs:
           VISREG_SCREENS: ${{ inputs.screens }}
         run: |
           npm run visreg:update
+          # L2 (estados isolados) roda TAMBEM no escopo targeted: desde 2026-09-03 a suite
+          # honra o mesmo par VISREG_SCOPE/VISREG_SCREENS (filtra por `source`), entao com
+          # screens=["Jana"] ela regrava so `jana · estado=default` e nada das outras 18.
+          # Antes era pulada aqui — e o run 33782104647 (PR #6665) provou o buraco: o L1 da
+          # Jana saiu regenerado, o L2 nao, e o proprio PR de baselines reprovou em zona cinza
+          # no estado isolado da tela que acabara de mudar. Flows continuam so no global:
+          # as suites de fluxo nao filtram por tela.
+          npm run visreg:states:update
           if [ -z "${{ inputs.screens }}" ]; then
-            npm run visreg:states:update
             npm run visreg:flows:update
             npm run visreg:sells:update
             npm run visreg:flows:compras:update
           else
-            echo "escopo=${{ inputs.screens }} — estados/flows pulados (cobrem outras telas)."
+            echo "escopo=${{ inputs.screens }} — flows pulados (cobrem outras telas); estados filtrados por source."
           fi
 
       # COWORK_BOT_PAT, NÃO GITHUB_TOKEN (anti-recursão do Actions): o GitHub NÃO dispara

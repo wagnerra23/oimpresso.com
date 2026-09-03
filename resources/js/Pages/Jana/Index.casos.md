@@ -735,6 +735,157 @@ mostra número inventado é pior que card ausente.
 
 ---
 
+## UC-JPAIN-20 — os 3 KPIs do topo são RÉPLICA do `.jc-kpi`, não o card PT-04
+Status: 🧪 (render-test `tests/janaKpiReplica.spec.tsx` — 13 asserções, **13 passed** rodadas
+localmente em 2026-09-03, com bite-test provado por mutação; e `PainelContratoTest` reescrito. O
+`✅` só entra quando o verde vier do MANIFESTO — G-7 —, e ele ainda não veio: o CT 100 estava fora
+do ar nesta sessão (`tailscale ssh` devolveu 502), então o veredito é o das lanes de CI. Run local
+não é run do manifesto, e escrever `✅` aqui seria exatamente o "o Status pode mentir" que o
+casos-gate existe pra impedir.)
+
+Derivado da **âncora** (`node prototipo-ui/ancora.mjs Jana/Index` →
+`prototipo-ui/cowork/jana-merge.jsx` §`data.kpis.map` → `KPICard`; markup em `chat-jana.jsx`,
+estilo em `chat-jana.css` §`── KPIs ──`) e da medição registrada em
+[`Index-visual-comparison.md` §Rodada MEDIDA de 2026-09-03](../../../../memory/requisitos/Jana/Index-visual-comparison.md),
+tabela **KPIs** — **não** do `.tsx`. Pedido [W] de 2026-09-03, textual: *"KPIs feios"*.
+
+**Por que este caso existe.** A tabela da medição tem 4 linhas `❌` e 3 `🟡`, e as duas que [W]
+nomeia como "o feio" estão escritas lá com todas as letras: *"é o `feio`: a caixa de ícone e o
+padding"*. O card em produção era o `KpiCard` shared (anatomia PT-04): caixa de ícone 36×36
+`bg-muted`, `p-4`, r12, rótulo sans. A âncora desenha outra coisa — rótulo **mono** de 10px com o
+ícone de 15px **inline** ao lado, r8, `12px 14px 14px`.
+
+| eixo | âncora `.jc-kpi` | produção (antes) | agora |
+|---|---|---|---|
+| grid | `repeat(4, 1fr)` · gap 10 · 3 de 4 | `cols={3}` · gap 12 · ocupa tudo | `cols={4}` + `gap-2.5` |
+| moldura | `--r-2` (8px) · `12px 14px 14px` · gap 3 | r12 · `p-4` · gap 8 | `rounded-[var(--radius,8px)]` · `pt-3 px-3.5 pb-3.5` · `gap-[3px]` |
+| rótulo | mono 10px/700 `.06em` · ícone 15px inline | sans 11px/600 · ícone em caixa 36×36 | mono 10px/700 `.06em` · ícone 15px inline |
+| alarme | `--neg-soft` (tinta sólida) + valor `--fs-8` | `bg-destructive/5` + valor `--fs-7` | `bg-destructive-soft` + valor `--fs-8` |
+| delta | `-68% vs mai/25` | `+3 hoje vs ontem` (sem unidade) | `-22% em 4m` / `+3% 7d` |
+
+### Componente NOVO, e o shared fica intocado
+
+`_components/JanaKpiCard.tsx`, sob [ADR 0388](../../../../memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md)
+§D-1 ("réplica primeiro") e a precedência de FORMA da
+[ADR UI-0029](../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)
+(*protótipo > teste > casos > charter > SPEC*). Mudar o `KpiCard` shared imporia a forma da Jana
+às outras **36** telas que o consomem — a [ADR 0385](../../../../memory/decisions/0385-sidebar-alinhado-ao-prototipo-diferenca-em-tres-categorias.md)
+já dizia que *"diferente não é erro"*. Réplica local é o caminho que a 0388 abriu justamente pra
+isso não virar impasse.
+
+**Zero cor crua.** Cada declaração da âncora sai por token semântico do DS, e o mapa completo está
+no docblock do componente. O `--neg-soft` da âncora vira `bg-destructive-soft`, utility do DS já
+usada em 6 sites.
+
+⚠️ **O RAIO precisou ser MEDIDO, e a tradução óbvia estava errada.** A primeira versão deste
+caso afirmava que `--r-2` (8px) *"casa exatamente com `--radius-lg` (`0.5rem`), então é
+`rounded-lg`"*. Isso é verdade no `:root` e **falso onde a tela vive**: dentro do `.cockpit` o
+`--radius-lg` é **REDEFINIDO pra 12px**. Medido na bancada, com o CSS construído do próprio PR:
+
+```
+:root      --radius-lg .5rem                .cockpit   --radius-lg 12px   --radius 8px
+no .cockpit:  rounded-sm 6  rounded-md 6  rounded-lg 12  rounded-xl 12
+```
+
+Nenhuma utility da escala entrega 8px ali — e `rounded-lg` reproduziria **exatamente o r12 que
+esta onda existe pra consertar**. O token que vale 8px no escopo é `--radius`, que é o mesmo que
+o `--r-2` do espelho resolve; daí `rounded-[var(--radius,8px)]`, com fallback pra quem renderizar
+fora do `.cockpit`. Fica registrado porque a afirmação errada já estava escrita: ler o token no
+`:root` e concluir sobre o escopo é medir no lugar errado (§5 2026-07-16). **Inconsistência declarada, não escondida:** os dois tokens de alarme não têm o mesmo
+valor — âncora `oklch(0.36 0.12 25)` × prod `oklch(0.26 0.07 18)` no escuro. Ficou o token de
+produção, porque o vocabulário `destructive-*` é o que o resto do ERP lê; a diferença é de
+calibragem do token, e reconciliá-la é decisão de Fundação ([W]), não desta tela.
+
+### Os DOIS EIXOS voltam a ser dois
+
+A âncora separa o que produção fundira:
+
+```
+emphasize: true          → .jc-kpi.emph      = fundo + borda + valor no degrau --fs-8
+deltaCls === "red big"   → .jc-kpi-v.red     = a cor do VALOR, e só ela
+```
+
+O `KpiCard` shared pendura os dois num `tone` só, e o próprio `KpiCard.tsx` registrou isso como
+errata em 2026-08-27: *"pendurou-se no eixo do FUNDO um efeito que a âncora pendura no eixo do
+DELTA. Passou despercebido porque o dataset tem N=1"*. Aqui viram `emphasis` e `valueTone`,
+declaráveis em separado — e o teste **prova** a independência, que é o que N=1 não conseguia
+mostrar. O shared **não** foi desfusionado: ele tem outros 36 consumidores e a decisão é de quem
+os tem.
+
+### O que este caso NÃO muda, de propósito
+
+- **Os 3 rótulos e a ordem** — são do UC-JPAIN-18, e seguem intactos.
+- **`Receita 30 dias`** contra `Receita mês` da âncora — UC-JPAIN-14; aqui é o protótipo que está
+  atrás, e copiar a copy dele reintroduziria bug conhecido.
+- **O drill** dos 2 KPIs que têm análise do mesmo dado. Mudou só ONDE ele mora: o clicável é o
+  **wrapper**, e o card volta a ser `DIV`, como na âncora (lá é `.jm-an-hit` por fora do
+  `.jc-kpi`). Isso fecha o `DIVERGE(bug)` que a sonda acusou como `kpi.tag BUTTON×DIV`.
+  Divergência **consciente** da âncora: o wrapper é `<button>` de verdade, não `div role="button"`
+  — mesma affordance, sem o teclado à mão.
+- **UC-JPAIN-16** — o card só nasce clicável quando recebe `onClick`; sem ele não há `button`
+  nenhum no DOM, e o teste asserta isso.
+
+### Medição de runtime — mesma sonda nos dois lados (2026-09-03)
+
+Bancada: o HTML **real** que o `JanaKpiCard` renderiza (extraído do render, não escrito à mão) sobre
+o CSS **construído** deste PR (`app-*.css` + `AppShellV2-*.css`, os dois que a `/ia` carrega),
+dentro de `.cockpit[data-theme="dark"]` × o `.jc-kpi` do espelho sobre `styles.css` + `chat-jana.css`,
+mesmo tema, mesma viewport (1440), mesma função de sonda.
+
+| campo | âncora `.jc-kpi` | produção `JanaKpiCard` | |
+|---|---|---|---|
+| colunas do grid | 4 | 4 | ✅ |
+| gap do grid | 10px | 10px | ✅ |
+| raio | 8px | 8px | ✅ |
+| padding | `12px 14px 14px 14px` | `12px 14px 14px 14px` | ✅ |
+| gap interno | 3px | 3px | ✅ |
+| rótulo | 10px/700 · ls 0.6px · mono · uppercase | 10px/700 · ls 0.6px · mono · uppercase | ✅ |
+| valor (normal) | 22px/700 · lh 22px | 22px/700 · lh 22px | ✅ |
+| valor (`emph`) | 28px/700 · lh 28px | 28px/700 · lh 28px | ✅ |
+| `small` | 11px | 11px | ✅ |
+| ícone | 15×15 | 15×15 | ✅ |
+| tag do card | `DIV` | `DIV` | ✅ |
+| largura | 301px | 301px | ✅ |
+| altura | 94px | **98px** | 4px — line-height do `small` herdado do body de cada bancada; a **98** é a altura que a medição de 2026-09-03 registrou pra âncora |
+
+**Dois defeitos que só a medição pegou** — os dois passavam em typecheck, lint, vitest e CI, e os
+dois deixariam a correção **inerte** (LC-30):
+
+1. **O raio.** A tradução intuitiva `--r-2` → `rounded-lg` está certa no `:root` (`.5rem`) e
+   **errada onde a tela vive**: no `.cockpit` o `--radius-lg` é redefinido pra **12px**, e nenhuma
+   utility da escala entrega 8px ali (`sm` 6 · `md` 6 · `lg` 12 · `xl` 12). `rounded-lg`
+   reproduziria **exatamente o r12 que esta onda existe pra consertar**. O token que vale 8px no
+   escopo é `--radius` — o mesmo que o `--r-2` do espelho resolve.
+2. **O `leading-none` sumia.** Escrito ANTES do `text-[length:var(--fs-7)]`, o `twMerge` o
+   descarta (os dois caem no grupo do par `text-[size/leading]`), e o line-height voltava pro 1.5
+   herdado: **33px sobre fonte de 22px**, contra os 22px da âncora — o card ficava **112px** em vez
+   de 98. Provado isolado: `twMerge('leading-none … text-[length:var(--fs-7)]')` devolve a string
+   **sem** ele. Os dois consertos têm assert próprio no `janaKpiReplica.spec.tsx`, então reordenar
+   ou voltar pra utility da escala é teste vermelho, não card 18px mais alto que ninguém mede.
+
+### O teste morde — provado por mutação
+
+Reintroduzi a forma antiga no componente (`rounded-xl` + `bg-destructive/5`) e rodei:
+**3 falharam, 10 passaram**. Restaurado, **13 passaram**. Os dois detectores do spec (cor crua de
+palette · caixa de ícone) têm controle de sensibilidade E de especificidade, porque detector que
+nunca acusa é decoração (ADR 0258).
+
+### O perdedor foi corrigido no MESMO PR
+
+`PainelContratoTest` fixava a forma antiga em quatro pontos: o extrator `painelKpisDoGrid` casava
+`<KpiCard\s+label=`, as 3 fixtures do bite-test, e o `toContain('<KpiGrid cols={3}>')`. Fossem
+deixados, o extrator devolveria `[]` e o **UC-JPAIN-18 ficaria verde por não achar nada** — LC-11
+na forma silenciosa. Reescritos, nunca desabilitados (UI-0029), mais um par novo que trava a
+proveniência do card (`import JanaKpiCard from './JanaKpiCard'` presente, `shared/KpiCard`
+ausente) justamente pra que o extrator não possa voltar a medir o vazio.
+
+**Pronto quando:** o grid declara `cols={4}` com `gap-2.5`; o card é `JanaKpiCard` com moldura r8,
+rótulo mono 10px e ícone inline de 15px; o alarme usa tinta sólida e sobe o valor pro `--fs-8`;
+`emphasis` e `valueTone` são independentes; o drill segue com o card em `DIV`; e a lane
+`jana-pest.yml` fecha verde com o `PainelContratoTest` reescrito.
+
+---
+
 ## Revalidação de 2026-08-28 — o `.tsx` mudou de PATH de import, e só isso
 
 O `casos-gate` acusou `stale:` nesta tela. A causa é mecânica: a pasta
