@@ -27,6 +27,8 @@
   "include": [
     "resources/js/**/*.ts",
     "resources/js/**/*.tsx",
+    "Modules/*/Resources/js/**/*.ts",
+    "Modules/*/Resources/js/**/*.tsx",
     "vite.inertia.config.mjs"
   ],
   "exclude": ["node_modules", "public", "dist", "vendor"]
