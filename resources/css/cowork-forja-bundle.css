@@ -1249,6 +1249,19 @@ a.fj-ho-pr:hover{ color:var(--accent); }
 }
 .fj-hub .icon-btn:hover{ color: var(--text); border-color: var(--text-mute); }
 
+/* -- Onda 4 (2026-09-02) — `.fj-page` EMBUTIDO no AppShellV2 ------------------
+ * No protótipo o `.fj-page` E a pagina: shell proprio, altura da viewport e
+ * scroll interno (`height:100%; overflow:hidden`, topo deste arquivo). Em
+ * producao quem rola e o `.cockpit .main-body` (cockpit.css L75,
+ * `overflow-y:auto`), e um filho com `height:100%; overflow:hidden` dentro dele
+ * CORTA a lista — some tudo que passa da primeira dobra.
+ *
+ * Aqui o root vira container de fluxo e devolve o scroll ao shell. Nada mais do
+ * `.fj-page` muda: os tokens `--dev*` e o `--accent` dark 0,70 (bloco acima)
+ * seguem valendo, que e o motivo de a tela usar este root. Mesmo precedente do
+ * `.fj-hub .os-page-h` da Onda 2 — o SHELL se adapta, a aparencia nao. */
+.cockpit .fj-page{ height: auto; min-height: 0; overflow: visible; }
+
 /* ── Onda 8 (2026-09-02) — a view `mcp` com o painel Handoffs dentro ──────────
  * Duas adições, ambas MEDIDAS antes de escritas:
  *

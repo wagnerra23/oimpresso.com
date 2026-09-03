@@ -40,6 +40,21 @@ class ForjaQuadroService
         ['key' => 'F4',   'label' => 'F4 Merge'],
     ];
 
+    /**
+     * As fases, para quem precisa SÓ do vocabulário (a lista do Trabalho usa o
+     * rótulo no selo de fase da linha).
+     *
+     * Existe pra não haver uma 3ª declaração do pipeline no front: o
+     * `TrabalhoQuadro.tsx` já espelha esta constante e é travado pelo
+     * `UC-TRAB-07`; a Lista lê daqui, servida pelo controller.
+     *
+     * @return list<array{key: string, label: string}>
+     */
+    public static function fases(): array
+    {
+        return self::FASES;
+    }
+
     /** Fase default pra cards sem `forja_fase` (ou com fase desconhecida). */
     private const FASE_FALLBACK = 'F0';
 
