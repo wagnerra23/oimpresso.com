@@ -15,8 +15,20 @@
 // ── Mapa medido âncora -> token de produção (nenhuma cor crua) ────────────────────────
 //   .jc-kpi          background --surface · border --border · radius --r-2 (8px)
 //                    padding 12px 14px 14px · gap 3px · min-width 0
-//                 ->  bg-card · border-border · rounded-lg (--radius-lg = .5rem = 8px)
+//                 ->  bg-card · border-border · rounded-[var(--radius,8px)] (ver NOTA DO RAIO)
 //                    pt-3 px-3.5 pb-3.5 · gap-[3px] · min-w-0
+//
+// NOTA DO RAIO -- MEDIDO no escopo real (2026-09-03), e o obvio estava errado.
+// A ancora usa `--r-2`, que no shell do espelho resolve pra `var(--radius)`. Em producao
+// `--r-2` nao existe, e a traducao intuitiva seria `rounded-lg`. MAS: no `:root` o
+// `--radius-lg` e `.5rem` (8px) e DENTRO do `.cockpit` -- onde esta tela vive -- ele e
+// REDEFINIDO pra 12px. Medido na bancada, com o CSS construido:
+//     :root     --radius-lg .5rem       .cockpit  --radius-lg 12px  |  --radius 8px
+//     no cockpit: rounded-sm 6  rounded-md 6  rounded-lg 12  rounded-xl 12
+// Nenhuma utility da escala entrega 8px aqui, e `rounded-lg` reproduziria o r12 que a
+// medicao acusou como defeito. O token que vale 8px no escopo e `--radius` -- o mesmo
+// que o `--r-2` do espelho resolve. O fallback `,8px` cobre quem renderizar fora do
+// `.cockpit` (o jsdom do render-test, por exemplo).
 //   .jc-kpi-h        700 10px/1 mono · uppercase · ls .06em · --text-3 · mb 4px
 //                 ->  font-mono text-[10px] font-bold leading-none uppercase
 //                    tracking-[0.06em] text-muted-foreground mb-1
@@ -79,7 +91,7 @@ export default function JanaKpiCard({
       data-slot="jana-kpi"
       data-emphasis={emphasis ? 'true' : undefined}
       className={cn(
-        'flex h-full min-w-0 flex-col gap-[3px] rounded-lg border pt-3 pr-3.5 pb-3.5 pl-3.5',
+        'flex h-full min-w-0 flex-col gap-[3px] rounded-[var(--radius,8px)] border pt-3 pr-3.5 pb-3.5 pl-3.5',
         emphasis ? 'border-destructive/20 bg-destructive-soft' : 'border-border bg-card',
       )}
     >
@@ -103,8 +115,15 @@ export default function JanaKpiCard({
 
       <b
         className={cn(
-          'leading-none font-bold tracking-[-0.02em] tabular-nums',
+          // ORDEM IMPORTA, e foi MEDIDA: `leading-none` tem de vir DEPOIS do
+          // `text-[length:...]`. O `twMerge` trata o font-size arbitrario como o mesmo
+          // grupo do par `text-[size/leading]` e DESCARTA o `leading-none` anterior --
+          // medido na bancada: o className chegava ao DOM sem ele e o line-height caia
+          // no 1.5 herdado (33px sobre 22px de fonte, contra os 22px da ancora). E o
+          // mesmo motivo do comentario no `KpiCard.tsx` shared ("anda JUNTO por
+          // obrigacao"), agora com a causa escrita.
           emphasis ? 'text-[length:var(--fs-8)]' : 'text-[length:var(--fs-7)]',
+          'leading-none font-bold tracking-[-0.02em] tabular-nums',
           valueTone === 'negative' ? 'text-destructive' : 'text-foreground',
         )}
       >
@@ -141,7 +160,7 @@ export default function JanaKpiCard({
       type="button"
       onClick={onClick}
       aria-label={`Ver origem de ${label}`}
-      className="min-w-0 rounded-lg text-left focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+      className="min-w-0 rounded-[var(--radius,8px)] text-left focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
     >
       {card}
     </button>

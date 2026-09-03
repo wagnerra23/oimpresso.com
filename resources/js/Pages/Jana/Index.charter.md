@@ -203,7 +203,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   | linha da medição | antes (`KpiCard` PT-04) | agora (`JanaKpiCard`) |
   |---|---|---|
   | grid | `cols={3}` · gap 12 · 3 cards ocupam tudo | `cols={4}` · `gap-2.5` (10px) · 3 de 4, como a `jc-kpis` |
-  | card | r12 · `p-4` · gap 8 | r8 (`rounded-lg`) · `pt-3 px-3.5 pb-3.5` · gap 3px |
+  | card | r12 · `p-4` · gap 8 | r8 (`rounded-[var(--radius,8px)]`) · `pt-3 px-3.5 pb-3.5` · gap 3px |
   | label | sans 11px/600 · **ícone em caixa 36×36** `bg-muted` | mono 10px/700 `.06em` · **ícone 15px inline** |
   | card em alarme | `bg-destructive/5` (5% translúcido) | `bg-destructive-soft` (tinta sólida) + valor em `--fs-8` |
   | delta | `+3 hoje vs ontem` (sem unidade) | `+3% hoje vs ontem` — o `%` que a âncora escreve |

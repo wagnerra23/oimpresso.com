@@ -38,7 +38,7 @@ export function KpiCardSkeleton({ label }: { label: string }) {
   return (
     <Stack
       gap={0}
-      className="gap-[3px] rounded-lg border border-border bg-card pt-3 pr-3.5 pb-3.5 pl-3.5"
+      className="gap-[3px] rounded-[var(--radius,8px)] border border-border bg-card pt-3 pr-3.5 pb-3.5 pl-3.5"
       aria-busy="true"
       aria-label={`${label} — carregando`}
     >

@@ -68,10 +68,15 @@ describe('detectores — controle negativo (ADR 0258: o teste tem de poder falha
 });
 
 describe('UC-JPAIN-20 — a moldura e o rótulo vêm da âncora', () => {
-  it('a caixa é r8 (rounded-lg), NUNCA o r12 do KpiCard PT-04', () => {
+  it('a caixa é r8 pelo TOKEN do escopo, nunca por uma utility da escala', () => {
+    // MEDIDO na bancada em 2026-09-03: dentro do `.cockpit` a escala inteira erra o alvo
+    // — `rounded-sm` 6px · `rounded-md` 6px · `rounded-lg` **12px** · `rounded-xl` 12px —
+    // porque o `.cockpit` REDEFINE `--radius-lg` (`:root` tem .5rem = 8px). O único token
+    // que vale 8px ali é `--radius`, que é o mesmo que o `--r-2` da âncora resolve.
+    // `rounded-lg` aqui reproduziria exatamente o r12 que a medição acusou como defeito.
     const { card } = renderCard();
-    expect(card.className).toContain('rounded-lg');
-    expect(card.className).not.toContain('rounded-xl');
+    expect(card.className).toContain('rounded-[var(--radius,8px)]');
+    expect(card.className).not.toMatch(/rounded-(?:lg|xl|md|sm|full)/);
   });
 
   it('o padding é 12/14/14 e o gap 3px — não o p-4 do PT-04', () => {
@@ -126,6 +131,21 @@ describe('UC-JPAIN-20 — `emph` é tinta SÓLIDA, e os dois eixos são independ
     );
     cleanup();
     expect(renderCard().card.querySelector('b')!.className).toContain('text-[length:var(--fs-7)]');
+  });
+
+  it('o `leading-none` SOBREVIVE ao twMerge (line-height 1, como a âncora)', () => {
+    // MEDIDO na bancada em 2026-09-03: com `leading-none` ANTES do `text-[length:...]`,
+    // o twMerge o descarta (os dois caem no grupo do par `text-[size/leading]`) e o
+    // line-height volta pro 1.5 herdado — 33px sobre uma fonte de 22px, contra os 22px
+    // da âncora. O className chegava ao DOM sem a classe, e nenhum gate acusava:
+    // `twMerge('leading-none ... text-[length:var(--fs-7)]')` devolve a string SEM ele.
+    // Este assert existe pra que reordenar volte a ser um teste vermelho, não um
+    // card 18px mais alto que ninguém mede.
+    for (const props of [{}, { emphasis: true }]) {
+      const valor = renderCard(props).card.querySelector('b')!;
+      expect(valor.className).toContain('leading-none');
+      cleanup();
+    }
   });
 
   it('EIXOS SEPARADOS: emphasis sozinho NÃO pinta o valor de vermelho', () => {
