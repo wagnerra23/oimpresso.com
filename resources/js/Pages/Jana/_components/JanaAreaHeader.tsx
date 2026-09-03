@@ -59,6 +59,7 @@ export type JanaAreaTab =
   | 'memoria'   // = memorias
   | 'alertas'   // = ghost `alertas` (2026-09-02, 3ª aba da âncora `JmTabs`) — key = ghost key
   | 'acoes'     // = ghost `acoes` (2026-09-02, 4ª aba — a fila HITL)
+  | 'plataforma' // = ghost `plataforma` (2026-09-02, 6ª aba — só jana.superadmin real)
   // Ghost keys canon — ninguém passa hoje, mas são os alvos do map abaixo e
   // valem como valor direto (o PageHeaderTabs casa por key).
   | 'copiloto'
