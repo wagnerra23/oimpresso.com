@@ -17,6 +17,7 @@ name: Foundation Ratchet (advisory)
 
 on:
   pull_request:
+    types: [opened, reopened, ready_for_review]
     branches: [main]
   workflow_dispatch:
 

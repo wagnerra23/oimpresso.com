@@ -8,6 +8,7 @@ name: Memory Health — ADR 0256
 
 on:
   pull_request:
+    types: [opened, reopened, ready_for_review]
     branches: [main]
     paths:
       - 'memory/**'

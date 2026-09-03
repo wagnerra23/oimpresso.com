@@ -17,7 +17,9 @@ on:
       - 'config/a11y-baseline.json'
       - 'scripts/a11y-ratchet.mjs'
       - '.github/workflows/a11y-gate.yml'
+  workflow_dispatch:
   pull_request:
+    types: [opened, reopened, ready_for_review]
     paths:
       - 'config/eslint-baseline.json'
       - 'config/a11y-baseline.json'
