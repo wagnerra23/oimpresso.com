@@ -14,6 +14,7 @@
 import { Link, router } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
 import AppShellV2 from '@/Layouts/AppShellV2';
+import { Checkbox } from '@/Components/ui/checkbox';
 import { fmt, num } from './_lib/formato';
 import type { FiltrosRelatorio, Relatorio } from './_lib/tipos';
 import '../../../css/cowork-manufacturing-bundle.css';
@@ -128,10 +129,12 @@ export default function Report({
           />
         </Campo>
         <label className="mfg-check">
-          <input
-            type="checkbox"
+          {/* ds/no-native-checkbox (eslint DS) — Checkbox canônico, não <input type="checkbox">.
+              O protótipo (manufacturing-producao.jsx) usa nativo; aqui segue a regra do DS,
+              igual às Checkbox de linha em Recipes.tsx. */}
+          <Checkbox
             checked={soFinal}
-            onChange={(e) => recarregar({ soFinal: e.target.checked })}
+            onCheckedChange={(v) => recarregar({ soFinal: v === true })}
           />
           Só finalizadas
         </label>
