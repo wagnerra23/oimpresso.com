@@ -14,6 +14,10 @@ on:
       - '.github/workflows/ds-mirror-drift.yml'
   workflow_dispatch:
 
+concurrency:
+  group: ds-mirror-drift-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 

@@ -24,6 +24,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+concurrency:
+  group: baseline-tamper-guard-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   guard:
     name: baseline-tamper-guard (anti-grandfather)

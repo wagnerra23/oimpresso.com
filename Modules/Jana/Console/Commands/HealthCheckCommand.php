@@ -14,7 +14,10 @@ use Modules\Jana\Services\TaskRegistry\HitlEscalationService;
 /**
  * Sentinela operacional da Jana + Constituição v2.
  *
- * 5 checks SQL rodam 1×/dia (cron agendado em routes/console.php).
+ * A cadência NÃO se declara aqui — ela apodrece. O oráculo é `php artisan schedule:list`
+ * (§5 2026-07-17); medido em prod 2026-09-03, são DUAS entradas: `0 6 * * *` e
+ * `7 * * * *`. A contagem de checks tampouco: quem se auto-reporta é a `$description`.
+ * (A redação anterior dizia "5 checks SQL rodam 1×/dia" — errada nos dois eixos.)
  * Output: tabela no stdout + log estruturado.
  * Exit code: 0 se tudo OK, 1 se qualquer check falhou (cron alerta por email).
  *
@@ -1620,7 +1623,19 @@ class HealthCheckCommand extends Command
     /**
      * Modelo da sonda: o mais barato do catálogo. A quota é da CONTA/projeto, não do
      * modelo — sondar com o mais barato responde a MESMA pergunta pagando o mínimo
-     * (1 token de input, 1×/dia). Sem crédito, a chamada é recusada antes de faturar.
+     * (~10 tokens de input por chamada). Sem crédito, é recusada antes de faturar.
+     *
+     * FREQUÊNCIA — medida no oráculo, não deduzida (§5 2026-07-17). A 1ª redação deste
+     * bloco dizia "1×/dia" por eu ter suposto a cadência a partir do docblock do topo do
+     * arquivo, em vez de perguntar ao runtime. `php artisan schedule:list` em prod mostra
+     * DUAS entradas de `jana:health-check --notify`:
+     *   0 6 * * *   → diária 06:00
+     *   7 * * * *   → DE HORA EM HORA, minuto 7
+     * Logo ~25 sondas/dia (~250 tokens de input/dia ≈ US$ 0,01/ano no gpt-4o-mini — segue
+     * desprezível, mas o número anterior estava errado). Confirmado pelo rastro real: a
+     * task HITL-LLM-QUOTA acumulou 9 eventos `re-escalado` entre 02/09 20:30 e 03/09
+     * 06:54, um por execução — e continuou sendo UMA task, que é a idempotência do
+     * `HitlEscalationService` provada em produção.
      */
     public const QUOTA_PROBE_MODEL = 'gpt-4o-mini';
 

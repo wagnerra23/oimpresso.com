@@ -32,6 +32,10 @@ on:
         description: 'Número do PR pra checar (manual)'
         required: true
 
+concurrency:
+  group: dup-detector-gate-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
   pull-requests: read
