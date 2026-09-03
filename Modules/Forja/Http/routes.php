@@ -25,8 +25,23 @@ use Modules\KB\Http\Controllers\Admin\GraphController;
 */
 
 // ===========================================================================
-// 1) Rotas web — prefixo /project-mgmt
+// 1) Prefixo /project-mgmt — REVOGADO na Onda 11 (ADR 0367 D1 + PARIDADE §11)
 // ===========================================================================
+// As 7 telas que serviam este prefixo sairam; o receptor de cada uma esta no ar
+// (Backlog/Board -> /forja/trabalho · Triagem -> aba /forja · MyWork, Inbox,
+// Burndown e Activity -> perda consciente declarada, ADR 0367 D5/D1).
+//
+// O que sobra, e por que:
+//   · /roadmap (quarter view) NAO morre. A ADR 0367 D7 condiciona a saida a
+//     "o Gantt provar que substitui" (filtro por cycle efetivo + volume domado)
+//     e a Onda 6 nao rodou. Revogar aqui seria sobrepor ADR aceita.
+//   · 301 dos caminhos antigos — medido: 113 citacoes de /project-mgmt/* em
+//     memory/**, e o time que entra pelo MCP segue esses links. Redirect e mais
+//     honesto que 404 pra ferramenta interna cujo hub existe.
+//
+// A busca global NAO estava aqui por ser tela — ela serve o ⌘K do AppShellV2
+// (CommandPalette.tsx a consome em toda a app). Mudou de prefixo, nao morreu:
+// virou /forja/search no bloco 1-bis.
 Route::group(
     [
         'middleware' => ['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'],
@@ -34,119 +49,44 @@ Route::group(
         'namespace'  => 'Modules\Forja\Http\Controllers',
     ],
     function () {
-        // Default: redireciona pra /project-mgmt/board
-        Route::get('/', function () {
-            return redirect()->route('project-mgmt.board.index');
-        })->name('project-mgmt.index');
-
-        // ---- Board (Kanban) — US-TR-201 ------------------------------------
-        Route::get('/board', 'BoardController@index')
-            ->name('project-mgmt.board.index');
-
-        Route::patch('/board/{taskId}/status', 'BoardController@updateStatus')
-            ->where('taskId', '[A-Z0-9\-]+')
-            ->name('project-mgmt.board.update-status');
-
-        // ---- Detail Sheet — PMG-004 (ADR 0100) -----------------------------
-        Route::get('/board/{taskId}/detail', 'BoardController@show')
-            ->where('taskId', '[A-Z0-9\-]+')
-            ->name('project-mgmt.board.show');
-
-        // ---- Comments + @mentions — PMG-005 (ADR 0100) ---------------------
-        Route::post('/board/{taskId}/comment', 'BoardController@addComment')
-            ->where('taskId', '[A-Z0-9\-]+')
-            ->name('project-mgmt.board.add-comment');
-
-        Route::get('/board/users/suggest', 'BoardController@suggestUsers')
-            ->name('project-mgmt.board.users.suggest');
-
-        // ---- Watchers — PMG-006 (ADR 0100) ---------------------------------
-        Route::post('/board/{taskId}/watch', 'BoardController@watch')
-            ->where('taskId', '[A-Z0-9\-]+')
-            ->name('project-mgmt.board.watch');
-
-        Route::delete('/board/{taskId}/watch', 'BoardController@unwatch')
-            ->where('taskId', '[A-Z0-9\-]+')
-            ->name('project-mgmt.board.unwatch');
-
-        // ---- Subtasks UI — PMG-007 (ADR 0100) ------------------------------
-        Route::post('/board/{taskId}/subtask', 'BoardController@addSubtask')
-            ->where('taskId', '[A-Z0-9\-]+')
-            ->name('project-mgmt.board.add-subtask');
-
-        // ---- Cmd+K Search Global — PMG-002 (ADR 0100) ----------------------
-        Route::get('/search', 'SearchController@index')
-            ->name('project-mgmt.search');
-
-        // ---- My Work + Inbox — US-TR-204 -----------------------------------
-        Route::get('/my-work', 'MyWorkController@index')
-            ->name('project-mgmt.my-work.index');
-
-        Route::post('/my-work/inbox/read-all', 'MyWorkController@markAllRead')
-            ->name('project-mgmt.my-work.inbox.read-all');
-
-        Route::post('/my-work/inbox/{id}/read', 'MyWorkController@markRead')
-            ->where('id', '[0-9]+')
-            ->name('project-mgmt.my-work.inbox.read');
-
-        Route::patch('/my-work/{taskId}/status', 'MyWorkController@bumpStatus')
-            ->where('taskId', '[A-Z0-9\-]+')
-            ->name('project-mgmt.my-work.bump-status');
-
-        // ---- Triage — US-TR-301..303 (SPEC-UI-FASE7 Onda 2) ----------------
-        // Superfície humana da tool MCP `triage` (tasks órfãs).
-        Route::get('/triage', 'TriageController@index')
-            ->name('project-mgmt.triage.index');
-
-        // Atribuição inline owner/prio/cycle/epic — reusa tasks-update.
-        Route::patch('/triage/{taskId}/assign', 'TriageController@assign')
-            ->where('taskId', '[A-Z0-9\-]+')
-            ->name('project-mgmt.triage.assign');
-
-        // ---- Triage Analista (Forja PR-5a) — dossiê read-only + ações [W] aprova ----
-        Route::get('/triage/{taskId}/dossier', 'TriageController@dossier')
-            ->where('taskId', '[A-Za-z0-9_\-]+')
-            ->name('project-mgmt.triage.dossier');
-        Route::post('/triage/{taskId}/aprovar', 'TriageController@aprovar')
-            ->where('taskId', '[A-Za-z0-9_\-]+')
-            ->name('project-mgmt.triage.aprovar');
-        Route::post('/triage/{taskId}/rejeitar', 'TriageController@rejeitar')
-            ->where('taskId', '[A-Za-z0-9_\-]+')
-            ->name('project-mgmt.triage.rejeitar');
-        Route::post('/triage/{taskId}/fundir', 'TriageController@fundir')
-            ->where('taskId', '[A-Za-z0-9_\-]+')
-            ->name('project-mgmt.triage.fundir');
-
-        // ---- Inbox — US-TR-304..306 (SPEC-UI-FASE7 Onda 2) -----------------
-        // Caixa de entrada dedicada (mcp_inbox_notifications do auth user).
-        Route::get('/inbox', 'InboxController@index')
-            ->name('project-mgmt.inbox.index');
-
-        Route::patch('/inbox/read-all', 'InboxController@markAllRead')
-            ->name('project-mgmt.inbox.read-all');
-
-        Route::patch('/inbox/{id}/read', 'InboxController@markRead')
-            ->where('id', '[0-9]+')
-            ->name('project-mgmt.inbox.read');
-
-        // ---- Backlog — US-TR-202 -------------------------------------------
-        Route::get('/backlog', 'BacklogController@index')
-            ->name('project-mgmt.backlog.index');
-
-        Route::post('/backlog/bulk', 'BacklogController@bulk')
-            ->name('project-mgmt.backlog.bulk');
-
-        // ---- Roadmap — US-TR-203 -------------------------------------------
+        // ---- Quarter view — sobrevive por decisao (ADR 0367 D7) ------------
         Route::get('/roadmap', 'RoadmapController@index')
             ->name('project-mgmt.roadmap.index');
+    }
+);
 
-        // ---- Activity feed — US-TR-205 -------------------------------------
-        Route::get('/activity', 'ActivityController@index')
-            ->name('project-mgmt.activity.index');
+// ---------------------------------------------------------------------------
+// 1-bis) 301 das telas revogadas — FORA do grupo autenticado de proposito:
+// link velho em doc tem de resolver pro destino novo mesmo sem sessao (quem
+// pede login e o destino). Sem `name()`: rota morta nao volta pelo nome.
+// ---------------------------------------------------------------------------
+Route::middleware(['web'])->prefix('project-mgmt')->group(function () {
+    // Board e Backlog respondiam a MESMA pergunta que /forja/trabalho passou a
+    // responder inteira (SCOPE.md:13 — "funde os TRES backlogs").
+    Route::permanentRedirect('/board', '/forja/trabalho?visao=quadro');
+    Route::permanentRedirect('/backlog', '/forja/trabalho?visao=lista');
+    // A triagem virou aba do hub (ADR 0367 D6 — "morre a tela, fica a aba").
+    Route::permanentRedirect('/triage', '/forja');
+    // Sem receptor (D5/D1): caem no ponto da area mais proximo do que faziam.
+    Route::permanentRedirect('/my-work', '/forja/trabalho');
+    Route::permanentRedirect('/inbox', '/forja');
+    Route::permanentRedirect('/activity', '/forja/changelog');
+    Route::permanentRedirect('/burndown', '/forja');
+    Route::permanentRedirect('/', '/forja');
+});
 
-        // ---- Burndown chart — US-TR-206 ------------------------------------
-        Route::get('/burndown', 'BurndownController@index')
-            ->name('project-mgmt.burndown.index');
+// ---------------------------------------------------------------------------
+// 1-ter) Busca global (⌘K). Nunca foi tela: CommandPalette.tsx a chama de
+// qualquer lugar da app (AppShellV2 + 4 telas). Sai do prefixo revogado.
+// ---------------------------------------------------------------------------
+Route::group(
+    [
+        'middleware' => ['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'],
+        'prefix'     => 'forja',
+        'namespace'  => 'Modules\Forja\Http\Controllers',
+    ],
+    function () {
+        Route::get('/search', 'SearchController@index')->name('forja.search');
     }
 );
 
