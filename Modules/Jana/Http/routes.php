@@ -150,6 +150,11 @@ Route::group(
         //
         // FQCN obrigatório em rota nova (.claude/rules/routes.md): string
         // 'Controller@method' quebra `route:cache` com ReflectionException.
+        // Fila `/ia/acoes` (2026-09-02) — a 4ª aba da paridade com o protótipo
+        // (`jana-merge.jsx` §JmTabs · `jana-telas-novas.jsx` §JmAcoesFila). Lista as 5
+        // ações de `AcaoHitlService::ACOES` com prévia do SERVIDOR + recibo da aprovação.
+        // O DISPARO continua PR próprio — o CTA segue "Revisar".
+        Route::get('/acoes',                               [\Modules\Jana\Http\Controllers\AcaoHitlController::class, 'index'])->name('jana.acoes.index');
         Route::get('/acoes/{acao}/previa',                 [\Modules\Jana\Http\Controllers\AcaoHitlController::class, 'previa'])->name('jana.acoes.previa');
         Route::post('/acoes/{acao}/aprovar',               [\Modules\Jana\Http\Controllers\AcaoHitlController::class, 'aprovar'])->name('jana.acoes.aprovar');
 

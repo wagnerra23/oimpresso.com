@@ -23,6 +23,15 @@ use Illuminate\Database\Eloquent\Model;
  * `withoutGlobalScopes()->where('business_id', $this->businessId)` (ADR 0093).
  *
  * @see Modules\Jana\Services\AcaoHitlService
+ *
+ * @property int $id
+ * @property int $business_id
+ * @property int $user_id
+ * @property string $acao_key
+ * @property string $status
+ * @property string $previa
+ * @property array<string, mixed>|null $contexto
+ * @property \Illuminate\Support\Carbon|null $aprovada_em
  */
 class AcaoAprovacao extends Model
 {
