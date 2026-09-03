@@ -40,6 +40,7 @@ on:
   # deixa a lane promovível a required no futuro sem deadlock "Expected — waiting".
   # O custo (MySQL + migrate + Pest) só é pago quando algo do TeamMcp muda.
   pull_request:
+    types: [opened, reopened, ready_for_review]
     branches: [main]
   push:
     branches: [main]

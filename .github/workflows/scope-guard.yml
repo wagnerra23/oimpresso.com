@@ -6,7 +6,9 @@ name: Scope Guard (anti-drift)
 # Roda em PRs (modo strict — bloqueia merge) e em push pra main (warning).
 
 on:
+  workflow_dispatch:
   pull_request:
+    types: [opened, reopened, ready_for_review]
     branches: [main]
     paths:
       - 'Modules/**/Http/Controllers/**.php'
