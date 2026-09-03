@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **910 tarefas abertas** em **52 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **916 tarefas abertas** em **52 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -45,6 +45,7 @@
 | [`TaskRegistry`](#taskregistry) | 9 | 0 | 0 | 0 | 9 |
 | [`KB`](#kb) | 8 | 0 | 0 | 0 | 8 |
 | [`EvolutionAgent`](#evolutionagent) | 7 | 0 | 0 | 0 | 7 |
+| [`Manufacturing`](#manufacturing) | 7 | 0 | 0 | 0 | 7 |
 | [`TeamMcp`](#teammcp) | 7 | 0 | 0 | 0 | 7 |
 | [`SRS`](#srs) | 6 | 0 | 0 | 0 | 6 |
 | [`Woocommerce`](#woocommerce) | 6 | 0 | 0 | 0 | 6 |
@@ -58,7 +59,6 @@
 | [`Repair`](#repair) | 2 | 0 | 0 | 0 | 2 |
 | [`Admin`](#admin) | 1 | 0 | 0 | 0 | 1 |
 | [`Auditoria`](#auditoria) | 1 | 0 | 0 | 0 | 1 |
-| [`Manufacturing`](#manufacturing) | 1 | 0 | 0 | 0 | 1 |
 | [`Mcp`](#mcp) | 1 | 0 | 0 | 0 | 1 |
 
 
@@ -1177,6 +1177,19 @@
 - **US-EVOL-006** — Tier-2 autonomia: comentar PR
 - **US-EVOL-007** — Tier-3 autonomia: PR-draft autônomo
 
+## Manufacturing
+
+
+### todo
+
+- **US-MANU-001** — Quanto custa produzir, com o preço de insumo de hoje
+- **US-MANU-002** — Relatório de produção do período
+- **US-MANU-003** — Configurações do módulo
+- **US-MANU-004** — Ordens de produção — as 8 colunas e as duas marcas do §4.5
+- **US-MANU-005** — Insumos — impacto reverso e simulador de preço
+- **US-MANU-006** — Editor de ingredientes
+- **US-MANU-007** — Formulário de ordem de produção
+
 ## TeamMcp
 
 
@@ -1299,13 +1312,6 @@
 ### todo
 
 - **US-AUDIT-009** — Pages Inertia Index + Detail `parcial`
-
-## Manufacturing
-
-
-### todo
-
-- **US-MANU-001** — Quanto custa produzir, com o preço de insumo de hoje
 
 ## Mcp
 
