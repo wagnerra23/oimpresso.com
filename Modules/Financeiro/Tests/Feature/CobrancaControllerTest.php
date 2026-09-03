@@ -52,6 +52,26 @@ uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::
  * ADR 0101: testes biz=1 (não usar biz=4 ROTA LIVRE cliente real).
  */
 
+/**
+ * Versão do Inertia DERIVADA do próprio middleware — nunca hardcodada.
+ *
+ * Os 4 GUARDs de partial reload mandavam `X-Inertia-Version: '1'`. A lane cria um stub em
+ * `public/build-inertia/manifest.json` (step "Stub Vite manifest", financeiro-pest.yml:113)
+ * e `HandleInertiaRequests::version()` devolve o `md5_file` dele — que não é '1'. Version
+ * divergente num GET Inertia é 409 por contrato do Inertia, então o servidor respondia 409:
+ * cru no `assertOk()` do UC-COB-07, e como "Not a valid Inertia response." nos três
+ * `assertInertia` (o helper do Inertia falha ao ler `props/url/version` de um 409).
+ * Medido no run 33765806568.
+ *
+ * Perguntar ao middleware em vez de recalcular o md5 aqui é de propósito: replicar a regra
+ * criaria um segundo dono que drifa no dia em que o `version()` mudar (o próprio motivo de o
+ * `FinanceiroTestCase::inertiaGet` já existir). O produto está CERTO — quem mentia era o header.
+ */
+function cobrancaInertiaVersion(): string
+{
+    return (string) app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+}
+
 beforeEach(function () {
     // Ajusta Spatie team_id pra biz=1 (UPOS canon)
     setPermissionsTeamId(1);
@@ -125,7 +145,7 @@ it('expõe 4 KPIs (pago_mes, vencido, aberto, mandatos_ativos, mrr_pago) quando 
 
     $this->actingAs($this->user)
         ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
-        ->get('/financeiro/cobranca?only=kpis', ['X-Inertia' => 'true', 'X-Inertia-Version' => '1', 'X-Inertia-Partial-Component' => 'Financeiro/Cobranca/Index', 'X-Inertia-Partial-Data' => 'kpis'])
+        ->get('/financeiro/cobranca?only=kpis', ['X-Inertia' => 'true', 'X-Inertia-Version' => cobrancaInertiaVersion(), 'X-Inertia-Partial-Component' => 'Financeiro/Cobranca/Index', 'X-Inertia-Partial-Data' => 'kpis'])
         ->assertInertia(fn ($page) => $page
             ->has('kpis.pago_mes.qtd')
             ->has('kpis.pago_mes.valor')
@@ -139,7 +159,7 @@ it('expõe 4 KPIs (pago_mes, vencido, aberto, mandatos_ativos, mrr_pago) quando 
 it('UC-COB-02 · expõe funil 5 etapas (aberto, lembrete, cobranca_ativa, vencido_5d, protesto)', function () {
     $this->actingAs($this->user)
         ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
-        ->get('/financeiro/cobranca?only=funil', ['X-Inertia' => 'true', 'X-Inertia-Version' => '1', 'X-Inertia-Partial-Component' => 'Financeiro/Cobranca/Index', 'X-Inertia-Partial-Data' => 'funil'])
+        ->get('/financeiro/cobranca?only=funil', ['X-Inertia' => 'true', 'X-Inertia-Version' => cobrancaInertiaVersion(), 'X-Inertia-Partial-Component' => 'Financeiro/Cobranca/Index', 'X-Inertia-Partial-Data' => 'funil'])
         ->assertInertia(fn ($page) => $page
             ->has('funil.aberto.qtd')
             ->has('funil.lembrete.qtd')
@@ -175,7 +195,7 @@ it('UC-COB-03 · filtra por status via querystring', function () {
         ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
         ->get('/financeiro/cobranca?status=paga&only=filtros', [
             'X-Inertia' => 'true',
-            'X-Inertia-Version' => '1',
+            'X-Inertia-Version' => cobrancaInertiaVersion(),
             'X-Inertia-Partial-Component' => 'Financeiro/Cobranca/Index',
             'X-Inertia-Partial-Data' => 'filtros',
         ])
@@ -213,7 +233,7 @@ it('UC-COB-07 · Tier 0 IRREVOGÁVEL: Cobranca respeita business_id global scope
         ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
         ->get('/financeiro/cobranca?only=cobrancas', [
             'X-Inertia' => 'true',
-            'X-Inertia-Version' => '1',
+            'X-Inertia-Version' => cobrancaInertiaVersion(),
             'X-Inertia-Partial-Component' => 'Financeiro/Cobranca/Index',
             'X-Inertia-Partial-Data' => 'cobrancas',
         ]);
