@@ -224,7 +224,11 @@ it('UC-PIPE-05 — o cabeçalho de fase do Quadro (dono · faz · sai) é o da f
     expect(count($proto))->toBeGreaterThan(3, 'Nenhum papel extraído do protótipo.');
 
     foreach ($front as $fase => $trio) {
-        expect($proto)->toHaveKey($fase,
+        // `array_key_exists` + `toBeTrue`, e não `toHaveKey($fase, <msg>)`: o 2º
+        // argumento do `toHaveKey` é o VALOR esperado da chave, não a mensagem —
+        // passar texto ali compara `string` com o array do trio e o caso reprova
+        // por "does not match expected type", escondendo o que ele mede.
+        expect(array_key_exists($fase, $proto))->toBeTrue(
             "O front declara a fase `{$fase}`, que a fonte de design não tem.\n".
             'Fase se inventa no protótipo, não no .tsx.'
         );
