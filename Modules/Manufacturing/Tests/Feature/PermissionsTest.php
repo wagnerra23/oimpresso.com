@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Business;
 use App\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -24,8 +23,9 @@ uses(Tests\TestCase::class);
  * R-MANU-001 (isolamento multi-tenant) já está coberto por MultiTenantIsolationTest —
  * não duplicado aqui (§5 2026-07-09 "duplica régua consolidada").
  *
- * Tenant: usa o 1º business real do ambiente (dev/CT100/CI seed) — NUNCA biz hardcoded de
- * cliente (ADR 0358).
+ * Tenant: resolvido pelo trait `WithSeededTenant` (`test()->seededTenant()`) — biz=98, a
+ * empresa FICTÍCIA não-operadora que a [ADR 0358](../../../../memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)
+ * tornou canônica; sem o seed, cai no primeiro business. NUNCA biz de cliente real.
  *
  * Roda só na lane MySQL (schema UltimatePOS real) — auto-skip em sqlite, igual ao bloco de
  * rota do Wave29RecipeInertiaTest.
@@ -40,14 +40,15 @@ function mfgPermissionsBootstrap(): array
         test()->markTestSkipped('SQLite-incompatível: depende do schema MySQL UltimatePOS (business/users/roles).');
     }
 
+    // Tenant canônico de teste — trait `WithSeededTenant`, aplicado em `Tests\TestCase`.
+    // Resolve biz=98 (empresa FICTÍCIA, ADR 0358) quando o seed canônico rodou e cai no
+    // primeiro business quando não rodou, que era exatamente o comportamento anterior; o
+    // skip que ele já traz diz COMO seedar, em vez de "sem business no banco". Por isso as
+    // duas guardas abaixo saíram: viraram redundantes, não foram afrouxadas.
     try {
-        $business = Business::first();
-    } catch (\Throwable $e) {
+        $business = test()->seededTenant();
+    } catch (\Illuminate\Database\QueryException $e) {
         test()->markTestSkipped('Tabela business indisponível: '.$e->getMessage());
-    }
-
-    if (! $business) {
-        test()->markTestSkipped('Sem business no banco — rode seeder UltimatePOS antes.');
     }
 
     try {
