@@ -91,6 +91,7 @@ on:
       # (§5 2026-08-02: "gate mudo com cara de cobertura")
       - 'scripts/qa/cowork-pele-paralela.mjs'
       - 'scripts/qa/cowork-pele-paralela.baseline.json'
+      - 'scripts/design-sync/alvo.mjs'
   workflow_dispatch:
 
 concurrency:
@@ -175,6 +176,15 @@ jobs:
       # Se o comparador parar de morder, quebra VERMELHO (é a defesa do strike 2 · LICOES LC-06).
       - name: design-diff selftest (mede o que o olho perdeu · LC-06)
         run: node prototipo-ui/design-diff.mjs --selftest
+
+      # alvo selftest (PR-A1): o ALVO de uma seção é MEDIDA executável, não número ditado no chat.
+      # AQUI roda só a parte PURA (serialização estável + o contrato público `design-diff --probe`),
+      # que é hermética e não precisa de browser — esta lane não instala chromium. O bite-test REAL
+      # (2 runs byte-idênticos + `--injetar-falha` mudando o JSON) é `--selftest --browser` e roda
+      # onde há chromium; medido verde 6/6 em 2026-09-03, fora de CI. Declarar isso é o que separa
+      # "não medi aqui" de "está são" (§5 2026-07-29 · fail-open).
+      - name: alvo selftest (parte pura · sem browser nesta lane)
+        run: node scripts/design-sync/alvo.mjs --selftest
 
       # style-fingerprint selftest: o VETOR de estilo completo (bbox, nº de linhas, overflow,
       # cor computada, radius, borda) por tema — regras 4/5/7 do inventário da Fase 1. Fixtures

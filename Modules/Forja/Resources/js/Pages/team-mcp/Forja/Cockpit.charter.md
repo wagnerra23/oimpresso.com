@@ -5,7 +5,7 @@ component: Modules/Forja/Resources/js/Pages/team-mcp/Forja/Cockpit.tsx
 related_prototype: prototipo-ui/cowork/forja-page.jsx
 owner: wagner
 status: draft
-last_validated: "2026-06-16"
+last_validated: "2026-09-03"
 parent_module: TeamMcp
 related_adrs:
   - "0114-prototipo-ui-cowork-loop-formalizado"
@@ -14,7 +14,7 @@ related_adrs:
   - "0094-constituicao-v2-7-camadas-8-principios"
 related_ficha: memory/requisitos/TeamMcp/forja-cockpit-visual-comparison.md
 tier: A
-charter_version: 1
+charter_version: 2
 ---
 
 # Page Charter — `/forja` cockpit (DRAFT · Onda Forja)
@@ -23,9 +23,27 @@ charter_version: 1
 
 > ⚠️ **Errata 2026-07-27.** Este charter afirmava "6 abas reais" incluindo `/forja/saude`, e a permissão `copiloto.mcp.usage.all`. Ambas ficaram stale. Medido em 2026-07-27: **5** rotas GET de aba sob `/forja` (`route:list --path=forja` no CT 100 — sem `forja.saude`; Saúde foi fundida no `/team-mcp/scorecard`) e **9** itens de topnav em `config/core_topnavs.php['Forja']` desde a fusão com o hub TeamMcp (2026-06-16). A permissão virou `jana.mcp.usage.all` no [#4853](https://github.com/wagnerra23/oimpresso.com/pull/4853) — `git grep -l "copiloto.mcp.usage.all" -- '*.php'` = **0**. Detalhe e recibos no [Cockpit.casos.md](Cockpit.casos.md).
 
+> ⚠️ **Errata 2026-09-03 (Onda 7) — duas frases deste charter caducaram quando `/forja/saude` passou a existir.** A errata de 2026-07-27 acima **segue verdadeira na data dela** (naquele dia a Saúde estava fundida no `/team-mcp/scorecard` e a rota era item fantasma); o que mudou não é o fato, é o mundo. A [#6572](https://github.com/wagnerra23/oimpresso.com/pull/6572) construiu a view `saude` do protótipo como tela própria (2026-09-02), e o `casos.md` foi atualizado no mesmo PR — **este charter não**. As duas frases stale: a **Mission**, que listava "Saúde (TeamMcp absorvido)" entre as abas emprestadas, e a **métrica de sucesso**, que afirmava "5 rotas" e "Saúde não tem rota própria". Corrigidas abaixo, com o oráculo ao lado.
+
+> ⚠️ **Errata 2026-09-03 (Onda 11 · Triagem — fechada declarando, [W]).** Duas afirmações deste
+> charter ficaram stale e uma decisão nova entra aqui:
+>
+> - **A lista de abas acima é fato de 2026-06-16.** Medido em 2026-09-03, o topnav vivo é
+>   `Modules/Forja/Resources/menus/topnav.php` com **6** destinos (Aprovações · Trabalho · Saúde ·
+>   MCP · Changelog · Integrador) — a Triagem **saiu do topnav** na Onda 2 (2026-09-02) e
+>   `Backlog`/`Quadro`/`Tarefas` colapsaram em segmentos de `Trabalho`. As rotas seguem vivas; saiu
+>   o item do topo, não a tela. (`DataController::modifyAdminMenu()` ainda lista `Triagem`, mas
+>   está atrás de um `return` incondicional na L116 — é código morto, não a nav servida.)
+> - **A Triagem NÃO foi replicada nem absorvida, e isso é o desfecho, não pendência.** O motivo
+>   medido está no [Cockpit.casos.md](Cockpit.casos.md), no bloco do `UC-FORJA-08`: a fonte não
+>   monta `FjTriagemView`; `ForjaAprovacoesService::fila()` (`status='pending_approval'`) não
+>   contém `McpTask::scopeTriage()`; e o slot `Proposta` do protótipo já é, aqui, o estado
+>   *posterior* à triagem. Triagem é o **F0**, Aprovações é o **gate** — etapas distintas do mesmo
+>   funil. Reabrir exige onda de **construção** + decisão [W], não re-skin.
+
 ## Mission
 
-Cockpit **read-only** de observabilidade/governança do próprio loop de desenvolvimento. **Projeta** estado que já existe (`mcp_tasks` + git/PR/ADR/sessão + gates/memory-health) — **sem dado fantasma**. Header fixo (Forja + subtítulo do loop) + as abas do hub: Triagem · Backlog · Quadro (F0→F4) · Changelog · MCP (próprias) + Tarefas · Equipe · CC Sessions · Saúde (TeamMcp absorvido).
+Cockpit **read-only** de observabilidade/governança do próprio loop de desenvolvimento. **Projeta** estado que já existe (`mcp_tasks` + git/PR/ADR/sessão + gates/memory-health) — **sem dado fantasma**. Header fixo (Forja + subtítulo do loop) + as abas do hub: Triagem · Backlog · Quadro (F0→F4) · Changelog · MCP (próprias) + Tarefas · Equipe · CC Sessions (TeamMcp absorvido) — e **Saúde**, que desde a Onda 7 é aba PRÓPRIA (`/forja/saude`), não mais o desvio pro Scorecard.
 
 ## Goals — Features (faz)
 
@@ -38,6 +56,11 @@ Cockpit **read-only** de observabilidade/governança do próprio loop de desenvo
 
 - **Badge da aba Triagem = "3" (ESTÁTICO).** O contador da aba vem de `config/core_topnavs.php['Forja']` (`'badge' => 3`), config carregada no boot — não tem dado por-request, então o "3" é fixo (= nº de propostas-semente FORJA-150/151/152). O contador **vivo** da fila chega na própria aba via prop deferida `triagemCount` (usado no badge do sino). Quando o shell suportar badge dinâmico no topnav (`shell.topnavs` por-request), trocar o estático pelo contador vivo. Hoje o `ModuleTopNav` suporta `item.badge`, mas a fonte (`core_topnavs.php` via `LegacyMenuAdapter::buildTopNavs`) é estática.
 - **Botão "Novo issue"** aponta pra `/forja` (sem fluxo de criação dedicado nesta PR — criação de issue é onda futura). Visualmente fiel (primária roxa), funcionalmente um no-op de navegação até o fluxo de criação existir.
+  > **Errata 2026-09-03.** A frase acima ("no-op de navegação") era verdade quando escrita e
+  > caducou: desde a Triagem REAL, `/forja` é a landing que projeta `McpTask::triage()`, então o
+  > botão navega para a lista de propostas — não é no-op. O que **permanece ausente** é o fluxo de
+  > **criação**: no protótipo, `Novo issue` abre o compositor `forja-novo-issue.jsx` (overlay), e
+  > esse overlay não tem receptor aqui. Divergência declarada, não bug.
 - **Dados de demo:** sem o seeder `ForjaDemoTicketsSeeder`, a fila nasce vazia ("Nada pra triar"). Rodar no deploy pra fidelidade screenshot (ver Métricas).
 
 ## Non-Goals — Features (NÃO faz)
@@ -70,7 +93,7 @@ Cockpit **read-only** de observabilidade/governança do próprio loop de desenvo
 
 ## Métricas de sucesso (validação Wagner)
 
-- ✅ As **5** rotas de aba `/forja/*` respondem (sem 500 / tela branca) — Saúde não tem rota própria (fundida no `/team-mcp/scorecard`).
+- ✅ As **8** rotas de aba `/forja/*` respondem (sem 500 / tela branca) — Triagem · Backlog · Quadro · Changelog · MCP · Handoffs · Integrador · **Saúde**. Contagem NÃO se lê aqui: sai do dataset que o teste percorre — `sed -n '/^function forjaRotasAbas/,/^}/p' Modules/Forja/Tests/Feature/ForjaRoutesSmokeTest.php | grep -cE "=> ..forja."` (medido **8** em 2026-09-03).
 - ✅ Entry "Forja" aparece na sidebar e o topnav do hub (9 itens: 5 próprios + 4 do TeamMcp absorvido) navega + destaca o ativo.
 - ✅ Sem cor crua / PageHeader canon (conformance/foundation/layout/pageheader verdes).
 - ✅ Acesso negado (403) sem `jana.mcp.usage.all`.

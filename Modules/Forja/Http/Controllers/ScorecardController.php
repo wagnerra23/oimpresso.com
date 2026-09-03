@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Forja\Services\ForjaAprovacoesService;
 use Modules\Forja\Services\ScorecardBuilderService;
 
 /**
@@ -57,6 +58,10 @@ class ScorecardController extends Controller
     public function index(Request $request): Response
     {
         return Inertia::render('team-mcp/Scorecard/Index', [
+            // Badge de pendências do topnav (§3.1 do export): no protótipo ele vive no
+            // destino Aprovações em TODA view — é o que avisa que há algo esperando
+            // decisão enquanto você está em OUTRA tela. COUNT indexado, deferido.
+            'pendencias' => Inertia::defer(fn () => app(ForjaAprovacoesService::class)->contagem()),
             // D6.a: defer Facts (queries DB caras)
             'facts'  => Inertia::defer(fn () => $this->builder->buildFacts()),
             // D6.a: defer Checks (consulta schema + audit_log)

@@ -20,15 +20,14 @@ authority: generated
 | CU no SDD | 16 |
 | Telas (.tsx) | 7 |
 | Telas com `casos.md` | 8 |
-| UC declarados | 47 |
-| UC com teste que os cita | 47 |
+| UC declarados | 49 |
+| UC com teste que os cita | 49 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
 | Lacuna | O que falta escrever |
 |---|---|
 | `CU-FISC-15` sem UC | caso de uso que o exercite — Gerar o SPED EFD-ICMS/IPI da competência |
-| `CU-FISC-16` sem UC | caso de uso que o exercite — Distinguir dado real de dado de demonstração |
 
 ### Backlog — NÃO é lacuna
 
@@ -66,12 +65,14 @@ authority: generated
 | UC-FCFG-01 | Config | 🧪 aguarda veredito da lane |
 | UC-FCFG-02 | Config | 🧪 aguarda veredito da lane |
 | UC-FCFG-03 | Config | 🧪 aguarda veredito da lane |
+| UC-FCFG-04 | Config | 🧪 aguarda veredito da lane |
 | UC-FCKP-01 | Cockpit | 🧪 aguarda veredito da lane |
 | UC-FCKP-02 | Cockpit | 🧪 aguarda veredito da lane |
 | UC-FCKP-03 | Cockpit | 🧪 aguarda veredito da lane |
 | UC-FCKP-04 | Cockpit | 🧪 aguarda veredito da lane |
 | UC-FCKP-05 | Cockpit | 🧪 aguarda veredito da lane |
 | UC-FCKP-06 | Cockpit | 🧪 aguarda veredito da lane |
+| UC-FCKP-07 | Cockpit | 🧪 aguarda veredito da lane |
 | UC-FDFE-01 | Dfe | 🧪 aguarda veredito da lane |
 | UC-FDFE-02 | Dfe | 🧪 aguarda veredito da lane |
 | UC-FDFE-03 | Dfe | 🧪 aguarda veredito da lane |
