@@ -4,7 +4,7 @@ casos: Forja · lista única de trabalho · /forja/trabalho
 irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-09-02"
+last_run: "2026-09-03"
 ---
 
 # Casos de uso — /forja/trabalho
