@@ -965,3 +965,122 @@ O mesmo limite da Onda 9, pela mesma razão e re-testado hoje: `curl` em
 `https://oimpresso.com/forja/integrador` devolve **`302 → /login`**. O `compare --check` exige prod
 autenticada; sem ele, **nada aqui é "0 bug"** (lei 6 do export). O que esta seção fecha é o eixo
 folha × folha e a estrutura contra o protótipo vivo — não o T7.
+
+---
+
+## 2026-09-03 (Onda 2 do export · fecho) — Trabalho · chrome: o alvo §3.2 já estava no `main`, e o `padding` do alvo era o do `@media`
+
+Fui executar a **Onda 2 do export** (`Trabalho · chrome` — §3.2: frentebar · KPI · toolbar ·
+filterbar2) e, medindo antes de escrever, encontrei o alvo **já entregue** desde 02/09 — pela **Onda
+4 do `PARIDADE §11`**, que é outra numeração para o mesmo trabalho. Reimplementar seria autorar em
+paralelo a um dono existente ([LC-19](../../LICOES_CODE.md)), então esta seção **declara**, não recodifica.
+
+**Recibo da proveniência — e ele corrige o que a tabela do PARIDADE dizia.** A linha da Onda 4
+creditava o [#6577](https://github.com/wagnerra23/oimpresso.com/pull/6577) *"aberto, aguardando merge [W]"*.
+Medido hoje: o **#6577 está `CLOSED` sem merge** (`mergedAt: null`). Quem levou o chrome ao `main` foi
+o **[#6582](https://github.com/wagnerra23/oimpresso.com/pull/6582)** (merge `ae7689d8d8`, 2026-09-02
+23:44Z), achado por `git log -S "fj-frentebar"` no arquivo — não por proximidade de data
+(§5 2026-08-15). A linha da tabela é corrigida no mesmo PR desta seção.
+
+### O alvo §3.2 × o `main`, bloco a bloco
+
+Medição por leitura do `origin/main` (`Trabalho/Index.tsx`, 414 ln) contra `prototipo-ui/cowork/forja-page.jsx`.
+
+| bloco do alvo | alvo §3.2 | medido no `main` | veredito |
+|---|---|---|---|
+| `.fj-frentebar` | 2 filhos: segmented + nota mono com contagem de `mcp_tasks` | `<Segmented>` + `<span class="fj-frente-note">` com `<b class="mono">{kpis.total}</b> mcp_tasks` — copy literal do protótipo (:1138) | **2 de 2** ✓ |
+| `.fj-kpirow` | 5 filhos · `gap 10px` · KPI é `BUTTON` · valor 17px · rótulo 10px · clique filtra lista **e** quadro | 4 `<button class="tf-kpi">` + `.fj-kpirow-note`; `onClick={alternarSaude}` + `aria-pressed`; `gap:10px` no bundle | **5 de 5** ✓ |
+| `.fj-toolbar` | **4** filhos · `gap 14px` | `.fj-groupby` + `<form class="fj-search">` — os 2 `.fj-ia-btn` não existem | **2 de 4** ⚠️ |
+| `.fj-filterbar2` | 9 filhos base · `gap 6px` · 8 chips de papel | `.fj-groupby-lbl` + "todos" + `papeis.map` — estrutura e ordem idênticas | **9 de 9** ✓ |
+
+### Os 2 ausentes da toolbar são SUPERFÍCIE SEM RECEPTOR, não re-skin esquecido
+
+No protótipo (`forja-page.jsx:1061-1062`) os filhos que faltam são os dois `.fj-ia-btn` — **Papéis**
+(`onClick={() => setRunbook(true)}`) e **Perguntar ✦** (`onClick={() => setIaPanel({mode:"ask"})}`).
+
+Varredura contada (`rg --hidden -g '!.git/**'` + `git grep` no `origin/main` como oráculo de
+desempate, §5 2026-07-30): `fj-ia-btn` aparece em **4 arquivos — protótipo (`.jsx` + `.css`), o
+bundle de produção e este próprio doc. Zero em `.tsx` de produção.** Os painéis que eles abrem
+(`forja-runbook`, `forja-ia`) estão no **§1 do export** entre as **8 superfícies sem receptor no
+`main`** — construção, não re-skin. O header do `Index.tsx` (:36-40) já declara isso desde a Onda 4:
+*"`Papéis` e `Perguntar ✦` → abrem painéis (runbook e IA) que não existem"*.
+
+**Renderizá-los desabilitados seria pior que ausentá-los:** botão que não leva a lugar nenhum é
+afordância falsa ([LC-15](../../LICOES_CODE.md)) — a mesma razão pela qual a hint de atalhos `j`/`k`/`?`
+também ficou de fora. Declarar o receptor é decisão [W]; até lá o placar diz **2 de 4** e não finge 4.
+
+### Achado que corrige a leitura do alvo: `padding 11px 18px` é o valor do `@media`, não divergência
+
+O §3.2 pede `.fj-toolbar` com `padding 11px 18px`. O bundle de produção diz `11px 32px`
+(`cowork-forja-bundle.css:48`) — o que pareceria bug. **Não é.** O `11px 18px` mora em
+`@media (max-width:1100px)` (mesma folha, :295), e o próprio §7 do export declara que *"a medição
+rodou a **924px** de viewport"*. A 924 o alvo caiu na media query.
+
+Conferido nos **dois** breakpoints, protótipo × bundle: `11px 32px` fora e `11px 18px` dentro —
+**idênticos**. O mesmo vale para os outros três gaps do §3.2 (`frentebar` 10px · `kpirow` 10px ·
+`filterbar2` 6px): todos byte-idênticos entre `forja-page.css` e `cowork-forja-bundle.css`.
+Zero CSS novo nesta onda, como a lei 5 exige.
+
+> ⚠️ **Fora dos 4 seletores do §3.2 as duas folhas NÃO são byte-idênticas** — o bundle usa literais
+> (`12.5px`, `11.5px`) onde o protótipo usa `var(--fs-3)`/`var(--fs-2)`. Mesmo px, fonte diferente;
+> é a divergência que as Ondas 9 e 10 já registraram e cuja dona é a Onda 1. Não a re-abro aqui.
+
+### Divergência declarada: o segmentado emite `aria-pressed`, não `aria-selected`
+
+O §3.2 pede `role=tablist` + `aria-selected` 3 de 3. A produção usa o `Segmented` canon
+(`resources/js/Components/ui/segmented.tsx`), que é **Radix `ToggleGroup` `type="single"`** — lido no
+arquivo, o import é `ToggleGroup as ToggleGroupPrimitive`, **não** `Tabs`. Logo não há `tablist`.
+
+**Isto é consequência de uma decisão [W] já registrada, não descuido.** O `Index.charter.md` §"A 3ª
+vista: Gantt — ATALHO, não fusão de payload" mede **4 colisões** (payload defer-first × eager por
+hotfix de produção; a prop `tasks` com shapes distintos; mutação própria `PATCH .../schedule`; trio
+próprio) e o anti-hook §153 é explícito: *"**Não** dar `aria-pressed` ao botão Gantt. Ele não é
+estado desta tela, é navegação"*. O charter (:217-220) fecha o raciocínio: aqui o valor do
+segmentado **nunca** é `gantt` — escolher Gantt navega na hora para `/forja/roadmap-gantt`.
+
+`role=tablist` prometeria um `tabpanel` que não existe nesta tela — afordância falsa outra vez.
+**Não reverto decisão [W] declarada em charter** ([ADR 0388](../../decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md)
+é licença de **aparência**, nunca de comportamento).
+
+> **Nota de precisão, porque os dois lados dizem "Segmented" e são artefatos diferentes.** O
+> `cli-seg.js` (:15-21) registra que o `Segmented` do **DS publicado no Cowork** *"crava
+> `role="tablist"`"*, e o chama de **pendência 12 do DS** — com a ressalva do próprio autor de que
+> dois call sites são semanticamente rádio, não aba. Ou seja: o `tablist` do alvo vem do DS
+> publicado, e o `ToggleGroup` da produção vem do DS em git. Reconciliar os dois é trabalho do **DS**,
+> não desta tela — e é onde a pendência 12 já está.
+
+### Os 7 papéis batem — e a primeira medição minha estava errada
+
+O `.fj-filterbar2` é data-driven dos dois lados. Contei as chaves de `FORJA_ACTORS` com um `grep -oE`
+cuja classe de caracteres não aceitava dígito, e obtive **6** — o regex descartou a chave `W2`. Lendo
+o bloco inteiro: `W · CC · CD · CL · CA · AN · W2` = **7**, e `TrabalhoService::PAPEIS` traz
+exatamente os mesmos 7. Logo 1 rótulo + "todos" + 7 chips = **9 filhos base** e **8 chips de papel**,
+que é o alvo. Registro o erro porque a sonda respondeu a pergunta errada calada (§5 2026-08-13) — um
+número plausível não é prova de execução.
+
+### PLACAR — Trabalho · chrome (§3.2)
+
+```
+PLACAR — Trabalho · chrome (§3.2)
+entregue 18 de 20 elementos do alvo
+  ✓ .fj-frentebar  2 de 2  (Segmented + .fj-frente-note com <b class="mono"> e a contagem)
+  ✓ .fj-kpirow     5 de 5  (4 tf-kpi BUTTON com aria-pressed + .fj-kpirow-note; gap 10px)
+  ⚠ .fj-toolbar    2 de 4  (.fj-groupby + form.fj-search; gap 14px)
+  ✓ .fj-filterbar2 9 de 9  (7 papéis medidos nos DOIS lados; gap 6px; 8 chips)
+ausentes:
+  · .fj-ia-btn "Papéis"      — sem receptor: painel forja-runbook não existe no main (§1 do export)
+  · .fj-ia-btn "Perguntar" — sem receptor: painel forja-ia não existe no main (§1 do export)
+divergências declaradas:
+  · segmentado emite aria-pressed (Radix ToggleGroup), não role=tablist/aria-selected —
+    o Gantt e OUTRA tela (charter §"A 3a vista", 4 colisoes medidas); tablist prometeria
+    um tabpanel inexistente. Decisao [W] em charter §153/§217-220, nao revertida aqui
+  · o padding "11px 18px" do alvo e o valor @media(max-width:1100px) — a medicao do export
+    rodou a 924px; a 1280 sao 11px 32px, identicos nos dois CSS. NAO e divergencia
+```
+
+### O que esta seção NÃO prova
+
+O mesmo limite das Ondas 9 e 10, re-testado hoje: `curl` em `https://oimpresso.com/forja/trabalho`
+devolve **`302 → /login`**. O `compare --check` exige prod autenticada; sem ele **nada aqui é "0 bug"**
+(lei 6 do export). O que esta seção fecha é a **estrutura e a contagem** do §3.2 contra o protótipo
+vivo, mais a proveniência do código — não o T7.
