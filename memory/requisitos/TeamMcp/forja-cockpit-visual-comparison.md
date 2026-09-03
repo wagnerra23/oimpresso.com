@@ -1084,3 +1084,10 @@ O mesmo limite das Ondas 9 e 10, re-testado hoje: `curl` em `https://oimpresso.c
 devolve **`302 → /login`**. O `compare --check` exige prod autenticada; sem ele **nada aqui é "0 bug"**
 (lei 6 do export). O que esta seção fecha é a **estrutura e a contagem** do §3.2 contra o protótipo
 vivo, mais a proveniência do código — não o T7.
+
+> **Nota de coordenação (2026-09-03, mesmo dia) — o receptor de um dos 2 ausentes está EM CONSTRUÇÃO.**
+> O [#6691](https://github.com/wagnerra23/oimpresso.com/pull/6691) (*painel "Papéis" na aba Trabalho*)
+> constrói exatamente o receptor do primeiro `.fj-ia-btn`. O placar **2 de 4** acima é o estado do
+> `main` **na data desta seção** e segue correto como recibo datado; quando o #6691 mergear, a
+> toolbar passa a **3 de 4** e o único ausente vira o `Perguntar ✦` (painel `forja-ia`). Não
+> antecipo o número aqui — placar mede o `main`, não PR aberto.
