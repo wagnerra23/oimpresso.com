@@ -5,10 +5,25 @@ irmaos: Sped.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-09-01"
+last_run: "2026-09-03"
 ---
 
 # Casos de Uso & Aceite — SPED & Livros
+
+> **Revalidação `last_run` 2026-09-03 — Onda 9 Fiscal (F1 Cowork · régua de geração + golden):**
+> entram **UC-FSF1-03** e **UC-FSF1-05**, os dois casos que desceram do Cowork vermelhos de
+> propósito. Rodado no CT 100, MySQL de staging: **14 passed (182 assertions)** no arquivo novo, e a
+> suíte `Sped|SimplesOnly` foi de **32 passed** (árvore original) para **46 passed** — +14, batendo
+> exatamente com os casos adicionados. As **2 falhas** que aparecem nessa suíte são **pré-existentes
+> e não deste PR** (medidas na árvore original antes de qualquer mudança): `SimplesOnlyGateTest`
+> colide em `users_username_unique` porque o banco do CT 100 **persiste** entre runs, e
+> `CuradorEngineTest` é de outro módulo, pego pelo filtro.
+>
+> ⚠️ **O §recibo de 2026-07-27 abaixo CADUCOU e fica preservado como fato datado.** Medido em
+> 2026-09-03: `nfe_emissoes` **existe** no staging do CT 100 (`Schema::hasTable` = SIM) — o
+> provisionamento de 2026-07-28 fechou aquela lacuna. O que **não** caducou: a lane de CI segue
+> SQLite in-memory, e nenhum caso desta tela deve depender de banco pra rodar lá.
+
 
 > **Revalidação `last_run` 2026-09-01 — Onda 1 Fiscal (saneamento `fx-*` → DS):** mudança de
 > **apresentação apenas** — `fx-callout` → `<Alert>`, 4 `fx-chip` → `<Button>`, `fx-search` +
@@ -130,6 +145,57 @@ Dado nenhuma configuração explícita · Quando o app lê `fiscal.sped_simples_
 `config/fiscal.php` e o `SpedController::gerar` de fato a consulta. Âncora: audit sênior R1.
 **Pronto quando:** default true, chave no arquivo canônico, e o Controller referencia a flag.
 
+## UC-FSF1-03 — Competência em aberto é recusada antes de qualquer query
+Status: 🧪 (`SpedOndaF1Test` — 10 casos: 4 sobre a guarda do Service + 6 sobre a régua da tela. **14 passed (182 assertions)** medidos no CT 100 em 2026-09-03; o manifesto do G-7 é alimentado pelas lanes de CI, não por rodada local — daí 🧪 e não ✅)
+Dado uma competência cujo mês ainda não terminou · Quando alguém pede a geração — pela tela ou
+chamando o Service direto · Então a recusa acontece **na validação, antes de qualquer query**:
+`InvalidArgumentException` com "Competencia em aberto", e na tela o botão fica desabilitado com o
+motivo no `title`. Até esta onda **só a tela bloqueava**; o Service aceitava.
+Âncora: `FiscalOndasF1Test` (Cowork 2026-09-03) + Guia Prático EFD-ICMS/IPI v3.1.1 perfil A — o
+registro **0000** declara `DT_INI`/`DT_FIN` do período de apuração, então um mês não encerrado
+produziria movimento parcial se apresentando como a apuração fechada daquele período.
+**A régua da tela tem 4 checagens, cada uma com ✓/✕ e o motivo em texto**, avaliadas no servidor
+(`SpedController::checagens` — a tela renderiza, não decide):
+
+| # | Checagem | Reprova quando | Prova |
+|---|---|---|---|
+| a | `ano-minimo` — ano ≥ 2020 | competência de 2019 | motivo cita "2019" e "2020" |
+| b | `nao-futura` — competência não-futura | competência de daqui a 2 meses | motivo cita a competência `mm/aaaa` |
+| c | `fechada` — mês encerrado | competência corrente | motivo cita a competência e o registro `0000` |
+| d | `trava` — `fiscal.sped_simples_only_lock` | trava ligada e usuário não-superadmin | motivo cita a chave da flag; superadmin dispensa |
+
+**Pronto quando:** cada critério reprova isoladamente com o motivo certo, uma competência
+inteiramente válida aprova nas 4, e o mês corrente é recusado pelo Service com o tipo de exceção
+que prova que nenhuma query rodou (business inexistente daria `RuntimeException`, não
+`InvalidArgumentException`).
+
+## UC-FSF1-05 — Existe golden file do TXT EFD-ICMS/IPI, e ele é bem-formado
+Status: 🧪 (`SpedOndaF1Test` — 4 casos, **passam** no mesmo run acima; 🧪 pelo mesmo motivo — o veredito ainda não está no manifesto do G-7)
+Dado o gerador · Quando se quer comparar a saída com uma referência · Então existe
+`Modules/Fiscal/Tests/Fixtures/sped-icms-ipi-golden.txt`, produzido a partir da **saída real** do
+`SpedIcmsIpiGeneratorService` (tenant fictício 98 · competência 2026-01 · 1794 bytes · 47 linhas ·
+SHA-256 `e4eeccd4…`), com o insumo e a receita de regeração declarados no `.meta.md` ao lado.
+O teste não se contenta com `file_exists`: confere que toda linha é pipe-delimited, que o `0000`
+abre com `COD_VER 018`/`COD_FIN 0`/`IND_PERFIL A`, que o `9999` fecha declarando `QTD_LIN` igual à
+contagem real, que os 5 blocos abrem e fecham (`0001/0990`, `C001/C990`, `E001/E990`, `H001/H990`,
+`9001/9990`), e que **cada contador `9900` bate com as linhas reais** do arquivo.
+**Pronto quando:** apagar o golden deixa os 4 casos vermelhos (bite-test feito).
+
+> ⚠️ **O que este golden EXPÔS, e não foi consertado nesta onda.** Ao gerar o arquivo pela primeira
+> vez ponta-a-ponta, dois achados apareceram:
+> **(1)** o gerador **quebrava com `TypeError` antes de terminar** — o `foreach` dos contadores do
+> Bloco 9 passa a chave do array para `registro9900(string $reg)`, e o PHP coage `'9001'`/`'9900'`/
+> `'9990'`/`'9999'` para `int` (só `'0000'` e `'C100'` escapam, por causa do zero à esquerda e da
+> letra). Corrigido com um `(string)` — zero efeito no conteúdo emitido. Ninguém tinha visto porque
+> **nenhum teste chegava a gerar o arquivo**, e a trava fail-secure impede o download em produção.
+> **(2)** o registro `0000` sai com **CNPJ vazio, IE vazia e `UF` fixa em `SP`**. Medido: a tabela
+> `business` **não tem** `state`, `city`, `zip_code`, `landmark`, `tax_number`,
+> `inscricao_estadual`, `mobile` nem `email` — no UltimatePOS elas moram em `business_locations`, e
+> o Service cai no fallback `'SP'`. Como o CFOP interno×interestadual é decidido pela UF do
+> emitente, **toda** operação é comparada contra SP. Isso é motor fiscal e **decisão do
+> responsável**, não conserto silencioso — ver `sped-icms-ipi-golden.meta.md` §"O que este golden
+> EXPÕE".
+
 ## Backlog de casos (sem id — entram quando um teste de COMPORTAMENTO os cobrir)
 
 > ⚠️ Os itens abaixo **têm teste**, mas o teste é **source-grep**: asserta que uma string existe no
@@ -142,8 +208,8 @@ Dado nenhuma configuração explícita · Quando o app lê `fiscal.sped_simples_
 - **[BACKLOG · source-grep] Bloco E: E110 consolida os débitos do C190 e E116 só sai com ICMS a recolher** — os dois casos assertam `toContain("array_sum(array_column(...))")` e `toContain("if ($vlTotalDebitos > 0)")` no fonte.
 - **[BACKLOG · source-grep] Bloco H é esqueleto (IND_MOV=1)** — asserta `toContain('registroH001(1)')` no fonte; o inventário real exige integração Stock/ProductCatalogue (declaração de 31/12).
 - **[BACKLOG · source-grep] Span OTel `fiscal.sped.gerar`** — grep da string no fonte.
-- **[BACKLOG · ⬜ sem teste] Panorama das 5 competências** — mês, notas autorizadas, valor, status (aberto/pronto/entregue) e prazo; export desabilitado sem notas. `SpedController::index` agrega; nenhum teste asserta o payload das 5 competências. _(O prazo exibido usa dia 15 como heurística; o prazo legal da EFD é fixado por cada UF.)_
-- **[BACKLOG · ⬜ sem teste] Smoke PVA-EFD homologação CONFAZ** — importar o TXT no validador oficial sem erro estrutural. Nenhum golden file hoje.
+- **[BACKLOG · ⬜ sem teste] Panorama das 5 competências** — mês, notas autorizadas, valor, status (aberto/pronto/entregue) e prazo. `SpedController::index` agrega; nenhum teste asserta o payload das 5 competências. _(O gate do export deixou de ser só "tem notas?" em 2026-09-03: agora são as 4 checagens do `UC-FSF1-03` mais a contagem de notas, e as checagens **têm** teste. O que segue sem teste é a agregação em si.)_ _(O prazo exibido usa dia 15 como heurística; o prazo legal da EFD é fixado por cada UF.)_
+- **[BACKLOG · ⬜ sem teste] Smoke PVA-EFD homologação CONFAZ** — importar o TXT no validador oficial sem erro estrutural. _(O golden file passou a existir em 2026-09-03 — `UC-FSF1-05` —, e ele confere estrutura, blocos e contadores. O que continua sem prova é a importação no **PVA-EFD real**, que é ferramenta externa; e o golden já expõe dois motivos pelos quais o PVA recusaria hoje: CNPJ/IE vazios e UF fixa. Ver o aviso no UC-FSF1-05.)_
 - **[BACKLOG · ⬜ sem teste] Entradas (DF-e manifestada), EFD-Contribuições (PIS/COFINS) e saldo credor anterior real no E110** — Non-Goals declarados; nenhum código nem teste.
 
 ## Como rodar a suíte
@@ -152,4 +218,5 @@ Dado nenhuma configuração explícita · Quando o app lê `fiscal.sped_simples_
 
 ## Trilha do tempo
 - 2026-07-03 · [CC] criado no Passo 3 do programa de ondas (régua por tela). 22 testes mapeados, 0 citavam UC-id.
+- 2026-09-03 · [CC] Onda 9 (F1 Cowork): entram `UC-FSF1-03` (régua de 4 checagens + guarda de entrada no Service) e `UC-FSF1-05` (golden file). Dois achados registrados sem conserto silencioso — o `TypeError` do Bloco 9, corrigido com um cast, e o emitente sem CNPJ/IE/UF, que é decisão do responsável. O §recibo de 07-27 caducou: `nfe_emissoes` existe no CT 100 desde o provisionamento de 07-28.
 - 2026-07-27 · [CC] fecha a G-2: 10 UC declarados (`UC-FSPED-01..10`) e citados pelos testes existentes. Separado o que é **comportamento provado** (invocação real) do que é **source-grep** — os 5 source-grep ficam backlog explícito em vez de virar UC de fachada. Revogado o guard `Controller é placeholder` (verde por nome, ver `UC-FSPED-03`). Prefixo `UC-FSPED-` em vez do `UC-FISCAL-` planejado: as 6 telas Fiscal compartilhariam o mesmo id e o G-2 casa por substring — colisão viraria cobertura falsa cruzada.

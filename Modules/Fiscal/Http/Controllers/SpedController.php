@@ -25,6 +25,11 @@ class SpedController extends Controller
             abort(403, 'Sem permissão fiscal.sped.export');
         }
 
+        // Trava fail-secure: a mesma que o `gerar()` consulta. Superadmin bypassa.
+        // A tela NAO decide isto — recebe decidido (o dono da regra e o servidor).
+        $travaLigada  = (bool) config('fiscal.sped_simples_only_lock', true);
+        $ehSuperadmin = (bool) auth()->user()->can('superadmin');
+
         // 5 últimos meses — contagem agregada de notas autorizadas
         $periodos = [];
         for ($i = 0; $i < 5; $i++) {
@@ -47,13 +52,83 @@ class SpedController extends Controller
                 'valorAutorizado'  => $valor,
                 'status'        => $i === 0 ? 'aberto' : ($i === 1 ? 'pronto' : 'entregue'),
                 'prazoEntrega'  => $i === 0 ? null : $start->copy()->addMonth()->day(15)->format('d/m/Y'),
+                'checagens'     => $this->checagens($start, $travaLigada, $ehSuperadmin),
             ];
         }
 
         return Inertia::render('Fiscal/Sped', [
             'periodos' => $periodos,
             'notice'   => 'SPED Fiscal (EFD ICMS-IPI) — gerador MVP saídas v3.1.1 disponível (PR #8). PIS/COFINS + Bloco E apuração + entradas em próximas Waves.',
+            // Prévia do conteúdo do TXT: ausência DECLARADA, não amostra fabricada.
+            // Ver Sped.charter.md §Contrato destilado (decisão [W] pendente).
+            'previaTxt' => null,
         ]);
+    }
+
+    /**
+     * As 4 checagens da régua de geração, avaliadas no SERVIDOR.
+     *
+     * Cada uma devolve `ok` + `motivo` em texto — o motivo é o que a tela põe
+     * no `title` do botão desabilitado, então ele é contrato de UI, não log.
+     *
+     * (a) e (b) espelham `SpedIcmsIpiGeneratorService::validar()` (ano ≥ 2020,
+     * não-futura); (c) espelha a guarda `competenciaFechada` adicionada na
+     * mesma onda; (d) é a trava `fiscal.sped_simples_only_lock`, que o
+     * `gerar()` consulta antes de devolver o arquivo. A tela nunca é a única
+     * defesa: as quatro são recusadas de novo no servidor.
+     *
+     * @return array<int, array{id: string, ok: bool, rotulo: string, motivo: string}>
+     */
+    private function checagens(\Carbon\Carbon $inicioMes, bool $travaLigada, bool $ehSuperadmin): array
+    {
+        $ano = (int) $inicioMes->format('Y');
+        $mes = (int) $inicioMes->format('n');
+        $competencia = $inicioMes->format('m/Y');
+
+        $anoOk     = $ano >= 2020;
+        $futuraOk  = ! $inicioMes->copy()->startOfMonth()->isFuture();
+        $fechadaOk = $inicioMes->copy()->endOfMonth()->isPast();
+        $travaOk   = ! $travaLigada || $ehSuperadmin;
+
+        return [
+            [
+                'id'     => 'ano-minimo',
+                'ok'     => $anoOk,
+                'rotulo' => 'Ano dentro da faixa aceita',
+                'motivo' => $anoOk
+                    ? "Ano {$ano} está na faixa aceita (2020 até " . date('Y') . ')'
+                    : "Ano {$ano} é anterior a 2020 — fora da faixa que o gerador aceita",
+            ],
+            [
+                'id'     => 'nao-futura',
+                'ok'     => $futuraOk,
+                'rotulo' => 'Competência não é futura',
+                'motivo' => $futuraOk
+                    ? "Competência {$competencia} não está no futuro"
+                    : "Competência {$competencia} ainda não começou",
+            ],
+            [
+                'id'     => 'fechada',
+                'ok'     => $fechadaOk,
+                'rotulo' => 'Competência encerrada',
+                'motivo' => $fechadaOk
+                    ? "Competência {$competencia} encerrou — período de apuração completo"
+                    : "Competência {$competencia} está em aberto: o mês ainda não terminou e a EFD "
+                        . 'declara DT_INI/DT_FIN do período no registro 0000 (CONFAZ v3.1.1, perfil A)',
+            ],
+            [
+                'id'     => 'trava',
+                'ok'     => $travaOk,
+                'rotulo' => 'Trava do gerador liberada',
+                'motivo' => $travaOk
+                    ? ($travaLigada
+                        ? 'Trava ligada, mas o seu perfil de superadmin a dispensa'
+                        : 'Trava fiscal.sped_simples_only_lock está desligada')
+                    : 'Trava fiscal.sped_simples_only_lock está ligada: o gerador ainda usa valores '
+                        . 'de fallback (CST 102, CFOP 5102) que só valem em Simples Nacional sem crédito '
+                        . 'de ICMS — liberar depende de decisão do responsável',
+            ],
+        ];
     }
 
     /**

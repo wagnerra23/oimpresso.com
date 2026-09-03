@@ -4,13 +4,13 @@
 //   stories: US-FISCAL-010 (SPED placeholder), US-FISCAL-016 (gerador EFD-ICMS/IPI MVP — PR #8)
 //   adrs: 0093, 0094, 0101, 0104
 
-import { Inline } from '@/Components/layout';
+import { Inline, Stack } from '@/Components/layout';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head } from '@inertiajs/react';
-import { Archive, CheckCircle2, Download, Eye, FileSearch, X } from 'lucide-react';
+import { Archive, CheckCircle2, Download, Eye, FileSearch, X, XCircle } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import FxShell from './_components/FxShell';
@@ -19,6 +19,13 @@ import { brl } from './_lib/fiscal-helpers';
 
 import '../../../css/fiscal-cockpit.css';
 
+interface Checagem {
+  id: 'ano-minimo' | 'nao-futura' | 'fechada' | 'trava';
+  ok: boolean;
+  rotulo: string;
+  motivo: string;
+}
+
 interface Periodo {
   mes: string;       // 05/2026
   mesIso: string;    // 2026-05
@@ -26,12 +33,33 @@ interface Periodo {
   valorAutorizado: number;
   status: 'aberto' | 'pronto' | 'entregue';
   prazoEntrega: string | null;
+  /** As 4 checagens da régua, avaliadas no SERVIDOR (SpedController::checagens). */
+  checagens: Checagem[];
 }
 
 interface SpedProps {
   periodos: Periodo[];
   notice: string;
+  /**
+   * Prévia do conteúdo do TXT. Hoje é sempre `null` — ausência DECLARADA, não
+   * amostra fabricada: gerar o arquivo só pra pré-visualizar exigiria rodar o
+   * gerador inteiro em request síncrono, o que contornaria a trava fail-secure
+   * `fiscal.sped_simples_only_lock`. Ver Sped.charter.md §Contrato destilado.
+   */
+  previaTxt: string | null;
 }
+
+/**
+ * O gate único do download: notas no período E as 4 checagens aprovadas.
+ * O motivo devolvido é o que vai pro `title` do controle desabilitado — foi o
+ * padrão que a tela já usava com "Sem notas autorizadas no período", agora
+ * estendido em vez de duplicado.
+ */
+const motivoBloqueio = (p: Periodo): string | null => {
+  if (p.notasAutorizadas === 0) return 'Sem notas autorizadas no período';
+  const reprovada = (p.checagens ?? []).find((c) => !c.ok);
+  return reprovada ? reprovada.motivo : null;
+};
 
 const STATUS_META: Record<Periodo['status'], { label: string; tone: 'ok' | 'warn' | 'bad' }> = {
   aberto:   { label: 'Em curso',  tone: 'warn' },
@@ -48,7 +76,7 @@ const efdHref = (mesIso: string): string => {
   return `/fiscal/sped/icms-ipi/${ano}/${parseInt(mes ?? '1', 10)}`;
 };
 
-export default function Sped({ periodos, notice }: SpedProps) {
+export default function Sped({ periodos, notice, previaTxt }: SpedProps) {
   const [status, setStatus] = useState<StatusFilter>('todos');
   const [search, setSearch] = useState('');
   const [preview, setPreview] = useState<Periodo | null>(null);
@@ -198,7 +226,7 @@ export default function Sped({ periodos, notice }: SpedProps) {
                           >
                             <Eye size={11} />
                           </button>
-                          {p.notasAutorizadas > 0 ? (
+                          {motivoBloqueio(p) === null ? (
                             <a
                               href={efdHref(p.mesIso)}
                               className="fx-dfe-act ok"
@@ -208,7 +236,7 @@ export default function Sped({ periodos, notice }: SpedProps) {
                               <Download size={11} /> .txt
                             </a>
                           ) : (
-                            <button type="button" className="fx-dfe-act" disabled title="Sem notas autorizadas no período">
+                            <button type="button" className="fx-dfe-act" disabled title={motivoBloqueio(p) ?? undefined}>
                               <Download size={11} /> .txt
                             </button>
                           )}
@@ -282,6 +310,77 @@ export default function Sped({ periodos, notice }: SpedProps) {
                   </dl>
                 </div>
 
+                {/* Régua de geração — as 4 checagens vêm avaliadas do servidor
+                    (SpedController::checagens). A tela renderiza; não decide. */}
+                <div className="fx-drawer-sec">
+                  <h4>Régua de geração</h4>
+                  <Alert variant={motivoBloqueio(preview) === null ? 'default' : 'destructive'}>
+                    {motivoBloqueio(preview) === null ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
+                    <AlertTitle>
+                      {motivoBloqueio(preview) === null
+                        ? 'Competência liberada para geração'
+                        : 'Geração bloqueada'}
+                    </AlertTitle>
+                    <AlertDescription>
+                      <Stack asChild gap={1}>
+                        <ul className="mt-1">
+                          {(preview.checagens ?? []).map((c) => (
+                            <Inline key={c.id} asChild align="start" gap={2}>
+                              <li>
+                                {c.ok ? (
+                                  <CheckCircle2 size={13} aria-hidden className="mt-0.5 shrink-0" />
+                                ) : (
+                                  <XCircle size={13} aria-hidden className="mt-0.5 shrink-0" />
+                                )}
+                                <span>
+                                  <b>{c.rotulo}</b> — <span>{c.ok ? 'aprovado' : 'reprovado'}</span>
+                                  <br />
+                                  <small>{c.motivo}</small>
+                                </span>
+                              </li>
+                            </Inline>
+                          ))}
+                          {preview.notasAutorizadas === 0 && (
+                            <Inline asChild align="start" gap={2}>
+                              <li>
+                                <XCircle size={13} aria-hidden className="mt-0.5 shrink-0" />
+                                <span>
+                                  <b>Notas autorizadas no período</b> — <span>reprovado</span>
+                                  <br />
+                                  <small>Sem notas autorizadas no período</small>
+                                </span>
+                              </li>
+                            </Inline>
+                          )}
+                        </ul>
+                      </Stack>
+                    </AlertDescription>
+                  </Alert>
+                </div>
+
+                {/* Prévia do TXT — ausência DECLARADA. Ver Sped.charter.md
+                    §Contrato destilado: gerar o arquivo só pra pré-visualizar
+                    exigiria rodar o gerador inteiro em request síncrono, o que
+                    contornaria a trava fail-secure. Decisão pendente. */}
+                <div className="fx-drawer-sec">
+                  <h4>Prévia do arquivo</h4>
+                  {previaTxt === null ? (
+                    <p className="fx-drawer-hint">
+                      Prévia do conteúdo indisponível nesta versão — o conteúdo do arquivo só é
+                      conhecido depois de gerado. O que já está definido pelo layout:
+                      EFD-ICMS/IPI CONFAZ v3.1.1, perfil A, registro de abertura 0000 com
+                      COD_VER 018 e COD_FIN 0 (original).
+                    </p>
+                  ) : (
+                    <>
+                      <p className="fx-drawer-hint">
+                        <b>Amostra</b> — trecho inicial do arquivo, não o arquivo completo.
+                      </p>
+                      <pre className="fx-mono overflow-x-auto whitespace-pre text-xs">{previaTxt}</pre>
+                    </>
+                  )}
+                </div>
+
                 <p className="fx-drawer-hint">
                   Arquivo gerado no layout CONFAZ v3.1.1. Validar no PVA antes da transmissão à SEFAZ.
                 </p>
@@ -290,7 +389,7 @@ export default function Sped({ periodos, notice }: SpedProps) {
               <div className="fx-drawer-f">
                 <div className="fx-drawer-f-r">
                   <Button type="button" variant="cowork-ghost" onClick={() => setPreview(null)}>Fechar</Button>
-                  {preview.notasAutorizadas > 0 ? (
+                  {motivoBloqueio(preview) === null ? (
                     <Button asChild variant="cowork-primary">
                       <a
                         href={efdHref(preview.mesIso)}
@@ -301,7 +400,7 @@ export default function Sped({ periodos, notice }: SpedProps) {
                       </a>
                     </Button>
                   ) : (
-                    <Button type="button" variant="cowork-primary" disabled title="Sem notas autorizadas no período">
+                    <Button type="button" variant="cowork-primary" disabled title={motivoBloqueio(preview) ?? undefined}>
                       <Download size={13} /> Baixar .txt
                     </Button>
                   )}
