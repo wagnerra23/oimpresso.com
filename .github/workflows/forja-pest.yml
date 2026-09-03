@@ -169,6 +169,7 @@ jobs:
             Modules/Forja/Tests/Feature/AprovacoesMesaTest.php \
             Modules/Forja/Tests/Feature/TrabalhoListaTest.php \
             Modules/Forja/Tests/Feature/PipelineParidadeTest.php \
+            Modules/Forja/Tests/Feature/ForjaMcpHandoffsInlineTest.php \
             Modules/Forja/Tests/Feature/BriefAlertOpsInboxTest.php
 
 

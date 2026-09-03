@@ -49,6 +49,17 @@ interface Config {
   regime: string;
   autoEmissionEnabled: boolean;
   tributacaoDefault: Record<string, unknown>;
+  /** US-NFE-006 / ADR TECH-0002 — estado da contingência SEFAZ deste tenant. */
+  contingencia?: Contingencia;
+}
+
+interface Contingencia {
+  ativa: boolean;
+  ativadaEmIso: string | null;
+  ativadaEmBr: string | null;
+  /** Calculado no SERVIDOR — duração no browser dependeria do relógio do operador. */
+  diasAtiva: number | null;
+  motivo: string | null;
 }
 
 interface Painel {
@@ -152,6 +163,36 @@ export default function Config({ activeTab, certificado, config, painel, seriesM
         `Ambiente alterado para ${ambienteForm.data.ambiente === 1 ? 'PRODUÇÃO' : 'HOMOLOGAÇÃO'}.`,
       ),
       onError: () => toast.error('Falha ao salvar ambiente.'),
+    });
+  };
+
+  // ── US-NFE-006 / ADR TECH-0002 — contingência SEFAZ ────────────────────────
+  // A ADR REJEITOU auto-ativação ("pode ativar em falsa-detecção: rede do servidor
+  // caiu, não SEFAZ"), então ligar é sempre ato humano — e o motivo é barreira, não
+  // campo opcional: o fisco pergunta por que a nota saiu com tpEmis != 1.
+  const contingencia = config?.contingencia;
+  const contingenciaForm = useForm<{ motivo: string }>({ motivo: '' });
+
+  const ativarContingencia = (e: FormEvent) => {
+    e.preventDefault();
+    contingenciaForm.post('/nfe-brasil/contingencia/ativar', {
+      preserveScroll: true,
+      onSuccess: () => {
+        toast.success('Contingência ATIVADA — as próximas notas ficam aguardando transmissão.');
+        contingenciaForm.reset('motivo');
+      },
+      onError: () => toast.error('Não foi possível ativar. Confira o motivo.'),
+    });
+  };
+
+  const desativarContingencia = () => {
+    // `router.post` (não o form): o desativar não tem payload a validar.
+    contingenciaForm.post('/nfe-brasil/contingencia/desativar', {
+      preserveScroll: true,
+      // Copy deliberada: desativar diz "as PRÓXIMAS saem normais", NUNCA "as
+      // anteriores foram transmitidas" — quem transmite é o RetentarContingenciaJob.
+      onSuccess: () => toast.success('Contingência desativada. As notas pendentes seguem na fila de transmissão.'),
+      onError: () => toast.error('Não foi possível desativar.'),
     });
   };
 
@@ -389,6 +430,83 @@ export default function Config({ activeTab, certificado, config, painel, seriesM
               <small style={{ color: 'var(--bad)' }}>{ambienteForm.errors.ambiente}</small>
             )}
           </form>
+        </section>
+
+        {/* ── Contingência SEFAZ (US-NFE-006 / ADR TECH-0002) ────────────────
+            Mora junto de "Ambiente" porque é a mesma pergunta do operador: para
+            ONDE a nota vai agora. Ligar é sempre ato humano — a ADR rejeitou
+            auto-ativação. */}
+        <section className="fx-cert-card" style={{ marginBottom: 14 }}>
+          <h3>Contingência SEFAZ</h3>
+
+          {contingencia?.ativa ? (
+            <>
+              {/* Aviso de DURAÇÃO — é a mitigação que a ADR pede para o risco
+                  "tenant esquece ligado". Sem os dias, o aviso não envelhece. */}
+              <p className="lead" style={{ color: 'var(--warn)' }}>
+                <b>ATIVA</b>
+                {typeof contingencia.diasAtiva === 'number' && (
+                  <> há <b>{contingencia.diasAtiva === 0 ? 'menos de 1 dia' : `${contingencia.diasAtiva} dia(s)`}</b></>
+                )}
+                {contingencia.ativadaEmBr && <> (desde {contingencia.ativadaEmBr})</>}.
+                {' '}As notas emitidas agora <b>não são transmitidas na hora</b> — ficam aguardando a SEFAZ voltar.
+              </p>
+
+              {contingencia.motivo && (
+                <p style={{ fontSize: 13, marginTop: 8 }}>
+                  <span style={{ color: 'var(--fx-text-mute)' }}>Motivo declarado: </span>
+                  {contingencia.motivo}
+                </p>
+              )}
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 12 }}>
+                <small style={{ color: 'var(--fx-text-mute)' }}>
+                  Desativar faz as <b>próximas</b> notas voltarem a ser transmitidas na hora.
+                  As já emitidas em contingência seguem na fila.
+                </small>
+                <Button
+                  type="button"
+                  variant="cowork-ghost"
+                  disabled={contingenciaForm.processing}
+                  onClick={desativarContingencia}
+                >
+                  {contingenciaForm.processing ? 'Salvando…' : 'Desativar contingência'}
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="lead">
+                Use quando a SEFAZ estiver fora do ar. A nota é emitida e <b>impressa normalmente</b>,
+                mas fica aguardando transmissão — o número fiscal <b>é consumido</b> na hora.
+              </p>
+              <form onSubmit={ativarContingencia} style={{ marginTop: 12 }}>
+                <label htmlFor="contingencia-motivo" style={{ display: 'block', fontSize: 13, marginBottom: 6 }}>
+                  Motivo <span style={{ color: 'var(--fx-text-mute)' }}>(fica registrado para o fisco)</span>
+                </label>
+                <Input
+                  id="contingencia-motivo"
+                  value={contingenciaForm.data.motivo}
+                  onChange={(e) => contingenciaForm.setData('motivo', e.target.value)}
+                  placeholder="ex: SEFAZ-SC fora do ar desde as 14h — chamado 12345"
+                  maxLength={255}
+                />
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 10 }}>
+                  <small style={{ color: 'var(--fx-text-mute)' }}>Mínimo 10 caracteres.</small>
+                  <Button
+                    type="submit"
+                    variant="cowork-ghost"
+                    disabled={contingenciaForm.processing || contingenciaForm.data.motivo.trim().length < 10}
+                  >
+                    {contingenciaForm.processing ? 'Ativando…' : 'Ativar contingência'}
+                  </Button>
+                </div>
+                {contingenciaForm.errors.motivo && (
+                  <small style={{ color: 'var(--bad)' }}>{contingenciaForm.errors.motivo}</small>
+                )}
+              </form>
+            </>
+          )}
         </section>
         </>
         )}

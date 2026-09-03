@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\Jana\Services\CharterHealthChecker;
+use Modules\Jana\Services\TaskRegistry\HitlEscalationService;
 
 /**
  * Sentinela operacional da Jana + Constituição v2.
@@ -49,6 +50,11 @@ use Modules\Jana\Services\CharterHealthChecker;
  *      no git AUSENTE de mcp_memory_documents OU vivo sem heartbeat de sync
  *      (indexed_at >7d). Classe do incidente BRIEFINGs: -11pp recall@5
  *      invisível por semanas (#3815). Fonte única: slugsEsperados() do sync.
+ *  10g. LLM provider quota (incidente 2026-08-31→09-02) — a conta do provedor está
+ *      sem crédito? Sonda o oráculo e lê o enum `error.type`/`error.code`. Fecha o
+ *      buraco em que `brief_uptime_24h` dizia STALE e `custo_brain_b_24h` pintava
+ *      VERDE com R$ 0,00 (custo zero por provedor morto passa no teto "custo <= X"),
+ *      sem nenhum check NOMEAR a causa. `sem-credito` vira task HITL pro [W].
  *  10f. MCP token sem gate (incidente 2026-07-28) — user com token MCP ativo
  *      (não revogado/expirado) que NÃO tem a permission `jana.mcp.use` que o
  *      McpAuthMiddleware exige. Toda chamada dele vira 403. A classe ficou
@@ -78,7 +84,7 @@ class HealthCheckCommand extends Command
                             {--json : Output JSON em vez de tabela}
                             {--notify : Loga ALERT em jana-health channel se algo falhou}';
 
-    protected $description = 'Health check diário Jana + Constituição v2 (11 checks DUROS + distiller_freshness advisory + ledger de lições + charter/loop advisory)';
+    protected $description = 'Health check diário Jana + Constituição v2 (12 checks DUROS + distiller_freshness advisory + ledger de lições + charter/loop advisory)';
 
     /**
      * Margem de segurança da invariante de valor (check 1b). Desconto só REDUZ;
@@ -126,6 +132,7 @@ class HealthCheckCommand extends Command
             $this->checkMemoriaRecallBackend(),
             $this->checkLangfuseTraceUptime24h(),
             $this->checkOnlineEvalScoreUptime7d(),
+            $this->checkLlmProviderQuota(),
             $this->checkDbWriteCanary(),
             $this->checkDbStorageQuota(),
             $this->checkMcpIndexSyncGap(),
@@ -1466,6 +1473,230 @@ class HealthCheckCommand extends Command
         return $count >= $threshold
             ? ['ok' => true, 'state' => 'vivo', 'count' => $count]
             : ['ok' => false, 'state' => 'mudo', 'count' => $count];
+    }
+
+    /**
+     * Códigos que o provedor devolve quando a CONTA está sem crédito. São enums do
+     * contrato HTTP (`error.type` / `error.code`) — nunca a `error.message`, que é
+     * prosa, muda sem aviso e não é contrato.
+     */
+    public const QUOTA_CODIGOS_SEM_CREDITO = ['insufficient_quota', 'credit_balance_exhausted'];
+
+    /**
+     * Modelo da sonda: o mais barato do catálogo. A quota é da CONTA/projeto, não do
+     * modelo — sondar com o mais barato responde a MESMA pergunta pagando o mínimo
+     * (1 token de input, 1×/dia). Sem crédito, a chamada é recusada antes de faturar.
+     */
+    public const QUOTA_PROBE_MODEL = 'gpt-4o-mini';
+
+    /**
+     * Check 10g — Provedor LLM sem crédito (incidente 2026-08-31 20:02 → 2026-09-02).
+     *
+     * O BURACO (história completa na L-OP-005): sem crédito a Jana emudeceu e os checks
+     * só viam SINTOMA — um pintou VERDE, porque `custo_brain_b_24h` mede `custo <= teto`
+     * e custo zero por provedor morto passa no teto (§5 2026-07-29).
+     *
+     * POR QUE SONDA, E NÃO LOG (medido em prod 2026-09-02, não suposto) — a fonte
+     * preferida seria o log estruturado do provider, e ela NÃO tem o dado:
+     *
+     *   # canal `copiloto-ai`, 14 arquivos diários → ZERO ocorrências:
+     *   grep -c "429" storage/logs/copiloto-ai-2026-*.log       # 0 em 14 de 14
+     *   # `laravel.log` (1,0 GB) TEM o dado, mas nenhuma ocorrência é DATÁVEL:
+     *   grep -E "insufficient_quota|credit_balance_exhausted" storage/logs/laravel.log \
+     *     | grep -cE "^\[20[0-9]{2}-"                           # 0 de 40
+     *
+     * O par (timestamp, motivo) nunca coexiste na mesma linha — o motivo cai no corpo
+     * JSON da exceção e o cabeçalho datado carrega outra mensagem, então um check "nas
+     * últimas 24h" teria que remontar blocos multi-linha: o parse frágil que a regra
+     * proíbe. Perguntamos ao ORÁCULO em vez de deduzir do rastro (§5 2026-07-17).
+     *
+     * FP MEDIDO ANTES DE LIGAR (proibicoes §"LIGUE A MÁQUINA" #4) — corpus de 30d de log
+     * de prod, via `grep -oE ... | wc -l`: insufficient_quota=30 ·
+     * credit_balance_exhausted=30 · rate_limit_exceeded=0 · tokens/requests_exceeded=0.
+     * **FP = 0 de 30.** O predicado por enum separa os dois erros que chegam com o MESMO
+     * 429 e pedem ações OPOSTAS — recarregar crédito ([W]) vs backoff (nosso) —
+     * distinção que o `RagasJudgeService` já aprendera a logar (PR #6540).
+     *
+     * ESCALAÇÃO: `sem-credito` é falha DURA e vira UMA task HITL `blocked`/`wagner`
+     * (`HITL-LLM-QUOTA`), canal que o `brief-fetch` imprime. `[C]` não manuseia chave nem
+     * billing (US-COPI-145). Idempotente: re-escalar atualiza a MESMA task.
+     *
+     * Reproduzir a sonda à mão (a chave nunca é ecoada):
+     *   K=$(grep -m1 '^OPENAI_API_KEY=' .env | cut -d= -f2-)
+     *   curl -s -w '\nHTTP=%{http_code}\n' -H "Authorization: Bearer $K" \
+     *     -H 'Content-Type: application/json' \
+     *     -d '{"model":"gpt-4o-mini","max_tokens":1,"messages":[{"role":"user","content":"ping"}]}' \
+     *     https://api.openai.com/v1/chat/completions
+     *
+     * @see Modules\Jana\Services\TaskRegistry\HitlEscalationService
+     * @see memory/requisitos/Jana/LICOES-OPERACAO.md  L-OP-005
+     */
+    protected function checkLlmProviderQuota(): array
+    {
+        // A sonda faz UMA chamada externa à conta paga: só em produção. Em dev/CI não
+        // mediria nada útil e ainda sairia pela rede a cada run da suíte. Mesmo gate do
+        // checkLangfuseTraceUptime24h, alinhado ao schedule `->environments(['live'])`.
+        $probe = app()->environment(['production', 'live'])
+            ? $this->probeLlmProviderQuota()
+            : ['configured' => false, 'reachable' => false, 'status' => null,
+                'error_code' => null, 'detail' => 'fora de produção'];
+
+        $r = self::evaluateLlmProviderQuota(
+            $probe['configured'], $probe['reachable'], $probe['status'], $probe['error_code'],
+        );
+
+        if ($r['state'] === 'sem-credito') {
+            $this->escalarQuotaParaHitl($probe['error_code']);
+        }
+
+        $codigo = $probe['error_code'] ?? 'sem código';
+
+        $messages = [
+            'nao-configurado' => "Skipped ({$probe['detail']} — a sonda só roda em produção e com chave)",
+            'nao-medido' => "SEM MEDIÇÃO: provedor inacessível ({$probe['detail']}) — não afirma "
+                . 'crédito nem falta dele. Advisory: erro de instrumento não vira veredito.',
+            'sem-credito' => "PROVEDOR SEM CRÉDITO (HTTP {$probe['status']} · {$codigo}) — chat, metas, "
+                . 'PR UI Judge e Daily Brief param juntos. Escalado como HITL-LLM-QUOTA '
+                . '(blocked/wagner) no canal do brief-fetch; recarregar ou trocar de provedor é [W].',
+            'credencial-recusada' => "ALERTA: credencial recusada (HTTP {$probe['status']} · "
+                . "{$codigo}) — chave inválida, revogada ou sem acesso ao projeto.",
+            'rate-limit' => "Advisory: 429 de CONCORRÊNCIA ({$codigo}), não de crédito — transitório, "
+                . 'resolve com backoff.',
+            'erro-provedor' => "Advisory: provedor respondeu HTTP {$probe['status']} ({$codigo}) — "
+                . 'falha do lado deles, geralmente transitória.',
+            'ok' => 'Provedor aceitou a chamada — conta com crédito',
+        ];
+
+        return [
+            'name' => 'llm_provider_quota',
+            'ok' => $r['ok'],
+            'advisory' => $r['advisory'] ?? false,
+            'value' => $r['state'],
+            'threshold' => 'provedor aceita chamada',
+            'message' => $messages[$r['state']] ?? $r['state'],
+        ];
+    }
+
+    /**
+     * Sonda o provedor com a chamada mais barata possível. Não julga — quem julga é o
+     * `evaluateLlmProviderQuota`.
+     *
+     * @return array{configured: bool, reachable: bool, status: ?int, error_code: ?string, detail: string}
+     */
+    protected function probeLlmProviderQuota(): array
+    {
+        // config() e não env(): sob `config:cache` o env() fora de config/ devolve null
+        // e o check ficaria eternamente "nao-configurado" em prod (config/services.php:54).
+        $apiKey = (string) config('services.openai.api_key', '');
+
+        if ($apiKey === '') {
+            return [
+                'configured' => false, 'reachable' => false,
+                'status' => null, 'error_code' => null, 'detail' => 'sem chave',
+            ];
+        }
+
+        try {
+            $response = \Illuminate\Support\Facades\Http::withToken($apiKey)
+                ->acceptJson()
+                ->timeout(20)
+                ->post('https://api.openai.com/v1/chat/completions', [
+                    'model' => self::QUOTA_PROBE_MODEL,
+                    'max_tokens' => 1,
+                    'messages' => [['role' => 'user', 'content' => 'ping']],
+                ]);
+
+            // `error.code` é o específico (credit_balance_exhausted), `error.type` o
+            // guarda-chuva (insufficient_quota). Enums; a `message` é prosa e NÃO entra.
+            $codigo = $response->json('error.code') ?? $response->json('error.type');
+
+            return [
+                'configured' => true, 'reachable' => true, 'status' => $response->status(),
+                'error_code' => is_string($codigo) && $codigo !== '' ? $codigo : null,
+                'detail' => '',
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'configured' => true, 'reachable' => false, 'status' => null,
+                'error_code' => null, 'detail' => mb_substr($e->getMessage(), 0, 80),
+            ];
+        }
+    }
+
+    /**
+     * Veredito puro — estático pra ser testável sem HTTP nem DB (padrão do
+     * `evaluateTraceUptime`). Contrato, NÃO derivado da implementação:
+     *   sem chave → pula · inacessível → "nao-medido" ADVISORY ("não consegui medir"
+     *   não é estado do objeto medido, §5 2026-07-29) · 200 → verde · enum de quota →
+     *   DURO "sem-credito" (escala HITL) · 401/403 → DURO "credencial-recusada" ·
+     *   429 com outro enum → ADVISORY "rate-limit" · resto → ADVISORY "erro-provedor".
+     *
+     * A ordem importa: o enum de quota vem ANTES do 429 genérico, senão o caso que
+     * exige [W] (recarregar) é engolido pelo que se resolve sozinho (backoff).
+     *
+     * @return array{ok: bool, state: string, advisory?: bool}
+     */
+    public static function evaluateLlmProviderQuota(
+        bool $configured,
+        bool $reachable,
+        ?int $status,
+        ?string $errorCode,
+    ): array {
+        if (! $configured) {
+            return ['ok' => true, 'state' => 'nao-configurado'];
+        }
+
+        if (! $reachable) {
+            return ['ok' => false, 'state' => 'nao-medido', 'advisory' => true];
+        }
+
+        if ($status === 200) {
+            return ['ok' => true, 'state' => 'ok'];
+        }
+
+        if (in_array((string) $errorCode, self::QUOTA_CODIGOS_SEM_CREDITO, true)) {
+            return ['ok' => false, 'state' => 'sem-credito'];
+        }
+
+        if ($status === 401 || $status === 403) {
+            return ['ok' => false, 'state' => 'credencial-recusada'];
+        }
+
+        if ($status === 429) {
+            return ['ok' => false, 'state' => 'rate-limit', 'advisory' => true];
+        }
+
+        return ['ok' => false, 'state' => 'erro-provedor', 'advisory' => true];
+    }
+
+    /**
+     * Materializa a pendência no canal HITL que o `brief-fetch` imprime. Fail-open:
+     * o transporte nunca derruba o sentinela — o check já reportou `sem-credito` e o
+     * exit code cai de qualquer jeito.
+     */
+    private function escalarQuotaParaHitl(?string $codigo): void
+    {
+        try {
+            app(HitlEscalationService::class)->escalar(
+                chave: 'LLM-QUOTA',
+                titulo: 'Provedor LLM sem crédito — Jana, brief e PR UI Judge mudos',
+                descricao: 'A sonda diária do `jana:health-check` recebeu do provedor o código `'
+                    . ($codigo ?? 'insufficient_quota') . "`.\n\nImpacto: chat da Jana, sugestão "
+                    . 'de metas, PR UI Judge e Daily Brief param juntos — o brief é o sintoma mais '
+                    . "visível (`brief_uptime_24h` fica STALE).\n\nSaídas (decisão [W] — `[C]` não "
+                    . 'manuseia chave nem billing, US-COPI-145): recarregar crédito na conta do '
+                    . 'provedor, OU pôr `ANTHROPIC_API_KEY` no .env de prod e apontar a Jana pro '
+                    . "provedor secundário (US-COPI-135).\n\nFechar esta task (done/cancelled) "
+                    . 'silencia o escalonamento — o sentinela não reabre.',
+                modulo: 'Jana',
+                prioridade: 'p0',
+                origem: 'jana:health-check',
+            );
+        } catch (\Throwable $e) {
+            Log::channel('single')->warning('llm_provider_quota: escalação HITL falhou', [
+                'erro' => mb_substr($e->getMessage(), 0, 120),
+            ]);
+        }
     }
 
     /** Tabela-alvo do write-canary (check 10b). @see migration create_jana_health_write_canary_table. */

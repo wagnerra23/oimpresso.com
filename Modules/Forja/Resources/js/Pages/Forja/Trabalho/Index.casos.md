@@ -4,7 +4,7 @@ casos: Forja · lista única de trabalho · /forja/trabalho
 irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-08-12"
+last_run: "2026-09-02"
 ---
 
 # Casos de uso — /forja/trabalho
@@ -87,3 +87,31 @@ A migration `2026_08_10_120000` registra o fato (ator sem token, zero capability
 - [BACKLOG] Eixo de ordenação `execucao` (o que está andando primeiro) — existe no service, sem caso que o exercite.
 - [BACKLOG] Arrastar card no Quadro pra mudar status — exige endpoint de mutação pelo `TaskCrudService` (FSM validado); sem ele seria um 2º caminho de escrita.
 - [BACKLOG] Rank híbrido com pin persistido — depende de user-pref gravada; fora desta onda por decisão de escopo.
+
+---
+
+## PARIDADE §11 Onda 4 — a lista é a réplica do protótipo
+
+> Decisão [W] de 2026-09-02 (*"pode fazer igual ao protótipo"*), regida pela [ADR 0388](../../../../memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md): o `forja-page.jsx` é o contrato de **layout**, e a conformidade do DS vira item em [`INCONSISTENCIAS-replica.md`](../../../../memory/requisitos/Forja/INCONSISTENCIAS-replica.md).
+>
+> Os quatro UC abaixo cobrem o que a réplica **acrescentou de risco**: espelho de vocabulário sem trava (13/14) e KPI que virou filtro (15/16). O que a réplica deixou de fora está no charter §"Diferenças declaradas" — e é ausência **declarada**, não caso pendente.
+
+## UC-TRAB-13 — Os papéis da barra de filtro são os da fonte de design
+Status: 🧪 (1 teste cita este UC — extrai `FORJA_ACTORS` de `prototipo-ui/cowork/forja-data.jsx` e compara com `TrabalhoService::PAPEIS`, com guarda anti-falso-verde.)
+O papel diz **quem responde** por cada fase, e é o vocabulário do loop Cowork↔Code. Se o backend inventar uma sigla que o Cowork não conhece, a barra desenha um botão que nunca casa nada — filtro que devolve vazio sempre, sem erro. É a mesma doença que o `PipelineParidadeTest` já trava nas fases: espelho contra espelho fica verde enquanto os dois divergem da fonte.
+**Pronto quando:** `TrabalhoService::PAPEIS` é exatamente a lista do protótipo, na mesma ordem, e o extrator prova que achou papel (não compara dois vazios).
+
+## UC-TRAB-14 — Os agrupamentos da lista são os do protótipo, na mesma ordem
+Status: 🧪 (1 teste cita este UC — extrai `FJ_GROUPS` de `forja-page.jsx` e compara com `TrabalhoService::GRUPOS` sob a tradução declarada.)
+A ordem é a dos botões na tela: trocá-la muda o que a pessoa acha primeiro. A **única** diferença aceita é de vocabulário (`assignee`→`papel`, `prio`→`prioridade`), declarada no próprio teste, porque o resto do módulo já fala PT (`custom_fields.forja_papel`, coluna `priority`).
+**Pronto quando:** os seis agrupamentos batem, na ordem, sob a tradução — e o extrator prova que achou agrupamento.
+
+## UC-TRAB-15 — O KPI-filtro recorta a LISTA e não os KPIs
+Status: 🧪 (1 teste cita este UC — três fixtures de saúdes diferentes; exige lista recortada **e** KPI intacto **e** pool idêntico com/sem filtro.)
+O cartão diz o **tamanho do problema**; o clique mostra **quais são**. Se o número respondesse ao próprio recorte, clicar "P0" zeraria "Fazendo" e "Bloqueadas" — o painel mentiria exatamente quando alguém está investigando. Por isso `build()` devolve o pool e a régua, e `filtrar()` corta depois; `saude` fica fora da query **e** da chave de cache.
+**Pronto quando:** sob `saude=p0` a lista tem só a P0 aberta, o KPI `fazendo` segue > 0, e os KPIs com e sem filtro são iguais.
+
+## UC-TRAB-16 — `grupo`, `saude` e `papel` têm default e allowlist
+Status: 🧪 (1 teste cita este UC — trava defaults, conjunto de válidos, e prova que valor inválido **não apaga** a lista.)
+Mesma razão do `sort` (UC-TRAB-03): valor livre viraria estado desconhecido no front, que renderiza vazio **sem erro**. Em `saude`/`papel` seria pior — recorte silencioso que ninguém pediu e ninguém vê. E o `filtrar()` **ignora** valor fora da allowlist em vez de devolver lista vazia: filtro desconhecido não pode apagar a tela.
+**Pronto quando:** o default de `grupo` é `frente`, `saude`/`papel` nascem nulos, e `saude=inventado` / `papel=ZZ` devolvem a lista inteira.

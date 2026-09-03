@@ -14,7 +14,7 @@ module: _Geral
 >
 > **O que isto é:** a porta geral para componentes, layouts e templates herdáveis por mais de um módulo. A lista é derivada das raízes compartilhadas declaradas em `module-surface.mjs::RAIZES_GERAIS`. **O que NÃO é:** autorização para importar qualquer item sem verificar contrato, status e consumidores; para decidir reuso, consulte também `node scripts/reuse-index.mjs "<símbolo ou intenção>"` e o registry do Design System.
 
-**Total mapeado:** 128 arquivos em 5 papéis.
+**Total mapeado:** 130 arquivos em 6 papéis.
 
 ## Componentes compartilhados (React) — 88
 
@@ -158,3 +158,8 @@ module: _Geral
 
 - [PageHeader-LEARNINGS.md](../../../memory/requisitos/_DesignSystem/templates/PageHeader-LEARNINGS.md)
 - [PageHeader-canon-v3-1.md](../../../memory/requisitos/_DesignSystem/templates/PageHeader-canon-v3-1.md)
+
+## Demais arquivos (manifestos, docs, assets e misc) — 2
+
+- [AppShellV2.casos.md](../../../resources/js/Layouts/AppShellV2.casos.md)
+- [AppShellV2.charter.md](../../../resources/js/Layouts/AppShellV2.charter.md)
