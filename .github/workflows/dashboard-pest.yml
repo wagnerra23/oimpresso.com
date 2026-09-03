@@ -39,6 +39,7 @@ on:
   # se nada do domínio mudou, pula o pesado e conclui verde (mesmo padrão das lanes
   # irmãs — required-ready sem deadlock).
   pull_request:
+    types: [opened, reopened, ready_for_review]
     branches: [main]
   push:
     branches: [main]

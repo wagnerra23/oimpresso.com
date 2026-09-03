@@ -12,7 +12,9 @@ name: Modules Pest
 # sqlite (CI/local) mascara bugs que so o MySQL real pega (businesses->business, CSRF, FK).
 
 on:
+  workflow_dispatch:
   pull_request:
+    types: [opened, reopened, ready_for_review]
     branches: [main]
     paths:
       - 'Modules/Arquivos/**'

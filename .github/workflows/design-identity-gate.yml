@@ -5,7 +5,9 @@ name: Design Identity Gate (soft)
 # Espelha o padrão eslint-baseline (ADR 0209). Pure-node (sem npm install).
 
 on:
+  workflow_dispatch:
   pull_request:
+    types: [opened, reopened, ready_for_review]
     paths:
       - 'resources/js/**'
       - 'scripts/design-identity-grade.mjs'

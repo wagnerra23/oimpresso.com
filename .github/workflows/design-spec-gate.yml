@@ -16,7 +16,9 @@ on:
       - 'resources/js/Pages/**'
       - 'scripts/design-spec-gen.mjs'
       - '.github/workflows/design-spec-gate.yml'
+  workflow_dispatch:
   pull_request:
+    types: [opened, reopened, ready_for_review]
     paths:
       - 'resources/js/Pages/**'
       - 'scripts/design-spec-gen.mjs'

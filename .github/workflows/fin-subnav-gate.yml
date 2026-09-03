@@ -13,7 +13,9 @@ name: Fin SubNav Gate — abas por entry (anti-regressão ADR 0180 split)
 # Refs: ADR 0180 (split FINANÇAS) · ADR 0258 (gate só vale se o controle-negativo roda no CI).
 
 on:
+  workflow_dispatch:
   pull_request:
+    types: [opened, reopened, ready_for_review]
     paths:
       - 'resources/js/Pages/Financeiro/_shared/FinanceiroSubNav.tsx'
       - 'resources/js/Pages/Financeiro/_shared/financeiroMenu.ts'

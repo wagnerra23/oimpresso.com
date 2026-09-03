@@ -45,6 +45,7 @@ on:
   # evitado por skip-as-pass interno (dorny/paths-filter). push segue
   # path-filtered (contém custo no main).
   pull_request:
+    types: [opened, reopened, ready_for_review]
     branches: [main]
   push:
     branches: [main]

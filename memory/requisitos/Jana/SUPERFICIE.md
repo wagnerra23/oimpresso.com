@@ -14,7 +14,7 @@ module: Jana
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 550 arquivos em 19 papéis.
+**Total mapeado:** 551 arquivos em 19 papéis.
 
 ## Controllers — 11
 
@@ -347,7 +347,7 @@ module: Jana
 - [Plataforma.casos.md](../../../resources/js/Pages/Jana/Plataforma.casos.md)
 - [Pro.casos.md](../../../resources/js/Pages/Jana/Pro.casos.md)
 
-## Testes (Pest) — 179
+## Testes (Pest) — 180
 
 - 39 em [Modules/Jana/Tests/Feature/](../../../Modules/Jana/Tests/Feature)
 - 12 em [Modules/Jana/Tests/Feature/Ai/](../../../Modules/Jana/Tests/Feature/Ai)
@@ -358,7 +358,7 @@ module: Jana
 - 3 em [Modules/Jana/Tests/Feature/Console/](../../../Modules/Jana/Tests/Feature/Console)
 - 1 em [Modules/Jana/Tests/Feature/Http/](../../../Modules/Jana/Tests/Feature/Http)
 - 2 em [Modules/Jana/Tests/Feature/Kb/](../../../Modules/Jana/Tests/Feature/Kb)
-- 39 em [Modules/Jana/Tests/Feature/Mcp/](../../../Modules/Jana/Tests/Feature/Mcp)
+- 40 em [Modules/Jana/Tests/Feature/Mcp/](../../../Modules/Jana/Tests/Feature/Mcp)
 - 14 em [Modules/Jana/Tests/Feature/Memoria/](../../../Modules/Jana/Tests/Feature/Memoria)
 - 1 em [Modules/Jana/Tests/Feature/Memoria/Freshness/](../../../Modules/Jana/Tests/Feature/Memoria/Freshness)
 - 1 em [Modules/Jana/Tests/Feature/Memoria/Telemetry/](../../../Modules/Jana/Tests/Feature/Memoria/Telemetry)

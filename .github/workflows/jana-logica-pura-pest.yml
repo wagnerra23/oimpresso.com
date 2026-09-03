@@ -19,6 +19,7 @@ name: Lógica pura Pest (event-time · histórico · audit-chain · migração B
 
 on:
   pull_request:
+    types: [opened, reopened, ready_for_review]
     branches: [main]
     paths:
       - 'Modules/Jana/Services/Memoria/BiTemporalResolver.php'

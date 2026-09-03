@@ -50,7 +50,9 @@ name: Jana Conversas Gate — histórico do chat (filtro real + J/K + ⌘⇧H + 
 # real coletada (ADR 0336 DR-2) — não se auto-promove.
 
 on:
+  workflow_dispatch:
   pull_request:
+    types: [opened, reopened, ready_for_review]
     paths:
       - 'resources/js/Pages/Jana/Chat.tsx'
       - 'resources/js/Components/cockpit/shared.ts'

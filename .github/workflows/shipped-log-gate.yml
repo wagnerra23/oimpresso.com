@@ -20,6 +20,7 @@ name: Shipped log gate (advisory)
 
 on:
   pull_request:
+    types: [opened, reopened, ready_for_review]
     branches: [main]
     paths:
       - 'memory/governance/shipped/**'
