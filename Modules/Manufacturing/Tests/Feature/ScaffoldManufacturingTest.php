@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\Schema;
 use Nwidart\Modules\Facades\Module;
 
 uses(Tests\TestCase::class);
@@ -46,6 +47,14 @@ it('cenario 4: RecipeBomService instanciavel via container Laravel (DI funciona)
 });
 
 it('cenario 5: RecipeBomService::resolveBom retorna collection vazia pra recipe inexistente', function () {
+    // resolveBom faz SELECT em mfg_recipes; na lane sqlite :memory: (modules-pest.yml)
+    // nao existe schema UltimatePOS e o driver estoura QueryException. Mesmo guard dos
+    // vizinhos do modulo (RecipeBomIntegrityTest, MultiTenantIsolationTest). Os cenarios
+    // 1-4 e 6 nao tocam DB e seguem rodando. Cobertura real deste: lane MySQL / CT 100.
+    if (! Schema::hasTable('mfg_recipes')) {
+        $this->markTestSkipped('Tabela mfg_recipes ausente (sqlite :memory:) — resolveBom exige schema UltimatePOS.');
+    }
+
     $service = app(\Modules\Manufacturing\Services\RecipeBomService::class);
 
     // Recipe ID inexistente + biz=1 (Wagner, ADR 0101 — nunca biz=cliente real)

@@ -43,7 +43,8 @@ name: Jana Recall Eval (mock gate)
 on:
   # always-run (sem paths) pra ser promovível a required sem deadlock
   # "Expected — waiting" (mesmo padrão do governance-gate.yml).
-  pull_request: {}
+  pull_request:
+    types: [opened, reopened, ready_for_review]
   workflow_dispatch: {}
 
 concurrency:

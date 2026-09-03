@@ -248,10 +248,30 @@ class DataController extends Controller
                             );
                         }
 
-                        // Alertas — REMOVIDO do dropdown legacy (Wagner 2026-05-25).
-                        // Tela /ia/alertas é STUB ("spec-ready ver US-COPI-060") sem
-                        // implementação real. Reativar quando US-COPI-060 entregar.
-                        // Rota e Controller mantidos pra não quebrar bookmarks externos.
+                        // Alertas — REATIVADO em 2026-09-02: a tela deixou de ser stub
+                        // (`AlertasController@index` → Inertia `Jana/Alertas`, lista do
+                        // `AlertaService::listar`). Tinha saído em 2026-05-25 porque era
+                        // "spec-ready ver US-COPI-060" sem implementação. Mesmo gate do
+                        // grupo /ia (`can:jana.access`) — o protótipo (`JmTabs`) mostra a
+                        // aba a todo papel; só a CONFIG é `jana.metas.manage`.
+                        $sub->url(
+                            route('jana.alertas.index'),
+                            __('copiloto::copiloto.menu.alertas'),
+                            [
+                                'icon'   => 'fa fas fa-bell',
+                                'active' => request()->segment(2) == 'alertas',
+                            ]
+                        );
+
+                        // Ações (fila HITL) — entrou em 2026-09-02 com a tela `Jana/Acoes`.
+                        $sub->url(
+                            route('jana.acoes.index'),
+                            __('copiloto::copiloto.menu.acoes'),
+                            [
+                                'icon'   => 'fa fas fa-lightbulb',
+                                'active' => request()->segment(2) == 'acoes',
+                            ]
+                        );
 
                         // Custos de IA MOVIDO pra Modules/Governance em 2026-08-05
                         // (ADR 0366 §D-B). Este bloco tinha que sair JUNTO com a rota:
@@ -260,8 +280,10 @@ class DataController extends Controller
                         // sidebar INTEIRO, não só este item. A entrada agora vive no
                         // ghost `custos` do DataController da Governança.
 
-                        // Plataforma (superadmin-only)
-                        if (auth()->user()->can('superadmin') || auth()->user()->can('jana.superadmin')) {
+                        // Plataforma (superadmin-only). O gate é o REAL — `can('jana.superadmin')`
+                        // é bypassado pelo `Gate::before` pra todo Admin#{biz} (P0 #6421), e o
+                        // link aparecia pra dono de empresa que depois tomava 403.
+                        if (self::podeVerPlataforma()) {
                             $sub->url(
                                 route('jana.superadmin.metas'),
                                 __('copiloto::copiloto.menu.plataforma'),
@@ -310,6 +332,15 @@ class DataController extends Controller
                             // `painel`/`conversa` na onda 3, junto com o rename do arquivo.
                             ['key' => 'dashboard', 'label' => 'Painel',   'href' => '/ia'],
                             ['key' => 'copiloto',  'label' => 'Conversa', 'href' => '/ia/conversa'],
+                            // Alertas — 3ª aba da âncora `jana-merge.jsx` §JmTabs (ordem:
+                            // Painel · Conversa · Alertas · Ações · Memória · Plataforma).
+                            // Entrou em 2026-09-02 junto com a tela Inertia `Jana/Alertas`
+                            // (paridade com o protótipo, handoff 2026-08-31 §Paridade Painel).
+                            // key = segmento da URL, casada com `JanaAreaHeader active="alertas"`.
+                            ['key' => 'alertas',   'label' => 'Alertas',  'href' => '/ia/alertas'],
+                            // Ações — 4ª aba da âncora (`JmTabs`); a fila HITL de `/ia/acoes`
+                            // (2026-09-02). key = segmento da URL, casada com `active="acoes"`.
+                            ['key' => 'acoes',     'label' => 'Ações',    'href' => '/ia/acoes'],
                             // Ghost 'brief' removido 2026-06-15 (Wagner): /ia/brief era stub
                             // redundante (brief vive no chat + brief-fetch MCP + seção "Brief
                             // diário" do dashboard). Rota + BriefController + Page apagados.
@@ -319,6 +350,12 @@ class DataController extends Controller
                             // do ghost `kb` neste mesmo bloco em 2026-08-05 (ADR 0366). A key
                             // `memorias` fica: é o alvo do `mapActiveToGhostKey('memoria')`.
                             ['key' => 'memorias',  'label' => 'Memória',  'href' => '/ia/memoria'],
+                            // Plataforma — 6ª aba da âncora (`JmTabs`), só com `jana.superadmin`
+                            // REAL (2026-09-02; tela Inertia `Jana/Plataforma`). O spread vazio
+                            // some da lista pra quem não pode — o protótipo faz o mesmo (`can(...)`).
+                            ...(self::podeVerPlataforma()
+                                ? [['key' => 'plataforma', 'label' => 'Plataforma', 'href' => '/ia/superadmin/metas']]
+                                : []),
                             // Ghost 'kb' removido 2026-08-05 ([W]: "governança, KB, saem"):
                             // `/ia/kb` é `Route::redirect(…, '/kb', 302)` — apontava pro
                             // redirect de uma tela que é do Modules/KB e tem entrada própria.
@@ -393,5 +430,23 @@ class DataController extends Controller
                 )->order(90); // Logo após PontoWr2 (88)
             }
         );
+    }
+
+    /**
+     * Quem pode ver a aba/tela Plataforma — ESPELHA `SuperadminController::metas()`.
+     * Duas portas, e nenhuma é o `can()` sozinho: `hasPermissionTo` consulta o Spatie
+     * direto (imune ao `Gate::before`), e `user_type` é coluna, não ability.
+     */
+    private static function podeVerPlataforma(): bool
+    {
+        $user = auth()->user();
+
+        try {
+            $temPermissaoReal = (bool) $user?->hasPermissionTo('jana.superadmin');
+        } catch (\Throwable $e) {
+            $temPermissaoReal = false; // permissão não cadastrada no guard ⇒ ninguém a tem
+        }
+
+        return $temPermissaoReal || in_array($user?->user_type, ['superadmin', 'user_oimpresso'], true);
     }
 }

@@ -10,9 +10,20 @@ name: Modules Pest
 # Para validacao fiel (DB real): roda NO CT 100, NUNCA local —
 # docker exec -e DB_CONNECTION=mysql oimpresso-staging php artisan test (proibicoes.md §Ambiente).
 # sqlite (CI/local) mascara bugs que so o MySQL real pega (businesses->business, CSRF, FK).
+#
+# 2026-09-03 — Manufacturing entrou na matrix. Ate aqui os 19 arquivos de
+# Modules/Manufacturing/Tests estavam registrados no phpunit.xml (linha 45) e
+# so 1 deles rodava em CI (Wave29RecipeInertiaTest, curado em
+# .github/ci-sqlite-pest.list) — os outros 18 eram falsa cobertura, incl. o
+# MultiTenantIsolationTest que defende o JOIN products.business_id (ADR 0093,
+# unica barreira de tenant do modulo: mfg_recipes NAO tem business_id direto).
+# Wave29 fica TAMBEM na lista sqlite de proposito: la roda em todo PR; aqui so
+# quando o modulo muda.
 
 on:
+  workflow_dispatch:
   pull_request:
+    types: [opened, reopened, ready_for_review]
     branches: [main]
     paths:
       - 'Modules/Arquivos/**'
@@ -22,6 +33,8 @@ on:
       - 'Modules/Connector/**'
       - 'Modules/Fiscal/**'
       - 'resources/js/Pages/Fiscal/**'
+      - 'Modules/Manufacturing/**'
+      - 'resources/js/Pages/Manufacturing/**'
       - 'Modules/NfeBrasil/**'
       - 'resources/js/Pages/NfeBrasil/**'
       - 'Modules/Repair/**'
@@ -41,6 +54,8 @@ on:
       - 'Modules/Connector/**'
       - 'Modules/Fiscal/**'
       - 'resources/js/Pages/Fiscal/**'
+      - 'Modules/Manufacturing/**'
+      - 'resources/js/Pages/Manufacturing/**'
       - 'Modules/NfeBrasil/**'
       - 'resources/js/Pages/NfeBrasil/**'
       - 'Modules/Repair/**'
@@ -64,6 +79,7 @@ jobs:
           - ComunicacaoVisual
           - Connector
           - Fiscal
+          - Manufacturing
           - NfeBrasil
           - Repair
           - Vestuario

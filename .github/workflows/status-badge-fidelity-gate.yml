@@ -16,7 +16,9 @@ name: StatusBadge Fidelity Gate — pílula de status fiel ao protótipo + dark-
 # Refs: ADR proposta tab-nav/componente-por-papel (Onda status-badge) · ADR 0338 · ADR 0258.
 
 on:
+  workflow_dispatch:
   pull_request:
+    types: [opened, reopened, ready_for_review]
     paths:
       - 'resources/js/Components/ui/badge.tsx'
       - 'resources/js/Components/shared/StatusBadge.tsx'

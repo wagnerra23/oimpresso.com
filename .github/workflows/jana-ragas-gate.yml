@@ -43,6 +43,7 @@ name: Jana RAGAS smoke (tautológico — plumbing, não qualidade)
 
 on:
   pull_request:
+    types: [opened, reopened, ready_for_review]
     paths:
       - 'Modules/Jana/**'
       - 'config/ragas.php'

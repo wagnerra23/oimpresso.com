@@ -23,25 +23,25 @@
       "detail": {
         "coverage_pct": 85.9,
         "specs_total": 53,
-        "us_total": 1017,
+        "us_total": 1023,
         "anchor_coverage_pct": 85.9,
         "by_state": {
           "sem_campo": 142,
           "placeholder": 1,
-          "pendente": 425,
-          "parcial": 116,
-          "anchored_ok": 333,
-          "anchored_dead": 0,
+          "pendente": 438,
+          "parcial": 115,
+          "anchored_ok": 326,
+          "anchored_dead": 1,
           "anchored_zombie": 0
         },
-        "fields_total": 881,
+        "fields_total": 887,
         "fields_placeholder": 1,
-        "fields_grammar_ok": 808,
+        "fields_grammar_ok": 814,
         "orphan_fields": 6,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
-        "req_sem_aceite_total": 246,
-        "req_sem_covering_test_total": 349,
+        "req_sem_aceite_total": 238,
+        "req_sem_covering_test_total": 341,
         "req_teste_vermelho_total": 0,
         "req_sem_lane_total": 37,
         "behavior_known": false,
@@ -108,13 +108,13 @@
     },
     "n_quarantine": {
       "status": "measured",
-      "value": 252,
+      "value": 251,
       "unit": "arquivos de teste",
       "direction": "down",
       "target": 0,
       "source": "convenção legacy-quarantine (@group | ->group() | skip) em tests/ + Modules/*/Tests (este script)",
       "detail": {
-        "quarantined_files": 252
+        "quarantined_files": 251
       },
       "stream": "FV"
     },
