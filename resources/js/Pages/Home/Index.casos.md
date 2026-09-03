@@ -4,7 +4,7 @@ casos: Dashboard · Visão geral · /dashboard-legacy
 irmaos: Index.charter.md (lei) · Index.tsx (tela) · _components/GradesPainel.tsx
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-08-28"
+last_run: "2026-09-03"
 ---
 
 # Casos de uso — /dashboard-legacy (Visão geral)
@@ -107,7 +107,9 @@ O gate `contrato-de-tela` lê as 5 âncoras `data-contract` na **ordem do fonte*
 ## UC-DASH-18 — A tela não tem violação crítica de a11y, e nenhum gráfico é desenho mudo
 Status: 🧪 (2 testes em `VisaoGeralIndexTest` citam este UC — o axe e a concordância gráfico↔tabela.)
 Duas metades do mesmo contrato. A primeira é o piso de a11y no browser real: `axe-core` nível 0 (CRITICAL only), o mesmo ratchet do `A11yAxeBrowserTest` — escolhido lá como baseline explícito em vez de allowlist de violações. A segunda defende o que o `Chart` do DS **não** entrega sozinho: ele desenha SVG puro, então quem não enxerga o desenho não recebe número nenhum. A alternativa textual (`SerieAcessivel`, tabela `sr-only` com total e pico) existe desde [`Index.tsx:352`](Index.tsx) e nenhum gate a defendia.
-**Pronto quando:** `assertNoAccessibilityIssues(level: 0)` passa na tela autenticada, **e** o painel de gráficos tem tantas tabelas `sr-only` quanto SVGs desenhados. A segunda metade é escrita como **concordância**, nunca presença: `0|0` (tenant sem venda) passa e `1|0` (alguém removeu o `SerieAcessivel`) falha — exigir a tabela sempre reprovaria o estado legítimo de série vazia.
+**Pronto quando:** `assertNoAccessibilityIssues(level: 0)` passa na tela autenticada, **e** o painel de gráficos tem tantas tabelas `sr-only` quanto SVGs desenhados.
+
+> **Revalidado 2026-09-03** (a tela mudou: o hero ganhou o sparkline da âncora). O critério acima segue valendo **sem alteração** porque ele mede o painel `[data-contract="graficos"]`, e o sparkline vive no card do KPI, fora dele. Lá o SVG é **decorativo** e está `aria-hidden`: o valor do período e o delta já estão em TEXTO no mesmo card. Nos 2 gráficos do painel o dado não está escrito em lugar nenhum — por isso lá a tabela `sr-only` é obrigatória, e aqui seria ruído. A segunda metade é escrita como **concordância**, nunca presença: `0|0` (tenant sem venda) passa e `1|0` (alguém removeu o `SerieAcessivel`) falha — exigir a tabela sempre reprovaria o estado legítimo de série vazia.
 
 ---
 

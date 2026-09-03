@@ -140,3 +140,16 @@ São treze filhos inline por linha. Sem papel, o leitor de tela os lê em sequê
 A metade que **não** é presença é a premissa: `listitem` só está correto enquanto a linha for um item que **não navega**. No protótipo ela tem `onClick` (abre o issue-drawer, que nesta tela não existe); aqui não tem. Se ganhar, `listitem` passa a mentir e o papel tem que virar `row`/`button` **junto com o teclado que ele promete** — prometer navegação 2D que a tela não implementa é a mesma afordância falsa do checkbox de seleção em massa (LC-15), só que invisível pra quem enxerga. Sem essa perna o caso seria presence-gate puro (LC-11).
 
 **Pronto quando:** `.fj-list` tem `role="list"`, `.fj-group` tem `role="group"` + `aria-label`, `.fj-row` tem `role="listitem"`, a contagem de issues da barra de totais tem `role="status"` — **e** a `.fj-row` continua sem `onClick`, reprovando com a instrução de rever o papel (não de apagar o caso) no dia em que ganhar.
+## PARIDADE §11 — o painel "Papéis" (`forja-runbook`)
+
+## UC-TRAB-18 — O painel de papéis DERIVA da fonte viva, e cala o que a fonte marcou superado
+Status: 🧪 (1 teste cita este UC — `tests/js/forja-runbook.test.tsx`, 5 casos; dois deles MUTAM `PAPEIS` em tempo de teste e exigem que a tela acompanhe, com guarda anti-falso-verde se a fonte vier vazia.)
+O botão "Papéis" estava na lista de ausências declaradas do `Index.tsx` — *"abre painéis (runbook e IA) que não existem"*. O painel é **onboarding**: quem chega novo lê ali quem faz o quê. Isso muda o risco de lugar — o perigo não é desenhar torto, é **ensinar errado**, e ensinar errado com cara de canon é o modo mais caro de errar (a próxima sessão obedece).
+
+Daí as duas metades deste caso. **Derivar:** a lista de papéis, a contagem do título e o dono de cada fase saem de `trabalhoTokens.ts` — o dono por **inversão** do `desc` (`'F1 — protótipo visual'` ⇒ F1 é do `[CC]`), nunca de um mapa escrito aqui. Papel novo aparece sozinho; papel que sai leva o badge junto. O protótipo escreve `6 papéis` literal e o main tem 7 — número à mão apodrece no primeiro papel novo.
+
+**Calar:** o `forja-runbook.jsx` declara que seu texto vem do `PROTOCOL.md §1–§3`, e o próprio PROTOCOL marca §1 e §3 como 🪦 **superado** (v2 tem 2 papéis, ADR 0282; os gates humanos viraram checks de CI). Copiar aquele texto entregaria uma tela que ensina o loop v1. Então a FORMA é do protótipo (UI-0029, classes `fj-rb-*` e estrutura de drawer) e o CONTEÚDO é do main — conteúdo normativo não é eixo do protótipo. O que não tem fonte válida fica **declarado ausente na própria tela**, não em branco: sem isso a próxima sessão lê o painel curto como bug e "completa" com o texto que este caso barra.
+
+Terceira perna, a que impede affordância falsa (LC-15): o painel é **leitura pura** — zero query, zero escrita. Se um dia ganhar ação, ela precisa de rota antes do botão.
+
+**Pronto quando:** a contagem de `<li>` de papéis bate com `Object.keys(PAPEIS).length` (e falha se a fonte esvaziar); acrescentar um papel à fonte faz surgir a linha **sem editar o componente**; realocar o `desc` do `[CC]` migra o badge de fase junto; o texto renderizado **não** contém `/design-override`, `/screenshot-override`, `/a11y-override` nem "Aprovação visual síncrona", **e** contém a declaração da ausência; o drawer tem `role="dialog"` + `aria-modal` + `aria-label` e fecha no `Esc`.
