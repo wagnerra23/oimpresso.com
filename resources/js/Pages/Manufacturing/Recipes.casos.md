@@ -5,7 +5,7 @@ tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 fonte: handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §17 (R-01..R-24) — os UC abaixo DERIVAM dele
 owner: wagner
-last_run: "2026-09-02"
+last_run: "2026-09-03"
 ---
 
 # Casos de Uso & Aceite — Manufacturing/Recipes
@@ -163,3 +163,8 @@ decisão de quem escreveu o §4.2, não minha. Fica registrado em vez de silenci
 - 2026-09-02 · [CC] carimbado por `criar-tela.mjs` e preenchido a partir do handoff
   "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §17. 7 UC com teste Pest; 8 no backlog aguardando e2e.
   Refs: UI-0013 · ADR 0264 G-1/G-2 · ADR 0104.
+- 2026-09-03 · [F+C] `Recipes.tsx` tocado (aba "Relatório" passou a apontar pra
+  `/manufacturing/v2/report`, a tela nova de US-MANU-002, em vez do Blade legado
+  `/manufacturing/report`). Revalidado: nenhum dos 7 UC acima cita a aba de navegação —
+  o comportamento que eles defendem (consulta/custo/tenant/legacy) não mudou. `last_run`
+  bumped por G-6 (a tela mudou), não por regressão encontrada.

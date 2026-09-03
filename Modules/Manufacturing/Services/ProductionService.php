@@ -281,17 +281,20 @@ class ProductionService
                     $qty = (float) $line->quantity;
                     $custo = $this->bomService->calculateUnitCost($recipe) * $qty;
 
+                    // `??=`, não `if (!isset)` — este é acumulador (1ª ocorrência da chave
+                    // inicia o balde), não fallback silencioso de input ausente. PHPStan
+                    // custom rule NoSilentFallbackRule (ADR 0212) não detecta `??=` de
+                    // propósito (ver docblock da rule); mesmo idioma de
+                    // RecipeBomService::presentRecipe() (`$grupos[$nomeGrupo] ??= [...]`).
                     $key = (string) $recipe->variation_id;
-                    if (! isset($acc[$key])) {
-                        $acc[$key] = [
-                            'recipe_id'   => (int) $recipe->id,
-                            'nome'        => $recipe->getAttribute('product_name') ?: '—',
-                            'unidade'     => $recipe->getAttribute('unit_name') ?: '',
-                            'ordens'      => 0,
-                            'quantidade'  => 0.0,
-                            'custo_total' => 0.0,
-                        ];
-                    }
+                    $acc[$key] ??= [
+                        'recipe_id'   => (int) $recipe->id,
+                        'nome'        => $recipe->getAttribute('product_name') ?: '—',
+                        'unidade'     => $recipe->getAttribute('unit_name') ?: '',
+                        'ordens'      => 0,
+                        'quantidade'  => 0.0,
+                        'custo_total' => 0.0,
+                    ];
 
                     $acc[$key]['ordens']++;
                     $acc[$key]['quantidade'] += $qty;
