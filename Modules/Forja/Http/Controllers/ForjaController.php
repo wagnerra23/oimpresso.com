@@ -152,14 +152,26 @@ class ForjaController extends Controller
 
     public function mcp(): Response
     {
-        // Fase 1 (ADR 0283): a aba MCP deixa de ser 100% mock — projeta os handoffs
-        // REAIS de `cowork_handoffs` (+ heartbeat do ingest) via Inertia::defer,
-        // espelhando triagem()/quadro(). Contrato/tokens/auditoria seguem MOCKADO
-        // (vitrine de design); só a seção Handoffs é dado vivo. Sem auto-merge: as
-        // levers roteiam pelas tools MCP e o merge é o 1-clique do [W] (ADR 0283).
-        // Sem prop: contrato/tokens/auditoria são estáticos (vitrine). Os handoffs,
-        // que eram o único dado vivo desta aba, foram pra handoffs() abaixo.
-        return Inertia::render('team-mcp/Forja/Cockpit', $this->tabPayload('mcp'));
+        // Fase 1 (ADR 0283): a aba MCP não é 100% mock — projeta os handoffs REAIS de
+        // `cowork_handoffs` (+ heartbeat do ingest) via Inertia::defer, espelhando
+        // triagem()/quadro(). Contrato/tokens/auditoria seguem MOCKADO (vitrine de
+        // design); só a seção Handoffs é dado vivo. Sem auto-merge: as levers roteiam
+        // pelas tools MCP e o merge é o 1-clique do [W] (ADR 0283).
+        //
+        // PARIDADE §11 Onda 8: as duas props VOLTARAM (tinham ido pra handoffs() em
+        // 2026-08-08, quando a seção virou tela) porque o protótipo desenha o painel
+        // DENTRO da view `mcp`. Mesmo service, mesma projeção de handoffs() abaixo —
+        // e `defer` só executa a closure quando a prop é pedida, então a aba não paga
+        // a consulta duas vezes nem no primeiro render.
+        $svc = app(ForjaMcpService::class);
+
+        return Inertia::render('team-mcp/Forja/Cockpit', array_merge(
+            $this->tabPayload('mcp'),
+            [
+                'handoffs'  => Inertia::defer(fn () => $svc->handoffs()),
+                'heartbeat' => Inertia::defer(fn () => $svc->heartbeat()),
+            ],
+        ));
     }
 
     /**

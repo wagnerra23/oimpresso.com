@@ -13,16 +13,15 @@ related_adrs: [26, 31, 35, 36, 52, 93, 94, 107, 114]
 related_us: [US-COPI-010, US-COPI-011, US-COPI-012, US-COPI-146, US-COPI-148]
 related_charters:
   - resources/js/Pages/Jana/Chat.charter.md
-  - resources/js/Pages/Jana/Cockpit.charter.md
 related_specs:
   - memory/requisitos/Jana/SPEC.md (US-COPI-010, US-COPI-011, US-COPI-012)
 runbook: memory/requisitos/Jana/RUNBOOK-index.md
 tier: A
-charter_version: 11
-permissao: copiloto.access
+charter_version: 12
+permissao: jana.access
 ---
 
-# Page Charter — `/copiloto/dashboard`
+# Page Charter — `/ia`
 
 > **Status:** `live` — implementada e em uso prod biz=1 desde 2026-04. Charter retroativo Wave M 2026-05-16.
 
@@ -193,6 +192,9 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 `brief-first` (Tier A) · `multi-tenant-patterns` (Tier A) · `inertia-defer-default` (Tier B) · `mwart-process` (Tier A)
 
 ## Charter version log
+
+- **v12 (2026-09-02)** — **dois ponteiros podres do frontmatter, gap #23 do [AUDIT-GAPS](../../../../memory/requisitos/Jana/AUDIT-GAPS-2026-08-10.md).** (a) `related_charters` apontava pra `Cockpit.charter.md`, **apagado** — removido; medido no repo inteiro: **280 charters, 3 usam `related_charters`, 1 entrada morta** (esta). (b) `permissao: copiloto.access` — a key não existe; a real é **`jana.access`**, aplicada no grupo `/ia` ([`routes.php:50`](../../../../Modules/Jana/Http/routes.php)). (c) o título do corpo dizia `/copiloto/dashboard`, rota que hoje é 301 — a lista de ponteiros podres da [emenda do Cowork](../../../../prototipo-ui/design-docs/cowork-inbox/JANA-CASOS-EMENDA-PERMISSAO-2026-08-27.md) registra que foi de cabeçalho assim que saiu o `/jana` errado da rodada 1: comentário podre não é inerte, ensina errado ao próximo executor.
+  ⚠️ **Nenhum script valida `related_charters`, e isso segue assim de propósito:** o `deadlink-gate` **já varre** `Pages/**/*.charter.md` (desde 2026-08-10, FP medido) mas só o CORPO markdown — e o próprio `deadlink-gate.test.mjs` usa **este caso** como fixture do limite (*"charter LIMITE: frontmatter related_charters NAO e validado por este gate"*). Com adoção de 3/280 e 1 entrada morta, ampliar seria catraca sobre campo quase não usado; two-strikes ([ADR 0344](../../../../memory/decisions/0344-two-strikes-cobre-processo.md)): 1ª ocorrência conserta, não codifica.
 
 - v11 (2026-08-31) — **O conjunto de KPIs cai pra 3, na paridade com a âncora** (item 4
   da lista de 2026-08-28). Sai o `PIX hoje`; `KpiGrid` passa a `cols={3}`; a ordem dos
