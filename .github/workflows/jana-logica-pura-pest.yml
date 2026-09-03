@@ -92,6 +92,12 @@ on:
       - 'Modules/Jana/Resources/views/**'
       - 'Modules/Jana/Database/Migrations/*_add_event_time_to_jana_memoria_facts.php'
       - 'Modules/Forja/Database/Migrations/*_add_hash_chain_to_mcp_audit_log.php'
+      # GUARD: todo comando de Console/Commands existe no artisan (Artisan::all()).
+      # O sujeito sao o DIRETORIO de comandos e o provider que os registra — sem os
+      # dois, nascer/registrar comando nao dispara o guard dele (gate mudo · §5 2026-08-02).
+      - 'Modules/Jana/Console/Commands/**'
+      - 'Modules/Jana/Providers/JanaServiceProvider.php'
+      - 'Modules/Jana/Tests/Unit/JanaCommandsRegistradosTest.php'
       - '.github/workflows/jana-logica-pura-pest.yml'
   workflow_dispatch:
 
@@ -179,6 +185,7 @@ jobs:
             Modules/Jana/Tests/Unit/IndexarMemoryRedactorRunIdTest.php \
             Modules/Jana/Tests/Unit/JanaViewsSemAndaimeTest.php \
             Modules/Jana/Tests/Unit/McpToolsNaoCitamComandoInexistenteTest.php \
+            Modules/Jana/Tests/Unit/JanaCommandsRegistradosTest.php \
             Modules/Jana/Tests/Unit/BriefCuradoriaTest.php \
             Modules/Governance/Tests/Unit/BladeMigrationSentinelVerdictTest.php \
             Modules/Governance/Tests/Unit/GovernanceMigrationsRegisteredTest.php \
