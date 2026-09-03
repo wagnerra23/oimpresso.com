@@ -981,6 +981,7 @@ function SidebarMenuRail({
           href="/ia/dashboard"
           className="sb-rail-btn"
           data-tip="IA"
+          aria-label="IA"
           onClick={() => setFlyout(null)}
         >
           <Bot size={18} className="ic" />
@@ -999,6 +1000,7 @@ function SidebarMenuRail({
             className={`sb-rail-btn${active ? ' active' : ''}`}
             aria-current={active ? 'page' : undefined}
             data-tip={item.label}
+            aria-label={item.label}
             onClick={() => setFlyout(null)}
           >
             <LandingIcon size={18} className="ic" />
@@ -1010,6 +1012,7 @@ function SidebarMenuRail({
           href="/team-mcp/team"
           className="sb-rail-btn"
           data-tip="Equipe"
+          aria-label="Equipe"
           onClick={() => setFlyout(null)}
         >
           <Users size={18} className="ic" />
@@ -1020,6 +1023,7 @@ function SidebarMenuRail({
           href="/atendimento"
           className="sb-rail-btn"
           data-tip="Atendimento"
+          aria-label="Atendimento"
           onClick={() => setFlyout(null)}
         >
           <MessageCircle size={18} className="ic" />
@@ -1043,6 +1047,7 @@ function SidebarMenuRail({
             type="button"
             className={`sb-rail-btn sb-rail-group ${isOpen ? 'open' : ''}`}
             data-tip={g.label}
+            aria-label={g.label}
             style={railStyle}
             onClick={() => (isOpen ? setFlyout(null) : openFlyout(g.key))}
             aria-expanded={isOpen}
