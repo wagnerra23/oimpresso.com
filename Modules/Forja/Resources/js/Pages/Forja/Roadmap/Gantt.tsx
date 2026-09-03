@@ -379,6 +379,32 @@ function RoadmapGantt(props: Props) {
   const ganttTasks = useMemo(() => toGanttTasks(tasks), [tasks]);
   const ganttLinks = useMemo(() => toGanttLinks(tasks), [tasks]);
 
+  /**
+   * Quantas passaram do prazo — o `N com prazo vencido` da barra de totais do
+   * protótipo (PARIDADE §11 Onda 6).
+   *
+   * Conta pelo `due_date` REAL e só o que ainda está em aberto: task concluída
+   * ou cancelada não está "vencida", está encerrada. Sem `due_date` não há prazo
+   * pra vencer — e é o caso da esmagadora maioria hoje (7 de 1186 em produção,
+   * medido em 2026-09-03), então o normal é este contador ficar em 0.
+   *
+   * NÃO uso a janela derivada que o `toGanttTasks` inventa quando falta data
+   * (`start + 3d`, :196): ela existe pra a barra ter largura, não pra afirmar
+   * prazo. Contar vencida em cima dela seria transformar um default de desenho
+   * em fato de negócio.
+   */
+  const vencidas = useMemo(() => {
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+
+    return tasks.filter((t) => {
+      if (!t.due_date) return false;
+      if (t.status === 'done' || t.status === 'cancelled') return false;
+      const d = parseDate(t.due_date);
+      return d !== null && d < hoje;
+    }).length;
+  }, [tasks]);
+
   // Escalas Gantt — semanas + dias, default 1280px friendly.
   const scales = useMemo(
     () => [
@@ -609,6 +635,19 @@ function RoadmapGantt(props: Props) {
             </CardContent>
           </Card>
 
+          {/* PARIDADE §11 Onda 6 — o parágrafo-âncora do protótipo (`.fj-quadro-ancora`,
+              `forja-page.jsx` :553). Copy literal, menos a promessa de arrastar, que
+              aqui é condicional: sem `jana.mcp.tasks.write` a barra é readonly, e
+              anunciar o gesto seria afordância falsa (LC-15). */}
+          <p className="fj-quadro-ancora" data-testid="gantt-ancora">
+            <b>O que vence esta semana e o que está bloqueando o quê.</b> Barras por módulo,
+            progresso pelo status;{' '}
+            {can_edit
+              ? <>arraste a barra pra reagendar <b>o prazo</b> (só o prazo — início é do ciclo de vida). </>
+              : null}
+            Clique abre o detalhe.
+          </p>
+
           {/* Gantt */}
           <Card>
             <CardHeader>
@@ -650,6 +689,25 @@ function RoadmapGantt(props: Props) {
               )}
             </CardContent>
           </Card>
+
+          {/* PARIDADE §11 Onda 6 — a barra de totais do protótipo
+              (`.fj-totalbar.fj-g-foot`, `forja-page.jsx` :594-601).
+
+              ⚠️ O número de vencidas sai do `due_date` REAL, não da janela inventada
+              do protótipo (lá `fjGanttRange` deriva as datas de um hash do id — é
+              mock, e copiá-lo seria dado fantasma). Consequência medida em produção
+              em 2026-09-03: só **7 de 1186** tasks têm `due_date`, então este contador
+              costuma ficar em 0. Isso é a verdade do dado, não um bug do contador. */}
+          <div className="fj-totalbar fj-g-foot" data-testid="gantt-totalbar">
+            <span><b>{tasks.length}</b> tarefa{tasks.length === 1 ? '' : 's'}</span>
+            <span className="fj-total-warn"><b data-testid="gantt-vencidas">{vencidas}</b> com prazo vencido</span>
+            <span className="fj-g-leg"><i className="lg-prog" />progresso</span>
+            <span className="fj-g-leg"><i className="lg-atr" />prazo vencido</span>
+            <span className="fj-g-leg"><i className="lg-hoje" />hoje</span>
+            <span className="fj-total-hint">
+              {can_edit ? 'arraste a barra = reagendar prazo · clique = detalhe' : 'clique = detalhe'}
+            </span>
+          </div>
         </Stack>
       </Box>
 
