@@ -165,6 +165,26 @@ class Ct100CircuitBreaker
         return true;
     }
 
+    /**
+     * Perna "meilisearch/sync" pro consolidador do `jana:health-check`.
+     *
+     * NÃO sonda: devolve o que o cron de 5min JÁ observou. O health-check roda
+     * 1x/dia; o sync roda 288x/dia e é quem atravessa o caminho de fato — sondar
+     * aqui de novo seria um segundo medidor do mesmo fato.
+     *
+     * @return array{service: string, reachable: ?bool, since: ?string}
+     */
+    public static function healthLeg(): array
+    {
+        $since = self::downSince();
+
+        return [
+            'service' => 'meilisearch/sync',
+            'reachable' => $since === null ? null : false, // null = nunca observado.
+            'since' => $since?->toIso8601String(),
+        ];
+    }
+
     private static function parseSince(mixed $raw): ?Carbon
     {
         if (! is_string($raw) || $raw === '') {

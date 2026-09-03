@@ -15,7 +15,9 @@ name: Knowledge Ghost Gate (advisory)
 # recusa absorver ghost novo.
 
 on:
+  workflow_dispatch:
   pull_request:
+    types: [opened, reopened, ready_for_review]
     branches: [main]
     paths:
       - 'memory/requisitos/**'

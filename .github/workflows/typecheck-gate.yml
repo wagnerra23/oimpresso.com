@@ -28,6 +28,7 @@ on:
       - 'package-lock.json'
       - '.github/workflows/typecheck-gate.yml'
   pull_request:
+    types: [opened, reopened, ready_for_review]
     branches: [main]
   workflow_dispatch:
 

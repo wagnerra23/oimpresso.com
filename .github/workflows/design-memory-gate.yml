@@ -55,6 +55,7 @@ name: Design-memory gate (advisory)
 
 on:
   pull_request:
+    types: [opened, reopened, ready_for_review]
     branches: [main]
     paths:
       - 'resources/js/Components/ui/**'
