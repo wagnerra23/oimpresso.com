@@ -198,12 +198,18 @@ livre. A justificativa está escrita no cabeçalho do próprio hook
 (`useBoardShortcuts.ts` L9-13).
 O SPEC era o perdedor da precedência e está corrigido aqui, no lugar de o código ser dobrado à linha velha.
 
-**Correção do item de teste:** o SPEC dizia *"Tests Pest (~não aplicável; teste manual)"*. Falso hoje —
-a cobertura existe e é automatizada em jsdom, não em Pest:
-`tests/forjaBoardShortcuts.spec.tsx` rodado pela lane
-[`.github/workflows/forja-shortcuts-gate.yml`](../../../.github/workflows/forja-shortcuts-gate.yml).
+**Histórico do item de teste:** entre 2026-08-04 e 2026-09-03 a cobertura destes atalhos foi
+automatizada em jsdom (`tests/forjaBoardShortcuts.spec.tsx`, lane própria
+`.github/workflows/forja-shortcuts-gate.yml`, PR #5261) — o SPEC antes dizia *"teste manual"* e
+isso era falso naquele período.
 
-**Implementado em:** `Modules/Forja/Resources/js/Pages/Forja/Board/_components/useBoardShortcuts.ts` + `Modules/Forja/Resources/js/Pages/Forja/Board/_components/ShortcutsOverlay.tsx`
+⛔ **REVOGADO em 2026-09-03 (Onda 11).** O Board saiu com a ADR 0367 D1, e com ele o hook, o
+overlay, o spec e a lane. **A capacidade NÃO foi portada:** os atalhos `E`/`A`, o overlay `?` e os
+filtros cycle/epic/owner não existem no receptor (`/forja/trabalho?visao=quadro`) — perda medida
+na própria ADR 0367 §Consequências e aceita por [W] em PARIDADE §11 (*"o resto não importa. Não
+uso ainda essa tela"*). O contrato do que se perdeu está preservado em `CHARTER-board.md`, tarjado.
+
+**Implementado em:** _pendente_ — PMG-008 revogada na Onda 11 (2026-09-03) sem receptor; ver ADR 0367 D1
 
 #### PMG-009 · Cycle close UI (retro markdown + rollover)
 
