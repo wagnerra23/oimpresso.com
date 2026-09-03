@@ -1,7 +1,25 @@
-// Quadro do Trabalho — DOIS EIXOS sobre a MESMA lista.
+// Quadro do Trabalho — a RÉPLICA do `KanbanView` do protótipo (PARIDADE §11 Onda 5).
 //
-// Por que dois, e não um: o hub tinha dois boards que pareciam concorrentes e
-// respondiam perguntas diferentes.
+// Árvore do protótipo (`prototipo-ui/cowork/forja-page.jsx` :467-503), 1:1:
+//
+//   .fj-quadro-wrap
+//     ├ .fj-quadro-ancora        →  o parágrafo que explica o eixo E o recorte
+//     └ .fj-kanban
+//         └ .fj-kcol[--ph]  × N
+//             ├ .fj-kcol-head
+//             │   ├ .fj-kcol-top   (dot · id · rótulo · contagem)
+//             │   ├ .fj-kcol-quem  (RoleBadge do dono · o que ele faz)   ← só Pipeline
+//             │   └ .fj-kcol-sai   ("sai quando: …")                     ← só Pipeline
+//             └ .fj-kcol-body
+//                 ├ .fj-kc × N     (o card)
+//                 └ .fj-kcol-empty (coluna vazia)
+//
+// A versão anterior era DS puro (`Grid`/`Card`/`Inline` + utilitárias Tailwind).
+// Não estava errada — estava ANTES da ADR 0388, que fez do protótipo o contrato
+// de layout. O que muda aqui é a aparência; as decisões de PRODUTO abaixo (dois
+// eixos, o filtro do Pipeline, o recorte honesto, sem drag) vêm intactas.
+//
+// ── DOIS EIXOS sobre a MESMA lista, e por que ────────────────────────────────
 //
 //   PIPELINE (F0→F4) — "em que ponto do protocolo de TELA isto está?"
 //     Só faz sentido pra trabalho de tela. Task de infra/gate/ADR não tem fase, e
@@ -23,71 +41,147 @@
 // O eixo Execução é outra pergunta — lá `done`/`cancelled` seguem fora, porque
 // board de trabalho mostra o que está em curso.
 //
-// ⚠️ SEM DRAG NESTA ONDA. O pedido descreve arrastar pra mudar `status` (e propor
-// mudança de fase). Mover card é MUTAÇÃO, e mutação sem o caminho governado
-// (`TaskCrudService`, que valida o FSM) seria um segundo caminho de escrita — o
-// erro que a Mesa evitou de propósito. Fica pra onda com o endpoint.
+// ── SEM DRAG, e isto NÃO é dívida desta onda ─────────────────────────────────
+// O protótipo arrasta card (`draggable` + `onDrop` → `onMove`/`onMoveExec`) e a
+// coluna vazia dele diz "arraste aqui". Aqui não: mover card é MUTAÇÃO, e mutação
+// fora do caminho governado (`TaskCrudService`, que valida o FSM) seria um segundo
+// caminho de escrita — o erro que a Mesa de Aprovações evitou de propósito. É
+// Non-Goal escrito no charter, não esquecimento.
+//
+// Por isso a coluna vazia diz **"vazia"**, não "arraste aqui": anunciar um gesto
+// que a tela não escuta é afordância falsa (LC-15). A diferença está declarada no
+// charter §"Diferenças declaradas".
+//
+// ── Os selos são os ÁTOMOS-RÉPLICA, não os do `shared/` ──────────────────────
+// `PrioDot`/`OwnerSeal`/`TypeChip`/`Star` vêm de `./trabalhoAtomos` — os mesmos
+// que a lista usa desde a Onda 4. O charter tinha um anti-hook mandando usar
+// `shared/TaskBadges`; ele foi escrito ANTES da ADR 0388 e está reconciliado no
+// charter desta onda. O que aquele anti-hook protege — não perder a distinção
+// AGENTE × HUMANO — continua honrado: é exatamente o que o `OwnerSeal` faz, com
+// a allowlist `agents` do backend (nunca heurística de nome).
 
-import { Card, CardContent } from '@/Components/ui/card';
-import { Grid, Inline, Stack } from '@/Components/layout';
-import { COLUMN_LABEL_PT, COLUMN_BORDER, type Status } from '@/Components/board/badges';
-// Selos canônicos — reuso, não hand-roll. O `ActorSeal` distingue AGENTE de
-// HUMANO, que é o conceito central da Forja (o subtítulo do hub diz "atores
-// humano vs agente"); a 1ª versão deste quadro mostrava `owner` em texto cinza
-// e perdia a distinção inteira. Ver proibicoes §5 2026-08-10 — "Construir tela
-// derivando do CÓDIGO quando existe FONTE DE DESIGN".
-import { ActorSeal, PriorityDot } from '@/Components/shared/TaskBadges';
-import type { Priority } from '@/Lib/taskTokens';
-import { cn } from '@/Lib/utils';
-import { Lock } from 'lucide-react';
+import { FASE_HUE, STATUS_FJ } from './trabalhoTokens';
+import { LockIco, OwnerSeal, PrioDot, RoleBadge, Star, TypeChip } from './trabalhoAtomos';
+import type { TarefaLista } from './TrabalhoLista';
 
 export type EixoQuadro = 'pipeline' | 'execucao';
-
-interface TaskCard {
-  task_id: string;
-  display_id: string;
-  title: string;
-  module: string | null;
-  owner: string | null;
-  priority: Priority;
-  status: Status;
-  is_blocked: boolean;
-  forja_fase: string | null;
-}
 
 /**
  * As fases do protocolo — MESMA lista e MESMOS rótulos do `ForjaQuadroService`
  * (`Modules/Forja/Services/ForjaQuadroService.php`). Duplicar aqui seria criar
  * uma segunda declaração do pipeline; isto é espelho consciente do backend, e o
- * `UC-TRAB-07` trava a igualdade dos dois lados.
+ * `UC-TRAB-07` trava a igualdade dos dois lados (ele lê as `key:` deste bloco).
+ *
+ * `owner`/`faz`/`sai` NÃO vêm do backend — ele serve só `key` e `label`. Eles são
+ * a definição do protocolo, e a fonte é `forja-data.jsx` (`FORJA_PHASES`), a mesma
+ * de onde o `FASE_HUE` foi espelhado na Onda 4 e pelo mesmo motivo: é vocabulário
+ * de design, constante, que o payload não tem por que carregar por task. São o que
+ * torna a coluna auto-explicativa no protótipo (`.fj-kcol-quem` / `.fj-kcol-sai`);
+ * sem eles a réplica perde duas das três linhas do cabeçalho.
  */
-const FASES: { key: string; label: string }[] = [
-  { key: 'F0',   label: 'F0 Brief' },
-  { key: 'F1',   label: 'F1 Design' },
-  { key: 'F1.5', label: 'F1.5 Critique' },
-  { key: 'F2',   label: 'F2 Screenshot' },
-  { key: 'F3',   label: 'F3 Code' },
-  { key: 'F3.5', label: 'F3.5 A11y' },
-  { key: 'F4',   label: 'F4 Merge' },
+const FASES: { key: string; label: string; owner: string; faz: string; sai: string }[] = [
+  { key: 'F0',   label: 'Brief',      owner: 'W',  faz: 'você escreve o pedido',            sai: 'brief aceito → agente assume' },
+  { key: 'F1',   label: 'Design',     owner: 'CC', faz: 'protótipo visual no Cowork',       sai: 'handoff + ✓ lido @main' },
+  { key: 'F1.5', label: 'Critique',   owner: 'CD', faz: 'avaliação heurística do design',   sai: 'score ≥ 80' },
+  { key: 'F2',   label: 'Screenshot', owner: 'W2', faz: 'VOCÊ aprova o visual',             sai: 'seu aprovo (gate F2)' },
+  { key: 'F3',   label: 'Code',       owner: 'CL', faz: 'implementação Inertia/React real', sai: 'PR aberto + gates verdes' },
+  { key: 'F3.5', label: 'A11y',       owner: 'CA', faz: 'acessibilidade WCAG 2.1 AA',       sai: 'a11y verde' },
+  { key: 'F4',   label: 'Merge',      owner: 'W2', faz: 'VOCÊ funde o PR',                  sai: 'merge → entra no changelog' },
 ];
 
 /** Colunas do eixo Execução — as ATIVAS. `done`/`cancelled` saem do board. */
-const STATUS_ATIVOS: Status[] = ['todo', 'doing', 'review', 'blocked'];
+const STATUS_ATIVOS: string[] = ['todo', 'doing', 'review', 'blocked'];
 
-export default function TrabalhoQuadro({ tasks, eixo, agents = [] }: { tasks: TaskCard[]; eixo: EixoQuadro; agents?: string[] }) {
-  const colunas = eixo === 'pipeline'
+/**
+ * Uma coluna do board, nos DOIS eixos.
+ *
+ * `rotulo`/`owner`/`faz`/`sai` são `null` no eixo Execução — lá o protótipo mostra
+ * só o rótulo PT do status no lugar do ID, sem as duas linhas de cabeçalho que
+ * explicam o dono da fase (`{fases && …}` no protótipo, :488-490).
+ */
+interface ColunaQuadro {
+  chave: string;
+  id: string;
+  rotulo: string | null;
+  hue: number;
+  owner: string | null;
+  faz: string | null;
+  sai: string | null;
+  itens: TarefaLista[];
+}
+
+/** O card do quadro — `.fj-kc` do protótipo (`KanbanCard`, :445-465). */
+function QuadroCard({
+  t, favorito, onFavoritar, agents,
+}: {
+  t: TarefaLista;
+  favorito: boolean;
+  onFavoritar: (id: string) => void;
+  agents: string[];
+}) {
+  return (
+    <div className="fj-kc" data-testid="quadro-card">
+      <div className="fj-kc-top">
+        <PrioDot prio={t.priority} title={`Prioridade ${t.priority.toUpperCase()}`} />
+        <span className="fj-id">{t.display_id}</span>
+        {t.forja_tipo && <TypeChip tipo={t.forja_tipo} />}
+        <span className="fj-kc-spacer" />
+        <Star on={favorito} onClick={() => onFavoritar(t.task_id)} />
+      </div>
+
+      <div className="fj-kc-title">{t.title}</div>
+
+      <div className="fj-kc-foot">
+        <OwnerSeal papel={t.forja_papel} owner={t.owner} agents={agents} />
+        {t.forja_onda && <span className="fj-onda-chip">~{t.forja_onda}</span>}
+        <span className="fj-kc-spacer" />
+        {t.is_blocked && <LockIco />}
+      </div>
+    </div>
+  );
+}
+
+export default function TrabalhoQuadro({
+  tasks, eixo, agents = [], favoritos, onFavoritar,
+}: {
+  tasks: TarefaLista[];
+  eixo: EixoQuadro;
+  agents?: string[];
+  favoritos: Set<string>;
+  onFavoritar: (id: string) => void;
+}) {
+  const pipeline = eixo === 'pipeline';
+
+  // Tipo explícito de propósito: os dois ramos do ternário têm shapes diferentes
+  // (`rotulo`/`owner`/`faz`/`sai` só existem no Pipeline), e um `.map()` sobre a
+  // UNIÃO de dois arrays não compila. Uma forma só, com os campos do Execução em
+  // `null`, é o que mantém o JSX abaixo com um caminho só.
+  const colunas: ColunaQuadro[] = pipeline
     ? FASES.map((f) => ({
         chave: f.key,
-        titulo: f.label,
-        borda: 'border-primary/40',
+        // No Pipeline o protótipo mostra o ID em mono (`F1.5`) e o rótulo ao lado
+        // ("Critique") — dois slots distintos, não um rótulo concatenado.
+        id: f.key,
+        rotulo: f.label,
+        // `?? 250` porque o índice é `number | undefined` sob `noUncheckedIndexedAccess`.
+        // 250 é o hue neutro do protótipo (o mesmo default do eixo Execução).
+        hue: FASE_HUE[f.key] ?? 250,
+        owner: f.owner,
+        faz: f.faz,
+        sai: f.sai,
         // Só quem TEM a fase. Card sem fase não é trabalho de tela — não
         // pertence a este board, e forçá-lo numa coluna mentiria sobre ele.
         itens: tasks.filter((t) => t.forja_fase === f.key),
       }))
     : STATUS_ATIVOS.map((s) => ({
         chave: s,
-        titulo: COLUMN_LABEL_PT[s],
-        borda: COLUMN_BORDER[s],
+        // No Execução só há um slot: o rótulo PT do status ocupa o lugar do ID.
+        id: STATUS_FJ[s]?.label ?? s,
+        rotulo: null,
+        hue: STATUS_FJ[s]?.hue ?? 250,
+        owner: null,
+        faz: null,
+        sai: null,
         itens: tasks.filter((t) => t.status === s),
       }));
 
@@ -95,63 +189,74 @@ export default function TrabalhoQuadro({ tasks, eixo, agents = [] }: { tasks: Ta
   const foraDoBoard = tasks.length - totalNoBoard;
 
   return (
-    <Stack gap={3}>
-      {/* Honestidade sobre o recorte: o board NUNCA mostra tudo, e o usuário
-          precisa saber quantas ficaram de fora e por quê — senão ele conta os
-          cards, compara com o KPI e conclui que o sistema perdeu task. */}
-      <p className="text-xs text-muted-foreground tabular-nums" data-testid="quadro-recorte">
-        {totalNoBoard} no quadro
-        {foraDoBoard > 0 && (
-          <> · <span data-testid="quadro-fora">{foraDoBoard} fora</span>{' '}
-            {eixo === 'pipeline'
-              ? '(sem fase de pipeline — infra, gate, ADR: não é trabalho de tela)'
-              : '(concluídas ou canceladas — board mostra o que está em curso)'}
+    <div className="fj-quadro-wrap">
+      {/* O parágrafo-âncora do protótipo já carrega a honestidade sobre o recorte:
+          o board NUNCA mostra tudo, e quem conta card e compara com o KPI precisa
+          saber quantas ficaram de fora e por quê — senão conclui que sumiu task. */}
+      <p className="fj-quadro-ancora" data-testid="quadro-recorte">
+        {pipeline ? (
+          <>
+            <b>O ciclo de vida de cada tela, do brief à acessibilidade.</b> Cada card avança
+            da esquerda pra direita conforme o protocolo formaliza a fase (F0 → F4).
+            {foraDoBoard > 0 && (
+              <>
+                {' '}<b data-testid="quadro-fora">{foraDoBoard}</b> issue(s) sem fase
+                (infra · gate · ADR) vivem no eixo Execução.
+              </>
+            )}
+          </>
+        ) : (
+          <>
+            <b>Execução de todo o trabalho — visual ou não.</b> As 4 colunas ativas do canon
+            (A fazer → Fazendo → Revisão → Bloqueada); Backlog e Concluído não são colunas —
+            ficam na Lista, via KPI-filtro.
+            {foraDoBoard > 0 && (
+              <>
+                {' '}<b data-testid="quadro-fora">{foraDoBoard}</b> fora (backlog, concluídas
+                ou canceladas) — board mostra o que está em curso.
+              </>
+            )}
           </>
         )}
       </p>
 
-      <Grid gap={3} className="md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-6" data-testid="trabalho-quadro">
+      <div className="fj-kanban" data-testid="trabalho-quadro">
         {colunas.map((col) => (
-          <Stack gap={2} key={col.chave}>
-            <Inline gap={2} align="baseline" className={cn('border-t-2 pt-2', col.borda)}>
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-foreground">
-                {col.titulo}
-              </h3>
-              <span className="text-xs text-muted-foreground tabular-nums">{col.itens.length}</span>
-            </Inline>
+          <section key={col.chave} className="fj-kcol" style={{ '--ph': col.hue } as React.CSSProperties}>
+            <header className="fj-kcol-head">
+              <div className="fj-kcol-top">
+                <span className="fj-kcol-dot" />
+                <b>{col.id}</b>
+                {col.rotulo && <span className="fj-kcol-lbl">{col.rotulo}</span>}
+                <span className="fj-kcol-count">{col.itens.length}</span>
+              </div>
 
-            {col.itens.length === 0 && (
-              <p className="px-1 text-xs italic text-muted-foreground/60">vazia</p>
-            )}
+              {col.owner && (
+                <div className="fj-kcol-quem">
+                  <RoleBadge papel={col.owner} />
+                  <span className="fj-kcol-faz">{col.faz}</span>
+                </div>
+              )}
+              {col.sai && <div className="fj-kcol-sai">sai quando: <b>{col.sai}</b></div>}
+            </header>
 
-            {col.itens.map((t) => (
-              <Card key={t.task_id} data-testid="quadro-card">
-                <CardContent className="p-2.5">
-                  <Stack gap={2}>
-                    <Inline gap={2} align="center">
-                      <PriorityDot priority={t.priority} />
-                      <span className="font-mono text-[10px] text-muted-foreground">{t.display_id}</span>
-                      {t.is_blocked && <Lock className="ml-auto h-3 w-3 text-destructive" aria-label="bloqueada" />}
-                    </Inline>
-
-                    <p className="line-clamp-2 text-xs leading-snug text-foreground">{t.title}</p>
-
-                    <Inline gap={2} align="center">
-                      {t.module && (
-                        <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
-                          {t.module}
-                        </span>
-                      )}
-                      <ActorSeal owner={t.owner} agents={agents} className="ml-auto" />
-                    </Inline>
-                  </Stack>
-                </CardContent>
-              </Card>
-            ))}
-          </Stack>
+            <div className="fj-kcol-body">
+              {col.itens.map((t) => (
+                <QuadroCard
+                  key={t.task_id}
+                  t={t}
+                  favorito={favoritos.has(t.task_id)}
+                  onFavoritar={onFavoritar}
+                  agents={agents}
+                />
+              ))}
+              {/* "vazia", não "arraste aqui" — ver o bloco SEM DRAG no topo. */}
+              {col.itens.length === 0 && <div className="fj-kcol-empty">vazia</div>}
+            </div>
+          </section>
         ))}
-      </Grid>
-    </Stack>
+      </div>
+    </div>
   );
 }
 

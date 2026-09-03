@@ -115,3 +115,16 @@ O cartão diz o **tamanho do problema**; o clique mostra **quais são**. Se o n�
 Status: 🧪 (1 teste cita este UC — trava defaults, conjunto de válidos, e prova que valor inválido **não apaga** a lista.)
 Mesma razão do `sort` (UC-TRAB-03): valor livre viraria estado desconhecido no front, que renderiza vazio **sem erro**. Em `saude`/`papel` seria pior — recorte silencioso que ninguém pediu e ninguém vê. E o `filtrar()` **ignora** valor fora da allowlist em vez de devolver lista vazia: filtro desconhecido não pode apagar a tela.
 **Pronto quando:** o default de `grupo` é `frente`, `saude`/`papel` nascem nulos, e `saude=inventado` / `papel=ZZ` devolvem a lista inteira.
+
+## PARIDADE §11 Onda 5 — o Quadro é a réplica do `KanbanView`
+
+> Mesma lei da Onda 4 ([ADR 0388](../../../../memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md)): o `forja-page.jsx` (`KanbanView`, :467-503) é o contrato de layout do board, e o que a réplica deixou de fora está no charter §"Diferenças declaradas do Quadro".
+>
+> **Um caso só, e é o que a onda ACRESCENTOU DE RISCO.** O board ganhou o cabeçalho de três linhas do protótipo (`.fj-kcol-top` · `.fj-kcol-quem` · `.fj-kcol-sai`), e as duas últimas exigem `owner`/`faz`/`sai` por fase — campos que o backend **não serve** (`UC-PIPE-04`). O front passou a espelhá-los da fonte de design, como já fazia com o `FASE_HUE`. Espelho novo = trava nova; sem ela, as duas cópias divergem na primeira edição e ninguém percebe.
+>
+> O resto da onda é **aparência sobre comportamento que já tinha caso**: as colunas, o recorte e o filtro do eixo Pipeline seguem defendidos por `UC-TRAB-07` (fases × backend) e `UC-TRAB-08` (allowlist de `visao`/`eixo`). Repetir aqui seria régua paralela a régua consolidada.
+
+## UC-PIPE-05 — O cabeçalho de fase do Quadro (dono · faz · sai) é o da fonte de design
+Status: 🧪 (1 teste cita este UC em [`PipelineParidadeTest.php`](../../../../Tests/Feature/PipelineParidadeTest.php) — extrai os trios dos DOIS lados linha a linha, com guarda anti-falso-verde e mensagem que diz qual fase e qual campo divergiu.)
+O `.fj-kcol-quem` diz **quem responde** pela fase e o `.fj-kcol-sai` diz **o que faz o card sair dela** — é o protocolo do loop Cowork↔Code escrito na própria coluna, e foi por isso que o protótipo o pôs ali. Como o payload não carrega esses campos, a tela os espelha da fonte; se o espelho drifar, a coluna passa a afirmar sobre o protocolo uma coisa que o design não diz — e afirma com a autoridade de estar na tela. É a mesma doença que o `PipelineParidadeTest` já trava nas fases, agora no cabeçalho delas.
+**Pronto quando:** para cada fase do espelho, o trio `owner`/`faz`/`sai` é idêntico ao de `FORJA_PHASES` no protótipo; o extrator prova que achou papel dos dois lados (não compara dois vazios); e fase que exista só no front reprova com o nome dela na mensagem.

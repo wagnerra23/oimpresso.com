@@ -10,7 +10,7 @@ parent_module: Forja
 related_us: [US-FORJA-006]
 related_adrs: [70, 93, 253, 388]
 tier: B
-charter_version: 5
+charter_version: 6
 ---
 
 # Page Charter — /forja/trabalho
@@ -229,3 +229,33 @@ interno). Em produção quem rola é o `.cockpit .main-body` — um filho com `o
 (`.cockpit .fj-page{ height:auto; overflow:visible }`) que devolve o scroll ao shell e não toca mais
 nada: os tokens `--dev*` e o `--accent` dark 0,70 seguem valendo, que é o motivo de a tela usar esse
 root. Mesmo precedente do `.fj-hub .os-page-h` da Onda 2 — **o shell se adapta, a aparência não.**
+
+---
+
+## PARIDADE §11 Onda 5 (2026-09-03) — o Quadro é a réplica do `KanbanView`
+
+Mesma lei da Onda 4 ([ADR 0388](../../../../../../../memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md)). A onda anterior fez a **lista**; esta faz o **board**, sobre a mesma casca — o `Segmented`, os eixos, os KPI-filtros e a barra de totais já estavam no lugar e não foram tocados.
+
+O que mudou no `TrabalhoQuadro.tsx`: ele era DS puro (`Grid`/`Card`/`Inline` + utilitárias Tailwind) e passa a ser a árvore do protótipo (`forja-page.jsx` :467-503) com as classes do bundle da Onda 1 — `.fj-quadro-wrap` › `.fj-quadro-ancora` + `.fj-kanban` › `.fj-kcol[--ph]` › `.fj-kcol-head` (três linhas) › `.fj-kcol-body` › `.fj-kc`. **Zero CSS novo:** as 22 classes que o board usa já estavam no `cowork-forja-bundle.css` (medido antes de escrever).
+
+### O que a réplica ACRESCENTOU, e a trava que veio junto
+
+O cabeçalho de coluna do protótipo tem **três** linhas, não uma: `.fj-kcol-top` (ponto · id · rótulo · contagem), `.fj-kcol-quem` (o papel dono da fase + o que ele faz) e `.fj-kcol-sai` ("sai quando: …"). As duas últimas só existem no eixo Pipeline, e exigem `owner`/`faz`/`sai` **por fase** — campos que o backend não serve (`UC-PIPE-04`).
+
+O front passou a espelhá-los da fonte de design, pelo mesmo caminho e pelo mesmo motivo que o `FASE_HUE` já usava desde a Onda 4: é vocabulário de design, constante, que não tem por que viajar por task no payload. **Espelho novo exige trava nova** — `UC-PIPE-05` cruza os trios dos dois lados, com guarda anti-falso-verde, no arquivo que já é dono desse tema (`PipelineParidadeTest`), não num teste paralelo.
+
+### Diferenças declaradas do Quadro — o que do `KanbanView` NÃO veio, e por quê
+
+> Nenhuma é "não deu tempo". Cada uma exige **comportamento** novo, e a ADR 0388 D-5 diz que réplica não é licença pra tocar comportamento.
+
+| do protótipo | por que ficou de fora |
+|---|---|
+| **arrastar card** (`draggable` + `onDrop` → `onMove`/`onMoveExec`) | continua o Non-Goal escrito abaixo: mover card é **mutação**, e mutação fora do `TaskCrudService` seria o segundo caminho de escrita que a Mesa evitou de propósito. Não é dívida desta onda — é decisão anterior, mantida |
+| coluna vazia dizendo **"arraste aqui"** | consequência direta da linha acima: sem drag, a frase anuncia um gesto que a tela não escuta — afordância falsa (LC-15). A réplica diz **"vazia"** |
+| `FrescorPill` no rodapé do card | campo `frescor` que `mcp_tasks` não tem. É condicional no protótipo, então a falta do dado já o apaga lá; inventar valor seria dado fantasma. Mesma razão da Onda 4 |
+
+### Reconciliação — o anti-hook do selo, e por que ele muda de forma
+
+O anti-hook abaixo diz *"não hand-rolar selo de prioridade/ator no card; existe canon em `shared/TaskBadges`"*. Ele foi escrito em 2026-08-08, **antes** da ADR 0388, e a Onda 4 já o resolveu de outro jeito na lista: os selos passaram a ser os átomos-réplica de `trabalhoAtomos.tsx`, que são cópia declarada do protótipo, com política escrita e travados contra a fonte (`UC-TRAB-11`/`12`/`13`). O Quadro agora usa os mesmos — o card do board e a linha da lista mostram o mesmo selo, que é o que o protótipo faz.
+
+**O que aquele anti-hook protege continua honrado, e é o que importa:** não perder a distinção **agente × humano**. É exatamente o que o `OwnerSeal` faz, lendo a allowlist `agents` que vem do backend (`TrabalhoService::agentes()`, ator `ai_agent` não revogado) — nunca heurística de nome. O anti-hook segue valendo com este alcance: **não invente um selo terceiro**; use o canon do DS, ou o átomo-réplica que já existe e é travado. O que ele não pode mais exigir é `shared/TaskBadges` especificamente numa tela cuja lei é replicar o protótipo.

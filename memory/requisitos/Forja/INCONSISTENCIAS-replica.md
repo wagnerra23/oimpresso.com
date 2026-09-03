@@ -55,7 +55,7 @@
 | 🔴 aberta | `R1` | `Modules/Forja/Resources/js/Pages/Forja/Trabalho/_components/trabalhoAtomos.tsx` | 5 | oklch() · oklch(0.6 0.18 <hue>) | UiLintCommand.php R1 · conformance-gate | aplicado |
 | 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/Forja/Trabalho/_components/trabalhoAtomos.tsx` | 1 | ⚠ | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/Forja/Trabalho/_components/TrabalhoLista.tsx` | 4 | → ★ | UiLintCommand.php R3 | aplicado |
-| 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/Forja/Trabalho/_components/TrabalhoQuadro.tsx` | 4 | → ⚠ | UiLintCommand.php R3 | aplicado |
+| 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/Forja/Trabalho/_components/TrabalhoQuadro.tsx` | 14 | → ← ⚠ ✓ | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `R1` | `Modules/Forja/Resources/js/Pages/Forja/Triage/Index.tsx` | 1 | #1940 | UiLintCommand.php R1 · conformance-gate | aplicado |
 | 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/Forja/Triage/Index.tsx` | 4 | → | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `R4` | `Modules/Forja/Resources/js/Pages/Forja/Triage/Index.tsx` | 1 | PageHeader=sim · DataTable=não | UiLintCommand.php R4 | aplicado |

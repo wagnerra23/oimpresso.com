@@ -1,6 +1,6 @@
 {
   "modulo": "Forja",
-  "gerado_em": "2026-09-03T01:08:05.888Z",
+  "gerado_em": "2026-09-03T10:07:20.621Z",
   "comando": "node scripts/governance/replica-inconsistencias.mjs --modulo Forja --prototipo …",
   "arquivos_medidos": 46,
   "itens": [
@@ -582,8 +582,8 @@
       "nome": "glifo/emoji em UI de produto",
       "dono": "UiLintCommand.php R3",
       "arquivo": "Modules/Forja/Resources/js/Pages/Forja/Trabalho/_components/TrabalhoQuadro.tsx",
-      "contagem": 4,
-      "exemplo": "→ ⚠",
+      "contagem": 14,
+      "exemplo": "→ ← ⚠ ✓",
       "origem": "aplicado",
       "status": "aberta",
       "nota": "",
