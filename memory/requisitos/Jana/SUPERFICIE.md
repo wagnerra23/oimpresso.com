@@ -14,7 +14,7 @@ module: Jana
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 538 arquivos em 19 papéis.
+**Total mapeado:** 543 arquivos em 19 papéis.
 
 ## Controllers — 11
 
@@ -44,7 +44,7 @@ module: Jana
 
 - [McpAuthMiddleware.php](../../../Modules/Jana/Http/Middleware/McpAuthMiddleware.php)
 
-## Services — 92
+## Services — 93
 
 - [AcaoHitlService.php](../../../Modules/Jana/Services/AcaoHitlService.php)
 - [ProximaPerguntaService.php](../../../Modules/Jana/Services/Advisor/ProximaPerguntaService.php)
@@ -54,6 +54,7 @@ module: Jana
 - [AlertaService.php](../../../Modules/Jana/Services/AlertaService.php)
 - [ApuracaoService.php](../../../Modules/Jana/Services/ApuracaoService.php)
 - [AdrGraphBuilder.php](../../../Modules/Jana/Services/Backlinks/AdrGraphBuilder.php)
+- [BriefCuradoria.php](../../../Modules/Jana/Services/BriefCuradoria.php)
 - [BriefDiarioChatTrigger.php](../../../Modules/Jana/Services/BriefDiarioChatTrigger.php)
 - [BriefDiarioService.php](../../../Modules/Jana/Services/BriefDiarioService.php)
 - [SemanticCacheService.php](../../../Modules/Jana/Services/Cache/SemanticCacheService.php)
@@ -292,10 +293,9 @@ module: Jana
 - [memoria.php](../../../Modules/Jana/Config/memoria.php)
 - [retention.php](../../../Modules/Jana/Config/retention.php)
 
-## Views (Blade) — 9
+## Views (Blade) — 8
 
 - [config.blade.php](../../../Modules/Jana/Resources/views/alertas/config.blade.php)
-- [index.blade.php](../../../Modules/Jana/Resources/views/alertas/index.blade.php)
 - [weekly-digest.blade.php](../../../Modules/Jana/Resources/views/emails/weekly-digest.blade.php)
 - [show.blade.php](../../../Modules/Jana/Resources/views/fontes/show.blade.php)
 - [create.blade.php](../../../Modules/Jana/Resources/views/metas/create.blade.php)
@@ -304,8 +304,9 @@ module: Jana
 - [show.blade.php](../../../Modules/Jana/Resources/views/metas/show.blade.php)
 - [metas.blade.php](../../../Modules/Jana/Resources/views/superadmin/metas.blade.php)
 
-## Telas (Inertia/React) — 4
+## Telas (Inertia/React) — 5
 
+- [Alertas.tsx](../../../resources/js/Pages/Jana/Alertas.tsx)
 - [Chat.tsx](../../../resources/js/Pages/Jana/Chat.tsx)
 - [Index.tsx](../../../resources/js/Pages/Jana/Index.tsx)
 - [Memoria.tsx](../../../resources/js/Pages/Jana/Memoria.tsx)
@@ -325,23 +326,25 @@ module: Jana
 - [JanaPlanoBadge.tsx](../../../resources/js/Pages/Jana/_components/JanaPlanoBadge.tsx)
 - [JanaSubNav.tsx](../../../resources/js/Pages/Jana/_shared/JanaSubNav.tsx)
 
-## Charters (lei da tela) — 4
+## Charters (lei da tela) — 5
 
+- [Alertas.charter.md](../../../resources/js/Pages/Jana/Alertas.charter.md)
 - [Chat.charter.md](../../../resources/js/Pages/Jana/Chat.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Jana/Index.charter.md)
 - [Memoria.charter.md](../../../resources/js/Pages/Jana/Memoria.charter.md)
 - [Pro.charter.md](../../../resources/js/Pages/Jana/Pro.charter.md)
 
-## Casos (contrato UC) — 4
+## Casos (contrato UC) — 5
 
+- [Alertas.casos.md](../../../resources/js/Pages/Jana/Alertas.casos.md)
 - [Chat.casos.md](../../../resources/js/Pages/Jana/Chat.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Jana/Index.casos.md)
 - [Memoria.casos.md](../../../resources/js/Pages/Jana/Memoria.casos.md)
 - [Pro.casos.md](../../../resources/js/Pages/Jana/Pro.casos.md)
 
-## Testes (Pest) — 175
+## Testes (Pest) — 177
 
-- 36 em [Modules/Jana/Tests/Feature/](../../../Modules/Jana/Tests/Feature)
+- 37 em [Modules/Jana/Tests/Feature/](../../../Modules/Jana/Tests/Feature)
 - 12 em [Modules/Jana/Tests/Feature/Ai/](../../../Modules/Jana/Tests/Feature/Ai)
 - 2 em [Modules/Jana/Tests/Feature/Ai/Advisor/](../../../Modules/Jana/Tests/Feature/Ai/Advisor)
 - 2 em [Modules/Jana/Tests/Feature/Ai/Clarify/](../../../Modules/Jana/Tests/Feature/Ai/Clarify)
@@ -363,7 +366,7 @@ module: Jana
 - 1 em [Modules/Jana/Tests/Feature/Summarizer/](../../../Modules/Jana/Tests/Feature/Summarizer)
 - 16 em [Modules/Jana/Tests/Feature/TaskRegistry/](../../../Modules/Jana/Tests/Feature/TaskRegistry)
 - 5 em [Modules/Jana/Tests/Feature/Telemetry/](../../../Modules/Jana/Tests/Feature/Telemetry)
-- 13 em [Modules/Jana/Tests/Unit/](../../../Modules/Jana/Tests/Unit)
+- 14 em [Modules/Jana/Tests/Unit/](../../../Modules/Jana/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 91

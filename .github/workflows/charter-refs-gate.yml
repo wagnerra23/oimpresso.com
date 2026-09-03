@@ -18,6 +18,10 @@ on:
   # soak de falso-positivo (regra anti-teatro: advisory até FP=0 por 1-2 semanas).
   pull_request:
 
+concurrency:
+  group: charter-refs-gate-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 

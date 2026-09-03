@@ -100,6 +100,15 @@ class BriefDiarioChatTrigger
                     ."ou pede pra ver alguma fonte específica (vendas, oportunidades, etc).";
             }
 
+            // CURADORIA DETERMINÍSTICA (os 3 defeitos do smoke de 2026-08-09 §5.2).
+            // O conserto de #5505 pediu as 3 regras NO PROMPT; pedido não é garantia —
+            // foi assim que os 3 chegaram ao cliente. Aqui elas viram código, sobre a
+            // SAÍDA. A fonte `vendas` é lida à parte porque só ela decide "sem
+            // movimento", e nunca o LLM: ele narra, não mede.
+            $markdown = app(BriefCuradoria::class)->curar($markdown, [
+                'sources' => ['vendas' => (new BriefDiarioService($conversa->business_id))->vendasPeriodo()],
+            ]);
+
             // JANA ADVISOR Metade B (ADR 0245) — anexa as perguntas proativas por persona
             // ("próxima-melhor-pergunta"). Flag-gated: retorna null quando OFF/vazio/erro,
             // então o brief sai idêntico. Estende o brief, não o recria.

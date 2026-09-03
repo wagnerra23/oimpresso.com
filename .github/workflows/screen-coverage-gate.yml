@@ -13,6 +13,10 @@ on:
   # em TODO PR, inclusive documentação e backend, para não bloquear por ausência.
   pull_request:
 
+concurrency:
+  group: screen-coverage-gate-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
