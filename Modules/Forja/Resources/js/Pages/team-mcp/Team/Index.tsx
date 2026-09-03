@@ -29,7 +29,7 @@ import {
 } from '@/Components/ui/alert-dialog';
 import { Badge } from '@/Components/ui/badge';
 import { Checkbox } from '@/Components/ui/checkbox';
-import { BarChart3, ClipboardList, Package, Trash2 } from 'lucide-react';
+import { BarChart3, ClipboardList, Package, Settings, Trash2 } from 'lucide-react';
 import PageHeader from '@/Components/shared/PageHeader';
 import ForjaHub from '../Forja/_components/ForjaHub';
 import KpiGrid from '@/Components/shared/KpiGrid';
@@ -424,7 +424,7 @@ function TeamIndex(props: Props) {
                           onClick={() => setEditQuotaUser(m)}
                           className="text-xs"
                         >
-                          ⚙️
+                          <Settings className="h-3.5 w-3.5" />
                         </Button>
                       </div>
                     </td>

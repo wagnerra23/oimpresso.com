@@ -43,3 +43,60 @@ it('UC-FCFG-02 · NfeCertificado HasBusinessScope esconde certs de outros tenant
 
     expect($crossTenantCount)->toBe(0, 'Cross-tenant nunca vaza certs');
 });
+
+it('UC-FCFG-04 · o payload da tela carrega o estado da contingência com a duração vinda do SERVIDOR', function () {
+    if (! Schema::hasColumn('nfe_business_configs', 'em_contingencia')) {
+        $this->markTestSkipped('Coluna em_contingencia ausente — rode as migrations do NfeBrasil (US-NFE-006).');
+    }
+
+    $bizId = 1;
+    $ativadaEm = now()->subDays(3);
+
+    DB::table('nfe_business_configs')->updateOrInsert(
+        ['business_id' => $bizId],
+        [
+            'regime' => 'simples',
+            'tributacao_default' => json_encode(['cfop' => '5102']),
+            'em_contingencia' => true,
+            'contingencia_ativada_em' => $ativadaEm,
+            'contingencia_motivo' => 'SEFAZ-SC fora do ar — teste automatizado',
+            'updated_at' => now(),
+            'created_at' => now(),
+        ],
+    );
+
+    $config = \Modules\NfeBrasil\Models\NfeBusinessConfig::withoutGlobalScopes()
+        ->where('business_id', $bizId)
+        ->first();
+
+    // O contrato que a TELA consome. `diasAtiva` é calculado no servidor de propósito:
+    // é o número que mitiga o risco "tenant esquece ligado" (ADR TECH-0002), e no browser
+    // ele dependeria do relógio da máquina do operador.
+    $payload = [
+        'ativa' => (bool) $config->em_contingencia,
+        'ativadaEmIso' => $config->contingencia_ativada_em?->toIso8601String(),
+        'diasAtiva' => $config->contingencia_ativada_em
+            ? (int) $config->contingencia_ativada_em->diffInDays(now())
+            : null,
+        'motivo' => $config->contingencia_motivo,
+    ];
+
+    expect($payload['ativa'])->toBeTrue();
+    expect($payload['diasAtiva'])->toBe(3);
+    expect($payload['motivo'])->toBe('SEFAZ-SC fora do ar — teste automatizado');
+    expect($payload['ativadaEmIso'])->not->toBeNull();
+
+    // CONTROLE NEGATIVO: desligada, a duração é NULL — não 0. "0 dias ativa" e "não está
+    // ativa" são estados diferentes, e exibir 0 diria que a contingência está ligada hoje.
+    DB::table('nfe_business_configs')->where('business_id', $bizId)->update([
+        'em_contingencia' => false,
+        'contingencia_ativada_em' => null,
+        'contingencia_motivo' => null,
+    ]);
+
+    $desligada = \Modules\NfeBrasil\Models\NfeBusinessConfig::withoutGlobalScopes()
+        ->where('business_id', $bizId)->first();
+
+    expect((bool) $desligada->em_contingencia)->toBeFalse();
+    expect($desligada->contingencia_ativada_em)->toBeNull();
+});

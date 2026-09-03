@@ -4,7 +4,7 @@ casos: Forja · mesa de aprovações · /forja/aprovacoes
 irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-08-18"
+last_run: "2026-09-02"
 ---
 
 # Casos de uso — /forja/aprovacoes
@@ -61,9 +61,10 @@ Decisão dupla sobre o mesmo item é pior que decisão perdida: outra aba, outra
 
 Prosa honesta: cada item **está no charter** e **não tem** teste citando um UC. Vira UC quando ganhar teste — não antes ([`how-trabalhar.md`](../../../../../memory/how-trabalhar.md) §Pedido de tela/feature).
 
-- [BACKLOG] Fila lateral navegável (`mesa-fila`) — o `ap-fila` do protótipo. Trocar o foco entre as submissões em espera é **só front** (`selId`); o dado já vinha inteiro do `ForjaAprovacoesService::fila()` e a ordem segue sendo do backend. Não vira UC porque não há teste que o exercite: a tela tem 0 E2E, e UC sem teste que o cite quebra o `casos-gate` G-2. Escolher item **não** decide nada e **não** reordena.
+- [BACKLOG] Fila lateral navegável (`mesa-fila`) — o `ap-fila` do protótipo, agora com o markup dele (Onda 3) e operável por teclado (`role=listbox/option` + Enter/Espaço), que o `<li onClick>` cru do protótipo não é. Trocar o foco entre as submissões em espera é **só front** (`selId`); o dado já vinha inteiro do `ForjaAprovacoesService::fila()` e a ordem segue sendo do backend. Não vira UC porque não há teste que o exercite: a tela tem 0 E2E, e UC sem teste que o cite quebra o `casos-gate` G-2. Escolher item **não** decide nada e **não** reordena.
 - [BACKLOG] Janela de 6s em que a decisão fica desfazível **antes** do POST (modelo "Undo Send") — hoje é comportamento só de front, sem teste E2E que o exercite.
 - [BACKLOG] Atalhos de teclado `a`/`d`/`x` derivados do FSM, inertes enquanto o foco está no campo de motivo.
-- [BACKLOG] Placar da equipe de agentes (heartbeat · custo/quota · critique F1.5 · retrabalho) — pedido do [W] em 2026-08-08, ainda sem backend.
-- [BACKLOG] Strip "ao vivo" por pessoa (executando / espera-você / offline) a partir de `mcp_cc_sessions` + heartbeat do ingest.
+- [BACKLOG] Placar da equipe de agentes — **o backend chegou na Onda 3** (`ForjaAprovacoesService::placar()`, `cowork_handoffs` agrupado por `created_by`, janela 7d). Medido de verdade: sinal, critique (`gate_status.critique_score`), retrabalho (`rejected`) e entregas. **Duas colunas seguem sem fonte** e mostram "—": sessões-hoje e custo/quota são por **usuário** e o schema não tem vínculo papel→usuário — inventá-lo seria dado fantasma, e criar o campo é decisão [W]. Continua `[BACKLOG]`, não UC: nenhum teste o cita.
+- [BACKLOG] Strip "ao vivo" por pessoa (executando / espera-você / offline) — **construída na Onda 3** (`ForjaAprovacoesService::aoVivo()`): quem é vem de `mcp_actors`, o que faz de `mcp_cc_sessions` (sessão aberta) e o custo do dia de `mcp_audit_log`. O eixo `nivel` do protótipo (sênior/júnior/artista) **não** foi replicado: não existe no schema, e o selo mostra o `trust_level` que existe. Continua `[BACKLOG]`, não UC: nenhum teste o cita.
+- [BACKLOG] Alerta de handoff com problema no cabeçalho (`ap-handoff-alert`) — conta `stale` + conflito ack×checks delegando ao `ForjaMcpService::handoffs()` (dono do tema) e leva pra `/forja/handoffs`. Nasceu na Onda 3, sem teste que o cite.
 - [BACKLOG] Absorver a Triagem como tipo "Proposta" da mesa + 301 de `/forja` — depende da decisão da `US-FORJA-006` (qual implementação sobrevive).

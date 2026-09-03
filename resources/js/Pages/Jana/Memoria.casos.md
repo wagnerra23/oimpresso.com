@@ -4,7 +4,7 @@ casos: Jana Memória · fatos aprendidos · LGPD Art. 18 · /ia/memoria
 irmaos: Memoria.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-memoria.md (runbook)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-08-28"
+last_run: "2026-09-02"
 ---
 
 # Casos de uso — /ia/memoria (Memória da Jana)
@@ -230,3 +230,49 @@ import não é comportamento. Nenhum `Status:` muda.
 **Não rodei a suíte** — CT 100 respondeu 502 durante toda a sessão e Pest local é proibido
 (ADR 0062). O bump é por revalidação de CONTRATO, e digo porque o G-6 aceita a data e só o
 leitor percebe a diferença.
+
+---
+
+## UC-MEM-07 — Tier 0: fato de outro business não aparece nem é apagável
+Status: 🧪 (`Modules/Jana/Tests/Feature/Http/MemoriaPermissaoTest.php` — 2 `it()`. Aguarda run verde
+na lane `jana-pest.yml`, onde o alvo entrou no MESMO PR: registrar o arquivo no repo não é a lane
+executá-lo, e aquela lane roda allowlist.)
+
+Derivado do charter — Mission *"acesso `business_id` scoped strict — fato cross-tenant = bug Tier 0"*
++ Non-Goal *"⛔ Mostrar fato de outro business"* — e da [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
+**Não** do `.tsx` (§5 2026-06-05).
+
+O isolamento não vive no Controller: vive no `HasBusinessScope` do `MemoriaFato`, que filtra por
+`session('user.business_id')`. Por isso o caso ataca pelos **dois** verbos — ler e apagar —, e não
+só pela listagem: um `DELETE` que cruzasse o tenant apagaria dado alheio sem nunca exibi-lo.
+
+**Pronto quando:** com sessão no tenant 98, `GET /ia/memoria` devolve **200**, mostra o fato próprio
+e **não** mostra o texto do fato do tenant 2; e `DELETE /ia/memoria/{id-do-2}` deixa o fato do
+vizinho com `deleted_at` **nulo**.
+_(Anti-vácuo em duas pernas: o 200 + `assertSee` do fato próprio impedem que um 403/500 faça o
+`assertDontSee` passar por engano; e o mesmo `DELETE` é exercido no fato PRÓPRIO, provando que o
+verbo funciona — senão uma rota morta satisfaria o isolamento sem provar nada.)_
+
+## UC-MEM-08 — LIMITE MEDIDO: hoje `jana.access` sozinho já edita e apaga
+Status: 🧪 (`MemoriaPermissaoTest` — 1 `it()` + 1 controle)
+
+⚠️ **Este caso não abençoa o estado atual — ele o MEDE, pra que pare de ser invisível.** O charter
+prometia, desde 2026-05-16, um Anti-hook *"⛔ Permitir edit por user sem permissão
+`copiloto.memoria.manage`"*. **Medido em 2026-09-02: a trava nunca existiu, e a key também não** —
+o registry tem 22 keys, todas `jana.*`, e o `MemoriaController` não checa permissão nenhuma. A única
+defesa é o `can:jana.access` do grupo `/ia`.
+
+Numa tela LGPD isso importa: `jana.access` é a permissão de **entrar no módulo**; ela está separando
+quem vê a Jana de quem não vê, não quem pode apagar um fato de quem só pode lê-lo.
+
+**Pronto quando:** um usuário **não-admin** (o `Gate::before` libera qualquer ability pra
+`Admin#{biz}` — por isso o teste tem um controle que assere `hasRole(...) === false`) cujo conjunto
+de permissões é **exatamente** `['jana.access']` consegue `DELETE /ia/memoria/{id}` com 302 e o fato
+fica soft-deleted.
+
+**Quando a trava existir, este caso fica VERMELHO — e esse é o sinal, não o defeito.** A correção
+então é trocá-lo pelo `UC-JPERM-07` da [emenda do Cowork](../../../../prototipo-ui/design-docs/cowork-inbox/JANA-CASOS-EMENDA-PERMISSAO-2026-08-27.md)
+(*403 sem a permissão / 302 com ela*) e atualizar o `Memoria.charter.md`. O `UC-JPERM-07` segue ⬜ de
+propósito: **qual key trava a escrita é decisão [W]** (§Gap de permissão do charter), e escrever o
+UC antes da trava quebraria o G-2 do casos-gate — a própria emenda manda *"cada UC entra no mesmo PR
+do seu teste, nunca antes"*.

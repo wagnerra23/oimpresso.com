@@ -201,7 +201,20 @@ describe('US-NFE-006 · transmitir contingência (ADR TECH-0002)', function () {
 
         // Tier 0 (ADR 0093): transmitir nota de outro tenant seria emitir documento
         // fiscal em nome de outra empresa.
-        expect($vistas)->toBe([$biz]);
+        //
+        // A asserção é sobre QUEM NÃO foi visto, não sobre a CONTAGEM. A 1ª versão
+        // fazia `toBe([$biz])` e quebrou com `[1, 1]` (run 100371048725): o job vê
+        // TODAS as notas em contingência do business, em qualquer série, e o
+        // ContingenciaEmissaoTest também cria notas do biz=1 — com `Random Order Seed`
+        // ele pode rodar antes. Passou no PR anterior por sorte do seed.
+        //
+        // Contar notas alheias ao caso nunca foi a alegação do UC. A alegação é
+        // ISOLAMENTO — e é isso que os dois asserts abaixo medem, sem depender de o
+        // mundo estar vazio.
+        expect($vistas)->not->toBeEmpty();
+        // array_values: array_unique PRESERVA as chaves originais, então sem ele um
+        // [9999, 1] viraria [0=>9999, 1=>1] e a comparação compararia chaves também.
+        expect(array_values(array_unique($vistas)))->toBe([$biz]);
         expect(NfeEmissao::withoutGlobalScopes()->find($outro->id)->status)->toBe('contingencia');
     });
 });
