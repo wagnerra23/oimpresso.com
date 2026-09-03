@@ -18,6 +18,7 @@
 Modules/Jana/Tests/Feature/Ai/PrUiJudgeAgentTest.php
 Modules/Jana/Tests/Feature/Ai/UiJudgeConsensusTest.php
 Modules/Jana/Tests/Feature/Ai/UiJudgeRunMeasurementTest.php
+Modules/Jana/Tests/Feature/Mcp/Ct100CircuitBreakerTest.php
 Modules/Jana/Tests/Feature/Mcp/McpAuthCostEstimateTest.php
 # Scopes MCP visíveis na tela de roles (incidente 2026-07-29 — save de role fazia
 # syncPermissions e apagava os 17 `jana.mcp.*`, derrubando o MCP do time inteiro).
@@ -73,6 +74,10 @@ Modules/Forja/Tests/Feature/HandoffLeverToolTest.php
 # checks reais do PR via GitHub API mockada com Http::fake). Sqlite-safe: tabelas
 # sintéticas em beforeEach, sem rede. Gap 2 do adversário, ADR 0283 (follow-up #2921).
 Modules/Forja/Tests/Feature/ForjaMcpServiceTest.php
+# Forja view Saúde (PARIDADE §11 Onda 7): GUARD do contrato do sparkline — só desenha
+# onde a série É a história da própria métrica. Sqlite-safe: build(null) não semeia nada
+# e todo builder consultado guarda com Schema::hasTable, então degrada pra zeros.
+Modules/Forja/Tests/Feature/ForjaSaudeServiceTest.php
 tests/Feature/Form
 tests/Feature/Services/FeatureFlagServiceTest.php
 Modules/Jana/Tests/Feature/TaskRegistry/FsmTransitionGuardTest.php
@@ -279,6 +284,7 @@ Modules/Forja/Tests/Feature/ForjaQuadroServiceTest.php
 # erro de BINDING, lançado antes do guard de driver. Esta lane o teria pego. A
 # execução real do happy-path (UC-FORJA-01) mora na lane MySQL forja-pest.yml.
 Modules/Forja/Tests/Feature/ForjaRoutesSmokeTest.php
+Modules/Forja/Tests/Feature/ForjaMcpHandoffsInlineTest.php
 Modules/Forja/Tests/Feature/HandoffStaleAlertTest.php
 Modules/Forja/Tests/Feature/HandoffToolsTest.php
 Modules/Forja/Tests/Feature/McpActorsSeederTest.php

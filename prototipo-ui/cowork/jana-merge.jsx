@@ -282,13 +282,13 @@ function JmMetasSecao({ standalone, onOpen, vazio, erro, onAviso }) {
       <h2 className="jc-h2">
         {JcIcon && <JcIcon name="target" className="ic" />} {cadastro ? "CADASTRO DE METAS" : "METAS ATIVAS"}
         <span className="jm-per">
-          {!cadastro && JM_PERIODOS.map((p) =>
-          <button key={p.key} className={"jm-cat" + (per.key === p.key ? " active" : "")} onClick={() => setPer(p)}>{p.key}</button>
-          )}
-          <span className="jmc-view">
-            <button className={view === "ativas" ? "active" : ""} onClick={() => setView("ativas")}>Farol</button>
-            <button className={cadastro ? "active" : ""} onClick={() => setView("cadastro")}>Cadastro</button>
-          </span>
+          {!cadastro &&
+          <window.CliSeg ariaLabel="Período" size="sm" value={per.key}
+            onChange={(k) => setPer(JM_PERIODOS.find((p) => p.key === k) || per)}
+            options={JM_PERIODOS.map((p) => ({ key: p.key, label: p.key }))} />}
+          <window.CliSeg ariaLabel="Visão das metas" size="sm" value={cadastro ? "cadastro" : "ativas"}
+            onChange={setView}
+            options={[{ key: "ativas", label: "Farol" }, { key: "cadastro", label: "Cadastro" }]} />
           <button className="jm-btn ghost" onClick={() => window.jmAbrirForm?.(null)}>Nova meta</button>
         </span>
       </h2>
@@ -874,18 +874,7 @@ function JmTabs({ tab, onGoTab, metasMode, nConversas, papel = "dona", nAlertas 
   ...(can(papel, "jana.superadmin") ? [{ key: "plataforma", label: "Plataforma", icon: "shield" }] : [])];
 
   return (
-    <nav className="cli-moduletopnav jm-tabs" aria-label="Área Jana">
-      {tabs.map((t) =>
-      <button key={t.key}
-      className={"cli-moduletopnav-tab " + (tab === t.key ? "active" : "")}
-      onClick={() => onGoTab?.(t.key)}
-      aria-current={tab === t.key ? "page" : undefined}>
-          {JcIcon && <JcIcon name={t.icon} className="jm-tab-ic" />}
-          <span>{t.label}</span>
-          {t.n != null && <span className="cli-moduletopnav-n">{t.n}</span>}
-        </button>
-      )}
-    </nav>);
+    window.CliTabs ? <window.CliTabs ariaLabel="Área Jana" className="jm-tabs" pad={0} tabs={tabs} active={tab} onChange={(k) => onGoTab?.(k)} /> : null);
 
 }
 
@@ -970,8 +959,13 @@ function JanaPage({ company, tab = "painel", metasMode = "secao", estado = "dado
   const plano = <button className={"jm-plano" + (pro ? " pro" : "")} onClick={() => setConfig(true)} title="Plano atual · abre Configurar">plano {pro ? "Pro" : "Grátis"}</button>;
   const configDrawer = <JmConfigDrawer open={config} onClose={() => setConfig(false)} onGoTab={onGoTab} cfg={cfg} setCfg={setCfg} />;
   const { Toast, DropdownMenu } = DS;
+  // trigger como FUNÇÃO, não nó: o DropdownMenu do DS embrulha um nó no <button> dele
+  // (bundle:3991) — passar um <button> gerava botão dentro de botão (validateDOMNesting).
+  // Na forma de função, o gatilho é nosso e o DS só entrega { open, onClick }.
+  // `align` do DS é start|end (não "right").
   const exportar = DropdownMenu ?
-  <DropdownMenu align="right" trigger={<button className="jm-btn ghost">Exportar</button>} items={[
+  <DropdownMenu align="end" trigger={({ open, onClick }) =>
+    <button className="jm-btn ghost" aria-haspopup="menu" aria-expanded={open} onClick={onClick}>Exportar</button>} items={[
     { id: "pdf", label: "Painel em PDF", onSelect: () => avisar("Gerando o painel em PDF — fora deste protótipo.") },
     { id: "csv", label: "Metas em CSV", onSelect: () => avisar("Exportando as metas do período em CSV — fora deste protótipo.") },
     { id: "sep", separator: true },
