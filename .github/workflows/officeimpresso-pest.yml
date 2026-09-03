@@ -39,6 +39,7 @@ on:
   # se nada do Officeimpresso mudou, pula o pesado e conclui verde (mesmo padrão
   # do essentials-pest.yml, ADR 0271 onda 2 — required-ready sem deadlock).
   pull_request:
+    types: [opened, reopened, ready_for_review]
     branches: [main]
   push:
     branches: [main]

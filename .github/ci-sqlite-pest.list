@@ -19,6 +19,7 @@ Modules/Jana/Tests/Feature/Ai/PrUiJudgeAgentTest.php
 Modules/Jana/Tests/Feature/Ai/UiJudgeConsensusTest.php
 Modules/Jana/Tests/Feature/Ai/UiJudgeRunMeasurementTest.php
 Modules/Jana/Tests/Feature/Mcp/Ct100CircuitBreakerTest.php
+Modules/Jana/Tests/Feature/Mcp/HealthCheckCt100ConsolidacaoTest.php
 Modules/Jana/Tests/Feature/Mcp/McpAuthCostEstimateTest.php
 # Scopes MCP visíveis na tela de roles (incidente 2026-07-29 — save de role fazia
 # syncPermissions e apagava os 17 `jana.mcp.*`, derrubando o MCP do time inteiro).
@@ -33,6 +34,12 @@ Modules/Jana/Tests/Feature/MemoryHistoryPruneCommandTest.php
 # padrão do MemoryHistoryPruneCommandTest acima. Medido pelo eixo 2 do
 # test-lane-coverage (--mudos) em 2026-08-10.
 Modules/Jana/Tests/Feature/Ai/BriefDiarioAgentTest.php
+# O IRMÃO do arquivo acima rodava em lane NENHUMA — medido em 2026-09-02 com
+# `git grep BriefDiarioChatTriggerTest -- .github scripts package.json` = 0 hits.
+# Ele guarda o chokepoint que o cliente percorre (detecção do intent "brief" +
+# invocação do agente + curadoria da saída, UC-JCHAT-14): verde que não roda é pior
+# que vermelho. Mesmo guard sqlite-only do vizinho, então é aqui que ele executa.
+Modules/Jana/Tests/Feature/BriefDiarioChatTriggerTest.php
 Modules/Jana/Tests/Feature/Mcp/TaskParserDetectaDivergenciaDescritivaTest.php
 Modules/Jana/Tests/Feature/Mcp/WorkLeaseServiceTest.php
 Modules/Jana/Tests/Feature/Mcp/PlanDriftCommandTest.php

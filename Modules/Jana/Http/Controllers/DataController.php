@@ -248,10 +248,20 @@ class DataController extends Controller
                             );
                         }
 
-                        // Alertas — REMOVIDO do dropdown legacy (Wagner 2026-05-25).
-                        // Tela /ia/alertas é STUB ("spec-ready ver US-COPI-060") sem
-                        // implementação real. Reativar quando US-COPI-060 entregar.
-                        // Rota e Controller mantidos pra não quebrar bookmarks externos.
+                        // Alertas — REATIVADO em 2026-09-02: a tela deixou de ser stub
+                        // (`AlertasController@index` → Inertia `Jana/Alertas`, lista do
+                        // `AlertaService::listar`). Tinha saído em 2026-05-25 porque era
+                        // "spec-ready ver US-COPI-060" sem implementação. Mesmo gate do
+                        // grupo /ia (`can:jana.access`) — o protótipo (`JmTabs`) mostra a
+                        // aba a todo papel; só a CONFIG é `jana.metas.manage`.
+                        $sub->url(
+                            route('jana.alertas.index'),
+                            __('copiloto::copiloto.menu.alertas'),
+                            [
+                                'icon'   => 'fa fas fa-bell',
+                                'active' => request()->segment(2) == 'alertas',
+                            ]
+                        );
 
                         // Custos de IA MOVIDO pra Modules/Governance em 2026-08-05
                         // (ADR 0366 §D-B). Este bloco tinha que sair JUNTO com a rota:
@@ -310,6 +320,12 @@ class DataController extends Controller
                             // `painel`/`conversa` na onda 3, junto com o rename do arquivo.
                             ['key' => 'dashboard', 'label' => 'Painel',   'href' => '/ia'],
                             ['key' => 'copiloto',  'label' => 'Conversa', 'href' => '/ia/conversa'],
+                            // Alertas — 3ª aba da âncora `jana-merge.jsx` §JmTabs (ordem:
+                            // Painel · Conversa · Alertas · Ações · Memória · Plataforma).
+                            // Entrou em 2026-09-02 junto com a tela Inertia `Jana/Alertas`
+                            // (paridade com o protótipo, handoff 2026-08-31 §Paridade Painel).
+                            // key = segmento da URL, casada com `JanaAreaHeader active="alertas"`.
+                            ['key' => 'alertas',   'label' => 'Alertas',  'href' => '/ia/alertas'],
                             // Ghost 'brief' removido 2026-06-15 (Wagner): /ia/brief era stub
                             // redundante (brief vive no chat + brief-fetch MCP + seção "Brief
                             // diário" do dashboard). Rota + BriefController + Page apagados.

@@ -1,50 +1,39 @@
 {
   "screen": "Forja/Trabalho/Index",
-  "path": "resources/js/Pages/Forja/Trabalho/Index.tsx",
-  "measured_against_sha": "b414fd3c163",
+  "path": "Modules/Forja/Resources/js/Pages/Forja/Trabalho/Index.tsx",
+  "measured_against_sha": "c1263f2e53",
   "generated_by": "scripts/design-spec-gen.mjs (DERIVADO — não editar à mão)",
   "shell": [
     "AppShellV2"
   ],
   "components": {
     "ui": [
-      "Card",
-      "CardContent",
-      "Input"
+      "Segmented"
     ],
-    "shared": [
-      "COLUMN_LABEL_PT",
-      "KpiCard",
-      "KpiGrid",
-      "PRIORITY_BADGE",
-      "PageHeader",
-      "STATUS_BADGE",
-      "type Priority",
-      "type Status"
-    ],
-    "layout": [
-      "Grid",
-      "Inline",
-      "Stack"
-    ],
+    "shared": [],
+    "layout": [],
     "local": [
+      "ForjaHub (../../team-mcp/Forja/_components/ForjaHub)",
+      "PAPEIS (./_components/trabalhoTokens)",
+      "TrabalhoLista (./_components/TrabalhoLista)",
       "TrabalhoQuadro (./_components/TrabalhoQuadro)",
-      "type EixoQuadro (./_components/TrabalhoQuadro)"
+      "type EixoQuadro (./_components/TrabalhoQuadro)",
+      "type TarefaLista (./_components/TrabalhoLista)"
     ]
   },
   "hooks": [],
   "violations": {
     "raw_oklch": 0,
-    "raw_hex": 3,
-    "hardcoded_px": 5,
-    "inline_style": 0,
-    "native_select": 1,
-    "native_input": 0
+    "raw_hex": 0,
+    "hardcoded_px": 0,
+    "inline_style": 1,
+    "native_select": 0,
+    "native_input": 1
   },
   "totals": {
-    "canon_components": 14,
-    "local_components": 2,
-    "uses_layout_primitives": true,
-    "structural_violations": 9
+    "canon_components": 1,
+    "local_components": 6,
+    "uses_layout_primitives": false,
+    "structural_violations": 2
   }
 }

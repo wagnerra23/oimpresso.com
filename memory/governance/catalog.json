@@ -26,23 +26,23 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 713,
-    "edges": 993,
+    "nodes": 707,
+    "edges": 987,
     "by_node_type": {
       "module": 39,
       "table": 102,
       "adr": 107,
-      "component": 392,
-      "api": 73
+      "component": 385,
+      "api": 74
     },
     "by_edge_type": {
       "ownsTable": 91,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 77,
+      "providesApi": 78,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 392,
+      "hasComponent": 385,
       "dependsOn": 115,
       "delegatesTo": 107,
       "migratesTo": 1,
@@ -1239,9 +1239,17 @@
       ]
     },
     {
-      "id": "api:/project-mgmt/*",
+      "id": "api:/project-mgmt/install/*",
       "type": "api",
-      "prefix": "/project-mgmt/*",
+      "prefix": "/project-mgmt/install/*",
+      "providers": [
+        "Forja"
+      ]
+    },
+    {
+      "id": "api:/project-mgmt/roadmap",
+      "type": "api",
+      "prefix": "/project-mgmt/roadmap",
       "providers": [
         "Forja"
       ]
@@ -2477,13 +2485,6 @@
       "desc": ""
     },
     {
-      "id": "component:Forja/ActivityController",
-      "type": "component",
-      "module": "Forja",
-      "name": "ActivityController",
-      "desc": "atividade recente"
-    },
-    {
       "id": "component:Forja/Admin/ProjectsController",
       "type": "component",
       "module": "Forja",
@@ -2519,32 +2520,11 @@
       "desc": "não migram; renomear URL é decisão separada"
     },
     {
-      "id": "component:Forja/BacklogController",
-      "type": "component",
-      "module": "Forja",
-      "name": "BacklogController",
-      "desc": "backlog priorizado"
-    },
-    {
-      "id": "component:Forja/BoardController",
-      "type": "component",
-      "module": "Forja",
-      "name": "BoardController",
-      "desc": "Kanban view"
-    },
-    {
       "id": "component:Forja/BriefFetchController",
       "type": "component",
       "module": "Forja",
       "name": "BriefFetchController",
       "desc": "endpoint HTTP da tool MCP `brief-fetch` (POST /api/mcp/tools/brief-fetch); Daily Brief L7"
-    },
-    {
-      "id": "component:Forja/BurndownController",
-      "type": "component",
-      "module": "Forja",
-      "name": "BurndownController",
-      "desc": "burndown chart por cycle"
     },
     {
       "id": "component:Forja/CcSessionsController",
@@ -2596,13 +2576,6 @@
       "desc": ""
     },
     {
-      "id": "component:Forja/InboxController",
-      "type": "component",
-      "module": "Forja",
-      "name": "InboxController",
-      "desc": "caixa de entrada per-user (mcp_inbox_notifications); paridade tool MCP `my-inbox`"
-    },
-    {
       "id": "component:Forja/Mcp/CcIngestController + CcIngestService + CcIngestRequest",
       "type": "component",
       "module": "Forja",
@@ -2629,13 +2602,6 @@
       "module": "Forja",
       "name": "Mcp/Tools/Handoff{Pending,Ack,Submit,Lever}",
       "desc": "registradas pelo OimpressoMcpServer da Jana; URLs/nomes de tool inalterados"
-    },
-    {
-      "id": "component:Forja/MyWorkController",
-      "type": "component",
-      "module": "Forja",
-      "name": "MyWorkController",
-      "desc": "tasks do owner logado"
     },
     {
       "id": "component:Forja/RoadmapController",
@@ -2705,14 +2671,7 @@
       "type": "component",
       "module": "Forja",
       "name": "TrabalhoController + TrabalhoService",
-      "desc": "lista única (/forja/trabalho): funde os TRÊS backlogs que respondiam a mesma pergunta com escopos diferentes (Pages/Forja/Backlog rica project=FORJA · _components/ForjaBacklog enxuta · team-mcp/Tasks todas). Base é a NATIVA (filtros/KPIs/memoização) + a projeção forja_* do cockpit + escopo sem recorte de projeto. US-FORJA-006; a remoção da implementação perdedora é decisão [W] e NÃO aconteceu nesta onda — as três convivem"
-    },
-    {
-      "id": "component:Forja/TriageController",
-      "type": "component",
-      "module": "Forja",
-      "name": "TriageController",
-      "desc": "tasks órfãs (sem owner/priority/backlog); paridade tool MCP `triage`"
+      "desc": "lista única (/forja/trabalho): funde os TRÊS backlogs que respondiam a mesma pergunta com escopos diferentes (Pages/Forja/Backlog rica project=FORJA · _components/ForjaBacklog enxuta · team-mcp/Tasks todas). Base é a NATIVA (filtros/KPIs/memoização) + a projeção forja_* do cockpit + escopo sem recorte de projeto. US-FORJA-006 DECIDIDA por [W] em 2026-09-02 (PARIDADE §11): venceu o protótipo. A Onda 11 revogou a implementação de /project-mgmt (Pages/Forja/Backlog e Board); as do cockpit (_components/ForjaBacklog e ForjaQuadro) seguem no ar porque o Cockpit ainda as importa — só saem na Onda 3, quando Aprovações virar a landing"
     },
     {
       "id": "component:Governance/ActionGate middleware",
@@ -8130,12 +8089,6 @@
     },
     {
       "from": "module:Forja",
-      "to": "component:Forja/ActivityController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Forja",
       "to": "component:Forja/Admin/ProjectsController",
       "type": "hasComponent",
       "source": "contains"
@@ -8166,25 +8119,7 @@
     },
     {
       "from": "module:Forja",
-      "to": "component:Forja/BacklogController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Forja",
-      "to": "component:Forja/BoardController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Forja",
       "to": "component:Forja/BriefFetchController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Forja",
-      "to": "component:Forja/BurndownController",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -8232,12 +8167,6 @@
     },
     {
       "from": "module:Forja",
-      "to": "component:Forja/InboxController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Forja",
       "to": "component:Forja/Mcp/CcIngestController + CcIngestService + CcIngestRequest",
       "type": "hasComponent",
       "source": "contains"
@@ -8257,12 +8186,6 @@
     {
       "from": "module:Forja",
       "to": "component:Forja/Mcp/Tools/Handoff{Pending,Ack,Submit,Lever}",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Forja",
-      "to": "component:Forja/MyWorkController",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -8323,12 +8246,6 @@
     {
       "from": "module:Forja",
       "to": "component:Forja/TrabalhoController + TrabalhoService",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Forja",
-      "to": "component:Forja/TriageController",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -8670,7 +8587,13 @@
     },
     {
       "from": "module:Forja",
-      "to": "api:/project-mgmt/*",
+      "to": "api:/project-mgmt/install/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Forja",
+      "to": "api:/project-mgmt/roadmap",
       "type": "providesApi",
       "source": "url_prefixes"
     },
