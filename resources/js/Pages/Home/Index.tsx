@@ -153,8 +153,16 @@ function KpiHero({
           {description}
         </span>
       )}
-      {/* Sparkline: a âncora usa os últimos 12 pontos da série de 30 dias. */}
-      <div className="mt-auto h-[44px]">
+      {/*
+        Sparkline: a âncora usa os últimos 12 pontos da série de 30 dias.
+
+        `aria-hidden` de propósito — este SVG é DECORATIVO e redundante: o valor do
+        período e o delta já estão em TEXTO logo acima, no mesmo card. Sem isto o
+        gráfico entraria como conteúdo sem alternativa textual, que é exatamente o
+        defeito que `UC-DASH-18` existe pra impedir (o `SerieAcessivel` cobre os 2
+        gráficos do painel, onde o dado NÃO está escrito em lugar nenhum).
+      */}
+      <div className="mt-auto h-[44px]" aria-hidden="true">
         {spark && spark.length > 0 ? (
           <Chart type="area" data={spark.slice(-12)} height={44} formatValue={brlCurto} />
         ) : null}
