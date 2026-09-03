@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Forja\Services\ForjaAprovacoesService;
 use Modules\Jana\Entities\Mcp\McpAuditLog;
 use Modules\Jana\Entities\Mcp\McpCcSession;
 use Modules\Jana\Entities\Mcp\McpMemoryDocument;
@@ -527,6 +528,10 @@ class ForjaController extends Controller
 
         return [
             'tab'      => $tab,
+            // Badge de pendências do topnav (§3.1 do export): no protótipo ele vive no
+            // destino Aprovações em TODA view — é o que avisa que há algo esperando
+            // decisão enquanto você está em OUTRA tela. COUNT indexado, deferido.
+            'pendencias' => Inertia::defer(fn () => app(ForjaAprovacoesService::class)->contagem()),
             'tabLabel' => $meta['label'],
             'subtitle' => $meta['subtitle'],
             'meta'     => [

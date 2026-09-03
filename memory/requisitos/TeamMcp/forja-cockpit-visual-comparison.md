@@ -598,3 +598,48 @@ O charter e o comentário do `.tsx` previam que o contador de vencidas *"normalm
 Não é comparação pareada com o protótipo, e não podia ser: o corpo do gantt tem **motores diferentes** dos dois lados (`.fj-g-*` desenhado à mão no protótipo × `@svar-ui/react-gantt` em produção), o que a onda declarou como diferença medida — 163 dependências contra 7 prazos, decisão em aberto de [W]. O que este recibo prova é o que a onda **entregou**: os dois elementos que vivem fora do motor, com a fidelidade de token verificada. A tela também não tem contrato em `tests/Browser/visreg-screens.json`; o comando para criá-lo está no [#6624](https://github.com/wagnerra23/oimpresso.com/pull/6624), e o passo final é a aprovação visual de [W] (F1.5).
 
 **Observação lateral, não do escopo:** o cabeçalho diz `Timeline (530 linhas)` e a barra diz `500 tarefas`. São contagens de coisas diferentes (linhas do gantt incluem as *summary* por módulo; tarefas são o teto `MAX_TASKS = 500`), mas a proximidade dos números convida à leitura errada de quem olhar rápido.
+
+
+## 2026-09-03 — Onda 1 do export (shell/header + topnav): o alvo §3.1 JÁ estava entregue, menos o badge
+
+> **O achado, com recibo.** O pacote `COLAR-NO-CODE-EXPORT-FORJA-MODULO.md` (Cowork, 2026-09-03) numera
+> "Onda 1 — shell/header + topnav" como se fosse trabalho a fazer. **Medido, ela já estava no `main`
+> desde 02/09**, sob a numeração do PARIDADE §11: estrutura na **Onda 2** ([#6553](https://github.com/wagnerra23/oimpresso.com/pull/6553)),
+> geometria na **Onda 2.1** ([#6563](https://github.com/wagnerra23/oimpresso.com/pull/6563)), `--accent` dark na
+> [UI-0031](../_DesignSystem/adr/ui/0031-fundacao-dark-adota-o-accent-do-prototipo.md) ([#6581](https://github.com/wagnerra23/oimpresso.com/pull/6581)).
+> Reimplementar seria autorar em paralelo a um dono existente (LC-19). Item a item do §3.1:
+
+| item do §3.1 | estado medido no `main` | onde |
+|---|---|---|
+| `.os-page-h` com 2 zonas | **já entregue** | `ForjaHub.tsx` |
+| direita na ordem `[fj-bell, fj-kbtn, fj-viewtabs, os-btn]` | **já entregue** | idem — e medido IGUAL na Onda 2 |
+| 6 destinos em 3 `.fj-navgroup` (Trabalho/Esteira/Histórico) | **já entregue** | `FORJA_GRUPOS` + `FORJA_TABS`, defendidos por UC-FORJA-02/14 |
+| `--accent` dark `oklch(0.70 0.15 295)` | **já entregue** | `resources/css/tokens/_generated-cockpit-dark.css` (função, não escopo) |
+| **badge de pendências no destino Aprovações** | **→ ERA O ÚNICO ABERTO** | fechado aqui (UC-FORJA-18) |
+
+**O que estava errado, e por que ninguém viu.** A prop `pendencias` existia no `ForjaHub` desde a Onda 2, mas
+só `Forja/Aprovacoes/Index` a passava — o badge aparecia na única tela onde é redundante (a fila já está na
+frente) e sumia nas outras oito, que é justamente onde ele serve. Esta página **já tinha medido o efeito**
+— os −**35px** de largura do nav, classificados como *"dado (badge de pendências), não CSS"* nas linhas de
+2026-09-02 — sem nomear a causa. Os 7 controllers do hub passam a servir a prop; o `ForjaHub` a lê via
+`usePage()`, de modo que a próxima Page do hub nasce com o badge.
+
+⚠️ **Isso muda um número desta página.** As linhas de 2026-09-02 registram o nav de produção em **749,4px**
+contra **784,4px** do protótipo, com o delta atribuído ao badge ausente. Com o badge servido nas 9 telas
+esse delta deve fechar — **e isso NÃO foi medido**: o código ainda não está deployado e o merge de `.tsx`
+é ato [W] ([ADR 0283](../../decisions/0283-handoff-loop-zero-paste.md)). Aquelas linhas seguem válidas como **fato datado**
+do dia; quem re-medir depois do deploy deve **re-rodar a sonda**, nunca citar os 749,4px como estado atual.
+
+**Divergência DECLARADA, não consertada — a fórmula.** No protótipo (`forja-page.jsx:936`) `pendencias` soma
+**três** fontes: aprovações + triagem + handoffs `stale`/`gateConflito`. Em produção o badge usa
+`ForjaAprovacoesService::contagem()`, que conta **só** `mcp_tasks` em `AWAITING_HUMAN`. Esta onda **propaga a
+fórmula que a mesa já usa desde a Onda 3**; trocá-la mudaria o número que `/forja/aprovacoes` exibe hoje, o
+que é outra decisão. O Service já tem `handoffsComProblema()` se [W] quiser as 3 parcelas.
+
+**PLACAR — Onda 1 (shell/header + topnav)**
+```
+entregue 5 de 5 elementos do alvo §3.1 (4 já estavam; 1 fechado aqui)
+ausentes: nenhum
+divergências declaradas: fórmula do `pendencias` (1 parcela em prod × 3 no protótipo) — decisão [W]
+não medido: compare pareado pós-deploy (D2/D4/D6/D8) — o código não está em produção
+```
