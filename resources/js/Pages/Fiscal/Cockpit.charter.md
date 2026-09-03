@@ -40,6 +40,31 @@ Dar à pessoa fiscal (Eliana contadora + Wagner operador) **visão consolidada d
 - ❌ ⌘K palette (PR #3 do roadmap)
 - ❌ Sub-páginas 4 (DF-e), 6 (Config), 7 (SPED) — apenas placeholders disabled
 
+## Contrato da fila de alertas (Onda 1 Cowork · 2026-09-03)
+
+Destilado do alvo `prototipo-ui/cowork/fiscal-page.jsx:125-137` (`FxAlerts`) e do que a
+Onda 1 entregou. Descreve o que a seção **é**; a regra de negócio segue sendo do
+`computeAlerts()` (determinístico, anti-hook abaixo).
+
+| Item | Contrato |
+|---|---|
+| Âncora | `data-contract="alertas-fiscais"` na raiz da lista |
+| Posição | entre o `.fx-ribbon` e o `WriteOffAuditoriaCard` |
+| Estado vazio | **nó ausente** — zero alertas não desenha contêiner nem mensagem |
+| Item | `.fx-alert` com `data-level` ∈ `crit` · `warn` · `info`; flex, `gap:10px`, `padding:10px 14px`, `radius:10px` |
+| Ordem dos filhos | ícone (`.fx-alert-ic`) → texto (`.fx-alert-t` com `<b>`+`<small>`) → botão |
+| Tinta do nível | fundo a 6% e borda a ~30% do tom sobre a superfície neutra; `info` fica **sem** tinta |
+| Ícone | `aria-hidden` (redundante com o nível, que já está no texto e na moldura) |
+| Botão | `<Button>` do DS via `btnProps('ghost')`, alinhado à direita |
+| Ordem da lista | a que o backend mandou — a tela não ordena, filtra nem agrupa |
+
+**Dois vocabulários cruzam a fronteira PHP → TSX, e os dois falham em silêncio:**
+`goto` é o `id` de uma sub-página (`nfe` · `fiscal_config` · `dfe`), resolvido pelo
+`_lib/paginas-fiscais.tsx` — **nunca** um caminho; e `icon` é o vocabulário do protótipo
+(`audit` · `shield` · `receipt`), traduzido em `_lib/icones-alerta.ts`. Valor fora do mapa
+não levanta erro: o botão ou o ícone apenas não são desenhados. Quem defende os dois é o
+`UC-FCKP-08` do [`Cockpit.casos.md`](./Cockpit.casos.md).
+
 ## Anti-hooks
 
 - 🚫 Não fazer N+1 query nos sparklines — agrupar com `selectRaw('DATE(emitido_em)...')` 1× e iterar em PHP

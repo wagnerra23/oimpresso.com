@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+import AlertasFiscais, { type AlertaFiscal } from './_components/AlertasFiscais';
 import EventosDrawer, { type EventoFiscal } from './_components/EventosDrawer';
 import FxShell from './_components/FxShell';
 import NFSeDrawer, { type NFSeDrawerData } from './_components/NFSeDrawer';
@@ -48,16 +49,6 @@ interface Sparklines {
   autorizadas: number[];
   rejeitadas: number[];
   faturamento: number[];
-}
-
-interface Alert {
-  level: 'crit' | 'warn' | 'info';
-  icon: string;
-  title: string;
-  sub: string;
-  action: string;
-  goto: string;
-  focus?: string;
 }
 
 type Tipo = 'NF-e' | 'NFC-e' | 'NFS-e';
@@ -126,7 +117,7 @@ interface SefazStatus {
 interface CockpitProps {
   kpis: Kpis;
   sparklines: Sparklines;
-  alerts: Alert[];
+  alerts: AlertaFiscal[];
   notas: NotaRow[];
   savedViewCounts: SavedViewCounts;
   sefazStatus: SefazStatus;
@@ -414,6 +405,10 @@ export default function Cockpit({
             Fechar mês →
           </Button>
         </div>
+
+        {/* Fila de alertas — o que o ribbon conta em "requerem ação", item a item.
+            Só renderiza quando há alerta; zero alertas = nó ausente. */}
+        <AlertasFiscais alerts={alerts} />
 
         {/* Onda 3 L — Write-off auditoria mensal (só renderiza se houver candidatos) */}
         <WriteOffAuditoriaCard summary={writeOffSummary} />
