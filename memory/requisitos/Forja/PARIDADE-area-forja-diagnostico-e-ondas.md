@@ -251,6 +251,58 @@ inferido do `.jsx`:
 | 8 | MCP + Handoffs dentro | compare 0 bug |
 | 9 | Changelog | compare 0 bug |
 | 10 | Integrador | compare 0 bug |
-| 11 | revogação: `/project-mgmt/*`, duplicatas, rotas, testes, `SCOPE §cockpit` | `git grep` = 0 |
+| 11 | revogação: `/project-mgmt/*`, duplicatas, rotas, testes, `SCOPE §cockpit` | **⚠️ PARCIAL — 7 das 8 telas.** Ver §11.1 |
 
 **Ressalva que continua valendo:** o segmentado Lista|Quadro|Gantt do protótipo depende do `Segmented` do DS, que o snapshot local (pacote de 24/08) não publica. Em produção ele existe (`Components/ui`), então a onda 4 não fica bloqueada — o que fica cego é a **medição local** dessa peça até o Cowork regerar o pacote.
+
+### 11.1 · Onda 11 executada em PARTE (2026-09-02) — o que saiu, o que ficou e por quê
+
+A onda foi pedida "depois das Ondas 3-10". **Medido em `origin/main`: as Ondas 3-10
+não existem** — 0 commit, 0 PR aberto (mergearam 0 · 1 · 2 · 2.1). A revogação
+correu só onde o receptor está **no ar e medido**; o resto fica declarado, não
+esquecido.
+
+**Saíram (7 telas + controllers + rotas + navegação + testes):**
+
+| tela | receptor | como foi medido |
+|---|---|---|
+| `Backlog/Index` | `/forja/trabalho?visao=lista` | `SCOPE.md:13` — "funde os TRÊS backlogs" |
+| `Board/Index` (+`DetailSheet`) | `/forja/trabalho?visao=quadro` | `TrabalhoController:95` allowlist da `visao` |
+| `Triage/Index` | aba `/forja` | ADR 0367 **D6**: "morre a tela, fica a aba" |
+| `MyWork` · `Inbox` · `Burndown` | — | ADR 0367 **D5**: perda consciente, custo aceito |
+| `Activity` | — | ADR 0367 **D1** |
+
+**FICOU `Roadmap/Index`** (o 8º). A **D7** condiciona a saída a *"o Gantt provar que
+substitui (filtro por cycle efetivo + volume domado)"* e a **Onda 6 não rodou**.
+Revogá-la seria eu sobrepor ADR aceita — decisão [W], não minha.
+
+**FICARAM os 3 `_components/Forja{Backlog,Quadro,Triage}`**, que o §11 também lista.
+`Cockpit.tsx:19-21` **importa os três**, e `ForjaTriage` serve `/forja` — a landing
+do módulo e o alvo do botão primário "Novo issue" (`ForjaHub.tsx:136`). Apagar hoje
+derruba a landing. Destrava na **Onda 3**, que faz Aprovações virar a landing.
+
+**Dois achados que o §11 não previa** — e o primeiro era um buraco real:
+
+1. **A navegação da área tem TRÊS superfícies, não uma.** O §11 listava "rotas,
+   testes e SCOPE". Faltava `Modules/Forja/Resources/menus/topnav.php` — a superfície
+   **viva** (`LegacyMenuAdapter` → `shell.topnavs.Forja`), que tinha **8 itens, todos
+   apontando pras telas revogadas**. Sem tocá-la, as telas morriam e o menu seguia
+   oferecendo-as. A 3ª superfície é o `DataController::modifyAdminMenu()`, onde um
+   `return` **incondicional** na linha 116 já tornava tudo abaixo código morto.
+2. **Um bug vivo, achado pelo caminho.** `SearchController` devolvia `url` de
+   resultado do ⌘K apontando pra `/project-mgmt/board?project=X`. O 301 teria
+   **descartado o `?project=`**. Reapontado pros filtros que o receptor de fato
+   aceita (`q`, `cycle`); `project` não existe lá por decisão [W], então o resultado
+   de Projeto vai pra lista inteira — perda declarada.
+
+**Placar honesto contra a meta do §11** (a meta pedia `git grep` = 0):
+
+| alvo | antes | depois | por quê não zerou |
+|---|---|---|---|
+| rotas nomeadas `project-mgmt.*` | 32 | **5** | 4 são `install.*`, **obrigatórias** pela ADR 0024 (sem elas o botão Install fica sem ação); 1 é o `roadmap` da D7 |
+| `.tsx` das 8 telas de §2.2 | 8 | **1** | `Roadmap/Index`, pela D7 |
+| `_components/Forja{Backlog,Quadro,Triage}` | 3 | **3** | deps vivas do `Cockpit` — Onda 3 |
+
+Os caminhos revogados viram **301 sem nome de rota**: medi **113 citações** de
+`/project-mgmt/*` em `memory/**`, e o time que entra pelo MCP segue esses links.
+Rota morta não volta pelo nome; caminho velho continua levando a algum lugar.
