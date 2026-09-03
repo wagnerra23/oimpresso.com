@@ -15,8 +15,13 @@ name: Module Grades Gate (anti-regressão)
 # Comenta delta por módulo (subiu / desceu / igual / novo) + sinaliza buckets alterados.
 
 on:
+  workflow_dispatch:
   pull_request:
-    types: [opened, synchronize, reopened, labeled, unlabeled]
+    types: [opened, reopened, labeled, unlabeled, ready_for_review]
+
+concurrency:
+  group: module-grades-gate-${{ github.ref }}
+  cancel-in-progress: true
 
 concurrency:
   group: module-grades-gate-${{ github.ref }}

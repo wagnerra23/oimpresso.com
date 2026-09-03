@@ -16,7 +16,13 @@ on:
   # waiting for status" pra sempre. O `--check` é ~1s (scan filesystem), roda barato em
   # TODO PR e fica verde quando o count não muda. Rodar em todo PR também alimenta o
   # soak de falso-positivo (regra anti-teatro: advisory até FP=0 por 1-2 semanas).
+  workflow_dispatch:
   pull_request:
+    types: [opened, reopened, ready_for_review]
+
+concurrency:
+  group: charter-refs-gate-${{ github.ref }}
+  cancel-in-progress: true
 
 concurrency:
   group: charter-refs-gate-${{ github.ref }}

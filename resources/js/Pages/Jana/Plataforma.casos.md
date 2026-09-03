@@ -4,7 +4,7 @@ irmaos: Plataforma.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-08-31"
+last_run: "2026-09-03"
 ---
 
 # Casos de Uso & Aceite — Jana/Plataforma
@@ -148,6 +148,15 @@ last_run: "2026-08-31"
 ## Trilha do tempo
 - 2026-08-31 · [CC] carimbado por criar-tela.mjs — trio nascido junto (charter + casos + teste).
   Refs: UI-0013 · ADR 0264 G-1/G-2.
+- 2026-09-03 · [CC] `last_run` bumpado porque a tela MUDOU e os casos foram REVALIDADOS pelo
+  primeiro run real da lane MySQL (`3 failed - 10 skipped - 867 passed / 3007 assertions`), nao
+  por higiene de data. O que os vermelhos ensinaram: (a) `UC-PLATAF-03` achou BUG DE PRODUCAO —
+  `MetaPeriodo`/`MetaApuracao` usam `BelongsToBusinessViaParent`, entao o eager load das filhas
+  seguia filtrando pela sessao e as 2 colunas novas viriam vazias pra todo tenant alheio;
+  (b) `UC-PLATAF-02` mostrou que eu havia lido o enum de `origem` do PROTOTIPO (`sistema`) e nao
+  do banco (`chat_ia|manual|seed`) — o mapa de rotulos da tela estava errado pra 2 dos 3 valores;
+  (c) o caso de `user_type` do `SuperadminMetasCrossTenantTest` era falso por construcao (o
+  middleware `CheckUserLogin` aborta 403 antes do controller) e foi reescrito. Refs: ADR 0093.
 - 2026-08-31 · [CC] F3 do MWART: 8 UC preenchidos, persona do UC-00 corrigida (não é a Larissa —
   ela leva 403), 6 deles cobertos por `SuperadminPlataformaContratoTest.php` e 1 pelo gate
   `contrato-de-tela` com mordida provada. Refs: ADR 0104 · ADR 0093 · ADR 0358.
