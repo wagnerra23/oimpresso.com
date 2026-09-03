@@ -30,6 +30,16 @@ related_adrs:
   - 0058-reverb-substituido-por-centrifugo-frankenphp
 ---
 
+> # ⛔ REVOGADO — documento HISTÓRICO, não é receita viva
+>
+> As duas telas que este RUNBOOK ensinava a operar (`/project-mgmt/triage` e
+> `/project-mgmt/inbox`) foram **revogadas em 2026-09-02** pela Onda 11 (ADR 0367
+> D1/D5/D6). A triagem virou a aba `/forja`; a caixa de entrada saiu sem receptor
+> (perda consciente — o equivalente é a tool MCP `my-inbox`).
+>
+> **Não siga estes passos.** Fica no repo por ser citado por docs vivos e por registrar
+> o comportamento que existia.
+
 # RUNBOOK — Forja Triage + Inbox
 
 > Rotas: `/project-mgmt/triage` (Triage) · `/project-mgmt/inbox` (Inbox)
@@ -230,7 +240,7 @@ curl -sv 'https://oimpresso.com/project-mgmt/triage' -H 'X-Inertia: true' -H 'X-
 - [ADR 0058 — Centrifugo realtime](../../decisions/0058-reverb-substituido-por-centrifugo-frankenphp.md)
 - [SPEC.md](SPEC.md) — US-TR-301..308 (apêndice Onda 2 / SPEC-UI-FASE7)
 - [SPEC funcional histórico — TaskRegistry/SPEC-UI-FASE7.md](../TaskRegistry/SPEC-UI-FASE7.md) — origem das US-TR-301..308
-- Charters: [`Triage/Index.charter.md`](../../../Modules/Forja/Resources/js/Pages/Forja/Triage/Index.charter.md) · [`Inbox/Index.charter.md`](../../../Modules/Forja/Resources/js/Pages/Forja/Inbox/Index.charter.md)
+- Charters: `Triage/Index.charter.md` · `Inbox/Index.charter.md`
 - Visual comparison: [`projectmgmt-index-visual-comparison.md`](projectmgmt-index-visual-comparison.md) (status: draft — aguardando SCREENSHOT Wagner)
 - Telas irmãs (em prod): [CHARTER-board.md](CHARTER-board.md), Backlog/MyWork/Activity/Burndown/Roadmap
 - PR #1940 — code-complete Triage+Inbox (segue DRAFT)

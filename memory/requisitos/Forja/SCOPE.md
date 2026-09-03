@@ -4,17 +4,10 @@ depends_on_phase: 3.8 (DELETE Project legado UltimatePOS)
 purpose: "Cockpit de trabalho do time interno (Kanban, Backlog, Roadmap, My Work, Inbox, Triage, Burndown) e host da infraestrutura MCP da plataforma: identidade e emissão de token (mcp_actors), endpoints /api/mcp e /api/cc, Daily Brief, loop de handoff Cowork-Code, hub Equipe e Admin do MCP."
 migracao_ui: "concluido — 0 Blade servido"
 contains:
-  - "BoardController — Kanban view"
-  - "BacklogController — backlog priorizado"
   - "RoadmapController — roadmap quarterly (/project-mgmt/roadmap): epics agrupados por target_quarter"
   - "RoadmapGanttController — roadmap Gantt (/forja/roadmap-gantt): tasks no tempo via mcp_cycles+mcp_tasks, com reschedule de due_date por drag-drop. Recebido do Modules/Jana em 2026-08-05 (ADR 0366 §D-B + 0367 D4). CONVIVE com o quarter view acima — são duas leituras do mesmo backlog e nenhuma responde a pergunta da outra (o quarter não tem due_date/blocked_by, o Gantt não tem epic_id); a 0367 D7 diz que o quarter só sai quando o Gantt provar que substitui"
-  - "MyWorkController — tasks do owner logado"
-  - "TriageController — tasks órfãs (sem owner/priority/backlog); paridade tool MCP `triage`"
-  - "TrabalhoController + TrabalhoService — lista única (/forja/trabalho): funde os TRÊS backlogs que respondiam a mesma pergunta com escopos diferentes (Pages/Forja/Backlog rica project=FORJA · _components/ForjaBacklog enxuta · team-mcp/Tasks todas). Base é a NATIVA (filtros/KPIs/memoização) + a projeção forja_* do cockpit + escopo sem recorte de projeto. US-FORJA-006; a remoção da implementação perdedora é decisão [W] e NÃO aconteceu nesta onda — as três convivem"
+  - "TrabalhoController + TrabalhoService — lista única (/forja/trabalho): funde os TRÊS backlogs que respondiam a mesma pergunta com escopos diferentes (Pages/Forja/Backlog rica project=FORJA · _components/ForjaBacklog enxuta · team-mcp/Tasks todas). Base é a NATIVA (filtros/KPIs/memoização) + a projeção forja_* do cockpit + escopo sem recorte de projeto. US-FORJA-006 DECIDIDA por [W] em 2026-09-02 (PARIDADE §11): venceu o protótipo. A Onda 11 revogou a implementação de /project-mgmt (Pages/Forja/Backlog e Board); as do cockpit (_components/ForjaBacklog e ForjaQuadro) seguem no ar porque o Cockpit ainda as importa — só saem na Onda 3, quando Aprovações virar a landing"
   - "AprovacoesController + ForjaAprovacoesService — mesa de aprovações (/forja/aprovacoes): fila de mcp_tasks em `pending_approval` (o que espera decisão de [W]) em ordem de espera, e a decisão admitir/parquear/recusar. Superfície da ADR 0368, que fechou a política e deixou o código pra PR próprio; estado+FSM+trava de recusa-sem-motivo já vieram em #5283/#5288. Escrita 100% via TaskCrudService — mesmo chokepoint da tool MCP `tasks-update`, sem 2º caminho"
-  - "InboxController — caixa de entrada per-user (mcp_inbox_notifications); paridade tool MCP `my-inbox`"
-  - "BurndownController — burndown chart por cycle"
-  - "ActivityController — atividade recente"
   - "SearchController — busca cross-task fulltext"
   - "DataController + InstallController (boilerplate)"
   # Absorvido em Fase 3.7 PR-1 (2026-05-06):
@@ -77,8 +70,12 @@ related_adrs:
   - 0079-constituicao-oimpresso-7-camadas-governanca
   - 0080-trust-tiers-operacional-audit-findings
 url_prefixes:
-  - /project-mgmt/* (web canônico — o rename do módulo não mexeu no prefixo de rota)
-  - /forja/* (triagem · quadro · backlog · trabalho · handoff · changelog · roadmap-gantt · aprovacoes · mcp · integrador · saude)
+  - /project-mgmt/roadmap (ÚNICA tela que resta no prefixo — quarter view, preservada pela ADR 0367 D7 até o Gantt provar que substitui)
+  - /project-mgmt/install/* (4 rotas OBRIGATÓRIAS pela ADR 0024 — sem elas o botão Install em /manage-modules fica sem ação; não são tela)
+  # Onda 11 (2026-09-02): as outras 7 telas do prefixo foram revogadas (ADR 0367 D1).
+  # Os caminhos sobrevivem como 301 SEM nome de rota — há 113 citações de
+  # /project-mgmt/* em memory/**, e link velho tem de resolver pro receptor novo.
+  - /forja/* (triagem · quadro · backlog · trabalho · handoff · changelog · roadmap-gantt · aprovacoes · mcp · integrador · saude · search)
   - /team-mcp/* (tasks · team · scorecard · cc-sessions)
   # host das 9 rotas do Admin do MCP (parte 5/7, 2026-07-31) — URL do ADS mantida (ADR 0087)
   - /ads/admin/* (tools · team-scopes · projects · graph · kb→301 pra /kb; URL mantida pela ADR 0087)
