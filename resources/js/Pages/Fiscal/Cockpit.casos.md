@@ -53,6 +53,7 @@ related_us: [US-FISCAL-002, US-FISCAL-019]
 | UC-FCKP-04 | alerta determinístico, sem IA | `[must]` | CU-FISC-01 | `CockpitControllerTest` · `CockpitMultiTenantTest` | 🧪 |
 | UC-FCKP-05 | KPI não conta outro business | `[must]` `[T0]` | CU-FISC-12 | `CockpitMultiTenantTest` | 🧪 |
 | UC-FCKP-06 | cache separado por business | `[must]` `[T0]` | CU-FISC-12 | `CockpitCacheTest` | 🧪 |
+| UC-FCKP-08 | o alerta é desenhado e leva a algum lugar | `[must]` | CU-FISC-01 | `CockpitControllerTest` | 🧪 |
 
 ---
 
@@ -132,6 +133,20 @@ related_us: [US-FISCAL-002, US-FISCAL-019]
 - **Âncora:** `CU-FISC-16` do SDD §6.5 + decisão [W] de 2026-09-02 (*"as notas mock remova"*).
 - **Status:** 🧪 pendente do veredito das lanes — o CT 100 estava em `502` na sessão que escreveu o caso.
 
+## UC-FCKP-08 — A fila de alertas é desenhada, e cada item leva a algum lugar `[must]`
+
+**Dado** um business com rejeição recente, certificado vencendo ou DF-e por manifestar
+**Quando** a contadora abre o cockpit
+**Então** ela vê **quais** são os alertas — nível, título, motivo e a ação — e o botão de cada um a leva para a sub-página que resolve aquilo.
+
+- **Regressão que defende:** a prop `alerts` viajava do controller até a tela desde o primeiro PR e era consumida **só na contagem** do miolo do cabeçalho (`totalRej`, `Cockpit.tsx:319`). O cockpit anunciava *"N requerem ação"* e não dizia quais — enquanto o `computeAlerts()` já sabia. Medido em `origin/main` (árvore `8ce4de79`) em 2026-09-03: `alerts` desestruturado na linha 230, nenhum outro uso.
+- **Também defende (LC-30 — passa no CI e é inerte no runtime):** os dois contratos deste caso são **cross-language e silenciosos**. `goto` não é um caminho: é o `id` de uma sub-página (`nfe` · `fiscal_config` · `dfe`), o mesmo vocabulário do `_lib/paginas-fiscais.tsx`. `icon` é o vocabulário do protótipo (`audit`/`shield`/`receipt`), não o do Lucide. Nos dois casos, um valor fora do mapa **não levanta erro** — o botão ou o ícone simplesmente não são desenhados, e a tela fica plausível. Nenhum typecheck alcança isso: são strings atravessando PHP → JSON → TSX.
+- **Por que o caso assere o vocabulário, e não `props.alerts`:** um teste que percorresse os alertas de um tenant passaria **por vacuidade** num business sem rejeição, sem certificado vencendo e sem DF-e — o `foreach` não roda e a suíte fica verde sem ter medido nada (`0 failed` ≠ executou). Asserindo o que o `computeAlerts()` **emite** contra o que a tela **sabe resolver**, o caso morde sempre.
+- **Teste:** `CockpitControllerTest` — `it('UC-FCKP-08 · todo `goto` de alerta é um id de navegação que a tela sabe resolver')`, `it('UC-FCKP-08 · a url de cada destino de alerta é uma rota registrada do Fiscal')` (o runtime é o oráculo — `app('router')->getRoutes()`, não a leitura do `Routes/web.php`), `it('UC-FCKP-08 · todo `icon` de alerta tem glifo no mapa da tela')`.
+- **Bite-test (2026-09-03, CT 100):** com os valores reais, os 3 `goto` resolvem (`nfe`→`/fiscal/nfe`, `fiscal_config`→`/fiscal/config`, `dfe`→`/fiscal/dfe`) e os 3 `icon` mapeiam. Mutando um `goto` para `rota_que_nao_existe` e um `icon` para `glifo_inventado`, os dois eixos acusam `AUSENTE (FALHA)` — o caso reprova quando deve.
+- **Âncora:** `CU-FISC-01` do SDD §6 (o cockpit entrega a leitura consolidada do mês) + o alvo `prototipo-ui/cowork/fiscal-page.jsx:125-137` (`FxAlerts`).
+- **Status:** 🧪 veredito da lane pendente — o `CockpitControllerTest` pula em SQLite (schema MySQL) e o checkout do CT 100 está em 2026-07-23, sem os arquivos deste PR; o veredito real vem do CI, que faz checkout do PR.
+
 ---
 
 ## Backlog de casos (sem id — viram UC quando ganharem contrato + teste)
@@ -152,3 +167,4 @@ related_us: [US-FISCAL-002, US-FISCAL-019]
 
 - 2026-07-03 · [CC] stub criado no Passo 3 do programa de ondas — **0 UC**.
 - 2026-07-27 · [CC] `sdd-from-source` (Onda 1 / S2): **6 UC** derivados do §6 do SDD; todos herdam testes existentes. O achado do dado de demonstração ficou como `[BACKLOG]` + `CU-FISC-16` ⬜, por ser decisão de produto.
+- 2026-09-03 · [CC] Onda 1 Fiscal (Cowork): **UC-FCKP-08** — a fila de alertas passa a ser renderizada (`_components/AlertasFiscais.tsx`). O caso nasce com teste próprio e bite-test; cobre os dois contratos cross-language silenciosos (`goto`→rota, `icon`→glifo).

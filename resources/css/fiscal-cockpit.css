@@ -563,33 +563,82 @@
 }
 
 /* ─── Alertas (cockpit) ─── */
+/* Reconciliado 2026-09-03 com a fonte de design (prototipo-ui/cowork/fiscal-page.css
+ * §.fx-alerts). O port anterior desenhava UM card branco com a lista dentro e um
+ * cabeçalho — o alvo põe a moldura em CADA item, tintada pelo nível, e dispensa o
+ * cabeçalho. Como nada renderizava a fila (a prop `alerts` só alimentava a contagem
+ * do miolo), esta troca não altera nenhum pixel já servido.
+ *
+ * O vocabulário de token é o DESTA casa, não o do protótipo: `--fx-border`, `--bad`,
+ * `--warn`, `--fis`, `white`. O protótipo usa `--surface`/`--border`/`--accent`, que
+ * NÃO existem aqui, e criá-los seria token novo de DS (soberania [W]). A superfície
+ * segue `white` porque é a convenção medida do arquivo (19 ocorrências: .fx-table,
+ * .fx-quick-card, .fx-hero…) — este arquivo é light-only por construção, sem nenhum
+ * bloco `prefers-color-scheme`, e introduzir tema em UMA seção a deixaria órfã.
+ *
+ * Sobre `--fis` no ícone neutro: o pedido da onda o proibia como "rosa herdado do
+ * port", e essa condição CADUCOU — a linha 17 deste arquivo o remapeou em 2026-09-01
+ * para `oklch(0.55 0.15 295)`, que é o roxo canon do DS (`--cw-accent`, ADR 0235).
+ * Usar `--cw-accent` direto seria pior: ele não tem uso algum aqui, não tem variante
+ * `-soft`, e não está declarado no escopo `.fx-page, .fx-drawer` — que é justamente
+ * o modo de falha descrito no cabeçalho deste arquivo (token global some no drawer).
+ *
+ * Saíram por serem ÓRFÃOS (zero consumidor no repositório, medido): `.fx-alerts-h`
+ * (+ h3/.count) do cabeçalho que o alvo não tem, e `.fx-alert-body`/`.fx-alert-act`,
+ * substituídos por `.fx-alert-t` e pelo <Button> do DS. */
 .fx-alerts {
-  background: white;
-  border: 1px solid var(--fx-border);
-  border-radius: 10px;
-  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: stretch;
   margin-bottom: 18px;
 }
-.fx-alerts-h {
-  display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
-  padding-bottom: 8px; border-bottom: 1px solid var(--fx-border-2);
-}
-.fx-alerts-h h3 { margin: 0; font-size: var(--fs-4); flex: 1; font-weight: 700; }
-.fx-alerts-h .count { font-size: var(--fs-2); color: var(--fx-text-mute); }
 .fx-alert {
-  display: flex; align-items: center; gap: 12px;
-  padding: 10px 12px; margin-top: 4px;
-  border-radius: 7px; cursor: pointer; transition: background .12s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid var(--fx-border);
+  border-radius: 10px;
+  background: white;
 }
-.fx-alert:hover { background: var(--fx-bg-2); }
-.fx-alert.crit { border-left: 3px solid var(--bad); padding-left: 9px; }
-.fx-alert.warn { border-left: 3px solid var(--warn); padding-left: 9px; }
-.fx-alert.info { border-left: 3px solid var(--fis); padding-left: 9px; }
-.fx-alert-ic { color: var(--fx-text-dim); }
-.fx-alert-body { flex: 1; min-width: 0; }
-.fx-alert-body b { display: block; font-size: 12.5px; font-weight: 600; }
-.fx-alert-body .sub { font-size: var(--fs-2); color: var(--fx-text-mute); }
-.fx-alert-act { font-size: var(--fs-2); color: var(--fis); font-weight: 600; white-space: nowrap; }
+/* Tinta do nível: fundo a 6% e borda a ~30% sobre a superfície/borda neutras — as
+ * mesmas proporções do alvo. `info` fica neutro de propósito (o alvo também não o
+ * tinge): informativo não disputa atenção com o que requer ação. */
+.fx-alert[data-level="crit"] {
+  border-color: color-mix(in oklch, var(--bad) 30%, var(--fx-border));
+  background: color-mix(in oklch, var(--bad) 6%, white);
+}
+.fx-alert[data-level="warn"] {
+  border-color: color-mix(in oklch, var(--warn) 28%, var(--fx-border));
+  background: color-mix(in oklch, var(--warn) 6%, white);
+}
+.fx-alert-ic {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  flex: none;
+  background: var(--fis-soft);
+  color: var(--fis);
+}
+.fx-alert[data-level="crit"] .fx-alert-ic {
+  background: color-mix(in oklch, var(--bad) 14%, transparent);
+  color: var(--bad);
+}
+.fx-alert[data-level="warn"] .fx-alert-ic {
+  background: color-mix(in oklch, var(--warn) 16%, transparent);
+  color: var(--warn);
+}
+.fx-alert-t {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.fx-alert-t b { font-size: var(--fs-4); font-weight: 600; color: var(--fx-text); }
+.fx-alert-t small { font-size: var(--fs-2); color: var(--fx-text-dim); }
 
 /* ─── Quick links (cockpit) ─── */
 .fx-quick {

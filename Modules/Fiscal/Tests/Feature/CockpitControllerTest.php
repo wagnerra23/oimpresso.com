@@ -92,3 +92,78 @@ it('UC-FCKP-04 · props.alerts é array de items deterministicos (sem campos LLM
         })
     );
 });
+
+/**
+ * UC-FCKP-08 — a fila de alertas é DESENHADA, e cada item leva a algum lugar.
+ *
+ * Até 2026-09-03 a prop `alerts` chegava à tela e alimentava só a contagem do
+ * miolo do cabeçalho ("N requerem ação"); a lista nunca era renderizada. Ao
+ * desenhá-la, dois contratos cross-language passaram a valer — e nenhum dos dois
+ * dá erro quando quebra, os dois somem em silêncio:
+ *
+ *   1. `goto` NÃO é um caminho: é o `id` de uma sub-página do Fiscal, o mesmo
+ *      vocabulário do `_lib/paginas-fiscais.tsx`. Um id fora do mapa não explode
+ *      — o botão do alerta simplesmente não é desenhado.
+ *   2. `icon` fala o vocabulário do protótipo (`audit`/`shield`/`receipt`), não o
+ *      do Lucide. Nome fora do mapa de `_lib/icones-alerta.ts` renderiza sem ícone.
+ *
+ * Estes dois casos asseram o VOCABULÁRIO que o controller emite, não os alertas de
+ * um tenant — de propósito. Um teste que percorresse `props.alerts` passaria por
+ * vacuidade num business sem rejeição, sem certificado vencendo e sem DF-e: o
+ * `foreach` não roda e a suíte fica verde sem ter medido nada.
+ */
+it('UC-FCKP-08 · todo `goto` de alerta é um id de navegação que a tela sabe resolver', function () {
+    $php = file_get_contents(base_path('Modules/Fiscal/Http/Controllers/CockpitController.php'));
+    $tsx = file_get_contents(base_path('resources/js/Pages/Fiscal/_lib/paginas-fiscais.tsx'));
+
+    preg_match_all("/'goto'\s*=>\s*'([a-z_]+)'/", $php, $mGoto);
+    preg_match_all("/id:\s*'([a-z_]+)'/", $tsx, $mIds);
+
+    $gotos = array_unique($mGoto[1]);
+    $ids = $mIds[1];
+
+    expect($gotos)->not->toBeEmpty('computeAlerts deixou de emitir `goto` — o regex ou o contrato mudou');
+    expect($ids)->toHaveCount(7, 'paginas-fiscais.tsx deve manter as 7 sub-páginas do Fiscal');
+
+    foreach ($gotos as $goto) {
+        expect($ids)->toContain($goto);
+    }
+});
+
+it('UC-FCKP-08 · a url de cada destino de alerta é uma rota registrada do Fiscal', function () {
+    // O runtime é o oráculo de "esta rota existe" — não a leitura do Routes/web.php.
+    $tsx = file_get_contents(base_path('resources/js/Pages/Fiscal/_lib/paginas-fiscais.tsx'));
+    preg_match_all("/id:\s*'([a-z_]+)'.*?url:\s*'([^']+)'/s", $tsx, $m, PREG_SET_ORDER);
+
+    expect($m)->toHaveCount(7);
+
+    $uris = collect(app('router')->getRoutes()->getRoutes())
+        ->map(fn ($r) => '/'.ltrim($r->uri(), '/'))
+        ->all();
+
+    foreach ($m as [, $id, $url]) {
+        expect($uris)->toContain($url, "o destino `{$id}` aponta para {$url}, que não é rota registrada");
+    }
+});
+
+it('UC-FCKP-08 · todo `icon` de alerta tem glifo no mapa da tela', function () {
+    $php = file_get_contents(base_path('Modules/Fiscal/Http/Controllers/CockpitController.php'));
+    $ts = file_get_contents(base_path('resources/js/Pages/Fiscal/_lib/icones-alerta.ts'));
+
+    preg_match_all("/'icon'\s*=>\s*'([a-z_]+)'/", $php, $mIcon);
+    // A união de tipos é a declaração estável do vocabulário coberto; o objeto
+    // `ICONES` abaixo dela é a implementação, e o TypeScript já exige que os dois
+    // concordem (`Record<IconeAlerta, LucideIcon>`).
+    preg_match("/export type IconeAlerta = ([^;]+);/", $ts, $mTipo);
+    preg_match_all("/'([a-z_]+)'/", $mTipo[1] ?? '', $mMap);
+
+    $emitidos = array_unique($mIcon[1]);
+    $mapeados = $mMap[1];
+
+    expect($emitidos)->not->toBeEmpty('computeAlerts deixou de emitir `icon`');
+    expect($mapeados)->toEqualCanonicalizing(['audit', 'shield', 'receipt']);
+
+    foreach ($emitidos as $icon) {
+        expect($mapeados)->toContain($icon);
+    }
+});
