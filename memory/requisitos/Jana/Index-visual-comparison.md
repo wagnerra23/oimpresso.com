@@ -567,3 +567,24 @@ Dois trabalhos atacaram este documento no mesmo dia. O crédito fica separado po
 - **Golden PT-04 `draft` → `live`** — aprovação de screenshot (F1.5); trava o `ciclo-completo` desta tela **e** de outras duas.
 - **`related_prototype`** — hoje `jana-merge.jsx`; o check `pt_declarado` só casa `PT-0X`, então o ciclo reprova enquanto ficar assim.
 - **Título "Dashboard" × "Painel"** — a aba diz Painel, a rota é `/ia`, mas título, breadcrumb e o componente exportado dizem Dashboard.
+
+## Paridade das ABAS — fechada em 2026-09-02 (3 PRs, uma aba cada)
+
+> Fecha a linha *"abas: protótipo 6 × prod 3"* do handoff 2026-08-31 §Paridade Painel. Fonte
+> provada antes de comparar: `jana-merge.jsx` re-baixado do Cowork vivo pela máquina (#6600 — o
+> `JmTabs` passou a renderizar por `CliTabs`; a LISTA de abas não mudou) e `jana-telas-novas.jsx`
+> re-lido pelo `get_file` (inline, 616 linhas nos dois lados). D0: os símbolos são `JmTabs` /
+> `JmAlertas` / `JmAcoesFila` / `JmPlataforma`, não o cockpit de cobrança.
+
+| aba (ordem da âncora) | protótipo | tela viva | veredito |
+|---|---|---|---|
+| Painel · Conversa | `JmTabs` | ghosts `dashboard` · `copiloto` | ✅ já era |
+| **Alertas** (3ª) | `JmAlertas` — lista de desvios, chips, config em `localStorage` | `Jana/Alertas` (#6607): lista do `AlertaService::calcular`, chips de severidade, kebab "Abrir a meta" | ✅ **estrutura** · 🟡 **decisão** — silenciar/perguntar/config ficaram fora (servidor não honra; charter §Anti-hooks) |
+| **Ações** (4ª) | `JmAcoesFila` — 5 ações fixas, recibo por `setTimeout` | `Jana/Acoes` (#6608): `AcaoHitlService::fila()`, `JanaAcaoModal` reusado, recibo gravado | ✅ |
+| Memória | `JmTabs` | ghost `memorias` | ✅ já era |
+| **Plataforma** (6ª, só superadmin) | `JmPlataforma` — alerta de gate + 2 listas + instalação `21·4·24` | `Jana/Plataforma`: gate REAL no menu e na rota, listas cruas, contagens do disco | ✅ · 🟡 alerta da âncora **caducou** (#6421) e ficou fora |
+| contador `n` nas abas | `nConversas` · `nAlertas` | — | ❌ segue **backend** (R2) |
+
+**O que ainda diverge do protótipo nesta tela (Painel):** o card **Cheques** × `metodos` — sem
+fonte (ver `Index.casos.md` §Pendência do UC-JPAIN-18); decisão [W] sobre migrar
+`FINANCEIRO_CHEQUE`. Medido em 2026-08-31, não re-litigado.
