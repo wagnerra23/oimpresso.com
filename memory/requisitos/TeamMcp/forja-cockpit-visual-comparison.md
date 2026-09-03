@@ -866,6 +866,7 @@ herdar afirmação de bloqueio): `curl` em `https://oimpresso.com/forja/changelo
 dizer "igual ao design" (lei 6 do export: nada é 0-bug antes do T7). O comando continua escrito na
 seção de 2026-09-02. Esta medição é do eixo **folha × folha**, que não depende de deploy; a cascata
 real de produção (preflight do Tailwind + fundação) continua fora dela.
+
 ---
 
 ## 2026-09-03 (Onda 10 · fecho) — Integrador: tipografia/gap medida, e o TabBar do DS confirmado por leitura do bundle
