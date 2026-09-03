@@ -59,8 +59,25 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  * @see memory/requisitos/TeamMcp/forja-cockpit-visual-comparison.md
  */
 
-/** Permissão exigida pelos controllers do hub (#4853 renomeou de copiloto.*). */
-const FORJA_BADGE_PERMISSION = 'jana.mcp.usage.all';
+/**
+ * As permissões dos 7 controllers do hub — MEDIDAS no `can:` de cada construtor,
+ * não adivinhadas. Não é uma só: o `RoadmapGanttController` pede
+ * `jana.mcp.tasks.read|write` e o `CcSessionsController` pede `jana.cc.read.team`.
+ * Conceder só `usage.all` deu **403 em 2 dos 7 casos** no primeiro run desta lane
+ * (33792099424) — o teste discriminou certo, o bootstrap é que estava curto.
+ *
+ * Conceder todas NÃO afrouxa nada aqui: RBAC deste hub é o **UC-FORJA-07**, que
+ * prova o 403 do usuário sem permissão. Este UC mede a PROP, e um 403 no meio do
+ * caminho mediria outra coisa.
+ *
+ * @var list<string>
+ */
+const FORJA_BADGE_PERMISSIONS = [
+    'jana.mcp.usage.all',   // ForjaController · Trabalho · Scorecard · TasksAdmin · Team
+    'jana.mcp.tasks.read',  // RoadmapGanttController
+    'jana.mcp.tasks.write', // RoadmapGanttController
+    'jana.cc.read.team',    // CcSessionsController
+];
 
 /**
  * As telas do hub que passam a servir a prop — UMA por controller tocado.
@@ -118,8 +135,10 @@ function forjaBadgeUsuario(): User
     }
 
     // Sem o forget o Spatie lê a permissão antiga e o `can:` do controller devolve 403.
-    Permission::findOrCreate(FORJA_BADGE_PERMISSION, 'web');
-    $user->givePermissionTo(FORJA_BADGE_PERMISSION);
+    foreach (FORJA_BADGE_PERMISSIONS as $permissao) {
+        Permission::findOrCreate($permissao, 'web');
+        $user->givePermissionTo($permissao);
+    }
     $user->forgetCachedPermissions();
 
     session(['user.id' => $user->id]);
