@@ -412,7 +412,10 @@ como `[BACKLOG]` sem id, logo abaixo, em vez de virarem UC otimista.
 - `[BACKLOG]` **`com {pessoa}` no card + escopo no cabeçalho da thread** (*"só sua"* / *"da equipe"*).
   **Bloqueado pelo modelo de dados, não por prioridade:** não existe compartilhamento — sem tabela
   de participantes, e `abort_unless($conversa->user_id === auth()->id(), 403)` em quatro pontos do
-  `ChatController`. Implementar hoje seria inventar dado. Mesmo bloqueio que levou o charter v3 a
+  `ChatController`. Implementar hoje seria inventar dado. ⚠️ **Errata de 2026-09-03: metade
+  disto caducou.** O `com {pessoa}` no card segue bloqueado; o **escopo no cabeçalho, não** —
+  `só sua` é a afirmação verdadeira do modelo de hoje, e é assim que a âncora resolve. Entregue
+  no **UC-JCHAT-15**; o que continua proibido é o `da equipe`, que aí sim seria inventar dado. Mesmo bloqueio que levou o charter v3 a
   remover a aba `Compartilhadas`. Reabrir é PR próprio e decisão [W]. _(O cabeçalho da thread em si
   **existe** — `th-head`, com avatar, título e "Assistente IA · Jana"; o que falta nele é o rótulo
   de escopo.)_
@@ -835,3 +838,102 @@ import não é comportamento. Nenhum `Status:` muda.
 **Não rodei a suíte** — CT 100 respondeu 502 durante toda a sessão e Pest local é proibido
 (ADR 0062). O bump é por revalidação de CONTRATO, e digo porque o G-6 aceita a data e só o
 leitor percebe a diferença.
+
+---
+
+## UC-JCHAT-15 — o cabeçalho da thread é o da âncora, não o de mensageiro
+Status: 🧪 (`tests/jana-chat-composer-chips.test.tsx` — 2 casos sob o describe que cita este UC) — ✅ volta quando o manifesto G-7 capturar o veredito da lane
+
+Derivado de `prototipo-ui/cowork/jana-merge.jsx` §`JmConversa` (`.jm-conv-h`) e do
+`Chat.charter.md` §UX Anti-patterns — **não** do `.tsx` (§5 2026-06-05).
+
+O cabeçalho da conversa mostra **o título** (13px/600) e o rótulo **`só sua`** em mono, mais a
+pílula **`arquivada`** quando `conversa.status` for isso. Não mostra avatar circular, subtítulo
+de contato nem ações de mensageiro (ligar / detalhes / ⋯) — a âncora não as desenha, e o avatar
+circular é literalmente um §UX Anti-pattern do charter: *"❌ Avatar circular emoji-style"*.
+
+⚠️ **`só sua` constante NÃO é dado inventado, e isto corrige o `[BACKLOG]` abaixo.** A seção
+"Ainda sem UC" listava *"escopo no cabeçalho da thread (`só sua` / `da equipe`)"* como **bloqueado
+pelo modelo de dados**. Metade daquilo procede e metade não: `da equipe` seria inventar dado —
+e segue proibido —, mas `só sua` é a afirmação **verdadeira** do modelo de hoje, e a âncora a
+carrega como constante com o comentário que a justifica (*"Conversa é sempre só sua: não existe
+compartilhamento na produção"*). O `ChatController` prova com `abort_unless($conversa->user_id
+=== auth()->id(), 403)` em quatro pontos. Se um dia existir participante, o rótulo passa a vir
+do payload. **Regra de precedência aplicada: o perdedor foi corrigido no mesmo PR.**
+
+**Pronto quando:** título e `só sua` aparecem, `arquivada` só com o status, e o cabeçalho não
+tem botão nenhum.
+
+## UC-JCHAT-16 — o composer anuncia `/`, e o `/` funciona
+Status: 🧪 (mesmo arquivo — 3 casos; o describe cita este UC) — ✅ volta quando o manifesto G-7 capturar o veredito
+
+Derivado do `ConverseComJana` que a âncora renderiza dentro de `.jm-conv-thread` e do charter
+§Goals (*"Atalhos teclado: `/` foca composer (…) `Esc` desfoca"*).
+
+O placeholder é a copy **literal** da âncora — `Pergunte algo à Jana sobre vendas, OS,
+financeiro…  ( / para focar )`, dois espaços antes do parêntese inclusive — e o atalho que ele
+anuncia **existe**: `/` foca o composer, `Esc` desfoca, e a tecla é inerte quando o foco já está
+num campo (controle negativo). Um dos três casos é justamente esse não-sequestro.
+
+⚠️ **O binding não é enfeite da copy: é condição dela.** Placeholder que promete atalho
+inexistente é a LC-15 (*mecanismo anuncia saída que não implementa*) — e a própria âncora
+carrega a regra por escrito: *"os rótulos já prometem — atalho que não funciona é rótulo
+mentindo"*. Por isso copy e binding entraram no mesmo PR.
+
+**Pronto quando:** o atributo `placeholder` é a string literal, `/` foca, `Esc` desfoca e `/`
+não rouba o foco de quem digita.
+
+## UC-JCHAT-17 — os 3 chips têm a copy da âncora, e nenhum nasce mudo
+Status: 🧪 (mesmo arquivo — 2 casos; o describe cita este UC) — ✅ volta quando o manifesto G-7 capturar o veredito
+
+Derivado de `data.suggestions` do `ConverseComJana` (`.jc-sugg`) — **não** do `.tsx`.
+
+Abaixo do composer há **três** chips: `Quem deve mais?` · `Onde estou perdendo?` ·
+`Quais ações hoje?`. Eles aparecem **com a conversa em andamento**; no vazio quem aparece são os
+prompts grandes (o `QuickPrompts`, que é o `jc-prompts` da âncora) — os dois não competem, é a
+mesma alternância de lá.
+
+⚠️ **UC-JPAIN-16 por analogia — nenhum chip nasce clicável sem fazer nada.** O caso não confere
+que o botão existe: ele **clica** e mede que a pergunta chegou ao
+`/ia/conversas/{id}/mensagens/stream` com a copy literal no corpo. Trocar o
+`ThreadPrimitive.Suggestion` por um `<button>` decorativo derruba o teste — provado por mutação
+antes do merge (`1 failed`, restore `7/7` verde). Nenhum endpoint novo: o `autoSend` é o mesmo
+mecanismo que o `QuickPrompts` já usava.
+
+**Pronto quando:** os três chips existem com a copy literal, não aparecem no vazio, e clicar em
+um deles envia a pergunta de verdade.
+
+---
+
+## Revalidação de 2026-09-03 (onda 3b) — três linhas ❌ da rodada medida viraram teste
+
+Fecha as linhas `thread header` e `composer` da tabela de
+`memory/requisitos/Jana/Chat-visual-comparison.md` §"Rodada MEDIDA de 2026-09-03" (PR #6654,
+ainda aberto — o veredito daquelas linhas é atualizado **lá**, não aqui, pra não editar em
+paralelo o doc que outro PR já tem em mão).
+
+| medido | como | resultado |
+|---|---|---|
+| a suíte jsdom cresceu pelo arquivo novo | `npx vitest run` com e sem o spec | 42 → **43** arquivos · 534 → **541** testes (Δ +1 / +7, bate com os 7 casos) |
+| o spec entra no run-set do CI | comando exato da lane `jana-conversas-gate` | `4 passed · 33 tests` (com os specs vizinhos) |
+| cada caso **morde** | 5 mutações, controle nos dois extremos | controle `7/7` · cada mutação `1 failed` |
+| nada de tipo regrediu | `tsc --noEmit` na branch × em `origin/main` | **314 × 314** — Δ0 (dívida pré-existente do repo) |
+| a **fonte** estava fresca | `DesignSync.get_file` do projeto Cowork por ID × espelho | `jana-merge.jsx` **byte-idêntico** — 60.055 B, `sha256:b56a0385da6b4259` nos dois lados, `truncated:false` |
+| a copy veio da fonte, não da memória | mesmo `get_file` em `chat-jana.jsx` | as 4 strings conferidas **no vivo**: `( / para focar )` e os 3 rótulos de `data.suggestions` |
+
+⚠️ **Isto NÃO reabre a lápide §5 2026-08-10** (*"usar o `chat-jana.jsx` como âncora de design da
+Jana"*). A âncora desta tela é e continua `jana-merge.jsx` §`JmConversa` — o `chat-jana.jsx` entra
+porque a âncora **o renderiza dentro dela**: `.jm-conv-thread` monta `<ConverseComJana>`, que vem
+de lá por `window.*`. O critério da emenda de 2026-08-11 é **estrutural** — *não usar como âncora
+um protótipo que desenha OUTRA tela* —, e aqui não é outra tela: é o composer que a própria
+âncora compõe. Nenhum KPI, nenhum cockpit, nenhum `biz=164` atravessou.
+
+**O `ThreadHeader` NÃO foi tocado** — só deixou de ser consumido aqui. ⚠️ Errata de premissa,
+medida nesta sessão: o enunciado da onda dizia que ele é *"compartilhado com o Whatsapp"*. Não
+é. `git grep` no repo inteiro: `@/Components/cockpit/Thread` tinha **um** importador,
+`Pages/Jana/Chat.tsx`, e só do `ThreadHeader`. A decisão de não editar o compartilhado
+continua valendo por outro motivo — ele é `Components/cockpit/`, genérico por endereço, e o
+cabeçalho da âncora é vocabulário **da Jana**.
+
+**Escopo layout-only preservado:** `ConversaResumo`, `ChatController` e as migrations não foram
+tocados. **Não rodei Pest** — é CT 100 apenas (ADR 0062) e o diff não sai de `.tsx`/`.test.tsx`.

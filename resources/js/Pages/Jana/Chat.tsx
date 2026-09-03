@@ -15,7 +15,7 @@ import {
 import { toast } from 'sonner';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { ThreadHeader } from '@/Components/cockpit/Thread';
+import { JanaConversaHeader } from './_components/JanaConversaHeader';
 import { JanaAreaHeader } from './_components/JanaAreaHeader';
 import JanaConfigDrawer from './_components/JanaConfigDrawer';
 import { JanaPlanoBadge } from './_components/JanaPlanoBadge';
@@ -405,7 +405,10 @@ export default function Chat({
           onToggle={toggleHist}
         />
         <div className="copiloto-chat-thread">
-          <ThreadHeader conv={conversaFoco} />
+          {/* Onda 3b da paridade: o cabeçalho da thread passa a ser o da âncora
+              (`jana-merge.jsx` §JmConversa `.jm-conv-h`) em vez do `ThreadHeader`
+              de mensageiro. Ver `_components/JanaConversaHeader.tsx`. */}
+          <JanaConversaHeader titulo={conversa.titulo} status={conversa.status} />
           <JanaAssistantUiChat
             conversaId={conversa.id}
             mensagensIniciais={mensagens}
