@@ -9,7 +9,7 @@ related_adrs: ["0367-cockpit-unico-forja-project-mgmt-morre", "0024-instalacao-1
 next_steps:
   - "Onda 3 (Aprovações vira a landing) — destrava os 3 _components de uma vez"
   - "smoke pós-deploy do Infra Contract: as 7 revogadas viram 301, roadmap e /forja/* seguem 302"
-  - "esperar conflito de merge em SCOPE.md e PARIDADE com as sessões de Forja em voo"
+  - "flipar a landing /forja pra Aprovações — a Onda 3 entregou a view, não a landing; é o que falta pros 3 _components"
 ---
 
 # Forja Onda 11 — revogação parcial, e o que a próxima sessão precisa saber
@@ -26,11 +26,18 @@ respondeu no tempo") e as tools MCP não responderam nesta sessão. O protocolo 
 o que segue é medido em git/gh, que responderam.
 
 - `origin/main` = `1d5ca20c88`; a branch saiu dele com 0/0 no rebase.
-- Ondas da Forja mergeadas: **0, 1, 2, 2.1** + recibo. **3-10 não existem** (0 commit, 0 PR).
-- **Outras sessões de Forja ativas AGORA:** `claude/forja-onda9-changelog-r2` e
-  `claude/forja-1280-prod-medida` (vistas nas runs de CI). Não rodei `whats-active` no início —
-  deveria ter. Elas não colidem no código que toquei, mas `SCOPE.md` e
-  `PARIDADE-area-forja-diagnostico-e-ondas.md` são superfície comum: **espere conflito de merge lá**.
+- Ondas da Forja: quando comecei estavam mergeadas **0, 1, 2, 2.1**; **3-10 não existiam**.
+  **Durante a sessão mergearam 3, 4 e a view MCP** ([#6571](https://github.com/wagnerra23/oimpresso.com/pull/6571),
+  [#6582](https://github.com/wagnerra23/oimpresso.com/pull/6582), [#6575](https://github.com/wagnerra23/oimpresso.com/pull/6575)).
+  Rebaseei (+21) e **refiz a medição**.
+- **A Onda 3 NÃO destravou os 3 `_components`** — e essa é a informação mais importante deste
+  handoff, porque contradiz o que eu mesmo tinha previsto. Ela entregou a view `/forja/aprovacoes`
+  com o layout do protótipo, mas **não virou a landing**: `/forja` segue em
+  `ForjaController@triagem` (`routes.php:267`) e o `Cockpit.tsx` segue renderizando os três
+  (L19-21, 97/102/107). Quem for fechar isso precisa **flipar a landing**, não só ter a view.
+- **Sessões de Forja em voo:** `claude/forja-onda9-changelog-r2`, `claude/forja-1280-prod-medida`.
+  Não rodei `whats-active` no início — deveria ter (§5 2026-08-13). O conflito previsto
+  aconteceu: `SCOPE.md`, `SUPERFICIE.md` e `eslint-baseline.json` conflitaram no rebase.
 
 ## O que ficou, e o que destrava cada coisa
 

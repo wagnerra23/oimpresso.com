@@ -84,10 +84,24 @@ Li `governance/deadlink-baseline.json` no **nível errado** — contei as chaves
 levou a hipotetizar que o gate já estava vermelho no `main`. A medição certa (28 success / 1 failure
 nas runs) desfez. É LC-08 na forma mais barata: ler a estrutura no nível errado.
 
-## Sessões paralelas
+## Sessões paralelas — e a previsão que se cumpriu contra mim
 
-Ao consultar as runs do CI apareceram **outras branches de Forja ativas agora**:
-`claude/forja-onda9-changelog-r2` e `claude/forja-1280-prod-medida`. Não rodei `whats-active` no
-início — deveria ter ([§5 2026-08-13](../proibicoes.md)). A Onda 9 estar em voo **não** conflita com
-esta (ela toca o Changelog; eu toco `/project-mgmt`), mas o `SCOPE.md` e o `PARIDADE.md` são
-superfície comum e podem conflitar no merge.
+Não rodei `whats-active` no início; deveria ter ([§5 2026-08-13](../proibicoes.md)). Descobri as
+outras branches de Forja **por acidente**, olhando as runs de CI: `forja-onda9-changelog-r2` e
+`forja-1280-prod-medida`.
+
+Enquanto eu trabalhava, **mergearam as Ondas 3, 4 e a view MCP**. O PR ficou `CONFLICTING`, rebaseei
+(+21 commits) e refiz a medição — e aqui está o ponto: eu tinha escrito, no relatório e no PR, que
+*"a Onda 3 destrava os 3 `_components`"*. **Ela mergeou e não destravou.** Entregou a view
+`/forja/aprovacoes` com o layout do protótipo, mas `/forja` segue em `ForjaController@triagem`
+(`routes.php:267`) e o `Cockpit.tsx` segue renderizando os três. O que falta é **flipar a landing**,
+que é outra coisa.
+
+A lição não é sobre a Onda 3: é que eu tratei *"a Onda 3 destrava X"* como fato quando era
+**inferência minha a partir do título da onda no §11**. Só virou fato quando rodei o grep no
+`Cockpit.tsx` depois do rebase — e aí a resposta foi o contrário. É LC-08 numa forma que engana
+bem: a inferência era plausível, tinha fonte canon, e mesmo assim estava errada.
+
+Corolário pro merge: `SCOPE.md`, `SUPERFICIE.md` e `eslint-baseline.json` conflitaram, como previsto.
+Resolvi o `SCOPE` como UNIÃO (o main acrescentou `mcp`/`saude`/`triagem`; eu acrescentei `search`) e
+regerei os derivados sobre a base nova.
