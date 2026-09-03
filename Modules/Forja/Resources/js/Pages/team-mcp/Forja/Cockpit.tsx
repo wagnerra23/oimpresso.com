@@ -21,11 +21,19 @@ import ForjaBacklog, { type BacklogTask } from './_components/ForjaBacklog';
 import ForjaQuadro, { type QuadroData } from './_components/ForjaQuadro';
 import ForjaChangelog, { type ChangelogEntry } from './_components/ForjaChangelog';
 import ForjaMcp from './_components/ForjaMcp';
-// Handoffs virou tela própria (/forja/handoffs) em 2026-08-08 — dado vivo não
-// mora dentro da vitrine mockada do contrato. Os tipos foram junto.
-import ForjaHandoffs, { type HandoffItem, type HeartbeatInfo } from './_components/ForjaHandoffs';
+// Handoffs: seção da aba MCP (PARIDADE §11 Onda 8) E tela própria em /forja/handoffs.
+// O MESMO componente nos dois pontos — uma projeção (ForjaMcpService), zero duplicação.
+// A tela própria nasceu em 2026-08-08 e continua viva; o protótipo põe o painel dentro
+// da view `mcp`, e é o protótipo que manda no layout (ADR 0388).
+import ForjaHandoffs, {
+  HandoffsSkeleton,
+  type HandoffItem,
+  type HeartbeatInfo,
+} from './_components/ForjaHandoffs';
 // Integrador — view `integra` do protótipo, nasce na Onda 2 (PARIDADE §11): estática por construção.
 import ForjaIntegrador from './_components/ForjaIntegrador';
+// Saúde — view `saude` do protótipo, nasce na Onda 7 (PARIDADE §11): dado real (scorecard + tasks).
+import ForjaSaude, { type SaudeData } from './_components/ForjaSaude';
 
 interface Meta {
   generated_at: string;
@@ -44,6 +52,7 @@ interface Props {
   changelog?: ChangelogEntry[];
   handoffs?: HandoffItem[];
   heartbeat?: HeartbeatInfo;
+  saude?: SaudeData;
 }
 
 function ForjaCockpit({
@@ -56,6 +65,7 @@ function ForjaCockpit({
   changelog,
   handoffs,
   heartbeat,
+  saude,
 }: Props) {
   const loading = (txt: string) => (
     <div className="mt-4 inline-flex w-full items-center justify-center rounded-lg border border-dashed py-16 text-sm text-muted-foreground">
@@ -67,28 +77,38 @@ function ForjaCockpit({
     <>
       <ForjaHub active={tab} triagemCount={triagemCount} />
 
-      {/* `changelog` é réplica do protótipo (Onda 9) e a view TRAZ o próprio padding
-          (`.fj-changelog{padding:18px 32px 40px}`) — somar `px-6` daria 24+32=56px
-          à esquerda contra os 32px do protótipo. O `integrador` tem a MESMA causa
-          (`.fj-integra`, mesmo padding) e entra nesta lista na Onda 10, que é o PR
-          dono do compare dele.
-          A classe `fj-hub` aqui é ESCOPO DE TOKEN, não layout: a `<section>` é IRMÃ
-          do `<ForjaHub>`, e o bundle escopa a família `--accent*` do dark a
-          `[data-theme="dark"] .fj-hub, .fj-page` (Onda 2.1) — sem ela os chips
-          herdariam o `--accent` 0,55 da fundação em vez do 0,70 do protótipo. Vem
-          junto `.fj-hub button{line-height:normal}` (linha 1226), que é o mesmo fix
-          que a Onda 2.1 mediu no botão do topnav (de 28px para 25px, por causa do preflight
-          do Tailwind) e de que os `<button>` dos chips precisam. Medido: `.fj-hub`
-          NÃO tem regra própria — as 20 regras dela são todas de descendente, então
-          a classe não traz layout. `.fj-page` foi descartada aqui porque tem
-          `height:100%; overflow:hidden` e clipa o feed (medido em harness). */}
+      {/* Abas-réplica trazem o próprio padding do protótipo no root (`.fj-mcp` e
+          `.fj-changelog` = `18px 32px 40px`, idêntico a `.fj-integra` e `.fj-saude`);
+          somar o `px-6 pt-4` do wrapper daria 56px de recuo onde o protótipo tem 32px.
+          Estão na condicional só `mcp` (Onda 8) e `changelog` (Onda 9): `saude` (Onda 7)
+          e `integrador` (Onda 2) têm o mesmo padding próprio no bundle e receberiam o
+          mesmo tratamento, mas tirá-los do wrapper agora mudaria o layout de telas de
+          OUTRAS ondas — já medidas e mergeadas — sem medição nova. Cada uma entra na
+          sua onda de compare.
+          No `changelog` a classe é `fj-hub`, e ela é ESCOPO DE TOKEN, não layout: a
+          `<section>` é IRMÃ do `<ForjaHub>`, e duas coisas só existem sob `.fj-hub`.
+          Medido no bundle DEPOIS do PR 6581 (que levou `--accent`/`--accent-soft` pra
+          fundação e encolheu o bloco escopado de 4 tokens para 2):
+            · `--accent-line` (linha 1243) — o `.fj-clog-tab.active` e o `.fj-flag-tier-0`
+              pedem `var(--accent-line, var(--accent))`; sem o escopo a borda cai no
+              fallback e vira o accent CHEIO (0,70) no lugar da linha sutil (0,47);
+            · `.fj-hub button{line-height:normal}` (linha 1239) — o mesmo fix que a
+              Onda 2.1 mediu no botão do topnav (de 28px para 25px, por causa do
+              preflight do Tailwind), de que os `<button>` dos chips precisam.
+          `--accent` e `--accent-soft` NÃO são mais motivo: vêm da fundação desde o
+          PR 6581. Medido também: `.fj-hub` não tem regra própria — as suas regras são
+          todas de descendente, então a classe não traz layout. `.fj-page` foi
+          descartada aqui porque tem `height:100%; overflow:hidden` e clipa o feed. */}
       <section
-        className={tab === 'changelog' ? 'fj-hub' : 'px-6 pt-4'}
+        className={tab === 'changelog' ? 'fj-hub' : tab === 'mcp' ? '' : 'px-6 pt-4'}
         data-testid={`forja-tab-${tab}`}
       >
-        {/* Intro da aba (texto-âncora). Triagem renderiza o seu próprio; MCP tem
-            banner; Changelog e Integrador não têm parágrafo no protótipo. */}
-        {tab !== 'triagem' && tab !== 'mcp' && tab !== 'integrador' && tab !== 'changelog' && (
+        {/* Intro da aba (texto-âncora). Triagem renderiza o seu próprio; MCP tem banner.
+            Saúde entrou nesta lista na Onda 7: a view do protótipo abre com o seu próprio
+            `fj-mcp-intro`, e manter o parágrafo genérico daria DOIS textos de abertura.
+            Changelog entrou na Onda 9 pelo mesmo motivo: o `ChangelogFeed` do protótipo
+            não desenha parágrafo de intro. */}
+        {tab !== 'triagem' && tab !== 'mcp' && tab !== 'integrador' && tab !== 'saude' && tab !== 'changelog' && (
           <p className="text-xs leading-relaxed text-muted-foreground">{subtitle}</p>
         )}
 
@@ -114,9 +134,20 @@ function ForjaCockpit({
             <ForjaChangelog changelog={changelog} />
           </Deferred>
         )}
-        {tab === 'mcp' && <ForjaMcp />}
-        {tab === 'handoffs' && <ForjaHandoffs handoffs={handoffs} heartbeat={heartbeat} />}
+        {/* MCP: a vitrine é estática e aparece na hora; só o painel de handoffs (dado
+            vivo) espera o defer — o <Deferred> mora dentro do ForjaMcp, com skeleton. */}
+        {tab === 'mcp' && <ForjaMcp handoffs={handoffs} heartbeat={heartbeat} />}
+        {tab === 'handoffs' && (
+          <Deferred data={['handoffs', 'heartbeat']} fallback={<HandoffsSkeleton />}>
+            <ForjaHandoffs handoffs={handoffs} heartbeat={heartbeat} />
+          </Deferred>
+        )}
         {tab === 'integrador' && <ForjaIntegrador />}
+        {tab === 'saude' && (
+          <Deferred data={['saude']} fallback={loading('saúde')}>
+            <ForjaSaude saude={saude} />
+          </Deferred>
+        )}
       </section>
     </>
   );

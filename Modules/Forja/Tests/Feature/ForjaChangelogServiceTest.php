@@ -96,7 +96,7 @@ function forjaChangelogBuildSchema(): void
 // 1. build() com fontes reais — SHAPE + ordenação
 // -------------------------------------------------------------------------
 
-it('UC-FORJA-15 · build() devolve entries no shape do ChangelogFeed a partir de ADRs + sessões', function () {
+it('UC-FORJA-16 · build() devolve entries no shape do ChangelogFeed a partir de ADRs + sessões', function () {
     forjaChangelogBuildSchema();
 
     McpMemoryDocument::create([
@@ -198,7 +198,7 @@ it('build() devolve [] quando as tabelas-fonte não existem (sem dado fantasma)'
 // 3. Onda 9 (PARIDADE §11) — os campos que o ChangelogFeed do protótipo desenha
 // -------------------------------------------------------------------------
 
-it('UC-FORJA-15 · flags traz só as 2 que o protótipo estiliza (tier-0/breaking) e descarta o resto', function () {
+it('UC-FORJA-16 · flags traz só as 2 que o protótipo estiliza (tier-0/breaking) e descarta o resto', function () {
     forjaChangelogBuildSchema();
 
     McpMemoryDocument::create([
@@ -220,7 +220,7 @@ it('UC-FORJA-15 · flags traz só as 2 que o protótipo estiliza (tier-0/breakin
     expect($rows->firstWhere('id', '0999-sem-flag')['flags'])->toBe([]);
 });
 
-it('UC-FORJA-15 · modules vem da coluna module; vazio e a string "null" contam como ausência', function () {
+it('UC-FORJA-16 · modules vem da coluna module; vazio e a string "null" contam como ausência', function () {
     forjaChangelogBuildSchema();
 
     McpMemoryDocument::create([
@@ -243,7 +243,7 @@ it('UC-FORJA-15 · modules vem da coluna module; vazio e a string "null" contam 
     expect($rows->firstWhere('id', '0003-sem-modulo')['modules'])->toBe([]);
 });
 
-it('UC-FORJA-15 · date_label é a MESMA data do campo date, em dd/mm (o que o .fj-feed-when desenha)', function () {
+it('UC-FORJA-16 · date_label é a MESMA data do campo date, em dd/mm (o que o .fj-feed-when desenha)', function () {
     forjaChangelogBuildSchema();
 
     McpMemoryDocument::create([
@@ -264,7 +264,7 @@ it('UC-FORJA-15 · date_label é a MESMA data do campo date, em dd/mm (o que o .
     expect($rows->firstWhere('id', '0264-governanca')['date'])->toStartWith('2026-06-09');
 });
 
-it('UC-FORJA-16 · sessão sem summary_auto herda o 1º prompt do usuário — não a parede "Sessão Claude Code"', function () {
+it('UC-FORJA-17 · sessão sem summary_auto herda o 1º prompt do usuário — não a parede "Sessão Claude Code"', function () {
     forjaChangelogBuildSchema();
 
     $sessao = McpCcSession::create([
@@ -287,7 +287,7 @@ it('UC-FORJA-16 · sessão sem summary_auto herda o 1º prompt do usuário — n
     expect($row['title'])->not->toBe('Sessão Claude Code');
 });
 
-it('UC-FORJA-16 · sessão sem summary_auto E sem prompt fica com título VAZIO (empty honesto)', function () {
+it('UC-FORJA-17 · sessão sem summary_auto E sem prompt fica com título VAZIO (empty honesto)', function () {
     forjaChangelogBuildSchema();
 
     McpCcSession::create([
@@ -301,7 +301,7 @@ it('UC-FORJA-16 · sessão sem summary_auto E sem prompt fica com título VAZIO 
     expect($row['title'])->toBe('', 'sem fonte de título, o componente omite o parágrafo — não inventa rótulo');
 });
 
-it('UC-FORJA-16 · título derivado do prompt é cortado em 160 chars e tem PII redigida', function () {
+it('UC-FORJA-17 · título derivado do prompt é cortado em 160 chars e tem PII redigida', function () {
     forjaChangelogBuildSchema();
 
     $longa = McpCcSession::create([

@@ -74,3 +74,41 @@ O bundle do DS que o espelho consome (`mirror-snapshot/_ds_bundle.js`) é o do p
 **Gates que precisaram de absorção (todas com `BASELINE-ABSORB:` no commit que toca a baseline):** ESLint ds/no-os-btn + ds/no-inline-tablist (réplica, ADR 0388) · conformance 0→1 (branco literal do primary) · foundation +4 tokens escopados (`inertia.css: 74` que o `--write` removeu foi restaurado) · css-size +26. Label `visreg-gray-approved` aplicada em #6553 e #6563 pela zona cinza **herdada** (Jana · Ponto/Dashboard · Fiscal/Cockpit · financeiro-unificado) — a baseline dessas telas segue divergente, declarado em comentário.
 
 **Pendente pro [W]:** reconciliar `--accent` dark na fundação (0,55 × 0,70 do protótipo) — hoje escopado à Forja; Cowork regenerar o bundle v2 e consertar na fonte as inconsistências listadas (pedido em `prototipo-ui/CODE_NOTES.prompt-cowork-inconsistencias-na-fonte-2026-09-02.md`).
+
+---
+
+## Sessão da noite (sessão própria) — Onda 8: a view MCP vira réplica e o painel Handoffs volta pra dentro
+
+> Continuação do mesmo tema no mesmo dia — por isso **apende aqui** em vez de abrir session log paralelo (proibicoes §Memória: se já existe similar, edita). O que está acima é da sessão da manhã/tarde e **não foi tocado**.
+
+**PR:** [#6575](https://github.com/wagnerra23/oimpresso.com/pull/6575) · **Onda 8 do §11** (`MCP + Handoffs dentro`).
+
+### O que a onda entregou
+
+`/forja/mcp` passou ao vocabulário do bundle (`fj-mcp*` · `fj-perm*` · `fj-token*` · `fj-audit*` · `fj-ho-*`) na ordem do protótipo — **intro `mockado` → Handoffs F1→F3 → grid [contrato | tokens] → auditoria** — e o painel de handoffs voltou pra dentro da aba, cumprindo a promessa que o comentário do `FORJA_TABS` registrava desde a Onda 2 (*"Handoffs (seção do MCP, Onda 8)"*). A rota `/forja/handoffs` **segue viva** e renderiza o **mesmo componente**, com a **mesma projeção** (`ForjaMcpService`): um dono, dois pontos de render. Nasceu também o `ForjaRoleBadge` — o selo de ator do protótipo (`window.FjRoleBadge`), cujas classes já desciam no bundle da Onda 1 sem ninguém usá-las.
+
+### A causa-raiz do D4, que era CSS ausente e não markup
+
+O `DIVERGE` de tipografia da rodada da manhã (*"col0/col2 sem mono × mono"*) não se resolvia copiando markup: **`.mono` é utilitária do SHELL do protótipo** (`styles.css:1740`) e **não existe em produção** — 0 ocorrências globais em `resources/css/*.css`; o bundle só a traz escopada em 3 pontos. Medido no protótipo: os **6** lugares que a view usa (`fj-token-id`, `fj-audit-ts|tool|args`, `fj-ho-slug`, `fj-ho-pr`) são monoespaçados e **nenhum** tem regra própria. Sem isso o DOM ficaria igual e o **render diferente** — LC-08 na forma mais silenciosa. Desceu escopada (`.fj-mcp .mono, .fj-ho .mono`).
+
+### O erro que quase virou número falso (registrado, não apagado)
+
+A primeira medição do protótipo devolveu `color: rgb(0,0,0)` em toda a tabela e `--text-dim` **vazio** no `:root`. Eu ia tratar aquilo como "cor divergente". Não era: o `_ds/` (gitignored) estava ausente no espelho e `colors_and_type.css` + `cockpit_domains.css` carregaram com **0 regras** — o protótipo renderizou sem token nenhum. O portão `cowork-mirror-freshness --preview-ds` (fail-closed) repôs 10 deps e a medição foi refeita. **Lição operacional:** o `--preview-ds` roda ANTES de medir, não depois — sem ele qualquer cor lida é lixo com aparência de dado.
+
+Dois outros deslizes menores, corrigidos no caminho: (1) rodei `replica-inconsistencias --prototipo` com o glob **entre aspas**, ele não expandiu e o relatório perdeu os 13 itens `origem = prototipo` (101→90); re-rodado sem aspas deu 102 e `exit 0`. (2) escrevi a continuação de linha do YAML da lane com `\` num heredoc e a **barra colapsou** (LC-26) — refeito com `chr(92)`, conferido em `cat -A`.
+
+### Verificação
+
+Fonte provada ANTES de tocar código: `forja-page.css` (`9c180a5d92ae`) e `forja-page.jsx` (`e4339537969d`) baixados do Cowork vivo por `DesignSync.get_file` e medidos contra o espelho → **`igual` nos dois**. O `forja-mcp.jsx` **não pôde ser medido por hash** (31 KB volta inline pelo `get_file`, abaixo do teto de persistência) — mitigado por conferência estrutural contra o vivo que li: 9 linhas de contrato, 6 de auditoria, 3 tokens, 6 handoffs e o `<HandoffPanel/>` dentro do `ForjaMCPView`, todos batendo.
+
+Gates locais verdes: `foundation` · `conformance` · `stylelint` · `css:size` · `layout` · `casos-coverage-guard` · `baseline-tamper-guard` · `build:inertia` · `tsc` (0 erro novo). **`eslint-baseline` fechou em delta 0** — apareceu +1 (`react-refresh/only-export-components`), era **minha e evitável** (exportei um helper junto do componente): consertada, **não absorvida**. `ds-guard` segue bloqueando por `--dev-*(4)`: **provado herdado** rodando o blob de `origin/main` no mesmo diretório — veredito idêntico, delta zero.
+
+**Teste novo:** `ForjaMcpHandoffsInlineTest` (3 casos citando `UC-FORJA-15`), nas **duas** lanes. Ele não testa classe CSS de propósito — isso é do `design-diff`, e duplicar régua consolidada é proibido; testa o que some **em silêncio**: sem as props deferidas o `<Deferred>` fica em fallback eterno, sem erro no console.
+
+### O que NÃO fechou, e é honesto dizer
+
+O **`compare 0 bug` do §11 exige produção deployada** — merge de `.tsx` é humano (ADR 0283). A linha 8 do §11 ficou **🧪 código no ar em PR**, não ✅. Os valores-alvo do lado design ficam **medidos** no visual-comparison pro pós-deploy ser um `--compare` direto.
+
+`visual-regression` vermelho: as telas em zona cinza são **`Ponto/Dashboard` (0,21%)**, **`Jana` (0,29%)** e **`financeiro-unificado · selecionar-lote`** — a **mesma lista herdada** que a sessão da tarde declarou, e **nenhuma delas é desta onda** (as minhas, `team-mcp/Forja*`, que o raio detectou, passaram). Medi que o check **não é required** (união de 45 contexts do classic + ruleset), logo não bloqueia merge — e por isso **não apliquei** `visreg-gray-approved`: aprovar zona cinza de outros módulos não é escopo desta onda.
+
+**Nota de instrumento:** `ancora.mjs TeamMcp/Forja/Cockpit` responde *"sem charter pra essa tela"*; a query que resolve é **`Forja/Cockpit`** (o path real é `team-mcp/`, não `TeamMcp/`). O charter existe e a âncora confirma `related_prototype: forja-page.jsx` com frescor verificado.
