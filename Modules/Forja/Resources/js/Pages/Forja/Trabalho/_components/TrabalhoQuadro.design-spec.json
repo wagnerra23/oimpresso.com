@@ -1,41 +1,38 @@
 {
   "screen": "Forja/Trabalho/_components/TrabalhoQuadro",
   "path": "Modules/Forja/Resources/js/Pages/Forja/Trabalho/_components/TrabalhoQuadro.tsx",
-  "measured_against_sha": "c1263f2e53",
+  "measured_against_sha": "e9fed331ad",
   "generated_by": "scripts/design-spec-gen.mjs (DERIVADO — não editar à mão)",
   "shell": [],
   "components": {
-    "ui": [
-      "Card",
-      "CardContent"
-    ],
-    "shared": [
-      "ActorSeal",
-      "COLUMN_BORDER",
-      "COLUMN_LABEL_PT",
-      "PriorityDot",
-      "type Status"
-    ],
-    "layout": [
-      "Grid",
-      "Inline",
-      "Stack"
-    ],
-    "local": []
+    "ui": [],
+    "shared": [],
+    "layout": [],
+    "local": [
+      "FASE_HUE (./trabalhoTokens)",
+      "LockIco (./trabalhoAtomos)",
+      "OwnerSeal (./trabalhoAtomos)",
+      "PrioDot (./trabalhoAtomos)",
+      "RoleBadge (./trabalhoAtomos)",
+      "STATUS_FJ (./trabalhoTokens)",
+      "Star (./trabalhoAtomos)",
+      "TarefaLista (./TrabalhoLista)",
+      "TypeChip (./trabalhoAtomos)"
+    ]
   },
   "hooks": [],
   "violations": {
     "raw_oklch": 0,
     "raw_hex": 0,
-    "hardcoded_px": 2,
-    "inline_style": 0,
+    "hardcoded_px": 0,
+    "inline_style": 1,
     "native_select": 0,
     "native_input": 0
   },
   "totals": {
-    "canon_components": 10,
-    "local_components": 0,
-    "uses_layout_primitives": true,
-    "structural_violations": 2
+    "canon_components": 0,
+    "local_components": 9,
+    "uses_layout_primitives": false,
+    "structural_violations": 1
   }
 }

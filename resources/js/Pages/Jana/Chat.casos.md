@@ -4,7 +4,7 @@ casos: Jana Conversa · histórico · teclado · acessibilidade · /ia/conversa
 irmaos: Chat.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-chat.md (runbook)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-08-28"
+last_run: "2026-09-03"
 ---
 
 # Casos de uso — /ia/conversa (Chat da Jana)

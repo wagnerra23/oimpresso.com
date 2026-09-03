@@ -562,3 +562,39 @@ Ou seja: a ≤1280 o auto-rail **elimina o corte** — é o defeito concreto que
 **O selo de ator NÃO é componente meu:** o `ForjaRoleBadge` já tinha nascido na **Onda 8** ([#6575](https://github.com/wagnerra23/oimpresso.com/pull/6575)) para a view MCP, com o mesmo `FORJA_ACTORS` verbatim. Eu havia escrito um igual sem saber (não rodei `whats-active` — LC-19); no merge **descartei o meu e usei o dele**, que é o canônico. Diferença que isso traz, declarada: o componente da Onda 8 devolve `null` para papel fora dos 7 do protótipo, igual ao `RoleBadge` do `forja-page.jsx`. Medido no corpus, `decided_by` traz `[W]` em 313 dos 393 ADRs, mas também `[E]` e `[F]` — nesses o selo **não desenha**, e a linha mostra só os módulos. É o comportamento do protótipo; se incomodar, é mudança no componente compartilhado da Onda 8, não aqui.
 
 **Pendente pós-deploy (1 comando cada):** injetar a MESMA sonda (`design-diff.mjs --probe`, papéis `filterControls: .fj-clog-tabs` · `tableRow: .fj-feed-item`) em `https://oimpresso.com/forja/changelog` autenticado, dark, 2560 → `--compare prod.json design.json --check`; e o D1 (clicar um chip e provar que `window.__marker` sobrevive — o filtro é client-side, então o esperado é **zero** requisição).
+
+---
+
+## 2026-09-03 — Onda 6 (Gantt): smoke em PRODUÇÃO, e ele corrigiu uma afirmação minha
+
+Deploy `cb38ae2af` (success 13:27Z), que contém o merge da Onda 6 (`20875e152`, [#6624](https://github.com/wagnerra23/oimpresso.com/pull/6624) às 11:39Z) — ancestralidade conferida com `git merge-base --is-ancestor`, não presumida. Medido em `https://oimpresso.com/forja/roadmap-gantt` **autenticado**, tema **dark** (`data-theme="dark"`), Chrome real.
+
+### O que renderizou (contado no DOM, não olhado)
+
+| elemento | seletor | medido |
+|---|---|---|
+| parágrafo-âncora | `.fj-quadro-ancora[data-testid="gantt-ancora"]` | **1** |
+| barra de totais | `.fj-totalbar.fj-g-foot[data-testid="gantt-totalbar"]` | **1** · `display: flex` |
+| legendas | `.fj-g-leg` | **3** (progresso · prazo vencido · hoje) |
+| gantt (motor SVAR) | `[data-testid="roadmap-gantt"]` | **1** — montou |
+
+Texto literal da barra em produção:
+
+```
+500 tarefas · 5 com prazo vencido · progresso · prazo vencido · hoje
+arraste a barra = reagendar prazo · clique = detalhe
+```
+
+### Fidelidade ao bundle — computed style, não screenshot
+
+O `.fj-quadro-ancora` do `cowork-forja-bundle.css` declara `font-size:12px; color:var(--text-mute)`. Medido em prod: **`12px`** e **`oklch(0.58 0.005 90)`** — que é exatamente o `--text-mute` do `tokens/_generated-cockpit-dark.css`. O elemento herda os tokens **globais** do cockpit sem precisar do root `.fj-page`, que foi a aposta declarada no charter da onda. **Confirmada.**
+
+### ⚠️ A afirmação que o smoke DERRUBOU (minha, não do código)
+
+O charter e o comentário do `.tsx` previam que o contador de vencidas *"normalmente mostra 0"*, porque só 7 de 1186 tasks têm `due_date`. **Em produção mostra 5.** Das 7 com prazo, **5 já venceram** — o contador está dizendo algo útil, e a previsão pessimista era afirmação sem medição (LC-08). O **comportamento do código estava certo desde o início**: ele lê `due_date` real e ignora a janela `start + 3d` que o `toGanttTasks` inventa. O que estava errado era o que eu escrevi sobre ele. Corrigido nos dois sites no mesmo PR deste recibo.
+
+### O que este smoke NÃO prova
+
+Não é comparação pareada com o protótipo, e não podia ser: o corpo do gantt tem **motores diferentes** dos dois lados (`.fj-g-*` desenhado à mão no protótipo × `@svar-ui/react-gantt` em produção), o que a onda declarou como diferença medida — 163 dependências contra 7 prazos, decisão em aberto de [W]. O que este recibo prova é o que a onda **entregou**: os dois elementos que vivem fora do motor, com a fidelidade de token verificada. A tela também não tem contrato em `tests/Browser/visreg-screens.json`; o comando para criá-lo está no [#6624](https://github.com/wagnerra23/oimpresso.com/pull/6624), e o passo final é a aprovação visual de [W] (F1.5).
+
+**Observação lateral, não do escopo:** o cabeçalho diz `Timeline (530 linhas)` e a barra diz `500 tarefas`. São contagens de coisas diferentes (linhas do gantt incluem as *summary* por módulo; tarefas são o teto `MAX_TASKS = 500`), mas a proximidade dos números convida à leitura errada de quem olhar rápido.

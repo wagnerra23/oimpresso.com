@@ -1,7 +1,7 @@
 ---
 tipo: session
-data: "2026-09-03"
-titulo: "Baselines defasadas de novo: a causa era o auto-rail ≤1280, não o accent do dark"
+date: "2026-09-03"
+topic: "Baselines do CoreScreens defasaram pelo auto-rail ≤1280, não pelo accent do dark"
 autor: "[C]"
 modulo: Governance
 tags: [visual-regression, baseline, gate, ci, medicao, auto-rail]

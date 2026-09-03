@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-02**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-03**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -36,9 +36,9 @@ lente: [construir]
 | Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-08-11 |
 | Forja | [BRIEFING](../requisitos/Forja/BRIEFING.md) | 2026-08-12 |
 | Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-08-13 |
-| Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-08-27 |
+| Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-09-03 |
 | KB | [BRIEFING](../requisitos/KB/BRIEFING.md) | 2026-07-29 |
-| Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-07-23 |
+| Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-09-02 |
 | NfeBrasil | [BRIEFING](../requisitos/NfeBrasil/BRIEFING.md) | 2026-07-28 |
 | NFSe | [BRIEFING](../requisitos/NFSe/BRIEFING.md) | 2026-08-16 |
 | Officeimpresso | [BRIEFING](../requisitos/Officeimpresso/BRIEFING.md) | 2026-07-30 |
@@ -129,13 +129,13 @@ lente: [construir]
 - espelho — mexeu depois de verificar
 - Governance Gate (índice + memory-health + meta-teste)
 
-### Censo — 127 workflows por classe
+### Censo — 126 workflows por classe
 
 > Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
 
 | Classe | Qtd | Exemplos |
 |---|---|---|
-| gate (bloqueia/valida PR) | 95 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
+| gate (bloqueia/valida PR) | 94 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
 | meta (testa os gates) | 7 | block-brl-values-selftest, devcontainer-firewall, gate-selftest, guards-meta-gate, … |
 | automacao (cron/dispatch) | 21 | agent-cost-per-pr, agent-pr-outcomes, briefing-code-staleness, casos-results-publish, … |
 | deploy (entrega) | 2 | deploy, quick-sync |
@@ -144,13 +144,13 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **392** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 353 · superseded: 16 · deprecated: 13 · proposto: 8 · rascunho: 1 · recusado: 1.
+- **394** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 354 · superseded: 16 · deprecated: 13 · proposto: 9 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 158 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 160 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -311,6 +311,8 @@ lente: [construir]
 - ~~2026-08-28 — Preencher `related_prototype` em 34 charters "pra as telas entrarem na onda de design" (a porta que mediu lia METADE da regra)~~
 - ~~2026-08-29 — Criar branch de `origin/main` FRESCO e depois trazer os arquivos de um WIP VELHO — e explicar o vermelho do gate por DEDUÇÃO~~
 - ~~2026-09-01 — EMENDA das lápides 2026-07-17 (quem-roda pelo runtime) e 2026-08-17 (comentário que se autodefende): a afirmação de BLOQUEIO em doc canon vira instrução de desistência~~
+- ~~2026-09-02 — Concluir "render NÃO-determinístico" a partir de "o ratio não muda depois do rebake" (é prova do CONTRÁRIO) — e os 6 rebakes que não tinham como fechar~~
+- ~~2026-09-03 — EMENDA da lápide de 2026-08-11 (transcrever conteúdo): a proibição era ABSOLUTA e criava um impasse onde a máquina não tem entrada~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -321,14 +323,14 @@ lente: [construir]
 
 ## Rastro
 
-- **482** handoffs · **659** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **494** handoffs · **672** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
-  - `2026-09-02-forja-paridade-medida-espelho`
-  - `2026-09-01-testes-persistentes-design-code`
-  - `2026-09-01-fiscal-f0-screen-coverage`
-  - `2026-09-01-descida-design-passo-0-causa-raiz-read-order`
-  - `2026-08-31-ragas-obra-parada-veredito-b`
-  - `2026-08-31-jana-p0-vazamento-e-d0-identidade-view`
+  - `2026-09-03-watchdog-g6-tres-achados-ragas`
+  - `2026-09-03-visreg-baselines-auto-rail-nao-accent`
+  - `2026-09-03-forja-onda11-revogacao-parcial`
+  - `2026-09-03-fila-ci-teto-de-concorrencia`
+  - `2026-09-03-ct100-breaker-sync-memory-e-veredito-unico`
+  - `2026-09-02-whatsapp-incident-canais-biz1-mudos-whatsmeow`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-09-02 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-09-03 · deriva das fontes canônicas, não as substitui._

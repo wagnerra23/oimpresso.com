@@ -588,3 +588,51 @@ Dois trabalhos atacaram este documento no mesmo dia. O crédito fica separado po
 **O que ainda diverge do protótipo nesta tela (Painel):** o card **Cheques** × `metodos` — sem
 fonte (ver `Index.casos.md` §Pendência do UC-JPAIN-18); decisão [W] sobre migrar
 `FINANCEIRO_CHEQUE`. Medido em 2026-08-31, não re-litigado.
+
+## Rodada MEDIDA de 2026-09-03 — Painel × `jana-merge.jsx` (mesma sonda, dark × dark, viewport 2560)
+
+> Pedido [W]: *"quais camadas ainda faltam pra ficar com o design do protótipo — tabs em posição
+> errada, KPIs feios, conversa diferente, memórias"*. Fonte provada antes de comparar: espelho
+> `jana-merge.jsx` re-baixado em 2026-09-02 (#6600); `ancora.mjs Jana/Index` → `jana-merge.jsx`;
+> `--preview-ds` **PREVIEW COMPLETO** (10 deps repostas); render pelo shell do espelho
+> (`oimpresso.com.html`, tema `dark`, `oimpresso.jana.tab=painel`) × `/ia` em prod, mesma viewport.
+> D0 (identidade de view): `data-screen-label="Jana — Painel"` nos dois lados. Veredito da
+> máquina (`design-diff --compare --check`, snapshots em scratchpad): `DIVERGE(bug): 2` — título
+> 22×19px, `kpi.tag` BUTTON×DIV — + 39 itens de SHELL a classificar (sidebar, fora desta tela).
+> O que a sonda oficial NÃO mede (posição da tablist, anatomia do KPI) foi medido com a mesma sonda
+> ad-hoc nos dois lados — números abaixo.
+
+### Header + abas (→ **Onda 1**, UC-JPAIN-19, charter v13)
+
+| item | âncora | produção (antes) | veredito |
+|---|---|---|---|
+| tablist | `nav` filho de `.jc-page` · `left=284 w=2237 h=36` · 14px abaixo do header (41px) | inline na Zona C do `PageHeader` · `left=1654 w=451 h=33` · `top=38` (mesmo do h1) | ❌ bug → **corrigido** (slot `below` do `PageHeader` canon) |
+| aba | 13px/500 · ativa 600 + `border-b 2px accent` + bg `oklch(0.33 0.09 295/.5)` · ícone 14px · `padding 0 14px` | 14px/400 · ativa 600 + mesmo underline/pill · **sem ícone** · `6px 12px` | 🟡 ícone **corrigido**; 13×14px fica (fidelidade travada em `pageHeaderTabsFidelity.spec`) |
+| Zona R | `Atualizado 09:42` (dot) → `plano Pro` → Configurar → Exportar | `plano Pro` → Configurar → Exportar → **Conversar** (primary); "Atualizado" no subtítulo | ❌ → **corrigido** (Atualizado 1º da Zona R; primary removido) |
+| subtítulo | mono 11.5px `OIMPRESSO MATRIZ · biz=164 · v1404…` | sans 12px | 🟡 → mono (`versão` é dado que a prod não tem) |
+| título | 19px/700 | 22px/700 | 🟡 **DECLARADA · decisão [W]** — `PageHeader` canon (ADR 0189) é Fundação/Shell de 37 telas |
+| avatar | 40×40 · r8 · accent | 40×40 · r8 · accent (`size-10 rounded-lg bg-primary`) | ✅ |
+
+### KPIs (→ **Onda 2**, chip)
+
+| item | âncora `.jc-kpi` | produção `KpiCard` shared | veredito |
+|---|---|---|---|
+| grid | `repeat(4, 1fr)` · gap 10 · 3 cards ocupam 3/4 | `grid-cols-3` · gap 12 · 3 cards ocupam tudo (`w=738`) | ❌ |
+| card | `h=98` · pad `12px 14px 14px` · r **8px** · gap 3px · bg `surface` | `h=125` · pad `16px` · r **12px** · gap 8px · bg `card` | ❌ |
+| label | **mono** 10px/700 uppercase `.06em` · ícone 15px **inline** à direita do label (`.jc-kpi-h`) | sans 11px/600 uppercase · ícone dentro de **caixa 36×36** `bg-muted rounded-lg` | ❌ (é o "feio": a caixa de ícone e o padding) |
+| valor | 22px/700 (`--fs-7`) · **28px** no `.emph` | 22px/600 · 22px no danger | 🟡 peso 700×600; emph 28px ausente |
+| delta/sub | `small` 11px `text-3` (`-68% vs mai/25` · `4.255 títulos · 76% inadimplência`) | `description` 12px só no vencido | 🟡 |
+| card em alarme | `.emph`: bg `--neg-soft` (`oklch(0.36 0.12 25)`), borda `neg 22%`, ícone e texto `--text` | `tone=danger`: bg `destructive/5`, borda `destructive/20` | ❌ tinta sólida × 5% |
+| tag | `DIV` (não clicável, salvo `jm-an-hit` por fora) | `BUTTON` (KpiCard com `onClick`) | 🟡 a sonda acusa; prod é clicável por design (drill) — classificar com [W] |
+
+### Metas — não comparável hoje (0 metas em todos os tenants, medido 2026-08-21/08-31); âncora `METAS ATIVAS` mono + 5 cards em linha + `Nova meta` à direita × prod pill `METAS` + h2 + 3 botões + empty. Fica pra quando existir dado.
+
+### Ondas (resolvidas em PRs separados, ≤300 linhas cada)
+
+| onda | escopo | estado |
+|---|---|---|
+| **1** | abas em faixa própria · Atualizado na Zona R · sem primary · ícones · Conversa com "Nova conversa" | **este PR** |
+| 2 | KPI no desenho `.jc-kpi` (réplica ADR 0388 em `_components/`, tokens; grid 4; `.emph`) | chip |
+| 3 | Conversa: histórico como card `jm-hist` (busca ⌘K · chips · itens ricos · atalhos) · thread header `título · só sua` · composer com chips de sugestão | chip — medição em `Chat-visual-comparison.md` §2026-09-03 |
+| 4 | Memória: largura toda · barra `busca + chips + n de m` · linha `jm-fato` com meta mono e botões-texto | chip — medição em `Memoria-visual-comparison.md` §2026-09-03 |
+| 5 | título 19×22px (Fundação) · Exportar em menu 3 itens · contador nas abas (backend) | decisão [W] |

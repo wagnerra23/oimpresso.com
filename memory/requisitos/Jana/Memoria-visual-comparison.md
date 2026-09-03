@@ -239,3 +239,29 @@ Isto é comparação **estrutural**, por leitura de código dos dois lados. Ela 
 - **`AlertDialog` × confirmação inline** — o charter pede um, a tela faz o outro **por decisão registrada**. Pela precedência, o charter é o perdedor e deveria ser corrigido no mesmo PR que alguém tocar esta região.
 - **Aba × rota** (R2) — reconciliar a Memória como aba de `JanaPage` (protótipo) ou manter rota própria (viva) muda a arquitetura da área inteira, não só desta tela.
 - **`RUNBOOK-memoria.md`** — declarado no charter e resolvido como **autoritativo** pela porta viva. Nada a fazer; registrado por contraste com o Pro, onde o mesmo campo está ambíguo.
+
+---
+
+## Rodada MEDIDA de 2026-09-03 — Memória × `jana-merge.jsx` §`JmMemoria` (mesma sonda, dark × dark, viewport 2560)
+
+> Fonte provada (#6600, `--preview-ds` completo); render pelo shell do espelho com
+> `oimpresso.jana.tab=memoria` × `/ia/memoria` em prod. D0: `data-screen-label="Jana — Memória"`
+> × `AppShellV2 title="Jana — Memória"`. ⚠️ Prod estava em **empty state** (biz 1 exibe "A Jana
+> ainda não aprendeu nada"), então a LISTA foi medida só na âncora; achado colateral registrado
+> abaixo.
+
+| região | âncora `.jm-mem` | produção | veredito |
+|---|---|---|---|
+| largura | **toda** (`left=284 w=2252`), `gap 12` | coluna central `max-w-4xl` (**896px**, `left=962`), `p-6 space-y-6` | ❌ (**Onda 4**) |
+| aviso LGPD | `Alert tone=info` full-width, `h=64`, r8, bg `accent 6%` | Card `rounded-lg border` `848×88` | 🟡 |
+| barra | `[busca 260×32 r8 · "Buscar em fatos…"] [chips: todas · Ação pendente · Contexto · Meta · Preferência · Restrição] [8 de 8 fatos (mono, à direita)]` — numa linha | busca + chips + contagem só aparecem com dado; com 0 fatos a barra **não renderiza** | 🟡 (empty) · forma difere quando renderiza (prod: `Input cw-input-icon-left` + Badge) |
+| linha do fato | `.jm-fato` `h=69` · pad `11px 13px` · **r10** · bg surface · texto 13px/19.5 · meta **mono 10.5px** (`Preferência` pill · `origem: chat` · `desde 12/03/2026 09:14` · `relevância 6/10` · `editado por…`) · ações **texto** `Editar` / `Apagar` (ghost 24px, `danger`) à direita | `FatoCard` = `Card pt-6 space-y-3`: chips no topo + texto 14px + **botões-ícone** (Pencil/Trash2) | ❌ (**Onda 4**) |
+| edição inline | textarea + `Categoria` + `Relevância` + `Motivo` + rodapé "Toda correção registra autor, horário e motivo" | textarea + motivo (categoria/relevância ausentes — R6 já registrado acima) | 🟡 (R6) |
+| apagar | inline `Apagar é irreversível. [Apagar][Manter]` | inline `Apagar é irreversível.` + ícones | ✅ estrutura · 🟡 forma |
+| header da área | `Configurar` + `Exportar` (menu) | `Configurar` + **Conversar** primary | ❌ → **corrigido na Onda 1** |
+
+**Achado colateral (dado, não design — NÃO tratado aqui):** `jana_memoria_facts` tem **19 linhas**
+para `business_id=1` (medido por tinker em prod, 2026-09-02), mas `/ia/memoria` renderiza o empty
+state. Ou o controller filtra (ativo/`deleted_at`/categoria) ou lê outra fonte — conferir no
+`MemoriaController@index` antes de tratar como bug; se for filtro legítimo, o empty state está
+certo e o número é que engana.

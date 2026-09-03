@@ -385,7 +385,10 @@ export default function Trabalho({
             agents={agents} faseLabel={faseLabel}
           />
         ) : (
-          <TrabalhoQuadro tasks={ordenadas} eixo={eixo} agents={agents} />
+          <TrabalhoQuadro
+            tasks={ordenadas} eixo={eixo} agents={agents}
+            favoritos={favoritos} onFavoritar={(id) => setFavoritos((c) => alternar(c, id))}
+          />
         )}
 
         <div className="fj-totalbar" data-testid="trabalho-total">

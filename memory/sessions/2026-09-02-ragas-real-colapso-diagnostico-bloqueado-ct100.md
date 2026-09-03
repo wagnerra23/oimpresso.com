@@ -55,6 +55,25 @@ para a saída, não para o código). Um watchdog que teste retorno por exit code
 como sucesso. O oráculo aqui é a **saída** (ou a consequência: um `echo` sentinela que precisa
 aparecer), nunca o `rc`. Mesma família do §5 2026-07-31 e 2026-08-01.
 
+⚠️ **ERRATA 2026-09-03 (medido) — o `rc` FUNCIONA; quem devolveu `0` foi o pipe.** O parágrafo
+acima fica preservado (é o que se observou no dia), mas a conclusão *"nunca o `rc`"* não se
+sustenta, e ela induz a construir o check de retorno na forma mais frágil. Medido hoje, três
+formas do MESMO comando, com o CT 100 ainda fora:
+
+| forma | `rc` |
+|---|---|
+| `tailscale ssh root@ct100-mcp 'echo SENTINELA'` (sem pipe) | **255** |
+| `... 2>&1 \| head -3`, lendo `$?` depois do pipe | **0** |
+| `... 2>&1 \| head -3`, lendo `${PIPESTATUS[0]}` | **255** |
+
+O `tailscale ssh` sinaliza a falha corretamente. O `0` é o `rc` do `head`, não dele — a lição já
+estava no §5 2026-08-13 (*"num pipeline, `rc` é do último comando"*), e este parágrafo atribuiu
+o efeito ao tailscale. Para quem for automatizar o retorno: use o `rc` **sem pipe** (ou
+`PIPESTATUS`/`pipefail`); a sentinela na saída segue valendo como confirmação por consequência
+— aqui ela deu **0** ocorrência, concordando com o `255`. O
+[handoff de hoje 09:20](../handoffs/2026-09-03-0920-ct100-fora-breaker-e-veredito-unico.md) já
+registrava `exit 255` por outro caminho, então este arquivo era o único a afirmar o contrário.
+
 ## 2. Três fatos medidos que estreitam o espaço de causas
 
 ### 2.1 Não é só o recall — as TRÊS métricas colapsaram juntas

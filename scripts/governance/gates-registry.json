@@ -664,6 +664,14 @@
       "promote_by": "2026-11-27",
       "anchor": "tests/Feature/Home/ nao rodava em lane NENHUMA — varredura contada 2026-08-27 sobre as 18 lanes *-pest.yml: git grep -l \"tests/Feature/Home\" -- .github/workflows devolveu VAZIO. Sem lane o teste nasce mudo: registro no phpunit.xml nao e execucao (sec.5 2026-08-02) e skip sai exit 0 (LC-13). Provado neste PR: 122 checks VERDES com os 9 casos novos do GradesDoPainelTest jamais executados, e o HomeIndexInertiaTest (6 casos, US-DASH-001) mudo desde que nasceu. Cobre o gate de dashboard.data, o gate por permissao E por setting de cada uma das 8 abas, a resolucao de aba vinda da query string, o isolamento Tier 0 (ADR 0093) da grade, a paridade com o endpoint legado e o guard dos 4 endpoints AJAX que o charter manda preservar intactos. MySQL e nao sqlite porque os casos autenticam usuario, montam permissao Spatie e batem em rota HTTP com sessao de negocio; a action pest-mysql-setup semeia mais de um tenant, sem o que o caso cross-tenant nao existe.",
       "promote_by_razao": "Nasce advisory (ADR 0275) porque a area nunca teve execucao conhecida — promocao so com mordida provada (ADR 0336). O conteudo tem peca Tier 0 (vazamento cross-tenant na grade) e e candidato natural a required assim que a lane acumular mordida; o flip e de [W]. Sem continue-on-error de proposito: advisory = nao bloqueia merge, nunca = nao pode ficar vermelha (lapide 2026-07-09)."
+    },
+    "cobranca-filtros-gate.yml": {
+      "nome": "Cobrança filtros gate — precedência localStorage × querystring (UC-COB-03). Trava o comportamento reescrito com prova em 2026-09-03: o servidor filtra pela querystring e o cliente aplica por cima a preferência salva dos 5 filtros que o charter exige (linha 45). vitest determinístico (jsdom, sem browser, sem rede); componente e lsGet REAIS, mocks só na casca.",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-09-17",
+      "anchor": "sinal de custo: o UC-COB-03 afirmava \"trocar tab/chip/dropdown reflete na URL e a volta pela URL reproduz a visão\" — FALSO nas duas metades, numa tela de DINHEIRO. Metade 1 sem mecanismo (varredura contada 11/11 arquivos: zero router.get/history/URLSearchParams). Metade 2 invertida (lsGet vence a querystring), provado por execução + mutação. A tela tinha cobertura de execução ZERO quando isto nasceu: CobrancaControllerTest em .github/financeiro-pest-quarantine.list e CobrancaIndexTest (Browser) vermelho 6/6 no run 33762382505 sob continue-on-error. Contestação registrada no PR #6632; desfecho neste PR. ADR 0264 G-2.",
+      "promote_by_razao": "nasce sem run nenhum — amostra zero. Promoção a required é flip [W] na branch protection (R10 / ADR 0275 §5), com o número de runs na mão."
     }
   }
 }

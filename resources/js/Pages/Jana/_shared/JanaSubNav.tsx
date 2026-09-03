@@ -28,6 +28,17 @@ interface JanaSubNavProps {
   hidePrimary?: boolean;
 }
 
+/** key do ghost (DataController) → ícone lucide, na ordem/vocabulário da âncora `JmTabs`.
+ *  Não exportado de propósito: este arquivo exporta só o componente (react-refresh). */
+const JANA_TAB_ICON: Record<string, string> = {
+  dashboard: 'bar-chart-3',   // painel   → `chart`
+  copiloto: 'sparkles',       // conversa → `sparkles`
+  alertas: 'triangle-alert',  // alertas  → `alert`
+  acoes: 'lightbulb',         // ações    → `bulb`
+  memorias: 'database',       // memória  → `database`
+  plataforma: 'shield',       // plataforma → `shield`
+};
+
 export default function JanaSubNav({ active, extraOverflowItems, hidePrimary }: JanaSubNavProps) {
   const sharedShell = (usePage().props as any)?.shell as {
     menu?: Array<{ label: string; group?: string; primary?: PageHeaderPrimary; ghosts?: PageHeaderGhost[] }>;
@@ -41,10 +52,20 @@ export default function JanaSubNav({ active, extraOverflowItems, hidePrimary }: 
 
   if (!janaItem?.ghosts?.length) return null;
 
+  // Ícone por aba — FORMA, logo é do protótipo (UI-0029), e vive aqui e não no
+  // `DataController` porque o `SidebarGhost` PHP não tem campo `icon` e a sidebar
+  // não desenha ícone de ghost. Mapa 1:1 com `jana-merge.jsx` §JmTabs
+  // (`chart · sparkles · alert · bulb · database · shield`), em nome lucide (kebab)
+  // como o `PageHeaderTabs` espera. Ghost sem entrada aqui renderiza sem ícone.
+  const ghosts = janaItem.ghosts.map((g) => ({
+    ...g,
+    icon: g.icon ?? JANA_TAB_ICON[g.key],
+  }));
+
   return (
     <PageHeaderTabs
       primary={hidePrimary ? undefined : janaItem.primary}
-      ghosts={janaItem.ghosts}
+      ghosts={ghosts}
       activeGhostKey={active}
       group="ia"
       // 6 desde 2026-09-02: a área tem 6 abas com Plataforma (só superadmin), e a âncora

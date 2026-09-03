@@ -136,6 +136,45 @@ const COBIDX_JS_LINHAS = <<<'JS'
 })()
 JS;
 
+/**
+ * DIAGNOSTICO da espera que estoura — nao asserta nada, so descreve o que o browser via.
+ *
+ * Existe porque o vermelho anterior era MUDO: `esperado '3', ultimo '0'` nao distingue
+ * "o servidor mandou 0 cobrancas" de "mandou 3 e o cliente filtrou tudo" de "a 2a request
+ * do Inertia::defer nunca chegou". Sao tres consertos diferentes, e escolher entre eles
+ * por leitura de codigo e a classe de erro que o §5 de 2026-07-15 proibe.
+ *
+ * O campo que decide e `deferido`: as linhas nascem de `props.cobrancas`, que so chega na
+ * 2a request do defer. `pendente` -> a 2a request nao voltou (rede/erro JS); `0` -> o
+ * SERVIDOR devolveu lista vazia (business_id da sessao, escopo, fixture); `3` com
+ * `linhasComTd: 0` -> o CLIENTE filtrou (o `filtered` do Index.tsx).
+ */
+const COBIDX_JS_DIAG = <<<'JS'
+(() => {
+  const txt = (el) => ((el && el.textContent) || '').replace(/[ \t\n\r]+/g, ' ').trim();
+  const trs = [...document.querySelectorAll('tbody tr')];
+  let deferido = 'indisponivel';
+  try {
+    const raw = document.getElementById('app');
+    const page = raw ? JSON.parse(raw.getAttribute('data-page') || '{}') : {};
+    const props = page.props || {};
+    deferido = Object.prototype.hasOwnProperty.call(props, 'cobrancas')
+      ? (Array.isArray(props.cobrancas) ? String(props.cobrancas.length) : 'naoArray')
+      : 'pendente';
+  } catch (e) {
+    deferido = 'erro:' + (e && e.message ? e.message.slice(0, 60) : '?');
+  }
+  return JSON.stringify({
+    deferido,
+    trs: trs.length,
+    linhasComTd: trs.filter((r) => r.querySelectorAll('td').length > 1).length,
+    comMarca: trs.filter((r) => txt(r).includes('VISREG COB')).length,
+    primeiraTr: txt(trs[0]).slice(0, 160),
+    corpo: txt(document.body).slice(0, 400),
+  });
+})()
+JS;
+
 beforeEach(function () {
     // CROSS-PROCESS DB (idêntico A11yAxe/Conciliacao): o browser usa MySQL (.env), o test
     // process usa sqlite :memory: (phpunit.xml) — realinha pro MESMO MySQL do gate.
@@ -293,7 +332,18 @@ function cobIdxEsperar($page, string $js, string $esperado, string $oque): void
         $page->wait(0.25);
     }
 
-    throw new RuntimeException("Nao estabilizou: {$oque} — esperado '{$esperado}', ultimo '{$ultimo}'.");
+    // O diagnostico e colhido DEPOIS do loop, so no caminho que ja vai falhar: custo zero
+    // no verde. `try` porque um probe que estoura nao pode substituir a falha real pela dele.
+    $diag = 'indisponivel';
+    try {
+        $diag = (string) $page->script(COBIDX_JS_DIAG);
+    } catch (Throwable $e) {
+        $diag = 'probe falhou: '.$e->getMessage();
+    }
+
+    throw new RuntimeException(
+        "Nao estabilizou: {$oque} — esperado '{$esperado}', ultimo '{$ultimo}'. DIAG: {$diag}"
+    );
 }
 
 it('UC-COB-01 · render — a linha chega à tabela com o contrato de colunas do charter', function (int $w, int $h) {
