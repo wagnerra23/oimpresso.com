@@ -598,3 +598,102 @@ O charter e o comentário do `.tsx` previam que o contador de vencidas *"normalm
 Não é comparação pareada com o protótipo, e não podia ser: o corpo do gantt tem **motores diferentes** dos dois lados (`.fj-g-*` desenhado à mão no protótipo × `@svar-ui/react-gantt` em produção), o que a onda declarou como diferença medida — 163 dependências contra 7 prazos, decisão em aberto de [W]. O que este recibo prova é o que a onda **entregou**: os dois elementos que vivem fora do motor, com a fidelidade de token verificada. A tela também não tem contrato em `tests/Browser/visreg-screens.json`; o comando para criá-lo está no [#6624](https://github.com/wagnerra23/oimpresso.com/pull/6624), e o passo final é a aprovação visual de [W] (F1.5).
 
 **Observação lateral, não do escopo:** o cabeçalho diz `Timeline (530 linhas)` e a barra diz `500 tarefas`. São contagens de coisas diferentes (linhas do gantt incluem as *summary* por módulo; tarefas são o teto `MAX_TASKS = 500`), mas a proximidade dos números convida à leitura errada de quem olhar rápido.
+
+---
+
+## 2026-09-03 (Onda 9 · fecho) — Changelog: a tipografia/gap que o §7 do export declarou NÃO medida
+
+> **Por que esta seção existe.** O `COLAR-NO-CODE-EXPORT-FORJA-MODULO.md` §7 declara, com todas as
+> letras, o que ficou de fora da medição de 03/09: *"Aprovações, Saúde, MCP, Changelog, Integrador:
+> medi a **estrutura** (filhos e ordem) e as contagens; **não** medi tipografia/gap por seção como
+> fiz na lista/quadro."* A réplica já tinha sido aplicada ([#6591](https://github.com/wagnerra23/oimpresso.com/pull/6591))
+> e a estrutura provada em harness (seção de 2026-09-02 acima). O que faltava era o eixo de
+> **valor**: a folha que produção serve entrega os mesmos px/cor que a do protótipo? Esta seção
+> mede isso e **não** repete o que já estava medido.
+
+### O alvo mudou de arquivo — e não mudou de conteúdo
+
+A build de 03/09 quebrou o protótipo em **1 arquivo por tela**: o `ChangelogFeed`, que vivia dentro
+do `forja-page.jsx` (a âncora que a Onda 9 portou), agora é o `forja-changelog.jsx`. Esse arquivo
+**não está no espelho** — é um dos 157 que o `cowork-mirror-freshness --sla` lista como presentes só
+no vivo (`⬜ existem no VIVO e não estão no espelho`, medido 2026-09-01; a regeneração do bundle é o
+[#6671](https://github.com/wagnerra23/oimpresso.com/pull/6671)). Foi lido pelo `DesignSync.get_file`
+do projeto `019dcfd3`, `truncated: false`, 1.699 B.
+
+**Risco real:** portar de uma âncora que a refatoração do build podia ter mudado. Medido — não
+mudou. A sequência de classes que cada lado escreve no JSX, na ordem:
+
+```
+protótipo vivo : fj-changelog → fj-clog-tabs → fj-clog-tab → fj-feed → fj-feed-item →
+                 fj-feed-dot → fj-feed-body → fj-feed-top → fj-feed-ref → fj-flag →
+                 fj-feed-when → fj-feed-resumo → fj-feed-meta → fj-mod
+réplica (main) : … idêntica, com fj-empty a mais …
+```
+
+Único delta: **`fj-empty`**, a divergência que o docblock do `ForjaChangelog.tsx` já declarava
+(estado vazio usando o idioma do próprio protótipo, `forja-page.jsx:588`) — o protótipo não precisa
+dele porque o mock nunca fica vazio, e produção filtrando por `PRs`/`Ondas` sempre dá zero.
+
+**Isto corrige uma dúvida que o §3.9 do export podia induzir.** Ele descreve `.fj-feed-top` como
+`[fj-feed-ref, fj-feed-when]` e o 3º bloco como `flags/módulos`. O `forja-changelog.jsx` vivo põe as
+**flags no topo** (entre ref e data) e o 3º bloco é `[selo de ator, módulos]` — que é exatamente o
+que a réplica faz. A leitura do §3.9 casa com itens do mock **sem flag** (3 dos 8 têm); a estrutura
+do protótipo é a da réplica.
+
+### Tipografia/gap: o diff de VALOR, seletor a seletor
+
+Regras de `.fj-changelog`/`.fj-clog*`/`.fj-feed*`/`.fj-flag`/`.fj-mod` no `forja-page.css` do
+protótipo × `resources/css/cowork-forja-bundle.css` (a folha que produção serve), comparadas por
+corpo normalizado — não por presença do seletor, que seria presence-gate (LC-11):
+
+| | |
+|---|---|
+| seletores da seção no protótipo | **17** |
+| corpo **idêntico** no bundle | **14** |
+| corpo divergente | **3** |
+| ausentes no bundle | **0** |
+
+As 3 divergências são **a mesma**, e não mudam um pixel:
+
+| seletor | protótipo | bundle | efeito |
+|---|---|---|---|
+| `.fj-mod.sm` | `font-size:var(--fs-1)` | `font-size:10.5px` | idêntico |
+| `.fj-feed-ref` | `font-size:var(--fs-3)` | `font-size:12.5px` | idêntico |
+| `.fj-feed-when` | `font-size:var(--fs-1)` | `font-size:10.5px` | idêntico |
+
+O bundle **inlinou o token**. Os dois lados definem os mesmos valores — protótipo em
+`prototipo-ui/cowork/styles.css:6407-6409`, repo em
+`resources/css/tokens/_generated-foundations-light.css:7-9`: `--fs-1: 10.5px` · `--fs-2: 11.5px` ·
+`--fs-3: 12.5px`. Logo o px computado é o mesmo e **não há bug de tamanho**. O que há é perda de
+aderência ao DS (literal onde existe token), e ela é do **bundle**, cuja dona é a Onda 1 — esta onda
+**reporta, não conserta**, porque mexer no CSS aqui violaria o `NÃO TOCAR: bundle CSS (Onda 1)` do
+§1-bis e a lei 5 (`zero CSS novo`).
+
+### PLACAR — Changelog (§3.9)
+
+```
+entregue 6 de 6 elementos do alvo
+  ✓ .fj-changelog com 2 filhos [fj-clog-tabs, fj-feed]
+  ✓ .fj-feed-item com 2 filhos [fj-feed-dot, fj-feed-body]
+  ✓ .fj-feed-top começando em fj-feed-ref e terminando em fj-feed-when
+  ✓ corpo em 3 blocos (topo · resumo · meta)
+  ✓ segmentos Tudo · PRs · ADRs · Sessões · Ondas
+  ✓ tipografia/gap: 14 de 17 seletores idênticos, 3 equivalentes, 0 bug
+ausentes: nenhuma
+divergências declaradas:
+  · fj-empty — estado vazio; o mock do protótipo nunca fica vazio, produção fica
+  · resumo condicional — sessão sem summary e sem 1º prompt não ganha rótulo sintético
+  · 3 font-size literais no bundle onde o protótipo usa var(--fs-N) — MESMO px; dona é a Onda 1
+contagem do alvo: os "8 .fj-feed-item" do §3.9 são o MOCK. Em produção o teto é
+  ForjaChangelogService::MAX_ENTRIES = 30 — não é divergência de estrutura.
+```
+
+### O que esta seção NÃO prova
+
+O `design-diff --compare --check` pós-deploy **segue pendente**, exatamente como a seção de
+2026-09-02 registrou e o §11 da PARIDADE marca. Re-testado hoje, não herdado (a §5 2026-09-01 proíbe
+herdar afirmação de bloqueio): `curl` em `https://oimpresso.com/forja/changelog` devolve
+**`302 → /login`** — o compare exige sessão autenticada, e sem ela nenhum número aqui autoriza
+dizer "igual ao design" (lei 6 do export: nada é 0-bug antes do T7). O comando continua escrito na
+seção de 2026-09-02. Esta medição é do eixo **folha × folha**, que não depende de deploy; a cascata
+real de produção (preflight do Tailwind + fundação) continua fora dela.
