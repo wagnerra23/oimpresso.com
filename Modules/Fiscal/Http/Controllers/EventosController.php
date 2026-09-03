@@ -169,6 +169,12 @@ class EventosController extends Controller
      * Dono único do mapeamento `kind → tipos`: `buildRowsPayload` e o export
      * consomem daqui. Sem isso, o CSV e a tela poderiam divergir no filtro sem
      * ninguém perceber (é o defeito de manter N cópias da mesma regra).
+     *
+     * O generic no `@return` não é enfeite: sem ele o `Builder` fica cru e tanto
+     * o `chunk()` quanto o `map()` passam a entregar `Model` em vez de
+     * `NfeEvento` — o que quebrou o ratchet do PHPStan na primeira corrida.
+     *
+     * @return Builder<NfeEvento>
      */
     protected function eventosQuery(array $filters): Builder
     {
@@ -252,12 +258,21 @@ class EventosController extends Controller
 
         $sequencia = data_get($e->payload_json, 'n_seq_evento');
 
-        $documento = $e->emissao
-            ? ((int) $e->emissao->modelo === 65 ? 'NFC-e ' : 'NF-e ') . $e->emissao->numero
+        // Tipado localmente de propósito: a relação `emissao()` devolve um
+        // `BelongsTo` sem generic, então sem esta anotação o PHPStan vê `Model` e
+        // `->modelo`/`->numero` viram acesso a propriedade indefinida. O baseline
+        // já carrega uma ocorrência dessas (vinda do `mapRow`); duplicá-las aqui
+        // estouraria o ratchet. Anotar é mais barato — e mais honesto — que
+        // regravar o baseline.
+        /** @var \Modules\NfeBrasil\Models\NfeEmissao|null $emissao */
+        $emissao = $e->emissao;
+
+        $documento = $emissao !== null
+            ? ((int) $emissao->modelo === 65 ? 'NFC-e ' : 'NF-e ') . $emissao->numero
             : '—';
 
         return [
-            $e->created_at?->format('d/m/Y H:i') ?? '—',
+            (string) $e->created_at?->format('d/m/Y H:i'),
             $tipoMeta['label'],
             $sequencia !== null ? (string) $sequencia : '—',
             $documento,
