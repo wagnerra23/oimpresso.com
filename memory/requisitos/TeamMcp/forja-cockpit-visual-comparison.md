@@ -186,34 +186,341 @@ Mesma sonda, mesma viewport (2560), dark nos dois lados. Smoke pós-deploy: `/fo
 
 **D1 (rede) nas pílulas novas:** `window.__marker` gravado antes do clique **sobreviveu** a Trabalho → Aprovações (dois cliques, dois marcadores vivos), a URL e a pílula ativa mudaram, e a rede mostrou `GET /forja/aprovacoes 200` via Inertia (`<Link as="button">`) — sem full reload. D1 **parcial**, como a meta do §11 pede.
 
-## 2026-09-02 (noite) — produção a 1280 MEDIDA: fecha o "não medido" da Onda 2.1
+---
 
-> **Recibo.** Produção autenticada `oimpresso.com/forja/aprovacoes`, tema **dark**, `.cockpit` com `data-sidebar="expanded"` (estado real da sessão do [W]). Viewport de 1280 obtida por **iframe same-origin** injetado na própria aba autenticada (`width:1280px`), com `contentWindow.innerWidth === 1280` **conferido antes de medir** e **duas leituras estáveis** de `querySelectorAll('*')` (781/781) após a montagem do Inertia — a lápide §5 2026-08-24 (não medir durante o lazy) foi cumprida. Sonda = `getBoundingClientRect` + `getComputedStyle`: o que o browser resolveu, nunca a classe declarada.
->
-> **Correção de método sobre a rodada anterior.** A entrada da Onda 2.1 registrou *"a janela do Chrome (maximizada) não aceitou o resize"*. Medido hoje, com mais precisão: **(a)** não há Chrome — a extensão roda no **Brave** (2 janelas, nenhuma com a Forja em foco); **(b)** `resize_window` **devolve "Successfully resized"** e o `innerWidth` **continua 2560** — o instrumento afirma sucesso sem ter feito, então o veredito só sobrevive porque foi conferido pelo `innerWidth`, não pela mensagem da tool (família LC-15/§5 2026-07-29: não colapsar "não consegui" num estado do objeto). O iframe contorna as duas coisas e é verificável.
->
-> **Limite declarado.** O protótipo **não foi re-medido hoje**. O JSON dele a 1280 **não existe** nas fontes citadas — procurei no corpo do [#6563](https://github.com/wagnerra23/oimpresso.com/pull/6563), nos **72** comentários dele, nos review-comments (0) e no session log de 02/09: zero ocorrência de `1280`, `174` ou `rail`. A coluna do protótipo abaixo é o **registro narrativo** desta mesma página (rail 56 · 3 linhas · 174,4px), não uma medição pareada de hoje.
+## 2026-09-02 (noite) — ERRATA da linha "Larguras menores": o rail do protótipo era `localStorage`, não a regra
 
-### O que produção faz a 1280
+> **Append-only.** O parágrafo acima fica como está — era o que se mediu naquele momento. O que
+> esta errata corrige é o **ponteiro**: a conclusão que ele sustenta é falsa, e ela virou a
+> premissa do pedido de auto-rail. Recibo abaixo, reproduzível.
 
-| campo | protótipo (registro, não re-medido) | produção 1280 · sidebar `expanded` (default) | produção 1280 · `data-sidebar="rail"` (toggle) |
+**O que aquele parágrafo afirma:** *"a 1280 o shell do protótipo vira rail de 56px"* e
+*"a 1728 o shell **segue** em rail"*.
+
+**O que a re-medição mostra** (espelho `prototipo-ui/cowork/oimpresso.com.html` em
+`http://localhost:5623`, sonda = `getComputedStyle(.app).gridTemplateColumns` +
+`.os-page-h → getBoundingClientRect().left`, esperando `__oiLazyDone` + 2 leituras iguais de
+`querySelectorAll('*').length`, **com `localStorage.removeItem("oimpresso.sidebar.mode")` antes
+de cada largura**):
+
+| `innerWidth` | localStorage | modo | `grid-template-columns` | header `left` |
+|---|---|---|---|---|
+| 1279 | limpo | **rail** | `56px 1223px` | 56 |
+| **1280** | limpo | **expanded** | `260px 1020px` | **260** |
+| 1440 | limpo | expanded | `260px 1180px` | — |
+| 1728 | limpo | **expanded** | `260px 1468px` | **260** |
+| 1920 | limpo | expanded | `260px 1660px` | 260 |
+| 1728 | herdado `"rail"` | rail | `56px 1672px` | — |
+| 1279 → 1728 **ao vivo** | — | continua rail (sem listener) | `56px 1672px` | — |
+
+**A regra real** (`prototipo-ui/cowork/app.jsx:624-634`): `innerWidth < 1280 ? "rail" : "expanded"`,
+**só no mount**, e o `localStorage` vence sempre. Como o `useEffect` ao lado grava **todo** valor —
+inclusive o automático —, a regra dispara **uma vez por navegador** e a chave nunca mais solta.
+
+**Causa provável do retrato errado, e ela é reproduzível:** ao abrir o espelho no Browser pane
+**sem `resize_window` antes**, `window.innerWidth` vale **0** (medido nesta sessão, primeira
+navegação). `0 < 1280` é verdadeiro → rail → persistido. Toda medição seguinte naquele perfil
+herda `rail` em **qualquer** largura, inclusive 1728. É LC-08 no vetor mais traiçoeiro: a sonda
+estava certa, o **estado** é que era de outra corrida.
+
+**Consequência pra Forja, e é a parte que muda a conclusão:** a 1728 o protótipo dá
+`260px 1468px` — **os mesmos 1468px de produção**. Naquela largura **não há divergência de
+shell**; a quebra do header em 2 linhas no `.snap` do CI é da largura de conteúdo em si, igual
+nos dois lados. A divergência real vivia em **≤1279**.
+
+**Como não repetir:** medição de shell no espelho limpa `oimpresso.sidebar.mode` **e** seta a
+viewport **antes** da primeira navegação — `innerWidth: 0` é o estado default do pane, e ele
+mente a favor do rail.
+
+Decisão que saiu daqui: [ADR UI-0030](../_DesignSystem/adr/ui/0030-sidebar-auto-rail-responsivo.md)
+(produção passa a fazer auto-rail a **≤1280**, com a escolha manual vencendo).
+
+## 2026-09-02 (noite) — Onda 3: Aprovações vira a view `hoje` do protótipo
+
+> **Estado: APLICADO no código, NÃO MEDIDO em produção.** A comparação por sonda
+> (`design-diff --probe` nos dois lados → `--compare --check`) só pode rodar depois do deploy,
+> e o merge de `.tsx` é humano ([ADR 0283](../../decisions/0283-handoff-loop-zero-paste.md)).
+> Esta seção registra o que foi feito e o que falta medir — não afirma paridade.
+> Escrever "IGUAL" antes da sonda seria o strike que a [LC-06](../../LICOES_CODE.md) catalogou.
+
+### A âncora estava no arquivo errado (achado desta onda)
+
+O charter apontava `related_prototype: prototipo-ui/cowork/forja-page.jsx`. **O markup da view
+`hoje` não está lá**: o `forja-page.jsx` só a MONTA (linha 1229, `<window.ForjaAprovacoes …/>`);
+o componente inteiro mora em [`forja-aprova.jsx`](../../../prototipo-ui/cowork/forja-aprova.jsx).
+Quem fosse copiar do arquivo declarado não acharia a tela. Corrigido no frontmatter
+(`charter_version: 2`) e re-resolvido por `ancora.mjs`.
+
+**Fonte provada fresca**, não suposta: o ledger de frescor registra a rodada de
+2026-09-02T11:17:56Z com `forja-aprova.jsx` entre os 14 arquivos **SYNC**, sha
+`cc4cde3692da…`; o arquivo local bate com esse hash (conferido byte a byte nesta sessão, junto
+com `forja-data.jsx` `f043f5bd…` e `forja-page.css` `9c180a5d…`).
+
+### O que entrou na tela (markup 1:1, classes do bundle da Onda 1)
+
+| seção do protótipo | classe | dado que a alimenta |
+|---|---|---|
+| número-herói "N esperando o seu aval" | `.ap-head` › `.fj-hj-n` | `contagem` (`mcp_tasks` em `pending_approval`) |
+| alerta de handoff com problema | `.ap-handoff-alert` | `handoffsComProblema()` — delega ao `ForjaMcpService` (dono do tema) |
+| faixa "Ao vivo no MCP" | `.ap-vivo` › `.ap-vivo-card` | `mcp_actors` × `mcp_cc_sessions` × `mcp_audit_log` |
+| mesa: fila à esquerda | `.ap-mesa` › `.ap-fila` › `.ap-item` | `fila()`, ordem por espera (do backend) |
+| mesa: artefato + ações à direita | `.ap-painel` › `.ap-art` › `.ap-acoes` | `fila()[n]` + `decisoesPossiveis()` |
+| placar "Equipe de agentes" | `.fj-hj-team` › `.fj-team-tbl` | `cowork_handoffs` por `created_by`, janela 7d |
+| toast com desfazer | `.ap-toast` › `.ap-undo` | estado de front (janela de 6s, antes do POST) |
+
+Saíram o `PageHeader` canon e o `KpiGrid`/`KpiCard` (2 cards): o protótipo põe o número no herói e
+não tem segundo cabeçalho. O `ui:lint` R4 registra isso como item de lista, não como veto —
+é o que a [ADR 0388](../../decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md) D-2 decide.
+
+**Os dois itens que saíram do `[BACKLOG]` do `casos.md`** foram pedido do [W] em 2026-08-08 e
+estavam parados *"ainda sem backend"*: o placar e a faixa ao vivo. O backend chegou nesta onda.
+
+### As divergências DELIBERADAS (categoria, não bug — ADR 0385)
+
+A 0388 é de **aparência** e diz, em D-5, que réplica **não toca comportamento**. Onde o protótipo
+e uma lei de domínio discordam, a lei ganha e a diferença fica escrita:
+
+| # | protótipo | produção | lei que manda |
 |---|---|---|---|
-| coluna do shell (`.cockpit` grid) | rail **56px** (automático) | **`260px 1020px 0px`** — sidebar 260 | `56px 1224px 0px` |
-| altura do `.os-page-h` | 174,4px | **136,4px** | 136,4px |
-| linhas do header | **3** (título / sino+busca+primária / pílulas) | **2** (`.os-page-h-l` y=12 × `.os-page-h-r` y=91,4 → `mesmaLinha:false`) | 2 (idem) |
-| padding do `.os-page-h` | `12px 24px` | **`12px 24px`** — o base da Onda 2.1 **resistiu** a 1280 | `12px 24px` |
-| overflow horizontal do `.main-body` | — | **38px** (`scrollWidth` 1058 × `clientWidth` 1020) | **0** |
-| destinos do topnav fora da viewport | — | **1 de 6** | **0 de 6** |
+| 1 | "Aprovar aplicação / Devolver / Rejeitar" | **Admitir · Parquear · Recusar**, vindos de `decisoes` | ADR 0368 §6 proíbe "aprovado" **e** o anti-hook do charter proíbe hardcodar a lista (ela deriva de `McpTask::TRANSITIONS`) |
+| 2 | caixa de nota pertence ao "Devolver" | abre na decisão que declara `exige_motivo` | ADR 0368 §5 — o dono da regra é o FSM |
+| 3 | 4 tipos com diff, passos e screenshot | só o artefato que `mcp_tasks` guarda | só `Proposta` tem estado canônico; os outros vivem em `cowork_handoffs` e **fundir as fontes é decisão [W]** |
 
-**O achado.** A 1280 com o sidebar no default expandido, `.fj-viewtabs` (3 grupos, y=92, h=31) vai de x=546,6 até **x=1318** — **38px além da viewport**. Medindo destino a destino pela borda direita: Aprovações 731 · Trabalho 819 · Saúde 967 · MCP 1032 · Changelog 1216 · **Integrador 1315 → fora**. Não há scroll de página (`documentElement.scrollWidth === clientWidth === 1280`); quem absorve é o `.main-body` (`overflow-x:auto`, 38px de scroll) dentro de um `.cockpit` com `overflow:hidden`. Ou seja: **no monitor do [W], o 6º destino da Forja nasce fora da tela** e só aparece rolando o conteúdo na horizontal.
+### O que NÃO tem fonte — e mostra "—" em vez de número inventado
 
-**A causa é o shell, não a Forja — confirmado no CSS de `origin/main`.** O `@media (max-width: 1280px)` do [`cockpit.css` L57-59](../../../resources/css/cockpit.css) **dispara** a 1280 e colapsa a coluna direita (`320px → 0`, batendo com o `0px` medido), mas mantém `260px` de sidebar; o rail de 56px só existe sob `.cockpit[data-sidebar="rail"]` (L55). Não há auto-rail por largura. O `.os-page-h` é o mesmo dos dois lados (`flex-wrap: wrap`, gap 16px) — nenhum CSS da Forja participa do defeito.
+As colunas **Sessões hoje** e **Custo hoje / quota** do placar são por **usuário**
+(`mcp_cc_sessions`, `mcp_audit_log` e `mcp_quotas` são todos `user_id`), e o schema **não tem
+vínculo papel→usuário**: os atores semeados são `wagner`/`felipe`/`maira`/`luiz`/`eliana`/
+`claude-code-wagner-laptop`, nunca `CC`/`CD`/`CL`. Preenchê-las exigiria inventar o vínculo.
+O backend manda `null`, a célula diz o motivo no `title`, e **criar o vínculo é decisão [W]**.
 
-**O toggle resolve o corte, mas não iguala o protótipo.** Alternando `data-sidebar` para `rail` na mesma página, sem tocar em CSS: o overflow vai a **0** e as **6** pílulas cabem. Mas o header **continua em 2 linhas com 136,4px** — produção nunca reproduz as 3 linhas / 174,4px do protótipo, porque lá as pílulas quebram para uma terceira linha e aqui os 4 filhos do `.os-page-h-r` permanecem numa fileira só.
+Pelo mesmo critério, o eixo `nivel` do protótipo (sênior/júnior/artista/agente) não foi
+replicado: `mcp_actors` declara `type` (human/ai_agent/service) e `trust_level` (L0..L4), que é
+outra coisa. O selo mostra o que É declarado.
 
-**Veredito: fundação, não Forja → decisão [W], não PR de código** (é o que o §11 previa). São duas decisões independentes:
+### O que a réplica NÃO regrediu (e foi medido)
 
-1. **Auto-rail a ≤1280** — o protótipo raila sozinho; produção exige o toggle manual. Enquanto não houver decisão, todo usuário a 1280 no default perde o "Integrador". Cabe em `INCONSISTENCIAS-replica.md` junto do `--accent` 0,55 × 0,70.
-2. **2 linhas × 3 linhas no header** — divergência de estratégia de wrap, **sem defeito medido** em produção (nada cortado quando o overflow é 0). Só vira trabalho se [W] quiser paridade literal de altura.
+A fila do protótipo é `<li onClick>` cru, que não abre por teclado. A 1ª versão desta onda copiou
+isso e o `eslint-baseline` acusou **2 regressões novas de `jsx-a11y`**
+(`click-events-have-key-events`, `no-noninteractive-element-interactions`). Corrigido com
+`role=listbox/option` + `tabIndex` + `onKeyDown`, mantendo a classe no próprio `<li>` (o
+`.ap-item` é `display:flex` e o `:last-child` tira a última borda — mover a classe pra um
+`<button>` interno quebraria os separadores). Re-medido: **as duas foram a zero**.
+A 0388 tira o veto da conformidade do **DS**, nunca o da **acessibilidade**.
 
-⚠️ Nenhuma das duas é conserto silencioso: mexer no `@media` do `cockpit.css` altera o shell de **todos** os módulos, não só o da Forja.
+### Gates locais (rodados nesta sessão, exit 0)
+
+| gate | resultado |
+|---|---|
+| `foundation-guard` | ✅ 33 .css na allowlist · 0 espalhamento novo |
+| `conformance-gate --all` | ✅ 30 arquivos conformes |
+| `css-size-baseline` | ✅ delta 0 (nenhum CSS tocado nesta onda) |
+| `stylelint-baseline` | ✅ delta 0 |
+| `layout-primitives-guard` | ✅ sem regressão — o `FLEX-CRU` desta tela **saiu** da lista (1 → 0) |
+| `casos-coverage-guard` | ✅ sem violação nova deste PR |
+| `ds-guard --report` (bundle) | 1 achado: paleta `--dev-*`, já declarada desde a Onda 1 |
+| `tsc --noEmit` | ✅ 0 erro no arquivo — **com o arquivo dentro do programa** (ver ressalva) |
+| `eslint-baseline` | +4 `ds/no-os-btn`, absorvidos (réplica) — precedente: `ForjaHub` na Onda 2 |
+
+⚠️ **Ressalva de método que quase virou gate mudo:** o `tsconfig.json` do repo tem `include`
+apenas de `resources/js/**`, então `Modules/**/Resources/js/**` **não é typechecado** pelo comando
+padrão. Rodar `tsc -p tsconfig.json` e ler "0 erro no meu arquivo" seria `0 failed` de suíte que
+não rodou (§5 2026-07-24). Com um config temporário que INCLUI o arquivo, o compilador achou um
+erro real (`TS2532`, índice possivelmente `undefined` no atalho `j`/`k`) — corrigido. Depois:
+278 erros no repo, os mesmos 278 de antes, **0 no arquivo desta onda**.
+
+### Render do protótipo conferido (e o que ele corrigiu no meu port)
+
+O protótipo foi servido local (`python -m http.server 5620 --directory prototipo-ui/cowork`,
+`localStorage["oimpresso.route"]="teammcp"`) e lido **depois** do `window.__oiLazyDone` com duas
+contagens iguais de nós (1007 = 1007) — nunca no meio do lazy-load (§5 2026-08-24).
+
+A leitura da estrutura pegou **duas diferenças reais** que a cópia à mão tinha deixado passar, e
+as duas foram corrigidas antes do commit:
+
+| o que o render mostrou | o que eu tinha escrito | conserto |
+|---|---|---|
+| `thead` do placar tem **8** colunas — a 8ª é vazia e guarda o botão "verificar" do papel sem sinal | 7 colunas, sem a saída | 8ª coluna com `.act` + `os-btn ghost`, visível só quando `sinal_ok` é falso |
+| rótulo da 1ª coluna é **"Agente"** | eu tinha trocado por "Papel" | voltou pra "Agente" — nenhuma lei de domínio mandava trocar (diferente de "aprovado", que a ADR 0368 §6 proíbe) |
+
+Estrutura conferida e batendo: herói `7 · esperando o seu aval` · alerta `2 handoffs com problema →`
+· `.ap-vivo` com 4 cards · `.ap-fila` com 7 `.ap-item` · `.ap-painel` · `.ap-acoes` com 3 botões ·
+`.fj-hj-team` com 5 linhas e a chip `1 sem sinal`.
+
+⚠️ Isto é conferência de **estrutura no protótipo**, não comparação prod×protótipo — a produção
+ainda não tem este código. **Não vale como o compare da meta**; serve pra provar que a cópia saiu
+fiel antes de ir pro CI.
+
+### Baseline visual regravada (recibo, não promessa)
+
+`visual-regression.yml` despachado com `screens='["Forja/Aprovacoes"]'` na branch da onda.
+
+| run | resultado |
+|---|---|
+| [33668939298](https://github.com/wagnerra23/oimpresso.com/actions/runs/33668939298) | gerou `vrt/baselines-33668939298` → PR #6574, **cherry-pickado** na branch e o PR fechado |
+| [33669764425](https://github.com/wagnerra23/oimpresso.com/actions/runs/33669764425) | re-despachado do HEAD atual (a 1ª rodada saiu do commit anterior ao conserto do placar). Veredito do próprio step: **"Baselines já em dia — nada a commitar."** |
+
+A 2ª rodada existe porque a 1ª baseline foi gerada de `da94ac39bb`, **antes** da 8ª coluna e do
+rótulo "Agente". Sem ela eu estaria confiando numa baseline de código que já não era o meu — e o
+"nada a commitar" é o que prova que a 8ª coluna não muda o pixel neste ambiente (sem
+`cowork_handoffs` semeado, a seção do placar não renderiza). Não foi suposto: é a frase do step.
+
+**O que mudou na imagem** (decodificado com `scripts/tests/snap-diff.mjs`, porque diff de `.snap`
+é base64 numa linha e ilegível por construção):
+
+```
+1728x1117 · px alterados: 480201 de 1930176 (24,88%) · Δmax=253
+assinatura: CONTEÚDO  (Δ≤3 rasterização · Δ≥200 conteúdo)
+células 16×16 com mudança: 91 de 256 · linhas afetadas: 2,3,4,5,6,7,8
+```
+
+Ler isso importa: **a linha 1 não mudou** — o header do `ForjaHub` (Onda 2) ficou intacto, e a
+troca é só do corpo (KpiCards → herói + mesa). Fosse a linha 1, eu teria regredido a Onda 2 sem
+perceber.
+
+### O que FALTA — e é a condição de fechar a linha 3 do §11
+
+1. Deploy (merge é [W] — ADR 0283).
+2. Baseline visual: `visual-regression.yml` com `screens='["Forja/Aprovacoes"]'`.
+3. **A medição**: `design-diff --probe` na produção e no protótipo (`python -m http.server 5620
+   --directory prototipo-ui/cowork`), mesma viewport, dark nos dois → `--compare --check`,
+   com a tabela por dimensão (D2/D4/D6/D8) apensada aqui.
+4. D1 (rede): marcador sobrevive ao clique nas ações da mesa.
+
+Até isso acontecer, a linha 3 da tabela de ondas fica **em andamento**, não ✅.
+
+## 2026-09-02 (noite) — Onda 4: o ALVO da lista medido no protótipo, antes de codar contra ele
+
+> **O que rodou (recibo).** Protótipo servido por HTTP estático (`python -m http.server 5620 --directory prototipo-ui/cowork`), `localStorage["oimpresso.route"]="teammcp"` + `oimpresso.forja.view="trabalho"` + `oimpresso.forja.trabvis="lista"`, tema **dark**. Espera **ativa** até `__oiLazyDone` **e** duas leituras consecutivas iguais (1418 = 1418 nós, 4 tentativas) — a 1ª leitura dava 515→533 e teria produzido o número errado (§5 2026-08-24). Medição por `getComputedStyle` + `getBoundingClientRect`, nunca pela classe declarada.
+>
+> **Por que medir o protótipo isolado:** a comparação pareada exige a produção deployada, e o merge é ato [W]. Medir o ALVO antes fecha metade do par e evita a classe LC-08 — construir contra o que eu *li* do `.jsx` em vez do que o browser *resolve*. A outra metade (produção) fica declarada como pendência.
+
+| campo | protótipo (medido) | o que a Onda 4 entrega | veredito esperado |
+|---|---|---|---|
+| linhas visuais da barra de filtro | **3** (`.fj-frentebar` · `.fj-toolbar` · `.fj-filterbar2`, três `top` distintos) | as mesmas 3 | **IGUAL** |
+| `kpi.count` | **4** | 4 | **IGUAL** |
+| `kpi.tag` | **BUTTON** | `<button>` (o KPI filtra) | **IGUAL** |
+| `kpi` valor `font-size` | **17px** (`.tf-kpi-v`) | `.tf-kpi-v` do mesmo bundle | **IGUAL** |
+| `kpi` `text-align` | **left** | idem (mesma classe) | **IGUAL** |
+| `--accent` no dark | **`oklch(0.70 0.15 295)`** (resolvido em `.fj-page`) | herdado do mesmo bloco | **IGUAL** |
+| filhos diretos da `.fj-row` | **13** | **11** | **DIVERGE (declarado)** |
+
+**Os 13 slots do protótipo, na ordem medida:** `fj-rowcheck` · `fj-row-indent` · `fj-prio-dot` · `fj-id` · `fj-type` · `fj-title` · `fj-tam` · `fj-row-mid` · `fj-fresco` · `fj-exec` · `fj-role` · `fj-pin` · `fj-star`.
+
+**Os 2 que a Onda 4 não entrega, e o número é esse por decisão:**
+
+| slot | por que fica de fora |
+|---|---|
+| `fj-rowcheck` | alimenta a `.fj-bulkbar` (fase/papel/prio/onda/status em massa) — **mutação sem endpoint**. Escrever fora do `TaskCrudService` seria o segundo caminho de escrita que a Mesa evitou; caixa que não age é afordância falsa (LC-15) |
+| `fj-fresco` | pílula de frescor (`lido @main` / `não verificado` / `sync Nd`) — **campo que `mcp_tasks` não tem**. É condicional no protótipo, então a falta do dado já a apaga lá |
+
+⚠️ **Nota de honestidade sobre esta contagem.** O número **13** é medido no browser; o **11** é derivado do JSX da réplica (contagem de slots de nível superior da `fj-row`), **não** medido — o par completo exige o deploy. E a contagem depende do DADO: nesta linha do protótipo não apareceram `fj-carry`, `fj-epic-roll` nem `fj-lockico`, que são condicionais; numa linha com épico ou bloqueio, os dois lados sobem juntos. Ou seja: **"3 × 13" da rodada da manhã e "11 × 13" desta são medidas da PRIMEIRA linha de cada lado**, não da estrutura máxima.
+
+**O que segue pendente, declarado:**
+
+- [ ] sonda pareada `design-diff --probe` nos dois renders → `--compare prod.json design.json --check`, dark, mesma viewport, **depois do deploy**. É ela que dá o veredito D2/D4/D6/D8 — nada aqui afirma "0 bug".
+- [ ] **D1 (rede)**: `window.__marker` sobrevivendo ao clique do KPI-filtro, do agrupamento e do papel (todos são `router.get` parcial com `only:[...]`), com `GET` Inertia visível — medível só em produção autenticada.
+- [ ] `/forja/trabalho` **não está** no visreg (conferido no dono do inventário, `tests/Browser/visreg-screens.json`: das 39 telas, a única da Forja é `Forja/Aprovacoes`) — não há `.snap` a regravar nesta onda.
+
+### Adendo da mesma rodada — a estrutura de CADA bloco, medida filho a filho
+
+A tabela acima comparou a `fj-row`. Faltava o resto, e a medição por `children` mostrou **três diferenças que eu não tinha declarado** e **uma ressalva sobre o próprio instrumento**:
+
+| bloco | protótipo (filhos medidos) | a réplica | diferença |
+|---|---|---|---|
+| `.fj-frentebar` | **1** — só `fj-frente-note` | 2 — `Segmented` + nota | ⚠️ **o instrumento, não a tela** — ver ressalva abaixo |
+| `.fj-toolbar` | **4** — `fj-groupby` · `fj-ia-btn` · `fj-ia-btn` · `fj-search` | 2 — `fj-groupby` · `fj-search` | os 2 `fj-ia-btn` (`Papéis`, `Perguntar ✦`) abrem painéis inexistentes — **já declarado** |
+| `.fj-group-head` | **2** — `fj-group-toggle` · `fj-onda-meta` | 1 — `fj-group-toggle` | **NOVO, não estava declarado** — ver abaixo |
+| `.fj-totalbar` | 6 blocos: `23 issues` · `4 P0` · `2 bloqueados` · **`3 não-verificados`** · `ordem: automática` · **hint `j k ↵ ?`** | 4 blocos, sem os dois em negrito | `não-verificados` é frescor (campo ausente); a hint anunciaria teclado que a tela não escuta |
+
+**⚠️ A ressalva do instrumento (e ela inverte o sinal da 1ª linha).** O `.fj-frentebar` do protótipo aparece com **1** filho aqui porque o `window.CliSeg` **retorna `null` quando o `Segmented` do DS não está publicado** — e o bundle do DS no snapshot local está truncado pelo teto do `get_file` (limite já registrado na rodada da manhã: 44 componentes publicados × 55 no vivo, sem `Segmented`). Ou seja: **o protótipo VIVO tem 2 filhos ali; o espelho local desenha 1.** A réplica com 2 está **mais** fiel, não menos — e é o que o pedido do [W] instruiu (*"em produção ele existe em `resources/js/Components/ui`; ignore o snapshot, use o de produção"*). Registrado porque medir esta barra contra o espelho local produziria o veredito invertido.
+
+**`fj-onda-meta` — a diferença que faltava declarar.** Quando o agrupamento é por **Onda**, o cabeçalho do grupo do protótipo ganha `estado` (ativa/planejada) · `janela` (jun 11–16) · `carga` por tamanho (1M) · botão **encerrar onda** · botão **✦ resumir**. Isso exige o catálogo `window.FORJA.ONDAS` (ondas com estado, janela e dependências), que **não existe em produção** — `forja_onda` é um `custom_field` de texto em `mcp_tasks`, sem entidade por trás. Os dois botões, além disso, são **ação**: `encerrar onda` é mutação em cascata (carrega não-concluídos pra próxima) e `resumir` chama IA. Fica de fora pela mesma razão dos outros três: a ADR 0388 é licença de **aparência**, e nada disso é aparência.
+
+### Onda 8 (2026-09-02) — a view `mcp` vira réplica e o painel Handoffs volta pra dentro
+
+> **Recibo do que rodou, e o que ele NÃO cobre.** Fonte provada: `forja-page.css` (sha `9c180a5d92ae`) e `forja-page.jsx` (`e4339537969d`) baixados do Cowork vivo por `DesignSync.get_file` e medidos contra o espelho por `cowork-mirror-freshness --snapshot-from --emit-snapshot` → **`igual` nos dois**. Protótipo servido por HTTP estático (`prototipo-ui/cowork`), `localStorage["oimpresso.route"]="teammcp"`, **tema dark**, **viewport 1440**, view `mcp` aberta pelo clique na pílula do topnav, duas leituras estáveis (9/9 linhas de contrato, 6/6 handoffs).
+>
+> ⚠️ **A comparação PAREADA prod × protótipo NÃO aconteceu nesta sessão** e não se declara fechada: o código desta onda ainda não está em produção (merge de `.tsx` é humano — [ADR 0283](../../decisions/0283-handoff-loop-zero-paste.md)). O que segue são os **valores-alvo do lado design, medidos**, para que o pós-deploy seja um `--compare` direto em vez de uma remedição do zero.
+>
+> 🩺 **Uma armadilha paga nesta rodada, registrada porque quase virou número falso:** a primeira leitura devolveu `color: rgb(0, 0, 0)` em toda a tabela e `--text-dim` **vazio** no `:root`. Não era divergência — era o `_ds/` (gitignored) ausente no espelho: `colors_and_type.css` e `cockpit_domains.css` carregaram com **0 regras**, e o protótipo renderizou sem token nenhum. O portão `node scripts/governance/cowork-mirror-freshness.mjs --preview-ds` repôs 10 deps (2 CSS + `_ds_bundle.js` + 7 fontes) e a medição foi refeita. **Ele é fail-closed e roda ANTES de medir** — sem ele, qualquer cor lida é lixo com aparência de dado.
+
+**Valores-alvo do protótipo** (dark · 1440 · pós-`--preview-ds`), que é onde os três `DIVERGE` da rodada da manhã se resolvem:
+
+| campo | protótipo (medido) | produção ANTES desta onda | o que muda |
+|---|---|---|---|
+| `.fj-mcp-tbl` linhas | 9 | 9 | — |
+| col0 (Ferramenta) | **mono** · `oklch(0.94 0.005 90)` | sem mono (`font-mono` só em parte) | **D4** |
+| col1 (Ação) | não-mono · `oklch(0.72 0.005 90)` | herdava `text-muted-foreground` | **D6** |
+| col2 (Permissão) | não-mono · `oklch(0.72 0.005 90)` · **`start`** | **`text-right`** | **D8** |
+| `th` (3 colunas) | **`left`** nas 3 | col2 `right` | **D8** |
+| `.fj-perm-ok` | `oklch(0.84 0.13 150)` sobre `oklch(0.275 0.06 150)`, **mono** | pílula `bg-success/15`, sem mono | **D4+D6** |
+| `.fj-perm-deny` | `oklch(0.84 0.18 25)` | `text-destructive-fg` | **D6** |
+| os 6 pontos `.mono` | `fj-token-id` · `fj-audit-ts|tool|args` · `fj-ho-slug` · `fj-ho-pr` — **todos monoespaçados** | nenhum deles | **D4** |
+| painel Handoffs | **DENTRO** de `.fj-mcp` (medido: `.fj-mcp` contém `.fj-ho`) | rota separada `/forja/handoffs` | estrutura |
+
+**A causa-raiz do D4, medida (não deduzida):** `.mono` é uma utilitária do **shell** do protótipo — `prototipo-ui/cowork/styles.css:1740` — e **não existe em produção**: `grep` por `.mono` global em `resources/css/*.css` = **0 ocorrências**; o bundle da Onda 1 só a traz escopada em 3 pontos (`.fj-dr-meta`, `.fj-team-tbl`, `.ap-files`). Copiar o markup 1:1 sem isso deixaria o **DOM igual e o render diferente** — o formato de erro que o §5 chama de LC-08. Desceu escopada (`.fj-mcp .mono, .fj-ho .mono`), com os dois roots porque o painel renderiza em dois lugares.
+
+**Desvios declarados, todos por DADO** (o mock tem campo que `cowork_handoffs` não tem): sem `~onda`; 5 abas de filtro em vez de 6 (o mock tem `merged`, que o dado real não produz; o real tem `superseded`, que o mock não previu e ganhou pílula neutra); selo de gate omitido quando `gate = 'na'`, como no protótipo faz.
+
+**Conformidade (ADR 0388 — vira lista, não vira bloqueio):** `replica-inconsistencias --modulo Forja` foi de **101 → 102** itens. O saldo é melhor do que o número sugere: `FLEX-CRU` caiu de **31 → 1** nos dois componentes (as classes `fj-*` substituíram o flex solto do DS v6); entraram os glifos do protótipo (`⚿ ↗ ⚠` → R3) e as 7 cores de ator do `ForjaRoleBadge` (R1), que são **dado do ator**, não token de tema. Nota: o `R1` novo do `ForjaMcp` é o texto **`#2417`** da auditoria mock — número de PR lido como cor hex pelo lint, falso-positivo herdado do mesmo padrão que já existia no `#2924` do `ForjaHandoffs`.
+
+**O que fica pro pós-deploy:** injetar a MESMA sonda (`design-diff.mjs --probe`, papéis `tableRow=.fj-mcp-tbl tbody tr` · `filterControls=.fj-ho-tab` · `title=.os-page-h-l h1` · `primary=.os-btn.primary`) em `oimpresso.com/forja/mcp` autenticado, dark, 1440, e rodar `--compare prod.json design.json --check`. A meta do §11 é **0 `DIVERGE(bug)`** em D2/D4/D6/D8.
+
+### Onda 3 (2026-09-02) — o "0,55 × 0,70" fechou NA FUNDAÇÃO ([ADR UI-0031](../_DesignSystem/adr/ui/0031-fundacao-dark-adota-o-accent-do-prototipo.md))
+
+A linha `--accent no dark` acima dizia *"reconciliar a fundação é decisão [W]"*. [W] decidiu em 2026-09-02
+(*"não me importo com a decisão que vai escolher (…) apenas faça"*) e a fundação adotou o protótipo — o escopo
+`.fj-hub`/`.fj-page` da Onda 2.1 devolveu `--accent` e `--accent-soft`, que agora vêm da fundação.
+
+**A medição que mudou o desenho:** o CSS não era a camada que decidia. O `style` inline do `AppShellV2` vai no
+**mesmo** `<div>` que carrega o `data-theme`, e inline vence qualquer seletor — inclusive
+`.cockpit[data-theme="dark"]`. Mexer só no DTCG teria dado PR verde e **zero** mudança no browser. Controle
+positivo da sonda: um `.cockpit[dark]` com `--accent: 0.55` inline sobre o CSS que diz 0,70 computa **0,55**.
+
+| camada | antes | agora |
+|---|---|---|
+| DTCG `cockpit.accent` (`semantic.tokens.json`) | `dark_absent` — escuro herdava o claro | par escuro: 0,70 · 0,76 · 0,33 0,09 · fg 0,14 |
+| `_generated-cockpit-dark.css` | sem `--accent` / `--accent-2` / `--accent-fg` | os três, gerados por `tokens:build` |
+| `AppShellV2` inline | `oklch(0.55 …)` cravado nos dois temas | par por tema (mesmo padrão do [#6306](https://github.com/wagnerra23/oimpresso.com/pull/6306)) |
+| `[data-theme="dark"] .fj-hub/.fj-page` | 4 tokens copiados do protótipo | **2** (`--accent-hi`, `--accent-line`) · ratchet 4 → 2 |
+
+**O que a Forja ainda declara, e por quê:** `--accent-hi` e `--accent-line` são vocabulário ds-v6 que a fundação
+**não tem em tema nenhum** (0 definições em `resources/`; este bundle é o único consumidor — 25 usos de
+`--accent-line`, 1 de `--accent-hi`). Removê-los trocaria a borda sutil 0,47 pelo accent cheio 0,70 em 25 sítios do
+escuro, **divergindo mais** do protótipo. Promovê-los é token novo no DS = soberania [W].
+
+**Recibos:** `ds-token-diff` no escopo `cockpit-dark` saiu de **diverge:4 → diverge:0** (o espelho é derivado do
+git e foi regerado). `replica-inconsistencias --modulo Forja`: **101 → 101** itens, mas o **R1** (cor crua) do
+bundle caiu **335 → 333**. O item `PALETA` **não mudou** e não mudaria — ele é sobre a família `--dev-*(4)`, nunca
+sobre `--accent-*`; a premissa de que ele sumiria estava errada.
+
+**Ainda diverge (nomeado, fora do escopo desta onda):** o botão primário — `PageHeaderPrimary.tsx:70` fixa
+`oklch(0.55 0.15 295)` por **literal**, sem ler token nenhum, em todos os módulos. É o mesmo achado que a linha
+"D6" desta página já registrava; o conserto é fazer o componente consumir `var(--color-primary)` (0,70 no escuro
+desde a UI-0021), em PR próprio.
+
+## 2026-09-03 — produção a 1280 medida por fora: o custo de NÃO ter auto-rail, quantificado (corrobora UI-0030)
+
+> ⚠️ **Esta seção nasceu com a conclusão errada e é publicada já corrigida — o erro fica registrado, não apagado.** Ela foi medida em 2026-09-02 à noite, numa sessão paralela, para fechar o *"Produção a 1280 não foi medida"* que a Onda 2.1 declarou. A conclusão original era *"o protótipo raila a 1280 e produção não ⇒ divergência de shell ⇒ decisão [W]"*. **A ERRATA acima derruba essa premissa** e chegou ao `main` antes deste texto: com o `localStorage` limpo, o protótipo a **1280** dá `260px 1020px` — **idêntico** à produção; o rail só ocorre a **≤1279**. Portanto **não há divergência de shell a 1280**, e a decisão que eu abriria já estava tomada ([ADR UI-0030](../_DesignSystem/adr/ui/0030-sidebar-auto-rail-responsivo.md), `accepted`, [W] *"apenas faça"*). Eu li o registro narrativo antigo (`rail 56 · 3 linhas · 174,4px`) como se fosse medição do protótipo — era estado poluído de outra corrida. **LC-08 no mesmo vetor que a errata descreve.**
+>
+> **O que sobrevive, e é o motivo de publicar:** a medição do **lado produção**, que ninguém tinha feito e que **quantifica o defeito que a UI-0030 conserta**.
+
+**Recibo.** `oimpresso.com/forja/aprovacoes` autenticado, dark, `data-sidebar="expanded"`. Viewport de 1280 por **iframe same-origin** na própria aba autenticada, com `contentWindow.innerWidth === 1280` conferido **antes** de medir e **781/781** nós estáveis após a montagem do Inertia. Sonda = `getBoundingClientRect` + `getComputedStyle`.
+
+**O defeito, com número.** Com a sidebar `expanded`, o `.cockpit` fica `260px 1020px 0px` e o `.os-page-h-r` precisa de **1033,9px** — `.fj-viewtabs` termina em **x=1318**, 38px além da viewport. Por borda direita: Aprovações 731 · Trabalho 819 · Saúde 967 · MCP 1032 · Changelog 1216 · **Integrador 1315 → fora da tela**. Não há scroll de página (`scrollWidth === clientWidth === 1280`); o `.main-body` absorve com 38px de `overflow-x`, dentro de um `.cockpit` com `overflow:hidden`. Header = **136,4px em 2 linhas** (`.os-page-h-l` y=12 × `.os-page-h-r` y=91,4), com o padding `12px 24px` da Onda 2.1 **resistindo** a 1280.
+
+**A evidência que valida o remédio da UI-0030, medida no próprio ambiente.** Alternando `data-sidebar` para `rail` na mesma página, sem tocar em CSS:
+
+| | `expanded` (comportamento antigo) | `rail` (o que a UI-0030 passa a fazer a ≤1280) |
+|---|---|---|
+| grid do `.cockpit` | `260px 1020px 0px` | `56px 1224px 0px` |
+| `overflow-x` do `.main-body` | **38px** | **0** |
+| destinos fora da viewport | **1 de 6** | **0 de 6** |
+| altura · linhas do header | 136,4px · 2 | 136,4px · 2 |
+
+Ou seja: a ≤1280 o auto-rail **elimina o corte** — é o defeito concreto que a decisão fecha. O header **continua em 2 linhas** nos dois casos; a 2ª linha não é defeito e não é o que a UI-0030 se propõe a resolver.
+
+**Limites declarados.** (1) **Não medi o protótipo a 1280 com `localStorage` limpo** — pela errata ele tem os mesmos 1020px de conteúdo, então é de se esperar que corte um destino também; isso **não foi verificado** e não deve ser citado como medido. (2) O `@media (max-width:1280px)` do [`cockpit.css`](../../../resources/css/cockpit.css) L57-59 que eu inspecionei colapsa a coluna direita (`320px → 0`, batendo com o `0px` medido) e **não** fazia auto-rail — retrato da base **anterior** à UI-0030; quem for conferir depois dela deve re-medir, não citar esta linha.
+
+**Nota de método que vale além desta tela:** `resize_window` do Chrome MCP devolve `"Successfully resized"` **sem redimensionar** (`innerWidth` ficou em 2560) — o veredito só sobreviveu porque foi conferido pelo `innerWidth`, nunca pela mensagem da tool. E **não há Chrome** neste ambiente: a extensão roda no **Brave**. Some-se o `innerWidth: 0` do Browser pane que a errata documenta: **toda medição de largura aqui precisa provar a largura antes de medir qualquer outra coisa.**

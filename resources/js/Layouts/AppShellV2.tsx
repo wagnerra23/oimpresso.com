@@ -6,7 +6,7 @@
 //         AppShell legado removido em 2026-05-04 (ver git log).
 
 import { Head, usePage } from '@inertiajs/react';
-import { ReactNode, useEffect, useRef, useState } from 'react';
+import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import {
   Activity,
   AlertTriangle,
@@ -103,6 +103,7 @@ import { LinkedAppsPanel } from '@/Components/cockpit/LinkedApps';
 import { NfeCertBadge } from '@/Components/cockpit/NfeCertBadge';
 import { TweaksPanel } from '@/Components/cockpit/TweaksPanel';
 import {
+  AUTO_RAIL_MQ,
   CockpitShellProps,
   ConversaFoco,
   LS,
@@ -304,13 +305,47 @@ export default function AppShellV2({
   // ── Sidebar mode (expanded | rail) — Wagner 2026-05-16.
   // Espelha protótipo Cowork _cowork-export-2026-05-15/sidebar.jsx (modes
   // expanded/rail + alça collapse na borda direita + atalho ⌘\).
+  // Auto-rail (ADR UI-0030): sem escolha persistida, o modo VEM DA LARGURA.
   const [sidebarMode, setSidebarMode] = useState<SidebarMode>(() => {
     if (typeof window === 'undefined') return 'expanded';
     const v = localStorage.getItem(LS.SB_MODE);
-    return v === 'rail' ? 'rail' : 'expanded';
+    if (v === 'rail' || v === 'expanded') return v;
+    return window.matchMedia(AUTO_RAIL_MQ).matches ? 'rail' : 'expanded';
   });
-  useEffect(() => { localStorage.setItem(LS.SB_MODE, sidebarMode); }, [sidebarMode]);
-  const toggleSidebarMode = () => setSidebarMode((m) => (m === 'rail' ? 'expanded' : 'rail'));
+  const sidebarModeRef = useRef(sidebarMode);
+  sidebarModeRef.current = sidebarMode;
+
+  // Persistimos SÓ a escolha manual. O `useEffect` que havia aqui gravava
+  // TODO valor, inclusive o automático — o que transforma o primeiro load numa
+  // janela estreita em preferência permanente (a regra automática dispara uma
+  // vez por navegador e nunca mais solta). Não é hipótese: é o que o protótipo
+  // faz, e foi medido no espelho em 2026-09-02 — uma chave `rail` sobrevivente
+  // de um run a 1279 mantinha o protótipo em rail a 1728, o que quase virou
+  // "o protótipo é rail a 1728" na comparação daquele dia.
+  // `useCallback` com deps [] (só usa setter + ref, ambos estáveis) porque o
+  // atalho ⌘\ vive num `useEffect([])`: sem isso o exhaustive-deps acusa.
+  const chooseSidebarMode = useCallback((v: SidebarMode) => {
+    try { localStorage.setItem(LS.SB_MODE, v); } catch { /* storage bloqueado */ }
+    setSidebarMode(v);
+  }, []);
+  const toggleSidebarMode = useCallback(
+    () => chooseSidebarMode(sidebarModeRef.current === 'rail' ? 'expanded' : 'rail'),
+    [chooseSidebarMode],
+  );
+
+  // Enquanto NÃO houver escolha manual, o modo acompanha a largura ao vivo. O
+  // protótipo só decide no mount; aqui segue, senão plugar/desplugar monitor
+  // externo deixa o shell no modo errado até dar F5.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia(AUTO_RAIL_MQ);
+    const handler = () => {
+      if (localStorage.getItem(LS.SB_MODE)) return; // escolha do usuário vence
+      setSidebarMode(mq.matches ? 'rail' : 'expanded');
+    };
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   // ── Atalhos de teclado `G X` (ADR 0180 Fase 8). Instalado AQUI, e não dentro
   // do `SidebarMenu`, por dois motivos: o `SidebarMenu` tem retorno antecipado
@@ -359,12 +394,12 @@ export default function AppShellV2({
       // Cmd+\ (Mac) ou Ctrl+\ (Windows/Linux) — toggle sidebar rail/expanded
       if ((e.metaKey || e.ctrlKey) && e.key === '\\') {
         e.preventDefault();
-        setSidebarMode((m) => (m === 'rail' ? 'expanded' : 'rail'));
+        toggleSidebarMode();
       }
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  }, [toggleSidebarMode]);
 
   // Activeconv-id fallback se a página não fornecer (controlado externamente)
   const [internalActiveConv, setInternalActiveConv] = useState<string>(() => {
@@ -411,16 +446,32 @@ export default function AppShellV2({
   // que é ESTE MESMO elemento (o style vai no div que carrega o data-theme). Então todo
   // token escrito aqui e que TENHA par de tema no DTCG precisa escolher o par certo, senão
   // o valor light vaza pro escuro sem alarme nenhum — foi o que aconteceu com --accent-soft.
-  //   --accent / --accent-2 / --bubble-me : `dark_absent` no DTCG (herdam o light) → 1 valor.
-  //   --accent-soft                       : tem `com.oimpresso.dark` → SEGUE o tema.
+  //   --accent / --accent-2 / --accent-soft : têm `com.oimpresso.dark` → SEGUEM o tema.
+  //   --bubble-me                           : `dark_absent` no DTCG (herda o light) → 1 valor.
+  //
+  // ⚠️ NÃO "conserte" o --bubble-me pra seguir o --accent. O DTCG o declara como alias
+  // (`var(--accent)`), então desde a UI-0031 o CSS o resolveria em 0.70 no escuro — e este
+  // inline o segura em 0.55 DE PROPÓSITO, por duas razões medidas: (a) o protótipo faz o
+  // mesmo (declara 0.55 no `:root` e não redeclara no bloco escuro); (b) o par dele,
+  // `--bubble-me-fg`, é `#ffffff` FIXO, sem par de tema — branco sobre 0.70 perde contraste
+  // nos 14 sítios de bolha. Alinhar os dois é decisão de design, não limpeza de alias.
   // Fonte dos pares: resources/css/tokens/semantic.tokens.json → cockpit.accent.
-  const accentSoftLC = userTheme === 'dark' ? '0.32 0.06' : '0.95 0.04';
+  //
+  // 2026-09-02 (ADR UI-0031): --accent e --accent-2 ganharam par ESCURO. Eram `dark_absent`
+  // e o escuro herdava 0.55/0.62 do claro; o protótipo Cowork (styles.css, bloco
+  // `[data-theme="dark"]` "VIDA 06-11 [W]") pinta 0.70/0.76. Era a divergência "0,55 × 0,70"
+  // medida em toda rodada de comparação. Sem ESTA linha a mudança do DTCG não chega ao
+  // browser: o style inline vai no mesmo <div> do data-theme e vence o CSS gerado.
+  const accentLC = userTheme === 'dark' ? '0.70 0.15' : '0.55 0.15';
+  const accent2LC = userTheme === 'dark' ? '0.76 0.15' : '0.62 0.15';
+  const accentSoftLC = userTheme === 'dark' ? '0.33 0.09' : '0.95 0.04';
   const cockpitStyle: React.CSSProperties = {
     ['--row-h' as never]: `${26 + (density / 100) * 16}px`,
     ['--card-pad' as never]: `${8 + (density / 100) * 8}px`,
-    // L/C alinhados ao canon cockpit.css .cockpit{} (ADR 0190): no hue default (295) o resting state bate exato.
-    ['--accent' as never]: `oklch(0.55 0.15 ${accentHue})`,
-    ['--accent-2' as never]: `oklch(0.62 0.15 ${accentHue})`,
+    // L/C alinhados ao canon DTCG cockpit.accent (ADR 0190 no claro · UI-0031 no escuro):
+    // no hue default (295) o resting state bate exato nos dois temas.
+    ['--accent' as never]: `oklch(${accentLC} ${accentHue})`,
+    ['--accent-2' as never]: `oklch(${accent2LC} ${accentHue})`,
     ['--accent-soft' as never]: `oklch(${accentSoftLC} ${accentHue})`,
     ['--bubble-me' as never]: `oklch(0.55 0.15 ${accentHue})`,
   };

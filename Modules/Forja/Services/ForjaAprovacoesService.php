@@ -6,6 +6,10 @@ namespace Modules\Forja\Services;
 
 use App\Util\OtelHelper;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use Modules\Forja\Entities\CoworkHandoff;
+use Modules\Forja\Entities\McpActor;
+use Modules\Jana\Entities\Mcp\McpCcSession;
 use Modules\Jana\Entities\Mcp\McpTask;
 
 /**
@@ -46,6 +50,15 @@ class ForjaAprovacoesService
 
     /** Espera a partir da qual o item fica urgente (vermelho). */
     private const SLA_URGENTE_MIN = 120;
+
+    /** Silencio a partir do qual um papel aparece "sem sinal" no placar. */
+    private const SEM_SINAL_HORAS = 24;
+
+    /** Janela do placar: "entregas" e "retrabalho" sao dos ultimos N dias. */
+    private const PLACAR_DIAS = 7;
+
+    /** Piso do critique que o gate F1.5 exige (mesmo numero do HandoffAckTool). */
+    private const CRITIQUE_PISO = 80;
 
     /**
      * A fila: tudo em `pending_approval`, MAIS ANTIGO PRIMEIRO.
@@ -142,6 +155,252 @@ class ForjaAprovacoesService
         }
 
         return $out;
+    }
+
+    /**
+     * "Ao vivo no MCP" — quem da equipe está trabalhando agora, e em quê.
+     *
+     * A faixa do protótipo (`AoVivo`, `forja-aprova.jsx:24`) responde "quem está
+     * na sala": ela existe pra que a mesa não pareça uma caixa de entrada morta.
+     *
+     * FONTES REAIS, nenhuma inventada:
+     *   · quem é       → `mcp_actors` (slug · display_name · type · trust_level)
+     *   · o que faz    → `mcp_cc_sessions` (sessão aberta: projeto + branch)
+     *   · desde quando → `mcp_cc_sessions.started_at` e `mcp_audit_log.ts`
+     *   · custo hoje   → `mcp_audit_log.custo_brl` do dia, por `user_id`
+     *
+     * ⚠️ O eixo `nivel` do protótipo (sênior/júnior/artista/agente) NÃO existe
+     * neste schema e não é derivável: `mcp_actors` declara `type`
+     * (human/ai_agent/service) e `trust_level` (L0..L4), que é outra coisa.
+     * Mapear um no outro seria inventar semântica que ninguém decidiu, então o
+     * selo mostra o que É declarado. Diferença de categoria, não bug de paridade
+     * (ADR 0385).
+     *
+     * Multi-tenant: `mcp_cc_sessions` TEM `business_id` com global scope
+     * (`HasBusinessScope`) e ele fica LIGADO de propósito — sessão de Claude Code
+     * é dado de tenant, ao contrário de `mcp_tasks`. Sem `withoutGlobalScopes`.
+     *
+     * @return list<array<string,mixed>>
+     */
+    public function aoVivo(): array
+    {
+        $tenancy = 'business_id'; // marker NoMissingTenantScopeRule — mcp_actors/mcp_audit_log são repo-wide (ADR 0070/0093); mcp_cc_sessions mantém o scope global LIGADO
+
+        return OtelHelper::span('forja.aprovacoes.ao_vivo', [], function (): array {
+            $hoje = Carbon::today();
+
+            $atores = McpActor::query()
+                ->whereNull('revoked_at')
+                ->whereNotNull('user_id')
+                ->orderBy('id')
+                ->get();
+
+            if ($atores->isEmpty()) {
+                return [];
+            }
+
+            $userIds = $atores->pluck('user_id')->filter()->map(fn ($id): int => (int) $id)->all();
+
+            // Custo do dia + última batida, por usuário. Uma query, não N.
+            $uso = DB::table('mcp_audit_log')
+                ->whereIn('user_id', $userIds)
+                ->whereDate('ts', $hoje)
+                ->groupBy('user_id')
+                ->selectRaw('user_id, SUM(custo_brl) AS custo, MAX(ts) AS ultima')
+                ->get()
+                ->keyBy('user_id');
+
+            // Sessão ABERTA (sem ended_at) = "executando". Scope de business ligado.
+            $abertas = McpCcSession::query()
+                ->whereIn('user_id', $userIds)
+                ->whereNull('ended_at')
+                ->orderByDesc('started_at')
+                ->get()
+                ->keyBy('user_id');
+
+            // Quem tem item esperando decisão = "espera você". `owner` casa com o slug do ator.
+            $esperando = McpTask::query()
+                ->where('status', McpTask::AWAITING_HUMAN)
+                ->whereNotNull('owner')
+                ->get()
+                ->groupBy('owner');
+
+            return $atores
+                ->map(function (McpActor $a) use ($uso, $abertas, $esperando): array {
+                    $uid = (int) $a->user_id;
+                    $sessao = $abertas->get($uid);
+                    $fila = $esperando->get((string) $a->slug);
+                    $linha = $uso->get($uid);
+
+                    if ($fila !== null && $fila->isNotEmpty()) {
+                        $status = 'aguardando';
+                        $fazendo = (string) $fila->first()->title;
+                    } elseif ($sessao !== null) {
+                        $status = 'executando';
+                        $fazendo = $this->descreveSessao($sessao);
+                    } else {
+                        $status = 'offline';
+                        $fazendo = '—';
+                    }
+
+                    $ultima = $linha !== null && $linha->ultima !== null
+                        ? Carbon::parse((string) $linha->ultima)
+                        : ($sessao?->started_at instanceof Carbon ? $sessao->started_at : null);
+
+                    return [
+                        'slug'       => (string) $a->slug,
+                        'pessoa'     => (string) ($a->display_name ?: $a->slug),
+                        'tipo'       => (string) $a->type,          // human · ai_agent · service
+                        'confianca'  => (string) $a->trust_level,   // L0..L4 — o que o schema declara
+                        'status'     => $status,
+                        'fazendo'    => $fazendo,
+                        'custo_hoje' => (float) ($linha->custo ?? 0),
+                        'ha'         => $ultima?->diffForHumans(),
+                    ];
+                })
+                ->values()
+                ->all();
+        });
+    }
+
+    /**
+     * Placar por PAPEL do loop de design — a tabela "Equipe de agentes" do
+     * protótipo (`forja-aprova.jsx:210`), pedida pelo [W] em 2026-08-08 e que
+     * estava no `[BACKLOG]` do `casos.md` esperando exatamente este backend.
+     *
+     * A linha é o `created_by` de `cowork_handoffs` (CC · CD · CL · CA · AN),
+     * porque é o único lugar onde o papel do loop existe como dado.
+     *
+     * O QUE É MEDIDO (e de onde):
+     *   · sinal      → `MAX(created_at)` dos handoffs do papel
+     *   · critique   → média de `gate_status->critique_score` (o mesmo número que o
+     *                  `HandoffAckTool` exige >= 80 pra deixar virar `applied`)
+     *   · retrabalho → handoffs `rejected` na janela (o "devolvido ao autor")
+     *   · entregas   → handoffs criados na janela
+     *
+     * ⚠️ O QUE NÃO É MEDIDO, E POR QUÊ — "sessões hoje" e "custo/quota" do
+     * protótipo são POR USUÁRIO (`mcp_cc_sessions`, `mcp_audit_log` e
+     * `mcp_quotas` são todos `user_id`), e NÃO existe no schema ligação
+     * papel→usuário: os atores semeados são `wagner`/`felipe`/`maira`/`luiz`/
+     * `eliana`/`claude-code-wagner-laptop`, nunca `CC`/`CD`/`CL`. Preencher essas
+     * colunas exigiria inventar o vínculo — dado fantasma. Elas vão `null`, e a
+     * tela mostra "—" dizendo o motivo. Criar o vínculo é decisão [W].
+     *
+     * @return list<array<string,mixed>>
+     */
+    public function placar(): array
+    {
+        $tenancy = 'business_id'; // marker NoMissingTenantScopeRule — cowork_handoffs é repo-wide (ADR 0093/0283), sem tenant por design
+
+        return OtelHelper::span('forja.aprovacoes.placar', [], function (): array {
+            $desde = Carbon::now()->subDays(self::PLACAR_DIAS);
+
+            $handoffs = CoworkHandoff::query()
+                ->where('status', '!=', 'superseded')
+                ->where('created_at', '>=', $desde)
+                ->get();
+
+            if ($handoffs->isEmpty()) {
+                return [];
+            }
+
+            return $handoffs
+                ->groupBy(fn (CoworkHandoff $h): string => (string) ($h->created_by ?: '—'))
+                ->map(function ($doPapel, string $papel): array {
+                    $scores = $doPapel
+                        ->map(fn (CoworkHandoff $h): ?int => $this->critiqueScore($h))
+                        ->filter(fn (?int $n): bool => $n !== null)
+                        ->values();
+
+                    $ultimo = $doPapel
+                        ->map(fn (CoworkHandoff $h) => $h->created_at)
+                        ->filter(fn ($d): bool => $d instanceof Carbon)
+                        ->sortDesc()
+                        ->first();
+
+                    $entregas = $doPapel->count();
+                    $retrabalho = $doPapel->where('status', 'rejected')->count();
+                    $media = $scores->isEmpty() ? null : (int) round((float) $scores->avg());
+
+                    return [
+                        'papel'          => $papel,
+                        'sinal'          => $ultimo instanceof Carbon ? $ultimo->diffForHumans() : null,
+                        // "sem sinal" é sobre o SILÊNCIO do papel, não sobre falha:
+                        // sem handoff na janela de N horas, o alarme acende.
+                        'sinal_ok'       => $ultimo instanceof Carbon
+                            && $ultimo->gt(Carbon::now()->subHours(self::SEM_SINAL_HORAS)),
+                        'critique'       => $media,
+                        'critique_serie' => $scores->all(),
+                        'critique_baixo' => $media !== null && $media < self::CRITIQUE_PISO,
+                        'entregas'       => $entregas,
+                        'retrabalho'     => $retrabalho,
+                        'retrabalho_pct' => $entregas > 0 ? (int) round($retrabalho / $entregas * 100) : 0,
+                        // Sem fonte por PAPEL — ver o docblock. `null` é a resposta honesta.
+                        'sessoes_hoje'   => null,
+                        'custo_hoje'     => null,
+                        'quota_dia'      => null,
+                    ];
+                })
+                ->sortByDesc('entregas')
+                ->values()
+                ->all();
+        });
+    }
+
+    /**
+     * Quantos handoffs estão com problema — o botão de alerta do cabeçalho
+     * (`ap-handoff-alert`), que leva pra /forja/handoffs.
+     *
+     * "Problema" = o mesmo par que o protótipo usa (`estado stale || gateConflito`)
+     * e que o {@see ForjaMcpService} já deriva: parado além do teto, ou ack
+     * dizendo verde com required check vermelho no PR (Gap 2 · ADR 0283).
+     *
+     * Delega ao dono do tema em vez de reimplementar a derivação aqui — as duas
+     * cópias divergiriam na primeira mudança da regra.
+     */
+    public function handoffsComProblema(): int
+    {
+        return OtelHelper::span('forja.aprovacoes.handoffs_problema', [], function (): int {
+            $handoffs = app(ForjaMcpService::class)->handoffs();
+
+            return count(array_filter(
+                $handoffs,
+                fn (array $h): bool => ($h['status'] ?? null) === 'stale' || ($h['gate'] ?? null) === 'conflito',
+            ));
+        });
+    }
+
+    /** Descreve o que uma sessão aberta está fazendo, com o que a tabela guarda. */
+    private function descreveSessao(McpCcSession $s): string
+    {
+        $resumo = trim((string) ($s->summary_auto ?? ''));
+        if ($resumo !== '') {
+            return $resumo;
+        }
+
+        $projeto = trim((string) ($s->project_path ?? ''));
+        $branch = trim((string) ($s->git_branch ?? ''));
+
+        if ($projeto !== '' && $branch !== '') {
+            return basename($projeto) . ' · ' . $branch;
+        }
+
+        if ($projeto !== '') {
+            return basename($projeto);
+        }
+
+        return $branch !== '' ? $branch : 'sessão aberta';
+    }
+
+    /** O `critique_score` gravado no ack (A3), ou null quando o handoff não tem gate. */
+    private function critiqueScore(CoworkHandoff $h): ?int
+    {
+        $g = $h->gate_status;
+        if (! is_array($g) || ! isset($g['critique_score'])) {
+            return null;
+        }
+
+        return (int) $g['critique_score'];
     }
 
     /**

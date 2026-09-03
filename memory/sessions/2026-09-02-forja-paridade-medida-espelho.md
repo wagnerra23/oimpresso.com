@@ -21,9 +21,9 @@ related_adrs:
 
 ## TL;DR
 
-Dia inteiro sobre **uma** pergunta: o que falta pra Forja ficar igual ao protótipo. **Manhã** — espelho do Cowork completado (shell e `styles.css` STALE, 4 adaptadores `cli-*` ausentes) e primeira comparação **por sonda** em 5 pares: o primary 0,55 × 0,70 aparece em todos, e a causa é o componente ignorando o token dark, não o protótipo fora do canon. **Tarde** — ADR 0388 ("réplica primeiro") + Ondas 1, 2 e 2.1 no ar; os 3 DIVERGE que a sonda pegou em prod foram corrigidos e re-medidos **iguais** ao protótipo a 2560. **Noite** — produção medida a **1280** (o monitor do [W]), fechando o "não medido" que a 2.1 tinha declarado: com a sidebar no default, **1 dos 6 destinos do topnav (`Integrador`) nasce fora da viewport**, e a causa é **shell** (`cockpit.css` não tem auto-rail por largura), não CSS da Forja ⇒ decisão [W], não PR de código.
+Dia inteiro sobre **uma** pergunta: o que falta pra Forja ficar igual ao protótipo. **Manhã** — espelho do Cowork completado e primeira comparação **por sonda** em 5 pares (o primary 0,55 × 0,70 aparece em todos, e a causa é o componente ignorando o token dark). **Tarde** — ADR 0388 ("réplica primeiro") + Ondas 1, 2 e 2.1 no ar, com os 3 DIVERGE re-medidos **iguais** ao protótipo a 2560. **Noite** — Ondas 3, 4 e 8 em réplica; a **ERRATA** que derrubou a linha "Larguras menores" (o rail do protótipo vinha de `localStorage` poluído por um `innerWidth: 0` do Browser pane, não de regra de largura — a ≤1279, não a 1280); e a medição de **produção a 1280**, que fechou o "não medido" da 2.1 e **quantificou o defeito**: 1 de 6 destinos do topnav fora da viewport com a sidebar `expanded`. Decisão do dia: [ADR UI-0030](../requisitos/_DesignSystem/adr/ui/0030-sidebar-auto-rail-responsivo.md) — produção passa a fazer auto-rail a ≤1280, com a escolha manual vencendo.
 
-**Pendências que saem do dia:** `--accent` dark na fundação (hoje escopado à Forja) · auto-rail a ≤1280 · bundle v2 do Cowork · e a **Tarefa B parada**: o MCP ficou inalcançável a sessão inteira (medido com controle positivo), então nenhuma task foi tocada e nenhum markdown de task foi criado ([ADR 0070](../decisions/0070-jira-style-task-management-current-md-removed.md)).
+**Pendências que saem do dia:** `--accent` dark na fundação (hoje escopado à Forja) · bundle v2 do Cowork · e o **MCP inalcançável a sessão inteira** (medido com controle positivo), então nenhuma task foi tocada e nenhum markdown de task foi criado ([ADR 0070](../decisions/0070-jira-style-task-management-current-md-removed.md)).
 
 ## Sessões paralelas
 
@@ -81,28 +81,50 @@ O bundle do DS que o espelho consome (`mirror-snapshot/_ds_bundle.js`) é o do p
 
 **Pendente pro [W]:** reconciliar `--accent` dark na fundação (0,55 × 0,70 do protótipo) — hoje escopado à Forja; Cowork regenerar o bundle v2 e consertar na fonte as inconsistências listadas (pedido em `prototipo-ui/CODE_NOTES.prompt-cowork-inconsistencias-na-fonte-2026-09-02.md`).
 
-## Noite — produção a 1280 MEDIDA (fecha o "não medido" da 2.1) · MCP fora, Tarefa B parada
+---
 
-**A pergunta.** A rodada da tarde declarou honestamente: *"Produção a 1280 não foi medida (o Browser pane não tem a sessão; a janela do Chrome não aceitou o resize)"*. 1280 é o monitor do [W], então era o número que faltava.
+## Sessão da noite (sessão própria) — Onda 8: a view MCP vira réplica e o painel Handoffs volta pra dentro
 
-**Como consegui a viewport (as duas tentativas anteriores caíram, e a razão importa).** `resize_window` do Chrome MCP devolveu **"Successfully resized window ... to 1280x900"** e o `innerWidth` **continuou 2560** — instrumento afirmando sucesso sem ter feito. Só peguei porque conferi o `innerWidth` depois, não a mensagem (LC-15 / §5 2026-07-29). Enumerando as janelas por Win32 descobri o resto: **não existe processo Chrome** — a extensão roda no **Brave**, em 2 janelas, nenhuma com a Forja em foco, então redimensionar "a janela do Chrome" mexeria no desktop do [W] sem sequer acertar o alvo. Solução: **iframe same-origin de 1280px** injetado na própria aba autenticada — `contentWindow.innerWidth === 1280` conferido **antes** de medir, montagem do Inertia esperada até **duas leituras iguais** de `querySelectorAll('*')` (781/781, §5 2026-08-24), tema dark, `data-sidebar="expanded"` (o estado real do [W]).
+> Continuação do mesmo tema no mesmo dia — por isso **apende aqui** em vez de abrir session log paralelo (proibicoes §Memória: se já existe similar, edita). O que está acima é da sessão da manhã/tarde e **não foi tocado**.
 
-**O achado — 1 de 6 destinos nasce fora da tela.** Com a sidebar no default (260px), o `.cockpit` fica `260px 1020px 0px` e `.fj-viewtabs` se estende até **x=1318**, 38px além da viewport. Por borda direita: Aprovações 731 · Trabalho 819 · Saúde 967 · MCP 1032 · Changelog 1216 · **Integrador 1315 → fora**. Não há scroll de página (`scrollWidth === clientWidth === 1280`); o `.main-body` absorve com 38px de `overflow-x`. Header = **136,4px em 2 linhas** (`.os-page-h-l` y=12 × `.os-page-h-r` y=91,4), com o padding `12px 24px` da Onda 2.1 **resistindo** a 1280.
+**PR:** [#6575](https://github.com/wagnerra23/oimpresso.com/pull/6575) · **Onda 8 do §11** (`MCP + Handoffs dentro`).
 
-**A causa é o shell, e a prova está no CSS de `origin/main`.** O `@media (max-width:1280px)` do `cockpit.css` (L57-59) **dispara** e colapsa a coluna direita (320→0, batendo com o `0px` medido), mas mantém 260px de sidebar — rail de 56px só sob `[data-sidebar="rail"]` (L55). **Não há auto-rail por largura.** Alternando o atributo para `rail` na mesma página, sem tocar em CSS: overflow **38→0**, cortadas **1→0**. Mas o header segue 136,4px/2 linhas — produção **nunca** reproduz as 3 linhas/174,4px do protótipo. Vai para decisão [W] (auto-rail a ≤1280 · e, separadamente, wrap 2×3 linhas), **não** para PR de código: o `@media` é shell de todos os módulos.
+### O que a onda entregou
 
-**Limite declarado.** O protótipo **não** foi re-medido; o JSON dele a 1280 **não existe** nas fontes que o pedido citava — procurei no corpo do #6563, nos **72** comentários, nos review-comments (0) e neste próprio log: zero ocorrência de `1280`, `174` ou `rail`. Comparei contra o **registro narrativo** do visual-comparison, e isso está dito lá.
+`/forja/mcp` passou ao vocabulário do bundle (`fj-mcp*` · `fj-perm*` · `fj-token*` · `fj-audit*` · `fj-ho-*`) na ordem do protótipo — **intro `mockado` → Handoffs F1→F3 → grid [contrato | tokens] → auditoria** — e o painel de handoffs voltou pra dentro da aba, cumprindo a promessa que o comentário do `FORJA_TABS` registrava desde a Onda 2 (*"Handoffs (seção do MCP, Onda 8)"*). A rota `/forja/handoffs` **segue viva** e renderiza o **mesmo componente**, com a **mesma projeção** (`ForjaMcpService`): um dono, dois pontos de render. Nasceu também o `ForjaRoleBadge` — o selo de ator do protótipo (`window.FjRoleBadge`), cujas classes já desciam no bundle da Onda 1 sem ninguém usá-las.
 
-**Tarefa B (tasks da Forja no MCP) — PARADA, com recibo.** As tools `mcp__oimpresso__*` não estão carregadas nesta sessão, e o servidor **segue inalcançável** — medido com controle positivo, não suposto:
+### A causa-raiz do D4, que era CSS ausente e não markup
 
-| sonda | resultado |
-|---|---|
-| controle `oimpresso.com/login` | **200 em 1,07s** (rede e curl funcionam) |
-| DNS `mcp.oimpresso.com` | resolve → 177.74.67.30 |
-| ICMP no IP | **responde, 1ms, 0% perda** (host vivo) |
-| `/api/mcp` (endpoint do `.mcp.json`) | **000, rc=28** — timeout em 21s |
-| TCP 443 direto | **falha** (rc=124, nem completa handshake) |
+O `DIVERGE` de tipografia da rodada da manhã (*"col0/col2 sem mono × mono"*) não se resolvia copiando markup: **`.mono` é utilitária do SHELL do protótipo** (`styles.css:1740`) e **não existe em produção** — 0 ocorrências globais em `resources/css/*.css`; o bundle só a traz escopada em 3 pontos. Medido no protótipo: os **6** lugares que a view usa (`fj-token-id`, `fj-audit-ts|tool|args`, `fj-ho-slug`, `fj-ho-pr`) são monoespaçados e **nenhum** tem regra própria. Sem isso o DOM ficaria igual e o **render diferente** — LC-08 na forma mais silenciosa. Desceu escopada (`.fj-mcp .mono, .fj-ho .mono`).
 
-Diagnóstico: **o host está de pé, o serviço HTTPS não aceita conexão.** Nenhuma task foi atualizada e **nenhum arquivo de task em markdown foi criado** ([ADR 0070](../decisions/0070-jira-style-task-management-current-md-removed.md)) — a instrução do pedido era exatamente essa: registrar e parar.
+### O erro que quase virou número falso (registrado, não apagado)
 
-**Um dado que muda a Tarefa B quando o MCP voltar:** `list_sessions` mostra **8 sessões rodando agora** justamente nas Ondas 3, 4, 5-6, 8, 9, 10 e 11 da Forja (`forja-onda4-trabalho-lista`, `forja-onda8-mcp-handoffs`, `forja-onda9-changelog`, `forja-onda10-integrador-tabs`, `forja-onda-11-revogacao`, `forja-saude-view`, `busy-swartz` = Onda 3, `forja-ondas-5-6-quadro-gantt`). Criar uma task por onda 3–11 às cegas, como o pedido previa, **duplicaria trabalho já em curso** — quando o servidor voltar, o passo certo é `tasks-list module:Forja` **antes** de qualquer `tasks-create`, e conferir contra essas sessões.
+A primeira medição do protótipo devolveu `color: rgb(0,0,0)` em toda a tabela e `--text-dim` **vazio** no `:root`. Eu ia tratar aquilo como "cor divergente". Não era: o `_ds/` (gitignored) estava ausente no espelho e `colors_and_type.css` + `cockpit_domains.css` carregaram com **0 regras** — o protótipo renderizou sem token nenhum. O portão `cowork-mirror-freshness --preview-ds` (fail-closed) repôs 10 deps e a medição foi refeita. **Lição operacional:** o `--preview-ds` roda ANTES de medir, não depois — sem ele qualquer cor lida é lixo com aparência de dado.
+
+Dois outros deslizes menores, corrigidos no caminho: (1) rodei `replica-inconsistencias --prototipo` com o glob **entre aspas**, ele não expandiu e o relatório perdeu os 13 itens `origem = prototipo` (101→90); re-rodado sem aspas deu 102 e `exit 0`. (2) escrevi a continuação de linha do YAML da lane com `\` num heredoc e a **barra colapsou** (LC-26) — refeito com `chr(92)`, conferido em `cat -A`.
+
+### Verificação
+
+Fonte provada ANTES de tocar código: `forja-page.css` (`9c180a5d92ae`) e `forja-page.jsx` (`e4339537969d`) baixados do Cowork vivo por `DesignSync.get_file` e medidos contra o espelho → **`igual` nos dois**. O `forja-mcp.jsx` **não pôde ser medido por hash** (31 KB volta inline pelo `get_file`, abaixo do teto de persistência) — mitigado por conferência estrutural contra o vivo que li: 9 linhas de contrato, 6 de auditoria, 3 tokens, 6 handoffs e o `<HandoffPanel/>` dentro do `ForjaMCPView`, todos batendo.
+
+Gates locais verdes: `foundation` · `conformance` · `stylelint` · `css:size` · `layout` · `casos-coverage-guard` · `baseline-tamper-guard` · `build:inertia` · `tsc` (0 erro novo). **`eslint-baseline` fechou em delta 0** — apareceu +1 (`react-refresh/only-export-components`), era **minha e evitável** (exportei um helper junto do componente): consertada, **não absorvida**. `ds-guard` segue bloqueando por `--dev-*(4)`: **provado herdado** rodando o blob de `origin/main` no mesmo diretório — veredito idêntico, delta zero.
+
+**Teste novo:** `ForjaMcpHandoffsInlineTest` (3 casos citando `UC-FORJA-15`), nas **duas** lanes. Ele não testa classe CSS de propósito — isso é do `design-diff`, e duplicar régua consolidada é proibido; testa o que some **em silêncio**: sem as props deferidas o `<Deferred>` fica em fallback eterno, sem erro no console.
+
+### O que NÃO fechou, e é honesto dizer
+
+O **`compare 0 bug` do §11 exige produção deployada** — merge de `.tsx` é humano (ADR 0283). A linha 8 do §11 ficou **🧪 código no ar em PR**, não ✅. Os valores-alvo do lado design ficam **medidos** no visual-comparison pro pós-deploy ser um `--compare` direto.
+
+`visual-regression` vermelho: as telas em zona cinza são **`Ponto/Dashboard` (0,21%)**, **`Jana` (0,29%)** e **`financeiro-unificado · selecionar-lote`** — a **mesma lista herdada** que a sessão da tarde declarou, e **nenhuma delas é desta onda** (as minhas, `team-mcp/Forja*`, que o raio detectou, passaram). Medi que o check **não é required** (união de 45 contexts do classic + ruleset), logo não bloqueia merge — e por isso **não apliquei** `visreg-gray-approved`: aprovar zona cinza de outros módulos não é escopo desta onda.
+
+**Nota de instrumento:** `ancora.mjs TeamMcp/Forja/Cockpit` responde *"sem charter pra essa tela"*; a query que resolve é **`Forja/Cockpit`** (o path real é `team-mcp/`, não `TeamMcp/`). O charter existe e a âncora confirma `related_prototype: forja-page.jsx` com frescor verificado.
+
+## Noite (sessão paralela) — produção a 1280 medida, e a conclusão que a ERRATA corrigiu
+
+Fechei o *"Produção a 1280 não foi medida"* da Onda 2.1. **A conclusão que tirei estava errada e vai registrada corrigida:** eu disse *"o protótipo raila a 1280 e produção não ⇒ divergência de shell ⇒ decisão [W]"*, tomando o **registro narrativo** antigo (`rail 56 · 3 linhas · 174,4px`) como se fosse medição. A ERRATA desta mesma noite prova que aquele retrato vinha de `localStorage` poluído: com a chave limpa, o protótipo a **1280** dá `260px 1020px` — **igual à produção**; o rail é a **≤1279**. Não havia divergência de shell a 1280, e a decisão já estava tomada ([UI-0030](../requisitos/_DesignSystem/adr/ui/0030-sidebar-auto-rail-responsivo.md)). **LC-08 no mesmo vetor que a errata descreve** — duas sessões caíram nele na mesma noite, por caminhos diferentes.
+
+**O que sobreviveu e valeu:** a medição do lado **produção**, que ninguém tinha feito. Com a sidebar `expanded`, `.fj-viewtabs` termina em **x=1318** (38px além da viewport) e o **Integrador (borda 1315) nasce fora da tela** — 1 de 6 destinos. Alternando para `rail`: `56px 1224px`, overflow **38 → 0**, cortadas **1 → 0**. Isso **quantifica o defeito que a UI-0030 conserta** e valida o remédio no próprio ambiente, em vez de deixá-lo por argumento.
+
+**Método (vale além desta tela):** `resize_window` devolveu `"Successfully resized"` **sem redimensionar** (`innerWidth` parado em 2560) — só não virei vítima porque conferi o `innerWidth`, não a mensagem; e **não há Chrome** aqui, a extensão roda no **Brave**. Junto com o `innerWidth: 0` que a errata documenta: **medição de largura tem que provar a largura antes de medir qualquer outra coisa.** Viewport obtida por iframe same-origin de 1280px, com 781/781 nós estáveis.
+
+**Tarefa das tasks no MCP: parada.** Controle positivo `oimpresso.com/login` **200 em 1,07s** · DNS resolve · ICMP responde 1ms · `/api/mcp` **000/rc=28** · TCP 443 **falha**. Host de pé, serviço HTTPS fora. Zero task tocada, zero markdown de task (ADR 0070). E `list_sessions` mostrava **8 sessões rodando** nas Ondas 3–11 — criar tasks às cegas duplicaria trabalho em curso.
