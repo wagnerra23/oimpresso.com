@@ -33,6 +33,12 @@ Modules/Jana/Tests/Feature/MemoryHistoryPruneCommandTest.php
 # padrão do MemoryHistoryPruneCommandTest acima. Medido pelo eixo 2 do
 # test-lane-coverage (--mudos) em 2026-08-10.
 Modules/Jana/Tests/Feature/Ai/BriefDiarioAgentTest.php
+# O IRMÃO do arquivo acima rodava em lane NENHUMA — medido em 2026-09-02 com
+# `git grep BriefDiarioChatTriggerTest -- .github scripts package.json` = 0 hits.
+# Ele guarda o chokepoint que o cliente percorre (detecção do intent "brief" +
+# invocação do agente + curadoria da saída, UC-JCHAT-14): verde que não roda é pior
+# que vermelho. Mesmo guard sqlite-only do vizinho, então é aqui que ele executa.
+Modules/Jana/Tests/Feature/BriefDiarioChatTriggerTest.php
 Modules/Jana/Tests/Feature/Mcp/TaskParserDetectaDivergenciaDescritivaTest.php
 Modules/Jana/Tests/Feature/Mcp/WorkLeaseServiceTest.php
 Modules/Jana/Tests/Feature/Mcp/PlanDriftCommandTest.php
@@ -284,6 +290,7 @@ Modules/Forja/Tests/Feature/ForjaQuadroServiceTest.php
 # erro de BINDING, lançado antes do guard de driver. Esta lane o teria pego. A
 # execução real do happy-path (UC-FORJA-01) mora na lane MySQL forja-pest.yml.
 Modules/Forja/Tests/Feature/ForjaRoutesSmokeTest.php
+Modules/Forja/Tests/Feature/ForjaMcpHandoffsInlineTest.php
 Modules/Forja/Tests/Feature/HandoffStaleAlertTest.php
 Modules/Forja/Tests/Feature/HandoffToolsTest.php
 Modules/Forja/Tests/Feature/McpActorsSeederTest.php

@@ -144,6 +144,16 @@ jobs:
         # compras-pest.yml ("entra na allowlist SEM ser verde — é FAILING-FIRST
         # por desenho"). Se vermelho, conserta-se antes do merge — o que não se
         # faz é remover da lista pra ficar verde.
+        #
+        # 2026-09-02 — BriefAlertOpsInboxTest entra pelo MESMO desvio declarado
+        # acima (FAILING-FIRST): o CT 100 estava OFFLINE na sessão (tailscale
+        # "offline, last seen 7m ago"; 2x ssh 502 + ping 5/5 timeout) e rodar
+        # Pest local/Hostinger é proibido (proibicoes.md §Ambiente), então o
+        # primeiro verde só pode acontecer aqui. Precisa ser NESTA lane, não na
+        # sqlite do ci.yml: o teste exige a tabela REAL mcp_inbox_notifications
+        # (está no schema baseline, com due_soon no enum) — montar tabela
+        # sintética esconderia o próprio bug de schema que ele trava.
+        # Não usa RefreshDatabase/migrate:fresh e apaga as linhas que cria.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -158,7 +168,9 @@ jobs:
             Modules/Forja/Tests/Feature/ForjaRoutesSmokeTest.php \
             Modules/Forja/Tests/Feature/AprovacoesMesaTest.php \
             Modules/Forja/Tests/Feature/TrabalhoListaTest.php \
-            Modules/Forja/Tests/Feature/PipelineParidadeTest.php
+            Modules/Forja/Tests/Feature/PipelineParidadeTest.php \
+            Modules/Forja/Tests/Feature/ForjaMcpHandoffsInlineTest.php \
+            Modules/Forja/Tests/Feature/BriefAlertOpsInboxTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
