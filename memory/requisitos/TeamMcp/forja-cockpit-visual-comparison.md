@@ -467,6 +467,131 @@ A tabela acima comparou a `fj-row`. Faltava o resto, e a medição por `children
 
 **O que fica pro pós-deploy:** injetar a MESMA sonda (`design-diff.mjs --probe`, papéis `tableRow=.fj-mcp-tbl tbody tr` · `filterControls=.fj-ho-tab` · `title=.os-page-h-l h1` · `primary=.os-btn.primary`) em `oimpresso.com/forja/mcp` autenticado, dark, 1440, e rodar `--compare prod.json design.json --check`. A meta do §11 é **0 `DIVERGE(bug)`** em D2/D4/D6/D8.
 
+### Onda 8 · verificação PÓS-DEPLOY (2026-09-03) — o `--compare` que a rodada anterior deixou pendente
+
+> **O que esta seção é, e o que ela NÃO é.** A Onda 8 já foi implementada e mergeada em
+> [#6575](https://github.com/wagnerra23/oimpresso.com/pull/6575) (`baf3d173c7`, 2026-09-02). Nada de
+> layout foi reimplementado aqui. Esta rodada fecha as **duas pernas que a seção acima declarou em
+> aberto**: o `--compare` pareado (que não pôde rodar porque o código ainda não estava em produção) e a
+> tipografia/gap por seção, que o pacote de export marca como **não medida** no seu §7.
+
+> **Recibo do que rodou.** Produção = `https://oimpresso.com/forja/mcp` **autenticado**, tema **dark**,
+> deploy do sha `63b9fecba1` (`deploy.yml` `success` 18:09Z) — e `git merge-base --is-ancestor
+> baf3d173c7 63b9fecba1` confirma que o código da onda ESTÁ no ar. Protótipo = espelho
+> `prototipo-ui/cowork` servido por HTTP estático, `localStorage["oimpresso.route"]="teammcp"` +
+> `oimpresso.forja.view="mcp"`, dark. Nos **dois** lados: espera ativa até `__oiLazyDone` e **duas
+> leituras consecutivas iguais** do número de nós (design 1014/1014 · prod 803/803) — nunca medir
+> durante o lazy (§5 2026-08-24). Medição por `getComputedStyle`, jamais pela classe declarada.
+
+**Frescor da fonte — provado onde importa, e o limite dito por inteiro.** O `forja-mcp.jsx` do espelho
+é de **23/06** e o vivo mudou (o cabeçalho dele diz *"Overlays e RAG saíram daqui (Onda 3)"*): 31.406
+bytes contra ~6,9 KB. O arquivo **está STALE** e não se finge o contrário. Mas a pergunta que decide a
+validade desta medição não é *"o arquivo mudou?"* e sim *"a parte que renderiza esta view mudou?"* —
+e essa foi respondida por diff mecânico, não por leitura:
+
+| função que gera o DOM de `.fj-mcp` | espelho | vivo (`get_file`) | diff |
+|---|---|---|---|
+| `HandoffPanel` | 83 linhas | 83 linhas | **vazio — idêntico** |
+| `ForjaMCPView` | 62 linhas | 62 linhas | **vazio — idêntico** |
+
+E o CSS, que é a fonte de toda a tipografia/gap/cor medida abaixo, foi provado pela máquina:
+`cowork-mirror-freshness --snapshot-from --emit-snapshot` → `forja-page.css` **`igual`** (`7097103e6f1c`).
+O `--compare` do `design-diff` **recusou** a conclusão com `⛔ NÃO MEDI` (exit 2) porque a rodada de
+frescor do espelho segue **parcial** (1/258) — está certo, e a ressalva fica: o veredito abaixo vale para
+`forja-mcp.jsx` + `forja-page.css`, provados um a um, não para o espelho inteiro. Regenerar o pacote é o
+pedido de [#6671](https://github.com/wagnerra23/oimpresso.com/pull/6671).
+
+**Veredito do comparador** (`design-diff --compare prod.json design.json --check`, papéis exatamente os
+que a seção acima declarou):
+
+```
+OK [D2] layout      -> IGUAL      OK [D8] kpi align       -> IGUAL
+OK [D4] tipografia  -> IGUAL      OK [D9] texto           -> IGUAL
+OK [D6] cor         -> IGUAL      OK [D4] linha da tabela -> IGUAL
+DIVERGE(bug): 0
+```
+
+**A meta do §11 — 0 `DIVERGE(bug)` em D2/D4/D6/D8 — foi atingida.** Os três `DIVERGE` da rodada da
+manhã de 02/09 (col0 sem mono · col1/col2 sem cor própria · col2 `right`) estão **fechados**: as três
+células agora medem `align=left`, `larguraPct` 26,3/34,2/39,4 e `mono` na col0 dos **dois** lados.
+
+**Estrutura — §3.8 do pacote de export, conferida item a item:**
+
+| alvo (§3.8) | protótipo | produção | |
+|---|---|---|---|
+| `.fj-mcp` 4 filhos, ordem `[intro, card Handoffs, grid, card auditoria]` | 4, na ordem | 4, **ordem idêntica** | OK |
+| `.fj-mcp-grid` = contrato + credenciais | 2 colunas | 2 colunas | OK |
+| 9 `.fj-perm` | 9 | 9 | OK |
+| 9 `.fj-role` | 9 | 9 | OK |
+| `.fj-audit` 6 linhas, 2 `deny` | 6 / 2 | 6 / 2 | OK |
+| `.fj-mcp-tbl` linhas de contrato | 9 | 9 | OK |
+| itens de credencial | 3 | 3 | OK |
+| 6 `.fj-ho-tab` | 6 | **5** | X desvio de DADO, já declarado acima |
+| 6 `.fj-ho-item` | 6 (mock) | **1** (banco) | dado real, não defeito |
+
+**Tipografia e gap — o que o §7 do pacote marcava como NÃO MEDIDO.** 11 seletores de tipografia e 9
+caixas, medidos nos dois lados:
+
+- **`font-size`, `font-weight`, `font-family`, `letter-spacing` e `color`: idênticos em 11 de 11.**
+- **`display`, `gap`, `padding` e `grid-template-columns`: idênticos em 9 de 9** — `.fj-mcp` `18px 32px 40px` ·
+  `.fj-mcp-card` `16px 18px` · `.fj-mcp-grid` `gap 16px` · `.fj-ho-list` `gap 7px` · `.fj-ho-item` `gap 11px`,
+  `padding 11px 13px` · `.fj-ho-meta` `gap 8px` · `.fj-ho-tabs` `gap 3px` · `.fj-audit li` `gap 10px`, `padding 6px 8px`.
+- **As 3 cores de `.fj-perm` batem** — e este ponto quase virou falso-positivo: prod reporta
+  `rgb(137, 226, 157)` e design `oklch(0.84 0.13 150)`. **Notação diferente, cor igual.** Convertidas ao
+  mesmo espaço pintando num canvas (a engine resolve, o olho não): `ok` 136,226,156 × 137,226,157 ·
+  `propoe` 166,136,240 × 166,137,241 · `deny` 254,151,141 × 255,150,141 — delta de arredondamento.
+  Comparar a string teria produzido três `DIVERGE` falsos.
+
+**A ÚNICA divergência que a tipografia revelou — e ela é de FUNDAÇÃO, não desta view.** O
+`line-height` difere em 6 seletores, e a causa-raiz está medida na raiz do documento:
+
+| | protótipo | produção |
+|---|---|---|
+| `body` font-size / line-height | **13,5px** / **19,575px** (x1,45) | **16px** / **24px** (x1,5) |
+| `.fj-mcp` line-height | 19,575px | 20,25px |
+| `.fj-mcp-card h3` · `.fj-ho-head h3` | 14,4px (12 x **1,2** = `normal`) | 18px (12 x **1,5**) |
+| `.fj-audit-ts` · `.fj-ho-slug` · `.fj-perm` | x1,45 | x1,5 |
+
+Onde o bundle **declara** `line-height` (`.fj-mcp-intro` 1,55 · `.fj-ho-sub` 1,5 · `.fj-ho-nota` 1,45) os dois
+lados batem exatamente. A divergência aparece **só onde o valor é herdado** — logo não é defeito da view
+`mcp`: atinge toda tela que use o bundle, e o conserto é na fundação. Mesmo tratamento que o §7 do pacote
+dá ao 1280px (*"fundação, fora do escopo da Forja"*). **Declarado, não consertado — é decisão [W].**
+
+**Corrigido nesta rodada (1 item).** O link do PR mostrava `PR` e o protótipo desenha o **número**
+(`{h.pr}`). O número **não é dado novo** — já vem dentro do `pr_url` que o `ForjaMcpService` projeta;
+derivar o rótulo é formatar o que existe, não inventar. `rotuloPr()` no `ForjaHandoffs.tsx`, com fallback
+`PR` para URL fora do padrão `/pull/<n>` — melhor um `PR` honesto que um `#` vazio. Bite-test **8/8**, com
+4 controles negativos (issue, GitLab, lixo, vazio), e a regex lida **do próprio componente**, não de uma
+cópia que poderia divergir.
+
+**NÃO corrigido, com o motivo — nenhum destes é aparência com dado disponível:**
+
+| item | protótipo | produção | por que fica |
+|---|---|---|---|
+| 6ª aba de filtro | `mergeado` | ausente | `cowork_handoffs` não produz `merged`; aba com contador 0 eterno é afordância falsa |
+| rótulo do 4º estado | `bloqueado` | `rejeitado` | o estado no banco é `rejected`; chamar de "bloqueado" mentiria sobre o dado |
+| lever extra em `parado` / `rejeitado` | 2 (`+ supersede`) | 1 | é **mutação**, não aparência — a ADR 0388 é licença de aparência. Decisão [W] |
+| sufixo `.fj-ho-sig-ok` | tem | não tem | o bundle **não define** `.fj-ho-sig-*` (só `.fj-ho-sig`, linha 401) — a classe nasceria morta |
+
+```
+PLACAR - Onda 8 - MCP + Handoffs
+entregue 7 de 8 elementos estruturais do alvo 3.8 (o 8o e a 6a aba, sem dado que a produza)
+tipografia/gap: 11 de 11 seletores e 9 de 9 caixas IGUAIS - 3 de 3 cores IGUAIS
+comparador: 0 DIVERGE(bug) em D2/D4/D6/D8/D9 + linha da tabela
+ausentes: .fj-ho-tab[mergeado] - estado inexistente em cowork_handoffs
+divergencias declaradas: line-height herdado (fundacao, x1,45 x x1,5) - decisao [W]
+                         rotulo "bloqueado"->"rejeitado" - fidelidade ao dado
+                         2a lever em parado/rejeitado - mutacao, fora da 0388
+nao medido: hover/focus/disabled por atomo - viewport 1280 (fundacao, 7 do pacote)
+```
+
+**Duas notas de método que valem além desta tela.** (1) O `resize_window` do Chrome MCP devolveu
+**"Successfully resized"** duas vezes e o `innerWidth` seguiu em **2560** — a armadilha que a seção do
+1280px acima já registra. A medição só sobreviveu porque a largura foi **provada pelo `innerWidth`**,
+nunca pela mensagem da tool; o pareamento foi fechado igualando o lado controlável. (2) A sonda devolveu
+`larguraPct` **26,3 / 34,2 / 39,4 idênticos** apesar de viewports diferentes — porque é fração da linha,
+não px cru; é o que o docblock dela promete, e aqui isso foi **observado**, não assumido.
+
 ### Onda 3 (2026-09-02) — o "0,55 × 0,70" fechou NA FUNDAÇÃO ([ADR UI-0031](../_DesignSystem/adr/ui/0031-fundacao-dark-adota-o-accent-do-prototipo.md))
 
 A linha `--accent no dark` acima dizia *"reconciliar a fundação é decisão [W]"*. [W] decidiu em 2026-09-02
@@ -599,6 +724,50 @@ Não é comparação pareada com o protótipo, e não podia ser: o corpo do gant
 
 **Observação lateral, não do escopo:** o cabeçalho diz `Timeline (530 linhas)` e a barra diz `500 tarefas`. São contagens de coisas diferentes (linhas do gantt incluem as *summary* por módulo; tarefas são o teto `MAX_TASKS = 500`), mas a proximidade dos números convida à leitura errada de quem olhar rápido.
 
+
+## 2026-09-03 — Onda 1 do export (shell/header + topnav): o alvo §3.1 JÁ estava entregue, menos o badge
+
+> **O achado, com recibo.** O pacote `COLAR-NO-CODE-EXPORT-FORJA-MODULO.md` (Cowork, 2026-09-03) numera
+> "Onda 1 — shell/header + topnav" como se fosse trabalho a fazer. **Medido, ela já estava no `main`
+> desde 02/09**, sob a numeração do PARIDADE §11: estrutura na **Onda 2** ([#6553](https://github.com/wagnerra23/oimpresso.com/pull/6553)),
+> geometria na **Onda 2.1** ([#6563](https://github.com/wagnerra23/oimpresso.com/pull/6563)), `--accent` dark na
+> [UI-0031](../_DesignSystem/adr/ui/0031-fundacao-dark-adota-o-accent-do-prototipo.md) ([#6581](https://github.com/wagnerra23/oimpresso.com/pull/6581)).
+> Reimplementar seria autorar em paralelo a um dono existente (LC-19). Item a item do §3.1:
+
+| item do §3.1 | estado medido no `main` | onde |
+|---|---|---|
+| `.os-page-h` com 2 zonas | **já entregue** | `ForjaHub.tsx` |
+| direita na ordem `[fj-bell, fj-kbtn, fj-viewtabs, os-btn]` | **já entregue** | idem — e medido IGUAL na Onda 2 |
+| 6 destinos em 3 `.fj-navgroup` (Trabalho/Esteira/Histórico) | **já entregue** | `FORJA_GRUPOS` + `FORJA_TABS`, defendidos por UC-FORJA-02/14 |
+| `--accent` dark `oklch(0.70 0.15 295)` | **já entregue** | `resources/css/tokens/_generated-cockpit-dark.css` (função, não escopo) |
+| **badge de pendências no destino Aprovações** | **→ ERA O ÚNICO ABERTO** | fechado aqui (UC-FORJA-18) |
+
+**O que estava errado, e por que ninguém viu.** A prop `pendencias` existia no `ForjaHub` desde a Onda 2, mas
+só `Forja/Aprovacoes/Index` a passava — o badge aparecia na única tela onde é redundante (a fila já está na
+frente) e sumia nas outras oito, que é justamente onde ele serve. Esta página **já tinha medido o efeito**
+— os −**35px** de largura do nav, classificados como *"dado (badge de pendências), não CSS"* nas linhas de
+2026-09-02 — sem nomear a causa. Os 7 controllers do hub passam a servir a prop; o `ForjaHub` a lê via
+`usePage()`, de modo que a próxima Page do hub nasce com o badge.
+
+⚠️ **Isso muda um número desta página.** As linhas de 2026-09-02 registram o nav de produção em **749,4px**
+contra **784,4px** do protótipo, com o delta atribuído ao badge ausente. Com o badge servido nas 9 telas
+esse delta deve fechar — **e isso NÃO foi medido**: o código ainda não está deployado e o merge de `.tsx`
+é ato [W] ([ADR 0283](../../decisions/0283-handoff-loop-zero-paste.md)). Aquelas linhas seguem válidas como **fato datado**
+do dia; quem re-medir depois do deploy deve **re-rodar a sonda**, nunca citar os 749,4px como estado atual.
+
+**Divergência DECLARADA, não consertada — a fórmula.** No protótipo (`forja-page.jsx:936`) `pendencias` soma
+**três** fontes: aprovações + triagem + handoffs `stale`/`gateConflito`. Em produção o badge usa
+`ForjaAprovacoesService::contagem()`, que conta **só** `mcp_tasks` em `AWAITING_HUMAN`. Esta onda **propaga a
+fórmula que a mesa já usa desde a Onda 3**; trocá-la mudaria o número que `/forja/aprovacoes` exibe hoje, o
+que é outra decisão. O Service já tem `handoffsComProblema()` se [W] quiser as 3 parcelas.
+
+**PLACAR — Onda 1 (shell/header + topnav)**
+```
+entregue 5 de 5 elementos do alvo §3.1 (4 já estavam; 1 fechado aqui)
+ausentes: nenhum
+divergências declaradas: fórmula do `pendencias` (1 parcela em prod × 3 no protótipo) — decisão [W]
+não medido: compare pareado pós-deploy (D2/D4/D6/D8) — o código não está em produção
+```
 ---
 
 ## 2026-09-03 (Onda 9 · fecho) — Changelog: a tipografia/gap que o §7 do export declarou NÃO medida

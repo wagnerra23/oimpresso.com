@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Forja\Services\ForjaAprovacoesService;
 use Modules\Jana\Entities\Mcp\McpQuota;
 use Modules\Jana\Entities\Mcp\McpToken;
 use Modules\Forja\Http\Requests\IssueActorTokenRequest;
@@ -51,6 +52,10 @@ class TeamController extends Controller
         // + skeleton, depois resolve closures em background (~50ms vs 300-800ms
         // hard load). Pricing config inline (1ms).
         return Inertia::render('team-mcp/Team/Index', [
+            // Badge de pendências do topnav (§3.1 do export): no protótipo ele vive no
+            // destino Aprovações em TODA view — é o que avisa que há algo esperando
+            // decisão enquanto você está em OUTRA tela. COUNT indexado, deferido.
+            'pendencias' => Inertia::defer(fn () => app(ForjaAprovacoesService::class)->contagem()),
             'team' => Inertia::defer(fn () => $this->buildTeamRowsPayload($businessId)),
             'stats_globais' => Inertia::defer(fn () => $this->buildStatsGlobaisPayload()),
             'pricing_config' => [
