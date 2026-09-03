@@ -228,9 +228,10 @@ tailscale ssh root@ct100-mcp 'docker ps | grep traefik'
 `traefik` · `portainer` · `vaultwarden`. **Conte e compare contra a lista** — container que não
 subiu no boot não aparece como erro, aparece como **ausência**, e ausência é fácil de não ver.
 
-⚠️ **Disco:** o host estava em **87%** (81G/99G) em 2026-07-16. Pós-outage é a hora barata de
-conferir — Postgres/ClickHouse/MinIO do Langfuse crescem calados, e disco cheio derruba de novo (aí
-por causa real):
+**Disco:** confira, mas **sem a urgência de julho** — o volume foi expandido e em **2026-09-02**
+estava em **49%** (91G de 197G), não nos 87% de 2026-07-16 (§ *Achado lateral* acima tem os dois
+números datados). Pós-outage continua sendo a hora barata de olhar, porque Postgres/ClickHouse/MinIO
+do Langfuse crescem calados — mas **não saia fazendo `prune` por reflexo**: aquele ponteiro caducou.
 
 ```bash
 tailscale ssh root@ct100-mcp 'df -h / ; docker system df'
@@ -357,7 +358,16 @@ decisão [W] — não conserto silencioso no meio do retorno.
 ### Fechamento
 
 Só depois dos passos 0-6 é honesto dizer que o CT 100 "voltou". Antes disso o que existe é **ping
-verde**, que não é a mesma frase. E vale para a seção inteira: passo que não pôde ser medido (sem
+verde**, que não é a mesma frase.
+
+⚠️ **E "voltou" não é "estável".** Precedente medido em **2026-09-02**: a queda de 27/08 foi
+resolvida e o CT 100 passou o dia acessível — outra sessão rodou `df -h`, `docker exec` e
+`tools/list` nele até ~17:35 BRT. Às **19:59 do mesmo dia** ele estava fora de novo (`tailscale
+ping` sem resposta, os 4 domínios em `000`), e seguia fora em **03/09 11:27**. Ou seja: **duas
+quedas separadas por uma janela de horas**, não uma contínua. Ao fechar um retorno, **registre a
+hora da última verificação verde** — sem ela, a próxima sessão herda "está no ar" como se fosse
+permanente e vai diagnosticar o incidente errado. E queda que volta sozinha e recai em horas é a
+assinatura de **cabo/link intermitente** (§ *CT 100 sumiu da rede?*), não de host desligado. E vale para a seção inteira: passo que não pôde ser medido (sem
 `gh`, sem elevação, sem token) se registra como **"não medi"** — nunca como verde inferido.
 Instrumento que afirma saúde sem ter medido é o defeito que o
 [§5 2026-07-29](../../proibicoes.md) cataloga.

@@ -65,6 +65,33 @@ mortos, "ir até lá e ligar" é a ação errada — o runbook já cataloga o **
 1ª hipótese ([W] 2026-07-16), e a assinatura *"nós vizinhos caem juntos"* bate: `ct100-mcp`,
 `pve-empresa` e `recorder` estão os três offline.
 
+### ⚠️ ERRATA (2026-09-03) — não era uma queda contínua: foram DUAS, e a inferência abaixo ficou pequena
+
+Ao preparar o PR encontrei o [PR #6587](https://github.com/wagnerra23/oimpresso.com/pull/6587),
+mergeado às **17:35 BRT de 02/09** — antes das minhas medições. Ele declara: *"queda do CT 100 de
+**27/08→02/09 (6 dias)**. Tudo medido em 2026-09-02"*, e as provas são de **acesso real e
+repetido**: `df -h /` (volume expandido, 91G de 197G), `docker exec` dentro dos containers,
+`tools/list` do MCP paginando 15 de 44.
+
+Portanto o quadro correto é:
+
+| Janela | Estado |
+|---|---|
+| 27/08 → 02/09 | queda (6 dias) — a que o handoff de 31/08 registrou como "502 desde 28/ago" |
+| 02/09, até ~17:35 BRT | **de pé e plenamente acessível** — SSH, Docker e MCP respondendo |
+| 02/09, 19:59 → 03/09 11:27 | **fora de novo** (minhas 6 medições) |
+
+**Duas quedas separadas por uma janela de horas**, não uma contínua desde 28/08. A premissa com
+que abri a sessão estava desatualizada, e eu não tinha como saber: o PR irmão foi mergeado no
+intervalo, e o MCP — que responderia isso — era o próprio serviço fora.
+
+O que isso faz com o raciocínio abaixo: a inferência do `502 → 000` **apontava na direção certa e
+ficou pequena**. Não é só que "havia algo rodando de manhã" — a máquina estava **inteira**. E o
+reforço à hipótese de **cabo/link intermitente** fica muito mais forte: um host que volta e recai
+em poucas horas não se parece com host desligado.
+
+O raciocínio original fica preservado abaixo, como foi feito na hora e com o que se sabia.
+
 ### O sintoma piorou hoje: `502` (08:04) → `000` (19:59)
 
 O [handoff das 08:04 de hoje](../handoffs/2026-09-02-0804-fiscal-onda0-e-consertos-de-gates.md)
