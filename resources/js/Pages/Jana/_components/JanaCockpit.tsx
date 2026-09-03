@@ -86,7 +86,7 @@ import { Card, CardContent } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { Badge } from '@/Components/ui/badge';
 import KpiGrid from '@/Components/shared/KpiGrid';
-import KpiCard from '@/Components/shared/KpiCard';
+import JanaKpiCard from './JanaKpiCard';
 import EmptyState from '@/Components/shared/EmptyState';
 import { BriefValorSkeleton, KpiCardSkeleton, SparklineSkeleton } from './JanaCockpitSkeleton';
 import JanaDrillDrawer, { type DrillAnalise } from './JanaDrillDrawer';
@@ -671,16 +671,15 @@ export default function JanaCockpit({
           cálculo a mês-calendário para casar a palavra antiga — mexeria, e aí
           vale a regra mestre de VALOR (dupla prova + antes→depois). É decisão
           [W], registrada no `Index.casos.md` §UC-JPAIN-14. */}
-      <KpiGrid cols={3}>
+      <KpiGrid cols={4} className="gap-2.5">
         {carregandoCockpit ? (
           <KpiCardSkeleton label="Receita 30 dias" />
         ) : (
-          <KpiCard
+          <JanaKpiCard
             label="Receita 30 dias"
             value={fmtShort(sparkSum)}
             icon="wallet"
-            tone="default"
-            delta={deltaRev !== null ? { value: deltaRev, label: 'hoje vs ontem' } : undefined}
+            delta={deltaRev !== null ? { value: deltaRev, label: 'hoje vs ontem' } : null}
             onClick={abrirFat}
           />
         )}
@@ -694,11 +693,12 @@ export default function JanaCockpit({
             Seletor `.jc-kpi.emph` no
             chat-jana.css — âncora de SÍMBOLO, re-localize com
             `grep -n "jc-kpi.emph" prototipo-ui/cowork/chat-jana.css`). */}
-        <KpiCard
+        <JanaKpiCard
           label="A receber vencido"
           value={fmtShort(overdueValue)}
           icon="alert-triangle"
-          tone={overdueValue > 0 ? 'danger' : 'default'}
+          emphasis={overdueValue > 0}
+          valueTone={overdueValue > 0 ? 'negative' : 'default'}
           description={
             overdueCount > 0
               ? [
@@ -711,12 +711,11 @@ export default function JanaCockpit({
           }
           onClick={abrirInad}
         />
-        <KpiCard
+        <JanaKpiCard
           label="Ticket médio"
           value={fmtShort(ticketMedio)}
           icon="trending-up"
-          tone="default"
-          delta={deltaTicket !== null ? { value: deltaTicket, label: '7d' } : undefined}
+          delta={deltaTicket !== null ? { value: deltaTicket, label: '7d' } : null}
         />
       </KpiGrid>
 

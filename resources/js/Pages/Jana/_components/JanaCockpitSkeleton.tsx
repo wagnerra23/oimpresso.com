@@ -26,20 +26,26 @@ import { Skeleton } from '@/Components/ui/skeleton';
  * classes `jm-*` do protótipo — o protótipo é a fonte do desenho, não do CSS.
  */
 
-/** Substitui um `<KpiCard>` inteiro enquanto o número não chegou.
- *  Troca-se o CARD, não o `value`: o `KpiCard` compartilhado tipa
- *  `value: string | number` e alargá-lo pra `ReactNode` mexeria num componente
- *  usado por vários módulos — blast radius que este defeito não justifica. */
+/** Substitui um `<JanaKpiCard>` inteiro enquanto o número não chegou.
+ *  Troca-se o CARD, não o `value`: o card tipa `value: string`, e alargá-lo pra
+ *  `ReactNode` misturaria "carregando" com "número" no mesmo slot.
+ *
+ *  A CAIXA acompanha a réplica (`JanaKpiCard`, ADR 0388): mesma moldura (r8,
+ *  `pt-3 px-3.5 pb-3.5`, gap 3px) e mesmo rótulo (mono 10px/700, `.06em`). Sem
+ *  isso o card SALTA quando a prop deferida chega — a moldura de carregamento
+ *  media 125px de altura e o card real mede ~98. */
 export function KpiCardSkeleton({ label }: { label: string }) {
   return (
     <Stack
-      gap={2}
-      className="rounded-lg border border-border bg-card p-4"
+      gap={0}
+      className="gap-[3px] rounded-[var(--radius,8px)] border border-border bg-card pt-3 pr-3.5 pb-3.5 pl-3.5"
       aria-busy="true"
       aria-label={`${label} — carregando`}
     >
-      <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</span>
-      <Skeleton className="h-7 w-24" />
+      <span className="mb-1 font-mono text-[10px] leading-none font-bold tracking-[0.06em] text-muted-foreground uppercase">
+        {label}
+      </span>
+      <Skeleton className="h-[22px] w-24" />
       <Skeleton className="h-3 w-16" />
     </Stack>
   );
