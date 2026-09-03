@@ -234,6 +234,161 @@ mente a favor do rail.
 
 Decisão que saiu daqui: [ADR UI-0030](../_DesignSystem/adr/ui/0030-sidebar-auto-rail-responsivo.md)
 (produção passa a fazer auto-rail a **≤1280**, com a escolha manual vencendo).
+
+## 2026-09-02 (noite) — Onda 3: Aprovações vira a view `hoje` do protótipo
+
+> **Estado: APLICADO no código, NÃO MEDIDO em produção.** A comparação por sonda
+> (`design-diff --probe` nos dois lados → `--compare --check`) só pode rodar depois do deploy,
+> e o merge de `.tsx` é humano ([ADR 0283](../../decisions/0283-handoff-loop-zero-paste.md)).
+> Esta seção registra o que foi feito e o que falta medir — não afirma paridade.
+> Escrever "IGUAL" antes da sonda seria o strike que a [LC-06](../../LICOES_CODE.md) catalogou.
+
+### A âncora estava no arquivo errado (achado desta onda)
+
+O charter apontava `related_prototype: prototipo-ui/cowork/forja-page.jsx`. **O markup da view
+`hoje` não está lá**: o `forja-page.jsx` só a MONTA (linha 1229, `<window.ForjaAprovacoes …/>`);
+o componente inteiro mora em [`forja-aprova.jsx`](../../../prototipo-ui/cowork/forja-aprova.jsx).
+Quem fosse copiar do arquivo declarado não acharia a tela. Corrigido no frontmatter
+(`charter_version: 2`) e re-resolvido por `ancora.mjs`.
+
+**Fonte provada fresca**, não suposta: o ledger de frescor registra a rodada de
+2026-09-02T11:17:56Z com `forja-aprova.jsx` entre os 14 arquivos **SYNC**, sha
+`cc4cde3692da…`; o arquivo local bate com esse hash (conferido byte a byte nesta sessão, junto
+com `forja-data.jsx` `f043f5bd…` e `forja-page.css` `9c180a5d…`).
+
+### O que entrou na tela (markup 1:1, classes do bundle da Onda 1)
+
+| seção do protótipo | classe | dado que a alimenta |
+|---|---|---|
+| número-herói "N esperando o seu aval" | `.ap-head` › `.fj-hj-n` | `contagem` (`mcp_tasks` em `pending_approval`) |
+| alerta de handoff com problema | `.ap-handoff-alert` | `handoffsComProblema()` — delega ao `ForjaMcpService` (dono do tema) |
+| faixa "Ao vivo no MCP" | `.ap-vivo` › `.ap-vivo-card` | `mcp_actors` × `mcp_cc_sessions` × `mcp_audit_log` |
+| mesa: fila à esquerda | `.ap-mesa` › `.ap-fila` › `.ap-item` | `fila()`, ordem por espera (do backend) |
+| mesa: artefato + ações à direita | `.ap-painel` › `.ap-art` › `.ap-acoes` | `fila()[n]` + `decisoesPossiveis()` |
+| placar "Equipe de agentes" | `.fj-hj-team` › `.fj-team-tbl` | `cowork_handoffs` por `created_by`, janela 7d |
+| toast com desfazer | `.ap-toast` › `.ap-undo` | estado de front (janela de 6s, antes do POST) |
+
+Saíram o `PageHeader` canon e o `KpiGrid`/`KpiCard` (2 cards): o protótipo põe o número no herói e
+não tem segundo cabeçalho. O `ui:lint` R4 registra isso como item de lista, não como veto —
+é o que a [ADR 0388](../../decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md) D-2 decide.
+
+**Os dois itens que saíram do `[BACKLOG]` do `casos.md`** foram pedido do [W] em 2026-08-08 e
+estavam parados *"ainda sem backend"*: o placar e a faixa ao vivo. O backend chegou nesta onda.
+
+### As divergências DELIBERADAS (categoria, não bug — ADR 0385)
+
+A 0388 é de **aparência** e diz, em D-5, que réplica **não toca comportamento**. Onde o protótipo
+e uma lei de domínio discordam, a lei ganha e a diferença fica escrita:
+
+| # | protótipo | produção | lei que manda |
+|---|---|---|---|
+| 1 | "Aprovar aplicação / Devolver / Rejeitar" | **Admitir · Parquear · Recusar**, vindos de `decisoes` | ADR 0368 §6 proíbe "aprovado" **e** o anti-hook do charter proíbe hardcodar a lista (ela deriva de `McpTask::TRANSITIONS`) |
+| 2 | caixa de nota pertence ao "Devolver" | abre na decisão que declara `exige_motivo` | ADR 0368 §5 — o dono da regra é o FSM |
+| 3 | 4 tipos com diff, passos e screenshot | só o artefato que `mcp_tasks` guarda | só `Proposta` tem estado canônico; os outros vivem em `cowork_handoffs` e **fundir as fontes é decisão [W]** |
+
+### O que NÃO tem fonte — e mostra "—" em vez de número inventado
+
+As colunas **Sessões hoje** e **Custo hoje / quota** do placar são por **usuário**
+(`mcp_cc_sessions`, `mcp_audit_log` e `mcp_quotas` são todos `user_id`), e o schema **não tem
+vínculo papel→usuário**: os atores semeados são `wagner`/`felipe`/`maira`/`luiz`/`eliana`/
+`claude-code-wagner-laptop`, nunca `CC`/`CD`/`CL`. Preenchê-las exigiria inventar o vínculo.
+O backend manda `null`, a célula diz o motivo no `title`, e **criar o vínculo é decisão [W]**.
+
+Pelo mesmo critério, o eixo `nivel` do protótipo (sênior/júnior/artista/agente) não foi
+replicado: `mcp_actors` declara `type` (human/ai_agent/service) e `trust_level` (L0..L4), que é
+outra coisa. O selo mostra o que É declarado.
+
+### O que a réplica NÃO regrediu (e foi medido)
+
+A fila do protótipo é `<li onClick>` cru, que não abre por teclado. A 1ª versão desta onda copiou
+isso e o `eslint-baseline` acusou **2 regressões novas de `jsx-a11y`**
+(`click-events-have-key-events`, `no-noninteractive-element-interactions`). Corrigido com
+`role=listbox/option` + `tabIndex` + `onKeyDown`, mantendo a classe no próprio `<li>` (o
+`.ap-item` é `display:flex` e o `:last-child` tira a última borda — mover a classe pra um
+`<button>` interno quebraria os separadores). Re-medido: **as duas foram a zero**.
+A 0388 tira o veto da conformidade do **DS**, nunca o da **acessibilidade**.
+
+### Gates locais (rodados nesta sessão, exit 0)
+
+| gate | resultado |
+|---|---|
+| `foundation-guard` | ✅ 33 .css na allowlist · 0 espalhamento novo |
+| `conformance-gate --all` | ✅ 30 arquivos conformes |
+| `css-size-baseline` | ✅ delta 0 (nenhum CSS tocado nesta onda) |
+| `stylelint-baseline` | ✅ delta 0 |
+| `layout-primitives-guard` | ✅ sem regressão — o `FLEX-CRU` desta tela **saiu** da lista (1 → 0) |
+| `casos-coverage-guard` | ✅ sem violação nova deste PR |
+| `ds-guard --report` (bundle) | 1 achado: paleta `--dev-*`, já declarada desde a Onda 1 |
+| `tsc --noEmit` | ✅ 0 erro no arquivo — **com o arquivo dentro do programa** (ver ressalva) |
+| `eslint-baseline` | +4 `ds/no-os-btn`, absorvidos (réplica) — precedente: `ForjaHub` na Onda 2 |
+
+⚠️ **Ressalva de método que quase virou gate mudo:** o `tsconfig.json` do repo tem `include`
+apenas de `resources/js/**`, então `Modules/**/Resources/js/**` **não é typechecado** pelo comando
+padrão. Rodar `tsc -p tsconfig.json` e ler "0 erro no meu arquivo" seria `0 failed` de suíte que
+não rodou (§5 2026-07-24). Com um config temporário que INCLUI o arquivo, o compilador achou um
+erro real (`TS2532`, índice possivelmente `undefined` no atalho `j`/`k`) — corrigido. Depois:
+278 erros no repo, os mesmos 278 de antes, **0 no arquivo desta onda**.
+
+### Render do protótipo conferido (e o que ele corrigiu no meu port)
+
+O protótipo foi servido local (`python -m http.server 5620 --directory prototipo-ui/cowork`,
+`localStorage["oimpresso.route"]="teammcp"`) e lido **depois** do `window.__oiLazyDone` com duas
+contagens iguais de nós (1007 = 1007) — nunca no meio do lazy-load (§5 2026-08-24).
+
+A leitura da estrutura pegou **duas diferenças reais** que a cópia à mão tinha deixado passar, e
+as duas foram corrigidas antes do commit:
+
+| o que o render mostrou | o que eu tinha escrito | conserto |
+|---|---|---|
+| `thead` do placar tem **8** colunas — a 8ª é vazia e guarda o botão "verificar" do papel sem sinal | 7 colunas, sem a saída | 8ª coluna com `.act` + `os-btn ghost`, visível só quando `sinal_ok` é falso |
+| rótulo da 1ª coluna é **"Agente"** | eu tinha trocado por "Papel" | voltou pra "Agente" — nenhuma lei de domínio mandava trocar (diferente de "aprovado", que a ADR 0368 §6 proíbe) |
+
+Estrutura conferida e batendo: herói `7 · esperando o seu aval` · alerta `2 handoffs com problema →`
+· `.ap-vivo` com 4 cards · `.ap-fila` com 7 `.ap-item` · `.ap-painel` · `.ap-acoes` com 3 botões ·
+`.fj-hj-team` com 5 linhas e a chip `1 sem sinal`.
+
+⚠️ Isto é conferência de **estrutura no protótipo**, não comparação prod×protótipo — a produção
+ainda não tem este código. **Não vale como o compare da meta**; serve pra provar que a cópia saiu
+fiel antes de ir pro CI.
+
+### Baseline visual regravada (recibo, não promessa)
+
+`visual-regression.yml` despachado com `screens='["Forja/Aprovacoes"]'` na branch da onda.
+
+| run | resultado |
+|---|---|
+| [33668939298](https://github.com/wagnerra23/oimpresso.com/actions/runs/33668939298) | gerou `vrt/baselines-33668939298` → PR #6574, **cherry-pickado** na branch e o PR fechado |
+| [33669764425](https://github.com/wagnerra23/oimpresso.com/actions/runs/33669764425) | re-despachado do HEAD atual (a 1ª rodada saiu do commit anterior ao conserto do placar). Veredito do próprio step: **"Baselines já em dia — nada a commitar."** |
+
+A 2ª rodada existe porque a 1ª baseline foi gerada de `da94ac39bb`, **antes** da 8ª coluna e do
+rótulo "Agente". Sem ela eu estaria confiando numa baseline de código que já não era o meu — e o
+"nada a commitar" é o que prova que a 8ª coluna não muda o pixel neste ambiente (sem
+`cowork_handoffs` semeado, a seção do placar não renderiza). Não foi suposto: é a frase do step.
+
+**O que mudou na imagem** (decodificado com `scripts/tests/snap-diff.mjs`, porque diff de `.snap`
+é base64 numa linha e ilegível por construção):
+
+```
+1728x1117 · px alterados: 480201 de 1930176 (24,88%) · Δmax=253
+assinatura: CONTEÚDO  (Δ≤3 rasterização · Δ≥200 conteúdo)
+células 16×16 com mudança: 91 de 256 · linhas afetadas: 2,3,4,5,6,7,8
+```
+
+Ler isso importa: **a linha 1 não mudou** — o header do `ForjaHub` (Onda 2) ficou intacto, e a
+troca é só do corpo (KpiCards → herói + mesa). Fosse a linha 1, eu teria regredido a Onda 2 sem
+perceber.
+
+### O que FALTA — e é a condição de fechar a linha 3 do §11
+
+1. Deploy (merge é [W] — ADR 0283).
+2. Baseline visual: `visual-regression.yml` com `screens='["Forja/Aprovacoes"]'`.
+3. **A medição**: `design-diff --probe` na produção e no protótipo (`python -m http.server 5620
+   --directory prototipo-ui/cowork`), mesma viewport, dark nos dois → `--compare --check`,
+   com a tabela por dimensão (D2/D4/D6/D8) apensada aqui.
+4. D1 (rede): marcador sobrevive ao clique nas ações da mesa.
+
+Até isso acontecer, a linha 3 da tabela de ondas fica **em andamento**, não ✅.
+
 ## 2026-09-02 (noite) — Onda 4: o ALVO da lista medido no protótipo, antes de codar contra ele
 
 > **O que rodou (recibo).** Protótipo servido por HTTP estático (`python -m http.server 5620 --directory prototipo-ui/cowork`), `localStorage["oimpresso.route"]="teammcp"` + `oimpresso.forja.view="trabalho"` + `oimpresso.forja.trabvis="lista"`, tema **dark**. Espera **ativa** até `__oiLazyDone` **e** duas leituras consecutivas iguais (1418 = 1418 nós, 4 tentativas) — a 1ª leitura dava 515→533 e teria produzido o número errado (§5 2026-08-24). Medição por `getComputedStyle` + `getBoundingClientRect`, nunca pela classe declarada.
@@ -281,3 +436,66 @@ A tabela acima comparou a `fj-row`. Faltava o resto, e a medição por `children
 **⚠️ A ressalva do instrumento (e ela inverte o sinal da 1ª linha).** O `.fj-frentebar` do protótipo aparece com **1** filho aqui porque o `window.CliSeg` **retorna `null` quando o `Segmented` do DS não está publicado** — e o bundle do DS no snapshot local está truncado pelo teto do `get_file` (limite já registrado na rodada da manhã: 44 componentes publicados × 55 no vivo, sem `Segmented`). Ou seja: **o protótipo VIVO tem 2 filhos ali; o espelho local desenha 1.** A réplica com 2 está **mais** fiel, não menos — e é o que o pedido do [W] instruiu (*"em produção ele existe em `resources/js/Components/ui`; ignore o snapshot, use o de produção"*). Registrado porque medir esta barra contra o espelho local produziria o veredito invertido.
 
 **`fj-onda-meta` — a diferença que faltava declarar.** Quando o agrupamento é por **Onda**, o cabeçalho do grupo do protótipo ganha `estado` (ativa/planejada) · `janela` (jun 11–16) · `carga` por tamanho (1M) · botão **encerrar onda** · botão **✦ resumir**. Isso exige o catálogo `window.FORJA.ONDAS` (ondas com estado, janela e dependências), que **não existe em produção** — `forja_onda` é um `custom_field` de texto em `mcp_tasks`, sem entidade por trás. Os dois botões, além disso, são **ação**: `encerrar onda` é mutação em cascata (carrega não-concluídos pra próxima) e `resumir` chama IA. Fica de fora pela mesma razão dos outros três: a ADR 0388 é licença de **aparência**, e nada disso é aparência.
+
+### Onda 8 (2026-09-02) — a view `mcp` vira réplica e o painel Handoffs volta pra dentro
+
+> **Recibo do que rodou, e o que ele NÃO cobre.** Fonte provada: `forja-page.css` (sha `9c180a5d92ae`) e `forja-page.jsx` (`e4339537969d`) baixados do Cowork vivo por `DesignSync.get_file` e medidos contra o espelho por `cowork-mirror-freshness --snapshot-from --emit-snapshot` → **`igual` nos dois**. Protótipo servido por HTTP estático (`prototipo-ui/cowork`), `localStorage["oimpresso.route"]="teammcp"`, **tema dark**, **viewport 1440**, view `mcp` aberta pelo clique na pílula do topnav, duas leituras estáveis (9/9 linhas de contrato, 6/6 handoffs).
+>
+> ⚠️ **A comparação PAREADA prod × protótipo NÃO aconteceu nesta sessão** e não se declara fechada: o código desta onda ainda não está em produção (merge de `.tsx` é humano — [ADR 0283](../../decisions/0283-handoff-loop-zero-paste.md)). O que segue são os **valores-alvo do lado design, medidos**, para que o pós-deploy seja um `--compare` direto em vez de uma remedição do zero.
+>
+> 🩺 **Uma armadilha paga nesta rodada, registrada porque quase virou número falso:** a primeira leitura devolveu `color: rgb(0, 0, 0)` em toda a tabela e `--text-dim` **vazio** no `:root`. Não era divergência — era o `_ds/` (gitignored) ausente no espelho: `colors_and_type.css` e `cockpit_domains.css` carregaram com **0 regras**, e o protótipo renderizou sem token nenhum. O portão `node scripts/governance/cowork-mirror-freshness.mjs --preview-ds` repôs 10 deps (2 CSS + `_ds_bundle.js` + 7 fontes) e a medição foi refeita. **Ele é fail-closed e roda ANTES de medir** — sem ele, qualquer cor lida é lixo com aparência de dado.
+
+**Valores-alvo do protótipo** (dark · 1440 · pós-`--preview-ds`), que é onde os três `DIVERGE` da rodada da manhã se resolvem:
+
+| campo | protótipo (medido) | produção ANTES desta onda | o que muda |
+|---|---|---|---|
+| `.fj-mcp-tbl` linhas | 9 | 9 | — |
+| col0 (Ferramenta) | **mono** · `oklch(0.94 0.005 90)` | sem mono (`font-mono` só em parte) | **D4** |
+| col1 (Ação) | não-mono · `oklch(0.72 0.005 90)` | herdava `text-muted-foreground` | **D6** |
+| col2 (Permissão) | não-mono · `oklch(0.72 0.005 90)` · **`start`** | **`text-right`** | **D8** |
+| `th` (3 colunas) | **`left`** nas 3 | col2 `right` | **D8** |
+| `.fj-perm-ok` | `oklch(0.84 0.13 150)` sobre `oklch(0.275 0.06 150)`, **mono** | pílula `bg-success/15`, sem mono | **D4+D6** |
+| `.fj-perm-deny` | `oklch(0.84 0.18 25)` | `text-destructive-fg` | **D6** |
+| os 6 pontos `.mono` | `fj-token-id` · `fj-audit-ts|tool|args` · `fj-ho-slug` · `fj-ho-pr` — **todos monoespaçados** | nenhum deles | **D4** |
+| painel Handoffs | **DENTRO** de `.fj-mcp` (medido: `.fj-mcp` contém `.fj-ho`) | rota separada `/forja/handoffs` | estrutura |
+
+**A causa-raiz do D4, medida (não deduzida):** `.mono` é uma utilitária do **shell** do protótipo — `prototipo-ui/cowork/styles.css:1740` — e **não existe em produção**: `grep` por `.mono` global em `resources/css/*.css` = **0 ocorrências**; o bundle da Onda 1 só a traz escopada em 3 pontos (`.fj-dr-meta`, `.fj-team-tbl`, `.ap-files`). Copiar o markup 1:1 sem isso deixaria o **DOM igual e o render diferente** — o formato de erro que o §5 chama de LC-08. Desceu escopada (`.fj-mcp .mono, .fj-ho .mono`), com os dois roots porque o painel renderiza em dois lugares.
+
+**Desvios declarados, todos por DADO** (o mock tem campo que `cowork_handoffs` não tem): sem `~onda`; 5 abas de filtro em vez de 6 (o mock tem `merged`, que o dado real não produz; o real tem `superseded`, que o mock não previu e ganhou pílula neutra); selo de gate omitido quando `gate = 'na'`, como no protótipo faz.
+
+**Conformidade (ADR 0388 — vira lista, não vira bloqueio):** `replica-inconsistencias --modulo Forja` foi de **101 → 102** itens. O saldo é melhor do que o número sugere: `FLEX-CRU` caiu de **31 → 1** nos dois componentes (as classes `fj-*` substituíram o flex solto do DS v6); entraram os glifos do protótipo (`⚿ ↗ ⚠` → R3) e as 7 cores de ator do `ForjaRoleBadge` (R1), que são **dado do ator**, não token de tema. Nota: o `R1` novo do `ForjaMcp` é o texto **`#2417`** da auditoria mock — número de PR lido como cor hex pelo lint, falso-positivo herdado do mesmo padrão que já existia no `#2924` do `ForjaHandoffs`.
+
+**O que fica pro pós-deploy:** injetar a MESMA sonda (`design-diff.mjs --probe`, papéis `tableRow=.fj-mcp-tbl tbody tr` · `filterControls=.fj-ho-tab` · `title=.os-page-h-l h1` · `primary=.os-btn.primary`) em `oimpresso.com/forja/mcp` autenticado, dark, 1440, e rodar `--compare prod.json design.json --check`. A meta do §11 é **0 `DIVERGE(bug)`** em D2/D4/D6/D8.
+
+### Onda 3 (2026-09-02) — o "0,55 × 0,70" fechou NA FUNDAÇÃO ([ADR UI-0031](../_DesignSystem/adr/ui/0031-fundacao-dark-adota-o-accent-do-prototipo.md))
+
+A linha `--accent no dark` acima dizia *"reconciliar a fundação é decisão [W]"*. [W] decidiu em 2026-09-02
+(*"não me importo com a decisão que vai escolher (…) apenas faça"*) e a fundação adotou o protótipo — o escopo
+`.fj-hub`/`.fj-page` da Onda 2.1 devolveu `--accent` e `--accent-soft`, que agora vêm da fundação.
+
+**A medição que mudou o desenho:** o CSS não era a camada que decidia. O `style` inline do `AppShellV2` vai no
+**mesmo** `<div>` que carrega o `data-theme`, e inline vence qualquer seletor — inclusive
+`.cockpit[data-theme="dark"]`. Mexer só no DTCG teria dado PR verde e **zero** mudança no browser. Controle
+positivo da sonda: um `.cockpit[dark]` com `--accent: 0.55` inline sobre o CSS que diz 0,70 computa **0,55**.
+
+| camada | antes | agora |
+|---|---|---|
+| DTCG `cockpit.accent` (`semantic.tokens.json`) | `dark_absent` — escuro herdava o claro | par escuro: 0,70 · 0,76 · 0,33 0,09 · fg 0,14 |
+| `_generated-cockpit-dark.css` | sem `--accent` / `--accent-2` / `--accent-fg` | os três, gerados por `tokens:build` |
+| `AppShellV2` inline | `oklch(0.55 …)` cravado nos dois temas | par por tema (mesmo padrão do [#6306](https://github.com/wagnerra23/oimpresso.com/pull/6306)) |
+| `[data-theme="dark"] .fj-hub/.fj-page` | 4 tokens copiados do protótipo | **2** (`--accent-hi`, `--accent-line`) · ratchet 4 → 2 |
+
+**O que a Forja ainda declara, e por quê:** `--accent-hi` e `--accent-line` são vocabulário ds-v6 que a fundação
+**não tem em tema nenhum** (0 definições em `resources/`; este bundle é o único consumidor — 25 usos de
+`--accent-line`, 1 de `--accent-hi`). Removê-los trocaria a borda sutil 0,47 pelo accent cheio 0,70 em 25 sítios do
+escuro, **divergindo mais** do protótipo. Promovê-los é token novo no DS = soberania [W].
+
+**Recibos:** `ds-token-diff` no escopo `cockpit-dark` saiu de **diverge:4 → diverge:0** (o espelho é derivado do
+git e foi regerado). `replica-inconsistencias --modulo Forja`: **101 → 101** itens, mas o **R1** (cor crua) do
+bundle caiu **335 → 333**. O item `PALETA` **não mudou** e não mudaria — ele é sobre a família `--dev-*(4)`, nunca
+sobre `--accent-*`; a premissa de que ele sumiria estava errada.
+
+**Ainda diverge (nomeado, fora do escopo desta onda):** o botão primário — `PageHeaderPrimary.tsx:70` fixa
+`oklch(0.55 0.15 295)` por **literal**, sem ler token nenhum, em todos os módulos. É o mesmo achado que a linha
+"D6" desta página já registrava; o conserto é fazer o componente consumir `var(--color-primary)` (0,70 no escuro
+desde a UI-0021), em PR próprio.

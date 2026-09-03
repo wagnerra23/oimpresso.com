@@ -22,7 +22,9 @@
 //     forja-grupo-<key> — os mesmos de antes, pra e2e/a11y não quebrar.
 //
 // Destinos que SAÍRAM do topo na Onda 2 (as rotas seguem vivas): Triagem (vira tipo
-// Proposta em Aprovações, Onda 3), Handoffs (seção do MCP, Onda 8), Equipe (idem),
+// Proposta em Aprovações, Onda 3), Handoffs (seção do MCP — CUMPRIDO na Onda 8,
+// 2026-09-02: o painel voltou pra dentro de /forja/mcp, e /forja/handoffs segue viva
+// renderizando o MESMO componente), Equipe (idem),
 // CC Sessions (segmento Sessões do Changelog, Onda 9). Integrador nasceu na Onda 2
 // (`/forja/integrador`, `ForjaIntegrador`).
 //
