@@ -23,7 +23,6 @@ import { Grid, Inline, Stack } from '@/Components/layout';
 import Chart from '@/Components/shared/Chart';
 import EmptyState from '@/Components/shared/EmptyState';
 import KpiCard from '@/Components/shared/KpiCard';
-import KpiGrid from '@/Components/shared/KpiGrid';
 import { PageHeader } from '@/Components/PageHeader';
 import { PeriodBar, type Period } from '@/Components/shared/PeriodBar';
 import type { PaginatorShape } from '@/Components/shared/DataTable';
@@ -142,10 +141,18 @@ function KpiHero({
           {brl(value)}
         </span>
         {delta != null && (
-          <span className={`font-mono text-[12px] font-semibold ${delta >= 0 ? 'text-success' : 'text-destructive'}`}>
-            {delta >= 0 ? '+' : ''}
-            {delta}% vs anterior
-          </span>
+          <Inline gap={1} align="baseline">
+            {/* Seta + numero: so o NUMERO carrega a cor do sinal, como na ancora. */}
+            <span className={`text-[11.5px] font-semibold ${delta >= 0 ? 'text-success' : 'text-destructive'}`}>
+              {delta >= 0 ? '↗' : '↘'} {delta >= 0 ? '+' : ''}
+              {delta}
+            </span>
+            {/* O rotulo e acessorio: peso 400 e tom secundario do proprio hero. Antes ele
+                vinha DENTRO do span colorido e gritava junto com o numero. */}
+            <span className="text-[11.5px] font-normal" style={{ color: 'var(--kpi-feature-fg-2)' }}>
+              % vs anterior
+            </span>
+          </Inline>
         )}
       </Inline>
       {description && (
@@ -231,7 +238,7 @@ function HomeIndex({
   };
 
   return (
-    <Stack gap={5} className="mx-auto max-w-7xl p-6">
+    <Stack className="gap-[10px] px-[14px] pb-5">
       <div data-contract="cabecalho">
       <PageHeader
         leading={
@@ -244,7 +251,7 @@ function HomeIndex({
           totals ? (
             <>
               <strong>{brlCurto(totals.total_sell)}</strong> vendas ·{' '}
-              <strong>{brlCurto(totals.invoice_due)}</strong> a receber ·{' '}
+              <strong className="text-warning">{brlCurto(totals.invoice_due)}</strong> a receber ·{' '}
               <strong>{brlCurto(totals.total_expense)}</strong> despesas
             </>
           ) : undefined
@@ -282,13 +289,12 @@ function HomeIndex({
       </Inline>
 
       {can_dashboard_data && totals ? (
-        <Stack gap={4}>
-          <KpiGrid cols={4} className="gap-2" data-contract="kpis">
+        <Stack className="gap-[10px]">
+          <Grid fit="sm" gap={2} data-contract="kpis">
             <KpiHero
               label="Líquido no período"
               value={totals.net}
               delta={deltas?.net}
-              description="Vendas − A receber − Despesas"
               spark={charts?.dia}
             />
             <KpiCard
@@ -310,13 +316,13 @@ function HomeIndex({
               value={brl(totals.total_expense)}
               description={`${sinal(deltas?.total_expense)}lançadas no período`}
             />
-          </KpiGrid>
+          </Grid>
           <Contrapartidas totals={totals} />
 
           <Deferred
             data='charts'
             fallback={
-              <Grid cols={1} className="gap-[10px] lg:grid-cols-[1.5fr_1fr]">
+              <Grid className="grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] gap-[10px]">
                 <div className={`${CARTAO} h-[190px] animate-pulse`} />
                 <div className={`${CARTAO} h-[190px] animate-pulse`} />
               </Grid>
@@ -362,7 +368,7 @@ function Contrapartidas({ totals }: { totals: Totals }) {
           <h2 className="text-[13.5px] font-semibold text-foreground">Contrapartidas</h2>
           <span className="font-mono text-[10.5px] text-muted-foreground">mesmo período</span>
         </Inline>
-        <Grid cols={2} gap={4} className="lg:grid-cols-4">
+        <Grid fit="xs" className="gap-x-[14px] gap-y-3">
           {itens.map(([label, valor, sub]) => (
             <Stack gap={1} key={label} className="min-w-0">
               <span className="text-[9.5px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -438,7 +444,7 @@ function GraficosVendas({ charts }: { charts: Props['charts'] }) {
   if (!charts) return null;
 
   return (
-    <Grid cols={1} className="gap-[10px] lg:grid-cols-[1.5fr_1fr]" data-contract="graficos">
+    <Grid className="grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] gap-[10px]" data-contract="graficos">
       <PainelGrafico titulo="Vendas por dia" meta="últimos 30 dias">
         <Chart type="area" data={charts.dia} height={132} formatValue={brlCurto} />
         <SerieAcessivel titulo="Vendas por dia, últimos 30 dias" dados={charts.dia} />
