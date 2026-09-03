@@ -18,10 +18,10 @@ authority: generated
 |---|---:|
 | US no SPEC | 63 |
 | CU no SDD | 0 |
-| Telas (.tsx) | 4 |
-| Telas com `casos.md` | 4 |
-| UC declarados | 53 |
-| UC com teste que os cita | 53 |
+| Telas (.tsx) | 7 |
+| Telas com `casos.md` | 7 |
+| UC declarados | 81 |
+| UC com teste que os cita | 81 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -116,7 +116,16 @@ authority: generated
 | UC-09 | Chat | 🧪 aguarda veredito da lane |
 | UC-10 | Chat | 🧪 aguarda veredito da lane |
 | UC-11 | Chat | 🧪 aguarda veredito da lane |
-| UC-12 | Index | 🧪 aguarda veredito da lane |
+| UC-12 | Chat | 🧪 aguarda veredito da lane |
+| UC-ACAO-00 | Acoes | 🧪 aguarda veredito da lane |
+| UC-ACAO-01 | Acoes | 🧪 aguarda veredito da lane |
+| UC-ACAO-02 | Acoes | 🧪 aguarda veredito da lane |
+| UC-ACAO-03 | Acoes | 🧪 aguarda veredito da lane |
+| UC-ALERTA-00 | Alertas | 🧪 aguarda veredito da lane |
+| UC-ALERTA-01 | Alertas | 🧪 aguarda veredito da lane |
+| UC-ALERTA-02 | Alertas | 🧪 aguarda veredito da lane |
+| UC-ALERTA-03 | Alertas | 🧪 aguarda veredito da lane |
+| UC-ALERTA-04 | Alertas | 🧪 aguarda veredito da lane |
 | UC-JCHAT-01 | Chat | 🧪 aguarda veredito da lane |
 | UC-JCHAT-02 | Chat | 🧪 aguarda veredito da lane |
 | UC-JCHAT-03 | Chat | 🧪 aguarda veredito da lane |
@@ -128,7 +137,12 @@ authority: generated
 | UC-JCHAT-09 | Chat | 🧪 aguarda veredito da lane |
 | UC-JCHAT-10 | Chat | 🧪 aguarda veredito da lane |
 | UC-JCHAT-11 | Chat | 🧪 aguarda veredito da lane |
+| UC-JCHAT-12 | Chat | 🧪 aguarda veredito da lane |
 | UC-JCHAT-13 | Chat | 🧪 aguarda veredito da lane |
+| UC-JCHAT-14 | Chat | 🧪 aguarda veredito da lane |
+| UC-JCHAT-15 | Chat | 🧪 aguarda veredito da lane |
+| UC-JCHAT-16 | Chat | 🧪 aguarda veredito da lane |
+| UC-JCHAT-17 | Chat | 🧪 aguarda veredito da lane |
 | UC-JPAIN-01 | Index | 🧪 aguarda veredito da lane |
 | UC-JPAIN-02 | Index | 🧪 aguarda veredito da lane |
 | UC-JPAIN-03 | Index | 🧪 aguarda veredito da lane |
@@ -140,17 +154,31 @@ authority: generated
 | UC-JPAIN-09 | Index | 🧪 aguarda veredito da lane |
 | UC-JPAIN-10 | Index | 🧪 aguarda veredito da lane |
 | UC-JPAIN-11 | Index | 🧪 aguarda veredito da lane |
-| UC-JPAIN-12 | Index | 🧪 aguarda veredito da lane |
+| UC-JPAIN-12 | Acoes | 🧪 aguarda veredito da lane |
 | UC-JPAIN-13 | Index | 🧪 aguarda veredito da lane |
 | UC-JPAIN-14 | Index | 🧪 aguarda veredito da lane |
-| UC-JPAIN-16 | Index | 🧪 aguarda veredito da lane |
+| UC-JPAIN-16 | Chat | 🧪 aguarda veredito da lane |
 | UC-JPAIN-17 | Index | 🧪 aguarda veredito da lane |
+| UC-JPAIN-18 | Index | 🧪 aguarda veredito da lane |
+| UC-JPAIN-19 | Index | 🧪 aguarda veredito da lane |
+| UC-JPAIN-20 | Index | 🧪 aguarda veredito da lane |
+| UC-JPERM-07 | Memoria | 🧪 aguarda veredito da lane |
+| UC-JPERM-08 | Pro | 🧪 aguarda veredito da lane |
 | UC-MEM-01 | Memoria | 🧪 aguarda veredito da lane |
 | UC-MEM-02 | Memoria | 🧪 aguarda veredito da lane |
 | UC-MEM-03 | Memoria | 🧪 aguarda veredito da lane |
 | UC-MEM-04 | Memoria | 🧪 aguarda veredito da lane |
 | UC-MEM-05 | Memoria | 🧪 aguarda veredito da lane |
 | UC-MEM-06 | Memoria | 🧪 aguarda veredito da lane |
+| UC-MEM-07 | Memoria | 🧪 aguarda veredito da lane |
+| UC-MEM-08 | Memoria | 🧪 aguarda veredito da lane |
+| UC-MEM-09 | Memoria | 🧪 aguarda veredito da lane |
+| UC-MEM-10 | Memoria | 🧪 aguarda veredito da lane |
+| UC-PLAT-00 | Plataforma | 🧪 aguarda veredito da lane |
+| UC-PLAT-01 | Plataforma | 🧪 aguarda veredito da lane |
+| UC-PLAT-02 | Plataforma | 🧪 aguarda veredito da lane |
+| UC-PLAT-03 | Plataforma | 🧪 aguarda veredito da lane |
+| UC-PLAT-04 | Plataforma | 🧪 aguarda veredito da lane |
 | UC-PRO-01 | Pro | 🧪 aguarda veredito da lane |
 | UC-PRO-02 | Pro | 🧪 aguarda veredito da lane |
 | UC-PRO-03 | Pro | 🧪 aguarda veredito da lane |
