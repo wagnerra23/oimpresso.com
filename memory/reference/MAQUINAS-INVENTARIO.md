@@ -18,7 +18,7 @@ lifecycle: ativo
 > - Hooks → `.claude/hooks/_HOOKS-INDEX.md` · Skills → `.claude/skills/_SKILLS-INDEX.md`
 > - Gates/Workflows → `scripts/governance/gates-registry.json` · Required → `governance/required-checks-baseline.json`
 
-## 1. Workflows / Gates de CI — 129 (45 contexts required)
+## 1. Workflows / Gates de CI — 130 (45 contexts required)
 
 > `Invocador` = gatilho `on:` do YAML · `Documento` = doc canônico de maior precedência que o cita.
 > **Evidência não é derivável aqui** (medido: 0 de 123): o `gate-selftest` prova que o SCRIPT morde,
@@ -78,6 +78,7 @@ lifecycle: ativo
 | `fin-hero-gate.yml` | pr+push+manual | (só sessão/handoff · 1) | Fin Hero Gate — KPI hero claro (anti-regressão Onda 28) |
 | `fin-subnav-gate.yml` | pr+push+manual | `memory/08-handoff.md` +1 | Fin SubNav Gate — abas seguem a entry do active (anti-regressão ADR 0180 split) |
 | `financeiro-pest.yml` | pr+push+manual | `memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md` +25 | Financeiro · Pest (MySQL) |
+| `fiscal-teclado-gate.yml` | pr+push+manual | — | Fiscal Teclado — a lista de notas é operável por teclado (Tab · Enter · Space · J/K) |
 | `force-clean-rebuild-trigger.yml` | push+manual | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +3 | Force Clean Rebuild (one-shot) |
 | `forja-jsdom-gate.yml` | pr+push+manual | — | Forja jsdom — o que a tela DESENHA (Quadro: uma coluna por fase declarada · painel de papéis) |
 | `forja-pest.yml` | pr+push+manual | `memory/requisitos/Forja/SPEC.md` +3 | Forja · Pest (MySQL) — rotas /forja executam de verdade (em sqlite a stack UltimatePOS só SKIPa, e skip vira veredito `skip` no manifesto por-UC, nunca `pass`); catraca a… |
@@ -590,7 +591,7 @@ lifecycle: ativo
 | `governance/ghost-rename-map.json` | agente, script | `memory/requisitos/_Governanca/roadmap/P11-kl-e2-renames-reseed-distiller.md` +8 | (baseline/estado) |
 | `governance/hue-canon.json` | agente, ci, script | — | Fonte única do hue primário universal (US-GOV-052 P32). O hue vivia em 3 mapas divergentes — pageheader-canon chegou a ter check aprovando o 145 morto… |
 | `governance/jana-ragas-baseline.json` | ci | `memory/requisitos/_Governanca/PLANO-APROFUNDAMENTO-AVALIACOES.md` +2 | Baseline RAGAS canary Jana — recriado via workflow_dispatch jana-ragas-canary.yml (US-COPI-116). Não editar à mão; usar update_baseline=true no dispat… |
-| `governance/jana-ragas-real-baseline.json` | agente, script | `memory/decisions/0318-ragas-eval-real-mata-tautologia-ct100-staging.md` +5 | (baseline/estado) |
+| `governance/jana-ragas-real-baseline.json` | agente, script | `memory/decisions/0318-ragas-eval-real-mata-tautologia-ct100-staging.md` +7 | (baseline/estado) |
 | `governance/ledger-checkpoints.json` | script | — | (baseline/estado) |
 | `governance/module-coupling-baseline.json` | ci, script | — | (baseline/estado) |
 | `governance/module-grades-baseline.json` | agente, ci, script | `memory/decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md` +8 | (baseline/estado) |
