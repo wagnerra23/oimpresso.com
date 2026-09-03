@@ -8,7 +8,10 @@ use App\Utils\ModuleUtil;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Inertia\Inertia;
 use Modules\Manufacturing\Concerns\LogsWithPiiRedactor;
+use Modules\Manufacturing\Services\ProductionService;
+use Modules\Manufacturing\Services\RecipeBomService;
 use Modules\Manufacturing\Utils\ManufacturingUtil;
 
 class SettingsController extends Controller
@@ -86,5 +89,39 @@ class SettingsController extends Controller
         }
 
         return redirect()->back()->with('status', $output);
+    }
+
+    /**
+     * MWART US-MANU-003 (SPEC.md) — porte Inertia das Configurações do módulo. Rota
+     * ADITIVA `/manufacturing/v2/settings`; `/manufacturing/settings` (Blade, acima)
+     * segue intocado. Primeira tela da família que ESCREVE — o `store()` acima NÃO foi
+     * alterado, o form novo posta no mesmo endpoint ({@see RUNBOOK-settings.md}).
+     */
+    public function indexV2(ProductionService $productionService, RecipeBomService $bomService)
+    {
+        $business_id = request()->session()->get('user.business_id');
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module'))) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $manufacturing_settings = $this->mfgUtil->getSettings($business_id);
+        $ordens = $productionService->summary($business_id);
+
+        return Inertia::render('Manufacturing/Settings', [
+            'settings' => [
+                'ref_no_prefix' => $manufacturing_settings['ref_no_prefix'] ?? '',
+                'disable_editing_ingredient_qty' => ! empty($manufacturing_settings['disable_editing_ingredient_qty']),
+                'enable_updating_product_price' => ! empty($manufacturing_settings['enable_updating_product_price']),
+            ],
+            'version' => System::getProperty('manufacturing_version'),
+            'permissions' => [
+                'prod' => auth()->user()->can('manufacturing.access_production'),
+            ],
+            'producao' => [
+                'total' => (int) $ordens['total_count'],
+                'rascunhos' => (int) $ordens['pending_count'],
+            ],
+            'recipes_count' => $bomService->countRecipes($business_id),
+        ]);
     }
 }
