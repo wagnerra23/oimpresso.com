@@ -21,11 +21,16 @@
 //   · `data-testid`: forja-sino · forja-busca · forja-novo-issue · forja-tabs ·
 //     forja-grupo-<key> — os mesmos de antes, pra e2e/a11y não quebrar.
 //
-// Destinos que SAÍRAM do topo nesta onda (as rotas seguem vivas): Triagem (vira tipo
-// Proposta em Aprovações, Onda 3), Handoffs (seção do MCP, Onda 8), Equipe (idem),
-// CC Sessions (segmento Sessões do Changelog, Onda 9). Saúde aponta pro Scorecard
-// até a Onda 7 construir a view do protótipo. Integrador NASCE nesta onda
+// Destinos que SAÍRAM do topo na Onda 2 (as rotas seguem vivas): Triagem (vira tipo
+// Proposta em Aprovações, Onda 3), Handoffs (seção do MCP — CUMPRIDO na Onda 8,
+// 2026-09-02: o painel voltou pra dentro de /forja/mcp, e /forja/handoffs segue viva
+// renderizando o MESMO componente), Equipe (idem),
+// CC Sessions (segmento Sessões do Changelog, Onda 9). Integrador nasceu na Onda 2
 // (`/forja/integrador`, `ForjaIntegrador`).
+//
+// Onda 7 (2026-09-02): Saúde deixou de apontar pro `/team-mcp/scorecard` — a view do
+// protótipo virou tela própria em `/forja/saude` (`ForjaSaude`). O Scorecard segue vivo
+// e é o destino do drill "ver →" dos cards, não mais o destino da pílula.
 
 import { Link } from '@inertiajs/react';
 // O bundle do protótipo (Onda 1) vive AQUI, não no Cockpit: cada Page do hub é um chunk do Vite,
@@ -50,8 +55,8 @@ export const FORJA_TABS = [
     hint: 'O que espera por uma decisão sua' },
   { key: 'trabalho',   grupo: 'trabalho',  label: 'Trabalho',   href: '/forja/trabalho',     icon: ListChecks,
     hint: 'Todas as tasks do time — lista, quadro e gantt' },
-  { key: 'saude',      grupo: 'esteira',   label: 'Saúde',      href: '/team-mcp/scorecard', icon: Activity,
-    hint: 'Semáforo do loop (hoje: scorecard do MCP; a view do protótipo é a Onda 7)' },
+  { key: 'saude',      grupo: 'esteira',   label: 'Saúde',      href: '/forja/saude',        icon: Activity,
+    hint: 'Semáforo do loop — chamadas, movimentação, WIP por fase e checks' },
   { key: 'mcp',        grupo: 'esteira',   label: 'MCP',        href: '/forja/mcp',          icon: ShieldCheck,
     hint: 'Contrato de ferramentas, tokens e auditoria' },
   { key: 'changelog',  grupo: 'historico', label: 'Changelog',  href: '/forja/changelog',    icon: History,
