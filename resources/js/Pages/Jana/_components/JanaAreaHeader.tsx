@@ -13,6 +13,26 @@
 //   - PT-04-Dashboard §Anatomia slot 1 + R6 → "header é `<PageHeader>` shared".
 // Ganho: a altura de uma barra inteira volta pro conteúdo.
 //
+// ONDA 1 da paridade com o protótipo (2026-09-03, UI-0029 "protótipo soberano"):
+// a fusão acima acertou a barra ÚNICA e errou a POSIÇÃO das abas. Medido com a
+// mesma sonda nos dois lados (design-diff, dark × dark, viewport 2560):
+//   · âncora `jana-merge.jsx` §JanaPage: `<JanaHeader/>` (41px) → 14px → `<nav>` das
+//     abas em FAIXA PRÓPRIA, largura toda (`left=284 w=2237 h=36`), 13px/500,
+//     ativa 600 + underline accent + pill accent-soft, ícone 14px por aba;
+//   · produção (antes): tablist INLINE na Zona C do header, `left=1654 w=451`, no
+//     mesmo `top` do h1 — abas espremidas à direita do título.
+// O canon do repo já é o do protótipo: `Pages/Cliente/Index.tsx` renderiza o
+// `<PageHeaderTabs>` como "faixa própria abaixo do título" ([W] 2026-07-14: "mesma
+// posição do Clientes/protótipo em todas"). A Jana era a divergente. O `Caixa/Index`
+// citado acima, que inspirou o inline, é o que diverge do protótipo — não este.
+// Outras duas coisas que a âncora tem no header e a produção não tinha:
+//   · "Atualizado HH:MM" vive na ZONA DIREITA (`.jc-header-r`: `.jc-updated` com dot
+//     verde, ANTES do selo de plano), não no subtítulo;
+//   · NÃO existe primary "Conversar" no header — a Conversa é uma ABA; o botão
+//     "Nova conversa" só aparece na própria aba Conversa (`isChat`). O primary que
+//     existia aqui vinha do `DataController` (sidebar) e duplicava a aba.
+// Subtítulo da âncora é MONO (`.jc-id p`: IBM Plex Mono 11.5px) — `font-mono` aqui.
+//
 // ADR 0182 + GUIA-SIDEBAR-V3 Wagner 2026-05-21: refatorado pra usar JanaSubNav
 // canon (ghosts ARIA tablist com auto-promoção do ativo + overflow ⋯ Mais)
 // em vez dos 2 tabs hardcoded antigos (Dashboard/Chat). Hue OKLCH 220 (grupo `ia`).
@@ -33,7 +53,6 @@
 
 import { useState, type ReactNode } from 'react';
 import JanaSubNav from '@/Pages/Jana/_shared/JanaSubNav';
-import { PageHeaderPrimary } from '@/Components/PageHeader';
 import { PageHeader } from '@/Components/PageHeader';
 import { router } from '@inertiajs/react';
 
@@ -164,44 +183,45 @@ export function JanaAreaHeader({
       }
       title="Jana"
       suffix=" · Analista IA"
+      // Subtítulo = identidade do tenant, em MONO como a âncora (`.jc-id p`). O
+      // "Atualizado" que morava aqui foi pra Zona R (ver `actions` abaixo).
       subtitle={
+        (businessName || businessId != null) && (
+          <span className="font-mono tracking-wide">
+            {businessName && (
+              <span className="font-semibold">{businessName.toUpperCase()}</span>
+            )}
+            {businessName && businessId != null && <span className="mx-1.5 opacity-40">·</span>}
+            {businessId != null && <>biz={businessId}</>}
+          </span>
+        )
+      }
+      actions={
         <>
-          {businessName && (
-            <span className="font-semibold">{businessName.toUpperCase()}</span>
-          )}
-          {businessId != null && (
-            <>
-              <span className="mx-1.5 opacity-40">·</span>biz={businessId}
-            </>
-          )}
-          {(businessName || businessId != null) && (
-            <span className="mx-1.5 opacity-40">·</span>
-          )}
+          {/* "Atualizado HH:MM" — 1º item da Zona R, ANTES do selo de plano, como na
+              âncora (`.jc-header-r`: `jc-updated` → `{plano}` → botões). É BOTÃO de
+              reapuração (protótipo `.jc-updated-b` + `onRefresh`), não texto. */}
           <button
             type="button"
             onClick={reapurar}
             disabled={reapurando}
             title="Reapurar agora"
-            className="inline-flex items-center gap-1.5 hover:text-foreground disabled:opacity-60"
+            className="mr-1.5 inline-flex items-center gap-1.5 text-[11.5px] text-muted-foreground hover:text-foreground disabled:opacity-60"
           >
-            <span aria-hidden className="size-1.5 rounded-full bg-success" />
+            <span aria-hidden className="size-[7px] rounded-full bg-success" />
             {reapurando ? 'Reapurando…' : `Atualizado ${atualizadoEm}`}
           </button>
+          {actions}
         </>
       }
-      subnav={<JanaSubNav active={ghostKey} hidePrimary />}
-      actions={
-        <>
-          {actions}
-          {/* primary "Conversar" roxo 295 universal (ADR 0190, supersede o hue 220
-              azul da ADR 0182). Onda 3: destino passou de `/ia` (que virou o Painel)
-              pra `/ia/conversa`.
-              2026-08-08: migrado do shim JanaPrimaryButton pro canon <PageHeaderPrimary>.
-              O shim emitia `.os-btn primary`, mas no CSS servido a única família de
-              regras `.os-btn` é escopada `.sells-cowork` → nenhuma casava e o botão
-              rendia nu (medido em /ia/memoria: padding 0, radius 0, texto em 2 linhas). */}
-          <PageHeaderPrimary label="Conversar" onClick={() => router.visit('/ia/conversa')} />
-        </>
+      // Barra de abas em FAIXA PRÓPRIA abaixo do título — posição do protótipo
+      // (`{tabs}` depois de `<JanaHeader/>`) e do canon `Cliente/Index.tsx`. O `px-6`
+      // alinha o início da barra com o título; a `border-b` do `<header>` é a linha
+      // de base em que o underline da aba ativa cola (`-mb-px` do PageHeaderTabs).
+      below={
+        <div className="px-6">
+          <JanaSubNav active={ghostKey} hidePrimary />
+        </div>
       }
     />
   );

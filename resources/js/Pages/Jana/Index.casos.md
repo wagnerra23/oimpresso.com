@@ -4,7 +4,7 @@ casos: Jana Painel · metas ativas · farol server-side · cockpit deferido · /
 irmaos: Index.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-index.md (runbook) · prototipo-ui/contrato/jana-painel.contract.json (contrato visual)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-08-31"
+last_run: "2026-09-03"
 ---
 
 # Casos de uso — /ia (Painel da Jana)
@@ -800,3 +800,43 @@ alvo`. O título é **prop** do `AppShellV2` compartilhado, não elemento desta 
 por **revalidação de CONTRATO**, e digo porque o G-6 aceita a data e só o leitor percebe a diferença.
 Rodados aqui: `casos-coverage-guard` nos 4 modos, `module-surface --all --check`,
 `contrato-de-tela --contract` e `--preflight`.
+
+## UC-JPAIN-19 — a barra de abas é FAIXA PRÓPRIA abaixo do header, e o header não tem primary "Conversar"
+
+**Status:** 🧪 — `npx vitest run tests/janaAreaHeaderParidade.spec.tsx` → 4 passed (jsdom local, 2026-09-03); vira ✅ quando o manifesto `casos-results` aterrissar (G-7 lê o manifesto commitado, não esta linha)
+
+**Fonte:** âncora `prototipo-ui/cowork/jana-merge.jsx` §`JanaPage` — todo `tab` renderiza
+`<JanaHeader/>` e SÓ DEPOIS `{tabs}` (`JmTabs`, via `CliTabs`/TabBar do DS); `JanaHeader` tem na
+zona direita `Atualizado HH:MM` (botão, dot verde) → `{plano}` → `Nova conversa` (só `isChat`) →
+`Configurar` → `Exportar`, e **nenhum** primary. Charter v13 §Goals. UI-0029 (protótipo soberano
+sobre ADR UI, ratificada 2026-08-31).
+
+**Narrativa:** o operador abre qualquer tela da área Jana e vê a barra de abas na LARGURA TODA,
+logo abaixo da linha do título, com um ícone por aba — como no protótipo e como o Clientes já faz.
+O título fica sozinho na linha dele, com a identidade do tenant em mono embaixo. À direita,
+"Atualizado HH:MM" (que reapura ao clicar), o selo de plano e as ações da tela. Não há botão
+"Conversar" competindo com a aba Conversa.
+
+**Medido em 2026-09-03 (mesma sonda nos dois lados, dark × dark, viewport 2560):**
+
+| item | âncora (render do espelho) | produção (antes) | veredito |
+|---|---|---|---|
+| posição da tablist | `nav` filho de `.jc-page`, `left=284 w=2237 h=36`, 14px abaixo do header | inline na Zona C do header, `left=1654 w=451`, mesmo `top` do h1 | ❌ DIVERGE (bug) → **corrigido** |
+| aba | 13px/500 · ativa 600 + underline accent + pill accent-soft · ícone 14px | 14px/400 · ativa 600 + underline accent + pill · **sem ícone** | 🟡 ícone **corrigido**; 13×14px fica (fidelidade do `PageHeaderTabs` é travada por `tests/pageHeaderTabsFidelity.spec.tsx`) |
+| "Atualizado" | Zona R, 1º item, botão com dot | dentro do subtítulo | ❌ → **corrigido** |
+| primary no header | não existe | "Conversar" (do `DataController.primary`) | ❌ → **removido** |
+| subtítulo | mono 11.5px `TENANT · biz=N · versão` | sans 12px `TENANT·biz=N·Atualizado` | 🟡 → mono; `versão` não existe na prod (dado) |
+| título | 19px | 22px | 🟡 **declarada** — canon `PageHeader` (ADR 0189), Fundação/Shell, decisão [W] |
+
+**Critério de aceite (o que o teste mede, no DOM renderizado):**
+
+1. a `[role=tablist]` é descendente do `<header>` mas **não** da linha título/ações, e vem depois do `h1`;
+2. as 6 abas da âncora, na ordem `Painel · Conversa · Alertas · Ações · Memória · Plataforma`, cada uma com `svg`;
+3. fora da tablist, nenhum `a`/`button` do header se chama "Conversar";
+4. o botão `Atualizado HH:MM` está no mesmo container das ações e antes delas; o subtítulo não o contém.
+
+**Teste:** `tests/janaAreaHeaderParidade.spec.tsx` (vitest, `npm test`) — 4 `it(...)` que citam este UC.
+
+**O que NÃO entrou aqui, de propósito:** contador `n` nas abas (backend, R2 do
+`Index-visual-comparison.md`), Exportar em menu de 3 itens (o botão segue mudo — UC-JPAIN-16 /
+decisão [W]), e o título 22×19px (acima).
