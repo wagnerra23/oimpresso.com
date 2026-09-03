@@ -1,0 +1,66 @@
+{
+  "_nota": "Contrato de tela da aba Alertas da Jana (/ia/alertas). Nasceu em 2026-09-02 via criar-tela.mjs e foi preenchido com a COPY LITERAL da âncora `prototipo-ui/cowork/jana-telas-novas.jsx` §JmAlertas (SYNC com o Cowork vivo re-medido na data via DesignSync.get_file). Roda no CI via contrato-de-tela.yml. Ver RUNBOOK-contrato-de-tela.md.",
+  "tela": "Jana/Alertas",
+  "fonte": "prototipo-ui/cowork/jana-telas-novas.jsx",
+  "alvo": [
+    "resources/js/Pages/Jana/Alertas.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "alertas-toolbar",
+      "_papel": "chips de severidade + contagem — os `jm-mem-cats` e o `jmc-count` da âncora",
+      "copy": [
+        "todas",
+        "alta",
+        "média",
+        "baixa",
+        "disparando · corte em"
+      ],
+      "_nota": "Os chips de STATUS (abertos · silenciados · todos) da âncora NÃO entram: sem silenciar no servidor, 'silenciados' seria filtro sempre vazio — charter §Anti-hooks."
+    },
+    {
+      "id": "alertas-lista",
+      "_papel": "a DataTable — cabeçalhos das colunas da âncora (`columns[]` de JmAlertas) + a ação do kebab",
+      "copy": [
+        "Meta",
+        "Desvio",
+        "Severidade",
+        "Projetado × realizado",
+        "Data ref.",
+        "Chegou por",
+        "Abrir a meta"
+      ]
+    },
+    {
+      "id": "alertas-vazio",
+      "_papel": "estado vazio — nenhuma meta acima do corte (EmptyState variant=done da âncora)",
+      "copy": [
+        "Nenhum desvio acima do corte"
+      ],
+      "estados": [
+        "vazio",
+        "com-desvios"
+      ]
+    },
+    {
+      "id": "alertas-nota",
+      "_papel": "rodapé — explica a projeção e a régua de severidade (`jtn-nota`)",
+      "copy": [
+        "Projeção é linear entre",
+        "severidade é múltiplo do corte — 1× baixa, 1,5× média, 3× alta.",
+        "Sem período ativo ou sem apuração o serviço volta calado: não existe alerta sem com o que comparar."
+      ]
+    }
+  ],
+  "ordem": [
+    "alertas-toolbar",
+    "alertas-lista",
+    "alertas-vazio",
+    "alertas-nota"
+  ],
+  "_pendente_w": [
+    "ALERTA DE TOPO + DRAWER DE CONFIG — a âncora abre com `Alert tone=warn` (\"Hoje o servidor não guarda esta configuração\") e um drawer com os campos exatos do `UpdateAlertasConfigRequest`. Ficam pra PR próprio: a persistência é a US-COPI-061 (`updateConfig` valida e descarta). Uma frase da âncora não sobrevive à tradução — \"o que salva é o protótipo, não a empresa\" — porque em prod não há protótipo; a substituição é copy nova e portanto decisão [W].",
+    "SILENCIAR POR META — `localStorage` no protótipo, com a promessa 'só não notifica'. O `avaliar()` não lê navegador: a promessa seria falsa em prod. Se silenciar virar produto, é backend (config per-business), não wiring.",
+    "'PERGUNTAR POR QUE CAIU' — precisa de `ChatController@novaConversa` aceitar pergunta inicial (medido 2026-08-07). Backend + Page, PR próprio."
+  ]
+}
