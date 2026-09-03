@@ -286,9 +286,9 @@ module: Forja
 - [Cockpit.casos.md](../../../Modules/Forja/Resources/js/Pages/team-mcp/Forja/Cockpit.casos.md)
 - [Index.casos.md](../../../Modules/Forja/Resources/js/Pages/team-mcp/Scorecard/Index.casos.md)
 
-## Testes (Pest) — 57
+## Testes (Pest) — 58
 
-- 56 em [Modules/Forja/Tests/Feature/](../../../Modules/Forja/Tests/Feature)
+- 57 em [Modules/Forja/Tests/Feature/](../../../Modules/Forja/Tests/Feature)
 - 1 em [Modules/Forja/Tests/Feature/Roadmap/](../../../Modules/Forja/Tests/Feature/Roadmap)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
