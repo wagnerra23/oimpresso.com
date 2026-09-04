@@ -65,11 +65,12 @@ module: Fiscal
 - [Nfse.tsx](../../../resources/js/Pages/Fiscal/Nfse.tsx)
 - [Sped.tsx](../../../resources/js/Pages/Fiscal/Sped.tsx)
 
-## Componentes / apoio de tela — 16
+## Componentes / apoio de tela — 17
 
 - [AlertasFiscais.tsx](../../../resources/js/Pages/Fiscal/_components/AlertasFiscais.tsx)
 - [CmdKPalette.tsx](../../../resources/js/Pages/Fiscal/_components/CmdKPalette.tsx)
 - [DebitosConhecidos.tsx](../../../resources/js/Pages/Fiscal/_components/DebitosConhecidos.tsx)
+- [DecisaoPendente.tsx](../../../resources/js/Pages/Fiscal/_components/DecisaoPendente.tsx)
 - [EventosDrawer.tsx](../../../resources/js/Pages/Fiscal/_components/EventosDrawer.tsx)
 - [FxShell.tsx](../../../resources/js/Pages/Fiscal/_components/FxShell.tsx)
 - [InutilizacaoModal.tsx](../../../resources/js/Pages/Fiscal/_components/InutilizacaoModal.tsx)

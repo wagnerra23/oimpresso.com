@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
 last_run: "2026-09-04"
-last_run_ci: "2 UC executados e VERDES no CT 100 (MySQL) — UC-FDFE-06/07, 3 passed / 9 assertions, com bite-test (mutar 1 das 4 chamadas → 1 failed). Os UC-01..05 seguem 🧪, veredito pendente da lane Pest Fiscal + suíte noturna."
+last_run_ci: "3 UC executados nesta corrida, em duas lanes diferentes — UC-FDFE-06 (vitest/jsdom: 4 casos verdes + 3 mutações provando que morde) e UC-FDFE-07/08 (Pest no CT 100/MySQL: 3 passed / 9 assertions, com bite-test — mutar 1 das 4 chamadas → 1 failed). Os UC-FDFE-01..05 NÃO foram re-executados: são Pest e Pest não roda local (ADR 0062); o veredito deles segue pendente da lane Pest Fiscal (advisory) + suíte noturna CT 100, como já estava. A data é honesta sobre O QUE foi revalidado — não uma alegação de que os 5 outros rodaram."
 related_us: [US-FISCAL-008, US-FISCAL-012]
 ---
 
@@ -39,6 +39,8 @@ related_us: [US-FISCAL-008, US-FISCAL-012]
 |---|---|---|
 | `DfeControllerTest` · `AcoesControllerTest` · `GatesPermissaoFiscalTest` | `Pest Fiscal` (SQLite — os que tocam banco **pulam**) + suíte noturna CT 100 (MySQL) | ❌ **não** — `Pest Fiscal` não está no [baseline](../../../../governance/required-checks-baseline.json): reprova visível, **advisory** |
 
+| `fiscal-debitos-conhecidos.test.tsx` (novo) | `Fiscal Débitos Gate` (vitest/jsdom) | ❌ **não** — advisory |
+
 > Nenhum teste desta tela está na lane **required** (`PHP / Pest (NfeBrasil · MySQL)`). O ratchet-up é proposta ao [W] (SDD §8.3).
 
 ## Rastreabilidade
@@ -50,8 +52,14 @@ related_us: [US-FISCAL-008, US-FISCAL-012]
 | UC-FDFE-03 | só as 4 ações SEFAZ | `[must]` | CU-FISC-07 | `AcoesControllerTest` | 🧪 |
 | UC-FDFE-04 | quando a justificativa é exigida | `[must]` | CU-FISC-07 | `AcoesControllerTest` | 🧪 |
 | UC-FDFE-05 | gate de permissão da tela | `[must]` `[T0]` | CU-FISC-13 | `GatesPermissaoFiscalTest` | 🧪 |
-| UC-FDFE-06 | a manifestação chega ao motor | `[must]` | CU-FISC-07 | `AcoesDfeManifestacaoTest` | 🧪 |
-| UC-FDFE-07 | isolamento **da ação**, não só da lista | `[must]` `[T0]` | CU-FISC-12 | `AcoesDfeManifestacaoTest` | 🧪 |
+| UC-FDFE-06 | a tela avisa que depende de decisão [W] | `[should]` | **—** (ver nota) | `fiscal-debitos-conhecidos.test.tsx` | 🧪 |
+
+> **Por que o `UC-FDFE-06` tem `—` na coluna CU:** os CU do SDD §6 descrevem o que a tela **faz
+> pelo usuário fiscal** (listar DF-e, manifestar, filtrar). Este caso é de **transparência sobre a
+> própria tela** — meta-comportamento que nenhum CU cobre, porque não existia quando o SDD foi
+> escrito. Inventar um CU plausível aqui seria fabricar âncora, que é o oposto do que este bloco faz.
+| UC-FDFE-07 | a manifestação chega ao motor | `[must]` | CU-FISC-07 | `AcoesDfeManifestacaoTest` | 🧪 |
+| UC-FDFE-08 | isolamento **da ação**, não só da lista | `[must]` `[T0]` | CU-FISC-12 | `AcoesDfeManifestacaoTest` | 🧪 |
 
 ---
 
@@ -108,7 +116,38 @@ related_us: [US-FISCAL-008, US-FISCAL-012]
 
 ---
 
-## UC-FDFE-06 — Clicar em manifestar faz a manifestação chegar ao motor `[must]`
+## UC-FDFE-06 — A tela avisa que depende de decisão [W] `[should]`
+
+**Dado** que esta tela tem, em `## Backlog` abaixo, item cujo marcador diz `decisão [W]`
+**Quando** a contadora abre `/fiscal/dfe`
+**Então** ela lê "Decisão [W] pendente" com esse item — em vez de tomar o estado provisório
+(a aba Histórico servida por dado de demonstração) pelo definitivo.
+
+- **O que defende:** que o aviso saia da **mesma fonte** do bloco de dívida — os bullets
+  `[BACKLOG]` cujo marcador contém literalmente `decisão [W]`, marcados `decisao: true` por
+  [`fiscal-debitos-derive.mjs`](../../../../scripts/governance/fiscal-debitos-derive.mjs).
+  Nada é escrito à mão. São **4** hoje, e três são exatamente as três instâncias que o
+  protótipo desenha (DF-e Histórico · Config Séries · Config Ambiente); a quarta (as 4
+  superfícies de demonstração do Cockpit) o protótipo ainda não pintou — a derivação a achou.
+- **Um item, um bloco:** o `DebitosConhecidos` filtra `!decisao`, então nenhum item aparece nos
+  dois. O caso do `Config` (5 débitos, 2 decisões → 3 + 2, interseção vazia, soma = 5) é o que
+  guarda isso.
+- **Estado vazio:** nó **ausente**. Tela sem decisão em aberto não desenha o lugar onde decisões
+  apareceriam — isso leria como "nada pendente por ora", que é afirmação, não ausência.
+- **Delta consciente vs o protótipo:** ali o bloco vive **dentro da aba** a que se refere; aqui
+  resolve **por tela**, porque os `.casos.md` não carregam o vínculo com a aba e derivá-lo do
+  texto seria adivinhação. E a copy perde o "no vivo" do protótipo — em produção esse dêitico
+  não tem referente, o leitor já está no vivo.
+- **Mordida provada** (3 mutações, restore byte-idêntico → working tree limpo): remover o render
+  do `FxShell` → **3 vermelhos**; tirar o `!decisao` do bloco de dívida → item duplicado, **2
+  vermelhos** (cai o caso da interseção vazia e o da soma dos dois blocos); trocar o nó ausente
+  por contêiner vazio → **1 vermelho**.
+- **Teste:** `tests/js/fiscal-debitos-conhecidos.test.tsx` — 4 casos citando `UC-FDFE-06`.
+- **Status:** 🧪 lane **advisory**; veredito pendente.
+
+---
+
+## UC-FDFE-07 — Clicar em manifestar faz a manifestação chegar ao motor `[must]`
 
 **Dado** uma DF-e pendente do próprio business
 **Quando** a contadora aciona uma das 4 manifestações
@@ -118,12 +157,12 @@ related_us: [US-FISCAL-008, US-FISCAL-012]
 - **Âncora de contrato:** `CU-FISC-07` do [SDD §6](../../../../memory/requisitos/Fiscal/SDD-cockpit-fiscal-v1.0.md) — a manifestação é o ato que o CU descreve; um clique que não alcança o motor não cumpre o CU.
 - **Regressão que defende:** entre a Wave 4 e 2026-09-04, as 4 ações da tela **não manifestavam nada**. O adaptador chamava `ManifestacaoService::cienciar($businessId, $recebido)` — dois `int` — num método cuja assinatura é `cienciar(NfeDfeRecebido $dfe)`. O `TypeError` caía no `catch (\Throwable)` do próprio método e virava a flash `"Manifestação falhou: …"`. Os UC-FDFE-03/04 seguiam verdes porque medem a camada de cima (whitelist e validação) e um `TypeError` engolido também não é `ValidationException`.
 - **Por que o aceite para na fronteira do motor:** o efeito ponta-a-ponta (`status_manifestacao` virando `ciencia`) **não** é asserível hoje — os dois `buildConfig` do `NfeBrasil` leem `business.state`, coluna que não existe no schema canônico, no staging nem em produção (133 colunas nos três, medido 2026-09-04). Ver o backlog abaixo.
-- **Teste:** `Modules/Fiscal/Tests/Feature/AcoesDfeManifestacaoTest.php` — `it('UC-FDFE-06 · manifestarDfe ENTREGA a DF-e carregada ao service (nao um id solto)')` e `it('UC-FDFE-06 · manifestarDfe repassa a justificativa de desconhecer ao service')`
+- **Teste:** `Modules/Fiscal/Tests/Feature/AcoesDfeManifestacaoTest.php` — `it('UC-FDFE-07 · manifestarDfe ENTREGA a DF-e carregada ao service (nao um id solto)')` e `it('UC-FDFE-07 · manifestarDfe repassa a justificativa de desconhecer ao service')`
 - **Status:** 🧪 rodado VERDE no CT 100 (MySQL) em 2026-09-04 — `3 passed (9 assertions)`, com bite-test (repor **uma** das 4 chamadas antigas → `1 failed`). Fica 🧪 e não ✅ porque o G-7 lê o **manifesto commitado**, e o CT 100 não o alimenta: o ✅ chega quando a lane publicar (`casos-results-publish`).
 
 ---
 
-## UC-FDFE-07 — Manifestar DF-e de outro business é 404, não erro genérico `[must]` `[T0]`
+## UC-FDFE-08 — Manifestar DF-e de outro business é 404, não erro genérico `[must]` `[T0]`
 
 **Dado** uma DF-e que pertence a outro business
 **Quando** alguém aciona a manifestação dela pelo endpoint
@@ -131,7 +170,7 @@ related_us: [US-FISCAL-008, US-FISCAL-012]
 
 - **Âncora de contrato:** `CU-FISC-12` do SDD §6 + [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
 - **Regressão que defende:** o UC-FDFE-01 isola a **listagem**; nada isolava a **ação**. O adaptador nunca carregava o registro — passava o id adiante —, então não havia ponto onde o `business_id` fosse conferido. O isolamento dependia inteiramente do motor, que recebia o id por um caminho que nem chegava a executar.
-- **Teste:** `Modules/Fiscal/Tests/Feature/AcoesDfeManifestacaoTest.php` — `it('UC-FDFE-07 · manifestarDfe NAO alcanca DF-e de outro business (Tier 0 · ADR 0093)')`
+- **Teste:** `Modules/Fiscal/Tests/Feature/AcoesDfeManifestacaoTest.php` — `it('UC-FDFE-08 · manifestarDfe NAO alcanca DF-e de outro business (Tier 0 · ADR 0093)')`
 - **Status:** 🧪 rodado VERDE no CT 100 (MySQL) em 2026-09-04 — tenant fictício 98 × 99 ([ADR 0358](../../../../memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)), nunca `biz=4`. 🧪 e não ✅ pelo mesmo motivo do UC-06: a prova do G-7 é o manifesto, não a prosa.
 
 ---
@@ -152,6 +191,11 @@ related_us: [US-FISCAL-008, US-FISCAL-012]
 3. ⛔ **Nunca local** ([ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)).
 
 ## Trilha do tempo
+
+- 2026-09-04 · [C] Onda 5 Cowork (decisão pendente): **+1 UC** (`UC-FDFE-06`). O bloco é montado
+  uma vez no `FxShell` e resolvido por `route` — as sete telas o herdam, e esta é a dona do
+  contrato por ser o exemplo literal do protótipo. **Nenhum bullet de `## Backlog` virou UC**:
+  eles seguem sendo a FONTE, e promovê-los mudaria o denominador que o gerador lê.
 
 - 2026-07-15 · [CC] stub criado no Passo 3 do programa de ondas — **0 UC**.
 - 2026-07-27 · [CC] `sdd-from-source` (Onda 1 / S2): **5 UC** derivados do §6 do SDD; 4 herdam testes existentes, 1 nasce com teste novo. Nota de escopo mantida: os testes de ação provam **contrato de entrada** (whitelist, regra de justificativa), não a persistência ponta-a-ponta.
