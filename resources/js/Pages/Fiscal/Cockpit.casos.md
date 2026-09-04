@@ -5,8 +5,8 @@ irmaos: Cockpit.charter.md (lei) · memory/requisitos/Fiscal/SDD-cockpit-fiscal-
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-09-02"
-last_run_ci: "revalidado em 2026-09-02 ao trocar a lista mock por NotasUnifiedService: UC-FCKP-01..06 relidos um a um e nenhum toca a fonte da lista (são gate, agregação, ribbon, alertas, escopo e cache), logo seguem válidos; UC-FCKP-07 nasce aqui com teste próprio. Veredito das lanes pendente — CT 100 em 502 na sessão"
+last_run: "2026-09-04"
+last_run_ci: "revalidado em 2026-09-04 ao paginar a lista (Onda 3): UC-FCKP-01..06 relidos um a um — nenhum toca a fonte nem o recorte da lista (são gate, agregação, ribbon, alertas, escopo e cache), logo seguem válidos. UC-FCKP-07 (dado real) segue válido: a paginação recorta a MESMA lista, não muda a fonte. UC-FCKP-08 (fila de alertas) segue válido: o rodapé entra depois da tabela e não encosta na seção de alertas. UC-FCKP-09 nasce aqui, com lane e teste próprios, verde local 4/4 e mordida provada em 2 mutações. Veredito das lanes pendente do CI deste PR"
 related_us: [US-FISCAL-002, US-FISCAL-019]
 ---
 
