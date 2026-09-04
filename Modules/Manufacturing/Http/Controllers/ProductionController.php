@@ -60,7 +60,7 @@ class ProductionController extends Controller
      *
      * @return Response
      */
-    public function index(ProductionService $productionService)
+    public function index(ProductionService $productionService, RecipeBomService $bomService)
     {
         $business_id = request()->session()->get('user.business_id');
         if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.access_production')) {
@@ -164,7 +164,7 @@ class ProductionController extends Controller
             return view('manufacturing::production.index')->with(compact('business_locations'));
         }
 
-        return $this->indexV2($productionService);
+        return $this->indexV2($productionService, $bomService);
     }
 
     /**
@@ -894,7 +894,7 @@ class ProductionController extends Controller
      *
      * @return \Inertia\Response|Response
      */
-    public function indexV2(ProductionService $productionService)
+    public function indexV2(ProductionService $productionService, RecipeBomService $bomService)
     {
         $business_id = request()->session()->get('user.business_id');
         if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.access_production')) {
@@ -927,6 +927,10 @@ class ProductionController extends Controller
                 'end_date' => $filters['end_date'],
                 'is_final' => (bool) $filters['is_final'],
             ],
+            // Contador da aba "Receitas" — mesmo payload que Report/Settings/Insumos já
+            // mandam. Esta tela nasceu na Wave J SEM a barra de abas (era a única do módulo
+            // na época) e ficou sem os dados dela; virou beco sem saída depois do cutover.
+            'recipes_count' => $bomService->countRecipes($business_id),
         ]);
     }
 

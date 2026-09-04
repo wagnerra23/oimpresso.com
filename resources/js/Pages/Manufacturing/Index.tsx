@@ -18,6 +18,8 @@ import { Checkbox } from '@/Components/ui/checkbox';
 import { Inline } from '@/Components/layout/inline';
 import PageHeader from '@/Components/shared/PageHeader';
 import KpiCard from '@/Components/shared/KpiCard';
+import { Link } from '@inertiajs/react';
+import '../../../css/cowork-manufacturing-bundle.css';
 import EmptyState from '@/Components/shared/EmptyState';
 import StatusBadge from '@/Components/shared/StatusBadge';
 
@@ -60,6 +62,8 @@ interface Props {
   /** id → nome. Pode não vir em versões antigas do payload. */
   business_locations?: Record<number, string>;
   filters?: FiltersState;
+  /** Contador da aba "Receitas". Opcional: payload antigo não mandava. */
+  recipes_count?: number;
 }
 
 const ROUTE = '/manufacturing/production';
@@ -99,7 +103,7 @@ function formatQuantity(value: number): string {
   }).format(value ?? 0);
 }
 
-function Index({ productions = [], summary, business_locations = {}, filters = {} }: Props) {
+function Index({ productions = [], summary, business_locations = {}, filters = {}, recipes_count }: Props) {
   const [start, setStart] = useState<string>(filters.start_date ?? '');
   const [end, setEnd] = useState<string>(filters.end_date ?? '');
 
@@ -141,7 +145,7 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
       <PageHeader
         icon="factory"
         title="Produção"
-        description="Ordens de produção (Manufacturing). Lista MWART em coexistência com a tela legacy."
+        description="Ordens de produção do módulo de Fabricação."
         action={
           <Button asChild>
             <a href={CREATE_ROUTE}>
@@ -150,6 +154,34 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
           </Button>
         }
       />
+
+      {/* Barra de abas do módulo — MESMA das 4 telas irmãs (Recipes/Report/Settings/Insumos).
+          Esta tela nasceu na Wave J sem ela: era a única do módulo em React na época, então
+          não havia pra onde navegar. Depois do cutover de 2026-09-04 o menu lateral passou a
+          trazer o usuário pra cá e a tela virou BECO SEM SAÍDA — [M] reportou clicando e
+          vendo a barra sumir. A aba atual é <span>, não <Link>, igual às irmãs. */}
+      <nav className="mfg-tabs" aria-label="Manufacturing">
+        <Link className="mfg-tab" href="/manufacturing/recipe">
+          Receitas
+          {recipes_count !== undefined && <span className="mfg-tab-n">{recipes_count}</span>}
+        </Link>
+        <span className="mfg-tab act" aria-current="page">
+          Ordens de produção
+          <span className="mfg-tab-n">
+            {summary?.total_count ?? 0}
+            {summary?.pending_count ? ` · ${summary.pending_count} rasc.` : ''}
+          </span>
+        </span>
+        <Link className="mfg-tab" href="/manufacturing/insumos">
+          Insumos
+        </Link>
+        <Link className="mfg-tab" href="/manufacturing/report">
+          Relatório
+        </Link>
+        <Link className="mfg-tab" href="/manufacturing/settings">
+          Configurações
+        </Link>
+      </nav>
 
       {/* KPI strip — "Finalizadas" e "Pendentes" filtram a lista */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
