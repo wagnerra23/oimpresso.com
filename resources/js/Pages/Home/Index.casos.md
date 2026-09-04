@@ -4,7 +4,7 @@ casos: Dashboard · Visão geral · /dashboard-legacy
 irmaos: Index.charter.md (lei) · Index.tsx (tela) · _components/GradesPainel.tsx
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-09-03"
+last_run: "2026-09-04"
 ---
 
 # Casos de uso — /dashboard-legacy (Visão geral)
@@ -15,7 +15,7 @@ last_run: "2026-09-03"
 
 > **Por que todos nascem 🧪 e não ✅:** os 18 testes existem e rodam na lane `dashboard-pest.yml`, mas o `✅` é **derivado**, não declarado — vem do manifesto [`scripts/casos-test-results.json`](../../../../scripts/casos-test-results.json) que o `casos:results` gera a partir do JUnit do CI (gate G-7). Até a primeira run publicar o veredito por-UC, escrever `✅` aqui seria afirmar sem recibo. O estado honesto é 🧪.
 
-> **Cobertura:** 18 UC ↔ 21 testes. Dois UC são defendidos por um **par** de testes (positivo + controle negativo), e isso é proposital: UC-DASH-10 e UC-DASH-15 protegem uma allowlist, e allowlist só está provada quando se mostra que ela **deixa passar o certo E barra o errado**. Um teste só de cada lado passaria com a allowlist desligada.
+> **Cobertura:** 19 UC ↔ 24 testes. UC-DASH-19 é defendido por **três** (concordância, gate e casca). Dois UC são defendidos por um **par** de testes (positivo + controle negativo), e isso é proposital: UC-DASH-10 e UC-DASH-15 protegem uma allowlist, e allowlist só está provada quando se mostra que ela **deixa passar o certo E barra o errado**. Um teste só de cada lado passaria com a allowlist desligada.
 
 ---
 
@@ -111,6 +111,20 @@ Duas metades do mesmo contrato. A primeira é o piso de a11y no browser real: `a
 
 > **Revalidado 2026-09-03** (a tela mudou: o hero ganhou o sparkline da âncora). O critério acima segue valendo **sem alteração** porque ele mede o painel `[data-contract="graficos"]`, e o sparkline vive no card do KPI, fora dele. Lá o SVG é **decorativo** e está `aria-hidden`: o valor do período e o delta já estão em TEXTO no mesmo card. Nos 2 gráficos do painel o dado não está escrito em lugar nenhum — por isso lá a tabela `sr-only` é obrigatória, e aqui seria ruído. A segunda metade é escrita como **concordância**, nunca presença: `0|0` (tenant sem venda) passa e `1|0` (alguém removeu o `SerieAcessivel`) falha — exigir a tabela sempre reprovaria o estado legítimo de série vazia.
 
+## UC-DASH-19 — O atalho de Pendências não promete número que a aba não entrega
+Status: 🧪 (3 testes em `GradesDoPainelTest` citam este UC.)
+O charter v6 (§Goals) manda o painel listar "as abas que têm algo esperando agora — rótulo canônico da aba + total". O risco que o próprio charter nomeou ao manter isto em §Backlog por duas versões é o que este UC defende: *"ele repete o que as abas já dizem"*. Repetir **é** o contrato — o perigo é repetir **errado**. Se o painel contar por um predicado próprio, ele diverge da grade e o usuário clica em "3" e encontra 5 linhas; a partir daí o atalho é pior que a ausência dele, porque ensina a não confiar no número. Por isso o total sai do mesmo [`GradesDoPainelService::linhas()`](../../../../app/Services/Dashboard/GradesDoPainelService.php) que serve a aba, e não de uma contagem paralela.
+
+A segunda metade é a fronteira do escopo: a âncora resume **5** das 8 abas, e as 3 de fora (`pedidos`, `compras-abertas`, `requisicoes`) são fluxo em andamento, não pendência. O teste concede as permissões dessas três de propósito — sem isso, o assert de que não aparecem passaria por falta de permissão em vez de por escolha da âncora, e seria verde sem defender nada.
+
+A terceira é o gate de sempre: sem `dashboard.data` a prop nem é registrada, igual a `charts` e `totals` — a casca continua casca.
+
+**Pronto quando:** o conjunto devolvido por `pendencias()` é **idêntico** — nos dois sentidos — ao derivado de `linhas(aba)->total()` sobre as 5 abas da âncora, mantendo só as de total > 0; nenhuma das 3 abas de fluxo aparece mesmo com permissão concedida; aba sem permissão não aparece; e sem `dashboard.data` a prop `pendencias` é `null`.
+
+> ⚠️ **Este UC já nasceu com um verde que não valia, e o registro fica.** A primeira versão do teste de concordância fazia `markTestSkipped` quando o tenant não tinha nada pendente. Ela **pulou de fato** na primeira run do CI (`PHP / Pest (Dashboard · MySQL)`, 2026-09-04: `4 skipped, 17 passed`) — a invariante central do UC não executou, enquanto a lane reportava verde. Skip loud é melhor que verde silencioso, mas continua não sendo execução ([LC-13](../../../../memory/LICOES_CODE.md)).
+>
+> O conserto **não** foi fabricar dado no tenant: `seededTenant()` é o biz=98, criado pelo **seed** e compartilhado por 16 lanes — fabricar ali é o que a lápide de 2026-08-24 barra, e o dono seria o seed, em PR próprio. O conserto foi **reescrever o assert como igualdade nos dois sentidos**: `pendencias()` tem de ser idêntico ao derivado de `linhas()`. No tenant sem movimento isso afirma que o painel não inventa linha nem exibe zero; com movimento, afirma a concordância. Sem skip, sempre executa.
+
 ---
 
 ## Refs
@@ -119,7 +133,7 @@ Duas metades do mesmo contrato. A primeira é o piso de a11y no browser real: `a
 - Tela: [`Index.tsx`](Index.tsx) + [`_components/GradesPainel.tsx`](_components/GradesPainel.tsx)
 - SPEC: [`memory/requisitos/Dashboard/SPEC.md`](../../../../memory/requisitos/Dashboard/SPEC.md) — US-DASH-001..006
 - RUNBOOK: [`RUNBOOK-home-index.md`](../../../../memory/requisitos/Dashboard/RUNBOOK-home-index.md)
-- Testes: `tests/Feature/Home/HomeIndexInertiaTest.php` (6) · `tests/Feature/Home/GradesDoPainelTest.php` (12) · `tests/Browser/Home/VisaoGeralIndexTest.php` (3, eixo RENDER)
+- Testes: `tests/Feature/Home/HomeIndexInertiaTest.php` (6) · `tests/Feature/Home/GradesDoPainelTest.php` (15) · `tests/Browser/Home/VisaoGeralIndexTest.php` (3, eixo RENDER)
 - Lane do eixo render: `.github/workflows/visual-regression.yml` (step `E2E de render · Home/Visao geral`, **advisory** no nascimento — ADR 0261/0275)
 - Lane: `.github/workflows/dashboard-pest.yml` (MySQL real)
 - Serviço das grades: [`GradesDoPainelService.php`](../../../../app/Services/Dashboard/GradesDoPainelService.php)

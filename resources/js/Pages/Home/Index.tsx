@@ -27,6 +27,7 @@ import { PageHeader } from '@/Components/PageHeader';
 import { PeriodBar, type Period } from '@/Components/shared/PeriodBar';
 import type { PaginatorShape } from '@/Components/shared/DataTable';
 import GradesPainel, { type Aba, type LinhaDaGrade } from './_components/GradesPainel';
+import { hrefDaAba, type Filtros } from './_components/abaHref';
 import { Deferred, router } from '@inertiajs/react';
 import { ReactNode } from 'react';
 
@@ -58,6 +59,12 @@ interface Props {
   aba: string | null;
   /** Linhas da aba aberta. Prop DEFERIDA: chega no segundo round-trip. */
   grade: PaginatorShape<LinhaDaGrade> | null;
+  /**
+   * Atalhos do painel de Pendências: as abas que têm algo esperando, já filtradas
+   * por permissão e sem as de total zero. Prop DEFERIDA — são 5 contagens, e o alvo
+   * de first-paint <= 800ms do charter não paga por atalho.
+   */
+  pendencias?: Array<{ aba: string; label: string; total: number }>;
   endpoints: {
     totals: string;
     stock_alert: string;
@@ -206,6 +213,7 @@ function HomeIndex({
   abas,
   aba,
   grade,
+  pendencias,
 }: Props) {
   const lojas = Object.entries(all_locations);
   const mostraLoja = is_admin && lojas.length > 1;
@@ -317,7 +325,20 @@ function HomeIndex({
               description={`${sinal(deltas?.total_expense)}lançadas no período`}
             />
           </Grid>
-          <Contrapartidas totals={totals} />
+          {/*
+            Contrapartidas à esquerda, Pendências à direita — a linha de 2 colunas da
+            âncora (`minmax(0, 1.4fr)` / `minmax(240px, 1fr)`, `dash-legacy-page.jsx`
+            linha 257). As proporções e o piso de 240px são os dela, não escolha daqui.
+          */}
+          <Grid className="grid-cols-[minmax(0,1.4fr)_minmax(240px,1fr)] gap-[10px]">
+            <Contrapartidas totals={totals} />
+            <Deferred
+              data="pendencias"
+              fallback={<div className={`${CARTAO} h-[150px] animate-pulse`} />}
+            >
+              <PendenciasPainel pendencias={pendencias} filtros={filtrosDaTela} />
+            </Deferred>
+          </Grid>
 
           <Deferred
             data='charts'
@@ -381,6 +402,59 @@ function Contrapartidas({ totals }: { totals: Totals }) {
             </Stack>
           ))}
         </Grid>
+      </section>
+    </Stack>
+  );
+}
+
+/**
+ * Pendências — atalho pras abas que têm algo esperando agora.
+ *
+ * ⚠️ O que este painel NÃO copia da âncora, e por quê: lá (`dash-legacy-page.jsx`,
+ * const `PENDENCIAS`) cada linha tem texto próprio e um selo de severidade —
+ * "1 título de venda vencido" + `payment/overdue`. Esses rótulos descrevem um
+ * predicado MAIS ESTRITO do que o que a aba consulta: `titulosVencendo` traz tudo
+ * que vence em até 7 dias, vencido ou não. Carimbar "vencido" num conjunto que
+ * inclui o que ainda vai vencer é rotular errado — o usuário clica e não encontra
+ * o que o selo prometeu. Severidade honesta seria um SEGUNDO predicado: decisão de
+ * [W], não wiring.
+ *
+ * Então a linha mostra o rótulo CANÔNICO da aba — o mesmo do catálogo do serviço e
+ * o mesmo que a aba exibe — e o total que a aba vai mostrar. O número vem do mesmo
+ * `linhas()` que serve a grade, então clicar nunca contradiz o que estava escrito.
+ */
+function PendenciasPainel({ pendencias, filtros }: { pendencias: Props['pendencias']; filtros: Filtros }) {
+  return (
+    <Stack gap={3} asChild>
+      <section aria-label="Pendências" data-contract="pendencias" className={CARTAO}>
+        <Inline gap={3} align="baseline" justify="between">
+          <h2 className="text-[13.5px] font-semibold text-foreground">Pendências</h2>
+          {/* Não é "mesmo período" como nas Contrapartidas: nenhuma das 5 consultas
+              é recortada pela PeriodBar — elas olham o estado de agora. */}
+          <span className="font-mono text-[10.5px] text-muted-foreground">agora</span>
+        </Inline>
+        {pendencias && pendencias.length > 0 ? (
+          <Stack gap={0} asChild>
+            <ul>
+              {pendencias.map(({ aba, label, total }) => (
+                <li key={aba} className="border-b border-border last:border-b-0">
+                  {/* Link, não botão: a aba mora na query string, então o atalho tem
+                      de ser um endereço de verdade — com voltar, abrir em nova aba e
+                      o mesmo construtor de URL que a barra de abas usa. */}
+                  <a
+                    href={hrefDaAba(filtros, aba)}
+                    className="flex items-center justify-between gap-3 py-[7px] text-[12.5px] text-foreground hover:text-primary"
+                  >
+                    <span className="min-w-0">{label}</span>
+                    <span className="font-mono font-semibold tabular-nums">{total}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </Stack>
+        ) : (
+          <span className="text-[12.5px] text-muted-foreground">Nada pendente.</span>
+        )}
       </section>
     </Stack>
   );

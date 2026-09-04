@@ -289,3 +289,86 @@ it('UC-DASH-16 · ordenaveis() espelha o sortable da ancora — situacao NAO ord
         ->and(GradesDoPainelService::ordenaveis('pedidos'))->toContain('total')
         ->and(GradesDoPainelService::ordenaveis('aba-inexistente'))->toBe([]);
 });
+
+/*
+ * UC-DASH-19 — painel "Pendências" (o atalho do §Backlog do charter, liberado por [W]
+ * em 2026-09-04). Três invariantes, e cada uma pode reprovar de verdade:
+ *
+ *  1. CONCORDÂNCIA — o conjunto exibido é EXATAMENTE o das 5 abas da âncora com
+ *     total > 0, e cada número é o da grade. Igualdade nos dois sentidos, sem skip:
+ *     no tenant sem movimento ela prova que o painel não inventa linha nem mostra
+ *     zero; com movimento, prova a concordância. É o
+ *     motivo de `pendencias()` reusar `linhas()` em vez de ter query própria: um
+ *     segundo predicado de "pendente" drifta do primeiro e o painel passa a prometer
+ *     um número que a grade não entrega.
+ *  2. GATE — pendência de aba sem permissão não aparece (mesma regra da aba: some,
+ *     não fica desabilitada).
+ *  3. CASCA — sem `dashboard.data` a prop nem é registrada, igual a `charts`/`totals`.
+ */
+
+it('UC-DASH-19 · o painel é EXATAMENTE as 5 abas da âncora com total > 0, e o total é o da grade', function () {
+    $user = gradesBootstrap([
+        'dashboard.data',
+        'sell.view', 'purchase.view', 'stock_report.view', 'access_shipping',
+        // As 3 de FLUXO entram com permissão de propósito: sem elas permitidas, o
+        // assert de que não aparecem passaria por falta de permissão, não por escolha
+        // da âncora — e é a escolha que este teste defende.
+        'so.view_all', 'purchase_order.view_all', 'purchase_requisition.view_all',
+    ]);
+    $this->actingAs($user);
+
+    $servico = app(GradesDoPainelService::class);
+    $businessId = (int) session('business.id');
+
+    // O esperado é DERIVADO da grade, aba por aba: é a forma executável do contrato
+    // "o número do painel é o número da aba". A lista das 5 é repetida aqui de
+    // propósito — se alguém puser 'pedidos' na const do serviço, os dois lados
+    // divergem e este assert cai.
+    $esperado = [];
+    foreach (['venc-venda', 'venc-compra', 'estoque', 'validade', 'expedicao'] as $aba) {
+        $total = $servico->linhas($aba, $businessId)?->total() ?? 0;
+        if ($total > 0) {
+            $esperado[$aba] = $total;
+        }
+    }
+
+    $obtido = array_column($servico->pendencias($businessId), 'total', 'aba');
+
+    // Igualdade nos DOIS sentidos — e ela afirma algo mesmo no tenant sem movimento:
+    // ali prova que o painel não inventa linha nem exibe zero. Com dado, prova a
+    // concordância. Por isso este teste NÃO faz skip: um `markTestSkipped` aqui
+    // deixaria a invariante central sem execução nenhuma no CI (LICOES_CODE LC-13),
+    // que é exatamente o que a primeira versão dele fez.
+    expect($obtido)->toBe($esperado);
+
+    expect(array_keys($obtido))->not->toContain('pedidos')
+        ->and(array_keys($obtido))->not->toContain('compras-abertas')
+        ->and(array_keys($obtido))->not->toContain('requisicoes');
+});
+
+it('UC-DASH-19 · pendência de aba sem permissão não aparece no painel', function () {
+    $user = gradesBootstrap(['dashboard.data', 'sell.view']);
+    $this->actingAs($user);
+
+    $abas = array_column(
+        app(GradesDoPainelService::class)->pendencias((int) session('business.id')),
+        'aba'
+    );
+
+    expect($abas)->not->toContain('venc-compra')
+        ->and($abas)->not->toContain('estoque')
+        ->and($abas)->not->toContain('validade')
+        ->and($abas)->not->toContain('expedicao');
+});
+
+it('UC-DASH-19 · sem dashboard.data a prop pendencias nem é registrada', function () {
+    $user = gradesBootstrap(['sell.view', 'purchase.view']);
+
+    $response = $this->actingAs($user)->get('/dashboard-legacy');
+
+    $response->assertStatus(200);
+    $response->assertInertia(fn (AssertableInertia $page) => $page
+        ->where('can_dashboard_data', false)
+        ->where('pendencias', null)
+    );
+});
