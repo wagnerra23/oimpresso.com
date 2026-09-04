@@ -118,6 +118,7 @@ não tem as migrations do NfeBrasil. É lacuna de ambiente, não defeito do test
 | UC-FNFE-09 | retransmitir preserva a nota antiga (nunca deleta) | `[must]` `[reg]` | CU-FISC-11 | `AcoesContratoTest` | 🧪 |
 | UC-FNFE-10 | a lista é operável só pelo teclado (linha focável, não botão) | `[must]` | **—** (ver nota) | `fiscal-nfe-teclado.test.tsx` | 🧪 |
 | UC-FNFE-11 | nenhum ícone decorativo chega ao leitor de tela | `[must]` | **—** (mesma nota) | `fiscal-nfe-teclado.test.tsx` | 🧪 |
+| UC-FNFE-12 | a lista não promete o que não tem (separador solto · tecla sem handler) | `[should]` | **—** (mesma nota) | `fiscal-nfe-teclado.test.tsx` (5) | 🧪 |
 
 > **Por que esta tabela nasceu em 2026-09-01 (e o que ela NÃO fez):** os 8 UC desta tela já eram
 > provados por teste desde 2026-07-27 — nenhum deles declarava, porém, **qual CU do SDD §6 atende**.
@@ -292,6 +293,39 @@ próprios ícones e são de outra onda.
 **Cuidado que o caso NÃO dispensa:** `aria-hidden` em ícone que é o ÚNICO conteúdo de um controle
 **remove o nome acessível** dele. Cada um dos 13 foi conferido antes: os 5 da tela e os 7 da subnav
 vêm com texto ao lado; o `<X>` da paleta está num botão que já declara `aria-label="Fechar (ESC)"`.
+
+## UC-FNFE-12 — A lista não promete o que não tem
+Status: 🧪 (`tests/js/fiscal-nfe-teclado.test.tsx` — 5 casos, **passam**; lane `Fiscal Teclado Gate`)
+
+Dois defeitos da mesma família, achados por [W] no screenshot de `/fiscal/nfe` em produção
+(biz=1, 2026-09-04): a tela ocupando espaço com informação que não existe.
+
+**(a) Separador entre dois nadas.** Dado nota sem destinatário e sem documento · Quando renderiza a
+célula · Então mostra `—`, nunca `— · —`. O Controller manda `dest: '—'` (fallback declarado no
+charter, R2) e o `formatDoc` devolve `'—'` — dois fallbacks individualmente CORRETOS que somavam um
+terceiro errado. Em biz=1 é o caso das notas rejeitadas, que não chegaram a ter destinatário gravado.
+
+**(b) Tecla anunciada sem handler.** Dado o rodapé de atalhos · Quando o operador lê as teclas ·
+Então toda tecla listada tem handler. `R` ("reconsultar SEFAZ") e `X` ("cancelar") estavam lá
+rotuladas `(em breve)` e o `keydown` desta tela trata só `j`/`k`/setas/`Enter` — varredura contada
+no `Nfe.tsx`: 0 handlers para as duas.
+
+**Pronto quando:** nenhuma célula de informação começa/termina com `·` nem contém `— ·`, e o
+`.fx-cheatsheet` não anuncia tecla que a tela ignora.
+
+**Por que (b) é defeito, se o rótulo era honesto:** a barra de atalhos é **onde o operador aprende
+as teclas**. Duas mortas ali ensinam errado — ele aperta, nada acontece, e conclui que a tela
+travou. As duas AÇÕES existem e seguem intactas no drawer (US-FISCAL-012/014); o que não existe é a
+tecla. Reatalhar é decisão de produto, não conserto: o `X` abre um fluxo que exige motivo de 15–255
+chars, então não é uma tecla, é uma porta.
+
+**Mordida provada (contrafactual, os dois lados):** reintroduzir `{n.dest} · {formatDoc(…)}` derruba
+2 casos com `expected '— · —' to be '—'` e `expected 'Gráfica Ribeirão · —' to be 'Gráfica Ribeirão'`;
+devolver `R`/`X` à barra derruba o terceiro (`not to contain 'em breve'`). Restaurados, 12/12.
+
+**Controle negativo incluído:** um caso dispara `r`/`R`/`x`/`X` na window e assere que o DOM não
+muda — prova que remover da barra descreve a realidade, em vez de esconder um atalho vivo. E um
+caso de não-regressão: com destinatário E documento, a célula segue mostrando os dois.
 
 ## Backlog de casos (sem id — entram quando um teste de COMPORTAMENTO os cobrir)
 

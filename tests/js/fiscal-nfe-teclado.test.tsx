@@ -182,3 +182,86 @@ describe('UC-FNFE-11 · nenhum ícone decorativo chega ao leitor de tela', () =>
     expect(expostos.map(s => s.getAttribute('class')), 'ícone decorativo no leitor de tela').toEqual([]);
   });
 });
+
+describe('UC-FNFE-12 · a lista não promete o que não tem', () => {
+  // Achado de produção 2026-09-04 ([W], screenshot de /fiscal/nfe em biz=1).
+  //
+  // Os dois casos abaixo são a mesma doença em superfícies diferentes: a tela ocupando espaço
+  // com informação que não existe. Um separador entre dois nadas, e duas teclas que o `keydown`
+  // desta tela nunca vai ver.
+
+  it('o rodapé de atalhos não anuncia tecla sem handler', () => {
+    render(<Nfe {...cena} />);
+
+    const barra = document.querySelector('.fx-cheatsheet');
+    expect(barra).not.toBeNull();
+
+    // A regressão exata: `{ keys: ['R'], label: 'reconsultar SEFAZ (em breve)' }`. O rótulo era
+    // honesto, mas a barra de atalhos é onde o operador APRENDE as teclas — ele aperta, nada
+    // acontece, e conclui que a tela travou.
+    expect(barra?.textContent ?? '').not.toContain('em breve');
+    expect(barra?.textContent ?? '').not.toMatch(/\bR\b/);
+    expect(barra?.textContent ?? '').not.toMatch(/\bX\b/);
+  });
+
+  it('R e X de fato não fazem nada — remover da barra não tirou função de ninguém', () => {
+    // Controle: prova que a remoção descreve a realidade, em vez de esconder um atalho vivo.
+    // As duas AÇÕES existem e seguem no drawer (US-FISCAL-012/014) — o que não existe é a tecla.
+    render(<Nfe {...cena} />);
+
+    const antes = document.body.innerHTML;
+    act(() => {
+      fireEvent.keyDown(window, { key: 'r' });
+      fireEvent.keyDown(window, { key: 'R' });
+      fireEvent.keyDown(window, { key: 'x' });
+      fireEvent.keyDown(window, { key: 'X' });
+    });
+
+    expect(document.body.innerHTML).toBe(antes);
+  });
+
+  // Cena das notas rejeitadas de biz=1: sem destinatário e sem documento gravados. O Controller
+  // manda `dest: '—'` (o fallback dele) e o `formatDoc` devolve `'—'` — dois fallbacks certos que
+  // somavam um terceiro errado, `— · —`.
+  const cenaSemDest = {
+    ...cena,
+    rows: {
+      ...cena.rows,
+      data: [
+        nota({ id: 10, num: 1, dest: '—', cnpj: null, cpf: null }),
+        nota({ id: 11, num: 2, dest: 'Gráfica Ribeirão', cnpj: null, cpf: null }),
+        nota({ id: 12, num: 3, dest: '—', cnpj: '22641309000188', cpf: null }),
+      ],
+    },
+  };
+
+  const infoDe = (i: number) =>
+    linhas()[i]?.querySelectorAll('td')[1]?.querySelector('small')?.textContent ?? '';
+
+  it('sem destinatário e sem documento, a célula não vira "— · —"', () => {
+    render(<Nfe {...cenaSemDest} />);
+
+    expect(infoDe(0)).toBe('—');
+  });
+
+  it('com só um dos dois, mostra o que existe — sem separador solto', () => {
+    render(<Nfe {...cenaSemDest} />);
+
+    expect(infoDe(1)).toBe('Gráfica Ribeirão');
+    expect(infoDe(2)).toBe('22641309000188');
+
+    for (let i = 0; i < 3; i++) {
+      const t = infoDe(i);
+      expect(t.startsWith('·')).toBe(false);
+      expect(t.endsWith('·')).toBe(false);
+      expect(t).not.toContain('— ·');
+      expect(t).not.toContain('· —');
+    }
+  });
+
+  it('com os dois presentes, nada muda — não-regressão', () => {
+    render(<Nfe {...cena} />);
+
+    expect(infoDe(0)).toBe('Rota Livre Comercio · 12345678000199');
+  });
+});
