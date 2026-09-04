@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
 last_run: "2026-09-04"
-last_run_ci: "0 UC executado nesta corrida — UC-FCFG-05 nasce com teste novo e veredito PENDENTE da lane Pest Fiscal + suíte noturna CT 100; nada foi re-executado localmente (Pest = CT 100, ADR 0062)"
+last_run_ci: "0 UC executado nesta corrida — UC-FCFG-05 e UC-FCFG-06 nascem com testes novos, veredito PENDENTE da lane Pest Fiscal + suíte noturna CT 100; nada foi re-executado localmente (Pest = CT 100, ADR 0062)"
 related_us: [US-FISCAL-009]
 ---
 
@@ -38,7 +38,15 @@ related_us: [US-FISCAL-009]
 >
 > **Status:** ✅ provado por teste verde que cita o UC · 🧪 tem teste, **veredito pendente da lane** · ⬜ não verificado · ❌ quebrou.
 
-> ⚠️ **Divergência aberta entre charter e código — decisão [W] (SDD §5.4.3).** O charter declara
+> ✅ **Divergência FECHADA em 2026-09-02 — o aviso abaixo é registro do que era verdade até lá.**
+> O charter foi reconciliado naquela data: saiu o Non-Goal *"edição inline"* na parte de upload de
+> certificado e saiu o anti-hook *"esta tela é read-only por design"*, ambos porque o `main` os
+> refutava (a tela posta desde 2026-05-27). Com a intenção resolvida, o caminho de mutação deixou
+> de ser "contrato em disputa" e ganhou contrato: **`UC-FCFG-06`** (o gate das duas ações de risco).
+> O parágrafo original fica preservado porque a data importa — ele explica por que os UC de mutação
+> demoraram a existir.
+>
+> ⚠️ **Divergência aberta entre charter e código — decisão [W] (SDD §5.4.3).** _(registro de 2026-07-27, superado acima)_ O charter declara
 > `❌ Edição inline (upload novo cert, mudar regime, editar tributação)` e o anti-hook
 > `🚫 esta tela é read-only por design`. Medido em `Config.tsx`: existem **dois formulários de
 > mutação** — envio de certificado e troca de ambiente SEFAZ. A **letra** do anti-hook está honrada
@@ -63,6 +71,7 @@ related_us: [US-FISCAL-009]
 | UC-FCFG-03 | gate de permissão da tela | `[must]` `[T0]` | CU-FISC-13 | `GatesPermissaoFiscalTest` | 🧪 |
 | UC-FCFG-04 | estado da contingência e sua DURAÇÃO chegam do servidor | `[must]` | US-NFE-006 | `ConfigControllerTest` | 🧪 |
 | UC-FCFG-05 | o card de envio de documentos LÊ o deploy, não demonstra | `[should]` | CU-FISC-16 | `ConfigControllerTest` | 🧪 |
+| UC-FCFG-06 | trocar ambiente / trocar certificado exige gate PRÓPRIO, no servidor | `[must]` `[T0]` | CU-FISC-13 | `GatesPermissaoFiscalTest` | 🧪 |
 
 ---
 
@@ -145,12 +154,40 @@ related_us: [US-FISCAL-009]
 
 ---
 
+## UC-FCFG-06 — Trocar ambiente e substituir certificado exigem gate próprio, recusado no SERVIDOR `[must]` `[T0]`
+
+**Dado** um usuário com `fiscal.config.edit` — ou seja, alguém que legitimamente abre e edita esta
+tela — mas **sem** `fiscal.config.ambiente`
+**Quando** ele pede a troca do ambiente SEFAZ, ou o envio de um certificado novo
+**Então** o **servidor** recusa com 403;
+**E** a tela mostra o estado da permissão em texto, com os campos travados e o motivo dito —
+nunca um botão cinza sem explicação.
+
+- **Regressão que defende, e ela era real:** até 2026-09-04 o `updateAmbiente` do
+  `CertificadoController` **não tinha gate nenhum** — a rota carrega só
+  `web/auth/SetSessionData/language/timezone/AdminSidebarMenu`, e o método recebia `Request` puro,
+  sem FormRequest. Qualquer usuário autenticado com business em sessão conseguia inverter
+  produção↔homologação. Uma empresa emitindo em homologação sem saber passa dias produzindo nota
+  **sem valor fiscal**.
+- **Por que separado de `fiscal.config.edit`:** editar o e-mail do contador e trocar o ambiente de
+  emissão não são o mesmo risco — a segunda muda o valor fiscal de **toda** nota emitida depois
+  dela. É por isso que o teste usa um usuário **com** `config.edit` e **sem** `config.ambiente`:
+  um caso com "usuário sem permissão nenhuma" não distinguiria os dois gates.
+- **A tela não é a barreira:** o `podeTrocarAmbiente` do payload é espelho, pra dizer o motivo.
+  Quem recusa é `CertificadoController::garantirGateAmbiente`. O teste ataca o **POST direto**,
+  não a tela.
+- **Fail-secure:** sem a permissão concedida, 403. Superadmin passa sempre.
+- **Teste:** `Modules/Fiscal/Tests/Feature/GatesPermissaoFiscalTest.php` — `it('UC-FCFG-06 · POST ambiente aborta 403 com fiscal.config.edit mas sem fiscal.config.ambiente')`, `it('UC-FCFG-06 · POST upload de certificado aborta 403 sem fiscal.config.ambiente')` e o controle positivo **sem mutação** (posta o ambiente que já está gravado; o controller sai cedo).
+- **Status:** 🧪 testes nascem nesta corrida; veredito pendente da lane.
+
+---
+
 ## Backlog de casos (sem id — viram UC quando ganharem contrato + teste)
 
 - **[BACKLOG · ⬜ sem teste] A validade do certificado aparece com três tons de urgência** — vencido, perto de vencer (até 30 dias) e tranquilo. _O cálculo existe no Controller; sem teste dos limiares._
 - **[BACKLOG · ⬜ sem teste] O painel mostra regime, série, próximo número e tributação padrão** — leitura consolidada do que o NfeBrasil guarda. _Sem teste; note que esses dados são lidos por consulta direta à tabela, **fora** do escopo automático de business — o escopo é aplicado à mão a partir da sessão (SDD §5.2)._
 - **[BACKLOG · ⬜ sem teste · decisão [W]] A aba de séries mostra séries reais** — hoje ela é servida por **dado de demonstração** com uma filial inventada (`CU-FISC-16` do SDD §6.5 · §5.4.1). **Precisa de decisão [W].**
-- **[BACKLOG · ⬜ sem contrato · decisão [W]] Trocar o ambiente SEFAZ e enviar certificado a partir desta tela** — os dois formulários existem, mas o charter diz que a tela é read-only. **Sem contrato até [W] resolver a divergência** (ver aviso no topo). Escrever UC aqui seria escolher o vencedor de uma disputa de intenção.
+- ~~**[BACKLOG · ⬜ sem contrato · decisão [W]] Trocar o ambiente SEFAZ e enviar certificado a partir desta tela**~~ → **ganhou contrato em 2026-09-04**: o charter foi reconciliado em 09-02 (a tela é editável) e o **gate** das duas ações virou `UC-FCFG-06`. A **cerimônia** da troca — destino digitado à mão + motivo de 15+ caracteres + evento de auditoria com o motivo — é a PR 3/3 do item A5, e ganha id próprio lá.
 - **[BACKLOG · ⬜ sem campo · decisão [W]] Cadastrar o e-mail do contador** — a linha existe no card
   (`UC-FCFG-05`) declarando a ausência. Dar valor a ela exige **coluna nova** em
   `nfe_business_configs` (migration em PR próprio, nunca junto de UI) e a decisão de se o envio ao
@@ -169,6 +206,11 @@ related_us: [US-FISCAL-009]
 ## Trilha do tempo
 
 - 2026-07-15 · [CC] stub criado no Passo 3 do programa de ondas — **0 UC**.
+- 2026-09-04 · [C] Item A5 (PR 2/3 — gate `fiscal.config.ambiente`). Nasce a permissão, DECLARADA
+  em `DataController::user_permissions` (Camada 3) e provisionada — mas **nunca atribuída** por
+  comando: conceder é ato de [W]. O enforcement é de SERVIDOR, em
+  `CertificadoController::garantirGateAmbiente`, e cobre as duas ações de risco. Fecha um buraco
+  real: o `updateAmbiente` não tinha gate nenhum. `UC-FCFG-06`. **Nenhum teste re-executado.**
 - 2026-09-04 · [C] Item A5 (PR 1/3 — abas + cards). As 4 abas recebem os rótulos do protótipo
   (`Certificado e regime` · `Séries` · `Ambiente e certificado` · `SPED`) **sem** trocar as chaves
   de URL; a aba `cert` vira **uma** região ancorada `data-contract="fiscal-config-cert-regime"`,

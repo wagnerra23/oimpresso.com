@@ -22,6 +22,10 @@ use Throwable;
  * Permissão: `nfe.configuracao.manage` (validada no FormRequest::authorize +
  * declarada em Modules\NfeBrasil\Http\Controllers\DataController::user_permissions).
  *
+ * As duas MUTAÇÕES de risco — `upload` (substituir certificado) e `updateAmbiente`
+ * (trocar ambiente SEFAZ) — exigem ADICIONALMENTE `fiscal.config.ambiente`, via
+ * garantirGateAmbiente(). São as ações que param a emissão da empresa inteira.
+ *
  * Pattern: Inertia (status() = render; upload() = redirect+flash). ADR 0029.
  */
 class CertificadoController extends Controller
@@ -55,6 +59,8 @@ class CertificadoController extends Controller
      */
     public function upload(UploadCertificadoRequest $request): RedirectResponse
     {
+        $this->garantirGateAmbiente($request);
+
         $businessId = (int) $request->session()->get('business.id');
         $cnpjBusiness = (string) $request->session()->get('business.tax_number_1', '');
 
@@ -172,9 +178,14 @@ class CertificadoController extends Controller
      * sem reload total.
      *
      * Audit log captura mudança (sem dados fiscais sensíveis).
+     *
+     * Gate: `fiscal.config.ambiente` (ver garantirGateAmbiente). Até 2026-09-04
+     * este método não tinha gate NENHUM — nem FormRequest, nem middleware na rota.
      */
     public function updateAmbiente(Request $request): RedirectResponse
     {
+        $this->garantirGateAmbiente($request);
+
         $businessId = (int) $request->session()->get('business.id', 0);
         if ($businessId === 0) {
             return back()->withErrors(['ambiente' => 'Sessão sem business.']);
@@ -211,6 +222,35 @@ class CertificadoController extends Controller
         return redirect()
             ->route('nfe-brasil.certificado.status')
             ->with('success', "Ambiente SEFAZ alterado para {$label}.");
+    }
+
+    /**
+     * Gate das DUAS ações que param a emissão da empresa inteira: trocar o
+     * ambiente SEFAZ e substituir o certificado A1.
+     *
+     * POR QUE SEPARADO de `fiscal.config.edit`: editar o e-mail do contador e
+     * trocar o ambiente de emissão não são o mesmo risco — a segunda muda o valor
+     * fiscal de TODA nota emitida depois dela. Charter `Fiscal/Config`, decisão
+     * [W] 2026-08-24 (`prototipo-ui/design-docs/cowork-inbox/fiscal/`).
+     *
+     * FAIL-SECURE por desenho: sem a permissão, 403. Isto FECHA um buraco real —
+     * até 2026-09-04 o `updateAmbiente` não tinha gate nenhum (a rota só carrega
+     * `web/auth/SetSessionData/language/timezone/AdminSidebarMenu`, e o método
+     * recebia `Request` puro, sem FormRequest). Qualquer usuário autenticado com
+     * business em sessão conseguia inverter produção↔homologação.
+     *
+     * A mensagem repete o texto que a tela mostra no campo travado, pra quem
+     * levar o 403 ao suporte encontrar a mesma frase dos dois lados.
+     */
+    private function garantirGateAmbiente(Request $request): void
+    {
+        $user = $request->user();
+
+        if ($user && ($user->can('superadmin') || $user->can('fiscal.config.ambiente'))) {
+            return;
+        }
+
+        abort(403, 'Exige fiscal.config.ambiente');
     }
 
     /**
