@@ -54,8 +54,12 @@ on:
       - 'resources/js/Pages/Fiscal/_components/FxShell.tsx'
       - 'resources/js/Pages/Fiscal/_components/CmdKPalette.tsx'
       - 'resources/js/Pages/Fiscal/_lib/paginas-fiscais.tsx'
+      # `sefazPill` vive aqui: e ele que decide o rotulo da pilula quando o cStat nao
+      # esta na tabela. Sem este path, mexer no fallback nao acorda quem o defende.
+      - 'resources/js/Pages/Fiscal/_lib/fiscal-helpers.ts'
       - 'resources/css/fiscal-cockpit.css'
       - 'tests/js/fiscal-nfe-teclado.test.tsx'
+      - 'tests/js/fiscal-nfe-sefaz-pilula.test.tsx'
       - 'tests/js/fiscal-cockpit-teclado.test.tsx'
       - 'tests/js/setup.ts'
       - '.github/workflows/fiscal-teclado-gate.yml'
@@ -74,8 +78,12 @@ on:
       - 'resources/js/Pages/Fiscal/_components/FxShell.tsx'
       - 'resources/js/Pages/Fiscal/_components/CmdKPalette.tsx'
       - 'resources/js/Pages/Fiscal/_lib/paginas-fiscais.tsx'
+      # `sefazPill` vive aqui: e ele que decide o rotulo da pilula quando o cStat nao
+      # esta na tabela. Sem este path, mexer no fallback nao acorda quem o defende.
+      - 'resources/js/Pages/Fiscal/_lib/fiscal-helpers.ts'
       - 'resources/css/fiscal-cockpit.css'
       - 'tests/js/fiscal-nfe-teclado.test.tsx'
+      - 'tests/js/fiscal-nfe-sefaz-pilula.test.tsx'
       - 'tests/js/fiscal-cockpit-teclado.test.tsx'
       - 'tests/js/setup.ts'
       # o workflow entra no gatilho de push porque é o run de `main` que o publisher
@@ -113,6 +121,7 @@ jobs:
         run: |
           npx vitest run \
             tests/js/fiscal-nfe-teclado.test.tsx \
+            tests/js/fiscal-nfe-sefaz-pilula.test.tsx \
             tests/js/fiscal-cockpit-teclado.test.tsx \
             --reporter=default \
             --reporter=junit \

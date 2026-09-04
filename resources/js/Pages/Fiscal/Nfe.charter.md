@@ -66,7 +66,7 @@ Dar à pessoa fiscal (Eliana contadora + Wagner operador) a **lista navegável d
 ## UX targets
 
 - **Densidade:** linhas ~48px, fonte 12.5px corpo / 13.5px número da nota (mono).
-- **Cor de status:** verde =100/104 (ok), âmbar =999/691 (warn), vermelho =110/204/220/539/778 (bad).
+- **Cor de status:** verde = aceito pela SEFAZ · âmbar = transitório ou SEFAZ indisponível (103/105/108/109) · vermelho = rejeição. A classificação por código deixou de ser digitada aqui e passa a ser **derivada** do campo `status` da tabela oficial — ver §Reconciliação 2026-09-04.
 - **Pílula 24h:** verde >12h, âmbar 6-12h, vermelho <6h (urgência cresce).
 - **Drawer:** largura 480px desktop, full-width mobile, ESC fecha, click-outside fecha.
 - **Foco visual:** linha cursor (J/K) com `outline: 2px solid var(--fis)`.
@@ -153,4 +153,76 @@ produto de [W], não conserto: o `X` abre um fluxo que exige motivo de 15–255 
 tecla, é uma porta. Se [W] quiser o atalho, ele volta com handler e caso próprio.
 
 O §UX targets não menciona a barra de atalhos, então nada ali precisou mudar.
+
+---
+
+## Reconciliação factual — 2026-09-04 (pílula SEFAZ)
+
+**Só FATO foi corrigido. Mission, Goals, Non-Goals, Anti-hooks seguem intocados** — intenção é de [W].
+
+Achado de produção reportado por [W] com screenshot: em `biz=1` a lista mostrava **`781 Status`** e
+**`— Status`**. `"Status"` não é rótulo — era o fallback do `Nfe.tsx:286` vazando para a tela.
+Medindo o mapa que o Controller servia contra a tabela cStat oficial (528 códigos, distribuída em
+`vendor/nfephp-org/sped-nfe/storage/cstat.json` com o SDK que este projeto usa pra transmitir),
+apareceu o problema maior: **5 dos 12 códigos estavam traduzidos errado**.
+
+| O que dizia (UX targets + mapa à mão) | O que é (tabela oficial da SEFAZ) | Evidência |
+|---|---|---|
+| `691` é âmbar, "NCM divergente" | `691` = **"Chave de Acesso da NF-e diverge da Chave de Acesso do EPEC"**, `status: "0"` = rejeição | tabela cStat oficial |
+| `778` = "CST/CFOP inválido" | `778` = **"Informado NCM inexistente"** | a SEFAZ gravou `motivo="Rejeicao: Informado NCM inexistente [nItem:1]"` na nota id=8 de biz=1 |
+| `220` = "Duplicidade" | `220` = **"Prazo de Cancelamento superior ao previsto na Legislação"** | tabela cStat oficial |
+| `104` = "Autorizada (NFC-e)" | `104` = **"Lote processado"** | idem |
+| `999` = "Processando" | `999` = **"Erro não catalogado"** | idem |
+
+O âmbar do `691` no §UX targets caiu junto com a premissa que o sustentava: ele estava lá por se
+acreditar que o código era um erro de cadastro corrigível. Derivar o tom do campo `status` da tabela
+**cumpre** a regra que [W] escreveu (*"vermelho = rejeição"*) melhor do que a lista literal cumpria.
+
+Também deixou de ser verdade que o Goal 2 se satisfaz "espelhando SEFAZ_CODES do design": o
+`prototipo-ui/cowork/fiscal-data.jsx` tem 8 códigos e declara-se derivado do `Cockpit.tsx` — é porte
+reverso do código, não fonte fiscal. A fonte é a tabela da SEFAZ.
+
+**O que a tela garante agora** (contrato por UC em [`Nfe.casos.md`](Nfe.casos.md) → `UC-FNFE-03`):
+
+| Garantia | Como se prova |
+|---|---|
+| cStat conhecido mostra o **texto oficial** da SEFAZ | `NfeCockpitMultiTenantTest` asserta contra textos do MOC transcritos, não contra o próprio mapa |
+| o rótulo **nunca** é `"Status"` nem vazio | `fiscal-nfe-sefaz-pilula.test.tsx` mede `.fx-sefaz .lbl` nas 2 linhas reais de biz=1 |
+| nota **sem** cStat mostra o status de domínio ("Inutilizada") | idem — antes renderizava `— Status` |
+| código fora da tabela **não** é inventado: some do mapa e a tela mostra status + número | `mapaPara([424242])` → `[]` (controle negativo) |
+| o tooltip traz o `motivo` daquela nota, com o `[nItem:N]` | idem |
+
+### Dívida declarada, NÃO consertada aqui — e a primeira redação dela estava ERRADA
+
+⚠️ **Correção de precisão (mesma sessão, apontada pela sessão irmã do #6719).** Esta seção dizia
+que o `_lib/sefaz-codes.ts` *"serve o `Cockpit.tsx` e o `EventosDrawer.tsx`"*. **Falso, e falso de
+um jeito caro:** quem ler isso vai consertar o `sefaz-codes.ts` achando que conserta a lista do
+cockpit — e **não conserta**. Varredura contada (`from '../_lib/sefaz-codes'`, 17.193 arquivos):
+**2 importadores, nenhum é o `Cockpit.tsx`**.
+
+O mesmo defeito existe em **três** lugares independentes, e cada um pede trabalho próprio:
+
+| # | Onde | Serve | Estado |
+|---|---|---|---|
+| 1 | `NfeCockpitController::sefazCodes()` | lista `/fiscal/nfe` | **consertado aqui** — deriva da tabela oficial |
+| 2 | `Cockpit.tsx:159` `STATUS_LABEL` (8 códigos) + fallback `` `Status ${n.status}` `` na linha 612 | **lista `/fiscal`** | **6 de 8 errados** — pior proporção que o #1 |
+| 3 | `_lib/sefaz-codes.ts` (16 códigos) | `NotaDrawerV2` (que o Cockpit monta) + `EventosDrawer` | apelidos errados em `220`/`691`/`778` |
+
+Ou seja: a lista do cockpit e o drawer dele passam por **caminhos diferentes**. O `781 Status` que
+este PR conserta em `/fiscal/nfe` tem um irmão vivo em `/fiscal` — pelo #2, não pelo #3.
+
+⚠️ **Um `STATUS_LABEL` no módulo NÃO é necessariamente um mapa de cStat.** A varredura acha **cinco**
+`STATUS_LABEL` em `Pages/Fiscal`, e só os dois de cima entram nesta tabela. Os outros dois falam
+**outro vocabulário** e não têm o defeito:
+
+| Onde | Chaves | É cStat? |
+|---|---|---|
+| `Nfse.tsx:69` | `authorized`/`rejected`/`pending`/`sent`/`cancelled` | **não** — status de domínio da NFS-e (municipal) |
+| `_components/NFSeDrawer.tsx:48` | idem | **não** — mesmo vocabulário |
+
+A distinção não é preciosismo: quem for unificar as fontes precisa saber que a NFS-e **não tem
+cStat** (é prefeitura, não SEFAZ) e que forçá-la no mesmo dicionário seria o erro oposto.
+
+Nenhum dos dois foi tocado: são outras telas, outro intent, e há sessões ativas no Cockpit agora.
+Fica medido para quem pegar.
 
