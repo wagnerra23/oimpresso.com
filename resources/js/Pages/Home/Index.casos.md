@@ -4,7 +4,7 @@ casos: Dashboard · Visão geral · /dashboard-legacy
 irmaos: Index.charter.md (lei) · Index.tsx (tela) · _components/GradesPainel.tsx
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-09-03"
+last_run: "2026-09-04"
 ---
 
 # Casos de uso — /dashboard-legacy (Visão geral)
