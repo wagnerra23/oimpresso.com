@@ -55,6 +55,8 @@ related_us: [US-FISCAL-002, US-FISCAL-019]
 | UC-FCKP-06 | cache separado por business | `[must]` `[T0]` | CU-FISC-12 | `CockpitCacheTest` | 🧪 |
 | UC-FCKP-08 | o alerta é desenhado e leva a algum lugar | `[must]` | CU-FISC-01 | `CockpitControllerTest` | 🧪 |
 | UC-FCKP-09 | a tela serve uma PÁGINA, e filtrar volta à 1ª | `[must]` | CU-FISC-01 | `fiscal-cockpit-paginacao.test.tsx` | 🧪 |
+| UC-FCKP-10 | cert A1 VENCIDO entra na fila de alertas | `[must]` | CU-FISC-01 | `CockpitControllerTest` | 🧪 |
+| UC-FCKP-11 | a lista é operável só pelo teclado (linha focável, não botão) | `[must]` | **—** (ver nota no UC) | `fiscal-cockpit-teclado.test.tsx` | 🧪 |
 
 ---
 
@@ -162,6 +164,48 @@ related_us: [US-FISCAL-002, US-FISCAL-019]
 - **Âncora:** `fiscal-page.jsx` §`FxNotasPage` do protótipo Cowork, baixado do **vivo** por `DesignSync` em 2026-09-03 (`truncated: false`) — não do espelho `prototipo-ui/cowork/`, que mediu **1 de 258** arquivos e cuja própria máquina declara que qualquer comparação contra ele é INCONCLUSIVA. De lá vêm o default **8**, as opções 8/25/50, a copy e o contador `{pagina} / {paginas}`.
 - **Status:** 🧪 veredito da lane pendente — a lane nasce neste PR e o run real vem do CI; o que existe hoje é o run local acima.
 
+## UC-FCKP-10 — O certificado A1 já VENCIDO entra na fila de alertas `[must]`
+
+**Dado** um business cujo certificado A1 já venceu — por exemplo, há 28 dias
+**Quando** a contadora abre o cockpit
+**Então** a fila mostra um alerta `crit` *"Certificado A1 vencido há 28 dias"* que a leva à configuração fiscal, e o contador do cabeçalho passa a contá-lo.
+
+- **Regressão que defende:** `computeAlerts()` guardava o bloco do certificado com `$dias <= 60 && $dias > 0` (`CockpitController.php:324`, até 2026-09-04). Como `diasAteVencimento()` devolve número **negativo** quando o cert venceu, o `> 0` descartava justamente o pior estado: **cert vencido não gerava alerta nenhum**. É a forma mais cara de falhar — o aviso some exatamente quando o problema existe, e o silêncio é indistinguível de "está tudo bem".
+- **Medido em produção (biz=1, 2026-09-03):** com o certificado vencido há ~28 dias, a **mesma tela** se contradizia — a sidebar acusava *"Certificado vencido há 28 dias"* (badge da `US-NFE-001`, correto) enquanto o miolo do cabeçalho dizia *"0 requerem ação"*. O contador não é independente: `totalRej` soma `kpis.rejeitadas` + os alertas de nível `crit` (`Cockpit.tsx:332`) — logo o alerta ausente **zerava** a única leitura consolidada da tela.
+- **O contrato não é novo, e o cockpit era o único fora dele:** os outros **5** consumidores de `diasAteVencimento()` classificam por `$dias < 0` — `CertHealthCheckCommand:187`, `ConfigController:61`, `NfeHealthCommand:213`, `HandleInertiaRequests:384` e `PaymentGatewaysController:96`. O caso não inventa regra: alinha a sexta ponta à cadeia que a `US-NFE-001` já defende com 4 GUARDs em `CertificadoServiceTest:303+`.
+- **O `dias === 0` era um segundo vão, e caiu junto:** o `> 0` também excluía o dia do vencimento. Os 5 consumidores põem o `0` na banda de aviso, nunca num vão — `PaymentGatewaysController:97` escreve isso literalmente (`$dias >= 0 && $dias <= 30`). Um cert vencendo **hoje** ficava mudo pelo mesmo motivo; agora emite `crit` *"Certificado A1 vence hoje"*.
+- **Teste:** `CockpitControllerTest` — os 4 casos `it('UC-FCKP-10 · …')`. Eles **injetam** o certificado no `$contexto` via reflection em vez de semeá-lo: sem isso o teste passaria **por vacuidade** num tenant sem certificado (a mesma armadilha que o `UC-FCKP-08` descreve acima), e o modelo não é persistido, então nenhum fixture é fabricado num tenant tratado como real.
+- **Bite-test (2026-09-04, CT 100 · MySQL `oimpresso_staging`):** com o fix, **4 passed (12 assertions)** — assertions > 0, logo executou, não pulou. Com o controller **pré-fix** (`$dias > 0`, extraído de `origin/main`) e o mesmo arquivo de teste: **2 failed, 2 passed (7 assertions)**, e as duas falhas são `actual size 0 matches expected size 1` — a fila volta **vazia** nos casos "vencido há 28d" e "vence hoje". Os casos "vencendo em 47d" (`warn`) e "válido por 90d" (vazio) passam nas duas versões: são guardas de regressão da banda antiga.
+- **Limite honesto, declarado:** o KPI *"Certif. A1"* do ribbon foi corrigido no mesmo PR — renderizava o literal `-28d` com o rótulo `renovar`, e agora diz `vencido` / `há 28d` (`Cockpit.tsx:336-345`) — mas **esse pedaço não tem teste automatizado**. Ele é frontend puro e não há lane de componente para esta tela; o que existe é o `tsc --noEmit` (0 erro no arquivo, com controle positivo provando que o arquivo é de fato checado). Fica declarado em vez de subentendido.
+- **Âncora:** `CU-FISC-01` do SDD §6 (o cockpit entrega a leitura consolidada do mês) + o GUARD `US-NFE-001` (`CertificadoServiceTest.php:303+`), cujo docblock nomeia este exato modo de falha: *"o aviso desaparece justamente quando o problema existe"*.
+- **Status:** 🧪 veredito da lane pendente — `CockpitControllerTest` é advisory (pula em SQLite por exigir schema MySQL) e o veredito de merge vem do CI. O que existe hoje é o run do CT 100 acima, com bite-test nos dois sentidos.
+
+---
+
+## UC-FCKP-11 — A lista unificada é operável só pelo teclado: a linha é focável, e não virou botão `[must]`
+
+**Dado** a lista unificada de notas do cockpit
+**Quando** o operador percorre as linhas com **Tab** e pressiona **Enter** ou **Space**
+**Então** a linha focada abre o drawer **daquela** nota (não a primeira da lista), o Space **não rola a página**, e a `<tr>` permanece com o papel implícito `row` — o alvo é linha **focável**, nunca `role="button"`, que destruiria a semântica de tabela para leitor de tela.
+
+- **Regressão que defende:** até 2026-09-04 esta tela tinha `tabIndex`=0 e `onKeyDown`=0 no arquivo inteiro — a lista abria **só com mouse**. Quem opera por teclado (e todo leitor de tela) não alcançava nenhuma das notas, apesar de o rodapé do shell anunciar atalhos.
+- **Por que `—` na coluna CU:** vale aqui a mesma nota que o `UC-FNFE-10` registra na tela irmã — os 16 CU do SDD §6 cobrem *o que a pessoa fiscal faz* (conferir status, cancelar, manifestar, inutilizar, isolar tenant), e **nenhum** trata de acessibilidade ou de operação por teclado. Ancorar num CU plausível fecharia a lacuna do painel derivado sem lastro (LC-11). Abrir um CU de acessibilidade no SDD é decisão do dono daquele documento, não desta onda.
+- **Âncora:** `Cockpit.charter.md` §*Contrato de teclado na lista* (nasce neste PR) + o `.fx-table tbody tr:focus-visible` de [`fiscal-cockpit.css:323`](../../../css/fiscal-cockpit.css), que já existia — o anel de foco veio da Onda 2 no CSS **compartilhado** pelas duas telas, então esta onda não escreve uma linha de CSS.
+- **Por que o id é 11 e não 10:** o `UC-FCKP-10` está reservado a uma sessão paralela em voo (certificado A1 vencido — ela já o cita por escrito no `Cockpit.tsx` dela). Um buraco de numeração é inofensivo; id duplicado quebra a rastreabilidade que o G-7 lê.
+- **O que este caso NÃO cobre, e é diferente da tela irmã:** o cursor `J/K`. Ele **não existe** nesta tela, e o charter declara a omissão por escrito. Logo o caso *"um anel, não dois"* do `UC-FNFE-10` não tem sujeito aqui: existe **um** anel, o `:focus-visible`, e a classe `.fx-row-focus` desta tela significa outra coisa — a nota **aberta** no drawer (`openedId === n.id`), não um cursor. O 5º caso trava esse contraste para que a próxima onda não funda os dois papéis.
+- **Teste:** `tests/js/fiscal-cockpit-teclado.test.tsx` — os 7 casos do `describe('UC-FCKP-11 · a lista unificada é operável só pelo teclado')`. Lane: `fiscal-teclado-gate.yml` (advisory; `Cockpit.tsx` entra no `paths:` neste PR).
+- **Bite-test (2026-09-04, local — restore byte-idêntico ao backup, sha `0189ec376588`, 7/7 de novo):**
+
+| Mutação no `Cockpit.tsx` | Efeito |
+|---|---|
+| remover `tabIndex={0}` | o foco cai no `<body>` → *"linha 0 não recebeu foco"*, **1 failed** |
+| remover `e.preventDefault()` | *"Space NÃO teve o default cancelado — a página rolaria"*, **1 failed** |
+| remover o `onKeyDown` inteiro | **3 failed** — Enter (*"Unable to find an accessible element with the role dialog"*), Space e a marcação da nota aberta |
+| remover o `aria-label` | **1 failed** — a linha deixa de se anunciar |
+
+- **Limite honesto (e ele é MAIS forte que o da tela irmã):** no `Nfe.tsx`, remover o `onKeyDown` derruba só o Space, porque lá o handler global de `window` (o J/K) serve o Enter por um segundo caminho. Aqui **não há** esse segundo caminho — medido em 2026-09-04: o listener de `window` do `FxShell` só reage aos dígitos `1-7` de `FX_PAGES.short`, e o do `CmdKPalette`, a ⌘K e Escape. Por isso a mutação 3 derruba **3** casos e não 1: nesta tela o handler da linha é o único dono do Enter. O que segue fora do alcance deste arquivo é o jsdom não implementar a travessia por Tab do browser — *"Tab alcança todas"* é medido como *"toda linha é de fato focável, na ordem do DOM"*, a condição que a torna possível. A travessia física, o anel pintado e o leitor de tela são olho humano no smoke (R1).
+- **Status:** 🧪 veredito da lane pendente — o `Cockpit.tsx` entra no gatilho neste PR e o run real vem do CI; o que existe hoje é o run local acima.
+
 ---
 
 ## Backlog de casos (sem id — viram UC quando ganharem contrato + teste)
@@ -183,3 +227,5 @@ related_us: [US-FISCAL-002, US-FISCAL-019]
 - 2026-07-03 · [CC] stub criado no Passo 3 do programa de ondas — **0 UC**.
 - 2026-07-27 · [CC] `sdd-from-source` (Onda 1 / S2): **6 UC** derivados do §6 do SDD; todos herdam testes existentes. O achado do dado de demonstração ficou como `[BACKLOG]` + `CU-FISC-16` ⬜, por ser decisão de produto.
 - 2026-09-03 · [CC] Onda 1 Fiscal (Cowork): **UC-FCKP-08** — a fila de alertas passa a ser renderizada (`_components/AlertasFiscais.tsx`). O caso nasce com teste próprio e bite-test; cobre os dois contratos cross-language silenciosos (`goto`→rota, `icon`→glifo).
+- 2026-09-04 · [CC] **UC-FCKP-10** — o cert A1 JÁ VENCIDO passa a gerar alerta `crit`. O `$dias > 0` de `computeAlerts()` descartava o pior estado (e também o `dias === 0`); os outros 5 consumidores de `diasAteVencimento()` já classificavam por `$dias < 0`. Bite-test nos dois sentidos no CT 100.
+- 2026-09-04 · [C] Onda 2 Fiscal, metade que faltava: **`UC-FCKP-11` criado** — a lista unificada vira operável por teclado. A Onda 2 ([#6707](https://github.com/wagnerra23/oimpresso.com/pull/6707)) entregou o teclado só no `Nfe.tsx`; esta tela seguia com `tabIndex`=0 e `onKeyDown`=0 no arquivo inteiro. Zero CSS novo — o anel `:focus-visible` já mora no `fiscal-cockpit.css` compartilhado. 7 casos, 4 mutações provadas, restore byte-idêntico.
