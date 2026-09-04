@@ -193,59 +193,63 @@ export default function Nfse({ filters: initialFilters, counts, rows }: NfseProp
             </div>
           ) : (
             <div className={`fx-density-${density}`}>
-              <div className="fx-table">
-                <table>
-                  <thead>
-                    <tr>
-                      <th style={{ width: 96 }}>Número</th>
-                      <th>Tomador</th>
-                      <th style={{ width: 130 }}>Município</th>
-                      <th style={{ width: 90 }}>Cód. serviço</th>
-                      <th style={{ width: 140 }}>Status</th>
-                      <th style={{ width: 120, textAlign: 'right' }}>Valor</th>
-                      <th style={{ width: 96 }}>Emissão</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {dataRows.map((n) => {
-                      const stMeta = STATUS_LABEL[n.status] ?? { label: n.status, tone: 'warn' as const };
-                      return (
-                        <tr key={n.id} title={n.errorMsg ?? undefined}>
-                          <td className="fx-mono">
-                            <b>{n.num}</b>
-                            {n.codigoVerificacao && <small>{n.codigoVerificacao}</small>}
-                          </td>
-                          <td>
-                            <div>{n.tomador}</div>
-                            <small>{formatDoc(n.documentoTomador, null)}</small>
-                          </td>
-                          <td><small>{n.municipio ?? '—'}</small></td>
-                          <td className="fx-mono"><small>{n.codServico ?? '—'}</small></td>
-                          <td>
-                            <span className={`fx-sefaz ${stMeta.tone}`}>
-                              <span className="lbl">{stMeta.label}</span>
-                            </span>
-                            {n.aliquotaIss > 0 && (
-                              <small style={{ display: 'block', color: 'var(--fx-text-mute)', marginTop: 2 }}>
-                                ISS {n.aliquotaIss}%
-                              </small>
-                            )}
-                          </td>
-                          <td className="fx-mono fx-strong" style={{ textAlign: 'right' }}>
-                            {brl(n.valueServico)}
-                            {n.valueIss > 0 && (
-                              <small style={{ display: 'block', color: 'var(--fx-text-mute)' }}>
-                                ISS {brl(n.valueIss)}
-                              </small>
-                            )}
-                          </td>
-                          <td><small>{n.when ?? '—'}</small></td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+            {/* Wrapper da densidade: o CSS e `.fx-density-<x> .fx-table tbody td`
+                (DESCENDENTE), entao a classe precisa de um ancestral. Mesmo recuo do
+                filho de proposito — reindentar o bloco seria diff de whitespace puro.
+                Mesma forma do Nfe.tsx, que a mantem por causa de conflito medido. */}
+            <div className="fx-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th style={{ width: 96 }}>Número</th>
+                    <th>Tomador</th>
+                    <th style={{ width: 130 }}>Município</th>
+                    <th style={{ width: 90 }}>Cód. serviço</th>
+                    <th style={{ width: 140 }}>Status</th>
+                    <th style={{ width: 120, textAlign: 'right' }}>Valor</th>
+                    <th style={{ width: 96 }}>Emissão</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dataRows.map((n) => {
+                    const stMeta = STATUS_LABEL[n.status] ?? { label: n.status, tone: 'warn' as const };
+                    return (
+                      <tr key={n.id} title={n.errorMsg ?? undefined}>
+                        <td className="fx-mono">
+                          <b>{n.num}</b>
+                          {n.codigoVerificacao && <small>{n.codigoVerificacao}</small>}
+                        </td>
+                        <td>
+                          <div>{n.tomador}</div>
+                          <small>{formatDoc(n.documentoTomador, null)}</small>
+                        </td>
+                        <td><small>{n.municipio ?? '—'}</small></td>
+                        <td className="fx-mono"><small>{n.codServico ?? '—'}</small></td>
+                        <td>
+                          <span className={`fx-sefaz ${stMeta.tone}`}>
+                            <span className="lbl">{stMeta.label}</span>
+                          </span>
+                          {n.aliquotaIss > 0 && (
+                            <small style={{ display: 'block', color: 'var(--fx-text-mute)', marginTop: 2 }}>
+                              ISS {n.aliquotaIss}%
+                            </small>
+                          )}
+                        </td>
+                        <td className="fx-mono fx-strong" style={{ textAlign: 'right' }}>
+                          {brl(n.valueServico)}
+                          {n.valueIss > 0 && (
+                            <small style={{ display: 'block', color: 'var(--fx-text-mute)' }}>
+                              ISS {brl(n.valueIss)}
+                            </small>
+                          )}
+                        </td>
+                        <td><small>{n.when ?? '—'}</small></td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
             </div>
           )}
         </Deferred>
