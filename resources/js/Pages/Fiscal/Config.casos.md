@@ -5,8 +5,8 @@ irmaos: Config.charter.md (lei) · memory/requisitos/Fiscal/SDD-cockpit-fiscal-v
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-09-01"
-last_run_ci: "0 UC executado nesta corrida — 2 UC herdam testes que JÁ existem e 1 nasce com teste novo; veredito pendente da lane Pest Fiscal + suíte noturna CT 100"
+last_run: "2026-09-04"
+last_run_ci: "0 UC executado nesta corrida — UC-FCFG-05 nasce com teste novo e veredito PENDENTE da lane Pest Fiscal + suíte noturna CT 100; nada foi re-executado localmente (Pest = CT 100, ADR 0062)"
 related_us: [US-FISCAL-009]
 ---
 
@@ -62,6 +62,7 @@ related_us: [US-FISCAL-009]
 | UC-FCFG-02 | certificado de outro business não aparece | `[must]` `[T0]` | CU-FISC-12 | `ConfigControllerTest` | 🧪 |
 | UC-FCFG-03 | gate de permissão da tela | `[must]` `[T0]` | CU-FISC-13 | `GatesPermissaoFiscalTest` | 🧪 |
 | UC-FCFG-04 | estado da contingência e sua DURAÇÃO chegam do servidor | `[must]` | US-NFE-006 | `ConfigControllerTest` | 🧪 |
+| UC-FCFG-05 | o card de envio de documentos LÊ o deploy, não demonstra | `[should]` | CU-FISC-16 | `ConfigControllerTest` | 🧪 |
 
 ---
 
@@ -119,12 +120,44 @@ related_us: [US-FISCAL-009]
 
 ---
 
+## UC-FCFG-05 — O card de envio de documentos LÊ o deploy, não demonstra `[should]`
+
+**Dado** as duas chaves que governam o envio automático do DANFE — `email_danfe_on_autorizada`
+(NF-e 55) e `email_danfe_nfce_on_autorizada` (NFC-e 65), em `Modules/NfeBrasil/Config/config.php`
+**Quando** a contadora abre a aba *Certificado e regime*
+**Então** o card **Envio de documentos** mostra o estado **real** de cada uma;
+**E** invertidas as chaves, o card inverte junto.
+
+- **Regressão que defende:** card de configuração que serve valor fixo. O protótipo desenha este
+  card com `contador@example.com.br` de mock (`fiscal-data.jsx:150`); um port literal traria o
+  mock pra tela viva e a contadora leria demonstração como configuração. O controle negativo do
+  teste (inverter as chaves e reconferir) é o que separa *ler* de *afirmar* — sem ele, o teste
+  passaria com o payload hardcoded.
+- **Ausência declarada, não preenchida:** a linha **Contador** do protótipo não tem campo
+  correspondente no schema (`nfe_business_configs` não tem coluna de e-mail de contador; a única
+  ocorrência no repo é uma linha **comentada** em `Modules/Connector/.../BusinessController.php`).
+  A tela diz *"não cadastrado — ainda não existe campo"* em vez de inventar endereço. Cadastrar
+  esse e-mail é backlog com decisão [W] (abaixo).
+- **Escopo dito em texto:** as duas chaves valem por **deploy**, não por empresa. O card afirma
+  isso; um selo por-empresa aqui mentiria sobre o alcance da configuração.
+- **Teste:** `Modules/Fiscal/Tests/Feature/ConfigControllerTest.php` — `it('UC-FCFG-05 · o card de envio de documentos espelha as flags REAIS do deploy')`
+- **Status:** 🧪 teste nasce nesta corrida; veredito pendente da lane.
+
+---
+
 ## Backlog de casos (sem id — viram UC quando ganharem contrato + teste)
 
 - **[BACKLOG · ⬜ sem teste] A validade do certificado aparece com três tons de urgência** — vencido, perto de vencer (até 30 dias) e tranquilo. _O cálculo existe no Controller; sem teste dos limiares._
 - **[BACKLOG · ⬜ sem teste] O painel mostra regime, série, próximo número e tributação padrão** — leitura consolidada do que o NfeBrasil guarda. _Sem teste; note que esses dados são lidos por consulta direta à tabela, **fora** do escopo automático de business — o escopo é aplicado à mão a partir da sessão (SDD §5.2)._
 - **[BACKLOG · ⬜ sem teste · decisão [W]] A aba de séries mostra séries reais** — hoje ela é servida por **dado de demonstração** com uma filial inventada (`CU-FISC-16` do SDD §6.5 · §5.4.1). **Precisa de decisão [W].**
 - **[BACKLOG · ⬜ sem contrato · decisão [W]] Trocar o ambiente SEFAZ e enviar certificado a partir desta tela** — os dois formulários existem, mas o charter diz que a tela é read-only. **Sem contrato até [W] resolver a divergência** (ver aviso no topo). Escrever UC aqui seria escolher o vencedor de uma disputa de intenção.
+- **[BACKLOG · ⬜ sem campo · decisão [W]] Cadastrar o e-mail do contador** — a linha existe no card
+  (`UC-FCFG-05`) declarando a ausência. Dar valor a ela exige **coluna nova** em
+  `nfe_business_configs` (migration em PR próprio, nunca junto de UI) e a decisão de se o envio ao
+  contador é cópia automática de toda nota ou digest. _Sem contrato até [W] decidir._
+- **[BACKLOG · ⬜ sem campo · decisão [W]] Ligar/desligar o envio automático POR EMPRESA** — hoje as
+  duas chaves são de deploy (`Modules/NfeBrasil/Config/config.php`), e o card diz isso. Tornar
+  por-tenant é coluna nova + tela editável, não ajuste de leitura.
 - **[BACKLOG · 🧪 coberto em outra tela] O bloqueio do download de SPED por feature flag** tem contrato em [`Sped.casos.md`](Sped.casos.md) (`UC-FSPED-05`) — a aba "sped" desta tela apenas aponta para lá.
 
 ## Como rodar a suíte
@@ -136,4 +169,10 @@ related_us: [US-FISCAL-009]
 ## Trilha do tempo
 
 - 2026-07-15 · [CC] stub criado no Passo 3 do programa de ondas — **0 UC**.
+- 2026-09-04 · [C] Item A5 (PR 1/3 — abas + cards). As 4 abas recebem os rótulos do protótipo
+  (`Certificado e regime` · `Séries` · `Ambiente e certificado` · `SPED`) **sem** trocar as chaves
+  de URL; a aba `cert` vira **uma** região ancorada `data-contract="fiscal-config-cert-regime"`,
+  trazendo pra dentro dela o card de regime/tributação que vivia fora (era o `gap-parcial` do
+  [`fiscal-config.map.json`](../../../../memory/requisitos/Fiscal/fiscal-config.map.json)); e nasce
+  o 4º card, **Envio de documentos**, com `UC-FCFG-05`. **Nenhum teste re-executado** (Pest = CT 100).
 - 2026-07-27 · [CC] `sdd-from-source` (Onda 1 / S2): **3 UC** derivados do §6 do SDD; 2 herdam testes existentes, 1 nasce com teste novo. Os 5 itens de backlog que citavam a feature flag do SPED foram **movidos** para a tela dona (`Sped`) em vez de duplicados. Divergência charter × código registrada, **não** resolvida (intenção é de [W]).
