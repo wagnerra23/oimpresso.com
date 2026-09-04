@@ -15,6 +15,7 @@ import { Plus, Search, X } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Checkbox } from '@/Components/ui/checkbox';
+import { Inline } from '@/Components/layout/inline';
 import PageHeader from '@/Components/shared/PageHeader';
 import KpiCard from '@/Components/shared/KpiCard';
 import EmptyState from '@/Components/shared/EmptyState';
@@ -230,14 +231,19 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
 
           {/* §4.5 — "Só finalizadas" como checkbox. O KPI "Finalizadas" continua clicável
               (os 4 KPIs não mudam nesta onda); os dois governam o MESMO filtro. */}
-          <label className="flex items-center gap-2 text-sm text-muted-foreground" htmlFor="mfg-op-so-finalizadas">
-            <Checkbox
-              id="mfg-op-so-finalizadas"
-              checked={!!filters.is_final}
-              onCheckedChange={(v) => applyFilter(filters, { is_final: v === true ? true : null })}
-            />
-            Só finalizadas
-          </label>
+          {/* `Inline asChild` em vez de layout solto no próprio label: layout é composição de
+              primitivos (ADR 0253). O ratchet pegou o caso na primeira tentativa — e depois
+              pegou o COMENTÁRIO que citava o anti-padrão, porque o guard casa texto. */}
+          <Inline gap={2} align="center" asChild>
+            <label className="text-sm text-muted-foreground" htmlFor="mfg-op-so-finalizadas">
+              <Checkbox
+                id="mfg-op-so-finalizadas"
+                checked={!!filters.is_final}
+                onCheckedChange={(v) => applyFilter(filters, { is_final: v === true ? true : null })}
+              />
+              Só finalizadas
+            </label>
+          </Inline>
 
           {hasActiveFilters && (
             <Button variant="ghost" size="sm" onClick={clearAll}>
