@@ -158,7 +158,15 @@ function dfeServiceEspiao(): ManifestacaoService
 }
 
 afterEach(function () {
-    \Mockery::close();
+    // Guardado: na lane SQLite (`Pest Fiscal`) as tabelas do NfeBrasil não existem e cada caso
+    // SKIPA no `dfeBootstrap`. Sem esta guarda o próprio `afterEach` estoura com
+    // `no such table: nfe_dfe_recebidos` e o skip vira FALHA — foi o que o CI mostrou.
+    // (O `Mockery::close()` saiu junto: este arquivo passou a usar um dublê de classe anônima,
+    // não Mockery.)
+    if (! Schema::hasTable('nfe_dfe_recebidos')) {
+        return;
+    }
+
     NfeDfeRecebido::whereIn('business_id', [DFE_BIZ_PROPRIO, DFE_BIZ_ALHEIO])->delete();
 });
 
