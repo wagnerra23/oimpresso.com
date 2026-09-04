@@ -26,6 +26,7 @@ import EventosDrawer, { type EventoFiscal } from './_components/EventosDrawer';
 import FxShell from './_components/FxShell';
 import NFSeDrawer, { type NFSeDrawerData } from './_components/NFSeDrawer';
 import NotaDrawerV2, { type NotaDrawerData } from './_components/NotaDrawerV2';
+import RibbonSpark from './_components/RibbonSpark';
 import SavedViewsChips from './_components/SavedViewsChips';
 import { SeloProcedencia } from './_components/SeloProcedencia';
 import SendToContabilDrawer, { type SendToContabilData } from './_components/SendToContabilDrawer';
@@ -224,7 +225,7 @@ function mapToNFSeDrawerData(n: NotaRow): NFSeDrawerData {
 }
 
 export default function Cockpit({
-  kpis, alerts, notas, savedViewCounts, sefazStatus,
+  kpis, sparklines, alerts, notas, savedViewCounts, sefazStatus,
   eventosMock = [], contabilData = null, writeOffSummary = null,
   procedencia,
 }: CockpitProps) {
@@ -421,19 +422,22 @@ export default function Cockpit({
         {/* KPI ribbon estreito (substitui fx-kpis-cockpit 6-card grid) */}
         <div className="fx-ribbon" data-contract="fiscal-cockpit-kpis" role="region" aria-label="KPIs fiscais">
           <span className="fx-ribbon-item">
-            <small>Emitidas<SeloProcedencia mapa={procedencia} chave="kpis" /></small>
+            <small>Emitidas<SeloProcedencia mapa={procedencia} chave="kpis" /><SeloProcedencia mapa={procedencia} chave="spark" /></small>
             <b>{kpis.emitidas}</b>
             <em className="up">↑ 12 vs abr</em>
+            <RibbonSpark data={sparklines.emitidas} />
           </span>
           <span className="fx-ribbon-item">
             <small>Autorizadas</small>
             <b className="ok-text">{kpis.autorizadas}</b>
             <em>{kpis.autorizadasPct}%</em>
+            <RibbonSpark data={sparklines.autorizadas} />
           </span>
           <span className="fx-ribbon-item">
             <small>Rejeitadas</small>
             <b className={kpis.rejeitadas > 0 ? 'emph' : ''}>{kpis.rejeitadas}</b>
             {kpis.rejeitadas > 0 && <em className="down">requer ação</em>}
+            <RibbonSpark data={sparklines.rejeitadas} />
           </span>
           <span className="fx-ribbon-item">
             <small>DF-e p/ manifestar</small>
