@@ -167,3 +167,85 @@ it('UC-FCKP-08 · todo `icon` de alerta tem glifo no mapa da tela', function () 
         expect($mapeados)->toContain($icon);
     }
 });
+
+/**
+ * UC-FCKP-10 — o certificado A1 JÁ VENCIDO entra na fila de alertas.
+ *
+ * `diasAteVencimento()` devolve um número NEGATIVO quando o cert venceu. Até
+ * 2026-09-04 `computeAlerts()` guardava o bloco com `$dias <= 60 && $dias > 0`,
+ * e o `> 0` descartava exatamente esse caso: no pior estado possível o cockpit
+ * não emitia alerta nenhum. Em produção (biz=1, 2026-09-03) isso aparecia como
+ * uma contradição na MESMA tela — a sidebar acusava "Certificado vencido há 28
+ * dias" (GUARD US-NFE-001) e o miolo do cabeçalho dizia "0 requerem ação",
+ * porque o contador soma `alerts` de nível `crit` (Cockpit.tsx `totalRej`).
+ *
+ * O contrato é o dos outros 5 consumidores de `diasAteVencimento()`, que
+ * classificam por `$dias < 0` e põem o `0` na banda de aviso, nunca num vão:
+ * CertHealthCheckCommand:187, ConfigController:61, NfeHealthCommand:213,
+ * HandleInertiaRequests:384 e PaymentGatewaysController:97 (`$dias >= 0`).
+ *
+ * Os casos INJETAM o certificado no `$contexto` em vez de semeá-lo no banco.
+ * Duas razões, e as duas importam:
+ *
+ *   1. sem injeção o teste passaria por VACUIDADE — num tenant sem certificado o
+ *      bloco não roda e a suíte fica verde sem ter medido nada (a mesma armadilha
+ *      que o docblock do UC-FCKP-08 acima descreve para `props.alerts`);
+ *   2. o modelo não é persistido, então nenhum fixture é fabricado num tenant que
+ *      o teste trata como real.
+ *
+ * Bite-test (2026-09-04): com a guarda antiga `$dias > 0`, os casos "vencido" e
+ * "vence hoje" FALHAM (a fila volta sem nenhum item `shield`); os casos "vencendo
+ * em 47d" e "válido por 90d" passam nas duas versões — são guardas de regressão.
+ */
+function fckpAlertasComCert(?\Illuminate\Support\Carbon $validoAte): array
+{
+    $controller = new \Modules\Fiscal\Http\Controllers\CockpitController();
+
+    $cert = new \Modules\NfeBrasil\Models\NfeCertificado(['valido_ate' => $validoAte]);
+
+    $m = new ReflectionMethod($controller, 'computeAlerts');
+    $m->setAccessible(true);
+
+    $alerts = $m->invoke($controller, ['cert' => $cert, 'dfeCount' => 0]);
+
+    // Só os alertas de certificado — rejeições/DF-e do tenant são ruído aqui.
+    return array_values(array_filter($alerts, fn ($a) => $a['icon'] === 'shield'));
+}
+
+it('UC-FCKP-10 · cert vencido há 28 dias vira alerta crit (antes: fila muda)', function () {
+    $this->actingAs(\App\User::where('business_id', 1)->firstOrFail());
+
+    $shield = fckpAlertasComCert(now()->subDays(28));
+
+    expect($shield)->toHaveCount(1, 'cert vencido há 28d não gerou alerta — o vão do `$dias > 0` voltou');
+    expect($shield[0]['level'])->toBe('crit');
+    expect($shield[0]['title'])->toBe('Certificado A1 vencido há 28 dias');
+    expect($shield[0]['goto'])->toBe('fiscal_config');
+});
+
+it('UC-FCKP-10 · cert que vence HOJE não cai no vão entre vencido e vencendo', function () {
+    $this->actingAs(\App\User::where('business_id', 1)->firstOrFail());
+
+    $shield = fckpAlertasComCert(now());
+
+    expect($shield)->toHaveCount(1, '`$dias === 0` ficou sem banda — os outros 5 consumidores põem o 0 no aviso');
+    expect($shield[0]['level'])->toBe('crit');
+    expect($shield[0]['title'])->toBe('Certificado A1 vence hoje');
+});
+
+it('UC-FCKP-10 · cert vencendo em 47d segue warn (guarda de regressão da banda antiga)', function () {
+    $this->actingAs(\App\User::where('business_id', 1)->firstOrFail());
+
+    $shield = fckpAlertasComCert(now()->addDays(47));
+
+    expect($shield)->toHaveCount(1);
+    expect($shield[0]['level'])->toBe('warn');
+    expect($shield[0]['title'])->toBe('Certificado A1 vence em 47 dias');
+});
+
+it('UC-FCKP-10 · cert válido por 90d não polui a fila', function () {
+    $this->actingAs(\App\User::where('business_id', 1)->firstOrFail());
+
+    expect(fckpAlertasComCert(now()->addDays(90)))->toBeEmpty();
+    expect(fckpAlertasComCert(null))->toBeEmpty();
+});
