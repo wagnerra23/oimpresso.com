@@ -13,7 +13,7 @@ import { Input } from '@/Components/ui/input';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import type { PageProps } from '@inertiajs/core';
-import { Archive, CheckCircle2, FileText, KeyRound, Loader2, Lock, Mail, PlugZap, Shield, Upload, XCircle } from 'lucide-react';
+import { AlertTriangle, Archive, CheckCircle2, FileText, KeyRound, Loader2, Lock, Mail, PlugZap, Shield, Upload, XCircle } from 'lucide-react';
 import { type FormEvent, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -178,16 +178,36 @@ export default function Config({
   };
 
   // Ambiente form (Inertia) → POST /nfe-brasil/configuracao/certificado/ambiente
-  const ambienteForm = useForm<{ ambiente: 1 | 2 }>({ ambiente: painel.ambiente });
+  const ambienteForm = useForm<{ ambiente: 1 | 2; motivo: string; confirmacao: string }>({
+    ambiente: painel.ambiente,
+    motivo: '',
+    confirmacao: '',
+  });
+
+  const destinoLabel = ambienteForm.data.ambiente === 1 ? 'PRODUÇÃO' : 'HOMOLOGAÇÃO';
+  const trocaPedida = ambienteForm.data.ambiente !== painel.ambiente;
+
+  // ESPELHO da normalização do servidor — `sensitivity: 'base'` ignora caixa E
+  // acento. A fricção que importa é ter de ESCREVER a palavra (contra a troca por
+  // reflexo), não acertar o cedilha; exigir o acento puniria teclado, não
+  // desatenção. Quem decide de verdade é o servidor: isto só habilita o botão.
+  const confirmacaoBate =
+    ambienteForm.data.confirmacao.trim().localeCompare(destinoLabel, 'pt-BR', { sensitivity: 'base' }) === 0;
+  const motivoBate = ambienteForm.data.motivo.trim().length >= 15;
+  const cerimoniaOk = trocaPedida && confirmacaoBate && motivoBate;
+
   const submitAmbiente = (e: FormEvent) => {
     e.preventDefault();
-    if (ambienteForm.data.ambiente === painel.ambiente) return;
+    if (!cerimoniaOk) return;
     ambienteForm.post('/nfe-brasil/configuracao/certificado/ambiente', {
       preserveScroll: true,
-      onSuccess: () => toast.success(
-        `Ambiente alterado para ${ambienteForm.data.ambiente === 1 ? 'PRODUÇÃO' : 'HOMOLOGAÇÃO'}.`,
-      ),
-      onError: () => toast.error('Falha ao salvar ambiente.'),
+      onSuccess: () => {
+        toast.success(`Ambiente alterado para ${destinoLabel}.`);
+        ambienteForm.reset('motivo', 'confirmacao');
+      },
+      // Copy deliberada: a troca que não passou na confirmação NÃO alterou nada.
+      // Dizer "falha ao salvar" deixaria dúvida sobre o estado do ambiente.
+      onError: () => toast.error('Ambiente NÃO alterado — confira a confirmação e o motivo.'),
     });
   };
 
@@ -634,6 +654,65 @@ export default function Config({
                 <small style={{ color: 'var(--warn)' }}>(valor fiscal real)</small>
               </label>
             </RadioGroup>
+
+            {/* Cerimônia da troca — só aparece quando há TROCA de verdade.
+                Duas provas independentes, porque confirmação de uma palavra
+                genérica ("sim", "ok") não segura uma ação que muda o valor fiscal
+                de toda nota emitida depois dela. */}
+            {podeTrocarAmbiente && trocaPedida && (
+              <div data-contract="fiscal-config-troca-ambiente" style={{ marginBottom: 12 }}>
+                <div
+                  className="fx-callout"
+                  role="alert"
+                  style={{ marginBottom: 12, background: 'var(--warn-soft, var(--bad-soft))', borderColor: 'var(--warn)' }}
+                >
+                  <AlertTriangle size={16} />
+                  <div>
+                    <b style={{ color: 'var(--warn)' }}>
+                      Você está trocando o ambiente para {destinoLabel}
+                    </b>
+                    <small>
+                      {ambienteForm.data.ambiente === 1
+                        ? 'A partir daqui as notas passam a ter valor fiscal real e vão pra contabilidade.'
+                        : 'A partir daqui as notas emitidas NÃO têm valor fiscal. Emitir dias em homologação sem perceber é o acidente que esta confirmação existe pra evitar.'}
+                    </small>
+                  </div>
+                </div>
+
+                <label htmlFor="ambiente-confirmacao" style={{ display: 'block', fontSize: 13, marginBottom: 6 }}>
+                  Digite <code className="fx-mono">{destinoLabel}</code> para confirmar
+                </label>
+                <Input
+                  id="ambiente-confirmacao"
+                  value={ambienteForm.data.confirmacao}
+                  onChange={(e) => ambienteForm.setData('confirmacao', e.target.value)}
+                  placeholder={destinoLabel}
+                  autoComplete="off"
+                  maxLength={40}
+                />
+                {ambienteForm.errors.confirmacao && (
+                  <small style={{ color: 'var(--bad)', display: 'block' }}>{ambienteForm.errors.confirmacao}</small>
+                )}
+
+                <label htmlFor="ambiente-motivo" style={{ display: 'block', fontSize: 13, marginTop: 10, marginBottom: 6 }}>
+                  Motivo <span style={{ color: 'var(--fx-text-mute)' }}>(fica na auditoria, com seu nome e o horário)</span>
+                </label>
+                <Input
+                  id="ambiente-motivo"
+                  value={ambienteForm.data.motivo}
+                  onChange={(e) => ambienteForm.setData('motivo', e.target.value)}
+                  placeholder="ex: fim dos testes de homologação — liberado pelo contador em 04/09"
+                  maxLength={255}
+                />
+                <small style={{ color: motivoBate ? 'var(--fx-text-mute)' : 'var(--warn)' }}>
+                  Mínimo 15 caracteres — {ambienteForm.data.motivo.trim().length} até agora.
+                </small>
+                {ambienteForm.errors.motivo && (
+                  <small style={{ color: 'var(--bad)', display: 'block' }}>{ambienteForm.errors.motivo}</small>
+                )}
+              </div>
+            )}
+
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
               <small style={{ color: 'var(--fx-text-mute)' }}>
                 Atual: <code className="fx-mono">{painel.ambiente === 1 ? 'PRODUÇÃO' : 'HOMOLOGAÇÃO'}</code>
@@ -641,8 +720,14 @@ export default function Config({
               <Button
                 type="submit"
                 variant="cowork-ghost"
-                title={podeTrocarAmbiente ? undefined : motivoGate}
-                disabled={!podeTrocarAmbiente || ambienteForm.processing || ambienteForm.data.ambiente === painel.ambiente}
+                title={
+                  !podeTrocarAmbiente ? motivoGate
+                    : !trocaPedida ? 'Selecione um ambiente diferente do atual'
+                      : !confirmacaoBate ? `Digite ${destinoLabel} no campo de confirmação`
+                        : !motivoBate ? 'Escreva um motivo de 15+ caracteres'
+                          : undefined
+                }
+                disabled={!podeTrocarAmbiente || ambienteForm.processing || !cerimoniaOk}
               >
                 {ambienteForm.processing ? 'Salvando…' : 'Salvar ambiente'}
               </Button>
