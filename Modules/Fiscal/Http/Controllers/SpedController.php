@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Fiscal\Services\SpedIcmsIpiGeneratorService;
+use Modules\Fiscal\Services\SpedReferenciaArquivoService;
 use Modules\NfeBrasil\Models\NfeEmissao;
 
 /**
@@ -19,7 +20,7 @@ use Modules\NfeBrasil\Models\NfeEmissao;
  */
 class SpedController extends Controller
 {
-    public function index(): Response
+    public function index(SpedReferenciaArquivoService $referencia): Response
     {
         if (! auth()->user()->can('superadmin') && ! auth()->user()->can('fiscal.sped.export')) {
             abort(403, 'Sem permissão fiscal.sped.export');
@@ -62,6 +63,12 @@ class SpedController extends Controller
             // Prévia do conteúdo do TXT: ausência DECLARADA, não amostra fabricada.
             // Ver Sped.charter.md §Contrato destilado (decisão [W] pendente).
             'previaTxt' => null,
+            // Onda 10 · Goals 4 e 5 do charter do Cowork. As duas props são MEDIDAS
+            // no golden a cada request (SpedReferenciaArquivoService) — a tela nunca
+            // afirma estrutura nem estado de validação por conta própria. Ver o
+            // docblock do serviço para por que o arquivo mora em Tests/Fixtures.
+            'referenciaArquivo' => $referencia->referencia(),
+            'validacaoExterna'  => $referencia->validacaoExterna(),
         ]);
     }
 
@@ -90,6 +97,15 @@ class SpedController extends Controller
         $fechadaOk = $inicioMes->copy()->endOfMonth()->isPast();
         $travaOk   = ! $travaLigada || $ehSuperadmin;
 
+        // A DATA em que a competência encerra — o último dia do próprio mês.
+        // O `UC-FSF1-03` do Cowork pede que o motivo do mês aberto a mostre, e o
+        // protótipo cita ali o campo `entrega`. São coisas DIFERENTES: a
+        // competência 05/2026 encerra em 31/05 e o prazo de entrega é 15/06. Quem
+        // espera até a data de entrega para gerar perde o mês inteiro achando que
+        // ainda está bloqueado. O prazo de entrega segue na coluna própria da
+        // tabela; aqui vai o encerramento, que é o que destrava a geração.
+        $encerraEm = $inicioMes->copy()->endOfMonth()->format('d/m/Y');
+
         return [
             [
                 'id'     => 'ano-minimo',
@@ -112,8 +128,8 @@ class SpedController extends Controller
                 'ok'     => $fechadaOk,
                 'rotulo' => 'Competência encerrada',
                 'motivo' => $fechadaOk
-                    ? "Competência {$competencia} encerrou — período de apuração completo"
-                    : "Competência {$competencia} está em aberto: o mês ainda não terminou e a EFD "
+                    ? "Competência {$competencia} encerrou em {$encerraEm} — período de apuração completo"
+                    : "Competência {$competencia} está em aberto: encerra em {$encerraEm} e a EFD "
                         . 'declara DT_INI/DT_FIN do período no registro 0000 (CONFAZ v3.1.1, perfil A)',
             ],
             [
