@@ -226,6 +226,20 @@ const mappings: Record<string, Record<string, StatusEntry>> = {
     vencendo:  { variant: 'warning', label: 'Vencendo' },
     vencido:   { variant: 'danger',  label: 'Vencido' },
   },
+  /**
+   * `ajuste_estoque` — `stock_adjustments.adjustment_type` (R-ADJ-002 do
+   * `StockAdjustment/Index.charter.md`: o domínio é fechado em {normal, abnormal}).
+   *
+   * Antes vivia como `TYPE_PILL` à mão dentro da própria tela, com `bg-fill` no ramo
+   * `normal` (`bg-stone-50`) — que é o AP7 do PRE-MERGE-UI violado. O ramo `abnormal` já
+   * usava o par soft à mão (`bg-destructive-soft` + `text-destructive-fg` +
+   * `border-destructive/20`), que é exatamente o que a variante `danger` rende: migrar
+   * preserva o pixel dele e para de duplicar o DS na tela.
+   */
+  ajuste_estoque: {
+    normal:   { variant: 'neutral', label: 'Normal' },
+    abnormal: { variant: 'danger',  label: 'Anormal (perda)' },
+  },
 };
 
 interface Props {
