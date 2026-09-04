@@ -223,6 +223,30 @@ semanas a mais do que precisa para gerar. O prazo de entrega segue na coluna pr�
 **Pronto quando:** o motivo do mês corrente contém a data de encerramento e **não** contém a de
 entrega; o mês encerrado também informa em que data encerrou.
 
+## UC-FSF1-02 — O bypass de superadmin é ação nomeada, não silêncio
+Status: 🧪 (`SpedBypassSuperadminTest` — 6 casos. Medido no CT 100 em 2026-09-04: **5 passed, 1 skipped (13 assertions)**. O skipado é o 503 ponta-a-ponta, que exige a permission `superadmin` **semeada** — mesma lacuna de ambiente que já derruba o `UC-FSPED-09`. O caso do **403 rodou**, então a rota e o guard estão provados.)
+Dado a trava `fiscal.sped_simples_only_lock` ligada (fail-secure) · Quando o superadmin abre a tela ·
+Então a barra **diz** que o perfil dele dispensa a trava e que o download passa por cima de uma
+proteção — e oferece **"Reativar trava nesta sessão"**. Reativada, o download é recusada **no
+servidor** (503) com mensagem que aponta o clique de volta, não uma decisão de terceiro.
+Quem não é superadmin não vê ação nenhuma, e `POST /fiscal/sped/trava` responde **403** — liberar
+a trava global é decisão de [W], não de tela.
+
+⚠️ **Divergência declarada com a fonte, e por quê.** O `UC-FSF1-02` do charter do Cowork quer a
+tela abrindo **bloqueada** até o superadmin liberar (opt-in). O `SimplesOnlyGateTest::UC-FSPED-09 ·
+superadmin bypassa flag` é **teste verde** e prova o contrário no servidor. Precedência do projeto:
+*teste verde > casos > charter*. Então o **default preserva o comportamento provado** e a ação
+explícita só consegue **restringir**. Inverter aquele contrato fiscal é decisão de [W] — que
+escolheu esta forma em 2026-09-04.
+
+- **A trava global NÃO é tocada.** `fiscal.sped_simples_only_lock` segue `true` em
+  `config/fiscal.php` e protege todos os tenants; o que a ação alterna é só o bypass da própria
+  sessão de quem clica.
+- **Pronto quando:** sem ação, `trava.ok` é verdadeiro para superadmin (bite-test do default —
+  trocar para opt-in deixa este caso vermelho antes de o teste HTTP quebrar); reativada, `trava.ok`
+  é falso e o motivo cita "por você nesta sessão" + "um clique"; para não-superadmin o motivo
+  continua o institucional; e a rota devolve 403 para quem não é superadmin.
+
 ## UC-FSF1-06 — Os blocos do arquivo são medidos, não escritos
 Status: 🧪 (`SpedOnda10Test` — 4 casos, incluindo o bite-test)
 Dado o arquivo de referência EFD-ICMS/IPI · Quando [E] quer saber o que vai dentro de cada bloco ·

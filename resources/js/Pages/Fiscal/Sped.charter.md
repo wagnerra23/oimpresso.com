@@ -115,6 +115,19 @@ literalmente *"Golden file do TXT: não existe"*; o charter do Cowork é de 2026
 nasceu em 2026-09-03 ([PR #6708](https://github.com/wagnerra23/oimpresso.com/pull/6708)). Traduzir
 a copy literal teria posto afirmação **falsa** na tela.
 
+**O bypass de superadmin é ação nomeada, e a trava global não é tocada.** O superadmin lê na barra
+que o perfil dele dispensa a trava fail-secure, e tem **"Reativar trava nesta sessão"** — que
+recusa o download **no servidor** (`POST /fiscal/sped/trava` grava a sessão; `gerar()` devolve 503
+com mensagem que aponta o clique de volta). `fiscal.sped_simples_only_lock` segue `true` em
+`config/fiscal.php`: o que alterna é só o bypass de quem clica. Quem não é superadmin não vê ação
+e a rota responde **403**.
+
+⚠️ **Divergência declarada com o charter do Cowork.** O `UC-FSF1-02` de lá quer a tela abrindo
+**bloqueada** até o superadmin liberar (opt-in). O `SimplesOnlyGateTest::UC-FSPED-09 · superadmin
+bypassa flag` é **teste verde** e prova o contrário. Precedência: *teste verde > casos > charter* —
+o default preserva o comportamento provado e a ação explícita só **restringe**. Inverter aquele
+contrato fiscal é decisão de [W], que escolheu esta forma em 2026-09-04.
+
 ## Non-Goals (Wagner aprova explicitamente) — Onda 9
 
 - ❌ **Prévia server-side do conteúdo do TXT** — *pendente de decisão, não recusada.* Gerar uma
@@ -130,6 +143,11 @@ a copy literal teria posto afirmação **falsa** na tela.
 
 ## Anti-hooks
 
+- 🚫 **NÃO deixar a rota `fiscal.sped.trava` aceitar quem não é superadmin, nem fazê-la escrever em
+  `config/fiscal.php`** — ela alterna o bypass de UMA sessão e só consegue restringir. Endpoint que
+  aceita quem não deveria é superfície que a próxima mudança transforma em buraco; e uma ação de
+  tela que escrevesse na flag global viraria exatamente a "configuração escondida" que o Goal 2
+  veio eliminar, só que com o sinal invertido.
 - 🚫 **NÃO liberar a flag `sped_simples_only_lock` sem antes eliminar os hardcodes de fallback** — o TXT
   vai pro Fisco; CFOP/CST errado em venda interestadual expõe a multa (audit R1). Default é `true`
   (fail-secure) e a decisão de desligar é do [W].
