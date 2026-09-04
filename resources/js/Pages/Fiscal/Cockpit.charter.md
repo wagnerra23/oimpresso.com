@@ -138,9 +138,17 @@ Destilado do alvo `prototipo-ui/cowork/fiscal-page.jsx` (o botão do cabeçalho,
 chamadas de `window.FxProc`) + `fiscal-actions.jsx:93-99` (o componente) e `fiscal-data.jsx:194`
 (o vocabulário `kind`/`label`/`explica`).
 
-[W] escolheu, em 2026-09-04, a **saída (a)** das três que o SDD §5.4.1 abriu — marcar a
-procedência na tela. As outras duas (esconder atrás de flag; declarar Non-Goal) foram
-descartadas e **não devem ser re-propostas** sem decisão nova.
+O SDD §5.4.1 abriu três saídas: (a) marcar a procedência, (b) esconder a superfície atrás
+de flag, (c) declarar Non-Goal. **O que [W] decidiu, em 2026-09-04:** construir a (a), e
+descartar a **(c)** — a autorização foi *"construir; a alternativa (declarar Non-Goal por
+escrito) foi descartada"*.
+
+⚠️ **A (b) NÃO foi descartada por [W] — foi descartada pelo agente, e a razão é esta:**
+esconder a superfície remove a informação em vez de qualificá-la, e o `CU-FISC-16` pede o
+oposto — *"a contadora precisa conseguir DIZER o que é leitura real e o que é demonstração"*.
+Uma superfície escondida não é dizível. A âncora dessa recusa é o CU, não uma decisão de
+produto; se [W] quiser a (b) para alguma superfície, é decisão nova e legítima, e este
+charter não a bloqueia.
 
 | Item | Contrato |
 |---|---|
@@ -160,7 +168,7 @@ descartadas e **não devem ser re-propostas** sem decisão nova.
 
 **O selo ACOMPANHA o número — nunca o esconde nem o substitui.** Esta é a metade do contrato
 que decide se a saída (a) é honesta: um selo que ocultasse a superfície viraria a saída (b)
-disfarçada, e (b) foi descartada. O `writeOffSummary` continua exibindo 2.470 candidatos; o
+disfarçada — e a (b) é justamente a saída que o agente recusou acima, pelo CU-FISC-16. O `writeOffSummary` continua exibindo 2.470 candidatos; o
 que muda é que agora a tela diz de onde eles vêm.
 
 **A procedência é DECLARADA PELO CONTROLLER, nunca inferida na tela.** O motivo é medido:
@@ -193,5 +201,5 @@ sparkline" viraria afirmação falsa no dia daquele merge, sem nada acusar (LC-1
 - 🚫 Não suprimir o anel de foco (`outline: none`) em linha, célula ou controle da lista — o anel do UA pode ser **substituído** pelo do design, nunca removido
 
 - 🚫 Não inferir procedência na tela a partir do nome ou do formato da prop — ela vem declarada por `CockpitController::procedencia()`. Adivinhar reintroduz o atraso que o `#6541` já provou existir
-- 🚫 Não usar o selo para esconder, borrar ou substituir o número que ele descreve — isso é a saída (b), que [W] descartou em 2026-09-04
+- 🚫 Não usar o selo para esconder, borrar ou substituir o número que ele descreve — isso converte o selo na saída (b), e o `CU-FISC-16` pede que a contadora consiga **dizer** o que é o quê; superfície escondida não é dizível. (Recusa do agente ancorada no CU — **não** é decisão [W] registrada.)
 - 🚫 Não desenhar o botão "Procedência" em tela que não declara o mapa — toggle que não acende selo nenhum ensina o operador a ignorar o botão
