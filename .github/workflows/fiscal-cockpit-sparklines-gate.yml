@@ -1,0 +1,93 @@
+name: Fiscal Cockpit Sparklines Gate — as séries do ribbon são desenhadas (vitest · JUnit)
+
+# O QUE TRAVA: o contrato das mini-séries de 14 dias do ribbon do cockpit (`/fiscal`) —
+# que elas sejam DESENHADAS, que apareçam nos três KPIs que o protótipo marca (nem mais,
+# nem menos), que a geometria seja a de `FxSpark` e que o gráfico permaneça redundância
+# visual (`aria-hidden`, `currentColor`). Contrato por UC em
+# resources/js/Pages/Fiscal/Cockpit.casos.md (UC-FCKP-10).
+#
+# POR QUE A LANE EXISTE: nenhuma lane roda `vitest run` sem argumento — cada spec aponta
+# pro próprio arquivo, e por isso o projeto tem uma lane por contrato de tela
+# (fiscal-teclado-gate, fiscal-cockpit-paginacao-gate). Spec sem lane nunca executa, e
+# verde-por-não-execução (LC-13) é PIOR que teste ausente porque parece cobertura.
+# `modules-pest.yml` casa `Pages/Fiscal`, mas é Pest/PHP — outro runtime, não serve de dono.
+#
+# POR QUE ESTE CONTRATO PRECISA DE GATE, e não bastava o teste existir: o defeito que ele
+# defende não era código ausente — era código ESCRITO e INERTE (LC-30). A prop `sparklines`
+# tinha `interface`, viajava do controller e já era assertada no `CockpitControllerTest`;
+# ela só nunca foi desestruturada, e nada no CI notou por meses. Um gate que só olhasse o
+# payload continuaria verde com a tela sem desenhar nada.
+#
+# ⚠️ O ARQUIVO SOB TESTE ENTRA NO GATILHO junto com o spec. Sem `Cockpit.tsx` e
+# `_components/RibbonSpark.tsx` no `paths`, mexer na tela não acorda o teste que a defende
+# — gate mudo com cara de cobertura.
+#
+# Comando local: npx vitest run tests/js/fiscal-cockpit-sparklines.test.tsx
+#
+# Advisory (ADR 0271/0314): adorno de leitura num KPI é qualidade, não Tier-0 — nenhum
+# caminho aqui move dinheiro, estoque ou tenant. Promoção a required é flip [W] com mordida
+# real coletada em main (ADR 0336 DR-2); não se auto-promove.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, reopened, ready_for_review, synchronize]
+    paths:
+      - 'resources/js/Pages/Fiscal/Cockpit.tsx'
+      - 'resources/js/Pages/Fiscal/_components/RibbonSpark.tsx'
+      - 'tests/js/fiscal-cockpit-sparklines.test.tsx'
+      - 'tests/js/setup.ts'
+      - '.github/workflows/fiscal-cockpit-sparklines-gate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'resources/js/Pages/Fiscal/Cockpit.tsx'
+      - 'resources/js/Pages/Fiscal/_components/RibbonSpark.tsx'
+      - 'tests/js/fiscal-cockpit-sparklines.test.tsx'
+      - 'tests/js/setup.ts'
+      # o workflow entra no gatilho de push porque é o run de `main` que o publisher
+      # colhe: mexer na lane sem re-rodar deixaria o artifact envelhecer até expirar,
+      # e lane sem artifact é lane pulada no publisher.
+      - '.github/workflows/fiscal-cockpit-sparklines-gate.yml'
+
+concurrency:
+  group: fiscal-cockpit-sparklines-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  sparklines:
+    name: Fiscal · séries do ribbon do cockpit (vitest/jsdom)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install deps
+        run: npm ci
+
+      # `--reporter=default` mantém a saída legível pra humano; `--reporter=junit`
+      # escreve o XML que vira veredito por-UC no manifesto que o G-7 do casos-gate
+      # (REQUIRED) lê. Sem o par, o UC-FCKP-10 valeria 0 no painel para sempre.
+      - name: séries do ribbon do cockpit (vitest/jsdom)
+        run: |
+          npx vitest run \
+            tests/js/fiscal-cockpit-sparklines.test.tsx \
+            --reporter=default \
+            --reporter=junit \
+            --outputFile=test-results/vitest-fiscal-cockpit-sparklines-junit.xml
+
+      # `!cancelled()` (não `success()`): o veredito de um run VERMELHO é justamente o
+      # que o G-7 precisa registrar — `Status: ✅` com teste vermelho é a mentira que
+      # ele existe pra pegar.
+      - name: Upload JUnit (veredito por-UC — casos:results)
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-fiscal-cockpit-sparklines-junit
+          path: test-results/vitest-fiscal-cockpit-sparklines-junit.xml
+          retention-days: 14

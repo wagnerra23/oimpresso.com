@@ -24,7 +24,7 @@ Dar à pessoa fiscal (Eliana contadora + Wagner operador) **visão consolidada d
 ## Goals (Definition of Done PR #2)
 
 1. **6 KPI cards eager** (não-deferred — first paint): emitidas mês, autorizadas + pct, rejeitadas (com pulse), faturamento, DF-e pending, cert vencimento dias
-2. **Mini-sparklines SVG** nos 4 KPIs principais (últimos 14 dias)
+2. **Mini-sparklines SVG** nos **3** KPIs que o protótipo marca — emitidas, autorizadas, rejeitadas (últimos 14 dias). ⚠️ Corrigido 2026-09-04: dizia **4**, e o protótipo âncora marca **3** (`fiscal-page.jsx:114-116`; DF-e, Certificado A1 e Faturado fiscal não têm `FxSpark`). É discordância no eixo FORMA, onde a cadeia é *protótipo > teste > casos > charter* ([ADR UI-0029](../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)) — o charter é o perdedor e cede, no mesmo PR que desenhou as séries. A série `faturamento` segue computada e serializada pelo controller; desenhá-la é que divergiria da fonte.
 3. **Alertas determinísticos** (3 níveis crit/warn/info) computados em PHP sem LLM — rejeições 7d + cert <60d + DF-e pending
 4. **6 quick-link cards** pra sub-páginas (2 ativos sub-pages 2/3/5 + 3 disabled futuras 4/6/7)
 5. **Multi-tenant Tier 0**: NfeEmissao + NfseEmissao + NfeDfeRecebido + NfeCertificado via HasBusinessScope (ADR 0093)
@@ -100,6 +100,32 @@ rotas), então o atalho valia para os dois; em produção são telas separadas e
 ([#6707](https://github.com/wagnerra23/oimpresso.com/pull/6707)) entregou o teclado só no
 `Nfe.tsx`. Copiar o hint aqui anunciaria atalho que esta tela não tem. Quem implementar
 `J/K` no cockpit deve trazer o hint junto — os dois andam colados.
+
+## Contrato das séries do ribbon (item A2 · 2026-09-04)
+
+Destilado do alvo `prototipo-ui/cowork/fiscal-page.jsx:80-84` (`FxSpark`) e `:114-116` (onde ele
+aparece). Descreve o que a peça **é**; o dado segue sendo do `computeSparklines()`, que já existia
+e não foi tocado. Contrato executável em `Cockpit.casos.md` (**UC-FCKP-10**), lane
+`fiscal-cockpit-sparklines-gate.yml`.
+
+| Item | Contrato |
+|---|---|
+| Componente | `_components/RibbonSpark.tsx` — local do Fiscal (1 módulo consome), por [`.claude/rules/components.md`](../../../../.claude/rules/components.md) |
+| Quais KPIs | **exatamente 3**: Emitidas, Autorizadas, Rejeitadas. Os outros três **não** recebem série |
+| Posição | último filho do `.fx-ribbon-item`, depois do `<em>` — inclusive quando o `<em>` é condicional (Rejeitadas) |
+| Geometria | `viewBox="0 0 56 15"`, base em `y=14`, amplitude `12`, `strokeWidth="1.2"`, um `<polyline>` — sem área, sem gradiente |
+| Escala | `v / max` com piso 1 no máximo — magnitude com base em zero, não variação relativa |
+| Cor | `currentColor`, **nunca** literal — a série herda a tinta do KPI, então "Rejeitadas" sai em alerta sem mapa de cor no componente |
+| a11y | `aria-hidden="true"` — é redundância visual: o número ao lado já é o dado. Sem hover, sem tooltip, sem foco |
+| Série de 1 ponto | **não desenha** — `length - 1` zeraria o divisor e o React serializaria `points="NaN,NaN"` sem erro |
+| Série toda-zero | **desenha** na base — "nada aconteceu" é leitura honesta, e é o que o protótipo faz |
+
+**Por que não o `Chart` do DS** (`@/Components/shared/Chart`), medido em 2026-09-04: ele se
+dimensiona por `width: '100%'` sem prop de largura (o ribbon quer 56px fixos); fixa `role="img"` +
+`aria-label` no `<svg>`, o oposto do `aria-hidden` deste contrato; e é **interativo**
+(`onMouseEnter` com estado + tooltip `label · valor`), o que ADICIONA leitura de dado onde a peça é
+decorativa. Sobrepor isso significaria editar o componente do DS — soberania [W] — e mexer nos seus
+dois consumidores vivos.
 
 ## Anti-hooks
 
