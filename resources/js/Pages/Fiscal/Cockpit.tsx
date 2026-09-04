@@ -421,7 +421,7 @@ export default function Cockpit({
         {/* KPI ribbon estreito (substitui fx-kpis-cockpit 6-card grid) */}
         <div className="fx-ribbon" data-contract="fiscal-cockpit-kpis" role="region" aria-label="KPIs fiscais">
           <span className="fx-ribbon-item">
-            <small>Emitidas<SeloProcedencia mapa={procedencia} chave="kpis" /></small>
+            <small>Emitidas<SeloProcedencia mapa={procedencia} chave="kpis" /><SeloProcedencia mapa={procedencia} chave="spark" /></small>
             <b>{kpis.emitidas}</b>
             <em className="up">↑ 12 vs abr</em>
             <RibbonSpark data={sparklines.emitidas} />
