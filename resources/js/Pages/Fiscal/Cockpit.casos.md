@@ -55,6 +55,7 @@ related_us: [US-FISCAL-002, US-FISCAL-019]
 | UC-FCKP-06 | cache separado por business | `[must]` `[T0]` | CU-FISC-12 | `CockpitCacheTest` | 🧪 |
 | UC-FCKP-08 | o alerta é desenhado e leva a algum lugar | `[must]` | CU-FISC-01 | `CockpitControllerTest` | 🧪 |
 | UC-FCKP-09 | a tela serve uma PÁGINA, e filtrar volta à 1ª | `[must]` | CU-FISC-01 | `fiscal-cockpit-paginacao.test.tsx` | 🧪 |
+| UC-FCKP-10 | cert A1 VENCIDO entra na fila de alertas | `[must]` | CU-FISC-01 | `CockpitControllerTest` | 🧪 |
 
 ---
 
@@ -162,6 +163,22 @@ related_us: [US-FISCAL-002, US-FISCAL-019]
 - **Âncora:** `fiscal-page.jsx` §`FxNotasPage` do protótipo Cowork, baixado do **vivo** por `DesignSync` em 2026-09-03 (`truncated: false`) — não do espelho `prototipo-ui/cowork/`, que mediu **1 de 258** arquivos e cuja própria máquina declara que qualquer comparação contra ele é INCONCLUSIVA. De lá vêm o default **8**, as opções 8/25/50, a copy e o contador `{pagina} / {paginas}`.
 - **Status:** 🧪 veredito da lane pendente — a lane nasce neste PR e o run real vem do CI; o que existe hoje é o run local acima.
 
+## UC-FCKP-10 — O certificado A1 já VENCIDO entra na fila de alertas `[must]`
+
+**Dado** um business cujo certificado A1 já venceu — por exemplo, há 28 dias
+**Quando** a contadora abre o cockpit
+**Então** a fila mostra um alerta `crit` *"Certificado A1 vencido há 28 dias"* que a leva à configuração fiscal, e o contador do cabeçalho passa a contá-lo.
+
+- **Regressão que defende:** `computeAlerts()` guardava o bloco do certificado com `$dias <= 60 && $dias > 0` (`CockpitController.php:324`, até 2026-09-04). Como `diasAteVencimento()` devolve número **negativo** quando o cert venceu, o `> 0` descartava justamente o pior estado: **cert vencido não gerava alerta nenhum**. É a forma mais cara de falhar — o aviso some exatamente quando o problema existe, e o silêncio é indistinguível de "está tudo bem".
+- **Medido em produção (biz=1, 2026-09-03):** com o certificado vencido há ~28 dias, a **mesma tela** se contradizia — a sidebar acusava *"Certificado vencido há 28 dias"* (badge da `US-NFE-001`, correto) enquanto o miolo do cabeçalho dizia *"0 requerem ação"*. O contador não é independente: `totalRej` soma `kpis.rejeitadas` + os alertas de nível `crit` (`Cockpit.tsx:332`) — logo o alerta ausente **zerava** a única leitura consolidada da tela.
+- **O contrato não é novo, e o cockpit era o único fora dele:** os outros **5** consumidores de `diasAteVencimento()` classificam por `$dias < 0` — `CertHealthCheckCommand:187`, `ConfigController:61`, `NfeHealthCommand:213`, `HandleInertiaRequests:384` e `PaymentGatewaysController:96`. O caso não inventa regra: alinha a sexta ponta à cadeia que a `US-NFE-001` já defende com 4 GUARDs em `CertificadoServiceTest:303+`.
+- **O `dias === 0` era um segundo vão, e caiu junto:** o `> 0` também excluía o dia do vencimento. Os 5 consumidores põem o `0` na banda de aviso, nunca num vão — `PaymentGatewaysController:97` escreve isso literalmente (`$dias >= 0 && $dias <= 30`). Um cert vencendo **hoje** ficava mudo pelo mesmo motivo; agora emite `crit` *"Certificado A1 vence hoje"*.
+- **Teste:** `CockpitControllerTest` — os 4 casos `it('UC-FCKP-10 · …')`. Eles **injetam** o certificado no `$contexto` via reflection em vez de semeá-lo: sem isso o teste passaria **por vacuidade** num tenant sem certificado (a mesma armadilha que o `UC-FCKP-08` descreve acima), e o modelo não é persistido, então nenhum fixture é fabricado num tenant tratado como real.
+- **Bite-test (2026-09-04, CT 100 · MySQL `oimpresso_staging`):** com o fix, **4 passed (12 assertions)** — assertions > 0, logo executou, não pulou. Com o controller **pré-fix** (`$dias > 0`, extraído de `origin/main`) e o mesmo arquivo de teste: **2 failed, 2 passed (7 assertions)**, e as duas falhas são `actual size 0 matches expected size 1` — a fila volta **vazia** nos casos "vencido há 28d" e "vence hoje". Os casos "vencendo em 47d" (`warn`) e "válido por 90d" (vazio) passam nas duas versões: são guardas de regressão da banda antiga.
+- **Limite honesto, declarado:** o KPI *"Certif. A1"* do ribbon foi corrigido no mesmo PR — renderizava o literal `-28d` com o rótulo `renovar`, e agora diz `vencido` / `há 28d` (`Cockpit.tsx:336-345`) — mas **esse pedaço não tem teste automatizado**. Ele é frontend puro e não há lane de componente para esta tela; o que existe é o `tsc --noEmit` (0 erro no arquivo, com controle positivo provando que o arquivo é de fato checado). Fica declarado em vez de subentendido.
+- **Âncora:** `CU-FISC-01` do SDD §6 (o cockpit entrega a leitura consolidada do mês) + o GUARD `US-NFE-001` (`CertificadoServiceTest.php:303+`), cujo docblock nomeia este exato modo de falha: *"o aviso desaparece justamente quando o problema existe"*.
+- **Status:** 🧪 veredito da lane pendente — `CockpitControllerTest` é advisory (pula em SQLite por exigir schema MySQL) e o veredito de merge vem do CI. O que existe hoje é o run do CT 100 acima, com bite-test nos dois sentidos.
+
 ---
 
 ## Backlog de casos (sem id — viram UC quando ganharem contrato + teste)
@@ -183,3 +200,4 @@ related_us: [US-FISCAL-002, US-FISCAL-019]
 - 2026-07-03 · [CC] stub criado no Passo 3 do programa de ondas — **0 UC**.
 - 2026-07-27 · [CC] `sdd-from-source` (Onda 1 / S2): **6 UC** derivados do §6 do SDD; todos herdam testes existentes. O achado do dado de demonstração ficou como `[BACKLOG]` + `CU-FISC-16` ⬜, por ser decisão de produto.
 - 2026-09-03 · [CC] Onda 1 Fiscal (Cowork): **UC-FCKP-08** — a fila de alertas passa a ser renderizada (`_components/AlertasFiscais.tsx`). O caso nasce com teste próprio e bite-test; cobre os dois contratos cross-language silenciosos (`goto`→rota, `icon`→glifo).
+- 2026-09-04 · [CC] **UC-FCKP-10** — o cert A1 JÁ VENCIDO passa a gerar alerta `crit`. O `$dias > 0` de `computeAlerts()` descartava o pior estado (e também o `dias === 0`); os outros 5 consumidores de `diasAteVencimento()` já classificavam por `$dias < 0`. Bite-test nos dois sentidos no CT 100.
