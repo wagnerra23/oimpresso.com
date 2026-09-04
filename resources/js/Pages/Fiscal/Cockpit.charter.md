@@ -142,9 +142,14 @@ dado troca a declaração no mesmo diff, e o `UC-FCKP-13` reprova quem esquecer.
 
 **Cobertura declarada (medida em 2026-09-04, tip `d23bc3df34`):** 8 superfícies desta tela,
 das quais **4 são demonstração** — e são exatamente os 4 métodos `mock*` do
-`CockpitController`. A prop `sparklines` **não** entra: é real, mas a tela não desenha
-sparkline nenhuma (`_pendente_w` do `fiscal-cockpit.contract.json`), e selo sem superfície
-visível não tem onde pousar.
+`CockpitController`. A prop `sparklines` ficou de fora **por um motivo datado, não
+permanente**: naquela data ela era servida e real, mas a Page a recebia sem consumir
+(`_pendente_w` do `fiscal-cockpit.contract.json`), e selo sem superfície visível não tem
+onde pousar. O [#6732](https://github.com/wagnerra23/oimpresso.com/pull/6732) está em voo
+para desenhá-las; **quem mergear por último acrescenta a chave `spark`** (`origem: real`)
+ao mapa do controller e a sela na Page — a entrada pronta está no docblock de
+`CockpitController::procedencia()`. Dizer aqui, em presente, que "a tela não desenha
+sparkline" viraria afirmação falsa no dia daquele merge, sem nada acusar (LC-10).
 
 ## Anti-hooks
 

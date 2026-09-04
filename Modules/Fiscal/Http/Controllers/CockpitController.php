@@ -109,9 +109,19 @@ class CockpitController extends Controller
      * Medido em 2026-09-04 sobre o tip d23bc3df34: das 8 superfícies desta tela,
      * 4 servem dado inventado, e são exatamente os 4 métodos `mock*` deste arquivo.
      *
-     * `sparklines` NÃO aparece aqui: a prop é servida e é real (`computeSparklines`
-     * agrupa por dia em `nfe_emissoes`), mas a Page não desenha nenhuma sparkline —
-     * selo sem superfície visível não teria onde pousar.
+     * `sparklines` ficou de fora, e o motivo é DATADO, não permanente: medido em
+     * 2026-09-04 (tip `d23bc3df34`), a prop era servida e real (`computeSparklines`
+     * agrupa por dia em `nfe_emissoes`) mas a Page a recebia sem consumir — selo sem
+     * superfície visível não teria onde pousar. O #6732 está em voo para desenhá-las.
+     * QUANDO ELE ENTRAR, acrescente aqui:
+     *
+     *     'spark' => [
+     *         'origem'  => 'real',
+     *         'explica' => 'Série de 14 dias agrupada por dia em nfe_emissoes numa consulta só, com escopo do business.',
+     *     ],
+     *
+     * e sele a superfície na Page. Escrever isto em presente ("a Page não desenha")
+     * viraria afirmação falsa no dia do merge dele, sem nada acusar (LC-10).
      *
      * @return array<string, array{origem: string, explica: string}>
      */
