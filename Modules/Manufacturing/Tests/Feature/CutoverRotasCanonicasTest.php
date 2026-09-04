@@ -30,6 +30,12 @@ uses(Tests\TestCase::class);
  * ORÁCULO das rotas é o registry em runtime (`Route::getRoutes()`), nunca leitura do
  * `Routes/web.php`: um href pode estar escrito certo e apontar pra rota que não existe.
  *
+ * ⚠️ NÃO use `->toContain($agulha, $mensagem)`: o `toContain()` do Pest é VARIÁDICO — o 2º
+ * argumento vira uma SEGUNDA AGULHA, não mensagem. Foi o que derrubou esta suíte no main em
+ * 2026-09-04: os 5 asserts passaram a exigir que a própria mensagem de erro estivesse dentro
+ * do array/arquivo. É a lápide §5 de 2026-07-28 ("mensagem passada como NEEDLE"), cometida
+ * aqui apesar de catalogada. Para ter mensagem, use `expect(<bool>)->toBeTrue('...')`.
+ *
  * @covers-us US-MANU-002, US-MANU-003, US-MANU-004, US-MANU-005
  */
 
@@ -123,8 +129,7 @@ it('todo destino de aba existe no registry de rotas em runtime', function () {
 
     // Controle positivo: sem isto, um registry vazio faria os asserts abaixo passarem por
     // vacuidade — e verde por não-medição não vale nada (LC-13).
-    expect($registradas)->toContain(
-        '/manufacturing/settings',
+    expect(in_array('/manufacturing/settings', $registradas, true))->toBeTrue(
         'O registry não trouxe as rotas do Manufacturing — a medição está inválida, não verde.'
     );
 
@@ -149,7 +154,8 @@ it('os 5 endereços canônicos do módulo estão registrados', function () {
         ->all();
 
     foreach (mfgRotasCanonicas() as $rota) {
-        expect($registradas)->toContain($rota, "O endereço canônico {$rota} não está registrado.");
+        expect(in_array($rota, $registradas, true))
+            ->toBeTrue("O endereço canônico {$rota} não está registrado.");
     }
 });
 
@@ -164,8 +170,7 @@ it('as rotas /v2/* seguem existindo como redirect — link salvo não quebra', f
     // Sumir com elas quebraria favorito, histórico e link colado em conversa. 301 preserva
     // sem manter dois destinos vivos.
     foreach (['production', 'report', 'settings', 'insumos'] as $tela) {
-        expect($v2)->toContain(
-            "/manufacturing/v2/{$tela}",
+        expect(in_array("/manufacturing/v2/{$tela}", $v2, true))->toBeTrue(
             "O redirect /manufacturing/v2/{$tela} sumiu — link salvo passa a dar 404."
         );
     }
@@ -206,7 +211,8 @@ it('nenhuma rota Blade do módulo foi removida no cutover', function () {
         '/manufacturing/add-ingredient',
         '/manufacturing/get-recipe-details',
     ] as $rota) {
-        expect($registradas)->toContain($rota, "Rota Blade {$rota} sumiu — o cutover não podia removê-la.");
+        expect(in_array($rota, $registradas, true))
+            ->toBeTrue("Rota Blade {$rota} sumiu — o cutover não podia removê-la.");
     }
 });
 
@@ -236,8 +242,7 @@ it('o menu lateral tem entrada pra Insumos', function () {
         base_path('Modules/Manufacturing/Resources/views/layouts/partials/sidebar.blade.php')
     );
 
-    expect($sidebar)->toContain(
-        "'insumos'",
+    expect(str_contains($sidebar, "'insumos'"))->toBeTrue(
         'O menu lateral do módulo não referencia a ação de Insumos.'
     );
 });
