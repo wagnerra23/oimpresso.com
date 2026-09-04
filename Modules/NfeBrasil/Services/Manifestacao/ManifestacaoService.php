@@ -142,14 +142,17 @@ class ManifestacaoService
             $tools = $this->buildTools($businessId);
             // Conversao na fronteira com a lib. `Tools::sefazManifesta` declara
             // `(string $chave, int $tpEvento, string $xJust = '', int $nSeqEvento = 1)`, e o
-            // dominio aqui carrega os tipos do BANCO: `NfeDfeEvento::TIPO_*` sao STRINGS
-            // ('210210'…) porque a coluna e varchar, e `justificativa` e nullable. Passar isso
-            // cru rendia `TypeError` — invisivel ate 2026-09-04 porque o `buildConfig` morria
-            // antes, na coluna `business.state` que nao existe.
+            // dominio aqui carrega o tipo do BANCO: `NfeDfeEvento::TIPO_*` sao STRINGS
+            // ('210210'…) porque a coluna e varchar. Passar isso cru rendia `TypeError` —
+            // invisivel ate 2026-09-04 porque o `buildConfig` morria antes, na coluna
+            // `business.state` que nao existe.
+            // `$justificativa` NAO precisa de coalescencia: aqui dentro ela ja e `string`
+            // (default ''), e quem e nullable e o parametro do `AcoesController`, uma camada
+            // acima — o PHPStan pegou essa confusao de camada na 1a versao deste bloco.
             $responseXml = $tools->sefazManifesta(
                 (string) $dfe->chave_44,
                 (int) $tipo,
-                (string) ($justificativa ?? ''),
+                $justificativa,
                 (int) $nSeq,
             );
 
