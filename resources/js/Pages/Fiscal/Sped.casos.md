@@ -5,10 +5,23 @@ irmaos: Sped.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-09-03"
+last_run: "2026-09-04"
 ---
 
 # Casos de Uso & Aceite — SPED & Livros
+
+> **Revalidação `last_run` 2026-09-04 — Onda 10 Fiscal (os Goals do charter do Cowork que a
+> Onda 9 não entregou):** entram **UC-FSF1-01** (o bloqueio diz QUANDO deixa de bloquear),
+> **UC-FSF1-06** (blocos do arquivo) e **UC-FSF1-07** (validação externa). Os três são
+> **comportamento invocado**, não source-grep: chamam `SpedController::checagens` e
+> `SpedReferenciaArquivoService` e olham o resultado. Cada um vem com **bite-test** — apontar o
+> serviço para um arquivo ausente derruba a estrutura e a afirmação de validação junto.
+>
+> ⚠️ **O que Pest NÃO prova aqui, e não é fingido:** se a barra de validação está na PÁGINA ou
+> dentro do drawer. Isso é posição de DOM; o veredito vem do smoke visual e do gate
+> `contrato-de-tela` (que checa âncora + copy + ordem — rodado nos 4 modos do job, todos rc=0, com
+> bite-test provando que reprova copy ausente e ordem trocada). Os UCs acima assertam o **payload**
+> do servidor, que é o que determina o que a tela pode renderizar.
 
 > **Revalidação `last_run` 2026-09-03 — Onda 9 Fiscal (F1 Cowork · régua de geração + golden):**
 > entram **UC-FSF1-03** e **UC-FSF1-05**, os dois casos que desceram do Cowork vermelhos de
@@ -196,6 +209,52 @@ contagem real, que os 5 blocos abrem e fecham (`0001/0990`, `C001/C990`, `E001/E
 > responsável**, não conserto silencioso — ver `sped-icms-ipi-golden.meta.md` §"O que este golden
 > EXPÕE".
 
+## UC-FSF1-01 — O bloqueio diz o motivo E a data em que deixa de bloquear
+Status: 🧪 (`SpedOnda10Test` — 3 casos, rodam em toda lane: não tocam banco)
+Dado a competência corrente, ainda em aberto · Quando [E] lê por que não pode gerar · Então o
+motivo cita **a data em que a competência encerra** (último dia do próprio mês), além do critério
+e da norma. Até a Onda 9 o motivo dizia só "o mês ainda não terminou": informava o *que* falta,
+nunca *quando* deixa de faltar.
+
+⚠️ **A data é o ENCERRAMENTO, não o prazo de entrega — e essa diferença tem um teste próprio.**
+O protótipo do Cowork cita ali o campo `entrega` (dia 15 do mês seguinte). São coisas distintas:
+09/2026 encerra em 30/09 e a entrega vence 15/10. Quem lesse "fecha em 15/10" esperaria duas
+semanas a mais do que precisa para gerar. O prazo de entrega segue na coluna própria da tabela.
+**Pronto quando:** o motivo do mês corrente contém a data de encerramento e **não** contém a de
+entrega; o mês encerrado também informa em que data encerrou.
+
+## UC-FSF1-06 — Os blocos do arquivo são medidos, não escritos
+Status: 🧪 (`SpedOnda10Test` — 4 casos, incluindo o bite-test)
+Dado o arquivo de referência EFD-ICMS/IPI · Quando [E] quer saber o que vai dentro de cada bloco ·
+Então a tela lista, por bloco, **os registros que o arquivo realmente contém** — medidos linha a
+linha pelo `SpedReferenciaArquivoService`, nunca uma lista canônica escrita à mão que apodrece no
+primeiro ajuste do gerador. A soma das linhas por bloco bate com a contagem real do arquivo, e
+registro repetido (as 22 linhas `9900`) conta linha sem repetir o nome na lista.
+
+- **Regressão que defende:** uma lista escrita à mão continuaria "certa" na tela depois de o
+  gerador parar de emitir um registro — e a contadora leria estrutura que o arquivo não tem.
+- **Pronto quando:** os 5 blocos saem na ordem `0 · C · E · H · 9` com os registros reais, a soma
+  bate, e apontar o serviço a um arquivo AUSENTE devolve `disponivel: false` com `blocos: []` —
+  ausência declarada, nunca estrutura presumida (bite-test).
+
+## UC-FSF1-07 — A tela não finge validação que não houve, nem nega a que houve
+Status: 🧪 (`SpedOnda10Test` — 3 casos, incluindo 2 bite-tests)
+Dado o cartão de validação externa · Quando [E] pergunta se o arquivo foi validado · Então lê o
+estado **verdadeiro na data**: o smoke no PVA-EFD segue **nunca executado** (derivado da ausência
+do recibo em `Modules/Fiscal/Tests/Fixtures/sped-pva-smoke.recibo.md`), e o arquivo de referência
+**existe**, com bytes, linhas e SHA-256 lidos do disco.
+
+⚠️ **Por que a copy do protótipo não pôde ser copiada.** O cartão do F1 diz literalmente
+*"Golden file do TXT: não existe"*. O charter do Cowork é de 2026-08-24; o golden nasceu em
+2026-09-03 ([PR #6708](https://github.com/wagnerra23/oimpresso.com/pull/6708)). Traduzir a copy
+literal teria posto uma **afirmação falsa** na tela. Nada aqui é afirmado: tudo é lido do disco a
+cada request, e o dia em que alguém rodar o PVA e deixar o recibo, a tela para de dizer "nunca
+executado" **sozinha**, sem editar código.
+- **Pronto quando:** `golden.presente` é verdadeiro contra o arquivo real; `pvaSmoke.executado`
+  vira verdadeiro ao apontar para um arquivo que existe (bite-test — um texto fixo passaria no
+  primeiro assert e falharia neste); e sem arquivo de referência, "apuração do ICMS no arquivo"
+  cai junto, porque ela é medida pela presença do Bloco E.
+
 ## Backlog de casos (sem id — entram quando um teste de COMPORTAMENTO os cobrir)
 
 > ⚠️ Os itens abaixo **têm teste**, mas o teste é **source-grep**: asserta que uma string existe no
@@ -217,6 +276,7 @@ contagem real, que os 5 blocos abrem e fecham (`0001/0990`, `C001/C990`, `E001/E
 2. **Cadência:** rodar ao fim de toda mexida. UC ❌ = regressão fiscal (multa).
 
 ## Trilha do tempo
+- 2026-09-04 · [CC] Onda 10 (F1 Cowork): entram `UC-FSF1-01`, `UC-FSF1-06` e `UC-FSF1-07`, traduzindo os Goals 1 (completar), 5 e 4 do charter do Cowork. A régua ganhou barra na página (antes só existia dentro do drawer) e as duas superfícies novas são **medidas no arquivo de referência** — o cartão de validação teve de contradizer a copy do protótipo, que diz "golden file: não existe" e ficou desatualizada no dia seguinte ao charter. Goal 3 (prévia do TXT) segue em aberto por decisão [W].
 - 2026-07-03 · [CC] criado no Passo 3 do programa de ondas (régua por tela). 22 testes mapeados, 0 citavam UC-id.
 - 2026-09-03 · [CC] Onda 9 (F1 Cowork): entram `UC-FSF1-03` (régua de 4 checagens + guarda de entrada no Service) e `UC-FSF1-05` (golden file). Dois achados registrados sem conserto silencioso — o `TypeError` do Bloco 9, corrigido com um cast, e o emitente sem CNPJ/IE/UF, que é decisão do responsável. O §recibo de 07-27 caducou: `nfe_emissoes` existe no CT 100 desde o provisionamento de 07-28.
 - 2026-07-27 · [CC] fecha a G-2: 10 UC declarados (`UC-FSPED-01..10`) e citados pelos testes existentes. Separado o que é **comportamento provado** (invocação real) do que é **source-grep** — os 5 source-grep ficam backlog explícito em vez de virar UC de fachada. Revogado o guard `Controller é placeholder` (verde por nome, ver `UC-FSPED-03`). Prefixo `UC-FSPED-` em vez do `UC-FISCAL-` planejado: as 6 telas Fiscal compartilhariam o mesmo id e o G-2 casa por substring — colisão viraria cobertura falsa cruzada.
