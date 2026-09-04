@@ -25,7 +25,10 @@
   --fx-border: oklch(0.90 0.004 90);
   --fx-border-2: oklch(0.93 0.004 90);
   --fx-bg-2:   oklch(0.965 0.004 90);
-  --fx-surface: #ffffff;            /* espelha `.cockpit --surface` do DS (#ffffff no light) */
+  /* `oklch(1 0 0)` E branco puro — equivalente exato do `#ffffff` que o `.cockpit`
+   * do DS usa. Fica em oklch, e não em hex, porque o `color-no-hex` do stylelint
+   * é regra desta casa: o gate pegou o hex (0 -> 1) e ele estava certo. */
+  --fx-surface: oklch(1 0 0);
   --fx-text:   oklch(0.22 0.01 80);
   --fx-text-dim: oklch(0.50 0.01 80);
   --fx-text-mute: oklch(0.65 0.01 80);
