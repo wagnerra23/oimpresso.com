@@ -5,6 +5,7 @@ declare(strict_types=1);
 // @covers-us UC-BKP-01 UC-BKP-02 UC-BKP-09
 
 use App\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
@@ -32,7 +33,12 @@ beforeEach(function () {
     app(PermissionRegistrar::class)->forgetCachedPermissions();
 
     $this->biz = $this->seededTenant();                 // biz=98 ficticio (ADR 0358)
-    $this->admin = User::factory()->create(['business_id' => $this->biz->id]);
+    // ->fresh() obrigatorio: o UserFactory nao declara `user_type`/`allow_login` (NOT NULL com
+    // DEFAULT no banco), entao a instancia do factory traz os dois NULL — o Eloquent nao rele a
+    // linha apos o INSERT. O actingAs autentica ESSA instancia e o middleware CheckUserLogin
+    // aborta 403 antes de qualquer permissao. Medido no run 33912397069 (desenho B/A/B):
+    // com fresh 200, sem fresh 403, com can('backup')=true nos dois.
+    $this->admin = User::factory()->create(['business_id' => $this->biz->id])->fresh();
     $this->admin->givePermissionTo('backup');
 
     Storage::fake('local');
@@ -40,18 +46,81 @@ beforeEach(function () {
     config(['mwart.backup_index.enabled' => true]);
 
     $this->pasta = str_replace(chr(92), '/', (string) config('backup.backup.name'));
-    // o de 03:00 e "agendado"; o das 15:00 e "manual" — e o mais NOVO e o de hoje
-    Storage::disk('local')->put($this->pasta.'/2026-08-19-03-00-04.zip', 'zip-agendado');
-    Storage::disk('local')->put($this->pasta.'/2026-08-18-15-00-04.zip', 'zip-manual');
+    // o de 03:00 e "agendado"; o das 15:00 e "manual" — e o mais NOVO e o de 19/08.
+    //
+    // ⚠️ O NOME DO ARQUIVO NAO DECIDE NADA AQUI, e e esse justamente o contrato que estes casos
+    // defendem: `listarParaTela()` ordena por `last_modified` e deriva `origem` de
+    // `date('H', $ts)` — os dois vindos do `$disk->lastModified()`, o mtime REAL. Sem carimbar o
+    // mtime, o `put()` cria os dois no MESMO instante (agora), e ai a ordem fica indefinida e a
+    // `origem` passa a depender da hora em que o CI rodou. Medido no run 33912981922: veio
+    // '2026-08-18-15-00-04.zip' na posicao 0, e os 2 casos nao tinham como passar em ambiente
+    // nenhum. Carimbar o mtime e o que torna o teste deterministico E fiel ao UC-BKP-01.
+    //
+    // Carbon (nao strtotime) pra respeitar o timezone do app: `date('H')` le o tz do app, e o
+    // runner do CI e UTC — a hora tem de ser a mesma dos dois lados, senao 'agendado' vira
+    // 'manual' por acidente de fuso.
+    $arquivos = [
+        '2026-08-19-03-00-04.zip' => ['conteudo' => 'zip-agendado', 'quando' => '2026-08-19 03:00:04'],
+        '2026-08-18-15-00-04.zip' => ['conteudo' => 'zip-manual', 'quando' => '2026-08-18 15:00:04'],
+    ];
+    foreach ($arquivos as $nome => $dados) {
+        $caminho = $this->pasta.'/'.$nome;
+        Storage::disk('local')->put($caminho, $dados['conteudo']);
+        touch(Storage::disk('local')->path($caminho), Carbon::parse($dados['quando'])->timestamp);
+    }
 
     $this->actingAs($this->admin);
     session(['user.business_id' => $this->biz->id, 'business.id' => $this->biz->id]);
 });
 
+/**
+ * Version que o SERVIDOR usa no check do Inertia — mandar a mesma evita o 409
+ * (version mismatch) antes de o controller rodar.
+ *
+ * Espelha `HandleInertiaRequests::version()` (app/Http/Middleware): com o manifest presente
+ * ele devolve o `md5_file` dele. O literal `'1'` que ficava aqui NUNCA batia —
+ * `Middleware.php:149` compara o header com `Inertia::getVersion()`, que é `(string) $version`:
+ * `''` sem manifest, um md5 com ele. Medido nos runs 33909230351 (com stub) e 33910354015 (sem):
+ * os 6 casos deste arquivo davam 409 nas DUAS configurações. Mesmo helper do
+ * ProdutoIndexContratoTest, que roda verde na lane do estoque.
+ */
+function backupInertiaVersion(): string
+{
+    $manifest = public_path('build-inertia/manifest.json');
+
+    return file_exists($manifest) ? md5_file($manifest) : '1';
+}
+
+/**
+ * Lista de backups — prop DEFERIDA (`BackUpController:105`, `Inertia::defer`), logo ela so vem
+ * num partial reload, e o Inertia faz partial reload por HEADER
+ * (`X-Inertia-Partial-Component` + `X-Inertia-Partial-Data`), nunca por query string.
+ *
+ * O `?only=backups` que ficava aqui era ignorado pelo Inertia: a resposta vinha sem a prop e
+ * `props.backups.data` dava null — os 2 casos morriam com ErrorException/InvalidExpectationValue
+ * em vez de falhar com mensagem util (run 33912700637, 2 errors). Mesmo padrao do
+ * ProdutoIndexContratoTest, que roda verde na lane do estoque.
+ *
+ * @return array<int,array<string,mixed>>
+ */
+function backupListaDeferida($teste): array
+{
+    $r = $teste->withHeaders([
+        'X-Inertia' => 'true',
+        'X-Inertia-Version' => backupInertiaVersion(),
+        'X-Inertia-Partial-Component' => 'Backup/Index',
+        'X-Inertia-Partial-Data' => 'backups',
+    ])->get('/backup');
+
+    $r->assertOk();
+
+    return $r->json('props.backups.data') ?? [];
+}
+
 /** GET /backup como Inertia, devolvendo o page object decodificado. */
 function backupPage($teste): array
 {
-    $r = $teste->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])->get('/backup');
+    $r = $teste->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => backupInertiaVersion()])->get('/backup');
     $r->assertOk();
 
     return json_decode($r->getContent(), true);
@@ -70,9 +139,7 @@ test('a rota renderiza Backup/Index com as props que a tela consome', function (
 test('a lista vem do mais novo pro mais velho e ignora quem nao e zip', function () {
     Storage::disk('local')->put($this->pasta.'/lixo.txt', 'nao-e-backup');
 
-    $backups = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
-        ->get('/backup?only=backups')
-        ->json('props.backups.data');
+    $backups = backupListaDeferida($this);
 
     expect($backups)->toHaveCount(2);
     expect($backups[0]['file_name'])->toBe('2026-08-19-03-00-04.zip');
@@ -81,9 +148,7 @@ test('a lista vem do mais novo pro mais velho e ignora quem nao e zip', function
 
 // UC-BKP-01 — a origem sai do ARQUIVO, nao do config (anti-hook do charter)
 test('origem e derivada da hora do arquivo, nao do cron parseado', function () {
-    $backups = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
-        ->get('/backup?only=backups')
-        ->json('props.backups.data');
+    $backups = backupListaDeferida($this);
 
     $porNome = collect($backups)->keyBy('file_name');
     expect($porNome['2026-08-19-03-00-04.zip']['origem'])->toBe('agendado');
@@ -113,7 +178,7 @@ test('em demo as acoes vem desabilitadas com motivo e o cron fica vazio', functi
 test('com a flag desligada a rota segue no Blade legado', function () {
     config(['mwart.backup_index.enabled' => false]);
 
-    $r = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])->get('/backup');
+    $r = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => backupInertiaVersion()])->get('/backup');
 
     $r->assertOk();
     expect($r->headers->get('x-inertia'))->toBeNull();   // Blade nao responde como Inertia

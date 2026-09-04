@@ -1,0 +1,216 @@
+name: Backup · Pest (MySQL)
+
+# Lane de BACKUP: a tela /backup (dual-render Blade↔Inertia), o RunBackupJob e o
+# endurecimento Tier 0 do download/delete.
+#
+# POR QUE existe: varredura contada em 2026-09-04 contra origin/main (7ddf024a7f), com as
+# duas pernas da regra de claim-negativa (proibicoes.md §5 2026-07-28):
+#   1. `git grep -l -E "Feature/Backup|BackupInertiaTest|BackupSegurancaTest|BackupJobTest"`
+#      no ref inteiro → 10 arquivos, ZERO em .github/workflows/.
+#   2. Dono do inventário (scripts/governance/gates-registry.json, 134 workflows): nenhuma
+#      entrada cobre a Backup. Controle positivo com a MESMA sonda: `arquivos-pest` aparece,
+#      logo a sonda discrimina.
+#   3. Nenhuma lane roda tests/Feature de forma ampla — toda invocação do binário do Pest nos
+#      workflows é path-específica, e a lane sqlite (ci.yml) lê alvos de
+#      .github/ci-sqlite-pest.list, onde Backup não está.
+#
+# Sem lane, os 21 casos (6 Inertia + 7 Job + 8 Segurança) nascem MUDOS: tests/Feature está no
+# testsuite do phpunit.xml, mas registro não é execução (§5 2026-08-02) e "0 failed" numa suíte
+# que não rodou não prova nada (LC-13). Consequência medida: os 9 UCs que esses arquivos
+# declaram cobrir em @covers-us (UC-BKP-01,02,03,04,05,06,07,09,10) não tinham prova de
+# execução em CI, e o G-7 do casos-gate nunca poderia promovê-los pelo manifesto.
+#
+# MySQL e não a lista sqlite: os três arquivos abrem com `markTestSkipped` se faltar a tabela
+# `business`/`users`, usam DatabaseTransactions, `seededTenant()` (biz=98 fictício — ADR 0358)
+# e batem em rota HTTP com sessão de negócio. Em sqlite sem schema semeado eles pulariam, e
+# skip sai exit 0 — verde por não-execução. A action pest-mysql-setup é a dona de QUAIS
+# tenants existem (semeia biz=1, biz=2 e biz=98).
+#
+# ⚠️ POR QUE routes/web.php E app/Console/Kernel.php estão no gatilho, mesmo sendo os dois
+# arquivos mais movimentados daqui (medido em 90d contra origin/main: 30 e 43 commits): é
+# neles que mora a regressão que estes testes existem para pegar.
+#   - UC-BKP-04 pergunta ao REGISTRY do scheduler — `app(Schedule::class)->events()` — se
+#     existe `queue:work --queue=backups`. Quem apagar esse agendamento (Kernel.php:1282)
+#     deixa o job parado na tabela `jobs` e a tela mentindo "backup na fila". Sem Kernel.php
+#     no gatilho, a lane ficaria muda EXATAMENTE nessa regressão.
+#   - Os casos batem em /backup, /backup/create, POST /backup, /backup/download/{file} e
+#     /backup/{id}/delete (routes/web.php:960-962). O BackupSegurancaTest nasceu de um
+#     `Route::resource(...)->only(..., 'store')` que registrava POST /backup sem `store()`.
+# Omitir os dois baratearia a lane ao preço de torná-la gate mudo com cara de cobertura — a
+# pegadinha que sells-pest.yml e acessos-pest.yml documentam no próprio paths:. O custo real é
+# contido: o job de PR é always-run com skip-as-pass, então só PRs que tocam esses arquivos
+# pagam o setup MySQL.
+#
+# Cobre hoje:
+#   - BackupSegurancaTest (Onda 1) — travessia de caminho em download/delete. O disco `local`
+#     tem raiz em public_path('uploads'), a MESMA pasta de logos e documentos de TODOS os
+#     tenants: o dano alcançável é ler e sobretudo APAGAR arquivo de outro tenant (ADR 0093).
+#   - BackupJobTest (Onda 2) — o job vai pra fila `backups` (não `default`) E existe worker
+#     agendado drenando essa fila.
+#   - BackupInertiaTest (Onda 3) — o dual-render atrás da flag `mwart.backup_index`: com ela
+#     desligada a rota segue no Blade legado; ligada, nasce o componente Inertia com as props.
+#
+# Estrutura copiada de acessos-pest.yml (mesmo setup MySQL, mesmo skip-as-pass, mesmo sumário
+# JUnit por assertions). Não é lane paralela a nada: é área que não tinha dono.
+
+on:
+  workflow_dispatch: {}
+  # pull_request SEM paths (always-run) + skip-as-pass interno via dorny/paths-filter:
+  # se nada do domínio mudou, pula o pesado e conclui verde (mesmo padrão de
+  # acessos-pest/essentials-pest — required-ready sem deadlock).
+  #
+  # ⚠️ `types` SEM `synchronize` é o padrão vigente dos advisory desde o #6622 (fila de CI,
+  # 2026-09-02): a lane não re-roda a cada push do mesmo PR — para reexecutar, use o
+  # workflow_dispatch acima. QUEM FOR PROMOVER ESTA LANE A REQUIRED tem de reinserir
+  # `synchronize` ANTES do flip, senão o context não nasce no SHA final e o PR trava BLOQUEADO
+  # com 0 falhas e 0 pendentes (lápide 2026-08-08 · RUNBOOK-branch-protection §Promoção).
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - 'app/Http/Controllers/BackUpController.php'
+      - 'app/Jobs/RunBackupJob.php'
+      - 'app/Backup/**'
+      - 'app/Console/Kernel.php'
+      # Util.php é código sob teste, não vizinho: o controller chama
+      # getCronJobCommand() (BackUpController:97 → props.cron, exercido por UC-BKP-09) e
+      # notAllowedInDemo() (:181, exercido pelos casos de demo). Barato: 4 commits em 90d.
+      - 'app/Utils/Util.php'
+      - 'config/backup.php'
+      - 'config/mwart.php'
+      - 'routes/web.php'
+      - 'resources/views/backup/**'
+      - 'resources/js/Pages/Backup/**'
+      - 'tests/Feature/Backup/**'
+      - 'tests/Support/WithSeededTenant.php'
+      - 'database/schema/mysql-schema.sql'
+      - '.github/workflows/backup-pest.yml'
+      - '.github/actions/pest-mysql-setup/**'
+
+concurrency:
+  group: backup-pest-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pest:
+    name: PHP / Pest (Backup · MySQL)
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: oimpresso_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detectar mudanças de backup (skip-as-pass)
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            backup:
+              - 'app/Http/Controllers/BackUpController.php'
+              - 'app/Jobs/RunBackupJob.php'
+              - 'app/Backup/**'
+              - 'app/Console/Kernel.php'
+              - 'app/Utils/Util.php'
+              - 'config/backup.php'
+              - 'config/mwart.php'
+              - 'routes/web.php'
+              - 'resources/views/backup/**'
+              - 'resources/js/Pages/Backup/**'
+              - 'tests/Feature/Backup/**'
+              - 'tests/Support/WithSeededTenant.php'
+              - 'database/schema/mysql-schema.sql'
+              - '.github/workflows/backup-pest.yml'
+              - '.github/actions/pest-mysql-setup/**'
+
+      - name: Skip-as-pass (nada do domínio mudou)
+        if: steps.changes.outputs.backup == 'false'
+        run: echo "✅ Sem mudanças em backup — skip-as-pass."
+
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed mínimo multi-tenant)
+        if: steps.changes.outputs.backup == 'true'
+        uses: ./.github/actions/pest-mysql-setup
+
+      - name: Stub Vite manifest (root view sem build do front)
+        if: steps.changes.outputs.backup == 'true'
+        # Padrão das outras 19 lanes. Hoje NENHUM caso daqui o exercita (com header X-Inertia o
+        # Laravel devolve JSON e não renderiza o root view; o único caso que renderiza HTML é o
+        # do Blade legado, e `layouts/app.blade.php` não usa @vite — só
+        # `layouts/inertia.blade.php` usa). Fica pela consistência e pelo primeiro caso futuro
+        # que renderize o root view.
+        #
+        # ⚠️ ERRATA MEDIDA — este step NÃO é a causa dos 409 do BackupInertiaTest, embora o
+        # commit a63038fb74 tenha afirmado que era. Prova: o run 33910354015 rodou SEM este step
+        # e os 4 casos com 409 (+2 "Invalid JSON") se repetiram, idênticos ao run 33909230351.
+        # A causa real está no teste: `Middleware.php:149` compara
+        # `header('X-Inertia-Version','')` com `Inertia::getVersion()`, que é `(string) $version`
+        # — sem manifest dá `''`, com o stub dá um md5. Os casos mandam o literal `'1'`, que não
+        # bate em NENHUMA das duas configurações. O teste só passaria se a version fosse
+        # literalmente "1". Comparar: o estoque-pest roda um teste equivalente que manda
+        # `produtoIndexInertiaVersion()`, ou seja, CALCULA a version — é esse o conserto do lado
+        # do teste, e ele não pertence a este PR (aqui só nasce a lane).
+        run: |
+          mkdir -p public/build-inertia
+          cat > public/build-inertia/manifest.json <<'EOF'
+          {
+            "resources/css/inertia.css": { "file": "assets/inertia.css", "src": "resources/css/inertia.css", "isEntry": true },
+            "resources/js/app.tsx": { "file": "assets/app.js", "src": "resources/js/app.tsx", "isEntry": true }
+          }
+          EOF
+
+      - name: Run Pest (Backup · MySQL)
+        if: steps.changes.outputs.backup == 'true'
+        # phpunit.xml aponta DB_CONNECTION=sqlite :memory: (sem force="true"), então a env
+        # daqui vence e a suíte roda no MySQL real semeado pela action (ela é a dona dos
+        # tenants). Nenhum dos 3 arquivos usa RefreshDatabase/migrate:fresh (medido: os três
+        # usam DatabaseTransactions) — o seed sobrevive.
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: "3306"
+          DB_DATABASE: oimpresso_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        run: |
+          mkdir -p test-results
+          vendor/bin/pest --no-coverage --colors=always \
+            --log-junit test-results/pest-backup-junit.xml \
+            tests/Feature/Backup/
+
+      # A régua honesta desta lane é `assertions`, NÃO "0 failed": os três arquivos abrem com
+      # markTestSkipped fora do MySQL, e skip sai exit 0. Se o sumário mostrar casos com 0
+      # assertions, a lane NÃO mediu — leia isso antes de comemorar verde (LC-13).
+      - name: Sumário JUnit por arquivo (assertions — a régua contra skip-as-pass)
+        if: always()
+        run: node scripts/tests/junit-summary.mjs test-results/pest-backup-junit.xml --out test-results/pest-backup-junit-summary.json || true
+
+      - name: Upload sumário JUnit (pest-backup-junit-summary)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-backup-junit-summary
+          path: test-results/pest-backup-junit-summary.json
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Upload JUnit (Backup · MySQL)
+        if: ${{ !cancelled() && steps.changes.outputs.backup == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-backup-junit
+          path: test-results/pest-backup-junit.xml
+          retention-days: 14
