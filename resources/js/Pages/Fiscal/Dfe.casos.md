@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
 last_run: "2026-09-04"
-last_run_ci: "2 UC executados e VERDES no CT 100 (MySQL) — UC-FDFE-06/07, 3 passed / 9 assertions, com bite-test (mutar 1 das 4 chamadas → 1 failed). Os UC-01..05 seguem 🧪, veredito pendente da lane Pest Fiscal + suíte noturna."
+last_run_ci: "4 UC executados e VERDES no CT 100 (MySQL) — UC-FDFE-06/07 (3 passed / 9 assertions) e UC-FDFE-08/09 (5 passed / 27 assertions), ambos com bite-test que morde. Os UC-01..05 seguem 🧪, veredito pendente da lane Pest Fiscal + suíte noturna."
 related_us: [US-FISCAL-008, US-FISCAL-012]
 ---
 
@@ -52,6 +52,8 @@ related_us: [US-FISCAL-008, US-FISCAL-012]
 | UC-FDFE-05 | gate de permissão da tela | `[must]` `[T0]` | CU-FISC-13 | `GatesPermissaoFiscalTest` | 🧪 |
 | UC-FDFE-06 | a manifestação chega ao motor | `[must]` | CU-FISC-07 | `AcoesDfeManifestacaoTest` | 🧪 |
 | UC-FDFE-07 | isolamento **da ação**, não só da lista | `[must]` `[T0]` | CU-FISC-12 | `AcoesDfeManifestacaoTest` | 🧪 |
+| UC-FDFE-08 | falha parcial do lote é **nomeada** | `[must]` | CU-FISC-07 | `AcoesDfeLoteTest` | 🧪 |
+| UC-FDFE-09 | isolamento dentro do lote | `[must]` `[T0]` | CU-FISC-12 | `AcoesDfeLoteTest` | 🧪 |
 
 ---
 
@@ -136,6 +138,40 @@ related_us: [US-FISCAL-008, US-FISCAL-012]
 
 ---
 
+## UC-FDFE-08 — Um lote que falha em parte diz **quais** notas falharam `[must]`
+
+**Dado** um lote de DF-e selecionadas
+**Quando** parte delas não pode ser manifestada
+**Então** o relatório nomeia **cada** nota que ficou de fora — emitente, chave e motivo —
+**e** as que deram certo seguem manifestadas,
+**e** as que o envio não alcançou por tempo voltam como *não tentadas*, separadas das que falharam.
+
+- **Âncora de contrato:** `CU-FISC-07` do SDD §6 + o protótipo (`prototipo-ui/cowork/fiscal-subpages.jsx`, `data-contract="lote-dfe"`), que fixa três ações em massa e o aviso *"manifestação é definitiva por nota — não há desfazer em lote"*.
+- **Regressão que defende:** o lote silencioso. Manifestação vai ao ambiente nacional da SEFAZ e é definitiva **por nota** — um relatório agregado ("3 de 10 falharam") não diz quais 3 refazer, e refazer as 10 devolve duplicidade nas 7 que passaram. É o mesmo vício do `ManifestacaoController::bulkConfirmar` do NfeBrasil, que conta sucessos e falhas sem identificar nenhuma.
+- **Por que "não tentadas" é um estado próprio:** cada nota é uma ida à SEFAZ. Sem um teto de tempo, um lote grande estoura o `max_execution_time` do shared hosting e o relatório morre junto com o request — parte das notas já manifestada, e nenhum registro disso. O laço para dentro do orçamento e devolve o resto explicitamente.
+- **Também defende:** o teto de notas por lote, a justificativa obrigatória em *desconhecer* (e a ausência dela em ciência/confirmação), e o fato de *não realizada* **não** existir em lote — é a decisão mais individual das quatro, e a fonte a mantém só na linha.
+- **Teste:** `Modules/Fiscal/Tests/Feature/AcoesDfeLoteTest.php` — 4 casos citando `UC-FDFE-08`.
+- **Status:** 🧪 rodado VERDE no CT 100 (MySQL) em 2026-09-04 — `5 passed (27 assertions)` junto com o UC-09. 🧪 e não ✅ porque o G-7 lê o **manifesto commitado**, e o CT 100 não o alimenta.
+
+---
+
+## UC-FDFE-09 — DF-e de outro business no lote não é manifestada, e não derruba o lote `[must]` `[T0]`
+
+**Dado** um lote onde alguém incluiu o id de uma DF-e de outro business
+**Quando** o lote é processado
+**Então** o motor nunca vê aquele registro, ele fica intacto,
+**e** o lote **não aborta**: a nota alheia vira uma linha do relatório e as legítimas seguem sendo manifestadas,
+**e** o relatório não revela emitente nem chave da nota alheia.
+
+- **Âncora de contrato:** `CU-FISC-12` do SDD §6 + [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
+- **Regressão que defende:** duas, e a segunda é a sutil. A primeira é o vazamento. A segunda é o lote inteiro morrer numa exceção por causa de um id inválido — o que faria uma nota errada impedir as 49 certas, e sem relatório.
+- **Não vaza de volta:** a linha da nota alheia sai com `emitente` e `chave` nulos. Nomear a falha não pode virar um canal de leitura do outro tenant.
+- **Duas camadas, medidas:** o isolamento é sustentado pelo global scope `HasBusinessScope` **e** pelo `where('business_id')` do laço, e cada uma segura sozinha — mutação no CT 100: tirar só o `where` → verde; só o global scope → verde; **as duas** → vermelho. O bite-test está no docblock do teste, porque a linha explícita parece redundante e não é.
+- **Teste:** `AcoesDfeLoteTest` — `it('UC-FDFE-09 · DF-e de outro business no lote não é manifestada, e não derruba o lote (Tier 0 · ADR 0093)')`
+- **Status:** 🧪 verde no CT 100 (MySQL) em 2026-09-04, tenant fictício 98 × 99.
+
+---
+
 ## Backlog de casos (sem id — viram UC quando ganharem contrato + teste)
 
 - **[BACKLOG · ❌ quebrado · decisão [W]] Nenhuma manifestação chega à SEFAZ, por nenhum caminho** — `ManifestacaoService::buildConfig()` e `DistribuicaoDfeService::buildConfig()` fazem `select(['name','tax_number_1','state'])` em `business`. A coluna `state` **não existe**: 133 colunas no schema canônico (`database/schema/mysql-schema.sql`), 133 no staging CT 100 e 133 em produção Hostinger, sem `state` nos três — e nenhuma das 43 migrations que tocam `business` a cria. Toda manifestação morre em `SQLSTATE[42S22] Unknown column 'state'`, incluindo o `ManifestacaoController::bulkConfirmar` do próprio NfeBrasil. Os dois sites já carregam `?? 'SP'`, e o docblock diz *"UF default 35 (SP) — manifestação é nacional, mas Tools exige cUF"* — o default parece ter sido sempre a intenção, e a coluna no `select` o acidente. **É motor fiscal: conserto é decisão [W]**, e são 2 sites (a lápide §5 2026-08-02 é explícita sobre corrigir só um de N).
@@ -155,4 +191,4 @@ related_us: [US-FISCAL-008, US-FISCAL-012]
 
 - 2026-07-15 · [CC] stub criado no Passo 3 do programa de ondas — **0 UC**.
 - 2026-07-27 · [CC] `sdd-from-source` (Onda 1 / S2): **5 UC** derivados do §6 do SDD; 4 herdam testes existentes, 1 nasce com teste novo. Nota de escopo mantida: os testes de ação provam **contrato de entrada** (whitelist, regra de justificativa), não a persistência ponta-a-ponta.
-- 2026-09-04 · [C] **+2 UC (06/07), os primeiros verdes desta tela.** A "nota de escopo" de 2026-07-27 delimitava exatamente o buraco por onde passou um defeito de produção: as 4 ações não manifestavam nada (`TypeError` engolido pelo `catch`). Fechado no adaptador, com bite-test. Descoberto no caminho, e **não** consertado por ser motor fiscal: `business.state` não existe em lugar nenhum — está no backlog acima como decisão [W].
+- 2026-09-04 · [C] **+4 UC (06..09), os primeiros verdes desta tela.** O botão "Manifestar selecionadas" do header — `disabled`, com o title "Bulk manifestar (PR seguinte)" — saiu: o lote agora existe e mora onde a fonte o desenha (barra `fx-bulk` na seleção). A "nota de escopo" de 2026-07-27 delimitava exatamente o buraco por onde passou um defeito de produção: as 4 ações não manifestavam nada (`TypeError` engolido pelo `catch`). Fechado no adaptador, com bite-test. Descoberto no caminho, e **não** consertado por ser motor fiscal: `business.state` não existe em lugar nenhum — está no backlog acima como decisão [W].
