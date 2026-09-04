@@ -6,6 +6,7 @@ use App\Transaction;
 use App\User;
 use App\Util\OtelHelper;
 use App\Variation;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -182,7 +183,14 @@ class ProductionService
                 return [
                     'id' => (int) $ordem->id,
                     'ref_no' => $ordem->ref_no,
-                    'transaction_date' => $ordem->transaction_date?->format('d/m/Y'),
+                    // Carbon::parse, NÃO `?->format()`: `transaction_date` não está em
+                    // `$casts` nem em `$dates` no App\Transaction — Eloquent devolve STRING,
+                    // e `?->` só guarda null, não tipo. O próprio model usa Carbon::parse
+                    // nele (Transaction.php:333,349). PHPStan flagrou: 'Cannot call method
+                    // format() on string' — era quebra de runtime esperando página com linha.
+                    'transaction_date' => $ordem->transaction_date
+                        ? Carbon::parse($ordem->transaction_date)->format('d/m/Y')
+                        : null,
                     'location_name' => optional($ordem->location)->name,
                     'final_total' => $total,
                     'mfg_is_final' => (int) $ordem->mfg_is_final,
