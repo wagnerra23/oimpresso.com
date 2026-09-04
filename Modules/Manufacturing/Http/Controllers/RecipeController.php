@@ -71,7 +71,13 @@ class RecipeController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
+        // ⚠️ `! request()->header('X-Inertia')` é OBRIGATÓRIO aqui (bug em prod 2026-09-04).
+        // O cliente do Inertia manda `X-Requested-With: XMLHttpRequest`, então
+        // `request()->ajax()` é TRUE numa navegação SPA — sem este guarda o controller
+        // devolvia o JSON do DataTables e o Inertia estourava "All Inertia requests must
+        // receive a valid Inertia response". Quebrou ao clicar nas abas depois do cutover.
+        // Mesmo idioma do middleware AdminSidebarMenu (ver CoworkSidebarController §PEGADINHA).
+        if (request()->ajax() && ! request()->header('X-Inertia')) {
             $recipes = MfgRecipe::join('variations as v', 'mfg_recipes.variation_id', '=', 'v.id')
                                 ->join('product_variations as pv', 'v.product_variation_id', '=', 'pv.id')
                                 ->join('products as p', 'v.product_id', '=', 'p.id')

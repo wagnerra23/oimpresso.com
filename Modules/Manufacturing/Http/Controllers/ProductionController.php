@@ -69,7 +69,13 @@ class ProductionController extends Controller
 
         // O ramo AJAX abaixo alimenta o DataTables da tela Blade e SEGUE INTACTO — é ele
         // que faz `?legacy=1` continuar funcionando de verdade, não só renderizar.
-        if (request()->ajax()) {
+        // ⚠️ `! request()->header('X-Inertia')` é OBRIGATÓRIO aqui (bug em prod 2026-09-04).
+        // O cliente do Inertia manda `X-Requested-With: XMLHttpRequest`, então
+        // `request()->ajax()` é TRUE numa navegação SPA — sem este guarda o controller
+        // devolvia o JSON do DataTables e o Inertia estourava "All Inertia requests must
+        // receive a valid Inertia response". Quebrou ao clicar nas abas depois do cutover.
+        // Mesmo idioma do middleware AdminSidebarMenu (ver CoworkSidebarController §PEGADINHA).
+        if (request()->ajax() && ! request()->header('X-Inertia')) {
             $productions = Transaction::join(
                 'business_locations AS bl',
                 'transactions.location_id',
@@ -933,7 +939,13 @@ class ProductionController extends Controller
     {
         $business_id = request()->session()->get('user.business_id');
 
-        if (request()->ajax()) {
+        // ⚠️ `! request()->header('X-Inertia')` é OBRIGATÓRIO aqui (bug em prod 2026-09-04).
+        // O cliente do Inertia manda `X-Requested-With: XMLHttpRequest`, então
+        // `request()->ajax()` é TRUE numa navegação SPA — sem este guarda o controller
+        // devolvia o JSON do DataTables e o Inertia estourava "All Inertia requests must
+        // receive a valid Inertia response". Quebrou ao clicar nas abas depois do cutover.
+        // Mesmo idioma do middleware AdminSidebarMenu (ver CoworkSidebarController §PEGADINHA).
+        if (request()->ajax() && ! request()->header('X-Inertia')) {
             $start_date = request()->get('start_date');
             $end_date = request()->get('end_date');
             $location_id = request()->get('location_id');
