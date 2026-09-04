@@ -70,6 +70,7 @@ module: Fiscal
 - [AlertasFiscais.tsx](../../../resources/js/Pages/Fiscal/_components/AlertasFiscais.tsx)
 - [CmdKPalette.tsx](../../../resources/js/Pages/Fiscal/_components/CmdKPalette.tsx)
 - [DebitosConhecidos.tsx](../../../resources/js/Pages/Fiscal/_components/DebitosConhecidos.tsx)
+- [DecisaoPendente.tsx](../../../resources/js/Pages/Fiscal/_components/DecisaoPendente.tsx)
 - [EventosDrawer.tsx](../../../resources/js/Pages/Fiscal/_components/EventosDrawer.tsx)
 - [FxShell.tsx](../../../resources/js/Pages/Fiscal/_components/FxShell.tsx)
 - [InutilizacaoModal.tsx](../../../resources/js/Pages/Fiscal/_components/InutilizacaoModal.tsx)
@@ -105,9 +106,9 @@ module: Fiscal
 - [Nfse.casos.md](../../../resources/js/Pages/Fiscal/Nfse.casos.md)
 - [Sped.casos.md](../../../resources/js/Pages/Fiscal/Sped.casos.md)
 
-## Testes (Pest) — 25
+## Testes (Pest) — 26
 
-- 25 em [Modules/Fiscal/Tests/Feature/](../../../Modules/Fiscal/Tests/Feature)
+- 26 em [Modules/Fiscal/Tests/Feature/](../../../Modules/Fiscal/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 15
