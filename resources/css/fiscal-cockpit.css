@@ -619,7 +619,12 @@
 }
 .fx-alert-t { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .fx-alert-t b { font-size: var(--fs-4); font-weight: 600; color: var(--fx-text); }
-.fx-alert-t small { font-size: var(--fs-2); color: var(--fx-text-mute); }
+/* `--fx-text-dim` (não `-mute`): é o que o protótipo pede (`.fx-alert-t small{color:
+ * var(--text-dim)}`) e o que a legibilidade exige nos DOIS temas. Medido |ΔL| contra
+ * a superfície — light 0.50 (dim) vs 0.35 (mute); dark 0.42 vs 0.28: `mute` tem menos
+ * contraste dos dois lados, por caminhos opostos. Era divergência de tom só no light;
+ * o bloco dark deste PR a tornaria legibilidade nos dois. Achado por [Onda 1 · Fiscal]. */
+.fx-alert-t small { font-size: var(--fs-2); color: var(--fx-text-dim); }
 
 /* ─── Quick links (cockpit) ─── */
 .fx-quick {
