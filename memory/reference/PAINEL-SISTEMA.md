@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-03**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-04**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -38,7 +38,7 @@ lente: [construir]
 | Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-08-13 |
 | Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-09-03 |
 | KB | [BRIEFING](../requisitos/KB/BRIEFING.md) | 2026-07-29 |
-| Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-09-02 |
+| Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-09-03 |
 | NfeBrasil | [BRIEFING](../requisitos/NfeBrasil/BRIEFING.md) | 2026-07-28 |
 | NFSe | [BRIEFING](../requisitos/NFSe/BRIEFING.md) | 2026-08-16 |
 | Officeimpresso | [BRIEFING](../requisitos/Officeimpresso/BRIEFING.md) | 2026-07-30 |
@@ -129,13 +129,13 @@ lente: [construir]
 - espelho — mexeu depois de verificar
 - Governance Gate (índice + memory-health + meta-teste)
 
-### Censo — 126 workflows por classe
+### Censo — 132 workflows por classe
 
 > Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
 
 | Classe | Qtd | Exemplos |
 |---|---|---|
-| gate (bloqueia/valida PR) | 94 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
+| gate (bloqueia/valida PR) | 100 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
 | meta (testa os gates) | 7 | block-brl-values-selftest, devcontainer-firewall, gate-selftest, guards-meta-gate, … |
 | automacao (cron/dispatch) | 21 | agent-cost-per-pr, agent-pr-outcomes, briefing-code-staleness, casos-results-publish, … |
 | deploy (entrega) | 2 | deploy, quick-sync |
@@ -150,7 +150,7 @@ lente: [construir]
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 160 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 163 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -313,6 +313,9 @@ lente: [construir]
 - ~~2026-09-01 — EMENDA das lápides 2026-07-17 (quem-roda pelo runtime) e 2026-08-17 (comentário que se autodefende): a afirmação de BLOQUEIO em doc canon vira instrução de desistência~~
 - ~~2026-09-02 — Concluir "render NÃO-determinístico" a partir de "o ratio não muda depois do rebake" (é prova do CONTRÁRIO) — e os 6 rebakes que não tinham como fechar~~
 - ~~2026-09-03 — EMENDA da lápide de 2026-08-11 (transcrever conteúdo): a proibição era ABSOLUTA e criava um impasse onde a máquina não tem entrada~~
+- ~~2026-09-03 — EMENDA da lápide 2026-07-28 ("a máquina NÃO existe" por grep estreito): o gap `scripts/**` que ela declara ABERTO foi FECHADO 4 dias depois — e 2 agentes erraram por obedecê-la~~
+- ~~2026-09-03 — EMENDA da lápide 2026-07-29 (fail-open no eixo 1): o eixo 2 do MESMO arquivo carregava o MESMO colapso, e o conserto de julho não olhou o irmão~~
+- ~~2026-09-03 — Ordenar commits por RELÓGIO: `git log --since` filtra por AUTHOR date, e num repo com committer date defasado a janela mente~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -323,14 +326,14 @@ lente: [construir]
 
 ## Rastro
 
-- **494** handoffs · **672** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **496** handoffs · **675** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
   - `2026-09-03-watchdog-g6-tres-achados-ragas`
   - `2026-09-03-visreg-baselines-auto-rail-nao-accent`
+  - `2026-09-03-forja-onda11-triagem-desfecho-declarado`
   - `2026-09-03-forja-onda11-revogacao-parcial`
+  - `2026-09-03-fiscal-onda9-sped-regua-golden`
   - `2026-09-03-fila-ci-teto-de-concorrencia`
-  - `2026-09-03-ct100-breaker-sync-memory-e-veredito-unico`
-  - `2026-09-02-whatsapp-incident-canais-biz1-mudos-whatsmeow`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-09-03 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-09-04 · deriva das fontes canônicas, não as substitui._
