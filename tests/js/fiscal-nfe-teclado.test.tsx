@@ -1,7 +1,7 @@
 /**
  * Teclado na lista de NF-e/NFC-e — a linha é FOCÁVEL, e não virou botão.
  *
- * @covers-us UC-FNFE-10
+ * @covers-us UC-FNFE-10 UC-FNFE-11
  *
  * POR QUE ESTE TESTE É DE RENDER (e não estático nem de domínio): o contrato é
  * "o operador chega na linha pelo Tab e a abre pelo teclado". Um assert sobre o
@@ -148,5 +148,37 @@ describe('UC-FNFE-10 · a lista de notas é operável só pelo teclado', () => {
     render(<Nfe {...cena} />);
     fireEvent.click(linhas()[1]);
     expect(screen.getByRole('dialog')).toBeTruthy();
+  });
+});
+
+describe('UC-FNFE-11 · nenhum ícone decorativo chega ao leitor de tela', () => {
+  it('todo ícone decorativo fica FORA da árvore de acessibilidade', () => {
+    render(<Nfe {...cena} />);
+
+    // Medido no DOM, não no fonte: o lucide NÃO emite `aria-hidden` sozinho —
+    // sonda de 2026-09-03 renderizou <RefreshCw/> e leu os atributos do <svg>:
+    // aria-hidden=null, role=null, focusable=null. Então cada ícone decorativo
+    // precisa declarar o seu, e é isso que este caso trava.
+    // ESCOPO: a `.fx-page` — o que ESTA tela desenha. O shell (`FxShell`) e a paleta
+    // ⌘K (`CmdKPalette`) são superfície compartilhada pelas 7 telas do Fiscal e têm
+    // casos que exigem cuidado próprio (ícone sozinho em botão precisa de rótulo no
+    // botão, não de aria-hidden no ícone). Medi e declarei o inventário deles; corrigi-
+    // los aqui seria mexer em superfície de outro dono a partir da onda desta tela.
+    const pagina = document.querySelector('.fx-page');
+    expect(pagina, 'a tela não renderizou .fx-page — sonda cega').toBeTruthy();
+    const svgs = [...pagina!.querySelectorAll('svg')];
+    expect(svgs.length, 'a tela não renderizou ícone nenhum — sonda cega').toBeGreaterThan(0);
+
+    const expostos = svgs.filter(svg => {
+      // um ícone está "escondido" se ele ou um ancestral declara aria-hidden
+      let el: Element | null = svg;
+      while (el) {
+        if (el.getAttribute('aria-hidden') === 'true') return false;
+        el = el.parentElement;
+      }
+      return true;
+    });
+
+    expect(expostos.map(s => s.getAttribute('class')), 'ícone decorativo no leitor de tela').toEqual([]);
   });
 });

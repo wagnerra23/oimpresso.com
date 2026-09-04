@@ -31,12 +31,12 @@ export interface FxPage {
 // 7 sub-páginas do Fiscal — PR #1 só implementa "nfe" (segunda).
 // Restantes apontam pra "#" e ficam disabled visualmente até serem entregues.
 export const FX_PAGES: FxPage[] = [
-  { id: 'fiscal',          label: 'Cockpit',        icon: <ShieldAlert size={13}/>, short: '1', url: '/fiscal' },
-  { id: 'nfe',             label: 'NF-e · NFC-e',   icon: <Receipt size={13}/>,    short: '2', url: '/fiscal/nfe' },
-  { id: 'nfse',            label: 'NFS-e',          icon: <FileText size={13}/>,   short: '3', url: '/fiscal/nfse' },
-  { id: 'dfe',             label: 'Manifesto DF-e', icon: <ShieldAlert size={13}/>,short: '4', url: '/fiscal/dfe' },
-  { id: 'fiscal_eventos',  label: 'Eventos',        icon: <RefreshCw size={13}/>,  short: '5', url: '/fiscal/eventos' },
-  { id: 'fiscal_config',   label: 'Certif. & Cfg.', icon: <Shield size={13}/>,     short: '6', url: '/fiscal/config' },
-  { id: 'sped',            label: 'SPED & Livros',  icon: <Archive size={13}/>,    short: '7', url: '/fiscal/sped' },
+  { id: 'fiscal',          label: 'Cockpit',        icon: <ShieldAlert size={13} aria-hidden="true"/>, short: '1', url: '/fiscal' },
+  { id: 'nfe',             label: 'NF-e · NFC-e',   icon: <Receipt size={13} aria-hidden="true"/>,    short: '2', url: '/fiscal/nfe' },
+  { id: 'nfse',            label: 'NFS-e',          icon: <FileText size={13} aria-hidden="true"/>,   short: '3', url: '/fiscal/nfse' },
+  { id: 'dfe',             label: 'Manifesto DF-e', icon: <ShieldAlert size={13} aria-hidden="true"/>,short: '4', url: '/fiscal/dfe' },
+  { id: 'fiscal_eventos',  label: 'Eventos',        icon: <RefreshCw size={13} aria-hidden="true"/>,  short: '5', url: '/fiscal/eventos' },
+  { id: 'fiscal_config',   label: 'Certif. & Cfg.', icon: <Shield size={13} aria-hidden="true"/>,     short: '6', url: '/fiscal/config' },
+  { id: 'sped',            label: 'SPED & Livros',  icon: <Archive size={13} aria-hidden="true"/>,    short: '7', url: '/fiscal/sped' },
 ];
 

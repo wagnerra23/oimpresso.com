@@ -5,7 +5,7 @@ irmaos: Nfe.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-09-03"
+last_run: "2026-09-04"
 ---
 
 # Casos de Uso & Aceite — Notas NF-e / NFC-e
@@ -117,6 +117,7 @@ não tem as migrations do NfeBrasil. É lacuna de ambiente, não defeito do test
 | UC-FNFE-08 | ⚠️ **id sobrecarregado** — (a) a superfície das ações existe · (b) o gate `fiscal.nfe.view` devolve 403 | `[must]` `[T0]` | CU-FISC-13 (só o gate) · ver nota | `AcoesControllerTest` (5) · `GatesPermissaoFiscalTest` (2) | 🧪 |
 | UC-FNFE-09 | retransmitir preserva a nota antiga (nunca deleta) | `[must]` `[reg]` | CU-FISC-11 | `AcoesContratoTest` | 🧪 |
 | UC-FNFE-10 | a lista é operável só pelo teclado (linha focável, não botão) | `[must]` | **—** (ver nota) | `fiscal-nfe-teclado.test.tsx` | 🧪 |
+| UC-FNFE-11 | nenhum ícone decorativo chega ao leitor de tela | `[must]` | **—** (mesma nota) | `fiscal-nfe-teclado.test.tsx` | 🧪 |
 
 > **Por que esta tabela nasceu em 2026-09-01 (e o que ela NÃO fez):** os 8 UC desta tela já eram
 > provados por teste desde 2026-07-27 — nenhum deles declarava, porém, **qual CU do SDD §6 atende**.
@@ -267,6 +268,31 @@ dois veem a tecla. Segundo limite: o jsdom não implementa a travessia por Tab d
 "Tab alcança todas" é medido como "toda linha é de fato focável, na ordem do DOM" — a condição que
 a torna possível. A travessia física, o anel pintado e o leitor de tela são olho humano no smoke (R1).
 
+## UC-FNFE-11 — Nenhum ícone decorativo chega ao leitor de tela
+Status: 🧪 (`tests/js/fiscal-nfe-teclado.test.tsx` — **passa**; lane `Fiscal Teclado Gate`)
+Dado a tela renderizada · Quando um leitor de tela percorre a `.fx-page` · Então **nenhum**
+`<svg>` decorativo é anunciado: cada um declara `aria-hidden` (nele ou num ancestral).
+Âncora: `fiscal-page.jsx` do Cowork vivo, que em 2026-09-03 passou a envolver o ícone em
+`<span className="fx-i" aria-hidden="true">` com a nota *"A3 · ícone decorativo nunca entra na
+árvore de acessibilidade (medido: 4 de 4 svg sem aria-hidden)"*.
+
+**Por que o caso mede o DOM e não o `.tsx`:** sonda de 2026-09-03 renderizou `<RefreshCw/>` e leu
+os atributos do `<svg>` — `aria-hidden=null`, `role=null`, `focusable=null`. **O lucide não declara
+nada sozinho**, então a ausência no fonte não bastaria como prova e a presença também não: só o
+DOM renderizado responde.
+
+**Escopo declarado:** a asserção varre a `.fx-page` — o que ESTA tela desenha, incluindo o shell e
+a paleta ⌘K que ela monta. Ficaram fora as outras 6 telas do Fiscal, que renderizam os seus
+próprios ícones e são de outra onda.
+
+**Mordida provada (contrafactual 2026-09-03):** remover o `aria-hidden` de **um** ícone da subnav
+(`<Receipt>` em `_lib/paginas-fiscais.tsx`) derruba o caso apontando exatamente aquele
+(`['lucide lucide-receipt']`); restaurado, volta a 7/7.
+
+**Cuidado que o caso NÃO dispensa:** `aria-hidden` em ícone que é o ÚNICO conteúdo de um controle
+**remove o nome acessível** dele. Cada um dos 13 foi conferido antes: os 5 da tela e os 7 da subnav
+vêm com texto ao lado; o `<X>` da paleta está num botão que já declara `aria-label="Fechar (ESC)"`.
+
 ## Backlog de casos (sem id — entram quando um teste de COMPORTAMENTO os cobrir)
 
 - **[~~BACKLOG~~ · 🧪 tem teste, NÃO executa · Tier 0] Gate de permissão `fiscal.nfe.view` bloqueia a leitura da lista** — Dado usuário sem `fiscal.nfe.view` nem `superadmin` · Quando faz `GET /fiscal/nfe` · Então 403. **Corrigido em 2026-09-01:** a redação anterior dizia *"nenhum teste o exercita"* e isso era **falso** — o caso existe em [`GatesPermissaoFiscalTest.php:72`](../../../../Modules/Fiscal/Tests/Feature/GatesPermissaoFiscalTest.php), **com controle negativo** em `:79` (superadmin não recebe 403), e ancora `UC-FNFE-08`. O que é verdade é outra coisa, e a distinção importa: o arquivo inteiro **pula** (`:49-55`) em SQLite e sem `nfe_emissoes`, então o caso **não executa** em nenhuma lane de hoje. *Teste ausente* e *teste que não roda* pedem trabalhos diferentes — o primeiro é escrever, o segundo é dar lane ao módulo (o item de maior alavancagem do plano: 15 de 21 arquivos de teste do Fiscal chamam `markTestSkipped`).
@@ -295,6 +321,11 @@ a torna possível. A travessia física, o anel pintado e o leitor de tela são o
   tela `Fiscal/Dfe` (anotados por outra sessão enquanto este trabalho corria) — removê-los
   orfanaria UC de tela alheia. O comportamento real deles já é provado por `UC-FNFE-07`;
   re-apontar o DF-e pra lá é decisão do dono daquela tela. Nenhum UC perdeu lastro.
+- 2026-09-04 · [C] `UC-FNFE-11` criado — acessibilidade de ícone. 13 ícones ganham
+  `aria-hidden`: 5 na tela, 7 na fonte única da subnav (`_lib/paginas-fiscais.tsx`, que serve as 7
+  telas do Fiscal), 1 no `FxShell`, mais 10 no `CmdKPalette`. Medido antes: o lucide não declara
+  `aria-hidden` sozinho (sonda no DOM). Nenhum era o único conteúdo de um controle — conferidos um
+  a um. Os 22 `color: white` e os ícones das outras 6 telas ficam fora, declarados.
 - 2026-09-03 · [C] Onda 2 Fiscal (teclado na lista). **`UC-FNFE-10` criado** — o primeiro UC desta
   tela que prova comportamento de **UI** em vez de backend, e o primeiro a rodar em lane `vitest`
   (`fiscal-teclado-gate.yml`, criada no mesmo PR porque NENHUMA lane roda `vitest run` sem
