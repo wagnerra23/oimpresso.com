@@ -59,14 +59,19 @@ const gridVariants = cva("grid", {
 export type GridProps = React.ComponentProps<"div"> &
   VariantProps<typeof gridVariants> & { asChild?: boolean }
 
-export function Grid({ className, cols, min, gap, asChild = false, ...props }: GridProps) {
+export function Grid({ className, cols, min, fit, gap, asChild = false, ...props }: GridProps) {
   const Comp = asChild ? Slot.Root : "div"
-  // `min` (auto-fit) vence `cols` se ambos vierem; default = 1 coluna quando nenhum.
-  const resolvedCols = min ? undefined : (cols ?? 1)
+  // `min`/`fit` (responsivos) vencem `cols`; default = 1 coluna quando nenhum dos tres.
+  // ⚠️ `fit` PRECISA estar na destruturacao E no cva. Entre 2026-09-03 e 09-04 ele
+  // estava so no cva: caia no `...props`, virava atributo DOM (`<div fit="sm">`), e
+  // `resolvedCols` ia pro default 1 => `grid-cols-1`. A Home empilhou os 4 KPIs em
+  // producao. Prop declarada que o componente descarta e inerte em silencio: o
+  // typecheck aceita, o CI fica verde, e so o DOM denuncia.
+  const resolvedCols = (min || fit) ? undefined : (cols ?? 1)
   return (
     <Comp
       data-slot="grid"
-      className={cn(gridVariants({ cols: resolvedCols, min, gap }), className)}
+      className={cn(gridVariants({ cols: resolvedCols, min, fit, gap }), className)}
       {...props}
     />
   )

@@ -20,14 +20,12 @@ authority: generated
 | CU no SDD | 16 |
 | Telas (.tsx) | 7 |
 | Telas com `casos.md` | 8 |
-| UC declarados | 49 |
-| UC com teste que os cita | 49 |
+| UC declarados | 59 |
+| UC com teste que os cita | 59 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
-| Lacuna | O que falta escrever |
-|---|---|
-| `CU-FISC-15` sem UC | caso de uso que o exercite — Gerar o SPED EFD-ICMS/IPI da competência |
+_Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **entregue** tem contrato._
 
 ### Backlog — NÃO é lacuna
 
@@ -73,6 +71,9 @@ authority: generated
 | UC-FCKP-05 | Cockpit | 🧪 aguarda veredito da lane |
 | UC-FCKP-06 | Cockpit | 🧪 aguarda veredito da lane |
 | UC-FCKP-07 | Cockpit | 🧪 aguarda veredito da lane |
+| UC-FCKP-08 | Cockpit | 🧪 aguarda veredito da lane |
+| UC-FCKP-09 | Cockpit | 🧪 aguarda veredito da lane |
+| UC-FCKP-10 | Cockpit | 🧪 aguarda veredito da lane |
 | UC-FDFE-01 | Dfe | 🧪 aguarda veredito da lane |
 | UC-FDFE-02 | Dfe | 🧪 aguarda veredito da lane |
 | UC-FDFE-03 | Dfe | 🧪 aguarda veredito da lane |
@@ -82,6 +83,9 @@ authority: generated
 | UC-FEVT-02 | Eventos | 🧪 aguarda veredito da lane |
 | UC-FEVT-03 | Eventos | 🧪 aguarda veredito da lane |
 | UC-FEVT-04 | Eventos | 🧪 aguarda veredito da lane |
+| UC-FEVT-05 | Eventos | 🧪 aguarda veredito da lane |
+| UC-FEVT-06 | Eventos | 🧪 aguarda veredito da lane |
+| UC-FEVT-07 | Eventos | 🧪 aguarda veredito da lane |
 | UC-FNFE-01 | Nfe | 🧪 aguarda veredito da lane |
 | UC-FNFE-02 | Nfe | 🧪 aguarda veredito da lane |
 | UC-FNFE-03 | Nfe | 🧪 aguarda veredito da lane |
@@ -91,10 +95,14 @@ authority: generated
 | UC-FNFE-07 | Nfe | 🧪 aguarda veredito da lane |
 | UC-FNFE-08 | Nfe | 🧪 aguarda veredito da lane |
 | UC-FNFE-09 | Nfe | 🧪 aguarda veredito da lane |
+| UC-FNFE-10 | Nfe | 🧪 aguarda veredito da lane |
+| UC-FNFE-11 | Nfe | 🧪 aguarda veredito da lane |
 | UC-FNFSE-01 | Nfse | 🧪 aguarda veredito da lane |
 | UC-FNFSE-02 | Nfse | 🧪 aguarda veredito da lane |
 | UC-FNFSE-03 | Nfse | 🧪 aguarda veredito da lane |
 | UC-FNFSE-04 | Nfse | 🧪 aguarda veredito da lane |
+| UC-FSF1-03 | Sped | 🧪 aguarda veredito da lane |
+| UC-FSF1-05 | Sped | 🧪 aguarda veredito da lane |
 | UC-FSPED-01 | Sped | 🧪 aguarda veredito da lane |
 | UC-FSPED-02 | Sped | 🧪 aguarda veredito da lane |
 | UC-FSPED-03 | Sped | 🧪 aguarda veredito da lane |
