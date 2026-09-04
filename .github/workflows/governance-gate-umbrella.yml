@@ -181,7 +181,13 @@ jobs:
   # de estado versionados que envelheceram. Motivo: liveness só cobre os 24 workflows
   # do GitHub; os 76 schedules Laravel não têm API de liveness — e o caso real foi um
   # cron VIVO que não ENTREGAVA (scorecards 71d congelados com o cron das 07:00
-  # rodando todo dia). Medir a consequência pega os dois. Segue advisory.
+  # rodando todo dia). Medir a consequência pega os dois.
+  # Enforcement: NÃO afirmo aqui em presente (lápide proibicoes §5 2026-07-16 — "segue advisory"
+  # apodrece no 1º flip, e comentário de workflow não é oráculo de enforcement). O DONO único de
+  # "o que é required" é governance/required-checks-baseline.json — consulte-o, não esta linha.
+  # FATO DATADO: em 2026-09-03 este context não constava lá (união classic ∪ rulesets, §5 2026-08-08)
+  # e o job saía VERMELHO por 2 alarmes reais — advisory = fora do required, nunca "não pode ficar
+  # vermelho" (§5 2026-07-09).
   crons-watchdog:
     name: crons de governança vivos? (watchdog G6 · ADR 0317)
     if: github.event_name == 'pull_request'
