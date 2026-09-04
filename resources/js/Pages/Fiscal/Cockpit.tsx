@@ -662,7 +662,10 @@ export default function Cockpit({
         {/* Onda 3 · rodapé de paginação. Ordem e copy vêm de fiscal-page.jsx §FxNotasPage.
             O hint "J/K navega · ↵ abre · N emite" do protótipo NÃO entra: no protótipo o
             cockpit e a lista de NF-e são o MESMO componente, então o atalho valia para os
-            dois; em produção são telas separadas e a Onda 2 (#6707) entregou o teclado só
+            dois; em produção são telas separadas e a Onda 2 (PR 6707) entregou o teclado só
+            (o número vai sem cerquilha de propósito: seus dígitos são todos hex válidos e
+            esta linha é CONTINUAÇÃO de comentário JSX, que o skip do `ui:lint` declaradamente
+            não cobre — o falso-positivo R1 catalogado no docblock de `UiLintCommand`)
             no Nfe.tsx. Anunciar aqui um atalho que esta tela não tem seria copy mentindo. */}
         {filtrados.length > 0 && (
           <div className="fx-pager" data-contract="paginacao-notas">
