@@ -254,6 +254,38 @@ it('POST testar com NfeService lançando RuntimeException → 502 com UF + ambie
 
 // ── updateAmbiente() — selector ambiente SEFAZ (US-NFE-041 fase 3) ──
 
+/**
+ * Usuário que satisfaz o gate `fiscal.config.ambiente` (nasceu em 2026-09-04,
+ * item A5 PR 2/3 — `CertificadoController::garantirGateAmbiente`).
+ *
+ * POR QUE ISTO EXISTE, e por que NÃO é enfraquecer teste: os três casos abaixo
+ * exercitam VALIDAÇÃO e persistência do ambiente, chamando o controller direto
+ * com `Request::create()` — que nasce sem usuário. Com o gate, eles morriam em
+ * 403 ANTES de chegar no que testam, e o veredito deixaria de falar de validação.
+ * Satisfazer a pré-condição devolve a eles o assunto original; nenhuma asserção
+ * foi afrouxada.
+ *
+ * O GATE em si tem teste próprio, e ele ataca o caminho HTTP real:
+ * `Modules/Fiscal/Tests/Feature/GatesPermissaoFiscalTest.php` (UC-FCFG-06),
+ * onde um usuário COM `fiscal.config.edit` e SEM `fiscal.config.ambiente` leva 403.
+ */
+function requestAmbienteAutorizado(array $payload, ?int $businessId = 1): Request
+{
+    \Spatie\Permission\Models\Permission::findOrCreate('superadmin', 'web');
+    $user = \App\User::factory()->create(['business_id' => 1]);
+    $user->givePermissionTo('superadmin');
+
+    $request = Request::create('/nfe-brasil/configuracao/certificado/ambiente', 'POST');
+    $request->setLaravelSession(app('session.store'));
+    $request->setUserResolver(fn () => $user);
+    if ($businessId !== null) {
+        $request->session()->put('business.id', $businessId);
+    }
+    $request->merge($payload);
+
+    return $request;
+}
+
 it('POST ambiente atualiza business.ambiente quando muda valor', function () {
     if (! Schema::hasTable('business')) {
         test()->markTestSkipped('business table indisponível');
@@ -263,10 +295,7 @@ it('POST ambiente atualiza business.ambiente quando muda valor', function () {
 
     $startAmbiente = (int) (\DB::table('business')->where('id', 1)->value('ambiente') ?? 2);
 
-    $request = Request::create('/nfe-brasil/configuracao/certificado/ambiente', 'POST');
-    $request->setLaravelSession(app('session.store'));
-    $request->session()->put('business.id', 1);
-    $request->merge(['ambiente' => $startAmbiente === 1 ? 2 : 1]);
+    $request = requestAmbienteAutorizado(['ambiente' => $startAmbiente === 1 ? 2 : 1]);
 
     $response = $controller->updateAmbiente($request);
 
@@ -282,9 +311,7 @@ it('POST ambiente atualiza business.ambiente quando muda valor', function () {
 it('POST ambiente sem business.id → erro de validação back', function () {
     $controller = new CertificadoController(new CertificadoService());
 
-    $request = Request::create('/nfe-brasil/configuracao/certificado/ambiente', 'POST');
-    $request->setLaravelSession(app('session.store'));
-    $request->merge(['ambiente' => 2]);
+    $request = requestAmbienteAutorizado(['ambiente' => 2], businessId: null);
 
     $response = $controller->updateAmbiente($request);
 
@@ -298,10 +325,7 @@ it('POST ambiente com valor inválido (3) → ValidationException', function () 
 
     $controller = new CertificadoController(new CertificadoService());
 
-    $request = Request::create('/nfe-brasil/configuracao/certificado/ambiente', 'POST');
-    $request->setLaravelSession(app('session.store'));
-    $request->session()->put('business.id', 1);
-    $request->merge(['ambiente' => 3]); // inválido
+    $request = requestAmbienteAutorizado(['ambiente' => 3]); // inválido
 
     expect(fn () => $controller->updateAmbiente($request))
         ->toThrow(\Illuminate\Validation\ValidationException::class);
