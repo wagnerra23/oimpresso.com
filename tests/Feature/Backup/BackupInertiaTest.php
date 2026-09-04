@@ -5,6 +5,7 @@ declare(strict_types=1);
 // @covers-us UC-BKP-01 UC-BKP-02 UC-BKP-09
 
 use App\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
@@ -45,9 +46,28 @@ beforeEach(function () {
     config(['mwart.backup_index.enabled' => true]);
 
     $this->pasta = str_replace(chr(92), '/', (string) config('backup.backup.name'));
-    // o de 03:00 e "agendado"; o das 15:00 e "manual" — e o mais NOVO e o de hoje
-    Storage::disk('local')->put($this->pasta.'/2026-08-19-03-00-04.zip', 'zip-agendado');
-    Storage::disk('local')->put($this->pasta.'/2026-08-18-15-00-04.zip', 'zip-manual');
+    // o de 03:00 e "agendado"; o das 15:00 e "manual" — e o mais NOVO e o de 19/08.
+    //
+    // ⚠️ O NOME DO ARQUIVO NAO DECIDE NADA AQUI, e e esse justamente o contrato que estes casos
+    // defendem: `listarParaTela()` ordena por `last_modified` e deriva `origem` de
+    // `date('H', $ts)` — os dois vindos do `$disk->lastModified()`, o mtime REAL. Sem carimbar o
+    // mtime, o `put()` cria os dois no MESMO instante (agora), e ai a ordem fica indefinida e a
+    // `origem` passa a depender da hora em que o CI rodou. Medido no run 33912981922: veio
+    // '2026-08-18-15-00-04.zip' na posicao 0, e os 2 casos nao tinham como passar em ambiente
+    // nenhum. Carimbar o mtime e o que torna o teste deterministico E fiel ao UC-BKP-01.
+    //
+    // Carbon (nao strtotime) pra respeitar o timezone do app: `date('H')` le o tz do app, e o
+    // runner do CI e UTC — a hora tem de ser a mesma dos dois lados, senao 'agendado' vira
+    // 'manual' por acidente de fuso.
+    $arquivos = [
+        '2026-08-19-03-00-04.zip' => ['conteudo' => 'zip-agendado', 'quando' => '2026-08-19 03:00:04'],
+        '2026-08-18-15-00-04.zip' => ['conteudo' => 'zip-manual', 'quando' => '2026-08-18 15:00:04'],
+    ];
+    foreach ($arquivos as $nome => $dados) {
+        $caminho = $this->pasta.'/'.$nome;
+        Storage::disk('local')->put($caminho, $dados['conteudo']);
+        touch(Storage::disk('local')->path($caminho), Carbon::parse($dados['quando'])->timestamp);
+    }
 
     $this->actingAs($this->admin);
     session(['user.business_id' => $this->biz->id, 'business.id' => $this->biz->id]);
