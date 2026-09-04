@@ -21,6 +21,7 @@
 // abrir um `kind` para ela editaria um arquivo que 14 telas importam — alcance que este
 // bloco não precisa. As variantes de estado do `Badge` são o mesmo DS, sem esse raio.
 
+import { Stack } from '@/Components/layout';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import { Badge } from '@/Components/ui/badge';
 
@@ -46,30 +47,35 @@ export default function DebitosConhecidos({ route }: DebitosConhecidosProps) {
   if (itens.length === 0) return null;
 
   return (
-    <section className="mt-4 flex flex-col gap-1.5" data-contract="debitos-conhecidos">
-      <h3 className="m-0 text-[11px] font-semibold uppercase tracking-[0.07em] text-muted-foreground">
-        Débitos conhecidos desta tela
-      </h3>
+    // `Stack asChild` e não `flex flex-col` solto: ADR 0253 (o `layout:check` é ratchet e
+    // mordeu este arquivo). `gap={2}` (8px) porque o Stack enumera o espaço em token — o
+    // `gap-1.5` (6px) que estava aqui era px literal, que é justamente o que a ADR remove.
+    <Stack gap={2} asChild className="mt-4">
+      <section data-contract="debitos-conhecidos">
+        <h3 className="m-0 text-[11px] font-semibold uppercase tracking-[0.07em] text-muted-foreground">
+          Débitos conhecidos desta tela
+        </h3>
 
-      {itens.map(d => (
-        <Alert
-          key={`${d.ancora}::${d.titulo}`}
-          data-tom={d.tom}
-          data-ancora={d.ancora}
-          className={`border-l-2 ${BORDA_POR_TOM[d.tom]}`}
-        >
-          {/* `line-clamp-none` desfaz o `line-clamp-1` que o AlertTitle traz por padrão:
-              o título aqui é o contrato do débito, e truncar contrato é esconder a
-              violação em vez de acomodá-la. */}
-          <AlertTitle className="line-clamp-none text-pretty">{d.titulo}</AlertTitle>
-          <AlertDescription>
-            <p className="max-w-[92ch] text-pretty">{d.texto}</p>
-            <Badge variant={d.tom} dot>
-              {d.rotulo}
-            </Badge>
-          </AlertDescription>
-        </Alert>
-      ))}
-    </section>
+        {itens.map(d => (
+          <Alert
+            key={`${d.ancora}::${d.titulo}`}
+            data-tom={d.tom}
+            data-ancora={d.ancora}
+            className={`border-l-2 ${BORDA_POR_TOM[d.tom]}`}
+          >
+            {/* `line-clamp-none` desfaz o `line-clamp-1` que o AlertTitle traz por padrão:
+                o título aqui é o contrato do débito, e truncar contrato é esconder a
+                violação em vez de acomodá-la. */}
+            <AlertTitle className="line-clamp-none text-pretty">{d.titulo}</AlertTitle>
+            <AlertDescription>
+              <p className="max-w-[92ch] text-pretty">{d.texto}</p>
+              <Badge variant={d.tom} dot>
+                {d.rotulo}
+              </Badge>
+            </AlertDescription>
+          </Alert>
+        ))}
+      </section>
+    </Stack>
   );
 }
