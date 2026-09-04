@@ -26,6 +26,7 @@
 //    classe `fx-*`. O tracejado sobrevive porque é o que distingue "ainda não decidido" de
 //    "assim é" — a única parte da aparência que carrega significado aqui.
 
+import { Stack } from '@/Components/layout';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 
 import { DEBITOS_CONHECIDOS } from '../_lib/debitos-conhecidos';
@@ -44,25 +45,29 @@ export default function DecisaoPendente({ route }: DecisaoPendenteProps) {
   if (itens.length === 0) return null;
 
   return (
-    <section className="mt-4 flex flex-col gap-1.5" data-contract="decisao-pendente">
-      <h3 className="m-0 text-[11px] font-semibold uppercase tracking-[0.07em] text-muted-foreground">
-        Decisão [W] pendente
-      </h3>
+    // `Stack asChild`, não `flex flex-col` solto: ADR 0253 (o `layout:check` é ratchet).
+    // `gap={2}` porque o Stack enumera o espaço em token — o mesmo do bloco de dívida.
+    <Stack gap={2} asChild className="mt-4">
+      <section data-contract="decisao-pendente">
+        <h3 className="m-0 text-[11px] font-semibold uppercase tracking-[0.07em] text-muted-foreground">
+          Decisão [W] pendente
+        </h3>
 
-      {itens.map(d => (
-        <Alert
-          key={`${d.ancora}::${d.titulo}`}
-          data-ancora={d.ancora}
-          className="border-dashed border-warning/40 bg-warning-soft/30"
-        >
-          {/* `line-clamp-none` desfaz o `line-clamp-1` padrão do AlertTitle: aqui o título é a
-              decisão em aberto, e truncá-la é esconder metade da pergunta. */}
-          <AlertTitle className="line-clamp-none text-pretty">{d.titulo}</AlertTitle>
-          <AlertDescription>
-            <p className="max-w-[92ch] text-pretty">{d.texto}</p>
-          </AlertDescription>
-        </Alert>
-      ))}
-    </section>
+        {itens.map(d => (
+          <Alert
+            key={`${d.ancora}::${d.titulo}`}
+            data-ancora={d.ancora}
+            className="border-dashed border-warning/40 bg-warning-soft/30"
+          >
+            {/* `line-clamp-none` desfaz o `line-clamp-1` padrão do AlertTitle: aqui o título é a
+                decisão em aberto, e truncá-la é esconder metade da pergunta. */}
+            <AlertTitle className="line-clamp-none text-pretty">{d.titulo}</AlertTitle>
+            <AlertDescription>
+              <p className="max-w-[92ch] text-pretty">{d.texto}</p>
+            </AlertDescription>
+          </Alert>
+        ))}
+      </section>
+    </Stack>
   );
 }
