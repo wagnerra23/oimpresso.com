@@ -14,59 +14,16 @@
 // fiscal-page.jsx:358,363. Se ela divergir, a preferência para de acompanhar a
 // navegação e o `DensidadeContratoTest` quebra.
 //
+// O ESTADO mora em `../_lib/densidade-fiscal` — este arquivo exporta SÓ o componente,
+// porque `react-refresh/only-export-components` reprova arquivo que mistura os dois
+// (quebra o Fast Refresh do Vite: editar o hook remontaria a árvore em vez de preservar
+// estado). O baseline do ESLint registrava 0 dessa regra aqui, então era regressão nova
+// — a catraca pegou, e o conserto é separar, não subir o baseline.
+//
 // Estilo: reusa `.fx-density` / `.fx-density-{compact,comfort,relax}`, que já vivem
 // em resources/css/fiscal-cockpit.css:877-948. Nenhuma classe nova.
 
-import { useEffect, useState } from 'react';
-
-export type Densidade = 'compact' | 'comfort' | 'relax';
-
-/** Chave única da preferência — espelha `fxLS("oimpresso.fiscal.densidade")` do protótipo. */
-export const DENSIDADE_STORAGE_KEY = 'oimpresso.fiscal.densidade';
-
-export const DENSIDADE_PADRAO: Densidade = 'comfort';
-
-const VALIDAS: readonly Densidade[] = ['compact', 'comfort', 'relax'];
-
-function ehDensidade(v: unknown): v is Densidade {
-  return typeof v === 'string' && (VALIDAS as readonly string[]).includes(v);
-}
-
-/**
- * Densidade persistida, compartilhada entre as telas de notas.
- *
- * A leitura do storage acontece em `useEffect`, NÃO no initializer do `useState`:
- * este app tem SSR ligado (resources/js/ssr.tsx) e `localStorage` não existe no
- * Node — ler no initializer derruba o render do servidor. O preço é um frame no
- * padrão antes de hidratar, que é invisível porque só muda o padding das células.
- *
- * Todo acesso vai em try/catch: em janela privada (ou com storage bloqueado pelo
- * navegador) o getter em si lança, e a tela não pode cair por causa de uma
- * preferência cosmética. Mesmo idioma de `lsGet`/`lsSet` do Financeiro.
- */
-export function useDensidadeFiscal(): [Densidade, (d: Densidade) => void] {
-  const [densidade, setDensidade] = useState<Densidade>(DENSIDADE_PADRAO);
-
-  useEffect(() => {
-    try {
-      const salva = window.localStorage.getItem(DENSIDADE_STORAGE_KEY);
-      if (ehDensidade(salva)) setDensidade(salva);
-    } catch {
-      /* storage indisponível — segue no padrão */
-    }
-  }, []);
-
-  const escolher = (d: Densidade) => {
-    setDensidade(d);
-    try {
-      window.localStorage.setItem(DENSIDADE_STORAGE_KEY, d);
-    } catch {
-      /* storage indisponível — a escolha vale só nesta sessão */
-    }
-  };
-
-  return [densidade, escolher];
-}
+import type { Densidade } from '../_lib/densidade-fiscal';
 
 interface DensidadeToggleProps {
   value: Densidade;

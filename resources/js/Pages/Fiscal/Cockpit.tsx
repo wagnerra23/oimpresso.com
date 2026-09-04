@@ -21,7 +21,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import AlertasFiscais, { type AlertaFiscal } from './_components/AlertasFiscais';
-import DensidadeToggle, { useDensidadeFiscal } from './_components/DensidadeToggle';
+import DensidadeToggle from './_components/DensidadeToggle';
 import EventosDrawer, { type EventoFiscal } from './_components/EventosDrawer';
 import FxShell from './_components/FxShell';
 import NFSeDrawer, { type NFSeDrawerData } from './_components/NFSeDrawer';
@@ -30,6 +30,7 @@ import SavedViewsChips from './_components/SavedViewsChips';
 import SendToContabilDrawer, { type SendToContabilData } from './_components/SendToContabilDrawer';
 import WriteOffAuditoriaCard, { type WriteOffSummary } from './_components/WriteOffAuditoriaCard';
 import { brl, truncKey } from './_lib/fiscal-helpers';
+import { useDensidadeFiscal } from './_lib/densidade-fiscal';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 

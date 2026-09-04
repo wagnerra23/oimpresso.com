@@ -22,7 +22,7 @@ import { Deferred, Head, router } from '@inertiajs/react';
 import { Eraser, FileSearch, Plus, RefreshCw } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
-import DensidadeToggle, { useDensidadeFiscal } from './_components/DensidadeToggle';
+import DensidadeToggle from './_components/DensidadeToggle';
 import FxShell from './_components/FxShell';
 import InutilizacaoModal from './_components/InutilizacaoModal';
 import NotaDrawer, { type NotaRow } from './_components/NotaDrawer';
@@ -34,6 +34,7 @@ import {
   truncKey,
   type SefazCodesMap,
 } from './_lib/fiscal-helpers';
+import { useDensidadeFiscal } from './_lib/densidade-fiscal';
 
 import '../../../css/fiscal-cockpit.css';
 
@@ -278,7 +279,7 @@ export default function Nfe({ filters: initialFilters, counts, sefazCodes, rows 
                 {/* Wrapper da densidade: o CSS e `.fx-density-<x> .fx-table tbody td`
                     (DESCENDENTE), entao a classe precisa de um ancestral. Fica no mesmo
                     recuo do filho de proposito: reindentar o bloco inteiro por 2 espacos
-                    reescreveria 66 linhas so de whitespace e colidiria com o #6726, que
+                    reescreveria 66 linhas so de whitespace e colidiria com o PR 6726, que
                     edita a linha do `sefazPill` aqui dentro (medido: `git merge-tree`
                     conflitava; sem a reindentacao, mergeia limpo). */}
                 <div className="fx-table" data-keyboard="true">

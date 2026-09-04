@@ -17,10 +17,11 @@ import { Deferred, Head, router } from '@inertiajs/react';
 import { FileSearch, FileText } from 'lucide-react';
 import { useState } from 'react';
 
-import DensidadeToggle, { useDensidadeFiscal } from './_components/DensidadeToggle';
+import DensidadeToggle from './_components/DensidadeToggle';
 import FxShell from './_components/FxShell';
 import { chipCount, chipProps } from './_lib/chip-filtro';
 import { brl, formatDoc } from './_lib/fiscal-helpers';
+import { useDensidadeFiscal } from './_lib/densidade-fiscal';
 
 import '../../../css/fiscal-cockpit.css';
 

@@ -43,7 +43,7 @@ vi.mock('@/Layouts/AppShellV2', () => ({
 
 import Nfe from '@/Pages/Fiscal/Nfe';
 import Nfse from '@/Pages/Fiscal/Nfse';
-import { DENSIDADE_STORAGE_KEY } from '@/Pages/Fiscal/_components/DensidadeToggle';
+import { DENSIDADE_STORAGE_KEY } from '@/Pages/Fiscal/_lib/densidade-fiscal';
 
 const raiz = (rel: string) => resolve(__dirname, '../..', rel);
 const ler = (rel: string) => readFileSync(raiz(rel), 'utf8');
@@ -171,7 +171,7 @@ describe('a densidade acompanha o operador entre as telas de notas', () => {
   it('UC-FNFSE-05 · todo valor de densidade tem classe correspondente no CSS', () => {
     // Dois arquivos, dois donos: um valor novo no TS sem classe no CSS renderiza
     // tabela sem estilo, e nenhum teste de render pegaria isso sozinho.
-    const componente = ler('resources/js/Pages/Fiscal/_components/DensidadeToggle.tsx');
+    const componente = ler('resources/js/Pages/Fiscal/_lib/densidade-fiscal.ts');
     const css = ler('resources/css/fiscal-cockpit.css');
 
     const tipo = componente.match(/export type Densidade = ([^;]+);/)?.[1];
