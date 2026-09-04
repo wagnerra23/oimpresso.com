@@ -72,6 +72,13 @@ on:
       - 'resources/css/inertia.css'
       - 'resources/css/foundations.css'
       - 'resources/css/cockpit.css'
+      # Os 39 CSS de MÓDULO (`resources/css/*.css`). Sem esta linha, um PR que muda só
+      # CSS de módulo não dispara a lane — e é exatamente onde mora o anti-padrão que o
+      # ds-guard existe pra pegar (paleta bespoke). Medido 2026-09-03: `fiscal-cockpit.css`
+      # congelou 6 tokens nos valores LIGHT do DS (idênticos, conferidos um a um) e a tela
+      # nunca fica dark; o ds-guard acusa isso (`--fx-*(6)`) e acusa 6 de 6 dos arquivos
+      # com o mesmo defeito — mas nunca foi consultado, porque nem a lane acordava.
+      - 'resources/css/*.css'
       - 'scripts/governance/component-registry-check.mjs'
       - 'scripts/governance/component-registry-check.test.mjs'
       - 'scripts/governance/dtcg-equivalence.mjs'
@@ -222,7 +229,20 @@ jobs:
         run: |
           BASE="origin/${{ github.base_ref }}"
           if [ -z "${{ github.base_ref }}" ]; then BASE="origin/main"; fi
-          CHANGED=$(git diff --name-only "$BASE"...HEAD -- 'prototipo-ui/**' 'resources/js/Pages/**' | grep -E '\.(css|html)$' || true)
+          # `resources/css` no pathspec: SEM ele este step é MUDO por construção — medido
+          # 2026-09-03: existem 0 arquivos `.css` sob `resources/js/Pages/**` (os 39 estão
+          # em `resources/css/`), então o glob antigo devolvia SEMPRE vazio e o step caía no
+          # `exit 0` do ramo "nada a checar". Bite test no PR #6707, que tocou
+          # `resources/css/fiscal-cockpit.css`: com o glob antigo -> VAZIO; com este ->
+          # `resources/css/fiscal-cockpit.css`. Dir simples em vez de `**` porque pathspec do
+          # git não é glob de shell (§5 2026-07-28); as duas formas foram medidas e empatam,
+          # e a simples não depende dessa semântica.
+          #
+          # Segue diff-aware, logo FORWARD-ONLY por construção: entra só o CSS que o PR
+          # TOCA. A dívida herdada (16 dos 39 acusam hoje) não vem junto — e por isso este
+          # conserto não trava o repo. Continua advisory (`continue-on-error`); promover é
+          # flip [W] com mordida provada em main (ADR 0336 DR-2).
+          CHANGED=$(git diff --name-only "$BASE"...HEAD -- 'prototipo-ui/**' 'resources/js/Pages/**' 'resources/css' | grep -E '\.(css|html)$' || true)
           if [ -z "$CHANGED" ]; then
             echo "Nenhum .css/.html de design-memory tocado neste PR — nada a checar (ds-guard so checa css/html)."
             exit 0
