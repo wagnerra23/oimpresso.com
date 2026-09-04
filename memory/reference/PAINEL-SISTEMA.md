@@ -150,7 +150,7 @@ lente: [construir]
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 164 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 165 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -317,6 +317,7 @@ lente: [construir]
 - ~~2026-09-03 — EMENDA da lápide 2026-07-29 (fail-open no eixo 1): o eixo 2 do MESMO arquivo carregava o MESMO colapso, e o conserto de julho não olhou o irmão~~
 - ~~2026-09-03 — Ordenar commits por RELÓGIO: `git log --since` filtra por AUTHOR date, e num repo com committer date defasado a janela mente~~
 - ~~2026-09-04 — Prescrever o TOKEN de substituição a partir de fonte LIVE-ONLY inverificável, tendo o literal congelado e o dono in-repo à mão~~
+- ~~2026-09-04 — Ligar o `ds-guard` §8 em `resources/css/` ("o gate está mudo"): o §8 governa a build de PROTÓTIPO, e o gate reprovaria a cópia de bundle que o Tier 0 MANDA fazer~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
