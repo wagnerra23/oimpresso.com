@@ -63,6 +63,7 @@ A versão anterior afirmava "Frontend Inertia/React ❌ pendente" e "Charter pá
 | **Consulta de receitas Inertia** (KPIs · busca · drawer de custo · ficha PT-07) | 🟢 **novo (Wave 29)** | `Pages/Manufacturing/Recipes.tsx` + `RecipeController@index` + `RecipeBomService::listRecipesWithCost` |
 | **Relatório de produção do período, agrupado por produto** | 🟢 **em produção (Wave 30, US-MANU-002)** — mergeada em `ba5e61b6c`, deploy 2026-09-03 OK | `Pages/Manufacturing/Report.tsx` + `ProductionController@reportV2` + `ProductionService::reportByProduct` (reusa `RecipeBomService::calculateUnitCost`, prova algébrica em `RUNBOOK-report.md §1`) |
 | **Configurações do módulo (Inertia)** | 🟢 **novo (Wave 31, US-MANU-003)** — código escrito, Pest na lane de CI | `Pages/Manufacturing/Settings.tsx` + `SettingsController@indexV2` (o `@store` legado é reusado SEM alteração) |
+| **Ordens de produção — 8 colunas do §4.5** | 🟢 **emenda (Wave 32, US-MANU-004)** — Produto/Qtd/Custo unit. + sufixo `fix` + rodapé; corrigiu N+1 do `location` que existia desde a Wave J | `Pages/Manufacturing/Index.tsx` + `ProductionService::enrichProductionRows` + `StatusBadge` domínio `producao` |
 | Charter páginas Inertia | 🟡 4 em draft (não `live`) | `Index.charter.md` · `Recipes.charter.md` · `Report.charter.md` · `Settings.charter.md` |
 
 ## Gaps catalogados
