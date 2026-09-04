@@ -7,7 +7,7 @@ use Modules\Fiscal\Http\Controllers\CockpitController;
 uses(Tests\TestCase::class);
 
 /**
- * UC-FCKP-10 · CU-FISC-16 — a declaração de procedência não pode mentir.
+ * UC-FCKP-13 · CU-FISC-16 — a declaração de procedência não pode mentir.
  *
  * POR QUE ESTE TESTE É ESTÁTICO (sem banco, sem HTTP)
  * ---------------------------------------------------
@@ -65,7 +65,7 @@ function metodosMockDoCockpit(): array
     return array_values(array_filter($nomes, fn (string $n) => str_starts_with($n, 'mock')));
 }
 
-it('UC-FCKP-10 · CU-FISC-16 · todo método mock* do controller tem superfície declarada como demonstração', function () {
+it('UC-FCKP-13 · CU-FISC-16 · todo método mock* do controller tem superfície declarada como demonstração', function () {
     $procedencia = procedenciaDoCockpit();
     $declaradosDemo = array_keys(array_filter(
         $procedencia,
@@ -86,7 +86,7 @@ it('UC-FCKP-10 · CU-FISC-16 · todo método mock* do controller tem superfície
     }
 });
 
-it('UC-FCKP-10 · CU-FISC-16 · nenhuma superfície declarada demonstração sobrevive ao método mock* sumir', function () {
+it('UC-FCKP-13 · CU-FISC-16 · nenhuma superfície declarada demonstração sobrevive ao método mock* sumir', function () {
     $procedencia = procedenciaDoCockpit();
     $metodosMock = metodosMockDoCockpit();
 
@@ -107,7 +107,7 @@ it('UC-FCKP-10 · CU-FISC-16 · nenhuma superfície declarada demonstração sob
     }
 });
 
-it('UC-FCKP-10 · CU-FISC-16 · toda chave que a tela sela existe na declaração do controller', function () {
+it('UC-FCKP-13 · CU-FISC-16 · toda chave que a tela sela existe na declaração do controller', function () {
     $tsx = file_get_contents(base_path('resources/js/Pages/Fiscal/Cockpit.tsx'));
     expect($tsx)->not->toBeFalse('Cockpit.tsx não foi lido — o caminho mudou?');
 
@@ -132,7 +132,7 @@ it('UC-FCKP-10 · CU-FISC-16 · toda chave que a tela sela existe na declaraçã
     }
 });
 
-it('UC-FCKP-10 · CU-FISC-16 · toda superfície declara origem do vocabulário fechado e uma explicação', function () {
+it('UC-FCKP-13 · CU-FISC-16 · toda superfície declara origem do vocabulário fechado e uma explicação', function () {
     foreach (procedenciaDoCockpit() as $chave => $p) {
         expect(ORIGENS_VALIDAS)->toContain(
             $p['origem'] ?? null,

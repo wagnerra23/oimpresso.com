@@ -138,7 +138,7 @@ pelo `NotasUnifiedService`, o protótipo (`fiscal-data.jsx:198` — *"Lista unif
 Controller"*) e o SDD §5.4.1 continuaram afirmando "demonstração" para `notas` e
 `savedViewCounts`. Se a tela adivinhasse, herdaria esse atraso e passaria a **mentir com
 selo** — pior que não ter selo. Declarando a poucas linhas do `Inertia::render`, quem troca o
-dado troca a declaração no mesmo diff, e o `UC-FCKP-10` reprova quem esquecer.
+dado troca a declaração no mesmo diff, e o `UC-FCKP-13` reprova quem esquecer.
 
 **Cobertura declarada (medida em 2026-09-04, tip `d23bc3df34`):** 8 superfícies desta tela,
 das quais **4 são demonstração** — e são exatamente os 4 métodos `mock*` do
