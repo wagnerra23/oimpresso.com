@@ -119,6 +119,7 @@ não tem as migrations do NfeBrasil. É lacuna de ambiente, não defeito do test
 | UC-FNFE-10 | a lista é operável só pelo teclado (linha focável, não botão) | `[must]` | **—** (ver nota) | `fiscal-nfe-teclado.test.tsx` | 🧪 |
 | UC-FNFE-11 | nenhum ícone decorativo chega ao leitor de tela | `[must]` | **—** (mesma nota) | `fiscal-nfe-teclado.test.tsx` | 🧪 |
 | UC-FNFE-12 | a lista não promete o que não tem (separador solto · tecla sem handler) | `[should]` | **—** (mesma nota) | `fiscal-nfe-teclado.test.tsx` (5) | 🧪 |
+| UC-FNFE-14 | a densidade escolhida acompanha a navegação entre as telas de notas | `[should]` | **—** (mesma nota) | `fiscal-densidade.test.tsx` | 🧪 |
 
 > **Por que esta tabela nasceu em 2026-09-01 (e o que ela NÃO fez):** os 8 UC desta tela já eram
 > provados por teste desde 2026-07-27 — nenhum deles declarava, porém, **qual CU do SDD §6 atende**.
@@ -362,6 +363,40 @@ devolver `R`/`X` à barra derruba o terceiro (`not to contain 'em breve'`). Rest
 **Controle negativo incluído:** um caso dispara `r`/`R`/`x`/`X` na window e assere que o DOM não
 muda — prova que remover da barra descreve a realidade, em vez de esconder um atalho vivo. E um
 caso de não-regressão: com destinatário E documento, a célula segue mostrando os dois.
+## UC-FNFE-14 — A densidade escolhida acompanha a navegação entre as telas de notas
+Status: 🧪 (`tests/js/fiscal-densidade.test.tsx` — **passa**, 6/6; lane `Fiscal Densidade Gate`)
+Dado o operador na lista de NF-e · Quando escolhe **Compacto** e navega para o Cockpit ou para a
+NFS-e · Então a tabela de lá já abre compacta — a preferência é dele, não da tela.
+
+Âncora: a fonte de design faz as três telas serem a **mesma função** — `FxNotasPage`, chamada com
+`preset` diferente ([`fiscal-page.jsx:346,541-543`](../../../../prototipo-ui/cowork/fiscal-page.jsx)) — e
+persiste a escolha em `fxLS("oimpresso.fiscal.densidade")` (`:358,363`). Lá o compartilhamento é
+grátis; aqui a produção separou em três arquivos, então a propriedade precisa ser defendida.
+
+**O estado que este caso corrige (medido em `origin/main` d23bc3df34):** o controle existia **só no
+Cockpit**, e com `useState<Density>('comfort')` — estado efêmero. A escolha morria ao trocar de tela,
+e NF-e/NFS-e não tinham controle nenhum (`fx-density` = 0 nas duas).
+
+**Por que o caso é de RENDER, e não um assert sobre o texto do `.tsx`:** procurar o nome do
+componente nas telas provaria que o import foi **escrito** — presença, não comportamento (LC-11),
+e ficaria verde no instante em que alguém digitasse a linha. Aqui a NFS-e é montada **depois** de
+a NF-e ser desmontada, e a asserção lê a classe que o CSS de fato consome — o que torna o caso
+uma prova de travessia, e não de estado compartilhado em memória.
+
+**Mordida provada (contrafactual 2026-09-04):** devolver `useState('comfort')` à NFS-e — o defeito
+exato que o Cockpit tinha em `origin/main` — derruba **2** casos, com a mensagem nomeando o
+sintoma (*"a NFS-e ignorou a escolha feita na NF-e: expected 'comfort' to be 'compact'"*); divergir
+a chave da fonte de design derruba **1**, nomeando as duas chaves. Restaurado, 6/6 verde.
+
+**O que este caso NÃO cobre:** a navegação HTTP real entre as rotas — o jsdom não a faz. O que os
+casos provam é a parte que **carrega** a preferência (mesma origem, mesmo storage, a tela nova
+lendo o que a anterior gravou); a troca de página com o Inertia no meio é olho humano no smoke (R1).
+O Cockpit não é renderizado (recebe ~15 props de payload) e entra por um caso estático de fonte
+única — perde-se a prova do repinte dele, não a condição da travessia.
+
+**Por que `—` na coluna CU:** vale aqui a mesma nota do `UC-FNFE-10` — os 16 CU do SDD §6 tratam do
+que a pessoa fiscal **faz** (conferir, cancelar, manifestar, inutilizar); nenhum trata de
+preferência de exibição. Ancorar num CU plausível fecharia a lacuna do painel sem lastro (LC-11).
 
 ## Backlog de casos (sem id — entram quando um teste de COMPORTAMENTO os cobrir)
 
@@ -376,6 +411,19 @@ caso de não-regressão: com destinatário E documento, a célula segue mostrand
 2. **Cadência:** rodar ao fim de toda mexida na tela. UC ❌ = regressão fiscal.
 
 ## Trilha do tempo
+- 2026-09-04 · [C] `UC-FNFE-14` — a densidade vira preferência compartilhada. **O id saltou pro
+  14, e o 13 fica vago de propósito — vale registrar o mecanismo, porque ele custou 3 rodadas.**
+  Este UC e o do [#6731](https://github.com/wagnerra23/oimpresso.com/pull/6731) nasceram ambos
+  `UC-FNFE-12`, no mesmo dia, na mesma tela: duas sessões paralelas, contratos diferentes. Daí:
+  **(1)** eu cedi por *ordem de criação* e fui pro `13`; **(2)** a outra sessão cedeu por *custo
+  medido* e foi pro `13` também — a colisão mudou de casa; **(3)** os dois voltamos pro `12` ao
+  mesmo tempo — a colisão voltou pra casa. Cortesia simétrica não resolve disputa de nome: cada
+  passo do outro era invisível até chegar, e os dois calculavam **o mesmo próximo livre**.
+  Saída: escolher unilateralmente um valor que não colida com **nenhum** estado possível do outro
+  (ele estava no `12`, podia ir pro `13` — logo, `14`), aplicar, e comunicar como fato consumado
+  em vez de proposta. O `13` fica vago porque já está queimado nos dois históricos.
+  **Regra pra próxima:** em renomeação negociada entre sessões, quem cede **anuncia o destino
+  antes de escrever**, e quem recebe o anúncio **não cede de volta**.
 - 2026-07-03 · [CC] criado no Passo 3 do programa de ondas. 17 testes mapeados, 0 citavam UC-id.
 - 2026-07-27 · [CC] fecha a G-2 com 8 UC (`UC-FNFE-01..08`). Criado `AcoesContratoTest` (contrato REAL
   das regras do Controller, mordida provada); guard de banco movido pros casos que precisam dele
