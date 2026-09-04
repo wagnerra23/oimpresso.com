@@ -27,6 +27,7 @@ import { Button } from '@/Components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import { Skeleton } from '@/Components/ui/skeleton';
 import { Deferred } from '@inertiajs/react';
+import { hrefDaAba, type Filtros } from './abaHref';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useState } from 'react';
 
@@ -59,7 +60,7 @@ interface Props {
   aba: string | null;
   grade: PaginatorShape<LinhaDaGrade> | null;
   /** Params que a troca de aba precisa preservar (período + loja). */
-  filtros: Record<string, string | number | null | undefined>;
+  filtros: Filtros;
 }
 
 const brl = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -222,17 +223,7 @@ export default function GradesPainel({ abas, aba, grade, filtros }: Props) {
   const rotuloAtivo = abas.find((a) => a.key === aba)?.label ?? '';
   const colunas = COLUNAS[aba] ?? [];
 
-  // A troca de aba preserva período e loja — o estado da tela inteira mora na
-  // query string (anti-hook do charter: "estado do período e da loja em QUERY
-  // STRING, nunca em session"). A aba entra na mesma regra.
-  const href = (key: string) => {
-    const params = new URLSearchParams();
-    Object.entries(filtros).forEach(([k, v]) => {
-      if (v !== null && v !== undefined && v !== '') params.set(k, String(v));
-    });
-    params.set('aba', key);
-    return `${window.location.pathname}?${params.toString()}`;
-  };
+  const href = (key: string) => hrefDaAba(filtros, key);
 
   return (
     <Stack gap={3} asChild>

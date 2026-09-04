@@ -289,3 +289,77 @@ it('UC-DASH-16 · ordenaveis() espelha o sortable da ancora — situacao NAO ord
         ->and(GradesDoPainelService::ordenaveis('pedidos'))->toContain('total')
         ->and(GradesDoPainelService::ordenaveis('aba-inexistente'))->toBe([]);
 });
+
+/*
+ * UC-DASH-19 — painel "Pendências" (o atalho do §Backlog do charter, liberado por [W]
+ * em 2026-09-04). Três invariantes, e cada uma pode reprovar de verdade:
+ *
+ *  1. CONCORDÂNCIA — o número exibido é o mesmo que a aba clicada vai mostrar. É o
+ *     motivo de `pendencias()` reusar `linhas()` em vez de ter query própria: um
+ *     segundo predicado de "pendente" drifta do primeiro e o painel passa a prometer
+ *     um número que a grade não entrega.
+ *  2. GATE — pendência de aba sem permissão não aparece (mesma regra da aba: some,
+ *     não fica desabilitada).
+ *  3. CASCA — sem `dashboard.data` a prop nem é registrada, igual a `charts`/`totals`.
+ */
+
+it('UC-DASH-19 · o número da pendência é o MESMO que a aba vai mostrar, e o painel resume só as 5 da âncora', function () {
+    $user = gradesBootstrap([
+        'dashboard.data',
+        'sell.view', 'purchase.view', 'stock_report.view', 'access_shipping',
+        // As 3 de FLUXO entram com permissão de propósito: sem elas permitidas, o
+        // assert de que não aparecem passaria por falta de permissão, não por escolha
+        // da âncora — e é a escolha que este teste defende.
+        'so.view_all', 'purchase_order.view_all', 'purchase_requisition.view_all',
+    ]);
+    $this->actingAs($user);
+
+    $servico = app(GradesDoPainelService::class);
+    $businessId = (int) session('business.id');
+    $pendencias = $servico->pendencias($businessId);
+    $abas = array_column($pendencias, 'aba');
+
+    // Subconjunto deliberado: pedido de venda, ordem de compra e requisição são fluxo
+    // em andamento, não pendência. A âncora (`PENDENCIAS`) deixa as três de fora.
+    expect($abas)->not->toContain('pedidos')
+        ->and($abas)->not->toContain('compras-abertas')
+        ->and($abas)->not->toContain('requisicoes');
+
+    if ($pendencias === []) {
+        // Skip LOUD, não verde silencioso: sem nada pendente a concordância não tem o
+        // que comparar, e um `0 failed` aqui não provaria execução (LICOES_CODE LC-13).
+        test()->markTestSkipped('Tenant sem nada pendente — a metade de concordância deste UC não tem par pra comparar.');
+    }
+
+    foreach ($pendencias as $p) {
+        expect($p['total'])->toBeGreaterThan(0)
+            ->and($p['total'])->toBe($servico->linhas($p['aba'], $businessId)?->total());
+    }
+});
+
+it('UC-DASH-19 · pendência de aba sem permissão não aparece no painel', function () {
+    $user = gradesBootstrap(['dashboard.data', 'sell.view']);
+    $this->actingAs($user);
+
+    $abas = array_column(
+        app(GradesDoPainelService::class)->pendencias((int) session('business.id')),
+        'aba'
+    );
+
+    expect($abas)->not->toContain('venc-compra')
+        ->and($abas)->not->toContain('estoque')
+        ->and($abas)->not->toContain('validade')
+        ->and($abas)->not->toContain('expedicao');
+});
+
+it('UC-DASH-19 · sem dashboard.data a prop pendencias nem é registrada', function () {
+    $user = gradesBootstrap(['sell.view', 'purchase.view']);
+
+    $response = $this->actingAs($user)->get('/dashboard-legacy');
+
+    $response->assertStatus(200);
+    $response->assertInertia(fn (AssertableInertia $page) => $page
+        ->where('can_dashboard_data', false)
+        ->where('pendencias', null)
+    );
+});
