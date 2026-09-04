@@ -59,7 +59,7 @@ Cross-refs externos: 5 ADRs (todas sobre A/cadastro: 0179/0185/0186/0197 + 0013 
 | `LeadController`, `ProposalController`, `ProposalTemplateController`, `CampaignController`, `CallLogController`, `ScheduleController`, `ScheduleLogController`, `CrmDashboardController`, `ReportController`, `CrmMarketplaceController`, `DataController`, `CrmSettingsController` | **B TARGET** | Rotas `/crm/*`, nav `crm::layouts.nav` |
 | Entities `Leaduser`, `CrmContact`, `Proposal`, `ProposalTemplate`, `Campaign`, `Schedule`, `ScheduleLog`, `ScheduleUser`, `CrmCallLog`, `Deal`, `CrmMarketplace`, `CrmContactPersonCommission` | **B TARGET** | Pipeline domain |
 | Services `CrmLeadService`, `ProposalService`, `CampaignService`, `CallLogService`, `ScheduleService`, `DealPipelineService`, `LeadAssignmentService` | **B TARGET** | Pipeline domain |
-| Services `BrLookupService`, `ContactBookingService` | **ZONA CINZA** | `BrLookupService` pode ser usado por `ClienteLookupController` (A) — **confirmar antes de remover** |
+| Services `BrLookupService`, `ContactBookingService` | `BrLookupService` = **A** (medido 2026-09-04) · `ContactBookingService` segue **ZONA CINZA** | `BrLookupService`: único consumidor de código é `ClienteLookupController` (A) — **fica em A, não move** (receita no §BLOQUEIOS). `ContactBookingService`: **não medido** |
 | Commands `pos:sendScheduleNotification` (everyMinute), `pos:createRecursiveFollowup` (daily), `crm:health` | **B TARGET** | Follow-up reminders |
 
 > ⚠️ **Ajuste vs premissa:** não existe command `crm:send-follow-up-reminders`. O que existe é `pos:sendScheduleNotification` + `pos:createRecursiveFollowup`, agendados em `CrmServiceProvider::registerScheduleCommands()` (não em `app/Console/Kernel.php`). Igualmente, `CrmMarketplace` usa `crm_marketplaces` (plural). Existe `Deal`/`crm_deals` (Wave 27, 2026-05-17) não citado na premissa.
@@ -76,7 +76,7 @@ Cross-refs externos: 5 ADRs (todas sobre A/cadastro: 0179/0185/0186/0197 + 0013 
 | `convertToCustomer` é usado no fluxo de venda da Larissa? | **NÃO.** Só `LeadController` (rota `/crm/lead/{id}/convert`) e `CrmLeadService` | grep confinado |
 | Colunas `contacts.crm_source`/`crm_life_stage` — A lê? | **NÃO (A).** Lidas por `CrmContact`, `CrmDashboardController`, `DataController` (B) e `Connector ContactController` (externo). `app/Contact.php` só tem 1 ref defensiva `where('type','!=','lead')` que deve PERMANECER | grep |
 | `users.crm_contact_id` é pipeline? | **NÃO — é A/portal.** FK→contacts CASCADE, usado por `ClienteOssDataController::persons` (drawer 760, KEEP) | `app/User.php:356` |
-| `BrLookupService` — usado por A? | **PROVÁVEL SIM.** `ClienteLookupController` (A) faz CEP/CNPJ/SEFAZ. **Confirmar antes de mover** | `routes/web.php:93` |
+| `BrLookupService` — usado por A? | **SIM — CONFIRMADO 2026-09-04** (era "provável"). Único consumidor de código é `ClienteLookupController` (A); **zero** no pipeline B. Fica em A | `Modules/Crm/Routes/web.php:93` · `ClienteLookupController::__construct` |
 | `CrmLeadRepositoryInterface` resolvido fora do Crm? | **NÃO.** Binding aspiracional | grep fora de `Modules/Crm/` = 0 |
 
 ### Acoplamentos de BORDA que exigem ação (não bloqueiam A, mas exigem cuidado)
@@ -164,7 +164,7 @@ Como B é **descontinuação** (não migração), não há receptor que absorve 
 | 5 | `down()` defeituosos (call_logs nome errado; followup_invoices/users vazios) | Alto | **SIM (proibicoes)** | Migration de remoção (E5) com `down()` reverso CORRETO; não confiar nas legacy | E5 |
 | 6 | Schedule cron órfão (everyMinute!) se remover command sem tirar do schedule | Alto | não | Remover schedule + command no MESMO PR | E4 |
 | 7 | `crm.*` permissions órfãs | Médio | não | Seed cleanup no MESMO PR + Pest | E5 |
-| 8 | `BrLookupService` removido por engano quebra CEP/CNPJ do cadastro | Alto | não | Confirmar se A usa antes; se sim, fica em A | E1 |
+| 8 | `BrLookupService` removido por engano quebra CEP/CNPJ do cadastro | Alto | não | ✅ **medido 2026-09-04: pertence a A** — fica em A, não entra em nenhuma etapa de remoção (receita no §BLOQUEIOS) | E1 ✅ |
 | 9 | Reversibilidade | Médio | não | E1-E2 só comentam (revert = descomentar); DROP só após 30d flag-off + dumps | E1-E5 |
 | 10 | Larissa biz=4 UX quebrada sem aviso | Alto | não | Query Fase 3 confirma biz=4 ~0 pipeline; canary 24h + aviso 7d | E2/E4 |
 
@@ -174,7 +174,7 @@ Como B é **descontinuação** (não migração), não há receptor que absorve 
 
 | Etapa | Tipo PR | LOC | Pré-req | Gate Wagner | Reversível? |
 |---|---|---|---|---|---|
-| **E1 — ADR deprecação + verificação rows** | docs + SELECT read-only staging | ~120 | Este plano aprovado; queries Fase 3 em réplica; confirmar BrLookupService=A | ADR proposal→accepted. **Rows em biz pagante → BLOQUEIO (ARCHIVE indefinido)** | n/a |
+| **E1 — ADR deprecação + verificação rows** | docs + SELECT read-only staging | ~120 | Este plano aprovado; queries Fase 3 em réplica; ~~confirmar BrLookupService=A~~ ✅ **feito 2026-09-04** | ADR proposal→accepted. **Rows em biz pagante → BLOQUEIO (ARCHIVE indefinido)** | n/a |
 | **E2 — Silenciar rota + nav (flag)** | chore | ~60 | E1 | `/cliente` + `/contact` intactos; `/crm/*` → 404; biz=4 OK | SIM |
 | **E3 — ARCHIVE dados (dump + PiiRedactor)** | feat (script, sem DML destrutivo) | ~200 | E2 + queries E1 | Dump por business + redaction; Pest cross-tenant | SIM (dumps = cópia) |
 | **E4 — Remover código + schedule + auditar Connector** | refactor | ~280 | E3 + auditoria Connector | Cron removido; Connector 410 só se morto; canary biz=4 24h | SIM (revert PR) |
@@ -193,9 +193,54 @@ Como B é **descontinuação** (não migração), não há receptor que absorve 
 
 ## BLOQUEIOS antes de qualquer DROP
 
-1. Row count por business (queries Fase 3 — rodar em réplica; **não rodado**).
-2. Auditoria do consumidor externo Connector (`log.delphi`).
-3. Confirmar `BrLookupService` pertence a A.
+1. Row count por business (queries Fase 3 — rodar em réplica; **não rodado**). 🔴 **aberto**
+2. Auditoria do consumidor externo Connector (`log.delphi`). 🔴 **aberto** — mas o **oráculo agora está nomeado** (ver abaixo).
+3. ~~Confirmar `BrLookupService` pertence a A.~~ ✅ **FECHADO em 2026-09-04** — pertence a A.
+
+### Recibo do bloqueio 3 (fato datado — re-rodar em vez de confiar nesta linha)
+
+Em **2026-09-04**, varredura contada no repo inteiro contra `origin/main`:
+
+```
+git grep -n "BrLookupService" origin/main    → 26 arquivos
+```
+
+Dos 26, **3 são código** (o resto é doc/ADR/handoff/skill): o próprio
+`Modules/Crm/Services/BrLookupService.php`, o `Modules/Crm/Http/Controllers/ClienteLookupController.php`
+(injeção no `__construct`) e `tests/Feature/Cliente/ClienteLookupCnpjCepTest.php` (instancia direto).
+**Zero consumidor no pipeline B.** `ClienteLookupController` é classe **A** pela tabela §Fase 1 deste plano.
+
+→ **Consequência para as etapas:** `BrLookupService` **não entra** em E4 (remover código) nem em nenhuma
+etapa de remoção. O Risco 8 do §Fase 5 está mitigado por medição, não por promessa.
+
+⚠️ O recibo mede o **repo**, não o mundo: se um consumidor novo nascer, a conclusão muda — por isso a
+receita fica escrita aqui, para ser **re-rodada**, e não a conclusão sozinha.
+
+### Oráculo do bloqueio 2 (nomeado em 2026-09-04 — **NÃO medido**)
+
+O plano pedia "auditar o consumidor externo Connector (`log.delphi`)" sem dizer **onde** olhar. Rastreado
+no código: o alias `log.delphi` (`Modules/Officeimpresso/Providers/OfficeimpressoServiceProvider.php`)
+resolve `Modules\Officeimpresso\Http\Middleware\LogDelphiAccess`, que grava em **`licenca_log`**
+(`Modules\Officeimpresso\Entities\LicencaLog`, `protected $table`), com `endpoint` = `$request->path()`
+(**sem** barra inicial), `http_status`, `business_id` e `created_at`.
+
+Logo a pergunta *"o Delphi ainda chama a API CRM?"* é respondida por:
+
+```sql
+SELECT endpoint, COUNT(*) AS n, COUNT(DISTINCT business_id) AS bizs, MAX(created_at) AS ultima_chamada
+FROM licenca_log
+WHERE endpoint LIKE 'connector/api/crm%'
+GROUP BY endpoint
+ORDER BY ultima_chamada DESC;
+```
+
+Rodar em **réplica/staging** (nunca escrever em prod). Leitura do resultado: **0 linhas** ou
+`ultima_chamada` antiga = candidato a `410 Gone` na E4; **qualquer linha recente** = BLOQUEIO mantido até
+migrar o consumidor (Wagner + Felipe), como o §Fase 4 já manda.
+
+⚠️ **Isto é o oráculo, não a medição.** Ninguém rodou a query até aqui — o bloqueio 2 segue 🔴 aberto.
+Ausência de linha só vale como "morto" depois de conferir que o middleware de fato grava no ambiente
+consultado (senão o vazio mede a instrumentação, não o consumidor).
 
 ## Refs
 
