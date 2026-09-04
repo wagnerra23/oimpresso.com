@@ -191,9 +191,17 @@ class ProductionService
                     'transaction_date' => $ordem->transaction_date
                         ? Carbon::parse($ordem->transaction_date)->format('d/m/Y')
                         : null,
-                    'location_name' => optional($ordem->location)->name,
+                    // `relationLoaded` + `getRelation`, não a propriedade mágica: o Larastan
+                    // não resolve `$ordem->location` (acusou property.notFound). Mesmo padrão
+                    // do `RecipeBomService::presentRecipe` com `sub_unit`. O guard também
+                    // protege quem chamar este método sem o eager-load do `listProductions`.
+                    'location_name' => $ordem->relationLoaded('location')
+                        ? optional($ordem->getRelation('location'))->name
+                        : null,
                     'final_total' => $total,
-                    'mfg_is_final' => (int) $ordem->mfg_is_final,
+                    // getAttribute: coluna real da tabela, mas o Larastan não a conhece no
+                    // model (property.notFound). Acesso explícito, mesma linha das outras.
+                    'mfg_is_final' => (int) $ordem->getAttribute('mfg_is_final'),
                     'produto' => $produto?->getAttribute('product_name') ?: '—',
                     'unidade' => $produto?->getAttribute('unit_name') ?: '',
                     'n_ingredientes' => (int) ($variationId ? ($ingredientes[$variationId] ?? 0) : 0),
