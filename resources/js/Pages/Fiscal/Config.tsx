@@ -88,6 +88,13 @@ interface ConfigProps {
   seriesMock?: SerieFiscal[];
   /** Card "Envio de documentos" — leitura real das flags de deploy (ver ConfigController). */
   envioDocumentos?: EnvioDocumentos;
+  /**
+   * Espelho do gate `fiscal.config.ambiente`. Serve pra tela DIZER o motivo do
+   * campo travado — quem recusa de verdade é o servidor
+   * (`CertificadoController::garantirGateAmbiente`). Ausente = travado, porque o
+   * default seguro de um gate é negar.
+   */
+  podeTrocarAmbiente?: boolean;
 }
 
 /**
@@ -129,9 +136,15 @@ function formatCnpj(raw: string | null): string {
   return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`;
 }
 
-export default function Config({ activeTab, certificado, config, painel, seriesMock = [], envioDocumentos }: ConfigProps) {
+export default function Config({
+  activeTab, certificado, config, painel, seriesMock = [], envioDocumentos, podeTrocarAmbiente = false,
+}: ConfigProps) {
   // Aba ativa dirigida pela rota (?tab=) — barra canônica navega por href (DS Onda 3).
   const tab = activeTab ?? 'cert';
+
+  // Motivo ÚNICO do travamento — mesma frase do 403 do servidor, pra quem levar o
+  // erro ao suporte encontrar o mesmo texto dos dois lados.
+  const motivoGate = 'Exige fiscal.config.ambiente';
 
   const { props: pageProps } = usePage<FlashProps>();
   const flashSuccess = pageProps.flash?.success;
@@ -412,6 +425,15 @@ export default function Config({ activeTab, certificado, config, painel, seriesM
               ? 'Subir um certificado novo desativa o atual automaticamente (rotação cega).'
               : 'Sobe o .pfx ou .p12 + senha. Valida CNPJ, criptografa em disco e habilita emissão NF-e/NFC-e.'}
           </p>
+          {/* Mesmo gate da troca de ambiente: substituir o certificado para a emissão
+              da empresa inteira. O motivo é dito aqui porque o campo abaixo está travado. */}
+          {!podeTrocarAmbiente && (
+            <p style={{ fontSize: 13, marginTop: 8, color: 'var(--bad)' }}>
+              <Lock className="h-3.5 w-3.5 mr-1 inline align-text-bottom" />
+              Travado — {motivoGate}. A mesma permissão que governa a troca de ambiente,
+              porque substituir o certificado também para a emissão da empresa inteira.
+            </p>
+          )}
           <form onSubmit={submitUpload} style={{ marginTop: 12 }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
               <div>
@@ -423,6 +445,8 @@ export default function Config({ activeTab, certificado, config, painel, seriesM
                   ref={fileRef}
                   type="file"
                   accept=".pfx,.p12"
+                  disabled={!podeTrocarAmbiente}
+                  title={podeTrocarAmbiente ? undefined : motivoGate}
                   onChange={(e) => uploadForm.setData('certificado', e.target.files?.[0] ?? null)}
                 />
                 <small style={{ color: 'var(--fx-text-mute)', fontSize: 11 }}>Máximo 100 KB. A3 (token) não é suportado.</small>
@@ -438,6 +462,8 @@ export default function Config({ activeTab, certificado, config, painel, seriesM
                 <Input
                   id="certificado-senha"
                   type="password"
+                  disabled={!podeTrocarAmbiente}
+                  title={podeTrocarAmbiente ? undefined : motivoGate}
                   value={uploadForm.data.senha}
                   onChange={(e) => uploadForm.setData('senha', e.target.value)}
                   autoComplete="off"
@@ -453,7 +479,8 @@ export default function Config({ activeTab, certificado, config, painel, seriesM
               <Button
                 type="submit"
                 variant="cowork-primary"
-                disabled={uploadForm.processing || !uploadForm.data.certificado || !uploadForm.data.senha}
+                title={podeTrocarAmbiente ? undefined : motivoGate}
+                disabled={!podeTrocarAmbiente || uploadForm.processing || !uploadForm.data.certificado || !uploadForm.data.senha}
               >
                 {uploadForm.processing
                   ? 'Enviando…'
@@ -552,6 +579,34 @@ export default function Config({ activeTab, certificado, config, painel, seriesM
 
         {tab === 'ambiente' && (
         <>
+        {/* Estado da permissão DITO EM TEXTO — nunca um botão cinza sem motivo.
+            Espelha `data-contract="gate-ambiente"` do protótipo. */}
+        <div
+          className="fx-callout"
+          role="status"
+          data-contract="fiscal-config-gate-ambiente"
+          data-ok={podeTrocarAmbiente ? 'true' : 'false'}
+          style={{
+            marginBottom: 14,
+            background: podeTrocarAmbiente ? 'var(--ok-soft)' : 'var(--bad-soft)',
+            borderColor: podeTrocarAmbiente ? 'var(--ok)' : 'var(--bad)',
+          }}
+        >
+          {podeTrocarAmbiente ? <CheckCircle2 size={16} /> : <Lock className="h-4 w-4" />}
+          <div>
+            <b style={{ color: podeTrocarAmbiente ? 'var(--ok)' : 'var(--bad)' }}>
+              {podeTrocarAmbiente
+                ? 'Permissão concedida — você pode trocar o ambiente e substituir o certificado'
+                : 'Permissão ausente — os dois campos desta aba estão travados'}
+            </b>
+            <small>
+              {podeTrocarAmbiente
+                ? 'Toda troca vira evento de auditoria com autor e horário.'
+                : `${motivoGate}. É um gate próprio, separado de fiscal.config.edit: quem edita configuração não troca o ambiente de emissão. Peça a concessão a quem administra os papéis.`}
+            </small>
+          </div>
+        </div>
+
         {/* Ambiente SEFAZ — radio + submit */}
         <section className="fx-cert-card" style={{ marginBottom: 14 }}>
           <h3>Ambiente SEFAZ</h3>
@@ -563,6 +618,8 @@ export default function Config({ activeTab, certificado, config, painel, seriesM
             <RadioGroup
               value={String(ambienteForm.data.ambiente)}
               onValueChange={(v) => ambienteForm.setData('ambiente', Number(v) as 1 | 2)}
+              disabled={!podeTrocarAmbiente}
+              title={podeTrocarAmbiente ? undefined : motivoGate}
               style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 12 }}
             >
               {/* htmlFor → clicar no label inteiro ativa o RadioGroupItem (botão labelable) */}
@@ -584,7 +641,8 @@ export default function Config({ activeTab, certificado, config, painel, seriesM
               <Button
                 type="submit"
                 variant="cowork-ghost"
-                disabled={ambienteForm.processing || ambienteForm.data.ambiente === painel.ambiente}
+                title={podeTrocarAmbiente ? undefined : motivoGate}
+                disabled={!podeTrocarAmbiente || ambienteForm.processing || ambienteForm.data.ambiente === painel.ambiente}
               >
                 {ambienteForm.processing ? 'Salvando…' : 'Salvar ambiente'}
               </Button>

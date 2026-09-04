@@ -120,6 +120,26 @@
       ]
     },
     {
+      "tela": "Manufacturing/Report",
+      "arquivo": "resources/js/Pages/Manufacturing/Report.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/manufacturing-producao.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Manufacturing/Settings",
+      "arquivo": "resources/js/Pages/Manufacturing/Settings.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/manufacturing-producao.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
       "tela": "Ponto/Colaboradores/Edit",
       "arquivo": "resources/js/Pages/Ponto/Colaboradores/Edit.tsx",
       "modulo": "core",
@@ -300,5 +320,5 @@
       ]
     }
   ],
-  "total": 72
+  "total": 74
 }
