@@ -498,7 +498,12 @@ operação interna (5102) de interestadual (6102)**.
 3. `[V0]` a flag `fiscal.sped_simples_only_lock` bloqueia o download com **503** para não-superadmin
 4. `[T0]` gerar SPED de outro business lança `RuntimeException` antes de qualquer query
 5. `[must]` competência inválida (ano <2020, ano futuro, mês fora de 1–12) é recusada
-6. ⬜ **sem teste** — validação do TXT no PVA-EFD oficial (nenhum golden file existe)
+6. ⬜ **sem teste** — importação do TXT no **PVA-EFD oficial** (ferramenta externa da Receita; nenhuma
+   lane a executa). ⚠️ A redação anterior dizia *"nenhum golden file existe"* — **caducou em
+   2026-09-03**: a Onda 9 ([PR #6708](https://github.com/wagnerra23/oimpresso.com/pull/6708)) criou
+   `Modules/Fiscal/Tests/Fixtures/sped-icms-ipi-golden.txt` (47 linhas), conferido por `UC-FSF1-05`
+   quanto a estrutura, blocos e contadores. O que segue sem prova é só o PVA real — e o próprio
+   golden já expõe dois motivos de recusa: CNPJ/IE vazios e UF fixa.
 
 ### 6.5 Procedência do dado
 

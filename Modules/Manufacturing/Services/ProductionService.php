@@ -302,7 +302,11 @@ class ProductionService
                 }
             }
 
-            $total = array_sum(array_column($acc, 'custo_total'));
+            // (float) explícito: `array_sum([])` devolve int(0), não float — e o contrato
+            // declarado no @return desta função é `total: float`. Sem o cast, um período SEM
+            // produção devolvia int e o tipo mentia (pego pela lane de CI em 2026-09-03,
+            // UC-REPORT-02: "Failed asserting that 0 is identical to 0.0").
+            $total = (float) array_sum(array_column($acc, 'custo_total'));
 
             // §7.3 — divisão por zero devolve 0, nunca NaN/Infinity (mesma defesa da tela de Receitas).
             $linhas = array_map(function ($l) use ($total) {
