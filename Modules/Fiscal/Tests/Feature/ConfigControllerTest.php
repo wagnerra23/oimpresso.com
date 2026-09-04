@@ -100,3 +100,42 @@ it('UC-FCFG-04 · o payload da tela carrega o estado da contingência com a dura
     expect((bool) $desligada->em_contingencia)->toBeFalse();
     expect($desligada->contingencia_ativada_em)->toBeNull();
 });
+
+it('UC-FCFG-05 · o card de envio de documentos espelha as flags REAIS do deploy', function () {
+    $user = \App\User::factory()->create(['business_id' => 1]);
+    $user->givePermissionTo('superadmin');
+    $this->actingAs($user);
+    session(['business.id' => 1, 'user.business_id' => 1]);
+
+    // As duas chaves governam os listeners que mandam o DANFE:
+    // `EnviarDanfePorEmail` (NFe 55) e `EnviarDanfeNFCePorEmail` (NFC-e 65).
+    config([
+        'nfebrasil.email_danfe_on_autorizada'      => true,
+        'nfebrasil.email_danfe_nfce_on_autorizada' => false,
+    ]);
+
+    $this->get('/fiscal/config')
+        ->assertStatus(200)
+        ->assertInertia(
+            fn ($page) => $page
+                ->component('Fiscal/Config')
+                ->where('envioDocumentos.nfeAtivo', true)
+                ->where('envioDocumentos.nfceAtivo', false),
+        );
+
+    // CONTROLE NEGATIVO — invertidas as chaves, o payload inverte junto. Sem ele
+    // o teste passaria com o card servindo literal `true/false` hardcoded, que é
+    // exatamente a demonstração-disfarçada-de-leitura que este card veio evitar.
+    config([
+        'nfebrasil.email_danfe_on_autorizada'      => false,
+        'nfebrasil.email_danfe_nfce_on_autorizada' => true,
+    ]);
+
+    $this->get('/fiscal/config')
+        ->assertStatus(200)
+        ->assertInertia(
+            fn ($page) => $page
+                ->where('envioDocumentos.nfeAtivo', false)
+                ->where('envioDocumentos.nfceAtivo', true),
+        );
+});
