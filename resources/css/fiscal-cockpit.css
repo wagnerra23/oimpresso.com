@@ -1406,3 +1406,24 @@
 .fx-subtab .n.t-warn { background: var(--warn-soft); color: var(--warn); }
 .fx-subtab .n.t-bad  { background: var(--bad-soft);  color: var(--bad);  }
 .fx-subtab .n.t-ok   { background: var(--ok-soft);   color: var(--ok);   }
+
+/* Onda 3 — rodapé de paginação da lista unificada.
+   Porte de `.fx-pager`/`.fx-pager-n` do protótipo (fiscal-page.css §"Onda 2/3").
+   Lá eles pintam com var(--text-mute)/var(--text-dim) do DS; aqui usam os --fx-*
+   porque é ESTE arquivo que os define, no próprio .fx-page que o FxShell renderiza —
+   o token do DS depende de um .cockpit acima que esta tela não garante. Que os --fx-*
+   sejam cópia literal do light do DS (logo sem contrapartida dark) é dívida do arquivo
+   inteiro, anterior a esta onda e de intent separado: nenhuma regra dark entra aqui. */
+.fx-pager {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: var(--fs-2);
+  color: var(--fx-text-mute);
+}
+.fx-pager-n {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  color: var(--fx-text-dim);
+}

@@ -54,6 +54,7 @@ related_us: [US-FISCAL-002, US-FISCAL-019]
 | UC-FCKP-05 | KPI não conta outro business | `[must]` `[T0]` | CU-FISC-12 | `CockpitMultiTenantTest` | 🧪 |
 | UC-FCKP-06 | cache separado por business | `[must]` `[T0]` | CU-FISC-12 | `CockpitCacheTest` | 🧪 |
 | UC-FCKP-08 | o alerta é desenhado e leva a algum lugar | `[must]` | CU-FISC-01 | `CockpitControllerTest` | 🧪 |
+| UC-FCKP-09 | a tela serve uma PÁGINA, e filtrar volta à 1ª | `[must]` | CU-FISC-01 | `fiscal-cockpit-paginacao.test.tsx` | 🧪 |
 
 ---
 
@@ -146,6 +147,20 @@ related_us: [US-FISCAL-002, US-FISCAL-019]
 - **Bite-test (2026-09-03, CT 100):** com os valores reais, os 3 `goto` resolvem (`nfe`→`/fiscal/nfe`, `fiscal_config`→`/fiscal/config`, `dfe`→`/fiscal/dfe`) e os 3 `icon` mapeiam. Mutando um `goto` para `rota_que_nao_existe` e um `icon` para `glifo_inventado`, os dois eixos acusam `AUSENTE (FALHA)` — o caso reprova quando deve.
 - **Âncora:** `CU-FISC-01` do SDD §6 (o cockpit entrega a leitura consolidada do mês) + o alvo `prototipo-ui/cowork/fiscal-page.jsx:125-137` (`FxAlerts`).
 - **Status:** 🧪 veredito da lane pendente — o `CockpitControllerTest` pula em SQLite (schema MySQL) e o checkout do CT 100 está em 2026-07-23, sem os arquivos deste PR; o veredito real vem do CI, que faz checkout do PR.
+
+## UC-FCKP-09 — O cockpit serve uma PÁGINA da lista, e filtrar devolve à primeira `[must]`
+
+**Dado** um cockpit com mais notas carregadas do que cabem numa página
+**Quando** a contadora navega pelo rodapé ou troca um filtro
+**Então** a tabela renderiza apenas a página corrente, `Anterior`/`Próxima` trocam de fato as linhas e ficam desabilitados nos extremos, e trocar o filtro devolve à página 1.
+
+- **Regressão que defende:** sem o reset, o operador que estava na página 3 e filtra fica preso num índice que não existe mais — a tabela vem **vazia** enquanto o filtro diz ter encontrado algo, e a seleção em lote guarda linhas que ele não vê. É o `useEffect` que o protótipo já resolvia e que a primeira leitura do pedido não previa.
+- **Limite honesto, medido e declarado:** o `de N` do rodapé fala da lista **carregada**, nunca do total do negócio. `NotasUnifiedService::LIMITE` corta a fonte em **50** antes de ela chegar ao componente (o docblock de lá declara *"é resumo; a lista completa vive em /fiscal/nfe"*), e **não existe contagem total escopada por business**: `contadores()['todas']` conta a MESMA lista truncada. Por isso a copy é `N carregadas` — e por isso a paginação é client-side, que é o que o protótipo especifica.
+- **O que este caso NÃO cobre, de propósito:** os atalhos `J/K`. Eles não existem nesta tela — a Onda 2 ([#6707](https://github.com/wagnerra23/oimpresso.com/pull/6707)) os entregou no `Nfe.tsx` —, e por isso o hint do protótipo foi **omitido** do rodapé em vez de copiado: anunciar atalho que a tela não tem é copy mentindo (LC-15).
+- **Teste:** `tests/js/fiscal-cockpit-paginacao.test.tsx` — os 4 casos do `describe('UC-FCKP-09 · o cockpit serve uma PÁGINA da lista, não a lista inteira')`. Lane: `fiscal-cockpit-paginacao-gate.yml` (advisory, nasce neste PR).
+- **Bite-test (2026-09-03, local):** 4/4 verde com o código real. Mutação 1 — remover o `setPagina(1)` do `useEffect`: **1 failed**, e é exatamente o caso do reset. Mutação 2 — trocar `filtrados.slice(...)` por `filtrados`: **3 failed** (página, Próxima e extremos). Restaurado do backup, 4/4 verde de novo.
+- **Âncora:** `fiscal-page.jsx` §`FxNotasPage` do protótipo Cowork, baixado do **vivo** por `DesignSync` em 2026-09-03 (`truncated: false`) — não do espelho `prototipo-ui/cowork/`, que mediu **1 de 258** arquivos e cuja própria máquina declara que qualquer comparação contra ele é INCONCLUSIVA. De lá vêm o default **8**, as opções 8/25/50, a copy e o contador `{pagina} / {paginas}`.
+- **Status:** 🧪 veredito da lane pendente — a lane nasce neste PR e o run real vem do CI; o que existe hoje é o run local acima.
 
 ---
 

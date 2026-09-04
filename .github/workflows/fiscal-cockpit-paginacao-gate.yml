@@ -1,0 +1,87 @@
+name: Fiscal Cockpit Paginação Gate — a tela serve uma PÁGINA da lista (vitest · JUnit)
+
+# O QUE TRAVA: o contrato de paginação da lista unificada do cockpit (`/fiscal`) —
+# que a tabela renderiza uma PÁGINA e não a lista inteira, que Anterior/Próxima
+# trocam de fato as linhas, que os dois ficam desabilitados nos extremos, e que
+# trocar o filtro devolve o operador à página 1. Contrato por UC em
+# resources/js/Pages/Fiscal/Cockpit.casos.md (UC-FCKP-09).
+#
+# POR QUE A LANE EXISTE: nenhuma lane roda `vitest run` sem argumento — cada spec
+# aponta pro próprio arquivo. A medição é da lane irmã fiscal-teclado-gate, do mesmo
+# ciclo, e vale igual aqui: spec sem lane nunca executa, e verde-por-não-execução
+# (LC-13) é PIOR que teste ausente porque parece cobertura. `modules-pest.yml` casa
+# `Pages/Fiscal`, mas é Pest/PHP — outro runtime, não serve de dono.
+#
+# ⚠️ O ARQUIVO SOB TESTE ENTRA NO GATILHO junto com o spec. Sem `Cockpit.tsx` no
+# `paths`, mexer na tela não acorda o teste que a defende — gate mudo com cara de
+# cobertura. O CSS entra porque o rodapé `.fx-pager` vive nele.
+#
+# Comando local: npx vitest run tests/js/fiscal-cockpit-paginacao.test.tsx
+#
+# Advisory (ADR 0271/0314): paginar uma tela de LEITURA é qualidade, não Tier-0 —
+# nenhum caminho aqui move dinheiro, estoque ou tenant. Promoção a required é flip
+# [W] com mordida real coletada em main (ADR 0336 DR-2); não se auto-promove.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, reopened, ready_for_review, synchronize]
+    paths:
+      - 'resources/js/Pages/Fiscal/Cockpit.tsx'
+      - 'resources/css/fiscal-cockpit.css'
+      - 'tests/js/fiscal-cockpit-paginacao.test.tsx'
+      - 'tests/js/setup.ts'
+      - '.github/workflows/fiscal-cockpit-paginacao-gate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'resources/js/Pages/Fiscal/Cockpit.tsx'
+      - 'resources/css/fiscal-cockpit.css'
+      - 'tests/js/fiscal-cockpit-paginacao.test.tsx'
+      - 'tests/js/setup.ts'
+      # o workflow entra no gatilho de push porque é o run de `main` que o publisher
+      # colhe: mexer na lane sem re-rodar deixaria o artifact envelhecer até expirar,
+      # e lane sem artifact é lane pulada no publisher.
+      - '.github/workflows/fiscal-cockpit-paginacao-gate.yml'
+
+concurrency:
+  group: fiscal-cockpit-paginacao-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  paginacao:
+    name: Fiscal · paginação da lista do cockpit (vitest/jsdom)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install deps
+        run: npm ci
+
+      # `--reporter=default` mantém a saída legível pra humano; `--reporter=junit`
+      # escreve o XML que vira veredito por-UC no manifesto que o G-7 do casos-gate
+      # (REQUIRED) lê. Sem o par, o UC-FCKP-09 valeria 0 no painel para sempre.
+      - name: paginação da lista do cockpit (vitest/jsdom)
+        run: |
+          npx vitest run \
+            tests/js/fiscal-cockpit-paginacao.test.tsx \
+            --reporter=default \
+            --reporter=junit \
+            --outputFile=test-results/vitest-fiscal-cockpit-paginacao-junit.xml
+
+      # `!cancelled()` (não `success()`): o veredito de um run VERMELHO é justamente o
+      # que o G-7 precisa registrar — `Status: ✅` com teste vermelho é a mentira que
+      # ele existe pra pegar.
+      - name: Upload JUnit (veredito por-UC — casos:results)
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-fiscal-cockpit-paginacao-junit
+          path: test-results/vitest-fiscal-cockpit-paginacao-junit.xml
+          retention-days: 14
