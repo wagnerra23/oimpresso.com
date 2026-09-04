@@ -359,3 +359,18 @@
   .sells-cowork .vd-ai-stats,
   .sells-cowork-ia-panel .vd-ai-stats { grid-template-columns: 1fr 1fr; }
 }
+
+/* ─────────────────────── TEMA ESCURO (paleta --vd-ai-*) ────────────────────────
+ * Só-light: `-soft` L≈0.96 e `-text` L≈0.32. Valores dark pelo padrão do DS
+ * transcrito no #6712 (`-soft` L≈0.27/C≈0.06, texto L≈0.85), hue 295 preservado.
+ * Os DOIS escopos que definem a paleta no light são espelhados aqui.
+ * ───────────────────────────────────────────────────────────────────────────── */
+.cockpit[data-theme="dark"] .sells-cowork,
+.cockpit[data-theme="dark"] .sells-cowork-ia-panel,
+.dark .sells-cowork,
+.dark .sells-cowork-ia-panel {
+  --vd-ai:        oklch(0.74 0.16 295);
+  --vd-ai-soft:   oklch(0.27 0.06 295);
+  --vd-ai-border: oklch(0.38 0.07 295);
+  --vd-ai-text:   oklch(0.85 0.12 295);
+}

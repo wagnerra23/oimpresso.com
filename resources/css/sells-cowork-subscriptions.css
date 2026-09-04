@@ -119,3 +119,25 @@
   color: var(--vd-sub-paused-text);
   border-color: var(--vd-sub-paused-border);
 }
+
+/* ─────────────────────── TEMA ESCURO (paleta --vd-sub-*) ───────────────────────
+ * Só-light: as três famílias (indigo/active/paused) com `-soft` L≈0.96,
+ * `-border` L≈0.86 e `-text` L≈0.40-0.45. Valores dark pelo padrão do DS
+ * transcrito no #6712 (`-soft` L≈0.27/C≈0.06 · `-border` L≈0.38 · texto L≈0.85),
+ * hues 280/155/75 preservados.
+ * ───────────────────────────────────────────────────────────────────────────── */
+.cockpit[data-theme="dark"] .sells-cowork-subscriptions,
+.dark .sells-cowork-subscriptions {
+  --vd-sub-indigo:        oklch(0.74 0.13 280);
+  --vd-sub-indigo-soft:   oklch(0.27 0.06 280);
+  --vd-sub-indigo-border: oklch(0.38 0.07 280);
+  --vd-sub-indigo-text:   oklch(0.85 0.11 280);
+  --vd-sub-active:        oklch(0.74 0.14 155);
+  --vd-sub-active-soft:   oklch(0.27 0.06 155);
+  --vd-sub-active-border: oklch(0.38 0.07 155);
+  --vd-sub-active-text:   oklch(0.85 0.11 150);
+  --vd-sub-paused:        oklch(0.80 0.13 75);
+  --vd-sub-paused-soft:   oklch(0.27 0.06 75);
+  --vd-sub-paused-border: oklch(0.38 0.07 75);
+  --vd-sub-paused-text:   oklch(0.85 0.11 70);
+}
