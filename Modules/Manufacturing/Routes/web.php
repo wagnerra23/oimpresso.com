@@ -30,6 +30,11 @@ Route::middleware('throttle:60,1', 'web', 'authh', 'SetSessionData', 'auth', 'la
 
     Route::resource('/settings', 'Modules\Manufacturing\Http\Controllers\SettingsController')->only('index', 'store');
 
+    // MWART US-MANU-003 — Configurações Inertia v2 (coexiste com /settings Blade legacy acima).
+    // POST continua no /settings existente — store() não muda (RUNBOOK-settings.md).
+    Route::get('/v2/settings', [Modules\Manufacturing\Http\Controllers\SettingsController::class, 'indexV2'])
+        ->name('manufacturing.settings.v2.index');
+
     Route::get('/report', [Modules\Manufacturing\Http\Controllers\ProductionController::class, 'getManufacturingReport']);
 
     Route::post('/update-product-prices', [Modules\Manufacturing\Http\Controllers\RecipeController::class, 'updateRecipeProductPrices']);
