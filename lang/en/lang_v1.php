@@ -35,6 +35,7 @@ return [
     'stock_transfer_added_successfully' => 'Stock transfer added successfully',
     'stock_transfer_delete_success' => 'Stock transfer deleted successfully',
     'stock_transfer_cannot_be_deleted' => "This stock transfer can't be deleted as some of the stocks are already sold",
+    'stock_transfer_already_completed' => 'This stock transfer is already completed. Its stock has been moved and the status can no longer be changed.',
     'total_transfer_shipping_charges' => 'Total Transfer Shipping Charges',
     'enable_inline_tax' => 'Enable inline tax in purchase and sell',
     'save_n_add_opening_stock' => 'Save & Add Opening Stock',

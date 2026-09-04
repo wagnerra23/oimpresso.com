@@ -21809,13 +21809,13 @@ parameters:
 		-
 			message: '#^Method App\\Http\\Controllers\\StockTransferController\:\:update\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
 			identifier: return.type
-			count: 1
+			count: 2
 			path: app/Http/Controllers/StockTransferController.php
 
 		-
 			message: '#^Method App\\Http\\Controllers\\StockTransferController\:\:updateStatus\(\) should return Illuminate\\Http\\Response but returns array\<string, array\|int\|string\>\.$#'
 			identifier: return.type
-			count: 1
+			count: 2
 			path: app/Http/Controllers/StockTransferController.php
 
 		-
