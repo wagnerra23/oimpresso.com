@@ -42,7 +42,10 @@ uses(Tests\TestCase::class);
 /** Telas Inertia do módulo que renderizam a barra `mfg-tabs`. */
 function mfgTelasComAbas(): array
 {
-    return ['Recipes', 'Report', 'Settings', 'Insumos'];
+    // `Index` entrou em 2026-09-04: nasceu na Wave J SEM a barra (era a única tela React do
+    // módulo na época) e, depois do cutover, o menu lateral passou a trazer o usuário pra
+    // ela — virando beco sem saída. [M] reportou vendo a barra sumir ao clicar em Produção.
+    return ['Recipes', 'Report', 'Settings', 'Insumos', 'Index'];
 }
 
 /** Os endereços canônicos do módulo, um por tela. */
@@ -221,7 +224,7 @@ it('a tela de Insumos é alcançável a partir das telas irmãs', function () {
     // a URL. Este assert é o que impede repetir isso.
     $semLink = [];
 
-    foreach (['Recipes', 'Report', 'Settings'] as $tela) {
+    foreach (['Recipes', 'Report', 'Settings', 'Index'] as $tela) {
         $hrefs = mfgHrefsDasAbas(mfgBlocoDeAbas(mfgFonteDaTela($tela), $tela));
 
         if (! in_array('/manufacturing/insumos', $hrefs, true)) {
