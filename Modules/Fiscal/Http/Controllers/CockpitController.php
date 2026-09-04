@@ -109,19 +109,19 @@ class CockpitController extends Controller
      * Medido em 2026-09-04 sobre o tip d23bc3df34: das 8 superfícies desta tela,
      * 4 servem dado inventado, e são exatamente os 4 métodos `mock*` deste arquivo.
      *
-     * `sparklines` ficou de fora, e o motivo é DATADO, não permanente: medido em
-     * 2026-09-04 (tip `d23bc3df34`), a prop era servida e real (`computeSparklines`
-     * agrupa por dia em `nfe_emissoes`) mas a Page a recebia sem consumir — selo sem
-     * superfície visível não teria onde pousar. O #6732 está em voo para desenhá-las.
-     * QUANDO ELE ENTRAR, acrescente aqui:
+     * `sparklines` ficou de fora ATÉ 2026-09-04, e o motivo era DATADO, não permanente:
+     * medido no tip `d23bc3df34`, a prop era servida e real (`computeSparklines` agrupa
+     * por dia em `nfe_emissoes`) mas a Page a recebia sem consumir — selo sem superfície
+     * visível não teria onde pousar.
      *
-     *     'spark' => [
-     *         'origem'  => 'real',
-     *         'explica' => 'Série de 14 dias agrupada por dia em nfe_emissoes numa consulta só, com escopo do business.',
-     *     ],
+     * ✅ GATILHO CUMPRIDO no #6732, que desenhou as três séries: a chave `spark` está no
+     * array abaixo E o selo correspondente está na Page (`chave="spark"`, no `<small>` de
+     * "Emitidas", ao lado do `kpis`). Os dois JUNTOS de propósito — o `SeloProcedencia`
+     * faz `return null` sem invocação, e o assert 3 do `ProcedenciaCockpitTest` é one-way
+     * (tela → declaração), então chave sem selo ficaria muda e nenhum teste acusaria.
      *
-     * e sele a superfície na Page. Escrever isto em presente ("a Page não desenha")
-     * viraria afirmação falsa no dia do merge dele, sem nada acusar (LC-10).
+     * O gatilho fica como fato datado, não como imperativo: mantê-lo em "acrescente aqui"
+     * depois de acrescentado seria instrução obsoleta com cara de pendência (LC-15).
      *
      * @return array<string, array{origem: string, explica: string}>
      */
@@ -131,6 +131,10 @@ class CockpitController extends Controller
             'kpis' => [
                 'origem'  => 'real',
                 'explica' => 'Contagem e soma em nfe_emissoes do mês corrente, com escopo do business e cache de 60s.',
+            ],
+            'spark' => [
+                'origem'  => 'real',
+                'explica' => 'Série de 14 dias agrupada por dia em nfe_emissoes numa consulta só, com escopo do business.',
             ],
             'alerts' => [
                 'origem'  => 'real',

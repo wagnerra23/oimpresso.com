@@ -534,7 +534,8 @@ final class VisregThreshold
         $lines[] = '## 🟡 Pixel-diff — Zona Cinza (double-threshold · L7)';
         $lines[] = '';
         $lines[] = "Bandas: **auto-aprova** `< {$tauLow}%` · **auto-falha** `> {$tauHigh}%` · "
-            . '**zona cinza** = entre as duas (bloqueia até aprovação [W]).';
+            . '**zona cinza** = entre as duas. Se ela bloqueia depende de `VISREG_GRAY_APPROVED` '
+            . '(produzido em `.github/workflows/visual-regression.yml`) — este resumo não afirma enforcement.';
         $lines[] = '';
 
         if ($items === []) {
@@ -642,7 +643,12 @@ final class VisregThreshold
         } elseif ($n === 0) {
             $out[] = '  Nada a aprovar neste PR: a zona cinza acima e herdada da main.';
         } else {
-            $out[] = '  Liberado pelo label de aprovação [W] — registrado aqui só para ficar no log.';
+            // NÃO dizer "liberado pelo label": desde 2026-09-04 (#6757) o workflow fixa
+            // VISREG_GRAY_APPROVED='1' em pull_request e NÃO lê label nenhuma. A frase antiga
+            // anunciava uma aprovação humana que não ocorreu — o próprio #6757 a imprimiu num
+            // PR com zero labels. Quem decide o enforcement é o env; aqui só se registra.
+            $out[] = '  Não bloqueou: VISREG_GRAY_APPROVED=1 (ver .github/workflows/visual-regression.yml). '
+                .'Isto NÃO afirma revisão humana — registrado só para ficar no log.';
         }
         $out[] = '  Mudança intencional? runner canônico no modo update + aprovação [W] (gate F1.5).';
         $out[] = '';
