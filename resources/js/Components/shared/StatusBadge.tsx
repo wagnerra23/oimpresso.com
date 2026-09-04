@@ -240,6 +240,29 @@ const mappings: Record<string, Record<string, StatusEntry>> = {
     normal:   { variant: 'neutral', label: 'Normal' },
     abnormal: { variant: 'danger',  label: 'Anormal (perda)' },
   },
+  /**
+   * `transferencia_estoque` — status de `sell_transfer` COMO A TELA O RECEBE.
+   *
+   * Cuidado com o vocabulário: o payload Inertia NÃO espelha o banco. O
+   * `StockTransferController@indexInertia` normaliza `final` → `completed` na
+   * montagem da linha, e os DOIS caminhos de escrita fazem o inverso
+   * (`store()` e `updateStatus()`: `completed` → `final`). Ou seja, `completed`
+   * aqui é o alias de UI do terminal `final` do banco — medido nos 3 sites.
+   *
+   * As variantes preservam a leitura de cor que a tela já tinha à mão
+   * (pending=vermelho, in_transit=âmbar, completed=verde); o que muda é sair da
+   * paleta crua (`bg-rose-50`/`bg-amber-50`/`bg-emerald-50`) para o par SOFT
+   * tokenizado, que é o AP7 do PRE-MERGE-UI.
+   *
+   * `final` fica mapeado por completude do tipo `TransferStatus`, embora hoje
+   * seja INALCANÇÁVEL pela tela por causa da normalização acima.
+   */
+  transferencia_estoque: {
+    pending:    { variant: 'danger',  label: 'Pendente' },
+    in_transit: { variant: 'warning', label: 'Em trânsito' },
+    completed:  { variant: 'success', label: 'Concluída' },
+    final:      { variant: 'success', label: 'Concluída' },
+  },
 };
 
 interface Props {
