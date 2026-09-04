@@ -38,6 +38,13 @@ on:
     paths:
       - 'resources/js/Pages/Fiscal/Nfe.tsx'
       - 'resources/js/Pages/Fiscal/_components/NotaDrawer.tsx'
+      # UC-FNFE-11 (ícone decorativo fora da árvore de acessibilidade) varre a `.fx-page`
+      # INTEIRA, e ela monta o shell, a fonte única da subnav e a paleta ⌘K. Sem os três
+      # aqui, mexer neles não acorda o teste que os defende — gate mudo com cara de
+      # cobertura, a armadilha que este próprio arquivo adverte no cabeçalho.
+      - 'resources/js/Pages/Fiscal/_components/FxShell.tsx'
+      - 'resources/js/Pages/Fiscal/_components/CmdKPalette.tsx'
+      - 'resources/js/Pages/Fiscal/_lib/paginas-fiscais.tsx'
       - 'resources/css/fiscal-cockpit.css'
       - 'tests/js/fiscal-nfe-teclado.test.tsx'
       - 'tests/js/setup.ts'
@@ -47,6 +54,13 @@ on:
     paths:
       - 'resources/js/Pages/Fiscal/Nfe.tsx'
       - 'resources/js/Pages/Fiscal/_components/NotaDrawer.tsx'
+      # UC-FNFE-11 (ícone decorativo fora da árvore de acessibilidade) varre a `.fx-page`
+      # INTEIRA, e ela monta o shell, a fonte única da subnav e a paleta ⌘K. Sem os três
+      # aqui, mexer neles não acorda o teste que os defende — gate mudo com cara de
+      # cobertura, a armadilha que este próprio arquivo adverte no cabeçalho.
+      - 'resources/js/Pages/Fiscal/_components/FxShell.tsx'
+      - 'resources/js/Pages/Fiscal/_components/CmdKPalette.tsx'
+      - 'resources/js/Pages/Fiscal/_lib/paginas-fiscais.tsx'
       - 'resources/css/fiscal-cockpit.css'
       - 'tests/js/fiscal-nfe-teclado.test.tsx'
       - 'tests/js/setup.ts'

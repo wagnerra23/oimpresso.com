@@ -154,10 +154,10 @@ export default function Nfe({ filters: initialFilters, counts, sefazCodes, rows 
               onClick={() => setInutOpen(true)}
               title="Inutiliza faixa numérica de NFe (SEFAZ cstat=102 — fecha buracos fiscais)"
             >
-              <Eraser size={12}/> Inutilizar faixa
+              <Eraser size={12} aria-hidden="true"/> Inutilizar faixa
             </Button>
             <Button variant="cowork-primary" disabled title="PR seguinte">
-              <Plus size={12}/> Emitir <kbd className="fx-kbd-inline">E</kbd>
+              <Plus size={12} aria-hidden="true"/> Emitir <kbd className="fx-kbd-inline">E</kbd>
             </Button>
           </>
         }
@@ -209,6 +209,7 @@ export default function Nfe({ filters: initialFilters, counts, sefazCodes, rows 
                 <FileSearch
                   size={13}
                   className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  aria-hidden="true"
                 />
                 <Input
                   type="search"
@@ -246,7 +247,7 @@ export default function Nfe({ filters: initialFilters, counts, sefazCodes, rows 
                 aria-pressed={filters.status === 'cancelaveis'}
                 onClick={() => applyFilters({ status: 'cancelaveis' })}
               >
-                <RefreshCw size={11}/> Janela 24h <span className={chipCount(filters.status === 'cancelaveis')}>{counts.cancelaveis}</span>
+                <RefreshCw size={11} aria-hidden="true"/> Janela 24h <span className={chipCount(filters.status === 'cancelaveis')}>{counts.cancelaveis}</span>
               </Button>
               <Button
                 type="button"
@@ -318,7 +319,7 @@ export default function Nfe({ filters: initialFilters, counts, sefazCodes, rows 
                               </span>
                               {cancel && (
                                 <span className={`fx-timepill u-${cancel.urgency} compact`}>
-                                  <RefreshCw size={9}/>
+                                  <RefreshCw size={9} aria-hidden="true"/>
                                   <span className="lbl"><b>{cancel.h}h</b></span>
                                 </span>
                               )}
