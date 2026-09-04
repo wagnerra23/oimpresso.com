@@ -118,7 +118,7 @@ não tem as migrations do NfeBrasil. É lacuna de ambiente, não defeito do test
 | UC-FNFE-09 | retransmitir preserva a nota antiga (nunca deleta) | `[must]` `[reg]` | CU-FISC-11 | `AcoesContratoTest` | 🧪 |
 | UC-FNFE-10 | a lista é operável só pelo teclado (linha focável, não botão) | `[must]` | **—** (ver nota) | `fiscal-nfe-teclado.test.tsx` | 🧪 |
 | UC-FNFE-11 | nenhum ícone decorativo chega ao leitor de tela | `[must]` | **—** (mesma nota) | `fiscal-nfe-teclado.test.tsx` | 🧪 |
-| UC-FNFE-13 | a densidade escolhida acompanha a navegação entre as telas de notas | `[should]` | **—** (mesma nota) | `fiscal-densidade.test.tsx` | 🧪 |
+| UC-FNFE-12 | a densidade escolhida acompanha a navegação entre as telas de notas | `[should]` | **—** (mesma nota) | `fiscal-densidade.test.tsx` | 🧪 |
 
 > **Por que esta tabela nasceu em 2026-09-01 (e o que ela NÃO fez):** os 8 UC desta tela já eram
 > provados por teste desde 2026-07-27 — nenhum deles declarava, porém, **qual CU do SDD §6 atende**.
@@ -294,7 +294,7 @@ próprios ícones e são de outra onda.
 **remove o nome acessível** dele. Cada um dos 13 foi conferido antes: os 5 da tela e os 7 da subnav
 vêm com texto ao lado; o `<X>` da paleta está num botão que já declara `aria-label="Fechar (ESC)"`.
 
-## UC-FNFE-13 — A densidade escolhida acompanha a navegação entre as telas de notas
+## UC-FNFE-12 — A densidade escolhida acompanha a navegação entre as telas de notas
 Status: 🧪 (`tests/js/fiscal-densidade.test.tsx` — **passa**, 6/6; lane `Fiscal Densidade Gate`)
 Dado o operador na lista de NF-e · Quando escolhe **Compacto** e navega para o Cockpit ou para a
 NFS-e · Então a tabela de lá já abre compacta — a preferência é dele, não da tela.
@@ -342,16 +342,17 @@ preferência de exibição. Ancorar num CU plausível fecharia a lacuna do paine
 2. **Cadência:** rodar ao fim de toda mexida na tela. UC ❌ = regressão fiscal.
 
 ## Trilha do tempo
-- 2026-09-04 · [C] `UC-FNFE-13` — a densidade vira preferência compartilhada. **O id pula o 12
-  de propósito:** ele nasceu `UC-FNFE-12` aqui e no [#6731](https://github.com/wagnerra23/oimpresso.com/pull/6731)
-  ao mesmo tempo (duas sessões paralelas na mesma tela). A colisão foi detectada por aviso
-  cross-session e conferida por medição — o #6731 foi criado às 11:18:39Z e este às 11:25:52Z,
-  então quem renomeia é quem chegou depois. Um id ancorando **dois** contratos é o problema que
-  o `UC-FNFE-08` desta mesma tela já carrega e que está declarado como achado acima; não se cria
-  o segundo de olhos abertos. O bloco inline do
-  Cockpit virou `_components/DensidadeToggle.tsx` (dono único, como no protótipo, onde as três
-  telas são uma função só) e NF-e/NFS-e passaram a consumi-lo. Os 11 UC anteriores seguem
-  intactos: conferi um a um — nenhum toca densidade, tabela ou storage.
+- 2026-09-04 · [C] `UC-FNFE-12` — a densidade vira preferência compartilhada. **Sobre o id, que
+  trocou duas vezes antes de assentar:** ele nasceu `UC-FNFE-12` aqui e no
+  [#6731](https://github.com/wagnerra23/oimpresso.com/pull/6731) no mesmo dia — duas sessões
+  paralelas na mesma tela, contratos diferentes. Eu cedi primeiro, por **ordem de criação**
+  (11:18:39Z contra 11:25:52Z), e virei `13`. A outra sessão cedeu ao mesmo tempo, por **custo
+  medido** (4 ocorrências lá contra 9 aqui, que incluem o `anchor` e o `name` do gate no
+  `gates-registry.json`) — e virou `13` também. A colisão se mudou de casa em vez de sumir.
+  Desempate: o critério dela é melhor que o meu (custo real > ordem de relógio) e a nota que ela
+  já pushou **afirma** que o `12` é desta tela; voltei ao `12`, e agora os dois documentos dizem
+  a mesma coisa. Lição pra próxima: em renomeação negociada entre sessões, quem cede **anuncia
+  o destino antes de escrever** — ceder em paralelo reproduz a colisão um número adiante.
 - 2026-07-03 · [CC] criado no Passo 3 do programa de ondas. 17 testes mapeados, 0 citavam UC-id.
 - 2026-07-27 · [CC] fecha a G-2 com 8 UC (`UC-FNFE-01..08`). Criado `AcoesContratoTest` (contrato REAL
   das regras do Controller, mordida provada); guard de banco movido pros casos que precisam dele

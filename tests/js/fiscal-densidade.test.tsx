@@ -1,7 +1,7 @@
 /**
  * A densidade da tabela é preferência do OPERADOR, não da tela.
  *
- * @covers-us UC-FNFE-13 UC-FNFSE-05
+ * @covers-us UC-FNFE-12 UC-FNFSE-05
  *
  * POR QUE ESTE TESTE É DE RENDER (e não estático): o contrato é "escolhi compacto
  * na lista de NF-e, abro a NFS-e e ela já vem compacta". Um assert procurando o
@@ -95,7 +95,7 @@ beforeEach(() => localStorage.clear());
 afterEach(() => cleanup());
 
 describe('a densidade acompanha o operador entre as telas de notas', () => {
-  it('UC-FNFE-13 · escolher Compacto na NF-e faz a NFS-e abrir compacta', () => {
+  it('UC-FNFE-12 · escolher Compacto na NF-e faz a NFS-e abrir compacta', () => {
     render(<Nfe {...cenaNfe} />);
     expect(densidadeNaTela(), 'a NF-e não abriu no padrão').toBe('comfort');
 
@@ -121,7 +121,7 @@ describe('a densidade acompanha o operador entre as telas de notas', () => {
     expect(densidadeNaTela(), 'a NF-e ignorou a escolha feita na NFS-e').toBe('relax');
   });
 
-  it('UC-FNFE-13 · a escolha vai parar na chave que a fonte de design declara', () => {
+  it('UC-FNFE-12 · a escolha vai parar na chave que a fonte de design declara', () => {
     render(<Nfe {...cenaNfe} />);
     fireEvent.click(screen.getByRole('button', { name: 'Densidade compacta' }));
 
@@ -152,7 +152,7 @@ describe('a densidade acompanha o operador entre as telas de notas', () => {
     }
   });
 
-  it('UC-FNFE-13 · nenhuma tela de notas mantém densidade própria — inclui o Cockpit', () => {
+  it('UC-FNFE-12 · nenhuma tela de notas mantém densidade própria — inclui o Cockpit', () => {
     // Complemento ESTÁTICO, e o motivo está declarado: os dois casos de render acima
     // cobrem NF-e e NFS-e de ponta a ponta, mas o Cockpit recebe ~15 props de payload
     // e montá-lo aqui custaria uma cena maior que o próprio contrato. O que se perde
