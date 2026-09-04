@@ -36,8 +36,13 @@ class DataController extends Controller
     }
 
     /**
-     * Permissões registradas no cadastro de Roles do UltimatePOS.
-     * 6 permissões cobrindo PR #1 (NF-e view) e backlog (DF-e, SPED, Config).
+     * Permissões registradas no cadastro de Roles do UltimatePOS (Camada 3 do
+     * `memory/proibicoes.md` §multi-tenant — habilitar é ato na UI canônica
+     * `/roles/{id}/edit`, NUNCA hardcode por business).
+     *
+     * A contagem NÃO é restateada aqui de propósito: quem sabe quantas são é a
+     * própria lista abaixo, e um número em prosa apodrece no primeiro item novo
+     * (este docblock dizia "6" com 7 na lista).
      */
     public function user_permissions(): array
     {
@@ -49,6 +54,10 @@ class DataController extends Controller
             ['value' => 'fiscal.dfe.manage',       'label' => __('fiscal::fiscal.permissao_dfe_manage'),  'default' => false],
             ['value' => 'fiscal.sped.export',      'label' => __('fiscal::fiscal.permissao_sped_export'), 'default' => false],
             ['value' => 'fiscal.config.edit',      'label' => __('fiscal::fiscal.permissao_config_edit'), 'default' => false],
+            // Gate próprio das DUAS ações que param a emissão da empresa inteira
+            // (trocar ambiente SEFAZ · substituir certificado A1). `default => false`
+            // e sem atribuição automática em lugar nenhum: quem concede é [W].
+            ['value' => 'fiscal.config.ambiente',  'label' => __('fiscal::fiscal.permissao_config_ambiente'), 'default' => false],
         ];
     }
 
