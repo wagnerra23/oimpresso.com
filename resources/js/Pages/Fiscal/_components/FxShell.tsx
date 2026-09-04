@@ -10,6 +10,7 @@ import { Search } from 'lucide-react';
 import { useEffect, type ReactNode } from 'react';
 
 import CmdKPalette from './CmdKPalette';
+import DebitosConhecidos from './DebitosConhecidos';
 
 interface FxShellProps {
   route: string;
@@ -108,7 +109,13 @@ export default function FxShell({
         })}
       </nav>
 
-      <div className="fx-body">{children}</div>
+      <div className="fx-body">
+        {children}
+        {/* Um ponto de render cobre as 7 telas — é onde o protótipo o põe também
+            (`<FxDebitosPage tela={route} />`, `fiscal-page.jsx:524`), logo antes do
+            rodapé. Tela sem débito não desenha nada. */}
+        <DebitosConhecidos route={route} />
+      </div>
 
       <footer className="fx-shell-foot">
         <div className="fx-cheatsheet" role="region" aria-label="Atalhos de teclado">

@@ -1,0 +1,117 @@
+/**
+ * "Débitos conhecidos desta tela" — a tela declara a própria dívida, e a lista é DERIVADA.
+ *
+ * @covers-us UC-FEVT-08
+ *
+ * POR QUE ESTE TESTE É DE RENDER, E MONTA O `FxShell` (e não o componente sozinho): o
+ * contrato tem duas metades, e um teste do componente isolado provaria só a primeira. A
+ * segunda é o WIRING — o bloco é montado uma vez no shell e resolvido por `route`, de modo
+ * que as sete telas o herdam. Remover a linha do `FxShell` deixaria o componente perfeito e
+ * a tela muda; aqui isso fica vermelho.
+ *
+ * A MORDIDA QUE IMPORTA é o caso do bullet TACHADO. Ela é a diferença entre derivar e
+ * transcrever, e não é hipotética: o protótipo Cowork tem a lista escrita à mão
+ * (`FX_DEBITOS` em `fiscal-data.jsx`) e ela afirma "Gate fiscal.nfe.view sem teste —
+ * nenhum teste o exercita", frase que ficou FALSA em 2026-09-01, quando o
+ * `Nfe.casos.md:298` foi corrigido e o bullet tachado. Se este projeto tivesse copiado
+ * aquela constante, publicaria a mentira em produção. O caso abaixo prova que não copiou.
+ *
+ * LIMITE HONESTO: o que se mede aqui é o que o DOM contém — títulos, tons, âncoras e
+ * ausência. A aparência (a borda tonal à esquerda, o dot do Badge, a leitura em 1280px
+ * no tema escuro) é olho humano no smoke (R1), não este arquivo.
+ */
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+
+import { render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+
+vi.mock('@inertiajs/react', () => ({
+  Head: () => null,
+  Link: ({ children }: { children: React.ReactNode }) => <a href="#">{children}</a>,
+  router: { visit: vi.fn() },
+}));
+
+import FxShell from '@/Pages/Fiscal/_components/FxShell';
+import { DEBITOS_CONHECIDOS } from '@/Pages/Fiscal/_lib/debitos-conhecidos';
+
+const PAGES = resolve(__dirname, '../../resources/js/Pages/Fiscal');
+
+const renderTela = (route: string) =>
+  render(
+    <FxShell route={route} title="t">
+      <div>conteúdo</div>
+    </FxShell>
+  );
+
+const bloco = () => document.querySelector('[data-contract="debitos-conhecidos"]');
+
+describe('UC-FEVT-08 · a tela declara os débitos que os casos.md dela já registram', () => {
+  it('UC-FEVT-08 · a tela com débitos desenha um item por bullet [BACKLOG] dela', () => {
+    renderTela('fiscal_eventos');
+
+    const secao = bloco();
+    expect(secao).not.toBeNull();
+    expect(screen.getByText('Débitos conhecidos desta tela')).toBeTruthy();
+
+    const esperados = DEBITOS_CONHECIDOS.filter(d => d.tela === 'fiscal_eventos');
+    expect(esperados.length).toBeGreaterThan(0);
+    expect(secao!.querySelectorAll('[data-ancora]')).toHaveLength(esperados.length);
+    for (const d of esperados) expect(screen.getByText(d.titulo)).toBeTruthy();
+  });
+
+  it('UC-FEVT-08 · tela sem débito não desenha NÓ NENHUM — nem contêiner, nem mensagem vazia', () => {
+    renderTela('rota_sem_debito_nenhum');
+    expect(bloco()).toBeNull();
+  });
+
+  it('UC-FEVT-08 · cada item exibido carrega a âncora do bullet que o originou', () => {
+    renderTela('sped');
+
+    const ancoras = Array.from(bloco()!.querySelectorAll('[data-ancora]')).map(el =>
+      el.getAttribute('data-ancora')
+    );
+    expect(ancoras.length).toBeGreaterThan(0);
+
+    // A âncora não é decorativa: `Arquivo.casos.md:linha` tem de apontar para uma linha
+    // que É um bullet de débito. Isto é o DoD "cada item rastreado à sua âncora" medido,
+    // e não uma lista escrita à mão no corpo do PR.
+    for (const ancora of ancoras) {
+      const [arquivo, linha] = ancora!.split(':');
+      const alvo = readFileSync(resolve(PAGES, arquivo), 'utf8').split(/\r?\n/)[Number(linha) - 1];
+      expect(alvo, `${ancora} não aponta para um bullet de débito`).toMatch(/^- \*\*\[BACKLOG/);
+    }
+  });
+
+  it('UC-FEVT-08 · dívida PAGA (bullet tachado) não aparece na tela', () => {
+    // `Nfe.casos.md:298` foi tachado em 2026-09-01 — o gate `fiscal.nfe.view` TEM teste.
+    // O protótipo, que escreve a lista à mão, segue anunciando o contrário.
+    renderTela('nfe');
+
+    const titulos = Array.from(bloco()!.querySelectorAll('[data-ancora]')).map(
+      el => el.textContent ?? ''
+    );
+    expect(titulos.some(t => t.includes('fiscal.nfe.view'))).toBe(false);
+    expect(DEBITOS_CONHECIDOS.some(d => d.ancora === 'Nfe.casos.md:298')).toBe(false);
+  });
+
+  it('UC-FEVT-08 · o tom vira variante de ESTADO do DS, e o rótulo diz o marcador — não o tom', () => {
+    renderTela('sped');
+
+    const itens = Array.from(bloco()!.querySelectorAll('[data-tom]'));
+    expect(itens.length).toBeGreaterThan(0);
+    for (const el of itens) {
+      expect(['danger', 'warning', 'info']).toContain(el.getAttribute('data-tom'));
+      expect(el.querySelector('[data-slot="badge"]')?.getAttribute('data-variant')).toBe(
+        el.getAttribute('data-tom')
+      );
+    }
+
+    // `source-grep` e `sem teste` compartilham o tom `warning`; se o rótulo saísse do tom,
+    // um item source-grep seria rotulado "sem teste" — e ali o teste EXISTE, ele é que
+    // mede o fonte. O SPED tem os dois marcadores, então a distinção é observável aqui.
+    const rotulos = itens.map(el => el.querySelector('[data-slot="badge"]')?.textContent);
+    expect(rotulos).toContain('source-grep');
+    expect(rotulos).toContain('sem teste');
+  });
+});
