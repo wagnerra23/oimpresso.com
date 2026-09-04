@@ -1,24 +1,35 @@
 {
-  "_nota": "Contrato de Tela do configuração fiscal (módulo Fiscal). Declara copy literal + âncora que a Onda 1 (saneamento fx-* → DS) tem de preservar. Schema: prototipo-ui/contrato/contract.schema.json (ADR 0286). Copy extraída da TELA VIVA (frescor 🔵 produção-à-frente), não do protótipo.",
+  "_nota": "Contrato de Tela do configuração fiscal (módulo Fiscal). Declara copy literal + âncora que a Onda 1 (saneamento fx-* → DS) tem de preservar. Schema: prototipo-ui/contrato/contract.schema.json (ADR 0286).",
   "tela": "Fiscal/Config",
   "fonte": "prototipo-ui/cowork/fiscal-subpages.jsx",
-  "_nota_fonte": "Protótipo declarado no related_prototype do charter da tela. A copy deste contrato NÃO veio dele — veio da tela viva, que tem frescor produção-à-frente (o protótipo é que está atrás).",
+  "_nota_fonte": "Protótipo declarado no related_prototype do charter da tela. Até 2026-09-04 a copy deste contrato vinha TODA da tela viva (que tinha frescor produção-à-frente). Os rótulos das abas e o título do card 'Envio de documentos' vêm agora do protótipo — item A5, PR 1/3 — porque foi ele que os definiu (fiscal-subpages.jsx §abas e §'Envio de documentos').",
   "alvo": [
     "resources/js/Pages/Fiscal/Config.tsx"
   ],
   "secoes": [
     {
+      "id": "fiscal-config-abas",
+      "copy": [
+        "Certificado e regime",
+        "Séries",
+        "Ambiente e certificado",
+        "SPED"
+      ]
+    },
+    {
       "id": "fiscal-config-cert-regime",
       "copy": [
-        "Certificado digital A1"
+        "Certificado digital A1",
+        "Envio de documentos"
       ]
     }
   ],
   "ordem": [
+    "fiscal-config-abas",
     "fiscal-config-cert-regime"
   ],
   "_pendente_w": [
-    "Card \"Envio de documentos\" (0 ocorrências no vivo) + regime/tributação fora da região ancorada. Decisão [W] #4 (PR-C5).",
-    "A lead do card diz \"Instalado em MemCofre\" — o Modules/SRS (ex-MemCofre) foi REMOVIDO (§5 2026-07-29). Copy aponta pra módulo morto; fora do escopo deste PR."
+    "A lead do card diz \"Instalado em MemCofre\" — o Modules/SRS (ex-MemCofre) foi REMOVIDO (§5 2026-07-29). Copy aponta pra módulo morto; fora do escopo deste PR.",
+    "Linha \"Contador\" do card Envio de documentos: sem campo no schema, a tela DECLARA a ausência (UC-FCFG-05). Dar valor a ela é migration + decisão [W] — backlog no Config.casos.md."
   ]
 }
