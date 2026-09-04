@@ -46,7 +46,7 @@
 // =====================================================================================
 
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
@@ -259,31 +259,37 @@ function selftest() {
 }
 
 // ───────────────────────────────────────── CLI ────────────────────────────────────────
-const argv = process.argv.slice(2);
-if (argv.includes('--selftest')) process.exit(selftest());
+// O bloco só roda quando ESTE arquivo é o entry point. Sem a guarda, `import { coletar }`
+// executaria a CLI como efeito colateral do import — e o `fiscal-debitos-conhecidos.test.tsx`,
+// que importa `coletar()` para re-derivar a lista, despejaria o `.ts` inteiro no stdout do
+// vitest. Não quebrava o teste, o que é justamente o problema: passaria despercebido.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const argv = process.argv.slice(2);
+  if (argv.includes('--selftest')) process.exit(selftest());
 
-const itens = coletar();
-const conteudo = renderTs(itens);
+  const itens = coletar();
+  const conteudo = renderTs(itens);
 
-if (argv.includes('--write')) {
-  writeFileSync(SAIDA, conteudo, 'utf8');
-  const porTela = itens.reduce((a, d) => ({ ...a, [d.tela]: (a[d.tela] || 0) + 1 }), {});
-  console.log(`escrito ${SAIDA}`);
-  console.log(`${itens.length} débitos · ${itens.filter((d) => d.decisao).length} aguardando decisão [W]`);
-  console.log(Object.entries(porTela).map(([t, n]) => `  ${t}: ${n}`).join('\n'));
-  process.exit(0);
-}
-
-if (argv.includes('--check')) {
-  const atual = existsSync(SAIDA) ? readFileSync(SAIDA, 'utf8') : '';
-  if (atual === conteudo) {
-    console.log(`ok debitos-conhecidos.ts em dia (${itens.length} débitos)`);
+  if (argv.includes('--write')) {
+    writeFileSync(SAIDA, conteudo, 'utf8');
+    const porTela = itens.reduce((a, d) => ({ ...a, [d.tela]: (a[d.tela] || 0) + 1 }), {});
+    console.log(`escrito ${SAIDA}`);
+    console.log(`${itens.length} débitos · ${itens.filter((d) => d.decisao).length} aguardando decisão [W]`);
+    console.log(Object.entries(porTela).map(([t, n]) => `  ${t}: ${n}`).join('\n'));
     process.exit(0);
   }
-  console.error('x debitos-conhecidos.ts DRIFOU dos .casos.md do Fiscal.');
-  console.error('  Um bullet [BACKLOG] foi criado, editado ou tachado sem regerar o arquivo.');
-  console.error('  Rode: node scripts/governance/fiscal-debitos-derive.mjs --write');
-  process.exit(1);
-}
 
-console.log(conteudo);
+  if (argv.includes('--check')) {
+    const atual = existsSync(SAIDA) ? readFileSync(SAIDA, 'utf8') : '';
+    if (atual === conteudo) {
+      console.log(`ok debitos-conhecidos.ts em dia (${itens.length} débitos)`);
+      process.exit(0);
+    }
+    console.error('x debitos-conhecidos.ts DRIFOU dos .casos.md do Fiscal.');
+    console.error('  Um bullet [BACKLOG] foi criado, editado ou tachado sem regerar o arquivo.');
+    console.error('  Rode: node scripts/governance/fiscal-debitos-derive.mjs --write');
+    process.exit(1);
+  }
+
+  console.log(conteudo);
+}
