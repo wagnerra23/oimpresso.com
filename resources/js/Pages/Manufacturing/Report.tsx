@@ -101,12 +101,17 @@ export default function Report({
             </span>
           </Link>
         )}
+        <Link className="mfg-tab" href="/manufacturing/v2/insumos">
+          Insumos
+        </Link>
         <span className="mfg-tab act" aria-current="page">
           Relatório
         </span>
-        <a className="mfg-tab" href="/manufacturing/settings">
+        {/* Ver a nota em Recipes.tsx: era âncora crua pra rota Blade legada, que saía do
+            SPA. O cutover da rota legada segue decisão [W]. */}
+        <Link className="mfg-tab" href="/manufacturing/v2/settings">
           Configurações
-        </a>
+        </Link>
       </nav>
 
       <div className="mfg-filters" data-contract="filtros">

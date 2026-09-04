@@ -88,6 +88,9 @@ export default function Settings({
             </span>
           </Link>
         )}
+        <Link className="mfg-tab" href="/manufacturing/v2/insumos">
+          Insumos
+        </Link>
         <Link className="mfg-tab" href="/manufacturing/v2/report">
           Relatório
         </Link>

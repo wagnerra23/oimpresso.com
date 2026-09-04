@@ -168,3 +168,11 @@ decisão de quem escreveu o §4.2, não minha. Fica registrado em vez de silenci
   `/manufacturing/report`). Revalidado: nenhum dos 7 UC acima cita a aba de navegação —
   o comportamento que eles defendem (consulta/custo/tenant/legacy) não mudou. `last_run`
   bumped por G-6 (a tela mudou), não por regressão encontrada.
+- 2026-09-04 · [F+C] Barra de abas corrigida: "Configurações" apontava pra rota Blade legada
+  (âncora crua, saía do SPA) e a aba "Insumos" não existia. [F] reportou clicando na aba e
+  caindo na tela antiga. **Segunda ocorrência do mesmo defeito** — em 2026-09-03 a aba
+  "Relatório" foi corrigida do mesmo jeito e a "Configurações" ficou pra trás na mesma leva,
+  porque **nenhum UC cobre a barra de navegação** e nada guardava isso. A guarda agora existe:
+  `Modules/Manufacturing/Tests/Feature/AbasTelasV2Test.php` (4 asserts; 3 provados por bite
+  test contra cópia adulterada, o 4º usa o registry de rotas em runtime). Nenhum UC acima
+  mudou de comportamento. ⚠️ O cutover da rota legada segue PENDENTE e é decisão [W].

@@ -162,8 +162,8 @@ export default function Recipes({ recipes = [], permissions, producao, settings 
       </div>
 
       {/* §4.1 — abas do módulo. Cada uma navega pra uma tela que EXISTE hoje.
-          "Insumos" não é renderizada: §18.3 do handoff declara que ela não tem backend
-          (`usosDoInsumo` é cálculo novo no RecipeBomService) e que "sem isso, a aba não sai". */}
+          "Insumos" passou a existir na US-MANU-005 (`usosDoInsumo` no RecipeBomService) — o
+          §18.3 do handoff dizia "sem backend, a aba não sai", e o backend saiu. */}
       <nav className="mfg-tabs" aria-label="Manufacturing">
         <span className="mfg-tab act" aria-current="page">
           Receitas
@@ -178,12 +178,20 @@ export default function Recipes({ recipes = [], permissions, producao, settings 
             </span>
           </Link>
         )}
+        <Link className="mfg-tab" href="/manufacturing/v2/insumos">
+          Insumos
+        </Link>
         <Link className="mfg-tab" href="/manufacturing/v2/report">
           Relatório
         </Link>
-        <a className="mfg-tab" href="/manufacturing/settings">
+        {/* `Link` (Inertia) pra tela IRMÃ em React. Até 2026-09-04 esta aba era uma âncora
+            crua apontando pra rota Blade legada do módulo: saía do SPA e abria a tela
+            antiga — foi o que o [F] viu ao clicar em Configurações. O cutover da rota
+            legada segue PENDENTE e é decisão [W] (RUNBOOK-settings.md §"Rota nova, sem
+            cutover"); esta aba só deixa de contradizer as irmãs. */}
+        <Link className="mfg-tab" href="/manufacturing/v2/settings">
           Configurações
-        </a>
+        </Link>
       </nav>
 
       {/* §4.2 — 4 KPIs; o 2º e o 3º FILTRAM (liga/desliga), o 1º e o 4º são leitura (R-05). */}
