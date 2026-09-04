@@ -145,25 +145,32 @@ jobs:
         if: steps.changes.outputs.backup == 'true'
         uses: ./.github/actions/pest-mysql-setup
 
-      # ⚠️ SEM o "Stub Vite manifest" que as outras 19 lanes têm — de propósito, e medido.
-      #
-      # `HandleInertiaRequests::version()` (app/Http/Middleware, linhas 29-36) devolve
-      # `md5_file(public_path('build-inertia/manifest.json'))` QUANDO o arquivo existe. Criar o
-      # stub muda o asset version do Inertia; os casos daqui mandam `X-Inertia-Version: 1`
-      # literal, o version deixa de bater e o Inertia responde 409 (version mismatch) antes de
-      # chegar à rota. Medido no run 33909230351 (o primeiro desta lane, ainda com o stub):
-      # 4 casos com 409 direto + 2 com "Invalid JSON was returned" — os 6 do BackupInertiaTest.
-      #
-      # Por que o estoque-pest.yml pode manter o stub: o teste dele manda
-      # `produtoIndexInertiaVersion()`, que CALCULA a version; o do Backup usa o literal, que só
-      # vale no cenário sem manifest (o do CT 100, onde não há build). Copiar o step do
-      # precedente sem medir foi erro meu — o stub não era exercido por caso nenhum (com header
-      # X-Inertia o Laravel devolve JSON e não renderiza o root view; o único caso que renderiza
-      # HTML é o do Blade legado, e `layouts/app.blade.php` não usa @vite — só
-      # `layouts/inertia.blade.php` usa).
-      #
-      # Se um dia entrar aqui um caso que renderize o root view do Inertia, a saída NÃO é
-      # ressuscitar este step: é o teste calcular a version, como o do estoque faz.
+      - name: Stub Vite manifest (root view sem build do front)
+        if: steps.changes.outputs.backup == 'true'
+        # Padrão das outras 19 lanes. Hoje NENHUM caso daqui o exercita (com header X-Inertia o
+        # Laravel devolve JSON e não renderiza o root view; o único caso que renderiza HTML é o
+        # do Blade legado, e `layouts/app.blade.php` não usa @vite — só
+        # `layouts/inertia.blade.php` usa). Fica pela consistência e pelo primeiro caso futuro
+        # que renderize o root view.
+        #
+        # ⚠️ ERRATA MEDIDA — este step NÃO é a causa dos 409 do BackupInertiaTest, embora o
+        # commit a63038fb74 tenha afirmado que era. Prova: o run 33910354015 rodou SEM este step
+        # e os 4 casos com 409 (+2 "Invalid JSON") se repetiram, idênticos ao run 33909230351.
+        # A causa real está no teste: `Middleware.php:149` compara
+        # `header('X-Inertia-Version','')` com `Inertia::getVersion()`, que é `(string) $version`
+        # — sem manifest dá `''`, com o stub dá um md5. Os casos mandam o literal `'1'`, que não
+        # bate em NENHUMA das duas configurações. O teste só passaria se a version fosse
+        # literalmente "1". Comparar: o estoque-pest roda um teste equivalente que manda
+        # `produtoIndexInertiaVersion()`, ou seja, CALCULA a version — é esse o conserto do lado
+        # do teste, e ele não pertence a este PR (aqui só nasce a lane).
+        run: |
+          mkdir -p public/build-inertia
+          cat > public/build-inertia/manifest.json <<'EOF'
+          {
+            "resources/css/inertia.css": { "file": "assets/inertia.css", "src": "resources/css/inertia.css", "isEntry": true },
+            "resources/js/app.tsx": { "file": "assets/app.js", "src": "resources/js/app.tsx", "isEntry": true }
+          }
+          EOF
 
       - name: Run Pest (Backup · MySQL)
         if: steps.changes.outputs.backup == 'true'
