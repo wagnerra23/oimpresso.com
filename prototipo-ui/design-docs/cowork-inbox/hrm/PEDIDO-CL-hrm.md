@@ -53,3 +53,25 @@ PR-8 (lang, isolado) → PR-1 (trio+testes vermelhos) → PR-2/3/4 (verdade) →
 
 ## Fora de escopo deste pedido
 Encargos trabalhistas, eSocial, DIRF, ponto legal (é o módulo Ponto), documentos/tarefas/mensagens/base de conhecimento do Essentials (outro grupo de telas), e qualquer migration de schema novo — nada aqui exige coluna nova.
+
+---
+
+## Emenda 2026-09-04 [CL] — chegou um export novo; este pedido segue o dono
+
+Desceu um segundo pacote do Cowork para o mesmo módulo, aterrissado ao lado em
+[`EXPORT-HRM-2026-09-04.md`](EXPORT-HRM-2026-09-04.md). Ele **não substitui** este pedido — foi
+escrito sem citá-lo, afirmando que não existia `PEDIDO-*hrm*` (a busca casou só a raiz do
+`cowork-inbox/`, e este arquivo está uma pasta abaixo). A reconciliação onda-a-onda está na
+seção 2 daquele arquivo.
+
+**O que o export acrescenta e este pedido não tinha:** a11y do alvo medida com método corrigido
+(a sonda por `cursor:pointer` reprova neste módulo), o aviso de que o skeleton falseia a contagem
+de nós em ~23%, o alvo por seção (contagem e ordem dos filhos) e a leitura de que o `DataTablePro`
+do DS acumula o mesmo defeito em 3 módulos.
+
+**O que segue valendo só aqui:** D1/D2/D3 (que bloqueiam as ondas de Painel, Presença e Folha),
+PR-8 lang PT, PR-10 fim do topnav Blade e HRM-O8. O export não os menciona.
+
+**Estado medido no `main` em 2026-09-04 (`ac7e5e417c`): este pedido está com execução zero.**
+Não existe `Pages/Hrm/`; `HrmLicencaTest.php` e `hrm-licencas.contract.json` nunca saíram desta
+pasta; e o lang PT segue com `leave` = "Sair" e `leaves` = "Folhas".

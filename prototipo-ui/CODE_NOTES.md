@@ -1576,3 +1576,43 @@ Porque o de 01/09 já provou que ali não chega: a errata dele mediu que **nenhu
 read-order citava a regra, e por isso ela foi pro passo 4 da ROTINA. A regra está lá — conferi hoje,
 7 hits em `COWORK-ESTRUTURA-E-TELAS.md` — e o ciclo fechou sem cumprir. Logo o que falta não é texto
 novo, é a execução; abrir mais um arquivo de pedido repetiria o erro que a errata registrou.
+
+---
+
+## 2026-09-04 [CL] → [W] — export HRM pousou reconciliado; a busca anti-scatter do Cowork casou só a raiz
+
+**Branch:** `claude/hrm-export-ponte` (base `origin/main` `ac7e5e417c`). PR aberto — **não mergeei**.
+
+[W] colou o pacote de export do HRM. Ele abre declarando **"não havia `cowork-inbox/PEDIDO-*hrm*`
+(procurei). Este é o doc único do módulo — próximas ondas reescrevem este arquivo"**. Medido no `main`
+hoje: `cowork-inbox/hrm/` existe com **7 arquivos**, entre eles o `PEDIDO-CL-hrm.md` de 21/ago
+([#6132](https://github.com/wagnerra23/oimpresso.com/pull/6132)), que já decompôs o módulo em
+HRM-O0 (3 decisões [W]) + O5–O8 (PR-1..PR-10) e deixou charter, casos, contrato e teste prontos.
+
+**A busca não estava errada, estava rasa:** a convenção é `<modulo>/PEDIDO-CL-<modulo>.md`, uma pasta
+abaixo da raiz do `cowork-inbox/`. Um glob na raiz nunca acha. Vale pros próximos exports — o alvo
+é `cowork-inbox/<modulo>/`, não `cowork-inbox/`.
+
+**Mais duas claims refutadas**, ambas de leitura do espelho e não do `main`:
+
+- "**4 testes Feature**" no Essentials — são **14**. Dois deles, `MultiTenantLeaveTest` e
+  `SalesTargetShiftCrossTenantTest`, já provam o isolamento cross-tenant de licença, meta e turno.
+  O export lista essa guarda como trabalho a fazer; ela é trabalho a **não quebrar**.
+- Pages em `resources/js/Pages/Hrm/**` — o `PEDIDO-CL-hrm` já tinha escolhido
+  `Modules/Essentials/Resources/js/Pages/Hrm/**`, "como o módulo Cms faz", e o `app.tsx` documenta
+  que as duas convenções resolvem pro mesmo namespace. Prevalece a do pedido.
+
+**O que sobrevive e é bom:** a a11y do alvo com o método corrigido (a sonda por `cursor:pointer`
+**reprova** neste módulo — `button.os-btn` tem `cursor: default`, e isso produziu um falso negativo
+na 1ª rodada, pego pelo caso de sanidade), o aviso do skeleton (771 nós na 1ª leitura, 1007 estável,
+~23% de erro em quem não espera duas leituras iguais), o alvo por seção, e a leitura de que o
+`DataTablePro` do DS acumula `th` sem `scope` em **3 módulos** (CRM, Repair, HRM).
+
+**O que eu não fiz e por quê:** não landei o export como "doc único do módulo". A frase é uma
+instrução ativa pra próxima sessão sobrescrever o dono — o export virou anexo de um pouso que
+aponta pro `PEDIDO-CL-hrm`, com as 3 frases marcadas no lugar em vez de apagadas.
+
+**Achado que muda a ordem sugerida:** o pedido de 21/ago está com **execução zero** — sem
+`Pages/Hrm/`, teste e contrato nunca saíram do inbox, e o **PR-8 (lang PT)**, que o próprio pedido
+marcou como "pode ir sozinho e já", segue intacto: o menu do RH diz "Sair" para *licença* e "Folhas"
+para *licenças*. É o caminho mais curto pro primeiro valor, e não depende de nenhuma das 5 decisões.
