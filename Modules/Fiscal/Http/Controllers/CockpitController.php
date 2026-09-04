@@ -92,7 +92,65 @@ class CockpitController extends Controller
             'contabilData'   => $this->mockContabilData(),
             // Onda 3 L — auditoria mensal (write-off candidatos determinístico, sem IA)
             'writeOffSummary' => $this->mockWriteOffSummary(),
+            'procedencia'     => $this->procedencia(),
         ]);
+    }
+
+    /**
+     * CU-FISC-16 — a procedência de cada superfície desta tela.
+     *
+     * DECLARADA AQUI, e não adivinhada na Page, por um motivo medido: quando o #6541
+     * trocou a lista mockada pelo `NotasUnifiedService`, o protótipo e o SDD §5.4.1
+     * continuaram dizendo "demonstração" para `notas` e `savedViewCounts` — dois
+     * documentos afirmando algo que o código já tinha desmentido. Aqui a declaração
+     * fica a poucas linhas do `Inertia::render`, então quem troca um mock por serviço
+     * real troca a linha correspondente no MESMO diff.
+     *
+     * Medido em 2026-09-04 sobre o tip d23bc3df34: das 8 superfícies desta tela,
+     * 4 servem dado inventado, e são exatamente os 4 métodos `mock*` deste arquivo.
+     *
+     * `sparklines` NÃO aparece aqui: a prop é servida e é real (`computeSparklines`
+     * agrupa por dia em `nfe_emissoes`), mas a Page não desenha nenhuma sparkline —
+     * selo sem superfície visível não teria onde pousar.
+     *
+     * @return array<string, array{origem: string, explica: string}>
+     */
+    protected function procedencia(): array
+    {
+        return [
+            'kpis' => [
+                'origem'  => 'real',
+                'explica' => 'Contagem e soma em nfe_emissoes do mês corrente, com escopo do business e cache de 60s.',
+            ],
+            'alerts' => [
+                'origem'  => 'real',
+                'explica' => 'Receita determinística sobre o estado atual: rejeições, validade do certificado e DF-e pendente. Sem IA.',
+            ],
+            'notas' => [
+                'origem'  => 'real',
+                'explica' => 'Lista unificada NF-e/NFC-e/NFS-e servida pelo NotasUnifiedService desde 2026-09-02. Sem emissão no período, vem vazia.',
+            ],
+            'viewCounts' => [
+                'origem'  => 'real',
+                'explica' => 'Contadores derivados da mesma lista exibida — por construção, chip e tabela concordam.',
+            ],
+            'sefaz' => [
+                'origem'  => 'demonstracao',
+                'explica' => 'Situação fixa no código. Ser real depende de consumir o webservice de status da SEFAZ por UF.',
+            ],
+            'eventos' => [
+                'origem'  => 'demonstracao',
+                'explica' => 'Os 5 eventos do cabeçalho são inventados, autores inclusive. Ser real depende de consultar nfe_eventos.',
+            ],
+            'contabil' => [
+                'origem'  => 'demonstracao',
+                'explica' => 'Números do pacote e histórico de envios são fixos no código, e o envio por e-mail/SFTP ainda não existe.',
+            ],
+            'writeoff' => [
+                'origem'  => 'demonstracao',
+                'explica' => 'Candidatos e valores são fixos no código. Ser real depende de consultar fin_titulos vencidos há mais de 365 dias sem pagamento.',
+            ],
+        ];
     }
 
     /**

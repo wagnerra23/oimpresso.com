@@ -26,9 +26,11 @@ import FxShell from './_components/FxShell';
 import NFSeDrawer, { type NFSeDrawerData } from './_components/NFSeDrawer';
 import NotaDrawerV2, { type NotaDrawerData } from './_components/NotaDrawerV2';
 import SavedViewsChips from './_components/SavedViewsChips';
+import { SeloProcedencia } from './_components/SeloProcedencia';
 import SendToContabilDrawer, { type SendToContabilData } from './_components/SendToContabilDrawer';
 import WriteOffAuditoriaCard, { type WriteOffSummary } from './_components/WriteOffAuditoriaCard';
 import { brl, truncKey } from './_lib/fiscal-helpers';
+import { type MapaProcedencia } from './_lib/procedencia';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 
@@ -126,6 +128,8 @@ interface CockpitProps {
   contabilData?: SendToContabilData | null;
   // Onda 3 — auditoria mensal (write-off candidatos)
   writeOffSummary?: WriteOffSummary | null;
+  // CU-FISC-16 — procedência por superfície, declarada em CockpitController::procedencia().
+  procedencia?: MapaProcedencia;
 }
 
 type ViewId = 'todas' | 'resolver' | 'janela24' | 'processando' | 'nfse' | 'nfce' | 'custom';
@@ -220,6 +224,7 @@ function mapToNFSeDrawerData(n: NotaRow): NFSeDrawerData {
 export default function Cockpit({
   kpis, alerts, notas, savedViewCounts, sefazStatus,
   eventosMock = [], contabilData = null, writeOffSummary = null,
+  procedencia,
 }: CockpitProps) {
   const goto = (path: string) => router.visit(path);
 
@@ -342,6 +347,8 @@ export default function Cockpit({
         crumb={crumb}
         env={sefazStatus.label}
         envTone={sefazStatus.operacional ? 'ok' : 'bad'}
+        envSelo={<SeloProcedencia mapa={procedencia} chave="sefaz" />}
+        procedencia={procedencia}
         cheats={[
           { keys: ['⌘', 'K'], label: 'buscar' },
           { keys: ['N'], label: 'emitir' },
@@ -352,6 +359,7 @@ export default function Cockpit({
           <>
             <Button type="button" variant="cowork-ghost" onClick={() => setEventosOpen(true)}>
               <RefreshCw size={12} /> Eventos
+              <SeloProcedencia mapa={procedencia} chave="eventos" />
               {eventosMock.length > 0 && (
                 <span className="ml-1 text-[10px] font-bold text-muted-foreground">{eventosMock.length}</span>
               )}
@@ -364,6 +372,7 @@ export default function Cockpit({
               title={contabilData ? 'Abrir fluxo de envio mensal' : 'Backend stub — TODO[CL]'}
             >
               <Archive size={12} /> Enviar p/ contabilidade
+              <SeloProcedencia mapa={procedencia} chave="contabil" />
             </Button>
             <div ref={emitirRef} className="fx-popmenu-wrap">
               <Button
@@ -395,7 +404,7 @@ export default function Cockpit({
         {/* KPI ribbon estreito (substitui fx-kpis-cockpit 6-card grid) */}
         <div className="fx-ribbon" data-contract="fiscal-cockpit-kpis" role="region" aria-label="KPIs fiscais">
           <span className="fx-ribbon-item">
-            <small>Emitidas</small>
+            <small>Emitidas<SeloProcedencia mapa={procedencia} chave="kpis" /></small>
             <b>{kpis.emitidas}</b>
             <em className="up">↑ 12 vs abr</em>
           </span>
@@ -430,9 +439,19 @@ export default function Cockpit({
 
         {/* Fila de alertas — o que o ribbon conta em "requerem ação", item a item.
             Só renderiza quando há alerta; zero alertas = nó ausente. */}
+        {alerts.length > 0 && (
+          <div className="flex justify-end">
+            <SeloProcedencia mapa={procedencia} chave="alerts" />
+          </div>
+        )}
         <AlertasFiscais alerts={alerts} />
 
         {/* Onda 3 L — Write-off auditoria mensal (só renderiza se houver candidatos) */}
+        {writeOffSummary && (
+          <div className="flex justify-end">
+            <SeloProcedencia mapa={procedencia} chave="writeoff" />
+          </div>
+        )}
         <WriteOffAuditoriaCard summary={writeOffSummary} />
 
         {/* Toolbar minimalista — search + 3 selects + density */}
@@ -456,6 +475,9 @@ export default function Cockpit({
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
+
+          <SeloProcedencia mapa={procedencia} chave="notas" />
+          <SeloProcedencia mapa={procedencia} chave="viewCounts" />
 
           {/* Onda 3 C — SavedViewsChips (substitui o <select> por chips horizontais Linear-style) */}
           <SavedViewsChips
