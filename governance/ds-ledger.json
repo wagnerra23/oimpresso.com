@@ -2,7 +2,7 @@
   "ledger": [
     {
       "screen": "Jana",
-      "note": "21 arquivo(s)",
+      "note": "23 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -90,7 +90,7 @@
     },
     {
       "screen": "Fiscal",
-      "note": "24 arquivo(s)",
+      "note": "29 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -123,7 +123,7 @@
     },
     {
       "screen": "Manufacturing",
-      "note": "5 arquivo(s)",
+      "note": "7 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -255,7 +255,7 @@
     },
     {
       "screen": "Forja",
-      "note": "32 arquivo(s)",
+      "note": "33 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "yes",
@@ -422,8 +422,8 @@
   "progressPct": 37,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "843a183ca",
-  "generatedAt": "2026-09-03T13:47:14.731Z",
+  "measuredAgainstSha": "c9880a6b3",
+  "generatedAt": "2026-09-04T13:59:10.213Z",
   "treeGuard": {
     "pass": true,
     "violations": 0
