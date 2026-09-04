@@ -25,6 +25,7 @@
   --fx-border: oklch(0.90 0.004 90);
   --fx-border-2: oklch(0.93 0.004 90);
   --fx-bg-2:   oklch(0.965 0.004 90);
+  --fx-surface: #ffffff;            /* espelha `.cockpit --surface` do DS (#ffffff no light) */
   --fx-text:   oklch(0.22 0.01 80);
   --fx-text-dim: oklch(0.50 0.01 80);
   --fx-text-mute: oklch(0.65 0.01 80);
@@ -162,11 +163,11 @@
   transition: all .15s;
 }
 .fx-subnav-chip:hover:not(.disabled):not(.active) {
-  background: white;
+  background: var(--fx-surface);
   color: var(--fx-text);
 }
 .fx-subnav-chip.active {
-  background: white;
+  background: var(--fx-surface);
   color: var(--fis);
   border-color: var(--fx-border);
   font-weight: 600;
@@ -238,7 +239,7 @@
   flex: 1;
   min-width: 240px;
   padding: 6px 10px;
-  background: white;
+  background: var(--fx-surface);
   border: 1px solid var(--fx-border);
   border-radius: 7px;
 }
@@ -256,7 +257,7 @@
   padding: 5px 10px;
   font-size: 11.5px;
   font-weight: 500;
-  background: white;
+  background: var(--fx-surface);
   color: var(--fx-text-dim);
   border: 1px solid var(--fx-border);
   border-radius: 99px;
@@ -280,7 +281,7 @@
 
 /* ─── TABLE ────────────────────────────────────────────────────── */
 .fx-table {
-  background: white;
+  background: var(--fx-surface);
   border: 1px solid var(--fx-border);
   border-radius: 10px;
   overflow: hidden;
@@ -369,7 +370,7 @@
 
 /* ─── EMPTY state ──────────────────────────────────────────────── */
 .fx-empty {
-  background: white;
+  background: var(--fx-surface);
   border: 1px dashed var(--fx-border);
   border-radius: 10px;
   padding: 32px;
@@ -414,7 +415,7 @@
   bottom: 0;
   width: 480px;
   max-width: 92vw;
-  background: white;
+  background: var(--fx-surface);
   z-index: 100;
   display: flex;
   flex-direction: column;
@@ -493,7 +494,7 @@
 .fx-action-card {
   margin: 12px 0 18px;
   padding: 14px 16px;
-  background: linear-gradient(135deg, var(--fis-soft), white);
+  background: linear-gradient(135deg, var(--fis-soft), var(--fx-surface));
   border: 1px solid var(--fis);
   border-radius: 10px;
 }
@@ -546,7 +547,7 @@
   margin: 14px 0 18px;
 }
 .fx-kpi {
-  background: white;
+  background: var(--fx-surface);
   border: 1px solid var(--fx-border);
   border-radius: 10px;
   padding: 12px 14px;
@@ -578,10 +579,12 @@
  * alimentava a contagem do miolo), a troca não altera nenhum pixel já servido.
  * Saíram por órfãos (zero consumidor, medido): .fx-alerts-h, -body, -act.
  *
- * Tokens são os DESTA casa: o protótipo usa --surface/--border/--accent, que não
- * existem aqui, e criá-los seria token novo de DS (soberania [W]). A superfície é
- * `white` por convenção do arquivo (19 ocorrências, zero `prefers-color-scheme`) —
- * dar tema a UMA seção a deixaria órfã das irmãs. E `--fis` já não é o rosa do port:
+ * Tokens são os DESTA casa. ATÉ 2026-09-03 a superfície era `white` cru (19×) e o
+ * arquivo não tinha tema escuro — este comentário registrava isso e a razão de não
+ * consertar ali: dar tema a UMA seção a deixaria órfã das irmãs, e `--fx-surface`
+ * ainda não existia. Ambos caíram: [W] autorizou o arquivo INTEIRO, `--fx-surface`
+ * nasceu na L~31 (token LOCAL espelhando `--surface` do DS, não token novo de DS) e
+ * o bloco dark no fim do arquivo dá tema a TODAS as seções de uma vez. E `--fis` já não é o rosa do port:
  * a L17 o remapeou em 2026-09-01 para o roxo canon do DS (--cw-accent, ADR 0235);
  * usá-lo direto seria pior — sem variante -soft e não declarado neste escopo. */
 .fx-alerts {
@@ -591,17 +594,17 @@
 .fx-alert {
   display: flex; align-items: center; gap: 10px;
   padding: 10px 14px; border-radius: 10px;
-  border: 1px solid var(--fx-border); background: white;
+  border: 1px solid var(--fx-border); background: var(--fx-surface);
 }
 /* Fundo a 6% e borda a ~30% do tom sobre o neutro — as proporções do alvo.
  * `info` fica sem tinta de propósito: não disputa atenção com o que requer ação. */
 .fx-alert[data-level="crit"] {
   border-color: color-mix(in oklch, var(--bad) 30%, var(--fx-border));
-  background: color-mix(in oklch, var(--bad) 6%, white);
+  background: color-mix(in oklch, var(--bad) 6%, var(--fx-surface));
 }
 .fx-alert[data-level="warn"] {
   border-color: color-mix(in oklch, var(--warn) 28%, var(--fx-border));
-  background: color-mix(in oklch, var(--warn) 6%, white);
+  background: color-mix(in oklch, var(--warn) 6%, var(--fx-surface));
 }
 .fx-alert-ic {
   width: 26px; height: 26px; border-radius: 8px; flex: none;
@@ -625,7 +628,7 @@
   gap: 10px;
 }
 .fx-quick-card {
-  background: white;
+  background: var(--fx-surface);
   border: 1px solid var(--fx-border);
   border-radius: 10px;
   padding: 14px;
@@ -646,7 +649,7 @@
 .fx-timeline {
   position: relative;
   padding: 8px 0 8px 24px;
-  background: white;
+  background: var(--fx-surface);
   border: 1px solid var(--fx-border);
   border-radius: 10px;
 }
@@ -669,7 +672,7 @@
   left: -14px; top: 17px;
   width: 12px; height: 12px;
   border-radius: 50%;
-  border: 2px solid white;
+  border: 2px solid var(--fx-surface);
   box-shadow: 0 0 0 1px var(--fx-border);
 }
 .fx-tl-item.cce::before      { background: var(--ok); }
@@ -739,7 +742,7 @@
   padding: 5px 12px;
   border-radius: 99px;
   border: 1px solid var(--fx-border);
-  background: white;
+  background: var(--fx-surface);
   font-size: var(--fs-3);
   font-weight: 500;
   color: var(--fx-text-dim);
@@ -850,7 +853,7 @@
   padding: 6px 28px 6px 12px;
   font-size: var(--fs-3);
   font-family: inherit;
-  background: white url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M0 0l5 6 5-6z' fill='%2399978f'/></svg>") no-repeat right 10px center;
+  background: var(--fx-surface) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M0 0l5 6 5-6z' fill='%2399978f'/></svg>") no-repeat right 10px center;
   background-size: 8px 5px;
   color: var(--fx-text);
   border: 1px solid var(--fx-border);
@@ -881,7 +884,7 @@
   align-items: center;
 }
 .fx-density button.active {
-  background: white;
+  background: var(--fx-surface);
   color: var(--fx-text);
   box-shadow: 0 1px 2px rgba(0,0,0,.06);
 }
@@ -918,7 +921,7 @@
 .fx-table tbody tr:hover .fx-row-actions { opacity: 1; }
 .fx-row-act {
   appearance: none;
-  background: white;
+  background: var(--fx-surface);
   border: 1px solid var(--fx-border);
   border-radius: 4px;
   padding: 2px 6px;
@@ -1001,7 +1004,7 @@
 }
 @media (max-width: 980px) { .fx-cert-grid { grid-template-columns: 1fr; } }
 .fx-cert-card {
-  background: white;
+  background: var(--fx-surface);
   border: 1px solid var(--fx-border);
   border-radius: 10px;
   padding: 18px;
@@ -1071,7 +1074,7 @@
   padding: 4px 10px;
   font-size: var(--fs-2);
   font-weight: 600;
-  background: white;
+  background: var(--fx-surface);
   border: 1px solid var(--fx-border);
   border-radius: 5px;
   color: var(--fx-text-dim);
@@ -1089,7 +1092,7 @@
   align-items: center;
   gap: 6px;
   padding: 5px 10px;
-  background: white;
+  background: var(--fx-surface);
   border: 1px solid var(--fx-border);
   border-radius: 7px;
   font-size: 11.5px;
@@ -1282,7 +1285,7 @@
   height: 10px;
   border-radius: 50%;
   background: var(--fx-border);
-  border: 2px solid white;
+  border: 2px solid var(--fx-surface);
   box-shadow: 0 0 0 1px var(--fx-border);
 }
 .fx-tl-item-mini.t-bad .fx-tl-dot { background: var(--bad); }
@@ -1377,7 +1380,7 @@
   place-items: center;
   width: 36px;
   height: 36px;
-  background: white;
+  background: var(--fx-surface);
   border: 1px solid var(--fx-border);
   border-radius: 8px;
   color: var(--fx-text-dim);
@@ -1406,3 +1409,64 @@
 .fx-subtab .n.t-warn { background: var(--warn-soft); color: var(--warn); }
 .fx-subtab .n.t-bad  { background: var(--bad-soft);  color: var(--bad);  }
 .fx-subtab .n.t-ok   { background: var(--ok-soft);   color: var(--ok);   }
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * TEMA ESCURO — 2026-09-03, autorizado por [W] ("pode fazer tudo").
+ *
+ * POR QUE ESTE BLOCO EXISTE. O protótipo vivo (`fiscal-page.css`, baixado do
+ * Cowork por DesignSync) abre declarando "Tokens do DS vivo (.cockpit); zero cor
+ * crua fora deles" — ele NÃO tem cor própria, então é dark-ready por construção.
+ * O port para produção fez o oposto: congelou 6 tokens com os valores LIGHT do
+ * DS. Conferidos um a um, são cópia IDÊNTICA:
+ *   --fx-border    oklch(0.90 0.004 90)   == .cockpit --border
+ *   --fx-border-2  oklch(0.93 0.004 90)   == .cockpit --border-2
+ *   --fx-bg-2      oklch(0.965 0.004 90)  == .cockpit --bg-2
+ *   --fx-text      oklch(0.22 0.01 80)    == .cockpit --text
+ *   --fx-text-dim  oklch(0.50 0.01 80)    == .cockpit --text-dim
+ *   --fx-text-mute oklch(0.65 0.01 80)    == .cockpit --text-mute
+ * Os tokens do DS trocam sob tema escuro; literais não olham pra lá. Por isso a
+ * tela ficava CLARA com o shell em dark. Achado por [W] olhando o protótipo.
+ *
+ * POR QUE REDEFINIR OS `--fx-*` EM VEZ DE CONSUMIR OS DO DS. Medido: o
+ * `resources/css/cockpit.css` USA `--surface`/`--text`/`--border` (21/41/60×) mas
+ * NÃO os define (0×) — quem define são bundles de MÓDULO (Financeiro, Vendas), e
+ * as 5 telas do Fiscal importam só este arquivo. `background: var(--surface)`
+ * aqui sairia TRANSPARENTE. (Refutação medida pela sessão "Onda 1 · Fiscal".)
+ * Redefinir os 11 tokens num bloco dá tema às ~140 referências `var(--fx-*)` de
+ * uma vez, sem tocar nenhuma delas.
+ *
+ * DE ONDE VÊM OS VALORES. Do `.cockpit[data-theme="dark"]` do DS vivo
+ * (`_ds/.../colors_and_type.css`) — não inventados. As três variantes `-soft`
+ * (ok/warn/bad) o `.cockpit` dark não traz; seguem o padrão do DS para soft
+ * escuro (L≈0.26-0.27, C≈0.06-0.07) com os hues DESTE arquivo (145/60/25).
+ *
+ * OS DOIS SELETORES. `useTheme.ts` faz `classList.add('dark')` E seta
+ * `data-theme` — os dois casam, e o par é o idioma já usado por
+ * `sells-cowork-edit.css`. `.dark`/`[data-theme]` em vez de
+ * `@media (prefers-color-scheme)` tem cicatriz: bug pós-PR #1699, [W] em Windows
+ * dark mode via drawer com campos escuros sobre fundo light.
+ *
+ * `color: white` (22×) NÃO entra aqui de propósito: é foreground sobre accent
+ * (`.fx-btn.primary`, `.fx-chip.active`, `.fx-kpi.hero`), que é branco nos dois
+ * temas — o `--accent-fg` do DS é `#ffffff` em light e em dark.
+ * ───────────────────────────────────────────────────────────────────────────── */
+.cockpit[data-theme="dark"] .fx-page,
+.cockpit[data-theme="dark"] .fx-drawer,
+.dark .fx-page,
+.dark .fx-drawer {
+  --fx-surface:   oklch(0.30 0.008 240);
+  --fx-bg-2:      oklch(0.23 0.006 240);
+  --fx-border:    oklch(0.34 0.008 240);
+  --fx-border-2:  oklch(0.31 0.008 240);
+  --fx-text:      oklch(0.94 0.005 90);
+  --fx-text-dim:  oklch(0.72 0.005 90);
+  --fx-text-mute: oklch(0.58 0.005 90);
+  --fis-soft:     oklch(0.32 0.06 295);
+  --ok:           oklch(0.74 0.14 150);
+  --ok-soft:      oklch(0.27 0.06 145);
+  --warn:         oklch(0.80 0.13 75);
+  --warn-soft:    oklch(0.27 0.06 60);
+  --bad:          oklch(0.72 0.16 25);
+  --bad-soft:     oklch(0.26 0.07 25);
+}
