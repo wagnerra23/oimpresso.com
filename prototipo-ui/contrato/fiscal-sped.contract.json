@@ -26,6 +26,17 @@
       ]
     },
     {
+      "id": "previa-txt",
+      "copy": [
+        "Prévia do layout — arquivo de referência",
+        "Não é a sua competência"
+      ],
+      "estados": [
+        "referência disponível",
+        "oculta quando a referência falta"
+      ]
+    },
+    {
       "id": "blocos-arquivo",
       "copy": [
         "Blocos do arquivo — registros que cada um contém"
@@ -46,11 +57,12 @@
   "ordem": [
     "fiscal-sped-status",
     "validacao-competencia",
+    "previa-txt",
     "blocos-arquivo",
     "validacao-externa"
   ],
   "_pendente_w": [
-    "O callout cita \"(PR #8)\" e uma lista de Waves futuras — copy datada que apodrece. Candidata a virar texto derivado ou sair. Não incluída no contrato de propósito.",
-    "Goal 3 do charter do Cowork (prévia do TXT com linhas |REG|…) segue em aberto: em produção, encenar amostra seria fabricar. Enquanto a decisão não vem, `previaTxt` é null e a tela declara a ausência — a âncora `previa-txt` do protótipo não foi instrumentada."
-  ]
+    "O callout cita \"(PR #8)\" e uma lista de Waves futuras — copy datada que apodrece. Candidata a virar texto derivado ou sair. Não incluída no contrato de propósito."
+  ],
+  "_nota_previa": "Goal 3 decidido por [W] em 2026-09-04. A âncora `previa-txt` foi instrumentada, mas com semântica DIFERENTE da do protótipo: lá a prévia encena o arquivo do operador; aqui ela mostra linhas de um arquivo de REFERÊNCIA real (o golden), e a copy travada acima obriga a tela a dizer que não é a competência dele. `previaTxt` continua `null` — a ausência do arquivo do usuário segue declarada, e as duas coisas convivem sem se confundir."
 }
