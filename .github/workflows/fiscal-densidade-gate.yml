@@ -1,0 +1,113 @@
+name: Fiscal Densidade Gate — a densidade acompanha o operador entre as telas (vitest · JUnit)
+
+# POR QUE A LANE EXISTE: nenhuma lane roda `vitest run` sem argumento — medição das
+# lanes irmãs `fiscal-teclado-gate` e `fiscal-cockpit-paginacao-gate`, do mesmo ciclo
+# Cowork Fiscal. `modules-pest.yml` casa `Pages/Fiscal/**`, mas é Pest/PHP, outro
+# runtime. Spec sem lane nunca executa, e verde-por-não-execução (LC-13) é PIOR que
+# teste ausente porque parece cobertura.
+#
+# O QUE ELA TRAVA: o comportamento de que a densidade é preferência do OPERADOR, não
+# da tela — escolher "compacto" na lista de NF-e e abrir a NFS-e já compacta. A segunda
+# tela é montada DEPOIS de a primeira ser desmontada, então o caso prova travessia, e
+# não estado compartilhado em memória.
+#
+# FONTE DO CONTRATO: `FxNotasPage` do protótipo Cowork (fiscal-page.jsx:346,541-543) —
+# lá as três telas de notas são a MESMA função, chamada com `preset` diferente, e a
+# escolha persiste em `fxLS("oimpresso.fiscal.densidade")` (:358,363). O compartilhamento
+# é grátis lá porque há um dono só; a produção separou em três arquivos, então a
+# propriedade precisa ser defendida por teste.
+#
+# OS ARQUIVOS SOB TESTE ESTÃO NO GATILHO — sem eles, mexer na tela não acorda o teste
+# que a defende, que é a armadilha do gate mudo. Entram também o CSS (o caso "todo valor
+# tem classe" o lê) e o protótipo (o caso da chave o lê): se um deles mudar sozinho, o
+# contrato pode passar a mentir sem ninguém ver.
+#
+# MORDIDA PROVADA antes do merge (2 mutações, restore = 5/5 verde): devolver
+# `useState('comfort')` à NFS-e — o defeito exato que existia no Cockpit em
+# origin/main d23bc3df34 — derruba 2 casos, com a mensagem nomeando o sintoma
+# ("a NFS-e ignorou a escolha feita na NF-e"); divergir a chave da fonte de design
+# derruba 1, nomeando as duas chaves.
+#
+# LIMITE MEDIDO E DECLARADO: o jsdom não faz a navegação HTTP entre as rotas — o que
+# os casos de render provam é a parte que carrega a preferência (mesma origem, mesmo
+# storage, a tela nova lendo o que a anterior gravou). O Cockpit não é renderizado
+# aqui (recebe ~15 props de payload) e entra por um caso estático de fonte única — o
+# que se perde é a prova do repinte dele, não a condição da travessia.
+#
+# sinal de custo: densidade de tabela numa tela de LEITURA é qualidade, não Tier-0 —
+# nenhum caminho aqui move dinheiro, estoque ou tenant. Promoção a required é flip [W]
+# com mordida real coletada em main (ADR 0336 DR-2); não se auto-promove.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, reopened, ready_for_review, synchronize]
+    paths:
+      - 'resources/js/Pages/Fiscal/Nfe.tsx'
+      - 'resources/js/Pages/Fiscal/Nfse.tsx'
+      - 'resources/js/Pages/Fiscal/Cockpit.tsx'
+      - 'resources/js/Pages/Fiscal/_components/DensidadeToggle.tsx'
+      - 'resources/js/Pages/Fiscal/_lib/densidade-fiscal.ts'
+      - 'resources/css/fiscal-cockpit.css'
+      - 'prototipo-ui/cowork/fiscal-page.jsx'
+      - 'tests/js/fiscal-densidade.test.tsx'
+      - 'tests/js/setup.ts'
+      - '.github/workflows/fiscal-densidade-gate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'resources/js/Pages/Fiscal/Nfe.tsx'
+      - 'resources/js/Pages/Fiscal/Nfse.tsx'
+      - 'resources/js/Pages/Fiscal/Cockpit.tsx'
+      - 'resources/js/Pages/Fiscal/_components/DensidadeToggle.tsx'
+      - 'resources/js/Pages/Fiscal/_lib/densidade-fiscal.ts'
+      - 'resources/css/fiscal-cockpit.css'
+      - 'prototipo-ui/cowork/fiscal-page.jsx'
+      - 'tests/js/fiscal-densidade.test.tsx'
+      - 'tests/js/setup.ts'
+      # o workflow entra no gatilho de push porque é o run de `main` que o publisher
+      # colhe: mexer na lane sem re-rodar deixaria o artifact envelhecer até expirar,
+      # e lane sem artifact é lane pulada no publisher.
+      - '.github/workflows/fiscal-densidade-gate.yml'
+
+concurrency:
+  group: fiscal-densidade-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  densidade:
+    name: Fiscal · densidade compartilhada entre as telas (vitest/jsdom)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install deps
+        run: npm ci
+
+      # `--reporter=default` mantém a saída legível pra humano; `--reporter=junit`
+      # escreve o XML que vira veredito por-UC no manifesto que o G-7 do casos-gate
+      # (REQUIRED) lê. Sem o par, UC-FNFE-14 e UC-FNFSE-05 valeriam 0 no painel.
+      - name: densidade compartilhada entre as telas (vitest/jsdom)
+        run: |
+          npx vitest run \
+            tests/js/fiscal-densidade.test.tsx \
+            --reporter=default \
+            --reporter=junit \
+            --outputFile=test-results/vitest-fiscal-densidade-junit.xml
+
+      # `!cancelled()` (não `success()`): o veredito de um run VERMELHO é justamente o
+      # que o G-7 precisa registrar — `Status: ✅` com teste vermelho é a mentira que
+      # ele existe pra pegar.
+      - name: Upload JUnit (veredito por-UC — casos:results)
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-fiscal-densidade-junit
+          path: test-results/vitest-fiscal-densidade-junit.xml
+          retention-days: 14

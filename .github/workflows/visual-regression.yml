@@ -82,7 +82,32 @@ jobs:
     # `cancelled`, agrupados em 11-15 min — o teto ja mordia antes deste PR.
     timeout-minutes: ${{ github.event_name == 'workflow_dispatch' && 35 || 25 }}
     env:
-      VISREG_GRAY_APPROVED: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'visreg-gray-approved') && '1' || '0' }}
+      # ZONA CINZA — bloqueio DESLIGADO por decisão [W] em 2026-09-04.
+      #
+      # A banda do meio pedia a label `visreg-gray-approved` por PR (gate F1.5). [W] textual:
+      # "todos são aprovados agora, vou usar isso quando o software estiver maduro" — enquanto
+      # o produto muda todo dia, a aprovação era dada em 100% dos casos, então o mecanismo só
+      # custava runner e vermelho que se aprende a ignorar.
+      #
+      # O QUE FOI MEDIDO NO DIA (não é impressão): as 3 telas que travaram o #6753 — Jana
+      # 1.6746%, Fiscal/Config 0.1812%, Fiscal/Cockpit 0.1200% — tinham 5 PRs abertos mexendo
+      # justamente nelas (#6738 Config, #6736 e #6732 Cockpit, #6425 e #6427 Jana). A Jana
+      # repetia o ratio IDÊNTICO de 3 runs anteriores (#6742, #6745), prova de que a
+      # divergência vinha da main e não do PR bloqueado. Regenerar baseline ali carimbaria
+      # foto que morre em horas; exigir aprovação, idem.
+      #
+      # O QUE **NÃO** MUDOU — e é o que sustenta a defesa:
+      #  · REGRESSÃO CLARA (> τ_alto) segue reprovando. O double-threshold continua com as
+      #    duas bandas e segue MEDINDO e reportando a cinza no log, no step summary e no
+      #    artifact `pixel-diff-views`. Desligou-se o BLOQUEIO da banda do meio, não a medição.
+      #  · O filtro de raio (só bloqueia tela dentro do raio do PR — bite-test de 2026-08-24
+      #    em tests/Unit/VisregGrayApprovalTest.php) segue intacto e é ortogonal a isto.
+      #  · A label `visreg-gray-approved` continua existindo e sendo aceita; ela só deixou de
+      #    ser NECESSÁRIA. Nada que a aplique hoje quebra.
+      #
+      # COMO RELIGAR (é uma linha, quando o software amadurecer — [W] 2026-09-04):
+      #   VISREG_GRAY_APPROVED: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'visreg-gray-approved') && '1' || '0' }}
+      VISREG_GRAY_APPROVED: ${{ github.event_name == 'pull_request' && '1' || '0' }}
 
     services:
       mysql:
@@ -1180,7 +1205,7 @@ jobs:
           if [ "${{ steps.pixel-diff.outcome }}" = "failure" ]; then
             echo "🔴 PIXEL-DIFF ADVISORY FALHOU — ao menos 1 tela com diff > τ_alto (regressão clara) contra baseline."
             echo "   Intencional? npm run visreg:update + aprovação [W]. Regressão? conserte antes do enforcing (L1)."
-            echo "   Telas em ZONA CINZA bloqueiam sem o label visreg-gray-approved — ver resumo + artifact pixel-diff-views."
+            echo "   Telas em ZONA CINZA saem no resumo + artifact pixel-diff-views (o enforcement da banda do meio é o env VISREG_GRAY_APPROVED, no topo deste workflow)."
           else
             echo "✅ pixel-diff afetadas/núcleo-6 OK — nenhuma tela acima de τ_alto."
             echo "   Se houve ZONA CINZA, ela está no step summary (resumo 'Pixel-diff — Zona Cinza') + artifact pixel-diff-views pro [W] revisar."
