@@ -448,18 +448,21 @@ class RecipeBomService
                     $preco = (float) $variacao->dpp_inc_tax;
                     $peso = $custoReceita > 0 ? ($dados['qtd'] * $preco) / $custoReceita * 100 : 0.0;
 
-                    if (! isset($acc[$vid])) {
-                        $acc[$vid] = [
-                            'variation_id' => $vid,
-                            'nome' => optional($variacao->product)->name ?: '—',
-                            'sku' => $variacao->sub_sku ?: '—',
-                            'custo' => $preco,
-                            'unidade' => optional(optional($variacao->product)->unit)->short_name ?: '',
-                            'estoque' => 0.0,
-                            'n_receitas' => 0,
-                            'maior_peso' => 0.0,
-                        ];
-                    }
+                    // `??=` e não `if (! isset(...)) { ... }`: isto é INICIALIZAÇÃO de
+                    // acumulador, não fallback de dado ausente. A `NoSilentFallbackRule`
+                    // (ADR 0212) pede `Log::warning` no segundo caso — aqui logar seria
+                    // ruído, porque dispararia a cada insumo novo do laço. O `??=` diz a
+                    // intenção certa e é a mesma forma já usada no `$porInsumo` acima.
+                    $acc[$vid] ??= [
+                        'variation_id' => $vid,
+                        'nome' => optional($variacao->product)->name ?: '—',
+                        'sku' => $variacao->sub_sku ?: '—',
+                        'custo' => $preco,
+                        'unidade' => optional(optional($variacao->product)->unit)->short_name ?: '',
+                        'estoque' => 0.0,
+                        'n_receitas' => 0,
+                        'maior_peso' => 0.0,
+                    ];
 
                     $acc[$vid]['n_receitas']++;
                     $acc[$vid]['maior_peso'] = max($acc[$vid]['maior_peso'], $peso);
