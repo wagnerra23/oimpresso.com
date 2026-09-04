@@ -216,6 +216,32 @@ jobs:
       # checa .css/.html; .tsx e ignorado por ele (log '. ... ignorado'), entao
       # alimentamos so o que ele entende. Sem arquivos tocados -> ds-guard imprime
       # uso e sai 0 (nao derruba o job). continue-on-error abaixo.
+      #
+      # POR QUE O GLOB PARA AQUI E NAO COBRE `resources/css/**` (a pergunta ja voltou 1x;
+      # RESPONDIDA POR MEDICAO em 2026-09-04, nao por opiniao — se ela voltar, leia isto antes):
+      #   - O §8 do prototipo-ui/PROCESSO_MEMORIA_CC.md declara a PROPRIA entrada como os
+      #     `*-page.css` TOCADOS, e o walkProto() do `--all` varre so `prototipo-ui/` com esse
+      #     sufixo. O §8 e a lei da build de PROTOTIPO (L-02/L-21/L-23 — erros de quem CRIA
+      #     design), nao do bundle PORTADO pro app.
+      #   - Os 33 bundles de `resources/css/` sao port do Cowork, e a §"Design System / Pacote
+      #     Cowork novo" de memory/proibicoes.md (decisao [W] 2026-05-18) MANDA copiar o bundle
+      #     INTEIRO — cherry-pick incremental e banido. Um bundle Cowork traz por construcao 4+
+      #     tokens de cor com prefixo bespoke, que e exatamente o predicado de "paleta inventada".
+      #   - Medido: o guard acusaria 20 dos 39 CSS de `resources/css/`; desses 20, quinze
+      #     declaram proveniencia Cowork/prototipo no proprio cabecalho e os outros cinco sao
+      #     `cockpit.css` + os 4 `tokens/_generated-*` (fundacao e saida de gerador, com donos
+      #     proprios: ds-token-diff / ds-mirror-drift / ds-tokens-build-sync). Nenhum e "paleta
+      #     inventada aqui". Num predicado DELTA (so o que o PR introduz) a taxa de disparo em
+      #     180d foi 17,5%, e caiu so pra 14,8% com as isencoes candidatas — a agulha nao se move.
+      #   Rejeitado COM OS NUMEROS na lapide §5 de 2026-09-04 (memory/licoes-rejeitadas.md),
+      #   que traz a reproducao. Residuo declarado la e ainda ABERTO: bundle de modulo que
+      #   redefine token com VALOR divergente do tema nao tem dono (ds-token-diff cobre so
+      #   `resources/css/tokens/`) — estender o dono, nunca este guard, que mede outra coisa.
+      #
+      # A 2a perna (`resources/js/Pages/**`) estava decorativa em 2026-09-04: 0 .css e 0 .html
+      # sob ela (controle positivo: 401 .tsx casam o mesmo pathspec, logo nao e a sonda que
+      # falha). Mantida de proposito — se um dia nascer CSS/HTML ao lado da tela, ja entra sem
+      # mexer neste step.
       - name: DS-GUARD (arquivos tocados · §8)
         if: always()  # advisory roda mesmo se o ssot-guard (hard-fail) falhar antes — senao skipa
         continue-on-error: true
