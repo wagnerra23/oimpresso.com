@@ -186,6 +186,18 @@ O mesmo defeito existe em **três** lugares independentes, e cada um pede trabal
 Ou seja: a lista do cockpit e o drawer dele passam por **caminhos diferentes**. O `781 Status` que
 este PR conserta em `/fiscal/nfe` tem um irmão vivo em `/fiscal` — pelo #2, não pelo #3.
 
+⚠️ **Um `STATUS_LABEL` no módulo NÃO é necessariamente um mapa de cStat.** A varredura acha **cinco**
+`STATUS_LABEL` em `Pages/Fiscal`, e só os dois de cima entram nesta tabela. Os outros dois falam
+**outro vocabulário** e não têm o defeito:
+
+| Onde | Chaves | É cStat? |
+|---|---|---|
+| `Nfse.tsx:69` | `authorized`/`rejected`/`pending`/`sent`/`cancelled` | **não** — status de domínio da NFS-e (municipal) |
+| `_components/NFSeDrawer.tsx:48` | idem | **não** — mesmo vocabulário |
+
+A distinção não é preciosismo: quem for unificar as fontes precisa saber que a NFS-e **não tem
+cStat** (é prefeitura, não SEFAZ) e que forçá-la no mesmo dicionário seria o erro oposto.
+
 Nenhum dos dois foi tocado: são outras telas, outro intent, e há sessões ativas no Cockpit agora.
 Fica medido para quem pegar.
 
