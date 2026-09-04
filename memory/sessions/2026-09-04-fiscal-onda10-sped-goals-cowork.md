@@ -4,7 +4,7 @@ topic: "Fiscal Onda 10 (SPED) — os Goals do charter do Cowork que a Onda 9 nã
 date: "2026-09-04"
 authors: ["C"]
 modulo: Fiscal
-prs: [6723, 6728]
+prs: [6723, 6728, 6737, 6741]
 us: [US-FISCAL-010, US-FISCAL-016, US-FISCAL-017]
 related_adrs:
   - 0062-separacao-runtime-hostinger-ct100
@@ -23,20 +23,24 @@ anterior — 5 Goals no charter, 1 entregue — e com duas armadilhas nomeadas a
 
 ## O que saiu
 
-**PR [#6723](https://github.com/wagnerra23/oimpresso.com/pull/6723)** — Goals 1, 4 e 5.
-**PR [#6728](https://github.com/wagnerra23/oimpresso.com/pull/6728)** — Goal 2 (empilhado sobre o
-#6723). Goal 3 segue em decisão [W].
+Três PRs de código **empilhados** — [#6723](https://github.com/wagnerra23/oimpresso.com/pull/6723)
+(Goals 1, 4, 5) → [#6728](https://github.com/wagnerra23/oimpresso.com/pull/6728) (Goal 2) →
+[#6741](https://github.com/wagnerra23/oimpresso.com/pull/6741) (Goal 3) — mais o
+[#6737](https://github.com/wagnerra23/oimpresso.com/pull/6737) de docs, independente.
 
 | Goal | Antes | Depois |
 |---|---|---|
 | 1. Barra com os 4 pré-requisitos | 🟡 dentro do drawer | ✅ barra na página + a data de encerramento no motivo |
 | 2. Bypass de superadmin explícito | ❌ | ✅ ação nomeada, com efeito no servidor |
-| 3. Prévia do TXT | ❌ | ❌ decisão [W] |
+| 3. Prévia do TXT | ❌ | ✅ layout de um arquivo de referência |
 | 4. Cartão de validação externa | ❌ | ✅ medido do disco |
 | 5. Blocos com os registros | ❌ | ✅ medido do golden |
 
-Âncoras `data-contract` do protótipo na tela viva: **1 → 4** (falta `previa-txt`, do Goal 3, e
-`panorama-sped`, que é a tabela que a tela já tinha antes do F1).
+Âncoras `data-contract` do protótipo na tela viva: **1 → 5** (a que falta, `panorama-sped`, é a
+tabela que a tela já tinha antes do F1).
+
+O Goal 3 saiu depois de [W] decidir no meio da sessão — a pergunta e a informação medida que a
+destravou estão em §"O que fica aberto" abaixo, mantidas como o percurso real.
 
 ## As três coisas que valem para a próxima sessão
 
@@ -117,13 +121,46 @@ LC-26). As duas vezes o conserto foi a mesma: escrever pela ferramenta de escrit
 `--body-file` a partir de um arquivo. E medi `rc` de gate com `$?` depois de um pipe uma vez — o
 que mediu o `tail`, não o script; refiz com o exit code certo antes de citar qualquer número.
 
+## O Goal 3, e a pergunta que o destravou
+
+Levei a pergunta antes de codar, porque o pedido mandava. [W] inclinou para *"blocos + linhas do
+golden como referência de layout"* mas disse que faltava informação para decidir bem — e estava
+certo, porque a minha própria formulação supunha um risco que eu não tinha medido.
+
+Medi: o golden é 1.794 bytes / 47 linhas / sha `e4eeccd4…`, saída **real** do gerador, e a
+**primeira linha dele se identifica como fictícia** — `|0000|018|0|01012026|31012026|CI TENANT 98
+(FICTICIO)|…`. Uma prévia com essas linhas é auto-evidentemente não-sua; o risco de a contadora
+confundir com o arquivo dela é bem menor do que eu supunha. Com isso, [W] confirmou.
+
+Duas escolhas de implementação que vieram disso, e ambas viraram teste:
+
+- **Uma linha por registro DISTINTO**, não as N primeiras. As 12 primeiras linhas cobrem só o
+  Bloco 0 — o operador nunca veria um `C170` ou um `E110`.
+- **O nome do emitente é LIDO do `0000`**, não escrito como "fictício". Um rótulo escrito viraria
+  mentira no dia em que o golden fosse regerado de outro tenant.
+
+E `previaTxt` — a prévia do arquivo **do operador** — continua `null`, com a ausência declarada. As
+duas coisas convivem, e a copy "Não é a sua competência" está travada no contrato de tela.
+
+## Baseline visual — e por que eu não regravei antes de olhar
+
+O `visual-regression` do #6723 saiu vermelho e **era meu** (1,2261%, dentro do raio). A tentação
+era regravar direto: eu sabia que tinha adicionado UI. Mas a lápide de 2026-08-29 é explícita —
+vermelho de baseline não se explica por dedução.
+
+Baixei o artifact, confirmei que a "baseline" do HTML é **byte-idêntica** ao `.snap` do repo (senão
+eu estaria comparando imagens recomprimidas) e **olhei** o diff. Confirmou o esperado e nada além:
+barra nova no topo com *"encerrou em 31/05/2026"*, tabela deslocando, card de blocos no rodapé;
+sidebar, header e subnav intactos. Só então levei a [W], que autorizou o modo update escopado.
+
+Nota de método: rodei o `snap-diff.mjs` e ele deu **31,27%**, contra os 1,2261% do gate. Não são
+contraditórios — o gate usa pixelmatch perceptual (YIQ + skip de anti-aliasing + threshold 0.3) e o
+`snap-diff` conta delta bruto. A métrica canônica é a do gate; a do `snap-diff` serve pra
+**assinatura** (Δmax=253 = conteúdo real, não rasterização).
+
 ## O que fica aberto
 
-1. **Goal 3 (prévia do TXT)** — decisão [W]. Levei a pergunta antes de codar; [W] inclinou para
-   "blocos + linhas do golden como referência de layout" mas pediu mais informação. Medi e respondi
-   no corpo do #6723: o golden é 1.794 bytes / 47 linhas / sha `e4eeccd4…`, e a **primeira linha
-   dele se identifica como fictícia** (`CI TENANT 98 (FICTICIO)`) — o risco de confusão com o
-   arquivo do usuário é bem menor do que eu supunha ao formular a pergunta.
-2. **Seed da permission `superadmin` no CT 100** — enquanto faltar, o `UC-FSPED-09` e o 503
+1. **Seed da permission `superadmin` no CT 100** — enquanto faltar, o `UC-FSPED-09` e o 503
    ponta-a-ponta do `UC-FSF1-02` não executam em lane nenhuma. É lacuna de ambiente, não de teste.
-3. **Smoke visual da barra** — pendente do merge (a tela precisa estar em produção).
+2. **Smoke visual da barra** — pendente do merge (a tela precisa estar em produção).
+3. **Nova passada de baseline a cada merge da pilha** — os três PRs mudam a mesma tela.
