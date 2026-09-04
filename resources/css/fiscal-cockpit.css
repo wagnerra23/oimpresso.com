@@ -1419,6 +1419,31 @@
 .fx-subtab .n.t-ok   { background: var(--ok-soft);   color: var(--ok);   }
 
 
+/* Onda 3 — rodapé de paginação da lista unificada.
+   Porte de `.fx-pager`/`.fx-pager-n` do protótipo (fiscal-page.css §"Onda 2/3"),
+   baixado do Cowork vivo por DesignSync.
+
+   Lá eles pintam com var(--text-mute)/var(--text-dim) do DS; aqui consomem os
+   `--fx-*`, e isso NÃO é congelamento: o `cockpit.css` USA --text/--surface/--border
+   mas não os DEFINE (medido 41/21/60 usos, 0 definições) — quem define são bundles de
+   módulo, e as telas do Fiscal importam só este arquivo, então var(--text-mute) aqui
+   sairia sem valor. Consumir `--fx-*` é o que dá tema ao rodapé: o bloco TEMA ESCURO
+   logo abaixo redefine --fx-text-mute e --fx-text-dim, então este rodapé acompanha o
+   dark por construção, sem regra própria. */
+.fx-pager {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: var(--fs-2);
+  color: var(--fx-text-mute);
+}
+.fx-pager-n {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  color: var(--fx-text-dim);
+}
+
 /* ─────────────────────────────────────────────────────────────────────────────
  * TEMA ESCURO — 2026-09-03, autorizado por [W] ("pode fazer tudo").
  *

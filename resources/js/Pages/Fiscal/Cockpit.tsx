@@ -229,6 +229,9 @@ export default function Cockpit({
   const [status, setStatus] = useState<StatusFilter>('todos');
   const [view, setView] = useState<ViewId>('todas');
   const [density, setDensity] = useState<Density>('comfort');
+  // Onda 3 · o default 8 e as opções 8/25/50 vêm do protótipo (fiscal-page.jsx), não de palpite.
+  const [pagina, setPagina] = useState(1);
+  const [porPagina, setPorPagina] = useState(8);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [clienteFilter, setClienteFilter] = useState<string | null>(null);
 
@@ -262,7 +265,7 @@ export default function Cockpit({
     if (view !== 'custom') setView('custom');
   };
 
-  const rows = useMemo<NotaRow[]>(() => {
+  const filtrados = useMemo<NotaRow[]>(() => {
     let r = notas;
     if (tipo !== 'todos') r = r.filter((n) => n.tipo === tipo);
     if (status === 'autorizadas') r = r.filter(isAuthorized);
@@ -282,8 +285,27 @@ export default function Cockpit({
     return r;
   }, [notas, tipo, status, clienteFilter, search]);
 
-  // Limpa seleção quando filtra
-  useEffect(() => { setSelected(new Set()); }, [tipo, status, search, clienteFilter]);
+  // Onda 3 · paginação CLIENT-SIDE, espelhando `FxNotasPage` de fiscal-page.jsx.
+  //
+  // O universo paginado é `filtrados` — a lista JÁ carregada e filtrada —, NUNCA um total
+  // de banco. `NotasUnifiedService::LIMITE` corta a fonte em 50 antes de ela chegar aqui
+  // (o docblock de lá declara: "é resumo; a lista completa vive em /fiscal/nfe"), e não
+  // existe contagem total escopada por business para servir de denominador honesto:
+  // `contadores()['todas']` conta a MESMA lista truncada. Por isso o rodapé fala de
+  // "resultados carregados" e não promete um total do negócio — ver UC-FCKP-09.
+  const paginas = Math.max(1, Math.ceil(filtrados.length / porPagina));
+  const rows = useMemo<NotaRow[]>(
+    () => filtrados.slice((pagina - 1) * porPagina, pagina * porPagina),
+    [filtrados, pagina, porPagina],
+  );
+
+  // Limpa seleção e volta pra página 1 quando filtra ou troca o tamanho da página: sem
+  // isso o operador fica numa página que não existe mais, com seleção de linhas que ele
+  // não vê. `porPagina` entra nas deps de propósito (vem do protótipo).
+  useEffect(() => {
+    setSelected(new Set());
+    setPagina(1);
+  }, [tipo, status, search, clienteFilter, porPagina]);
 
   const toggleSel = (id: string) => {
     const next = new Set(selected);
@@ -634,6 +656,52 @@ export default function Cockpit({
                 </tbody>
               </table>
             </div>
+          </div>
+        )}
+
+        {/* Onda 3 · rodapé de paginação. Ordem e copy vêm de fiscal-page.jsx §FxNotasPage.
+            O hint "J/K navega · ↵ abre · N emite" do protótipo NÃO entra: no protótipo o
+            cockpit e a lista de NF-e são o MESMO componente, então o atalho valia para os
+            dois; em produção são telas separadas e a Onda 2 (PR 6707) entregou o teclado só
+            (o número vai sem cerquilha de propósito: seus dígitos são todos hex válidos e
+            esta linha é CONTINUAÇÃO de comentário JSX, que o skip do `ui:lint` declaradamente
+            não cobre — o falso-positivo R1 catalogado no docblock de `UiLintCommand`)
+            no Nfe.tsx. Anunciar aqui um atalho que esta tela não tem seria copy mentindo. */}
+        {filtrados.length > 0 && (
+          <div className="fx-pager" data-contract="paginacao-notas">
+            <span>
+              {(pagina - 1) * porPagina + 1}–{Math.min(pagina * porPagina, filtrados.length)}
+              {' de '}{filtrados.length} carregadas
+            </span>
+
+            <Select value={String(porPagina)} onValueChange={(v) => setPorPagina(Number(v))}>
+              <SelectTrigger size="sm" className="w-auto" aria-label="Notas por página">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="8">8 por página</SelectItem>
+                <SelectItem value="25">25 por página</SelectItem>
+                <SelectItem value="50">50 por página</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Button
+              type="button"
+              variant="cowork-ghost"
+              disabled={pagina <= 1}
+              onClick={() => setPagina((p) => Math.max(1, p - 1))}
+            >
+              Anterior
+            </Button>
+            <span className="fx-pager-n">{pagina} / {paginas}</span>
+            <Button
+              type="button"
+              variant="cowork-ghost"
+              disabled={pagina >= paginas}
+              onClick={() => setPagina((p) => Math.min(paginas, p + 1))}
+            >
+              Próxima
+            </Button>
           </div>
         )}
       </FxShell>

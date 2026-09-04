@@ -65,6 +65,42 @@ Onda 1 entregou. Descreve o que a seção **é**; a regra de negócio segue send
 não levanta erro: o botão ou o ícone apenas não são desenhados. Quem defende os dois é o
 `UC-FCKP-08` do [`Cockpit.casos.md`](./Cockpit.casos.md).
 
+## Contrato do rodapé de paginação (Onda 3 Cowork · 2026-09-03)
+
+Destilado do alvo `fiscal-page.jsx` §`FxNotasPage` — baixado do **vivo** por `DesignSync`
+(`truncated: false`), não do espelho `prototipo-ui/cowork/`, que mediu 1 de 258 arquivos e
+cuja própria máquina declara qualquer comparação contra ele INCONCLUSIVA.
+
+| Item | Contrato |
+|---|---|
+| Âncora | `data-contract="paginacao-notas"` na raiz do rodapé |
+| Posição | depois da tabela, último filho do `FxShell` |
+| Estado vazio | **nó ausente** — `filtrados.length === 0` não desenha o rodapé |
+| Ordem dos filhos | meta (`N–M de T carregadas`) → `Select` → `Anterior` → `.fx-pager-n` → `Próxima` |
+| Tamanho de página | default **8**; opções **8 · 25 · 50** |
+| Copy | `Anterior` e `Próxima` por extenso — não `‹`/`›` |
+| Contador | `{pagina} / {paginas}` em `.fx-pager-n`, monoespaçado e tabular |
+| Extremos | `Anterior` desabilitado na 1ª página; `Próxima`, na última |
+| Reset | trocar filtro **ou** tamanho de página volta à página 1 e limpa a seleção |
+| Controles | `Select` e `Button` do DS — nunca `<select>` nativo |
+
+**O `de N` fala da lista CARREGADA, nunca do total do negócio — e isso é contrato, não
+limitação a corrigir em silêncio.** `NotasUnifiedService::LIMITE` corta a fonte em 50 antes
+de ela chegar à tela (o docblock de lá declara *"é resumo; a lista completa vive em
+/fiscal/nfe"*), e **não existe contagem total escopada por business** para servir de
+denominador honesto: `contadores()['todas']` conta a MESMA lista truncada. Por isso a copy
+diz `carregadas`, e por isso a paginação é **client-side** — que é o que o protótipo
+especifica (`filtrados.slice(...)`). Quem for trocar isso por paginação server-side muda o
+contrato da tela, não só o rodapé: precisa de UNION nas duas fontes com total por
+`business_id`, e aí o cockpit deixa de ser resumo — decisão [W], não refactor.
+
+**O hint `J/K navega · ↵ abre · N emite` do protótipo foi OMITIDO de propósito.** No
+protótipo, cockpit e lista de NF-e são o **mesmo** componente (`FxNotasPage` serve as três
+rotas), então o atalho valia para os dois; em produção são telas separadas e a Onda 2
+([#6707](https://github.com/wagnerra23/oimpresso.com/pull/6707)) entregou o teclado só no
+`Nfe.tsx`. Copiar o hint aqui anunciaria atalho que esta tela não tem. Quem implementar
+`J/K` no cockpit deve trazer o hint junto — os dois andam colados.
+
 ## Anti-hooks
 
 - 🚫 Não fazer N+1 query nos sparklines — agrupar com `selectRaw('DATE(emitido_em)...')` 1× e iterar em PHP
