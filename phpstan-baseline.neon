@@ -7774,10 +7774,14 @@ parameters:
 			count: 1
 			path: Modules/Manufacturing/Services/RecipeBomService.php
 
+		# US-MANU-005: sobe de 1 → 2 porque `recipesDoTenantComIngredientes()` (novo) faz o
+		# mesmo eager-load de `ingredients` que o `listRecipesWithCost` já fazia. A relação
+		# EXISTE — `MfgRecipe::ingredients()` — o Larastan é que não a detecta neste model.
+		# Conferido antes de crescer o baseline.
 		-
 			message: '#^Relation ''ingredients'' is not found in Modules\\Manufacturing\\Entities\\MfgRecipe model\.$#'
 			identifier: larastan.relationExistence
-			count: 1
+			count: 2
 			path: Modules/Manufacturing/Services/RecipeBomService.php
 
 		-

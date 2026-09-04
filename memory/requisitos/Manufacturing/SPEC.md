@@ -181,16 +181,37 @@ em LOTE) · `resources/js/Components/shared/StatusBadge.tsx` (domínio `producao
 cálculo novo; precisa de um método no `RecipeBomService` com o JOIN de tenant e teste.
 Sem isso, a aba não sai."* **Custo: médio** — leitura pura, mas nasce com backend novo e Tier 0.
 
-**Implementado em:** _pendente_ — bloqueada pelo backend
+**Implementado em:** `resources/js/Pages/Manufacturing/Insumos.tsx` ·
+`Modules/Manufacturing/Http/Controllers/RecipeController.php` (`@insumos`) ·
+`Modules/Manufacturing/Services/RecipeBomService.php` (`usosDoInsumo` + `listInsumosComUso`) —
+rota ADITIVA `/manufacturing/v2/insumos`. **O backend que o §18.3 declarava faltar agora existe.**
+
+**Testado em:** `Modules/Manufacturing/Tests/Feature/Wave33InsumosTest.php`
+(`@covers-us US-MANU-005`) — 6 testes; Pest roda na lane de CI da PR.
+
+> ⚠️ **Desvio DECLARADO do protótipo (a simulação):** o protótipo aproxima o custo simulado
+> somando um delta (`total + qtd × preço × pct`). Esta tela **recalcula** com
+> `calculateCost()` e o preço novo, porque o atalho **subestima** quando
+> `production_cost_type = percentage` (o extra é % dos ingredientes e sobe junto). Medido:
+> receita de 92,00 + 18% com insumo +10% dá **119,416** recalculando e **117,76** pelo atalho.
+> Razão completa em `RUNBOOK-insumos.md §1`; travado por UC-INS-02.
+
+> ⚠️ **"Insumo" aqui é derivado**, não entidade: é toda variação que aparece como ingrediente
+> nas receitas do tenant (o app não tem flag de matéria-prima). Efeito: o estado "sem receita"
+> do protótipo não ocorre. Declarado em `RUNBOOK-insumos.md §2` — se [W] quiser o catálogo
+> inteiro, é outra decisão de escopo.
 
 **Definition of Done:**
-- [ ] `RecipeBomService::usosDoInsumo($variationId, $businessId)` com o JOIN de tenant
-      (`mfg_recipes → variations → products.business_id`) e teste que prova o isolamento
-- [ ] Tabela: nome · código · custo/unidade · estoque · **nº de receitas que o usam** · **maior peso**
-- [ ] Insumo sem receita mostra `—` e `sem receita`, e **não é clicável**
-- [ ] Drawer com simulador `-30%..+60%`, passo 5, default `+10%`
-- [ ] Nota verbatim sobre o consumo convertido à unidade base
-- [ ] A aba só aparece quando o backend existir — nada de aba vazia
+- [x] `RecipeBomService::usosDoInsumo($variationId, $businessId)` com o JOIN de tenant
+      (`mfg_recipes → variations → products.business_id`) e teste que prova o isolamento (UC-INS-01)
+- [x] Tabela: nome · código · custo/unidade · estoque · **nº de receitas que o usam** · **maior peso**
+- [~] Insumo sem receita mostra `—` e `sem receita`, e **não é clicável** — caminho de render
+      presente, mas **inalcançável** com a lista derivada (RUNBOOK §2, declarado)
+- [x] Drawer com simulador `-30%..+60%`, passo 5, default `+10%` — faixa clampada no SERVIDOR (UC-INS-05)
+- [x] Nota verbatim sobre o consumo convertido à unidade base
+- [x] A aba só aparece quando o backend existir — nada de aba vazia
+- [ ] Pest verde na lane de CI — pendente
+- [ ] Smoke real em prod (`curl` + screenshot + mexer no slider) — pendente
 
 ### US-MANU-006 · Editor de ingredientes
 
