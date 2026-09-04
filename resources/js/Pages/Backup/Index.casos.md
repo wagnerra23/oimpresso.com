@@ -109,6 +109,24 @@ last_run: "2026-08-20"
   `tests/Feature/Backup/BackupSegurancaTest.php` — *"em demo o download e bloqueado sem 500"*.
 - **Status: 🧪**
 
+## UC-BKP-11 · A lista de backups tem nome acessível
+- **Persona:** quem opera a tela por leitor de tela. A lista de backups é a única tabela desta
+  página, mas quem navega por tabela (NVDA `T`, lista de tabelas do JAWS, rotor do VoiceOver)
+  recebe o anúncio pelo NOME — sem nome, ouve só "tabela, N linhas".
+- **Aceite:** Dado que existe ao menos um backup no disco · Quando a tela renderiza · Então a
+  `<table>` tem nome acessível **"Backups no disco"**, invisível na tela (não muda o layout).
+- **Por que:** o `shared/DataTable` renderizava `<table>` sem `<caption>` e sem `aria-label` —
+  defeito do primitivo, herdado por esta tela. Corrigido com a prop `caption` obrigatória
+  (técnica WCAG H39). A copy sai do próprio empty-state da tela ("Nenhum backup no disco.").
+- **⚠️ Nenhum gate automático pega esta classe:** MEDIDO em 2026-09-04 (axe-core 4.12.1, jsdom,
+  5 arranjos) que o **axe não tem regra** exigindo nome acessível em tabela — 0 violações em
+  qualquer impacto, com e sem `caption`. Subir o piso do axe não pegaria. Por isso o aceite é
+  o nome **computado**, não uma varredura de a11y.
+- **Teste:** `tests/js/backup-index.test.tsx` — *"UC-BKP-11 · a lista de backups tem nome
+  acessível…"*, via `getByRole('table', { name })` na página inteira renderizada. O id está no
+  TÍTULO (não só em docblock), para o UC ser alcançável pelo manifesto do G-7.
+- **Status: ⬜** _(teste existe e cita o UC no título; aguarda o manifesto do `casos-results-publish`)_
+
 ---
 
 ## Rastreabilidade
@@ -119,5 +137,6 @@ last_run: "2026-08-20"
 | 05, 06, 07, 10 | `BackupSegurancaTest` | 1 |
 | 01, 09 | `BackupInertiaTest` | 3 |
 | 02, 08 | `BackupInertiaTest` + `tests/js/backup-index.test.tsx` | 3 |
+| 11 | `tests/js/backup-index.test.tsx` (id no título) | 4 |
 
 Os testes rodam no CT 100, nunca local ([ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)).
