@@ -7,6 +7,7 @@
 import { Inline } from '@/Components/layout';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import { Button } from '@/Components/ui/button';
+import { Checkbox } from '@/Components/ui/checkbox';
 import { Input } from '@/Components/ui/input';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, router } from '@inertiajs/react';
@@ -150,7 +151,11 @@ export default function Dfe({ activeTab, filters: initialFilters, counts, rows, 
   const toggleSel = (id: number) =>
     setSel((atual) => {
       const proximo = new Set(atual);
-      proximo.has(id) ? proximo.delete(id) : proximo.add(id);
+      if (proximo.has(id)) {
+        proximo.delete(id);
+      } else {
+        proximo.add(id);
+      }
       return proximo;
     });
 
@@ -414,11 +419,10 @@ export default function Dfe({ activeTab, filters: initialFilters, counts, rows, 
                     <th style={{ width: 34 }}>
                       {/* Marca só o que está à vista E é manifestável — nunca a página seguinte,
                           nunca uma nota já manifestada. */}
-                      <input
-                        type="checkbox"
+                      <Checkbox
                         checked={todasSelecionadas}
                         disabled={manifestaveis.length === 0}
-                        onChange={toggleTodas}
+                        onCheckedChange={toggleTodas}
                         aria-label="Selecionar todas as DF-e manifestáveis desta página"
                       />
                     </th>
@@ -445,10 +449,9 @@ export default function Dfe({ activeTab, filters: initialFilters, counts, rows, 
                           {/* Sem checkbox na nota já manifestada: ela não é selecionável, e a
                               caixa vazia sugeriria que é. */}
                           {podeManifestar && (
-                            <input
-                              type="checkbox"
+                            <Checkbox
                               checked={sel.has(d.id)}
-                              onChange={() => toggleSel(d.id)}
+                              onCheckedChange={() => toggleSel(d.id)}
                               aria-label={`Selecionar DF-e de ${d.nomeEmitente || 'emitente não identificado'}`}
                             />
                           )}
@@ -586,21 +589,34 @@ export default function Dfe({ activeTab, filters: initialFilters, counts, rows, 
         )}
       </FxShell>
 
-      {/* Modal do LOTE — confirma antes de disparar N eventos definitivos na SEFAZ. */}
+      {/* Modal do LOTE — confirma antes de disparar N eventos definitivos na SEFAZ.
+          Fecha ao clicar FORA: `role="presentation"` + o teste `target === currentTarget`
+          substituem o par `onClick` no overlay + `stopPropagation` no painel — mesmo efeito,
+          sem pendurar listener num nó de papel não-interativo (jsx-a11y). */}
       {loteModal && (
-        <div className="fx-drawer-bg" onClick={() => !loteBusy && setLoteModal(null)}>
+        <div
+          className="fx-drawer-bg"
+          role="presentation"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget && !loteBusy) setLoteModal(null);
+          }}
+        >
           <div
             role="dialog"
+            aria-modal="true"
             aria-label="Confirmar manifestação em lote"
-            onClick={(e) => e.stopPropagation()}
+            /* Sombra pela utilitária, não por `rgba()` no style: cor crua inline não segue o tema. */
+            className="shadow-xl"
             style={{
-              background: 'white',
+              /* `--fx-surface` é dark-aware (fiscal-cockpit.css tem o par light/dark).
+                 `white` cru deixaria o painel branco no tema escuro — e é o que ainda
+                 acontece no modal de justificativa logo abaixo, que é anterior a este PR. */
+              background: 'var(--fx-surface)',
               borderRadius: 10,
               padding: 22,
               width: 460,
               maxWidth: '90vw',
               margin: '15vh auto',
-              boxShadow: '0 12px 40px rgba(0,0,0,.2)',
             }}
           >
             <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 700 }}>
