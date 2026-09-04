@@ -118,7 +118,7 @@ não tem as migrations do NfeBrasil. É lacuna de ambiente, não defeito do test
 | UC-FNFE-09 | retransmitir preserva a nota antiga (nunca deleta) | `[must]` `[reg]` | CU-FISC-11 | `AcoesContratoTest` | 🧪 |
 | UC-FNFE-10 | a lista é operável só pelo teclado (linha focável, não botão) | `[must]` | **—** (ver nota) | `fiscal-nfe-teclado.test.tsx` | 🧪 |
 | UC-FNFE-11 | nenhum ícone decorativo chega ao leitor de tela | `[must]` | **—** (mesma nota) | `fiscal-nfe-teclado.test.tsx` | 🧪 |
-| UC-FNFE-13 | a lista não promete o que não tem (separador solto · tecla sem handler) | `[should]` | **—** (mesma nota) | `fiscal-nfe-teclado.test.tsx` (5) | 🧪 |
+| UC-FNFE-12 | a lista não promete o que não tem (separador solto · tecla sem handler) | `[should]` | **—** (mesma nota) | `fiscal-nfe-teclado.test.tsx` (5) | 🧪 |
 
 > **Por que esta tabela nasceu em 2026-09-01 (e o que ela NÃO fez):** os 8 UC desta tela já eram
 > provados por teste desde 2026-07-27 — nenhum deles declarava, porém, **qual CU do SDD §6 atende**.
@@ -294,14 +294,7 @@ próprios ícones e são de outra onda.
 **remove o nome acessível** dele. Cada um dos 13 foi conferido antes: os 5 da tela e os 7 da subnav
 vêm com texto ao lado; o `<X>` da paleta está num botão que já declara `aria-label="Fechar (ESC)"`.
 
-## UC-FNFE-13 — A lista não promete o que não tem
-
-> **Por que `13` e não `12`:** o `UC-FNFE-12` foi reservado, no mesmo dia, pelo #6736 (densidade
-> compartilhada entre as telas de notas). Os dois PRs nasceram em paralelo e escolheram o mesmo id
-> para contratos diferentes. Cedi o número por **custo medido**, não por ordem: renomear lá custaria
-> 9 ocorrências em 4 arquivos — incluindo o `anchor` do `gates-registry.json` e um workflow —,
-> aqui custou 4 em 3. Deixar os dois com `12` reproduziria o `UC-FNFE-08` desta mesma tela, cujo id
-> sobrecarregado já está declarado como achado acima.
+## UC-FNFE-12 — A lista não promete o que não tem
 Status: 🧪 (`tests/js/fiscal-nfe-teclado.test.tsx` — 5 casos, **passam**; lane `Fiscal Teclado Gate`)
 
 Dois defeitos da mesma família, achados por [W] no screenshot de `/fiscal/nfe` em produção
