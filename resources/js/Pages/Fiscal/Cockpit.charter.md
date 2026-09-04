@@ -19,13 +19,13 @@ prototypes: [prototipo-ui/cowork/fiscal-page.jsx]
 
 ## Mission
 
-Dar à pessoa fiscal (Eliana contadora + Wagner operador) **visão consolidada do estado fiscal do mês** em até **3 segundos** — KPIs de emissão (NF-e/NFC-e/NFS-e/faturamento), alertas determinísticos críticos (rejeições + cert vencendo + DF-e pending), e quick links pras 6 sub-páginas operacionais.
+Dar à pessoa fiscal (Eliana contadora + Wagner operador) **visão consolidada do estado fiscal do mês** em até **3 segundos** — KPIs de emissão (NF-e/NFC-e/NFS-e/faturamento), alertas determinísticos críticos (rejeições + cert **vencido ou** vencendo + DF-e pending), e quick links pras 6 sub-páginas operacionais.
 
 ## Goals (Definition of Done PR #2)
 
 1. **6 KPI cards eager** (não-deferred — first paint): emitidas mês, autorizadas + pct, rejeitadas (com pulse), faturamento, DF-e pending, cert vencimento dias
 2. **Mini-sparklines SVG** nos 4 KPIs principais (últimos 14 dias)
-3. **Alertas determinísticos** (3 níveis crit/warn/info) computados em PHP sem LLM — rejeições 7d + cert <60d + DF-e pending
+3. **Alertas determinísticos** (3 níveis crit/warn/info) computados em PHP sem LLM — rejeições 7d + cert **vencido (`$dias < 0`)**, vencendo hoje ou em ≤60d + DF-e pending
 4. **6 quick-link cards** pra sub-páginas (2 ativos sub-pages 2/3/5 + 3 disabled futuras 4/6/7)
 5. **Multi-tenant Tier 0**: NfeEmissao + NfseEmissao + NfeDfeRecebido + NfeCertificado via HasBusinessScope (ADR 0093)
 6. **Permissão**: `fiscal.access` gate
@@ -101,6 +101,37 @@ rotas), então o atalho valia para os dois; em produção são telas separadas e
 `Nfe.tsx`. Copiar o hint aqui anunciaria atalho que esta tela não tem. Quem implementar
 `J/K` no cockpit deve trazer o hint junto — os dois andam colados.
 
+> ⚠️ **Precisão medida em 2026-09-04 — a frase acima fala do rodapé do protótipo, e por lá
+> segue exata; mas o hint tem OUTRA superfície nesta tela, e nela o atalho JÁ é anunciado.**
+> O `cheats` que o `Cockpit.tsx` passa ao `FxShell` inclui `{ keys: ['J','K'], label:
+> 'navegar' }`, e o `FxShell` o desenha no rodapé do shell. Ou seja: o cockpit **anuncia
+> J/K sem implementá-lo** — LC-15 (mecanismo que promete saída que não honra), e o vão
+> é anterior a este PR. Não foi consertado aqui de propósito: mexer na copy do shell é
+> escopo de outra onda, e a correção tem duas saídas legítimas — **implementar** o J/K
+> (com o hint do rodapé junto, como este parágrafo já manda) ou **remover** a entrada do
+> `cheats`. Qual delas é decisão de quem pegar a onda do J/K; o registro fica aqui para
+> que ela não descubra o vão do zero. O teclado que **existe** hoje é o do bloco abaixo,
+> e ele é ortogonal ao J/K.
+
+## Contrato de teclado na lista (Onda 2 Cowork · 2026-09-04)
+
+A lista unificada é operável sem mouse. O alvo é linha **focável** — a `<tr>` mantém o papel
+implícito `row`, e virar `role="button"` está proibido no anti-hook abaixo.
+
+| Item | Contrato |
+|---|---|
+| Alvo focável | a `<tr>` da lista, `tabIndex={0}` — nunca um filho, nunca um wrapper |
+| Rótulo | `aria-label` = `Abrir {tipo} {número} · {cliente}`; sem cliente ⇒ `—`, nunca string vazia |
+| Teclas | **Enter** e **Space** abrem o drawer da linha **focada** |
+| Space | `preventDefault()` obrigatório — sem ele o browser rola a página um viewport |
+| Anel | `.fx-table tbody tr:focus-visible` → `outline: 2px solid var(--fis)`, `offset -2px`. Já existe em `fiscal-cockpit.css` (Onda 2, CSS compartilhado com o `Nfe.tsx`): esta tela **não** escreve CSS próprio |
+| `:focus-visible`, não `:focus` | clique de mouse não acende anel; `outline: none` em lugar nenhum — o anel do UA é **substituído**, nunca suprimido |
+| `.fx-row-focus` | reservado à nota **ABERTA** no drawer (`openedId === n.id`). **Não** é cursor de teclado e não segue o foco |
+| Células que não abrem | checkbox de seleção e `.fx-row-actions` param a propagação — marcar ou baixar XML/PDF não abre o drawer |
+
+Quem defende este contrato é o `UC-FCKP-11` do [`Cockpit.casos.md`](./Cockpit.casos.md), com 7
+casos de render e 4 mutações provadas.
+
 ## Anti-hooks
 
 - 🚫 Não fazer N+1 query nos sparklines — agrupar com `selectRaw('DATE(emitido_em)...')` 1× e iterar em PHP
@@ -108,3 +139,5 @@ rotas), então o atalho valia para os dois; em produção são telas separadas e
 - 🚫 Não cachear KPI cross-tenant/agregado — a chave de cache DEVE incluir o `business_id` (Tier 0 ADR 0093; canon no código: `CockpitController` usa `fiscal:cockpit:kpis:biz:{id}`, provado por `CockpitCacheTest`). ⚠️ Corrigido 2026-07-06: o anti-hook anterior mandava o OPOSTO ("cache só agregado") — obedecê-lo criaria vazamento cross-tenant. Achado do adversário de arquitetura (V1, session 2026-07-06).
 - 🚫 Não usar LLM pra gerar alertas — receita determinística por estado (cstat/dias/pendentes)
 - 🚫 Não exibir PII (CPF/CNPJ destinatário) em KPI/alerta — usar referências abstratas ("2 rejeições", "5 DF-e")
+- 🚫 Não transformar a linha da lista em `role="button"` para torná-la clicável por teclado — isso apaga o papel `row` e o leitor de tela perde a estrutura da tabela (coluna, cabeçalho, posição). O alvo é linha **focável** (`tabIndex={0}` + `onKeyDown`), como trava o `UC-FCKP-11`
+- 🚫 Não suprimir o anel de foco (`outline: none`) em linha, célula ou controle da lista — o anel do UA pode ser **substituído** pelo do design, nunca removido
