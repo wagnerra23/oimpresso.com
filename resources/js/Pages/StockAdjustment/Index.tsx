@@ -12,6 +12,17 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
+import StatusBadge from '@/Components/shared/StatusBadge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/Components/ui/alert-dialog';
 import { Plus, Eye, Trash2, FileText, PackageMinus } from 'lucide-react';
 
 // ---------- Tipos ----------
@@ -66,16 +77,6 @@ const formatDateTime = (v: string) => {
   return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 };
 
-const TYPE_PILL: Record<AdjustmentType, string> = {
-  normal: 'bg-stone-50 text-stone-700 border-stone-200',
-  abnormal: 'bg-destructive-soft text-destructive-fg border-destructive/20',
-};
-
-const TYPE_LABEL: Record<AdjustmentType, string> = {
-  normal: 'Normal',
-  abnormal: 'Anormal (perda)',
-};
-
 // ---------- Componente ----------
 
 function StockAdjustmentIndex({ rows, filters, business_locations, permissions }: Props) {
@@ -100,9 +101,15 @@ function StockAdjustmentIndex({ rows, filters, business_locations, permissions }
     );
   }, [rows, busca]);
 
-  const onDelete = (id: number) => {
-    if (!confirm('Confirma exclusão deste ajuste de estoque?')) return;
-    router.delete(`/stock-adjustments/${id}`, { preserveScroll: true });
+  // Confirmação destrutiva pelo DS. O `confirm()` nativo não respeita o tema, não é
+  // estilizável e não tem foco/ARIA gerenciados. Padrão imitado de
+  // Essentials/Holidays/Index.tsx, que já usa AlertDialog para o mesmo ato (ADR 0011).
+  const [alvoExclusao, setAlvoExclusao] = useState<AdjustmentRow | null>(null);
+
+  const confirmarExclusao = () => {
+    if (!alvoExclusao) return;
+    router.delete(`/stock-adjustments/${alvoExclusao.id}`, { preserveScroll: true });
+    setAlvoExclusao(null);
   };
 
   return (
@@ -175,9 +182,7 @@ function StockAdjustmentIndex({ rows, filters, business_locations, permissions }
                   <td className="px-2 font-medium text-stone-900">{r.ref_no}</td>
                   <td className="px-2 text-stone-700">{r.location_name}</td>
                   <td className="px-2">
-                    <span className={`inline-flex items-center px-1.5 py-0.5 rounded border text-[11px] font-medium ${TYPE_PILL[r.adjustment_type] ?? TYPE_PILL.normal}`}>
-                      {TYPE_LABEL[r.adjustment_type] ?? r.adjustment_type}
-                    </span>
+                    <StatusBadge kind="ajuste_estoque" value={r.adjustment_type} />
                   </td>
                   <td className="px-2 text-right tabular-nums font-medium">
                     {permissions.view_purchase_price ? brl(r.final_total) : '—'}
@@ -194,7 +199,7 @@ function StockAdjustmentIndex({ rows, filters, business_locations, permissions }
                         <Eye className="h-3.5 w-3.5" />
                       </Button>
                       {permissions.delete && (
-                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => onDelete(r.id)} title="Excluir">
+                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => setAlvoExclusao(r)} title="Excluir">
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       )}
@@ -230,6 +235,27 @@ function StockAdjustmentIndex({ rows, filters, business_locations, permissions }
           </table>
         </CardContent>
       </Card>
+
+      <AlertDialog open={alvoExclusao !== null} onOpenChange={(aberto) => !aberto && setAlvoExclusao(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir ajuste de estoque?</AlertDialogTitle>
+            <AlertDialogDescription>
+              O ajuste {alvoExclusao?.ref_no} será excluído e o estoque movimentado por ele
+              volta ao estado anterior. Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmarExclusao}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
