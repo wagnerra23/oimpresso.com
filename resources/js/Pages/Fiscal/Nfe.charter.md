@@ -136,7 +136,7 @@ Receber a fonte não altera o veredito de aplicação: ele é derivado pelo Desi
 **Só FATO. Mission, Goals, Non-Goals e Anti-hooks intocados** — intenção é de [W].
 
 Dois achados do screenshot de produção que [W] mandou, ambos da mesma família (a tela ocupando
-espaço com informação inexistente). Contrato por UC em [`Nfe.casos.md`](Nfe.casos.md) → `UC-FNFE-12`.
+espaço com informação inexistente). Contrato por UC em [`Nfe.casos.md`](Nfe.casos.md) → `UC-FNFE-13`.
 
 | O que a tela fazia | O que passou a fazer | Por quê |
 |---|---|---|

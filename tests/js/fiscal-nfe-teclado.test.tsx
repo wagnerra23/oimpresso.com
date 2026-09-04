@@ -183,7 +183,7 @@ describe('UC-FNFE-11 · nenhum ícone decorativo chega ao leitor de tela', () =>
   });
 });
 
-describe('UC-FNFE-12 · a lista não promete o que não tem', () => {
+describe('UC-FNFE-13 · a lista não promete o que não tem', () => {
   // Achado de produção 2026-09-04 ([W], screenshot de /fiscal/nfe em biz=1).
   //
   // Os dois casos abaixo são a mesma doença em superfícies diferentes: a tela ocupando espaço
