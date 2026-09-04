@@ -279,18 +279,22 @@ export default function PageHeaderTabs({
                 {ghost.badge != null && (
                   <span
                     className="ml-1.5 inline-block rounded-full px-1.5 min-w-[18px] text-center text-[10.5px] leading-[1.4] font-semibold tabular-nums"
-                    // `.cli-moduletopnav-n` (clientes-page.css): base cinza `--border-2`/`--text-dim`;
-                    // ativo roxo `--accent` + `--accent-fg`.
-                    // O ramo INATIVO nasceu no #4281 (2026-07-14) com os literais
-                    // oklch(0.32 0.01 240)/oklch(0.70 0.01 240) — a resolucao DARK de
-                    // `--border-2`/`--text-dim` congelada. Como o literal nao troca com o tema, no
-                    // LIGHT o pill saia quase preto (L 0.32) sobre tela clara. Bindado no token em
-                    // 2026-09-04. (O `primary` acima segue com literal oklch por hue dinamico
-                    // — fora do escopo desta correcao; aqui o alvo era so o pill do contador.)
+                    // Pill do contador. Autoridade do token = componente `TabBar` do DS
+                    // (`components/TabBar/TabBar.jsx`, ramo `t.count != null`): ativo
+                    // `--accent`/`--accent-fg`, inativo `--bg-2`/`--text-dim`.
+                    // Divergencia conhecida, resolvida a favor do DS: o proto de TELA
+                    // `.cli-moduletopnav-n` (clientes-page.css:114) escreve `--border-2` no fundo
+                    // inativo. Os dois arquivos foram lidos em 2026-09-04; o componente do DS manda
+                    // sobre o CSS de uma tela. Se um dia o DS mudar, este ramo o segue.
+                    // Historico: o ramo INATIVO nasceu no #4281 (2026-07-14) com os literais
+                    // oklch(0.32 0.01 240)/oklch(0.70 0.01 240) — a resolucao DARK congelada, que
+                    // no LIGHT saia quase preta (L 0.32) sobre tela clara. Bindado em token em
+                    // 2026-09-04. (O `primary` acima segue com literal oklch por hue dinamico —
+                    // fora do escopo; aqui o alvo e so o pill do contador.)
                     style={
                       isActive
                         ? { backgroundColor: 'var(--accent)', color: 'var(--accent-fg)' }
-                        : { backgroundColor: 'var(--border-2)', color: 'var(--text-dim)' }
+                        : { backgroundColor: 'var(--bg-2)', color: 'var(--text-dim)' }
                     }
                   >
                     {ghost.badge}
