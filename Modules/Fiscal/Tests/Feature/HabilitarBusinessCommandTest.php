@@ -93,7 +93,20 @@ it('NUNCA atribui fiscal.sped.export ao role piloto (GAP-FISCAL-003 ainda não f
         ->and($role->fresh()->hasPermissionTo('fiscal.sped.export'))->toBeFalse(
             'audit sênior 2026-05-25 GAP-FISCAL-003: fiscal.sped.export NUNCA atribuída '
             . 'enquanto 6 hardcodes Tier-0 não eliminados em SpedIcmsIpiGeneratorService',
+        )
+        // CRÍTICO: fiscal.config.ambiente também não — e este NÃO é dívida com
+        // prazo, é soberania. Trocar o ambiente SEFAZ e substituir o certificado
+        // param a emissão da empresa inteira; conceder é ato de [W] no
+        // /roles/{id}/edit, nunca efeito colateral de um comando de deploy.
+        ->and($role->fresh()->hasPermissionTo('fiscal.config.ambiente'))->toBeFalse(
+            'fiscal.config.ambiente NUNCA é atribuída por comando — só [W] concede na UI',
         );
+
+    // …mas a permission EXISTE na tabela: sem a linha, ela não aparece no
+    // /roles/{id}/edit e [W] não teria onde conceder.
+    expect(\Spatie\Permission\Models\Permission::where('name', 'fiscal.config.ambiente')
+        ->where('guard_name', 'web')->exists())
+        ->toBeTrue('a permission tem de ser provisionada mesmo sem ser atribuída');
 });
 
 it('atribui perms ao role do business correto (cross-tenant scope ADR 0093)', function () {
