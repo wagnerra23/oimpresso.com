@@ -109,7 +109,7 @@ não tem as migrations do NfeBrasil. É lacuna de ambiente, não defeito do test
 |---|---|---|---|---|---|
 | UC-FNFE-01 | a contagem não vaza outro business | `[must]` `[T0]` | CU-FISC-12 | `NfeCockpitMultiTenantTest` | 🧪 |
 | UC-FNFE-02 | janela legal 24h NFC-e / 168h NF-e | `[must]` `[reg]` | CU-FISC-03 | `AcoesContratoTest` | 🧪 |
-| UC-FNFE-03 | o código SEFAZ vira status legível | `[must]` | CU-FISC-02 | `NfeCockpitMultiTenantTest` | 🧪 |
+| UC-FNFE-03 | o código SEFAZ vira status legível — e nunca "Status" nu | `[must]` | CU-FISC-02 | `NfeCockpitMultiTenantTest` (4) · `fiscal-nfe-sefaz-pilula.test.tsx` (7) | 🧪 |
 | UC-FNFE-04 | cancelar exige motivo de 15 a 255 chars | `[must]` | CU-FISC-08 | `AcoesContratoTest` | 🧪 |
 | UC-FNFE-05 | CC-e: texto 15–1000, sequência 1–20 | `[must]` | CU-FISC-09 | `AcoesContratoTest` | 🧪 |
 | UC-FNFE-06 | inutilização valida modelo, faixa e justificativa | `[must]` | CU-FISC-10 | `AcoesContratoTest` | 🧪 |
@@ -174,11 +174,47 @@ cancelável só até 24h e NF-e (modelo 55) até 168h da emissão; nota não-aut
 pelo método **do Controller** (não por uma cópia da fórmula dentro do teste).
 
 ## UC-FNFE-03 — O código SEFAZ vira status legível com o tom certo
-Status: 🧪 (`NfeCockpitMultiTenantTest::UC-FNFE-03 · sefazCodes retorna mapa…` — **passa**)
-Dado a pílula SEFAZ · Quando lê o mapa de códigos · Então contém ao menos 100/110/220/539/691/778/999,
-com 100 = `ok`, 220 = `bad` e 691 = `warn`. Âncora: charter Goal 2 + UX targets (verde autorizada ·
-âmbar atenção · vermelho rejeição).
-**Pronto quando:** o mapa do Controller traz os 7 códigos e os tons não invertem.
+Status: 🧪 (`NfeCockpitMultiTenantTest::UC-FNFE-03 · …` 4 casos — **passam** · CT 100, 20 assertions ·
+`fiscal-nfe-sefaz-pilula.test.tsx` 7 casos — **passam** · lane `Fiscal Teclado Gate`)
+
+Dado a lista de notas · Quando renderiza a pílula SEFAZ · Então **nenhuma** linha mostra rótulo
+genérico: o cStat conhecido vira o **texto oficial da SEFAZ**, o desconhecido vira o status de
+domínio com o número preservado, e a nota sem cStat vira só o status de domínio.
+O tooltip traz o `motivo` que a SEFAZ gravou naquela nota.
+
+**Pronto quando:** o rótulo (`.fx-sefaz .lbl`) nunca é `"Status"` nem vazio, e o texto de cada
+código vem da tabela oficial — não de um apelido escrito à mão.
+
+**Âncora de contrato (externa ao código):** Manual de Orientação do Contribuinte / tabela cStat da
+SEFAZ, distribuída em `vendor/nfephp-org/sped-nfe/storage/cstat.json` (528 códigos) com o SDK que o
+projeto usa pra transmitir. É de lá que o `SefazCstatService` deriva rótulo e tom (`status: "1"` =
+aceito), e é contra os textos do MOC — transcritos no teste — que o caso asserta.
+
+### Reescrito em 2026-09-04 — a redação anterior descrevia o defeito, não o contrato
+
+A versão de cima dizia *"contém ao menos 100/110/220/539/691/778/999, com 691 = `warn`"*. Duas
+coisas estavam erradas ali, e o teste que a implementava passava verde sobre as duas:
+
+| O que o caso pedia | O que era verdade | Como se soube |
+|---|---|---|
+| presença de 7 chaves | presença **não** é legibilidade — o mapa tinha 778 e a tela dizia "CST/CFOP inválido" quando o texto oficial é "Informado NCM inexistente" | tabela cStat oficial; e a própria SEFAZ gravou `motivo="Rejeicao: Informado NCM inexistente [nItem:1]"` na nota id=8 de biz=1 |
+| `691 = warn` | 691 é **rejeição** (`status: "0"` na tabela oficial) — o âmbar vinha de acreditar que o código era "NCM divergente"; ele é "Chave de Acesso da NF-e diverge da Chave de Acesso do EPEC" | idem |
+
+O tom deixou de ser digitado e passa a ser **derivado** do campo `status` da tabela, com âmbar só
+para transitório/indisponibilidade (103/105/108/109) — decisão de UI declarada no serviço. Isso
+**cumpre** o UX target do charter (*"vermelho = rejeição"*) melhor que a lista literal cumpria: o
+691 estava no âmbar por erro de classificação, não por escolha. Precedência aplicada — *teste verde
+> casos > charter > SPEC* — com o charter reconciliado no mesmo PR.
+
+**Mordida provada (contrafactual, os dois lados):** reintroduzir os apelidos à mão no
+`SefazCstatService` deixa `UC-FNFE-03` **vermelho no Pest** (`Failed asserting that two strings are
+identical`, 1 failed / 4 passed); reintroduzir o `?? { label: 'Status' }` no `Nfe.tsx:287` deixa
+**4 dos 7 casos vitest vermelhos** (`expected 'Status' not to be 'Status'`). Restaurar devolve
+5/5 e 7/7 — controle positivo rodado nos dois sentidos.
+
+**Limite honesto:** o Pest prova a ORIGEM (o backend traduz pela tabela oficial) e o vitest prova o
+CONSUMO (a tela nunca mostra rótulo genérico). Nenhum dos dois sozinho fecha o UC, e o vitest monta
+o mapa à mão — se o backend parar de servi-lo, quem cai é o Pest.
 
 ## UC-FNFE-04 — Cancelar exige motivo de 15 a 255 caracteres
 Status: 🧪 (`AcoesContratoTest::UC-FNFE-04 · REJEITA <15` / `REJEITA >255` / `ACEITA válido` — **passam**)

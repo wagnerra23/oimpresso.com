@@ -443,20 +443,26 @@ export function explainFailure({ scope, uncoveredScreens = [], steps = [], grayZ
     ] };
   }
 
+  // A ZONA CINZA DEIXOU DE SER NARRATIVA DE CAUSA — 2026-09-04 (#6757, squash 5a28ae3c91).
+  //
+  // Enquanto ela bloqueava, vencer o `step-nomeado` estava CERTO: a cinza era de fato a causa
+  // do vermelho (foi o caso #5976). Desde que o workflow fixa VISREG_GRAY_APPROVED='1' em
+  // `pull_request`, a banda do meio não reprova mais — logo, se um step instrumentado ficou
+  // vermelho, a causa é OUTRA (τ_alto · dimensão divergente · baseline ausente · não montou).
+  //
+  // Manter a precedência antiga faria o comentário do PR anunciar "ZONA CINZA (bloqueia até
+  // revisão do [W])" e mandar aplicar um label que virou no-op, ESCONDENDO a regressão real —
+  // exatamente contra o que o docblock acima promete ("não vou escolher uma narrativa que não
+  // medi"). E como a cinza está não-vazia em quase todo run, esse ramo venceria quase sempre.
+  // A cinza passa a ANEXO informativo; a narrativa é o step que de fato reprovou.
   const cinza = grayZone.filter((item) => item?.screen);
-  if (cinza.length > 0) {
-    return { modo: 'zona-cinza', passo, corpo: [
-      '## 🟡 Gate visual — ZONA CINZA (bloqueia até revisão do [W])', '', linhaPasso, '',
-      `**${cinza.length} tela(s)** ficaram ENTRE os limiares (τ_baixo..τ_alto). Zona cinza não é regressão clara: bloqueia porque exige olho humano.`,
-      '', '| tela | diff medido |', '|---|---|',
-      ...cinza.map((item) => `| \`${item.screen}\` | ${(Number(item.ratio) * 100).toFixed(4)}% |`),
-      '', '### Como resolver',
-      '1. Baixe o artifact `pixel-diff-views` e olhe o diff-view de cada tela acima.',
-      '2. Aprovada pelo [W]? aplique o label `visreg-gray-approved` — ou regenere a baseline pelo **modo update**.',
-      `3. ${aprovacao}`,
-      '', '_Se ALÉM da zona cinza houver tela acima de τ_alto (regressão clara), ela está no log do step — esta lista cobre só a faixa do meio._',
-    ] };
-  }
+  const anexoCinza = cinza.length === 0 ? [] : [
+    '', `### 🟡 Também houve zona cinza — ${cinza.length} tela(s)`,
+    '', '**Não é a causa deste vermelho.** Entre τ_baixo e τ_alto; se bloqueia depende de '
+      + '`VISREG_GRAY_APPROVED` (`.github/workflows/visual-regression.yml`). Listado para revisão, não como cobrança.',
+    '', '| tela | diff medido |', '|---|---|',
+    ...cinza.map((item) => `| \`${item.screen}\` | ${(Number(item.ratio) * 100).toFixed(4)}% |`),
+  ];
 
   return { modo: 'step-nomeado', passo, corpo: [
     `## 🔴 Gate visual reprovou em \`${passo}\``, '', linhaPasso, '',
@@ -465,6 +471,7 @@ export function explainFailure({ scope, uncoveredScreens = [], steps = [], grayZ
     '1. Abra o log do step acima — ele nomeia a tela e o diff medido.',
     '2. Baixe o artifact `pixel-diff-views` para comparar lado-a-lado.',
     `3. ${aprovacao}`,
+    ...anexoCinza,
   ] };
 }
 
@@ -842,10 +849,17 @@ function selfTest() {
   });
   const texto5976 = caso5976.corpo.join(chr10);
   assert.notEqual(caso5976.modo, 'sem-contrato', 'global NUNCA escolhe a narrativa de contrato (o bug de 2026-08-20)');
-  assert.equal(caso5976.modo, 'zona-cinza');
+  // Até 2026-09-04 este assert exigia 'zona-cinza', e estava certo: a cinza BLOQUEAVA, logo era
+  // a causa. Desde o #6757 (VISREG_GRAY_APPROVED='1' em pull_request) ela não reprova mais —
+  // manter a narrativa antiga esconderia a regressão real atrás de uma instrução no-op.
+  assert.equal(caso5976.modo, 'step-nomeado', 'cinza não bloqueia mais: a narrativa é o step que reprovou');
   assert.equal(caso5976.passo, 'Pixel-diff', 'o comentário tem que NOMEAR o step que reprovou');
-  assert.ok(texto5976.includes('0.8261%'), 'zona cinza tem que trazer o ratio medido');
+  assert.ok(texto5976.includes('0.8261%'), 'a zona cinza segue listada, com o ratio medido');
   assert.ok(!texto5976.includes('Financeiro/Dashboard'), 'não pode cobrar baseline de tela que não reprovou');
+  // CONTROLES NEGATIVOS — as duas frases que o #6757 tornou falsas não podem voltar.
+  assert.ok(!texto5976.includes('visreg-gray-approved'), 'não pode mandar aplicar label que virou no-op');
+  assert.ok(!texto5976.includes('bloqueia até revisão'), 'não pode afirmar bloqueio que não existe mais');
+  assert.ok(texto5976.includes('Não é a causa deste vermelho'), 'a cinza tem que se declarar não-causa');
   // Controle POSITIVO: em targeted a cobrança de contrato TEM que continuar aparecendo.
   assert.equal(explainFailure({ scope: 'targeted', uncoveredScreens: ['Cliente'], steps: [{ nome: 'Canário', outcome: 'failure' }] }).modo, 'sem-contrato');
   assert.equal(explainFailure({ uncoveredScreens: ['Cliente'], steps: [] }).modo, 'sem-contrato', 'scope ausente = conservador, igual ao canário');
