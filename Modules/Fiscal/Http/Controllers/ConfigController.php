@@ -99,6 +99,16 @@ class ConfigController extends Controller
             ] : null,
             // Painel fiscal — espelha CertificadoController::status() do NfeBrasil
             'painel' => $painel,
+            // Card "Envio de documentos" (4º card da região `fiscal-config-cert-regime`).
+            // LEITURA REAL das flags que governam os listeners que mandam o DANFE:
+            // `EnviarDanfePorEmail` (NFe 55) e `EnviarDanfeNFCePorEmail` (NFC-e 65).
+            // Ambas vivem em Modules/NfeBrasil/Config/config.php — são de DEPLOY, não
+            // por business; a tela DIZ isso em texto, porque um selo por-empresa aqui
+            // mentiria sobre o escopo.
+            'envioDocumentos' => [
+                'nfeAtivo'  => (bool) config('nfebrasil.email_danfe_on_autorizada', true),
+                'nfceAtivo' => (bool) config('nfebrasil.email_danfe_nfce_on_autorizada', false),
+            ],
             // Onda 2 I — séries fiscais (tab "Séries" do ModuleTopNav).
             // TODO[CL]: substituir por query real (business.numero_serie_nfe +
             // possíveis tabelas de séries auxiliares).
