@@ -157,6 +157,64 @@ dimensiona por `width: '100%'` sem prop de largura (o ribbon quer 56px fixos); f
 decorativa. Sobrepor isso significaria editar o componente do DS — soberania [W] — e mexer nos seus
 dois consumidores vivos.
 
+## Contrato do selo de procedência (CU-FISC-16 · decisão [W] 2026-09-04)
+
+Destilado do alvo `prototipo-ui/cowork/fiscal-page.jsx` (o botão do cabeçalho, `:60`, e as 7
+chamadas de `window.FxProc`) + `fiscal-actions.jsx:93-99` (o componente) e `fiscal-data.jsx:194`
+(o vocabulário `kind`/`label`/`explica`).
+
+O SDD §5.4.1 abriu três saídas: (a) marcar a procedência, (b) esconder a superfície atrás
+de flag, (c) declarar Non-Goal. **O que [W] decidiu, em 2026-09-04:** construir a (a), e
+descartar a **(c)** — a autorização foi *"construir; a alternativa (declarar Non-Goal por
+escrito) foi descartada"*.
+
+⚠️ **A (b) NÃO foi descartada por [W] — foi descartada pelo agente, e a razão é esta:**
+esconder a superfície remove a informação em vez de qualificá-la, e o `CU-FISC-16` pede o
+oposto — *"a contadora precisa conseguir DIZER o que é leitura real e o que é demonstração"*.
+Uma superfície escondida não é dizível. A âncora dessa recusa é o CU, não uma decisão de
+produto; se [W] quiser a (b) para alguma superfície, é decisão nova e legítima, e este
+charter não a bloqueia.
+
+| Item | Contrato |
+|---|---|
+| Âncora do botão | `data-contract="procedencia"` no cabeçalho (`FxShell`) |
+| Âncora do selo | `data-contract="procedencia-selo"`, com `data-origem` e `data-superficie` |
+| Copy do botão | `Procedência` |
+| Título do botão | `Mostra, por superfície, o que é leitura real e o que é demonstração` |
+| Estado do botão | `aria-pressed` — é toggle, não comando |
+| Preferência | `localStorage["oimpresso.fiscal.procedencia"]`, valores `"1"` / `"0"` |
+| Alcance da preferência | vale para as telas do módulo Fiscal, e sobrevive à navegação entre elas |
+| Copy do selo | `leitura real` · `demonstração` — vocabulário fechado, 2 valores |
+| Forma do selo | `Badge` do DS com `dot`, variante `success` (real) / `warning` (demonstração) |
+| Explicação | uma frase por superfície, em `Tooltip` do DS |
+| Foco | o selo é focável (`tabIndex={0}`) — o tooltip abre no **foco**, não só no hover |
+| Estado desligado | **nó ausente** — nenhum selo é renderizado |
+| Botão em tela sem mapa | **nó ausente** — botão inerte é pior que botão ausente |
+
+**O selo ACOMPANHA o número — nunca o esconde nem o substitui.** Esta é a metade do contrato
+que decide se a saída (a) é honesta: um selo que ocultasse a superfície viraria a saída (b)
+disfarçada — e a (b) é justamente a saída que o agente recusou acima, pelo CU-FISC-16. O `writeOffSummary` continua exibindo 2.470 candidatos; o
+que muda é que agora a tela diz de onde eles vêm.
+
+**A procedência é DECLARADA PELO CONTROLLER, nunca inferida na tela.** O motivo é medido:
+quando o [#6541](https://github.com/wagnerra23/oimpresso.com/pull/6541) trocou a lista mockada
+pelo `NotasUnifiedService`, o protótipo (`fiscal-data.jsx:198` — *"Lista unificada … é mock do
+Controller"*) e o SDD §5.4.1 continuaram afirmando "demonstração" para `notas` e
+`savedViewCounts`. Se a tela adivinhasse, herdaria esse atraso e passaria a **mentir com
+selo** — pior que não ter selo. Declarando a poucas linhas do `Inertia::render`, quem troca o
+dado troca a declaração no mesmo diff, e o `UC-FCKP-13` reprova quem esquecer.
+
+**Cobertura declarada (medida em 2026-09-04, tip `d23bc3df34`):** 8 superfícies desta tela,
+das quais **4 são demonstração** — e são exatamente os 4 métodos `mock*` do
+`CockpitController`. A prop `sparklines` ficou de fora **por um motivo datado, não
+permanente**: naquela data ela era servida e real, mas a Page a recebia sem consumir
+(`_pendente_w` do `fiscal-cockpit.contract.json`), e selo sem superfície visível não tem
+onde pousar. O [#6732](https://github.com/wagnerra23/oimpresso.com/pull/6732) está em voo
+para desenhá-las; **quem mergear por último acrescenta a chave `spark`** (`origem: real`)
+ao mapa do controller e a sela na Page — a entrada pronta está no docblock de
+`CockpitController::procedencia()`. Dizer aqui, em presente, que "a tela não desenha
+sparkline" viraria afirmação falsa no dia daquele merge, sem nada acusar (LC-10).
+
 ## Anti-hooks
 
 - 🚫 Não fazer N+1 query nos sparklines — agrupar com `selectRaw('DATE(emitido_em)...')` 1× e iterar em PHP
@@ -166,3 +224,7 @@ dois consumidores vivos.
 - 🚫 Não exibir PII (CPF/CNPJ destinatário) em KPI/alerta — usar referências abstratas ("2 rejeições", "5 DF-e")
 - 🚫 Não transformar a linha da lista em `role="button"` para torná-la clicável por teclado — isso apaga o papel `row` e o leitor de tela perde a estrutura da tabela (coluna, cabeçalho, posição). O alvo é linha **focável** (`tabIndex={0}` + `onKeyDown`), como trava o `UC-FCKP-11`
 - 🚫 Não suprimir o anel de foco (`outline: none`) em linha, célula ou controle da lista — o anel do UA pode ser **substituído** pelo do design, nunca removido
+
+- 🚫 Não inferir procedência na tela a partir do nome ou do formato da prop — ela vem declarada por `CockpitController::procedencia()`. Adivinhar reintroduz o atraso que o `#6541` já provou existir
+- 🚫 Não usar o selo para esconder, borrar ou substituir o número que ele descreve — isso converte o selo na saída (b), e o `CU-FISC-16` pede que a contadora consiga **dizer** o que é o quê; superfície escondida não é dizível. (Recusa do agente ancorada no CU — **não** é decisão [W] registrada.)
+- 🚫 Não desenhar o botão "Procedência" em tela que não declara o mapa — toggle que não acende selo nenhum ensina o operador a ignorar o botão
