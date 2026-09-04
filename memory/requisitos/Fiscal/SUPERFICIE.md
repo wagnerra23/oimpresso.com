@@ -14,7 +14,7 @@ module: Fiscal
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Fiscal/**` + `resources/js/Pages/Fiscal/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 96 arquivos em 12 papéis.
+**Total mapeado:** 98 arquivos em 12 papéis.
 
 ## Controllers — 11
 
@@ -65,10 +65,11 @@ module: Fiscal
 - [Nfse.tsx](../../../resources/js/Pages/Fiscal/Nfse.tsx)
 - [Sped.tsx](../../../resources/js/Pages/Fiscal/Sped.tsx)
 
-## Componentes / apoio de tela — 15
+## Componentes / apoio de tela — 16
 
 - [AlertasFiscais.tsx](../../../resources/js/Pages/Fiscal/_components/AlertasFiscais.tsx)
 - [CmdKPalette.tsx](../../../resources/js/Pages/Fiscal/_components/CmdKPalette.tsx)
+- [DebitosConhecidos.tsx](../../../resources/js/Pages/Fiscal/_components/DebitosConhecidos.tsx)
 - [EventosDrawer.tsx](../../../resources/js/Pages/Fiscal/_components/EventosDrawer.tsx)
 - [FxShell.tsx](../../../resources/js/Pages/Fiscal/_components/FxShell.tsx)
 - [InutilizacaoModal.tsx](../../../resources/js/Pages/Fiscal/_components/InutilizacaoModal.tsx)
@@ -108,7 +109,7 @@ module: Fiscal
 - 25 em [Modules/Fiscal/Tests/Feature/](../../../Modules/Fiscal/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 14
+## Demais arquivos (manifestos, docs, assets e misc) — 15
 
 - [fiscal.php](../../../Modules/Fiscal/Resources/lang/pt-BR/fiscal.php)
 - [fiscal.php](../../../Modules/Fiscal/Resources/lang/pt/fiscal.php)
@@ -119,6 +120,7 @@ module: Fiscal
 - [SCOPE.md](../../../memory/requisitos/Fiscal/SCOPE.md)
 - [botao-fiscal.ts](../../../resources/js/Pages/Fiscal/_lib/botao-fiscal.ts)
 - [chip-filtro.ts](../../../resources/js/Pages/Fiscal/_lib/chip-filtro.ts)
+- [debitos-conhecidos.ts](../../../resources/js/Pages/Fiscal/_lib/debitos-conhecidos.ts)
 - [fiscal-helpers.ts](../../../resources/js/Pages/Fiscal/_lib/fiscal-helpers.ts)
 - [icones-alerta.ts](../../../resources/js/Pages/Fiscal/_lib/icones-alerta.ts)
 - [procedencia.ts](../../../resources/js/Pages/Fiscal/_lib/procedencia.ts)

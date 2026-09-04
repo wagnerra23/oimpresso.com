@@ -1,0 +1,127 @@
+name: Fiscal Débitos Gate — a tela declara a própria dívida, e a lista é derivada (vitest · JUnit)
+
+# O QUE TRAVA: o bloco "Débitos conhecidos desta tela" das sete telas do Fiscal — que ele
+# exista onde há dívida, que NÃO desenhe nó nenhum onde não há, que cada item exibido ainda
+# seja um bullet `[BACKLOG]` VIVO no `<Tela>.casos.md` que ele cita, e que dívida PAGA
+# (bullet tachado) suma da tela. Contrato por UC em
+# resources/js/Pages/Fiscal/Eventos.casos.md (UC-FEVT-08).
+#
+# POR QUE OS SETE `.casos.md` ESTÃO NO GATILHO, e essa é a parte que não é óbvia: eles são a
+# FONTE da lista, não um artefato lateral. O caminho por onde este gate ficaria mudo é
+# exatamente alguém editar um bullet `[BACKLOG]` sem regerar o `.ts` — se o `.casos.md` não
+# acorda a lane, o drift entra em `main` verde e a tela passa a afirmar dívida que já foi
+# paga (ou a esconder dívida nova). É a armadilha do gate mudo que o `sells-v3-dominio-gate`
+# registra ter reincidido 4 vezes; aqui ela é o cenário PRINCIPAL, não o acessório.
+#
+# POR QUE A LANE EXISTE: nenhuma lane roda `vitest run` sem argumento — cada uma aponta pro
+# próprio arquivo — e não há lane vitest dona do Fiscal (`fiscal-teclado-gate` lista os
+# arquivos do teclado, um a um; `modules-pest.yml` casa `Pages/Fiscal` mas é Pest/PHP, outro
+# runtime). Estender um dono existente significaria alargar o gatilho de um gate alheio pros
+# sete `.casos.md`, acordando-o a cada edição de prosa. Spec sem lane nunca executa, e
+# verde-por-não-execução (LC-13) é pior que teste ausente porque parece cobertura.
+#
+# Comandos locais:
+#   node scripts/governance/fiscal-debitos-derive.mjs --selftest
+#   node scripts/governance/fiscal-debitos-derive.mjs --check
+#   npx vitest run tests/js/fiscal-debitos-conhecidos.test.tsx
+#
+# Advisory (ADR 0271/0314): declarar dívida é transparência, não Tier-0 — nenhum caminho aqui
+# move dinheiro, estoque ou tenant, e a tela é de LEITURA. Promoção a required é flip [W] com
+# mordida real coletada em main (ADR 0336 DR-2); não se auto-promove.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, reopened, ready_for_review, synchronize]
+    paths:
+      # A FONTE — sem estes sete, editar um bullet não acorda o gate que o defende.
+      - 'resources/js/Pages/Fiscal/Cockpit.casos.md'
+      - 'resources/js/Pages/Fiscal/Config.casos.md'
+      - 'resources/js/Pages/Fiscal/Dfe.casos.md'
+      - 'resources/js/Pages/Fiscal/Eventos.casos.md'
+      - 'resources/js/Pages/Fiscal/Nfe.casos.md'
+      - 'resources/js/Pages/Fiscal/Nfse.casos.md'
+      - 'resources/js/Pages/Fiscal/Sped.casos.md'
+      # O gerador, o arquivo gerado e quem o desenha.
+      - 'scripts/governance/fiscal-debitos-derive.mjs'
+      - 'resources/js/Pages/Fiscal/_lib/debitos-conhecidos.ts'
+      - 'resources/js/Pages/Fiscal/_components/DebitosConhecidos.tsx'
+      - 'resources/js/Pages/Fiscal/_components/FxShell.tsx'
+      - 'tests/js/fiscal-debitos-conhecidos.test.tsx'
+      - 'tests/js/setup.ts'
+      - '.github/workflows/fiscal-debitos-gate.yml'
+  push:
+    branches: [main]
+    # o workflow entra no gatilho de push porque é o run de `main` que o publisher colhe:
+    # mexer na lane sem re-rodar deixaria o artifact envelhecer até expirar, e lane sem
+    # artifact é lane pulada no publisher.
+    #
+    # A lista é repetida à mão, e não por anchor YAML (`&alvos`/`*alvos`): medido em
+    # 2026-09-04, ZERO dos workflows deste repo usa anchor, e um gate novo não é o lugar de
+    # estrear um recurso de parser não exercitado aqui. Mexeu numa lista, mexa na outra.
+    paths:
+      - 'resources/js/Pages/Fiscal/Cockpit.casos.md'
+      - 'resources/js/Pages/Fiscal/Config.casos.md'
+      - 'resources/js/Pages/Fiscal/Dfe.casos.md'
+      - 'resources/js/Pages/Fiscal/Eventos.casos.md'
+      - 'resources/js/Pages/Fiscal/Nfe.casos.md'
+      - 'resources/js/Pages/Fiscal/Nfse.casos.md'
+      - 'resources/js/Pages/Fiscal/Sped.casos.md'
+      - 'scripts/governance/fiscal-debitos-derive.mjs'
+      - 'resources/js/Pages/Fiscal/_lib/debitos-conhecidos.ts'
+      - 'resources/js/Pages/Fiscal/_components/DebitosConhecidos.tsx'
+      - 'resources/js/Pages/Fiscal/_components/FxShell.tsx'
+      - 'tests/js/fiscal-debitos-conhecidos.test.tsx'
+      - 'tests/js/setup.ts'
+      - '.github/workflows/fiscal-debitos-gate.yml'
+
+concurrency:
+  group: fiscal-debitos-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  debitos:
+    name: Fiscal · débitos declarados (derivação + render)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install deps
+        run: npm ci
+
+      # O selftest roda ANTES do --check de propósito: se o parser regrediu, o --check
+      # também falharia, mas por um motivo que a mensagem dele não explica. Aqui a ordem
+      # diz onde quebrou.
+      - name: parser dos bullets [BACKLOG] (bite-test)
+        run: node scripts/governance/fiscal-debitos-derive.mjs --selftest
+
+      - name: debitos-conhecidos.ts em dia com os .casos.md
+        run: node scripts/governance/fiscal-debitos-derive.mjs --check
+
+      # `--reporter=default` mantém a saída legível pra humano; `--reporter=junit` escreve o
+      # XML que vira veredito por-UC no manifesto que o G-7 do casos-gate (REQUIRED) lê. Sem
+      # o par, o UC-FEVT-08 valeria 0 no painel para sempre.
+      - name: o bloco de débitos nas 7 telas (vitest/jsdom)
+        run: |
+          npx vitest run \
+            tests/js/fiscal-debitos-conhecidos.test.tsx \
+            --reporter=default \
+            --reporter=junit \
+            --outputFile=test-results/vitest-fiscal-debitos-junit.xml
+
+      # `!cancelled()` (não `success()`): o veredito de um run VERMELHO é justamente o que o
+      # G-7 precisa registrar — `Status: ✅` com teste vermelho é a mentira que ele existe
+      # pra pegar.
+      - name: Upload JUnit (veredito por-UC — casos:results)
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-fiscal-debitos-junit
+          path: test-results/vitest-fiscal-debitos-junit.xml
+          retention-days: 14
