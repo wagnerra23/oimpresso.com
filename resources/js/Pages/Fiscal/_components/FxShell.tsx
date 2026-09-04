@@ -4,6 +4,8 @@
 
 import { router } from '@inertiajs/react';
 import { btnProps } from '../_lib/botao-fiscal';
+import { type MapaProcedencia } from '../_lib/procedencia';
+import { BotaoProcedencia } from './SeloProcedencia';
 import { FX_PAGES } from '../_lib/paginas-fiscais';
 import { Button } from '@/Components/ui/button';
 import { Search } from 'lucide-react';
@@ -17,6 +19,16 @@ interface FxShellProps {
   crumb?: string;
   env?: string;
   envTone?: 'ok' | 'warn' | 'bad';
+  /** Selo de procedência do próprio `env` — a situação da SEFAZ é uma superfície como as outras. */
+  envSelo?: ReactNode;
+  /**
+   * CU-FISC-16 — mapa superfície → procedência servido pelo controller da tela.
+   *
+   * Presente e não-vazio ⇒ o botão "Procedência" aparece no cabeçalho. Ausente ⇒ não
+   * aparece, de propósito: as telas que ainda não declararam o mapa ganhariam um toggle
+   * que não acende selo nenhum — e botão inerte é pior que botão ausente.
+   */
+  procedencia?: MapaProcedencia;
   actions?: ReactNode;
   cheats?: Array<{ keys: string[]; label: string }>;
   counts?: Partial<Record<string, number | null>>;
@@ -36,6 +48,8 @@ export default function FxShell({
   crumb,
   env,
   envTone = 'ok',
+  envSelo,
+  procedencia,
   actions,
   cheats = DEFAULT_CHEATS,
   counts = {},
@@ -67,7 +81,12 @@ export default function FxShell({
           {crumb && <span className="fx-hero-crumb">{crumb}</span>}
         </div>
         <div className="fx-hero-r">
-          {env && <span className={`fx-env ${envTone}`}>{env}</span>}
+          {env && (
+            <span className={`fx-env ${envTone}`}>
+              {env}
+              {envSelo}
+            </span>
+          )}
           <Button
             type="button"
             {...btnProps('ghost')} className="fx-cmdk-btn"
@@ -81,6 +100,7 @@ export default function FxShell({
             <span>Buscar</span>
             <kbd>⌘K</kbd>
           </Button>
+          {procedencia && Object.keys(procedencia).length > 0 && <BotaoProcedencia />}
           {actions}
         </div>
       </header>
