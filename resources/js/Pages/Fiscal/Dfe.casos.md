@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
 last_run: "2026-09-04"
-last_run_ci: "4 UC executados e VERDES no CT 100 (MySQL) — UC-FDFE-06/07 (3 passed / 9 assertions) e UC-FDFE-08/09 (5 passed / 27 assertions), ambos com bite-test que morde. Os UC-01..05 seguem 🧪, veredito pendente da lane Pest Fiscal + suíte noturna."
+last_run_ci: "5 UC executados nesta corrida, em duas lanes diferentes — UC-FDFE-06 (vitest/jsdom: 4 casos verdes + 3 mutações provando que morde), UC-FDFE-07/08 (Pest no CT 100/MySQL: 3 passed / 9 assertions) e UC-FDFE-09/10 (Pest no CT 100/MySQL: 5 passed / 27 assertions). Os três blocos têm bite-test: mutar 1 das 4 chamadas → 1 failed nos 07/08; no 10, derrubar AS DUAS camadas de isolamento (o `where` explícito E o global scope) → 1 failed, porque cada uma segura sozinha. Os UC-FDFE-01..05 NÃO foram re-executados: são Pest e Pest não roda local (ADR 0062); o veredito deles segue pendente da lane Pest Fiscal (advisory) + suíte noturna CT 100, como já estava."
 related_us: [US-FISCAL-008, US-FISCAL-012]
 ---
 
@@ -39,6 +39,8 @@ related_us: [US-FISCAL-008, US-FISCAL-012]
 |---|---|---|
 | `DfeControllerTest` · `AcoesControllerTest` · `GatesPermissaoFiscalTest` | `Pest Fiscal` (SQLite — os que tocam banco **pulam**) + suíte noturna CT 100 (MySQL) | ❌ **não** — `Pest Fiscal` não está no [baseline](../../../../governance/required-checks-baseline.json): reprova visível, **advisory** |
 
+| `fiscal-debitos-conhecidos.test.tsx` (novo) | `Fiscal Débitos Gate` (vitest/jsdom) | ❌ **não** — advisory |
+
 > Nenhum teste desta tela está na lane **required** (`PHP / Pest (NfeBrasil · MySQL)`). O ratchet-up é proposta ao [W] (SDD §8.3).
 
 ## Rastreabilidade
@@ -50,10 +52,16 @@ related_us: [US-FISCAL-008, US-FISCAL-012]
 | UC-FDFE-03 | só as 4 ações SEFAZ | `[must]` | CU-FISC-07 | `AcoesControllerTest` | 🧪 |
 | UC-FDFE-04 | quando a justificativa é exigida | `[must]` | CU-FISC-07 | `AcoesControllerTest` | 🧪 |
 | UC-FDFE-05 | gate de permissão da tela | `[must]` `[T0]` | CU-FISC-13 | `GatesPermissaoFiscalTest` | 🧪 |
-| UC-FDFE-06 | a manifestação chega ao motor | `[must]` | CU-FISC-07 | `AcoesDfeManifestacaoTest` | 🧪 |
-| UC-FDFE-07 | isolamento **da ação**, não só da lista | `[must]` `[T0]` | CU-FISC-12 | `AcoesDfeManifestacaoTest` | 🧪 |
-| UC-FDFE-08 | falha parcial do lote é **nomeada** | `[must]` | CU-FISC-07 | `AcoesDfeLoteTest` | 🧪 |
-| UC-FDFE-09 | isolamento dentro do lote | `[must]` `[T0]` | CU-FISC-12 | `AcoesDfeLoteTest` | 🧪 |
+| UC-FDFE-06 | a tela avisa que depende de decisão [W] | `[should]` | **—** (ver nota) | `fiscal-debitos-conhecidos.test.tsx` | 🧪 |
+
+> **Por que o `UC-FDFE-06` tem `—` na coluna CU:** os CU do SDD §6 descrevem o que a tela **faz
+> pelo usuário fiscal** (listar DF-e, manifestar, filtrar). Este caso é de **transparência sobre a
+> própria tela** — meta-comportamento que nenhum CU cobre, porque não existia quando o SDD foi
+> escrito. Inventar um CU plausível aqui seria fabricar âncora, que é o oposto do que este bloco faz.
+| UC-FDFE-07 | a manifestação chega ao motor | `[must]` | CU-FISC-07 | `AcoesDfeManifestacaoTest` | 🧪 |
+| UC-FDFE-08 | isolamento **da ação**, não só da lista | `[must]` `[T0]` | CU-FISC-12 | `AcoesDfeManifestacaoTest` | 🧪 |
+| UC-FDFE-09 | falha parcial do lote é **nomeada** | `[must]` | CU-FISC-07 | `AcoesDfeLoteTest` | 🧪 |
+| UC-FDFE-10 | isolamento dentro do lote | `[must]` `[T0]` | CU-FISC-12 | `AcoesDfeLoteTest` | 🧪 |
 
 ---
 
@@ -110,7 +118,38 @@ related_us: [US-FISCAL-008, US-FISCAL-012]
 
 ---
 
-## UC-FDFE-06 — Clicar em manifestar faz a manifestação chegar ao motor `[must]`
+## UC-FDFE-06 — A tela avisa que depende de decisão [W] `[should]`
+
+**Dado** que esta tela tem, em `## Backlog` abaixo, item cujo marcador diz `decisão [W]`
+**Quando** a contadora abre `/fiscal/dfe`
+**Então** ela lê "Decisão [W] pendente" com esse item — em vez de tomar o estado provisório
+(a aba Histórico servida por dado de demonstração) pelo definitivo.
+
+- **O que defende:** que o aviso saia da **mesma fonte** do bloco de dívida — os bullets
+  `[BACKLOG]` cujo marcador contém literalmente `decisão [W]`, marcados `decisao: true` por
+  [`fiscal-debitos-derive.mjs`](../../../../scripts/governance/fiscal-debitos-derive.mjs).
+  Nada é escrito à mão. São **4** hoje, e três são exatamente as três instâncias que o
+  protótipo desenha (DF-e Histórico · Config Séries · Config Ambiente); a quarta (as 4
+  superfícies de demonstração do Cockpit) o protótipo ainda não pintou — a derivação a achou.
+- **Um item, um bloco:** o `DebitosConhecidos` filtra `!decisao`, então nenhum item aparece nos
+  dois. O caso do `Config` (5 débitos, 2 decisões → 3 + 2, interseção vazia, soma = 5) é o que
+  guarda isso.
+- **Estado vazio:** nó **ausente**. Tela sem decisão em aberto não desenha o lugar onde decisões
+  apareceriam — isso leria como "nada pendente por ora", que é afirmação, não ausência.
+- **Delta consciente vs o protótipo:** ali o bloco vive **dentro da aba** a que se refere; aqui
+  resolve **por tela**, porque os `.casos.md` não carregam o vínculo com a aba e derivá-lo do
+  texto seria adivinhação. E a copy perde o "no vivo" do protótipo — em produção esse dêitico
+  não tem referente, o leitor já está no vivo.
+- **Mordida provada** (3 mutações, restore byte-idêntico → working tree limpo): remover o render
+  do `FxShell` → **3 vermelhos**; tirar o `!decisao` do bloco de dívida → item duplicado, **2
+  vermelhos** (cai o caso da interseção vazia e o da soma dos dois blocos); trocar o nó ausente
+  por contêiner vazio → **1 vermelho**.
+- **Teste:** `tests/js/fiscal-debitos-conhecidos.test.tsx` — 4 casos citando `UC-FDFE-06`.
+- **Status:** 🧪 lane **advisory**; veredito pendente.
+
+---
+
+## UC-FDFE-07 — Clicar em manifestar faz a manifestação chegar ao motor `[must]`
 
 **Dado** uma DF-e pendente do próprio business
 **Quando** a contadora aciona uma das 4 manifestações
@@ -120,12 +159,12 @@ related_us: [US-FISCAL-008, US-FISCAL-012]
 - **Âncora de contrato:** `CU-FISC-07` do [SDD §6](../../../../memory/requisitos/Fiscal/SDD-cockpit-fiscal-v1.0.md) — a manifestação é o ato que o CU descreve; um clique que não alcança o motor não cumpre o CU.
 - **Regressão que defende:** entre a Wave 4 e 2026-09-04, as 4 ações da tela **não manifestavam nada**. O adaptador chamava `ManifestacaoService::cienciar($businessId, $recebido)` — dois `int` — num método cuja assinatura é `cienciar(NfeDfeRecebido $dfe)`. O `TypeError` caía no `catch (\Throwable)` do próprio método e virava a flash `"Manifestação falhou: …"`. Os UC-FDFE-03/04 seguiam verdes porque medem a camada de cima (whitelist e validação) e um `TypeError` engolido também não é `ValidationException`.
 - **Por que o aceite para na fronteira do motor:** o efeito ponta-a-ponta (`status_manifestacao` virando `ciencia`) **não** é asserível hoje — os dois `buildConfig` do `NfeBrasil` leem `business.state`, coluna que não existe no schema canônico, no staging nem em produção (133 colunas nos três, medido 2026-09-04). Ver o backlog abaixo.
-- **Teste:** `Modules/Fiscal/Tests/Feature/AcoesDfeManifestacaoTest.php` — `it('UC-FDFE-06 · manifestarDfe ENTREGA a DF-e carregada ao service (nao um id solto)')` e `it('UC-FDFE-06 · manifestarDfe repassa a justificativa de desconhecer ao service')`
+- **Teste:** `Modules/Fiscal/Tests/Feature/AcoesDfeManifestacaoTest.php` — `it('UC-FDFE-07 · manifestarDfe ENTREGA a DF-e carregada ao service (nao um id solto)')` e `it('UC-FDFE-07 · manifestarDfe repassa a justificativa de desconhecer ao service')`
 - **Status:** 🧪 rodado VERDE no CT 100 (MySQL) em 2026-09-04 — `3 passed (9 assertions)`, com bite-test (repor **uma** das 4 chamadas antigas → `1 failed`). Fica 🧪 e não ✅ porque o G-7 lê o **manifesto commitado**, e o CT 100 não o alimenta: o ✅ chega quando a lane publicar (`casos-results-publish`).
 
 ---
 
-## UC-FDFE-07 — Manifestar DF-e de outro business é 404, não erro genérico `[must]` `[T0]`
+## UC-FDFE-08 — Manifestar DF-e de outro business é 404, não erro genérico `[must]` `[T0]`
 
 **Dado** uma DF-e que pertence a outro business
 **Quando** alguém aciona a manifestação dela pelo endpoint
@@ -133,12 +172,12 @@ related_us: [US-FISCAL-008, US-FISCAL-012]
 
 - **Âncora de contrato:** `CU-FISC-12` do SDD §6 + [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
 - **Regressão que defende:** o UC-FDFE-01 isola a **listagem**; nada isolava a **ação**. O adaptador nunca carregava o registro — passava o id adiante —, então não havia ponto onde o `business_id` fosse conferido. O isolamento dependia inteiramente do motor, que recebia o id por um caminho que nem chegava a executar.
-- **Teste:** `Modules/Fiscal/Tests/Feature/AcoesDfeManifestacaoTest.php` — `it('UC-FDFE-07 · manifestarDfe NAO alcanca DF-e de outro business (Tier 0 · ADR 0093)')`
+- **Teste:** `Modules/Fiscal/Tests/Feature/AcoesDfeManifestacaoTest.php` — `it('UC-FDFE-08 · manifestarDfe NAO alcanca DF-e de outro business (Tier 0 · ADR 0093)')`
 - **Status:** 🧪 rodado VERDE no CT 100 (MySQL) em 2026-09-04 — tenant fictício 98 × 99 ([ADR 0358](../../../../memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)), nunca `biz=4`. 🧪 e não ✅ pelo mesmo motivo do UC-06: a prova do G-7 é o manifesto, não a prosa.
 
 ---
 
-## UC-FDFE-08 — Um lote que falha em parte diz **quais** notas falharam `[must]`
+## UC-FDFE-09 — Um lote que falha em parte diz **quais** notas falharam `[must]`
 
 **Dado** um lote de DF-e selecionadas
 **Quando** parte delas não pode ser manifestada
@@ -150,12 +189,12 @@ related_us: [US-FISCAL-008, US-FISCAL-012]
 - **Regressão que defende:** o lote silencioso. Manifestação vai ao ambiente nacional da SEFAZ e é definitiva **por nota** — um relatório agregado ("3 de 10 falharam") não diz quais 3 refazer, e refazer as 10 devolve duplicidade nas 7 que passaram. É o mesmo vício do `ManifestacaoController::bulkConfirmar` do NfeBrasil, que conta sucessos e falhas sem identificar nenhuma.
 - **Por que "não tentadas" é um estado próprio:** cada nota é uma ida à SEFAZ. Sem um teto de tempo, um lote grande estoura o `max_execution_time` do shared hosting e o relatório morre junto com o request — parte das notas já manifestada, e nenhum registro disso. O laço para dentro do orçamento e devolve o resto explicitamente.
 - **Também defende:** o teto de notas por lote, a justificativa obrigatória em *desconhecer* (e a ausência dela em ciência/confirmação), e o fato de *não realizada* **não** existir em lote — é a decisão mais individual das quatro, e a fonte a mantém só na linha.
-- **Teste:** `Modules/Fiscal/Tests/Feature/AcoesDfeLoteTest.php` — 4 casos citando `UC-FDFE-08`.
-- **Status:** 🧪 rodado VERDE no CT 100 (MySQL) em 2026-09-04 — `5 passed (27 assertions)` junto com o UC-09. 🧪 e não ✅ porque o G-7 lê o **manifesto commitado**, e o CT 100 não o alimenta.
+- **Teste:** `Modules/Fiscal/Tests/Feature/AcoesDfeLoteTest.php` — 4 casos citando `UC-FDFE-09`.
+- **Status:** 🧪 rodado VERDE no CT 100 (MySQL) em 2026-09-04 — `5 passed (27 assertions)` junto com o UC-10. 🧪 e não ✅ porque o G-7 lê o **manifesto commitado**, e o CT 100 não o alimenta.
 
 ---
 
-## UC-FDFE-09 — DF-e de outro business no lote não é manifestada, e não derruba o lote `[must]` `[T0]`
+## UC-FDFE-10 — DF-e de outro business no lote não é manifestada, e não derruba o lote `[must]` `[T0]`
 
 **Dado** um lote onde alguém incluiu o id de uma DF-e de outro business
 **Quando** o lote é processado
@@ -167,7 +206,7 @@ related_us: [US-FISCAL-008, US-FISCAL-012]
 - **Regressão que defende:** duas, e a segunda é a sutil. A primeira é o vazamento. A segunda é o lote inteiro morrer numa exceção por causa de um id inválido — o que faria uma nota errada impedir as 49 certas, e sem relatório.
 - **Não vaza de volta:** a linha da nota alheia sai com `emitente` e `chave` nulos. Nomear a falha não pode virar um canal de leitura do outro tenant.
 - **Duas camadas, medidas:** o isolamento é sustentado pelo global scope `HasBusinessScope` **e** pelo `where('business_id')` do laço, e cada uma segura sozinha — mutação no CT 100: tirar só o `where` → verde; só o global scope → verde; **as duas** → vermelho. O bite-test está no docblock do teste, porque a linha explícita parece redundante e não é.
-- **Teste:** `AcoesDfeLoteTest` — `it('UC-FDFE-09 · DF-e de outro business no lote não é manifestada, e não derruba o lote (Tier 0 · ADR 0093)')`
+- **Teste:** `AcoesDfeLoteTest` — `it('UC-FDFE-10 · DF-e de outro business no lote não é manifestada, e não derruba o lote (Tier 0 · ADR 0093)')`
 - **Status:** 🧪 verde no CT 100 (MySQL) em 2026-09-04, tenant fictício 98 × 99.
 
 ---
@@ -188,6 +227,11 @@ related_us: [US-FISCAL-008, US-FISCAL-012]
 3. ⛔ **Nunca local** ([ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)).
 
 ## Trilha do tempo
+
+- 2026-09-04 · [C] Onda 5 Cowork (decisão pendente): **+1 UC** (`UC-FDFE-06`). O bloco é montado
+  uma vez no `FxShell` e resolvido por `route` — as sete telas o herdam, e esta é a dona do
+  contrato por ser o exemplo literal do protótipo. **Nenhum bullet de `## Backlog` virou UC**:
+  eles seguem sendo a FONTE, e promovê-los mudaria o denominador que o gerador lê.
 
 - 2026-07-15 · [CC] stub criado no Passo 3 do programa de ondas — **0 UC**.
 - 2026-07-27 · [CC] `sdd-from-source` (Onda 1 / S2): **5 UC** derivados do §6 do SDD; 4 herdam testes existentes, 1 nasce com teste novo. Nota de escopo mantida: os testes de ação provam **contrato de entrada** (whitelist, regra de justificativa), não a persistência ponta-a-ponta.

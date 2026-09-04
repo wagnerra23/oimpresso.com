@@ -42,7 +42,7 @@ uses(Tests\TestCase::class);
  * 2026-09-04). O dublê estende o service REAL, então mudança de assinatura quebra isto aqui.
  *
  * =====================================================================================
- * BITE-TEST DO UC-FDFE-09 — e por que ele precisa de DUAS mutações, não uma
+ * BITE-TEST DO UC-FDFE-10 — e por que ele precisa de DUAS mutações, não uma
  * =====================================================================================
  * O isolamento do lote tem duas camadas **independentes**, e mutar uma só não derruba nada.
  * Medido no CT 100 em 2026-09-04, mutando o laço de `manifestarDfeLote`:
@@ -58,7 +58,7 @@ uses(Tests\TestCase::class);
  *
  * Tenant fictício (ADR 0358) — nunca `biz=4`, que é cliente real.
  *
- * @see resources/js/Pages/Fiscal/Dfe.casos.md — UC-FDFE-08/09
+ * @see resources/js/Pages/Fiscal/Dfe.casos.md — UC-FDFE-09/10
  * @see prototipo-ui/cowork/fiscal-subpages.jsx — `data-contract="lote-dfe"` (a fonte)
  */
 const LOTE_BIZ_PROPRIO = 98;
@@ -149,7 +149,7 @@ afterEach(function () {
     NfeDfeRecebido::whereIn('business_id', [LOTE_BIZ_PROPRIO, LOTE_BIZ_ALHEIO])->delete();
 });
 
-it('UC-FDFE-08 · o lote NOMEIA cada nota que falhou, e as boas passam mesmo assim', function () {
+it('UC-FDFE-09 · o lote NOMEIA cada nota que falhou, e as boas passam mesmo assim', function () {
     loteBootstrap();
 
     $boaA = loteSemear(LOTE_BIZ_PROPRIO);
@@ -190,7 +190,7 @@ it('UC-FDFE-08 · o lote NOMEIA cada nota que falhou, e as boas passam mesmo ass
         ->and($porId[$inexistente]['erro'])->toContain('não encontrada');
 });
 
-it('UC-FDFE-09 · DF-e de outro business no lote não é manifestada, e não derruba o lote (Tier 0 · ADR 0093)', function () {
+it('UC-FDFE-10 · DF-e de outro business no lote não é manifestada, e não derruba o lote (Tier 0 · ADR 0093)', function () {
     loteBootstrap();
 
     $minha = loteSemear(LOTE_BIZ_PROPRIO);
@@ -224,7 +224,7 @@ it('UC-FDFE-09 · DF-e de outro business no lote não é manifestada, e não der
         ->and($rel['falhas'][0]['chave'])->toBeNull();
 });
 
-it('UC-FDFE-08 · o lote recusa mais notas do que cabe no envio', function () {
+it('UC-FDFE-09 · o lote recusa mais notas do que cabe no envio', function () {
     loteBootstrap();
 
     $demais = range(1, AcoesController::LOTE_MAX_NOTAS + 1);
@@ -244,7 +244,7 @@ it('UC-FDFE-08 · o lote recusa mais notas do que cabe no envio', function () {
         ->and(array_keys($capturada->errors()))->toContain('ids');
 });
 
-it('UC-FDFE-08 · desconhecer em lote exige justificativa; ciência e confirmação não', function () {
+it('UC-FDFE-09 · desconhecer em lote exige justificativa; ciência e confirmação não', function () {
     loteBootstrap();
     $dfe = loteSemear(LOTE_BIZ_PROPRIO);
 
@@ -266,7 +266,7 @@ it('UC-FDFE-08 · desconhecer em lote exige justificativa; ciência e confirmaç
     expect($semJustificativa('confirmar'))->toBeNull();
 });
 
-it('UC-FDFE-08 · "não realizada" não existe em lote — é decisão de linha', function () {
+it('UC-FDFE-09 · "não realizada" não existe em lote — é decisão de linha', function () {
     loteBootstrap();
 
     $capturada = null;

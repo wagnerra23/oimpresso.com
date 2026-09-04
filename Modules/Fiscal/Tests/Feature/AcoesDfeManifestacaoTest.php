@@ -65,7 +65,7 @@ uses(Tests\TestCase::class);
  *
  * Tenant fictício (ADR 0358) — nunca `biz=4`, que é cliente real.
  *
- * @see resources/js/Pages/Fiscal/Dfe.casos.md — UC-FDFE-06/07
+ * @see resources/js/Pages/Fiscal/Dfe.casos.md — UC-FDFE-07/08
  * @see Modules/Fiscal/Tests/Feature/AcoesContratoTest.php — UC-FDFE-03/04 (as camadas de cima)
  */
 const DFE_BIZ_PROPRIO = 98;
@@ -170,7 +170,7 @@ afterEach(function () {
     NfeDfeRecebido::whereIn('business_id', [DFE_BIZ_PROPRIO, DFE_BIZ_ALHEIO])->delete();
 });
 
-it('UC-FDFE-06 · manifestarDfe ENTREGA a DF-e carregada ao service (nao um id solto)', function () {
+it('UC-FDFE-07 · manifestarDfe ENTREGA a DF-e carregada ao service (nao um id solto)', function () {
     dfeBootstrap();
     $dfe = dfeSemear(DFE_BIZ_PROPRIO);
     $espiao = dfeServiceEspiao();
@@ -194,7 +194,7 @@ it('UC-FDFE-06 · manifestarDfe ENTREGA a DF-e carregada ao service (nao um id s
         ->and($espiao->acaoRecebida)->toBe('cienciar');
 });
 
-it('UC-FDFE-06 · manifestarDfe repassa a justificativa de desconhecer ao service', function () {
+it('UC-FDFE-07 · manifestarDfe repassa a justificativa de desconhecer ao service', function () {
     dfeBootstrap();
     $dfe = dfeSemear(DFE_BIZ_PROPRIO);
     $espiao = dfeServiceEspiao();
@@ -211,7 +211,7 @@ it('UC-FDFE-06 · manifestarDfe repassa a justificativa de desconhecer ao servic
         ->and($espiao->justificativaRecebida)->toBe($motivo);
 });
 
-it('UC-FDFE-07 · manifestarDfe NAO alcanca DF-e de outro business (Tier 0 · ADR 0093)', function () {
+it('UC-FDFE-08 · manifestarDfe NAO alcanca DF-e de outro business (Tier 0 · ADR 0093)', function () {
     dfeBootstrap();                          // sessão em DFE_BIZ_PROPRIO
     $alheia = dfeSemear(DFE_BIZ_ALHEIO);     // registro de OUTRO tenant
     $espiao = dfeServiceEspiao();
