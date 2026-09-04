@@ -144,15 +144,32 @@ de CI da PR).
 **Fonte:** handoff §4.5 + o diff do §15.1. **A tela JÁ EXISTE** (`Pages/Manufacturing/Index.tsx`,
 Wave J) — esta onda é **emenda**, não tela nova. **Custo: médio-baixo.**
 
-**Implementado em:** _pendente_ (a tela existe; o diff do §15.1 é que está pendente)
+**Implementado em:** `resources/js/Pages/Manufacturing/Index.tsx` (emenda) ·
+`Modules/Manufacturing/Services/ProductionService.php` (`enrichProductionRows` — enriquecimento
+em LOTE) · `resources/js/Components/shared/StatusBadge.tsx` (domínio `producao` novo)
+
+**Testado em:** `Modules/Manufacturing/Tests/Feature/Wave32ProducaoColunasTest.php`
+(`@covers-us US-MANU-004`) — 5 UC; Pest roda na lane de CI da PR.
+
+> ⚠️ **O "congelado" desta tela, com o dado que EXISTE hoje:** o protótipo distingue custo
+> `vivo` de `congelado` (`op.custoSnap`), mas **`custoSnap` não existe no banco** — conferido:
+> `transactions` só tem `mfg_production_cost`/`mfg_production_cost_type`/`mfg_wasted_units`/
+> `mfg_is_final`. Quem o introduz é a US-MANU-007. Então esta tela mostra
+> `transactions.final_total` (o valor GRAVADO na criação) e usa o `fix` para marcar a ordem
+> finalizada. Consequência declarada: o rodapé soma valor gravado, **diferente** do Relatório
+> (US-MANU-002), que recalcula pelo preço de hoje. Detalhe em `RUNBOOK-producao.md §1`.
 
 **Definition of Done:**
-- [ ] 8 colunas do §4.5 (hoje são 5): + Produto com `N ingredientes · quem lançou`, Qtd, Custo unit.
-- [ ] Sufixo `fix` em ordem finalizada, com `title="custo congelado na data da produção"` (R-21)
-- [ ] Rodapé: `N ordens · custo do período R$ X · ordens finalizadas mostram o custo congelado na data`
-- [ ] `Só finalizadas` como checkbox (hoje só existe como KPI clicável)
-- [ ] `StatusPill` local → `StatusBadge kind="producao"` (o componente autoriza estender `mappings`)
-- [ ] Os 4 KPIs atuais **não** mudam — os de §4.2 são da aba Receitas
+- [x] 8 colunas do §4.5 (hoje são 5): + Produto com `N ingredientes · quem lançou`, Qtd, Custo unit.
+- [x] Sufixo `fix` em ordem finalizada, com `title="custo congelado na data da produção"` (R-21)
+- [x] Rodapé: `N ordens · custo do período R$ X · ordens finalizadas mostram o custo congelado na data`
+- [x] `Só finalizadas` como checkbox (hoje só existe como KPI clicável) — os dois governam o mesmo filtro
+- [x] `StatusPill` local → `StatusBadge kind="producao"` (domínio adicionado ao componente compartilhado)
+- [x] Os 4 KPIs atuais **não** mudam — os de §4.2 são da aba Receitas
+- [x] **Achado ao construir:** o `optional($p->location)->name` do map era **N+1 desde a Wave J**
+      (uma query por linha). Corrigido com eager-load de `location`; UC-OP-03 trava a regressão.
+- [ ] Pest verde na lane de CI — pendente
+- [ ] Smoke real em prod (`curl` + screenshot da tabela de 8 colunas) — pendente
 
 ### US-MANU-005 · Insumos — impacto reverso e simulador de preço
 

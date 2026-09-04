@@ -7737,8 +7737,21 @@ parameters:
 			count: 1
 			path: Modules/Manufacturing/Routes/web.php
 
+		# US-MANU-004: sobe de 1 → 2 porque `listProductions()` passou a fazer eager-load de
+		# `purchase_lines` (antes só o `reportByProduct` referenciava). A relação EXISTE —
+		# `App\Transaction::purchase_lines()` em app/Transaction.php:69 — o Larastan é que não
+		# a detecta. Conferido antes de crescer o baseline.
 		-
 			message: '#^Relation ''purchase_lines'' is not found in App\\Transaction model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: Modules/Manufacturing/Services/ProductionService.php
+
+		# US-MANU-004: eager-load de `location` que mata o N+1 do nome do local (uma query por
+		# linha, desde a Wave J). `App\Transaction::location()` existe em app/Transaction.php:99
+		# — mesma limitação de detecção do Larastan acima.
+		-
+			message: '#^Relation ''location'' is not found in App\\Transaction model\.$#'
 			identifier: larastan.relationExistence
 			count: 1
 			path: Modules/Manufacturing/Services/ProductionService.php

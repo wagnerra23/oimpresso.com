@@ -14,7 +14,7 @@ module: Manufacturing
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Manufacturing/**` + `resources/js/Pages/Manufacturing/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 136 arquivos em 17 papéis.
+**Total mapeado:** 138 arquivos em 17 papéis.
 
 ## Controllers — 6
 
@@ -128,16 +128,17 @@ module: Manufacturing
 - [Report.charter.md](../../../resources/js/Pages/Manufacturing/Report.charter.md)
 - [Settings.charter.md](../../../resources/js/Pages/Manufacturing/Settings.charter.md)
 
-## Casos (contrato UC) — 4
+## Casos (contrato UC) — 5
 
+- [Index.casos.md](../../../resources/js/Pages/Manufacturing/Index.casos.md)
 - [Insumos.casos.md](../../../resources/js/Pages/Manufacturing/Insumos.casos.md)
 - [Recipes.casos.md](../../../resources/js/Pages/Manufacturing/Recipes.casos.md)
 - [Report.casos.md](../../../resources/js/Pages/Manufacturing/Report.casos.md)
 - [Settings.casos.md](../../../resources/js/Pages/Manufacturing/Settings.casos.md)
 
-## Testes (Pest) — 22
+## Testes (Pest) — 23
 
-- 22 em [Modules/Manufacturing/Tests/Feature/](../../../Modules/Manufacturing/Tests/Feature)
+- 23 em [Modules/Manufacturing/Tests/Feature/](../../../Modules/Manufacturing/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 40

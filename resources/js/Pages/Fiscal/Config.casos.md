@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
 last_run: "2026-09-04"
-last_run_ci: "0 UC executado nesta corrida — UC-FCFG-05 e UC-FCFG-06 nascem com testes novos, veredito PENDENTE da lane Pest Fiscal + suíte noturna CT 100; nada foi re-executado localmente (Pest = CT 100, ADR 0062)"
+last_run_ci: "0 UC executado nesta corrida — UC-FCFG-05, UC-FCFG-06 e UC-FCFG-07 nascem com testes novos, veredito PENDENTE da lane Pest Fiscal + suíte noturna CT 100; nada foi re-executado localmente (Pest = CT 100, ADR 0062)"
 related_us: [US-FISCAL-009]
 ---
 
@@ -72,6 +72,7 @@ related_us: [US-FISCAL-009]
 | UC-FCFG-04 | estado da contingência e sua DURAÇÃO chegam do servidor | `[must]` | US-NFE-006 | `ConfigControllerTest` | 🧪 |
 | UC-FCFG-05 | o card de envio de documentos LÊ o deploy, não demonstra | `[should]` | CU-FISC-16 | `ConfigControllerTest` | 🧪 |
 | UC-FCFG-06 | trocar ambiente / trocar certificado exige gate PRÓPRIO, no servidor | `[must]` `[T0]` | CU-FISC-13 | `GatesPermissaoFiscalTest` | 🧪 |
+| UC-FCFG-07 | a troca de ambiente exige destino digitado + motivo, e vira evento | `[must]` | CU-FISC-13 | `TrocaAmbienteCerimoniaTest` | 🧪 |
 
 ---
 
@@ -182,6 +183,36 @@ nunca um botão cinza sem explicação.
 
 ---
 
+## UC-FCFG-07 — A troca de ambiente exige destino digitado à mão e motivo, e deixa evento `[must]`
+
+**Dado** [W] com o gate concedido e a empresa emitindo em PRODUÇÃO
+**Quando** ele pede a troca para HOMOLOGAÇÃO
+**Então** só confirma se digitar o **nome do destino** à mão **e** escrever um motivo de **15+
+caracteres**;
+**E** confirmação que não bate deixa o ambiente **inalterado** e diz isso;
+**E** a troca aceita grava evento de auditoria com autor, horário, `antes → depois` **e o motivo**.
+
+- **Regressão que defende:** troca por reflexo. Antes disto a troca era um radio + "Salvar
+  ambiente" — dois cliques. Empresa que passa a emitir em homologação sem perceber produz dias de
+  nota **sem valor fiscal**, e depois ninguém sabe dizer por quê.
+- **Por que DUAS provas, e não uma confirmação:** *"sim"* / *"ok"* não seguram uma ação que muda o
+  valor fiscal de toda nota seguinte. O nome do destino escrito à mão obriga a ler **para onde** se
+  está indo; o motivo obriga a ter um.
+- **Por que o motivo entra no EVENTO:** sem ele a trilha responde *quem* e *quando*, mas não
+  *por quê* — e é o *por quê* que alguém precisa quando for explicar a nota de terça.
+- **Tolerância deliberada:** a confirmação é insensível a caixa e acento. A fricção que importa é
+  ter de **escrever a palavra**, não acertar o cedilha — exigir o acento puniria teclado, não
+  desatenção. O servidor normaliza com mapa explícito (nunca `iconv`, que depende de locale).
+- **Sem troca, sem cerimônia:** postar o ambiente que já está gravado sai cedo, sem exigir motivo.
+  Não há o que confirmar quando nada muda.
+- **Teste:** `Modules/Fiscal/Tests/Feature/TrocaAmbienteCerimoniaTest.php` — 3 casos negativos
+  (sem cerimônia · confirmação `"sim"` · motivo curto), **cada um reconferindo o valor no banco**,
+  mais o **controle positivo** que prova a troca real com `antes → depois` e o evento. Sem esse
+  positivo, os três negativos passariam num endpoint quebrado que nunca troca nada.
+- **Status:** 🧪 testes nascem nesta corrida; veredito pendente da lane.
+
+---
+
 ## Backlog de casos (sem id — viram UC quando ganharem contrato + teste)
 
 - **[BACKLOG · ⬜ sem teste] A validade do certificado aparece com três tons de urgência** — vencido, perto de vencer (até 30 dias) e tranquilo. _O cálculo existe no Controller; sem teste dos limiares._
@@ -206,6 +237,9 @@ nunca um botão cinza sem explicação.
 ## Trilha do tempo
 
 - 2026-07-15 · [CC] stub criado no Passo 3 do programa de ondas — **0 UC**.
+- 2026-09-04 · [C] Item A5 (PR 3/3 — cerimônia da troca). A troca de ambiente deixa de ser radio
+  + botão e passa a exigir o destino digitado à mão + motivo de 15+, validados NO SERVIDOR; o
+  evento de auditoria passa a carregar o motivo. `UC-FCFG-07`. **Nenhum teste re-executado.**
 - 2026-09-04 · [C] Item A5 (PR 2/3 — gate `fiscal.config.ambiente`). Nasce a permissão, DECLARADA
   em `DataController::user_permissions` (Camada 3) e provisionada — mas **nunca atribuída** por
   comando: conceder é ato de [W]. O enforcement é de SERVIDOR, em
