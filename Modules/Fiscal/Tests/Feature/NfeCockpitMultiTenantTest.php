@@ -130,15 +130,107 @@ it('UC-FNFE-01 · global scope HasBusinessScope esconde emissões cross-tenant n
 // `AcoesContratoTest::UC-FNFE-02` — com mordida provada (afrouxar a regra deixa o teste vermelho).
 
 
-it('UC-FNFE-03 · sefazCodes retorna mapa com pelo menos 100, 110, 220, 539, 691, 778, 999', function () {
-    $controller = new \Modules\Fiscal\Http\Controllers\NfeCockpitController();
-    $reflection = new ReflectionMethod($controller, 'sefazCodes');
-    $reflection->setAccessible(true);
-    $codes = $reflection->invoke($controller);
+it('UC-FNFE-01 · os cStat que alimentam a tradução não vazam de outro business (Tier 0)', function () {
+    // Guarda da query NOVA introduzida em 2026-09-04 (`cstatsDoBusiness`). Antes, `sefazCodes()`
+    // era um array literal e não tocava o banco — logo não havia superfície de vazamento. Agora há,
+    // e ADR 0093 exige que ela seja provada: um cStat só de biz=99 não pode entrar na tradução que
+    // biz=1 recebe. O risco não é hipotético — em produção os dois businesses têm conjuntos
+    // DISJUNTOS (biz=1: 709/716/778/781 · biz=164: 100/101), então vazamento apareceria na tela.
+    fiscalNfeCockpitExigeBanco($this);
 
-    expect($codes)
-        ->toHaveKeys([100, 110, 220, 539, 691, 778, 999])
-        ->and($codes[100]['tone'])->toBe('ok')
-        ->and($codes[220]['tone'])->toBe('bad')
-        ->and($codes[691]['tone'])->toBe('warn');
+    $base = [
+        'modelo'      => '55',
+        'serie'       => '1',
+        'status'      => 'rejeitada',
+        'valor_total' => 10.00,
+        'emitido_em'  => now(),
+    ];
+
+    // 781 só existe em biz=1; 110 só existe em biz=99.
+    NfeEmissao::withoutGlobalScopes()->create($base + [
+        'business_id' => FISCAL_BIZ_WAGNER,
+        'numero'      => 9101,
+        'cstat'       => 781,
+        'chave_44'    => str_pad('9101' . FISCAL_TAG_TEST, 44, '0', STR_PAD_RIGHT),
+    ]);
+
+    NfeEmissao::withoutGlobalScopes()->create($base + [
+        'business_id' => FISCAL_BIZ_FICTICIO,
+        'numero'      => 9102,
+        'cstat'       => 110,
+        'chave_44'    => str_pad('9102' . FISCAL_TAG_TEST, 44, '0', STR_PAD_RIGHT),
+    ]);
+
+    session(['business.id' => FISCAL_BIZ_WAGNER, 'user.business_id' => FISCAL_BIZ_WAGNER]);
+
+    $metodo = new ReflectionMethod(Modules\Fiscal\Http\Controllers\NfeCockpitController::class, 'cstatsDoBusiness');
+    $metodo->setAccessible(true);
+    $codigos = $metodo->invoke(new Modules\Fiscal\Http\Controllers\NfeCockpitController());
+
+    expect($codigos)->toContain(781)
+        ->and($codigos)->not->toContain(110);
+});
+
+it('UC-FNFE-03 · o cStat vira o rótulo OFICIAL da SEFAZ, não um apelido escrito à mão', function () {
+    // Âncora: Manual de Orientação do Contribuinte / tabela cStat da SEFAZ, distribuída em
+    // `vendor/nfephp-org/sped-nfe/storage/cstat.json` (528 códigos) com o SDK que este projeto
+    // usa pra transmitir. Os textos abaixo estão TRANSCRITOS do MOC de propósito: são contrato
+    // externo. Se alguém trocar a derivação por um array literal com apelidos, este caso cai.
+    //
+    // Por que não basta `toHaveKeys`: a versão anterior deste caso só checava presença e três
+    // tons — e passava verde enquanto a tela dizia "CST/CFOP inválido" para o 778, cujo texto
+    // oficial é "Informado NCM inexistente". Presença não é correção (LC-11).
+    $servico = new Modules\Fiscal\Services\SefazCstatService();
+
+    $mapa = $servico->mapaPara([100, 204, 220, 539, 691, 709, 716, 778, 781, 999]);
+
+    expect($mapa[100]['label'])->toBe('Autorizado o uso da NF-e')
+        ->and($mapa[220]['label'])->toBe('Prazo de Cancelamento superior ao previsto na Legislação')
+        ->and($mapa[691]['label'])->toBe('Chave de Acesso da NF-e diverge da Chave de Acesso do EPEC')
+        ->and($mapa[778]['label'])->toBe('Informado NCM inexistente')
+        ->and($mapa[999]['label'])->toBe('Erro não catalogado (informar a mensagem de erro capturado no tratamento da exceção)');
+
+    // Placeholder de exemplo do MOC não vaza pra pílula — o valor real da nota vem no `motivo`.
+    expect($mapa[204]['label'])->toBe('Duplicidade de NF-e')
+        ->and($mapa[539]['label'])->toBe('Duplicidade de NF-e com diferença na Chave de Acesso');
+
+    // Tom: segue o campo `status` da tabela oficial ("1" = aceito). Rejeição é vermelha.
+    expect($mapa[100]['tone'])->toBe('ok')
+        ->and($mapa[220]['tone'])->toBe('bad')
+        ->and($mapa[691]['tone'])->toBe('bad');
+});
+
+it('UC-FNFE-03 · os 3 códigos que biz=1 tem em produção deixaram de cair no fallback', function () {
+    // Medido em produção 2026-09-04: biz=1 tem 9 emissões — 3 com cStat 781, 1 com 709, 1 com 716,
+    // 1 com 778 e 3 sem cStat. Antes desta correção NENHUM dos três primeiros existia no mapa: a
+    // tela renderizava "781 Status" e "709 Status" para a contadora. Este caso é o antídoto: se
+    // o mapa voltar a ser lista fixa, os três somem de novo e o teste cai.
+    $servico = new Modules\Fiscal\Services\SefazCstatService();
+
+    $mapa = $servico->mapaPara([781, 709, 716]);
+
+    expect($mapa[781]['label'])->toBe('Emissor não habilitado para emissão da NFC-e')
+        ->and($mapa[709]['label'])->toBe('NFC-e com formato de DANFE inválido')
+        ->and($mapa[716]['label'])->toBe('NFC-e em operação não destinada a consumidor final')
+        ->and($mapa[781]['tone'])->toBe('bad');
+});
+
+it('UC-FNFE-03 · código fora da tabela some do mapa em vez de virar rótulo inventado', function () {
+    // Controle negativo. O serviço NÃO adivinha: código desconhecido simplesmente não entra, e a
+    // tela resolve pelo status de domínio (`sefazPill` em `_lib/fiscal-helpers.ts`). Se algum dia
+    // ele passar a devolver um rótulo genérico aqui, o "Status" nu volta pela porta dos fundos.
+    $servico = new Modules\Fiscal\Services\SefazCstatService();
+
+    expect($servico->mapaPara([424242]))->toBe([])
+        ->and($servico->mapaPara([0, null]))->toBe([]);
+});
+
+it('UC-FNFE-03 · a tabela oficial está instalada — sem ela a tela perde a tradução', function () {
+    // Não é teste do vendor: é o contrato de que a FONTE existe. `nfephp-org/sped-nfe` é
+    // dependência declarada no composer.json, então ausência aqui é defeito de ambiente que
+    // merece vermelho — não skip silencioso (LC-13: skip sai exit 0 e parece cobertura).
+    expect(is_file(base_path(Modules\Fiscal\Services\SefazCstatService::CAMINHO_TABELA)))
+        ->toBeTrue('Tabela cStat do sped-nfe ausente — rode composer install');
+
+    expect(count(Modules\Fiscal\Services\SefazCstatService::tabela()))->toBeGreaterThan(400);
 });

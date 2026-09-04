@@ -80,3 +80,72 @@ export interface SefazCodeMeta {
 }
 
 export type SefazCodesMap = Record<number, SefazCodeMeta>;
+
+/**
+ * Rótulo PT-BR do status de DOMÍNIO da emissão (`nfe_emissoes.status`).
+ *
+ * É o piso da pílula: existe para toda nota, inclusive as que nunca receberam `cstat` porque a
+ * transmissão falhou antes da SEFAZ responder — em produção biz=1 são 3 de 9 (id 235/238/240,
+ * `status='inutilizada'`, `cstat` NULL). Sem ele a tela mostrava "Status", que não é rótulo: era
+ * o fallback vazando para o usuário.
+ *
+ * Vocabulário do ENUM da migration `nfe_emissoes.status` (NfeBrasil), incluindo `enviando` e
+ * `erro_envio` acrescentados em 2026_05_10_120000.
+ */
+const STATUS_DOMINIO: Record<string, string> = {
+  pendente: 'Pendente na SEFAZ',
+  enviando: 'Enviando',
+  autorizada: 'Autorizada',
+  rejeitada: 'Rejeitada',
+  denegada: 'Denegada',
+  cancelada: 'Cancelada',
+  inutilizada: 'Inutilizada',
+  erro_envio: 'Erro no envio',
+};
+
+const TOM_DOMINIO: Record<string, SefazTone> = {
+  pendente: 'warn',
+  enviando: 'warn',
+  autorizada: 'ok',
+  rejeitada: 'bad',
+  denegada: 'bad',
+  cancelada: 'ok',
+  inutilizada: 'warn',
+  erro_envio: 'bad',
+};
+
+export interface NotaParaPilula {
+  cstat: number;
+  status: string;
+  motivo?: string | null;
+}
+
+/**
+ * Resolve a pílula SEFAZ de uma nota. NUNCA devolve rótulo vazio ou genérico.
+ *
+ * Ordem de resolução, da mais específica para a mais geral:
+ *  1. `cstat` traduzido pela tabela oficial da SEFAZ (prop `sefazCodes`, servida pelo backend);
+ *  2. `cstat` presente mas fora da tabela — mostra o status de domínio e mantém o número visível,
+ *     para o operador poder buscar o código sem que a tela finja saber o que ele significa;
+ *  3. sem `cstat` — só o status de domínio.
+ *
+ * O `hint` (tooltip) prefere sempre o `motivo` gravado na própria nota: é o texto que a SEFAZ
+ * respondeu para AQUELA emissão, com o item citado (ex.: "Informado NCM inexistente [nItem:1]").
+ */
+export function sefazPill(nota: NotaParaPilula, mapa: SefazCodesMap): SefazCodeMeta {
+  const oficial = nota.cstat > 0 ? mapa[nota.cstat] : undefined;
+  const hint = nota.motivo?.trim() || oficial?.hint || '';
+
+  if (oficial) {
+    return { tone: oficial.tone, label: oficial.label, hint };
+  }
+
+  const label = STATUS_DOMINIO[nota.status] ?? 'Status desconhecido';
+  const tone = TOM_DOMINIO[nota.status] ?? 'warn';
+
+  return {
+    tone,
+    label: nota.cstat > 0 ? `${label} · código ${nota.cstat} não catalogado` : label,
+    hint,
+  };
+}

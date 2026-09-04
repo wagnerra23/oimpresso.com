@@ -66,7 +66,7 @@ Dar à pessoa fiscal (Eliana contadora + Wagner operador) a **lista navegável d
 ## UX targets
 
 - **Densidade:** linhas ~48px, fonte 12.5px corpo / 13.5px número da nota (mono).
-- **Cor de status:** verde =100/104 (ok), âmbar =999/691 (warn), vermelho =110/204/220/539/778 (bad).
+- **Cor de status:** verde = aceito pela SEFAZ · âmbar = transitório ou SEFAZ indisponível (103/105/108/109) · vermelho = rejeição. A classificação por código deixou de ser digitada aqui e passa a ser **derivada** do campo `status` da tabela oficial — ver §Reconciliação 2026-09-04.
 - **Pílula 24h:** verde >12h, âmbar 6-12h, vermelho <6h (urgência cresce).
 - **Drawer:** largura 480px desktop, full-width mobile, ESC fecha, click-outside fecha.
 - **Foco visual:** linha cursor (J/K) com `outline: 2px solid var(--fis)`.
@@ -128,3 +128,47 @@ Contexto completo: [`memory/requisitos/Fiscal/SDD-cockpit-fiscal-v1.0.md`](../..
 O diagnóstico acima permanece como fato de 2026-07-27. Depois dele, o bundle transacional
 versionou `prototipo-ui/cowork/fiscal-page.jsx`; o frontmatter passou a apontar para essa fonte.
 Receber a fonte não altera o veredito de aplicação: ele é derivado pelo Design Sync.
+
+---
+
+## Reconciliação factual — 2026-09-04 (pílula SEFAZ)
+
+**Só FATO foi corrigido. Mission, Goals, Non-Goals, Anti-hooks seguem intocados** — intenção é de [W].
+
+Achado de produção reportado por [W] com screenshot: em `biz=1` a lista mostrava **`781 Status`** e
+**`— Status`**. `"Status"` não é rótulo — era o fallback do `Nfe.tsx:286` vazando para a tela.
+Medindo o mapa que o Controller servia contra a tabela cStat oficial (528 códigos, distribuída em
+`vendor/nfephp-org/sped-nfe/storage/cstat.json` com o SDK que este projeto usa pra transmitir),
+apareceu o problema maior: **5 dos 12 códigos estavam traduzidos errado**.
+
+| O que dizia (UX targets + mapa à mão) | O que é (tabela oficial da SEFAZ) | Evidência |
+|---|---|---|
+| `691` é âmbar, "NCM divergente" | `691` = **"Chave de Acesso da NF-e diverge da Chave de Acesso do EPEC"**, `status: "0"` = rejeição | tabela cStat oficial |
+| `778` = "CST/CFOP inválido" | `778` = **"Informado NCM inexistente"** | a SEFAZ gravou `motivo="Rejeicao: Informado NCM inexistente [nItem:1]"` na nota id=8 de biz=1 |
+| `220` = "Duplicidade" | `220` = **"Prazo de Cancelamento superior ao previsto na Legislação"** | tabela cStat oficial |
+| `104` = "Autorizada (NFC-e)" | `104` = **"Lote processado"** | idem |
+| `999` = "Processando" | `999` = **"Erro não catalogado"** | idem |
+
+O âmbar do `691` no §UX targets caiu junto com a premissa que o sustentava: ele estava lá por se
+acreditar que o código era um erro de cadastro corrigível. Derivar o tom do campo `status` da tabela
+**cumpre** a regra que [W] escreveu (*"vermelho = rejeição"*) melhor do que a lista literal cumpria.
+
+Também deixou de ser verdade que o Goal 2 se satisfaz "espelhando SEFAZ_CODES do design": o
+`prototipo-ui/cowork/fiscal-data.jsx` tem 8 códigos e declara-se derivado do `Cockpit.tsx` — é porte
+reverso do código, não fonte fiscal. A fonte é a tabela da SEFAZ.
+
+**O que a tela garante agora** (contrato por UC em [`Nfe.casos.md`](Nfe.casos.md) → `UC-FNFE-03`):
+
+| Garantia | Como se prova |
+|---|---|
+| cStat conhecido mostra o **texto oficial** da SEFAZ | `NfeCockpitMultiTenantTest` asserta contra textos do MOC transcritos, não contra o próprio mapa |
+| o rótulo **nunca** é `"Status"` nem vazio | `fiscal-nfe-sefaz-pilula.test.tsx` mede `.fx-sefaz .lbl` nas 2 linhas reais de biz=1 |
+| nota **sem** cStat mostra o status de domínio ("Inutilizada") | idem — antes renderizava `— Status` |
+| código fora da tabela **não** é inventado: some do mapa e a tela mostra status + número | `mapaPara([424242])` → `[]` (controle negativo) |
+| o tooltip traz o `motivo` daquela nota, com o `[nItem:N]` | idem |
+
+**Dívida declarada, NÃO consertada aqui (outra tela, outro PR):** o `_lib/sefaz-codes.ts`, que serve
+o `Cockpit.tsx` e o `EventosDrawer.tsx` pela geração V2, tem os **mesmos** apelidos errados (`691`
+"Item rejeitado", `778` "XML inválido", `220` "NF-e numérica"). Não foi tocado para não misturar
+intents nem colidir com as sessões que estão no Cockpit agora.
+
