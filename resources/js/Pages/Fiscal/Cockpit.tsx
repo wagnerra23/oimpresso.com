@@ -31,6 +31,7 @@ import SendToContabilDrawer, { type SendToContabilData } from './_components/Sen
 import WriteOffAuditoriaCard, { type WriteOffSummary } from './_components/WriteOffAuditoriaCard';
 import { brl, truncKey } from './_lib/fiscal-helpers';
 import { type MapaProcedencia } from './_lib/procedencia';
+import { Inline } from '@/Components/layout';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 
@@ -455,17 +456,17 @@ export default function Cockpit({
         {/* Fila de alertas — o que o ribbon conta em "requerem ação", item a item.
             Só renderiza quando há alerta; zero alertas = nó ausente. */}
         {alerts.length > 0 && (
-          <div className="flex justify-end">
+          <Inline justify="end">
             <SeloProcedencia mapa={procedencia} chave="alerts" />
-          </div>
+          </Inline>
         )}
         <AlertasFiscais alerts={alerts} />
 
         {/* Onda 3 L — Write-off auditoria mensal (só renderiza se houver candidatos) */}
         {writeOffSummary && (
-          <div className="flex justify-end">
+          <Inline justify="end">
             <SeloProcedencia mapa={procedencia} chave="writeoff" />
-          </div>
+          </Inline>
         )}
         <WriteOffAuditoriaCard summary={writeOffSummary} />
 
@@ -604,6 +605,23 @@ export default function Cockpit({
                         className={openedId === n.id ? 'fx-row-focus' : ''}
                         style={{ cursor: 'pointer' }}
                         title="Click pra abrir detalhes (drawer)"
+                        tabIndex={0}
+                        aria-label={`Abrir ${n.tipo} ${n.num} · ${n.cliente || '—'}`}
+                        onKeyDown={(e) => {
+                          if (e.key !== 'Enter' && e.key !== ' ') return;
+                          // preventDefault: sem ele o Space ROLA a página (default do browser em
+                          // elemento focável) e o operador perde de vista a linha que abriu.
+                          // stopPropagation: MEDIDO em 2026-09-04 — hoje nenhum listener de
+                          // `window` desta tela vê Enter/Space (o do `FxShell` só reage aos
+                          // dígitos 1-7 de `FX_PAGES.short`; o do `CmdKPalette`, a ⌘K e Escape),
+                          // então ele não é o que faz o caso passar. Fica porque o charter prevê
+                          // J/K nesta tela numa onda seguinte, e é ele que evita a abertura dupla
+                          // quando os dois caminhos virem a mesma tecla — como já acontece no
+                          // `Nfe.tsx`, onde o handler global existe.
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setOpenedId(n.id);
+                        }}
                       >
                         <td onClick={(e) => e.stopPropagation()}>
                           <Checkbox
