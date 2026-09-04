@@ -9,8 +9,8 @@ related_us: [US-MANU-005]
 runbook: memory/requisitos/Manufacturing/RUNBOOK-insumos.md
 casos: resources/js/Pages/Manufacturing/Insumos.casos.md
 alcance:
-  rota: /manufacturing/v2/insumos
-  rota_nome: manufacturing.insumos.v2.index
+  rota: /manufacturing/insumos
+  rota_nome: manufacturing.insumos.index   # canônico desde o cutover 2026-09-04; /manufacturing/v2/insumos virou 301
   permission: manufacturing.access_recipe
   menu_hook: null # alcançada pela aba "Insumos" das telas v2
   pacote: manufacturing_module

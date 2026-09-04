@@ -170,7 +170,7 @@ export default function Recipes({ recipes = [], permissions, producao, settings 
           <span className="mfg-tab-n">{recipes.length}</span>
         </span>
         {permissions.prod && (
-          <Link className="mfg-tab" href="/manufacturing/v2/production">
+          <Link className="mfg-tab" href="/manufacturing/production">
             Ordens de produção
             <span className="mfg-tab-n">
               {producao.total}
@@ -178,10 +178,10 @@ export default function Recipes({ recipes = [], permissions, producao, settings 
             </span>
           </Link>
         )}
-        <Link className="mfg-tab" href="/manufacturing/v2/insumos">
+        <Link className="mfg-tab" href="/manufacturing/insumos">
           Insumos
         </Link>
-        <Link className="mfg-tab" href="/manufacturing/v2/report">
+        <Link className="mfg-tab" href="/manufacturing/report">
           Relatório
         </Link>
         {/* `Link` (Inertia) pra tela IRMÃ em React. Até 2026-09-04 esta aba era uma âncora
@@ -189,7 +189,7 @@ export default function Recipes({ recipes = [], permissions, producao, settings 
             antiga — foi o que o [F] viu ao clicar em Configurações. O cutover da rota
             legada segue PENDENTE e é decisão [W] (RUNBOOK-settings.md §"Rota nova, sem
             cutover"); esta aba só deixa de contradizer as irmãs. */}
-        <Link className="mfg-tab" href="/manufacturing/v2/settings">
+        <Link className="mfg-tab" href="/manufacturing/settings">
           Configurações
         </Link>
       </nav>

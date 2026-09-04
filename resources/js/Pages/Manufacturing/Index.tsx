@@ -1,4 +1,4 @@
-// @memcofre tela=/manufacturing/v2/production module=Manufacturing
+// @memcofre tela=/manufacturing/production module=Manufacturing
 // MWART Wave J → board 2026-05-30 uplift (50 Developing → ≥70).
 // Lista de produções (production_purchase) em Inertia/React no padrão PT-01
 // Lista (AppShellV2 + PageHeader + KpiCard + tabela tokenizada + EmptyState).
@@ -62,7 +62,7 @@ interface Props {
   filters?: FiltersState;
 }
 
-const ROUTE = '/manufacturing/v2/production';
+const ROUTE = '/manufacturing/production';
 const CREATE_ROUTE = '/manufacturing/production/create';
 
 function applyFilter(current: FiltersState, patch: Partial<FiltersState>) {

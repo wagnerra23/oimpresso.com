@@ -1,11 +1,12 @@
-// Manufacturing/Report — o relatório de produção do período, em `/manufacturing/v2/report`.
+// Manufacturing/Report — o relatório de produção do período, em `/manufacturing/report`.
 //
 // FONTE DE DESIGN: `prototipo-ui/cowork/manufacturing-producao.jsx::MfgRelatorio` — mesmo
 // bundle já aplicado inteiro pela Onda 1 (Recipes.tsx); nenhuma classe CSS nova aqui.
 // F1 PLAN: memory/requisitos/Manufacturing/RUNBOOK-report.md (inclui a prova algébrica do
 // cálculo de custo — REGRA MESTRE de VALOR, proibicoes.md).
 //
-// US-MANU-002 (SPEC.md). Rota ADITIVA — `/manufacturing/report` (Blade) segue intocado.
+// US-MANU-002 (SPEC.md). Desde o cutover de 2026-09-04 este é o endereço canônico; o Blade
+// antigo responde no MESMO endereço com `?legacy=1`.
 //
 // O agrupamento/filtro é SERVIDOR, não cliente (ao contrário de Recipes.tsx, que filtra um
 // conjunto já carregado): De/Até/Só-finalizadas disparam `router.get` — o mesmo idioma que
@@ -27,7 +28,7 @@ interface Props {
   recipes_count: number;
 }
 
-const ROUTE = '/manufacturing/v2/report';
+const ROUTE = '/manufacturing/report';
 
 export default function Report({
   relatorio,
@@ -93,7 +94,7 @@ export default function Report({
           <span className="mfg-tab-n">{recipes_count}</span>
         </Link>
         {permissions.prod && (
-          <Link className="mfg-tab" href="/manufacturing/v2/production">
+          <Link className="mfg-tab" href="/manufacturing/production">
             Ordens de produção
             <span className="mfg-tab-n">
               {producao.total}
@@ -101,7 +102,7 @@ export default function Report({
             </span>
           </Link>
         )}
-        <Link className="mfg-tab" href="/manufacturing/v2/insumos">
+        <Link className="mfg-tab" href="/manufacturing/insumos">
           Insumos
         </Link>
         <span className="mfg-tab act" aria-current="page">
@@ -109,7 +110,7 @@ export default function Report({
         </span>
         {/* Ver a nota em Recipes.tsx: era âncora crua pra rota Blade legada, que saía do
             SPA. O cutover da rota legada segue decisão [W]. */}
-        <Link className="mfg-tab" href="/manufacturing/v2/settings">
+        <Link className="mfg-tab" href="/manufacturing/settings">
           Configurações
         </Link>
       </nav>

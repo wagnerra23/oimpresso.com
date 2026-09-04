@@ -217,12 +217,14 @@ describe('UC-INS-01 — isolamento de tenant (schema MySQL real)', function () {
         expect($bom->usosDoInsumo(999999, BIZ_FICTICIO_MFG, 10.0))->toBe([]);
     });
 
-    // A rota aditiva existe e é do RecipeController — oráculo é o registry, não o arquivo.
-    it('UC-INS-01 a rota /manufacturing/v2/insumos esta registrada no runtime', function () {
+    // O endereço CANÔNICO existe e é do RecipeController — oráculo é o registry, não o arquivo.
+    //
+    // ⚠️ Reapontado no cutover de 2026-09-04: `/v2/insumos` segue registrado, mas como REDIRECT.
+    it('UC-INS-01 a rota /manufacturing/insumos esta registrada no runtime', function () {
         $rota = collect(Route::getRoutes()->getRoutes())
-            ->first(fn ($r) => $r->uri() === 'manufacturing/v2/insumos' && in_array('GET', $r->methods(), true));
+            ->first(fn ($r) => $r->uri() === 'manufacturing/insumos' && in_array('GET', $r->methods(), true));
 
-        expect($rota)->not->toBeNull('A rota GET /manufacturing/v2/insumos sumiu do registry.');
+        expect($rota)->not->toBeNull('A rota GET /manufacturing/insumos sumiu do registry.');
         expect($rota->getActionName())->toContain('RecipeController');
     });
 });

@@ -119,12 +119,17 @@ describe('UC-REPORT-03 — custo da ordem = calculateUnitCost x quantidade produ
 
 describe('UC-REPORT-00 — alcance pela aba Relatório (DB-less)', function () {
 
-    // UC-REPORT-00 — a aba do módulo aponta pra rota nova, não pro Blade legado.
-    it('UC-REPORT-00 a aba Relatorio de Recipes.tsx aponta pra /manufacturing/v2/report', function () {
+    // UC-REPORT-00 — a aba do módulo aponta pra tela React do Relatório.
+    //
+    // ⚠️ INVERTIDO no cutover de 2026-09-04: até então a tela React vivia em `/v2/report` e o
+    // endereço canônico servia Blade — o assert exigia o `/v2/` e PROIBIA o canônico. Agora o
+    // canônico É a tela React (o `/v2/` virou 301), então o contrato inverte junto. O que o UC
+    // defende não mudou: a aba leva à tela React, nunca ao Blade.
+    it('UC-REPORT-00 a aba Relatorio de Recipes.tsx aponta pra /manufacturing/report', function () {
         $fonte = file_get_contents(base_path('resources/js/Pages/Manufacturing/Recipes.tsx'));
 
-        expect($fonte)->toContain("href=\"/manufacturing/v2/report\"");
-        expect($fonte)->not->toContain("href=\"/manufacturing/report\""); // não pode sobrar a rota antiga
+        expect($fonte)->toContain("href=\"/manufacturing/report\"");
+        expect($fonte)->not->toContain("href=\"/manufacturing/v2/report\""); // sem rota alternativa
     });
 });
 
@@ -150,13 +155,17 @@ describe('UC-REPORT-01/02 — a rota e o isolamento de tenant (schema MySQL real
         }
     });
 
-    // UC-REPORT-01 — a rota aditiva existe e é do ProductionController.
-    it('UC-REPORT-01 a rota /manufacturing/v2/report esta registrada no runtime', function () {
+    // UC-REPORT-01 — o endereço CANÔNICO existe e é do ProductionController.
+    //
+    // ⚠️ Reapontado no cutover de 2026-09-04. Antes o alvo era `/v2/report`; ele continua
+    // registrado, mas agora como REDIRECT (`RedirectController`), então asserir o controller
+    // nele passaria a medir a coisa errada. O que interessa é quem serve o canônico.
+    it('UC-REPORT-01 a rota /manufacturing/report esta registrada no runtime', function () {
         // Oráculo é o registry vivo (route collection), não a leitura do arquivo — §5 2026-07-28.
         $rota = collect(Route::getRoutes()->getRoutes())
-            ->first(fn ($r) => $r->uri() === 'manufacturing/v2/report' && in_array('GET', $r->methods(), true));
+            ->first(fn ($r) => $r->uri() === 'manufacturing/report' && in_array('GET', $r->methods(), true));
 
-        expect($rota)->not->toBeNull('A rota GET /manufacturing/v2/report sumiu do registry.');
+        expect($rota)->not->toBeNull('A rota GET /manufacturing/report sumiu do registry.');
         expect($rota->getActionName())->toContain('ProductionController');
     });
 

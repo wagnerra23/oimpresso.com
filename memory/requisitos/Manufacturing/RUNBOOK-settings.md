@@ -1,10 +1,10 @@
 ---
 last_validated: "2026-09-03"
 slug: runbook-manufacturing-settings
-title: "RUNBOOK — /manufacturing/v2/settings (Fabricação · Configurações)"
+title: "RUNBOOK — /manufacturing/settings (Fabricação · Configurações)"
 type: runbook
 module: Manufacturing
-page: /manufacturing/v2/settings
+page: /manufacturing/settings
 component: resources/js/Pages/Manufacturing/Settings.tsx
 status: rascunho
 updated_at: 2026-09-03
@@ -12,7 +12,7 @@ version: 0.1
 owner: F
 ---
 
-# RUNBOOK — `/manufacturing/v2/settings` (Fabricação · Configurações)
+# RUNBOOK — `/manufacturing/settings` (Fabricação · Configurações)
 
 > **F1 PLAN do MWART** ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)).
 > US-MANU-003 (SPEC.md) — terceira onda da família Fabricação, ordem de custo crescente
@@ -26,8 +26,14 @@ owner: F
 > página atual). Só o `index()` ganha uma variante Inertia (`indexV2`); `store()` é reusado tal
 > qual.
 >
-> **Rota nova, sem cutover** — mesmo padrão de `/v2/report` e `/v2/production`:
-> `/manufacturing/v2/settings` novo, `/manufacturing/settings` (Blade) intocado.
+> **CUTOVER 2026-09-04 — este é o endereço canônico.** Até 2026-09-04 valia o padrão
+> aditivo (tela React em `/v2/*`, Blade intocado no endereço de sempre). O pedido [F]
+> — *"módulo inteiro em produção, com os links e vínculos reais, sem rotas alternativas"*,
+> sobre a aprovação [W] da família — trocou isso: o endereço de sempre passou a servir a
+> tela React, `?legacy=1` devolve o Blade no MESMO endereço, e `/v2/*` virou 301.
+> **Nenhuma rota foi removida ou renomeada** (Non-Goal vivo do `Recipes.charter.md`).
+> Pré-condição medida: a regra F5 (cutover exige aviso a cliente) nomeia a ROTA LIVRE, e
+> [F] confirmou 2026-09-04 que ela não usa Fabricação.
 
 ## 1. O que NÃO entra (declarado, não esquecido)
 
@@ -53,7 +59,7 @@ owner: F
 ## 3. Smoke prod (R1)
 
 ```bash
-curl -sv https://oimpresso.com/manufacturing/v2/settings 2>&1 | grep '^< HTTP'
+curl -sv https://oimpresso.com/manufacturing/settings 2>&1 | grep '^< HTTP'
 ```
 
 Regressão adjacente:

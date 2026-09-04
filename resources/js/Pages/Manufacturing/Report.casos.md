@@ -109,3 +109,12 @@ last_run: "2026-09-03"
   `Modules/Manufacturing/Tests/Feature/AbasTelasV2Test.php` (4 asserts; 3 provados por bite
   test contra cópia adulterada, o 4º usa o registry de rotas em runtime). Nenhum UC acima
   mudou de comportamento. ⚠️ O cutover da rota legada segue PENDENTE e é decisão [W].
+- 2026-09-04 · [F+C] **CUTOVER**: a tela passou a ser servida no endereço CANÔNICO do módulo
+  (nasceu em `/manufacturing/v2/*`, que virou 301). Pedido [F]: *"módulo inteiro em produção,
+  com os links e vínculos reais, sem rotas alternativas"*, sobre a aprovação [W] da família.
+  Pré-condição medida: a regra F5 (cutover exige aviso a cliente) nomeia a ROTA LIVRE, e [F]
+  confirmou que ela não usa Fabricação. **Nenhuma rota removida ou renomeada** — `?legacy=1`
+  devolve o Blade no MESMO endereço e o ramo AJAX do DataTables segue intacto. Guarda nova:
+  `Modules/Manufacturing/Tests/Feature/CutoverRotasCanonicasTest.php` (9 asserts). Nenhum UC
+  acima mudou de comportamento; os asserts de ROTA de Wave30/31/33 foram reapontados pro
+  canônico porque o `/v2/` agora responde `RedirectController`, não o controller da tela.

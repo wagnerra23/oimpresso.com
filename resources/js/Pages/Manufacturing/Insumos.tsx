@@ -1,4 +1,4 @@
-// Manufacturing/Insumos — impacto reverso do insumo, em `/manufacturing/v2/insumos`.
+// Manufacturing/Insumos — impacto reverso do insumo, em `/manufacturing/insumos`.
 //
 // FONTE DE DESIGN: `prototipo-ui/cowork/manufacturing-insumos.jsx::MfgInsumosView` — mesmo
 // bundle das ondas anteriores; nenhuma classe CSS nova.
@@ -49,7 +49,7 @@ interface Props {
   recipes_count: number;
 }
 
-const ROUTE = '/manufacturing/v2/insumos';
+const ROUTE = '/manufacturing/insumos';
 
 /** Faixa do §4.4 — o servidor reclampa; aqui é só o que o controle oferece. */
 const PCT_MIN = -30;
@@ -115,7 +115,7 @@ export default function Insumos({
           <span className="mfg-tab-n">{recipes_count}</span>
         </Link>
         {permissions.prod && (
-          <Link className="mfg-tab" href="/manufacturing/v2/production">
+          <Link className="mfg-tab" href="/manufacturing/production">
             Ordens de produção
             <span className="mfg-tab-n">
               {producao.total}
@@ -126,10 +126,10 @@ export default function Insumos({
         <span className="mfg-tab act" aria-current="page">
           Insumos
         </span>
-        <Link className="mfg-tab" href="/manufacturing/v2/report">
+        <Link className="mfg-tab" href="/manufacturing/report">
           Relatório
         </Link>
-        <Link className="mfg-tab" href="/manufacturing/v2/settings">
+        <Link className="mfg-tab" href="/manufacturing/settings">
           Configurações
         </Link>
       </nav>

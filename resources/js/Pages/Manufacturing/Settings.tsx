@@ -1,4 +1,4 @@
-// Manufacturing/Settings — Configurações do módulo, em `/manufacturing/v2/settings`.
+// Manufacturing/Settings — Configurações do módulo, em `/manufacturing/settings`.
 //
 // FONTE DE DESIGN: `prototipo-ui/cowork/manufacturing-producao.jsx::MfgConfig` — mesmo
 // bundle já aplicado inteiro pela Onda 1 (Recipes.tsx); nenhuma classe CSS nova aqui.
@@ -80,7 +80,7 @@ export default function Settings({
           <span className="mfg-tab-n">{recipes_count}</span>
         </Link>
         {permissions.prod && (
-          <Link className="mfg-tab" href="/manufacturing/v2/production">
+          <Link className="mfg-tab" href="/manufacturing/production">
             Ordens de produção
             <span className="mfg-tab-n">
               {producao.total}
@@ -88,10 +88,10 @@ export default function Settings({
             </span>
           </Link>
         )}
-        <Link className="mfg-tab" href="/manufacturing/v2/insumos">
+        <Link className="mfg-tab" href="/manufacturing/insumos">
           Insumos
         </Link>
-        <Link className="mfg-tab" href="/manufacturing/v2/report">
+        <Link className="mfg-tab" href="/manufacturing/report">
           Relatório
         </Link>
         <span className="mfg-tab act" aria-current="page">
@@ -176,7 +176,7 @@ export default function Settings({
             </li>
             <li>
               <b>Fila de produção</b> — a ordem finalizada entra na fila do chão de fábrica.{' '}
-              <Link className="mfg-link" href="/manufacturing/v2/production">
+              <Link className="mfg-link" href="/manufacturing/production">
                 abrir Fila
               </Link>
             </li>

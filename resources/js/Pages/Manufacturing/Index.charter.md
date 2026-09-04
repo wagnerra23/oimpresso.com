@@ -1,6 +1,6 @@
 ---
 id: resources-js-pages-manufacturing-index-charter
-page: /manufacturing/v2/production
+page: /manufacturing/production
 component: resources/js/Pages/Manufacturing/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
 bundle_source: manufacturing-page.jsx
@@ -38,12 +38,17 @@ Listar ordens de produção (production_purchase) do business ativo em UX Inerti
 - Não migrar CRUD completo (create/edit/destroy) — Blade legacy mantém
 - Não fazer Kanban de produção — fica pra Wave futura
 - Não migrar Recipes nem BOM (RecipeBomService) — escopo separado
-- Não tocar rota legacy `/manufacturing/production` — coexistência
+- ~~Não tocar rota legacy `/manufacturing/production` — coexistência~~ — **SUPERADO pelo
+  cutover de 2026-09-04.** O andaime de coexistência era da Wave J; o pedido [F] ("módulo
+  inteiro em produção, com os links e vínculos reais, sem rotas alternativas"), sobre a
+  aprovação [W] da família em produção, torna o endereço canônico a tela React. A rota
+  **NÃO foi removida nem renomeada** e `?legacy=1` devolve o Blade no mesmo endereço.
+  ⚠️ Non-Goal é território [W]: se ele discordar, o lugar de barrar é este PR.
 
 ## UX targets
 - Responsivo 1280px+ (cliente piloto ROTA LIVRE biz=4 monitor pequeno)
 - PT-BR em todos labels
-- Empty state com link pra rota legacy enquanto migração não termina
+- Empty state com link pra rota legacy (`?legacy=1`) enquanto a migração não termina
 
 ## Anti-hooks
 - Não usar `withoutGlobalScopes` no Service

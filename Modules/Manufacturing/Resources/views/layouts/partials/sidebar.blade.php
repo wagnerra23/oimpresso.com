@@ -18,6 +18,18 @@
 						</span>
 				  	</a>
 				</li>
+				{{-- Insumos (US-MANU-005). Entrada criada no cutover de 2026-09-04: a tela
+				     subiu sem menu e sem aba, e só abria digitando a URL. Mesmo gate de
+				     `access_recipe` que o `RecipeController@insumos` exige — a lista é
+				     derivada dos ingredientes das receitas. --}}
+				<li class="{{ $request->segment(1) == 'manufacturing' && $request->segment(2) == 'insumos' ? 'active active-sub' : '' }}">
+					<a href="{{action([\Modules\Manufacturing\Http\Controllers\RecipeController::class, 'insumos'])}}">
+						<i class="fa fa-flask"></i>
+						<span class="title">
+							@lang('manufacturing::lang.insumos')
+						</span>
+				  	</a>
+				</li>
 			@endcan
 			@can('manufacturing.access_production')
 				<li class="{{ $request->segment(2) == 'production' && empty($request->segment(3))  ? 'active active-sub' : '' }}">

@@ -84,9 +84,10 @@ fórmula de custo. Prova algébrica em `RUNBOOK-report.md §1`.
 
 **Implementado em:** `resources/js/Pages/Manufacturing/Report.tsx` ·
 `Modules/Manufacturing/Http/Controllers/ProductionController.php` (`@reportV2`) ·
-`Modules/Manufacturing/Services/ProductionService.php` (`reportByProduct`) — rota ADITIVA
-`/manufacturing/v2/report` (`/manufacturing/report` Blade segue intocado; sem decisão [W] sobre
-tomar o endereço legado, como aconteceu em Recipes)
+`Modules/Manufacturing/Services/ProductionService.php` (`reportByProduct`) — endereço canônico
+`/manufacturing/report` desde o **cutover de 2026-09-04** (pedido [F], "sem rotas alternativas";
+nasceu aditiva em `/v2/report`, que virou 301). O Blade responde no MESMO endereço com
+`?legacy=1` — nenhuma rota removida.
 
 **Testado em:** `Modules/Manufacturing/Tests/Feature/Wave30ReportInertiaTest.php`
 (`@covers-us US-MANU-002`) — ⚠️ escrito e com `php -l` limpo, **ainda não rodou** (Pest só roda
@@ -116,8 +117,9 @@ Inertia (`indexV2`).
 
 **Implementado em:** `resources/js/Pages/Manufacturing/Settings.tsx` ·
 `Modules/Manufacturing/Http/Controllers/SettingsController.php` (`@indexV2` — o `@store` é
-reusado sem alteração) — rota ADITIVA `/manufacturing/v2/settings` (`/manufacturing/settings`
-Blade segue intocado; o POST continua no endereço legado)
+reusado sem alteração) — endereço canônico `/manufacturing/settings` desde o **cutover de
+2026-09-04** (nasceu em `/v2/settings`, que virou 301). O Blade responde no MESMO endereço com
+`?legacy=1`; o POST nunca mudou.
 
 **Testado em:** `Modules/Manufacturing/Tests/Feature/Wave31SettingsInertiaTest.php`
 (`@covers-us US-MANU-003`) — ⚠️ escrito, `php -l` limpo, **ainda não rodou** (Pest roda na lane
@@ -128,7 +130,7 @@ de CI da PR).
       `disable_editing_ingredient_qty` · `enable_updating_product_price`
 - [x] Botão `Atualizar` **desabilitado enquanto nada mudou** (R-24) — e durante o envio
 - [x] Rodapé com a versão do módulo (`System::getProperty('manufacturing_version')`)
-- [x] Cartão "Integrações" (3 links reais: `/products` · `/purchases` · `/manufacturing/v2/production`) ·
+- [x] Cartão "Integrações" (3 links reais: `/products` · `/purchases` · `/manufacturing/production`) ·
       o cartão de permissões simuladas **não** entra
 - [x] Escrita scoped por `business_id` (herdada do `store()` legado, com UC-CFG-04 travando)
 - [ ] Pest verde na lane de CI — pendente
@@ -184,7 +186,8 @@ Sem isso, a aba não sai."* **Custo: médio** — leitura pura, mas nasce com ba
 **Implementado em:** `resources/js/Pages/Manufacturing/Insumos.tsx` ·
 `Modules/Manufacturing/Http/Controllers/RecipeController.php` (`@insumos`) ·
 `Modules/Manufacturing/Services/RecipeBomService.php` (`usosDoInsumo` + `listInsumosComUso`) —
-rota ADITIVA `/manufacturing/v2/insumos`. **O backend que o §18.3 declarava faltar agora existe.**
+endereço canônico `/manufacturing/insumos` desde o **cutover de 2026-09-04** (nasceu em
+`/v2/insumos`, que virou 301). **O backend que o §18.3 declarava faltar agora existe.**
 
 **Testado em:** `Modules/Manufacturing/Tests/Feature/Wave33InsumosTest.php`
 (`@covers-us US-MANU-005`) — 6 testes; Pest roda na lane de CI da PR.

@@ -1,10 +1,10 @@
 ---
 last_validated: "2026-09-04"
 slug: runbook-manufacturing-producao
-title: "RUNBOOK — /manufacturing/v2/production (Fabricação · Ordens de produção)"
+title: "RUNBOOK — /manufacturing/production (Fabricação · Ordens de produção)"
 type: runbook
 module: Manufacturing
-page: /manufacturing/v2/production
+page: /manufacturing/production
 component: resources/js/Pages/Manufacturing/Index.tsx
 status: rascunho
 updated_at: 2026-09-04
@@ -12,7 +12,7 @@ version: 0.1
 owner: F
 ---
 
-# RUNBOOK — `/manufacturing/v2/production` (Fabricação · Ordens de produção)
+# RUNBOOK — `/manufacturing/production` (Fabricação · Ordens de produção)
 
 > **F1 PLAN do MWART** ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)).
 > A tela **já existia** (Wave J, 2026-05) — este RUNBOOK nasce junto com a US-MANU-004, que é
@@ -72,7 +72,7 @@ zero** (quantidade 0 ⇒ 0.0, nunca `INF`/`NaN`). Nenhuma outra conta entra.
 ## 5. Smoke prod (R1)
 
 ```bash
-curl -sv https://oimpresso.com/manufacturing/v2/production 2>&1 | grep '^< HTTP'
+curl -sv https://oimpresso.com/manufacturing/production 2>&1 | grep '^< HTTP'
 ```
 
 Regressão adjacente (Blade legado não muda):

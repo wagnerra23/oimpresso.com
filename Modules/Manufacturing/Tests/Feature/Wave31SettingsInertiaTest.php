@@ -82,13 +82,16 @@ describe('UC-CFG-01 — a rota (schema MySQL real)', function () {
         }
     });
 
-    // UC-CFG-01 — a rota aditiva existe e é do SettingsController.
-    it('UC-CFG-01 a rota /manufacturing/v2/settings esta registrada no runtime', function () {
+    // UC-CFG-01 — o endereço CANÔNICO existe e é do SettingsController.
+    //
+    // ⚠️ Reapontado no cutover de 2026-09-04: `/v2/settings` segue registrado, mas como
+    // REDIRECT — asserir o controller nele mediria o `RedirectController`, não o dono da tela.
+    it('UC-CFG-01 a rota /manufacturing/settings esta registrada no runtime', function () {
         // Oráculo é o registry vivo, não a leitura do arquivo — §5 2026-07-28.
         $rota = collect(Route::getRoutes()->getRoutes())
-            ->first(fn ($r) => $r->uri() === 'manufacturing/v2/settings' && in_array('GET', $r->methods(), true));
+            ->first(fn ($r) => $r->uri() === 'manufacturing/settings' && in_array('GET', $r->methods(), true));
 
-        expect($rota)->not->toBeNull('A rota GET /manufacturing/v2/settings sumiu do registry.');
+        expect($rota)->not->toBeNull('A rota GET /manufacturing/settings sumiu do registry.');
         expect($rota->getActionName())->toContain('SettingsController');
     });
 
