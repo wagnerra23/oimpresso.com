@@ -61,6 +61,19 @@ last_run: "2026-09-04"
 > 15/12/1970** (5xxx = operação interna · 6xxx = interestadual); CSOSN 102 = "tributada pelo Simples
 > Nacional sem permissão de crédito" (**Ajuste SINIEF 07/2005**).
 >
+> **Âncora:** `CU-FISC-15` do SDD §6.4 (fronteira de valor `[V0]`) — declarada em 2026-09-04, depois
+> da Onda 9. Os UC abaixo exercitam os **cinco primeiros** sub-itens dele: motor tributário resolve
+> alíquota/CST/CFOP (`UC-FSPED-05`) · fallback Simples preservando o CFOP por UF (`UC-FSPED-06` +
+> `UC-FSPED-04`) · trava do download em 503 (`UC-FSPED-09` + `UC-FSPED-10`) · cross-tenant antes de
+> qualquer query (`UC-FSPED-01`) · competência recusada (`UC-FSPED-02` + `UC-FSF1-03`). O enunciado
+> "os 23 registros canônicos" é conferido pelo golden file (`UC-FSF1-05`).
+>
+> ⚠️ **O sub-item 6 do CU-FISC-15 — importar o TXT no PVA-EFD oficial — segue SEM prova.** Ele está
+> no backlog do fim deste arquivo: é ferramenta externa da Receita, nenhuma lane a executa, e o
+> próprio golden expõe dois motivos pelos quais o PVA recusaria hoje (CNPJ/IE vazios e UF fixa).
+> Declarar esta âncora **não** afirma que o CU está fechado — o veredito vem da lane (G-7), nunca
+> deste arquivo.
+>
 > ⚠️ **Tela toca VALOR FISCAL** (regra-mestre cálculo · proibicoes.md): o gerador produz totais ICMS
 > no TXT (Bloco C190/E110). Ver `d1_calculo` no scorecard.
 >
