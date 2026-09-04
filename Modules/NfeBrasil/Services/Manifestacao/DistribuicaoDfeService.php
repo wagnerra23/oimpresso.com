@@ -13,6 +13,7 @@ use Modules\NfeBrasil\Models\NfeDfeItem;
 use Modules\NfeBrasil\Models\NfeDfeNsuState;
 use Modules\NfeBrasil\Models\NfeDfeRecebido;
 use Modules\NfeBrasil\Services\CertificadoService;
+use Modules\NfeBrasil\Services\Concerns\ResolveUfEmitente;
 use NFePHP\Common\Certificate;
 use NFePHP\NFe\Tools;
 use RuntimeException;
@@ -28,6 +29,8 @@ use RuntimeException;
  */
 class DistribuicaoDfeService
 {
+    use ResolveUfEmitente;
+
     public const LOOP_LIMIT_DEFAULT     = 10;
     public const COOLDOWN_MINUTES       = 5;
     public const PRAZO_CONFIRMACAO_DIAS = 180; // NT 2014.002
@@ -373,15 +376,19 @@ class DistribuicaoDfeService
         return $tools;
     }
 
+    /**
+     * A UF vem de `business_locations`, via `resolverUfEmitente()`. Até 2026-09-04 esta query
+     * pedia `business.state`, coluna que não existe — ver o docblock do trait.
+     */
     private function buildConfig(int $businessId): array
     {
-        $row = DB::table('business')->select(['name', 'tax_number_1', 'state'])->where('id', $businessId)->first();
+        $row = DB::table('business')->select(['name', 'tax_number_1'])->where('id', $businessId)->first();
         return [
             'atualizacao' => date('Y-m-d H:i:s'),
             'tpAmb'       => (int) config('nfebrasil.ambiente', 2),
             'razaosocial' => (string) ($row->name ?? ''),
             'cnpj'        => preg_replace('/\D/', '', (string) ($row->tax_number_1 ?? '')),
-            'siglaUF'     => strtoupper((string) ($row->state ?? 'SP')),
+            'siglaUF'     => $this->resolverUfEmitente($businessId),
             'schemes'     => 'PL_009_V4',
             'versao'      => '4.00',
             'tokenIBPT'   => '',
