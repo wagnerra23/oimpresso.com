@@ -42,6 +42,26 @@ use Modules\NfeBrasil\Services\NfeService;
 class AcoesController extends Controller
 {
     /**
+     * Teto de notas por lote de manifestação.
+     *
+     * Existe pra que o relatório caiba no request: o laço é sequencial e cada nota é uma ida
+     * à SEFAZ. O `LOTE_ORCAMENTO_SEGUNDOS` é a defesa real (para antes do `max_execution_time`
+     * e devolve as restantes como "não tentadas"); este teto só evita aceitar um payload que
+     * jamais caberia — e mantém o front honesto sobre quantas dá pra selecionar de uma vez.
+     */
+    public const LOTE_MAX_NOTAS = 50;
+
+    /**
+     * Orçamento de tempo do laço do lote, em segundos.
+     *
+     * Abaixo do `max_execution_time` típico do shared hosting (60s). Quando estoura, o laço
+     * PARA e as notas restantes voltam como "não tentadas" — o relatório sempre chega. Sem
+     * isso, o request morreria no meio com metade das notas já manifestadas na SEFAZ e nenhum
+     * registro do que aconteceu, que é o lote silencioso que esta tela não pode ter.
+     */
+    public const LOTE_ORCAMENTO_SEGUNDOS = 45.0;
+
+    /**
      * POST /fiscal/acoes/nfe/{emissao}/cancelar
      *
      * Cancela NFe/NFC-e autorizada dentro da janela legal (24h NFCe / 168h NFe).
@@ -183,6 +203,132 @@ class AcoesController extends Controller
 
             return back()->with('error', 'Manifestação falhou: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * POST /fiscal/acoes/dfe/lote
+     *
+     * Manifestação em lote — a MESMA ação para as N DF-e selecionadas.
+     *
+     * ── Por que UMA requisição HTTP, e não N do navegador ────────────────────────────────
+     * O protótipo (`prototipo-ui/cowork/fiscal-subpages.jsx`, `data-contract="lote-dfe"`) diz
+     * *"uma requisição por nota"*, e é assim que roda: uma chamada ao motor **por nota**, em
+     * laço sequencial — nunca paralelo, porque cada evento precisa do seu `nSeqEvento` isolado
+     * (paralelo gera duplicidade, cStat 573). O que NÃO se multiplica é a requisição do
+     * navegador: a rota por linha tem `throttle:30,1`, então um lote de 50 notas disparado
+     * como 50 POSTs morreria no 31º — deixando 30 manifestadas e 20 não, sem ninguém saber
+     * quais. Um POST de lote gasta **um** hit e cabe inteiro no orçamento.
+     *
+     * ── Falha parcial é NOMEADA ──────────────────────────────────────────────────────────
+     * Manifestação vai ao ambiente nacional da SEFAZ e é definitiva por nota. Um lote que
+     * responde só "3 de 10 falharam" é inútil: a contadora não sabe quais 3 refazer. Cada nota
+     * volta com chave, emitente e o motivo — e as que o orçamento de tempo não alcançou voltam
+     * como **não tentadas**, que é diferente de falhadas.
+     *
+     * ── Orçamento de tempo ───────────────────────────────────────────────────────────────
+     * Cada ida à SEFAZ leva segundos. Sem teto, um lote grande estoura o `max_execution_time`
+     * do shared hosting e o relatório morre junto com o request — as notas já manifestadas
+     * ficam manifestadas e ninguém fica sabendo. É exatamente o lote silencioso que esta tela
+     * não pode ter. Com o teto, o request sempre volta com o relatório completo.
+     *
+     * `nao_realizada` NÃO entra no lote: o protótipo oferece três ações em massa (ciência,
+     * confirmação, desconhecimento) e mantém a quarta só na linha, onde a decisão é individual.
+     */
+    public function manifestarDfeLote(
+        Request $request,
+        ManifestacaoService $service,
+    ): RedirectResponse {
+        if (! auth()->user()->can('superadmin') && ! auth()->user()->can('fiscal.dfe.manage')) {
+            abort(403, 'Sem permissão fiscal.dfe.manage');
+        }
+
+        $data = $request->validate([
+            'ids'           => ['required', 'array', 'min:1', 'max:' . self::LOTE_MAX_NOTAS],
+            'ids.*'         => ['integer', 'min:1'],
+            'acao'          => ['required', 'string', 'in:cienciar,confirmar,desconhecer'],
+            'justificativa' => [
+                $request->input('acao') === 'desconhecer' ? 'required' : 'nullable',
+                'string', 'min:15', 'max:255',
+            ],
+        ]);
+
+        $businessId = (int) session('user.business_id');
+        $acao = (string) $data['acao'];
+        $justificativa = $data['justificativa'] ?? null;
+        $ids = array_values(array_unique(array_map('intval', $data['ids'])));
+
+        $aplicadas = [];
+        $falhas = [];
+        $naoTentadas = [];
+
+        $inicio = microtime(true);
+
+        foreach ($ids as $id) {
+            if ((microtime(true) - $inicio) > self::LOTE_ORCAMENTO_SEGUNDOS) {
+                $naoTentadas[] = ['id' => $id];
+
+                continue;
+            }
+
+            // Escopo por tenant DENTRO do laço (ADR 0093): id de outro business não vira
+            // exceção que aborta o lote — vira uma linha nomeada no relatório, como as demais.
+            $dfe = NfeDfeRecebido::query()
+                ->where('business_id', $businessId)
+                ->where('id', $id)
+                ->first();
+
+            if (! $dfe) {
+                $falhas[] = ['id' => $id, 'chave' => null, 'emitente' => null, 'erro' => 'DF-e não encontrada neste business'];
+
+                continue;
+            }
+
+            if (! in_array($dfe->status_manifestacao, [NfeDfeRecebido::STATUS_PENDENTE, NfeDfeRecebido::STATUS_CIENCIA], true)) {
+                $falhas[] = $this->linhaLote($dfe, 'Já manifestada (' . $dfe->status_manifestacao . ')');
+
+                continue;
+            }
+
+            try {
+                match ($acao) {
+                    'cienciar'    => $service->cienciar($dfe),
+                    'confirmar'   => $service->confirmar($dfe),
+                    'desconhecer' => $service->desconhecer($dfe, (string) $justificativa),
+                };
+
+                $aplicadas[] = $this->linhaLote($dfe, null);
+            } catch (\Throwable $e) {
+                $falhas[] = $this->linhaLote($dfe, $e->getMessage());
+            }
+        }
+
+        Log::info('Fiscal.acoes.manifestarDfeLote', [
+            'business_id'  => $businessId,
+            'acao'         => $acao,
+            'pedidas'      => count($ids),
+            'aplicadas'    => count($aplicadas),
+            'falhas'       => count($falhas),
+            'nao_tentadas' => count($naoTentadas),
+        ]);
+
+        return back()->with('fiscal.dfe.lote', [
+            'acao'        => $acao,
+            'pedidas'     => count($ids),
+            'aplicadas'   => $aplicadas,
+            'falhas'      => $falhas,
+            'naoTentadas' => $naoTentadas,
+        ]);
+    }
+
+    /** Linha do relatório do lote — identifica a nota pra contadora saber qual refazer. */
+    private function linhaLote(NfeDfeRecebido $dfe, ?string $erro): array
+    {
+        return [
+            'id'       => (int) $dfe->id,
+            'chave'    => (string) $dfe->chave_44,
+            'emitente' => (string) ($dfe->nome_emitente ?? ''),
+            'erro'     => $erro,
+        ];
     }
 
     /**

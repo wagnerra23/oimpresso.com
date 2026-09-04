@@ -91,6 +91,16 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
             ->middleware('throttle:30,1')
             ->name('acoes.nfe.cancelar');
 
+        // Manifestação em LOTE — a mesma ação pras N DF-e selecionadas (US-FISCAL-008).
+        // UM hit de throttle pro lote inteiro: o laço é sequencial DENTRO do request, com uma
+        // ida à SEFAZ por nota. N POSTs do navegador estourariam o `throttle:30,1` da rota por
+        // linha no 31º item, deixando parte manifestada sem relatório.
+        // Declarada ANTES da rota por linha só por clareza de leitura — `whereNumber('recebido')`
+        // já impediria a colisão com o literal `lote`.
+        Route::post('/acoes/dfe/lote', [AcoesController::class, 'manifestarDfeLote'])
+            ->middleware('throttle:30,1')
+            ->name('acoes.dfe.lote');
+
         // Manifestar DF-e (cienciar/confirmar/desconhecer/nao_realizada).
         // Delega ManifestacaoService Modules/NfeBrasil.
         Route::post('/acoes/dfe/{recebido}/{acao}', [AcoesController::class, 'manifestarDfe'])

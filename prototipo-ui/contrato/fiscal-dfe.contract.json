@@ -15,12 +15,23 @@
         "Desconhecidas",
         "Não realizadas"
       ]
+    },
+    {
+      "id": "lote-dfe",
+      "_nota": "Barra de manifestação em lote. Copy do PROTÓTIPO (fiscal-subpages.jsx), não da tela viva — aqui o protótipo é que estava à frente. Aparece só com seleção; `nao_realizada` fica fora do lote por decisão da fonte.",
+      "copy": [
+        "Dar ciência",
+        "Confirmar operação",
+        "Desconhecer",
+        "Limpar seleção"
+      ]
     }
   ],
   "ordem": [
-    "fiscal-dfe-filters"
+    "fiscal-dfe-filters",
+    "lote-dfe"
   ],
-  "_pendente_w": [
-    "Manifestação em LOTE (fx-bulk, 4 botões) existe no protótipo; o vivo tem por linha. Decisão [W] #3 (PR-C4): vira rota POST /fiscal/acoes/dfe/lote?"
+  "_resolvido_w": [
+    "2026-09-04 — a pendência 'Manifestação em LOTE (fx-bulk, 4 botões) existe no protótipo; o vivo tem por linha. Decisão [W] #3 (PR-C4): vira rota POST /fiscal/acoes/dfe/lote?' foi fechada: [W] autorizou construir, e a rota é exatamente essa. O `<Button disabled>` do header que prometia 'Bulk manifestar (PR seguinte)' saiu — a capacidade vive na barra da fonte."
   ]
 }
