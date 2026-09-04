@@ -240,9 +240,12 @@ final class SpedReferenciaArquivoService
 
             $bloco = substr($reg, 0, 1);
 
-            if (! isset($porBloco[$bloco])) {
-                $porBloco[$bloco] = ['linhas' => 0, 'registros' => []];
-            }
+            // `??=` e não `if (! isset(...)) { ... = ... }`: isto é INICIALIZAÇÃO de
+            // acumulador do agrupador, não fallback de dado ausente. A regra
+            // `oimpresso.silentFallback` (ADR 0212) casa com a segunda forma e
+            // pediria um `Log::warning` aqui — que dispararia uma vez por bloco em
+            // toda request e afogaria o sinal que a regra existe pra dar.
+            $porBloco[$bloco] ??= ['linhas' => 0, 'registros' => []];
 
             $porBloco[$bloco]['linhas']++;
 
