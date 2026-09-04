@@ -11,6 +11,7 @@ use App\Variation;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Inertia\Inertia;
 use Modules\Repair\Concerns\LogsWithPiiRedactor;
 use Modules\Repair\Entities\RepairStatus;
 use Modules\Repair\Utils\RepairUtil;
@@ -75,10 +76,54 @@ class RepairSettingsController extends Controller
         $devices = Category::forDropdown($business_id, 'device');
         $module_category_data = $this->moduleUtil->getTaxonomyData('device');
 
+        // Onda 1 do export Repair (2026-09-04) — coexistência opt-in MWART (ADR 0104).
+        // Flag OFF (default) => Blade legado intacto. O cutover é decisão [W] após
+        // smoke real (R1), nunca efeito colateral de deploy.
+        if ($this->mwartEnabled('repair_settings_index', (int) $business_id)) {
+            // `contact_custom_fields` e `custom_labels` são consumidas pela aba de
+            // impressão e NÃO existiam no compact() do Blade — o partial
+            // (jobsheet_settings_tab.blade.php:56) dereferencia
+            // $contact_custom_fields sem que ninguém a defina. Varredura contada no
+            // repo: nenhum View::share. Aqui elas passam a ser fornecidas de fato.
+            // `(string)` de propósito: `session(...)` volta null em sessão nova, e passar null
+            // pro json_decode é deprecado no PHP 8.1+ (viraria warning em prod, não erro).
+            $custom_labels = json_decode((string) session('business.custom_labels'), true) ?: [];
+            $contact_custom_fields = $jobsheet_pdf_settings['contact_custom_fields'] ?? [];
+            if (! is_array($contact_custom_fields)) {
+                $contact_custom_fields = [];
+            }
+
+            return Inertia::render('Repair/Settings/Index', [
+                'barcodeSettings' => $barcode_settings,
+                'repairSettings' => (object) $repair_settings,
+                'defaultProductName' => $default_product_name,
+                'barcodeTypes' => $barcode_types,
+                'repairStatuses' => $repair_statuses,
+                'jobsheetPdfSettings' => (object) $jobsheet_pdf_settings,
+                'contactCustomFields' => array_values($contact_custom_fields),
+                'customLabels' => $custom_labels,
+            ]);
+        }
+
         return view('repair::settings.index')
                 ->with(compact('barcode_settings', 'repair_settings', 'default_product_name',
                 'barcode_types', 'repair_statuses', 'brands', 'devices',
                 'module_category_data', 'jobsheet_pdf_settings'));
+    }
+
+    /**
+     * Coexistência MWART (ADR 0104): flag global + whitelist opcional por business.
+     * Espelha DeviceModelController::mwartEnabled — mesmo contrato, mesma leitura.
+     */
+    private function mwartEnabled(string $key, int $business_id): bool
+    {
+        if (! config("mwart.{$key}.enabled")) {
+            return false;
+        }
+
+        $beta = (array) config("mwart.{$key}.business_ids", []);
+
+        return empty($beta) || in_array($business_id, $beta, true);
     }
 
     /**

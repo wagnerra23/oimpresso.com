@@ -128,7 +128,11 @@ Tenant de teste = **98** ([ADR 0358](../../decisions/0358-doutrina-de-teste-tena
 
 ## F5 CUTOVER
 
-Blade legado preservado até o smoke passar. Como `index()` é o único ponto de render, o cutover é a troca do `return` — sem flag por business nesta onda (a tela é de configuração, não de operação; o raio de dano é o próprio admin que a abriu).
+Blade legado preservado. Coexistência **opt-in por flag MWART**, como as 6 telas irmãs do módulo já fazem: `config('mwart.repair_settings_index')`, env `MWART_REPAIR_SETTINGS_INDEX` (+ `_BIZ` para whitelist), **default OFF**.
+
+> ⚠️ **Emenda no F3 (2026-09-04, mesmo PR que implementou):** a primeira redação deste RUNBOOK dizia *"sem flag por business nesta onda — o cutover é a troca do `return`"*. Está **corrigido aqui, não apagado**. Trocar o `return` faria o cutover acontecer no **deploy**, e o F5 exige smoke real (R1) + decisão [W] — sem flag, não há como mergear o código sem já ter mudado a tela de quem estava usando. A flag devolve o cutover a quem decide.
+
+O cutover é [W] ligando a flag depois de ver o screenshot.
 
 ## Riscos
 
