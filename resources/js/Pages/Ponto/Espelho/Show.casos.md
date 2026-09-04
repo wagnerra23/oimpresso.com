@@ -183,6 +183,25 @@ Entram como `[BACKLOG]` de propósito: são comportamento que o F3 de 2026-08-21
   isso no `alvoDoDia()` por `getClientRects()` — e não por `getComputedStyle`, que aqui mentiria: quem
   esconde é o ancestral, e o `display` computado do descendente continua `table-row`.
 
+## Coberto por teste de tela, sem id próprio — o nome acessível do seletor de mês
+
+O seletor de mês desta tela (o `<input type="month">` entre "Mês anterior" e "Próximo mês") **não
+tinha rótulo acessível**, e o defeito era `critical` pela regra `label` do axe: sem `<label>`
+implícito ou explícito, sem `aria-label`/`aria-labelledby`, sem `title` nem `placeholder`. Quem
+navega por leitor de tela ouvia um campo sem nome no meio de dois botões nomeados.
+
+**Não é achado de leitura — é veredito de máquina.** A tela entrou no `A11yAxeBrowserTest`
+(axe-core em Chromium real, `level: 0`) e reprovou na primeira execução, com o HTML do nó impresso
+no log; o conserto foi `aria-label="Mês de referência"`, e a mesma execução voltou verde nas 4
+telas do Ponto. O texto espelha o `<label htmlFor="mes">` que o `Espelho/Index` já usava — ali cabe
+rótulo visível, aqui não, porque o campo está espremido entre os dois botões e um rótulo visível
+mudaria o layout (o que exigiria gate visual, não uma correção de a11y).
+
+**Por que isto NÃO virou `## UC-ESPSH-06`:** o teste que cobre audita a **tela inteira** por um
+dataset de 4 telas — o nome dele não cita, nem poderia citar, um id de caso desta tela sozinha.
+Criar um `## UC-XX` que nenhum teste cita avermelharia o G-2 e fabricaria cobertura, que é
+exatamente o que a seção acima recusa fazer. Fica aqui como registro com veredito, não como caso.
+
 ## Decidido — CPF e PIS ficam à vista no cabeçalho legal
 
 **Decisão [W] em 2026-08-21** (textual: *"pode deixar os dados sim é um ERP"*), respondendo a
