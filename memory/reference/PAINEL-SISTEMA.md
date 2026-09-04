@@ -38,7 +38,7 @@ lente: [construir]
 | Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-08-13 |
 | Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-09-03 |
 | KB | [BRIEFING](../requisitos/KB/BRIEFING.md) | 2026-07-29 |
-| Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-09-03 |
+| Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-09-04 |
 | NfeBrasil | [BRIEFING](../requisitos/NfeBrasil/BRIEFING.md) | 2026-07-28 |
 | NFSe | [BRIEFING](../requisitos/NFSe/BRIEFING.md) | 2026-08-16 |
 | Officeimpresso | [BRIEFING](../requisitos/Officeimpresso/BRIEFING.md) | 2026-07-30 |
@@ -150,7 +150,7 @@ lente: [construir]
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 163 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 164 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -316,6 +316,7 @@ lente: [construir]
 - ~~2026-09-03 — EMENDA da lápide 2026-07-28 ("a máquina NÃO existe" por grep estreito): o gap `scripts/**` que ela declara ABERTO foi FECHADO 4 dias depois — e 2 agentes erraram por obedecê-la~~
 - ~~2026-09-03 — EMENDA da lápide 2026-07-29 (fail-open no eixo 1): o eixo 2 do MESMO arquivo carregava o MESMO colapso, e o conserto de julho não olhou o irmão~~
 - ~~2026-09-03 — Ordenar commits por RELÓGIO: `git log --since` filtra por AUTHOR date, e num repo com committer date defasado a janela mente~~
+- ~~2026-09-04 — Prescrever o TOKEN de substituição a partir de fonte LIVE-ONLY inverificável, tendo o literal congelado e o dono in-repo à mão~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -326,14 +327,14 @@ lente: [construir]
 
 ## Rastro
 
-- **496** handoffs · **675** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **497** handoffs · **676** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-09-04-fiscal-onda10-sped-goals-cowork`
   - `2026-09-03-watchdog-g6-tres-achados-ragas`
   - `2026-09-03-visreg-baselines-auto-rail-nao-accent`
   - `2026-09-03-forja-onda11-triagem-desfecho-declarado`
   - `2026-09-03-forja-onda11-revogacao-parcial`
   - `2026-09-03-fiscal-onda9-sped-regua-golden`
-  - `2026-09-03-fila-ci-teto-de-concorrencia`
 
 ---
 _Gerado por `scripts/governance/system-map.mjs` · 2026-09-04 · deriva das fontes canônicas, não as substitui._

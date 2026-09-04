@@ -1,9 +1,12 @@
 name: Fiscal Teclado Gate — a lista de notas é operável por teclado (vitest · JUnit)
 
-# O QUE TRAVA: o contrato de teclado da lista de NF-e/NFC-e (`/fiscal/nfe`) — que a
-# linha é FOCÁVEL pelo Tab, que Enter e Space abrem o drawer da linha focada, que o
-# Space NÃO rola a página, e que o cursor J/K e o foco do Tab são o mesmo cursor.
-# Contrato por UC em resources/js/Pages/Fiscal/Nfe.casos.md (UC-FNFE-10).
+# O QUE TRAVA: o contrato de teclado das listas de notas do Fiscal — que a linha é
+# FOCÁVEL pelo Tab, que Enter e Space abrem o drawer da linha focada, e que o Space NÃO
+# rola a página. Duas telas, dois specs, dois UC:
+#   · `/fiscal/nfe`  → Nfe.casos.md      · UC-FNFE-10 (+ UC-FNFE-11, ícone decorativo)
+#   · `/fiscal`      → Cockpit.casos.md  · UC-FCKP-11
+# O caso "um anel, não dois" (cursor J/K = foco do Tab) é só do `Nfe.tsx`: o cockpit
+# NÃO tem J/K, e lá `.fx-row-focus` marca a nota aberta no drawer, não um cursor.
 #
 # POR QUE A LANE EXISTE (medido 2026-09-03, não herdado): NENHUMA lane roda
 # `vitest run` sem argumento — re-medido nos 12 workflows que citam vitest, cada um
@@ -38,6 +41,12 @@ on:
     paths:
       - 'resources/js/Pages/Fiscal/Nfe.tsx'
       - 'resources/js/Pages/Fiscal/_components/NotaDrawer.tsx'
+      # A tela do cockpit e o drawer que os casos dela assertam. Sem `Cockpit.tsx` aqui,
+      # mexer na lista unificada não acordava o teste de teclado dela — o gate mudo com
+      # cara de cobertura que o cabeçalho adverte. (Ela já acordava o
+      # `fiscal-cockpit-paginacao-gate`, que é outro contrato: paginar, não teclado.)
+      - 'resources/js/Pages/Fiscal/Cockpit.tsx'
+      - 'resources/js/Pages/Fiscal/_components/NotaDrawerV2.tsx'
       # UC-FNFE-11 (ícone decorativo fora da árvore de acessibilidade) varre a `.fx-page`
       # INTEIRA, e ela monta o shell, a fonte única da subnav e a paleta ⌘K. Sem os três
       # aqui, mexer neles não acorda o teste que os defende — gate mudo com cara de
@@ -47,6 +56,7 @@ on:
       - 'resources/js/Pages/Fiscal/_lib/paginas-fiscais.tsx'
       - 'resources/css/fiscal-cockpit.css'
       - 'tests/js/fiscal-nfe-teclado.test.tsx'
+      - 'tests/js/fiscal-cockpit-teclado.test.tsx'
       - 'tests/js/setup.ts'
       - '.github/workflows/fiscal-teclado-gate.yml'
   push:
@@ -54,6 +64,9 @@ on:
     paths:
       - 'resources/js/Pages/Fiscal/Nfe.tsx'
       - 'resources/js/Pages/Fiscal/_components/NotaDrawer.tsx'
+      # a tela do cockpit e o drawer dela — mesmo motivo da perna de PR acima
+      - 'resources/js/Pages/Fiscal/Cockpit.tsx'
+      - 'resources/js/Pages/Fiscal/_components/NotaDrawerV2.tsx'
       # UC-FNFE-11 (ícone decorativo fora da árvore de acessibilidade) varre a `.fx-page`
       # INTEIRA, e ela monta o shell, a fonte única da subnav e a paleta ⌘K. Sem os três
       # aqui, mexer neles não acorda o teste que os defende — gate mudo com cara de
@@ -63,6 +76,7 @@ on:
       - 'resources/js/Pages/Fiscal/_lib/paginas-fiscais.tsx'
       - 'resources/css/fiscal-cockpit.css'
       - 'tests/js/fiscal-nfe-teclado.test.tsx'
+      - 'tests/js/fiscal-cockpit-teclado.test.tsx'
       - 'tests/js/setup.ts'
       # o workflow entra no gatilho de push porque é o run de `main` que o publisher
       # colhe: mexer na lane sem re-rodar deixaria o artifact envelhecer até expirar,
@@ -92,10 +106,14 @@ jobs:
       # `--reporter=default` mantém a saída legível pra humano; `--reporter=junit`
       # escreve o XML que vira veredito por-UC no manifesto que o G-7 do casos-gate
       # (REQUIRED) lê. Sem o par, o UC-FNFE-10 valeria 0 no painel para sempre.
-      - name: teclado da lista de notas (vitest/jsdom)
+      # Os DOIS specs no mesmo comando: acordar a lane pelo `Cockpit.tsx` e rodar só o
+      # spec do NF-e seria pior que não acordar — verde de outro teste com cara de
+      # cobertura desta tela. `paths` e comando andam colados.
+      - name: teclado das listas de notas (vitest/jsdom)
         run: |
           npx vitest run \
             tests/js/fiscal-nfe-teclado.test.tsx \
+            tests/js/fiscal-cockpit-teclado.test.tsx \
             --reporter=default \
             --reporter=junit \
             --outputFile=test-results/vitest-fiscal-teclado-junit.xml
