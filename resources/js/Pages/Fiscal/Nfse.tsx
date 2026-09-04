@@ -17,6 +17,7 @@ import { Deferred, Head, router } from '@inertiajs/react';
 import { FileSearch, FileText } from 'lucide-react';
 import { useState } from 'react';
 
+import DensidadeToggle, { useDensidadeFiscal } from './_components/DensidadeToggle';
 import FxShell from './_components/FxShell';
 import { chipCount, chipProps } from './_lib/chip-filtro';
 import { brl, formatDoc } from './_lib/fiscal-helpers';
@@ -76,6 +77,7 @@ const STATUS_LABEL: Record<string, { label: string; tone: 'ok' | 'warn' | 'bad' 
 
 export default function Nfse({ filters: initialFilters, counts, rows }: NfseProps) {
   const [filters, setFilters] = useState<Filters>(initialFilters);
+  const [density, setDensity] = useDensidadeFiscal();
   const dataRows: NfseRow[] = rows?.data ?? [];
 
   const apply = (next: Partial<Filters>) => {
@@ -172,6 +174,8 @@ export default function Nfse({ filters: initialFilters, counts, rows }: NfseProp
           >
             Canceladas <span className={chipCount(filters.status === 'canceladas')}>{counts.canceladas}</span>
           </Button>
+
+          <DensidadeToggle value={density} onChange={setDensity} />
         </Inline>
 
         {/* Tabela deferred */}
@@ -188,58 +192,60 @@ export default function Nfse({ filters: initialFilters, counts, rows }: NfseProp
               <small>Ajuste os filtros ou aguarde primeira emissão deste mês.</small>
             </div>
           ) : (
-            <div className="fx-table">
-              <table>
-                <thead>
-                  <tr>
-                    <th style={{ width: 96 }}>Número</th>
-                    <th>Tomador</th>
-                    <th style={{ width: 130 }}>Município</th>
-                    <th style={{ width: 90 }}>Cód. serviço</th>
-                    <th style={{ width: 140 }}>Status</th>
-                    <th style={{ width: 120, textAlign: 'right' }}>Valor</th>
-                    <th style={{ width: 96 }}>Emissão</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {dataRows.map((n) => {
-                    const stMeta = STATUS_LABEL[n.status] ?? { label: n.status, tone: 'warn' as const };
-                    return (
-                      <tr key={n.id} title={n.errorMsg ?? undefined}>
-                        <td className="fx-mono">
-                          <b>{n.num}</b>
-                          {n.codigoVerificacao && <small>{n.codigoVerificacao}</small>}
-                        </td>
-                        <td>
-                          <div>{n.tomador}</div>
-                          <small>{formatDoc(n.documentoTomador, null)}</small>
-                        </td>
-                        <td><small>{n.municipio ?? '—'}</small></td>
-                        <td className="fx-mono"><small>{n.codServico ?? '—'}</small></td>
-                        <td>
-                          <span className={`fx-sefaz ${stMeta.tone}`}>
-                            <span className="lbl">{stMeta.label}</span>
-                          </span>
-                          {n.aliquotaIss > 0 && (
-                            <small style={{ display: 'block', color: 'var(--fx-text-mute)', marginTop: 2 }}>
-                              ISS {n.aliquotaIss}%
-                            </small>
-                          )}
-                        </td>
-                        <td className="fx-mono fx-strong" style={{ textAlign: 'right' }}>
-                          {brl(n.valueServico)}
-                          {n.valueIss > 0 && (
-                            <small style={{ display: 'block', color: 'var(--fx-text-mute)' }}>
-                              ISS {brl(n.valueIss)}
-                            </small>
-                          )}
-                        </td>
-                        <td><small>{n.when ?? '—'}</small></td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+            <div className={`fx-density-${density}`}>
+              <div className="fx-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th style={{ width: 96 }}>Número</th>
+                      <th>Tomador</th>
+                      <th style={{ width: 130 }}>Município</th>
+                      <th style={{ width: 90 }}>Cód. serviço</th>
+                      <th style={{ width: 140 }}>Status</th>
+                      <th style={{ width: 120, textAlign: 'right' }}>Valor</th>
+                      <th style={{ width: 96 }}>Emissão</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {dataRows.map((n) => {
+                      const stMeta = STATUS_LABEL[n.status] ?? { label: n.status, tone: 'warn' as const };
+                      return (
+                        <tr key={n.id} title={n.errorMsg ?? undefined}>
+                          <td className="fx-mono">
+                            <b>{n.num}</b>
+                            {n.codigoVerificacao && <small>{n.codigoVerificacao}</small>}
+                          </td>
+                          <td>
+                            <div>{n.tomador}</div>
+                            <small>{formatDoc(n.documentoTomador, null)}</small>
+                          </td>
+                          <td><small>{n.municipio ?? '—'}</small></td>
+                          <td className="fx-mono"><small>{n.codServico ?? '—'}</small></td>
+                          <td>
+                            <span className={`fx-sefaz ${stMeta.tone}`}>
+                              <span className="lbl">{stMeta.label}</span>
+                            </span>
+                            {n.aliquotaIss > 0 && (
+                              <small style={{ display: 'block', color: 'var(--fx-text-mute)', marginTop: 2 }}>
+                                ISS {n.aliquotaIss}%
+                              </small>
+                            )}
+                          </td>
+                          <td className="fx-mono fx-strong" style={{ textAlign: 'right' }}>
+                            {brl(n.valueServico)}
+                            {n.valueIss > 0 && (
+                              <small style={{ display: 'block', color: 'var(--fx-text-mute)' }}>
+                                ISS {brl(n.valueIss)}
+                              </small>
+                            )}
+                          </td>
+                          <td><small>{n.when ?? '—'}</small></td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </Deferred>

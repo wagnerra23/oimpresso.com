@@ -118,6 +118,7 @@ não tem as migrations do NfeBrasil. É lacuna de ambiente, não defeito do test
 | UC-FNFE-09 | retransmitir preserva a nota antiga (nunca deleta) | `[must]` `[reg]` | CU-FISC-11 | `AcoesContratoTest` | 🧪 |
 | UC-FNFE-10 | a lista é operável só pelo teclado (linha focável, não botão) | `[must]` | **—** (ver nota) | `fiscal-nfe-teclado.test.tsx` | 🧪 |
 | UC-FNFE-11 | nenhum ícone decorativo chega ao leitor de tela | `[must]` | **—** (mesma nota) | `fiscal-nfe-teclado.test.tsx` | 🧪 |
+| UC-FNFE-12 | a densidade escolhida acompanha a navegação entre as telas de notas | `[should]` | **—** (mesma nota) | `fiscal-densidade.test.tsx` | 🧪 |
 
 > **Por que esta tabela nasceu em 2026-09-01 (e o que ela NÃO fez):** os 8 UC desta tela já eram
 > provados por teste desde 2026-07-27 — nenhum deles declarava, porém, **qual CU do SDD §6 atende**.
@@ -293,6 +294,41 @@ próprios ícones e são de outra onda.
 **remove o nome acessível** dele. Cada um dos 13 foi conferido antes: os 5 da tela e os 7 da subnav
 vêm com texto ao lado; o `<X>` da paleta está num botão que já declara `aria-label="Fechar (ESC)"`.
 
+## UC-FNFE-12 — A densidade escolhida acompanha a navegação entre as telas de notas
+Status: 🧪 (`tests/js/fiscal-densidade.test.tsx` — **passa**, 6/6; lane `Fiscal Densidade Gate`)
+Dado o operador na lista de NF-e · Quando escolhe **Compacto** e navega para o Cockpit ou para a
+NFS-e · Então a tabela de lá já abre compacta — a preferência é dele, não da tela.
+
+Âncora: a fonte de design faz as três telas serem a **mesma função** — `FxNotasPage`, chamada com
+`preset` diferente ([`fiscal-page.jsx:346,541-543`](../../../../prototipo-ui/cowork/fiscal-page.jsx)) — e
+persiste a escolha em `fxLS("oimpresso.fiscal.densidade")` (`:358,363`). Lá o compartilhamento é
+grátis; aqui a produção separou em três arquivos, então a propriedade precisa ser defendida.
+
+**O estado que este caso corrige (medido em `origin/main` d23bc3df34):** o controle existia **só no
+Cockpit**, e com `useState<Density>('comfort')` — estado efêmero. A escolha morria ao trocar de tela,
+e NF-e/NFS-e não tinham controle nenhum (`fx-density` = 0 nas duas).
+
+**Por que o caso é de RENDER, e não um assert sobre o texto do `.tsx`:** procurar o nome do
+componente nas telas provaria que o import foi **escrito** — presença, não comportamento (LC-11),
+e ficaria verde no instante em que alguém digitasse a linha. Aqui a NFS-e é montada **depois** de
+a NF-e ser desmontada, e a asserção lê a classe que o CSS de fato consome — o que torna o caso
+uma prova de travessia, e não de estado compartilhado em memória.
+
+**Mordida provada (contrafactual 2026-09-04):** devolver `useState('comfort')` à NFS-e — o defeito
+exato que o Cockpit tinha em `origin/main` — derruba **2** casos, com a mensagem nomeando o
+sintoma (*"a NFS-e ignorou a escolha feita na NF-e: expected 'comfort' to be 'compact'"*); divergir
+a chave da fonte de design derruba **1**, nomeando as duas chaves. Restaurado, 6/6 verde.
+
+**O que este caso NÃO cobre:** a navegação HTTP real entre as rotas — o jsdom não a faz. O que os
+casos provam é a parte que **carrega** a preferência (mesma origem, mesmo storage, a tela nova
+lendo o que a anterior gravou); a troca de página com o Inertia no meio é olho humano no smoke (R1).
+O Cockpit não é renderizado (recebe ~15 props de payload) e entra por um caso estático de fonte
+única — perde-se a prova do repinte dele, não a condição da travessia.
+
+**Por que `—` na coluna CU:** vale aqui a mesma nota do `UC-FNFE-10` — os 16 CU do SDD §6 tratam do
+que a pessoa fiscal **faz** (conferir, cancelar, manifestar, inutilizar); nenhum trata de
+preferência de exibição. Ancorar num CU plausível fecharia a lacuna do painel sem lastro (LC-11).
+
 ## Backlog de casos (sem id — entram quando um teste de COMPORTAMENTO os cobrir)
 
 - **[~~BACKLOG~~ · 🧪 tem teste, NÃO executa · Tier 0] Gate de permissão `fiscal.nfe.view` bloqueia a leitura da lista** — Dado usuário sem `fiscal.nfe.view` nem `superadmin` · Quando faz `GET /fiscal/nfe` · Então 403. **Corrigido em 2026-09-01:** a redação anterior dizia *"nenhum teste o exercita"* e isso era **falso** — o caso existe em [`GatesPermissaoFiscalTest.php:72`](../../../../Modules/Fiscal/Tests/Feature/GatesPermissaoFiscalTest.php), **com controle negativo** em `:79` (superadmin não recebe 403), e ancora `UC-FNFE-08`. O que é verdade é outra coisa, e a distinção importa: o arquivo inteiro **pula** (`:49-55`) em SQLite e sem `nfe_emissoes`, então o caso **não executa** em nenhuma lane de hoje. *Teste ausente* e *teste que não roda* pedem trabalhos diferentes — o primeiro é escrever, o segundo é dar lane ao módulo (o item de maior alavancagem do plano: 15 de 21 arquivos de teste do Fiscal chamam `markTestSkipped`).
@@ -306,6 +342,10 @@ vêm com texto ao lado; o `<X>` da paleta está num botão que já declara `aria
 2. **Cadência:** rodar ao fim de toda mexida na tela. UC ❌ = regressão fiscal.
 
 ## Trilha do tempo
+- 2026-09-04 · [C] `UC-FNFE-12` — a densidade vira preferência compartilhada. O bloco inline do
+  Cockpit virou `_components/DensidadeToggle.tsx` (dono único, como no protótipo, onde as três
+  telas são uma função só) e NF-e/NFS-e passaram a consumi-lo. Os 11 UC anteriores seguem
+  intactos: conferi um a um — nenhum toca densidade, tabela ou storage.
 - 2026-07-03 · [CC] criado no Passo 3 do programa de ondas. 17 testes mapeados, 0 citavam UC-id.
 - 2026-07-27 · [CC] fecha a G-2 com 8 UC (`UC-FNFE-01..08`). Criado `AcoesContratoTest` (contrato REAL
   das regras do Controller, mordida provada); guard de banco movido pros casos que precisam dele

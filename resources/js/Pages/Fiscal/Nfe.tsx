@@ -22,6 +22,7 @@ import { Deferred, Head, router } from '@inertiajs/react';
 import { Eraser, FileSearch, Plus, RefreshCw } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
+import DensidadeToggle, { useDensidadeFiscal } from './_components/DensidadeToggle';
 import FxShell from './_components/FxShell';
 import InutilizacaoModal from './_components/InutilizacaoModal';
 import NotaDrawer, { type NotaRow } from './_components/NotaDrawer';
@@ -71,6 +72,7 @@ export default function Nfe({ filters: initialFilters, counts, sefazCodes, rows 
   const [opened, setOpened] = useState<NotaRow | null>(null);
   const [cursor, setCursor] = useState(0);
   const [inutOpen, setInutOpen] = useState(false);
+  const [density, setDensity] = useDensidadeFiscal();
 
   const dataRows: NotaRow[] = rows?.data ?? [];
 
@@ -255,6 +257,8 @@ export default function Nfe({ filters: initialFilters, counts, sefazCodes, rows 
                 aria-pressed={filters.status === 'processando'}
                 onClick={() => applyFilters({ status: 'processando' })}
               >Processando <span className={chipCount(filters.status === 'processando')}>{counts.processando}</span></Button>
+
+              <DensidadeToggle value={density} onChange={setDensity} />
             </Inline>
 
             {/* Tabela com Deferred (Inertia partial reload) */}
@@ -270,71 +274,73 @@ export default function Nfe({ filters: initialFilters, counts, sefazCodes, rows 
                   <small>Ajuste os filtros ou inicie uma emissão.</small>
                 </div>
               ) : (
-                <div className="fx-table" data-keyboard="true">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th style={{ width: 88 }}>Número</th>
-                        <th>Chave / destinatário</th>
-                        <th style={{ width: 200 }}>Status SEFAZ</th>
-                        <th style={{ width: 110, textAlign: 'right' }}>Valor</th>
-                        <th style={{ width: 96 }}>Emissão</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {dataRows.map((n, idx) => {
-                        const sefaz = sefazCodes[n.cstat] ?? { tone: 'warn', label: 'Status', hint: '' };
-                        const cancel = prazoCancel(n);
-                        const isFocus = idx === cursor;
-                        return (
-                          <tr
-                            key={n.id}
-                            className={isFocus ? 'fx-row-focus' : ''}
-                            tabIndex={0}
-                            aria-label={`Abrir ${n.modelo === 65 ? 'NFC-e' : 'NF-e'} ${n.num} · ${n.dest || '—'}`}
-                            onClick={() => setOpened(n)}
-                            onFocus={() => setCursor(idx)}
-                            onKeyDown={(e) => {
-                              if (e.key !== 'Enter' && e.key !== ' ') return;
-                              // preventDefault: sem ele o Space ROLA a página (default do browser
-                              // em elemento focável). stopPropagation: sem ele o Enter sobe pro
-                              // handler global de window (o J/K acima) e o drawer abriria duas vezes.
-                              e.preventDefault();
-                              e.stopPropagation();
-                              setOpened(n);
-                            }}
-                          >
-                            <td className="fx-mono">
-                              <b>{n.num}</b>
-                              <small>{n.modelo === 65 ? 'NFC-e' : 'NF-e'} · s{n.serie}</small>
-                            </td>
-                            <td>
-                              <div className="fx-cell-key">{truncKey(n.key)}</div>
-                              <small>{n.dest} · {formatDoc(n.cnpj, n.cpf)}</small>
-                            </td>
-                            <td>
-                              <span className={`fx-sefaz ${sefaz.tone}`} title={sefaz.hint}>
-                                <span className="code">{n.cstat || '—'}</span>
-                                <span className="lbl">{sefaz.label}</span>
-                              </span>
-                              {cancel && (
-                                <span className={`fx-timepill u-${cancel.urgency} compact`}>
-                                  <RefreshCw size={9} aria-hidden="true"/>
-                                  <span className="lbl"><b>{cancel.h}h</b></span>
+                <div className={`fx-density-${density}`}>
+                  <div className="fx-table" data-keyboard="true">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th style={{ width: 88 }}>Número</th>
+                          <th>Chave / destinatário</th>
+                          <th style={{ width: 200 }}>Status SEFAZ</th>
+                          <th style={{ width: 110, textAlign: 'right' }}>Valor</th>
+                          <th style={{ width: 96 }}>Emissão</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {dataRows.map((n, idx) => {
+                          const sefaz = sefazCodes[n.cstat] ?? { tone: 'warn', label: 'Status', hint: '' };
+                          const cancel = prazoCancel(n);
+                          const isFocus = idx === cursor;
+                          return (
+                            <tr
+                              key={n.id}
+                              className={isFocus ? 'fx-row-focus' : ''}
+                              tabIndex={0}
+                              aria-label={`Abrir ${n.modelo === 65 ? 'NFC-e' : 'NF-e'} ${n.num} · ${n.dest || '—'}`}
+                              onClick={() => setOpened(n)}
+                              onFocus={() => setCursor(idx)}
+                              onKeyDown={(e) => {
+                                if (e.key !== 'Enter' && e.key !== ' ') return;
+                                // preventDefault: sem ele o Space ROLA a página (default do browser
+                                // em elemento focável). stopPropagation: sem ele o Enter sobe pro
+                                // handler global de window (o J/K acima) e o drawer abriria duas vezes.
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setOpened(n);
+                              }}
+                            >
+                              <td className="fx-mono">
+                                <b>{n.num}</b>
+                                <small>{n.modelo === 65 ? 'NFC-e' : 'NF-e'} · s{n.serie}</small>
+                              </td>
+                              <td>
+                                <div className="fx-cell-key">{truncKey(n.key)}</div>
+                                <small>{n.dest} · {formatDoc(n.cnpj, n.cpf)}</small>
+                              </td>
+                              <td>
+                                <span className={`fx-sefaz ${sefaz.tone}`} title={sefaz.hint}>
+                                  <span className="code">{n.cstat || '—'}</span>
+                                  <span className="lbl">{sefaz.label}</span>
                                 </span>
-                              )}
-                            </td>
-                            <td className="fx-mono fx-strong" style={{ textAlign: 'right' }}>
-                              {brl(n.value)}
-                            </td>
-                            <td>
-                              <small>{n.when ?? '—'}</small>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                                {cancel && (
+                                  <span className={`fx-timepill u-${cancel.urgency} compact`}>
+                                    <RefreshCw size={9} aria-hidden="true"/>
+                                    <span className="lbl"><b>{cancel.h}h</b></span>
+                                  </span>
+                                )}
+                              </td>
+                              <td className="fx-mono fx-strong" style={{ textAlign: 'right' }}>
+                                {brl(n.value)}
+                              </td>
+                              <td>
+                                <small>{n.when ?? '—'}</small>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               )}
             </Deferred>
