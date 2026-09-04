@@ -14,7 +14,7 @@ module: Fiscal
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Fiscal/**` + `resources/js/Pages/Fiscal/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 103 arquivos em 12 papéis.
+**Total mapeado:** 106 arquivos em 12 papéis.
 
 ## Controllers — 11
 
@@ -30,9 +30,10 @@ module: Fiscal
 - [PaletteSearchController.php](../../../Modules/Fiscal/Http/Controllers/PaletteSearchController.php)
 - [SpedController.php](../../../Modules/Fiscal/Http/Controllers/SpedController.php)
 
-## Services — 3
+## Services — 4
 
 - [NotasUnifiedService.php](../../../Modules/Fiscal/Services/NotasUnifiedService.php)
+- [SefazCstatService.php](../../../Modules/Fiscal/Services/SefazCstatService.php)
 - [SpedIcmsIpiGeneratorService.php](../../../Modules/Fiscal/Services/SpedIcmsIpiGeneratorService.php)
 - [SpedReferenciaArquivoService.php](../../../Modules/Fiscal/Services/SpedReferenciaArquivoService.php)
 
@@ -65,7 +66,7 @@ module: Fiscal
 - [Nfse.tsx](../../../resources/js/Pages/Fiscal/Nfse.tsx)
 - [Sped.tsx](../../../resources/js/Pages/Fiscal/Sped.tsx)
 
-## Componentes / apoio de tela — 18
+## Componentes / apoio de tela — 19
 
 - [AlertasFiscais.tsx](../../../resources/js/Pages/Fiscal/_components/AlertasFiscais.tsx)
 - [CmdKPalette.tsx](../../../resources/js/Pages/Fiscal/_components/CmdKPalette.tsx)
@@ -78,6 +79,7 @@ module: Fiscal
 - [NFSeDrawer.tsx](../../../resources/js/Pages/Fiscal/_components/NFSeDrawer.tsx)
 - [NotaDrawer.tsx](../../../resources/js/Pages/Fiscal/_components/NotaDrawer.tsx)
 - [NotaDrawerV2.tsx](../../../resources/js/Pages/Fiscal/_components/NotaDrawerV2.tsx)
+- [RibbonSpark.tsx](../../../resources/js/Pages/Fiscal/_components/RibbonSpark.tsx)
 - [SavedViewsChips.tsx](../../../resources/js/Pages/Fiscal/_components/SavedViewsChips.tsx)
 - [SeloProcedencia.tsx](../../../resources/js/Pages/Fiscal/_components/SeloProcedencia.tsx)
 - [SendToContabilDrawer.tsx](../../../resources/js/Pages/Fiscal/_components/SendToContabilDrawer.tsx)
@@ -106,9 +108,9 @@ module: Fiscal
 - [Nfse.casos.md](../../../resources/js/Pages/Fiscal/Nfse.casos.md)
 - [Sped.casos.md](../../../resources/js/Pages/Fiscal/Sped.casos.md)
 
-## Testes (Pest) — 27
+## Testes (Pest) — 28
 
-- 27 em [Modules/Fiscal/Tests/Feature/](../../../Modules/Fiscal/Tests/Feature)
+- 28 em [Modules/Fiscal/Tests/Feature/](../../../Modules/Fiscal/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 16

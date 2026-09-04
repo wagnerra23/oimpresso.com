@@ -50,7 +50,7 @@ Wagner aprovou Wave consolidada (Cockpit + NFS-e + Eventos) — 2026-05-20.
 
 | Aspecto | Cowork | Inertia | OK? |
 |---|---|---|---|
-| Icon hero KPI | sparkline SVG inline branco | ✅ MiniSparkline component | ✅ |
+| Icon hero KPI | sparkline SVG inline branco | ❌→✅ ver nota A | ⚠️→✅ |
 | Icon alert | ShieldAlert/Shield/Receipt/RefreshCw lucide | ✅ ICON map dinâmico | ✅ |
 | Icon quick card | Receipt/FileText/Archive/Shield etc. lucide | ✅ idem | ✅ |
 
@@ -84,9 +84,32 @@ Wagner aprovou Wave consolidada (Cockpit + NFS-e + Eventos) — 2026-05-20.
 | Aspecto | Cowork | Inertia | OK? |
 |---|---|---|---|
 | FxShell wrapper | sub-nav + cheats + atalhos 1-7 | ✅ `_components/FxShell.tsx` | ✅ |
-| MiniSparkline SVG | path + circle endpoint | ✅ inline component (140 chars) | ✅ |
+| MiniSparkline SVG | `<polyline>` (não `path + circle`) | ❌→✅ ver nota A | ⚠️→✅ |
 | brl helper | format moeda | ✅ `_lib/fiscal-helpers.ts` | ✅ |
+
+> **Nota A — ⚠️ correção de veredito, 2026-09-04.** As duas linhas acima diziam **✅** e citavam
+> um `MiniSparkline component` que **nunca existiu**. Medido em `origin/main` (tip `d23bc3df34`)
+> por dois oráculos independentes com controle positivo — `rg --hidden -g '!.git/**'` e
+> `git grep` —, o identificador `MiniSparkline` aparecia em **2 arquivos, nenhum de código**:
+> este doc e `governance/sdd-verification-ledger.json`. Em `resources/js/`, **zero**. No mesmo
+> tip, `grep -c polyline resources/js/Pages/Fiscal/Cockpit.tsx` dava **0** e a prop `sparklines`
+> nunca era desestruturada.
+>
+> O registro original fica **preservado**: ele é o fato datado do que se afirmou em 2026-05-20,
+> e apagá-lo esconderia justamente o mecanismo do defeito. **Este `✅` é a causa de o gap ter
+> ficado invisível por ~3,5 meses** — sendo este doc o dono do inventário por tela, quem o
+> consultasse concluiria que a peça estava pronta e não olharia o `.tsx`. Um refutador
+> adversarial já havia registrado a discrepância no `sdd-verification-ledger.json` (append-only,
+> por isso não tocado aqui); o que faltou foi ela voltar para cá.
+>
+> **Fechado em 2026-09-04** pelo item A2 (autorizado por [W]): `_components/RibbonSpark.tsx`,
+> porte 1:1 do `FxSpark` de `fiscal-page.jsx:80-84`, aplicado aos **3** KPIs que o protótipo
+> marca (`:114-116`). Contrato em `Cockpit.casos.md` **UC-FCKP-12**, lane
+> `fiscal-cockpit-sparklines-gate.yml` — agora existe máquina vigiando, e um `✅` sem recibo
+> volta a ficar vermelho. Detalhe de forma: o protótipo desenha `<polyline>`, **sem** o
+> `circle` de endpoint que a linha original descrevia.
 
 ## Histórico
 
 - **2026-05-20** — Wave consolidada PR #2 (Cockpit + NFS-e + Eventos). Implementação fiel ao protótipo Cowork.
+- **2026-09-04** — Item A2 ([W]): as sparklines passam a ser DESENHADAS (`_components/RibbonSpark.tsx`, 3 KPIs, UC-FCKP-12 + lane própria). Corrigido o veredito de 05-20 nas duas linhas do `MiniSparkline` — ver **Nota A**. O Goal #2 do charter também cedeu de *4 KPIs* para *3*, pela cadeia de FORMA (ADR UI-0029).

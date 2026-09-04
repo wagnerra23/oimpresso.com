@@ -130,6 +130,15 @@ contrato fiscal é decisão de [W], que escolheu esta forma em 2026-09-04.
 
 ## Non-Goals (Wagner aprova explicitamente) — Onda 9
 
+> ⚠️ **O primeiro Non-Goal abaixo foi RESOLVIDO em 2026-09-04 (Onda 10), e fica preservado como
+> fato datado.** A pergunta estava mal formulada: a fonte do Cowork mostra que a prévia **nunca
+> exigiu rodar o gerador** — o protótipo renderiza linhas fixas, e o charter dele declara Non-Goal
+> "não gerar o arquivo de verdade". O que restava era mais estreito: em produção, *encenar* seria
+> **fabricar**. [W] decidiu mostrar linhas de um arquivo de **referência real** (o golden),
+> declaradas como layout. `previaTxt` — a prévia do arquivo **do operador** — **continua `null`**,
+> e a ausência dele segue declarada: as duas coisas convivem e a copy "Não é a sua competência"
+> está travada no contrato de tela pra que não se confundam. Ver `UC-FSF1-04`.
+
 - ❌ **Prévia server-side do conteúdo do TXT** — *pendente de decisão, não recusada.* Gerar uma
   amostra fiel exigiria rodar `SpedIcmsIpiGeneratorService::gerar()` **inteiro** em request
   síncrono (não existe modo parcial: o único método público monta o arquivo completo em memória).
@@ -166,8 +175,13 @@ contrato fiscal é decisão de [W], que escolheu esta forma em 2026-09-04.
   não existe" escrito vira falso no dia em que ele nasce — que foi exatamente o que aconteceu com
   a copy do protótipo, um dia depois do charter do Cowork.
 - 🚫 **NÃO apresentar o arquivo de referência como sendo a competência do operador** — o `0000` do
-  golden declara `CI TENANT 98 (FICTICIO)` como emitente. Toda superfície que o exibir diz que é
-  referência de layout.
+  golden declara `CI TENANT 98 (FICTICIO)` como emitente, e a tela repete esse nome LIDO do
+  arquivo, nunca um rótulo "fictício" escrito à mão (que viraria mentira se o golden fosse
+  regerado de outro tenant). Toda superfície que o exibir diz que é referência de layout.
+- 🚫 **NÃO transformar a amostra no arquivo inteiro, nem preencher `previaTxt` com ela** — a
+  amostra é uma linha por registro distinto e é MENOR que o arquivo (há teste para os dois). O
+  `previaTxt` é a prévia da competência **do operador**, e ela continua ausente e declarada;
+  colapsar as duas faria a contadora imprimir um arquivo de outro emitente achando que é o dela.
 - 🚫 **NÃO mover a decisão das 4 checagens para o cliente** — a régua é avaliada no servidor
   (`SpedController::checagens`) e a tela só renderiza. Regra duplicada no `.tsx` diverge da
   `validar()` do Service no primeiro ajuste, e aí a tela libera o que o servidor recusa (ou o

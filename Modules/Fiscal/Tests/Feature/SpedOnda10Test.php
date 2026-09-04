@@ -180,6 +180,65 @@ it('UC-FSF1-07 · "apuração do ICMS no arquivo" é medido pelo Bloco E', funct
         ->and($semArquivo['golden']['presente'])->toBeFalse();
 });
 
+/* ── UC-FSF1-04 · a prévia é de um arquivo de REFERÊNCIA, e diz isso ──────── */
+
+it('UC-FSF1-04 · a amostra traz UMA linha por registro, na ordem do arquivo', function () {
+    $referencia = app(SpedReferenciaArquivoService::class)->referencia();
+    $amostra = $referencia['amostra'];
+
+    expect($amostra)->not->toBeEmpty();
+
+    // Um registro nunca aparece duas vezes — senão o operador leria 22 linhas
+    // `9900` iguais em vez do layout dos 5 blocos.
+    $regs = array_column($amostra, 'reg');
+    expect($regs)->toBe(array_values(array_unique($regs)));
+
+    // E cobre os 5 blocos: são as 12 primeiras linhas que NÃO cobririam (o
+    // arquivo abre com o Bloco 0 inteiro), e é por isso que a amostra é "a
+    // primeira de cada" e não "as N primeiras".
+    $blocosNaAmostra = array_values(array_unique(array_map(
+        static fn (string $reg): string => substr($reg, 0, 1),
+        $regs,
+    )));
+    expect($blocosNaAmostra)->toBe(['0', 'C', 'E', 'H', '9']);
+
+    // Toda linha é pipe-delimited de verdade, lida do arquivo — não montada aqui.
+    foreach ($amostra as $item) {
+        expect($item['linha'])->toStartWith('|' . $item['reg'] . '|');
+    }
+});
+
+it('UC-FSF1-04 · a amostra é MENOR que o arquivo, e o número é dito', function () {
+    // Se um dia a "amostra" passar a ser o arquivo inteiro, a tela deixa de ser
+    // amostra e vira o arquivo — que é o que o Non-Goal do charter proíbe.
+    $referencia = app(SpedReferenciaArquivoService::class)->referencia();
+
+    expect(count($referencia['amostra']))->toBeLessThan($referencia['linhas']);
+});
+
+it('UC-FSF1-04 · o emitente sai do registro 0000, e prova que o arquivo não é do operador', function () {
+    // A tela precisa DIZER de quem é o arquivo. Escrever "fictício" à mão viraria
+    // mentira no dia em que o golden fosse regerado de outro tenant; ler do `0000`
+    // continua verdadeiro sozinho.
+    $referencia = app(SpedReferenciaArquivoService::class)->referencia();
+
+    expect($referencia['emitente'])->toBeString()
+        ->and($referencia['emitente'])->not->toBe('')
+        // O golden vigente é do tenant fictício 98 (ADR 0358).
+        ->and($referencia['emitente'])->toContain('98');
+});
+
+it('UC-FSF1-04 · sem arquivo de referência não há amostra — a tela some, não inventa', function () {
+    // BITE-TEST: a seção da prévia é condicionada a `amostra.length > 0`. Um
+    // serviço que devolvesse linhas de exemplo escritas no código passaria nos
+    // casos acima e falharia aqui.
+    $vazio = app(SpedReferenciaArquivoService::class)
+        ->referenciaDe(base_path('Modules/Fiscal/Tests/Fixtures/nao-existe.txt'), 'x');
+
+    expect($vazio['amostra'])->toBe([])
+        ->and($vazio['emitente'])->toBeNull();
+});
+
 /* ── As props chegam à tela (o payload, não o pixel) ──────────────────────── */
 
 it('UC-FSF1-06 · UC-FSF1-07 · o Controller entrega referência e validação à tela', function () {
