@@ -105,7 +105,7 @@ rotas), então o atalho valia para os dois; em produção são telas separadas e
 
 Destilado do alvo `prototipo-ui/cowork/fiscal-page.jsx:80-84` (`FxSpark`) e `:114-116` (onde ele
 aparece). Descreve o que a peça **é**; o dado segue sendo do `computeSparklines()`, que já existia
-e não foi tocado. Contrato executável em `Cockpit.casos.md` (**UC-FCKP-10**), lane
+e não foi tocado. Contrato executável em `Cockpit.casos.md` (**UC-FCKP-12**), lane
 `fiscal-cockpit-sparklines-gate.yml`.
 
 | Item | Contrato |

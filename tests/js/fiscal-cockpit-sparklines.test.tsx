@@ -1,7 +1,7 @@
 /**
  * As mini-séries de 14 dias do ribbon do cockpit fiscal.
  *
- * @covers-us UC-FCKP-10
+ * @covers-us UC-FCKP-12
  *
  * POR QUE ESTE TESTE É DE RENDER (e não estático): o defeito que ele defende não era
  * código ausente — era código ESCRITO e INERTE. A prop `sparklines` viajava do
@@ -67,7 +67,7 @@ const ribbon = () => document.querySelector('[data-contract="fiscal-cockpit-kpis
 const itens = () => Array.from(ribbon().querySelectorAll('.fx-ribbon-item'));
 const sparks = () => Array.from(ribbon().querySelectorAll('polyline'));
 
-describe('UC-FCKP-10 · o ribbon desenha as séries que o controller já mandava', () => {
+describe('UC-FCKP-12 · o ribbon desenha as séries que o controller já mandava', () => {
   it('as séries são DESENHADAS — antes deste caso, `sparklines` chegava e morria na prop', () => {
     render(<Cockpit {...cena} />);
     // Com a prop não-desestruturada (o estado de origin/main até 2026-09-04), este

@@ -4,7 +4,7 @@ name: Fiscal Cockpit Sparklines Gate — as séries do ribbon são desenhadas (v
 # que elas sejam DESENHADAS, que apareçam nos três KPIs que o protótipo marca (nem mais,
 # nem menos), que a geometria seja a de `FxSpark` e que o gráfico permaneça redundância
 # visual (`aria-hidden`, `currentColor`). Contrato por UC em
-# resources/js/Pages/Fiscal/Cockpit.casos.md (UC-FCKP-10).
+# resources/js/Pages/Fiscal/Cockpit.casos.md (UC-FCKP-12).
 #
 # POR QUE A LANE EXISTE: nenhuma lane roda `vitest run` sem argumento — cada spec aponta
 # pro próprio arquivo, e por isso o projeto tem uma lane por contrato de tela
@@ -72,7 +72,7 @@ jobs:
 
       # `--reporter=default` mantém a saída legível pra humano; `--reporter=junit`
       # escreve o XML que vira veredito por-UC no manifesto que o G-7 do casos-gate
-      # (REQUIRED) lê. Sem o par, o UC-FCKP-10 valeria 0 no painel para sempre.
+      # (REQUIRED) lê. Sem o par, o UC-FCKP-12 valeria 0 no painel para sempre.
       - name: séries do ribbon do cockpit (vitest/jsdom)
         run: |
           npx vitest run \

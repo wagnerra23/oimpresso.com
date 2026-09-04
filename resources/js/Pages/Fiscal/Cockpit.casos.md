@@ -55,7 +55,7 @@ related_us: [US-FISCAL-002, US-FISCAL-019]
 | UC-FCKP-06 | cache separado por business | `[must]` `[T0]` | CU-FISC-12 | `CockpitCacheTest` | 🧪 |
 | UC-FCKP-08 | o alerta é desenhado e leva a algum lugar | `[must]` | CU-FISC-01 | `CockpitControllerTest` | 🧪 |
 | UC-FCKP-09 | a tela serve uma PÁGINA, e filtrar volta à 1ª | `[must]` | CU-FISC-01 | `fiscal-cockpit-paginacao.test.tsx` | 🧪 |
-| UC-FCKP-10 | as séries de 14 dias do ribbon são desenhadas | `[must]` | CU-FISC-01 | `fiscal-cockpit-sparklines.test.tsx` | 🧪 |
+| UC-FCKP-12 | as séries de 14 dias do ribbon são desenhadas | `[must]` | CU-FISC-01 | `fiscal-cockpit-sparklines.test.tsx` | 🧪 |
 
 ---
 
@@ -163,7 +163,7 @@ related_us: [US-FISCAL-002, US-FISCAL-019]
 - **Âncora:** `fiscal-page.jsx` §`FxNotasPage` do protótipo Cowork, baixado do **vivo** por `DesignSync` em 2026-09-03 (`truncated: false`) — não do espelho `prototipo-ui/cowork/`, que mediu **1 de 258** arquivos e cuja própria máquina declara que qualquer comparação contra ele é INCONCLUSIVA. De lá vêm o default **8**, as opções 8/25/50, a copy e o contador `{pagina} / {paginas}`.
 - **Status:** 🧪 veredito da lane pendente — a lane nasce neste PR e o run real vem do CI; o que existe hoje é o run local acima.
 
-## UC-FCKP-10 — As séries de 14 dias do ribbon são desenhadas `[must]`
+## UC-FCKP-12 — As séries de 14 dias do ribbon são desenhadas `[must]`
 
 **Dado** um business com emissões nas últimas duas semanas
 **Quando** a contadora abre o cockpit
@@ -173,7 +173,7 @@ related_us: [US-FISCAL-002, US-FISCAL-019]
 - **Também defende (LC-30 — passa no CI e é inerte no runtime):** este é o caso puro dessa classe, e é por isso que nenhum gate o pegou em meses. Todos os que existiam mediam o **payload** (o controller emite a prop?) e não o **render** (a tela desenha?). Um teste de Feature, um typecheck e um assert `->has('sparklines')` ficam os três **verdes** com a tela exatamente como estava — a prop existe, tipa e chega; ela só morre na porta. O único contrato que morde é contar `<polyline>` de fato renderizada.
 - **Por que exatamente 3, e não 4:** o Goal #2 do charter dizia *"mini-sparklines SVG nos **4** KPIs principais"*, e o protótipo marca **3** (`fiscal-page.jsx:114-116` — emitidas, autorizadas, rejeitadas; DF-e, Certificado A1 e Faturado fiscal não têm `FxSpark`). É discordância no eixo **FORMA**, onde a cadeia é `protótipo > teste > casos > charter` ([ADR UI-0029](../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)): o perdedor é o charter, corrigido no MESMO PR. A série `faturamento` continua sendo computada e serializada — desenhá-la é que divergiria da fonte.
 - **O que este caso NÃO prova, de propósito:** (a) que a série tenha 14 pontos — isso é garantido por **construção** no backend (`computeSparklines()` tem `for ($i = 0; $i < 14; $i++)` e um único `return`, sem saída antecipada), e re-assertar aqui mediria o meu próprio mock; (b) que a **cor** de cada série esteja certa — `currentColor` resolve na cascata, e jsdom não faz cascata, então afirmar cor aqui seria medir o que eu mandei e não o que o browser resolveu (§5 2026-07-16). O contrato testável é que a cor **não está fixada** no SVG; a tinta real é do smoke em produção.
-- **Teste:** `tests/js/fiscal-cockpit-sparklines.test.tsx` — os 6 casos do `describe('UC-FCKP-10 · o ribbon desenha as séries que o controller já mandava')`. Lane: `fiscal-cockpit-sparklines-gate.yml` (advisory, nasce neste PR).
+- **Teste:** `tests/js/fiscal-cockpit-sparklines.test.tsx` — os 6 casos do `describe('UC-FCKP-12 · o ribbon desenha as séries que o controller já mandava')`. Lane: `fiscal-cockpit-sparklines-gate.yml` (advisory, nasce neste PR).
 - **Bite-test (2026-09-04, local — 5 mutações, com restore e controle 6/6 verde nas duas pontas):** remover os 3 `<RibbonSpark>` → **5 failed**; dar série a um 4º KPI → **2 failed**; remover o guarda de `< 2` pontos → **1 failed** (volta o `points="NaN,NaN"`); trocar `currentColor` por literal → **1 failed**; remover `aria-hidden` → **1 failed**.
 - **Mutação EQUIVALENTE declarada, porque a medição me corrigiu:** trocar a escala `v / max` pela do `Sparkline` vizinho (`(v - min) / range`) deixa os 6 casos **verdes**. Não é teste fraco: o `min` de lá é `Math.min(...data, 0)` — piso zero —, e contagem de nota fiscal nunca é negativa, então `min` é sempre 0, `range` vira `max`, e as duas fórmulas produzem o **mesmo ponto** (verificado numericamente; divergem só com dado negativo, que este domínio não tem). Isso **refutou um dos quatro** argumentos que eu havia escrito contra reusar o componente vizinho; sobraram três, e são os que estão no docblock do `RibbonSpark`.
 - **Âncora:** `CU-FISC-01` do SDD §6 (o cockpit entrega a leitura consolidada do mês) + o alvo `FxSpark` de `prototipo-ui/cowork/fiscal-page.jsx:80-84`, lido nos **dois** donos do inventário de design em 2026-09-04 — do vivo por `DesignSync` (`truncated: false`) e do espelho `prototipo-ui/cowork/` —, que **concordam neste trecho**. De lá vêm o viewBox 56×15, a base em y=14, a amplitude 12, `strokeWidth` 1.2, `currentColor` e `aria-hidden`.
@@ -200,4 +200,4 @@ related_us: [US-FISCAL-002, US-FISCAL-019]
 - 2026-07-03 · [CC] stub criado no Passo 3 do programa de ondas — **0 UC**.
 - 2026-07-27 · [CC] `sdd-from-source` (Onda 1 / S2): **6 UC** derivados do §6 do SDD; todos herdam testes existentes. O achado do dado de demonstração ficou como `[BACKLOG]` + `CU-FISC-16` ⬜, por ser decisão de produto.
 - 2026-09-03 · [CC] Onda 1 Fiscal (Cowork): **UC-FCKP-08** — a fila de alertas passa a ser renderizada (`_components/AlertasFiscais.tsx`). O caso nasce com teste próprio e bite-test; cobre os dois contratos cross-language silenciosos (`goto`→rota, `icon`→glifo).
-- 2026-09-04 · [CC] Item A2 (autorizado por [W]): **UC-FCKP-10** — as séries de 14 dias passam a ser desenhadas (`_components/RibbonSpark.tsx`). O caso nasce com teste próprio, lane e bite-test de 5 mutações. No mesmo PR, o Goal #2 do charter foi corrigido de *4 KPIs* para *3*, pela cadeia de FORMA (ADR UI-0029) — o protótipo marca três.
+- 2026-09-04 · [CC] Item A2 (autorizado por [W]): **UC-FCKP-12** — as séries de 14 dias passam a ser desenhadas (`_components/RibbonSpark.tsx`). O caso nasce com teste próprio, lane e bite-test de 5 mutações. No mesmo PR, o Goal #2 do charter foi corrigido de *4 KPIs* para *3*, pela cadeia de FORMA (ADR UI-0029) — o protótipo marca três.

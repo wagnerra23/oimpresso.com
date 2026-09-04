@@ -104,7 +104,7 @@ Wagner aprovou Wave consolidada (Cockpit + NFS-e + Eventos) — 2026-05-20.
 >
 > **Fechado em 2026-09-04** pelo item A2 (autorizado por [W]): `_components/RibbonSpark.tsx`,
 > porte 1:1 do `FxSpark` de `fiscal-page.jsx:80-84`, aplicado aos **3** KPIs que o protótipo
-> marca (`:114-116`). Contrato em `Cockpit.casos.md` **UC-FCKP-10**, lane
+> marca (`:114-116`). Contrato em `Cockpit.casos.md` **UC-FCKP-12**, lane
 > `fiscal-cockpit-sparklines-gate.yml` — agora existe máquina vigiando, e um `✅` sem recibo
 > volta a ficar vermelho. Detalhe de forma: o protótipo desenha `<polyline>`, **sem** o
 > `circle` de endpoint que a linha original descrevia.
@@ -112,4 +112,4 @@ Wagner aprovou Wave consolidada (Cockpit + NFS-e + Eventos) — 2026-05-20.
 ## Histórico
 
 - **2026-05-20** — Wave consolidada PR #2 (Cockpit + NFS-e + Eventos). Implementação fiel ao protótipo Cowork.
-- **2026-09-04** — Item A2 ([W]): as sparklines passam a ser DESENHADAS (`_components/RibbonSpark.tsx`, 3 KPIs, UC-FCKP-10 + lane própria). Corrigido o veredito de 05-20 nas duas linhas do `MiniSparkline` — ver **Nota A**. O Goal #2 do charter também cedeu de *4 KPIs* para *3*, pela cadeia de FORMA (ADR UI-0029).
+- **2026-09-04** — Item A2 ([W]): as sparklines passam a ser DESENHADAS (`_components/RibbonSpark.tsx`, 3 KPIs, UC-FCKP-12 + lane própria). Corrigido o veredito de 05-20 nas duas linhas do `MiniSparkline` — ver **Nota A**. O Goal #2 do charter também cedeu de *4 KPIs* para *3*, pela cadeia de FORMA (ADR UI-0029).
