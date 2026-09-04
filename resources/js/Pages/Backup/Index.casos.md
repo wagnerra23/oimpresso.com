@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + criterio de aceite verificavel (D
 por_que: comportamento e duravel — "nao da para excluir o unico backup" e "download so aceita .zip da pasta" valem em qualquer refactor
 owner: wagner
 autor: "[C] 2026-08-20"
-last_run: "2026-08-20"
+last_run: "2026-09-04"
 ---
 
 # Casos de Uso & Aceite — Backup do sistema
@@ -140,3 +140,26 @@ last_run: "2026-08-20"
 | 11 | `tests/js/backup-index.test.tsx` (id no título) | 4 |
 
 Os testes rodam no CT 100, nunca local ([ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)).
+
+## Revalidação — 2026-09-04 (PR #6767)
+
+A tela mudou (`Index.tsx` ganhou a prop `caption` do `shared/DataTable`) e ganhou o
+[UC-BKP-11](#uc-bkp-11--a-lista-de-backups-tem-nome-acessível).
+
+**O que foi revalidado:** `tests/js/backup-index.test.tsx` — 4 testes verdes, cobrindo
+UC-BKP-02, UC-BKP-08 e o novo UC-BKP-11. Bite-test feito: trocar a `caption` no `.tsx`
+derruba o teste (1 failed); restaurar volta a 4 passed.
+
+**⚠️ O que este `last_run` NÃO cobre, e é preciso dizer:** os UCs desta tela provados por
+Pest (01, 03, 04, 05, 06, 07, 09, 10 — `BackupInertiaTest`, `BackupJobTest`,
+`BackupSegurancaTest`) **não têm lane de CI**. Medido em 2026-09-04 com as duas pernas da
+regra de claim-negativa (§5 2026-07-28): varredura no repo inteiro com `rg --hidden` → zero
+hits em `.github/workflows/`; e o dono do inventário (`scripts/governance/gates-registry.json`,
+134 workflows) não registra nenhuma lane da Backup — com controle positivo (`arquivos-pest`
+aparece). Toda invocação de `vendor/bin/pest` no CI é path-específica; nenhuma varre
+`tests/Feature` amplamente. É exatamente o que o cabeçalho do `acessos-pest.yml:6-18` alerta:
+*"sem lane, um teste nesses diretórios nasce MUDO"*.
+
+Esses UCs não foram revalidados aqui **porque não há onde rodá-los em PR** — e a mudança
+desta tela é provadamente inerte a eles (`BackupInertiaTest` não lê arquivo-fonte nenhum).
+Criar a lane é trabalho próprio, fora do intent deste PR.
