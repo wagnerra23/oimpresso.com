@@ -44,6 +44,7 @@ related_us: [US-FISCAL-007]
 |---|---|---|
 | `EventosCockpitMultiTenantTest` | `PHP / Pest (NfeBrasil · MySQL)` | ✅ **sim** — required no [baseline](../../../../governance/required-checks-baseline.json) e na allowlist do workflow |
 | `GatesPermissaoFiscalTest` (novo) | `Pest Fiscal` (**pula** em SQLite) + suíte noturna CT 100 | ❌ **não** — advisory |
+| `fiscal-debitos-conhecidos.test.tsx` (novo) | `Fiscal Débitos Gate` (vitest/jsdom) | ❌ **não** — advisory ([ADR 0314](../../../../memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md): declarar dívida é transparência, não Tier-0) |
 
 ## Rastreabilidade
 
@@ -56,6 +57,14 @@ related_us: [US-FISCAL-007]
 | UC-FEVT-05 | o CSV não vaza outro business | `[must]` `[T0]` | CU-FISC-12 | `EventosCockpitMultiTenantTest` | 🧪 |
 | UC-FEVT-06 | o CSV leva o recorte filtrado | `[must]` | CU-FISC-05 | `EventosCockpitMultiTenantTest` | 🧪 |
 | UC-FEVT-07 | a janela do CSV é clampada | `[should]` | CU-FISC-05 | `EventosCockpitMultiTenantTest` | 🧪 |
+| UC-FEVT-08 | a tela declara os débitos que ela mesma registra | `[should]` | **—** (ver nota) | `fiscal-debitos-conhecidos.test.tsx` | 🧪 |
+
+> **Por que o `UC-FEVT-08` tem `—` na coluna CU:** os CU do SDD §6 descrevem o que a tela **faz
+> pelo usuário fiscal** (ler a timeline, exportar, manifestar). Este caso é de **transparência
+> sobre a própria tela** — meta-comportamento que nenhum CU cobre, porque não existia quando o
+> SDD foi escrito. Inventar um CU plausível aqui seria fabricar âncora, que é justamente o que
+> este bloco de débitos existe para não fazer. O CU nasce se e quando [W] decidir que declarar
+> dívida é requisito de produto.
 
 ---
 
@@ -151,6 +160,34 @@ O protótipo Cowork ([`fiscal-subpages.jsx:33`](../../../../prototipo-ui/cowork/
 
 ---
 
+## UC-FEVT-08 — A tela declara os débitos que os casos.md dela já registram `[should]`
+
+**Dado** que esta tela tem itens em `## Backlog de casos` abaixo
+**Quando** a contadora abre `/fiscal/eventos`
+**Então** ela lê, no rodapé, "Débitos conhecidos desta tela" com um item por bullet `[BACKLOG]` —
+e cada item carrega a âncora (`Arquivo.casos.md:linha`) de onde saiu.
+
+- **O que defende:** que a lista seja **derivada**, não escrita. O protótipo Cowork
+  ([`fiscal-subpages.jsx:9-25`](../../../../prototipo-ui/cowork/fiscal-subpages.jsx)) desenha este
+  bloco a partir de uma constante à mão (`FX_DEBITOS`), e ela **já mente**: afirma *"Gate
+  fiscal.nfe.view sem teste — nenhum teste o exercita"*, frase que ficou falsa em 2026-09-01,
+  quando [`Nfe.casos.md:298`](Nfe.casos.md) foi corrigido e o bullet **tachado**. Copiar aquela
+  constante publicaria a mentira em produção. Aqui a fonte é o próprio `.casos.md`, via
+  [`scripts/governance/fiscal-debitos-derive.mjs`](../../../../scripts/governance/fiscal-debitos-derive.mjs)
+  — pagar a dívida e tachar o bullet **remove o item da tela no mesmo commit**.
+- **Estado vazio:** nó **ausente** — tela sem débito não desenha contêiner nem mensagem, o mesmo
+  contrato que a fila de alertas do cockpit já segue.
+- **Mordida provada** (4 mutações, restore byte-idêntico): remover o render do `FxShell` → 4
+  vermelhos; parar de excluir bullet tachado → o `fiscal.nfe.view` reaparece, 1 vermelho; derivar
+  o rótulo do tom → `source-grep` vira "sem teste", 1 vermelho; trocar o nó ausente por contêiner
+  vazio → 1 vermelho.
+- **Fronteira honesta:** o teste mede o **DOM** (títulos, tons, âncoras, ausência). A borda tonal,
+  o dot do Badge e a leitura em 1280px no tema escuro são olho humano no smoke (R1).
+- **Teste:** `tests/js/fiscal-debitos-conhecidos.test.tsx` — 5 casos citando `UC-FEVT-08`.
+- **Status:** 🧪 lane **advisory**; veredito pendente.
+
+---
+
 ## Backlog de casos (sem id — viram UC quando ganharem contrato + teste)
 
 - **[BACKLOG · ⬜ sem teste] A justificativa exibida é truncada, para não vazar PII do XML** — Dado um evento com justificativa longa · Quando a linha renderiza · Então só um trecho inicial aparece. _Anti-hook do charter (o texto do motivo da SEFAZ pode conter dado pessoal); o corte existe no Controller, sem teste._
@@ -168,4 +205,9 @@ O protótipo Cowork ([`fiscal-subpages.jsx:33`](../../../../prototipo-ui/cowork/
 
 - 2026-07-03 · [CC] stub criado no Passo 3 do programa de ondas — **0 UC**.
 - 2026-07-27 · [CC] `sdd-from-source` (Onda 1 / S2): **4 UC** derivados do §6 do SDD. Os 8 itens de backlog que citavam ações de mutação foram **movidos** para as telas donas (`Nfe`/`Dfe`) em vez de duplicados — UC não se repete entre telas irmãs.
+- 2026-09-04 · [C] Onda 5 Cowork (débitos declarados): **+1 UC** (`UC-FEVT-08`). O bloco é montado
+  uma vez no `FxShell` e resolvido por `route`, como no protótipo — as sete telas o herdam, e esta
+  é a dona do contrato por ser uma das duas onde o protótipo o desenha. **Nenhum bullet de
+  `## Backlog` virou UC**: eles continuam sendo a FONTE do bloco, e promovê-los mudaria o
+  denominador que o gerador lê.
 - 2026-09-03 · [CC] Onda 7 (export CSV): **+3 UC** (05 cross-tenant do arquivo · 06 recorte filtrado · 07 clamp da janela). Os testes foram escritos **dentro do `EventosCockpitMultiTenantTest`**, não num arquivo novo: a allowlist da lane required lista os testes um a um, e arquivo novo nasceria sem execução. Registrada também a **divergência EPEC × Inutilização** do protótipo, resolvida a favor do vivo com prova estrutural (FK `emissao_id` NOT NULL) — nada trocado na tela.
