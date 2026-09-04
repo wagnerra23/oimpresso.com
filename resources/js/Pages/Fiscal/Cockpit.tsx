@@ -21,6 +21,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import AlertasFiscais, { type AlertaFiscal } from './_components/AlertasFiscais';
+import DensidadeToggle from './_components/DensidadeToggle';
 import EventosDrawer, { type EventoFiscal } from './_components/EventosDrawer';
 import FxShell from './_components/FxShell';
 import NFSeDrawer, { type NFSeDrawerData } from './_components/NFSeDrawer';
@@ -31,6 +32,7 @@ import { SeloProcedencia } from './_components/SeloProcedencia';
 import SendToContabilDrawer, { type SendToContabilData } from './_components/SendToContabilDrawer';
 import WriteOffAuditoriaCard, { type WriteOffSummary } from './_components/WriteOffAuditoriaCard';
 import { brl, truncKey } from './_lib/fiscal-helpers';
+import { useDensidadeFiscal } from './_lib/densidade-fiscal';
 import { type MapaProcedencia } from './_lib/procedencia';
 import { Inline } from '@/Components/layout';
 import { Checkbox } from '@/Components/ui/checkbox';
@@ -137,7 +139,6 @@ interface CockpitProps {
 type ViewId = 'todas' | 'resolver' | 'janela24' | 'processando' | 'nfse' | 'nfce' | 'custom';
 type TipoFilter = 'todos' | Tipo;
 type StatusFilter = 'todos' | 'autorizadas' | 'rejeitadas' | 'processando' | 'cancelaveis';
-type Density = 'compact' | 'comfort' | 'relax';
 
 const REJECTED_NFE_CODES = [110, 204, 220, 539, 691, 778];
 
@@ -235,7 +236,7 @@ export default function Cockpit({
   const [tipo, setTipo] = useState<TipoFilter>('todos');
   const [status, setStatus] = useState<StatusFilter>('todos');
   const [view, setView] = useState<ViewId>('todas');
-  const [density, setDensity] = useState<Density>('comfort');
+  const [density, setDensity] = useDensidadeFiscal();
   // Onda 3 · o default 8 e as opções 8/25/50 vêm do protótipo (fiscal-page.jsx), não de palpite.
   const [pagina, setPagina] = useState(1);
   const [porPagina, setPorPagina] = useState(8);
@@ -538,17 +539,7 @@ export default function Cockpit({
             </SelectContent>
           </Select>
 
-          <div className="fx-density" role="radiogroup" aria-label="Densidade da tabela">
-            <button type="button" className={density === 'compact' ? 'active' : ''} onClick={() => setDensity('compact')} title="Compacto" aria-pressed={density === 'compact'}>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="6" width="18" height="2" /><rect x="3" y="11" width="18" height="2" /><rect x="3" y="16" width="18" height="2" /></svg>
-            </button>
-            <button type="button" className={density === 'comfort' ? 'active' : ''} onClick={() => setDensity('comfort')} title="Confortável" aria-pressed={density === 'comfort'}>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="4" width="18" height="3" /><rect x="3" y="10" width="18" height="3" /><rect x="3" y="16" width="18" height="3" /></svg>
-            </button>
-            <button type="button" className={density === 'relax' ? 'active' : ''} onClick={() => setDensity('relax')} title="Relaxado" aria-pressed={density === 'relax'}>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="18" height="5" /><rect x="3" y="11" width="18" height="5" /></svg>
-            </button>
-          </div>
+          <DensidadeToggle value={density} onChange={setDensity} />
         </div>
 
         {/* Chip de cliente filtrado */}

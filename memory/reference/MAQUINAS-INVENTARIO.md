@@ -81,6 +81,7 @@ lifecycle: ativo
 | `fiscal-cockpit-paginacao-gate.yml` | pr+push+manual | — | Fiscal Cockpit Paginacao — a tela serve uma PAGINA da lista (8/25/50 · reset ao filtrar) |
 | `fiscal-cockpit-sparklines-gate.yml` | pr+push+manual | `memory/requisitos/Fiscal/fiscal-cockpit-visual-comparison.md` | Fiscal Cockpit Sparklines — as series de 14 dias do ribbon sao desenhadas (3 KPIs · geometria FxSpark) |
 | `fiscal-debitos-gate.yml` | pr+push+manual | — | Fiscal Débitos — a tela declara a própria dívida, e a lista é derivada dos casos.md |
+| `fiscal-densidade-gate.yml` | pr+push+manual | — | Fiscal Densidade — a densidade da tabela acompanha o operador entre as telas (NF-e · NFS-e · Cockpit) |
 | `fiscal-teclado-gate.yml` | pr+push+manual | — | Fiscal Teclado — a lista de notas é operável por teclado (Tab · Enter · Space · J/K) |
 | `force-clean-rebuild-trigger.yml` | push+manual | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +3 | Force Clean Rebuild (one-shot) |
 | `forja-jsdom-gate.yml` | pr+push+manual | — | Forja jsdom — o que a tela DESENHA (Quadro: uma coluna por fase declarada · painel de papéis) |
