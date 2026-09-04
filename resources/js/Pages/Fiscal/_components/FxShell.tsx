@@ -77,7 +77,7 @@ export default function FxShell({
             }}
             title="Busca global fiscal (Cmd/Ctrl+K)"
           >
-            <Search size={13}/>
+            <Search size={13} aria-hidden="true"/>
             <span>Buscar</span>
             <kbd>⌘K</kbd>
           </Button>
