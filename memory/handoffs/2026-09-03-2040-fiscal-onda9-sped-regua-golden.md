@@ -2,7 +2,7 @@
 date: "2026-09-03"
 time: "2040 BRT"
 slug: fiscal-onda9-sped-regua-golden
-tldr: "Onda 9 do Fiscal mergeada (#6708): régua de 4 checagens no SPED + golden do EFD-ICMS/IPI. O golden revelou que o gerador quebrava com TypeError antes de terminar e nunca tinha rodado ponta-a-ponta. Prévia do TXT ficou PARADA (decisão [W]); emitente sem CNPJ/IE/UF é achado de motor fiscal, não consertado."
+tldr: "Onda 9 do Fiscal mergeada (#6708): régua de 4 checagens no SPED + golden do EFD-ICMS/IPI. O golden revelou que o gerador quebrava com TypeError antes de terminar e nunca tinha rodado ponta-a-ponta. LEIA A ERRATA no fim: a fonte do Cowork, lida depois do merge, mostra 5 Goals no charter (entregamos 1) e responde a pergunta da prévia — o F1 encena, nunca gerou."
 decided_by: [W]
 prs: [6708]
 us: [US-FISCAL-016, US-FISCAL-017, US-FISCAL-020]
@@ -12,9 +12,11 @@ related_adrs:
   - 0264-governanca-executavel-trio-dominio-e2e
   - 0358-doutrina-de-teste-tenant-98-supersede-0101
 next_steps:
-  - "[W] decide a prévia do TXT: job com artefato, ou modo parcial no gerador"
+  - "Onda seguinte: os 4 Goals do charter do Cowork que faltam (bypass superadmin, prévia, cartão de validação externa, blocos) + mover a régua do drawer para barra na página"
+  - "[W] decide a prévia em PRODUCAO: o F1 encena (Non-Goal do charter), mas encenar em prod seria fabricar — saídas honestas são a estrutura dos blocos e/ou o golden como referência de layout"
   - "[W] decide o emitente do registro 0000 (CNPJ/IE vazios, UF fixa SP) — muda o CFOP de toda operação"
   - "Smoke visual autenticado da régua no drawer (sessão caiu no deploy; senha é proibida ao agente)"
+  - "[W] decide o wiring do ds-guard: 20 dos 39 css de resources/css/ acusariam, e >=5 sao falso-positivo por construcao (arquivos de token)"
 ---
 
 # Handoff — Fiscal Onda 9 (SPED): régua de geração + golden file
@@ -63,6 +65,10 @@ devolve `HTTP/1.1 200 OK`.
 
 ### 1. Pergunta a [W] — a prévia do TXT (item 5 do placar, não entregue)
 
+> ⚠️ **Esta seção foi SUPERADA pela §ERRATA no fim deste handoff.** A pergunta abaixo está mal
+> formulada: a fonte do Cowork mostra que a prévia nunca exigiu rodar o gerador. Fica preservada
+> como o que se sabia na hora do merge.
+
 O pedido mandava **parar e perguntar** se a prévia exigisse gerar o arquivo inteiro em request
 síncrono. Exige: o único método público do Service monta o arquivo completo em memória, não há modo
 parcial, e uma prévia server-side **contornaria a trava fail-secure** `sped_simples_only_lock`.
@@ -92,6 +98,52 @@ Para conferir: abrir `/fiscal/sped` autenticado e clicar na lupa de uma competê
 períodos de biz=1 têm **0 notas autorizadas**, então o motivo esperado é "Sem notas autorizadas no
 período" — para exercitar as 4 checagens é preciso um período com notas, ou ler
 `periodos[].checagens` no `data-page`.
+
+## ⚠️ ERRATA da mesma sessão — a fonte do Cowork foi lida DEPOIS do merge, e muda duas coisas acima
+
+Uma sessão irmã (Onda 2) avisou que o pedido do Cowork para esta tela existe no projeto vivo e
+podia estar à frente do repo. Estava. Baixei por ID (`cowork-inbox/fiscal/Sped.{casos,charter}.md`,
+`README.md` e o protótipo `fiscal-subpages.jsx` §`FxSpedPage`) — o espelho local não servia
+(`--sla`: mediu **1 de 258**, 157 ausentes).
+
+**1. O placar "6 de 7" media o pedido derivado, não a fonte.** O charter do Cowork tem **5 Goals**;
+esta onda entregou **1** (mais a guarda de entrada no Service, que é do vivo):
+
+| Goal | Estado |
+|---|---|
+| 1. Barra de validação com os 4 pré-requisitos | 🟡 parcial — os 4 ids e a ordem batem, mas ficou **dentro do drawer**; o protótipo tem `data-contract="validacao-competencia"` como **barra na página**, e o motivo do mês aberto **cita a data em que fecha** |
+| 2. Bypass de superadmin explícito (liberar / reativar) | ❌ |
+| 3. Prévia do TXT com linhas `\|REG\|…` declaradas amostra | ❌ |
+| 4. Cartão de validação externa | ❌ |
+| 5. Blocos com os registros que cada um contém | ❌ |
+
+Das 5 âncoras `data-contract` do protótipo (`validacao-competencia`, `panorama-sped`, `previa-txt`,
+`blocos-arquivo`, `validacao-externa`), a tela viva tem **zero** — a única que ela tem
+(`fiscal-sped-status`) é do vivo, não do F1.
+
+**2. A pergunta da prévia estava MAL FORMULADA, e a fonte a responde.** O charter do Cowork traz o
+Non-Goal *"❌ Gerar o arquivo de verdade no F1 — a ação é encenada com o resultado nomeado"*, e o
+protótipo renderiza `U.D().SPED_TXT`, um array de linhas de amostra encurtadas. **A prévia nunca
+exigiu rodar o gerador.** O que continua sendo decisão [W] é mais estreito: em **produção**,
+encenar seria fabricar, o que as leis da onda proíbem — as saídas honestas são a estrutura dos
+blocos (Goal 5, fato do layout) e/ou linhas do golden declaradas como referência de layout, nunca
+como a competência do usuário.
+
+**3. Armadilha no Goal 4, para quem implementar:** o cartão do protótipo diz literalmente
+*"Golden file do TXT: não existe"*. Depois deste PR, **existe**. Copiar a copy produziria afirmação
+falsa na tela; o estado verdadeiro hoje é *golden existe · smoke no PVA-EFD nunca executado*. O
+charter é de 2026-08-24, anterior ao golden.
+
+**4. Achado de gate mudo, medido e NÃO consertado** (é intent separado e governança de gate): o
+`ds-guard.mjs` §8 **morde** o `fiscal-cockpit.css` (`BLOQUEIA: 1`, paleta `--fx-*(6)`), mas o
+`design-memory-gate.yml` o alimenta com `git diff -- 'prototipo-ui/**' 'resources/js/Pages/**'` e
+há **0** `.css` sob `Pages/`. ⚠️ O glob **não** é cego (pega **78** `.css` sob `prototipo-ui/`); o
+buraco é que **`resources/css/` — 39 arquivos, todos os bundles de módulo — nunca entra**. E ligar
+não é a linha de YAML que parece: medido, o guard acusa **20 dos 39**, dos quais pelo menos **5 são
+falso-positivo por construção** (`tokens/_generated-*.css` e `cockpit.css`, arquivos cujo trabalho
+É definir tokens, casam com a régua "≥4 tokens de cor com prefixo bespoke"). Apontar o glob sem
+isentar essa população faria o gate **nascer vermelho permanente** — o gate-de-teatro que o §5
+enterra. Conserto exige FP medido antes ("LIGUE A MÁQUINA" item 4).
 
 ## O que a próxima sessão precisa saber
 

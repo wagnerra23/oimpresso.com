@@ -83,6 +83,17 @@ anti-hooka *"NÃO declarar o gerador validado sem smoke no PVA-EFD"*. Registrado
 
 ## A parada declarada: prévia do TXT
 
+> ⚠️ **SUPERADO no fim da sessão.** Uma sessão irmã apontou que o pedido do Cowork existe no projeto
+> vivo; baixei por ID e a fonte responde: o charter traz o Non-Goal *"❌ Gerar o arquivo de verdade
+> no F1 — a ação é encenada"*, e o protótipo renderiza `SPED_TXT`, linhas de amostra. **A prévia
+> nunca exigiu rodar o gerador** — minha premissa estava errada. Além disso, o charter tem **5
+> Goals** e esta onda entregou **1**. Detalhe completo, com os números, na §ERRATA do
+> [handoff](../handoffs/2026-09-03-2040-fiscal-onda9-sped-regua-golden.md) — não repetido aqui de
+> propósito (§5 2026-07-17: não restatear o que outro doc sabe melhor).
+
+### O que se sabia no momento do merge
+
+
 O pedido mandava **parar e perguntar** se a prévia exigisse gerar o arquivo inteiro em request
 síncrono. Exige: o único método público do Service monta o arquivo completo em memória, não há modo
 parcial, e reimplementar a contagem no Controller seria escrever motor fiscal no lugar errado.
