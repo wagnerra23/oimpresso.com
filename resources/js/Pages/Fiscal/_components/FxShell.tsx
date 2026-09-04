@@ -11,6 +11,7 @@ import { useEffect, type ReactNode } from 'react';
 
 import CmdKPalette from './CmdKPalette';
 import DebitosConhecidos from './DebitosConhecidos';
+import DecisaoPendente from './DecisaoPendente';
 
 interface FxShellProps {
   route: string;
@@ -111,9 +112,13 @@ export default function FxShell({
 
       <div className="fx-body">
         {children}
-        {/* Um ponto de render cobre as 7 telas — é onde o protótipo o põe também
-            (`<FxDebitosPage tela={route} />`, `fiscal-page.jsx:524`), logo antes do
-            rodapé. Tela sem débito não desenha nada. */}
+        {/* Um ponto de render cobre as 7 telas — é onde o protótipo os põe também
+            (`<FxDebitosPage tela={route} />`, `fiscal-page.jsx:524`), logo antes do rodapé.
+            Tela sem item não desenha nada.
+
+            A decisão pendente vem ANTES da dívida: ela é o que ainda não foi respondido, e
+            quem lê a tela precisa saber disso antes de ler o que já se sabe que falta. */}
+        <DecisaoPendente route={route} />
         <DebitosConhecidos route={route} />
       </div>
 
