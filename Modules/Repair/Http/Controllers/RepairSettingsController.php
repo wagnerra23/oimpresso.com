@@ -41,7 +41,10 @@ class RepairSettingsController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return Response
+     * Devolve o Blade legado por padrão e a Page Inertia quando a flag MWART
+     * `repair_settings_index` está ligada para o business — daí o retorno ser união.
+     *
+     * @return \Illuminate\Contracts\View\View|\Inertia\Response
      */
     public function index()
     {

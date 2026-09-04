@@ -22,6 +22,7 @@ import { Textarea } from '@/Components/ui/textarea';
 import { Switch } from '@/Components/ui/switch';
 import { Select, SelectContent, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
+import { Grid, Inline } from '@/Components/layout';
 import type { ReactNode } from 'react';
 
 type Dicionario = Record<string, string | number | null>;
@@ -198,7 +199,7 @@ export default function RepairSettingsIndex({
         className="space-y-6"
       >
         <Secao titulo="Folha de OS" descricao="Valores que toda nova folha assume por padrão.">
-          <div className="grid gap-4 md:grid-cols-3">
+          <Grid fit="sm" gap={4}>
             <div className="min-w-0 space-y-1.5">
               <Label htmlFor="job_sheet_prefix">Prefixo da folha</Label>
               <Input
@@ -269,9 +270,9 @@ export default function RepairSettingsIndex({
                 </SelectContent>
               </Select>
             </div>
-          </div>
+          </Grid>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <Grid fit="md" gap={4}>
             <div className="min-w-0 space-y-1.5">
               <Label htmlFor="problem_reported_by_customer">Problema relatado pelo cliente</Label>
               <Textarea
@@ -317,7 +318,7 @@ export default function RepairSettingsIndex({
                 onChange={(e) => folha.setData('default_repair_checklist', e.target.value)}
               />
             </div>
-          </div>
+          </Grid>
         </Secao>
 
         {/* ── 2 · Campos personalizados ─────────────────────────────────── */}
@@ -325,7 +326,7 @@ export default function RepairSettingsIndex({
           titulo="Campos personalizados da folha"
           descricao="Sem rótulo, a coluna não aparece na listagem de folhas."
         >
-          <div className="grid gap-4 md:grid-cols-3">
+          <Grid fit="sm" gap={4}>
             {CAMPOS_PERSONALIZADOS.map((n) => {
               const chave = `job_sheet_custom_field_${n}` as keyof typeof folha.data;
               return (
@@ -340,17 +341,17 @@ export default function RepairSettingsIndex({
                 </div>
               );
             })}
-          </div>
+          </Grid>
         </Secao>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <Inline gap={3} wrap>
           <Button type="submit" disabled={folha.processing}>
             {folha.processing ? 'Salvando…' : 'Salvar configurações'}
           </Button>
           <span className="text-sm text-muted-foreground">
             Permissão: repair_module (assinatura) + admin do negócio
           </span>
-        </div>
+        </Inline>
       </form>
 
       {/* ── 3 · O que aparece na impressão (OUTRO endpoint) ──────────────── */}
@@ -365,7 +366,7 @@ export default function RepairSettingsIndex({
           titulo="O que aparece na impressão"
           descricao="Rótulos e campos da folha de OS e da etiqueta. Gravado separadamente das configurações acima."
         >
-          <div className="grid gap-4 md:grid-cols-3">
+          <Grid fit="sm" gap={4}>
             <div className="min-w-0 space-y-1.5">
               <Label htmlFor="customer_label">Rótulo do cliente</Label>
               <Input
@@ -408,15 +409,15 @@ export default function RepairSettingsIndex({
                 onChange={(e) => impressao.setData('label_height', e.target.value)}
               />
             </div>
-          </div>
+          </Grid>
 
           <div className="space-y-5">
             {GRUPOS_IMPRESSAO.map((grupo) => (
               <div key={grupo.titulo} className="space-y-3">
                 <h4 className="text-[13px] font-semibold">{grupo.titulo}</h4>
-                <div className="grid gap-3 md:grid-cols-2">
+                <Grid fit="md" gap={3}>
                   {grupo.chaves.map(([chave, rotulo]) => (
-                    <div key={chave} className="flex min-w-0 items-center gap-3">
+                    <Inline key={chave} gap={3} className="min-w-0">
                       <Switch
                         id={chave}
                         checked={ligado(impressao.data[chave])}
@@ -426,19 +427,19 @@ export default function RepairSettingsIndex({
                         {rotulo}
                         <span className="block text-xs text-muted-foreground">{`chave ${chave}`}</span>
                       </Label>
-                    </div>
+                    </Inline>
                   ))}
-                </div>
+                </Grid>
               </div>
             ))}
           </div>
         </Secao>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <Inline gap={3} wrap>
           <Button type="submit" disabled={impressao.processing}>
             {impressao.processing ? 'Salvando…' : 'Salvar impressão'}
           </Button>
-        </div>
+        </Inline>
       </form>
 
       {/* ── 4 · O que mora em tela própria ───────────────────────────────── */}
@@ -446,14 +447,14 @@ export default function RepairSettingsIndex({
         titulo="Configurações em tela própria"
         descricao="Estes cadastros já têm tela dedicada — esta página não os duplica."
       >
-        <div className="flex flex-wrap gap-3">
+        <Inline gap={3} wrap>
           <Button variant="outline" asChild>
             <Link href="/repair/status">Status de OS</Link>
           </Button>
           <Button variant="outline" asChild>
             <Link href="/repair/device-models">Modelos de dispositivo</Link>
           </Button>
-        </div>
+        </Inline>
       </Secao>
     </div>
   );

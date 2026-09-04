@@ -12,13 +12,13 @@ last_run: "2026-09-04"
 # Casos de Uso & Aceite — Configurações do Repair
 
 > Derivados do contrato de gravação medido em `RepairSettingsController` e do
-> [RUNBOOK-repair-settings.md](../../../../memory/requisitos/Repair/RUNBOOK-repair-settings.md) —
+> [RUNBOOK-repair-settings.md](../../../../../memory/requisitos/Repair/RUNBOOK-repair-settings.md) —
 > **não do `.tsx`**. A Page é consumidora do contrato, não a fonte dele.
 >
 > **Status:** ✅ passa (prova no manifesto) · 🧪 teste cita o UC e passa · ⬜ não verificado · ❌ quebrou.
 >
 > Suíte: `Modules/Repair/Tests/Feature/RepairSettingsContratoTest.php` · lane **Modules Pest** ·
-> tenant **98** ([ADR 0358](../../../../memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)).
+> tenant **98** ([ADR 0358](../../../../../memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)).
 
 ---
 

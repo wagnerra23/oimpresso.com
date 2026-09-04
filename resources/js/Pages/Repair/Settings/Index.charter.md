@@ -14,7 +14,7 @@ charter_version: 1
 
 # Page Charter — /repair/repair-settings
 
-> **Origem:** Onda 1 do pacote de export do Repair. F1 PLAN em [`RUNBOOK-repair-settings.md`](../../../../memory/requisitos/Repair/RUNBOOK-repair-settings.md).
+> **Origem:** Onda 1 do pacote de export do Repair. F1 PLAN em [`RUNBOOK-repair-settings.md`](../../../../../memory/requisitos/Repair/RUNBOOK-repair-settings.md).
 > **Coexistência:** flag MWART `repair_settings_index` (default OFF → Blade legado intacto).
 
 ---
