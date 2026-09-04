@@ -5,7 +5,7 @@ description: Como o design entra no repo, vira tela e é provado — E0 de ativa
 type: reference
 authority: canonical
 lifecycle: ativo
-updated_at: "2026-08-27"
+updated_at: "2026-09-04"
 nav_group: fluxo
 nav_order: 40
 lente: [construir]
@@ -532,6 +532,8 @@ desses quatro falta, a saída correta é “não medido”, nunca uma tabela par
 | baseline visual já nasceu com bug | pixel diff zero | fidelidade com o design é zero | comparar com fonte de design, não só com baseline anterior |
 | somar tudo em uma nota | “78% fiel” | mistura bug, prod à frente e ruído | veredito por propriedade e direção |
 | comparar matriz incompleta | desktop light verde | mobile/dark não foi medido | declarar denominador viewport×tema×estado |
+| confiar no `.map.json` validado | `consumir-map.mjs` → `OK (exit 0)` nos 7 maps | o `prototipo_sha` é `contentHash` do **espelho**, não do vivo: map e cópia envelhecem juntos e o verde só diz "em dia com a cópia velha" | rodar o `--sla` do espelho **antes** de aceitar o OK; espelho não medido ⇒ o OK não é evidência |
+| ler o `*-gap.md` como lista do que falta | `Config.tsx` tem "573 linhas" | os ranges do lado vivo deslocam a cada merge — o `design-code-map-check` mede **41 de 52** partes como linha-only | âncora por `data-contract`, não por linha; e para "o que falta" ler a fonte viva por ID, não o gap |
 
 A sonda mapeia **papel**, não classe, porque as classes diferem entre os lados. E grava `url` e
 `theme` dentro do próprio snapshot — não é decoração: são os campos que alimentam os portões de
