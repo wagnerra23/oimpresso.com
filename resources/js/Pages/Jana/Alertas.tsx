@@ -232,6 +232,8 @@ export default function Alertas({ alertas, corte, janaContext }: Props) {
               // uma página só satisfaz o contrato do `DataTable` sem inventar endpoint.
               pagination={{ data: rows, total: rows.length, current_page: 1, last_page: 1, from: 1, to: rows.length, links: [] }}
               endpoint="/ia/alertas"
+              // Copy do contador acima da lista ("{n} disparando · corte em {x}%").
+              caption="Alertas disparando"
               showSearch={false}
               rowKey={(r) => r.id}
               // Trilha vermelha da âncora (`state: "urgent"`): severidade alta.
