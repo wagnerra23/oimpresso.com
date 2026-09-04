@@ -1200,7 +1200,13 @@ jobs:
           if-no-files-found: ignore
 
       - name: Veredito advisory do pixel-diff (visível no log · double-threshold L7)
-        if: steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        # `always() &&` porque o step do pixel-diff é ENFORCING (não tem continue-on-error):
+        # quando ele falha, o job aborta e ESTE veredito saía `skipped` — justamente no caso
+        # que ele existe pra explicar. Medido 2026-09-04 no run 33886331185: step 25
+        # `Pixel-diff … (ENFORCING)` = failure, step 46 `Veredito advisory` = skipped. Os 16
+        # steps de relatório vizinhos (641, 669, 696, 755, 761, 792, 830, 862, 902, 932, 1121,
+        # 1135, 1145, 1159, 1180, 1194) já usam always()/!cancelled(); este era o único fora.
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         run: |
           if [ "${{ steps.pixel-diff.outcome }}" = "failure" ]; then
             echo "🔴 PIXEL-DIFF ADVISORY FALHOU — ao menos 1 tela com diff > τ_alto (regressão clara) contra baseline."
