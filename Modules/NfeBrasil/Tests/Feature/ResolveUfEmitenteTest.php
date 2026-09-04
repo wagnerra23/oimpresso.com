@@ -88,6 +88,10 @@ function ufDefinir(string $state): void
 }
 
 beforeEach(function () {
+    if (! Schema::hasTable('business_locations')) {
+        return; // a lane SQLite não tem a tabela; o `ufBootstrap` de cada caso skipa.
+    }
+
     $this->ufOriginal = DB::table('business_locations')
         ->where('business_id', UF_BIZ_COM_LOCATION)
         ->orderBy('id')
@@ -95,7 +99,9 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    if (isset($this->ufOriginal)) {
+    // Guardado: na lane SQLite as tabelas do NfeBrasil não existem e o teste SKIPA — sem esta
+    // guarda o próprio `afterEach` estoura com `no such table`, e o skip vira falha.
+    if (Schema::hasTable('business_locations') && isset($this->ufOriginal)) {
         DB::table('business_locations')
             ->where('business_id', UF_BIZ_COM_LOCATION)
             ->update(['state' => $this->ufOriginal]);
