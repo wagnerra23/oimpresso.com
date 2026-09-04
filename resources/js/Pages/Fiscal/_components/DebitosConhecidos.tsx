@@ -53,7 +53,7 @@ export default function DebitosConhecidos({ route }: DebitosConhecidosProps) {
 
       {itens.map(d => (
         <Alert
-          key={d.ancora}
+          key={`${d.ancora}::${d.titulo}`}
           data-tom={d.tom}
           data-ancora={d.ancora}
           className={`border-l-2 ${BORDA_POR_TOM[d.tom]}`}

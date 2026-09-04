@@ -154,10 +154,16 @@ export function coletar(lerArquivo = (p) => readFileSync(p, 'utf8'), existe = ex
   for (const [tela, rota] of Object.entries(ROTA_POR_TELA)) {
     const caminho = join(PAGES, `${tela}.casos.md`);
     if (!existe(caminho)) continue;
-    lerArquivo(caminho).split(/\r?\n/).forEach((linha, idx) => {
+    // A âncora é o ARQUIVO, nunca `arquivo:NNN`. Ref de linha apodrece na primeira edição de
+    // prosa — medido aqui mesmo: acrescentar o bloco do UC-FEVT-08 ao `Eventos.casos.md`
+    // deslocou 4 âncoras e o `--check` reprovou por uma mudança que não tocou débito nenhum.
+    // É a dívida que o `casos-ref-lint` (check C1) já conta no projeto: a âncora durável é o
+    // símbolo mais o grep que o re-localiza. Quem re-localiza aqui é o próprio `coletar()`,
+    // e o teste da tela o chama para provar que todo item exibido ainda é um bullet vivo.
+    for (const linha of lerArquivo(caminho).split(/\r?\n/)) {
       const b = parseBullet(linha);
-      if (b) out.push({ ...b, tela: rota, ancora: `${tela}.casos.md:${idx + 1}` });
-    });
+      if (b) out.push({ ...b, tela: rota, ancora: `${tela}.casos.md` });
+    }
   }
   return out;
 }
@@ -181,7 +187,7 @@ const CABECA = [
   '  texto: string;',
   '  /** true = o item espera decisão [W]; é o subconjunto do bloco de decisão pendente. */',
   '  decisao: boolean;',
-  '  /** Arquivo.casos.md:linha — de onde este item saiu. */',
+  '  /** O `<Tela>.casos.md` de onde este item saiu (arquivo, não `arquivo:linha`). */',
   '  ancora: string;',
   '}',
   '',

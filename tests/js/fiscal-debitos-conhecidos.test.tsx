@@ -65,22 +65,34 @@ describe('UC-FEVT-08 · a tela declara os débitos que os casos.md dela já regi
     expect(bloco()).toBeNull();
   });
 
-  it('UC-FEVT-08 · cada item exibido carrega a âncora do bullet que o originou', () => {
+  it('UC-FEVT-08 · todo item exibido é um bullet [BACKLOG] VIVO no casos.md que ele cita', async () => {
     renderTela('sped');
 
-    const ancoras = Array.from(bloco()!.querySelectorAll('[data-ancora]')).map(el =>
-      el.getAttribute('data-ancora')
-    );
-    expect(ancoras.length).toBeGreaterThan(0);
+    const exibidos = Array.from(bloco()!.querySelectorAll('[data-ancora]')).map(el => ({
+      ancora: el.getAttribute('data-ancora')!,
+      titulo: el.querySelector('[data-slot="alert-title"]')?.textContent ?? '',
+    }));
+    expect(exibidos.length).toBeGreaterThan(0);
 
-    // A âncora não é decorativa: `Arquivo.casos.md:linha` tem de apontar para uma linha
-    // que É um bullet de débito. Isto é o DoD "cada item rastreado à sua âncora" medido,
-    // e não uma lista escrita à mão no corpo do PR.
-    for (const ancora of ancoras) {
-      const [arquivo, linha] = ancora!.split(':');
-      const alvo = readFileSync(resolve(PAGES, arquivo), 'utf8').split(/\r?\n/)[Number(linha) - 1];
-      expect(alvo, `${ancora} não aponta para um bullet de débito`).toMatch(/^- \*\*\[BACKLOG/);
+    // A rastreabilidade é RE-DERIVADA da fonte, não conferida contra o arquivo gerado — senão
+    // o teste compararia o dado consigo mesmo. `coletar()` relê os sete `.casos.md` agora; se
+    // um bullet foi tachado, editado ou removido e ninguém regerou, o item exibido não vai
+    // estar aqui. É o DoD "cada item rastreado à sua âncora" medido, e não uma lista escrita à
+    // mão no corpo do PR.
+    const { coletar } = await import('../../scripts/governance/fiscal-debitos-derive.mjs');
+    const vivos = coletar();
+
+    for (const item of exibidos) {
+      expect(readFileSync(resolve(PAGES, item.ancora), 'utf8')).toContain('[BACKLOG');
+      expect(
+        vivos.some(v => v.titulo === item.titulo && v.ancora === item.ancora),
+        `"${item.titulo}" está na tela mas não é mais um bullet [BACKLOG] de ${item.ancora}`
+      ).toBe(true);
     }
+
+    // E o inverso, que é o que pega dívida NOVA não publicada: todo bullet vivo da tela
+    // aparece nela.
+    expect(exibidos).toHaveLength(vivos.filter(v => v.tela === 'sped').length);
   });
 
   it('UC-FEVT-08 · dívida PAGA (bullet tachado) não aparece na tela', () => {
@@ -92,7 +104,7 @@ describe('UC-FEVT-08 · a tela declara os débitos que os casos.md dela já regi
       el => el.textContent ?? ''
     );
     expect(titulos.some(t => t.includes('fiscal.nfe.view'))).toBe(false);
-    expect(DEBITOS_CONHECIDOS.some(d => d.ancora === 'Nfe.casos.md:298')).toBe(false);
+    expect(titulos.some(t => t.includes('Gate de permissão'))).toBe(false);
   });
 
   it('UC-FEVT-08 · o tom vira variante de ESTADO do DS, e o rótulo diz o marcador — não o tom', () => {
