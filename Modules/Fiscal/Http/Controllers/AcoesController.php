@@ -6,6 +6,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Log;
+use Modules\NfeBrasil\Models\NfeDfeRecebido;
 use Modules\NfeBrasil\Models\NfeEmissao;
 use Modules\NfeBrasil\Services\Manifestacao\ManifestacaoService;
 use Modules\NfeBrasil\Services\NfeCartaCorrecaoService;
@@ -135,14 +136,27 @@ class AcoesController extends Controller
             $justificativa = $data['justificativa'];
         }
 
+        // Carga escopada por tenant (ADR 0093) — FORA do try, pra que o 404 de DF-e
+        // inexistente/alheia suba como 404 em vez de virar flash de "manifestação falhou".
+        $dfe = NfeDfeRecebido::query()
+            ->where('business_id', $businessId)
+            ->where('id', $recebido)
+            ->first();
+
+        if (! $dfe) {
+            abort(404, 'DF-e não encontrada neste business');
+        }
+
         try {
-            // ManifestacaoService API: cada método retorna evento aplicado
-            // (pattern já validado nos endpoints existentes /nfe-brasil/manifestacao).
+            // ManifestacaoService API: cada método recebe o MODELO `NfeDfeRecebido` e retorna
+            // o evento aplicado — mesma forma do consumidor de `Modules/NfeBrasil`
+            // (`ManifestacaoController::bulkConfirmar`). Passar `(business_id, id)` aqui rendia
+            // `TypeError` engolido pelo catch abaixo: a tela reportava erro e nada manifestava.
             match ($acao) {
-                'cienciar'      => $service->cienciar($businessId, $recebido),
-                'confirmar'     => $service->confirmar($businessId, $recebido),
-                'desconhecer'   => $service->desconhecer($businessId, $recebido, $justificativa),
-                'nao_realizada' => $service->naoRealizada($businessId, $recebido, $justificativa),
+                'cienciar'      => $service->cienciar($dfe),
+                'confirmar'     => $service->confirmar($dfe),
+                'desconhecer'   => $service->desconhecer($dfe, $justificativa),
+                'nao_realizada' => $service->naoRealizada($dfe, $justificativa),
             };
 
             Log::info('Fiscal.acoes.manifestarDfe ok', [

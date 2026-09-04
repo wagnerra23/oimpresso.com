@@ -107,9 +107,9 @@ module: Fiscal
 - [Nfse.casos.md](../../../resources/js/Pages/Fiscal/Nfse.casos.md)
 - [Sped.casos.md](../../../resources/js/Pages/Fiscal/Sped.casos.md)
 
-## Testes (Pest) — 27
+## Testes (Pest) — 28
 
-- 27 em [Modules/Fiscal/Tests/Feature/](../../../Modules/Fiscal/Tests/Feature)
+- 28 em [Modules/Fiscal/Tests/Feature/](../../../Modules/Fiscal/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 16
