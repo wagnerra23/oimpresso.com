@@ -7,6 +7,7 @@
 import { Inline } from '@/Components/layout';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import { Button } from '@/Components/ui/button';
+import { Checkbox } from '@/Components/ui/checkbox';
 import { Input } from '@/Components/ui/input';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, router } from '@inertiajs/react';
@@ -65,6 +66,26 @@ interface DfeRow {
   prazoDias: number | null;
 }
 
+/** Uma nota no relatório do lote — sempre identificada, pra saber qual refazer. */
+interface LoteLinha {
+  id: number;
+  chave: string | null;
+  emitente: string | null;
+  erro: string | null;
+}
+
+/**
+ * Relatório do último lote. Vem por prop (não por `flash`) porque falha parcial em
+ * manifestação precisa ser NOMEADA: "3 de 10 falharam" não diz quais 3 refazer.
+ */
+interface LoteResultado {
+  acao: LoteAction;
+  pedidas: number;
+  aplicadas: LoteLinha[];
+  falhas: LoteLinha[];
+  naoTentadas: { id: number }[];
+}
+
 interface DfeProps {
   // DS Onda 3 — aba ativa vem da rota (?tab=), whitelist server-side no DfeController.
   activeTab?: DfeTab;
@@ -73,6 +94,7 @@ interface DfeProps {
   rows?: { data: DfeRow[]; meta: { total: number; current_page: number; last_page: number } };
   // Onda 2 — histórico de manifestações já processadas (mock no controller)
   historicoMock?: HistoricoEntry[];
+  loteResultado?: LoteResultado | null;
 }
 
 const STATUS_META: Record<StatusManifestacao, { label: string; tone: 'ok' | 'warn' | 'bad' }> = {
@@ -85,7 +107,28 @@ const STATUS_META: Record<StatusManifestacao, { label: string; tone: 'ok' | 'war
 
 type ManifestAction = 'cienciar' | 'confirmar' | 'desconhecer' | 'nao_realizada';
 
-export default function Dfe({ activeTab, filters: initialFilters, counts, rows, historicoMock = [] }: DfeProps) {
+/**
+ * As três ações que existem em lote. `nao_realizada` fica fora de propósito: o protótipo
+ * (`fiscal-subpages.jsx`, `data-contract="lote-dfe"`) oferece ciência, confirmação e
+ * desconhecimento em massa, e mantém a quarta só na linha — é a decisão mais individual das
+ * quatro. O backend valida a mesma lista.
+ */
+type LoteAction = 'cienciar' | 'confirmar' | 'desconhecer';
+
+const LOTE_ROTULO: Record<LoteAction, string> = {
+  cienciar: 'Dar ciência',
+  confirmar: 'Confirmar operação',
+  desconhecer: 'Desconhecer',
+};
+
+/** Espelha `AcoesController::LOTE_MAX_NOTAS` — o backend valida, isto só mantém o botão honesto. */
+const LOTE_MAX_NOTAS = 50;
+
+/** Só nota pendente ou com ciência dada pode ser manifestada — mesma regra do backend. */
+const podeManifestarRow = (d: DfeRow): boolean =>
+  d.statusManifestacao === 'pendente' || d.statusManifestacao === 'ciencia';
+
+export default function Dfe({ activeTab, filters: initialFilters, counts, rows, historicoMock = [], loteResultado = null }: DfeProps) {
   const [filters, setFilters] = useState<Filters>(initialFilters);
   // Aba ativa dirigida pela rota (?tab=) — barra canônica navega por href (DS Onda 3).
   const tab = activeTab ?? 'pendente';
@@ -93,6 +136,58 @@ export default function Dfe({ activeTab, filters: initialFilters, counts, rows, 
   const [busyId, setBusyId] = useState<number | null>(null);
   const [modal, setModal] = useState<{ id: number; acao: 'desconhecer' | 'nao_realizada' } | null>(null);
   const [justificativa, setJustificativa] = useState('');
+
+  // ── Seleção em lote ────────────────────────────────────────────────────────────────────
+  const [sel, setSel] = useState<Set<number>>(new Set());
+  const [loteModal, setLoteModal] = useState<LoteAction | null>(null);
+  const [loteBusy, setLoteBusy] = useState(false);
+
+  // Só as manifestáveis DA PÁGINA CARREGADA entram na seleção — inclusive no "selecionar
+  // todas", que marca o que está à vista, nunca o que a paginação ainda não trouxe.
+  const manifestaveis = dataRows.filter(podeManifestarRow);
+  const todasSelecionadas = manifestaveis.length > 0 && manifestaveis.every((d) => sel.has(d.id));
+  const limiteEstourado = sel.size > LOTE_MAX_NOTAS;
+
+  const toggleSel = (id: number) =>
+    setSel((atual) => {
+      const proximo = new Set(atual);
+      if (proximo.has(id)) {
+        proximo.delete(id);
+      } else {
+        proximo.add(id);
+      }
+      return proximo;
+    });
+
+  const toggleTodas = () =>
+    setSel(todasSelecionadas ? new Set() : new Set(manifestaveis.map((d) => d.id)));
+
+  const dispatchLote = (acao: LoteAction, justif?: string) => {
+    setLoteBusy(true);
+    router.post(
+      '/fiscal/acoes/dfe/lote',
+      {
+        ids: Array.from(sel),
+        acao,
+        ...(justif ? { justificativa: justif } : {}),
+      },
+      {
+        preserveScroll: true,
+        onSuccess: () => setSel(new Set()),
+        onFinish: () => {
+          setLoteBusy(false);
+          setLoteModal(null);
+          setJustificativa('');
+        },
+      },
+    );
+  };
+
+  const confirmLote = () => {
+    if (!loteModal) return;
+    if (loteModal === 'desconhecer' && justificativa.trim().length < 15) return;
+    dispatchLote(loteModal, loteModal === 'desconhecer' ? justificativa : undefined);
+  };
 
   const apply = (next: Partial<Filters>) => {
     const merged = { ...filters, ...next };
@@ -141,11 +236,11 @@ export default function Dfe({ activeTab, filters: initialFilters, counts, rows, 
         crumb={`${counts.pendentes} aguardando ciência · ${brl(counts.valorPendente)} · busca diária SEFAZ`}
         env={counts.pendentes > 0 ? `${counts.pendentes} aguardando` : 'tudo manifestado'}
         envTone={counts.pendentes > 10 ? 'warn' : counts.pendentes > 0 ? 'ok' : 'ok'}
-        actions={
-          <Button type="button" variant="cowork-primary" disabled title="Bulk manifestar (PR seguinte)">
-            Manifestar selecionadas <kbd>E</kbd>
-          </Button>
-        }
+        /* Sem ação no header de propósito. Aqui vivia um `<Button disabled>` com o rótulo
+           "Manifestar selecionadas" e o title "Bulk manifestar (PR seguinte)" — afordância
+           falsa: prometia uma capacidade que não existia e um PR que nunca veio. O lote agora
+           existe, e mora onde a fonte o desenha: a barra `fx-bulk` que só aparece quando há
+           seleção (`data-contract="lote-dfe"` em `prototipo-ui/cowork/fiscal-subpages.jsx`). */
       >
         {/* DS Onda 3 — barra de abas CANÔNICA (PageHeaderTabs) em faixa própria,
             navegando por rota (?tab=). Padroniza o visual com Clientes/Financeiro/Ponto. */}
@@ -237,6 +332,76 @@ export default function Dfe({ activeTab, filters: initialFilters, counts, rows, 
           </Button>
         </Inline>
 
+        {/* Relatório do último lote — nomeia CADA nota. Manifestação vai ao ambiente nacional
+            da SEFAZ e é definitiva por nota: um resumo agregado ("3 falharam") não diz quais
+            refazer, e é isso que torna um lote silencioso inaceitável aqui. */}
+        {loteResultado && (
+          <Alert
+            className="mb-3"
+            role="region"
+            aria-label="Resultado da manifestação em lote"
+            variant={loteResultado.falhas.length > 0 ? 'destructive' : 'default'}
+          >
+            {loteResultado.falhas.length > 0 ? <ShieldAlert size={16} /> : <CheckCircle2 size={16} />}
+            <AlertTitle>
+              {LOTE_ROTULO[loteResultado.acao]} · {loteResultado.aplicadas.length} de {loteResultado.pedidas} manifestada
+              {loteResultado.aplicadas.length === 1 ? '' : 's'}
+            </AlertTitle>
+            <AlertDescription>
+              {loteResultado.falhas.length > 0 && (
+                <div style={{ marginTop: 6 }}>
+                  <b>{loteResultado.falhas.length} não passaram:</b>
+                  <ul style={{ margin: '4px 0 0', paddingLeft: 18 }}>
+                    {loteResultado.falhas.map((f) => (
+                      <li key={f.id} style={{ fontSize: 12 }}>
+                        <b>{f.emitente || 'emitente não identificado'}</b>
+                        {f.chave && <span className="fx-mono"> · {truncKey(f.chave)}</span>}
+                        {' — '}
+                        {f.erro}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {loteResultado.naoTentadas.length > 0 && (
+                <div style={{ marginTop: 6, fontSize: 12 }}>
+                  <b>{loteResultado.naoTentadas.length} não chegaram a ser tentadas</b> — o lote atingiu o
+                  limite de tempo do envio. Elas seguem como estavam; selecione e repita.
+                </div>
+              )}
+              {loteResultado.falhas.length === 0 && loteResultado.naoTentadas.length === 0 && (
+                <span style={{ fontSize: 12 }}>Todas as selecionadas foram manifestadas.</span>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Barra de lote — aparece só com seleção, como na fonte. */}
+        {sel.size > 0 && (
+          <Inline gap={2} align="center" wrap className="mb-3" data-contract="lote-dfe" role="region" aria-label="Manifestação em lote">
+            <span style={{ fontSize: 12.5 }}>
+              <b>{sel.size}</b> DF-e selecionada{sel.size > 1 ? 's' : ''}
+            </span>
+            <Button type="button" variant="outline" size="cowork" disabled={loteBusy || limiteEstourado} onClick={() => setLoteModal('cienciar')}>
+              Dar ciência
+            </Button>
+            <Button type="button" variant="outline" size="cowork" disabled={loteBusy || limiteEstourado} onClick={() => setLoteModal('confirmar')}>
+              Confirmar operação
+            </Button>
+            <Button type="button" variant="destructive" size="cowork" disabled={loteBusy || limiteEstourado} onClick={() => setLoteModal('desconhecer')}>
+              Desconhecer
+            </Button>
+            <Button type="button" variant="cowork-ghost" size="cowork" disabled={loteBusy} onClick={() => setSel(new Set())}>
+              Limpar seleção
+            </Button>
+            {limiteEstourado && (
+              <span style={{ fontSize: 12, color: 'var(--fx-text-dim)' }}>
+                Máximo {LOTE_MAX_NOTAS} por vez — desmarque {sel.size - LOTE_MAX_NOTAS}.
+              </span>
+            )}
+          </Inline>
+        )}
+
         <Deferred data="rows" fallback={
           <div className="fx-empty"><b>Carregando DF-e…</b><small>Busca em NfeDfeRecebido scoped</small></div>
         }>
@@ -251,6 +416,16 @@ export default function Dfe({ activeTab, filters: initialFilters, counts, rows, 
               <table>
                 <thead>
                   <tr>
+                    <th style={{ width: 34 }}>
+                      {/* Marca só o que está à vista E é manifestável — nunca a página seguinte,
+                          nunca uma nota já manifestada. */}
+                      <Checkbox
+                        checked={todasSelecionadas}
+                        disabled={manifestaveis.length === 0}
+                        onCheckedChange={toggleTodas}
+                        aria-label="Selecionar todas as DF-e manifestáveis desta página"
+                      />
+                    </th>
                     <th>Emitente</th>
                     <th style={{ width: 220 }}>Chave</th>
                     <th style={{ width: 140 }}>Status</th>
@@ -266,10 +441,21 @@ export default function Dfe({ activeTab, filters: initialFilters, counts, rows, 
                     const prazoUrgency = d.prazoDias == null ? 'ok'
                       : d.prazoDias < 7 ? 'crit'
                       : d.prazoDias < 30 ? 'warn' : 'ok';
-                    const podeManifestar = ['pendente', 'ciencia'].includes(d.statusManifestacao);
+                    const podeManifestar = podeManifestarRow(d);
                     const isBusy = busyId === d.id;
                     return (
                       <tr key={d.id}>
+                        <td onClick={(e) => e.stopPropagation()}>
+                          {/* Sem checkbox na nota já manifestada: ela não é selecionável, e a
+                              caixa vazia sugeriria que é. */}
+                          {podeManifestar && (
+                            <Checkbox
+                              checked={sel.has(d.id)}
+                              onCheckedChange={() => toggleSel(d.id)}
+                              aria-label={`Selecionar DF-e de ${d.nomeEmitente || 'emitente não identificado'}`}
+                            />
+                          )}
+                        </td>
                         <td>
                           <b>{d.nomeEmitente || '—'}</b>
                           <small>{formatDoc(d.cnpjEmitente, null)}</small>
@@ -402,6 +588,94 @@ export default function Dfe({ activeTab, filters: initialFilters, counts, rows, 
           )
         )}
       </FxShell>
+
+      {/* Modal do LOTE — confirma antes de disparar N eventos definitivos na SEFAZ.
+          Fecha ao clicar FORA: `role="presentation"` + o teste `target === currentTarget`
+          substituem o par `onClick` no overlay + `stopPropagation` no painel — mesmo efeito,
+          sem pendurar listener num nó de papel não-interativo (jsx-a11y). */}
+      {loteModal && (
+        <div
+          className="fx-drawer-bg"
+          role="presentation"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget && !loteBusy) setLoteModal(null);
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Confirmar manifestação em lote"
+            /* Sombra pela utilitária, não por `rgba()` no style: cor crua inline não segue o tema. */
+            className="shadow-xl"
+            style={{
+              /* `--fx-surface` é dark-aware (fiscal-cockpit.css tem o par light/dark).
+                 `white` cru deixaria o painel branco no tema escuro — e é o que ainda
+                 acontece no modal de justificativa logo abaixo, que é anterior a este PR. */
+              background: 'var(--fx-surface)',
+              borderRadius: 10,
+              padding: 22,
+              width: 460,
+              maxWidth: '90vw',
+              margin: '15vh auto',
+            }}
+          >
+            <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 700 }}>
+              {LOTE_ROTULO[loteModal]} · {sel.size} DF-e
+            </h3>
+            <p style={{ fontSize: 12.5, color: 'var(--fx-text-dim)', margin: '0 0 14px' }}>
+              A mesma manifestação vai pras {sel.size} notas selecionadas, uma requisição por nota.
+            </p>
+
+            {loteModal === 'desconhecer' && (
+              <>
+                <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, marginBottom: 4 }} htmlFor="lote-justificativa">
+                  Justificativa (vale pra todas)
+                </label>
+                <textarea
+                  id="lote-justificativa"
+                  value={justificativa}
+                  onChange={(e) => setJustificativa(e.target.value)}
+                  placeholder="Ex: cargas recusadas na portaria no mesmo dia"
+                  rows={3}
+                  disabled={loteBusy}
+                  autoFocus
+                  style={{
+                    width: '100%',
+                    padding: 10,
+                    fontSize: 12.5,
+                    border: '1px solid var(--fx-border)',
+                    borderRadius: 7,
+                    fontFamily: 'inherit',
+                    resize: 'vertical',
+                  }}
+                />
+                <div style={{ fontSize: 11, color: 'var(--fx-text-mute)', margin: '4px 0 0' }}>
+                  {justificativa.length}/255 · {justificativa.trim().length < 15 ? `faltam ${15 - justificativa.trim().length} chars` : '✅ ok'}
+                </div>
+              </>
+            )}
+
+            <p style={{ fontSize: 12, color: 'var(--fx-text-dim)', margin: '14px 0' }}>
+              <b>Manifestação é definitiva por nota — não há desfazer em lote.</b>
+            </p>
+
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <Button type="button" variant="cowork-ghost" onClick={() => setLoteModal(null)} disabled={loteBusy}>
+                Voltar
+              </Button>
+              <Button
+                type="button"
+                variant={loteModal === 'desconhecer' ? 'destructive' : 'cowork-primary'}
+                size="cowork"
+                onClick={confirmLote}
+                disabled={loteBusy || (loteModal === 'desconhecer' && justificativa.trim().length < 15)}
+              >
+                {loteBusy ? 'Enviando…' : `${LOTE_ROTULO[loteModal]} em lote`}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal motivo (desconhecer / nao_realizada) */}
       {modal && (
