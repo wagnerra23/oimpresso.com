@@ -14,18 +14,29 @@ import { useState, type ReactNode } from 'react';
 import { Plus, Search, X } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
+import { Checkbox } from '@/Components/ui/checkbox';
 import PageHeader from '@/Components/shared/PageHeader';
 import KpiCard from '@/Components/shared/KpiCard';
 import EmptyState from '@/Components/shared/EmptyState';
+import StatusBadge from '@/Components/shared/StatusBadge';
 
 interface Production {
   id: number;
   ref_no: string | null;
-  /** Já formatada `dd/mm/aaaa` pelo Controller (indexV2). */
+  /** Já formatada `dd/mm/aaaa` pelo Service (enrichProductionRows). */
   transaction_date: string | null;
   location_name: string | null;
+  /** `transactions.final_total` — valor GRAVADO na criação, não recalculado. */
   final_total: number;
   mfg_is_final: number;
+  // US-MANU-004 (§4.5) — as 3 colunas novas + o que a coluna Produto mostra na 2ª linha.
+  produto: string;
+  unidade: string;
+  n_ingredientes: number;
+  criado_por: string;
+  quantidade: number;
+  /** `final_total / quantidade`, com guard de divisão por zero no Service. */
+  custo_unitario: number;
 }
 
 interface Summary {
@@ -79,12 +90,23 @@ function formatCurrency(value: number): string {
   }).format(value ?? 0);
 }
 
+/** Quantidade produzida com 2 casas — §4.5 mostra `num(op.qtd, 2)`. */
+function formatQuantity(value: number): string {
+  return new Intl.NumberFormat('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value ?? 0);
+}
+
 function Index({ productions = [], summary, business_locations = {}, filters = {} }: Props) {
   const [start, setStart] = useState<string>(filters.start_date ?? '');
   const [end, setEnd] = useState<string>(filters.end_date ?? '');
 
   const locationEntries = Object.entries(business_locations);
   const hasLocations = locationEntries.length > 0;
+
+  // §4.5 — soma dos `final_total` das ordens LISTADAS (o mesmo conjunto que a tabela mostra).
+  const custoDoPeriodo = productions.reduce((s, p) => s + (p.final_total ?? 0), 0);
 
   const hasActiveFilters =
     !!filters.location_id ||
@@ -206,6 +228,17 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
             </Button>
           </div>
 
+          {/* §4.5 — "Só finalizadas" como checkbox. O KPI "Finalizadas" continua clicável
+              (os 4 KPIs não mudam nesta onda); os dois governam o MESMO filtro. */}
+          <label className="flex items-center gap-2 text-sm text-muted-foreground" htmlFor="mfg-op-so-finalizadas">
+            <Checkbox
+              id="mfg-op-so-finalizadas"
+              checked={!!filters.is_final}
+              onCheckedChange={(v) => applyFilter(filters, { is_final: v === true ? true : null })}
+            />
+            Só finalizadas
+          </label>
+
           {hasActiveFilters && (
             <Button variant="ghost" size="sm" onClick={clearAll}>
               <X className="mr-1 h-4 w-4" /> Limpar
@@ -242,30 +275,60 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
           />
         ) : (
           <table className="w-full text-sm">
+            {/* §4.5 — 8 colunas, na ordem do protótipo (MfgProducaoView). */}
             <thead className="bg-muted/50">
               <tr className="text-left">
-                <th className="px-3 py-2 font-medium text-muted-foreground">Ref</th>
                 <th className="px-3 py-2 font-medium text-muted-foreground">Data</th>
+                <th className="px-3 py-2 font-medium text-muted-foreground">Referência</th>
                 <th className="px-3 py-2 font-medium text-muted-foreground">Local</th>
-                <th className="px-3 py-2 font-medium text-muted-foreground text-right">Total</th>
-                <th className="px-3 py-2 font-medium text-muted-foreground">Status</th>
+                <th className="px-3 py-2 font-medium text-muted-foreground">Produto</th>
+                <th className="px-3 py-2 font-medium text-muted-foreground text-right">Qtd</th>
+                <th className="px-3 py-2 font-medium text-muted-foreground text-right">Custo total</th>
+                <th className="px-3 py-2 font-medium text-muted-foreground text-right">Custo unit.</th>
+                <th className="px-3 py-2 font-medium text-muted-foreground">Situação</th>
               </tr>
             </thead>
             <tbody>
               {productions.map((p) => (
                 <tr key={p.id} className="border-t border-border hover:bg-muted/30 transition-colors">
-                  <td className="px-3 py-2 font-mono text-foreground">{p.ref_no ?? '—'}</td>
                   <td className="px-3 py-2 text-muted-foreground tabular-nums">
                     {p.transaction_date ?? '—'}
                   </td>
-                  <td className="px-3 py-2 max-w-[220px] truncate text-foreground" title={p.location_name ?? ''}>
+                  <td className="px-3 py-2 font-mono text-foreground">{p.ref_no ?? '—'}</td>
+                  <td className="px-3 py-2 max-w-[180px] truncate text-foreground" title={p.location_name ?? ''}>
                     {p.location_name ?? '—'}
+                  </td>
+                  <td className="px-3 py-2 max-w-[260px]">
+                    <span className="block truncate font-medium text-foreground" title={p.produto}>
+                      {p.produto}
+                    </span>
+                    <span className="block truncate text-xs text-muted-foreground">
+                      {p.n_ingredientes} ingrediente{p.n_ingredientes === 1 ? '' : 's'}
+                      {p.criado_por ? ` · ${p.criado_por}` : ''}
+                    </span>
+                  </td>
+                  <td className="px-3 py-2 text-right text-foreground tabular-nums">
+                    {formatQuantity(p.quantidade)}
+                    {p.unidade ? <span className="ml-1 text-xs text-muted-foreground">{p.unidade}</span> : null}
                   </td>
                   <td className="px-3 py-2 text-right font-medium text-foreground tabular-nums">
                     {formatCurrency(p.final_total)}
+                    {/* R-21 — o `fix` marca que, na ordem finalizada, este é o custo
+                        congelado na data da produção (não recalculado pelo preço de hoje). */}
+                    {p.mfg_is_final ? (
+                      <span
+                        className="ml-1 text-xs text-muted-foreground"
+                        title="custo congelado na data da produção"
+                      >
+                        fix
+                      </span>
+                    ) : null}
+                  </td>
+                  <td className="px-3 py-2 text-right text-muted-foreground tabular-nums">
+                    {formatCurrency(p.custo_unitario)}
                   </td>
                   <td className="px-3 py-2">
-                    <StatusPill isFinal={p.mfg_is_final} />
+                    <StatusBadge kind="producao" value={p.mfg_is_final ? 'finalizada' : 'rascunho'} />
                   </td>
                 </tr>
               ))}
@@ -274,33 +337,22 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
         )}
       </div>
 
+      {/* §4.5 — rodapé verbatim do protótipo. O custo somado é o GRAVADO (`final_total`),
+          não o recalculado do Relatório (US-MANU-002) — ver RUNBOOK-producao.md §1. */}
       {productions.length > 0 && (
         <p className="text-xs text-muted-foreground tabular-nums">
-          {productions.length} produç{productions.length === 1 ? 'ão' : 'ões'} exibida
-          {productions.length === 1 ? '' : 's'}.
+          {productions.length} ordens · custo do período{' '}
+          <span className="font-medium text-foreground">{formatCurrency(custoDoPeriodo)}</span> ·
+          ordens finalizadas mostram o custo congelado na data
         </p>
       )}
     </div>
   );
 }
 
-// Status dot-style (Stripe-like) com tokens semânticos — sem bg-fill cru (PT-01).
-function StatusPill({ isFinal }: { isFinal: number }) {
-  if (isFinal) {
-    return (
-      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-success-fg">
-        <span className="h-1.5 w-1.5 rounded-full bg-success" aria-hidden />
-        Finalizada
-      </span>
-    );
-  }
-  return (
-    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-warning-fg">
-      <span className="h-1.5 w-1.5 rounded-full bg-warning" aria-hidden />
-      Pendente
-    </span>
-  );
-}
+// US-MANU-004 — o `StatusPill` local saiu daqui: a situação agora vem do `StatusBadge`
+// canônico (`kind="producao"`, domínio adicionado no componente compartilhado). Era
+// exatamente o tipo de duplicata que o `reuse-gate` existe pra impedir.
 
 Index.layout = (page: ReactNode) => (
   <AppShellV2

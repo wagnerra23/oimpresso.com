@@ -94,6 +94,12 @@ const mappings: Record<string, Record<string, StatusEntry>> = {
    * a lista que os Blades de venda/compra já oferecem no `<select>`; os rótulos são os
    * mesmos `lang/pt/lang_v1.php` que aquele método resolve. Uma fonte só, não duas.
    */
+  // Manufacturing — situação da ordem de produção (US-MANU-004, handoff §4.5).
+  // `mfg_is_final` é booleano no banco; o domínio nomeia os dois estados que a tela mostra.
+  producao: {
+    finalizada: { variant: 'default',   label: 'Finalizada', className: 'bg-success text-success-foreground hover:bg-success/90' },
+    rascunho:   { variant: 'secondary', label: 'Rascunho' },
+  },
   os: {
     ordered:    { variant: 'secondary', label: 'Solicitado' },
     packed:     { variant: 'default',   label: 'Embalado',  className: 'bg-info text-info-foreground hover:bg-info/90' },

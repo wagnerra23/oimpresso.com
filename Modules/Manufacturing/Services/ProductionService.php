@@ -3,8 +3,11 @@
 namespace Modules\Manufacturing\Services;
 
 use App\Transaction;
+use App\User;
 use App\Util\OtelHelper;
+use App\Variation;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Support\Privacy\PiiRedactor;
 use Modules\Manufacturing\Entities\MfgRecipe;
@@ -54,6 +57,11 @@ class ProductionService
     /**
      * Lista produções (production_purchase) do business com filtros opcionais.
      *
+     * US-MANU-004 — o eager-load de `purchase_lines` alimenta as colunas Produto/Qtd/Custo
+     * unit. do §4.5. `created_by` entra no select porque a coluna Produto mostra "quem
+     * lançou" na segunda linha. O enriquecimento (nome do produto, nº de ingredientes, nome
+     * do usuário) é feito em LOTE por {@see enrichProductionRows()} — nunca por linha.
+     *
      * @param  int  $businessId  Tier 0 — NUNCA omitir, NUNCA usar session() em Job.
      * @param  array{location_id?: int|null, start_date?: string|null, end_date?: string|null, is_final?: bool} $filters
      */
@@ -63,6 +71,15 @@ class ProductionService
             $query = Transaction::query()
                 ->where('business_id', $businessId)
                 ->where('type', 'production_purchase')
+                ->with([
+                    'purchase_lines' => function ($q) {
+                        $q->select('id', 'transaction_id', 'variation_id', 'quantity');
+                    },
+                    // Eager-load do local: sem isto, `optional($ordem->location)->name` no
+                    // enriquecimento dispara UMA query POR LINHA (N+1 que existia desde a
+                    // Wave J, quando o map vivia no Controller). UC-OP-03 trava isso.
+                    'location:id,name',
+                ])
                 ->select([
                     'id',
                     'ref_no',
@@ -72,6 +89,7 @@ class ProductionService
                     'mfg_is_final',
                     'mfg_wasted_units',
                     'mfg_production_cost',
+                    'created_by',
                     'status',
                 ]);
 
@@ -95,6 +113,86 @@ class ProductionService
             'per_page' => $perPage,
             'has_location_filter' => ! empty($filters['location_id']),
             'is_final' => ! empty($filters['is_final']),
+        ]);
+    }
+
+    /**
+     * US-MANU-004 — enriquece as linhas de `listProductions()` com o que as 8 colunas do
+     * §4.5 pedem: nome do produto, nº de ingredientes da receita, quem lançou, quantidade
+     * produzida e custo unitário.
+     *
+     * **Em LOTE, nunca por linha**: 3 queries no total (produtos, receitas, usuários),
+     * independentemente de quantas ordens vierem.
+     *
+     * **O custo NÃO é recalculado aqui** (diferente do Relatório, US-MANU-002): a coluna
+     * mostra `transactions.final_total`, o valor GRAVADO na criação da ordem. Para ordem
+     * finalizada, ele é o custo daquela data — é o que o sufixo `fix` marca. Recalcular
+     * aqui seria uma SEGUNDA fórmula de custo na base ({@see RUNBOOK-producao.md §1}).
+     *
+     * Tier 0 ({@see ADR 0093}): as ordens já vêm scoped por `business_id`; a cadeia até o
+     * produto revalida com `products.business_id` (defesa em profundidade).
+     *
+     * @param  Collection<int, Transaction>  $ordens  saída de listProductions()
+     * @return array<int, array<string, mixed>>
+     */
+    public function enrichProductionRows(Collection $ordens, int $businessId): array
+    {
+        return OtelHelper::spanBiz('manufacturing.production.enrich_rows', function () use ($ordens, $businessId) {
+            $variationIds = $ordens->pluck('purchase_lines')->flatten()->pluck('variation_id')->filter()->unique()->values();
+            $userIds = $ordens->pluck('created_by')->filter()->unique()->values();
+
+            // (1) nome do produto + unidade, pela cadeia de tenant.
+            $produtos = $variationIds->isEmpty() ? collect() : Variation::query()
+                ->join('products as p', 'variations.product_id', '=', 'p.id')
+                ->leftJoin('units as u', 'p.unit_id', '=', 'u.id')
+                ->whereIn('variations.id', $variationIds)
+                ->where('p.business_id', $businessId) // Tier 0 — defesa em profundidade
+                ->select('variations.id', 'p.name as product_name', 'u.short_name as unit_name')
+                ->get()
+                ->keyBy('id');
+
+            // (2) nº de ingredientes por variação produzida (0 quando não há receita).
+            $ingredientes = $variationIds->isEmpty() ? collect() : MfgRecipe::query()
+                ->leftJoin('mfg_recipe_ingredients as i', 'i.mfg_recipe_id', '=', 'mfg_recipes.id')
+                ->whereIn('mfg_recipes.variation_id', $variationIds)
+                ->groupBy('mfg_recipes.variation_id')
+                ->select('mfg_recipes.variation_id', DB::raw('COUNT(i.id) as total'))
+                ->pluck('total', 'variation_id');
+
+            // (3) quem lançou.
+            $usuarios = $userIds->isEmpty() ? collect() : User::query()
+                ->whereIn('id', $userIds)
+                ->select('id', 'surname', 'first_name', 'last_name')
+                ->get()
+                ->keyBy('id');
+
+            return $ordens->map(function (Transaction $ordem) use ($produtos, $ingredientes, $usuarios) {
+                $linha = $ordem->purchase_lines->first();
+                $variationId = $linha?->variation_id;
+                $produto = $variationId ? $produtos->get($variationId) : null;
+                $usuario = $ordem->created_by ? $usuarios->get($ordem->created_by) : null;
+
+                $quantidade = (float) ($linha?->quantity ?? 0);
+                $total = (float) $ordem->final_total;
+
+                return [
+                    'id' => (int) $ordem->id,
+                    'ref_no' => $ordem->ref_no,
+                    'transaction_date' => $ordem->transaction_date?->format('d/m/Y'),
+                    'location_name' => optional($ordem->location)->name,
+                    'final_total' => $total,
+                    'mfg_is_final' => (int) $ordem->mfg_is_final,
+                    'produto' => $produto?->getAttribute('product_name') ?: '—',
+                    'unidade' => $produto?->getAttribute('unit_name') ?: '',
+                    'n_ingredientes' => (int) ($variationId ? ($ingredientes[$variationId] ?? 0) : 0),
+                    'criado_por' => $usuario ? trim("{$usuario->surname} {$usuario->first_name} {$usuario->last_name}") : '',
+                    'quantidade' => $quantidade,
+                    // Guard de divisão por zero — quantidade 0 devolve 0.0, nunca INF/NaN.
+                    'custo_unitario' => $quantidade > 0 ? $total / $quantidade : 0.0,
+                ];
+            })->values()->all();
+        }, [
+            'module' => 'Manufacturing',
         ]);
     }
 

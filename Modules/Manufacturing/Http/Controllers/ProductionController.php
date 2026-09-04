@@ -897,18 +897,12 @@ class ProductionController extends Controller
 
         // ROLLBACK Wave L/W7 PR #963: Inertia::defer quebrava Pages (initial render undefined).
         return Inertia::render('Manufacturing/Index', [
-            'productions' => $productionService
-                ->listProductions($business_id, $filters)
-                ->map(function ($p) {
-                    return [
-                        'id' => $p->id,
-                        'ref_no' => $p->ref_no,
-                        'transaction_date' => $p->transaction_date?->format('d/m/Y'),
-                        'location_name' => optional($p->location)->name,
-                        'final_total' => (float) $p->final_total,
-                        'mfg_is_final' => (int) $p->mfg_is_final,
-                    ];
-                })->values(),
+            // US-MANU-004 — as 8 colunas do §4.5. O enriquecimento (produto, nº de
+            // ingredientes, quem lançou, qtd, custo unit.) é feito em LOTE no Service.
+            'productions' => $productionService->enrichProductionRows(
+                $productionService->listProductions($business_id, $filters),
+                $business_id
+            ),
             'summary' => $productionService->summary($business_id),
             // Opções do filtro de local + estado dos filtros pra re-render (board uplift 50->70).
             // closure D-14: dropdown por business, não muda com filtro — pula no partial reload

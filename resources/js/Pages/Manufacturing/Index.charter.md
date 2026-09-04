@@ -9,6 +9,9 @@ status: draft
 owner: wagner
 created: 2026-05-16
 wave: J
+runbook: memory/requisitos/Manufacturing/RUNBOOK-producao.md
+casos: resources/js/Pages/Manufacturing/Index.casos.md
+related_us: [US-MANU-004]
 ---
 
 # Charter — Manufacturing/Index.tsx
