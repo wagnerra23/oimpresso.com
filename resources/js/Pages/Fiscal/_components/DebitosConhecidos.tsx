@@ -40,7 +40,10 @@ interface DebitosConhecidosProps {
 }
 
 export default function DebitosConhecidos({ route }: DebitosConhecidosProps) {
-  const itens = DEBITOS_CONHECIDOS.filter(d => d.tela === route);
+  // `!d.decisao` — os itens que esperam decisão [W] têm bloco próprio (`DecisaoPendente`), e
+  // um item aparece em UM lugar só. Sem o filtro, os 4 seriam listados duas vezes na mesma
+  // tela, e a repetição leria como duas dívidas onde há uma.
+  const itens = DEBITOS_CONHECIDOS.filter(d => d.tela === route && !d.decisao);
 
   // Estado vazio = NÓ AUSENTE, não contêiner vazio nem mensagem — o mesmo contrato que a
   // fila de alertas do cockpit já segue (§"Contrato da fila de alertas" do Cockpit.charter).

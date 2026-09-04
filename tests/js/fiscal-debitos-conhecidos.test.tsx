@@ -1,7 +1,7 @@
 /**
  * "Débitos conhecidos desta tela" — a tela declara a própria dívida, e a lista é DERIVADA.
  *
- * @covers-us UC-FEVT-08
+ * @covers-us UC-FEVT-08 UC-FDFE-06
  *
  * POR QUE ESTE TESTE É DE RENDER, E MONTA O `FxShell` (e não o componente sozinho): o
  * contrato tem duas metades, e um teste do componente isolado provaria só a primeira. A
@@ -45,6 +45,7 @@ const renderTela = (route: string) =>
   );
 
 const bloco = () => document.querySelector('[data-contract="debitos-conhecidos"]');
+const blocoDecisao = () => document.querySelector('[data-contract="decisao-pendente"]');
 
 describe('UC-FEVT-08 · a tela declara os débitos que os casos.md dela já registram', () => {
   it('UC-FEVT-08 · a tela com débitos desenha um item por bullet [BACKLOG] dela', () => {
@@ -54,7 +55,10 @@ describe('UC-FEVT-08 · a tela declara os débitos que os casos.md dela já regi
     expect(secao).not.toBeNull();
     expect(screen.getByText('Débitos conhecidos desta tela')).toBeTruthy();
 
-    const esperados = DEBITOS_CONHECIDOS.filter(d => d.tela === 'fiscal_eventos');
+    // `!d.decisao` porque item de decisão tem bloco próprio (UC-FDFE-06). O Eventos hoje tem
+    // zero decisões, então o filtro não muda o número — está aqui para o caso continuar
+    // verdadeiro no dia em que um bullet desta tela ganhar `decisão [W]`.
+    const esperados = DEBITOS_CONHECIDOS.filter(d => d.tela === 'fiscal_eventos' && !d.decisao);
     expect(esperados.length).toBeGreaterThan(0);
     expect(secao!.querySelectorAll('[data-ancora]')).toHaveLength(esperados.length);
     for (const d of esperados) expect(screen.getByText(d.titulo)).toBeTruthy();
@@ -92,7 +96,7 @@ describe('UC-FEVT-08 · a tela declara os débitos que os casos.md dela já regi
 
     // E o inverso, que é o que pega dívida NOVA não publicada: todo bullet vivo da tela
     // aparece nela.
-    expect(exibidos).toHaveLength(vivos.filter(v => v.tela === 'sped').length);
+    expect(exibidos).toHaveLength(vivos.filter(v => v.tela === 'sped' && !v.decisao).length);
   });
 
   it('UC-FEVT-08 · dívida PAGA (bullet tachado) não aparece na tela', () => {
@@ -125,5 +129,80 @@ describe('UC-FEVT-08 · a tela declara os débitos que os casos.md dela já regi
     const rotulos = itens.map(el => el.querySelector('[data-slot="badge"]')?.textContent);
     expect(rotulos).toContain('source-grep');
     expect(rotulos).toContain('sem teste');
+  });
+});
+
+describe('UC-FDFE-06 · a tela avisa quando depende de decisão [W]', () => {
+  it('UC-FDFE-06 · a tela com item de decisão desenha o bloco, com um item por decisão em aberto', () => {
+    renderTela('dfe');
+
+    const secao = blocoDecisao();
+    expect(secao).not.toBeNull();
+    expect(screen.getByText('Decisão [W] pendente')).toBeTruthy();
+
+    const esperados = DEBITOS_CONHECIDOS.filter(d => d.tela === 'dfe' && d.decisao);
+    expect(esperados.length).toBeGreaterThan(0);
+    expect(secao!.querySelectorAll('[data-ancora]')).toHaveLength(esperados.length);
+    for (const d of esperados) expect(screen.getByText(d.titulo)).toBeTruthy();
+  });
+
+  it('UC-FDFE-06 · tela sem decisão em aberto não desenha NÓ NENHUM', () => {
+    // O Eventos tem 4 débitos e ZERO decisões — logo desenha o bloco de dívida e NÃO o de
+    // decisão. É o par que prova que os dois blocos são independentes, e não um só com
+    // título trocado.
+    renderTela('fiscal_eventos');
+    expect(bloco()).not.toBeNull();
+    expect(blocoDecisao()).toBeNull();
+  });
+
+  it('UC-FDFE-06 · item de decisão aparece em UM bloco só — nunca nos dois', () => {
+    // O Config é a tela mais dura: tem itens dos dois tipos. Se o filtro `!decisao` do bloco
+    // de dívida cair, os de decisão aparecem duas vezes na mesma tela, e a repetição lê como
+    // duas dívidas onde há uma.
+    //
+    // ⚠️ OS NÚMEROS SÃO DERIVADOS, NUNCA FIXOS. Até 2026-09-04 este caso assertava `toBe(2)`
+    // e `toBe(3)`, e reprovou por GANHO: o `main` declarou 2 débitos novos no `Config.casos.md`
+    // e o teste acusou uma regressão que não existia. Número derivado de artefato vivo não se
+    // congela em assert — o contrato aqui é a PARTIÇÃO (interseção vazia, união completa), e
+    // ela vale para qualquer contagem.
+    renderTela('fiscal_config');
+
+    const naDivida = Array.from(bloco()!.querySelectorAll('[data-slot="alert-title"]')).map(
+      el => el.textContent
+    );
+    const naDecisao = Array.from(
+      blocoDecisao()!.querySelectorAll('[data-slot="alert-title"]')
+    ).map(el => el.textContent);
+
+    const doConfig = DEBITOS_CONHECIDOS.filter(d => d.tela === 'fiscal_config');
+    const esperadoDecisao = doConfig.filter(d => d.decisao).length;
+
+    // A tela precisa exercitar os DOIS blocos, senão o caso não prova partição nenhuma.
+    expect(esperadoDecisao).toBeGreaterThan(0);
+    expect(doConfig.length - esperadoDecisao).toBeGreaterThan(0);
+
+    expect(naDecisao.length).toBe(esperadoDecisao);
+    expect(naDivida.length).toBe(doConfig.length - esperadoDecisao);
+    expect(naDivida.filter(t => naDecisao.includes(t))).toEqual([]);
+
+    // E nada se perdeu no caminho: os dois blocos somados são todos os itens da tela.
+    expect(naDivida.length + naDecisao.length).toBe(doConfig.length);
+  });
+
+  it('UC-FDFE-06 · só entra item cujo bullet [BACKLOG] diz `decisão [W]` — nada inventado', async () => {
+    renderTela('fiscal_config');
+
+    const { coletar } = await import('../../scripts/governance/fiscal-debitos-derive.mjs');
+    const exibidos = Array.from(
+      blocoDecisao()!.querySelectorAll('[data-slot="alert-title"]')
+    ).map(el => el.textContent);
+
+    for (const titulo of exibidos) {
+      const vivo = coletar().find(v => v.titulo === titulo);
+      expect(vivo, `"${titulo}" não é mais um bullet vivo`).toBeTruthy();
+      expect(vivo!.decisao, `"${titulo}" está no bloco de decisão sem dizer "decisão [W]"`).toBe(
+        true
+      );
+    }
   });
 });
