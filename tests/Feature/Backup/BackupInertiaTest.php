@@ -71,6 +71,32 @@ function backupInertiaVersion(): string
     return file_exists($manifest) ? md5_file($manifest) : '1';
 }
 
+/**
+ * Lista de backups — prop DEFERIDA (`BackUpController:105`, `Inertia::defer`), logo ela so vem
+ * num partial reload, e o Inertia faz partial reload por HEADER
+ * (`X-Inertia-Partial-Component` + `X-Inertia-Partial-Data`), nunca por query string.
+ *
+ * O `?only=backups` que ficava aqui era ignorado pelo Inertia: a resposta vinha sem a prop e
+ * `props.backups.data` dava null — os 2 casos morriam com ErrorException/InvalidExpectationValue
+ * em vez de falhar com mensagem util (run 33912700637, 2 errors). Mesmo padrao do
+ * ProdutoIndexContratoTest, que roda verde na lane do estoque.
+ *
+ * @return array<int,array<string,mixed>>
+ */
+function backupListaDeferida($teste): array
+{
+    $r = $teste->withHeaders([
+        'X-Inertia' => 'true',
+        'X-Inertia-Version' => backupInertiaVersion(),
+        'X-Inertia-Partial-Component' => 'Backup/Index',
+        'X-Inertia-Partial-Data' => 'backups',
+    ])->get('/backup');
+
+    $r->assertOk();
+
+    return $r->json('props.backups.data') ?? [];
+}
+
 /** GET /backup como Inertia, devolvendo o page object decodificado. */
 function backupPage($teste): array
 {
@@ -93,9 +119,7 @@ test('a rota renderiza Backup/Index com as props que a tela consome', function (
 test('a lista vem do mais novo pro mais velho e ignora quem nao e zip', function () {
     Storage::disk('local')->put($this->pasta.'/lixo.txt', 'nao-e-backup');
 
-    $backups = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => backupInertiaVersion()])
-        ->get('/backup?only=backups')
-        ->json('props.backups.data');
+    $backups = backupListaDeferida($this);
 
     expect($backups)->toHaveCount(2);
     expect($backups[0]['file_name'])->toBe('2026-08-19-03-00-04.zip');
@@ -104,9 +128,7 @@ test('a lista vem do mais novo pro mais velho e ignora quem nao e zip', function
 
 // UC-BKP-01 — a origem sai do ARQUIVO, nao do config (anti-hook do charter)
 test('origem e derivada da hora do arquivo, nao do cron parseado', function () {
-    $backups = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => backupInertiaVersion()])
-        ->get('/backup?only=backups')
-        ->json('props.backups.data');
+    $backups = backupListaDeferida($this);
 
     $porNome = collect($backups)->keyBy('file_name');
     expect($porNome['2026-08-19-03-00-04.zip']['origem'])->toBe('agendado');
