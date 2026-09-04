@@ -15,6 +15,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Input } from '@/Components/ui/input';
 import { fmt, num } from './_lib/formato';
+import '../../../css/cowork-manufacturing-bundle.css';
 
 interface LinhaInsumo {
   variation_id: number;

@@ -21,6 +21,7 @@ import { useState, type FormEvent, type ReactNode } from 'react';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Button } from '@/Components/ui/button';
 import { Checkbox } from '@/Components/ui/checkbox';
+import '../../../css/cowork-manufacturing-bundle.css';
 
 interface SettingsShape {
   ref_no_prefix: string;

@@ -241,3 +241,34 @@ it('o menu lateral tem entrada pra Insumos', function () {
         'O menu lateral do módulo não referencia a ação de Insumos.'
     );
 });
+
+it('toda tela que usa classes mfg-* importa o bundle CSS do módulo', function () {
+    // ACHADO NO SMOKE de 2026-09-04 (sessão com [M] logada em prod): `/manufacturing/v2/settings`
+    // e `/manufacturing/v2/insumos` renderizavam CRUAS — conteúdo certo, zero estilo. As duas
+    // usam dezenas de classes `mfg-*` e NENHUMA importava `cowork-manufacturing-bundle.css`.
+    //
+    // POR QUE PASSOU DESPERCEBIDO: navegando por dentro do SPA a partir de Recipes/Report (que
+    // importam o bundle), o CSS já está no documento e a tela parece certa. Só o carregamento
+    // DIRETO quebra — e é exatamente o que o menu lateral faz, porque ele é âncora do Blade.
+    // Nenhum gate via isso: CI verde, tela crua. Foi preciso abrir a tela pra ver.
+    //
+    // O critério é derivado, não uma lista à mão: quem usa a classe precisa da folha.
+    $semCss = [];
+
+    foreach (glob(base_path('resources/js/Pages/Manufacturing/*.tsx')) as $arquivo) {
+        $fonte = (string) file_get_contents($arquivo);
+
+        $usaMfg = preg_match('~className="[^"]*\bmfg-[a-z-]+~', $fonte) === 1;
+        $importa = str_contains($fonte, 'cowork-manufacturing-bundle.css');
+
+        if ($usaMfg && ! $importa) {
+            $semCss[] = basename($arquivo);
+        }
+    }
+
+    expect($semCss)->toBe(
+        [],
+        'Tela usando classes mfg-* sem importar o bundle: '.implode(', ', $semCss)
+        .'. Em carregamento direto ela renderiza sem estilo.'
+    );
+});
