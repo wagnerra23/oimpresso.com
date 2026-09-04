@@ -2,7 +2,7 @@
 id: requisitos-manufacturing-briefing
 module: Manufacturing
 status: parcial
-status_nota: "Legacy UltimatePOS estável (recipes/BOM + ordens de produção) + migração Inertia parcial — 3 páginas: a lista de produções (Wave J), a consulta de receitas em /manufacturing/recipe (Wave 29) e o relatório do período em /manufacturing/v2/report (Wave 30). Sem pilot dedicado próprio; provê custeio/BOM."
+status_nota: "Migração Inertia com CUTOVER concluído em 2026-09-04 — as 5 telas servem nos endereços canônicos (/manufacturing/recipe, /production, /report, /settings, /insumos), com ?legacy=1 devolvendo o Blade no mesmo endereço e /v2/* como 301. Faltam US-MANU-006 (editor de ingredientes) e US-MANU-007 (formulário de ordem, travada por decisão FSM). Sem pilot dedicado; provê custeio/BOM."
 updated_at: "2026-09-03"
 owner: W
 related_adrs:
@@ -38,7 +38,7 @@ A capacidade de negócio real (CRUD receitas, ordens de produção, custeio) seg
 A versão anterior afirmava "Frontend Inertia/React ❌ pendente" e "Charter páginas Inertia ❌ N/A". **Ambas ficaram desatualizadas** — a migração MWART Wave J já landou:
 
 - Existe `resources/js/Pages/Manufacturing/Index.tsx` — lista de produções (`production_purchase`) em Inertia/React, padrão PT-01.
-- Rota `GET /manufacturing/v2/production` → `ProductionController@indexV2` → `ProductionService` (scoped por `business_id`, Tier 0 ADR 0093), **coexiste** com Blade legacy `/manufacturing/production`.
+- Rota `GET /manufacturing/production` → `ProductionController@index` (delega a `@indexV2`) → `ProductionService` (scoped por `business_id`, Tier 0 ADR 0093). **Cutover 2026-09-04:** o endereço canônico serve a tela React; `?legacy=1` devolve o Blade no MESMO endereço e `/v2/production` virou 301. Nenhuma rota removida.
 - Charter existe: `Index.charter.md` (`status: draft`, page_id `manufacturing-index`).
 
 ## Onde é usado (reverificado por grep 2026-09-03)
@@ -89,7 +89,7 @@ A versão anterior afirmava "Frontend Inertia/React ❌ pendente" e "Charter pá
 1. ~~Reverificar (grep) se OficinaAuto/ComunicacaoVisual realmente consomem `RecipeBomService`/`ProductionService`~~ — **fechado 2026-09-03**: reverificado, 0 arquivos, claim removido (ver seção acima).
 2. ~~`PermissionsTest` fechando `R-MANU-001..005`~~ — **fechado 2026-09-03** (ver Gaps catalogados).
 3. Promover os charters draft → live após screenshot aprovado por Wagner (agora são três: `Index`, `Recipes`, `Report`). Smoke de `Recipes.charter.md` **fechado 2026-09-03** — falta a aprovação do screenshot pelo Wagner (`Index.charter.md` e `Report.charter.md` seguem sem smoke registrado).
-4. **Rodar `Wave30ReportInertiaTest.php` no CT 100** (ver bloco novo acima) — é o item que falta pra US-MANU-002 sair de "código escrito" pra "verificado". Depois, smoke prod em `/manufacturing/v2/report`.
+4. **Smoke prod das 5 telas nos endereços canônicos** (`/manufacturing/recipe`, `/production`, `/report`, `/settings`, `/insumos`) — nenhuma foi aberta e verificada depois do cutover de 2026-09-04. CI verde não é smoke: conferir também que `?legacy=1` ainda devolve o Blade e que a entrada de Insumos aparece no menu lateral.
 5. **US-MANU-003 (Configurações do módulo)** é a próxima onda na ordem de custo crescente decidida por [M] — backend já existe (`SettingsController@index/@store`), 3 campos, escreve.
 6. Migração MWART do CRUD/Recipes avaliada quando OficinaAuto consumir BOM via UI Inertia (segue sem consumo — item 1 acima).
 

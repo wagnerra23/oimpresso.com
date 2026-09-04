@@ -95,3 +95,12 @@ last_run: "2026-09-04"
 ## Trilha do tempo
 - 2026-09-04 · [F+C] US-MANU-004 (emenda: 5 → 8 colunas). 5 UC com teste Pest. A tela é da
   Wave J; este é o primeiro `casos.md` dela. Refs: UI-0013 · ADR 0264 G-1/G-2 · ADR 0093.
+- 2026-09-04 · [F+C] **CUTOVER**: a tela passou a ser servida no endereço CANÔNICO do módulo
+  (nasceu em `/manufacturing/v2/*`, que virou 301). Pedido [F]: *"módulo inteiro em produção,
+  com os links e vínculos reais, sem rotas alternativas"*, sobre a aprovação [W] da família.
+  Pré-condição medida: a regra F5 (cutover exige aviso a cliente) nomeia a ROTA LIVRE, e [F]
+  confirmou que ela não usa Fabricação. **Nenhuma rota removida ou renomeada** — `?legacy=1`
+  devolve o Blade no MESMO endereço e o ramo AJAX do DataTables segue intacto. Guarda nova:
+  `Modules/Manufacturing/Tests/Feature/CutoverRotasCanonicasTest.php` (9 asserts). Nenhum UC
+  acima mudou de comportamento; os asserts de ROTA de Wave30/31/33 foram reapontados pro
+  canônico porque o `/v2/` agora responde `RedirectController`, não o controller da tela.

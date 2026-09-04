@@ -9,8 +9,8 @@ related_us: [US-MANU-003]
 runbook: memory/requisitos/Manufacturing/RUNBOOK-settings.md
 casos: resources/js/Pages/Manufacturing/Settings.casos.md
 alcance:
-  rota: /manufacturing/v2/settings
-  rota_nome: manufacturing.settings.v2.index
+  rota: /manufacturing/settings
+  rota_nome: settings.index   # canônico desde o cutover 2026-09-04; /manufacturing/v2/settings virou 301
   permission: null # sem permissão Spatie granular própria — mesmo gate do Blade legado (só pacote)
   menu_hook: null  # alcançada pela aba "Configurações" das telas v2
   pacote: manufacturing_module

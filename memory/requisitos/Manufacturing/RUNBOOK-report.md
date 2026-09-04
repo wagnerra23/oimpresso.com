@@ -1,10 +1,10 @@
 ---
 last_validated: "2026-09-03"
 slug: runbook-manufacturing-report
-title: "RUNBOOK — /manufacturing/v2/report (Fabricação · Relatório)"
+title: "RUNBOOK — /manufacturing/report (Fabricação · Relatório)"
 type: runbook
 module: Manufacturing
-page: /manufacturing/v2/report
+page: /manufacturing/report
 component: resources/js/Pages/Manufacturing/Report.tsx
 status: rascunho
 updated_at: 2026-09-03
@@ -12,7 +12,7 @@ version: 0.1
 owner: F
 ---
 
-# RUNBOOK — `/manufacturing/v2/report` (Fabricação · Relatório)
+# RUNBOOK — `/manufacturing/report` (Fabricação · Relatório)
 
 > **F1 PLAN do MWART** ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)).
 > US-MANU-002 (SPEC.md) — segunda das 7 telas do handoff **"PROTÓTIPO OFICIAL - FABRICAÇÃO V1"**,
@@ -21,10 +21,14 @@ owner: F
 > inteiro pela Onda 1 (Recipes), então **nenhuma classe CSS nova**: `.mfg-filters`, `.mfg-table.rep`,
 > `.mfg-bar-mini`, `.mfg-check` já existem em `cowork-manufacturing-bundle.css`.
 >
-> **Rota nova, sem cutover:** ao contrário de `/manufacturing/recipe` (que Wagner decidiu tomar o
-> endereço legado), este segue o padrão da Onda 1 de Ordens de produção (Wave J) —
-> `/manufacturing/v2/report` **novo**, `/manufacturing/report` (Blade) **intocado**. Sem decisão
-> explícita do dono sobre o endereço, o padrão aditivo é o default seguro.
+> **CUTOVER 2026-09-04 — este é o endereço canônico.** Até 2026-09-04 valia o padrão
+> aditivo (tela React em `/v2/*`, Blade intocado no endereço de sempre). O pedido [F]
+> — *"módulo inteiro em produção, com os links e vínculos reais, sem rotas alternativas"*,
+> sobre a aprovação [W] da família — trocou isso: o endereço de sempre passou a servir a
+> tela React, `?legacy=1` devolve o Blade no MESMO endereço, e `/v2/*` virou 301.
+> **Nenhuma rota foi removida ou renomeada** (Non-Goal vivo do `Recipes.charter.md`).
+> Pré-condição medida: a regra F5 (cutover exige aviso a cliente) nomeia a ROTA LIVRE, e
+> [F] confirmou 2026-09-04 que ela não usa Fabricação.
 
 ## 1. Cálculo — prova de que não inventei fórmula nova
 
@@ -64,7 +68,7 @@ campo `custoSnap` não existe hoje em `transactions` (confirmado: só `mfg_produ
 ## 3. Smoke prod (R1)
 
 ```bash
-curl -sv https://oimpresso.com/manufacturing/v2/report 2>&1 | grep '^< HTTP'
+curl -sv https://oimpresso.com/manufacturing/report 2>&1 | grep '^< HTTP'
 ```
 
 Regressão adjacente — a rota Blade legada não pode mudar:

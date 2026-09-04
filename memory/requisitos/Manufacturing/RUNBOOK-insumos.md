@@ -1,10 +1,10 @@
 ---
 last_validated: "2026-09-04"
 slug: runbook-manufacturing-insumos
-title: "RUNBOOK — /manufacturing/v2/insumos (Fabricação · Insumos)"
+title: "RUNBOOK — /manufacturing/insumos (Fabricação · Insumos)"
 type: runbook
 module: Manufacturing
-page: /manufacturing/v2/insumos
+page: /manufacturing/insumos
 component: resources/js/Pages/Manufacturing/Insumos.tsx
 status: rascunho
 updated_at: 2026-09-04
@@ -12,7 +12,7 @@ version: 0.1
 owner: F
 ---
 
-# RUNBOOK — `/manufacturing/v2/insumos` (Fabricação · Insumos)
+# RUNBOOK — `/manufacturing/insumos` (Fabricação · Insumos)
 
 > **F1 PLAN do MWART** ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)).
 > US-MANU-005 — impacto reverso: quais receitas usam um insumo, e o que acontece com o custo
@@ -85,7 +85,7 @@ consulta e outra decisão de escopo — não é ajuste de código.
 ## 5. Smoke prod (R1)
 
 ```bash
-curl -sv https://oimpresso.com/manufacturing/v2/insumos 2>&1 | grep '^< HTTP'
+curl -sv https://oimpresso.com/manufacturing/insumos 2>&1 | grep '^< HTTP'
 ```
 
 Regressão adjacente (as rotas do módulo não mudam):

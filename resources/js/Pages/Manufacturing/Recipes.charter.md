@@ -56,8 +56,11 @@ quanto o custo mudou desde a última compra.
 - ❌ **Não atualiza preço de venda em massa.** O protótipo tem o botão usando `custo × 2`; §18.1
   do handoff diz literalmente *"Não implemente esse fator 2"*, a regra de markup real não foi
   decidida, e escrever em N preços é Tier 0 de VALOR.
-- ❌ **Não traz a aba Insumos.** §18.3: `usosDoInsumo` é cálculo novo sem backend — *"sem isso,
-  a aba não sai"*.
+- ~~❌ **Não traz a aba Insumos.**~~ — **SUPERADO em 2026-09-04.** A própria razão escrita
+  aqui era a ausência de backend (§18.3: *"sem isso, a aba não sai"*), e o backend saiu na
+  US-MANU-005 (`usosDoInsumo` no `RecipeBomService`). Sem a premissa, o Non-Goal deixa de
+  descrever uma intenção e passa a instruir regressão — a tela ficaria inalcançável.
+  ⚠️ Non-Goal é território [W]: se ele discordar, o lugar de barrar é este PR.
 - ❌ **Não edita ingredientes nem lança produção** — as duas têm tela própria.
 - ❌ **Não remove nem renomeia rota Blade legacy** do módulo.
 - ❌ **Não calcula custo no cliente.** Todo número vem derivado do servidor (§9).

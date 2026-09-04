@@ -60,13 +60,15 @@ class ProductionController extends Controller
      *
      * @return Response
      */
-    public function index()
+    public function index(ProductionService $productionService)
     {
         $business_id = request()->session()->get('user.business_id');
         if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.access_production')) {
             abort(403, 'Unauthorized action.');
         }
 
+        // O ramo AJAX abaixo alimenta o DataTables da tela Blade e SEGUE INTACTO — é ele
+        // que faz `?legacy=1` continuar funcionando de verdade, não só renderizar.
         if (request()->ajax()) {
             $productions = Transaction::join(
                 'business_locations AS bl',
@@ -148,9 +150,15 @@ class ProductionController extends Controller
                 ->make(true);
         }
 
-        $business_locations = BusinessLocation::forDropdown($business_id);
+        // CUTOVER 2026-09-04 — ver a nota em SettingsController@index. `?legacy=1` devolve
+        // o Blade no MESMO endereço; nenhuma rota removida.
+        if (request()->boolean('legacy')) {
+            $business_locations = BusinessLocation::forDropdown($business_id);
 
-        return view('manufacturing::production.index')->with(compact('business_locations'));
+            return view('manufacturing::production.index')->with(compact('business_locations'));
+        }
+
+        return $this->indexV2($productionService);
     }
 
     /**
@@ -921,7 +929,7 @@ class ProductionController extends Controller
      *
      * @return Response
      */
-    public function getManufacturingReport()
+    public function getManufacturingReport(ProductionService $productionService, RecipeBomService $bomService)
     {
         $business_id = request()->session()->get('user.business_id');
 
@@ -941,9 +949,14 @@ class ProductionController extends Controller
             return $output;
         }
 
-        $business_locations = BusinessLocation::forDropdown($business_id, true);
+        // CUTOVER 2026-09-04 — ver a nota em SettingsController@index.
+        if (request()->boolean('legacy')) {
+            $business_locations = BusinessLocation::forDropdown($business_id, true);
 
-        return view('manufacturing::production.report')->with(compact('business_locations'));
+            return view('manufacturing::production.report')->with(compact('business_locations'));
+        }
+
+        return $this->reportV2($productionService, $bomService);
     }
 
     /**

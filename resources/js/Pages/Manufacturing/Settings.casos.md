@@ -5,7 +5,7 @@ tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 fonte: handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §4.7 + §16 — os UC abaixo DERIVAM dele
 owner: wagner
-last_run: "2026-09-03"
+last_run: "2026-09-04"
 ---
 
 # Casos de Uso & Aceite — Manufacturing/Settings
@@ -83,3 +83,20 @@ last_run: "2026-09-03"
 ## Trilha do tempo
 - 2026-09-03 · [F+C] US-MANU-003, terceira onda da família. 4 UC com teste Pest.
   Refs: UI-0013 · ADR 0264 G-1/G-2 · ADR 0104 · ADR 0093.
+- 2026-09-04 · [F+C] Barra de abas corrigida: "Configurações" apontava pra rota Blade legada
+  (âncora crua, saía do SPA) e a aba "Insumos" não existia. [F] reportou clicando na aba e
+  caindo na tela antiga. **Segunda ocorrência do mesmo defeito** — em 2026-09-03 a aba
+  "Relatório" foi corrigida do mesmo jeito e a "Configurações" ficou pra trás na mesma leva,
+  porque **nenhum UC cobre a barra de navegação** e nada guardava isso. A guarda agora existe:
+  `Modules/Manufacturing/Tests/Feature/AbasTelasV2Test.php` (4 asserts; 3 provados por bite
+  test contra cópia adulterada, o 4º usa o registry de rotas em runtime). Nenhum UC acima
+  mudou de comportamento. ⚠️ O cutover da rota legada segue PENDENTE e é decisão [W].
+- 2026-09-04 · [F+C] **CUTOVER**: a tela passou a ser servida no endereço CANÔNICO do módulo
+  (nasceu em `/manufacturing/v2/*`, que virou 301). Pedido [F]: *"módulo inteiro em produção,
+  com os links e vínculos reais, sem rotas alternativas"*, sobre a aprovação [W] da família.
+  Pré-condição medida: a regra F5 (cutover exige aviso a cliente) nomeia a ROTA LIVRE, e [F]
+  confirmou que ela não usa Fabricação. **Nenhuma rota removida ou renomeada** — `?legacy=1`
+  devolve o Blade no MESMO endereço e o ramo AJAX do DataTables segue intacto. Guarda nova:
+  `Modules/Manufacturing/Tests/Feature/CutoverRotasCanonicasTest.php` (9 asserts). Nenhum UC
+  acima mudou de comportamento; os asserts de ROTA de Wave30/31/33 foram reapontados pro
+  canônico porque o `/v2/` agora responde `RedirectController`, não o controller da tela.

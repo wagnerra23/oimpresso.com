@@ -4,6 +4,7 @@ return [
     'manufacturing_module' => 'Manufacturing Module',
     'manufacturing' => 'Manufacturing',
     'recipe' => 'Recipe',
+    'insumos' => 'Supplies',
     'add_recipe' => 'Add Recipe',
     'choose_product' => 'Choose Product',
     'ingredients' => 'Ingredients',

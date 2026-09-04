@@ -9,8 +9,8 @@ related_us: [US-MANU-002]
 runbook: memory/requisitos/Manufacturing/RUNBOOK-report.md
 casos: resources/js/Pages/Manufacturing/Report.casos.md
 alcance:
-  rota: /manufacturing/v2/report
-  rota_nome: manufacturing.report.v2.index
+  rota: /manufacturing/report
+  rota_nome: manufacturing.report.index   # canônico desde o cutover 2026-09-04; /manufacturing/v2/report virou 301
   permission: null # sem permissão Spatie granular própria — mesmo gate do Blade legado (só pacote)
   menu_hook: null  # não está na sidebar; alcançada pela aba "Relatório" das telas v2
   pacote: manufacturing_module

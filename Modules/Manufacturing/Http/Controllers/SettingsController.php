@@ -41,17 +41,30 @@ class SettingsController extends Controller
      *
      * @return Response
      */
-    public function index()
+    public function index(ProductionService $productionService, RecipeBomService $bomService)
     {
         $business_id = request()->session()->get('user.business_id');
         if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module'))) {
             abort(403, 'Unauthorized action.');
         }
-        $manufacturing_settings = $this->mfgUtil->getSettings($business_id);
 
-        $version = System::getProperty('manufacturing_version');
+        // CUTOVER 2026-09-04 ([F], "módulo inteiro em produção, sem rotas alternativas"):
+        // este endereço passa a servir a tela React. Mesmo padrão que `/manufacturing/recipe`
+        // usa desde a US-MANU-001 — `?legacy=1` devolve o Blade antigo no MESMO endereço,
+        // e NENHUMA rota foi removida (proibição §15.2 do handoff).
+        //
+        // Pré-condição medida antes de cortar: a regra "F5 CUTOVER sem aviso prévio cliente"
+        // (proibicoes.md) nomeia a ROTA LIVRE — e [F] confirmou 2026-09-04 que ela não usa
+        // Fabricação. Sem cliente na tela, a população da regra é vazia aqui.
+        if (request()->boolean('legacy')) {
+            $manufacturing_settings = $this->mfgUtil->getSettings($business_id);
 
-        return view('manufacturing::settings.index')->with(compact('manufacturing_settings', 'version'));
+            $version = System::getProperty('manufacturing_version');
+
+            return view('manufacturing::settings.index')->with(compact('manufacturing_settings', 'version'));
+        }
+
+        return $this->indexV2($productionService, $bomService);
     }
 
     /**
