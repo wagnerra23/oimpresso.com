@@ -86,6 +86,35 @@ autorizadas — o padrão `disabled` + `title` que a tela já usava foi **estend
 diz isso em texto, listando só o que o layout já fixa (v3.1.1, perfil A, `0000` com `COD_VER 018` e
 `COD_FIN 0`). Ver o Non-Goal correspondente abaixo.
 
+## Contrato destilado — o que a tela DECLARA sobre o arquivo (Onda 10 · 2026-09-04)
+
+> Destilado do charter do Cowork (`cowork-inbox/fiscal/Sped.charter.md`, lido por ID em
+> 2026-09-04). Ele tem 5 Goals; a Onda 9 entregou 1. Esta onda fecha os Goals 1 (completar),
+> 4 e 5. O comportamento provado vive em `Sped.casos.md` (`UC-FSF1-01/06/07`).
+
+**A barra de validação vive na PÁGINA.** Até a Onda 9 a régua só existia dentro do drawer, então
+só via quem clicasse na lupa. Agora ela abre com a página, na competência que o operador de fato
+vai gerar (a primeira **pronta**; sem nenhuma, a primeira da lista). Trocar de competência é
+clicar no mês na tabela. A régua **também** aparece no drawer, pelo **mesmo componente e o mesmo
+payload** — não é segunda fonte: o drawer é o passo imediatamente anterior ao download, e mandar
+o operador fechá-lo pra ler por que o botão ao lado está cinza esconderia a resposta na hora em
+que ela é pedida.
+
+**O motivo do mês em aberto cita a data em que a competência ENCERRA.** Não o prazo de entrega. O
+protótipo do Cowork cita ali o campo `entrega` (dia 15 do mês seguinte), e os dois são diferentes:
+09/2026 encerra em 30/09 e vence 15/10. Quem lesse a data de entrega esperaria duas semanas a mais
+do que precisa. O prazo segue na coluna própria da tabela.
+
+**Estrutura e validação são MEDIDAS, nunca escritas.** `SpedReferenciaArquivoService` lê o golden
+(`Modules/Fiscal/Tests/Fixtures/sped-icms-ipi-golden.txt`) a cada request e devolve os registros
+por bloco, os bytes, as linhas e o SHA-256; o "nunca executado" do PVA-EFD é derivado da **ausência**
+de `sped-pva-smoke.recibo.md`. Sem arquivo, a tela **declara a ausência** — não presume estrutura.
+
+**Este cartão contradiz o protótipo de propósito, e é o único ponto em que faz isso.** O F1 diz
+literalmente *"Golden file do TXT: não existe"*; o charter do Cowork é de 2026-08-24 e o golden
+nasceu em 2026-09-03 ([PR #6708](https://github.com/wagnerra23/oimpresso.com/pull/6708)). Traduzir
+a copy literal teria posto afirmação **falsa** na tela.
+
 ## Non-Goals (Wagner aprova explicitamente) — Onda 9
 
 - ❌ **Prévia server-side do conteúdo do TXT** — *pendente de decisão, não recusada.* Gerar uma
@@ -113,6 +142,14 @@ diz isso em texto, listando só o que o layout já fixa (v3.1.1, perfil A, `0000
   source-grep (ver `Sped.casos.md` §Backlog), não provam o conteúdo do arquivo. _(Desde 2026-09-03
   o `UC-FSF1-05` confere estrutura, blocos e contadores contra um golden real — mas o PVA-EFD é
   ferramenta externa e continua sem smoke, e o próprio golden mostra por que ele recusaria hoje.)_
+- 🚫 **NÃO escrever à mão os registros de cada bloco, nem o estado da validação externa** — as
+  duas superfícies são medidas no arquivo pelo `SpedReferenciaArquivoService`. Uma lista escrita
+  continuaria "certa" na tela depois de o gerador parar de emitir um registro, e um "golden file:
+  não existe" escrito vira falso no dia em que ele nasce — que foi exatamente o que aconteceu com
+  a copy do protótipo, um dia depois do charter do Cowork.
+- 🚫 **NÃO apresentar o arquivo de referência como sendo a competência do operador** — o `0000` do
+  golden declara `CI TENANT 98 (FICTICIO)` como emitente. Toda superfície que o exibir diz que é
+  referência de layout.
 - 🚫 **NÃO mover a decisão das 4 checagens para o cliente** — a régua é avaliada no servidor
   (`SpedController::checagens`) e a tela só renderiza. Regra duplicada no `.tsx` diverge da
   `validar()` do Service no primeiro ajuste, e aí a tela libera o que o servidor recusa (ou o
