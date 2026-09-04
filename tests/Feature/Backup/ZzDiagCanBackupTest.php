@@ -5,9 +5,18 @@ declare(strict_types=1);
 /**
  * TEMPORARIO — diagnostico do 403 da lane backup-pest. REMOVER no mesmo PR.
  *
- * Medido no CT 100 (staging, transacao + rollback): depois de givePermissionTo('backup'),
- * can('backup') volta TRUE. No CI da 403 em toda rota que chega ao controller. Este arquivo
- * existe so pra dizer ONDE os dois ambientes divergem, em vez de eu seguir chutando.
+ * Rodada 1 (run 33912071371) mostrou: o mecanismo funciona — can(backup)=true e
+ * GET /backup=200 — MAS so no caso que rodou PRIMEIRO. Todos os outros arquivos, depois,
+ * deram 403. Duas explicacoes concorrentes, e elas exigem desenho experimental pra separar:
+ *
+ *   (V) VARIAVEL: o meu caso recarregava o user (User::find) depois do givePermissionTo;
+ *       os testes reais usam a instancia que o factory devolveu.
+ *   (O) ORDEM: o primeiro caso do processo passa e os seguintes nao (contaminacao entre
+ *       testes — o banco volta pelo DatabaseTransactions, mas o processo PHP e o mesmo).
+ *
+ * Desenho que separa: 3 casos na ordem B / A / B.
+ *   B=200, A=403, B=200  -> e a VARIAVEL (recarregar)
+ *   B=200, A=403, B=403  -> e a ORDEM (contaminacao)
  */
 
 use App\User;
@@ -18,49 +27,60 @@ use Spatie\Permission\PermissionRegistrar;
 
 uses(DatabaseTransactions::class);
 
-test('DIAG: onde can(backup) diverge entre CT100 e CI', function () {
-    if (! Schema::hasTable('business') || ! Schema::hasTable('users')) {
-        $this->markTestSkipped('Schema ausente');
-    }
-
+/** Monta o cenario e devolve o status do GET /backup. $recarrega distingue A de B. */
+function diagStatus(object $teste, bool $recarrega): array
+{
     Permission::firstOrCreate(['name' => 'backup', 'guard_name' => 'web']);
     app(PermissionRegistrar::class)->forgetCachedPermissions();
 
-    $biz = $this->seededTenant();
+    $biz = $teste->seededTenant();
     $u = User::factory()->create(['business_id' => $biz->id]);
     $u->givePermissionTo('backup');
-    $u = User::find($u->id);
 
-    $linhas = [
-        'business_id' => $biz->id,
-        'user_type' => var_export($u->user_type, true),
-        'allow_login' => var_export($u->allow_login, true),
-        'hasDirectPermission' => var_export($u->hasDirectPermission('backup'), true),
-        'hasPermissionTo' => var_export($u->hasPermissionTo('backup'), true),
-        'checkPermissionTo' => var_export($u->checkPermissionTo('backup'), true),
-        'can(backup)' => var_export($u->can('backup'), true),
-        'guard_name do model' => var_export(method_exists($u, 'getDefaultGuardName') ? 'n/a' : 'n/a', true),
-        'auth default guard' => config('auth.defaults.guard'),
-        'administrator_usernames' => var_export(config('constants.administrator_usernames'), true),
-        'register_permission_check_method' => var_export(config('permission.register_permission_check_method'), true),
-        'cache.default' => var_export(config('cache.default'), true),
-        'permission.cache.store' => var_export(config('permission.cache.store'), true),
-        'app.env' => config('app.env'),
-    ];
-
-    // request real, como o teste de verdade faz
-    $this->actingAs($u);
-    session(['user.business_id' => $biz->id, 'business.id' => $biz->id]);
-    $r = $this->get('/backup');
-    $linhas['GET /backup status'] = $r->status();
-    $linhas['can dentro do request'] = var_export(auth()->check() ? auth()->user()->can('backup') : 'sem auth', true);
-
-    $out = "\n===== DIAG can(backup) =====\n";
-    foreach ($linhas as $k => $v) {
-        $out .= sprintf("  %-34s %s\n", $k, $v);
+    if ($recarrega) {
+        $u = User::find($u->id);
     }
-    $out .= "============================\n";
-    fwrite(STDERR, $out);
 
+    $antesDoRequest = $u->can('backup');
+
+    $teste->actingAs($u);
+    session(['user.business_id' => $biz->id, 'business.id' => $biz->id]);
+
+    return [
+        'status' => $teste->get('/backup')->status(),
+        'can_antes' => var_export($antesDoRequest, true),
+        'perm_id' => (string) Permission::where('name', 'backup')->value('id'),
+    ];
+}
+
+function diagEcho(string $rotulo, array $r): void
+{
+    fwrite(STDERR, sprintf(
+        "\n===== DIAG %s ===== status=%s can_antes=%s permission_id=%s\n",
+        $rotulo, $r['status'], $r['can_antes'], $r['perm_id']
+    ));
+}
+
+test('DIAG 1 B recarregando (esperado 200 pela rodada 1)', function () {
+    if (! Schema::hasTable('business')) {
+        $this->markTestSkipped('Schema ausente');
+    }
+    diagEcho('1 B recarrega', diagStatus($this, true));
+    expect(true)->toBeTrue();
+});
+
+test('DIAG 2 A sem recarregar (replica o BackupJobTest)', function () {
+    if (! Schema::hasTable('business')) {
+        $this->markTestSkipped('Schema ausente');
+    }
+    diagEcho('2 A sem recarregar', diagStatus($this, false));
+    expect(true)->toBeTrue();
+});
+
+test('DIAG 3 B recarregando de novo (separa VARIAVEL de ORDEM)', function () {
+    if (! Schema::hasTable('business')) {
+        $this->markTestSkipped('Schema ausente');
+    }
+    diagEcho('3 B recarrega', diagStatus($this, true));
     expect(true)->toBeTrue();
 });

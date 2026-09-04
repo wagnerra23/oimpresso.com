@@ -48,10 +48,28 @@ beforeEach(function () {
     session(['user.business_id' => $this->biz->id, 'business.id' => $this->biz->id]);
 });
 
+/**
+ * Version que o SERVIDOR usa no check do Inertia — mandar a mesma evita o 409
+ * (version mismatch) antes de o controller rodar.
+ *
+ * Espelha `HandleInertiaRequests::version()` (app/Http/Middleware): com o manifest presente
+ * ele devolve o `md5_file` dele. O literal `'1'` que ficava aqui NUNCA batia —
+ * `Middleware.php:149` compara o header com `Inertia::getVersion()`, que é `(string) $version`:
+ * `''` sem manifest, um md5 com ele. Medido nos runs 33909230351 (com stub) e 33910354015 (sem):
+ * os 6 casos deste arquivo davam 409 nas DUAS configurações. Mesmo helper do
+ * ProdutoIndexContratoTest, que roda verde na lane do estoque.
+ */
+function backupInertiaVersion(): string
+{
+    $manifest = public_path('build-inertia/manifest.json');
+
+    return file_exists($manifest) ? md5_file($manifest) : '1';
+}
+
 /** GET /backup como Inertia, devolvendo o page object decodificado. */
 function backupPage($teste): array
 {
-    $r = $teste->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])->get('/backup');
+    $r = $teste->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => backupInertiaVersion()])->get('/backup');
     $r->assertOk();
 
     return json_decode($r->getContent(), true);
@@ -70,7 +88,7 @@ test('a rota renderiza Backup/Index com as props que a tela consome', function (
 test('a lista vem do mais novo pro mais velho e ignora quem nao e zip', function () {
     Storage::disk('local')->put($this->pasta.'/lixo.txt', 'nao-e-backup');
 
-    $backups = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
+    $backups = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => backupInertiaVersion()])
         ->get('/backup?only=backups')
         ->json('props.backups.data');
 
@@ -81,7 +99,7 @@ test('a lista vem do mais novo pro mais velho e ignora quem nao e zip', function
 
 // UC-BKP-01 — a origem sai do ARQUIVO, nao do config (anti-hook do charter)
 test('origem e derivada da hora do arquivo, nao do cron parseado', function () {
-    $backups = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
+    $backups = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => backupInertiaVersion()])
         ->get('/backup?only=backups')
         ->json('props.backups.data');
 
@@ -113,7 +131,7 @@ test('em demo as acoes vem desabilitadas com motivo e o cron fica vazio', functi
 test('com a flag desligada a rota segue no Blade legado', function () {
     config(['mwart.backup_index.enabled' => false]);
 
-    $r = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])->get('/backup');
+    $r = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => backupInertiaVersion()])->get('/backup');
 
     $r->assertOk();
     expect($r->headers->get('x-inertia'))->toBeNull();   // Blade nao responde como Inertia
