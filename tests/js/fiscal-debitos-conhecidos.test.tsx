@@ -156,9 +156,15 @@ describe('UC-FDFE-06 · a tela avisa quando depende de decisão [W]', () => {
   });
 
   it('UC-FDFE-06 · item de decisão aparece em UM bloco só — nunca nos dois', () => {
-    // O Config é a tela mais dura: 5 débitos, dos quais 2 são decisão. Se o filtro `!decisao`
-    // do bloco de dívida cair, os 2 aparecem duas vezes na mesma tela, e a repetição lê como
+    // O Config é a tela mais dura: tem itens dos dois tipos. Se o filtro `!decisao` do bloco
+    // de dívida cair, os de decisão aparecem duas vezes na mesma tela, e a repetição lê como
     // duas dívidas onde há uma.
+    //
+    // ⚠️ OS NÚMEROS SÃO DERIVADOS, NUNCA FIXOS. Até 2026-09-04 este caso assertava `toBe(2)`
+    // e `toBe(3)`, e reprovou por GANHO: o `main` declarou 2 débitos novos no `Config.casos.md`
+    // e o teste acusou uma regressão que não existia. Número derivado de artefato vivo não se
+    // congela em assert — o contrato aqui é a PARTIÇÃO (interseção vazia, união completa), e
+    // ela vale para qualquer contagem.
     renderTela('fiscal_config');
 
     const naDivida = Array.from(bloco()!.querySelectorAll('[data-slot="alert-title"]')).map(
@@ -168,14 +174,19 @@ describe('UC-FDFE-06 · a tela avisa quando depende de decisão [W]', () => {
       blocoDecisao()!.querySelectorAll('[data-slot="alert-title"]')
     ).map(el => el.textContent);
 
-    expect(naDecisao.length).toBe(2);
-    expect(naDivida.length).toBe(3);
+    const doConfig = DEBITOS_CONHECIDOS.filter(d => d.tela === 'fiscal_config');
+    const esperadoDecisao = doConfig.filter(d => d.decisao).length;
+
+    // A tela precisa exercitar os DOIS blocos, senão o caso não prova partição nenhuma.
+    expect(esperadoDecisao).toBeGreaterThan(0);
+    expect(doConfig.length - esperadoDecisao).toBeGreaterThan(0);
+
+    expect(naDecisao.length).toBe(esperadoDecisao);
+    expect(naDivida.length).toBe(doConfig.length - esperadoDecisao);
     expect(naDivida.filter(t => naDecisao.includes(t))).toEqual([]);
 
     // E nada se perdeu no caminho: os dois blocos somados são todos os itens da tela.
-    expect(naDivida.length + naDecisao.length).toBe(
-      DEBITOS_CONHECIDOS.filter(d => d.tela === 'fiscal_config').length
-    );
+    expect(naDivida.length + naDecisao.length).toBe(doConfig.length);
   });
 
   it('UC-FDFE-06 · só entra item cujo bullet [BACKLOG] diz `decisão [W]` — nada inventado', async () => {
