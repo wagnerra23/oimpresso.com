@@ -78,7 +78,9 @@ final class SpedReferenciaArquivoService
      *     bytes: int|null,
      *     linhas: int|null,
      *     sha256: string|null,
-     *     blocos: array<int, array{id: string, nome: string, linhas: int, registros: array<int, string>}>
+     *     emitente: string|null,
+     *     blocos: array<int, array{id: string, nome: string, linhas: int, registros: array<int, string>}>,
+     *     amostra: array<int, array{reg: string, linha: string}>
      * }
      */
     public function referencia(): array
@@ -103,7 +105,9 @@ final class SpedReferenciaArquivoService
      *     bytes: int|null,
      *     linhas: int|null,
      *     sha256: string|null,
-     *     blocos: array<int, array{id: string, nome: string, linhas: int, registros: array<int, string>}>
+     *     emitente: string|null,
+     *     blocos: array<int, array{id: string, nome: string, linhas: int, registros: array<int, string>}>,
+     *     amostra: array<int, array{reg: string, linha: string}>
      * }
      */
     public function referenciaDe(string $caminho, string $origem): array
@@ -115,7 +119,9 @@ final class SpedReferenciaArquivoService
                 'bytes' => null,
                 'linhas' => null,
                 'sha256' => null,
+                'emitente' => null,
                 'blocos' => [],
+                'amostra' => [],
             ];
         }
 
@@ -127,7 +133,9 @@ final class SpedReferenciaArquivoService
             'bytes' => strlen($conteudo),
             'linhas' => count($this->linhas($conteudo)),
             'sha256' => hash('sha256', $conteudo),
+            'emitente' => $this->emitente($conteudo),
             'blocos' => $this->blocos($conteudo),
+            'amostra' => $this->amostra($conteudo),
         ];
     }
 
@@ -218,6 +226,68 @@ final class SpedReferenciaArquivoService
             explode("\r\n", $conteudo),
             static fn (string $linha): bool => $linha !== '',
         ));
+    }
+
+    /**
+     * Nome do emitente declarado no registro `0000` (campo 6 do layout).
+     *
+     * Existe por uma razão só: a tela precisa DIZER de quem é o arquivo que está
+     * mostrando. No golden esse campo é `CI TENANT 98 (FICTICIO)` — quem lê a
+     * amostra vê, na própria primeira linha, que ela não é a competência dele.
+     * Extrair em vez de escrever "fictício" à mão mantém isso verdadeiro caso o
+     * golden seja regerado a partir de outro tenant.
+     */
+    private function emitente(string $conteudo): ?string
+    {
+        foreach ($this->linhas($conteudo) as $linha) {
+            $campos = explode('|', $linha);
+
+            if (($campos[1] ?? '') === '0000') {
+                // |0000|COD_VER|COD_FIN|DT_INI|DT_FIN|NOME|… → NOME é o 6º campo.
+                $nome = trim($campos[6] ?? '');
+
+                return $nome === '' ? null : $nome;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Uma linha por REGISTRO DISTINTO, na ordem em que o arquivo as emite.
+     *
+     * POR QUE "a primeira de cada", e não "as N primeiras"
+     * ---------------------------------------------------
+     * A pergunta que a amostra responde é *"como é a linha de cada registro?"*.
+     * As 12 primeiras linhas do arquivo só mostram o Bloco 0 — o operador nunca
+     * veria um `C170` ou um `E110`. Já a primeira ocorrência de cada REG cobre os
+     * 5 blocos com uma linha cada, que é exatamente o que o protótipo do Cowork
+     * desenha (ele lista 14 linhas escolhidas a dedo, uma por registro).
+     *
+     * ⚠️ São linhas de um arquivo de REFERÊNCIA — nunca da competência do
+     * operador. O `emitente()` acima é o que permite à tela dizer isso com o
+     * nome que está no próprio arquivo.
+     *
+     * @return array<int, array{reg: string, linha: string}>
+     */
+    private function amostra(string $conteudo): array
+    {
+        $vistos = [];
+        $saida = [];
+
+        foreach ($this->linhas($conteudo) as $linha) {
+            $campos = explode('|', $linha);
+            $reg = $campos[1] ?? '';
+
+            if ($reg === '' || isset($vistos[$reg])) {
+                continue;
+            }
+
+            $vistos[$reg] = true;
+            $saida[] = ['reg' => $reg, 'linha' => $linha];
+        }
+
+        return $saida;
     }
 
     /**

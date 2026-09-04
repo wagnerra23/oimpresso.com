@@ -57,7 +57,11 @@ interface ReferenciaArquivo {
   bytes: number | null;
   linhas: number | null;
   sha256: string | null;
+  /** Nome no registro `0000` do arquivo de referência — o que prova de quem ele é. */
+  emitente: string | null;
   blocos: BlocoArquivo[];
+  /** Uma linha por registro distinto, na ordem do arquivo. */
+  amostra: Array<{ reg: string; linha: string }>;
 }
 
 /** O que foi provado FORA daqui — cada item derivado do disco, não afirmado. */
@@ -456,6 +460,51 @@ export default function Sped({
             estado de validação. Foi por isso que o cartão de validação não pôde
             copiar a copy do protótipo: ele diz "golden file: não existe", e o
             golden nasceu em 2026-09-03 (PR #6708), depois do charter. */}
+        {/* Goal 3 do charter do Cowork — decisão [W] 2026-09-04.
+            O protótipo encena a prévia com linhas fixas, e o charter dele declara
+            Non-Goal "não gerar o arquivo de verdade". Em produção, encenar seria
+            FABRICAR. A saída honesta é mostrar linhas de um arquivo REAL que
+            comprovadamente não é do operador: o `0000` do golden se identifica
+            como fictício no próprio conteúdo, e a tela repete isso com o nome
+            que leu de lá — não com um rótulo escrito à mão. */}
+        {referenciaArquivo.disponivel && referenciaArquivo.amostra.length > 0 && (
+          <Card className="mt-4" data-contract="previa-txt">
+            <CardHeader>
+              <CardTitle>Prévia do layout — arquivo de referência</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Stack gap={3}>
+                <Alert role="region" aria-label="Procedência da prévia">
+                  <XCircle size={16} />
+                  <AlertTitle>Não é a sua competência</AlertTitle>
+                  <AlertDescription>
+                    Estas linhas vêm de <code className="fx-mono">{referenciaArquivo.origem}</code>
+                    {referenciaArquivo.emitente ? (
+                      <>
+                        , cujo registro <span className="fx-mono">0000</span> declara o emitente{' '}
+                        <b>{referenciaArquivo.emitente}</b>
+                      </>
+                    ) : null}
+                    . Servem para conferir o <b>formato</b> de cada registro antes de gerar — o
+                    arquivo da sua competência só existe depois de gerado, e nunca é exibido aqui.
+                  </AlertDescription>
+                </Alert>
+
+                <pre className="fx-mono overflow-x-auto whitespace-pre text-[11px] leading-relaxed">
+                  {referenciaArquivo.amostra.map((a) => a.linha).join('\n')}
+                </pre>
+
+                <small className="text-muted-foreground">
+                  Uma linha por registro distinto — {referenciaArquivo.amostra.length} registros das{' '}
+                  {referenciaArquivo.linhas} linhas do arquivo de referência. Não é o arquivo
+                  encurtado: é a primeira ocorrência de cada registro, na ordem em que o layout as
+                  emite.
+                </small>
+              </Stack>
+            </CardContent>
+          </Card>
+        )}
+
         <Grid fit="md" gap={3} className="mt-4">
           <Card data-contract="blocos-arquivo">
             <CardHeader>
@@ -654,7 +703,8 @@ export default function Sped({
                       Prévia do conteúdo indisponível nesta versão — o conteúdo do arquivo só é
                       conhecido depois de gerado. O que já está definido pelo layout:
                       EFD-ICMS/IPI CONFAZ v3.1.1, perfil A, registro de abertura 0000 com
-                      COD_VER 018 e COD_FIN 0 (original).
+                      COD_VER 018 e COD_FIN 0 (original). Para conferir o <b>formato</b> de cada
+                      registro, a página tem a prévia do arquivo de referência.
                     </p>
                   ) : (
                     <>

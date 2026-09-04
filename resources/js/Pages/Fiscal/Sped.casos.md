@@ -247,6 +247,31 @@ escolheu esta forma em 2026-09-04.
   é falso e o motivo cita "por você nesta sessão" + "um clique"; para não-superadmin o motivo
   continua o institucional; e a rota devolve 403 para quem não é superadmin.
 
+## UC-FSF1-04 — A prévia é de um arquivo de REFERÊNCIA, e a tela diz isso
+Status: 🧪 (`SpedOnda10Test` — 4 casos, incluindo o bite-test. Medido no CT 100 em 2026-09-04: o arquivo foi de **11 para 15 passed (81 assertions)**)
+Dado que o operador quer conferir o formato antes de gerar · Quando abre a prévia · Então lê linhas
+`|REG|…` **reais**, tiradas do arquivo de referência, com a tela declarando de quem ele é — o nome
+vem do registro `0000` do próprio arquivo (`CI TENANT 98 (FICTICIO)`), não de um rótulo escrito à
+mão que viraria mentira se o golden fosse regerado de outro tenant.
+
+⚠️ **Duas coisas convivem sem se confundir, e essa é a regra.** `previaTxt` — a prévia do arquivo
+**do operador** — continua `null`, com a ausência declarada: gerar o arquivo só pra pré-visualizar
+contornaria a trava fail-secure. O que a página mostra é **outro arquivo**, de referência, e a copy
+"Não é a sua competência" está travada no `contrato-de-tela` justamente para que uma edição futura
+não apague a distinção.
+
+**A amostra é uma linha por registro DISTINTO, não as N primeiras.** As 12 primeiras linhas do
+arquivo cobrem só o Bloco 0 — o operador nunca veria um `C170` ou um `E110`. A primeira ocorrência
+de cada registro cobre os 5 blocos, que é o que o protótipo desenha à mão.
+
+- **Decisão [W] 2026-09-04.** O protótipo *encena* a prévia (Non-Goal do charter do Cowork: "não
+  gerar o arquivo de verdade — a ação é encenada"). Em produção, encenar seria **fabricar**, o que
+  as leis da onda proíbem. Levei as saídas honestas a [W] com a medição, e ele escolheu esta.
+- **Pronto quando:** nenhum registro se repete na amostra; os 5 blocos aparecem; toda linha começa
+  com `|<reg>|` de verdade; a amostra é **menor** que o arquivo (se virar o arquivo inteiro, deixa
+  de ser amostra); o emitente sai do `0000`; e sem arquivo de referência a seção **some** em vez de
+  inventar linhas (bite-test — um serviço com linhas escritas no código passaria nos outros três).
+
 ## UC-FSF1-06 — Os blocos do arquivo são medidos, não escritos
 Status: 🧪 (`SpedOnda10Test` — 4 casos, incluindo o bite-test)
 Dado o arquivo de referência EFD-ICMS/IPI · Quando [E] quer saber o que vai dentro de cada bloco ·
