@@ -29,6 +29,7 @@ import { chipCount, chipProps } from './_lib/chip-filtro';
 import {
   brl,
   formatDoc,
+  juntarInfo,
   prazoCancel,
   sefazPill,
   truncKey,
@@ -135,8 +136,13 @@ export default function Nfe({ filters: initialFilters, counts, sefazCodes, rows 
         cheats={[
           { keys: ['J', 'K'], label: 'navegar' },
           { keys: ['⏎'],      label: 'abrir' },
-          { keys: ['R'],      label: 'reconsultar SEFAZ (em breve)' },
-          { keys: ['X'],      label: 'cancelar (em breve)' },
+          // `R` (reconsultar SEFAZ) e `X` (cancelar) foram removidos em 2026-09-04: estavam
+          // anunciados aqui como "(em breve)" e não existe handler para nenhuma das duas — o
+          // `keydown` desta tela trata só j/k/setas/Enter. O rótulo era honesto, mas a barra de
+          // atalhos é onde o operador APRENDE as teclas: duas mortas ali ensinam errado, e ele
+          // aperta e conclui que a tela travou. As duas AÇÕES existem e seguem intactas no
+          // drawer (US-FISCAL-012/014). Reatalhar é decisão de produto: `X` abre um fluxo que
+          // exige motivo de 15–255 chars, então não é uma tecla, é uma porta.
         ]}
         actions={
           <>
@@ -311,7 +317,7 @@ export default function Nfe({ filters: initialFilters, counts, sefazCodes, rows 
                             </td>
                             <td>
                               <div className="fx-cell-key">{truncKey(n.key)}</div>
-                              <small>{n.dest} · {formatDoc(n.cnpj, n.cpf)}</small>
+                              <small>{juntarInfo(n.dest, formatDoc(n.cnpj, n.cpf))}</small>
                             </td>
                             <td>
                               <span className={`fx-sefaz ${sefaz.tone}`} title={sefaz.hint}>

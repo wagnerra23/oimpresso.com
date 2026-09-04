@@ -131,6 +131,31 @@ Receber a fonte não altera o veredito de aplicação: ele é derivado pelo Desi
 
 ---
 
+## Reconciliação factual — 2026-09-04 (a lista não promete o que não tem)
+
+**Só FATO. Mission, Goals, Non-Goals e Anti-hooks intocados** — intenção é de [W].
+
+Dois achados do screenshot de produção que [W] mandou, ambos da mesma família (a tela ocupando
+espaço com informação inexistente). Contrato por UC em [`Nfe.casos.md`](Nfe.casos.md) → `UC-FNFE-12`.
+
+| O que a tela fazia | O que passou a fazer | Por quê |
+|---|---|---|
+| célula do destinatário renderizava **`— · —`** | mostra `—`, ou só a parte que existe | o `dest: '—'` do §Riscos **R2** e o `'—'` do `formatDoc` são fallbacks corretos; colá-los com `·` produzia um terceiro, errado |
+| rodapé anunciava `R` e `X` como `(em breve)` | as duas saíram da barra | zero handler para ambas — o `keydown` desta tela trata só `j`/`k`/setas/`Enter` |
+
+**O §R2 continua válido e não foi revogado** — o fallback `"—"` para `metadata->dest_name` vazio
+segue sendo o comportamento certo. O que mudou é só a composição de dois fallbacks numa linha só.
+
+**Sobre as teclas: nenhuma capacidade foi removida.** As ações "reconsultar SEFAZ" e "cancelar"
+existem e seguem no drawer (`US-FISCAL-012`/`US-FISCAL-014`, botões habilitados desde a
+reconciliação de 2026-07-27). Saiu o **anúncio da tecla**, não a função. Reatalhar é decisão de
+produto de [W], não conserto: o `X` abre um fluxo que exige motivo de 15–255 chars — não é uma
+tecla, é uma porta. Se [W] quiser o atalho, ele volta com handler e caso próprio.
+
+O §UX targets não menciona a barra de atalhos, então nada ali precisou mudar.
+
+---
+
 ## Reconciliação factual — 2026-09-04 (pílula SEFAZ)
 
 **Só FATO foi corrigido. Mission, Goals, Non-Goals, Anti-hooks seguem intocados** — intenção é de [W].
