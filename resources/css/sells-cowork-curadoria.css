@@ -310,3 +310,25 @@
 }
 .sells-cowork-curadoria .vd-link-ref:hover,
 .sells-cowork-ia-panel .vd-link-ref:hover { background: var(--border-2); }
+
+/* ─────────────────────── TEMA ESCURO (paleta --vd-cur-*) ───────────────────────
+ * A paleta desta tela nasceu só-light: `-soft` em L≈0.96 (fundo quase branco) e
+ * `-text` em L≈0.32 (texto escuro) — no dark viravam fundo claro e texto ilegível.
+ *
+ * DE ONDE VÊM OS VALORES. Do padrão do `.cockpit[data-theme="dark"]` do DS,
+ * transcrito no bloco dark do `fiscal-cockpit.css` (PR #6712): `-soft` escuro em
+ * L≈0.26-0.27 / C≈0.06-0.07, texto claro em L≈0.85. Hue preservado em cada token.
+ *
+ * OS DOIS SELETORES. `useTheme.ts` (ADR 0281) faz `classList.add('dark')` no
+ * <html> E seta `data-theme` no `.cockpit` — o par cobre os dois caminhos. Mesmo
+ * idioma do #6712.
+ * ───────────────────────────────────────────────────────────────────────────── */
+.cockpit[data-theme="dark"] .sells-cowork-curadoria,
+.dark .sells-cowork-curadoria {
+  --vd-cur-blue:        oklch(0.72 0.14 240);
+  --vd-cur-blue-soft:   oklch(0.27 0.06 240);
+  --vd-cur-blue-border: oklch(0.38 0.07 240);
+  --vd-cur-blue-text:   oklch(0.85 0.12 240);
+  --vd-cur-audit:       oklch(0.70 0.02 250);
+  --vd-cur-audit-soft:  oklch(0.26 0.008 250);
+}
