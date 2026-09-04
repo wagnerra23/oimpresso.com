@@ -21,10 +21,6 @@ export interface DebitoConhecido {
 }
 
 export const DEBITOS_CONHECIDOS: readonly DebitoConhecido[] = [
-  { tela: "fiscal", tom: "warning", decisao: true, ancora: "Cockpit.casos.md",
-    rotulo: "sem teste",
-    titulo: "As 4 superfícies de demonstração que SOBRARAM",
-    texto: "Dado que a lista unificada e os contadores das visões salvas passaram a servir dado real em 2026-09-02 (ver UC-FCKP-07), restam quatro inventadas no mesmo controller: eventos do cabeçalho (mockEventos), situação da SEFAZ (mockSefazStatus), pacote da contabilidade (mockContabilData) e resumo de baixas incobráveis (mockWriteOffSummary) · Quando a contadora lê a tela · Então ela precisa conseguir dizer o que é leitura real e o que é demonstração. Âncora: CU-FISC-16 do SDD §6.5. Continua sem id de propósito — a decisão [W] de 09-02 cobriu as NOTAS; para estas quatro ainda não há contrato dizendo qual é a saída (fonte real × esconder atrás de flag × declarar Non-Goal), e UC órfão bloqueia o merge de quem for atendê-lo." },
   { tela: "fiscal", tom: "warning", decisao: false, ancora: "Cockpit.casos.md",
     rotulo: "sem teste",
     titulo: "A série de 14 dias sai de uma consulta agrupada, sem repetição por dia",
