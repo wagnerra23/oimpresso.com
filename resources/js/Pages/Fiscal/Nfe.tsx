@@ -32,6 +32,7 @@ import {
   formatDoc,
   juntarInfo,
   prazoCancel,
+  sefazPill,
   truncKey,
   type SefazCodesMap,
 } from './_lib/fiscal-helpers';
@@ -301,7 +302,7 @@ export default function Nfe({ filters: initialFilters, counts, sefazCodes, rows 
                     </thead>
                     <tbody>
                       {dataRows.map((n, idx) => {
-                        const sefaz = sefazCodes[n.cstat] ?? { tone: 'warn', label: 'Status', hint: '' };
+                        const sefaz = sefazPill(n, sefazCodes);
                         const cancel = prazoCancel(n);
                         const isFocus = idx === cursor;
                         return (

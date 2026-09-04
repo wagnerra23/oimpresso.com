@@ -126,3 +126,7 @@ scripts/design-sync/.push-bundle/
 # Fica FORA do git de proposito: e insumo volatil de transporte, nao artefato versionado —
 # o que o repo guarda e o ESPELHO (prototipo-ui/cowork/) e o manifesto do bundle.
 /oimpresso-erp-conunica-o-visual/
+
+# Downloads de artifact do visual-regression (gh run download) — nunca versionar.
+# 2026-09-04: 90 arquivos / 16,7 MB entraram por um `git add -A` no PR #6726.
+visreg-art/
