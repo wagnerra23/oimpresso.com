@@ -149,6 +149,37 @@ export function parseBullet(linha) {
   };
 }
 
+/**
+ * Bullets do markdown, com as CONTINUAÇÕES já unidas à primeira linha.
+ *
+ * POR QUE EXISTE (bug medido em 2026-09-04, e ele chegou a produzir arquivo): a primeira
+ * versão iterava linha crua, e todo bullet quebrado em várias linhas perdia tudo depois da
+ * primeira. O `Config.casos.md` ganhou dois assim, e o `.ts` saiu com
+ * `texto: "hoje as"` — frase cortada no meio, que teria ido para a tela como se fosse o
+ * texto do débito. Nenhum gate pegaria: o `--check` compara o gerado com ele mesmo, e o
+ * teste de render só confere que o item existe.
+ *
+ * Regra: linha que abre com `- ` inicia bullet; linha INDENTADA que a segue é continuação
+ * (junta com espaço); linha vazia, heading ou linha não-indentada fecha o bullet.
+ */
+export function bulletsDe(conteudo) {
+  const out = [];
+  let atual = null;
+  for (const linha of String(conteudo).split(/\r?\n/)) {
+    if (linha.startsWith('- ')) {
+      if (atual !== null) out.push(atual);
+      atual = linha;
+    } else if (atual !== null && /^\s+\S/.test(linha)) {
+      atual += ` ${linha.trim()}`;
+    } else if (atual !== null) {
+      out.push(atual);
+      atual = null;
+    }
+  }
+  if (atual !== null) out.push(atual);
+  return out;
+}
+
 export function coletar(lerArquivo = (p) => readFileSync(p, 'utf8'), existe = existsSync) {
   const out = [];
   for (const [tela, rota] of Object.entries(ROTA_POR_TELA)) {
@@ -160,8 +191,8 @@ export function coletar(lerArquivo = (p) => readFileSync(p, 'utf8'), existe = ex
     // É a dívida que o `casos-ref-lint` (check C1) já conta no projeto: a âncora durável é o
     // símbolo mais o grep que o re-localiza. Quem re-localiza aqui é o próprio `coletar()`,
     // e o teste da tela o chama para provar que todo item exibido ainda é um bullet vivo.
-    for (const linha of lerArquivo(caminho).split(/\r?\n/)) {
-      const b = parseBullet(linha);
+    for (const bullet of bulletsDe(lerArquivo(caminho))) {
+      const b = parseBullet(bullet);
       if (b) out.push({ ...b, tela: rota, ancora: `${tela}.casos.md` });
     }
   }
@@ -235,12 +266,41 @@ function selftest() {
       { rotulo: 'source-grep', tom: 'warning' },
     ],
     [
+      'BUG 2026-09-04 · bullet MULTI-LINHA não trunca o texto',
+      bulletsDe(
+        '- **[BACKLOG · sem campo · decisão [W]] Cadastrar o e-mail do contador** — a linha existe no card\n  (`UC-FCFG-05`) declarando a ausência. Dar valor a ela exige coluna nova\n  em `nfe_business_configs`.\n'
+      )[0],
+      {
+        titulo: 'Cadastrar o e-mail do contador',
+        texto:
+          'a linha existe no card (UC-FCFG-05) declarando a ausência. Dar valor a ela exige coluna nova em nfe_business_configs.',
+      },
+    ],
+    [
       'snake_case sobrevive à limpeza',
       '- **[BACKLOG · sem teste] Y** — a trava `sped_simples_only_lock` está ativa.',
       { texto: 'a trava sped_simples_only_lock está ativa.' },
     ],
   ];
+  // Contrato do `bulletsDe` — o agrupador que faltava até 2026-09-04.
+  const md =
+    '- **[BACKLOG · sem teste] A** — um\n  dois\n- **[BACKLOG · sem teste] B** — tres\n\ntexto solto\n';
+  const bs = bulletsDe(md);
+  const estruturais = [
+    ['bulletsDe separa 2 bullets seguidos', bs.length === 2],
+    ['bulletsDe une a continuacao indentada', bs[0] === '- **[BACKLOG · sem teste] A** — um dois'],
+    ['bulletsDe nao arrasta prosa apos linha vazia', !String(bs[1]).includes('texto solto')],
+  ];
+
   let falhas = 0;
+  for (const [nome, ok] of estruturais) {
+    if (!ok) {
+      falhas++;
+      console.error(`  x ${nome}`);
+    } else {
+      console.log(`  ok ${nome}`);
+    }
+  }
   for (const [nome, entrada, esperado] of casos) {
     const got = parseBullet(entrada);
     const ok =
@@ -254,7 +314,12 @@ function selftest() {
       console.log(`  ok ${nome}`);
     }
   }
-  console.log(falhas === 0 ? `\nselftest: ${casos.length}/${casos.length} OK` : `\nselftest: ${falhas} FALHA(S)`);
+  // O total soma os DOIS blocos. Antes contava só `casos` e omitia os estruturais — número
+  // que não bate com o que foi de fato medido é a classe de erro que este projeto mais caça.
+  const total = casos.length + estruturais.length;
+  console.log(
+    falhas === 0 ? `\nselftest: ${total}/${total} OK` : `\nselftest: ${falhas} FALHA(S) de ${total}`
+  );
   return falhas === 0 ? 0 : 1;
 }
 
