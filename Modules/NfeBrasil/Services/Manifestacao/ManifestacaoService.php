@@ -12,6 +12,7 @@ use InvalidArgumentException;
 use Modules\NfeBrasil\Models\NfeDfeEvento;
 use Modules\NfeBrasil\Models\NfeDfeRecebido;
 use Modules\NfeBrasil\Services\CertificadoService;
+use Modules\NfeBrasil\Services\Concerns\ResolveUfEmitente;
 use NFePHP\Common\Certificate;
 use NFePHP\NFe\Common\Standardize;
 use NFePHP\NFe\Tools;
@@ -36,6 +37,8 @@ use RuntimeException;
  */
 class ManifestacaoService
 {
+    use ResolveUfEmitente;
+
     /** Justificativa mínima exigida pela NT 2014.002 pra eventos com xJust. */
     public const JUSTIFICATIVA_MIN_CHARS = 15;
 
@@ -137,15 +140,24 @@ class ManifestacaoService
 
         try {
             $tools = $this->buildTools($businessId);
+            // Conversao na fronteira com a lib. `Tools::sefazManifesta` declara
+            // `(string $chave, int $tpEvento, string $xJust = '', int $nSeqEvento = 1)`, e o
+            // dominio aqui carrega o tipo do BANCO: `NfeDfeEvento::TIPO_*` sao STRINGS
+            // ('210210'…) porque a coluna e varchar. Passar isso cru rendia `TypeError` —
+            // invisivel ate 2026-09-04 porque o `buildConfig` morria antes, na coluna
+            // `business.state` que nao existe.
+            // `$justificativa` NAO precisa de coalescencia: aqui dentro ela ja e `string`
+            // (default ''), e quem e nullable e o parametro do `AcoesController`, uma camada
+            // acima — o PHPStan pegou essa confusao de camada na 1a versao deste bloco.
             $responseXml = $tools->sefazManifesta(
-                $dfe->chave_44,
-                $tipo,
+                (string) $dfe->chave_44,
+                (int) $tipo,
                 $justificativa,
-                $nSeq,
+                (int) $nSeq,
             );
 
             $parsed = $this->parseResponse($responseXml);
-            $cstat = (string) ($parsed['cStat'] ?? '');
+            $cstat = $this->cstatDoEvento($parsed);
             $autorizado = in_array($cstat, self::CSTAT_AUTORIZADOS, true);
 
             $evento->update([
@@ -243,14 +255,18 @@ class ManifestacaoService
 
     /**
      * Config mínima pra Tools sped-nfe consulta DistribuicaoDFe e manifestação.
-     * UF default 35 (SP) — manifestação é nacional, mas Tools exige cUF.
+     * UF default SP — manifestação é nacional, mas o Tools exige um cUF.
+     *
+     * A UF vem de `business_locations`, via `resolverUfEmitente()`. Até 2026-09-04 esta query
+     * pedia `business.state`, coluna que não existe: TODA manifestação morria aqui com
+     * `SQLSTATE[42S22]`. Ver o docblock do trait.
      */
     private function buildConfig(int $businessId): array
     {
-        $row = DB::table('business')->select(['name', 'tax_number_1', 'state'])->where('id', $businessId)->first();
+        $row = DB::table('business')->select(['name', 'tax_number_1'])->where('id', $businessId)->first();
         $cnpj = $row->tax_number_1 ?? null;
         $razaoSocial = $row->name ?? '';
-        $siglaUf = strtoupper((string) ($row->state ?? 'SP'));
+        $siglaUf = $this->resolverUfEmitente($businessId);
 
         return [
             'atualizacao' => date('Y-m-d H:i:s'),
@@ -267,6 +283,30 @@ class ManifestacaoService
     private function ambienteAtual(int $businessId): int
     {
         return (int) (config('nfebrasil.ambiente', 2)); // 2=homologação default
+    }
+
+    /**
+     * cStat do EVENTO — nao o do lote.
+     *
+     * O `retEnvEvento` da SEFAZ carrega DOIS cStat: um na raiz, que fala do LOTE ("128 — lote
+     * processado"), e outro dentro de `retEvento.infEvento`, que e o veredito do EVENTO em si
+     * ("135 — evento registrado e vinculado a NF-e"). Sao independentes: o lote pode ser
+     * processado com o evento rejeitado.
+     *
+     * Ate 2026-09-04 este metodo nao existia e o codigo lia `$parsed['cStat']`, que e o da
+     * RAIZ. Como `CSTAT_AUTORIZADOS` sao 135/136, toda manifestacao BEM-SUCEDIDA era gravada
+     * como `rejeitado`. Medido com o `Standardize` real: raiz='128', evento='135'.
+     *
+     * O fallback pra raiz cobre a resposta de erro, em que a SEFAZ recusa o lote inteiro e nao
+     * devolve `retEvento` nenhum — ali o cStat da raiz e, de fato, o unico veredito que existe.
+     *
+     * @param array<string, mixed> $parsed
+     */
+    private function cstatDoEvento(array $parsed): string
+    {
+        $doEvento = $parsed['retEvento']['infEvento']['cStat'] ?? null;
+
+        return (string) ($doEvento ?? $parsed['cStat'] ?? '');
     }
 
     private function parseResponse(string $xml): array
