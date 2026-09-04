@@ -105,8 +105,9 @@ describe('UC-FCKP-12 · o ribbon desenha as séries que o controller já mandava
     render(<Cockpit {...cena} />);
     const svg = sparks()[0]!.closest('svg')!;
     expect(svg.getAttribute('aria-hidden')).toBe('true');
-    // `currentColor` faz a série herdar a tinta do KPI — a de "Rejeitadas" sai em
-    // alerta sem nenhum mapa de cor no componente. Um literal aqui quebraria isso.
+    // `currentColor` mantém a decisão de cor no CSS, não no TSX — é o que o protótipo faz.
+    // (Ele NÃO herda a tinta do KPI: o svg é irmão do `<b>`/`<em>` e o `.fx-ribbon-item` não
+    // define `color`. A redação anterior deste comentário afirmava o contrário e estava errada.)
     expect(sparks()[0]!.getAttribute('stroke')).toBe('currentColor');
   });
 

@@ -115,7 +115,7 @@ e não foi tocado. Contrato executável em `Cockpit.casos.md` (**UC-FCKP-12**), 
 | Posição | último filho do `.fx-ribbon-item`, depois do `<em>` — inclusive quando o `<em>` é condicional (Rejeitadas) |
 | Geometria | `viewBox="0 0 56 15"`, base em `y=14`, amplitude `12`, `strokeWidth="1.2"`, um `<polyline>` — sem área, sem gradiente |
 | Escala | `v / max` com piso 1 no máximo — magnitude com base em zero, não variação relativa |
-| Cor | `currentColor`, **nunca** literal — a série herda a tinta do KPI, então "Rejeitadas" sai em alerta sem mapa de cor no componente |
+| Cor | `currentColor`, **nunca** literal — a decisão de cor fica no CSS, não no TSX. ⚠️ Corrigido 2026-09-04: a redação anterior dizia que a série "herda a tinta do KPI"; **não herda** — o `<svg>` é irmão do `<b>`/`<em>` e o `.fx-ribbon-item` não define `color`, então as três saem em `var(--fx-text)`. **Gap declarado:** falta portar `.fx-ri svg { margin-top:2px; color: color-mix(in oklch, var(--accent) 65%, var(--text-mute)) }` (`fiscal-page.css:42`); `--accent` não existe no bundle e escolher o substituto é decisão [W] |
 | a11y | `aria-hidden="true"` — é redundância visual: o número ao lado já é o dado. Sem hover, sem tooltip, sem foco |
 | Série de 1 ponto | **não desenha** — `length - 1` zeraria o divisor e o React serializaria `points="NaN,NaN"` sem erro |
 | Série toda-zero | **desenha** na base — "nada aconteceu" é leitura honesta, e é o que o protótipo faz |

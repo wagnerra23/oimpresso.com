@@ -6,9 +6,20 @@
  * não é escolha de estilo — é o contrato de FORMA, e nele o protótipo é soberano
  * (ADR UI-0029): viewBox 56×15, base em y=14, amplitude 12, `strokeWidth` 1.2.
  *
- * `currentColor` é deliberado e carrega semântica: a série herda a cor do KPI que ela
- * acompanha, então a de "Rejeitadas" sai na tinta de alerta e a de "Autorizadas" na de
- * sucesso, sem nenhum mapa de cor aqui dentro.
+ * `currentColor` é o que o protótipo usa, e mantém a decisão de cor FORA deste componente —
+ * quem a define é o CSS, não o TSX.
+ *
+ * ⚠️ CORRIGIDO 2026-09-04, e a redação anterior fica registrada porque estava errada: eu havia
+ * escrito que a série "herda a cor do KPI, então Rejeitadas sai em alerta". **Não herda.** O
+ * `<svg>` é IRMÃO do `<b>` e do `<em>`, filho direto do `.fx-ribbon-item` — e esse seletor não
+ * define `color`. Medido na cascata de `resources/css/fiscal-cockpit.css`: quem define é
+ * `.fx-page { color: var(--fx-text) }` (`:39`), então as três séries saem na MESMA tinta, quase
+ * preta. O `.fx-ribbon-item em.up/.down` (`:832-833`) pinta o delta, nunca o svg.
+ *
+ * E falta uma regra: o protótipo tem `.fx-ri svg { margin-top:2px; color: color-mix(in oklch,
+ * var(--accent) 65%, var(--text-mute)) }` (`fiscal-page.css:42`), que dá ao svg um tom médio
+ * próprio. O bundle de produção não a porta, e `--accent` não existe nele. Portar envolve
+ * escolher token/cor — decisão [W] —, então está DECLARADO no PR, não resolvido aqui.
  *
  * `aria-hidden` porque o gráfico é REDUNDÂNCIA VISUAL: o número ao lado já é o dado, e a
  * série não acrescenta informação que um leitor de tela precise ouvir. Por isso também não
@@ -26,8 +37,8 @@
  * POR QUE NÃO O `Sparkline` VIZINHO (`Pages/RecurringBilling/_components/Sparkline.tsx`),
  * apontado pelo `reuse:check` e medido no mesmo dia — 3 divergências de contrato:
  *   1. forma: dois `<path>`, um deles área com gradiente 0.45→0 × `<polyline>` puro;
- *   2. cor: verde fixo `oklch(0.75 0.13 145)` × `currentColor` — o literal pintaria a
- *      série de "Rejeitadas" de verde, exatamente onde a tinta carrega o alerta;
+ *   2. cor: verde fixo `oklch(0.75 0.13 145)` × `currentColor` — o literal cravaria a cor
+ *      dentro do componente, justamente a decisão que o protótipo deixa no CSS;
  *   3. a11y: sem `aria-hidden` × com — e aqui o gráfico é redundância por contrato.
  *   Reconciliar exigiria flags novas num componente que serve tela de COBRANÇA — risco
  *   em caminho de dinheiro, sem ganho.
