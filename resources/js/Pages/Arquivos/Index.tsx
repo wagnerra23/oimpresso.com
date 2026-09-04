@@ -832,6 +832,8 @@ function Acervo({ acervo, politica, filtros }: { acervo?: Paginator<LinhaAcervo>
       data={acervo.data}
       pagination={acervo}
       endpoint="/arquivos"
+      // Copy da aba `{ key: 'acervo', label: 'Acervo' }` (Index.tsx:1355).
+      caption="Acervo de arquivos"
       filters={paraQuery(filtros)}
       searchPlaceholder="Buscar por nome, dono ou contexto…"
       initialSearch={filtros.q ?? ''}
@@ -872,6 +874,8 @@ function Trilha({ trilha, filtros }: { trilha?: TrilhaPayload; filtros: Filtros 
       data={trilha.eventos.data}
       pagination={trilha.eventos}
       endpoint="/arquivos"
+      // Copy da aba `{ key: 'trilha', label: 'Trilha' }` (Index.tsx:1358).
+      caption="Trilha de eventos"
       filters={paraQueryTrilha(filtros)}
       showSearch={false}
       rowKey={(t) => t.id}

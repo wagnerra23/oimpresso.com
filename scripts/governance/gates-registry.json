@@ -723,6 +723,13 @@
       "anchor": "sinal de custo: o UC-COB-03 afirmava \"trocar tab/chip/dropdown reflete na URL e a volta pela URL reproduz a visão\" — FALSO nas duas metades, numa tela de DINHEIRO. Metade 1 sem mecanismo (varredura contada 11/11 arquivos: zero router.get/history/URLSearchParams). Metade 2 invertida (lsGet vence a querystring), provado por execução + mutação. A tela tinha cobertura de execução ZERO quando isto nasceu: CobrancaControllerTest em .github/financeiro-pest-quarantine.list e CobrancaIndexTest (Browser) vermelho 6/6 no run 33762382505 sob continue-on-error. Contestação registrada no PR #6632; desfecho neste PR. ADR 0264 G-2.",
       "promote_by_razao": "nasce sem run nenhum — amostra zero. Promoção a required é flip [W] na branch protection (R10 / ADR 0275 §5), com o número de runs na mão."
     },
+    "datatable-nome-acessivel-gate.yml": {
+      "nome": "DataTable Nome Acessível — a tabela do DS não volta a ser anônima (caption sr-only + scope col)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "anchor": "PR #6767 — o <table> do shared/DataTable renderizava sem <caption> e sem aria-label em 8 pontos de render de 6 telas; duas delas (Arquivos/Index, Jana/Plataforma) põem 2 tabelas na mesma página, indistinguíveis por leitor de tela. MEDIDO em 2026-09-04 (axe-core 4.12.1, jsdom, 5 arranjos): axe NÃO tem regra que exija nome acessível em tabela — 0 violações em qualquer impacto, com e sem caption; logo nenhum piso do a11y-axe-gate defende isto, e o filtro daquele gate nem casa Components/shared/. Medido também que tests/js/backup-index.test.tsx não estava em lane nenhuma (UC-BKP-11 nasceria mudo — §5 2026-08-02). Custo da regressão: quem navega por tabela (NVDA T, lista do JAWS, rotor do VoiceOver) perde o nome e não distingue duas tabelas na mesma tela. DS/a11y é qualidade, não Tier-0 → advisory (ADR 0271/0314/0275).",
+      "promote_by": "2026-11-30"
+    },
     "backup-pest.yml": {
       "nome": "Backup · Pest (MySQL)",
       "classe": "gate",

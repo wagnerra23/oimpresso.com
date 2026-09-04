@@ -4,7 +4,7 @@ casos: Jana Plataforma · metas cross-business cruas · gate real jana.superadmi
 irmaos: Plataforma.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-plataforma.md (runbook) · prototipo-ui/contrato/jana-plataforma.contract.json (contrato visual)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-09-03"
+last_run: "2026-09-04"
 ---
 
 # Casos de uso — /ia/superadmin/metas (aba Plataforma da Jana)
@@ -70,3 +70,13 @@ Status: 🧪 (`PlataformaContratoTest`)
 ## Trilha do tempo
 - 2026-09-03 · UC-PLAT-03 (filhas fora do escopo — bug de produção achado na lane MySQL) + UC-PLAT-04 (sem agregação), vindos do #6627 sobre o trio do #6609.
 - 2026-09-02 · trio nascido junto (charter + casos + Pest + e2e stub + contrato). Refs: UI-0013 · ADR 0264 G-1/G-2.
+
+## Revalidação — 2026-09-04 (PR #6767)
+
+A tela mudou (`Plataforma.tsx` ganhou a prop `caption` nos dois `DataTable`), acordando o G-6.
+**Revalidado pelo CI:** lane `PHP / Pest (Jana · MySQL)`, run
+[33907005258](https://github.com/wagnerra23/oimpresso.com/actions/runs/33907005258) —
+`PASS Modules\Jana\Tests\Feature\PlataformaContratoTest` (allowlist `jana-pest.yml:196`).
+Risco real que isso cobre: o `UC-PLAT-02` compara **copy e ordem** lidas do `.tsx`, e as
+captions repetem literalmente "Metas da plataforma"/"Metas de clientes" — strings que o
+contrato já verifica. A ordem é medida pelos `data-contract`, que não foram tocados.

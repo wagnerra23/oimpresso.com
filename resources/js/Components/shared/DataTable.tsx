@@ -115,6 +115,31 @@ interface Props<T> {
   data: T[];
   pagination: PaginatorShape<T>;
   endpoint: string;
+  /**
+   * NOME ACESSÍVEL da tabela — vira `<caption class="sr-only">`. OBRIGATÓRIO.
+   *
+   * É obrigatório e não opcional-com-default de propósito. Um default genérico
+   * ("Tabela de dados") daria a MESMA string às 8 tabelas do repo, e duas telas
+   * (`Arquivos/Index` e `Jana/Plataforma`) renderizam DUAS tabelas na mesma página —
+   * quem navega por tabela (NVDA `T`, lista de tabelas do JAWS, rotor do VoiceOver)
+   * não teria como distingui-las. Exigir a prop faz o TypeScript cobrar um nome de
+   * cada consumidor novo, que é o único jeito de isso não apodrecer.
+   *
+   * `sr-only`, e não visível: caption visível mexeria no layout das 6 telas que já
+   * estão em produção, e o defeito é de NOME, não de rótulo na tela. O par
+   * `<caption class="sr-only">` já é o precedente da casa — ver
+   * `Pages/Auditoria/Detail.tsx:47` e `Pages/Home/Index.tsx:422`.
+   *
+   * MEDIÇÃO (axe-core 4.12.1 em jsdom, 2026-09-04) — por que isto NÃO foi pego por
+   * gate nenhum: axe **não tem regra** que exija nome acessível em tabela. Rodado
+   * nos 5 arranjos (sem nada · só `scope` · só `caption` · os dois · só `aria-label`),
+   * todos deram **0 violações em qualquer impacto**. Ou seja: subir o
+   * `assertNoAccessibilityIssues(level: 0)` do `UC-DASH-18` pra `level: 1` (+serious)
+   * — ou até pegar todos os impactos — **não pegaria isto**. O piso não está baixo:
+   * o axe é cego a esta classe. Por isso o teste que defende esta prop mede o
+   * **nome computado** (`getByRole('table', { name })`), nunca o axe.
+   */
+  caption: string;
   filters?: Record<string, string | number | null | undefined>;
   searchPlaceholder?: string;
   emptyMessage?: string;
@@ -166,6 +191,7 @@ export default function DataTable<T>({
   data,
   pagination,
   endpoint,
+  caption,
   filters = {},
   onRowClick,
   searchPlaceholder = 'Buscar...',
@@ -263,6 +289,9 @@ export default function DataTable<T>({
           className={`w-full text-sm${temLargura ? ' table-fixed' : ''}`}
           style={pisoDaTabela ? { minWidth: pisoDaTabela } : undefined}
         >
+          {/* PRIMEIRO filho do <table>, antes do <colgroup>: o HTML só admite <caption> nessa
+              posição, e fora dela o parser do navegador a reposiciona ou descarta. */}
+          <caption className="sr-only">{caption}</caption>
           {temLargura && (
             <colgroup>
               {larguras.map((w, i) => (
@@ -281,6 +310,20 @@ export default function DataTable<T>({
                   return (
                     <th
                       key={header.id}
+                      // `scope="col"` é EXPLICITAÇÃO, não conserto — e o registro importa pra
+                      // ninguém depois vender isto como a correção do nome acessível.
+                      // MEDIDO (axe-core 4.12.1 em jsdom, 2026-09-04): a regra
+                      // `th-has-data-cells` — que só passa quando o algoritmo de tabela
+                      // conseguiu associar o <th> às células de dados dele — PASSA tanto SEM
+                      // `scope` quanto COM. Controle negativo (<th> órfão, sem célula de dado
+                      // nenhuma) NÃO passa: volta `incomplete`. Logo o algoritmo automático do
+                      // HTML já associa cabeçalho↔coluna nesta tabela de UMA linha de <th>, e
+                      // `scope="col"` não cria associação que faltava. Fica porque é a técnica
+                      // WCAG H63, porque é o precedente da casa (`Pages/Home/Index.tsx:424-425`
+                      // usa `scope="col"`/`scope="row"` à mão) e porque blinda o dia em que
+                      // alguém puser uma 2ª linha de cabeçalho aqui — não porque muda o que o
+                      // leitor de tela anuncia hoje.
+                      scope="col"
                       // O alinhamento é da CÉLULA. Escrever `text-right` num <span> dentro
                       // dela move o texto e deixa o cabeçalho à esquerda — número à direita
                       // sob rótulo à esquerda foi exatamente o defeito reportado.

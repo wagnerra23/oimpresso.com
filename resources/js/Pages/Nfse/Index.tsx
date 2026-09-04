@@ -351,6 +351,8 @@ export default function NfseIndex({ notas, filters, flash }: Props) {
             data={notas.data}
             pagination={notas}
             endpoint="/nfse"
+            // Copy do PageHeader da própria tela (Index.tsx:274).
+            caption="Notas Fiscais de Serviço"
             filters={{ status, de, ate, q }}
             showSearch={false}
             rowKey={(row) => row.id}

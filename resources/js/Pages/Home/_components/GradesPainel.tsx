@@ -254,6 +254,10 @@ export default function GradesPainel({ abas, aba, grade, filtros }: Props) {
                 data={grade.data}
                 pagination={grade}
                 endpoint={window.location.pathname}
+                // O nome SEGUE a aba: a tabela troca de conteúdo sem trocar de DOM, e um
+                // nome fixo mentiria depois do 1º clique. `rotuloAtivo` é o label da aba
+                // ativa (L222) — a mesma copy que o `emptyMessage` abaixo ja usa.
+                caption={rotuloAtivo ? `Grade — ${rotuloAtivo}` : 'Grade'}
                 filters={{ ...filtros, aba }}
                 showSearch={false}
                 rowKey={(row) => row.id}
