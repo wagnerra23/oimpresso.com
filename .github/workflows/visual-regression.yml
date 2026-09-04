@@ -91,10 +91,20 @@ jobs:
       #
       # O QUE FOI MEDIDO NO DIA (não é impressão): as 3 telas que travaram o #6753 — Jana
       # 1.6746%, Fiscal/Config 0.1812%, Fiscal/Cockpit 0.1200% — tinham 5 PRs abertos mexendo
-      # justamente nelas (#6738 Config, #6736 e #6732 Cockpit, #6425 e #6427 Jana). A Jana
-      # repetia o ratio IDÊNTICO de 3 runs anteriores (#6742, #6745), prova de que a
-      # divergência vinha da main e não do PR bloqueado. Regenerar baseline ali carimbaria
-      # foto que morre em horas; exigir aprovação, idem.
+      # justamente nelas (#6738 Config, #6736 e #6732 Cockpit, #6425 e #6427 Jana). Regenerar
+      # baseline ali carimbaria foto que morre em horas; exigir aprovação, idem.
+      #
+      # ⚠️ EMENDA 2026-09-04 (revisão adversarial, mesmo dia): a redação original seguia
+      # "a Jana repetia o ratio IDÊNTICO de #6742/#6745, prova de que a divergência vinha da
+      # main". O ratio idêntico prova herança **só para a Jana**. `Fiscal/Config` e
+      # `Fiscal/Cockpit` NÃO estavam cinzas naqueles runs — em #6745 o Config estava VERDE,
+      # 1h20 antes. O recibo que sustenta as outras duas é outro, e é mais incômodo: entre
+      # 12:19Z e 13:39Z entraram no main 3 PRs de Fiscal tocando exatamente essas telas
+      # (#6719, #6733 Cockpit.tsx · #6725 Config.tsx), TODOS com 0 `.snap` no diff, e DOIS
+      # deles (#6733, #6725) mergearam com `visual-regression` em `conclusion: failure` —
+      # o job é advisory. É a §5 2026-08-24 inteira: a divergência entra pelo advisory, não
+      # deixa rastro na baseline, e reaparece como vermelho de terceiro. Desligar a banda do
+      # meio remove o ALARME; o DÉBITO segue na baseline e volta no próximo PR de escopo global.
       #
       # O QUE **NÃO** MUDOU — e é o que sustenta a defesa:
       #  · REGRESSÃO CLARA (> τ_alto) segue reprovando. O double-threshold continua com as
@@ -1200,7 +1210,13 @@ jobs:
           if-no-files-found: ignore
 
       - name: Veredito advisory do pixel-diff (visível no log · double-threshold L7)
-        if: steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        # `always() &&` porque o step do pixel-diff é ENFORCING (não tem continue-on-error):
+        # quando ele falha, o job aborta e ESTE veredito saía `skipped` — justamente no caso
+        # que ele existe pra explicar. Medido 2026-09-04 no run 33886331185: step 25
+        # `Pixel-diff … (ENFORCING)` = failure, step 46 `Veredito advisory` = skipped. Os 16
+        # steps de relatório vizinhos (641, 669, 696, 755, 761, 792, 830, 862, 902, 932, 1121,
+        # 1135, 1145, 1159, 1180, 1194) já usam always()/!cancelled(); este era o único fora.
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         run: |
           if [ "${{ steps.pixel-diff.outcome }}" = "failure" ]; then
             echo "🔴 PIXEL-DIFF ADVISORY FALHOU — ao menos 1 tela com diff > τ_alto (regressão clara) contra baseline."
