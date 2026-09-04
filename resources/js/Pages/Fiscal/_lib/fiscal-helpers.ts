@@ -12,6 +12,24 @@ export const formatDoc = (
   cpf: string | null | undefined,
 ): string => cnpj || cpf || '—';
 
+/**
+ * Junta pedaços de uma célula com ` · `, descartando os que não existem.
+ *
+ * Sem isto, dois fallbacks individualmente CORRETOS somam um terceiro errado: o Controller manda
+ * `dest: '—'` quando não há destinatário e o `formatDoc` devolve `'—'` quando não há documento,
+ * e a linha renderizava **`— · —`** — um separador entre dois nadas. Visto em produção biz=1,
+ * onde as notas rejeitadas não chegaram a ter destinatário gravado.
+ *
+ * Trata `'—'` como ausência de propósito: é o que os dois produtores usam para dizer "vazio".
+ */
+export const juntarInfo = (...partes: Array<string | null | undefined>): string => {
+  const uteis = partes
+    .map((p) => (p ?? '').trim())
+    .filter((p) => p !== '' && p !== '—');
+
+  return uteis.length ? uteis.join(' · ') : '—';
+};
+
 export type Urgency = 'ok' | 'warn' | 'crit';
 
 export interface CancelWindow {

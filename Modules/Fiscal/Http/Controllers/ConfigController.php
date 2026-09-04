@@ -99,6 +99,14 @@ class ConfigController extends Controller
             ] : null,
             // Painel fiscal — espelha CertificadoController::status() do NfeBrasil
             'painel' => $painel,
+            // Gate das duas ações de risco (trocar ambiente · substituir certificado).
+            // Isto é ESPELHO, pra tela dizer o motivo em texto em vez de mostrar botão
+            // cinza sem explicação. Quem RECUSA de verdade é o servidor, em
+            // CertificadoController::garantirGateAmbiente — a tela não é a barreira.
+            'podeTrocarAmbiente' => (bool) (
+                auth()->user()->can('superadmin')
+                || auth()->user()->can('fiscal.config.ambiente')
+            ),
             // Card "Envio de documentos" (4º card da região `fiscal-config-cert-regime`).
             // LEITURA REAL das flags que governam os listeners que mandam o DANFE:
             // `EnviarDanfePorEmail` (NFe 55) e `EnviarDanfeNFCePorEmail` (NFC-e 65).

@@ -38,12 +38,13 @@ class HabilitarBusinessCommand extends Command
 {
     protected $signature = 'fiscal:habilitar-business {businessId : ID do business (ex 4 = ROTA LIVRE Larissa)} {--dry-run : Apenas mostra o que faria, sem persistir}';
 
-    protected $description = 'Habilita cockpit Fiscal pra um business (permissions Spatie + package subscription). Idempotente. NÃO habilita fiscal.sped.export até GAP-FISCAL-003 eliminar hardcodes.';
+    protected $description = 'Habilita cockpit Fiscal pra um business (permissions Spatie + package subscription). Idempotente. NÃO habilita fiscal.sped.export (até GAP-FISCAL-003 eliminar hardcodes) nem fiscal.config.ambiente (conceder é ato de [W] na UI).';
 
     /**
-     * 6 permissions seguras pra atribuir ao role do business piloto.
+     * Permissions seguras pra atribuir ao role do business piloto.
      * `fiscal.sped.export` fica de fora — feature flag `fiscal.sped.simples_only`
      * + audit sênior 2026-05-25 §"Surpresa estratégica" (6 hardcodes Tier-0).
+     * `fiscal.config.ambiente` também fica de fora — ver PERMS_SOBERANIA_W.
      */
     private const PERMS_SEGURAS = [
         'fiscal.access',
@@ -55,11 +56,27 @@ class HabilitarBusinessCommand extends Command
     ];
 
     /**
-     * 7ª permission — fiscal.sped.export — provisionada na tabela mas NÃO
-     * atribuída ao role piloto enquanto hardcodes existirem.
+     * `fiscal.sped.export` — provisionada na tabela mas NÃO atribuída ao role
+     * piloto enquanto hardcodes existirem.
      */
     private const PERMS_BLOQUEADAS_ATE_GAP_003 = [
         'fiscal.sped.export',
+    ];
+
+    /**
+     * `fiscal.config.ambiente` — provisionada na tabela (pra existir no
+     * `/roles/{id}/edit` e pro `can()` responder false em vez de tropeçar), mas
+     * NUNCA atribuída por comando. As duas ações que ela abre — trocar o ambiente
+     * SEFAZ e substituir o certificado A1 — param a emissão da empresa inteira,
+     * e a segunda muda o valor fiscal de toda nota emitida depois dela.
+     *
+     * Diferente de PERMS_BLOQUEADAS_ATE_GAP_003, isto NÃO tem data pra sair: não
+     * é dívida técnica esperando conserto, é soberania — quem concede é [W], na
+     * UI canônica. Um comando de deploy conceder isto sozinho seria exatamente o
+     * "habilitar por código" que o `memory/proibicoes.md` §multi-tenant proíbe.
+     */
+    private const PERMS_SOBERANIA_W = [
+        'fiscal.config.ambiente',
     ];
 
     public function handle(): int
@@ -82,8 +99,14 @@ class HabilitarBusinessCommand extends Command
         $this->newLine();
 
         // PASSO 1 — Garantir permissions Spatie existem (idempotente)
-        $this->info('PASSO 1: Garantir 7 permissions fiscal.* existem em `permissions`');
-        $todasPerms = array_merge(self::PERMS_SEGURAS, self::PERMS_BLOQUEADAS_ATE_GAP_003);
+        // Contagens DERIVADAS das constantes — o texto não restateia número que a
+        // própria lista sabe melhor (o "7" fixo aqui já estava prestes a apodrecer).
+        $todasPerms = array_merge(
+            self::PERMS_SEGURAS,
+            self::PERMS_BLOQUEADAS_ATE_GAP_003,
+            self::PERMS_SOBERANIA_W,
+        );
+        $this->info('PASSO 1: Garantir ' . count($todasPerms) . ' permissions fiscal.* existem em `permissions`');
         foreach ($todasPerms as $permName) {
             $existe = Permission::where('name', $permName)->where('guard_name', 'web')->exists();
             if ($existe) {
@@ -98,7 +121,7 @@ class HabilitarBusinessCommand extends Command
         $this->newLine();
 
         // PASSO 2 — Atribuir 6 perms seguras ao role principal do business
-        $this->info('PASSO 2: Atribuir 6 permissions seguras ao role principal do business');
+        $this->info('PASSO 2: Atribuir ' . count(self::PERMS_SEGURAS) . ' permissions seguras ao role principal do business');
         $roleName = "Admin#{$businessId}";
         $role = Role::where('name', $roleName)->where('guard_name', 'web')->first();
         if (! $role) {
@@ -128,6 +151,9 @@ class HabilitarBusinessCommand extends Command
         }
         foreach (self::PERMS_BLOQUEADAS_ATE_GAP_003 as $permName) {
             $this->warn("  ⊘ {$permName} NÃO atribuída — bloqueada até GAP-FISCAL-003 (audit sênior 2026-05-25)");
+        }
+        foreach (self::PERMS_SOBERANIA_W as $permName) {
+            $this->warn("  ⊘ {$permName} NÃO atribuída — e não é dívida: conceder é ato de [W] em /roles/{id}/edit");
         }
         $this->newLine();
 
