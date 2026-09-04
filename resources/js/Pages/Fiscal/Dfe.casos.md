@@ -5,8 +5,8 @@ irmaos: Dfe.charter.md (lei) · memory/requisitos/Fiscal/SDD-cockpit-fiscal-v1.0
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-09-01"
-last_run_ci: "0 UC executado nesta corrida — 4 UC herdam testes que JÁ existem e 1 nasce com teste novo; veredito pendente da lane Pest Fiscal + suíte noturna CT 100"
+last_run: "2026-09-04"
+last_run_ci: "1 UC executado (UC-FDFE-06, vitest/jsdom: 4 casos verdes + 3 mutações provando que morde). Os UC-FDFE-01..05 NÃO foram re-executados nesta corrida — são Pest e Pest não roda local (ADR 0062); o veredito deles segue pendente da lane Pest Fiscal (advisory) + suíte noturna CT 100, como já estava. O bump do last_run é pelo G-6: tocar este casos.md acordou o frescor (o Dfe.tsx é de 2026-09-02, mais novo que o last_run anterior de 09-01), e a data é honesta sobre O QUE foi revalidado — não uma alegação de que os 5 outros rodaram."
 related_us: [US-FISCAL-008, US-FISCAL-012]
 ---
 
@@ -136,9 +136,10 @@ related_us: [US-FISCAL-008, US-FISCAL-012]
   resolve **por tela**, porque os `.casos.md` não carregam o vínculo com a aba e derivá-lo do
   texto seria adivinhação. E a copy perde o "no vivo" do protótipo — em produção esse dêitico
   não tem referente, o leitor já está no vivo.
-- **Mordida provada** (3 mutações, restore byte-idêntico): remover o render do `FxShell` → 3
-  vermelhos; tirar o `!decisao` do bloco de dívida → item duplicado, 1 vermelho; trocar o nó
-  ausente por contêiner vazio → 1 vermelho.
+- **Mordida provada** (3 mutações, restore byte-idêntico → working tree limpo): remover o render
+  do `FxShell` → **3 vermelhos**; tirar o `!decisao` do bloco de dívida → item duplicado, **2
+  vermelhos** (cai o caso da interseção vazia e o da soma dos dois blocos); trocar o nó ausente
+  por contêiner vazio → **1 vermelho**.
 - **Teste:** `tests/js/fiscal-debitos-conhecidos.test.tsx` — 4 casos citando `UC-FDFE-06`.
 - **Status:** 🧪 lane **advisory**; veredito pendente.
 
