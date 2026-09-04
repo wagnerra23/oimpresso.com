@@ -295,7 +295,19 @@ it('POST ambiente atualiza business.ambiente quando muda valor', function () {
 
     $startAmbiente = (int) (\DB::table('business')->where('id', 1)->value('ambiente') ?? 2);
 
-    $request = requestAmbienteAutorizado(['ambiente' => $startAmbiente === 1 ? 2 : 1]);
+    $destino = $startAmbiente === 1 ? 2 : 1;
+
+    // A cerimônia da troca (item A5 PR 3/3): sem o destino digitado à mão E um
+    // motivo de 15+ caracteres, `updateAmbiente` recusa antes de persistir. Este
+    // caso testa a PERSISTÊNCIA, então satisfaz a cerimônia — quem defende a
+    // cerimônia é o TrocaAmbienteCerimoniaTest (UC-FCFG-07), com 3 negativos e o
+    // controle positivo. De quebra, `confirmacao` vai SEM acento de propósito:
+    // exercita a normalização (a fricção é escrever a palavra, não o cedilha).
+    $request = requestAmbienteAutorizado([
+        'ambiente'    => $destino,
+        'confirmacao' => $destino === 1 ? 'PRODUCAO' : 'HOMOLOGACAO',
+        'motivo'      => 'troca coberta por teste automatizado do CertificadoController',
+    ]);
 
     $response = $controller->updateAmbiente($request);
 
