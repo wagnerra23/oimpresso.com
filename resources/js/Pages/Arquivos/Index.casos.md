@@ -4,7 +4,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-08-27"
+last_run: "2026-09-04"
 ---
 
 # Casos de Uso & Aceite — Arquivos/Index
@@ -269,3 +269,13 @@ e promove o item a `UC-INDEX-NN`.
 - 2026-08-25 · [CC] **UC-INDEX-02 (trilha) promovido de `[BACKLOG]` a UC** — a onda PR-2 trouxe o teste que o defende, que é a condição do G-2. Nasce `⬜`: o veredito é da lane, não da leitura. Refs: US-ARQ-013 · ADR 0093 (o `where` explícito numa tabela sem model) · ADR 0123 §8.
 - 2026-08-26 · [CC] **UC-INDEX-04 (retenção) promovido de `[BACKLOG]` a UC** — a onda 1 FECHA aqui: as 4 vistas do charter existem. Os 2 itens de backlog que ele cobre (aba Retenção · banner do check #4) saíram da lista. Achado do caminho: `Config/retention.php` nunca foi registrado no provider — mesmo defeito do `config.php` em 24/08 —, então grace/aviso/estratégia eram inalcançáveis por `config()`. Refs: US-ARQ-013 · LGPD Art. 15-16.
 - 2026-08-25 · [CC] **UC-INDEX-03 (cofre) promovido de `[BACKLOG]` a UC** — a onda PR-4 trouxe os testes. Os 3 itens de backlog que ele cobre (aba Cofre · acima do cap · MD5 repetido) saíram da lista, e um item NOVO entrou no lugar, honesto sobre o que a vista **não** cobre: arquivo sem file físico no disco, que exige chamada de filesystem por linha. Nasce `⬜` pelo mesmo motivo do UC-INDEX-02. Refs: US-ARQ-013 · ADR 0093 (aqui o `where` repetido é que seria o defeito) · ADR 0126 (cap do vault) · LGPD Art. 37.
+
+## Revalidação — 2026-09-04 (PR #6767)
+
+A tela mudou (`Index.tsx` ganhou a prop `caption` do `shared/DataTable` em dois pontos de
+render: Acervo e Trilha), então o G-6 marcou os casos como stale. **Revalidado pelo CI, não
+por leitura:** lane `PHP / Pest (Arquivos · MySQL)`, run
+[33907004888](https://github.com/wagnerra23/oimpresso.com/actions/runs/33907004888) —
+`ArquivosAdminControllerTest` **PASS com 140 assertions**. O filtro daquela lane inclui
+`resources/js/Pages/Arquivos/**`, então ela **executou**; não foi skip-as-pass (conferido no
+log pelo nome do teste + o contador, nunca pelo "0 failed" — §5 2026-07-24 · LC-13).
