@@ -167,8 +167,25 @@ reverso do código, não fonte fiscal. A fonte é a tabela da SEFAZ.
 | código fora da tabela **não** é inventado: some do mapa e a tela mostra status + número | `mapaPara([424242])` → `[]` (controle negativo) |
 | o tooltip traz o `motivo` daquela nota, com o `[nItem:N]` | idem |
 
-**Dívida declarada, NÃO consertada aqui (outra tela, outro PR):** o `_lib/sefaz-codes.ts`, que serve
-o `Cockpit.tsx` e o `EventosDrawer.tsx` pela geração V2, tem os **mesmos** apelidos errados (`691`
-"Item rejeitado", `778` "XML inválido", `220` "NF-e numérica"). Não foi tocado para não misturar
-intents nem colidir com as sessões que estão no Cockpit agora.
+### Dívida declarada, NÃO consertada aqui — e a primeira redação dela estava ERRADA
+
+⚠️ **Correção de precisão (mesma sessão, apontada pela sessão irmã do #6719).** Esta seção dizia
+que o `_lib/sefaz-codes.ts` *"serve o `Cockpit.tsx` e o `EventosDrawer.tsx`"*. **Falso, e falso de
+um jeito caro:** quem ler isso vai consertar o `sefaz-codes.ts` achando que conserta a lista do
+cockpit — e **não conserta**. Varredura contada (`from '../_lib/sefaz-codes'`, 17.193 arquivos):
+**2 importadores, nenhum é o `Cockpit.tsx`**.
+
+O mesmo defeito existe em **três** lugares independentes, e cada um pede trabalho próprio:
+
+| # | Onde | Serve | Estado |
+|---|---|---|---|
+| 1 | `NfeCockpitController::sefazCodes()` | lista `/fiscal/nfe` | **consertado aqui** — deriva da tabela oficial |
+| 2 | `Cockpit.tsx:159` `STATUS_LABEL` (8 códigos) + fallback `` `Status ${n.status}` `` na linha 612 | **lista `/fiscal`** | **6 de 8 errados** — pior proporção que o #1 |
+| 3 | `_lib/sefaz-codes.ts` (16 códigos) | `NotaDrawerV2` (que o Cockpit monta) + `EventosDrawer` | apelidos errados em `220`/`691`/`778` |
+
+Ou seja: a lista do cockpit e o drawer dele passam por **caminhos diferentes**. O `781 Status` que
+este PR conserta em `/fiscal/nfe` tem um irmão vivo em `/fiscal` — pelo #2, não pelo #3.
+
+Nenhum dos dois foi tocado: são outras telas, outro intent, e há sessões ativas no Cockpit agora.
+Fica medido para quem pegar.
 

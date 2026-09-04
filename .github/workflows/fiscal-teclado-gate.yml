@@ -100,7 +100,7 @@ jobs:
       # `--reporter=default` mantém a saída legível pra humano; `--reporter=junit`
       # escreve o XML que vira veredito por-UC no manifesto que o G-7 do casos-gate
       # (REQUIRED) lê. Sem o par, o UC-FNFE-10 valeria 0 no painel para sempre.
-      - name: teclado + pilula SEFAZ da lista de notas (vitest/jsdom)
+      - name: teclado da lista de notas (vitest/jsdom)
         run: |
           npx vitest run \
             tests/js/fiscal-nfe-teclado.test.tsx \
