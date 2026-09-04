@@ -139,6 +139,13 @@ function loteRelatorio(\Illuminate\Http\RedirectResponse $resposta): array
 }
 
 afterEach(function () {
+    // Guardado: na lane SQLite (`Pest Fiscal`) as tabelas do NfeBrasil não existem e cada caso
+    // SKIPA no `loteBootstrap`. Sem esta guarda o próprio `afterEach` estoura com
+    // `no such table: nfe_dfe_recebidos` e o skip vira FALHA.
+    if (! Schema::hasTable('nfe_dfe_recebidos')) {
+        return;
+    }
+
     NfeDfeRecebido::whereIn('business_id', [LOTE_BIZ_PROPRIO, LOTE_BIZ_ALHEIO])->delete();
 });
 
