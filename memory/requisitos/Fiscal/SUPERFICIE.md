@@ -30,10 +30,11 @@ module: Fiscal
 - [PaletteSearchController.php](../../../Modules/Fiscal/Http/Controllers/PaletteSearchController.php)
 - [SpedController.php](../../../Modules/Fiscal/Http/Controllers/SpedController.php)
 
-## Services — 2
+## Services — 3
 
 - [NotasUnifiedService.php](../../../Modules/Fiscal/Services/NotasUnifiedService.php)
 - [SpedIcmsIpiGeneratorService.php](../../../Modules/Fiscal/Services/SpedIcmsIpiGeneratorService.php)
+- [SpedReferenciaArquivoService.php](../../../Modules/Fiscal/Services/SpedReferenciaArquivoService.php)
 
 ## Events / Listeners — 1
 
@@ -103,9 +104,9 @@ module: Fiscal
 - [Nfse.casos.md](../../../resources/js/Pages/Fiscal/Nfse.casos.md)
 - [Sped.casos.md](../../../resources/js/Pages/Fiscal/Sped.casos.md)
 
-## Testes (Pest) — 24
+## Testes (Pest) — 25
 
-- 24 em [Modules/Fiscal/Tests/Feature/](../../../Modules/Fiscal/Tests/Feature)
+- 25 em [Modules/Fiscal/Tests/Feature/](../../../Modules/Fiscal/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 15

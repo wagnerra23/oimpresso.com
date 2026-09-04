@@ -3,6 +3,7 @@
   "tela": "Fiscal/Sped",
   "fonte": "prototipo-ui/cowork/fiscal-subpages.jsx",
   "_nota_fonte": "Protótipo declarado no related_prototype do charter da tela. A copy deste contrato NÃO veio dele — veio da tela viva, que tem frescor produção-à-frente (o protótipo é que está atrás).",
+  "_nota_onda10": "As 3 seções abaixo de `fiscal-sped-status` entraram na Onda 10 (2026-09-04), traduzindo os Goals 1, 4 e 5 do charter do Cowork. As âncoras `data-contract` são as MESMAS do protótipo (`validacao-competencia`, `blocos-arquivo`, `validacao-externa`) — o F1 já as instrumentou. A copy, não: o cartão de validação do protótipo diz 'Golden file do TXT: não existe', e o golden passou a existir em 2026-09-03 (PR #6708). Copiar aquela copy poria afirmação FALSA na tela; o que ficou travado aqui é o rótulo do cartão, e o estado vem medido do disco pelo SpedReferenciaArquivoService. As âncoras `previa-txt` e `panorama-sped` do protótipo NÃO entram: a prévia é decisão [W] em aberto (Goal 3) e o panorama é a tabela que a tela já tinha antes do F1.",
   "alvo": [
     "resources/js/Pages/Fiscal/Sped.tsx"
   ],
@@ -12,12 +13,44 @@
       "copy": [
         "Próximas Waves:"
       ]
+    },
+    {
+      "id": "validacao-competencia",
+      "copy": [
+        "liberada para geração",
+        "geração bloqueada"
+      ],
+      "estados": [
+        "aprovada",
+        "bloqueada"
+      ]
+    },
+    {
+      "id": "blocos-arquivo",
+      "copy": [
+        "Blocos do arquivo — registros que cada um contém"
+      ],
+      "estados": [
+        "medido",
+        "referência ausente"
+      ]
+    },
+    {
+      "id": "validacao-externa",
+      "copy": [
+        "Validação externa",
+        "Smoke no PVA-EFD (validador CONFAZ)"
+      ]
     }
   ],
   "ordem": [
-    "fiscal-sped-status"
+    "fiscal-sped-status",
+    "validacao-competencia",
+    "blocos-arquivo",
+    "validacao-externa"
   ],
   "_pendente_w": [
-    "O callout cita \"(PR #8)\" e uma lista de Waves futuras — copy datada que apodrece. Candidata a virar texto derivado ou sair. Não incluída no contrato de propósito."
+    "O callout cita \"(PR #8)\" e uma lista de Waves futuras — copy datada que apodrece. Candidata a virar texto derivado ou sair. Não incluída no contrato de propósito.",
+    "Goal 3 do charter do Cowork (prévia do TXT com linhas |REG|…) segue em aberto: em produção, encenar amostra seria fabricar. Enquanto a decisão não vem, `previaTxt` é null e a tela declara a ausência — a âncora `previa-txt` do protótipo não foi instrumentada."
   ]
 }
