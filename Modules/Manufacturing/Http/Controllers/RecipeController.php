@@ -189,6 +189,46 @@ class RecipeController extends Controller
     }
 
     /**
+     * MWART US-MANU-005 (SPEC.md) — Insumos: impacto reverso + simulador de preço.
+     * Rota ADITIVA `/manufacturing/v2/insumos`. 100% leitura.
+     *
+     * O `variacao_pct` do slider vem por query string e é CLAMPADO aqui (-30..60, passo 5 é
+     * do front) — nunca confio no range que o cliente manda ({@see RUNBOOK-insumos.md}).
+     */
+    public function insumos(\Modules\Manufacturing\Services\ProductionService $productionService)
+    {
+        $business_id = request()->session()->get('user.business_id');
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.access_recipe')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $variationId = request()->integer('insumo') ?: null;
+
+        // Clamp do intervalo do §4.4 (-30%..+60%). Valor fora da faixa é recortado, não aceito.
+        $pct = (float) request()->input('variacao_pct', 10);
+        $pct = max(-30.0, min(60.0, $pct));
+
+        $ordens = $productionService->summary($business_id);
+
+        return Inertia::render('Manufacturing/Insumos', [
+            'insumos' => $this->recipeBomService->listInsumosComUso($business_id),
+            'selecionado' => $variationId,
+            'usos' => $variationId
+                ? $this->recipeBomService->usosDoInsumo($variationId, $business_id, $pct)
+                : [],
+            'variacao_pct' => $pct,
+            'permissions' => [
+                'prod' => auth()->user()->can('manufacturing.access_production'),
+            ],
+            'producao' => [
+                'total' => (int) $ordens['total_count'],
+                'rascunhos' => (int) $ordens['pending_count'],
+            ],
+            'recipes_count' => $this->recipeBomService->countRecipes($business_id),
+        ]);
+    }
+
+    /**
      * Show the form for creating a new resource.
      *
      * @return Response

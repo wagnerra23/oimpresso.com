@@ -35,6 +35,10 @@ Route::middleware('throttle:60,1', 'web', 'authh', 'SetSessionData', 'auth', 'la
     Route::get('/v2/settings', [Modules\Manufacturing\Http\Controllers\SettingsController::class, 'indexV2'])
         ->name('manufacturing.settings.v2.index');
 
+    // MWART US-MANU-005 — Insumos (impacto reverso + simulador). Rota aditiva, 100% leitura.
+    Route::get('/v2/insumos', [Modules\Manufacturing\Http\Controllers\RecipeController::class, 'insumos'])
+        ->name('manufacturing.insumos.v2.index');
+
     Route::get('/report', [Modules\Manufacturing\Http\Controllers\ProductionController::class, 'getManufacturingReport']);
 
     Route::post('/update-product-prices', [Modules\Manufacturing\Http\Controllers\RecipeController::class, 'updateRecipeProductPrices']);

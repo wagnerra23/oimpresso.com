@@ -14,7 +14,7 @@ module: Manufacturing
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Manufacturing/**` + `resources/js/Pages/Manufacturing/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 132 arquivos em 17 papéis.
+**Total mapeado:** 136 arquivos em 17 papéis.
 
 ## Controllers — 6
 
@@ -108,9 +108,10 @@ module: Manufacturing
 - [show.blade.php](../../../Modules/Manufacturing/Resources/views/recipe/show.blade.php)
 - [index.blade.php](../../../Modules/Manufacturing/Resources/views/settings/index.blade.php)
 
-## Telas (Inertia/React) — 4
+## Telas (Inertia/React) — 5
 
 - [Index.tsx](../../../resources/js/Pages/Manufacturing/Index.tsx)
+- [Insumos.tsx](../../../resources/js/Pages/Manufacturing/Insumos.tsx)
 - [Recipes.tsx](../../../resources/js/Pages/Manufacturing/Recipes.tsx)
 - [Report.tsx](../../../resources/js/Pages/Manufacturing/Report.tsx)
 - [Settings.tsx](../../../resources/js/Pages/Manufacturing/Settings.tsx)
@@ -119,22 +120,24 @@ module: Manufacturing
 
 - [FichaPrint.tsx](../../../resources/js/Pages/Manufacturing/_components/FichaPrint.tsx)
 
-## Charters (lei da tela) — 4
+## Charters (lei da tela) — 5
 
 - [Index.charter.md](../../../resources/js/Pages/Manufacturing/Index.charter.md)
+- [Insumos.charter.md](../../../resources/js/Pages/Manufacturing/Insumos.charter.md)
 - [Recipes.charter.md](../../../resources/js/Pages/Manufacturing/Recipes.charter.md)
 - [Report.charter.md](../../../resources/js/Pages/Manufacturing/Report.charter.md)
 - [Settings.charter.md](../../../resources/js/Pages/Manufacturing/Settings.charter.md)
 
-## Casos (contrato UC) — 3
+## Casos (contrato UC) — 4
 
+- [Insumos.casos.md](../../../resources/js/Pages/Manufacturing/Insumos.casos.md)
 - [Recipes.casos.md](../../../resources/js/Pages/Manufacturing/Recipes.casos.md)
 - [Report.casos.md](../../../resources/js/Pages/Manufacturing/Report.casos.md)
 - [Settings.casos.md](../../../resources/js/Pages/Manufacturing/Settings.casos.md)
 
-## Testes (Pest) — 21
+## Testes (Pest) — 22
 
-- 21 em [Modules/Manufacturing/Tests/Feature/](../../../Modules/Manufacturing/Tests/Feature)
+- 22 em [Modules/Manufacturing/Tests/Feature/](../../../Modules/Manufacturing/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 40

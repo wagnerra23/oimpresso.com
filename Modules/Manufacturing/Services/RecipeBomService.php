@@ -319,6 +319,245 @@ class RecipeBomService
     }
 
     /**
+     * US-MANU-005 — impacto reverso de um insumo: quais receitas o consomem e o que acontece
+     * com o custo unitário delas se o preço de compra variar `$variacaoPct`.
+     *
+     * É o método que o §18.3 do handoff declarou faltar ("`usosDoInsumo()` é cálculo novo;
+     * precisa de um método no RecipeBomService com o JOIN de tenant e teste"). Leitura pura.
+     *
+     * **Reusa `calculateCost()`, não reimplementa.** A simulação troca o preço do insumo NA
+     * CÓPIA em memória e chama a MESMA fórmula de novo. Difere do protótipo, que soma um delta
+     * (`total + qtd × preço × pct`) — atalho que erra quando `production_cost_type` é
+     * `percentage`, porque aí o custo extra também varia com o dos ingredientes. Desvio
+     * declarado em `RUNBOOK-insumos.md §1`.
+     *
+     * Tier 0 ({@see ADR 0093}): só entram receitas cuja cadeia
+     * `mfg_recipes → variations → products.business_id` bate com o tenant.
+     *
+     * @param  int  $variationId  o insumo (variations.id)
+     * @param  int  $businessId  Tier 0 — nunca session() em Job
+     * @param  float  $variacaoPct  variação simulada do preço, em % (ex: 10 = +10%)
+     * @return array<int, array<string, mixed>>
+     */
+    public function usosDoInsumo(int $variationId, int $businessId, float $variacaoPct = 0.0): array
+    {
+        return OtelHelper::spanBiz('manufacturing.recipe.usos_do_insumo', function () use ($variationId, $businessId, $variacaoPct) {
+            $linhas = [];
+
+            foreach ($this->recipesDoTenantComIngredientes($businessId, $variationId) as $recipe) {
+                $qtd = 0.0;
+                $precoAtual = 0.0;
+                $unidadeBase = '';
+
+                foreach ($recipe->getRelation('ingredients') as $ingrediente) {
+                    if ((int) $ingrediente->variation_id !== $variationId || empty($ingrediente->variation)) {
+                        continue;
+                    }
+
+                    $multiplicador = ! empty($ingrediente->sub_unit) && ! empty($ingrediente->sub_unit->base_unit_multiplier)
+                        ? (float) $ingrediente->sub_unit->base_unit_multiplier
+                        : 1.0;
+
+                    $qtd += (float) $ingrediente->quantity * $multiplicador;
+                    $precoAtual = (float) $ingrediente->variation->dpp_inc_tax;
+                    $unidadeBase = optional(optional($ingrediente->variation->product)->unit)->short_name ?? '';
+                }
+
+                if ($qtd <= 0) {
+                    continue;
+                }
+
+                $custoAtual = $this->calculateCost($recipe);
+                $custoSimulado = $this->calculateCostComPrecoSimulado($recipe, $variationId, $variacaoPct);
+
+                $totalQuantity = (float) $recipe->total_quantity;
+                $venda = (float) ($recipe->final_price ?? 0);
+
+                $unitNovo = $totalQuantity > 0 ? $custoSimulado / $totalQuantity : 0.0;
+                $peso = $custoAtual > 0 ? ($qtd * $precoAtual) / $custoAtual * 100 : 0.0;
+                $margemNova = $venda > 0 ? ($venda - $unitNovo) / $venda * 100 : 0.0;
+
+                $linhas[] = [
+                    'recipe_id' => (int) $recipe->id,
+                    'nome' => $recipe->getAttribute('recipe_name') ?: '—',
+                    'sku' => $recipe->getAttribute('recipe_sku') ?: '—',
+                    'qtd' => $qtd,
+                    'unidade_base' => $unidadeBase,
+                    'peso' => $peso,
+                    'unit_atual' => $this->calculateUnitCost($recipe),
+                    'unit_novo' => $unitNovo,
+                    'margem_nova' => $margemNova,
+                ];
+            }
+
+            usort($linhas, fn ($a, $b) => $b['peso'] <=> $a['peso']);
+
+            return $linhas;
+        }, [
+            'module' => 'Manufacturing',
+            'variation_id' => $variationId,
+        ]);
+    }
+
+    /**
+     * US-MANU-005 — lista os INSUMOS do business com o resumo de uso: em quantas receitas cada
+     * um entra e qual o maior peso dele no custo de uma receita.
+     *
+     * **Definição de "insumo" AQUI, e por que:** é toda variação que aparece como ingrediente
+     * em alguma receita do tenant. O app não tem flag de "matéria-prima" no produto — o
+     * protótipo tem uma lista `INSUMOS` curada, que não existe no dado real. Derivar dos
+     * ingredientes é a única definição que o módulo consegue sustentar sem inventar. Efeito
+     * colateral honesto: com esta derivação, o estado "sem receita" do protótipo NÃO ocorre
+     * (todo item da lista tem ≥1 receita por construção). A tela mantém o caminho de render
+     * desse estado, e o motivo está em `RUNBOOK-insumos.md §2`.
+     *
+     * Custo por receita é calculado UMA vez (não por insumo × receita).
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function listInsumosComUso(int $businessId): array
+    {
+        return OtelHelper::spanBiz('manufacturing.recipe.list_insumos', function () use ($businessId) {
+            $recipes = $this->recipesDoTenantComIngredientes($businessId);
+
+            $acc = [];
+
+            foreach ($recipes as $recipe) {
+                $custoReceita = $this->calculateCost($recipe);
+
+                // Consumo do insumo NESTA receita (linhas repetidas somam) — precisa fechar o
+                // total antes de calcular o peso, senão insumo repetido pesa menos do que é.
+                $porInsumo = [];
+
+                foreach ($recipe->getRelation('ingredients') as $ingrediente) {
+                    if (empty($ingrediente->variation)) {
+                        continue;
+                    }
+
+                    $vid = (int) $ingrediente->variation_id;
+                    $mult = ! empty($ingrediente->sub_unit) && ! empty($ingrediente->sub_unit->base_unit_multiplier)
+                        ? (float) $ingrediente->sub_unit->base_unit_multiplier
+                        : 1.0;
+
+                    $porInsumo[$vid] ??= ['qtd' => 0.0, 'variacao' => $ingrediente->variation];
+                    $porInsumo[$vid]['qtd'] += (float) $ingrediente->quantity * $mult;
+                }
+
+                foreach ($porInsumo as $vid => $dados) {
+                    $variacao = $dados['variacao'];
+                    $preco = (float) $variacao->dpp_inc_tax;
+                    $peso = $custoReceita > 0 ? ($dados['qtd'] * $preco) / $custoReceita * 100 : 0.0;
+
+                    if (! isset($acc[$vid])) {
+                        $acc[$vid] = [
+                            'variation_id' => $vid,
+                            'nome' => optional($variacao->product)->name ?: '—',
+                            'sku' => $variacao->sub_sku ?: '—',
+                            'custo' => $preco,
+                            'unidade' => optional(optional($variacao->product)->unit)->short_name ?: '',
+                            'estoque' => 0.0,
+                            'n_receitas' => 0,
+                            'maior_peso' => 0.0,
+                        ];
+                    }
+
+                    $acc[$vid]['n_receitas']++;
+                    $acc[$vid]['maior_peso'] = max($acc[$vid]['maior_peso'], $peso);
+                }
+            }
+
+            if ($acc === []) {
+                return [];
+            }
+
+            // Estoque: soma por variação em TODOS os locais do business (uma query só).
+            $estoques = DB::table('variation_location_details')
+                ->whereIn('variation_id', array_keys($acc))
+                ->groupBy('variation_id')
+                ->select('variation_id', DB::raw('SUM(qty_available) as total'))
+                ->pluck('total', 'variation_id');
+
+            foreach ($acc as $vid => $_) {
+                $acc[$vid]['estoque'] = (float) ($estoques[$vid] ?? 0);
+            }
+
+            $linhas = array_values($acc);
+
+            // Ordem do §4.4: mais usados primeiro; empate desempata pelo maior peso.
+            usort($linhas, fn ($a, $b) => [$b['n_receitas'], $b['maior_peso']] <=> [$a['n_receitas'], $a['maior_peso']]);
+
+            return $linhas;
+        }, [
+            'module' => 'Manufacturing',
+        ]);
+    }
+
+    /**
+     * Custo total da receita COM o preço de um insumo alterado em `$variacaoPct`.
+     *
+     * Clona receita, ingredientes e a variação alvo (para não sujar o objeto do chamador),
+     * aplica o preço novo e delega a `calculateCost()` — a fórmula continua sendo UMA só.
+     */
+    private function calculateCostComPrecoSimulado(MfgRecipe $recipe, int $variationId, float $variacaoPct): float
+    {
+        if ($variacaoPct == 0.0) {
+            return $this->calculateCost($recipe);
+        }
+
+        $clone = clone $recipe;
+
+        $ingredientes = $recipe->getRelation('ingredients')->map(function ($ingrediente) use ($variationId, $variacaoPct) {
+            if ((int) $ingrediente->variation_id !== $variationId || empty($ingrediente->variation)) {
+                return $ingrediente;
+            }
+
+            $copia = clone $ingrediente;
+            $variacao = clone $ingrediente->variation;
+            $variacao->dpp_inc_tax = (float) $ingrediente->variation->dpp_inc_tax * (1 + $variacaoPct / 100);
+            $copia->setRelation('variation', $variacao);
+
+            return $copia;
+        });
+
+        $clone->setRelation('ingredients', $ingredientes);
+
+        return $this->calculateCost($clone);
+    }
+
+    /**
+     * Receitas do tenant com o BOM carregado. Com `$comVariationId`, só as que usam aquele
+     * insumo — evita carregar o catálogo inteiro pra montar um drawer.
+     *
+     * @return Collection<int, MfgRecipe>
+     */
+    private function recipesDoTenantComIngredientes(int $businessId, ?int $comVariationId = null): Collection
+    {
+        $query = MfgRecipe::query()
+            ->join('variations as v', 'mfg_recipes.variation_id', '=', 'v.id')
+            ->join('products as p', 'v.product_id', '=', 'p.id')
+            ->where('p.business_id', $businessId)
+            ->with([
+                'ingredients',
+                'ingredients.variation',
+                'ingredients.variation.product',
+                'ingredients.variation.product.unit',
+                'ingredients.sub_unit',
+            ])
+            ->select('mfg_recipes.*', 'p.name as recipe_name', 'v.sub_sku as recipe_sku');
+
+        if ($comVariationId !== null) {
+            $query->whereExists(function ($sub) use ($comVariationId) {
+                $sub->select(DB::raw(1))
+                    ->from('mfg_recipe_ingredients as mri')
+                    ->whereColumn('mri.mfg_recipe_id', 'mfg_recipes.id')
+                    ->where('mri.variation_id', $comVariationId);
+            });
+        }
+
+        return $query->get();
+    }
+
+    /**
      * Lista recipes do business em formato dropdown — wrapper sobre MfgRecipe::forDropdown()
      * com tipagem explícita pra DI em Controllers.
      *
