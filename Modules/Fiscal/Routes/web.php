@@ -74,6 +74,15 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
             ->middleware('throttle:3,1')
             ->name('sped.icms-ipi');
 
+        // ─── Onda 10: o bypass de superadmin deixa de ser silencioso ─────
+        // Só ALTERNA o bypass da própria sessão do superadmin, e só ele pode
+        // chamar (403 pra qualquer outro perfil). NÃO toca
+        // `fiscal.sped_simples_only_lock`: a flag global é decisão de [W] e
+        // segue fail-secure em `config/fiscal.php`. Ver SpedController::trava.
+        Route::post('/sped/trava', [SpedController::class, 'trava'])
+            ->middleware('throttle:20,1')
+            ->name('sped.trava');
+
         // ─── PR #4 Wave Ações Mutação ──────────────────────────────────
         // Cancelar NFe/NFC-e (delega NfeService::cancelar — FSM cascade ADR 0143).
         // Throttle 30/min anti-DOS (pattern Modules/NfeBrasil — protege SEFAZ).
