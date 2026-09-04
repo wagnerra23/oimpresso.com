@@ -279,11 +279,18 @@ export default function PageHeaderTabs({
                 {ghost.badge != null && (
                   <span
                     className="ml-1.5 inline-block rounded-full px-1.5 min-w-[18px] text-center text-[10.5px] leading-[1.4] font-semibold tabular-nums"
-                    // `.cli-moduletopnav-n`: base cinza; ativo roxo (`--accent`) + `--accent-fg`.
+                    // `.cli-moduletopnav-n` (clientes-page.css): base cinza `--border-2`/`--text-dim`;
+                    // ativo roxo `--accent` + `--accent-fg`.
+                    // O ramo INATIVO nasceu no #4281 (2026-07-14) com os literais
+                    // oklch(0.32 0.01 240)/oklch(0.70 0.01 240) — a resolucao DARK de
+                    // `--border-2`/`--text-dim` congelada. Como o literal nao troca com o tema, no
+                    // LIGHT o pill saia quase preto (L 0.32) sobre tela clara. Bindado no token em
+                    // 2026-09-04. (O `primary` acima segue com literal oklch por hue dinamico
+                    // — fora do escopo desta correcao; aqui o alvo era so o pill do contador.)
                     style={
                       isActive
                         ? { backgroundColor: 'var(--accent)', color: 'var(--accent-fg)' }
-                        : { backgroundColor: 'oklch(0.32 0.01 240)', color: 'oklch(0.70 0.01 240)' }
+                        : { backgroundColor: 'var(--border-2)', color: 'var(--text-dim)' }
                     }
                   >
                     {ghost.badge}
