@@ -5,7 +5,7 @@ tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 fonte: handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §4.6 — os UC abaixo DERIVAM dele
 owner: wagner
-last_run: "2026-09-03"
+last_run: "2026-09-04"
 ---
 
 # Casos de Uso & Aceite — Manufacturing/Report
