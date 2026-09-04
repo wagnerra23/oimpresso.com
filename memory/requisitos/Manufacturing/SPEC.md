@@ -109,16 +109,31 @@ no CT 100, proibicoes.md). Verificação real fica pendente até a próxima sess
 
 **Fonte:** handoff §4.7 (cartões 1 e 3 — o cartão 2 é ferramenta do protótipo e **não existe** no app).
 **Backend: já existe** — `SettingsController@index/@store`. **Custo: baixo** — 3 campos, mas **escreve**.
+Confirmado ao construir (2026-09-03): o `store()` já lê exatamente as 3 chaves e já grava
+scoped (`Business::where('id', $business_id)`), e o `redirect()->back()` dele já é compatível
+com Inertia — **nenhuma linha do backend de escrita mudou**. Só o `index()` ganhou variante
+Inertia (`indexV2`).
 
-**Implementado em:** _pendente_
+**Implementado em:** `resources/js/Pages/Manufacturing/Settings.tsx` ·
+`Modules/Manufacturing/Http/Controllers/SettingsController.php` (`@indexV2` — o `@store` é
+reusado sem alteração) — rota ADITIVA `/manufacturing/v2/settings` (`/manufacturing/settings`
+Blade segue intocado; o POST continua no endereço legado)
+
+**Testado em:** `Modules/Manufacturing/Tests/Feature/Wave31SettingsInertiaTest.php`
+(`@covers-us US-MANU-003`) — ⚠️ escrito, `php -l` limpo, **ainda não rodou** (Pest roda na lane
+de CI da PR).
 
 **Definition of Done:**
-- [ ] As 3 chaves reais de `business.manufacturing_settings` (§16): `ref_no_prefix` ·
+- [x] As 3 chaves reais de `business.manufacturing_settings` (§16): `ref_no_prefix` ·
       `disable_editing_ingredient_qty` · `enable_updating_product_price`
-- [ ] Botão `Atualizar` **desabilitado enquanto nada mudou** (R-24)
-- [ ] Rodapé com a versão do módulo (`System::getProperty('manufacturing_version')`)
-- [ ] Cartão "Integrações" (3 links) · o cartão de permissões simuladas **não** entra
-- [ ] Escrita scoped por `business_id`
+- [x] Botão `Atualizar` **desabilitado enquanto nada mudou** (R-24) — e durante o envio
+- [x] Rodapé com a versão do módulo (`System::getProperty('manufacturing_version')`)
+- [x] Cartão "Integrações" (3 links reais: `/products` · `/purchases` · `/manufacturing/v2/production`) ·
+      o cartão de permissões simuladas **não** entra
+- [x] Escrita scoped por `business_id` (herdada do `store()` legado, com UC-CFG-04 travando)
+- [ ] Pest verde na lane de CI — pendente
+- [ ] Smoke real em prod (`curl` + screenshot + **submit de verdade**) — pendente, receita em
+      `RUNBOOK-settings.md §3`
 
 ### US-MANU-004 · Ordens de produção — as 8 colunas e as duas marcas do §4.5
 

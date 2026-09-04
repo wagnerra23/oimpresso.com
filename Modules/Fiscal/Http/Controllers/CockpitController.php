@@ -385,11 +385,42 @@ class CockpitController extends Controller
             ];
         }
 
-        // Warn: cert vencendo <60d (reusa $cert do contexto)
+        // Cert VENCIDO, vencendo hoje, ou vencendo em <=60d (reusa $cert do contexto).
+        //
+        // `$dias` é NEGATIVO quando o certificado já venceu. Até 2026-09-04 a guarda
+        // era `$dias <= 60 && $dias > 0`, que descartava justamente esse caso: no pior
+        // estado possível a fila do cockpit ficava MUDA, enquanto o badge da sidebar
+        // (GUARD US-NFE-001) já acusava "vencido há N dias" na MESMA tela.
+        //
+        // Medido em 2026-09-04: os 5 consumidores de `diasAteVencimento()` classificam
+        // por `$dias < 0` (vencido) e põem o `0` na banda de aviso, nunca num vão
+        // — CertHealthCheckCommand:187, ConfigController:61, NfeHealthCommand:213,
+        // HandleInertiaRequests:384 e PaymentGatewaysController:97 (`$dias >= 0`).
+        // O cockpit era o único fora do padrão, e era outlier nas DUAS pontas.
         $cert = $contexto['cert'];
         if ($cert?->valido_ate) {
             $dias = (int) now()->startOfDay()->diffInDays($cert->valido_ate, false);
-            if ($dias <= 60 && $dias > 0) {
+
+            if ($dias < 0) {
+                $ha = abs($dias);
+                $alerts[] = [
+                    'level'  => 'crit',
+                    'icon'   => 'shield',
+                    'title'  => "Certificado A1 vencido há {$ha} " . ($ha === 1 ? 'dia' : 'dias'),
+                    'sub'    => 'Renovar com o contador imediatamente',
+                    'action' => 'Abrir configuração',
+                    'goto'   => 'fiscal_config',
+                ];
+            } elseif ($dias === 0) {
+                $alerts[] = [
+                    'level'  => 'crit',
+                    'icon'   => 'shield',
+                    'title'  => 'Certificado A1 vence hoje',
+                    'sub'    => 'Renovar com o contador imediatamente',
+                    'action' => 'Abrir configuração',
+                    'goto'   => 'fiscal_config',
+                ];
+            } elseif ($dias <= 60) {
                 $alerts[] = [
                     'level'  => $dias <= 7 ? 'crit' : 'warn',
                     'icon'   => 'shield',
