@@ -167,7 +167,11 @@ class ProductionService
                 ->keyBy('id');
 
             return $ordens->map(function (Transaction $ordem) use ($produtos, $ingredientes, $usuarios) {
-                $linha = $ordem->purchase_lines->first();
+                // getRelation() em vez da propriedade mágica: a relação vem eager-loaded do
+                // listProductions(), e o acesso explícito não depende de análise de magic
+                // property — que o Larastan não resolve nesta Model (mesmo motivo, e mesmo
+                // padrão, do RecipeBomService::presentRecipe).
+                $linha = $ordem->getRelation('purchase_lines')->first();
                 $variationId = $linha?->variation_id;
                 $produto = $variationId ? $produtos->get($variationId) : null;
                 $usuario = $ordem->created_by ? $usuarios->get($ordem->created_by) : null;
