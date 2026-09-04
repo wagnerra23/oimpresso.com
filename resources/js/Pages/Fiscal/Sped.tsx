@@ -10,7 +10,7 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { Archive, CheckCircle2, Download, Eye, FileSearch, X, XCircle } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
@@ -74,6 +74,18 @@ interface ValidacaoExterna {
   backlog: string[];
 }
 
+/**
+ * Bypass de superadmin (Onda 10 · Goal 2).
+ *
+ * `disponivel` é falso pra todo mundo que não é superadmin — e aí a tela não
+ * mostra ação nenhuma: liberar a trava global é decisão de [W], não de tela.
+ */
+interface BypassSuperadmin {
+  disponivel: boolean;
+  travaGlobalLigada: boolean;
+  reativadaNaSessao: boolean;
+}
+
 interface SpedProps {
   periodos: Periodo[];
   notice: string;
@@ -86,6 +98,7 @@ interface SpedProps {
   previaTxt: string | null;
   referenciaArquivo: ReferenciaArquivo;
   validacaoExterna: ValidacaoExterna;
+  bypassSuperadmin: BypassSuperadmin;
 }
 
 /**
@@ -172,6 +185,7 @@ export default function Sped({
   previaTxt,
   referenciaArquivo,
   validacaoExterna,
+  bypassSuperadmin,
 }: SpedProps) {
   const [status, setStatus] = useState<StatusFilter>('todos');
   const [search, setSearch] = useState('');
@@ -315,6 +329,37 @@ export default function Sped({
             </AlertTitle>
             <AlertDescription>
               <ItensDaRegua periodo={selecionada} />
+
+              {/* Goal 2 — o bypass de superadmin deixa de ser silencioso.
+                  Só aparece pra quem TEM o bypass: liberar a trava global é
+                  decisão de [W], e oferecer o botão a quem não pode usá-lo
+                  seria afordância falsa. A ação vai ao servidor (a sessão é
+                  quem decide), nunca troca só o visual. */}
+              {bypassSuperadmin.disponivel && bypassSuperadmin.travaGlobalLigada && (
+                <Inline gap={2} align="center" wrap className="mt-3">
+                  <Button
+                    type="button"
+                    variant={bypassSuperadmin.reativadaNaSessao ? 'cowork-primary' : 'secondary'}
+                    size="cowork"
+                    onClick={() =>
+                      router.post(
+                        '/fiscal/sped/trava',
+                        { reativar: !bypassSuperadmin.reativadaNaSessao },
+                        { preserveScroll: true },
+                      )
+                    }
+                  >
+                    {bypassSuperadmin.reativadaNaSessao
+                      ? 'Liberar como superadmin'
+                      : 'Reativar trava nesta sessão'}
+                  </Button>
+                  <small className="text-muted-foreground">
+                    {bypassSuperadmin.reativadaNaSessao
+                      ? 'Você reativou a trava para si — o download está bloqueado nesta sessão.'
+                      : 'Seu perfil dispensa a trava fail-secure. A trava global segue ligada para os demais.'}
+                  </small>
+                </Inline>
+              )}
             </AlertDescription>
           </Alert>
         )}
