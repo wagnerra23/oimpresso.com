@@ -123,6 +123,7 @@ descartadas e **não devem ser re-propostas** sem decisão nova.
 | Copy do selo | `leitura real` · `demonstração` — vocabulário fechado, 2 valores |
 | Forma do selo | `Badge` do DS com `dot`, variante `success` (real) / `warning` (demonstração) |
 | Explicação | uma frase por superfície, em `Tooltip` do DS |
+| Foco | o selo é focável (`tabIndex={0}`) — o tooltip abre no **foco**, não só no hover |
 | Estado desligado | **nó ausente** — nenhum selo é renderizado |
 | Botão em tela sem mapa | **nó ausente** — botão inerte é pior que botão ausente |
 

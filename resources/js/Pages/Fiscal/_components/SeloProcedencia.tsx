@@ -38,6 +38,12 @@ interface SeloProps {
  * controller não declarou aquela chave, ou quando o mapa não veio.
  *
  * Ele ACOMPANHA o número — nunca o esconde nem o substitui.
+ *
+ * `tabIndex={0}` no `Badge` não é enfeite: o `Badge` é um `<span>`, e `<span>` não
+ * recebe foco. Sem isso o Radix só abriria o tooltip no HOVER, e a EXPLICAÇÃO — que é
+ * metade do contrato deste selo — ficaria inalcançável por teclado e por leitor de
+ * tela. Um selo que diz "demonstração" sem dizer por quê é meia informação. Os selos
+ * só entram no tab-order quando o operador liga a procedência, que é ação deliberada.
  */
 export function SeloProcedencia({ mapa, chave }: SeloProps) {
   const ligadoAgora = useProcedenciaLigada();
@@ -55,6 +61,7 @@ export function SeloProcedencia({ mapa, chave }: SeloProps) {
             data-contract="procedencia-selo"
             data-origem={p.origem}
             data-superficie={chave}
+            tabIndex={0}
             className="ml-1.5 cursor-help align-middle text-[10px] font-normal"
           >
             {ROTULO[p.origem]}
