@@ -118,7 +118,7 @@ não tem as migrations do NfeBrasil. É lacuna de ambiente, não defeito do test
 | UC-FNFE-09 | retransmitir preserva a nota antiga (nunca deleta) | `[must]` `[reg]` | CU-FISC-11 | `AcoesContratoTest` | 🧪 |
 | UC-FNFE-10 | a lista é operável só pelo teclado (linha focável, não botão) | `[must]` | **—** (ver nota) | `fiscal-nfe-teclado.test.tsx` | 🧪 |
 | UC-FNFE-11 | nenhum ícone decorativo chega ao leitor de tela | `[must]` | **—** (mesma nota) | `fiscal-nfe-teclado.test.tsx` | 🧪 |
-| UC-FNFE-12 | a densidade escolhida acompanha a navegação entre as telas de notas | `[should]` | **—** (mesma nota) | `fiscal-densidade.test.tsx` | 🧪 |
+| UC-FNFE-14 | a densidade escolhida acompanha a navegação entre as telas de notas | `[should]` | **—** (mesma nota) | `fiscal-densidade.test.tsx` | 🧪 |
 
 > **Por que esta tabela nasceu em 2026-09-01 (e o que ela NÃO fez):** os 8 UC desta tela já eram
 > provados por teste desde 2026-07-27 — nenhum deles declarava, porém, **qual CU do SDD §6 atende**.
@@ -294,7 +294,7 @@ próprios ícones e são de outra onda.
 **remove o nome acessível** dele. Cada um dos 13 foi conferido antes: os 5 da tela e os 7 da subnav
 vêm com texto ao lado; o `<X>` da paleta está num botão que já declara `aria-label="Fechar (ESC)"`.
 
-## UC-FNFE-12 — A densidade escolhida acompanha a navegação entre as telas de notas
+## UC-FNFE-14 — A densidade escolhida acompanha a navegação entre as telas de notas
 Status: 🧪 (`tests/js/fiscal-densidade.test.tsx` — **passa**, 6/6; lane `Fiscal Densidade Gate`)
 Dado o operador na lista de NF-e · Quando escolhe **Compacto** e navega para o Cockpit ou para a
 NFS-e · Então a tabela de lá já abre compacta — a preferência é dele, não da tela.
@@ -342,17 +342,19 @@ preferência de exibição. Ancorar num CU plausível fecharia a lacuna do paine
 2. **Cadência:** rodar ao fim de toda mexida na tela. UC ❌ = regressão fiscal.
 
 ## Trilha do tempo
-- 2026-09-04 · [C] `UC-FNFE-12` — a densidade vira preferência compartilhada. **Sobre o id, que
-  trocou duas vezes antes de assentar:** ele nasceu `UC-FNFE-12` aqui e no
-  [#6731](https://github.com/wagnerra23/oimpresso.com/pull/6731) no mesmo dia — duas sessões
-  paralelas na mesma tela, contratos diferentes. Eu cedi primeiro, por **ordem de criação**
-  (11:18:39Z contra 11:25:52Z), e virei `13`. A outra sessão cedeu ao mesmo tempo, por **custo
-  medido** (4 ocorrências lá contra 9 aqui, que incluem o `anchor` e o `name` do gate no
-  `gates-registry.json`) — e virou `13` também. A colisão se mudou de casa em vez de sumir.
-  Desempate: o critério dela é melhor que o meu (custo real > ordem de relógio) e a nota que ela
-  já pushou **afirma** que o `12` é desta tela; voltei ao `12`, e agora os dois documentos dizem
-  a mesma coisa. Lição pra próxima: em renomeação negociada entre sessões, quem cede **anuncia
-  o destino antes de escrever** — ceder em paralelo reproduz a colisão um número adiante.
+- 2026-09-04 · [C] `UC-FNFE-14` — a densidade vira preferência compartilhada. **O id saltou pro
+  14, e o 13 fica vago de propósito — vale registrar o mecanismo, porque ele custou 3 rodadas.**
+  Este UC e o do [#6731](https://github.com/wagnerra23/oimpresso.com/pull/6731) nasceram ambos
+  `UC-FNFE-12`, no mesmo dia, na mesma tela: duas sessões paralelas, contratos diferentes. Daí:
+  **(1)** eu cedi por *ordem de criação* e fui pro `13`; **(2)** a outra sessão cedeu por *custo
+  medido* e foi pro `13` também — a colisão mudou de casa; **(3)** os dois voltamos pro `12` ao
+  mesmo tempo — a colisão voltou pra casa. Cortesia simétrica não resolve disputa de nome: cada
+  passo do outro era invisível até chegar, e os dois calculavam **o mesmo próximo livre**.
+  Saída: escolher unilateralmente um valor que não colida com **nenhum** estado possível do outro
+  (ele estava no `12`, podia ir pro `13` — logo, `14`), aplicar, e comunicar como fato consumado
+  em vez de proposta. O `13` fica vago porque já está queimado nos dois históricos.
+  **Regra pra próxima:** em renomeação negociada entre sessões, quem cede **anuncia o destino
+  antes de escrever**, e quem recebe o anúncio **não cede de volta**.
 - 2026-07-03 · [CC] criado no Passo 3 do programa de ondas. 17 testes mapeados, 0 citavam UC-id.
 - 2026-07-27 · [CC] fecha a G-2 com 8 UC (`UC-FNFE-01..08`). Criado `AcoesContratoTest` (contrato REAL
   das regras do Controller, mordida provada); guard de banco movido pros casos que precisam dele

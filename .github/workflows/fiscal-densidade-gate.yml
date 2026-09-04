@@ -90,7 +90,7 @@ jobs:
 
       # `--reporter=default` mantém a saída legível pra humano; `--reporter=junit`
       # escreve o XML que vira veredito por-UC no manifesto que o G-7 do casos-gate
-      # (REQUIRED) lê. Sem o par, UC-FNFE-12 e UC-FNFSE-05 valeriam 0 no painel.
+      # (REQUIRED) lê. Sem o par, UC-FNFE-14 e UC-FNFSE-05 valeriam 0 no painel.
       - name: densidade compartilhada entre as telas (vitest/jsdom)
         run: |
           npx vitest run \
