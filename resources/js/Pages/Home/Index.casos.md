@@ -119,9 +119,11 @@ A segunda metade é a fronteira do escopo: a âncora resume **5** das 8 abas, e 
 
 A terceira é o gate de sempre: sem `dashboard.data` a prop nem é registrada, igual a `charts` e `totals` — a casca continua casca.
 
-**Pronto quando:** para cada linha do painel, `total > 0` **e** `total` é idêntico ao `linhas(aba)->total()` da mesma aba; nenhuma das 3 abas de fluxo aparece mesmo com permissão concedida; aba sem permissão não aparece; e sem `dashboard.data` a prop `pendencias` é `null`.
+**Pronto quando:** o conjunto devolvido por `pendencias()` é **idêntico** — nos dois sentidos — ao derivado de `linhas(aba)->total()` sobre as 5 abas da âncora, mantendo só as de total > 0; nenhuma das 3 abas de fluxo aparece mesmo com permissão concedida; aba sem permissão não aparece; e sem `dashboard.data` a prop `pendencias` é `null`.
 
-> ⚠️ **Sobre o verde deste UC:** quando o tenant não tem nada pendente, a metade de concordância não tem par pra comparar e o teste faz `markTestSkipped` com a razão escrita, em vez de passar em silêncio. Skip também sai com código 0 — mas sai **visível** no log, e é isso que separa "não havia o que medir" de "medi e está certo" ([LC-13](../../../../memory/LICOES_CODE.md)).
+> ⚠️ **Este UC já nasceu com um verde que não valia, e o registro fica.** A primeira versão do teste de concordância fazia `markTestSkipped` quando o tenant não tinha nada pendente. Ela **pulou de fato** na primeira run do CI (`PHP / Pest (Dashboard · MySQL)`, 2026-09-04: `4 skipped, 17 passed`) — a invariante central do UC não executou, enquanto a lane reportava verde. Skip loud é melhor que verde silencioso, mas continua não sendo execução ([LC-13](../../../../memory/LICOES_CODE.md)).
+>
+> O conserto **não** foi fabricar dado no tenant: `seededTenant()` é o biz=98, criado pelo **seed** e compartilhado por 16 lanes — fabricar ali é o que a lápide de 2026-08-24 barra, e o dono seria o seed, em PR próprio. O conserto foi **reescrever o assert como igualdade nos dois sentidos**: `pendencias()` tem de ser idêntico ao derivado de `linhas()`. No tenant sem movimento isso afirma que o painel não inventa linha nem exibe zero; com movimento, afirma a concordância. Sem skip, sempre executa.
 
 ---
 

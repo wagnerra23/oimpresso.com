@@ -257,11 +257,12 @@ Cobertos em `tests/Feature/Home/GradesDoPainelTest.php` (15 testes · UC-DASH-07
     (fix 2026-08-28): um teste que só checasse a recusa teria ficado verde o tempo todo
 16. ✅ `UC-DASH-16` · `ordenaveis() espelha o sortable da ancora — situacao NAO ordena`. Impede a UI
     oferecer ordenação que o servidor recusa; `situacao` é derivada em PHP, não é coluna de banco
-17. `UC-DASH-19` · Pendências — **3 testes**: (a) concordância, o total do painel é o mesmo que a
-    aba vai mostrar, **e** as 3 abas de fluxo não entram mesmo com permissão concedida; (b) gate,
-    pendência de aba sem permissão não aparece; (c) casca, sem `dashboard.data` a prop nem é
-    registrada. O (a) faz `markTestSkipped` LOUD quando o tenant não tem nada pendente — verde
-    silencioso ali não provaria execução
+17. `UC-DASH-19` · Pendências — **3 testes**: (a) concordância, `pendencias()` é idêntico nos
+    DOIS sentidos ao derivado de `linhas()` sobre as 5 abas da âncora, **e** as 3 abas de fluxo
+    não entram mesmo com permissão concedida; (b) gate, pendência de aba sem permissão não
+    aparece; (c) casca, sem `dashboard.data` a prop nem é registrada. O (a) **não faz skip** de
+    propósito — a primeira versão fazia, e pulou na run de 2026-09-04 deixando a invariante
+    central sem execução com a lane verde (ver a nota no `casos.md`)
 
 ---
 
