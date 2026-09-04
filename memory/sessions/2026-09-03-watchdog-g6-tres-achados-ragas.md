@@ -209,3 +209,110 @@ por dois meses a defasagem que ele acabou de confirmar ser real.
   artefato que a máquina lê se valida rodando a máquina, não revisando o texto).
 - **Não mexeu no watchdog.** Ele acertou nos dois eixos, incluindo o eixo 3 — que era falha real
   e foi consertada na origem, não silenciada.
+
+---
+
+## Errata 2026-09-04 — o bloqueio caducou, o insumo foi produzido, e ele diz NÃO (append, não reescrita)
+
+Sessão seguinte, provocada pelo mesmo vermelho do G6 em PRs novos ([#6705](https://github.com/wagnerra23/oimpresso.com/pull/6705), [#6711](https://github.com/wagnerra23/oimpresso.com/pull/6711)).
+O veredito **(b)** desta página segue de pé e foi reconfirmado por varredura própria, não citado
+de segunda mão: **31** arquivos citam o path, **6** casam primitiva de escrita, **6/6
+falso-positivo** (todos gravam outro path — `Kernel.php` é comentário, `sdd-scorecard.mjs` grava
+o scorecard, `reguas-workflow.test.mjs` grava fixture). Zero escritores automáticos. O dono do
+inventário corrobora com contraste: [`MAQUINAS-INVENTARIO.md:595`](../reference/MAQUINAS-INVENTARIO.md)
+marca este arquivo como `agente, script` e o irmão do canary como `ci`.
+
+O que esta errata corrige são as afirmações de **bloqueio**; o que ela acrescenta é a **medição
+que faltava**.
+
+### O que caducou: as frases sobre o CT 100 (L78, L105, L156-157, L199)
+
+Esta página afirma em presente que re-curar *"depende do CT 100, que segue fora"*. Medido hoje:
+
+| sonda | 2026-09-03 | 2026-09-04 |
+|---|---|---|
+| `mcp.oimpresso.com/api/mcp/health` | `000` | **`200`** (controle `oimpresso.com/login` = `200`) |
+| container `oimpresso-staging` | — | **Up 2 weeks (healthy)** — sobreviveu ao outage |
+| crons do host (`crontab -l`, rc=0) | — | **os 2 intactos**: `0 6 * * 0` eval · `30 8 * * 0` publish |
+| eixo 3 do watchdog | 23 ok · 1 🔴 canary | **24 ok · 0 🔴** (crédito recarregado) |
+
+Nenhum insumo estava faltando hoje. Registrado porque afirmação de bloqueio em doc canon vira
+instrução de desistência para a próxima sessão (§5 2026-09-01) — e esta página é o dono do tema.
+
+### A medição que faltava: gold-set N=51, e ele REPROVA
+
+Esta página fecha com *"[W] havia escolhido re-curar os pisos hoje; não foi feito, e o motivo é
+que o insumo não existe"*. O insumo foi produzido — `jana:ragas-real-eval --json` (N=51 completo,
+US$ 0,0867, `ran_at 2026-09-04T07:52:25-03:00`, `RC_ARTISAN=1`):
+
+| métrica | julho/2026 (baseline) | 2026-09-04 (N=51) | piso vigente | Δ vs julho | vs piso |
+|---|---|---|---|---|---|
+| `faithfulness` | 0,6916 | **0,6282** | 0,65 | −9,2% | ❌ abaixo |
+| `answer_relevancy` | 0,8039 | **0,7294** | 0,75 | −9,3% | ❌ abaixo |
+| `context_recall` | 0,3839 | **0,3106** | 0,36 | −19,1% | ❌ abaixo |
+
+`n_evaluated=51 · n_no_context=0 · n_synth_failed=0 · n_judge_failed=0 · 26 passed · 25 failed`,
+das quais **9 com as três métricas zeradas** (não recuperaram nada). `gate_status: fail`.
+
+Duas leituras, e elas são diferentes:
+
+1. **O colapso catastrófico ACABOU.** `n_no_context` saiu de **51/51** (08-02 e 08-23) para **0**.
+   O pipeline voltou a recuperar contexto — o que o `_alerta_2026_08_31_colapso_do_eval` descreve
+   como estado agudo não é mais o estado de hoje.
+2. **A degradação REAL persiste.** ~9% em faithfulness e relevancy, **−19%** em recall, reprovando
+   os três pisos. Isso não é artefato velho: é qualidade da Jana abaixo da régua, medida.
+
+### Por que a re-cura NÃO foi feita — e agora a razão é outra
+
+Ontem o motivo era *falta de insumo*. Hoje o insumo existe e **diz não**:
+
+- **Rebaixar os pisos** para acomodar 0,6282 / 0,7294 / 0,3106 é editar o baseline para ficar
+  verde (§5 2026-08-26) — e seria pior que ontem, porque agora há prova de que a queda é real.
+- **Atualizar só os números medidos** deixaria o arquivo registrando valores que reprovam os
+  próprios pisos que ele é dono de definir (US-COPI-136) — incoerente.
+- **Mover só a `gerado_em`** apagaria o vermelho do G6 até novembro sem tocar em nada do que ele
+  marca. O watchdog lê a data **mais recente** de `CHAVES_DATA` no texto (`cron-watchdog.mjs:494`),
+  então qualquer chave de data nova no arquivo teria esse efeito colateral.
+
+Pisos, números e data interna seguem **intocados**. O vermelho do G6 continua sendo o marcador
+correto de uma defasagem que agora está quantificada.
+
+### O número que quantifica a hipótese de [W]
+
+[W] atribuiu a queda à reorganização do corpus. Medido no staging:
+`SELECT COUNT(*) FROM mcp_memory_documents` = **2.555**, contra os **1.153** que o próprio
+`_meta.ambiente` declara para julho — **+121%**. O piso de julho foi derivado sobre um corpus com
+menos da metade do tamanho do atual. A hipótese deixa de ser só relato e passa a ter ordem de
+grandeza.
+
+⚠️ E [W] **previu o resultado antes da medição** (*"acho que o baseline ainda vai continuar
+errando"*), o que ficou registrado antes de o run terminar.
+
+### Ressalva sobre um smoke N=5 desta sessão — não usar como evidência
+
+Antes do gold-set, rodei `--sample-size=5` e ele deu `gate pass · context_recall 0,614 ·
+n_no_context 0`. **Esse número é enviesado para cima e não deve ser citado:** `--sample-size` é
+*slice das N primeiras* do gold-set, não amostra aleatória (a falha veio como `idx: 0`, a primeira
+pergunta). As 5 primeiras são vizinhas, e o N=51 devolveu 0,3106 no mesmo dia. Fica registrado
+para que a próxima sessão não o encontre solto e conclua que o recall recuperou.
+
+### Efeito colateral introduzido nesta sessão, e mitigado
+
+`JanaRagasRealEvalCommand::persistReport()` grava
+`storage/app/governance/ragas-real-eval-latest.json` **incondicionalmente** (não olha
+`--sample-size`), e `ct100-ragas-publish.sh:47` **prefere** exatamente esse arquivo. Os dois runs
+manuais de hoje sobrescreveram o artefato que o transporte publica; sem log de fallback no
+container, o publish de domingo 08:30 teria publicado um run de **sexta** como semana 09-06,
+corrompendo a métrica de uptime que a série existe para medir.
+
+Mitigado: o arquivo foi **renomeado** (não apagado) para
+`ragas-real-eval-MANUAL-2026-09-04-n51.json.bak`. O contrato preferido volta a estar ausente, o
+publish cairia em `FATAL ... Semana fica como GAP (inválida). Nada publicado` — downtime honesto —
+e o eval de domingo 06:00 grava o dele normalmente.
+
+### Aberto para [W] — a natureza do item mudou
+
+O que estava aberto era *bookkeeping de artefato* (re-curar uma referência velha). O que está
+aberto agora é **produto**: a Jana responde 25 de 51 abaixo da régua, com 9 respostas sem
+recuperar contexto algum, num corpus que dobrou. Isso pertence a US-COPI-140 / ADR 0334, não ao
+watchdog — o G6 apenas segurou o fio até aqui.

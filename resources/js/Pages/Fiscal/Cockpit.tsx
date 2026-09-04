@@ -333,6 +333,21 @@ export default function Cockpit({
   const totalRej = kpis.rejeitadas + (alerts.filter((a) => a.level === 'crit').length);
   const crumb = `Maio 2026 · ${kpis.emitidas} notas · ${totalRej} requerem ação`;
 
+  // KPI "Certif. A1" — `certificadoValidadeDias` é NEGATIVO quando o cert já venceu.
+  // Até 2026-09-04 o valor era interpolado cru (`${dias}d`), e um cert vencido há 28
+  // dias renderizava o literal "-28d" com o rótulo "renovar". Mesma origem do vão
+  // que existia em CockpitController::computeAlerts() — ver UC-FCKP-10.
+  const certDias = kpis.certificadoValidadeDias;
+  const certVencido = certDias != null && certDias < 0;
+  const certValor = certDias == null ? '—' : certVencido ? 'vencido' : `${certDias}d`;
+  const certNota = certDias == null
+    ? 'sem certificado'
+    : certVencido
+      ? `há ${Math.abs(certDias)}d`
+      : certDias <= 30
+        ? 'renovar'
+        : 'vigente';
+
   return (
     <AppShellV2>
       <Head title="Fiscal · Notas Fiscais" />
@@ -420,8 +435,8 @@ export default function Cockpit({
           </span>
           <span className="fx-ribbon-item">
             <small>Certif. A1</small>
-            <b>{kpis.certificadoValidadeDias != null ? `${kpis.certificadoValidadeDias}d` : '—'}</b>
-            <em>{kpis.certificadoValidadeDias != null && kpis.certificadoValidadeDias <= 30 ? 'renovar' : 'vigente'}</em>
+            <b className={certVencido ? 'emph' : ''}>{certValor}</b>
+            <em className={certVencido ? 'down' : ''}>{certNota}</em>
           </span>
           <span className="fx-ribbon-item">
             <small>Faturado fiscal</small>

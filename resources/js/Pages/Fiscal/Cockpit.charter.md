@@ -19,13 +19,13 @@ prototypes: [prototipo-ui/cowork/fiscal-page.jsx]
 
 ## Mission
 
-Dar à pessoa fiscal (Eliana contadora + Wagner operador) **visão consolidada do estado fiscal do mês** em até **3 segundos** — KPIs de emissão (NF-e/NFC-e/NFS-e/faturamento), alertas determinísticos críticos (rejeições + cert vencendo + DF-e pending), e quick links pras 6 sub-páginas operacionais.
+Dar à pessoa fiscal (Eliana contadora + Wagner operador) **visão consolidada do estado fiscal do mês** em até **3 segundos** — KPIs de emissão (NF-e/NFC-e/NFS-e/faturamento), alertas determinísticos críticos (rejeições + cert **vencido ou** vencendo + DF-e pending), e quick links pras 6 sub-páginas operacionais.
 
 ## Goals (Definition of Done PR #2)
 
 1. **6 KPI cards eager** (não-deferred — first paint): emitidas mês, autorizadas + pct, rejeitadas (com pulse), faturamento, DF-e pending, cert vencimento dias
 2. **Mini-sparklines SVG** nos **3** KPIs que o protótipo marca — emitidas, autorizadas, rejeitadas (últimos 14 dias). ⚠️ Corrigido 2026-09-04: dizia **4**, e o protótipo âncora marca **3** (`fiscal-page.jsx:114-116`; DF-e, Certificado A1 e Faturado fiscal não têm `FxSpark`). É discordância no eixo FORMA, onde a cadeia é *protótipo > teste > casos > charter* ([ADR UI-0029](../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)) — o charter é o perdedor e cede, no mesmo PR que desenhou as séries. A série `faturamento` segue computada e serializada pelo controller; desenhá-la é que divergiria da fonte.
-3. **Alertas determinísticos** (3 níveis crit/warn/info) computados em PHP sem LLM — rejeições 7d + cert <60d + DF-e pending
+3. **Alertas determinísticos** (3 níveis crit/warn/info) computados em PHP sem LLM — rejeições 7d + cert **vencido (`$dias < 0`)**, vencendo hoje ou em ≤60d + DF-e pending
 4. **6 quick-link cards** pra sub-páginas (2 ativos sub-pages 2/3/5 + 3 disabled futuras 4/6/7)
 5. **Multi-tenant Tier 0**: NfeEmissao + NfseEmissao + NfeDfeRecebido + NfeCertificado via HasBusinessScope (ADR 0093)
 6. **Permissão**: `fiscal.access` gate
