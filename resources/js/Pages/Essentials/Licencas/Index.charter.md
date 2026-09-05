@@ -151,7 +151,11 @@ JUnit, não desta lista (G-7). Se algum voltar a falhar, é aqui que a redação
 1. Screenshot aprovado por [W] (gate visual F1.5).
 2. Lane `PHP / Pest (Essentials · MySQL)` verde com os UC de tela.
 
-**D3 do HRM-O0 saiu do caminho desta tela:** a
-[emenda de 2026-09-05](../../../../../prototipo-ui/design-docs/cowork-inbox/hrm/PEDIDO-CL-hrm.md)
-responde que licença aprovada bloqueia a marcação — mas, como D1 passou a jornada para o
-`Modules/Ponto`, **o guard nasce no Ponto**, não aqui. Esta tela não depende dele.
+**D3 do HRM-O0 saiu do caminho desta tela:** pela
+[emenda de 2026-09-05](../../../../../prototipo-ui/design-docs/cowork-inbox/hrm/PEDIDO-CL-hrm.md),
+licença aprovada **sinaliza divergência na marcação, não bloqueia** — [W] emendou a própria
+resposta no mesmo dia, depois de medir que recusar batida vinda de `REP_P`/`AFD` apagaria do
+sistema um registro que existe no equipamento e no arquivo fiscal. E como D1 passou a jornada
+para o `Modules/Ponto`, a sinalização nasce **no Ponto** (chokepoint único e contado:
+`MarcacaoService.php:62`), não aqui. Esta tela não depende dela nas duas versões da resposta —
+o que muda é onde o trabalho acontece, e não é nesta tela.
