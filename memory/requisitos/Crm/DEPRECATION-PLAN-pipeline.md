@@ -245,8 +245,14 @@ migrar o consumidor (Wagner + Felipe), como o §Fase 4 já manda.
 As **duas pernas do oráculo foram verificadas em 2026-09-04** (varredura contada, comandos no §Recibo):
 
 - o grupo `connector/api/crm` **passa mesmo** por `log.delphi` — `Modules/Connector/Routes/api.php:112`;
-- o middleware grava **incondicionalmente** (sem flag, sem `if`), com `endpoint = $request->path()`
-  **sem barra inicial** — `LogDelphiAccess.php:111`.
+- o middleware grava **sem flag e sem condicional de negócio** — o `LicencaLog::create` não está atrás
+  de nenhum `if` —, com `endpoint = $request->path()` **sem barra inicial** — `LogDelphiAccess.php:111`.
+
+⚠️ **Ressalva de precisão (leitura de código, não medida):** o `create` roda **depois** de `$next($request)`,
+e na cadeia do grupo o `log.delphi` vem **antes** do `auth:api`. Logo um request que aborte por exceção
+dentro do `$next()` (ex.: token inválido) pode **não** gerar linha. Isso não muda o veredito abaixo — que é
+sobre o produtor nunca ter rodado no ambiente —, mas significa que a linha registrada é do request que
+**completou**, não de toda tentativa. Não testei esse caminho; quem depender dele, meça.
 
 ⚠️ **Mas a query sozinha não basta, e o motivo é medido:** `licenca_log` é escrita por **5 produtores**
 com convenções de `endpoint` **diferentes** (§Recibo). Logo, todo uso desta query exige **antes** o
