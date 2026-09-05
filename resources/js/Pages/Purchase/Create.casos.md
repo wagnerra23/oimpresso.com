@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: o contrato da grade (1 célula = 1 variation_id, 1 POST único) e o ownership das variations são duráveis — não mudam quando a tela ganhar campo novo.
 owner: wagner
 last_run: "2026-09-04"
-last_run_ci: "cobertura MISTA — o parser da grade tem prova real que EXECUTA (6 casos); os dois cross-tenant sintéticos estão em quarentena e não executam. Ver §Dívida de prova."
+last_run_ci: "🔴 NENHUM teste de tests/Feature/Purchase/ roda em lane alguma — 8 arquivos órfãos de CI. O gate uc-lane-coverage (advisory) reprova estes UC por isso, e está certo. Ver §Dívida de prova."
 ---
 
 # Casos de Uso & Aceite — Nova Compra (`/purchases/create`)
@@ -23,33 +23,48 @@ last_run_ci: "cobertura MISTA — o parser da grade tem prova real que EXECUTA (
 
 ---
 
-## Dívida de prova — cobertura **mista**, medida por bloco
+## 🔴 Dívida de prova — **nenhum** teste desta tela roda em lane alguma
 
-Medição em `origin/main` (2026-09-04). Esta tela é a **melhor coberta** das quatro, e a única com
-prova de comportamento executando — mas o recorte importa:
+> ⚠️ **Correção da v1 deste arquivo (2026-09-05), registrada e não apagada.** A v1 dizia que os
+> `Wave2*` e o miolo do `PurchaseGradeMatrixTest` "executam", e chamava a dívida de *cobertura
+> mista*. **Era falso.** Eu medi a perna do **skip** (`markTestSkipped`) e **não medi a perna da
+> lane**. Quem pegou foi o gate `uc-lane-coverage` (advisory) do CI, reprovando os 7 UC desta tela
+> com *"existe e NENHUMA lane roda"*. O gate estava certo; eu estava errado.
+
+Medição em `origin/main` (2026-09-05), **três pernas**, todas contadas:
+
+| perna | resultado |
+|---|---|
+| workflows que citam `tests/Feature/Purchase` (`git grep -c -- .github/`) | **0** |
+| linhas `Purchase` em `.github/ci-sqlite-pest.list` (542 linhas) | **0** |
+| arquivos de teste em `tests/Feature/Purchase/` | **8** |
+
+**Os 8 arquivos de teste do Purchase são órfãos de CI.** Nenhuma lane os executa — nem a MySQL por
+módulo, nem a sqlite curada do `ci.yml`. Isso é uma camada **acima** da quarentena e muda o
+diagnóstico inteiro:
 
 | teste / bloco | requests | presença | executa? |
 |---|---:|---:|---|
-| [`PurchaseGradeMatrixTest`](../../../../tests/Feature/Purchase/PurchaseGradeMatrixTest.php) — 6 casos do parser (`GradeLayoutBuilder`, lógica pura) | — | — | ✅ **sim — comportamento real** |
-| idem — 6 casos estruturais (rota registrada · scope no controller · wiring da Page) | — | 19 | ✅ sim — casamento de texto |
-| idem — `describe('Tier 0 cross-tenant (synthetic sqlite)')`, 2 casos | 2 | — | 🔴 **NÃO** — pula |
-| [`Wave2CreateInertiaTest`](../../../../tests/Feature/Purchase/Wave2CreateInertiaTest.php) | 0 | 35 | ✅ sim — casamento de texto |
-| [`Wave2CreateBaselineTest`](../../../../tests/Feature/Purchase/Wave2CreateBaselineTest.php) | 1 | 9 | ✅ sim — guarda o Blade legacy |
+| [`PurchaseGradeMatrixTest`](../../../../tests/Feature/Purchase/PurchaseGradeMatrixTest.php) — 6 casos do parser (`GradeLayoutBuilder`, lógica pura) | — | — | 🔴 **não — sem lane** (o código é bom; ninguém o acorda) |
+| idem — 6 casos estruturais (rota · scope no controller · wiring da Page) | — | 19 | 🔴 não — sem lane |
+| idem — `describe('Tier 0 cross-tenant (synthetic sqlite)')` | 2 | — | 🔴 não — **sem lane E em quarentena** (dupla) |
+| [`Wave2CreateInertiaTest`](../../../../tests/Feature/Purchase/Wave2CreateInertiaTest.php) | 0 | 35 | 🔴 não — sem lane |
+| [`Wave2CreateBaselineTest`](../../../../tests/Feature/Purchase/Wave2CreateBaselineTest.php) | 1 | 9 | 🔴 não — sem lane |
 
-**O que executa e prova de verdade:** os 6 casos do parser de layout da grade — 2D por barra, 2D por
-hífen, 1 eixo, produto único, combinação ambígua e caso misto. São `GradeLayoutBuilder` puro,
-driver-agnostic, e sustentam o UC-PURCRE-04 com `Status: 🧪 comportamento`.
+**Duas camadas de falha, e a de cima é a que ninguém tinha nomeado:**
+1. **Sem lane** — o teste nunca é invocado. Nas palavras do próprio gate: *"teste fora de toda lane
+   é 'verde impossível': existe, pode estar vermelho há meses, e nenhum PR o acorda."*
+2. **Quarentena** — mesmo ganhando lane, o bloco cross-tenant pularia em MySQL por
+   `markTestSkipped`. Skip sai **exit 0** ([LC-13](../../../../memory/LICOES_CODE.md)).
 
-**O que NÃO executa:** o bloco `describe('Tier 0 cross-tenant (synthetic sqlite)')` chama
-`markTestSkipped` quando o driver **não** é sqlite, e a suíte real roda em **MySQL**
-([proibicoes §Ambiente](../../../../memory/proibicoes.md)). As duas pernas foram conferidas — o
-arquivo também **não** está em `.github/ci-sqlite-pest.list` (542 linhas, zero ocorrências de
-`Purchase`), então a lane sqlite tampouco o executa. Skip sai **exit 0**
-([LC-13](../../../../memory/LICOES_CODE.md): `0 failed` nunca prova execução).
+**Consequência:** **nenhum** UC desta tela tem defesa ativa — nem comportamental, nem estrutural. O
+`Status` de todos é `🔴 sem lane`. O UC-PURCRE-04, que a v1 celebrava como "o único com prova real",
+tem de fato o melhor teste escrito das quatro telas — e ele também não roda.
 
-**Consequência:** os UC 02 e 03 — ambos `[T0]`, e o 03 também `[V0]` — mantêm defesa **estrutural**
-(o assert que confere o `firstOrFail` escopado no fonte roda), mas a prova de **comportamento**
-cross-tenant está inativa.
+**Por que o conserto não está neste PR:** o gate diz, com todas as letras, *"conserto NÃO é mexer na
+allowlist por conta própria — por que ela existe (custo de CI? teste instável escondido?) é decisão
+[W]"*. Concordo: pôr 8 arquivos numa lane muda custo de CI e pode acordar vermelhos antigos. É
+decisão do dono, com chip aberto.
 
 ---
 
@@ -57,13 +72,13 @@ cross-tenant está inativa.
 
 | UC | Título | Tipo | Âncora de contrato | Teste que cita | Status |
 |---|---|---|---|---|---|
-| UC-PURCRE-01 | SPA recebe React; Blade legacy preservado | must | RUNBOOK §3 | `Wave2CreateInertiaTest` · `Wave2CreateBaselineTest` | ⚠️ 🧪 estrutural |
-| UC-PURCRE-02 | Endpoint da grade recusa produto de outro tenant | must `[T0]` | RUNBOOK §10 · charter R-PUR-001 | `PurchaseGradeMatrixTest` | ⚠️ 🧪 estrutural (comportamento em quarentena) |
-| UC-PURCRE-03 | `store()` recusa `variation_id` forjado de outro tenant | must `[T0]` `[V0]` | RUNBOOK §10 · charter R-PUR-001 | `PurchaseGradeMatrixTest` | ⚠️ 🧪 estrutural (comportamento em quarentena) |
-| UC-PURCRE-04 | A grade nunca abre vazia — degrada 2D → 1 eixo → single | must | RUNBOOK §5 · charter Non-Goal 2 | `PurchaseGradeMatrixTest` | 🧪 **comportamento** (veredito pendente da lane) |
-| UC-PURCRE-05 | 1 célula = 1 `variation_id`, num POST único | must `[V0]` | RUNBOOK §4 · charter Goals | `Wave2CreateInertiaTest` | ⚠️ 🧪 estrutural |
-| UC-PURCRE-06 | Dropdown de filiais respeita `permitted_locations` | must `[T0]` | RUNBOOK §10 · charter R-PUR-002 | `Wave2CreateBaselineTest` | ⚠️ 🧪 estrutural |
-| UC-PURCRE-07 | A Page não decide tenant — `business_id` vem das props | must `[T0]` | RUNBOOK §10 | `Wave2CreateInertiaTest` | 🧪 estrutural (correto) |
+| UC-PURCRE-01 | SPA recebe React; Blade legacy preservado | must | RUNBOOK §3 | `Wave2CreateInertiaTest` · `Wave2CreateBaselineTest` | 🔴 sem lane |
+| UC-PURCRE-02 | Endpoint da grade recusa produto de outro tenant | must `[T0]` | RUNBOOK §10 · charter R-PUR-001 | `PurchaseGradeMatrixTest` | 🔴 sem lane + quarentena |
+| UC-PURCRE-03 | `store()` recusa `variation_id` forjado de outro tenant | must `[T0]` `[V0]` | RUNBOOK §10 · charter R-PUR-001 | `PurchaseGradeMatrixTest` | 🔴 sem lane |
+| UC-PURCRE-04 | A grade nunca abre vazia — degrada 2D → 1 eixo → single | must | RUNBOOK §5 · charter Non-Goal 2 | `PurchaseGradeMatrixTest` | 🔴 sem lane (o teste é bom e não roda) |
+| UC-PURCRE-05 | 1 célula = 1 `variation_id`, num POST único | must `[V0]` | RUNBOOK §4 · charter Goals | `Wave2CreateInertiaTest` | 🔴 sem lane |
+| UC-PURCRE-06 | Dropdown de filiais respeita `permitted_locations` | must `[T0]` | RUNBOOK §10 · charter R-PUR-002 | `Wave2CreateBaselineTest` | 🔴 sem lane |
+| UC-PURCRE-07 | A Page não decide tenant — `business_id` vem das props | must `[T0]` | RUNBOOK §10 | `Wave2CreateInertiaTest` | 🔴 sem lane |
 
 ---
 
@@ -82,7 +97,7 @@ cross-tenant está inativa.
 - **Contrato:** RUNBOOK §3 · [ADR 0104 MWART](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md) (F5 CUTOVER é humano e não ocorreu).
 - **Regressão que defende:** o `store()` é **compartilhado** pelos dois paths. Mexer no create React
   achando que o Blade morreu quebra quem entra pela URL — e ninguém reporta o que não sabe que existe.
-- **Status: ⚠️ 🧪 estrutural** — o `Baseline` emite 1 request, mas as asserções de gate são
+- **Status: 🔴 sem lane** — o `Baseline` emite 1 request, mas as asserções de gate são
   casamento de texto no fonte.
 
 ---
@@ -97,15 +112,16 @@ cross-tenant está inativa.
   negócio responde com a grade montada — sem o par, um `abort` incondicional passaria.
 - **Teste:** [`PurchaseGradeMatrixTest`](../../../../tests/Feature/Purchase/PurchaseGradeMatrixTest.php)
   — *"gradeMatrix resolve produto com scope business_id + firstOrFail (Tier 0 → 404 cross-tenant)"*
-  (estrutural, **executa**) · *"usuário biz=1 NÃO resolve produto de biz=99"* e *"same-tenant biz=1
+  (estrutural) · *"usuário biz=1 NÃO resolve produto de biz=99"* e *"same-tenant biz=1
   resolve o próprio produto e monta a grade 2D"* (comportamento, **em quarentena**).
 - **Contrato:** RUNBOOK §10 (invariante ✅ explícito) · charter R-PUR-001 ·
   [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
 - **Regressão que defende:** `gradeMatrix` é endpoint **novo** (US-COM-005) e o model `Transaction`
   desta controller já teve IDOR real. Endpoint auxiliar chamado por `fetch` é o lugar clássico onde
   o scope é esquecido: ele não aparece na tela, aparece na aba de rede.
-- **Status: ⚠️ 🧪 estrutural (comportamento em quarentena)** — o assert que confere o `firstOrFail`
-  escopado no fonte **roda**; o par 404/200 que provaria o comportamento **não**.
+- **Status: 🔴 sem lane + quarentena** — o assert que confere o `firstOrFail`
+  escopado no fonte existe — mas **nenhuma lane o executa**, e o par 404/200 que provaria o
+  comportamento ainda soma a quarentena por cima. Defesa nominal, zero defesa efetiva.
 
 ---
 
@@ -118,13 +134,13 @@ cross-tenant está inativa.
   de ownership roda antes de `createOrUpdatePurchaseLines`, e nenhuma linha é gravada.
 - **Teste:** [`PurchaseGradeMatrixTest`](../../../../tests/Feature/Purchase/PurchaseGradeMatrixTest.php)
   — *"store() valida ownership Tier 0 das variations (anti payload forjado cross-tenant)"*
-  (estrutural, **executa**).
+  (estrutural) — escrito, citado pelo UC, e **sem lane que o execute**.
 - **Contrato:** RUNBOOK §10 (invariante ✅) · charter R-PUR-001 ·
   [proibicoes §REGRA MESTRE — CÁLCULO DE VALOR ou ESTOQUE](../../../../memory/proibicoes.md).
 - **Regressão que defende:** a grade transformou a tela num emissor de **N linhas por submit**. Antes,
   forjar payload rendia uma linha; agora rende a matriz inteira. E o efeito não é só leitura: é
   estoque movido e valor gravado — o território da Regra Mestre, onde o canon exige dupla prova.
-- **Status: ⚠️ 🧪 estrutural (comportamento em quarentena)** — o assert confere no fonte que a
+- **Status: 🔴 sem lane + quarentena** — o assert confere no fonte que a
   validação de ownership existe; **nenhum teste ativo submete um payload forjado e observa a recusa**.
   Sendo `[T0]` **e** `[V0]`, é o UC desta tela que mais pede prova real.
 
@@ -150,10 +166,10 @@ cross-tenant está inativa.
   catálogo usar nomes compostos. Uma otimização no parser que trate o caso ambíguo como erro em vez
   de degradar transforma um catálogo mal nomeado numa tela morta — e o catálogo é do cliente, não
   nosso.
-- **Status: 🧪 comportamento (veredito pendente da lane)** — **o único UC das quatro telas cuja
-  defesa é comportamento real e executa.** Os 6 casos exercitam o `GradeLayoutBuilder` de verdade
-  (lógica pura, driver-agnostic), incluindo os dois caminhos de degradação que mais importam:
-  ambíguo e misto.
+- **Status: 🔴 sem lane** — **o único UC das quatro telas cuja defesa é comportamento real — e que,
+  mesmo assim, não roda.** Os 6 casos exercitam o `GradeLayoutBuilder` de verdade (lógica pura,
+  driver-agnostic), incluindo os dois caminhos de degradação que mais importam: ambíguo e misto.
+  É o caso que melhor mostra o custo da ausência de lane: o teste está **escrito, correto e mudo**.
   > **Por que não `✅`:** a primeira versão deste arquivo escreveu `✅` — e o **G-7 reprovou**
   > (`status:unverified`). O gate está certo e a regra é a que este próprio documento prega: `✅` só
   > vale com teste **verde no manifesto** (`scripts/casos-test-results.json`, via `npm run
@@ -180,7 +196,7 @@ cross-tenant está inativa.
   `purchase_line_tax_id` — **não** `tax_id` — e roda a normalização numérica pt-BR em quantidade e
   preços. Uma chave renomeada "para ficar consistente" faz imposto sumir sem erro nenhum. É
   território da [Regra Mestre de valor](../../../../memory/proibicoes.md).
-- **Status: ⚠️ 🧪 estrutural** — os asserts provam que o modo grade está *plugado* no arquivo; **não**
+- **Status: 🔴 sem lane** — os asserts provam que o modo grade está *plugado* no arquivo; **não**
   provam a expansão célula→linha nem o formato do payload.
 
 ---
@@ -196,7 +212,7 @@ cross-tenant está inativa.
 - **Contrato:** RUNBOOK §10 (invariante ✅ `permitted_locations`) · charter R-PUR-002.
 - **Regressão que defende:** lançar compra na filial errada não dá erro — dá estoque no lugar errado,
   descoberto no inventário semanas depois.
-- **Status: ⚠️ 🧪 estrutural** — casamento de texto; nenhum usuário com filial restrita é montado.
+- **Status: 🔴 sem lane** — casamento de texto; nenhum usuário com filial restrita é montado.
 
 ---
 
@@ -213,7 +229,8 @@ cross-tenant está inativa.
   `auth()->user()->business_id` no controller — o canon UPOS é a sessão).
 - **Regressão que defende:** um `business_id` fixo parece constante de config em review e só se
   revela no segundo tenant.
-- **Status: 🧪 estrutural (correto)** — **sem ⚠️.** Ausência de literal *é* o contrato.
+- **Status: 🔴 sem lane** — o contrato aqui *é* a ausência de um literal no arquivo, então o
+  presence-gate seria o instrumento certo. Só que ele tambem nao roda: instrumento certo, nunca acionado.
 
 ---
 

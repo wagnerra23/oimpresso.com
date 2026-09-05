@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: os três gates de escrita (tenant, janela temporal, devolução existente) são duráveis — não mudam quando o formulário ganhar campo novo.
 owner: wagner
 last_run: "2026-09-04"
-last_run_ci: "ATENÇÃO — o teste do IDOR corrigido (UpdateCrossTenantIdorTest) está EM QUARENTENA e não executa em lane nenhuma. Ver §Dívida de prova."
+last_run_ci: "🔴 NENHUM teste de tests/Feature/Purchase/ roda em lane alguma — 8 arquivos órfãos de CI; o do IDOR soma quarentena por cima. Ver §Dívida de prova."
 ---
 
 # Casos de Uso & Aceite — Editar Compra (`/purchases/{id}/edit`)
@@ -22,15 +22,27 @@ last_run_ci: "ATENÇÃO — o teste do IDOR corrigido (UpdateCrossTenantIdorTest
 
 ---
 
-## 🔴 Dívida de prova — o teste do IDOR já corrigido **não roda**
+## 🔴 Dívida de prova — **nenhum** teste desta tela roda em lane alguma
 
-Medição em `origin/main` (2026-09-04):
+> ⚠️ **Correção da v1 deste arquivo (2026-09-05), registrada e não apagada.** A v1 marcava os
+> `Wave2*` como *"✅ sim — executa"* e tratava a quarentena do `UpdateCrossTenantIdorTest` como o
+> problema. **Estava errado nos dois pontos:** eu medi a perna do **skip** e **não medi a perna da
+> lane**. Quem pegou foi o gate `uc-lane-coverage` (advisory) do CI, reprovando os 7 UC desta tela
+> com *"existe e NENHUMA lane roda"*. O gate estava certo.
+
+Medição em `origin/main` (2026-09-05), **três pernas**, todas contadas:
+
+| perna | resultado |
+|---|---|
+| workflows que citam `tests/Feature/Purchase` (`git grep -c -- .github/`) | **0** |
+| linhas `Purchase` em `.github/ci-sqlite-pest.list` (542 linhas) | **0** |
+| arquivos de teste em `tests/Feature/Purchase/` | **8** |
 
 | teste | requests | presença | executa? |
 |---|---:|---:|---|
-| [`Wave2EditInertiaTest`](../../../../tests/Feature/Purchase/Wave2EditInertiaTest.php) | 0 | 15 | ✅ sim — casamento de texto no fonte |
-| [`Wave2EditBaselineTest`](../../../../tests/Feature/Purchase/Wave2EditBaselineTest.php) | 0 | 5 | ✅ sim — guarda o Blade legacy |
-| [`UpdateCrossTenantIdorTest`](../../../../tests/Feature/Purchase/UpdateCrossTenantIdorTest.php) | 0 | 2 | 🔴 **NÃO** — pula |
+| [`Wave2EditInertiaTest`](../../../../tests/Feature/Purchase/Wave2EditInertiaTest.php) | 0 | 15 | 🔴 não — sem lane |
+| [`Wave2EditBaselineTest`](../../../../tests/Feature/Purchase/Wave2EditBaselineTest.php) | 0 | 5 | 🔴 não — sem lane |
+| [`UpdateCrossTenantIdorTest`](../../../../tests/Feature/Purchase/UpdateCrossTenantIdorTest.php) | 0 | 2 | 🔴 não — **sem lane E em quarentena** (dupla) |
 
 `UpdateCrossTenantIdorTest` documenta, no próprio cabeçalho, um **IDOR de escrita cross-tenant em
 dinheiro que existiu de verdade**: `PurchaseController@update` fazia a busca sem `where business_id`
@@ -38,15 +50,22 @@ e — como o model `Transaction` **não tem global scope** — um usuário do ne
 lançamento financeiro do negócio B. O fix foi escopar a busca; o teste prova o fix em três cenários
 (cross-tenant não resolve · o dado da vítima permanece intacto · same-tenant continua funcionando).
 
-E ele **não executa em lane nenhuma** — as duas pernas conferidas:
+**São duas camadas de falha, e a de cima é a que ninguém tinha nomeado:**
 
-1. **Skip:** o `beforeEach` chama `markTestSkipped('era-sqlite: … quarentena Onda 2 SDD floor')`
-   quando o driver **não** é sqlite; a suíte real roda em **MySQL** → pula.
-2. **Allowlist:** `.github/ci-sqlite-pest.list` (542 linhas) **não tem uma linha `Purchase`** → a
-   lane sqlite também não o executa.
+1. **Sem lane** — nenhum dos 8 arquivos de `tests/Feature/Purchase/` é invocado por lane alguma.
+   Nas palavras do próprio gate: *"teste fora de toda lane é 'verde impossível': existe, pode estar
+   vermelho há meses, e nenhum PR o acorda."*
+2. **Quarentena** — sobre isso, o `UpdateCrossTenantIdorTest` ainda chama `markTestSkipped` fora do
+   sqlite (`beforeEach` **global**, linha 27), e a suíte real roda em MySQL. Mesmo ganhando lane,
+   pularia.
 
 Skip sai **exit 0** ([LC-13](../../../../memory/LICOES_CODE.md): `0 failed` nunca prova execução).
-**A regressão mais cara já vivida por esta controller está hoje sem defesa ativa.**
+**A regressão mais cara já vivida por esta controller está hoje sem defesa ativa** — e a razão
+principal não é a quarentena, é a ausência de lane.
+
+**Por que o conserto não está neste PR:** o gate diz, com todas as letras, *"conserto NÃO é mexer na
+allowlist por conta própria — por que ela existe (custo de CI? teste instável escondido?) é decisão
+[W]"*. Concordo: pôr 8 arquivos numa lane muda custo de CI e pode acordar vermelhos antigos.
 
 ---
 
@@ -77,7 +96,7 @@ Skip sai **exit 0** ([LC-13](../../../../memory/LICOES_CODE.md): `0 failed` nunc
 - **Contrato:** RUNBOOK §11 (F5 CUTOVER = dual path) · [ADR 0104](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md).
 - **Regressão que defende:** o `update()` é compartilhado. Limpar o Blade "porque migrou" quebra
   quem entra pela URL direta.
-- **Status: ⚠️ 🧪 estrutural** — casamento de texto no fonte; nenhum request emitido.
+- **Status: 🔴 sem lane** — casamento de texto no fonte; nenhum request emitido.
 
 ---
 
@@ -99,7 +118,7 @@ Skip sai **exit 0** ([LC-13](../../../../memory/LICOES_CODE.md): `0 failed` nunc
 - **Regressão que defende:** o defeito original — busca sem `where business_id` num model **sem
   global scope** — é invisível em review porque a linha *parece* idiomática (`findOrFail($id)`). O
   teste guarda inclusive a forma: exige o `where` e proíbe o `findOrFail` nu voltar.
-- **Status: 🔴 quarentena** — **este é o UC mais grave do trio inteiro.** `[T0]` **e** `[V0]`,
+- **Status: 🔴 sem lane + quarentena** — **este é o UC mais grave do trio inteiro.** `[T0]` **e** `[V0]`,
   regressão **já materializada**, teste escrito e correto, e **não executa**. Nomeado com destaque
   no `[BACKLOG]` e no chip de saída.
 
@@ -116,7 +135,7 @@ Skip sai **exit 0** ([LC-13](../../../../memory/LICOES_CODE.md): `0 failed` nunc
 - **Contrato:** RUNBOOK §3 · charter R-PUR-005.
 - **Regressão que defende:** editar compra antiga reescreve custo de item cujo estoque **já saiu** —
   a margem de vendas passadas muda retroativamente, e ninguém liga uma coisa à outra.
-- **Status: ⚠️ 🧪 estrutural** — o assert prova que a chamada ao gate **existe no fonte**; não monta
+- **Status: 🔴 sem lane** — o assert prova que a chamada ao gate **existe no fonte**; não monta
   compra fora da janela nem observa a recusa.
 
 ---
@@ -132,7 +151,7 @@ Skip sai **exit 0** ([LC-13](../../../../memory/LICOES_CODE.md): `0 failed` nunc
 - **Regressão que defende:** alterar quantidade de uma compra devolvida produz **estoque negativo ou
   fantasma** sem erro nenhum na hora — o rombo aparece no inventário. Território da
   [Regra Mestre de valor e estoque](../../../../memory/proibicoes.md).
-- **Status: ⚠️ 🧪 estrutural** — casamento de texto; a devolução não é criada nem o bloqueio observado.
+- **Status: 🔴 sem lane** — casamento de texto; a devolução não é criada nem o bloqueio observado.
 
 ---
 
@@ -148,7 +167,7 @@ Skip sai **exit 0** ([LC-13](../../../../memory/LICOES_CODE.md): `0 failed` nunc
 - **Regressão que defende:** o `PurchaseController@show` **já teve a linha de permissão comentada**
   (o `ShowPageTest` guarda isso com *"permission re-adicionada (não comentada)"*). O mesmo `//` numa
   linha de autorização é a mudança mais barata de escrever e a mais cara de descobrir.
-- **Status: ⚠️ 🧪 estrutural** — prova que a chamada existe no fonte; nenhum usuário sem permissão é
+- **Status: 🔴 sem lane** — prova que a chamada existe no fonte; nenhum usuário sem permissão é
   montado. E o `update` **não** tem assert próprio de permissão — só o `edit`. Registrado no `[BACKLOG]`.
 
 ---
@@ -166,7 +185,7 @@ Skip sai **exit 0** ([LC-13](../../../../memory/LICOES_CODE.md): `0 failed` nunc
 - **Contrato:** RUNBOOK §4 (tabela de props) · §9 (*"pré-população via prop purchase"*).
 - **Regressão que defende:** um campo que **não** chega pré-populado é submetido vazio e **apaga** o
   valor gravado — o pior tipo de perda de dado, porque parece uma edição legítima do operador.
-- **Status: ⚠️ 🧪 estrutural** — `should`, não `must`: aqui a asserção estrutural cobre uma parte
+- **Status: 🔴 sem lane** — `should`, não `must`: aqui a asserção estrutural cobre uma parte
   honesta do contrato (a interface tipada declarada no arquivo).
 
 ---
@@ -182,7 +201,8 @@ Skip sai **exit 0** ([LC-13](../../../../memory/LICOES_CODE.md): `0 failed` nunc
 - **Contrato:** RUNBOOK §3 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
 - **Regressão que defende:** um `business_id` fixo parece constante de config em review e só se
   revela no segundo tenant.
-- **Status: 🧪 estrutural (correto)** — **sem ⚠️.** Ausência de literal *é* o contrato.
+- **Status: 🔴 sem lane** — o contrato aqui *é* a ausência de um literal no arquivo, então o
+  presence-gate seria o instrumento certo. Só que ele tambem nao roda: instrumento certo, nunca acionado.
 
 ---
 
