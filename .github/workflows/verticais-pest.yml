@@ -184,6 +184,24 @@ jobs:
         # pulam VISÍVEL porque `ModuleUtil::getTaxonomyData` faz `exit` quando o módulo
         # não consta instalado. Com `system.repair_version` presente os 8 passam
         # (30 assertions) — a dívida é do seed, e está declarada no charter da tela.
+        #
+        # ENTRAM 2026-09-05 — Repair/DeviceModelsContratoTest + Repair/RepairStatusContratoTest:
+        # o contrato executável das 4 telas de cadastro do Repair (DeviceModels Index/Create/Edit
+        # e Status/Index), fechando o trio das quatro. Sem estar NESTA lista o arquivo nasce mudo:
+        # a lane roda allowlist, não diretório (§ lado subtrativo do run-set, LC-13).
+        # Medidos no CT 100 (MySQL real, 2026-09-05) com o ambiente igual ao desta lane — isto é,
+        # `system.repair_version` ausente:
+        #   DeviceModelsContratoTest  → 14 passed (58 assertions), 0 skipped
+        #   RepairStatusContratoTest  →  6 passed (17 assertions), 0 skipped
+        # Nenhum dos dois passa por `ModuleUtil::getTaxonomyData`, então não sofrem o `exit` que
+        # obriga o RepairSettingsContratoTest a pular 2 UCs: `Category::forDropdown` consulta a
+        # tabela `categories` direto, sem taxonomia de módulo.
+        #
+        # ⚠️ Estes dois NÃO duplicam o DeviceModelsInertiaSmokeTest acima. Medido no mesmo dia,
+        # aquele arquivo roda `5 skipped, 3 passed (3 assertions)`: os 3 testes de render Inertia
+        # dele pulam sempre — mandam `X-Inertia-Version: 'test'`, levam 409, e o
+        # `if (status !== 200) markTestSkipped()` engole; e os 2 cross-tenant exigem SQLite, que
+        # esta lane (MySQL) nunca satisfaz. Os 3 verdes de lá são só os `flag OFF`.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -201,6 +219,8 @@ jobs:
             Modules/Repair/Tests/Feature/DeviceModelsInertiaSmokeTest.php \
             Modules/Repair/Tests/Feature/ProducaoOficinaRefactorTest.php \
             Modules/Repair/Tests/Feature/RepairSettingsContratoTest.php \
+            Modules/Repair/Tests/Feature/DeviceModelsContratoTest.php \
+            Modules/Repair/Tests/Feature/RepairStatusContratoTest.php \
             Modules/Vestuario/Tests/Feature/SmokeRoutesVestuarioTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminDashboardContratoTest.php \
             Modules/Superadmin/Tests/Feature/SubscriptionLifecycleServiceTest.php \
