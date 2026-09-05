@@ -1099,6 +1099,12 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **⚠️ NÃO virar gate por nome de arquivo:** acusar `governance/*.json` no stage reprovaria os derivados que o PR **tem** que carregar (`_STATUS-GENERATED.md`, `SUPERFICIE.md`, baselines de catraca) — este mesmo PR carregou dois, legitimamente. O predicado verdadeiro (*"a fonte deste derivado existe no checkout?"*) é por-artefato e não é derivável do path. FP não medido; [ADR 0344](decisions/0344-two-strikes-cobre-processo.md) manda 1ª ocorrência consertar, não codificar.
 
+### 2026-09-05 — Ler `1 failed` como prova de que o bite-test MORDE, e escrever caso cujo valor esperado COINCIDE com o que o bug produz
+
+- **O limite (variantes também proibidas):** **(1)** não registrar mordida de bite-test por **contagem** de falhas — exigir o **veredito de natureza**: `<failure>` com a mensagem do assert de contrato, nunca `<error>`/500/`ParseError`. As duas saem como `1 failed`, e só uma prova alguma coisa; num JUnit, é ler o bloco do `<testcase>`, não o exit code. **(2)** não escrever caso cujo valor esperado possa **coincidir** com o que a mutação produz — o caso tem que ser **discriminante por construção**: duas amostras com valores diferentes (aqui, escalas com 1 e 2 turnos), para que um agregado sem vínculo devolva o mesmo número nas duas e pelo menos um assert caia. Vale para toda asserção sobre agregado, contador, total ou `count` — e o teste barato é perguntar *"que outro mecanismo errado produziria exatamente este número?"*.
+
+- **⚠️ NÃO virar gate:** o predicado de (2) — *"este valor esperado é discriminante?"* — exige saber que mutações são plausíveis naquele código, e é semântico por construção ([ADR 0224](decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md): semântico = advisory). A forma sintática (acusar `toBe(1)` ou fixture de amostra única) reprovaria o legítimo, que é a família já enterrada aqui 7× — allowlist-de-pasta 06-30 · guard `@scope` 07-09 · vocabulário 130 FP 07-16 · `toHaveKey` 100% FP 07-26 · `toContain` 07-28 · `jq` 08-11 · par usuário/senha 08-02. Para (1) existe forma mecânica e ela **já tem dono**: o `junit-summary.mjs` lê o JUnit e distingue os campos — se um dia valer, é **estender o dono**, nunca abrir um 2º leitor de JUnit (§5 2026-07-09).
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
