@@ -19,16 +19,14 @@ authority: generated
 | US no SPEC | 14 |
 | CU no SDD | 14 |
 | Telas (.tsx) | 21 |
-| Telas com `casos.md` | 19 |
-| UC declarados | 66 |
-| UC com teste que os cita | 64 |
+| Telas com `casos.md` | 21 |
+| UC declarados | 69 |
+| UC com teste que os cita | 67 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
 | Lacuna | O que falta escrever |
 |---|---|
-| Tela `Escalas/Index` sem `casos.md` | o contrato da tela (trio incompleto) |
-| Tela `Welcome` sem `casos.md` | o contrato da tela (trio incompleto) |
 | `US-PONTO-001` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Relogio web pra registrar entrada/saida (REP-P) |
 | `US-PONTO-007` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Multi-tenant isolation (Tier 0 IRREVOGAVEL) |
 
@@ -77,6 +75,8 @@ authority: generated
 | UC-ESCF-01 | Escalas/Form | 🧪 aguarda veredito da lane |
 | UC-ESCF-02 | Escalas/Form | 🧪 aguarda veredito da lane |
 | UC-ESCF-03 | Escalas/Form | 🧪 aguarda veredito da lane |
+| UC-ESCIDX-01 | Escalas/Index | 🧪 aguarda veredito da lane |
+| UC-ESCIDX-02 | Escalas/Index | 🧪 aguarda veredito da lane |
 | UC-ESPIDX-01 | Espelho/Index | 🧪 aguarda veredito da lane |
 | UC-ESPIDX-02 | Espelho/Index | 🧪 aguarda veredito da lane |
 | UC-ESPIDX-03 | Espelho/Index | 🧪 aguarda veredito da lane |
@@ -115,6 +115,7 @@ authority: generated
 | UC-PAINEL-06 | Dashboard/Index | 🧪 aguarda veredito da lane |
 | UC-PAINEL-07 | Dashboard/Index | 🧪 aguarda veredito da lane |
 | UC-PAINEL-08 | Dashboard/Index | 🧪 aguarda veredito da lane |
+| UC-PWEL-01 | Welcome | 🧪 aguarda veredito da lane |
 | UC-RELIDX-01 | Relatorios/Index | 🧪 aguarda veredito da lane |
 | UC-RELIDX-02 | Relatorios/Index | 🧪 aguarda veredito da lane |
 | UC-RELIDX-03 | Relatorios/Index | 🧪 aguarda veredito da lane |
