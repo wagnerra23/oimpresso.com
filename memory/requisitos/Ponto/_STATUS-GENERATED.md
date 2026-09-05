@@ -35,6 +35,7 @@ authority: generated
 | Tela `Welcome` sem `casos.md` | o contrato da tela (trio incompleto) |
 | `US-PONTO-001` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Relogio web pra registrar entrada/saida (REP-P) |
 | `US-PONTO-007` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Multi-tenant isolation (Tier 0 IRREVOGAVEL) |
+| `US-PONTO-012` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Corrigir os atributos fantasma do modulo (4 instancias) |
 
 ### Backlog — NÃO é lacuna
 
@@ -50,7 +51,6 @@ authority: generated
 | US-PONTO-009 | `backlog` | Geracao AEJ canon Portaria 671/2021 Anexo VI (CRITICO REGULATORIO) |
 | US-PONTO-010 | `backlog` | Comprovante PDF QR Code (Anexo I §5.5 Portaria 671) |
 | US-PONTO-011 | `todo` | Fechar o append-only do ledger de banco de horas |
-| US-PONTO-012 | `todo` | Corrigir os atributos fantasma do modulo (4 instancias) |
 | US-PONTO-013 | `todo` | Consertar as duas telas que nao persistem |
 | US-PONTO-014 | `todo` | Lane required de Ponto vira arvore-menos-quarentena (vermelha no main ha 5 runs; |
 

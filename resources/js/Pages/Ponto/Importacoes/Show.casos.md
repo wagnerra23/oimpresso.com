@@ -5,8 +5,8 @@ irmaos: Show.charter.md (lei) · SDD-espelho-e-jornada-v1.0.md §5.3 F7 + §6.4 
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a ponte entre o relógio físico (REP-A homologado) e a jornada apurada — duplicar aqui infla a folha.
 owner: wagner
-last_run: "2026-09-04"
-last_run_ci: "UC-IMPSH-01..04 PASSARAM na lane (run 33938659118, JUnit: 4 testcases pass, 2/2/2/6 assertions) mas seguem FORA do manifesto G-7 por citarem o UC em docblock; UC-IMPSH-05 nasce neste PR e o veredito dele é da lane PHP / Pest (Ponto · MySQL)"
+last_run: "2026-09-05"
+last_run_ci: "5 de 5 VERDES no run 33942364334 da lane PHP / Pest (Ponto · MySQL) — UC-IMPSH-01/02/03 2 assertions cada, UC-IMPSH-04 6, UC-IMPSH-05 12; lane inteira 279 passed / 0 failed / 1 skipped / 939 assertions. Os 01..04 seguem FORA do manifesto G-7 por citarem o UC em docblock (ver nota ⛓), e o 05 entra no manifesto no primeiro publish do cron casos-results-publish"
 ---
 
 # Casos de Uso & Aceite — Resultado da importação AFD
@@ -35,7 +35,7 @@ last_run_ci: "UC-IMPSH-01..04 PASSARAM na lane (run 33938659118, JUnit: 4 testca
 | UC-IMPSH-02 | A dedup é do meu empregador, não global | must `[T0]` | `CU-PONTO-10` + ADR 0093 | `BancoHorasImportacaoContratoTest` | 🧪 sem veredito |
 | UC-IMPSH-03 | Importação de outro empregador → 404 | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `BancoHorasImportacaoContratoTest` | 🧪 sem veredito |
 | UC-IMPSH-04 | As contagens exibidas refletem o que foi processado | must | `CU-PONTO-11` + US-PONTO-002 | `BancoHorasImportacaoContratoTest` | 🧪 predição REFUTADA — verde na lane, sem entrada no manifesto |
-| UC-IMPSH-05 | A importação que falhou mostra o motivo da falha | must | `CU-PONTO-11` + charter §Goals | `ImportacaoShowContratoTest` | 🧪 sem veredito |
+| UC-IMPSH-05 | A importação que falhou mostra o motivo da falha | must | `CU-PONTO-11` + charter §Goals | `ImportacaoShowContratoTest` | 🧪 VERDE na lane (12 assertions) |
 
 > ⛓ **Por que os UC-IMPSH-01..04 seguem `🧪` mesmo passando.** O `BancoHorasImportacaoContratoTest`
 > é classe PHPUnit e cita o UC em **docblock**; método PHP não aceita hífen, então o `name` do
@@ -171,4 +171,11 @@ last_run_ci: "UC-IMPSH-01..04 PASSARAM na lane (run 33938659118, JUnit: 4 testca
   "Erro no processamento" passaria a abrir em *toda* importação, inclusive nas que deram certo.
 - **Nota de teste:** biz=1 (WR2 interno) — **nunca biz=4** (ROTA LIVRE). Sem `RefreshDatabase`: a lane
   proíbe (dropa schema e limpa o seed).
-- **Status: 🧪 sem veredito** — o teste nasce neste PR; o veredito é da lane, não desta linha.
+- **Status: 🧪 VERDE na lane.** Recibo (JUnit do run `33942364334`):
+  `it UC-IMPSH-05 · a importação que falhou mostra o motivo da falha` → **pass, 12 assertions**
+  (`279 passed · 0 failed · 1 skipped · 939 assertions` na lane inteira). Assertions > 0 é o que
+  separa "passou" de "pulou" — `0 failed` sozinho não prova execução (LC-13).
+  Fica `🧪` e **não** `✅` por um motivo mecânico, não por modéstia: o oráculo do G-7 é o
+  manifesto `scripts/casos-test-results.json`, publicado por **cron** (`casos-results-publish.yml`,
+  `on: schedule`) e não pelo PR — declarar `✅` antes de o manifesto ter a entrada seria
+  `status:unverified`. Vira `✅` no primeiro publish após o merge.

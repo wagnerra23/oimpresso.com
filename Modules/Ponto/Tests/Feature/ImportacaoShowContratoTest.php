@@ -47,6 +47,13 @@ uses(PontoTestCase::class);
  *
  * Contrato: resources/js/Pages/Ponto/Importacoes/Show.casos.md
  *
+ * Este arquivo cobre a 4ª e última instância de atributo fantasma da US-PONTO-012
+ * (`erro_mensagem`). As outras três já têm teste próprio, listados no `Implementado em:`
+ * da US: `EspelhoContratoTest` (UC-ESPSH-01), `EscalaFormContratoTest` (UC-ESCF-01),
+ * `ImportacaoIndexContratoTest` + `BancoHorasImportacaoContratoTest` (UC-IMPIDX-03/UC-IMPSH-04).
+ *
+ * @covers-us US-PONTO-012
+ *
  * @see \Modules\Ponto\Http\Controllers\ImportacaoController::show
  */
 
