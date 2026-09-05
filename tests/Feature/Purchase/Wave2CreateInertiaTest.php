@@ -28,8 +28,8 @@ const CREATE_CHARTER_PATH = 'resources/js/Pages/Purchase/Create.charter.md';
 const CREATE_CONTROLLER_PATH = 'app/Http/Controllers/PurchaseController.php';
 // Reconciliado 2026-06-22 (US-COM-005): RUNBOOK/visual agora vivem em Purchase/ — alinha o hook
 // block-mwart-violation (que deriva o módulo do path da Page). Antes apontavam pra Inventory/ (inexistente).
-const CREATE_RUNBOOK_PATH = 'memory/requisitos/Purchase/RUNBOOK-create.md';
-const CREATE_VISUAL_PATH = 'memory/requisitos/Purchase/create-visual-comparison.md';
+const CREATE_RUNBOOK_PATH = 'memory/requisitos/Compras/_telas/RUNBOOK-purchase-create.md';
+const CREATE_VISUAL_PATH = 'memory/requisitos/Compras/_telas/purchase-create-visual-comparison.md';
 
 function readCreateInertia(): string
 {
@@ -55,7 +55,7 @@ it('Charter Create.charter.md existe ao lado (ADR 0149)', function () {
     expect($content)->toContain('derived_screens:');
 });
 
-it('RUNBOOK existe em memory/requisitos/Purchase/', function () {
+it('RUNBOOK existe em memory/requisitos/Compras/_telas/', function () {
     expect(file_exists(base_path(CREATE_RUNBOOK_PATH)))->toBeTrue();
 });
 
