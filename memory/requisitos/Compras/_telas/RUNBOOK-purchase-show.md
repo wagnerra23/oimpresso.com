@@ -5,7 +5,7 @@ module: Purchase
 tela: Purchase/Show
 owner: F
 status: ativo
-last_validated: "2026-09-04"
+last_validated: "2026-09-05"
 related_adrs:
   - 0104-processo-mwart-canonico-unico-caminho
   - 0093-multi-tenant-isolation-tier-0
@@ -174,18 +174,38 @@ quem for migrar o activity log não precisa de query nova, só passar a variáve
 
 ## 7. Smoke (R1 — evidência, não narração)
 
-> ⚠️ **Não executado nesta sessão** (sem acesso a prod daqui). O bloco abaixo é a **receita**;
-> um recibo é a saída colada, com o status literal de cada hop.
-
 ```bash
-curl -sv https://oimpresso.com/purchases/24796 2>&1 | grep '^< HTTP'
-curl -sv https://oimpresso.com/purchases/print/24796 2>&1 | grep '^< HTTP'
-curl -sv https://oimpresso.com/purchases 2>&1 | grep '^< HTTP'
-curl -sv https://oimpresso.com/sells/1 2>&1 | grep '^< HTTP'
+for u in /purchases/24796 /purchases/print/24796 /purchases /sells/1; do
+  curl -sv "https://oimpresso.com$u" 2>&1 | grep -iE '^< (HTTP|location)'
+done
 ```
 
-Esperado: `200` autenticado (ou `302` para login sem sessão). As duas últimas são **regressão
-adjacente** — não devem mudar quando esta tela mudar.
+**Recibo — rodado em 2026-09-05 (não autenticado):**
+
+| hop | status | Location |
+|---|---|---|
+| `/purchases/24796` | `HTTP/1.1 302 Found` | `https://oimpresso.com/login` |
+| `/purchases/print/24796` | `HTTP/1.1 302 Found` | `https://oimpresso.com/login` |
+| `/purchases` (regressão adjacente) | `HTTP/1.1 302 Found` | `https://oimpresso.com/login` |
+| `/sells/1` (regressão adjacente) | `HTTP/1.1 302 Found` | `https://oimpresso.com/login` |
+
+**Controles que fazem o 302 significar alguma coisa** (sem eles, 302 é só "o app respondeu"):
+
+| controle | esperado | medido |
+|---|---|---|
+| `/zzz-rota-inexistente-xyz` | difere de 302 | **404** |
+| `/purchases/24796/zzz-nao-existe` | difere de 302 | **404** |
+| `/login` | difere de 302 | **200** |
+
+⚠️ **O que este recibo prova, e só isto:** as 4 rotas estão registradas, respondem, e o 302 é
+o middleware de **auth** (provado pelos 3 controles, que não são 302). Nenhuma delas devolve
+**500** — o que importa nesta tela, cujo legado devolvia 500 (§4.1).
+
+⛔ **O que este recibo NÃO prova:** que o detalhe **renderiza**. Os 3 cards, a tabela de itens,
+os totais e a **ausência do barcode** seguem sem verificação em prod — isso exige sessão
+autenticada, e o agente não faz login (credencial é ação de [W]). Enquanto ninguém rodar o
+passo do Chrome MCP abaixo **logado**, a linha do §4.1 continua defendida só pelo teste
+estrutural.
 
 Chrome MCP obrigatório pós-merge de UI (hook `post-merge-ui-smoke-required`): navegar
 `/purchases/{id}` a **1280px** (monitor Larissa) e conferir — 3 cards de contexto, tabela de
