@@ -129,6 +129,20 @@ No CI, a lane é `PHP / Pest (Essentials · MySQL)` — o arquivo está na allow
 [`essentials-pest.yml`](../../../.github/workflows/essentials-pest.yml). ⚠️ Essa lane **não** é
 required, então o vermelho dela não bloqueia merge: leia o resultado, não o selo.
 
+⚠️ **Ela não redispara a cada push** (medido 2026-09-05). O `essentials-pest.yml` declara
+`pull_request: types: [opened, reopened, ready_for_review]` — **sem `synchronize`**. Consequência
+prática: ela roda na abertura do PR e some dos checks do head a cada push seguinte, então quem
+olhar `gh pr checks` depois de um commit **não vê a lane** e pode concluir que ela não existe.
+Para ter veredito no head atual, dispare à mão:
+
+```bash
+gh workflow run essentials-pest.yml --ref <sua-branch>
+```
+
+E leia o **contador**, não o selo: `success` de lane é compatível com skip (a lane tem
+skip-as-pass interno). A prova é `Tests: N passed (M assertions)` com `M > 0` e cada UC aparecendo
+pelo nome — foi assim que o PR-9 provou os UC-HRM-30..35.
+
 ## 8. O que esta tela NÃO faz
 
 Está no charter como Non-Goals e vale repetir onde dói: **não edita licença** (o `update()` do
