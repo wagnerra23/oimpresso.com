@@ -92,12 +92,20 @@ last_run_ci: "2 UC rodados por mim no CT 100 (container oimpresso-staging, MySQL
   *"Colunas: nome, código, tipo (badge), carga/dia, carga/semana, BH, turnos"*) · CLT Art. 58 ·
   fluxo do próprio módulo: `store()` redireciona para a edição com *"Escala criada. Configure os
   turnos por dia da semana"* — ou seja, a casca sem turno é um estado esperado e precisa ser visível.
-- **Regressão que defende:** a contagem vem de `withCount('turnos')`, que produz o atributo
-  `turnos_count`. Perder o `withCount` num refactor faz o atributo resolver **`null` → 0**, e a lista
-  passa a dizer que **toda** escala tem zero turnos — inclusive as configuradas. É exatamente a
-  família dos "atributos fantasma" que o [SDD §9 D-1/D-8](../../../../../memory/requisitos/Ponto/SDD-espelho-e-jornada-v1.0.md)
-  cataloga e que a US-PONTO-012 persegue: a tela mostrando número que o banco não confirmou.
-- **Por que o caso cria o turno em vez de usar um existente:** contar turno de escala alheia seria
-  medir dado de outra sessão numa base que persiste (CT 100). O caso monta o par escala+turno,
-  afirma o **1**, e limpa.
+- **Regressão que defende — dois eixos, e o segundo quase escapou:** a contagem vem de
+  `withCount('turnos')`, que produz `turnos_count`. Perder o `withCount` faz o atributo resolver
+  **`null` → 0**, e a lista passa a dizer que **toda** escala tem zero turnos — família dos
+  "atributos fantasma" do [SDD §9 D-1/D-8](../../../../../memory/requisitos/Ponto/SDD-espelho-e-jornada-v1.0.md).
+  O segundo eixo é **trocar o agregado por um que ignore o vínculo** (um `count()` global da tabela
+  de turnos): a coluna continua existindo, com número plausível, e a tela informa a contagem errada
+  para cada escala.
+- **Por que o caso cria DUAS escalas, com 1 e 2 turnos:** porque a primeira versão criava só uma,
+  com 1 turno, e **passava por sorte**. Medido no CT 100: com o agregado trocado por um total
+  global, a tabela tinha exatamente 1 turno naquele instante, o total global devolvia **1** e o
+  teste ficava **verde com o agregado quebrado** (`2 passed`). Com contagens diferentes, qualquer
+  agregado sem vínculo devolve o mesmo número nas duas linhas, e pelo menos um assert cai. Depois
+  da mudança, o caso reprova nas duas mutações (`1 failed` em cada). **Crédito:** o eixo do agregado
+  foi apontado por sessão paralela (`claude/ponto-casos-config-escalas`); meu primeiro experimento
+  mediu o eixo errado — vazamento de *linha*, que o `UC-ESCIDX-01` já cobre — e concluiu que não
+  procedia. Procede, e o furo estava neste teste.
 - **Status: 🧪 verde no CT 100, sem veredito de lane.**

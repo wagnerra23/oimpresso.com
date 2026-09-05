@@ -101,36 +101,58 @@ it('UC-ESCIDX-02 · cada escala informa quantos turnos tem', function () {
     $this->actAsAdmin();
     escIdxPrecisaDe(['ponto_escalas', 'ponto_escala_turnos']);
 
-    $idMinha = escIdxCriarEscala((int) $this->business->id, 'minha');
+    // DUAS escalas com contagens DIFERENTES, e é isto que faz o caso discriminar.
+    //
+    // A 1ª versão criava só uma escala, com 1 turno, e afirmava `turnos_count === 1`. Passava —
+    // e passava por SORTE: num banco onde a tabela de turnos tinha exatamente 1 linha naquele
+    // instante, trocar `withCount('turnos')` por uma contagem GLOBAL (`DB::table(...)->count()`,
+    // sem vínculo com a escala da linha) devolvia 1 também, e o teste ficava verde com o
+    // agregado quebrado. Medido no CT 100: com essa mutação, `2 passed`.
+    //
+    // Com 1 e 2 turnos, qualquer agregado que ignore o vínculo devolve o MESMO número nas duas
+    // linhas (aqui, 3) — e aí pelo menos um dos dois asserts cai. O caso passa a morder nos dois
+    // eixos: `withCount` perdido (vira 0) e agregado sem vínculo (vira o total).
+    $idUmTurno    = escIdxCriarEscala((int) $this->business->id, 'um-turno');
+    $idDoisTurnos = escIdxCriarEscala((int) $this->business->id, 'dois-turnos');
 
-    DB::table('ponto_escala_turnos')->insert([
-        'escala_id'    => $idMinha,
-        'dia_semana'   => 1,
-        'hora_entrada' => '08:00:00',
-        'hora_saida'   => '17:00:00',
-        'created_at'   => now(),
-        'updated_at'   => now(),
-    ]);
+    foreach ([[$idUmTurno, 1], [$idDoisTurnos, 2], [$idDoisTurnos, 3]] as [$escalaId, $diaSemana]) {
+        DB::table('ponto_escala_turnos')->insert([
+            'escala_id'    => $escalaId,
+            'dia_semana'   => $diaSemana,
+            'hora_entrada' => '08:00:00',
+            'hora_saida'   => '17:00:00',
+            'created_at'   => now(),
+            'updated_at'   => now(),
+        ]);
+    }
 
     $resp = $this->inertiaGet('/ponto/escalas');
     $resp->assertStatus(200);
 
     $linhas = collect($resp->json('props.escalas.data') ?? []);
-    $minha  = $linhas->firstWhere('id', $idMinha);
+    $comUm   = $linhas->firstWhere('id', $idUmTurno);
+    $comDois = $linhas->firstWhere('id', $idDoisTurnos);
 
-    // Pré-condição anti-vácuo: se a escala não veio na página, afirmar a contagem dela seria
-    // afirmar sobre `null` (LC-13 — verde por não-execução).
-    expect($minha)->not->toBeNull(
-        'A escala recém-criada tem de aparecer na lista do meu empregador — senão o caso não '
-        . 'chega a medir a contagem de turnos.'
+    // Pré-condição anti-vácuo: se as escalas não vieram na página, afirmar a contagem delas
+    // seria afirmar sobre `null` (LC-13 — verde por não-execução).
+    expect($comUm)->not->toBeNull(
+        'A escala de 1 turno tem de aparecer na lista do meu empregador — senão o caso não '
+        . 'chega a medir a contagem.'
     );
+    expect($comDois)->not->toBeNull('A escala de 2 turnos idem.');
 
     // A contagem é o que distingue escala PRONTA de casca sem turno: sem turno a apuração não
     // tem contra o que comparar entrada e saída. Perder o `withCount('turnos')` faz o atributo
     // resolver null → 0 e a lista passa a dizer que TODA escala tem zero turnos.
-    expect($minha['turnos_count'] ?? null)->toBe(1,
-        'A escala tem exatamente 1 turno configurado, e a lista tem de informar isso. Zero ou '
-        . 'ausente aqui é a assinatura de `withCount` perdido — a mesma família de "atributo '
-        . 'fantasma" do SDD §9 D-1/D-8, em que a tela mostra número que o banco não confirmou.'
+    expect($comUm['turnos_count'] ?? null)->toBe(1,
+        'A escala de 1 turno tem de informar 1. Zero ou ausente aqui é a assinatura de '
+        . '`withCount` perdido — a família de "atributo fantasma" do SDD §9 D-1/D-8, em que a '
+        . 'tela mostra número que o banco não confirmou.'
+    );
+
+    expect($comDois['turnos_count'] ?? null)->toBe(2,
+        'A escala de 2 turnos tem de informar 2 — e é ESTE assert que separa a contagem VINCULADA '
+        . 'de um agregado que ignora o vínculo: um total global devolveria o mesmo número nas '
+        . 'duas linhas, e o contrato aqui é "quantos turnos ESTA escala tem".'
     );
 });
