@@ -234,14 +234,14 @@ it('UC-COLEDT-02 · desligamento anterior à admissão é recusado', function ()
         'controla_ponto' => true,
     ]);
 
-    // "Não é sucesso" em vez de um status cravado: trocar `back()->withErrors` por outro
-    // mecanismo de recusa é correção legítima e não deve reprovar aqui.
-    expect($resp->isSuccessful())->toBeFalse(
-        'Salvar um vínculo que termina ANTES de começar tem de ser recusado — admissão e '
-        . 'desligamento delimitam a janela de apuração da jornada.'
-    );
-
-    // A segunda metade importa: só "não foi sucesso" passaria também num 500.
+    // ⚠️ NÃO usar `expect($resp->isSuccessful())->toBeFalse(...)` aqui, e a razão é medida:
+    // `isSuccessful()` é 200..299 (Symfony `Response`), e o caminho de SUCESSO do `update` é
+    // `return back()` — 302. O predicado dá `false` na recusa E no salvamento que FUNCIONOU:
+    // passa sempre. Sonda no CT 100: `update` bem-sucedido → status=302 isSuccessful=false.
+    // A versão anterior abria com esse assert e o comentário o defendia como escolha
+    // deliberada; ele parecia o guarda-costas do caso e não era. Quem prova a recusa são os
+    // três asserts abaixo — o erro chega, no campo certo, e o cadastro não mudou.
+    // Família: §5 2026-09-05 (bite-test) — veredito idêntico ao do caso honesto.
     $erros = session('errors');
     expect($erros)->not->toBeNull('A recusa tem de chegar ao operador como erro de formulário.');
     expect($erros->has('desligamento'))->toBeTrue(

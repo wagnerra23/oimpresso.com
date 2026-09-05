@@ -189,12 +189,17 @@ it('UC-CFGREP-02 · identificador fora do formato da Portaria é recusado', func
         'descricao'     => CFG_MARCA . '-fora-do-formato',
     ]);
 
-    // "Não é sucesso" em vez de status cravado: trocar o mecanismo de recusa é legítimo.
-    expect($resp->isSuccessful())->toBeFalse(
-        'Identificador fora dos 17 caracteres do Anexo I da Portaria MTP 671/2021 tem de ser '
-        . 'recusado. Se entrar, o problema só aparece no AFD rejeitado pela fiscalização, meses depois.'
-    );
-
+    // ⚠️ NÃO usar `expect($resp->isSuccessful())->toBeFalse(...)` aqui, e a razão é medida:
+    // `isSuccessful()` é 200..299 (Symfony `Response`), e o caminho de SUCESSO deste endpoint
+    // é `return back()` — 302. Ou seja o predicado dá `false` na recusa E no cadastro que
+    // GRAVOU: passa sempre, sem separar os dois caminhos. Sonda no CT 100:
+    //   storeRep sucesso → status=302 isSuccessful=false gravou=true
+    //   storeRep recusa  → status=302 isSuccessful=false
+    // A versão anterior deste caso abria com esse assert e o comentário o defendia como
+    // escolha deliberada ("não cravar status") — ele parecia o guarda-costas do caso e não
+    // era. Quem de fato prova a recusa são os três asserts abaixo: o erro chega ao operador,
+    // no campo certo, e a tabela não ganha linha.
+    // Família: §5 2026-09-05 (bite-test) — contagem/veredito idêntico ao do caso honesto.
     $erros = session('errors');
     expect($erros)->not->toBeNull('A recusa tem de chegar ao operador como erro de formulário.');
     expect($erros->has('identificador'))->toBeTrue(
