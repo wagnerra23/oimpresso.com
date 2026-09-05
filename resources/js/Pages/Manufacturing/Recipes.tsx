@@ -169,6 +169,9 @@ export default function Recipes({ recipes = [], permissions, producao, settings 
           Receitas
           <span className="mfg-tab-n">{recipes.length}</span>
         </span>
+        <Link className="mfg-tab" href="/manufacturing/insumos">
+          Insumos
+        </Link>
         {permissions.prod && (
           <Link className="mfg-tab" href="/manufacturing/production">
             Ordens de produção
@@ -178,9 +181,6 @@ export default function Recipes({ recipes = [], permissions, producao, settings 
             </span>
           </Link>
         )}
-        <Link className="mfg-tab" href="/manufacturing/insumos">
-          Insumos
-        </Link>
         <Link className="mfg-tab" href="/manufacturing/report">
           Relatório
         </Link>

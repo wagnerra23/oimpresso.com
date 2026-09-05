@@ -21,7 +21,19 @@
 
 /* manufacturing-page.css — módulo Manufacturing · Receitas (ficha técnica/BOM).
    Espelha Modules/Manufacturing/Resources/views/recipe/*. Escopado em .mfg-root. */
-.mfg-root{display:flex;flex-direction:column;min-height:0;flex:1}
+/* ⚠️ O acento do módulo é o do DESIGN SYSTEM, não a preferência do navegador.
+   Medido em prod 2026-09-04 (sessão [M]): a aba ativa resolvia `oklch(0.76 0.15 220)`
+   — AZUL — enquanto o protótipo (`prototipo-ui/cowork/manufacturing-page.jsx` + o
+   `styles.css` dele) declara matiz 295, ROXO. Causa: `AppShellV2` reescreve `--accent`
+   em runtime a partir de `oimpresso.cockpit.tweaks.accentHue`, um seletor de matiz salvo
+   no localStorage — o Wagner tem 220 gravado. Amarrar a identidade da tela nisso faz a
+   preferência de UM navegador mandar no Design System.
+   `--color-primary` é o roxo do DS, theme-aware (0.55/295 claro · 0.70/295 escuro — os
+   MESMOS valores do protótipo) e nenhum código o reescreve. Mesma decisão já tomada no
+   Produto em 2026-08-24 (Unificado/Index.charter.md) e na ADR 0401, que registra que "o
+   azul/ciano da aba ativa NÃO EXISTE na paleta do DS".
+   Uma linha resolve os 22 consumidores de `var(--accent)` deste bundle de uma vez. */
+.mfg-root{display:flex;flex-direction:column;min-height:0;flex:1;--accent:var(--color-primary)}
 .mfg-tabs{display:flex;gap:2px;align-items:center;padding:0 20px;border-bottom:1px solid var(--border);background:var(--surface)}
 .mfg-tab{display:flex;align-items:center;gap:7px;padding:9px 12px 8px;background:none;border:0;border-bottom:2px solid transparent;color:var(--text-dim);font:500 12.5px/1 var(--font-sans,inherit);cursor:pointer}
 .mfg-tab:hover{color:var(--text)}
