@@ -32,8 +32,13 @@
     "Ponto/Aprovacoes/Index",
     "Ponto/BancoHoras/Index",
     "Ponto/BancoHoras/Show",
+    "Ponto/Colaboradores/Edit",
+    "Ponto/Colaboradores/Index",
+    "Ponto/Configuracoes/Index",
+    "Ponto/Configuracoes/Reps",
     "Ponto/Dashboard/Index",
     "Ponto/Escalas/Form",
+    "Ponto/Escalas/Index",
     "Ponto/Espelho/Index",
     "Ponto/Espelho/Show",
     "Ponto/Importacoes/Create",
@@ -110,6 +115,16 @@
       ]
     },
     {
+      "tela": "Manufacturing/Insumos",
+      "arquivo": "resources/js/Pages/Manufacturing/Insumos.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/manufacturing-insumos.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
       "tela": "Manufacturing/Recipes",
       "arquivo": "resources/js/Pages/Manufacturing/Recipes.tsx",
       "modulo": "core",
@@ -137,56 +152,6 @@
       "prototipo": "prototipo-ui/cowork/manufacturing-producao.jsx",
       "falta": [
         "scorecard"
-      ]
-    },
-    {
-      "tela": "Ponto/Colaboradores/Edit",
-      "arquivo": "resources/js/Pages/Ponto/Colaboradores/Edit.tsx",
-      "modulo": "core",
-      "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/ponto-telas.jsx",
-      "falta": [
-        "casos.md-com-UC"
-      ]
-    },
-    {
-      "tela": "Ponto/Colaboradores/Index",
-      "arquivo": "resources/js/Pages/Ponto/Colaboradores/Index.tsx",
-      "modulo": "core",
-      "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/ponto-telas.jsx",
-      "falta": [
-        "casos.md-com-UC"
-      ]
-    },
-    {
-      "tela": "Ponto/Configuracoes/Index",
-      "arquivo": "resources/js/Pages/Ponto/Configuracoes/Index.tsx",
-      "modulo": "core",
-      "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/ponto-telas.jsx",
-      "falta": [
-        "casos.md-com-UC"
-      ]
-    },
-    {
-      "tela": "Ponto/Configuracoes/Reps",
-      "arquivo": "resources/js/Pages/Ponto/Configuracoes/Reps.tsx",
-      "modulo": "core",
-      "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/ponto-telas.jsx",
-      "falta": [
-        "casos.md-com-UC"
-      ]
-    },
-    {
-      "tela": "Ponto/Escalas/Index",
-      "arquivo": "resources/js/Pages/Ponto/Escalas/Index.tsx",
-      "modulo": "core",
-      "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/ponto-telas.jsx",
-      "falta": [
-        "casos.md-com-UC"
       ]
     },
     {
@@ -320,5 +285,5 @@
       ]
     }
   ],
-  "total": 74
+  "total": 75
 }
