@@ -60,10 +60,6 @@ authority: generated
 |---|---|---|
 | UC-01 | Escalas/Form | 🧪 aguarda veredito da lane |
 | UC-02 | BancoHoras/Index | 🧪 aguarda veredito da lane |
-| UC-APROV-01 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
-| UC-APROV-02 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
-| UC-APROV-03 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
-| UC-APROV-04 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
 | UC-BHIDX-01 | BancoHoras/Index | 🧪 aguarda veredito da lane |
 | UC-BHIDX-02 | BancoHoras/Index | 🧪 aguarda veredito da lane |
 | UC-BHIDX-03 | BancoHoras/Index | 🧪 aguarda veredito da lane |
@@ -111,6 +107,10 @@ authority: generated
 | UC-PAINEL-06 | Dashboard/Index | 🧪 aguarda veredito da lane |
 | UC-PAINEL-07 | Dashboard/Index | 🧪 aguarda veredito da lane |
 | UC-PAINEL-08 | Dashboard/Index | 🧪 aguarda veredito da lane |
+| UC-PAPR-01 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
+| UC-PAPR-02 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
+| UC-PAPR-03 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
+| UC-PAPR-04 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
 | UC-RELIDX-01 | Relatorios/Index | 🧪 aguarda veredito da lane |
 | UC-RELIDX-02 | Relatorios/Index | 🧪 aguarda veredito da lane |
 | UC-RELIDX-03 | Relatorios/Index | 🧪 aguarda veredito da lane |
