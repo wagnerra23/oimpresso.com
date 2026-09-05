@@ -77,41 +77,20 @@ beforeEach(function () {
 afterEach(fn () => \Carbon\Carbon::setTestNow());
 
 /**
- * UMA tela core (a mesma que o AuthBridgeSmokeTest já cobre e prova verde no CI):
- * Financeiro/Unificado. [rota, âncora-de-texto que prova que montou — não 403/login/erro].
+ * Tela-âncora do teste de LANDMARKS abaixo. [rota, âncora-de-texto que prova que montou — não
+ * 403/login/erro]. É a mesma que o AuthBridgeSmokeTest já cobre e prova verde no CI.
  *
- * Conservador por design: 1 tela, critical-only. Ampliar pro núcleo-6 é PR follow-up
- * (depois que esta nascer verde), exatamente como o AuthBridge ampliou as públicas.
+ * ⚠️ A AUDITORIA AXE desta tela NÃO mora mais aqui: ela é DECLARADA no contrato visreg
+ * ("a11y": true na entrada Financeiro/Unificado de visreg-screens.json) e roda pelo dataset
+ * do fim deste arquivo, junto das demais. A rota e a âncora que o dataset usa vêm do MESMO
+ * manifesto e são idênticas às daqui (/financeiro/unificado + "Financeiro", conferido em
+ * 2026-09-05) — manter as duas seria rodar axe DUAS VEZES na mesma tela, numa lane de browser,
+ * pra provar a mesma coisa. O que se ganha junto: o `screen-coverage-map.mjs` credita o eixo
+ * a11y por aquela declaração, e esta tela estava saindo `a11y=false` no report porque o .php
+ * escrevia `Financeiro/Unificado` e o namespace do .tsx é `Financeiro/Unificado/Index`.
  */
 $rota = '/financeiro/unificado';
 $ancora = 'Financeiro';
-
-it('Financeiro/Unificado — 0 violações axe CRITICAL no browser real (auth bridge)', function () use ($rota, $ancora) {
-    // Tenant SEEDADO (VisregTenantSeeder roda no workflow): business 1 + admin id=1 +
-    // role spatie Admin#1 (Gate::before concede tudo). Sem seed = skip (não falha) —
-    // idêntico ao guard do AuthBridgeSmokeTest.
-    // orderBy('id') = biz 1 determinístico: o gate também seeda 98 (VisregEmptyTenantSeeder)
-    // e 99 (VisregTenantBLeakSeeder) — sem ordem explícita o "first" é o que o MySQL devolver.
-    $business = Business::orderBy('id')->first();
-    if (! $business) {
-        test()->markTestSkipped('Sem business seedado (VisregTenantSeeder não rodou).');
-    }
-    $admin = User::where('business_id', $business->id)->orderBy('id')->first();
-    if (! $admin) {
-        test()->markTestSkipped('Sem user no business seedado.');
-    }
-
-    // 1 visit: loga o admin no subprocesso + redireciona pra tela → carrega autenticada.
-    $page = visit('/_visreg-login/' . $admin->id . '?to=' . urlencode($rota));
-
-    // Gate 1: a tela montou de verdade (não caiu em 403/login/erro) antes de auditar a11y.
-    $page->assertSee($ancora);
-
-    // Gate 2 (Fase 3): axe-core no Chromium real. level 0 = CRITICAL only (piso do ratchet).
-    // window.axe já injetado pelo plugin (InitScript). Pega contraste/foco/ARIA-em-contexto
-    // que o jsdom da Fase 2 não enxerga.
-    $page->assertNoAccessibilityIssues(level: 0);
-});
 
 /**
  * LANDMARKS DO SHELL — contrato estrutural que o axe NÃO pega no piso atual.
@@ -179,7 +158,17 @@ JS))->toBe('fora', 'a nav primária deve ficar FORA do <main> (senão o landmark
 });
 
 /**
- * PONTO — ampliação do ratchet axe pro módulo com obrigação LEGAL (Portaria MTP 671/2021).
+ * DATASET DECLARADO — as telas cuja auditoria axe está DECLARADA no contrato visreg
+ * ("a11y": true em tests/Browser/visreg-screens.json). Hoje: Financeiro/Unificado + as 11 do
+ * Ponto, o módulo com obrigação LEGAL (Portaria MTP 671/2021), que estreou o bloco.
+ *
+ * POR QUE A DECLARAÇÃO, E NÃO O PREFIXO "Ponto" QUE ESTAVA AQUI (medido 2026-09-05):
+ *   O filtro por prefixo era um predicado ESCONDIDO — só este arquivo sabia quais telas ele
+ *   auditava. E o `screen-coverage-map.mjs`, que credita o eixo a11y procurando o NAMESPACE da
+ *   tela LITERALMENTE no corpo dos .php de tests/Browser/, não tem como enxergar um dataset
+ *   derivado em runtime. Resultado: as 11 telas do Ponto saíam `a11y=0` no report mesmo
+ *   auditadas e VERDES no CI (run 33925329742) — a boa prática de derivar era punida pelo
+ *   medidor, e o agregado subestimava a cobertura real do projeto.
  *
  * POR QUE O PONTO, E POR QUE ELE NÃO É TELA CRUA (medido em 2026-09-04 contra origin/main):
  *   Dos três eixos da rede, o módulo já tinha DOIS armados e só este zerado —
@@ -193,7 +182,8 @@ JS))->toBe('fora', 'a nav primária deve ficar FORA do <main> (senão o landmark
  *   rota e âncora saem do MESMO manifesto que o PixelBaselineTest consome, e são as
  *   mesmas que ele já prova (PixelBaselineTest.php:202 → assertSee($ancora)). Copiá-las
  *   pra cá à mão criaria um segundo lugar pra elas drifarem em silêncio.
- *   Ampliar pra outro módulo = trocar o prefixo do filtro, nada mais.
+ *   Ampliar pra outra tela = marcar `"a11y": true` na entrada dela, nada mais — sem editar
+ *   código aqui NEM no medidor.
  *
  * MESMO PISO DO RATCHET: level 0 (CRITICAL only), o piso que o docblock do topo fixa.
  * NÃO subo o nível junto com a superfície — são dois eixos, e mexer nos dois de uma vez
@@ -208,7 +198,7 @@ JS))->toBe('fora', 'a nav primária deve ficar FORA do <main> (senão o landmark
  * 2026-08-26 (decisão [W] registrada em governance/required-checks-baseline.json), então
  * um vermelho aqui REPORTA sem bloquear merge — que é o que se quer de uma ampliação.
  */
-$telasPonto = array_reduce(
+$telasA11y = array_reduce(
     array_filter(
         json_decode(
             (string) file_get_contents(dirname(__DIR__) . '/visreg-screens.json'),
@@ -216,7 +206,7 @@ $telasPonto = array_reduce(
             512,
             JSON_THROW_ON_ERROR
         ),
-        static fn (array $tela): bool => str_starts_with((string) ($tela['screen'] ?? ''), 'Ponto'),
+        static fn (array $tela): bool => ($tela['a11y'] ?? false) === true,
     ),
     static function (array $acc, array $tela): array {
         $acc[$tela['screen']] = [$tela['route'], $tela['anchor']];
@@ -227,17 +217,20 @@ $telasPonto = array_reduce(
 );
 
 // GATE MUDO É PIOR QUE GATE AUSENTE: dataset vazio faria estes testes simplesmente não
-// existirem, e a suíte seguiria verde afirmando nada. Se as telas do Ponto saírem do
-// manifesto, isto GRITA em vez de emudecer.
-if ($telasPonto === []) {
+// existirem, e a suíte seguiria verde afirmando nada. Isto GRITA quando a declaração some
+// INTEIRA. A perda PARCIAL (sumir 1 das N) é coberta noutro lugar, e de graça: o
+// screen-coverage-map.mjs credita o eixo a11y por esta MESMA declaração, então as telas entram
+// em covered_screens.a11y do baseline e o screen-coverage-gate (required) reprova se UMA delas
+// sair. Guard aqui + catraca lá cobrem os dois casos sem precisar de régua nova.
+if ($telasA11y === []) {
     throw new RuntimeException(
-        'visreg-screens.json não tem nenhuma tela com prefixo "Ponto": o dataset de a11y ficaria '
+        'visreg-screens.json não tem nenhuma entrada com "a11y": true: o dataset de axe ficaria '
         . 'vazio e este gate sumiria em silêncio. Se a remoção foi intencional, remova este bloco '
         . 'explicitamente em vez de deixá-lo mudo.'
     );
 }
 
-it('Ponto — 0 violações axe CRITICAL no browser real (auth bridge)', function (string $rotaPonto, string $ancoraPonto) {
+it('tela declarada — 0 violações axe CRITICAL no browser real (auth bridge)', function (string $rotaTela, string $ancoraTela) {
     $business = Business::orderBy('id')->first();
     if (! $business) {
         test()->markTestSkipped('Sem business seedado (VisregTenantSeeder não rodou).');
@@ -247,11 +240,11 @@ it('Ponto — 0 violações axe CRITICAL no browser real (auth bridge)', functio
         test()->markTestSkipped('Sem user no business seedado.');
     }
 
-    $page = visit('/_visreg-login/' . $admin->id . '?to=' . urlencode($rotaPonto));
+    $page = visit('/_visreg-login/' . $admin->id . '?to=' . urlencode($rotaTela));
 
     // Gate 1: a tela montou de verdade (não caiu em 403/login/erro) antes de auditar a11y.
-    $page->assertSee($ancoraPonto);
+    $page->assertSee($ancoraTela);
 
     // Gate 2: axe-core no Chromium real, level 0 = CRITICAL only.
     $page->assertNoAccessibilityIssues(level: 0);
-})->with($telasPonto);
+})->with($telasA11y);

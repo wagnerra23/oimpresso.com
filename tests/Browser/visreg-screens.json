@@ -2,6 +2,7 @@
   {
     "screen": "Financeiro/Unificado",
     "source": "Financeiro/Unificado",
+    "a11y": true,
     "component": "Financeiro/Unificado/Index",
     "route": "/financeiro/unificado",
     "anchor": "Financeiro",
@@ -218,6 +219,7 @@
   {
     "screen": "Ponto/Espelho/Show",
     "source": "Ponto/Espelho/Show",
+    "a11y": true,
     "component": "Ponto/Espelho/Show",
     "route": "/ponto/espelho/900001?mes=2026-06",
     "anchor": "Dados do colaborador",
@@ -226,6 +228,7 @@
   {
     "screen": "Ponto/Espelho/Index",
     "source": "Ponto/Espelho/Index",
+    "a11y": true,
     "component": "Ponto/Espelho/Index",
     "route": "/ponto/espelho?mes=2026-06",
     "anchor": "Matrícula",
@@ -234,6 +237,7 @@
   {
     "screen": "Ponto/Configuracoes",
     "source": "Ponto/Configuracoes",
+    "a11y": true,
     "component": "Ponto/Configuracoes/Index",
     "route": "/ponto/configuracoes",
     "anchor": "Banco de Horas",
@@ -242,6 +246,7 @@
   {
     "screen": "Ponto/Dashboard",
     "source": "Ponto/Dashboard",
+    "a11y": true,
     "component": "Ponto/Dashboard/Index",
     "route": "/ponto",
     "anchor": "com controle de ponto",
@@ -314,6 +319,7 @@
   {
     "screen": "Ponto/Aprovacoes",
     "source": "Ponto/Aprovacoes",
+    "a11y": true,
     "component": "Ponto/Aprovacoes/Index",
     "route": "/ponto/aprovacoes",
     "anchor": "Fila de intercorrências aguardando decisão",
@@ -322,6 +328,7 @@
   {
     "screen": "Ponto/Intercorrencias",
     "source": "Ponto/Intercorrencias",
+    "a11y": true,
     "component": "Ponto/Intercorrencias/Index",
     "route": "/ponto/intercorrencias",
     "anchor": "Ausências, atestados, esquecimentos e outras ocorrências",
@@ -330,6 +337,7 @@
   {
     "screen": "Ponto/Intercorrencias/Create",
     "source": "Ponto/Intercorrencias/Create",
+    "a11y": true,
     "component": "Ponto/Intercorrencias/Create",
     "route": "/ponto/intercorrencias/create",
     "anchor": "Registre ausências, consultas médicas",
@@ -338,6 +346,7 @@
   {
     "screen": "Ponto/BancoHoras",
     "source": "Ponto/BancoHoras",
+    "a11y": true,
     "component": "Ponto/BancoHoras/Index",
     "route": "/ponto/banco-horas",
     "anchor": "Saldo consolidado por colaborador",
@@ -346,6 +355,7 @@
   {
     "screen": "Ponto/Importacoes",
     "source": "Ponto/Importacoes",
+    "a11y": true,
     "component": "Ponto/Importacoes/Index",
     "route": "/ponto/importacoes",
     "anchor": "Arquivos AFD/AFDT lidos por REPs",
@@ -354,6 +364,7 @@
   {
     "screen": "Ponto/Importacoes/Create",
     "source": "Ponto/Importacoes/Create",
+    "a11y": true,
     "component": "Ponto/Importacoes/Create",
     "route": "/ponto/importacoes/novo",
     "anchor": "Envie arquivo AFD",
@@ -362,6 +373,7 @@
   {
     "screen": "Ponto/Relatorios",
     "source": "Ponto/Relatorios",
+    "a11y": true,
     "component": "Ponto/Relatorios/Index",
     "route": "/ponto/relatorios",
     "anchor": "Apuração Eletrônica de Jornada",
