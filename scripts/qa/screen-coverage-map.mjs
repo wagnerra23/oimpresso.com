@@ -103,7 +103,7 @@ const ESCOPO_TELAS =
 const browserFiles = walk(BROWSER_DIR, (f) => f.endsWith('.php'));
 const browserCorpus = browserFiles
   .map((f) => ({ file: f, body: readFileSync(f, 'utf8') }))
-  .map((x) => ({ ...x, hasAxe: /axe|accessibilit/i.test(x.body) }));
+  .map((x) => ({ ...x, hasAxe: rodaAxeDeVerdade(x.body) }));
 const visregManifest = JSON.parse(readFileSync(VISREG_MANIFEST, 'utf8'));
 const visregSources = new Set(visregManifest.map((entry) => entry.source));
 // Telas cujo contrato visreg DECLARA auditoria axe ("a11y": true), ver telasComContratoA11y.
@@ -160,6 +160,37 @@ export function telasComEstadosIsolados(manifest) {
 }
 
 /**
+ * rodaAxeDeVerdade — o .php INVOCA axe, não apenas MENCIONA. PURO/testável.
+ *
+ * POR QUE APERTOU (medido 2026-09-05 · residual declarado no [#6852](https://github.com/wagnerra23/oimpresso.com/pull/6852)):
+ *   O predicado era `/axe|accessibilit/i` sobre o corpo INTEIRO do arquivo. Como "axe" é
+ *   substring de "sint**axe**", o `PixelBaselineTest.php:58` (*"Validado por: (a) `php -l`
+ *   sintaxe"*) casava — e daí TODA tela citada naquele arquivo ganhava o eixo a11y sem
+ *   auditoria nenhuma existir. Cruzando as 9 telas creditadas com quem de fato chama a
+ *   assertion: **3 eram falso-positivo**. Dois vinham só desse arquivo (`Compras/Index` e
+ *   `Sells/Create`) — e `Sells/Create` é tela de VALOR, onde um "tem a11y" falso manda o
+ *   esforço pro lado errado.
+ *
+ *   Os 4 arquivos que casavam SEM invocar axe: `PixelBaselineTest` (pela palavra "sintaxe") e
+ *   `ConformanceProbesTest` / `PixelDimensionProbesTest` / `Tier0RenderIsolationTest`, estes
+ *   três por citarem `A11yAxeBrowserTest` como "padrão espelhado" no docblock.
+ *
+ * O QUE MEDE AGORA: a CHAMADA — `assertNoAccessibilityIssues` (a assertion nativa do
+ * pest-plugin-browser) ou `axe.run` (invocação direta via `$page->script(...)`). Menção em
+ * prosa não casa nenhuma das duas. É a mesma doutrina do eixo: medir COMPORTAMENTO, não
+ * presença de palavra (LC-11).
+ *
+ * ⚠️ NÃO resolve o arquivo que invoca axe numa tela e MENCIONA outra em docblock — ver o ⚠️
+ * de `telasComContratoA11y`.
+ *
+ * @param {string} corpo conteúdo do .php de tests/Browser/
+ * @returns {boolean}
+ */
+export function rodaAxeDeVerdade(corpo) {
+  return /assertNoAccessibilityIssues|axe\.run/i.test(String(corpo ?? ''));
+}
+
+/**
  * telasComContratoA11y — sources das telas cujo contrato visreg DECLARA auditoria axe
  * ("a11y": true em tests/Browser/visreg-screens.json). PURO/testável.
  *
@@ -184,11 +215,14 @@ export function telasComEstadosIsolados(manifest) {
  * O crédito casa via `inertiaSourcesFor` — a MESMA resolução que `hasVisregContract` já usa, e
  * o que faz `Ponto/Configuracoes` (manifesto) encontrar `Ponto/Configuracoes/Index` (.tsx).
  *
- * ⚠️ NÃO cobre o erro inverso: tela citada num .php que só MENCIONA axe em docblock segue
- * creditada pelo braço antigo. Falso-positivo MEDIDO (3 de 9 em 2026-09-05: Compras/Index e
- * Sells/Create via "sintaxe" no PixelBaselineTest; Produto/StockHistory via docblock do
- * A11yAxeBrowserTest). Corrigir REMOVE cobertura travada na catraca de um gate required, logo
- * é diff próprio e decisão [W] — registrado no corpo do PR, não consertado aqui.
+ * ⚠️ O braço LITERAL foi APERTADO no mesmo dia por `rodaAxeDeVerdade` (ver o docblock dela):
+ * dos 3 falso-positivos medidos em 2026-09-05, **2 morreram** — `Compras/Index` e
+ * `Sells/Create`, que entravam pela palavra "sint**axe**" no `PixelBaselineTest`. O **3º
+ * sobrevive por desenho**: `Produto/StockHistory` é citado num docblock do
+ * `A11yAxeBrowserTest` — arquivo que INVOCA axe de verdade, só que noutra tela. Separar isso
+ * exigiria saber qual `it()` audita qual tela, ou seja parsear PHP; e apagar a menção
+ * histórica pra "limpar" a medição seria editar o artefato pra o número ficar bonito. Fica
+ * DECLARADO, não escondido.
  *
  * @param {Array<{source?: string, a11y?: boolean}>} manifest conteúdo do visreg-screens.json
  * @returns {string[]} sources declarados, ex.: ["Financeiro/Unificado", "Ponto/Dashboard"]
@@ -605,6 +639,22 @@ if (flags.has('--selftest')) {
   assert.deepEqual(telasComEstadosIsolados({}), []);
   // CONTROLE-NEGATIVO 3: o `_doc` do manifesto vive FORA de `screens` e não pode virar tela.
   assert.deepEqual(telasComEstadosIsolados({ _doc: 'texto', screens: {} }), []);
+
+  // --- rodaAxeDeVerdade: INVOCAÇÃO de axe, não menção da palavra ---------------------
+  // BITE: o predicado antigo (`/axe|accessibilit/i`) casava "sint**axe**" e creditava o eixo
+  // a11y a telas sem auditoria nenhuma — 3 falso-positivos de 9, medidos em 2026-09-05.
+  assert.equal(rodaAxeDeVerdade('$page->assertNoAccessibilityIssues(level: 0);'), true);
+  assert.equal(rodaAxeDeVerdade("await window.axe.run()"), true);
+  // CONTROLE-NEGATIVO 1: o FP que motivou o aperto — "sintaxe" contém "axe" como substring.
+  assert.equal(rodaAxeDeVerdade(' * Validado por: (a) `php -l` sintaxe, (b) espelhamento'), false);
+  // CONTROLE-NEGATIVO 2: citar o teste de axe como "padrão espelhado" NÃO é auditar.
+  assert.equal(rodaAxeDeVerdade(' * PADRÃO ESPELHADO: A11yAxeBrowserTest (cross-process DB)'), false);
+  // CONTROLE-NEGATIVO 3: "accessibility" solto em prosa também não é chamada.
+  assert.equal(rodaAxeDeVerdade(' * Fase 2: axe-core em jsdom pega accessibility no DOM simulado'), false);
+  // CONTROLE-NEGATIVO 4: o ponto do `axe.run` é ESCAPADO — `axeXrun` não pode casar.
+  assert.equal(rodaAxeDeVerdade('axeXrun'), false);
+  assert.equal(rodaAxeDeVerdade(''), false);
+  assert.equal(rodaAxeDeVerdade(undefined), false);
 
   // --- telasComContratoA11y: a auditoria axe DECLARADA no contrato visreg ------------
   // BITE: sem esta declaração o eixo a11y só enxerga NAMESPACE literal no corpo do .php, e
