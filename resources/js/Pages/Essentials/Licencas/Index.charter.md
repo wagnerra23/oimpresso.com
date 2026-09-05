@@ -1,12 +1,13 @@
 ---
 page: /hrm/leave
 component: resources/js/Pages/Essentials/Licencas/Index.tsx
-runbook: memory/requisitos/Essentials/RUNBOOK-licencas.md
+related_runbook: memory/requisitos/Essentials/RUNBOOK-licencas.md
 owner: wagner
 status: draft
 last_validated: "2026-09-05"
 parent_module: Essentials
 related_prototype: n/a (herda PT-01 Lista + drawer PT-02; segue o Padrão de Tela)
+related_us: [US-ESS-005, US-ESS-006]
 related_adrs: [93, 104, 114, 264, 286, 358]
 alcance:
   rota: /hrm/leave
