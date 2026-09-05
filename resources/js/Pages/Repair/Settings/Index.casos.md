@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: o contrato de gravação é durável — "são duas colunas disjuntas" e "submit parcial apaga" valem em qualquer refactor da tela
 owner: wagner
 autor: "[C] 2026-09-04"
-last_run: "2026-09-04"
+last_run: "2026-09-05"
 ---
 
 # Casos de Uso & Aceite — Configurações do Repair
@@ -19,6 +19,15 @@ last_run: "2026-09-04"
 >
 > Suíte: `Modules/Repair/Tests/Feature/RepairSettingsContratoTest.php` · lane **Modules Pest** ·
 > tenant **98** ([ADR 0358](../../../../../memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)).
+>
+> ⚠️ **A lane RODA e os 8 UC-RSET PULAM — medido, não suposto.** O `last_run` acima é a data do
+> último run da suíte, **não** de uma prova: em 2026-09-05T03:37Z (run `33941123784`, job
+> `Pest Repair`) o resultado foi `73 skipped, 83 passed (287 assertions)`, e os oito casos saíram
+> como `→ SQLite-incompatível: o schema UltimatePOS de business exige MySQL (ADR 0358)`. A lane
+> `modules-pest` roda em **SQLite**; este contrato exige **MySQL**, então ele se auto-pula e o job
+> ainda assim conclui `success`. É `0 failed` numa suíte que não exerceu o que importa — por isso
+> todo Status abaixo segue **⬜**, e um verde de `Pest Repair` **não** deve ser lido como prova
+> destes UCs. Prova real: rodar no **CT 100** (MySQL) ou dar lane MySQL a este contrato.
 
 ---
 
@@ -29,7 +38,7 @@ last_run: "2026-09-04"
   tipo de código de barras, os textos longos, o checklist e os 5 campos personalizados ficam em
   `business.repair_settings`, e o valor lido de volta bate campo a campo — inclusive o
   `job_sheet_custom_field_5`, que fica no fim do conjunto.
-- **Status: ⬜** _(teste existe e cita o UC; ainda não rodou — Pest só no CT 100)_
+- **Status: ⬜** _(teste existe e cita o UC; a lane rodou em 2026-09-05 e o caso PULOU — exige MySQL, ver aviso no topo)_
 
 ---
 
@@ -42,7 +51,7 @@ last_run: "2026-09-04"
 - **Por que existe:** é o erro que o pacote de export induzia ao afirmar que havia um endpoint só.
   Uma Page que mandasse a impressão para o `store()` salvaria sem erro e não persistiria nada —
   tela inerte, e nenhum gate estático pegaria.
-- **Status: ⬜** _(teste existe e cita o UC; ainda não rodou — Pest só no CT 100)_
+- **Status: ⬜** _(teste existe e cita o UC; a lane rodou em 2026-09-05 e o caso PULOU — exige MySQL, ver aviso no topo)_
 
 ---
 
@@ -55,7 +64,7 @@ last_run: "2026-09-04"
   `$request->only([...])` seguido de `Business::update([... => json_encode($input)])` e substituem
   o documento inteiro. A consequência para a UI está no charter como anti-hook — cada formulário
   envia o conjunto completo do seu endpoint a cada submit.
-- **Status: ⬜** _(teste existe e cita o UC; ainda não rodou — Pest só no CT 100)_
+- **Status: ⬜** _(teste existe e cita o UC; a lane rodou em 2026-09-05 e o caso PULOU — exige MySQL, ver aviso no topo)_
 
 ---
 
@@ -66,7 +75,7 @@ last_run: "2026-09-04"
   qualquer um dos dois endpoints · Então a operação é negada e **as duas** colunas mantêm o valor
   anterior.
 - A autoridade é o Controller; a Page apenas reflete. Desabilitar o botão na UI não é a defesa.
-- **Status: ⬜** _(teste existe e cita o UC; ainda não rodou — Pest só no CT 100)_
+- **Status: ⬜** _(teste existe e cita o UC; a lane rodou em 2026-09-05 e o caso PULOU — exige MySQL, ver aviso no topo)_
 
 ---
 
@@ -77,7 +86,7 @@ last_run: "2026-09-04"
   configurações de **todos** os demais businesses ficam byte a byte iguais ao snapshot anterior.
 - O caso compara o conjunto inteiro dos outros tenants (não um adversário escolhido a dedo), para
   que o isolamento seja medido sobre a população real do banco.
-- **Status: ⬜** _(teste existe e cita o UC; ainda não rodou — Pest só no CT 100)_
+- **Status: ⬜** _(teste existe e cita o UC; a lane rodou em 2026-09-05 e o caso PULOU — exige MySQL, ver aviso no topo)_
 
 ---
 
@@ -89,7 +98,7 @@ last_run: "2026-09-04"
   `show_*` · Então a coluna da impressão recebe os valores e `repair_settings` fica **intacta**.
 - É a metade simétrica do UC-RSET-02. Os dois juntos travam a disjunção nos dois sentidos — é isso
   que impede a próxima sessão de "simplificar" a tela para um formulário só.
-- **Status: ⬜** _(teste existe e cita o UC; ainda não rodou — Pest só no CT 100)_
+- **Status: ⬜** _(teste existe e cita o UC; a lane rodou em 2026-09-05 e o caso PULOU — exige MySQL, ver aviso no topo)_
 
 ---
 
@@ -99,7 +108,7 @@ last_run: "2026-09-04"
 - **Aceite:** Dado que `mwart.repair_settings_index` está OFF (o default) · Quando o admin abre
   `/repair/repair-settings` · Então ele recebe o Blade legado, sem cabeçalho `X-Inertia`.
 - Enquanto [W] não ligar a flag, o merge deste código **não muda nada** para quem usa a tela.
-- **Status: ⬜** _(teste existe e cita o UC; ainda não rodou — Pest só no CT 100)_
+- **Status: ⬜** _(teste existe e cita o UC; a lane rodou em 2026-09-05 e o caso PULOU — exige MySQL, ver aviso no topo)_
 
 ---
 
@@ -109,7 +118,7 @@ last_run: "2026-09-04"
 - **Aceite:** Dado que a flag está ON para o business · Quando o admin abre a mesma rota · Então o
   Inertia renderiza `Repair/Settings/Index` com `repairSettings`, `jobsheetPdfSettings` e — as duas
   que o Blade **nunca** recebeu — `contactCustomFields` e `customLabels`.
-- **Status: ⬜** _(teste existe e cita o UC; ainda não rodou — Pest só no CT 100)_
+- **Status: ⬜** _(teste existe e cita o UC; a lane rodou em 2026-09-05 e o caso PULOU — exige MySQL, ver aviso no topo)_
 
 ---
 
