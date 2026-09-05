@@ -14,7 +14,7 @@ module: Jana
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 553 arquivos em 19 papéis.
+**Total mapeado:** 554 arquivos em 19 papéis.
 
 ## Controllers — 11
 
@@ -348,7 +348,7 @@ module: Jana
 - [Plataforma.casos.md](../../../resources/js/Pages/Jana/Plataforma.casos.md)
 - [Pro.casos.md](../../../resources/js/Pages/Jana/Pro.casos.md)
 
-## Testes (Pest) — 181
+## Testes (Pest) — 182
 
 - 39 em [Modules/Jana/Tests/Feature/](../../../Modules/Jana/Tests/Feature)
 - 12 em [Modules/Jana/Tests/Feature/Ai/](../../../Modules/Jana/Tests/Feature/Ai)
@@ -370,7 +370,7 @@ module: Jana
 - 2 em [Modules/Jana/Tests/Feature/Retrieval/](../../../Modules/Jana/Tests/Feature/Retrieval)
 - 8 em [Modules/Jana/Tests/Feature/Smoke/](../../../Modules/Jana/Tests/Feature/Smoke)
 - 1 em [Modules/Jana/Tests/Feature/Summarizer/](../../../Modules/Jana/Tests/Feature/Summarizer)
-- 16 em [Modules/Jana/Tests/Feature/TaskRegistry/](../../../Modules/Jana/Tests/Feature/TaskRegistry)
+- 17 em [Modules/Jana/Tests/Feature/TaskRegistry/](../../../Modules/Jana/Tests/Feature/TaskRegistry)
 - 5 em [Modules/Jana/Tests/Feature/Telemetry/](../../../Modules/Jana/Tests/Feature/Telemetry)
 - 15 em [Modules/Jana/Tests/Unit/](../../../Modules/Jana/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._

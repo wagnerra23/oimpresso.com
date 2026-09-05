@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: os três gates de escrita (tenant, janela temporal, devolução existente) são duráveis — não mudam quando o formulário ganhar campo novo.
 owner: wagner
 last_run: "2026-09-04"
-last_run_ci: "🔴 NENHUM teste de tests/Feature/Purchase/ roda em lane alguma — 8 arquivos órfãos de CI; o do IDOR soma quarentena por cima. Ver §Dívida de prova."
+last_run_ci: "✅ 2026-09-05: os 10 arquivos de tests/Feature/Purchase/ entraram na allowlist do purchase-pest.yml (#6824/#6827/#6841). Medido em origin/main b863647741: 0 orfaos no diretorio e uc-lane-coverage --check EXIT=0. Os 7 UC desta tela tem lane; 1 com defesa de COMPORTAMENTO (UpdateCrossTenantIdorTest - o IDOR de escrita cross-tenant em dinheiro; nao esta em quarantine.list nenhuma, e o markTestSkipped que sobrou so protege sqlite) e 6 ESTRUTURAL (Wave2Edit*, presence-gate LC-11). Nao restatear a mao: rode scripts/qa/uc-lane-coverage.mjs. ⚠ O TEXTO A SEGUIR ESTA SUPERADO e fica como fato datado - os dois numeros dele ja nasciam falsos: 🔴 NENHUM teste de tests/Feature/Purchase/ roda em lane alguma — 8 arquivos órfãos de CI; o do IDOR soma quarentena por cima. Ver §Dívida de prova."
 ---
 
 # Casos de Uso & Aceite — Editar Compra (`/purchases/{id}/edit`)
@@ -22,7 +22,26 @@ last_run_ci: "🔴 NENHUM teste de tests/Feature/Purchase/ roda em lane alguma �
 
 ---
 
-## 🔴 Dívida de prova — **nenhum** teste desta tela roda em lane alguma
+## ✅ Dívida de prova — os 7 UC têm lane; 1 com defesa de COMPORTAMENTO
+
+> ✅ **Atualização de 2026-09-05 — o texto abaixo continua verdadeiro para o dia em que foi escrito
+> e fica inteiro; o que mudou está aqui.** A leva [#6824](https://github.com/wagnerra23/oimpresso.com/pull/6824)
+> / [#6827](https://github.com/wagnerra23/oimpresso.com/pull/6827) / [#6841](https://github.com/wagnerra23/oimpresso.com/pull/6841)
+> fechou o diretório: **os 10** arquivos de `tests/Feature/Purchase/` estão na allowlist do
+> [`purchase-pest.yml`](../../../../.github/workflows/purchase-pest.yml). Medido em `origin/main`
+> (`b863647741`): `node scripts/governance/test-lane-coverage.mjs --json` dá **0 órfãos** naquele
+> diretório, e `node scripts/qa/uc-lane-coverage.mjs --check --baseline governance/uc-lane-baseline.json`
+> sai **EXIT=0**. Nenhum UC desta tela aponta mais para teste que lane nenhuma roda.
+>
+> ⚠️ **Ganhar lane não muda a NATUREZA da prova.** Os status foram reconciliados em dois níveis,
+> não um: `✅ comportamento · na lane` onde o teste emite request/`actingAs`, e
+> `🧪 estrutural · na lane` onde ele casa texto no fonte (presence-gate, LC-11) — classificado
+> contando requests por arquivo, não no olho. Um presence-gate que agora roda deixou de ser
+> "verde impossível"; **continua** provando forma, não comportamento.
+>
+> ⚠️ **Dois números do bloco abaixo já nasciam falsos:** a pasta tem **10** arquivos, não 8; e a
+> perna *"workflows que citam `tests/Feature/Purchase` → 0"* mediu uma janela em que a lane ainda
+> não existia. Não restateie à mão — rode os dois comandos acima.
 
 > ⚠️ **Correção da v1 deste arquivo (2026-09-05), registrada e não apagada.** A v1 marcava os
 > `Wave2*` como *"✅ sim — executa"* e tratava a quarentena do `UpdateCrossTenantIdorTest` como o
@@ -73,13 +92,13 @@ allowlist por conta própria — por que ela existe (custo de CI? teste instáve
 
 | UC | Título | Tipo | Âncora de contrato | Teste que cita | Status |
 |---|---|---|---|---|---|
-| UC-PUREDT-01 | SPA recebe React; Blade legacy preservado | must | RUNBOOK §11 · charter §Reuso | `Wave2EditInertiaTest` · `Wave2EditBaselineTest` | ⚠️ 🧪 estrutural |
-| UC-PUREDT-02 | `update()` nunca alcança transação de outro tenant | must `[T0]` `[V0]` | RUNBOOK §3 · charter R-PUR-001 | `UpdateCrossTenantIdorTest` | 🔴 quarentena |
-| UC-PUREDT-03 | Edição fora da janela `transaction_edit_days` é recusada | must | RUNBOOK §3 · charter R-PUR-005 | `Wave2EditBaselineTest` | ⚠️ 🧪 estrutural |
-| UC-PUREDT-04 | Compra com devolução já criada não pode ser editada | must `[V0]` | RUNBOOK §3 · charter R-PUR-006 | `Wave2EditBaselineTest` | ⚠️ 🧪 estrutural |
-| UC-PUREDT-05 | Sem `purchase.update` não se abre nem se salva | must | RUNBOOK §3 · charter R-PUR-007 | `Wave2EditBaselineTest` | ⚠️ 🧪 estrutural |
-| UC-PUREDT-06 | O formulário chega pré-populado com a compra, tipada | should | RUNBOOK §4 · §9 | `Wave2EditInertiaTest` | ⚠️ 🧪 estrutural |
-| UC-PUREDT-07 | A Page não decide tenant — `business_id` vem das props | must `[T0]` | RUNBOOK §3 | `Wave2EditInertiaTest` | 🧪 estrutural (correto) |
+| UC-PUREDT-01 | SPA recebe React; Blade legacy preservado | must | RUNBOOK §11 · charter §Reuso | `Wave2EditInertiaTest` · `Wave2EditBaselineTest` | 🧪 estrutural · na lane |
+| UC-PUREDT-02 | `update()` nunca alcança transação de outro tenant | must `[T0]` `[V0]` | RUNBOOK §3 · charter R-PUR-001 | `UpdateCrossTenantIdorTest` | ✅ comportamento · na lane |
+| UC-PUREDT-03 | Edição fora da janela `transaction_edit_days` é recusada | must | RUNBOOK §3 · charter R-PUR-005 | `Wave2EditBaselineTest` | 🧪 estrutural · na lane |
+| UC-PUREDT-04 | Compra com devolução já criada não pode ser editada | must `[V0]` | RUNBOOK §3 · charter R-PUR-006 | `Wave2EditBaselineTest` | 🧪 estrutural · na lane |
+| UC-PUREDT-05 | Sem `purchase.update` não se abre nem se salva | must | RUNBOOK §3 · charter R-PUR-007 | `Wave2EditBaselineTest` | 🧪 estrutural · na lane |
+| UC-PUREDT-06 | O formulário chega pré-populado com a compra, tipada | should | RUNBOOK §4 · §9 | `Wave2EditInertiaTest` | 🧪 estrutural · na lane |
+| UC-PUREDT-07 | A Page não decide tenant — `business_id` vem das props | must `[T0]` | RUNBOOK §3 | `Wave2EditInertiaTest` | 🧪 estrutural · na lane |
 
 ---
 
@@ -96,7 +115,7 @@ allowlist por conta própria — por que ela existe (custo de CI? teste instáve
 - **Contrato:** RUNBOOK §11 (F5 CUTOVER = dual path) · [ADR 0104](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md).
 - **Regressão que defende:** o `update()` é compartilhado. Limpar o Blade "porque migrou" quebra
   quem entra pela URL direta.
-- **Status: 🔴 sem lane** — casamento de texto no fonte; nenhum request emitido.
+- **Status: 🧪 estrutural · na lane** — casamento de texto no fonte; nenhum request emitido.
 
 ---
 
@@ -118,7 +137,7 @@ allowlist por conta própria — por que ela existe (custo de CI? teste instáve
 - **Regressão que defende:** o defeito original — busca sem `where business_id` num model **sem
   global scope** — é invisível em review porque a linha *parece* idiomática (`findOrFail($id)`). O
   teste guarda inclusive a forma: exige o `where` e proíbe o `findOrFail` nu voltar.
-- **Status: 🔴 sem lane + quarentena** — **este é o UC mais grave do trio inteiro.** `[T0]` **e** `[V0]`,
+- **Status: ✅ comportamento · na lane** — **este é o UC mais grave do trio inteiro.** `[T0]` **e** `[V0]`,
   regressão **já materializada**, teste escrito e correto, e **não executa**. Nomeado com destaque
   no `[BACKLOG]` e no chip de saída.
 
@@ -135,7 +154,7 @@ allowlist por conta própria — por que ela existe (custo de CI? teste instáve
 - **Contrato:** RUNBOOK §3 · charter R-PUR-005.
 - **Regressão que defende:** editar compra antiga reescreve custo de item cujo estoque **já saiu** —
   a margem de vendas passadas muda retroativamente, e ninguém liga uma coisa à outra.
-- **Status: 🔴 sem lane** — o assert prova que a chamada ao gate **existe no fonte**; não monta
+- **Status: 🧪 estrutural · na lane** — o assert prova que a chamada ao gate **existe no fonte**; não monta
   compra fora da janela nem observa a recusa.
 
 ---
@@ -151,7 +170,7 @@ allowlist por conta própria — por que ela existe (custo de CI? teste instáve
 - **Regressão que defende:** alterar quantidade de uma compra devolvida produz **estoque negativo ou
   fantasma** sem erro nenhum na hora — o rombo aparece no inventário. Território da
   [Regra Mestre de valor e estoque](../../../../memory/proibicoes.md).
-- **Status: 🔴 sem lane** — casamento de texto; a devolução não é criada nem o bloqueio observado.
+- **Status: 🧪 estrutural · na lane** — casamento de texto; a devolução não é criada nem o bloqueio observado.
 
 ---
 
@@ -167,7 +186,7 @@ allowlist por conta própria — por que ela existe (custo de CI? teste instáve
 - **Regressão que defende:** o `PurchaseController@show` **já teve a linha de permissão comentada**
   (o `ShowPageTest` guarda isso com *"permission re-adicionada (não comentada)"*). O mesmo `//` numa
   linha de autorização é a mudança mais barata de escrever e a mais cara de descobrir.
-- **Status: 🔴 sem lane** — prova que a chamada existe no fonte; nenhum usuário sem permissão é
+- **Status: 🧪 estrutural · na lane** — prova que a chamada existe no fonte; nenhum usuário sem permissão é
   montado. E o `update` **não** tem assert próprio de permissão — só o `edit`. Registrado no `[BACKLOG]`.
 
 ---
@@ -185,7 +204,7 @@ allowlist por conta própria — por que ela existe (custo de CI? teste instáve
 - **Contrato:** RUNBOOK §4 (tabela de props) · §9 (*"pré-população via prop purchase"*).
 - **Regressão que defende:** um campo que **não** chega pré-populado é submetido vazio e **apaga** o
   valor gravado — o pior tipo de perda de dado, porque parece uma edição legítima do operador.
-- **Status: 🔴 sem lane** — `should`, não `must`: aqui a asserção estrutural cobre uma parte
+- **Status: 🧪 estrutural · na lane** — `should`, não `must`: aqui a asserção estrutural cobre uma parte
   honesta do contrato (a interface tipada declarada no arquivo).
 
 ---
@@ -201,7 +220,7 @@ allowlist por conta própria — por que ela existe (custo de CI? teste instáve
 - **Contrato:** RUNBOOK §3 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
 - **Regressão que defende:** um `business_id` fixo parece constante de config em review e só se
   revela no segundo tenant.
-- **Status: 🔴 sem lane** — o contrato aqui *é* a ausência de um literal no arquivo, então o
+- **Status: 🧪 estrutural · na lane** — o contrato aqui *é* a ausência de um literal no arquivo, então o
   presence-gate seria o instrumento certo. Só que ele tambem nao roda: instrumento certo, nunca acionado.
 
 ---
