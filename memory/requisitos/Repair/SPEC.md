@@ -99,6 +99,8 @@ Escopo derivado do F1 PLAN em [`RUNBOOK-repair-settings.md`](RUNBOOK-repair-sett
 
 **Implementado em:** _parcial_ · `resources/js/Pages/Repair/JobSheet/Index.tsx` · `Modules/Repair/Http/Controllers/JobSheetController.php` · verificado@b33b73f06b (2026-09-05) — a tela renderiza e filtra, mas **não há um único teste automatizado** cobrindo-a (medido: nenhum Pest cita o path; trio sem `casos.md`; nenhum teste Browser). O charter prometia 7 GUARDs que nunca existiram — revogados no mesmo PR desta US.
 
+**Testado em:** `Modules/Repair/Tests/Feature/RepairJobSheetIndexContratoTest.php` (declara `@covers-us US-REPA-004`) — lane **Verticais · Pest (MySQL)**, allowlist. 6 UCs: gate 403, flag OFF→Blade, flag ON→Inertia com as 3 props, `datatable_url` apontando ao endpoint compartilhado, ramo `ajax` preservado com a flag ON, e isolamento cross-tenant. **Veredito ainda não medido:** Pest é proibido fora do CT 100 ([proibicoes.md](../../proibicoes.md)), então a primeira execução real é a desta lane — os UCs pulam por ambiente em vez de assertar cego, e um `skipped` aqui é ausência de medição, nunca aprovação (LC-13).
+
 **Contrato que a tela não pode quebrar:** a lista vem do **mesmo** endpoint que serve o Blade legado — `route('job-sheet.index')` sob `request()->ajax()`, no `JobSheetController@index`, que é triple-mode (DataTables JSON · Inertia · Blade). O endpoint devolve colunas com **HTML embutido** (`action`, `status`, `estimated_cost`, via `rawColumns`); a Page lê **apenas campos escalares**. Trocar o motor de dados desta tela **não pode** alterar o ramo `ajax`, sob pena de quebrar o Blade de quem não tem a flag.
 
 **Definition of Done:**
