@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: o dual-path Blade×React e o escopo por tenant são duráveis — não mudam quando a lista ganhar coluna ou filtro novo.
 owner: wagner
 last_run: "2026-09-05"
-last_run_ci: "🟡 A lane purchase-pest.yml nasceu e os 2 UC [T0] (02/03) têm contrato de COMPORTAMENTO em PurchaseIndexTenantContratoTest — 4 passed, 11 assertions, run no CT 100 e verde no CI, mordida verificada por mutação. Os UC 01/04/05/06 seguem 🔴 sem lane: apontam pro IndexPageTest, que é presence-gate e não roda. Ver §Dívida de prova."
+last_run_ci: "🟡 Duas frentes do mesmo dia. (a) A lane purchase-pest.yml nasceu e os 2 UC [T0] (02/03) têm contrato de COMPORTAMENTO em PurchaseIndexTenantContratoTest — 4 passed, 11 assertions, verde no CI, mordida verificada por mutação. (b) Os UC 04/05 têm E2E de COMPORTAMENTO em IndexEtiquetaTest (Pest 4 Browser), na lane visual-regression (advisory): 2 verdes que EXECUTARAM, 3 passed / 7 assertions cada. Restam 🔴 sem lane os UC 01 e 06, que apontam pro IndexPageTest — presence-gate e sem lane. Nenhum ✅ nos 04/05: o visual-regression não emite JUnit, então nada dele chega ao manifesto do G-7. Ver §Dívida de prova."
 ---
 
 # Casos de Uso & Aceite — Listagem de Compras (`/purchases`)
@@ -66,6 +66,7 @@ módulo, nem a sqlite curada do `ci.yml`. Logo o `IndexPageTest` **também não 
 |---|---:|---:|---|
 | [`IndexPageTest`](../../../../tests/Feature/Purchase/IndexPageTest.php) | **0** | **55** | 🔴 **não — sem lane** |
 | [`PurchaseIndexTenantContratoTest`](../../../../tests/Feature/Purchase/PurchaseIndexTenantContratoTest.php) | **4** | 0 | ✅ **sim — `purchase-pest.yml`** |
+| [`IndexEtiquetaTest`](../../../../tests/Browser/Purchase/IndexEtiquetaTest.php) | monta a tela e **clica** | 0 | ✅ **sim — `visual-regression.yml`** (advisory) |
 
 **Duas camadas de falha, e a de cima é a que a v1 não tinha nomeado:**
 
@@ -77,9 +78,18 @@ módulo, nem a sqlite curada do `ci.yml`. Logo o `IndexPageTest` **também não 
    não monta tenant e não valida resposta. É a classe
    [LC-11](../../../../memory/LICOES_CODE.md), que o ledger alarma com 11 ocorrências.
 
-**Consequência (revista em 2026-09-05):** os UC **02 e 03** têm defesa ativa — comportamental **e**
-executada. Os UC **01, 04, 05 e 06** seguem sem nenhuma das duas: continuam apontando para o
-`IndexPageTest`, que é presence-gate e não roda.
+**Consequência (revista em 2026-09-05, por duas frentes do mesmo dia):** os UC **02 e 03** têm
+defesa ativa — comportamental **e** executada, via `purchase-pest.yml`. Os UC **04 e 05** também,
+por outro caminho: `IndexEtiquetaTest` é Pest 4 Browser e roda na lane `visual-regression`
+(advisory) — monta a lista, **clica** e lê o que a tela pediu ao navegador. Restam **01 e 06**
+sem nenhuma das duas: continuam apontando para o `IndexPageTest`, que é presence-gate e não roda.
+
+**Por que os 04/05 ficam `🧪` e não `✅`:** o `visual-regression` **não emite `--log-junit`**,
+então o verde deles não é colhido pelo `casos-results-collect` e não chega ao manifesto que o G-7
+lê — `✅` sem manifesto é `status:unverified`. É a diferença exata para o `purchase-pest.yml`,
+que emite JUnit e publica o artifact. Ligar essa perna do lado Browser vale para os **7** steps
+advisory daquele workflow, não só para esta tela — por isso é chip próprio, com impacto a medir
+antes.
 
 **Por que o conserto dos outros 4 não está aqui:** o gate diz, com todas as letras, *"conserto NÃO é
 mexer na allowlist por conta própria — por que ela existe (custo de CI? teste instável escondido?) é
@@ -99,8 +109,8 @@ daí — o caminho é converter, um UC por vez, não ligar tudo de uma vez.
 | UC-PURIDX-01 | SPA recebe React; acesso direto recebe Blade | must | RUNBOOK §1 · charter Mission | `IndexPageTest` | 🔴 sem lane |
 | UC-PURIDX-02 | Lista nunca sai do `business_id` da sessão | must `[T0]` | RUNBOOK §5 · charter Non-Goal 4 | `PurchaseIndexTenantContratoTest` | ✅ comportamento · na lane |
 | UC-PURIDX-03 | Lista respeita `permitted_locations` | must `[T0]` | RUNBOOK §3 · charter Goals | `PurchaseIndexTenantContratoTest` | ✅ comportamento · na lane |
-| UC-PURIDX-04 | Ação "Etiquetas" existe no React (paridade Blade) | must `[reg]` | RUNBOOK §2 (regressão datada) | `IndexPageTest` | 🔴 sem lane (regressão já vivida, hoje sem defesa) |
-| UC-PURIDX-05 | Rota Blade abre por `window.open`, nunca `router.visit` | must | RUNBOOK §3 · §5 | `IndexPageTest` | 🔴 sem lane |
+| UC-PURIDX-04 | Ação "Etiquetas" existe no React (paridade Blade) | must `[reg]` | RUNBOOK §2 (regressão datada) | `IndexEtiquetaTest` | 🧪 comportamento · na lane (advisory, fora do manifesto) |
+| UC-PURIDX-05 | Rota Blade abre por `window.open`, nunca `router.visit` | must | RUNBOOK §3 · §5 | `IndexEtiquetaTest` | 🧪 comportamento · na lane (advisory, fora do manifesto) |
 | UC-PURIDX-06 | A Page não decide tenant — `business_id` vem das props | must `[T0]` | RUNBOOK §5 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `IndexPageTest` | 🔴 sem lane |
 
 ---
@@ -207,11 +217,20 @@ daí — o caminho é converter, um UC por vez, não ligar tudo de uma vez.
   *"cadastrei umas peças e não tem opção de imprimir as etiquetas das compras"*. É o caso mais caro
   desta tela porque o dual-path **esconde a falta**: quem confere pelo Blade vê a ação e conclui que
   está tudo certo.
-- **Status: 🔴 sem lane** — e aqui a dívida dói mais, agora em dobro: **nenhum assert cita
-  `labels/show`, `purchase_id=` ou `Barcode`**, e o teste citado **não roda em lane alguma**. A
-  regressão que o RUNBOOK §2 documenta em prosa — e que Larissa já viveu — **não tem hoje um teste
-  que a impeça de voltar, nem um que fosse acordado se tivesse**. Registrado em `[BACKLOG]` abaixo
-  com o teste devido nomeado.
+- **Como o teste prova, já que não há link no DOM:** a ação é `<Button onClick={window.open(...)}>`
+  (`Index.tsx:303`), então nenhuma URL chega ao HTML — procurar `a[href]` daria falso-negativo. O
+  teste **substitui `window.open`, clica de verdade** e compara com a URL montada a partir do **id
+  real** da compra no banco. Remover o botão devolve `ACAO-AUSENTE`; mudar a URL muda a string;
+  trocar por `router.visit` devolve `NAO-CHAMOU`.
+- **Status: 🧪 comportamento · na lane (advisory, fora do manifesto)** — as duas camadas de falha
+  que esta seção nomeia estão **fechadas** para este UC: o teste é de comportamento (não
+  presence-gate) **e** roda (`visual-regression.yml`). Executou em 2026-09-05,
+  [run 33941339625](https://github.com/wagnerra23/oimpresso.com/actions/runs/33941339625) e no run
+  do commit seguinte, ambos `3 passed (7 assertions)` — o contador de **assertions** é o que prova
+  execução, porque pulado sairia `0 assertions` sem falhar ([LC-13](../../../../memory/LICOES_CODE.md)).
+  Não é `✅` porque o verde não chega ao manifesto do G-7 (ver §Dívida de prova), e segue
+  `continue-on-error`: os 2 verdes que a [ADR 0336](../../../../memory/decisions/0336-gates-design-promocao-por-mordida-provada-emenda-0314.md)
+  pede estão observados, mas promover é flip [W].
 
 ---
 
@@ -228,10 +247,15 @@ daí — o caminho é converter, um UC por vez, não ligar tudo de uma vez.
   · RUNBOOK §5 (invariante explícito).
 - **Regressão que defende:** o erro não é um 500 no servidor — é o SPA quebrando no cliente com uma
   mensagem que **não nomeia a ação culpada**. Custa uma sessão de investigação por ocorrência.
-- **Status: 🔴 sem lane** — e a ligação entre os asserts citados e este contrato é **indireta**.
-  Este UC está mais perto de `[BACKLOG]` do que de coberto; fica com id porque o contrato existe em
-  2 fontes canon (RUNBOOK §3 e §5) e a citação satisfaz o G-2 — mas o G-2 mede **citação**, não
-  execução, e o `Status` não mente sobre isso.
+- **Como o teste prova:** o mesmo probe do UC-04, lido pelo avesso. Se a ação passasse a sair por
+  `router.visit`, `window.open` não seria chamado e o probe devolveria `NAO-CHAMOU`; e o terceiro
+  campo do retorno (o `pathname` **depois** do clique) denuncia a navegação mesmo que algum outro
+  caminho tivesse chamado `window.open`. Traz ainda um **controle positivo** — o botão *Imprimir*,
+  que usa o mesmo mecanismo — porque sem ele um interceptador quebrado devolveria `NAO-CHAMOU`
+  para tudo e o verde não significaria nada.
+- **Status: 🧪 comportamento · na lane (advisory, fora do manifesto)** — deixou de ser ligação
+  indireta: o assert agora exerce o contrato, e passou junto com o UC-04 nos mesmos runs. Vale o
+  mesmo resíduo: o verde não chega ao manifesto do G-7, e por isso não é `✅`.
 
 ---
 
@@ -259,11 +283,16 @@ daí — o caminho é converter, um UC por vez, não ligar tudo de uma vez.
 > o merge de quem for atendê-lo. 6 UC ancorados valem mais que 15 órfãos
 > ([proibicoes §5](../../../../memory/proibicoes.md) 2026-07-16).
 
-- `[BACKLOG]` **A regressão da Etiqueta não tem defesa.** Nenhum assert do repo cita `labels/show`,
-  `purchase_id=` ou `Barcode` no contexto de `Purchase/Index.tsx`. O RUNBOOK §2 documenta a
-  regressão de 2026-06-17 em prosa, e prosa não impede o retorno. O teste devido é de
-  **comportamento** (montar a lista, abrir as ações, achar o link) — Pest Browser, casa de teste que
-  esta tela não tem (`Purchase` está com `0 de 4` E2E no `screen-coverage`).
+- ~~`[BACKLOG]` **A regressão da Etiqueta não tem defesa.**~~ **ATENDIDO em 2026-09-05** por
+  [`IndexEtiquetaTest`](../../../../tests/Browser/Purchase/IndexEtiquetaTest.php) (Pest 4 Browser),
+  na lane `visual-regression`. Era o item mais caro desta lista. O `screen-coverage` do Purchase
+  saiu de `0 de 4` E2E para `1 de 4`. **Resíduo que continua**: o verde não chega ao manifesto do
+  G-7 (o `visual-regression` não emite JUnit) — ver §Dívida de prova.
+- `[BACKLOG]` **O lado Browser não alimenta o manifesto por-UC.** O `visual-regression.yml` não
+  emite `--log-junit` nem publica artifact, e o `junit-lanes.mjs` (que **deriva** as lanes colhidas,
+  em vez de listá-las à mão) exige as duas coisas — é exatamente o que o `purchase-pest.yml` faz
+  e por isso os UC 02/03 podem ser `✅`. Enquanto não existir, nenhum UC provado por teste
+  **Browser** chega a `✅`, aqui ou nas outras telas com step advisory naquele workflow.
 - `[BACKLOG]` **Ações ainda só no Blade.** RUNBOOK §2 marca `⚠️` para pagamento, devolução, mudança
   de status e e-mail — existem no dropdown Blade e não foram portadas para o React. É gap
   **conhecido e aceito**, não defeito; vira UC quando a paridade for decidida (é escopo, decisão [W]).

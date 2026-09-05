@@ -194,7 +194,9 @@ Como B é **descontinuação** (não migração), não há receptor que absorve 
 
 ## BLOQUEIOS antes de qualquer DROP
 
-1. Row count por business (queries Fase 3 — rodar em réplica; **não rodado**). 🔴 **aberto**
+1. Row count por business (queries Fase 3). 🔴 **aberto** — rodado no CT 100 em **2026-09-04**, mas
+   **o CT 100 não pode responder esta pergunta**: nenhum dos seus bancos é réplica de prod (4 businesses
+   fictícios de CI, zero pagante). O zero medido lá **não** autoriza DROP. Ver §Recibo do CT 100.
 2. Auditoria do consumidor externo Connector (`log.delphi`). 🟡 **query do oráculo RODADA em 2026-09-04** — `connector/api/crm%` = **0** de 32.800 linhas, com controle positivo (`connector%` = 20.476, `MAX(created_at)` = hoje). Segue **aberto como decisão**: o dado é condição, não ato — quem fecha é [W]+[F] na E4 (ver abaixo).
 3. ~~Confirmar `BrLookupService` pertence a A.~~ ✅ **FECHADO em 2026-09-04** — pertence a A.
 
@@ -239,6 +241,18 @@ Rodar em **réplica/staging** (nunca escrever em prod). Leitura do resultado: **
 `ultima_chamada` antiga = candidato a `410 Gone` na E4; **qualquer linha recente** = BLOQUEIO mantido até
 migrar o consumidor (Wagner + Felipe), como o §Fase 4 já manda.
 
+As **duas pernas do oráculo foram verificadas em 2026-09-04** (varredura contada, comandos no §Recibo):
+
+- o grupo `connector/api/crm` **passa mesmo** por `log.delphi` — `Modules/Connector/Routes/api.php:112`;
+- o middleware grava **sem flag e sem condicional de negócio** — o `LicencaLog::create` não está atrás
+  de nenhum `if` —, com `endpoint = $request->path()` **sem barra inicial** — `LogDelphiAccess.php:111`.
+
+⚠️ **Ressalva de precisão (leitura de código, não medida):** o `create` roda **depois** de `$next($request)`,
+e na cadeia do grupo o `log.delphi` vem **antes** do `auth:api`. Logo um request que aborte por exceção
+dentro do `$next()` (ex.: token inválido) pode **não** gerar linha. Isso não muda o veredito abaixo — que é
+sobre o produtor nunca ter rodado no ambiente —, mas significa que a linha registrada é do request que
+**completou**, não de toda tentativa. Não testei esse caminho; quem depender dele, meça.
+
 ✅ **RODADA em 2026-09-04** (SELECT read-only em prod): **0 linhas** para `connector/api/crm%`.
 A ressalva que este parágrafo pedia foi cumprida — o middleware **grava** no ambiente consultado:
 `connector%` = **20.476** de **32.800** linhas e `MAX(created_at)` = **2026-09-04 19:17:29**. Ou seja,
@@ -247,6 +261,14 @@ vazios-por-construção — ver §Recibo do portal, eixo 0).
 
 ⚠️ Isto **libera a condição técnica**, não a decisão: o `410 Gone` da E4 segue gate [W]+[F], e a
 janela medida é a que `licenca_log` reteve — re-rodar antes de agir.
+
+⚠️ **Refinamento do controle positivo (medido no repo em 2026-09-04):** `licenca_log` é escrita por
+**5 produtores**, não 1, e **sem convenção única de `endpoint`** (§Recibo do CT 100). O controle usado
+acima — `connector%` = 20.476 — prova que **a tabela** grava; o controle mais forte, que prova que
+**este middleware** grava, é `source = 'delphi_middleware'`. Por isso a receita reexecutável (§Recibo do
+CT 100) põe esse controle como **passo 1**: sem ele, ausência de linha pode medir o produtor em vez do
+consumidor (§5 2026-07-31). Não invalida o veredito acima — o endpoint `connector/api/crm` **é** servido
+pelo grupo que passa por `log.delphi`, verificado em `Modules/Connector/Routes/api.php:112`.
 
 ### Recibo do portal — uso real (zona cinza · fato datado 2026-09-04 · re-rodar em vez de confiar)
 
@@ -342,6 +364,142 @@ ssh -4 -i ~/.ssh/id_ed25519_oimpresso -p 65002 u906587222@148.135.133.115 'cd pu
 
 ⚠️ **O recibo mede o mundo em 2026-09-04.** Se um cliente for onboardado no portal, a conclusão muda —
 por isso ficam aqui os **comandos**, não só o veredito. Re-rodar antes de agir sobre estes números.
+
+### Recibo do CT 100 — bloqueios 1 e 2 (medição em 2026-09-04)
+
+> **Leia o ambiente antes de ler qualquer número.** Este recibo registra o que foi medido, **onde**, e o que
+> aquele lugar consegue e **não** consegue responder. Nenhum DML foi executado — só `SELECT`. Nenhuma etapa
+> E1–E6 foi executada.
+
+> **Convergência independente:** o §Recibo do portal (acima, do [#6804](https://github.com/wagnerra23/oimpresso.com/pull/6804))
+> caracterizou o mesmo CT 100 no mesmo dia, em sessão separada, e chegou aos **mesmos números** — 4 businesses
+> fictícios, 1 contact, 2 transactions. Duas medições independentes, mesmo veredito: ali o zero mede o seeder.
+
+#### O ambiente medido — e por que ele não fecha o bloqueio 1
+
+O CT 100 expõe **4 bancos** com schema do oimpresso, e **nenhum é réplica nem anonimização de prod**:
+
+```bash
+tailscale ssh root@ct100-mcp 'PW=$(docker inspect oimpresso-staging-db --format "{{range .Config.Env}}{{println .}}{{end}}" | grep -m1 MARIADB_ROOT_PASSWORD | cut -d= -f2); docker exec -i oimpresso-staging-db mariadb -uroot -p"$PW" -e "SHOW DATABASES;"'
+# -> oimpresso_staging | oimpresso_qa | oimpresso_kbf | oimpresso_kb_flake
+```
+
+`oimpresso_staging` (o banco que o container `oimpresso-staging` usa — `DB_DATABASE` do `.env` dele) tem
+**387 tabelas** e os seguintes dados: **4 businesses, 1 contact, 2 transactions**. Os 4 businesses são
+`CI Biz` (1), `CI Biz 2` (2), `CI Tenant 98 (ficticio)` (98) e `CTM Test Biz Adversario#99` (99) — todos
+criados em 2026-08-20/24 pela receita de CI. **Não existe `business_id=4` (ROTA LIVRE), nem 164, nem
+qualquer business pagante.** `oimpresso_qa` e `oimpresso_kbf` têm o mesmo perfil (3–4 businesses de CI).
+
+→ **Consequência dura:** a regra de ouro do §Fase 3 fala em *"`n>0` em business **pagante**"*. No ambiente
+medido não há business pagante algum, logo **`n=0` aqui não é evidência de tabela morta** — mede o seed do
+CI, não o cliente. Ler esse zero como "candidata a DROP direto" seria a §5 2026-07-31 (vazio que era falha
+de medição) na forma mais cara possível: perda de dado de cliente.
+
+#### Bloqueio 1 — o que a medição de fato produziu
+
+As tabelas **existem** no schema e estão **todas vazias neste ambiente** (`COUNT(*)`, não `table_rows`):
+
+| Tabela | `COUNT(*)` em `oimpresso_staging` |
+|---|---|
+| `crm_schedules` · `crm_schedule_users` · `crm_schedule_logs` | 0 · 0 · 0 |
+| `crm_followup_invoices` · `crm_call_logs` · `crm_proposals` | 0 · 0 · 0 |
+| `crm_proposal_templates` · `crm_campaigns` · `crm_marketplaces` | 0 · 0 · 0 |
+| `crm_contact_person_commissions` · `crm_deals` · `crm_lead_users` | 0 · 0 · 0 |
+| `contacts WHERE type='lead'` | 0 (nenhum grupo retornado) |
+
+→ O que isto **prova**: as queries do §Fase 3 são **executáveis** e o schema bate com a tabela de decisão.
+→ O que isto **não prova**: nada sobre `crm_deals`/`crm_marketplaces` serem "DROP direto". Aquela
+  conclusão exige `n=0` **global em prod**, e prod não foi medido.
+
+⚠️ **Desvio de contagem, registrado sem reescrever o TL;DR:** o §TL;DR diz *"9 tabelas"*; o schema tem
+**12** tabelas `crm_*` e o §Fase 3 lista as **12** (3 delas marcadas `pivot` — 12−3=9 explica o número,
+mas o texto não diz isso). Contagem reproduzível:
+`SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='oimpresso_staging' AND SUBSTRING(table_name,1,4)='crm_'` → **12**.
+
+#### Bloqueio 2 no CT 100 — o vazio aqui é da instrumentação (prod respondeu diferente)
+
+O plano mandava conferir que o middleware grava no ambiente consultado antes de ler vazio como "morto".
+Conferido — e **reprovou**:
+
+| Banco | linhas em `licenca_log` | `source` das linhas |
+|---|---|---|
+| `oimpresso_staging` | **0** | — |
+| `oimpresso_kbf` | **0** | — |
+| `oimpresso_qa` | **188** | `desktop_audit` (**100%**) |
+
+**Zero linha `source='delphi_middleware'` em qualquer banco do CT 100.** As 188 do `oimpresso_qa` vieram do
+`LicencaAuditService` (`source='desktop_audit'`), não do middleware do oráculo — e por isso trazem
+`endpoint` em **outro formato** (`/api/sync`, `/oauth/token`, **com** barra).
+
+→ **A query do plano devolveu 0 linhas** — e esse 0 **não significa "o Delphi não chama mais"**. Significa
+  que o produtor daquela linha nunca rodou aqui. Controle negativo confirmando:
+  `SELECT COUNT(*) FROM oimpresso_qa.licenca_log WHERE endpoint LIKE 'connector/api%'` → **0**.
+
+→ **Reconciliação com o §Recibo do portal (eixo 1), que mediu prod no mesmo dia:** os dois obtiveram
+  **0 linhas** para `connector/api/crm%`, e **não se contradizem** — medem ambientes diferentes. No CT 100
+  o zero é da **instrumentação** (o produtor nunca rodou lá). Em prod o zero é do **consumidor**, porque lá
+  o controle positivo existe e está vivo (`connector%` = 20.476, `MAX(created_at)` = hoje). **O veredito do
+  bloqueio 2 é o de prod.** O valor desta seção não é o veredito: é mostrar que, sem o controle, os dois
+  zeros seriam indistinguíveis — e um deles não significa nada.
+
+#### Refinamento do oráculo: `licenca_log` tem **5 produtores**, não 1
+
+Varredura contada no repo (`rg --hidden -g '!.git/**' "LicencaLog::create"` → 5 arquivos de código + 2 de teste):
+
+| Produtor | `source` | formato de `endpoint` |
+|---|---|---|
+| `Http/Middleware/LogDelphiAccess.php:111` | `delphi_middleware` | `$request->path()` — **sem** barra |
+| `Http/Middleware/LogDesktopAccess.php:68` | `api_middleware` | `$request->path()` — **sem** barra |
+| `Services/LicencaAuditService.php:60` | `desktop_audit` | `$payload['endpoint']` — **livre** |
+| `Listeners/LogPassportAccessToken.php:89` | `passport_event` | literal `'/oauth/token'` — **com** barra |
+| `Console/ParseLicencaLogCommand.php` | `log_parser` | do arquivo de log |
+
+→ **Por que isto importa:** o `LIKE 'connector/api/crm%'` do oráculo está **correto para o produtor certo**
+  (o `LogDelphiAccess` grava sem barra), mas a tabela é **compartilhada** e sem convenção única. Rodar
+  a query e ver 0 sem antes contar `source='delphi_middleware'` mede o produtor, não o consumidor.
+
+#### Receita reexecutável — rodar **nesta ordem** (o controle vem primeiro)
+
+```sql
+-- PASSO 1 (CONTROLE, obrigatorio): o produtor do oraculo escreve neste ambiente?
+--   n = 0  -> PARE. O passo 2 nao tem significado aqui (mede a instrumentacao, nao o consumidor).
+SELECT COUNT(*) AS n, MIN(created_at) AS mais_antiga, MAX(created_at) AS mais_recente
+FROM licenca_log WHERE source = 'delphi_middleware';
+
+-- PASSO 2 (a pergunta): o Delphi ainda chama a API CRM?
+SELECT endpoint, source, COUNT(*) AS n, COUNT(DISTINCT business_id) AS bizs,
+       MAX(created_at) AS ultima_chamada
+FROM licenca_log
+WHERE endpoint LIKE 'connector/api/crm%' AND source = 'delphi_middleware'
+GROUP BY endpoint, source ORDER BY ultima_chamada DESC;
+
+-- PASSO 3 (rede contra a barra): pega linha que outro produtor tenha gravado com '/' na frente
+SELECT endpoint, source, COUNT(*) AS n, MAX(created_at) AS ultima_chamada
+FROM licenca_log WHERE endpoint LIKE '%connector/api/crm%'
+GROUP BY endpoint, source ORDER BY ultima_chamada DESC;
+```
+
+Transporte (aspas aninhadas colapsam — passar o SQL por **stdin**, nunca inline):
+
+```bash
+cat query.sql | tailscale ssh root@ct100-mcp 'PW=$(docker inspect oimpresso-staging-db --format "{{range .Config.Env}}{{println .}}{{end}}" | grep -m1 MARIADB_PASSWORD | cut -d= -f2); docker exec -i oimpresso-staging-db mariadb -ustaging -p"$PW" oimpresso_staging -t'
+```
+
+#### O que **de fato** fecharia cada bloqueio
+
+⚠️ **Atualizado após o [#6804](https://github.com/wagnerra23/oimpresso.com/pull/6804) (mesmo dia).** Este
+recibo nasceu dizendo que *"os dois bloqueios ficam abertos por falta de ambiente"*. Isso **caducou para o
+bloqueio 2**: aquele PR rodou a query em **prod**, com `SELECT` read-only, e obteve o controle positivo que
+o CT 100 não tinha. A correção fica registrada em vez de reescrita silenciosa — a linha antiga era ponteiro
+podre no instante em que prod foi medido.
+
+| # | Estado | Fecha quando |
+|---|---|---|
+| 1 | 🔴 **aberto** — o CT 100 mediu, e não pode responder | `COUNT(*)` por `business_id` das 12 `crm_*` num ambiente **com business pagante**. Não existe no CT 100 (medido). Exige réplica/dump anonimizado, ou `SELECT` read-only em prod — decisão [W] |
+| 2 | 🟡 **condição técnica liberada** pelo [#6804](https://github.com/wagnerra23/oimpresso.com/pull/6804) | Já respondido em prod (`connector/api/crm%` = 0 com controle positivo vivo). O que resta é **decisão**, não medição: o `410 Gone` da E4 segue gate [W]+[F] |
+
+⚠️ Este recibo mede **os bancos do CT 100 em 2026-09-04**, não o mundo. A receita fica escrita para ser
+**re-rodada** — nunca a conclusão sozinha.
 
 ## Refs
 
