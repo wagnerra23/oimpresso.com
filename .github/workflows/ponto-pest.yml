@@ -184,6 +184,13 @@ jobs:
         #                    Coluna NOT NULL + FK, sem default → registrar NÃO grava.
         # Vermelho neles é o ACHADO, não defeito do teste. Correção é decisão [W].
         #
+        # FATO DATADO 2026-09-04: os DOIS primeiros já foram corrigidos — D-1 e D-8 caíram
+        # juntos em `20a2757a5e` (2026-08-03, "5 atributos fantasma"). Hoje UC-ESPSH-01 e
+        # UC-IMPSH-04 passam VERDES (medido na run 33939672971 desta lane). A lista acima
+        # descreve o que cada UC denunciou ao NASCER — é história, não o estado de hoje;
+        # quem responde pelo veredito é a lane, nunca este comentário. Os asserts seguem
+        # INTACTOS justamente por isso.
+        #
         # Enforcement: quem responde é governance/required-checks-baseline.json — não
         # este comentário (§5 2026-07-16: artefato não afirma o próprio enforcement em
         # tempo presente, porque apodrece no primeiro flip; foi o que aconteceu aqui).
@@ -207,9 +214,13 @@ jobs:
         #
         # 2026-08-28: `EspelhoContratoTest` convertido pra Pest `it()` — os 8 UC dele
         # (UC-ESPSH-01..05 · UC-ESPIDX-01..03) saíram do `⛓` do `casos:report`, medido
-        # 18→10 no bloco Ponto. Seguem em DOCBLOCK, de propósito, `JornadaWorkflowContratoTest`
-        # e `BancoHorasImportacaoContratoTest`: varrer em lote acorda gate diff-aware sobre
-        # dívida alheia (proibicoes §5 2026-07-12).
+        # 18→10 no bloco Ponto.
+        # 2026-09-04: `JornadaWorkflowContratoTest` (#6785, 10→7) e, por fim,
+        # `BancoHorasImportacaoContratoTest` (7→0) — o bloco `⛓ Ponto` do `casos:report`
+        # ZEROU, e o teto de prova global subiu 721→728. Uma conversão por PR, sempre
+        # oportunística: varrer em lote acorda gate diff-aware sobre dívida alheia
+        # (proibicoes §5 2026-07-12). O texto anterior dizia que esses dois "seguem em
+        # DOCBLOCK, de propósito" — verdade em 28/08, falso desde então.
         #
         # PontoDashboardContratoTest (2026-08-23): trio da tela `Ponto/Dashboard/Index`
         # (contrato `ponto-painel`, UC-PAINEL-01..06), landado pelo #6154. Aquele PR

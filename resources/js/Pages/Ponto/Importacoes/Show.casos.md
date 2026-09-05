@@ -27,7 +27,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | UC-IMPSH-01 | Reimportar o mesmo arquivo não duplica marcação | must | `CU-PONTO-10` + US-PONTO-002 | `BancoHorasImportacaoContratoTest` | 🧪 sem veredito |
 | UC-IMPSH-02 | A dedup é do meu empregador, não global | must `[T0]` | `CU-PONTO-10` + ADR 0093 | `BancoHorasImportacaoContratoTest` | 🧪 sem veredito |
 | UC-IMPSH-03 | Importação de outro empregador → 404 | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `BancoHorasImportacaoContratoTest` | 🧪 sem veredito |
-| UC-IMPSH-04 | As contagens exibidas refletem o que foi processado | must | `CU-PONTO-11` + US-PONTO-002 | `BancoHorasImportacaoContratoTest` | 🧪 **vermelho ESPERADO** (predição) |
+| UC-IMPSH-04 | As contagens exibidas refletem o que foi processado | must | `CU-PONTO-11` + US-PONTO-002 | `BancoHorasImportacaoContratoTest` | 🧪 sem veredito |
 
 **[BACKLOG]:**
 
@@ -108,13 +108,23 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Teste:** `BancoHorasImportacaoContratoTest.php` — `UC-IMPSH-04`.
 - **Contrato:** `CU-PONTO-11` (SDD §6.4) · US-PONTO-002 (aceitação: *"`Importacao` registra arquivo +
   checksum + linhas processadas + erros"*) · Portaria MTP 671/2021 Anexo I (rastreabilidade da origem).
-- **Regressão que defende:** **a regressão JÁ ACONTECEU** — é a **mesma classe do achado do espelho**
-  (`Espelho/Show` UC-ESPSH-01), reincidindo em outra tela do mesmo módulo. Varredura contada:
-  `linhas_criadas`/`linhas_ignoradas` aparecem **9 vezes** (3 no `ImportacaoController`, 6 consumindo no
-  front) e **não existem na tabela** — a migration `ponto_importacoes` tem `linhas_total`,
-  `linhas_processadas`, `linhas_sucesso` e `linhas_erro`. O `?? 0` do controller **mascara** o campo
-  ausente, então toda importação bem-sucedida exibe **0 marcações criadas** (SDD §9 D-8).
+- **Regressão que defende (fato datado — nasceu denunciando, hoje defende):** ao ser escrito, este caso
+  denunciava a regressão viva: `linhas_criadas`/`linhas_ignoradas` apareciam **9 vezes** (3 no
+  `ImportacaoController`, 6 consumindo no front) e **não existiam na tabela** — a migration
+  `ponto_importacoes` tem `linhas_total`, `linhas_processadas`, `linhas_sucesso` e `linhas_erro`, e o
+  `?? 0` do controller **mascarava** o campo ausente, então toda importação bem-sucedida exibia
+  **0 marcações criadas** (SDD §9 D-8). Era a **mesma classe do achado do espelho** (`Espelho/Show`
+  UC-ESPSH-01), reincidindo em outra tela do mesmo módulo.
+  **CORRIGIDO em `20a2757a5e`** (2026-08-03, *"5 atributos fantasma"* — o mesmo commit que fechou o D-1
+  do espelho): das duas correções que o caso admitia, valeu a que **preserva a chave exposta** e troca a
+  LEITURA — hoje o controller monta `'linhas_criadas' => (int) ($i->linhas_sucesso ?? 0)`
+  (`ImportacaoController:44` no `index`, `:116` no `show`). O caso deixou de ser denúncia e passou a ser
+  **anti-regressão**: se alguém reintroduzir a leitura do campo fantasma, ele volta a morder.
 - **Por que o assert é sobre o valor, não sobre a chave:** o contrato é *"a contagem exibida reflete o
-  processado"*. Se a correção for expor sob outro nome, front e assert mudam **juntos** — o que não pode
-  é a tela seguir dizendo zero quando o banco diz sete.
-- **Status: 🧪 vermelho ESPERADO** — **predição**, não veredito. Status real vem da lane.
+  processado"*. Se um dia a correção for expor sob outro nome, front e assert mudam **juntos** — o que
+  não pode é a tela seguir dizendo zero quando o banco diz sete. Foi justamente por o assert ser sobre
+  comportamento que ele **acompanhou** a correção acima sem precisar ser reescrito.
+- **Status: 🧪 sem veredito** — a predição *"vermelho ESPERADO"* que ficava aqui **caducou** (medido
+  2026-09-04: `✓ uc impshow 04 … 0.33s` na run 33939672971 da lane `ponto-pest`). Não vira ✅ neste PR:
+  quem promove é o manifesto do G-7, que só passa a enxergar este UC agora que o teste virou Pest `it()`
+  com o id no título. Status real vem da lane, nunca desta linha.
