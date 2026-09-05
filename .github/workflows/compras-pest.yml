@@ -59,6 +59,12 @@ on:
       # Invariantes R1 (getListPurchases JOIN scoped) vivem no util compartilhado:
       # MultiTenantSqlGuardTest + GapsP1HardeningTest gateiam contra regressão aqui.
       - 'app/Utils/TransactionUtil.php'
+      # O trio de telas de Compra (Purchase/*) vive FORA de Modules/Compras — a controller
+      # está em app/ e os testes em tests/Feature/Purchase/. Sem estes dois padrões, mexer
+      # no código sob teste não dispara o teste dele (§5 2026-08-02: "gate mudo com cara de
+      # cobertura"). Entraram em 2026-09-05 junto com o 1º teste de Purchase na allowlist.
+      - 'app/Http/Controllers/PurchaseController.php'
+      - 'tests/Feature/Purchase/**'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/compras-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -98,6 +104,10 @@ jobs:
               - 'Modules/Compras/**'
               - 'resources/js/Pages/Compras/**'
               - 'app/Utils/TransactionUtil.php'
+              # Espelha o `push.paths` acima — os dois têm que andar juntos, senão o
+              # skip-as-pass conclui verde justamente no PR que mexe no código sob teste.
+              - 'app/Http/Controllers/PurchaseController.php'
+              - 'tests/Feature/Purchase/**'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/compras-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
@@ -147,6 +157,17 @@ jobs:
         # listá-lo mesmo assim: teste fora da allowlist NÃO RODA — é o "verde
         # impossível" que o anchor-lint denuncia, pior que o vermelho honesto.
         #
+        # 2026-09-05 — `tests/Feature/Purchase/UpdateCrossTenantIdorTest.php` entra na
+        # allowlist. Não é do Modules/Compras, e entra aqui de propósito: as telas de
+        # Purchase são a outra metade do mesmo domínio (a própria MultiTenantTest do Compras
+        # registra, no cenário 3, que "testar update em /purchases foge do escopo Compras" —
+        # e por isso o update isolation ficava sem dono). O teste defende um IDOR de escrita
+        # cross-tenant em DINHEIRO que existiu de verdade e que, até esta data, não executava
+        # em lane nenhuma: pulava por driver != sqlite e não estava na allowlist sqlite.
+        # Validado antes do merge no CT 100 (não-blind, ADR 0062), com o contador como prova
+        # (LC-13): o arquivo de origin/main dá `4 skipped (0 assertions)`; o novo dá
+        # `3 passed (13 assertions)`, estável em duas execuções seguidas contra a mesma base.
+        #
         # ⛔ Este arquivo NÃO afirma se o job bloqueia merge. O dono único disso é
         # `governance/required-checks-baseline.json` (baseline↔vivo vigiado por
         # scripts/governance/protection-drift.mjs) — restatear aqui apodrece no
@@ -177,7 +198,8 @@ jobs:
             Modules/Compras/Tests/Feature/ComprasListagemNPlusUmTest.php \
             Modules/Compras/Tests/Feature/ComprasIndexTest.php \
             Modules/Compras/Tests/Feature/MultiTenantTest.php \
-            Modules/Compras/Tests/Feature/ComprasContratoFiltrosTest.php
+            Modules/Compras/Tests/Feature/ComprasContratoFiltrosTest.php \
+            tests/Feature/Purchase/UpdateCrossTenantIdorTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
