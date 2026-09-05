@@ -196,10 +196,14 @@ it('UC-METAS-02: a lista traz o colaborador com as faixas JA GRAVADAS, como esta
     $minha = $linhas->firstWhere('id', $this->hmUser->id);
 
     expect($minha)->not->toBeNull();
-    $faixa = collect($minha['faixas'])->firstWhere('inicio', 1000.0);
+
+    // Cast explícito: o JSON serializa float SEM casas decimais como INT (2000.0 → `2000`),
+    // então `toBe(2000.0)` — que é identidade estrita — falha por TIPO, não por valor. O que
+    // este UC afirma é o VALOR gravado; o tipo do transporte não é o contrato.
+    $faixa = collect($minha['faixas'])->first(fn ($f) => (float) $f['inicio'] === 1000.0);
     expect($faixa)->not->toBeNull()
-        ->and($faixa['fim'])->toBe(2000.0)
-        ->and($faixa['percentual'])->toBe(5.0);
+        ->and((float) $faixa['fim'])->toBe(2000.0)
+        ->and((float) $faixa['percentual'])->toBe(5.0);
 });
 
 it('UC-METAS-03: colaborador sem faixa vem com a lista de faixas VAZIA — ausencia, nao zero fabricado', function () {
