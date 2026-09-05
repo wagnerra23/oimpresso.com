@@ -161,7 +161,10 @@ export default function LicencasIndex({
   hoje,
   date_format,
 }: Props) {
-  const linhas = licencas?.data ?? [];
+  // useMemo, e não `?? []` solto: o array literal nasce novo a cada render e
+  // entraria como dependência instável do useMemo de `pendentesSelecionadas`
+  // (react-hooks/exhaustive-deps pegou isso no ratchet do ESLint).
+  const linhas = useMemo(() => licencas?.data ?? [], [licencas]);
   const total = licencas?.total ?? 0;
   const listaTipos = tipos ?? [];
   const listaPessoas = colaboradores ?? [];
@@ -284,9 +287,15 @@ export default function LicencasIndex({
 
   // Estado da linha, do alvo (§3 do export): urgente = pendente com início já
   // vencido (é o que pede decisão hoje); arquivada = cancelada.
+  //
+  // Usa `primary`, não uma cor crua de âmbar: o lint `ds/no-raw-palette-color`
+  // proíbe palette do Tailwind, e o DS **não tem token de atenção/warning** —
+  // só `primary` e `destructive`. `destructive` diria "erro"; urgente aqui é
+  // "pede decisão", que é destaque, não falha. Se o DS ganhar um token de
+  // atenção, é aqui que ele entra (token novo é decisão [W]).
   const classeDaLinha = (l: Licenca) => {
     if (l.status === 'pending' && l.start_date <= hoje) {
-      return 'border-l-2 border-l-amber-500 bg-amber-500/5 hover:bg-amber-500/10';
+      return 'border-l-2 border-l-primary bg-primary/5 hover:bg-primary/10';
     }
     if (l.status === 'cancelled') return 'opacity-60 hover:bg-accent/30';
     return 'hover:bg-accent/30';
@@ -762,7 +771,7 @@ function DrawerLicenca({
                     <ul className="space-y-1">
                       {conflitos.map((c) => (
                         <li key={c.id} className="flex items-center gap-2">
-                          <AlertCircle size={13} aria-hidden="true" className="text-amber-500" />
+                          <AlertCircle size={13} aria-hidden="true" className="text-destructive" />
                           <span>{c.ref_no ?? `#${c.id}`} · {c.periodo_label} · {c.status_label}</span>
                         </li>
                       ))}

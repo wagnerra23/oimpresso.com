@@ -14,7 +14,7 @@ module: Essentials
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Essentials/**` + `resources/js/Pages/Essentials/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 281 arquivos em 16 papéis.
+**Total mapeado:** 284 arquivos em 17 papéis.
 
 ## Controllers — 19
 
@@ -239,7 +239,7 @@ module: Essentials
 - [view.blade.php](../../../Modules/Essentials/Resources/views/todo/view.blade.php)
 - [view_shared_docs.blade.php](../../../Modules/Essentials/Resources/views/todo/view_shared_docs.blade.php)
 
-## Telas (Inertia/React) — 13
+## Telas (Inertia/React) — 14
 
 - [Index.tsx](../../../resources/js/Pages/Essentials/Documents/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Essentials/Holidays/Index.tsx)
@@ -247,6 +247,7 @@ module: Essentials
 - [Edit.tsx](../../../resources/js/Pages/Essentials/Knowledge/Edit.tsx)
 - [Index.tsx](../../../resources/js/Pages/Essentials/Knowledge/Index.tsx)
 - [Show.tsx](../../../resources/js/Pages/Essentials/Knowledge/Show.tsx)
+- [Index.tsx](../../../resources/js/Pages/Essentials/Licencas/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Essentials/Messages/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Essentials/Reminders/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Essentials/Settings/Index.tsx)
@@ -255,7 +256,7 @@ module: Essentials
 - [Index.tsx](../../../resources/js/Pages/Essentials/Todo/Index.tsx)
 - [Show.tsx](../../../resources/js/Pages/Essentials/Todo/Show.tsx)
 
-## Charters (lei da tela) — 13
+## Charters (lei da tela) — 14
 
 - [Index.charter.md](../../../resources/js/Pages/Essentials/Documents/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Essentials/Holidays/Index.charter.md)
@@ -263,6 +264,7 @@ module: Essentials
 - [Edit.charter.md](../../../resources/js/Pages/Essentials/Knowledge/Edit.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Essentials/Knowledge/Index.charter.md)
 - [Show.charter.md](../../../resources/js/Pages/Essentials/Knowledge/Show.charter.md)
+- [Index.charter.md](../../../resources/js/Pages/Essentials/Licencas/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Essentials/Messages/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Essentials/Reminders/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Essentials/Settings/Index.charter.md)
@@ -270,6 +272,10 @@ module: Essentials
 - [Edit.charter.md](../../../resources/js/Pages/Essentials/Todo/Edit.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Essentials/Todo/Index.charter.md)
 - [Show.charter.md](../../../resources/js/Pages/Essentials/Todo/Show.charter.md)
+
+## Casos (contrato UC) — 1
+
+- [Index.casos.md](../../../resources/js/Pages/Essentials/Licencas/Index.casos.md)
 
 ## Testes (Pest) — 19
 
