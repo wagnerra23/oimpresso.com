@@ -33,7 +33,13 @@ class EssentialsLeaveTypeController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return Response
+     * DOIS caminhos, e é por isso que não há `@return` declarado aqui: com
+     * `request()->ajax()` devolve o payload do DataTables (Blade legado, coexistência
+     * F5); no caminho normal devolve `Inertia\Response`. A anotação `@return Response`
+     * que existia era do `Illuminate\Http\Response` e já não descrevia nem o `view()`
+     * anterior — com o Inertia ela virou erro de PHPStan, não só imprecisão.
+     * O nível 5 (phpstan.neon.dist) não exige tipo de retorno, então a ausência é
+     * honesta: união inferida > declaração falsa.
      */
     public function index()
     {
