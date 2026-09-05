@@ -28,10 +28,12 @@ last_run_ci: "🔴 NENHUM teste de tests/Feature/Purchase/ roda em lane alguma �
 
 ## 🔴 Dívida de prova — **nenhum** teste desta tela roda em lane alguma
 
-> ⚠️ **Correção da v1 deste arquivo (2026-09-05), registrada e não apagada.** A v1 marcava o
-> `IndexPageTest` como *"✅ sim — executa"* e classificava a dívida como sendo **só** presence-gate:
-> *"o teste existe, cita o UC e satisfaz o G-2, mas a defesa é de forma, não de comportamento"*.
-> **O presence-gate é real — mas não era o problema principal, e a parte do "existe e executa" era
+> ⚠️ **Correção da v1 deste arquivo (2026-09-05), registrada e não apagada.** A v1 dava a execução
+> do `IndexPageTest` como certa e classificava a dívida como sendo **só** presence-gate: a tabela
+> perguntava *"o que de fato prova"* — pergunta que já pressupõe que o teste roda —, o texto
+> concluía *"o teste existe, cita o UC e satisfaz o G-2, mas a defesa é de forma, não de
+> comportamento"*, e o §Divergências chegava a falar em *"o verde da lane"*, que **não existe**.
+> **O presence-gate é real — mas não era o problema principal, e a premissa de que o teste roda era
 > falsa.** Eu medi a perna do **assert** (o que ele prova) e **não medi a perna da LANE** (se alguém
 > o invoca). Quem pegou foi o gate `uc-lane-coverage` do CI, reprovando os 6 UC desta
 > tela com *"existe e NENHUMA lane roda"*. O gate estava certo; eu estava errado.
