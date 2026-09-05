@@ -195,11 +195,14 @@ class EssentialsLeaveController extends Controller
                     ->paginate(25)
                     ->withQueryString();
 
-                // Closure tipada: `transform()` entrega `Model` ao PHPStan, e sem o
-                // tipo aqui o `formatoDaLinha(EssentialsLeave)` vira mismatch.
-                $pagina->getCollection()->transform(
-                    fn (EssentialsLeave $linha) => $this->formatoDaLinha($linha)
-                );
+                // `transform()` entrega `Model` ao PHPStan porque o paginator chega
+                // sem generic. Tipar a closure como `EssentialsLeave` seria
+                // contravariância inválida (o callback tem de aceitar o que a
+                // coleção entrega); o narrow certo é `@var` dentro do corpo.
+                $pagina->getCollection()->transform(function ($linha): array {
+                    /** @var EssentialsLeave $linha */
+                    return $this->formatoDaLinha($linha);
+                });
 
                 return $pagina;
             }),
