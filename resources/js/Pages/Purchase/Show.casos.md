@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: o escopo por tenant e a ausência do barcode são duráveis — não mudam quando o detalhe ganhar card novo.
 owner: wagner
 last_run: "2026-09-04"
-last_run_ci: "nasce com dívida de prova DECLARADA — os testes que citam estes UC são ESTRUTURAIS (grep no fonte), não exercitam request. Ver §Dívida de prova."
+last_run_ci: "🔴 NENHUM teste de tests/Feature/Purchase/ roda em lane alguma — 8 arquivos órfãos de CI. O gate uc-lane-coverage reprovou estes UC em 2026-09-05 por isso, e estava certo. Ver §Dívida de prova."
 ---
 
 # Casos de Uso & Aceite — Detalhe da Compra (`/purchases/{id}`)
@@ -17,29 +17,62 @@ last_run_ci: "nasce com dívida de prova DECLARADA — os testes que citam estes
 > — **nunca do `Show.tsx`**: teste derivado do código é tautológico e trava o desvio em vez de
 > pegá-lo ([proibicoes §5](../../../../memory/proibicoes.md) 2026-06-05).
 >
-> ⚠️ **Âncora mais fraca que a das telas irmãs, e isso é declarado, não disfarçado.** Index, Create
-> e Edit têm RUNBOOK de tela em
-> [`memory/requisitos/Compras/_telas/`](../../../../memory/requisitos/Compras/_telas/); **o Show
-> não tem** — só o `visual-comparison`. O charter, por sua vez, está `status: draft` e marca vários
-> Non-Goals como *"inferência pendente de Wagner"*. Por isso esta tela recebe **menos UC** que as
-> irmãs: contrato em 1 fonte só vira `[BACKLOG]`, não UC com id.
+> ⚠️ **A 2ª âncora passou a existir em 2026-09-04, e os UC ainda NÃO foram repromovidos.** Quando
+> este arquivo nasceu, o Show era a única das quatro telas sem RUNBOOK; agora tem o
+> [`RUNBOOK-purchase-show.md`](../../../../memory/requisitos/Compras/_telas/RUNBOOK-purchase-show.md),
+> irmão dos de [Index/Create/Edit](../../../../memory/requisitos/Compras/_telas/). O charter segue
+> `status: draft` com Non-Goals marcados *"inferência pendente de Wagner"*, então o que o RUNBOOK
+> destrava é o que ele **mediu** (dual-path, 404 vs 403, barcode por omissão) — não a intenção, que
+> segue com [W]. A contagem de UC abaixo ainda é a de antes: promover exige teste que cite o UC,
+> senão nasce órfão e o `casos-gate` G-2 (required) bloqueia quem for atendê-lo.
 
 ---
 
-## ⚠️ Dívida de prova — o que os testes desta tela **não** provam
+## 🔴 Dívida de prova — **nenhum** teste desta tela roda em lane alguma
 
-Medição em `origin/main` (2026-09-04):
+> ⚠️ **Correção da v1 deste arquivo (2026-09-05), registrada e não apagada.** A v1 tratava o
+> `ShowPageTest` como um teste que **executa** e classificava a dívida como sendo **só**
+> presence-gate — chegando a abrir exceção para os UC 03 e 06 (*"🧪 estrutural (correto)"*, sem
+> `⚠️`), como se ali houvesse defesa adequada. **O presence-gate é real — mas não era o problema
+> principal, e a premissa de que o teste roda era falsa.** Eu medi a perna do **assert** (o que ele
+> prova) e **não medi a perna da LANE** (se alguém o invoca). Quem pegou foi o gate
+> `uc-lane-coverage` do CI, reprovando os 6 UC desta tela com *"existe e NENHUMA lane
+> roda"*. O gate estava certo; eu estava errado.
 
-| teste | requests HTTP | asserts de presença | o que de fato prova |
+Medição em `origin/main` (2026-09-05), **três pernas**, todas contadas:
+
+| perna | resultado |
+|---|---|
+| workflows que citam `tests/Feature/Purchase` (`git grep -c -- .github/`) | **0** |
+| linhas `Purchase` em `.github/ci-sqlite-pest.list` (542 linhas) | **0** |
+| arquivos de teste em `tests/Feature/Purchase/` | **8** |
+
+**Os 8 arquivos de teste do Purchase são órfãos de CI.** Nenhuma lane os executa — nem a MySQL por
+módulo, nem a sqlite curada do `ci.yml`. Logo o `ShowPageTest` **também não roda**:
+
+| teste | requests HTTP | asserts de presença | executa? |
 |---|---:|---:|---|
-| [`ShowPageTest`](../../../../tests/Feature/Purchase/ShowPageTest.php) | **0** | **44** | que certas *strings* existem em `Show.tsx` e em `PurchaseController.php` |
+| [`ShowPageTest`](../../../../tests/Feature/Purchase/ShowPageTest.php) | **0** | **44** | 🔴 **não — sem lane** |
 
-`ShowPageTest` lê os arquivos-fonte e casa texto. Ele pega a **remoção** de um trecho, mas não monta
-tenant, não emite request e não valida resposta — classe
-[LC-11](../../../../memory/LICOES_CODE.md) (presence-gate), que o ledger alarma com 11 ocorrências.
+**Duas camadas de falha, e a de cima é a que a v1 não tinha nomeado:**
 
-**Consequência honesta:** nenhum UC recebe `Status: ✅`. Todos carregam **⚠️ 🧪 estrutural** — exceto
-o UC-PURSHW-03, cuja natureza *é* estrutural (ausência de um literal no arquivo **é** o contrato).
+1. **Sem lane** — o teste nunca é invocado. Nas palavras do próprio gate: *"teste fora de toda lane
+   é 'verde impossível': existe, pode estar vermelho há meses, e nenhum PR o acorda."*
+2. **Presence-gate** — mesmo ganhando lane, o que ele prova é que certas *strings* existem em
+   `Show.tsx` e em `PurchaseController.php`. Ele lê os arquivos-fonte e casa texto: pega a
+   **remoção** de um trecho, mas não monta tenant, não emite request e não valida resposta. É a
+   classe [LC-11](../../../../memory/LICOES_CODE.md), que o ledger alarma com 11 ocorrências.
+
+**Consequência:** **nenhum** UC desta tela tem defesa ativa — nem comportamental, nem estrutural. O
+`Status` de todos é `🔴 sem lane`, **sem exceção**: os UC 03 e 06, cujo contrato *é* a ausência de um
+literal no arquivo, tinham no presence-gate o instrumento certo — e o instrumento certo também não é
+acionado. Nenhum recebe `✅`, e agora por dois motivos independentes: não há comportamento provado
+*e* não há execução.
+
+**Por que o conserto não está neste PR:** o gate diz, com todas as letras, *"conserto NÃO é mexer na
+allowlist por conta própria — por que ela existe (custo de CI? teste instável escondido?) é decisão
+[W]"*. Concordo: pôr 8 arquivos numa lane muda custo de CI e pode acordar vermelhos antigos. É
+decisão do dono, com chip aberto.
 
 ---
 
@@ -47,12 +80,12 @@ o UC-PURSHW-03, cuja natureza *é* estrutural (ausência de um literal no arquiv
 
 | UC | Título | Tipo | Âncora de contrato | Teste que cita | Status |
 |---|---|---|---|---|---|
-| UC-PURSHW-01 | Detalhe nunca resolve compra de outro tenant | must `[T0]` | charter Non-Goal 4 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `ShowPageTest` | ⚠️ 🧪 estrutural |
-| UC-PURSHW-02 | Dual-path: AJAX puro recebe Blade; navegação recebe Inertia | must | charter §Backend · [ADR 0104](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md) | `ShowPageTest` | ⚠️ 🧪 estrutural |
-| UC-PURSHW-03 | A tela **não** renderiza barcode (mata o 500 do legado) | must `[reg]` | charter §Backend (bug-fix declarado) | `ShowPageTest` | 🧪 estrutural (correto) |
-| UC-PURSHW-04 | Editar/Excluir só aparecem com a permissão | must | charter Goals · Anti-hooks | `ShowPageTest` | ⚠️ 🧪 estrutural |
-| UC-PURSHW-05 | A tela não recalcula totais — exibe o que o controller mandou | must `[V0]` | charter Non-Goal 3 | `ShowPageTest` | ⚠️ 🧪 estrutural |
-| UC-PURSHW-06 | A Page não decide tenant — `business_id` vem das props | must `[T0]` | charter Non-Goal 4 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `ShowPageTest` | 🧪 estrutural (correto) |
+| UC-PURSHW-01 | Detalhe nunca resolve compra de outro tenant | must `[T0]` | charter Non-Goal 4 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `ShowPageTest` | 🔴 sem lane |
+| UC-PURSHW-02 | Dual-path: AJAX puro recebe Blade; navegação recebe Inertia | must | charter §Backend · [ADR 0104](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md) | `ShowPageTest` | 🔴 sem lane |
+| UC-PURSHW-03 | A tela **não** renderiza barcode (mata o 500 do legado) | must `[reg]` | charter §Backend (bug-fix declarado) | `ShowPageTest` | 🔴 sem lane |
+| UC-PURSHW-04 | Editar/Excluir só aparecem com a permissão | must | charter Goals · Anti-hooks | `ShowPageTest` | 🔴 sem lane |
+| UC-PURSHW-05 | A tela não recalcula totais — exibe o que o controller mandou | must `[V0]` | charter Non-Goal 3 | `ShowPageTest` | 🔴 sem lane |
+| UC-PURSHW-06 | A Page não decide tenant — `business_id` vem das props | must `[T0]` | charter Non-Goal 4 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `ShowPageTest` | 🔴 sem lane |
 
 ---
 
@@ -72,8 +105,9 @@ o UC-PURSHW-03, cuja natureza *é* estrutural (ausência de um literal no arquiv
 - **Regressão que defende:** o model `Transaction` **não tem global scope** — o isolamento é escrito
   à mão em cada query. Essa mesma ausência produziu um IDOR de escrita real no `update` desta mesma
   controller ([`UpdateCrossTenantIdorTest`](../../../../tests/Feature/Purchase/UpdateCrossTenantIdorTest.php)).
-- **Status: ⚠️ 🧪 estrutural** — o assert casa texto no fonte. **Não existe** teste que crie a compra
-  no tenant vizinho e prove o 404 desta rota. É o UC mais caro do arquivo e o menos defendido.
+- **Status: 🔴 sem lane** — o assert casa texto no fonte e **nenhuma lane o executa**. Some-se que
+  **não existe** teste que crie a compra no tenant vizinho e prove o 404 desta rota. É o UC mais
+  caro do arquivo e o menos defendido — agora medido como zero defesa, não como defesa fraca.
 
 ---
 
@@ -92,8 +126,9 @@ o UC-PURSHW-03, cuja natureza *é* estrutural (ausência de um literal no arquiv
 - **Regressão que defende:** a asserção *"permission re-adicionada (não comentada)"* existe porque a
   permissão **já esteve comentada** neste método. Um `//` numa linha de autorização é a mudança mais
   barata de escrever e a mais cara de descobrir.
-- **Status: ⚠️ 🧪 estrutural** — casamento de texto; nenhum request AJAX é emitido para provar a
-  bifurcação.
+- **Status: 🔴 sem lane** — casamento de texto; nenhum request AJAX é emitido para provar a
+  bifurcação — e nenhuma lane roda sequer o casamento de texto. Vale o destaque: o assert *"permission
+  re-adicionada (não comentada)"* guarda uma regressão que **já aconteceu**, e hoje está mudo.
 
 ---
 
@@ -111,8 +146,12 @@ o UC-PURSHW-03, cuja natureza *é* estrutural (ausência de um literal no arquiv
 - **Regressão que defende:** um bug-fix **por omissão** é o mais frágil que existe — nada no código
   explica por que aquilo *não* está lá, então a próxima pessoa que buscar paridade com o Blade
   reintroduz o barcode de boa-fé e ressuscita o 500.
-- **Status: 🧪 estrutural (correto)** — **sem ⚠️.** Aqui o contrato *é* a ausência de um literal no
-  arquivo; o presence-gate é o instrumento certo, não um substituto de teste de comportamento.
+- **Status: 🔴 sem lane** — aqui o contrato *é* a ausência de um literal no arquivo, então o
+  presence-gate **seria** o instrumento certo, não um substituto de teste de comportamento. Só que
+  ele também não roda — instrumento certo, nunca acionado. A v1 marcava *"🧪 estrutural (correto)"*
+  sem `⚠️`; a exceção valia para o eixo do presence-gate, e some no eixo da lane. Num bug-fix **por
+  omissão** isso é o pior caso: nada no código explica por que o barcode não está lá, e não há teste
+  ativo que reclame quando alguém o reintroduzir de boa-fé.
 
 ---
 
@@ -129,7 +168,8 @@ o UC-PURSHW-03, cuja natureza *é* estrutural (ausência de um literal no arquiv
 - **Regressão que defende:** esconder o botão é UX; **o backend continua sendo a autoridade**. Este
   UC defende a metade visível — a metade de servidor pertence ao Edit/Destroy e está registrada em
   `[BACKLOG]` porque não há teste que a exercite.
-- **Status: ⚠️ 🧪 estrutural** — casamento de texto no `.tsx`; nenhum usuário sem permissão é montado.
+- **Status: 🔴 sem lane** — casamento de texto no `.tsx`; nenhum usuário sem permissão é montado, e
+  nenhuma lane executa o casamento de texto.
 
 ---
 
@@ -148,8 +188,9 @@ o UC-PURSHW-03, cuja natureza *é* estrutural (ausência de um literal no arquiv
 - **Regressão que defende:** o incidente de 2026-06-05 (biz=4) inflou 16 vendas ~×100k porque um
   número atravessou uma fronteira de formatação com a interpretação errada de separador. Cálculo em
   duas camadas é a porta por onde isso entra; esta tela é explicitamente **uma camada só**.
-- **Status: ⚠️ 🧪 estrutural** — os asserts provam que a *formatação* pt-BR está no arquivo; **não**
-  provam a ausência de recálculo. É `[V0]` com defesa fraca — declarado, não maquiado.
+- **Status: 🔴 sem lane** — os asserts provariam que a *formatação* pt-BR está no arquivo, e já não
+  provam a ausência de recálculo; sem lane, não provam nem a formatação. É `[V0]` com defesa **zero**
+  — declarado, não maquiado.
 
 ---
 
@@ -163,7 +204,10 @@ o UC-PURSHW-03, cuja natureza *é* estrutural (ausência de um literal no arquiv
 - **Contrato:** charter §Non-Goals item 4 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
 - **Regressão que defende:** um `business_id` fixo numa Page parece constante de config em review e
   só se revela no segundo tenant.
-- **Status: 🧪 estrutural (correto)** — **sem ⚠️.** Ausência de literal *é* o contrato.
+- **Status: 🔴 sem lane** — ausência de literal *é* o contrato, então o presence-gate **seria** o
+  instrumento certo. Só que ele também não roda — instrumento certo, nunca acionado. A v1 marcava
+  *"🧪 estrutural (correto)"* sem `⚠️`; a exceção valia para o eixo do presence-gate, e some no eixo
+  da lane.
 
 ---
 
@@ -174,10 +218,12 @@ o UC-PURSHW-03, cuja natureza *é* estrutural (ausência de um literal no arquiv
 > (required) bloqueia o merge de quem for atendê-lo
 > ([proibicoes §5](../../../../memory/proibicoes.md) 2026-07-16).
 
-- `[BACKLOG]` **Falta o RUNBOOK de tela do Show.** Index, Create e Edit têm; o Show não. Sem ele,
-  os Non-Goals do charter (`draft`) são fonte única, e vários estão marcados *"inferência pendente
-  de Wagner"* — o que os desqualifica como contrato executável. Criar o RUNBOOK é pré-requisito
-  para os UC desta tela ganharem uma segunda âncora.
+- `[BACKLOG]` **Repromover os UC agora que a 2ª âncora existe.** O pré-requisito foi pago em
+  2026-09-04 — o [`RUNBOOK-purchase-show.md`](../../../../memory/requisitos/Compras/_telas/RUNBOOK-purchase-show.md)
+  mede dual-path, ordem 403→404, props e o barcode-por-omissão. O que **não** foi pago: cada
+  promoção exige um teste que cite o UC (G-2), e o `ShowPageTest` de hoje é estrutural. Non-Goal
+  marcado *"inferência pendente de Wagner"* segue fora — RUNBOOK mede comportamento, não decide
+  intenção.
 - `[BACKLOG]` **Sem timeline/histórico de auditoria.** O charter declara como Non-Goal, mas com a
   ressalva *"inferência pendente de Wagner"*. Enquanto for inferência do agente e não decisão de
   [W], não vira UC (*"UC não é canal de pedido"*).
@@ -187,7 +233,7 @@ o UC-PURSHW-03, cuja natureza *é* estrutural (ausência de um literal no arquiv
   tela.** UC-PURSHW-04 cobre só a face visível (o botão). A metade que importa — o backend recusar a
   ação de quem não pode — pertence ao Edit e hoje só tem
   [`UpdateCrossTenantIdorTest`](../../../../tests/Feature/Purchase/UpdateCrossTenantIdorTest.php),
-  que está **em quarentena** (ver `Edit.casos.md`).
+  que está **sem lane E em quarentena** — dupla (ver `Edit.casos.md`).
 
 ---
 
@@ -196,6 +242,9 @@ o UC-PURSHW-03, cuja natureza *é* estrutural (ausência de um literal no arquiv
 1. **O charter está `status: draft`** e diz explicitamente que [W] aprova Non-Goals + Anti-hooks
    antes de virar `live`. Três dos quatro Non-Goals trazem *"inferência pendente de Wagner"* — este
    `casos.md` só promoveu a UC os que têm apoio em outra fonte.
-2. **A tela não tem teste de comportamento nem E2E.** `ShowPageTest` tem 44 asserts e 0 requests, e
-   o `screen-coverage` marca `Purchase · 0 de 4 E2E · 0 de 4 VRT`. O verde da lane **não** significa
-   que o detalhe isola tenant.
+2. **A tela não tem teste de comportamento nem E2E — e o que tem não roda.** `ShowPageTest` tem 44
+   asserts e 0 requests, o `screen-coverage` marca `Purchase · 0 de 4 E2E · 0 de 4 VRT`, e **nenhuma
+   lane executa o arquivo** (medição de 2026-09-05, §Dívida de prova). **Não existe "verde da lane"
+   a interpretar aqui:** não há lane. Pôr os 8 arquivos de `tests/Feature/Purchase/` numa lane muda
+   custo de CI e pode acordar vermelhos antigos — é decisão [W], com chip aberto, e é pré-requisito
+   para qualquer um destes UC ganhar defesa real.

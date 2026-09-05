@@ -20,6 +20,7 @@
       "test-results/pest-officeimpresso-junit.xml",
       "test-results/pest-ponto-junit.xml",
       "test-results/pest-purchase-junit.xml",
+      "test-results/pest-repair-settings.xml",
       "test-results/pest-sells-junit.xml",
       "test-results/vitest-fiscal-cockpit-paginacao-junit.xml",
       "test-results/vitest-fiscal-teclado-junit.xml",
@@ -28,10 +29,10 @@
       "test-results/vitest-sells-v3-dominio-junit.xml"
     ],
     "stats": {
-      "ucs": 552,
-      "pass": 532,
+      "ucs": 560,
+      "pass": 538,
       "fail": 9,
-      "skip": 11
+      "skip": 13
     },
     "nota": "Veredito por-UC derivado dos relatórios JUnit (test-results/). Lido offline pelo casos:check G-7. Regerar quando a suíte rodar: npm run casos:results. UC sem entrada aqui = sem prova capturada (G-7 marca ✅ declarado como unverified).",
     "refs": [
@@ -41,15 +42,45 @@
     ]
   },
   "ucs": {
-    "UC-PURIDX-03": {
+    "UC-RSET-01": {
       "verdict": "pass",
       "ran_at": null,
-      "tests": 2
+      "tests": 1
     },
-    "UC-PURIDX-02": {
+    "UC-RSET-03": {
       "verdict": "pass",
       "ran_at": null,
-      "tests": 2
+      "tests": 1
+    },
+    "UC-RSET-08": {
+      "verdict": "skip",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-RSET-05": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-RSET-06": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-RSET-07": {
+      "verdict": "skip",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-RSET-02": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-RSET-04": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
     },
     "UC-RBCFG-07": {
       "verdict": "pass",
@@ -2800,6 +2831,16 @@
       "verdict": "pass",
       "ran_at": "2026-07-16",
       "tests": 1
+    },
+    "UC-PURIDX-02": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 2
+    },
+    "UC-PURIDX-03": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 2
     }
   }
 }
