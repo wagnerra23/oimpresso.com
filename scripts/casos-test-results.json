@@ -29,8 +29,8 @@
       "test-results/vitest-sells-v3-dominio-junit.xml"
     ],
     "stats": {
-      "ucs": 560,
-      "pass": 538,
+      "ucs": 562,
+      "pass": 540,
       "fail": 9,
       "skip": 13
     },
@@ -2838,6 +2838,16 @@
       "tests": 2
     },
     "UC-PURIDX-03": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 2
+    },
+    "UC-PURSHW-01": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 2
+    },
+    "UC-PURSHW-05": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 2

@@ -144,11 +144,22 @@ jobs:
           DB_DATABASE: oimpresso_test
           DB_USERNAME: root
           DB_PASSWORD: root
+        #
+        # 2026-09-05 — allowlist 1 → 2. `PurchaseShowTenantContratoTest` cobre o UC-PURSHW-01
+        # `[T0]` (o `Show.casos.md` o chamava de *"o UC mais caro do arquivo e o menos
+        # defendido"*) e o UC-PURSHW-05 `[V0]`.
+        # RODADO ANTES DE ENTRAR: CT 100, MySQL — 4 passed (8 assertions).
+        # MORDE, por mutação verificada:
+        #   · `show()` resolvendo SEM `where('business_id')` ⇒ 1 failed, no assert do 404
+        #     cross-tenant, com os 3 controles positivos verdes;
+        #   · `$final_total = $net_total` (o recálculo que o [V0] proíbe) ⇒ 2 failed — cai a
+        #     discrepância E o antes→depois, que são os dois caminhos da REGRA MESTRE.
         run: |
           mkdir -p test-results
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-purchase-junit.xml \
-            tests/Feature/Purchase/PurchaseIndexTenantContratoTest.php
+            tests/Feature/Purchase/PurchaseIndexTenantContratoTest.php \
+            tests/Feature/Purchase/PurchaseShowTenantContratoTest.php
 
       # A lane emite JUnit e o sumário conta `assertions` por arquivo — o corpus do LC-13.
       # Aqui só REPORTA (if: always()).

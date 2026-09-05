@@ -5,8 +5,8 @@ irmaos: Show.charter.md (lei) · Show.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o escopo por tenant e a ausência do barcode são duráveis — não mudam quando o detalhe ganhar card novo.
 owner: wagner
-last_run: "2026-09-04"
-last_run_ci: "🔴 NENHUM teste de tests/Feature/Purchase/ roda em lane alguma — 8 arquivos órfãos de CI. O gate uc-lane-coverage reprovou estes UC em 2026-09-05 por isso, e estava certo. Ver §Dívida de prova."
+last_run: "2026-09-05"
+last_run_ci: "🟡 A lane purchase-pest.yml nasceu e os UC 01 [T0] e 05 [V0] têm contrato de COMPORTAMENTO em PurchaseShowTenantContratoTest — 4 passed, 8 assertions, run no CT 100, mordida verificada por mutação. Os UC 02/03/04/06 seguem 🔴 sem lane, e o 03 tem o critério ERRADO (casa o comentário do bug-fix) — ver §Divergências. Ver §Dívida de prova."
 ---
 
 # Casos de Uso & Aceite — Detalhe da Compra (`/purchases/{id}`)
@@ -28,7 +28,22 @@ last_run_ci: "🔴 NENHUM teste de tests/Feature/Purchase/ roda em lane alguma �
 
 ---
 
-## 🔴 Dívida de prova — **nenhum** teste desta tela roda em lane alguma
+## 🟡 Dívida de prova — a lane nasceu; 2 dos 6 UC já têm defesa ativa
+
+> ✅ **Atualização de 2026-09-05 — a errata abaixo continua verdadeira para o dia em que foi
+> escrita, e fica inteira.** O que mudou: a lane
+> [`purchase-pest.yml`](../../../../.github/workflows/purchase-pest.yml) **existe** e roda em CI, e
+> os UC **01 `[T0]`** e **05 `[V0]`** ganharam contrato de comportamento em
+> [`PurchaseShowTenantContratoTest`](../../../../tests/Feature/Purchase/PurchaseShowTenantContratoTest.php)
+> — as **duas** camadas de falha que a errata nomeia, fechadas para esses dois.
+> Os UC **02, 03, 04 e 06** seguem `🔴 sem lane`.
+>
+> ⚠️ **E a errata acertou por um motivo a mais do que sabia, no caso do UC-03.** Ela retirou o
+> selo *"estrutural (correto)"* dele por AUSÊNCIA DE LANE. Medido depois, com a lane rodando: o
+> assert `not->toContain('Barcode')` **falha** — e o que casa é o **comentário da linha 9** de
+> `Show.tsx`, que documenta o próprio bug-fix do 500. Ou seja, mesmo COM lane aquele UC não ficaria
+> verde: o instrumento não distingue *renderizar* barcode de *falar sobre* barcode. Ver
+> §Divergências — as 3 saídas possíveis estão escritas lá, e a escolha é [W].
 
 > ⚠️ **Correção da v1 deste arquivo (2026-09-05), registrada e não apagada.** A v1 tratava o
 > `ShowPageTest` como um teste que **executa** e classificava a dívida como sendo **só**
@@ -63,16 +78,18 @@ módulo, nem a sqlite curada do `ci.yml`. Logo o `ShowPageTest` **também não r
    **remoção** de um trecho, mas não monta tenant, não emite request e não valida resposta. É a
    classe [LC-11](../../../../memory/LICOES_CODE.md), que o ledger alarma com 11 ocorrências.
 
-**Consequência:** **nenhum** UC desta tela tem defesa ativa — nem comportamental, nem estrutural. O
-`Status` de todos é `🔴 sem lane`, **sem exceção**: os UC 03 e 06, cujo contrato *é* a ausência de um
-literal no arquivo, tinham no presence-gate o instrumento certo — e o instrumento certo também não é
-acionado. Nenhum recebe `✅`, e agora por dois motivos independentes: não há comportamento provado
-*e* não há execução.
+**Consequência (revista em 2026-09-05):** os UC **01** e **05** têm defesa ativa — comportamental
+**e** executada. Os UC **02, 03, 04 e 06** seguem sem nenhuma das duas. Sobre os UC 03 e 06, que a
+v1 classificava como *"estrutural (correto)"*: o 06 de fato tem no presence-gate o instrumento
+certo e só lhe falta lane; o **03 não** — medido, o critério dele está errado, e lane nenhuma o
+deixaria verde (ver o bloco de atualização no topo desta seção).
 
-**Por que o conserto não está neste PR:** o gate diz, com todas as letras, *"conserto NÃO é mexer na
-allowlist por conta própria — por que ela existe (custo de CI? teste instável escondido?) é decisão
-[W]"*. Concordo: pôr 8 arquivos numa lane muda custo de CI e pode acordar vermelhos antigos. É
-decisão do dono, com chip aberto.
+**Por que o conserto dos outros 4 não está aqui:** o gate diz, com todas as letras, *"conserto NÃO é
+mexer na allowlist por conta própria — por que ela existe (custo de CI? teste instável escondido?)
+é decisão [W]"*. Concordo, e o motivo é concreto: a pasta `tests/Feature/Purchase/` devolve
+**6 failed · 6 skipped · 90 passed (214 assertions)** no CT 100. Pôr esses 8 arquivos na lane
+trocaria "invisível" por "vermelho permanente". A lane nasceu com allowlist para admitir só o
+comprovadamente verde e crescer daí — o caminho é converter, um UC por vez.
 
 ---
 
@@ -80,11 +97,11 @@ decisão do dono, com chip aberto.
 
 | UC | Título | Tipo | Âncora de contrato | Teste que cita | Status |
 |---|---|---|---|---|---|
-| UC-PURSHW-01 | Detalhe nunca resolve compra de outro tenant | must `[T0]` | charter Non-Goal 4 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `ShowPageTest` | 🔴 sem lane |
+| UC-PURSHW-01 | Detalhe nunca resolve compra de outro tenant | must `[T0]` | charter Non-Goal 4 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `PurchaseShowTenantContratoTest` | ✅ comportamento · na lane |
 | UC-PURSHW-02 | Dual-path: AJAX puro recebe Blade; navegação recebe Inertia | must | charter §Backend · [ADR 0104](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md) | `ShowPageTest` | 🔴 sem lane |
 | UC-PURSHW-03 | A tela **não** renderiza barcode (mata o 500 do legado) | must `[reg]` | charter §Backend (bug-fix declarado) | `ShowPageTest` | 🔴 sem lane |
 | UC-PURSHW-04 | Editar/Excluir só aparecem com a permissão | must | charter Goals · Anti-hooks | `ShowPageTest` | 🔴 sem lane |
-| UC-PURSHW-05 | A tela não recalcula totais — exibe o que o controller mandou | must `[V0]` | charter Non-Goal 3 | `ShowPageTest` | 🔴 sem lane |
+| UC-PURSHW-05 | A tela não recalcula totais — exibe o que o controller mandou | must `[V0]` | charter Non-Goal 3 | `PurchaseShowTenantContratoTest` | ✅ comportamento (metade backend) · na lane |
 | UC-PURSHW-06 | A Page não decide tenant — `business_id` vem das props | must `[T0]` | charter Non-Goal 4 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `ShowPageTest` | 🔴 sem lane |
 
 ---
@@ -97,17 +114,22 @@ decisão do dono, com chip aberto.
   `GET /purchases/{id}` · Então **não** recebe o detalhe (404/403 conforme o canon da rota). E,
   como **controle positivo**, o mesmo endpoint para uma compra do próprio negócio responde 200 —
   sem o par, um `abort` incondicional passaria no teste.
-- **Teste:** [`ShowPageTest`](../../../../tests/Feature/Purchase/ShowPageTest.php) — *"Controller
-  showInertia PRESERVA Tier 0 (recebe $purchase já scopado por business_id)"* · *"Controller
-  showInertia NÃO usa withoutGlobalScopes sem comentário SUPERADMIN"*.
+- **Teste:** [`PurchaseShowTenantContratoTest`](../../../../tests/Feature/Purchase/PurchaseShowTenantContratoTest.php)
+  — *"UC-PURSHW-01 (A · controle positivo) o detalhe da PROPRIA compra responde 200"* ·
+  *"UC-PURSHW-01 (B · contrato T0) o detalhe de compra de OUTRO business responde 404"*.
+  Os asserts de [`ShowPageTest`](../../../../tests/Feature/Purchase/ShowPageTest.php) **permanecem
+  no arquivo**, mas seguem sem lane.
 - **Contrato:** charter §Non-Goals item 4 (*"IDs de outro negócio devem retornar 404/403"*) ·
   [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
 - **Regressão que defende:** o model `Transaction` **não tem global scope** — o isolamento é escrito
   à mão em cada query. Essa mesma ausência produziu um IDOR de escrita real no `update` desta mesma
   controller ([`UpdateCrossTenantIdorTest`](../../../../tests/Feature/Purchase/UpdateCrossTenantIdorTest.php)).
-- **Status: 🔴 sem lane** — o assert casa texto no fonte e **nenhuma lane o executa**. Some-se que
-  **não existe** teste que crie a compra no tenant vizinho e prove o 404 desta rota. É o UC mais
-  caro do arquivo e o menos defendido — agora medido como zero defesa, não como defesa fraca.
+- **Status: ✅ comportamento · na lane** (2026-09-05) — a compra vizinha é criada e a rota responde
+  **404** (não 403: não revelar a existência do recurso alheio, ADR 0093 defense-in-depth), com o
+  controle positivo (200 na própria) que impede o verde por vácuo — sem ele, um `abort()`
+  incondicional ou uma rota quebrada dariam 404 em tudo e pareceriam isolamento.
+  **Morde:** `show()` resolvendo sem `where('business_id')` ⇒ `1 failed`, exatamente no assert do
+  404, com os 3 outros verdes. Deixou de ser *"o UC mais caro do arquivo e o menos defendido"*.
 
 ---
 
@@ -180,17 +202,27 @@ decisão do dono, com chip aberto.
 - **Aceite:** Dado o detalhe de uma compra · Quando os totais (subtotal, desconto, impostos, frete,
   total, pago, a pagar) são exibidos · Então os valores vêm prontos do controller e a tela apenas
   **formata** em pt-BR — nunca recalcula, nunca reagrega.
-- **Teste:** [`ShowPageTest`](../../../../tests/Feature/Purchase/ShowPageTest.php) — *"Page formata
-  BRL (Intl.NumberFormat pt-BR)"* · *"Page tem Total geral (PT-BR)"* · *"Page tem 3 Cards top e 2
-  Cards mid (Pagamentos/Totais)"*.
+- **Teste:** [`PurchaseShowTenantContratoTest`](../../../../tests/Feature/Purchase/PurchaseShowTenantContratoTest.php)
+  — *"UC-PURSHW-05 [V0] o final_total do payload e o do BANCO, nao uma derivacao das linhas"* ·
+  *"UC-PURSHW-05 [V0] antes -> depois: mudar o total no banco move o payload na MESMA medida"*.
+  Os asserts de formatação de [`ShowPageTest`](../../../../tests/Feature/Purchase/ShowPageTest.php)
+  **permanecem no arquivo**, mas seguem sem lane.
 - **Contrato:** charter §Non-Goals item 3 (*"Não recalcula totais no cliente — os valores vêm
   prontos do controller"*) · [proibicoes §REGRA MESTRE — CÁLCULO DE VALOR](../../../../memory/proibicoes.md).
 - **Regressão que defende:** o incidente de 2026-06-05 (biz=4) inflou 16 vendas ~×100k porque um
   número atravessou uma fronteira de formatação com a interpretação errada de separador. Cálculo em
   duas camadas é a porta por onde isso entra; esta tela é explicitamente **uma camada só**.
-- **Status: 🔴 sem lane** — os asserts provariam que a *formatação* pt-BR está no arquivo, e já não
-  provam a ausência de recálculo; sem lane, não provam nem a formatação. É `[V0]` com defesa **zero**
-  — declarado, não maquiado.
+- **Status: ✅ comportamento (metade backend) · na lane** (2026-09-05) — e o recorte importa, então
+  fica dito: *"a TELA não recalcula"* é contrato do `.tsx` e só Playwright provaria. O que o teste de
+  request prova é **a metade que decide o resultado**: o valor que chega à tela é o do **banco**, não
+  uma derivação. A prova é uma discrepância deliberada — a compra nasce com `final_total` 1234,56 e
+  **sem** `purchase_lines`, então qualquer agregação daria 0; se o payload trouxer 1234,56, o número
+  atravessou intacto. Um assert que só comparasse payload×banco ficaria verde mesmo com
+  `final_total = $net_total`, porque numa compra bem-comportada os dois coincidem — a discrepância
+  é o que discrimina. Segundo caminho (a REGRA MESTRE exige dois): antes→depois, mudar o total no
+  banco move o payload na mesma medida, com número concreto.
+  **Morde:** trocar `$final_total = (float) $purchase->final_total` por `$net_total` ⇒ `2 failed` —
+  caem os **dois** caminhos, que é o comportamento esperado de uma prova de valor.
 
 ---
 
@@ -242,9 +274,31 @@ decisão do dono, com chip aberto.
 1. **O charter está `status: draft`** e diz explicitamente que [W] aprova Non-Goals + Anti-hooks
    antes de virar `live`. Três dos quatro Non-Goals trazem *"inferência pendente de Wagner"* — este
    `casos.md` só promoveu a UC os que têm apoio em outra fonte.
-2. **A tela não tem teste de comportamento nem E2E — e o que tem não roda.** `ShowPageTest` tem 44
-   asserts e 0 requests, o `screen-coverage` marca `Purchase · 0 de 4 E2E · 0 de 4 VRT`, e **nenhuma
-   lane executa o arquivo** (medição de 2026-09-05, §Dívida de prova). **Não existe "verde da lane"
-   a interpretar aqui:** não há lane. Pôr os 8 arquivos de `tests/Feature/Purchase/` numa lane muda
-   custo de CI e pode acordar vermelhos antigos — é decisão [W], com chip aberto, e é pré-requisito
-   para qualquer um destes UC ganhar defesa real.
+2. **A tela não tinha teste de comportamento nem E2E — e o que tem não roda.** `ShowPageTest` tem 44
+   asserts e 0 requests, e **nenhuma lane executa o arquivo**. **Parcialmente fechado em
+   2026-09-05:** a lane [`purchase-pest.yml`](../../../../.github/workflows/purchase-pest.yml)
+   existe e os UC 01 `[T0]` e 05 `[V0]` têm defesa comportamental executada. Os UC **02, 03, 04 e
+   06** seguem `🔴 sem lane`, e o `screen-coverage` continua marcando `Purchase · 0 de 4 E2E ·
+   0 de 4 VRT` — o eixo E2E/VRT segue inteiramente descoberto.
+3. **O UC-PURSHW-03 tem o CRITÉRIO errado, e o conserto muda o CONTRATO — por isso é [W].**
+   A errata retirou o selo *"estrutural (correto)"* dele por ausência de lane. Medido depois, com a
+   lane rodando: o assert `not->toContain('Barcode')` **falha**, e o que casa é o **comentário da
+   linha 9** de `Show.tsx` — `// Mata bug 500 em prod (DNS1D::getBarcodePNG linha 430 quebrada)` —
+   que documenta o próprio bug-fix. Mesmo COM lane ele não ficaria verde. A ironia é exata: a
+   §Regressão deste UC diz que bug-fix por omissão é frágil porque *"nada no código explica por que
+   aquilo não está lá"*; alguém escreveu a explicação — o conserto certo — e isso quebrou o teste
+   que defendia o mesmo contrato. As saídas **não são equivalentes**:
+   - **(a)** apertar o assert para casar **código** (`import ... Barcode`, `<Barcode`, `DNS1D::`)
+     em vez da string nua — mantém o contrato e para de punir a explicação;
+   - **(b)** remover o comentário de `Show.tsx:9` — faria passar, mas apaga justamente o que a
+     §Regressão pede que exista;
+   - **(c)** aceitar que o presence-gate não exprime este contrato e movê-lo para um teste que
+     renderize a página.
+   Recomendo **(a)**. Não apliquei porque mudar o critério de um UC é mudar contrato, não consertar
+   bug.
+4. **`UpdateCrossTenantIdorTest`, a defesa nomeada do IDOR de escrita desta controller, não roda em
+   lugar nenhum.** Tem `markTestSkipped` fora de sqlite (schema sintético manual) e nenhuma lane
+   sqlite o inclui. Além disso não exercita o controller: replica o padrão
+   `Transaction::where('business_id',…)` inline e asserta sobre o Eloquent, com um único assert
+   tocando o fonte por regex. O IDOR que ele nomeia está fechado no código — mas a prova disso é
+   estrutural, e o `show()` desta mesma controller só passou a ter prova real agora (UC-01).
