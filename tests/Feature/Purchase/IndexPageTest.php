@@ -14,6 +14,21 @@ declare(strict_types=1);
  *
  * Snapshot: memory/mwart-inventory/purchase/index.snapshot.md
  * Visual:   memory/requisitos/Purchase/index-visual-comparison.md
+ *
+ * ── Rastreabilidade (casos-gate G-2 · ADR 0264) ────────────────────────────
+ * Contrato: resources/js/Pages/Purchase/Index.casos.md
+ *   @covers-uc UC-PURIDX-01  dual path — SPA recebe React, acesso direto recebe Blade
+ *   @covers-uc UC-PURIDX-02  Tier 0 — indexInertia preserva o scope por business_id
+ *   @covers-uc UC-PURIDX-03  indexInertia preserva o filtro permitted_locations
+ *   @covers-uc UC-PURIDX-04  ações inline por permissão (vizinhança da paridade Etiquetas)
+ *   @covers-uc UC-PURIDX-05  contrato Inertia da Page (rota Blade não sai por router.visit)
+ *   @covers-uc UC-PURIDX-06  Tier 0 — a Page não hardcoda business_id
+ *
+ * ⚠️ NATUREZA DA COBERTURA — este arquivo é ESTRUTURAL (o cabeçalho acima já o diz):
+ * 55 asserts de casamento de texto no fonte, ZERO requests HTTP. Ele pega REMOÇÃO de
+ * código; não prova comportamento. O Status de cada UC no casos.md registra isso como
+ * "⚠️ estrutural" — nenhum UC desta tela pode ser promovido a ✅ enquanto a defesa for
+ * grep. Classe LC-11 (presence-gate) do memory/LICOES_CODE.md.
  */
 
 const PURCHASE_INDEX_PATH = 'resources/js/Pages/Purchase/Index.tsx';

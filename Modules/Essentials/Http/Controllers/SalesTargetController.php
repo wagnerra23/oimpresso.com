@@ -5,10 +5,12 @@ namespace Modules\Essentials\Http\Controllers;
 use App\User;
 use App\Utils\ModuleUtil;
 use DB;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Modules\Essentials\Entities\EssentialsUserSalesTarget;
+use Modules\Essentials\Services\SalesTargetFaixaValidator;
 use Yajra\DataTables\Facades\DataTables;
 
 class SalesTargetController extends Controller
@@ -92,7 +94,7 @@ class SalesTargetController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  Request  $request
-     * @return Response
+     * @return RedirectResponse
      */
     public function saveSalesTarget(Request $request)
     {
@@ -106,22 +108,40 @@ class SalesTargetController extends Controller
         // coberto pelo backstop ScopeByBusinessViaParent (que só filtra SELECT,
         // não INSERT) → sem isto, cria linha de meta no user de OUTRO business.
         // Fecha IDOR cross-tenant (follow-up #4474).
+        //
+        // PRECEDE a validação de faixas de propósito: id cru de outro tenant é
+        // 404 antes de qualquer outra mensagem, sem oráculo sobre o que existe lá.
         User::where('business_id', $business_id)->findOrFail($request->input('user_id'));
+
+        // HRM-O6 / PR-4 (achado A5): monta o conjunto FINAL de faixas e valida ANTES
+        // de escrever. Antes disto o método aceitava faixa invertida (comissão devida
+        // sumia em silêncio), faixas sobrepostas (o ->first() sem orderBy do
+        // PayrollController pagava percentual indefinido) e percentual fora de 0–100
+        // (calc_percentage não tem teto). Validar antes é obrigatório e não cosmético:
+        // o bloco de escrita abaixo DELETA as faixas fora de edit_target antes de
+        // inserir as novas — abortar no meio deixaria o colaborador sem meta nenhuma.
+        [$faixas, $edicoes, $novas] = $this->montarFaixas($request);
+
+        $erros = SalesTargetFaixaValidator::erros($faixas);
+        if (! empty($erros)) {
+            return back()->with('status', [
+                'success' => false,
+                'msg' => implode(' ', $erros),
+            ]);
+        }
 
         try {
             $target_ids = [];
-            if (! empty($request->input('edit_target'))) {
-                foreach ($request->input('edit_target') as $key => $value) {
-                    $target = EssentialsUserSalesTarget::where('user_id',
-                                        $request->input('user_id'))
-                                        ->where('id', $key)
-                                        ->update([
-                                            'target_start' => $this->moduleUtil->num_uf($value['target_start']),
-                                            'target_end' => $this->moduleUtil->num_uf($value['target_end']),
-                                            'commission_percent' => $this->moduleUtil->num_uf($value['commission_percent']),
-                                        ]);
-                    $target_ids[] = $key;
-                }
+            foreach ($edicoes as $id => $faixa) {
+                EssentialsUserSalesTarget::where('user_id',
+                                    $request->input('user_id'))
+                                    ->where('id', $id)
+                                    ->update([
+                                        'target_start' => $faixa['start'],
+                                        'target_end' => $faixa['end'],
+                                        'commission_percent' => $faixa['commission'],
+                                    ]);
+                $target_ids[] = $id;
             }
 
             EssentialsUserSalesTarget::where('user_id',
@@ -129,24 +149,13 @@ class SalesTargetController extends Controller
                                     ->whereNotIn('id', $target_ids)
                                     ->delete();
 
-            foreach ($request->input('sales_amount_start') as $key => $value) {
-                $sales_amount_end = $request->input('sales_amount_end')[$key];
-                $commission_percent = $this->moduleUtil->num_uf($request->input('commission')[$key]);
-
-                $target_start = $this->moduleUtil->num_uf($value);
-                $target_end = $this->moduleUtil->num_uf($sales_amount_end);
-
-                if (empty($target_start) && empty($target_end)) {
-                    continue;
-                }
-
-                $data = [
+            foreach ($novas as $faixa) {
+                EssentialsUserSalesTarget::create([
                     'user_id' => $request->input('user_id'),
-                    'target_start' => $target_start,
-                    'target_end' => $target_end,
-                    'commission_percent' => $commission_percent,
-                ];
-                EssentialsUserSalesTarget::create($data);
+                    'target_start' => $faixa['start'],
+                    'target_end' => $faixa['end'],
+                    'commission_percent' => $faixa['commission'],
+                ]);
             }
 
             $output = [
@@ -163,5 +172,55 @@ class SalesTargetController extends Controller
         }
 
         return back()->with('status', $output);
+    }
+
+    /**
+     * Normaliza o POST em faixas — a MESMA lista que valida é a que grava.
+     *
+     * Conversão de número segue exclusivamente por ModuleUtil::num_uf (heurística
+     * pt-BR canônica): nenhum valor é reinterpretado depois, então para entrada
+     * válida o que chega no banco é idêntico ao de antes deste PR.
+     *
+     * A linha inteiramente vazia continua ignorada (o modal Blade sempre envia uma
+     * linha 0/0/0 em branco no fim — rejeitá-la barraria todo salvamento legítimo).
+     *
+     * @return array{0: list<array{rotulo: string, start: float, end: float, commission: float}>, 1: array<int|string, array{start: float, end: float, commission: float}>, 2: list<array{start: float, end: float, commission: float}>}
+     */
+    private function montarFaixas(Request $request): array
+    {
+        $faixas = [];
+        $edicoes = [];
+        $novas = [];
+        $posicao = 0;
+
+        foreach ((array) $request->input('edit_target', []) as $id => $valores) {
+            $faixa = [
+                'start' => $this->moduleUtil->num_uf($valores['target_start'] ?? null),
+                'end' => $this->moduleUtil->num_uf($valores['target_end'] ?? null),
+                'commission' => $this->moduleUtil->num_uf($valores['commission_percent'] ?? null),
+            ];
+            $edicoes[$id] = $faixa;
+            $faixas[] = $faixa + ['rotulo' => 'nº '.(++$posicao)];
+        }
+
+        $fins = (array) $request->input('sales_amount_end', []);
+        $comissoes = (array) $request->input('commission', []);
+
+        foreach ((array) $request->input('sales_amount_start', []) as $key => $value) {
+            $faixa = [
+                'start' => $this->moduleUtil->num_uf($value),
+                'end' => $this->moduleUtil->num_uf($fins[$key] ?? null),
+                'commission' => $this->moduleUtil->num_uf($comissoes[$key] ?? null),
+            ];
+
+            if (empty($faixa['start']) && empty($faixa['end'])) {
+                continue;
+            }
+
+            $novas[] = $faixa;
+            $faixas[] = $faixa + ['rotulo' => 'nº '.(++$posicao)];
+        }
+
+        return [$faixas, $edicoes, $novas];
     }
 }

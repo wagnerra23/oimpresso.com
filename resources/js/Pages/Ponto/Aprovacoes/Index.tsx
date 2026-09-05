@@ -280,12 +280,15 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos 
         {/* Filtros adicionais */}
         <PageFilters activeChips={activeChips} onReset={activeChips.length > 0 ? resetFilters : undefined} cols={2}>
           <div>
-            <label className="text-xs font-medium text-muted-foreground mb-1 block">Tipo</label>
+            {/* htmlFor/id: o SelectTrigger do Radix é um <button role="combobox"> cujo texto
+                interno o axe não conta como nome acessível — sem a associação explícita ele
+                acusa `button-name` CRITICAL. Só atributo, zero pixel. */}
+            <label htmlFor="filtro-tipo" className="text-xs font-medium text-muted-foreground mb-1 block">Tipo</label>
             <Select
               value={filtros.tipo ?? 'ALL'}
               onValueChange={(v) => filterChange('tipo', v === 'ALL' ? '' : v)}
             >
-              <SelectTrigger>
+              <SelectTrigger id="filtro-tipo">
                 <SelectValue placeholder="Tipo" />
               </SelectTrigger>
               <SelectContent>
@@ -299,12 +302,12 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos 
             </Select>
           </div>
           <div>
-            <label className="text-xs font-medium text-muted-foreground mb-1 block">Prioridade</label>
+            <label htmlFor="filtro-prioridade" className="text-xs font-medium text-muted-foreground mb-1 block">Prioridade</label>
             <Select
               value={filtros.prioridade ?? 'ALL'}
               onValueChange={(v) => filterChange('prioridade', v === 'ALL' ? '' : v)}
             >
-              <SelectTrigger>
+              <SelectTrigger id="filtro-prioridade">
                 <SelectValue placeholder="Prioridade" />
               </SelectTrigger>
               <SelectContent>

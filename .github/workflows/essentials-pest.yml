@@ -107,7 +107,9 @@ jobs:
           mkdir -p test-results
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-essentials-junit.xml \
-            Modules/Essentials/Tests/Feature/SalesTargetShiftCrossTenantTest.php
+            Modules/Essentials/Tests/Feature/SalesTargetShiftCrossTenantTest.php \
+            Modules/Essentials/Tests/Feature/HrmExclusaoGuardaTest.php \
+            Modules/Essentials/Tests/Feature/SalesTargetFaixaValidacaoTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Business;
 use App\User;
+use App\Utils\ModuleUtil;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Spatie\Permission\Models\Permission;
@@ -35,6 +36,8 @@ use Tests\Support\WithSeededTenant;
  * Tenant: `seededTenant()` = 98 (fictício, canônico). biz=4 é PROIBIDO sem
  * exceção e biz=1 é empresa real.
  *
+ * @covers-us US-REPA-003
+ *
  * @see memory/requisitos/Repair/RUNBOOK-repair-settings.md (F1 PLAN)
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  * @see memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md
@@ -57,6 +60,61 @@ beforeEach(function () {
         }
     }
 });
+
+/**
+ * Guard dos UCs que passam por `index()` — e a razão dele é dura.
+ *
+ * `RepairSettingsController@index` chama `ModuleUtil::getTaxonomyData('device')`
+ * (linha 80, ANTES do branch Inertia, logo nos DOIS caminhos). Esse método do core
+ * UltimatePOS termina assim quando não acha o tipo de taxonomia:
+ *
+ *     echo __('lang_v1.taxonomy_type_not_found');
+ *     exit;                                    // app/Utils/ModuleUtil.php:549-551
+ *
+ * `exit` não é exception: mata o processo PHP inteiro. Num run de Pest isso derruba
+ * a suíte SEM UMA LINHA DE OUTPUT — medido no CT 100 em 2026-09-05: `rc=2`, stdout e
+ * stderr com 0 byte, os 6 UCs de contrato que já tinham passado perdidos junto.
+ *
+ * O gatilho é ambiental, não do Repair: `getTaxonomyData` só enxerga taxonomias de
+ * módulo que `ModuleUtil::isModuleInstalled()` considere instalado, e isso se lê da
+ * tabela `system` (`repair_version`). O seed do CI
+ * (`.github/actions/pest-mysql-setup`) não escreve nessa tabela — no CT 100 ela está
+ * com 0 linhas —, então `device` fica fora de `$category_types` e o `exit` dispara.
+ *
+ * Pular aqui é a diferença entre uma lane que reporta "2 skipped" e uma lane que
+ * morre muda. Não fabrico a linha `repair_version` para escapar: quem semeia o
+ * ambiente é o seed (§5 2026-08-24), e um teste que planta a própria pré-condição
+ * global mente sobre o que o CI de fato tem.
+ */
+function repairSettingsPrecisaDoModuloInstalado(): void
+{
+    if (! (new ModuleUtil)->isModuleInstalled('Repair')) {
+        test()->markTestSkipped(
+            'Módulo Repair não consta instalado (`system.repair_version` vazia) — '
+            .'`index()` morreria no `exit` de ModuleUtil::getTaxonomyData, derrubando a suíte inteira sem output.'
+        );
+    }
+}
+
+/**
+ * Sessão mínima que o layout global exige.
+ *
+ * `resources/views/layouts/app.blade.php` lê `session('currency')['code']` sem
+ * coalescência; com a sessão nua do `actingAs` o render estoura
+ * "Trying to access array offset on null" e a rota devolve 500 — defeito do layout
+ * legado em contexto de teste, não da tela. Espelha o `bladeT1cBootstrap()` do
+ * DeviceModelsInertiaSmokeTest, que é o vizinho que já renderiza Blade nesta lane.
+ */
+function repairSettingsSessao(int $businessId, int $userId): void
+{
+    session([
+        'user.business_id' => $businessId,
+        'user.id' => $userId,
+        'business.id' => $businessId,
+        'business.currency_symbol_placement' => 'before',
+        'currency' => ['code' => 'BRL', 'symbol' => 'R$', 'thousand_separator' => '.', 'decimal_separator' => ','],
+    ]);
+}
 
 /** User do tenant dado, com `superadmin` (satisfaz o primeiro ramo do gate dos 3 métodos). */
 function repairSettingsUser(int $businessId, bool $superadmin = true): User
@@ -271,35 +329,51 @@ afterEach(function () {
 });
 
 it('UC-RSET-07: flag OFF (default) → Blade legado, sem Inertia', function () {
+    repairSettingsPrecisaDoModuloInstalado();
+
     $biz = $this->seededTenant();
     $user = repairSettingsUser((int) $biz->id);
+    repairSettingsSessao((int) $biz->id, (int) $user->id);
     config(['mwart.repair_settings_index.enabled' => false]);
 
-    $r = repairSettingsActAs($this, $user)->get('/repair/repair-settings');
+    // O `User-Agent` não é decoração: `layouts/app.blade.php` chama um helper que lê
+    // `$_SERVER['HTTP_USER_AGENT']` sem coalescência (app/Http/helpers.php:72), e o
+    // request de teste não manda esse header — sem ele a rota devolve 500.
+    $r = repairSettingsActAs($this, $user)
+        ->withHeaders(['User-Agent' => 'Pest/RepairSettingsContrato'])
+        ->get('/repair/repair-settings');
 
+    // Um 500 remanescente é do LAYOUT GLOBAL, nunca desta tela — as duas causas já
+    // medidas (2026-09-05, CT 100) foram `session('currency')['code']` e o
+    // `HTTP_USER_AGENT` acima, ambas do legado em contexto de teste. Se voltar a
+    // estourar, o honesto é PULAR VISÍVEL: a redação anterior fazia `return`
+    // silencioso aqui e o caso contava como **passed escondendo um 500** (LC-13).
     if ($r->status() >= 500) {
-        // Render do Blade legado pode falhar por $contact_custom_fields indefinida
-        // (jobsheet_settings_tab.blade.php:56) — é justamente o [BACKLOG] do casos.md.
-        // Falhar aqui seria medir o defeito do legado, não a coexistência.
-        expect($r->headers->get('X-Inertia'))->toBeNull();
-
-        return;
+        test()->markTestSkipped('Render do layout legado falhou com '.$r->status().' — ambiente, não a tela.');
     }
 
     expect($r->headers->get('X-Inertia'))->toBeNull();
 });
 
 it('UC-RSET-08: flag ON → Inertia renderiza Repair/Settings/Index com as props do contrato', function () {
+    repairSettingsPrecisaDoModuloInstalado();
+
     $biz = $this->seededTenant();
     $user = repairSettingsUser((int) $biz->id);
+    repairSettingsSessao((int) $biz->id, (int) $user->id);
     config([
         'mwart.repair_settings_index.enabled' => true,
         'mwart.repair_settings_index.business_ids' => [],
     ]);
 
-    $r = repairSettingsActAs($this, $user)
-        ->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => 'test'])
-        ->get('/repair/repair-settings');
+    // GET normal, SEM simular XHR do Inertia. Medido no CT 100 em 2026-09-05:
+    //   com ['X-Inertia' => true, 'X-Inertia-Version' => 'test'] .......... 409
+    //   com ['X-Inertia' => true] e a versão REAL (que aqui é '') ......... 409
+    //   sem header nenhum (root view) ..................................... 200
+    // O middleware compara a versão de asset e trata string vazia como conflito, então
+    // qualquer variante XHR devolve 409 nesta lane. `assertInertia` lê o `data-page` da
+    // root view e funciona igual — é o caminho que de fato exercita o render.
+    $r = repairSettingsActAs($this, $user)->get('/repair/repair-settings');
 
     expect($r->status())->toBe(200);
 

@@ -83,9 +83,9 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   decidiu** e o **motivo da rejeição** registrado.
 - **Teste:** `JornadaWorkflowContratoTest.php` — `UC-INTSH-03`.
 - **Contrato:** `CU-PONTO-06` (SDD §6.2) · US-PONTO-003 (aceitação nomeia `aprovador_id`, `aprovado_em`,
-  `motivo_rejeicao`) · pareia com `UC-APROV-01` (que garante que o motivo **existe**); este garante que
+  `motivo_rejeicao`) · pareia com `UC-PAPR-01` (que garante que o motivo **existe**); este garante que
   ele **aparece**.
-- **Regressão que defende:** exigir o motivo na entrada (UC-APROV-01) e não exibi-lo na saída é trilha
+- **Regressão que defende:** exigir o motivo na entrada (UC-PAPR-01) e não exibi-lo na saída é trilha
   que não serve pra nada. Os dois UC juntos fecham o ciclo — separados, cada um passa sozinho enquanto o
   conjunto falha.
 - **Status: 🧪 sem veredito.**

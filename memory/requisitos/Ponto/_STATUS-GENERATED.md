@@ -19,20 +19,17 @@ authority: generated
 | US no SPEC | 14 |
 | CU no SDD | 14 |
 | Telas (.tsx) | 21 |
-| Telas com `casos.md` | 17 |
-| UC declarados | 63 |
-| UC com teste que os cita | 61 |
+| Telas com `casos.md` | 21 |
+| UC declarados | 70 |
+| UC com teste que os cita | 69 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
 | Lacuna | O que falta escrever |
 |---|---|
-| Tela `Configuracoes/Index` sem `casos.md` | o contrato da tela (trio incompleto) |
-| Tela `Configuracoes/Reps` sem `casos.md` | o contrato da tela (trio incompleto) |
-| Tela `Escalas/Index` sem `casos.md` | o contrato da tela (trio incompleto) |
-| Tela `Welcome` sem `casos.md` | o contrato da tela (trio incompleto) |
 | `US-PONTO-001` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Relogio web pra registrar entrada/saida (REP-P) |
 | `US-PONTO-007` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Multi-tenant isolation (Tier 0 IRREVOGAVEL) |
+| `US-PONTO-012` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Corrigir os atributos fantasma do modulo (4 instancias) |
 
 ### Backlog — NÃO é lacuna
 
@@ -48,7 +45,6 @@ authority: generated
 | US-PONTO-009 | `backlog` | Geracao AEJ canon Portaria 671/2021 Anexo VI (CRITICO REGULATORIO) |
 | US-PONTO-010 | `backlog` | Comprovante PDF QR Code (Anexo I §5.5 Portaria 671) |
 | US-PONTO-011 | `todo` | Fechar o append-only do ledger de banco de horas |
-| US-PONTO-012 | `todo` | Corrigir os atributos fantasma do modulo (4 instancias) |
 | US-PONTO-013 | `todo` | Consertar as duas telas que nao persistem |
 | US-PONTO-014 | `todo` | Lane required de Ponto vira arvore-menos-quarentena (vermelha no main ha 5 runs; |
 
@@ -59,9 +55,6 @@ authority: generated
 | UC-01 | Escalas/Form | 🧪 aguarda veredito da lane |
 | UC-02 | BancoHoras/Index | 🧪 aguarda veredito da lane |
 | UC-APROV-01 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
-| UC-APROV-02 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
-| UC-APROV-03 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
-| UC-APROV-04 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
 | UC-BHIDX-01 | BancoHoras/Index | 🧪 aguarda veredito da lane |
 | UC-BHIDX-02 | BancoHoras/Index | 🧪 aguarda veredito da lane |
 | UC-BHIDX-03 | BancoHoras/Index | 🧪 aguarda veredito da lane |
@@ -69,6 +62,9 @@ authority: generated
 | UC-BHSHOW-01 | BancoHoras/Show | 🧪 aguarda veredito da lane |
 | UC-BHSHOW-02 | BancoHoras/Show | 🧪 aguarda veredito da lane |
 | UC-BHSHOW-03 | BancoHoras/Show | 🧪 aguarda veredito da lane |
+| UC-CFGIDX-01 | Configuracoes/Index | 🧪 aguarda veredito da lane |
+| UC-CFGREP-01 | Configuracoes/Reps | 🧪 aguarda veredito da lane |
+| UC-CFGREP-02 | Configuracoes/Reps | 🧪 aguarda veredito da lane |
 | UC-COLEDT-01 | Colaboradores/Edit | 🧪 aguarda veredito da lane |
 | UC-COLEDT-02 | Colaboradores/Edit | 🧪 aguarda veredito da lane |
 | UC-COLIDX-01 | Colaboradores/Index | 🧪 aguarda veredito da lane |
@@ -76,6 +72,8 @@ authority: generated
 | UC-ESCF-01 | Escalas/Form | 🧪 aguarda veredito da lane |
 | UC-ESCF-02 | Escalas/Form | 🧪 aguarda veredito da lane |
 | UC-ESCF-03 | Escalas/Form | 🧪 aguarda veredito da lane |
+| UC-ESCIDX-01 | Escalas/Index | 🧪 aguarda veredito da lane |
+| UC-ESCIDX-02 | Escalas/Index | 🧪 aguarda veredito da lane |
 | UC-ESPIDX-01 | Espelho/Index | 🧪 aguarda veredito da lane |
 | UC-ESPIDX-02 | Espelho/Index | 🧪 aguarda veredito da lane |
 | UC-ESPIDX-03 | Espelho/Index | 🧪 aguarda veredito da lane |
@@ -94,7 +92,7 @@ authority: generated
 | UC-IMPSH-02 | Importacoes/Show | 🧪 aguarda veredito da lane |
 | UC-IMPSH-03 | Importacoes/Show | 🧪 aguarda veredito da lane |
 | UC-IMPSH-04 | Importacoes/Show | 🧪 aguarda veredito da lane |
-| UC-IMPSH-05 | Importacoes/Index | 📝 sem_teste |
+| UC-IMPSH-05 | Importacoes/Show | 🧪 aguarda veredito da lane |
 | UC-INTCRE-01 | Intercorrencias/Create | 🧪 aguarda veredito da lane |
 | UC-INTCRE-02 | Intercorrencias/Create | 🧪 aguarda veredito da lane |
 | UC-INTEDT-01 | Intercorrencias/Edit | 🧪 aguarda veredito da lane |
@@ -114,6 +112,11 @@ authority: generated
 | UC-PAINEL-06 | Dashboard/Index | 🧪 aguarda veredito da lane |
 | UC-PAINEL-07 | Dashboard/Index | 🧪 aguarda veredito da lane |
 | UC-PAINEL-08 | Dashboard/Index | 🧪 aguarda veredito da lane |
+| UC-PAPR-01 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
+| UC-PAPR-02 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
+| UC-PAPR-03 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
+| UC-PAPR-04 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
+| UC-PWEL-01 | Welcome | 🧪 aguarda veredito da lane |
 | UC-RELIDX-01 | Relatorios/Index | 🧪 aguarda veredito da lane |
 | UC-RELIDX-02 | Relatorios/Index | 🧪 aguarda veredito da lane |
 | UC-RELIDX-03 | Relatorios/Index | 🧪 aguarda veredito da lane |
