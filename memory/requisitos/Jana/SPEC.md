@@ -171,7 +171,7 @@ O payload `sugestoesPendentes` existe no render e volta vazio enquanto não houv
 ### Área Alertas
 
 #### US-COPI-060 · Listar alertas pendentes
-**Implementado em:** _parcial_ · `Modules/Jana/Http/Controllers/AlertasController.php` · `Modules/Jana/Services/AlertaService.php` · `Modules/Jana/Resources/views/alertas/index.blade.php` · verificado@dd3ed7c (2026-07-01) — `index()` + `AlertaService::avaliar()` (dispara desvio > threshold) existem; filtros por severidade/status na UI Blade não confirmados
+**Implementado em:** _parcial_ · `Modules/Jana/Http/Controllers/AlertasController.php` · `Modules/Jana/Services/AlertaService.php` · `resources/js/Pages/Jana/Alertas.tsx` · verificado@aa47f84 (2026-09-05) — `index()` + `AlertaService::avaliar()` (dispara desvio > threshold) existem. A UI deixou de ser Blade em 2026-09-03 (PR #6607, commit c23bcb8d7f — aba Alertas do protótipo): a view Blade da listagem foi apagada e o `index()` passou a renderizar a página Inertia acima. Só o PATH foi reconciliado aqui — o DoD extra (filtros por severidade/status) segue **não verificado**, como já estava
 - **Rota:** `GET /copiloto/alertas`
 - **DoD extra:** filtro por severidade, status (novo/visto/resolvido).
 

@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o comportamento é durável — o escopo de quem-vê-o-quê e o contrato de filtro não mudam quando o cockpit ganhar abas novas.
 owner: wagner
-last_run: "2026-08-11"
-last_run_ci: "UC-CMP-06/07 reconciliados em 2026-08-11 ([W]: 'pague a dívida, e deixe requerido'); veredito segue da lane PHP / Pest (Compras · MySQL)"
+last_run: "2026-09-05"
+last_run_ci: "Revalidado em 2026-09-05 pela lane PHP / Pest (Compras · MySQL) — run 33941351234, 125 assertions, 0 skipped, no MESMO commit que instrumentou o .tsx com as ancoras data-contract. Bump exigido pelo G-6 (a tela mudou depois do last_run anterior); a mudanca foi aditiva de atributo, mas o gate mede data-git e nao semantica, e isso e o desenho certo. Historico: UC-CMP-06/07 reconciliados em 2026-08-11 ([W]: pague a divida, e deixe requerido)."
 ---
 
 # Casos de Uso & Aceite — Cockpit de Compras (`/compras`)
