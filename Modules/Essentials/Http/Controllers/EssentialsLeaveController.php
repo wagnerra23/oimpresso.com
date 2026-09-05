@@ -63,7 +63,10 @@ class EssentialsLeaveController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return Response
+     * Dois retornos possíveis, e o docblock precisa dizer os dois: o ramo do
+     * DataTables devolve JSON (Yajra) e o caminho normal devolve Inertia.
+     *
+     * @return \Inertia\Response|\Illuminate\Http\JsonResponse
      */
     public function index()
     {
@@ -192,7 +195,11 @@ class EssentialsLeaveController extends Controller
                     ->paginate(25)
                     ->withQueryString();
 
-                $pagina->getCollection()->transform(fn ($linha) => $this->formatoDaLinha($linha));
+                // Closure tipada: `transform()` entrega `Model` ao PHPStan, e sem o
+                // tipo aqui o `formatoDaLinha(EssentialsLeave)` vira mismatch.
+                $pagina->getCollection()->transform(
+                    fn (EssentialsLeave $linha) => $this->formatoDaLinha($linha)
+                );
 
                 return $pagina;
             }),
