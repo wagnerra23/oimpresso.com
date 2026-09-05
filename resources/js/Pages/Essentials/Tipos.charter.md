@@ -5,7 +5,9 @@ owner: wagner
 status: draft
 parent_module: Essentials
 related_prototype: prototipo-ui/cowork/hrm-page.jsx (subview "tipos" · copy literal)
-runbook: memory/requisitos/Essentials/RUNBOOK-tipos.md
+related_runbook: memory/requisitos/Essentials/RUNBOOK-tipos.md
+related_us: [US-ESS-005, US-ESS-010]
+related_adrs: [104, 93, 264]
 alcance:
   rota: /hrm/leave-type
   rota_nome: (Route::resource — `leave-type.index`)
@@ -28,6 +30,19 @@ charter_version: 1
 Larissa precisa saber **quais licenças existem para pedir** e conseguir manter esse cadastro —
 sem ele, ninguém pede licença nenhuma. E, quando um tipo não puder ser excluído, precisa saber
 **por quê**, com número, não com "erro".
+
+## Relação com as US declaradas
+
+Nenhuma US do [SPEC](../../../../memory/requisitos/Essentials/SPEC.md) descreve o cadastro de
+tipos, e isto registra a relação real em vez de forçar uma:
+
+- **US-ESS-005** (Solicitação de Leave) — esta tela é **pré-requisito** dela, não a implementa.
+  Sem tipo cadastrado não existe licença a pedir; é literalmente o que o estado vazio diz.
+- **US-ESS-010** (Isolamento Tier 0) — quatro UCs desta tela a defendem (03, 04, 08), incluindo
+  a contagem agregada, que é onde o vazamento passaria despercebido.
+
+Se [W] quiser uma US própria para o cadastro de tipos, ela nasce no SPEC e substitui a primeira
+linha acima — não é decisão que eu tome sozinho aqui.
 
 ## Decisões registradas
 
