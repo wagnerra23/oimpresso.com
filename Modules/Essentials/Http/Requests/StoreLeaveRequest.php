@@ -6,6 +6,7 @@ namespace Modules\Essentials\Http\Requests;
 
 use App\User;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Modules\Essentials\Entities\EssentialsLeaveType;
@@ -122,12 +123,40 @@ class StoreLeaveRequest extends FormRequest
         }
 
         try {
+            // @var mixed de propósito: o docblock de `Util::uf_date()` diz
+            // `@return strin` (typo antigo, sem o "g") e o PHPStan lê isso como a
+            // classe `App\Utils\strin` — o que tornaria o `is_string()` abaixo
+            // sempre falso aos olhos dele. Corrigir o typo no core faria o analisador
+            // reavaliar TODOS os call-sites legados de `uf_date`/`uf_time` de uma vez,
+            // que é o backfill de legado proibido em proibicoes.md §5 (2026-07-12).
+            /** @var mixed $convertida */
             $convertida = app(\App\Utils\ModuleUtil::class)->uf_date($valor);
         } catch (\Throwable) {
             return null; // formato não bate com o date_format do negócio
         }
 
         return is_string($convertida) && $convertida !== '' ? $convertida : null;
+    }
+
+    /**
+     * Recusa SEMPRE em JSON, qualquer que seja o formato do request.
+     *
+     * O `store()` nunca renderizou view: ele devolve array, que o Laravel serializa
+     * como JSON — inclusive num POST de formulário. Sem este override, a recusa
+     * variaria com o `Accept` do cliente (422 em AJAX, 302 redirect em form puro),
+     * e o mesmo endpoint passaria a ter dois contratos de erro: a validação
+     * redirecionaria e o limite do tipo (`LeaveBalanceService`) responderia 422.
+     *
+     * Uniformizar aqui mantém um contrato só e é o que a tela Inertia da onda
+     * HRM-O7 vai consumir. `msg` acompanha `errors` porque a UI legada lê `msg`.
+     */
+    protected function failedValidation(Validator $validator): void
+    {
+        throw new HttpResponseException(response()->json([
+            'success' => false,
+            'msg'     => $validator->errors()->first(),
+            'errors'  => $validator->errors()->toArray(),
+        ], 422));
     }
 
     /**

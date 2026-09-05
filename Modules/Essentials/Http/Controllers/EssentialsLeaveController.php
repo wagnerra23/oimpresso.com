@@ -201,7 +201,7 @@ class EssentialsLeaveController extends Controller
      * `LeaveBalanceService` (PR-3, achado A3). Antes disso o método aceitava período
      * invertido, motivo vazio, tipo de outro tenant e `employees[]` de outro negócio.
      *
-     * @return Response
+     * @return \Illuminate\Http\JsonResponse|array<string, mixed>
      */
     public function store(StoreLeaveRequest $request)
     {
