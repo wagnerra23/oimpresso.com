@@ -321,3 +321,133 @@ it('UC-HRM-19 · tipo com limite 0 não bloqueia (0 = sem limite)', function () 
 
     expect(hrmlContaLicencas(HRML_BIZ))->toBe($antes + 1);
 });
+
+// ═════════════════════════════════════════════════════════════════════════════
+// TELA — UC-HRM-30..35 (PR-9 da onda HRM-O7)
+//
+// O que muda no servidor: `index()` passa a responder Inertia
+// (`Essentials/Licencas/Index`) mantendo o ramo DataTables que a blade legada
+// consome, e `show()`/`edit()` param de estourar 500 (R10).
+//
+// Estes casos provam o SERVIDOR da tela — payload, escopo e permissão. O que é
+// só renderização (marcar linha urgente, `stopPropagation`, atalhos) fica em
+// `[BACKLOG]` no casos.md até haver E2E que o defenda: citar num Pest que não o
+// exercita seria carimbo (G-2).
+// ═════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Versão do Inertia usada pelo servidor. Sem ela o request devolve 409
+ * (asset version mismatch) e o teste falharia pelo motivo errado — mesmo
+ * cuidado que o `EssentialsTestCase::currentInertiaVersion()` já toma.
+ */
+function hrmlVersaoInertia(): string
+{
+    try {
+        return (string) (new App\Http\Middleware\HandleInertiaRequests)->version(request());
+    } catch (Throwable) {
+        return '';
+    }
+}
+
+/** GET como o cliente Inertia faz. `$partial` pede props defer, igual ao browser. */
+function hrmlInertiaGet(object $teste, string $url, array $partial = [])
+{
+    $headers = [
+        'X-Inertia' => 'true',
+        'X-Inertia-Version' => hrmlVersaoInertia(),
+        'Accept' => 'text/html',
+    ];
+
+    if ($partial !== []) {
+        $headers['X-Inertia-Partial-Data'] = implode(',', $partial);
+        $headers['X-Inertia-Partial-Component'] = 'Essentials/Licencas/Index';
+    }
+
+    return $teste->withHeaders($headers)->get($url);
+}
+
+it('UC-HRM-30 · a rota entrega a tela Inertia Essentials/Licencas/Index', function () {
+    hrmlInertiaGet($this, '/hrm/leave')
+        ->assertStatus(200)
+        ->assertHeader('X-Inertia', 'true')
+        ->assertJsonPath('component', 'Essentials/Licencas/Index');
+});
+
+it('UC-HRM-31 · as props eager que a tela precisa chegam no primeiro payload', function () {
+    $resp = hrmlInertiaGet($this, '/hrm/leave')->assertStatus(200);
+
+    // Só as EAGER: `licencas`/`tipos`/`kpis`/`saldos` são Inertia::defer e, por
+    // construção, NÃO vêm aqui — cobrá-las neste caso seria testar o contrário
+    // do que o controller declara.
+    $resp->assertJsonStructure([
+        'props' => ['filtros', 'permissoes', 'situacoes', 'date_format'],
+    ]);
+
+    // R1: três situações, nunca o valor cru na UI.
+    expect(collect($resp->json('props.situacoes'))->pluck('valor')->all())
+        ->toEqualCanonicalizing(['pending', 'approved', 'cancelled']);
+
+    // R13: sem `date_format` o formulário posta ISO, o `uf_date` lança e o erro
+    // chega como "algo deu errado" — a prop não é cosmética.
+    expect($resp->json('props.date_format'))->toBeString()->not->toBeEmpty();
+});
+
+it('UC-HRM-32 · Tier 0: a lista da tela não traz licença de outro negócio [ADR 0093]', function () {
+    $tipoAlheio = hrmlTipo(HRML_BIZ_ALHEIO);
+    $userAlheio = User::withoutGlobalScopes()->where('business_id', HRML_BIZ_ALHEIO)->first();
+    if (! $userAlheio) {
+        $this->markTestSkipped('Sem user no tenant alheio — o seed canônico não rodou.');
+    }
+
+    $alheia = hrmlLicenca(
+        HRML_BIZ_ALHEIO, (int) $userAlheio->id, (int) $tipoAlheio->id, '2099-04-01', '2099-04-05'
+    );
+
+    // `licencas` é defer: sem o partial reload o payload não teria a lista e o
+    // teste passaria por AUSÊNCIA de dado, não por isolamento — que é o mesmo
+    // formato de "0 failed numa suíte que não rodou".
+    $resp = hrmlInertiaGet($this, '/hrm/leave', ['licencas'])->assertStatus(200);
+
+    $refs = collect($resp->json('props.licencas.data') ?? [])->pluck('ref_no')->all();
+
+    expect($refs)->not->toContain($alheia->ref_no);
+});
+
+it('UC-HRM-33 · quem só tem crud_own_leave não recebe o recorte de todos [R3]', function () {
+    // Gate::before autoriza TUDO para quem tem `Admin#{biz}` (AuthServiceProvider),
+    // então o papel de admin precisa sair para o caso existir. DatabaseTransactions
+    // reverte no fim — nada disto sobrevive ao teste.
+    $this->hUser->removeRole('Admin#'.HRML_BIZ);
+    $permissao = Spatie\Permission\Models\Permission::firstOrCreate(
+        ['name' => 'essentials.crud_own_leave', 'guard_name' => 'web']
+    );
+    $this->hUser->givePermissionTo($permissao);
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+    $resp = hrmlInertiaGet($this, '/hrm/leave?user_id=99999')->assertStatus(200);
+
+    expect($resp->json('props.permissoes.ver_todos'))->toBeFalse();
+    // O filtro por colaborador é IGNORADO — não basta a UI esconder o seletor.
+    expect($resp->json('props.filtros.user_id'))->toBeNull();
+});
+
+it('UC-HRM-34 · o DataTables do Blade continua respondendo (anti-regressão HRM-O8)', function () {
+    // A blade `leave/index.blade.php:93` aponta o ajax do DataTables para ESTA rota.
+    // Ela só sai no HRM-O8; migrar a rota não pode matar o JSON que ela consome.
+    $resp = $this->withHeaders(['X-Requested-With' => 'XMLHttpRequest'])
+        ->get('/hrm/leave')
+        ->assertStatus(200);
+
+    // Forma do DataTables (Yajra), não do Inertia.
+    $resp->assertJsonStructure(['draw', 'recordsTotal', 'recordsFiltered', 'data']);
+    $resp->assertHeaderMissing('X-Inertia');
+});
+
+it('UC-HRM-35 · show() e edit() redirecionam em vez de estourar 500 [R10]', function () {
+    $tipo = hrmlTipo(HRML_BIZ);
+    $licenca = hrmlLicenca(HRML_BIZ, (int) $this->hUser->id, (int) $tipo->id, '2099-05-01', '2099-05-02');
+
+    // Antes: `view('essentials::show')` / `essentials::edit` — views inexistentes.
+    $this->get('/hrm/leave/'.$licenca->id)->assertRedirect('/hrm/leave');
+    $this->get('/hrm/leave/'.$licenca->id.'/edit')->assertRedirect('/hrm/leave');
+});
