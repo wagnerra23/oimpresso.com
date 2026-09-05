@@ -17,12 +17,14 @@ last_run_ci: "nasce com dívida de prova DECLARADA — os testes que citam estes
 > — **nunca do `Show.tsx`**: teste derivado do código é tautológico e trava o desvio em vez de
 > pegá-lo ([proibicoes §5](../../../../memory/proibicoes.md) 2026-06-05).
 >
-> ⚠️ **Âncora mais fraca que a das telas irmãs, e isso é declarado, não disfarçado.** Index, Create
-> e Edit têm RUNBOOK de tela em
-> [`memory/requisitos/Compras/_telas/`](../../../../memory/requisitos/Compras/_telas/); **o Show
-> não tem** — só o `visual-comparison`. O charter, por sua vez, está `status: draft` e marca vários
-> Non-Goals como *"inferência pendente de Wagner"*. Por isso esta tela recebe **menos UC** que as
-> irmãs: contrato em 1 fonte só vira `[BACKLOG]`, não UC com id.
+> ⚠️ **A 2ª âncora passou a existir em 2026-09-04, e os UC ainda NÃO foram repromovidos.** Quando
+> este arquivo nasceu, o Show era a única das quatro telas sem RUNBOOK; agora tem o
+> [`RUNBOOK-purchase-show.md`](../../../../memory/requisitos/Compras/_telas/RUNBOOK-purchase-show.md),
+> irmão dos de [Index/Create/Edit](../../../../memory/requisitos/Compras/_telas/). O charter segue
+> `status: draft` com Non-Goals marcados *"inferência pendente de Wagner"*, então o que o RUNBOOK
+> destrava é o que ele **mediu** (dual-path, 404 vs 403, barcode por omissão) — não a intenção, que
+> segue com [W]. A contagem de UC abaixo ainda é a de antes: promover exige teste que cite o UC,
+> senão nasce órfão e o `casos-gate` G-2 (required) bloqueia quem for atendê-lo.
 
 ---
 
@@ -174,10 +176,12 @@ o UC-PURSHW-03, cuja natureza *é* estrutural (ausência de um literal no arquiv
 > (required) bloqueia o merge de quem for atendê-lo
 > ([proibicoes §5](../../../../memory/proibicoes.md) 2026-07-16).
 
-- `[BACKLOG]` **Falta o RUNBOOK de tela do Show.** Index, Create e Edit têm; o Show não. Sem ele,
-  os Non-Goals do charter (`draft`) são fonte única, e vários estão marcados *"inferência pendente
-  de Wagner"* — o que os desqualifica como contrato executável. Criar o RUNBOOK é pré-requisito
-  para os UC desta tela ganharem uma segunda âncora.
+- `[BACKLOG]` **Repromover os UC agora que a 2ª âncora existe.** O pré-requisito foi pago em
+  2026-09-04 — o [`RUNBOOK-purchase-show.md`](../../../../memory/requisitos/Compras/_telas/RUNBOOK-purchase-show.md)
+  mede dual-path, ordem 403→404, props e o barcode-por-omissão. O que **não** foi pago: cada
+  promoção exige um teste que cite o UC (G-2), e o `ShowPageTest` de hoje é estrutural. Non-Goal
+  marcado *"inferência pendente de Wagner"* segue fora — RUNBOOK mede comportamento, não decide
+  intenção.
 - `[BACKLOG]` **Sem timeline/histórico de auditoria.** O charter declara como Non-Goal, mas com a
   ressalva *"inferência pendente de Wagner"*. Enquanto for inferência do agente e não decisão de
   [W], não vira UC (*"UC não é canal de pedido"*).
