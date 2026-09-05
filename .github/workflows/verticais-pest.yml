@@ -184,6 +184,46 @@ jobs:
         # pulam VISÍVEL porque `ModuleUtil::getTaxonomyData` faz `exit` quando o módulo
         # não consta instalado. Com `system.repair_version` presente os 8 passam
         # (30 assertions) — a dívida é do seed, e está declarada no charter da tela.
+        #
+        # ENTRA 2026-09-05 — Repair/JobSheetShowContratoTest, 1 dos 4 contratos do
+        # JobSheet. Os 4 entraram no main sem lane NENHUMA que os executasse: a única que
+        # roda `Modules/Repair/Tests` como diretório é a `modules-pest`, e ela usa
+        # sqlite `:memory:` sem migrate — lá `JobSheetFixtures::motivoDeSkip()` pula os 28
+        # UCs e o job dá success (falso-verde de manual, LC-13). Nenhum workflow ou script
+        # os nomeava: `git grep` dos 4 nomes em `.github/` + `scripts/` = 0 hits.
+        #
+        # Medido no CT 100 (MySQL real, 2026-09-05), os 4 arquivos juntos, DUAS vezes com
+        # seeds de ordem aleatória diferentes e resultado idêntico (determinístico, não
+        # flaky):  4 failed · 24 passed (100 assertions) · 21,3s.
+        # Blobs conferidos contra origin/main antes de rodar (git hash-object dos 6
+        # arquivos — os 4 testes + JobSheetFixtures + WithSeededTenant): 6/6 idênticos,
+        # então o recibo é desta versão, não do checkout velho do container (#6302).
+        #
+        # ENTRA só o Show — 5 passed, 0 failed. Sem contagem absoluta (imune à base
+        # compartilhada do CT 100) e o UC-JSS-04 guarda o FSM com `Schema::hasColumn`,
+        # então na falta da coluna ele PULA, não quebra. Os 2 defeitos que o #6884 achou
+        # NÃO se aplicam aqui, medido e não presumido: nenhum dos 4 manda
+        # `X-Inertia-Version` literal, e o `assertInertia` do Show roda em requisição
+        # normal (sem `X-Inertia: true`), que é o jeito que funciona.
+        #
+        # FICAM DE FORA os outros 3 — dívida real, VISÍVEL e datada. Não são teste
+        # quebrado: são `[must]` provados vermelhos, cada um com o achado escrito no
+        # próprio corpo pela sessão que os criou, e a correção dos três é decisão [W]
+        # (precedência de `how-trabalhar.md`: o ❌ é o achado, não conserto silencioso):
+        #   · AddParts (2 de 8) — UC-JSP-03: gravar peças em OS de OUTRO negócio devolve
+        #     500, não 404 — `Undefined variable $job_sheet` em
+        #     JobSheetController.php:1139. E UC-JSP-05: peça de outro negócio APARECE na
+        #     lista da OS (Tier 0, ADR 0093). Consertar mexe no caminho de gravação de
+        #     peças ⇒ REGRA MESTRE valor/estoque.
+        #   · Edit (1 de 8) — UC-JSE-02: editar OS de outro negócio devolve 302, não 404.
+        #     O irmão "não lê nem altera OS de outro negócio" PASSA: o dado está
+        #     protegido, o que diverge é a forma da resposta.
+        #   · Create (1 de 7) — UC-JSC-03: charter e RUNBOOK documentam `submit_type: save`,
+        #     mas `StoreJobSheetRequest` valida `in:save_and_add_parts,save_and_upload_docs`
+        #     — `save` é recusado. O caminho vivo escapa porque a tela legada não envia o
+        #     campo; uma Page Inertia que o enviasse falharia em silêncio.
+        # Os 3 voltam a esta lista quando [W] decidir cada um — não antes, porque vermelho
+        # permanente em lane advisory só ensina o time a ignorá-la.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -199,6 +239,7 @@ jobs:
             Modules/ComunicacaoVisual/Tests/Feature/MultiTenantTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/Tier0GuardTest.php \
             Modules/Repair/Tests/Feature/DeviceModelsInertiaSmokeTest.php \
+            Modules/Repair/Tests/Feature/JobSheetShowContratoTest.php \
             Modules/Repair/Tests/Feature/ProducaoOficinaRefactorTest.php \
             Modules/Repair/Tests/Feature/RepairSettingsContratoTest.php \
             Modules/Vestuario/Tests/Feature/SmokeRoutesVestuarioTest.php \
