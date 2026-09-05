@@ -154,12 +154,30 @@ jobs:
         #     cross-tenant, com os 3 controles positivos verdes;
         #   · `$final_total = $net_total` (o recálculo que o [V0] proíbe) ⇒ 2 failed — cai a
         #     discrepância E o antes→depois, que são os dois caminhos da REGRA MESTRE.
+        #
+        # 2026-09-05 — CONSOLIDACAO. Estes 4 tinham entrado na allowlist do `compras-pest.yml`
+        # (#6820/#6825) por uma sessao que nao sabia que ESTA lane existia: os dois trabalhos
+        # correram em paralelo e aterrissaram com 20 minutos de diferenca. Ficaram DOIS donos
+        # rodando Purchase — o paralelo que a LC-19 nomeia. O `compras-pest.yml` volta ao que
+        # era (paths e entradas de Purchase revertidos no MESMO PR) e o ratchet fica aqui, que
+        # e o HOME declarado no cabecalho deste arquivo.
+        #
+        # Cada um foi RODADO ANTES DE ENTRAR (CT 100, MySQL real) — nenhum entra as cegas:
+        #   UpdateCrossTenantIdorTest   3 passed (13 assertions)  — era 4 skipped (0)
+        #   PurchaseGradeMatrixTest    16 passed (45 assertions)  — era 2 skipped + 12 passed (36)
+        #   Wave2EditBaselineTest       5 passed  (6 assertions)  — ja verde, so faltava lane
+        #   Wave2EditInertiaTest       11 passed (19 assertions)  — era 1 failed + 10 passed (18)
+        # E a lane inteira junta, pra provar que nao ha interferencia entre eles.
         run: |
           mkdir -p test-results
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-purchase-junit.xml \
             tests/Feature/Purchase/PurchaseIndexTenantContratoTest.php \
-            tests/Feature/Purchase/PurchaseShowTenantContratoTest.php
+            tests/Feature/Purchase/PurchaseShowTenantContratoTest.php \
+            tests/Feature/Purchase/UpdateCrossTenantIdorTest.php \
+            tests/Feature/Purchase/PurchaseGradeMatrixTest.php \
+            tests/Feature/Purchase/Wave2EditBaselineTest.php \
+            tests/Feature/Purchase/Wave2EditInertiaTest.php
 
       # A lane emite JUnit e o sumário conta `assertions` por arquivo — o corpus do LC-13.
       # Aqui só REPORTA (if: always()).
