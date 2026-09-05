@@ -154,7 +154,17 @@ pasta; e o lang PT segue com `leave` = "Sair" e `leaves` = "Folhas".
 |---|---|---|
 | **D1** | **A presença web CEDE LUGAR ao Ponto.** | O HRM deixa de ter tela de presença. O `Modules/Ponto` vira dono único da jornada. |
 | **D2** | **Folha COMPLETA, com encargos** (INSS/IRRF/FGTS/13º/férias). | Reabre o que a seção "Fora de escopo" deste pedido excluía. |
-| **D3** | **Licença aprovada BLOQUEIA a marcação** e sai da conta de ausência. | Como em D1 a marcação é do Ponto, o guard nasce no Ponto. |
+| **D3** | **Licença aprovada NÃO bloqueia — sinaliza divergência** e sai da conta de ausência. | Nenhuma origem é recusada. A marcação entra marcada, e o gestor trata. |
+
+> ⚠️ **D3 foi emendada pelo próprio [W] no mesmo dia, depois de medir.** A primeira resposta foi
+> *"bloqueia e sai da conta de ausência"*. O plano de integração então mediu que o Ponto recebe
+> batidas de origens diferentes — `REP_P` e `AFD` são **leitura do que já aconteceu** (equipamento
+> físico e arquivo fiscal), enquanto `MANUAL` e `INTEGRACAO` são criação. Recusar uma batida vinda
+> do relógio apagaria do sistema um registro que **existe no equipamento e no arquivo fiscal**, e a
+> auditoria do MTE compara os dois: quem tem batida no REP-P e não tem no sistema explica a falta.
+> Diante disso [W] escolheu **aceitar todas e só sinalizar**. A metade "bloqueia" da D3 **cai**;
+> a metade "sai da conta de ausência" **fica**. O registro anterior está preservado nesta nota
+> porque foi verdade na mesma data — o que muda é o ponteiro, não o fato.
 
 **A direção, nas palavras do [W] (2026-09-05):** *"acho que pode integrar mais sim o sistema e
 deixar o ponto decidir, vincular com outros módulos seria muito melhor, hoje está tudo separado."*
@@ -168,8 +178,32 @@ Não é só quem é dono da jornada — é **integrar em vez de manter silos**.
   O trabalho não se perde — o dado precisa migrar de qualquer forma —, mas o destino mudou.
 - **A folha passa a ler o Ponto** (`ponto_apuracao_dia`, `ponto_banco_horas`), não
   `essentials_attendances`.
-- **PR-7 muda de casa:** `ponto_marcacoes` é append-only por força da Portaria MTP 671/2021 e o
-  projeto proíbe UPDATE/DELETE nela — "bloquear" é impedir a **criação**, nunca apagar depois.
+- **PR-7 vira sinalização, não bloqueio** (ver a emenda de D3 acima). O chokepoint é único e está
+  contado: `MarcacaoService.php:62` — fora de `Tests/` não existe outro `Marcacao::create`.
+  `ponto_marcacoes` segue append-only por força da Portaria MTP 671/2021, então a divergência é
+  um atributo que nasce com o registro, nunca um UPDATE posterior.
+
+### Três achados do plano de integração, medidos e confirmados aqui
+
+1. **`pos:autoClockOutUser` FABRICA saídas.** Agendado `everyThirtyMinutes` em
+   `EssentialsServiceProvider.php:108`, ele grava `clock_out_time = agora` para quem ficou sem
+   saída (`Console/AutoClockOutUser.php:115`). Em `essentials_attendances` isso é higiene
+   operacional aceitável; **levar esse dado para `ponto_marcacoes` seria outra coisa** — a base é
+   append-only, com hash encadeado, NSR sequencial e valor probatório perante o MTE. Por isso a
+   decisão do plano: **`essentials_attendances` CONGELA, não migra** — e o cron tem de ser
+   desagendado no MESMO PR que congelar, senão segue escrevendo em tabela morta.
+2. **A única referência de código Ponto→Essentials é um ponteiro morto.**
+   `Modules/Ponto/Config/config.php:136` aponta `EssentialsUserShiftHistory::class` — **0 hits no
+   repo inteiro**, silenciado em `phpstan-baseline.neon` como `not found`. Ou seja: não há
+   integração viva a preservar, há um ponteiro quebrado a limpar.
+3. **O esquema CONTRADIZ a ADR 0014, não apenas a ignora.** A 0014 §1 diz que `escala_atual_id` é
+   "FK para Shift"; a FK real é `REFERENCES ponto_escalas(id)`, e a validação é
+   `exists:ponto_escalas,id`. A ADR sucessora precisa reconciliar isso explicitamente.
+
+**Plug-points estreitos (bom sinal):** a folha inteira entra por **duas funções**
+(`EssentialsUtil.php:26` e `:293`, com os 5 sites chamadores em `PayrollController` intactos), e a
+sinalização por **um** chokepoint. Sete ondas, ~20h — e a ordem importa: a onda em que a folha
+passa a ler apuração é **Tier 0 de valor** e não pode ser a primeira.
 
 ### O dono do tema já existe, e ficou no papel
 
@@ -198,11 +232,30 @@ tomada; o registro aqui é do custo, não uma objeção.
 
 ### Em curso (2026-09-05)
 
-Dois agentes estão montando o plano, em áreas isoladas: um para a **integração Ponto↔HRM**
-(`memory/sessions/2026-09-05-como-integrar-ponto-hrm.md`) e outro para o **estado da arte de
-folha com encargos** (`memory/sessions/2026-09-05-arte-folha-encargos-br.md`). Quem pegar onda
-deste pedido: leia os dois antes, e **rode `whats-active`** — a colisão de 04/09 saiu de ninguém
-ter rodado.
+Os dois planos **já foram entregues** — leia antes de pegar qualquer onda:
+
+- **Integração Ponto↔HRM** — `memory/sessions/2026-09-05-como-integrar-ponto-hrm.md` (7 ondas,
+  ~20h). Veredito: *desenho existe, código é zero* — não se re-desenha nada, constrói-se seguindo
+  a 0014, por ADR **sucessora** (`supersedes: [14]`), nunca paralela.
+- **Estado da arte da folha** — `memory/sessions/2026-09-05-arte-folha-encargos-br.md`. Veredito:
+  o `PayrollController` (1.188 linhas) **não é folha, é planilha com persistência**; verbas em 2
+  blobs JSON sem tipo/incidência/vigência; `inss|irrf|fgts|esocial` = **0 ocorrências** no módulo.
+  Tamanho da D2: **110-180h (2 a 4 meses) + 40-80h/ano perpétuas**. eSocial: **calcular sim,
+  operar não** (guia só sai pelo FGTS Digital).
+
+**Decisão [W] sobre por onde começar a folha (2026-09-05): ADR mãe primeiro** — fixar
+rubrica × incidência × vigência **antes** de escrever motor, porque é a única peça cujo erro
+obriga a reescrever todo o resto. O motor precisa nascer **reentrante** (retroativo calcula na
+alíquota da competência original — `infoPerApur`/`infoPerAnt`), o que não é refactor posterior.
+
+**Achado que corre em paralelo, sem esperar ADR:** o total de cada contracheque é somado no
+navegador e gravado **cru** — `PayrollController::store` L342 copia `final_total` do formulário
+sem `num_uf` e sem recálculo, enquanto as linhas vizinhas 327 e 343 normalizam. É Tier 0 de valor
+e tem chip próprio.
+
+Quem pegar onda deste pedido: **rode `whats-active`** — e, enquanto o MCP estiver fora
+(medido 2026-09-05: HTTP 000), o substituto é `gh pr list --state open` cruzado com os arquivos
+que você vai tocar. A colisão de 04/09 saiu exatamente de ninguém ter feito isso.
 
 ### O que segue válido sem tocar em nada disso
 
