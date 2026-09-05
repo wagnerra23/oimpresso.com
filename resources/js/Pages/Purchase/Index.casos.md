@@ -55,9 +55,11 @@ manifesto** que o G-7 lê — o `visual-regression.yml` não emite `--log-junit`
 colhido pelo `casos-results-collect`. Declarar `✅` sem manifesto é a violação `status:unverified`
 do próprio gate. Isso vale para **todos** os UC provados por teste Browser nesta casa, não só aqui.
 
-O teste segue **advisory** (`continue-on-error`) por outro motivo, também mecânico: a
+O teste segue **advisory** (`continue-on-error`). A
 [ADR 0336](../../../../memory/decisions/0336-gates-design-promocao-por-mordida-provada-emenda-0314.md)
-pede **2 verdes que executaram** antes da promoção, e há **1**. Promover é flip [W].
+pede **2 verdes que executaram** antes da promoção, e os dois foram observados em 2026-09-05
+(run 33941339625 e o run do commit seguinte, ambos `3 passed (7 assertions)`) — o pré-requisito
+está **cumprido**. Promover é flip [W], não efeito colateral deste PR.
 
 Antes do PR o autor não conseguiu executá-lo (o CT 100 está sem `public/build/manifest.json` e sem
 os browsers do Playwright — medido). O que deu para provar então: `php -l` no CT 100 e um bite-test
