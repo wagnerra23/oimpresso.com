@@ -60,14 +60,33 @@ node -e "JSON.parse(require('fs').readFileSync('$WORK/report.json','utf8'))" \
   || { echo "FATAL: report extraído não é JSON válido — nada publicado (gap honesto)"; exit 1; }
 
 # --- [2/4] trend existente da órfã (se houver) -----------------------------------
+# TRÊS estados, não dois. A forma anterior (`git clone ... 2>/dev/null` dentro de um
+# `if`) colapsava "não consegui falar com o remoto" em "a órfã não existe" — e seguir
+# por aí recomputa o trend DO ZERO, que o `push -f` do passo [4/4] então grava por
+# cima da série inteira. INCIDENTE 2026-08-30 (publish.log): o clone falhou, o compute
+# caiu de "7 semana(s)" para "1 semana(s)", e só o push ter falhado JUNTO salvou os 7
+# pontos. Não é hipótese — está nas duas linhas seguidas do log daquele domingo.
+#
+# O oráculo que distingue é `ls-remote`: rc≠0 = não sei (aborta); rc=0 + saída vazia =
+# a branch de fato não existe (1ª publicação); rc=0 + saída = existe, e aí carregar
+# deixa de ser "se houver" e passa a ser obrigatório.
 EXISTING_ARG=()
-if git clone -q --depth 1 --branch "$BRANCH" \
-     -c core.sshCommand="$GIT_SSH" "$REPO" "$WORK/orfa" 2>/dev/null \
-   && [ -f "$WORK/orfa/governance/ragas-real-trend.json" ]; then
-  EXISTING_ARG=(--existing "$WORK/orfa/governance/ragas-real-trend.json")
-  echo "[trend] existente carregado da órfã"
+if REMOTO_HEADS=$(git -c core.sshCommand="$GIT_SSH" ls-remote --heads "$REPO" "$BRANCH" 2>&1); then
+  if [ -n "$REMOTO_HEADS" ]; then
+    git clone -q --depth 1 --branch "$BRANCH" \
+         -c core.sshCommand="$GIT_SSH" "$REPO" "$WORK/orfa" \
+      || { echo "FATAL: a órfã $BRANCH EXISTE mas o clone falhou — abortando para não regravar a série com push -f"; exit 1; }
+    [ -f "$WORK/orfa/governance/ragas-real-trend.json" ] \
+      || { echo "FATAL: órfã $BRANCH clonada SEM governance/ragas-real-trend.json — estado inesperado, abortando"; exit 1; }
+    EXISTING_ARG=(--existing "$WORK/orfa/governance/ragas-real-trend.json")
+    echo "[trend] existente carregado da órfã"
+  else
+    echo "[trend] remoto respondeu e a branch $BRANCH não existe — 1ª publicação"
+  fi
 else
-  echo "[trend] órfã ausente/vazia — 1ª publicação"
+  echo "FATAL: não consegui consultar o remoto ($BRANCH) — abortando ANTES de recomputar do zero"
+  printf '%s\n' "$REMOTO_HEADS" | tail -2
+  exit 1
 fi
 
 # --- [3/4] merge idempotente (mesma semana = substitui) ---------------------------
