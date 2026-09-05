@@ -252,3 +252,34 @@ it('ponta a ponta pelo POST /hrm/import-attendance: linha boa entra, linha cross
     // A prova Tier 0 no caminho HTTP real.
     expect(marcacoesDe($this->userEstranho))->toBe(0);
 });
+
+it('serial numerico degenerado (0 / negativo) e recusado em vez de virar marcacao em 1970', function () {
+    // Medido no PhpSpreadsheet: serial 0 devolve 1970-01-01 e -5 devolve 1969-12-27 —
+    // datas plausíveis o bastante pra passar despercebidas numa planilha de jornada.
+    $relatorio = $this->service->importar((int) $this->tenant->id, [
+        [$this->emailProprio, 0, null, null, null, null, null],
+        [$this->emailProprio, -5, null, null, null, null, null],
+    ]);
+
+    expect($relatorio['inseridas'])->toBe(0)
+        ->and($relatorio['recusadas'])->toHaveCount(2);
+
+    expect(marcacoesDe($this->userProprio))->toBe(0);
+});
+
+it('serial numerico VALIDO do Excel continua entrando (o guard nao recusa data real)', function () {
+    // 46266.354166667 => 2026-09-01 08:30:00 (medido). Controle positivo do guard acima:
+    // sem ele, o teste anterior passaria mesmo que o caminho numérico estivesse quebrado.
+    $relatorio = $this->service->importar((int) $this->tenant->id, [
+        [$this->emailProprio, 46266.354166667, null, null, null, null, null],
+    ]);
+
+    expect($relatorio['inseridas'])->toBe(1)
+        ->and($relatorio['recusadas'])->toBeEmpty();
+
+    $marcacao = EssentialsAttendance::withoutGlobalScopes()
+        ->where('user_id', $this->userProprio)
+        ->firstOrFail();
+
+    expect((string) $marcacao->clock_in_time)->toContain('2026-09-01 08:30:00');
+});

@@ -419,6 +419,15 @@ class AttendanceImportService
         }
 
         if (is_numeric($valor) && ! is_string($valor)) {
+            // Serial 1 é 1900-01-01, o início do calendário do Excel: abaixo disso não
+            // existe data. Medido: o PhpSpreadsheet NÃO recusa esses valores — devolve
+            // 1970-01-01 pra serial 0 e 1969-12-27 pra -5, datas plausíveis o bastante
+            // pra passar despercebidas numa planilha de jornada. Célula 0/vazia-numérica
+            // vira recusa explícita em vez de marcação em 1970.
+            if ((float) $valor < 1.0) {
+                return null;
+            }
+
             try {
                 return Carbon::parse(ExcelDate::excelToDateTimeObject((float) $valor)->format('Y-m-d H:i:s'))
                     ->format('Y-m-d H:i:s');
