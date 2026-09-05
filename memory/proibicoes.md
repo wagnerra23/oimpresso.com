@@ -1111,6 +1111,12 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **⚠️ NÃO armado:** o gate óbvio de LC-08 já está **medido e reprovado**, e o predicado aqui (*"esta sonda responde a pergunta que eu fiz?"*) é semântico → [ADR 0224](decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md). A defesa é esta emenda **+** o header do [`scripts/tests/ct100-jana-evals.sh`](../scripts/tests/ct100-jana-evals.sh), que já era o dono da pergunta "quem de fato roda" e recebeu a medição datada (sessão irmã, commit `055d286a`, preservando o fato de julho 82/5 ao lado do de hoje 80/6) — **estendido, não duplicado**.
 
+### 2026-09-05 — EMENDA da lápide acima (bite-test): um terceiro modo de "não prova" — o assert cujo PREDICADO não separa os dois caminhos do endpoint
+
+- **O limite (variantes também proibidas):** antes de usar um **predicado sobre a resposta** como assert de contrato (`isSuccessful`, `isRedirect`, `isClientError`, `isOk`, `getStatusCode() < 400`), **medir o predicado nos DOIS caminhos** do endpoint e provar que ele difere. Num app Laravel isso quase nunca vale para form POST/PUT, porque sucesso e recusa são ambos **302** (`back()` / `redirect()` × `back()->withErrors()`). O que discrimina ali é o **efeito**: a sessão carrega erro **no campo certo**, e o estado do banco **não** mudou. Corolário de leitura: um assert que **abre** o caso carrega autoridade de sumário — se ele não prova, remova-o e diga por quê, em vez de deixá-lo como decoração; um leitor confia na primeira linha.
+
+- **⚠️ NÃO virar gate:** acusar `isSuccessful()` por sintaxe reprovaria o uso legítimo (endpoint que de fato devolve 200 no sucesso — API JSON, `Inertia::render`), e o predicado verdadeiro — *"este assert separa os dois caminhos DESTE endpoint?"* — exige saber o que o controller retorna em cada um. Semântico por construção ([ADR 0224](decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md)), e a forma sintática é a família já enterrada 7× neste §5.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
