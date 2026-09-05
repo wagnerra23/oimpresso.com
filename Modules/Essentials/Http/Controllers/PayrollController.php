@@ -22,7 +22,9 @@ use Modules\Essentials\Entities\EssentialsAllowanceAndDeduction;
 use Modules\Essentials\Entities\EssentialsLeave;
 use Modules\Essentials\Entities\EssentialsUserSalesTarget;
 use Modules\Essentials\Entities\PayrollGroup;
+use Modules\Essentials\Exceptions\PayrollTotalDivergenteException;
 use Modules\Essentials\Notifications\PayrollNotification;
+use Modules\Essentials\Services\PayrollTotalCalculator;
 use Modules\Essentials\Utils\EssentialsUtil;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -41,19 +43,69 @@ class PayrollController extends Controller
 
     protected $businessUtil;
 
+    protected $payrollCalculator;
+
     /**
      * Constructor
      *
      * @param  ProductUtils  $product
      * @return void
      */
-    public function __construct(ModuleUtil $moduleUtil, EssentialsUtil $essentialsUtil, Util $commonUtil, TransactionUtil $transactionUtil, BusinessUtil $businessUtil)
+    public function __construct(ModuleUtil $moduleUtil, EssentialsUtil $essentialsUtil, Util $commonUtil, TransactionUtil $transactionUtil, BusinessUtil $businessUtil, PayrollTotalCalculator $payrollCalculator)
     {
         $this->moduleUtil = $moduleUtil;
         $this->essentialsUtil = $essentialsUtil;
         $this->commonUtil = $commonUtil;
         $this->transactionUtil = $transactionUtil;
         $this->businessUtil = $businessUtil;
+        $this->payrollCalculator = $payrollCalculator;
+    }
+
+    /**
+     * Recalcula o total de UM contracheque no servidor e reconcilia com o que o formulário mandou.
+     *
+     * Antes disto o total vinha do navegador (`payrolls[<id>][final_total]`, hidden escrito por
+     * `.val()` em form_script.blade.php) e era persistido como veio. Aqui o servidor recompõe o
+     * número a partir dos seus próprios insumos e **é a autoridade**; o valor recebido só serve
+     * de confronto. Divergência acima da tolerância nunca passa em silêncio: ou vira ALERT no
+     * log, ou — quando tem a forma de inflação — derruba o salvamento.
+     *
+     * @param  array<string,mixed>  $payroll  item cru de `payrolls[]`
+     * @return array{0:array<string,mixed>,1:array<string,mixed>}  [$payroll com o total do servidor, $calculo]
+     *
+     * @throws \RuntimeException quando a divergência tem a forma de inflação
+     *
+     * @see memory/proibicoes.md §"CÁLCULO DE VALOR ou ESTOQUE"
+     */
+    private function aplicarTotalDoServidor(array $payroll, $business_id, $contexto)
+    {
+        $calculo = $this->payrollCalculator->calcular($payroll);
+        $reconciliacao = $this->payrollCalculator->reconciliar($calculo['total'], $payroll['final_total'] ?? null);
+
+        if ($reconciliacao['divergente']) {
+            // Sem valor monetário no log — só a forma da divergência (memory/proibicoes.md:
+            // "NUNCA commitar valores BRL"; o mesmo cuidado vale pro log, que o time lê).
+            \Log::alert('[payroll] total do formulário divergiu do total do servidor', [
+                'contexto' => $contexto,
+                'business_id' => $business_id,
+                'delta_nao_zero' => true,
+                'razao_recebido_sobre_servidor' => $reconciliacao['razao'] !== null
+                    ? round($reconciliacao['razao'], 4)
+                    : null,
+                'recusado' => $reconciliacao['recusar'],
+                'linhas_adicionais' => count($calculo['adicionais']),
+                'linhas_descontos' => count($calculo['descontos']),
+            ]);
+        }
+
+        if ($reconciliacao['recusar']) {
+            throw new PayrollTotalDivergenteException('payroll_total_divergente');
+        }
+
+        $payroll['final_total'] = $calculo['total'];
+        $payroll['total_before_tax'] = $calculo['total'];
+
+        return [$payroll, $calculo];
     }
 
     /**
@@ -321,10 +373,22 @@ class PayrollController extends Controller
             $transaction_date = $request->input('transaction_date');
             $payrolls = $request->input('payrolls');
             $notify_employee = ! empty($request->input('notify_employee')) ? 1 : 0;
+
+            // Servidor recalcula ANTES de abrir transação — uma recusa nem chega no banco.
+            // O bruto do grupo passa a ser a SOMA dos totais que o servidor calculou, e não
+            // mais `num_uf($request->input('total_gross_amount'))`: aquele campo também vem
+            // de um `.val()` cru do navegador, e o `num_uf` inflaria 1000× um float de 3
+            // casas decimais (medição no docblock de PayrollTotalCalculator).
+            $gross_total = 0.0;
+            foreach ($payrolls as $key => $payroll) {
+                [$payrolls[$key], $calculo] = $this->aplicarTotalDoServidor($payroll, $business_id, 'store');
+                $gross_total += $calculo['total'];
+            }
+
             $payroll_group['business_id'] = $business_id;
             $payroll_group['name'] = $request->input('payroll_group_name');
             $payroll_group['status'] = $request->input('payroll_group_status');
-            $payroll_group['gross_total'] = $this->transactionUtil->num_uf($request->input('total_gross_amount'));
+            $payroll_group['gross_total'] = round($gross_total, (int) session('business.currency_precision', 2));
             $payroll_group['location_id'] = $request->input('location_id');
             $payroll_group['created_by'] = auth()->user()->id;
 
@@ -339,7 +403,6 @@ class PayrollController extends Controller
                 $payroll['type'] = 'payroll';
                 $payroll['payment_status'] = 'due';
                 $payroll['status'] = 'final';
-                $payroll['total_before_tax'] = $payroll['final_total'];
                 $payroll['essentials_amount_per_unit_duration'] = $this->moduleUtil->num_uf($payroll['essentials_amount_per_unit_duration']);
 
                 $allowances_and_deductions = $this->getAllowanceAndDeductionJson($payroll);
@@ -374,6 +437,11 @@ class PayrollController extends Controller
             $output = ['success' => true,
                 'msg' => __('lang_v1.added_success'),
             ];
+        } catch (PayrollTotalDivergenteException $e) {
+            // A recusa acontece ANTES do beginTransaction — não há transação a desfazer.
+            $output = ['success' => false,
+                'msg' => __('essentials::lang.payroll_total_divergente'),
+            ];
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
@@ -386,48 +454,31 @@ class PayrollController extends Controller
         return redirect()->action([\Modules\Essentials\Http\Controllers\PayrollController::class, 'index'])->with('status', $output);
     }
 
+    /**
+     * Serializa as verbas do contracheque nos dois blobs JSON de `transactions`.
+     *
+     * As linhas vêm do MESMO `PayrollTotalCalculator` que produz o total — de propósito: se a
+     * linha percentual fosse serializada com o valor que o formulário mandou enquanto o total
+     * viesse do servidor, o holerite mostraria verbas que não somam o total impresso ao lado.
+     * Um dono só para a fórmula, um número só na tela.
+     *
+     * @return array<string, string>
+     */
     private function getAllowanceAndDeductionJson($payroll)
     {
-        $allowance_names = $payroll['allowance_names'];
-        $allowance_types = $payroll['allowance_types'];
-        $allowance_percents = $payroll['allowance_percent'];
-        $allowance_names_array = [];
-        $allowance_percent_array = [];
-        $allowance_amounts = [];
-
-        foreach ($payroll['allowance_amounts'] as $key => $value) {
-            if (! empty($allowance_names[$key])) {
-                $allowance_amounts[] = $this->moduleUtil->num_uf($value);
-                $allowance_names_array[] = $allowance_names[$key];
-                $allowance_percent_array[] = ! empty($allowance_percents[$key]) ? $this->moduleUtil->num_uf($allowance_percents[$key]) : 0;
-            }
-        }
-
-        $deduction_names = $payroll['deduction_names'];
-        $deduction_types = $payroll['deduction_types'];
-        $deduction_percents = $payroll['deduction_percent'];
-        $deduction_names_array = [];
-        $deduction_percents_array = [];
-        $deduction_amounts = [];
-        foreach ($payroll['deduction_amounts'] as $key => $value) {
-            if (! empty($deduction_names[$key])) {
-                $deduction_names_array[] = $deduction_names[$key];
-                $deduction_amounts[] = $this->moduleUtil->num_uf($value);
-                $deduction_percents_array[] = ! empty($deduction_percents[$key]) ? $this->moduleUtil->num_uf($deduction_percents[$key]) : 0;
-            }
-        }
+        $calculo = $this->payrollCalculator->calcular($payroll);
 
         $output['essentials_allowances'] = json_encode([
-            'allowance_names' => $allowance_names_array,
-            'allowance_amounts' => $allowance_amounts,
-            'allowance_types' => $allowance_types,
-            'allowance_percents' => $allowance_percent_array,
+            'allowance_names' => array_column($calculo['adicionais'], 'nome'),
+            'allowance_amounts' => array_column($calculo['adicionais'], 'valor'),
+            'allowance_types' => $payroll['allowance_types'],
+            'allowance_percents' => array_column($calculo['adicionais'], 'percentual'),
         ]);
         $output['essentials_deductions'] = json_encode([
-            'deduction_names' => $deduction_names_array,
-            'deduction_amounts' => $deduction_amounts,
-            'deduction_types' => $deduction_types,
-            'deduction_percents' => $deduction_percents_array,
+            'deduction_names' => array_column($calculo['descontos'], 'nome'),
+            'deduction_amounts' => array_column($calculo['descontos'], 'valor'),
+            'deduction_types' => $payroll['deduction_types'],
+            'deduction_percents' => array_column($calculo['descontos'], 'percentual'),
         ]);
 
         return $output;
@@ -553,9 +604,6 @@ class PayrollController extends Controller
         try {
             $input = $request->only(['essentials_duration', 'essentials_amount_per_unit_duration', 'final_total', 'essentials_duration_unit']);
 
-            $input['essentials_amount_per_unit_duration'] = $this->moduleUtil->num_uf($input['essentials_amount_per_unit_duration']);
-            $input['total_before_tax'] = $input['final_total'];
-
             //get pay componentes
             $payroll['allowance_names'] = $request->input('allowance_names');
             $payroll['allowance_types'] = $request->input('allowance_types');
@@ -566,6 +614,17 @@ class PayrollController extends Controller
             $payroll['deduction_percent'] = $request->input('deduction_percent');
             $payroll['deduction_amounts'] = $request->input('deduction_amounts');
             $payroll['final_total'] = $request->input('final_total');
+            // Duração e valor-por-unidade entram CRUS: quem desformata é o calculador, uma vez
+            // só. Passar o valor já num_uf'd faria a heurística pt-BR rodar duas vezes sobre o
+            // mesmo número — e um float de 3 casas seria inflado 1000× na segunda passagem.
+            $payroll['essentials_duration'] = $request->input('essentials_duration');
+            $payroll['essentials_amount_per_unit_duration'] = $request->input('essentials_amount_per_unit_duration');
+
+            [$payroll, $calculo] = $this->aplicarTotalDoServidor($payroll, $business_id, 'update');
+
+            $input['essentials_amount_per_unit_duration'] = $this->moduleUtil->num_uf($input['essentials_amount_per_unit_duration']);
+            $input['final_total'] = $calculo['total'];
+            $input['total_before_tax'] = $calculo['total'];
 
             $allowances_and_deductions = $this->getAllowanceAndDeductionJson($payroll);
             $input['essentials_allowances'] = $allowances_and_deductions['essentials_allowances'];
@@ -585,6 +644,11 @@ class PayrollController extends Controller
                 'msg' => __('lang_v1.updated_success'),
             ];
             DB::commit();
+        } catch (PayrollTotalDivergenteException $e) {
+            // A recusa acontece ANTES do beginTransaction — não há transação a desfazer.
+            $output = ['success' => false,
+                'msg' => __('essentials::lang.payroll_total_divergente'),
+            ];
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
@@ -885,9 +949,20 @@ class PayrollController extends Controller
             $notify_employee = ! empty($request->input('notify_employee')) ? 1 : 0;
 
             $payroll_group_id = $request->input('payroll_group_id');
+
+            // Mesma regra do store(): o servidor recalcula tudo antes de abrir transação, e o
+            // bruto do grupo é a SOMA do que ele calculou — não o `total_gross_amount` que o
+            // navegador mandou (que também vem de um `.val()` cru e seria inflado 1000× pelo
+            // `num_uf` quando tivesse 3 casas decimais).
+            $gross_total = 0.0;
+            foreach ($payrolls as $key => $payroll) {
+                [$payrolls[$key], $calculo] = $this->aplicarTotalDoServidor($payroll, $business_id, 'getUpdatePayrollGroup');
+                $gross_total += $calculo['total'];
+            }
+
             $pg_input['name'] = $request->input('payroll_group_name');
             $pg_input['status'] = $request->input('payroll_group_status');
-            $pg_input['gross_total'] = $this->transactionUtil->num_uf($request->input('total_gross_amount'));
+            $pg_input['gross_total'] = round($gross_total, (int) session('business.currency_precision', 2));
 
             DB::beginTransaction();
             $payroll_group = PayrollGroup::where('business_id', $business_id)
@@ -898,7 +973,7 @@ class PayrollController extends Controller
             foreach ($payrolls as $key => $payroll) {
                 $transaction_id = $payroll['transaction_id'];
 
-                $payroll['total_before_tax'] = $payroll['final_total'];
+                // `final_total` / `total_before_tax` já vieram do servidor no laço acima.
                 $payroll['essentials_amount_per_unit_duration'] = $this->moduleUtil->num_uf($payroll['essentials_amount_per_unit_duration']);
 
                 $allowances_and_deductions = $this->getAllowanceAndDeductionJson($payroll);
@@ -923,6 +998,11 @@ class PayrollController extends Controller
             DB::commit();
             $output = ['success' => true,
                 'msg' => __('lang_v1.updated_success'),
+            ];
+        } catch (PayrollTotalDivergenteException $e) {
+            // A recusa acontece ANTES do beginTransaction — não há transação a desfazer.
+            $output = ['success' => false,
+                'msg' => __('essentials::lang.payroll_total_divergente'),
             ];
         } catch (Exception $e) {
             DB::rollBack();

@@ -306,4 +306,5 @@ return [
     'import_erro_sobreposicao_banco' => 'Já existe marcação deste colaborador cobrindo esse horário.',
     'import_erro_sobreposicao_arquivo' => 'Outra linha do mesmo arquivo já cobre esse horário para este colaborador.',
     'import_erro_arquivo_sumiu' => 'O arquivo enviado não está mais disponível. Envie novamente.',
+    'payroll_total_divergente' => 'O total enviado pelo formulário não confere com o total calculado pelo servidor. A folha não foi salva. Recarregue a tela e confira os valores das verbas.',
 ];
