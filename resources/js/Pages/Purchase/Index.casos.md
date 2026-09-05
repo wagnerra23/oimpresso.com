@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: o dual-path Blade×React e o escopo por tenant são duráveis — não mudam quando a lista ganhar coluna ou filtro novo.
 owner: wagner
 last_run: "2026-09-04"
-last_run_ci: "nasce com dívida de prova DECLARADA — os testes que citam estes UC são ESTRUTURAIS (grep no fonte), não exercitam request. Ver §Dívida de prova."
+last_run_ci: "🔴 NENHUM teste de tests/Feature/Purchase/ roda em lane alguma — 8 arquivos órfãos de CI. O gate uc-lane-coverage reprovou estes UC em 2026-09-05 por isso, e estava certo. Ver §Dívida de prova."
 ---
 
 # Casos de Uso & Aceite — Listagem de Compras (`/purchases`)
@@ -26,22 +26,49 @@ last_run_ci: "nasce com dívida de prova DECLARADA — os testes que citam estes
 
 ---
 
-## ⚠️ Dívida de prova — o que os testes desta tela **não** provam
+## 🔴 Dívida de prova — **nenhum** teste desta tela roda em lane alguma
 
-Este arquivo nasce com um alerta, não com um selo. Medição em `origin/main` (2026-09-04):
+> ⚠️ **Correção da v1 deste arquivo (2026-09-05), registrada e não apagada.** A v1 marcava o
+> `IndexPageTest` como *"✅ sim — executa"* e classificava a dívida como sendo **só** presence-gate:
+> *"o teste existe, cita o UC e satisfaz o G-2, mas a defesa é de forma, não de comportamento"*.
+> **O presence-gate é real — mas não era o problema principal, e a parte do "existe e executa" era
+> falsa.** Eu medi a perna do **assert** (o que ele prova) e **não medi a perna da LANE** (se alguém
+> o invoca). Quem pegou foi o gate `uc-lane-coverage` do CI, reprovando os 6 UC desta
+> tela com *"existe e NENHUMA lane roda"*. O gate estava certo; eu estava errado.
 
-| teste | requests HTTP | asserts de presença | o que de fato prova |
+Medição em `origin/main` (2026-09-05), **três pernas**, todas contadas:
+
+| perna | resultado |
+|---|---|
+| workflows que citam `tests/Feature/Purchase` (`git grep -c -- .github/`) | **0** |
+| linhas `Purchase` em `.github/ci-sqlite-pest.list` (542 linhas) | **0** |
+| arquivos de teste em `tests/Feature/Purchase/` | **8** |
+
+**Os 8 arquivos de teste do Purchase são órfãos de CI.** Nenhuma lane os executa — nem a MySQL por
+módulo, nem a sqlite curada do `ci.yml`. Logo o `IndexPageTest` **também não roda**:
+
+| teste | requests HTTP | asserts de presença | executa? |
 |---|---:|---:|---|
-| [`IndexPageTest`](../../../../tests/Feature/Purchase/IndexPageTest.php) | **0** | **55** | que certas *strings* existem em `Index.tsx` e em `PurchaseController.php` |
+| [`IndexPageTest`](../../../../tests/Feature/Purchase/IndexPageTest.php) | **0** | **55** | 🔴 **não — sem lane** |
 
-`IndexPageTest` lê os arquivos-fonte e casa texto (`file_get_contents` + `toContain`). Ele pega a
-**remoção** de um trecho — o que não é nada — mas **não exercita** request, não monta tenant e não
-valida resposta. É a classe [LC-11](../../../../memory/LICOES_CODE.md) (presence-gate: gate que mede
-PRESENÇA em vez de COMPORTAMENTO), que o ledger alarma com 11 ocorrências.
+**Duas camadas de falha, e a de cima é a que a v1 não tinha nomeado:**
 
-**Consequência honesta:** nenhum UC abaixo recebe `Status: ✅`. Todos carregam **⚠️ 🧪 estrutural** —
-o teste existe, cita o UC e satisfaz o G-2, mas a defesa é de forma, não de comportamento.
-Converter isso em prova real é trabalho próprio, fora do escopo deste PR (chip aberto).
+1. **Sem lane** — o teste nunca é invocado. Nas palavras do próprio gate: *"teste fora de toda lane
+   é 'verde impossível': existe, pode estar vermelho há meses, e nenhum PR o acorda."*
+2. **Presence-gate** — mesmo ganhando lane, o que ele prova é que certas *strings* existem em
+   `Index.tsx` e em `PurchaseController.php`. Ele lê os arquivos-fonte e casa texto
+   (`file_get_contents` + `toContain`): pega a **remoção** de um trecho, mas não exercita request,
+   não monta tenant e não valida resposta. É a classe
+   [LC-11](../../../../memory/LICOES_CODE.md), que o ledger alarma com 11 ocorrências.
+
+**Consequência:** **nenhum** UC desta tela tem defesa ativa — nem comportamental, nem estrutural. O
+`Status` de todos é `🔴 sem lane`. Nenhum recebe `✅`, e agora por dois motivos independentes: não
+há comportamento provado *e* não há execução.
+
+**Por que o conserto não está neste PR:** o gate diz, com todas as letras, *"conserto NÃO é mexer na
+allowlist por conta própria — por que ela existe (custo de CI? teste instável escondido?) é decisão
+[W]"*. Concordo: pôr 8 arquivos numa lane muda custo de CI e pode acordar vermelhos antigos. É
+decisão do dono, com chip aberto.
 
 ---
 
@@ -49,12 +76,12 @@ Converter isso em prova real é trabalho próprio, fora do escopo deste PR (chip
 
 | UC | Título | Tipo | Âncora de contrato | Teste que cita | Status |
 |---|---|---|---|---|---|
-| UC-PURIDX-01 | SPA recebe React; acesso direto recebe Blade | must | RUNBOOK §1 · charter Mission | `IndexPageTest` | ⚠️ 🧪 estrutural |
-| UC-PURIDX-02 | Lista nunca sai do `business_id` da sessão | must `[T0]` | RUNBOOK §5 · charter Non-Goal 4 | `IndexPageTest` | ⚠️ 🧪 estrutural |
-| UC-PURIDX-03 | Lista respeita `permitted_locations` | must `[T0]` | RUNBOOK §3 · charter Goals | `IndexPageTest` | ⚠️ 🧪 estrutural |
-| UC-PURIDX-04 | Ação "Etiquetas" existe no React (paridade Blade) | must `[reg]` | RUNBOOK §2 (regressão datada) | `IndexPageTest` | ⚠️ 🧪 estrutural |
-| UC-PURIDX-05 | Rota Blade abre por `window.open`, nunca `router.visit` | must | RUNBOOK §3 · §5 | `IndexPageTest` | ⚠️ 🧪 estrutural |
-| UC-PURIDX-06 | A Page não decide tenant — `business_id` vem das props | must `[T0]` | RUNBOOK §5 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `IndexPageTest` | ⚠️ 🧪 estrutural |
+| UC-PURIDX-01 | SPA recebe React; acesso direto recebe Blade | must | RUNBOOK §1 · charter Mission | `IndexPageTest` | 🔴 sem lane |
+| UC-PURIDX-02 | Lista nunca sai do `business_id` da sessão | must `[T0]` | RUNBOOK §5 · charter Non-Goal 4 | `IndexPageTest` | 🔴 sem lane |
+| UC-PURIDX-03 | Lista respeita `permitted_locations` | must `[T0]` | RUNBOOK §3 · charter Goals | `IndexPageTest` | 🔴 sem lane |
+| UC-PURIDX-04 | Ação "Etiquetas" existe no React (paridade Blade) | must `[reg]` | RUNBOOK §2 (regressão datada) | `IndexPageTest` | 🔴 sem lane (regressão já vivida, hoje sem defesa) |
+| UC-PURIDX-05 | Rota Blade abre por `window.open`, nunca `router.visit` | must | RUNBOOK §3 · §5 | `IndexPageTest` | 🔴 sem lane |
+| UC-PURIDX-06 | A Page não decide tenant — `business_id` vem das props | must `[T0]` | RUNBOOK §5 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `IndexPageTest` | 🔴 sem lane |
 
 ---
 
@@ -72,8 +99,9 @@ Converter isso em prova real é trabalho próprio, fora do escopo deste PR (chip
 - **Regressão que defende:** o F5 CUTOVER do MWART é humano e ainda não aconteceu nesta tela. Um
   refactor que "limpe" o Blade legacy mata o acesso direto fora do SPA — e o sintoma só aparece
   para quem abre a URL na mão, que é justamente quem não reporta.
-- **Status: ⚠️ 🧪 estrutural** — as três asserções são casamento de texto no fonte do controller;
-  nenhuma emite request. Provam que o código não foi *apagado*, não que o roteamento funciona.
+- **Status: 🔴 sem lane** — as três asserções são casamento de texto no fonte do controller e
+  nenhuma emite request; provariam que o código não foi *apagado*, não que o roteamento funciona.
+  E nem a isso chegam: nenhuma lane as executa.
 
 ---
 
@@ -94,8 +122,9 @@ Converter isso em prova real é trabalho próprio, fora do escopo deste PR (chip
   corrigido em `PurchaseController@update`
   ([`UpdateCrossTenantIdorTest`](../../../../tests/Feature/Purchase/UpdateCrossTenantIdorTest.php)).
   O que falhou uma vez no `update` pode falhar no `index`.
-- **Status: ⚠️ 🧪 estrutural** — o assert casa texto no fonte. **Não existe** teste que crie dois
-  tenants e prove a ausência da linha alheia nesta tela.
+- **Status: 🔴 sem lane** — o assert casa texto no fonte e **nenhuma lane o executa**. Some-se que
+  **não existe** teste que crie dois tenants e prove a ausência da linha alheia nesta tela: um UC
+  `[T0]` sem defesa nominal nem efetiva.
 
 ---
 
@@ -114,8 +143,8 @@ Converter isso em prova real é trabalho próprio, fora do escopo deste PR (chip
   condicionais. Um refactor que reordene ou unifique essa cadeia pode transformar um recorte de
   **segurança** num filtro de **conveniência** — e a tela continua parecendo certa para quem tem
   acesso a todas as filiais, que é quem costuma revisar.
-- **Status: ⚠️ 🧪 estrutural** — casamento de texto no fonte; sem request, sem usuário com filial
-  restrita.
+- **Status: 🔴 sem lane** — casamento de texto no fonte; sem request, sem usuário com filial
+  restrita — e sem lane que sequer rode o casamento de texto.
 
 ---
 
@@ -135,9 +164,11 @@ Converter isso em prova real é trabalho próprio, fora do escopo deste PR (chip
   *"cadastrei umas peças e não tem opção de imprimir as etiquetas das compras"*. É o caso mais caro
   desta tela porque o dual-path **esconde a falta**: quem confere pelo Blade vê a ação e conclui que
   está tudo certo.
-- **Status: ⚠️ 🧪 estrutural** — e aqui a dívida dói mais: **nenhum assert cita `labels/show`,
-  `purchase_id=` ou `Barcode`**. A regressão que o RUNBOOK §2 documenta em prosa **não tem hoje um
-  teste que a impeça de voltar**. Registrado em `[BACKLOG]` abaixo com o teste devido nomeado.
+- **Status: 🔴 sem lane** — e aqui a dívida dói mais, agora em dobro: **nenhum assert cita
+  `labels/show`, `purchase_id=` ou `Barcode`**, e o teste citado **não roda em lane alguma**. A
+  regressão que o RUNBOOK §2 documenta em prosa — e que Larissa já viveu — **não tem hoje um teste
+  que a impeça de voltar, nem um que fosse acordado se tivesse**. Registrado em `[BACKLOG]` abaixo
+  com o teste devido nomeado.
 
 ---
 
@@ -154,9 +185,10 @@ Converter isso em prova real é trabalho próprio, fora do escopo deste PR (chip
   · RUNBOOK §5 (invariante explícito).
 - **Regressão que defende:** o erro não é um 500 no servidor — é o SPA quebrando no cliente com uma
   mensagem que **não nomeia a ação culpada**. Custa uma sessão de investigação por ocorrência.
-- **Status: ⚠️ 🧪 estrutural** — e a ligação entre os asserts citados e este contrato é **indireta**.
+- **Status: 🔴 sem lane** — e a ligação entre os asserts citados e este contrato é **indireta**.
   Este UC está mais perto de `[BACKLOG]` do que de coberto; fica com id porque o contrato existe em
-  2 fontes canon (RUNBOOK §3 e §5) e a citação satisfaz o G-2 — mas o `Status` não mente sobre isso.
+  2 fontes canon (RUNBOOK §3 e §5) e a citação satisfaz o G-2 — mas o G-2 mede **citação**, não
+  execução, e o `Status` não mente sobre isso.
 
 ---
 
@@ -170,9 +202,11 @@ Converter isso em prova real é trabalho próprio, fora do escopo deste PR (chip
 - **Contrato:** RUNBOOK §5 (proíbe `business_id` hardcoded na Page) · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
 - **Regressão que defende:** um `business_id` fixo numa Page passa despercebido em review (parece
   constante de config) e cria um vazamento que só aparece no segundo tenant.
-- **Status: ⚠️ 🧪 estrutural** — **exceção honesta:** este é o único UC da tela cuja natureza é de
-  fato *estrutural*. Ausência de literal no arquivo **é** o contrato; aqui o presence-gate é o
-  instrumento certo, não um substituto de teste de comportamento.
+- **Status: 🔴 sem lane** — este é o único UC da tela cuja natureza é de fato *estrutural*: ausência
+  de literal no arquivo **é** o contrato, então aqui o presence-gate **seria** o instrumento certo,
+  não um substituto de teste de comportamento. Só que ele também não roda — instrumento certo,
+  nunca acionado. A v1 chamava isto de *"exceção honesta"* e tirava o `⚠️`; a exceção valia para o
+  eixo do presence-gate, e some no eixo da lane.
 
 ---
 
@@ -205,6 +239,9 @@ Converter isso em prova real é trabalho próprio, fora do escopo deste PR (chip
 1. **O charter está `status: draft`** e diz que [W] aprova Non-Goals + Anti-hooks antes de virar
    `live`. Este `casos.md` deriva desses Non-Goals: se [W] mudar algum, os UC 02 e 03 mudam junto —
    o trio inteiro fica pendente da mesma aprovação.
-2. **A tela não tem teste de comportamento.** Não é achado de estilo: `IndexPageTest` tem 55 asserts
-   e 0 requests. Enquanto isso durar, o `Status` de todos os UC (menos o 06) segue
-   `⚠️ estrutural`, e o verde da lane **não** significa que a listagem isola tenant.
+2. **A tela não tem teste de comportamento — e o que tem não roda.** Não é achado de estilo:
+   `IndexPageTest` tem 55 asserts e 0 requests, e **nenhuma lane o executa** (medição de 2026-09-05,
+   §Dívida de prova). Enquanto isso durar, o `Status` de todos os UC — o 06 incluído — segue
+   `🔴 sem lane`. **Não existe "verde da lane" a interpretar aqui:** não há lane. Pôr os 8 arquivos
+   de `tests/Feature/Purchase/` numa lane muda custo de CI e pode acordar vermelhos antigos — é
+   decisão [W], com chip aberto, e é pré-requisito para qualquer um destes UC ganhar defesa real.
