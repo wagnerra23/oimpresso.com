@@ -124,9 +124,20 @@ class ImportarPresencaJob implements ShouldQueue
         }
 
         try {
-            $planilha = Excel::toArray([], $disco->path($this->caminhoArquivo));
+            // `new \stdClass` e não `[]` (que é o que o legado passava): o facade declara
+            // `object $import`, e o Reader só consulta esse argumento por `instanceof` —
+            // um stdClass falha todos os concerns exatamente como o array falhava, então
+            // o comportamento em runtime é o mesmo e o tipo passa a estar certo.
+            $planilha = Excel::toArray(new \stdClass, $disco->path($this->caminhoArquivo));
+
             // Remove o cabeçalho — a numeração das recusas no service já compensa isso.
-            $linhas = array_slice($planilha[0] ?? [], 1);
+            // O `array_map` normaliza linha não-array pra `[]` SEM filtrar: filtrar
+            // deslocaria o número de linha do relatório, que é o que o operador usa pra
+            // achar o defeito na planilha. Linha vazia é recusada como "e-mail obrigatório".
+            $linhas = array_map(
+                static fn ($linha): array => is_array($linha) ? $linha : [],
+                array_slice($planilha[0] ?? [], 1)
+            );
 
             $relatorio = $service->importar($this->businessId, $linhas, $this->ipPadrao);
 

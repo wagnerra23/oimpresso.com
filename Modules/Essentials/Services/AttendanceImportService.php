@@ -92,7 +92,6 @@ class AttendanceImportService
             // +2: o índice é 0-based e o cabeçalho foi removido antes — então a linha 0
             // daqui é a linha 2 da planilha, que é o número que o operador enxerga.
             $numeroLinha = $indice + 2;
-            $linha = is_array($linha) ? $linha : [];
 
             $resultado = $this->validarLinha($businessId, $linha, $usuariosPorEmail, $turnosPorNome, $ipPadrao);
 
@@ -344,7 +343,7 @@ class AttendanceImportService
         $emails = [];
 
         foreach ($linhas as $linha) {
-            $email = is_array($linha) ? $this->texto($linha[self::COL_EMAIL] ?? null) : null;
+            $email = $this->texto($linha[self::COL_EMAIL] ?? null);
 
             if ($email !== null) {
                 // Chaveado pelo minúsculo pra deduplicar, mas guarda o valor original:
@@ -384,7 +383,7 @@ class AttendanceImportService
         $nomes = [];
 
         foreach ($linhas as $linha) {
-            $nome = is_array($linha) ? $this->texto($linha[self::COL_SHIFT] ?? null) : null;
+            $nome = $this->texto($linha[self::COL_SHIFT] ?? null);
 
             if ($nome !== null) {
                 // Mesma razão do mapa de e-mails: deduplica pelo minúsculo, consulta
@@ -466,7 +465,11 @@ class AttendanceImportService
 
             // `createFromFormat` é tolerante (aceita "2026-13-45" e rola pra 2027-01-14);
             // só aceita quando o round-trip devolve exatamente o texto original.
-            if ($data !== false && $data->format($comparacao) === $texto) {
+            if ($data === null) {
+                continue;
+            }
+
+            if ($data->format($comparacao) === $texto) {
                 return $data->format('Y-m-d H:i:s');
             }
         }
