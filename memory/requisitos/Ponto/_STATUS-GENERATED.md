@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 14 |
 | Telas (.tsx) | 21 |
 | Telas com `casos.md` | 15 |
-| UC declarados | 58 |
-| UC com teste que os cita | 57 |
+| UC declarados | 59 |
+| UC com teste que os cita | 58 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -78,6 +78,7 @@ authority: generated
 | UC-ESPSH-03 | Espelho/Show | 🧪 aguarda veredito da lane |
 | UC-ESPSH-04 | Espelho/Show | 🧪 aguarda veredito da lane |
 | UC-ESPSH-05 | Espelho/Show | 🧪 aguarda veredito da lane |
+| UC-ESPSH-06 | Espelho/Show | 📝 sem_teste |
 | UC-IMPCRE-01 | Importacoes/Create | 🧪 aguarda veredito da lane |
 | UC-IMPCRE-02 | Importacoes/Create | 🧪 aguarda veredito da lane |
 | UC-IMPIDX-01 | Importacoes/Index | 🧪 aguarda veredito da lane |
@@ -87,7 +88,7 @@ authority: generated
 | UC-IMPSH-02 | Importacoes/Show | 🧪 aguarda veredito da lane |
 | UC-IMPSH-03 | Importacoes/Show | 🧪 aguarda veredito da lane |
 | UC-IMPSH-04 | Importacoes/Show | 🧪 aguarda veredito da lane |
-| UC-IMPSH-05 | Importacoes/Index | 📝 sem_teste |
+| UC-IMPSH-05 | Importacoes/Show | 🧪 aguarda veredito da lane |
 | UC-INTCRE-01 | Intercorrencias/Create | 🧪 aguarda veredito da lane |
 | UC-INTCRE-02 | Intercorrencias/Create | 🧪 aguarda veredito da lane |
 | UC-INTEDT-01 | Intercorrencias/Edit | 🧪 aguarda veredito da lane |
