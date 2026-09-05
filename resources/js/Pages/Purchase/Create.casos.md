@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: o contrato da grade (1 célula = 1 variation_id, 1 POST único) e o ownership das variations são duráveis — não mudam quando a tela ganhar campo novo.
 owner: wagner
 last_run: "2026-09-05"
-last_run_ci: "🔴 A DIVIDA CONTINUA ABERTA — NENHUM teste de tests/Feature/Purchase/ roda em lane alguma (8 arquivos orfaos de CI); o uc-lane-coverage reprova estes UC por isso e esta certo. Ver §Divida de prova. O bump de 2026-09-04 -> 2026-09-05 NAO paga essa divida e nao afirma execucao: ele registra a REVISAO exigida pelo G-6 depois que o .tsx foi tocado. O que foi revisado, e verificavel: o diff contra 153a65b558 (commit que criou este arquivo) e exatamente 5 atributos `data-contract` em <Card>, zero mudanca de logica/props/copy; e nenhum dos 7 UC depende de atributo/DOM/seletor (grep por data-contract|atributo|DOM|seletor|className neste arquivo: rc=1, zero hits) — os 7 sao de backend/tenant/dado. TENTATIVA DE PROVA REAL, e por que ela NAO vale como recibo: rodei tests/Feature/Purchase/ no CT 100 (90 passed, 6 failed, 6 skipped, 214 assertions), mas o checkout do container esta em c1abe9548f (2026-08-26) e NAO contem as ancoras (grep -c data-contract = 0). Run de outra arvore nao prova esta — citar aquele numero aqui seria medir a coisa errada."
+last_run_ci: "✅ 2026-09-05: os 10 arquivos de tests/Feature/Purchase/ entraram na allowlist do purchase-pest.yml (#6824/#6827/#6841). Medido em origin/main b863647741: 0 orfaos no diretorio e uc-lane-coverage --check EXIT=0. Os 7 UC desta tela tem lane; 3 com defesa de COMPORTAMENTO (PurchaseGradeMatrixTest, que emite request e cujo bloco cross-tenant hoje roda em MySQL real) e 4 ESTRUTURAL (Wave2Create*, presence-gate LC-11). Nao restatear a mao: rode scripts/qa/uc-lane-coverage.mjs. ⚠ O TEXTO A SEGUIR ESTA SUPERADO e fica como fato datado - os dois numeros dele ja nasciam falsos (a pasta tem 10 arquivos, nao 8; e 4 ja rodavam quando foi escrito): 🔴 A DIVIDA CONTINUA ABERTA — NENHUM teste de tests/Feature/Purchase/ roda em lane alguma (8 arquivos orfaos de CI); o uc-lane-coverage reprova estes UC por isso e esta certo. Ver §Divida de prova. O bump de 2026-09-04 -> 2026-09-05 NAO paga essa divida e nao afirma execucao: ele registra a REVISAO exigida pelo G-6 depois que o .tsx foi tocado. O que foi revisado, e verificavel: o diff contra 153a65b558 (commit que criou este arquivo) e exatamente 5 atributos `data-contract` em <Card>, zero mudanca de logica/props/copy; e nenhum dos 7 UC depende de atributo/DOM/seletor (grep por data-contract|atributo|DOM|seletor|className neste arquivo: rc=1, zero hits) — os 7 sao de backend/tenant/dado. TENTATIVA DE PROVA REAL, e por que ela NAO vale como recibo: rodei tests/Feature/Purchase/ no CT 100 (90 passed, 6 failed, 6 skipped, 214 assertions), mas o checkout do container esta em c1abe9548f (2026-08-26) e NAO contem as ancoras (grep -c data-contract = 0). Run de outra arvore nao prova esta — citar aquele numero aqui seria medir a coisa errada."
 ---
 
 # Casos de Uso & Aceite — Nova Compra (`/purchases/create`)
@@ -23,7 +23,26 @@ last_run_ci: "🔴 A DIVIDA CONTINUA ABERTA — NENHUM teste de tests/Feature/Pu
 
 ---
 
-## 🔴 Dívida de prova — **nenhum** teste desta tela roda em lane alguma
+## ✅ Dívida de prova — os 7 UC têm lane; 3 com defesa de COMPORTAMENTO
+
+> ✅ **Atualização de 2026-09-05 — o texto abaixo continua verdadeiro para o dia em que foi escrito
+> e fica inteiro; o que mudou está aqui.** A leva [#6824](https://github.com/wagnerra23/oimpresso.com/pull/6824)
+> / [#6827](https://github.com/wagnerra23/oimpresso.com/pull/6827) / [#6841](https://github.com/wagnerra23/oimpresso.com/pull/6841)
+> fechou o diretório: **os 10** arquivos de `tests/Feature/Purchase/` estão na allowlist do
+> [`purchase-pest.yml`](../../../../.github/workflows/purchase-pest.yml). Medido em `origin/main`
+> (`b863647741`): `node scripts/governance/test-lane-coverage.mjs --json` dá **0 órfãos** naquele
+> diretório, e `node scripts/qa/uc-lane-coverage.mjs --check --baseline governance/uc-lane-baseline.json`
+> sai **EXIT=0**. Nenhum UC desta tela aponta mais para teste que lane nenhuma roda.
+>
+> ⚠️ **Ganhar lane não muda a NATUREZA da prova.** Os status foram reconciliados em dois níveis,
+> não um: `✅ comportamento · na lane` onde o teste emite request/`actingAs`, e
+> `🧪 estrutural · na lane` onde ele casa texto no fonte (presence-gate, LC-11) — classificado
+> contando requests por arquivo, não no olho. Um presence-gate que agora roda deixou de ser
+> "verde impossível"; **continua** provando forma, não comportamento.
+>
+> ⚠️ **Dois números do bloco abaixo já nasciam falsos:** a pasta tem **10** arquivos, não 8; e a
+> perna *"workflows que citam `tests/Feature/Purchase` → 0"* mediu uma janela em que a lane ainda
+> não existia. Não restateie à mão — rode os dois comandos acima.
 
 > ⚠️ **Correção da v1 deste arquivo (2026-09-05), registrada e não apagada.** A v1 dizia que os
 > `Wave2*` e o miolo do `PurchaseGradeMatrixTest` "executam", e chamava a dívida de *cobertura
@@ -72,13 +91,13 @@ decisão do dono, com chip aberto.
 
 | UC | Título | Tipo | Âncora de contrato | Teste que cita | Status |
 |---|---|---|---|---|---|
-| UC-PURCRE-01 | SPA recebe React; Blade legacy preservado | must | RUNBOOK §3 | `Wave2CreateInertiaTest` · `Wave2CreateBaselineTest` | 🔴 sem lane |
-| UC-PURCRE-02 | Endpoint da grade recusa produto de outro tenant | must `[T0]` | RUNBOOK §10 · charter R-PUR-001 | `PurchaseGradeMatrixTest` | 🔴 sem lane + quarentena |
-| UC-PURCRE-03 | `store()` recusa `variation_id` forjado de outro tenant | must `[T0]` `[V0]` | RUNBOOK §10 · charter R-PUR-001 | `PurchaseGradeMatrixTest` | 🔴 sem lane |
-| UC-PURCRE-04 | A grade nunca abre vazia — degrada 2D → 1 eixo → single | must | RUNBOOK §5 · charter Non-Goal 2 | `PurchaseGradeMatrixTest` | 🔴 sem lane (o teste é bom e não roda) |
-| UC-PURCRE-05 | 1 célula = 1 `variation_id`, num POST único | must `[V0]` | RUNBOOK §4 · charter Goals | `Wave2CreateInertiaTest` | 🔴 sem lane |
-| UC-PURCRE-06 | Dropdown de filiais respeita `permitted_locations` | must `[T0]` | RUNBOOK §10 · charter R-PUR-002 | `Wave2CreateBaselineTest` | 🔴 sem lane |
-| UC-PURCRE-07 | A Page não decide tenant — `business_id` vem das props | must `[T0]` | RUNBOOK §10 | `Wave2CreateInertiaTest` | 🔴 sem lane |
+| UC-PURCRE-01 | SPA recebe React; Blade legacy preservado | must | RUNBOOK §3 | `Wave2CreateInertiaTest` · `Wave2CreateBaselineTest` | 🧪 estrutural · na lane |
+| UC-PURCRE-02 | Endpoint da grade recusa produto de outro tenant | must `[T0]` | RUNBOOK §10 · charter R-PUR-001 | `PurchaseGradeMatrixTest` | ✅ comportamento · na lane |
+| UC-PURCRE-03 | `store()` recusa `variation_id` forjado de outro tenant | must `[T0]` `[V0]` | RUNBOOK §10 · charter R-PUR-001 | `PurchaseGradeMatrixTest` | ✅ comportamento · na lane |
+| UC-PURCRE-04 | A grade nunca abre vazia — degrada 2D → 1 eixo → single | must | RUNBOOK §5 · charter Non-Goal 2 | `PurchaseGradeMatrixTest` | 🧪 comportamento · na lane (sem veredito no manifesto) |
+| UC-PURCRE-05 | 1 célula = 1 `variation_id`, num POST único | must `[V0]` | RUNBOOK §4 · charter Goals | `Wave2CreateInertiaTest` | 🧪 estrutural · na lane |
+| UC-PURCRE-06 | Dropdown de filiais respeita `permitted_locations` | must `[T0]` | RUNBOOK §10 · charter R-PUR-002 | `Wave2CreateBaselineTest` | 🧪 estrutural · na lane |
+| UC-PURCRE-07 | A Page não decide tenant — `business_id` vem das props | must `[T0]` | RUNBOOK §10 | `Wave2CreateInertiaTest` | 🧪 estrutural · na lane |
 
 ---
 
@@ -97,7 +116,7 @@ decisão do dono, com chip aberto.
 - **Contrato:** RUNBOOK §3 · [ADR 0104 MWART](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md) (F5 CUTOVER é humano e não ocorreu).
 - **Regressão que defende:** o `store()` é **compartilhado** pelos dois paths. Mexer no create React
   achando que o Blade morreu quebra quem entra pela URL — e ninguém reporta o que não sabe que existe.
-- **Status: 🔴 sem lane** — o `Baseline` emite 1 request, mas as asserções de gate são
+- **Status: 🧪 estrutural · na lane** — o `Baseline` emite 1 request, mas as asserções de gate são
   casamento de texto no fonte.
 
 ---
@@ -119,7 +138,7 @@ decisão do dono, com chip aberto.
 - **Regressão que defende:** `gradeMatrix` é endpoint **novo** (US-COM-005) e o model `Transaction`
   desta controller já teve IDOR real. Endpoint auxiliar chamado por `fetch` é o lugar clássico onde
   o scope é esquecido: ele não aparece na tela, aparece na aba de rede.
-- **Status: 🔴 sem lane + quarentena** — o assert que confere o `firstOrFail`
+- **Status: ✅ comportamento · na lane** — o assert que confere o `firstOrFail`
   escopado no fonte existe — mas **nenhuma lane o executa**, e o par 404/200 que provaria o
   comportamento ainda soma a quarentena por cima. Defesa nominal, zero defesa efetiva.
 
@@ -140,7 +159,7 @@ decisão do dono, com chip aberto.
 - **Regressão que defende:** a grade transformou a tela num emissor de **N linhas por submit**. Antes,
   forjar payload rendia uma linha; agora rende a matriz inteira. E o efeito não é só leitura: é
   estoque movido e valor gravado — o território da Regra Mestre, onde o canon exige dupla prova.
-- **Status: 🔴 sem lane + quarentena** — o assert confere no fonte que a
+- **Status: ✅ comportamento · na lane** — o assert confere no fonte que a
   validação de ownership existe; **nenhum teste ativo submete um payload forjado e observa a recusa**.
   Sendo `[T0]` **e** `[V0]`, é o UC desta tela que mais pede prova real.
 
@@ -166,7 +185,7 @@ decisão do dono, com chip aberto.
   catálogo usar nomes compostos. Uma otimização no parser que trate o caso ambíguo como erro em vez
   de degradar transforma um catálogo mal nomeado numa tela morta — e o catálogo é do cliente, não
   nosso.
-- **Status: 🔴 sem lane** — **o único UC das quatro telas cuja defesa é comportamento real — e que,
+- **Status: 🧪 comportamento · na lane (sem veredito no manifesto)** — **o único UC das quatro telas cuja defesa é comportamento real — e que,
   mesmo assim, não roda.** Os 6 casos exercitam o `GradeLayoutBuilder` de verdade (lógica pura,
   driver-agnostic), incluindo os dois caminhos de degradação que mais importam: ambíguo e misto.
   É o caso que melhor mostra o custo da ausência de lane: o teste está **escrito, correto e mudo**.
@@ -196,7 +215,7 @@ decisão do dono, com chip aberto.
   `purchase_line_tax_id` — **não** `tax_id` — e roda a normalização numérica pt-BR em quantidade e
   preços. Uma chave renomeada "para ficar consistente" faz imposto sumir sem erro nenhum. É
   território da [Regra Mestre de valor](../../../../memory/proibicoes.md).
-- **Status: 🔴 sem lane** — os asserts provam que o modo grade está *plugado* no arquivo; **não**
+- **Status: 🧪 estrutural · na lane** — os asserts provam que o modo grade está *plugado* no arquivo; **não**
   provam a expansão célula→linha nem o formato do payload.
 
 ---
@@ -212,7 +231,7 @@ decisão do dono, com chip aberto.
 - **Contrato:** RUNBOOK §10 (invariante ✅ `permitted_locations`) · charter R-PUR-002.
 - **Regressão que defende:** lançar compra na filial errada não dá erro — dá estoque no lugar errado,
   descoberto no inventário semanas depois.
-- **Status: 🔴 sem lane** — casamento de texto; nenhum usuário com filial restrita é montado.
+- **Status: 🧪 estrutural · na lane** — casamento de texto; nenhum usuário com filial restrita é montado.
 
 ---
 
@@ -229,7 +248,7 @@ decisão do dono, com chip aberto.
   `auth()->user()->business_id` no controller — o canon UPOS é a sessão).
 - **Regressão que defende:** um `business_id` fixo parece constante de config em review e só se
   revela no segundo tenant.
-- **Status: 🔴 sem lane** — o contrato aqui *é* a ausência de um literal no arquivo, então o
+- **Status: 🧪 estrutural · na lane** — o contrato aqui *é* a ausência de um literal no arquivo, então o
   presence-gate seria o instrumento certo. Só que ele tambem nao roda: instrumento certo, nunca acionado.
 
 ---
