@@ -184,6 +184,13 @@ jobs:
         #                    Coluna NOT NULL + FK, sem default → registrar NÃO grava.
         # Vermelho neles é o ACHADO, não defeito do teste. Correção é decisão [W].
         #
+        # FATO DATADO 2026-09-04: os DOIS primeiros já foram corrigidos — D-1 e D-8 caíram
+        # juntos em `20a2757a5e` (2026-08-03, "5 atributos fantasma"). Hoje UC-ESPSH-01 e
+        # UC-IMPSH-04 passam VERDES (medido na run 33939672971 desta lane). A lista acima
+        # descreve o que cada UC denunciou ao NASCER — é história, não o estado de hoje;
+        # quem responde pelo veredito é a lane, nunca este comentário. Os asserts seguem
+        # INTACTOS justamente por isso.
+        #
         # Enforcement: quem responde é governance/required-checks-baseline.json — não
         # este comentário (§5 2026-07-16: artefato não afirma o próprio enforcement em
         # tempo presente, porque apodrece no primeiro flip; foi o que aconteceu aqui).
@@ -207,9 +214,22 @@ jobs:
         #
         # 2026-08-28: `EspelhoContratoTest` convertido pra Pest `it()` — os 8 UC dele
         # (UC-ESPSH-01..05 · UC-ESPIDX-01..03) saíram do `⛓` do `casos:report`, medido
-        # 18→10 no bloco Ponto. Seguem em DOCBLOCK, de propósito, `JornadaWorkflowContratoTest`
-        # e `BancoHorasImportacaoContratoTest`: varrer em lote acorda gate diff-aware sobre
-        # dívida alheia (proibicoes §5 2026-07-12).
+        # 18→10 no bloco Ponto.
+        # 2026-09-04/05: `JornadaWorkflowContratoTest` (#6785, 10→7) e, por fim,
+        # `BancoHorasImportacaoContratoTest` (#6794, 7→0) — o bloco `⛓ Ponto` do
+        # `casos:report` ZEROU. Uma conversão por PR, sempre oportunística: varrer em lote
+        # acorda gate diff-aware sobre dívida alheia (proibicoes §5 2026-07-12). O texto
+        # anterior dizia que esses dois "seguem em DOCBLOCK, de propósito" — verdade em
+        # 28/08, falso desde então.
+        #
+        # ⚠️ Duas sessões paralelas atacaram o MESMO alvo, com 12s entre os merges: o #6794
+        # (07:20:39) converteu, e o #6802 (07:20:51) entrou logo depois com um `Show.casos.md`
+        # que descrevia o arquivo como "classe PHPUnit ... o conserto é converter pra it()".
+        # O #6822, que fazia a mesma conversão, virou redundante e foi FECHADO; datar o que a
+        # corrida deixou falso era o resíduo dele, e veio por outro PR. O `dup-detector` não
+        # podia ver o #6794 — ele lista PR
+        # ABERTO, e aquele já tinha mergeado. Checar `whats-active` ANTES de começar é a
+        # defesa que faltou (proibicoes §5 2026-08-13).
         #
         # ImportacaoShowContratoTest (2026-09-04): arquivo NOVO só pro `UC-IMPSH-05` — o
         # último item aberto da DoD da US-PONTO-012. Medido antes de escrever: das 4
