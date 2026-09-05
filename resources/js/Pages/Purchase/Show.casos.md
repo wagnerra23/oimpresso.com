@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: o escopo por tenant e a ausência do barcode são duráveis — não mudam quando o detalhe ganhar card novo.
 owner: wagner
 last_run: "2026-09-05"
-last_run_ci: "🟡 A lane purchase-pest.yml nasceu e os UC 01 [T0] e 05 [V0] têm contrato de COMPORTAMENTO em PurchaseShowTenantContratoTest — 4 passed, 8 assertions, run no CT 100, mordida verificada por mutação. Os UC 02/03/04/06 seguem 🔴 sem lane, e o 03 tem o critério ERRADO (casa o comentário do bug-fix) — ver §Divergências. Ver §Dívida de prova."
+last_run_ci: "✅ 2026-09-05: os 10 arquivos de tests/Feature/Purchase/ entraram na allowlist do purchase-pest.yml (#6824/#6827/#6841). Medido em origin/main b863647741: 0 orfaos no diretorio e uc-lane-coverage --check EXIT=0. Os 6 UC desta tela tem lane; 2 com defesa de COMPORTAMENTO (PurchaseShowTenantContratoTest) e os demais ESTRUTURAL (presence-gate, LC-11). Nao restatear a mao: rode scripts/qa/uc-lane-coverage.mjs. HISTORICO (fato datado, preservado): 🟡 A lane purchase-pest.yml nasceu e os UC 01 [T0] e 05 [V0] têm contrato de COMPORTAMENTO em PurchaseShowTenantContratoTest — 4 passed, 8 assertions, run no CT 100, mordida verificada por mutação. Os UC 02/03/04/06 seguem 🔴 sem lane, e o 03 tem o critério ERRADO (casa o comentário do bug-fix) — ver §Divergências. Ver §Dívida de prova."
 ---
 
 # Casos de Uso & Aceite — Detalhe da Compra (`/purchases/{id}`)
@@ -28,7 +28,26 @@ last_run_ci: "🟡 A lane purchase-pest.yml nasceu e os UC 01 [T0] e 05 [V0] tê
 
 ---
 
-## 🟡 Dívida de prova — a lane nasceu; 2 dos 6 UC já têm defesa ativa
+## ✅ Dívida de prova — os 6 UC têm lane; 2 com defesa de COMPORTAMENTO
+
+> ✅ **Atualização de 2026-09-05 — o texto abaixo continua verdadeiro para o dia em que foi escrito
+> e fica inteiro; o que mudou está aqui.** A leva [#6824](https://github.com/wagnerra23/oimpresso.com/pull/6824)
+> / [#6827](https://github.com/wagnerra23/oimpresso.com/pull/6827) / [#6841](https://github.com/wagnerra23/oimpresso.com/pull/6841)
+> fechou o diretório: **os 10** arquivos de `tests/Feature/Purchase/` estão na allowlist do
+> [`purchase-pest.yml`](../../../../.github/workflows/purchase-pest.yml). Medido em `origin/main`
+> (`b863647741`): `node scripts/governance/test-lane-coverage.mjs --json` dá **0 órfãos** naquele
+> diretório, e `node scripts/qa/uc-lane-coverage.mjs --check --baseline governance/uc-lane-baseline.json`
+> sai **EXIT=0**. Nenhum UC desta tela aponta mais para teste que lane nenhuma roda.
+>
+> ⚠️ **Ganhar lane não muda a NATUREZA da prova.** Os status foram reconciliados em dois níveis,
+> não um: `✅ comportamento · na lane` onde o teste emite request/`actingAs`, e
+> `🧪 estrutural · na lane` onde ele casa texto no fonte (presence-gate, LC-11) — classificado
+> contando requests por arquivo, não no olho. Um presence-gate que agora roda deixou de ser
+> "verde impossível"; **continua** provando forma, não comportamento.
+>
+> ⚠️ **Dois números do bloco abaixo já nasciam falsos:** a pasta tem **10** arquivos, não 8; e a
+> perna *"workflows que citam `tests/Feature/Purchase` → 0"* mediu uma janela em que a lane ainda
+> não existia. Não restateie à mão — rode os dois comandos acima.
 
 > ✅ **Atualização de 2026-09-05 — a errata abaixo continua verdadeira para o dia em que foi
 > escrita, e fica inteira.** O que mudou: a lane
@@ -98,11 +117,11 @@ comprovadamente verde e crescer daí — o caminho é converter, um UC por vez.
 | UC | Título | Tipo | Âncora de contrato | Teste que cita | Status |
 |---|---|---|---|---|---|
 | UC-PURSHW-01 | Detalhe nunca resolve compra de outro tenant | must `[T0]` | charter Non-Goal 4 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `PurchaseShowTenantContratoTest` | ✅ comportamento · na lane |
-| UC-PURSHW-02 | Dual-path: AJAX puro recebe Blade; navegação recebe Inertia | must | charter §Backend · [ADR 0104](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md) | `ShowPageTest` | 🔴 sem lane |
-| UC-PURSHW-03 | A tela **não** renderiza barcode (mata o 500 do legado) | must `[reg]` | charter §Backend (bug-fix declarado) | `ShowPageTest` | 🔴 sem lane |
-| UC-PURSHW-04 | Editar/Excluir só aparecem com a permissão | must | charter Goals · Anti-hooks | `ShowPageTest` | 🔴 sem lane |
+| UC-PURSHW-02 | Dual-path: AJAX puro recebe Blade; navegação recebe Inertia | must | charter §Backend · [ADR 0104](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md) | `ShowPageTest` | 🧪 estrutural · na lane |
+| UC-PURSHW-03 | A tela **não** renderiza barcode (mata o 500 do legado) | must `[reg]` | charter §Backend (bug-fix declarado) | `ShowPageTest` | 🧪 estrutural · na lane |
+| UC-PURSHW-04 | Editar/Excluir só aparecem com a permissão | must | charter Goals · Anti-hooks | `ShowPageTest` | 🧪 estrutural · na lane |
 | UC-PURSHW-05 | A tela não recalcula totais — exibe o que o controller mandou | must `[V0]` | charter Non-Goal 3 | `PurchaseShowTenantContratoTest` | ✅ comportamento (metade backend) · na lane |
-| UC-PURSHW-06 | A Page não decide tenant — `business_id` vem das props | must `[T0]` | charter Non-Goal 4 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `ShowPageTest` | 🔴 sem lane |
+| UC-PURSHW-06 | A Page não decide tenant — `business_id` vem das props | must `[T0]` | charter Non-Goal 4 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `ShowPageTest` | 🧪 estrutural · na lane |
 
 ---
 
@@ -148,7 +167,7 @@ comprovadamente verde e crescer daí — o caminho é converter, um UC por vez.
 - **Regressão que defende:** a asserção *"permission re-adicionada (não comentada)"* existe porque a
   permissão **já esteve comentada** neste método. Um `//` numa linha de autorização é a mudança mais
   barata de escrever e a mais cara de descobrir.
-- **Status: 🔴 sem lane** — casamento de texto; nenhum request AJAX é emitido para provar a
+- **Status: 🧪 estrutural · na lane** — casamento de texto; nenhum request AJAX é emitido para provar a
   bifurcação — e nenhuma lane roda sequer o casamento de texto. Vale o destaque: o assert *"permission
   re-adicionada (não comentada)"* guarda uma regressão que **já aconteceu**, e hoje está mudo.
 
@@ -168,7 +187,7 @@ comprovadamente verde e crescer daí — o caminho é converter, um UC por vez.
 - **Regressão que defende:** um bug-fix **por omissão** é o mais frágil que existe — nada no código
   explica por que aquilo *não* está lá, então a próxima pessoa que buscar paridade com o Blade
   reintroduz o barcode de boa-fé e ressuscita o 500.
-- **Status: 🔴 sem lane** — aqui o contrato *é* a ausência de um literal no arquivo, então o
+- **Status: 🧪 estrutural · na lane** — aqui o contrato *é* a ausência de um literal no arquivo, então o
   presence-gate **seria** o instrumento certo, não um substituto de teste de comportamento. Só que
   ele também não roda — instrumento certo, nunca acionado. A v1 marcava *"🧪 estrutural (correto)"*
   sem `⚠️`; a exceção valia para o eixo do presence-gate, e some no eixo da lane. Num bug-fix **por
@@ -190,7 +209,7 @@ comprovadamente verde e crescer daí — o caminho é converter, um UC por vez.
 - **Regressão que defende:** esconder o botão é UX; **o backend continua sendo a autoridade**. Este
   UC defende a metade visível — a metade de servidor pertence ao Edit/Destroy e está registrada em
   `[BACKLOG]` porque não há teste que a exercite.
-- **Status: 🔴 sem lane** — casamento de texto no `.tsx`; nenhum usuário sem permissão é montado, e
+- **Status: 🧪 estrutural · na lane** — casamento de texto no `.tsx`; nenhum usuário sem permissão é montado, e
   nenhuma lane executa o casamento de texto.
 
 ---
@@ -236,7 +255,7 @@ comprovadamente verde e crescer daí — o caminho é converter, um UC por vez.
 - **Contrato:** charter §Non-Goals item 4 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
 - **Regressão que defende:** um `business_id` fixo numa Page parece constante de config em review e
   só se revela no segundo tenant.
-- **Status: 🔴 sem lane** — ausência de literal *é* o contrato, então o presence-gate **seria** o
+- **Status: 🧪 estrutural · na lane** — ausência de literal *é* o contrato, então o presence-gate **seria** o
   instrumento certo. Só que ele também não roda — instrumento certo, nunca acionado. A v1 marcava
   *"🧪 estrutural (correto)"* sem `⚠️`; a exceção valia para o eixo do presence-gate, e some no eixo
   da lane.
