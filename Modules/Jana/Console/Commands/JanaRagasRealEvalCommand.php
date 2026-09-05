@@ -136,25 +136,34 @@ class JanaRagasRealEvalCommand extends Command
     }
 
     /**
-     * TRIPLO ZERO DO JUIZ — assinatura de instrumento MUDO, não de qualidade ruim.
+     * TRIPLO ZERO - as tres metricas exatamente 0.0 na MESMA pergunta.
      *
-     * `scoreAnswerRelevancy` compara pergunta×resposta e NÃO olha o contexto. Logo um
-     * retrieval ruim derruba `context_recall`, pode derrubar `faithfulness` — e não tem
-     * por que zerar `relevancy` EXATAMENTE. As três exatamente 0.0 na MESMA pergunta é
-     * o `RagasJudgeService::callJudge` devolvendo 0.0 em erro/429/sem-chave: ele loga
-     * warning e NUNCA lança, então `n_judge_failed` é 0 por construção e o zero
-     * fabricado entra na média como se fosse medição.
+     * E um SINAL PARA INVESTIGAR, nunca um veredito: DOIS mecanismos distintos produzem
+     * o mesmo triplo, e o campo sozinho nao separa os dois.
      *
-     * MEDIDO 2026-09-04 sobre o `evals.log` do CT 100 (semana 2026-08-16): 31 das 37
-     * falhas listadas com faithfulness exatamente 0. Como `faithfulness_avg` = 0,2748
-     * sobre n_evaluated = 50, as 19 perguntas restantes somam média 0,723 —
-     * estatisticamente igual ao 0,7127 de julho. A Jana não regrediu naquela semana:
-     * o medidor ficou mudo e a média despencou sozinha.
+     *  (a) JUIZ MUDO. `RagasJudgeService::callJudge` devolve 0.0 em erro/429/sem-chave,
+     *      loga warning e NUNCA lanca - entao `n_judge_failed` e 0 POR CONSTRUCAO e o
+     *      zero fabricado entra na media como se fosse medicao. O caminho existe.
      *
-     * Função PURA pelo mesmo motivo do `gateVerdict`: sem isto nenhum teste PROVA o
-     * discriminador, e ele é justamente o que separa "regrediu" de "não mediu".
+     *  (b) NOTA REAL. Contexto pobre faz a sintese responder "nao encontrei isso nas
+     *      fontes"; essa resposta nao responde a pergunta, e um juiz VIVO da 0 nas tres.
+     *      ATENCAO ao erro que este docblock ja cometeu: `scoreAnswerRelevancy` nao
+     *      RECEBE o contexto, mas o contexto chega nela ATRAVES DA RESPOSTA - logo
+     *      "relevancy exatamente 0" NAO descarta (b). Medido 2026-09-04 no PR #6801:
+     *      8 triplos zero em 51 com o juiz comprovadamente vivo, causados pelo corte de
+     *      400 chars do INICIO do doc em `KbAnswerService::renderFontes` (US-COPI-133).
+     *
+     * COMO SEPARAR (o discriminador e o log, nao a aritmetica): procure warnings
+     * `[RAGAS]` em storage/logs/laravel.log na janela da run, SEMPRE com controle
+     * positivo do canal (uma linha que voce sabe que existe). Zero warnings com o canal
+     * provado = juiz vivo = os triplos sao (b). Isso so funciona enquanto o log cobrir
+     * a janela: em 2026-09-04 ele ja nao cobria 2026-08-09/16, e por isso o mecanismo
+     * daquelas duas semanas segue INDECIDIVEL a posteriori.
+     *
+     * Funcao PURA pelo mesmo motivo do `gateVerdict`: sem isto nenhum teste PROVA o
+     * sinal, e ele e o primeiro degrau pra distinguir "regrediu" de "nao mediu".
      */
-    public static function ehTriploZeroDoJuiz(float $faith, float $rel, float $recall): bool
+    public static function ehTriploZero(float $faith, float $rel, float $recall): bool
     {
         return $faith === 0.0 && $rel === 0.0 && $recall === 0.0;
     }
@@ -189,10 +198,13 @@ class JanaRagasRealEvalCommand extends Command
             'max_citacoes' => max(1, (int) $this->option('max-citacoes')),
         ];
 
-        // Tamanho do corpus: a explicação mais provável de um recall que muda sem que
-        // ninguém tenha tocado no código (medido 2026-09-04: 1153 → 2555 docs, +122%,
-        // com o mesmo top-K). Falha de DB NÃO pode derrubar o eval — null honesto, que
-        // o consumidor distingue de zero.
+        // Tamanho do corpus: gravado porque MUDA sem ninguem tocar no codigo (1153 em
+        // julho, 2555 em 2026-09-04) e porque comparar duas runs sem ele e adivinhar.
+        // NAO e a causa do recall baixo: a hipotese de diluicao (corpus 2.2x maior com
+        // o mesmo top-K) foi REFUTADA por medicao no PR #6801 - a cobertura lexica do
+        // ground_truth contra os top-10 INTEIROS da 0,9805, ou seja o doc certo estava
+        // la; o gargalo era o corte de 400 chars do INICIO no renderFontes (0,3311).
+        // Falha de DB NAO pode derrubar o eval - null honesto, que se distingue de zero.
         try {
             $cfg['corpus_docs'] = (int) DB::table('mcp_memory_documents')->count();
         } catch (\Throwable $e) {
@@ -312,7 +324,7 @@ class JanaRagasRealEvalCommand extends Command
         $noContext = 0;
         $synthFailed = 0;
         $judgeFailed = 0;
-        $judgeZeroTriples = 0;
+        $triplosZero = 0;
         $judgeCalls = 0;
         $synthCalls = 0;
 
@@ -377,9 +389,10 @@ class JanaRagasRealEvalCommand extends Command
             $relScores[] = $rel;
             $recallScores[] = $recall;
 
-            // Sinal de JUIZ MUDO (não de qualidade ruim) — ver ehTriploZeroDoJuiz.
-            if (self::ehTriploZeroDoJuiz($faith, $rel, $recall)) {
-                $judgeZeroTriples++;
+            // Sinal a investigar (juiz mudo OU nota real de resposta-recusa) - ver
+            // ehTriploZero. Contar aqui e barato; interpretar exige o log da run.
+            if (self::ehTriploZero($faith, $rel, $recall)) {
+                $triplosZero++;
             }
 
             // Diagnóstico POR PERGUNTA fica em faith/rel de propósito: o piso de
@@ -443,10 +456,12 @@ class JanaRagasRealEvalCommand extends Command
             'n_no_context' => $noContext,
             'n_synth_failed' => $synthFailed,
             'n_judge_failed' => $judgeFailed,
-            // Zeros FABRICADOS pelo juiz (callJudge devolve 0.0 em erro e nunca lança,
-            // então n_judge_failed é 0 por construção). Sem este campo, uma semana de
-            // juiz fora do ar é indistinguível de uma semana de regressão real.
-            'n_judge_zero_triples' => $judgeZeroTriples,
+            // Perguntas com faith/rel/recall TODOS exatamente 0. Nome deliberadamente
+            // NEUTRO: o triplo pode ser juiz mudo (callJudge devolve 0.0 em erro e nunca
+            // lanca, logo n_judge_failed e 0 por construcao) OU nota real de uma resposta
+            // "nao encontrei nas fontes". Quem decide e o log da run, nao este numero -
+            // ver ehTriploZero. Chamar o campo de "judge" cravaria a causa no schema.
+            'n_triplos_zero' => $triplosZero,
             'n_passed' => $nEval - count(array_filter($failures, fn ($f) => isset($f['faithfulness']))),
             'n_failed' => count($failures),
             // ⚠️ SEM corte silencioso (2026-07-27). Era `array_slice($failures, 0, 10)`:
@@ -529,15 +544,16 @@ class JanaRagasRealEvalCommand extends Command
         );
         $this->line("Pisos: {$report['thresholds_fonte']}");
         $this->info("Avaliadas: {$report['n_evaluated']}/{$report['n_questions']} · sem contexto: {$report['n_no_context']} · síntese falhou: {$report['n_synth_failed']}");
-        // O TRIPLO ZERO precisa ser visível pra quem lê a tabela, senão o campo só serve
-        // à máquina e o humano segue lendo 'a Jana piorou' quando foi o juiz que caiu.
-        $triplos = $report['n_judge_zero_triples'] ?? 0;
+        // O TRIPLO ZERO precisa ser visivel pra quem le a tabela - mas como SINAL, nao
+        // como veredito: dizer "juiz mudo" aqui cravaria uma das duas causas possiveis.
+        $triplos = $report['n_triplos_zero'] ?? 0;
         if ($triplos > 0) {
             $this->warn(
                 "⚠ {$triplos} pergunta(s) com faithfulness/relevancy/context_recall TODOS "
-                . 'exatamente 0.0 — assinatura de JUIZ MUDO (callJudge devolve 0.0 em erro/429 '
-                . 'e não lança). Estes zeros entram nas médias acima: trate o veredito como '
-                . 'SUSPEITO até conferir a saúde do juiz.'
+                . 'exatamente 0.0. Duas causas possiveis e o numero NAO separa: juiz mudo '
+                . '(callJudge devolve 0.0 em erro/429 sem lancar) ou nota real de resposta '
+                . 'nao-encontrei-nas-fontes. Discriminador: warnings [RAGAS] no laravel.log '
+                . 'da janela, com controle positivo do canal.'
             );
         }
         if (! empty($report['failures'])) {

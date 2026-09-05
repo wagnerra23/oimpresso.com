@@ -52,12 +52,12 @@ export function entryFromReport(report) {
     faithfulness_avg: report.faithfulness_avg ?? null,
     relevancy_avg: report.relevancy_avg ?? null,
     context_recall_avg: report.context_recall_avg ?? null,
-    // Zeros FABRICADOS pelo juiz (callJudge devolve 0.0 em erro/429 e NUNCA lanca,
-    // entao n_judge_failed e 0 por construcao). Sem isto, semana de juiz mudo fica
-    // indistinguivel de semana de regressao real DEPOIS que latest.json for
-    // sobrescrito e o evals.log do host rotacionar (medido 2026-09-04: o laravel.log
-    // do container ja nao cobria 2026-08-09/16).
-    n_judge_zero_triples: report.n_judge_zero_triples ?? null,
+    // Perguntas com as 3 metricas exatamente 0. Nome NEUTRO de proposito: pode ser juiz
+    // mudo (callJudge devolve 0.0 sem lancar, logo n_judge_failed e 0 por construcao) ou
+    // nota real de resposta-recusa. Viaja porque o discriminador (warnings [RAGAS] no log
+    // da janela) EXPIRA: em 2026-09-04 o laravel.log ja nao cobria 2026-08-09/16, e sem
+    // este numero no trend nem o sinal sobrevive.
+    n_triplos_zero: report.n_triplos_zero ?? null,
     // Config que decide o numero (docs_pipeline/embedder/topk/corpus). O trend e o
     // UNICO registro duravel: latest.json e sobrescrito toda semana.
     config_vigente: report.config_vigente ?? null,

@@ -25,23 +25,23 @@ ok(entryFromReport(skipReport).valid === false, 'skipped → INVÁLIDA (SKIP hon
 ok(entryFromReport(failReport).valid === true, 'gate fail MAS mediu → run válido (uptime ≠ qualidade)');
 ok(isValidRun({ gate_status: 'pass', n_evaluated: 0 }) === false, 'pass com n_evaluated=0 → inválida (não mediu nada)');
 
-// ── config_vigente + n_judge_zero_triples: o report explica o próprio número ───
+// ── config_vigente + n_triplos_zero: o report explica o próprio número ─────────
 // Origem: refutação do colapso de agosto (2026-09-04). O trend v1 guardava só as
 // médias — pra saber SE a flag do hybrid estava ligada foi preciso arqueologia de
 // container. Agora a config viaja junto, e o trend é o único registro durável.
 const comCfg = {
   ...passReport,
   ran_at: '2026-07-26T07:05:00-03:00',
-  n_judge_zero_triples: 31,
+  n_triplos_zero: 31,
   config_vigente: { app_env: 'staging', docs_pipeline: false, topk: 10, corpus_docs: 2555 },
 };
 const eCfg = entryFromReport(comCfg);
 ok(eCfg.config_vigente.docs_pipeline === false, 'config_vigente viaja do report pro trend');
 ok(eCfg.config_vigente.corpus_docs === 2555, 'corpus_docs preservado (explica recall sem mudança de código)');
-ok(eCfg.n_judge_zero_triples === 31, 'n_judge_zero_triples viaja (separa juiz mudo de regressão)');
+ok(eCfg.n_triplos_zero === 31, 'n_triplos_zero viaja (sinal a investigar, nao veredito)');
 // Retrocompat: report ANTIGO (sem os campos) não quebra nem inventa valor.
 ok(entryFromReport(passReport).config_vigente === null, 'report antigo → config_vigente null (nunca inventa)');
-ok(entryFromReport(passReport).n_judge_zero_triples === null, 'report antigo → zero_triples null, NÃO 0 (null = não medido)');
+ok(entryFromReport(passReport).n_triplos_zero === null, 'report antigo → n_triplos_zero null, NÃO 0 (null = não medido)');
 
 // ── merge: 1ª publicação → schema + 1 semana ────────────────────────────────
 const t1 = mergeTrend(null, passReport);
