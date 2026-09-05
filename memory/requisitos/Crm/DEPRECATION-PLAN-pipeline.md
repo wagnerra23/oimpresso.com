@@ -314,7 +314,7 @@ git show origin/main:governance/route-hits.json   # ledger de prod; janela e sam
 
 | medida | resultado | controle positivo na mesma sonda |
 |---|---|---|
-| `users.crm_contact_id IS NOT NULL` (logins de portal) | **0** | `users` = **130** · coluna existe (`Schema::hasColumn` = SIM) |
+| `users.crm_contact_id IS NOT NULL` (logins de portal) | **0** | `users` = **130** · coluna existe (`Schema::hasColumn` = SIM) · **3 formulações**: `NOT NULL` = 0, `> 0` = 0, `= 0` = 0 — sem sentinela escondida |
 | `transactions` `type='sales_order'` (pedidos do portal) | **0** | `transactions` = **75.421** (`sell` 62.097 · `purchase` 7.621) |
 | `crm_contact_person_commissions` | **0 linhas** | tabela existe (`Schema::hasTable` = SIM) |
 | universo | — | `business` = **88** · `contacts` = **30.108** |
