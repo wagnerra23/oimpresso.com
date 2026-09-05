@@ -8,6 +8,7 @@ use DB;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Inertia\Inertia;
 use Modules\Essentials\Entities\EssentialsLeave;
 use Modules\Essentials\Entities\EssentialsLeaveType;
 use Modules\Essentials\Http\Requests\StoreLeaveRequest;
@@ -62,7 +63,10 @@ class EssentialsLeaveController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return Response
+     * Dois retornos possíveis, e o docblock precisa dizer os dois: o ramo do
+     * DataTables devolve JSON (Yajra) e o caminho normal devolve Inertia.
+     *
+     * @return \Inertia\Response|\Illuminate\Http\JsonResponse
      */
     public function index()
     {
@@ -77,7 +81,18 @@ class EssentialsLeaveController extends Controller
         if (! $can_crud_all_leave && ! $can_crud_own_leave) {
             abort(403, 'Unauthorized action.');
         }
-        if (request()->ajax()) {
+
+        // HRM-O7 PR-9: o ramo DataTables FICA até as blades saírem (HRM-O8). Ele é
+        // consumido hoje por `leave/index.blade.php:93` — medido 2026-09-05, é o
+        // ÚNICO consumidor (varredura contada: 12 referências ao controller, e só
+        // essa chama o `index` por XHR; as outras são links de menu/notificação).
+        //
+        // `! request()->inertia()` NÃO é zelo redundante: o cliente Inertia usa axios,
+        // que em algumas versões manda `X-Requested-With: XMLHttpRequest` — exatamente
+        // o header que `request()->ajax()` lê. Sem esta segunda perna, um partial
+        // reload da tela nova cairia no JSON do DataTables em vez do payload Inertia,
+        // e o sintoma seria a tela "não atualizar o filtro" sem erro nenhum.
+        if (request()->ajax() && ! request()->inertia()) {
             $leaves = EssentialsLeave::where('essentials_leaves.business_id', $business_id)
                         ->join('users as u', 'u.id', '=', 'essentials_leaves.user_id')
                         ->join('essentials_leave_types as lt', 'lt.id', '=', 'essentials_leaves.essentials_leave_type_id')
@@ -159,15 +174,228 @@ class EssentialsLeaveController extends Controller
                 ->rawColumns(['action', 'status'])
                 ->make(true);
         }
-        $users = [];
-        if ($can_crud_all_leave || auth()->user()->can('essentials.approve_leave')) {
-            $users = User::forDropdown($business_id, false);
+        $podeVerTodos = $can_crud_all_leave || auth()->user()->can('essentials.approve_leave');
+
+        $filtros = [
+            'busca'      => request()->string('busca')->toString() ?: null,
+            'status'     => request()->string('status')->toString() ?: null,
+            'leave_type' => request()->integer('leave_type') ?: null,
+            'user_id'    => $podeVerTodos ? (request()->integer('user_id') ?: null) : null,
+            'start_date' => request()->string('start_date')->toString() ?: null,
+            'end_date'   => request()->string('end_date')->toString() ?: null,
+        ];
+
+        // Inertia::defer é DEFAULT pra prop cara (RUNBOOK-inertia-defer-pattern):
+        // `licencas` pagina + join, `tipos`/`colaboradores` batem no banco, `kpis` e
+        // `saldos` agregam. `filtros` e `permissoes` ficam eager — são UI state e bool.
+        return Inertia::render('Essentials/Licencas/Index', [
+            'licencas' => Inertia::defer(function () use ($business_id, $filtros) {
+                $pagina = $this->queryLicencas($business_id, $filtros)
+                    ->orderByDesc('essentials_leaves.start_date')
+                    ->paginate(25)
+                    ->withQueryString();
+
+                // `transform()` entrega `Model` ao PHPStan porque o paginator chega
+                // sem generic. Tipar a closure como `EssentialsLeave` seria
+                // contravariância inválida (o callback tem de aceitar o que a
+                // coleção entrega); o narrow certo é `@var` dentro do corpo.
+                $pagina->getCollection()->transform(function ($linha): array {
+                    /** @var EssentialsLeave $linha */
+                    return $this->formatoDaLinha($linha);
+                });
+
+                return $pagina;
+            }),
+
+            'tipos' => Inertia::defer(fn () => EssentialsLeaveType::where('business_id', $business_id)
+                ->orderBy('leave_type')
+                ->get(['id', 'leave_type', 'max_leave_count', 'leave_count_interval'])
+                ->map(fn ($t) => [
+                    'id'       => (int) $t->id,
+                    'label'    => (string) $t->leave_type,
+                    'limite'   => (int) ($t->max_leave_count ?? 0),
+                    'intervalo' => $t->leave_count_interval,
+                ])->values()->all()),
+
+            'colaboradores' => Inertia::defer(fn () => $podeVerTodos
+                ? collect(User::forDropdown($business_id, false))
+                    ->map(fn ($label, $id) => ['id' => (int) $id, 'label' => (string) $label])
+                    ->values()->all()
+                : []),
+
+            'kpis' => Inertia::defer(fn () => [
+                'pendentes'  => (int) $this->queryLicencasSemFiltro($business_id)
+                    ->where('essentials_leaves.status', LeaveRequestService::STATUS_PENDING)->count(),
+                'aprovadas'  => (int) $this->queryLicencasSemFiltro($business_id)
+                    ->where('essentials_leaves.status', LeaveRequestService::STATUS_APPROVED)->count(),
+                'tipos'      => (int) EssentialsLeaveType::where('business_id', $business_id)->count(),
+            ]),
+
+            'saldos' => Inertia::defer(fn () => $this->saldoPorTipo($business_id)),
+
+            'filtros' => $filtros,
+
+            'permissoes' => [
+                'ver_todos' => $podeVerTodos,
+                'aprovar'   => (bool) auth()->user()->can('essentials.approve_leave'),
+                'excluir'   => (bool) $can_crud_all_leave,
+                'criar_para_terceiros' => (bool) $can_crud_all_leave,
+            ],
+
+            'situacoes' => collect($this->leave_statuses)
+                ->map(fn ($v, $k) => ['valor' => $k, 'label' => $v['name']])
+                ->values()->all(),
+
+            'hoje' => now()->format('Y-m-d'),
+
+            // O `store()` grava via `ModuleUtil::uf_date()`, que parseia com o formato
+            // do NEGÓCIO (default do schema: m/d/Y) — e o `StoreLeaveRequest` valida
+            // chamando o mesmo conversor, de propósito. Um <input type="date"> devolve
+            // ISO; postar ISO cru faria o `createFromFormat` lançar, o try/catch do
+            // controller engoliria e a tela veria "algo deu errado" sem dizer o quê.
+            // Por isso o formato desce e a conversão acontece na borda do POST.
+            'date_format' => (string) (session('business.date_format') ?: 'm/d/Y'),
+        ]);
+    }
+
+    /**
+     * Query base das licenças do negócio — Tier 0 (ADR 0093): `business_id` sempre
+     * no WHERE, e o recorte por `crud_own_leave` é do SERVIDOR, nunca da UI (R3).
+     *
+     * @param  array<string, mixed>  $filtros
+     */
+    private function queryLicencas(int|string $business_id, array $filtros): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = $this->queryLicencasSemFiltro($business_id);
+
+        if (! empty($filtros['user_id'])) {
+            $query->where('essentials_leaves.user_id', $filtros['user_id']);
         }
-        $leave_statuses = $this->leave_statuses;
+        if (! empty($filtros['status'])) {
+            $query->where('essentials_leaves.status', $filtros['status']);
+        }
+        if (! empty($filtros['leave_type'])) {
+            $query->where('essentials_leaves.essentials_leave_type_id', $filtros['leave_type']);
+        }
+        if (! empty($filtros['start_date']) && ! empty($filtros['end_date'])) {
+            $query->whereDate('essentials_leaves.start_date', '>=', $filtros['start_date'])
+                ->whereDate('essentials_leaves.start_date', '<=', $filtros['end_date']);
+        }
+        if (! empty($filtros['busca'])) {
+            $termo = '%'.$filtros['busca'].'%';
+            $query->where(function ($q) use ($termo) {
+                $q->where('essentials_leaves.ref_no', 'like', $termo)
+                    ->orWhere('essentials_leaves.reason', 'like', $termo)
+                    ->orWhereHas('leave_type', fn ($lt) => $lt->where('leave_type', 'like', $termo))
+                    ->orWhereHas('user', fn ($u) => $u->whereRaw(
+                        "CONCAT(COALESCE(surname, ''), ' ', COALESCE(first_name, ''), ' ', COALESCE(last_name, '')) like ?",
+                        [$termo]
+                    ));
+            });
+        }
 
-        $leave_types = EssentialsLeaveType::forDropdown($business_id);
+        return $query;
+    }
 
-        return view('essentials::leave.index')->with(compact('leave_statuses', 'users', 'leave_types'));
+    private function queryLicencasSemFiltro(int|string $business_id): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = EssentialsLeave::where('essentials_leaves.business_id', $business_id)
+            ->with(['leave_type:id,leave_type', 'user:id,surname,first_name,last_name']);
+
+        // R3: quem só tem `crud_own_leave` vê apenas as próprias. O filtro é do
+        // controller — a UI apenas esconde o seletor, o que não é defesa.
+        if (! auth()->user()->can('essentials.crud_all_leave')
+            && auth()->user()->can('essentials.crud_own_leave')) {
+            $query->where('essentials_leaves.user_id', auth()->user()->id);
+        }
+
+        return $query;
+    }
+
+    /**
+     * Forma da linha da grade. `days` e o rótulo do período são calculados no
+     * SERVIDOR: `format_date` respeita a configuração do negócio (inclusive o
+     * shift do ADR 0066), e recalcular no front divergiria do que o Blade mostra.
+     *
+     * @return array<string, mixed>
+     */
+    private function formatoDaLinha(EssentialsLeave $linha): array
+    {
+        $inicio = \Carbon::parse($linha->start_date);
+        $fim = \Carbon::parse($linha->end_date);
+        $dias = $inicio->diffInDays($fim) + 1; // R6: inclusivo nas duas pontas
+
+        return [
+            'id'            => (int) $linha->id,
+            'ref_no'        => $linha->ref_no,
+            'tipo'          => optional($linha->leave_type)->leave_type,
+            'tipo_id'       => (int) $linha->essentials_leave_type_id,
+            'colaborador'   => trim(sprintf(
+                '%s %s %s',
+                optional($linha->user)->surname ?? '',
+                optional($linha->user)->first_name ?? '',
+                optional($linha->user)->last_name ?? ''
+            )),
+            'user_id'       => (int) $linha->user_id,
+            'start_date'    => $inicio->format('Y-m-d'),
+            'end_date'      => $fim->format('Y-m-d'),
+            'periodo_label' => $this->moduleUtil->format_date($inicio).' – '.$this->moduleUtil->format_date($fim),
+            'dias'          => $dias,
+            'motivo'        => $linha->reason,
+            'status'        => $linha->status,
+            'status_label'  => $this->leave_statuses[$linha->status]['name'] ?? $linha->status,
+            'status_note'   => $linha->status_note,
+        ];
+    }
+
+    /**
+     * Saldo por tipo (aba "Saldo por tipo"). Reusa o `LeaveBalanceService`, que já é
+     * o dono da regra de limite no `store`/`changeStatus` — dois cálculos de saldo
+     * divergiriam no primeiro ajuste (LC-19: estender o dono, não abrir paralelo).
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function saldoPorTipo(int|string $business_id): array
+    {
+        $hoje = now()->format('Y-m-d');
+
+        return EssentialsLeaveType::where('business_id', $business_id)
+            ->orderBy('leave_type')
+            ->get()
+            ->map(function (EssentialsLeaveType $tipo) use ($business_id, $hoje) {
+                $janela = $this->leaveBalance->janela($tipo->leave_count_interval, $hoje);
+
+                $contar = function (string $status) use ($tipo, $business_id, $janela) {
+                    $q = EssentialsLeave::where('business_id', $business_id)
+                        ->where('essentials_leave_type_id', $tipo->id)
+                        ->where('status', $status);
+
+                    if ($janela !== null) {
+                        $q->whereDate('start_date', '>=', $janela[0])
+                            ->whereDate('start_date', '<=', $janela[1]);
+                    }
+
+                    return $q->get(['start_date', 'end_date'])->sum(
+                        fn ($l) => \Carbon::parse($l->start_date)->diffInDays(\Carbon::parse($l->end_date)) + 1
+                    );
+                };
+
+                $aprovado = (int) $contar(LeaveRequestService::STATUS_APPROVED);
+                $emAnalise = (int) $contar(LeaveRequestService::STATUS_PENDING);
+                $limite = (int) ($tipo->max_leave_count ?? 0);
+
+                return [
+                    'id'         => (int) $tipo->id,
+                    'tipo'       => (string) $tipo->leave_type,
+                    // R8/UC-HRM-19: limite 0 é "sem limite", não "zero dias permitidos".
+                    'limite'     => $limite > 0 ? $limite : null,
+                    'intervalo'  => $tipo->leave_count_interval,
+                    'aprovado'   => $aprovado,
+                    'em_analise' => $emAnalise,
+                    'consumo'    => $limite > 0 ? round((($aprovado + $emAnalise) / $limite) * 100) : null,
+                    'risco'      => $limite > 0 && ($aprovado + $emAnalise) > $limite,
+                ];
+            })->values()->all();
     }
 
     /**
@@ -308,21 +536,25 @@ class EssentialsLeaveController extends Controller
     /**
      * Show the specified resource.
      *
-     * @return Response
+     * R10 do charter: isto retornava `view('essentials::show')`, uma view que NÃO
+     * existe — a rota do resource respondia 500. O detalhe da licença vive no drawer
+     * do Index (PT-02 dentro do PT-01), então a rota redireciona, que é o mesmo
+     * caminho já tomado pelo `EssentialsHolidayController` irmão.
      */
     public function show()
     {
-        return view('essentials::show');
+        return redirect('/hrm/leave');
     }
 
     /**
      * Show the form for editing the specified resource.
      *
-     * @return Response
+     * R9 + R10: licença criada não se edita (o `update()` abaixo é vazio de
+     * propósito) e a view `essentials::edit` não existe. Redireciona em vez de 500.
      */
     public function edit()
     {
-        return view('essentials::edit');
+        return redirect('/hrm/leave');
     }
 
     /**
