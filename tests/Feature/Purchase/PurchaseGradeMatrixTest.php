@@ -19,18 +19,31 @@ use Spatie\Permission\Models\Role;
  *    e o store() recusa `variation_id` forjado com 422 sem gravar linha. Cada um com o par
  *    positivo, senão um abort incondicional passaria no teste.
  *
- * O bloco cross-tenant montava `products`/`variations` à mão e pulava fora de sqlite — ou seja,
- * não executava em lane nenhuma (a suíte real é MySQL; a allowlist sqlite não tem uma linha
+ * O bloco cross-tenant montava `products`/`variations` a mao e pulava fora de sqlite — ou seja,
+ * nao executava em lane nenhuma (a suite real e MySQL; a allowlist sqlite nao tem uma linha
  * Purchase). Foi reescrito em 2026-09-05 contra o schema semeado por
- * `.github/actions/pest-mysql-setup`.
+ * `.github/actions/pest-mysql-setup` — o describe agora e `Tier 0 cross-tenant (MySQL real)`
+ * e o skip inverteu (pula FORA do MySQL), entao roda na lane real.
  *
- * @covers-uc UC-PURCRE-02
- * @covers-uc UC-PURCRE-03
+ * ── Rastreabilidade (casos-gate G-2 · ADR 0264) ────────────────────────────
+ * Contrato: resources/js/Pages/Purchase/Create.casos.md
+ *   @covers-uc UC-PURCRE-02  endpoint da grade recusa produto de outro tenant
+ *   @covers-uc UC-PURCRE-03  store() recusa variation_id forjado (anti payload cross-tenant)
+ *   @covers-uc UC-PURCRE-04  a grade nunca abre vazia — degrada 2D -> 1 eixo -> single
  *
- * @see resources/js/Pages/Purchase/Create.casos.md (UC-PURCRE-02 · UC-PURCRE-03)
+ * COBERTURA POR BLOCO (medida 2026-09-04, atualizada 2026-09-05):
+ *   - 6 casos do parser (GradeLayoutBuilder, logica pura): COMPORTAMENTO REAL, EXECUTAM.
+ *     Sustentam o UC-PURCRE-04.
+ *   - 6 casos estruturais (rota + scope no fonte + wiring da Page): executam, mas sao
+ *     casamento de texto (classe LC-11).
+ *   - describe Tier 0 cross-tenant: SAIU DA QUARENTENA em 2026-09-05 (#6820) — bate no
+ *     ENDPOINT em MySQL real e sustenta UC-PURCRE-02 e UC-PURCRE-03. O `estrutural
+ *     (comportamento em quarentena)` do casos.md deixa de valer para esses dois.
  *
- * ADRs: 0093 (Tier 0 IRREVOGÁVEL), 0104 (MWART), 0105 (Larissa sinal), 0358 (tenant 98/99),
- * C1 (convergência).
+ * @see resources/js/Pages/Purchase/Create.casos.md (UC-PURCRE-02 · UC-PURCRE-03 · UC-PURCRE-04)
+ *
+ * ADRs: 0093 (Tier 0 IRREVOGAVEL), 0104 (MWART), 0105 (Larissa sinal), 0358 (tenant 98/99),
+ * C1 (convergencia).
  */
 const GM_CONTROLLER = 'app/Http/Controllers/PurchaseController.php';
 const GM_ROUTES = 'routes/web.php';

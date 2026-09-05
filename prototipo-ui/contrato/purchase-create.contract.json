@@ -1,0 +1,83 @@
+{
+  "_nota": "Contrato de Tela de /purchases/create (criar compra, Inertia). Declara copy + ordem que a tela viva ja sustenta, pra que uma regressao de texto/estrutura vire vermelho no gate. Schema: prototipo-ui/contrato/contract.schema.json (ADR 0286). Ancoras data-contract instrumentadas no PR imediatamente anterior.",
+  "tela": "Purchase/Create",
+  "fonte": "resources/js/Pages/Purchase/Create.tsx",
+  "_nota_fonte": "SEM ancora de prototipo, e isso e declaracao consciente, nao lacuna: `node prototipo-ui/ancora.mjs Purchase/Create --staging prototipo-ui/cowork` responde `sem ancora: n/a (herda PT-02 Form-Drawer)` e classifica como declaracao legitima — a tela nasce do DS, nao de um retrato do Cowork. POR QUE `fonte` aponta a PROPRIA TELA (e a ressalva honesta): o `--map --check` exige que `fonte` seja um arquivo EXISTENTE — medido, tanto `n/a (...)` quanto omitir o campo dao `fonte quebrada` e avermelham o job (linha 497 do gate: `!!c.fonte && existsSync(...)`). O precedente do repo pra tela sem prototipo e apontar a tela viva: `jana-painel.contract.json` usa `resources/js/Pages/Jana/Index.tsx` exatamente porque a ancora dele foi removida e a copy passou a derivar da tela. A ressalva fica dita, nao escondida: nesta LINHA do mapa a coluna Fonte e tautologica (a tela e fonte de si mesma) e NAO prova fidelidade a design nenhum — o que este contrato defende e regressao de copy/ordem, nao aderencia a um retrato. O charter cita `mwart_pattern_reuse.blueprint_grade` (prototipo-ui/prototipos/compras-grade-matrix/page.jsx) como REFERENCIA do modo grade; NAO foi promovido a `fonte` de proposito (lapide §5 2026-08-28: promover blueprint a ancora ancora a tela nela mesma com cara de design aprovado).",
+  "alvo": [
+    "resources/js/Pages/Purchase/Create.tsx"
+  ],
+  "_nota_alvo": "Arquivo unico. `_components/GradeMatrixInput.tsx` e `_components/GradeProductCombobox.tsx` ficam FORA: sao componentes reusaveis com contrato proprio, e declara-los aqui misturaria a tela com as pecas dela.",
+  "secoes": [
+    {
+      "id": "purchase-dados-gerais",
+      "copy": [
+        "Dados gerais",
+        "Filial *",
+        "Fornecedor *",
+        "Data *",
+        "Status *",
+        "Ref. Nº",
+        "Selecione uma filial…"
+      ],
+      "estados": [
+        "filial-escolhida",
+        "sem-filial"
+      ]
+    },
+    {
+      "id": "purchase-itens",
+      "copy": [
+        "Itens da compra",
+        "Produto",
+        "Nenhum item adicionado.",
+        "Carregando grade…",
+        "Custo unit."
+      ],
+      "estados": [
+        "vazio",
+        "com-itens",
+        "grade-carregando",
+        "grade-aberta"
+      ]
+    },
+    {
+      "id": "purchase-descontos",
+      "copy": [
+        "Descontos / Impostos / Frete",
+        "Tipo desconto",
+        "Valor desconto",
+        "Imposto global",
+        "Percentual (%)"
+      ]
+    },
+    {
+      "id": "purchase-totais",
+      "copy": [
+        "Totais",
+        "Subtotal itens",
+        "Desconto",
+        "Impostos",
+        "Frete",
+        "Total final"
+      ]
+    },
+    {
+      "id": "purchase-notas",
+      "copy": [
+        "Notas adicionais"
+      ]
+    }
+  ],
+  "ordem": [
+    "purchase-dados-gerais",
+    "purchase-itens",
+    "purchase-descontos",
+    "purchase-totais",
+    "purchase-notas"
+  ],
+  "_pendente_w": [
+    "A copy do modo grade tam x cor (US-COM-005) esta declarada so no que a TELA emite (`Carregando grade…`, `Custo unit.`). Os rotulos que vivem dentro de `_components/GradeMatrixInput.tsx` ficaram de fora de proposito — se [W] quiser o modo grade sob contrato, ele merece contrato PROPRIO do componente, nao um apendice deste.",
+    "VALOR — esta tela calcula total/desconto/imposto/frete (`Subtotal itens`, `Total final`). Este contrato pina APENAS O ROTULO, nunca o numero, e nao substitui a REGRA MESTRE de valor/estoque (proibicoes.md): mudanca que mexa no calculo continua exigindo dupla prova + tabela antes -> depois + aprovacao [W]. Contrato de copy nao e cobertura de calculo, e nenhuma leitura futura deste arquivo deve trata-lo como tal.",
+    "`Desconto`, `Impostos` e `Frete` aparecem em Totais como rotulo curto; se o DS renomear pra forma longa (ex. `Desconto total`), o gate acusa e a decisao de qual texto vale e de [W]."
+  ]
+}

@@ -5,14 +5,22 @@ declare(strict_types=1);
 /**
  * F4 QA — Inertia path purchase/edit (MWART Wave2 B5).
  *
- * ⚠️ Este arquivo não executava em lane nenhuma até 2026-09-05: nenhum workflow referenciava
- * `tests/Feature/Purchase/**` (medido em origin/main — git grep nos 8 arquivos do diretório,
- * zero citações em .github/workflows). Por isso o assert de RUNBOOK+visual-comparison apontava
- * há meses pra `memory/requisitos/Inventory/`, de onde os dois arquivos SAÍRAM quando o
- * material de Compra foi consolidado em `memory/requisitos/Compras/_telas/` — o diretório
- * `Inventory/` continua existindo (tem BRIEFING.md e SPEC.md), o que deixou o ponteiro
- * plausível o bastante pra atravessar revisão. O vermelho nunca apareceu porque o teste
- * nunca rodou.
+ * ── Rastreabilidade (casos-gate G-2 · ADR 0264) ────────────────────────────
+ * Contrato: resources/js/Pages/Purchase/Edit.casos.md
+ *   @covers-uc UC-PUREDT-01  dual path — SPA recebe React, Blade legacy preservado
+ *   @covers-uc UC-PUREDT-06  formulario pre-populado com a compra, tipado (sem any leak)
+ *   @covers-uc UC-PUREDT-07  Tier 0 — a Page nao hardcoda business_id
+ *
+ * ⚠️ NATUREZA DA COBERTURA — ESTRUTURAL: 15 asserts de casamento de texto no fonte,
+ * ZERO requests HTTP. Classe LC-11 (presence-gate).
+ *
+ * PONTEIRO CONSERTADO EM 2026-09-05: as consts de RUNBOOK e visual-comparison apontavam
+ * pra `memory/requisitos/Inventory/`, de onde os dois arquivos SAÍRAM quando o material de
+ * Compra foi consolidado em `memory/requisitos/Compras/_telas/`. O diretório `Inventory/`
+ * continua existindo (tem BRIEFING.md e SPEC.md), o que deixou o ponteiro plausível o
+ * bastante pra atravessar revisão — e o vermelho nunca apareceu porque, até esta data,
+ * arquivo nenhum de `tests/Feature/Purchase/` rodava em lane. Medido no CT 100 antes do
+ * conserto: `1 failed, 10 passed (18 assertions)`; depois: `11 passed (19 assertions)`.
  */
 
 const EDIT_INERTIA_PATH = 'resources/js/Pages/Purchase/Edit.tsx';

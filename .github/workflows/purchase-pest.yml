@@ -1,0 +1,211 @@
+name: Purchase · Pest (MySQL)
+
+# Lane dedicada pra rodar teste Pest MySQL-only de Purchase contra MySQL REAL.
+#
+# POR QUE EXISTE
+# NENHUMA lane rodava `tests/Feature/Purchase/**` — nem MySQL, nem SQLite. Varrido em
+# 2026-09-04 com controle positivo: `git grep -I -E 'Feature/Purchase' origin/main -- .github
+# scripts` devolve 0 (o mesmo comando com `Feature/Sells` devolve 5, então o grep funciona);
+# e `.github/ci-sqlite-pest.list` tem 167 alvos, 0 deles de Purchase. Os 8 arquivos daquela
+# pasta — 185+ asserções, quase todas `file_get_contents` + `toContain` — nunca executaram.
+#
+# O custo disso, medido no CT 100 na mesma data (`vendor/bin/pest tests/Feature/Purchase/`):
+# 6 failed · 6 skipped · 90 passed (214 assertions). Os 6 vermelhos são REAIS em `origin/main`
+# e estavam invisíveis: 5 cobram artefato que não existe (`memory/requisitos/Purchase/` só tem
+# BRIEFING.md — sem RUNBOOK, sem visual-comparison) e 1 é falso-positivo de presence-gate
+# (`ShowPageTest` exige que `Show.tsx` não contenha 'Barcode', e o que casa é o COMENTÁRIO da
+# linha 9 que documenta o próprio bug-fix). Por isso a allowlist abaixo NÃO os inclui ainda:
+# consertá-los é outro intent, e uma lane que nasce vermelha vira ruído que se aprende a ignorar.
+#
+# Nasce com `PurchaseIndexTenantContratoTest` (UC-PURIDX-02 e UC-PURIDX-03 de
+# `Purchase/Index.casos.md`, ambos `must [T0]`) e é o HOME do ratchet pra TODO teste MySQL-only
+# de Purchase — cada novo entra na allowlist (mesma disciplina de sells-pest.yml).
+#
+# Reusa .github/actions/pest-mysql-setup: PHP 8.4 + deps + .env MySQL + migrate + seed dos
+# tenants 1, 2 e 98 (o 98 é o FICTÍCIO canônico da ADR 0358; o adversário cross-tenant é
+# descoberto em runtime, não fixado).
+# Refs: ADR 0093 (multi-tenant Tier 0) · ADR 0358 (tenant 98) · ADR 0264 (G-2) · ADR 0062.
+
+on:
+  workflow_dispatch: {}
+  # pull_request SEM paths (always-run) + skip-as-pass interno (dorny/paths-filter):
+  # se nada de Purchase mudou, pula o pesado e conclui verde (mesmo padrão do
+  # sells-pest.yml / essentials-pest.yml, ADR 0271 onda 2 — required-ready sem deadlock).
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - 'tests/Feature/Purchase/**'
+      - 'app/Http/Controllers/PurchaseController.php'
+      # Sob teste em PurchaseIndexTenantContratoTest (UC-PURIDX-02): é `getListPurchases`
+      # que carrega os DOIS escopos de business da lista. Sem este gatilho, mexer nele não
+      # dispararia o teste dele — gate mudo com cara de cobertura.
+      - 'app/Utils/TransactionUtil.php'
+      # `permitted_locations()` mora aqui e é o mecanismo do UC-PURIDX-03.
+      - 'app/User.php'
+      - 'resources/js/Pages/Purchase/**'
+      - 'database/schema/mysql-schema.sql'
+      - '.github/workflows/purchase-pest.yml'
+      - '.github/actions/pest-mysql-setup/**'
+
+concurrency:
+  group: purchase-pest-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pest:
+    name: PHP / Pest (Purchase · MySQL)
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: oimpresso_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detectar mudanças de Purchase (skip-as-pass)
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            purchase:
+              - 'tests/Feature/Purchase/**'
+              - 'app/Http/Controllers/PurchaseController.php'
+              - 'app/Utils/TransactionUtil.php'
+              - 'app/User.php'
+              - 'resources/js/Pages/Purchase/**'
+              - 'database/schema/mysql-schema.sql'
+              - '.github/workflows/purchase-pest.yml'
+              - '.github/actions/pest-mysql-setup/**'
+
+      - name: Skip-as-pass (nada de Purchase mudou)
+        if: steps.changes.outputs.purchase == 'false'
+        run: echo "✅ Sem mudanças em Purchase — skip-as-pass (required-ready)."
+
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed mínimo multi-tenant)
+        if: steps.changes.outputs.purchase == 'true'
+        uses: ./.github/actions/pest-mysql-setup
+
+      - name: Stub Vite manifest (Inertia root view sem build do front)
+        if: steps.changes.outputs.purchase == 'true'
+        run: |
+          mkdir -p public/build-inertia
+          cat > public/build-inertia/manifest.json <<'EOF'
+          {
+            "resources/css/inertia.css": { "file": "assets/inertia.css", "src": "resources/css/inertia.css", "isEntry": true },
+            "resources/js/app.tsx": { "file": "assets/app.tsx", "src": "resources/js/app.tsx", "isEntry": true }
+          }
+          EOF
+
+      - name: Run Pest (Purchase · MySQL) — ALLOWLIST VERDE (catraca)
+        if: steps.changes.outputs.purchase == 'true'
+        # phpunit.xml declara DB_CONNECTION=sqlite (sem force) — sobrescrito aqui pra rodar
+        # no MySQL real semeado pela action, que é a dona dos tenants. Allowlist: só arquivo
+        # comprovadamente verde. NÃO incluir RefreshDatabase/migrate:fresh (dropam o schema e
+        # limpam o seed). Este usa DatabaseTransactions.
+        #
+        # 2026-09-04 — allowlist nasce com 1. `PurchaseIndexTenantContratoTest` cobre os dois
+        # UCs `[T0]` da listagem que até aqui só tinham presence-gate (`⚠️ 🧪 estrutural` no
+        # `Index.casos.md`): escopo por `business_id` e recorte por `permitted_locations`.
+        #
+        # RODADO ANTES DE ENTRAR (não "nasce sem run"): CT 100, container oimpresso-staging,
+        # MySQL `oimpresso_staging`, contra os MESMOS blobs de `origin/main` (hash conferido
+        # em PurchaseController.php, TransactionUtil.php e User.php). Resultado: 4 passed
+        # (11 assertions).
+        #
+        # E MORDE — provado por mutação, com a mutação verificada antes de ler o veredito:
+        #   · removidos os DOIS escopos de business de `getListPurchases`
+        #     (`transactions.business_id` + `BS.business_id` do INNER join) ⇒ 1 failed,
+        #     exatamente o assert do vazamento cross-tenant, com os 3 controles positivos
+        #     ainda verdes;
+        #   · removido o recorte `permitted_locations` de `indexInertia` ⇒ 1 failed, no
+        #     assert da filial proibida.
+        # Nota que ficou do bite-test: derrubar SÓ o `where('transactions.business_id')` NÃO
+        # avermelha — o INNER join em `business_locations` escopado por business já derruba a
+        # linha alheia sozinho. São duas defesas independentes; o teste defende o comportamento
+        # observável, então só cai quando as duas caem. Isso é defesa em profundidade
+        # funcionando, não teste frouxo.
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: "3306"
+          DB_DATABASE: oimpresso_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        #
+        # 2026-09-05 — allowlist 1 → 2. `PurchaseShowTenantContratoTest` cobre o UC-PURSHW-01
+        # `[T0]` (o `Show.casos.md` o chamava de *"o UC mais caro do arquivo e o menos
+        # defendido"*) e o UC-PURSHW-05 `[V0]`.
+        # RODADO ANTES DE ENTRAR: CT 100, MySQL — 4 passed (8 assertions).
+        # MORDE, por mutação verificada:
+        #   · `show()` resolvendo SEM `where('business_id')` ⇒ 1 failed, no assert do 404
+        #     cross-tenant, com os 3 controles positivos verdes;
+        #   · `$final_total = $net_total` (o recálculo que o [V0] proíbe) ⇒ 2 failed — cai a
+        #     discrepância E o antes→depois, que são os dois caminhos da REGRA MESTRE.
+        #
+        # 2026-09-05 — CONSOLIDACAO. Estes 4 tinham entrado na allowlist do `compras-pest.yml`
+        # (#6820/#6825) por uma sessao que nao sabia que ESTA lane existia: os dois trabalhos
+        # correram em paralelo e aterrissaram com 20 minutos de diferenca. Ficaram DOIS donos
+        # rodando Purchase — o paralelo que a LC-19 nomeia. O `compras-pest.yml` volta ao que
+        # era (paths e entradas de Purchase revertidos no MESMO PR) e o ratchet fica aqui, que
+        # e o HOME declarado no cabecalho deste arquivo.
+        #
+        # Cada um foi RODADO ANTES DE ENTRAR (CT 100, MySQL real) — nenhum entra as cegas:
+        #   UpdateCrossTenantIdorTest   3 passed (13 assertions)  — era 4 skipped (0)
+        #   PurchaseGradeMatrixTest    16 passed (45 assertions)  — era 2 skipped + 12 passed (36)
+        #   Wave2EditBaselineTest       5 passed  (6 assertions)  — ja verde, so faltava lane
+        #   Wave2EditInertiaTest       11 passed (19 assertions)  — era 1 failed + 10 passed (18)
+        # E a lane inteira junta, pra provar que nao ha interferencia entre eles.
+        run: |
+          mkdir -p test-results
+          vendor/bin/pest --no-coverage --colors=always \
+            --log-junit test-results/pest-purchase-junit.xml \
+            tests/Feature/Purchase/PurchaseIndexTenantContratoTest.php \
+            tests/Feature/Purchase/PurchaseShowTenantContratoTest.php \
+            tests/Feature/Purchase/UpdateCrossTenantIdorTest.php \
+            tests/Feature/Purchase/PurchaseGradeMatrixTest.php \
+            tests/Feature/Purchase/Wave2EditBaselineTest.php \
+            tests/Feature/Purchase/Wave2EditInertiaTest.php
+
+      # A lane emite JUnit e o sumário conta `assertions` por arquivo — o corpus do LC-13.
+      # Aqui só REPORTA (if: always()).
+      - name: Sumario JUnit por arquivo (junit-summary.mjs — corpus p/ LC-13)
+        if: always()
+        run: node scripts/tests/junit-summary.mjs test-results/pest-purchase-junit.xml --out test-results/pest-purchase-junit-summary.json || true
+
+      # MORDE quando a lane RODOU e não provou nada: `0 failed` com 0 assertions é ausência
+      # de EXECUÇÃO, não sucesso (LC-13). Guardado pela MESMA condição do run de Pest, nunca
+      # por `if: always()`: com o skip-as-pass o XML nem existe, e armar ali ficaria vermelho
+      # em todo PR que não toca o módulo.
+      - name: Suite provou algo? (--check-assertions · LC-13)
+        if: steps.changes.outputs.purchase == 'true'
+        run: node scripts/tests/junit-summary.mjs test-results/pest-purchase-junit.xml --check-assertions
+
+      - name: Upload sumario JUnit (pest-purchase-junit)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-purchase-junit-summary
+          path: test-results/pest-purchase-junit-summary.json
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Upload JUnit (Purchase · MySQL)
+        if: ${{ !cancelled() && steps.changes.outputs.purchase == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-purchase-junit
+          path: test-results/pest-purchase-junit.xml
+          retention-days: 14

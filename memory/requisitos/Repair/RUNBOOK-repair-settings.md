@@ -4,7 +4,7 @@ module: "Repair"
 tela: "Repair/Settings"
 owner: "W"
 status: "rascunho"
-last_validated: "2026-09-04"
+last_validated: "2026-09-05"
 preconditions:
   - "Módulo Repair habilitado na assinatura do business (repair_module) — Camada 1 do sidebar"
   - "Usuário com permissão repair.create OU superadmin"
@@ -89,6 +89,27 @@ O valor usa a chave certa; **o guard usa a do campo 1**. Com o campo 1 vazio, os
 
 Se (a) e (b) se confirmarem em runtime, o comportamento pós-migração **difere** do legado — e isso é melhoria, mas tem de aparecer no PR como mudança declarada, nunca como efeito colateral silencioso.
 
+> ⚠️ **ERRATA (2026-09-05, F4 QA) — o defeito (b) NÃO EXISTE. A cautela do parágrafo acima estava certa; a hipótese que ela protegia estava errada.**
+>
+> Renderizado de verdade no CT 100 (MySQL real, `view:clear` antes): **o partial renderiza — 9143 bytes, com o checkbox `custom_field1` presente e nenhum warning sobre a variável.** Dos 16 warnings capturados por um error handler que engolia tudo para nada escapar, todos são deprecations alheias (`TransactionUtil::getGrossProfit`, Woocommerce, Console Commands).
+>
+> **Por quê:** `$contact_custom_fields` e `$custom_labels` são definidas **pelo próprio partial**, na linha 4 — 52 linhas ACIMA do uso na 56:
+>
+> ```php
+> @php
+> $custom_labels = json_decode(session('business.custom_labels'), true);
+> $contact_custom_fields = !empty($jobsheet_pdf_settings['contact_custom_fields']) ? $jobsheet_pdf_settings['contact_custom_fields'] : [];
+> @endphp
+> ```
+>
+> O partial é **auto-suficiente**: deriva as duas de `$jobsheet_pdf_settings`, que o `compact()` do `index()` **passa**. A varredura que sustentava a hipótese procurou `View::share` em `.php` **fora de views** — e a definição estava dentro do arquivo acusado. É a classe LC-08 (derivar da fonte errada) na forma mais barata de evitar: bastava ler o arquivo até o fim.
+>
+> **Provas de que não é sorte de cache nem override:** o view finder resolve o mesmo arquivo (md5 `a86a7a83…`, hints `custom_views/` e `resources/views/modules/repair` vazios); `View::getShared()` **não** tem a variável e nenhum dos 19 composers a define; e a mesma linha 56 **isolada** num blade sem o `@php` lança `ViewException: Undefined variable $contact_custom_fields` — ou seja, o guard real é a linha 4, não o acaso.
+>
+> **Consequência:** a migração **não** conserta erro vivo aqui e **não há mudança de comportamento a declarar** por este motivo. Passar `contactCustomFields`/`customLabels` como props segue necessário (React não tem o `@php` do Blade), mas por essa razão — não porque o legado esteja quebrado.
+>
+> O defeito **(a)** (campos 2 e 4 condicionados à chave do campo 1) **não foi reexaminado em runtime** nesta rodada e segue como medição estática. Ele continua valendo como anti-hook no charter.
+
 ### 5. Sem migration, sem rota nova
 
 Tudo é JSON em `business`. A Page reusa as duas rotas que já existem. **Nada de tabela `repair_settings`.**
@@ -125,6 +146,23 @@ Tenant de teste = **98** ([ADR 0358](../../decisions/0358-doutrina-de-teste-tena
 - Prova de não-apagamento: salvar a aba 4 preserva as 14 chaves, inclusive campos 2 e 4 com o campo 1 vazio (o defeito (a) não sobrevive à migração).
 - Smoke autenticado em prod, dark, **1280px** (monitor da Larissa), com screenshot no PR — R1.
 - `casos.md` com ≥1 UC citado por teste, no MESMO PR (`casos-gate` G-2).
+
+### Execução do F4 — 2026-09-05 (CT 100, MySQL real)
+
+| item | veredito | recibo |
+|---|---|---|
+| Pest do F2 na lane MySQL | **6 `pass` (17 assertions) · 2 `skip`** no cenário idêntico ao do CI | manifesto `scripts/casos-test-results.json`; JUnit de `vendor/bin/pest --log-junit` |
+| os 8 UCs, com `system.repair_version` presente | **8 `pass` (30 assertions)** | mesmo container, cenário com o módulo declarado instalado |
+| prova por aba (UC-02/06) | ✅ as duas direções | os dois UCs passam |
+| não-apagamento / contrato destrutivo (UC-03) | ✅ | UC passa |
+| smoke 1280px com screenshot | ❌ **não executado** | staging sem `public/build/manifest.json`; container sem `node`; checkout 432 commits atrás com trabalho de terceiros — ver charter §Pendências |
+| comparação com protótipo | **n/a por decisão declarada** | `node prototipo-ui/ancora.mjs Repair/Settings` → *"sem âncora … declaração legítima — a tela nasce do DS"*. Não há lado "design" para o `design-diff --compare`. |
+
+**Três defeitos do F2 que só o runtime revelou** — todos corrigidos no PR do F4:
+
+1. **A suíte matava a lane sem output.** `index()` chama `ModuleUtil::getTaxonomyData('device')` (linha 80, antes do branch Inertia, logo nos dois caminhos), e esse método do core faz `echo` + **`exit`** quando o tipo não é encontrado (`app/Utils/ModuleUtil.php:549-551`). `exit` não é exception: derrubava o processo com `rc=2` e **0 byte** em stdout/stderr, levando junto os 6 UCs que já tinham passado. Gatilho: `isModuleInstalled('Repair')` lê `system.repair_version`, e a tabela `system` tem **0 linhas** tanto no CT 100 quanto no seed do CI. Corrigido com guard que pula visível.
+2. **O contrato não era exercido por lane nenhuma.** Na `modules-pest` (job *Pest Repair*) o driver é **sqlite** e os 8 UCs pulam no primeiro guard, com o job saindo `success` — falso-verde (LC-13), verificado no run `33938642020`. A lane com MySQL (`verticais-pest`) roda **allowlist** e este arquivo não estava nela. Corrigido incluindo-o na allowlist.
+3. **Dois UCs nunca teriam passado.** UC-RSET-07 fazia `return` silencioso quando a rota devolvia ≥500 e **contava como passed escondendo o erro**; UC-RSET-08 enviava `X-Inertia-Version: 'test'` e recebia **409** (a versão real também dá 409 — nesta lane ela é string vazia; o caminho que devolve 200 é o GET normal). Ambos corrigidos e agora provados.
 
 ## F5 CUTOVER
 
