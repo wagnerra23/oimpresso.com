@@ -19,6 +19,22 @@ name: Modules Pest
 # unica barreira de tenant do modulo: mfg_recipes NAO tem business_id direto).
 # Wave29 fica TAMBEM na lista sqlite de proposito: la roda em todo PR; aqui so
 # quando o modulo muda.
+#
+# 2026-09-04 — AssetManagement (Patrimonio) entrou na matrix, MESMA patologia
+# medida um dia depois da de Manufacturing. Ate aqui os 9 arquivos de
+# Modules/AssetManagement/Tests estavam registrados no phpunit.xml (linha 51) e
+# NENHUM rodava em CI: .github/ci-sqlite-pest.list (542 linhas) nao tem uma
+# entrada 'asset', a matrix daqui nao tinha o modulo, e nenhum workflow do repo
+# nomeava AssetManagement (controle positivo na mesma varredura: OficinaAuto
+# aparece em 3). Falsa cobertura de 9 arquivos, incl. CrossTenantAssetTest e
+# MultiTenantIsolationTest — as duas defesas Tier 0 do modulo (ADR 0093).
+# Foi essa cegueira que deixou passar: 3 dos 5 FormRequests sem NENHUM
+# invocador (os controllers recebem Request cru), e 4 arquivos vivos
+# — Config/retention.php, AssetManagementHealthCommand, UpdateAssetMaintenanceRequest
+# e LgpdComplianceTest — escritos contra as tabelas am_assets/am_maintenance_logs,
+# que migration nenhuma do repo cria (as reais sao assets/asset_maintenances).
+# O endereco de UI do modulo e Pages/Patrimonio/** por decisao [W] de 2026-09-04
+# (modulo proprio; ADR 0180/0182 divergiam e o SCOPE.md aguardava a decisao).
 
 on:
   workflow_dispatch:
@@ -28,6 +44,8 @@ on:
     paths:
       - 'Modules/Arquivos/**'
       - 'resources/js/Pages/Arquivos/**'
+      - 'Modules/AssetManagement/**'
+      - 'resources/js/Pages/Patrimonio/**'
       - 'Modules/ComunicacaoVisual/**'
       - 'resources/js/Pages/ComunicacaoVisual/**'
       - 'Modules/Connector/**'
@@ -49,6 +67,8 @@ on:
     paths:
       - 'Modules/Arquivos/**'
       - 'resources/js/Pages/Arquivos/**'
+      - 'Modules/AssetManagement/**'
+      - 'resources/js/Pages/Patrimonio/**'
       - 'Modules/ComunicacaoVisual/**'
       - 'resources/js/Pages/ComunicacaoVisual/**'
       - 'Modules/Connector/**'
@@ -76,6 +96,7 @@ jobs:
       matrix:
         module:
           - Arquivos
+          - AssetManagement
           - ComunicacaoVisual
           - Connector
           - Fiscal
