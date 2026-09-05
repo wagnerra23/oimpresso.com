@@ -72,7 +72,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Regressão que defende:** aqui a defesa é **dupla** — `where('business_id', …)` explícito **e**
   o global scope. Justamente por ser dupla, remover uma não quebra nada visível. O UC fixa o
   **comportamento**, para que a remoção da última defesa apareça. Complementa o
-  `UC-APROV-02` (lote cross-tenant) pelo lado da leitura.
+  `UC-PAPR-02` (lote cross-tenant) pelo lado da leitura.
 - **Nota `[V0]` de PII:** o teste compara **ids**, nunca o texto da justificativa — a fixture usa
   texto neutro e o assert não imprime conteúdo de intercorrência.
 - **Nota de teste:** biz=1 vs stub biz=99 — **nunca biz=4** ([ADR 0101]).
