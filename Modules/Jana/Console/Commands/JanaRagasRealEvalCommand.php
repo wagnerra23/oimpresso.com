@@ -369,7 +369,7 @@ class JanaRagasRealEvalCommand extends Command
 
                 continue;
             }
-            $context = $kb->renderFontes($docs);
+            $context = $kb->renderFontes($docs, $question);
 
             // FASE 2 — síntese REAL (gpt-4o-mini). Falha = sinal, não tautologia.
             try {

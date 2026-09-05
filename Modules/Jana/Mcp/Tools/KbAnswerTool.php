@@ -155,7 +155,7 @@ class KbAnswerTool extends Tool
         }
 
         // FASE 2 — Síntese IA (laravel/ai SDK, gpt-4o-mini).
-        $blocoFontes = $svc->renderFontes($docs);
+        $blocoFontes = $svc->renderFontes($docs, $pergunta);
 
         // Anexado DEPOIS do summarize (o auto-summary pode cortar o miolo da resposta;
         // o aviso não pode sumir junto) e no FIM, pra não quebrar o `Resposta:` inicial
