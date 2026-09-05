@@ -14,7 +14,7 @@ module: Repair
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Repair/**` + `resources/js/Pages/Repair/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 192 arquivos em 17 papéis.
+**Total mapeado:** 193 arquivos em 17 papéis.
 
 ## Controllers — 11
 
@@ -186,8 +186,9 @@ module: Repair
 - [Show.charter.md](../../../resources/js/Pages/Repair/Show.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Repair/Status/Index.charter.md)
 
-## Casos (contrato UC) — 1
+## Casos (contrato UC) — 2
 
+- [Index.casos.md](../../../resources/js/Pages/Repair/ProducaoOficina/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Repair/Settings/Index.casos.md)
 
 ## Testes (Pest) — 23
