@@ -131,7 +131,7 @@ it('UC-JSC-02: a OS nasce fora do pipeline FSM, com estágio vazio', function ()
 // UC-JSC-03 — o botão escolhido decide para onde o operador vai
 // ─────────────────────────────────────────────────────────────────────────────
 
-it('UC-JSC-03: cada submit_type leva a OS recém-criada ao seu destino', function () {
+it('UC-JSC-03: os atalhos de peças e documentos levam à OS recém-criada', function () {
     $biz = $this->seededTenant();
     $user = Fx::usuario((int) $biz->id);
     Fx::sessao((int) $biz->id, (int) $user->id);
@@ -139,23 +139,56 @@ it('UC-JSC-03: cada submit_type leva a OS recém-criada ao seu destino', functio
     $status = Fx::status((int) $biz->id);
 
     $destinos = [
-        'save' => fn (int $id) => "/repair/job-sheet/{$id}",
+        // Sem `submit_type` — é o caminho de "salvar" que a tela legada de fato exercita.
+        '' => fn (int $id) => "/repair/job-sheet/{$id}",
         'save_and_add_parts' => fn (int $id) => "/repair/job-sheet/add-parts/{$id}",
         'save_and_upload_docs' => fn (int $id) => "/repair/job-sheet/{$id}/upload-docs",
     ];
 
     foreach ($destinos as $submitType => $rotaEsperada) {
-        $contato = Fx::cliente((int) $biz->id, (int) $user->id, "Cliente {$submitType}");
+        $rotulo = $submitType === '' ? 'sem submit_type' : $submitType;
+        $contato = Fx::cliente((int) $biz->id, (int) $user->id, 'Cliente '.uniqid());
 
-        $resposta = $this->actingAs($user)->post('/repair/job-sheet', createOsPayload($contato, $status, [
-            'submit_type' => $submitType,
-        ]));
+        $extra = $submitType === '' ? [] : ['submit_type' => $submitType];
+        $resposta = $this->actingAs($user)->post('/repair/job-sheet', createOsPayload($contato, $status, $extra));
+
+        $resposta->assertSessionHasNoErrors();
 
         $criada = JobSheet::where('contact_id', $contato)->latest('id')->first();
 
-        expect($criada)->not->toBeNull("submit_type={$submitType} não criou a OS");
+        expect($criada)->not->toBeNull("{$rotulo} não criou a OS");
         $resposta->assertRedirect($rotaEsperada((int) $criada->id));
     }
+});
+
+it('UC-JSC-03: o botão "salvar" documentado no charter é aceito na abertura da OS', function () {
+    $biz = $this->seededTenant();
+    $user = Fx::usuario((int) $biz->id);
+    Fx::sessao((int) $biz->id, (int) $user->id);
+
+    $status = Fx::status((int) $biz->id);
+    $contato = Fx::cliente((int) $biz->id, (int) $user->id, 'Cliente '.uniqid());
+
+    // ⚠️ ACHADO ABERTO — divergência charter × código (medida no CT 100 em 2026-09-05):
+    // o charter lista *"Submit types: save · save_and_add_parts · save_and_upload_docs"* e o
+    // RUNBOOK repete os três como preservados do Blade. Mas `StoreJobSheetRequest` valida
+    // `'submit_type' => [... 'in:save_and_add_parts,save_and_upload_docs']` — o valor `save`
+    // NÃO está na lista, então a requisição é recusada na validação e a OS não é criada.
+    //
+    // O caminho vivo escapa por sorte: a tela legada não envia o campo no botão Salvar, e o
+    // `nullable` cobre a ausência (é o que o teste acima prova, verde). Uma Page Inertia que
+    // enviasse `save` explicitamente — como os dois documentos mandam — falharia em silêncio,
+    // com redirect de volta e a OS não criada.
+    //
+    // Fica VERMELHO de propósito. Não é conserto desta sessão porque as duas saídas são
+    // decisão [W] e apontam para lados opostos: aceitar `save` na validação, ou corrigir
+    // charter e RUNBOOK para dizer que o botão Salvar não envia o campo.
+    $resposta = $this->actingAs($user)->post('/repair/job-sheet', createOsPayload($contato, $status, [
+        'submit_type' => 'save',
+    ]));
+
+    $resposta->assertSessionHasNoErrors();
+    expect(JobSheet::where('contact_id', $contato)->latest('id')->first())->not->toBeNull();
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

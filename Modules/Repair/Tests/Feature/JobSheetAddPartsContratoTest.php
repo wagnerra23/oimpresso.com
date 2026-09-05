@@ -160,7 +160,7 @@ it('UC-JSP-02: submeter sem nenhuma peça zera a lista da OS', function () {
 // UC-JSP-03 — OS de outro tenant é invisível (Tier 0, ADR 0093)
 // ─────────────────────────────────────────────────────────────────────────────
 
-it('UC-JSP-03: não abre nem grava peças em OS de outro negócio', function () {
+it('UC-JSP-03: não lê nem altera as peças de OS de outro negócio', function () {
     $biz = $this->seededTenant();
     $vizinho = $this->seededSupportClientTenant();
 
@@ -180,14 +180,44 @@ it('UC-JSP-03: não abre nem grava peças em OS de outro negócio', function () 
         ['parts' => json_encode([])]
     );
 
+    // Leitura: a tela do vizinho não abre.
     $this->actingAs($user)->get("/repair/job-sheet/add-parts/{$osAlheia}")->assertNotFound();
 
+    // Escrita: seja qual for o código de resposta (ver o UC-JSP-03 de resposta, abaixo),
+    // o DADO do vizinho não pode se mexer. Esta é a metade que protege o outro negócio.
+    $this->actingAs($user)->post("/repair/job-sheet/save-parts/{$osAlheia}", [
+        'parts' => [(string) $peca => ['quantity' => 1]],
+    ]);
+
+    expect(JobSheet::withoutGlobalScopes()->find($osAlheia)->parts)->toBe([]);
+});
+
+it('UC-JSP-03: a tentativa de gravar peças em OS de outro negócio responde 404', function () {
+    $biz = $this->seededTenant();
+    $vizinho = $this->seededSupportClientTenant();
+
+    $user = Fx::usuario((int) $biz->id);
+    Fx::sessao((int) $biz->id, (int) $user->id);
+
+    $donoVizinho = Fx::usuario((int) $vizinho->id, false);
+    $contatoVizinho = Fx::cliente((int) $vizinho->id, (int) $donoVizinho->id);
+    $statusVizinho = Fx::status((int) $vizinho->id);
+    $peca = Fx::peca((int) $biz->id, (int) $user->id);
+    $osAlheia = Fx::os((int) $vizinho->id, $contatoVizinho, $statusVizinho, (int) $donoVizinho->id);
+
+    // ⚠️ ACHADO ABERTO (medido no CT 100 em 2026-09-05): esta asserção FALHA hoje com
+    // "500 is identical to 404" + `ErrorException: Undefined variable $job_sheet` em
+    // JobSheetController.php:1139. O `saveParts` envolve o `findOrFail` num try/catch que
+    // engole a ModelNotFoundException; o fluxo segue e o `return redirect()` usa
+    // `$job_sheet`, que nunca chegou a ser atribuído.
+    //
+    // Fica VERMELHO de propósito. O dado do vizinho está protegido (o UC-JSP-03 acima
+    // prova isso, verde), mas a rota devolve 500 em vez de 404 e o catch registra a falha
+    // como se fosse sucesso. Consertar o controller mexe no caminho de gravação de peças
+    // — Tier 0 sob a REGRA MESTRE — e é decisão [W], não conserto silencioso desta sessão.
     $this->actingAs($user)->post("/repair/job-sheet/save-parts/{$osAlheia}", [
         'parts' => [(string) $peca => ['quantity' => 1]],
     ])->assertNotFound();
-
-    // E a OS do vizinho continua intacta — 404 que ainda assim gravasse seria pior.
-    expect(JobSheet::withoutGlobalScopes()->find($osAlheia)->parts)->toBe([]);
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -233,7 +263,22 @@ it('UC-JSP-05: peça de outro negócio não aparece na OS', function () {
     // passa por `buildJobSheetPartsPayload`). Medir aqui é medir o que a tela mostraria.
     $exibidas = JobSheet::find($osId)->getPartsUsed();
 
-    expect($exibidas)->not->toHaveKey($pecaAlheia);
+    // ⚠️ ACHADO ABERTO Tier 0 (medido no CT 100 em 2026-09-05): esta asserção FALHA hoje.
+    // A peça do outro negócio aparece, com o NOME do produto dele junto. Duas causas
+    // somadas: `saveParts` grava o identificador de peça vindo do formulário sem conferir
+    // de quem ele é; e `getPartsUsed()` resolve o nome com `Variation::whereIn('id', ...)`,
+    // enquanto `variations` não tem `business_id` (o dono do tenant é `products`) nem
+    // escopo global — medido em `app/Variation.php`: zero `addGlobalScope`.
+    //
+    // Fica VERMELHO de propósito: é achado de isolamento (ADR 0093, Tier 0 irrevogável)
+    // e a correção é decisão [W]. A mensagem cita o nome resolvido para o recibo ser
+    // legível sem reproduzir o cenário.
+    $nomeVazado = $exibidas[$pecaAlheia]['variation_name'] ?? '(nenhum)';
+
+    expect($exibidas)->not->toHaveKey(
+        $pecaAlheia,
+        "peça do negócio vizinho exibida na OS; nome resolvido: {$nomeVazado}"
+    );
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

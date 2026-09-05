@@ -97,7 +97,7 @@ it('UC-JSE-01: salvar a edição não move o estágio FSM da OS', function () {
 // UC-JSE-02 — OS de outro negócio é invisível (Tier 0, ADR 0093)
 // ─────────────────────────────────────────────────────────────────────────────
 
-it('UC-JSE-02: não abre nem grava edição de OS de outro negócio', function () {
+it('UC-JSE-02: não lê nem altera OS de outro negócio', function () {
     $biz = $this->seededTenant();
     $vizinho = $this->seededSupportClientTenant();
 
@@ -111,16 +111,45 @@ it('UC-JSE-02: não abre nem grava edição de OS de outro negócio', function (
         'serial_no' => 'SN-DO-VIZINHO',
     ]);
 
+    // Leitura: a edição do vizinho não abre.
     $this->actingAs($user)->get("/repair/job-sheet/{$osAlheia}/edit")->assertNotFound();
 
+    // Escrita: seja qual for o código de resposta (ver o UC-JSE-02 de resposta, abaixo),
+    // o DADO do vizinho não pode se mexer. Esta é a metade que protege o outro negócio.
+    $this->actingAs($user)->put("/repair/job-sheet/{$osAlheia}", [
+        'contact_id' => $contatoVizinho,
+        'serial_no' => 'INVADIDO',
+    ]);
+
+    $intacta = DB::table('repair_job_sheets')->where('id', $osAlheia)->value('serial_no');
+    expect((string) $intacta)->toBe('SN-DO-VIZINHO');
+});
+
+it('UC-JSE-02: a tentativa de editar OS de outro negócio responde 404', function () {
+    $biz = $this->seededTenant();
+    $vizinho = $this->seededSupportClientTenant();
+
+    $user = Fx::usuario((int) $biz->id);
+    Fx::sessao((int) $biz->id, (int) $user->id);
+
+    $donoVizinho = Fx::usuario((int) $vizinho->id, false);
+    $contatoVizinho = Fx::cliente((int) $vizinho->id, (int) $donoVizinho->id);
+    $statusVizinho = Fx::status((int) $vizinho->id);
+    $osAlheia = Fx::os((int) $vizinho->id, $contatoVizinho, $statusVizinho, (int) $donoVizinho->id);
+
+    // ⚠️ ACHADO ABERTO (medido no CT 100 em 2026-09-05): esta asserção FALHA hoje com
+    // "302 is identical to 404". O `update` envolve o `findOrFail` num try/catch que engole
+    // a ModelNotFoundException e cai no `redirect()->back()` com "algo deu errado" — a
+    // mesma família do achado em `saveParts`, que ali produz 500 em vez de 302.
+    //
+    // Fica VERMELHO de propósito. O dado do vizinho está protegido (o UC-JSE-02 acima
+    // prova isso, verde); o que quebra é o contrato da RESPOSTA — um recurso de outro
+    // negócio precisa ser indistinguível de inexistente, e um 302 com mensagem genérica
+    // confirma que o id existe. A correção é decisão [W].
     $this->actingAs($user)->put("/repair/job-sheet/{$osAlheia}", [
         'contact_id' => $contatoVizinho,
         'serial_no' => 'INVADIDO',
     ])->assertNotFound();
-
-    // A OS do vizinho continua intacta — 404 que ainda assim gravasse seria pior.
-    $intacta = DB::table('repair_job_sheets')->where('id', $osAlheia)->value('serial_no');
-    expect((string) $intacta)->toBe('SN-DO-VIZINHO');
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
