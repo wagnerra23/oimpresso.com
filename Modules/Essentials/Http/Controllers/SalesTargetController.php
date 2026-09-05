@@ -5,6 +5,7 @@ namespace Modules\Essentials\Http\Controllers;
 use App\User;
 use App\Utils\ModuleUtil;
 use DB;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
@@ -93,7 +94,7 @@ class SalesTargetController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  Request  $request
-     * @return Response
+     * @return RedirectResponse
      */
     public function saveSalesTarget(Request $request)
     {
