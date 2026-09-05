@@ -90,7 +90,7 @@
     },
     {
       "screen": "Fiscal",
-      "note": "29 arquivo(s)",
+      "note": "35 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -123,7 +123,7 @@
     },
     {
       "screen": "Manufacturing",
-      "note": "7 arquivo(s)",
+      "note": "8 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -156,7 +156,7 @@
     },
     {
       "screen": "Repair",
-      "note": "13 arquivo(s)",
+      "note": "14 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "yes",
@@ -422,8 +422,8 @@
   "progressPct": 37,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "c9880a6b3",
-  "generatedAt": "2026-09-04T13:59:10.213Z",
+  "measuredAgainstSha": "adf6f0276",
+  "generatedAt": "2026-09-05T12:56:46.343Z",
   "treeGuard": {
     "pass": true,
     "violations": 0
