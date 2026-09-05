@@ -10,8 +10,10 @@ use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Modules\Essentials\Entities\EssentialsLeave;
 use Modules\Essentials\Entities\EssentialsLeaveType;
+use Modules\Essentials\Http\Requests\StoreLeaveRequest;
 use Modules\Essentials\Notifications\LeaveStatusNotification;
 use Modules\Essentials\Notifications\NewLeaveNotification;
+use Modules\Essentials\Services\LeaveBalanceService;
 use Modules\Essentials\Services\LeaveRequestService;
 use Spatie\Activitylog\Models\Activity;
 use Yajra\DataTables\Facades\DataTables;
@@ -34,15 +36,26 @@ class EssentialsLeaveController extends Controller
     protected LeaveRequestService $leaveService;
 
     /**
+     * HRM-O6 PR-3: dono único da regra de limite por tipo (achado A3).
+     *
+     * @see Modules\Essentials\Services\LeaveBalanceService
+     */
+    protected LeaveBalanceService $leaveBalance;
+
+    /**
      * Constructor
      *
      * @param  ProductUtils  $product
      * @return void
      */
-    public function __construct(ModuleUtil $moduleUtil, ?LeaveRequestService $leaveService = null)
-    {
+    public function __construct(
+        ModuleUtil $moduleUtil,
+        ?LeaveRequestService $leaveService = null,
+        ?LeaveBalanceService $leaveBalance = null
+    ) {
         $this->moduleUtil = $moduleUtil;
         $this->leaveService = $leaveService ?? new LeaveRequestService($moduleUtil);
+        $this->leaveBalance = $leaveBalance ?? new LeaveBalanceService;
         $this->leave_statuses = $this->leaveService->statusMap();
     }
 
@@ -184,10 +197,13 @@ class EssentialsLeaveController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  Request  $request
-     * @return Response
+     * Validação em `StoreLeaveRequest` (HRM-O6 PR-2, achado A2) e limite do tipo em
+     * `LeaveBalanceService` (PR-3, achado A3). Antes disso o método aceitava período
+     * invertido, motivo vazio, tipo de outro tenant e `employees[]` de outro negócio.
+     *
+     * @return \Illuminate\Http\JsonResponse|array<string, mixed>
      */
-    public function store(Request $request)
+    public function store(StoreLeaveRequest $request)
     {
         $business_id = request()->session()->get('user.business_id');
 
@@ -201,6 +217,13 @@ class EssentialsLeaveController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // Tier 0 (ADR 0093): reconfirma na hora do INSERT. O `exists` escopado do
+        // FormRequest valida a leitura; o global scope não alcança o INSERT.
+        $request->confirmarColaboradoresDoTenant();
+
+        $criar_para_terceiros = auth()->user()->can('essentials.crud_all_leave')
+            && ! empty($request->input('employees'));
+
         try {
             $input = $request->only(['essentials_leave_type_id', 'start_date', 'end_date', 'reason']);
 
@@ -209,9 +232,36 @@ class EssentialsLeaveController extends Controller
             $input['start_date'] = $this->moduleUtil->uf_date($input['start_date']);
             $input['end_date'] = $this->moduleUtil->uf_date($input['end_date']);
 
+            $destinatarios = $criar_para_terceiros
+                ? $request->colaboradoresDoTenant()
+                : [(int) request()->session()->get('user.id')];
+
+            // PR-3 (achado A3): limite do tipo, por colaborador. Recusa ANTES de abrir
+            // a transação e diz o saldo restante (UC-HRM-03).
+            $tipo = EssentialsLeaveType::where('business_id', $business_id)
+                ->findOrFail($input['essentials_leave_type_id']);
+
+            foreach ($destinatarios as $user_id) {
+                $saldo = $this->leaveBalance->avaliar(
+                    $tipo,
+                    (int) $business_id,
+                    (int) $user_id,
+                    (string) $input['start_date'],
+                    (string) $input['end_date']
+                );
+
+                if (! $saldo['cabe']) {
+                    return response()->json([
+                        'success' => false,
+                        'msg'     => $saldo['mensagem'],
+                        'errors'  => ['essentials_leave_type_id' => [$saldo['mensagem']]],
+                    ], 422);
+                }
+            }
+
             DB::beginTransaction();
-            if (auth()->user()->can('essentials.crud_all_leave') && ! empty($request->input('employees'))) {
-                foreach ($request->input('employees') as $user_id) {
+            if ($criar_para_terceiros) {
+                foreach ($destinatarios as $user_id) {
                     $this->__addLeave($input, $user_id);
                 }
             } else {
@@ -334,6 +384,33 @@ class EssentialsLeaveController extends Controller
 
             $leave = EssentialsLeave::where('business_id', $business_id)
                             ->find($input['leave_id']);
+
+            // PR-3 (achado A3): aprovar também pode estourar o limite do tipo.
+            // Só barra a APROVAÇÃO — cancelar libera saldo e nunca é recusado.
+            // A própria licença é excluída da soma (`$leave->id`): ela já está contada
+            // como `pending` e contaria em dobro (UC-HRM-09).
+            if ($leave !== null && $input['status'] === LeaveRequestService::STATUS_APPROVED) {
+                $tipo = EssentialsLeaveType::where('business_id', $business_id)
+                    ->find($leave->essentials_leave_type_id);
+
+                if ($tipo !== null) {
+                    $saldo = $this->leaveBalance->avaliar(
+                        $tipo,
+                        (int) $business_id,
+                        (int) $leave->user_id,
+                        (string) $leave->start_date,
+                        (string) $leave->end_date,
+                        (int) $leave->id
+                    );
+
+                    if (! $saldo['cabe']) {
+                        return response()->json([
+                            'success' => false,
+                            'msg'     => $saldo['mensagem'],
+                        ], 422);
+                    }
+                }
+            }
 
             $leave->status = $input['status'];
             $leave->status_note = $input['status_note'];
