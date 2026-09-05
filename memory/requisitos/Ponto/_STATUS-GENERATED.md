@@ -19,16 +19,14 @@ authority: generated
 | US no SPEC | 14 |
 | CU no SDD | 14 |
 | Telas (.tsx) | 21 |
-| Telas com `casos.md` | 17 |
-| UC declarados | 63 |
-| UC com teste que os cita | 61 |
+| Telas com `casos.md` | 19 |
+| UC declarados | 66 |
+| UC com teste que os cita | 64 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
 | Lacuna | O que falta escrever |
 |---|---|
-| Tela `Configuracoes/Index` sem `casos.md` | o contrato da tela (trio incompleto) |
-| Tela `Configuracoes/Reps` sem `casos.md` | o contrato da tela (trio incompleto) |
 | Tela `Escalas/Index` sem `casos.md` | o contrato da tela (trio incompleto) |
 | Tela `Welcome` sem `casos.md` | o contrato da tela (trio incompleto) |
 | `US-PONTO-001` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Relogio web pra registrar entrada/saida (REP-P) |
@@ -69,6 +67,9 @@ authority: generated
 | UC-BHSHOW-01 | BancoHoras/Show | 🧪 aguarda veredito da lane |
 | UC-BHSHOW-02 | BancoHoras/Show | 🧪 aguarda veredito da lane |
 | UC-BHSHOW-03 | BancoHoras/Show | 🧪 aguarda veredito da lane |
+| UC-CFGIDX-01 | Configuracoes/Index | 🧪 aguarda veredito da lane |
+| UC-CFGREP-01 | Configuracoes/Reps | 🧪 aguarda veredito da lane |
+| UC-CFGREP-02 | Configuracoes/Reps | 🧪 aguarda veredito da lane |
 | UC-COLEDT-01 | Colaboradores/Edit | 🧪 aguarda veredito da lane |
 | UC-COLEDT-02 | Colaboradores/Edit | 🧪 aguarda veredito da lane |
 | UC-COLIDX-01 | Colaboradores/Index | 🧪 aguarda veredito da lane |
