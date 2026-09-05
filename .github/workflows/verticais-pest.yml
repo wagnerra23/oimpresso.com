@@ -171,6 +171,19 @@ jobs:
         # diferença importou: o console marcou os 3 do Repair como WARN, mas 2 deles
         # estão VERDES (têm casos pulados junto dos que passam). Confiar no console
         # teria excluído 2 arquivos bons. Arquivo com passed=0 também sai verde lá.
+        #
+        # ENTRA 2026-09-05 — Repair/RepairSettingsContratoTest (F4 QA da Onda 1):
+        # o contrato de gravação das configurações do Repair não era exercido por lane
+        # NENHUMA. Ele exige MySQL (o `beforeEach` pula em sqlite por causa do schema de
+        # `business`), então na `modules-pest` os 8 UCs saíam SKIPPED e o job dava
+        # success — falso-verde de manual (LC-13). Aqui roda de verdade.
+        # Medido no CT 100 (MySQL real, 2026-09-05) com o ambiente igual ao desta lane
+        # — isto é, `system.repair_version` ausente, que é como o seed a deixa:
+        #   6 passed (17 assertions) + 2 skipped  ⇒ VERDE pelo critério da catraca.
+        # Os 2 skipped são UC-RSET-07/08, os únicos que passam por `index()`; eles
+        # pulam VISÍVEL porque `ModuleUtil::getTaxonomyData` faz `exit` quando o módulo
+        # não consta instalado. Com `system.repair_version` presente os 8 passam
+        # (30 assertions) — a dívida é do seed, e está declarada no charter da tela.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -187,6 +200,7 @@ jobs:
             Modules/ComunicacaoVisual/Tests/Feature/Tier0GuardTest.php \
             Modules/Repair/Tests/Feature/DeviceModelsInertiaSmokeTest.php \
             Modules/Repair/Tests/Feature/ProducaoOficinaRefactorTest.php \
+            Modules/Repair/Tests/Feature/RepairSettingsContratoTest.php \
             Modules/Vestuario/Tests/Feature/SmokeRoutesVestuarioTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminDashboardContratoTest.php \
             Modules/Superadmin/Tests/Feature/SubscriptionLifecycleServiceTest.php \

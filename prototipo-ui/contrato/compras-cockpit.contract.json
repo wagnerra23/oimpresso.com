@@ -1,0 +1,58 @@
+{
+  "_nota": "Contrato de Tela do cockpit de Compras (rota /compras). Declara copy + ordem que a tela viva ja sustenta, pra que uma regressao de texto/estrutura vire vermelho no gate. Schema: prototipo-ui/contrato/contract.schema.json (ADR 0286). Ancoras data-contract instrumentadas no PR imediatamente anterior.",
+  "tela": "Compras/Index",
+  "fonte": "prototipo-ui/cowork/compras-page.jsx",
+  "_nota_fonte": "Ancora resolvida pelo dono (`node prototipo-ui/ancora.mjs Compras/Index --staging prototipo-ui/cowork`), via `related_prototype` do charter. ATENCAO — a copy abaixo deriva da TELA VIVA, nao do prototipo, e a diferenca e deliberada: o prototipo desenha uma tabbar de area com 3 abas (Painel · Pedidos · Fornecedores) e 8 colunas (inclui `Itens`), enquanto a tela entregue tem uma tabbar de FILTRO com 4 abas (Todas · A pagar · Rascunhos · Em transito) e 7 colunas. Declarar a copy do prototipo faria o gate reprovar a tela no primeiro run, e um contrato que nasce vermelho e ruido, nao catraca. Mesmo precedente de `jana-painel.contract.json` (\"a copy deste contrato deriva da TELA VIVA\") e de `ponto-painel.contract.json` (\"ponteiro podre atualiza; o resto do contrato veio verbatim\"). O gap prototipo x producao esta declarado em `_pendente_w` — ele e trabalho de produto, nao defeito de contrato.",
+  "alvo": ["resources/js/Pages/Compras/Index.tsx"],
+  "_nota_alvo": "Arquivo unico. O drawer de detalhe vive em `resources/js/Pages/Compras/components/Drawer.tsx` e NAO entra neste contrato: as abas dele (Resumo/Itens/Documentos/Pagamentos/Historico) sao outra superficie, e declara-las aqui misturaria duas telas num contrato so.",
+
+  "secoes": [
+    {
+      "id": "compras-cabecalho",
+      "copy": [
+        "Compras",
+        "Buscar NF-e, fornecedor, ref, chave...",
+        "Importar XML",
+        "Nova compra"
+      ],
+      "estados": ["com-permissao-create", "sem-permissao-create"]
+    },
+    {
+      "id": "compras-abas",
+      "copy": ["Todas", "A pagar", "Rascunhos", "Em trânsito"],
+      "estados": ["all", "abertas", "rascunhos", "transito"]
+    },
+    {
+      "id": "compras-kpis",
+      "copy": [
+        "A pagar",
+        "Em trânsito",
+        "Volume do mês",
+        "Fornecedores ativos"
+      ],
+      "estados": ["carregado", "carregando"]
+    },
+    {
+      "id": "compras-tabela",
+      "copy": [
+        "Ação",
+        "Compra (ref)",
+        "Fornecedor",
+        "Data",
+        "Estágio",
+        "Total",
+        "Nenhuma compra encontrada com o filtro atual."
+      ],
+      "estados": ["com-linhas", "vazio"]
+    }
+  ],
+
+  "ordem": ["compras-cabecalho", "compras-abas", "compras-kpis", "compras-tabela"],
+
+  "_pendente_w": [
+    "GAP prototipo x producao (medido nesta sessao, nao e regressao): o prototipo `compras-page.jsx` tem tabbar de AREA com `Painel`/`Pedidos`/`Fornecedores` e um painel de concentracao por fornecedor; a tela viva tem tabbar de FILTRO (`Todas`/`A pagar`/`Rascunhos`/`Em transito`). Sao dois desenhos diferentes de navegacao, nao uma copy trocada. Decidir qual vale antes de qualquer onda de fidelidade — se o prototipo vencer, este contrato muda junto, no mesmo PR.",
+    "Coluna `Itens` existe no prototipo (`SortTh col=\"itens\"`) e nao existe em COLUMNS da tela. Fica fora da copy declarada ate a decisao acima.",
+    "`Importar XML` e `+ Nova compra` estao declarados sem o glyph (`↓`/`+`) de proposito: o glyph e decoracao adjacente ao texto, e pina-lo travaria a troca por icone lucide — que e desvio legitimo previsto no RUNBOOK §2.4 (`design-deviation`). Se [W] quiser o glyph como contrato, ele entra como literal aqui.",
+    "Frescor da fonte: `ancora.mjs` avisa SEM VEREDITO NOVO — `compras-page.jsx` foi verificado em 2026-08-27 e a rodada de 2026-09-03 mediu 1 de 258 arquivos, sem inclui-lo. O espelho pode estar atras do Cowork vivo e ninguem mediu; medir com `node scripts/governance/cowork-mirror-freshness.mjs --sla`."
+  ]
+}

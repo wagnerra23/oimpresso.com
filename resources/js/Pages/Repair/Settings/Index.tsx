@@ -13,7 +13,7 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Link, useForm } from '@inertiajs/react';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
@@ -185,9 +185,8 @@ export default function RepairSettingsIndex({
   return (
     <div className="container mx-auto space-y-6 p-4">
       <PageHeader
-        icon="settings"
         title="Configurações do Repair"
-        description="Padrões da folha de OS e o que sai impresso na etiqueta"
+        subtitle="Padrões da folha de OS e o que sai impresso na etiqueta"
       />
 
       {/* ── 1 · Folha de OS ─────────────────────────────────────────────── */}

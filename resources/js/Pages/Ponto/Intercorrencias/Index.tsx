@@ -112,9 +112,12 @@ export default function IntercorrenciasIndex({ intercorrencias, filtros }: Props
 
         <PageFilters activeChips={activeChips} onReset={hasFilters ? resetFilters : undefined} cols={2}>
           <div>
-            <label className="text-xs font-medium text-muted-foreground mb-1 block">Estado</label>
+            {/* htmlFor/id: o SelectTrigger do Radix é um <button role="combobox"> cujo texto
+                interno o axe não conta como nome acessível — sem a associação explícita ele
+                acusa `button-name` CRITICAL. Só atributo, zero pixel. */}
+            <label htmlFor="filtro-estado" className="text-xs font-medium text-muted-foreground mb-1 block">Estado</label>
             <Select value={filtros.estado ?? 'ALL'} onValueChange={(v) => filter('estado', v)}>
-              <SelectTrigger><SelectValue placeholder="Estado" /></SelectTrigger>
+              <SelectTrigger id="filtro-estado"><SelectValue placeholder="Estado" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">Todos os estados</SelectItem>
                 {Object.entries(estadoLabelMap).map(([v, l]) => (
@@ -124,9 +127,9 @@ export default function IntercorrenciasIndex({ intercorrencias, filtros }: Props
             </Select>
           </div>
           <div>
-            <label className="text-xs font-medium text-muted-foreground mb-1 block">Tipo</label>
+            <label htmlFor="filtro-tipo" className="text-xs font-medium text-muted-foreground mb-1 block">Tipo</label>
             <Select value={filtros.tipo ?? 'ALL'} onValueChange={(v) => filter('tipo', v)}>
-              <SelectTrigger><SelectValue placeholder="Tipo" /></SelectTrigger>
+              <SelectTrigger id="filtro-tipo"><SelectValue placeholder="Tipo" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">Todos os tipos</SelectItem>
                 {tipoOptions.map((o) => (
