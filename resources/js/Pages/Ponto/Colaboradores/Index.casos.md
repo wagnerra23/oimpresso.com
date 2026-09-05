@@ -71,12 +71,13 @@ last_run_ci: "2 UC rodados por mim no CT 100 (container oimpresso-staging, MySQL
 - **Contrato:** `CU-PONTO-12` (SDD §6.5) · US-PONTO-007 ·
   [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) ·
   charter §Non-Goals (*"Não lista colaborador de outro business"*).
-- **Regressão que defende:** desde 2026-09-05 a defesa desta tela é **dupla** — o global scope do
-  `HasBusinessScope` **e** o filtro do controller, que voltou a valer quando o bloco de busca ganhou
-  grupo próprio (ver `[BACKLOG]` acima, com o SQL medido dos dois estados). Remover o trait do model
-  ou chamar `withoutGlobalScopes()` "pra simplificar" deixa de ser fatal por si só, mas continua
-  sendo regressão que este caso pega. O que **volta** a ser fatal é desfazer o agrupamento do `OR`:
-  aí as duas defesas caem juntas e a busca vira um varredor de todos os empregadores.
+- **Regressão que defende — e o limite dela, medido:** desde 2026-09-05 a defesa é **dupla** (o
+  global scope do `HasBusinessScope` **e** o filtro do controller, que voltou a valer quando o bloco
+  de busca ganhou grupo próprio — ver `[BACKLOG]` acima, com o SQL dos dois estados). Consequência
+  honesta: este caso **só morde quando as duas caem**. Bite-test por mutação no CT 100 — só o trait
+  removido: `1 passed`; só o agrupamento desfeito: `1 passed`; **as duas juntas: `1 failed`** (3
+  asserts). Ele é rede contra a perda **completa** do isolamento desta busca, não um detector de
+  defesa enfraquecida. Mesmo desenho de `UC-ESCIDX-01` e `UC-CFGREP-01`.
 - **Como o assert é escrito, e por quê:** o caso busca pelo **CPF** do colaborador alheio e então
   procura a **matrícula** dele na resposta. Parece torto e é deliberado: o controller devolve o termo
   buscado na prop `search`, então procurar o termo que você mesmo buscou casa por **eco** e não prova
