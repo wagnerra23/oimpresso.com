@@ -4,6 +4,15 @@ declare(strict_types=1);
 
 /**
  * F4 QA — Inertia path purchase/edit (MWART Wave2 B5).
+ *
+ * ── Rastreabilidade (casos-gate G-2 · ADR 0264) ────────────────────────────
+ * Contrato: resources/js/Pages/Purchase/Edit.casos.md
+ *   @covers-uc UC-PUREDT-01  dual path — SPA recebe React, Blade legacy preservado
+ *   @covers-uc UC-PUREDT-06  formulario pre-populado com a compra, tipado (sem any leak)
+ *   @covers-uc UC-PUREDT-07  Tier 0 — a Page nao hardcoda business_id
+ *
+ * ⚠️ NATUREZA DA COBERTURA — ESTRUTURAL: 15 asserts de casamento de texto no fonte,
+ * ZERO requests HTTP. Classe LC-11 (presence-gate).
  */
 
 const EDIT_INERTIA_PATH = 'resources/js/Pages/Purchase/Edit.tsx';
