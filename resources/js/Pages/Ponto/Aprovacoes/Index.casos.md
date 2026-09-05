@@ -25,10 +25,10 @@ last_run_ci: "O bump e REVALIDACAO DE LEITURA disparada pelo G-6 (o .tsx mudou d
 
 | UC | Caso de uso | Prio | Âncora | Teste | Status |
 |----|-------------|------|--------|-------|--------|
-| UC-APROV-01 | Rejeitar exige motivo registrado | must | `CU-PONTO-06` + US-PONTO-003 | `JornadaWorkflowContratoTest` | 🧪 sem veredito |
-| UC-APROV-02 | Aprovação em lote não decide fora do meu empregador | must `[T0]` | `CU-PONTO-07` + ADR 0093 | `JornadaWorkflowContratoTest` | 🧪 sem veredito |
-| UC-APROV-03 | A fila abre no que está pendente | should | `CU-PONTO-06` + charter | `JornadaWorkflowContratoTest` | 🧪 sem veredito |
-| UC-APROV-04 | Urgente sobe na fila | should | `CU-PONTO-06` + F5 | `JornadaWorkflowContratoTest` | 🧪 sem veredito |
+| UC-PAPR-01 | Rejeitar exige motivo registrado | must | `CU-PONTO-06` + US-PONTO-003 | `JornadaWorkflowContratoTest` | 🧪 sem veredito |
+| UC-PAPR-02 | Aprovação em lote não decide fora do meu empregador | must `[T0]` | `CU-PONTO-07` + ADR 0093 | `JornadaWorkflowContratoTest` | 🧪 sem veredito |
+| UC-PAPR-03 | A fila abre no que está pendente | should | `CU-PONTO-06` + charter | `JornadaWorkflowContratoTest` | 🧪 sem veredito |
+| UC-PAPR-04 | Urgente sobe na fila | should | `CU-PONTO-06` + F5 | `JornadaWorkflowContratoTest` | 🧪 sem veredito |
 
 **[BACKLOG]:**
 
@@ -40,13 +40,13 @@ last_run_ci: "O bump e REVALIDACAO DE LEITURA disparada pelo G-6 (o .tsx mudou d
 
 ---
 
-## UC-APROV-01 · Rejeitar exige motivo registrado · `must`
+## UC-PAPR-01 · Rejeitar exige motivo registrado · `must`
 
 - **Persona:** gestor decidindo o atestado da equipe. Rejeição sem justificativa é passivo trabalhista —
   em reclamatória, "por que negou?" é a primeira pergunta.
 - **Aceite:** Dado uma intercorrência pendente · Quando tento rejeitá-la **sem informar motivo** · Então
   a rejeição é **recusada** (erro de validação) e a intercorrência **continua pendente**.
-- **Teste:** `Modules/Ponto/Tests/Feature/JornadaWorkflowContratoTest.php` — `UC-APROV-01`.
+- **Teste:** `Modules/Ponto/Tests/Feature/JornadaWorkflowContratoTest.php` — `UC-PAPR-01`.
 - **Contrato:** `CU-PONTO-06` (SDD §6.2) · US-PONTO-003 (aceitação: *"`solicitante_id`, `aprovador_id`,
   `aprovado_em`, `motivo_rejeicao`"*) · `AprovacaoController@rejeitar`
   (`'motivo' => 'required|string|max:500'`).
@@ -56,14 +56,14 @@ last_run_ci: "O bump e REVALIDACAO DE LEITURA disparada pelo G-6 (o .tsx mudou d
 
 ---
 
-## UC-APROV-02 · Aprovação em lote não decide fora do meu empregador · `must` `[T0]`
+## UC-PAPR-02 · Aprovação em lote não decide fora do meu empregador · `must` `[T0]`
 
 - **Persona:** plataforma multi-tenant. O lote recebe uma **lista de ids** vinda do cliente — é o vetor
   mais fácil de forjar de todo o módulo.
 - **Aceite:** Dado que envio para aprovação em lote uma lista contendo o id de uma intercorrência de
   **outro** business · Quando o lote é processado · Então essa intercorrência **permanece intacta** (não
   aprovada, sem aprovador registrado).
-- **Teste:** `JornadaWorkflowContratoTest.php` — `UC-APROV-02`.
+- **Teste:** `JornadaWorkflowContratoTest.php` — `UC-PAPR-02`.
 - **Contrato:** `CU-PONTO-07` (SDD §6.5) · US-PONTO-007 ·
   [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
 - **Regressão que defende:** medido no fonte — `AprovacaoController@{aprovar,rejeitar}` usam
@@ -76,13 +76,13 @@ last_run_ci: "O bump e REVALIDACAO DE LEITURA disparada pelo G-6 (o .tsx mudou d
 
 ---
 
-## UC-APROV-03 · A fila abre no que está pendente · `should`
+## UC-PAPR-03 · A fila abre no que está pendente · `should`
 
 - **Persona:** gestor que abre a tela para trabalhar, não para navegar. A fila é uma caixa de entrada:
   o default tem que ser "o que falta decidir".
 - **Aceite:** Dado que abro `/ponto/aprovacoes` sem escolher filtro · Então a fila vem filtrada pelas
   intercorrências **pendentes**, e o painel informa **quantas** existem em cada estado do ciclo.
-- **Teste:** `JornadaWorkflowContratoTest.php` — `UC-APROV-03`.
+- **Teste:** `JornadaWorkflowContratoTest.php` — `UC-PAPR-03`.
 - **Contrato:** `CU-PONTO-06` · `AprovacaoController@index` (default `ESTADO_PENDENTE`) ·
   US-PONTO-003 (6 estados canon) · charter §Mission.
 - **Regressão que defende:** trocar o default para "todas" enterra o pendente no meio do histórico —
@@ -91,13 +91,13 @@ last_run_ci: "O bump e REVALIDACAO DE LEITURA disparada pelo G-6 (o .tsx mudou d
 
 ---
 
-## UC-APROV-04 · Urgente sobe na fila · `should`
+## UC-PAPR-04 · Urgente sobe na fila · `should`
 
 - **Persona:** gestor com 40 itens pendentes. Um atestado urgente precisa aparecer antes do pedido de
   folga de mês que vem — senão a priorização vira sorte.
 - **Aceite:** Dado intercorrências pendentes com prioridades diferentes · Quando abro a fila · Então as
   **urgentes vêm antes** das normais, e dentro de cada grupo as mais recentes primeiro.
-- **Teste:** `JornadaWorkflowContratoTest.php` — `UC-APROV-04`.
+- **Teste:** `JornadaWorkflowContratoTest.php` — `UC-PAPR-04`.
 - **Contrato:** `CU-PONTO-06` · SDD §5.3 F5 (`orderByRaw("FIELD(prioridade,'URGENTE','NORMAL')")` +
   `orderByDesc('created_at')`).
 - **Regressão que defende:** a ordenação por prioridade é feita com expressão SQL específica de MySQL.
