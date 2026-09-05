@@ -84,10 +84,20 @@ class RepairSettingsController extends Controller
         // smoke real (R1), nunca efeito colateral de deploy.
         if ($this->mwartEnabled('repair_settings_index', (int) $business_id)) {
             // `contact_custom_fields` e `custom_labels` são consumidas pela aba de
-            // impressão e NÃO existiam no compact() do Blade — o partial
-            // (jobsheet_settings_tab.blade.php:56) dereferencia
-            // $contact_custom_fields sem que ninguém a defina. Varredura contada no
-            // repo: nenhum View::share. Aqui elas passam a ser fornecidas de fato.
+            // impressão e não vêm no compact() do Blade — aqui elas viram props porque
+            // o React não tem como derivá-las sozinho.
+            //
+            // ⚠️ CORRIGIDO em 2026-09-05 (F4 QA): a redação anterior dizia que o partial
+            // "dereferencia $contact_custom_fields sem que ninguém a defina" e que a
+            // varredura não achara `View::share`. A conclusão era FALSA — o partial
+            // define as duas na PRÓPRIA linha 4, a partir de $jobsheet_pdf_settings (que
+            // o compact() passa), 52 linhas acima do uso na 56. Renderizado no CT 100:
+            // 9143 bytes, sem warning. A varredura tinha procurado `View::share` fora de
+            // views e nunca abriu o arquivo acusado até o fim.
+            //
+            // O que MUDA com a correção: o branch Inertia continua tendo de passar as
+            // duas (o `@php` do Blade não existe no React), mas NÃO conserta erro vivo
+            // nenhum — não há mudança de comportamento a declarar por este motivo.
             // `(string)` de propósito: `session(...)` volta null em sessão nova, e passar null
             // pro json_decode é deprecado no PHP 8.1+ (viraria warning em prod, não erro).
             $custom_labels = json_decode((string) session('business.custom_labels'), true) ?: [];

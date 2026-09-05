@@ -23,6 +23,23 @@ uses(Tests\TestCase::class);
  * teste que pula sai com `0 failed` sem ter medido nada (LC-13) — e este contrato é
  * barato demais para ficar dependendo do CT 100 estar de pé.
  *
+ * POR QUE `toBeIn` E NÃO `toContain` — e por que trocar de volta reabre o defeito
+ * -----------------------------------------------------------------------------
+ * Medido em 2026-09-04 no Pest instalado (`vendor/pestphp/pest/src/Mixins/Expectation.php`):
+ * `toContain(mixed ...$needles)` não tem parâmetro de mensagem — TODO argumento é
+ * needle. Escrito `toContain($chave, "explicação")`, o Pest passa a exigir que o array
+ * contenha TAMBÉM a frase, e o teste reprova dizendo `Failed asserting that an array
+ * contains 'a superfície ...'` — texto do próprio teste, não veredito sobre o código.
+ * Foi o que este arquivo fez de 2026-09-04 (#6733) a 2026-09-05: as 4 asserções
+ * reprovaram na FORMA, sem nunca chegar a medir o contrato. O mesmo vale para
+ * `toHaveKey($key, $value, $message)`, cujo 2º parâmetro é o VALOR esperado.
+ *
+ * `toBeIn(iterable $values, string $message = '')` executa a MESMA
+ * `Assert::assertContains`, com a mensagem no lugar dela. É por isso que os asserts
+ * abaixo invertem sujeito e conjunto — não é estilo, é o único jeito de a explicação
+ * sobreviver sem virar needle. Anti-padrão já catalogado no projeto
+ * (`Wave27ComVisPolishTest`, 2026) e em `proibicoes.md` §5 2026-07-28.
+ *
  * NÃO É TAUTOLÓGICO (proibicoes §5 2026-06-05): a asserção não sai da implementação.
  * Sai do CU-FISC-16 do SDD §6.5 — *"a contadora precisa conseguir dizer o que é
  * leitura real e o que é demonstração"* —, que só se cumpre se as três pontas
@@ -79,8 +96,8 @@ it('UC-FCKP-13 · CU-FISC-16 · todo método mock* do controller tem superfície
             "o método {$metodo}() serve dado inventado e nenhuma chave de procedência o cobre — "
             . 'a tela mostraria o número sem selo, indistinguível de leitura real'
         );
-        expect($declaradosDemo)->toContain(
-            $chave,
+        expect($chave)->toBeIn(
+            $declaradosDemo,
             "a superfície '{$chave}' é alimentada por {$metodo}() mas está declarada como leitura real"
         );
     }
@@ -95,12 +112,12 @@ it('UC-FCKP-13 · CU-FISC-16 · nenhuma superfície declarada demonstração sob
             continue;
         }
 
-        expect(SUPERFICIES_DE_DEMONSTRACAO)->toHaveKey(
-            $chave,
+        expect($chave)->toBeIn(
+            array_keys(SUPERFICIES_DE_DEMONSTRACAO),
             "'{$chave}' está declarada como demonstração e o contrato não sabe qual método a alimenta"
         );
-        expect($metodosMock)->toContain(
-            SUPERFICIES_DE_DEMONSTRACAO[$chave],
+        expect(SUPERFICIES_DE_DEMONSTRACAO[$chave])->toBeIn(
+            $metodosMock,
             "'{$chave}' segue marcada como demonstração, mas o método que a alimentava não existe mais — "
             . 'se ela virou dado real, a declaração precisa mudar no mesmo diff'
         );
@@ -124,8 +141,8 @@ it('UC-FCKP-13 · CU-FISC-16 · toda chave que a tela sela existe na declaraçã
     $declaradas = array_keys(procedenciaDoCockpit());
 
     foreach ($chavesDaTela as $chave) {
-        expect($declaradas)->toContain(
-            $chave,
+        expect($chave)->toBeIn(
+            $declaradas,
             "a tela sela '{$chave}' e o controller não declara essa chave — o selo simplesmente "
             . 'não aparece, sem erro nenhum, e a superfície volta a parecer leitura real'
         );
@@ -134,8 +151,8 @@ it('UC-FCKP-13 · CU-FISC-16 · toda chave que a tela sela existe na declaraçã
 
 it('UC-FCKP-13 · CU-FISC-16 · toda superfície declara origem do vocabulário fechado e uma explicação', function () {
     foreach (procedenciaDoCockpit() as $chave => $p) {
-        expect(ORIGENS_VALIDAS)->toContain(
-            $p['origem'] ?? null,
+        expect($p['origem'] ?? null)->toBeIn(
+            ORIGENS_VALIDAS,
             "'{$chave}' declara uma origem fora do vocabulário — a tela não saberia que tom usar"
         );
         expect(trim($p['explica'] ?? ''))->not->toBe(

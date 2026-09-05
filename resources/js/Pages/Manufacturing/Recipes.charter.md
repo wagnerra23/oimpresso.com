@@ -101,6 +101,18 @@ mandar no Design System — cada pessoa veria uma cor diferente.
 **Regra:** as regras do bundle consomem `var(--color-primary)`. Quem "normalizar" de volta pra
 `--accent` reintroduz o bug.
 
+### O empate de especificidade do cabeçalho ordenado
+
+`.mfg-th.sort.act` (0,3,0) **empata** com `.mfg-root .mfg-th.sort` (0,3,0) do bloco §11
+(`--text-dim`), e no empate vence quem vem **depois** no arquivo — que é o §11.
+
+Até 2026-09-04 quem ganhava era o override de tema escuro, com especificidade maior. Ao
+removê-lo (por ser redundante), o cabeçalho **perdeu o acento e virou texto apagado** —
+medido em produção depois do deploy: matiz **90** (`oklch(0.72 0.005 90)`) em vez de 295.
+
+A regra `.mfg-root .mfg-th.sort.act` (0,4,0) resolve o empate sem ressuscitar o override.
+Quem mexer no bloco §11 precisa manter essa ordem de força.
+
 ⚠️ **A 1ª tentativa foi `.mfg-root{--accent:var(--color-primary)}` e o `foundation-guard`
 reprovou, com razão:** bundle de módulo **consome** token, nunca **define** (ADR UI-0013 — token
 só mora na fundação). Trocar o consumidor é o caminho, e é o que o precedente do Produto

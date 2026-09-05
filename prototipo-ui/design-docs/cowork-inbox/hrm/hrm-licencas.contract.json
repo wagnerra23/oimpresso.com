@@ -1,124 +1,72 @@
 {
-  "screen": "hrm-licencas",
-  "title": "Licenças (HRM)",
-  "route": "/hrm/leave",
-  "prototype": "hrm-page.jsx#Licencas",
-  "adr": "0286",
-  "sections": [
+  "_nota": "CORRIGIDO 2026-09-04 no PR-1 (HRM-O5) — o formato original usava `screen`/`route`/`sections`/`states`/`forbidden`/`agreements`, que NÃO é o schema deste repo (prototipo-ui/contrato/contract.schema.json exige `alvo` + `secoes`). Medido: `node scripts/contrato-de-tela.mjs --contract` devolvia `X contrato sem alvo (array) ou secoes (array)` + exit 1. NÃO é contrato VIGENTE ainda e por isso continua na caixa de entrada: `Modules/Essentials/Resources/js/Pages/Hrm/Licencas/Index.tsx` não existe (chega no PR-9), e contrato ativo com alvo inexistente falha o job `Preflight + contratos ativos` — que itera TODOS os contratos, logo avermelharia o gate pra qualquer PR que toque `Pages/**`. A doutrina é do próprio gate (scripts/contrato-de-tela.mjs linhas 125-135): `design-docs/cowork-inbox/ é CAIXA DE ENTRADA ... não contrato VIGENTE: ele só passa a valer quando alguém o APLICA a uma tela real`. Move pra prototipo-ui/contrato/ no PR-9, junto das âncoras data-contract.",
+  "tela": "Hrm/Licencas",
+  "fonte": "prototipo-ui/cowork/hrm-page.jsx",
+  "alvo": ["Modules/Essentials/Resources/js/Pages/Hrm/Licencas"],
+  "secoes": [
     {
       "id": "kpis",
-      "required": true,
-      "copy": [
-        "Pendentes",
-        "Aprovadas",
-        "Dias de licença em agosto",
-        "Tipos cadastrados"
-      ]
+      "copy": ["Pendentes", "Aprovadas", "Tipos cadastrados"],
+      "estados": ["carregando"]
     },
     {
       "id": "abas",
-      "required": true,
-      "copy": [
-        "Licenças",
-        "Saldo por tipo",
-        "Tipos de licença"
-      ]
+      "copy": ["Licenças", "Saldo por tipo", "Tipos de licença"]
     },
     {
       "id": "toolbar",
-      "required": true,
-      "copy": [
-        "Buscar por referência, colaborador, tipo ou motivo…",
-        "Todas as situações",
-        "Todos os tipos",
-        "Pedir licença"
-      ]
+      "copy": ["Todas as situações", "Todos os tipos", "Pedir licença"]
     },
     {
       "id": "tabela",
-      "required": true,
-      "copy": [
-        "Ref.",
-        "Tipo",
-        "Colaborador",
-        "Período",
-        "Motivo",
-        "Situação"
-      ]
+      "copy": ["Ref.", "Tipo", "Colaborador", "Período", "Motivo", "Situação"]
     },
     {
       "id": "situacoes",
-      "required": true,
-      "copy": [
-        "Pendente",
-        "Aprovada",
-        "Cancelada"
-      ]
+      "copy": ["Pendente", "Aprovada", "Cancelada"]
     },
     {
       "id": "acoes-linha",
-      "required": true,
-      "copy": [
-        "Aprovar",
-        "Cancelar"
-      ]
+      "copy": ["Aprovar", "Cancelar"],
+      "estados": ["sem-permissao-aprovar"]
     },
     {
       "id": "lote",
-      "required": true,
-      "copy": [
-        "licenças selecionadas",
-        "Aprovar",
-        "Cancelar licenças"
-      ]
+      "copy": ["Cancelar licenças"]
     },
     {
       "id": "vazio",
-      "required": true,
-      "copy": [
-        "Limpar busca e filtros"
-      ]
-    },
-    {
-      "id": "aviso-validacao",
-      "required": true,
-      "copy": [
-        "Pedir licença hoje não valida nada no servidor"
-      ]
+      "copy": ["Limpar busca e filtros"],
+      "estados": ["vazio-primeira-vez", "vazio-sem-resultado"]
     },
     {
       "id": "drawer",
-      "required": true,
-      "copy": [
-        "Pedido",
-        "Saldo do tipo",
-        "Conflitos no período",
-        "Histórico"
-      ]
+      "copy": ["Saldo do tipo", "Conflitos no período", "Histórico"],
+      "estados": ["somente-proprias"]
     }
   ],
-  "states": [
-    "carregando",
-    "vazio-primeira-vez",
-    "vazio-sem-resultado",
-    "sem-permissao-aprovar",
-    "somente-proprias"
-  ],
-  "forbidden": [
-    "chamar licença de \"Sair\" ou a lista de \"Todas as folhas\" (lang pt quebrado — achado A1)",
+  "ordem": ["kpis", "abas", "toolbar", "tabela", "vazio"],
+  "_proibicoes": [
+    "chamar licença de \"Sair\" ou a lista de \"Todas as folhas\" (lang pt quebrado — achado A1, PR-8)",
     "usar \"Comparecimento\" para presença ou \"Férias\" para feriado",
-    "oferecer editar licença (update() é vazio no servidor)",
-    "oferecer excluir tipo de licença sem guarda de uso (destroy vazio)",
+    "oferecer editar licença (update() é vazio no servidor — R9)",
+    "oferecer excluir tipo de licença sem guarda de uso (destroy vazio — A4)",
     "aprovar em lote sem dizer quantas e que o colaborador é notificado",
     "modal full-screen para o detalhe (é drawer, PT-02)",
-    "esconder que o limite do tipo não é aplicado pelo servidor",
+    "esconder que o limite do tipo não é aplicado pelo servidor (A3)",
     "inglês em UI cliente-facing e emoji no app"
   ],
-  "agreements": [
+  "_acordos": [
     "situação é enum de 3 (pending/approved/cancelled) — nunca mostrar valor cru",
     "dias do período são inclusivos nas duas pontas (diffInDays + 1)",
     "referência é gerada no servidor com prefixo das configurações",
     "quem só tem crud_own_leave não vê filtro de colaborador",
     "saldo por tipo é calculado (aprovado + em análise) e sinaliza risco de estouro"
-  ]
+  ],
+  "_copy_removida_do_contrato_v1": {
+    "kpis": "\"Dias de licença em agosto\" — o mês é derivado do relógio; fixar o literal faria o gate de copy quebrar em setembro. Vira `Dias de licença em {mês}` na instrumentação do PR-9.",
+    "toolbar": "\"Buscar por referência, colaborador, tipo ou motivo…\" — placeholder com reticências tipográficas; confirmar o literal exato contra o .tsx no PR-9 antes de exigir match.",
+    "lote": "\"licenças selecionadas\" e \"Aprovar\" — fragmento com contagem interpolada; o gate casa string literal com fronteira de identificador, então entra no PR-9 na forma que o componente realmente renderiza.",
+    "aviso-validacao": "\"Pedir licença hoje não valida nada no servidor\" — some quando o PR-2 entrar; copy que o próprio roadmap remove não vira cláusula de contrato."
+  }
 }
