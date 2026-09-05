@@ -284,4 +284,24 @@ return [
     'auto_clockout_time' => 'Tempo de saída automática',
     'work_duration_hour' => ':duration de duração',
     'total_leaves_days' => ':total_leaves dias',
+
+    // Import de presença (HRM-O6 / PR-6, achado A7) — motivos de recusa por linha.
+    // O número da linha é o da planilha (com cabeçalho), que é o que o operador vê.
+    'import_enfileirado' => 'Arquivo recebido. A importação está sendo processada e o relatório aparece nesta tela ao terminar.',
+    'import_concluido' => 'Importação concluída: :inseridas marcação(ões) importada(s).',
+    'import_parcial' => 'Importação parcial: :inseridas marcação(ões) importada(s) e :recusadas linha(s) recusada(s). Confira a lista abaixo.',
+    'import_relatorio_titulo' => 'Relatório da importação',
+    'import_relatorio_linha' => 'Linha',
+    'import_relatorio_motivo' => 'Motivo da recusa',
+    'import_relatorio_sem_recusas' => 'Nenhuma linha foi recusada.',
+    'import_erro_email_obrigatorio' => 'E-mail é obrigatório.',
+    'import_erro_colaborador_nao_encontrado' => 'Nenhum colaborador deste negócio tem o e-mail :email.',
+    'import_erro_entrada_obrigatoria' => 'Hora de entrada é obrigatória.',
+    'import_erro_entrada_invalida' => 'Hora de entrada inválida (:valor). Use o formato AAAA-MM-DD HH:MM:SS.',
+    'import_erro_saida_invalida' => 'Hora de saída inválida (:valor). Use o formato AAAA-MM-DD HH:MM:SS.',
+    'import_erro_saida_antes_da_entrada' => 'A hora de saída precisa ser posterior à de entrada.',
+    'import_erro_turno_nao_encontrado' => 'Nenhum turno deste negócio se chama :turno.',
+    'import_erro_sobreposicao_banco' => 'Já existe marcação deste colaborador cobrindo esse horário.',
+    'import_erro_sobreposicao_arquivo' => 'Outra linha do mesmo arquivo já cobre esse horário para este colaborador.',
+    'import_erro_arquivo_sumiu' => 'O arquivo enviado não está mais disponível. Envie novamente.',
 ];
