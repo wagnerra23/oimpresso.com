@@ -1,0 +1,76 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "cowork-inbox/_schema/playbook.schema.json",
+  "title": "Playbook de módulo (SINCRONIZAR <Mod>) — fonte do placar da lista",
+  "description": "Um por módulo em cowork-inbox/<mod>/playbook/playbook.json. Declara threads e PROVAS; o ESTADO nunca é escrito — é derivado por placar-indice.mjs lendo o repo (Lei 2 por construção).",
+  "type": "object",
+  "required": ["modulo", "sha", "gerado", "threads"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "modulo": { "type": "string", "minLength": 1 },
+    "sha": { "type": "string", "pattern": "^[0-9a-f]{7,40}$", "description": "árvore/commit do main lida quando o playbook nasceu" },
+    "gerado": { "type": "string", "format": "date" },
+    "absorve": { "type": "array", "items": { "type": "string" }, "description": "pedidos anteriores do módulo que este playbook substitui (anti-scatter)" },
+    "variaveis": {
+      "type": "object",
+      "description": "placeholders usados em paths (${NOME}). null = decisão pendente; prova com variável nula fica 'indefinida' e a thread não vira 'feito'.",
+      "additionalProperties": { "type": ["string", "null"] }
+    },
+    "decisoes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "pergunta", "respondida"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string" },
+          "pergunta": { "type": "string" },
+          "respondida": { "type": "boolean" },
+          "resposta": { "type": "string" },
+          "define": { "type": "string", "description": "nome da variável que esta decisão preenche" },
+          "destrava": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "threads": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "titulo", "dono", "arquivo", "prefixo", "provas"],
+        "description": "_saida-NN.md na pasta do playbook é PROVA IMPLÍCITA de toda thread (sem ela nada é 'feito'). Provas explícitas = evidência de trabalho NOVO no repo — nunca arquivo que já existia antes da thread (isso é reuso e vai em nao_toca/nota).",
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[0-9]{2}$" },
+          "titulo": { "type": "string" },
+          "dono": { "type": "string", "enum": ["CC", "CL", "W", "W+CL", "CC->CL"] },
+          "vaga": { "type": "integer", "minimum": 1 },
+          "arquivo": { "type": "string", "pattern": "\\.md$", "description": "NN-*.md da thread, na mesma pasta" },
+          "prefixo": { "type": "array", "items": { "type": "string" }, "description": "Lei 1 — só aqui a thread escreve" },
+          "nao_toca": { "type": "array", "items": { "type": "string" } },
+          "depende_threads": { "type": "array", "items": { "type": "string", "pattern": "^[0-9]{2}$" } },
+          "depende_decisoes": { "type": "array", "items": { "type": "string" } },
+          "bloqueio": { "type": "string", "description": "declarado por decisão [W] (ex.: D2 → ADR própria). Thread bloqueada não é pendência do Code." },
+          "nota_provas": { "type": "string" },
+          "provas": {
+            "type": "array",
+            "minItems": 0,
+            "items": {
+              "type": "object",
+              "required": ["tipo", "path"],
+              "additionalProperties": false,
+              "properties": {
+                "tipo": { "type": "string", "enum": ["arquivo", "ausente", "contem", "nao_contem", "json_com_chaves"] },
+                "path": { "type": "string" },
+                "padrao": { "type": "string", "description": "contem/nao_contem: texto literal procurado" },
+                "chaves": { "type": "array", "items": { "type": "string" }, "description": "json_com_chaves: chaves obrigatórias no topo (ex.: alvo, secoes)" },
+                "nota": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
