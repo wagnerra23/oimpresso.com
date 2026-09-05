@@ -76,6 +76,14 @@ on:
       # paths o teste do fix nasceria mudo (o serviço não dispara a lane dele).
       - 'Modules/Jana/Tests/Unit/IndexarMemoryRedactorRunIdTest.php'
       - 'Modules/Jana/Services/Mcp/IndexarMemoryGitParaDb.php'
+      # 2026-09-05 — guarda de coleta vazia no prune do mesmo serviço. Mora em
+      # Tests/Feature, não Unit, mas cabe AQUI pelo AMBIENTE, que é o critério
+      # que esta lane de fato impõe: o arquivo cria o próprio schema em sqlite
+      # `:memory:` e nunca toca MySQL (ele se auto-pula fora do sqlite). Medido
+      # no CT 100 com o env idêntico ao desta lane: 8 passed, 26 assertions.
+      # A alternativa (allowlist do jana-pest.yml) seria gate MUDO — lá é MySQL
+      # e o arquivo pularia, saindo exit 0 sem exercer nada.
+      - 'Modules/Jana/Tests/Feature/Mcp/McpSyncMemoryRobustezTest.php'
       # 2026-09-02 — curadoria do brief do negócio (UC-JCHAT-14). `curar()` é pura
       # (markdown + snapshot entram, markdown sai; sem DB/LLM/FS), então é lógica
       # pura por natureza e cabe aqui. Os 3 paths andam juntos de propósito: o
@@ -183,6 +191,7 @@ jobs:
             Modules/Jana/Tests/Unit/ModuleTruthEventCollectorTest.php \
             Modules/Jana/Tests/Unit/PiiRedactorTest.php \
             Modules/Jana/Tests/Unit/IndexarMemoryRedactorRunIdTest.php \
+            Modules/Jana/Tests/Feature/Mcp/McpSyncMemoryRobustezTest.php \
             Modules/Jana/Tests/Unit/JanaViewsSemAndaimeTest.php \
             Modules/Jana/Tests/Unit/McpToolsNaoCitamComandoInexistenteTest.php \
             Modules/Jana/Tests/Unit/JanaCommandsRegistradosTest.php \
