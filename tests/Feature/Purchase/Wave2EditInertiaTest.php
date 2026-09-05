@@ -4,13 +4,22 @@ declare(strict_types=1);
 
 /**
  * F4 QA — Inertia path purchase/edit (MWART Wave2 B5).
+ *
+ * ⚠️ Este arquivo não executava em lane nenhuma até 2026-09-05: nenhum workflow referenciava
+ * `tests/Feature/Purchase/**` (medido em origin/main — git grep nos 8 arquivos do diretório,
+ * zero citações em .github/workflows). Por isso o assert de RUNBOOK+visual-comparison apontava
+ * há meses pra `memory/requisitos/Inventory/`, de onde os dois arquivos SAÍRAM quando o
+ * material de Compra foi consolidado em `memory/requisitos/Compras/_telas/` — o diretório
+ * `Inventory/` continua existindo (tem BRIEFING.md e SPEC.md), o que deixou o ponteiro
+ * plausível o bastante pra atravessar revisão. O vermelho nunca apareceu porque o teste
+ * nunca rodou.
  */
 
 const EDIT_INERTIA_PATH = 'resources/js/Pages/Purchase/Edit.tsx';
 const PURCHASE_EDIT_CHARTER_PATH = 'resources/js/Pages/Purchase/Edit.charter.md';
 const PURCHASE_EDIT_CONTROLLER_PATH = 'app/Http/Controllers/PurchaseController.php';
-const EDIT_RUNBOOK_PATH = 'memory/requisitos/Inventory/RUNBOOK-purchase-edit.md';
-const EDIT_VISUAL_PATH = 'memory/requisitos/Inventory/purchase-edit-visual-comparison.md';
+const EDIT_RUNBOOK_PATH = 'memory/requisitos/Compras/_telas/RUNBOOK-purchase-edit.md';
+const EDIT_VISUAL_PATH = 'memory/requisitos/Compras/_telas/purchase-edit-visual-comparison.md';
 
 function readEditInertia(): string
 {
