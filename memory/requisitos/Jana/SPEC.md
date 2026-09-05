@@ -1562,8 +1562,34 @@ Descongelar a Jana-BI (camada B, ADR 0334): subir context_recall do pipeline kb-
 - Spike hybrid (docs_pipeline camada 1) MEDIDO 2×: A/B 2026-07-04 (US-COPI-130) context_recall 0,395→0,422; **re-run 2026-07-12 desta US (CT 100 staging, N=51, ~USD 0,17): faithfulness 0,7355→0,7675 (+0,032) · relevancy 0,8784→0,8510 (−0,027) · context_recall 0,3939→0,4506 (+0,057)**. Hybrid melhora mas NÃO chega a 0,60 — reabertura sozinha não é o PR pra prod.
 - **Causa dominante identificada no código (2026-07-12):** `KbAnswerService::renderFontes()` corta cada doc a **400 chars do INÍCIO** (`extrairExcerpt`) — síntese e juiz nunca veem o fato se ele mora no meio da ADR. É o item (b) pendente da condição de reativação da ADR 0312 (documentTemplate real). Por isso ranking 9,5× melhor (recall@5 0,074→0,704) quase não move o context_recall.
 
+**Progresso medido (2026-09-04, CT 100 staging, N=51, USD 0,0867):** o passo 1 do caminho abaixo foi **executado e medido**. `renderFontes` passou a entregar a **janela que contém o match** (`KbAnswerService::extrairJanela`, orçamento 1200 chars) em vez dos 400 chars do início.
+
+| métrica | ANTES (#6780, mesmo dia) | DEPOIS | piso ADR 0318 |
+|---|---|---|---|
+| faithfulness | 0,5822 | **0,8716** | 0,65 |
+| answer_relevancy | 0,7353 | **0,9706** | 0,75 |
+| context_recall | 0,2954 | **0,5565** | 0,36 |
+| gate | FAIL | **pass** | — |
+
+`n_evaluated=51 · n_no_context=0 · n_synth_failed=0 · n_judge_failed=0` (o eval rodou inteiro — não é verde por skip).
+
+**O que a medição mostrou sobre a causa** (proxy léxico, custo zero, mesma retrieve do eval): a cobertura dos termos do `ground_truth` contra **o doc inteiro** dos top-10 é **0,9805** — ou seja, o doc certo JÁ ESTAVA sendo recuperado em ~98% dos casos. Contra o excerpt de 400 chars, caía pra 0,3311 (colado no 0,2954 que o juiz mediu). **O retriever não era o gargalo; a montagem do contexto era** — exatamente a "causa dominante" que esta US já nomeava em 2026-07-12. Curva medida (cobertura léxica do ground_truth):
+
+| orçamento/fonte | head (comportamento antigo) | janela centrada no match |
+|---|---|---|
+| 400 | 0,3311 | 0,4850 |
+| 800 | 0,4871 | 0,6039 |
+| 1200 | 0,6034 | 0,6992 |
+| doc inteiro | — | 0,9805 (teto) |
+
+Centrar rende ~1,5-2× por token — centrada@400 (0,485) empata com head@800 (0,487) pela metade do orçamento. Custo: contexto médio por pergunta 5.946 → 13.961 chars (2,35×); em `gpt-4o-mini` isso é ~USD 0,0005/chamada do `kb-answer`. Técnica **não inventada aqui**: é a mesma que o irmão `Modules\KB\Services\KbCorpusBuilder` já usa via Meilisearch (`attributesToCrop`/`cropLength`/`_formatted`).
+
+⚠️ **A US NÃO fecha com isto.** 0,5565 ainda está **abaixo da meta 0,60** (ADR 0334) — faltam ~0,044. Os passos 2-3 abaixo seguem valendo. Status permanece `todo`.
+
+⚠️ **Isto NÃO explica o colapso de ago/2026** (recall 0,03 · `no_context=51` em 08-02 e 08-23, registrado no `_alerta_2026_08_31` do baseline). Aquilo é o retriever devolvendo **zero docs**, fenômeno distinto da janela — e já havia se resolvido sozinho antes desta medição (`n_no_context=0`). A hipótese de [W] (reorganização do corpus) segue de pé para o colapso; o que esta medição explica é o recall **cronicamente baixo** (~0,38 desde julho, com corpus de 1153 docs), que é anterior e independente do crescimento pra 2555.
+
 **Caminho (ordem de ROI, recalibrada pelo spike):**
-1. **Excerpt/chunk query-aware no `renderFontes`** (passar o trecho relevante à pergunta, não os primeiros 400 chars) — alavanca mais barata, ataca o gargalo medido.
+1. ~~**Excerpt/chunk query-aware no `renderFontes`**~~ — ✅ **FEITO e medido em 2026-09-04** (tabela acima). Era a alavanca mais barata e entregou +0,261 de context_recall.
 2. US-COPI-130 camadas 2-3 (Contextual Retrieval nos campos `contextual_*` já existentes + REUSAR BgeReranker de US-COPI-087 no índice `mcp_memory_documents`) — âncora 0,80-0,85.
 3. Bipartir corpus negócio ≠ processo (ADR 0334 §4) + **bipartir o eval junto**: o golden set atual (`jana-gold-set.json`, 51q) é de PROCESSO (format_date, Permission Registry, Vizra) — bipartir corpus sem bipartir eval não move o número.
 4. Re-medir antes→depois a cada camada com `jana:ragas-real-eval` (mesma régua, N=51).
