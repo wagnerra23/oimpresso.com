@@ -172,6 +172,16 @@ jobs:
         # estão VERDES (têm casos pulados junto dos que passam). Confiar no console
         # teria excluído 2 arquivos bons. Arquivo com passed=0 também sai verde lá.
         #
+        # ENTRA 2026-09-05 — Repair/RepairJobSheetIndexContratoTest (US-REPA-004):
+        # a listagem de OS estava live desde 2026-05-06 com ZERO teste, e o charter
+        # prometia 7 GUARDs que nunca existiram (revogados no #6874). O contrato aqui
+        # fixa o TRIPLE-MODE do `index()` ANTES de qualquer troca do motor da tabela:
+        # o ramo `ajax()` serve o Blade legado E a Page, entao migrar a tela nao pode
+        # altera-lo. Exige MySQL (o `beforeEach` pula em sqlite), como o irmao abaixo.
+        # NAO rodado localmente: Pest e proibido fora do CT 100 (proibicoes.md) — o
+        # veredito desta lane e a primeira execucao real, e por isso os UCs pulam por
+        # ambiente em vez de assertar cego.
+        #
         # ENTRA 2026-09-05 — Repair/RepairSettingsContratoTest (F4 QA da Onda 1):
         # o contrato de gravação das configurações do Repair não era exercido por lane
         # NENHUMA. Ele exige MySQL (o `beforeEach` pula em sqlite por causa do schema de
@@ -204,6 +214,7 @@ jobs:
             Modules/Repair/Tests/Feature/RepairIndexContratoTest.php \
             Modules/Repair/Tests/Feature/RepairShowContratoTest.php \
             Modules/Repair/Tests/Feature/RepairDashboardContratoTest.php \
+            Modules/Repair/Tests/Feature/RepairJobSheetIndexContratoTest.php \
             Modules/Vestuario/Tests/Feature/SmokeRoutesVestuarioTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminDashboardContratoTest.php \
             Modules/Superadmin/Tests/Feature/SubscriptionLifecycleServiceTest.php \
