@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: é um painel de compliance — o que ele afirma sobre imutabilidade e hash é o que o RH vai repetir numa fiscalização; e é a única tela do módulo que despeja a configuração do servidor no browser.
 owner: wagner
 last_run: "2026-09-04"
-last_run_ci: "1 UC rodado por mim no CT 100 (container oimpresso-staging, MySQL real), NAO em CI. O achado que originou o UC-CFGIDX-01 foi MEDIDO com sonda antes de existir teste: definindo `pontowr2.rep.certificado_icp_pass` com uma sentinela e batendo em /ponto/configuracoes, a sentinela aparecia no corpo da resposta (status 200) — o controller passava `config('pontowr2')` INTEIRO como prop Inertia, 14 blocos, e prop Inertia viaja no HTML servido ao browser. O conserto entra no MESMO PR, entao o UC nasce verde em vez de avermelhar uma lane required. CT100 != CI: la a base persiste entre runs; verde la e CANDIDATURA, nao veredito."
+last_run_ci: "1 UC rodado por mim no CT 100 (container oimpresso-staging, MySQL real), NAO em CI. O achado que originou o UC-CFGIDX-01 foi MEDIDO com sonda antes de existir teste: definindo `pontowr2.rep.certificado_icp_pass` com uma sentinela e batendo em /ponto/configuracoes, a sentinela aparecia no corpo da resposta (status 200) — o controller passava `config('pontowr2')` INTEIRO como prop Inertia, 14 blocos, e prop Inertia viaja no HTML servido ao browser. O conserto entra no MESMO PR, entao o UC nasce verde em vez de avermelhar a lane (o dono de quem bloqueia merge e governance/required-checks-baseline.json, nao esta linha). CT100 != CI: la a base persiste entre runs; verde la e CANDIDATURA, nao veredito."
 ---
 
 # Casos de Uso & Aceite — Painel de parâmetros do ponto
@@ -52,7 +52,9 @@ last_run_ci: "1 UC rodado por mim no CT 100 (container oimpresso-staging, MySQL 
   caminho canônico é **estender o dono, não abrir paralelo** ([proibicoes §5](../../../../../memory/proibicoes.md)
   2026-07-09). Consertar exige decidir, campo a campo, *qual* é a verdade — renomear a leitura?
   converter unidade? criar a chave? ler do schema, no caso da imutabilidade? — e essa é decisão de
-  [W], não inferência minha. Um UC agora nasceria vermelho numa lane **required**, bloqueando todo PR
+  [W], não inferência minha. Um UC agora nasceria vermelho na lane, e em 2026-09-04 ela constava como required em
+  [governance/required-checks-baseline.json](../../../../../governance/required-checks-baseline.json) —
+  logo bloquearia todo PR
   que toca o módulo, sem que ninguém tenha decidido o conserto.
 
 Outros `[BACKLOG]` desta tela:
