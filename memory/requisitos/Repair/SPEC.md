@@ -82,6 +82,32 @@ Escopo derivado do F1 PLAN em [`RUNBOOK-repair-settings.md`](RUNBOOK-repair-sett
 - [ ] Flag `MWART_REPAIR_SETTINGS_INDEX` ligada por [W] após o smoke (F5 CUTOVER).
 - [ ] Header migrado para o canon `@/Components/PageHeader` (ADR 0189/0190) — hoje a tela usa `shared/PageHeader`, como as 6 Pages irmãs do módulo.
 
+### US-REPA-004 · Listar e filtrar as ordens de serviço abertas
+
+> owner: — · priority: p3 · type: story
+> blocked_by: —
+>
+> **Registro retroativo, não pedido novo.** A tela existe desde 2026-05-06 (PR #141) e está
+> live; o que não existia era a US. Ela nasceu aqui porque o `charter-us-lint` mordeu ao
+> tocarmos o charter — o gate é `no-new-lie`, e a dívida era real. O texto abaixo descreve a
+> capacidade **medida em 2026-09-05**, não um escopo desejado: nenhuma fonte de negócio foi
+> inventada. Se o dono quiser outro recorte, esta US é o lugar de corrigir.
+
+**Como** técnico ou atendente do reparo
+**Quero** ver as ordens de serviço numa lista filtrável por local, status e cliente
+**Para** achar a OS que preciso atender sem abrir uma a uma
+
+**Implementado em:** _parcial_ · `resources/js/Pages/Repair/JobSheet/Index.tsx` · `Modules/Repair/Http/Controllers/JobSheetController.php` · verificado@b33b73f06b (2026-09-05) — a tela renderiza e filtra, mas **não há um único teste automatizado** cobrindo-a (medido: nenhum Pest cita o path; trio sem `casos.md`; nenhum teste Browser). O charter prometia 7 GUARDs que nunca existiram — revogados no mesmo PR desta US.
+
+**Testado em:** `Modules/Repair/Tests/Feature/RepairJobSheetIndexContratoTest.php` (declara `@covers-us US-REPA-004`) — lane **Verticais · Pest (MySQL)**, allowlist. 6 UCs: gate 403, flag OFF→Blade, flag ON→Inertia com as 3 props, `datatable_url` apontando ao endpoint compartilhado, ramo `ajax` preservado com a flag ON, e isolamento cross-tenant. **Veredito ainda não medido:** Pest é proibido fora do CT 100 ([proibicoes.md](../../proibicoes.md)), então a primeira execução real é a desta lane — os UCs pulam por ambiente em vez de assertar cego, e um `skipped` aqui é ausência de medição, nunca aprovação (LC-13).
+
+**Contrato que a tela não pode quebrar:** a lista vem do **mesmo** endpoint que serve o Blade legado — `route('job-sheet.index')` sob `request()->ajax()`, no `JobSheetController@index`, que é triple-mode (DataTables JSON · Inertia · Blade). O endpoint devolve colunas com **HTML embutido** (`action`, `status`, `estimated_cost`, via `rawColumns`); a Page lê **apenas campos escalares**. Trocar o motor de dados desta tela **não pode** alterar o ramo `ajax`, sob pena de quebrar o Blade de quem não tem a flag.
+
+**Definition of Done:**
+- [ ] `Index.casos.md` com ao menos 1 UC citado por teste (hoje o trio está incompleto — gate `casos-gate` G-2).
+- [ ] Pest de contrato na lane MySQL real, tenant 98, cobrindo filtro por local/status/cliente e isolamento cross-tenant.
+- [ ] Teto de `length: '200'` resolvido: hoje a busca é fixa em 200 linhas sem paginação — inerte enquanto a tabela está vazia, silencioso quando não estiver.
+- [ ] Cor do status: o payload traz `status_color` e a tabela usa `bg-primary` genérico (gap já registrado no scorecard, esforço baixo).
 ### US-REPA-005 · Manter o catálogo de status e de modelos que as OS usam
 
 > owner: — · priority: p2 · type: story
