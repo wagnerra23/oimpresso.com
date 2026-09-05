@@ -42,19 +42,19 @@ declare(strict_types=1);
  * casos afirmam ESTRUTURA e TRANSICAO DE FORMA — nunca quantidade.
  *
  * ── O QUE PROVA (e que Pest de contrato nao alcanca) ─────────────────────────
- *   1. UC-RPO-E1 — o kanban monta autenticado em 1280 (quirk Larissa do charter) e 1440,
+ *   1. UC-RPOE-01 — o kanban monta autenticado em 1280 (quirk Larissa do charter) e 1440,
  *      com as 5 colunas NA ORDEM do charter e zero erro de console;
- *   2. UC-RPO-E2 — cabe em 1280 sem scroll horizontal. E o UX Target mais dificil da tela
+ *   2. UC-RPOE-02 — cabe em 1280 sem scroll horizontal. E o UX Target mais dificil da tela
  *      (`grid-cols-5` num monitor estreito) e NENHUM grep no `.tsx` responde por ele;
- *   3. UC-RPO-E3 — o chip de `slot`/`area` liga o contador comparativo e o "Limpar
+ *   3. UC-RPOE-03 — o chip de `slot`/`area` liga o contador comparativo e o "Limpar
  *      filtros", e o "Limpar filtros" restaura. Filtro client-side (`useMemo`) que nenhum
  *      teste de servidor alcanca;
- *   4. UC-RPO-E4 — Non-Goal do charter: zero modal (`<dialog>`/`[role=dialog]`) e zero
+ *   4. UC-RPOE-04 — Non-Goal do charter: zero modal (`<dialog>`/`[role=dialog]`) e zero
  *      `<form>` no `<main>`. Com controle positivo (5 sections) pra o guard nao ser vacuo;
- *   5. UC-RPO-E5 — zero violacao axe CRITICAL (mesmo ratchet level 0 do A11yAxeBrowserTest);
- *   6. UC-RPO-E6 — CAPTURA do defeito de teclado medido (ver abaixo).
+ *   5. UC-RPOE-05 — zero violacao axe CRITICAL (mesmo ratchet level 0 do A11yAxeBrowserTest);
+ *   6. UC-RPOE-06 — CAPTURA do defeito de teclado medido (ver abaixo).
  *
- * ── UC-RPO-E6 E CARACTERIZACAO, NAO CONTRATO SATISFEITO ──────────────────────
+ * ── UC-RPOE-06 E CARACTERIZACAO, NAO CONTRATO SATISFEITO ──────────────────────
  * Medido no `.tsx` em origin/main e0f2b79c86: o card e `<article draggable onClick>`
  * (Index.tsx:418-428) com `role=` 0 · `tabIndex` 0 · `onKeyDown` 0 · `aria-keyshortcuts` 0.
  * Logo o card nao tabula, nao ativa por Enter/Espaco, nao se anuncia, e o arrasto entre
@@ -76,7 +76,7 @@ declare(strict_types=1);
  *     `ProducaoOficinaTest` ("move endpoint respeita business_id" / "rejeita coluna
  *     invalida") e `ProducaoOficinaRefactorTest`. Aqui ficaria pior e duplicado.
  *   - o DRAWER e o card de venda derivada (ADR 0192 / FASE B). Abrir o drawer exige clicar
- *     num card, e o clique de card e justamente o que o UC-RPO-E6 documenta como quebrado
+ *     num card, e o clique de card e justamente o que o UC-RPOE-06 documenta como quebrado
  *     por teclado; o conteudo do drawer ja tem 15 GUARDs em
  *     `ProducaoOficinaFaseBVendaDerivadaCardTest`. Fica pra PR follow-up junto do conserto
  *     de a11y — quando o card virar controle de verdade, um `click()` de driver passa a ser
@@ -114,7 +114,7 @@ declare(strict_types=1);
  *   OK  as 9 sondas JS foram EXTRAIDAS deste arquivo (parseadas do nowdoc, nunca retypadas —
  *       copia diverge da fonte no primeiro edit) e rodadas em jsdom 25.0.1 contra DOMs que
  *       espelham o `.tsx`: 33 checagens, 14 delas NEGATIVAS. Entre elas o controle de
- *       PROVENIENCIA do UC-RPO-E6 — um DOM com o card ja consertado (`role="button"` +
+ *       PROVENIENCIA do UC-RPOE-06 — um DOM com o card ja consertado (`role="button"` +
  *       `tabindex="0"` + `aria-keyshortcuts`) faz a sonda devolver `17|17|17`, provando que o
  *       caso VAI ficar vermelho no dia do conserto, como projetado. Harness versionado em
  *       `scripts/tests/producao-oficina-probes.test.mjs` (roda sob demanda, nao esta em CI).
@@ -129,7 +129,7 @@ declare(strict_types=1);
  *
  * @see resources/js/Pages/Repair/ProducaoOficina/Index.tsx (tela sob teste)
  * @see resources/js/Pages/Repair/ProducaoOficina/Index.charter.md (Goals · Non-Goals · UX Targets)
- * @see resources/js/Pages/Repair/ProducaoOficina/Index.casos.md (UC-RPO-E1..E6)
+ * @see resources/js/Pages/Repair/ProducaoOficina/Index.casos.md (UC-RPOE-01..06)
  * @see Modules/Repair/Http/Controllers/ProducaoOficinaController.php (props + fallback mock)
  * @see tests/Browser/Financeiro/CaixaIndexTest.php (harness espelhado)
  * @see .github/workflows/visual-regression.yml (step que invoca)
@@ -246,7 +246,7 @@ JS;
 /** `total|operaveis|keyshortcuts` dos cards do kanban.
  *  - total       = `<article draggable>` dentro das colunas (o card do charter);
  *  - operaveis   = quantos sao alcancaveis por teclado (tag focavel OU tabindex >= 0 OU
- *                  role interativo). E a medida do UC-RPO-E6;
+ *                  role interativo). E a medida do UC-RPOE-06;
  *  - keyshortcuts= quantos elementos da PAGINA declaram `aria-keyshortcuts` (alternativa de
  *                  teclado pro arrasto — WCAG 2.5.7). */
 const PRODUCAO_JS_CARDS_A11Y = <<<'JS'
@@ -355,7 +355,7 @@ function producaoAbrirTela(int $largura = 1280, int $altura = 800)
     return $page;
 }
 
-it('UC-RPO-E1 · render — o kanban monta com as 5 colunas na ordem do charter', function (int $w, int $h) {
+it('UC-RPOE-01 · render — o kanban monta com as 5 colunas na ordem do charter', function (int $w, int $h) {
     $page = producaoAbrirTela($w, $h);
 
     // Goal + Mission do charter: 5 colunas FIXAS, nesta ordem. O `ProducaoOficinaTest` prova
@@ -366,7 +366,7 @@ it('UC-RPO-E1 · render — o kanban monta com as 5 colunas na ordem do charter'
     $page->assertNoConsoleLogs();
 })->with([[1280, 800], [1440, 900]]);
 
-it('UC-RPO-E2 · render — cabe em 1280 sem scroll horizontal', function () {
+it('UC-RPOE-02 · render — cabe em 1280 sem scroll horizontal', function () {
     // UX Target do charter marcado como CRITICO (monitor 1280px). `grid-cols-5` num monitor
     // estreito e o cenario que mais facilmente estoura — e nenhum grep no .tsx responde.
     $page = producaoAbrirTela(1280, 800);
@@ -383,7 +383,7 @@ it('UC-RPO-E2 · render — cabe em 1280 sem scroll horizontal', function () {
     $page->assertNoConsoleLogs();
 });
 
-it('UC-RPO-E3 · render — o filtro liga o contador comparativo e o Limpar filtros', function () {
+it('UC-RPOE-03 · render — o filtro liga o contador comparativo e o Limpar filtros', function () {
     $page = producaoAbrirTela();
 
     // CONTROLE POSITIVO do estado inicial: sem filtro o contador esta na forma SIMPLES e o
@@ -409,7 +409,7 @@ it('UC-RPO-E3 · render — o filtro liga o contador comparativo e o Limpar filt
     $page->assertNoConsoleLogs();
 });
 
-it('UC-RPO-E4 · Non-Goal — drawer é o único container, sem modal e sem form', function () {
+it('UC-RPOE-04 · Non-Goal — drawer é o único container, sem modal e sem form', function () {
     $page = producaoAbrirTela();
 
     // §UX Anti-patterns do charter: "Modal de qualquer tipo (drawer e o unico container)".
@@ -421,7 +421,7 @@ it('UC-RPO-E4 · Non-Goal — drawer é o único container, sem modal e sem form
     $page->assertNoConsoleLogs();
 });
 
-it('UC-RPO-E5 · a11y — zero violação axe CRITICAL', function () {
+it('UC-RPOE-05 · a11y — zero violação axe CRITICAL', function () {
     $page = producaoAbrirTela();
 
     // Mesmo piso do A11yAxeBrowserTest: level 0 = CRITICAL only. Subir pra level 1
@@ -429,7 +429,7 @@ it('UC-RPO-E5 · a11y — zero violação axe CRITICAL', function () {
     $page->assertNoAccessibilityIssues(level: 0);
 });
 
-it('UC-RPO-E6 · a11y — o card do kanban não é alcançável nem operável por teclado (defeito capturado)', function () {
+it('UC-RPOE-06 · a11y — o card do kanban não é alcançável nem operável por teclado (defeito capturado)', function () {
     $page = producaoAbrirTela();
 
     $medida = (string) $page->script(PRODUCAO_JS_CARDS_A11Y);

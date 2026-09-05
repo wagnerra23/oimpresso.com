@@ -16,7 +16,7 @@
 //            vazio devolve sentinela em vez de zero silencioso).
 //   NAO PROVA: largura real. jsdom nao tem layout engine — `scrollWidth`/`clientWidth` sao
 //            sempre 0 la. A sonda de OVERFLOW e exercitada com valores INJETADOS pra provar
-//            a comparacao; a medida de verdade so o Chromium responde (UC-RPO-E2 no CI).
+//            a comparacao; a medida de verdade so o Chromium responde (UC-RPOE-02 no CI).
 //
 // COMO RODAR (sob demanda — nao esta ligado a nenhum job de CI)
 //   node scripts/tests/producao-oficina-probes.test.mjs
@@ -266,7 +266,7 @@ console.log('\n[3] NON-GOAL — modal e form');
 }
 
 // ---------------------------------------------------------------------------
-// 6. CARDS_A11Y — a sonda do UC-RPO-E6
+// 6. CARDS_A11Y — a sonda do UC-RPOE-06
 // ---------------------------------------------------------------------------
 console.log('\n[4] CARDS_A11Y — o defeito de teclado capturado');
 {
@@ -275,7 +275,7 @@ console.log('\n[4] CARDS_A11Y — o defeito de teclado capturado');
   ok(rodar(hoje, JS.PRODUCAO_JS_CARDS_A11Y) === '17|0|0', 'defeito atual: 17 cards, 0 operaveis, 0 keyshortcuts');
 
   // O DIA DO CONSERTO: com role=button + tabindex=0 + aria-keyshortcuts a sonda VE a
-  // diferenca — e o caso UC-RPO-E6 fica vermelho, que e o sinal de sucesso.
+  // diferenca — e o caso UC-RPOE-06 fica vermelho, que e o sinal de sucesso.
   const consertado = domTela({ cardAcessivel: true, comKeyshortcuts: true });
   ok(
     rodar(consertado, JS.PRODUCAO_JS_CARDS_A11Y) === '17|17|17',
@@ -294,11 +294,11 @@ console.log('\n[4] CARDS_A11Y — o defeito de teclado capturado');
   );
 
   // CONTROLE POSITIVO do teste: numa tela sem card o total e 0, e o assert
-  // `expect(total)->toBeGreaterThan(0)` do UC-RPO-E6 reprova — a verdade vazia nao passa.
+  // `expect(total)->toBeGreaterThan(0)` do UC-RPOE-06 reprova — a verdade vazia nao passa.
   const semCards = domTela({ cardsPorColuna: [0, 0, 0, 0, 0] });
   ok(
     rodar(semCards, JS.PRODUCAO_JS_CARDS_A11Y) === '0|0|0',
-    'tela sem card devolve total=0 (o controle positivo do UC-RPO-E6 reprova nesse caso)',
+    'tela sem card devolve total=0 (o controle positivo do UC-RPOE-06 reprova nesse caso)',
   );
 }
 
@@ -323,8 +323,8 @@ console.log('\n[5] OVERFLOW — comparacao (largura real so no Chromium)');
     const [sw, cw] = s.split('|').map(Number);
     return !(cw > 0 && sw <= cw);
   };
-  ok(reprova('1500|1280') === true, 'NEGATIVO: 1500 > 1280 reprova o UC-RPO-E2');
-  ok(reprova('1280|1280') === false, 'POSITIVO: 1280 <= 1280 aprova o UC-RPO-E2');
+  ok(reprova('1500|1280') === true, 'NEGATIVO: 1500 > 1280 reprova o UC-RPOE-02');
+  ok(reprova('1280|1280') === false, 'POSITIVO: 1280 <= 1280 aprova o UC-RPOE-02');
   ok(reprova('0|0') === true, 'NEGATIVO: viewport nao medida (0|0) reprova — nao passa por "sem overflow"');
 }
 
