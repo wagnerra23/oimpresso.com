@@ -283,4 +283,33 @@ runs:
             DB::table('contacts')->insert(['business_id'=>\$bizId,'type'=>'customer','name'=>'Cliente CI','contact_id'=>'CO0001','created_by'=>1,'is_default'=>1,'created_at'=>now(),'updated_at'=>now()]);
             echo 'contact criado'.PHP_EOL;
           }
+          // system.repair_version (2026-09-05) — destrava UC-RSET-07/08, pendencia 4 do
+          // charter de Pages/Repair/Settings. Sem a linha, ModuleUtil::isModuleInstalled
+          // devolve false, o tipo device fica fora dos category_types e
+          // ModuleUtil::getTaxonomyData chama exit dentro de index() — exit nao e exception:
+          // mata o processo e derruba a suite sem uma linha de output. O guard do teste
+          // troca essa morte muda por skip visivel; esta linha troca o skip por execucao.
+          //
+          // POR QUE AQUI E NAO NO TESTE: lapide 2026-08-24 do §5 — teste nao planta a
+          // propria pre-condicao de ambiente; quem responde o que existe neste ambiente e
+          // o seed. O docblock do RepairSettingsContratoTest cita a mesma lapide.
+          //
+          // POR QUE A MIGRATION NAO RESOLVE: 2019_03_29_110241_add_repair_version_column_to_system_table
+          // faz o INSERT, mas o baseline database/schema/mysql-schema.sql ja a registra como
+          // aplicada (id 258, batch 2), entao o Laravel nunca a roda. Medido: o baseline tem
+          // 820 INSERT INTO, TODOS na tabela migrations e ZERO em system — logo nenhuma
+          // migration cujo efeito seja dado chega ao CI. Isso vale para as 12 chaves
+          // *_version do repo, nao so a do Repair; semeio SO a do Repair porque as outras 11
+          // mudariam o ramo instalado de 79 sites de producao nas 16 lanes, e isso e decisao
+          // [W], nao efeito colateral deste PR.
+          //
+          // Aditivo e idempotente. Varredura contada antes de escrever: dos 13 arquivos de
+          // teste que usam isModuleInstalled, 1 menciona Repair (o proprio contrato); em
+          // producao sao 4 sites, todos em app/Http/Controllers/BrandController.php; e
+          // nenhum teste assume a tabela system vazia (6 acessos, todos por chave nomeada).
+          if (\Illuminate\Support\Facades\Schema::hasTable('system')
+              && ! DB::table('system')->where('key', 'repair_version')->exists()) {
+            DB::table('system')->insert(['key'=>'repair_version','value'=>(string) config('repair.module_version', '2.0')]);
+            echo 'seed system.repair_version'.PHP_EOL;
+          }
         "
