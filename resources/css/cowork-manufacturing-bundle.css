@@ -343,15 +343,11 @@ textarea.mfg-inp{height:auto;padding:7px 9px;line-height:1.45;resize:vertical}
 .mfg-root .mfg-ing .n small,
 .mfg-root .mfg-tab-n{ color: var(--text-dim); }
 
-/* §11 consequência 2 (ADR 0411): `--accent` como TEXTO mede 2,64:1 no tema escuro.
-   No escuro, texto acentuado usa `--accent-2`; fundo e borda seguem em `--accent`. */
-.cockpit[data-theme="dark"] .mfg-root .mfg-tab.act,
-.cockpit[data-theme="dark"] .mfg-root .mfg-tab.act .mfg-tab-n,
-.cockpit[data-theme="dark"] .mfg-root .mfg-chip.act,
-.cockpit[data-theme="dark"] .mfg-root .mfg-th.sort.act,
-.cockpit[data-theme="dark"] .mfg-root .mfg-pag button.act,
-.cockpit[data-theme="dark"] .mfg-root .mfg-link,
-.cockpit[data-theme="dark"] .mfg-root .mfg-tot .big dd{ color: var(--accent-2); }
+/* §11 consequência 2 (ADR 0411) — a regra que ficava AQUI virou redundante em 2026-09-04.
+   Ela forçava `--accent-2` no texto acentuado do tema escuro porque `--accent` media 2,64:1.
+   Com as regras-base consumindo `--color-primary`, medi o contraste NA TELA (canvas, fundo
+   efetivo real): aba 4,87 · contador 6,03 · chip 5,41 · cabeçalho 6,03 — todos ≥ 4,5 (AA).
+   E `--accent-2` também era reescrito pelo AppShell, então era ele que mantinha o azul. */
 
 /* §18 pendência 8 (achado MÉDIA do LAUDO, medido a 914px): pílula, chip e contador de
    aba quebram em 2 linhas com rótulo de duas palavras e o texto sai da borda arredondada
@@ -366,8 +362,11 @@ textarea.mfg-inp{height:auto;padding:7px 9px;line-height:1.45;resize:vertical}
    envolver quebra o grid de 2 colunas do <dl>. Aqui os valores viram classe direta
    no <dt>/<dd>. Valores idênticos aos do protótipo; nada de novo. */
 .mfg-root .mfg-tot dt.mfg-tot-big-dt{ font-weight: 600; color: var(--text); }
+/* O override de tema escuro com `--accent-2` saiu junto com o irmão acima (mesma
+   redundância). ⚠️ Este elemento vive no drawer e NÃO estava na tela quando medi — o
+   fundo dele é o mesmo `oklch(0.23 …)` dos que deram 6,03, mas isso é inferência, não
+   medição. Se aparecer apagado, medir e reportar. */
 .mfg-root .mfg-tot dd.mfg-tot-big-dd{ font-size: 15px; font-weight: 600; color: var(--color-primary); }
-.cockpit[data-theme="dark"] .mfg-root .mfg-tot dd.mfg-tot-big-dd{ color: var(--accent-2); }
 
 /* Adaptação 4 · as tiras do rodapé da ficha PT-07 saem do `style=` inline pro CSS.
    O protótipo as escreve inline (manufacturing-print.jsx); aqui elas viram classe porque
