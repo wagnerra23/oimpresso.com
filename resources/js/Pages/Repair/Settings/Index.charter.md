@@ -59,7 +59,7 @@ Dar ao admin do negócio um único lugar para definir **os padrões da folha de 
 
 ## Casos
 
-Contrato executável em [`Index.casos.md`](./Index.casos.md) — UC-RSET-01 a UC-RSET-08, cada um citado por ≥1 teste em [`RepairSettingsContratoTest.php`](../../../../../Modules/Repair/Tests/Feature/RepairSettingsContratoTest.php). Veredito por UC vem do manifesto (`scripts/casos-test-results.json`, gate G-7), não da prosa: em 2026-09-05 são **6 `pass` e 2 `skip`** (os dois de coexistência de flag — razão na tabela de pendências).
+Contrato executável em [`Index.casos.md`](./Index.casos.md) — UC-RSET-01 a UC-RSET-08, cada um citado por ≥1 teste em [`RepairSettingsContratoTest.php`](../../../../../Modules/Repair/Tests/Feature/RepairSettingsContratoTest.php). Veredito por UC vem do manifesto (`scripts/casos-test-results.json`, gate G-7), não da prosa: em 2026-09-05 são **8 `pass`** — os dois de coexistência de flag (UC-RSET-07/08) fecharam quando o [#6843](https://github.com/wagnerra23/oimpresso.com/pull/6843) semeou `system.repair_version` e a lane `verticais-pest` passou a ser colhida pelo manifesto ([run 33969895224](https://github.com/wagnerra23/oimpresso.com/actions/runs/33969895224)).
 
 ---
 
@@ -82,7 +82,21 @@ Todos em `Modules/Repair/Tests/Feature/RepairSettingsContratoTest.php`, tenant *
 
 ## Pendências antes de `status: live`
 
-1. Smoke real autenticado, dark, **1280px**, com screenshot no PR (R1). **Segue aberta em 2026-09-05, com a razão medida:** o staging responde 200 mas **não tem assets buildados** (`public/build/manifest.json` ausente) e portanto não renderiza Inertia; o container não tem `node`/`npm` no PATH; e seu checkout está **432 commits atrás** (`c1abe9548`) com trabalho não-commitado de outra sessão. Buildar ali retrataria código de agosto + os arquivos desta onda — não seria a tela nem de produção nem do `main`.
+1. Smoke real autenticado, dark, **1280px**, com screenshot no PR (R1). **Segue aberta. Re-medida em 2026-09-05 (não herdada — afirmação de bloqueio em doc canon vira instrução de desistência, §5 2026-09-01), e o quadro PIOROU:**
+
+   | Fato | Medido em 2026-09-05 |
+   |---|---|
+   | Checkout do staging | `c1abe9548f` — **2026-08-26 14:26** |
+   | Defasagem | **494 commits** atrás de `origin/main` (eram 432 no #6809) |
+   | A tela existe lá? | **Não** — `resources/js/Pages/Repair/Settings/` ausente |
+   | O controller é o da Onda 1? | **Não** — `grep -c Inertia RepairSettingsController.php` = **0** |
+   | Assets | `public/build/manifest.json` ausente; `public/build` nem existe |
+   | `node` / `npm` no PATH do container | ausentes (`node_modules` existe) |
+   | Trabalho não-commitado de terceiros | **32 arquivos** (Fiscal · NfeBrasil · Essentials · Ponto · Purchase) |
+
+   O bloqueio **não é mais "falta buildar"**: a tela não está no checkout, então nem haveria o que renderizar. E atualizar não é trivial — [`docker/oimpresso-staging/deploy.sh:53`](../../../../../docker/oimpresso-staging/deploy.sh) faz `git reset --hard origin/main`, que **destruiria os 32 arquivos** de outra sessão. O [`staging-freshness-sentinel`](../../../../../docker/oimpresso-staging/staging-freshness-sentinel.sh) já alarma isto **de hora em hora** (`ALERTA staging APODRECEU (stale:10d)`, escalado a `mcp_alertas`), com a instrução literal: *"NUNCA pull cego com trabalho em voo"*.
+
+   Portanto o conserto do staging é **item próprio e decisão de [W]** (o destino do trabalho de terceiros não é escolha minha), não uma etapa desta onda. Rota local foi considerada e descartada com medição: o PHP 8.4 do Herd existe, mas `vendor/` não está no worktree e faltariam `composer install` + `npm ci` + build + MySQL com as 820 migrations — seria reconstruir o staging na máquina que o canon declara não suportar ([W] 2026-06-01).
 2. Flag `MWART_REPAIR_SETTINGS_INDEX` ligada por [W] após o smoke — o cutover é decisão dele.
 3. ~~Confirmar em render real se a aba de impressão do Blade legado está quebrada.~~ **RESOLVIDO em 2026-09-05 — a premissa era falsa.** O partial renderiza (9143 bytes, checkbox presente, zero warning sobre a variável): ele define `$contact_custom_fields` e `$custom_labels` na **própria linha 4**, a partir de `$jobsheet_pdf_settings`, que o `compact()` passa. A migração **não** conserta erro vivo aqui, e não há mudança de comportamento a declarar por este motivo. Detalhe e provas em [`Index.casos.md`](./Index.casos.md) §RESOLVIDO.
 4. **Novo, descoberto no F4 QA:** semear `system.repair_version` no `pest-mysql-setup` para destravar UC-RSET-07/08 no CI. Sem essa linha, `ModuleUtil::getTaxonomyData` faz `exit` dentro de `index()` — com o guard atual isso vira skip visível; sem ele, matava a suíte inteira sem output. É PR próprio: aquele seed é compartilhado por 16 lanes.
