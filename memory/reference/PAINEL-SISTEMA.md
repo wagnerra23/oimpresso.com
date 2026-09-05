@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-04**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-05**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -44,7 +44,7 @@ lente: [construir]
 | Officeimpresso | [BRIEFING](../requisitos/Officeimpresso/BRIEFING.md) | 2026-07-30 |
 | OficinaAuto | [BRIEFING](../requisitos/OficinaAuto/BRIEFING.md) | 2026-07-27 |
 | PaymentGateway | [BRIEFING](../requisitos/PaymentGateway/BRIEFING.md) | 2026-07-23 |
-| Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-08-21 |
+| Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-09-05 |
 | ProductCatalogue | [BRIEFING](../requisitos/ProductCatalogue/BRIEFING.md) | 2026-07-23 |
 | RecurringBilling | [BRIEFING](../requisitos/RecurringBilling/BRIEFING.md) | 2026-08-05 |
 | Repair | [BRIEFING](../requisitos/Repair/BRIEFING.md) | 2026-08-06 |
@@ -129,13 +129,13 @@ lente: [construir]
 - espelho — mexeu depois de verificar
 - Governance Gate (índice + memory-health + meta-teste)
 
-### Censo — 132 workflows por classe
+### Censo — 137 workflows por classe
 
 > Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
 
 | Classe | Qtd | Exemplos |
 |---|---|---|
-| gate (bloqueia/valida PR) | 100 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
+| gate (bloqueia/valida PR) | 105 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
 | meta (testa os gates) | 7 | block-brl-values-selftest, devcontainer-firewall, gate-selftest, guards-meta-gate, … |
 | automacao (cron/dispatch) | 21 | agent-cost-per-pr, agent-pr-outcomes, briefing-code-staleness, casos-results-publish, … |
 | deploy (entrega) | 2 | deploy, quick-sync |
@@ -150,7 +150,7 @@ lente: [construir]
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 165 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 173 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -318,6 +318,14 @@ lente: [construir]
 - ~~2026-09-03 — Ordenar commits por RELÓGIO: `git log --since` filtra por AUTHOR date, e num repo com committer date defasado a janela mente~~
 - ~~2026-09-04 — Prescrever o TOKEN de substituição a partir de fonte LIVE-ONLY inverificável, tendo o literal congelado e o dono in-repo à mão~~
 - ~~2026-09-04 — Ligar o `ds-guard` §8 em `resources/css/` ("o gate está mudo"): o §8 governa a build de PROTÓTIPO, e o gate reprovaria a cópia de bundle que o Tier 0 MANDA fazer~~
+- ~~2026-09-04 — Usar run de `workflow_dispatch` como CONTROLE sem conferir que o teste EXECUTOU (o `paths-filter` não morde em dispatch)~~
+- ~~2026-09-04 — EMENDA da lápide acima (controle de `workflow_dispatch`): o "desfecho correto" que ela registra — *flaky por `->first()` sem `orderBy`* — está REFUTADO por medição~~
+- ~~2026-09-04 — Prova por ID casado num corpus GLOBAL: dois módulos declaravam `UC-APROV-01..04` e o teste de um creditava o outro (o item cego era `[T0]`)~~
+- ~~2026-09-05 — Dar ESCOPO DE MÓDULO ao UC-id nas 3 camadas do `casos-gate` (MEDIDO: 100% de falso-positivo; e o "zero de bugs" é DATADO, não estrutural)~~
+- ~~2026-09-05 — EMENDA da lápide 2026-07-28 (`toContain` message-as-needle): o codemod zerou o CORPUS, não impediu o ARQUIVO NOVO — e o aviso estava no arquivo que eu editava no mesmo PR~~
+- ~~2026-09-05 — Rodar ferramenta de governança pra ESPIAR um número, sem saber que ela ESCREVE — e o `git add -A` levou o artefato de outro dono junto~~
+- ~~2026-09-05 — Ler `1 failed` como prova de que o bite-test MORDE, e escrever caso cujo valor esperado COINCIDE com o que o bug produz~~
+- ~~2026-09-05 — EMENDA da lápide 2026-07-17 (deduzir QUEM RODA pelo código): o runtime tem MAIS DE UM oráculo, e o mais óbvio (`schedule:list`) responde a OUTRA pergunta~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -328,14 +336,14 @@ lente: [construir]
 
 ## Rastro
 
-- **497** handoffs · **676** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **498** handoffs · **678** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-09-05-uc-id-escopo-de-modulo-medido-e-reprovado`
+  - `2026-09-04-ragas-agosto-lead-refutado-juiz-mudo`
   - `2026-09-04-fiscal-onda10-sped-goals-cowork`
   - `2026-09-03-watchdog-g6-tres-achados-ragas`
   - `2026-09-03-visreg-baselines-auto-rail-nao-accent`
   - `2026-09-03-forja-onda11-triagem-desfecho-declarado`
-  - `2026-09-03-forja-onda11-revogacao-parcial`
-  - `2026-09-03-fiscal-onda9-sped-regua-golden`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-09-04 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-09-05 · deriva das fontes canônicas, não as substitui._

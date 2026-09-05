@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: é a ponte entre o relógio físico (REP-A homologado) e a jornada apurada — duplicar aqui infla a folha.
 owner: wagner
 last_run: "2026-09-05"
-last_run_ci: "5 de 5 VERDES no run 33942364334 da lane PHP / Pest (Ponto · MySQL) — UC-IMPSH-01/02/03 2 assertions cada, UC-IMPSH-04 6, UC-IMPSH-05 12; lane inteira 279 passed / 0 failed / 1 skipped / 939 assertions. Os 01..04 seguem FORA do manifesto G-7 por citarem o UC em docblock (ver nota ⛓), e o 05 entra no manifesto no primeiro publish do cron casos-results-publish"
+last_run_ci: "5 de 5 VERDES no run 33942364334 da lane PHP / Pest (Ponto · MySQL) — UC-IMPSH-01/02/03 2 assertions cada, UC-IMPSH-04 6, UC-IMPSH-05 12; lane inteira 279 passed / 0 failed / 1 skipped / 939 assertions. Os 5 estão ALCANÇÁVEIS pelo manifesto G-7 (o #6794 converteu o BancoHorasImportacaoContratoTest pra it() com o UC no título 12s antes deste arquivo entrar — ver nota ⛓); todos viram ✅ no primeiro publish do cron casos-results-publish"
 ---
 
 # Casos de Uso & Aceite — Resultado da importação AFD
@@ -37,18 +37,31 @@ last_run_ci: "5 de 5 VERDES no run 33942364334 da lane PHP / Pest (Ponto · MySQ
 | UC-IMPSH-04 | As contagens exibidas refletem o que foi processado | must | `CU-PONTO-11` + US-PONTO-002 | `BancoHorasImportacaoContratoTest` | 🧪 predição REFUTADA — verde na lane, sem entrada no manifesto |
 | UC-IMPSH-05 | A importação que falhou mostra o motivo da falha | must | `CU-PONTO-11` + charter §Goals | `ImportacaoShowContratoTest` | 🧪 VERDE na lane (12 assertions) |
 
-> ⛓ **Por que os UC-IMPSH-01..04 seguem `🧪` mesmo passando.** O `BancoHorasImportacaoContratoTest`
-> é classe PHPUnit e cita o UC em **docblock**; método PHP não aceita hífen, então o `name` do
-> `<testcase>` sai `Uc impshow 04 …` e o coletor do manifesto (que casa `UC-XXX-NN`) nunca os
-> enxerga. `✅` aqui viraria `status:unverified` no G-7 — a afirmação exige prova, e a prova é o
-> manifesto. O conserto é converter aquele arquivo pra `it()`, e ele é dívida alheia adiada de
-> propósito ([proibicoes §5](../../../../../memory/proibicoes.md) 2026-07-12), não deste PR.
+> ⛓ **SUPERADO em 2026-09-05 — o texto abaixo é fato datado, preservado porque a razão de os
+> quatro seguirem `🧪` MUDOU, e saber qual razão vale hoje importa.**
 >
-> 🔀 **Sessão paralela, detectada em 2026-09-05 pelo `dup-detector`:** o
-> [#6822](https://github.com/wagnerra23/oimpresso.com/pull/6822) está fazendo exatamente essa
-> conversão. Se ele entrar, estes quatro saem do `⛓` e podem virar `✅` no primeiro publish do
-> manifesto. Este PR **não depende** disso e não o antecipa — a nota acima descreve o estado
-> na data, não uma previsão.
+> A nota dizia: *"os UC-IMPSH-01..04 seguem `🧪` mesmo passando porque o
+> `BancoHorasImportacaoContratoTest` é classe PHPUnit e cita o UC em **docblock**; método PHP não
+> aceita hífen, então o `name` do `<testcase>` sai `Uc impshow 04 …` e o coletor do manifesto (que
+> casa `UC-XXX-NN`) nunca os enxerga. O conserto é converter aquele arquivo pra `it()`, e ele é
+> dívida alheia adiada de propósito"* — mais uma nota `🔀` dizendo que o
+> [#6822](https://github.com/wagnerra23/oimpresso.com/pull/6822) estava fazendo essa conversão.
+>
+> **Era verdade quando escrita e durou 12 segundos.** O
+> [#6794](https://github.com/wagnerra23/oimpresso.com/pull/6794) mergeou às 07:20:39 fazendo
+> exatamente aquela conversão (7 `it('UC-…')` com o id no título) e este arquivo entrou pelo
+> [#6802](https://github.com/wagnerra23/oimpresso.com/pull/6802) às 07:20:51 — duas sessões
+> paralelas no mesmo alvo, e o `dup-detector` não podia ver o #6794 porque ele já não estava
+> aberto. Medido hoje: os 7 títulos carregam o UC-id e o bloco `⛓ Ponto` do `casos:report` é **0**.
+> O #6822 foi **fechado** por não ter mais o que entregar (o blob do teste no branch dele era
+> byte-idêntico ao do `main`, `d857a4d61d` nos dois); estas correções de texto, que eram o único
+> resíduo vivo dele, vieram por este PR.
+>
+> **A razão que CONTINUA valendo, e é outra:** os cinco seguem `🧪` e não `✅` porque o oráculo do
+> G-7 é o manifesto `scripts/casos-test-results.json`, publicado por **cron**
+> (`casos-results-publish.yml`, `on: schedule`) e não pelo PR. `✅` antes da entrada no manifesto é
+> `status:unverified`. Agora eles são **alcançáveis** por ele — viram `✅` no primeiro publish
+> após o merge, junto com o UC-IMPSH-05.
 
 **[BACKLOG]:**
 
@@ -141,8 +154,10 @@ last_run_ci: "5 de 5 VERDES no run 33942364334 da lane PHP / Pest (Ponto · MySQ
 - **Status: 🧪 predição REFUTADA.** A previsão de vermelho valeu enquanto o controller lia o atributo
   fantasma; ela **caiu**. Recibo (JUnit da lane, run `33938659118` no `main`):
   `Uc impshow 04 contagens exibidas refletem o processado` → **pass, 6 assertions**. Segue `🧪` e não `✅`
-  porque o oráculo do G-7 é o manifesto, e este UC não chega lá (ver a nota ⛓ acima) — `✅` sem entrada
-  no manifesto é `status:unverified`, não elogio.
+  porque o oráculo do G-7 é o manifesto e a entrada dele ainda não foi publicada — `✅` sem entrada no
+  manifesto é `status:unverified`, não elogio. O que mudou em 2026-09-05 (ver a nota ⛓): o caso deixou
+  de ser **inalcançável** pelo manifesto e passou a estar apenas **aguardando o publish** do cron — o
+  recibo acima ainda mostra o nome de método antigo porque é de um run anterior à conversão do #6794.
 
 ---
 
