@@ -5,10 +5,12 @@ namespace Modules\Essentials\Http\Controllers;
 use App\User;
 use App\Utils\ModuleUtil;
 use DB;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Inertia\Inertia;
 use Modules\Essentials\Entities\EssentialsUserSalesTarget;
 use Modules\Essentials\Services\SalesTargetFaixaValidator;
 use Yajra\DataTables\Facades\DataTables;
@@ -66,7 +68,83 @@ class SalesTargetController extends Controller
                 ->make(true);
         }
 
-        return view('essentials::sales_targets.index');
+        // HRM-O7 / PR-9 (Onda 9 do EXPORT-HRM-2026-09-04): a tela vira Inertia.
+        //
+        // O ramo request()->ajax() ACIMA fica INTACTO de propósito: enquanto
+        // `sales_targets/index.blade.php` existir (ele sai só na HRM-O8), o DataTables
+        // jQuery daquela view continua consumindo esta MESMA rota. Trocar por
+        // Inertia-only aqui apagaria a tela legada sem aviso.
+        return Inertia::render('Essentials/Metas', [
+            'filtros' => ['q' => (string) request()->input('q', '')],
+            // Config do módulo (não é valor): decide se o vendido entra com ou sem tributo
+            // no cálculo que o PayrollController faz. Aqui é EXIBIDA, nunca aplicada.
+            'sem_imposto' => (bool) ($this->essentialsSettings()['calculate_sales_target_commission_without_tax'] ?? false),
+            'paginator' => Inertia::defer(fn () => $this->paginarColaboradores($business_id)),
+        ]);
+    }
+
+    /** Settings do módulo — mesma leitura de EssentialsUtil::getEssentialsSettings (sessão → JSON). */
+    private function essentialsSettings(): array
+    {
+        $raw = request()->session()->get('business.essentials_settings');
+
+        return ! empty($raw) ? (array) json_decode($raw, true) : [];
+    }
+
+    /**
+     * Página de colaboradores + as faixas de meta JÁ GRAVADAS de cada um.
+     *
+     * Só LEITURA: nenhum número aqui é calculado, derivado ou reinterpretado — as faixas
+     * saem de essentials_user_sales_targets como estão no banco. A apuração (quanto o
+     * colaborador vendeu no mês e quanto isso vira de comissão) NÃO é servida por esta
+     * tela: quem a produz é DashboardController::getUserSalesTargets, que é admin-only e
+     * responde DataTables. Trazê-la é caminho de VALOR e exige a dupla prova da regra
+     * mestre (memory/proibicoes.md) — PR próprio, não esta onda.
+     *
+     * O predicado dos colaboradores é o MESMO do ramo ajax acima (user() + allow_login=1),
+     * incluindo o filtro de busca, pra que as duas tabelas nunca mostrem populações
+     * diferentes enquanto a Blade coexistir.
+     */
+    private function paginarColaboradores(int $business_id): LengthAwarePaginator
+    {
+        $busca = trim((string) request()->input('q', ''));
+
+        $users = User::where('business_id', $business_id)
+                    ->user()
+                    ->where('allow_login', 1)
+                    ->select(['id',
+                        DB::raw("CONCAT(COALESCE(surname, ''), ' ', COALESCE(first_name, ''), ' ', COALESCE(last_name, '')) as full_name"), ]);
+
+        if ($busca !== '') {
+            $users->where(function ($q) use ($busca) {
+                $q->whereRaw("CONCAT(COALESCE(surname, ''), ' ', COALESCE(first_name, ''), ' ', COALESCE(last_name, '')) like ?", ["%{$busca}%"])
+                    ->orWhere('username', 'like', "%{$busca}%")
+                    ->orWhere('email', 'like', "%{$busca}%");
+            });
+        }
+
+        $pagina = $users->orderBy('full_name')->paginate(25)->withQueryString();
+
+        // Tier 0 (ADR 0093): os ids vêm da página JÁ escopada por business_id acima — o
+        // whereIn nunca alcança colaborador de outro tenant.
+        $faixasPorUsuario = EssentialsUserSalesTarget::whereIn('user_id', $pagina->pluck('id'))
+                    ->orderBy('target_start')
+                    ->get()
+                    ->groupBy('user_id');
+
+        $pagina->getCollection()->transform(fn ($u) => [
+            'id' => (int) $u->id,
+            'nome' => trim((string) $u->full_name),
+            'faixas' => ($faixasPorUsuario[$u->id] ?? collect())
+                ->map(fn ($f) => [
+                    'id' => (int) $f->id,
+                    'inicio' => (float) $f->target_start,
+                    'fim' => (float) $f->target_end,
+                    'percentual' => (float) $f->commission_percent,
+                ])->values()->all(),
+        ]);
+
+        return $pagina;
     }
 
     /**
