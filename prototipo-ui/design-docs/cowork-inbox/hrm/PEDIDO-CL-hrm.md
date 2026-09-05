@@ -47,9 +47,23 @@ Sem D1 e D3 respondidas, **HRM-O6 não fecha** (a guarda de conflito depende do 
 > deixariam esse gate vermelho **para todo PR** até o PR-9 (o mesmo dano coletivo que já
 > segurou o contrato). O gerador canônico [`criar-tela.mjs`](../../../../scripts/governance/criar-tela.mjs)
 > carimba `.tsx` + charter + casos + e2e + contrato **juntos**: *charter sem tela não é estado
-> suportado neste repo*. Os textos revisados dos 3 charters + casos estão no PR
-> [#6800](https://github.com/wagnerra23/oimpresso.com/pull/6800) (commit inicial) — reaproveitar
-> lá, não reescrever.
+> suportado neste repo*. Os textos revisados dos 3 charters + casos estão no commit
+> **`dbfc75fbcf`** do PR [#6800](https://github.com/wagnerra23/oimpresso.com/pull/6800) —
+> reaproveitar, não reescrever.
+>
+> ⚠️ **Como buscar (o branch foi DELETADO no merge).** Num clone fresco `git show dbfc75fbcf`
+> **falha** — o commit ficou fora de qualquer branch. Ele sobrevive porque é ancestral de
+> `refs/pull/6800/head` (medido 2026-09-05: a ref existe no remoto e o `merge-base
+> --is-ancestor` confirma). Receita:
+> ```bash
+> git fetch origin refs/pull/6800/head
+> git show dbfc75fbcf:Modules/Essentials/Resources/js/Pages/Hrm/Licencas/Index.charter.md
+> git show dbfc75fbcf:Modules/Essentials/Resources/js/Pages/Hrm/Licencas/Index.casos.md
+> git show dbfc75fbcf:Modules/Essentials/Resources/js/Pages/Hrm/Presenca/Index.charter.md
+> git show dbfc75fbcf:Modules/Essentials/Resources/js/Pages/Hrm/Folha/Index.charter.md
+> ```
+> (Sem o `fetch` da ref do PR, os quatro falham. Citar um sha sem dizer como alcançá-lo é
+> ponteiro que apodrece — foi o defeito desta própria nota, corrigido no mesmo dia.)
 >
 > **`hrm-licencas.contract.json` fica aqui**, corrigido pro schema do repo (usava
 > `sections`/`screen`/`route`; o schema exige `alvo`+`secoes`). Contrato só é *vigente* quando
