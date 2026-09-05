@@ -177,3 +177,81 @@ it('AppShellV2 — landmarks: 1 <main>, nav primária fora dele (auth bridge)', 
 })()
 JS))->toBe('fora', 'a nav primária deve ficar FORA do <main> (senão o landmark não permite pular a sidebar)');
 });
+
+/**
+ * PONTO — ampliação do ratchet axe pro módulo com obrigação LEGAL (Portaria MTP 671/2021).
+ *
+ * POR QUE O PONTO, E POR QUE ELE NÃO É TELA CRUA (medido em 2026-09-04 contra origin/main):
+ *   Dos três eixos da rede, o módulo já tinha DOIS armados e só este zerado —
+ *     - VRT  : 4 telas em tests/Browser/visreg-screens.json, as 4 com baseline de pixel.
+ *     - E2E  : /ponto em AuthBridgeSmokeTest.php:87 (âncora "Ponto eletrônico").
+ *     - a11y : ZERO — `grep -ci ponto` neste arquivo devolvia 0 antes deste bloco.
+ *   Logo não são telas novas sendo auditadas às cegas: são as MESMAS 4 que já montam
+ *   verdes NESTE job, ganhando o terceiro eixo.
+ *
+ * DERIVADO, NÃO RESTATEADO (ADR 0256 — derivado sobrevive, escrito apodrece):
+ *   rota e âncora saem do MESMO manifesto que o PixelBaselineTest consome, e são as
+ *   mesmas que ele já prova (PixelBaselineTest.php:202 → assertSee($ancora)). Copiá-las
+ *   pra cá à mão criaria um segundo lugar pra elas drifarem em silêncio.
+ *   Ampliar pra outro módulo = trocar o prefixo do filtro, nada mais.
+ *
+ * MESMO PISO DO RATCHET: level 0 (CRITICAL only), o piso que o docblock do topo fixa.
+ * NÃO subo o nível junto com a superfície — são dois eixos, e mexer nos dois de uma vez
+ * impede saber qual dos dois quebrou.
+ *
+ * SEED: VisregPontoSeeder já roda neste job (visual-regression.yml:494) e cria o
+ * colaborador 900001 no business 1 — o mesmo tenant que o auth-bridge resolve aqui.
+ *
+ * ⚠️ HONESTIDADE (idem docblock do topo): Pest Browser não roda local (hook
+ * block-test-fora-ct100 + ADR 0108). Validado por `php -l` + espelhamento do teste do
+ * Financeiro acima. VALIDA NO CI. A lane `visual-regression` está ADVISORY desde
+ * 2026-08-26 (decisão [W] registrada em governance/required-checks-baseline.json), então
+ * um vermelho aqui REPORTA sem bloquear merge — que é o que se quer de uma ampliação.
+ */
+$telasPonto = array_reduce(
+    array_filter(
+        json_decode(
+            (string) file_get_contents(dirname(__DIR__) . '/visreg-screens.json'),
+            true,
+            512,
+            JSON_THROW_ON_ERROR
+        ),
+        static fn (array $tela): bool => str_starts_with((string) ($tela['screen'] ?? ''), 'Ponto'),
+    ),
+    static function (array $acc, array $tela): array {
+        $acc[$tela['screen']] = [$tela['route'], $tela['anchor']];
+
+        return $acc;
+    },
+    [],
+);
+
+// GATE MUDO É PIOR QUE GATE AUSENTE: dataset vazio faria estes testes simplesmente não
+// existirem, e a suíte seguiria verde afirmando nada. Se as telas do Ponto saírem do
+// manifesto, isto GRITA em vez de emudecer.
+if ($telasPonto === []) {
+    throw new RuntimeException(
+        'visreg-screens.json não tem nenhuma tela com prefixo "Ponto": o dataset de a11y ficaria '
+        . 'vazio e este gate sumiria em silêncio. Se a remoção foi intencional, remova este bloco '
+        . 'explicitamente em vez de deixá-lo mudo.'
+    );
+}
+
+it('Ponto — 0 violações axe CRITICAL no browser real (auth bridge)', function (string $rotaPonto, string $ancoraPonto) {
+    $business = Business::orderBy('id')->first();
+    if (! $business) {
+        test()->markTestSkipped('Sem business seedado (VisregTenantSeeder não rodou).');
+    }
+    $admin = User::where('business_id', $business->id)->orderBy('id')->first();
+    if (! $admin) {
+        test()->markTestSkipped('Sem user no business seedado.');
+    }
+
+    $page = visit('/_visreg-login/' . $admin->id . '?to=' . urlencode($rotaPonto));
+
+    // Gate 1: a tela montou de verdade (não caiu em 403/login/erro) antes de auditar a11y.
+    $page->assertSee($ancoraPonto);
+
+    // Gate 2: axe-core no Chromium real, level 0 = CRITICAL only.
+    $page->assertNoAccessibilityIssues(level: 0);
+})->with($telasPonto);

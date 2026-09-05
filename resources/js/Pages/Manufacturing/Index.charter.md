@@ -44,6 +44,16 @@ Listar ordens de produção (production_purchase) do business ativo em UX Inerti
   aprovação [W] da família em produção, torna o endereço canônico a tela React. A rota
   **NÃO foi removida nem renomeada** e `?legacy=1` devolve o Blade no mesmo endereço.
   ⚠️ Non-Goal é território [W]: se ele discordar, o lugar de barrar é este PR.
+  ⚠️ **"sem rotas alternativas" = sem ENDEREÇO paralelo (`/v2/*`), não "sem navegação".**
+  O `pr-critic` leu a citação acima como se proibisse a barra de abas (PR #6771) — ela
+  aponta pros endereços CANÔNICOS, que é exatamente o que a frase pede. Nota aqui porque
+  a ambiguidade é da redação, não do leitor.
+
+## Navegação
+- A tela carrega a **barra de abas do módulo** (Receitas · Ordens de produção · Insumos ·
+  Relatório · Configurações), igual às 4 irmãs. Nasceu SEM ela na Wave J — era a única tela
+  React do módulo — e virou beco sem saída quando o cutover pôs o menu lateral apontando pra
+  cá ([M] reportou 2026-09-04). Defendido por `CutoverRotasCanonicasTest`.
 
 ## UX targets
 - Responsivo 1280px+ (cliente piloto ROTA LIVRE biz=4 monitor pequeno)
