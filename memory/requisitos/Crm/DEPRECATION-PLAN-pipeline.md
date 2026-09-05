@@ -193,8 +193,12 @@ Como B é **descontinuação** (não migração), não há receptor que absorve 
 
 ## BLOQUEIOS antes de qualquer DROP
 
-1. Row count por business (queries Fase 3 — rodar em réplica; **não rodado**). 🔴 **aberto**
-2. Auditoria do consumidor externo Connector (`log.delphi`). 🔴 **aberto** — mas o **oráculo agora está nomeado** (ver abaixo).
+1. Row count por business (queries Fase 3). 🔴 **aberto** — rodado no CT 100 em **2026-09-04**, mas
+   **o CT 100 não pode responder esta pergunta**: nenhum dos seus bancos é réplica de prod (4 businesses
+   fictícios de CI, zero pagante). O zero medido lá **não** autoriza DROP. Ver §Recibo abaixo.
+2. Auditoria do consumidor externo Connector (`log.delphi`). 🔴 **aberto** — oráculo **verificado no
+   código** e query rodada em **2026-09-04**; o vazio obtido mede a **instrumentação**, não o consumidor
+   (zero linha `source='delphi_middleware'` em qualquer banco do CT 100). Ver §Recibo abaixo.
 3. ~~Confirmar `BrLookupService` pertence a A.~~ ✅ **FECHADO em 2026-09-04** — pertence a A.
 
 ### Recibo do bloqueio 3 (fato datado — re-rodar em vez de confiar nesta linha)
@@ -216,7 +220,7 @@ etapa de remoção. O Risco 8 do §Fase 5 está mitigado por medição, não por
 ⚠️ O recibo mede o **repo**, não o mundo: se um consumidor novo nascer, a conclusão muda — por isso a
 receita fica escrita aqui, para ser **re-rodada**, e não a conclusão sozinha.
 
-### Oráculo do bloqueio 2 (nomeado em 2026-09-04 — **NÃO medido**)
+### Oráculo do bloqueio 2 (nomeado em 2026-09-04 · **verificado no código em 2026-09-04**)
 
 O plano pedia "auditar o consumidor externo Connector (`log.delphi`)" sem dizer **onde** olhar. Rastreado
 no código: o alias `log.delphi` (`Modules/Officeimpresso/Providers/OfficeimpressoServiceProvider.php`)
@@ -238,9 +242,140 @@ Rodar em **réplica/staging** (nunca escrever em prod). Leitura do resultado: **
 `ultima_chamada` antiga = candidato a `410 Gone` na E4; **qualquer linha recente** = BLOQUEIO mantido até
 migrar o consumidor (Wagner + Felipe), como o §Fase 4 já manda.
 
-⚠️ **Isto é o oráculo, não a medição.** Ninguém rodou a query até aqui — o bloqueio 2 segue 🔴 aberto.
-Ausência de linha só vale como "morto" depois de conferir que o middleware de fato grava no ambiente
-consultado (senão o vazio mede a instrumentação, não o consumidor).
+As **duas pernas do oráculo foram verificadas em 2026-09-04** (varredura contada, comandos no §Recibo):
+
+- o grupo `connector/api/crm` **passa mesmo** por `log.delphi` — `Modules/Connector/Routes/api.php:112`;
+- o middleware grava **incondicionalmente** (sem flag, sem `if`), com `endpoint = $request->path()`
+  **sem barra inicial** — `LogDelphiAccess.php:111`.
+
+⚠️ **Mas a query sozinha não basta, e o motivo é medido:** `licenca_log` é escrita por **5 produtores**
+com convenções de `endpoint` **diferentes** (§Recibo). Logo, todo uso desta query exige **antes** o
+controle de instrumentação por `source='delphi_middleware'` — sem ele, ausência de linha mede o
+produtor, não o consumidor (§5 2026-07-31).
+
+### Recibo dos bloqueios 1 e 2 (medição no CT 100 — 2026-09-04)
+
+> **Leia o ambiente antes de ler qualquer número.** Este recibo registra o que foi medido, **onde**, e o que
+> aquele lugar consegue e **não** consegue responder. Nenhum DML foi executado — só `SELECT`. Nenhuma etapa
+> E1–E6 foi executada.
+
+#### O ambiente medido — e por que ele não fecha o bloqueio 1
+
+O CT 100 expõe **4 bancos** com schema do oimpresso, e **nenhum é réplica nem anonimização de prod**:
+
+```bash
+tailscale ssh root@ct100-mcp 'PW=$(docker inspect oimpresso-staging-db --format "{{range .Config.Env}}{{println .}}{{end}}" | grep -m1 MARIADB_ROOT_PASSWORD | cut -d= -f2); docker exec -i oimpresso-staging-db mariadb -uroot -p"$PW" -e "SHOW DATABASES;"'
+# -> oimpresso_staging | oimpresso_qa | oimpresso_kbf | oimpresso_kb_flake
+```
+
+`oimpresso_staging` (o banco que o container `oimpresso-staging` usa — `DB_DATABASE` do `.env` dele) tem
+**387 tabelas** e os seguintes dados: **4 businesses, 1 contact, 2 transactions**. Os 4 businesses são
+`CI Biz` (1), `CI Biz 2` (2), `CI Tenant 98 (ficticio)` (98) e `CTM Test Biz Adversario#99` (99) — todos
+criados em 2026-08-20/24 pela receita de CI. **Não existe `business_id=4` (ROTA LIVRE), nem 164, nem
+qualquer business pagante.** `oimpresso_qa` e `oimpresso_kbf` têm o mesmo perfil (3–4 businesses de CI).
+
+→ **Consequência dura:** a regra de ouro do §Fase 3 fala em *"`n>0` em business **pagante**"*. No ambiente
+medido não há business pagante algum, logo **`n=0` aqui não é evidência de tabela morta** — mede o seed do
+CI, não o cliente. Ler esse zero como "candidata a DROP direto" seria a §5 2026-07-31 (vazio que era falha
+de medição) na forma mais cara possível: perda de dado de cliente.
+
+#### Bloqueio 1 — o que a medição de fato produziu
+
+As tabelas **existem** no schema e estão **todas vazias neste ambiente** (`COUNT(*)`, não `table_rows`):
+
+| Tabela | `COUNT(*)` em `oimpresso_staging` |
+|---|---|
+| `crm_schedules` · `crm_schedule_users` · `crm_schedule_logs` | 0 · 0 · 0 |
+| `crm_followup_invoices` · `crm_call_logs` · `crm_proposals` | 0 · 0 · 0 |
+| `crm_proposal_templates` · `crm_campaigns` · `crm_marketplaces` | 0 · 0 · 0 |
+| `crm_contact_person_commissions` · `crm_deals` · `crm_lead_users` | 0 · 0 · 0 |
+| `contacts WHERE type='lead'` | 0 (nenhum grupo retornado) |
+
+→ O que isto **prova**: as queries do §Fase 3 são **executáveis** e o schema bate com a tabela de decisão.
+→ O que isto **não prova**: nada sobre `crm_deals`/`crm_marketplaces` serem "DROP direto". Aquela
+  conclusão exige `n=0` **global em prod**, e prod não foi medido.
+
+⚠️ **Desvio de contagem, registrado sem reescrever o TL;DR:** o §TL;DR diz *"9 tabelas"*; o schema tem
+**12** tabelas `crm_*` e o §Fase 3 lista as **12** (3 delas marcadas `pivot` — 12−3=9 explica o número,
+mas o texto não diz isso). Contagem reproduzível:
+`SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='oimpresso_staging' AND SUBSTRING(table_name,1,4)='crm_'` → **12**.
+
+#### Bloqueio 2 — o vazio é da instrumentação, e isso foi **medido**
+
+O plano mandava conferir que o middleware grava no ambiente consultado antes de ler vazio como "morto".
+Conferido — e **reprovou**:
+
+| Banco | linhas em `licenca_log` | `source` das linhas |
+|---|---|---|
+| `oimpresso_staging` | **0** | — |
+| `oimpresso_kbf` | **0** | — |
+| `oimpresso_qa` | **188** | `desktop_audit` (**100%**) |
+
+**Zero linha `source='delphi_middleware'` em qualquer banco do CT 100.** As 188 do `oimpresso_qa` vieram do
+`LicencaAuditService` (`source='desktop_audit'`), não do middleware do oráculo — e por isso trazem
+`endpoint` em **outro formato** (`/api/sync`, `/oauth/token`, **com** barra).
+
+→ **A query do plano devolveu 0 linhas** — e esse 0 **não significa "o Delphi não chama mais"**. Significa
+  que o produtor daquela linha nunca rodou aqui. Controle negativo confirmando:
+  `SELECT COUNT(*) FROM oimpresso_qa.licenca_log WHERE endpoint LIKE 'connector/api%'` → **0**.
+
+#### Refinamento do oráculo: `licenca_log` tem **5 produtores**, não 1
+
+Varredura contada no repo (`rg --hidden -g '!.git/**' "LicencaLog::create"` → 5 arquivos de código + 2 de teste):
+
+| Produtor | `source` | formato de `endpoint` |
+|---|---|---|
+| `Http/Middleware/LogDelphiAccess.php:111` | `delphi_middleware` | `$request->path()` — **sem** barra |
+| `Http/Middleware/LogDesktopAccess.php:68` | `api_middleware` | `$request->path()` — **sem** barra |
+| `Services/LicencaAuditService.php:60` | `desktop_audit` | `$payload['endpoint']` — **livre** |
+| `Listeners/LogPassportAccessToken.php:89` | `passport_event` | literal `'/oauth/token'` — **com** barra |
+| `Console/ParseLicencaLogCommand.php` | `log_parser` | do arquivo de log |
+
+→ **Por que isto importa:** o `LIKE 'connector/api/crm%'` do oráculo está **correto para o produtor certo**
+  (o `LogDelphiAccess` grava sem barra), mas a tabela é **compartilhada** e sem convenção única. Rodar
+  a query e ver 0 sem antes contar `source='delphi_middleware'` mede o produtor, não o consumidor.
+
+#### Receita reexecutável — rodar **nesta ordem** (o controle vem primeiro)
+
+```sql
+-- PASSO 1 (CONTROLE, obrigatorio): o produtor do oraculo escreve neste ambiente?
+--   n = 0  -> PARE. O passo 2 nao tem significado aqui (mede a instrumentacao, nao o consumidor).
+SELECT COUNT(*) AS n, MIN(created_at) AS mais_antiga, MAX(created_at) AS mais_recente
+FROM licenca_log WHERE source = 'delphi_middleware';
+
+-- PASSO 2 (a pergunta): o Delphi ainda chama a API CRM?
+SELECT endpoint, source, COUNT(*) AS n, COUNT(DISTINCT business_id) AS bizs,
+       MAX(created_at) AS ultima_chamada
+FROM licenca_log
+WHERE endpoint LIKE 'connector/api/crm%' AND source = 'delphi_middleware'
+GROUP BY endpoint, source ORDER BY ultima_chamada DESC;
+
+-- PASSO 3 (rede contra a barra): pega linha que outro produtor tenha gravado com '/' na frente
+SELECT endpoint, source, COUNT(*) AS n, MAX(created_at) AS ultima_chamada
+FROM licenca_log WHERE endpoint LIKE '%connector/api/crm%'
+GROUP BY endpoint, source ORDER BY ultima_chamada DESC;
+```
+
+Transporte (aspas aninhadas colapsam — passar o SQL por **stdin**, nunca inline):
+
+```bash
+cat query.sql | tailscale ssh root@ct100-mcp 'PW=$(docker inspect oimpresso-staging-db --format "{{range .Config.Env}}{{println .}}{{end}}" | grep -m1 MARIADB_PASSWORD | cut -d= -f2); docker exec -i oimpresso-staging-db mariadb -ustaging -p"$PW" oimpresso_staging -t'
+```
+
+#### O que **de fato** fecharia cada bloqueio
+
+| # | Fecha quando | Onde, hoje |
+|---|---|---|
+| 1 | `COUNT(*)` por `business_id` das 12 `crm_*` medido num ambiente que **contenha business pagante** (réplica ou dump anonimizado de prod) | **Não existe** no CT 100 (medido: `SHOW DATABASES` + `business` dos 4 bancos). Exige réplica — decisão [W] |
+| 2 | Passo 1 da receita retornar `n>0` **e** o passo 2 rodar num ambiente que o Delphi de fato chama | Idem: `delphi_middleware` = 0 linha no CT 100. O ambiente que o Delphi chama é **prod** |
+
+⚠️ **O §Fase 3 proíbe rodar em prod** (*"rodar em réplica/staging, nunca em prod"*). Como o único ambiente
+com o dado é prod e a réplica não existe, **os dois bloqueios ficam abertos por falta de ambiente, não por
+falta de query** — e destravá-los é decisão [W]: provisionar réplica/dump anonimizado, ou autorizar
+`SELECT` read-only em prod com janela combinada. Nenhuma das duas foi feita aqui.
+
+⚠️ Como no bloqueio 3: este recibo mede **os bancos do CT 100 em 2026-09-04**, não o mundo. A receita fica
+escrita para ser **re-rodada** — nunca a conclusão sozinha.
 
 ## Refs
 
