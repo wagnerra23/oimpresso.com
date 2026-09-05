@@ -10,6 +10,7 @@ parent_capterra: memory/requisitos/Repair/CAPTERRA-FICHA.md
 related_runbook: memory/requisitos/Repair/RUNBOOK-jobsheet-index.md
 related_visual_comparison: memory/requisitos/Repair/jobsheet-visual-comparison.md
 related_adrs: [101, 104, 149, 143, 93]
+related_us: [US-REPA-004]
 tier: A
 charter_version: 3
 mwart_pattern_reuse:
