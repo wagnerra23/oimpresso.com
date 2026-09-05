@@ -77,8 +77,14 @@ class AttendanceImportService
         $recusadas = [];
         $aceitas = [];
 
-        // Lookups em lote: o import antigo fazia 2 SELECT por linha (N+1) — é o que
-        // obrigava o `ini_set('max_execution_time', 0)`. Aqui são 2 queries no total.
+        // Lookups em lote: o import antigo fazia 2 SELECT por linha (colaborador + turno)
+        // — o N+1 que obrigava o `ini_set('max_execution_time', 0)`. Aqui são 2 queries
+        // no total, independentemente do tamanho do arquivo.
+        //
+        // O que NÃO é em lote, de propósito: a checagem de sobreposição roda por linha
+        // aceita (até 2 EXISTS cada), porque ela é o MESMO SQL que o formulário usa e
+        // manter uma implementação só vale mais do que reescrevê-la em memória. É esse
+        // custo que justifica o trabalho ter ido pra fila em vez de ficar no request.
         $usuariosPorEmail = $this->mapaDeUsuarios($businessId, $linhas);
         $turnosPorNome = $this->mapaDeTurnos($businessId, $linhas);
 
