@@ -952,19 +952,35 @@ jobs:
       # DO PRÓPRIO arquivo PHP (não uma cópia) e mostra 10/10 — libera no caso bom e MORDE
       # nas 3 regressões (botão removido · `router.visit` · linha ausente).
       #
-      # OS 2 VERDES QUE A ADR 0336 PEDE, ambos em 2026-09-05 e ambos com o mesmo contador:
-      # `PASS Tests\Browser\Purchase\IndexEtiquetaTest` · 3 passed (7 assertions).
-      #   run 33941339625 (8,14s) · run do commit seguinte (04:35)
-      # O contador de ASSERTIONS é o que prova execução: pulado sairia `0 assertions` sem
-      # falhar (LC-13). Com isso o PRÉ-REQUISITO da promoção está cumprido — mas promover
-      # (remover o `continue-on-error`) é flip [W], nunca efeito colateral de um PR.
-      - name: E2E de comportamento · Purchase/Index · Etiquetas (ADVISORY)
+      # PROMOVIDO A ENFORCING em 2026-09-05 — flip [W] explícito ("2 promovo"), que é a
+      # única autoridade que remove um `continue-on-error` (ADR 0336). Não é efeito
+      # colateral do PR: o autor pediu, [W] decidiu.
+      #
+      # OS 3 VERDES QUE EXECUTARAM, todos em 2026-09-05 e todos com o MESMO contador —
+      # `PASS Tests\Browser\Purchase\IndexEtiquetaTest` · 3 passed (7 assertions):
+      #   run 33941339625 (8,14s) · run do commit seguinte (04:35) · run 33967603785 (pós-merge)
+      # A ADR 0336 pede 2; houve 3. O contador de ASSERTIONS é o que prova execução —
+      # pulado sairia `0 assertions` sem falhar (LC-13), e `skipped` lido como verde é o
+      # presence-gate de sempre.
+      #
+      # ⚠️ O QUE MUDA AO FICAR ENFORCING, dito na frente: este step passa a REPROVAR o job
+      # inteiro. Ele depende de 3 coisas fora do próprio teste — o tenant do
+      # `VisregTenantSeeder` (biz=1), o seed da compra `VISREG-COM-001` e o `?v=2` do
+      # dual-path. Se qualquer uma sumir, o sintoma é vermelho aqui, e o probe nomeia qual:
+      # `SEM-BUSCA-REACT` (caiu no Blade) · `SEM-LINHA` (seed não chegou) · `ACAO-AUSENTE`
+      # (o botão sumiu — a regressão de 2026-06-17 voltando). Voltar a advisory é
+      # recolocar o `continue-on-error`, e é decisão [W] como esta foi.
+      - name: E2E de comportamento · Purchase/Index · Etiquetas (ENFORCING)
         if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         id: e2e-purchase-etiqueta
-        continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Purchase/IndexEtiquetaTest.php
 
       # ── VEREDITO DOS ADVISORY DE BROWSER (visibilidade, NÃO enforcement) ─────────
+      # NÃO lista o step de Purchase/Index · Etiquetas, e isso é deliberado: ele foi
+      # promovido a ENFORCING em 2026-09-05 (flip [W]), logo NÃO tem `continue-on-error`
+      # e o vermelho dele já aparece em `gh pr checks` e na UI — que é justamente o que
+      # este veredito existe pra compensar nos que TÊM. Incluí-lo aqui sugeriria que ele
+      # é advisory. Quem promover outro step: tire-o desta lista junto.
       # O PROBLEMA, medido em 2026-09-03: `continue-on-error: true` faz o GitHub publicar
       # `conclusion=success` NO STEP; o veredito real fica só no campo `outcome`, que nem a
       # UI de checks nem `gh pr checks` mostram. Nos runs 33747138995 e 33762382505 o step do
@@ -997,7 +1013,6 @@ jobs:
           A_COBRANCA: ${{ steps.e2e-cobranca.outcome }}
           A_RECIPES: ${{ steps.e2e-recipes.outcome }}
           A_VISAO_GERAL: ${{ steps.e2e-visao-geral.outcome }}
-          A_PURCHASE_ETIQUETA: ${{ steps.e2e-purchase-etiqueta.outcome }}
         run: |
           resumo="$(mktemp)"
           {
@@ -1033,7 +1048,6 @@ jobs:
           registrar "E2E de render · Financeiro/Cobranca" "$A_COBRANCA"
           registrar "E2E de render · Manufacturing/Recipes" "$A_RECIPES"
           registrar "E2E de render · Home/Visao geral" "$A_VISAO_GERAL"
-          registrar "E2E de comportamento · Purchase/Index · Etiquetas" "$A_PURCHASE_ETIQUETA"
 
           {
             echo ""

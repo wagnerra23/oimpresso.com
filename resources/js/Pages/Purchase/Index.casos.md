@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: o dual-path Blade×React e o escopo por tenant são duráveis — não mudam quando a lista ganhar coluna ou filtro novo.
 owner: wagner
 last_run: "2026-09-05"
-last_run_ci: "✅ 2026-09-05: os 10 arquivos de tests/Feature/Purchase/ entraram na allowlist do purchase-pest.yml (#6824/#6827/#6841). Medido em origin/main b863647741: 0 orfaos no diretorio e uc-lane-coverage --check EXIT=0. Os 6 UC desta tela tem lane; 2 com defesa de COMPORTAMENTO (PurchaseIndexTenantContratoTest) e os demais ESTRUTURAL (presence-gate, LC-11) - ganhar lane nao muda a natureza da prova. Nao restatear a mao: rode scripts/qa/uc-lane-coverage.mjs. HISTORICO (fato datado, preservado): 🟡 Duas frentes do mesmo dia. (a) A lane purchase-pest.yml nasceu e os 2 UC [T0] (02/03) têm contrato de COMPORTAMENTO em PurchaseIndexTenantContratoTest — 4 passed, 11 assertions, verde no CI, mordida verificada por mutação. (b) Os UC 04/05 têm E2E de COMPORTAMENTO em IndexEtiquetaTest (Pest 4 Browser), na lane visual-regression (advisory): 2 verdes que EXECUTARAM, 3 passed / 7 assertions cada. Restam 🔴 sem lane os UC 01 e 06, que apontam pro IndexPageTest — presence-gate e sem lane. Nenhum ✅ nos 04/05: o visual-regression não emite JUnit, então nada dele chega ao manifesto do G-7. Ver §Dívida de prova."
+last_run_ci: "✅ 2026-09-05, três frentes do mesmo dia. (a) A lane purchase-pest.yml nasceu e os 2 UC [T0] (02/03) têm contrato de COMPORTAMENTO em PurchaseIndexTenantContratoTest — 4 passed, 11 assertions, verde no CI, mordida verificada por mutação. (b) Os UC 04/05 têm E2E de COMPORTAMENTO em IndexEtiquetaTest (Pest 4 Browser) na lane visual-regression, ENFORCING desde 2026-09-05 (flip [W]) apos 3 verdes que EXECUTARAM, 3 passed / 7 assertions cada. (c) Os 10 arquivos de tests/Feature/Purchase/ entraram na allowlist do purchase-pest.yml (#6824/#6827/#6841) — medido em origin/main b863647741: 0 orfaos no diretorio e uc-lane-coverage --check EXIT=0. ⚠️ A frase anterior \"restam 🔴 sem lane os UC 01 e 06\" ficou FALSA com (c): o IndexPageTest que eles citam esta na allowlist. Eles passam a 🧪 estrutural · na lane — presence-gate segue sendo presence-gate; ganhar lane muda \"ninguem o acorda\" para \"alguem o acorda\", nao a natureza da prova. Nenhum ✅ nos 04/05: o visual-regression não emite JUnit, então nada dele chega ao manifesto do G-7. Não restatear estes numeros a mao: rode node scripts/qa/uc-lane-coverage.mjs. Ver §Dívida de prova."
 ---
 
 # Casos de Uso & Aceite — Listagem de Compras (`/purchases`)
@@ -85,7 +85,7 @@ módulo, nem a sqlite curada do `ci.yml`. Logo o `IndexPageTest` **também não 
 |---|---:|---:|---|
 | [`IndexPageTest`](../../../../tests/Feature/Purchase/IndexPageTest.php) | **0** | **55** | 🔴 **não — sem lane** |
 | [`PurchaseIndexTenantContratoTest`](../../../../tests/Feature/Purchase/PurchaseIndexTenantContratoTest.php) | **4** | 0 | ✅ **sim — `purchase-pest.yml`** |
-| [`IndexEtiquetaTest`](../../../../tests/Browser/Purchase/IndexEtiquetaTest.php) | monta a tela e **clica** | 0 | ✅ **sim — `visual-regression.yml`** (advisory) |
+| [`IndexEtiquetaTest`](../../../../tests/Browser/Purchase/IndexEtiquetaTest.php) | monta a tela e **clica** | 0 | ✅ **sim — `visual-regression.yml`** (enforcing) |
 
 **Duas camadas de falha, e a de cima é a que a v1 não tinha nomeado:**
 
@@ -100,7 +100,7 @@ módulo, nem a sqlite curada do `ci.yml`. Logo o `IndexPageTest` **também não 
 **Consequência (revista em 2026-09-05, por duas frentes do mesmo dia):** os UC **02 e 03** têm
 defesa ativa — comportamental **e** executada, via `purchase-pest.yml`. Os UC **04 e 05** também,
 por outro caminho: `IndexEtiquetaTest` é Pest 4 Browser e roda na lane `visual-regression`
-(advisory) — monta a lista, **clica** e lê o que a tela pediu ao navegador. Restam **01 e 06**
+(enforcing) — monta a lista, **clica** e lê o que a tela pediu ao navegador. Restam **01 e 06**
 sem nenhuma das duas: continuam apontando para o `IndexPageTest`, que é presence-gate e não roda.
 
 **Por que os 04/05 ficam `🧪` e não `✅`:** o `visual-regression` **não emite `--log-junit`**,
@@ -128,8 +128,8 @@ daí — o caminho é converter, um UC por vez, não ligar tudo de uma vez.
 | UC-PURIDX-01 | SPA recebe React; acesso direto recebe Blade | must | RUNBOOK §1 · charter Mission | `IndexPageTest` | 🧪 estrutural · na lane |
 | UC-PURIDX-02 | Lista nunca sai do `business_id` da sessão | must `[T0]` | RUNBOOK §5 · charter Non-Goal 4 | `PurchaseIndexTenantContratoTest` | ✅ comportamento · na lane |
 | UC-PURIDX-03 | Lista respeita `permitted_locations` | must `[T0]` | RUNBOOK §3 · charter Goals | `PurchaseIndexTenantContratoTest` | ✅ comportamento · na lane |
-| UC-PURIDX-04 | Ação "Etiquetas" existe no React (paridade Blade) | must `[reg]` | RUNBOOK §2 (regressão datada) | `IndexEtiquetaTest` | 🧪 comportamento · na lane (advisory, fora do manifesto) |
-| UC-PURIDX-05 | Rota Blade abre por `window.open`, nunca `router.visit` | must | RUNBOOK §3 · §5 | `IndexEtiquetaTest` | 🧪 comportamento · na lane (advisory, fora do manifesto) |
+| UC-PURIDX-04 | Ação "Etiquetas" existe no React (paridade Blade) | must `[reg]` | RUNBOOK §2 (regressão datada) | `IndexEtiquetaTest` | 🧪 comportamento · na lane (enforcing, fora do manifesto) |
+| UC-PURIDX-05 | Rota Blade abre por `window.open`, nunca `router.visit` | must | RUNBOOK §3 · §5 | `IndexEtiquetaTest` | 🧪 comportamento · na lane (enforcing, fora do manifesto) |
 | UC-PURIDX-06 | A Page não decide tenant — `business_id` vem das props | must `[T0]` | RUNBOOK §5 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `IndexPageTest` | 🧪 estrutural · na lane |
 
 ---
@@ -241,15 +241,15 @@ daí — o caminho é converter, um UC por vez, não ligar tudo de uma vez.
   teste **substitui `window.open`, clica de verdade** e compara com a URL montada a partir do **id
   real** da compra no banco. Remover o botão devolve `ACAO-AUSENTE`; mudar a URL muda a string;
   trocar por `router.visit` devolve `NAO-CHAMOU`.
-- **Status: 🧪 comportamento · na lane (advisory, fora do manifesto)** — as duas camadas de falha
+- **Status: 🧪 comportamento · na lane (enforcing, fora do manifesto)** — as duas camadas de falha
   que esta seção nomeia estão **fechadas** para este UC: o teste é de comportamento (não
   presence-gate) **e** roda (`visual-regression.yml`). Executou em 2026-09-05,
   [run 33941339625](https://github.com/wagnerra23/oimpresso.com/actions/runs/33941339625) e no run
   do commit seguinte, ambos `3 passed (7 assertions)` — o contador de **assertions** é o que prova
   execução, porque pulado sairia `0 assertions` sem falhar ([LC-13](../../../../memory/LICOES_CODE.md)).
   Não é `✅` porque o verde não chega ao manifesto do G-7 (ver §Dívida de prova), e segue
-  `continue-on-error`: os 2 verdes que a [ADR 0336](../../../../memory/decisions/0336-gates-design-promocao-por-mordida-provada-emenda-0314.md)
-  pede estão observados, mas promover é flip [W].
+  **ENFORCING desde 2026-09-05**: a [ADR 0336](../../../../memory/decisions/0336-gates-design-promocao-por-mordida-provada-emenda-0314.md)
+  pede 2 verdes que executaram, houve 3, e [W] fez o flip. Este step agora REPROVA o job.
 
 ---
 
@@ -272,7 +272,7 @@ daí — o caminho é converter, um UC por vez, não ligar tudo de uma vez.
   caminho tivesse chamado `window.open`. Traz ainda um **controle positivo** — o botão *Imprimir*,
   que usa o mesmo mecanismo — porque sem ele um interceptador quebrado devolveria `NAO-CHAMOU`
   para tudo e o verde não significaria nada.
-- **Status: 🧪 comportamento · na lane (advisory, fora do manifesto)** — deixou de ser ligação
+- **Status: 🧪 comportamento · na lane (enforcing, fora do manifesto)** — deixou de ser ligação
   indireta: o assert agora exerce o contrato, e passou junto com o UC-04 nos mesmos runs. Vale o
   mesmo resíduo: o verde não chega ao manifesto do G-7, e por isso não é `✅`.
 
