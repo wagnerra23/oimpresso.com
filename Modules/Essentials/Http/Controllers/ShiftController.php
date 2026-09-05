@@ -7,6 +7,7 @@ use App\Utils\ModuleUtil;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Modules\Essentials\Entities\EssentialsAttendance;
 use Modules\Essentials\Entities\EssentialsUserShift;
 use Modules\Essentials\Entities\Shift;
 use Yajra\DataTables\Facades\DataTables;
@@ -244,12 +245,80 @@ class ShiftController extends Controller
     /**
      * Remove the specified resource from storage.
      *
+     * Antes deste método o corpo era só `//`: a rota `DELETE /hrm/shift/{id}` do
+     * Route::resource existia e devolvia 200 sem apagar nada. Achado A4 do F1 do
+     * Cowork (`hrm-extras.jsx`, Nota "Turno não tem exclusão" — "turno errado fica
+     * no cadastro para sempre").
+     *
+     * Guarda de uso em DUAS pernas, porque nenhuma tem constraint de FK no banco
+     * (`essentials_user_shifts.essentials_shift_id` é `integer` NOT NULL e
+     * `essentials_attendances.essentials_shift_id` é `integer` nullable, ambos só
+     * com KEY de índice):
+     *  - vínculo de colaborador (`essentials_user_shifts`) — perderia a escala;
+     *  - marcação de presença (`essentials_attendances`) — é jornada CLT Art. 74
+     *    (o próprio Model loga `essentials_shift_id` em activity_log), e apagar o
+     *    turno deixaria a marcação apontando pro nada.
+     *
      * @param  int  $id
      * @return Response
      */
     public function destroy($id)
     {
-        //
+        $business_id = request()->session()->get('user.business_id');
+        $is_admin = $this->moduleUtil->is_admin(auth()->user(), $business_id);
+
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'essentials_module')) && ! $is_admin) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // Tier 0 (ADR 0093): o id chega CRU da rota — resolver dentro do business.
+        // Turno de outro tenant é 404, nunca "não travado".
+        $shift = Shift::where('business_id', $business_id)
+                    ->find($id);
+
+        if (empty($shift)) {
+            abort(404);
+        }
+
+        // SUPERADMIN: guarda de integridade, não de visibilidade. O $shift JÁ foi
+        // resolvido dentro do business acima; aqui a pergunta é "existe QUALQUER linha
+        // apontando pra ele?". EssentialsUserShift escopa via `user` (BelongsToBusinessViaParent),
+        // então com o scope ligado um vínculo cujo user esteja em outro business ficaria
+        // INVISÍVEL e o turno seria apagado deixando a linha órfã — a guarda tem de ser
+        // fail-closed (contar a mais e bloquear, nunca a menos e liberar).
+        $vinculos = EssentialsUserShift::withoutGlobalScopes()
+                                ->where('essentials_shift_id', $shift->id)
+                                ->count();
+        $marcacoes = EssentialsAttendance::where('business_id', $business_id)
+                                    ->where('essentials_shift_id', $shift->id)
+                                    ->count();
+
+        if ($vinculos > 0 || $marcacoes > 0) {
+            return response()->json([
+                'success' => false,
+                'msg' => __('essentials::lang.shift_em_uso', [
+                    'vinculos' => $vinculos,
+                    'marcacoes' => $marcacoes,
+                ]),
+                'blocked_by' => ['user_shifts' => $vinculos, 'attendances' => $marcacoes],
+            ], 422);
+        }
+
+        try {
+            $shift->delete();
+
+            $output = ['success' => true,
+                'msg' => __('lang_v1.deleted_success'),
+            ];
+        } catch (\Exception $e) {
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+
+            $output = ['success' => false,
+                'msg' => __('messages.something_went_wrong'),
+            ];
+        }
+
+        return $output;
     }
 
     public function getAssignUsers($shift_id)
