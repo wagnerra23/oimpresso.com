@@ -222,6 +222,18 @@ jobs:
         # (proibicoes §5 2026-07-12). O texto anterior dizia que esses dois "seguem em
         # DOCBLOCK, de propósito" — verdade em 28/08, falso desde então.
         #
+        # ImportacaoShowContratoTest (2026-09-04): arquivo NOVO só pro `UC-IMPSH-05` — o
+        # último item aberto da DoD da US-PONTO-012. Medido antes de escrever: das 4
+        # instâncias de atributo fantasma da US, TRÊS já estão provadas verdes no manifesto
+        # por-UC (UC-ESPSH-01 · UC-ESCF-01 · UC-IMPIDX-03 = `verdict: pass`), e o
+        # `erro_mensagem` do `show` era a única sem teste nenhum — `git grep UC-IMPSH-05`
+        # devolvia 3 arquivos, ZERO de teste. Nasce aqui e não dentro do
+        # `BancoHorasImportacaoContratoTest` (dono dos UC-IMPSH-01..04) porque aquele é
+        # classe PHPUnit com o UC em docblock: o `name` do `<testcase>` sai
+        # `uc_impshow_04_…`, sem hífen, e nunca chega ao manifesto do G-7 — é exatamente
+        # por isso que os 4 aparecem no `⛓` do `casos:report`. Escrever o 05 lá herdaria o
+        # defeito; convertê-lo é a dívida alheia que o parágrafo acima adia de propósito.
+        #
         # PontoDashboardContratoTest (2026-08-23): trio da tela `Ponto/Dashboard/Index`
         # (contrato `ponto-painel`, UC-PAINEL-01..06), landado pelo #6154. Aquele PR
         # escreveu o trio mas NÃO pôde ligá-lo aqui — editar este arquivo estava fora do
@@ -231,6 +243,38 @@ jobs:
         # Recibo de que ele passa (medição do #6154, não afirmação): 6 passed · 76
         # assertions · 0 skipped no CT 100, mais bite-test do guard Tier 0 — com o filtro
         # `business_id` removido de `buildAprovacoes`, SÓ o UC-PAINEL-02 reprovou.
+        # ColaboradorContratoTest (2026-09-04): trio das telas `Ponto/Colaboradores/Index` e
+        # `.../Edit` (UC-COLIDX-01..02 · UC-COLEDT-01..02). Entra junto com o casos.md porque
+        # teste fora desta lista é "verde impossível" — existe em main e nunca roda por PR.
+        # Recibo (medição no CT 100, container oimpresso-staging · MySQL real, NÃO afirmação):
+        # 4 passed · 15 assertions · 0 skipped. Bite-test com a defesa removida (o
+        # `use HasBusinessScope;` do model comentado): 2 failed — exatamente os dois UC `[T0]`,
+        # UC-COLIDX-01 e UC-COLEDT-01; os outros 2 seguiram verdes, como esperado.
+        # ⚠️ O bite-test pegou um defeito NO PRÓPRIO TESTE antes de pegar o do produto: a 1ª
+        # versão usava `expect($html)->not->toContain($needle, $mensagem)`, e o `toContain` do
+        # Pest recebe MÚLTIPLOS needles — a mensagem virava 2º needle e o `not` passava sempre.
+        # É a classe do §5 de proibicoes.md (2026-07-28). Trocado por
+        # `assertStringNotContainsString`, que recebe a mensagem como 3º parâmetro.
+        # ConfiguracaoContratoTest (2026-09-04): trio das telas `Ponto/Configuracoes/Index` e
+        # `.../Reps` (UC-CFGIDX-01 · UC-CFGREP-01..02). Recibo no CT 100: 3 passed · 14
+        # assertions · 0 skipped.
+        # O UC-CFGIDX-01 nasce de um ACHADO Tier 0 medido com sonda antes de existir teste: o
+        # `@index` mandava `config('pontowr2')` INTEIRO como prop Inertia — 14 blocos, incluindo
+        # `rep.certificado_icp_pass`, a senha do certificado ICP-Brasil. Prop Inertia viaja no HTML
+        # servido ao browser, então a senha saía na resposta (200) pra qualquer `ponto.access`.
+        # O conserto (allowlist de 4 blocos + `Arr::except` das 2 chaves de certificado) entra no
+        # MESMO PR, pra o UC nascer verde em vez de avermelhar esta lane. Bite-test com o
+        # controller revertido ao de main: 1 failed, exatamente o UC-CFGIDX-01.
+        # EscalaIndexContratoTest + WelcomeContratoTest (2026-09-04): fecham as 2 últimas das 6
+        # telas do Ponto que tinham charter e nenhum casos.md — o trio do módulo vai a 21/21.
+        # UC-ESCIDX-01..02 e UC-PWEL-01. Recibo no CT 100: 3 passed · 9 assertions · 0 skipped.
+        # Bite-tests (cada mutação rodada isolada, com restauração conferida por `git status`):
+        #   · `withCount('turnos')` removido do @index      → UC-ESCIDX-02 failed
+        #   · prop de domínio no `Inertia::render` do hub   → UC-PWEL-01  failed
+        #   · SÓ o trait removido do model Escala           → UC-ESCIDX-01 PASSOU (defesa dupla)
+        #   · trait + `where('business_id')` removidos      → UC-ESCIDX-01 failed
+        # Os dois últimos são o achado honesto sobre o alcance do caso, e estão escritos no
+        # casos.md: onde a defesa é dupla, o caso só morde quando AS DUAS caem.
         # ⚠️ Os 2 testes de Dashboard PRÉ-EXISTENTES (DashboardTest ·
         # DashboardDeferredContractTest) seguem FORA, e de propósito: `DashboardTest`
         # afirma 6 chaves de KPI com assertEqualsCanonicalizing e o Controller passou a
@@ -251,9 +295,14 @@ jobs:
             Modules/Ponto/Tests/Feature/RelatorioCatalogoContratoTest.php \
             Modules/Ponto/Tests/Feature/ImportacaoIndexContratoTest.php \
             Modules/Ponto/Tests/Feature/ImportacaoCreateContratoTest.php \
+            Modules/Ponto/Tests/Feature/ImportacaoShowContratoTest.php \
             Modules/Ponto/Tests/Feature/IntercorrenciaContratoTest.php \
             Modules/Ponto/Tests/Feature/IntercorrenciaEditContratoTest.php \
             Modules/Ponto/Tests/Feature/PontoDashboardContratoTest.php \
+            Modules/Ponto/Tests/Feature/ColaboradorContratoTest.php \
+            Modules/Ponto/Tests/Feature/ConfiguracaoContratoTest.php \
+            Modules/Ponto/Tests/Feature/EscalaIndexContratoTest.php \
+            Modules/Ponto/Tests/Feature/WelcomeContratoTest.php \
             Modules/Ponto/Tests/Feature/CustomerJourneyTest.php \
             Modules/Ponto/Tests/Feature/DashboardDeferredContractTest.php \
             Modules/Ponto/Tests/Feature/EspelhoTest.php \
