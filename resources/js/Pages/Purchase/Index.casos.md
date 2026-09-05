@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o dual-path Blade×React e o escopo por tenant são duráveis — não mudam quando a lista ganhar coluna ou filtro novo.
 owner: wagner
-last_run: "2026-09-04"
-last_run_ci: "nasce com dívida de prova DECLARADA — os testes que citam estes UC são ESTRUTURAIS (grep no fonte), não exercitam request. Ver §Dívida de prova."
+last_run: "2026-09-05"
+last_run_ci: "UC-04 e UC-05 passam a ter E2E de COMPORTAMENTO (IndexEtiquetaTest, Pest 4 Browser), que nasce advisory e ainda NÃO executou — CT 100 sem build/Playwright. Os demais UC seguem estruturais. Nenhum ✅: o visual-regression não emite JUnit, então nada chega ao manifesto do G-7. Ver §Dívida de prova."
 ---
 
 # Casos de Uso & Aceite — Listagem de Compras (`/purchases`)
@@ -33,15 +33,30 @@ Este arquivo nasce com um alerta, não com um selo. Medição em `origin/main` (
 | teste | requests HTTP | asserts de presença | o que de fato prova |
 |---|---:|---:|---|
 | [`IndexPageTest`](../../../../tests/Feature/Purchase/IndexPageTest.php) | **0** | **55** | que certas *strings* existem em `Index.tsx` e em `PurchaseController.php` |
+| [`IndexEtiquetaTest`](../../../../tests/Browser/Purchase/IndexEtiquetaTest.php) | monta a tela | **0** | que a ação **Etiquetas** pede `/labels/show?purchase_id={id}` ao clicar (UC-04 · UC-05) |
 
 `IndexPageTest` lê os arquivos-fonte e casa texto (`file_get_contents` + `toContain`). Ele pega a
 **remoção** de um trecho — o que não é nada — mas **não exercita** request, não monta tenant e não
 valida resposta. É a classe [LC-11](../../../../memory/LICOES_CODE.md) (presence-gate: gate que mede
 PRESENÇA em vez de COMPORTAMENTO), que o ledger alarma com 11 ocorrências.
 
-**Consequência honesta:** nenhum UC abaixo recebe `Status: ✅`. Todos carregam **⚠️ 🧪 estrutural** —
-o teste existe, cita o UC e satisfaz o G-2, mas a defesa é de forma, não de comportamento.
-Converter isso em prova real é trabalho próprio, fora do escopo deste PR (chip aberto).
+**O que mudou em 2026-09-05:** os UC 04 e 05 saíram dessa classe. `IndexEtiquetaTest` é Pest 4
+Browser — monta a lista, **clica** e lê o que a tela pediu ao navegador. Foi escrito assim porque
+a ação não é um `<a href>`: é `window.open` num `onClick`, e nenhuma URL chega ao DOM.
+Os UC **01, 02, 03 e 06 seguem estruturais** — a conversão deles é chip aberto, fora deste PR.
+
+**Por que nenhum UC recebe `✅` mesmo assim** — são duas razões independentes, e as duas são
+mecânicas, não de julgamento:
+1. o E2E nasce **advisory** e **não executou**: o CT 100 tem Pest e o plugin Browser mas está sem
+   `public/build/manifest.json` e sem os browsers do Playwright (medido em 2026-09-05), então quem
+   vai executá-lo pela primeira vez é o CI;
+2. mesmo verde, o resultado **não chega ao manifesto** que o G-7 lê — o `visual-regression.yml` não
+   emite `--log-junit`. Declarar `✅` sem manifesto é a violação `status:unverified` do próprio gate.
+
+O que o autor **conseguiu** provar antes do PR: `php -l` no CT 100, e um bite-test em jsdom que
+extrai os probes **do próprio arquivo PHP** (não de uma cópia) e roda 10/10 — o probe libera no caso
+bom e **morde** nas 3 regressões que promete pegar: botão removido, `router.visit` no lugar de
+`window.open`, e linha ausente (que não pode virar verde silencioso).
 
 ---
 
@@ -52,8 +67,8 @@ Converter isso em prova real é trabalho próprio, fora do escopo deste PR (chip
 | UC-PURIDX-01 | SPA recebe React; acesso direto recebe Blade | must | RUNBOOK §1 · charter Mission | `IndexPageTest` | ⚠️ 🧪 estrutural |
 | UC-PURIDX-02 | Lista nunca sai do `business_id` da sessão | must `[T0]` | RUNBOOK §5 · charter Non-Goal 4 | `IndexPageTest` | ⚠️ 🧪 estrutural |
 | UC-PURIDX-03 | Lista respeita `permitted_locations` | must `[T0]` | RUNBOOK §3 · charter Goals | `IndexPageTest` | ⚠️ 🧪 estrutural |
-| UC-PURIDX-04 | Ação "Etiquetas" existe no React (paridade Blade) | must `[reg]` | RUNBOOK §2 (regressão datada) | `IndexPageTest` | ⚠️ 🧪 estrutural |
-| UC-PURIDX-05 | Rota Blade abre por `window.open`, nunca `router.visit` | must | RUNBOOK §3 · §5 | `IndexPageTest` | ⚠️ 🧪 estrutural |
+| UC-PURIDX-04 | Ação "Etiquetas" existe no React (paridade Blade) | must `[reg]` | RUNBOOK §2 (regressão datada) | `IndexEtiquetaTest` (E2E) + `IndexPageTest` | 🧪 E2E advisory, não executou |
+| UC-PURIDX-05 | Rota Blade abre por `window.open`, nunca `router.visit` | must | RUNBOOK §3 · §5 | `IndexEtiquetaTest` (E2E) + `IndexPageTest` | 🧪 E2E advisory, não executou |
 | UC-PURIDX-06 | A Page não decide tenant — `business_id` vem das props | must `[T0]` | RUNBOOK §5 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `IndexPageTest` | ⚠️ 🧪 estrutural |
 
 ---
@@ -126,18 +141,26 @@ Converter isso em prova real é trabalho próprio, fora do escopo deste PR (chip
 - **Aceite:** Dado uma compra na lista · Quando o operador abre as ações da linha · Então existe a
   ação **Etiquetas**, incondicional (não depende de permissão), apontando para
   `/labels/show?purchase_id={id}` — e abrindo em nova aba, **não** por navegação Inertia.
-- **Teste:** [`IndexPageTest`](../../../../tests/Feature/Purchase/IndexPageTest.php) — *"Page respeita
-  permissions (view/create/update/delete renderizam condicionalmente)"* (cobre a vizinhança das
-  ações inline).
+- **Teste:** [`IndexEtiquetaTest`](../../../../tests/Browser/Purchase/IndexEtiquetaTest.php) — *"UC-PURIDX-04 ·
+  a acao Etiquetas existe na linha e pede /labels/show com o id da compra"* (Pest 4 Browser: monta a
+  lista, clica no botão e lê o que foi pedido ao navegador). A vizinhança de permissões segue no
+  [`IndexPageTest`](../../../../tests/Feature/Purchase/IndexPageTest.php).
 - **Contrato:** RUNBOOK §2 (tabela de paridade Blade × React, com o histórico datado).
 - **Regressão que defende:** **esta regressão já aconteceu.** A ação existia no Blade
   (incondicional) e não foi portada na migração React; Larissa reportou por WhatsApp em 2026-06-17 —
   *"cadastrei umas peças e não tem opção de imprimir as etiquetas das compras"*. É o caso mais caro
   desta tela porque o dual-path **esconde a falta**: quem confere pelo Blade vê a ação e conclui que
   está tudo certo.
-- **Status: ⚠️ 🧪 estrutural** — e aqui a dívida dói mais: **nenhum assert cita `labels/show`,
-  `purchase_id=` ou `Barcode`**. A regressão que o RUNBOOK §2 documenta em prosa **não tem hoje um
-  teste que a impeça de voltar**. Registrado em `[BACKLOG]` abaixo com o teste devido nomeado.
+- **Como o teste prova, já que não há link no DOM:** a ação é `<Button onClick={window.open(...)}>`
+  (`Index.tsx:303`), então nenhuma URL chega ao HTML — procurar `a[href]` daria falso-negativo. O
+  teste **substitui `window.open`, clica de verdade** e compara com a URL montada a partir do **id
+  real** da compra no banco. Remover o botão devolve `ACAO-AUSENTE`; mudar a URL muda a string.
+- **Status: 🧪 E2E advisory, não executou** — o teste é de **comportamento** (não mais um
+  presence-gate), e o bite-test em jsdom mostra que ele **morde** nas 3 regressões. Mas ele nasce
+  `continue-on-error` no `visual-regression.yml` e **ainda não rodou no ambiente real** (o CT 100
+  está sem `public/build` e sem os browsers do Playwright — medido). Não vira `✅` também por um
+  segundo motivo, e ele é estrutural: o `visual-regression` **não emite JUnit**, logo o resultado
+  não chega ao manifesto que o G-7 lê. Ligar essa perna é chip próprio (§Dívida de prova).
 
 ---
 
@@ -147,16 +170,21 @@ Converter isso em prova real é trabalho próprio, fora do escopo deste PR (chip
 - **Aceite:** Dado uma ação que aponta para rota **Blade** (`/labels/show`, `/purchases/print/…`)
   · Quando o operador aciona a ação · Então a navegação sai por `window.open` / `window.location` e
   **não** por `router.visit`, que exigiria uma resposta Inertia válida.
-- **Teste:** [`IndexPageTest`](../../../../tests/Feature/Purchase/IndexPageTest.php) — *"Page importa
-  AppShellV2 (Persistent Layout — ADR 0094)"* + *"Controller importa Inertia"* (contexto do contrato
-  Inertia da tela).
+- **Teste:** [`IndexEtiquetaTest`](../../../../tests/Browser/Purchase/IndexEtiquetaTest.php) — *"UC-PURIDX-05 ·
+  a rota Blade sai por window.open — e o controle positivo prova o probe"*.
 - **Contrato:** RUNBOOK §3 (sintoma *"All Inertia requests must receive a valid Inertia response"*)
   · RUNBOOK §5 (invariante explícito).
 - **Regressão que defende:** o erro não é um 500 no servidor — é o SPA quebrando no cliente com uma
   mensagem que **não nomeia a ação culpada**. Custa uma sessão de investigação por ocorrência.
-- **Status: ⚠️ 🧪 estrutural** — e a ligação entre os asserts citados e este contrato é **indireta**.
-  Este UC está mais perto de `[BACKLOG]` do que de coberto; fica com id porque o contrato existe em
-  2 fontes canon (RUNBOOK §3 e §5) e a citação satisfaz o G-2 — mas o `Status` não mente sobre isso.
+- **Como o teste prova:** o mesmo probe do UC-04, agora lido pelo avesso. Se a ação passasse a sair
+  por `router.visit`, `window.open` não seria chamado e o probe devolveria `NAO-CHAMOU`; e o terceiro
+  campo do retorno (o `pathname` **depois** do clique) denuncia a navegação mesmo que algum outro
+  caminho tivesse chamado `window.open`. O caso traz ainda um **controle positivo** — o botão
+  *Imprimir*, que usa o mesmo mecanismo — porque sem ele um interceptador quebrado devolveria
+  `NAO-CHAMOU` para tudo e o verde não significaria nada.
+- **Status: 🧪 E2E advisory, não executou** — deixou de ser ligação indireta: o assert agora exerce
+  o contrato. Mas vale o mesmo resíduo do UC-04 (nasce advisory, não executou no ambiente real, e o
+  resultado não chega ao manifesto do G-7).
 
 ---
 
@@ -182,11 +210,17 @@ Converter isso em prova real é trabalho próprio, fora do escopo deste PR (chip
 > o merge de quem for atendê-lo. 6 UC ancorados valem mais que 15 órfãos
 > ([proibicoes §5](../../../../memory/proibicoes.md) 2026-07-16).
 
-- `[BACKLOG]` **A regressão da Etiqueta não tem defesa.** Nenhum assert do repo cita `labels/show`,
-  `purchase_id=` ou `Barcode` no contexto de `Purchase/Index.tsx`. O RUNBOOK §2 documenta a
-  regressão de 2026-06-17 em prosa, e prosa não impede o retorno. O teste devido é de
-  **comportamento** (montar a lista, abrir as ações, achar o link) — Pest Browser, casa de teste que
-  esta tela não tem (`Purchase` está com `0 de 4` E2E no `screen-coverage`).
+- ~~`[BACKLOG]` **A regressão da Etiqueta não tem defesa.**~~ **ATENDIDO em 2026-09-05** por
+  [`IndexEtiquetaTest`](../../../../tests/Browser/Purchase/IndexEtiquetaTest.php) (Pest 4 Browser).
+  Era o item mais caro desta lista e agora tem assert de **comportamento**: monta `/purchases?v=2`,
+  clica na ação e compara a URL pedida com o id real do banco. **Resíduo que continua**: o teste
+  nasce advisory e ainda não executou — ver §Dívida de prova.
+- `[BACKLOG]` **O resultado do E2E não chega ao manifesto do G-7.** O `visual-regression.yml` não
+  emite `--log-junit` nem publica artifact, e o `junit-lanes.mjs` (que **deriva** as lanes colhidas,
+  em vez de listá-las à mão) exige as duas coisas. Enquanto isso não existir, nenhum UC provado por
+  teste **Browser** pode chegar a `✅` — o que vale para esta tela e para as outras 6 já cobertas
+  por steps advisory ali. É mudança no fluxo do G-7, com impacto em todos esses UCs de uma vez:
+  merece PR próprio, medindo o efeito no manifesto antes.
 - `[BACKLOG]` **Ações ainda só no Blade.** RUNBOOK §2 marca `⚠️` para pagamento, devolução, mudança
   de status e e-mail — existem no dropdown Blade e não foram portadas para o React. É gap
   **conhecido e aceito**, não defeito; vira UC quando a paridade for decidida (é escopo, decisão [W]).

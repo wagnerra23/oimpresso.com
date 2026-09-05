@@ -914,7 +914,52 @@ jobs:
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Home/VisaoGeralIndexTest.php
 
-      # ── VEREDITO DOS 6 ADVISORY DE BROWSER (visibilidade, NÃO enforcement) ───────
+      # ── E2E DE COMPORTAMENTO — Purchase/Index · ação Etiquetas (NASCE ADVISORY) ──
+      # Buraco medido em 2026-09-04 (`npm run screen-coverage:report`): `Purchase` sai
+      # `4 telas · 4 charter · 0 E2E · 0 VRT`. O módulo Compras ao lado tem 11 baselines;
+      # o Purchase não tinha NADA — e a consequência não é hipotética.
+      #
+      # O CASO CONCRETO: a ação **Etiquetas** existia no dropdown Blade de `/purchases`,
+      # incondicional, e não foi portada na migração MWART. Larissa (ROTA LIVRE, biz=4)
+      # reportou por WhatsApp em 2026-06-17 — "não tem opção de imprimir as etiquetas das
+      # compras". Foi corrigida, e até este step NADA impedia que voltasse: nenhum assert do
+      # repo citava `labels/show`, `purchase_id=` ou `Barcode` nesta tela. O contrato existia
+      # só em prosa (RUNBOOK §2), e o dual-path ESCONDE a falta — quem confere pelo Blade vê
+      # a ação e conclui que está tudo certo.
+      #
+      # POR QUE PRECISA DE BROWSER, e Pest de contrato não alcança: a ação não é um `<a href>`
+      # — é `<Button onClick={window.open(...)}>` (`Index.tsx:303`). Nenhuma URL chega ao DOM,
+      # então só resta casar string no fonte (presence-gate, LC-11 — a dívida que o
+      # `Index.casos.md` desta tela já declara) ou CLICAR e ler o que foi pedido. Este step é
+      # a segunda opção: o probe substitui `window.open`, clica, e compara com o id real do
+      # banco. Trocar por `router.visit` devolve `NAO-CHAMOU` — que é o UC-PURIDX-05.
+      #
+      # ROTA com `?v=2`: `PurchaseController@index:74` só entrega Inertia com `X-Inertia` ou
+      # `?v=2`; o redirect do auth-bridge é um GET normal e cairia no Blade legacy. A sentinela
+      # `SEM-BUSCA-REACT` do probe existe exatamente para denunciar isso em vez de medir a
+      # tela errada em silêncio.
+      #
+      # DADO: reusa `VisregComprasFlowSeeder` (a compra `VISREG-COM-001` dos fluxos de
+      # `/compras`). Medido: `/purchases` sai da MESMA query `getListPurchases` e não filtra
+      # por data por default, então a mesma linha serve as duas telas — seeder novo seria um
+      # segundo dono do mesmo dado.
+      #
+      # ADVISORY no nascimento (ADR 0261/0275) e a razão é MEDIDA, não formalidade: o autor
+      # não pôde executar. O CT 100 (`oimpresso-staging`) tem Pest e o plugin Browser, mas
+      # está SEM `public/build/manifest.json` e SEM os browsers do Playwright em
+      # `~/.cache/ms-playwright` — logo não renderiza Inertia nem abre Chromium. O que FOI
+      # provado antes do PR: `php -l` no CT 100 e um bite-test em jsdom que extrai os probes
+      # DO PRÓPRIO arquivo PHP (não uma cópia) e mostra 10/10 — libera no caso bom e MORDE
+      # nas 3 regressões (botão removido · `router.visit` · linha ausente).
+      # Promoção a ENFORCING = REMOVER o `continue-on-error`, após 2 verdes que EXECUTARAM
+      # (`skipped` lido como verde é o presence-gate de sempre) — flip [W], ADR 0336.
+      - name: E2E de comportamento · Purchase/Index · Etiquetas (ADVISORY)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        id: e2e-purchase-etiqueta
+        continue-on-error: true
+        run: ./vendor/bin/pest tests/Browser/Purchase/IndexEtiquetaTest.php
+
+      # ── VEREDITO DOS ADVISORY DE BROWSER (visibilidade, NÃO enforcement) ─────────
       # O PROBLEMA, medido em 2026-09-03: `continue-on-error: true` faz o GitHub publicar
       # `conclusion=success` NO STEP; o veredito real fica só no campo `outcome`, que nem a
       # UI de checks nem `gh pr checks` mostram. Nos runs 33747138995 e 33762382505 o step do
@@ -935,7 +980,7 @@ jobs:
       #   2. imprime o DENOMINADOR (quantos executaram de quantos), pelo mesmo motivo.
       #
       # NÃO MUDA ENFORCEMENT: nenhum `continue-on-error` saiu, e este step termina em
-      # `exit 0` (última linha do `run`) — ele relata, não decide. Promover um destes cinco
+      # `exit 0` (última linha do `run`) — ele relata, não decide. Promover um destes advisory
       # é remover o `continue-on-error` DELE, e isso é flip [W] (ADR 0336, mordida provada);
       # quem é required vive em `governance/required-checks-baseline.json`.
       - name: Veredito dos advisory de Browser (visível no resumo do run)
@@ -947,6 +992,7 @@ jobs:
           A_COBRANCA: ${{ steps.e2e-cobranca.outcome }}
           A_RECIPES: ${{ steps.e2e-recipes.outcome }}
           A_VISAO_GERAL: ${{ steps.e2e-visao-geral.outcome }}
+          A_PURCHASE_ETIQUETA: ${{ steps.e2e-purchase-etiqueta.outcome }}
         run: |
           resumo="$(mktemp)"
           {
@@ -982,6 +1028,7 @@ jobs:
           registrar "E2E de render · Financeiro/Cobranca" "$A_COBRANCA"
           registrar "E2E de render · Manufacturing/Recipes" "$A_RECIPES"
           registrar "E2E de render · Home/Visao geral" "$A_VISAO_GERAL"
+          registrar "E2E de comportamento · Purchase/Index · Etiquetas" "$A_PURCHASE_ETIQUETA"
 
           {
             echo ""
@@ -1010,7 +1057,7 @@ jobs:
             cat "$resumo" >> "$GITHUB_STEP_SUMMARY"
           fi
 
-          # `exit 0` SEMPRE, e é o ponto: fazer este step reprovar promoveria os cinco
+          # `exit 0` SEMPRE, e é o ponto: fazer este step reprovar promoveria todos os
           # advisory a enforcing de uma vez — flip [W] (ADR 0336), nunca efeito colateral
           # de um step de relatório.
           exit 0
