@@ -40,6 +40,24 @@ last_run_ci: "2 UC rodados por mim no CT 100 (container oimpresso-staging, MySQL
   só cadastra e lista). Enquanto não houver resposta, não há contrato para testar. Nota de compliance
   pra quem for decidir: apagar REP com marcação associada quebraria a rastreabilidade que o Anexo I
   exige — o caminho provável é inativar, não excluir.
+- `[BACKLOG]` **O banco desta instalação não é `STRICT`, então a validação da aplicação é defesa
+  única para o enum de tipo.** Medido no CT 100: `@@SESSION.sql_mode` = `NO_ENGINE_SUBSTITUTION` —
+  sem `STRICT_TRANS_TABLES`. A coluna é `enum('REP_P','REP_C','REP_A')`, e em MySQL não-estrito um
+  valor fora do enum **não** é recusado: vira **string vazia**. Hoje quem segura é a regra
+  `in:REP_P,REP_C,REP_A` do `storeRep` (medido: tipo `REP_XX` é recusado). Consequência: afrouxar
+  essa regra não produz erro — produz REP gravado **sem classificação legal**, e a Portaria MTP
+  671/2021 distingue REP-P, REP-C e REP-A justamente para efeito de fiscalização. Não virou UC
+  aqui porque o `UC-CFGREP-02` já trava o outro eixo do mesmo campo-chave (o tamanho de 17), e um
+  segundo caso exigiria teste próprio + bite-test; fica registrado com a medição para quem for
+  mexer nas regras do `storeRep`. **Crédito:** vetor levantado por sessão paralela
+  (`claude/ponto-casos-config-escalas`) e verificado aqui antes de entrar.
+- `[BACKLOG]` **O `business_id` do REP não vem do cliente — e isso não tem trava.** Medido: enviar
+  `business_id` de outro empregador **no corpo do POST** grava o REP no **meu** business. Funciona
+  por construção — a chave não está nas regras do `validate`, e o controller a injeta da sessão
+  depois. É defesa por omissão: basta alguém adicionar `business_id` às regras (por conveniência,
+  num formulário multi-empresa) para o input do cliente passar a mandar. É a mesma classe do
+  `UC-INTCRE-01` do módulo. Vira UC quando ganhar teste que poste o id alheio e afirme onde o
+  registro nasceu. **Crédito:** mesma sessão paralela; medido aqui.
 - `[BACKLOG]` Nada cobre o **efeito** do REP cadastrado: que uma marcação criada por ele passe a citar
   aquele identificador no AFD. É o contrato mais valioso desta tela e o mais caro — atravessa
   `MarcacaoService` e o gerador de AFD, e é trabalho próprio.
