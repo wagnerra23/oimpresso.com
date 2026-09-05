@@ -30,6 +30,8 @@ use Tests\Support\WithSeededTenant;
  * Tenant: `seededTenant()` = 98 (fictício, canônico). biz=4 é PROIBIDO sem exceção e
  * biz=1 é empresa real — no CT 100 a base é clone de prod e não se limpa entre runs.
  *
+ * @covers-us US-REPA-005
+ *
  * @see resources/js/Pages/Repair/Status/Index.charter.md
  * @see Modules/Repair/Http/Controllers/RepairStatusController.php
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md

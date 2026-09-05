@@ -25,6 +25,8 @@ use Tests\Support\WithSeededTenant;
  * pendura o cross-tenant em SQLite, que a lane MySQL nunca executa. Aqui o tenant é
  * `seededTenant()` = 98, fictício e canônico (ADR 0358 — biz=4 proibido, biz=1 real).
  *
+ * @covers-us US-REPA-005
+ *
  * @see resources/js/Pages/Repair/DeviceModels/Index.charter.md
  * @see resources/js/Pages/Repair/DeviceModels/Create.charter.md
  * @see resources/js/Pages/Repair/DeviceModels/Edit.charter.md

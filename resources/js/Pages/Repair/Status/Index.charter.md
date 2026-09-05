@@ -7,6 +7,7 @@ status: live
 last_validated: "2026-05-07"
 parent_module: Repair
 parent_capterra: memory/requisitos/Repair/CAPTERRA-FICHA.md
+related_us: [US-REPA-005]
 related_adrs: [101]
 tier: A
 charter_version: 1
