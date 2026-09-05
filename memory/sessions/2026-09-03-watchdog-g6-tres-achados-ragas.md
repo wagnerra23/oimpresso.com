@@ -316,3 +316,89 @@ O que estava aberto era *bookkeeping de artefato* (re-curar uma referência velh
 aberto agora é **produto**: a Jana responde 25 de 51 abaixo da régua, com 9 respostas sem
 recuperar contexto algum, num corpus que dobrou. Isso pertence a US-COPI-140 / ADR 0334, não ao
 watchdog — o G6 apenas segurou o fio até aqui.
+
+---
+
+## Ratificação 2026-09-05 — [W] confirma (b); a varredura foi REFEITA, não herdada (append, não reescrita)
+
+Sessão provocada pelo mesmo vermelho do G6, agora no run `33939624591` (PR #6790, que só tocava
+`.md`). [W] **ratificou o veredito (b)** nesta data. As afirmações que o sustentam foram remedidas
+em base fresca em vez de citadas desta página — herdar conclusão de doc canon sem re-medir é o que
+a §5 2026-09-01 proíbe, e esta página é justamente o dono do tema.
+
+### A varredura de escritores, contada de novo: 7 de 7 falso-positivo
+
+| Etapa | N | Como |
+|---|---|---|
+| citam o path | **31** | `git grep -l -F "jana-ragas-real-baseline" origin/main` |
+| casam primitiva de escrita | **7 de 31** | filtro `file_put_contents` / `writeFileSync` / `fwrite` / `Storage::put` / `->put(` / `tee` / redireção |
+| escrevem de fato | **0 de 7** | auditado sítio a sítio |
+
+`Kernel.php` = comentário · `sdd-scorecard.mjs` grava o scorecard (`OUT`, L599) · `reguas-workflow.test.mjs`
+grava fixture · `ct100-jana-evals.sh` grava o report (`tee "$RAGAS_OUT"`) · os outros 3 são markdown
+citando primitivas em prosa. Varrido também o path montado por **constante**, que o basename sozinho
+não pega: `JanaRagasRealEvalCommand::BASELINE_PATH` aparece em `:252` dentro de `resolveThresholds()`
+como `File::exists` + `File::get` — **lê**; a única escrita do comando é
+`File::put(…'ragas-real-eval-latest.json')` em `:529`, outro path. `EvalReconciler::BASELINE_PATH`
+aponta pro irmão canary, arquivo diferente.
+
+**Sem escritor, não é (a).** Terceira contagem independente (08-31, 09-04, hoje) com o mesmo resultado.
+
+### O teste da tautologia — exigido ANTES de cogitar regravação, e ele REPROVA a hipótese
+
+A dúvida levantada era se este baseline cai na família do `jana:drift-sentinel` (§5 2026-07-17 —
+alarme tautológico cujo `--update-baseline` está bloqueado por guard). **Não cai**, e a prova é
+estrutural, não o comentário do código:
+
+- São instrumentos **distintos**: o drift-sentinel compara contra
+  `Modules/Jana/Tests/Feature/Ai/fixtures/baseline-responses.json`, não contra este arquivo.
+- Em `JanaRagasRealEvalCommand` o contexto vem do retriever real (`:359 $kb->retrieve`) e a resposta
+  da síntese real (`:376 $kb->synthesize`); os três scores (`:393-395`) consomem esses. Só o
+  `scoreContextRecall` toca `groundTruth`, e **corretamente** — recall é, por definição, "o contexto
+  recuperado cobre a verdade?".
+- E **discrimina empiricamente**: 26 pass / 25 fail na run de 04/09. O sintoma da tautologia
+  (1,0 uniforme × 51, que foi o que condenou o drift-sentinel) não aparece.
+
+Corolário que **reforça** a decisão de não mexer, em vez de afrouxá-la: como o instrumento mede de
+verdade, os números que ele produziu são reais — regravar aqui seria pior do que num alarme quebrado.
+
+### Medição de hoje (main `22aa822b89`, worktree limpo, `rc` lido do node direto)
+
+```
+🩺 24 crons agendados · 24 vivos · 0 ⛔ não medidos · 0 🔴 mortos
+🎯 24 medido(s) de 24 · 24 ok · 0 🔴 falhando
+📦 18 artefato(s) de estado com data interna (de 268) · limite 60d · 1 🔴 parado(s)
+🔴 governance/jana-ragas-real-baseline.json — parado há 66d (última data interna: 2026-07-01)
+rc=1
+```
+
+Os eixos 1 e 3 (cron e sucesso) estão **verdes** — o canary saiu do vermelho depois da recarga de
+crédito de 03/09. Sobrou o eixo 2, e sobrou sozinho.
+
+**Enforcement, medido nesta data** (união clássica ∪ rulesets, porque ler uma fonte só já produziu
+deadlock em 2026-07-02): `classic 44` + `rulesets 1` = **45 required**, e
+`crons de governança vivos? (watchdog G6 · ADR 0317)` **não estava entre eles** — nenhum PR foi
+bloqueado por este vermelho. (Fato datado; quem é required tem dono único em
+[`governance/required-checks-baseline.json`](../../governance/required-checks-baseline.json).)
+
+### O que esta sessão NÃO fez
+
+- **Não tocou o baseline** — nem pisos, nem `gerado_em`, nem chave nova. A razão é a que a errata de
+  04/09 já estabeleceu e a de hoje não muda: o insumo existe e **diz não**. Rebaixar piso para
+  acomodar 0,2954 é editar o baseline para ficar verde (§5 2026-08-26); mover `gerado_em` — a chave
+  PT-BR que o watchdog lê em `CHAVES_DATA` — zeraria o relógio de 60d até novembro, apagando o único
+  marcador de uma defasagem já confirmada por medição.
+- **Não registrou silêncio** e **não mexeu no watchdog**. Ele acertou nos três eixos.
+- **Não abriu análise paralela**: o tema já tinha dono (esta página, mais as sessões de 08-31, 09-02,
+  09-03 e 09-04), e o registro de hoje é append nela, não um sétimo arquivo sobre o mesmo assunto.
+
+### O que segue aberto, e é de [W]
+
+Inalterado desde 04/09, e é **produto, não bookkeeping**: aceitar 0,2954 como piso novo (assumir a
+degradação) **ou** manter os pisos de julho e tratar o vermelho como dívida de retrieval a pagar em
+US-COPI-140 / ADR 0334. O gargalo tem nome medido — o corte de 400 chars do início do doc em
+`KbAnswerService::renderFontes`, que a US-COPI-133 nomeia desde 2026-07-12.
+
+Resíduo honesto que ninguém fechou: as três semanas com `n_no_context=51` (08-02, 08-23, 08-30)
+seguem **sem causa**; nem a flag nem o corte as explicam, e o `laravel.log` já não cobre aquela
+janela, o que torna o mecanismo indecidível a posteriori.
