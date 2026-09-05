@@ -311,4 +311,24 @@ return [
     'add_todos' => "Add To Do's",
     'edit_todos' => "Edit To Do's",
     'delete_todos' => "Delete To Do's",
+
+    // Attendance import (HRM-O6 / PR-6, finding A7) — per-row rejection reasons.
+    // The line number is the spreadsheet's (header included), which is what the operator sees.
+    'import_enfileirado' => 'File received. The import is being processed and the report shows up on this screen when it finishes.',
+    'import_concluido' => 'Import finished: :inseridas attendance record(s) imported.',
+    'import_parcial' => 'Partial import: :inseridas record(s) imported and :recusadas row(s) rejected. See the list below.',
+    'import_relatorio_titulo' => 'Import report',
+    'import_relatorio_linha' => 'Row',
+    'import_relatorio_motivo' => 'Rejection reason',
+    'import_relatorio_sem_recusas' => 'No row was rejected.',
+    'import_erro_email_obrigatorio' => 'Email is required.',
+    'import_erro_colaborador_nao_encontrado' => 'No employee of this business has the email :email.',
+    'import_erro_entrada_obrigatoria' => 'Clock-in time is required.',
+    'import_erro_entrada_invalida' => 'Invalid clock-in time (:valor). Use the YYYY-MM-DD HH:MM:SS format.',
+    'import_erro_saida_invalida' => 'Invalid clock-out time (:valor). Use the YYYY-MM-DD HH:MM:SS format.',
+    'import_erro_saida_antes_da_entrada' => 'Clock-out time must be later than clock-in time.',
+    'import_erro_turno_nao_encontrado' => 'No shift of this business is named :turno.',
+    'import_erro_sobreposicao_banco' => 'This employee already has an attendance record covering that time range.',
+    'import_erro_sobreposicao_arquivo' => 'Another row in the same file already covers that time range for this employee.',
+    'import_erro_arquivo_sumiu' => 'The uploaded file is no longer available. Please upload it again.',
 ];

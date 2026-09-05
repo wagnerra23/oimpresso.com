@@ -5,7 +5,7 @@ module: Purchase
 tela: Purchase/Show
 owner: F
 status: ativo
-last_validated: "2026-09-04"
+last_validated: "2026-09-05"
 related_adrs:
   - 0104-processo-mwart-canonico-unico-caminho
   - 0093-multi-tenant-isolation-tier-0
@@ -174,18 +174,41 @@ quem for migrar o activity log não precisa de query nova, só passar a variáve
 
 ## 7. Smoke (R1 — evidência, não narração)
 
-> ⚠️ **Não executado nesta sessão** (sem acesso a prod daqui). O bloco abaixo é a **receita**;
-> um recibo é a saída colada, com o status literal de cada hop.
-
 ```bash
-curl -sv https://oimpresso.com/purchases/24796 2>&1 | grep '^< HTTP'
-curl -sv https://oimpresso.com/purchases/print/24796 2>&1 | grep '^< HTTP'
-curl -sv https://oimpresso.com/purchases 2>&1 | grep '^< HTTP'
-curl -sv https://oimpresso.com/sells/1 2>&1 | grep '^< HTTP'
+for u in /purchases/24796 /purchases/print/24796 /purchases /sells/1; do
+  curl -sv "https://oimpresso.com$u" 2>&1 | grep -iE '^< (HTTP|location)'
+done
 ```
 
-Esperado: `200` autenticado (ou `302` para login sem sessão). As duas últimas são **regressão
-adjacente** — não devem mudar quando esta tela mudar.
+**Recibo — rodado em 2026-09-05, NÃO autenticado:**
+
+| hop | status | Location |
+|---|---|---|
+| `/purchases/24796` | `HTTP/1.1 302 Found` | `https://oimpresso.com/login` |
+| `/purchases/print/24796` | `HTTP/1.1 302 Found` | `https://oimpresso.com/login` |
+| `/purchases` (regressão adjacente) | `HTTP/1.1 302 Found` | `https://oimpresso.com/login` |
+| `/sells/1` (regressão adjacente) | `HTTP/1.1 302 Found` | `https://oimpresso.com/login` |
+
+**Controles — sem eles um 302 não significa nada** (todo route autenticado devolve 302, então o
+número seria compatível até com o app inteiro quebrado):
+
+| controle | esperado | medido |
+|---|---|---|
+| `/zzz-rota-inexistente-xyz` | ≠ 302 | **404** |
+| `/purchases/24796/zzz-nao-existe` | ≠ 302 | **404** |
+| `/login` | ≠ 302 | **200** |
+
+⚠️ Um controle negativo **óbvio não serve**: `/purchases/nao-existe-xyz` casa o `{id}` (a rota
+não tem constraint numérica) e passa pelo auth, devolvendo 302 igual às outras. O controle
+precisa de um path que **não casa rota nenhuma**.
+
+✅ **O que o recibo prova:** as 4 rotas estão registradas, respondem, e o 302 é o middleware de
+**auth**. Nenhuma devolve **500** — que é o que importa nesta tela, cujo legado devolvia 500
+(§4.1).
+
+⛔ **O que NÃO prova:** que o detalhe **renderiza**. Os 3 cards, a tabela de itens, os totais e a
+ausência do barcode seguem sem verificação em prod — exige sessão autenticada, e o agente não
+faz login (credencial é ação de [W]).
 
 Chrome MCP obrigatório pós-merge de UI (hook `post-merge-ui-smoke-required`): navegar
 `/purchases/{id}` a **1280px** (monitor Larissa) e conferir — 3 cards de contexto, tabela de
@@ -197,10 +220,23 @@ itens, bloco de pagamentos, bloco de totais com **A pagar**, e que **não** há 
 em `Show.tsx` e em `PurchaseController.php` e emite **zero requests HTTP**. Ele pega a *remoção*
 de um trecho; não monta tenant nem valida resposta — classe LC-11 (presence-gate).
 
-Consequência: **nenhum UC desta tela tem prova de comportamento.** Não existe teste que crie a
-compra no tenant vizinho e prove o 404 desta rota. A tabela de dívida por UC é mantida em
-[`Show.casos.md`](../../../../resources/js/Pages/Purchase/Show.casos.md) §Dívida de prova — ele é
-o dono desse número; não o repita aqui.
+⚠️ **ERRATA 2026-09-05 — a frase que estava aqui apodreceu em horas.** Este § afirmava
+*"nenhum UC desta tela tem prova de comportamento; não existe teste que crie a compra no tenant
+vizinho e prove o 404"*. Era verdade quando escrita (2026-09-04) e **deixou de ser no dia
+seguinte**: uma sessão irmã criou
+[`PurchaseShowTenantContratoTest`](../../../../tests/Feature/Purchase/PurchaseShowTenantContratoTest.php),
+que emite request de verdade e prova o **404 cross-tenant com controle positivo 200**, e criou a
+lane [`purchase-pest.yml`](../../../../.github/workflows/purchase-pest.yml) que o executa. Fica
+registrado em vez de apagado — é a lição [LC-10](../../../LICOES_CODE.md) (afirmação em presente
+sobre estado medido) cometida neste próprio arquivo.
+
+**Onde o estado por UC vive:** a tabela de rastreabilidade de
+[`Show.casos.md`](../../../../resources/js/Pages/Purchase/Show.casos.md) — ela é a dona, tem o
+status por UC e é cobrada por gate. **Não repita o status aqui**; um segundo lugar drifa, e foi
+exatamente assim que esta errata nasceu.
+
+O que **permanece** verdadeiro sobre o `ShowPageTest`: ele é estrutural, e os UC que dependem
+**só dele** não têm prova de comportamento. Quantos são e quais — no `casos.md`.
 
 ## 9. Refs
 
