@@ -232,6 +232,16 @@ jobs:
         # Pest recebe MÚLTIPLOS needles — a mensagem virava 2º needle e o `not` passava sempre.
         # É a classe do §5 de proibicoes.md (2026-07-28). Trocado por
         # `assertStringNotContainsString`, que recebe a mensagem como 3º parâmetro.
+        # ConfiguracaoContratoTest (2026-09-04): trio das telas `Ponto/Configuracoes/Index` e
+        # `.../Reps` (UC-CFGIDX-01 · UC-CFGREP-01..02). Recibo no CT 100: 3 passed · 14
+        # assertions · 0 skipped.
+        # O UC-CFGIDX-01 nasce de um ACHADO Tier 0 medido com sonda antes de existir teste: o
+        # `@index` mandava `config('pontowr2')` INTEIRO como prop Inertia — 14 blocos, incluindo
+        # `rep.certificado_icp_pass`, a senha do certificado ICP-Brasil. Prop Inertia viaja no HTML
+        # servido ao browser, então a senha saía na resposta (200) pra qualquer `ponto.access`.
+        # O conserto (allowlist de 4 blocos + `Arr::except` das 2 chaves de certificado) entra no
+        # MESMO PR, pra o UC nascer verde em vez de avermelhar esta lane. Bite-test com o
+        # controller revertido ao de main: 1 failed, exatamente o UC-CFGIDX-01.
         # ⚠️ Os 2 testes de Dashboard PRÉ-EXISTENTES (DashboardTest ·
         # DashboardDeferredContractTest) seguem FORA, e de propósito: `DashboardTest`
         # afirma 6 chaves de KPI com assertEqualsCanonicalizing e o Controller passou a
@@ -256,6 +266,7 @@ jobs:
             Modules/Ponto/Tests/Feature/IntercorrenciaEditContratoTest.php \
             Modules/Ponto/Tests/Feature/PontoDashboardContratoTest.php \
             Modules/Ponto/Tests/Feature/ColaboradorContratoTest.php \
+            Modules/Ponto/Tests/Feature/ConfiguracaoContratoTest.php \
             Modules/Ponto/Tests/Feature/CustomerJourneyTest.php \
             Modules/Ponto/Tests/Feature/DashboardDeferredContractTest.php \
             Modules/Ponto/Tests/Feature/EspelhoTest.php \
