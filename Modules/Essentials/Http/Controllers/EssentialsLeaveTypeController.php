@@ -3,6 +3,7 @@
 namespace Modules\Essentials\Http\Controllers;
 
 use App\Utils\ModuleUtil;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
@@ -202,9 +203,8 @@ class EssentialsLeaveTypeController extends Controller
      * é feita aqui e devolvida no 422 pra dizer QUANTAS licenças travam.
      *
      * @param  int  $id
-     * @return Response
      */
-    public function destroy($id)
+    public function destroy($id): JsonResponse
     {
         $business_id = request()->session()->get('user.business_id');
 
@@ -251,6 +251,6 @@ class EssentialsLeaveTypeController extends Controller
             ];
         }
 
-        return $output;
+        return response()->json($output);
     }
 }

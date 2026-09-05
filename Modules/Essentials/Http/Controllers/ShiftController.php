@@ -4,6 +4,7 @@ namespace Modules\Essentials\Http\Controllers;
 
 use App\User;
 use App\Utils\ModuleUtil;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
@@ -260,9 +261,8 @@ class ShiftController extends Controller
      *    turno deixaria a marcação apontando pro nada.
      *
      * @param  int  $id
-     * @return Response
      */
-    public function destroy($id)
+    public function destroy($id): JsonResponse
     {
         $business_id = request()->session()->get('user.business_id');
         $is_admin = $this->moduleUtil->is_admin(auth()->user(), $business_id);
@@ -280,12 +280,11 @@ class ShiftController extends Controller
             abort(404);
         }
 
-        // SUPERADMIN: guarda de integridade, não de visibilidade. O $shift JÁ foi
-        // resolvido dentro do business acima; aqui a pergunta é "existe QUALQUER linha
-        // apontando pra ele?". EssentialsUserShift escopa via `user` (BelongsToBusinessViaParent),
-        // então com o scope ligado um vínculo cujo user esteja em outro business ficaria
-        // INVISÍVEL e o turno seria apagado deixando a linha órfã — a guarda tem de ser
-        // fail-closed (contar a mais e bloquear, nunca a menos e liberar).
+        // EssentialsUserShift escopa via `user` (BelongsToBusinessViaParent). Com o scope
+        // ligado, um vínculo cujo user esteja em OUTRO business ficaria invisível e o turno
+        // seria apagado deixando a linha órfã — a guarda tem de ser fail-closed: contar a
+        // mais e bloquear, nunca a menos e liberar.
+        // SUPERADMIN: guarda de INTEGRIDADE, não de visibilidade ($shift já resolvido no business).
         $vinculos = EssentialsUserShift::withoutGlobalScopes()
                                 ->where('essentials_shift_id', $shift->id)
                                 ->count();
@@ -318,7 +317,7 @@ class ShiftController extends Controller
             ];
         }
 
-        return $output;
+        return response()->json($output);
     }
 
     public function getAssignUsers($shift_id)
