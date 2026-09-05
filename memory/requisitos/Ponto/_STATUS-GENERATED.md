@@ -19,16 +19,14 @@ authority: generated
 | US no SPEC | 14 |
 | CU no SDD | 14 |
 | Telas (.tsx) | 21 |
-| Telas com `casos.md` | 15 |
-| UC declarados | 58 |
-| UC com teste que os cita | 57 |
+| Telas com `casos.md` | 17 |
+| UC declarados | 63 |
+| UC com teste que os cita | 61 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
 | Lacuna | O que falta escrever |
 |---|---|
-| Tela `Colaboradores/Edit` sem `casos.md` | o contrato da tela (trio incompleto) |
-| Tela `Colaboradores/Index` sem `casos.md` | o contrato da tela (trio incompleto) |
 | Tela `Configuracoes/Index` sem `casos.md` | o contrato da tela (trio incompleto) |
 | Tela `Configuracoes/Reps` sem `casos.md` | o contrato da tela (trio incompleto) |
 | Tela `Escalas/Index` sem `casos.md` | o contrato da tela (trio incompleto) |
@@ -71,6 +69,10 @@ authority: generated
 | UC-BHSHOW-01 | BancoHoras/Show | 🧪 aguarda veredito da lane |
 | UC-BHSHOW-02 | BancoHoras/Show | 🧪 aguarda veredito da lane |
 | UC-BHSHOW-03 | BancoHoras/Show | 🧪 aguarda veredito da lane |
+| UC-COLEDT-01 | Colaboradores/Edit | 🧪 aguarda veredito da lane |
+| UC-COLEDT-02 | Colaboradores/Edit | 🧪 aguarda veredito da lane |
+| UC-COLIDX-01 | Colaboradores/Index | 🧪 aguarda veredito da lane |
+| UC-COLIDX-02 | Colaboradores/Index | 🧪 aguarda veredito da lane |
 | UC-ESCF-01 | Escalas/Form | 🧪 aguarda veredito da lane |
 | UC-ESCF-02 | Escalas/Form | 🧪 aguarda veredito da lane |
 | UC-ESCF-03 | Escalas/Form | 🧪 aguarda veredito da lane |
@@ -82,6 +84,7 @@ authority: generated
 | UC-ESPSH-03 | Espelho/Show | 🧪 aguarda veredito da lane |
 | UC-ESPSH-04 | Espelho/Show | 🧪 aguarda veredito da lane |
 | UC-ESPSH-05 | Espelho/Show | 🧪 aguarda veredito da lane |
+| UC-ESPSH-06 | Espelho/Show | 📝 sem_teste |
 | UC-IMPCRE-01 | Importacoes/Create | 🧪 aguarda veredito da lane |
 | UC-IMPCRE-02 | Importacoes/Create | 🧪 aguarda veredito da lane |
 | UC-IMPIDX-01 | Importacoes/Index | 🧪 aguarda veredito da lane |
