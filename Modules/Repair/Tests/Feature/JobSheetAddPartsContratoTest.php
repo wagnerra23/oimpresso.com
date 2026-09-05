@@ -271,14 +271,16 @@ it('UC-JSP-05: peça de outro negócio não aparece na OS', function () {
     // escopo global — medido em `app/Variation.php`: zero `addGlobalScope`.
     //
     // Fica VERMELHO de propósito: é achado de isolamento (ADR 0093, Tier 0 irrevogável)
-    // e a correção é decisão [W]. A mensagem cita o nome resolvido para o recibo ser
-    // legível sem reproduzir o cenário.
-    $nomeVazado = $exibidas[$pecaAlheia]['variation_name'] ?? '(nenhum)';
+    // e a correção é decisão [W].
+    //
+    // ⚠️ A asserção é sobre a LISTA DE CHAVES, e não `not->toHaveKey($id, $mensagem)`.
+    // O segundo parâmetro de `toHaveKey` é o VALOR esperado, não uma mensagem: passar
+    // texto ali transforma o teste em "não tem esta chave COM este valor", que é sempre
+    // verdade e devolve verde. Custou um falso verde nesta própria suíte em 2026-09-05 —
+    // mesma família da lápide §5 2026-07-28 (mensagem passada como needle em `toContain`).
+    $idsExibidos = array_map('intval', array_keys($exibidas));
 
-    expect($exibidas)->not->toHaveKey(
-        $pecaAlheia,
-        "peça do negócio vizinho exibida na OS; nome resolvido: {$nomeVazado}"
-    );
+    expect($idsExibidos)->not->toContain((int) $pecaAlheia);
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
