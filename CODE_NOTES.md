@@ -4,6 +4,64 @@
 
 ---
 
+## [ACHADO 2026-09-05] Protótipo › dois defeitos que a medição de alvo de toque encontrou de passagem
+
+**Origem:** censo de alvo de toque para a [ADR UI-0032](memory/requisitos/_DesignSystem/adr/ui/0032-alvo-de-toque-erp-denso-1280.md)
+(emenda §10/§10.7, [#6860](https://github.com/wagnerra23/oimpresso.com/pull/6860)). Os dois achados
+**não são de tamanho de alvo** — apareceram enquanto se media, e não têm dono no Code.
+
+**Por que não consertei:** os dois vivem do lado design. `prototipo-ui/cowork/` é **espelho read-only**
+([ADR 0374](memory/decisions/0374-emenda-0315-espelho-cowork-e-rota-prevista.md); §5 2026-08-13 e
+2026-08-14 proíbem remendo à mão) e `prototipo-ui/cowork/_ds/` é **gitignored**
+(`prototipo-ui/cowork/.gitignore:26`), cache derivado de `scripts/design-sync/mirror-snapshot/`.
+Conserto no espelho evapora no próximo `--export-from`. Vai daqui como pedido, não como patch.
+
+---
+
+### 1 · `inbox-page.jsx` — a tela de Atendimento não renderiza (TDZ), e não é lentidão
+
+A rota `inbox` serve **só o error boundary**: *"Cannot access 'filteredConvs' before initialization"*.
+
+**Causa, confirmada no fonte:** `prototipo-ui/cowork/inbox-page.jsx:365` passa `filteredConvs` num
+array `deps` — que é avaliado na hora — enquanto o `const filteredConvs = useMemo(...)` só é declarado
+na **linha 370**. *Temporal dead zone*.
+
+```
+:365    deps: [filteredConvs, selId, mobileView, isFav]     ← usa
+:370    const filteredConvs = useMemo(() => {               ← declara (5 linhas depois)
+```
+
+**Peso:** `Atendimento` é um dos atalhos de topo e leva badge `6`. O censo a marcou `NÃO MEDIDA` —
+foi a única das 38 rotas que não renderizou, e a causa não era o harness.
+
+**Correção sugerida (do lado Cowork):** mover a declaração do `useMemo` para antes do bloco que a
+referencia, ou tirar `filteredConvs` do `deps` se a dependência não for real.
+
+---
+
+### 2 · `_ds_bundle.js` (DataTablePro) — resizer de coluna com `width: 7` hardcoded
+
+O componente `DataTablePro` do DS emite, por coluna, um `span` de redimensionamento com
+`width: 7` fixo (`position:absolute; right:-3; cursor:col-resize`). Medido no bundle: **2 ocorrências**
+de `width: 7` + `col-resize`. Consumidores no protótipo: **13 arquivos**.
+
+Se a §6 da UI-0032 fechar na adoção do piso de 24, este é o item de **melhor razão custo/alcance** do
+corpus inteiro: um valor, num arquivo, fecha 13 telas.
+
+**Achado adjacente do mesmo componente — e ele NÃO é de tamanho:** o header sortável é um `span` com
+`onClick`, **sem `role` e sem `tabindex`** (~15px de altura). Ele ficou fora do meu denominador porque
+React delega eventos na raiz e `[onclick]` não casa nada de React — eram **330** elementos assim nas 38
+rotas, 64 deles abaixo de 24.
+
+⚠️ **Mas teste de mutação provou que não é resíduo de tamanho:** dando `role="button" tabindex="0"` aos
+18 de `essenciais` e re-rodando o axe, o conjunto avaliado subiu de **93 → 111** nós e as violações de
+`target-size` **continuaram 7** — passam pela exceção de espaçamento. O defeito deles é
+**SC 2.1.1 (Teclado)** e **4.1.2 (Nome/Papel/Valor)**, nível **A** — eixo diferente e mais severo, já
+contabilizado em `config/a11y-baseline.json` (`click-events-have-key-events: 79`). Registrado aqui para
+não ser corrigido dentro de uma decisão sobre tamanho.
+
+---
+
 ## [PROCESSADO 2026-06-17] Forja › aba MCP — superfície do handoff (Fase 1 · ADR 0283)
 
 **Handoff:** `prototipo-ui-patch/PROMPT_PARA_CODE_FORJA-HANDOFF-SURFACE.md`
