@@ -186,19 +186,20 @@ it('UC-METAS-02: a lista traz o colaborador com as faixas JA GRAVADAS, como esta
         'commission_percent' => 5,
     ]);
 
-    // `paginator` é Inertia::defer — só chega quando pedido explicitamente.
-    $this->get(HM_ROTA_LISTA, hmHeadersPaginator())
-        ->assertOk()
-        ->assertInertia(function (AssertableInertia $page) {
-            $linhas = collect($page->toArray()['props']['paginator']['data']);
-            $minha = $linhas->firstWhere('id', $this->hmUser->id);
+    // `paginator` é Inertia::defer — só chega no partial reload, e a resposta do partial
+    // é JSON puro (não a view), então NÃO cabe assertInertia aqui: ele exige o payload
+    // completo da página e falha com "Not a valid Inertia response". Padrão do Compras.
+    $resp = $this->withHeaders(hmHeadersPaginator())->get(HM_ROTA_LISTA);
+    $resp->assertOk();
 
-            expect($minha)->not->toBeNull();
-            $faixa = collect($minha['faixas'])->firstWhere('inicio', 1000.0);
-            expect($faixa)->not->toBeNull()
-                ->and($faixa['fim'])->toBe(2000.0)
-                ->and($faixa['percentual'])->toBe(5.0);
-        });
+    $linhas = collect($resp->json('props.paginator.data') ?? []);
+    $minha = $linhas->firstWhere('id', $this->hmUser->id);
+
+    expect($minha)->not->toBeNull();
+    $faixa = collect($minha['faixas'])->firstWhere('inicio', 1000.0);
+    expect($faixa)->not->toBeNull()
+        ->and($faixa['fim'])->toBe(2000.0)
+        ->and($faixa['percentual'])->toBe(5.0);
 });
 
 it('UC-METAS-03: colaborador sem faixa vem com a lista de faixas VAZIA — ausencia, nao zero fabricado', function () {
@@ -206,35 +207,37 @@ it('UC-METAS-03: colaborador sem faixa vem com a lista de faixas VAZIA — ausen
 
     hmMetas($this->hmUser->id)->each(fn ($m) => $m->delete());
 
-    $this->get(HM_ROTA_LISTA, hmHeadersPaginator())
-        ->assertOk()
-        ->assertInertia(function (AssertableInertia $page) {
-            $linhas = collect($page->toArray()['props']['paginator']['data']);
-            $minha = $linhas->firstWhere('id', $this->hmUser->id);
+    $resp = $this->withHeaders(hmHeadersPaginator())->get(HM_ROTA_LISTA);
+    $resp->assertOk();
 
-            expect($minha)->not->toBeNull()
-                ->and($minha['faixas'])->toBe([]);
-        });
+    $linhas = collect($resp->json('props.paginator.data') ?? []);
+    $minha = $linhas->firstWhere('id', $this->hmUser->id);
+
+    expect($minha)->not->toBeNull()
+        ->and($minha['faixas'])->toBe([]);
 });
 
 it('UC-METAS-04: a busca ?q= filtra server-side e nao vaza colaborador de outro tenant', function () {
     hmPular($this);
 
-    $this->get(HM_ROTA_LISTA.'?q=zzz-nome-que-nao-existe-'.uniqid(), hmHeadersPaginator())
-        ->assertOk()
-        ->assertInertia(fn (AssertableInertia $page) => expect($page->toArray()['props']['paginator']['data'])->toBe([]));
+    $vazio = $this->withHeaders(hmHeadersPaginator())
+        ->get(HM_ROTA_LISTA.'?q=zzz-nome-que-nao-existe-'.uniqid());
+    $vazio->assertOk();
+    expect($vazio->json('props.paginator.data'))->toBe([]);
 
     // Toda linha listada (sem filtro) pertence ao business da sessão — Tier 0 ADR 0093.
-    $this->get(HM_ROTA_LISTA, hmHeadersPaginator())
-        ->assertOk()
-        ->assertInertia(function (AssertableInertia $page) {
-            $ids = collect($page->toArray()['props']['paginator']['data'])->pluck('id');
-            $forasteiros = User::whereIn('id', $ids)
-                ->where('business_id', '!=', $this->hmTenant->id)
-                ->count();
+    $todas = $this->withHeaders(hmHeadersPaginator())->get(HM_ROTA_LISTA);
+    $todas->assertOk();
 
-            expect($forasteiros)->toBe(0);
-        });
+    $ids = collect($todas->json('props.paginator.data') ?? [])->pluck('id');
+    expect($ids)->not->toBeEmpty(); // canário: lista vazia tornaria o assert abaixo vácuo
+
+    $forasteiros = User::withoutGlobalScopes()
+        ->whereIn('id', $ids)
+        ->where('business_id', '!=', $this->hmTenant->id)
+        ->count();
+
+    expect($forasteiros)->toBe(0);
 });
 
 it('UC-METAS-05: o texto pt-BR do front grava o MESMO valor que o numero cru — pipeline intocado', function () {
