@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: o dual-path Blade×React e o escopo por tenant são duráveis — não mudam quando a lista ganhar coluna ou filtro novo.
 owner: wagner
 last_run: "2026-09-05"
-last_run_ci: "UC-04 e UC-05 passam a ter E2E de COMPORTAMENTO (IndexEtiquetaTest, Pest 4 Browser), que nasce advisory e ainda NÃO executou — CT 100 sem build/Playwright. Os demais UC seguem estruturais. Nenhum ✅: o visual-regression não emite JUnit, então nada chega ao manifesto do G-7. Ver §Dívida de prova."
+last_run_ci: "UC-04 e UC-05 provados por E2E de COMPORTAMENTO (IndexEtiquetaTest, Pest 4 Browser) — EXECUTOU e passou em 2026-09-05, run 33941339625: 3 passed (7 assertions). Segue advisory (ADR 0336 pede 2 verdes; ha 1). Nenhum ✅ porque o visual-regression nao emite JUnit e nada chega ao manifesto do G-7. Os demais UC seguem estruturais — e o uc-lane-coverage mostra que o IndexPageTest que eles citam nao roda em lane nenhuma."
 ---
 
 # Casos de Uso & Aceite — Listagem de Compras (`/purchases`)
@@ -45,18 +45,25 @@ Browser — monta a lista, **clica** e lê o que a tela pediu ao navegador. Foi 
 a ação não é um `<a href>`: é `window.open` num `onClick`, e nenhuma URL chega ao DOM.
 Os UC **01, 02, 03 e 06 seguem estruturais** — a conversão deles é chip aberto, fora deste PR.
 
-**Por que nenhum UC recebe `✅` mesmo assim** — são duas razões independentes, e as duas são
-mecânicas, não de julgamento:
-1. o E2E nasce **advisory** e **não executou**: o CT 100 tem Pest e o plugin Browser mas está sem
-   `public/build/manifest.json` e sem os browsers do Playwright (medido em 2026-09-05), então quem
-   vai executá-lo pela primeira vez é o CI;
-2. mesmo verde, o resultado **não chega ao manifesto** que o G-7 lê — o `visual-regression.yml` não
-   emite `--log-junit`. Declarar `✅` sem manifesto é a violação `status:unverified` do próprio gate.
+**O E2E executou e passou** — 2026-09-05, [run 33941339625](https://github.com/wagnerra23/oimpresso.com/actions/runs/33941339625):
+`PASS Tests\Browser\Purchase\IndexEtiquetaTest` · **3 passed (7 assertions)** · 8,14s. O contador de
+**assertions** é o que prova execução: um teste pulado sairia com `0 assertions` e ainda assim sem
+falha (LC-13). Os 3 casos são UC-04 em 1280 e 1440 e UC-05.
 
-O que o autor **conseguiu** provar antes do PR: `php -l` no CT 100, e um bite-test em jsdom que
-extrai os probes **do próprio arquivo PHP** (não de uma cópia) e roda 10/10 — o probe libera no caso
-bom e **morde** nas 3 regressões que promete pegar: botão removido, `router.visit` no lugar de
-`window.open`, e linha ausente (que não pode virar verde silencioso).
+**Mesmo assim nenhum UC recebe `✅`**, e a razão que sobra é mecânica: o resultado **não chega ao
+manifesto** que o G-7 lê — o `visual-regression.yml` não emite `--log-junit`, então nada dele é
+colhido pelo `casos-results-collect`. Declarar `✅` sem manifesto é a violação `status:unverified`
+do próprio gate. Isso vale para **todos** os UC provados por teste Browser nesta casa, não só aqui.
+
+O teste segue **advisory** (`continue-on-error`) por outro motivo, também mecânico: a
+[ADR 0336](../../../../memory/decisions/0336-gates-design-promocao-por-mordida-provada-emenda-0314.md)
+pede **2 verdes que executaram** antes da promoção, e há **1**. Promover é flip [W].
+
+Antes do PR o autor não conseguiu executá-lo (o CT 100 está sem `public/build/manifest.json` e sem
+os browsers do Playwright — medido). O que deu para provar então: `php -l` no CT 100 e um bite-test
+em jsdom, 10/10, extraindo os probes **do próprio arquivo PHP** (não de uma cópia) — o probe libera
+no caso bom e **morde** nas 3 regressões: botão removido, `router.visit` no lugar de `window.open`,
+e linha ausente. O verde do CI depois confirmou o que o bite-test previa.
 
 ---
 
@@ -67,8 +74,8 @@ bom e **morde** nas 3 regressões que promete pegar: botão removido, `router.vi
 | UC-PURIDX-01 | SPA recebe React; acesso direto recebe Blade | must | RUNBOOK §1 · charter Mission | `IndexPageTest` | ⚠️ 🧪 estrutural |
 | UC-PURIDX-02 | Lista nunca sai do `business_id` da sessão | must `[T0]` | RUNBOOK §5 · charter Non-Goal 4 | `IndexPageTest` | ⚠️ 🧪 estrutural |
 | UC-PURIDX-03 | Lista respeita `permitted_locations` | must `[T0]` | RUNBOOK §3 · charter Goals | `IndexPageTest` | ⚠️ 🧪 estrutural |
-| UC-PURIDX-04 | Ação "Etiquetas" existe no React (paridade Blade) | must `[reg]` | RUNBOOK §2 (regressão datada) | `IndexEtiquetaTest` (E2E) + `IndexPageTest` | 🧪 E2E advisory, não executou |
-| UC-PURIDX-05 | Rota Blade abre por `window.open`, nunca `router.visit` | must | RUNBOOK §3 · §5 | `IndexEtiquetaTest` (E2E) + `IndexPageTest` | 🧪 E2E advisory, não executou |
+| UC-PURIDX-04 | Ação "Etiquetas" existe no React (paridade Blade) | must `[reg]` | RUNBOOK §2 (regressão datada) | `IndexEtiquetaTest` (E2E) + `IndexPageTest` | 🧪 E2E verde no CI, fora do manifesto |
+| UC-PURIDX-05 | Rota Blade abre por `window.open`, nunca `router.visit` | must | RUNBOOK §3 · §5 | `IndexEtiquetaTest` (E2E) + `IndexPageTest` | 🧪 E2E verde no CI, fora do manifesto |
 | UC-PURIDX-06 | A Page não decide tenant — `business_id` vem das props | must `[T0]` | RUNBOOK §5 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `IndexPageTest` | ⚠️ 🧪 estrutural |
 
 ---
@@ -155,12 +162,11 @@ bom e **morde** nas 3 regressões que promete pegar: botão removido, `router.vi
   (`Index.tsx:303`), então nenhuma URL chega ao HTML — procurar `a[href]` daria falso-negativo. O
   teste **substitui `window.open`, clica de verdade** e compara com a URL montada a partir do **id
   real** da compra no banco. Remover o botão devolve `ACAO-AUSENTE`; mudar a URL muda a string.
-- **Status: 🧪 E2E advisory, não executou** — o teste é de **comportamento** (não mais um
-  presence-gate), e o bite-test em jsdom mostra que ele **morde** nas 3 regressões. Mas ele nasce
-  `continue-on-error` no `visual-regression.yml` e **ainda não rodou no ambiente real** (o CT 100
-  está sem `public/build` e sem os browsers do Playwright — medido). Não vira `✅` também por um
-  segundo motivo, e ele é estrutural: o `visual-regression` **não emite JUnit**, logo o resultado
-  não chega ao manifesto que o G-7 lê. Ligar essa perna é chip próprio (§Dívida de prova).
+- **Status: 🧪 E2E verde no CI, fora do manifesto** — o teste é de **comportamento** (não mais um
+  presence-gate) e **executou**: 2026-09-05, run 33941339625, `3 passed (7 assertions)`. Não vira
+  `✅` por uma razão mecânica: o `visual-regression` **não emite JUnit**, logo o resultado não chega
+  ao manifesto que o G-7 lê, e `✅` sem manifesto é `status:unverified`. Segue `continue-on-error`
+  porque a ADR 0336 pede 2 verdes que executaram e há 1 (§Dívida de prova).
 
 ---
 
@@ -182,9 +188,9 @@ bom e **morde** nas 3 regressões que promete pegar: botão removido, `router.vi
   caminho tivesse chamado `window.open`. O caso traz ainda um **controle positivo** — o botão
   *Imprimir*, que usa o mesmo mecanismo — porque sem ele um interceptador quebrado devolveria
   `NAO-CHAMOU` para tudo e o verde não significaria nada.
-- **Status: 🧪 E2E advisory, não executou** — deixou de ser ligação indireta: o assert agora exerce
-  o contrato. Mas vale o mesmo resíduo do UC-04 (nasce advisory, não executou no ambiente real, e o
-  resultado não chega ao manifesto do G-7).
+- **Status: 🧪 E2E verde no CI, fora do manifesto** — deixou de ser ligação indireta: o assert
+  agora exerce o contrato, e passou junto com o UC-04 no mesmo run (33941339625). Vale o mesmo
+  resíduo: o resultado não chega ao manifesto do G-7, e por isso não é `✅`.
 
 ---
 
@@ -213,8 +219,8 @@ bom e **morde** nas 3 regressões que promete pegar: botão removido, `router.vi
 - ~~`[BACKLOG]` **A regressão da Etiqueta não tem defesa.**~~ **ATENDIDO em 2026-09-05** por
   [`IndexEtiquetaTest`](../../../../tests/Browser/Purchase/IndexEtiquetaTest.php) (Pest 4 Browser).
   Era o item mais caro desta lista e agora tem assert de **comportamento**: monta `/purchases?v=2`,
-  clica na ação e compara a URL pedida com o id real do banco. **Resíduo que continua**: o teste
-  nasce advisory e ainda não executou — ver §Dívida de prova.
+  clica na ação e compara a URL pedida com o id real do banco. **Resíduo que continua**: o verde não chega ao
+  manifesto do G-7 (o `visual-regression` não emite JUnit) — ver §Dívida de prova.
 - `[BACKLOG]` **O resultado do E2E não chega ao manifesto do G-7.** O `visual-regression.yml` não
   emite `--log-junit` nem publica artifact, e o `junit-lanes.mjs` (que **deriva** as lanes colhidas,
   em vez de listá-las à mão) exige as duas coisas. Enquanto isso não existir, nenhum UC provado por

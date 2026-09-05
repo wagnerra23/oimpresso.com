@@ -951,8 +951,13 @@ jobs:
       # provado antes do PR: `php -l` no CT 100 e um bite-test em jsdom que extrai os probes
       # DO PRÓPRIO arquivo PHP (não uma cópia) e mostra 10/10 — libera no caso bom e MORDE
       # nas 3 regressões (botão removido · `router.visit` · linha ausente).
-      # Promoção a ENFORCING = REMOVER o `continue-on-error`, após 2 verdes que EXECUTARAM
-      # (`skipped` lido como verde é o presence-gate de sempre) — flip [W], ADR 0336.
+      #
+      # VERDE Nº 1 (recibo, não promessa): run 33941339625, em 2026-09-05 —
+      # `PASS Tests\Browser\Purchase\IndexEtiquetaTest` · 3 passed (7 assertions) · 8,14s.
+      # O contador de ASSERTIONS é o que prova execução: pulado sairia `0 assertions` sem
+      # falhar (LC-13). Promoção a ENFORCING = REMOVER o `continue-on-error`, após 2 verdes
+      # que EXECUTARAM (`skipped` lido como verde é o presence-gate de sempre) — flip [W],
+      # ADR 0336. Falta 1.
       - name: E2E de comportamento · Purchase/Index · Etiquetas (ADVISORY)
         if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         id: e2e-purchase-etiqueta

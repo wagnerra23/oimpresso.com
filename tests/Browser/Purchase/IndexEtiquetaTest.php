@@ -70,6 +70,17 @@ declare(strict_types=1);
  * ── EXECUÇÃO (CT 100 / CI — nunca local: memory/proibicoes.md + ADR 0062) ────
  *   tailscale ssh root@ct100-mcp "docker exec oimpresso-staging ./vendor/bin/pest tests/Browser/Purchase/IndexEtiquetaTest.php"
  *
+ * ⚠️ Em 2026-09-05 o CT 100 **não conseguia** rodar isto: `oimpresso-staging` tem Pest e o plugin
+ * Browser, mas está sem `public/build/manifest.json` e sem os browsers do Playwright em
+ * `~/.cache/ms-playwright` — não renderiza Inertia nem abre Chromium. Quem executou primeiro foi
+ * o CI. (Fato datado: confira antes de concluir que o comando acima não serve.)
+ *
+ * ── RECIBO DO 1º VERDE (não é promessa) ──────────────────────────────────────
+ * run 33941339625, 2026-09-05: `PASS Tests\Browser\Purchase\IndexEtiquetaTest` ·
+ * **3 passed (7 assertions)** · 8,14s. O contador de ASSERTIONS é o que prova que executou —
+ * um teste pulado sairia com `0 assertions` e sem falhar (LC-13). Nasce advisory; a ADR 0336
+ * pede 2 verdes que EXECUTARAM antes da promoção, e a promoção é flip [W].
+ *
  *   @covers-uc UC-PURIDX-04  a ação Etiquetas existe no React e aponta pra /labels/show
  *   @covers-uc UC-PURIDX-05  rota Blade sai por window.open, nunca por router.visit
  *
