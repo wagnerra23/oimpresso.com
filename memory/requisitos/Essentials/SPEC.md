@@ -213,6 +213,24 @@ Então recebe `403 Unauthorized`
 
 **Aceitação:** Testes Pest biz=1 vs biz=99 ([ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md)) cobrem list/show/edit/delete/complete. Falha em qualquer cenário cross-tenant = incident. Suite: `MultiTenantTodoTest` + `MultiTenantLeaveTest`.
 
+### US-ESS-011 · Metas de venda por colaborador (tela Inertia)
+
+**Implementado em:** `Modules/Essentials/Http/Controllers/SalesTargetController.php` (`index`, `paginarColaboradores`) · `resources/js/Pages/Essentials/Metas.tsx` (+ `Metas.charter.md`, `Metas.casos.md`) · rota `/hrm/sales-target` em `Modules/Essentials/Routes/web.php` · `Modules/Essentials/Tests/Feature/HrmMetasTest.php` · verificado@16fec05f7d (2026-09-05)
+
+**Como** admin do business
+**Quero** ver numa tela só quem tem meta de venda cadastrada e qual faixa paga qual comissão, e editar essas faixas
+**Para** não precisar abrir um colaborador por vez no modal (a tela Blade mostrava só nome + botão)
+
+**Regras:**
+
+- A tela **não calcula** comissão. As faixas são exibidas como estão em `essentials_user_sales_targets`; ao salvar, voltam como texto pt-BR de 2 casas (`formatDecimalPtBR`) — a mesma forma do `@num_format` do Blade. `Util::num_uf` e `SalesTargetFaixaValidator` seguem sendo os únicos a interpretar e validar.
+- A **apuração do realizado** (vendido no mês, faixa atingida, comissão em dinheiro) fica **fora** desta US: o produtor é `DashboardController::getUserSalesTargets`, admin-only e DataTables. É caminho de valor e exige US própria com a dupla prova da regra mestre.
+- O ramo `request()->ajax()` do `index` permanece enquanto `sales_targets/index.blade.php` existir (sai na HRM-O8).
+
+**Testado em:** `Modules/Essentials/Tests/Feature/HrmMetasTest.php`
+
+**DoD:** os 7 UCs de `Metas.casos.md` verdes na lane `essentials-pest` (MySQL real, tenant 98) — render Inertia com as props, faixas exibidas como estão no banco, colaborador sem faixa como ausência (não zero fabricado), busca server-side sem vazar outro tenant, equivalência **medida** entre texto pt-BR e número cru na gravação, leitura do `num_uf` com controle negativo que pode ficar vermelho, e o ramo DataTables da Blade legada preservado. Nenhum valor gravado muda: `saveSalesTarget`, `montarFaixas`, `SalesTargetFaixaValidator` e `num_uf` ficam intactos.
+
 ---
 
 ## Cobertura de testes Pest (2026-05-16 Wave Massive)
