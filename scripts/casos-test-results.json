@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "generated_at": "2026-09-05T03:15:52.522Z",
+    "generated_at": "2026-09-05T11:12:34.296Z",
     "gate": "casos status derivado (ADR 0264 G-7 — Status por UC vem do veredito real do teste)",
     "sources": [
       "test-results/junit.xml",
@@ -28,8 +28,8 @@
       "test-results/vitest-sells-v3-dominio-junit.xml"
     ],
     "stats": {
-      "ucs": 552,
-      "pass": 532,
+      "ucs": 554,
+      "pass": 534,
       "fail": 9,
       "skip": 11
     },
@@ -41,12 +41,22 @@
     ]
   },
   "ucs": {
+    "UC-PURIDX-02": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 2
+    },
     "UC-PURIDX-03": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 2
     },
-    "UC-PURIDX-02": {
+    "UC-PURSHW-01": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 2
+    },
+    "UC-PURSHW-05": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 2
