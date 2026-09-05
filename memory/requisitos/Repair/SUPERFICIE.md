@@ -186,12 +186,13 @@ module: Repair
 - [Show.charter.md](../../../resources/js/Pages/Repair/Show.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Repair/Status/Index.charter.md)
 
-## Casos (contrato UC) — 5
+## Casos (contrato UC) — 6
 
 - [AddParts.casos.md](../../../resources/js/Pages/Repair/JobSheet/AddParts.casos.md)
 - [Create.casos.md](../../../resources/js/Pages/Repair/JobSheet/Create.casos.md)
 - [Edit.casos.md](../../../resources/js/Pages/Repair/JobSheet/Edit.casos.md)
 - [Show.casos.md](../../../resources/js/Pages/Repair/JobSheet/Show.casos.md)
+- [Index.casos.md](../../../resources/js/Pages/Repair/ProducaoOficina/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Repair/Settings/Index.casos.md)
 
 ## Testes (Pest) — 29
