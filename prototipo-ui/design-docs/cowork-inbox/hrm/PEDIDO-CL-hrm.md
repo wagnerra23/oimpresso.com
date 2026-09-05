@@ -21,9 +21,25 @@ Sem D1 e D3 respondidas, **HRM-O6 não fecha** (a guarda de conflito depende do 
 > 📍 **Estado de aterrissagem (2026-09-04) — HRM-O5/PR-1 EXECUTADO PELA METADE, e a metade
 > que ficou tem motivo medido.**
 >
-> **Aterrissou:** `Modules/Essentials/Tests/Feature/HrmLicencaTest.php` (+ entrada na allowlist
-> do `essentials-pest.yml`). O CI confirmou o desenho: **canário verde, 6 casos vermelhos** com
-> `Failed asserting that 200 is identical to 422` — os achados A2/A3/A4, não ambiente.
+> **O PR-1 rodou e PROVOU o que devia — depois cedeu o arquivo.** O
+> `HrmLicencaTest.php` foi escrito, entrou na allowlist e rodou no CI
+> ([#6800](https://github.com/wagnerra23/oimpresso.com/pull/6800), run 33940153426):
+> **canário verde + 6 casos vermelhos** com `Failed asserting that 200 is identical to 422` —
+> a prova de que A2/A3/A4 eram reais e de que o vermelho era achado, não ambiente.
+>
+> **Mas três sessões paralelas atacaram o mesmo pedido na mesma noite**, e duas chegaram mais
+> longe: [#6789](https://github.com/wagnerra23/oimpresso.com/pull/6789) (PR-5, **já mergeado** —
+> `EssentialsLeaveTypeController::destroy` agora devolve **422** com `blocked_by`, então **A4
+> está FECHADO**) e [#6797](https://github.com/wagnerra23/oimpresso.com/pull/6797) (PR-2/PR-3,
+> aberto — traz a validação **e** um `HrmLicencaTest.php` próprio, de 342 linhas, cobrindo
+> UC-HRM-02/03/05/09/15/19, que nasce **verde** porque vem com a correção junto).
+> O #6800 **cedeu** o `HrmLicencaTest.php` e a linha da allowlist: dois testes com o mesmo nome
+> é conflito garantido, e entre "vermelho esperando conserto" e "correção + verde no mesmo PR",
+> o segundo serve mais. **O #6797 é o canônico do teste.**
+>
+> ⚠️ **Causa da colisão, registrada:** ninguém rodou `whats-active` antes de abrir (§5
+> 2026-08-13 — sintoma acusado por máquina compartilhada é o caso de maior probabilidade de
+> colisão entre sessões). Quem pegar o PR-9 ou o PR-6/7: **rode `whats-active` primeiro.**
 >
 > **NÃO aterrissou (vai no PR-9, junto da `Index.tsx`):** os 3 charters e o `Index.casos.md`.
 > Medido: a catraca `charter_refs_broken` tem **teto 0** e trata `component:` apontando pra
@@ -43,10 +59,17 @@ Sem D1 e D3 respondidas, **HRM-O6 não fecha** (a guarda de conflito depende do 
 > régua do repo. O PR-9 deve começar por `criar-tela.mjs <Mod/Tela> PT-01` e então substituir o
 > conteúdo carimbado pelos textos já revisados.
 >
-> **Não refazer a conferência do PR-1** (6 divergências achadas e corrigidas: formato do
-> contrato, allowlist da lane, `RefreshDatabase` proibido, `admin()` com `TypeError`, factories
-> inexistentes, charter sem frontmatter). Próximo da fila: PR-8 (lang PT, isolado) ou
-> PR-2/PR-3 (que fecham os 6 vermelhos).
+> **Não refazer a conferência do PR-1** — os 4 artefatos deste pacote tinham **6 divergências**
+> contra o `main`, todas medidas e corrigidas: (1) contrato em outro schema (`sections`/`screen`
+> vs `alvo`/`secoes` — o gate dava exit 1); (2) o teste **não rodaria**, porque a lane tem
+> allowlist de 1 arquivo; (3) usava `RefreshDatabase`, que a lane proíbe (dropa o schema e limpa
+> o seed das 16 lanes); (4) `private function admin(): User {}` com corpo vazio ⇒ **`TypeError`**
+> — os casos morreriam pelo motivo errado; (5) `EssentialsLeaveType::factory()` não existe
+> (`Database/factories/` só tem `.gitkeep`); (6) charters sem frontmatter, e o gate `Charter` é
+> **required**. Bônus: a data literal `21/09/2026` é **mês 21** no `date_format` default `m/d/Y`.
+>
+> Próximo da fila: **PR-8** (lang PT, isolado, sem bloqueio) e **PR-6/PR-7** (presença) — o
+> PR-2/PR-3 está no #6797 e o PR-4 no #6799.
 
 ## HRM-O5 — prova mínima (trio + contrato)
 

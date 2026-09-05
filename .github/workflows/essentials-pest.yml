@@ -96,16 +96,6 @@ jobs:
         # rodar no MySQL real semeado pela action (ela é a dona dos tenants). Allowlist: só arquivos
         # comprovadamente verdes MySQL-only. NÃO incluir RefreshDatabase/
         # migrate:fresh (dropam schema + limpam o seed). Este usa DatabaseTransactions.
-        #
-        # 2026-09-04 — HrmLicencaTest entra FAILING-FIRST, e o desvio é declarado:
-        # a catraca acima pede "verde provado antes de entrar", mas rodar Pest local
-        # é proibido (Tier 0 ADR 0062 — CT 100/CI só), então o primeiro run só pode
-        # acontecer aqui. Mesmo desenho já assumido em forja-pest.yml e compras-pest.yml.
-        # DIFERENÇA relevante: este NASCE VERMELHO DE PROPÓSITO em 6 casos — é a prova
-        # dos achados A2/A3/A4 do PEDIDO-CL-hrm.md (store sem FormRequest, max_leave_count
-        # nunca aplicado, destroy de tipo com corpo vazio). Vira verde com os PRs 2, 3 e 5
-        # do pedido. O que NÃO se faz é tirá-lo da lista pra a lane ficar verde.
-        # Usa DatabaseTransactions (nunca RefreshDatabase) e tenant 98 (ADR 0358).
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -118,7 +108,7 @@ jobs:
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-essentials-junit.xml \
             Modules/Essentials/Tests/Feature/SalesTargetShiftCrossTenantTest.php \
-            Modules/Essentials/Tests/Feature/HrmLicencaTest.php
+            Modules/Essentials/Tests/Feature/HrmExclusaoGuardaTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
