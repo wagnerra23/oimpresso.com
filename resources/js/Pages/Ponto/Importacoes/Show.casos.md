@@ -43,6 +43,12 @@ last_run_ci: "5 de 5 VERDES no run 33942364334 da lane PHP / Pest (Ponto · MySQ
 > enxerga. `✅` aqui viraria `status:unverified` no G-7 — a afirmação exige prova, e a prova é o
 > manifesto. O conserto é converter aquele arquivo pra `it()`, e ele é dívida alheia adiada de
 > propósito ([proibicoes §5](../../../../../memory/proibicoes.md) 2026-07-12), não deste PR.
+>
+> 🔀 **Sessão paralela, detectada em 2026-09-05 pelo `dup-detector`:** o
+> [#6822](https://github.com/wagnerra23/oimpresso.com/pull/6822) está fazendo exatamente essa
+> conversão. Se ele entrar, estes quatro saem do `⛓` e podem virar `✅` no primeiro publish do
+> manifesto. Este PR **não depende** disso e não o antecipa — a nota acima descreve o estado
+> na data, não uma previsão.
 
 **[BACKLOG]:**
 
