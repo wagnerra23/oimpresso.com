@@ -119,9 +119,17 @@ it('UC-IMPSH-05 · a importação que falhou mostra o motivo da falha', function
 
     // Pré-condição anti-vácuo (LC-13): sem o motivo GRAVADO, "a tela não mostra o motivo"
     // seria verdade por não haver motivo nenhum — o caso passaria a medir a fixture.
+    //
+    // ⚠️ Assert do PHPUnit, e não `expect()->toContain($motivo, 'mensagem')`: os matchers
+    // variádicos do Pest tratam TODO argumento como needle, então a "mensagem" vira um
+    // segundo termo a procurar e o caso reprova por si mesmo. É a mesma armadilha que o
+    // `ponto-pest.yml` já registra pro `toHaveKey(chave, msg)` (causa 4 do ratchet de
+    // 2026-08-24) e que a proibicoes §5 2026-07-28 cataloga pro `toContain`. Nos asserts do
+    // PHPUnit a mensagem tem posição própria — ambiguidade zero.
     $gravado = DB::table('ponto_importacoes')->where('id', $falhou->id)->first();
-    expect((string) ($gravado->log ?? ''))->toContain(
+    $this->assertStringContainsString(
         $motivo,
+        (string) ($gravado->log ?? ''),
         'A fixture precisa gravar o motivo da falha na importação — senão o caso não exerce nada.'
     );
 
@@ -129,7 +137,7 @@ it('UC-IMPSH-05 · a importação que falhou mostra o motivo da falha', function
     $this->assertInertiaComponent($resp, 'Ponto/Importacoes/Show');
 
     $payload = $resp->json('props.importacao');
-    expect($payload)->toBeArray('O detalhe da importação precisa chegar como payload Inertia.');
+    $this->assertIsArray($payload, 'O detalhe da importação precisa chegar como payload Inertia.');
 
     // O motivo é procurado em QUALQUER chave — o contrato é "diz por quê", não "expõe a
     // chave `erro_mensagem`". Os dois modos de falha ficam separados pra mensagem ser
