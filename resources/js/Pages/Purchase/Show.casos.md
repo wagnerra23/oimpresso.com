@@ -5,8 +5,8 @@ irmaos: Show.charter.md (lei) · Show.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o escopo por tenant e a ausência do barcode são duráveis — não mudam quando o detalhe ganhar card novo.
 owner: wagner
-last_run: "2026-09-04"
-last_run_ci: "nasce com dívida de prova DECLARADA — os testes que citam estes UC são ESTRUTURAIS (grep no fonte), não exercitam request. Ver §Dívida de prova."
+last_run: "2026-09-05"
+last_run_ci: "UC-01 [T0] e UC-05 [V0] provados por COMPORTAMENTO em PurchaseShowTenantContratoTest — 4 passed, 8 assertions, run no CT 100 contra MySQL, mordida verificada por mutação. UC-02/04 seguem ESTRUTURAIS; UC-03 está VERMELHO (ver §Divergências). Ver §Dívida de prova."
 ---
 
 # Casos de Uso & Aceite — Detalhe da Compra (`/purchases/{id}`)
@@ -38,8 +38,24 @@ Medição em `origin/main` (2026-09-04):
 tenant, não emite request e não valida resposta — classe
 [LC-11](../../../../memory/LICOES_CODE.md) (presence-gate), que o ledger alarma com 11 ocorrências.
 
-**Consequência honesta:** nenhum UC recebe `Status: ✅`. Todos carregam **⚠️ 🧪 estrutural** — exceto
-o UC-PURSHW-03, cuja natureza *é* estrutural (ausência de um literal no arquivo **é** o contrato).
+**Consequência honesta:** os UC **01 `[T0]`** e **05 `[V0]`** deixaram de ser forma — ganharam
+contrato de comportamento em
+[`PurchaseShowTenantContratoTest`](../../../../tests/Feature/Purchase/PurchaseShowTenantContratoTest.php)
+(2026-09-05). Os UC **02** e **04** seguem `⚠️ 🧪 estrutural`.
+
+**⚠️ E o UC-PURSHW-03 está VERMELHO — a classificação dele estava errada.** Este arquivo dizia que
+a natureza dele *é* estrutural, *"ausência de um literal no arquivo **é** o contrato"*. Medido no
+CT 100 em 2026-09-04: o assert `expect($source)->not->toContain('Barcode')` **falha**, e o que casa
+é o **comentário da linha 9 de `Show.tsx`** — `// Mata bug 500 em prod (DNS1D::getBarcodePNG linha
+430 quebrada)` — que documenta o próprio bug-fix. O instrumento não distingue *renderizar* barcode
+de *falar sobre* barcode, então o contrato como escrito proíbe também a explicação. A ironia é
+exata: a §Regressão do próprio UC-03 diz que bug-fix por omissão é frágil porque *"nada no código
+explica por que aquilo não está lá"* — alguém escreveu a explicação, que é o conserto certo, e isso
+quebrou o teste que defendia o mesmo contrato. Ver §Divergências.
+
+**⚠️ E até 2026-09-04 nada aqui ERA EXECUTADO.** Nenhuma lane rodava `tests/Feature/Purchase/**`
+(varredura contada com controle positivo). A lane
+[`purchase-pest.yml`](../../../../.github/workflows/purchase-pest.yml) nasceu daí.
 
 ---
 
@@ -47,11 +63,11 @@ o UC-PURSHW-03, cuja natureza *é* estrutural (ausência de um literal no arquiv
 
 | UC | Título | Tipo | Âncora de contrato | Teste que cita | Status |
 |---|---|---|---|---|---|
-| UC-PURSHW-01 | Detalhe nunca resolve compra de outro tenant | must `[T0]` | charter Non-Goal 4 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `ShowPageTest` | ⚠️ 🧪 estrutural |
+| UC-PURSHW-01 | Detalhe nunca resolve compra de outro tenant | must `[T0]` | charter Non-Goal 4 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `PurchaseShowTenantContratoTest` | ✅ comportamento |
 | UC-PURSHW-02 | Dual-path: AJAX puro recebe Blade; navegação recebe Inertia | must | charter §Backend · [ADR 0104](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md) | `ShowPageTest` | ⚠️ 🧪 estrutural |
 | UC-PURSHW-03 | A tela **não** renderiza barcode (mata o 500 do legado) | must `[reg]` | charter §Backend (bug-fix declarado) | `ShowPageTest` | 🧪 estrutural (correto) |
 | UC-PURSHW-04 | Editar/Excluir só aparecem com a permissão | must | charter Goals · Anti-hooks | `ShowPageTest` | ⚠️ 🧪 estrutural |
-| UC-PURSHW-05 | A tela não recalcula totais — exibe o que o controller mandou | must `[V0]` | charter Non-Goal 3 | `ShowPageTest` | ⚠️ 🧪 estrutural |
+| UC-PURSHW-05 | A tela não recalcula totais — exibe o que o controller mandou | must `[V0]` | charter Non-Goal 3 | `PurchaseShowTenantContratoTest` | ✅ comportamento (metade backend) |
 | UC-PURSHW-06 | A Page não decide tenant — `business_id` vem das props | must `[T0]` | charter Non-Goal 4 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `ShowPageTest` | 🧪 estrutural (correto) |
 
 ---
@@ -64,16 +80,21 @@ o UC-PURSHW-03, cuja natureza *é* estrutural (ausência de um literal no arquiv
   `GET /purchases/{id}` · Então **não** recebe o detalhe (404/403 conforme o canon da rota). E,
   como **controle positivo**, o mesmo endpoint para uma compra do próprio negócio responde 200 —
   sem o par, um `abort` incondicional passaria no teste.
-- **Teste:** [`ShowPageTest`](../../../../tests/Feature/Purchase/ShowPageTest.php) — *"Controller
-  showInertia PRESERVA Tier 0 (recebe $purchase já scopado por business_id)"* · *"Controller
-  showInertia NÃO usa withoutGlobalScopes sem comentário SUPERADMIN"*.
+- **Teste:** [`PurchaseShowTenantContratoTest`](../../../../tests/Feature/Purchase/PurchaseShowTenantContratoTest.php)
+  — *"UC-PURSHW-01 (A · controle positivo) o detalhe da PROPRIA compra responde 200"* ·
+  *"UC-PURSHW-01 (B · contrato T0) o detalhe de compra de OUTRO business responde 404"*.
+  Os asserts de presença de [`ShowPageTest`](../../../../tests/Feature/Purchase/ShowPageTest.php)
+  **permanecem** — pegam a remoção literal do trecho, que é uma defesa a menos, não a mesma.
 - **Contrato:** charter §Non-Goals item 4 (*"IDs de outro negócio devem retornar 404/403"*) ·
   [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
 - **Regressão que defende:** o model `Transaction` **não tem global scope** — o isolamento é escrito
   à mão em cada query. Essa mesma ausência produziu um IDOR de escrita real no `update` desta mesma
   controller ([`UpdateCrossTenantIdorTest`](../../../../tests/Feature/Purchase/UpdateCrossTenantIdorTest.php)).
-- **Status: ⚠️ 🧪 estrutural** — o assert casa texto no fonte. **Não existe** teste que crie a compra
-  no tenant vizinho e prove o 404 desta rota. É o UC mais caro do arquivo e o menos defendido.
+- **Status: ✅ comportamento** (2026-09-05) — a compra vizinha é criada e a rota responde **404**,
+  com o controle positivo (200 na própria) que impede o verde por vácuo: sem ele, um `abort()`
+  incondicional ou uma rota quebrada dariam 404 em tudo e pareceriam isolamento.
+  **Morde:** `show()` resolvendo sem `where('business_id')` ⇒ `1 failed`, exatamente no assert do
+  404, com os 3 outros verdes. Deixou de ser *"o UC mais caro do arquivo e o menos defendido"*.
 
 ---
 
@@ -140,16 +161,27 @@ o UC-PURSHW-03, cuja natureza *é* estrutural (ausência de um literal no arquiv
 - **Aceite:** Dado o detalhe de uma compra · Quando os totais (subtotal, desconto, impostos, frete,
   total, pago, a pagar) são exibidos · Então os valores vêm prontos do controller e a tela apenas
   **formata** em pt-BR — nunca recalcula, nunca reagrega.
-- **Teste:** [`ShowPageTest`](../../../../tests/Feature/Purchase/ShowPageTest.php) — *"Page formata
-  BRL (Intl.NumberFormat pt-BR)"* · *"Page tem Total geral (PT-BR)"* · *"Page tem 3 Cards top e 2
-  Cards mid (Pagamentos/Totais)"*.
+- **Teste:** [`PurchaseShowTenantContratoTest`](../../../../tests/Feature/Purchase/PurchaseShowTenantContratoTest.php)
+  — *"UC-PURSHW-05 [V0] o final_total do payload e o do BANCO, nao uma derivacao das linhas"* ·
+  *"UC-PURSHW-05 [V0] antes -> depois: mudar o total no banco move o payload na MESMA medida"*.
+  Os asserts de formatação de [`ShowPageTest`](../../../../tests/Feature/Purchase/ShowPageTest.php)
+  (*"Page formata BRL"* · *"Total geral (PT-BR)"* · *"3 Cards top e 2 Cards mid"*) **permanecem**.
 - **Contrato:** charter §Non-Goals item 3 (*"Não recalcula totais no cliente — os valores vêm
   prontos do controller"*) · [proibicoes §REGRA MESTRE — CÁLCULO DE VALOR](../../../../memory/proibicoes.md).
 - **Regressão que defende:** o incidente de 2026-06-05 (biz=4) inflou 16 vendas ~×100k porque um
   número atravessou uma fronteira de formatação com a interpretação errada de separador. Cálculo em
   duas camadas é a porta por onde isso entra; esta tela é explicitamente **uma camada só**.
-- **Status: ⚠️ 🧪 estrutural** — os asserts provam que a *formatação* pt-BR está no arquivo; **não**
-  provam a ausência de recálculo. É `[V0]` com defesa fraca — declarado, não maquiado.
+- **Status: ✅ comportamento (metade backend)** (2026-09-05) — e o recorte importa, então fica dito:
+  *"a TELA não recalcula"* é contrato do `.tsx` e só Playwright provaria. O que o teste de request
+  prova é **a metade que decide o resultado**: o valor que chega à tela é o do **banco**, não uma
+  derivação. A prova é uma discrepância deliberada — a compra nasce com `final_total` 1234,56 e
+  **sem** `purchase_lines`, então qualquer agregação daria 0; se o payload trouxer 1234,56, o número
+  atravessou intacto. Um assert que só comparasse payload×banco ficaria verde mesmo com
+  `final_total = $net_total`, porque numa compra bem-comportada os dois coincidem — a discrepância
+  é o que discrimina. Segundo caminho (a REGRA MESTRE exige dois): antes→depois, mudar o total no
+  banco move o payload na mesma medida, com número concreto.
+  **Morde:** trocar `$final_total = (float) $purchase->final_total` por `$net_total` ⇒ `2 failed` —
+  caem os **dois** caminhos, que é o comportamento esperado de uma prova de valor.
 
 ---
 
@@ -196,6 +228,25 @@ o UC-PURSHW-03, cuja natureza *é* estrutural (ausência de um literal no arquiv
 1. **O charter está `status: draft`** e diz explicitamente que [W] aprova Non-Goals + Anti-hooks
    antes de virar `live`. Três dos quatro Non-Goals trazem *"inferência pendente de Wagner"* — este
    `casos.md` só promoveu a UC os que têm apoio em outra fonte.
-2. **A tela não tem teste de comportamento nem E2E.** `ShowPageTest` tem 44 asserts e 0 requests, e
-   o `screen-coverage` marca `Purchase · 0 de 4 E2E · 0 de 4 VRT`. O verde da lane **não** significa
-   que o detalhe isola tenant.
+2. **A tela não tinha teste de comportamento.** `ShowPageTest` tem 44 asserts e 0 requests.
+   **Parcialmente fechado em 2026-09-05** — os UC 01 `[T0]` e 05 `[V0]` ganharam contrato
+   executável. Os UC **02 e 04** seguem estruturais, e o `screen-coverage` ainda marca
+   `Purchase · 0 de 4 E2E · 0 de 4 VRT` — o eixo E2E/VRT continua descoberto.
+3. **O UC-PURSHW-03 está vermelho, e o conserto é decisão de [W] porque muda o CONTRATO.**
+   O assert casa a string `'Barcode'` em qualquer contexto, inclusive no comentário que documenta
+   o bug-fix. As saídas possíveis não são equivalentes:
+   - **(a)** apertar o assert para casar **código** (`import ... Barcode`, `<Barcode`, `DNS1D::`)
+     em vez da string nua — mantém o contrato e para de punir a explicação;
+   - **(b)** remover o comentário de `Show.tsx:9` — faria o teste passar, mas apaga exatamente a
+     explicação que a §Regressão deste UC pede para existir;
+   - **(c)** aceitar que o presence-gate não exprime este contrato e movê-lo para um teste que
+     renderize a página.
+   Recomendo **(a)**: é o que preserva as duas coisas. Não apliquei porque mexer no critério de um
+   UC é mudar o contrato, não consertar um bug — e o `casos.md` classifica este UC como
+   `🧪 estrutural (correto)`, classificação que a medição contradiz e que só [W] deve reescrever.
+4. **`UpdateCrossTenantIdorTest`, a defesa nomeada do IDOR de escrita desta controller, não roda
+   em MySQL.** Ele tem `markTestSkipped` fora de sqlite (schema sintético manual), e nenhuma lane
+   sqlite o inclui — logo não roda em lugar nenhum. Além disso ele não exercita o controller:
+   replica o padrão `Transaction::where('business_id',...)` inline e asserta sobre o Eloquent, com
+   um único assert tocando o fonte por regex. O IDOR que ele nomeia está fechado no código, mas a
+   prova disso é estrutural. Convertê-lo é intent próprio.
