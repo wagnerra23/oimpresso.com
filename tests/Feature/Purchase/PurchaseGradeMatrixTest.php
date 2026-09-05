@@ -20,6 +20,22 @@ use Illuminate\Support\Facades\Schema;
  *    business não resolve (404). Skipa em MySQL persistente (quarentena Onda 2 SDD).
  *
  * ADRs: 0093 (Tier 0 IRREVOGÁVEL), 0104 (MWART), 0105 (Larissa sinal), C1 (convergência).
+ *
+ * ── Rastreabilidade (casos-gate G-2 · ADR 0264) ────────────────────────────
+ * Contrato: resources/js/Pages/Purchase/Create.casos.md
+ *   @covers-uc UC-PURCRE-02  endpoint da grade recusa produto de outro tenant
+ *   @covers-uc UC-PURCRE-03  store() recusa variation_id forjado (anti payload cross-tenant)
+ *   @covers-uc UC-PURCRE-04  a grade nunca abre vazia — degrada 2D -> 1 eixo -> single
+ *
+ * COBERTURA MISTA — medida por bloco em 2026-09-04, e o recorte importa:
+ *   - 6 casos do parser (GradeLayoutBuilder, logica pura): COMPORTAMENTO REAL, EXECUTAM.
+ *     Sustentam o UC-PURCRE-04, o unico UC das 4 telas de Purchase com prova ativa.
+ *   - 6 casos estruturais (rota + scope no fonte + wiring da Page): executam, mas sao
+ *     casamento de texto (classe LC-11).
+ *   - describe('Tier 0 cross-tenant (synthetic sqlite)'): NAO EXECUTA. Pula fora do
+ *     sqlite e o arquivo nao esta em .github/ci-sqlite-pest.list -> lane nenhuma o roda.
+ *     Skip sai exit 0 (LC-13: "0 failed" nunca prova execucao). Por isso os UC 02 e 03
+ *     ficam "estrutural (comportamento em quarentena)" no casos.md, nao ✅.
  */
 const GM_CONTROLLER = 'app/Http/Controllers/PurchaseController.php';
 const GM_ROUTES = 'routes/web.php';
