@@ -56,6 +56,7 @@ import {
 } from '@/Components/ui/sheet';
 import { Skeleton } from '@/Components/ui/skeleton';
 import { Textarea } from '@/Components/ui/textarea';
+import { Grid, Inline } from '@/Components/layout';
 
 // ── formas vindas do EssentialsLeaveController ──────────────────────────────
 interface Licenca {
@@ -141,6 +142,18 @@ function paraFormatoDoNegocio(iso: string, formato: string): string {
     .replace('d', dia)
     .replace('m', mes)
     .replace('Y', ano);
+}
+
+/**
+ * Rótulo do botão de paginação, em PT-BR e como TEXTO.
+ * O paginador do Laravel devolve `label` com entidade HTML e em inglês
+ * (`&laquo; Previous`, `Next &raquo;`); os números vêm limpos.
+ */
+function rotuloDaPagina(label: string): string {
+  const limpo = label.replace(/&laquo;|&raquo;|&hellip;/g, '').trim();
+  if (/previous/i.test(limpo)) return 'Anterior';
+  if (/next/i.test(limpo)) return 'Próxima';
+  return limpo || '…';
 }
 
 const variantePorStatus: Record<Licenca['status'], 'secondary' | 'default' | 'outline'> = {
@@ -313,7 +326,8 @@ export default function LicencasIndex({
             </Button>
           }
           below={
-            <nav data-contract="abas" className="flex items-center gap-1" aria-label="Seções de licenças">
+            <Inline asChild gap={1} align="center">
+              <nav data-contract="abas" aria-label="Seções de licenças">
               <button
                 type="button"
                 role="tab"
@@ -342,6 +356,7 @@ export default function LicencasIndex({
                 Tipos de licença
               </a>
             </nav>
+            </Inline>
           }
         />
       </div>
@@ -349,7 +364,7 @@ export default function LicencasIndex({
       <div className="mx-auto max-w-7xl space-y-4 p-6">
         {/* ── KPIs ── */}
         <Deferred data="kpis" fallback={<Skeleton className="h-20 w-full" />}>
-          <div data-contract="kpis" className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <Grid data-contract="kpis" min="sm" gap={3}>
             <Card><CardContent className="pt-4">
               <p className="text-xs text-muted-foreground">Pendentes</p>
               <p className="text-2xl font-semibold tabular-nums">{kpis?.pendentes ?? 0}</p>
@@ -362,7 +377,7 @@ export default function LicencasIndex({
               <p className="text-xs text-muted-foreground">Tipos cadastrados</p>
               <p className="text-2xl font-semibold tabular-nums">{kpis?.tipos ?? 0}</p>
             </CardContent></Card>
-          </div>
+          </Grid>
         </Deferred>
 
         {aba === 'saldo' ? (
@@ -371,7 +386,8 @@ export default function LicencasIndex({
           <>
             {/* ── toolbar ── */}
             <Card>
-              <CardContent className="flex flex-wrap items-center gap-2 py-3" data-contract="toolbar">
+              <CardContent className="py-3" data-contract="toolbar">
+                <Inline gap={2} align="center" wrap>
                 <div className="relative min-w-56 flex-1">
                   <Search size={14} aria-hidden="true" className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -437,19 +453,23 @@ export default function LicencasIndex({
                   {linhas.length} de {total}
                 </span>
 
-                <span className="ml-auto hidden items-center gap-2 text-xs text-muted-foreground lg:flex">
+                <span className="ml-auto hidden items-center gap-2 text-xs text-muted-foreground lg:inline-flex">
                   <kbd className="rounded border border-border px-1.5 py-0.5">/</kbd> buscar
                   <kbd className="rounded border border-border px-1.5 py-0.5">n</kbd> novo
                 </span>
+                </Inline>
               </CardContent>
             </Card>
 
             {/* ── seleção em lote ── */}
             {selecionadas.length > 0 && permissoes.aprovar && (
-              <div
+              <Inline
+                gap={2}
+                align="center"
+                wrap
                 data-contract="lote"
                 role="status"
-                className="flex flex-wrap items-center gap-2 rounded-md border border-border bg-accent/40 px-3 py-2 text-sm"
+                className="rounded-md border border-border bg-accent/40 px-3 py-2 text-sm"
               >
                 <span className="tabular-nums">{selecionadas.length} selecionadas</span>
                 <Button
@@ -468,7 +488,7 @@ export default function LicencasIndex({
                   Cancelar licenças
                 </Button>
                 <Button size="sm" variant="ghost" onClick={() => setSelecionadas([])}>Limpar seleção</Button>
-              </div>
+              </Inline>
             )}
 
             {/* ── lista ── */}
@@ -583,18 +603,25 @@ export default function LicencasIndex({
             </Deferred>
 
             {licencas && licencas.last_page > 1 && (
-              <nav className="flex flex-wrap gap-1" aria-label="Paginação">
-                {licencas.links.map((link, i) => (
-                  <Button
-                    key={i}
-                    size="sm"
-                    variant={link.active ? 'default' : 'outline'}
-                    disabled={!link.url}
-                    onClick={() => link.url && router.visit(link.url, { preserveScroll: true, only: PROPS_DA_LISTA })}
-                    dangerouslySetInnerHTML={{ __html: link.label }}
-                  />
-                ))}
-              </nav>
+              <Inline asChild gap={1} wrap>
+                <nav aria-label="Paginação">
+                  {licencas.links.map((link, i) => (
+                    <Button
+                      key={i}
+                      size="sm"
+                      variant={link.active ? 'default' : 'outline'}
+                      disabled={!link.url}
+                      onClick={() => link.url && router.visit(link.url, { preserveScroll: true, only: PROPS_DA_LISTA })}
+                    >
+                      {/* Texto, sempre — nunca injeção de HTML cru: o `label` do
+                          paginador do Laravel vem com entidade HTML (`&laquo; Previous`),
+                          e injetá-lo abriria um sink de XSS por conveniência de seta.
+                          `rotuloDaPagina` traduz e devolve string. */}
+                      {rotuloDaPagina(link.label)}
+                    </Button>
+                  ))}
+                </nav>
+              </Inline>
             )}
           </>
         )}
@@ -728,7 +755,7 @@ function DrawerLicenca({
         {licenca && (
           <>
             <SheetHeader>
-              <SheetTitle className="flex items-center gap-2">
+              <SheetTitle className="inline-flex items-center gap-2">
                 <span className="font-mono text-sm">{licenca.ref_no ?? `#${licenca.id}`}</span>
                 <Badge variant={variantePorStatus[licenca.status]}>{licenca.status_label}</Badge>
               </SheetTitle>
@@ -770,7 +797,7 @@ function DrawerLicenca({
                   ) : (
                     <ul className="space-y-1">
                       {conflitos.map((c) => (
-                        <li key={c.id} className="flex items-center gap-2">
+                        <li key={c.id} className="inline-flex items-center gap-2">
                           <AlertCircle size={13} aria-hidden="true" className="text-destructive" />
                           <span>{c.ref_no ?? `#${c.id}`} · {c.periodo_label} · {c.status_label}</span>
                         </li>
@@ -915,7 +942,7 @@ function PedirLicenca({
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-3">
+          <Grid cols={2} gap={3}>
             <div className="space-y-1">
               <Label htmlFor="pl-inicio">Início</Label>
               <Input id="pl-inicio" type="date" value={inicio} onChange={(e) => setInicio(e.target.value)} />
@@ -924,7 +951,7 @@ function PedirLicenca({
               <Label htmlFor="pl-fim">Fim</Label>
               <Input id="pl-fim" type="date" value={fim} onChange={(e) => setFim(e.target.value)} />
             </div>
-          </div>
+          </Grid>
 
           <div className="space-y-1">
             <Label htmlFor="pl-motivo">Motivo</Label>
