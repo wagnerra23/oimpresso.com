@@ -33,11 +33,15 @@ const comCfg = {
   ...passReport,
   ran_at: '2026-07-26T07:05:00-03:00',
   n_triplos_zero: 31,
-  config_vigente: { app_env: 'staging', docs_pipeline: false, topk: 10, corpus_docs: 2555 },
+  config_vigente: {
+    app_env: 'staging', docs_pipeline: false, topk: 10,
+    corpus_docs: 2555, corpus_min_criado_em: '2026-09-03 16:25:22', corpus_max_criado_em: '2026-09-03 16:25:54',
+  },
 };
 const eCfg = entryFromReport(comCfg);
 ok(eCfg.config_vigente.docs_pipeline === false, 'config_vigente viaja do report pro trend');
-ok(eCfg.config_vigente.corpus_docs === 2555, 'corpus_docs preservado (explica recall sem mudança de código)');
+ok(eCfg.config_vigente.corpus_docs === 2555, 'corpus_docs preservado (muda sozinho)');
+ok(eCfg.config_vigente.corpus_max_criado_em === '2026-09-03 16:25:54', 'janela do corpus viaja (separa corpus-ausente de retrieval-ruim)');
 ok(eCfg.n_triplos_zero === 31, 'n_triplos_zero viaja (sinal a investigar, nao veredito)');
 // Retrocompat: report ANTIGO (sem os campos) não quebra nem inventa valor.
 ok(entryFromReport(passReport).config_vigente === null, 'report antigo → config_vigente null (nunca inventa)');

@@ -198,17 +198,37 @@ class JanaRagasRealEvalCommand extends Command
             'max_citacoes' => max(1, (int) $this->option('max-citacoes')),
         ];
 
-        // Tamanho do corpus: gravado porque MUDA sem ninguem tocar no codigo (1153 em
-        // julho, 2555 em 2026-09-04) e porque comparar duas runs sem ele e adivinhar.
+        // ESTADO DO CORPUS - tamanho E janela de criacao. Gravado porque MUDA sem
+        // ninguem tocar no codigo, e porque comparar duas runs sem isto e adivinhar.
+        //
         // NAO e a causa do recall baixo: a hipotese de diluicao (corpus 2.2x maior com
         // o mesmo top-K) foi REFUTADA por medicao no PR #6801 - a cobertura lexica do
         // ground_truth contra os top-10 INTEIROS da 0,9805, ou seja o doc certo estava
         // la; o gargalo era o corte de 400 chars do INICIO no renderFontes (0,3311).
+        //
+        // A JANELA (min/max created_at) existe pra tornar decidivel um TERCEIRO caso,
+        // que nem `n_triplos_zero` nem os scores separam: CORPUS AUSENTE vs RETRIEVAL
+        // RUIM. As semanas 2026-08-02, 08-23 e 08-30 fecharam com n_no_context=51 (a
+        // query nao voltou linha nenhuma) e o mecanismo segue sem nome. Medido
+        // 2026-09-04: os 2555 docs do staging tem created_at dentro de 32 SEGUNDOS
+        // (16:25:22 a 16:25:54 de 09-03, 1 dia distinto) - a tabela e esvaziada e
+        // recriada inteira, nao atualizada. Logo um report com `corpus_docs` = 0, ou
+        // com `corpus_max_criado_em` a minutos do `ran_at`, denuncia leitura durante
+        // (ou depois de) um wipe SEM precisar de log nenhum - e o log e justamente o
+        // que expira. Ideia da sessao irma do PR #6801.
+        //
         // Falha de DB NAO pode derrubar o eval - null honesto, que se distingue de zero.
         try {
             $cfg['corpus_docs'] = (int) DB::table('mcp_memory_documents')->count();
+            $janela = DB::table('mcp_memory_documents')
+                ->selectRaw('MIN(created_at) AS mn, MAX(created_at) AS mx')
+                ->first();
+            $cfg['corpus_min_criado_em'] = $janela->mn ?? null;
+            $cfg['corpus_max_criado_em'] = $janela->mx ?? null;
         } catch (\Throwable $e) {
             $cfg['corpus_docs'] = null;
+            $cfg['corpus_min_criado_em'] = null;
+            $cfg['corpus_max_criado_em'] = null;
         }
 
         return $cfg;
