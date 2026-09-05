@@ -29,25 +29,31 @@ o comportamento observado e **não** o promove a intenção.
 
 ## 1. Contexto
 
-- **Rota:** `GET /purchases/{id}` — `routes/web.php:1174`
+- **Rota:** `GET /purchases/{id}` — registrada em `routes/web.php` **fora** do `Route::resource` (ver §1.1)
 - **Controller:** `PurchaseController@show($id)` → delega `showInertia()` (privado)
 - **Blade legacy:** `resources/views/purchase/show.blade.php` (modal, 17 ln) que inclui
   [`purchase/partials/show_details.blade.php`](../../../../resources/views/purchase/partials/show_details.blade.php) (430+ ln)
-- **Impressão:** `GET /purchases/print/{id}` → `printInvoice` (Blade, `routes/web.php:1173`)
+- **Impressão:** `GET /purchases/print/{id}` → `printInvoice` (Blade, `routes/web.php`, vizinha da rota do detalhe)
 - **Contrato executável:** [`Show.casos.md`](../../../../resources/js/Pages/Purchase/Show.casos.md) (UC-PURSHW-01..06)
 
 ### 1.1 A rota do `show` NÃO está no `Route::resource`
 
-Medido em `routes/web.php`: o `Route::resource('purchases', …)->except(['show'])` (linha 791)
-vive no grupo aberto na **linha 473**; o `GET /purchases/{id}` vive num grupo **separado**,
-aberto na **linha 1170**:
+Medido em `routes/web.php` (2026-09-04): o `Route::resource('purchases', …)->except(['show'])`
+vive num grupo; o `GET /purchases/{id}` vive num grupo **separado**, com middleware **menor**:
 
-| Rota | Grupo | Middleware |
-|---|---|---|
-| `resource purchases` (index/create/edit/update/destroy) | L473 | `setData, auth, SetSessionData, language, timezone, AdminSidebarMenu, CheckUserLogin` |
-| `GET /purchases/{id}` (**show**) | L1170 | `setData, auth, SetSessionData, language, timezone` |
+| Rota | Middleware do grupo |
+|---|---|
+| `resource purchases` (index/create/edit/update/destroy) | `setData, auth, SetSessionData, language, timezone, AdminSidebarMenu, CheckUserLogin` |
+| `GET /purchases/{id}` (**show**) | `setData, auth, SetSessionData, language, timezone` |
 
-**Isso é sistêmico, não um acidente do Purchase:** o grupo L1170 reúne rotas de
+> Número de linha apodrece — `routes/web.php` passa de 1.200 linhas e muda toda semana.
+> Para re-localizar os dois grupos hoje, o oráculo é o `route:list`
+> (`php artisan route:list --path=purchases --columns=method,uri,middleware`, no CT 100);
+> a leitura estática re-acha os dois pontos com
+> `git grep -n "Route::resource('purchases'\|/purchases/{id}" -- routes/web.php` e, a partir
+> de cada hit, o `Route::middleware([...])->group(` imediatamente acima.
+
+**Isso é sistêmico, não um acidente do Purchase:** o grupo do `show` reúne rotas de
 detalhe/impressão/download (`/purchases/print/{id}`, `/sells/{id}`, os `download-*/pdf`).
 Quem "consertar" só o Purchase desalinha a tela das irmãs.
 
