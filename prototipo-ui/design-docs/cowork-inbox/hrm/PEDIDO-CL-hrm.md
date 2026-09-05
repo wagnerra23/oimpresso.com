@@ -18,6 +18,20 @@ Sem D1 e D3 respondidas, **HRM-O6 não fecha** (a guarda de conflito depende do 
 
 ---
 
+> 📍 **Estado de aterrissagem (2026-09-04) — HRM-O5/PR-1 EXECUTADO.** Os 4 artefatos abaixo
+> saíram desta pasta e pousaram no repo produtivo, **corrigidos** — a conferência contra o
+> `main` (`ac7e5e417c`) achou 6 divergências que teriam falhado no CI (formato do contrato,
+> allowlist da lane, `RefreshDatabase` proibido, helper `admin()` com `TypeError`, factories
+> inexistentes, charter sem frontmatter). Destinos: `Modules/Essentials/Resources/js/Pages/Hrm/
+> {Licencas,Presenca,Folha}/Index.charter.md` · `.../Licencas/Index.casos.md` ·
+> `Modules/Essentials/Tests/Feature/HrmLicencaTest.php`.
+> **Exceção:** `hrm-licencas.contract.json` **fica aqui** (corrigido pro schema do repo) até o
+> PR-9 criar a `Index.tsx` — contrato só é *vigente* quando aplicado a uma tela real
+> (`scripts/contrato-de-tela.mjs` §125-135), e ativá-lo sem alvo avermelharia o gate pra todo
+> PR que toque `Pages/**`. Os arquivos originais desta pasta ficam como recibo datado do pedido.
+> **Não refazer o PR-1.** Próximo da fila: PR-8 (lang PT, isolado) ou PR-2/PR-3 (que fecham os
+> 6 casos vermelhos).
+
 ## HRM-O5 — prova mínima (trio + contrato)
 
 **PR-1 · trio de prontidão**
