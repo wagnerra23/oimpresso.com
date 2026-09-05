@@ -83,6 +83,30 @@ quanto o custo mudou desde a última compra.
 - §11 medido: `--text-mute` **não** é usado em texto pequeno (reprova AA nos dois temas — ADR
   `0410`), e `--accent` como **texto** vira `--accent-2` no tema escuro (ADR `0411`)
 
+## Acento visual — por que `--color-primary` e nunca `--accent`
+
+Medido em produção 2026-09-04 ([M] apontou; `getComputedStyle` no navegador, não leitura de CSS):
+
+| | Valor |
+|---|---|
+| aba ativa em prod | `oklch(0.76 0.15 220)` — **azul** |
+| protótipo declara | `oklch(0.55 0.15 295)` — **roxo** |
+| `--color-primary` | `oklch(70% .15 295)` — o roxo do DS, intacto |
+| `localStorage` | `oimpresso.cockpit.tweaks.accentHue = 220` |
+
+**Causa:** o `AppShellV2` reescreve `--accent` em runtime a partir de `accentHue`, um seletor de
+matiz salvo no navegador. Amarrar a identidade da tela nisso faz a preferência de **um** navegador
+mandar no Design System — cada pessoa veria uma cor diferente.
+
+**Regra:** as regras do bundle consomem `var(--color-primary)`. Quem "normalizar" de volta pra
+`--accent` reintroduz o bug.
+
+⚠️ **A 1ª tentativa foi `.mfg-root{--accent:var(--color-primary)}` e o `foundation-guard`
+reprovou, com razão:** bundle de módulo **consome** token, nunca **define** (ADR UI-0013 — token
+só mora na fundação). Trocar o consumidor é o caminho, e é o que o precedente do Produto
+(2026-08-24) já tinha feito. A ADR 0401 registra que *"o azul/ciano da aba ativa NÃO EXISTE na
+paleta do DS"*.
+
 ## Refs
 
 - Handoff normativo *PROTÓTIPO OFICIAL - FABRICAÇÃO V1* — §4.2 · §4.3 · §7 · §8 · §9 · §16 · §17

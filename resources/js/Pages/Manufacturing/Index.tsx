@@ -165,6 +165,9 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
           Receitas
           {recipes_count !== undefined && <span className="mfg-tab-n">{recipes_count}</span>}
         </Link>
+        <Link className="mfg-tab" href="/manufacturing/insumos">
+          Insumos
+        </Link>
         <span className="mfg-tab act" aria-current="page">
           Ordens de produção
           <span className="mfg-tab-n">
@@ -172,9 +175,6 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
             {summary?.pending_count ? ` · ${summary.pending_count} rasc.` : ''}
           </span>
         </span>
-        <Link className="mfg-tab" href="/manufacturing/insumos">
-          Insumos
-        </Link>
         <Link className="mfg-tab" href="/manufacturing/report">
           Relatório
         </Link>

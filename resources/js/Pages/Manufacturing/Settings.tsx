@@ -80,6 +80,9 @@ export default function Settings({
           Receitas
           <span className="mfg-tab-n">{recipes_count}</span>
         </Link>
+        <Link className="mfg-tab" href="/manufacturing/insumos">
+          Insumos
+        </Link>
         {permissions.prod && (
           <Link className="mfg-tab" href="/manufacturing/production">
             Ordens de produção
@@ -89,9 +92,6 @@ export default function Settings({
             </span>
           </Link>
         )}
-        <Link className="mfg-tab" href="/manufacturing/insumos">
-          Insumos
-        </Link>
         <Link className="mfg-tab" href="/manufacturing/report">
           Relatório
         </Link>

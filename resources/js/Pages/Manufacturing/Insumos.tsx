@@ -115,6 +115,9 @@ export default function Insumos({
           Receitas
           <span className="mfg-tab-n">{recipes_count}</span>
         </Link>
+        <span className="mfg-tab act" aria-current="page">
+          Insumos
+        </span>
         {permissions.prod && (
           <Link className="mfg-tab" href="/manufacturing/production">
             Ordens de produção
@@ -124,9 +127,6 @@ export default function Insumos({
             </span>
           </Link>
         )}
-        <span className="mfg-tab act" aria-current="page">
-          Insumos
-        </span>
         <Link className="mfg-tab" href="/manufacturing/report">
           Relatório
         </Link>
