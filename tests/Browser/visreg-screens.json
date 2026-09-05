@@ -310,5 +310,61 @@
     "route": "/recurring-billing",
     "anchor": "Cobrança recorrente",
     "baseline": "it_RecurringBilling_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Ponto/Aprovacoes",
+    "source": "Ponto/Aprovacoes",
+    "component": "Ponto/Aprovacoes/Index",
+    "route": "/ponto/aprovacoes",
+    "anchor": "Fila de intercorrências aguardando decisão",
+    "baseline": "it_Ponto_Aprovacoes_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Ponto/Intercorrencias",
+    "source": "Ponto/Intercorrencias",
+    "component": "Ponto/Intercorrencias/Index",
+    "route": "/ponto/intercorrencias",
+    "anchor": "Ausências, atestados, esquecimentos e outras ocorrências",
+    "baseline": "it_Ponto_Intercorrencias_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Ponto/Intercorrencias/Create",
+    "source": "Ponto/Intercorrencias/Create",
+    "component": "Ponto/Intercorrencias/Create",
+    "route": "/ponto/intercorrencias/create",
+    "anchor": "Registre ausências, consultas médicas",
+    "baseline": "it_Ponto_Intercorrencias_Create_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Ponto/BancoHoras",
+    "source": "Ponto/BancoHoras",
+    "component": "Ponto/BancoHoras/Index",
+    "route": "/ponto/banco-horas",
+    "anchor": "Saldo consolidado por colaborador",
+    "baseline": "it_Ponto_BancoHoras_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Ponto/Importacoes",
+    "source": "Ponto/Importacoes",
+    "component": "Ponto/Importacoes/Index",
+    "route": "/ponto/importacoes",
+    "anchor": "Arquivos AFD/AFDT lidos por REPs",
+    "baseline": "it_Ponto_Importacoes_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Ponto/Importacoes/Create",
+    "source": "Ponto/Importacoes/Create",
+    "component": "Ponto/Importacoes/Create",
+    "route": "/ponto/importacoes/novo",
+    "anchor": "Envie arquivo AFD",
+    "baseline": "it_Ponto_Importacoes_Create_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Ponto/Relatorios",
+    "source": "Ponto/Relatorios",
+    "component": "Ponto/Relatorios/Index",
+    "route": "/ponto/relatorios",
+    "anchor": "Apuração Eletrônica de Jornada",
+    "baseline": "it_Ponto_Relatorios_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   }
 ]
