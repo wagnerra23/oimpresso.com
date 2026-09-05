@@ -211,6 +211,18 @@ jobs:
         # e `BancoHorasImportacaoContratoTest`: varrer em lote acorda gate diff-aware sobre
         # dívida alheia (proibicoes §5 2026-07-12).
         #
+        # ImportacaoShowContratoTest (2026-09-04): arquivo NOVO só pro `UC-IMPSH-05` — o
+        # último item aberto da DoD da US-PONTO-012. Medido antes de escrever: das 4
+        # instâncias de atributo fantasma da US, TRÊS já estão provadas verdes no manifesto
+        # por-UC (UC-ESPSH-01 · UC-ESCF-01 · UC-IMPIDX-03 = `verdict: pass`), e o
+        # `erro_mensagem` do `show` era a única sem teste nenhum — `git grep UC-IMPSH-05`
+        # devolvia 3 arquivos, ZERO de teste. Nasce aqui e não dentro do
+        # `BancoHorasImportacaoContratoTest` (dono dos UC-IMPSH-01..04) porque aquele é
+        # classe PHPUnit com o UC em docblock: o `name` do `<testcase>` sai
+        # `uc_impshow_04_…`, sem hífen, e nunca chega ao manifesto do G-7 — é exatamente
+        # por isso que os 4 aparecem no `⛓` do `casos:report`. Escrever o 05 lá herdaria o
+        # defeito; convertê-lo é a dívida alheia que o parágrafo acima adia de propósito.
+        #
         # PontoDashboardContratoTest (2026-08-23): trio da tela `Ponto/Dashboard/Index`
         # (contrato `ponto-painel`, UC-PAINEL-01..06), landado pelo #6154. Aquele PR
         # escreveu o trio mas NÃO pôde ligá-lo aqui — editar este arquivo estava fora do
@@ -240,6 +252,7 @@ jobs:
             Modules/Ponto/Tests/Feature/RelatorioCatalogoContratoTest.php \
             Modules/Ponto/Tests/Feature/ImportacaoIndexContratoTest.php \
             Modules/Ponto/Tests/Feature/ImportacaoCreateContratoTest.php \
+            Modules/Ponto/Tests/Feature/ImportacaoShowContratoTest.php \
             Modules/Ponto/Tests/Feature/IntercorrenciaContratoTest.php \
             Modules/Ponto/Tests/Feature/IntercorrenciaEditContratoTest.php \
             Modules/Ponto/Tests/Feature/PontoDashboardContratoTest.php \

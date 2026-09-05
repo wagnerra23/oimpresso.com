@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 14 |
 | Telas (.tsx) | 21 |
 | Telas com `casos.md` | 15 |
-| UC declarados | 58 |
-| UC com teste que os cita | 57 |
+| UC declarados | 59 |
+| UC com teste que os cita | 58 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -35,6 +35,7 @@ authority: generated
 | Tela `Welcome` sem `casos.md` | o contrato da tela (trio incompleto) |
 | `US-PONTO-001` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Relogio web pra registrar entrada/saida (REP-P) |
 | `US-PONTO-007` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Multi-tenant isolation (Tier 0 IRREVOGAVEL) |
+| `US-PONTO-012` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Corrigir os atributos fantasma do modulo (4 instancias) |
 
 ### Backlog — NÃO é lacuna
 
@@ -50,7 +51,6 @@ authority: generated
 | US-PONTO-009 | `backlog` | Geracao AEJ canon Portaria 671/2021 Anexo VI (CRITICO REGULATORIO) |
 | US-PONTO-010 | `backlog` | Comprovante PDF QR Code (Anexo I §5.5 Portaria 671) |
 | US-PONTO-011 | `todo` | Fechar o append-only do ledger de banco de horas |
-| US-PONTO-012 | `todo` | Corrigir os atributos fantasma do modulo (4 instancias) |
 | US-PONTO-013 | `todo` | Consertar as duas telas que nao persistem |
 | US-PONTO-014 | `todo` | Lane required de Ponto vira arvore-menos-quarentena (vermelha no main ha 5 runs; |
 
@@ -78,6 +78,7 @@ authority: generated
 | UC-ESPSH-03 | Espelho/Show | 🧪 aguarda veredito da lane |
 | UC-ESPSH-04 | Espelho/Show | 🧪 aguarda veredito da lane |
 | UC-ESPSH-05 | Espelho/Show | 🧪 aguarda veredito da lane |
+| UC-ESPSH-06 | Espelho/Show | 📝 sem_teste |
 | UC-IMPCRE-01 | Importacoes/Create | 🧪 aguarda veredito da lane |
 | UC-IMPCRE-02 | Importacoes/Create | 🧪 aguarda veredito da lane |
 | UC-IMPIDX-01 | Importacoes/Index | 🧪 aguarda veredito da lane |
@@ -87,7 +88,7 @@ authority: generated
 | UC-IMPSH-02 | Importacoes/Show | 🧪 aguarda veredito da lane |
 | UC-IMPSH-03 | Importacoes/Show | 🧪 aguarda veredito da lane |
 | UC-IMPSH-04 | Importacoes/Show | 🧪 aguarda veredito da lane |
-| UC-IMPSH-05 | Importacoes/Index | 📝 sem_teste |
+| UC-IMPSH-05 | Importacoes/Show | 🧪 aguarda veredito da lane |
 | UC-INTCRE-01 | Intercorrencias/Create | 🧪 aguarda veredito da lane |
 | UC-INTCRE-02 | Intercorrencias/Create | 🧪 aguarda veredito da lane |
 | UC-INTEDT-01 | Intercorrencias/Edit | 🧪 aguarda veredito da lane |
