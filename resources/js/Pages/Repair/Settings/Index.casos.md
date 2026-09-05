@@ -40,7 +40,7 @@ last_run: "2026-09-05"
   tipo de código de barras, os textos longos, o checklist e os 5 campos personalizados ficam em
   `business.repair_settings`, e o valor lido de volta bate campo a campo — inclusive o
   `job_sheet_custom_field_5`, que fica no fim do conjunto.
-- **Status: ✅** _(`pass` no manifesto — CT 100, MySQL real, 2026-09-05)_
+- **Status: ✅** _(`pass` no manifesto — lane `verticais-pest`, [run 33969895224](https://github.com/wagnerra23/oimpresso.com/actions/runs/33969895224), MySQL real, 2026-09-05)_
 
 ---
 
@@ -53,7 +53,7 @@ last_run: "2026-09-05"
 - **Por que existe:** é o erro que o pacote de export induzia ao afirmar que havia um endpoint só.
   Uma Page que mandasse a impressão para o `store()` salvaria sem erro e não persistiria nada —
   tela inerte, e nenhum gate estático pegaria.
-- **Status: ✅** _(`pass` no manifesto — CT 100, MySQL real, 2026-09-05)_
+- **Status: ✅** _(`pass` no manifesto — lane `verticais-pest`, [run 33969895224](https://github.com/wagnerra23/oimpresso.com/actions/runs/33969895224), MySQL real, 2026-09-05)_
 
 ---
 
@@ -66,7 +66,7 @@ last_run: "2026-09-05"
   `$request->only([...])` seguido de `Business::update([... => json_encode($input)])` e substituem
   o documento inteiro. A consequência para a UI está no charter como anti-hook — cada formulário
   envia o conjunto completo do seu endpoint a cada submit.
-- **Status: ✅** _(`pass` no manifesto — CT 100, MySQL real, 2026-09-05)_
+- **Status: ✅** _(`pass` no manifesto — lane `verticais-pest`, [run 33969895224](https://github.com/wagnerra23/oimpresso.com/actions/runs/33969895224), MySQL real, 2026-09-05)_
 
 ---
 
@@ -77,7 +77,7 @@ last_run: "2026-09-05"
   qualquer um dos dois endpoints · Então a operação é negada e **as duas** colunas mantêm o valor
   anterior.
 - A autoridade é o Controller; a Page apenas reflete. Desabilitar o botão na UI não é a defesa.
-- **Status: ✅** _(`pass` no manifesto — CT 100, MySQL real, 2026-09-05)_
+- **Status: ✅** _(`pass` no manifesto — lane `verticais-pest`, [run 33969895224](https://github.com/wagnerra23/oimpresso.com/actions/runs/33969895224), MySQL real, 2026-09-05)_
 
 ---
 
@@ -88,7 +88,7 @@ last_run: "2026-09-05"
   configurações de **todos** os demais businesses ficam byte a byte iguais ao snapshot anterior.
 - O caso compara o conjunto inteiro dos outros tenants (não um adversário escolhido a dedo), para
   que o isolamento seja medido sobre a população real do banco.
-- **Status: ✅** _(`pass` no manifesto — CT 100, MySQL real, 2026-09-05)_
+- **Status: ✅** _(`pass` no manifesto — lane `verticais-pest`, [run 33969895224](https://github.com/wagnerra23/oimpresso.com/actions/runs/33969895224), MySQL real, 2026-09-05)_
 
 ---
 
@@ -100,7 +100,7 @@ last_run: "2026-09-05"
   `show_*` · Então a coluna da impressão recebe os valores e `repair_settings` fica **intacta**.
 - É a metade simétrica do UC-RSET-02. Os dois juntos travam a disjunção nos dois sentidos — é isso
   que impede a próxima sessão de "simplificar" a tela para um formulário só.
-- **Status: ✅** _(`pass` no manifesto — CT 100, MySQL real, 2026-09-05)_
+- **Status: ✅** _(`pass` no manifesto — lane `verticais-pest`, [run 33969895224](https://github.com/wagnerra23/oimpresso.com/actions/runs/33969895224), MySQL real, 2026-09-05)_
 
 ---
 
@@ -110,16 +110,17 @@ last_run: "2026-09-05"
 - **Aceite:** Dado que `mwart.repair_settings_index` está OFF (o default) · Quando o admin abre
   `/repair/repair-settings` · Então ele recebe o Blade legado, sem cabeçalho `X-Inertia`.
 - Enquanto [W] não ligar a flag, o merge deste código **não muda nada** para quem usa a tela.
-- **Status: ⬜** — `skip` no manifesto, e a razão é de **ambiente, não do caso**. Este UC e o
-  UC-RSET-08 são os únicos que passam por `index()`, e `index()` chama
-  `ModuleUtil::getTaxonomyData('device')` (linha 80), que termina em `exit` quando o módulo não
-  consta instalado (`app/Utils/ModuleUtil.php:549-551`). `exit` não é exception: mata o processo
-  e **derruba a suíte inteira sem uma linha de output** — medido no CT 100 em 2026-09-05
-  (`rc=2`, stdout e stderr com 0 byte). O gatilho é o seed: `isModuleInstalled('Repair')` lê
-  `system.repair_version`, e nem o `pest-mysql-setup` do CI nem o banco do CT 100 escrevem nessa
-  tabela (medido: **0 linhas**). Com a linha presente, este UC **passa** — 8 passed / 30
-  assertions no mesmo CT 100. O guard `repairSettingsPrecisaDoModuloInstalado()` troca a morte
-  muda por um skip visível; fechar de vez é dívida do seed, declarada no charter.
+- **Status: ✅** _(`pass` no manifesto — lane `verticais-pest`, [run 33969895224](https://github.com/wagnerra23/oimpresso.com/actions/runs/33969895224), MySQL real, 2026-09-05)_
+- **Como o `⬜` virou `✅` (história, não estado atual):** este UC e o UC-RSET-08 são os únicos que
+  passam por `index()`, e `index()` chama `ModuleUtil::getTaxonomyData('device')` (linha 80), que
+  termina em `exit` quando o módulo não consta instalado (`app/Utils/ModuleUtil.php:549-551`).
+  `exit` não é exception: mata o processo e **derrubava a suíte inteira sem uma linha de output**
+  (medido em 2026-09-05: `rc=2`, stdout e stderr com 0 byte). O gatilho era o seed —
+  `isModuleInstalled('Repair')` lê `system.repair_version`, e o `pest-mysql-setup` não escrevia
+  nessa tabela. O [#6843](https://github.com/wagnerra23/oimpresso.com/pull/6843) semeou a linha e o
+  run acima registra `seed system.repair_version` antes de o caso passar em 0.98s. O guard
+  `repairSettingsPrecisaDoModuloInstalado()` continua no teste: ele é a rede que troca morte muda
+  por skip visível se o seed regredir.
 
 ---
 
@@ -132,11 +133,12 @@ last_run: "2026-09-05"
 - ⚠️ **Precisão (2026-09-05):** "nunca recebeu como prop" é verdade e continua sendo o motivo de o
   branch Inertia passar as duas — React não tem o `@php` do Blade. O que **não** é verdade é a
   leitura de que o Blade estivesse quebrado por isso; ver o item de BACKLOG resolvido abaixo.
-- **Status: ⬜** — `skip` no manifesto, **mesma causa do UC-RSET-07** (o `exit` de
-  `getTaxonomyData`, disparado por `system.repair_version` ausente no seed). Com a linha presente
-  este UC **passa** e prova o render de verdade: medido no CT 100 em 2026-09-05, ele começou
+- **Status: ✅** _(`pass` no manifesto — lane `verticais-pest`, [run 33969895224](https://github.com/wagnerra23/oimpresso.com/actions/runs/33969895224), MySQL real, 2026-09-05)_
+- **Mesma história do UC-RSET-07** (o `exit` de `getTaxonomyData`, disparado por
+  `system.repair_version` ausente no seed até o [#6843](https://github.com/wagnerra23/oimpresso.com/pull/6843)).
+  Este é o UC que prova o render de verdade, e o assert **morde**: em 2026-09-05 ele começou
   falhando com `Inertia page component file [Repair/Settings/Index] does not exist` enquanto o
-  `.tsx` não estava no lugar — ou seja, o assert **morde**, não é carimbo.
+  `.tsx` não estava no lugar — não é carimbo.
 - ⚠️ **Duas correções que este UC exigiu, medidas no mesmo dia — a redação anterior nunca teria
   passado:** o teste enviava `X-Inertia-Version: 'test'` e recebia **409** (conflito de versão de
   asset); mandar a versão REAL também dá 409, porque nesta lane ela é string vazia. O caminho que
@@ -184,6 +186,12 @@ mesmo PR (append-only: a afirmação antiga fica, com errata datada).
   em Fiscal/NfeBrasil/Ponto — buildar ali produziria um retrato de código de agosto + os arquivos
   desta onda, que não representa nem produção nem o `main`. Um screenshot assim seria pior que
   nenhum: teria cara de prova e mediria outra coisa.
-- [BACKLOG] Semear `system.repair_version` no `pest-mysql-setup` para destravar UC-RSET-07/08 no
-  CI. **Não feito aqui de propósito:** aquele seed é compartilhado por 16 lanes e a própria action
-  avisa que um insert malformado quebra todas — é mudança de escopo próprio, com PR próprio.
+- ~~[BACKLOG] Semear `system.repair_version` no `pest-mysql-setup` para destravar UC-RSET-07/08 no
+  CI.~~ **FEITO** no [#6843](https://github.com/wagnerra23/oimpresso.com/pull/6843) (PR próprio, como
+  previsto — o seed é compartilhado por 16 lanes). Os dois UCs passaram no
+  [run 33969895224](https://github.com/wagnerra23/oimpresso.com/actions/runs/33969895224).
+- [BACKLOG] O teste `UC-PAC-08` (`Modules/Superadmin/Tests/Feature/SuperadminPacotesContratoTest.php:325`)
+  usa prefixo divergente dos irmãos de Pacotes, que são `UC-SAPAC-*`, e **nenhum `casos.md` declara
+  esse id** — varredura contada no repo inteiro: 1 site, o próprio teste. Ele já rodava verde e só
+  ficou visível quando a lane passou a ser colhida; é teste sem contrato, não regressão. Renomear
+  para `UC-SAPAC-*` é decisão do dono do Superadmin, não deste PR.
