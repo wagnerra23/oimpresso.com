@@ -8,6 +8,7 @@ last_validated: "2026-09-05"
 parent_module: Essentials
 related_prototype: prototipo-ui/cowork/hrm-extras.jsx (Metas) · herda PT-01 Lista
 related_adrs: [104, 93, 358]
+related_us: [US-ESS-011]
 runbook: RUNBOOK-metas.md
 alcance:
   rota: /hrm/sales-target
@@ -55,8 +56,9 @@ qual comissão** — e editar essas faixas sem abrir um colaborador por vez.
   admin-only e responde DataTables. Trazê-lo é caminho de valor e exige a dupla prova da regra
   mestre (`memory/proibicoes.md`): PR próprio.
 - ❌ **Não envia float** para `/hrm/save-sales-target`. Os valores vão como texto pt-BR de 2
-  casas (`formatDecimalPtBR`), porque `Util::num_uf` é parser pt-BR — float cru com mais de 2
-  decimais é lido como separador de milhar (incidente 2026-06-05).
+  casas (`formatDecimalPtBR`), porque `Util::num_uf` trata "1 ponto + **exatamente 3** dígitos"
+  como separador de milhar: `String(1.234)` do JS seria lido como **1234**, mil vezes maior.
+  Medido em 2026-09-05 e fixado pelo controle negativo do UC-METAS-06.
 - ❌ **Não renomeia os campos do POST.** `montarFaixas` lê `edit_target[id][...]`,
   `sales_amount_start[]`, `sales_amount_end[]` e `commission[]` literalmente.
 - ❌ **Não remove o ramo `request()->ajax()`** do `index` — o DataTables da Blade legada

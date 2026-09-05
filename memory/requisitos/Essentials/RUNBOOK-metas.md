@@ -153,9 +153,17 @@ Os valores vão como **texto pt-BR com 2 casas** (`formatDecimalPtBR`), nunca fl
 
 - ❌ **Calcular comissão na tela.** Quem transforma faixa em dinheiro é o `PayrollController`.
   Um segundo cálculo no front divergiria do que a folha paga.
-- ❌ **Enviar float cru** para `/hrm/save-sales-target`. `Util::num_uf` é parser pt-BR:
-  `204.99605` vira `20499605` (1 ponto + mais de 2 dígitos = separador de milhar). É o
-  incidente de 2026-06-05.
+- ❌ **Enviar float cru** para `/hrm/save-sales-target`. A heurística de `Util::num_uf` trata
+  "1 ponto + **exatamente 3** dígitos" como separador de milhar, então `String(1.234)` do JS
+  é lido como `1234` — mil vezes maior. O parser não tem como distinguir milhar pt-BR de
+  decimal en-US nessa faixa: a string é a mesma. A defesa é a **forma de envio** (sempre 2
+  casas com vírgula decimal), não o parser. Fixado pelo controle negativo do UC-METAS-06.
+
+  > ⚠️ **Errata (2026-09-05, pega pelo CI):** a 1ª versão desta linha dizia que `204.99605`
+  > viraria `20499605`. **Falso hoje** — foi justamente o incidente de 2026-06-05 que fez o
+  > `num_uf` ganhar a regra "1 ponto + ≥4 dígitos = decimal" (`Util.php` ~L80-90), que trata
+  > esse número corretamente. A afirmação veio de ler o parser até a metade. Fica registrada
+  > em vez de apagada.
 - ❌ **Renomear os campos do POST.** `montarFaixas` lê os nomes literais do Blade.
 - ❌ **Remover o ramo `request()->ajax()`** do `index` enquanto `sales_targets/index.blade.php`
   existir — o DataTables daquela view consome esta mesma rota.

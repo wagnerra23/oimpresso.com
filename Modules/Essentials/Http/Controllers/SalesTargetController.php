@@ -33,7 +33,10 @@ class SalesTargetController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return Response
+     * Dois retornos por desenho: JSON do DataTables no ramo `ajax()` (a Blade legada ainda
+     * consome esta rota até a HRM-O8) e a Page Inertia na navegação normal.
+     *
+     * @return \Illuminate\Http\JsonResponse|\Inertia\Response
      */
     public function index()
     {
@@ -132,9 +135,11 @@ class SalesTargetController extends Controller
                     ->get()
                     ->groupBy('user_id');
 
+        // `full_name` é ALIAS do SELECT (CONCAT), não coluna nem accessor do model — por isso
+        // getAttribute() e não `$u->full_name`: a propriedade mágica não existe pro PHPStan.
         $pagina->getCollection()->transform(fn ($u) => [
             'id' => (int) $u->id,
-            'nome' => trim((string) $u->full_name),
+            'nome' => trim((string) $u->getAttribute('full_name')),
             'faixas' => ($faixasPorUsuario[$u->id] ?? collect())
                 ->map(fn ($f) => [
                     'id' => (int) $f->id,

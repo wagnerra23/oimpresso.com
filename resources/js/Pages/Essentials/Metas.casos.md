@@ -78,13 +78,19 @@ last_run: "2026-09-05"
 ## UC-METAS-06 · O parser lê o texto do front sem ambiguidade
 - **Persona:** — (contrato interno, defende o UC-METAS-05).
 - **Aceite:** Dado as strings que `formatDecimalPtBR(n, 2)` produz · Então `num_uf` devolve o número
-  esperado. E dado um float cru de 5 decimais (`204.99605`) · Então o resultado **não** é o número
-  digitado — motivo pelo qual a tela manda texto, e nunca float.
+  esperado. E dado um float com **exatamente 3 decimais** (`'1.234'`, que é o `String(1.234)` do JS) ·
+  Então `num_uf` devolve `1234.0` — mil vezes maior. É por isso que a tela manda texto, nunca float.
 - **Teste:** `HrmMetasTest` — *"o texto pt-BR que o front envia e lido pelo num_uf sem ambiguidade"*
-  + o controle negativo *"float cru com mais de 2 decimais seria lido como MILHAR"*.
+  + o controle negativo *"float com EXATAMENTE 3 decimais e lido como MILHAR"*.
 - **Regressão que defende:** alguém trocar `formatDecimalPtBR(n, 2)` por `String(n)` no `.tsx`.
   O controle negativo é o que torna este UC capaz de ficar vermelho.
 - **Status: 🧪**
+
+  > ⚠️ **Errata (2026-09-05, pega pelo CI, não por revisão):** a 1ª versão deste UC usava
+  > `204.99605` como controle negativo, afirmando que viraria `20499605`. O teste **falhou** e
+  > estava certo: aquele caso já é tratado desde o fix que o próprio incidente de 2026-06-05
+  > gerou (`1 ponto + ≥4 dígitos = decimal`). O perigo que **sobrou** é a faixa de 3 dígitos.
+  > Classe LC-08 — afirmei sobre o parser tendo lido só metade dele.
 
 ---
 

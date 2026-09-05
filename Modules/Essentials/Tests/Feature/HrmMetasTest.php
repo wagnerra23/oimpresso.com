@@ -37,6 +37,8 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  * O elo que fecha: o `.tsx` envia exatamente a saída de `formatDecimalPtBR(n, 2)`.
  *
  * Tenant: 98 (ADR 0358 — canônico fictício). NUNCA biz=4. NUNCA biz=1.
+ *
+ * @covers-us US-ESS-011
  */
 const HM_ROTA_LISTA = '/hrm/sales-target';
 
@@ -58,12 +60,31 @@ it('UC-METAS-06: o texto pt-BR que o front envia e lido pelo num_uf sem ambiguid
         ->and($num_uf('1.000,01'))->toBe(1000.01);
 });
 
-it('UC-METAS-06: float cru com mais de 2 decimais seria lido como MILHAR — por isso o front manda texto', function () {
-    // Controle negativo do UC acima. Se um dia alguem trocar formatDecimalPtBR por
-    // String(n) no .tsx, ISTO e o que aconteceria — o incidente de 2026-06-05.
+it('UC-METAS-06: float com EXATAMENTE 3 decimais e lido como MILHAR — por isso o front manda texto', function () {
+    // CONTROLE NEGATIVO — e ele e o motivo de o .tsx nunca mandar `String(n)`.
+    //
+    // ⚠️ Errata da 1a versao deste teste (2026-09-05, pego pelo CI): eu afirmei aqui que
+    // `204.99605` viraria 20.499.605. FALSO HOJE — o proprio incidente de 2026-06-05 fez
+    // Util::num_uf ganhar a regra "1 ponto + >=4 digitos = decimal" (Util.php ~L80-90),
+    // justamente pra tratar esse numero. Afirmei sem ler o parser ate o fim; o vermelho do
+    // CI corrigiu. O que continua REAL e a faixa de 3 digitos, que a heuristica trata como
+    // separador de milhar por construcao — e e o unico caso onde `String(n)` do JS explode:
+    //
+    //     JS String(1.234)  === '1.234'   → num_uf le 1234.0  (mil vezes maior)
+    //     JS String(2.5)    === '2.5'     → num_uf le 2.5     (ok, <=2 digitos)
+    //     JS String(204.99605) === '204.99605' → num_uf le 204.99605 (ok, >=4 digitos)
+    //
+    // Nao ha como o parser distinguir "1.234" (milhar pt-BR) de "1.234" (decimal en-US):
+    // a string e a mesma. Por isso a defesa e a FORMA de envio, nao o parser.
     $num_uf = fn (string $s) => app(ModuleUtil::class)->num_uf($s);
 
-    expect($num_uf('204.99605'))->not->toBe(204.99605);
+    expect($num_uf('1.234'))->toBe(1234.0)
+        ->and($num_uf('1.234'))->not->toBe(1.234);
+
+    // E a prova de que o caminho da tela nao cai nisso: formatDecimalPtBR SEMPRE emite
+    // 2 casas com virgula decimal, entao o mesmo numero chega inequivoco.
+    expect($num_uf('1,234'))->toBe(1.234)
+        ->and($num_uf('1.234,00'))->toBe(1234.0);
 });
 
 // ---------------------------------------------------------------------------
@@ -120,6 +141,29 @@ function hmMetas(int $userId)
     return EssentialsUserSalesTarget::withoutGlobalScopes()->where('user_id', $userId)->get();
 }
 
+/**
+ * Versão do asset que o Inertia compara. SEM ela, o partial reload devolve 409
+ * (o Inertia entende "cliente com bundle velho" e manda recarregar) — foi o que
+ * derrubou 3 casos deste arquivo na 1ª rodada do CI. Mesmo helper do Compras.
+ */
+function hmInertiaVersion(): string
+{
+    $manifest = public_path('build-inertia/manifest.json');
+
+    return file_exists($manifest) ? md5_file($manifest) : '1';
+}
+
+/** Headers do partial reload que força o `Inertia::defer` do `paginator` a resolver. */
+function hmHeadersPaginator(): array
+{
+    return [
+        'X-Inertia' => 'true',
+        'X-Inertia-Version' => hmInertiaVersion(),
+        'X-Inertia-Partial-Data' => 'paginator',
+        'X-Inertia-Partial-Component' => 'Essentials/Metas',
+    ];
+}
+
 it('UC-METAS-01: a rota renderiza a Page Inertia Essentials/Metas com as props da tela', function () {
     hmPular($this);
 
@@ -143,7 +187,7 @@ it('UC-METAS-02: a lista traz o colaborador com as faixas JA GRAVADAS, como esta
     ]);
 
     // `paginator` é Inertia::defer — só chega quando pedido explicitamente.
-    $this->get(HM_ROTA_LISTA, ['X-Inertia' => 'true', 'X-Inertia-Partial-Component' => 'Essentials/Metas', 'X-Inertia-Partial-Data' => 'paginator'])
+    $this->get(HM_ROTA_LISTA, hmHeadersPaginator())
         ->assertOk()
         ->assertInertia(function (AssertableInertia $page) {
             $linhas = collect($page->toArray()['props']['paginator']['data']);
@@ -162,7 +206,7 @@ it('UC-METAS-03: colaborador sem faixa vem com a lista de faixas VAZIA — ausen
 
     hmMetas($this->hmUser->id)->each(fn ($m) => $m->delete());
 
-    $this->get(HM_ROTA_LISTA, ['X-Inertia' => 'true', 'X-Inertia-Partial-Component' => 'Essentials/Metas', 'X-Inertia-Partial-Data' => 'paginator'])
+    $this->get(HM_ROTA_LISTA, hmHeadersPaginator())
         ->assertOk()
         ->assertInertia(function (AssertableInertia $page) {
             $linhas = collect($page->toArray()['props']['paginator']['data']);
@@ -176,12 +220,12 @@ it('UC-METAS-03: colaborador sem faixa vem com a lista de faixas VAZIA — ausen
 it('UC-METAS-04: a busca ?q= filtra server-side e nao vaza colaborador de outro tenant', function () {
     hmPular($this);
 
-    $this->get(HM_ROTA_LISTA.'?q=zzz-nome-que-nao-existe-'.uniqid(), ['X-Inertia' => 'true', 'X-Inertia-Partial-Component' => 'Essentials/Metas', 'X-Inertia-Partial-Data' => 'paginator'])
+    $this->get(HM_ROTA_LISTA.'?q=zzz-nome-que-nao-existe-'.uniqid(), hmHeadersPaginator())
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page) => expect($page->toArray()['props']['paginator']['data'])->toBe([]));
 
     // Toda linha listada (sem filtro) pertence ao business da sessão — Tier 0 ADR 0093.
-    $this->get(HM_ROTA_LISTA, ['X-Inertia' => 'true', 'X-Inertia-Partial-Component' => 'Essentials/Metas', 'X-Inertia-Partial-Data' => 'paginator'])
+    $this->get(HM_ROTA_LISTA, hmHeadersPaginator())
         ->assertOk()
         ->assertInertia(function (AssertableInertia $page) {
             $ids = collect($page->toArray()['props']['paginator']['data'])->pluck('id');

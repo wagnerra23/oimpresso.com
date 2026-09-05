@@ -14,10 +14,15 @@
 //   via @num_format. Quem interpreta o número segue sendo Util::num_uf; quem valida as faixas
 //   segue sendo SalesTargetFaixaValidator (PR #6799). O pipeline de valor é o mesmo.
 //
-//   Por que TEXTO e não float: num_uf lê "1.234,56" como mil duzentos e trinta e quatro
-//   vírgula cinquenta e seis, mas leria o float cru 204.99605 como vinte milhões — 1 ponto
-//   seguido de mais de 2 dígitos é separador de milhar na heurística pt-BR. É o incidente de
-//   2026-06-05 (regra mestre de valor, memory/proibicoes.md).
+//   Por que TEXTO e não float (medido em 2026-09-05, corrigindo o que este comentário dizia
+//   antes): a heurística de num_uf trata "1 ponto + EXATAMENTE 3 dígitos" como separador de
+//   MILHAR. Então `String(1.234)` do JS — que é '1.234' — é lido como 1234, mil vezes maior.
+//   O parser não tem como distinguir: a string é a mesma nos dois sentidos. A defesa é a FORMA
+//   de envio (sempre 2 casas com vírgula decimal), não o parser.
+//
+//   ⚠️ O caso `204.99605` do incidente de 2026-06-05 JÁ está tratado hoje — foi ele que fez
+//   num_uf ganhar a regra "1 ponto + >=4 dígitos = decimal". Citá-lo como perigo atual seria
+//   errado; o perigo que sobrou é a faixa de 3 dígitos acima. Ver UC-METAS-06.
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { PageHeader } from '@/Components/PageHeader';
 import DataTable from '@/Components/shared/DataTable';
@@ -38,6 +43,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/Components/ui/dialog';
+import { Inline } from '@/Components/layout';
 import { formatDecimalPtBR } from '@/Lib/numberPtBR';
 import { Info, Plus, Target, Trash2 } from 'lucide-react';
 
@@ -263,8 +269,8 @@ function DialogoFaixas({
         ) : (
           <div className="space-y-3">
             {faixas.map((f, i) => (
-              <div key={f.id ?? `nova-${i}`} className="grid grid-cols-[1fr_1fr_1fr_auto] gap-3">
-                <div>
+              <Inline key={f.id ?? `nova-${i}`} gap={3} align="end">
+                <div className="flex-1">
                   <Label htmlFor={`inicio-${i}`}>Vendido de</Label>
                   <NumericInputPtBR
                     id={`inicio-${i}`}
@@ -272,7 +278,7 @@ function DialogoFaixas({
                     onChange={(n) => alterar(i, 'inicio', n)}
                   />
                 </div>
-                <div>
+                <div className="flex-1">
                   <Label htmlFor={`fim-${i}`}>até</Label>
                   <NumericInputPtBR
                     id={`fim-${i}`}
@@ -280,7 +286,7 @@ function DialogoFaixas({
                     onChange={(n) => alterar(i, 'fim', n)}
                   />
                 </div>
-                <div>
+                <div className="flex-1">
                   <Label htmlFor={`pct-${i}`}>Comissão (%)</Label>
                   <NumericInputPtBR
                     id={`pct-${i}`}
@@ -291,13 +297,12 @@ function DialogoFaixas({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="self-end"
                   aria-label={`Remover faixa ${i + 1}`}
                   onClick={() => setFaixas((atual) => atual.filter((_, j) => j !== i))}
                 >
                   <Trash2 className="size-4" aria-hidden="true" />
                 </Button>
-              </div>
+              </Inline>
             ))}
           </div>
         )}
@@ -310,14 +315,14 @@ function DialogoFaixas({
             <Plus className="mr-2 size-4" aria-hidden="true" />
             Adicionar faixa
           </Button>
-          <div className="flex gap-2">
+          <Inline gap={2}>
             <Button variant="ghost" onClick={onFechar}>
               Cancelar
             </Button>
             <Button onClick={salvar} disabled={enviando}>
               {enviando ? 'Salvando...' : 'Salvar faixas'}
             </Button>
-          </div>
+          </Inline>
         </DialogFooter>
       </DialogContent>
     </Dialog>
