@@ -23,6 +23,19 @@ use Illuminate\Support\Facades\Schema;
  * existir). NUNCA biz=4 — feedback_test_business_id_1_nunca_4 + tests/Unit/BusinessIdGuardTest.
  *
  * Quarentena Onda 2 SDD: schema sintético manual incompatível com MySQL persistente.
+ *
+ * ── Rastreabilidade (casos-gate G-2 · ADR 0264) ────────────────────────────
+ * Contrato: resources/js/Pages/Purchase/Edit.casos.md
+ *   @covers-uc UC-PUREDT-02  update() nunca alcanca transacao de outro tenant [T0][V0]
+ *
+ * 🔴 ESTE ARQUIVO NAO EXECUTA EM LANE NENHUMA (medido 2026-09-04, as duas pernas):
+ *   1. o beforeEach acima e GLOBAL e chama markTestSkipped fora do sqlite — a suite
+ *      real (CI e CT 100) roda em MySQL, entao os 4 testes pulam;
+ *   2. o arquivo nao esta em .github/ci-sqlite-pest.list (542 linhas, zero "Purchase"),
+ *      entao a lane sqlite tampouco o roda.
+ * Skip sai exit 0 — "0 failed" nunca prova execucao (LC-13). Resultado: a defesa de um
+ * IDOR de escrita REAL e JA CORRIGIDO esta inativa. O conserto e de FIXTURE (o motivo do
+ * skip esta escrito acima), nao de assercao — e e o item mais valioso do modulo.
  */
 beforeEach(function () {
     if (DB::connection()->getDriverName() !== 'sqlite') {
