@@ -48,8 +48,14 @@ class PurgeJobsRepresadosCommand extends Command
         'nfe',
     ];
 
-    /** Filas com worker vivo — purga aqui é proibida (use whatsapp:jobs-cleanup-stale). */
-    private const FILAS_PROTEGIDAS = ['whatsapp', 'whatsapp-history'];
+    /**
+     * Filas com worker vivo — purga aqui é proibida (use whatsapp:jobs-cleanup-stale).
+     *
+     * `attendance-import` (HRM-O6 / PR-6) entra aqui porque tem worker NÃO gated no
+     * Kernel e carrega dado de jornada: purgar um import pendente apagaria marcação de
+     * colaborador em silêncio, que é exatamente o estrago que o achado A7 descreve.
+     */
+    private const FILAS_PROTEGIDAS = ['whatsapp', 'whatsapp-history', 'attendance-import'];
 
     protected $signature = 'jobs:purge-represados
                             {--queue=* : Fila(s) alvo (default: todas as filas órfãs catalogadas)}
