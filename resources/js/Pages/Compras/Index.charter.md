@@ -81,7 +81,7 @@ Servir como **cockpit operacional de Compras** entregando 4 KPIs (a pagar / em t
 > Quando esta tela "ganhar" funcionalidade, suspeite — fica fácil escorregar pra F6 Hard sem ADR.
 
 - ⚠️ Aparecer **modal "Importar XML" funcional** sem ADR Wave 6 promovida — drift, exige ImportarDfeComoCompraService completo
-- ⚠️ Aparecer **GradeMatrixInput inline** no cockpit — drift, esse componente vive em `Pages/Purchase/Create.tsx` (C1) ou futuro `/compras/create` vertical-específico (US-COM-005 Wave 4.5)
+- ⚠️ Aparecer **GradeMatrixInput inline** no cockpit — drift, esse componente vive em `Pages/Purchase/_components/GradeMatrixInput.tsx` (consumido por `Pages/Purchase/Create.tsx` · C1) ou, **SE o review trigger da ADR C1 ativar**, num futuro `Pages/Compras/Create.tsx` vertical-específico — nunca numa rota `/compras/create`, que a ADR C1 §Consequências declara *"404 definitivamente"*. _(Ponteiro corrigido 2026-09-04: a redação anterior citava `/compras/create` + `US-COM-005 Wave 4.5`, mas o placement da US-COM-005 foi fechado em `Pages/Purchase/Create.tsx` pelo `SPEC.md:157` em 2026-06-22 — com âncora `**Implementado em:**` e arquivo único no `git ls-files`. A escotilha condicional segue **viva**; esta é a formulação que o §Backlog desta mesma tela já carregava.)_
 - ⚠️ Aparecer **dependência nova** (AG Grid, Handsontable, etc) — drift custo bundle, viola arte 2026-05-21 (TanStack v8 headless é o caminho)
 - ⚠️ Aparecer **botão "criar compra inline" que NÃO seja `router.visit('/purchases/create')`** — drift C1, exige novo ADR pra reverter convergência
 - ⚠️ Aparecer **`Pages/Compras/Create.tsx` ou `Pages/Compras/Edit.tsx`** — drift C1 (review trigger #1 da ADR ativa antes)

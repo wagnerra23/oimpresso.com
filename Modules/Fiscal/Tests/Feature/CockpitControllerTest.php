@@ -142,7 +142,7 @@ it('UC-FCKP-08 · a url de cada destino de alerta é uma rota registrada do Fisc
         ->all();
 
     foreach ($m as [, $id, $url]) {
-        expect($uris)->toContain($url, "o destino `{$id}` aponta para {$url}, que não é rota registrada");
+        expect($url)->toBeIn($uris, "o destino `{$id}` aponta para {$url}, que não é rota registrada");
     }
 });
 

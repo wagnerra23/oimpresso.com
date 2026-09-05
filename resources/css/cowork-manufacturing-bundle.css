@@ -342,6 +342,7 @@ textarea.mfg-inp{height:auto;padding:7px 9px;line-height:1.45;resize:vertical}
 .mfg-root .mfg-cat i,
 .mfg-root .mfg-ing .n small,
 .mfg-root .mfg-tab-n{ color: var(--text-dim); }
+.mfg-root .mfg-th.sort.act{ color: var(--color-primary); } /* desempata o §11 acima (0,4,0 > 0,3,0) — razão no Recipes.charter.md */
 
 /* §11 consequência 2 (ADR 0411) — a regra que ficava AQUI virou redundante em 2026-09-04.
    Ela forçava `--accent-2` no texto acentuado do tema escuro porque `--accent` media 2,64:1.

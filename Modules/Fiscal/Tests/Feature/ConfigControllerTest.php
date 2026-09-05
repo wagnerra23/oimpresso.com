@@ -30,8 +30,14 @@ it('UC-FCFG-01 · NfeCertificado encrypted_password é hidden — não vaza no p
     ]);
 
     $json = $cert->toArray();
-    expect($json)
-        ->not->toHaveKey('encrypted_password', 'Senha encriptada DEVE estar em $hidden');
+    // Era `->not->toHaveKey('encrypted_password', 'Senha encriptada DEVE estar em $hidden')`.
+    // Medido em 2026-09-04: o 2º parâmetro de `toHaveKey($key, $value, $message)` é o
+    // VALOR esperado, então o assert dizia "não tem a chave COM ESTE VALOR" — e passava
+    // com a senha vazando, porque 'SECRET_NEVER_LEAK' nunca seria igual à frase. Um
+    // contrato de não-vazamento que não mordia. `array_key_exists` + `toBeFalse` (que
+    // tem mensagem de verdade) pergunta o que o UC pergunta: a chave existe no payload?
+    expect(array_key_exists('encrypted_password', $json))
+        ->toBeFalse('Senha encriptada DEVE estar em $hidden — vazou no payload Inertia');
 });
 
 it('UC-FCFG-02 · NfeCertificado HasBusinessScope esconde certs de outros tenants', function () {
