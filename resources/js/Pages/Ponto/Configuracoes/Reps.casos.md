@@ -56,11 +56,13 @@ last_run_ci: "2 UC rodados por mim no CT 100 (container oimpresso-staging, MySQL
 - **Contrato:** `CU-PONTO-12` (SDD §6.5) · US-PONTO-007 ·
   [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) ·
   charter §Non-Goals (*"Não lista REP de outro business"*).
-- **Regressão que defende:** aqui a defesa é **dupla** — o filtro `where('business_id', …)` do
-  controller (que nesta consulta funciona, porque não há `orWhere` para neutralizá-lo) **e** o global
-  scope do model. É o oposto do que acontece na busca de colaboradores, onde só o scope segura
-  (`UC-COLIDX-01`). O caso existe para que a remoção de **qualquer uma** das duas ainda deixe a
-  outra visível — e para que remover as duas não passe em silêncio.
+- **Regressão que defende — e o limite dela:** aqui a defesa é **dupla** (o filtro
+  `where('business_id', …)` do controller, que nesta consulta funciona porque não há `orWhere` para
+  neutralizá-lo, **e** o global scope do model `Rep`), ao contrário da busca de colaboradores, onde
+  só o scope segura (`UC-COLIDX-01`). Consequência honesta, medida na tela irmã de escalas com o
+  mesmo formato de defesa: um caso deste tipo **só morde quando as duas caem** — com apenas uma
+  removida, a outra segura e o teste passa verde. Ele é rede contra a perda **completa** do
+  isolamento desta lista, não um detector de defesa enfraquecida.
 - **Status: 🧪 verde no CT 100, sem veredito de lane.**
 
 ---
