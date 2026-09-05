@@ -64,10 +64,18 @@ last_run_ci: "2 UC rodados por mim no CT 100 (container oimpresso-staging, MySQL
   detector de defesa-única enfraquecida. Um caso que mordesse na queda de *qualquer uma* teria que
   afirmar sobre a query, não sobre o que a tela devolve — e aí deixaria de ser contrato de
   comportamento.
-- **Nota do módulo, que este caso não cobre:** o [SDD §9 D-6](../../../../../memory/requisitos/Ponto/SDD-espelho-e-jornada-v1.0.md)
-  registra que **`EscalaTurno` não tem `HasBusinessScope`** — o turno é escopado só por
-  pertencer à escala. Este UC olha a *lista*, não o turno; fechar o D-6 é trabalho próprio, e o
-  `Wave27CrossTenantEscalaTest` já é o dono desse eixo na lane.
+- **Nota do módulo, e uma ressalva sobre o D-6:** o
+  [SDD §9 D-6](../../../../../memory/requisitos/Ponto/SDD-espelho-e-jornada-v1.0.md) registra
+  *"`EscalaTurno` sem `HasBusinessScope`"*. **Literalmente verdade, mas induz a erro** — e vale
+  dizê-lo aqui porque a redação anterior desta linha repetia a indução. Medido no model: ele usa
+  **`BelongsToBusinessViaParent`** com `$businessParentRelation = 'escala'`, que é o padrão
+  canônico do repo para *child* sem coluna própria (injeta `whereHas` no parent; mesmo trait de
+  `Modules/Essentials` e `Modules/Accounting`). A tabela `ponto_escala_turnos` **não tem**
+  `business_id` por desenho, e o isolamento é **transitivo**, não ausente. Ou seja: não é buraco
+  de scope a fechar. Este UC olha a *lista*, não o turno; o eixo cross-tenant de escala/turno já
+  tem dono na lane (`Wave27CrossTenantEscalaTest`).
+  **Crédito:** a imprecisão foi apontada por sessão paralela (`claude/ponto-casos-config-escalas`)
+  e verificada aqui no model antes de a correção entrar.
 - **Status: 🧪 verde no CT 100, sem veredito de lane.**
 
 ---
