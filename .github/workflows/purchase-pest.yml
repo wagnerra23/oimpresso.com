@@ -154,12 +154,46 @@ jobs:
         #     cross-tenant, com os 3 controles positivos verdes;
         #   · `$final_total = $net_total` (o recálculo que o [V0] proíbe) ⇒ 2 failed — cai a
         #     discrepância E o antes→depois, que são os dois caminhos da REGRA MESTRE.
+        #
+        # 2026-09-05 — allowlist 2 → 4. Os DOIS `Wave2*BaselineTest` entram. Eles são os
+        # únicos dos 6 arquivos órfãos restantes que NÃO dependem de artefato ausente: os 4
+        # outros (`IndexPageTest`, `ShowPageTest`, `Wave2CreateInertiaTest`,
+        # `Wave2EditInertiaTest`) cobram `memory/requisitos/Purchase/{RUNBOOK-create,
+        # index-visual-comparison,show-visual-comparison,create-visual-comparison}.md` e
+        # `memory/requisitos/Inventory/{RUNBOOK-purchase-edit,purchase-edit-visual-
+        # comparison}.md` — os 6 AUSENTES em `origin/main` (a pasta Purchase só tem
+        # BRIEFING.md). Por isso seguem fora: a razão do cabeçalho continua valendo.
+        #
+        # RODADO ANTES DE ENTRAR: CT 100, container oimpresso-staging, MySQL
+        # `oimpresso_staging`, contra os MESMOS blobs de `origin/main` — hash conferido nos 3
+        # arquivos que estes testes leem (`create.blade.php` 1f7ad2dd58, `edit.blade.php`
+        # 3eb4fdc8ea, `PurchaseController.php` f4073f063b). Resultado: 11 passed
+        # (14 assertions).
+        #
+        # E MORDEM — provado por mutação, com a mutação verificada ANTES de ler o veredito:
+        #   · `can('purchase.create')` → `can('purchase.MUTANTE')` no Controller (5 sites
+        #     trocados; controle `purchase.update` intacto em 12) ⇒ 1 failed, exatamente
+        #     "PRESERVA permission check purchase.create (Tier 0)", com os outros 10 verdes;
+        #   · `isReturnExist($id)` → `isReturnMUTANTE($id)` (2 sites; controle
+        #     `purchase.create` intacto em 6) ⇒ 1 failed, exatamente "PRESERVA isReturnExist
+        #     bloqueio", com o Create inteiro verde.
+        # Controller restaurado depois por hash (f4073f063b), conferido.
+        #
+        # NATUREZA, dita sem eufemismo: são presence-gate (`file_get_contents` + `toContain`),
+        # e os próprios arquivos declaram isso no docblock ("ESTRUTURAL … Classe LC-11").
+        # Guardam a REMOÇÃO do fallback Blade e dos gates de permissão/tenant — não montam
+        # usuário nem observam recusa. Entram porque defesa de forma provada > "verde
+        # impossível", não porque equivalem a contrato de comportamento. Os UC que dependem
+        # deles seguem candidatos a ganhar contrato de comportamento, como já fizeram
+        # UC-PURIDX-02/03 e UC-PURSHW-01/05.
         run: |
           mkdir -p test-results
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-purchase-junit.xml \
             tests/Feature/Purchase/PurchaseIndexTenantContratoTest.php \
-            tests/Feature/Purchase/PurchaseShowTenantContratoTest.php
+            tests/Feature/Purchase/PurchaseShowTenantContratoTest.php \
+            tests/Feature/Purchase/Wave2CreateBaselineTest.php \
+            tests/Feature/Purchase/Wave2EditBaselineTest.php
 
       # A lane emite JUnit e o sumário conta `assertions` por arquivo — o corpus do LC-13.
       # Aqui só REPORTA (if: always()).
