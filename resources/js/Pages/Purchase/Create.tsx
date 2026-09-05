@@ -325,7 +325,7 @@ function PurchaseCreate({
       />
 
       {/* Card 1: dados gerais */}
-      <Card className="mt-4">
+      <Card className="mt-4" data-contract="purchase-dados-gerais">
         <CardHeader className="pb-2 pt-3 px-4">
           <h3 className="text-[11px] uppercase tracking-widest text-stone-500 font-medium">Dados gerais</h3>
         </CardHeader>
@@ -411,7 +411,7 @@ function PurchaseCreate({
       </Card>
 
       {/* Card 2: itens */}
-      <Card className="mt-3">
+      <Card className="mt-3" data-contract="purchase-itens">
         <CardHeader className="pb-2 pt-3 px-4 flex flex-row items-center gap-2">
           <h3 className="text-[11px] uppercase tracking-widest text-stone-500 font-medium flex-1">Itens da compra</h3>
           <span className="text-[11px] text-stone-500">{linhas.length} {linhas.length === 1 ? 'item' : 'itens'}</span>
@@ -570,7 +570,7 @@ function PurchaseCreate({
 
       {/* Card 3: totais */}
       <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
-        <Card>
+        <Card data-contract="purchase-descontos">
           <CardHeader className="pb-2 pt-3 px-4">
             <h3 className="text-[11px] uppercase tracking-widest text-stone-500 font-medium">Descontos / Impostos / Frete</h3>
           </CardHeader>
@@ -634,7 +634,7 @@ function PurchaseCreate({
           </CardContent>
         </Card>
 
-        <Card>
+        <Card data-contract="purchase-totais">
           <CardHeader className="pb-2 pt-3 px-4">
             <h3 className="text-[11px] uppercase tracking-widest text-stone-500 font-medium">Totais</h3>
           </CardHeader>
@@ -658,7 +658,7 @@ function PurchaseCreate({
       </div>
 
       {/* Card 4: notas */}
-      <Card className="mt-3">
+      <Card className="mt-3" data-contract="purchase-notas">
         <CardHeader className="pb-2 pt-3 px-4">
           <h3 className="text-[11px] uppercase tracking-widest text-stone-500 font-medium">Notas adicionais</h3>
         </CardHeader>

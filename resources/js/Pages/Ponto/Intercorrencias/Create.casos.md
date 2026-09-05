@@ -5,8 +5,8 @@ irmaos: Create.charter.md (lei) · SDD-espelho-e-jornada-v1.0.md §5.3 F4 + §6.
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a porta pela qual o mundo real entra na apuração — atestado, esquecimento de marcação, HE autorizada.
 owner: wagner
-last_run: "2026-08-02"
-last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Ponto · MySQL)"
+last_run: "2026-09-05"
+last_run_ci: "O bump e REVALIDACAO DE LEITURA disparada pelo G-6 (o .tsx mudou depois do last_run anterior), NAO veredito: 0 UC executado por mim, e o numero e esse mesmo -- Pest roda no CT100/CI (ADR 0062). MOTIVO do diff: o A11yAxeBrowserTest passou a auditar esta tela (entrou em tests/Browser/visreg-screens.json neste mesmo PR) e ela reprovou com axe CRITICAL no run 33939809556. Foram 6 violacoes com UMA causa so: o helper `Field` (Create.tsx:420) renderizava <Label> sem htmlFor, entao TODO campo que passasse por ele nascia orfao -- 3 `button-name` nos SelectTrigger (Colaborador, Tipo, Prioridade) + 3 `label` (Form elements must have labels) nos input date/time (Data, Inicio, Fim). O htmlFor virou OBRIGATORIO no tipo do Field, para o compilador achar os call sites em vez de eu lembrar deles (7 achados, 7 corrigidos). Zero pixel: so atributo. POR QUE nenhum UC muda de sentido, MEDIDO no arquivo de teste vigente e nao herdado: varredura contada em Modules/Ponto/Tests/Feature/IntercorrenciaContratoTest.php (335 linhas) da 5 asserts sobre o payload Inertia (json('props / ->props / assertInertia) e ZERO sobre DOM/HTML (assertSee/assertDontSee/querySelector/getContent/assertViewHas), mais ZERO ocorrencia de aria-/htmlFor/label=/accessible. Os 2 ids UC-INTCRE-01..02 estao todos la. Atributo `id`/`htmlFor` nao aparece em prop nenhuma, logo nenhum aceite pode mudar POR CONSTRUCAO -- nao por conveniencia. O veredito dos UC segue com a lane PHP / Pest (Ponto - MySQL), que e advisory."
 ---
 
 # Casos de Uso & Aceite — Registrar intercorrência

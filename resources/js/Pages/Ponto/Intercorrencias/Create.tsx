@@ -247,12 +247,12 @@ export default function IntercorrenciasCreate({ colaboradores, tipos, ai_enabled
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Field label="Colaborador" error={form.errors.colaborador_config_id} required>
+                <Field label="Colaborador" htmlFor="colaborador_config_id" error={form.errors.colaborador_config_id} required>
                   <Select
                     value={String(form.data.colaborador_config_id || '')}
                     onValueChange={(v) => form.setData('colaborador_config_id', v)}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger id="colaborador_config_id">
                       <SelectValue placeholder="Selecione o colaborador" />
                     </SelectTrigger>
                     <SelectContent>
@@ -272,9 +272,9 @@ export default function IntercorrenciasCreate({ colaboradores, tipos, ai_enabled
                   </Select>
                 </Field>
 
-                <Field label="Tipo" error={form.errors.tipo} required>
+                <Field label="Tipo" htmlFor="tipo" error={form.errors.tipo} required>
                   <Select value={form.data.tipo} onValueChange={(v) => form.setData('tipo', v)}>
-                    <SelectTrigger>
+                    <SelectTrigger id="tipo">
                       <SelectValue placeholder="Selecione o tipo" />
                     </SelectTrigger>
                     <SelectContent>
@@ -287,8 +287,9 @@ export default function IntercorrenciasCreate({ colaboradores, tipos, ai_enabled
                   </Select>
                 </Field>
 
-                <Field label="Data" error={form.errors.data} required>
+                <Field label="Data" htmlFor="data" error={form.errors.data} required>
                   <Input
+                    id="data"
                     type="date"
                     value={form.data.data}
                     max={new Date().toISOString().slice(0, 10)}
@@ -296,12 +297,12 @@ export default function IntercorrenciasCreate({ colaboradores, tipos, ai_enabled
                   />
                 </Field>
 
-                <Field label="Prioridade" error={form.errors.prioridade}>
+                <Field label="Prioridade" htmlFor="prioridade" error={form.errors.prioridade}>
                   <Select
                     value={form.data.prioridade}
                     onValueChange={(v) => form.setData('prioridade', v as 'NORMAL' | 'URGENTE')}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger id="prioridade">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -327,15 +328,17 @@ export default function IntercorrenciasCreate({ colaboradores, tipos, ai_enabled
 
               {!form.data.dia_todo && (
                 <div className="grid grid-cols-2 gap-4">
-                  <Field label="Início" error={form.errors.intervalo_inicio}>
+                  <Field label="Início" htmlFor="intervalo_inicio" error={form.errors.intervalo_inicio}>
                     <Input
+                      id="intervalo_inicio"
                       type="time"
                       value={form.data.intervalo_inicio}
                       onChange={(e) => form.setData('intervalo_inicio', e.target.value)}
                     />
                   </Field>
-                  <Field label="Fim" error={form.errors.intervalo_fim}>
+                  <Field label="Fim" htmlFor="intervalo_fim" error={form.errors.intervalo_fim}>
                     <Input
+                      id="intervalo_fim"
                       type="time"
                       value={form.data.intervalo_fim}
                       onChange={(e) => form.setData('intervalo_fim', e.target.value)}
@@ -344,8 +347,9 @@ export default function IntercorrenciasCreate({ colaboradores, tipos, ai_enabled
                 </div>
               )}
 
-              <Field label="Justificativa" error={form.errors.justificativa} required>
+              <Field label="Justificativa" htmlFor="justificativa" error={form.errors.justificativa} required>
                 <Textarea
+                  id="justificativa"
                   value={form.data.justificativa}
                   onChange={(e) => form.setData('justificativa', e.target.value)}
                   placeholder="Justificativa formal para o RH (mínimo 10 caracteres)"
@@ -417,20 +421,29 @@ IntercorrenciasCreate.layout = (page: ReactNode) => (
 // Helper: Field com label + erro
 // ============================================================================
 
+// `htmlFor` NÃO é opcional por acidente: sem ele o <Label> deste wrapper não se associa a
+// controle nenhum, e o axe acusa CRITICAL em TODO campo que passe por aqui — foi a origem
+// das 6 violações desta tela (3 `button-name` nos SelectTrigger + 3 `label` nos input
+// date/time). O id não pode ser injetado por cloneElement: no caso do Select o filho é o
+// <Select> (Radix Root), e quem precisa do id é o <SelectTrigger> lá dentro. Então a
+// associação é explícita no call site — o mesmo padrão que Relatorios/Index.tsx:161-163 e
+// Importacoes/Create.tsx:81-83 já usam. É só atributo: zero pixel, baseline intacta.
 function Field({
   label,
+  htmlFor,
   error,
   required,
   children,
 }: {
   label: string;
+  htmlFor: string;
   error?: string;
   required?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <div className="space-y-1.5">
-      <Label className={cn(required && "after:content-['*'] after:text-destructive after:ml-0.5")}>
+      <Label htmlFor={htmlFor} className={cn(required && "after:content-['*'] after:text-destructive after:ml-0.5")}>
         {label}
       </Label>
       {children}
