@@ -3,9 +3,9 @@ sessao: "05"
 titulo: Turnos — Page
 dono: "[CL]"
 base: 159e572dd448
-prefixo: <PAGES>/Hrm/Turnos/** · Modules/Essentials/Http/Controllers/ShiftController.php
+prefixo: resources/js/Pages/Essentials/Turnos.tsx OU Turnos/Index.tsx (+ charter/casos) · ShiftController.php · prototipo-ui/contrato/essentials-turnos.contract.json · e2e/essentials-turnos.spec.ts · lane essentials-pest.yml
 nao_toca: AttendanceController (cede ao Ponto — thread 09) · Pages/Essentials/** · DS
-depende: ADR 0014 emendada (Shift = fonte do horário contratual, Ponto dono das batidas) · RESÍDUO 3 (destroy) · <PAGES> (RESÍDUO 1) — vaga 2
+depende: thread 09 (ADR 0014 emendada — Shift = horário contratual, Ponto dono das batidas) · RESÍDUO 3 (destroy) — vaga 2. Caminho = resources/js/Pages/Essentials/ (a árvore respondeu). Irmã golden: Essentials/Metas.tsx (#6869)
 ---
 # 05 · Turnos
 
@@ -31,10 +31,10 @@ Invariantes: permissão nega antes · `user_id` do body validado por tenant · s
 
 ## Execução
 ```
-ARQUIVOS A EDITAR : <PAGES>/Hrm/Turnos/Index.tsx (CRIAR via criar-tela.mjs Hrm/Turnos PT-01)
-                    <PAGES>/Hrm/Turnos/_components/AtribuirColaboradores.tsx (CRIAR)
+ARQUIVOS A EDITAR : resources/js/Pages/Essentials/Turnos{.tsx|/Index.tsx} (CRIAR via criar-tela.mjs Essentials/Turnos PT-01)
+                    resources/js/Pages/Essentials/Turnos/_components/AtribuirColaboradores.tsx (CRIAR — ou inline se flat)
                     ShiftController.php (@index → Inertia::render; @getAssignUsers → JSON)
-PASSO A PASSO     : 1) whats-active 2) LER ShiftController inteiro 3) criar-tela.mjs 4) Inertia::render
+PASSO A PASSO     : 1) gh pr list --state open × estes arquivos 2) LER ShiftController inteiro 3) criar-tela.mjs 4) Inertia::render
                     5) tabela 7 col na ordem 6) drawer atribuir 7) _saida-05.md
 PARAR SE          : (a) ShiftController::destroy responder 200 sem apagar → primeiro a guarda (PR próprio, ≤300 ln), depois a Page
                     (b) qualquer campo de marcação/jornada pedir para entrar → não: é do Ponto (D1)
@@ -42,5 +42,5 @@ PARAR SE          : (a) ShiftController::destroy responder 200 sem apagar → pr
 ```
 
 ## Prova
-- `<PAGES>/Hrm/Turnos/Index.tsx` + charter + casos · teste Feature de `destroy` com guarda
+- `resources/js/Pages/Essentials/Turnos.tsx` **ou** `Turnos/Index.tsx` + charter + casos · `contrato/essentials-turnos.contract.json` · `e2e/essentials-turnos.spec.ts` · teste Feature de `destroy` com guarda · controller contém `Inertia::render('Essentials/Turnos`
 - `_saida-05.md` · placar no PR · T7 não verificável daqui

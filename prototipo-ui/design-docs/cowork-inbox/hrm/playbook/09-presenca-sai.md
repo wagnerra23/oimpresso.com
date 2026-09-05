@@ -3,8 +3,8 @@ sessao: "09"
 titulo: Presença SAI do HRM — dono da jornada é o Ponto (D1)
 dono: "[W] decide · [CL] executa · [CC] só ajusta o build (thread 01)"
 base: 159e572dd448
-prefixo: memory/decisions/0014-essentials-pontowr2-integracao.md (emendar ou superseder — NUNCA ADR paralela) · Modules/Essentials/Routes/web.php (as 11 rotas de attendance cedem, com 301/redirect pro Ponto)
-nao_toca: Modules/Ponto/** (é pedido pro dono do Ponto, não edição desta thread) · ponto_marcacoes (append-only, Portaria MTP 671/2021) · AttendanceController::importAttendance (#6798 — o dado migra, o código não se apaga aqui)
+prefixo: memory/decisions/0014-essentials-pontowr2-integracao.md (emendar ou superseder — NUNCA ADR paralela) · Modules/Essentials/Routes/web.php (as 11 rotas de attendance cedem, com 301/redirect pro Ponto) · Modules/Essentials/Providers/EssentialsServiceProvider.php (:108 — desagendar `pos:autoClockOutUser`, no MESMO PR que congela essentials_attendances) · Modules/Ponto/Config/config.php (:136 — limpar o ponteiro morto `essentials_user_model` → EssentialsUserShiftHistory)
+nao_toca: Modules/Ponto/Http/** e Database/** (guard D3 é pedido pro dono do Ponto — só Config/config.php:136 é desta thread) · ponto_marcacoes (append-only, Portaria MTP 671/2021) · AttendanceController::importAttendance (#6798 — o dado migra, o código não se apaga aqui)
 depende: D1 (respondida 2026-09-05) · D3 (respondida: licença aprovada BLOQUEIA a marcação — o guard nasce no Ponto)
 ---
 # 09 · Presença sai do HRM
@@ -27,6 +27,8 @@ ADR 0014 `essentials-pontowr2-integracao` (2026-04-21, `lifecycle: arquivado`): 
 1) [W]  ratifica a emenda da 0014 (texto: D1 + D3 + "folha lê o Ponto") — 1 decisão, já tomada em prosa; falta o registro
 2) [CL] PR ≤300 ln: emenda na 0014 + tabela "rota do HRM → destino no Ponto" (11 linhas) + redirect 301 das rotas
         (rota que some sem 301 é link morto no sidebar legado e no nav_hrm)
+        + desagendar o cron `pos:autoClockOutUser` (EssentialsServiceProvider.php:108) — jornada congelada com cron vivo fecha marcação que ninguém abriu
+        + limpar `Modules/Ponto/Config/config.php:136` (`essentials_user_model` aponta pra entidade do lado que cede)
 3) [CL] pedido pro dono do Ponto (fora deste playbook): guard D3 na criação da marcação + excluir licença/feriado
         da conta de ausência — cita EssentialsLeave/EssentialsHoliday como fonte (é o que a 0014 já desenha)
 4) [CC] thread 01: aba Presença sai do protótipo; Painel aponta "Ver no Ponto"
@@ -36,5 +38,5 @@ PARAR SE : (a) alguém propor ADR nova em vez de emendar a 0014 → parar e apon
 
 ## Prova
 - `memory/decisions/0014-essentials-pontowr2-integracao.md` com `lifecycle` ≠ arquivado e a emenda datada
-- `Routes/web.php` sem as 11 rotas ativas (ou com redirect) · `_saida-09.md`
+- `Routes/web.php` sem as 11 rotas ativas (ou com redirect) · `EssentialsServiceProvider.php` sem `command('pos:autoClockOutUser')` · `Modules/Ponto/Config/config.php` sem `EssentialsUserShiftHistory` · `_saida-09.md`
 - Não verificável daqui: o guard no Ponto (prefixo de outro dono)
