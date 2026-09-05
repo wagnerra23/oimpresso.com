@@ -100,3 +100,36 @@ test('baseline versionado tem os 3 pisos e o context_recall não reprova o medid
     // ...e acima de zero: piso 0 seria régua decorativa (nunca morde).
     expect($pisos['context_recall'])->toBeGreaterThan(0.0);
 });
+
+// ── 4. JUIZ MUDO ≠ REGRESSÃO — o discriminador (2026-09-04) ──────────────────
+//
+// Origem: as semanas 2026-08-09 e 2026-08-16 do trend (órfã governance/ragas-real-trend)
+// caíram para context_recall 0,043 e 0,0314 e foram lidas como regressão da Jana. Medido
+// no evals.log do CT 100: em 2026-08-16, 31 das 37 falhas listadas tinham faithfulness
+// EXATAMENTE 0 — e como a média foi 0,2748 sobre 50 avaliadas, as 19 restantes somam
+// média 0,723, estatisticamente igual ao 0,7127 de julho. Não foi a Jana: foi o juiz
+// devolvendo 0.0 em erro (RagasJudgeService::callJudge loga warning e nunca lança, então
+// n_judge_failed é 0 por construção).
+
+test('as três métricas exatamente 0.0 = juiz mudo (assinatura, não qualidade)', function () {
+    expect(JanaRagasRealEvalCommand::ehTriploZeroDoJuiz(0.0, 0.0, 0.0))->toBeTrue();
+});
+
+test('retrieval ruim NÃO é triplo zero — relevancy não olha o contexto', function () {
+    // Cenário REAL de recall ruim: o contexto não cobre o ground_truth (recall 0), mas
+    // a resposta segue coerente com o que foi recuperado e pertinente à pergunta. Foi
+    // exatamente o shape de idx=4 e idx=6 na run de 2026-08-16 (0.5/1.0/0 e 0.5/0.4/0).
+    expect(JanaRagasRealEvalCommand::ehTriploZeroDoJuiz(0.5, 1.0, 0.0))->toBeFalse();
+    expect(JanaRagasRealEvalCommand::ehTriploZeroDoJuiz(0.5, 0.4, 0.0))->toBeFalse();
+
+    // E o inverso: qualidade baixa mas MEDIDA nas três — também não é juiz mudo.
+    expect(JanaRagasRealEvalCommand::ehTriploZeroDoJuiz(0.1, 0.1, 0.1))->toBeFalse();
+});
+
+test('zero em DUAS métricas ainda não basta — o discriminador exige as três', function () {
+    // Controle negativo do próprio critério: afrouxar para "duas zeradas" transformaria
+    // recall-zero-com-relevancy-zero (possível com resposta vazia legítima) em falso
+    // alarme de infra. O sinal caro é o TRIPLO.
+    expect(JanaRagasRealEvalCommand::ehTriploZeroDoJuiz(0.7, 0.0, 0.0))->toBeFalse();
+    expect(JanaRagasRealEvalCommand::ehTriploZeroDoJuiz(0.0, 0.0, 0.9))->toBeFalse();
+});

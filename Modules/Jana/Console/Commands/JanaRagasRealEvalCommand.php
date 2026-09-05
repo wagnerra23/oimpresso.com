@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Jana\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Modules\Jana\Services\Kb\KbAnswerService;
 use Modules\Jana\Services\Ragas\JudgeUnavailableException;
@@ -135,6 +136,73 @@ class JanaRagasRealEvalCommand extends Command
     }
 
     /**
+     * TRIPLO ZERO DO JUIZ — assinatura de instrumento MUDO, não de qualidade ruim.
+     *
+     * `scoreAnswerRelevancy` compara pergunta×resposta e NÃO olha o contexto. Logo um
+     * retrieval ruim derruba `context_recall`, pode derrubar `faithfulness` — e não tem
+     * por que zerar `relevancy` EXATAMENTE. As três exatamente 0.0 na MESMA pergunta é
+     * o `RagasJudgeService::callJudge` devolvendo 0.0 em erro/429/sem-chave: ele loga
+     * warning e NUNCA lança, então `n_judge_failed` é 0 por construção e o zero
+     * fabricado entra na média como se fosse medição.
+     *
+     * MEDIDO 2026-09-04 sobre o `evals.log` do CT 100 (semana 2026-08-16): 31 das 37
+     * falhas listadas com faithfulness exatamente 0. Como `faithfulness_avg` = 0,2748
+     * sobre n_evaluated = 50, as 19 perguntas restantes somam média 0,723 —
+     * estatisticamente igual ao 0,7127 de julho. A Jana não regrediu naquela semana:
+     * o medidor ficou mudo e a média despencou sozinha.
+     *
+     * Função PURA pelo mesmo motivo do `gateVerdict`: sem isto nenhum teste PROVA o
+     * discriminador, e ele é justamente o que separa "regrediu" de "não mediu".
+     */
+    public static function ehTriploZeroDoJuiz(float $faith, float $rel, float $recall): bool
+    {
+        return $faith === 0.0 && $rel === 0.0 && $recall === 0.0;
+    }
+
+    /**
+     * Fotografa a CONFIG que decide o número deste run — pra que "por que este score?"
+     * seja respondível DEPOIS, sem arqueologia de container.
+     *
+     * ORIGEM (2026-09-04): o trend de agosto colapsou (context_recall 0,043 e 0,0314) e
+     * a hipótese "a flag do hybrid estava ligada" custou uma sessão inteira pra refutar
+     * — `docker inspect`, mtime do `.env`, história do invocador, grep dentro do
+     * container. O report já gravava `judge` e `thresholds`; a config do RETRIEVAL, que
+     * decide DE ONDE vem o contexto, não estava em lugar nenhum. E o trend publicado
+     * (órfã governance/ragas-real-trend) carrega ainda menos campos que o report.
+     *
+     * `docs_pipeline` sai do CONFIG RESOLVIDO, nunca do env cru: o valor efetivo pode
+     * vir do env do container, do `.env` ou do config cache — o runtime é o oráculo
+     * (proibicoes.md §5 2026-07-17). A chave é `copiloto.*` porque o
+     * `Modules/Jana/Config/config.php` é merged sob o namespace `copiloto`
+     * (JanaServiceProvider::registerConfig) — `jana.mcp_search.*` resolve NULL.
+     *
+     * @return array<string, mixed>
+     */
+    protected function configVigente(): array
+    {
+        $cfg = [
+            'app_env' => (string) app()->environment(),
+            'docs_pipeline' => (bool) config('copiloto.mcp_search.docs_pipeline', false),
+            'docs_embedder' => (string) config('copiloto.mcp_search.docs_embedder', ''),
+            'judge_model' => (string) config('ragas.judge_model', 'gpt-4o-mini'),
+            'topk' => max(1, (int) $this->option('topk')),
+            'max_citacoes' => max(1, (int) $this->option('max-citacoes')),
+        ];
+
+        // Tamanho do corpus: a explicação mais provável de um recall que muda sem que
+        // ninguém tenha tocado no código (medido 2026-09-04: 1153 → 2555 docs, +122%,
+        // com o mesmo top-K). Falha de DB NÃO pode derrubar o eval — null honesto, que
+        // o consumidor distingue de zero.
+        try {
+            $cfg['corpus_docs'] = (int) DB::table('mcp_memory_documents')->count();
+        } catch (\Throwable $e) {
+            $cfg['corpus_docs'] = null;
+        }
+
+        return $cfg;
+    }
+
+    /**
      * Resolve os pisos: baseline honesto (dono único) → CLI sobrescreve se passada.
      *
      * Fecha o follow-up da ADR 0318 §"v1 usa thresholds absolutos ... Follow-up: fazer
@@ -244,6 +312,7 @@ class JanaRagasRealEvalCommand extends Command
         $noContext = 0;
         $synthFailed = 0;
         $judgeFailed = 0;
+        $judgeZeroTriples = 0;
         $judgeCalls = 0;
         $synthCalls = 0;
 
@@ -308,6 +377,11 @@ class JanaRagasRealEvalCommand extends Command
             $relScores[] = $rel;
             $recallScores[] = $recall;
 
+            // Sinal de JUIZ MUDO (não de qualidade ruim) — ver ehTriploZeroDoJuiz.
+            if (self::ehTriploZeroDoJuiz($faith, $rel, $recall)) {
+                $judgeZeroTriples++;
+            }
+
             // Diagnóstico POR PERGUNTA fica em faith/rel de propósito: o piso de
             // context_recall (US-COPI-136) é sobre a MÉDIA (o 0.3839 medido é média).
             // Aplicá-lo aqui marcaria a maioria das perguntas como falha e afundaria
@@ -369,6 +443,10 @@ class JanaRagasRealEvalCommand extends Command
             'n_no_context' => $noContext,
             'n_synth_failed' => $synthFailed,
             'n_judge_failed' => $judgeFailed,
+            // Zeros FABRICADOS pelo juiz (callJudge devolve 0.0 em erro e nunca lança,
+            // então n_judge_failed é 0 por construção). Sem este campo, uma semana de
+            // juiz fora do ar é indistinguível de uma semana de regressão real.
+            'n_judge_zero_triples' => $judgeZeroTriples,
             'n_passed' => $nEval - count(array_filter($failures, fn ($f) => isset($f['faithfulness']))),
             'n_failed' => count($failures),
             // ⚠️ SEM corte silencioso (2026-07-27). Era `array_slice($failures, 0, 10)`:
@@ -386,6 +464,7 @@ class JanaRagasRealEvalCommand extends Command
             'ran_at' => now()->toIso8601String(),
             'thresholds' => $thresholds,
             'thresholds_fonte' => $this->thresholdsFonte,
+            'config_vigente' => $this->configVigente(),
         ];
 
         $this->persistReport($report);
@@ -450,6 +529,17 @@ class JanaRagasRealEvalCommand extends Command
         );
         $this->line("Pisos: {$report['thresholds_fonte']}");
         $this->info("Avaliadas: {$report['n_evaluated']}/{$report['n_questions']} · sem contexto: {$report['n_no_context']} · síntese falhou: {$report['n_synth_failed']}");
+        // O TRIPLO ZERO precisa ser visível pra quem lê a tabela, senão o campo só serve
+        // à máquina e o humano segue lendo 'a Jana piorou' quando foi o juiz que caiu.
+        $triplos = $report['n_judge_zero_triples'] ?? 0;
+        if ($triplos > 0) {
+            $this->warn(
+                "⚠ {$triplos} pergunta(s) com faithfulness/relevancy/context_recall TODOS "
+                . 'exatamente 0.0 — assinatura de JUIZ MUDO (callJudge devolve 0.0 em erro/429 '
+                . 'e não lança). Estes zeros entram nas médias acima: trate o veredito como '
+                . 'SUSPEITO até conferir a saúde do juiz.'
+            );
+        }
         if (! empty($report['failures'])) {
             $total = count($report['failures']);
             $mostrar = 5;
@@ -501,6 +591,7 @@ class JanaRagasRealEvalCommand extends Command
             'ran_at' => now()->toIso8601String(),
             'thresholds' => $thresholds,
             'thresholds_fonte' => $this->thresholdsFonte,
+            'config_vigente' => $this->configVigente(),
         ], $extra);
 
         $this->persistReport($report);
