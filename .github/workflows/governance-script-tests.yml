@@ -525,6 +525,14 @@ jobs:
       - name: Porta-viva morde (LC-08 · fixtures boa/ruim + INVOCAÇÃO real por stdin)
         if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/block-instrumento-sem-porta-viva.mjs --selftest
+      # O hook está wirado no settings.json desde 2026-08-21 e o selftest dele nunca
+      # teve invocador — "selftest sem invocador é a máquina órfã" (mesma razão do
+      # step do design-agente-ativa acima). Quebrar os 4 padrões não acusaria ninguém.
+      # O P5 é injetado com jqExiste:false no selftest DE PROPÓSITO: aqui o runner é
+      # ubuntu e o jq EXISTE, então sem a injeção a fixture mediria o runner, não o hook.
+      - name: Sonda-que-mente morde (P2/P3/P4/P5 · fixtures + controles negativos)
+        if: always() && steps.setup.outcome == 'success'
+        run: node .claude/hooks/block-sonda-que-mente.mjs --selftest
       - name: Registro porta-viva em settings.json (LC-08 · matcher Glob E Grep)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/settings-porta-viva-registration.test.mjs

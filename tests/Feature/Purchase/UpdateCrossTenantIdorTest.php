@@ -30,7 +30,18 @@ use Spatie\Permission\Models\Role;
  * precisa estar COMMITADA pra sobreviver ao rollback do controller; daí a limpeza
  * explícita do `afterEach`.
  *
- * @covers-uc UC-PUREDT-02
+ * ── Rastreabilidade (casos-gate G-2 · ADR 0264) ────────────────────────────
+ * Contrato: resources/js/Pages/Purchase/Edit.casos.md
+ *   @covers-uc UC-PUREDT-02  update() nunca alcanca transacao de outro tenant [T0][V0]
+ *
+ * HISTORICO DE EXECUCAO (o que mudou, e por que a nota antiga nao vale mais):
+ *   Ate 2026-09-04 este arquivo NAO EXECUTAVA EM LANE NENHUMA, pelas duas pernas medidas:
+ *   (1) o beforeEach global chamava markTestSkipped fora do SQLITE — e a suite real (CI e
+ *   CT 100) roda em MySQL, entao os 4 testes pulavam; (2) o arquivo nao esta em
+ *   `.github/ci-sqlite-pest.list` (zero linhas Purchase), entao a lane sqlite tampouco o
+ *   rodava. Skip sai exit 0 — "0 failed" nunca prova execucao (LC-13).
+ *   Em 2026-09-05 (#6820) o skip INVERTEU: pula fora do MySQL e roda contra o schema
+ *   semeado por `.github/actions/pest-mysql-setup`. A defesa do IDOR de escrita esta ATIVA.
  *
  * @see resources/js/Pages/Purchase/Edit.casos.md (UC-PUREDT-02)
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md

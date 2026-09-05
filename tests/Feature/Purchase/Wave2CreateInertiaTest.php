@@ -10,6 +10,17 @@ declare(strict_types=1);
  * recebe $business_id por parâmetro, não inventa).
  *
  * ADRs: 0104 (MWART), 0093 (Tier 0), 0149 (pattern reuse).
+ *
+ * ── Rastreabilidade (casos-gate G-2 · ADR 0264) ────────────────────────────
+ * Contrato: resources/js/Pages/Purchase/Create.casos.md
+ *   @covers-uc UC-PURCRE-01  dual path — SPA recebe React, Blade legacy preservado
+ *   @covers-uc UC-PURCRE-05  modo grade plugado + submit unico via useForm.post
+ *   @covers-uc UC-PURCRE-07  Tier 0 — a Page nao hardcoda business_id
+ *
+ * ⚠️ NATUREZA DA COBERTURA — ESTRUTURAL (o cabecalho acima ja diz "Estrutural"):
+ * 35 asserts de casamento de texto no fonte, ZERO requests HTTP. Prova que o modo
+ * grade esta PLUGADO no arquivo; nao prova a expansao celula->linha nem o formato
+ * do payload que createOrUpdatePurchaseLines espera. Classe LC-11 (presence-gate).
  */
 
 const CREATE_INERTIA_PATH = 'resources/js/Pages/Purchase/Create.tsx';
