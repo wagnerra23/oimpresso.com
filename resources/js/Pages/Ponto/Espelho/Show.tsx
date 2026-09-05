@@ -157,8 +157,12 @@ export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props)
             <Button variant="outline" size="sm" onClick={() => navegarMes(-1)}>
               <ChevronLeft size={14} className="mr-1" /> Mês anterior
             </Button>
+            {/* aria-label (e não <label> visível): o seletor fica ENTRE os dois botões de mês,
+                num layout compacto — rótulo visível aqui mexeria no pixel, e isso exige gate
+                visual. O Espelho/Index, que tem espaço, usa <label htmlFor="mes"> normal. */}
             <Input
               type="month"
+              aria-label="Mês de referência"
               value={mes}
               onChange={(e) => onMesChange(e.target.value)}
               className="w-40 text-center"
