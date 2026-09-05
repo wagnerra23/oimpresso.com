@@ -59,6 +59,8 @@ return [
     'max_leave_count' => 'Contagem máxima de licenças',
     'add_leave_type' => 'Adicionar tipo de licença',
     'edit_leave_type' => 'Editar tipo de licença',
+    'leave_type_em_uso' => 'Este tipo de licença não pode ser excluído: :count licença(s) registrada(s) usam ele. Exclua ou troque o tipo dessas licenças primeiro.',
+    'shift_em_uso' => 'Este turno não pode ser excluído: :vinculos colaborador(es) vinculado(s) e :marcacoes marcação(ões) de presença dependem dele.',
     'leave' => 'Licença',
     'all_leaves' => 'Todas as licenças',
     'end_date' => 'Data final',

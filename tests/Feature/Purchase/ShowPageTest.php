@@ -10,6 +10,21 @@ declare(strict_types=1);
  *
  * Snapshot: memory/mwart-inventory/purchase/show.snapshot.md
  * Visual:   memory/requisitos/Purchase/show-visual-comparison.md
+ *
+ * ── Rastreabilidade (casos-gate G-2 · ADR 0264) ────────────────────────────
+ * Contrato: resources/js/Pages/Purchase/Show.casos.md
+ *   @covers-uc UC-PURSHW-01  Tier 0 — showInertia recebe a transação já scopada
+ *   @covers-uc UC-PURSHW-02  dual path — AJAX puro recebe Blade, navegação recebe Inertia
+ *   @covers-uc UC-PURSHW-03  a tela NÃO renderiza barcode (mata o 500 do DNS1D legado)
+ *   @covers-uc UC-PURSHW-04  Editar/Excluir só renderizam com a permissão
+ *   @covers-uc UC-PURSHW-05  a tela formata, não recalcula totais
+ *   @covers-uc UC-PURSHW-06  Tier 0 — a Page não hardcoda business_id
+ *
+ * ⚠️ NATUREZA DA COBERTURA — este arquivo é ESTRUTURAL (o cabeçalho acima já o diz):
+ * 44 asserts de casamento de texto no fonte, ZERO requests HTTP. Exceções legítimas:
+ * UC-PURSHW-03 e -06, cujo contrato É a ausência de um literal no arquivo — ali o
+ * presence-gate é o instrumento certo. Os demais ficam "⚠️ estrutural" no casos.md.
+ * Classe LC-11 (presence-gate) do memory/LICOES_CODE.md.
  */
 
 const PURCHASE_SHOW_PATH = 'resources/js/Pages/Purchase/Show.tsx';

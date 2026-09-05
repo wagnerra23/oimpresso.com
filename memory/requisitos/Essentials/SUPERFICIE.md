@@ -14,7 +14,7 @@ module: Essentials
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Essentials/**` + `resources/js/Pages/Essentials/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 275 arquivos em 16 papéis.
+**Total mapeado:** 276 arquivos em 16 papéis.
 
 ## Controllers — 19
 
@@ -268,9 +268,9 @@ module: Essentials
 - [Index.charter.md](../../../resources/js/Pages/Essentials/Todo/Index.charter.md)
 - [Show.charter.md](../../../resources/js/Pages/Essentials/Todo/Show.charter.md)
 
-## Testes (Pest) — 16
+## Testes (Pest) — 17
 
-- 16 em [Modules/Essentials/Tests/Feature/](../../../Modules/Essentials/Tests/Feature)
+- 17 em [Modules/Essentials/Tests/Feature/](../../../Modules/Essentials/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 49

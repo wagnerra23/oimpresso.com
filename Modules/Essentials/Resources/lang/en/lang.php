@@ -56,6 +56,8 @@ return [
     'hrm' => 'HRM',
     'leave_type' => 'Leave Type',
     'all_leave_types' => 'All leave types',
+    'leave_type_em_uso' => 'This leave type cannot be deleted: :count leave(s) still use it. Delete or change the type of those leaves first.',
+    'shift_em_uso' => 'This shift cannot be deleted: :vinculos assigned user(s) and :marcacoes attendance record(s) depend on it.',
     'max_leave_count' => 'Max Leave Count',
     'add_leave_type' => 'Add Leave Type',
     'edit_leave_type' => 'Edit Leave Type',
