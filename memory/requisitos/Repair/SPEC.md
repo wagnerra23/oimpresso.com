@@ -51,14 +51,21 @@ Afetados: `D2 Code Quality FormRequests → StartFsmActionRequest existe e tem r
 
 ### US-REPA-003 · Configurar os padrões da folha de OS e o que sai impresso
 
-> owner: — · priority: p2 · status: doing · type: story
+> owner: — · priority: p2 · type: story
 > blocked_by: —
+>
+> O campo de estado legado foi omitido de propósito: a fonte única de done-ness é o
+> `**Implementado em:**` ([ADR 0273](../../decisions/0273-anchor-spec-codigo-formato-canonico-fluxo-novo.md)),
+> e a [ADR 0302](../../decisions/0302-fonte-unica-doneness-anchor-aposenta-status-spec.md) o
+> aposentou como derivado. Declará-lo aberto ao lado de uma âncora viva é o dual-source que o
+> `doneness-lint` morde — e ele mordeu aqui, em 2026-09-05. O estado real está no `_parcial_`
+> da âncora, e a lista de pendências está na DoD abaixo.
 
 **Como** admin do negócio
 **Quero** definir num lugar só os padrões que toda nova folha de OS assume e o que sai impresso na folha e na etiqueta
 **Para** não repetir digitação a cada OS nem depender de quem lembra o padrão da casa
 
-**Implementado em:** `resources/js/Pages/Repair/Settings/Index.tsx` · `Modules/Repair/Http/Controllers/RepairSettingsController.php` · `Modules/Repair/Tests/Feature/RepairSettingsContratoTest.php` · verificado@a2a5cb4 (2026-09-05)
+**Implementado em:** _parcial_ · `resources/js/Pages/Repair/Settings/Index.tsx` · `Modules/Repair/Http/Controllers/RepairSettingsController.php` · `Modules/Repair/Tests/Feature/RepairSettingsContratoTest.php` · verificado@a2a5cb4 (2026-09-05) — contrato de gravação provado; falta o smoke 1280px (ambiente) e o cutover da flag, que é decisão [W]
 
 **Testado em:** `Modules/Repair/Tests/Feature/RepairSettingsContratoTest.php` (declara `@covers-us US-REPA-003`) — lane **Verticais · Pest (MySQL)**, allowlist. Veredito medido em 2026-09-05: 6 `pass` (17 assertions) · 2 `skip` (UC-RSET-07/08, por `system.repair_version` ausente no seed).
 
