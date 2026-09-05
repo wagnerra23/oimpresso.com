@@ -309,3 +309,152 @@ manifesto que o `visual-regression` já consome — e não uma amostra escolhida
 - **Não** tratar isto como bug do Repair: a resposta vale para o ERP inteiro, e as telas do Repair
   que não têm grade densa reprovam **1**, igual às demais.
 - **Não** usar a contagem bruta de "abaixo de 24" como métrica de nada: ela mede o tamanho do fixture.
+
+---
+
+## 10 · Emenda de medição independente (2026-09-05, sessão paralela)
+
+> Esta seção **não muda a decisão** de §6 — ela a reforça e corrige três coisas nos números.
+> Origem: uma segunda sessão mediu o mesmo tema no mesmo dia, sem saber desta ADR (classe LC-19;
+> o `whats-active` não foi rodado antes de abrir o trabalho — registrado como o custo real).
+> Ao reconciliar as duas medições, apareceu um defeito que atinge **as duas**.
+
+### 10.1 · O número por tela NÃO é estável — ele varia com o scroll
+
+Medido em `Produtos` do protótipo, 1280×900, 25 linhas, mesmo DOM, só mudando `scrollTop` do
+`.pd-scroll`:
+
+| estado | alvos | bruto <24 | sonda de espaçamento própria | axe-core `target-size` |
+|---|---:|---:|---:|---:|
+| topo (`scrollTop=0`) | 191 | **67** | **58** | **22** |
+| fundo (`scrollTop=max`) | 191 | **67** | **67** | **30** |
+
+Só o **bruto** é estável. Os dois números de *violação* sobem ao rolar, porque a exceção de
+espaçamento depende de **posição**, e o que é vizinho de um alvo muda quando a grade rola sob
+cabeçalho fixo. Acumulando os violadores únicos do axe em 8 passos de scroll, o número converge em
+**51** e para de crescer.
+
+**Consequência para esta ADR:** os valores de §3 e §3.1 são fotos de **um** estado de rolagem, não
+propriedades da tela — o `58` de Produtos e o `5` da produção são **piso**, não total. Isso é a mesma
+família do corolário que §4 já registra (*"escala com a quantidade de linhas do fixture"*), com um
+segundo mecanismo: **também escala com onde a página está rolada**. Quem re-medir precisa declarar o
+estado de scroll, ou acumular rolando.
+
+### 10.2 · A divergência entre as duas medições não é de método
+
+A segunda sessão usou **axe-core** (regra `target-size`) em vez de sonda própria, e chegou a `22` em
+Produtos contra os `58` desta ADR. Reconciliado, ponto a ponto:
+
+- **não é versão do axe**: 4.10.2 e **4.12.0** (a do `package-lock.json`) dão **o mesmo 22** no mesmo DOM;
+- **não é a regra estar off-by-default**: `runOnly` por id executa regra desabilitada;
+- **é (a) o scroll** — 22 no topo, 51 acumulado rolando; e **(b) 7 `span[tabindex]`** que a sonda
+  própria conta como alvo e o axe não trata como *target* (`.pd-est-locais` ×4, `.pd-obs` ×3).
+
+`51 + 7 = 58` no estado do topo. **As duas medições concordam**; o que diferia era o estado e a
+definição de "alvo". Fica registrado para ninguém tratar isto como contradição entre instrumentos.
+
+### 10.3 · Censo por ÁTOMO compartilhado (37 rotas de sidebar do protótipo)
+
+Complementa §3, que é por tela. Universo: 37 rotas de sidebar medidas (`Atendimento`/`inbox` não
+renderizou), 1.237 alvos de conteúdo (shell separado), 340 abaixo de 24 no estado inicial.
+
+Três famílias concentram **312 dos 340 (91,8%)**: botão com rótulo de altura baixa (137, 17 telas) ·
+checkbox/radio de linha (108, 8 telas) · ícone-botão quadrado (67, 6 telas).
+
+O que isso acrescenta à decisão — **o checkbox de linha é UM átomo sob SEIS chaves diferentes**
+(`.os-cell-check > input`, `.vd-chk > input`, `.pb-chk > input`, `.mfg-row > input`,
+`.accent-[…].h-3.5.w-3.5`, e `input` nu). Contado por chave, parece dívida espalhada; contado por
+átomo, é **uma** correção. Idem `.jc-updated-b` (113,3×19,3), que aparece em **8 telas** e é o alvo
+real do item 6 do pacote CRM.
+
+### 10.4 · Correção factual: o `.pb-kebab` não é dívida de TAMANHO
+
+O `.pb-kebab` vinha sendo citado como átomo compartilhado reincidente **neste** eixo. Medido: o
+gatilho dele é `button.os-btn.sm` (`produto-blade.jsx:192` e `:722`), e `.os-btn` **não tem regra
+sub-24** — 14 de 14 regras de `height`/`padding` no CSS do protótipo, menor altura declarada **26px**.
+O `.pb-kebab` é só o wrapper (`produto-blade.css:160` → `position:relative`).
+
+Ele **é** reincidente e **é** compartilhado, mas no eixo **nome acessível** — item **8** do bloco 7 do
+[PEDIDO-CODE](../../../../../prototipo-ui/design-docs/handoff-crm/PEDIDO-CODE.md) (`:179`: svg do
+gatilho sem `aria-hidden` + rótulo fixo *"Ações do produto"* aparecendo na grade de leads). O item de
+tamanho é o **6** (`:177`), e o alvo dele é o `.jc-updated-b`. São dívidas distintas, com donos
+distintos.
+
+Nota de margem, medida junto: `.cli-kebab-btn` (7 telas) fica em **exatamente 24×24** (`padding:5px`
++ ícone 14×14, `clientes-page.css:879-891`). Passa, com folga zero — qualquer redução de padding o
+derruba.
+
+### 10.5 · O que a produção acrescenta ao resíduo de §3.1
+
+Dois átomos de produção fora do manifesto medido, confirmados no fonte de `origin/main`:
+
+| onde | tamanho | alcance |
+|---|---|---|
+| [`Components/ui/checkbox.tsx`](../../../../../resources/js/Components/ui/checkbox.tsx) — `h-4 w-4` | **16×16** | o checkbox do DS; conserto de **uma linha** |
+| [`Pages/Site/Login.tsx:143`](../../../../../resources/js/Pages/Site/Login.tsx) — `h-3.5 w-3.5` | **14×14** | rota **pública** — é o achado `L-2` de [mai/2026](../../../../audits/2026-05-pre-sales/02-wcag-manual-5-telas.md), ainda aberto |
+
+O do Login é mensurável **sem sessão autenticada** (rota pública), então não depende do degrau de
+infra que §8 descreve.
+
+### 10.6 · Limites desta emenda
+
+1. O censo de 37 rotas cobre **rotas de sidebar**; **sub-views não foram visitadas** — inclusive
+   `Repair · Folhas`, que é sub-aba e é justamente onde §3 mede 37. Os dois denominadores são
+   parciais e **diferentes**.
+2. `Atendimento` (`inbox`) **NÃO MEDIDA** — e a causa foi identificada depois, ver §10.7.
+3. A contagem de `incomplete` do axe **não foi registrada** — o 22/51 é piso também por isso.
+4. A exceção **Equivalent** não foi avaliada nesta medição (§4-ii-b a usa, e ela pode dispensar parte
+   do resíduo).
+5. Nada foi medido em runtime de produção por esta sessão: a linha 10.5 é **leitura de fonte**, e
+   para classe Tailwind fixa isso é determinístico — mas o alvo efetivo de um `<label>` que embrulha
+   o input **não** é, e exige `getBoundingClientRect`.
+
+### 10.7 · ERRATA da própria §10 — o universo era 19,3%, e a pior tela ficou fora
+
+Uma rodada adversarial sobre a §10 **reproduziu** os números dela de forma independente (axe-core
+**4.12.1**, sonda própria: 1.216 alvos · 334 abaixo de 24 · **27,5%** · **29 violações** · **as mesmas
+2 telas**) e então derrubou a *conclusão*, não a medição. Registro porque o defeito é meu.
+
+**O universo.** `data.jsx` define `MENU` + `flattenMenu()`; o `MENU_FLAT` tem **197** destinos. A §10.3
+mediu os **38** do corpo do sidebar — **19,3%**. Os outros 158 são alcançáveis por sub-aba, atalho e
+deep-link, e **não** são telas mortas. Medidos com a mesma sonda: **+67 violações em 9 telas novas**
+(`prod-lista` 5 · `prod-massa` 6 · `crm-leads` 9 · `oficina-os` 12 · `rep-folhas` 8 · `est-ajustes` 6 ·
+`est-transferencias` 5 · `pat-bens` 10 · `hrm-licencas` 6).
+
+**Logo o "29 em 2 telas" é recibo de 19,3% do produto em repouso.** O total medido até aqui é
+**≥96 violações em 11 telas** — e segue sendo piso, pelo §10.1 (scroll) e pelo item abaixo.
+
+**A pior tela não estava no censo, e é a que mais importa.** `oficina-os` — a OS da oficina —
+tem **12 violações, todas de 14×13px**, nos botões de semáforo da checklist de inspeção
+(`aria-label="OK" | "Atenção" | "Ruim"`, dentro de `div[aria-label="Estado de Pastilhas dianteiras"]`).
+**Verificado por mim** em nova medição: axe-core **4.12.0**, viewport 1280×900, layout desktop
+confirmado (`app app--sb-expanded`, sem `app--mobile`). A persona ali é mecânico em chão de oficina —
+exatamente o caso que o SC 2.5.8 existe para proteger, e o único do corpus onde "1280 com mouse" não
+descreve quem usa.
+
+**Estados fechados são um segundo piso.** Em `Produtos`, abrir **um** kebab de linha e o drawer
+(7 abas) leva a tela de **140 → 204 alvos** e de **66 → 90** abaixo de 24 (+46% / +36%), com 25 kebabs
+e 6 dropdowns ainda por exercitar. Nenhum censo desta ADR — nem o de §3, nem o de §10.3 — abre menu.
+
+**A 38ª tela não "não renderizou": está quebrada.** `inbox-page.jsx:365` passa `filteredConvs` num
+array `deps` (avaliado na hora) enquanto o `const filteredConvs` só é declarado na **linha 370** —
+*temporal dead zone*. A tela de Atendimento serve o error boundary
+(*"Cannot access 'filteredConvs' before initialization"*). **Confirmado no fonte.** É bug de
+protótipo, não limite de harness, e não tem relação com alvo de toque — fica aqui só porque a §10.6
+o classificava errado.
+
+**Um átomo do DS que o seletor não via.** React delega eventos na raiz, então `[onclick]` não casa
+nada de React: 330 elementos com `onClick`/`onMouseDown` ficaram fora do denominador (64 deles <24),
+quase todos do `DataTablePro` do DS — header sortável (`span` com `onClick`, sem `role` nem
+`tabindex`, ~15px) e o resizer de coluna com **`width: 7`** hardcoded. Confirmado: `width: 7` no
+`_ds_bundle.js` e **13** consumidores no protótipo.
+
+⚠️ **Mas isso NÃO muda o resíduo de tamanho, e a distinção importa:** teste de mutação (dar
+`role="button" tabindex="0"` aos 18 de `essenciais` e re-rodar) fez o conjunto avaliado subir de
+93 → 111 nós e as violações **continuaram 7**. Eles passam pela exceção de espaçamento. O defeito
+deles é **SC 2.1.1 (Teclado)** e **4.1.2 (Nome/Papel/Valor)** — eixo diferente, mais severo (nível A),
+e já contabilizado no `config/a11y-baseline.json` (`click-events-have-key-events: 79`). Não deve ser
+resolvido dentro desta ADR, que é de tamanho.
+
+**Duas correções de um arquivo só**, se §6 fechar na adoção do 24×24: o resizer (`width: 7` → 24) e o
+semáforo do `oficina-os` (14×13). A primeira fecha 13 telas consumidoras de uma vez.

@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: o dual-path Blade×React e o escopo por tenant são duráveis — não mudam quando a lista ganhar coluna ou filtro novo.
 owner: wagner
 last_run: "2026-09-05"
-last_run_ci: "🟡 Duas frentes do mesmo dia. (a) A lane purchase-pest.yml nasceu e os 2 UC [T0] (02/03) têm contrato de COMPORTAMENTO em PurchaseIndexTenantContratoTest — 4 passed, 11 assertions, verde no CI, mordida verificada por mutação. (b) Os UC 04/05 têm E2E de COMPORTAMENTO em IndexEtiquetaTest (Pest 4 Browser) na lane visual-regression, ENFORCING desde 2026-09-05 (flip [W]) apos 3 verdes que EXECUTARAM, 3 passed / 7 assertions cada. Restam 🔴 sem lane os UC 01 e 06, que apontam pro IndexPageTest — presence-gate e sem lane. Nenhum ✅ nos 04/05: o visual-regression não emite JUnit, então nada dele chega ao manifesto do G-7. Ver §Dívida de prova."
+last_run_ci: "✅ 2026-09-05, três frentes do mesmo dia. (a) A lane purchase-pest.yml nasceu e os 2 UC [T0] (02/03) têm contrato de COMPORTAMENTO em PurchaseIndexTenantContratoTest — 4 passed, 11 assertions, verde no CI, mordida verificada por mutação. (b) Os UC 04/05 têm E2E de COMPORTAMENTO em IndexEtiquetaTest (Pest 4 Browser) na lane visual-regression, ENFORCING desde 2026-09-05 (flip [W]) apos 3 verdes que EXECUTARAM, 3 passed / 7 assertions cada. (c) Os 10 arquivos de tests/Feature/Purchase/ entraram na allowlist do purchase-pest.yml (#6824/#6827/#6841) — medido em origin/main b863647741: 0 orfaos no diretorio e uc-lane-coverage --check EXIT=0. ⚠️ A frase anterior \"restam 🔴 sem lane os UC 01 e 06\" ficou FALSA com (c): o IndexPageTest que eles citam esta na allowlist. Eles passam a 🧪 estrutural · na lane — presence-gate segue sendo presence-gate; ganhar lane muda \"ninguem o acorda\" para \"alguem o acorda\", nao a natureza da prova. Nenhum ✅ nos 04/05: o visual-regression não emite JUnit, então nada dele chega ao manifesto do G-7. Não restatear estes numeros a mao: rode node scripts/qa/uc-lane-coverage.mjs. Ver §Dívida de prova."
 ---
 
 # Casos de Uso & Aceite — Listagem de Compras (`/purchases`)
@@ -26,7 +26,26 @@ last_run_ci: "🟡 Duas frentes do mesmo dia. (a) A lane purchase-pest.yml nasce
 
 ---
 
-## 🟡 Dívida de prova — a lane nasceu; 2 dos 6 UC já têm defesa ativa
+## ✅ Dívida de prova — os 6 UC têm lane; 2 com defesa de COMPORTAMENTO
+
+> ✅ **Atualização de 2026-09-05 — o texto abaixo continua verdadeiro para o dia em que foi escrito
+> e fica inteiro; o que mudou está aqui.** A leva [#6824](https://github.com/wagnerra23/oimpresso.com/pull/6824)
+> / [#6827](https://github.com/wagnerra23/oimpresso.com/pull/6827) / [#6841](https://github.com/wagnerra23/oimpresso.com/pull/6841)
+> fechou o diretório: **os 10** arquivos de `tests/Feature/Purchase/` estão na allowlist do
+> [`purchase-pest.yml`](../../../../.github/workflows/purchase-pest.yml). Medido em `origin/main`
+> (`b863647741`): `node scripts/governance/test-lane-coverage.mjs --json` dá **0 órfãos** naquele
+> diretório, e `node scripts/qa/uc-lane-coverage.mjs --check --baseline governance/uc-lane-baseline.json`
+> sai **EXIT=0**. Nenhum UC desta tela aponta mais para teste que lane nenhuma roda.
+>
+> ⚠️ **Ganhar lane não muda a NATUREZA da prova.** Os status foram reconciliados em dois níveis,
+> não um: `✅ comportamento · na lane` onde o teste emite request/`actingAs`, e
+> `🧪 estrutural · na lane` onde ele casa texto no fonte (presence-gate, LC-11) — classificado
+> contando requests por arquivo, não no olho. Um presence-gate que agora roda deixou de ser
+> "verde impossível"; **continua** provando forma, não comportamento.
+>
+> ⚠️ **Dois números do bloco abaixo já nasciam falsos:** a pasta tem **10** arquivos, não 8; e a
+> perna *"workflows que citam `tests/Feature/Purchase` → 0"* mediu uma janela em que a lane ainda
+> não existia. Não restateie à mão — rode os dois comandos acima.
 
 > ✅ **Atualização de 2026-09-05 — a errata abaixo continua verdadeira para o dia em que foi escrita,
 > e fica inteira.** O que mudou desde então: a lane
@@ -106,12 +125,12 @@ daí — o caminho é converter, um UC por vez, não ligar tudo de uma vez.
 
 | UC | Título | Tipo | Âncora de contrato | Teste que cita | Status |
 |---|---|---|---|---|---|
-| UC-PURIDX-01 | SPA recebe React; acesso direto recebe Blade | must | RUNBOOK §1 · charter Mission | `IndexPageTest` | 🔴 sem lane |
+| UC-PURIDX-01 | SPA recebe React; acesso direto recebe Blade | must | RUNBOOK §1 · charter Mission | `IndexPageTest` | 🧪 estrutural · na lane |
 | UC-PURIDX-02 | Lista nunca sai do `business_id` da sessão | must `[T0]` | RUNBOOK §5 · charter Non-Goal 4 | `PurchaseIndexTenantContratoTest` | ✅ comportamento · na lane |
 | UC-PURIDX-03 | Lista respeita `permitted_locations` | must `[T0]` | RUNBOOK §3 · charter Goals | `PurchaseIndexTenantContratoTest` | ✅ comportamento · na lane |
 | UC-PURIDX-04 | Ação "Etiquetas" existe no React (paridade Blade) | must `[reg]` | RUNBOOK §2 (regressão datada) | `IndexEtiquetaTest` | 🧪 comportamento · na lane (enforcing, fora do manifesto) |
 | UC-PURIDX-05 | Rota Blade abre por `window.open`, nunca `router.visit` | must | RUNBOOK §3 · §5 | `IndexEtiquetaTest` | 🧪 comportamento · na lane (enforcing, fora do manifesto) |
-| UC-PURIDX-06 | A Page não decide tenant — `business_id` vem das props | must `[T0]` | RUNBOOK §5 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `IndexPageTest` | 🔴 sem lane |
+| UC-PURIDX-06 | A Page não decide tenant — `business_id` vem das props | must `[T0]` | RUNBOOK §5 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `IndexPageTest` | 🧪 estrutural · na lane |
 
 ---
 
@@ -129,7 +148,7 @@ daí — o caminho é converter, um UC por vez, não ligar tudo de uma vez.
 - **Regressão que defende:** o F5 CUTOVER do MWART é humano e ainda não aconteceu nesta tela. Um
   refactor que "limpe" o Blade legacy mata o acesso direto fora do SPA — e o sintoma só aparece
   para quem abre a URL na mão, que é justamente quem não reporta.
-- **Status: 🔴 sem lane** — as três asserções são casamento de texto no fonte do controller e
+- **Status: 🧪 estrutural · na lane** — as três asserções são casamento de texto no fonte do controller e
   nenhuma emite request; provariam que o código não foi *apagado*, não que o roteamento funciona.
   E nem a isso chegam: nenhuma lane as executa.
 
@@ -269,7 +288,7 @@ daí — o caminho é converter, um UC por vez, não ligar tudo de uma vez.
 - **Contrato:** RUNBOOK §5 (proíbe `business_id` hardcoded na Page) · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
 - **Regressão que defende:** um `business_id` fixo numa Page passa despercebido em review (parece
   constante de config) e cria um vazamento que só aparece no segundo tenant.
-- **Status: 🔴 sem lane** — este é o único UC da tela cuja natureza é de fato *estrutural*: ausência
+- **Status: 🧪 estrutural · na lane** — este é o único UC da tela cuja natureza é de fato *estrutural*: ausência
   de literal no arquivo **é** o contrato, então aqui o presence-gate **seria** o instrumento certo,
   não um substituto de teste de comportamento. Só que ele também não roda — instrumento certo,
   nunca acionado. A v1 chamava isto de *"exceção honesta"* e tirava o `⚠️`; a exceção valia para o
