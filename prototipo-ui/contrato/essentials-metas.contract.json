@@ -1,0 +1,35 @@
+{
+  "_nota": "Contrato de tela GERADO por criar-tela.mjs junto com o PT-01 Lista de Essentials/Metas (2026-09-05). Roda em `node scripts/contrato-de-tela.mjs --contract <este-arquivo>`, no mesmo job que já varre todos os *.contract.json. As seções são as do ARQUÉTIPO e as âncoras data-contract correspondentes já nascem no .tsx — âncora e ordem são wiring do agente. A COPY não: veja _pendente_w.",
+  "tela": "Essentials/Metas",
+  "fonte": "resources/js/Pages/Essentials/Metas.tsx",
+  "_nota_fonte": "`fonte` aponta pro .tsx — que é o ALVO da comparação. ⚠️ ERRATA do texto que o gerador carimbou aqui: ele dizia que `prototipo-ui/cowork/hrm-extras.jsx` 'não existe no disco'. Existe (medido 2026-09-05: o arquivo está no espelho e a função `Metas()` vive nele, linhas 493-550), e o `anchor-content-check --check` resolve a âncora como OK — provado por controle positivo (trocar o path por um inexistente faz virar MISSING e derruba `ok` de 71 pra 70). O protótipo é a ÂNCORA (declarada no charter, campo `related_prototype`), não a `fonte` deste contrato: são papéis diferentes.",
+  "alvo": [
+    "resources/js/Pages/Essentials/Metas.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "cabecalho",
+      "copy": []
+    },
+    {
+      "id": "filtros",
+      "copy": []
+    },
+    {
+      "id": "lista",
+      "copy": []
+    }
+  ],
+  "ordem": [
+    "cabecalho",
+    "filtros",
+    "lista"
+  ],
+  "_pendente_w": [
+    "COPY DE CADA SEÇÃO — hoje todas as `copy` estão vazias, e o gate passa sem exigir string nenhuma. A copy literal que o design exige é decisão [W] (how-trabalhar.md §Pedido de tela: \"`## Contrato visual` (copy literal + ordem)\"). Preencha seção a seção conforme os TODO do .tsx forem virando texto real — cada string vira match exato no alvo.",
+    "ESTADOS — `estados` foi omitido de propósito (empty/loading/erro dependem do domínio, não do arquétipo). Declare quando a tela tiver os estados de verdade.",
+    "seção `cabecalho` — PageHeader — identidade da tela. Copy pendente.",
+    "seção `filtros` — faixa de filtros/busca acima da tabela. Copy pendente.",
+    "seção `lista` — a DataTable em si (colunas + paginação). Copy pendente."
+  ]
+}

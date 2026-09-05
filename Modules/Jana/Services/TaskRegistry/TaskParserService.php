@@ -140,6 +140,15 @@ class TaskParserService
         $fechadasPorAncora = 0;
         $descritivosDivergentes = 0;
         $modulos = [];
+        // Contador SEPARADO de `$reportadasNoSync` de propósito — os dois zeram por
+        // motivos diferentes, e só a distinção evita falso-positivo na guarda abaixo:
+        //   $specsEncontrados === 0 → nenhum SPEC.md foi LIDO (base errada, ou o
+        //                             `--module` não casou diretório nenhum) = FALHA.
+        //   $reportadasNoSync === [] com SPECs lidos → os SPECs existem e não têm US.
+        // Medido em prod 2026-09-05: 8 dos 61 SPECs (Brief, _DesignSystem, Estoque,
+        // FinanceiroAvancado, Garantia, ProductCatalogue, Suporte, VozDoCliente) têm
+        // ZERO US legitimamente — abortar neles seria falso-positivo.
+        $specsEncontrados = 0;
 
         $iterator = new \DirectoryIterator($base);
         foreach ($iterator as $modDir) {
@@ -154,6 +163,7 @@ class TaskParserService
             if (! is_file($specPath)) {
                 continue;
             }
+            $specsEncontrados++;
 
             $candidatos = $this->parseSpec($specPath, $module);
             $modulos[$module] = $candidatos->count();
@@ -203,6 +213,30 @@ class TaskParserService
         // não são esperadas no SPEC.
         // ADR 0144: NÃO regredir `done` → `cancelled`. Estado terminal é canon
         // do DB; remover linha do SPEC depois de mergear PR é fluxo normal.
+        //
+        // ⚠️ E SÓ com coleta NÃO-VAZIA. Espelha a guarda do `IndexarMemoryGitParaDb`
+        // (`abortarColetaVazia`, 2026-09-05), com a forma INVERTIDA: lá o perigo é
+        // `whereNotIn('slug', [])` virar `where 1 = 1`; aqui o `whereNotIn` é PULADO
+        // quando a lista é vazia, e o que sobra (`status` + `source_path` + `module`)
+        // casa o conjunto inteiro. Mesma classe, portas opostas.
+        //
+        // Medido em prod (Hostinger, 2026-09-05, sondas somente-leitura — nenhum
+        // update executado):
+        //   - sync COMPLETO com coleta vazia cancelaria 662 de 662 tasks do escopo;
+        //   - `--module=jana` (minúsculo) cancelaria 40; `--module=financeiro`, 35.
+        //
+        // O caminho do `--module` é o alcançável, e por um motivo que ninguém tinha
+        // escrito: a comparação de diretório em PHP (`$module !== $apenasModulo`, L150)
+        // é case-SENSITIVE, mas `mcp_tasks.module` é `utf8mb4_unicode_ci`, logo o
+        // `where('module', ...)` é case-INSENSITIVE. Provado em prod: `SELECT
+        // 'jana' = 'Jana'` devolve 1. Então `--module=jana` não lê SPEC nenhum (a
+        // lista fica vazia, o `whereNotIn` some) mas o WHERE casa as 40 linhas de
+        // `Jana`. Já `--module=Jna` (erro de letra) casa 0 — o vetor é a CAIXA.
+        // A opção `--module` não tem validação nenhuma (McpTasksSyncCommand L24).
+        if ($this->deveAbortarColeta($apenasModulo, $specsEncontrados, $reportadasNoSync)) {
+            $this->abortarColetaVazia($apenasModulo, $specsEncontrados);
+        }
+
         $canceladas = 0;
         $query = McpTask::whereNotIn('status', ['cancelled', 'done'])
             ->where(function ($q) {
@@ -231,6 +265,79 @@ class TaskParserService
         ]);
 
         return $this->relatorio(count($reportadasNoSync), $inseridas, $atualizadas, $canceladas, $fechadasPorAncora, $descritivosDivergentes, $modulos);
+    }
+
+    /**
+     * Predicado da guarda de coleta vazia. Extraído do chokepoint (e chamado DE LÁ)
+     * porque o 2º disjunto não é alcançável pelo filesystem real num teste: exigiria
+     * `memory/requisitos` com SPECs que não parseiam nenhuma US, e a árvore de
+     * verdade tem 53 SPECs com US. O 1º disjunto é exercitado ponta-a-ponta pelos
+     * testes de `syncAll()` — este método não é satélite, é o predicado em uso.
+     *
+     * @param  list<string>  $reportadas
+     */
+    private function deveAbortarColeta(?string $apenasModulo, int $specsEncontrados, array $reportadas): bool
+    {
+        // Nenhum SPEC LIDO: base errada, checkout sem memory/, ou `--module` que não
+        // casou diretório (o caso da caixa errada). Vale pros dois modos.
+        if ($specsEncontrados === 0) {
+            return true;
+        }
+
+        // SPECs lidos porém zero US, em sync COMPLETO: parser/regex quebrado. Num sync
+        // PARCIAL isso é legítimo (8 dos 61 SPECs não têm US) e segue cancelando.
+        return $apenasModulo === null && $reportadas === [];
+    }
+
+    /**
+     * Aborta o cancelamento em massa quando a coleta que o justificaria está vazia.
+     *
+     * Coleta vazia NUNCA é instrução de cancelar — é falha de ambiente (base errada,
+     * checkout sem `memory/`, pull a meio caminho) ou `--module` que não casou
+     * diretório nenhum. O consumidor certo já existe nos dois chamadores:
+     * `McpTasksSyncCommand::handle` tem `catch (\Throwable)` → imprime `Falhou: ...`
+     * e devolve FAILURE (o humano do CLI vê na hora); `SyncMemoryWebhookController`
+     * tem `catch` próprio que degrada pra `tasks_sync.synced=false` — a exceção NÃO
+     * derruba o webhook nem o `IndexarMemoryGitParaDb` que rodou antes dele.
+     */
+    private function abortarColetaVazia(?string $apenasModulo, int $specsEncontrados): never
+    {
+        $base = base_path('memory/requisitos');
+        // Sem escopo extra de propósito: é exatamente o conjunto que a query sem
+        // `whereNotIn` teria cancelado.
+        $query = McpTask::whereNotIn('status', ['cancelled', 'done'])
+            ->where(function ($q) {
+                $q->where('source_path', 'LIKE', 'memory/requisitos/%')
+                  ->orWhereNull('source_path');
+            });
+        if ($apenasModulo !== null) {
+            $query->where('module', $apenasModulo);
+        }
+        $preservadas = $query->count();
+
+        $causa = $specsEncontrados === 0
+            ? ($apenasModulo !== null
+                // Caixa errada é o caso provável: o diretório compara case-sensitive
+                // no PHP e o `module` casa case-insensitive no MySQL.
+                ? sprintf('nenhum SPEC.md lido — o módulo "%s" não casou diretório em %s (confira a CAIXA do nome)', $apenasModulo, $base)
+                : sprintf('nenhum SPEC.md lido em %s', $base))
+            : sprintf('%d SPEC.md lido(s), porém ZERO US reconhecida — parser/regex quebrado', $specsEncontrados);
+
+        $detalhe = sprintf(
+            'coleta vazia (%s) — cancelamento ABORTADO, %d task(s) preservada(s)%s',
+            $causa,
+            $preservadas,
+            $apenasModulo !== null ? sprintf(' no escopo module="%s"', $apenasModulo) : '',
+        );
+
+        Log::channel('copiloto-ai')->error('TaskParserService ABORTADO: ' . $detalhe, [
+            'apenas_modulo'     => $apenasModulo,
+            'specs_encontrados' => $specsEncontrados,
+            'base'              => $base,
+            'tasks_preservadas' => $preservadas,
+        ]);
+
+        throw new \RuntimeException('TaskParserService: ' . $detalhe);
     }
 
     /**
