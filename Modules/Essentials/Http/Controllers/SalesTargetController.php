@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Modules\Essentials\Entities\EssentialsUserSalesTarget;
+use Modules\Essentials\Services\SalesTargetFaixaValidator;
 use Yajra\DataTables\Facades\DataTables;
 
 class SalesTargetController extends Controller
