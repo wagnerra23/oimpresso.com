@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: o contrato da grade (1 célula = 1 variation_id, 1 POST único) e o ownership das variations são duráveis — não mudam quando a tela ganhar campo novo.
 owner: wagner
 last_run: "2026-09-05"
-last_run_ci: "🔴 A DIVIDA CONTINUA ABERTA — NENHUM teste de tests/Feature/Purchase/ roda em lane alguma (8 arquivos orfaos de CI); o uc-lane-coverage reprova estes UC por isso e esta certo. Ver §Divida de prova. O bump de 2026-09-04 -> 2026-09-05 NAO paga essa divida e nao afirma execucao: ele registra a REVISAO exigida pelo G-6 depois que o .tsx foi tocado. O que foi revisado, e verificavel: o diff contra 153a65b558 (commit que criou este arquivo) e exatamente 5 atributos `data-contract` em <Card>, zero mudanca de logica/props/copy; e nenhum dos 7 UC depende de atributo/DOM/seletor (grep por data-contract|atributo|DOM|seletor|className neste arquivo: rc=1, zero hits) — os 7 sao de backend/tenant/dado. TENTATIVA DE PROVA REAL, e por que ela NAO vale como recibo: rodei tests/Feature/Purchase/ no CT 100 (90 passed, 6 failed, 6 skipped, 214 assertions), mas o checkout do container esta em c1abe9548f (2026-08-26) e NAO contem as ancoras (grep -c data-contract = 0). Run de outra arvore nao prova esta — citar aquele numero aqui seria medir a coisa errada."
+last_run_ci: "🟡 PARCIAL (revisto em 2026-09-05, com o numero medido em vez de afirmado). A frase anterior — 'NENHUM teste de tests/Feature/Purchase/ roda em lane alguma (8 arquivos orfaos)' — estava ERRADA nos DOIS numeros ja quando foi escrita: a pasta tem 10 arquivos, nao 8, e 4 deles ja rodavam (purchase-pest.yml roda PurchaseIndexTenantContratoTest + PurchaseShowTenantContratoTest desde 2026-09-04; compras-pest.yml roda UpdateCrossTenantIdorTest + PurchaseGradeMatrixTest). Estado ao mergear a leva de 2026-09-05: 6 dos 10 em lane, 4 orfaos (IndexPageTest, ShowPageTest, Wave2CreateInertiaTest, Wave2EditInertiaTest). Para ESTA tela: UC-PURCRE-01 e UC-PURCRE-06 ganharam lane via Wave2CreateBaselineTest (11 passed/14 assertions no CT 100, mordida provada por mutacao) — cobertura ESTRUTURAL, o proprio arquivo se declara presence-gate LC-11; UC-PURCRE-05 e UC-PURCRE-07 seguem sem lane e estao datados em governance/uc-lane-baseline.json com o motivo no _meta. NAO restatear este numero a mao: rode `node scripts/qa/uc-lane-coverage.mjs` e `node scripts/governance/test-lane-coverage.mjs --json`. Ver §Divida de prova. O bump de 2026-09-04 -> 2026-09-05 NAO paga essa divida e nao afirma execucao: ele registra a REVISAO exigida pelo G-6 depois que o .tsx foi tocado. O que foi revisado, e verificavel: o diff contra 153a65b558 (commit que criou este arquivo) e exatamente 5 atributos `data-contract` em <Card>, zero mudanca de logica/props/copy; e nenhum dos 7 UC depende de atributo/DOM/seletor (grep por data-contract|atributo|DOM|seletor|className neste arquivo: rc=1, zero hits) — os 7 sao de backend/tenant/dado. TENTATIVA DE PROVA REAL, e por que ela NAO vale como recibo: rodei tests/Feature/Purchase/ no CT 100 (90 passed, 6 failed, 6 skipped, 214 assertions), mas o checkout do container esta em c1abe9548f (2026-08-26) e NAO contem as ancoras (grep -c data-contract = 0). Run de outra arvore nao prova esta — citar aquele numero aqui seria medir a coisa errada."
 ---
 
 # Casos de Uso & Aceite — Nova Compra (`/purchases/create`)
@@ -23,7 +23,34 @@ last_run_ci: "🔴 A DIVIDA CONTINUA ABERTA — NENHUM teste de tests/Feature/Pu
 
 ---
 
-## 🔴 Dívida de prova — **nenhum** teste desta tela roda em lane alguma
+## 🟡 Dívida de prova — **parcial**: 2 dos 7 UC ganharam lane
+
+> ✅ **Atualização de 2026-09-05 (leva `uc-lane` PR-par) — o texto abaixo continua verdadeiro para
+> o dia em que foi escrito e fica inteiro; o que mudou está aqui.** O `Wave2CreateBaselineTest`
+> entrou na allowlist do [`purchase-pest.yml`](../../../../.github/workflows/purchase-pest.yml):
+> **11 passed / 14 assertions** rodados no CT 100 contra os mesmos blobs de `origin/main`, e
+> **mordida provada por mutação** (trocar `can('purchase.create')` derruba exatamente o assert
+> Tier 0, com os outros 10 verdes). Com isso **UC-PURCRE-01 e UC-PURCRE-06 saem de `🔴 sem lane`**.
+>
+> **Cobertura ESTRUTURAL, não comportamental** — o próprio teste se declara presence-gate no
+> docblock (*"ESTRUTURAL … Classe LC-11"*). Guarda a REMOÇÃO do fallback Blade e dos gates; não
+> monta usuário nem observa recusa. **O título mudou de 🔴 para 🟡 por isso, não por otimismo.**
+>
+> **UC-PURCRE-05 e UC-PURCRE-07** seguem `🔴 sem lane`: apontam pro `Wave2CreateInertiaTest`, que
+> tem vermelho REAL em main — cobra `memory/requisitos/Purchase/{RUNBOOK-create,create-visual-comparison}.md`,
+> os dois **ausentes** (a pasta só tem `BRIEFING.md`). Estão datados em
+> [`governance/uc-lane-baseline.json`](../../../../governance/uc-lane-baseline.json), com o motivo
+> no `_meta.crescimento_2026_09_05` — que nasce no gerador, não no JSON, pra não evaporar no
+> próximo `--write-baseline`.
+>
+> ⚠️ **Dois números do bloco abaixo já estavam errados quando foram escritos**, e a correção é
+> medição, não opinião: a pasta tem **10** arquivos de teste, não 8; e **4 deles já rodavam** —
+> `purchase-pest.yml` roda `PurchaseIndexTenantContratoTest` + `PurchaseShowTenantContratoTest`
+> desde 2026-09-04, e `compras-pest.yml` roda `UpdateCrossTenantIdorTest` +
+> `PurchaseGradeMatrixTest`. A perna *"workflows que citam `tests/Feature/Purchase` → 0"* mediu
+> `git grep` numa janela em que a lane ainda não existia. Estado ao fim desta leva: **6 dos 10 em
+> lane, 4 órfãos**. Não restateie estes números à mão — rode
+> `node scripts/qa/uc-lane-coverage.mjs` e `node scripts/governance/test-lane-coverage.mjs --json`.
 
 > ⚠️ **Correção da v1 deste arquivo (2026-09-05), registrada e não apagada.** A v1 dizia que os
 > `Wave2*` e o miolo do `PurchaseGradeMatrixTest` "executam", e chamava a dívida de *cobertura
@@ -72,12 +99,12 @@ decisão do dono, com chip aberto.
 
 | UC | Título | Tipo | Âncora de contrato | Teste que cita | Status |
 |---|---|---|---|---|---|
-| UC-PURCRE-01 | SPA recebe React; Blade legacy preservado | must | RUNBOOK §3 | `Wave2CreateInertiaTest` · `Wave2CreateBaselineTest` | 🔴 sem lane |
+| UC-PURCRE-01 | SPA recebe React; Blade legacy preservado | must | RUNBOOK §3 | `Wave2CreateInertiaTest` · `Wave2CreateBaselineTest` | 🧪 em lane (estrutural) |
 | UC-PURCRE-02 | Endpoint da grade recusa produto de outro tenant | must `[T0]` | RUNBOOK §10 · charter R-PUR-001 | `PurchaseGradeMatrixTest` | 🔴 sem lane + quarentena |
 | UC-PURCRE-03 | `store()` recusa `variation_id` forjado de outro tenant | must `[T0]` `[V0]` | RUNBOOK §10 · charter R-PUR-001 | `PurchaseGradeMatrixTest` | 🔴 sem lane |
 | UC-PURCRE-04 | A grade nunca abre vazia — degrada 2D → 1 eixo → single | must | RUNBOOK §5 · charter Non-Goal 2 | `PurchaseGradeMatrixTest` | 🔴 sem lane (o teste é bom e não roda) |
 | UC-PURCRE-05 | 1 célula = 1 `variation_id`, num POST único | must `[V0]` | RUNBOOK §4 · charter Goals | `Wave2CreateInertiaTest` | 🔴 sem lane |
-| UC-PURCRE-06 | Dropdown de filiais respeita `permitted_locations` | must `[T0]` | RUNBOOK §10 · charter R-PUR-002 | `Wave2CreateBaselineTest` | 🔴 sem lane |
+| UC-PURCRE-06 | Dropdown de filiais respeita `permitted_locations` | must `[T0]` | RUNBOOK §10 · charter R-PUR-002 | `Wave2CreateBaselineTest` | 🧪 em lane (estrutural) |
 | UC-PURCRE-07 | A Page não decide tenant — `business_id` vem das props | must `[T0]` | RUNBOOK §10 | `Wave2CreateInertiaTest` | 🔴 sem lane |
 
 ---

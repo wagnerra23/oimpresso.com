@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: os três gates de escrita (tenant, janela temporal, devolução existente) são duráveis — não mudam quando o formulário ganhar campo novo.
 owner: wagner
 last_run: "2026-09-04"
-last_run_ci: "🔴 NENHUM teste de tests/Feature/Purchase/ roda em lane alguma — 8 arquivos órfãos de CI; o do IDOR soma quarentena por cima. Ver §Dívida de prova."
+last_run_ci: "🟡 PARCIAL (revisto em 2026-09-05, com o número medido em vez de afirmado). A frase anterior — '8 arquivos órfãos; o do IDOR soma quarentena por cima' — estava errada nos dois pontos: a pasta tem 10 arquivos, e o UpdateCrossTenantIdorTest não está em quarentena nenhuma (roda em compras-pest.yml desde 2026-09-05: 4 skipped → 3 passed/13 assertions). Estado ao fim da leva: 6 dos 10 em lane, 4 órfãos. Desta tela, 5 dos 7 UC têm lane — UC-PUREDT-02 com defesa de COMPORTAMENTO (IDOR cross-tenant em dinheiro) e UC-PUREDT-01/03/04/05 com defesa ESTRUTURAL via Wave2EditBaselineTest (11 passed/14 assertions no CT 100, mordida provada por mutação; segue presence-gate LC-11 por natureza). UC-PUREDT-06 e 07 seguem sem lane, datados em governance/uc-lane-baseline.json com o motivo no _meta. Não restatear este número à mão: rode `node scripts/qa/uc-lane-coverage.mjs`. Ver §Dívida de prova."
 ---
 
 # Casos de Uso & Aceite — Editar Compra (`/purchases/{id}/edit`)
@@ -22,7 +22,38 @@ last_run_ci: "🔴 NENHUM teste de tests/Feature/Purchase/ roda em lane alguma �
 
 ---
 
-## 🔴 Dívida de prova — **nenhum** teste desta tela roda em lane alguma
+## 🟡 Dívida de prova — **parcial**: 5 dos 7 UC ganharam lane
+
+> ✅ **Atualização de 2026-09-05 (leva `uc-lane` PR-par) — o texto abaixo continua verdadeiro para
+> o dia em que foi escrito e fica inteiro; o que mudou está aqui.** Duas mudanças independentes,
+> ambas medidas:
+>
+> 1. **`Wave2EditBaselineTest` entrou na allowlist do
+>    [`purchase-pest.yml`](../../../../.github/workflows/purchase-pest.yml)** — 11 passed /
+>    14 assertions no CT 100 contra os mesmos blobs de `origin/main`, mordida provada por mutação
+>    (trocar `isReturnExist($id)` derruba exatamente o assert do bloqueio, com o resto verde).
+>    Com isso **UC-PUREDT-01, 03, 04 e 05** saem de `⚠️ 🧪 estrutural` para `🧪 em lane
+>    (estrutural)`. A ressalva de natureza **continua de pé** — é presence-gate, e o próprio
+>    arquivo se declara assim; o que mudou é que agora alguém o acorda.
+> 2. **`UpdateCrossTenantIdorTest` já estava em lane, e este arquivo dizia que não.** O
+>    [`compras-pest.yml`](../../../../.github/workflows/compras-pest.yml) o roda desde 2026-09-05,
+>    e o próprio comentário de lá registra o antes→depois: `4 skipped (0 assertions)` no arquivo
+>    de `origin/main` → **`3 passed (13 assertions)`**. O `markTestSkipped` que sobrou protege
+>    apenas ambiente sqlite; na lane dona (MySQL real) ele executa. Ele **não está** em
+>    `.github/*quarantine.list` nenhuma — conferido. Por isso o **UC-PUREDT-02** sai de
+>    `🔴 quarentena` para `✅ em lane (comportamento)`.
+>
+> **O título mudou de 🔴 para 🟡 por isso, não por otimismo.** Sobra **UC-PUREDT-06 e 07**, que
+> apontam pro `Wave2EditInertiaTest` — vermelho REAL em main, porque cobra
+> `memory/requisitos/Inventory/{RUNBOOK-purchase-edit,purchase-edit-visual-comparison}.md`, os dois
+> **ausentes**. Estão datados em
+> [`governance/uc-lane-baseline.json`](../../../../governance/uc-lane-baseline.json).
+>
+> ⚠️ **Dois números do bloco abaixo já estavam errados quando foram escritos:** a pasta
+> `tests/Feature/Purchase/` tem **10** arquivos, não 8; e a perna *"workflows que citam … → 0"*
+> mediu `git grep` numa janela em que a lane ainda não existia — **4 arquivos já rodavam**. Estado
+> ao fim desta leva: **6 dos 10 em lane, 4 órfãos**. Não restateie à mão: rode
+> `node scripts/qa/uc-lane-coverage.mjs` e `node scripts/governance/test-lane-coverage.mjs --json`.
 
 > ⚠️ **Correção da v1 deste arquivo (2026-09-05), registrada e não apagada.** A v1 marcava os
 > `Wave2*` como *"✅ sim — executa"* e tratava a quarentena do `UpdateCrossTenantIdorTest` como o
@@ -73,11 +104,11 @@ allowlist por conta própria — por que ela existe (custo de CI? teste instáve
 
 | UC | Título | Tipo | Âncora de contrato | Teste que cita | Status |
 |---|---|---|---|---|---|
-| UC-PUREDT-01 | SPA recebe React; Blade legacy preservado | must | RUNBOOK §11 · charter §Reuso | `Wave2EditInertiaTest` · `Wave2EditBaselineTest` | ⚠️ 🧪 estrutural |
-| UC-PUREDT-02 | `update()` nunca alcança transação de outro tenant | must `[T0]` `[V0]` | RUNBOOK §3 · charter R-PUR-001 | `UpdateCrossTenantIdorTest` | 🔴 quarentena |
-| UC-PUREDT-03 | Edição fora da janela `transaction_edit_days` é recusada | must | RUNBOOK §3 · charter R-PUR-005 | `Wave2EditBaselineTest` | ⚠️ 🧪 estrutural |
-| UC-PUREDT-04 | Compra com devolução já criada não pode ser editada | must `[V0]` | RUNBOOK §3 · charter R-PUR-006 | `Wave2EditBaselineTest` | ⚠️ 🧪 estrutural |
-| UC-PUREDT-05 | Sem `purchase.update` não se abre nem se salva | must | RUNBOOK §3 · charter R-PUR-007 | `Wave2EditBaselineTest` | ⚠️ 🧪 estrutural |
+| UC-PUREDT-01 | SPA recebe React; Blade legacy preservado | must | RUNBOOK §11 · charter §Reuso | `Wave2EditInertiaTest` · `Wave2EditBaselineTest` | 🧪 em lane (estrutural) |
+| UC-PUREDT-02 | `update()` nunca alcança transação de outro tenant | must `[T0]` `[V0]` | RUNBOOK §3 · charter R-PUR-001 | `UpdateCrossTenantIdorTest` | ✅ em lane (comportamento) |
+| UC-PUREDT-03 | Edição fora da janela `transaction_edit_days` é recusada | must | RUNBOOK §3 · charter R-PUR-005 | `Wave2EditBaselineTest` | 🧪 em lane (estrutural) |
+| UC-PUREDT-04 | Compra com devolução já criada não pode ser editada | must `[V0]` | RUNBOOK §3 · charter R-PUR-006 | `Wave2EditBaselineTest` | 🧪 em lane (estrutural) |
+| UC-PUREDT-05 | Sem `purchase.update` não se abre nem se salva | must | RUNBOOK §3 · charter R-PUR-007 | `Wave2EditBaselineTest` | 🧪 em lane (estrutural) |
 | UC-PUREDT-06 | O formulário chega pré-populado com a compra, tipada | should | RUNBOOK §4 · §9 | `Wave2EditInertiaTest` | ⚠️ 🧪 estrutural |
 | UC-PUREDT-07 | A Page não decide tenant — `business_id` vem das props | must `[T0]` | RUNBOOK §3 | `Wave2EditInertiaTest` | 🧪 estrutural (correto) |
 
