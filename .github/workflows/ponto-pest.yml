@@ -220,6 +220,18 @@ jobs:
         # Recibo de que ele passa (medição do #6154, não afirmação): 6 passed · 76
         # assertions · 0 skipped no CT 100, mais bite-test do guard Tier 0 — com o filtro
         # `business_id` removido de `buildAprovacoes`, SÓ o UC-PAINEL-02 reprovou.
+        # ColaboradorContratoTest (2026-09-04): trio das telas `Ponto/Colaboradores/Index` e
+        # `.../Edit` (UC-COLIDX-01..02 · UC-COLEDT-01..02). Entra junto com o casos.md porque
+        # teste fora desta lista é "verde impossível" — existe em main e nunca roda por PR.
+        # Recibo (medição no CT 100, container oimpresso-staging · MySQL real, NÃO afirmação):
+        # 4 passed · 15 assertions · 0 skipped. Bite-test com a defesa removida (o
+        # `use HasBusinessScope;` do model comentado): 2 failed — exatamente os dois UC `[T0]`,
+        # UC-COLIDX-01 e UC-COLEDT-01; os outros 2 seguiram verdes, como esperado.
+        # ⚠️ O bite-test pegou um defeito NO PRÓPRIO TESTE antes de pegar o do produto: a 1ª
+        # versão usava `expect($html)->not->toContain($needle, $mensagem)`, e o `toContain` do
+        # Pest recebe MÚLTIPLOS needles — a mensagem virava 2º needle e o `not` passava sempre.
+        # É a classe do §5 de proibicoes.md (2026-07-28). Trocado por
+        # `assertStringNotContainsString`, que recebe a mensagem como 3º parâmetro.
         # ⚠️ Os 2 testes de Dashboard PRÉ-EXISTENTES (DashboardTest ·
         # DashboardDeferredContractTest) seguem FORA, e de propósito: `DashboardTest`
         # afirma 6 chaves de KPI com assertEqualsCanonicalizing e o Controller passou a
@@ -243,6 +255,7 @@ jobs:
             Modules/Ponto/Tests/Feature/IntercorrenciaContratoTest.php \
             Modules/Ponto/Tests/Feature/IntercorrenciaEditContratoTest.php \
             Modules/Ponto/Tests/Feature/PontoDashboardContratoTest.php \
+            Modules/Ponto/Tests/Feature/ColaboradorContratoTest.php \
             Modules/Ponto/Tests/Feature/CustomerJourneyTest.php \
             Modules/Ponto/Tests/Feature/DashboardDeferredContractTest.php \
             Modules/Ponto/Tests/Feature/EspelhoTest.php \
