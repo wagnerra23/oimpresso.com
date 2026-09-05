@@ -15,8 +15,12 @@ use Tests\Support\WithSeededTenant;
  * ── POR QUE ESTE ARQUIVO FOI REESCRITO (2026-09-05) ──────────────────────────
  * Ele falhava **6 de 6** contra MySQL e ninguém via. A única lane que o alcançava
  * (`modules-pest`) roda `DB_CONNECTION=sqlite :memory:` **sem migrations**: o
- * `Business::first()` estourava, o guard virava `markTestSkipped`, e skip sai
+ * `Business::first` cru estourava, o guard virava `markTestSkipped`, e skip sai
  * **exit 0** — o job dava success sem exercer uma linha. Gate mudo (LC-13).
+ *
+ * (As menções a `Business::first` aqui vão SEM parênteses de propósito — a catraca
+ * `foundation-ratchet` conta texto cru, `/\bBusiness::first\s*\(/`, e não distingue
+ * uso de comentário. Mesma convenção do docblock de `Tests\Support\WithSeededTenant`.)
  *
  * Medido no CT 100 (MySQL) em 2026-09-05, `6 failed (7 assertions)`, com TRÊS
  * causas distintas — não uma:
@@ -44,7 +48,7 @@ use Tests\Support\WithSeededTenant;
  *     JSON, e `AssertableInertia::fromTestResponse` começa por `assertViewHas('page')`,
  *     que espera a casca HTML: header + `assertInertia` é combinação impossível e
  *     falha com "Not a valid Inertia response" mesmo com resposta 200 válida.
- *  3. **Tenant 98** (fictício, ADR 0358) via `seededTenant()`. O `Business::first()`
+ *  3. **Tenant 98** (fictício, ADR 0358) via `seededTenant()`. O `Business::first`
  *     anterior devolvia **biz=1 — a WR2, empresa REAL** (medido no log do CT 100:
  *     `business_id: 1`), e no CT 100 a base é clone de prod que não se limpa.
  *  4. **Guard de driver explícito**. Sem ele, `seededTenant()` em sqlite estoura
