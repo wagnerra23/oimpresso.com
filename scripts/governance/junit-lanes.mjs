@@ -85,6 +85,49 @@ function uploadBlocks(yml) {
   return blocos;
 }
 
+/**
+ * O `path:` de um `upload-artifact` COBRE o XML emitido?
+ *
+ * POR QUE NÃO BASTA `p.includes(xml)` (medido 2026-09-05): `path:` do upload-artifact
+ * aceita TRÊS formas, e a comparação literal só entendia uma. Duas lanes emitiam JUnit,
+ * publicavam o artifact e ficavam de fora da lista derivada — o mesmo defeito que este
+ * arquivo nasceu para consertar, agora por outra porta:
+ *
+ *   verticais-pest.yml  path: test-results/pest-verticais-junit*.*   (GLOB)
+ *   whatsapp-pest.yml   path: test-results/                          (DIRETÓRIO)
+ *
+ * O custo não é cosmético: `RepairSettingsContratoTest` roda VERDE na verticais desde o
+ * run 33969895224 (UC-RSET-07/08 ✓), e os 8 UC-RSET seguiam `skip`/ausentes no manifesto
+ * porque o publisher itera SÓ o que este arquivo deriva. Consertar o manifesto à mão
+ * deixaria a lane órfã no run seguinte (§5 2026-08-02: recuar à mão em vez de virar regra).
+ *
+ * A ordem das três formas é deliberada — a literal vem PRIMEIRO e intacta, então as 28
+ * lanes já derivadas não mudam de classificação (medido: byte-idêntico antes/depois).
+ * O critério segue sendo o FATO (emite E transporta), nunca o nome do arquivo/pasta.
+ */
+export function pathCobreXml(p, xml) {
+  const norm = (s) => String(s).trim().replace(/^\.\//, '').replace(/\/+$/, '');
+  const P = norm(p);
+  const X = norm(xml);
+  if (!P || !X) return false;
+  if (P.includes(X)) return true; // (1) literal — comportamento original, preservado
+  if (P.includes('*') || P.includes('?')) {
+    // (2) glob: `*` não atravessa `/`, `**` atravessa — semântica do @actions/glob.
+    const escapado = P.replace(/[.+^${}()|[\]\\]/g, '\\$&');
+    // UMA passada (marcador intermediário seria caractere de controle no fonte, e
+    // invisível não sobrevive a transporte de escrita) e a regex por CHARACTER CLASS
+    // em vez de escape — `[*][*]` no lugar de barra-asterisco. As duas escolhas são a
+    // mesma defesa: LC-26, o par de barra invertida colapsa no caminho até o arquivo.
+    const corpo = escapado.replace(new RegExp('[*][*]|[*]|[?]', 'g'), (t) => {
+      if (t === '**') return '.*';
+      if (t === '*') return '[^/]*';
+      return '[^/]';
+    });
+    return new RegExp(`^${corpo}$`).test(X);
+  }
+  return X.startsWith(`${P}/`); // (3) diretório que contém o XML
+}
+
 /** Lanes derivadas: [{ workflow, artifact, via, junit }] — ordenado, estável. */
 export function derivarLanes(dir = WF_DIR) {
   const out = [];
@@ -129,12 +172,12 @@ export function derivarLanes(dir = WF_DIR) {
       }
     }
     for (const xml of xmls) {
-      const b = blocos.find((x) => x.paths.some((p) => p.includes(xml)));
+      const b = blocos.find((x) => x.paths.some((p) => pathCobreXml(p, xml)));
       if (b) out.push({ workflow: arq, artifact: b.name, via: 'junit', junit: xml });
     }
 
     // (b) lane que publica o MANIFESTO pronto
-    const bMan = blocos.find((x) => x.paths.some((p) => p.includes(MANIFEST_REL)));
+    const bMan = blocos.find((x) => x.paths.some((p) => pathCobreXml(p, MANIFEST_REL)));
     if (bMan && !out.some((o) => o.workflow === arq && o.artifact === bMan.name)) {
       out.push({ workflow: arq, artifact: bMan.name, via: 'manifesto', junit: MANIFEST_REL });
     }
@@ -168,6 +211,16 @@ function selftest() {
   // 8. CONTROLE NEGATIVO: vitest junit citado só em COMENTÁRIO → não vira lane
   escrever('vitest-so-comentario.yml', `jobs:\n  t:\n    steps:\n      # local: npx vitest run --reporter=junit --outputFile=test-results/vitest-fantasma-junit.xml\n      - run: echo oi\n`);
 
+  // ── formas de `path:` que a comparação literal não enxergava (2026-09-05) ──────────
+  // 9. GLOB no path (caso REAL da verticais-pest: `pest-verticais-junit*.*`) → tem que achar
+  escrever('glob-pest.yml', `jobs:\n  t:\n    steps:\n      - run: vendor/bin/pest --log-junit test-results/pest-glob-junit.xml\n      - name: up\n        uses: actions/upload-artifact@v4\n        with:\n          name: pest-glob-junit\n          path: test-results/pest-glob-junit*.*\n`);
+  // 10. DIRETÓRIO no path (caso REAL da whatsapp-pest: `test-results/`) → tem que achar
+  escrever('dir-pest.yml', `jobs:\n  t:\n    steps:\n      - run: vendor/bin/pest --log-junit test-results/pest-dir-junit.xml\n      - name: up\n        uses: actions/upload-artifact@v4\n        with:\n          name: pest-dir-mysql\n          path: test-results/\n`);
+  // 11. CONTROLE NEGATIVO: glob de OUTRA pasta → o XML não é transportado, não é lane
+  escrever('glob-outra-pasta.yml', `jobs:\n  t:\n    steps:\n      - run: vendor/bin/pest --log-junit test-results/pest-fora-junit.xml\n      - name: up\n        uses: actions/upload-artifact@v4\n        with:\n          name: cobertura\n          path: coverage/*.xml\n`);
+  // 12. CONTROLE NEGATIVO: diretório IRMÃO → `*` não atravessa `/`, e o prefixo não bate
+  escrever('dir-irmao.yml', `jobs:\n  t:\n    steps:\n      - run: vendor/bin/pest --log-junit test-results/nested/pest-fundo-junit.xml\n      - name: up\n        uses: actions/upload-artifact@v4\n        with:\n          name: outro\n          path: test-results/*.xml\n`);
+
   const r = derivarLanes(dir);
   const achou = (wf) => r.some((x) => x.workflow === wf);
   casos.push(['MORDE: lane com junit + artifact', achou('boa-pest.yml')]);
@@ -182,6 +235,14 @@ function selftest() {
   casos.push(['artifact certo (não o -summary)', b && b.artifact === 'pest-boa-junit']);
   const v = r.find((x) => x.workflow === 'boa-vitest.yml');
   casos.push(['vitest: artifact + xml certos', v && v.artifact === 'vitest-boa-junit' && v.junit === 'test-results/vitest-boa-junit.xml']);
+  casos.push(['MORDE: path com GLOB (verticais-pest)', achou('glob-pest.yml')]);
+  casos.push(['MORDE: path DIRETÓRIO (whatsapp-pest)', achou('dir-pest.yml')]);
+  casos.push(['SOLTA: glob de outra pasta', !achou('glob-outra-pasta.yml')]);
+  casos.push(['SOLTA: glob `*` não atravessa `/`', !achou('dir-irmao.yml')]);
+  const d = r.find((x) => x.workflow === 'dir-pest.yml');
+  // O nome do artifact vem do bloco, NUNCA de convenção: a whatsapp-pest transporta o
+  // JUnit num artifact chamado `pest-whatsapp-mysql`. Supor o sufixo `-junit` erraria.
+  casos.push(['diretório: artifact é o do bloco, não o suposto', d && d.artifact === 'pest-dir-mysql']);
 
   rmSync(dir, { recursive: true, force: true });
   let ok = true;
