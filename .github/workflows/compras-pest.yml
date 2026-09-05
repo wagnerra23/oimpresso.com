@@ -202,7 +202,11 @@ jobs:
             tests/Feature/Purchase/UpdateCrossTenantIdorTest.php \
             tests/Feature/Purchase/PurchaseGradeMatrixTest.php \
             tests/Feature/Purchase/Wave2EditBaselineTest.php \
-            tests/Feature/Purchase/Wave2EditInertiaTest.php
+            tests/Feature/Purchase/Wave2EditInertiaTest.php \
+            tests/Feature/Purchase/Wave2CreateBaselineTest.php \
+            tests/Feature/Purchase/Wave2CreateInertiaTest.php \
+            tests/Feature/Purchase/IndexPageTest.php \
+            tests/Feature/Purchase/ShowPageTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.

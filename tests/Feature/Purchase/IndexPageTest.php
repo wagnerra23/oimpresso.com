@@ -13,7 +13,7 @@ declare(strict_types=1);
  *   - Snapshot paridade + visual-comparison existem (STEP 1 + STEP 4 da skill)
  *
  * Snapshot: memory/mwart-inventory/purchase/index.snapshot.md
- * Visual:   memory/requisitos/Purchase/index-visual-comparison.md
+ * Visual:   memory/requisitos/Compras/_telas/index-visual-comparison.md
  *
  * ── Rastreabilidade (casos-gate G-2 · ADR 0264) ────────────────────────────
  * Contrato: resources/js/Pages/Purchase/Index.casos.md
@@ -34,7 +34,7 @@ declare(strict_types=1);
 const PURCHASE_INDEX_PATH = 'resources/js/Pages/Purchase/Index.tsx';
 const PURCHASE_CONTROLLER_PATH = 'app/Http/Controllers/PurchaseController.php';
 const PURCHASE_SNAPSHOT_PATH = 'memory/mwart-inventory/purchase/index.snapshot.md';
-const PURCHASE_VISUAL_COMP_PATH = 'memory/requisitos/Purchase/index-visual-comparison.md';
+const PURCHASE_VISUAL_COMP_PATH = 'memory/requisitos/Compras/_telas/index-visual-comparison.md';
 
 function readPurchaseIndex(): string
 {
@@ -193,7 +193,7 @@ it('Controller PRESERVA path AJAX DataTables legacy (Yajra)', function () {
 
 // ─── STEP 4: GATE VISUAL — comparison existe ─────────────────────────────────
 
-it('visual-comparison.md existe em memory/requisitos/Purchase/', function () {
+it('visual-comparison.md existe em memory/requisitos/Compras/_telas/', function () {
     expect(file_exists(base_path(PURCHASE_VISUAL_COMP_PATH)))->toBeTrue();
     $content = file_get_contents(base_path(PURCHASE_VISUAL_COMP_PATH));
     expect($content)->toContain('15 dimensões comparativas');

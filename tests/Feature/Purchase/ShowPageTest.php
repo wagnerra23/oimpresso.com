@@ -9,7 +9,7 @@ declare(strict_types=1);
  * Mata bug 500 em prod (show_details.blade.php:430 DNS1D::getBarcodePNG).
  *
  * Snapshot: memory/mwart-inventory/purchase/show.snapshot.md
- * Visual:   memory/requisitos/Purchase/show-visual-comparison.md
+ * Visual:   memory/requisitos/Compras/_telas/show-visual-comparison.md
  *
  * ── Rastreabilidade (casos-gate G-2 · ADR 0264) ────────────────────────────
  * Contrato: resources/js/Pages/Purchase/Show.casos.md
@@ -29,7 +29,7 @@ declare(strict_types=1);
 
 const PURCHASE_SHOW_PATH = 'resources/js/Pages/Purchase/Show.tsx';
 const PURCHASE_SHOW_SNAPSHOT = 'memory/mwart-inventory/purchase/show.snapshot.md';
-const PURCHASE_SHOW_VISUAL = 'memory/requisitos/Purchase/show-visual-comparison.md';
+const PURCHASE_SHOW_VISUAL = 'memory/requisitos/Compras/_telas/show-visual-comparison.md';
 
 function readPurchaseShow(): string
 {
@@ -96,10 +96,21 @@ it('Page respeita permissions (update/delete renderizam condicionalmente)', func
 });
 
 it('Page NÃO renderiza barcode (bug-fix por omissão — linha 430 Blade DNS1D)', function () {
-    $source = readPurchaseShow();
-    // Confirma que NÃO importou nem chamou nada relacionado a barcode
-    expect($source)->not->toContain('Barcode');
-    expect($source)->not->toContain('DNS1D');
+    // Mede o CÓDIGO, não o comentário. O assert original varria o fonte cru e, por isso,
+    // casava a própria linha que DOCUMENTA o fix (`Show.tsx:9` — "Mata bug 500 em prod
+    // (DNS1D::getBarcodePNG linha 430 quebrada)"): o teste ficava vermelho porque alguém
+    // explicou a correção. Presença de texto não é comportamento (LC-11).
+    //
+    // Descarta só LINHAS que são comentário inteiro (`//` ou `*`), nunca fatia linha de
+    // código — cortar no `//` truncaria uma URL dentro de string e poderia ESCONDER uma
+    // ocorrência real depois dela.
+    $codigo = implode("\n", array_filter(
+        explode("\n", readPurchaseShow()),
+        fn ($linha) => ! preg_match('#^\s*(//|\*|/\*)#', $linha)
+    ));
+
+    expect($codigo)->not->toContain('Barcode');
+    expect($codigo)->not->toContain('DNS1D');
 });
 
 it('Page tem 3 Cards top (Fornecedor/Empresa/Resumo) e 2 Cards mid (Pagamentos/Totais)', function () {
