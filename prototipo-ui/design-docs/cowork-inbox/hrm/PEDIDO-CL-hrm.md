@@ -142,3 +142,72 @@ PR-8 lang PT, PR-10 fim do topnav Blade e HRM-O8. O export não os menciona.
 **Estado medido no `main` em 2026-09-04 (`ac7e5e417c`): este pedido está com execução zero.**
 Não existe `Pages/Hrm/`; `HrmLicencaTest.php` e `hrm-licencas.contract.json` nunca saíram desta
 pasta; e o lang PT segue com `leave` = "Sair" e `leaves` = "Folhas".
+
+---
+
+## ⛔ Emenda 2026-09-05 [W] — D1, D2 e D3 RESPONDIDAS. Duas mudam o desenho do módulo.
+
+> **Leia isto antes de pegar qualquer onda deste pedido.** Duas das respostas invertem o que
+> as ondas HRM-O7/O8 assumiam, e uma reabre o que o próprio pedido declarou fora de escopo.
+
+| # | Resposta [W] | Efeito |
+|---|---|---|
+| **D1** | **A presença web CEDE LUGAR ao Ponto.** | O HRM deixa de ter tela de presença. O `Modules/Ponto` vira dono único da jornada. |
+| **D2** | **Folha COMPLETA, com encargos** (INSS/IRRF/FGTS/13º/férias). | Reabre o que a seção "Fora de escopo" deste pedido excluía. |
+| **D3** | **Licença aprovada BLOQUEIA a marcação** e sai da conta de ausência. | Como em D1 a marcação é do Ponto, o guard nasce no Ponto. |
+
+**A direção, nas palavras do [W] (2026-09-05):** *"acho que pode integrar mais sim o sistema e
+deixar o ponto decidir, vincular com outros módulos seria muito melhor, hoje está tudo separado."*
+Não é só quem é dono da jornada — é **integrar em vez de manter silos**.
+
+### O que isso faz com as ondas
+
+- **Ondas 4 e 5 do export (Presença + Espelho do mês) saem do HRM.** Cedem 11 rotas de
+  `Routes/web.php` e 14 métodos públicos do `AttendanceController`.
+- **O `#6798` (import de presença endurecido, mergeado hoje) fica numa superfície que vai ceder.**
+  O trabalho não se perde — o dado precisa migrar de qualquer forma —, mas o destino mudou.
+- **A folha passa a ler o Ponto** (`ponto_apuracao_dia`, `ponto_banco_horas`), não
+  `essentials_attendances`.
+- **PR-7 muda de casa:** `ponto_marcacoes` é append-only por força da Portaria MTP 671/2021 e o
+  projeto proíbe UPDATE/DELETE nela — "bloquear" é impedir a **criação**, nunca apagar depois.
+
+### O dono do tema já existe, e ficou no papel
+
+**[ADR 0014 `essentials-pontowr2-integracao`](../../../../memory/decisions/0014-essentials-pontowr2-integracao.md)**
+(2026-04-21, [E]) **já desenha essa integração**: Shift como fonte do horário contratual, Ponto
+dono das batidas, Payroll alimentado pelo Ponto, `EssentialsHoliday` lido pelo Ponto,
+`EssentialsLeave` respeitado como Intercorrência. Está `lifecycle: arquivado`.
+
+**Medido em 2026-09-05 — o desenho nunca saiu do papel:** `escala_atual_id` aparece só em 2
+migrations e 1 seeder (nenhum Service ou Controller usa); o Ponto referencia o Essentials
+**apenas** em `Modules/Ponto/Config/config.php`; e **a folha não lê o Ponto** — zero ocorrência
+de `ponto_apuracao`/`ponto_banco_horas`/`BancoHoras` em `Modules/Essentials`. A 0014 **não tem
+sucessora**: nenhuma outra ADR a cita.
+
+⚠️ **Não abra ADR paralela.** A saída é emendar ou superseder a 0014 — ela é o dono. Abrir uma
+nova seria a LC-19 que custou 3 colisões neste mesmo pedido em 04/09.
+
+### O tamanho de D2, dito uma vez
+
+Encargos no Brasil são INSS progressivo, IRRF com deduções e teto, FGTS, 13º e férias com 1/3 —
+com **tabela legal que muda por ato do governo**, o que cria manutenção perpétua, e esbarra em
+eSocial. Some-se a regra mestre de [`proibicoes.md`](../../../../memory/proibicoes.md): mexer em
+VALOR exige dupla prova por caminhos independentes **e** impacto antes→depois aprovado antes de
+aplicar. **Isto é projeto com ADR própria, não uma onda deste pedido.** A decisão é do [W] e está
+tomada; o registro aqui é do custo, não uma objeção.
+
+### Em curso (2026-09-05)
+
+Dois agentes estão montando o plano, em áreas isoladas: um para a **integração Ponto↔HRM**
+(`memory/sessions/2026-09-05-como-integrar-ponto-hrm.md`) e outro para o **estado da arte de
+folha com encargos** (`memory/sessions/2026-09-05-arte-folha-encargos-br.md`). Quem pegar onda
+deste pedido: leia os dois antes, e **rode `whats-active`** — a colisão de 04/09 saiu de ninguém
+ter rodado.
+
+### O que segue válido sem tocar em nada disso
+
+`PR-8` (feito, [#6778](https://github.com/wagnerra23/oimpresso.com/pull/6778)), `PR-2/3`
+([#6797](https://github.com/wagnerra23/oimpresso.com/pull/6797)), `PR-4`
+([#6799](https://github.com/wagnerra23/oimpresso.com/pull/6799)), `PR-5`
+([#6789](https://github.com/wagnerra23/oimpresso.com/pull/6789)) — todos mergeados e **não
+afetados** por D1/D2/D3, porque tratam de licença, meta e exclusão, não de jornada.
