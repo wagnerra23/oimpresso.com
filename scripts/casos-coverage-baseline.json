@@ -1,26 +1,26 @@
 {
   "_meta": {
-    "generated_at": "2026-09-05T03:18:41.229Z",
+    "generated_at": "2026-09-05T22:06:33.335Z",
     "gate": "casos:check (ADR 0264 G-1 trio + G-2 rastreabilidade + G-5 metadata + G-6 frescor + G-7 status derivado)",
     "escopo_telas": "ESCOPO (fonte única scripts/qa/page-path.mjs · idêntico ao screen-coverage-map):\n  inclui: resources/js/Pages/**/<Sub>/<Tela>.tsx (Page Inertia executável)\n  exclui: dirs auxiliares (_*, components, partials, hooks, utils, lib, types,\n          constants, schemas, stores, contexts) · .tsx na raiz de Pages/ · *.charter.tsx · *.test.tsx",
     "stats": {
       "pages": 215,
-      "casos_files": 133,
-      "ucs_declared": 873,
+      "casos_files": 141,
+      "ucs_declared": 926,
       "missing_charter": 0,
-      "missing_casos": 83,
+      "missing_casos": 75,
       "orphan_ucs": 11,
       "metadata_issues": 0,
       "stale_cases": 0,
       "status_lies": 0,
       "status_unverified": 0,
       "status_stale": 0,
-      "exec_backed_ucs": 473,
-      "exec_backed_declared": 869,
-      "exec_backed_pct": 54,
-      "teto_no_titulo": 724,
-      "teto_so_docblock": 134,
-      "teto_distintos": 869,
+      "exec_backed_ucs": 528,
+      "exec_backed_declared": 926,
+      "exec_backed_pct": 57,
+      "teto_no_titulo": 774,
+      "teto_so_docblock": 141,
+      "teto_distintos": 926,
       "teto_presos_por_modulo": [
         {
           "modulo": "Financeiro",
@@ -84,6 +84,28 @@
           ]
         },
         {
+          "modulo": "Purchase",
+          "ucs": [
+            "UC-PURCRE-01",
+            "UC-PURCRE-04",
+            "UC-PURCRE-05",
+            "UC-PURCRE-06",
+            "UC-PURCRE-07",
+            "UC-PUREDT-01",
+            "UC-PUREDT-03",
+            "UC-PUREDT-04",
+            "UC-PUREDT-05",
+            "UC-PUREDT-06",
+            "UC-PUREDT-07",
+            "UC-PURIDX-01",
+            "UC-PURIDX-06",
+            "UC-PURSHW-02",
+            "UC-PURSHW-03",
+            "UC-PURSHW-04",
+            "UC-PURSHW-06"
+          ]
+        },
+        {
           "modulo": "OficinaAuto",
           "ucs": [
             "UC-OCR-01",
@@ -127,21 +149,6 @@
             "UC-CV-10",
             "UC-CV-11",
             "UC-CV-12"
-          ]
-        },
-        {
-          "modulo": "Ponto",
-          "ucs": [
-            "UC-BHSHOW-01",
-            "UC-BHSHOW-02",
-            "UC-BHSHOW-03",
-            "UC-IMPSH-01",
-            "UC-IMPSH-02",
-            "UC-IMPSH-03",
-            "UC-IMPSH-04",
-            "UC-INTSH-01",
-            "UC-INTSH-02",
-            "UC-INTSH-03"
           ]
         },
         {
@@ -291,20 +298,12 @@
     "trio:missing-casos:resources/js/Pages/Nfse/Emitir.tsx",
     "trio:missing-casos:resources/js/Pages/Nfse/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Nfse/Show.tsx",
-    "trio:missing-casos:resources/js/Pages/Purchase/Create.tsx",
-    "trio:missing-casos:resources/js/Pages/Purchase/Edit.tsx",
-    "trio:missing-casos:resources/js/Pages/Purchase/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Purchase/Show.tsx",
     "trio:missing-casos:resources/js/Pages/Repair/Dashboard/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Repair/DeviceModels/Create.tsx",
     "trio:missing-casos:resources/js/Pages/Repair/DeviceModels/Edit.tsx",
     "trio:missing-casos:resources/js/Pages/Repair/DeviceModels/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Repair/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Repair/JobSheet/AddParts.tsx",
-    "trio:missing-casos:resources/js/Pages/Repair/JobSheet/Create.tsx",
-    "trio:missing-casos:resources/js/Pages/Repair/JobSheet/Edit.tsx",
     "trio:missing-casos:resources/js/Pages/Repair/JobSheet/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Repair/JobSheet/Show.tsx",
     "trio:missing-casos:resources/js/Pages/Repair/ProducaoOficina/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Repair/Show.tsx",
     "trio:missing-casos:resources/js/Pages/Repair/Status/Index.tsx",
