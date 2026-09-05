@@ -440,10 +440,22 @@ it('UC-IMPSH-03 · importação de outro empregador dá 404 [must][T0]', functio
  * PREDIÇÃO ORIGINAL (2026-08-02): vermelho, denunciando a regressão D-8 (SDD §9) —
  * o controller lia `linhas_criadas`/`linhas_ignoradas`, campos inexistentes na
  * migration (`linhas_total`/`linhas_processadas`/`linhas_sucesso`/`linhas_erro`).
- * ⚠️ A predição NÃO descreve mais o estado presente: no JUnit de main da run
- * 33938659118 este caso está VERDE (o arquivo dá 7/7, 0 fail). Se a regressão foi
- * corrigida ou se o assert deixou de alcançá-la é pergunta EM ABERTO — e é dívida
- * deste arquivo, não desta conversão, que não tocou uma linha de asserção.
+ *
+ * ⚠️ A PREDIÇÃO CADUCOU — e a causa foi MEDIDA em 2026-09-04, não suposta: a D-8 foi
+ * CORRIGIDA no controller. `ImportacaoController.php:44` e `:116` hoje fazem
+ * `'linhas_criadas' => (int) ($i->linhas_sucesso ?? 0)` — a chave que o front consome
+ * é MONTADA a partir da coluna real. Por isso este caso está VERDE (JUnit de main da
+ * run 33938659118: o arquivo dá 7/7, 0 fail), e está verde pelo motivo CERTO: o assert
+ * alcança o comportamento e o comportamento passou a estar correto.
+ *
+ * ⚠️ DÍVIDA QUE FICA, e é de CONTEÚDO, não deste PR de invólucro: (a) a mensagem do
+ * assert abaixo ainda descreve o bug ANTIGO ("o controller lê `linhas_criadas`, que não
+ * existe na tabela") — texto que só aparece em falha, mas que hoje mentiria; (b) o
+ * `Importacoes/Show.casos.md:30` ainda marca este UC como "🧪 vermelho ESPERADO
+ * (predição)". Pela regra de precedência (teste verde > casos > charter > SPEC) os dois
+ * são o PERDEDOR e deviam ser corrigidos — NÃO aqui, de propósito: mexer na string do
+ * assert destruiria a prova deste PR (21/22 asserções byte-idênticas), e tocar o
+ * `.casos.md` acorda gate diff-aware sobre dívida alheia (§5 2026-07-12). Chip à parte.
  *
  * O assert é sobre COMPORTAMENTO ("a contagem exibida reflete o processado") — se a
  * correção for renomear o campo exposto, atualize front e este assert juntos.
