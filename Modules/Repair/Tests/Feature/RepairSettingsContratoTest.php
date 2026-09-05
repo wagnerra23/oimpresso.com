@@ -36,6 +36,8 @@ use Tests\Support\WithSeededTenant;
  * Tenant: `seededTenant()` = 98 (fictício, canônico). biz=4 é PROIBIDO sem
  * exceção e biz=1 é empresa real.
  *
+ * @covers-us US-REPA-003
+ *
  * @see memory/requisitos/Repair/RUNBOOK-repair-settings.md (F1 PLAN)
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  * @see memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md

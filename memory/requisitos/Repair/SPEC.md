@@ -49,6 +49,32 @@ Afetados: `D2 Code Quality FormRequests → StartFsmActionRequest existe e tem r
 - [ ] Os 3 voltam a verde **no CT 100**, com a causa escrita — e por conserto, não por `skip`.
 - [ ] Se a correção for `uses(TestCase::class)`, conferir se outros describes do mesmo arquivo passavam **por acidente** dependendo do bootstrap ausente.
 
+### US-REPA-003 · Configurar os padrões da folha de OS e o que sai impresso
+
+> owner: — · priority: p2 · status: doing · type: story
+> blocked_by: —
+
+**Como** admin do negócio
+**Quero** definir num lugar só os padrões que toda nova folha de OS assume e o que sai impresso na folha e na etiqueta
+**Para** não repetir digitação a cada OS nem depender de quem lembra o padrão da casa
+
+**Implementado em:** `resources/js/Pages/Repair/Settings/Index.tsx` · `Modules/Repair/Http/Controllers/RepairSettingsController.php` · `Modules/Repair/Tests/Feature/RepairSettingsContratoTest.php` · verificado@a2a5cb4 (2026-09-05)
+
+**Testado em:** `Modules/Repair/Tests/Feature/RepairSettingsContratoTest.php` (declara `@covers-us US-REPA-003`) — lane **Verticais · Pest (MySQL)**, allowlist. Veredito medido em 2026-09-05: 6 `pass` (17 assertions) · 2 `skip` (UC-RSET-07/08, por `system.repair_version` ausente no seed).
+
+Escopo derivado do F1 PLAN em [`RUNBOOK-repair-settings.md`](RUNBOOK-repair-settings.md) (Onda 1 do export do Repair, autorizado por [W] em 2026-09-04) — **não inventado aqui**. A US registra o escopo que já foi decidido; o contrato executável vive em [`Index.casos.md`](../../../resources/js/Pages/Repair/Settings/Index.casos.md) (UC-RSET-01..08).
+
+**Recorte:** cobre **2 das 5 abas** do hub Blade legado — `repair_settings_tab` (padrões da folha) e `jobsheet_settings_tab` (impressão/etiqueta). As abas de **Status de OS** e **Modelos de dispositivo** já têm Page própria e viva; esta tela **aponta** para elas em vez de reimplementar. A taxonomia de dispositivos fica para onda própria.
+
+**Contrato que a tela não pode quebrar:** são **dois endpoints com colunas disjuntas** — `store()` grava `business.repair_settings`, `updateJobsheetSettings()` grava `business.repair_jobsheet_settings` — e ambos fazem `$request->only()` + `json_encode()`, isto é, **substituem o JSON inteiro**: chave ausente no POST some do banco. Daí os dois `<form>` separados, cada um enviando o conjunto completo do seu endpoint.
+
+**Definition of Done:**
+- [x] Contrato de gravação provado por Pest em MySQL real, tenant 98 — 6 `pass` (17 assertions) na lane `verticais-pest`, medido em 2026-09-05.
+- [x] `casos.md` com UC citado por teste e Status derivado do manifesto (gate G-7).
+- [ ] Smoke autenticado, dark, 1280px, com screenshot — pendente por ambiente (ver charter §Pendências).
+- [ ] Flag `MWART_REPAIR_SETTINGS_INDEX` ligada por [W] após o smoke (F5 CUTOVER).
+- [ ] Header migrado para o canon `@/Components/PageHeader` (ADR 0189/0190) — hoje a tela usa `shared/PageHeader`, como as 6 Pages irmãs do módulo.
+
 ## 4. Regras de negócio (Gherkin)
 
 > Formato: `Dado ... Quando ... Então ...`. Cada regra deve ser

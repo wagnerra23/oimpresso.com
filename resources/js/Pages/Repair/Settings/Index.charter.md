@@ -1,11 +1,12 @@
 ---
 page: /repair/repair-settings
 component: resources/js/Pages/Repair/Settings/Index.tsx
-related_prototype: "n/a (herda PT-01; segue o Padrão de Tela) — repair-page.jsx se declara no cabeçalho 'importado dos blades ... settings', ou seja é porte REVERSO do Blade que esta tela substitui; ancorar aqui seria ancorar a tela nela mesma (§5 2026-08-28)"
+related_prototype: "n/a (herda PT-02 Form; segue o Padrão de Tela) — repair-page.jsx se declara no cabeçalho 'importado dos blades ... settings', ou seja é porte REVERSO do Blade que esta tela substitui; ancorar aqui seria ancorar a tela nela mesma (§5 2026-08-28)"
 owner: wagner
 status: draft
 last_validated: "2026-09-05"
 parent_module: Repair
+related_us: [US-REPA-003]
 parent_capterra: memory/requisitos/Repair/CAPTERRA-FICHA.md
 related_adrs: [104, 93, 358]
 tier: B
@@ -85,3 +86,4 @@ Todos em `Modules/Repair/Tests/Feature/RepairSettingsContratoTest.php`, tenant *
 2. Flag `MWART_REPAIR_SETTINGS_INDEX` ligada por [W] após o smoke — o cutover é decisão dele.
 3. ~~Confirmar em render real se a aba de impressão do Blade legado está quebrada.~~ **RESOLVIDO em 2026-09-05 — a premissa era falsa.** O partial renderiza (9143 bytes, checkbox presente, zero warning sobre a variável): ele define `$contact_custom_fields` e `$custom_labels` na **própria linha 4**, a partir de `$jobsheet_pdf_settings`, que o `compact()` passa. A migração **não** conserta erro vivo aqui, e não há mudança de comportamento a declarar por este motivo. Detalhe e provas em [`Index.casos.md`](./Index.casos.md) §RESOLVIDO.
 4. **Novo, descoberto no F4 QA:** semear `system.repair_version` no `pest-mysql-setup` para destravar UC-RSET-07/08 no CI. Sem essa linha, `ModuleUtil::getTaxonomyData` faz `exit` dentro de `index()` — com o guard atual isso vira skip visível; sem ele, matava a suíte inteira sem output. É PR próprio: aquele seed é compartilhado por 16 lanes.
+5. **Novo, descoberto no F4 QA — header no componente antigo.** O `.tsx` importa `@/Components/shared/PageHeader`; o canon desde [ADR 0189/0190](../../../../../memory/decisions/0189-pageheader-v3-8-shell-canonico.md) é `@/Components/PageHeader`, e o gate `PageHeader · ratchet` (advisory) marca esta tela como **adotante nova do header antigo**. A tela seguiu o módulo — **todas** as 6 Pages irmãs do Repair usam o antigo (medido: `Dashboard/Index`, `DeviceModels/{Index,Create,Edit}`, `Repair/Index`, `JobSheet/{Create,Edit,AddParts}`) —, e o próprio charter mandava imitá-las. **Não corrigido aqui, de propósito:** a API difere (`leading`/`subtitle` no canon × `icon`/`description` no antigo), logo a troca **muda o render**, e a pendência 1 acima diz que hoje não há como ver o resultado. Trocar o header às cegas é a classe LC-06 (declarar UI sem medir). Fica como dívida datada, junto com o smoke.
