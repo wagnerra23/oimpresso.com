@@ -1117,6 +1117,12 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **⚠️ NÃO virar gate:** acusar `isSuccessful()` por sintaxe reprovaria o uso legítimo (endpoint que de fato devolve 200 no sucesso — API JSON, `Inertia::render`), e o predicado verdadeiro — *"este assert separa os dois caminhos DESTE endpoint?"* — exige saber o que o controller retorna em cada um. Semântico por construção ([ADR 0224](decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md)), e a forma sintática é a família já enterrada 7× neste §5.
 
+### 2026-09-05 — Converter um teste que OUTRA sessão já estava convertendo: a defesa (`whats-active`) existia, estava disponível, e eu não a rodei
+
+- **O limite (variante também proibida):** **rodar `whats-active` ANTES de começar** trabalho num alvo concreto (arquivo, tela, módulo, gate) — não depois de abrir o PR, não quando o CI reclamar. A defesa é Tier 1, existe, e o §5 2026-08-13 já a nomeia; o que faltou aqui não foi ferramenta, foi execução. Corolário que distingue esta ocorrência das irmãs n+9/n+10 do LC-19: **lá a defesa estava indisponível** (mesmo enunciado despachado a várias sessões, sem canal comum); **aqui ela estava disponível e não foi usada** — é falha de execução, não gap de ferramenta, e a diferença importa porque só a segunda se conserta escrevendo mais máquina. Também proibido: tratar `gh pr list --state open` (ou o `dup-detector`) como inventário suficiente de "quem mais está neste alvo" — claim de ausência aqui exige o estado **mergeado** também (`git log HEAD..origin/main -- <alvo>`), que é o oráculo que teria respondido em um comando.
+
+- **⚠️ NÃO virar gate:** o LC-19 já declara, com medição, que detectar "duplica dono" por nome/pasta/palavra é o guard sintático enterrado pela §5 2026-07-23 — e um gate que exigisse "rodou `whats-active`?" seria **presence-gate** (LC-11: mede presença, não comportamento), além de não conseguir provar que o agente *leu* o resultado. A defesa é cultural e já está escrita; esta lápide é o recibo de que ela falhou por não ter sido executada.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
