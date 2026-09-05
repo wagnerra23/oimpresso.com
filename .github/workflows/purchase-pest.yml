@@ -168,6 +168,17 @@ jobs:
         #   Wave2EditBaselineTest       5 passed  (6 assertions)  — ja verde, so faltava lane
         #   Wave2EditInertiaTest       11 passed (19 assertions)  — era 1 failed + 10 passed (18)
         # E a lane inteira junta, pra provar que nao ha interferencia entre eles.
+        #
+        # 2026-09-05 (2a leva) — entram os 4 ultimos de tests/Feature/Purchase/, e com isso
+        # o diretorio inteiro (8 arquivos) passa a ter dono. Tres deles estavam VERMELHOS em
+        # origin/main e ninguem via, porque nada rodava:
+        #   IndexPageTest           1 failed, 21 passed (58)  ->  22 passed (60)
+        #   ShowPageTest            2 failed, 19 passed (47)  ->  21 passed (49)
+        #   Wave2CreateInertiaTest  2 failed, 17 passed (41)  ->  19 passed (41)
+        #   Wave2CreateBaselineTest            6 passed  (8)  ->  inalterado (so faltava lane)
+        # Causa de 4 das 5 falhas: ponteiro pra `memory/requisitos/Purchase/`, que so tem
+        # BRIEFING.md (os artefatos vivem em `Compras/_telas/`, e dois mudaram de nome).
+        # A 5a: o assert do barcode media o COMENTARIO que documenta o proprio fix.
         run: |
           mkdir -p test-results
           vendor/bin/pest --no-coverage --colors=always \
@@ -177,7 +188,11 @@ jobs:
             tests/Feature/Purchase/UpdateCrossTenantIdorTest.php \
             tests/Feature/Purchase/PurchaseGradeMatrixTest.php \
             tests/Feature/Purchase/Wave2EditBaselineTest.php \
-            tests/Feature/Purchase/Wave2EditInertiaTest.php
+            tests/Feature/Purchase/Wave2EditInertiaTest.php \
+            tests/Feature/Purchase/Wave2CreateBaselineTest.php \
+            tests/Feature/Purchase/Wave2CreateInertiaTest.php \
+            tests/Feature/Purchase/IndexPageTest.php \
+            tests/Feature/Purchase/ShowPageTest.php
 
       # A lane emite JUnit e o sumário conta `assertions` por arquivo — o corpus do LC-13.
       # Aqui só REPORTA (if: always()).
