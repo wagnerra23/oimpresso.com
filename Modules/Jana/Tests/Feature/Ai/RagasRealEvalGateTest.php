@@ -100,3 +100,40 @@ test('baseline versionado tem os 3 pisos e o context_recall não reprova o medid
     // ...e acima de zero: piso 0 seria régua decorativa (nunca morde).
     expect($pisos['context_recall'])->toBeGreaterThan(0.0);
 });
+
+// ── 4. TRIPLO ZERO — SINAL, NÃO VEREDITO (2026-09-04) ───────────────────────
+//
+// As três métricas exatamente 0.0 na mesma pergunta têm DUAS causas possíveis, e o
+// número sozinho não separa:
+//   (a) juiz mudo — RagasJudgeService::callJudge devolve 0.0 em erro/429/sem-chave,
+//       loga warning e nunca lança, logo n_judge_failed é 0 por construção;
+//   (b) nota real — contexto pobre faz a síntese responder "não encontrei nas fontes",
+//       e um juiz VIVO dá 0 nas três.
+//
+// ERRATA (a 1ª versão deste bloco afirmava o contrário): eu disse que relevancy zerada
+// descartava (b) porque scoreAnswerRelevancy não recebe o contexto. NÃO descarta — o
+// contexto chega em relevancy ATRAVÉS DA RESPOSTA. Medido no PR #6801: 8 triplos zero
+// em 51 com o juiz comprovadamente vivo (zero warnings [RAGAS] no log, com controle
+// positivo do canal), causados pelo corte de 400 chars do início no renderFontes.
+//
+// Estes testes pinam o que a função de fato é: um DETECTOR do padrão 0/0/0. Quem
+// atribui causa é o log da run, e isso não é testável aqui de propósito.
+
+test('detecta o padrão 0/0/0 — e só ele', function () {
+    expect(JanaRagasRealEvalCommand::ehTriploZero(0.0, 0.0, 0.0))->toBeTrue();
+});
+
+test('qualidade baixa MEDIDA nas três não é triplo zero', function () {
+    // Shapes reais da run de 2026-08-16 (idx=4 e idx=6): recall zerado, mas faith/rel
+    // com nota. O detector tem que deixar passar — senão vira alarme de tudo que é ruim.
+    expect(JanaRagasRealEvalCommand::ehTriploZero(0.5, 1.0, 0.0))->toBeFalse();
+    expect(JanaRagasRealEvalCommand::ehTriploZero(0.5, 0.4, 0.0))->toBeFalse();
+    expect(JanaRagasRealEvalCommand::ehTriploZero(0.1, 0.1, 0.1))->toBeFalse();
+});
+
+test('zero em DUAS métricas ainda não basta — o padrão exige as três', function () {
+    // Controle negativo do próprio critério: afrouxar para "duas zeradas" alargaria o
+    // sinal até ele deixar de discriminar qualquer coisa.
+    expect(JanaRagasRealEvalCommand::ehTriploZero(0.7, 0.0, 0.0))->toBeFalse();
+    expect(JanaRagasRealEvalCommand::ehTriploZero(0.0, 0.0, 0.9))->toBeFalse();
+});

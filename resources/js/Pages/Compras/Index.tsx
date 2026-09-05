@@ -236,7 +236,7 @@ function ComprasIndex({ filters, selected_id, permissions, kpis, rows, summary, 
     <div className="compras-root" data-screen-label="01 Compras">
       <div className="cmp-main">
         {/* HEAD */}
-        <header className="hd">
+        <header className="hd" data-contract="compras-cabecalho">
           <div className="crumbs">
             ERP · Operação · <b style={{ color: 'var(--cmp-ink-2)' }}>Compras</b>
           </div>
@@ -295,7 +295,7 @@ function ComprasIndex({ filters, selected_id, permissions, kpis, rows, summary, 
         </header>
 
         {/* TABS */}
-        <nav className="tbs">
+        <nav className="tbs" data-contract="compras-abas">
           <a
             className={localFilter === 'all' ? 'active' : ''}
             onClick={() => setLocalFilter('all')}
@@ -405,7 +405,7 @@ function ComprasIndex({ filters, selected_id, permissions, kpis, rows, summary, 
 
 function KpisGrid({ k }: { k: Kpis }) {
   return (
-    <div className="kpis">
+    <div className="kpis" data-contract="compras-kpis">
       <div className="kpi warn">
         <small>A pagar</small>
         <b>{k.aberto}</b>
@@ -506,7 +506,7 @@ function TableCompras({
 
   return (
     <div className="tbl">
-      <table className="purchases">
+      <table className="purchases" data-contract="compras-tabela">
         <thead>
           <tr>
             {v.acao && <th style={{ width: '90px' }}>Ação</th>}

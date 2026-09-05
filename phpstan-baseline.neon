@@ -4863,12 +4863,6 @@ parameters:
 			path: Modules/Essentials/Http/Controllers/SalesTargetController.php
 
 		-
-			message: '#^Method Modules\\Essentials\\Http\\Controllers\\SalesTargetController\:\:saveSalesTarget\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
-			identifier: return.type
-			count: 1
-			path: Modules/Essentials/Http/Controllers/SalesTargetController.php
-
-		-
 			message: '#^Method Modules\\Essentials\\Http\\Controllers\\SalesTargetController\:\:setSalesTarget\(\) should return Illuminate\\Http\\Response but returns Illuminate\\View\\View\.$#'
 			identifier: return.type
 			count: 1
