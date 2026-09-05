@@ -15,10 +15,18 @@ use Spatie\Permission\PermissionRegistrar;
 uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
- * HRM · Licenças — prova mínima do trio (PR-1 da onda HRM-O5).
+ * HRM · Licenças — prova mínima do PR-1 da onda HRM-O5.
  *
  * Dono do tema: prototipo-ui/design-docs/cowork-inbox/hrm/PEDIDO-CL-hrm.md
- * Trio: Modules/Essentials/Resources/js/Pages/Hrm/Licencas/{Index.charter.md,Index.casos.md}
+ *
+ * O charter e o casos.md desta tela NÃO estão neste PR — vêm no PR-9, junto da
+ * `Pages/Hrm/Licencas/Index.tsx`. Medido em 2026-09-04: a catraca
+ * `charter_refs_broken` tem teto 0 e trata `component:` apontando pra .tsx
+ * inexistente como ref quebrada, e ela conta o repo INTEIRO — 3 charters sem
+ * tela deixariam esse gate vermelho pra todo PR até o PR-9. O gerador canônico
+ * (scripts/governance/criar-tela.mjs) carimba .tsx + charter + casos + e2e +
+ * contrato JUNTOS, ou seja: charter sem tela não é estado suportado aqui.
+ * Os UC-HRM-* citados abaixo viram blocos no casos.md naquele PR.
  *
  * ────────────────────────────────────────────────────────────────────────────
  * NASCE VERMELHO DE PROPÓSITO — e o vermelho é a ENTREGA, não o defeito.

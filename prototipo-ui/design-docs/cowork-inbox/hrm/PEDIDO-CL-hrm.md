@@ -18,19 +18,35 @@ Sem D1 e D3 respondidas, **HRM-O6 não fecha** (a guarda de conflito depende do 
 
 ---
 
-> 📍 **Estado de aterrissagem (2026-09-04) — HRM-O5/PR-1 EXECUTADO.** Os 4 artefatos abaixo
-> saíram desta pasta e pousaram no repo produtivo, **corrigidos** — a conferência contra o
-> `main` (`ac7e5e417c`) achou 6 divergências que teriam falhado no CI (formato do contrato,
-> allowlist da lane, `RefreshDatabase` proibido, helper `admin()` com `TypeError`, factories
-> inexistentes, charter sem frontmatter). Destinos: `Modules/Essentials/Resources/js/Pages/Hrm/
-> {Licencas,Presenca,Folha}/Index.charter.md` · `.../Licencas/Index.casos.md` ·
-> `Modules/Essentials/Tests/Feature/HrmLicencaTest.php`.
-> **Exceção:** `hrm-licencas.contract.json` **fica aqui** (corrigido pro schema do repo) até o
-> PR-9 criar a `Index.tsx` — contrato só é *vigente* quando aplicado a uma tela real
-> (`scripts/contrato-de-tela.mjs` §125-135), e ativá-lo sem alvo avermelharia o gate pra todo
-> PR que toque `Pages/**`. Os arquivos originais desta pasta ficam como recibo datado do pedido.
-> **Não refazer o PR-1.** Próximo da fila: PR-8 (lang PT, isolado) ou PR-2/PR-3 (que fecham os
-> 6 casos vermelhos).
+> 📍 **Estado de aterrissagem (2026-09-04) — HRM-O5/PR-1 EXECUTADO PELA METADE, e a metade
+> que ficou tem motivo medido.**
+>
+> **Aterrissou:** `Modules/Essentials/Tests/Feature/HrmLicencaTest.php` (+ entrada na allowlist
+> do `essentials-pest.yml`). O CI confirmou o desenho: **canário verde, 6 casos vermelhos** com
+> `Failed asserting that 200 is identical to 422` — os achados A2/A3/A4, não ambiente.
+>
+> **NÃO aterrissou (vai no PR-9, junto da `Index.tsx`):** os 3 charters e o `Index.casos.md`.
+> Medido: a catraca `charter_refs_broken` tem **teto 0** e trata `component:` apontando pra
+> `.tsx` inexistente como ref quebrada — e conta o repo INTEIRO, então 3 charters sem tela
+> deixariam esse gate vermelho **para todo PR** até o PR-9 (o mesmo dano coletivo que já
+> segurou o contrato). O gerador canônico [`criar-tela.mjs`](../../../../scripts/governance/criar-tela.mjs)
+> carimba `.tsx` + charter + casos + e2e + contrato **juntos**: *charter sem tela não é estado
+> suportado neste repo*. Os textos revisados dos 3 charters + casos estão no PR
+> [#6800](https://github.com/wagnerra23/oimpresso.com/pull/6800) (commit inicial) — reaproveitar
+> lá, não reescrever.
+>
+> **`hrm-licencas.contract.json` fica aqui**, corrigido pro schema do repo (usava
+> `sections`/`screen`/`route`; o schema exige `alvo`+`secoes`). Contrato só é *vigente* quando
+> aplicado a uma tela real (`scripts/contrato-de-tela.mjs` §125-135).
+>
+> **Lição pro PR-9:** o "trio de prontidão ANTES da tela" desenhado neste pedido colide com a
+> régua do repo. O PR-9 deve começar por `criar-tela.mjs <Mod/Tela> PT-01` e então substituir o
+> conteúdo carimbado pelos textos já revisados.
+>
+> **Não refazer a conferência do PR-1** (6 divergências achadas e corrigidas: formato do
+> contrato, allowlist da lane, `RefreshDatabase` proibido, `admin()` com `TypeError`, factories
+> inexistentes, charter sem frontmatter). Próximo da fila: PR-8 (lang PT, isolado) ou
+> PR-2/PR-3 (que fecham os 6 vermelhos).
 
 ## HRM-O5 — prova mínima (trio + contrato)
 
