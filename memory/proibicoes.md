@@ -1105,6 +1105,12 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **⚠️ NÃO virar gate:** o predicado de (2) — *"este valor esperado é discriminante?"* — exige saber que mutações são plausíveis naquele código, e é semântico por construção ([ADR 0224](decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md): semântico = advisory). A forma sintática (acusar `toBe(1)` ou fixture de amostra única) reprovaria o legítimo, que é a família já enterrada aqui 7× — allowlist-de-pasta 06-30 · guard `@scope` 07-09 · vocabulário 130 FP 07-16 · `toHaveKey` 100% FP 07-26 · `toContain` 07-28 · `jq` 08-11 · par usuário/senha 08-02. Para (1) existe forma mecânica e ela **já tem dono**: o `junit-summary.mjs` lê o JUnit e distingue os campos — se um dia valer, é **estender o dono**, nunca abrir um 2º leitor de JUnit (§5 2026-07-09).
 
+### 2026-09-05 — EMENDA da lápide 2026-07-17 (deduzir QUEM RODA pelo código): o runtime tem MAIS DE UM oráculo, e o mais óbvio (`schedule:list`) responde a OUTRA pergunta
+
+- **O limite (variante também proibida):** não usar comando de **listagem** como prova de que algo RODA/VALE no ambiente corrente quando a pergunta tem um gate de ambiente ou permissão. Vale pra `schedule:list` (gate `environments()`), `route:list` (gate de middleware/`can:`) e `config:show` (gate de `.env` por ambiente). O oráculo é **a função que o próprio executor chama** — pra schedule, `runsInEnvironment()`, a mesma que o `schedule:run` usa.
+
+- **⚠️ NÃO armado:** o gate óbvio de LC-08 já está **medido e reprovado**, e o predicado aqui (*"esta sonda responde a pergunta que eu fiz?"*) é semântico → [ADR 0224](decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md). A defesa é esta emenda **+** o header do [`scripts/tests/ct100-jana-evals.sh`](../scripts/tests/ct100-jana-evals.sh), que já era o dono da pergunta "quem de fato roda" e recebeu a medição datada (sessão irmã, commit `055d286a`, preservando o fato de julho 82/5 ao lado do de hoje 80/6) — **estendido, não duplicado**.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
