@@ -1,0 +1,45 @@
+# Nota 16-dim LLM-as-judge (metodo SCREEN-GRADE) — NAO editar a mao.
+# Primeira medicao da tela: ela NAO vem do baseline seed 2026-05-30 e o
+# `screen-grade-seed.mjs` nao tem como gera-la — a tela nasceu depois, no PR #6779
+# (Onda 1 do Repair), e o seed so materializa o que ja esta no JSON agregado daquela
+# data. Verificado em 2026-09-05: `Repair/Settings/Index` ausente do baseline.
+# baseline_anterior = nota (ancora inicial do ratchet; nao cai sem aprovacao humana).
+screen: Repair/Settings/Index
+path: resources/js/Pages/Repair/Settings/Index.tsx
+archetype: form
+persona: misto
+nota: 79
+nivel: "Advanced"
+baseline_anterior: 79   # ratchet — primeira medicao; nota nao cai abaixo disto sem aprovacao
+peso_real: 1.0
+source: screen-grade-2026-09-05
+graded_at: "2026-09-05"
+resumo: "Form de configuracao maduro no eixo de contrato — e o unico do modulo com o trio completo (charter + casos.md com 8 UC + RepairSettingsContratoTest) mais RUNBOOK e `related_prototype` declarado com razao (recusa ancorar no repair-page.jsx, que e porte REVERSO do Blade que esta tela substitui). Tecnicamente limpo: 100% dos controles vem de @/Components/ui, zero cor crua ou hex, AppShellV2 + PageHeader + primitivas Grid/Inline, e usa SafeSelectItem (a defesa da lapide §5 2026-06-29, Radix com value vazio). Honra o contrato dos DOIS endpoints disjuntos com dois useForm separados e rotulos de botao distintos. O que segura a nota: nenhuma exibicao de erro de validacao (o `errors` do useForm nao e renderizado em lugar nenhum), nenhum retorno de sucesso apos salvar (`recentlySuccessful` nao usado), vocabulario responsivo limitado a `md:col-span-` num form de 4 cards e ~30 campos, e o bloco das 17 chaves `show_*` que cobra atencao sem agrupamento nem busca."
+dimensoes: { density: 78, discoverability: 76, speed_to_task: 78, error_recovery: 58, cognitive_load: 72, aesthetic_usability: 82, affordance: 80, brand_confidence: 84, mobile_fit: 68, a11y_wcag: 80, i18n_ptbr: 90, performance_perceived: 76, information_hierarchy: 80, microcopy: 82, internal_consistency: 86, preflight_conformance: 92 }
+gaps:
+  - dim: "Error-recovery"
+    best_of_class: "Stripe/Linear: erro do servidor aparece ancorado NO campo, e o submit devolve estado de sucesso explicito"
+    fix: "O `useForm` expoe `errors` nos dois formularios e nenhum dos dois renderiza. Uma validacao recusada pelo servidor volta silenciosa: o botao sai de 'Salvando...' e nada muda na tela, indistinguivel de sucesso. Renderizar `folha.errors[campo]` / `impressao.errors[campo]` sob cada Input e usar `recentlySuccessful` para um estado de 'Salvo' — o contrato destrutivo do UC-RSET-03 (submit parcial APAGA chave ausente) torna o feedback mais critico aqui do que num form comum."
+    esforco: baixo
+    origin: screen-grade-2026-09-05
+  - dim: "Mobile-fit"
+    best_of_class: "Conta Azul/Bling: form longo vira acordeao por secao no telefone, com barra de acao fixa"
+    fix: "Todo o vocabulario responsivo da tela e `md:col-span-`; abaixo de 768px o form de ~30 campos vira uma coluna unica muito longa, com os dois botoes de salvar perdidos no meio do scroll. Cabe a 1280px (o monitor da ROTA LIVRE), entao nao e bloqueador — mas o admin que abrir no celular rola muito."
+    esforco: medio
+    origin: screen-grade-2026-09-05
+  - dim: "Cognitive-load"
+    best_of_class: "Notion/Linear: bloco grande de toggles ganha busca e agrupamento por tema"
+    fix: "As 17 chaves `show_*` da impressao vivem numa lista plana de Switch. Agrupar por area da folha (cabecalho / aparelho / valores / rodape) ou dar um filtro de texto reduz a varredura visual sem mexer no contrato de gravacao — que exige mandar o conjunto COMPLETO a cada submit (UC-RSET-03)."
+    esforco: medio
+    origin: screen-grade-2026-09-05
+  - dim: "Discoverability"
+    best_of_class: "Shopify Admin: settings com indice lateral das secoes"
+    fix: "Os 4 Cards (folha, campos personalizados, impressao, atalhos) nao tem indice nem ancora; achar 'largura da etiqueta' exige rolar. Um sumario lateral fixo ou `<nav>` de ancoras resolve sem tocar no backend."
+    esforco: baixo
+    origin: screen-grade-2026-09-05
+fonte_rtm:
+  - "resources/js/Pages/Repair/Settings/Index.charter.md (Mission + Non-Goals — os dois endpoints disjuntos)"
+  - "resources/js/Pages/Repair/Settings/Index.casos.md (UC-RSET-01..08; UC-RSET-03 = contrato destrutivo)"
+  - "Modules/Repair/Tests/Feature/RepairSettingsContratoTest.php (8 it() citando UC no titulo)"
+  - "memory/requisitos/Repair/RUNBOOK-repair-settings.md (F1 PLAN)"
+  - "memory/proibicoes.md §5 2026-06-29 (Radix SelectItem com value vazio -> SafeSelectItem)"
