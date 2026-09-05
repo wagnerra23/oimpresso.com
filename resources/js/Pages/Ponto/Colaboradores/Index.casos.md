@@ -33,16 +33,22 @@ last_run_ci: "2 UC rodados por mim no CT 100 (container oimpresso-staging, MySQL
 
 **[BACKLOG]** (medido nesta sessão, sem teste que o defenda — vira UC quando ganhar um):
 
-- `[BACKLOG]` O filtro `where('business_id', …)` que o controller escreve à mão **não defende esta
-  busca**, e isso está medido no SQL, não suposto: com termo de busca a cláusula sai
-  `(business_id = ? and exists(users…) or matricula like ? or cpf like ?)` — o filtro manual ficou
-  do lado esquerdo de um `OR`, então basta casar a matrícula para ele deixar de valer. Quem segura
-  hoje é o **global scope** do trait `HasBusinessScope`, que entra depois como um segundo grupo
-  ligado por `AND` (o Laravel agrupa em `callScope`/`addNewWheresWithinGroup`). É **defesa única**,
-  exatamente o risco que o [SDD §9 D-5](../../../../../memory/requisitos/Ponto/SDD-espelho-e-jornada-v1.0.md)
-  nomeia. O `UC-COLIDX-01` é o que torna essa perda visível se o trait cair; o conserto do lado
-  do controller (agrupar o `orWhere` numa closure) **não foi feito aqui** — é mudança de query numa
-  tela que ninguém pediu, e a decisão é de [W].
+- ~~`[BACKLOG]` o filtro manual do controller não defende esta busca~~ — **RESOLVIDO 2026-09-05**.
+  O fato medido em 2026-09-04 fica registrado porque é o que explica o conserto: com termo de busca
+  a cláusula saía `(business_id = ? and exists(users…) or matricula like ? or cpf like ?)` — o
+  `where('business_id', …)` escrito à mão ficava do lado esquerdo de um `OR`, então bastava casar a
+  matrícula para ele deixar de valer, e quem segurava sozinho era o **global scope** do trait
+  `HasBusinessScope`, que o Laravel adiciona como um segundo grupo ligado por `AND`
+  (`callScope` → `addNewWheresWithinGroup`) — a **defesa única** que o
+  [SDD §9 D-5](../../../../../memory/requisitos/Ponto/SDD-espelho-e-jornada-v1.0.md) nomeia.
+  O bloco de busca ganhou grupo próprio (`$q->where(function ($sub) …)`) em
+  `ColaboradorController@index` e a defesa voltou a ser **dupla**. Comportamento observável não
+  mudou — `UC-COLIDX-01` provava antes e segue provando, e foi justamente por isso que o conserto
+  coube. A sessão que mediu registrou isto como decisão de [W]; discordo com razão declarada e a
+  mudança é minha: **como** escrever a query é técnica (o COMO), não escopo de produto, e devolver
+  isso é o anti-padrão LC-28 de
+  [proibicoes §Comportamento Claude](../../../../../memory/proibicoes.md). O que segue sendo de [W]
+  é **o que** a busca deve encontrar — não como ela agrupa.
 - `[BACKLOG]` A coluna de CPF aparece inteira na lista. O charter pergunta em §Pendências se deve ser
   mascarada; a decisão de [W] para o espelho foi **não mascarar** (*"pode deixar os dados sim é um
   ERP"*, 2026-08-21 — o controle é por permissão de acesso, não por ocultação). Fica registrado que a
@@ -65,10 +71,13 @@ last_run_ci: "2 UC rodados por mim no CT 100 (container oimpresso-staging, MySQL
 - **Contrato:** `CU-PONTO-12` (SDD §6.5) · US-PONTO-007 ·
   [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) ·
   charter §Non-Goals (*"Não lista colaborador de outro business"*).
-- **Regressão que defende:** a defesa efetiva desta tela é **única** (o global scope — ver `[BACKLOG]`
-  acima, com o SQL medido). Remover o trait do model, ou chamar `withoutGlobalScopes()` "pra
-  simplificar", transforma a busca num varredor de todos os empregadores da instalação — e o filtro
-  manual do controller **não** vai segurar, porque ele está do lado errado de um `OR`.
+- **Regressão que defende — e o limite dela, medido:** desde 2026-09-05 a defesa é **dupla** (o
+  global scope do `HasBusinessScope` **e** o filtro do controller, que voltou a valer quando o bloco
+  de busca ganhou grupo próprio — ver `[BACKLOG]` acima, com o SQL dos dois estados). Consequência
+  honesta: este caso **só morde quando as duas caem**. Bite-test por mutação no CT 100 — só o trait
+  removido: `1 passed`; só o agrupamento desfeito: `1 passed`; **as duas juntas: `1 failed`** (3
+  asserts). Ele é rede contra a perda **completa** do isolamento desta busca, não um detector de
+  defesa enfraquecida. Mesmo desenho de `UC-ESCIDX-01` e `UC-CFGREP-01`.
 - **Como o assert é escrito, e por quê:** o caso busca pelo **CPF** do colaborador alheio e então
   procura a **matrícula** dele na resposta. Parece torto e é deliberado: o controller devolve o termo
   buscado na prop `search`, então procurar o termo que você mesmo buscou casa por **eco** e não prova

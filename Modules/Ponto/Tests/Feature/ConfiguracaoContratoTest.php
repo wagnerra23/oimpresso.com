@@ -12,7 +12,7 @@ uses(PontoTestCase::class);
 /**
  * Contrato das duas telas de configuração do Ponto:
  *   - `/ponto/configuracoes`       → Configuracoes/Index.casos.md (UC-CFGIDX-01)
- *   - `/ponto/configuracoes/reps`  → Configuracoes/Reps.casos.md  (UC-CFGREP-01..02)
+ *   - `/ponto/configuracoes/reps`  → Configuracoes/Reps.casos.md  (UC-CFGREP-01..05)
  *
  * Cada teste cita o UC no TÍTULO do `it()` — é o que o manifesto G-7 alcança.
  *
@@ -189,12 +189,17 @@ it('UC-CFGREP-02 · identificador fora do formato da Portaria é recusado', func
         'descricao'     => CFG_MARCA . '-fora-do-formato',
     ]);
 
-    // "Não é sucesso" em vez de status cravado: trocar o mecanismo de recusa é legítimo.
-    expect($resp->isSuccessful())->toBeFalse(
-        'Identificador fora dos 17 caracteres do Anexo I da Portaria MTP 671/2021 tem de ser '
-        . 'recusado. Se entrar, o problema só aparece no AFD rejeitado pela fiscalização, meses depois.'
-    );
-
+    // ⚠️ NÃO usar `expect($resp->isSuccessful())->toBeFalse(...)` aqui, e a razão é medida:
+    // `isSuccessful()` é 200..299 (Symfony `Response`), e o caminho de SUCESSO deste endpoint
+    // é `return back()` — 302. Ou seja o predicado dá `false` na recusa E no cadastro que
+    // GRAVOU: passa sempre, sem separar os dois caminhos. Sonda no CT 100:
+    //   storeRep sucesso → status=302 isSuccessful=false gravou=true
+    //   storeRep recusa  → status=302 isSuccessful=false
+    // A versão anterior deste caso abria com esse assert e o comentário o defendia como
+    // escolha deliberada ("não cravar status") — ele parecia o guarda-costas do caso e não
+    // era. Quem de fato prova a recusa são os três asserts abaixo: o erro chega ao operador,
+    // no campo certo, e a tabela não ganha linha.
+    // Família: §5 2026-09-05 (bite-test) — contagem/veredito idêntico ao do caso honesto.
     $erros = session('errors');
     expect($erros)->not->toBeNull('A recusa tem de chegar ao operador como erro de formulário.');
     expect($erros->has('identificador'))->toBeTrue(
@@ -202,6 +207,118 @@ it('UC-CFGREP-02 · identificador fora do formato da Portaria é recusado', func
     );
 
     // A terceira metade: só "não foi sucesso" passaria também num 500 que já tivesse gravado.
+    $depois = DB::table('ponto_reps')->where('descricao', 'like', CFG_MARCA . '%')->count();
+    expect($depois)->toBe($antes,
+        'A tentativa recusada não pode ter criado REP nenhum.'
+    );
+});
+
+it('UC-CFGREP-03 · a lista traz o REP do meu empregador com a identificação dele', function () {
+    $this->actAsAdmin();
+    cfgPrecisaDe(['ponto_reps']);
+
+    $ident = cfgIdentificador();
+    $descricao = CFG_MARCA . '-REP-PROPRIO';
+
+    DB::table('ponto_reps')->insert([
+        'id'            => (string) Str::uuid(),
+        'business_id'   => (int) $this->business->id,
+        'tipo'          => 'REP_C',
+        'identificador' => $ident,
+        'descricao'     => $descricao,
+        'created_at'    => now(),
+        'updated_at'    => now(),
+    ]);
+
+    $resp = $this->inertiaGet('/ponto/configuracoes/reps');
+    $resp->assertStatus(200);
+
+    $linhas = collect($resp->json('props.reps.data') ?? []);
+
+    // Pré-condição anti-vácuo: lista vazia faria os asserts abaixo passarem por
+    // não-execução, não por preservação (LC-13).
+    expect($linhas)->not->toBeEmpty('A lista de REPs veio vazia — o caso não exerceu nada.');
+
+    $minha = $linhas->firstWhere('identificador', $ident);
+
+    expect($minha)->not->toBeNull(
+        'O REP do meu business tem de aparecer na lista (charter §Mission).'
+    );
+    // Identidade, não só a linha: o `@reps` monta cada linha por `transform()` campo a
+    // campo. Um campo removido de lá não quebra a query nem o 200 — a linha chega SEM o
+    // dado, e o identificador é justamente o que amarra o equipamento ao registro perante
+    // a fiscalização (Portaria 671/2021 Anexo I). O irmão UC-CFGREP-01 prova que o
+    // ALHEIO não entra; este prova que o PRÓPRIO chega inteiro — sem ele, "a lista está
+    // correta" seria verdade também com a lista sempre vazia.
+    expect($minha['tipo'] ?? null)->toBe('REP_C',
+        'A linha tem de trazer o tipo do REP — é a classificação legal do equipamento.'
+    );
+    expect($minha['descricao'] ?? null)->toBe($descricao,
+        'A linha tem de trazer a descrição cadastrada, não um placeholder.'
+    );
+});
+
+it('UC-CFGREP-04 · REP cadastrado nasce no meu empregador, não no que veio na requisição', function () {
+    $this->actAsAdmin();
+    cfgPrecisaDe(['ponto_reps']);
+
+    $alheio = $this->garantirBizAlheio();
+    $ident  = cfgIdentificador();
+
+    // Controle negativo: manda `business_id` ALHEIO no corpo do POST, de propósito.
+    $resp = $this->post('/ponto/configuracoes/reps', [
+        'tipo'          => 'REP_A',
+        'identificador' => $ident,
+        'descricao'     => CFG_MARCA . '-escrita-cross-tenant',
+        'business_id'   => $alheio,
+    ]);
+
+    $resp->assertSessionHasNoErrors();
+
+    $criado = DB::table('ponto_reps')->where('identificador', $ident)->first();
+
+    expect($criado)->not->toBeNull(
+        'O cadastro válido tem de gravar — senão o caso não exerceu a atribuição de tenant.'
+    );
+    expect((int) $criado->business_id)->toBe((int) $this->business->id,
+        'O REP tem de nascer no MEU business, nunca no que veio no corpo da requisição. '
+        . 'Isolamento de LEITURA (UC-CFGREP-01) e de ESCRITA são propriedades diferentes: uma '
+        . 'lista escopada certo convive com um `create` que grava no tenant errado, e o registro '
+        . 'errado só aparece quando o OUTRO empregador abrir a tela dele (ADR 0093 · CU-PONTO-12).'
+    );
+
+    $this->removerBizAlheio();
+});
+
+it('UC-CFGREP-05 · tipo fora de REP-P/C/A é recusado', function () {
+    $this->actAsAdmin();
+    cfgPrecisaDe(['ponto_reps']);
+
+    $antes = DB::table('ponto_reps')->where('descricao', 'like', CFG_MARCA . '%')->count();
+    $ident = cfgIdentificador();
+
+    $resp = $this->post('/ponto/configuracoes/reps', [
+        'tipo'          => 'REP_X',                   // fora do enum taxativo da Portaria
+        'identificador' => $ident,
+        'descricao'     => CFG_MARCA . '-tipo-invalido',
+    ]);
+
+    // ⚠️ NADA de `expect($resp->isSuccessful())->toBeFalse(...)` aqui, e o motivo é medido:
+    // `isSuccessful()` é `200..299` (Symfony `Response::isSuccessful`), e o caminho de SUCESSO
+    // deste endpoint é `return back()`, que é **302**. Ou seja, o assert daria `false` tanto na
+    // recusa quanto no cadastro bem-sucedido — passaria sempre, sem discriminar nada. Quem
+    // separa os dois caminhos aqui é a sessão de erros e a contagem de registros, abaixo.
+    // (Confirmado na fonte do vendor, não por memória. O mesmo vale pro irmão UC-CFGREP-02.)
+    $erros = session('errors');
+    expect($erros)->not->toBeNull('A recusa tem de chegar ao operador como erro de formulário.');
+    expect($erros->has('tipo'))->toBeTrue(
+        'O erro tem de apontar o campo do tipo.'
+    );
+
+    // A regra `in:` do controller é DEFESA ÚNICA aqui, e isso foi medido: o `sql_mode` da
+    // lane não tem STRICT, então a coluna `enum('REP_P','REP_C','REP_A')` converteria um
+    // valor fora da lista em STRING VAZIA em vez de recusar. O REP nasceria aceito, listado
+    // e sem classificação legal. Por isso o caso asserta também a ausência do registro.
     $depois = DB::table('ponto_reps')->where('descricao', 'like', CFG_MARCA . '%')->count();
     expect($depois)->toBe($antes,
         'A tentativa recusada não pode ter criado REP nenhum.'

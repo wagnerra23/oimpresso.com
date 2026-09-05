@@ -68,22 +68,14 @@
     },
     "full_suite_pass_rate": {
       "status": "measured",
-      "value": 296,
+      "value": 293,
       "unit": "arquivos-que-falham (interseção ≥2 runs · ADR 0279)",
       "direction": "down",
       "target": 0,
       "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
       "detail": {
-        "floor_files_hash": "33ddf43ef91dbc2e",
+        "floor_files_hash": "13be25194dc24ef3",
         "runs": [
-          {
-            "sha": "c1eb45d3",
-            "ts": "20260826-020001",
-            "failed": 522,
-            "errors": 396,
-            "skipped": 2283,
-            "all_shards_measured": true
-          },
           {
             "sha": "42b8ea44",
             "ts": "20260827-020001",
@@ -93,28 +85,36 @@
             "all_shards_measured": true
           },
           {
-            "sha": null,
+            "sha": "654637bc",
             "ts": "20260904-020001",
             "failed": 475,
             "errors": 400,
             "skipped": 2261,
             "all_shards_measured": true
+          },
+          {
+            "sha": null,
+            "ts": "20260905-020001",
+            "failed": 476,
+            "errors": 409,
+            "skipped": 2281,
+            "all_shards_measured": true
           }
         ],
-        "computed_at": "20260904-020001",
+        "computed_at": "20260905-020001",
         "intersection_of": 3
       },
       "stream": "FV"
     },
     "n_quarantine": {
       "status": "measured",
-      "value": 251,
+      "value": 250,
       "unit": "arquivos de teste",
       "direction": "down",
       "target": 0,
       "source": "convenção legacy-quarantine (@group | ->group() | skip) em tests/ + Modules/*/Tests (este script)",
       "detail": {
-        "quarantined_files": 251
+        "quarantined_files": 250
       },
       "stream": "FV"
     },
@@ -170,8 +170,8 @@
           "B": 0,
           "C": 0
         },
-        "with_manual_ddl": 273,
-        "effectively_guarded": 273
+        "with_manual_ddl": 271,
+        "effectively_guarded": 271
       },
       "stream": "FV"
     },

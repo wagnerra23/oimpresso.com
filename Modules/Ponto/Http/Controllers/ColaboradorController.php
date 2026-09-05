@@ -20,9 +20,22 @@ class ColaboradorController extends Controller
         $paginated = Colaborador::where('business_id', $businessId)
             ->with(['user:id,first_name,last_name,email', 'escalaAtual:id,nome'])
             ->when($search, function ($q) use ($search) {
-                $q->whereHas('user', fn ($u) => $u->where('first_name', 'like', "%{$search}%"))
-                  ->orWhere('matricula', 'like', "%{$search}%")
-                  ->orWhere('cpf', 'like', "%{$search}%");
+                // O bloco de busca precisa de grupo PRÓPRIO. Sem ele, o `where('business_id')`
+                // acima fica do lado esquerdo de um OR e deixa de valer assim que a matrícula
+                // ou o CPF casam. Medido no SQL (não suposto):
+                //   (business_id = ? and exists(users…) or matricula like ? or cpf like ?)
+                // Quem segurava sozinho era o global scope do trait HasBusinessScope, que o
+                // Laravel adiciona como um segundo grupo ligado por AND (callScope →
+                // addNewWheresWithinGroup). Isso é DEFESA ÚNICA: remover o trait do model ou
+                // chamar withoutGlobalScopes() "pra simplificar" transformaria esta busca num
+                // varredor de todos os empregadores. Com o grupo, volta a ser defesa dupla.
+                // Comportamento observável não muda — UC-COLIDX-01 [T0] provava antes e segue
+                // provando depois. ADR 0093 (multi-tenant Tier 0 IRREVOGÁVEL).
+                $q->where(function ($sub) use ($search) {
+                    $sub->whereHas('user', fn ($u) => $u->where('first_name', 'like', "%{$search}%"))
+                        ->orWhere('matricula', 'like', "%{$search}%")
+                        ->orWhere('cpf', 'like', "%{$search}%");
+                });
             })
             ->orderBy('matricula')
             ->paginate(25)
