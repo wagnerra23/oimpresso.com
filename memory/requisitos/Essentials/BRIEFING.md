@@ -33,7 +33,7 @@ Origem: módulo opcional UltimatePOS v6 — preservado intencionalmente como **s
 | Documents + Share | ✅ em prod | Upload + share por usuário |
 | Reminder | ✅ em prod | CRUD calendário pessoal |
 | Attendance (ponto) | 🟡 legacy | Coexiste com Modules/Ponto canônico (Portaria 671/2021) — em Ponto fica trabalho novo |
-| HRM (allowance/deduction/shift/payroll) | 🟡 legacy | Usado biz=4 minimal; backlog ADR feature-wish para evolução |
+| HRM (allowance/deduction/shift/payroll) | 🟡 legacy | Backlog ADR feature-wish para evolução. O total do contracheque é recalculado no SERVIDOR desde 2026-09-05 (`PayrollTotalCalculator`); antes vinha somado do navegador. Uso real da folha: rode `SELECT business_id, COUNT(*) FROM transactions WHERE type='payroll' GROUP BY business_id` — em 2026-09-05 eram 2 registros, ambos em biz=1 e zerados |
 | Sales Target | 🟡 legacy | Pouco uso; possível candidato a desativar |
 | Holiday | ✅ em prod | Gestão de feriados por business |
 | KnowledgeBase | 🟡 legacy | Sobreposição com Modules/KB candidato a migração; `content` sanitizado server-side via `App\Util\HtmlSanitizer::clean` (HTMLPurifier) antes do render — #2895 |

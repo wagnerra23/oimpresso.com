@@ -331,4 +331,5 @@ return [
     'import_erro_sobreposicao_banco' => 'This employee already has an attendance record covering that time range.',
     'import_erro_sobreposicao_arquivo' => 'Another row in the same file already covers that time range for this employee.',
     'import_erro_arquivo_sumiu' => 'The uploaded file is no longer available. Please upload it again.',
+    'payroll_total_divergente' => 'The total sent by the form does not match the total calculated by the server. The payroll was not saved. Reload the screen and check the allowance and deduction values.',
 ];
