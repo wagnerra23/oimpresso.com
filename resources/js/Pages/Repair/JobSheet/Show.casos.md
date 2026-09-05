@@ -31,7 +31,7 @@ last_run: "2026-09-05"
 - **Por que é assim:** a consulta do `show` parte de `where('business_id', $business_id)` antes do `findOrFail` — [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md), Tier 0 irrevogável. É o anti-hook literal do charter: *"NÃO acessa OS de outro biz (Tier 0)"*.
 - **Regressão que defende:** esta é a tela que mostra **tudo** da OS — cliente, aparelho, defeitos, peças, anexos, histórico. Um vazamento aqui não expõe um campo: expõe o atendimento inteiro de outro negócio.
 - **Teste:** `Modules/Repair/Tests/Feature/JobSheetShowContratoTest.php` — *"UC-JSS-01: não abre o detalhe de OS de outro negócio"*.
-- **Status: ⬜** _(teste existe e cita o UC; veredito pendente — ver §Revalidação)_
+- **Status: 🧪** _passou no CT 100_
 
 ## UC-JSS-02 · Sem permissão ampla, o técnico só vê a OS que é dele
 - **Persona:** o técnico da bancada, que deve ver as OS que abriu ou que lhe foram atribuídas — não a carteira inteira da loja.
@@ -40,7 +40,7 @@ last_run: "2026-09-05"
 - **Como o teste garante a pré-condição:** ele **afirma** que o usuário não tem `job_sheet.view_all` antes de exercitar os três acessos. Sem essa asserção, uma mudança futura no bypass de permissões faria os três darem 200 e o caso ficaria verde provando o contrário do que promete.
 - **Regressão que defende:** remover o filtro transforma "detalhe da minha OS" em "detalhe de qualquer OS da loja" para todo mundo com acesso ao módulo.
 - **Teste:** `JobSheetShowContratoTest` — *"UC-JSS-02: quem não tem job_sheet.view_all só enxerga a OS que criou ou atende"*.
-- **Status: ⬜** _(teste existe e cita o UC; veredito pendente)_
+- **Status: 🧪** _passou no CT 100 — os três acessos, com a pré-condição de permissão afirmada_
 
 ## UC-JSS-03 · O painel de ações aponta para o Repair, nunca para Vendas
 - **Persona:** ninguém — é uma armadilha de reuso, e nada além deste caso a pegaria.
@@ -48,23 +48,23 @@ last_run: "2026-09-05"
 - **Por que este caso existe:** o RUNBOOK marca isto como **risco R1 (MÉDIO)**. O painel de ações é compartilhado com Vendas e assume endereços `/sells/...`; o Repair injeta os seus por um wrapper. Se os endereços vazarem para os de Vendas, a tela dispara transição **no módulo errado** — e o sintoma não aparece na tela, aparece no pipeline de outra entidade.
 - **Regressão que defende:** trocar o wrapper pelo componente compartilhado cru, num refactor de "remover duplicação", reintroduz exatamente o R1.
 - **Teste:** `JobSheetShowContratoTest` — *"UC-JSS-03: o painel FSM recebe endereços do Repair, nunca os de Vendas"* (confere os três endereços contra o id da OS, não contra um prefixo genérico).
-- **Status: ⬜** _(teste existe e cita o UC; veredito pendente)_
+- **Status: 🧪** _passou no CT 100 — os três endereços conferidos contra o id da OS_
 
 ## UC-JSS-04 · A tela diz se a OS já entrou no pipeline
 - **Persona:** quem abre a OS e precisa saber se opera pelo status legado ou pelas ações do pipeline.
 - **Aceite:** Dado uma OS que nasceu fora do pipeline · Quando abro o detalhe · Então a tela declara que ela **não** está no pipeline (é o que faz aparecer "Iniciar pipeline" em vez das ações); Dado uma OS já em um estágio · Então a tela declara que ela **está**.
 - **Por que é assim:** o charter descreve o painel como *"actions disponíveis ou 'Iniciar pipeline'"*, e o RUNBOOK chama isso de **estado FSM dual** — a coexistência entre o status legado e o pipeline canônico ([ADR 0143](../../../../../memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md)).
 - **Regressão que defende:** inverter a condição mostra "Iniciar pipeline" para uma OS que já está correndo — e um segundo início é a porta para dois fluxos concorrentes sobre a mesma OS.
-- **⚠️ Cobertura parcial, e isto fica dito:** a metade "já em um estágio" só é exercitada quando o banco tem pipeline semeado. Sem isso, afirmá-la exigiria plantar uma referência inválida — e teste que planta a própria pré-condição global mente sobre o que o ambiente de fato tem (§5 2026-08-24). O teste **pula essa metade** em vez de fabricá-la; a metade legada roda sempre.
+- **⚠️ Cobertura condicionada ao ambiente, e isto fica dito:** a metade "já em um estágio" só é exercitada quando o banco tem pipeline semeado; sem isso, afirmá-la exigiria plantar uma referência inválida — e teste que planta a própria pré-condição global mente sobre o que o ambiente de fato tem (§5 2026-08-24). O teste **pula essa metade** em vez de fabricá-la, e a metade legada roda sempre. No run do CT 100 de 2026-09-05 havia pipeline semeado, então as **duas** metades rodaram; num banco sem pipeline, este UC prova só a primeira.
 - **Teste:** `JobSheetShowContratoTest` — *"UC-JSS-04: a tela informa se a OS está no pipeline FSM"*.
-- **Status: ⬜** _(teste existe e cita o UC; veredito pendente)_
+- **Status: 🧪** _passou no CT 100; a metade "já no pipeline" rodou (há pipeline semeado no banco)_
 
 ## UC-JSS-05 · Sem permissão, o detalhe não existe
 - **Persona:** usuário do negócio que não trabalha com OS.
 - **Aceite:** Dado usuário sem nenhuma das permissões de OS · Quando abro o detalhe · Então **403**.
 - **Por que é assim:** o gate do `show` aceita `job_sheet.view_assigned`, `job_sheet.view_all` **ou** `job_sheet.create` — quem não tem nenhuma delas não passa.
 - **Teste:** `JobSheetShowContratoTest` — *"UC-JSS-05: usuário sem permissão de OS recebe 403 no detalhe"*.
-- **Status: ⬜** _(teste existe e cita o UC; veredito pendente)_
+- **Status: 🧪** _passou no CT 100_
 
 ---
 
@@ -102,5 +102,22 @@ Tela sem casos até aqui: o módulo tinha **1** `casos.md` em 14 telas
 (`node scripts/governance/module-surface.mjs Repair`). Este arquivo nasce com os cinco UCs
 acima e o teste que os cita.
 
-O `Status:` de cada UC segue `⬜` até o run do CT 100 responder — declarar `✅` antes do
-veredito seria exatamente o que o G-7 existe para pegar.
+### Recibo do run — CT 100, 2026-09-05
+
+`tailscale ssh root@ct100-mcp "docker exec -e DB_CONNECTION=mysql oimpresso-staging php artisan test
+Modules/Repair/Tests/Feature/JobSheet{AddParts,Create,Edit,Show}ContratoTest.php"`
+
+**24 passed · 4 failed · 100 assertions.** A contagem de assertions é o que se lê aqui: os quatro
+arquivos `Wave3B6JobSheet*` vizinhos saem verdes pulando tudo por falta de dado pré-existente
+(`Sem JobSheet.`, `Precisa de 2+ biz.`), e `0 failed` num run que não rodou nada não prova coisa
+alguma (LC-13). Por isso as fixturas destes contratos são criadas pelo próprio teste no tenant 98.
+
+Os **4 vermelhos são achados**, não testes mal escritos — cada um está descrito no UC a que
+pertence, com o erro literal. Nenhum deles é conserto desta sessão: dois mexem no caminho de
+gravação (Tier 0, REGRA MESTRE) e um é divergência entre charter e código cujas duas saídas
+apontam para lados opostos. A correção é decisão [W].
+
+Durante a revisão, um destes testes ficou verde por engano meu: `not->toHaveKey($id, $mensagem)`
+compara CHAVE + VALOR, então o texto virou o valor esperado e o assert deixou de morder. Corrigido
+para comparar a lista de chaves, e re-medido — voltou a acusar. É a família da lápide §5 2026-07-28
+(mensagem passada como needle), e fica registrado porque um falso verde é pior que um vermelho.

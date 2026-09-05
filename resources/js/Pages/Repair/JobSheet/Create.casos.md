@@ -38,7 +38,7 @@ last_run: "2026-09-05"
 - **Por que é assim:** o `store` monta `$input` por lista branca (`$request->only(...)`, que não inclui `business_id`) e depois **força** `$input['business_id']` e `$input['created_by']` a partir da sessão e do usuário autenticado. É o anti-hook literal do charter: *"NÃO cria OS de outro biz"* ([ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)).
 - **Regressão que defende:** trocar a lista branca por `$request->all()` faria o campo do formulário mandar na gravação — e a OS nasceria dentro do negócio de outro cliente.
 - **Teste:** `Modules/Repair/Tests/Feature/JobSheetCreateContratoTest.php` — *"UC-JSC-01: a OS nasce no negócio da sessão, ignorando business_id do formulário"*.
-- **Status: ⬜** _(teste existe e cita o UC; veredito pendente — ver §Revalidação)_
+- **Status: 🧪** _passou no CT 100; a OS nasceu no tenant da sessão e nada apareceu no vizinho_
 
 ## UC-JSC-02 · A OS nasce fora do pipeline
 - **Persona:** quem abre a OS no balcão e ainda não decidiu por qual fluxo ela vai correr.
@@ -46,15 +46,23 @@ last_run: "2026-09-05"
 - **Por que é assim:** o charter declara como Non-Goal *"FSM pipeline iniciação (OS nasce legacy)"*, e o RUNBOOK repete: *"na criação, OS nasce SEM `current_stage_id`"*. Quem inicia o pipeline é a ação própria do FSM ([ADR 0143](../../../../../memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md)).
 - **Regressão que defende:** iniciar o pipeline no `store` colocaria toda OS nova num fluxo com regras de transição e papéis — inclusive as que só precisam do status legado.
 - **Teste:** `JobSheetCreateContratoTest` — *"UC-JSC-02: a OS nasce fora do pipeline FSM, com estágio vazio"*.
-- **Status: ⬜** _(teste existe e cita o UC; veredito pendente)_
+- **Status: 🧪** _passou no CT 100_
 
 ## UC-JSC-03 · O botão escolhido decide para onde eu vou
 - **Persona:** quem atende no balcão e já sabe que vai emendar o cadastro com as peças, ou com os documentos do aparelho.
 - **Aceite:** Dado que criei a OS · Quando escolho *salvar* · Então vou para o detalhe dela; Quando escolho *salvar e adicionar peças* · Então vou para a tela de peças **daquela** OS; Quando escolho *salvar e enviar documentos* · Então vou para a tela de documentos **daquela** OS.
 - **Por que é assim:** os três destinos são Goal explícito do charter (*"Submit types: save · save_and_add_parts · save_and_upload_docs"*) e vêm preservados do Blade legado — é ergonomia que o operador já tem hoje.
 - **Regressão que defende:** um redirect que ignore o botão joga o atendente de volta na lista, e ele reabre a OS na mão a cada atendimento.
-- **Teste:** `JobSheetCreateContratoTest` — *"UC-JSC-03: cada submit_type leva a OS recém-criada ao seu destino"* (os três casos num dataset; cada um confere que o destino aponta para o id recém-criado, não para uma rota genérica).
-- **Status: ⬜** _(teste existe e cita o UC; veredito pendente)_
+- **Teste:** `JobSheetCreateContratoTest`, em DOIS — *"UC-JSC-03: os atalhos de peças e documentos levam à OS
+  recém-criada"* (verde; confere que o destino aponta para o id recém-criado, não para uma rota genérica) e
+  *"UC-JSC-03: o botão \"salvar\" documentado no charter é aceito na abertura da OS"* (vermelho).
+- **⚠️ Achado aberto — divergência charter × código (CT 100, 2026-09-05):** o charter e o RUNBOOK listam `save`
+  entre os valores válidos, mas `StoreJobSheetRequest` valida `in:save_and_add_parts,save_and_upload_docs`. Enviar
+  `save` é recusado na validação e **a OS não é criada**. O caminho vivo escapa por sorte: a tela legada não envia
+  o campo no botão Salvar, e o `nullable` cobre a ausência — que é o que o primeiro teste prova, verde. Uma Page
+  Inertia que enviasse `save`, como os dois documentos mandam, falharia em silêncio. As duas saídas são decisão
+  [W] e apontam para lados opostos: aceitar `save` na validação, ou corrigir charter e RUNBOOK.
+- **Status: 🧪 / ❌** _PARCIAL — os dois atalhos e a ausência do campo passaram; o valor `save`, que o charter documenta, falhou na validação: `Failed asserting that true is false` (assertSessionHasNoErrors)_
 
 ## UC-JSC-04 · O custo estimado digitado em pt-BR não infla (Tier 0 · VALOR)
 - **Persona:** quem atende digita `1.234,56` porque é assim que se escreve dinheiro aqui.
@@ -62,14 +70,14 @@ last_run: "2026-09-05"
 - **Por que o aceite é uma identidade, e não um número fixo:** fixar `1234.56` à mão criaria um segundo oráculo do parser dentro do teste, que drifaria dele. O contrato que interessa é *"esta tela usa o parser canônico do projeto"* — e é isso que a identidade prova.
 - **Regressão que defende:** a classe do incidente de 2026-06-05 — o ponto lido como separador de milhar transformando centenas em centenas de milhares. O caso concreto do dano está registrado na REGRA MESTRE de [`proibicoes.md`](../../../../../memory/proibicoes.md); aqui ele vira teste.
 - **Teste:** `JobSheetCreateContratoTest` — *"UC-JSC-04: o custo estimado digitado em pt-BR é gravado pelo parser canônico"*.
-- **Status: ⬜** _(teste existe e cita o UC; veredito pendente)_
+- **Status: 🧪** _passou no CT 100 — as 4 entradas pt-BR batem com o parser canônico_
 
 ## UC-JSC-05 · Sem permissão, a abertura não existe
 - **Persona:** usuário do negócio que não trabalha com OS.
 - **Aceite:** Dado usuário sem `job_sheet.create` · Quando abro o formulário **ou** submeto uma OS · Então **403** nas duas — e nenhuma OS é criada.
 - **Por que o aceite confere a contagem também:** um 403 na resposta que ainda assim gravasse seria pior do que um 200 honesto, e nenhum assert de status code sozinho pega isso.
 - **Teste:** `JobSheetCreateContratoTest` — *"UC-JSC-05: usuário sem job_sheet.create recebe 403 na abertura de OS"*.
-- **Status: ⬜** _(teste existe e cita o UC; veredito pendente)_
+- **Status: 🧪** _passou no CT 100; nenhuma OS foi criada sob 403_
 
 ## UC-JSC-06 · Cada OS sai com o seu número
 - **Persona:** o cliente que sai da loja com um número na mão e liga citando esse número.
@@ -77,7 +85,7 @@ last_run: "2026-09-05"
 - **Por que é assim:** o `store` gera o número por contador de referência do negócio, prefixado pelo que estiver em `business.repair_settings` (é o `job_sheet_prefix` que a tela de configurações grava — UC-RSET-01).
 - **Regressão que defende:** número repetido faz duas OS responderem pela mesma ligação; número vazio tira do cliente a única referência que ele tem.
 - **Teste:** `JobSheetCreateContratoTest` — *"UC-JSC-06: cada OS aberta recebe um número não vazio e distinto"*.
-- **Status: ⬜** _(teste existe e cita o UC; veredito pendente)_
+- **Status: 🧪** _passou no CT 100_
 
 ---
 
@@ -112,5 +120,22 @@ Tela sem casos até aqui: o módulo tinha **1** `casos.md` em 14 telas
 (`node scripts/governance/module-surface.mjs Repair`). Este arquivo nasce com os seis UCs
 acima e o teste que os cita.
 
-O `Status:` de cada UC segue `⬜` até o run do CT 100 responder — declarar `✅` antes do
-veredito seria exatamente o que o G-7 existe para pegar.
+### Recibo do run — CT 100, 2026-09-05
+
+`tailscale ssh root@ct100-mcp "docker exec -e DB_CONNECTION=mysql oimpresso-staging php artisan test
+Modules/Repair/Tests/Feature/JobSheet{AddParts,Create,Edit,Show}ContratoTest.php"`
+
+**24 passed · 4 failed · 100 assertions.** A contagem de assertions é o que se lê aqui: os quatro
+arquivos `Wave3B6JobSheet*` vizinhos saem verdes pulando tudo por falta de dado pré-existente
+(`Sem JobSheet.`, `Precisa de 2+ biz.`), e `0 failed` num run que não rodou nada não prova coisa
+alguma (LC-13). Por isso as fixturas destes contratos são criadas pelo próprio teste no tenant 98.
+
+Os **4 vermelhos são achados**, não testes mal escritos — cada um está descrito no UC a que
+pertence, com o erro literal. Nenhum deles é conserto desta sessão: dois mexem no caminho de
+gravação (Tier 0, REGRA MESTRE) e um é divergência entre charter e código cujas duas saídas
+apontam para lados opostos. A correção é decisão [W].
+
+Durante a revisão, um destes testes ficou verde por engano meu: `not->toHaveKey($id, $mensagem)`
+compara CHAVE + VALOR, então o texto virou o valor esperado e o assert deixou de morder. Corrigido
+para comparar a lista de chaves, e re-medido — voltou a acusar. É a família da lápide §5 2026-07-28
+(mensagem passada como needle), e fica registrado porque um falso verde é pior que um vermelho.
