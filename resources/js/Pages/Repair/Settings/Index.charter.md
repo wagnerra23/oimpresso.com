@@ -4,7 +4,7 @@ component: resources/js/Pages/Repair/Settings/Index.tsx
 related_prototype: "n/a (herda PT-01; segue o Padrão de Tela) — repair-page.jsx se declara no cabeçalho 'importado dos blades ... settings', ou seja é porte REVERSO do Blade que esta tela substitui; ancorar aqui seria ancorar a tela nela mesma (§5 2026-08-28)"
 owner: wagner
 status: draft
-last_validated: "2026-09-04"
+last_validated: "2026-09-05"
 parent_module: Repair
 parent_capterra: memory/requisitos/Repair/CAPTERRA-FICHA.md
 related_adrs: [104, 93, 358]
@@ -58,13 +58,15 @@ Dar ao admin do negócio um único lugar para definir **os padrões da folha de 
 
 ## Casos
 
-Contrato executável em [`Index.casos.md`](./Index.casos.md) — UC-RSET-01 a UC-RSET-06, cada um citado por ≥1 teste em [`RepairSettingsContratoTest.php`](../../../../../Modules/Repair/Tests/Feature/RepairSettingsContratoTest.php).
+Contrato executável em [`Index.casos.md`](./Index.casos.md) — UC-RSET-01 a UC-RSET-08, cada um citado por ≥1 teste em [`RepairSettingsContratoTest.php`](../../../../../Modules/Repair/Tests/Feature/RepairSettingsContratoTest.php). Veredito por UC vem do manifesto (`scripts/casos-test-results.json`, gate G-7), não da prosa: em 2026-09-05 são **6 `pass` e 2 `skip`** (os dois de coexistência de flag — razão na tabela de pendências).
 
 ---
 
 ## Pest GUARD
 
-Todos em `Modules/Repair/Tests/Feature/RepairSettingsContratoTest.php`, lane **Modules Pest** (dispara em `Modules/Repair/**` e `resources/js/Pages/Repair/**`), tenant **98** (ADR 0358).
+Todos em `Modules/Repair/Tests/Feature/RepairSettingsContratoTest.php`, tenant **98** (ADR 0358), lane **Verticais · Pest (MySQL)** (`verticais-pest.yml`, allowlist).
+
+⚠️ **Corrigido em 2026-09-05 (F4 QA).** Esta linha dizia lane *Modules Pest*, e isso descrevia um gate que não existia: aquela lane roda em **sqlite**, onde os 8 UCs pulam no primeiro guard do `beforeEach` (o schema de `business` exige MySQL) e o job sai `success` assim mesmo — falso-verde (LC-13), verificado no run `33938642020`. A lane com MySQL real (`verticais-pest`) roda uma allowlist explícita e este arquivo não estava nela. O contrato **não era exercido por lane nenhuma** até o PR desta medição, que o incluiu na allowlist.
 
 | GUARD | prova |
 |---|---|
@@ -79,6 +81,7 @@ Todos em `Modules/Repair/Tests/Feature/RepairSettingsContratoTest.php`, lane **M
 
 ## Pendências antes de `status: live`
 
-1. Smoke real autenticado em prod, dark, **1280px**, com screenshot no PR (R1).
+1. Smoke real autenticado, dark, **1280px**, com screenshot no PR (R1). **Segue aberta em 2026-09-05, com a razão medida:** o staging responde 200 mas **não tem assets buildados** (`public/build/manifest.json` ausente) e portanto não renderiza Inertia; o container não tem `node`/`npm` no PATH; e seu checkout está **432 commits atrás** (`c1abe9548`) com trabalho não-commitado de outra sessão. Buildar ali retrataria código de agosto + os arquivos desta onda — não seria a tela nem de produção nem do `main`.
 2. Flag `MWART_REPAIR_SETTINGS_INDEX` ligada por [W] após o smoke — o cutover é decisão dele.
-3. Confirmar em render real se a aba de impressão do Blade legado está quebrada hoje (`$contact_custom_fields` indefinida); se estiver, declarar a mudança de comportamento.
+3. ~~Confirmar em render real se a aba de impressão do Blade legado está quebrada.~~ **RESOLVIDO em 2026-09-05 — a premissa era falsa.** O partial renderiza (9143 bytes, checkbox presente, zero warning sobre a variável): ele define `$contact_custom_fields` e `$custom_labels` na **própria linha 4**, a partir de `$jobsheet_pdf_settings`, que o `compact()` passa. A migração **não** conserta erro vivo aqui, e não há mudança de comportamento a declarar por este motivo. Detalhe e provas em [`Index.casos.md`](./Index.casos.md) §RESOLVIDO.
+4. **Novo, descoberto no F4 QA:** semear `system.repair_version` no `pest-mysql-setup` para destravar UC-RSET-07/08 no CI. Sem essa linha, `ModuleUtil::getTaxonomyData` faz `exit` dentro de `index()` — com o guard atual isso vira skip visível; sem ele, matava a suíte inteira sem output. É PR próprio: aquele seed é compartilhado por 16 lanes.
