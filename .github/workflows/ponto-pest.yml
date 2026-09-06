@@ -306,6 +306,7 @@ jobs:
             Modules/Ponto/Tests/Feature/ImportacaoCreateContratoTest.php \
             Modules/Ponto/Tests/Feature/ImportacaoShowContratoTest.php \
             Modules/Ponto/Tests/Feature/IntercorrenciaContratoTest.php \
+            Modules/Ponto/Tests/Feature/LicencaAbonaDiaContratoTest.php \
             Modules/Ponto/Tests/Feature/IntercorrenciaEditContratoTest.php \
             Modules/Ponto/Tests/Feature/PontoDashboardContratoTest.php \
             Modules/Ponto/Tests/Feature/ColaboradorContratoTest.php \
