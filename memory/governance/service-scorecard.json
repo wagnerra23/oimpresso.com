@@ -14,7 +14,7 @@
     },
     "vital_signs": {
       "path": "memory/governance/vital-signs.json",
-      "generated_at": "2026-09-05"
+      "generated_at": "2026-09-06"
     }
   },
   "stats": {
@@ -465,7 +465,7 @@
           "charter_pct": 100,
           "casos_pct": 0,
           "stale": true,
-          "idade_max_dias": 62
+          "idade_max_dias": 63
         },
         "graph": {
           "depends_on": 4,
@@ -566,7 +566,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 62
+          "idade_max_dias": 63
         },
         "graph": {
           "depends_on": 0,
@@ -771,7 +771,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 62
+          "idade_max_dias": 63
         },
         "graph": {
           "depends_on": 3,
@@ -876,7 +876,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 62
+          "idade_max_dias": 63
         },
         "graph": {
           "depends_on": 2,
@@ -1081,7 +1081,7 @@
           "charter_pct": 100,
           "casos_pct": 0,
           "stale": true,
-          "idade_max_dias": 62
+          "idade_max_dias": 63
         },
         "graph": {
           "depends_on": 3,
@@ -1278,19 +1278,19 @@
           "matched": true,
           "ns": "Essentials",
           "via": "direto",
-          "telas": 13,
+          "telas": 16,
           "com_scorecard": 13,
           "nota_media": 78,
           "nota_min": 73,
           "pior_tela": "Essentials/Settings/Index",
           "charter_pct": 100,
-          "casos_pct": 0,
+          "casos_pct": 19,
           "stale": true,
-          "idade_max_dias": 62
+          "idade_max_dias": 63
         },
         "graph": {
           "depends_on": 0,
-          "dependents": 0,
+          "dependents": 1,
           "provides_api": 2,
           "owns_tables": 0,
           "owns_legacy_views": 0,
@@ -1302,7 +1302,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-07-23",
+          "last_commit": "2026-09-05",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -1391,7 +1391,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 62
+          "idade_max_dias": 63
         },
         "graph": {
           "depends_on": 3,
@@ -1496,7 +1496,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 62
+          "idade_max_dias": 63
         },
         "graph": {
           "depends_on": 4,
@@ -1601,7 +1601,7 @@
           "charter_pct": 100,
           "casos_pct": 56,
           "stale": true,
-          "idade_max_dias": 62
+          "idade_max_dias": 63
         },
         "graph": {
           "depends_on": 4,
@@ -1706,7 +1706,7 @@
           "charter_pct": 100,
           "casos_pct": 11,
           "stale": true,
-          "idade_max_dias": 62
+          "idade_max_dias": 63
         },
         "graph": {
           "depends_on": 5,
@@ -1722,7 +1722,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-13",
+          "last_commit": "2026-09-06",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -1811,7 +1811,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 62
+          "idade_max_dias": 63
         },
         "graph": {
           "depends_on": 7,
@@ -1916,7 +1916,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 62
+          "idade_max_dias": 63
         },
         "graph": {
           "depends_on": 7,
@@ -2021,7 +2021,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 62
+          "idade_max_dias": 63
         },
         "graph": {
           "depends_on": 3,
@@ -2126,7 +2126,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 62
+          "idade_max_dias": 63
         },
         "graph": {
           "depends_on": 3,
@@ -2231,7 +2231,7 @@
           "charter_pct": 100,
           "casos_pct": 0,
           "stale": true,
-          "idade_max_dias": 62
+          "idade_max_dias": 63
         },
         "graph": {
           "depends_on": 3,
@@ -2441,7 +2441,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 64
+          "idade_max_dias": 65
         },
         "graph": {
           "depends_on": 3,
@@ -2546,7 +2546,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 64
+          "idade_max_dias": 65
         },
         "graph": {
           "depends_on": 5,
@@ -2644,17 +2644,17 @@
           "ns": "Ponto",
           "via": "direto",
           "telas": 21,
-          "com_scorecard": 20,
+          "com_scorecard": 21,
           "nota_media": 80,
           "nota_min": 71,
           "pior_tela": "Ponto/Espelho/Index",
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 62
+          "idade_max_dias": 63
         },
         "graph": {
-          "depends_on": 3,
+          "depends_on": 4,
           "dependents": 0,
           "provides_api": 3,
           "owns_tables": 0,
@@ -2852,7 +2852,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 62
+          "idade_max_dias": 63
         },
         "graph": {
           "depends_on": 0,
@@ -3053,7 +3053,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 62
+          "idade_max_dias": 63
         },
         "graph": {
           "depends_on": 3,
@@ -3151,14 +3151,14 @@
           "ns": "Repair",
           "via": "direto",
           "telas": 14,
-          "com_scorecard": 13,
+          "com_scorecard": 14,
           "nota_media": 77,
           "nota_min": 71,
           "pior_tela": "Repair/JobSheet/Edit",
           "charter_pct": 100,
-          "casos_pct": 7,
+          "casos_pct": 93,
           "stale": true,
-          "idade_max_dias": 62
+          "idade_max_dias": 63
         },
         "graph": {
           "depends_on": 3,
@@ -3259,7 +3259,7 @@
           "charter_pct": 100,
           "casos_pct": 56,
           "stale": true,
-          "idade_max_dias": 62
+          "idade_max_dias": 63
         },
         "graph": {
           "depends_on": 0,
@@ -3665,7 +3665,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 62
+          "idade_max_dias": 63
         },
         "graph": {
           "depends_on": 3,
@@ -3870,7 +3870,7 @@
           "charter_pct": 100,
           "casos_pct": 18,
           "stale": true,
-          "idade_max_dias": 62
+          "idade_max_dias": 63
         },
         "graph": {
           "depends_on": 6,
