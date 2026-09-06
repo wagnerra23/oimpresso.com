@@ -84,27 +84,27 @@
     {
       "id": "grafico-ultimos-7-dias-e-painel-o-que-precisa-da-sua-atencao",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
+        "arquivo": "n/a",
         "linhas": "n/a"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Dashboard/Index.tsx",
-        "linhas": "396-479",
+        "linhas": "315-327 e 376-378",
         "ancora": false
       },
-      "status": "vivo-a-frente",
-      "acao": "Nada — vivo à frente. Registrado para não virar \"bug\" na próxima leitura.",
-      "_acionavel": false
+      "status": "decidir-w",
+      "acao": "Decidir. ⚠️ Não é \"vivo à frente\": o [`Dashboard-visual-comparison.md`](Dashboard-visual-comparison.md) §\"O que NÃO decidir a partir deste documento\" lista estes 2 painéis como o item 2 das *\"três coisas [que] dependem do [W]\"* — *\"produção evoluiu além da âncora. Ou a âncora incorpora, ou eles saem. Não assumir que 'extra = errado'\"*. Decisão pendente, não fechada.",
+      "_acionavel": true
     },
     {
       "id": "estados-vazios",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
+        "arquivo": "n/a",
         "linhas": "n/a"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Dashboard/Index.tsx",
-        "linhas": "438-479",
+        "linhas": "256 e 354-358",
         "ancora": false
       },
       "status": "vivo-a-frente",
@@ -115,11 +115,11 @@
       "id": "escala-tipografica",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
-        "linhas": "38-89"
+        "linhas": "27-90"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Dashboard/Index.tsx",
-        "linhas": "131-394",
+        "linhas": "204-396",
         "ancora": false
       },
       "status": "decidir-w",
@@ -130,11 +130,11 @@
       "id": "header-titulo-subtitulo-e-acoes",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
-        "linhas": "448-476"
+        "linhas": "495-505"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Dashboard/Index.tsx",
-        "linhas": "196-226",
+        "linhas": "208-226",
         "ancora": false
       },
       "status": "decidir-w",
@@ -149,7 +149,7 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Dashboard/Index.tsx",
-        "linhas": "196-226",
+        "linhas": "223",
         "ancora": false
       },
       "status": "divergencia-declarada",

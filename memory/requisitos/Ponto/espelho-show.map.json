@@ -25,7 +25,7 @@
       "id": "totalizadores-do-mes",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
-        "linhas": "397-408"
+        "linhas": "395-402"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Espelho/Show.tsx",
@@ -70,14 +70,14 @@
       "id": "folha-de-impressao",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
-        "linhas": "272-327"
+        "linhas": "272-326"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Espelho/Show.tsx",
         "linhas": "389-404",
         "ancora": "espelho-folha-impressao"
       },
-      "status": "paridade",
+      "status": "vivo-a-frente",
       "acao": "Nada — vivo à frente na rota de impressão.",
       "_acionavel": false
     },
@@ -100,7 +100,7 @@
       "id": "drawer-do-dia-marcacoes-com-nsr-origem-rep-hash",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
-        "linhas": "209-270"
+        "linhas": "209-269"
       },
       "vivo": {
         "arquivo": "n/a",
@@ -108,14 +108,14 @@
         "ancora": false
       },
       "status": "decidir-w",
-      "acao": "Sheet",
+      "acao": "Decidir. É leitura de dado que o vivo já tem (`ponto_marcacoes` traz NSR e hash) e é a prova documental que a fiscalização pede. Mas abrir o drawer sem a ação de anular (linha seguinte) entrega metade — e a ação está travada. Decisão de [W]: drawer só-leitura agora, ou junto com a anulação.",
       "_acionavel": true
     },
     {
       "id": "anular-marcacao",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
-        "linhas": "345-356"
+        "linhas": "345-354"
       },
       "vivo": {
         "arquivo": "n/a",
