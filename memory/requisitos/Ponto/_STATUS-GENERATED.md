@@ -20,15 +20,14 @@ authority: generated
 | CU no SDD | 14 |
 | Telas (.tsx) | 21 |
 | Telas com `casos.md` | 21 |
-| UC declarados | 70 |
-| UC com teste que os cita | 69 |
+| UC declarados | 73 |
+| UC com teste que os cita | 72 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
 | Lacuna | O que falta escrever |
 |---|---|
 | `US-PONTO-001` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Relogio web pra registrar entrada/saida (REP-P) |
-| `US-PONTO-007` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Multi-tenant isolation (Tier 0 IRREVOGAVEL) |
 | `US-PONTO-012` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Corrigir os atributos fantasma do modulo (4 instancias) |
 
 ### Backlog — NÃO é lacuna
@@ -65,6 +64,9 @@ authority: generated
 | UC-CFGIDX-01 | Configuracoes/Index | 🧪 aguarda veredito da lane |
 | UC-CFGREP-01 | Configuracoes/Reps | 🧪 aguarda veredito da lane |
 | UC-CFGREP-02 | Configuracoes/Reps | 🧪 aguarda veredito da lane |
+| UC-CFGREP-03 | Configuracoes/Reps | 🧪 aguarda veredito da lane |
+| UC-CFGREP-04 | Configuracoes/Reps | 🧪 aguarda veredito da lane |
+| UC-CFGREP-05 | Configuracoes/Reps | 🧪 aguarda veredito da lane |
 | UC-COLEDT-01 | Colaboradores/Edit | 🧪 aguarda veredito da lane |
 | UC-COLEDT-02 | Colaboradores/Edit | 🧪 aguarda veredito da lane |
 | UC-COLIDX-01 | Colaboradores/Index | 🧪 aguarda veredito da lane |

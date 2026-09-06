@@ -6,7 +6,7 @@ authority: generated
      Status é DERIVADO da cadeia US→CU→UC→teste. Editar aqui não muda nada:
      mude o SPEC/SDD/casos/teste e re-rode. (ADR 0256: derivado sobrevive.) -->
 
-# Requisitos — Estoque · status derivado
+# Requisitos — Crm · status derivado
 
 > **Cadeia medida:** `US (SPEC) → CU (SDD §6) → UC (casos.md) → teste → veredito`.
 > O veredito final (✅/❌) vem da **lane de CI**, nunca deste gerador — status aqui
@@ -19,9 +19,9 @@ authority: generated
 | US no SPEC | 0 |
 | CU no SDD | 0 |
 | Telas (.tsx) | 0 |
-| Telas com `casos.md` | 1 |
-| UC declarados | 15 |
-| UC com teste que os cita | 13 |
+| Telas com `casos.md` | 0 |
+| UC declarados | 0 |
+| UC com teste que os cita | 0 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -40,21 +40,6 @@ _Nenhuma._
 
 | UC | Tela | Status |
 |---|---|---|
-| UC-EST-01 | Movimentacao | 🧪 aguarda veredito da lane |
-| UC-EST-02 | Movimentacao | 🧪 aguarda veredito da lane |
-| UC-EST-02B | Movimentacao | 📝 sem_teste |
-| UC-EST-03 | Movimentacao | 🧪 aguarda veredito da lane |
-| UC-EST-04 | Movimentacao | 🧪 aguarda veredito da lane |
-| UC-EST-05 | Movimentacao | 🧪 aguarda veredito da lane |
-| UC-EST-06 | Movimentacao | 🧪 aguarda veredito da lane |
-| UC-EST-07 | Movimentacao | 🧪 aguarda veredito da lane |
-| UC-EST-08 | Movimentacao | 🧪 aguarda veredito da lane |
-| UC-EST-08B | Movimentacao | 📝 sem_teste |
-| UC-EST-09 | Movimentacao | 🧪 aguarda veredito da lane |
-| UC-INV-02 | Movimentacao | 🧪 aguarda veredito da lane |
-| UC-INV-03 | Movimentacao | 🧪 aguarda veredito da lane |
-| UC-INV-05 | Movimentacao | 🧪 aguarda veredito da lane |
-| UC-INV-06 | Movimentacao | 🧪 aguarda veredito da lane |
 
 ---
 
