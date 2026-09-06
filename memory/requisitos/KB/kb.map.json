@@ -18,7 +18,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. título + linha de stats (artigos · leituras totais · vínculos OS · desatualizados) + barra de 6 botões de ação (Trilhas, Perguntar ao KB/IA, Saúde do KB, Troubleshooter, ⌘K Buscar, + Novo artigo) +… Construir ou rejeitar por escrito.",
+      "acao": "Decidir. só \"Perguntar ao KB\" (IA/RAG) + \"Saúde do KB\" adaptado — §Veredito adotar #4 (M/G). Trilhas, Troubleshooter e Composer/Novo artigo: NÃO adotar (§Veredito, Tier 0/ADR 0061).",
       "_acionavel": true
     },
     {
@@ -33,7 +33,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. coluna-1 (`kb-side`) tri-pane com: árvore de categorias com hue por vertical gráfica (Produção, Equipamentos, Pré-impressão, Atendimento, Fiscal, Sistema, Pessoas) + sub-categorias expansíveis… Construir ou rejeitar por escrito.",
+      "acao": "Decidir. Recentes + Favoritos (localStorage) + nuvem de tags — §Veredito adotar #2 (P/M; tags exigem campo no schema, _pendente_). Categorias/níveis de gráfica: NÃO adotar (§Veredito).",
       "_acionavel": true
     },
     {
@@ -48,7 +48,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. Command palette ⌘K (modal `CommandPalette`) com fuzzy match (título+excerpt+tags+autor), navegação ↑↓/Enter, e fallback \"Perguntar à IA\" quando 0 resultados. Atalho `/` também abre palette. Construir ou rejeitar por escrito.",
+      "acao": "Decidir. Command palette ⌘K mantendo a busca server-side por baixo — §Veredito adotar #3 (M). Substituir server-side por client-side = regressão proibida (§Veredito).",
       "_acionavel": true
     },
     {
@@ -63,7 +63,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. cards ricos (`kb-row`) — pill de categoria colorida, badge de nível (iniciante/inter/avançado), equipamento, \"fixo\", \"revisar\", título, excerpt, meta (autor/updated/readTime/reads/OS vinculadas) +… Construir ou rejeitar por escrito.",
+      "acao": "Decidir. só sort por frescor (`updated_at`/`indexed_at`, P — §6 Esforço: dado já existe). Métricas de leitura/utilidade e votação: NÃO adotar (§Veredito).",
       "_acionavel": true
     },
     {
@@ -78,7 +78,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. `ArticleReader` muito rico — TOC \"nesta página\", resumo por IA (`window.claude.complete`), corpo em blocos (para/h2/list/callout com tons), comentários por bloco (`KBCommentBlock`), favoritar,… Construir ou rejeitar por escrito.",
+      "acao": "Decidir. TOC \"nesta página\" + prev/próximo — §Veredito adotar #1 (P) — e histórico de versões funcional — §Veredito #3 (backend já tem history_count). Comentários inline e edição/Composer: NÃO adotar (§Veredito, ADR 0061).",
       "_acionavel": true
     },
     {
@@ -93,7 +93,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. Troubleshooter (árvore de decisão sim/não → fix, `TroubleDialog` + editor visual `KBTroubleEditor`), Saúde do KB (`HealthPanel`: desatualizados/parados/mais-lidos/solitários), Trilhas de aprendizado… Construir ou rejeitar por escrito.",
+      "acao": "Decidir. \"Saúde do KB\" adaptado (docs stale/sem-sync) — §Veredito adotar #4 (M). Troubleshooter, Apresentação, Imprimir SOP, anexar-a-OS: NÃO adotar (§Veredito).",
       "_acionavel": true
     }
   ]
