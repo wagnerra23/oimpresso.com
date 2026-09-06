@@ -1,0 +1,105 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Essentials/Settings/Index (/hrm/settings)",
+  "gap_fonte": "memory/requisitos/Essentials/settings-index-gap.md",
+  "prototipo_sha": "sha256:aa114049dd5b",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "cobertura-das-chaves-de-configuracao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/hrm-extras.jsx",
+        "linhas": "573-594"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Essentials/Settings/Index.tsx",
+        "linhas": "22-31",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade. ⚠️ Errata ao playbook: a thread 07 §Estado afirma *\"O protótipo tem 12 campos\"* contra 10 chaves vivas, e manda classificar os excedentes. Medido hoje: o protótipo tem 10 (`:573` `:574` `:579` `:580` `:585` `:586` `:587` `:588` `:593` `:594`), não 12 — a diferença de 2 não existe, e o gap que a thread previa está fechado. O `_saida-07.md` que ela pede pode registrar isso.",
+      "_acionavel": false
+    },
+    {
+      "id": "agrupamento-em-cards",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/hrm-extras.jsx",
+        "linhas": "571-591"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Essentials/Settings/Index.tsx",
+        "linhas": "63-180",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — layout, e a régua do playbook (`08-feriados-puxar.md` §3) é explícita: layout não vira pedido. Registrado para não virar \"bug\" na próxima leitura.",
+      "_acionavel": false
+    },
+    {
+      "id": "chave-de-presenca-dentro-do-hrm",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/hrm-extras.jsx",
+        "linhas": "585-588, 593"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Essentials/Settings/Index.tsx",
+        "linhas": "26-30",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir. É o RESÍDUO 5 que a própria thread manda registrar e não mover. Este gap cumpre o registro; a decisão é de [W].",
+      "_acionavel": true
+    },
+    {
+      "id": "permitir-marcacao-via-web",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/hrm-extras.jsx",
+        "linhas": "596"
+      },
+      "vivo": {
+        "arquivo": "n/a",
+        "linhas": "n/a",
+        "ancora": false
+      },
+      "status": "decidido-nao-reabrir",
+      "acao": "Nada — decidido. Não reabrir: a ausência no vivo está certa.",
+      "_acionavel": false
+    },
+    {
+      "id": "guarda-de-permissao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/hrm-extras.jsx",
+        "linhas": "566"
+      },
+      "vivo": {
+        "arquivo": "n/a",
+        "linhas": "n/a",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir. ⚠️ Medir o `EssentialsSettingsController` antes de tratar como defeito — se a guarda está no back-end (o que a própria frase do protótipo afirma), a ausência no `.tsx` pode estar correta, e o que falta é só a mensagem com motivo que o charter do intake exige.",
+      "_acionavel": true
+    },
+    {
+      "id": "nota-uma-configuracao-dois-lugares",
+      "prototipo": {
+        "arquivo": "n/a",
+        "linhas": "n/a"
+      },
+      "vivo": {
+        "arquivo": "n/a",
+        "linhas": "n/a",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir. Só faz sentido se e quando a tela `ess-config` existir no produto — hoje ela não existe (`/essentials/settings` não está nas rotas medidas). Registrado para amarrar as duas decisões.",
+      "_acionavel": true
+    }
+  ],
+  "mapping": {
+    "source": "hrm-page.jsx",
+    "target": "resources/js/Pages/Essentials/Settings/Index.tsx",
+    "_nota": "source = arquivo de ENTRADA do bundle (o bundle_source do charter); partes[].prototipo.arquivo aponta onde cada parte de fato vive. Os dois convivem por desenho — ver gerar-map.mjs::fundirComExistente."
+  }
+}

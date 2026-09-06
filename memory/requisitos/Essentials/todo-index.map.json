@@ -1,0 +1,130 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Essentials/Todo/Index (/essentials/todo)",
+  "gap_fonte": "memory/requisitos/Essentials/todo-index-gap.md",
+  "prototipo_sha": "sha256:3e0b0aa398f8",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "toolbar-de-filtros",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/essenciais-page.jsx",
+        "linhas": "165-181"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Essentials/Todo/Index.tsx",
+        "linhas": "219-272",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade.",
+      "_acionavel": false
+    },
+    {
+      "id": "filtro-por-periodo-de-inicio",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/essenciais-page.jsx",
+        "linhas": "182-189"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Essentials/Todo/Index.tsx",
+        "linhas": "267-283",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir. A capacidade está entregue; o que falta decidir é a semântica do range aberto — \"de 01/09 em diante\", com só o campo De preenchido, hoje não filtra nada e a tela não avisa. É 1 linha de controller, mas muda o resultado que o usuário vê.",
+      "_acionavel": true
+    },
+    {
+      "id": "colunas-da-tabela",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/essenciais-page.jsx",
+        "linhas": "119-128"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Essentials/Todo/Index.tsx",
+        "linhas": "302-309",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir. ⚠️ O dado dos 3 ausentes já chega no payload: `Todo/Index.tsx:65` (`estimated_hours`), `:66` (`assigned_by`), `:68` (`created_at_human`). Varredura contada: `estimated_hours` e `assigned_by` aparecem só na interface TypeScript, em nenhum ponto do JSX (`rg -o` = 1 ocorrência de cada, em `:65` e `:66`); `created_at_human` é renderizado, mas como sub-linha *\"criada {…}\"* (`:320-322`), não como coluna. Ou seja: é decisão de exibição, não capacidade faltando — barato, e por isso mesmo precisa de [W] decidir a forma (coluna × sub-linha) antes de mexer.",
+      "_acionavel": true
+    },
+    {
+      "id": "selecao-em-lote",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/essenciais-page.jsx",
+        "linhas": "214-220"
+      },
+      "vivo": {
+        "arquivo": "n/a",
+        "linhas": "n/a",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir. Comportamento, e o contrato tem `bulkbar` como seção. Mas é mutação em lote — precisa da regra de permissão (`essentials.assign_todos`) e de teste antes da UI. Decisão de [W] sobre escopo, não sobre desejo.",
+      "_acionavel": true
+    },
+    {
+      "id": "modal-de-mudanca-de-situacao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/essenciais-page.jsx",
+        "linhas": "157"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Essentials/Todo/Index.tsx",
+        "linhas": "424-431",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade.",
+      "_acionavel": false
+    },
+    {
+      "id": "drawer-de-detalhe",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/essenciais-page.jsx",
+        "linhas": "232-281"
+      },
+      "vivo": {
+        "arquivo": "n/a",
+        "linhas": "n/a",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir. Drawer × página é decisão de forma (eixo FORMA: protótipo soberano, [UI-0029](../_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)), não de capacidade — comentários e anexos já estão entregues no `Show`. ⚠️ Nada disso está entre os 3 itens que aguardam [W] no `LEIA-ME.md` (vínculo tarefa ↔ OS/cliente · versionamento de documento · canal de notificação); só o vínculo com OS seria bloqueio, e ele não é pré-requisito do drawer.",
+      "_acionavel": true
+    },
+    {
+      "id": "estado-vazio",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/essenciais-page.jsx",
+        "linhas": "203-206"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Essentials/Todo/Index.tsx",
+        "linhas": "295",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir. São dois estados, não um: hoje o vivo mostra a frase de filtro mesmo quando a lista nunca teve tarefa. Copy de contrato é soberania de [W].",
+      "_acionavel": true
+    },
+    {
+      "id": "marca-atrasada",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/essenciais-page.jsx",
+        "linhas": "131"
+      },
+      "vivo": {
+        "arquivo": "n/a",
+        "linhas": "n/a",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir. É sinal derivado de `end_date` vs hoje — dado que a tela já tem (coluna Fim, `:307`). Cabe junto da decisão de colunas acima, no mesmo PR.",
+      "_acionavel": true
+    }
+  ]
+}
