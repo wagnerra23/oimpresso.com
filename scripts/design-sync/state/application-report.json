@@ -1,6 +1,6 @@
 {
   "schema": "oimpresso-design-application-report/3",
-  "generatedAt": "2026-09-06T09:20:16.421Z",
+  "generatedAt": "2026-09-06T18:35:06.500Z",
   "bundle": {
     "id": "5023b274183d849dcc925eae85cef61a991c3541ca1daeb680267c1afda99e4d",
     "baseId": null,
@@ -11,14 +11,13 @@
   "summary": {
     "transportChanges": 255,
     "screens": 93,
-    "tested": 3,
+    "tested": 4,
     "smoked": 0,
     "lifecycle": {
-      "applied": 1,
-      "anchored": 62,
+      "tested": 4,
+      "anchored": 40,
       "to-create": 23,
-      "compared": 4,
-      "tested": 3
+      "compared": 26
     },
     "applied": 4,
     "pending": 66,
@@ -1819,10 +1818,10 @@
       "module": "Arquivos",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "applied",
+      "lifecycleState": "tested",
       "applicationState": "applied",
       "compared": true,
-      "tested": false,
+      "tested": true,
       "smoked": false,
       "applicationEvidence": {
         "comparison": {
@@ -1835,11 +1834,28 @@
           "evidenceSha256": "bd82b675f47424a712588686eb9e95f88a52930cc9a7e75265da98b1b0a18ab8",
           "recordedAt": "2026-09-06T01:46:05.420Z"
         },
-        "tests": [],
+        "tests": [
+          {
+            "command": [
+              "gh",
+              "run",
+              "view",
+              "--job",
+              "101316416841",
+              "--exit-status"
+            ],
+            "exitCode": 0,
+            "runner": "ci",
+            "outputSha256": "84cda304cb3600df55c78a0f867e3b9dc53766e2123a9ee157c80e3778320933",
+            "sourceSha256": "08a8bebe9e4fd8ed3b950a0fc245780f653fec495078f83bc3a328f794e71a89",
+            "targetSha256": "6c6ce5b5a679af17896a999f1d6f3dc539e80f4fbe957685fc59dfecd2b8b854",
+            "recordedAt": "2026-09-06T11:25:39.443Z"
+          }
+        ],
         "smokes": [],
         "targetSha256": "6c6ce5b5a679af17896a999f1d6f3dc539e80f4fbe957685fc59dfecd2b8b854"
       },
-      "nextAction": "executar teste pelo registrador para produzir recibo verificável"
+      "nextAction": "registrar smoke com rota, deploy, screenshot e host (producao · staging-ct100 · ci — ADR 0390)"
     },
     {
       "source": "backup-page.jsx",
@@ -1923,13 +1939,23 @@
       "module": "RecurringBilling",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/RecurringBilling/cobranca-recorrente-configuracoes.map.json",
+          "mapSha256": "d9ab3b8c1cf129156db146a9a0ab843030b57f2c009eb1018333c37b45926cc3",
+          "recordedAt": "2026-09-06T18:25:53.204Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "3b00847be28087ebf1e6532d1abee75eb4e00f4826005c9d5c5a1af39982504a"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "cobranca-recorrente-page.jsx",
@@ -1938,13 +1964,23 @@
       "module": "RecurringBilling",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/RecurringBilling/cobranca-recorrente-faturas.map.json",
+          "mapSha256": "ea870dd0aed8405da3fceee8c9d13d7200fd4acc93781c34232883a3940f6795",
+          "recordedAt": "2026-09-06T18:25:51.968Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "bb1ecb5fd0ac228bf698b7a680bbf8e2491e3e20f336c1a84003e8773617d674"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "cobranca-recorrente-page.jsx",
@@ -1968,13 +2004,23 @@
       "module": "RecurringBilling",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/RecurringBilling/cobranca-recorrente-planos.map.json",
+          "mapSha256": "a91392c82fae1ba8f0af501ac2a05c1f406a7d19db966f0fbfaa9036620078da",
+          "recordedAt": "2026-09-06T18:25:50.617Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "3946c760f4142c0fa7adc9275af4170acbb51616ca39250ae978611abc4031f4"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "comissionados-page.jsx",
@@ -2330,7 +2376,7 @@
         "smokes": [],
         "targetSha256": "a085d2b3781d1c4498c5297c07ac1f04de830dfb7434429aafb76f3c1e052a9c"
       },
-      "nextAction": "registrar smoke de produção com rota, deploy e screenshot"
+      "nextAction": "registrar smoke com rota, deploy, screenshot e host (producao · staging-ct100 · ci — ADR 0390)"
     },
     {
       "source": "fiscal-page.jsx",
@@ -2401,7 +2447,7 @@
         "smokes": [],
         "targetSha256": "bc1143eb516431b4ff0cb90a92274d3bd1e8488a0355b6eb22aafbaf37ef57cc"
       },
-      "nextAction": "registrar smoke de produção com rota, deploy e screenshot"
+      "nextAction": "registrar smoke com rota, deploy, screenshot e host (producao · staging-ct100 · ci — ADR 0390)"
     },
     {
       "source": "fiscal-page.jsx",
@@ -2497,7 +2543,7 @@
         "smokes": [],
         "targetSha256": "7ed9f21fc0ac7616237462e630e42079fab1a9abd969e1fb43d9b7f8d1da6570"
       },
-      "nextAction": "registrar smoke de produção com rota, deploy e screenshot"
+      "nextAction": "registrar smoke com rota, deploy, screenshot e host (producao · staging-ct100 · ci — ADR 0390)"
     },
     {
       "source": "forja-page.jsx",
@@ -2566,13 +2612,23 @@
       "module": "governance",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Governance/governance-audit.map.json",
+          "mapSha256": "b240a0f36e3593dae36cac150e9fdec332cfb7a2d8a4c05920542348c84d8be4",
+          "recordedAt": "2026-09-06T18:25:38.275Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "0fa05421b47f0115a32b1112e286f3fba155f82509b87fb523a55fc84267c430"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "governance-page.jsx",
@@ -2581,13 +2637,23 @@
       "module": "governance",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Governance/governance-dashboard.map.json",
+          "mapSha256": "1488955c6ecc9e7fb230d9a3798bf27dfbd779a0ecd6eaf8e2d2823aed10e7cc",
+          "recordedAt": "2026-09-06T18:25:39.615Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "ac3d84506996035c23eeb8a1e16ed5bb7671c184708d0ed8a84cb9b18bc296e9"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "governance-page.jsx",
@@ -2596,13 +2662,23 @@
       "module": "governance",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Governance/governance-drift-alerts.map.json",
+          "mapSha256": "15c085a9e868e0f3b918ed5a70a93640db15c6bc33dbcad73da3fa9a5f8a9298",
+          "recordedAt": "2026-09-06T18:25:40.992Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "7d52572de2a7a711886480a81aec752f39f6da85bb3005b27bb95ff083fb18e7"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "governance-page.jsx",
@@ -2611,13 +2687,23 @@
       "module": "governance",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Governance/governance-module-grades.map.json",
+          "mapSha256": "4562cb3b7d7d4291f24377ec1871021728e1a11e585f971227e675cc0ee6889b",
+          "recordedAt": "2026-09-06T18:25:42.355Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "c0b2e1182f11346f213a532caae2211e4603903a731f528ff4a24193e8f5c882"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "governance-page.jsx",
@@ -2626,13 +2712,23 @@
       "module": "governance",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Governance/governance-policies.map.json",
+          "mapSha256": "f2d7995ecde11a232859efb9436f9868e9965dbbe829a143c8abd7fd7d815409",
+          "recordedAt": "2026-09-06T18:25:43.598Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "0d69dd490d5e1d6cfb525c4cfd442d864399c9d52367ede5f12d4ed2380aa1b4"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "hrm-page.jsx",
@@ -2971,13 +3067,23 @@
       "module": "Ponto",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Ponto/dashboard-index.map.json",
+          "mapSha256": "cc1535b98706a142c6e3b1f6a043d23f94868f3728b63717aec43e27d3478ed9",
+          "recordedAt": "2026-09-06T12:32:08.316Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "4750043c8955cb14e190d986e624ea303179899f4f85634af00105d8130b16b2"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "ponto-page.jsx",
@@ -2986,13 +3092,23 @@
       "module": "Ponto",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Ponto/espelho-index.map.json",
+          "mapSha256": "55c9ae78737ec3dfad1f4b55e08ebfc01e82e229a44d72236f5e17e48fca02a0",
+          "recordedAt": "2026-09-06T12:32:10.079Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "fa0bb3d3aa2ce553e5a2232cfe5986570516b0e0915d1b7fc6d857d74bf96cb7"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "ponto-page.jsx",
@@ -3001,13 +3117,23 @@
       "module": "Ponto",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Ponto/espelho-show.map.json",
+          "mapSha256": "396cae50b7024cd0c21de3bc2b83401d33c5a7ef8470a5064757c8a6df4db13c",
+          "recordedAt": "2026-09-06T12:32:12.247Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "a7439b370b731f5500854a415f9377d8ce251e740d0455e95d60047357936649"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "prefs-page.jsx",
@@ -3106,13 +3232,23 @@
       "module": "Repair",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Repair/repair-dashboard.map.json",
+          "mapSha256": "dfa7937f5b7b80e1531da66b5f19a17a73f7881ce308758db364b54313b60a37",
+          "recordedAt": "2026-09-06T18:34:56.754Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "74f2a2458ef7f120a33e8fa47bcd00aa4955b009e2cd9b8554b0454368a5aa52"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "repair-page.jsx",
@@ -3121,13 +3257,23 @@
       "module": "Repair",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Repair/repair-device-models.map.json",
+          "mapSha256": "ddaa46b9e3bead8c4e8000c33e187a63caec2b165e1975f7c1ce149e72a2b3ee",
+          "recordedAt": "2026-09-06T18:35:03.227Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "a060dd51b5730b15b06b8c934ad44ff9f64f8db4cde9c51e13ce68c21722d193"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "repair-page.jsx",
@@ -3136,13 +3282,23 @@
       "module": "Repair",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Repair/repair-index.map.json",
+          "mapSha256": "450985bae1d9a45be01852e0dd5d09127ebef372651764c04042f732f0fa07fd",
+          "recordedAt": "2026-09-06T18:34:59.834Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "10ad215532fbe52eb3056f3053033f0df17f110bf6ac584f832e2789891a6a08"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "repair-page.jsx",
@@ -3151,13 +3307,23 @@
       "module": "Repair",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Repair/repair-jobsheet.map.json",
+          "mapSha256": "6968659fba3c478adb69e6f4ec00641d1bc2eb1a137d7c22583778e0862428cf",
+          "recordedAt": "2026-09-06T18:34:58.253Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "43e2a7b5cbb8d6679b4dada0cf21e76417dc8e5c2cf494c8a87600cb3d159364"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "repair-page.jsx",
@@ -3166,13 +3332,23 @@
       "module": "Repair",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Repair/repair-producao-oficina.map.json",
+          "mapSha256": "dbee4e84d474aa25ffcee7eb43aab7a6a9330240a8ab8a9c851cc9bc0a5c50be",
+          "recordedAt": "2026-09-06T18:35:04.770Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "dd935938a537931268af8c32debcd94b9a055ca41f65e321d87a1423df736b0b"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "repair-page.jsx",
@@ -3181,13 +3357,23 @@
       "module": "Repair",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Repair/repair-settings.map.json",
+          "mapSha256": "83ff26127006ed4cd230af4c8288ed52faa8056b61004b0525c6652d83470bb7",
+          "recordedAt": "2026-09-06T18:35:06.172Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "9b8ea72b02522d29d1fc53c078284c20ec2c20d569002cc3cf384f2c5012c0f1"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "repair-page.jsx",
@@ -3196,13 +3382,23 @@
       "module": "Repair",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Repair/repair-status.map.json",
+          "mapSha256": "d832dd31c0e311e134193a86d98a883f90ec4092c361268e4c3c1559d14931f4",
+          "recordedAt": "2026-09-06T18:35:01.720Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "9e68b4ff81506911a7a2019ebb0a29e6ed894e3021e0922873281fe5751d7a39"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "superadmin-page.jsx",
@@ -3211,13 +3407,23 @@
       "module": "Superadmin",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Superadmin/superadmin-assinaturas.map.json",
+          "mapSha256": "322257c755a512bd967a2f7c36463d02da4ee6bae36b722de4b7adfbd8e246a2",
+          "recordedAt": "2026-09-06T18:25:44.885Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "3023019c24ee0fb9edb8cb54c9f60e465ec89fd22bab6394874b5bbf729f144f"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "superadmin-page.jsx",
@@ -3226,13 +3432,23 @@
       "module": "Superadmin",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Superadmin/superadmin-dashboard.map.json",
+          "mapSha256": "0ba214b1aba5f159809b1c1ef19d24442ee06f6933dd176891af9e930bce8162",
+          "recordedAt": "2026-09-06T18:25:46.232Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "1e2c905ce36426556b38707aeb8a32c9d78ff2dfa4eab77c8e3b99923c92b060"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "superadmin-page.jsx",
@@ -3241,13 +3457,23 @@
       "module": "Superadmin",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Superadmin/superadmin-negocios.map.json",
+          "mapSha256": "b4635d77768765274f9e722dee138443fcc7151b344c36d236ba96f570f00130",
+          "recordedAt": "2026-09-06T18:25:47.609Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "8810f4eef57c0e566d3d7ea346994106f712327704530d489677f9c440b066e0"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "superadmin-page.jsx",
@@ -3256,13 +3482,23 @@
       "module": "Superadmin",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Superadmin/superadmin-pacotes.map.json",
+          "mapSha256": "264e2e5059cbc7c45a814e3caf3322655b9940aeee853d1da0b5e4583c51ed3a",
+          "recordedAt": "2026-09-06T18:25:49.005Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "68b75617bf288113f7de98b280c62643575088e769dd0d710b9312ce57c82163"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "suporte-page.jsx",

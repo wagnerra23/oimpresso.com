@@ -231,6 +231,15 @@ jobs:
         #
         #   A suite required nao se mexeu com o seed novo: 196 passed / 592 assertions
         #   antes (run 33129304280, main) e depois (run 33553516309), zero delta por arquivo.
+        #
+        # RATCHET UP (2026-09-06): +3 do Dfe — DfeControllerTest · AcoesDfeLoteTest
+        #   · AcoesDfeManifestacaoTest. Medido em 2026-09-06: eram os 3 unicos arquivos de
+        #   Modules/Fiscal/Tests/Feature ausentes desta lista, e a tela Fiscal/Dfe era a
+        #   unica do modulo sem teste EXECUTADO no CI (registrado no phpunit.xml nao e
+        #   executado — a prova e o CONTADOR, §5 2026-08-02). Baseline antes: run
+        #   33969895189 (main, 2026-09-05) = 317 passed / 978 assertions, 0 mencao aos 3.
+        #   DfeController constava em 2026-09-01 como BadMethodCallException no andaime:
+        #   se voltar vermelho aqui, e ACHADO — nao afrouxar o teste nem tirar da lista.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -280,7 +289,10 @@ jobs:
             Modules/Fiscal/Tests/Feature/SimplesOnlyGateTest.php \
             Modules/Fiscal/Tests/Feature/SpedControllerTest.php \
             Modules/Fiscal/Tests/Feature/SpedIcmsIpiGeneratorServiceTest.php \
-            Modules/Fiscal/Tests/Feature/SpedMotorTributarioIntegrationTest.php
+            Modules/Fiscal/Tests/Feature/SpedMotorTributarioIntegrationTest.php \
+            Modules/Fiscal/Tests/Feature/DfeControllerTest.php \
+            Modules/Fiscal/Tests/Feature/AcoesDfeLoteTest.php \
+            Modules/Fiscal/Tests/Feature/AcoesDfeManifestacaoTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.

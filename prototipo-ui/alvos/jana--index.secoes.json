@@ -1,0 +1,12 @@
+{
+  "_": "Seções do Painel da Jana (Jana/Index · rota 'chat' + tab 'painel' do espelho). Seletores COLHIDOS do DOM por `alvo.mjs --mapa --raiz .jc-page --aguardar-sumir .jm-sk` em 2026-09-06 — nunca de lembrança (PROTOCOLO §2). Ordem = ordem do render. O <nav> das abas vem sem classe no espelho (cli-tabs.jsx do espelho está atrás do Cowork vivo, que escreve nav.ds-tabbar.jm-tabs) — por isso o seletor é posicional.",
+  "header":          { "seletor": ".jc-page > header.jc-header" },
+  "tabs":            { "seletor": ".jc-page > nav", "campos": ["display","gap","height","fontSize","fontWeight","color","borderBottomColor"] },
+  "brief":           { "seletor": ".jc-page > section.jc-brief" },
+  "kpis":            { "seletor": ".jc-page > .jc-kpis" },
+  "metas":           { "seletor": ".jc-page > section.jm-metas" },
+  "analises_titulo": { "seletor": ".jc-page > h2.jc-h2:nth-of-type(1)", "campos": ["fontSize","fontWeight","color","textTransform","letterSpacing"] },
+  "analises":        { "seletor": ".jc-page > .jc-grid" },
+  "acoes_titulo":    { "seletor": ".jc-page > h2.jc-h2:nth-of-type(2)", "campos": ["fontSize","fontWeight","color","textTransform","letterSpacing"] },
+  "acoes":           { "seletor": ".jc-page > .jc-acoes" }
+}

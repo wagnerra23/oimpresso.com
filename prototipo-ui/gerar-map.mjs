@@ -212,8 +212,18 @@ export function fundirComExistente(esqueleto, existente) {
     if (!antiga) return nova;
     antigas.delete(nova.id);
     preservadas++;
+    // Chaves da PARTE que o esqueleto não produz (`_nota`, `_nota_ancora`, e qualquer outra
+    // `_*` anotada à mão) sobrevivem à fusão — mesmo tratamento das chaves de TOPO logo abaixo.
+    // Sem isto, `--atualizar` reconstruía cada parte só com o esqueleto e apagava a anotação em
+    // SILÊNCIO (medido 2026-09-06: memory/requisitos/Compras/compras-grade-matrix.map.json
+    // perdia `_nota` em 10 de 10 partes e `_nota_ancora` em 2 — e `--atualizar` é justamente o
+    // comando que a mensagem de STALE do design-code-map-check.mjs manda rodar).
+    // Só chaves AUSENTES do esqueleto: id/prototipo/vivo/status/acao/_acionavel seguem vindo
+    // dele, e a precedência do preenchido continua sendo a das 4 chaves explícitas abaixo.
+    const extrasParte = Object.fromEntries(Object.entries(antiga).filter(([k]) => !(k in nova)));
     return {
       ...nova,
+      ...extrasParte,
       prototipo: { ...nova.prototipo, ...(antiga.prototipo?.linhas && antiga.prototipo.linhas !== 'TODO' ? { arquivo: antiga.prototipo.arquivo, linhas: antiga.prototipo.linhas } : {}) },
       vivo: { ...nova.vivo, ...(antiga.vivo?.arquivo && antiga.vivo.arquivo !== 'TODO' ? antiga.vivo : {}) },
       status: antiga.status && antiga.status !== 'pendente-mapeamento' ? antiga.status : nova.status,
@@ -314,6 +324,22 @@ function selftest() {
       comExtra.mapa.mapping?.source === 'x.jsx' && comExtra.mapa.mapping?.target === 'resources/js/Pages/X/Index.tsx');
     t('controle-negativo: chave que o esqueleto PRODUZ segue vindo dele (não do map velho)',
       fundirComExistente(g.mapa, { ...preenchido, gap_fonte: 'MENTIRA.md' }).mapa.gap_fonte === g.mapa.gap_fonte);
+
+    // BITE do fix 2026-09-06 — chave da PARTE que o esqueleto NÃO produz sobrevive.
+    // Sem ele, `--atualizar` reconstruía cada parte só com o esqueleto e apagava a anotação
+    // feita à mão (na data, 10 partes do compras-grade-matrix.map.json estavam nessa condição).
+    const comExtraParte = fundirComExistente(g.mapa, {
+      ...preenchido,
+      partes: [
+        { ...preenchido.partes[0], _nota: 'anotada a mao', _nota_ancora: '2026-09-05: data-contract="parte-a"', _acionavel: false },
+        preenchido.partes[1],
+      ],
+    });
+    const pae = comExtraParte.mapa.partes.find((p) => p.id === 'parte-a');
+    t('MORDE: chave da PARTE desconhecida do esqueleto (`_nota`/`_nota_ancora`) sobrevive ao --atualizar',
+      pae._nota === 'anotada a mao' && pae._nota_ancora === '2026-09-05: data-contract="parte-a"');
+    t('controle-negativo: chave que o esqueleto PRODUZ na parte (`_acionavel`) segue vindo dele, não do map velho',
+      pae._acionavel === true && pae.status === 'paridade' && pae.prototipo.linhas === '10-20');
   } else { t('fixtures presentes', false); }
 
   console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — esqueleto do map.json deriva do gap.md; verificação = design-code-map-check.mjs.');

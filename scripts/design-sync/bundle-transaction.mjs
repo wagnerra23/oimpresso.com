@@ -27,6 +27,15 @@ export const DEFAULT_PATHS = {
   state: 'scripts/design-sync/state',
 };
 
+/**
+ * Onde o smoke foi renderizado (ADR 0390, emenda ao D-6 da 0384). `producao` = oimpresso.com
+ * com login humano; `staging-ct100` = clone anonimizado no CT 100; `ci` = app efêmero do
+ * próprio GitHub Actions com o seed biz=1/2 do visual-regression. O tenant continua 1 em
+ * todos — biz=4 segue recusado (ADR 0358). O enum vive aqui E em bundle.schema.json
+ * (`$defs.smokeReceipt.host`): quem mudar um, muda o outro.
+ */
+export const SMOKE_HOSTS = ['producao', 'staging-ct100', 'ci'];
+
 const BINARY = /\.(?:woff2?|ttf|otf|eot|png|jpe?g|gif|webp|avif|ico|pdf|mp4|webm|zip)$/i;
 
 function resolveInside(root, path) {
@@ -214,6 +223,9 @@ function currentEvidenceRecord({ root, source, target, manifest, ledger, compari
   const smokes = tests.length ? (record.smokes || []).filter((smoke) => {
     if (smoke.result !== 'passed' || String(smoke.tenant) !== '1' || smoke.targetSha256 !== targetSha256) return false;
     if (!/^[a-f0-9]{40,64}$/.test(String(smoke.deploySha || ''))) return false;
+    // Recibo anterior à ADR 0390 não tem `host`: era produção por construção (único valor
+    // que o D-6 original admitia). Valor presente e fora do enum não prova nada.
+    if (smoke.host !== undefined && !SMOKE_HOSTS.includes(String(smoke.host))) return false;
     return !!repoEvidence(root, smoke.screenshot, smoke.screenshotSha256);
   }) : [];
 
@@ -258,8 +270,8 @@ export async function buildApplicationReport({ root, stagedCowork, manifest, pre
         smokes: evidence.smokes,
         targetSha256: evidence.targetSha256,
       } : null,
-      nextAction: lifecycleState === 'validated' ? 'aplicação, teste e smoke de produção válidos para os hashes atuais'
-        : lifecycleState === 'tested' ? 'registrar smoke de produção com rota, deploy e screenshot'
+      nextAction: lifecycleState === 'validated' ? 'aplicação, teste e smoke válidos para os hashes atuais'
+        : lifecycleState === 'tested' ? 'registrar smoke com rota, deploy, screenshot e host (producao · staging-ct100 · ci — ADR 0390)'
         : lifecycleState === 'applied' ? 'executar teste pelo registrador para produzir recibo verificável'
         : lifecycleState === 'compared' ? 'aplicar no alvo e registrar evidência durável'
         : lifecycleState === 'anchored' ? 'gerar/registrar map.json antes de aplicar semanticamente'
@@ -554,18 +566,19 @@ export async function recordTestEvidence({
 }
 
 export async function recordSmokeEvidence({
-  root = process.cwd(), source, target, route, deploySha, screenshot, tenant, paths = DEFAULT_PATHS,
+  root = process.cwd(), source, target, route, deploySha, screenshot, tenant, host = 'producao', paths = DEFAULT_PATHS,
 }) {
   if (!String(route || '').startsWith('/')) throw new Error('--route deve começar com /');
   if (!/^[a-f0-9]{40,64}$/.test(String(deploySha || ''))) throw new Error('--deploy-sha deve ser SHA git válido');
-  if (String(tenant) !== '1') throw new Error('smoke manual de produção usa exclusivamente tenant 1; biz=4 é proibido');
+  if (String(tenant) !== '1') throw new Error('smoke usa exclusivamente tenant 1 em qualquer host; biz=4 é proibido');
+  if (!SMOKE_HOSTS.includes(String(host))) throw new Error(`--host deve ser ${SMOKE_HOSTS.join(', ')} (ADR 0390); recebido: ${host}`);
   const shot = repoEvidence(resolve(root), String(screenshot || '').trim());
   if (!shot) throw new Error('--screenshot deve apontar para arquivo durável existente dentro do repositório');
   const { absRoot, manifest, sourceFile, normalizedTarget, targetSha256, ledger, previous } = currentWritableRecord({ root, source, target, paths });
   const current = currentEvidenceRecord({ root: absRoot, source: sourceFile.path, target: normalizedTarget, manifest, ledger, comparison: 'SEMANTICO' });
   if (!current?.tests.length) throw new Error('smoke não pode preceder teste verde válido');
   const receipt = {
-    route: String(route), deploySha: String(deploySha), tenant: 1,
+    route: String(route), deploySha: String(deploySha), tenant: 1, host: String(host),
     screenshot: shot.path, screenshotSha256: shot.sha256,
     result: 'passed', targetSha256, recordedAt: new Date().toISOString(),
   };

@@ -27,6 +27,19 @@
 //                                      Mede e grava prototipo-ui/alvos/<slug>.alvo.json.
 //   --injetar-falha <seletor>          (com --alvo) remove o último filho direto antes de medir.
 //                                      É o aceite falsificável T5: o JSON TEM de mudar.
+//   --aguardar-sumir <seletor>         (com --mapa ou --alvo) só mede DEPOIS que o seletor sair do
+//                                      DOM (esqueleto/placeholder). Sem ele, "duas leituras iguais"
+//                                      aprova um esqueleto que fica parado >400 ms — medido 2026-09-06
+//                                      no Painel da Jana: `jm-sk` vive 650 ms (jana-merge.jsx:907) e o
+//                                      --mapa devolveu 4 `jm-sk-card` como se fossem a tela. Se o
+//                                      seletor nunca sumir em 15 s → exit 2 (NÃO MEDI), nunca "0 filhos".
+//   --quieto-ms <n>                    (com --mapa ou --alvo) janela MÍNIMA sem mudança no nº de nós
+//                                      antes de medir (default 400 = as "duas leituras iguais" originais).
+//                                      Página com fases encadeadas de carga (nota → esqueleto → conteúdo →
+//                                      re-carga quando a empresa do shell chega, jana-merge.jsx:904-908)
+//                                      fica estável por 400 ms em CADA fase; só a janela longa separa
+//                                      "parou" de "parou entre duas fases". Medido 2026-09-06: com 400 ms
+//                                      o mesmo comando deu 719 nós num run e 1011 no seguinte.
 //   --selftest                         Partes puras (serialização estável · args). Sem browser.
 //   --selftest --browser               Bite-test real: 2 runs byte-idênticos + injeção muda.
 //
@@ -80,6 +93,7 @@ export const ALVO_PROBE_SOURCE = `(() => {
   };
   const out = {};
   for (const [id, spec] of Object.entries(cfg)) {
+    if (id.startsWith('_')) continue; // chave de nota/proveniência do secoes.json, não é seção
     const sel = typeof spec === 'string' ? spec : spec.seletor;
     const campos = (typeof spec === 'object' && spec.campos) || CAMPOS_PADRAO;
     const els = [...document.querySelectorAll(sel)];
@@ -116,18 +130,31 @@ export const MAPA_PROBE_SOURCE = `(() => {
 })()`;
 
 /* ── estabilidade: nunca medir durante o lazy-load (§5 2026-08-24) ──────────────────────── */
-async function esperarEstavel(page) {
+async function esperarEstavel(page, { sumir = null, quietoMs = 400 } = {}) {
   await page.waitForLoadState('domcontentloaded');
+  if (sumir) {
+    // Espera o esqueleto SAIR — e só então mede a estabilidade. Ordem importa: o esqueleto é
+    // estável por construção, então "estável" antes de "sumiu" é o falso verde do §5 2026-08-24.
+    // Primeiro espera o esqueleto APARECER (até 3 s; se a página não o monta, segue) — senão
+    // "detached" é verdade antes de ele montar e a medida sai do estado anterior ao esqueleto
+    // (medido 2026-09-06: 719 nós e 7 seções ausentes, com o mesmo comando que depois deu 1011).
+    await page.waitForSelector(sumir, { state: 'attached', timeout: 3000 }).catch(() => {});
+    try { await page.waitForSelector(sumir, { state: 'detached', timeout: 15000 }); }
+    catch { throw Object.assign(new Error(`--aguardar-sumir: "${sumir}" ainda está no DOM após 15 s — não meço esqueleto`), { naoMedi: true }); }
+  }
   // Sinal que a app publica, quando publica. Ausente → não é erro; o laço abaixo é a garantia real.
   await page.waitForFunction(() => window.__oiLazyDone === true, null, { timeout: 8000 }).catch(() => {});
-  let anterior = -1;
-  for (let i = 0; i < 25; i++) {
+  const PASSO = 200;
+  const precisa = Math.max(2, Math.ceil(quietoMs / PASSO)); // leituras iguais SEGUIDAS que fecham a janela
+  let anterior = -1, iguais = 0;
+  for (let i = 0; i < 25 + precisa; i++) {
     const atual = await page.evaluate(() => document.querySelectorAll('*').length);
-    if (atual === anterior && atual > 0) return atual;
+    iguais = atual === anterior && atual > 0 ? iguais + 1 : 0;
+    if (iguais + 1 >= precisa) return atual;
     anterior = atual;
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(PASSO);
   }
-  throw Object.assign(new Error('DOM não estabilizou em 25 leituras — medida seria retrato de meio-caminho'), { naoMedi: true });
+  throw Object.assign(new Error(`DOM não ficou quieto por ${quietoMs} ms em ${25 + precisa} leituras — medida seria retrato de meio-caminho`), { naoMedi: true });
 }
 
 async function abrirPagina(url) {
@@ -143,10 +170,10 @@ async function abrirPagina(url) {
 }
 
 /* ── modos ──────────────────────────────────────────────────────────────────────────────── */
-async function rodarMapa(url, raiz) {
+async function rodarMapa(url, raiz, sumir = null, quietoMs = 400) {
   const { browser, page } = await abrirPagina(url);
   try {
-    await esperarEstavel(page);
+    await esperarEstavel(page, { sumir, quietoMs });
     if (raiz) await page.evaluate((r) => { window.__ALVO_RAIZ = r; }, raiz);
     const mapa = await page.evaluate(MAPA_PROBE_SOURCE);
     // stdout only — mapa é COMANDO, não arquivo (ADR 0256 · L-42).
@@ -154,11 +181,11 @@ async function rodarMapa(url, raiz) {
   } finally { await browser.close(); }
 }
 
-async function medirAlvo({ url, tela, secoes, injetar }) {
+async function medirAlvo({ url, tela, secoes, injetar, sumir = null, quietoMs = 400 }) {
   const probe = sondaCanonica();
   const { browser, page } = await abrirPagina(url);
   try {
-    const nos = await esperarEstavel(page);
+    const nos = await esperarEstavel(page, { sumir, quietoMs });
     if (injetar) {
       const mexeu = await page.evaluate((sel) => {
         const el = document.querySelector(sel);
@@ -171,7 +198,7 @@ async function medirAlvo({ url, tela, secoes, injetar }) {
     await page.evaluate((s) => { window.__ALVO_SECOES = s; }, secoes);
     const medidoSecoes = await page.evaluate(ALVO_PROBE_SOURCE);
     const base = await page.evaluate(probe);          // sonda do DONO, mesma string
-    return { tela, url, nos_totais: nos, base, secoes: medidoSecoes, ausentes: [] };
+    return { tela, url, nos_totais: nos, aguardou_sumir: sumir, quieto_ms: quietoMs, base, secoes: medidoSecoes, ausentes: [] };
   } finally { await browser.close(); }
 }
 
@@ -180,6 +207,15 @@ const FIXTURE = `<!doctype html><meta charset="utf-8"><title>alvo fixture</title
 <style>.cartao{display:flex;gap:8px;padding:12px;border-radius:6px}.item{width:40px}</style>
 <main><section class="cartao"><div class="item a"></div><div class="item b"></div><div class="item c"></div></section></main>
 <script>window.__oiLazyDone = true;</script>`;
+// Esqueleto que some SOZINHO depois de 700 ms — mais que os 400 ms de "duas leituras iguais".
+// Sem --aguardar-sumir a medição pega o esqueleto; com ele, pega a tela.
+const FIXTURE_SK = FIXTURE.replace('<div class="item c"></div>', '<div class="item c"></div><div class="sk"></div>')
+  + `<script>setTimeout(() => document.querySelector('.sk').remove(), 700);</script>`;
+// Duas fases encadeadas: 1 filho no load, +1 aos 300 ms, +1 aos 900 ms. Entre 300 e 900 o DOM fica
+// parado 600 ms — "duas leituras iguais" (400 ms) mede 2 filhos; --quieto-ms 1500 mede os 3.
+const FIXTURE_FASES = FIXTURE.replace('<div class="item b"></div><div class="item c"></div>', '')
+  + `<script>const s=document.querySelector('.cartao');const add=(k)=>{const d=document.createElement('div');d.className='item '+k;s.appendChild(d);};
+setTimeout(()=>add('b'),300);setTimeout(()=>add('c'),900);</script>`;
 
 async function selftest(comBrowser) {
   const checks = [];
@@ -205,6 +241,31 @@ async function selftest(comBrowser) {
     ok('--injetar-falha MUDA o JSON (o alvo não é carimbo)', serializar(c) !== serializar(a));
     ok('injeção some 1 filho (3 → 2)', c.secoes.cartao.filhos === 2 && a.secoes.cartao.filhos === 3,
       `a=${a.secoes.cartao.filhos} c=${c.secoes.cartao.filhos}`);
+
+    // --aguardar-sumir: mede DEPOIS do esqueleto (bite-test) + controle negativo (nunca some → NÃO MEDI)
+    const fsk = join(tmpdir(), `alvo-fixture-sk-${process.pid}.html`);
+    writeFileSync(fsk, FIXTURE_SK);
+    const urlSk = 'file://' + fsk.split('\\').join('/');
+    const d = await medirAlvo({ url: urlSk, tela: 'fixture-sk', secoes: { ...secoes, sk: { seletor: '.sk' } }, sumir: '.sk' });
+    ok('--aguardar-sumir mede a tela, não o esqueleto (3 filhos, .sk ausente)',
+      d.secoes.cartao.filhos === 3 && d.secoes.sk.ausente === true && d.aguardou_sumir === '.sk',
+      `filhos=${d.secoes.cartao.filhos} sk.ausente=${d.secoes.sk.ausente}`);
+    let negRc = null;
+    try { await medirAlvo({ url: urlSk, tela: 'fixture-sk', secoes, sumir: '.nunca-some-mas-existe' }); negRc = 'mediu'; }
+    catch (e) { negRc = e.naoMedi ? 'naoMedi' : 'falhou'; }
+    // seletor inexistente já está "detached" — o controle negativo real é um que EXISTE e fica:
+    let negRc2 = null;
+    try { await medirAlvo({ url, tela: 'fixture', secoes, sumir: '.cartao' }); negRc2 = 'mediu'; }
+    catch (e) { negRc2 = e.naoMedi ? 'naoMedi' : 'falhou'; }
+    ok('--aguardar-sumir em seletor que NUNCA sai → NÃO MEDI (exit 2), nunca "0 filhos"', negRc2 === 'naoMedi', `rc=${negRc2} (inexistente=${negRc})`);
+
+    // --quieto-ms: carga em fases encadeadas — a janela longa mede o estado FINAL
+    const ff = join(tmpdir(), `alvo-fixture-fases-${process.pid}.html`);
+    writeFileSync(ff, FIXTURE_FASES);
+    const urlF = 'file://' + ff.split(String.fromCharCode(92)).join('/');
+    const g = await medirAlvo({ url: urlF, tela: 'fixture-fases', secoes, quietoMs: 1500 });
+    ok('--quieto-ms 1500 mede o estado final de carga em fases (3 filhos)', g.secoes.cartao.filhos === 3 && g.quieto_ms === 1500,
+      `filhos=${g.secoes.cartao.filhos}`);
   }
 
   for (const c of checks) console.log(`${c.ok ? 'ok  ' : 'X   '}${c.nome}${c.detalhe ? ' — ' + c.detalhe : ''}`);
@@ -220,17 +281,17 @@ async function main() {
 
   if (flag('--mapa')) {
     const url = val('--mapa');
-    if (!url) { console.error('uso: --mapa <url> [--raiz <seletor>]'); return 2; }
-    await rodarMapa(url, val('--raiz'));
+    if (!url) { console.error('uso: --mapa <url> [--raiz <seletor>] [--aguardar-sumir <seletor>]'); return 2; }
+    await rodarMapa(url, val('--raiz'), val('--aguardar-sumir'), Number(val('--quieto-ms', 400)));
     return 0;
   }
 
   if (flag('--alvo')) {
     const url = val('--alvo'), tela = val('--tela'), arq = val('--secoes');
-    if (!url || !tela || !arq) { console.error('uso: --alvo <url> --tela <slug> --secoes <arq.json> [--injetar-falha <sel>]'); return 2; }
+    if (!url || !tela || !arq) { console.error('uso: --alvo <url> --tela <slug> --secoes <arq.json> [--injetar-falha <sel>] [--aguardar-sumir <sel>]'); return 2; }
     if (!existsSync(arq)) { console.error(`--secoes: arquivo não encontrado: ${arq}`); return 2; }
     const secoes = JSON.parse(readFileSync(arq, 'utf8'));
-    const medido = await medirAlvo({ url, tela, secoes, injetar: val('--injetar-falha') });
+    const medido = await medirAlvo({ url, tela, secoes, injetar: val('--injetar-falha'), sumir: val('--aguardar-sumir'), quietoMs: Number(val('--quieto-ms', 400)) });
     mkdirSync(DIR_ALVOS, { recursive: true });
     const destino = join(DIR_ALVOS, `${tela.replace(/[^a-z0-9-]/gi, '-').toLowerCase()}.alvo.json`);
     writeFileSync(destino, serializar(medido));
@@ -239,7 +300,7 @@ async function main() {
     return 0;
   }
 
-  console.error('uso: --mapa <url> | --alvo <url> --tela <slug> --secoes <arq.json> | --selftest [--browser]');
+  console.error('uso: --mapa <url> [--aguardar-sumir <sel>] [--quieto-ms <n>] | --alvo <url> --tela <slug> --secoes <arq.json> [--aguardar-sumir <sel>] [--quieto-ms <n>] | --selftest [--browser]');
   return 2;
 }
 

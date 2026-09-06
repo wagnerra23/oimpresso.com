@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-08-25"
+last_run: "2026-09-06"
 ---
 
 # Casos de Uso & Aceite — Lista de vendas
@@ -30,6 +30,14 @@ last_run: "2026-08-25"
 > data*), não afirmação de re-run.
 ---
 
+> ℹ️ **`last_run` 2026-08-25 → 2026-09-06 (G-6), e o que mudou na tela NÃO foi comportamento.**
+> O único toque em `Index.tsx` (+ `_components/FiscalSection.tsx` e `_components/SaleAiPanel.tsx`) foi o atributo **`data-contract="<id>"`** no elemento raiz de
+> região (menu-visoes · foco-comissao · saved-tree, mais drawer-fiscal e painel-ia nos componentes) — a âncora estável que o `<tela>.map.json` declara em `vivo.ancora`
+> (`scripts/governance/design-code-map-check.mjs`). Atributo inerte: nenhum CSS o seleciona
+> nestas telas (`grep -rn 'data-contract' resources/css/` → só `.arq-page [data-contract=abas|cabecalho]`)
+> e nenhum JS de runtime o lê. Zero JSX estrutural, zero handler, zero prop, zero copy alterada.
+> **Nenhum UC desta tela foi reexecutado nem revalidado**; o bump é o que o campo significa na
+> prática (*trio reconciliado com a tela nesta data*), não afirmação de re-run.
 ## UC-S10 · Abrir a lista e enxergar a cobrança num relance
 - **Persona:** Larissa / Kamila — "quem está devendo?" sem montar relatório.
 - **Aceite:** Dado a tela carregada · Então o título **Vendas** renderiza e as pílulas de status por pagamento aparecem (default **Todas**; pagas/a-receber derivadas de `payment_status`).

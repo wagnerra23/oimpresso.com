@@ -103,7 +103,7 @@ export function FinBaixaSheet({ open, onClose, lancamento, contas, planos }: Fin
 
   return (
     <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent side="right" className="w-[460px] sm:max-w-[460px] flex flex-col p-0">
+      <SheetContent side="right" className="w-[460px] sm:max-w-[460px] flex flex-col p-0" data-contract="dialogo-de-baixa">
         <header className="os-drawer-head">
           <div className="os-drawer-head-l">
             <SheetTitle asChild>

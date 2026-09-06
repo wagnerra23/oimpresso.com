@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a lista é a PORTA do catálogo — se ela esconde produto, esconde preço a quem não devia, ou mistura tenant, todo o resto do ERP herda o erro.
 owner: wagner
-last_run: "2026-07-26"
+last_run: "2026-09-06"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane Estoque · MySQL"
 ---
 
@@ -67,6 +67,14 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ---
 
+> ℹ️ **`last_run` 2026-07-26 → 2026-09-06 (G-6), e o que mudou na tela NÃO foi comportamento.**
+> O único toque em `Index.tsx` foi o atributo **`data-contract="<id>"`** no elemento raiz de
+> região (header · kpis-totalizadores · filtros-busca · tabela-cards) — a âncora estável que o `<tela>.map.json` declara em `vivo.ancora`
+> (`scripts/governance/design-code-map-check.mjs`). Atributo inerte: nenhum CSS o seleciona
+> nestas telas (`grep -rn 'data-contract' resources/css/` → só `.arq-page [data-contract=abas|cabecalho]`)
+> e nenhum JS de runtime o lê. Zero JSX estrutural, zero handler, zero prop, zero copy alterada.
+> **Nenhum UC desta tela foi reexecutado nem revalidado**; o bump é o que o campo significa na
+> prática (*trio reconciliado com a tela nesta data*), não afirmação de re-run.
 ## UC-PIDX-01 · Todo produto do catálogo é alcançável na lista · `must`
 - **Persona:** Larissa (biz=4 no mundo real; biz=1 no teste) procurando a camiseta que acabou de cadastrar. Se a lista some com o produto **sem avisar**, ela conclui que o cadastro falhou e cadastra de novo — duplicata no catálogo.
 - **Aceite:** Dado um catálogo com mais produtos do que cabe numa página · Quando abro `/products` · Então **todo** produto ativo é alcançável (por paginação, scroll infinito ou busca server-side) — e a quantidade exibida **bate** com o total anunciado no KPI.
