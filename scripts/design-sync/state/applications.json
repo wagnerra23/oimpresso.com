@@ -424,6 +424,58 @@
       "smokes": []
     },
     {
+      "source": "officeimpresso-page.jsx",
+      "target": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Index.tsx",
+      "sourceSha256": "0626867a48191b1890cf2b05876f7d90715fb87fb654960475ad4bbbb88fd885",
+      "targetSha256": "5dab5f601ab8f001b1e441369a9dbe1440962a24bb4445b340554b9b05ed3afb",
+      "comparison": {
+        "map": "memory/requisitos/Officeimpresso/logs-index.map.json",
+        "mapSha256": "84af62aa33c6104da0fdec41c5cc01963bb9ee4f2c82c2cdc679bfe6302078a6",
+        "recordedAt": "2026-09-06T18:54:27.325Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "officeimpresso-page.jsx",
+      "target": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Timeline.tsx",
+      "sourceSha256": "0626867a48191b1890cf2b05876f7d90715fb87fb654960475ad4bbbb88fd885",
+      "targetSha256": "1a69167d9c9ffec13a327cfaac7c4a113fa92ff8365f66661f673a365d64fa3c",
+      "comparison": {
+        "map": "memory/requisitos/Officeimpresso/logs-timeline.map.json",
+        "mapSha256": "7edccb670d8f6bc16b65d5ceabd704091a345f8fc90962523bb7766655092c67",
+        "recordedAt": "2026-09-06T18:54:28.649Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "oficina-os-page.jsx",
+      "target": "resources/js/Pages/OficinaAuto/ServiceOrders/Show.tsx",
+      "sourceSha256": "2644d9562a127ab8b434b3428e2dbeb2415aab7c85d2d46a57ab7eab7594ab25",
+      "targetSha256": "e947b89665f63e5548d6b9163b1bb2fe1a233a93c782e6390df61c8484fc6564",
+      "comparison": {
+        "map": "memory/requisitos/OficinaAuto/service-orders-show.map.json",
+        "mapSha256": "4a7651c63cacd7058a87b1e92f00384b6b595926ca827357baca61bc79856a4d",
+        "recordedAt": "2026-09-06T18:54:25.957Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "oficina-page.jsx",
+      "target": "resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx",
+      "sourceSha256": "1259f30cf94a532d2503f22e5834f2a8fca9826e47272f6aa7dba5247ae66e56",
+      "targetSha256": "deb2715486e0c1e94f5726d0a089f499c72230c2cd68ba36f3b50e3a0964a155",
+      "comparison": {
+        "map": "memory/requisitos/OficinaAuto/service-orders-board.map.json",
+        "mapSha256": "5f610b48d2803dfc31c91de2f2f9de7904889ab12c162e31e7a18ff179599e43",
+        "recordedAt": "2026-09-06T18:54:24.541Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
       "source": "ponto-page.jsx",
       "target": "resources/js/Pages/Ponto/Dashboard/Index.tsx",
       "sourceSha256": "a22f7fe6c5f25dfb373935c67175133a75fdbf4893eed0da02b2a228e33d44d2",

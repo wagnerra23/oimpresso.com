@@ -1,0 +1,310 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "OficinaAuto/ServiceOrders/Show (/oficina-auto/service-orders/{id})",
+  "gap_fonte": "memory/requisitos/OficinaAuto/service-orders-show-gap.md",
+  "prototipo_sha": "sha256:804dcad4a7fa",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "cabecalho-da-os",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "linhas": "147-150"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Show.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — paridade funcional. O protótipo tem título, número da OS e hora de abertura (`oficina-os-page.jsx:147-150`).",
+      "_acionavel": false
+    },
+    {
+      "id": "stepper-de-etapas-no-topo",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "linhas": "49-63"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Show.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. O protótipo tem o `OfxStepper` horizontal com as 6 etapas e a corrente destacada (`oficina-os-page.jsx:49-63`, uso em `:151`). ⚠️ O componente vivo existe e está órfão: `ServiceOrderStagePipeline.tsx` tem, por `git grep -l`, 1 arquivo — só ele mesmo, nenhum consumidor. Decidir é escolher entre ligar o que já existe nesta tela ou removê-lo. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "painel-de-acoes-fsm",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "linhas": "341-343"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Show.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. ⚠️ O charter desta tela promete o painel em §Goals (`Show.charter.md:39`: *\"ServiceOrderFsmActionPanel — botões dinâmicos por stage atual (ADR 0143 pipeline canon) com RBAC role-aware\"*) e a tela não o tem. Pela regra de precedência (`proibicoes.md`), o charter pode estar errado — mas aqui a capacidade não sumiu: mudou de casa, e ninguém atualizou o charter. O protótipo tem o equivalente no rodapé (`Avançar p/ Aprovação`, bloqueado sem aprovação, `oficina-os-page.jsx:341-343`). Decidir: trazer o painel para o Show, ou corrigir o charter para dizer que o ato FSM é do drawer. Corrigir o perdedor no MESMO PR quando a decisão sair.",
+      "_acionavel": true
+    },
+    {
+      "id": "timeline-de-transicoes",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Show.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. Mesmo caso do painel: o charter promete em §Goals (`Show.charter.md:40`: *\"Timeline append-only de `sale_stage_history` (transição, ator, timestamp, side-effects)\"*) e a tela não tem. Não há equivalente no protótipo — este item vem do charter, não do mockup. Construir ou corrigir o charter, por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "hero-do-veiculo",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "linhas": "165-189"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Show.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. O protótipo tem um hero visual: placa Mercosul grande, modelo + ano, cor e chassi, três specs (quilometragem, última revisão, mecânico), barra de combustível e bloco do cliente com telefone e \"cliente desde\" (`oficina-os-page.jsx:165-189`). O vivo tem os dados em lista; o protótipo propõe a forma. ⚠️ Parte deles não tem lastro no payload (chassi, última revisão, \"cliente desde\") — antes de construir, medir o que o `ServiceOrderController` expõe; campo sem coluna cai no gate `no-mock-in-prod`, como já aconteceu no Board. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "check-in-de-entrada",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "linhas": "205-229"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Show.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — paridade. O protótipo tem relato do cliente, avarias marcáveis e fotos de entrada (`oficina-os-page.jsx:205-229`). O vivo cobre combustível e avarias; relato já existe como `notes` (`:231-236`). O que resta são as fotos de entrada — ver a linha de Fotos abaixo.",
+      "_acionavel": false
+    },
+    {
+      "id": "inspecao-dvi",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "linhas": "65-83"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Show.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — paridade. É a proposta central do protótipo (`OfxDviRow` com semáforo verde/amarelo/vermelho, foto por item e o botão \"+ orçamento\" que joga o reprovado no orçamento, `oficina-os-page.jsx:65-83`; seção em `:233-239`), e foi adotada.",
+      "_acionavel": false
+    },
+    {
+      "id": "itens-da-os",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "linhas": "248-256"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Show.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — vivo à frente. O protótipo separa Serviços e Peças em duas abas com busca (`oficina-os-page.jsx:248-256`) e mostra estoque por peça; o vivo tem uma lista só, mas com CRUD real e optimistic UI. Ver as duas linhas seguintes para os deltas específicos.",
+      "_acionavel": false
+    },
+    {
+      "id": "abas-servicos-pecas-busca-com",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "linhas": "249-257"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Show.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. O protótipo separa por natureza (que é a mesma divisão do split fiscal já implementado) e tem busca com atalho `/` (`oficina-os-page.jsx:249-257`). ⚠️ Toca VALOR só na leitura (subtotais por natureza); a separação em si é de apresentação. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "ciclo-de-peca-e-estoque",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "linhas": "278"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Show.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — 🟡 UC-06 já declarado sem cobertura no charter (*\"ciclo de peça (necessária→cotada→pedida→recebida), reserva e baixa de estoque vinculada à OS\"*). O protótipo mostra só o rótulo estático (\"em estoque\"/\"reservar\", `oficina-os-page.jsx:278`), que é bem menos que o UC-06 pede. ⚠️ Quando sair, é Tier 0 de ESTOQUE. Não é gap novo: é UC conhecido, e o protótipo não o resolve.",
+      "_acionavel": false
+    },
+    {
+      "id": "gate-de-aprovacao-do-cliente",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "linhas": "296-317"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Show.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — paridade. O protótipo tem os três estados aguardando/enviado/aprovado e o envio por WhatsApp (`oficina-os-page.jsx:296-317`).",
+      "_acionavel": false
+    },
+    {
+      "id": "estado-orcamento-enviado-envio-com-registro",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Show.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — 🟡 UC-04 já declarado sem cobertura (*\"estado explícito 'Orçamento enviado' + agrupar itens por seção + envio com registro\"*). O protótipo tem o estado visual, não o registro. Não reabrir como gap novo.",
+      "_acionavel": false
+    },
+    {
+      "id": "resumo-de-valores",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "linhas": "287-294"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Show.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. O protótipo tem um card de resumo no rail — Mão de obra, Peças, Desconto e Total (`oficina-os-page.jsx:287-294`) — e repete o recap no rodapé fixo (`:333-338`). ⚠️ Toca VALOR: separar mão de obra de peças e introduzir Desconto são números novos em tela. Exige dupla confirmação do cálculo por dois caminhos + tabela antes→depois (REGRA MESTRE) antes de exibir. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "split-fiscal-nf-e-nfs-e",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "linhas": "319-326"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Show.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — paridade. O protótipo propõe exatamente isso (`oficina-os-page.jsx:319-326`), inclusive a garantia de 90 dias como nota.",
+      "_acionavel": false
+    },
+    {
+      "id": "garantia-de-90-dias",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "linhas": "324"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Show.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. É uma linha de texto no card fiscal do protótipo (`oficina-os-page.jsx:324`). ⚠️ Não construir como literal: prazo de garantia é regra de negócio por empresa, não constante de tela — se entrar, entra como dado do business. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "fotos-e-laudo",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "linhas": "220-230"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Show.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. O protótipo tem fotos de entrada (`oficina-os-page.jsx:220-230`) e foto por item de DVI (`:79`). ⚠️ O corpo rico do Board (`ServiceOrderRichBody`) já tem a seção \"Fotos & Laudo\" — então a decisão é a mesma das linhas de FSM/timeline: trazer para o Show ou assumir que o detalhe rico é o drawer. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "rodape-fixo-com-acoes",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "linhas": "332-344"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Show.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. O protótipo tem barra fixa no rodapé com recap de valores + Cancelar / Salvar rascunho / Avançar (`oficina-os-page.jsx:332-344`). Herda a decisão do painel FSM: se o ato de avançar não é desta tela, o rodapé perde a razão de existir. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "seletor-de-vertical",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "linhas": "152-158"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Show.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — importação indevida. O seletor do protótipo (`oficina-os-page.jsx:152-158`) é andaime de demonstração: serve para o mockup mostrar as três verticais na mesma tela, e o próprio protótipo admite (*\"Foco deste protótipo: Oficina\"*, `:244`). No app real a vertical é do business, não um toggle de tela. Não construir.",
+      "_acionavel": false
+    },
+    {
+      "id": "apontamento-de-tempo-qualidade-historico-do-veiculo",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "linhas": "28"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Show.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — 🟡 UC-07, UC-08 e UC-10 já declarados sem cobertura no charter. O protótipo não os resolve (traz \"1,5h\" como texto estático por serviço, `oficina-os-page.jsx:28`). Não são gap deste protótipo.",
+      "_acionavel": false
+    },
+    {
+      "id": "multi-tenant",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Show.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — vivo à frente.",
+      "_acionavel": false
+    }
+  ]
+}

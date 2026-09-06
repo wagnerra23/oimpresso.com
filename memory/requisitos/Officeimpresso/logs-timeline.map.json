@@ -1,0 +1,190 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Officeimpresso/Logs/Timeline (/officeimpresso/licenca_log/timeline/{licenca_id})",
+  "gap_fonte": "memory/requisitos/Officeimpresso/logs-timeline-gap.md",
+  "prototipo_sha": "sha256:e6fedacd530e",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "cabecalho-da-maquina",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/officeimpresso-page.jsx",
+        "linhas": "719"
+      },
+      "vivo": {
+        "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Timeline.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — paridade funcional. No protótipo a identidade da máquina é o cabeçalho do drawer + a `<dl>` de ficha (`officeimpresso-page.jsx:719`, `:726-733`). Mesma informação, chrome diferente — ver a nota acima.",
+      "_acionavel": false
+    },
+    {
+      "id": "ficha-tecnica-da-maquina",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/officeimpresso-page.jsx",
+        "linhas": "726-733"
+      },
+      "vivo": {
+        "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Timeline.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. O drawer do protótipo mostra, junto da timeline, sete campos: Serial, Versão (com comparação instalada→obrigatória), Sistema, IP, Usuário, Registrada e Último acesso (`officeimpresso-page.jsx:726-733`). Como página, esta tela hoje obriga voltar à lista para ver isso. ⚠️ O charter proíbe métrica nova, não campo já existente — mas o Non-Goal irmão (*\"não adiciona coluna que o Blade não tem\"*) sugere conferir o Blade antes. Medir primeiro. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "comparacao-de-versao-instalada-obrigatoria",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/officeimpresso-page.jsx",
+        "linhas": "301-315"
+      },
+      "vivo": {
+        "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Timeline.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. O componente `Ver` do protótipo (`officeimpresso-page.jsx:301-315`) mostra a versão instalada contra a obrigatória — é a resposta direta de *\"por que o Delphi daqui não abre?\"*, que é a missão declarada da tela. ⚠️ Depende de o payload trazer `versao_obrigatoria`; medir no controller antes. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "tabela-de-acessos",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/officeimpresso-page.jsx",
+        "linhas": "740-747"
+      },
+      "vivo": {
+        "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Timeline.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — vivo à frente. O protótipo lista eventos com tipo e horário (`officeimpresso-page.jsx:740-747`) mas não traz status HTTP nem o estado de bloqueio no momento do login — que é justamente o que responde a pergunta da tela.",
+      "_acionavel": false
+    },
+    {
+      "id": "estado-no-login",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/officeimpresso-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Timeline.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — vivo à frente, e é Anti-hook Tier 0 do charter: *\"Nunca assumir que `metadata` é objeto … consulta via `DB::table` foge do cast e entrega string JSON. Ler errado faz a coluna 'Estado no login' mentir sobre o bloqueio.\"* O protótipo não tem esse dado.",
+      "_acionavel": false
+    },
+    {
+      "id": "recorte-de-200-acessos",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/officeimpresso-page.jsx",
+        "linhas": "717"
+      },
+      "vivo": {
+        "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Timeline.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — Non-Goal do charter (*\"Ampliar o recorte muda a pergunta que a tela responde\"*). O protótipo filtra todos os eventos do host, sem recorte (`officeimpresso-page.jsx:717`) — mas opera sobre mock de dezenas de linhas, não sobre o log real. Não importar.",
+      "_acionavel": false
+    },
+    {
+      "id": "kpis-metricas-agregadas",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/officeimpresso-page.jsx",
+        "linhas": "1066-1070"
+      },
+      "vivo": {
+        "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Timeline.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — Non-Goal do charter (*\"Não inventa métrica agregada (média de latência, uptime). O Blade não tem, e indicador novo é decisão de produto, não de migração\"*). A `ViewLog` do protótipo tem KPIs por tipo de evento (`officeimpresso-page.jsx:1066-1070`), mas ela é outra tela — ver o descompasso medido no gap da irmã. Não reabrir.",
+      "_acionavel": false
+    },
+    {
+      "id": "acoes-de-bloqueio",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/officeimpresso-page.jsx",
+        "linhas": "687-688"
+      },
+      "vivo": {
+        "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Timeline.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — Non-Goal do charter (*\"A ação é da lista; esta tela é leitura\"*). O drawer do protótipo oferece ações (`officeimpresso-page.jsx:687-688`) porque lá é o mesmo chrome da lista.",
+      "_acionavel": false
+    },
+    {
+      "id": "estado-vazio",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/officeimpresso-page.jsx",
+        "linhas": "739"
+      },
+      "vivo": {
+        "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Timeline.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — vivo à frente. O protótipo tem um vazio genérico no lugar (`officeimpresso-page.jsx:739`: *\"Nenhum evento nesta janela de retenção.\"*; a lista cheia começa em `:741`).",
+      "_acionavel": false
+    },
+    {
+      "id": "403-404",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/officeimpresso-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Timeline.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — vivo à frente. Não existe no protótipo, que não tem servidor.",
+      "_acionavel": false
+    },
+    {
+      "id": "pagina-drawer",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/officeimpresso-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Timeline.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — decisão [W] registrada (*\"paridade agora, realinhar depois\"*). Colapsar a página no drawer da lista é a Onda 2, com o protótipo como fonte — e o charter da irmã manda não consertar o descompasso por conta própria. Não reabrir aqui.",
+      "_acionavel": false
+    },
+    {
+      "id": "css-oi",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/officeimpresso-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Timeline.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — mesmo Non-Goal da irmã.",
+      "_acionavel": false
+    }
+  ]
+}
