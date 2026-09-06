@@ -1,0 +1,235 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "StockTransfer/Index (/stock-transfers)",
+  "gap_fonte": "memory/requisitos/Estoque/stock-transfer-index-gap.md",
+  "prototipo_sha": "sha256:bfd716b5fd4a",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "header-pageheader",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockTransfer/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — paridade.",
+      "_acionavel": false
+    },
+    {
+      "id": "filtros",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
+        "linhas": "144-147"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockTransfer/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. O protótipo tem `PeriodBar` com presets Dia/Semana/Mês (`estoque-page.jsx:144-147`) e chips do filtro ativo removíveis (`:176-180`); o vivo usa datas cruas e não exibe chip. O filtro de status em si já existe no vivo e é melhor — vem do servidor, não de enum hardcoded. Construir ou rejeitar por escrito apenas o `PeriodBar` + chips.",
+      "_acionavel": true
+    },
+    {
+      "id": "abas-por-status",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
+        "linhas": "371-375"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockTransfer/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. O protótipo usa o `TabBar` do DS com uma aba por status e contador em cada (`estoque-page.jsx:371-375`). É a mesma capacidade do select do vivo, com outra forma e o ganho do contador. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "coluna-mexeu-no-saldo",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
+        "linhas": "311"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockTransfer/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — vivo à frente. O protótipo tem a mesma coluna (`estoque-page.jsx:311` — `:310` é a coluna Status; célula em `:348`), mas decide por `D.STATUS_TRF[t.status].move` sobre mock. O vivo cita R-XFER-003 e UC-INV-02 e registra a medição no código.",
+      "_acionavel": false
+    },
+    {
+      "id": "tabela-colunas",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
+        "linhas": "306-316"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockTransfer/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. `COLS_TR` do protótipo (`estoque-page.jsx:306-316`) tem 9 colunas — falta no vivo Itens (contagem) e Observação (esta já nasce desligada por padrão, `off: true` em `:315`). Ambas leitura; `Itens` exige o backend expor a contagem. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "sub-linha-com-os-skus-da-rota",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
+        "linhas": "346"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockTransfer/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. O protótipo põe os SKUs da carga como sub-linha da coluna rota (`estoque-page.jsx:346`), o que deixa ver o conteúdo sem abrir nada. Exige o backend enviar os itens na listagem. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "ordenacao-densidade-e-seletor-de-colunas",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
+        "linhas": "392-394"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockTransfer/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. O protótipo tem sort por coluna (`estoque-page.jsx:392-394`), botão de densidade (`:157`) e seletor de colunas em `localStorage` (`:161-170`). Preferência de exibição, não toca valor. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "exportacao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
+        "linhas": "158-160"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockTransfer/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. CSV, Excel e Imprimir no protótipo (`estoque-page.jsx:158-160`; `exportar` em `:359-367`). ⚠️ Toca VALOR — exporta `shipping_charges` e `final_total`; adotar exige provar por dois caminhos que os totais exportados batem com a tela + antes→depois de amostra (REGRA MESTRE). Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "rodape-de-somatorios",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
+        "linhas": "397-404"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockTransfer/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. O protótipo soma o conjunto filtrado em três números — Transferências, Total transferido e Ainda sem mover saldo (`estoque-page.jsx:397-404`, cálculo em `:356-357`). ⚠️ Toca VALOR: agregação monetária nova em tela; exige dupla confirmação + antes→depois antes de exibir, e o mesmo gate `view_purchase_price` que o vivo já aplica por linha. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "paginacao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
+        "linhas": "404"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockTransfer/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. O protótipo pagina de 10 em 10 (`estoque-page.jsx:404`). Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "selecao-multipla-acoes-em-massa",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
+        "linhas": "406-413"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockTransfer/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. O `BulkBar` do protótipo (`estoque-page.jsx:406-413`) traz \"Concluir selecionadas\", \"Imprimir folhas\", \"Exportar seleção\" e \"Excluir e reverter\". ⚠️ Toca ESTOQUE e é o item mais pesado desta tela: concluir em lote dispara, para cada transferência, a baixa na origem e a entrada no destino (`updateStatus` do controller, citado em `Index.tsx:122-126`). Exige dupla confirmação + antes→depois do saldo de cada registro afetado, e decisão [W] explícita sobre permitir o ato em lote. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "acoes-por-linha",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockTransfer/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — vivo à frente. O protótipo oferece as mesmas ações via drawer; o vivo já tem a impressão direto na linha.",
+      "_acionavel": false
+    },
+    {
+      "id": "dialogo-de-exclusao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
+        "linhas": "358-370"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockTransfer/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — vivo à frente. O `ModalExcluir` do protótipo (`estoque-forms.jsx:358-370`) tem texto único.",
+      "_acionavel": false
+    },
+    {
+      "id": "drawer-de-detalhe-e-folha-de-transferencia",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
+        "linhas": "567"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockTransfer/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. O protótipo tem `DrawerTransferencia` (`estoque-forms.jsx:567+`) com endereço, cidade e telefone dos dois locais, e `FolhaTransferencia` (`:403-484`) — romaneio com código de barras, campos de assinatura de conferente e recebedor. O vivo já imprime pelo servidor; a decisão é se a folha do protótipo substitui esse layout. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "estado-vazio",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockTransfer/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — vivo à frente.",
+      "_acionavel": false
+    }
+  ]
+}

@@ -1,0 +1,190 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "StockTransfer/Create (/stock-transfers/create)",
+  "gap_fonte": "memory/requisitos/Estoque/stock-transfer-create-gap.md",
+  "prototipo_sha": "sha256:bfd716b5fd4a",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "cabecalho-e-acoes",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
+        "linhas": "657-662"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockTransfer/Create.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — paridade. O protótipo tem os mesmos dois botões (`estoque-forms.jsx:345-353`), sob um `h2` e um parágrafo de contexto montados fora do formulário, na aba `transferencia-nova` (`estoque-page.jsx:657-662`). No vivo esse papel é do `PageHeader`.",
+      "_acionavel": false
+    },
+    {
+      "id": "origem-destino",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
+        "linhas": "270"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockTransfer/Create.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — paridade na regra, com divergência de forma declarada. O protótipo faz as duas coisas que o vivo faz: valida `mesmoLocal` (`estoque-forms.jsx:270`) e filtra a origem da lista de destino (`:303`, `Object.keys(D.LOCAIS).filter((k) => k !== de)`). O que é do vivo é a forma: os selos DE/PARA em destaque, divergência declarada no charter (*\"Origem→Destino destacado no topo\"*).",
+      "_acionavel": false
+    },
+    {
+      "id": "status",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
+        "linhas": "294"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockTransfer/Create.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. O protótipo mostra, abaixo do select, o efeito do status escolhido sobre o saldo (`help={D.STATUS_TRF[status].efeito}`, `estoque-forms.jsx:294`) e, sem escolha, a frase *\"O status decide se o saldo se move agora ou só reserva.\"* ⚠️ Toca ESTOQUE — é exatamente a informação que separa reserva de movimento (R-XFER-005). É copy derivada de dado que o vivo já tem; o texto por status precisa ser decidido pelo [W]. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "limpeza-de-linhas-ao-trocar-a-origem",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
+        "linhas": "278"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockTransfer/Create.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. O protótipo limpa as linhas e avisa: *\"Origem trocada — as linhas foram limpas porque o saldo é da origem.\"* (`trocarDe`, `estoque-forms.jsx:278`). ⚠️ Toca ESTOQUE: manter linhas de outra origem é como um lançamento nasce apontando para saldo que não existe naquele local. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "busca-e-adicao-de-produto",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
+        "linhas": "12-66"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockTransfer/Create.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. No protótipo `BuscaProduto` (`estoque-forms.jsx:12-66`) é autocomplete contra o catálogo, bloqueado até escolher o local e ciente do que já está na lista. ⚠️ Toca ESTOQUE. Antes de construir, medir o que o `StockTransferController@store` faz com `product_name` sem id. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "trava-de-saldo-disponivel-na-origem",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
+        "linhas": "271"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockTransfer/Create.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. O protótipo calcula o disponível na origem por linha (`dispDe`, `estoque-forms.jsx:271`), marca `negativa` (`:272`) e exibe alerta em vermelho *\"Acima do disponível na origem\"* citando INV-4 (`:320-321`), além de bloquear o submit (`podeSalvar`, `:274`). ⚠️ Toca ESTOQUE e é o item mais pesado desta tela: exige o backend expor disponível-por-local-e-lote, e exibir número errado induz lançamento errado. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "lote-e-validade-nas-linhas",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
+        "linhas": "78"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockTransfer/Create.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. O protótipo tem coluna de lote condicionada à flag `lote` (`estoque-forms.jsx:78`) e bloqueia o salvamento quando o produto tem lotes e nenhum foi escolhido (`semLote`, `estoque-forms.jsx:273`). ⚠️ Toca ESTOQUE. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "conservacao-do-total",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
+        "linhas": "323-327"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockTransfer/Create.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. O protótipo afirma o invariante em tela: *\"N sai de X · N entra em Y\"* + *\"Transferência não cria nem destrói saldo — o total da empresa fica igual (UC-EST-06)\"* (`estoque-forms.jsx:323-327`). ⚠️ Toca ESTOQUE: é asserção sobre movimento de saldo; exibi-la exige que o backend de fato conserve, e essa prova é a dupla confirmação da REGRA MESTRE. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "frete-e-totais",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
+        "linhas": "338-340"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockTransfer/Create.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — paridade. Mesmos três números no protótipo (`estoque-forms.jsx:338-340`). O protótipo acrescenta o `help` *\"Entra no custo do material que chega no destino\"* no campo de frete (`estoque-forms.jsx:333`) — copy, não capacidade.",
+      "_acionavel": false
+    },
+    {
+      "id": "notas-observacao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockTransfer/Create.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — paridade.",
+      "_acionavel": false
+    },
+    {
+      "id": "edicao-de-transferencia-existente",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
+        "linhas": "253"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockTransfer/Create.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — não é gap desta tela. O `FormTransferencia` do protótipo é create e edit pelo mesmo componente (`editar` em `estoque-forms.jsx:253`), acionado pelo drawer da lista. Se a edição vier, a decisão é da tela de detalhe, não desta.",
+      "_acionavel": false
+    },
+    {
+      "id": "permissao-por-papel",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
+        "linhas": "281-284"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockTransfer/Create.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — vivo à frente. O protótipo tem uma tela inteira de \"sem permissão\" (`semPermissao`, `estoque-forms.jsx:281-284`) que no vivo é resolvida antes, no controller.",
+      "_acionavel": false
+    }
+  ]
+}
