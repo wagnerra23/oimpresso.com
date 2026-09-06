@@ -9,8 +9,8 @@
     {
       "id": "cabecalho-e-acoes",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
-        "linhas": "657-662"
+        "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
+        "linhas": "345-353"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockTransfer/Create.tsx",
@@ -144,7 +144,7 @@
     {
       "id": "notas-observacao",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
+        "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
         "linhas": "TODO"
       },
       "vivo": {

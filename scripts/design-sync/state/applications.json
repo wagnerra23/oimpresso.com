@@ -94,8 +94,8 @@
       "targetSha256": "018fd1fe95ea14537b8ea911f615546f3e57f6fae587a92bb292dccf6bffda00",
       "comparison": {
         "map": "memory/requisitos/Estoque/stock-adjustment-create.map.json",
-        "mapSha256": "2f2fac4b702179ff1aaa48d09bcc006d1d8fdb8d382db4ca91f468ed61f9f8b9",
-        "recordedAt": "2026-09-06T19:14:51.883Z"
+        "mapSha256": "47f144cbe2a10bc7f30de8dba3cdff7b3a474b7637e1eb3b0bb39fa2273cdb89",
+        "recordedAt": "2026-09-06T19:34:39.383Z"
       },
       "tests": [],
       "smokes": []
@@ -120,8 +120,8 @@
       "targetSha256": "d496adc016003d0e215697614212cfb297158d74eb0df44bb824828575935e34",
       "comparison": {
         "map": "memory/requisitos/Estoque/stock-transfer-create.map.json",
-        "mapSha256": "7e66ae2d4fca8df3389175f102bf10b53a085b3cb99ee53902c431f0180ec209",
-        "recordedAt": "2026-09-06T19:14:54.232Z"
+        "mapSha256": "92bf883e5693691357c93192282c7794afd2f37ef47409440dad2a8f744d9d30",
+        "recordedAt": "2026-09-06T19:34:40.589Z"
       },
       "tests": [],
       "smokes": []

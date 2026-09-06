@@ -100,7 +100,7 @@
       "id": "totais",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
-        "linhas": "231-233"
+        "linhas": "231"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockAdjustment/Create.tsx",
@@ -108,7 +108,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Nada — paridade. Mesmos três números e mesmos rótulos no protótipo (`estoque-forms.jsx:231-233`). O gate de permissão é do vivo.",
+      "acao": "Nada — paridade nos três números. ⚠️ Um rótulo difere: o vivo diz \"Total ajustado\" (`Create.tsx:320`) e o protótipo, \"Valor ajustado\" (`estoque-forms.jsx:231`); \"Recuperado\" e \"Perda líquida\" coincidem. É copy, não capacidade. O gate de permissão é do vivo.",
       "_acionavel": false
     },
     {
@@ -144,7 +144,7 @@
     {
       "id": "multi-tenant-e-permissoes",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
+        "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
         "linhas": "TODO"
       },
       "vivo": {
