@@ -194,6 +194,56 @@ jobs:
         # pulam VISÍVEL porque `ModuleUtil::getTaxonomyData` faz `exit` quando o módulo
         # não consta instalado. Com `system.repair_version` presente os 8 passam
         # (30 assertions) — a dívida é do seed, e está declarada no charter da tela.
+        #
+        # ENTRAM 2026-09-05 — Repair/DeviceModelsContratoTest + Repair/RepairStatusContratoTest:
+        # o contrato executável das 4 telas de cadastro do Repair (DeviceModels Index/Create/Edit
+        # e Status/Index), fechando o trio das quatro. Sem estar NESTA lista o arquivo nasce mudo:
+        # a lane roda allowlist, não diretório (§ lado subtrativo do run-set, LC-13).
+        # Medidos no CT 100 (MySQL real, 2026-09-05) com o ambiente igual ao desta lane — isto é,
+        # `system.repair_version` ausente:
+        #   DeviceModelsContratoTest  → 14 passed (58 assertions), 0 skipped
+        #   RepairStatusContratoTest  →  6 passed (17 assertions), 0 skipped
+        # Nenhum dos dois passa por `ModuleUtil::getTaxonomyData`, então não sofrem o `exit` que
+        # obriga o RepairSettingsContratoTest a pular 2 UCs: `Category::forDropdown` consulta a
+        # tabela `categories` direto, sem taxonomia de módulo.
+        #
+        # ⚠️ Estes dois NÃO duplicam o DeviceModelsInertiaSmokeTest acima. Medido no mesmo dia,
+        # aquele arquivo roda `5 skipped, 3 passed (3 assertions)`: os 3 testes de render Inertia
+        # dele pulam sempre — mandam `X-Inertia-Version: 'test'`, levam 409, e o
+        # `if (status !== 200) markTestSkipped()` engole; e os 2 cross-tenant exigem SQLite, que
+        # esta lane (MySQL) nunca satisfaz. Os 3 verdes de lá são só os `flag OFF`.
+        #
+        # ⚠️ O bloco abaixo (#6884, mesma data) chegou de forma INDEPENDENTE às duas
+        # mesmas causas: o `X-Inertia-Version: 'test'` literal levando 409, e o
+        # `assertInertia` junto do header `X-Inertia` sendo combinação impossível.
+        # Duas sessões, dois arquivos, o mesmo diagnóstico — é sinal de que a armadilha
+        # está no PADRÃO copiado do `DeviceModelsInertiaSmokeTest`, não em quem copiou.
+        #
+        # ENTRA 2026-09-05 — Repair/RepairIndexMwartTest: o branch Inertia de
+        # `RepairController@index` (flag MWART, whitelist de business_ids, escopo
+        # cross-tenant, whitelist de sort) não era exercido por lane NENHUMA. Na
+        # `modules-pest` (sqlite `:memory:`, sem migrations) o `Business::first()`
+        # estourava, o guard virava markTestSkipped e o job dava success — falso-verde
+        # de manual (LC-13), o mesmo do vizinho acima.
+        #
+        # Rodado de verdade pela 1ª vez no CT 100 (MySQL), o arquivo vinha
+        # `6 failed (7 assertions)`, com TRÊS causas distintas — não uma:
+        #   3× 409  `X-Inertia-Version: 'test'` literal divergindo do manifesto de build
+        #   1×      `assertInertia` junto do header `X-Inertia` (combinação impossível)
+        #   2× 500  superglobais ausentes em request de teste
+        # As duas primeiras eram defeito do arquivo e foram consertadas nele. A terceira
+        # NÃO era: o container do CT 100 está em `c1abe9548` (2026-08-26) e lhe faltam
+        # três guardas que o `main` já tem — `helpers.php` (HTTP_USER_AGENT),
+        # `layouts/app.blade.php` (session('currency') e REMOTE_ADDR) e `Util.php:1267`
+        # (REMOTE_ADDR). Medido por bisseção, instalando os arquivos do main um a um:
+        # com o UA, o erro só ANDAVA para a guarda seguinte. Com os três, o arquivo vai a
+        #   6 passed (17 assertions)  ⇒ VERDE pelo critério da catraca.
+        # Esta lane faz checkout do HEAD do PR, então tem as três guardas por construção.
+        #
+        # O gate de assinatura NÃO transforma isto em skip mudo aqui: o seed insere só
+        # `system.repair_version`, logo `isSuperadminInstalled()` é false e
+        # `hasThePermissionInSubscription` devolve `true` no `return` final
+        # (ModuleUtil.php:179) sem consultar subscription alguma.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -210,8 +260,14 @@ jobs:
             Modules/ComunicacaoVisual/Tests/Feature/Tier0GuardTest.php \
             Modules/Repair/Tests/Feature/DeviceModelsInertiaSmokeTest.php \
             Modules/Repair/Tests/Feature/ProducaoOficinaRefactorTest.php \
+            Modules/Repair/Tests/Feature/RepairIndexMwartTest.php \
             Modules/Repair/Tests/Feature/RepairSettingsContratoTest.php \
+            Modules/Repair/Tests/Feature/RepairIndexContratoTest.php \
+            Modules/Repair/Tests/Feature/RepairShowContratoTest.php \
+            Modules/Repair/Tests/Feature/RepairDashboardContratoTest.php \
             Modules/Repair/Tests/Feature/RepairJobSheetIndexContratoTest.php \
+            Modules/Repair/Tests/Feature/DeviceModelsContratoTest.php \
+            Modules/Repair/Tests/Feature/RepairStatusContratoTest.php \
             Modules/Vestuario/Tests/Feature/SmokeRoutesVestuarioTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminDashboardContratoTest.php \
             Modules/Superadmin/Tests/Feature/SubscriptionLifecycleServiceTest.php \
