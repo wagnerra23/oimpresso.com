@@ -3,9 +3,9 @@ sessao: "06"
 titulo: Painel do HRM — Page
 dono: "[CL]"
 base: 159e572dd448
-prefixo: <PAGES>/Hrm/Painel/** · Modules/Essentials/Http/Controllers/DashboardController.php (@hrmDashboard apenas)
+prefixo: resources/js/Pages/Essentials/Painel.tsx OU Painel/Index.tsx (+ charter/casos) · DashboardController.php (@hrmDashboard apenas) · prototipo-ui/contrato/essentials-painel.contract.json
 nao_toca: @essentialsDashboard · @getUserSalesTargets · AttendanceController · Pages/Essentials/** · AppShellV2 · DS
-depende: 09 (os cards de presença apontam pro Ponto, não a essentials_attendances) · <PAGES> (RESÍDUO 1) — vaga 2
+depende: thread 09 (os cards de presença apontam pro Ponto, não a essentials_attendances) — vaga 2. Caminho = resources/js/Pages/Essentials/ (a árvore respondeu). Irmã golden: Essentials/Metas.tsx (#6869)
 ---
 # 06 · Painel
 
@@ -28,9 +28,9 @@ Invariantes: Painel **não escreve nada** (sem `aria-live` por decoração) · p
 
 ## Execução
 ```
-ARQUIVOS A EDITAR : <PAGES>/Hrm/Painel/Index.tsx (CRIAR via criar-tela.mjs Hrm/Painel PT-05)
+ARQUIVOS A EDITAR : resources/js/Pages/Essentials/Painel{.tsx|/Index.tsx} (CRIAR via criar-tela.mjs Essentials/Painel PT-05)
                     DashboardController.php (@hrmDashboard → Inertia::render com os agregados que JÁ calcula)
-PASSO A PASSO     : 1) whats-active 2) LER @hrmDashboard 3) listar agregados existentes × 8 cards do alvo
+PASSO A PASSO     : 1) gh pr list --state open × estes arquivos 2) LER @hrmDashboard 3) listar agregados existentes × 8 cards do alvo
                     4) criar-tela.mjs 5) KPIs + fila derivada dos MESMOS agregados 6) cards de presença → "Ver no Ponto"
                     7) _saida-06.md com a tabela card × agregado × (dado | —)
 PARAR SE          : (a) card sem agregado → "—" (não inventar) (b) precisar de query nova → card sai do escopo
@@ -38,5 +38,5 @@ PARAR SE          : (a) card sem agregado → "—" (não inventar) (b) precisar
 ```
 
 ## Prova
-- `<PAGES>/Hrm/Painel/Index.tsx` + charter + casos · tabela card × agregado no `_saida-06.md`
+- `resources/js/Pages/Essentials/Painel.tsx` **ou** `Painel/Index.tsx` + charter + casos · `contrato/essentials-painel.contract.json` · controller contém `Inertia::render('Essentials/Painel` · tabela card × agregado no `_saida-06.md`
 - `_saida-06.md` · placar no PR · T7 não verificável daqui

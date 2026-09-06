@@ -24,7 +24,7 @@ depende: RESÍDUO 2 (Departamentos/Cargos) — a parte −Presença não depende
 - Zero cor crua; sem `.html` novo; variação = Tweak.
 
 ## Passo a passo
-1. Medir T1 no build servido (dark, `__oiLazyDone`, 2 leituras iguais de `querySelectorAll('*').length` — o módulo tem skeleton, 1ª leitura mente ~23%).
+1. `gh pr list --state open` × `hrm-page.jsx` (colisão de 04/09). Medir T1 no build servido (dark, `__oiLazyDone`, 2 leituras iguais de `querySelectorAll('*').length` — o módulo tem skeleton, 1ª leitura mente ~23%).
 2. Editar `TABS`; adicionar dados; adicionar 2 views; trocar cards de presença do Painel.
 3. Rodar A1–A12 nas 2 abas novas (A3 svg · A5 aria-selected · th scope).
 4. Bump `?v=` no host; T1 de novo; contagem de abas = 7 (sem RESÍDUO 2) ou 9 (com).

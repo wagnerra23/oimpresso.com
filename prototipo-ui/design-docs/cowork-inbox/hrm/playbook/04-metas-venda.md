@@ -1,43 +1,35 @@
 ---
 sessao: "04"
-titulo: Metas de venda — Page
-dono: "[CL]"
-base: 159e572dd448
-prefixo: <PAGES>/Hrm/Metas/** · Modules/Essentials/Http/Controllers/SalesTargetController.php (@index · @setSalesTarget)
-nao_toca: @saveSalesTarget (validação de faixas fechada no #6799) · PayrollController (comissão de meta é da folha — thread 10, bloqueada) · Pages/Essentials/** · DS
-depende: — (vaga 1) · <PAGES> (RESÍDUO 1)
+titulo: Metas de venda — PUXAR (produção à frente · #6869)
+dono: "[CC] read-only → build"
+base: 45e63465d2e4
+prefixo: prototipo-ui/cowork/hrm-extras.jsx (`Metas`) — só se houver gap a puxar
+nao_toca: resources/js/Pages/Essentials/Metas.tsx · SalesTargetController.php · prototipo-ui/contrato/essentials-metas.contract.json
+depende: RESÍDUO 5 (o que fazer com as 5 colunas de apuração do protótipo)
 ---
-# 04 · Metas de venda
+# 04 · Metas — puxar o vivo (a rev.1 desta thread mandava reconstruir uma tela em produção)
 
-## A · Identidade
-- **alvo (layout):** `hrm-extras.jsx` (`Metas`) — medido 04/09: 896 nós · `os-table` **7 colunas** (colaborador · faixa de · faixa até · comissão % · vigência · situação · ações) · form "Definir meta" em `hrm-forms.jsx`.
-- **âncora (código):** `SalesTargetController@index` + `@setSalesTarget/{id}` (form por usuário) · rotas **existem**.
-- arquétipo PT-01 + drawer/form PT-02 · persona Wagner · permissão `essentials.access_sales_target`.
+## Estado (lido no `main` 45e63465)
+`/hrm/sales-target` **já é Inertia**: `SalesTargetController.php:80` → `Inertia::render('Essentials/Metas')`. O #6869 (mergeado 2026-09-05 18:50, **32 s antes** da base que a rev.1 declarou) entregou o pacote inteiro: `resources/js/Pages/Essentials/Metas.tsx` (330 ln) · `Metas.charter.md` (`page: /hrm/sales-target`, `related_prototype: prototipo-ui/cowork/hrm-extras.jsx (Metas)`) · `Metas.casos.md` · `prototipo-ui/contrato/essentials-metas.contract.json` · `Tests/Feature/HrmMetasTest.php` · `e2e/essentials-metas.spec.ts` · `RUNBOOK-metas.md` · lane em `essentials-pest.yml`. Frescor 🔵 — **não repintar, não reescrever charter.**
 
-## B · Não inventar
-- Dados (lidos 04/09): `essentials_user_sales_targets.{user_id,target_start,target_end,commission_percent}` · **gate Tier 0** já existe no controller (`User::where('business_id',…)->findOrFail($request->user_id)`) — preservar.
-- Validação (já no `main`, #6799): sem sobreposição de faixas · `target_end > target_start` · `commission_percent` 0–100. A Page **mostra** os erros; não revalida à parte.
-- Copy: "Meta de venda", "Faixa", "Comissão", "Vigência". Sem emoji.
+## O que a produção decidiu e o protótipo ainda não sabe (lido no charter)
+- **Non-Goal explícito:** as **5 colunas de apuração** do protótipo (`Mês anterior · Mês atual · Faixa atingida · Progresso na faixa · Comissão em R$`) ficaram **fora** — único produtor é `DashboardController::getUserSalesTargets` (admin-only, DataTables) e trazê-lo é caminho de VALOR (dupla prova, `proibicoes.md`). Meu protótipo mostra as 5 como se fossem desta tela → **divergência a declarar no build**, não pedido pro Code.
+- **Não envia float** ao `/hrm/save-sales-target` (texto pt-BR de 2 casas — `Util::num_uf` lê `1.234` como mil e duzentos e trinta e quatro). Se o form do protótipo (`hrm-forms.jsx`) mostra máscara decimal com ponto, puxar a máscara vírgula.
+- Colaborador sem faixa = `Badge` "sem meta" + travessão, nunca zero.
+- Contrato gerado com `copy: []` em todas as seções (`_pendente_w`): a copy literal é decisão [W] — o protótipo é a fonte natural dela.
 
-## C · Comportamento (EARS)
-| elemento | TAG | QUANDO → O SISTEMA DEVE | persiste | reversível | prova |
-|---|---|---|---|---|---|
-| linha do colaborador | TR `role=button` | clique → abre form com as faixas dele | — | `esc` | drawer monta |
-| Adicionar faixa | BUTTON | clique → nova linha de faixa no form | — | Remover | contagem de faixas |
-| Salvar | BUTTON | enviado → POST `/hrm/save-sales-target`; erro 422 aparece por campo | grava | não | Pest do #6799 |
-Invariantes: permissão nega antes · `user_id` validado por tenant · sem número inventado.
+## O que esta thread faz
+1. Ler `Metas.tsx` + `Metas.charter.md` + `essentials-metas.contract.json` no `main` (no turno; sha no `_saida`).
+2. Medir o protótipo (`hrm-extras.jsx` `Metas`, 896 nós · `os-table` 7 col) — T1 (duas leituras iguais; o módulo tem skeleton).
+3. Diff nos dois sentidos: **produção → protótipo** (átomos, `aria-*`, `data-testid`, `data-contract`, estado "sem meta", máscara pt-BR) entra no build; **protótipo → produção** só se for comportamento sem VALOR (busca `?q=`, ordenação) — e aí é pedido de 1 arquivo com UC do `Metas.casos.md`.
+4. Propor a **copy literal por seção** (`cabecalho · filtros · lista`) para preencher o `_pendente_w` do contrato — no `_saida`, para [W] aprovar; **não editar o contrato**.
+5. Aplicar RESÍDUO 5 quando respondido: remover as 5 colunas de apuração do protótipo **ou** selar "fora desta onda" (Tweak, nunca arquivo novo).
+6. `_saida-04.md`.
 
-## Execução
-```
-ARQUIVOS A EDITAR : <PAGES>/Hrm/Metas/Index.tsx (CRIAR via criar-tela.mjs Hrm/Metas PT-01)
-                    <PAGES>/Hrm/Metas/_components/DefinirMeta.tsx (CRIAR)
-                    SalesTargetController.php (@index e @setSalesTarget → Inertia::render / JSON)
-PASSO A PASSO     : 1) whats-active 2) criar-tela.mjs 3) Inertia::render com usuários + faixas
-                    4) tabela 7 col na ordem 5) form de faixas com erros do 422 6) _saida-04.md
-PARAR SE          : (a) "situação" da meta não existir como coluna → derivar de target_start/end (vigente/encerrada) ou "—"
-                    (b) <PAGES> não resolvido → RESÍDUO 1
-```
+## PARAR SE
+- RESÍDUO 5 não respondido → fazer 1–4, deixar 5 registrado.
+- Qualquer item do diff exigir número de apuração → é VALOR: não entra nem no protótipo como dado "real".
 
-## Prova
-- `<PAGES>/Hrm/Metas/Index.tsx` + charter + casos (UC citado por teste) · teste de faixas (#6799) verde
-- `_saida-04.md` · placar no PR · T7 não verificável daqui
+## Prova (PLACAR confere)
+- `_saida-04.md` com o diff nos dois sentidos, a sha lida e a proposta de copy por seção.
+- Se entrou no build: `hrm-extras.jsx` no espelho `prototipo-ui/cowork/` com os átomos puxados e sem as colunas de VALOR (ou com o selo).
