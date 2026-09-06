@@ -1,7 +1,7 @@
 ---
 tela: Foundation / PageHeader
 prototipo: TODO
-prototipo_nota: "2026-09-06 [C]: o campo era `prototipo-ui/prototipos/pageheader-canon-v3/ (index.html · 3-familias.html · b-v2-roxo-kpis.html · clientes-filtros-amostra.html · SPEC.md · README.md)` — a pasta prototipo-ui/prototipos/ foi expurgada em 2026-06-23 (commit 9da73296d3, consolidação SSOT em prototipo-ui/cowork/; os 8 arquivos desta pasta saíram nele). Não há sucessor no espelho: fonte viva é o DS em git (prototipo-ui/design-system). Âncora do lado protótipo fica TODO por desenho; o lado vivo é ancorado por grep real."
+prototipo_nota: "2026-09-06 [C]: o campo era `prototipo-ui/prototipos/pageheader-canon-v3/ (index.html · 3-familias.html · b-v2-roxo-kpis.html · clientes-filtros-amostra.html · SPEC.md · README.md)` — a pasta prototipo-ui/prototipos/ foi expurgada em 2026-06-23 (commit 9da73296d3, consolidação SSOT em prototipo-ui/cowork/; os 7 arquivos desta pasta — os 6 listados + diagram.svg — saíram nele, junto com o visual-source.html da sidebar). Não há sucessor no espelho: fonte viva é o DS em git (prototipo-ui/design-system). Âncora do lado protótipo fica TODO por desenho; o lado vivo é ancorado por grep real."
 tela_viva: resources/js/Components/PageHeader/PageHeader.tsx + PageHeaderPrimary.tsx + index.ts (consumo de referência: resources/js/Pages/Cliente/Index.tsx)
 paridade_atual: ~85% (código vivo já está ADIANTE do protótipo index.html; protótipo é internamente inconsistente)
 gerado_em: 2026-06-23

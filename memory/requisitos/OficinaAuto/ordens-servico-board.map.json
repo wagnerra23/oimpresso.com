@@ -123,7 +123,7 @@
         "ancora": false
       },
       "status": "fechado-no-codigo",
-      "acao": "Nada — fechado no código: o `_pendente_` (fonte do `OficinaPrint`) foi resolvido com helper próprio; fila e OS individual existem.",
+      "acao": "Nada — fechado no código: o vivo tem helper próprio (`printOficinaFila.ts`) e o `_pendente_` da fonte do `OficinaPrint` também caducou (o arquivo desceu pro espelho); fila e OS individual existem.",
       "_acionavel": false
     }
   ],

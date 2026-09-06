@@ -86,7 +86,8 @@ export function resolverArquivosPrototipo(fmProtoField) {
 // CONSUMIDOR citado entre parênteses (`Pages/Cliente/Index.tsx` — âncora errada em 12/12
 // partes) e a sidebar nascia `vivo: TODO` em 17/17 (os 4 arquivos declarados descartados).
 // FP medido no corpus dos 23 `tela_viva` do repo antes de ligar: só esses 2 mudam de
-// resultado; os outros 21 resolvem igual (18 sob Pages/, 3 sem campo).
+// resultado; os outros 21 resolvem igual (16 sob Pages/ · 2 com campo sem match nos dois regex —
+// caixa-unificada declara Modules/**/Resources/js/Pages e Crm/clientes declara um diretório · 3 sem campo).
 export function resolverArquivoVivo(fmTelaVivaField) {
   const m = String(fmTelaVivaField || '').match(/((?:resources\/js\/(?:Pages|Components|Layouts)|prototipo-ui\/fixtures)\/[\w./-]+\.(?:tsx|jsx))/);
   return m ? m[1] : null;

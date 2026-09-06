@@ -78,7 +78,7 @@
         "ancora": false
       },
       "status": "decisao-registrada",
-      "acao": "Nada — decisão [W] 2026-05-25 registrada (P5: \"não re-adicionar sem sinal\").",
+      "acao": "Nada — decisão [W] 2026-07-14 POSTERIOR à prosa re-adicionou o badge (via backend, AP18 respeitado — nunca `rows.filter`); a P5 (\"não re-adicionar sem sinal\") foi superada por decisão datada. Não reabrir.",
       "_acionavel": false
     },
     {
