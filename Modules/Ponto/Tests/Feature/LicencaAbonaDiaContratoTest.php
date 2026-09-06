@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Modules\Essentials\Entities\EssentialsLeave;
 use Modules\Ponto\Entities\ApuracaoDia;
 use Modules\Ponto\Entities\Colaborador;
 use Modules\Ponto\Services\ApuracaoService;
@@ -65,16 +66,18 @@ $GLOBALS['lic_ids_criados'] = [];
 /** Licença no HRM. `status` e datas são o contrato lido pelo Ponto. */
 function licCriarLicenca(int $bizId, int $userId, string $inicio, string $fim, string $status = 'approved'): int
 {
-    $id = (int) DB::table('essentials_leaves')->insertGetId([
+    // Entity e não `DB::table`: mesma razão do Service (o `catalog-graph` conta os dois eixos,
+    // e manter um só par `Ponto>Essentials` — o de import — é mais honesto que ter dois).
+    // INSERT não é filtrado pelo global scope, então `business_id` explícito permite montar
+    // a fixture cross-tenant de que o UC-LIC-05 precisa.
+    $id = (int) EssentialsLeave::create([
         'business_id'                => $bizId,
         'user_id'                    => $userId,
         'essentials_leave_type_id'   => null,
         'start_date'                 => $inicio,
         'end_date'                   => $fim,
         'status'                     => $status,
-        'created_at'                 => now(),
-        'updated_at'                 => now(),
-    ]);
+    ])->id;
 
     $GLOBALS['lic_ids_criados'][] = $id;
 
@@ -83,7 +86,11 @@ function licCriarLicenca(int $bizId, int $userId, string $inicio, string $fim, s
 
 afterEach(function () {
     if (! empty($GLOBALS['lic_ids_criados'])) {
-        DB::table('essentials_leaves')->whereIn('id', $GLOBALS['lic_ids_criados'])->delete();
+        // SUPERADMIN: a limpeza precisa alcançar a licença que o UC-LIC-05 gravou no tenant
+        // adversário; com o global scope ligado ela ficaria para trás e sujaria o banco da lane.
+        EssentialsLeave::withoutGlobalScopes()
+            ->whereIn('id', $GLOBALS['lic_ids_criados'])
+            ->delete();
         $GLOBALS['lic_ids_criados'] = [];
     }
 

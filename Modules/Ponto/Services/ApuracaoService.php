@@ -5,6 +5,7 @@ namespace Modules\Ponto\Services;
 use App\Util\OtelHelper;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Modules\Essentials\Entities\EssentialsLeave;
 use Modules\Ponto\Entities\ApuracaoDia;
 use Modules\Ponto\Entities\Colaborador;
 use Modules\Ponto\Entities\Intercorrencia;
@@ -512,12 +513,17 @@ class ApuracaoService
      * Tier 0 (ADR 0093): a query filtra por `business_id` do colaborador. Licença de outro
      * tenant não abona dia nenhum — `UC-LIC-05` prova com o adversário 99.
      *
-     * `DB::table()` e não `EssentialsLeave::class` DE PROPÓSITO: medido em 2026-09-05, o
-     * `Modules/Ponto` não tem UM `use Modules\<Outro>` — este seria o primeiro acoplamento de
-     * classe do módulo. Acoplar à TABELA (contrato de schema, estável) em vez de à Entity de
-     * outro módulo mantém a fronteira e não obriga o Ponto a carregar o boot do Essentials.
-     * Se a ADR sucessora da 0014 (Onda 0, decisão [W]) declarar a dependência, trocar por
-     * Entity vira refactor de uma linha.
+     * Usa a Entity do DONO, e não uma query crua na tabela — a primeira versão deste método
+     * fazia o contrário. O `catalog-graph` reprovou e tinha razão: `EssentialsLeave`
+     * carrega `HasBusinessScope` (ADR 0093, Tier 0 IRREVOGÁVEL), então a query crua abriria mão
+     * do global scope de business e passaria a depender de alguém lembrar do `where` à mão.
+     * O `where('business_id')` abaixo fica como defesa em profundidade — explícito e redundante
+     * de propósito —, mas quem garante o isolamento agora é o scope do Model.
+     *
+     * Custo assumido e declarado: este é o PRIMEIRO `use Modules\<Outro>` do `Modules/Ponto`
+     * (medido: zero antes deste PR). O par `Ponto>Essentials` é acoplamento novo e deliberado —
+     * a alternativa era manter a fronteira de código e perder a defesa Tier 0, o que inverte a
+     * prioridade. A ADR sucessora da 0014 (Onda 0) é quem formaliza a dependência.
      */
     public function aplicarLicencas(ApuracaoDia $a, Colaborador $c, Carbon $data)
     {
@@ -525,8 +531,7 @@ class ApuracaoService
             return; // colaborador sem vínculo com usuário do HRM — nada a abonar
         }
 
-        $licenca = DB::table('essentials_leaves')
-            ->where('business_id', $c->business_id)
+        $licenca = EssentialsLeave::where('business_id', $c->business_id)
             ->where('user_id', $c->user_id)
             ->where('status', 'approved')
             ->whereDate('start_date', '<=', $data->toDateString())
