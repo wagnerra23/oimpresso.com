@@ -18,8 +18,8 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. sub-nav em página via `window.VdModNav here=\"lista\"` logo abaixo do header (refino [W] 2026-06-11). VIVO usa `vd-visoes-menu` (dropdown \"Visões\") em vez de sub-nav inline. Construir ou rejeitar por escrito.",
-      "_acionavel": true
+      "acao": "Nada — divergência intencional já decidida — não adotar sem decisão Wagner (§Veredito)",
+      "_acionavel": false
     },
     {
       "id": "kpis-cards-de-resumo",
@@ -63,7 +63,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. O VIVO delega a tabela a `SellsTabelaUnificada` (componente externo, não lido nesta análise). O mockup renderiza a `<table>` inline com colunas: Venda · Data · Cliente · Atendido por (avatar… Construir ou rejeitar por escrito.",
+      "acao": "Decidir. O VIVO delega a tabela a `SellsTabelaUnificada` (componente externo, não lido nesta análise). O mockup renderiza a `<table>` inline com colunas: Venda · Data · Cliente · Atendido… (_pendente_ confirmar, como a prosa diz)",
       "_acionavel": true
     },
     {
@@ -78,8 +78,8 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Nada — vivo à frente (STALE no mockup).",
-      "_acionavel": false
+      "acao": "Decidir. atalhos de ação direto na linha sem abrir drawer — _pendente_ confirmar em `SellsTabelaUnificada`. (_pendente_ confirmar, como a prosa diz)",
+      "_acionavel": true
     },
     {
       "id": "drawer-sheet-de-detalhe",
@@ -93,7 +93,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. o `VendaDetailDrawer` do mockup tem 5 tabs (Itens · Fiscal · Pagamento · Timeline · ✦ IA), cards fiscais ricos (`VdFiscalCard`: timeline emissão, chave SEFAZ copiável, CC-e, CTAs DANFE/XML/Enviar),… Construir ou rejeitar por escrito.",
+      "acao": "Decidir. o `VendaDetailDrawer` do mockup tem 5 tabs (Itens · Fiscal · Pagamento · Timeline · ✦ IA), cards fiscais ricos (`VdFiscalCard`: timeline emissão, chave SEFAZ copiável, CC-e, CTAs… (_pendente_ confirmar, como a prosa diz)",
       "_acionavel": true
     },
     {
@@ -123,7 +123,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. empty states contextuais por saved view (`atrasadas` → \"Tudo dentro do prazo ✓\"; `rejeitadas` → \"Zero rejeições da SEFAZ ✓\"; `favoritas` → \"Foque uma linha com J/K e aperte B\";… Construir ou rejeitar por escrito.",
+      "acao": "Decidir. empty states contextuais por saved view (`atrasadas` → \"Tudo dentro do prazo ✓\"; `rejeitadas` → \"Zero rejeições da SEFAZ ✓\"; `favoritas` → \"Foque uma linha com J/K e aperte B\";… (_pendente_ confirmar, como a prosa diz)",
       "_acionavel": true
     }
   ]

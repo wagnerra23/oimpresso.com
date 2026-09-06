@@ -18,8 +18,8 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. Mockup tem eyebrow \"Assinaturas · Cobrança Recorrente\" + subtítulo contextual (\"Junho 2026 · WR2 Sistemas\"). Construir ou rejeitar por escrito.",
-      "_acionavel": true
+      "acao": "Nada — `— · —` na coluna Esforço·risco: Vivo: `<h1>` + linha-status `N ATIVAS · MRR · CHURN%` derivada dos KPIs reais; botão \"Nova assinatura\" wired (abre drawer…",
+      "_acionavel": false
     },
     {
       "id": "kpis",
@@ -33,7 +33,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. Mockup: 4 cards (MRR hero, Churn, Próximas cobranças, A recuperar = soma de falhas/retentando). Construir ou rejeitar por escrito.",
+      "acao": "Decidir. *micro-gap*: Card \"A recuperar\" (R$ a recuperar) — soma valor das cobranças falhou+retentando. O vivo mostra contagem (\"Retentado falhos\" = `failed_count`), não o valor… (esforço P-M · Tier 0 ⚠️ (só propor; cálculo no backend + dupla confirmação)) — único item acionável desta parte; o resto é `— · —`.",
       "_acionavel": true
     },
     {
@@ -48,7 +48,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. Mockup: PeriodBar (campo data + período) + busca `/` por cliente/CNPJ/plano. Construir ou rejeitar por escrito.",
+      "acao": "Decidir. ADOTAR-PARCIAL #1 da prosa: PeriodBar (campo data + período) — só visual, P, baixo risco, sujeito a gate F1.5 + Wagner.",
       "_acionavel": true
     },
     {
@@ -63,8 +63,8 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. Mockup: linha = star, avatar, título, sub (`plano · ciclo · desde`), pill status + `método · valor`. Construir ou rejeitar por escrito.",
-      "_acionavel": true
+      "acao": "Nada — `— · —` na coluna Esforço·risco: Vivo: idêntico em estrutura + star persistente (POST `/favorite`), navegação `j/k`, seleção ativa com borda primary, skeleton…",
+      "_acionavel": false
     },
     {
       "id": "acoes-por-linha-drawer",
@@ -78,7 +78,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. Mockup drawer: header + tabs Detalhes\\ Construir ou rejeitar por escrito.",
+      "acao": "Decidir. *única ideia visual*: Drawer lateral overlay com aba ✦ IA separada + footer fixo de ações. Vivo usa coluna-3 fixa (3-col body) com IA inline. (esforço P · baixo (só com gate F1.5)) — único item acionável desta parte; o resto é `— · —`.",
       "_acionavel": true
     },
     {
@@ -93,8 +93,8 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. Mockup: botão \"Nova assinatura\" sem drawer (não implementado). Construir ou rejeitar por escrito.",
-      "_acionavel": true
+      "acao": "Nada — `— · —` na coluna Esforço·risco: Vivo: `NewSubscriptionDrawer` completo (Sheet DS) — busca cliente debounced (`/contacts/search`), plano opcional…",
+      "_acionavel": false
     },
     {
       "id": "editar-cobranca",
@@ -108,8 +108,8 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. Ausente no mockup. Construir ou rejeitar por escrito.",
-      "_acionavel": true
+      "acao": "Nada — `— · —` na coluna Esforço·risco: Vivo: `EditSubscriptionDrawer` (PUT, edita valor/ciclo/forma; cliente/plano/data imutáveis). ⚠️ toca valor.",
+      "_acionavel": false
     },
     {
       "id": "abas-planos-faturas-config",
@@ -123,8 +123,8 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. Mockup: placeholders honestos descrevendo o que falta. Construir ou rejeitar por escrito.",
-      "_acionavel": true
+      "acao": "Nada — `— · —` na coluna Esforço·risco: Vivo: Pages reais com rotas dedicadas (`/recurring-billing/planos／faturas／configuracoes`, Ondas 6/7/8).",
+      "_acionavel": false
     },
     {
       "id": "dominio-dados",
@@ -138,8 +138,8 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. Mockup: mock gráfica WR2 (Padaria, Auto Posto…), persona \"Eliana [E] / Larissa\". Construir ou rejeitar por escrito.",
-      "_acionavel": true
+      "acao": "Nada — `— · —` na coluna Esforço·risco: Vivo: dados reais do presenter, multi-tenant `business_id`.",
+      "_acionavel": false
     }
   ]
 }

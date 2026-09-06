@@ -18,7 +18,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Nada — paridade.",
+      "acao": "Nada — paridade (§3: já é canon)",
       "_acionavel": false
     },
     {
@@ -48,7 +48,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Nada — paridade.",
+      "acao": "Nada — paridade (§3: já é canon)",
       "_acionavel": false
     },
     {
@@ -78,8 +78,8 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. DIVERGE intencionalmente. Protótipo `b-v2-roxo-kpis.html` mostra `os-tab-count` (badge na tab). Vivo: counter REMOVIDO da tab (Wagner 2026-05-25: duplicava KPI strip), mas `tab_counts` continua… Construir ou rejeitar por escrito.",
-      "_acionavel": true
+      "acao": "Nada — já é canon (§3, P5) — Baixo, mas não re-adicionar sem sinal. AP18 (counter via backend, nunca rows.filter) já…",
+      "_acionavel": false
     },
     {
       "id": "primary-roxo-295-universal",
@@ -93,7 +93,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Nada — paridade.",
+      "acao": "Nada — paridade (§3: já é canon)",
       "_acionavel": false
     },
     {
@@ -108,7 +108,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Nada — paridade.",
+      "acao": "Nada — paridade (§3: já é canon)",
       "_acionavel": false
     },
     {
@@ -138,8 +138,8 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. FALTA no protótipo v3; existe como conceito canon. O bundle `pageheader-canon-v3/` cobre só modo NAV (Index com sub-nav). SPEC §0 menciona \"Forms página inteira usam PageHeader simplificado sem… Construir ou rejeitar por escrito.",
-      "_acionavel": true
+      "acao": "Nada — já é canon (§3, P9) — Baixo. Vivo já cobre (subnav é opcional). Só falta documentar que o protótipo não é a…",
+      "_acionavel": false
     },
     {
       "id": "filtros",
@@ -153,8 +153,8 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. EXPLORAÇÃO abandonada. O HTML compara 5 tratamentos do botão \"Filtros avançados\" (ghost/outline/soft/tinted/chip). Vivo Cliente/Index: filtros viraram 6 FilterDropdown na toolbar (Wave G), não 1… Construir ou rejeitar por escrito.",
-      "_acionavel": true
+      "acao": "Nada — exploração abandonada — §3: ignorar pra fins de fundação",
+      "_acionavel": false
     },
     {
       "id": "as-3-familias",
@@ -168,8 +168,8 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. DECISÃO JÁ TOMADA — protótipo é histórico. O HTML pede pra Wagner escolher família. Vivo convergiu pra warm flat (família A/C navy-ish→cream) no container + roxo 295 no primary. A recomendação do… Construir ou rejeitar por escrito.",
-      "_acionavel": true
+      "acao": "Nada — já é canon (§3, P11) — Baixo. Não há gap; é decisão fechada.",
+      "_acionavel": false
     },
     {
       "id": "spec-7-28",

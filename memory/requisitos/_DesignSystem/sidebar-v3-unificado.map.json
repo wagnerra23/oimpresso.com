@@ -18,8 +18,8 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. Sidebar light creme (`--bg-sb` 0.985) (DIVERGE) Construir ou rejeitar por escrito.",
-      "_acionavel": true
+      "acao": "Nada — decisão [W] 2026-07-16 posterior à prosa: sidebar DARK FIXO definitivo (ADR UI-0023, supersede UI-0019/0009/0014) — não reabrir",
+      "_acionavel": false
     },
     {
       "id": "largura-sidebar",
@@ -48,7 +48,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Nada — paridade/decisão já registrada.",
+      "acao": "Nada — paridade/decisão já registrada",
       "_acionavel": false
     },
     {
@@ -93,8 +93,8 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. 5 grupos + 3 shortcuts topo (IA/Atendimento/Equipe). Headers uppercase (DIVERGE (taxonomia)) Construir ou rejeitar por escrito.",
-      "_acionavel": true
+      "acao": "Nada — §Ordem sugerida: NÃO fazer (#6 seria regressão — vivo mais recente que o protótipo)",
+      "_acionavel": false
     },
     {
       "id": "labels-dos-grupos",
@@ -108,8 +108,8 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. TOPO/VENDER/OPERAR/FINANÇAS/PESSOAS/SISTEMA (DIVERGE) Construir ou rejeitar por escrito.",
-      "_acionavel": true
+      "acao": "Nada — §Ordem sugerida: NÃO fazer (#7 seria regressão — vivo mais recente que o protótipo)",
+      "_acionavel": false
     },
     {
       "id": "atalhos-kbd",
@@ -138,8 +138,8 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. glyphs unicode (`✦ ☎ $ ⚙ ₿`…) (DIVERGE (vivo melhor)) Construir ou rejeitar por escrito.",
-      "_acionavel": true
+      "acao": "Nada — §Ordem sugerida: #9 vivo tem features além do protótipo — preservar",
+      "_acionavel": false
     },
     {
       "id": "item-ativo-hover",
@@ -153,7 +153,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Nada — paridade/decisão já registrada.",
+      "acao": "Nada — paridade/decisão já registrada",
       "_acionavel": false
     },
     {
@@ -168,8 +168,8 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. `--gh` por `data-group` (ia 220, vender 60, financas 145…) (DIVERGE (vivo mais elaborado)) Construir ou rejeitar por escrito.",
-      "_acionavel": true
+      "acao": "Nada — §Ordem sugerida: NÃO fazer (#11 seria regressão — vivo mais recente que o protótipo)",
+      "_acionavel": false
     },
     {
       "id": "colapso",
@@ -183,7 +183,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Nada — paridade/decisão já registrada.",
+      "acao": "Nada — §Ordem sugerida: #12 vivo tem features além do protótipo — preservar",
       "_acionavel": false
     },
     {
@@ -198,7 +198,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Nada — paridade/decisão já registrada.",
+      "acao": "Nada — §Ordem sugerida: #13 vivo tem features além do protótipo — preservar",
       "_acionavel": false
     },
     {
@@ -213,7 +213,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Nada — paridade/decisão já registrada.",
+      "acao": "Nada — §Ordem sugerida: #14 vivo tem features além do protótipo — preservar",
       "_acionavel": false
     },
     {
@@ -228,7 +228,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Nada — paridade/decisão já registrada.",
+      "acao": "Nada — paridade/decisão já registrada",
       "_acionavel": false
     },
     {
@@ -243,7 +243,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Nada — paridade/decisão já registrada.",
+      "acao": "Nada — n/a — separar do PR de fundação",
       "_acionavel": false
     },
     {
@@ -258,8 +258,8 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. `page-topbar` com crumbs + `⌘K ? 🔔` (DIVERGE (vivo decidiu remover)) Construir ou rejeitar por escrito.",
-      "_acionavel": true
+      "acao": "Nada — §Ordem sugerida: NÃO fazer (#17 seria regressão — vivo mais recente que o protótipo)",
+      "_acionavel": false
     }
   ]
 }
