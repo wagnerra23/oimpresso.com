@@ -1,0 +1,8 @@
+{
+    "slug": "fiscal-sped",
+    "route": "/fiscal/sped",
+    "target": "resources/js/Pages/Fiscal/Sped.tsx",
+    "renderedPath": "/fiscal/sped",
+    "viewport": "1280x800",
+    "capturedAt": "2026-06-11T12:00:00-03:00"
+}
