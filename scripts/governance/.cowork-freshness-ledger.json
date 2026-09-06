@@ -1558,5 +1558,59 @@
     "medidos": 1,
     "denom": 1,
     "staleList": []
+  },
+  {
+    "date": "2026-09-06T06:50:59.102Z",
+    "files": 258,
+    "sync": 4,
+    "stale": 3,
+    "liveAbsent": 0,
+    "unchecked": 251,
+    "staleList": [
+      "clientes-page.jsx",
+      "financeiro-telas-extras.jsx",
+      "vendas-extras.jsx"
+    ],
+    "verified": [
+      "jana-merge.jsx",
+      "kb-page.jsx",
+      "ponto-telas.jsx",
+      "venda-v3/sells-create.jsx"
+    ],
+    "verifiedHash": {
+      "jana-merge.jsx": "b56a0385da6b4259fd3d5cbddae4f67d9dca4d848ab18373b0f55645093c14be",
+      "kb-page.jsx": "797f931adabd430c54cb5939e6c917274e9536205bf8ec764b3f026997b18840",
+      "ponto-telas.jsx": "2763936029cb72edecf9bb2bc5ddbf582c1572bd89acace8d35de2a07689c040",
+      "venda-v3/sells-create.jsx": "d37108c46381d659ef329671ad3260e2de7c85b3312653853e098209ad35c7c0"
+    },
+    "origin": "medicao"
+  },
+  {
+    "date": "2026-09-06T06:53:35.601Z",
+    "files": 258,
+    "sync": 7,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 251,
+    "staleList": [],
+    "verified": [
+      "clientes-page.jsx",
+      "financeiro-telas-extras.jsx",
+      "jana-merge.jsx",
+      "kb-page.jsx",
+      "ponto-telas.jsx",
+      "venda-v3/sells-create.jsx",
+      "vendas-extras.jsx"
+    ],
+    "verifiedHash": {
+      "clientes-page.jsx": "8086f48f54849c4adf66ceaee76b6108fc12ca3b3006be439594aca7139eac7e",
+      "financeiro-telas-extras.jsx": "e0a161e4126f6cde39cae16c2abfad569f5590a664ac2899a86cd24246181df4",
+      "jana-merge.jsx": "b56a0385da6b4259fd3d5cbddae4f67d9dca4d848ab18373b0f55645093c14be",
+      "kb-page.jsx": "797f931adabd430c54cb5939e6c917274e9536205bf8ec764b3f026997b18840",
+      "ponto-telas.jsx": "2763936029cb72edecf9bb2bc5ddbf582c1572bd89acace8d35de2a07689c040",
+      "venda-v3/sells-create.jsx": "d37108c46381d659ef329671ad3260e2de7c85b3312653853e098209ad35c7c0",
+      "vendas-extras.jsx": "981714969fe9c50dbd2808affe152eed05a6ede69e1436e1de1888e3c12787a4"
+    },
+    "origin": "medicao"
   }
 ]
