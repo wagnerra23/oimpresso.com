@@ -10,7 +10,7 @@
       "id": "cobertura-das-chaves-de-configuracao",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/hrm-extras.jsx",
-        "linhas": "572-591"
+        "linhas": "573-594"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Essentials/Settings/Index.tsx",
@@ -40,7 +40,7 @@
       "id": "chave-de-presenca-dentro-do-hrm",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/hrm-extras.jsx",
-        "linhas": "583-589"
+        "linhas": "585-588 e 593"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Essentials/Settings/Index.tsx",

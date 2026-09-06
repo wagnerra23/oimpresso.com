@@ -1,6 +1,6 @@
 {
   "schema": "oimpresso-design-application-report/3",
-  "generatedAt": "2026-09-06T18:28:16.690Z",
+  "generatedAt": "2026-09-06T18:52:27.464Z",
   "bundle": {
     "id": "5023b274183d849dcc925eae85cef61a991c3541ca1daeb680267c1afda99e4d",
     "baseId": null,
@@ -2143,7 +2143,7 @@
         "comparison": {
           "map": "memory/requisitos/Essentials/documents-index.map.json",
           "mapSha256": "c2194f9adf520c9c8e826a71ed2636c5851cd7824c209e31cb276d5bdc8ed60a",
-          "recordedAt": "2026-09-06T18:27:56.144Z"
+          "recordedAt": "2026-09-06T18:51:56.080Z"
         },
         "application": null,
         "tests": [],
@@ -2168,7 +2168,7 @@
         "comparison": {
           "map": "memory/requisitos/Essentials/knowledge-index.map.json",
           "mapSha256": "d6296f24224787d331f571c69fa0ebbdfca862733cd4dd9616b12c32f2874605",
-          "recordedAt": "2026-09-06T18:28:13.606Z"
+          "recordedAt": "2026-09-06T18:52:01.655Z"
         },
         "application": null,
         "tests": [],
@@ -2193,7 +2193,7 @@
         "comparison": {
           "map": "memory/requisitos/Essentials/messages-index.map.json",
           "mapSha256": "b69436fc5bd1192953b55ca9d6ee80b26ac40897ea735c5ea0c1d5ff7eb5df87",
-          "recordedAt": "2026-09-06T18:27:57.661Z"
+          "recordedAt": "2026-09-06T18:51:58.886Z"
         },
         "application": null,
         "tests": [],
@@ -2218,7 +2218,7 @@
         "comparison": {
           "map": "memory/requisitos/Essentials/reminders-index.map.json",
           "mapSha256": "1eacde8580bd60e863f417c26654bab36a0338881c0c3944d538d77f2b554f5a",
-          "recordedAt": "2026-09-06T18:27:59.054Z"
+          "recordedAt": "2026-09-06T18:52:00.289Z"
         },
         "application": null,
         "tests": [],
@@ -2242,8 +2242,8 @@
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Essentials/todo-index.map.json",
-          "mapSha256": "bfa14ef655d26bcc07a71f6baa38b71879f774a04c0ab272da582e4456f7181b",
-          "recordedAt": "2026-09-06T18:28:00.469Z"
+          "mapSha256": "aeaa2d0a1de300cdf15235c01913f27e6f803edc72cbccedcdaa3b23b95f2978",
+          "recordedAt": "2026-09-06T18:52:27.300Z"
         },
         "application": null,
         "tests": [],
@@ -2716,7 +2716,7 @@
         "comparison": {
           "map": "memory/requisitos/Essentials/holidays-index.map.json",
           "mapSha256": "32ebf4d9347ffaea3c6936399b7104c9b5b2be0c6a3b161ec5f0636127f31fb7",
-          "recordedAt": "2026-09-06T18:28:01.845Z"
+          "recordedAt": "2026-09-06T18:52:03.125Z"
         },
         "application": null,
         "tests": [],
@@ -2740,8 +2740,8 @@
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Essentials/settings-index.map.json",
-          "mapSha256": "bf3158d33a43496280e15796427eb9d840a60ee3b046f7ee3df5d0f73e92397e",
-          "recordedAt": "2026-09-06T18:28:15.124Z"
+          "mapSha256": "8e33323913ff84efaa2d90d845fd4d560a13ddd1b019795d3f191784871f1656",
+          "recordedAt": "2026-09-06T18:52:04.687Z"
         },
         "application": null,
         "tests": [],
@@ -2766,7 +2766,7 @@
         "comparison": {
           "map": "memory/requisitos/Essentials/tipos.map.json",
           "mapSha256": "cd3d1b8395296285a6a93845d3f6c532c624a1022425147ecc0e00e27d1117aa",
-          "recordedAt": "2026-09-06T18:28:16.510Z"
+          "recordedAt": "2026-09-06T18:52:06.139Z"
         },
         "application": null,
         "tests": [],

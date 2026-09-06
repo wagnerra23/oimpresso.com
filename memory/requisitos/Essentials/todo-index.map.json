@@ -28,8 +28,8 @@
         "linhas": "182-189"
       },
       "vivo": {
-        "arquivo": "n/a",
-        "linhas": "n/a",
+        "arquivo": "resources/js/Pages/Essentials/Todo/Index.tsx",
+        "linhas": "267-283",
         "ancora": false
       },
       "status": "decidir-w",
