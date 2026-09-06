@@ -74,7 +74,7 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Cliente/Index.tsx",
-        "linhas": "807-811",
+        "linhas": "807-827",
         "ancora": false
       },
       "status": "decisao-registrada",
