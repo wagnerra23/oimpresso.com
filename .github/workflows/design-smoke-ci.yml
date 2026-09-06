@@ -1,0 +1,259 @@
+name: Design Smoke CI (ADR 0390)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Smoke do Design Sync em AMBIENTE CONTROLADO — emenda ao D-6 da ADR 0384 (ADR 0390,
+# decisão [W] 2026-09-06). O estado `validated` exigia smoke de PRODUÇÃO com login humano
+# que o agente não digita → 0/93 telas validadas por construção. Este workflow sobe o
+# MESMO app efêmero do `visual-regression.yml` (PHP 8.4 + MySQL 8 + schema baseline +
+# seeds Visreg biz=1/2/98/99 + Inertia buildado + Playwright), renderiza as telas que o
+# `application-report.json` marca como `tested|validated`, logado como o admin do biz=1
+# via auth-bridge `/_visreg-login`, e PUBLICA os PNGs + `manifest.json` na branch órfã
+# `governance/design-smokes` (mesmo transporte do `governance/nightly-floor`: repo
+# efêmero + push -f, sem PR, sem tocar main).
+#
+# O recibo NÃO nasce aqui. Nasce do outro lado, com o alvo ATUAL na mão:
+#   node scripts/design-sync/smoke-consumir.mjs        # fetch órfã → casa por blob → --record-smoke --host ci
+# Casamento por CONTEÚDO (blob git do .tsx no instante do render, `targetBlob` no manifesto):
+# se o .tsx mudou depois, o smoke é PULADO com motivo — nunca vira recibo de tela que não existe.
+#
+# ADVISORY POR DESENHO: `push: main` + `workflow_dispatch`, nunca `pull_request`; não é required
+# e nunca falha o merge (ADR 0314: required = Tier-0). Vermelho aqui = "não consegui
+# fotografar", visível no step summary; a tela fica onde estava (`tested`), sem regredir.
+# Deconflito com `screen-smoke-after-merge.yml`: aquele fotografa PRODUÇÃO (host=producao,
+# exige OPENAI + credencial biz=99 e está desligado por switch); este fotografa o CI
+# (host=ci). São hosts distintos do MESMO recibo — não é régua paralela.
+#
+# Reuso deliberado, não cópia divergente: os steps de setup são os do visual-regression.yml
+# (env incl. ADMINISTRATOR_USERNAMES/MWART_*/VISREG_FREEZE_CLOCK, sem ext opentelemetry —
+# os motivos estão comentados LÁ e valem aqui). Se aquele mudar de receita, este muda junto.
+# ─────────────────────────────────────────────────────────────────────────────
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: design-smoke-ci
+  cancel-in-progress: true
+
+permissions:
+  contents: write # push -f na órfã governance/design-smokes (sem PR; branch fora de main)
+
+jobs:
+  design-smoke:
+    name: Fotografa telas tested|validated no app efêmero do CI
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: oimpresso_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          fetch-depth: 1
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.17.0
+
+      # Seleção ANTES do setup pesado: sem tela elegível o job termina em ~1 min, honesto
+      # (0 telas ≠ verde de smoke; o summary diz "nada a fotografar").
+      - name: Selecionar telas (tested|validated com rota derivável — report ou charter)
+        id: select
+        run: |
+          set -euo pipefail
+          node scripts/design-sync/smoke-consumir.mjs --select | tee /tmp/design-smoke-select.txt
+          node scripts/design-sync/smoke-consumir.mjs --select --json > design-smoke-selection.json
+          COUNT=$(node -e "console.log(JSON.parse(require('fs').readFileSync('design-smoke-selection.json','utf8')).length)")
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+          { echo '## Design Smoke CI — seleção'; echo '```'; cat /tmp/design-smoke-select.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Setup PHP
+        if: steps.select.outputs.count != '0'
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          # SEM `opentelemetry` — mesma razão do visual-regression.yml (fatal no fiber do
+          # servidor do Pest Browser em toda query das telas autenticadas).
+          extensions: mbstring, dom, fileinfo, pdo_mysql, gd
+          coverage: none
+
+      - name: Wait for MySQL ready
+        if: steps.select.outputs.count != '0'
+        run: |
+          for i in {1..30}; do
+            if mysqladmin ping -h127.0.0.1 -uroot -proot --silent; then echo "MySQL ready"; break; fi
+            echo "Waiting MySQL... $i"; sleep 2
+          done
+
+      - name: Cache Composer
+        if: steps.select.outputs.count != '0'
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+
+      - name: Cache Playwright browsers
+        if: steps.select.outputs.count != '0'
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: ubuntu-24.04-${{ runner.arch }}-playwright-chromium-design-smoke-v1-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install Composer dependencies
+        if: steps.select.outputs.count != '0'
+        run: composer install --no-progress --no-interaction --prefer-dist --no-scripts --ignore-platform-req=ext-opentelemetry
+
+      - name: Install NPM dependencies
+        if: steps.select.outputs.count != '0'
+        run: npm ci
+
+      - name: Install Playwright (chromium)
+        if: steps.select.outputs.count != '0'
+        timeout-minutes: 6
+        run: |
+          npx playwright install-deps chromium
+          if [ "${{ steps.playwright-cache.outputs.cache-hit }}" != "true" ]; then npx playwright install chromium; fi
+
+      - name: Setup Laravel (.env do gate visual + migrate schema baseline)
+        if: steps.select.outputs.count != '0'
+        run: |
+          mkdir -p storage/framework/{cache,views,sessions,testing} bootstrap/cache storage/design-smokes
+          cat > .env <<'EOF'
+          APP_NAME=oimpresso-design-smoke
+          APP_KEY=
+          APP_ENV=testing
+          APP_DEBUG=true
+          APP_URL=http://localhost
+          LOG_CHANNEL=stderr
+          DB_CONNECTION=mysql
+          DB_HOST=127.0.0.1
+          DB_PORT=3306
+          DB_DATABASE=oimpresso_test
+          DB_USERNAME=root
+          DB_PASSWORD=root
+          CACHE_DRIVER=array
+          QUEUE_CONNECTION=sync
+          SESSION_DRIVER=file
+          MAIL_MAILER=array
+          BCRYPT_ROUNDS=4
+          ADMINISTRATOR_USERNAMES=visreg_admin
+          TELESCOPE_ENABLED=false
+          VIEW_COMPILED_PATH=storage/framework/views
+          MWART_CLIENTE_INDEX=true
+          MWART_BACKUP_INDEX=true
+          MWART_CLIENTE_IMPORT=true
+          MWART_CLIENTE_MAP=true
+          VISREG_FREEZE_CLOCK="2026-06-11 12:00:00"
+          EOF
+          php artisan key:generate --force
+          php artisan package:discover --ansi
+          php artisan migrate --force
+          php artisan tinker --execute="echo count(DB::select('show tables')).' tabelas';"
+
+      - name: Seed (mesmo conjunto do visual-regression — biz=1 fixture + 98 vazio + 99 sentinela + FSM/Jana/Ponto)
+        if: steps.select.outputs.count != '0'
+        run: |
+          php artisan db:seed --force
+          php artisan db:seed --class=Database\\Seeders\\VisregTenantSeeder --force
+          php artisan db:seed --class=Database\\Seeders\\VisregFinanceiroFlowSeeder --force
+          php artisan db:seed --class=Database\\Seeders\\VisregTenantBLeakSeeder --force
+          php artisan db:seed --class=Database\\Seeders\\VisregEmptyTenantSeeder --force
+          php artisan db:seed --class=Database\\Seeders\\VisregOficinaFsmSeeder --force
+          php artisan db:seed --class=Database\\Seeders\\VisregOficinaBoardSeeder --force
+          php artisan db:seed --class=Database\\Seeders\\VisregJanaChatSeeder --force
+          php artisan db:seed --class=Database\\Seeders\\VisregPontoSeeder --force
+          php artisan tinker --execute="echo 'business='.\App\Business::count().' users='.\App\User::count();"
+
+      - name: Build Inertia bundles
+        if: steps.select.outputs.count != '0'
+        run: npm run build:inertia
+
+      - name: Pest Browser — fotografa cada tela logado no biz=1 (ADVISORY)
+        if: steps.select.outputs.count != '0'
+        id: pest
+        continue-on-error: true
+        env:
+          DESIGN_SMOKE_SCREENS_FILE: design-smoke-selection.json
+        run: |
+          set -o pipefail
+          export DESIGN_SMOKE_SCREENS="$(cat "$DESIGN_SMOKE_SCREENS_FILE")"
+          ./vendor/bin/pest tests/Browser/DesignSmoke/DesignSmokeTest.php 2>&1 | tee /tmp/design-smoke-pest.txt
+
+      - name: Manifesto (PNG presente = tela fotografada; targetBlob = blob do .tsx neste SHA)
+        if: steps.select.outputs.count != '0'
+        id: manifest
+        run: |
+          set -euo pipefail
+          node scripts/design-sync/smoke-consumir.mjs --manifest \
+            --selection design-smoke-selection.json \
+            --dir storage/design-smokes \
+            --sha "$GITHUB_SHA" \
+            --out storage/design-smokes/manifest.json
+          N=$(node -e "console.log(JSON.parse(require('fs').readFileSync('storage/design-smokes/manifest.json','utf8')).smokes.length)")
+          echo "smokes=$N" >> "$GITHUB_OUTPUT"
+          {
+            echo "## Design Smoke CI — resultado (Pest outcome: ${{ steps.pest.outcome }})"
+            echo "smokes fotografados: **$N** de ${{ steps.select.outputs.count }} · deploySha \`$GITHUB_SHA\` · host \`ci\`"
+            echo '```'; node -e "const m=require('./storage/design-smokes/manifest.json');for(const s of m.smokes)console.log('OK   '+s.tela+' · '+s.route);for(const t of m.semPng)console.log('SEM-PNG '+t)"; echo '```'
+            echo 'Consumir localmente: `node scripts/design-sync/smoke-consumir.mjs --dry` → sem `--dry` grava `--record-smoke … --host ci` (ADR 0390).'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload PNGs + manifesto + log do Pest
+        if: ${{ !cancelled() && steps.select.outputs.count != '0' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: design-smokes-${{ github.run_id }}
+          path: |
+            storage/design-smokes/**
+            /tmp/design-smoke-pest.txt
+          if-no-files-found: ignore
+          retention-days: 30
+
+      # Publica SÓ a partir de main: dispatch em branch de feature fica no artifact (o
+      # consumidor casa por blob, então publicar de uma branch só sobrescreveria as fotos de
+      # main com as de outra árvore). Repo efêmero + push -f = mesmo padrão do
+      # scripts/tests/ct100-fullsuite.sh → governance/nightly-floor. `[skip ci]` por
+      # higiene; push por GITHUB_TOKEN não dispara workflow de qualquer forma.
+      - name: Publicar na branch órfã governance/design-smokes (só main)
+        if: steps.select.outputs.count != '0' && steps.manifest.outputs.smokes != '0' && github.ref == 'refs/heads/main'
+        env:
+          TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          PUB="$(mktemp -d)"
+          cp storage/design-smokes/manifest.json "$PUB/"
+          cp storage/design-smokes/*.png "$PUB/"   # garantido: o step só roda com smokes != 0
+          cp storage/design-smokes/*.json "$PUB/"  # manifest + sidecars <slug>.json
+          cd "$PUB"
+          git init -q -b main
+          git add -A
+          git -c user.email=design-smoke-ci@oimpresso.local -c user.name="design-smoke-ci" \
+            commit -q -m "chore(design-sync): smokes de CI $GITHUB_SHA (${{ steps.manifest.outputs.smokes }} tela(s) · host ci) [skip ci]"
+          git push -f "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:refs/heads/governance/design-smokes 2>&1 | tail -2
+          echo "publicado em governance/design-smokes" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Veredito advisory (visível no log · nunca falha o merge)
+        if: always() && steps.select.outputs.count != '0'
+        run: |
+          if [ "${{ steps.pest.outcome }}" != "success" ]; then
+            echo "::warning title=Design Smoke CI::Pest Browser saiu ${{ steps.pest.outcome }} — ${{ steps.manifest.outputs.smokes || 0 }} tela(s) fotografadas de ${{ steps.select.outputs.count }}. Ver artifact design-smokes-${{ github.run_id }} e /tmp/design-smoke-pest.txt. Advisory (ADR 0390): a tela fica em tested, nada regride."
+          else
+            echo "Design Smoke CI: ${{ steps.manifest.outputs.smokes }} tela(s) fotografadas."
+          fi

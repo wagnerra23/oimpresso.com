@@ -1,0 +1,115 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Ponto/Espelho/Index (/ponto/espelho)",
+  "gap_fonte": "memory/requisitos/Ponto/espelho-index-gap.md",
+  "prototipo_sha": "sha256:587a1e3f2479",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "filtro-de-mes-de-referencia",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
+        "linhas": "112-115"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Espelho/Index.tsx",
+        "linhas": "82-89",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente (o `_pendente_w` do contrato pergunta *\"quantos meses ficam navegáveis\"*; o `type=month` não fecha essa porta, o `select` fecharia).",
+      "_acionavel": false
+    },
+    {
+      "id": "busca-por-nome-matricula",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
+        "linhas": "120-121"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Espelho/Index.tsx",
+        "linhas": "74-79",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir. É comportamento, logo vira pedido pela régua do playbook. Duas saídas honestas: implementar o filtro (o `EspelhoController@index` já pagina — `:132-155` consome `links`/`current_page`) ou remover o input até implementar — um controle desabilitado com \"(em breve)\" é afordância falsa. Não entra de passagem: muda o `EspelhoController`, fora do escopo de 1 arquivo.",
+      "_acionavel": true
+    },
+    {
+      "id": "filtro-por-escala",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
+        "linhas": "116-119"
+      },
+      "vivo": {
+        "arquivo": "n/a",
+        "linhas": "n/a",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir. Comportamento (filtrar) → vira pedido. Exige o dado no payload: `ponto_escalas` está na lista de tabelas canônicas do `COLAR-NO-CODE-ponto-ondas.md` §5, então não é dado inventado — mas é mudança de controller, não de tela.",
+      "_acionavel": true
+    },
+    {
+      "id": "filtro-so-com-divergencia-contador-da-competencia",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
+        "linhas": "123-127"
+      },
+      "vivo": {
+        "arquivo": "n/a",
+        "linhas": "n/a",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir. É o atalho operacional do mês (quem tem pendência), e o `Painel` já publica o mesmo número — `Dashboard/Index.tsx` calcula `divergencias` para a nota de fechamento. Custo real: agregar por colaborador no `index`, que hoje é `Inertia::defer` de uma paginação simples. Decisão de [W] porque muda a query da lista.",
+      "_acionavel": true
+    },
+    {
+      "id": "colunas-da-tabela",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
+        "linhas": "129"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Espelho/Index.tsx",
+        "linhas": "107-111",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir. As 6 ausentes são dado agregado por competência, não layout — é a mesma query do item anterior. O CPF do vivo é exigência legal do documento (o `Show` o imprime, `Show.tsx:188`), então não sai. Decisão de [W]: a lista é índice de navegação (hoje) ou painel de competência (protótipo)?",
+      "_acionavel": true
+    },
+    {
+      "id": "estado-vazio",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
+        "linhas": "131"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Espelho/Index.tsx",
+        "linhas": "96-98",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente. As duas frases descrevem casos diferentes; a do protótipo só faz sentido quando os filtros acima existirem.",
+      "_acionavel": false
+    },
+    {
+      "id": "paginacao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
+        "linhas": "155"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Espelho/Index.tsx",
+        "linhas": "132-155",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade.",
+      "_acionavel": false
+    }
+  ]
+}

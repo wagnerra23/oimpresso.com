@@ -26,12 +26,12 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 707,
-    "edges": 989,
+    "nodes": 709,
+    "edges": 990,
     "by_node_type": {
       "module": 39,
       "table": 102,
-      "adr": 107,
+      "adr": 109,
       "component": 385,
       "api": 74
     },
@@ -47,7 +47,7 @@
       "delegatesTo": 108,
       "migratesTo": 1,
       "supersedes": 15,
-      "supersedesPartially": 49,
+      "supersedesPartially": 50,
       "supersededBy": 19
     },
     "dangling": 0
@@ -797,10 +797,24 @@
       "exists": true
     },
     {
+      "id": "adr:0384",
+      "type": "adr",
+      "num": "0384",
+      "slug": "0384-design-sync-recibos-executaveis-por-tela",
+      "exists": true
+    },
+    {
       "id": "adr:0386",
       "type": "adr",
       "num": "0386",
       "slug": "0386-ambar-da-oficina-revogado-roxo-e-a-unica-identidade",
+      "exists": true
+    },
+    {
+      "id": "adr:0390",
+      "type": "adr",
+      "num": "0390",
+      "slug": "0390-emenda-0384-smoke-em-ambiente-controlado",
       "exists": true
     },
     {
@@ -6234,6 +6248,12 @@
     {
       "from": "adr:0386",
       "to": "adr:0244",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0390",
+      "to": "adr:0384",
       "type": "supersedesPartially",
       "source": "supersedes_partially"
     },

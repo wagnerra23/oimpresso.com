@@ -1,6 +1,6 @@
 {
   "schema": "oimpresso-design-application-report/3",
-  "generatedAt": "2026-09-06T12:13:29.019Z",
+  "generatedAt": "2026-09-06T12:35:11.053Z",
   "bundle": {
     "id": "5023b274183d849dcc925eae85cef61a991c3541ca1daeb680267c1afda99e4d",
     "baseId": null,
@@ -15,9 +15,9 @@
     "smoked": 0,
     "lifecycle": {
       "tested": 4,
-      "anchored": 55,
+      "anchored": 52,
       "to-create": 23,
-      "compared": 11
+      "compared": 14
     },
     "applied": 4,
     "pending": 66,
@@ -1855,7 +1855,7 @@
         "smokes": [],
         "targetSha256": "6c6ce5b5a679af17896a999f1d6f3dc539e80f4fbe957685fc59dfecd2b8b854"
       },
-      "nextAction": "registrar smoke de produção com rota, deploy e screenshot"
+      "nextAction": "registrar smoke com rota, deploy, screenshot e host (producao · staging-ct100 · ci — ADR 0390)"
     },
     {
       "source": "backup-page.jsx",
@@ -2346,7 +2346,7 @@
         "smokes": [],
         "targetSha256": "a085d2b3781d1c4498c5297c07ac1f04de830dfb7434429aafb76f3c1e052a9c"
       },
-      "nextAction": "registrar smoke de produção com rota, deploy e screenshot"
+      "nextAction": "registrar smoke com rota, deploy, screenshot e host (producao · staging-ct100 · ci — ADR 0390)"
     },
     {
       "source": "fiscal-page.jsx",
@@ -2417,7 +2417,7 @@
         "smokes": [],
         "targetSha256": "bc1143eb516431b4ff0cb90a92274d3bd1e8488a0355b6eb22aafbaf37ef57cc"
       },
-      "nextAction": "registrar smoke de produção com rota, deploy e screenshot"
+      "nextAction": "registrar smoke com rota, deploy, screenshot e host (producao · staging-ct100 · ci — ADR 0390)"
     },
     {
       "source": "fiscal-page.jsx",
@@ -2513,7 +2513,7 @@
         "smokes": [],
         "targetSha256": "7ed9f21fc0ac7616237462e630e42079fab1a9abd969e1fb43d9b7f8d1da6570"
       },
-      "nextAction": "registrar smoke de produção com rota, deploy e screenshot"
+      "nextAction": "registrar smoke com rota, deploy, screenshot e host (producao · staging-ct100 · ci — ADR 0390)"
     },
     {
       "source": "forja-page.jsx",
@@ -2987,13 +2987,23 @@
       "module": "Ponto",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Ponto/dashboard-index.map.json",
+          "mapSha256": "06e654b992a5d6f3d421ede11d5604d3e8aff30421d549202dc5e4b556b4eab3",
+          "recordedAt": "2026-09-06T12:08:13.428Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "4750043c8955cb14e190d986e624ea303179899f4f85634af00105d8130b16b2"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "ponto-page.jsx",
@@ -3002,13 +3012,23 @@
       "module": "Ponto",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Ponto/espelho-index.map.json",
+          "mapSha256": "a862e6089108e335583e2b311b2b5c6173345359109a12e998158b43f0e25bf1",
+          "recordedAt": "2026-09-06T12:08:14.718Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "fa0bb3d3aa2ce553e5a2232cfe5986570516b0e0915d1b7fc6d857d74bf96cb7"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "ponto-page.jsx",
@@ -3017,13 +3037,23 @@
       "module": "Ponto",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Ponto/espelho-show.map.json",
+          "mapSha256": "80b6c872095ce9c166c918ada4f824d4670ca40e01d91aa48025eb1d763dae74",
+          "recordedAt": "2026-09-06T12:08:15.929Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "a7439b370b731f5500854a415f9377d8ce251e740d0455e95d60047357936649"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "prefs-page.jsx",
@@ -3131,7 +3161,7 @@
         "comparison": {
           "map": "memory/requisitos/Repair/repair-dashboard.map.json",
           "mapSha256": "dfa7937f5b7b80e1531da66b5f19a17a73f7881ce308758db364b54313b60a37",
-          "recordedAt": "2026-09-06T12:11:01.969Z"
+          "recordedAt": "2026-09-06T12:35:02.965Z"
         },
         "application": null,
         "tests": [],
@@ -3156,7 +3186,7 @@
         "comparison": {
           "map": "memory/requisitos/Repair/repair-device-models.map.json",
           "mapSha256": "ddaa46b9e3bead8c4e8000c33e187a63caec2b165e1975f7c1ce149e72a2b3ee",
-          "recordedAt": "2026-09-06T11:53:08.498Z"
+          "recordedAt": "2026-09-06T12:35:08.349Z"
         },
         "application": null,
         "tests": [],
@@ -3181,7 +3211,7 @@
         "comparison": {
           "map": "memory/requisitos/Repair/repair-index.map.json",
           "mapSha256": "450985bae1d9a45be01852e0dd5d09127ebef372651764c04042f732f0fa07fd",
-          "recordedAt": "2026-09-06T11:53:05.741Z"
+          "recordedAt": "2026-09-06T12:35:05.754Z"
         },
         "application": null,
         "tests": [],
@@ -3206,7 +3236,7 @@
         "comparison": {
           "map": "memory/requisitos/Repair/repair-jobsheet.map.json",
           "mapSha256": "6968659fba3c478adb69e6f4ec00641d1bc2eb1a137d7c22583778e0862428cf",
-          "recordedAt": "2026-09-06T11:53:04.236Z"
+          "recordedAt": "2026-09-06T12:35:04.406Z"
         },
         "application": null,
         "tests": [],
@@ -3231,7 +3261,7 @@
         "comparison": {
           "map": "memory/requisitos/Repair/repair-producao-oficina.map.json",
           "mapSha256": "dbee4e84d474aa25ffcee7eb43aab7a6a9330240a8ab8a9c851cc9bc0a5c50be",
-          "recordedAt": "2026-09-06T12:11:04.856Z"
+          "recordedAt": "2026-09-06T12:35:09.612Z"
         },
         "application": null,
         "tests": [],
@@ -3256,7 +3286,7 @@
         "comparison": {
           "map": "memory/requisitos/Repair/repair-settings.map.json",
           "mapSha256": "83ff26127006ed4cd230af4c8288ed52faa8056b61004b0525c6652d83470bb7",
-          "recordedAt": "2026-09-06T11:53:11.349Z"
+          "recordedAt": "2026-09-06T12:35:10.860Z"
         },
         "application": null,
         "tests": [],
@@ -3281,7 +3311,7 @@
         "comparison": {
           "map": "memory/requisitos/Repair/repair-status.map.json",
           "mapSha256": "d832dd31c0e311e134193a86d98a883f90ec4092c361268e4c3c1559d14931f4",
-          "recordedAt": "2026-09-06T12:13:28.867Z"
+          "recordedAt": "2026-09-06T12:35:07.045Z"
         },
         "application": null,
         "tests": [],
