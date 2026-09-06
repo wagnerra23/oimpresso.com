@@ -108,7 +108,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. O protótipo pagina de 10 em 10 com navegação numerada (`manufacturing-producao.jsx:77-85`, `POR_PAG` em `:31`). Sem isso, um período largo renderiza tudo de uma vez. Construir ou rejeitar por escrito.",
+      "acao": "Decidir. O protótipo pagina de 10 em 10 com navegação numerada (`manufacturing-producao.jsx:77-85`, `POR_PAG` em `:29`). Sem isso, um período largo renderiza tudo de uma vez. Construir ou rejeitar por escrito.",
       "_acionavel": true
     },
     {

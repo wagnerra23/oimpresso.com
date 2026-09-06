@@ -10,7 +10,7 @@
       "id": "header-pageheader",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
-        "linhas": "TODO"
+        "linhas": "580-582"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockAdjustment/Index.tsx",
@@ -18,7 +18,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Nada — paridade. O protótipo tem cabeçalho de módulo (`MP.Header`, l.583-591) com papel, contexto e refresh, mas isso é chrome do shell do protótipo, não da tela de lista.",
+      "acao": "Nada — paridade. O protótipo tem cabeçalho de módulo (`MP.Header` em `estoque-page.jsx:580-582`, com `modulo`/`papel`/`contexto`; `atualizadoAs`, `onRefresh` e as ações seguem até `:591`), mas isso é chrome do shell do protótipo, não da tela de lista.",
       "_acionavel": false
     },
     {
@@ -108,7 +108,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. O protótipo soma o conjunto filtrado em quatro números — Ajustes, Valor ajustado, Recuperado e Perda líquida (`estoque-page.jsx:285-292`, cálculo em `:245-246`). ⚠️ Toca VALOR: é agregação monetária nova exibida em tela. Exige dupla confirmação do cálculo + tabela antes→depois (proibicoes.md §REGRA MESTRE) antes de exibir, e o gate `view_purchase_price` que o vivo já aplica por linha. Construir ou rejeitar por escrito.",
+      "acao": "Decidir. O protótipo soma o conjunto filtrado em quatro números — Ajustes, Valor ajustado, Recuperado e Perda líquida (`estoque-page.jsx:285-292`; `somaAj` e `somaRec` em `:243-244`). ⚠️ Toca VALOR: é agregação monetária nova exibida em tela. Exige dupla confirmação do cálculo + tabela antes→depois (proibicoes.md §REGRA MESTRE) antes de exibir, e o gate `view_purchase_price` que o vivo já aplica por linha. Construir ou rejeitar por escrito.",
       "_acionavel": true
     },
     {
