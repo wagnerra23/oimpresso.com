@@ -1,6 +1,6 @@
 {
   "schema": "oimpresso-design-application-report/3",
-  "generatedAt": "2026-09-06T18:51:37.770Z",
+  "generatedAt": "2026-09-06T19:14:04.991Z",
   "bundle": {
     "id": "5023b274183d849dcc925eae85cef61a991c3541ca1daeb680267c1afda99e4d",
     "baseId": null,
@@ -15,9 +15,9 @@
     "smoked": 4,
     "lifecycle": {
       "validated": 4,
-      "anchored": 40,
+      "compared": 33,
       "to-create": 23,
-      "compared": 26
+      "anchored": 33
     },
     "applied": 4,
     "pending": 66,
@@ -1876,13 +1876,23 @@
       "module": "Backup",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Backup/backup-index.map.json",
+          "mapSha256": "1064b6327744f384fc05bf807fce000d9e0a0aabe308afd19ba2c60d63cb7790",
+          "recordedAt": "2026-09-06T19:13:58.487Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "03c0b54b4397a125c3c4b65d9224721d06d368bca710b30fa61bcb67c97445a4"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "boletos-page.jsx",
@@ -2131,13 +2141,23 @@
       "module": "Home",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Dashboard/home-index.map.json",
+          "mapSha256": "f193e61a7b844caed2c1afa5d0eadac44aec7dcadec2f30985dfe8136ea568bb",
+          "recordedAt": "2026-09-06T19:13:59.654Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "b3565e180e97835af6f1ac6a67c90830c18d02e99db72c1733b1e3b91d2167a8"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "documentacao-page.jsx",
@@ -2875,13 +2895,23 @@
       "module": "kb",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/KB/kb-index-v2.map.json",
+          "mapSha256": "8b19992cc5906929eae78c21cabc64783c041600c4a29aef520b3e232e2e08fe",
+          "recordedAt": "2026-09-06T19:14:04.880Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "46d7e8bb4b72ea14a75d8340d35729d0c5b165f6f6479882138a2c3914ec5174"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "manufacturing-page.jsx",
@@ -2920,13 +2950,23 @@
       "module": "Modules",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Superadmin/modules-index.map.json",
+          "mapSha256": "763e66171fd2cf0505a723091b64aeb1560ab578dceeb1403ed56c49a72cf92a",
+          "recordedAt": "2026-09-06T19:14:00.810Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "2416a609ea667292fc6d4c4a5250985a13202ea53132085c579cc1f1c28cd1a8"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "notificacoes-page.jsx",
@@ -3066,17 +3106,27 @@
     {
       "source": "pg-cobranca-page.jsx",
       "bundleChange": "added",
-      "target": "—",
-      "module": null,
-      "mapping": "registro a-criar",
-      "comparison": "A-CRIAR",
-      "lifecycleState": "to-create",
-      "applicationState": "to-create",
-      "compared": false,
+      "target": "resources/js/Pages/Financeiro/Cobranca/Index.tsx",
+      "module": "Financeiro",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "compared",
+      "applicationState": "pending",
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Financeiro/cobranca-index.map.json",
+          "mapSha256": "99a407b4818ecae1b0e02c2c072befbe4b463cc5586274473c97c655edd7dd0e",
+          "recordedAt": "2026-09-06T19:14:03.718Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "e5f51dea8a4313dfba7c7c0dc325355a765826f0a5cacf638d999e52cf9ad69c"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "pg-payment-gateways-page.jsx",
@@ -3085,13 +3135,23 @@
       "module": "PaymentGateway",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/PaymentGateway/settings-paymentgateways-index.map.json",
+          "mapSha256": "16ba2627f921b3dcaf568cbd4fd4b450f0bf38a854b5746d124997c0f465000d",
+          "recordedAt": "2026-09-06T19:14:02.036Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "363a0f298f9a024364772f7aea4d069e306dded78600bcb0bf570c4122749279"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "planilhas-page.jsx",
@@ -3246,17 +3306,17 @@
     {
       "source": "prototipos/payment-gateway-ui/cobranca-page.jsx",
       "bundleChange": "unchanged",
-      "target": "resources/js/Pages/Financeiro/Cobranca/Index.tsx",
-      "module": "Financeiro",
-      "mapping": "charter.component",
-      "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
-      "applicationState": "pending",
+      "target": "—",
+      "module": null,
+      "mapping": "registro a-criar",
+      "comparison": "A-CRIAR",
+      "lifecycleState": "to-create",
+      "applicationState": "to-create",
       "compared": false,
       "tested": false,
       "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
     {
       "source": "relatorios-page.jsx",
@@ -3555,13 +3615,23 @@
       "module": "Suporte",
       "mapping": "alias",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Suporte/suporte-empresas.map.json",
+          "mapSha256": "55aee8c9a44eb17fbee5f6771d57594c694d4cc42678e1f6e7ea1ca50ee21c7c",
+          "recordedAt": "2026-09-06T19:13:57.256Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "8d4c9146c0c972c632ad7dec08fcd13d64babdb09553e774e3d5c2ff68ec3bc8"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "usuarios-page.jsx",

@@ -1,0 +1,115 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Settings/PaymentGateways/Index (/settings/payment-gateways)",
+  "gap_fonte": "memory/requisitos/PaymentGateway/settings-paymentgateways-index-gap.md",
+  "prototipo_sha": "sha256:4ceb25e0b886",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "cabecalho",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/pg-payment-gateways-page.jsx",
+        "linhas": "101-109"
+      },
+      "vivo": {
+        "arquivo": "Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/Index.tsx",
+        "linhas": "119-132",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente.",
+      "_acionavel": false
+    },
+    {
+      "id": "cartoes-de-indicador",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/pg-payment-gateways-page.jsx",
+        "linhas": "112-118"
+      },
+      "vivo": {
+        "arquivo": "Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/Index.tsx",
+        "linhas": "134-160",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente.",
+      "_acionavel": false
+    },
+    {
+      "id": "aviso-de-credencial-com-atencao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/pg-payment-gateways-page.jsx",
+        "linhas": "121-131"
+      },
+      "vivo": {
+        "arquivo": "Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/Index.tsx",
+        "linhas": "162-171",
+        "ancora": false
+      },
+      "status": "gap-parcial",
+      "acao": "Decidir. Região do mockup: `pg-payment-gateways-page.jsx:128`; ponto no vivo: `Index.tsx:166-170`. O charter proíbe a renovação automática e prevê exatamente este caminho manual, então o botão não contradiz Non-Goal — ele é o que o Non-Goal pressupõe. Toca credencial de gateway ativo: se construído, exige a dupla confirmação do efeito e a tabela antes→depois dos gateways afetados, com aprovação [W]. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "tabela-de-gateways",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/pg-payment-gateways-page.jsx",
+        "linhas": "134-201"
+      },
+      "vivo": {
+        "arquivo": "Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/Index.tsx",
+        "linhas": "174-258",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade.",
+      "_acionavel": false
+    },
+    {
+      "id": "drivers-disponiveis",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/pg-payment-gateways-page.jsx",
+        "linhas": "202-239"
+      },
+      "vivo": {
+        "arquivo": "Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/Index.tsx",
+        "linhas": "261-294",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade.",
+      "_acionavel": false
+    },
+    {
+      "id": "drawer-do-gateway",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/pg-payment-gateways-page.jsx",
+        "linhas": "360-588"
+      },
+      "vivo": {
+        "arquivo": "Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/_components/DrawerGateway.tsx",
+        "linhas": "1-729",
+        "ancora": false
+      },
+      "status": "gap-parcial",
+      "acao": "Decidir. Dois itens distintos. (a) Migração PesaPal: região `pg-payment-gateways-page.jsx:496-501`; ponto no vivo dentro de `DrawerGateway.tsx`, na aba Identificação. O charter proíbe a migração automática e prevê o link manual, então o botão é o caminho previsto — mas ele troca o gateway que recebe o dinheiro das assinaturas, logo exige dupla confirmação do efeito e tabela antes→depois das assinaturas afetadas, com aprovação [W]. (b) Gráfico de sete dias: região `:565-573`; é leitura pura, não toca valor, e cabe no charter (que só proíbe histórico acima de sete dias) — a pré-condição é persistir o resultado dos health checks, porque as barras do protótipo são constantes. Construir ou rejeitar por escrito, item a item.",
+      "_acionavel": true
+    },
+    {
+      "id": "assistente-de-novo-gateway",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/pg-payment-gateways-page.jsx",
+        "linhas": "669-826"
+      },
+      "vivo": {
+        "arquivo": "Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/_components/SheetNovoGateway.tsx",
+        "linhas": "1-591",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade.",
+      "_acionavel": false
+    }
+  ]
+}

@@ -1807,6 +1807,25 @@
       "evidencia": "memory/sessions/2026-09-06-refutacao-gt-g5-lote-6908.md",
       "trajetoria": "UMA rodada: 1,65% (2/121) → aprovado. Os 2 refutados são intervalos de linha errados em citações (RepairStatusController.php:74-78 quando o get() está na l.79; COLUNAS em repair-data.jsx:41-47 quando o símbolo vive em 39-45) — nenhum veredito (Nada/Decidir.) foi derrubado, nenhum Decidir. reabriu Non-Goal/UC, nenhum Nada escondeu gap. Corrigidos no mesmo PR após a aprovação, junto com 3 imprecisões que o refutador listou sem contar (Repair/Index: 2 dos 3 KPIs são clicáveis, não 3; Dashboard: só as barras de status do mockup são clicáveis; RepairController ramo AJAX 168-186 inclui total_paid). Os 3 map.json cujo `acao` carregava a faixa errada foram regenerados do zero (o --atualizar preserva o acao antigo por desenho) e re-marcados compared. Grupo 1 provado por regeneração chave a chave (279 asserts iguais); grupo 4 por recomputar sourceSha256/targetSha256/mapSha256 dos 7 registros (21/21). Ressalva declarada no PR: Settings tem charter com related_prototype n/a (porte reverso) e sem bundle_source; o refutador julgou honesta a nota de paridade do gap/map dessa tela.",
       "marcador_absorcao": "n/a — lote não afrouxa baseline nenhum; o único arquivo fora do lote é clientes.map.json (prototipo_sha regenerado via --atualizar porque o --strict já saía vermelho em origin/main), commit próprio e declarado."
+    },
+    {
+      "pr": 6919,
+      "lote_id": "gt-g5-lote-6919",
+      "data": "2026-09-06",
+      "tipo": "anchors",
+      "gerador": "claude-opus-5 (Anthropic) — sessão principal que autorou o lote",
+      "refutador": "claude-fable-5-1 (Anthropic) — subagente do workflow .claude/workflows/refutador-gt-g5.js em contexto próprio, zero contexto do gerador e das rodadas anteriores (instruído a não abrir as evidências prévias); uma instância NOVA por rodada, r1–r3",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 394,
+      "erros_confirmados": 2,
+      "error_rate_pct": 0.51,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "veredito": "aprovado",
+      "evidencia": "memory/sessions/2026-09-06-refutacao-gt-g5-lote-6919-r3.md (rodada aprovada); anteriores: memory/sessions/2026-09-06-refutacao-gt-g5-lote-6919-r1.md, memory/sessions/2026-09-06-refutacao-gt-g5-lote-6919-r2.md",
+      "trajetoria": "3 rodadas: 3,81% (r1, 12/315) -> 0,51% (r2, 2/393) -> 0,51% (r3, 2/394). A r1 REPROVOU e os 12 foram consertados um a um. Os DOIS graves eram da mesma classe que reprovou o lote #6897: 'Decidir.' carimbado sobre capacidade que JA EXISTE — kb CategorySidebar (as 5 secoes do mockup ja estao la, e as subcategorias viraram tabela com migration+seeder) e kb NodeList (as 4 opcoes de ordenacao, o contador e a leitura POR NO ja existem). Alem deles: uma CONTRADICAO INTERNA (o gap dizia 'trocar o related_prototype e decisao [W], aqui fica o achado' enquanto o mesmo PR trocava o ponteiro), um ELEMENTO INVENTADO (contador 'sync 09:14', que existe so na copia ANTIGA do prototipo e sobreviveu a troca de fonte sem eu re-verificar a celula), 5 pontos de linha/contagem errados, e a divergencia entre a `acao` do map e a celula do gap em 9 partes — causada por `--atualizar`, que PRESERVA a acao antiga por desenho; os 7 maps foram refundidos (esqueleto fresco + ancoras herdadas) e a conferencia mecanica fechou 50 partes com 0 divergencias. Os residuais da r2 (acao truncada por pipe escapado dentro de code-span; 'N em aberto no subtitulo como no prototipo', sendo que o Header do prototipo nao tem subtitulo) e os da r3 (2 ranges de map que ficaram para tras quando a prosa foi corrigida) tambem foram consertados no mesmo PR, depois da aprovacao. INCIDENTE DE PROCESSO registrado pelo proprio refutador na r1: ele reverteu com `git checkout` uma edicao NAO-COMMITADA minha em scripts/governance/knowledge-drift.mjs (o conserto do ghost) presumindo efeito colateral de sonda, e depois contou a ausencia dela como o 12o erro. LC-23 na pratica, causada por agente irmao: mudanca nao-commitada nao sobrevive em worktree onde roda agente que faz git ops.",
+      "marcador_absorcao": "n/a — lote nao afrouxa baseline nenhum. O ratchet do sdd-scorecard acusou ghost_count 12->13 e o conserto foi no DETECTOR, nao no baseline: o MOD_REF_RE do knowledge-drift.mjs ganhou o lookbehind `Pages/` (terceiro da mesma familia de `Feature/` e `Unit/`), porque `Pages/Modules/Index.tsx` e path de TELA, nao app-module. FP medido antes de armar: um unico sucessor de `Pages/Modules/` no repo (`Index`), ausente dos 32 modulos do disco — ganho 1, perda 0. Bite-test de 5 casos verde, --selftest rc 0."
     }
   ]
 }
