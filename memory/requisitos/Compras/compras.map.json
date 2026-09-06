@@ -18,7 +18,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. mockup usa `header.os-page-h` (estrutura PageHeader canon `os-page-h-l`/`os-page-h-r`); o vivo usa `header.hd` legado com crumbs + `<h1>` + count inline. O mockup está mais alinhado ao PageHeader… Construir ou rejeitar por escrito.",
+      "acao": "Decidir. Migrar `hd` → `os-page-h` preservando crumbs/count/permissão/gate Wave 6 — §Veredito adotar #2 (Parte 1, P, sem valor). Conferir antes se `cowork-compras-bundle.css` tem `os-page-h*`.",
       "_acionavel": true
     },
     {
@@ -33,7 +33,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. mesmos 4 KPIs (A pagar / Em trânsito / Volume do mês / Fornecedores ativos). O mockup tem sub-linhas (`.ln`) mais ricas: \"próx. venc. 09/05\", \"+12,4% vs. abr/26 · meta R$ [redacted Tier 0]\", \"3 com compra… Construir ou rejeitar por escrito.",
+      "acao": "Decidir. Só o texto/label visual das sub-linhas — §Veredito adotar #4 (Parte 2, M, ⚠️ valor). Qualquer número novo exibido (% MoM, meta) exige backend + Regra Mestre (dupla confirmação) ANTES de exibir; `_pendente_` confirmar se o payload `kpis` traz esses campos (Parte 2 POR QUÊ).",
       "_acionavel": true
     },
     {
@@ -48,7 +48,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. mockup tem tab \"Cancelados\" a mais (vivo não tem); mockup mostra contadores em todas as tabs (`A pagar 2`, `Rascunhos 1`, `Em trânsito 1`) — vivo só conta na \"Todas\". Mockup mostra pills de filtro… Construir ou rejeitar por escrito.",
+      "acao": "Decidir. Tab Cancelados + contadores por tab + pills nomeados — §Veredito adotar #1 (Parte 3, P, sem valor; contadores são `.length` de array já em memória).",
       "_acionavel": true
     },
     {
@@ -63,7 +63,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. mockup tem 2 colunas a mais — `Itens` (qtd de itens, numérica) e `NF-e` (badge \"✓ XML\" / \"—\"). O vivo tem 7 colunas (sem Itens, sem NF-e). Mockup também ordena por essas colunas extras. Construir ou rejeitar por escrito.",
+      "acao": "Decidir. Colunas Itens + NF-e — §Veredito adotar #3 (Parte 4, M, sem valor: contagem e booleano). `_pendente_` confirmar se o `Row` do backend traz `items_count` e flag de XML (Parte 4 POR QUÊ).",
       "_acionavel": true
     },
     {
@@ -78,7 +78,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. mockup tem dropdown \"Ações\" com 9 opções (Ver, Impressão, Editar, Excluir, Rótulos, Ver pagamentos, Reembolso de compra, Atualizar status, Elementos pendentes de notificação) — paridade declarada… Construir ou rejeitar por escrito.",
+      "acao": "Decidir. `_pendente_` — §Veredito adotar #5: ler `AcoesDropdown.tsx` antes (não lido nesta fase) para saber se o gap 5 é real ou já coberto. ⚠️ \"Reembolso de compra\" e \"Ver pagamentos\" tocam valor: qualquer fluxo novo é Tier 0 (Regra Mestre + permissões) — Parte 5 Esforço/risco.",
       "_acionavel": true
     },
     {
@@ -93,7 +93,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. mockup tem drawer 5 tabs completo (Resumo · Itens · Documentos · Pagamentos · Histórico) com: trilho FSM visual (`fsm-track` com 6 estágios done/now), tab Itens (tabela… Construir ou rejeitar por escrito.",
+      "acao": "Decidir. `_pendente_` — §Veredito adotar #6 só depois de ler `Drawer.tsx` (define se o gap 6 é real ou já coberto). ⚠️ toca valor FORTE — Tier 0: Itens mostra custo/total/margem, Pagamentos registra pagamento, footer muda estado FSM; qualquer escrita passa por `ExecuteStageActionService` + Regra Mestre, sessão limpa por tab (Parte 6 Esforço/risco, G).",
       "_acionavel": true
     }
   ]

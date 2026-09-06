@@ -1,7 +1,4 @@
 ---
-tela: Sells/Index (/sells)
-prototipo: prototipo-ui/cowork/vendas-page.jsx
-tela_viva: resources/js/Pages/Sells/Index.tsx
 id: requisitos-sells-vendas-index-gap
 ---
 
@@ -100,18 +97,3 @@ O VIVO **já nasceu como cópia visual de um mockup Cowork desta mesma família*
 - Create como drawer wizard (VIVO usa página `/sells/create`).
 - Filtros client-side (VIVO é server-side, superior).
 - "Top vendedor" → "Comissões do mês": só com decisão de produto + backend de comissão agregada.
-
-## Tabela de partes (derivada 2026-09-06, r2)
-
-> Derivada MECANICAMENTE da prosa acima por [C] em 2026-09-06 (r2 — a r1 foi reprovada na refutação GT-G5 por ler a coluna de DESCRIÇÃO em vez da de VEREDITO; ver memory/sessions/2026-09-06-refutacao-gt-g5-lote-6897.md). Regra: "**Decidir.**" só onde a prosa registra gap real em aberto; "Nada — <veredito>" cita o veredito da prosa (esforço `— · —`, "NÃO fazer", "já é canon", decisão registrada). A fonte segue sendo a prosa; em conflito, a prosa vence.
-
-| Parte | Estado no vivo | Ação |
-|---|---|---|
-| Header / PageHeader | Gap: sub-nav em página via `window.VdModNav here="lista"` logo abaixo do header (refino [W] 2026-06-11). VIVO usa `vd-visoes-menu` (dropdown "Visões") em vez de sub-nav inline. · Vivo à frente: subtitle métrica live vindo de `rows` reais (`X vendas · Y`… | Nada — divergência intencional já decidida — não adotar sem decisão Wagner (§Veredito) |
-| KPIs / cards de resumo | Gap: · (a) PIX hoje com barra de progresso (`vd-pix-prog` + `kpi_pix / kpi_total`) como 4º card no Foco=Caixa. VIVO tem "Pagos hoje" no Foco=Caixa e um 5º KPI "PIX hoje" sem barra de progresso (só texto `% do faturamento`). Mockup tem a barrinha visual de… | **Decidir.** · (a) PIX hoje com barra de progresso (`vd-pix-prog` + `kpi_pix / kpi_total`) como 4º card no Foco=Caixa. VIVO tem "Pagos hoje" no Foco=Caixa e um 5º KPI "PIX hoje" sem barra de progresso (só texto… Construir ou rejeitar por escrito. |
-| Filtros / busca / Foco / Visões | Gap: · Saved views com sub-views ricas: `pendentes:bruna` (por vendedor, filhos dinâmicos), `faturadas:b2b`/`b2c` (com/sem CNPJ). VIVO tem saved views planas + branch "Por origem" (Balcão/Oficina/Online) — só a origem é expansível; falta o tree por-vendedor… | **Decidir.** · Saved views com sub-views ricas: `pendentes:bruna` (por vendedor, filhos dinâmicos), `faturadas:b2b`/`b2c` (com/sem CNPJ). VIVO tem saved views planas + branch "Por origem" (Balcão/Oficina/Online)… Construir ou rejeitar por escrito. |
-| Tabela / lista | Gap: O VIVO delega a tabela a `SellsTabelaUnificada` (componente externo, não lido nesta análise). O mockup renderiza a `<table>` inline com colunas: Venda · Data · Cliente · Atendido por (avatar vendedor/mecânico + origem) · Origem · Pipeline (stepper FSM)… | **Decidir.** O VIVO delega a tabela a `SellsTabelaUnificada` (componente externo, não lido nesta análise). O mockup renderiza a `<table>` inline com colunas: Venda · Data · Cliente · Atendido… (_pendente_ confirmar, como a prosa diz) |
-| Ações por linha | — | **Decidir.** atalhos de ação direto na linha sem abrir drawer — _pendente_ confirmar em `SellsTabelaUnificada`. (_pendente_ confirmar, como a prosa diz) |
-| Drawer / Sheet de detalhe | Gap: o `VendaDetailDrawer` do mockup tem 5 tabs (Itens · Fiscal · Pagamento · Timeline · ✦ IA), cards fiscais ricos (`VdFiscalCard`: timeline emissão, chave SEFAZ copiável, CC-e, CTAs DANFE/XML/Enviar), painel "próxima ação FSM" (`VdNextActionPanel`),… | **Decidir.** o `VendaDetailDrawer` do mockup tem 5 tabs (Itens · Fiscal · Pagamento · Timeline · ✦ IA), cards fiscais ricos (`VdFiscalCard`: timeline emissão, chave SEFAZ copiável, CC-e, CTAs… (_pendente_ confirmar, como a prosa diz) |
-| Paginação / footer / totalizadores | Gap: barra de totalizadores (`vd-totalbar`) abaixo da tabela — soma do filtro atual: `N vendas · X pagas · Y a receber` + Comissão total + Total do filtro (refino [W] 2026-06-12 "preciso dos totalizadores"). VIVO tem `totals` no state (`TotalsSummary`:… | **Decidir.** barra de totalizadores (`vd-totalbar`) abaixo da tabela — soma do filtro atual: `N vendas · X pagas · Y a receber` + Comissão total + Total do filtro (refino [W] 2026-06-12 "preciso dos… Construir ou rejeitar por escrito. |
-| Estados vazios | Gap: empty states contextuais por saved view (`atrasadas` → "Tudo dentro do prazo ✓"; `rejeitadas` → "Zero rejeições da SEFAZ ✓"; `favoritas` → "Foque uma linha com J/K e aperte B"; `pendentes`/`faturadas` próprios). VIVO delega empty a… | **Decidir.** empty states contextuais por saved view (`atrasadas` → "Tudo dentro do prazo ✓"; `rejeitadas` → "Zero rejeições da SEFAZ ✓"; `favoritas` → "Foque uma linha com J/K e aperte B";… (_pendente_ confirmar, como a prosa diz) |
