@@ -1,6 +1,6 @@
 {
   "schema": "oimpresso-design-application-report/3",
-  "generatedAt": "2026-09-06T01:50:53.063Z",
+  "generatedAt": "2026-09-06T07:07:42.246Z",
   "bundle": {
     "id": "5023b274183d849dcc925eae85cef61a991c3541ca1daeb680267c1afda99e4d",
     "baseId": null,
@@ -15,15 +15,13 @@
     "smoked": 0,
     "lifecycle": {
       "applied": 1,
-      "anchored": 59,
-      "to-create": 8,
-      "blocked": 18,
+      "anchored": 62,
+      "to-create": 23,
       "compared": 7
     },
     "applied": 1,
-    "pending": 66,
-    "to-create": 8,
-    "blocked": 18
+    "pending": 69,
+    "to-create": 23
   },
   "transportChanges": [
     {
@@ -1877,15 +1875,15 @@
       "bundleChange": "added",
       "target": "—",
       "module": null,
-      "mapping": "nenhum",
-      "comparison": "ORFAO",
-      "lifecycleState": "blocked",
-      "applicationState": "blocked",
+      "mapping": "registro a-criar",
+      "comparison": "A-CRIAR",
+      "lifecycleState": "to-create",
+      "applicationState": "to-create",
       "compared": false,
       "tested": false,
       "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+      "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
     {
       "source": "clientes-page.jsx",
@@ -1907,15 +1905,15 @@
       "bundleChange": "added",
       "target": "—",
       "module": null,
-      "mapping": "nenhum",
-      "comparison": "ORFAO",
-      "lifecycleState": "blocked",
-      "applicationState": "blocked",
+      "mapping": "registro a-criar",
+      "comparison": "A-CRIAR",
+      "lifecycleState": "to-create",
+      "applicationState": "to-create",
       "compared": false,
       "tested": false,
       "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+      "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
     {
       "source": "cobranca-recorrente-page.jsx",
@@ -1982,30 +1980,30 @@
       "bundleChange": "added",
       "target": "—",
       "module": null,
-      "mapping": "nenhum",
-      "comparison": "ORFAO",
-      "lifecycleState": "blocked",
-      "applicationState": "blocked",
+      "mapping": "registro a-criar",
+      "comparison": "A-CRIAR",
+      "lifecycleState": "to-create",
+      "applicationState": "to-create",
       "compared": false,
       "tested": false,
       "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+      "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
     {
       "source": "comissoes-page.jsx",
       "bundleChange": "added",
       "target": "—",
       "module": null,
-      "mapping": "nenhum",
-      "comparison": "ORFAO",
-      "lifecycleState": "blocked",
-      "applicationState": "blocked",
+      "mapping": "registro a-criar",
+      "comparison": "A-CRIAR",
+      "lifecycleState": "to-create",
+      "applicationState": "to-create",
       "compared": false,
       "tested": false,
       "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+      "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
     {
       "source": "compras-page.jsx",
@@ -2025,47 +2023,47 @@
     {
       "source": "comunicacao-visual-page.jsx",
       "bundleChange": "added",
-      "target": "—",
-      "module": null,
-      "mapping": "nenhum",
-      "comparison": "ORFAO",
-      "lifecycleState": "blocked",
-      "applicationState": "blocked",
+      "target": "resources/js/Pages/ComunicacaoVisual/Index.tsx",
+      "module": "ComunicacaoVisual",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
       "compared": false,
       "tested": false,
       "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "configuracoes-page.jsx",
       "bundleChange": "added",
       "target": "—",
       "module": null,
-      "mapping": "nenhum",
-      "comparison": "ORFAO",
-      "lifecycleState": "blocked",
-      "applicationState": "blocked",
+      "mapping": "registro a-criar",
+      "comparison": "A-CRIAR",
+      "lifecycleState": "to-create",
+      "applicationState": "to-create",
       "compared": false,
       "tested": false,
       "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+      "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
     {
       "source": "connector-page.jsx",
       "bundleChange": "added",
       "target": "—",
       "module": null,
-      "mapping": "nenhum",
-      "comparison": "ORFAO",
-      "lifecycleState": "blocked",
-      "applicationState": "blocked",
+      "mapping": "registro a-criar",
+      "comparison": "A-CRIAR",
+      "lifecycleState": "to-create",
+      "applicationState": "to-create",
       "compared": false,
       "tested": false,
       "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+      "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
     {
       "source": "dash-legacy-page.jsx",
@@ -2087,15 +2085,15 @@
       "bundleChange": "added",
       "target": "—",
       "module": null,
-      "mapping": "nenhum",
-      "comparison": "ORFAO",
-      "lifecycleState": "blocked",
-      "applicationState": "blocked",
+      "mapping": "registro a-criar",
+      "comparison": "A-CRIAR",
+      "lifecycleState": "to-create",
+      "applicationState": "to-create",
       "compared": false,
       "tested": false,
       "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+      "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
     {
       "source": "equipe-page.jsx",
@@ -2487,15 +2485,15 @@
       "bundleChange": "added",
       "target": "—",
       "module": null,
-      "mapping": "nenhum",
-      "comparison": "ORFAO",
-      "lifecycleState": "blocked",
-      "applicationState": "blocked",
+      "mapping": "registro a-criar",
+      "comparison": "A-CRIAR",
+      "lifecycleState": "to-create",
+      "applicationState": "to-create",
       "compared": false,
       "tested": false,
       "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+      "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
     {
       "source": "governance-page.jsx",
@@ -2727,15 +2725,15 @@
       "bundleChange": "added",
       "target": "—",
       "module": null,
-      "mapping": "nenhum",
-      "comparison": "ORFAO",
-      "lifecycleState": "blocked",
-      "applicationState": "blocked",
+      "mapping": "registro a-criar",
+      "comparison": "A-CRIAR",
+      "lifecycleState": "to-create",
+      "applicationState": "to-create",
       "compared": false,
       "tested": false,
       "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+      "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
     {
       "source": "officeimpresso-page.jsx",
@@ -2832,15 +2830,15 @@
       "bundleChange": "added",
       "target": "—",
       "module": null,
-      "mapping": "nenhum",
-      "comparison": "ORFAO",
-      "lifecycleState": "blocked",
-      "applicationState": "blocked",
+      "mapping": "registro a-criar",
+      "comparison": "A-CRIAR",
+      "lifecycleState": "to-create",
+      "applicationState": "to-create",
       "compared": false,
       "tested": false,
       "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+      "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
     {
       "source": "perfil-page.jsx",
@@ -2892,15 +2890,15 @@
       "bundleChange": "added",
       "target": "—",
       "module": null,
-      "mapping": "nenhum",
-      "comparison": "ORFAO",
-      "lifecycleState": "blocked",
-      "applicationState": "blocked",
+      "mapping": "registro a-criar",
+      "comparison": "A-CRIAR",
+      "lifecycleState": "to-create",
+      "applicationState": "to-create",
       "compared": false,
       "tested": false,
       "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+      "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
     {
       "source": "ponto-page.jsx",
@@ -2952,15 +2950,15 @@
       "bundleChange": "added",
       "target": "—",
       "module": null,
-      "mapping": "nenhum",
-      "comparison": "ORFAO",
-      "lifecycleState": "blocked",
-      "applicationState": "blocked",
+      "mapping": "registro a-criar",
+      "comparison": "A-CRIAR",
+      "lifecycleState": "to-create",
+      "applicationState": "to-create",
       "compared": false,
       "tested": false,
       "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+      "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
     {
       "source": "producao-page.jsx",
@@ -2997,15 +2995,15 @@
       "bundleChange": "added",
       "target": "—",
       "module": null,
-      "mapping": "nenhum",
-      "comparison": "ORFAO",
-      "lifecycleState": "blocked",
-      "applicationState": "blocked",
+      "mapping": "registro a-criar",
+      "comparison": "A-CRIAR",
+      "lifecycleState": "to-create",
+      "applicationState": "to-create",
       "compared": false,
       "tested": false,
       "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+      "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
     {
       "source": "prototipos/payment-gateway-ui/cobranca-page.jsx",
@@ -3027,15 +3025,15 @@
       "bundleChange": "added",
       "target": "—",
       "module": null,
-      "mapping": "nenhum",
-      "comparison": "ORFAO",
-      "lifecycleState": "blocked",
-      "applicationState": "blocked",
+      "mapping": "registro a-criar",
+      "comparison": "A-CRIAR",
+      "lifecycleState": "to-create",
+      "applicationState": "to-create",
       "compared": false,
       "tested": false,
       "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+      "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
     {
       "source": "repair-page.jsx",
@@ -3205,17 +3203,17 @@
     {
       "source": "suporte-page.jsx",
       "bundleChange": "added",
-      "target": "—",
-      "module": null,
-      "mapping": "nenhum",
-      "comparison": "ORFAO",
-      "lifecycleState": "blocked",
-      "applicationState": "blocked",
+      "target": "resources/js/Pages/Suporte/Empresas.tsx",
+      "module": "Suporte",
+      "mapping": "alias",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
       "compared": false,
       "tested": false,
       "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "usuarios-page.jsx",
@@ -3265,32 +3263,32 @@
     {
       "source": "vestuario-page.jsx",
       "bundleChange": "added",
-      "target": "—",
-      "module": null,
-      "mapping": "nenhum",
-      "comparison": "ORFAO",
-      "lifecycleState": "blocked",
-      "applicationState": "blocked",
+      "target": "resources/js/Pages/Vestuario/Etiquetas/Index.tsx",
+      "module": "Vestuario",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
       "compared": false,
       "tested": false,
       "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "voz-do-cliente-page.jsx",
       "bundleChange": "added",
       "target": "—",
       "module": null,
-      "mapping": "nenhum",
-      "comparison": "ORFAO",
-      "lifecycleState": "blocked",
-      "applicationState": "blocked",
+      "mapping": "registro a-criar",
+      "comparison": "A-CRIAR",
+      "lifecycleState": "to-create",
+      "applicationState": "to-create",
       "compared": false,
       "tested": false,
       "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+      "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     }
   ],
   "manifestFiles": [
