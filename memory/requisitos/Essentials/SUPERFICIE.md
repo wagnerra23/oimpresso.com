@@ -14,7 +14,7 @@ module: Essentials
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Essentials/**` + `resources/js/Pages/Essentials/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 290 arquivos em 17 papéis.
+**Total mapeado:** 294 arquivos em 17 papéis.
 
 ## Controllers — 19
 
@@ -240,7 +240,7 @@ module: Essentials
 - [view.blade.php](../../../Modules/Essentials/Resources/views/todo/view.blade.php)
 - [view_shared_docs.blade.php](../../../Modules/Essentials/Resources/views/todo/view_shared_docs.blade.php)
 
-## Telas (Inertia/React) — 15
+## Telas (Inertia/React) — 16
 
 - [Index.tsx](../../../resources/js/Pages/Essentials/Documents/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Essentials/Holidays/Index.tsx)
@@ -253,12 +253,13 @@ module: Essentials
 - [Metas.tsx](../../../resources/js/Pages/Essentials/Metas.tsx)
 - [Index.tsx](../../../resources/js/Pages/Essentials/Reminders/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Essentials/Settings/Index.tsx)
+- [Tipos.tsx](../../../resources/js/Pages/Essentials/Tipos.tsx)
 - [Create.tsx](../../../resources/js/Pages/Essentials/Todo/Create.tsx)
 - [Edit.tsx](../../../resources/js/Pages/Essentials/Todo/Edit.tsx)
 - [Index.tsx](../../../resources/js/Pages/Essentials/Todo/Index.tsx)
 - [Show.tsx](../../../resources/js/Pages/Essentials/Todo/Show.tsx)
 
-## Charters (lei da tela) — 15
+## Charters (lei da tela) — 16
 
 - [Index.charter.md](../../../resources/js/Pages/Essentials/Documents/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Essentials/Holidays/Index.charter.md)
@@ -271,19 +272,21 @@ module: Essentials
 - [Metas.charter.md](../../../resources/js/Pages/Essentials/Metas.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Essentials/Reminders/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Essentials/Settings/Index.charter.md)
+- [Tipos.charter.md](../../../resources/js/Pages/Essentials/Tipos.charter.md)
 - [Create.charter.md](../../../resources/js/Pages/Essentials/Todo/Create.charter.md)
 - [Edit.charter.md](../../../resources/js/Pages/Essentials/Todo/Edit.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Essentials/Todo/Index.charter.md)
 - [Show.charter.md](../../../resources/js/Pages/Essentials/Todo/Show.charter.md)
 
-## Casos (contrato UC) — 2
+## Casos (contrato UC) — 3
 
 - [Index.casos.md](../../../resources/js/Pages/Essentials/Licencas/Index.casos.md)
 - [Metas.casos.md](../../../resources/js/Pages/Essentials/Metas.casos.md)
+- [Tipos.casos.md](../../../resources/js/Pages/Essentials/Tipos.casos.md)
 
-## Testes (Pest) — 20
+## Testes (Pest) — 21
 
-- 20 em [Modules/Essentials/Tests/Feature/](../../../Modules/Essentials/Tests/Feature)
+- 21 em [Modules/Essentials/Tests/Feature/](../../../Modules/Essentials/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 50

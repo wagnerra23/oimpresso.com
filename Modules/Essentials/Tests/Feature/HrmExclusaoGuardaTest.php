@@ -103,7 +103,7 @@ function hrmExiste(string $tabela, int $id): bool
 
 // ── Tipo de licença ─────────────────────────────────────────────────────────────
 
-it('tipo de licença SEM uso: DELETE apaga de fato (antes respondia 200 sem apagar)', function () {
+it('UC-TIPOS-07: tipo de licença SEM uso: DELETE apaga de fato (antes respondia 200 sem apagar)', function () {
     $tipo = hrmTipo($this->tenant->id);
 
     $resp = $this->deleteJson('/hrm/leave-type/'.$tipo->id);
@@ -113,7 +113,7 @@ it('tipo de licença SEM uso: DELETE apaga de fato (antes respondia 200 sem apag
     expect(hrmExiste('essentials_leave_types', $tipo->id))->toBeFalse();
 });
 
-it('tipo de licença EM USO: 422 dizendo QUANTAS licenças travam, e NÃO apaga', function () {
+it('UC-TIPOS-06: tipo de licença EM USO: 422 dizendo QUANTAS licenças travam, e NÃO apaga', function () {
     $tipo = hrmTipo($this->tenant->id);
 
     foreach ([1, 2, 3] as $i) {
@@ -137,7 +137,7 @@ it('tipo de licença EM USO: 422 dizendo QUANTAS licenças travam, e NÃO apaga'
     expect(hrmExiste('essentials_leave_types', $tipo->id))->toBeTrue();
 });
 
-it('tipo de licença cross-tenant: tipo do biz adversário → 404 e continua existindo', function () {
+it('UC-TIPOS-08: tipo de licença cross-tenant: tipo do biz adversário → 404 e continua existindo', function () {
     $alheio = hrmTipo($this->adversario->id);
 
     $resp = $this->deleteJson('/hrm/leave-type/'.$alheio->id);
