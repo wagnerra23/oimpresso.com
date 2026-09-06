@@ -110,7 +110,7 @@ export default function FinPeriodBar({ dataInicio, dataFim, count, onChange }: P
   ];
 
   return (
-    <div className="fin-period-bar inline-flex items-center gap-2 flex-wrap" role="group" aria-label="Período">
+    <div className="fin-period-bar inline-flex items-center gap-2 flex-wrap" role="group" aria-label="Período" data-contract="periodbar-personalizado">
       {/* Navegador de mês ‹ › */}
       <div className="inline-flex items-center gap-1">
         <button
