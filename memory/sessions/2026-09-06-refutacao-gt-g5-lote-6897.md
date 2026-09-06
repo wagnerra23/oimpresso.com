@@ -131,9 +131,9 @@ Base: `git diff origin/main...HEAD -- memory/requisitos | grep '^+'` → **2.064
 
 | Padrão | Regex | Hits no diff | Controle positivo (prova que a sonda casa) |
 |---|---|---|---|
-| CPF pontuado | `[0-9]{3}\.[0-9]{3}\.[0-9]{3}-[0-9]{2}` | 0 (rc=1) | fixture `123.456.789-09` → 1 |
-| CPF cru (11 dígitos isolados) | `(^\|[^0-9])[0-9]{11}([^0-9]\|$)` | 0 (rc=1) | fixture `12345678901` → 1 |
-| CNPJ | `[0-9]{2}\.[0-9]{3}\.[0-9]{3}/[0-9]{4}-[0-9]{2}` | 0 (rc=1) | fixture `12.345.678/0001-99` → 1 |
+| CPF pontuado | `[0-9]{3}\.[0-9]{3}\.[0-9]{3}-[0-9]{2}` | 0 (rc=1) | fixture sintética no formato NNN.NNN.NNN-NN (literal removido: o PII scan do CI é cego a contexto) → 1 |
+| CPF cru (11 dígitos isolados) | `(^\|[^0-9])[0-9]{11}([^0-9]\|$)` | 0 (rc=1) | fixture sintética de 11 dígitos (literal removido) → 1 |
+| CNPJ | `[0-9]{2}\.[0-9]{3}\.[0-9]{3}/[0-9]{4}-[0-9]{2}` | 0 (rc=1) | fixture sintética no formato NN.NNN.NNN/NNNN-NN (literal removido) → 1 |
 | Telefone BR | `\(?[0-9]{2}\)?[ -]?9?[0-9]{4}[ -]?[0-9]{4}` | 0 (rc=1, sem exclusões) | fixture `(48) 99999-1234` → casa |
 | E-mail | `[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}` | 0 (rc=1) | `memory/regras-time.md` → 1 (e-mail da WR2) |
 | Valor em reais | `R\$ ?[0-9]` | 0 (rc=1) | fixture com o cifrão seguido de dígito (não reproduzida aqui — hook `block-brl-values-in-memory` barra o literal) → 1 |
