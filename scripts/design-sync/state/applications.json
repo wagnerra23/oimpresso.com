@@ -11,7 +11,24 @@
         "mapSha256": "cdda4800cd56c033e2aa8c2dcbba10173329169f3ba5e39f7b88e9e7192e642e",
         "recordedAt": "2026-09-06T01:46:05.265Z"
       },
-      "tests": [],
+      "tests": [
+        {
+          "command": [
+            "gh",
+            "run",
+            "view",
+            "--job",
+            "101316416841",
+            "--exit-status"
+          ],
+          "exitCode": 0,
+          "runner": "ci",
+          "outputSha256": "84cda304cb3600df55c78a0f867e3b9dc53766e2123a9ee157c80e3778320933",
+          "sourceSha256": "08a8bebe9e4fd8ed3b950a0fc245780f653fec495078f83bc3a328f794e71a89",
+          "targetSha256": "6c6ce5b5a679af17896a999f1d6f3dc539e80f4fbe957685fc59dfecd2b8b854",
+          "recordedAt": "2026-09-06T11:25:39.443Z"
+        }
+      ],
       "smokes": [],
       "application": {
         "evidence": "memory/requisitos/Arquivos/arquivos-index-gap.md",
@@ -262,7 +279,7 @@
       "comparison": {
         "map": "memory/requisitos/Repair/repair-status.map.json",
         "mapSha256": "d832dd31c0e311e134193a86d98a883f90ec4092c361268e4c3c1559d14931f4",
-        "recordedAt": "2026-09-06T12:12:03.713Z"
+        "recordedAt": "2026-09-06T12:13:28.867Z"
       },
       "tests": [],
       "smokes": []
