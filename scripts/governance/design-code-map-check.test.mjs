@@ -197,11 +197,36 @@ check('arquivo sem data-contract → SEM nudge, strict exit 0',
 check('resumo explica o 0/N: sem data-contract no arquivo, ancorar o .tsx primeiro',
   /1 sem NENHUM data-contract no vivo\.arquivo/.test(semAncora.stdout));
 
+// ── SEM MAP POR DESENHO (2026-09-06): `map_json: n/a (<motivo>)` no frontmatter do gap.md ──
+// Antes, todo gap.md sem map era "candidato" pra sempre — inclusive os que NÃO podem ganhar map
+// com honestidade (dono já tem map; âncora revogada; análise datada). Refutação GT-G5 #6897.
+const gapCom = join(reqDir, 'index-gap.md');       // tem map (index.map.json escrito acima)
+const gapSem = join(reqDir, 'outra-gap.md');       // sem map, sem declaração → candidato
+const gapNa = join(reqDir, 'absorvida-gap.md');    // sem map, declara n/a → fora do denominador
+writeMap({ prototipo_sha: shaProtoFresco(), partes: [parteBase()] });
+writeFileSync(join(vivoDir, 'Index.tsx'), 'export default function Index() { return null }\n');
+writeFileSync(gapCom, '---\ntela: Fixture/Index\n---\n\n| Parte | Ação |\n|---|---|\n| a | Nada |\n');
+writeFileSync(gapSem, '---\ntela: Fixture/Outra\n---\n\n| Parte | Ação |\n|---|---|\n| a | Decidir. |\n');
+writeFileSync(gapNa, '---\ntela: Fixture/Absorvida\nmap_json: n/a (mesma tela já tem index.map.json — dono é index-gap.md)\n---\n\n| Parte | Ação |\n|---|---|\n| a | Decidir. |\n');
+const naRun = runCheck(['--check', '--strict']);
+check('map_json: n/a → sai do DENOMINADOR (cobertura 1/2, não 1/3)', /cobertura: 1\/2 /.test(naRun.stdout));
+check('map_json: n/a → listado à parte COM o motivo, não como candidato', /SEM map\.json POR DESENHO/.test(naRun.stdout) && /absorvida-gap\.md — n\/a \(mesma tela/.test(naRun.stdout));
+check('controle-negativo: gap sem declaração segue candidato', /candidatos a/.test(naRun.stdout) && /outra-gap\.md/.test(naRun.stdout));
+check('controle-negativo: candidato NÃO entra na lista por-desenho', !/POR DESENHO[\s\S]*outra-gap\.md/.test(naRun.stdout));
+check('n/a não vira drift (strict exit 0)', naRun.status === 0);
+// contradição: declara n/a E tem map ao lado → WARN, nunca drift
+writeFileSync(gapCom, '---\ntela: Fixture/Index\nmap_json: n/a (declaração que sobrou)\n---\n\n| Parte | Ação |\n|---|---|\n| a | Nada |\n');
+const contra = runCheck(['--check', '--strict']);
+check('declara n/a MAS tem map.json → WARN contradição, strict exit 0', contra.status === 0 && /contradição: .*index-gap\.md declara map_json/.test(contra.stdout));
+const { mapJsonNa } = await import('./design-code-map-check.mjs');
+check('mapJsonNa: lê n/a com e sem aspas, ignora outros valores', mapJsonNa('---\nmap_json: "n/a (x)"\n---') === 'n/a (x)' && mapJsonNa('---\nmap_json: pendente\n---') === null && mapJsonNa('---\ntela: x\n---') === null);
+rmSync(gapCom); rmSync(gapSem); rmSync(gapNa);
+
 // ── PUBLICAÇÃO no job summary (a cobertura saindo do log pra superfície que se lê) ──
 const { publicarResumo } = await import('./design-code-map-check.mjs');
 const sumFile = join(root, 'step-summary.md');
 const dadosFake = {
-  maps: 3, cov: { cobertas: 3, total: 15 }, pctCobertura: 20, charters: 209,
+  maps: 3, cov: { cobertas: 3, total: 15, semMapPorDesenho: [{ gap: 'x-gap.md', motivo: 'n/a (y)' }] }, pctCobertura: 20, charters: 209,
   totalEstaveis: 0, ancoraveis: 30, totalLinhaOnly: 30, totalComAncora: 0, totalSemAncora: 30,
   totalOptOut: 30, totalDrift: 0, totalPendentes: 1,
 };
@@ -222,6 +247,7 @@ check('publicarResumo com destino → grava', publicarResumo(dadosFake, sumFile)
 const resumo = readFileSync(sumFile, 'utf8');
 check('resumo publica a COBERTURA 3/15 (denominador -gap.md, não charter)', /\*\*3\/15\*\* \(20%\)/.test(resumo));
 check('resumo declara que o denominador canônico é o -gap.md', /Denominador canônico da cobertura é o `-gap\.md`/.test(resumo));
+check('resumo publica quantos gap.md saíram do denominador por map_json: n/a', /Fora do denominador \(`map_json: n\/a` declarado no gap\.md\) \| 1 \|/.test(resumo));
 check('resumo traz o comando que o reproduz (número nunca sem comando ao lado)',
   /node scripts\/governance\/design-code-map-check\.mjs --check/.test(resumo));
 check('resumo decompõe o linha-only em acionável × precisa-ancorar', /fila acionável/.test(resumo) && /ancorar o `\.tsx` primeiro/.test(resumo));

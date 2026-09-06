@@ -1807,6 +1807,25 @@
       "evidencia": "memory/sessions/2026-09-06-refutacao-gt-g5-lote-6908.md",
       "trajetoria": "UMA rodada: 1,65% (2/121) → aprovado. Os 2 refutados são intervalos de linha errados em citações (RepairStatusController.php:74-78 quando o get() está na l.79; COLUNAS em repair-data.jsx:41-47 quando o símbolo vive em 39-45) — nenhum veredito (Nada/Decidir.) foi derrubado, nenhum Decidir. reabriu Non-Goal/UC, nenhum Nada escondeu gap. Corrigidos no mesmo PR após a aprovação, junto com 3 imprecisões que o refutador listou sem contar (Repair/Index: 2 dos 3 KPIs são clicáveis, não 3; Dashboard: só as barras de status do mockup são clicáveis; RepairController ramo AJAX 168-186 inclui total_paid). Os 3 map.json cujo `acao` carregava a faixa errada foram regenerados do zero (o --atualizar preserva o acao antigo por desenho) e re-marcados compared. Grupo 1 provado por regeneração chave a chave (279 asserts iguais); grupo 4 por recomputar sourceSha256/targetSha256/mapSha256 dos 7 registros (21/21). Ressalva declarada no PR: Settings tem charter com related_prototype n/a (porte reverso) e sem bundle_source; o refutador julgou honesta a nota de paridade do gap/map dessa tela.",
       "marcador_absorcao": "n/a — lote não afrouxa baseline nenhum; o único arquivo fora do lote é clientes.map.json (prototipo_sha regenerado via --atualizar porque o --strict já saía vermelho em origin/main), commit próprio e declarado."
+    },
+    {
+      "pr": 6928,
+      "lote_id": "seis-gap-fundacao-shell-map-json",
+      "data": "2026-09-06",
+      "tipo": "anchors",
+      "gerador": "claude-fable-5-1 (Anthropic) — sessão principal (serene-sutherland) que escreveu as 3 tabelas derivadas, os 3 map.json e os 4 blocos map_json: n/a",
+      "refutador": "claude-fable-5-1 (Anthropic) — subagente em contexto próprio, instruído a não abrir nenhuma evidência prévia (nem a r1 deste lote, nem as r1–r9 do #6897); tier igual ao gerador, que é o máximo (§2.3). Uma instância NOVA por rodada (r1, r2). Lote com 10 arquivos em memory/requisitos (≤10: refutação VOLUNTÁRIA — o histórico do #6897 pedia a prova).",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 316,
+      "erros_confirmados": 3,
+      "error_rate_pct": 0.95,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "veredito": "aprovado",
+      "evidencia": "memory/sessions/2026-09-06-refutacao-gt-g5-seis-gap-fundacao-r2.md (rodada aprovada); r1 em memory/sessions/2026-09-06-refutacao-gt-g5-seis-gap-fundacao-r1.md",
+      "trajetoria": "DUAS rodadas: 2,77% (r1, 7/253, reprovado) → 0,95% (r2, 3/316, aprovado). Os 7 da r1 eram Estado/Ação herdados da prosa de 2026-06-23 sem re-medir o código de hoje (badge de contagem re-adicionado em 2026-07-14, listener do G X em useSidebarShortcut, RECURSOS :33-39, oficina-print.js já no espelho, 5 de 6 KPIs clicáveis, tabela de citações incompleta) — corrigidos no commit 588f19c2f2. Os 3 da r2 (acao de 1 parte preservado stale pelo --atualizar; '8 arquivos' expurgados eram 7; decomposição '18 sob Pages/' era 16+2) corrigidos no mesmo PR depois da aprovação, com regen fresca dos 3 mapas. Mecânica: --atualizar idêntico ×3, selftests OK, design-code-map-check 20/20 + 4 fora do denominador, único DRIFT pré-existente (Cliente/clientes.map.json). PII 0 nas duas rodadas, controle positivo por padrão.",
+      "marcador_absorcao": "n/a — lote não afrouxa baseline nenhum; o denominador do design-code-map-check passa a excluir gap.md com map_json: n/a declarado (4), com o motivo listado no relatório."
     }
   ]
 }

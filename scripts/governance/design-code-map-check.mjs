@@ -66,6 +66,15 @@
  *      correspondente. É a métrica gradeável que o roadmap pede ("% de componentes/telas com
  *      mapping versionado — contável por arquivo").
  *
+ * SEM MAP POR DESENHO (2026-09-06): um `-gap.md` pode declarar no frontmatter
+ * `map_json: n/a (<motivo>)` — mesma convenção do `related_prototype: n/a (...)` dos charters
+ * (`ehDeclaracaoNa`). É a saída honesta para gap.md que NÃO DEVE ganhar map: tela cujo dono já
+ * tem map (régua duplicada, §5 2026-07-09), âncora revogada pelo charter, ou análise datada
+ * que o próprio arquivo diz não converter. Esses saem do DENOMINADOR da cobertura e são
+ * listados à parte com o motivo — antes, ficavam eternamente em "candidatos", e o 17/23
+ * cobrava um map que ninguém podia gerar com honestidade (refutação GT-G5 #6897, r2–r9).
+ * Declarar `n/a` E ter map.json ao lado é contradição → WARN (não drift).
+ *
  * `arquivo: 'TODO'` (âncora ainda não preenchida pelo agente da Fase 1) NUNCA é DRIFT — é
  * cobertura pendente (reportada, não punida; component-registry.json trata 'gap' do mesmo jeito:
  * ausência declarada ≠ fabricação). DRIFT é só: schema quebrado, âncora que MENTE (path que não
@@ -85,6 +94,7 @@ import { join, resolve, relative, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { raizesDePages } from '../qa/page-path.mjs';
 import { shaAtualPara, shaIndeterminado, shaBate } from '../../prototipo-ui/gerar-map.mjs';
+import { frontmatterBlock, fmVal } from '../../prototipo-ui/gerar-contrato.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
@@ -251,17 +261,33 @@ async function coletar(root) {
   return { maps, gaps, charters };
 }
 
-// telas com gap.md que TAMBÉM têm map.json (mesmo diretório, prefixo <slug>.map.json p/ <slug>-gap.md)
-function cobertura(gaps, maps, root) {
+/** `map_json: n/a (<motivo>)` no frontmatter do gap.md → o valor (string) · senão null. Puro. */
+export function mapJsonNa(md) {
+  const v = fmVal(frontmatterBlock(String(md || '')), 'map_json');
+  if (!v) return null;
+  const limpo = v.trim().replace(/^["']|["']$/g, '').trim();
+  return /^n\/a\b/i.test(limpo) ? limpo : null;
+}
+
+// telas com gap.md que TAMBÉM têm map.json (mesmo diretório, prefixo <slug>.map.json p/ <slug>-gap.md).
+// gap.md com `map_json: n/a (...)` sai do denominador (semMapPorDesenho, com o motivo).
+export function cobertura(gaps, maps, root) {
   const mapSet = new Set(maps.map((m) => relative(root, m).replaceAll('\\', '/')));
   let cobertas = 0;
   const semMap = [];
+  const semMapPorDesenho = [];
+  const contradicao = [];
   for (const g of gaps) {
     const esperado = g.replace(/-gap\.md$/, '.map.json');
     const rel = relative(root, esperado).replaceAll('\\', '/');
-    if (mapSet.has(rel)) cobertas++; else semMap.push(relative(root, g).replaceAll('\\', '/'));
+    const relGap = relative(root, g).replaceAll('\\', '/');
+    let na = null;
+    try { na = mapJsonNa(readFileSync(g, 'utf8')); } catch { /* ilegível — trata como sem declaração */ }
+    if (mapSet.has(rel)) { cobertas++; if (na) contradicao.push(`${relGap} declara map_json: ${na} mas ${rel} existe`); }
+    else if (na) semMapPorDesenho.push({ gap: relGap, motivo: na });
+    else semMap.push(relGap);
   }
-  return { cobertas, total: gaps.length, semMap };
+  return { cobertas, total: gaps.length - semMapPorDesenho.length, semMap, semMapPorDesenho, contradicao };
 }
 
 async function main() {
@@ -286,7 +312,7 @@ async function main() {
   const pctCobertura = cov.total ? Math.round((cov.cobertas / cov.total) * 100) : 0;
   const ancoraveis = totalEstaveis + totalLinhaOnly;
   console.log(`design-code-map-check — ${maps.length} map.json encontrado(s) sob memory/requisitos/`);
-  console.log(`cobertura: ${cov.cobertas}/${cov.total} telas com gap.md têm .map.json versionado (${pctCobertura}%)`);
+  console.log(`cobertura: ${cov.cobertas}/${cov.total} telas com gap.md têm .map.json versionado (${pctCobertura}%)${cov.semMapPorDesenho.length ? ` · ${cov.semMapPorDesenho.length} gap.md fora do denominador por 'map_json: n/a'` : ''}`);
   console.log(`alcance amplo: ${maps.length}/${charters.length} charters têm .map.json (denominador maior, inclui telas ainda não analisadas pela Fase 1)`);
   console.log(`âncora estável (data-contract no vivo): ${totalEstaveis}/${ancoraveis} parte(s) com vivo.arquivo real`);
   if (totalLinhaOnly) {
@@ -300,6 +326,12 @@ async function main() {
     console.log(`\ngap.md SEM map.json correspondente (candidatos a 'node prototipo-ui/gerar-map.mjs <gap.md>'):`);
     for (const g of cov.semMap) console.log(`  - ${g}`);
   }
+  if (cov.semMapPorDesenho.length) {
+    console.log(`\ngap.md SEM map.json POR DESENHO (frontmatter 'map_json: n/a' — fora do denominador, não é candidato):`);
+    for (const g of cov.semMapPorDesenho) console.log(`  - ${g.gap} — ${g.motivo}`);
+  }
+  for (const c of cov.contradicao) relatorio.push({ rel: c.split(' declara ')[0], drift: [], warn: [`contradição: ${c} — remova a declaração ou o map`], pendentes: 0, totalPartes: 0 });
+  totalWarn += cov.contradicao.length;
 
   if (totalDrift === 0) {
     console.log(`\n[OK] nenhum map.json com âncora quebrada ou sha stale. ${totalPendentes} âncora(s) TODO pendente(s) de preenchimento (não é drift).`);
@@ -333,13 +365,14 @@ export function publicarResumo(d, destino = process.env.GITHUB_STEP_SUMMARY) {
     '### Ponte design↔código — `<tela>.map.json`', '',
     '| Métrica | Valor |', '|---|---|',
     `| Cobertura (telas com \`-gap.md\` que têm \`.map.json\`) | **${d.cov.cobertas}/${d.cov.total}** (${d.pctCobertura}%) |`,
+    `| Fora do denominador (\`map_json: n/a\` declarado no gap.md) | ${d.cov.semMapPorDesenho?.length ?? 0} |`,
     `| Alcance amplo (charters com \`.map.json\`) | ${d.maps}/${d.charters} |`,
     `| Âncora estável (\`data-contract\` no vivo) | ${d.totalEstaveis}/${d.ancoraveis} partes |`,
     `| └ linha-only COM \`data-contract\` no arquivo (fila acionável) | ${d.totalComAncora} |`,
     `| └ linha-only SEM \`data-contract\` no arquivo (ancorar o \`.tsx\` primeiro) | ${d.totalSemAncora} |`,
     `| Drift (âncora quebrada / sha stale / schema) | ${d.totalDrift} |`,
     `| Âncoras \`TODO\` pendentes (não é drift) | ${d.totalPendentes} |`, '',
-    `Denominador canônico da cobertura é o \`-gap.md\` (tela que já passou pela Fase 1), não o charter.`,
+    `Denominador canônico da cobertura é o \`-gap.md\` (tela que já passou pela Fase 1), não o charter; gap.md com \`map_json: n/a (<motivo>)\` no frontmatter sai do denominador.`,
     // LC-10: o relatório publica NÚMERO, nunca o próprio enforcement — quem é required tem dono
     // único (`governance/required-checks-baseline.json`), e restatear aqui apodrece no 1º flip.
     `Reproduzir: \`node scripts/governance/design-code-map-check.mjs --check\`.`, '',

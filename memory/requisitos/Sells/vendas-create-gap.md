@@ -1,8 +1,18 @@
 ---
 id: requisitos-sells-vendas-create-gap
+tela: Sells/Create
+tela_viva: resources/js/Pages/Sells/Create.tsx
+map_json: n/a (pendente decisão [W] — resources/js/Pages/Sells/Create.charter.md não declara related_prototype nem bundle_source; âncora não pode nascer só no gap.md — ver §Âncora 2026-09-06)
 ---
 
 # Gap — Sells/Create (tela viva) vs vendas-create-page.jsx (mockup Cowork)
+
+> ## ⚠️ Âncora 2026-09-06 — sem map até o charter declarar o protótipo (⛔ decisão [W])
+>
+> - `node prototipo-ui/ancora.mjs Sells/Create --staging prototipo-ui/cowork` → *"charter sem related_prototype nem -page.jsx — registre o protótipo"*. `resources/js/Pages/Sells/Create.charter.md` (v2, `status: live`) não tem os campos. Gerar map declarando `prototipo:` só aqui = âncora nascida no gap.md (refutação r4 do [#6897](https://github.com/wagnerra23/oimpresso.com/pull/6897), ressalva R-1; §5 2026-06-30: âncora é computada do charter, nunca no olho). Por isso `map_json: n/a` no frontmatter — fora do denominador do `design-code-map-check` até a decisão.
+> - **O que o `vendas-create-page.jsx` É** (cabeçalho, `prototipo-ui/cowork/vendas-create-page.jsx:1-3`): *"Vendas/Create · venda COMPLETA vertical-aware · Verticais: COMUNICAÇÃO VISUAL (m²/acabamento) · OFICINA (veículo + MO + peças + aprovação) · Canon ADR 0110 + domínio do vendas-create-completo.jsx · Valores em CENTAVOS"*. **Não é porte reverso** do `Create.tsx` (não cita o vivo; deriva de outro protótipo, `vendas-create-completo.jsx`) — é desenho de OUTRAS verticais, como a prosa abaixo já diz. Não cai na lápide §5 2026-08-28 (b) (hub que se declara porte do main).
+> - **Proposta pra [W]** (não decidido aqui): declarar no charter `bundle_source: vendas-create-page.jsx` (forma curta, igual `Sells/Index.charter.md:6`) + `related_prototype: n/a (herda Cockpit V2 ADR 0110 — vestuário; o bundle é ComVis+Oficina)` — o `ancora.mjs` resolve pelo bundle e o `n/a` coexiste por desenho (§5 2026-08-28 (c)). Custo: 2 linhas num charter `live`, o que acorda o `charter-us-lint` (o charter não tem `related_us` hoje — precisa slug honesto de US existente, não inventado; foi o que barrou o Suporte no [#6895](https://github.com/wagnerra23/oimpresso.com/pull/6895)). Alternativa: manter sem âncora e este gap fora do denominador.
+> - ⚠️ **Tier 0 VALOR** (proibicoes §REGRA MESTRE): 5 das 9 partes (grade m² · totais "cobrar só aprovado" · frete · rodapé com desconto · pagamento) tocam cálculo. Se o map nascer, cada "Decidir." dessas partes carrega "dupla confirmação + tabela antes→depois" na Ação. Nada aqui muda cálculo — é o que a tabela terá de dizer.
 
 > Fase 1 da skill `aplicar-prototipo` (READ-ONLY). Mapeamento **semântico**, não diff textual.
 > Tela viva: `resources/js/Pages/Sells/Create.tsx` (2004 linhas — em produção, ROTA LIVRE biz=4).

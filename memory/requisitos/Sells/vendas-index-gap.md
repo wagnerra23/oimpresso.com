@@ -1,8 +1,26 @@
 ---
 id: requisitos-sells-vendas-index-gap
+tela: Sells/Index
+map_json: n/a (pendente decisão [W] — a mesma tela já tem memory/requisitos/Sells/vendas.map.json (gap_fonte vendas-gap.md); 2º map = régua duplicada — ver §Reconciliação 2026-09-06)
 ---
 
 # Gap map — Sells/Index (Lista de Vendas) × mockup Cowork `vendas-page.jsx`
+
+> ## ⚠️ Reconciliação 2026-09-06 — dois gaps para UMA tela; proposta de dono (⛔ decisão [W])
+>
+> A tela `Sells/Index` tem **dois** gap.md em `memory/requisitos/Sells/`: [`vendas-gap.md`](vendas-gap.md) (2026-06-22, [#3343](https://github.com/wagnerra23/oimpresso.com/pull/3343)) e este (2026-06-30, [#3451](https://github.com/wagnerra23/oimpresso.com/pull/3451)). O lote [#6897](https://github.com/wagnerra23/oimpresso.com/pull/6897) gerou um 2º map por este e a refutação r5 apontou a duplicação — o map saiu. Evidência medida em 2026-09-06 (`origin/main` 80bc4ef8b9):
+>
+> | eixo | `vendas-gap.md` + `vendas.map.json` | este arquivo |
+> |---|---|---|
+> | frontmatter máquina-legível (`tela`/`prototipo`/`tela_viva`) | sim (`vendas-gap.md:1-10`) | só `id` até hoje (`tela` adicionado nesta reconciliação) |
+> | partes | 6 | 8 (por região) |
+> | âncoras com linha real (`grep -n`) | **11 de 12** (5 partes duplas + `devolucoes-relatorios` com vivo `TODO` — não há tela) — [#4087](https://github.com/wagnerra23/oimpresso.com/pull/4087) "por grep real"; `prototipo_sha sha256:0462e8dec988`, 0 DRIFT no `design-code-map-check` | 0 |
+> | `resources/js/Pages/Sells/Index.charter.md` cita | nenhum dos dois (`related_prototype`/`bundle_source` = `vendas-page.jsx`, `:6-7`) | nenhum dos dois |
+> | quem cita (`git grep -l`, fora do `doc-id-index.json` e dos logs de refutação do #6897, que citam os dois como itens do lote) | `08-handoff.md` · `handoffs/2026-06-22-2324-*` · `sessions/2026-06-23-arte-handoff-*` · `vendas.map.json` · selftest do `prototipo-ui/gerar-contrato.mjs:153` (fixture) | só o mesmo selftest (`gerar-contrato.mjs:153-158`, nome usado como fixture de desambiguação) e um comentário em `scripts/pr-critic/coleta.mjs:14` |
+>
+> **O que este arquivo tem e o dono não tem** (conteúdo a absorver, não a perder): §Veredito "Adotar" #1–#4 (barra de totalizadores · CTA "→ ver estouradas" · barra de progresso no KPI PIX · sub-views de saved view) + "Verificar antes" (`SellsTabelaUnificada`/`SaleSheet`) + "Não adotar". Estado hoje em `resources/js/Pages/Sells/Index.tsx`: `totals` é buscado (`:499`, `:725`) mas há **0** render de `vd-totalbar`; contador "estouradas" em `:1074` sem CTA; PIX em `:1465-1469` sem barra — os 3 primeiros "Adotar" seguem abertos.
+>
+> **Proposta (⛔ [W] decide):** dono = `vendas-gap.md` + `vendas.map.json`. Ao ratificar: (1) acrescentar 4 linhas à tabela de partes do `vendas-gap.md` (as 4 do "Adotar", Ação nos termos do §Veredito — ⚠️ Tier 0 no #1: "só exibir o número já computado pelo backend, não recalcular"); (2) `node prototipo-ui/gerar-map.mjs Sells/vendas --atualizar` (preserva as 11 âncoras; 4 partes novas nascem `TODO` e ganham linha por grep real); (3) este arquivo vira registro datado com ponteiro. O inverso (dono = este) custa refazer 11 âncoras e reapontar 4 citações. **Enquanto [W] não decide:** `map_json: n/a` no frontmatter — fora do denominador do `design-code-map-check`, nenhum 2º map é gerado.
 
 > Fase 1 (read-only) da skill `aplicar-prototipo`. Compara a tela VIVA com o mockup do bundle Cowork importado pra staging.
 >
