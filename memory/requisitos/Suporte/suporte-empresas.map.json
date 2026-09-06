@@ -85,7 +85,7 @@
       "id": "estados-erro-carregando",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/suporte-page.jsx",
-        "linhas": "103-106"
+        "linhas": "103-107"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Suporte/Empresas.tsx",
