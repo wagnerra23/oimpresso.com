@@ -10,7 +10,7 @@
       "id": "header-e-acao-primaria",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/repair-page.jsx",
-        "linhas": "307-310, 330-331"
+        "linhas": "307-311, 330-331"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Repair/Status/Index.tsx",
@@ -18,7 +18,7 @@
         "ancora": false
       },
       "status": "paridade",
-      "acao": "Nada — paridade com título／descrição e \"Adicionar status\" gated por `repair_status.access` (repair-page.jsx:307-310, 330-331).",
+      "acao": "Nada — paridade com título／descrição e \"Adicionar status\" gated por `repair_status.access` (repair-page.jsx:307-311, 330-331).",
       "_acionavel": false
     },
     {

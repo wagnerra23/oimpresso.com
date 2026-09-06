@@ -48,7 +48,7 @@
         "ancora": false
       },
       "status": "paridade",
-      "acao": "Nada — paridade com as 5 `BoardColumn` com contagem (repair-page.jsx:117-135; `COLUNAS` em repair-data.jsx:41-47).",
+      "acao": "Nada — paridade com as 5 `BoardColumn` com contagem (repair-page.jsx:117-135; `COLUNAS` em repair-data.jsx:39-45).",
       "_acionavel": false
     },
     {

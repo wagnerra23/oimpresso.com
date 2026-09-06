@@ -63,7 +63,7 @@
         "ancora": false
       },
       "status": "paridade",
-      "acao": "Nada — paridade. As barras do mockup são clicáveis (`onIr`, repair-page.jsx:68-91); clique é drilldown, Non-Goal explícito (Index.charter.md:47). O conteúdo está coberto.",
+      "acao": "Nada — paridade. As barras de status do mockup são clicáveis (`onIr`, repair-page.jsx:72-77; as de técnico são `div plain`, l.83-86); clique é drilldown, Non-Goal explícito (Index.charter.md:47). O conteúdo está coberto.",
       "_acionavel": false
     },
     {

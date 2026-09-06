@@ -1769,6 +1769,25 @@
       "evidencia": "memory/sessions/2026-09-06-refutacao-gt-g5-lote-6897-r9.md (rodada aprovada); r1–r8 em memory/sessions/2026-09-06-refutacao-gt-g5-lote-6897{,-r2..-r8}.md",
       "trajetoria": "NOVE rodadas: 13,48% (r1, 19/141) → 2,84% (r2, 4/141) → 5,71% (r3, 6/105) → 6,32% (r4, 6/95) → 8,91% (r5, 9/101) → 3,23% (r6, 2/62) → 4,48% (r7, 3/67) → 3,23% (r8, 2/62) → 1,35% (r9, 1/74). O denominador caiu de 141 para 74 porque cada rodada tirou do lote o que não tinha como ser honesto: 2 gap.md de FUNDAÇÃO (gerar-map só resolve Pages/), OficinaAuto (âncora revogada como MIS-ANCHOR no charter dono em 2026-06-30 — o gerar-map avisou e a r1 seguiu), Crm (o próprio gap diz \"análise, não geração\"), Sells/Index (vendas.map.json do main já cobria a mesma tela — régua duplicada) e Sells/Create (âncora sem related_prototype/bundle_source no charter — decisão [W]). Cobertura de map.json foi 12/23 → 23/23 (r1) → 17/23 (r9), a honesta. DEFEITO DE FUNDO da r1: a derivação mecânica copiava a coluna de DESCRIÇÃO do gap e carimbava \"Decidir.\" sem ler a coluna de VEREDITO da prosa (\"— · —\", \"NÃO fazer\", \"já é canon\", banner de invalidade); r2–r8 reescreveram as tabelas à mão por seção + item do §Veredito e, onde a prosa deixava _pendente_, resolveram lendo o código com linha e commit (AcoesDropdown.tsx 9 ações · Drawer.tsx 5 abas · products.brand_id l.7577). Os refutadores também pegaram recibos errados do gerador (linha de outra tabela, §6 em vez de Parte 4, \"coberto\" com leitura parcial). PII: 0 hits em todas as rodadas, controle positivo por padrão. ERRO RESIDUAL da r9 (trilho FSM já existe em Drawer.tsx l.12–19/197–209) corrigido no mesmo PR após a aprovação, no commit que grava esta entry — a Ação passou a dizer que o trilho existe e que resta só footer de ações por estágio + atalhos fiscais.",
       "marcador_absorcao": "n/a — lote não afrouxa baseline nenhum; o baseline de distiller_freshness foi absorvido em commit próprio com BASELINE-ABSORB (Cliente stale por doc derivado novo)."
+    },
+    {
+      "pr": 6908,
+      "lote_id": "gap-md-paridade-repair-7-telas-6908",
+      "data": "2026-09-06",
+      "tipo": "anchors",
+      "gerador": "claude-fable-5-1 (Anthropic) — sessão principal que autorou o lote (7 gap.md escritos à mão a partir de grep -n; map.json por gerar-map.mjs + preenchimento por posição da tabela)",
+      "refutador": "claude-fable-5-1 (Anthropic) — subagente em contexto próprio, zero contexto do gerador, instruído a não abrir nenhuma evidência de refutação anterior; tier igual ao gerador, que já é o máximo (fable) — igualdade só aceita no tier máximo (§2.3)",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 121,
+      "erros_confirmados": 2,
+      "error_rate_pct": 1.65,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "veredito": "aprovado",
+      "evidencia": "memory/sessions/2026-09-06-refutacao-gt-g5-lote-6908.md",
+      "trajetoria": "UMA rodada: 1,65% (2/121) → aprovado. Os 2 refutados são intervalos de linha errados em citações (RepairStatusController.php:74-78 quando o get() está na l.79; COLUNAS em repair-data.jsx:41-47 quando o símbolo vive em 39-45) — nenhum veredito (Nada/Decidir.) foi derrubado, nenhum Decidir. reabriu Non-Goal/UC, nenhum Nada escondeu gap. Corrigidos no mesmo PR após a aprovação, junto com 3 imprecisões que o refutador listou sem contar (Repair/Index: 2 dos 3 KPIs são clicáveis, não 3; Dashboard: só as barras de status do mockup são clicáveis; RepairController ramo AJAX 168-186 inclui total_paid). Os 3 map.json cujo `acao` carregava a faixa errada foram regenerados do zero (o --atualizar preserva o acao antigo por desenho) e re-marcados compared. Grupo 1 provado por regeneração chave a chave (279 asserts iguais); grupo 4 por recomputar sourceSha256/targetSha256/mapSha256 dos 7 registros (21/21). Ressalva declarada no PR: Settings tem charter com related_prototype n/a (porte reverso) e sem bundle_source; o refutador julgou honesta a nota de paridade do gap/map dessa tela.",
+      "marcador_absorcao": "n/a — lote não afrouxa baseline nenhum; o único arquivo fora do lote é clientes.map.json (prototipo_sha regenerado via --atualizar porque o --strict já saía vermelho em origin/main), commit próprio e declarado."
     }
   ]
 }
