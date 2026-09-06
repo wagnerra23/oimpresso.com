@@ -95,7 +95,7 @@
       "comparison": {
         "map": "memory/requisitos/Estoque/stock-adjustment-create.map.json",
         "mapSha256": "2f2fac4b702179ff1aaa48d09bcc006d1d8fdb8d382db4ca91f468ed61f9f8b9",
-        "recordedAt": "2026-09-06T18:51:30.027Z"
+        "recordedAt": "2026-09-06T19:14:51.883Z"
       },
       "tests": [],
       "smokes": []
@@ -107,8 +107,8 @@
       "targetSha256": "c20529b058f9366ba725451987b129ff39a50f9c5d1265a74f9e845a75098ade",
       "comparison": {
         "map": "memory/requisitos/Estoque/stock-adjustment-index.map.json",
-        "mapSha256": "a9cee1fba7a7ab1daba65311e87f3e53cb7a21da6a7a1960cc9ef53438adb83e",
-        "recordedAt": "2026-09-06T18:51:28.816Z"
+        "mapSha256": "f62b5c20d480488e1f232d1a35751b74e936c01ac5b3b13402278b45b7fe8944",
+        "recordedAt": "2026-09-06T19:14:50.750Z"
       },
       "tests": [],
       "smokes": []
@@ -120,8 +120,8 @@
       "targetSha256": "d496adc016003d0e215697614212cfb297158d74eb0df44bb824828575935e34",
       "comparison": {
         "map": "memory/requisitos/Estoque/stock-transfer-create.map.json",
-        "mapSha256": "b57ecc1182aeff4bc70b621e58d2f202bc2b1c9b1df05471b41c69a600afb82a",
-        "recordedAt": "2026-09-06T18:51:33.168Z"
+        "mapSha256": "7e66ae2d4fca8df3389175f102bf10b53a085b3cb99ee53902c431f0180ec209",
+        "recordedAt": "2026-09-06T19:14:54.232Z"
       },
       "tests": [],
       "smokes": []
@@ -133,8 +133,8 @@
       "targetSha256": "a653eea2fa538a7c49973d834241b62faa75b571c493c39bc6192f571f033d96",
       "comparison": {
         "map": "memory/requisitos/Estoque/stock-transfer-index.map.json",
-        "mapSha256": "2576fb577f6c905c07c6074dac38eeab7cd743709f52b1ee08fa18b51ba2e6ab",
-        "recordedAt": "2026-09-06T18:51:31.442Z"
+        "mapSha256": "6a6f7f8301904b82d8b694d13be3821fa8b8e1074202ef74eb37398c502bc619",
+        "recordedAt": "2026-09-06T19:14:53.044Z"
       },
       "tests": [],
       "smokes": []
@@ -404,8 +404,8 @@
       "targetSha256": "180113b8270f946a154c7263d59986a2fef168856b10b44976e4fbde32ae8705",
       "comparison": {
         "map": "memory/requisitos/Manufacturing/manufacturing-index.map.json",
-        "mapSha256": "d5df1ee794a9b121e7e8f190503b13416ff4824b701549df6d8ddb9df7488365",
-        "recordedAt": "2026-09-06T18:51:34.601Z"
+        "mapSha256": "fd140c6c211440389f8ff3c7a04b31daeb8a1a556438599bafa79df3b271987d",
+        "recordedAt": "2026-09-06T19:14:55.483Z"
       },
       "tests": [],
       "smokes": []
@@ -417,8 +417,8 @@
       "targetSha256": "795ad05a6133a9545316fdbfc5c5b32b3c8fc4ba99540ad7368021ad91373595",
       "comparison": {
         "map": "memory/requisitos/Manufacturing/manufacturing-recipes.map.json",
-        "mapSha256": "7b0d01639cb07475f807f18de49b4cad13f8cbf2ae9e05ebc4557c0cd6852508",
-        "recordedAt": "2026-09-06T18:51:35.836Z"
+        "mapSha256": "cb4f843ba87585b8eeeaf92426584c3603b0cd22142e88e2a00df073265f80d9",
+        "recordedAt": "2026-09-06T19:14:56.712Z"
       },
       "tests": [],
       "smokes": []

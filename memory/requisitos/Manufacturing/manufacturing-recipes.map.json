@@ -33,7 +33,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Nada — paridade com o espelho. Ver a nota de frescor acima: no Cowork vivo esta região já é `window.CliTabs`. O comentário do vivo (`:190-194`) registra que a aba Configurações deixou de ser âncora crua para rota Blade — correção nascida de uso ([F] clicou e saiu do SPA), ausente do protótipo.",
+      "acao": "Nada — paridade com o espelho. Ver a nota de frescor acima: no Cowork vivo esta região já é `window.CliTabs`. O comentário do vivo (`Recipes.tsx:187-191`) registra que a aba Configurações deixou de ser âncora crua para rota Blade — correção nascida de uso ([F] clicou e saiu do SPA, `:189`), ausente do protótipo.",
       "_acionavel": false
     },
     {
@@ -198,7 +198,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Nada — paridade (`manufacturing-page.jsx:294`).",
+      "acao": "Nada — paridade. No protótipo o mesmo papel é do `window.MfgFichaPrint` (`manufacturing-page.jsx:294`) — nome do mockup, não do vivo.",
       "_acionavel": false
     },
     {

@@ -108,7 +108,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. O protótipo tem coluna de lote condicionada à flag `lote` (`estoque-forms.jsx:78`) e bloqueia o salvamento quando o produto tem lotes e nenhum foi escolhido (`semLote`, `:271`). ⚠️ Toca ESTOQUE. Construir ou rejeitar por escrito.",
+      "acao": "Decidir. O protótipo tem coluna de lote condicionada à flag `lote` (`estoque-forms.jsx:78`) e bloqueia o salvamento quando o produto tem lotes e nenhum foi escolhido (`semLote`, `estoque-forms.jsx:273`). ⚠️ Toca ESTOQUE. Construir ou rejeitar por escrito.",
       "_acionavel": true
     },
     {
@@ -138,7 +138,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Nada — paridade. Mesmos três números no protótipo (`estoque-forms.jsx:338-340`). O protótipo acrescenta o `help` *\"Entra no custo do material que chega no destino\"* no campo de frete (`:334`) — copy, não capacidade.",
+      "acao": "Nada — paridade. Mesmos três números no protótipo (`estoque-forms.jsx:338-340`). O protótipo acrescenta o `help` *\"Entra no custo do material que chega no destino\"* no campo de frete (`estoque-forms.jsx:333`) — copy, não capacidade.",
       "_acionavel": false
     },
     {
