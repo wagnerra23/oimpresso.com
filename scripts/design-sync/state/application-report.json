@@ -1,6 +1,6 @@
 {
   "schema": "oimpresso-design-application-report/3",
-  "generatedAt": "2026-09-06T12:28:28.731Z",
+  "generatedAt": "2026-09-06T12:33:27.166Z",
   "bundle": {
     "id": "5023b274183d849dcc925eae85cef61a991c3541ca1daeb680267c1afda99e4d",
     "baseId": null,
@@ -15,9 +15,9 @@
     "smoked": 0,
     "lifecycle": {
       "tested": 4,
-      "anchored": 56,
+      "anchored": 52,
       "to-create": 23,
-      "compared": 10
+      "compared": 14
     },
     "applied": 4,
     "pending": 66,
@@ -2882,13 +2882,23 @@
       "module": "Officeimpresso",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Officeimpresso/logs-index.map.json",
+          "mapSha256": "84af62aa33c6104da0fdec41c5cc01963bb9ee4f2c82c2cdc679bfe6302078a6",
+          "recordedAt": "2026-09-06T12:33:25.542Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "5dab5f601ab8f001b1e441369a9dbe1440962a24bb4445b340554b9b05ed3afb"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "officeimpresso-page.jsx",
@@ -2897,13 +2907,23 @@
       "module": "Officeimpresso",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Officeimpresso/logs-timeline.map.json",
+          "mapSha256": "b55a83e928c9380584ddd5c2e1c3ef4615b0f171cd61124234d3fbb8e11d4888",
+          "recordedAt": "2026-09-06T12:33:27.006Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "1a69167d9c9ffec13a327cfaac7c4a113fa92ff8365f66661f673a365d64fa3c"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "oficina-os-page.jsx",
@@ -2912,13 +2932,23 @@
       "module": "OficinaAuto",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/OficinaAuto/service-orders-show.map.json",
+          "mapSha256": "4a7651c63cacd7058a87b1e92f00384b6b595926ca827357baca61bc79856a4d",
+          "recordedAt": "2026-09-06T12:33:23.858Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "e947b89665f63e5548d6b9163b1bb2fe1a233a93c782e6390df61c8484fc6564"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "oficina-page.jsx",
@@ -2927,13 +2957,23 @@
       "module": "OficinaAuto",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/OficinaAuto/service-orders-board.map.json",
+          "mapSha256": "5f610b48d2803dfc31c91de2f2f9de7904889ab12c162e31e7a18ff179599e43",
+          "recordedAt": "2026-09-06T12:33:22.439Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "deb2715486e0c1e94f5726d0a089f499c72230c2cd68ba36f3b50e3a0964a155"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "orc-page.jsx",

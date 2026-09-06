@@ -1,0 +1,250 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "OficinaAuto/ServiceOrders/Board (/oficina-auto/ordens-servico)",
+  "gap_fonte": "memory/requisitos/OficinaAuto/service-orders-board-gap.md",
+  "prototipo_sha": "sha256:46891d3a4c5c",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "header-titulo",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-page.jsx",
+        "linhas": "964-973"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — decisão já registrada. O protótipo tem os mesmos dois botões no `prod-header` (`oficina-page.jsx:964-973`: `Imprimir fila` em `:970`, `Nova OS` em `:972`); a posição do toggle é a canon `.ofc-view-toolbar`, fixada por [W] em 2026-06-11 (charter §Goals).",
+      "_acionavel": false
+    },
+    {
+      "id": "kpis",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — paridade. O charter §Goals fixa exatamente esses 6. O protótipo tem a mesma faixa clicável (`kanban-producao-gap.md` §2).",
+      "_acionavel": false
+    },
+    {
+      "id": "filtros-boxes-elevadores",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — vivo à frente. O protótipo usa dropdowns Box/Mecânico; o vivo trocou por abas `.prod-equip-filters` com contador, decisão registrada no cabeçalho do arquivo.",
+      "_acionavel": false
+    },
+    {
+      "id": "busca-livre",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — paridade.",
+      "_acionavel": false
+    },
+    {
+      "id": "toggle-de-views",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — vivo à frente. O comentário `:69-71` registra um estado anterior em que Lista/Fila navegavam para a Index; a unificação [W] de 2026-06-11 aposentou a página `Index` e trouxe as 4 para dentro. ⚠️ Quem ler só aquele comentário conclui o contrário do que o código faz hoje — o charter §Goals é a fonte.",
+      "_acionavel": false
+    },
+    {
+      "id": "menu-visao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — paridade.",
+      "_acionavel": false
+    },
+    {
+      "id": "card-da-os",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-page.jsx",
+        "linhas": "140-152"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — paridade, com a diferença que importa: a linha \"últ.\" do protótipo é mock (`LAST_ACTIVITY`, `oficina-page.jsx:140-152`), a do vivo é transição FSM real.",
+      "_acionavel": false
+    },
+    {
+      "id": "stagegate-no-card",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-page.jsx",
+        "linhas": "176"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. O protótipo põe o `StageGateMini` dentro do card (`oficina-page.jsx:176`, no `CardExtra`), como checklist de bloqueio visível antes de arrastar — e o cabeçalho registra que *\"cliente curtiu m0193\"* (`:9`). No vivo o mesmo gate só aparece depois de abrir o drawer. Não é capacidade ausente: é onde ela aparece. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "duas-portas-para-a-maquina-fsm",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-page.jsx",
+        "linhas": "212"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — vivo à frente. No protótipo o avanço é estado React local sobre mock: os botões do card chamam `onAdvance` (`oficina-page.jsx:212`, `:278`, `:342`) e o handler faz `setOsList(list => list.map(...stage: nextStage))` (`:1227`; a lista é `useState(OS_LIST)` em `:745`). Nada de FSM, nada de audit.",
+      "_acionavel": false
+    },
+    {
+      "id": "drawer-da-os",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — vivo à frente.",
+      "_acionavel": false
+    },
+    {
+      "id": "impressao-de-fila",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — paridade.",
+      "_acionavel": false
+    },
+    {
+      "id": "grade-veiculo-etapa",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — decisão já registrada. O charter (§Non-Goals) proíbe explicitamente importar a heurística serviço×sintoma do protótipo: *\"a marca espelha só a etapa FSM real da OS\"*, sob o gate `no-mock-in-prod`. Não reabrir.",
+      "_acionavel": false
+    },
+    {
+      "id": "eta-diag-encomendado-peca-chega-x-pago",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — decisão já registrada. Charter §Non-Goals: *\"NÃO inventa campo sem lastro … NÃO têm coluna real → omitidos (gate `no-mock-in-prod`). Reentram quando houver schema de estoque/pagamento.\"* O gap é de schema, não de tela.",
+      "_acionavel": false
+    },
+    {
+      "id": "criar-os",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — Non-Goal do charter (*\"NÃO cria OS inline pelo drag (usar 'Nova OS')\"*). O protótipo tem o `OsCreateDrawer` (`oficina-forms.jsx`), que é a âncora de outras telas (`ServiceOrders/Create` e `/Edit`) — não desta.",
+      "_acionavel": false
+    },
+    {
+      "id": "vocabulario-de-dominio",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — Tier 0 já enforçado. [ADR 0194](../../decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) + gate `dominio:check`: proibido vocabulário de locação/caçamba (m³, diária, recolhimento). O protótipo está limpo disso (verificado no `kanban-producao-gap.md` §Restrições).",
+      "_acionavel": false
+    },
+    {
+      "id": "multi-tenant-e-fsm",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — vivo à frente.",
+      "_acionavel": false
+    }
+  ]
+}
