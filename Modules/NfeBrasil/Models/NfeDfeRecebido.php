@@ -76,10 +76,20 @@ class NfeDfeRecebido extends Model
         return (int) now()->startOfDay()->diffInDays($this->prazo_confirmacao_em, false);
     }
 
-    public function podeManifestar(): bool
+    /**
+     * "Pendente de manifestação" = PENDENTE ou CIÊNCIA (UC-FDFE-02, CU-FISC-07): dar ciência
+     * NÃO encerra a obrigação — só suspende o prazo; a nota ainda precisa de confirmação.
+     * Nome do contrato (Fiscal/Dfe.casos.md); `podeManifestar()` é o mesmo predicado.
+     */
+    public function isPendenteManifestacao(): bool
     {
         return $this->status_manifestacao === self::STATUS_PENDENTE
             || $this->status_manifestacao === self::STATUS_CIENCIA;
+    }
+
+    public function podeManifestar(): bool
+    {
+        return $this->isPendenteManifestacao();
     }
 
     /**
