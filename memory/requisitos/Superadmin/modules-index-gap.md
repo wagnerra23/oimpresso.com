@@ -24,8 +24,9 @@ gerado_em: 2026-09-06
 > **Três donos já falam desta tela, e esta tabela não os contradiz.** (a) O
 > [`modulos.contract.json`](../../../prototipo-ui/contrato/modulos.contract.json) trava a copy e a
 > ordem de cinco seções e **declara por escrito** as duas que recortou, com razão — não as reabro
-> como novidade, só as ancoro. (b) O charter (v2, 2026-08-19) tem quatro decisões [W] abertas
-> (D1, D3, D4) e uma fechada (D2 — RBAC unificado em `manage_modules`). (c) O intake do design vive
+> como novidade, só as ancoro. (b) O charter (v2, 2026-08-19) tem quatro decisões [W], **três
+> abertas** — D1 (versão do módulo), D3 (drawer PT-02) e D4 (instalação dentro do request) — e uma
+> fechada, D2 (RBAC unificado em `manage_modules`, decidido em 2026-08-19). (c) O intake do design vive
 > em [`cowork-inbox/modulos/`](../../../prototipo-ui/design-docs/cowork-inbox/modulos/) e é **pedido**
 > (7 PRs), não fonte visual — nada dele entra aqui como gap.
 >

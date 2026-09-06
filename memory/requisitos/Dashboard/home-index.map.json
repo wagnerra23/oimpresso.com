@@ -47,8 +47,8 @@
         "linhas": "387-405",
         "ancora": "contrapartidas"
       },
-      "status": "paridade",
-      "acao": "Nada — paridade.",
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente. O subtítulo do protótipo multiplica o valor por um fator fixo para simular o bruto; o vivo não inventa esse número. Adotá-lo exigiria a devolução bruta como dado real do controller.",
       "_acionavel": false
     },
     {

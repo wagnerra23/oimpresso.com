@@ -48,7 +48,7 @@
         "ancora": false
       },
       "status": "gap",
-      "acao": "Decidir. Região do mockup: `suporte-page.jsx:107-112`. Entraria em `Empresas.tsx` entre o cabeçalho (`:49`) e a moldura da tabela (`:51`). Não é mock de dado — é copy de afordância que reforça o Non-Goal \"read-only\" do charter. O charter não a lista nos UX targets, então é adição. Construir ou rejeitar por escrito.",
+      "acao": "Decidir. Região do mockup: `suporte-page.jsx:109-114`. Entraria em `Empresas.tsx` entre o cabeçalho (`:49`) e a moldura da tabela (`:51`). Não é mock de dado — é copy de afordância que reforça o Non-Goal \"read-only\" do charter. O charter não a lista nos UX targets, então é adição. Construir ou rejeitar por escrito.",
       "_acionavel": true
     },
     {
@@ -93,7 +93,7 @@
         "ancora": false
       },
       "status": "gap",
-      "acao": "Decidir. Região do mockup: `suporte-page.jsx:103-106`; ponto no vivo: `Empresas.tsx:61`, envolvendo o `map`. O charter lista nos UX targets só três estados (cheia · busca-sem-resultado · vazia) — estes dois são adição do espelho, e o de carregamento só faz sentido se a prop virar `Inertia::defer`. Construir ou rejeitar por escrito.",
+      "acao": "Decidir. Região do mockup: `suporte-page.jsx:103-107`; ponto no vivo: `Empresas.tsx:61`, envolvendo o `map`. O charter lista nos UX targets só três estados (cheia · busca-sem-resultado · vazia) — estes dois são adição do espelho, e o de carregamento só faz sentido se a prop virar `Inertia::defer`. Construir ou rejeitar por escrito.",
       "_acionavel": true
     },
     {

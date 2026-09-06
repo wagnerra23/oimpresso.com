@@ -32,11 +32,17 @@ Existem **duas cópias** do mesmo protótipo no espelho, e essa é a antiga. Med
 **mesmo namespace literal** de `localStorage`; o `Index.tsx:477` monta `AiResumoMes`; o
 `Index.tsx:476` monta `CheatSheet`. Nenhuma das três existe na cópia que o charter cita.
 
-Por isso a tabela abaixo mede contra `pg-cobranca-page.jsx`. **Trocar o `related_prototype` do
-charter é decisão [W]** (o charter é lei) — aqui fica o achado com os números, não a mudança. As
-duas cópias entraram no mesmo commit (`9da73296d3`, 2026-06-23), o que sugere cópia herdada, não
-divergência de conteúdo deliberada. Consequência prática: o `gerar-map.mjs` avisa que a âncora
-computada do charter não cita este arquivo — o aviso é o registro da divergência, não um defeito.
+Por isso a tabela abaixo mede contra `pg-cobranca-page.jsx`. As duas cópias entraram no mesmo
+commit (`9da73296d3`, 2026-06-23), o que sugere cópia herdada, não divergência deliberada.
+
+**E o ponteiro do charter foi corrigido no mesmo PR que gerou este arquivo** — não fica como
+achado a decidir. A razão é que isto é **ponteiro podre, não escolha de produto**: as três provas
+acima resolvem qual arquivo é a fonte, e o ponteiro errado tinha consequência mecânica, não
+estética — o detector do design-sync perdia o alvo (`target: —`, ciclo de vida `to-create`) e o
+`status.mjs --mark-compared` recusava a fonte com "não pertence ao bundle ativo". A nota do
+`related_prototype` no charter registra o valor anterior, os números e o porquê, para que a
+correção seja auditável. O que **continua** sendo decisão [W] é o destino da cópia antiga:
+mantê-la no espelho, apagá-la, ou declarar qual das duas o Cowork ainda edita.
 
 > **Uma quarta forma de veredito aparece nesta tabela: `Nada — decisão registrada`.** Parte do que
 > o protótipo desenha **foi removida de propósito** e a razão está escrita no código, datada — o
@@ -53,7 +59,7 @@ computada do charter não cita este arquivo — o aviso é o registro da diverg�
 
 | Parte | Estado no vivo | Ação |
 |---|---|---|
-| Cabeçalho | `Index.tsx:190-217` usa o `PageHeader` canônico v3 (ADR 0180/0190) e distribui as quatro ações do protótipo (`pg-cobranca-page.jsx:148-160`): "Nova cobrança" como botão primário, e "Resumir mês", "Gateways" e "Remessa/Retorno" no menu de excedente da sub-navegação (`Index.tsx:209-211`). A contagem "N em aberto" está no subtítulo. | Nada — paridade. A realocação para o menu de excedente é conformidade com o cabeçalho canônico, posterior ao protótipo; as quatro ações continuam alcançáveis. O contador "sync 09:14" do protótipo é instrumento de mockup. |
+| Cabeçalho | `Index.tsx:190-217` usa o `PageHeader` canônico v3 (ADR 0180/0190) e distribui as quatro ações do protótipo (`pg-cobranca-page.jsx:148-160`): "Nova cobrança" como botão primário, e "Resumir mês", "Gateways" e "Remessa/Retorno" no menu de excedente da sub-navegação (`Index.tsx:209-211`). A contagem "N em aberto" está no subtítulo, como no protótipo. | Nada — paridade. A realocação para o menu de excedente é conformidade com o cabeçalho canônico, posterior ao protótipo; as quatro ações continuam alcançáveis. |
 | Funil de cobrança | `Index.tsx:219-224` renderiza o `FunnelStrip` dentro de `Inertia::defer` com esqueleto; o componente (`_components/FunnelStrip.tsx`) tem as mesmas etapas do protótipo (`pg-cobranca-page.jsx:164-167`, componente em `:376-410`). | Nada — paridade. |
 | Cartões de indicador | `Index.tsx:226-246` traz os mesmos quatro cartões do protótipo (`pg-cobranca-page.jsx:169-177`): três fixos (Pago no mês, Vencido, Em aberto) e um contextual, com os mesmos tons. O vivo os defere; o protótipo os calcula em memória. | Nada — paridade. |
 | Abas de status e busca | `Index.tsx:248-286` tem as mesmas abas de status e o mesmo campo de busca do protótipo (`pg-cobranca-page.jsx:179-209`). O botão "Exportar" que o protótipo põe ao lado da busca (`:208`) não existe no vivo. | Nada — decisão registrada. O `Index.tsx:282-286` documenta a remoção ("botões honestos", 2026-05-31) e o charter lista exportar CSV ou PDF como Non-Goal, com o backend em backlog de onda. Reentra quando o endpoint existir — não é decisão pendente desta tabela. |

@@ -78,7 +78,7 @@
         "ancora": "lista"
       },
       "status": "gap-parcial",
-      "acao": "Decidir. Só o enfeite das células. Região do mockup: `backup-page.jsx:141-165`; ponto no vivo: as colunas em `Index.tsx:87-117`. O `Deferred` e a paginação são do vivo e não entram na conversa — nisso o vivo está à frente do protótipo, que lista um array em memória. Construir ou rejeitar por escrito.",
+      "acao": "Decidir. Só o enfeite das células. Região do mockup: `backup-page.jsx:141-165`; ponto no vivo: o array de colunas em `Index.tsx:87-148` (as três células em disputa ficam em `:87-117`). O `Deferred` e a paginação são do vivo e não entram na conversa — nisso o vivo está à frente do protótipo, que lista um array em memória. Construir ou rejeitar por escrito.",
       "_acionavel": true
     },
     {
