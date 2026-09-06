@@ -14,12 +14,13 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Sells/Index.tsx",
-        "linhas": "1239-1276",
-        "ancora": false
+        "linhas": "1244-1281",
+        "ancora": true
       },
       "status": "mapeado",
       "acao": "✅ APLICADO 2026-06-22 (link adicionado)",
-      "_acionavel": true
+      "_acionavel": true,
+      "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = `div.vd-visoes` (botão + dropdown de visões, incl. \"Abrir PDV balcão\" e Caixa do dia)."
     },
     {
       "id": "drawer-fiscal",
@@ -29,12 +30,13 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Sells/_components/FiscalSection.tsx",
-        "linhas": "168-231",
-        "ancora": false
+        "linhas": "114-118",
+        "ancora": true
       },
       "status": "mapeado",
       "acao": "próxima fatia (maior valor)",
-      "_acionavel": true
+      "_acionavel": true,
+      "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = a `<ul>` que renderiza uma `<EmissaoRow>` por emissão (a lista plana que o protótipo quer virar cards NF-e/NFS-e). Range antigo 168-231 era a EmissaoRow isolada."
     },
     {
       "id": "foco-comissao",
@@ -44,12 +46,13 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Sells/Index.tsx",
-        "linhas": "1440-1452",
-        "ancora": false
+        "linhas": "1446-1456",
+        "ancora": true
       },
       "status": "mapeado",
       "acao": "onda backend",
-      "_acionavel": true
+      "_acionavel": true,
+      "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = o `div.os-kpi` \"Top vendedor (mês)\" que só renderiza com `foco === 'comissao'`."
     },
     {
       "id": "saved-tree",
@@ -59,12 +62,13 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Sells/Index.tsx",
-        "linhas": "1145-1162",
-        "ancora": false
+        "linhas": "1124-1224",
+        "ancora": true
       },
       "status": "mapeado",
       "acao": "fatia rápida",
-      "_acionavel": true
+      "_acionavel": true,
+      "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = `div.vd-views` (botão + menu `.vd-tree` com Favoritas + SAVED_VIEWS). Range antigo 1145-1162 era só o `.map` das SAVED_VIEWS."
     },
     {
       "id": "painel-ia",
@@ -74,12 +78,13 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Sells/_components/SaleAiPanel.tsx",
-        "linhas": "152-176",
-        "ancora": false
+        "linhas": "164-173",
+        "ancora": true
       },
       "status": "mapeado",
       "acao": "fatia rápida",
-      "_acionavel": true
+      "_acionavel": true,
+      "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = `div.vd-ai-suggest` — o card de produto sugerido (renderOutput do AiBlock \"Oferta cruzada\"), que é exatamente a região que o gap nomeia; AiBlock é componente e não espalha props."
     },
     {
       "id": "devolucoes-relatorios",
@@ -94,7 +99,9 @@
       },
       "status": "pendente-mapeamento",
       "acao": "backlog (ADR 0105 sinal)",
-      "_acionavel": true
+      "_acionavel": true,
+      "_nota_ancora": "2026-09-06: NÃO ancorada — a região não existe no vivo (gap: \"sub-views previstas, sem tela/rota\"; backlog ADR 0105). Não há elemento pra ancorar."
     }
-  ]
+  ],
+  "_nota_mapeamento": "2026-09-06: 5 partes ganharam vivo.ancora=true (data-contract adicionado em Index.tsx + FiscalSection.tsx + SaleAiPanel.tsx); devolucoes-relatorios segue ancora:false (região inexistente). Ranges regravados pelo elemento ancorado."
 }

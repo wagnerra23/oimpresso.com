@@ -985,6 +985,17 @@ jobs:
       - name: Réguas workflow (persistência incremental · checkpoint antes da prosa · retrato parcial declarado)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/reguas-workflow.test.mjs
+      # Refutador GT-G5 como workflow (.claude/workflows/refutador-gt-g5.js) — caminho executável
+      # do §2 do PROTOCOLO-REFUTADOR-BACKFILL (§7). Mesmo idiom do teste acima: embrulha o
+      # arquivo VIVO com um dublê de agent() (zero agentes/rede/git). Trava as partes puras
+      # (parse do JSON do refutador · entry no formato da do PR #6897 · error_rate · veredito da
+      # MÁQUINA, não do adjetivo do agente) e o controle de fluxo (reprovado PARA sem tocar o
+      # ledger · aprovado grava + ledger-check --enforce · resume lê as caudas · teto). Bite
+      # conferido por mutação em 2026-09-06 (aceite `>` em vez de `>=` → 1 falha; escrivão em
+      # lote reprovado → 5 falhas). Advisory por desenho (ADR 0314/0275).
+      - name: Refutador GT-G5 workflow (reprovado para · aprovado registra · resume · entry 6897)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/refutador-gt-g5-workflow.test.mjs
       - name: Migração visual em ondas (duplo aceite · uma onda · Tier 0)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/migracao-layout-workflow.test.mjs
