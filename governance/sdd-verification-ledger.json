@@ -1769,6 +1769,25 @@
       "evidencia": "memory/sessions/2026-09-06-refutacao-gt-g5-lote-6897-r9.md (rodada aprovada); r1–r8 em memory/sessions/2026-09-06-refutacao-gt-g5-lote-6897{,-r2..-r8}.md",
       "trajetoria": "NOVE rodadas: 13,48% (r1, 19/141) → 2,84% (r2, 4/141) → 5,71% (r3, 6/105) → 6,32% (r4, 6/95) → 8,91% (r5, 9/101) → 3,23% (r6, 2/62) → 4,48% (r7, 3/67) → 3,23% (r8, 2/62) → 1,35% (r9, 1/74). O denominador caiu de 141 para 74 porque cada rodada tirou do lote o que não tinha como ser honesto: 2 gap.md de FUNDAÇÃO (gerar-map só resolve Pages/), OficinaAuto (âncora revogada como MIS-ANCHOR no charter dono em 2026-06-30 — o gerar-map avisou e a r1 seguiu), Crm (o próprio gap diz \"análise, não geração\"), Sells/Index (vendas.map.json do main já cobria a mesma tela — régua duplicada) e Sells/Create (âncora sem related_prototype/bundle_source no charter — decisão [W]). Cobertura de map.json foi 12/23 → 23/23 (r1) → 17/23 (r9), a honesta. DEFEITO DE FUNDO da r1: a derivação mecânica copiava a coluna de DESCRIÇÃO do gap e carimbava \"Decidir.\" sem ler a coluna de VEREDITO da prosa (\"— · —\", \"NÃO fazer\", \"já é canon\", banner de invalidade); r2–r8 reescreveram as tabelas à mão por seção + item do §Veredito e, onde a prosa deixava _pendente_, resolveram lendo o código com linha e commit (AcoesDropdown.tsx 9 ações · Drawer.tsx 5 abas · products.brand_id l.7577). Os refutadores também pegaram recibos errados do gerador (linha de outra tabela, §6 em vez de Parte 4, \"coberto\" com leitura parcial). PII: 0 hits em todas as rodadas, controle positivo por padrão. ERRO RESIDUAL da r9 (trilho FSM já existe em Drawer.tsx l.12–19/197–209) corrigido no mesmo PR após a aprovação, no commit que grava esta entry — a Ação passou a dizer que o trilho existe e que resta só footer de ações por estágio + atalhos fiscais.",
       "marcador_absorcao": "n/a — lote não afrouxa baseline nenhum; o baseline de distiller_freshness foi absorvido em commit próprio com BASELINE-ABSORB (Cliente stale por doc derivado novo)."
+    },
+    {
+      "pr": 6928,
+      "lote_id": "seis-gap-fundacao-shell-map-json",
+      "data": "2026-09-06",
+      "tipo": "anchors",
+      "gerador": "claude-fable-5-1 (Anthropic) — sessão principal (serene-sutherland) que escreveu as 3 tabelas derivadas, os 3 map.json e os 4 blocos map_json: n/a",
+      "refutador": "claude-fable-5-1 (Anthropic) — subagente em contexto próprio, instruído a não abrir nenhuma evidência prévia (nem a r1 deste lote, nem as r1–r9 do #6897); tier igual ao gerador, que é o máximo (§2.3). Uma instância NOVA por rodada (r1, r2). Lote com 10 arquivos em memory/requisitos (≤10: refutação VOLUNTÁRIA — o histórico do #6897 pedia a prova).",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 316,
+      "erros_confirmados": 3,
+      "error_rate_pct": 0.95,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "veredito": "aprovado",
+      "evidencia": "memory/sessions/2026-09-06-refutacao-gt-g5-seis-gap-fundacao-r2.md (rodada aprovada); r1 em memory/sessions/2026-09-06-refutacao-gt-g5-seis-gap-fundacao-r1.md",
+      "trajetoria": "DUAS rodadas: 2,77% (r1, 7/253, reprovado) → 0,95% (r2, 3/316, aprovado). Os 7 da r1 eram Estado/Ação herdados da prosa de 2026-06-23 sem re-medir o código de hoje (badge de contagem re-adicionado em 2026-07-14, listener do G X em useSidebarShortcut, RECURSOS :33-39, oficina-print.js já no espelho, 5 de 6 KPIs clicáveis, tabela de citações incompleta) — corrigidos no commit 588f19c2f2. Os 3 da r2 (acao de 1 parte preservado stale pelo --atualizar; '8 arquivos' expurgados eram 7; decomposição '18 sob Pages/' era 16+2) corrigidos no mesmo PR depois da aprovação, com regen fresca dos 3 mapas. Mecânica: --atualizar idêntico ×3, selftests OK, design-code-map-check 20/20 + 4 fora do denominador, único DRIFT pré-existente (Cliente/clientes.map.json). PII 0 nas duas rodadas, controle positivo por padrão.",
+      "marcador_absorcao": "n/a — lote não afrouxa baseline nenhum; o denominador do design-code-map-check passa a excluir gap.md com map_json: n/a declarado (4), com o motivo listado no relatório."
     }
   ]
 }
