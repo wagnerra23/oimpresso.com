@@ -63,7 +63,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. só sort por frescor (`updated_at`/`indexed_at`, P — §6 Esforço: dado já existe). Métricas de leitura/utilidade e votação: NÃO adotar (§Veredito).",
+      "acao": "Decidir. só sort por frescor (`updated_at`/`indexed_at`) — Parte 4 Esforço/risco: P, dado já existe. Não consta do §Veredito \"Adotar\" #1–#4 (é item menor da própria Parte 4). Métricas de leitura/utilidade e votação: NÃO adotar (§Veredito).",
       "_acionavel": true
     },
     {

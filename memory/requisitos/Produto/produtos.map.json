@@ -63,7 +63,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. Só (a) lista densa ordenável + toggle — §Veredito adotar #3 (Parte 3+4, M; popularidade/preço/nome). (c) custo/margem/fornecedor, (d) estoque por linha e (b)/(f) dependentes de variante/estoque: NÃO adotar sem ADR/SPEC + backend + dupla-confirmação (Tier 0; o vivo não expõe cost/qty hoje).",
+      "acao": "Decidir. Só (a) lista densa ordenável + toggle — §Veredito adotar #3 (Parte 3+4, M; popularidade/preço/nome). (c) custo/margem/fornecedor, (d) estoque por linha e (b)/(f) dependentes de variante/estoque: NÃO adotar sem ADR/SPEC + backend + dupla-confirmação (Tier 0 — Parte 4 Esforço/risco: `ProdutoRow` já tem `cost`/`margin`/`stockQty`; o que o backend não expõe é fornecedores/variantes/BOM, _pendente_).",
       "_acionavel": true
     },
     {
