@@ -1,0 +1,131 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "OficinaAuto/ServiceOrders/Board (/oficina-auto/ordens-servico)",
+  "gap_fonte": "memory/requisitos/OficinaAuto/ordens-servico-board-gap.md",
+  "prototipo_sha": "sha256:46891d3a4c5c",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "header-titulo",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-page.jsx",
+        "linhas": "963-972"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx",
+        "linhas": "685-700",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade (Onda 1; charter §Goals \"header fica só com Imprimir fila + Nova OS\", `Board.charter.md:56-59`).",
+      "_acionavel": false
+    },
+    {
+      "id": "kpis",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-page.jsx",
+        "linhas": "977-1005"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx",
+        "linhas": "477-492",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade (charter §Goals \"KPIs com sublinha … 5 clicáveis como filtro\"). ⚠️ valor: o KPI só exibe o agregado computado no backend (`kpis.valor_em_curso`), não soma no front — é o que o gap antigo (parte 2) exigia.",
+      "_acionavel": false
+    },
+    {
+      "id": "filtros-boxes-elevadores",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-page.jsx",
+        "linhas": "1010-1025"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx",
+        "linhas": "720-758",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade (charter §Goals \"Abas de box/elevador (filtro client-side com contador)\"). Data-driven onde o mockup era `RECURSOS` fixo.",
+      "_acionavel": false
+    },
+    {
+      "id": "busca-livre",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-page.jsx",
+        "linhas": "1029-1033"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx",
+        "linhas": "769-772",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade (cabeçalho `:42` \"busca com botão limpar (×) + atalho /\").",
+      "_acionavel": false
+    },
+    {
+      "id": "toggles-de-view",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-page.jsx",
+        "linhas": "1036-1070"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx",
+        "linhas": "836-909",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade (tela unificada [W] 2026-06-11; charter §Goals \"Toggle de 4 views — TODAS in-page\"). A Grade não adota a heurística sintoma→serviço — Non-Goal do charter (`no-mock-in-prod`): a marca espelha só a etapa FSM real.",
+      "_acionavel": false
+    },
+    {
+      "id": "colunas-cards-de-os",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-page.jsx",
+        "linhas": "63-340"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx",
+        "linhas": "909-931",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade nas partes com lastro (Onda 1.5) + Non-Goal do charter para as sem coluna real (\"NÃO inventa campo sem lastro … reentram quando houver schema\"). Avanço nunca por `UPDATE current_stage_id` (Anti-hook).",
+      "_acionavel": false
+    },
+    {
+      "id": "drawer",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-page.jsx",
+        "linhas": "394-730"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx",
+        "linhas": "938-946",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade (Onda 2). ⚠️ valor: edição de peças/MO/DVI toca valor e já vive atrás do FSM + Regra Mestre no vivo; nada a adotar do mock (que edita estado React local).",
+      "_acionavel": false
+    },
+    {
+      "id": "impressao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-page.jsx",
+        "linhas": "970"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx",
+        "linhas": "638-665",
+        "ancora": false
+      },
+      "status": "fechado-no-codigo",
+      "acao": "Nada — fechado no código: o `_pendente_` (fonte do `OficinaPrint`) foi resolvido com helper próprio; fila e OS individual existem.",
+      "_acionavel": false
+    }
+  ],
+  "_nota_mapeamento": "2026-09-06 [C]: par CORRETO de oficina-page.jsx (Board.charter.md:5 visual_source; ancora.mjs). Âncora dupla por parte por grep -n nos dois lados. Todas as 8 partes em paridade/fechado-no-codigo — o mapa existe pra provar a alegação \"vivo à frente\" com linha (RUNBOOK Fase 1 regra 1) e pra abortar a Fase 4 se o protótipo re-exportar. A OS individual imprime em resources/js/Pages/OficinaAuto/ProducaoOficina/_components/ServiceOrderRichSheet.tsx:589-592 (fora do Board.tsx). vivo.ancora: false explícito: Board.tsx tem 0 data-contract (medido)."
+}

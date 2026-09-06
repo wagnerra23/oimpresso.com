@@ -1,0 +1,266 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Shell / Sidebar (AppShellV2)",
+  "gap_fonte": "memory/requisitos/_DesignSystem/sidebar-v3-unificado-gap.md",
+  "prototipo_sha": "sem-arquivo",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "tema",
+      "prototipo": {
+        "arquivo": "TODO",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/css/cockpit.css",
+        "linhas": "187-204",
+        "ancora": false
+      },
+      "status": "decisao-registrada",
+      "acao": "Nada — decisão [W] 2026-07-16 POSTERIOR à prosa: [ADR UI-0023](adr/ui/0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md) (dark fixo DEFINITIVO; supersede UI-0019/0009/0014). O \"conflito de canon\" acima foi desempatado — não reabrir.",
+      "_acionavel": false
+    },
+    {
+      "id": "largura-sidebar",
+      "prototipo": {
+        "arquivo": "TODO",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/css/cockpit.css",
+        "linhas": "26",
+        "ancora": false
+      },
+      "status": "gap-parcial",
+      "acao": "Decidir. 260→248 (P) — §Ordem sugerida 5: \"trivial, só se Wagner quiser paridade exata\".",
+      "_acionavel": true
+    },
+    {
+      "id": "logo-topo",
+      "prototipo": {
+        "arquivo": "TODO",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Components/cockpit/Sidebar.tsx",
+        "linhas": "412-481",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade (#3).",
+      "_acionavel": false
+    },
+    {
+      "id": "busca-cmd-k-na-sidebar",
+      "prototipo": {
+        "arquivo": "TODO",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Layouts/AppShellV2.tsx",
+        "linhas": "731",
+        "ancora": false
+      },
+      "status": "gap-parcial",
+      "acao": "Decidir. Entry visual \"Buscar tudo… ⌘K\" na `sb-top` plugando no `CommandPalette` existente — §Ordem sugerida 2 (P-M, sem valor).",
+      "_acionavel": true
+    },
+    {
+      "id": "secao-fixados-pinned",
+      "prototipo": {
+        "arquivo": "TODO",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Components/cockpit/Sidebar.tsx",
+        "linhas": "808-926",
+        "ancora": false
+      },
+      "status": "gap-parcial",
+      "acao": "Decidir. Seção Pinned — §Ordem sugerida 3 (G · Fase 7 da ADR 0180 · LocalStorage scopado `b<bizId>` = Tier 0 multi-tenant).",
+      "_acionavel": true
+    },
+    {
+      "id": "grupos-de-navegacao",
+      "prototipo": {
+        "arquivo": "TODO",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Components/cockpit/Sidebar.tsx",
+        "linhas": "175-271",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — NÃO fazer (§Ordem: #6 seria regressão 8→5; vivo mais recente que o protótipo).",
+      "_acionavel": false
+    },
+    {
+      "id": "labels-dos-grupos",
+      "prototipo": {
+        "arquivo": "TODO",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Components/cockpit/Sidebar.tsx",
+        "linhas": "175-271",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — NÃO fazer (#7, vivo vence).",
+      "_acionavel": false
+    },
+    {
+      "id": "atalhos-kbd",
+      "prototipo": {
+        "arquivo": "TODO",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Components/cockpit/Sidebar.tsx",
+        "linhas": "490-527",
+        "ancora": false
+      },
+      "status": "fechado-no-codigo",
+      "acao": "Nada — fechado no código depois da prosa (§Ordem 4 era \"hints kbd (M)\"): hint existe e só aparece pra atalho ligado. Quantos itens têm sequência `G X` ligada não foi medido aqui.",
+      "_acionavel": false
+    },
+    {
+      "id": "icones-dos-itens",
+      "prototipo": {
+        "arquivo": "TODO",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Components/cockpit/Sidebar.tsx",
+        "linhas": "60-146",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — preservar Lucide (#9 \"NÃO trocar por glyph\").",
+      "_acionavel": false
+    },
+    {
+      "id": "item-ativo-hover",
+      "prototipo": {
+        "arquivo": "TODO",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Components/cockpit/Sidebar.tsx",
+        "linhas": "757-759",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade conceitual (#10); o eixo tema foi resolvido em #1.",
+      "_acionavel": false
+    },
+    {
+      "id": "hue-por-grupo",
+      "prototipo": {
+        "arquivo": "TODO",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Components/cockpit/shared.ts",
+        "linhas": "208-245",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo vence (#11, escala [W] 2026-05-22).",
+      "_acionavel": false
+    },
+    {
+      "id": "colapso",
+      "prototipo": {
+        "arquivo": "TODO",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Components/cockpit/Sidebar.tsx",
+        "linhas": "927-1088",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — preservar (#12: \"protótipo não cobre, não remover\").",
+      "_acionavel": false
+    },
+    {
+      "id": "mobile-off-canvas",
+      "prototipo": {
+        "arquivo": "TODO",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Layouts/AppShellV2.tsx",
+        "linhas": "603-618",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — preservar (#13, [W] 2026-06-17).",
+      "_acionavel": false
+    },
+    {
+      "id": "rodape-usuario",
+      "prototipo": {
+        "arquivo": "TODO",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Components/cockpit/Sidebar.tsx",
+        "linhas": "1427-1488",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — preservar (#14, vivo bem mais rico).",
+      "_acionavel": false
+    },
+    {
+      "id": "densidade-tema-tweaks",
+      "prototipo": {
+        "arquivo": "TODO",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Layouts/AppShellV2.tsx",
+        "linhas": "734-743",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo tem a mais (#15).",
+      "_acionavel": false
+    },
+    {
+      "id": "pageheader-ghosts-aria",
+      "prototipo": {
+        "arquivo": "TODO",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "n/a",
+        "linhas": "n/a",
+        "ancora": false
+      },
+      "status": "fora-de-escopo",
+      "acao": "Nada — fora de escopo (#16 \"separar do PR de fundação\").",
+      "_acionavel": false
+    },
+    {
+      "id": "topbar-breadcrumb",
+      "prototipo": {
+        "arquivo": "TODO",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Layouts/AppShellV2.tsx",
+        "linhas": "626-719",
+        "ancora": false
+      },
+      "status": "decisao-registrada",
+      "acao": "Nada — NÃO ressuscitar (#17, vivo decidiu remover).",
+      "_acionavel": false
+    }
+  ],
+  "_nota_mapeamento": "2026-09-06 [C]: FUNDAÇÃO/SHELL, não tela — o lado protótipo é TODO por desenho (pasta prototipo-ui/prototipos/ expurgada em 2026-06-23, ver prototipo_nota do gap.md; sem sucessor no espelho). O lado vivo é ancorado ARQUIVO A ARQUIVO por parte (grep -n em 2026-09-06): a fundação vive em Components/Layouts/css, não sob Pages/ — resolverArquivoVivo passou a aceitar Components/Layouts nesta data (gerar-map.mjs). vivo.ancora: false explícito em todas: nenhum dos arquivos vivos tem data-contract (medido, 0 ocorrências). Status por parte espelha a coluna Ação da tabela derivada: paridade · vivo-a-frente · decisao-registrada · fechado-no-codigo (o código fechou o gap DEPOIS da prosa) · gap-parcial (só onde a Ação é Decidir.) · backlog-sem-sinal · fora-de-escopo (vivo n/a)."
+}

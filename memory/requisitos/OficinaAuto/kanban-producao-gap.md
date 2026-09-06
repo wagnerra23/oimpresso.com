@@ -1,8 +1,16 @@
 ---
 id: requisitos-oficina-auto-kanban-producao-gap
+map_json: n/a (âncora oficina-page.jsx revogada como MIS-ANCHOR pelo charter dono em 2026-06-30 — o par correto vive em memory/requisitos/OficinaAuto/ordens-servico-board-gap.md)
 ---
 
 # Gap — Kanban "Oficina Auto" (mockup Cowork × tela viva)
+
+> ## ⚠️ 2026-09-06 — este gap compara o PAR ERRADO; o dono de `oficina-page.jsx` é `OficinaAuto/ServiceOrders/Board`
+>
+> - `resources/js/Pages/Repair/ProducaoOficina/Index.charter.md:14-17` (2026-06-30, musing-elion): *"removido related_prototype: oficina-page.jsx — MIS-ANCHOR. Esta tela serve Repair/JobSheet (vertical genérico), NÃO a OficinaAuto de veículo. oficina-page.jsx é o kanban de VEÍCULO da OficinaAuto → ancora em ServiceOrders/Board"*. Medido hoje: `node prototipo-ui/ancora.mjs Repair/ProducaoOficina --staging prototipo-ui/cowork` → âncora `repair-page.jsx` (bundle); `… OficinaAuto/ServiceOrders/Board` → `oficina-page.jsx` (`Board.charter.md:5 visual_source`).
+> - Por isso este arquivo **não ganha `map.json`** (frontmatter `map_json: n/a`): o `gerar-map` avisou na r1 do [#6897](https://github.com/wagnerra23/oimpresso.com/pull/6897) e o lote seguiu — refutação r3 R-1 tirou o mapa.
+> - O que este arquivo ainda vale: registro datado (2026-06-30) da leitura do mockup contra o kanban do Repair. Os "ganhos a colher" listados abaixo (busca, 6 KPIs, view Lista, placa Mercosul) foram medidos no Board em 2026-09-06 — **todos entregues** (Onda 1/1.5/2): ver [`ordens-servico-board-gap.md`](ordens-servico-board-gap.md). A [`RECONCILIACAO-os-inventario.md`](RECONCILIACAO-os-inventario.md) já mandava aplicá-los "no canon A (Board), não na duplicata C".
+> - As restrições Tier 0 abaixo (ADR 0265 domínio · multi-tenant · FSM · valor) seguem verdadeiras para as DUAS telas.
 
 > **Fase 1 read-only** da skill `aplicar-prototipo`. Mapa do que o mockup propõe que a tela viva não tem.
 > NÃO toca código. Veredito + esforço/risco por parte.

@@ -1,6 +1,7 @@
 ---
 tela: Foundation / PageHeader
-prototipo: prototipo-ui/prototipos/pageheader-canon-v3/ (index.html · 3-familias.html · b-v2-roxo-kpis.html · clientes-filtros-amostra.html · SPEC.md · README.md)
+prototipo: TODO
+prototipo_nota: "2026-09-06 [C]: o campo era `prototipo-ui/prototipos/pageheader-canon-v3/ (index.html · 3-familias.html · b-v2-roxo-kpis.html · clientes-filtros-amostra.html · SPEC.md · README.md)` — a pasta prototipo-ui/prototipos/ foi expurgada em 2026-06-23 (commit 9da73296d3, consolidação SSOT em prototipo-ui/cowork/; os 8 arquivos desta pasta saíram nele). Não há sucessor no espelho: fonte viva é o DS em git (prototipo-ui/design-system). Âncora do lado protótipo fica TODO por desenho; o lado vivo é ancorado por grep real."
 tela_viva: resources/js/Components/PageHeader/PageHeader.tsx + PageHeaderPrimary.tsx + index.ts (consumo de referência: resources/js/Pages/Cliente/Index.tsx)
 paridade_atual: ~85% (código vivo já está ADIANTE do protótipo index.html; protótipo é internamente inconsistente)
 gerado_em: 2026-06-23
@@ -121,3 +122,24 @@ componente vivo (voltam pro card + hue-per-grupo + IBM Plex) — violando AP16/A
 **Recomendação:** executar só o **PASSO 0 (doc)** sem decisão adicional. Tudo além
 (P4/P7/P8 + SPEC §7-§28) requer decisão explícita de Wagner/Claude Design — não é
 trabalho de "aplicar protótipo", é evolução de fundação governada.
+
+---
+
+## Tabela de partes (derivada 2026-09-06 — veredito da prosa × código medido)
+
+> Escrita por [C] em 2026-09-06. Regra: cada Ação cita o veredito da prosa acima (§1 Risco/Governança · §2 Ordem · §3) **e** o estado do código medido hoje com `arquivo:linha`. "**Decidir.**" só onde a prosa registra gap aberto que exige decisão; "Nada — <veredito>" onde a prosa fecha (já é canon · não aplicar · backlog) ou onde o código fechou o gap DEPOIS da prosa (2026-06-23). Em conflito prosa × código, o código medido vence e a linha diz isso. Lado protótipo = `TODO` (expurgado — ver `prototipo_nota`). Consumida por `prototipo-ui/gerar-map.mjs` → `pageheader-canon-v3.map.json`.
+
+| Parte | Estado no vivo (medido 2026-09-06) | Ação |
+|---|---|---|
+| Geometria 3 zonas | `resources/js/Components/PageHeader/PageHeader.tsx:107` `flex items-center gap-4 pt-6 px-6 pb-3.5 min-h-[60px]` · `:109` Zona L `flex-1 min-w-0` · `:158` Zona R `flex-shrink-0`. | Nada — paridade (§3 "já é canon"; P1 esforço `— (só doc)`). |
+| Container / fundação | `PageHeader.tsx:102-106` flat: `border-b overflow-visible` + `borderBottomColor: var(--border)`; sem sticky, sem blur, sem card. | **Decidir.** Sticky+blur do SPEC §3 nunca foi implementado — P2 Governança: "decidir se sticky+blur entra é decisão Claude Design (ADR 0235)". NÃO aplicar `index.html` (regressão pro card · AP16/AP20). |
+| Título + suffix + subtitle | `PageHeader.tsx:110-146` H1 `text-[22px] font-bold tracking-tight leading-snug` + suffix `font-semibold text-muted-foreground` (`:139`) + subtitle `text-xs tabular-nums` (`:143`). | Nada — paridade ~95% (P3: vivo é a versão decidida, 22/700). |
+| SubNav / abas (Zona C) | A prosa (2026-06-23) media "NÃO existe componentizado". Hoje existe: `resources/js/Components/shared/PageHeaderTabs.tsx` (352 ln · ADR 0180 · ghosts ARIA tablist + overflow `⋯ Mais` quando > `maxVisible`, docblock `:16-26`) + `resources/js/Components/shared/SubNav.tsx` (217 ln) + slot `below` em `PageHeader.tsx:82` (2026-09-03); `resources/js/Pages/Cliente/Index.tsx:961` consome `<PageHeaderTabs>` abaixo do header. | Nada — fechado no código depois da prosa: o §3 "propõe além: `<PageHeaderSubNav>` + overflow `Mais (N)`" já existe (PageHeaderTabs). Sobra do SPEC §5 (scroll-snap, underline framer-motion spring) = "features não-aceitas (backlog)" (P4), sem sinal (ADR 0105). `index.ts:8` ainda lista Wave 3 — só doc. |
+| Counter por tab | `Cliente/Index.tsx:807-811` `tab_counts` vem do backend (AP18) e NÃO é renderizado como badge na aba. | Nada — decisão [W] 2026-05-25 registrada (P5: "não re-adicionar sem sinal"). |
+| Primary roxo 295 universal (Zona R) | `resources/js/Components/PageHeader/PageHeaderPrimary.tsx:70-72` `oklch(0.55 0.15 295)` bg + `oklch(0.45 0.15 295)` border · `:63` `h-8 rounded-md`. | Nada — paridade com a intenção vigente (ADR 0190→0235; P6). `index.html`/`3-familias.html` violam AP20 — não aplicar. |
+| Ghosts / overflow ⋮ (Zona R) | 0 componente `<PageHeaderOverflow>` no repo (`PageHeader/index.ts:9` ainda lista Wave 3). `PageHeaderTabs.tsx:87-109` tem só o `⋯ Mais` de ABAS (`PageHeaderOverflowItem`/`extraOverflowItems`), não o ⋮ de ações. `Cliente/Index.tsx:888-942` hand-rola o `DropdownMenu` ⋮ (Dados/Configuração). | **Decidir.** Componentizar ⋮ com seções canônicas — §2 PASSO 3 (M) e §3 "propõe além (precisa ADR + decisão Claude Design [W])". Filtros-no-overflow × toolbar é decisão de tela, não de fundação (P7). |
+| KPIs no header / KPI strip | 0 `<KpiStripCanon>` (`index.ts:10`). Existem `resources/js/Components/shared/KpiGrid.tsx` (66 ln) + `KpiCard.tsx` (257 ln) genéricos de dashboard, e `KpiStripClickable` local do Cliente (`Cliente/Index.tsx:976`). | **Decidir.** BLOCO 2 canon — §2 PASSO 2 (G · fundação serializada). O gate da prosa ("só se ADR 0189 for ACEITA") caducou: `memory/decisions/0189-pageheader-canon-v3-1-cadastro-roxo.md` está `status: aceito`. Resta a decisão Claude Design/[W] do §3. |
+| Modo NAV vs modo FOCO | `PageHeader.tsx:66,155` `subnav` é opcional — modo FOCO = não passar. | Nada — já é canon (P9: só documentar que o protótipo não é a fonte do modo FOCO). |
+| Filtros (clientes-filtros-amostra) | Decisão de tela: o Cliente moveu filtros pra toolbar (Wave G, P10). Não medido aqui — não é fundação. | Nada — exploração abandonada (P10 "ignorar pra fins de fundação"). |
+| As 3 famílias | Container warm flat (`PageHeader.tsx:7-9`, `:102-106`) + primary roxo (`PageHeaderPrimary.tsx:70-72`). | Nada — decisão fechada pelas ADRs 0189/0190/0235 (P11). |
+| SPEC §7-§28 | Sem density switcher, View Transitions, telemetry, i18n, Storybook no componente (`PageHeader.tsx` inteiro, 175 ln). | Nada — não é gap, é backlog (P12 Governança: "tratar como backlog, não gap"; cada item só com ADR + sinal ADR 0105). |
