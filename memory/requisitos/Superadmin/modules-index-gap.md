@@ -1,18 +1,25 @@
 ---
 id: requisitos-superadmin-modules-index-gap
-tela: Modules/Index (/modulos)
+tela: Pages/Modules/Index (/modulos)
 prototipo: prototipo-ui/cowork/modulos-page.jsx
 tela_viva: resources/js/Pages/Modules/Index.tsx
 gerado_em: 2026-09-06
 ---
 
-<!-- O basename deste arquivo precisa ser slug("Modules/Index") + "-gap.md": e assim que
-     prototipo-ui/gerar-contrato.mjs::escolherGap resolve <Mod/Tela> -> gap/map. Com outro
-     nome, `node prototipo-ui/consumir-map.mjs Modules/Index` sai rc=1 "map nao encontrado"
-     mesmo com o arquivo no disco, e a Fase 4 fica inalcancavel pela forma canonica.
-     Medido em 2026-09-06, antes e depois do rename. -->
+<!-- DUAS convencoes de nome valem aqui, e as duas foram medidas em 2026-09-06.
 
-# GAP-SPEC — Modules/Index
+     1) BASENAME. Tem que ser o slug do <Mod/Tela> + "-gap.md" — e assim que
+        prototipo-ui/gerar-contrato.mjs::escolherGap resolve <Mod/Tela> -> gap/map. Com outro
+        nome, `node prototipo-ui/consumir-map.mjs <Mod/Tela>` sai rc=1 "map nao encontrado"
+        mesmo com o arquivo no disco, e a Fase 4 fica inalcancavel pela forma canonica.
+
+     2) PREFIXO `Pages/` nas mencoes a esta tela. O diretorio de telas Inertia se chama
+        `Modules/`, igual ao diretorio de app-modules do Laravel — entao o token nu casa o
+        MOD_REF_RE do scripts/governance/knowledge-drift.mjs e a tela vira "modulo-fantasma"
+        (ghost NOVO, ratchet do sdd-scorecard reprova). Escrever `Pages/Modules/Index` diz a
+        verdade e casa o lookbehind. O `ancora.mjs` aceita as duas formas (medido). -->
+
+# GAP-SPEC — Pages/Modules/Index
 
 > **Três donos já falam desta tela, e esta tabela não os contradiz.** (a) O
 > [`modulos.contract.json`](../../../prototipo-ui/contrato/modulos.contract.json) trava a copy e a

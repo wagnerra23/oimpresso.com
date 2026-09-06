@@ -109,7 +109,21 @@ const TRUTH_RE = /^(SPEC|README|ARCHITECTURE|BRIEFING|CAPTERRA.*|CAPTERRA-INVENT
 // Contar isso inventava um módulo-fantasma (ghost falso no --check daqui + ref-quebrada de
 // 5pts no doc-freshness). Lookbehind negativo exclui o prefixo de suíte Pest/PHPUnit — uma
 // referência REAL a Modules/<X> em prosa nunca vem precedida de "Feature/" nem "Unit/".
-export const MOD_REF_RE = /(?<!Feature\/)(?<!Unit\/)Modules\/([A-Z][A-Za-z0-9]+)/g;
+//
+// `Pages/` entrou em 2026-09-06 pela MESMA razão, num TERCEIRO prefixo: as telas Inertia
+// vivem em resources/js/Pages/<Mod>/, e uma delas — o gerenciador de módulos — mora em
+// `Pages/Modules/Index.tsx`. O literal "Modules/Index" ali é o PATH DA TELA, não referência
+// a app-module: `Modules/Index/` não existe no disco e nunca existiu. Sem este lookbehind,
+// todo doc que ancore essa tela (gap.md, map.json) nasce com ghost NOVO e reprova o ratchet
+// do sdd-scorecard — ou seja, nenhuma tela sob Pages/Modules/ podia ter Fase 1.
+//
+// FP MEDIDO ANTES DE ARMAR (regra "LIGUE A MÁQUINA" item 4), no repo inteiro:
+//   git grep -oh 'Pages/Modules/[A-Z][A-Za-z0-9]*' | sed 's|.*Pages/Modules/||' | sort -u
+// devolve UM sucessor — `Index` — e `Modules/Index/` NÃO existe entre os 32 app-modules do
+// disco. O lookbehind não esconde nenhuma referência real: ganho 1, perda 0.
+// Bite-test do contrato: `Pages/Modules/Index` não casa · `Feature/Modules/X` não casa ·
+// `Unit/Modules/X` não casa · `Modules/Fantasma` casa · `Modules/Jana` casa.
+export const MOD_REF_RE = /(?<!Feature\/)(?<!Unit\/)(?<!Pages\/)Modules\/([A-Z][A-Za-z0-9]+)/g;
 
 // ---------------------------------------------------------------------------
 // DETECTOR DE PATH FANTASMA (P16 — "docs/ADRs apontam pra mecanismo-fantasma").
