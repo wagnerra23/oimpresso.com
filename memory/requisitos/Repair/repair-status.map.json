@@ -1,0 +1,89 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Repair/Status/Index (/repair/status)",
+  "gap_fonte": "memory/requisitos/Repair/repair-status-gap.md",
+  "prototipo_sha": "sha256:548d060ec551",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "header-e-acao-primaria",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "307-311, 330-331"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/Status/Index.tsx",
+        "linhas": "29-41",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade com título／descrição e \"Adicionar status\" gated por `repair_status.access` (repair-page.jsx:307-311, 330-331).",
+      "_acionavel": false
+    },
+    {
+      "id": "lista-de-status",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "313-325"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/Status/Index.tsx",
+        "linhas": "50-97",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade com as linhas do mockup (selo colorido, ordem, flag concluído, Editar — repair-page.jsx:313-325). O Blade de origem só tinha nome／cor／ordem／ação (status/index.blade.php:11-14); o vivo já está à frente dele com a coluna Concluído?.",
+      "_acionavel": false
+    },
+    {
+      "id": "metadados-por-status",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "319-321"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/Status/Index.tsx",
+        "linhas": "14-20 (prop sem os campos)",
+        "ancora": false
+      },
+      "status": "gap",
+      "acao": "Decidir. O mockup mostra por linha \"ordem N · coluna X · N folha(s)\" e a prévia do SMS (repair-page.jsx:319-321). Nenhum dos 3 existe no Blade de origem nem no vivo — é adição do mockup; os Non-Goals (l.40-44) não os vetam. Exige o Controller agregar a contagem e expor o template. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "alerta-de-exclusao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "327-329"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/Status/Index.tsx",
+        "linhas": "n/a — sem exclusão nesta tela",
+        "ancora": false
+      },
+      "status": "fechado",
+      "acao": "Nada — paridade. O `Alert` \"Excluir status não é reversível\" do mockup (repair-page.jsx:327-329) não tem onde morar aqui; decisão já registrada no charter.",
+      "_acionavel": false
+    },
+    {
+      "id": "estado-vazio",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "302-334 (aba sem estado vazio)"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/Status/Index.tsx",
+        "linhas": "43-48",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente. O mockup não tem estado vazio nesta aba (`D.STATUS` fixo).",
+      "_acionavel": false
+    }
+  ],
+  "mapping": {
+    "source": "repair-page.jsx",
+    "target": "resources/js/Pages/Repair/Status/Index.tsx"
+  }
+}

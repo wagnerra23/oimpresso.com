@@ -337,6 +337,97 @@
       "smokes": []
     },
     {
+      "source": "repair-page.jsx",
+      "target": "resources/js/Pages/Repair/Dashboard/Index.tsx",
+      "sourceSha256": "d3fcbbea66a34180ee148fc5cca0bdf51613ea8b19572107d2dbe205a9511538",
+      "targetSha256": "74f2a2458ef7f120a33e8fa47bcd00aa4955b009e2cd9b8554b0454368a5aa52",
+      "comparison": {
+        "map": "memory/requisitos/Repair/repair-dashboard.map.json",
+        "mapSha256": "dfa7937f5b7b80e1531da66b5f19a17a73f7881ce308758db364b54313b60a37",
+        "recordedAt": "2026-09-06T18:34:56.754Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "repair-page.jsx",
+      "target": "resources/js/Pages/Repair/DeviceModels/Index.tsx",
+      "sourceSha256": "d3fcbbea66a34180ee148fc5cca0bdf51613ea8b19572107d2dbe205a9511538",
+      "targetSha256": "a060dd51b5730b15b06b8c934ad44ff9f64f8db4cde9c51e13ce68c21722d193",
+      "comparison": {
+        "map": "memory/requisitos/Repair/repair-device-models.map.json",
+        "mapSha256": "ddaa46b9e3bead8c4e8000c33e187a63caec2b165e1975f7c1ce149e72a2b3ee",
+        "recordedAt": "2026-09-06T18:35:03.227Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "repair-page.jsx",
+      "target": "resources/js/Pages/Repair/Index.tsx",
+      "sourceSha256": "d3fcbbea66a34180ee148fc5cca0bdf51613ea8b19572107d2dbe205a9511538",
+      "targetSha256": "10ad215532fbe52eb3056f3053033f0df17f110bf6ac584f832e2789891a6a08",
+      "comparison": {
+        "map": "memory/requisitos/Repair/repair-index.map.json",
+        "mapSha256": "450985bae1d9a45be01852e0dd5d09127ebef372651764c04042f732f0fa07fd",
+        "recordedAt": "2026-09-06T18:34:59.834Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "repair-page.jsx",
+      "target": "resources/js/Pages/Repair/JobSheet/Index.tsx",
+      "sourceSha256": "d3fcbbea66a34180ee148fc5cca0bdf51613ea8b19572107d2dbe205a9511538",
+      "targetSha256": "43e2a7b5cbb8d6679b4dada0cf21e76417dc8e5c2cf494c8a87600cb3d159364",
+      "comparison": {
+        "map": "memory/requisitos/Repair/repair-jobsheet.map.json",
+        "mapSha256": "6968659fba3c478adb69e6f4ec00641d1bc2eb1a137d7c22583778e0862428cf",
+        "recordedAt": "2026-09-06T18:34:58.253Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "repair-page.jsx",
+      "target": "resources/js/Pages/Repair/ProducaoOficina/Index.tsx",
+      "sourceSha256": "d3fcbbea66a34180ee148fc5cca0bdf51613ea8b19572107d2dbe205a9511538",
+      "targetSha256": "dd935938a537931268af8c32debcd94b9a055ca41f65e321d87a1423df736b0b",
+      "comparison": {
+        "map": "memory/requisitos/Repair/repair-producao-oficina.map.json",
+        "mapSha256": "dbee4e84d474aa25ffcee7eb43aab7a6a9330240a8ab8a9c851cc9bc0a5c50be",
+        "recordedAt": "2026-09-06T18:35:04.770Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "repair-page.jsx",
+      "target": "resources/js/Pages/Repair/Settings/Index.tsx",
+      "sourceSha256": "d3fcbbea66a34180ee148fc5cca0bdf51613ea8b19572107d2dbe205a9511538",
+      "targetSha256": "9b8ea72b02522d29d1fc53c078284c20ec2c20d569002cc3cf384f2c5012c0f1",
+      "comparison": {
+        "map": "memory/requisitos/Repair/repair-settings.map.json",
+        "mapSha256": "83ff26127006ed4cd230af4c8288ed52faa8056b61004b0525c6652d83470bb7",
+        "recordedAt": "2026-09-06T18:35:06.172Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "repair-page.jsx",
+      "target": "resources/js/Pages/Repair/Status/Index.tsx",
+      "sourceSha256": "d3fcbbea66a34180ee148fc5cca0bdf51613ea8b19572107d2dbe205a9511538",
+      "targetSha256": "9e68b4ff81506911a7a2019ebb0a29e6ed894e3021e0922873281fe5751d7a39",
+      "comparison": {
+        "map": "memory/requisitos/Repair/repair-status.map.json",
+        "mapSha256": "d832dd31c0e311e134193a86d98a883f90ec4092c361268e4c3c1559d14931f4",
+        "recordedAt": "2026-09-06T18:35:01.720Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
       "source": "superadmin-page.jsx",
       "target": "Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx",
       "sourceSha256": "3946e9c5c60d828d45e31a342a3c9a294fc663e4eac70ecc3496465d1e372c1c",
