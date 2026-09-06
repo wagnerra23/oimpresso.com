@@ -1,0 +1,119 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Repair/Index (/repair/repair)",
+  "gap_fonte": "memory/requisitos/Repair/repair-index-gap.md",
+  "prototipo_sha": "sha256:548d060ec551",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "header",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "705"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/Index.tsx",
+        "linhas": "192-205",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade com \"Adicionar folha\" do shell gated por permissão (repair-page.jsx:705). A aba do mockup se declara só-leitura (\"aqui só se lê\", repair-page.jsx:297) e o vivo não muta nada em GET (UC-RIDX-04).",
+      "_acionavel": false
+    },
+    {
+      "id": "kpis",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "286-292"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/Index.tsx",
+        "linhas": "208-232",
+        "ancora": false
+      },
+      "status": "gap-parcial",
+      "acao": "Decidir. Conjuntos disjuntos: o mockup mostra Reparos faturados／Valor faturado／Em aberto (repair-page.jsx:286-292), dois deles somatórios monetários ⚠️ toca valor (Regra Mestre: só exibir agregado do backend, com dupla prova) — e o próprio mockup anota que cobrança vive no Financeiro (l.290). O charter só pede \"KPIs de topo resumindo a fila\" (l.33). Adotar, trocar ou rejeitar por escrito; a leitura \"sobre o filtro × sobre a base\" já está aberta para [W] no BACKLOG do casos.",
+      "_acionavel": true
+    },
+    {
+      "id": "filtros",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "258-300 (aba sem filtro)"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/Index.tsx",
+        "linhas": "235-325",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente. A aba Reparos do mockup não tem filtro nenhum (repair-page.jsx:258-300); a busca do shell nem alcança essa aba (ela filtra `folhas`, l.161-165).",
+      "_acionavel": false
+    },
+    {
+      "id": "tabela",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "266-284"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/Index.tsx",
+        "linhas": "342-399",
+        "ancora": false
+      },
+      "status": "gap-parcial",
+      "acao": "Decidir. O mockup tem Nº do reparo／Fatura／Folha de OS／Cliente／Garantia／Pagamento／Total／Saldo devedor (repair-page.jsx:266-284); o Blade de origem tem ainda marca, local, adicionado por e devolução devida (repair/index.blade.php:63-85). Faltam no vivo contra os dois: link para a Folha de OS, Garantia (dado já chega) e Saldo devedor ⚠️ toca valor (só exibir). O charter chama a tela de port 1:1 do Blade (l.45) e mantém aberta a pendência \"Confirmar paridade de colunas／ações vs Blade legacy\" (l.74) — esta linha é a medição dela. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "acoes-por-linha-detalhe",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "295"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/Index.tsx",
+        "linhas": "364",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade com o mockup, que na aba Reparos também só tem clique na linha (repair-page.jsx:295) e nenhuma ação. A coluna Ação do Blade (repair/index.blade.php:63) entra na mesma pendência de paridade do charter (l.74), já apontada na linha Tabela; edição／transição na lista são Non-Goals (l.42-43).",
+      "_acionavel": false
+    },
+    {
+      "id": "paginacao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "293-296"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/Index.tsx",
+        "linhas": "404-443",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente. O mockup não pagina a aba (DataTablePro por altura, repair-page.jsx:293-296).",
+      "_acionavel": false
+    },
+    {
+      "id": "estados",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "258-300 (aba sem estado vazio)"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/Index.tsx",
+        "linhas": "329-340",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente. O mockup não tem estado vazio nesta aba (dados mock fixos, `D.REPAROS`).",
+      "_acionavel": false
+    }
+  ],
+  "mapping": {
+    "source": "repair-page.jsx",
+    "target": "resources/js/Pages/Repair/Index.tsx"
+  }
+}

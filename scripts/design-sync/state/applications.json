@@ -175,6 +175,97 @@
         "evidenceSha256": "3eff39820a759c3151f22a5596d4a0eb66f2890023c26c57eeffad7eb4a64c4d",
         "recordedAt": "2026-09-06T07:01:10.649Z"
       }
+    },
+    {
+      "source": "repair-page.jsx",
+      "target": "resources/js/Pages/Repair/Dashboard/Index.tsx",
+      "sourceSha256": "d3fcbbea66a34180ee148fc5cca0bdf51613ea8b19572107d2dbe205a9511538",
+      "targetSha256": "74f2a2458ef7f120a33e8fa47bcd00aa4955b009e2cd9b8554b0454368a5aa52",
+      "comparison": {
+        "map": "memory/requisitos/Repair/repair-dashboard.map.json",
+        "mapSha256": "0fe98836bb421b8ce1c1a40cc9ff7142adf1e960e4de58725e048bfffb1a4fca",
+        "recordedAt": "2026-09-06T11:53:02.516Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "repair-page.jsx",
+      "target": "resources/js/Pages/Repair/DeviceModels/Index.tsx",
+      "sourceSha256": "d3fcbbea66a34180ee148fc5cca0bdf51613ea8b19572107d2dbe205a9511538",
+      "targetSha256": "a060dd51b5730b15b06b8c934ad44ff9f64f8db4cde9c51e13ce68c21722d193",
+      "comparison": {
+        "map": "memory/requisitos/Repair/repair-device-models.map.json",
+        "mapSha256": "ddaa46b9e3bead8c4e8000c33e187a63caec2b165e1975f7c1ce149e72a2b3ee",
+        "recordedAt": "2026-09-06T11:53:08.498Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "repair-page.jsx",
+      "target": "resources/js/Pages/Repair/Index.tsx",
+      "sourceSha256": "d3fcbbea66a34180ee148fc5cca0bdf51613ea8b19572107d2dbe205a9511538",
+      "targetSha256": "10ad215532fbe52eb3056f3053033f0df17f110bf6ac584f832e2789891a6a08",
+      "comparison": {
+        "map": "memory/requisitos/Repair/repair-index.map.json",
+        "mapSha256": "450985bae1d9a45be01852e0dd5d09127ebef372651764c04042f732f0fa07fd",
+        "recordedAt": "2026-09-06T11:53:05.741Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "repair-page.jsx",
+      "target": "resources/js/Pages/Repair/JobSheet/Index.tsx",
+      "sourceSha256": "d3fcbbea66a34180ee148fc5cca0bdf51613ea8b19572107d2dbe205a9511538",
+      "targetSha256": "43e2a7b5cbb8d6679b4dada0cf21e76417dc8e5c2cf494c8a87600cb3d159364",
+      "comparison": {
+        "map": "memory/requisitos/Repair/repair-jobsheet.map.json",
+        "mapSha256": "6968659fba3c478adb69e6f4ec00641d1bc2eb1a137d7c22583778e0862428cf",
+        "recordedAt": "2026-09-06T11:53:04.236Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "repair-page.jsx",
+      "target": "resources/js/Pages/Repair/ProducaoOficina/Index.tsx",
+      "sourceSha256": "d3fcbbea66a34180ee148fc5cca0bdf51613ea8b19572107d2dbe205a9511538",
+      "targetSha256": "dd935938a537931268af8c32debcd94b9a055ca41f65e321d87a1423df736b0b",
+      "comparison": {
+        "map": "memory/requisitos/Repair/repair-producao-oficina.map.json",
+        "mapSha256": "9d3201a22d3851eab851e043cd32300503e0dc329581c1e2c99fcaa704758d3f",
+        "recordedAt": "2026-09-06T11:53:09.782Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "repair-page.jsx",
+      "target": "resources/js/Pages/Repair/Settings/Index.tsx",
+      "sourceSha256": "d3fcbbea66a34180ee148fc5cca0bdf51613ea8b19572107d2dbe205a9511538",
+      "targetSha256": "9b8ea72b02522d29d1fc53c078284c20ec2c20d569002cc3cf384f2c5012c0f1",
+      "comparison": {
+        "map": "memory/requisitos/Repair/repair-settings.map.json",
+        "mapSha256": "83ff26127006ed4cd230af4c8288ed52faa8056b61004b0525c6652d83470bb7",
+        "recordedAt": "2026-09-06T11:53:11.349Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "repair-page.jsx",
+      "target": "resources/js/Pages/Repair/Status/Index.tsx",
+      "sourceSha256": "d3fcbbea66a34180ee148fc5cca0bdf51613ea8b19572107d2dbe205a9511538",
+      "targetSha256": "9e68b4ff81506911a7a2019ebb0a29e6ed894e3021e0922873281fe5751d7a39",
+      "comparison": {
+        "map": "memory/requisitos/Repair/repair-status.map.json",
+        "mapSha256": "3c59e98e173683d834ba6ea266d791c7dc71f6c40fcd769b3982e5eb2180d495",
+        "recordedAt": "2026-09-06T11:53:07.148Z"
+      },
+      "tests": [],
+      "smokes": []
     }
   ]
 }

@@ -1,0 +1,119 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Repair/ProducaoOficina/Index (/repair/producao-oficina)",
+  "gap_fonte": "memory/requisitos/Repair/repair-producao-oficina-gap.md",
+  "prototipo_sha": "sha256:548d060ec551",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "cabecalho-e-avisos",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "112-114, 139"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/ProducaoOficina/Index.tsx",
+        "linhas": "201-244",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade. O `Alert` \"Kanban derivado do status\" (repair-page.jsx:112-114) e a nota de permissão (l.139) são texto explicativo; o vivo explica o fallback e conta o board.",
+      "_acionavel": false
+    },
+    {
+      "id": "filtros",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "103-142 (aba sem filtro)"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/ProducaoOficina/Index.tsx",
+        "linhas": "201-244",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente. A aba do mockup não tem filtro (só a busca do shell, que filtra `folhas`, repair-page.jsx:161-165).",
+      "_acionavel": false
+    },
+    {
+      "id": "colunas-do-kanban",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "117-135"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/ProducaoOficina/Index.tsx",
+        "linhas": "248-271, 359-372",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade com as 5 `BoardColumn` com contagem (repair-page.jsx:117-135; `COLUNAS` em repair-data.jsx:41-47).",
+      "_acionavel": false
+    },
+    {
+      "id": "card-da-os",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "124-133"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/ProducaoOficina/Index.tsx",
+        "linhas": "417-474",
+        "ancora": false
+      },
+      "status": "gap-parcial",
+      "acao": "Decidir. O `TaskCard` do mockup (repair-page.jsx:124-133) mostra também cliente, entrega prevista, atraso e o defeito relatado. A folha tem `contact_id`, `delivery_date` e `defects` (JobSheetController.php:115, 419), e o charter não os veta (Non-Goals l.60-66 vetam CRUD, push, atribuição de executor, aprovação e edição inline). Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "arrastar-e-soltar",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "109-121, 658-663"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/ProducaoOficina/Index.tsx",
+        "linhas": "136-165",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente. O mockup só move estado local, gated por `repair_status.update` (repair-page.jsx:109-121, 658-663); no vivo a permissão é do endpoint. UC-RPOE-06 já registra que o card não é operável por teclado — defeito medido, dono é o casos.",
+      "_acionavel": false
+    },
+    {
+      "id": "drawer-da-os",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "427-527"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/ProducaoOficina/Index.tsx",
+        "linhas": "477-578",
+        "ancora": false
+      },
+      "status": "gap-parcial",
+      "acao": "Decidir. O `FolhaDrawer` do mockup liga cada seção ao dado da folha — defeitos (repair-page.jsx:479), checklist do modelo (490-498), peças (500-512), atividades (515-524). O charter lista o drawer como Goal entregue (l.38, \"sintoma + fotos + peças + linha do tempo\"), mas o código renderiza copy fixa, não a OS clicada. Ligar aos dados reais (peças ⚠️ toca valor — só exibir) ou declarar no charter que o drawer é mock; UC-RPOE-04 (drawer é o único container) vale nas duas saídas.",
+      "_acionavel": true
+    },
+    {
+      "id": "modais-e-paleta-k",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "529-630"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/ProducaoOficina/Index.tsx",
+        "linhas": "n/a — sem modal (UC-RPOE-04)",
+        "ancora": false
+      },
+      "status": "fechado",
+      "acao": "Nada — decisão registrada. `StatusModal`／`ImprimirModal`／`LoteModal` e a paleta (repair-page.jsx:529-630) contrariam o UX anti-pattern do charter (l.93), defendido por teste.",
+      "_acionavel": false
+    }
+  ],
+  "mapping": {
+    "source": "repair-page.jsx",
+    "target": "resources/js/Pages/Repair/ProducaoOficina/Index.tsx"
+  }
+}
