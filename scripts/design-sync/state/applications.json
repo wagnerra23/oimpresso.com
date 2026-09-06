@@ -20,6 +20,58 @@
       }
     },
     {
+      "source": "estoque-page.jsx",
+      "target": "resources/js/Pages/StockAdjustment/Create.tsx",
+      "sourceSha256": "ab5e12fd9d9d20007faa75fe1d8c926fd1714ab0e6e17841934c8e5b3aadb315",
+      "targetSha256": "018fd1fe95ea14537b8ea911f615546f3e57f6fae587a92bb292dccf6bffda00",
+      "comparison": {
+        "map": "memory/requisitos/Estoque/stock-adjustment-create.map.json",
+        "mapSha256": "c8b254f5218a3326240f16d8fc94dd6d083719f88b5ba137bc36d931f10958f2",
+        "recordedAt": "2026-09-06T11:59:22.865Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "estoque-page.jsx",
+      "target": "resources/js/Pages/StockAdjustment/Index.tsx",
+      "sourceSha256": "ab5e12fd9d9d20007faa75fe1d8c926fd1714ab0e6e17841934c8e5b3aadb315",
+      "targetSha256": "c20529b058f9366ba725451987b129ff39a50f9c5d1265a74f9e845a75098ade",
+      "comparison": {
+        "map": "memory/requisitos/Estoque/stock-adjustment-index.map.json",
+        "mapSha256": "26a475e5d955547c9f76f2ee8ee1d467167ede6b88b34a8dd08048465ecfec6c",
+        "recordedAt": "2026-09-06T11:59:21.605Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "estoque-page.jsx",
+      "target": "resources/js/Pages/StockTransfer/Create.tsx",
+      "sourceSha256": "ab5e12fd9d9d20007faa75fe1d8c926fd1714ab0e6e17841934c8e5b3aadb315",
+      "targetSha256": "d496adc016003d0e215697614212cfb297158d74eb0df44bb824828575935e34",
+      "comparison": {
+        "map": "memory/requisitos/Estoque/stock-transfer-create.map.json",
+        "mapSha256": "a31bfdded7554a2d3f5317129eed17d86f87f52023d0eee9122b37d09c582e6e",
+        "recordedAt": "2026-09-06T12:00:44.105Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "estoque-page.jsx",
+      "target": "resources/js/Pages/StockTransfer/Index.tsx",
+      "sourceSha256": "ab5e12fd9d9d20007faa75fe1d8c926fd1714ab0e6e17841934c8e5b3aadb315",
+      "targetSha256": "a653eea2fa538a7c49973d834241b62faa75b571c493c39bc6192f571f033d96",
+      "comparison": {
+        "map": "memory/requisitos/Estoque/stock-transfer-index.map.json",
+        "mapSha256": "b1288b2228f107fba807a09fc3813598fa7270b7eb43cc5bedb08b52ae9d9bbe",
+        "recordedAt": "2026-09-06T11:59:24.155Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
       "source": "fiscal-page.jsx",
       "target": "resources/js/Pages/Fiscal/Cockpit.tsx",
       "sourceSha256": "6f302cead5a6f1d8b2033386131f7e640d0a8e3f325921051e107efef6a6659a",
@@ -175,6 +227,32 @@
         "evidenceSha256": "3eff39820a759c3151f22a5596d4a0eb66f2890023c26c57eeffad7eb4a64c4d",
         "recordedAt": "2026-09-06T07:01:10.649Z"
       }
+    },
+    {
+      "source": "manufacturing-page.jsx",
+      "target": "resources/js/Pages/Manufacturing/Index.tsx",
+      "sourceSha256": "f33f504638a019db98379561371d0c602be58bb953df241d4bf08e0546ae44d0",
+      "targetSha256": "180113b8270f946a154c7263d59986a2fef168856b10b44976e4fbde32ae8705",
+      "comparison": {
+        "map": "memory/requisitos/Manufacturing/manufacturing-index.map.json",
+        "mapSha256": "169654c60d14a53918fd85b4ecc9110c9abee8f02d0188df814438d68a1812e4",
+        "recordedAt": "2026-09-06T11:59:26.944Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "manufacturing-page.jsx",
+      "target": "resources/js/Pages/Manufacturing/Recipes.tsx",
+      "sourceSha256": "f33f504638a019db98379561371d0c602be58bb953df241d4bf08e0546ae44d0",
+      "targetSha256": "795ad05a6133a9545316fdbfc5c5b32b3c8fc4ba99540ad7368021ad91373595",
+      "comparison": {
+        "map": "memory/requisitos/Manufacturing/manufacturing-recipes.map.json",
+        "mapSha256": "130456a8655d364215f5a95dbbccc4a039c76f886073b38e2f5e1454921bb6c5",
+        "recordedAt": "2026-09-06T12:00:45.755Z"
+      },
+      "tests": [],
+      "smokes": []
     }
   ]
 }

@@ -1,0 +1,205 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "StockAdjustment/Index (/stock-adjustments)",
+  "gap_fonte": "memory/requisitos/Estoque/stock-adjustment-index-gap.md",
+  "prototipo_sha": "sha256:bfd716b5fd4a",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "header-pageheader",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockAdjustment/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — paridade. O protótipo tem cabeçalho de módulo (`MP.Header`, l.583-591) com papel, contexto e refresh, mas isso é chrome do shell do protótipo, não da tela de lista.",
+      "_acionavel": false
+    },
+    {
+      "id": "filtros",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockAdjustment/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. O protótipo tem `PeriodBar` com presets nomeados Dia/Semana/Mês (`estoque-page.jsx:144-147`, presets em `:17-21`) e chips de filtro ativo removíveis (`:176-180`). O vivo usa dois campos de data crus e não mostra chip do que está aplicado. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "abas-por-tipo-de-ajuste",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockAdjustment/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. O protótipo tem `window.CliTabs` com Todos/Normal/Anormal e contador por aba (`estoque-page.jsx:256-262`). É filtro de leitura sobre dado que o vivo já recebe (`AdjustmentRow.adjustment_type`, `Index.tsx:37`) — não toca valor nem estoque. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "tabela-colunas",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockAdjustment/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. O protótipo declara 9 colunas em `COLS_AJ` (`estoque-page.jsx:196-206`) — as duas que faltam no vivo são Itens (contagem de linhas do ajuste) e Motivo do ajuste (`additional_notes`, que o vivo já recebe em `:40` e usa só na busca). Ambas são leitura de dado existente; `Itens` exige o backend expor a contagem. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "ordenacao-densidade-e-seletor-de-colunas",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockAdjustment/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. O protótipo tem sort por coluna via `DataTablePro` com `defaultSort` data desc (`estoque-page.jsx:280-282`), botão de densidade (`:157`) e seletor de colunas persistido em `localStorage` (`:161-170`, `usarCols` em `:186-193`). É preferência de exibição, não toca valor. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "exportacao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockAdjustment/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. O protótipo oferece CSV, Excel e Imprimir (`estoque-page.jsx:158-160`; `exportar` monta o cabeçalho respeitando `verPreco` em `:248-256`). ⚠️ Toca VALOR — a planilha carrega `final_total` e `total_amount_recovered`. Se for adotado, a Regra Mestre se aplica ao próprio export: provar por dois caminhos que os totais exportados batem com os da tela, e apresentar antes→depois de uma amostra, antes de liberar. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "rodape-de-somatorios",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockAdjustment/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. O protótipo soma o conjunto filtrado em quatro números — Ajustes, Valor ajustado, Recuperado e Perda líquida (`estoque-page.jsx:285-292`, cálculo em `:245-246`). ⚠️ Toca VALOR: é agregação monetária nova exibida em tela. Exige dupla confirmação do cálculo + tabela antes→depois (proibicoes.md §REGRA MESTRE) antes de exibir, e o gate `view_purchase_price` que o vivo já aplica por linha. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "paginacao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockAdjustment/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. O protótipo pagina de 10 em 10 (`estoque-page.jsx:227`, `Pagination` em `:293`). Sem isso, um business com muitos ajustes no período renderiza tudo de uma vez. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "selecao-multipla-acoes-em-massa",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockAdjustment/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. O protótipo tem `BulkBar` com \"Exportar seleção\" e \"Excluir e reverter\" (`estoque-page.jsx:295-301`). ⚠️ Toca ESTOQUE: exclusão em massa reverte saldo de N ajustes de uma vez — o vivo hoje exclui um por vez, com `AlertDialog` que explica a reversão (`Index.tsx:239-258`). Adotar exige dupla confirmação + antes→depois do saldo de cada registro afetado. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "acoes-por-linha",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockAdjustment/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — vivo à frente. O protótipo abre um drawer no lugar do \"Ver\" e usa `ModalExcluir` próprio (`estoque-forms.jsx:358-370`); o vivo já usa o `AlertDialog` canônico do DS, com o texto que explica a reversão de saldo.",
+      "_acionavel": false
+    },
+    {
+      "id": "drawer-de-detalhe",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockAdjustment/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. O protótipo abre `DrawerAjuste` (`estoque-forms.jsx:503-565`) com itens, somas e o botão \"Lançar perda no financeiro\" (`:519`). ⚠️ Esse botão cria despesa a partir de perda anormal — é integração nova com o Financeiro, Tier 0 de VALOR, não apenas UI. Decidir separadamente o drawer (leitura) e o lançamento (escrita). Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "estado-vazio",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockAdjustment/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — vivo à frente. O protótipo tem um `EmptyState` único de `no-results` (`estoque-page.jsx:283`); o vivo distingue lista-vazia-por-filtro de lista-vazia-de-verdade.",
+      "_acionavel": false
+    },
+    {
+      "id": "multi-tenant-e-permissoes",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/StockAdjustment/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — vivo à frente. O protótipo simula papéis com `D.can(papel, ...)` sobre mock (`estoque-page.jsx:211`, `:276`); o vivo usa as permissões reais. R-ADJ-004 (ownership via `view_own_purchase`) é do charter e não aparece no protótipo.",
+      "_acionavel": false
+    }
+  ]
+}

@@ -1,0 +1,190 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Manufacturing/Index (/manufacturing/production)",
+  "gap_fonte": "memory/requisitos/Manufacturing/manufacturing-index-gap.md",
+  "prototipo_sha": "sha256:34e4ea8ca840",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "header-do-modulo",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/manufacturing-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Manufacturing/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — paridade estrutural. O protótipo tem o mesmo `os-page-h` com h1 \"Manufacturing\" e o CTA \"Nova produção\" (`manufacturing-page.jsx:161-171`); o vivo especializa o título para a aba corrente, o que é coerente com ter uma rota por aba em vez de um SPA de abas locais.",
+      "_acionavel": false
+    },
+    {
+      "id": "abas-do-modulo",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/manufacturing-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Manufacturing/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — vivo à frente. No protótipo as abas trocam estado local (`manufacturing-page.jsx:173-179`). O comentário do vivo (`:157-162`) registra que a aba corrente virou `<span>` depois de [M] reportar que a barra sumia — correção nascida de uso real, ausente do protótipo.",
+      "_acionavel": false
+    },
+    {
+      "id": "kpis",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/manufacturing-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Manufacturing/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. O protótipo, nesta aba, não tem KPIs — os 4 que ele exibe (`manufacturing-page.jsx:197-221`) são da aba Receitas. Os do vivo nasceram do charter (G1), não do protótipo. O que fica em aberto é o inverso do gap habitual: o protótipo é que está atrás. Decidir se os KPIs desta aba entram no protótipo — ou registrar por escrito que o vivo define esta região.",
+      "_acionavel": true
+    },
+    {
+      "id": "filtros",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/manufacturing-producao.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Manufacturing/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — paridade. Mesmos quatro controles no protótipo (`manufacturing-producao.jsx:41-51`), incluindo o checkbox literal `mfg-check` \"Só finalizadas\" (`:51`). O vivo faz o mesmo filtro também pelo KPI clicável — o charter (G5) registra que os dois governam o mesmo estado.",
+      "_acionavel": false
+    },
+    {
+      "id": "tabela-colunas",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/manufacturing-producao.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Manufacturing/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — paridade. Mesmas 8 no protótipo (`manufacturing-producao.jsx:21` define as chaves; célula de situação em `:71`). O vivo usa o `StatusBadge` compartilhado em vez do `mfg-pill` local — o comentário em `:391-393` registra que o `StatusPill` local foi removido de propósito.",
+      "_acionavel": false
+    },
+    {
+      "id": "ordenacao-por-coluna",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/manufacturing-producao.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Manufacturing/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. O protótipo ordena por qualquer das 8 colunas, com indicador de direção e default data-desc (`manufacturing-producao.jsx:20`, `CH` em `:21`, `Th` em `:36-42`). É leitura sobre dado já na página. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "paginacao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/manufacturing-producao.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Manufacturing/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. O protótipo pagina de 10 em 10 com navegação numerada (`manufacturing-producao.jsx:77-85`, `POR_PAG` em `:31`). Sem isso, um período largo renderiza tudo de uma vez. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "rodape-do-periodo",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/manufacturing-producao.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Manufacturing/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — paridade. Mesma frase no protótipo (`manufacturing-producao.jsx:87`). O comentário do vivo (`:378-379`) registra a diferença que o texto esconde: o custo somado é o gravado (`final_total`), não o recalculado do Relatório.",
+      "_acionavel": false
+    },
+    {
+      "id": "estado-vazio",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/manufacturing-producao.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Manufacturing/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — vivo à frente. O protótipo tem um `mfg-empty` único (`manufacturing-producao.jsx:75`).",
+      "_acionavel": false
+    },
+    {
+      "id": "criar-editar-ordem-de-producao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/manufacturing-producao.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Manufacturing/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — Non-Goal do charter (*\"Não migrar CRUD completo (create/edit/destroy) — Blade legacy mantém\"*). O protótipo tem o formulário inteiro em `MfgProducaoForm` (`manufacturing-producao.jsx:94-189`), com aviso de estoque insuficiente (`:137`) e o efeito de finalizar sobre o preço de custo (`:175`). ⚠️ Quando sair do Non-Goal, é Tier 0 de VALOR e ESTOQUE — finalizar consome insumo e pode atualizar preço de custo do produto.",
+      "_acionavel": false
+    },
+    {
+      "id": "drawer-de-detalhe-da-ordem",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/manufacturing-producao.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Manufacturing/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — Non-Goal por herança do anterior. O `MfgProducaoDrawer` (`manufacturing-producao.jsx:191-239`) é a leitura do documento que o CRUD escreve; abrir só a leitura sem o CRUD é decisão possível, mas pertence à mesma US que reabrir o Non-Goal.",
+      "_acionavel": false
+    },
+    {
+      "id": "multi-tenant",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/manufacturing-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Manufacturing/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — vivo à frente. O protótipo opera sobre mock (`window.MFG`).",
+      "_acionavel": false
+    }
+  ]
+}
