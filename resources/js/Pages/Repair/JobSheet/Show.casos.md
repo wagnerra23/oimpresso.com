@@ -57,7 +57,7 @@ last_run: "2026-09-05"
 - **Regressão que defende:** inverter a condição mostra "Iniciar pipeline" para uma OS que já está correndo — e um segundo início é a porta para dois fluxos concorrentes sobre a mesma OS.
 - **⚠️ Cobertura condicionada ao ambiente, e isto fica dito:** a metade "já em um estágio" só é exercitada quando o banco tem pipeline semeado; sem isso, afirmá-la exigiria plantar uma referência inválida — e teste que planta a própria pré-condição global mente sobre o que o ambiente de fato tem (§5 2026-08-24). O teste **pula essa metade** em vez de fabricá-la, e a metade legada roda sempre. No run do CT 100 de 2026-09-05 havia pipeline semeado, então as **duas** metades rodaram; num banco sem pipeline, este UC prova só a primeira.
 - **Teste:** `JobSheetShowContratoTest` — *"UC-JSS-04: a tela informa se a OS está no pipeline FSM"*.
-- **Status: 🧪** _passou no CT 100 (lá a metade "já no pipeline" **rodou** — há pipeline semeado) e **na lane**, onde essa metade **não é verificável pelo recibo**: sem estágio no banco o teste faz `return` silencioso, e um `return` não aparece como `skipped` no sumário. Na lane, portanto, este UC prova com certeza só a metade legada_
+- **Status: 🧪** _passou no CT 100 (lá a metade "já no pipeline" **rodou** — há pipeline semeado) e **na lane**. Mas a metade condicional **não é garantida por run**: sem estágio no banco o teste faz `return` silencioso, e `return` não aparece como `skipped` no sumário. Medido nos dois runs do rodapé — 29 vs **38** assertions no mesmo arquivo, com os mesmos 5 verdes: o ramo rodou num e não no outro. O que este UC garante SEMPRE é a metade legada_
 
 ## UC-JSS-05 · Sem permissão, o detalhe não existe
 - **Persona:** usuário do negócio que não trabalha com OS.
@@ -88,16 +88,26 @@ Nessa lane estes UCs **pulam**, e o verde dela prova só que o arquivo carrega.
 `verticais-pest.yml` (`PHP / Pest (Verticais · MySQL)`) — MySQL semeado pela
 `.github/actions/pest-mysql-setup`. O arquivo entrou na allowlist no
 [PR #6887](https://github.com/wagnerra23/oimpresso.com/pull/6887).
-**Recibo do primeiro run** ([33997676926](https://github.com/wagnerra23/oimpresso.com/actions/runs/33997676926),
-2m37s), lido do sumário JUnit por arquivo e não do console:
+**Recibos**, lidos do sumário JUnit por arquivo e não do console — dois runs, porque entre
+eles a allowlist da lane cresceu de 12 para 18 arquivos (merge de #6884 e #6886):
 
 ```
-JobSheetShowContratoTest.php → tests 5 · passed 5 · failed 0 · skipped 0 · assertions 29
-lane inteira               → 112 passed · 9 skipped · 612 assertions
+run 33997676926 (allowlist 12) → JobSheetShow: 5 tests · 5 passed · 0 skipped · 29 assertions
+                                 lane inteira: 112 passed ·  9 skipped · 612 assertions
+run 34001673840 (allowlist 18) → JobSheetShow: 5 tests · 5 passed · 0 skipped · 38 assertions
+                                 lane inteira: 129 passed · 10 skipped · 733 assertions
 ```
 
-`skipped: 0` com **29 assertions** é o que separa "passou" de "pulou" — é a leitura que a
-consequência 1 abaixo exige. Os outros 3 contratos do JobSheet (`Create`, `Edit`,
+`skipped: 0` com assertions de dois dígitos é o que separa "passou" de "pulou" — é a leitura
+que a consequência 1 abaixo exige.
+
+⚠️ **E os dois recibos, comparados, provam a ressalva do UC-JSS-04 em vez de só afirmá-la:**
+o MESMO arquivo, com os MESMOS 5 testes passando, rendeu **29** assertions num run e **38**
+no outro. A diferença é o ramo condicional do UC-JSS-04, que só executa quando há estágio em
+`sale_process_stages` — e isso depende do que MAIS roda na lane, porque o banco é
+compartilhado dentro do run e a ordem é aleatória. Ou seja: a cobertura desse ramo **não é
+propriedade deste arquivo**, é da composição da lane naquele dia. Por isso o Status abaixo
+não promete as duas metades. Os outros 3 contratos do JobSheet (`Create`, `Edit`,
 `AddParts`) **continuam fora de toda lane**, por decisão registrada: têm `[must]` provados
 vermelhos e a catraca da `verticais` só aceita arquivo verde. A dívida está datada no
 comentário da própria lane.
