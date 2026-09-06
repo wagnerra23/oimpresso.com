@@ -276,6 +276,36 @@ console.log('\n=== estados exigem recibos reais e invalidam em cascata por hash 
   applied = recorded.screens.find((screen) => screen.source === 'officeimpresso-page.jsx' && screen.target === target);
   check('screenshot alterado invalida só o smoke', applied.lifecycleState === 'tested' && !applied.smoked);
 
+  // ADR 0390 — `host` do smoke: enum fechado (producao · staging-ct100 · ci). Controle negativo
+  // primeiro (valor fora do enum não vira recibo), depois o host `ci` levando a VALIDADA — o
+  // estado que ficou 0/93 por construção enquanto só produção contava.
+  let hostInvalidoRejeitado = false;
+  try {
+    execFileSync(process.execPath, [
+      STATUS, '--root', root,
+      '--record-smoke', 'officeimpresso-page.jsx', '--target', target, '--route', '/officeimpresso/logs',
+      '--deploy-sha', 'b'.repeat(40), '--screenshot', 'memory/evidence/officeimpresso-smoke.png', '--tenant', '1',
+      '--host', 'laptop-do-agente',
+    ], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+  } catch (error) { hostInvalidoRejeitado = /--host deve ser producao, staging-ct100, ci/.test(String(error.stderr || '')); }
+  recorded = JSON.parse(readFileSync(join(root, 'scripts/design-sync/state/application-report.json'), 'utf8'));
+  applied = recorded.screens.find((screen) => screen.source === 'officeimpresso-page.jsx' && screen.target === target);
+  check('controle negativo ADR 0390: host fora do enum é recusado e a tela segue TESTADA', hostInvalidoRejeitado && applied.lifecycleState === 'tested' && !applied.smoked);
+
+  execFileSync(process.execPath, [
+    STATUS, '--root', root,
+    '--record-smoke', 'officeimpresso-page.jsx', '--target', target, '--route', '/officeimpresso/logs',
+    '--deploy-sha', 'b'.repeat(40), '--screenshot', 'memory/evidence/officeimpresso-smoke.png', '--tenant', '1',
+    '--host', 'ci',
+  ], { encoding: 'utf8' });
+  recorded = JSON.parse(readFileSync(join(root, 'scripts/design-sync/state/application-report.json'), 'utf8'));
+  applied = recorded.screens.find((screen) => screen.source === 'officeimpresso-page.jsx' && screen.target === target);
+  const reciboCi = JSON.parse(readFileSync(ledgerPath, 'utf8')).applications
+    .find((item) => item.source === 'officeimpresso-page.jsx' && item.target === target)?.smokes?.at(-1);
+  check('ADR 0390: smoke com host ci grava o host no recibo e leva a VALIDADA',
+    applied.lifecycleState === 'validated' && applied.smoked && reciboCi?.host === 'ci' && reciboCi?.tenant === 1,
+    JSON.stringify(reciboCi));
+
   const mapPath = join(root, 'memory/requisitos/Officeimpresso/logs.map.json');
   const changedMap = JSON.parse(readFileSync(mapPath, 'utf8'));
   changedMap._revisao = 'comparação refeita';
