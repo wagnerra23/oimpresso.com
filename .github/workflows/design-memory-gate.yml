@@ -92,6 +92,7 @@ on:
       - 'scripts/qa/cowork-pele-paralela.mjs'
       - 'scripts/qa/cowork-pele-paralela.baseline.json'
       - 'scripts/design-sync/alvo.mjs'
+      - 'scripts/design-sync/recibos-ci.mjs'
   workflow_dispatch:
 
 concurrency:
@@ -185,6 +186,12 @@ jobs:
       # "não medi aqui" de "está são" (§5 2026-07-29 · fail-open).
       - name: alvo selftest (parte pura · sem browser nesta lane)
         run: node scripts/design-sync/alvo.mjs --selftest
+
+      # recibos-ci selftest: partes puras do gravador em massa de recibos de teste (ADR 0384 D-5) —
+      # parse de lane `*-pest.yml`, módulo do alvo, seleção de tela e escolha de run (run de PR com
+      # Pest `skipped` é recusado: skip-as-pass não prova, LC-13). Hermético: sem gh, sem git.
+      - name: recibos-ci selftest (parte pura · sem gh nesta lane)
+        run: node scripts/design-sync/recibos-ci.mjs --selftest
 
       # style-fingerprint selftest: o VETOR de estilo completo (bbox, nº de linhas, overflow,
       # cor computada, radius, borda) por tema — regras 4/5/7 do inventário da Fase 1. Fixtures

@@ -27,7 +27,7 @@
   "stats": {
     "modules": 35,
     "nodes": 707,
-    "edges": 987,
+    "edges": 989,
     "by_node_type": {
       "module": 39,
       "table": 102,
@@ -43,8 +43,8 @@
       "charteredByAdr": 30,
       "governedByAdr": 78,
       "hasComponent": 385,
-      "dependsOn": 115,
-      "delegatesTo": 107,
+      "dependsOn": 116,
+      "delegatesTo": 108,
       "migratesTo": 1,
       "supersedes": 15,
       "supersedesPartially": 49,
@@ -10524,6 +10524,13 @@
     },
     {
       "from": "module:Ponto",
+      "to": "module:Essentials",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Cadastro e aprovação de licença/afastamento"
+    },
+    {
+      "from": "module:Ponto",
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -10542,6 +10549,13 @@
       "type": "delegatesTo",
       "source": "not_contains",
       "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:Ponto",
+      "to": "module:Essentials",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Cadastro e aprovação de licença/afastamento"
     },
     {
       "from": "module:Ponto",
