@@ -1,0 +1,90 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Essentials/Knowledge/Index (/essentials/knowledge-base)",
+  "gap_fonte": "memory/requisitos/Essentials/knowledge-index-gap.md",
+  "prototipo_sha": "sha256:86cb09835456",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "arvore-categoria-secao-artigo",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/essenciais-extras.jsx",
+        "linhas": "148-158"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Essentials/Knowledge/Index.tsx",
+        "linhas": "121-210",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade.",
+      "_acionavel": false
+    },
+    {
+      "id": "acoes-de-autoria",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/essenciais-extras.jsx",
+        "linhas": "145"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Essentials/Knowledge/Index.tsx",
+        "linhas": "135-201",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente.",
+      "_acionavel": false
+    },
+    {
+      "id": "busca",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/essenciais-extras.jsx",
+        "linhas": "144"
+      },
+      "vivo": {
+        "arquivo": "n/a",
+        "linhas": "n/a",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir. É a 1ª seção do charter e é comportamento (filtrar) → vira pedido pela régua do playbook. O charter também lista *\"busca sem resultado\"* como estado coberto, que hoje não existe. A árvore já chega inteira no payload, então o filtro pode ser client-side — barato, mas é decisão de [W] porque muda a 1ª dobra da tela.",
+      "_acionavel": true
+    },
+    {
+      "id": "leitura-do-artigo-inline",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/essenciais-extras.jsx",
+        "linhas": "160-176"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Essentials/Knowledge/Index.tsx",
+        "linhas": "176-198",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir. Layout de duas colunas × navegação por rota é decisão de forma, e o eixo FORMA tem o protótipo como soberano ([UI-0029](../_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)). Mas a rota de detalhe já existe e é canon (aparece no `ancora.mjs --list` com âncora própria declarada). Fundir as duas telas é decisão de [W], não conserto.",
+      "_acionavel": true
+    },
+    {
+      "id": "estado-sem-permissao-de-editar",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/essenciais-extras.jsx",
+        "linhas": "145"
+      },
+      "vivo": {
+        "arquivo": "n/a",
+        "linhas": "n/a",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir. ⚠️ Verificar no controller antes de tratar como defeito: a guarda pode estar no back-end (o padrão do módulo) e a ausência no `.tsx` ser correta. O charter exige o padrão explícito — *\"o que o papel não pode aparece bloqueado com motivo, nunca escondido sem explicação\"* — que é diferente dos dois comportamentos acima. Medir o controller é pré-requisito da decisão.",
+      "_acionavel": true
+    }
+  ],
+  "mapping": {
+    "source": "essenciais-page.jsx",
+    "target": "resources/js/Pages/Essentials/Knowledge/Index.tsx",
+    "_nota": "source = arquivo de ENTRADA do bundle (o bundle_source do charter); partes[].prototipo.arquivo aponta onde cada parte de fato vive. Os dois convivem por desenho — ver gerar-map.mjs::fundirComExistente."
+  }
+}

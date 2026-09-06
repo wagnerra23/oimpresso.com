@@ -37,6 +37,71 @@
       }
     },
     {
+      "source": "essenciais-page.jsx",
+      "target": "resources/js/Pages/Essentials/Documents/Index.tsx",
+      "sourceSha256": "c65f3ecadcffdffe7de44e5d1552706eff806cc59226c47a911c7d26b7214cd6",
+      "targetSha256": "dd92b921b63e2a8243151654635f0ebd049d3831caa3aaaa35ecaf9d4aa3593c",
+      "comparison": {
+        "map": "memory/requisitos/Essentials/documents-index.map.json",
+        "mapSha256": "c2194f9adf520c9c8e826a71ed2636c5851cd7824c209e31cb276d5bdc8ed60a",
+        "recordedAt": "2026-09-06T18:27:56.144Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "essenciais-page.jsx",
+      "target": "resources/js/Pages/Essentials/Knowledge/Index.tsx",
+      "sourceSha256": "c65f3ecadcffdffe7de44e5d1552706eff806cc59226c47a911c7d26b7214cd6",
+      "targetSha256": "4f6f20cffe55341ea785a3f9a2f88e9db61be686e209376c291c511a510b899d",
+      "comparison": {
+        "map": "memory/requisitos/Essentials/knowledge-index.map.json",
+        "mapSha256": "d6296f24224787d331f571c69fa0ebbdfca862733cd4dd9616b12c32f2874605",
+        "recordedAt": "2026-09-06T18:28:13.606Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "essenciais-page.jsx",
+      "target": "resources/js/Pages/Essentials/Messages/Index.tsx",
+      "sourceSha256": "c65f3ecadcffdffe7de44e5d1552706eff806cc59226c47a911c7d26b7214cd6",
+      "targetSha256": "bafad8474c40ebdd9adbcb230eb3572c71d5985fd6b79412d9550edfebdead7b",
+      "comparison": {
+        "map": "memory/requisitos/Essentials/messages-index.map.json",
+        "mapSha256": "b69436fc5bd1192953b55ca9d6ee80b26ac40897ea735c5ea0c1d5ff7eb5df87",
+        "recordedAt": "2026-09-06T18:27:57.661Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "essenciais-page.jsx",
+      "target": "resources/js/Pages/Essentials/Reminders/Index.tsx",
+      "sourceSha256": "c65f3ecadcffdffe7de44e5d1552706eff806cc59226c47a911c7d26b7214cd6",
+      "targetSha256": "2634277546c89de093e0e7992caf420430fc993ee64bf261c8520bca282f693f",
+      "comparison": {
+        "map": "memory/requisitos/Essentials/reminders-index.map.json",
+        "mapSha256": "1eacde8580bd60e863f417c26654bab36a0338881c0c3944d538d77f2b554f5a",
+        "recordedAt": "2026-09-06T18:27:59.054Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "essenciais-page.jsx",
+      "target": "resources/js/Pages/Essentials/Todo/Index.tsx",
+      "sourceSha256": "c65f3ecadcffdffe7de44e5d1552706eff806cc59226c47a911c7d26b7214cd6",
+      "targetSha256": "9d7d7319932f7fdbf10d7bec83ebf0c3423f70c5c87325b1408d6ec863d1d8fc",
+      "comparison": {
+        "map": "memory/requisitos/Essentials/todo-index.map.json",
+        "mapSha256": "bfa14ef655d26bcc07a71f6baa38b71879f774a04c0ab272da582e4456f7181b",
+        "recordedAt": "2026-09-06T18:28:00.469Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
       "source": "fiscal-page.jsx",
       "target": "resources/js/Pages/Fiscal/Cockpit.tsx",
       "sourceSha256": "6f302cead5a6f1d8b2033386131f7e640d0a8e3f325921051e107efef6a6659a",
@@ -192,6 +257,45 @@
         "evidenceSha256": "3eff39820a759c3151f22a5596d4a0eb66f2890023c26c57eeffad7eb4a64c4d",
         "recordedAt": "2026-09-06T07:01:10.649Z"
       }
+    },
+    {
+      "source": "hrm-page.jsx",
+      "target": "resources/js/Pages/Essentials/Holidays/Index.tsx",
+      "sourceSha256": "d4169ee7fcc163f073626cb11fed3ead65c71abf2c816c176f77d8e7250a160f",
+      "targetSha256": "4d8d8bd8a70e0e126a3c9ac85cc4c5497772a5fc85b20d6a7e17a45e41ea517d",
+      "comparison": {
+        "map": "memory/requisitos/Essentials/holidays-index.map.json",
+        "mapSha256": "32ebf4d9347ffaea3c6936399b7104c9b5b2be0c6a3b161ec5f0636127f31fb7",
+        "recordedAt": "2026-09-06T18:28:01.845Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "hrm-page.jsx",
+      "target": "resources/js/Pages/Essentials/Settings/Index.tsx",
+      "sourceSha256": "d4169ee7fcc163f073626cb11fed3ead65c71abf2c816c176f77d8e7250a160f",
+      "targetSha256": "41e32aa5049e13b37e469fed9bab98f61ad9c03f831f6daa7b5848965153d56b",
+      "comparison": {
+        "map": "memory/requisitos/Essentials/settings-index.map.json",
+        "mapSha256": "bf3158d33a43496280e15796427eb9d840a60ee3b046f7ee3df5d0f73e92397e",
+        "recordedAt": "2026-09-06T18:28:15.124Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "hrm-page.jsx",
+      "target": "resources/js/Pages/Essentials/Tipos.tsx",
+      "sourceSha256": "d4169ee7fcc163f073626cb11fed3ead65c71abf2c816c176f77d8e7250a160f",
+      "targetSha256": "6937f930b4f8612975d9668aba5a432c81cf90a3dea799c7c2a0b217dc5b873e",
+      "comparison": {
+        "map": "memory/requisitos/Essentials/tipos.map.json",
+        "mapSha256": "cd3d1b8395296285a6a93845d3f6c532c624a1022425147ecc0e00e27d1117aa",
+        "recordedAt": "2026-09-06T18:28:16.510Z"
+      },
+      "tests": [],
+      "smokes": []
     },
     {
       "source": "ponto-page.jsx",

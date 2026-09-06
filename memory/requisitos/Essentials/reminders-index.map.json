@@ -1,0 +1,130 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Essentials/Reminders/Index (/essentials/reminder)",
+  "gap_fonte": "memory/requisitos/Essentials/reminders-index-gap.md",
+  "prototipo_sha": "sha256:3e0b0aa398f8",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "forma-da-tela-grade-do-mes-lista",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/essenciais-page.jsx",
+        "linhas": "499-513"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Essentials/Reminders/Index.tsx",
+        "linhas": "146-190",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir. É a forma da tela, e o eixo FORMA tem cadeia própria — protótipo soberano sobre charter/ADR-UI ([UI-0029](../_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md), citada em [proibicoes.md](../../proibicoes.md) §Precedência). E aqui não há artefato do lado do vivo defendendo a lista: medido, o charter do Reminders não declara `related_prototype` nem Padrão de Tela nenhum — só `bundle_source: essenciais-page.jsx` (frontmatter completo: `page`, `component`, `bundle_source`, `owner`, `status`, `last_validated`, `parent_module`, `related_adrs`, `tier`, `charter_version`). O `ancora.mjs --list` resolve `/essentials/reminder → essenciais-page.jsx`. Ou seja: a única forma declarada é a do protótipo, e a lista do vivo não tem lastro escrito. Decisão de [W] sobre qual é a tela; o perdedor se corrige no MESMO PR.",
+      "_acionavel": true
+    },
+    {
+      "id": "navegacao-de-mes",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/essenciais-page.jsx",
+        "linhas": "485-490"
+      },
+      "vivo": {
+        "arquivo": "n/a",
+        "linhas": "n/a",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir. Depende inteiramente da linha acima: sem grade, não há mês para navegar.",
+      "_acionavel": true
+    },
+    {
+      "id": "filtro-por-origem",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/essenciais-page.jsx",
+        "linhas": "449"
+      },
+      "vivo": {
+        "arquivo": "n/a",
+        "linhas": "n/a",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir. É comportamento e modelo: exige que lembrete carregue procedência (`manual` × `financeiro` × `ponto`), o que o blade não tem. O charter lista *\"canal de notificação\"* entre os itens que aguardam [W]; a procedência é vizinha e não está decidida.",
+      "_acionavel": true
+    },
+    {
+      "id": "legenda-de-origem",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/essenciais-page.jsx",
+        "linhas": "515-516"
+      },
+      "vivo": {
+        "arquivo": "n/a",
+        "linhas": "n/a",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir. Consequência direta do filtro acima — legenda sem origem no dado é decoração.",
+      "_acionavel": true
+    },
+    {
+      "id": "dica-de-teclado-navegacao-por-setas",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/essenciais-page.jsx",
+        "linhas": "466-480"
+      },
+      "vivo": {
+        "arquivo": "n/a",
+        "linhas": "n/a",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir. É acessibilidade de grid — só existe se a grade existir. Registrado aqui para não se perder quando a decisão da 1ª linha for tomada.",
+      "_acionavel": true
+    },
+    {
+      "id": "criar-editar-excluir-lembrete",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/essenciais-page.jsx",
+        "linhas": "538-564"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Essentials/Reminders/Index.tsx",
+        "linhas": "77-121",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade.",
+      "_acionavel": false
+    },
+    {
+      "id": "copy-do-botao-de-criacao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/essenciais-page.jsx",
+        "linhas": "495"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Essentials/Reminders/Index.tsx",
+        "linhas": "141-143",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir. Copy de contrato é soberania de [W].",
+      "_acionavel": true
+    },
+    {
+      "id": "drawer-de-detalhe-com-abrir-no-modulo",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/essenciais-page.jsx",
+        "linhas": "519-526"
+      },
+      "vivo": {
+        "arquivo": "n/a",
+        "linhas": "n/a",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir. Mesma raiz do filtro de origem: sem procedência no modelo, não há externo para abrir.",
+      "_acionavel": true
+    }
+  ]
+}
