@@ -200,8 +200,8 @@
       "targetSha256": "4750043c8955cb14e190d986e624ea303179899f4f85634af00105d8130b16b2",
       "comparison": {
         "map": "memory/requisitos/Ponto/dashboard-index.map.json",
-        "mapSha256": "06e654b992a5d6f3d421ede11d5604d3e8aff30421d549202dc5e4b556b4eab3",
-        "recordedAt": "2026-09-06T12:08:13.428Z"
+        "mapSha256": "cc1535b98706a142c6e3b1f6a043d23f94868f3728b63717aec43e27d3478ed9",
+        "recordedAt": "2026-09-06T12:32:08.316Z"
       },
       "tests": [],
       "smokes": []
@@ -213,8 +213,8 @@
       "targetSha256": "fa0bb3d3aa2ce553e5a2232cfe5986570516b0e0915d1b7fc6d857d74bf96cb7",
       "comparison": {
         "map": "memory/requisitos/Ponto/espelho-index.map.json",
-        "mapSha256": "a862e6089108e335583e2b311b2b5c6173345359109a12e998158b43f0e25bf1",
-        "recordedAt": "2026-09-06T12:08:14.718Z"
+        "mapSha256": "55c9ae78737ec3dfad1f4b55e08ebfc01e82e229a44d72236f5e17e48fca02a0",
+        "recordedAt": "2026-09-06T12:32:10.079Z"
       },
       "tests": [],
       "smokes": []
@@ -226,8 +226,8 @@
       "targetSha256": "a7439b370b731f5500854a415f9377d8ce251e740d0455e95d60047357936649",
       "comparison": {
         "map": "memory/requisitos/Ponto/espelho-show.map.json",
-        "mapSha256": "80b6c872095ce9c166c918ada4f824d4670ca40e01d91aa48025eb1d763dae74",
-        "recordedAt": "2026-09-06T12:08:15.929Z"
+        "mapSha256": "396cae50b7024cd0c21de3bc2b83401d33c5a7ef8470a5064757c8a6df4db13c",
+        "recordedAt": "2026-09-06T12:32:12.247Z"
       },
       "tests": [],
       "smokes": []
