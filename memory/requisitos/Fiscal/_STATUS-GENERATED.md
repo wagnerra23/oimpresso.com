@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 16 |
 | Telas (.tsx) | 7 |
 | Telas com `casos.md` | 8 |
-| UC declarados | 60 |
-| UC com teste que os cita | 60 |
+| UC declarados | 81 |
+| UC com teste que os cita | 81 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -54,6 +54,8 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 
 | UC | Tela | Status |
 |---|---|---|
+| UC-06 | Dfe | 🧪 aguarda veredito da lane |
+| UC-10 | Dfe | 🧪 aguarda veredito da lane |
 | UC-FCERT-01 | cert-health-check (blade) | 🧪 aguarda veredito da lane |
 | UC-FCERT-02 | cert-health-check (blade) | 🧪 aguarda veredito da lane |
 | UC-FCERT-03 | cert-health-check (blade) | 🧪 aguarda veredito da lane |
@@ -64,6 +66,9 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-FCFG-02 | Config | 🧪 aguarda veredito da lane |
 | UC-FCFG-03 | Config | 🧪 aguarda veredito da lane |
 | UC-FCFG-04 | Config | 🧪 aguarda veredito da lane |
+| UC-FCFG-05 | Config | 🧪 aguarda veredito da lane |
+| UC-FCFG-06 | Config | 🧪 aguarda veredito da lane |
+| UC-FCFG-07 | Config | 🧪 aguarda veredito da lane |
 | UC-FCKP-01 | Cockpit | 🧪 aguarda veredito da lane |
 | UC-FCKP-02 | Cockpit | 🧪 aguarda veredito da lane |
 | UC-FCKP-03 | Cockpit | 🧪 aguarda veredito da lane |
@@ -75,11 +80,18 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-FCKP-09 | Cockpit | 🧪 aguarda veredito da lane |
 | UC-FCKP-10 | Cockpit | 🧪 aguarda veredito da lane |
 | UC-FCKP-11 | Cockpit | 🧪 aguarda veredito da lane |
+| UC-FCKP-12 | Cockpit | 🧪 aguarda veredito da lane |
+| UC-FCKP-13 | Cockpit | 🧪 aguarda veredito da lane |
 | UC-FDFE-01 | Dfe | 🧪 aguarda veredito da lane |
 | UC-FDFE-02 | Dfe | 🧪 aguarda veredito da lane |
 | UC-FDFE-03 | Dfe | 🧪 aguarda veredito da lane |
 | UC-FDFE-04 | Dfe | 🧪 aguarda veredito da lane |
 | UC-FDFE-05 | Dfe | 🧪 aguarda veredito da lane |
+| UC-FDFE-06 | Dfe | 🧪 aguarda veredito da lane |
+| UC-FDFE-07 | Dfe | 🧪 aguarda veredito da lane |
+| UC-FDFE-08 | Dfe | 🧪 aguarda veredito da lane |
+| UC-FDFE-09 | Dfe | 🧪 aguarda veredito da lane |
+| UC-FDFE-10 | Dfe | 🧪 aguarda veredito da lane |
 | UC-FEVT-01 | Eventos | 🧪 aguarda veredito da lane |
 | UC-FEVT-02 | Eventos | 🧪 aguarda veredito da lane |
 | UC-FEVT-03 | Eventos | 🧪 aguarda veredito da lane |
@@ -87,6 +99,7 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-FEVT-05 | Eventos | 🧪 aguarda veredito da lane |
 | UC-FEVT-06 | Eventos | 🧪 aguarda veredito da lane |
 | UC-FEVT-07 | Eventos | 🧪 aguarda veredito da lane |
+| UC-FEVT-08 | Eventos | 🧪 aguarda veredito da lane |
 | UC-FNFE-01 | Nfe | 🧪 aguarda veredito da lane |
 | UC-FNFE-02 | Nfe | 🧪 aguarda veredito da lane |
 | UC-FNFE-03 | Nfe | 🧪 aguarda veredito da lane |
@@ -98,12 +111,20 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-FNFE-09 | Nfe | 🧪 aguarda veredito da lane |
 | UC-FNFE-10 | Nfe | 🧪 aguarda veredito da lane |
 | UC-FNFE-11 | Nfe | 🧪 aguarda veredito da lane |
+| UC-FNFE-12 | Nfe | 🧪 aguarda veredito da lane |
+| UC-FNFE-14 | Nfe | 🧪 aguarda veredito da lane |
 | UC-FNFSE-01 | Nfse | 🧪 aguarda veredito da lane |
 | UC-FNFSE-02 | Nfse | 🧪 aguarda veredito da lane |
 | UC-FNFSE-03 | Nfse | 🧪 aguarda veredito da lane |
 | UC-FNFSE-04 | Nfse | 🧪 aguarda veredito da lane |
+| UC-FNFSE-05 | Nfse | 🧪 aguarda veredito da lane |
+| UC-FSF1-01 | Sped | 🧪 aguarda veredito da lane |
+| UC-FSF1-02 | Sped | 🧪 aguarda veredito da lane |
 | UC-FSF1-03 | Sped | 🧪 aguarda veredito da lane |
+| UC-FSF1-04 | Sped | 🧪 aguarda veredito da lane |
 | UC-FSF1-05 | Sped | 🧪 aguarda veredito da lane |
+| UC-FSF1-06 | Sped | 🧪 aguarda veredito da lane |
+| UC-FSF1-07 | Sped | 🧪 aguarda veredito da lane |
 | UC-FSPED-01 | Sped | 🧪 aguarda veredito da lane |
 | UC-FSPED-02 | Sped | 🧪 aguarda veredito da lane |
 | UC-FSPED-03 | Sped | 🧪 aguarda veredito da lane |
