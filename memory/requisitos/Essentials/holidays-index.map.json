@@ -1,0 +1,100 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Essentials/Holidays/Index (/hrm/holiday)",
+  "gap_fonte": "memory/requisitos/Essentials/holidays-index-gap.md",
+  "prototipo_sha": "sha256:1b1cc5c4264f",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "filtro-por-localidade",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/hrm-page.jsx",
+        "linhas": "424-429"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Essentials/Holidays/Index.tsx",
+        "linhas": "106-121",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade.",
+      "_acionavel": false
+    },
+    {
+      "id": "criar-editar-excluir-feriado",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/hrm-page.jsx",
+        "linhas": "432-453"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Essentials/Holidays/Index.tsx",
+        "linhas": "302-381",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade.",
+      "_acionavel": false
+    },
+    {
+      "id": "ordenacao-por-nome-inicio-dias",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/hrm-page.jsx",
+        "linhas": "436-439"
+      },
+      "vivo": {
+        "arquivo": "n/a",
+        "linhas": "n/a",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir. É comportamento (ordenar) → vira pedido pela régua §3. ⚠️ E o playbook nomeia o padrão certo: o botão dentro do `th` é *\"o padrão a11y certo — o `DataTablePro` do DS não faz isso, RESÍDUO 4\"*. Ou seja, implementar aqui à mão diverge do DS; usar o DS perde a a11y. A decisão de [W] é onde pagar: nesta tela ou no primitivo.",
+      "_acionavel": true
+    },
+    {
+      "id": "colunas-da-tabela",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/hrm-page.jsx",
+        "linhas": "436-440"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Essentials/Holidays/Index.tsx",
+        "linhas": "250-254",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir. Fusão de colunas é layout → pela régua §3, não vira pedido sozinha. Mas a coluna `Dias` é o que a ordenação por duração usa (`:397`, `H.dias(a.ini,a.fim)`), então as duas decisões andam juntas.",
+      "_acionavel": true
+    },
+    {
+      "id": "kpis-do-topo",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/hrm-page.jsx",
+        "linhas": "418-422"
+      },
+      "vivo": {
+        "arquivo": "n/a",
+        "linhas": "n/a",
+        "ancora": false
+      },
+      "status": "so-no-prototipo-layout",
+      "acao": "Nada — layout, e a régua §3 é explícita: layout não vira pedido. Registrado para não virar \"bug\" na próxima leitura.",
+      "_acionavel": false
+    },
+    {
+      "id": "aviso-ao-excluir",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/hrm-page.jsx",
+        "linhas": "411"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Essentials/Holidays/Index.tsx",
+        "linhas": "386-389",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir. Não é preciosismo de copy: o aviso do protótipo responde *\"o que isso quebra?\"* (escala de turnos) e *\"o que isso NÃO quebra?\"* (marcações já lançadas — a garantia append-only da Portaria 671). O vivo não diz nem um nem outro. Copy de ação destrutiva é soberania de [W].",
+      "_acionavel": true
+    }
+  ]
+}

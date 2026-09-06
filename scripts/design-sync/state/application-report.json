@@ -1,6 +1,6 @@
 {
   "schema": "oimpresso-design-application-report/3",
-  "generatedAt": "2026-09-06T18:51:37.770Z",
+  "generatedAt": "2026-09-06T19:12:47.314Z",
   "bundle": {
     "id": "5023b274183d849dcc925eae85cef61a991c3541ca1daeb680267c1afda99e4d",
     "baseId": null,
@@ -15,9 +15,9 @@
     "smoked": 4,
     "lifecycle": {
       "validated": 4,
-      "anchored": 40,
+      "anchored": 32,
       "to-create": 23,
-      "compared": 26
+      "compared": 34
     },
     "applied": 4,
     "pending": 66,
@@ -2176,13 +2176,23 @@
       "module": "Essentials",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Essentials/documents-index.map.json",
+          "mapSha256": "ccf70e2a779abf0f0e8aa35d312aa92e93b798271e27bc62480f583b0a07bd1f",
+          "recordedAt": "2026-09-06T19:12:38.589Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "dd92b921b63e2a8243151654635f0ebd049d3831caa3aaaa35ecaf9d4aa3593c"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "essenciais-page.jsx",
@@ -2191,13 +2201,23 @@
       "module": "Essentials",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Essentials/knowledge-index.map.json",
+          "mapSha256": "d6296f24224787d331f571c69fa0ebbdfca862733cd4dd9616b12c32f2874605",
+          "recordedAt": "2026-09-06T19:12:43.327Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "4f6f20cffe55341ea785a3f9a2f88e9db61be686e209376c291c511a510b899d"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "essenciais-page.jsx",
@@ -2206,13 +2226,23 @@
       "module": "Essentials",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Essentials/messages-index.map.json",
+          "mapSha256": "b69436fc5bd1192953b55ca9d6ee80b26ac40897ea735c5ea0c1d5ff7eb5df87",
+          "recordedAt": "2026-09-06T19:12:40.937Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "bafad8474c40ebdd9adbcb230eb3572c71d5985fd6b79412d9550edfebdead7b"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "essenciais-page.jsx",
@@ -2221,13 +2251,23 @@
       "module": "Essentials",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Essentials/reminders-index.map.json",
+          "mapSha256": "9bde0339797526df87b4d1d7d6f2eaa530edc44ace18d13dc6f0e2b63c32dddc",
+          "recordedAt": "2026-09-06T19:12:42.117Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "2634277546c89de093e0e7992caf420430fc993ee64bf261c8520bca282f693f"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "essenciais-page.jsx",
@@ -2236,13 +2276,23 @@
       "module": "Essentials",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Essentials/todo-index.map.json",
+          "mapSha256": "538d05916531a44dfede2f28f6c48d8c709e0691815545b66f621ce025fa5048",
+          "recordedAt": "2026-09-06T19:12:39.761Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "9d7d7319932f7fdbf10d7bec83ebf0c3423f70c5c87325b1408d6ec863d1d8fc"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "estoque-page.jsx",
@@ -2785,13 +2835,23 @@
       "module": "Essentials",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Essentials/holidays-index.map.json",
+          "mapSha256": "f2ae1f41dd190b65d1c4f9af3d6d750c08d1cdfd4277483c088ff7a710ff6b71",
+          "recordedAt": "2026-09-06T19:12:44.610Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "4d8d8bd8a70e0e126a3c9ac85cc4c5497772a5fc85b20d6a7e17a45e41ea517d"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "hrm-page.jsx",
@@ -2800,13 +2860,23 @@
       "module": "Essentials",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Essentials/settings-index.map.json",
+          "mapSha256": "c8a6ef87043e9a11ab82c786878d6171c5b0d60c91418cce5d9e42ac7d5816fe",
+          "recordedAt": "2026-09-06T19:12:45.896Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "41e32aa5049e13b37e469fed9bab98f61ad9c03f831f6daa7b5848965153d56b"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "hrm-page.jsx",
@@ -2815,13 +2885,23 @@
       "module": "Essentials",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Essentials/tipos.map.json",
+          "mapSha256": "cd3d1b8395296285a6a93845d3f6c532c624a1022425147ecc0e00e27d1117aa",
+          "recordedAt": "2026-09-06T19:12:47.110Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "6937f930b4f8612975d9668aba5a432c81cf90a3dea799c7c2a0b217dc5b873e"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "inbox-page.jsx",
