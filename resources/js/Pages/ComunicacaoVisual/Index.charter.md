@@ -3,6 +3,7 @@ id: resources-js-pages-comunicacao-visual-index-charter
 page: /comunicacao-visual
 component: resources/js/Pages/ComunicacaoVisual/Index.tsx
 bundle_source: prototipo-ui/cowork/comunicacao-visual-page.jsx  # 2026-09-06 [C]: porte REVERSO do vivo no Cowork (shell: "Telas que existiam no vivo e faltavam no Cowork") — fonte de bundle, não design aprovado (§5 2026-08-28)
+related_us: [US-COMVIS-001]  # 2026-09-06 [C]: a tela É a calculadora por m² (US-COMVIS-001 · P0) — declarado ao tocar o charter (charter-us-lint no-new-lie)
 related_prototype: "n/a — ferramenta bespoke (calculadora de m²) construida do Design System; arquetipo unico no repo (so 1 tela do tipo), sem padrao de tela dedicado"
 status: draft
 ---
