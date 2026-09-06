@@ -48,7 +48,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. Só (a) filtro por tipo + (f) Limpar filtros — §Veredito adotar #2 (Parte 3, M) — e (c) sort + (d) toggle — adotar #3. (b) Stockbar toca estoque (threshold = regra de negócio _pendente_) e (e) marca/OEM depende de schema: fora até ADR/backend.",
+      "acao": "Decidir. Só (a) filtro por tipo + (f) Limpar filtros — §Veredito adotar #2 (Parte 3, M) — e (c) sort + (d) toggle — adotar #3. (b) Stockbar toca estoque (threshold = regra de negócio _pendente_). (e) busca por marca/OEM: Parte 3 diz \"P se campos existirem, _pendente_ confirmar schema\" — confirmado no código: `products.brand_id` existe (`database/schema/mysql-schema.sql:2657`), campo OEM não existe (0 ocorrências no schema) → marca é P; OEM fica `_pendente_` de schema.",
       "_acionavel": true
     },
     {

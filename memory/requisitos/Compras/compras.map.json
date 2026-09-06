@@ -78,8 +78,8 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. `_pendente_` — §Veredito adotar #5: ler `AcoesDropdown.tsx` antes (não lido nesta fase) para saber se o gap 5 é real ou já coberto. ⚠️ \"Reembolso de compra\" e \"Ver pagamentos\" tocam valor: qualquer fluxo novo é Tier 0 (Regra Mestre + permissões) — Parte 5 Esforço/risco.",
-      "_acionavel": true
+      "acao": "Nada — o `_pendente_` da Parte 5/§Veredito #5 foi resolvido lendo o código: `Pages/Compras/components/AcoesDropdown.tsx` já tem as 9 ações (labels em l.100–170: Ver · Impressão · Editar · Excluir · Rótulos · Ver pagamentos · Reembolso de compra · Atualizar status · Elementos pendentes). A prosa de 2026-06-30 não tinha lido o componente; o gap 5 estava coberto. ⚠️ Fluxo novo em Reembolso/Ver pagamentos segue Tier 0 (Regra Mestre + permissões).",
+      "_acionavel": false
     },
     {
       "id": "drawer-sheet-maior-gap",
@@ -93,8 +93,8 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. `_pendente_` — §Veredito adotar #6 só depois de ler `Drawer.tsx` (define se o gap 6 é real ou já coberto). ⚠️ toca valor FORTE — Tier 0: Itens mostra custo/total/margem, Pagamentos registra pagamento, footer muda estado FSM; qualquer escrita passa por `ExecuteStageActionService` + Regra Mestre, sessão limpa por tab (Parte 6 Esforço/risco, G).",
-      "_acionavel": true
+      "acao": "Nada — o `_pendente_` da Parte 6/§Veredito #6 foi resolvido lendo o código: `Pages/Compras/components/Drawer.tsx` declara as 5 abas (l.22–26: resumo · itens · documentos · pagamentos · historico) e `initialTab` (l.95/154). A prosa de 2026-06-30 assumia \"2 tabs\" sem ler o componente; o gap 6 estava coberto. O que ficar de diferença por REGIÃO dentro de cada aba é trabalho de âncora do map (linhas TODO), não gap de tela. ⚠️ Qualquer escrita nas abas Itens/Pagamentos/footer segue Tier 0 (`ExecuteStageActionService` + Regra Mestre).",
+      "_acionavel": false
     }
   ]
 }
