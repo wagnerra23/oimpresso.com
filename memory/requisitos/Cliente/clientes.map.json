@@ -3,7 +3,7 @@
   "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "Cliente/Index (/contacts)",
   "gap_fonte": "memory/requisitos/Cliente/clientes-gap.md",
-  "prototipo_sha": "sha256:8f284ad79fb3",
+  "prototipo_sha": "sha256:2be4c00c452a",
   "gerado_em": "2026-09-06",
   "partes": [
     {
@@ -14,12 +14,13 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Cliente/Index.tsx",
-        "linhas": "TODO",
-        "ancora": false
+        "linhas": "850-968",
+        "ancora": true
       },
       "status": "pendente-mapeamento",
       "acao": "Nada — este gap.md se declara registro datado de 2026-06-30 medido por rota inválida, não é base para decidir hoje (banner, l.19); decisão só pelo dono vigente `PARIDADE-area-cliente-diagnostico-e-ondas.md` (que já registra: não adotar o card Faturamento)",
-      "_acionavel": false
+      "_acionavel": false,
+      "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Tag multi-linha: o atributo entrou em linha própria logo após `<header`."
     },
     {
       "id": "kpis",
@@ -28,13 +29,14 @@
         "linhas": "TODO"
       },
       "vivo": {
-        "arquivo": "resources/js/Pages/Cliente/Index.tsx",
-        "linhas": "TODO",
-        "ancora": false
+        "arquivo": "resources/js/Pages/Cliente/_components/KpiStripClickable.tsx",
+        "linhas": "191-238",
+        "ancora": true
       },
       "status": "pendente-mapeamento",
       "acao": "Nada — este gap.md se declara registro datado de 2026-06-30 medido por rota inválida, não é base para decidir hoje (banner, l.19); decisão só pelo dono vigente `PARIDADE-area-cliente-diagnostico-e-ondas.md` (que já registra: não adotar o card Faturamento)",
-      "_acionavel": false
+      "_acionavel": false,
+      "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). vivo.arquivo trocado de Index.tsx pro componente: a raiz DOM dos 5 cards é o grid de KpiStripClickable.tsx (Index.tsx só monta `<Deferred data=\"kpis\"><KpiStripClickable/>` — `Deferred` não é DOM, atributo nele não chegaria ao HTML, classe LC-30)."
     },
     {
       "id": "filtros-busca",
@@ -44,12 +46,13 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Cliente/Index.tsx",
-        "linhas": "TODO",
-        "ancora": false
+        "linhas": "998-1082",
+        "ancora": true
       },
       "status": "pendente-mapeamento",
       "acao": "Nada — este gap.md se declara registro datado de 2026-06-30 medido por rota inválida, não é base para decidir hoje (banner, l.19); decisão só pelo dono vigente `PARIDADE-area-cliente-diagnostico-e-ondas.md` (que já registra: não adotar o card Faturamento)",
-      "_acionavel": false
+      "_acionavel": false,
+      "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = o wrapper `aria-label=\"Filtros e busca de contato\"` (BLOCO 3 toolbar)."
     },
     {
       "id": "tabela-linhas",
@@ -59,12 +62,13 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Cliente/Index.tsx",
-        "linhas": "TODO",
-        "ancora": false
+        "linhas": "1136-1319",
+        "ancora": true
       },
       "status": "pendente-mapeamento",
       "acao": "Nada — este gap.md se declara registro datado de 2026-06-30 medido por rota inválida, não é base para decidir hoje (banner, l.19); decisão só pelo dono vigente `PARIDADE-area-cliente-diagnostico-e-ondas.md` (que já registra: não adotar o card Faturamento)",
-      "_acionavel": false
+      "_acionavel": false,
+      "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = o card `border border-border bg-background overflow-hidden` que envolve a `<table>` (BLOCO 3 lista)."
     },
     {
       "id": "drawer-de-detalhe",
@@ -74,12 +78,13 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Cliente/Index.tsx",
-        "linhas": "TODO",
-        "ancora": false
+        "linhas": "1946-2219",
+        "ancora": true
       },
       "status": "pendente-mapeamento",
       "acao": "Nada — este gap.md se declara registro datado de 2026-06-30 medido por rota inválida, não é base para decidir hoje (banner, l.19); decisão só pelo dono vigente `PARIDADE-area-cliente-diagnostico-e-ondas.md` (que já registra: não adotar o card Faturamento)",
-      "_acionavel": false
+      "_acionavel": false,
+      "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = `<SheetContent>` do ClienteSheet (760px, ADR 0179); SheetContent espalha `...props` em SheetPrimitive.Content (Components/ui/sheet.tsx:45-60), logo o atributo chega ao DOM do portal."
     },
     {
       "id": "perspectivas-fornecedor-funcionario-representante",
@@ -89,12 +94,13 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Cliente/Index.tsx",
-        "linhas": "TODO",
-        "ancora": false
+        "linhas": "961-967",
+        "ancora": true
       },
       "status": "pendente-mapeamento",
       "acao": "Nada — este gap.md se declara registro datado de 2026-06-30 medido por rota inválida, não é base para decidir hoje (banner, l.19); decisão só pelo dono vigente `PARIDADE-area-cliente-diagnostico-e-ondas.md` (que já registra: não adotar o card Faturamento)",
-      "_acionavel": false
+      "_acionavel": false,
+      "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = o slot `px-6` que monta `<PageHeaderTabs>` (tabs Todos/Clientes/Fornecedores/Funcionários/Representantes/Outros — SLOT2_TABS). A parte segue gap A6 (feature-wish, ADR 0105); a âncora só trava ONDE a região vive, não o que falta nela."
     },
     {
       "id": "view-todos",
@@ -104,12 +110,14 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Cliente/Index.tsx",
-        "linhas": "TODO",
-        "ancora": false
+        "linhas": "961-967",
+        "ancora": "perspectivas-fornecedor-funcionario-representante"
       },
       "status": "pendente-mapeamento",
       "acao": "Nada — este gap.md se declara registro datado de 2026-06-30 medido por rota inválida, não é base para decidir hoje (banner, l.19); decisão só pelo dono vigente `PARIDADE-area-cliente-diagnostico-e-ondas.md` (que já registra: não adotar o card Faturamento)",
-      "_acionavel": false
+      "_acionavel": false,
+      "_nota_ancora": "2026-09-06: sem raiz DOM própria — a view \"Todos\" é o item `key: 'all'` de SLOT2_TABS (Index.tsx, const SLOT2_TABS) renderizado por PageHeaderTabs DENTRO da região perspectivas-*; por isso ancora custom apontando pra âncora que a contém (mesmo padrão das 2 partes de compras-grade-matrix.map.json em purchase-itens)."
     }
-  ]
+  ],
+  "_nota_mapeamento": "2026-09-06: 6 partes ganharam vivo.ancora=true (data-contract adicionado no .tsx — atributo inerte, sem CSS/JS que o consuma) e view-todos aponta pra âncora que a contém; os TODO de linhas viraram range real medido. Fila do design-code-map-check: era \"sem NENHUM data-contract no vivo\" (0 no arquivo)."
 }
