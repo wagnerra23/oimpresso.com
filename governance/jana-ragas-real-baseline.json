@@ -8,7 +8,17 @@
     "modo": "real",
     "gold_set": "Modules/Jana/Tests/Feature/Ai/fixtures/jana-gold-set.json (51 perguntas, 6 buckets)",
     "adr": "0318",
-    "prs": ["#3516 (mata tautologia)", "loop-close (agenda + baseline + honestifica gate PR)"]
+    "prs": [
+      "#3516 (mata tautologia)",
+      "loop-close (agenda + baseline + honestifica gate PR)"
+    ],
+    "atualizado_em": "2026-09-06",
+    "revisao_2026_09_06": {
+      "o_que": "Re-cura datada (caso b do cron-watchdog: artefato curado à mão cuja revisão envelheceu). Pisos MANTIDOS — nenhum score regravado.",
+      "evidencia": "branch órfã governance/ragas-real-trend (7 semanas): 2026-06-28 pass F0.71/R0.87/CR0.40 · 07-19 pass F0.71/R0.83/CR0.40 · 07-26 fail F0.69/R0.83/CR0.35 · 08-02 skipped (no_context=51) · 08-09 fail F0.30/R0.41/CR0.04 · 08-16 fail F0.27/R0.37/CR0.03 · 08-23 skipped (no_context=51).",
+      "leitura": "Os pisos (F0.65/R0.75/CR0.36) seguem ancorados nas semanas válidas de jun-jul; as de ago são colapso REAL (fail correto, não ruído) cujo mecanismo ficou indecidível em memory/sessions/2026-09-04-ragas-agosto-lead-refutado-juiz-mudo.md (lead da flag hybrid REFUTADO; juiz mudo é caminho real mas não o único). Subir/descer piso agora fabricaria verde ou vermelho sem causa conhecida — mantidos até o mecanismo ser decidido.",
+      "quem": "[C] 2026-09-06, autorizado por [W] (\"pode resolver todas\")"
+    }
   },
   "n_questions": 51,
   "n_evaluated": 51,
@@ -27,9 +37,21 @@
   "_derivacao_piso_context_recall": {
     "us": "US-COPI-136",
     "pontos_medidos": [
-      { "data": "2026-07-01", "valor": 0.3839, "fonte": "baseline honesto ADR 0318 (N=51)" },
-      { "data": "2026-07-04", "valor": 0.3951, "fonte": "governance/ragas-real-trend.json semana 2026-06-28 (N=51)" },
-      { "data": "2026-07-12", "valor": 0.3939, "fonte": "storage/app/governance/ragas-real-eval-latest.json do container staging (N=51)" }
+      {
+        "data": "2026-07-01",
+        "valor": 0.3839,
+        "fonte": "baseline honesto ADR 0318 (N=51)"
+      },
+      {
+        "data": "2026-07-04",
+        "valor": 0.3951,
+        "fonte": "governance/ragas-real-trend.json semana 2026-06-28 (N=51)"
+      },
+      {
+        "data": "2026-07-12",
+        "valor": 0.3939,
+        "fonte": "storage/app/governance/ragas-real-eval-latest.json do container staging (N=51)"
+      }
     ],
     "min": 0.3839,
     "media": 0.391,
