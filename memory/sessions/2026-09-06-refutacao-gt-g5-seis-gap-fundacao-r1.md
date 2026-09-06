@@ -93,9 +93,9 @@ O `--atualizar` imprime em stdout (não escreve no destino) — a comparação f
 
 | Padrão | Regex | Hits no lote | Controle positivo (string fictícia, fora do repo, rodada no shell) |
 |---|---|---|---|
-| CPF pontuado | `[0-9]{3}\.[0-9]{3}\.[0-9]{3}-[0-9]{2}` | 0 | `123.456.789-09` → 1 ✓ |
+| CPF pontuado | `[0-9]{3}\.[0-9]{3}\.[0-9]{3}-[0-9]{2}` | 0 | `<CPF fictício pontuado — redigido>` → 1 ✓ |
 | CPF cru (11 dígitos) | `(^\|[^0-9])[0-9]{11}([^0-9]\|$)` | 0 | `x 12345678909 y` → 1 ✓ |
-| CNPJ pontuado | `[0-9]{2}\.[0-9]{3}\.[0-9]{3}/[0-9]{4}-[0-9]{2}` | 0 | `12.345.678/0001-95` → 1 ✓ |
+| CNPJ pontuado | `[0-9]{2}\.[0-9]{3}\.[0-9]{3}/[0-9]{4}-[0-9]{2}` | 0 | `<CNPJ fictício pontuado — redigido>` → 1 ✓ |
 | CNPJ cru (14 dígitos) | `(^\|[^0-9])[0-9]{14}([^0-9]\|$)` | 0 | `x 12345678000195 y` → 1 ✓ |
 | Telefone BR | `\(?0?[1-9]{2}\)?[ -]?9?[0-9]{4}-?[0-9]{4}` | 0 | `(48) 99999-1234` → 1 ✓ |
 | E-mail | `[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}` | 0 | `fulano@exemplo.com.br` → 1 ✓ |
