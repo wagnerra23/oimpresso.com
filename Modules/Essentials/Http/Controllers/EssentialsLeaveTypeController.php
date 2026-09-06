@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Inertia\Inertia;
 use Modules\Essentials\Entities\EssentialsLeave;
 use Modules\Essentials\Entities\EssentialsLeaveType;
 use Yajra\DataTables\Facades\DataTables;
@@ -32,7 +33,13 @@ class EssentialsLeaveTypeController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return Response
+     * DOIS caminhos, e é por isso que não há `@return` declarado aqui: com
+     * `request()->ajax()` devolve o payload do DataTables (Blade legado, coexistência
+     * F5); no caminho normal devolve `Inertia\Response`. A anotação `@return Response`
+     * que existia era do `Illuminate\Http\Response` e já não descrevia nem o `view()`
+     * anterior — com o Inertia ela virou erro de PHPStan, não só imprecisão.
+     * O nível 5 (phpstan.neon.dist) não exige tipo de retorno, então a ausência é
+     * honesta: união inferida > declaração falsa.
      */
     public function index()
     {
@@ -60,7 +67,48 @@ class EssentialsLeaveTypeController extends Controller
                 ->make(false);
         }
 
-        return view('essentials::leave_type.index');
+        // MWART F3 — a lista vira Inertia (HRM-O7 PR-9). O ramo `request()->ajax()`
+        // acima FICA: o Blade legado (`leave_type/index.blade.php`) ainda o consome,
+        // e a coexistência da F5 depende dele. RUNBOOK-tipos.md.
+        return Inertia::render('Essentials/Tipos', [
+            // Inertia::defer — prop cara (2 queries + agregação). Regra `inertia-defer-default`.
+            'tipos' => Inertia::defer(fn () => $this->buildTiposPayload($business_id)),
+            'can_manage' => auth()->user()->can('essentials.crud_leave_type'),
+        ]);
+    }
+
+    /**
+     * Tipos do business + quantos pedidos de licença cada um teve NO ANO CORRENTE
+     * (coluna "Pedidos no ano" do protótipo).
+     *
+     * A contagem sai de uma query agrupada em vez de `withCount`, porque `withCount`
+     * exigiria uma relação `leaves()` que `EssentialsLeaveType` não tem — criá-la só
+     * para isto alargaria a Entity além do que esta tela precisa.
+     *
+     * Tier 0 (ADR 0093): AS DUAS queries filtram por `business_id`. A de contagem
+     * também — senão o total exibido somaria licenças do vizinho num tipo do tenant.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function buildTiposPayload(int $business_id): array
+    {
+        $tipos = EssentialsLeaveType::where('business_id', $business_id)
+                                ->orderBy('leave_type')
+                                ->get(['id', 'leave_type', 'max_leave_count', 'leave_count_interval']);
+
+        $pedidosNoAno = EssentialsLeave::where('business_id', $business_id)
+                                ->whereYear('start_date', now()->year)
+                                ->selectRaw('essentials_leave_type_id, COUNT(*) as total')
+                                ->groupBy('essentials_leave_type_id')
+                                ->pluck('total', 'essentials_leave_type_id');
+
+        return $tipos->map(fn ($t) => [
+            'id' => (int) $t->id,
+            'leave_type' => (string) $t->leave_type,
+            'max_leave_count' => $t->max_leave_count !== null ? (int) $t->max_leave_count : null,
+            'leave_count_interval' => $t->leave_count_interval,
+            'leaves_count' => (int) ($pedidosNoAno[$t->id] ?? 0),
+        ])->values()->all();
     }
 
     /**

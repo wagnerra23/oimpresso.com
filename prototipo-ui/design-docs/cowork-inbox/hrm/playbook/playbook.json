@@ -1,0 +1,102 @@
+{
+  "$schema": "../../_schema/playbook.schema.json",
+  "modulo": "Hrm",
+  "sha": "159e572dd448",
+  "gerado": "2026-09-05",
+  "absorve": [
+    "prototipo-ui/design-docs/cowork-inbox/hrm/PEDIDO-CL-hrm.md",
+    "prototipo-ui/design-docs/cowork-inbox/hrm/EXPORT-HRM-2026-09-04.md"
+  ],
+  "variaveis": { "PAGES": null },
+  "decisoes": [
+    { "id": "RESIDUO-1", "pergunta": "Caminho das Pages do HRM: resources/js/Pages/Hrm ou Modules/Essentials/Resources/js/Pages/Hrm?", "respondida": false, "define": "PAGES", "destrava": ["02", "03", "04", "05", "06"] },
+    { "id": "RESIDUO-2", "pergunta": "Departamentos e Cargos (nav_hrm → TaxonomyController) viram abas do HRM no protótipo?", "respondida": false, "destrava": ["01"] },
+    { "id": "RESIDUO-3", "pergunta": "ShiftController::destroy ainda responde 200 sem apagar turno com vínculo?", "respondida": false, "destrava": ["05"] },
+    { "id": "RESIDUO-4", "pergunta": "DataTablePro do DS (th sem scope/semântica em 3 módulos): abrir pedido de DS próprio?", "respondida": false },
+    { "id": "D1", "pergunta": "Presença web × Ponto", "respondida": true, "resposta": "cede ao Ponto — dono único da jornada (2026-09-05)", "destrava": ["09"] },
+    { "id": "D2", "pergunta": "Folha gerencial × completa", "respondida": true, "resposta": "completa com encargos → projeto com ADR própria (2026-09-05)" },
+    { "id": "D3", "pergunta": "Licença aprovada bloqueia marcação?", "respondida": true, "resposta": "sim; guard nasce no Ponto; bloquear = impedir criação (append-only)" }
+  ],
+  "threads": [
+    { "id": "01", "titulo": "Build: TABS do HRM (−Presença · +Departamentos/Cargos)", "dono": "CC", "vaga": 1, "arquivo": "01-build-tabs-hrm.md",
+      "prefixo": ["prototipo-ui/cowork/hrm-page.jsx", "prototipo-ui/cowork/hrm-data.jsx", "prototipo-ui/cowork/oimpresso.com.html"],
+      "nao_toca": ["prototipo-ui/cowork/hrm-extras.jsx", "prototipo-ui/cowork/hrm-forms.jsx", "prototipo-ui/cowork/app.jsx"],
+      "depende_decisoes": [],
+      "provas": [
+        { "tipo": "nao_contem", "path": "prototipo-ui/cowork/hrm-page.jsx", "padrao": "id:\"hrm-presenca\"", "nota": "aba Presença fora do TABS (D1); a parte +Departamentos só entra com RESIDUO-2" }
+      ] },
+    { "id": "02", "titulo": "Licenças — Page (lista + saldo por tipo)", "dono": "CL", "vaga": 1, "arquivo": "02-licencas.md",
+      "prefixo": ["${PAGES}/Hrm/Licencas/", "Modules/Essentials/Http/Controllers/EssentialsLeaveController.php", "prototipo-ui/contrato/hrm-licencas.contract.json"],
+      "nao_toca": ["Modules/Essentials/Services/LeaveRequestService.php", "Modules/Essentials/Tests/Feature/HrmLicencaTest.php", "resources/js/Pages/Essentials/"],
+      "depende_decisoes": ["RESIDUO-1"],
+      "provas": [
+        { "tipo": "arquivo", "path": "${PAGES}/Hrm/Licencas/Index.tsx" },
+        { "tipo": "arquivo", "path": "${PAGES}/Hrm/Licencas/Index.charter.md" },
+        { "tipo": "arquivo", "path": "${PAGES}/Hrm/Licencas/Index.casos.md" },
+        { "tipo": "json_com_chaves", "path": "prototipo-ui/contrato/hrm-licencas.contract.json", "chaves": ["alvo", "secoes"], "nota": "HrmLicencaTest.php (#6797) já existe: é REUSO, não prova" }
+      ] },
+    { "id": "03", "titulo": "Tipos de licença — Page", "dono": "CL", "vaga": 1, "arquivo": "03-tipos-licenca.md",
+      "prefixo": ["${PAGES}/Hrm/Tipos/", "Modules/Essentials/Http/Controllers/EssentialsLeaveTypeController.php"],
+      "nao_toca": ["Modules/Essentials/Http/Controllers/EssentialsLeaveController.php"],
+      "depende_decisoes": ["RESIDUO-1"],
+      "provas": [
+        { "tipo": "arquivo", "path": "${PAGES}/Hrm/Tipos/Index.tsx" },
+        { "tipo": "arquivo", "path": "${PAGES}/Hrm/Tipos/Index.charter.md" },
+        { "tipo": "arquivo", "path": "${PAGES}/Hrm/Tipos/Index.casos.md" }
+      ] },
+    { "id": "04", "titulo": "Metas de venda — Page", "dono": "CL", "vaga": 1, "arquivo": "04-metas-venda.md",
+      "prefixo": ["${PAGES}/Hrm/Metas/", "Modules/Essentials/Http/Controllers/SalesTargetController.php"],
+      "nao_toca": ["Modules/Essentials/Http/Controllers/PayrollController.php"],
+      "depende_decisoes": ["RESIDUO-1"],
+      "provas": [
+        { "tipo": "arquivo", "path": "${PAGES}/Hrm/Metas/Index.tsx" },
+        { "tipo": "arquivo", "path": "${PAGES}/Hrm/Metas/Index.charter.md" },
+        { "tipo": "arquivo", "path": "${PAGES}/Hrm/Metas/Index.casos.md" }
+      ] },
+    { "id": "05", "titulo": "Turnos — Page", "dono": "CL", "vaga": 2, "arquivo": "05-turnos.md",
+      "prefixo": ["${PAGES}/Hrm/Turnos/", "Modules/Essentials/Http/Controllers/ShiftController.php"],
+      "nao_toca": ["Modules/Essentials/Http/Controllers/AttendanceController.php"],
+      "depende_threads": ["09"], "depende_decisoes": ["RESIDUO-1", "RESIDUO-3"],
+      "provas": [
+        { "tipo": "arquivo", "path": "${PAGES}/Hrm/Turnos/Index.tsx" },
+        { "tipo": "arquivo", "path": "${PAGES}/Hrm/Turnos/Index.charter.md" },
+        { "tipo": "arquivo", "path": "${PAGES}/Hrm/Turnos/Index.casos.md" }
+      ] },
+    { "id": "06", "titulo": "Painel — Page", "dono": "CL", "vaga": 2, "arquivo": "06-painel.md",
+      "prefixo": ["${PAGES}/Hrm/Painel/", "Modules/Essentials/Http/Controllers/DashboardController.php"],
+      "nao_toca": ["Modules/Essentials/Http/Controllers/AttendanceController.php", "resources/js/Pages/Essentials/"],
+      "depende_threads": ["09"], "depende_decisoes": ["RESIDUO-1"],
+      "provas": [
+        { "tipo": "arquivo", "path": "${PAGES}/Hrm/Painel/Index.tsx" },
+        { "tipo": "arquivo", "path": "${PAGES}/Hrm/Painel/Index.charter.md" },
+        { "tipo": "arquivo", "path": "${PAGES}/Hrm/Painel/Index.casos.md" }
+      ] },
+    { "id": "07", "titulo": "Configurações — PUXAR (12 campos × 10 chaves)", "dono": "CC->CL", "vaga": 1, "arquivo": "07-configuracoes-puxar.md",
+      "prefixo": [], "nao_toca": ["Modules/Essentials/Http/Controllers/EssentialsSettingsController.php"],
+      "provas": [], "nota_provas": "read-only: a única prova é o _saida-07.md com as 12 linhas classificadas (prova implícita)" },
+    { "id": "08", "titulo": "Feriados — PUXAR (ler Holidays/Index.tsx)", "dono": "CC", "vaga": 1, "arquivo": "08-feriados-puxar.md",
+      "prefixo": [], "nao_toca": ["resources/js/Pages/Essentials/Holidays/Index.tsx"],
+      "provas": [], "nota_provas": "read-only: prova = _saida-08.md com o diff nos dois sentidos" },
+    { "id": "09", "titulo": "Presença SAI do HRM → Ponto dono da jornada", "dono": "W+CL", "vaga": 2, "arquivo": "09-presenca-sai.md",
+      "prefixo": ["memory/decisions/0014-essentials-pontowr2-integracao.md", "Modules/Essentials/Routes/web.php"],
+      "nao_toca": ["Modules/Ponto/"],
+      "depende_decisoes": ["D1", "D3"],
+      "provas": [
+        { "tipo": "contem", "path": "memory/decisions/0014-essentials-pontowr2-integracao.md", "padrao": "2026-09-05", "nota": "emenda datada — nunca ADR paralela (LC-19)" },
+        { "tipo": "nao_contem", "path": "memory/decisions/0014-essentials-pontowr2-integracao.md", "padrao": "lifecycle: arquivado" }
+      ] },
+    { "id": "10", "titulo": "Folha — BLOQUEADA (D2 → projeto com ADR própria)", "dono": "W", "arquivo": "10-folha-bloqueada.md",
+      "prefixo": [], "nao_toca": ["Modules/Essentials/Http/Controllers/PayrollController.php"],
+      "bloqueio": "D2: folha completa com encargos exige ADR própria e gate de VALOR (proibicoes.md); nenhuma Page até a ADR existir",
+      "provas": [], "nota_provas": "bloqueada: quando a ADR nova existir, entra aqui como prova {tipo:contem, path:<ADR>, padrao:'0014'}" },
+    { "id": "11", "titulo": "Fim do topnav Blade + limpeza O8", "dono": "CL", "vaga": 3, "arquivo": "11-topnav-legado.md",
+      "prefixo": ["Modules/Essentials/Resources/views/layouts/nav_hrm.blade.php", "Modules/Essentials/Resources/views/layouts/partials/sidebar_hrm.blade.php", "Modules/Essentials/Resources/views/leave/", "Modules/Essentials/Resources/views/leave_type/"],
+      "nao_toca": ["Modules/Essentials/Resources/views/attendance/", "Modules/Essentials/Resources/views/payroll/", "Modules/Essentials/Routes/web.php"],
+      "depende_threads": ["02", "03", "04", "05", "06"],
+      "provas": [
+        { "tipo": "ausente", "path": "Modules/Essentials/Resources/views/layouts/nav_hrm.blade.php" },
+        { "tipo": "ausente", "path": "Modules/Essentials/Resources/views/layouts/partials/sidebar_hrm.blade.php" },
+        { "tipo": "ausente", "path": "Modules/Essentials/Resources/views/dashboard/hrm_dashboard.blade.php" }
+      ] }
+  ]
+}

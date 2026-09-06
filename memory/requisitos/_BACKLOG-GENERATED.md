@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **918 tarefas abertas** em **52 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **919 tarefas abertas** em **52 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -51,9 +51,9 @@
 | [`Woocommerce`](#woocommerce) | 6 | 0 | 0 | 0 | 6 |
 | [`LaravelAI`](#laravelai) | 5 | 0 | 0 | 0 | 5 |
 | [`Spreadsheet`](#spreadsheet) | 5 | 0 | 0 | 0 | 5 |
+| [`Repair`](#repair) | 4 | 0 | 0 | 0 | 4 |
 | [`ConsultaOs`](#consultaos) | 3 | 0 | 0 | 0 | 3 |
 | [`Dashboard`](#dashboard) | 3 | 0 | 0 | 0 | 3 |
-| [`Repair`](#repair) | 3 | 0 | 0 | 0 | 3 |
 | [`ADS`](#ads) | 2 | 0 | 0 | 0 | 2 |
 | [`Documentacao`](#documentacao) | 2 | 0 | 0 | 0 | 2 |
 | [`MemoriaAutonoma`](#memoriaautonoma) | 2 | 0 | 0 | 0 | 2 |
@@ -1250,6 +1250,16 @@
 - **US-SHEET-004** — Post-share (revogar / listar shares ativos)
 - **US-SHEET-005** — Embed view (iframe-friendly)
 
+## Repair
+
+
+### todo
+
+- **US-REPA-002** — 3 testes do Wave18 quebram com `base_path()` fora do bootstrap do app _(`p2`)_
+- **US-REPA-003** — Configurar os padrões da folha de OS e o que sai impresso _(`p2`)_
+- **US-REPA-004** — Listar e filtrar as ordens de serviço abertas _(`p3`)_
+- **US-REPA-001** — [TODO — título]
+
 ## ConsultaOs
 
 
@@ -1267,15 +1277,6 @@
 - **US-DASH-001** — Soft wrapper Inertia `/home` (F6 entrega 2026-05-21)
 - **US-DASH-002** — Charts ECharts em Inertia (backlog F1→F4 wave)
 - **US-DASH-003** — Widget registry pluggable em React (backlog ADR nova)
-
-## Repair
-
-
-### todo
-
-- **US-REPA-002** — 3 testes do Wave18 quebram com `base_path()` fora do bootstrap do app _(`p2`)_
-- **US-REPA-003** — Configurar os padrões da folha de OS e o que sai impresso _(`p2`)_
-- **US-REPA-001** — [TODO — título]
 
 ## ADS
 

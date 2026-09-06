@@ -975,6 +975,32 @@ jobs:
         id: e2e-purchase-etiqueta
         run: ./vendor/bin/pest tests/Browser/Purchase/IndexEtiquetaTest.php
 
+      # ── E2E DE RENDER POR TELA — Repair/ProducaoOficina (NASCE ADVISORY) ────────────
+      # O PRIMEIRO E2E do modulo Repair. Medido em origin/main e0f2b79c86 (2026-09-05) por
+      # `node scripts/qa/screen-coverage-map.mjs`: Repair = 14 telas · 14 charter · 0 E2E ·
+      # 0 VRT · 0 a11y — o unico modulo grande zerado nos tres eixos, e nao por falta de tela.
+      # O contrato de servidor ja tem 44 casos em `Modules/Repair/Tests/Feature/`; o que nao
+      # existia era alguem RENDERIZAR a tela num browser.
+      #
+      # Cobre: as 5 colunas na ordem do charter (1280 e 1440) · o UX Target de caber em 1280
+      # sem scroll horizontal · o filtro client-side de slot/area (contador comparativo +
+      # "Limpar filtros") · o Non-Goal de modal/form · axe CRITICAL · e a CAPTURA do defeito
+      # de teclado do card (article draggable com onClick, sem role/tabIndex/onKeyDown e sem
+      # aria-keyshortcuts — WCAG 2.1.1 e 2.5.7).
+      #
+      # NAO semeia nada no banco e NAO captura screenshot (nao gera baseline de pixel — a tela
+      # nao esta em visreg-screens.json de proposito: um `source` sem o `.snap` versionado faz
+      # o VisregThreshold reprovar com "baseline contratada ausente", ou seja nasceria VERMELHO).
+      #
+      # ADVISORY no nascimento (ADR 0261/0275): nao pode ser executado antes do PR — Pest
+      # Browser e CI-only (medido: o container do CT 100 nao tem node/npx/chromium). Promocao
+      # a ENFORCING = REMOVER o `continue-on-error`, apos 2 verdes que EXECUTARAM, e e flip [W].
+      - name: E2E de render · Repair/ProducaoOficina (ADVISORY)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        id: e2e-repair-producao
+        continue-on-error: true
+        run: ./vendor/bin/pest tests/Browser/Repair/ProducaoOficinaIndexTest.php
+
       # ── VEREDITO DOS ADVISORY DE BROWSER (visibilidade, NÃO enforcement) ─────────
       # NÃO lista o step de Purchase/Index · Etiquetas, e isso é deliberado: ele foi
       # promovido a ENFORCING em 2026-09-05 (flip [W]), logo NÃO tem `continue-on-error`
@@ -1013,6 +1039,7 @@ jobs:
           A_COBRANCA: ${{ steps.e2e-cobranca.outcome }}
           A_RECIPES: ${{ steps.e2e-recipes.outcome }}
           A_VISAO_GERAL: ${{ steps.e2e-visao-geral.outcome }}
+          A_REPAIR_PRODUCAO: ${{ steps.e2e-repair-producao.outcome }}
         run: |
           resumo="$(mktemp)"
           {
@@ -1048,6 +1075,7 @@ jobs:
           registrar "E2E de render · Financeiro/Cobranca" "$A_COBRANCA"
           registrar "E2E de render · Manufacturing/Recipes" "$A_RECIPES"
           registrar "E2E de render · Home/Visao geral" "$A_VISAO_GERAL"
+          registrar "E2E de render · Repair/ProducaoOficina" "$A_REPAIR_PRODUCAO"
 
           {
             echo ""

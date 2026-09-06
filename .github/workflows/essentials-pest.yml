@@ -28,6 +28,7 @@ on:
     branches: [main]
     paths:
       - 'Modules/Essentials/**'
+      - 'tests/Feature/Calculo/CalculoValorPayrollTest.php'
       - 'resources/js/Pages/Essentials/**'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/essentials-pest.yml'
@@ -66,6 +67,7 @@ jobs:
           filters: |
             essentials:
               - 'Modules/Essentials/**'
+              - 'tests/Feature/Calculo/CalculoValorPayrollTest.php'
               - 'resources/js/Pages/Essentials/**'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/essentials-pest.yml'
@@ -112,7 +114,9 @@ jobs:
             Modules/Essentials/Tests/Feature/HrmLicencaTest.php \
             Modules/Essentials/Tests/Feature/SalesTargetFaixaValidacaoTest.php \
             Modules/Essentials/Tests/Feature/HrmMetasTest.php \
-            Modules/Essentials/Tests/Feature/AttendanceImportMultiTenantTest.php
+            Modules/Essentials/Tests/Feature/AttendanceImportMultiTenantTest.php \
+            Modules/Essentials/Tests/Feature/HrmTiposIndexTest.php \
+            tests/Feature/Calculo/CalculoValorPayrollTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
