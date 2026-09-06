@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 import {
   BUNDLE_SCHEMA, changesDigest, createManifest, manifestDigest, sha256,
 } from './bundle-contract.mjs';
-import { applyBundleTransaction } from './bundle-transaction.mjs';
+import { applyBundleTransaction, avaliarBaseParaRecibo } from './bundle-transaction.mjs';
 
 const STATUS = fileURLToPath(new URL('./status.mjs', import.meta.url));
 
@@ -419,6 +419,35 @@ console.log('\n=== --check-lifecycle: a catraca do escopo novo morde pelo CLI de
     probe(['--source', 'officeimpresso-page.jsx', '--minimum', state]) === 0);
   check('ESCOPO: sem --source/--module → exit 2 (legado não vira bloqueio global)',
     probe([]) === 2);
+}
+
+// ── LC-20 · aviso pré-recibo de base envelhecida (bite/release num repo git real) ─────────
+{
+  const g = (cwd, args) => execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+  const semGit = mkdtempSync(join(tmpdir(), 'design-base-nogit-'));
+  const r0 = avaliarBaseParaRecibo({ root: semGit, arquivos: ['a.txt'] });
+  check('LC-20 sem repo git → medido:false (nunca "ok" silencioso)', r0.medido === false && r0.atrasados.length === 0);
+
+  const repo = mkdtempSync(join(tmpdir(), 'design-base-git-'));
+  g(repo, ['init', '-q', '-b', 'main']);
+  g(repo, ['config', 'user.email', 'test@example.com']); g(repo, ['config', 'user.name', 'test']);
+  put(repo, 'alvo.tsx', 'v1\n'); put(repo, 'outro.tsx', 'v1\n');
+  g(repo, ['add', '.']); g(repo, ['commit', '-q', '-m', 'base']);
+  g(repo, ['checkout', '-q', '-b', 'trabalho']);
+  g(repo, ['checkout', '-q', 'main']);
+  put(repo, 'alvo.tsx', 'v2 no main\n'); g(repo, ['commit', '-q', '-am', 'main anda no alvo']);
+  g(repo, ['update-ref', 'refs/remotes/origin/main', 'main']); // simula origin/main sem rede
+  g(repo, ['checkout', '-q', 'trabalho']);
+  const r1 = avaliarBaseParaRecibo({ root: repo, arquivos: ['alvo.tsx', 'outro.tsx'] });
+  check('BITE LC-20: main andou em alvo.tsx depois da base → 1 atrasado (só ele)',
+    r1.medido === true && r1.atrasados.length === 1 && r1.atrasados[0].arquivo === 'alvo.tsx' && r1.atrasados[0].commits === 1,
+    JSON.stringify(r1));
+  g(repo, ['merge', '-q', 'main']);
+  const r2 = avaliarBaseParaRecibo({ root: repo, arquivos: ['alvo.tsx', 'outro.tsx'] });
+  check('RELEASE LC-20: depois de trazer o main → 0 atrasados', r2.medido === true && r2.atrasados.length === 0, JSON.stringify(r2));
+  put(repo, 'outro.tsx', 'edicao legitima no branch\n'); g(repo, ['commit', '-q', '-am', 'feature edita outro']);
+  const r3 = avaliarBaseParaRecibo({ root: repo, arquivos: ['outro.tsx'] });
+  check('FP LC-20: branch editar o alvo NÃO é base envelhecida (critério é main à frente, não "difere")', r3.atrasados.length === 0, JSON.stringify(r3));
 }
 
 console.log(failures ? `\n✗ ${failures} falha(s)` : '\n✓ bundle v2: delta + staging + rollback + módulos + catraca lifecycle provados');
