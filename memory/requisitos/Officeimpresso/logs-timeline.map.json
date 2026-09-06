@@ -130,7 +130,7 @@
       "id": "estado-vazio",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/officeimpresso-page.jsx",
-        "linhas": "741"
+        "linhas": "739"
       },
       "vivo": {
         "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Timeline.tsx",
@@ -138,7 +138,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Nada — vivo à frente. O protótipo tem um vazio genérico no lugar (`officeimpresso-page.jsx:741`).",
+      "acao": "Nada — vivo à frente. O protótipo tem um vazio genérico no lugar (`officeimpresso-page.jsx:739`: *\"Nenhum evento nesta janela de retenção.\"*; a lista cheia começa em `:741`).",
       "_acionavel": false
     },
     {

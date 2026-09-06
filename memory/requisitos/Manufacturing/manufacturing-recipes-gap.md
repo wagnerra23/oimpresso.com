@@ -8,7 +8,7 @@ gerado_em: 2026-09-06
 
 # GAP-SPEC — Manufacturing/Recipes
 
-> **Âncora declarada no charter** — `related_prototype: prototipo-ui/cowork/manufacturing-page.jsx` (a única das **6 telas deste lote** com âncora por `related_prototype`, não por `bundle_source`).
+> **Âncora declarada no charter** — `related_prototype: prototipo-ui/cowork/manufacturing-page.jsx` — das 6 telas deste PR, é a única cuja âncora vem do `related_prototype` e não do `bundle_source`. ⚠️ **Não é única no conjunto das 10 telas medidas nesta leva:** as duas de `Officeimpresso/Logs` também declaram `related_prototype` no charter, e viajam no [PR irmão](https://github.com/wagnerra23/oimpresso.com/pull/6927).
 >
 > **Esta tela é o porte mais recente e mais fiel do lote.** O charter registra: *"A fonte visual está no espelho e é **idêntica** ao ZIP — conferido arquivo a arquivo, 0 linhas de diferença nos 6 `.jsx` + o `.css`"*, com smoke em prod em 2026-09-03. A expectativa-base, portanto, é **paridade quase total** — e é o que a comparação abaixo encontra.
 >

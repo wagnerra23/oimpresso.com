@@ -55,7 +55,7 @@
       "id": "limpeza-de-linhas-ao-trocar-a-origem",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
-        "linhas": "279"
+        "linhas": "278"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockTransfer/Create.tsx",
@@ -63,7 +63,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. O protótipo limpa as linhas e avisa: *\"Origem trocada — as linhas foram limpas porque o saldo é da origem.\"* (`trocarDe`, `estoque-forms.jsx:279`). ⚠️ Toca ESTOQUE: manter linhas de outra origem é como um lançamento nasce apontando para saldo que não existe naquele local. Construir ou rejeitar por escrito.",
+      "acao": "Decidir. O protótipo limpa as linhas e avisa: *\"Origem trocada — as linhas foram limpas porque o saldo é da origem.\"* (`trocarDe`, `estoque-forms.jsx:278`). ⚠️ Toca ESTOQUE: manter linhas de outra origem é como um lançamento nasce apontando para saldo que não existe naquele local. Construir ou rejeitar por escrito.",
       "_acionavel": true
     },
     {
@@ -85,7 +85,7 @@
       "id": "trava-de-saldo-disponivel-na-origem",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
-        "linhas": "270"
+        "linhas": "271"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockTransfer/Create.tsx",
@@ -93,7 +93,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. O protótipo calcula o disponível na origem por linha (`dispDe`, `estoque-forms.jsx:270`), marca `negativa` e exibe alerta em vermelho *\"Acima do disponível na origem\"* citando INV-4 (`:320-321`), além de bloquear o submit (`podeSalvar`, `:272`). ⚠️ Toca ESTOQUE e é o item mais pesado desta tela: exige o backend expor disponível-por-local-e-lote, e exibir número errado induz lançamento errado. Construir ou rejeitar por escrito.",
+      "acao": "Decidir. O protótipo calcula o disponível na origem por linha (`dispDe`, `estoque-forms.jsx:271`), marca `negativa` (`:272`) e exibe alerta em vermelho *\"Acima do disponível na origem\"* citando INV-4 (`:320-321`), além de bloquear o submit (`podeSalvar`, `:274`). ⚠️ Toca ESTOQUE e é o item mais pesado desta tela: exige o backend expor disponível-por-local-e-lote, e exibir número errado induz lançamento errado. Construir ou rejeitar por escrito.",
       "_acionavel": true
     },
     {
