@@ -5,6 +5,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import {
+  DEFAULT_PATHS, avaliarBaseParaRecibo,
   recordApplicationEvidence, recordComparisonEvidence, recordSmokeEvidence,
   recordTestEvidence, refreshApplicationReport,
 } from './bundle-transaction.mjs';
@@ -20,6 +21,16 @@ const valueOf = (name) => {
   return index >= 0 && args[index + 1] && !args[index + 1].startsWith('--') ? args[index + 1] : null;
 };
 
+// LC-20 — mede a base NO INSTANTE do recibo (advisory: avisa e segue; o hash é quem manda).
+function avisarBaseEnvelhecida({ source, target, extras = [] }) {
+  const arquivos = [source ? `${DEFAULT_PATHS.cowork}/${String(source).replace(/\\/g, '/')}` : null, target, ...extras];
+  const base = avaliarBaseParaRecibo({ root: ROOT, arquivos });
+  if (!base.medido) { console.error(`  ⚠ base não medida (${base.motivo}) — recibo gravado sem prova de frescor da base.`); return; }
+  for (const a of base.atrasados) {
+    console.error(`  ⚠ BASE ENVELHECIDA (LC-20): origin/main tem ${a.commits} commit(s) em ${a.arquivo} que HEAD não tem (${a.ultimo}). O recibo vai nascer com hash que o main já superou — rebase e grave de novo.`);
+  }
+}
+
 let report;
 try {
   if (valueOf('--mark-compared')) {
@@ -27,12 +38,14 @@ try {
     const target = valueOf('--target');
     const map = valueOf('--map');
     if (!target || !map) throw new Error('--target e --map são obrigatórios com --mark-compared');
+    avisarBaseEnvelhecida({ source, target, extras: [map] });
     ({ report } = await recordComparisonEvidence({ root: ROOT, source, target, map }));
   } else if (valueOf('--mark-applied')) {
     const source = valueOf('--mark-applied');
     const target = valueOf('--target');
     const evidence = valueOf('--evidence');
     if (!target) throw new Error('--target é obrigatório com --mark-applied');
+    avisarBaseEnvelhecida({ source, target, extras: [evidence] });
     ({ report } = await recordApplicationEvidence({ root: ROOT, source, target, evidence }));
   } else if (valueOf('--run-test')) {
     const source = valueOf('--run-test');
@@ -43,6 +56,7 @@ try {
     let command;
     try { command = JSON.parse(commandJson); } catch { throw new Error('--command-json deve ser um array JSON'); }
     if (!Array.isArray(command) || !command.length) throw new Error('--command-json deve ser um array JSON não vazio');
+    avisarBaseEnvelhecida({ source, target });
     const run = spawnSync(String(command[0]), command.slice(1).map(String), {
       cwd: ROOT, encoding: 'utf8', shell: false, maxBuffer: 64 * 1024 * 1024,
     });
@@ -61,6 +75,7 @@ try {
     if (!target || !route || !deploySha || !screenshot || !tenant) {
       throw new Error('--target, --route, --deploy-sha, --screenshot e --tenant são obrigatórios com --record-smoke');
     }
+    avisarBaseEnvelhecida({ source, target, extras: [screenshot] });
     ({ report } = await recordSmokeEvidence({ root: ROOT, source, target, route, deploySha, screenshot, tenant }));
   } else if (args.includes('--refresh')) report = await refreshApplicationReport({ root: ROOT });
   else {
