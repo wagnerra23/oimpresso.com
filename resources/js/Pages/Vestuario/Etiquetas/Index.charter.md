@@ -2,6 +2,7 @@
 id: resources-js-pages-vestuario-etiquetas-index-charter
 page: /vestuario/etiquetas
 component: resources/js/Pages/Vestuario/Etiquetas/Index.tsx
+bundle_source: prototipo-ui/cowork/vestuario-page.jsx  # 2026-09-06 [C]: porte REVERSO do vivo no Cowork (shell: "Telas que existiam no vivo e faltavam no Cowork") — fonte de bundle, não design aprovado (§5 2026-08-28)
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
 related_runbook: memory/requisitos/Vestuario/RUNBOOK-etiqueta-tag.md
 related_casos: resources/js/Pages/Vestuario/Etiquetas/Index.casos.md

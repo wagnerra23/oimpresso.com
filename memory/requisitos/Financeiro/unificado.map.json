@@ -3,8 +3,8 @@
   "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "Financeiro/Unificado (/financeiro/unificado)",
   "gap_fonte": "memory/requisitos/Financeiro/unificado-gap.md",
-  "prototipo_sha": "sha256:03393570ea19",
-  "gerado_em": "2026-08-24",
+  "prototipo_sha": "sha256:340b86857eb6",
+  "gerado_em": "2026-09-06",
   "partes": [
     {
       "id": "header-acoes",
@@ -19,8 +19,7 @@
       },
       "status": "vivo-a-frente-com-residuo",
       "acao": "aplicar-delta-residuo: CmdK (Index.tsx 2548-2579) e empty-state CTA (Index.tsx 1777-1792) viram 'Novo título' abrindo TituloCreateSheet; resto no-op",
-      "_acionavel": true,
-      "_nota": "Re-ancorado 2026-08-24: o protótipo trocou o botão único \"Novo título\" por `<FinNovoMenu onNew={onNew} />` (financeiro-page.jsx:262) na sincronização #6178 — o vivo segue com botão único."
+      "_acionavel": true
     },
     {
       "id": "kpis",
@@ -125,8 +124,7 @@
       },
       "status": "gap-parcial",
       "acao": "aplicar-delta: motivo de rejeição inline (ENTREGUE — ver _nota); desfazer/reenviar (ops.jsx 332-346) = virar-US-ADR (backend workflow)",
-      "_acionavel": true,
-      "_nota": "Re-ancorado 2026-08-24: o sub-item \"motivo de rejeição inline\" ESTÁ ENTREGUE no vivo — `RejeitarInline` definido em Index.tsx:518-552 (o comentário 514-515 cita o protótipo e diz que substitui o window.prompt) e RENDERIZADO em Index.tsx:2588; `grep window.prompt` no arquivo devolve só o comentário. Resta do acao só \"desfazer/reenviar\" (ops.jsx 332-346) = virar-US-ADR."
+      "_acionavel": true
     },
     {
       "id": "ocr-boleto",
@@ -186,8 +184,7 @@
       },
       "status": "artefato",
       "acao": "rejeitar (data-comment-anchor, contaOf/formaOf mock, agingCounts — aging revertido por [W] 2026-06-29)",
-      "_acionavel": true,
-      "_nota": "Re-ancorado 2026-08-24: o bloco cresceu de 9 pra 18 linhas porque o protótipo ABSORVEU do git o pill \"Conta indefinida\" (US-FIN-038 / ADR 0175, financeiro-page.jsx:599-607) — é o protótipo alcançando produção (#4263, 2026-07-14), não gap novo."
+      "_acionavel": true
     }
   ]
 }

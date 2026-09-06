@@ -252,12 +252,8 @@
 
     <div className="os-page-h-r">
       {tela === "unified" &&
-      <div className="fin-lens-seg" role="group" aria-label="Lente">
-          {FIN_LENTES.map((l) =>
-        <button key={l.id} className={"fin-lens-btn" + (lente === l.id ? " on" : "")}
-        aria-pressed={lente === l.id} onClick={() => onLente(l.id)}>{l.label}</button>
-        )}
-        </div>
+      <window.CliSeg ariaLabel="Lente" value={lente} onChange={onLente}
+        options={FIN_LENTES.map((l) => ({ key: l.id, label: l.label }))} />
       }
       <FinNovoMenu onNew={onNew} />
       <FinOverflowMenu items={[
@@ -731,14 +727,12 @@
     </select>
 
     <div className="os-toolbar-r">
-      <div className="fin-density" role="group" aria-label="Densidade">
-        <button className={density === "compact" ? "on" : ""} onClick={() => setDensity("compact")} title="Compacta — mais linhas visíveis" aria-label="Compacta">
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><line x1="3" y1="4" x2="13" y2="4" /><line x1="3" y1="7" x2="13" y2="7" /><line x1="3" y1="10" x2="13" y2="10" /><line x1="3" y1="13" x2="13" y2="13" /></svg>
-        </button>
-        <button className={density === "comfortable" ? "on" : ""} onClick={() => setDensity("comfortable")} title="Confortável" aria-label="Confortável">
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><line x1="3" y1="4.5" x2="13" y2="4.5" /><line x1="3" y1="8" x2="13" y2="8" /><line x1="3" y1="11.5" x2="13" y2="11.5" /></svg>
-        </button>
-      </div>
+      <window.CliSeg ariaLabel="Densidade" size="sm" iconOnly value={density} onChange={setDensity}
+        options={[
+          { key: "compact", label: "Compacta",
+            icon: <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><line x1="3" y1="4" x2="13" y2="4" /><line x1="3" y1="7" x2="13" y2="7" /><line x1="3" y1="10" x2="13" y2="10" /><line x1="3" y1="13" x2="13" y2="13" /></svg> },
+          { key: "comfortable", label: "Confortável",
+            icon: <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><line x1="3" y1="4.5" x2="13" y2="4.5" /><line x1="3" y1="8" x2="13" y2="8" /><line x1="3" y1="11.5" x2="13" y2="11.5" /></svg> }]} />
       <div className="os-search">
         <I.Search size={12} />
         <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Filtrar nesta lista…" />
@@ -755,12 +749,8 @@
   <div className="fin-periodbar">
     <div className="fin-pb-field">
       <span className="fin-pb-cap">Filtrar por</span>
-      <div className="fin-pb-seg" role="group" aria-label="Campo de data">
-        {fields.map((f) =>
-        <button key={f.id} className={"fin-pb-segbtn" + (dateField === f.id ? " on" : "")}
-        onClick={() => setDateField(f.id)} aria-pressed={dateField === f.id}>{f.label}</button>
-        )}
-      </div>
+      <window.CliSeg ariaLabel="Campo de data" value={dateField} onChange={setDateField}
+        options={fields.map((f) => ({ key: f.id, label: f.label }))} />
     </div>
 
     <div className="fin-pb-nav">
@@ -1624,7 +1614,7 @@
                 </div>
               </div>
 
-              {window.FsmStepper && window.finFsmStage && (
+              {window.OiFsmStepper && window.finFsmStage && (
                 settled ? (
                 /* Caso 04/05 (O Adversário): item terminal não repete "Liquidado" 5×
                    nem gasta 80px com stepper completo. Resumo de 1 linha. */
@@ -1639,7 +1629,7 @@
                 })()) :
 
                 <div className="mt-2.5 fin-fsm-wrap fin-fsm-compact">
-                    <window.FsmStepper
+                    <window.OiFsmStepper
                     domain="financeiro"
                     variant="full-stepper"
                     current={window.finFsmStage(eff, conferido && [...(conferido.set || []), ...(isConferido ? [row.id] : [])])} />
@@ -1657,18 +1647,11 @@
 
           })()}
 
-        <nav className="fin-drawer-tabs">
-          <button className={"fin-drawer-tab" + (tab === "detalhes" ? " on" : "")}
-            onClick={() => setTab("detalhes")}>
-            Detalhes
-            {commentsCount > 0 && <span className="fin-drawer-tab-ct">💬 {commentsCount}</span>}
-            {hasEdits && <span className="fin-drawer-tab-tag" title="Lançamento editado">·</span>}
-          </button>
-          <button className={"fin-drawer-tab fin-drawer-tab-ai" + (tab === "ia" ? " on" : "")}
-            onClick={() => setTab("ia")}>
-            ✦ IA
-          </button>
-        </nav>
+        <window.CliTabs className="fin-drawer-tabs" ariaLabel="Abas do lançamento" pad={18} size="sm"
+          active={tab} onChange={setTab}
+          tabs={[
+            { key: "detalhes", label: <>Detalhes{commentsCount > 0 && <span className="fin-drawer-tab-ct">💬 {commentsCount}</span>}{hasEdits && <span className="fin-drawer-tab-tag" title="Lançamento editado">·</span>}</> },
+            { key: "ia", label: "✦ IA" }]} />
 
         <div className="flex-1 overflow-y-auto nice-scroll px-5 pb-5 pt-0.5 space-y-0 text-[length:var(--fs-4)]">
           {tab === "detalhes" && <>

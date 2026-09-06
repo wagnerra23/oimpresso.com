@@ -104,6 +104,16 @@ A lane `modules-pest.yml` (matrix `Repair`) **dispara** neste PR: os `paths:` de
 `DB_CONNECTION=sqlite` `:memory:` e **sem migrate** — o schema UltimatePOS é MySQL-only.
 Nessa lane estes UCs **pulam**, e o verde dela prova só que o arquivo carrega.
 
+⚠️ **Existe uma segunda lane com MySQL real — `verticais-pest.yml` — e este arquivo está
+FORA dela de propósito** (2026-09-05, [PR #6887](https://github.com/wagnerra23/oimpresso.com/pull/6887)).
+A catraca de lá é allowlist **verde**: arquivo que avermelha fica de fora e vira dívida
+datada no comentário da lane, porque vermelho permanente em lane advisory só ensina o time
+a ignorá-la. Seguram este arquivo **dois** `[must]` provados vermelhos — o **UC-JSP-03**
+(500 `Undefined variable $job_sheet` onde o contrato pede 404) e o **UC-JSP-05** (peça do
+negócio vizinho exibida, Tier 0 · ADR 0093). Consertar mexe no caminho de gravação de peças
+⇒ **REGRA MESTRE** valor/estoque, decisão [W]. O irmão `Show` entrou (5/5, 29 assertions).
+Até lá, a prova destes UCs é só o CT 100.
+
 Duas consequências que ficam ditas em vez de descobertas depois:
 
 1. **A prova real sai do CT 100** (MySQL, `docker exec oimpresso-staging`), nunca local

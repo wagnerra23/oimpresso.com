@@ -15,12 +15,13 @@
       "vivo": {
         "arquivo": "resources/js/Pages/Purchase/Create.tsx",
         "linhas": "420-458",
-        "ancora": false
+        "ancora": "purchase-itens"
       },
       "status": "mapeado",
       "acao": "no-op — ENTREGUE: o caller existe e é o Purchase/Create que a charter mandava (C1). Nada a aplicar.",
       "_acionavel": true,
-      "_nota": "Proto: gmi-card com <select> Modelo (114-119) + custo unitário (120-124) + \"Limpar grade\" (126) + \"Adicionar à compra\" com badge \"N un · R$\" (127-129). Vivo — no CALLER, não no componente (headless de propósito): GradeProductCombobox em Create.tsx:430, custo unitário 440-448, \"Cancelar\" 451, \"Adicionar à compra (N un)\" 454-457. O gap de 2026-06-23 dizia \"hoje NÃO existe caller\"; hoje existe e importa em Create.tsx:26."
+      "_nota": "Proto: gmi-card com <select> Modelo (114-119) + custo unitário (120-124) + \"Limpar grade\" (126) + \"Adicionar à compra\" com badge \"N un · R$\" (127-129). Vivo — no CALLER, não no componente (headless de propósito): GradeProductCombobox em Create.tsx:430, custo unitário 440-448, \"Cancelar\" 451, \"Adicionar à compra (N un)\" 454-457. O gap de 2026-06-23 dizia \"hoje NÃO existe caller\"; hoje existe e importa em Create.tsx:26.",
+      "_nota_ancora": "2026-09-05: âncora declarada = data-contract=\"purchase-itens\" (Create.tsx:414, Card que fecha em :573) — as regiões vivas 420-458 e 459-466 renderizam DENTRO dele; o id da parte (slug do gap.md) ≠ id do contrato, por isso ancora custom (contrato do campo em design-code-map-check.mjs). O trecho 212-289 é lógica (sem DOM) e fica coberto só por linha."
     },
     {
       "id": "grade-matriz",
@@ -127,12 +128,13 @@
       "vivo": {
         "arquivo": "resources/js/Pages/Purchase/Create.tsx",
         "linhas": "212-289,459-466",
-        "ancora": false
+        "ancora": "purchase-itens"
       },
       "status": "mapeado",
       "acao": "no-op — ENTREGUE: era o gap \"G\" nº 1 e está fechado. Nada a aplicar.",
       "_acionavel": true,
-      "_nota": "O gap dizia \"GradeMatrixInput.tsx não é importado por nenhuma tela\" e \"produto vivo vs protótipo ~0%\". FALSO no HEAD: `git grep -n GradeMatrixInput -- resources/js Modules` devolve o import em Create.tsx:26 e o mount em :459-466. O bloco inteiro do modo grade vive em Create.tsx:212-289 (adicionarLinhasGrade 216-238 · fecharGrade 240-244 · fetch do layout 246-275 · totalGrade 277 · adicionarGradeACompra 279-289) e alimenta o MESMO array `linhas` que o POST já enviava (comentário :119) — sem rota de save nova."
+      "_nota": "O gap dizia \"GradeMatrixInput.tsx não é importado por nenhuma tela\" e \"produto vivo vs protótipo ~0%\". FALSO no HEAD: `git grep -n GradeMatrixInput -- resources/js Modules` devolve o import em Create.tsx:26 e o mount em :459-466. O bloco inteiro do modo grade vive em Create.tsx:212-289 (adicionarLinhasGrade 216-238 · fecharGrade 240-244 · fetch do layout 246-275 · totalGrade 277 · adicionarGradeACompra 279-289) e alimenta o MESMO array `linhas` que o POST já enviava (comentário :119) — sem rota de save nova.",
+      "_nota_ancora": "2026-09-05: âncora declarada = data-contract=\"purchase-itens\" (Create.tsx:414, Card que fecha em :573) — as regiões vivas 420-458 e 459-466 renderizam DENTRO dele; o id da parte (slug do gap.md) ≠ id do contrato, por isso ancora custom (contrato do campo em design-code-map-check.mjs). O trecho 212-289 é lógica (sem DOM) e fica coberto só por linha."
     },
     {
       "id": "backend-grade-de-variacoes",
@@ -166,5 +168,6 @@
       "_acionavel": true,
       "_nota": "O anti-hook da charter continua valendo e continua respeitado: Compras/Index.charter.md:62 (\"NÃO renderiza GradeMatrixInput inline\") e :84 (aparecer inline no cockpit = drift). Conferido: `git grep GradeMatrixInput -- resources/js` não devolve nenhum import em Pages/Compras/. Lado protótipo: 1-6 é o cabeçalho do espelho, que declara a portabilidade e cita o par vivo (componente + GradeLayoutBuilder) — é metadado, não região de UI."
     }
-  ]
+  ],
+  "_nota_mapeamento": "2026-09-05: 2 partes ganharam vivo.ancora=\"purchase-itens\" (fila acionável do map-check: data-contract JÁ existia no vivo); as 8 restantes seguem ancora:false porque suas regiões vivem em GradeMatrixInput.tsx / GradeLayoutBuilder.php, que não têm data-contract (ancorar exige mudança de UI, gate próprio)."
 }

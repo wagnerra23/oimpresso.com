@@ -19,7 +19,16 @@ export function resolverPath(p, variaveis = {}) {
 }
 
 export function avaliarProva(prova, ctx) {
-  const { path, indefinida } = resolverPath(prova.path, ctx.variaveis);
+  // `um_de` usa `paths` (plural) e basta UMA existir — é como o schema expressa
+  // "flat Licencas.tsx OU pasta Licencas/Index.tsx, quem decide é o criar-tela.mjs".
+  // Tem de vir ANTES do resolverPath: sem `prova.path`, o replace estourava.
+  if (prova.tipo === "um_de") {
+    const alts = (prova.paths || []).map((p) => resolverPath(p, ctx.variaveis));
+    if (alts.some((a) => a.indefinida)) return { ok: false, indefinida: true, path: alts[0]?.path ?? "", motivo: "variável não decidida" };
+    const achado = alts.find((a) => ctx.existe(a.path));
+    return { ok: !!achado, path: achado ? achado.path : (alts[0]?.path ?? ""), motivo: achado ? "" : `nenhum de ${alts.map((a) => a.path).join(" | ")}` };
+  }
+  const { path, indefinida } = resolverPath(prova.path ?? "", ctx.variaveis);
   if (indefinida) return { ok: false, indefinida: true, path, motivo: "variável não decidida" };
   const existe = ctx.existe(path);
   switch (prova.tipo) {
@@ -81,7 +90,14 @@ if (isMain) {
   const ctxBase = { existe: (p) => fs.existsSync(path.join(root, p)), ler: (p) => fs.readFileSync(path.join(root, p), "utf8") };
   let exit = 0;
   for (const idxPath of alvos) {
-    const indice = JSON.parse(fs.readFileSync(path.join(root, idxPath), "utf8"));
+    // A fonte é o PRIMEIRO bloco ```json embutido no 00-INDICE.md — só .md roteia pelo
+    // DesignSync, então .json solto não chega (00-INDICE §0 + _schema/playbook.schema.json).
+    // Antes daqui o script fazia JSON.parse do arquivo cru e só rodava com um playbook.json
+    // paralelo, que é justamente o segundo dono do estado que o §0 proíbe.
+    const bruto = fs.readFileSync(path.join(root, idxPath), "utf8");
+    const embutido = idxPath.endsWith(".md") ? (bruto.match(/```json\s*\n([\s\S]*?)\n```/) || [])[1] : bruto;
+    if (!embutido) { console.error(`sem bloco json embutido em ${idxPath}`); process.exit(2); }
+    const indice = JSON.parse(embutido);
     const r = avaliar(indice, { ...ctxBase, dirPlaybook: path.dirname(idxPath) });
     if (process.argv.includes("--json")) console.log(JSON.stringify(r, null, 2));
     else {

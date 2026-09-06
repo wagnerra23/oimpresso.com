@@ -10,6 +10,7 @@ import {
   cpSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync,
 } from 'node:fs';
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
+import { execFileSync } from 'node:child_process';
 import { payloadDependencyGraph, normalizePayloadPath } from './payload-dependency-graph.mjs';
 import { dsRuntimeRelPath } from '../governance/cowork-mirror-freshness.mjs';
 import {
@@ -400,6 +401,44 @@ export async function refreshApplicationReport({ root = process.cwd(), paths = D
   writeFileSync(temp, JSON.stringify(report, null, 2) + '\n');
   renameSync(temp, reportPath);
   return report;
+}
+
+/**
+ * Aviso PRÉ-RECIBO — base envelhecida (LC-20, 3ª ocorrência em 2026-09-05).
+ *
+ * Todo recibo abaixo grava os hashes de HEAD. Se `origin/main` já tem commit(s) nesses
+ * paths que HEAD não tem, o recibo NASCE stale — foi o caso de Arquivos em 01/09: sha da
+ * fonte de 24/08 gravado quando o main estava em 27/08, e nada acusou até o `--refresh`
+ * de 05/09. O `git-base-freshness-guard` mede UMA vez, no início da sessão; a deriva aqui
+ * é pós-início e passiva, então a medida tem que acontecer NO INSTANTE do recibo.
+ *
+ * ADVISORY por desenho (ADR 0224/0344): devolve a lista, nunca lança — branch de feature
+ * que legitimamente edita o alvo tem `HEAD..origin/main -- <path>` vazio (o critério é
+ * "main andou neste path DEPOIS do meu ponto de base", não "o arquivo difere"), e sem git
+ * ou sem `origin/main` o resultado é `medido:false`, jamais "ok". FP esperado ≈ 0: só
+ * dispara quando existe commit em main, no path, ausente de HEAD — exatamente o vetor.
+ *
+ * @param {{root?: string, arquivos: string[]}} p
+ * @returns {{medido: boolean, motivo?: string, atrasados: {arquivo: string, commits: number, ultimo: string}[]}}
+ */
+export function avaliarBaseParaRecibo({ root = process.cwd(), arquivos = [] }) {
+  const git = (args, timeout = 12000) => {
+    try {
+      return execFileSync('git', args, { cwd: root, encoding: 'utf8', timeout, stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+    } catch { return null; }
+  };
+  if (git(['rev-parse', '--is-inside-work-tree']) !== 'true') return { medido: false, motivo: 'fora de repositório git', atrasados: [] };
+  git(['fetch', 'origin', '+refs/heads/main:refs/remotes/origin/main', '--quiet']); // best-effort; offline segue com a ref local
+  if (!git(['rev-parse', '--verify', '--quiet', 'origin/main'])) return { medido: false, motivo: 'origin/main ausente', atrasados: [] };
+  const atrasados = [];
+  for (const arquivo of arquivos.filter(Boolean)) {
+    const log = git(['log', '--oneline', 'HEAD..origin/main', '--', arquivo]);
+    if (log) {
+      const linhas = log.split('\n').filter(Boolean);
+      atrasados.push({ arquivo, commits: linhas.length, ultimo: linhas[0] });
+    }
+  }
+  return { medido: true, atrasados };
 }
 
 /** Registra evidência ligada aos hashes atuais; qualquer mudança futura a invalida no relatório. */
