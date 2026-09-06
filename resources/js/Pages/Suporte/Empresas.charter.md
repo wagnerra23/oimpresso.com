@@ -2,6 +2,7 @@
 id: resources-js-pages-suporte-empresas-charter
 page: /suporte/empresas
 component: resources/js/Pages/Suporte/Empresas.tsx
+bundle_source: prototipo-ui/cowork/suporte-page.jsx  # 2026-09-06 [C]: porte REVERSO do vivo no Cowork (shell: "Telas que existiam no vivo e faltavam no Cowork") — fonte de bundle, não design aprovado (§5 2026-08-28)
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
 page_id: suporte-empresas
 owner: wagner

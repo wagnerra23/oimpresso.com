@@ -70,6 +70,23 @@ const A_CRIAR = [
   /^inbox-page\.jsx$/i, /^orc-page\.jsx$/i, /^os-page\.jsx$/i, /^perfil-page\.jsx$/i,
   /^pg-cobranca-page\.jsx$/i, /^pg-payment-gateways-page\.jsx$/i, /^producao-page\.jsx$/i,
   /^cobranca-page\.jsx$/i, /^payment-gateways-page\.jsx$/i, /^usuarios-page\.jsx$/i,
+  // 2026-09-06 [C] — 15 órfãos do bundle 5023b274 resolvidos CONSCIENTEMENTE (o `status.mjs
+  // --check-mapping` saía rc 1 desde 24/08 por eles). Cada um é mockup de tela que hoje só
+  // existe em Blade/legado ou não existe — medido com `ls Pages/**` + `git grep` nas rotas:
+  //   catalogo-qr → Modules/ProductCatalogue (Blade) · cms → ADMIN do Modules/Cms (Blade; o
+  //   Pages/Site do módulo é o site público, outra tela) · comissionados →
+  //   resources/views/sales_commission_agent · comissoes → relatório de comissão (Blade) ·
+  //   configuracoes → resources/views/business/settings.blade.php · connector → Modules/Connector
+  //   (Blade; EPIC MWART em voo) · documentacao → resources/views/documentacao (migração em voo) ·
+  //   funcoes → roles (Blade) · notificacoes → notification-templates (Blade) · patrimonio →
+  //   Modules/AssetManagement/Resources/views · planilhas → spreadsheet (Blade) · prefs → só
+  //   POST /user/preferences/* (sem tela) · programa-doc → sem tela · relatorios →
+  //   resources/views/report/* · voz-do-cliente → Modules/VozDoCliente/Resources/views.
+  // Quando cada uma nascer via MWART, ganha charter com `bundle_source:` e gradua sozinha.
+  /^catalogo-qr-page\.jsx$/i, /^cms-page\.jsx$/i, /^comissionados-page\.jsx$/i, /^comissoes-page\.jsx$/i,
+  /^configuracoes-page\.jsx$/i, /^connector-page\.jsx$/i, /^documentacao-page\.jsx$/i, /^funcoes-page\.jsx$/i,
+  /^notificacoes-page\.jsx$/i, /^patrimonio-page\.jsx$/i, /^planilhas-page\.jsx$/i, /^prefs-page\.jsx$/i,
+  /^programa-doc-page\.jsx$/i, /^relatorios-page\.jsx$/i, /^voz-do-cliente-page\.jsx$/i,
 ];
 export function isACriar(b) { return A_CRIAR.some((re) => re.test(b)); }
 
