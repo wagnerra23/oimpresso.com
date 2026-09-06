@@ -18,7 +18,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. Subtítulo de contagem viva (produtos/disponíveis/esgotados) abaixo do título. Pequeno, informativo. Construir ou rejeitar por escrito.",
+      "acao": "Decidir. Subtítulo de contagem — §Veredito adotar #1 (Parte 1, P, derivar dos rows já carregados). ⚠️ \"disponíveis/esgotados\" só se estoque já vier nos rows (Parte 1 Esforço/risco).",
       "_acionavel": true
     },
     {
@@ -33,8 +33,8 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. Conceito de totalizadores financeiros de inventário (valor/custo em estoque, margem média) — ausente no vivo. É feature analítica nova. Construir ou rejeitar por escrito.",
-      "_acionavel": true
+      "acao": "Nada — §Veredito \"NÃO adotar sem ADR/SPEC + backend + dupla-confirmação (⚠️ Tier 0 valor/estoque)\": Parte 2, esforço G, quantidade × preço × custo (REGRA MESTRE de proibicoes.md).",
+      "_acionavel": false
     },
     {
       "id": "filtros-busca",
@@ -48,7 +48,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. (a) Filtro por tipo (produto/serviço/composição); (b) Stockbar de estoque ⚠️; (c) sort por coluna; (d) toggle view lista/cards; (e) busca por mais campos (marca/OEM — _depende de schema ter esses… Construir ou rejeitar por escrito.",
+      "acao": "Decidir. Só (a) filtro por tipo + (f) Limpar filtros — §Veredito adotar #2 (Parte 3, M) — e (c) sort + (d) toggle — adotar #3. (b) Stockbar toca estoque (threshold = regra de negócio _pendente_) e (e) marca/OEM depende de schema: fora até ADR/backend.",
       "_acionavel": true
     },
     {
@@ -63,7 +63,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. (a) Modo lista densa (tabela ordenável) — alternativa ao card-only; (b) faixa de preço quando há variantes; (c) coluna custo/margem/fornecedor ⚠️; (d) coluna estoque por linha ⚠️; (e) thumb/cor por… Construir ou rejeitar por escrito.",
+      "acao": "Decidir. Só (a) lista densa ordenável + toggle — §Veredito adotar #3 (Parte 3+4, M; popularidade/preço/nome). (c) custo/margem/fornecedor, (d) estoque por linha e (b)/(f) dependentes de variante/estoque: NÃO adotar sem ADR/SPEC + backend + dupla-confirmação (Tier 0; o vivo não expõe cost/qty hoje).",
       "_acionavel": true
     },
     {
@@ -78,7 +78,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. Padrão drawer-on-click em vez de navegação de página. Diferença de UX (peek vs full page). Construir ou rejeitar por escrito.",
+      "acao": "Decidir. Trocar navegação por drawer é mudança de paradigma de UX — Parte 5, M, \"precisa charter/Wagner\" (não é regressão; decisão de produto, não de tela).",
       "_acionavel": true
     },
     {
@@ -93,8 +93,8 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. Drawer inteiro é escopo novo grande: tabela de preços por nível, fornecedores/cotação, variantes-SKU, BOM, OEM, ficha técnica. Nenhum existe no vivo. Construir ou rejeitar por escrito.",
-      "_acionavel": true
+      "acao": "Nada — §Veredito \"NÃO adotar sem ADR/SPEC + backend + dupla-confirmação (⚠️ Tier 0)\": Parte 6, esforço G/alto, multiplicadores de preço e margem são regra de negócio (REGRA MESTRE de proibicoes.md).",
+      "_acionavel": false
     }
   ]
 }
