@@ -115,6 +115,7 @@ jobs:
             Modules/Essentials/Tests/Feature/SalesTargetFaixaValidacaoTest.php \
             Modules/Essentials/Tests/Feature/HrmMetasTest.php \
             Modules/Essentials/Tests/Feature/AttendanceImportMultiTenantTest.php \
+            Modules/Essentials/Tests/Feature/HrmTiposIndexTest.php \
             tests/Feature/Calculo/CalculoValorPayrollTest.php
 
 
