@@ -1,0 +1,130 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Ponto/Espelho/Show (/ponto/espelho/{colaborador})",
+  "gap_fonte": "memory/requisitos/Ponto/espelho-show-gap.md",
+  "prototipo_sha": "sha256:587a1e3f2479",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "dados-do-colaborador",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
+        "linhas": "370-395"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Espelho/Show.tsx",
+        "linhas": "179-198",
+        "ancora": "espelho-dados-colaborador"
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade.",
+      "_acionavel": false
+    },
+    {
+      "id": "totalizadores-do-mes",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
+        "linhas": "397-408"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Espelho/Show.tsx",
+        "linhas": "220-227",
+        "ancora": "espelho-totais"
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade.",
+      "_acionavel": false
+    },
+    {
+      "id": "seletor-de-modo",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
+        "linhas": "410-413"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Espelho/Show.tsx",
+        "linhas": "243-261",
+        "ancora": "espelho-modo-visao"
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade.",
+      "_acionavel": false
+    },
+    {
+      "id": "apuracao-diaria",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
+        "linhas": "415-438"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Espelho/Show.tsx",
+        "linhas": "281-381",
+        "ancora": "espelho-apuracao-diaria"
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade.",
+      "_acionavel": false
+    },
+    {
+      "id": "folha-de-impressao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
+        "linhas": "272-327"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Espelho/Show.tsx",
+        "linhas": "389-404",
+        "ancora": "espelho-folha-impressao"
+      },
+      "status": "paridade",
+      "acao": "Nada — vivo à frente na rota de impressão.",
+      "_acionavel": false
+    },
+    {
+      "id": "navegacao-de-mes",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
+        "linhas": "343"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Espelho/Show.tsx",
+        "linhas": "155-170",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade. ⚠️ O `_pendente_w` do contrato pergunta *\"quantos meses ficam navegáveis antes de exigir o relatório\"* — segue aberto, e é do contrato, não deste gap.",
+      "_acionavel": false
+    },
+    {
+      "id": "drawer-do-dia-marcacoes-com-nsr-origem-rep-hash",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
+        "linhas": "209-270"
+      },
+      "vivo": {
+        "arquivo": "n/a",
+        "linhas": "n/a",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Sheet",
+      "_acionavel": true
+    },
+    {
+      "id": "anular-marcacao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
+        "linhas": "345-356"
+      },
+      "vivo": {
+        "arquivo": "n/a",
+        "linhas": "n/a",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir. O botão \"Anular\" do `Espelho/Show` é âncora nomeada da frente 5 do [`COLAR-NO-CODE-ponto-ondas.md`](../../../prototipo-ui/design-docs/COLAR-NO-CODE-ponto-ondas.md) §1, travada nas decisões [W] 1–4 — e a invariante §4.3 (*\"competência fechada desabilita Anular no Espelho/Show\"*) pressupõe um estado de competência que ainda não existe. Construir antes é inventar lei.",
+      "_acionavel": true
+    }
+  ]
+}
