@@ -1,6 +1,6 @@
 {
   "schema": "oimpresso-design-application-report/3",
-  "generatedAt": "2026-09-06T12:16:51.415Z",
+  "generatedAt": "2026-09-06T12:28:28.731Z",
   "bundle": {
     "id": "5023b274183d849dcc925eae85cef61a991c3541ca1daeb680267c1afda99e4d",
     "baseId": null,
@@ -2217,8 +2217,8 @@
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Estoque/stock-adjustment-create.map.json",
-          "mapSha256": "c8b254f5218a3326240f16d8fc94dd6d083719f88b5ba137bc36d931f10958f2",
-          "recordedAt": "2026-09-06T11:59:22.865Z"
+          "mapSha256": "2f2fac4b702179ff1aaa48d09bcc006d1d8fdb8d382db4ca91f468ed61f9f8b9",
+          "recordedAt": "2026-09-06T12:28:23.347Z"
         },
         "application": null,
         "tests": [],
@@ -2242,8 +2242,8 @@
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Estoque/stock-adjustment-index.map.json",
-          "mapSha256": "26a475e5d955547c9f76f2ee8ee1d467167ede6b88b34a8dd08048465ecfec6c",
-          "recordedAt": "2026-09-06T11:59:21.605Z"
+          "mapSha256": "525643d8b33d7100311cef058c32c5e894570f1c15c9c79685fcb8095dcca4fa",
+          "recordedAt": "2026-09-06T12:28:22.077Z"
         },
         "application": null,
         "tests": [],
@@ -2267,8 +2267,8 @@
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Estoque/stock-transfer-create.map.json",
-          "mapSha256": "a31bfdded7554a2d3f5317129eed17d86f87f52023d0eee9122b37d09c582e6e",
-          "recordedAt": "2026-09-06T12:00:44.105Z"
+          "mapSha256": "44fc541e600e0599652301e6f0fe6d813c055f914fef85118c05081b71e1b385",
+          "recordedAt": "2026-09-06T12:28:25.946Z"
         },
         "application": null,
         "tests": [],
@@ -2292,8 +2292,8 @@
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Estoque/stock-transfer-index.map.json",
-          "mapSha256": "b1288b2228f107fba807a09fc3813598fa7270b7eb43cc5bedb08b52ae9d9bbe",
-          "recordedAt": "2026-09-06T11:59:24.155Z"
+          "mapSha256": "2576fb577f6c905c07c6074dac38eeab7cd743709f52b1ee08fa18b51ba2e6ab",
+          "recordedAt": "2026-09-06T12:28:24.586Z"
         },
         "application": null,
         "tests": [],
@@ -2810,8 +2810,8 @@
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Manufacturing/manufacturing-index.map.json",
-          "mapSha256": "169654c60d14a53918fd85b4ecc9110c9abee8f02d0188df814438d68a1812e4",
-          "recordedAt": "2026-09-06T11:59:26.944Z"
+          "mapSha256": "ae54ddb243564e8281731f7f64ba6ecdd6839d701d6edbd29cc4f70be8b65de5",
+          "recordedAt": "2026-09-06T12:28:27.205Z"
         },
         "application": null,
         "tests": [],
@@ -2835,8 +2835,8 @@
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Manufacturing/manufacturing-recipes.map.json",
-          "mapSha256": "130456a8655d364215f5a95dbbccc4a039c76f886073b38e2f5e1454921bb6c5",
-          "recordedAt": "2026-09-06T12:00:45.755Z"
+          "mapSha256": "7b0d01639cb07475f807f18de49b4cad13f8cbf2ae9e05ebc4557c0cd6852508",
+          "recordedAt": "2026-09-06T12:28:28.527Z"
         },
         "application": null,
         "tests": [],

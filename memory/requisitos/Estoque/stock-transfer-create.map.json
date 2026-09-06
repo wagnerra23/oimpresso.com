@@ -10,7 +10,7 @@
       "id": "cabecalho-e-acoes",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
-        "linhas": "TODO"
+        "linhas": "657-662"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockTransfer/Create.tsx",
@@ -25,7 +25,7 @@
       "id": "origem-destino",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
-        "linhas": "TODO"
+        "linhas": "270"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockTransfer/Create.tsx",
@@ -33,14 +33,14 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Nada — vivo à frente. O protótipo valida `mesmoLocal` (`estoque-forms.jsx:268`) mas mantém a origem selecionável no destino; o vivo remove a opção impossível antes do erro acontecer. É também a divergência declarada no charter (*\"Origem→Destino destacado no topo\"*).",
+      "acao": "Nada — paridade na regra, com divergência de forma declarada. O protótipo faz as duas coisas que o vivo faz: valida `mesmoLocal` (`estoque-forms.jsx:270`) e filtra a origem da lista de destino (`:303`, `Object.keys(D.LOCAIS).filter((k) => k !== de)`). O que é do vivo é a forma: os selos DE/PARA em destaque, divergência declarada no charter (*\"Origem→Destino destacado no topo\"*).",
       "_acionavel": false
     },
     {
       "id": "status",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
-        "linhas": "TODO"
+        "linhas": "294"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockTransfer/Create.tsx",
@@ -55,7 +55,7 @@
       "id": "limpeza-de-linhas-ao-trocar-a-origem",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
-        "linhas": "TODO"
+        "linhas": "279"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockTransfer/Create.tsx",
@@ -70,7 +70,7 @@
       "id": "busca-e-adicao-de-produto",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
-        "linhas": "TODO"
+        "linhas": "12-66"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockTransfer/Create.tsx",
@@ -85,7 +85,7 @@
       "id": "trava-de-saldo-disponivel-na-origem",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
-        "linhas": "TODO"
+        "linhas": "270"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockTransfer/Create.tsx",
@@ -100,7 +100,7 @@
       "id": "lote-e-validade-nas-linhas",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
-        "linhas": "TODO"
+        "linhas": "78"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockTransfer/Create.tsx",
@@ -115,7 +115,7 @@
       "id": "conservacao-do-total",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
-        "linhas": "TODO"
+        "linhas": "323-327"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockTransfer/Create.tsx",
@@ -130,7 +130,7 @@
       "id": "frete-e-totais",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
-        "linhas": "TODO"
+        "linhas": "338-340"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockTransfer/Create.tsx",
@@ -160,7 +160,7 @@
       "id": "edicao-de-transferencia-existente",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
-        "linhas": "TODO"
+        "linhas": "253"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockTransfer/Create.tsx",
@@ -175,7 +175,7 @@
       "id": "permissao-por-papel",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
-        "linhas": "TODO"
+        "linhas": "281-284"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockTransfer/Create.tsx",

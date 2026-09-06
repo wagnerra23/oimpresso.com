@@ -10,7 +10,7 @@
       "id": "header-do-modulo",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/manufacturing-page.jsx",
-        "linhas": "TODO"
+        "linhas": "148-157"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Manufacturing/Index.tsx",
@@ -18,14 +18,14 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Nada — paridade estrutural. O protótipo tem o mesmo `os-page-h` com h1 \"Manufacturing\" e o CTA \"Nova produção\" (`manufacturing-page.jsx:161-171`); o vivo especializa o título para a aba corrente, o que é coerente com ter uma rota por aba em vez de um SPA de abas locais.",
-      "_acionavel": false
+      "acao": "Decidir. O protótipo monta o cabeçalho com a estrutura `os-page-h` crua (`manufacturing-page.jsx:148-157`), e a tela irmã do mesmo módulo também (`Recipes.tsx:144`). Ou seja: as duas telas de Manufacturing montam o cabeçalho de formas diferentes — uma pelo `PageHeader` do DS, outra pelas classes do protótipo. Não é gap contra o protótipo; é inconsistência interna do módulo, que só aparece quando as duas são olhadas juntas. Decidir qual das duas é o canon e alinhar a outra. Construir ou rejeitar por escrito.",
+      "_acionavel": true
     },
     {
       "id": "abas-do-modulo",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/manufacturing-page.jsx",
-        "linhas": "TODO"
+        "linhas": "159-167"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Manufacturing/Index.tsx",
@@ -33,14 +33,14 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Nada — vivo à frente. No protótipo as abas trocam estado local (`manufacturing-page.jsx:173-179`). O comentário do vivo (`:157-162`) registra que a aba corrente virou `<span>` depois de [M] reportar que a barra sumia — correção nascida de uso real, ausente do protótipo.",
+      "acao": "Nada — vivo à frente. No protótipo as abas trocam estado local (`manufacturing-page.jsx:159-167`). O comentário do vivo (`:157-162`) registra que a aba corrente virou `<span>` depois de [M] reportar que a barra sumia — correção nascida de uso real, ausente do protótipo.",
       "_acionavel": false
     },
     {
       "id": "kpis",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/manufacturing-page.jsx",
-        "linhas": "TODO"
+        "linhas": "171-193"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Manufacturing/Index.tsx",
@@ -48,14 +48,14 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. O protótipo, nesta aba, não tem KPIs — os 4 que ele exibe (`manufacturing-page.jsx:197-221`) são da aba Receitas. Os do vivo nasceram do charter (G1), não do protótipo. O que fica em aberto é o inverso do gap habitual: o protótipo é que está atrás. Decidir se os KPIs desta aba entram no protótipo — ou registrar por escrito que o vivo define esta região.",
+      "acao": "Decidir. O protótipo, nesta aba, não tem KPIs — os 4 que ele exibe (`manufacturing-page.jsx:171-193`) são da aba Receitas. Os do vivo nasceram do charter (G1), não do protótipo. O que fica em aberto é o inverso do gap habitual: o protótipo é que está atrás. Decidir se os KPIs desta aba entram no protótipo — ou registrar por escrito que o vivo define esta região.",
       "_acionavel": true
     },
     {
       "id": "filtros",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/manufacturing-producao.jsx",
-        "linhas": "TODO"
+        "linhas": "41-51"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Manufacturing/Index.tsx",
@@ -70,7 +70,7 @@
       "id": "tabela-colunas",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/manufacturing-producao.jsx",
-        "linhas": "TODO"
+        "linhas": "21"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Manufacturing/Index.tsx",
@@ -85,7 +85,7 @@
       "id": "ordenacao-por-coluna",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/manufacturing-producao.jsx",
-        "linhas": "TODO"
+        "linhas": "20"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Manufacturing/Index.tsx",
@@ -100,7 +100,7 @@
       "id": "paginacao",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/manufacturing-producao.jsx",
-        "linhas": "TODO"
+        "linhas": "77-85"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Manufacturing/Index.tsx",
@@ -115,7 +115,7 @@
       "id": "rodape-do-periodo",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/manufacturing-producao.jsx",
-        "linhas": "TODO"
+        "linhas": "87"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Manufacturing/Index.tsx",
@@ -130,7 +130,7 @@
       "id": "estado-vazio",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/manufacturing-producao.jsx",
-        "linhas": "TODO"
+        "linhas": "75"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Manufacturing/Index.tsx",
@@ -145,7 +145,7 @@
       "id": "criar-editar-ordem-de-producao",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/manufacturing-producao.jsx",
-        "linhas": "TODO"
+        "linhas": "94-189"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Manufacturing/Index.tsx",
@@ -160,7 +160,7 @@
       "id": "drawer-de-detalhe-da-ordem",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/manufacturing-producao.jsx",
-        "linhas": "TODO"
+        "linhas": "191-239"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Manufacturing/Index.tsx",
@@ -168,8 +168,8 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Nada — Non-Goal por herança do anterior. O `MfgProducaoDrawer` (`manufacturing-producao.jsx:191-239`) é a leitura do documento que o CRUD escreve; abrir só a leitura sem o CRUD é decisão possível, mas pertence à mesma US que reabrir o Non-Goal.",
-      "_acionavel": false
+      "acao": "Decidir. O `MfgProducaoDrawer` (`manufacturing-producao.jsx:191-239`) é leitura da ordem — consumo, custo e a situação por extenso (*\"Finalizada · estoque movimentado\"* / *\"Rascunho · sem movimento de estoque\"*, `:225`). Os três Non-Goals do charter (`Index.charter.md:37-40`) são CRUD completo, Kanban e Recipes/BOM; nenhum cobre um drawer de leitura, e inferir herança seria inventar Non-Goal — território [W]. Construir ou rejeitar por escrito.",
+      "_acionavel": true
     },
     {
       "id": "multi-tenant",

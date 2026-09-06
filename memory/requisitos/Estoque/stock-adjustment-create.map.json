@@ -10,7 +10,7 @@
       "id": "cabecalho-e-acoes-do-formulario",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
-        "linhas": "TODO"
+        "linhas": "240-246"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockAdjustment/Create.tsx",
@@ -25,7 +25,7 @@
       "id": "dados-do-ajuste",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
-        "linhas": "TODO"
+        "linhas": "190-205"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockAdjustment/Create.tsx",
@@ -40,7 +40,7 @@
       "id": "busca-e-adicao-de-produto",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
-        "linhas": "TODO"
+        "linhas": "12-66"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockAdjustment/Create.tsx",
@@ -55,7 +55,7 @@
       "id": "lote-e-validade-nas-linhas",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
-        "linhas": "TODO"
+        "linhas": "78"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockAdjustment/Create.tsx",
@@ -70,7 +70,7 @@
       "id": "coluna-efeito-no-saldo",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
-        "linhas": "TODO"
+        "linhas": "80"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockAdjustment/Create.tsx",
@@ -85,7 +85,7 @@
       "id": "valor-recuperado-e-r-adj-003",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
-        "linhas": "TODO"
+        "linhas": "177"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockAdjustment/Create.tsx",
@@ -93,14 +93,14 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Nada — vivo à frente. O protótipo tem os mesmos três números no fecho (`estoque-forms.jsx:231-233`) mas não implementa o bloqueio da R-ADJ-003; o vivo bloqueia no cliente e o charter registra que o servidor também valida.",
+      "acao": "Nada — paridade. O protótipo implementa a mesma regra: `const recExcede = rec > total; // R-ADJ-003` (`estoque-forms.jsx:177`), entra no `podeSalvar` (`:178`), tem a mensagem no campo (`:223`) e barra o salvamento citando a regra pelo nome (`:244`). Os três números do fecho também batem (`:231-233`).",
       "_acionavel": false
     },
     {
       "id": "totais",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
-        "linhas": "TODO"
+        "linhas": "231-233"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockAdjustment/Create.tsx",
@@ -115,7 +115,7 @@
       "id": "motivo-notas",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
-        "linhas": "TODO"
+        "linhas": "227"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockAdjustment/Create.tsx",
@@ -130,7 +130,7 @@
       "id": "pre-preenchimento-vindo-de-outra-tela",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
-        "linhas": "TODO"
+        "linhas": "530-536"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockAdjustment/Create.tsx",

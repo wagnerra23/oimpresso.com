@@ -25,7 +25,7 @@
       "id": "filtros",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
-        "linhas": "TODO"
+        "linhas": "144-147"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockAdjustment/Index.tsx",
@@ -40,7 +40,7 @@
       "id": "abas-por-tipo-de-ajuste",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
-        "linhas": "TODO"
+        "linhas": "258-263"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockAdjustment/Index.tsx",
@@ -48,14 +48,14 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. O protótipo tem `window.CliTabs` com Todos/Normal/Anormal e contador por aba (`estoque-page.jsx:256-262`). É filtro de leitura sobre dado que o vivo já recebe (`AdjustmentRow.adjustment_type`, `Index.tsx:37`) — não toca valor nem estoque. Construir ou rejeitar por escrito.",
+      "acao": "Decidir. O protótipo tem o `TabBar` do DS com Todos/Normal/Anormal e contador por aba (`estoque-page.jsx:258-263`; `TabBar` desestruturado do DS em `:210`). É filtro de leitura sobre dado que o vivo já recebe (`AdjustmentRow.adjustment_type`, `Index.tsx:37`) — não toca valor nem estoque. Construir ou rejeitar por escrito.",
       "_acionavel": true
     },
     {
       "id": "tabela-colunas",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
-        "linhas": "TODO"
+        "linhas": "196-206"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockAdjustment/Index.tsx",
@@ -70,7 +70,7 @@
       "id": "ordenacao-densidade-e-seletor-de-colunas",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
-        "linhas": "TODO"
+        "linhas": "280-282"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockAdjustment/Index.tsx",
@@ -85,7 +85,7 @@
       "id": "exportacao",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
-        "linhas": "TODO"
+        "linhas": "158-160"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockAdjustment/Index.tsx",
@@ -100,7 +100,7 @@
       "id": "rodape-de-somatorios",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
-        "linhas": "TODO"
+        "linhas": "285-292"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockAdjustment/Index.tsx",
@@ -115,7 +115,7 @@
       "id": "paginacao",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
-        "linhas": "TODO"
+        "linhas": "227"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockAdjustment/Index.tsx",
@@ -130,7 +130,7 @@
       "id": "selecao-multipla-acoes-em-massa",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
-        "linhas": "TODO"
+        "linhas": "295-301"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockAdjustment/Index.tsx",
@@ -145,7 +145,7 @@
       "id": "acoes-por-linha",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
-        "linhas": "TODO"
+        "linhas": "358-370"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockAdjustment/Index.tsx",
@@ -160,7 +160,7 @@
       "id": "drawer-de-detalhe",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/estoque-forms.jsx",
-        "linhas": "TODO"
+        "linhas": "503-565"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockAdjustment/Index.tsx",
@@ -175,7 +175,7 @@
       "id": "estado-vazio",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
-        "linhas": "TODO"
+        "linhas": "283"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockAdjustment/Index.tsx",
@@ -190,7 +190,7 @@
       "id": "multi-tenant-e-permissoes",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
-        "linhas": "TODO"
+        "linhas": "211"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockAdjustment/Index.tsx",
