@@ -1,0 +1,135 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Repair/Settings/Index (/repair/repair-settings)",
+  "gap_fonte": "memory/requisitos/Repair/repair-settings-gap.md",
+  "prototipo_sha": "sha256:548d060ec551",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "header",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "378, 387, 397, 407"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/Settings/Index.tsx",
+        "linhas": "187-190",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade. O mockup usa só os `<h3>` de seção dentro do shell (repair-page.jsx:378, 387, 397, 407).",
+      "_acionavel": false
+    },
+    {
+      "id": "folha-de-os",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "376-384"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/Settings/Index.tsx",
+        "linhas": "200-321",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente. O mockup tem só prefixo／status padrão／produto padrão, todos `readOnly` (repair-page.jsx:380-384).",
+      "_acionavel": false
+    },
+    {
+      "id": "campos-personalizados",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "395-401"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/Settings/Index.tsx",
+        "linhas": "324-344",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade. O mockup tem os 5, `readOnly` (repair-page.jsx:399-401).",
+      "_acionavel": false
+    },
+    {
+      "id": "impressao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "386-393"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/Settings/Index.tsx",
+        "linhas": "357-442",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente. O mockup tem só os switches por chave com rótulo (repair-page.jsx:389-393).",
+      "_acionavel": false
+    },
+    {
+      "id": "aviso-notificacao-ao-cliente-e-por-status",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "403-405"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/Settings/Index.tsx",
+        "linhas": "450-452",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade. O `Alert` do mockup (repair-page.jsx:403-405) é texto explicativo, não capacidade; o vivo linka a tela dona.",
+      "_acionavel": false
+    },
+    {
+      "id": "permissoes-deste-papel",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "407-419"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/Settings/Index.tsx",
+        "linhas": "n/a — sem painel de permissões",
+        "ancora": false
+      },
+      "status": "fechado",
+      "acao": "Nada — fora do charter. O painel do mockup (repair-page.jsx:407-419; `PERMISSOES`／`PAPEIS` em repair-data.jsx:137-161) é o simulador de papel do protótipo; permissões por papel se gerenciam em `/roles/{id}/edit` (Camada 3, proibicoes.md).",
+      "_acionavel": false
+    },
+    {
+      "id": "salvar",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "421-422"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/Settings/Index.tsx",
+        "linhas": "346-353, 437-441",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade com o botão + nota do mockup (repair-page.jsx:421-422); os dois botões são o contrato dos dois endpoints (Anti-hook l.51).",
+      "_acionavel": false
+    },
+    {
+      "id": "atalhos-para-telas-proprias",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "709-718"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/Settings/Index.tsx",
+        "linhas": "445-457",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade com as abas do shell do mockup (repair-page.jsx:709-718); é Goal do charter (l.34) e Non-Goal de duplicar (l.41).",
+      "_acionavel": false
+    }
+  ],
+  "mapping": {
+    "source": "repair-page.jsx",
+    "target": "resources/js/Pages/Repair/Settings/Index.tsx"
+  },
+  "_nota_ancora": "PARIDADE, não âncora de design: o charter desta tela declara related_prototype n/a e explica que repair-page.jsx é porte REVERSO do Blade que ela substitui (§5 2026-08-28); não há bundle_source declarado. Este map mede cobertura por parte (Fase 1 em modo paridade) — não legitima o mockup como fonte visual da tela."
+}

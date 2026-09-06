@@ -1,0 +1,255 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "superadmin/Pacotes/Index (/superadmin/packages)",
+  "gap_fonte": "memory/requisitos/Superadmin/superadmin-pacotes-gap.md",
+  "prototipo_sha": "sha256:c3ba0e10c548",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "pageheader-titulo",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "1186"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.tsx",
+        "linhas": "98",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade",
+      "_acionavel": false
+    },
+    {
+      "id": "pageheader-subtitulo-com-contagens",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "1176-1249"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.tsx",
+        "linhas": "98",
+        "ancora": false
+      },
+      "status": "gap-parcial",
+      "acao": "Decidir. O mockup (superadmin-page.jsx:1186) escreve no subtítulo `N pacotes · N ativos` computados da lista (o `· 1 privado` ali é literal fixo = mock); o vivo (Pacotes/Index.tsx:98) tem descrição estática. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "pageheader-acao-novo-pacote",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "1176-1249"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.tsx",
+        "linhas": "95-107",
+        "ancora": false
+      },
+      "status": "nao-adotar",
+      "acao": "Nada — decisão já registrada (charter §Divergências declaradas contra o F1 \"FormDrawer novo/editar/duplicar → SA-O4d\"; RUNBOOK-pacotes §8; contrato `_nota_recorte`)",
+      "_acionavel": false
+    },
+    {
+      "id": "grid-de-cards",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "1192-1193"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.tsx",
+        "linhas": "100-104",
+        "ancora": "superadmin.pacotes.grid"
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade",
+      "_acionavel": false
+    },
+    {
+      "id": "card-header",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "1195-1203"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.tsx",
+        "linhas": "150-158",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade",
+      "_acionavel": false
+    },
+    {
+      "id": "card-kebab-por-card",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "1176-1249"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.tsx",
+        "linhas": "146-201",
+        "ancora": false
+      },
+      "status": "nao-adotar",
+      "acao": "Nada — decisão já registrada (charter §Divergências \"kebab com 4 ações — ausente — todas escrevem, SA-O4d\"; RUNBOOK-pacotes §8)",
+      "_acionavel": false
+    },
+    {
+      "id": "card-aviso-migre-antes-de-excluir",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "1176-1249"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.tsx",
+        "linhas": "n/a (ausente no vivo — a célula do gap.md cita o recibo de ausência)",
+        "ancora": false
+      },
+      "status": "nao-adotar",
+      "acao": "Nada — decisão já registrada (charter §Divergências \"depende do RUNBOOK §5.3, decisão [W]\"; RUNBOOK-pacotes §5.3 e §8)",
+      "_acionavel": false
+    },
+    {
+      "id": "card-preco-ciclo",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "1213-1217"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.tsx",
+        "linhas": "59-82",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade (o formatador do mockup é helper mock; o vivo formata o número do payload — charter Anti-hook \"não escrever literal monetário\")",
+      "_acionavel": false
+    },
+    {
+      "id": "card-4-limites-dias-de-teste",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "1180"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.tsx",
+        "linhas": "91-93",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade",
+      "_acionavel": false
+    },
+    {
+      "id": "card-modulos-liberados",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "1228-1231"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.tsx",
+        "linhas": "183-191",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade",
+      "_acionavel": false
+    },
+    {
+      "id": "card-footer",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "1233-1236"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.tsx",
+        "linhas": "193-198",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade",
+      "_acionavel": false
+    },
+    {
+      "id": "form-de-criacao-edicao-duplicacao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "1176-1249"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.tsx",
+        "linhas": "n/a (ausente no vivo — a célula do gap.md cita o recibo de ausência)",
+        "ancora": false
+      },
+      "status": "nao-adotar",
+      "acao": "Nada — decisão já registrada (SA-O4d: escreve `price`, REGRA MESTRE de proibicoes + RUNBOOK-pacotes §5.1; SPEC US-SUPER-002 \"Tela: … LEITURA. O FormDrawer … é a SA-O4d\")",
+      "_acionavel": false
+    },
+    {
+      "id": "feedback-das-acoes-de-escrita",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "1176-1249"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.tsx",
+        "linhas": "n/a (ausente no vivo — a célula do gap.md cita o recibo de ausência)",
+        "ancora": false
+      },
+      "status": "nao-adotar",
+      "acao": "Nada — decisão já registrada (só existe no mockup como retorno das ações do kebab/form, todas SA-O4d — superadmin-page.jsx:1178, :1204-1209)",
+      "_acionavel": false
+    },
+    {
+      "id": "estado-carregando",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "1176-1249"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.tsx",
+        "linhas": "111-119",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente (mockup renderiza `PACOTES` mock direto, sem skeleton — superadmin-page.jsx:1176-1249)",
+      "_acionavel": false
+    },
+    {
+      "id": "estado-vazio",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "1176-1249"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.tsx",
+        "linhas": "124-135",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente (mockup não tem `Vazio` nesta view — superadmin-page.jsx:1176-1249)",
+      "_acionavel": false
+    },
+    {
+      "id": "catalogo-completo-sem-paginacao-filtro",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "1193"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.tsx",
+        "linhas": "121-144",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade (charter Non-Goal \"Não pagina\" + Anti-hook \"Não paginar nem cortar a lista\")",
+      "_acionavel": false
+    }
+  ],
+  "mapping": {
+    "source": "superadmin-page.jsx",
+    "target": "Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.tsx"
+  },
+  "_nota_mapeamento": "Protótipo = porte do Blade legado (superadmin-page.jsx:1-9), anterior às telas React. prototipo.linhas = range citado na célula 'Estado no vivo' do gap.md; vivo.linhas = 1º range citado na mesma célula (grep -n real). vivo.ancora = id de data-contract citado no nome da parte (existe no .tsx); false EXPLÍCITO nas partes sem região ancorada (opt-out consciente — o contrato-de-tela trava só as seções listadas)."
+}
