@@ -93,7 +93,7 @@
         "ancora": "grades"
       },
       "status": "gap-parcial",
-      "acao": "Decidir. Região do mockup: `dash-legacy-page.jsx:317`; ponto no vivo: `GradesPainel.tsx:230-328`. Pré-condição medida: o `DataTable` canônico do repo não tem essas props — `grep -c 'density\\",
+      "acao": "Decidir. Região do mockup: `dash-legacy-page.jsx:317`; ponto no vivo: `GradesPainel.tsx:230-328`. Pré-condição medida: o `DataTable` canônico do repo não tem essas props — procurar por `density` e por `height` em `Components/shared/DataTable.tsx` devolve 0 ocorrências de cada. É o item #14 do inventário, que já o classificava como limite do componente canônico. Adotar significa estender um componente do Design System, decisão [W]. Construir ou rejeitar por escrito.",
       "_acionavel": true
     }
   ]
