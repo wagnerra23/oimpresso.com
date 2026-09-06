@@ -1,6 +1,6 @@
 {
   "schema": "oimpresso-design-application-report/3",
-  "generatedAt": "2026-09-06T07:06:22.927Z",
+  "generatedAt": "2026-09-06T07:07:42.246Z",
   "bundle": {
     "id": "5023b274183d849dcc925eae85cef61a991c3541ca1daeb680267c1afda99e4d",
     "baseId": null,
@@ -10,17 +10,17 @@
   },
   "summary": {
     "transportChanges": 255,
-    "screens": 94,
+    "screens": 93,
     "tested": 0,
     "smoked": 0,
     "lifecycle": {
       "applied": 1,
-      "anchored": 63,
+      "anchored": 62,
       "to-create": 23,
       "compared": 7
     },
     "applied": 1,
-    "pending": 70,
+    "pending": 69,
     "to-create": 23
   },
   "transportChanges": [
@@ -3205,22 +3205,7 @@
       "bundleChange": "added",
       "target": "resources/js/Pages/Suporte/Empresas.tsx",
       "module": "Suporte",
-      "mapping": "charter.component",
-      "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
-      "applicationState": "pending",
-      "compared": false,
-      "tested": false,
-      "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
-    },
-    {
-      "source": "suporte-page.jsx",
-      "bundleChange": "added",
-      "target": "resources/js/Pages/Suporte/Visao.tsx",
-      "module": "Suporte",
-      "mapping": "charter.component",
+      "mapping": "alias",
       "comparison": "SEMANTICO",
       "lifecycleState": "anchored",
       "applicationState": "pending",

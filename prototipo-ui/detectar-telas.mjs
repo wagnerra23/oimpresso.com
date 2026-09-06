@@ -57,6 +57,11 @@ const REPO_DEFAULT = resolve(HERE, '..');             // raiz do repo
 const ALIAS = [
   { re: /^vendas-create-page\.jsx$/i, alvo: 'resources/js/Pages/Sells/Create.tsx', tela: 'Venda (Sells/Create) — charter-less' },
   { re: /^crm-page\.jsx$/i,           alvo: 'resources/js/Pages/Cliente/Index.tsx', tela: 'CRM (alvo disputado → Modules/Crm)' },
+  // 2026-09-06 [C]: suporte-page.jsx é porte REVERSO das telas vivas Pages/Suporte/{Empresas,Visao}.
+  // Fica AQUI (e não em `bundle_source:` no charter) porque memory/requisitos/Suporte/SPEC.md não
+  // tem nenhuma US-* — tocar o charter acorda o charter-us-lint (no-new-lie) e não existe
+  // related_us honesto pra declarar. Quando o SPEC ganhar US, promova pro charter e apague isto.
+  { re: /^suporte-page\.jsx$/i,       alvo: 'resources/js/Pages/Suporte/Empresas.tsx', tela: 'Suporte — Empresas (Visao herda o mesmo mockup; SPEC sem US)' },
 ];
 
 // ---- A_CRIAR (CÓDIGO) — mockups CONSCIENTEMENTE registrados como "tela ainda não existe" -----
