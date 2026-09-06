@@ -18,7 +18,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Nada — decisão explícita já registrada na seção (anti-regressão: não re-adicionar)",
+      "acao": "Nada — este gap.md se declara registro datado de 2026-06-30 medido por rota inválida, não é base para decidir hoje (banner, l.19); decisão só pelo dono vigente `PARIDADE-area-cliente-diagnostico-e-ondas.md` (que já registra: não adotar o card Faturamento)",
       "_acionavel": false
     },
     {
@@ -33,8 +33,8 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. o mockup tem um 6º card \"Faturamento hoje\" que a tela viva não tem. _pendente_ avaliar se faz sentido — exige fonte server real (não o mock \"+12%\"). Baixa prioridade; o KPI strip vivo é proposital… Construir ou rejeitar por escrito.",
-      "_acionavel": true
+      "acao": "Nada — este gap.md se declara registro datado de 2026-06-30 medido por rota inválida, não é base para decidir hoje (banner, l.19); decisão só pelo dono vigente `PARIDADE-area-cliente-diagnostico-e-ondas.md` (que já registra: não adotar o card Faturamento)",
+      "_acionavel": false
     },
     {
       "id": "filtros-busca",
@@ -48,7 +48,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Nada — vivo à frente (STALE no mockup)",
+      "acao": "Nada — este gap.md se declara registro datado de 2026-06-30 medido por rota inválida, não é base para decidir hoje (banner, l.19); decisão só pelo dono vigente `PARIDADE-area-cliente-diagnostico-e-ondas.md` (que já registra: não adotar o card Faturamento)",
       "_acionavel": false
     },
     {
@@ -63,8 +63,8 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. o kebab do mockup tem \"Nova OS\" e \"Gerenciar tags\" como ações de linha. A tela viva não tem essas duas no ActionsMenu. Possível ADOTAR-PARCIAL se houver demanda (Nova OS depende de… Construir ou rejeitar por escrito.",
-      "_acionavel": true
+      "acao": "Nada — este gap.md se declara registro datado de 2026-06-30 medido por rota inválida, não é base para decidir hoje (banner, l.19); decisão só pelo dono vigente `PARIDADE-area-cliente-diagnostico-e-ondas.md` (que já registra: não adotar o card Faturamento)",
+      "_acionavel": false
     },
     {
       "id": "drawer-de-detalhe",
@@ -78,8 +78,8 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. o `CliEnderecoSection` do mockup tem 2 detalhes que valem olhar contra o `EnderecoTab`/`EnderecosEntregaList` vivos: Construir ou rejeitar por escrito.",
-      "_acionavel": true
+      "acao": "Nada — este gap.md se declara registro datado de 2026-06-30 medido por rota inválida, não é base para decidir hoje (banner, l.19); decisão só pelo dono vigente `PARIDADE-area-cliente-diagnostico-e-ondas.md` (que já registra: não adotar o card Faturamento)",
+      "_acionavel": false
     },
     {
       "id": "perspectivas-fornecedor-funcionario-representante",
@@ -93,8 +93,8 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. o mockup A tem 4 views completas com vocabulário próprio por papel: · Fornecedor: KPIs Críticos/Lead-time médio/A-pagar; colunas Categoria/Lead/Frequência/A-pagar/Vencimento/Pedidos-abertos; kebab… Construir ou rejeitar por escrito.",
-      "_acionavel": true
+      "acao": "Nada — este gap.md se declara registro datado de 2026-06-30 medido por rota inválida, não é base para decidir hoje (banner, l.19); decisão só pelo dono vigente `PARIDADE-area-cliente-diagnostico-e-ondas.md` (que já registra: não adotar o card Faturamento)",
+      "_acionavel": false
     },
     {
       "id": "view-todos",
@@ -108,8 +108,8 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. o mockup tem `AllView` — diretório minimal com campos comuns (Nome/Tipo/Documento/Contato) + KPIs por tipo clicáveis que trocam de aba + hint \"visão consolidada\". A tela viva tem a tab `all`… Construir ou rejeitar por escrito.",
-      "_acionavel": true
+      "acao": "Nada — este gap.md se declara registro datado de 2026-06-30 medido por rota inválida, não é base para decidir hoje (banner, l.19); decisão só pelo dono vigente `PARIDADE-area-cliente-diagnostico-e-ondas.md` (que já registra: não adotar o card Faturamento)",
+      "_acionavel": false
     }
   ]
 }

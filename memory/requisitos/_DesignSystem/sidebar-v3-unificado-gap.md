@@ -2,8 +2,7 @@
 id: requisitos-design-system-sidebar-v3-unificado-gap
 tipo: gap-spec
 tela: Shell / Sidebar (AppShellV2)
-prototipo: TODO
-prototipo_nota: "2026-09-06 [C]: era `prototipo-ui/prototipos/sidebar-v3-unificado/visual-source.html` — pasta prototipo-ui/prototipos/ expurgada (consolidação SSOT 2026-06-23); fonte viva é o DS em git (prototipo-ui/design-system) — âncora por região fica TODO até haver arquivo de design real"
+prototipo: prototipo-ui/prototipos/sidebar-v3-unificado/visual-source.html
 tela_viva:
   - resources/js/Layouts/AppShellV2.tsx
   - resources/js/Components/cockpit/Sidebar.tsx
@@ -123,27 +122,3 @@ Os gaps reais e legítimos são **3, todos internos à sidebar**:
 backlog de fundação**, cada um PR sequencial isolado, com gap #1 **bloqueado em
 decisão Wagner** (é mexer em canon UI-0009/0014). Caráter de serialização
 mandatório — nada disso entra num lote de telas.
-
-## Tabela de partes (derivada 2026-09-06, r2)
-
-> Derivada MECANICAMENTE da prosa acima por [C] em 2026-09-06 (r2 — a r1 foi reprovada na refutação GT-G5 por ler a coluna de DESCRIÇÃO em vez da de VEREDITO; ver memory/sessions/2026-09-06-refutacao-gt-g5-lote-6897.md). Regra: "**Decidir.**" só onde a prosa registra gap real em aberto; "Nada — <veredito>" cita o veredito da prosa (esforço `— · —`, "NÃO fazer", "já é canon", decisão registrada). A fonte segue sendo a prosa; em conflito, a prosa vence.
-
-| Parte | Estado no vivo | Ação |
-|---|---|---|
-| Tema (light/dark) | Vivo: Dark fixo override em `.cockpit .sb` (linhas 286-309) reverte UI-0009 · DIVERGE | Nada — decisão [W] 2026-07-16 posterior à prosa: sidebar DARK FIXO definitivo (ADR UI-0023, supersede UI-0019/0009/0014) — não reabrir |
-| Largura sidebar | Vivo: grid `260px` (cockpit.css `grid-template-columns`) · DIVERGE leve | **Decidir.** `--sb-w: 248px` (DIVERGE leve) Construir ou rejeitar por escrito. |
-| Logo/topo (CompanyPicker) | Vivo: `CompanyPicker` (avatar gradient + nome + ChevronDown) · PARIDADE ~alta | Nada — paridade/decisão já registrada |
-| Busca / Cmd+K na sidebar | Vivo: Cmd+K existe global (`CommandPalette`, atalho no AppShellV2) mas NÃO há caixa de busca na sidebar · FALTA (entry visual na sidebar) | **Decidir.** Caixa "Buscar tudo… ⌘K" dentro da `sb-top` (FALTA (entry visual na sidebar)) Construir ou rejeitar por escrito. |
-| Seção FIXADOS / Pinned | Vivo: NÃO existe seção pinned na sidebar (favs vivos são por-página em kb/Financeiro/Atendimento, não no shell) · FALTA | **Decidir.** Grupo `★ Fixados` no topo do scroll (Financeiro·Receber, Vendas, Compras) com estrela (FALTA) Construir ou rejeitar por escrito. |
-| Grupos de navegação | Vivo: `SIDEBAR_GROUPS` = 7 keys (CADASTRO/COMERCIAL/FINANÇAS/FISCAL/PRODUÇÃO/ESTOQUE/RH/SISTEMA = na verdade 8) + `SidebarShortcuts` (IA/Forja/Atendimento) · DIVERGE (taxonomia) | Nada — §Ordem sugerida: NÃO fazer (#6 seria regressão — vivo mais recente que o protótipo) |
-| Labels dos grupos | Vivo: CADASTRO/COMERCIAL/FINANÇAS/FISCAL/PRODUÇÃO/ESTOQUE/RH/SISTEMA · DIVERGE | Nada — §Ordem sugerida: NÃO fazer (#7 seria regressão — vivo mais recente que o protótipo) |
-| Atalhos kbd (`G I`, `G V`…) | Vivo: NÃO renderizado (atalho `G X X` é Fase 8 da ADR 0180, não entregue) · FALTA | **Decidir.** Hint `G X` à direita de cada item, aparece on-hover/active (FALTA) Construir ou rejeitar por escrito. |
-| Ícones dos itens | Vivo: Lucide React (`Bot`, `MessageCircle`, `Wallet`, `Factory`…) via `MENU_ICON_MAP`/`GROUP_ICON_MAP` · DIVERGE (vivo melhor) | Nada — §Ordem sugerida: #9 vivo tem features além do protótipo — preservar |
-| Item ativo / hover | Vivo: `.sb-item.active` com `::before` rail + hue por grupo via `--gh` (SIDEBAR_GROUP_HUE); hover `--sb-hover` · PARIDADE conceitual | Nada — paridade/decisão já registrada |
-| Hue por grupo | Vivo: `SIDEBAR_GROUP_HUE` (comercial 55, financas 145, fiscal 175…) — escala canon Wagner 2026-05-22, ≥25° entre grupos · DIVERGE (vivo mais elaborado) | Nada — §Ordem sugerida: NÃO fazer (#11 seria regressão — vivo mais recente que o protótipo) |
-| Colapso (rail/expanded) | Vivo: `sb--rail` 56px + `SidebarMenuRail` + alça `sb-collapse-handle` + atalho `⌘\` · VIVO TEM A MAIS | Nada — §Ordem sugerida: #12 vivo tem features além do protótipo — preservar |
-| Mobile / off-canvas | Vivo: drawer `≤768px` + hambúrguer + backdrop (Wagner 2026-06-17) · VIVO TEM A MAIS | Nada — §Ordem sugerida: #13 vivo tem features além do protótipo — preservar |
-| Rodapé / usuário | Vivo: `SidebarFooter` (avatar + nomeCurto + cargo + ChevronUp) → `SidebarUserMenu` cascata completa (perfil/status/aparência/vibes/superadmin/logout) · PARIDADE+ (vivo bem mais rico) | Nada — §Ordem sugerida: #14 vivo tem features além do protótipo — preservar |
-| Densidade / tema tweaks | Vivo: `TweaksPanel` (vibe/densidade/accentHue) flutuante · VIVO TEM A MAIS | Nada — paridade/decisão já registrada |
-| PageHeader + ghosts ARIA | Vivo: NÃO está no shell da sidebar — é responsabilidade da tela (PageHeader canon ADR 0180/0182/0189) · FORA DE ESCOPO (sidebar) | Nada — n/a — separar do PR de fundação |
-| Topbar / breadcrumb | Vivo: `topbar` existe mas `hideTopbar=true` default (Wagner 2026-05-17 removeu topbar global) · DIVERGE (vivo decidiu remover) | Nada — §Ordem sugerida: NÃO fazer (#17 seria regressão — vivo mais recente que o protótipo) |
