@@ -44,7 +44,10 @@ afterEach(function () {
 it('UC-FDFE-01 · NfeDfeRecebido HasBusinessScope esconde cross-tenant da listagem DF-e', function () {
     $tenant  = $this->seededTenant();
     $bizMeu  = (int) $tenant->id;
-    $bizOutro = \Tests\Support\WithSeededTenant::SUPPORT_CLIENT_TENANT_ID; // adversário cross-tenant (99)
+    // `Trait::CONST` direto e fatal no PHP ("Cannot access trait constant directly" —
+    // run 34031885570); le-se pela classe que USA o trait (Tests\TestCase). Lapide
+    // §5 2026-07-28 ja avisava (copia em EstoqueFixture pelo mesmo motivo).
+    $bizOutro = \Tests\TestCase::SUPPORT_CLIENT_TENANT_ID; // adversário cross-tenant (99)
 
     $this->actingAs(\App\User::where('business_id', $bizMeu)->firstOrFail());
     session(['business.id' => $bizMeu, 'user.business_id' => $bizMeu]);
