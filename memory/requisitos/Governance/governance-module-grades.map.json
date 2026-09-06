@@ -1,0 +1,195 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "governance/ModuleGrades/Index (/governance/module-grades)",
+  "gap_fonte": "memory/requisitos/Governance/governance-module-grades-gap.md",
+  "prototipo_sha": "sha256:5ee328e84ed4",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "header-pageheader",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/governance-page.jsx",
+        "linhas": "403-418"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/governance/ModuleGrades/Index.tsx",
+        "linhas": "150-159",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade (títulos adaptados; breadcrumb é detalhe do shell vivo)",
+      "_acionavel": false
+    },
+    {
+      "id": "abas-do-shell",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/governance-page.jsx",
+        "linhas": "24-30"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/governance/ModuleGrades/Index.tsx",
+        "linhas": "151",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade",
+      "_acionavel": false
+    },
+    {
+      "id": "toggle-de-visao-notas-catalogo-sinais",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/governance-telas.jsx",
+        "linhas": "224-320"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/governance/ModuleGrades/Index.tsx",
+        "linhas": "161-165",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente (a aba Catálogo/IDP de 2026-07-21 não entrou no retrato)",
+      "_acionavel": false
+    },
+    {
+      "id": "kpis-agregados",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/governance-telas.jsx",
+        "linhas": "252-255"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/governance/ModuleGrades/Index.tsx",
+        "linhas": "344-360",
+        "ancora": false
+      },
+      "status": "nao-adotar",
+      "acao": "Nada — decisão já registrada (charter §Goals 4: \"KPI agregado: média projeto + distribuição buckets\" — o conjunto de KPIs é o do charter; a contagem \"avaliados na v3\" é derivável dos `—` da tabela e não foi pedida)",
+      "_acionavel": false
+    },
+    {
+      "id": "filtros",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/governance-telas.jsx",
+        "linhas": "259-268"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/governance/ModuleGrades/Index.tsx",
+        "linhas": "178-202",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade (mesmos filtros; o hint do mockup é a regra do charter §Anti-hooks \"NÃO armazenar localStorage filter\")",
+      "_acionavel": false
+    },
+    {
+      "id": "skeleton-carga-diferida",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/governance-telas.jsx",
+        "linhas": "230"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/governance/ModuleGrades/Index.tsx",
+        "linhas": "174",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade (no vivo é `Inertia::defer` real — charter §Goals 6; no retrato é harness)",
+      "_acionavel": false
+    },
+    {
+      "id": "tabela-rank",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/governance-telas.jsx",
+        "linhas": "279-306"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/governance/ModuleGrades/Index.tsx",
+        "linhas": "204-272",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente (drill-down por linha + coluna Ações + rolagem horizontal só existem no vivo; o `title` por dimensão no mockup é rótulo)",
+      "_acionavel": false
+    },
+    {
+      "id": "estado-vazio-do-filtro",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/governance-telas.jsx",
+        "linhas": "275-278"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/governance/ModuleGrades/Index.tsx",
+        "linhas": "229-234",
+        "ancora": false
+      },
+      "status": "gap-parcial",
+      "acao": "Decidir. Botão \"Limpar\" (zera bucket + busca num clique — mockup `governance-telas.jsx:277`) ausente no vazio `Index.tsx:229-234` e na barra de filtros `:178-202`; charter §UX targets pede só \"empty state quando filtro não bate\". Não é Non-Goal. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "nota-explicativa-do-em-d6-d9",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/governance-telas.jsx",
+        "linhas": "307"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/governance/ModuleGrades/Index.tsx",
+        "linhas": "253-256",
+        "ancora": false
+      },
+      "status": "nao-adotar",
+      "acao": "Nada — decisão já registrada (charter §Goals 7: \"Render `—` quando módulo ainda não tem dimensão v3 avaliada\"); o parágrafo do mockup é copy sobre a mesma regra",
+      "_acionavel": false
+    },
+    {
+      "id": "banner-gate-ci-anti-regressao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/governance-telas.jsx",
+        "linhas": "310-315"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/governance/ModuleGrades/Index.tsx",
+        "linhas": "274-298",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente (os 4 links externos são o charter §Goals 8; o retrato só tem o texto)",
+      "_acionavel": false
+    },
+    {
+      "id": "rodape-da-rubrica",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/governance-telas.jsx",
+        "linhas": "224-320"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/governance/ModuleGrades/Index.tsx",
+        "linhas": "300-306",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente",
+      "_acionavel": false
+    },
+    {
+      "id": "acoes-proibidas",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/governance-page.jsx",
+        "linhas": "389-442"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/governance/ModuleGrades/Index.tsx",
+        "linhas": "134-311",
+        "ancora": false
+      },
+      "status": "nao-adotar",
+      "acao": "Nada — Non-Goal do charter (❌ Editar pesos da rubrica · ❌ Disparar Brain B · ❌ Histórico 90d)",
+      "_acionavel": false
+    }
+  ],
+  "mapping": {
+    "source": "governance-page.jsx",
+    "target": "resources/js/Pages/governance/ModuleGrades/Index.tsx"
+  },
+  "_nota_mapeamento": "Protótipo = porte REVERSO do vivo (governance-page.jsx:1-3). prototipo.linhas = range citado como 'Mockup:' na célula 'Estado no vivo' do gap.md; vivo.linhas = 1º range citado na mesma célula (grep -n real). vivo.ancora:false EXPLÍCITO = opt-out consciente: o .tsx não tem nenhum data-contract (grep -c data-contract → 0); ancorar exige mudança de UI com gate próprio."
+}
