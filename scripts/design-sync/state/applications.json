@@ -11,7 +11,24 @@
         "mapSha256": "cdda4800cd56c033e2aa8c2dcbba10173329169f3ba5e39f7b88e9e7192e642e",
         "recordedAt": "2026-09-06T01:46:05.265Z"
       },
-      "tests": [],
+      "tests": [
+        {
+          "command": [
+            "gh",
+            "run",
+            "view",
+            "--job",
+            "101316416841",
+            "--exit-status"
+          ],
+          "exitCode": 0,
+          "runner": "ci",
+          "outputSha256": "84cda304cb3600df55c78a0f867e3b9dc53766e2123a9ee157c80e3778320933",
+          "sourceSha256": "08a8bebe9e4fd8ed3b950a0fc245780f653fec495078f83bc3a328f794e71a89",
+          "targetSha256": "6c6ce5b5a679af17896a999f1d6f3dc539e80f4fbe957685fc59dfecd2b8b854",
+          "recordedAt": "2026-09-06T11:25:39.443Z"
+        }
+      ],
       "smokes": [],
       "application": {
         "evidence": "memory/requisitos/Arquivos/arquivos-index-gap.md",
@@ -27,7 +44,7 @@
       "comparison": {
         "map": "memory/requisitos/Backup/backup-index.map.json",
         "mapSha256": "6941669baa8118e6f2ae89a15c04c9f3113a43353e47ae2554ccba160a0f3b1e",
-        "recordedAt": "2026-09-06T11:55:34.505Z"
+        "recordedAt": "2026-09-06T18:27:00.308Z"
       },
       "tests": [],
       "smokes": []
@@ -40,7 +57,7 @@
       "comparison": {
         "map": "memory/requisitos/Dashboard/home-index.map.json",
         "mapSha256": "ea3e6759ce7a82cf33a5cd5c2e7f9138f62edea5720092422c86afdf8c47ca30",
-        "recordedAt": "2026-09-06T11:58:49.661Z"
+        "recordedAt": "2026-09-06T18:27:02.088Z"
       },
       "tests": [],
       "smokes": []
@@ -210,7 +227,7 @@
       "comparison": {
         "map": "memory/requisitos/KB/kb-index-v2.map.json",
         "mapSha256": "b17ca4b2176075ded889d3907b9181349f52915b235b1149bb7eb185cf826229",
-        "recordedAt": "2026-09-06T12:15:42.131Z"
+        "recordedAt": "2026-09-06T18:27:08.302Z"
       },
       "tests": [],
       "smokes": []
@@ -221,9 +238,9 @@
       "sourceSha256": "a6100cb00af3036c5c61018697b09a8859b94a68586d1f8c06e6065ce740527d",
       "targetSha256": "2416a609ea667292fc6d4c4a5250985a13202ea53132085c579cc1f1c28cd1a8",
       "comparison": {
-        "map": "memory/requisitos/Superadmin/modulos-index.map.json",
-        "mapSha256": "70e2a957d733dfab4d0a33d520897a8df1ab16b56b2d6279bd40605e2edcaf3e",
-        "recordedAt": "2026-09-06T12:01:15.460Z"
+        "map": "memory/requisitos/Superadmin/modules-index.map.json",
+        "mapSha256": "9c6ce3e4c636dbc3ff123c6e0466c65afec70d7b759fe70b7bd31524fc29e906",
+        "recordedAt": "2026-09-06T18:27:03.725Z"
       },
       "tests": [],
       "smokes": []
@@ -236,7 +253,7 @@
       "comparison": {
         "map": "memory/requisitos/Financeiro/cobranca-index.map.json",
         "mapSha256": "d13c3d0a576f28aeb468b42985b602f73d3b197def47f1fa02d0a4bb05974c71",
-        "recordedAt": "2026-09-06T12:11:48.538Z"
+        "recordedAt": "2026-09-06T18:27:06.752Z"
       },
       "tests": [],
       "smokes": []
@@ -247,9 +264,48 @@
       "sourceSha256": "af1736ae1d9390283d0d92be7d13b9cafdd704269d08fb0f53aa75d04394a5cc",
       "targetSha256": "363a0f298f9a024364772f7aea4d069e306dded78600bcb0bf570c4122749279",
       "comparison": {
-        "map": "memory/requisitos/PaymentGateway/settings-gateways.map.json",
-        "mapSha256": "ce896420680bbd69d1d5f01a37906ef0c3b307e27dfe0683441c748ced7c2a3c",
-        "recordedAt": "2026-09-06T12:04:29.735Z"
+        "map": "memory/requisitos/PaymentGateway/settings-paymentgateways-index.map.json",
+        "mapSha256": "16ba2627f921b3dcaf568cbd4fd4b450f0bf38a854b5746d124997c0f465000d",
+        "recordedAt": "2026-09-06T18:27:05.131Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "ponto-page.jsx",
+      "target": "resources/js/Pages/Ponto/Dashboard/Index.tsx",
+      "sourceSha256": "a22f7fe6c5f25dfb373935c67175133a75fdbf4893eed0da02b2a228e33d44d2",
+      "targetSha256": "4750043c8955cb14e190d986e624ea303179899f4f85634af00105d8130b16b2",
+      "comparison": {
+        "map": "memory/requisitos/Ponto/dashboard-index.map.json",
+        "mapSha256": "cc1535b98706a142c6e3b1f6a043d23f94868f3728b63717aec43e27d3478ed9",
+        "recordedAt": "2026-09-06T12:32:08.316Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "ponto-page.jsx",
+      "target": "resources/js/Pages/Ponto/Espelho/Index.tsx",
+      "sourceSha256": "a22f7fe6c5f25dfb373935c67175133a75fdbf4893eed0da02b2a228e33d44d2",
+      "targetSha256": "fa0bb3d3aa2ce553e5a2232cfe5986570516b0e0915d1b7fc6d857d74bf96cb7",
+      "comparison": {
+        "map": "memory/requisitos/Ponto/espelho-index.map.json",
+        "mapSha256": "55c9ae78737ec3dfad1f4b55e08ebfc01e82e229a44d72236f5e17e48fca02a0",
+        "recordedAt": "2026-09-06T12:32:10.079Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "ponto-page.jsx",
+      "target": "resources/js/Pages/Ponto/Espelho/Show.tsx",
+      "sourceSha256": "a22f7fe6c5f25dfb373935c67175133a75fdbf4893eed0da02b2a228e33d44d2",
+      "targetSha256": "a7439b370b731f5500854a415f9377d8ce251e740d0455e95d60047357936649",
+      "comparison": {
+        "map": "memory/requisitos/Ponto/espelho-show.map.json",
+        "mapSha256": "396cae50b7024cd0c21de3bc2b83401d33c5a7ef8470a5064757c8a6df4db13c",
+        "recordedAt": "2026-09-06T12:32:12.247Z"
       },
       "tests": [],
       "smokes": []
@@ -262,7 +318,7 @@
       "comparison": {
         "map": "memory/requisitos/Suporte/suporte-empresas.map.json",
         "mapSha256": "52036b142c2b3a5e518525052ce80a45418a62a476dd5ed8fe82fdd8d0c4f653",
-        "recordedAt": "2026-09-06T11:52:18.649Z"
+        "recordedAt": "2026-09-06T18:26:58.628Z"
       },
       "tests": [],
       "smokes": []

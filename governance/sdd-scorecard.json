@@ -68,22 +68,14 @@
     },
     "full_suite_pass_rate": {
       "status": "measured",
-      "value": 293,
+      "value": 288,
       "unit": "arquivos-que-falham (interseção ≥2 runs · ADR 0279)",
       "direction": "down",
       "target": 0,
       "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
       "detail": {
-        "floor_files_hash": "13be25194dc24ef3",
+        "floor_files_hash": "9fd1962c6b3f727f",
         "runs": [
-          {
-            "sha": "42b8ea44",
-            "ts": "20260827-020001",
-            "failed": 503,
-            "errors": 488,
-            "skipped": 2267,
-            "all_shards_measured": true
-          },
           {
             "sha": "654637bc",
             "ts": "20260904-020001",
@@ -93,15 +85,23 @@
             "all_shards_measured": true
           },
           {
-            "sha": null,
+            "sha": "04a2493d",
             "ts": "20260905-020001",
             "failed": 476,
             "errors": 409,
             "skipped": 2281,
             "all_shards_measured": true
+          },
+          {
+            "sha": null,
+            "ts": "20260906-020001",
+            "failed": 466,
+            "errors": 407,
+            "skipped": 2263,
+            "all_shards_measured": true
           }
         ],
-        "computed_at": "20260905-020001",
+        "computed_at": "20260906-020001",
         "intersection_of": 3
       },
       "stream": "FV"
@@ -211,29 +211,29 @@
     },
     "ragas_real_uptime": {
       "status": "measured",
-      "value": 62.5,
+      "value": 60,
       "unit": "%",
       "direction": "up",
       "target": 95,
       "source": "governance/ragas-real-trend.json (transporte CT100→scorecard · órfã governance/ragas-real-trend · ADR 0318 + pattern ADR 0279)",
       "detail": {
-        "weeks_expected": 8,
-        "weeks_valid": 5,
+        "weeks_expected": 10,
+        "weeks_valid": 6,
         "first_scheduled": "2026-07-05",
-        "last_week": "2026-08-23",
+        "last_week": "2026-09-06",
         "latest": {
-          "gate_status": "skipped",
-          "n_evaluated": 0,
-          "faithfulness_avg": null,
-          "relevancy_avg": null,
-          "context_recall_avg": null
+          "gate_status": "fail",
+          "n_evaluated": 51,
+          "faithfulness_avg": 0.6086,
+          "relevancy_avg": 0.7157,
+          "context_recall_avg": 0.2993
         }
       },
       "stream": "MEM"
     },
     "distiller_freshness": {
       "status": "measured",
-      "value": 11,
+      "value": 13,
       "unit": "portas atrás dos eventos (>7d vs doc mais novo · ADR 0291 D-D)",
       "direction": "down",
       "target": 0,
@@ -242,7 +242,7 @@
         "portas": 80,
         "carimbadas": 14,
         "sem_carimbo": 66,
-        "stale": 11,
+        "stale": 13,
         "oldest_distilled_at": "2026-07-17"
       },
       "stream": "MEM"
@@ -282,10 +282,10 @@
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 58,
+        "entries_aprovadas": 59,
         "max_error_rate_pct": 1.82,
-        "last_pr": 6552,
-        "last_lote": "url-prefixes-scopes-6552"
+        "last_pr": 6897,
+        "last_lote": "gap-md-tabela-de-partes-e-mapas-6897"
       },
       "stream": "GT"
     }

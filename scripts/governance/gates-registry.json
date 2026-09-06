@@ -582,6 +582,13 @@
       "nome": "Visual Regression (Pest 4 Browser)",
       "classe": "gate"
     },
+    "design-smoke-ci.yml": {
+      "nome": "Design Smoke CI (ADR 0390 · advisory · push main + dispatch · sobe o app efêmero do CI com o MESMO setup/seed do visual-regression, renderiza as telas tested|validated do application-report logado no biz=1 via auth-bridge, publica PNG + manifest.json na órfã governance/design-smokes; scripts/design-sync/smoke-consumir.mjs casa por blob do .tsx e grava --record-smoke --host ci → validated)",
+      "classe": "automacao",
+      "terminal": "advisory",
+      "promote_by": "2026-10-06",
+      "anchor": "sinal de custo: o estado validated do Design Sync (D-6 da ADR 0384) exigia smoke de PRODUÇÃO com login humano que o agente não digita — medido no application-report de 2026-09-06: lifecycle {anchored 62, to-create 23, compared 4, tested 3, applied 1, validated 0} = 0/93 por construção. Decisão [W] 2026-09-06 (ADR 0390): host ∈ {producao, staging-ct100, ci} no recibo; tenant continua 1, biz=4 segue proibido (ADR 0358), teste antes do smoke e cascata D-7 intactos. Deconflito: screen-smoke-after-merge.yml fotografa PRODUÇÃO (host=producao, desligado por switch + OPENAI + credencial biz=99); este fotografa o CI (host=ci) — dois hosts do MESMO recibo, não régua paralela. NUNCA required: roda pós-merge em main, não valida PR; vermelho = não conseguiu fotografar, a tela fica em tested."
+    },
     "shipped-log-cron.yml": {
       "nome": "Shipped log cron (auto-PR + auto-merge · regenera registro de entrega do cycle · porta de saída ADR 0294)",
       "classe": "automacao"

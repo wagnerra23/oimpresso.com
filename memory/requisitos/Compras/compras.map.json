@@ -14,12 +14,13 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Compras/Index.tsx",
-        "linhas": "TODO",
-        "ancora": false
+        "linhas": "239-295",
+        "ancora": "compras-cabecalho"
       },
       "status": "pendente-mapeamento",
       "acao": "Decidir. Migrar `hd` → `os-page-h` preservando crumbs/count/permissão/gate Wave 6 — §Veredito adotar #2 (Parte 1, P, sem valor). Conferir antes se `cowork-compras-bundle.css` tem `os-page-h*`.",
-      "_acionavel": true
+      "_acionavel": true,
+      "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"compras-cabecalho\" (JÁ existia no vivo — id do contrato prototipo-ui/contrato/compras-cockpit.contract.json, por isso ancora custom ≠ id da parte). Sem tocar o .tsx. linhas = range real do `<header class=\"hd\">`."
     },
     {
       "id": "kpis",
@@ -29,12 +30,13 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Compras/Index.tsx",
-        "linhas": "TODO",
-        "ancora": false
+        "linhas": "408-429",
+        "ancora": "compras-kpis"
       },
       "status": "pendente-mapeamento",
       "acao": "Decidir. Só o texto/label visual das sub-linhas — §Veredito adotar #4 (Parte 2, M, ⚠️ valor). Qualquer número novo exibido (% MoM, meta) exige backend + Regra Mestre (dupla confirmação) ANTES de exibir; `_pendente_` confirmar se o payload `kpis` traz esses campos (Parte 2 POR QUÊ).",
-      "_acionavel": true
+      "_acionavel": true,
+      "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"compras-kpis\" (id do contrato compras-cockpit; já no vivo, em `KpisGrid()`). Sem tocar o .tsx."
     },
     {
       "id": "filtros-tabs",
@@ -44,12 +46,13 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Compras/Index.tsx",
-        "linhas": "TODO",
-        "ancora": false
+        "linhas": "298-330",
+        "ancora": "compras-abas"
       },
       "status": "pendente-mapeamento",
       "acao": "Decidir. Tab Cancelados + contadores por tab + pills nomeados — §Veredito adotar #1 (Parte 3, P, sem valor; contadores são `.length` de array já em memória).",
-      "_acionavel": true
+      "_acionavel": true,
+      "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"compras-abas\" (id do contrato compras-cockpit; já no vivo — `<nav class=\"tbs\">`). O `<Toolbar>` (per-page/colunas/export) fica fora desta âncora e é coberto só por linha."
     },
     {
       "id": "tabela-lista",
@@ -59,12 +62,13 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Compras/Index.tsx",
-        "linhas": "TODO",
-        "ancora": false
+        "linhas": "509-643",
+        "ancora": "compras-tabela"
       },
       "status": "pendente-mapeamento",
       "acao": "Decidir. Colunas Itens + NF-e — §Veredito adotar #3 (Parte 4, M, sem valor: contagem e booleano). `_pendente_` confirmar se o `Row` do backend traz `items_count` e flag de XML (Parte 4 POR QUÊ).",
-      "_acionavel": true
+      "_acionavel": true,
+      "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"compras-tabela\" (id do contrato compras-cockpit; já no vivo — `<table class=\"purchases\">` em TableCompras). Sem tocar o .tsx."
     },
     {
       "id": "acoes-por-linha",
@@ -74,12 +78,13 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Compras/Index.tsx",
-        "linhas": "TODO",
-        "ancora": false
+        "linhas": "592-599",
+        "ancora": "compras-tabela"
       },
       "status": "pendente-mapeamento",
       "acao": "Nada — o `_pendente_` da Parte 5/§Veredito #5 foi resolvido lendo o código: `Pages/Compras/components/AcoesDropdown.tsx` já tem as 9 ações (labels em l.100–170: Ver · Impressão · Editar · Excluir · Rótulos · Ver pagamentos · Reembolso de compra · Atualizar status · Elementos pendentes). A prosa de 2026-06-30 não tinha lido o componente; o gap 5 estava coberto. ⚠️ Fluxo novo em Reembolso/Ver pagamentos segue Tier 0 (Regra Mestre + permissões).",
-      "_acionavel": false
+      "_acionavel": false,
+      "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"compras-tabela\" — o `<td>` com `<AcoesDropdown>` renderiza DENTRO da tabela ancorada (mesmo padrão das 2 partes de compras-grade-matrix.map.json em purchase-itens); linhas = range do `<td>` de ações. O dropdown em si vive em components/AcoesDropdown.tsx (sem data-contract)."
     },
     {
       "id": "drawer-sheet-maior-gap",
@@ -94,7 +99,9 @@
       },
       "status": "pendente-mapeamento",
       "acao": "Decidir. Parcialmente coberto — lido no código: `Pages/Compras/components/Drawer.tsx` já tem as 5 abas (l.22–26) e `initialTab` (l.96/154), então a prosa de 2026-06-30 (\"2 tabs\") estava atrás; mas NÃO tem footer de ações por estágio nem Registrar pagamento/Pagar agora (0 ocorrências), e XML/DANFE/manifestação ficam na tela Fiscal (l.501, l.520: \"Wave 6 traz atalhos integrados aqui\"). O trilho FSM também já existe (`STAGES` l.12–19 e `.fsm-track` l.197–209). Resta do §Veredito #6: footer de ações por estágio + atalhos fiscais — G, ⚠️ Tier 0 (`ExecuteStageActionService` + Regra Mestre), sessão limpa por tab.",
-      "_acionavel": true
+      "_acionavel": true,
+      "_nota_ancora": "2026-09-06: NÃO ancorada, e não é opt-out por preguiça: a região vive em components/Drawer.tsx (montada em Index.tsx no bloco \"DRAWER 5 tabs sobre grid\"), que não tem data-contract; o contrato compras-cockpit.contract.json tem 4 seções e nenhuma cobre o drawer — dar id novo é decisão de vocabulário do contrato (ADR 0286), e Edit em Pages/Compras/components/Drawer.tsx é barrado pelo hook block-mwart-violation (trata como tela Compras/components/Drawer sem RUNBOOK). Fora do lote 2026-09-06."
     }
-  ]
+  ],
+  "_nota_mapeamento": "2026-09-06: 5 partes ganharam vivo.ancora com os ids do contrato compras-cockpit (fila ACIONÁVEL do design-code-map-check: data-contract JÁ existia no vivo — .tsx intocado); drawer-sheet-maior-gap segue ancora:false com o motivo registrado."
 }

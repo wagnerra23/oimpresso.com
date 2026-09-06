@@ -1,10 +1,16 @@
 ---
-id: requisitos-paymentgateway-settings-gateways-gap
+id: requisitos-paymentgateway-settings-paymentgateways-index-gap
 tela: Settings/PaymentGateways/Index (/settings/payment-gateways)
 prototipo: prototipo-ui/cowork/pg-payment-gateways-page.jsx
 tela_viva: Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/Index.tsx
 gerado_em: 2026-09-06
 ---
+
+<!-- O basename deste arquivo precisa ser slug("Settings/PaymentGateways/Index") + "-gap.md":
+     e assim que prototipo-ui/gerar-contrato.mjs::escolherGap resolve <Mod/Tela> -> gap/map.
+     Com outro nome, `node prototipo-ui/consumir-map.mjs Settings/PaymentGateways/Index` sai
+     rc=1 "map nao encontrado" mesmo com o arquivo no disco, e a Fase 4 fica inalcancavel pela
+     forma canonica. Medido em 2026-09-06, antes e depois do rename. -->
 
 # GAP-SPEC — Settings/PaymentGateways/Index
 

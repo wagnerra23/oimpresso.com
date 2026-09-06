@@ -14,12 +14,13 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Financeiro/Unificado/Index.tsx",
-        "linhas": "1407-1493",
-        "ancora": false
+        "linhas": "1544-1621",
+        "ancora": true
       },
       "status": "vivo-a-frente-com-residuo",
       "acao": "aplicar-delta-residuo: CmdK (Index.tsx 2548-2579) e empty-state CTA (Index.tsx 1777-1792) viram 'Novo título' abrindo TituloCreateSheet; resto no-op",
-      "_acionavel": true
+      "_acionavel": true,
+      "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = a Zona R do `<PageHeader>` (div `ml-auto` com as 3 lentes + FinanceiroSubNav + dropdown \"+ Novo título\" que carrega o OCR). O PageHeader é componente e não espalha props — por isso a âncora fica no filho DOM. O range antigo (1407-1493) apontava pro handler de teclado: estava defasado."
     },
     {
       "id": "kpis",
@@ -29,12 +30,13 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Financeiro/Unificado/Index.tsx",
-        "linhas": "831-958",
-        "ancora": false
+        "linhas": "970-1023",
+        "ancora": true
       },
       "status": "vivo-a-frente",
       "acao": "no-op",
-      "_acionavel": true
+      "_acionavel": true,
+      "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = `div.fin-stats` dentro de `KpiBar()` (mesmo arquivo; montado em `<KpiBar .../>` no render principal). O range antigo (831-958) caía no editor de categoria inline: defasado."
     },
     {
       "id": "periodbar-personalizado",
@@ -44,12 +46,13 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Financeiro/Unificado/_components/FinPeriodBar.tsx",
-        "linhas": "1-191",
-        "ancora": false
+        "linhas": "113-194",
+        "ancora": true
       },
       "status": "paridade",
       "acao": "no-op (entregue #3418, aprovado [W] 2026-06-29; wiring Index.tsx 1639-1650)",
-      "_acionavel": true
+      "_acionavel": true,
+      "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = `div.fin-period-bar` (role=group \"Período\") em FinPeriodBar.tsx."
     },
     {
       "id": "filter-pills-toolbar",
@@ -59,12 +62,13 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Financeiro/Unificado/Index.tsx",
-        "linhas": "1509-1711",
-        "ancora": false
+        "linhas": "1730-1901",
+        "ancora": true
       },
       "status": "vivo-a-frente",
       "acao": "no-op (FinMultiSelectContas Index.tsx 367-451; plano DCASP real 1658-1674)",
-      "_acionavel": true
+      "_acionavel": true,
+      "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = a 2ª `div.fin-toolbar` (pills de ciclo de vida + workflow de aprovação + FinMultiSelectContas + select plano de contas + `.fin-toolbar-r`). A 1ª toolbar (filtro por data) é a região da PeriodBar, parte 3."
     },
     {
       "id": "tabela-linhas",
@@ -74,12 +78,13 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Financeiro/Unificado/Index.tsx",
-        "linhas": "453-497,1008-1154,1713-1794",
-        "ancora": false
+        "linhas": "1906-1984",
+        "ancora": true
       },
       "status": "paridade",
       "acao": "no-op (protótipo espelhou refino premium #3391/#3413 do vivo)",
-      "_acionavel": true
+      "_acionavel": true,
+      "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = a `<table>` da lista agrupada por vencimento (LinhaTabela renderiza os `<tr>`)."
     },
     {
       "id": "dialogo-de-baixa",
@@ -89,12 +94,13 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Financeiro/Unificado/_components/FinBaixaSheet.tsx",
-        "linhas": "1-233",
-        "ancora": false
+        "linhas": "106-234",
+        "ancora": true
       },
       "status": "vivo-a-frente-com-residuo",
       "acao": "aplicar-delta-micro: default meio_pagamento = forma prevista do título (FinBaixaSheet.tsx 55-73); resto no-op",
-      "_acionavel": true
+      "_acionavel": true,
+      "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = `<SheetContent>` do FinBaixaSheet (espalha props → DOM do portal)."
     },
     {
       "id": "anexos-no-drawer",
@@ -104,12 +110,13 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Financeiro/Unificado/_components/FinAnexosPanel.tsx",
-        "linhas": "59-181",
-        "ancora": false
+        "linhas": "135-206",
+        "ancora": true
       },
       "status": "gap-parcial",
       "acao": "aplicar-delta: drag&drop + multiple no upload (frontend-only); seeds 'do sistema' (ops.jsx 188-199) = virar-US-ADR (backend NfeBrasil)",
-      "_acionavel": true
+      "_acionavel": true,
+      "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = a drop-zone (div `border-t … rounded-b` com onDrop) do FinAnexosPanel; tag multi-linha, atributo em linha própria."
     },
     {
       "id": "aprovacao-de-pagamento",
@@ -119,12 +126,13 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Financeiro/Unificado/Index.tsx",
-        "linhas": "2358-2427",
-        "ancora": false
+        "linhas": "2560-2607",
+        "ancora": true
       },
       "status": "gap-parcial",
       "acao": "aplicar-delta: motivo de rejeição inline (ENTREGUE — ver _nota); desfazer/reenviar (ops.jsx 332-346) = virar-US-ADR (backend workflow)",
-      "_acionavel": true
+      "_acionavel": true,
+      "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = o bloco \"Aprovação\" do drawer (div `border-t border-border pt-4` que só renderiza pra payable aberto/atrasado/vencendo — Onda 21 #55). O range antigo (2358-2427) caía em Forma de pagamento/Conciliação: defasado."
     },
     {
       "id": "ocr-boleto",
@@ -134,12 +142,13 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Financeiro/Unificado/_components/FinOcrBoletoSheet.tsx",
-        "linhas": "1-312",
-        "ancora": false
+        "linhas": "154-309",
+        "ancora": true
       },
       "status": "vivo-a-frente",
       "acao": "PERGUNTA [W]: fallback 'colar linha digitável' manual (parse Febraban local, ops.jsx 355-368) vale? Senão no-op",
-      "_acionavel": true
+      "_acionavel": true,
+      "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = `<SheetContent>` do FinOcrBoletoSheet."
     },
     {
       "id": "combobox-contraparte-no-novo-titulo",
@@ -149,12 +158,13 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Financeiro/Unificado/_components/TituloCreateSheet.tsx",
-        "linhas": "115-146",
-        "ancora": false
+        "linhas": "128-150",
+        "ancora": true
       },
       "status": "gap",
       "acao": "aplicar-delta (GAP nº1, US-FIN-024): wire ClienteCombobox.tsx (1-175, órfão) no campo cliente_descricao do TituloCreateSheet (wiring do protótipo: financeiro-page.jsx 1373-1379); bump charter v17 + UC no casos.md",
-      "_acionavel": true
+      "_acionavel": true,
+      "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = o wrapper `onBlurCapture` que envolve `<ClienteCombobox id=\"cr-desc\">` (fila P10 / US-FIN-024); tag multi-linha, atributo em linha própria."
     },
     {
       "id": "drawer-detalhe",
@@ -164,12 +174,13 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Financeiro/Unificado/Index.tsx",
-        "linhas": "1843-2545",
-        "ancora": false
+        "linhas": "2045-2725",
+        "ancora": true
       },
       "status": "vivo-a-frente",
       "acao": "no-op (opcional P: Aprovação/Anexos com visual DrawerLens, Index.tsx 626-666)",
-      "_acionavel": true
+      "_acionavel": true,
+      "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = `<SheetContent class=\"fin-cowork fin-curadoria fin-drawer-wide\">` do drawer de detalhe (as partes 7 e 8 renderizam DENTRO dele, cada uma com âncora própria)."
     },
     {
       "id": "artefatos-do-prototipo",
@@ -186,5 +197,6 @@
       "acao": "rejeitar (data-comment-anchor, contaOf/formaOf mock, agingCounts — aging revertido por [W] 2026-06-29)",
       "_acionavel": true
     }
-  ]
+  ],
+  "_nota_mapeamento": "2026-09-06: 11 partes ganharam vivo.ancora=true (data-contract adicionado em Index.tsx + 5 _components). Os ranges de linha herdados do gap.md (2026-07) estavam DEFASADOS no HEAD (ex.: \"kpis 831-958\" caía no editor de categoria; \"aprovacao 2358-2427\" caía na conciliação) — exatamente o rot silencioso que a âncora estável fecha; todos regravados com o range medido do elemento ancorado."
 }

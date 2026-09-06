@@ -1,10 +1,16 @@
 ---
-id: requisitos-superadmin-modulos-index-gap
+id: requisitos-superadmin-modules-index-gap
 tela: Modules/Index (/modulos)
 prototipo: prototipo-ui/cowork/modulos-page.jsx
 tela_viva: resources/js/Pages/Modules/Index.tsx
 gerado_em: 2026-09-06
 ---
+
+<!-- O basename deste arquivo precisa ser slug("Modules/Index") + "-gap.md": e assim que
+     prototipo-ui/gerar-contrato.mjs::escolherGap resolve <Mod/Tela> -> gap/map. Com outro
+     nome, `node prototipo-ui/consumir-map.mjs Modules/Index` sai rc=1 "map nao encontrado"
+     mesmo com o arquivo no disco, e a Fase 4 fica inalcancavel pela forma canonica.
+     Medido em 2026-09-06, antes e depois do rename. -->
 
 # GAP-SPEC — Modules/Index
 
