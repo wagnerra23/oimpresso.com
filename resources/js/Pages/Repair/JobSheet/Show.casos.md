@@ -31,7 +31,7 @@ last_run: "2026-09-05"
 - **Por que é assim:** a consulta do `show` parte de `where('business_id', $business_id)` antes do `findOrFail` — [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md), Tier 0 irrevogável. É o anti-hook literal do charter: *"NÃO acessa OS de outro biz (Tier 0)"*.
 - **Regressão que defende:** esta é a tela que mostra **tudo** da OS — cliente, aparelho, defeitos, peças, anexos, histórico. Um vazamento aqui não expõe um campo: expõe o atendimento inteiro de outro negócio.
 - **Teste:** `Modules/Repair/Tests/Feature/JobSheetShowContratoTest.php` — *"UC-JSS-01: não abre o detalhe de OS de outro negócio"*.
-- **Status: 🧪** _passou no CT 100_
+- **Status: 🧪** _passou no CT 100 e **na lane** `Verticais · MySQL` (ver rodapé)_
 
 ## UC-JSS-02 · Sem permissão ampla, o técnico só vê a OS que é dele
 - **Persona:** o técnico da bancada, que deve ver as OS que abriu ou que lhe foram atribuídas — não a carteira inteira da loja.
@@ -40,7 +40,7 @@ last_run: "2026-09-05"
 - **Como o teste garante a pré-condição:** ele **afirma** que o usuário não tem `job_sheet.view_all` antes de exercitar os três acessos. Sem essa asserção, uma mudança futura no bypass de permissões faria os três darem 200 e o caso ficaria verde provando o contrário do que promete.
 - **Regressão que defende:** remover o filtro transforma "detalhe da minha OS" em "detalhe de qualquer OS da loja" para todo mundo com acesso ao módulo.
 - **Teste:** `JobSheetShowContratoTest` — *"UC-JSS-02: quem não tem job_sheet.view_all só enxerga a OS que criou ou atende"*.
-- **Status: 🧪** _passou no CT 100 — os três acessos, com a pré-condição de permissão afirmada_
+- **Status: 🧪** _passou no CT 100 e **na lane** — os três acessos, com a pré-condição de permissão afirmada_
 
 ## UC-JSS-03 · O painel de ações aponta para o Repair, nunca para Vendas
 - **Persona:** ninguém — é uma armadilha de reuso, e nada além deste caso a pegaria.
@@ -48,7 +48,7 @@ last_run: "2026-09-05"
 - **Por que este caso existe:** o RUNBOOK marca isto como **risco R1 (MÉDIO)**. O painel de ações é compartilhado com Vendas e assume endereços `/sells/...`; o Repair injeta os seus por um wrapper. Se os endereços vazarem para os de Vendas, a tela dispara transição **no módulo errado** — e o sintoma não aparece na tela, aparece no pipeline de outra entidade.
 - **Regressão que defende:** trocar o wrapper pelo componente compartilhado cru, num refactor de "remover duplicação", reintroduz exatamente o R1.
 - **Teste:** `JobSheetShowContratoTest` — *"UC-JSS-03: o painel FSM recebe endereços do Repair, nunca os de Vendas"* (confere os três endereços contra o id da OS, não contra um prefixo genérico).
-- **Status: 🧪** _passou no CT 100 — os três endereços conferidos contra o id da OS_
+- **Status: 🧪** _passou no CT 100 e **na lane** — os três endereços conferidos contra o id da OS_
 
 ## UC-JSS-04 · A tela diz se a OS já entrou no pipeline
 - **Persona:** quem abre a OS e precisa saber se opera pelo status legado ou pelas ações do pipeline.
@@ -57,14 +57,14 @@ last_run: "2026-09-05"
 - **Regressão que defende:** inverter a condição mostra "Iniciar pipeline" para uma OS que já está correndo — e um segundo início é a porta para dois fluxos concorrentes sobre a mesma OS.
 - **⚠️ Cobertura condicionada ao ambiente, e isto fica dito:** a metade "já em um estágio" só é exercitada quando o banco tem pipeline semeado; sem isso, afirmá-la exigiria plantar uma referência inválida — e teste que planta a própria pré-condição global mente sobre o que o ambiente de fato tem (§5 2026-08-24). O teste **pula essa metade** em vez de fabricá-la, e a metade legada roda sempre. No run do CT 100 de 2026-09-05 havia pipeline semeado, então as **duas** metades rodaram; num banco sem pipeline, este UC prova só a primeira.
 - **Teste:** `JobSheetShowContratoTest` — *"UC-JSS-04: a tela informa se a OS está no pipeline FSM"*.
-- **Status: 🧪** _passou no CT 100; a metade "já no pipeline" rodou (há pipeline semeado no banco)_
+- **Status: 🧪** _passou no CT 100 (lá a metade "já no pipeline" **rodou** — há pipeline semeado) e **na lane**, onde essa metade **não é verificável pelo recibo**: sem estágio no banco o teste faz `return` silencioso, e um `return` não aparece como `skipped` no sumário. Na lane, portanto, este UC prova com certeza só a metade legada_
 
 ## UC-JSS-05 · Sem permissão, o detalhe não existe
 - **Persona:** usuário do negócio que não trabalha com OS.
 - **Aceite:** Dado usuário sem nenhuma das permissões de OS · Quando abro o detalhe · Então **403**.
 - **Por que é assim:** o gate do `show` aceita `job_sheet.view_assigned`, `job_sheet.view_all` **ou** `job_sheet.create` — quem não tem nenhuma delas não passa.
 - **Teste:** `JobSheetShowContratoTest` — *"UC-JSS-05: usuário sem permissão de OS recebe 403 no detalhe"*.
-- **Status: 🧪** _passou no CT 100_
+- **Status: 🧪** _passou no CT 100 e **na lane**_
 
 ---
 
@@ -83,6 +83,24 @@ A lane `modules-pest.yml` (matrix `Repair`) **dispara** neste PR: os `paths:` de
 `Modules/Repair/**` e `resources/js/Pages/Repair/**`. Mas ela roda `vendor/bin/pest` com
 `DB_CONNECTION=sqlite` `:memory:` e **sem migrate** — o schema UltimatePOS é MySQL-only.
 Nessa lane estes UCs **pulam**, e o verde dela prova só que o arquivo carrega.
+
+✅ **Desde 2026-09-05 existe uma segunda lane, e nela os 5 UCs rodam de verdade:**
+`verticais-pest.yml` (`PHP / Pest (Verticais · MySQL)`) — MySQL semeado pela
+`.github/actions/pest-mysql-setup`. O arquivo entrou na allowlist no
+[PR #6887](https://github.com/wagnerra23/oimpresso.com/pull/6887).
+**Recibo do primeiro run** ([33997676926](https://github.com/wagnerra23/oimpresso.com/actions/runs/33997676926),
+2m37s), lido do sumário JUnit por arquivo e não do console:
+
+```
+JobSheetShowContratoTest.php → tests 5 · passed 5 · failed 0 · skipped 0 · assertions 29
+lane inteira               → 112 passed · 9 skipped · 612 assertions
+```
+
+`skipped: 0` com **29 assertions** é o que separa "passou" de "pulou" — é a leitura que a
+consequência 1 abaixo exige. Os outros 3 contratos do JobSheet (`Create`, `Edit`,
+`AddParts`) **continuam fora de toda lane**, por decisão registrada: têm `[must]` provados
+vermelhos e a catraca da `verticais` só aceita arquivo verde. A dívida está datada no
+comentário da própria lane.
 
 Duas consequências que ficam ditas em vez de descobertas depois:
 
