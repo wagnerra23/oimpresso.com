@@ -2,7 +2,8 @@
 id: requisitos-design-system-sidebar-v3-unificado-gap
 tipo: gap-spec
 tela: Shell / Sidebar (AppShellV2)
-prototipo: TODO  # 2026-09-06 [C]: era `prototipo-ui/prototipos/sidebar-v3-unificado/visual-source.html` — pasta prototipo-ui/prototipos/ expurgada (consolidação SSOT 2026-06-23); fonte viva é o DS em git (prototipo-ui/design-system) — âncora por região fica TODO até haver arquivo de design real
+prototipo: TODO
+prototipo_nota: "2026-09-06 [C]: era `prototipo-ui/prototipos/sidebar-v3-unificado/visual-source.html` — pasta prototipo-ui/prototipos/ expurgada (consolidação SSOT 2026-06-23); fonte viva é o DS em git (prototipo-ui/design-system) — âncora por região fica TODO até haver arquivo de design real"
 tela_viva:
   - resources/js/Layouts/AppShellV2.tsx
   - resources/js/Components/cockpit/Sidebar.tsx

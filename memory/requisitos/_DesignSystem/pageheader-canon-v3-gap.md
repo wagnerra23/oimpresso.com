@@ -1,6 +1,7 @@
 ---
 tela: Foundation / PageHeader
-prototipo: TODO  # 2026-09-06 [C]: era `prototipo-ui/prototipos/pageheader-canon-v3/ (index.html · 3-familias.html · b-v2-roxo-kpi` — pasta prototipo-ui/prototipos/ expurgada (consolidação SSOT 2026-06-23); fonte viva é o DS em git (prototipo-ui/design-system) — âncora por região fica TODO até haver arquivo de design real
+prototipo: TODO
+prototipo_nota: "2026-09-06 [C]: era `prototipo-ui/prototipos/pageheader-canon-v3/ (index.html · 3-familias.html · b-v2-roxo-kpi` — pasta prototipo-ui/prototipos/ expurgada (consolidação SSOT 2026-06-23); fonte viva é o DS em git (prototipo-ui/design-system) — âncora por região fica TODO até haver arquivo de design real"
 tela_viva: resources/js/Components/PageHeader/PageHeader.tsx + PageHeaderPrimary.tsx + index.ts (consumo de referência: resources/js/Pages/Cliente/Index.tsx)
 paridade_atual: ~85% (código vivo já está ADIANTE do protótipo index.html; protótipo é internamente inconsistente)
 gerado_em: 2026-06-23
