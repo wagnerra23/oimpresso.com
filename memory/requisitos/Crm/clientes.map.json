@@ -1,0 +1,175 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Clientes (Index + Drawer 760px)",
+  "gap_fonte": "memory/requisitos/Crm/clientes-gap.md",
+  "prototipo_sha": "sem-arquivo",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "header-pageheader",
+      "prototipo": {
+        "arquivo": "TODO",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "TODO",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nenhuma (viva à frente)",
+      "_acionavel": false
+    },
+    {
+      "id": "kpis",
+      "prototipo": {
+        "arquivo": "TODO",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "TODO",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nenhuma",
+      "_acionavel": false
+    },
+    {
+      "id": "filtros",
+      "prototipo": {
+        "arquivo": "TODO",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "TODO",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nenhuma",
+      "_acionavel": false
+    },
+    {
+      "id": "tabela-listagem",
+      "prototipo": {
+        "arquivo": "TODO",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "TODO",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Opcional/Backlog — só se sinal de cliente pedir; não é regressão",
+      "_acionavel": true
+    },
+    {
+      "id": "abas",
+      "prototipo": {
+        "arquivo": "TODO",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "TODO",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nenhuma (viva muito à frente)",
+      "_acionavel": false
+    },
+    {
+      "id": "drawer-de-detalhe",
+      "prototipo": {
+        "arquivo": "TODO",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "TODO",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nenhuma",
+      "_acionavel": false
+    },
+    {
+      "id": "enderecos",
+      "prototipo": {
+        "arquivo": "TODO",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "TODO",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nenhuma na tela Cliente. Ver nota US-078 abaixo",
+      "_acionavel": false
+    },
+    {
+      "id": "vinculos-linked",
+      "prototipo": {
+        "arquivo": "TODO",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "TODO",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nenhuma (proibido portar)",
+      "_acionavel": false
+    },
+    {
+      "id": "footer",
+      "prototipo": {
+        "arquivo": "TODO",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "TODO",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nenhuma",
+      "_acionavel": false
+    },
+    {
+      "id": "ia",
+      "prototipo": {
+        "arquivo": "TODO",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "TODO",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nenhuma",
+      "_acionavel": false
+    },
+    {
+      "id": "atalhos-k-cheat-sheet",
+      "prototipo": {
+        "arquivo": "TODO",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "TODO",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nenhuma",
+      "_acionavel": false
+    }
+  ]
+}

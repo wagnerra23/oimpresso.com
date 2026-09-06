@@ -1,4 +1,7 @@
 ---
+tela: Cliente/Index (/contacts)
+prototipo: prototipo-ui/cowork/clientes-page.jsx
+tela_viva: resources/js/Pages/Cliente/Index.tsx
 id: requisitos-cliente-clientes-gap
 ---
 
@@ -118,3 +121,17 @@ id: requisitos-cliente-clientes-gap
 - Dados `deriveCli` por hash (tipo/UF/saldo/tags inventados) — o vivo usa dado real.
 
 > Multi-tenant `business_id` Tier 0 intocável em qualquer adoção. PII só mascarado server-side (como já está). Nenhum dos gaps acima toca cálculo de valor/estoque diretamente — mas #1 (a-pagar/comissão/saldo fornecedor) cairia na Regra Mestre de valor se implementado.
+
+## Tabela de partes (derivada 2026-09-06)
+
+> Derivada MECANICAMENTE da prosa acima por [C] em 2026-09-06, porque `prototipo-ui/gerar-map.mjs` exige uma tabela com colunas **Parte** + **Ação** e este gap.md era anterior a esse contrato. Não muda veredito nenhum: "**Decidir.**" repete o gap real já escrito na seção correspondente; "Nada" = vivo à frente / paridade já registrada. A fonte segue sendo a prosa; em conflito, a prosa vence.
+
+| Parte | Estado no vivo | Ação |
+|---|---|---|
+| Header / identidade | Gap: o mockup mostra counter numérico dentro de cada tab (`cli-moduletopnav-n`). A tela viva computa `tab_counts` server-side mas removeu o badge da tab (decisão Wagner 2026-05-25: "duplicava o KPI strip"). → não é gap, é decisão explícita. Anti-regressão:… | **Decidir.** o mockup mostra counter numérico dentro de cada tab (`cli-moduletopnav-n`). A tela viva computa `tab_counts` server-side mas removeu o badge da tab (decisão Wagner 2026-05-25: "duplicava o KPI… Construir ou rejeitar por escrito. |
+| KPIs | Gap: o mockup tem um 6º card "Faturamento hoje" que a tela viva não tem. _pendente_ avaliar se faz sentido — exige fonte server real (não o mock "+12%"). Baixa prioridade; o KPI strip vivo é proposital com 5. · Vivo à frente: `KpiStripClickable` 5… | **Decidir.** o mockup tem um 6º card "Faturamento hoje" que a tela viva não tem. _pendente_ avaliar se faz sentido — exige fonte server real (não o mock "+12%"). Baixa prioridade; o KPI strip vivo é proposital… Construir ou rejeitar por escrito. |
+| Filtros / busca | Gap: nenhum estrutural. Mockup tem ícone `/` + `⌘K` hint no input — a tela viva já tem isso e mais (Command Palette ⌘K, cheat-sheet `?`, J/K nav, Enter abrir). · Vivo à frente: 6 `FilterDropdown` (Status/Tipo/UF/Tags multi/Sem-compra/Saldo) + busca… | Nada — vivo à frente (STALE no mockup). |
+| Tabela / linhas | Gap: o kebab do mockup tem "Nova OS" e "Gerenciar tags" como ações de linha. A tela viva não tem essas duas no ActionsMenu. Possível ADOTAR-PARCIAL se houver demanda (Nova OS depende de OficinaAuto/Repair; Gerenciar tags depende de UI de tags). _pendente_… | **Decidir.** o kebab do mockup tem "Nova OS" e "Gerenciar tags" como ações de linha. A tela viva não tem essas duas no ActionsMenu. Possível ADOTAR-PARCIAL se houver demanda (Nova OS depende de… Construir ou rejeitar por escrito. |
+| Drawer de detalhe | Gap: o `CliEnderecoSection` do mockup tem 2 detalhes que valem olhar contra o `EnderecoTab`/`EnderecosEntregaList` vivos: · Vivo à frente: `ClienteSheet` 760px, 6 abas cadastrais (Identificação/Contato/Endereço/Comercial/Classificação/Operações) com autosave… | **Decidir.** o `CliEnderecoSection` do mockup tem 2 detalhes que valem olhar contra o `EnderecoTab`/`EnderecosEntregaList` vivos: Construir ou rejeitar por escrito. |
+| Perspectivas Fornecedor / Funcionário / Representante (o gap real mais relevante do mockup A) | Gap: o mockup A tem 4 views completas com vocabulário próprio por papel: · Fornecedor: KPIs Críticos/Lead-time médio/A-pagar; colunas Categoria/Lead/Frequência/A-pagar/Vencimento/Pedidos-abertos; kebab "Lançar contas a pagar"/"Histórico de cotações". ·… | **Decidir.** o mockup A tem 4 views completas com vocabulário próprio por papel: · Fornecedor: KPIs Críticos/Lead-time médio/A-pagar; colunas Categoria/Lead/Frequência/A-pagar/Vencimento/Pedidos-abertos; kebab… Construir ou rejeitar por escrito. |
+| View "Todos" (diretório consolidado) | Gap: o mockup tem `AllView` — diretório minimal com campos comuns (Nome/Tipo/Documento/Contato) + KPIs por tipo clicáveis que trocam de aba + hint "visão consolidada". A tela viva tem a tab `all` (ROLE_TITLE "Contatos") mas, de novo, usa a tabela cliente… | **Decidir.** o mockup tem `AllView` — diretório minimal com campos comuns (Nome/Tipo/Documento/Contato) + KPIs por tipo clicáveis que trocam de aba + hint "visão consolidada". A tela viva tem a tab `all`… Construir ou rejeitar por escrito. |

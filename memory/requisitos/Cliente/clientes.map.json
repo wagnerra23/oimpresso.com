@@ -1,0 +1,115 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Cliente/Index (/contacts)",
+  "gap_fonte": "memory/requisitos/Cliente/clientes-gap.md",
+  "prototipo_sha": "sha256:8f284ad79fb3",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "header-identidade",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/clientes-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Cliente/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. o mockup mostra counter numérico dentro de cada tab (`cli-moduletopnav-n`). A tela viva computa `tab_counts` server-side mas removeu o badge da tab (decisão Wagner 2026-05-25: \"duplicava o KPI… Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "kpis",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/clientes-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Cliente/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. o mockup tem um 6º card \"Faturamento hoje\" que a tela viva não tem. _pendente_ avaliar se faz sentido — exige fonte server real (não o mock \"+12%\"). Baixa prioridade; o KPI strip vivo é proposital… Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "filtros-busca",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/clientes-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Cliente/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — vivo à frente (STALE no mockup).",
+      "_acionavel": false
+    },
+    {
+      "id": "tabela-linhas",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/clientes-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Cliente/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. o kebab do mockup tem \"Nova OS\" e \"Gerenciar tags\" como ações de linha. A tela viva não tem essas duas no ActionsMenu. Possível ADOTAR-PARCIAL se houver demanda (Nova OS depende de… Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "drawer-de-detalhe",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/clientes-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Cliente/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. o `CliEnderecoSection` do mockup tem 2 detalhes que valem olhar contra o `EnderecoTab`/`EnderecosEntregaList` vivos: Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "perspectivas-fornecedor-funcionario-representante",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/clientes-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Cliente/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. o mockup A tem 4 views completas com vocabulário próprio por papel: · Fornecedor: KPIs Críticos/Lead-time médio/A-pagar; colunas Categoria/Lead/Frequência/A-pagar/Vencimento/Pedidos-abertos; kebab… Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "view-todos",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/clientes-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Cliente/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. o mockup tem `AllView` — diretório minimal com campos comuns (Nome/Tipo/Documento/Contato) + KPIs por tipo clicáveis que trocam de aba + hint \"visão consolidada\". A tela viva tem a tab `all`… Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    }
+  ]
+}

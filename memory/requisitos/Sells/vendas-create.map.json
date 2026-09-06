@@ -1,0 +1,145 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Sells/Create (/sells/create)",
+  "gap_fonte": "memory/requisitos/Sells/vendas-create-gap.md",
+  "prototipo_sha": "sha256:cd78dba5dab1",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "header",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/vendas-create-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Sells/Create.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. Affordance \"voltar com esc\" explícito (vivo tem Cancelar no rodapé + Esc=blur, não um botão-voltar no topo). P · risco baixo. Toggle de vertical = ver Parte \"Conceito transversal\". Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "selecao-de-cliente",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/vendas-create-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Sells/Create.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. Cadastro rápido de cliente _inline_ (sem abrir outra aba) — o mockup resolve num mini-form na própria tela. Affordance melhor pra balcão. M · risco baixo (UI only; o backend de criar contato já… Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "busca-adicao-de-produtos",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/vendas-create-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Sells/Create.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. (1) Navegação ↑/↓/Enter no popover de produto — _pendente_ confirmar se `ProductSearchAutocomplete` já tem (não inspecionado aqui; provável que sim). (2) Leitura de código de barras/EAN — não… Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "grade-de-itens",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/vendas-create-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Sells/Create.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. (1) m² por linha (largura×altura) — central pra ComVis (banner/lona/fachada). ⚠️ toca cálculo de valor — regra mestre exige dupla confirmação: muda como `lineSubtotal` é computado (área × preço ×… Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "totais-descontos-impostos",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/vendas-create-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Sells/Create.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. Conceito \"cobrar só o aprovado\" (Oficina) — muda a base do total. ⚠️ toca cálculo de valor — regra mestre exige dupla confirmação. Vivo é mais completo em todo o resto; não há gap de… Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "pagamento",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/vendas-create-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Sells/Create.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. (1) Cards de método com \"clearing\"/prazo — UX mais visual que o select do `PaymentRow`. M · risco baixo. (2) Parcelamento explícito (Nx) — _pendente_ confirmar se `PaymentRow` cobre; não evidente. M… Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "fiscal",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/vendas-create-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Sells/Create.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. Maior gap conceitual do mockup. Painel \"que documento vou emitir\" inferido pela composição é uma affordance forte (reduz erro fiscal). ⚠️ NÃO toca valor, mas integra com NfeBrasil/FSM — G · risco… Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "frete-entrega",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/vendas-create-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Sells/Create.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. (1) Picker de múltiplos endereços do cliente (vivo só tem 1 campo de texto livre) — M · risco baixo. (2) Radio retirada/entrega como decisão de topo (vivo deixa frete sempre disponível colapsado) —… Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "acoes-rodape",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/vendas-create-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Sells/Create.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. (1) Desconto editável no próprio rodapé (mockup) vs card Resumo (vivo) — preferência de layout; ⚠️ toca valor. P · risco baixo-médio. (2) Label de ação contextual por vertical (\"Salvar e gerar OS\")… Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    }
+  ]
+}

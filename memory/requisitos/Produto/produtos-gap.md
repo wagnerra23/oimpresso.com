@@ -1,3 +1,10 @@
+---
+id: requisitos-produto-produtos-gap
+tela: Produto/Index (/products)
+prototipo: prototipo-ui/cowork/produtos-page.jsx
+tela_viva: resources/js/Pages/Produto/Index.tsx
+---
+
 # Gap — Produto/Index (vivo) × mockup Cowork `produtos-page.jsx`
 
 > **Fase 1 (read-only) da skill `aplicar-prototipo`.** Mapeia o que o protótipo Cowork propõe que a tela VIVA não tem — e onde o vivo já está À FRENTE (mockup stale).
@@ -88,3 +95,16 @@ O mockup está **à frente em conceito/escopo** (lista densa, drawer rico, tabel
 - Faixa de preço por variantes, custo/margem por fornecedor — _Parte 4_.
 
 **Pendências a confirmar (não inventar):** schema expõe marca/OEM/fornecedores/variantes/BOM/prateleira? `ProdutoRow` hoje só tem `cost/margin/stockQty` (sem fornecedores/variantes). Backend de agregação de inventário = _pendente_. Drawer-on-click vs página = decisão de charter/Wagner.
+
+## Tabela de partes (derivada 2026-09-06)
+
+> Derivada MECANICAMENTE da prosa acima por [C] em 2026-09-06, porque `prototipo-ui/gerar-map.mjs` exige uma tabela com colunas **Parte** + **Ação** e este gap.md era anterior a esse contrato. Não muda veredito nenhum: "**Decidir.**" repete o gap real já escrito na seção correspondente; "Nada" = vivo à frente / paridade já registrada. A fonte segue sendo a prosa; em conflito, a prosa vence.
+
+| Parte | Estado no vivo | Ação |
+|---|---|---|
+| Header | Gap: Subtítulo de contagem viva (produtos/disponíveis/esgotados) abaixo do título. Pequeno, informativo. · Vivo à frente: Breadcrumb + gate `permissions.create` no botão (mockup não tem permissão) + ações via componentes canônicos. Mockup stale aqui. | **Decidir.** Subtítulo de contagem viva (produtos/disponíveis/esgotados) abaixo do título. Pequeno, informativo. Construir ou rejeitar por escrito. |
+| KPIs / Totalizadores | Gap: Conceito de totalizadores financeiros de inventário (valor/custo em estoque, margem média) — ausente no vivo. É feature analítica nova. · Vivo à frente: KPI strip "Populares·30d" + "Categorias" não existe no mockup. Layouts diferentes (topo vs rodapé). | **Decidir.** Conceito de totalizadores financeiros de inventário (valor/custo em estoque, margem média) — ausente no vivo. É feature analítica nova. Construir ou rejeitar por escrito. |
+| Filtros / Busca | Gap: (a) Filtro por tipo (produto/serviço/composição); (b) Stockbar de estoque ⚠️; (c) sort por coluna; (d) toggle view lista/cards; (e) busca por mais campos (marca/OEM — _depende de schema ter esses campos: pendente_); (f) "Limpar filtros". · Vivo à… | **Decidir.** (a) Filtro por tipo (produto/serviço/composição); (b) Stockbar de estoque ⚠️; (c) sort por coluna; (d) toggle view lista/cards; (e) busca por mais campos (marca/OEM — _depende de schema ter esses… Construir ou rejeitar por escrito. |
+| Tabela / Cards (lista) | Gap: (a) Modo lista densa (tabela ordenável) — alternativa ao card-only; (b) faixa de preço quando há variantes; (c) coluna custo/margem/fornecedor ⚠️; (d) coluna estoque por linha ⚠️; (e) thumb/cor por categoria (hue OKLCH harmônico); (f) prateleira (mock… | **Decidir.** (a) Modo lista densa (tabela ordenável) — alternativa ao card-only; (b) faixa de preço quando há variantes; (c) coluna custo/margem/fornecedor ⚠️; (d) coluna estoque por linha ⚠️; (e) thumb/cor por… Construir ou rejeitar por escrito. |
+| Ações por linha | Gap: Padrão drawer-on-click em vez de navegação de página. Diferença de UX (peek vs full page). · Vivo à frente: Vivo respeita `permissions.update` no clique (mockup não tem permissão). | **Decidir.** Padrão drawer-on-click em vez de navegação de página. Diferença de UX (peek vs full page). Construir ou rejeitar por escrito. |
+| Drawer de detalhe | Gap: Drawer inteiro é escopo novo grande: tabela de preços por nível, fornecedores/cotação, variantes-SKU, BOM, OEM, ficha técnica. Nenhum existe no vivo. · Vivo à frente: — (vivo não tem nada equivalente). | **Decidir.** Drawer inteiro é escopo novo grande: tabela de preços por nível, fornecedores/cotação, variantes-SKU, BOM, OEM, ficha técnica. Nenhum existe no vivo. Construir ou rejeitar por escrito. |

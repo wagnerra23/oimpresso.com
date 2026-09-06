@@ -1,0 +1,100 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "kb/Index (/kb)",
+  "gap_fonte": "memory/requisitos/KB/kb-gap.md",
+  "prototipo_sha": "sha256:3f2c78b83b65",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "header-pagina",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/kb-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/kb/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. título + linha de stats (artigos · leituras totais · vínculos OS · desatualizados) + barra de 6 botões de ação (Trilhas, Perguntar ao KB/IA, Saúde do KB, Troubleshooter, ⌘K Buscar, + Novo artigo) +… Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "navegacao-categorias",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/kb-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/kb/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. coluna-1 (`kb-side`) tri-pane com: árvore de categorias com hue por vertical gráfica (Produção, Equipamentos, Pré-impressão, Atendimento, Fiscal, Sistema, Pessoas) + sub-categorias expansíveis… Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "busca",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/kb-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/kb/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. Command palette ⌘K (modal `CommandPalette`) com fuzzy match (título+excerpt+tags+autor), navegação ↑↓/Enter, e fallback \"Perguntar à IA\" quando 0 resultados. Atalho `/` também abre palette. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "lista-de-artigos-docs",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/kb-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/kb/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. cards ricos (`kb-row`) — pill de categoria colorida, badge de nível (iniciante/inter/avançado), equipamento, \"fixo\", \"revisar\", título, excerpt, meta (autor/updated/readTime/reads/OS vinculadas) +… Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "editor-detalhe",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/kb-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/kb/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. `ArticleReader` muito rico — TOC \"nesta página\", resumo por IA (`window.claude.complete`), corpo em blocos (para/h2/list/callout com tons), comentários por bloco (`KBCommentBlock`), favoritar,… Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "drawer-modais-auxiliares",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/kb-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/kb/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. Troubleshooter (árvore de decisão sim/não → fix, `TroubleDialog` + editor visual `KBTroubleEditor`), Saúde do KB (`HealthPanel`: desatualizados/parados/mais-lidos/solitários), Trilhas de aprendizado… Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    }
+  ]
+}

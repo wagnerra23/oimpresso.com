@@ -1,0 +1,100 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Compras/Index (/purchases)",
+  "gap_fonte": "memory/requisitos/Compras/compras-gap.md",
+  "prototipo_sha": "sha256:1096106a9f83",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "header",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/compras-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Compras/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. mockup usa `header.os-page-h` (estrutura PageHeader canon `os-page-h-l`/`os-page-h-r`); o vivo usa `header.hd` legado com crumbs + `<h1>` + count inline. O mockup está mais alinhado ao PageHeader… Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "kpis",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/compras-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Compras/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. mesmos 4 KPIs (A pagar / Em trânsito / Volume do mês / Fornecedores ativos). O mockup tem sub-linhas (`.ln`) mais ricas: \"próx. venc. 09/05\", \"+12,4% vs. abr/26 · meta R$45.000\", \"3 com compra… Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "filtros-tabs",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/compras-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Compras/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. mockup tem tab \"Cancelados\" a mais (vivo não tem); mockup mostra contadores em todas as tabs (`A pagar 2`, `Rascunhos 1`, `Em trânsito 1`) — vivo só conta na \"Todas\". Mockup mostra pills de filtro… Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "tabela-lista",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/compras-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Compras/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. mockup tem 2 colunas a mais — `Itens` (qtd de itens, numérica) e `NF-e` (badge \"✓ XML\" / \"—\"). O vivo tem 7 colunas (sem Itens, sem NF-e). Mockup também ordena por essas colunas extras. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "acoes-por-linha",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/compras-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Compras/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. mockup tem dropdown \"Ações\" com 9 opções (Ver, Impressão, Editar, Excluir, Rótulos, Ver pagamentos, Reembolso de compra, Atualizar status, Elementos pendentes de notificação) — paridade declarada… Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "drawer-sheet-maior-gap",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/compras-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Compras/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. mockup tem drawer 5 tabs completo (Resumo · Itens · Documentos · Pagamentos · Histórico) com: trilho FSM visual (`fsm-track` com 6 estágios done/now), tab Itens (tabela… Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    }
+  ]
+}

@@ -1,0 +1,265 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Shell / Sidebar (AppShellV2)",
+  "gap_fonte": "memory/requisitos/_DesignSystem/sidebar-v3-unificado-gap.md",
+  "prototipo_sha": "sem-arquivo",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "tema",
+      "prototipo": {
+        "arquivo": "prototipo-ui/prototipos/sidebar-v3-unificado/visual-source.html",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "TODO",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. Sidebar light creme (`--bg-sb` 0.985) (DIVERGE) Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "largura-sidebar",
+      "prototipo": {
+        "arquivo": "prototipo-ui/prototipos/sidebar-v3-unificado/visual-source.html",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "TODO",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. `--sb-w: 248px` (DIVERGE leve) Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "logo-topo",
+      "prototipo": {
+        "arquivo": "prototipo-ui/prototipos/sidebar-v3-unificado/visual-source.html",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "TODO",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — paridade/decisão já registrada.",
+      "_acionavel": false
+    },
+    {
+      "id": "busca-cmd-k-na-sidebar",
+      "prototipo": {
+        "arquivo": "prototipo-ui/prototipos/sidebar-v3-unificado/visual-source.html",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "TODO",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. Caixa \"Buscar tudo… ⌘K\" dentro da `sb-top` (FALTA (entry visual na sidebar)) Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "secao-fixados-pinned",
+      "prototipo": {
+        "arquivo": "prototipo-ui/prototipos/sidebar-v3-unificado/visual-source.html",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "TODO",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. Grupo `★ Fixados` no topo do scroll (Financeiro·Receber, Vendas, Compras) com estrela (FALTA) Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "grupos-de-navegacao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/prototipos/sidebar-v3-unificado/visual-source.html",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "TODO",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. 5 grupos + 3 shortcuts topo (IA/Atendimento/Equipe). Headers uppercase (DIVERGE (taxonomia)) Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "labels-dos-grupos",
+      "prototipo": {
+        "arquivo": "prototipo-ui/prototipos/sidebar-v3-unificado/visual-source.html",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "TODO",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. TOPO/VENDER/OPERAR/FINANÇAS/PESSOAS/SISTEMA (DIVERGE) Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "atalhos-kbd",
+      "prototipo": {
+        "arquivo": "prototipo-ui/prototipos/sidebar-v3-unificado/visual-source.html",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "TODO",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. Hint `G X` à direita de cada item, aparece on-hover/active (FALTA) Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "icones-dos-itens",
+      "prototipo": {
+        "arquivo": "prototipo-ui/prototipos/sidebar-v3-unificado/visual-source.html",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "TODO",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. glyphs unicode (`✦ ☎ $ ⚙ ₿`…) (DIVERGE (vivo melhor)) Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "item-ativo-hover",
+      "prototipo": {
+        "arquivo": "prototipo-ui/prototipos/sidebar-v3-unificado/visual-source.html",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "TODO",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — paridade/decisão já registrada.",
+      "_acionavel": false
+    },
+    {
+      "id": "hue-por-grupo",
+      "prototipo": {
+        "arquivo": "prototipo-ui/prototipos/sidebar-v3-unificado/visual-source.html",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "TODO",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. `--gh` por `data-group` (ia 220, vender 60, financas 145…) (DIVERGE (vivo mais elaborado)) Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "colapso",
+      "prototipo": {
+        "arquivo": "prototipo-ui/prototipos/sidebar-v3-unificado/visual-source.html",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "TODO",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — paridade/decisão já registrada.",
+      "_acionavel": false
+    },
+    {
+      "id": "mobile-off-canvas",
+      "prototipo": {
+        "arquivo": "prototipo-ui/prototipos/sidebar-v3-unificado/visual-source.html",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "TODO",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — paridade/decisão já registrada.",
+      "_acionavel": false
+    },
+    {
+      "id": "rodape-usuario",
+      "prototipo": {
+        "arquivo": "prototipo-ui/prototipos/sidebar-v3-unificado/visual-source.html",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "TODO",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — paridade/decisão já registrada.",
+      "_acionavel": false
+    },
+    {
+      "id": "densidade-tema-tweaks",
+      "prototipo": {
+        "arquivo": "prototipo-ui/prototipos/sidebar-v3-unificado/visual-source.html",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "TODO",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — paridade/decisão já registrada.",
+      "_acionavel": false
+    },
+    {
+      "id": "pageheader-ghosts-aria",
+      "prototipo": {
+        "arquivo": "prototipo-ui/prototipos/sidebar-v3-unificado/visual-source.html",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "TODO",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — paridade/decisão já registrada.",
+      "_acionavel": false
+    },
+    {
+      "id": "topbar-breadcrumb",
+      "prototipo": {
+        "arquivo": "prototipo-ui/prototipos/sidebar-v3-unificado/visual-source.html",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "TODO",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. `page-topbar` com crumbs + `⌘K ? 🔔` (DIVERGE (vivo decidiu remover)) Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    }
+  ]
+}

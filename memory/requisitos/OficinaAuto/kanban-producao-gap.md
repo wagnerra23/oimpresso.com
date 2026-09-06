@@ -1,4 +1,7 @@
 ---
+tela: Repair/ProducaoOficina (/repair/producao-oficina)
+prototipo: prototipo-ui/cowork/oficina-page.jsx
+tela_viva: resources/js/Pages/Repair/ProducaoOficina/Index.tsx
 id: requisitos-oficina-auto-kanban-producao-gap
 ---
 
@@ -111,3 +114,18 @@ O mockup está à frente em **densidade de informação e leitura operacional**,
 4. **Placa Mercosul estilizada** condicional a `label_overrides.code==='Placa'` (parte 6) — P, charme sem hardcode.
 
 **Adiar / escopo próprio (toca valor, FSM ou domínio — exige Wagner + backend):** KPI "Valor em curso" · gate "lock N/M" + checklist por etapa · DVI com semáforo+valor · edição inline peças/MO + gate aprovação (colide com Non-Goal) · Fotos upload real (`Modules/Arquivos`) · barra progresso/ETA · view Fila (rail CRM/WhatsApp) · view Grade · impressão (helper `OficinaPrint` _ausente_ no handoff) · Foco Box/Mecânico (repivot).
+
+## Tabela de partes (derivada 2026-09-06)
+
+> Derivada MECANICAMENTE da prosa acima por [C] em 2026-09-06, porque `prototipo-ui/gerar-map.mjs` exige uma tabela com colunas **Parte** + **Ação** e este gap.md era anterior a esse contrato. Não muda veredito nenhum: "**Decidir.**" repete o gap real já escrito na seção correspondente; "Nada" = vivo à frente / paridade já registrada. A fonte segue sendo a prosa; em conflito, a prosa vence.
+
+| Parte | Estado no vivo | Ação |
+|---|---|---|
+| Header + título | Vivo: sem header próprio com título/subtítulo nesta página (entra dentro do AppShellV2 + topnav Repair). Não tem botão "Nova OS" (charter Non-Goal: CRUD vai pra `/repair/job-sheet`) nem "Imprimir fila". · Mockup: `<h1>Oficina Auto</h1>` + subtítulo… | **Decidir.** título+subtítulo da página (P) — barato, melhora orientação. "Nova OS" e "Imprimir fila" = ver partes 6 e 8. Construir ou rejeitar por escrito. |
+| KPIs (faixa de cartões clicáveis) | Vivo: NÃO tem faixa de KPIs. Só um contador discreto no canto da filter-bar ("X OS · Y aguardando aprovação"). · Mockup: 6 KPIs — Recepção · Em diagnóstico · Aguardando peças (sub "N aguardam OK do cliente") · Em execução · Urgentes · Valor em curso… | **Decidir.** os 6 KPIs como resumo do dia + filtro-por-KPI são o maior salto de leitura da tela. Urgentes e os contadores por etapa derivam fácil das colunas. "Valor em curso" ⚠️ toca valor (regra mestre — dupla… Construir ou rejeitar por escrito. |
+| Filtros — boxes/elevadores | Vivo: filtro JÁ EXISTE e é mais genérico/poderoso — `FilterChips` por `slot_config` (N grupos: Box, Elevador, ou Mesa/Bancada/Máquina conforme vertical), "Todos" + "Limpar filtros" + contador "X de Y". · Mockup: aba "Todos os boxes" + 1 botão por recurso… | Nada — vivo à frente (STALE no mockup). |
+| Busca livre | Vivo: NÃO tem busca textual — só filtros de slot. · Mockup: input de busca "placa · veículo · cliente · sintoma · #OS" filtrando todas as views (`query`), com contador de resultados + limpar. | **Decidir.** busca textual multi-campo é ganho direto de operação (achar uma OS rápido). No vivo seria sobre os campos genéricos (`code`/`item`/`brand`/`executor` + sintoma se exposto). Construir ou rejeitar por escrito. |
+| Toggles de view (Kanban / Lista / Grade / Fila) | Vivo: SÓ Kanban. Sem Lista, Grade, Fila, nem popover de Foco/Densidade. · Mockup: 4 views — Kanban (5 colunas), Lista (tabela OS/placa/veículo/cliente/etapa/box/mecânico/prazo/valor), Grade (matriz veículo × serviço com semáforo heurístico por sintoma), Fila… | **Decidir.** · Lista — P, ganho claro (tabela densa). ⚠️ coluna Valor toca valor (só exibir, vem do backend). · Foco Box/Mecânico (repivot) — M, útil pra oficina (ver carga por mecânico/box). Reaproveita a… Construir ou rejeitar por escrito. |
+| Colunas + cards de OS | Vivo: 1 card único genérico (`JobCard`) — `code` mono (placa/nº), `item · brand`, `usage` (KM via `formatUsage`), badge slot/area, executor+iniciais+ETA, banner amber `pending_approval` + total do orçamento. Drag-and-drop nativo entre colunas (otimistic +… | **Decidir.** · Placa Mercosul estilizada — P, charmoso e específico; mas é automotivo → entra como *render opcional quando `label_overrides.code==='Placa'`*, não hardcode. · Badge gate "lock N/M" — M-G, é o… Construir ou rejeitar por escrito. |
+| Drawer (detalhe da OS) | Vivo: drawer enxuto (read-only) — header code+slot+item+brand; banner aprovação (Reenviar); `VendaDerivadaCard` (Onda 5/FASE B — JÁ tem breakdown peças/serviço + badge fiscal NF-e + lista expandível! cross-módulo shared); sintoma (texto fixo mock); fotos &… | **Decidir.** · VendaDerivadaCard — *vivo À FRENTE* do mockup numa coisa: já é componente shared real (`@/Components/shared/VendaDerivadaCard`), o mockup é mock inline. Não regredir. · DVI (Vistoria Digital) com… Construir ou rejeitar por escrito. |
+| Impressão de fila | Vivo: sem impressão. · Mockup: botão "Imprimir fila" (header) + "Imprimir OS" (drawer/fila) via `window.OficinaPrint.printFila/printOS` (helper não incluído no bundle lido — `oficina-print.js` referenciado mas ausente). | **Decidir.** impressão da fila/OS é pedido clássico de oficina (ordem de serviço em papel pro mecânico/cliente). Helper de print NÃO veio no handoff — _pendente_ a fonte do `OficinaPrint`. Construir ou rejeitar por escrito. |

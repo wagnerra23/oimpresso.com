@@ -1,0 +1,100 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Produto/Index (/products)",
+  "gap_fonte": "memory/requisitos/Produto/produtos-gap.md",
+  "prototipo_sha": "sha256:07a4cea7662a",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "header",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/produtos-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Produto/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. Subtítulo de contagem viva (produtos/disponíveis/esgotados) abaixo do título. Pequeno, informativo. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "kpis-totalizadores",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/produtos-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Produto/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. Conceito de totalizadores financeiros de inventário (valor/custo em estoque, margem média) — ausente no vivo. É feature analítica nova. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "filtros-busca",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/produtos-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Produto/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. (a) Filtro por tipo (produto/serviço/composição); (b) Stockbar de estoque ⚠️; (c) sort por coluna; (d) toggle view lista/cards; (e) busca por mais campos (marca/OEM — _depende de schema ter esses… Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "tabela-cards",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/produtos-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Produto/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. (a) Modo lista densa (tabela ordenável) — alternativa ao card-only; (b) faixa de preço quando há variantes; (c) coluna custo/margem/fornecedor ⚠️; (d) coluna estoque por linha ⚠️; (e) thumb/cor por… Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "acoes-por-linha",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/produtos-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Produto/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. Padrão drawer-on-click em vez de navegação de página. Diferença de UX (peek vs full page). Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "drawer-de-detalhe",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/produtos-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Produto/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. Drawer inteiro é escopo novo grande: tabela de preços por nível, fornecedores/cotação, variantes-SKU, BOM, OEM, ficha técnica. Nenhum existe no vivo. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    }
+  ]
+}

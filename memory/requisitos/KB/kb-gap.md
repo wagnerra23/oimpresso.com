@@ -1,4 +1,7 @@
 ---
+tela: kb/Index (/kb)
+prototipo: prototipo-ui/cowork/kb-page.jsx
+tela_viva: resources/js/Pages/kb/Index.tsx
 id: requisitos-kb-kb-gap
 ---
 
@@ -90,3 +93,16 @@ O mockup é maior, mas **é outro produto** (KB editorial de gráfica) montado s
 **NÃO adotar (Tier 0 / fora de escopo):** edição inline / Composer de artigos (viola git-canônico ADR 0061 append-only), categorias/níveis/equipamentos de gráfica, Troubleshooter, Trilhas, Apresentação, Imprimir SOP, votação útil/desatualizado, comentários inline, anexar-a-OS, métricas de leitura. Substituir busca server-side por client-side = regressão proibida.
 
 > **Multi-tenant:** docs de governança (`mcp_memory_documents`) são globais (não scopados por `business_id`); nenhuma adoção acima introduz vazamento cross-tenant. Favoritos/Recentes em localStorage são por-navegador (ok). Tier 0 intocado.
+
+## Tabela de partes (derivada 2026-09-06)
+
+> Derivada MECANICAMENTE da prosa acima por [C] em 2026-09-06, porque `prototipo-ui/gerar-map.mjs` exige uma tabela com colunas **Parte** + **Ação** e este gap.md era anterior a esse contrato. Não muda veredito nenhum: "**Decidir.**" repete o gap real já escrito na seção correspondente; "Nada" = vivo à frente / paridade já registrada. A fonte segue sendo a prosa; em conflito, a prosa vence.
+
+| Parte | Estado no vivo | Ação |
+|---|---|---|
+| Header / página | Gap: título + linha de stats (artigos · leituras totais · vínculos OS · desatualizados) + barra de 6 botões de ação (Trilhas, Perguntar ao KB/IA, Saúde do KB, Troubleshooter, ⌘K Buscar, + Novo artigo) + faixa de 4 `os-stat` cards (mais lido / pinados /… | **Decidir.** título + linha de stats (artigos · leituras totais · vínculos OS · desatualizados) + barra de 6 botões de ação (Trilhas, Perguntar ao KB/IA, Saúde do KB, Troubleshooter, ⌘K Buscar, + Novo artigo) +… Construir ou rejeitar por escrito. |
+| Navegação / categorias | Gap: coluna-1 (`kb-side`) tri-pane com: árvore de categorias com hue por vertical gráfica (Produção, Equipamentos, Pré-impressão, Atendimento, Fiscal, Sistema, Pessoas) + sub-categorias expansíveis (`window.KB_SUBCATS`/`kbDeriveSub` — _libs externas… | **Decidir.** coluna-1 (`kb-side`) tri-pane com: árvore de categorias com hue por vertical gráfica (Produção, Equipamentos, Pré-impressão, Atendimento, Fiscal, Sistema, Pessoas) + sub-categorias expansíveis… Construir ou rejeitar por escrito. |
+| Busca | Gap: Command palette ⌘K (modal `CommandPalette`) com fuzzy match (título+excerpt+tags+autor), navegação ↑↓/Enter, e fallback "Perguntar à IA" quando 0 resultados. Atalho `/` também abre palette. · Vivo à frente: input de busca inline com debounce 350ms… | **Decidir.** Command palette ⌘K (modal `CommandPalette`) com fuzzy match (título+excerpt+tags+autor), navegação ↑↓/Enter, e fallback "Perguntar à IA" quando 0 resultados. Atalho `/` também abre palette. Construir ou rejeitar por escrito. |
+| Lista de artigos / docs | Gap: cards ricos (`kb-row`) — pill de categoria colorida, badge de nível (iniciante/inter/avançado), equipamento, "fixo", "revisar", título, excerpt, meta (autor/updated/readTime/reads/OS vinculadas) + segmented sort (Recentes/Mais lidos/Mais úteis/A… | **Decidir.** cards ricos (`kb-row`) — pill de categoria colorida, badge de nível (iniciante/inter/avançado), equipamento, "fixo", "revisar", título, excerpt, meta (autor/updated/readTime/reads/OS vinculadas) +… Construir ou rejeitar por escrito. |
+| Editor / detalhe (leitor) | Gap: `ArticleReader` muito rico — TOC "nesta página", resumo por IA (`window.claude.complete`), corpo em blocos (para/h2/list/callout com tons), comentários por bloco (`KBCommentBlock`), favoritar, navegação prev/próximo, footer com votação… | **Decidir.** `ArticleReader` muito rico — TOC "nesta página", resumo por IA (`window.claude.complete`), corpo em blocos (para/h2/list/callout com tons), comentários por bloco (`KBCommentBlock`), favoritar,… Construir ou rejeitar por escrito. |
+| Drawer / modais auxiliares | Gap: Troubleshooter (árvore de decisão sim/não → fix, `TroubleDialog` + editor visual `KBTroubleEditor`), Saúde do KB (`HealthPanel`: desatualizados/parados/mais-lidos/solitários), Trilhas de aprendizado (`KBPathsDialog`), Modo apresentação (`KBPresenter`… | **Decidir.** Troubleshooter (árvore de decisão sim/não → fix, `TroubleDialog` + editor visual `KBTroubleEditor`), Saúde do KB (`HealthPanel`: desatualizados/parados/mais-lidos/solitários), Trilhas de aprendizado… Construir ou rejeitar por escrito. |

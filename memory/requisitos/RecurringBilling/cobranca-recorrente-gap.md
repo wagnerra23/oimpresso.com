@@ -1,4 +1,7 @@
 ---
+tela: RecurringBilling/Index (/recurring-billing)
+prototipo: prototipo-ui/cowork/cobranca-recorrente-page.jsx
+tela_viva: resources/js/Pages/RecurringBilling/Index.tsx
 id: requisitos-recurring-billing-cobranca-recorrente-gap
 ---
 
@@ -51,3 +54,19 @@ Logo: **nada de funcional a adotar**. O que o mockup oferece de genuíno é **di
 
 ## Conclusão para a fila de aplicação
 **Não enfileirar aplicação de tela.** Mockup está STALE vs o vivo (24 Ondas à frente, backend wired). As 2 ideias visuais (PeriodBar unificado, aba ✦ IA no drawer) são _pendentes_ de decisão do Wagner sob gate visual F1.5 — não são gap funcional. Eventual KPI "valor a recuperar" é proposta Tier 0 separada (backend), não import de protótipo.
+
+## Tabela de partes (derivada 2026-09-06)
+
+> Derivada MECANICAMENTE da prosa acima por [C] em 2026-09-06, porque `prototipo-ui/gerar-map.mjs` exige uma tabela com colunas **Parte** + **Ação** e este gap.md era anterior a esse contrato. Não muda veredito nenhum: "**Decidir.**" repete o gap real já escrito na seção correspondente; "Nada" = vivo à frente / paridade já registrada. A fonte segue sendo a prosa; em conflito, a prosa vence.
+
+| Parte | Estado no vivo | Ação |
+|---|---|---|
+| Header / hero | Gap: Mockup tem eyebrow "Assinaturas · Cobrança Recorrente" + subtítulo contextual ("Junho 2026 · WR2 Sistemas"). · Vivo à frente: Vivo: `<h1>` + linha-status `N ATIVAS · MRR · CHURN%` derivada dos KPIs reais; botão "Nova assinatura" wired (abre drawer real,… | **Decidir.** Mockup tem eyebrow "Assinaturas · Cobrança Recorrente" + subtítulo contextual ("Junho 2026 · WR2 Sistemas"). Construir ou rejeitar por escrito. |
+| KPIs | Gap: Mockup: 4 cards (MRR hero, Churn, Próximas cobranças, A recuperar = soma de falhas/retentando). · Vivo à frente: Vivo: 4 KPIs deferidos (`<Deferred data="kpis">`) do `SubscriptionIndexPresenter`, MRR hero com sparkline SVG, delta vs mês anterior. ⚠️… | **Decidir.** Mockup: 4 cards (MRR hero, Churn, Próximas cobranças, A recuperar = soma de falhas/retentando). Construir ou rejeitar por escrito. |
+| Filtros / busca | Gap: Mockup: PeriodBar (campo data + período) + busca `/` por cliente/CNPJ/plano. · Vivo à frente: Vivo: coluna de filtros (favoritos toggle persistente, presets "Próxima cobrança" incl. custom server-side, status com dots, lista de planos com contagem, MRR… | **Decidir.** Mockup: PeriodBar (campo data + período) + busca `/` por cliente/CNPJ/plano. Construir ou rejeitar por escrito. |
+| Tabela / lista | Gap: Mockup: linha = star, avatar, título, sub (`plano · ciclo · desde`), pill status + `método · valor`. · Vivo à frente: Vivo: idêntico em estrutura + star persistente (POST `/favorite`), navegação `j/k`, seleção ativa com borda primary, skeleton… | **Decidir.** Mockup: linha = star, avatar, título, sub (`plano · ciclo · desde`), pill status + `método · valor`. Construir ou rejeitar por escrito. |
+| Ações por linha / drawer | Gap: Mockup drawer: header + tabs Detalhes\ · Vivo à frente: IA, card próxima cobrança, KV grid, nota pinada, PaymentHeat 12-cells, bloco fiscal + "Reenviar nota", timeline (3 eventos mock estáticos), footer Pausar/Diagnosticar/Reativar/Cancelar (botões sem… | **Decidir.** Mockup drawer: header + tabs Detalhes\ Construir ou rejeitar por escrito. |
+| Criação (Nova assinatura) | Gap: Mockup: botão "Nova assinatura" sem drawer (não implementado). · Vivo à frente: Vivo: `NewSubscriptionDrawer` completo (Sheet DS) — busca cliente debounced (`/contacts/search`), plano opcional auto-preenche valor+ciclo,… | **Decidir.** Mockup: botão "Nova assinatura" sem drawer (não implementado). Construir ou rejeitar por escrito. |
+| Editar cobrança | Gap: Ausente no mockup. · Vivo à frente: Vivo: `EditSubscriptionDrawer` (PUT, edita valor/ciclo/forma; cliente/plano/data imutáveis). ⚠️ toca valor. | **Decidir.** Ausente no mockup. Construir ou rejeitar por escrito. |
+| Abas Planos/Faturas/Config | Gap: Mockup: placeholders honestos descrevendo o que falta. · Vivo à frente: Vivo: Pages reais com rotas dedicadas (`/recurring-billing/planos | **Decidir.** Mockup: placeholders honestos descrevendo o que falta. Construir ou rejeitar por escrito. |
+| Domínio / dados | Gap: Mockup: mock gráfica WR2 (Padaria, Auto Posto…), persona "Eliana [E] / Larissa". · Vivo à frente: Vivo: dados reais do presenter, multi-tenant `business_id`. | **Decidir.** Mockup: mock gráfica WR2 (Padaria, Auto Posto…), persona "Eliana [E] / Larissa". Construir ou rejeitar por escrito. |

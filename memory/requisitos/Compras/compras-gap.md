@@ -1,4 +1,7 @@
 ---
+tela: Compras/Index (/purchases)
+prototipo: prototipo-ui/cowork/compras-page.jsx
+tela_viva: resources/js/Pages/Compras/Index.tsx
 id: requisitos-compras-compras-gap
 ---
 
@@ -75,3 +78,16 @@ O mockup NÃO está stale — é a referência mais completa, e o vivo é delibe
 - `_pendente_` confirmar payload backend: `kpis` tem variação/meta? `Row` tem `items_count`/`has_xml`?
 - Tudo que toca valor/estoque (KPIs numéricos, tab Itens margem, Pagamentos, footer "Pagar agora") = Regra Mestre Tier 0 (dupla confirmação + antes→depois) + FSM gateway.
 - `business_id` Tier 0 intocável em qualquer extensão de backend.
+
+## Tabela de partes (derivada 2026-09-06)
+
+> Derivada MECANICAMENTE da prosa acima por [C] em 2026-09-06, porque `prototipo-ui/gerar-map.mjs` exige uma tabela com colunas **Parte** + **Ação** e este gap.md era anterior a esse contrato. Não muda veredito nenhum: "**Decidir.**" repete o gap real já escrito na seção correspondente; "Nada" = vivo à frente / paridade já registrada. A fonte segue sendo a prosa; em conflito, a prosa vence.
+
+| Parte | Estado no vivo | Ação |
+|---|---|---|
+| Header | Gap: mockup usa `header.os-page-h` (estrutura PageHeader canon `os-page-h-l`/`os-page-h-r`); o vivo usa `header.hd` legado com crumbs + `<h1>` + count inline. O mockup está mais alinhado ao PageHeader canon. Mas: o vivo tem breadcrumb (`crumbs`) + contador… | **Decidir.** mockup usa `header.os-page-h` (estrutura PageHeader canon `os-page-h-l`/`os-page-h-r`); o vivo usa `header.hd` legado com crumbs + `<h1>` + count inline. O mockup está mais alinhado ao PageHeader… Construir ou rejeitar por escrito. |
+| KPIs (4 cards) | Gap: mesmos 4 KPIs (A pagar / Em trânsito / Volume do mês / Fornecedores ativos). O mockup tem sub-linhas (`.ln`) mais ricas: "próx. venc. 09/05", "+12,4% vs. abr/26 · meta R$45.000", "3 com compra recorrente · 1 novo". O vivo usa sub-linhas técnicas/neutras… | **Decidir.** mesmos 4 KPIs (A pagar / Em trânsito / Volume do mês / Fornecedores ativos). O mockup tem sub-linhas (`.ln`) mais ricas: "próx. venc. 09/05", "+12,4% vs. abr/26 · meta R$45.000", "3 com compra… Construir ou rejeitar por escrito. |
+| Filtros / Tabs | Gap: mockup tem tab "Cancelados" a mais (vivo não tem); mockup mostra contadores em todas as tabs (`A pagar 2`, `Rascunhos 1`, `Em trânsito 1`) — vivo só conta na "Todas". Mockup mostra pills de filtro nomeados "Fornecedor · Local · Período · Pagamento" com… | **Decidir.** mockup tem tab "Cancelados" a mais (vivo não tem); mockup mostra contadores em todas as tabs (`A pagar 2`, `Rascunhos 1`, `Em trânsito 1`) — vivo só conta na "Todas". Mockup mostra pills de filtro… Construir ou rejeitar por escrito. |
+| Tabela / Lista | Gap: mockup tem 2 colunas a mais — `Itens` (qtd de itens, numérica) e `NF-e` (badge "✓ XML" / "—"). O vivo tem 7 colunas (sem Itens, sem NF-e). Mockup também ordena por essas colunas extras. · Vivo à frente: vivo tem `AcoesDropdown` real (component próprio),… | **Decidir.** mockup tem 2 colunas a mais — `Itens` (qtd de itens, numérica) e `NF-e` (badge "✓ XML" / "—"). O vivo tem 7 colunas (sem Itens, sem NF-e). Mockup também ordena por essas colunas extras. Construir ou rejeitar por escrito. |
+| Ações por linha (dropdown) | Gap: mockup tem dropdown "Ações" com 9 opções (Ver, Impressão, Editar, Excluir, Rótulos, Ver pagamentos, Reembolso de compra, Atualizar status, Elementos pendentes de notificação) — paridade declarada com Blade `/purchases`. O vivo usa `AcoesDropdown` em… | **Decidir.** mockup tem dropdown "Ações" com 9 opções (Ver, Impressão, Editar, Excluir, Rótulos, Ver pagamentos, Reembolso de compra, Atualizar status, Elementos pendentes de notificação) — paridade declarada… Construir ou rejeitar por escrito. |
+| Drawer / Sheet — maior gap | Gap: mockup tem drawer 5 tabs completo (Resumo · Itens · Documentos · Pagamentos · Histórico) com: trilho FSM visual (`fsm-track` com 6 estágios done/now), tab Itens (tabela produto/qtd/custo/total/venda/margem), tab Documentos (NF-e SEFAZ status 100, chave… | **Decidir.** mockup tem drawer 5 tabs completo (Resumo · Itens · Documentos · Pagamentos · Histórico) com: trilho FSM visual (`fsm-track` com 6 estágios done/now), tab Itens (tabela… Construir ou rejeitar por escrito. |

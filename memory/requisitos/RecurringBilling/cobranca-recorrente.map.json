@@ -1,0 +1,145 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "RecurringBilling/Index (/recurring-billing)",
+  "gap_fonte": "memory/requisitos/RecurringBilling/cobranca-recorrente-gap.md",
+  "prototipo_sha": "sha256:40e51d3a1e6a",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "header-hero",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/cobranca-recorrente-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/RecurringBilling/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. Mockup tem eyebrow \"Assinaturas · Cobrança Recorrente\" + subtítulo contextual (\"Junho 2026 · WR2 Sistemas\"). Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "kpis",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/cobranca-recorrente-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/RecurringBilling/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. Mockup: 4 cards (MRR hero, Churn, Próximas cobranças, A recuperar = soma de falhas/retentando). Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "filtros-busca",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/cobranca-recorrente-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/RecurringBilling/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. Mockup: PeriodBar (campo data + período) + busca `/` por cliente/CNPJ/plano. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "tabela-lista",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/cobranca-recorrente-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/RecurringBilling/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. Mockup: linha = star, avatar, título, sub (`plano · ciclo · desde`), pill status + `método · valor`. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "acoes-por-linha-drawer",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/cobranca-recorrente-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/RecurringBilling/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. Mockup drawer: header + tabs Detalhes\\ Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "criacao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/cobranca-recorrente-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/RecurringBilling/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. Mockup: botão \"Nova assinatura\" sem drawer (não implementado). Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "editar-cobranca",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/cobranca-recorrente-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/RecurringBilling/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. Ausente no mockup. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "abas-planos-faturas-config",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/cobranca-recorrente-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/RecurringBilling/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. Mockup: placeholders honestos descrevendo o que falta. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "dominio-dados",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/cobranca-recorrente-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/RecurringBilling/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. Mockup: mock gráfica WR2 (Padaria, Auto Posto…), persona \"Eliana [E] / Larissa\". Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    }
+  ]
+}

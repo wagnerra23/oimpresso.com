@@ -1,0 +1,130 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Repair/ProducaoOficina (/repair/producao-oficina)",
+  "gap_fonte": "memory/requisitos/OficinaAuto/kanban-producao-gap.md",
+  "prototipo_sha": "sha256:46891d3a4c5c",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "header-titulo",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/ProducaoOficina/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. título+subtítulo da página (P) — barato, melhora orientação. \"Nova OS\" e \"Imprimir fila\" = ver partes 6 e 8. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "kpis",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/ProducaoOficina/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. os 6 KPIs como resumo do dia + filtro-por-KPI são o maior salto de leitura da tela. Urgentes e os contadores por etapa derivam fácil das colunas. \"Valor em curso\" ⚠️ toca valor (regra mestre — dupla… Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "filtros-boxes-elevadores",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/ProducaoOficina/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — vivo à frente (STALE no mockup).",
+      "_acionavel": false
+    },
+    {
+      "id": "busca-livre",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/ProducaoOficina/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. busca textual multi-campo é ganho direto de operação (achar uma OS rápido). No vivo seria sobre os campos genéricos (`code`/`item`/`brand`/`executor` + sintoma se exposto). Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "toggles-de-view",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/ProducaoOficina/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. · Lista — P, ganho claro (tabela densa). ⚠️ coluna Valor toca valor (só exibir, vem do backend). · Foco Box/Mecânico (repivot) — M, útil pra oficina (ver carga por mecânico/box). Reaproveita a… Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "colunas-cards-de-os",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/ProducaoOficina/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. · Placa Mercosul estilizada — P, charmoso e específico; mas é automotivo → entra como *render opcional quando `label_overrides.code==='Placa'`*, não hardcode. · Badge gate \"lock N/M\" — M-G, é o… Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "drawer",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/ProducaoOficina/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. · VendaDerivadaCard — *vivo À FRENTE* do mockup numa coisa: já é componente shared real (`@/Components/shared/VendaDerivadaCard`), o mockup é mock inline. Não regredir. · DVI (Vistoria Digital) com… Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "impressao-de-fila",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/oficina-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/ProducaoOficina/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. impressão da fila/OS é pedido clássico de oficina (ordem de serviço em papel pro mecânico/cliente). Helper de print NÃO veio no handoff — _pendente_ a fonte do `OficinaPrint`. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    }
+  ]
+}
