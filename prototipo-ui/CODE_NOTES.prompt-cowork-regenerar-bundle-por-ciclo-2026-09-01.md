@@ -62,3 +62,7 @@ Você fecha o ciclo e regenera → eu baixo o pacote inteiro → `--dry` valida 
 staging → promovo (espelho + design-docs + runtime do DS, atômico) → rodo as medições
 (`--compare`, `--live-only --ledger`, `--sla-docs`) → abro o PR. "Esquecer css/js" deixa de ser
 possível por construção: o pacote transporta o projeto inteiro, com sha256 por arquivo.
+
+---
+
+> **DECISÃO [W] 2026-09-06** (sessão da dupla âncora, textual: *"2 e 3 ok pode fazer"*): a regra de saída deste prompt deixa de ser pedido e vira **rotina obrigatória do ciclo do Cowork** — todo ciclo de design termina com `gerar-payload-partes.mjs` regenerando o pacote e a linha "bundle regenerado" no `github.md`. Recibo do custo de não fazer, medido no mesmo dia: `sync/bundle.manifest.json` remoto byte-idêntico ao local de 24/08 (255/255) enquanto 23 âncoras do espelho abaixo do piso de persistência do `get_file` ficaram sem veredito de fidelidade (ledger `scripts/governance/.cowork-freshness-ledger.json`, rodadas de 2026-09-05/06). Registrado no painel (`protocolo.config.mjs`, fase -1). Cole este bloco no chat do Design se o Cowork ainda não tiver lido.
