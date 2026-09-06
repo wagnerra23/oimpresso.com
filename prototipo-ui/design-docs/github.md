@@ -3,6 +3,53 @@ branch: main
 path: prototipo-ui/cowork
 
 ## Last sync
+date: 2026-09-04T16:26:43Z
+
+### Updated in this project
+- **Alvo `Jana.Painel` medido e pacote de export reescrito** em `COLAR-NO-CODE-jana-tabs-cor-e-icone.md` (o mesmo arquivo do módulo — anti-scatter; a onda das abas virou §1.1). 10 blocos + ARQUIVOS A EDITAR/REUSAR/NÃO TOCAR/PARAR SE + placar. **Vira pedido: 1 onda · 1 arquivo · 1 linha** — pill do contador inativo em `PageHeaderTabs.tsx` usa `var(--border-2)` e o `TabBar` do DS manda `var(--bg-2)` (autoridade DS → protótipo → produção).
+- **Leitura do `main` neste turno** (árvore `fb2240427978`): `prototipo-ui/FRESCOR-PRODUCAO-vs-PROTOTIPO.md` · `prototipo-ui/PRE-FLIGHT-TELA.md` · `Pages/Jana/Index.tsx` · `_components/JanaAreaHeader.tsx` · `_shared/JanaSubNav.tsx` · `Components/shared/PageHeaderTabs.tsx`. **Não lido ⇒ não verificado:** `JanaCockpit.tsx` (47.668 B, dono de brief/KPIs/análises/ações), `Index.charter.md`, `Index.casos.md`, `SidebarGhost.php`.
+- **`main` à frente em 2 pontos, e as duas melhorias foram PUXADAS pro build daqui:** (a) `cli-tabs.jsx` acrescenta `role="tablist"` no nav + `role="tab"`/`aria-selected`/roving `tabIndex` + nav ←/→/Home/End (o `TabBar` do DS só escreve `aria-current="page"`; medido antes: **0 de 6** `role="tab"` no `nav.jm-tabs`); (b) `chat-jana.jsx` — `svg.jc-spark` ganhou `aria-hidden`. Medido depois (1103 nós, duas leituras iguais, dark): 6/6 `role="tab"`, ativa `tabIndex=0` e inativas `-1`, 0 svg anônimo, cores inline do DS intactas.
+- **Erro meu registrado:** a 1ª medição de `role="tab"` contou a página inteira em vez do `nav` e devolveu "5 de 6" — escopo de seletor errado quase transformou defeito real em "pendência do DS, nada a fazer". Está no §2/§8 do pacote.
+- **Pendências do DS (bundle é espelho, não se edita aqui):** cor crua `rgb(255,255,255)` no `Avatar` dentro do `<h1>` · `TabBar` sem `role="tab"` de origem.
+- ⚠️ **Ciclo fechado SEM pacote regenerado** — 2 arquivos do build mudaram e o `gerar-payload-partes.mjs` exige os arquivos em disco (ADR 0374). Não afirmo que regenerei. Comando: `node scripts/design-sync/gerar-payload-partes.mjs --root <dir> --out sync/ --previous sync/bundle.manifest.json`.
+
+## Last sync
+date: 2026-09-03T20:45:00Z
+
+### Updated in this project
+- **Pacote de EXPORT do módulo Fiscal reescrito na forma padrão de 10 blocos** (`COLAR-NO-CODE-fiscal-notafiscal-ondas.md` — o mesmo arquivo, anti-scatter §2-ter; as 11 perguntas ⛔ [W] preservadas). Agora com **ancoragem dupla**: alvo de layout = protótipo medido aqui; âncora de implementação = arquivo real do `main`, com `ARQUIVOS A EDITAR / REUSAR / CRIAR / NÃO TOCAR / PASSO A PASSO / DADO / PARAR SE` por onda. **10 ondas**, cada uma = 1 seção ≤ 1 PR de 300 linhas.
+- **Leitura do `main` neste turno** (árvores `1582cb14ca3a` · `8ce4de791752`): `Pages/Fiscal/` (21), `_components/` (11), `_lib/` (6), `Cockpit.tsx`, `Nfe.tsx`, `FxShell.tsx`, `botao-fiscal.ts`, `chip-filtro.ts`, `Modules/Fiscal/**` (44), `Routes/web.php`.
+- **Correção do meu diagnóstico anterior:** o PR-A1 ("matar a camada `fx-*`/`var(--fis)` rosa") está em boa parte **entregue** — `Cockpit.tsx` e `Nfe.tsx` já usam `Button`/`Input`/`Select`/`Checkbox` do DS através de `_lib/botao-fiscal.ts` e `_lib/chip-filtro.ts`, com o motivo escrito no próprio `_lib` (armadilha layered × unlayered do `cowork-fields.css`). O que sobra de `fx-*` é CSS de layout, não pele de controle.
+- **Gap real medido, que eu não tinha:** `Cockpit.tsx` recebe `alerts` e **só o conta** (`totalRej`) — os 4 alertas fiscais do protótipo **não têm superfície no vivo**; e `interface Sparklines` existe com a prop **não desestruturada** (confirma a decisão ⛔ [W] 2). Viraram Ondas 1 e 4.
+- **Onda 0a — a11y do ALVO corrigida no build, não exportada como dívida** (§5-bis: exportar `TR` clicável e ícone anônimo é exportar defeito com selo). Medido antes: **8 linhas clicáveis com 0 `tabindex`** · **4 de 4** svg de botão sem `aria-hidden` · drawer sem `aria-modal` e foco no `BODY` · `[aria-live]` = **0** na carga (o container nascia junto do 1º toast). Depois: `tr[tabindex="0"]` **8** · svg sem nome **0/4** · `aria-modal="true"` com foco inicial no "Fechar", Tab preso e foco devolvido · `[aria-live]` **1** · **0 erro de console**.
+- **T1 estável:** três leituras iguais de `querySelectorAll('*').length` = **1099**, rota `fiscal`, dark, após `__oiLazyDone`. Alvo por seção fechado com filhos **na ordem** e tokens resolvidos (`--accent` dark `oklch(0.70 0.15 295)`; `--fis` do port não existe mais no protótipo).
+- **Declarado, não afirmado:** `Dfe/Eventos/Config/Sped/Nfse.tsx` **não lidos neste turno** — as ondas 6–9 abrem com `LER NO TURNO`; `screen-coverage` do Fiscal não medido; A2 (`outline:none`) não auditado por seção.
+- ⚠️ **Ciclo fechado SEM pacote regenerado** — 4 arquivos do build mudaram e o `gerar-payload-partes.mjs` exige os arquivos em disco (ADR 0374). Não afirmo que regenerei. Comando: `node scripts/design-sync/gerar-payload-partes.mjs --root <dir> --out sync/ --previous sync/bundle.manifest.json`.
+
+## Screen map
+| Tela | Arquivos do build | Âncora no `main` |
+|---|---|---|
+| Fiscal · Cockpit | fiscal-page.jsx · fiscal-actions.jsx · fiscal-page.css | resources/js/Pages/Fiscal/Cockpit.tsx (+ `_components/FxShell.tsx`, `WriteOffAuditoriaCard.tsx`, `SavedViewsChips.tsx`) |
+| Fiscal · NF-e/NFC-e | fiscal-page.jsx (`FxNotasPage` preset 55/65) | resources/js/Pages/Fiscal/Nfe.tsx (+ `NotaDrawer.tsx`, `InutilizacaoModal.tsx`) |
+| Fiscal · NFS-e | fiscal-page.jsx (preset NFS-e) | resources/js/Pages/Fiscal/Nfse.tsx (+ `NFSeDrawer.tsx`) |
+| Fiscal · Manifesto DF-e | fiscal-subpages.jsx (`FxDfePage`) | resources/js/Pages/Fiscal/Dfe.tsx + `DfeController` |
+| Fiscal · Eventos | fiscal-subpages.jsx (`FxEventosPage`) | resources/js/Pages/Fiscal/Eventos.tsx + `EventosController` |
+| Fiscal · Certificado e config. | fiscal-subpages.jsx (`FxConfigPage`) | resources/js/Pages/Fiscal/Config.tsx + `ConfigController` |
+| Fiscal · SPED e livros | fiscal-subpages.jsx (`FxSpedPage`) | resources/js/Pages/Fiscal/Sped.tsx + `SpedController` + `SpedIcmsIpiGeneratorService` |
+| Fiscal · mutações e ⌘K | fiscal-actions.jsx | `AcoesController` · `PaletteSearchController` · `_components/CmdKPalette.tsx` |
+
+## Last sync
+date: 2026-09-03T17:10:00Z
+
+### Updated in this project
+- **Forja dividida em 1 arquivo por tela — 3 ondas, tudo medido no app rodando** (leitura do `main` neste turno, árvore `767a61bc9b7e`). `forja-page.jsx` era **1.253 ln / 90.365 B** com 6 views + 8 overlays dentro; agora é **shell de 415 ln** que só roteia. Nasceram: `forja-atomos.jsx` (fundação: `FJ_PRIO`, rank híbrido, DSL de busca, 14 átomos em `window.Fj*`) · `forja-lista.jsx` · `forja-quadro.jsx` · `forja-gantt.jsx` · `forja-saude.jsx` · `forja-changelog.jsx` · `forja-issue-drawer.jsx` · `forja-cmdk.jsx` · `forja-triagem.jsx`; e o `forja-mcp.jsx` (31 KB, 7 superfícies) virou `forja-mcp.jsx` (view MCP + Handoffs) + `forja-rag.jsx` · `forja-ia.jsx` · `forja-novo-issue.jsx` · `forja-runbook.jsx` · `forja-handoff.jsx` · `forja-dossie.jsx` · `forja-notifs.jsx`. Nenhum `.html` novo; nenhuma view nova; host e ordem de carga atualizados.
+- **Medido no DOM vivo** (rota `projects`, `__oiLazyDone` + globais conferidos, console sem erro novo): 21 globais publicados, 0 ausente · Aprovações 369 nós · Trabalho 797 (Lista **5 grupos / 23 `.fj-row` / totalbar**, Quadro `.fj-quadro-wrap`, Gantt 446 nós `fj-g-*`) · Saúde 195 · MCP 351 · Changelog 181 · Integrador 173 · drawer (`.fj-drawer-back` + 5 `.fj-phase`), ⌘K, bulkbar (tecla `x`), notifs, runbook e composer abrindo.
+- **Colisão de nome pega na medição:** `forja-tarefas.jsx` já usava `useStateT`; o alias do `forja-atomos.jsx` virou `useStateFx` antes de qualquer render — mesma família dos aliases por arquivo (`useStateA`/`useStateI`) que o build já usava.
+- **Órfãos declarados, não silenciados:** `FjTriagemView` e `ForjaTarefas` existem como arquivo e global, mas **nenhum ponto de render do shell os monta** — a triagem é tipo `Proposta` em Aprovações (§6-bis da paridade) e `tarefas` colapsou em `trabalho` na migração do `localStorage`. Ficam isolados em arquivo próprio em vez de dentro do shell.
+- ⚠️ **Ciclo fechado SEM pacote regenerado.** O passo 4 da `## 🔁 ROTINA` não roda daqui (o `gerar-payload-partes.mjs` exige os arquivos em disco; escrever pelo contexto do agente é transcrição — ADR 0374). Comando pro lado que tem disco: `node scripts/design-sync/gerar-payload-partes.mjs --root <dir> --out sync/ --previous sync/bundle.manifest.json`. **Não afirmo que regenerei.**
+- **O que isto NÃO prova:** fidelidade visual. A divisão é estrutural (mesmo markup, mesmas classes `fj-`/`tf-`/`ap-`, zero CSS novo); o `compare 0 bug` das Ondas 3-10 do §11 segue com o dono que já tem (`design-diff --compare --check` nos dois renders).
+
+## Last sync
 date: 2026-09-01T19:36:00Z
 
 ### Updated in this project

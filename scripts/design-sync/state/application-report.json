@@ -1,6 +1,6 @@
 {
   "schema": "oimpresso-design-application-report/3",
-  "generatedAt": "2026-09-01T14:38:42.150Z",
+  "generatedAt": "2026-09-06T01:50:53.063Z",
   "bundle": {
     "id": "5023b274183d849dcc925eae85cef61a991c3541ca1daeb680267c1afda99e4d",
     "baseId": null,
@@ -10,18 +10,18 @@
   },
   "summary": {
     "transportChanges": 255,
-    "screens": 90,
+    "screens": 93,
     "tested": 0,
     "smoked": 0,
     "lifecycle": {
       "applied": 1,
-      "anchored": 56,
+      "anchored": 59,
       "to-create": 8,
       "blocked": 18,
       "compared": 7
     },
     "applied": 1,
-    "pending": 63,
+    "pending": 66,
     "to-create": 8,
     "blocked": 18
   },
@@ -1829,16 +1829,16 @@
         "comparison": {
           "map": "memory/requisitos/Arquivos/arquivos-index.map.json",
           "mapSha256": "cdda4800cd56c033e2aa8c2dcbba10173329169f3ba5e39f7b88e9e7192e642e",
-          "recordedAt": "2026-09-01T14:38:16.591Z"
+          "recordedAt": "2026-09-06T01:46:05.265Z"
         },
         "application": {
           "evidence": "memory/requisitos/Arquivos/arquivos-index-gap.md",
           "evidenceSha256": "bd82b675f47424a712588686eb9e95f88a52930cc9a7e75265da98b1b0a18ab8",
-          "recordedAt": "2026-09-01T14:38:42.010Z"
+          "recordedAt": "2026-09-06T01:46:05.420Z"
         },
         "tests": [],
         "smokes": [],
-        "targetSha256": "95d5f19ee9e189cdd22ba632e1a3e3ca4db13ee7797e19853eb8166ea8f5588f"
+        "targetSha256": "6c6ce5b5a679af17896a999f1d6f3dc539e80f4fbe957685fc59dfecd2b8b854"
       },
       "nextAction": "executar teste pelo registrador para produzir recibo verificável"
     },
@@ -2278,12 +2278,12 @@
         "comparison": {
           "map": "memory/requisitos/Fiscal/fiscal-cockpit.map.json",
           "mapSha256": "2a5d1e3a16741a56cc7f53554f3bea1a9326af9896885c5a42c28a3a6e2b4efa",
-          "recordedAt": "2026-08-28T17:13:33.112Z"
+          "recordedAt": "2026-09-06T01:46:28.354Z"
         },
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "ad00425478b49874952f303b8be0ad387714fd068d46f3a36dfacc9888f16f28"
+        "targetSha256": "471cb071690129dc6d1749df20ec44ba46b380cc361945d2c00b48ea76bf9832"
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -2302,13 +2302,13 @@
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Fiscal/fiscal-config.map.json",
-          "mapSha256": "f02cf90f5f8a105123fd8e1f0337e60b569fc3d5024eb0d3453e0bead2a28df3",
-          "recordedAt": "2026-08-28T17:13:33.413Z"
+          "mapSha256": "133dfa083760f299b74f887a693e8e3c04c1e4f4d745f5fa7f9b21143bbb8e0f",
+          "recordedAt": "2026-09-06T01:46:28.554Z"
         },
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "ff2916447ea0d98cf4cf952d4d0f68774a8afd957ceac52b8ef8c0f61f42a5d7"
+        "targetSha256": "a085d2b3781d1c4498c5297c07ac1f04de830dfb7434429aafb76f3c1e052a9c"
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -2328,12 +2328,12 @@
         "comparison": {
           "map": "memory/requisitos/Fiscal/fiscal-dfe.map.json",
           "mapSha256": "2261bbf81a78b646d66a9d3578a6738437f2ee1be97843cd59b1fcad50565dc7",
-          "recordedAt": "2026-08-28T17:13:33.708Z"
+          "recordedAt": "2026-09-06T01:46:28.749Z"
         },
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "4206592f3b9cf00f39e0128b197437ff5c37e848013eba78444856724d89f681"
+        "targetSha256": "7814aeb2752b3702dde46517dd37d9888ba873ba2ba08b998fde7a0b2117719f"
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -2353,12 +2353,12 @@
         "comparison": {
           "map": "memory/requisitos/Fiscal/fiscal-eventos.map.json",
           "mapSha256": "c744206dd95280366878536feeb5324c2ed0ace51d7b40495aa367e35ecb417a",
-          "recordedAt": "2026-08-28T17:13:34.005Z"
+          "recordedAt": "2026-09-06T01:46:28.961Z"
         },
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "a465ef5bdb1fce305b7d00e5e3d1a2e5cbadf8503ab2cff4a1036f79b167a256"
+        "targetSha256": "bc1143eb516431b4ff0cb90a92274d3bd1e8488a0355b6eb22aafbaf37ef57cc"
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -2378,12 +2378,12 @@
         "comparison": {
           "map": "memory/requisitos/Fiscal/fiscal-nfe.map.json",
           "mapSha256": "fc6de6d02779373322657cc217b65e5e5ad078255953bb0058f09e731b14b5a9",
-          "recordedAt": "2026-08-28T17:13:34.289Z"
+          "recordedAt": "2026-09-06T01:46:29.163Z"
         },
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "ac4fba29a48ef08344830ca4b705fe7a4ed6970ffecd60acfdec08e5b47a64b2"
+        "targetSha256": "f6b8672e3a01afeed35ffe881f05b987e510a9c1b2598c6288202c0582629948"
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -2403,12 +2403,12 @@
         "comparison": {
           "map": "memory/requisitos/Fiscal/fiscal-nfse.map.json",
           "mapSha256": "44b680fbec3231207141298ce5437ce854c53d66785dd11aeb64f20ef293bb18",
-          "recordedAt": "2026-08-28T17:13:34.584Z"
+          "recordedAt": "2026-09-06T01:46:29.361Z"
         },
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "f018abd148c706b2db52894e15c6f4228c43db182e655bf90393d453d2b9a411"
+        "targetSha256": "082e47490589ae3d13b5a2a918062cb9e18ef28d857add4bc439bfd6a19cf687"
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -2428,19 +2428,19 @@
         "comparison": {
           "map": "memory/requisitos/Fiscal/fiscal-sped.map.json",
           "mapSha256": "917f6e7c3492f92cc49c86d2f5d56c4ee30b3e77a0949d3acf2bc4bfc5b8939f",
-          "recordedAt": "2026-08-28T17:13:34.876Z"
+          "recordedAt": "2026-09-06T01:46:29.565Z"
         },
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "16bf74e644702b616b59f2ea52b9a064a2fcb8a1e5cba6c63f3a8e2d5c8afa2d"
+        "targetSha256": "7ed9f21fc0ac7616237462e630e42079fab1a9abd969e1fb43d9b7f8d1da6570"
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "forja-page.jsx",
       "bundleChange": "added",
-      "target": "Modules/Forja/Resources/js/Pages/Forja/Aprovacoes/Index.tsx",
+      "target": "Modules/Forja/Resources/js/Pages/Forja/Roadmap/Gantt.tsx",
       "module": "Forja",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
@@ -2603,6 +2603,21 @@
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
+      "source": "hrm-page.jsx",
+      "bundleChange": "added",
+      "target": "resources/js/Pages/Essentials/Tipos.tsx",
+      "module": "Essentials",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+    },
+    {
       "source": "inbox-page.jsx",
       "bundleChange": "added",
       "target": "Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx",
@@ -2666,6 +2681,21 @@
       "source": "manufacturing-page.jsx",
       "bundleChange": "added",
       "target": "resources/js/Pages/Manufacturing/Index.tsx",
+      "module": "Manufacturing",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+    },
+    {
+      "source": "manufacturing-page.jsx",
+      "bundleChange": "added",
+      "target": "resources/js/Pages/Manufacturing/Recipes.tsx",
       "module": "Manufacturing",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
@@ -3071,6 +3101,21 @@
       "source": "repair-page.jsx",
       "bundleChange": "added",
       "target": "resources/js/Pages/Repair/ProducaoOficina/Index.tsx",
+      "module": "Repair",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+    },
+    {
+      "source": "repair-page.jsx",
+      "bundleChange": "added",
+      "target": "resources/js/Pages/Repair/Settings/Index.tsx",
       "module": "Repair",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
