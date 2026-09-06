@@ -93,7 +93,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. Parcialmente coberto — lido no código: `Pages/Compras/components/Drawer.tsx` já tem as 5 abas (l.22–26) e `initialTab` (l.96/154), então a prosa de 2026-06-30 (\"2 tabs\") estava atrás; mas NÃO tem footer de ações por estágio nem Registrar pagamento/Pagar agora (0 ocorrências), e XML/DANFE/manifestação ficam na tela Fiscal (l.501, l.520: \"Wave 6 traz atalhos integrados aqui\"). Resta do §Veredito #6: trilho FSM + footer de ações por estágio + atalhos fiscais — G, ⚠️ Tier 0 (`ExecuteStageActionService` + Regra Mestre), sessão limpa por tab.",
+      "acao": "Decidir. Parcialmente coberto — lido no código: `Pages/Compras/components/Drawer.tsx` já tem as 5 abas (l.22–26) e `initialTab` (l.96/154), então a prosa de 2026-06-30 (\"2 tabs\") estava atrás; mas NÃO tem footer de ações por estágio nem Registrar pagamento/Pagar agora (0 ocorrências), e XML/DANFE/manifestação ficam na tela Fiscal (l.501, l.520: \"Wave 6 traz atalhos integrados aqui\"). O trilho FSM também já existe (`STAGES` l.12–19 e `.fsm-track` l.197–209). Resta do §Veredito #6: footer de ações por estágio + atalhos fiscais — G, ⚠️ Tier 0 (`ExecuteStageActionService` + Regra Mestre), sessão limpa por tab.",
       "_acionavel": true
     }
   ]
