@@ -93,8 +93,8 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Nada — o `_pendente_` da Parte 6/§Veredito #6 foi resolvido lendo o código: `Pages/Compras/components/Drawer.tsx` declara as 5 abas (l.22–26: resumo · itens · documentos · pagamentos · historico) e `initialTab` (l.95/154). A prosa de 2026-06-30 assumia \"2 tabs\" sem ler o componente; o gap 6 estava coberto. O que ficar de diferença por REGIÃO dentro de cada aba é trabalho de âncora do map (linhas TODO), não gap de tela. ⚠️ Qualquer escrita nas abas Itens/Pagamentos/footer segue Tier 0 (`ExecuteStageActionService` + Regra Mestre).",
-      "_acionavel": false
+      "acao": "Decidir. Parcialmente coberto — lido no código: `Pages/Compras/components/Drawer.tsx` já tem as 5 abas (l.22–26) e `initialTab` (l.96/154), então a prosa de 2026-06-30 (\"2 tabs\") estava atrás; mas NÃO tem footer de ações por estágio nem Registrar pagamento/Pagar agora (0 ocorrências), e XML/DANFE/manifestação ficam na tela Fiscal (l.501, l.520: \"Wave 6 traz atalhos integrados aqui\"). Resta do §Veredito #6: trilho FSM + footer de ações por estágio + atalhos fiscais — G, ⚠️ Tier 0 (`ExecuteStageActionService` + Regra Mestre), sessão limpa por tab.",
+      "_acionavel": true
     }
   ]
 }
