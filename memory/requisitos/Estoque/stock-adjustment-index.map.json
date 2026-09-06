@@ -115,7 +115,7 @@
       "id": "paginacao",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/estoque-page.jsx",
-        "linhas": "227"
+        "linhas": "216"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/StockAdjustment/Index.tsx",
@@ -123,7 +123,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. O protótipo pagina de 10 em 10 (`estoque-page.jsx:227`, `Pagination` em `:293`). Sem isso, um business com muitos ajustes no período renderiza tudo de uma vez. Construir ou rejeitar por escrito.",
+      "acao": "Decidir. O protótipo pagina de 10 em 10 (`perPage` em `estoque-page.jsx:216`, fatiamento em `:226`, componente `Pagination` em `:293`). Sem isso, um business com muitos ajustes no período renderiza tudo de uma vez. Construir ou rejeitar por escrito.",
       "_acionavel": true
     },
     {

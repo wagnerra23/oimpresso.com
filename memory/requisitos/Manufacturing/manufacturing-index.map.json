@@ -85,7 +85,7 @@
       "id": "ordenacao-por-coluna",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/manufacturing-producao.jsx",
-        "linhas": "20"
+        "linhas": "18"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Manufacturing/Index.tsx",
@@ -93,7 +93,7 @@
         "ancora": false
       },
       "status": "pendente-mapeamento",
-      "acao": "Decidir. O protótipo ordena por qualquer das 8 colunas, com indicador de direção e default data-desc (`manufacturing-producao.jsx:20`, `CH` em `:21`, `Th` em `:36-42`). É leitura sobre dado já na página. Construir ou rejeitar por escrito.",
+      "acao": "Decidir. O protótipo ordena por qualquer das 8 colunas, com indicador de direção e default data-desc (`manufacturing-producao.jsx:18`, chaves de ordenação `CH` em `:21`, componente `Th` em `:34-39`). É leitura sobre dado já na página. Construir ou rejeitar por escrito.",
       "_acionavel": true
     },
     {
