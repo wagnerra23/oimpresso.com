@@ -11,7 +11,24 @@
         "mapSha256": "cdda4800cd56c033e2aa8c2dcbba10173329169f3ba5e39f7b88e9e7192e642e",
         "recordedAt": "2026-09-06T01:46:05.265Z"
       },
-      "tests": [],
+      "tests": [
+        {
+          "command": [
+            "gh",
+            "run",
+            "view",
+            "--job",
+            "101316416841",
+            "--exit-status"
+          ],
+          "exitCode": 0,
+          "runner": "ci",
+          "outputSha256": "84cda304cb3600df55c78a0f867e3b9dc53766e2123a9ee157c80e3778320933",
+          "sourceSha256": "08a8bebe9e4fd8ed3b950a0fc245780f653fec495078f83bc3a328f794e71a89",
+          "targetSha256": "6c6ce5b5a679af17896a999f1d6f3dc539e80f4fbe957685fc59dfecd2b8b854",
+          "recordedAt": "2026-09-06T11:25:39.443Z"
+        }
+      ],
       "smokes": [],
       "application": {
         "evidence": "memory/requisitos/Arquivos/arquivos-index-gap.md",
@@ -27,7 +44,7 @@
       "comparison": {
         "map": "memory/requisitos/RecurringBilling/cobranca-recorrente-configuracoes.map.json",
         "mapSha256": "d9ab3b8c1cf129156db146a9a0ab843030b57f2c009eb1018333c37b45926cc3",
-        "recordedAt": "2026-09-06T11:55:51.119Z"
+        "recordedAt": "2026-09-06T12:34:58.395Z"
       },
       "tests": [],
       "smokes": []
@@ -40,7 +57,7 @@
       "comparison": {
         "map": "memory/requisitos/RecurringBilling/cobranca-recorrente-faturas.map.json",
         "mapSha256": "ea870dd0aed8405da3fceee8c9d13d7200fd4acc93781c34232883a3940f6795",
-        "recordedAt": "2026-09-06T11:55:49.702Z"
+        "recordedAt": "2026-09-06T12:34:57.144Z"
       },
       "tests": [],
       "smokes": []
@@ -53,7 +70,7 @@
       "comparison": {
         "map": "memory/requisitos/RecurringBilling/cobranca-recorrente-planos.map.json",
         "mapSha256": "a91392c82fae1ba8f0af501ac2a05c1f406a7d19db966f0fbfaa9036620078da",
-        "recordedAt": "2026-09-06T11:55:48.028Z"
+        "recordedAt": "2026-09-06T12:34:55.818Z"
       },
       "tests": [],
       "smokes": []
@@ -223,7 +240,7 @@
       "comparison": {
         "map": "memory/requisitos/Governance/governance-audit.map.json",
         "mapSha256": "b240a0f36e3593dae36cac150e9fdec332cfb7a2d8a4c05920542348c84d8be4",
-        "recordedAt": "2026-09-06T12:07:43.013Z"
+        "recordedAt": "2026-09-06T12:34:43.012Z"
       },
       "tests": [],
       "smokes": []
@@ -236,7 +253,7 @@
       "comparison": {
         "map": "memory/requisitos/Governance/governance-dashboard.map.json",
         "mapSha256": "1488955c6ecc9e7fb230d9a3798bf27dfbd779a0ecd6eaf8e2d2823aed10e7cc",
-        "recordedAt": "2026-09-06T12:07:44.214Z"
+        "recordedAt": "2026-09-06T12:34:44.387Z"
       },
       "tests": [],
       "smokes": []
@@ -249,7 +266,7 @@
       "comparison": {
         "map": "memory/requisitos/Governance/governance-drift-alerts.map.json",
         "mapSha256": "15c085a9e868e0f3b918ed5a70a93640db15c6bc33dbcad73da3fa9a5f8a9298",
-        "recordedAt": "2026-09-06T12:07:46.043Z"
+        "recordedAt": "2026-09-06T12:34:45.763Z"
       },
       "tests": [],
       "smokes": []
@@ -262,7 +279,7 @@
       "comparison": {
         "map": "memory/requisitos/Governance/governance-module-grades.map.json",
         "mapSha256": "4562cb3b7d7d4291f24377ec1871021728e1a11e585f971227e675cc0ee6889b",
-        "recordedAt": "2026-09-06T12:07:47.413Z"
+        "recordedAt": "2026-09-06T12:34:47.111Z"
       },
       "tests": [],
       "smokes": []
@@ -275,7 +292,46 @@
       "comparison": {
         "map": "memory/requisitos/Governance/governance-policies.map.json",
         "mapSha256": "f2d7995ecde11a232859efb9436f9868e9965dbbe829a143c8abd7fd7d815409",
-        "recordedAt": "2026-09-06T12:07:48.679Z"
+        "recordedAt": "2026-09-06T12:34:48.539Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "ponto-page.jsx",
+      "target": "resources/js/Pages/Ponto/Dashboard/Index.tsx",
+      "sourceSha256": "a22f7fe6c5f25dfb373935c67175133a75fdbf4893eed0da02b2a228e33d44d2",
+      "targetSha256": "4750043c8955cb14e190d986e624ea303179899f4f85634af00105d8130b16b2",
+      "comparison": {
+        "map": "memory/requisitos/Ponto/dashboard-index.map.json",
+        "mapSha256": "06e654b992a5d6f3d421ede11d5604d3e8aff30421d549202dc5e4b556b4eab3",
+        "recordedAt": "2026-09-06T12:08:13.428Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "ponto-page.jsx",
+      "target": "resources/js/Pages/Ponto/Espelho/Index.tsx",
+      "sourceSha256": "a22f7fe6c5f25dfb373935c67175133a75fdbf4893eed0da02b2a228e33d44d2",
+      "targetSha256": "fa0bb3d3aa2ce553e5a2232cfe5986570516b0e0915d1b7fc6d857d74bf96cb7",
+      "comparison": {
+        "map": "memory/requisitos/Ponto/espelho-index.map.json",
+        "mapSha256": "a862e6089108e335583e2b311b2b5c6173345359109a12e998158b43f0e25bf1",
+        "recordedAt": "2026-09-06T12:08:14.718Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "ponto-page.jsx",
+      "target": "resources/js/Pages/Ponto/Espelho/Show.tsx",
+      "sourceSha256": "a22f7fe6c5f25dfb373935c67175133a75fdbf4893eed0da02b2a228e33d44d2",
+      "targetSha256": "a7439b370b731f5500854a415f9377d8ce251e740d0455e95d60047357936649",
+      "comparison": {
+        "map": "memory/requisitos/Ponto/espelho-show.map.json",
+        "mapSha256": "80b6c872095ce9c166c918ada4f824d4670ca40e01d91aa48025eb1d763dae74",
+        "recordedAt": "2026-09-06T12:08:15.929Z"
       },
       "tests": [],
       "smokes": []
@@ -288,7 +344,7 @@
       "comparison": {
         "map": "memory/requisitos/Superadmin/superadmin-assinaturas.map.json",
         "mapSha256": "322257c755a512bd967a2f7c36463d02da4ee6bae36b722de4b7adfbd8e246a2",
-        "recordedAt": "2026-09-06T12:07:50.042Z"
+        "recordedAt": "2026-09-06T12:34:50.021Z"
       },
       "tests": [],
       "smokes": []
@@ -301,7 +357,7 @@
       "comparison": {
         "map": "memory/requisitos/Superadmin/superadmin-dashboard.map.json",
         "mapSha256": "0ba214b1aba5f159809b1c1ef19d24442ee06f6933dd176891af9e930bce8162",
-        "recordedAt": "2026-09-06T12:07:51.706Z"
+        "recordedAt": "2026-09-06T12:34:51.550Z"
       },
       "tests": [],
       "smokes": []
@@ -314,7 +370,7 @@
       "comparison": {
         "map": "memory/requisitos/Superadmin/superadmin-negocios.map.json",
         "mapSha256": "b4635d77768765274f9e722dee138443fcc7151b344c36d236ba96f570f00130",
-        "recordedAt": "2026-09-06T12:07:53.235Z"
+        "recordedAt": "2026-09-06T12:34:53.081Z"
       },
       "tests": [],
       "smokes": []
@@ -327,7 +383,7 @@
       "comparison": {
         "map": "memory/requisitos/Superadmin/superadmin-pacotes.map.json",
         "mapSha256": "264e2e5059cbc7c45a814e3caf3322655b9940aeee853d1da0b5e4583c51ed3a",
-        "recordedAt": "2026-09-06T12:07:54.628Z"
+        "recordedAt": "2026-09-06T12:34:54.545Z"
       },
       "tests": [],
       "smokes": []

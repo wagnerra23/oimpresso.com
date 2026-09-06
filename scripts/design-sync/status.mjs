@@ -72,11 +72,12 @@ try {
     const deploySha = valueOf('--deploy-sha');
     const screenshot = valueOf('--screenshot');
     const tenant = valueOf('--tenant');
+    const host = valueOf('--host') || 'producao'; // producao | staging-ct100 | ci (ADR 0390)
     if (!target || !route || !deploySha || !screenshot || !tenant) {
-      throw new Error('--target, --route, --deploy-sha, --screenshot e --tenant são obrigatórios com --record-smoke');
+      throw new Error('--target, --route, --deploy-sha, --screenshot e --tenant são obrigatórios com --record-smoke (--host é opcional; default producao)');
     }
     avisarBaseEnvelhecida({ source, target, extras: [screenshot] });
-    ({ report } = await recordSmokeEvidence({ root: ROOT, source, target, route, deploySha, screenshot, tenant }));
+    ({ report } = await recordSmokeEvidence({ root: ROOT, source, target, route, deploySha, screenshot, tenant, host }));
   } else if (args.includes('--refresh')) report = await refreshApplicationReport({ root: ROOT });
   else {
     if (!existsSync(reportPath)) throw new Error('relatório ausente; aplique um bundle ou rode com --refresh');
@@ -109,7 +110,7 @@ else {
     if (screen.applicationEvidence?.comparison) console.log(`      mapa: ${screen.applicationEvidence.comparison.map}`);
     if (screen.applicationEvidence?.application) console.log(`      aplicação: ${screen.applicationEvidence.application.evidence}`);
     if (screen.applicationEvidence?.tests?.length) console.log(`      testes: ${screen.applicationEvidence.tests.length} recibo(s) verde(s)`);
-    if (screen.applicationEvidence?.smokes?.length) console.log(`      smoke: ${screen.applicationEvidence.smokes.length} recibo(s) de produção`);
+    if (screen.applicationEvidence?.smokes?.length) console.log(`      smoke: ${screen.applicationEvidence.smokes.length} recibo(s) · host ${[...new Set(screen.applicationEvidence.smokes.map((smoke) => smoke.host || 'producao'))].join('/')}`);
     console.log(`      ${screen.nextAction}`);
   }
   console.log(`\n  relatório canônico: ${reportPath}\n`);

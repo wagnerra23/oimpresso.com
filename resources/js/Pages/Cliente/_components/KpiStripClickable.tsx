@@ -188,7 +188,7 @@ export function KpiStripClickable({
   // visualmente "duplo-aninhado" em relação ao Header BLOCO 1 e Tabela BLOCO 3.
   // Total lateral: 24px parent + 24px KPI = 48px viewport edge.
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mx-6">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mx-6" data-contract="kpis">
       {cards.map((card) => {
         const Icon = card.icon;
         const tone = TONE_STYLES[card.tone ?? 'primary'];

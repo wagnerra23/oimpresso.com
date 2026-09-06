@@ -14,12 +14,13 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Produto/Index.tsx",
-        "linhas": "TODO",
-        "ancora": false
+        "linhas": "141-168",
+        "ancora": true
       },
       "status": "pendente-mapeamento",
       "acao": "Decidir. Subtítulo de contagem — §Veredito adotar #1 (Parte 1, P, derivar dos rows já carregados). ⚠️ \"disponíveis/esgotados\" só se estoque já vier nos rows (Parte 1 Esforço/risco).",
-      "_acionavel": true
+      "_acionavel": true,
+      "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = `<header sticky>` (crumbs + h1 + Importar/Novo produto)."
     },
     {
       "id": "kpis-totalizadores",
@@ -29,12 +30,13 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Produto/Index.tsx",
-        "linhas": "TODO",
-        "ancora": false
+        "linhas": "172-176",
+        "ancora": true
       },
       "status": "pendente-mapeamento",
       "acao": "Nada — §Veredito \"NÃO adotar sem ADR/SPEC + backend + dupla-confirmação (⚠️ Tier 0 valor/estoque)\": Parte 2, esforço G, quantidade × preço × custo (REGRA MESTRE de proibicoes.md).",
-      "_acionavel": false
+      "_acionavel": false,
+      "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = `<section>` que monta `<Deferred data=\"kpis\"><KpisStrip/>` (o atributo fica na section, que é DOM; Deferred não é)."
     },
     {
       "id": "filtros-busca",
@@ -44,12 +46,13 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Produto/Index.tsx",
-        "linhas": "TODO",
-        "ancora": false
+        "linhas": "179-210",
+        "ancora": true
       },
       "status": "pendente-mapeamento",
       "acao": "Decidir. Só (a) filtro por tipo + (f) Limpar filtros — §Veredito adotar #2 (Parte 3, M) — e (c) sort + (d) toggle — adotar #3. (b) Stockbar toca estoque (threshold = regra de negócio _pendente_). (e) busca por marca/OEM: Parte 3 diz \"P se campos existirem, _pendente_ confirmar schema\" — confirmado no código: `products.brand_id` existe (`database/schema/mysql-schema.sql:7577`, dentro de `CREATE TABLE products`), campo OEM não existe (0 ocorrências no schema) → marca é P; OEM fica `_pendente_` de schema.",
-      "_acionavel": true
+      "_acionavel": true,
+      "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = `<section>` busca + \"Mostrar inativos\" + CategoriaTabs."
     },
     {
       "id": "tabela-cards",
@@ -59,12 +62,13 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Produto/Index.tsx",
-        "linhas": "TODO",
-        "ancora": false
+        "linhas": "213-217",
+        "ancora": true
       },
       "status": "pendente-mapeamento",
       "acao": "Decidir. Só (a) lista densa ordenável + toggle — §Veredito adotar #3 (Parte 3+4, M; popularidade/preço/nome). (c) custo/margem/fornecedor, (d) estoque por linha e (b)/(f) dependentes de variante/estoque: NÃO adotar sem ADR/SPEC + backend + dupla-confirmação (Tier 0 — Parte 4 Esforço/risco: `ProdutoRow` já tem `cost`/`margin`/`stockQty`; o que o backend não expõe é fornecedores/variantes/BOM, _pendente_).",
-      "_acionavel": true
+      "_acionavel": true,
+      "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = `<section>` que monta `<Deferred data=\"rows\"><ProdutoCards/>`."
     },
     {
       "id": "acoes-por-linha",
@@ -79,7 +83,8 @@
       },
       "status": "pendente-mapeamento",
       "acao": "Decidir. Trocar navegação por drawer é mudança de paradigma de UX — Parte 5, M, \"precisa charter/Wagner\" (não é regressão; decisão de produto, não de tela).",
-      "_acionavel": true
+      "_acionavel": true,
+      "_nota_ancora": "2026-09-06: NÃO ancorada — a região não existe no vivo (gap Parte 5: o card inteiro é `<Link href=/products/{id}>`, sem ações inline; `grep -c 'DropdownMenu\\|AcoesDropdown' Index.tsx` = 0). Ancorar exigiria antes decidir o paradigma drawer-on-click (decisão [W], charter Non-Goal \"CRUD inline\")."
     },
     {
       "id": "drawer-de-detalhe",
@@ -94,7 +99,9 @@
       },
       "status": "pendente-mapeamento",
       "acao": "Nada — §Veredito \"NÃO adotar sem ADR/SPEC + backend + dupla-confirmação (⚠️ Tier 0)\": Parte 6, esforço G/alto, multiplicadores de preço e margem são regra de negócio (REGRA MESTRE de proibicoes.md).",
-      "_acionavel": false
+      "_acionavel": false,
+      "_nota_ancora": "2026-09-06: NÃO ancorada — a região não existe no vivo (gap Parte 6: \"NÃO existe drawer\", detalhe = página /products/{id}; `grep -cE 'Sheet|Drawer' Index.tsx` = 0). Escopo G, Tier 0 valor (tabela de preços por nível) — decisão [W]."
     }
-  ]
+  ],
+  "_nota_mapeamento": "2026-09-06: 4 partes ganharam vivo.ancora=true (data-contract adicionado no .tsx); 2 seguem ancora:false porque a REGIÃO não existe no vivo (gap Partes 5 e 6) — não há o que ancorar."
 }
