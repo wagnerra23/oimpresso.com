@@ -1121,7 +1121,7 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
 
             <span className="vd-toolbar-sep" />
 
-            <div className="vd-views" ref={viewsRef}>
+            <div className="vd-views" ref={viewsRef} data-contract="saved-tree">
               <button className="vd-views-btn" onClick={() => setViewsOpen((v) => !v)} type="button">
                 {currentSavedView.label}
                 <ChevronDown size={11} style={{ marginLeft: 4 }} />
@@ -1241,7 +1241,7 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
               <Printer size={11} />
               <span>Imprimir caixa</span>
             </button>
-            <div className="vd-visoes" ref={visoesRef}>
+            <div className="vd-visoes" ref={visoesRef} data-contract="menu-visoes">
               <button
                 className="vd-toolbar-act vd-visoes-btn"
                 onClick={() => setVisoesOpen((v) => !v)}
@@ -1443,7 +1443,7 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
             </div>
           )}
           {foco === 'comissao' && (
-            <div className="os-kpi" title={topSeller ? `Soma de vendas final_total do mês corrente` : ''}>
+            <div className="os-kpi" title={topSeller ? `Soma de vendas final_total do mês corrente` : ''} data-contract="foco-comissao">
               <span className="os-kpi-label">Top vendedor (mês)</span>
               <span className="os-kpi-value">{topSeller ? topSeller.name : '—'}</span>
               <span className="os-kpi-sub">

@@ -1,0 +1,252 @@
+{
+  "aguardou_sumir": ".jm-sk",
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI Oimpresso Matriz IA 3 Visão geral G D Atendimento 6 Cadastro 3 Clientes G C Produtos 12 G P Fabricação 3 Comercial 4 CRM 14 G R Vendas 19 G V Oficina Auto 1 Vestuário 1 Finanças 4 Caixa G X Financeiro 11 G F Cobrança 1 Cobrança Recorrente 3 Fiscal 1 Fiscal 6 Produção 3 Ordens de Serviço Comunicação Visual Assistência técnica 7 Estoque 3 Compras 4 Movimentações 6 G E Patrimônio 4 RH 3 Ponto HRM 7 Essenciais 6 Sistema 10 Auditoria Voz do Cliente Suporte 1 Usuários 3 Preferências Configurações 11 Relatórios 4 Arquivos 3 Base de Conhecimento Planilhas 1 Plataforma 4 WR Wagner Rocha Administrador J Jana · Analista IA OIMPRESSO MATRIZ · biz=164 · v1404 legacy migrado Atualizado 09:42 plano Pro Configurar Exportar Painel Conversa 3 Alertas 3 Ações Memória Plataforma Brief diário · 14/maio/2026 IA Bom dia, Wagner. Maio até hoje somou R$ 47.150 (vs R$ 145k em maio/25 — -68% · investigar sazonalidade ou causa estrutural). R$ 4.535.636 em 4.255 títulos vencidos (excluído lixo de saldos virtuais e parcelas agrupadas). Top 20 clientes concentram R$ 2.142k (~47%) da inadimplência. Ação sugerida HOJE: 8 clientes \"ouro\" (LTV >R$ 50k) estão >90d sem comprar — score reativação alto. Posso disparar régua HITL? Anomalia detectada: ticket médio caiu de R$ 2.430 para R$ 1.890 (-22%) — 4 meses consecutivos. Margem mantida (preço por m³ estável) → indica mix de produto mudando (mais caçambas pequenas/curtas). Disparar régua 8 clientes Ver top 20 devedores Investigar queda ticket médio Por que -68% MoM? RECEITA MÊS R$ 47k -68% vs mai/25 A RECEBER VENCIDO R$ 4,5M 4.255 títulos · 76% inadimplência TICKET MÉDIO R$ 1.890 -22% em 4m METAS ATIVAS Nova meta Faturamento mensal mai/2026 R$ 47k de R$ 145k 32 % do alvo R$ 61k no fechamento Recuperação de vencidos mai/2026 R$ 212k de R$ 400k 53 % do alvo R$ 276k no fechamento Ticket médio mai/2026 R$ 1.890 de R$ 2.400 79 % do alvo R$ 1.859 no fechamento (tendência) Novos clientes mai/2026 34 de 30 113 % do alvo 44 no fechamento Margem de contribuição mai/2026 Aguardando apuração… alvo 38% ANÁLISES PRINCIPAIS clique num card pra ver de onde vem o número Inadimplência Top 20 devedores CRÍTICO R$ 4.535.636 0–30d R$ 1.1M 30–90d R$ 818k 90–365d R$ 1.8M >365d R$ 770k Top 1: VARGAS LEANDRO R$ 385k (246 parcelas) Faturamento Curva 24 meses QUEDA R$ 107M mai/24 mai/26 Melhor mês: nov/24 R$ 1.19M · Pico sazonal: out-fev Concentração Top clientes Pareto OK 8.856 clientes Top 10 24% Top 50 55% Top 100 73% 4.500 one-shot (~51%) · cauda longa saudável Churn ouro LTV alto inativos REATIVAR 8 clientes CONSTRUFERRO IND. LTV R$ 87k · 124d EXTREMA SOLDAS LTV R$ 71k · 98d CAPITAL CARGAS LTV R$ 62k · 112d Cohort 2024: retenção 35% (target 60%) · drift alto Cheques previsão Na mão / a depositar 4.421 cheques Total circulou histórico: R$ 7.022.176 Quitados: 4.420 (99,9%) Ativos hoje: 1 (R$ 8 — teste) Atalho HITL: Jana lembra Larissa qual dia depositar cada cheque AÇÕES QUE JANA SUGERE Régua de cobrança · 8 clientes >90d sem contato Potencial recuperação: R$ 287k · HITL aprovação a cada mensagem Disparar Reativação · 8 clientes \"ouro\" inativos LTV combinado R$ 612k · oferta de retorno personalizada Preparar Limpeza · 2.470 títulos candidatos a baixa R$ 770k incobráveis >365d · liberar dashboard Revisar",
+    "roles": {
+      "celulas": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5550/"
+  },
+  "nos_totais": 1011,
+  "quieto_ms": 2000,
+  "secoes": {
+    "acoes": {
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 3,
+      "nos": 1,
+      "ordemClasses": [
+        "jc-acao",
+        "jc-acao",
+        "jc-acao"
+      ],
+      "rect": {
+        "h": 184,
+        "w": 972
+      },
+      "seletor": ".jc-page > .jc-acoes",
+      "truncado": false
+    },
+    "acoes_titulo": {
+      "estilo": {
+        "color": "oklch(0.58 0.005 90)",
+        "fontSize": "11px",
+        "fontWeight": "700",
+        "letterSpacing": "0.88px",
+        "textTransform": "uppercase"
+      },
+      "filhos": 1,
+      "nos": 1,
+      "ordemClasses": [
+        "ic"
+      ],
+      "rect": {
+        "h": 14,
+        "w": 972
+      },
+      "seletor": ".jc-page > h2.jc-h2:nth-of-type(2)",
+      "truncado": false
+    },
+    "analises": {
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "grid",
+        "fontSize": "13px",
+        "fontWeight": "400",
+        "gap": "12px",
+        "padding": "0px"
+      },
+      "filhos": 5,
+      "nos": 1,
+      "ordemClasses": [
+        "jm-an-hit",
+        "jm-an-hit",
+        "jm-an-hit",
+        "jm-an-hit",
+        "jm-an-hit"
+      ],
+      "rect": {
+        "h": 477,
+        "w": 972
+      },
+      "seletor": ".jc-page > .jc-grid",
+      "truncado": false
+    },
+    "analises_titulo": {
+      "estilo": {
+        "color": "oklch(0.58 0.005 90)",
+        "fontSize": "11px",
+        "fontWeight": "700",
+        "letterSpacing": "0.88px",
+        "textTransform": "uppercase"
+      },
+      "filhos": 2,
+      "nos": 1,
+      "ordemClasses": [
+        "ic",
+        "jm-h2-sub"
+      ],
+      "rect": {
+        "h": 14,
+        "w": 972
+      },
+      "seletor": ".jc-page > h2.jc-h2:nth-of-type(1)",
+      "truncado": false
+    },
+    "brief": {
+      "estilo": {
+        "backgroundColor": "oklch(0.336 0.02078 244.95)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "18px 22px"
+      },
+      "filhos": 7,
+      "nos": 1,
+      "ordemClasses": [
+        "jc-brief-h",
+        "jc-brief-greet",
+        "p",
+        "jc-brief-action",
+        "jc-brief-anom",
+        "jc-brief-sep",
+        "jc-brief-chips"
+      ],
+      "rect": {
+        "h": 288,
+        "w": 972
+      },
+      "seletor": ".jc-page > section.jc-brief",
+      "truncado": false
+    },
+    "header": {
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13px",
+        "fontWeight": "400",
+        "gap": "8px 14px",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "nos": 1,
+      "ordemClasses": [
+        "jc-header-l",
+        "jc-header-r"
+      ],
+      "rect": {
+        "h": 41,
+        "w": 972
+      },
+      "seletor": ".jc-page > header.jc-header",
+      "truncado": false
+    },
+    "kpis": {
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "grid",
+        "fontSize": "13px",
+        "fontWeight": "400",
+        "gap": "10px",
+        "padding": "0px"
+      },
+      "filhos": 3,
+      "nos": 1,
+      "ordemClasses": [
+        "jm-an-hit",
+        "jm-an-hit",
+        "jc-kpi"
+      ],
+      "rect": {
+        "h": 98,
+        "w": 972
+      },
+      "seletor": ".jc-page > .jc-kpis",
+      "truncado": false
+    },
+    "metas": {
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "nos": 1,
+      "ordemClasses": [
+        "jc-h2",
+        "jm-metas-grid"
+      ],
+      "rect": {
+        "h": 260,
+        "w": 972
+      },
+      "seletor": ".jc-page > section.jm-metas",
+      "truncado": false
+    },
+    "tabs": {
+      "estilo": {
+        "borderBottomColor": "oklch(0.34 0.008 240)",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13px",
+        "fontWeight": "400",
+        "gap": "0px",
+        "height": "36px"
+      },
+      "filhos": 6,
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 972
+      },
+      "seletor": ".jc-page > nav",
+      "truncado": false
+    }
+  },
+  "tela": "Jana--Index",
+  "url": "http://127.0.0.1:5550/"
+}

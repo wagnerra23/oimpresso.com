@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-08-08"
+last_run: "2026-09-06"
 last_run_ci: "0 UC executado — UC-FUNI-01..04 nascem neste PR; veredito pendente da lane PHP / Pest (Financeiro · MySQL)"
 sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 ---
@@ -23,6 +23,14 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 
 ---
 
+> ℹ️ **`last_run` 2026-08-08 → 2026-09-06 (G-6), e o que mudou na tela NÃO foi comportamento.**
+> O único toque em `Index.tsx` (+ 5 `_components/*`) foi o atributo **`data-contract="<id>"`** no elemento raiz de
+> região (header-acoes · kpis · filter-pills-toolbar · tabela-linhas · aprovacao-de-pagamento · drawer-detalhe, mais periodbar-personalizado · dialogo-de-baixa · anexos-no-drawer · ocr-boleto · combobox-contraparte-no-novo-titulo nos componentes) — a âncora estável que o `<tela>.map.json` declara em `vivo.ancora`
+> (`scripts/governance/design-code-map-check.mjs`). Atributo inerte: nenhum CSS o seleciona
+> nestas telas (`grep -rn 'data-contract' resources/css/` → só `.arq-page [data-contract=abas|cabecalho]`)
+> e nenhum JS de runtime o lê. Zero JSX estrutural, zero handler, zero prop, zero copy alterada.
+> **Nenhum UC desta tela foi reexecutado nem revalidado**; o bump é o que o campo significa na
+> prática (*trio reconciliado com a tela nesta data*), não afirmação de re-run.
 ## UC-F01 · Venda a prazo gera título a receber (CU-3→CU-5)
 - **Persona:** Kamila (financeiro) — confiança de que NENHUMA venda a prazo fica sem cobrança.
 - **Aceite:** Dado venda final a prazo 30 dias · Então nasce `fin_titulos` tipo `receber`, status `aberto`, valor total = valor da venda, vencimento +30d da data da venda.

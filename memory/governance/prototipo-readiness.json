@@ -45,6 +45,7 @@
     "Ponto/Importacoes/Index",
     "Ponto/Importacoes/Show",
     "Ponto/Intercorrencias/Create",
+    "Ponto/Intercorrencias/Edit",
     "Ponto/Intercorrencias/Index",
     "Ponto/Intercorrencias/Show",
     "Ponto/Relatorios/Index",
@@ -70,6 +71,26 @@
       "modulo": "core",
       "status": "1-ciclo",
       "prototipo": "prototipo-ui/cowork/backup-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Essentials/Metas",
+      "arquivo": "resources/js/Pages/Essentials/Metas.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/hrm-extras.jsx (Metas) · herda PT-01 Lista",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Essentials/Tipos",
+      "arquivo": "resources/js/Pages/Essentials/Tipos.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/hrm-page.jsx (subview \"tipos\" · copy literal)",
       "falta": [
         "scorecard"
       ]
@@ -150,16 +171,6 @@
       "modulo": "core",
       "status": "1-ciclo",
       "prototipo": "prototipo-ui/cowork/manufacturing-producao.jsx",
-      "falta": [
-        "scorecard"
-      ]
-    },
-    {
-      "tela": "Ponto/Intercorrencias/Edit",
-      "arquivo": "resources/js/Pages/Ponto/Intercorrencias/Edit.tsx",
-      "modulo": "core",
-      "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/ponto-telas.jsx",
       "falta": [
         "scorecard"
       ]
@@ -285,5 +296,5 @@
       ]
     }
   ],
-  "total": 75
+  "total": 77
 }
