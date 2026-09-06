@@ -1,0 +1,145 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "kb/Index.v2 (/kb/v2)",
+  "gap_fonte": "memory/requisitos/KB/kb-index-v2-gap.md",
+  "prototipo_sha": "sha256:3f2c78b83b65",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "cabecalho-e-acoes",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/kb-page.jsx",
+        "linhas": "712-735"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/kb/Index.v2.tsx",
+        "linhas": "363-445",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente. O gate por permissão é exigência multi-tenant do repo, ausente no protótipo. Cobre a região que o `kb.map.json` ancora como `header-pagina` para a tela irmã.",
+      "_acionavel": false
+    },
+    {
+      "id": "faixa-de-indicadores",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/kb-page.jsx",
+        "linhas": "737-758"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/kb/Index.v2.tsx",
+        "linhas": "451-455",
+        "ancora": false
+      },
+      "status": "convergido",
+      "acao": "Nada — decisão registrada. O `Index.v2.tsx:451-455` grava a razão e a data: Wagner, 2026-05-17, os cartões ocupavam cerca de 150px de topo sem retorno suficiente, e os quatro quadrantes do painel de saúde já os cobrem. Reabrir seria desfazer decisão tomada.",
+      "_acionavel": false
+    },
+    {
+      "id": "busca",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/kb-page.jsx",
+        "linhas": "1036-1044"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/kb/Index.v2.tsx",
+        "linhas": "454-480",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente. As duas afordâncias coexistem no vivo; o mockup tem uma. Cobre a região que o `kb.map.json` ancora como `busca` para a tela irmã.",
+      "_acionavel": false
+    },
+    {
+      "id": "navegacao-por-categorias",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/kb-page.jsx",
+        "linhas": "777-903"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/kb/_components/CategorySidebar.tsx",
+        "linhas": "1-333",
+        "ancora": false
+      },
+      "status": "gap-parcial",
+      "acao": "Decidir. Região do mockup: `kb-page.jsx:777-903`, seção a seção; ponto no vivo: `_components/CategorySidebar.tsx`. Pré-condição medida: as subcategorias do mockup vêm de bibliotecas externas que não existem no repo (`window.KB_SUBCATS` e `window.kbDeriveSub`, chamados em `kb-page.jsx:784`, `:810` e `:555`), e a nuvem de etiquetas depende de etiquetas no schema. Antes de construir, é preciso decidir se a taxonomia do mockup, que é de temas de gráfica, é a da v2 — o `kb-gap.md` já registrou que ela não é a da tela irmã. Construir ou rejeitar por escrito, seção a seção.",
+      "_acionavel": true
+    },
+    {
+      "id": "lista-de-sops",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/kb-page.jsx",
+        "linhas": "906-984"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/kb/_components/NodeList.tsx",
+        "linhas": "1-262",
+        "ancora": false
+      },
+      "status": "gap-parcial",
+      "acao": "Decidir. Região do mockup: `kb-page.jsx:907-935` (cabeçalho da lista com contador e ordenação); ponto no vivo: `_components/NodeList.tsx`. Pré-condição: ordenar por mais lido ou mais útil exige que essas métricas existam por SOP; o subtítulo da v2 já conta leituras no agregado (`Index.v2.tsx:365-372`), então a métrica existe em algum nível — falta confirmar se é por nó. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "leitor-do-sop",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/kb-page.jsx",
+        "linhas": "986-1033"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/kb/_components/NodeReader.tsx",
+        "linhas": "1-622",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente. O mockup lê blocos de um array em memória; o vivo busca o conteúdo real do documento. Cobre a região que o `kb.map.json` ancora como `editor-detalhe` para a tela irmã.",
+      "_acionavel": false
+    },
+    {
+      "id": "dialogos-auxiliares",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/kb-page.jsx",
+        "linhas": "1045-1086"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/kb/Index.v2.tsx",
+        "linhas": "575-599",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade. Cobre a região que o `kb.map.json` ancora como `drawer-modais-auxiliares` para a tela irmã.",
+      "_acionavel": false
+    },
+    {
+      "id": "composer-de-sop",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/kb-page.jsx",
+        "linhas": "1068-1078"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/kb/Index.v2.tsx",
+        "linhas": "355-357",
+        "ancora": false
+      },
+      "status": "gap",
+      "acao": "Decidir. Região do mockup: `kb-page.jsx:1068-1078`; ponto no vivo: `Index.v2.tsx:355-357`. O próprio código nomeia a onda que o entregaria; o que falta é a decisão de puxá-la. Escrever SOP cria conteúdo por negócio, logo exige escopo por `business_id` (ADR 0093) desde o primeiro traço. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "visualizacao-em-grafo",
+      "prototipo": {
+        "arquivo": "n/a",
+        "linhas": "n/a"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/kb/Index.v2.tsx",
+        "linhas": "412-431",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — decisão registrada. É tela separada, com componentes já escritos; ligar o botão é roteamento, não capacidade ausente aqui. A onda está nomeada no próprio código.",
+      "_acionavel": false
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Home/Index (/dashboard-legacy)",
+  "gap_fonte": "memory/requisitos/Dashboard/home-index-gap.md",
+  "prototipo_sha": "sha256:c113da581c35",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "cabecalho",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/dash-legacy-page.jsx",
+        "linhas": "215-222"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Home/Index.tsx",
+        "linhas": "250-273",
+        "ancora": "cabecalho"
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade.",
+      "_acionavel": false
+    },
+    {
+      "id": "cartoes-de-indicador",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/dash-legacy-page.jsx",
+        "linhas": "250-255"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Home/Index.tsx",
+        "linhas": "301-327",
+        "ancora": "kpis"
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade. Fecha os itens #10 e #13 do inventário, que lá constam abertos. O `KpiCard` do repo segue sem `hero`/`spark` (`Components/shared/KpiCard.tsx:77-86`); a tela contorna com o componente local `KpiHero` (`Index.tsx:118-186`), decisão registrada no próprio arquivo.",
+      "_acionavel": false
+    },
+    {
+      "id": "contrapartidas",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/dash-legacy-page.jsx",
+        "linhas": "258-274"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Home/Index.tsx",
+        "linhas": "387-405",
+        "ancora": "contrapartidas"
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade.",
+      "_acionavel": false
+    },
+    {
+      "id": "pendencias",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/dash-legacy-page.jsx",
+        "linhas": "275-288"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Home/Index.tsx",
+        "linhas": "429-458",
+        "ancora": "pendencias"
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade. Fecha o item #8, que o inventário registra como Backlog não decidido.",
+      "_acionavel": false
+    },
+    {
+      "id": "graficos-de-vendas",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/dash-legacy-page.jsx",
+        "linhas": "291-303"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Home/Index.tsx",
+        "linhas": "521-530",
+        "ancora": "graficos"
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade.",
+      "_acionavel": false
+    },
+    {
+      "id": "grade-por-abas",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/dash-legacy-page.jsx",
+        "linhas": "306-331"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Home/_components/GradesPainel.tsx",
+        "linhas": "230-328",
+        "ancora": "grades"
+      },
+      "status": "gap-parcial",
+      "acao": "Decidir. Região do mockup: `dash-legacy-page.jsx:317`; ponto no vivo: `GradesPainel.tsx:230-328`. Pré-condição medida: o `DataTable` canônico do repo não tem essas props — `grep -c 'density\\",
+      "_acionavel": true
+    }
+  ]
+}

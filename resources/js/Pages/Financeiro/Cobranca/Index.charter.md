@@ -8,8 +8,8 @@ parent_module: Financeiro
 sister_module: PaymentGateway
 related_adrs: [93, 94, 104, 114, 144, 170]
 related_us: [US-PG-F3-COBRANCA]
-related_prototype: prototipo-ui/cowork/prototipos/payment-gateway-ui/cobranca-page.jsx
-related_prototype_nota: '(Cowork "payment-gateway-ui" F1+F1.5, aprovado [W] 2026-05-19)'
+related_prototype: prototipo-ui/cowork/pg-cobranca-page.jsx
+related_prototype_nota: '(Cowork "payment-gateway-ui" F1+F1.5, aprovado [W] 2026-05-19. Ponteiro corrigido em 2026-09-06: apontava prototipos/payment-gateway-ui/cobranca-page.jsx, que e a copia ANTIGA — 830 ln, sem localStorage dos filtros, sem AiResumoMes, sem CheatSheet, e fora do bundle ativo do design-sync. A copia do bundle tem 998 ln e e da qual a tela derivou: Index.tsx:74 usa o mesmo namespace literal de localStorage, :476 monta CheatSheet, :477 monta AiResumoMes. Ver memory/requisitos/Financeiro/cobranca-index-gap.md)'
 related_decisions: COWORK_HANDOFF.paymentgateway-ui.md (F1 score 96/93/93)
 tier: A
 charter_version: 1
