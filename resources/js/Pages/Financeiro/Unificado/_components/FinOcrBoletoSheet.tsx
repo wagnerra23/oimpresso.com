@@ -151,7 +151,7 @@ export function FinOcrBoletoSheet({ open, onClose }: Props) {
 
   return (
     <Sheet open={open} onOpenChange={(o) => !o && handleClose()}>
-      <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
+      <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto" data-contract="ocr-boleto">
         <SheetHeader>
           <SheetTitle className="text-xl font-semibold tracking-tight">
             📷 Importar boleto via foto/PDF
