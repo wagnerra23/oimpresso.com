@@ -28,7 +28,8 @@
     "0286-channel-health-corroborado-por-mensagem-real",
     "0291-distiller-modulo-verdade-contrato-emenda-0270-f3",
     "0294-mcp-audit-log-hash-chain-tamper-evident",
-    "0295-bitemporal-event-time-memoria-jana"
+    "0295-bitemporal-event-time-memoria-jana",
+    "0390-emenda-0384-smoke-em-ambiente-controlado"
   ],
   "checkM": [
     "a11y-axe-gate.yml",

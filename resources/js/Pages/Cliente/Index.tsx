@@ -848,6 +848,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
           dark-aware (2026-07-15): `var(--border)` (light 0.90 warm → dark 0.34) substitui
           o hardcoded `oklch(0.93 0.004 90)` que ficava claro no tema dark. */}
       <header
+        data-contract="header-identidade"
         className="border-b overflow-visible"
         role="banner"
         style={{ borderBottomColor: 'var(--border)' }}
@@ -957,7 +958,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
             protótipo cadastro (`.cli-moduletopnav`): faixa própria (não inline), label
             completo + ícone roxo + badge de contagem. Vale desktop e mobile (scroll-x
             embutido). [W] 2026-07-14: "mesma posição do Clientes/protótipo em todas". */}
-        <div className="px-6">
+        <div className="px-6" data-contract="perspectivas-fornecedor-funcionario-representante">
           <PageHeaderTabs
             ghosts={contactGhosts}
             activeGhostKey={activeType}
@@ -994,7 +995,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
           className="px-4 py-3 border-b"
           style={{ borderBottomColor: 'var(--border)' }}
         >
-          <div className="flex items-center gap-3 flex-wrap" aria-label="Filtros e busca de contato">
+          <div className="flex items-center gap-3 flex-wrap" aria-label="Filtros e busca de contato" data-contract="filtros-busca">
             {/* Filtros combobox a esquerda — 6 FilterDropdown.
                 Cada FilterDropdown reseta page=1 via useEffect [filtros, perPage]. */}
             <nav
@@ -1132,7 +1133,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
               canon v3.9 (Wagner 2026-05-25 polish #5): `mt-0` — lista COLADA na
               linha separadora da toolbar (Wagner: "remova o espaço entre lista
               e a linha, cole nela"). 0px gap · borders compartilham · cleaner. */}
-          <div className="border border-border bg-background overflow-hidden">
+          <div className="border border-border bg-background overflow-hidden" data-contract="tabela-linhas">
             <div className="overflow-x-auto">
               {/* Wave G — Tabela turbinada (paridade Cowork blueprint score 9,4/10).
                   Colunas: Avatar HSL · Cliente+sub · Tipo · Documento · Cidade/UF ·
@@ -1943,6 +1944,7 @@ function ClienteSheet({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
+        data-contract="drawer-de-detalhe"
         side="right"
         // 760px conforme ADR 0179 + Cowork blueprint. Larissa biz=4 1280x1024:
         // 760 + AppShellV2 sidebar 240 + main padding ~= 1024px (cabe sem

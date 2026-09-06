@@ -37,58 +37,6 @@
       }
     },
     {
-      "source": "estoque-page.jsx",
-      "target": "resources/js/Pages/StockAdjustment/Create.tsx",
-      "sourceSha256": "ab5e12fd9d9d20007faa75fe1d8c926fd1714ab0e6e17841934c8e5b3aadb315",
-      "targetSha256": "018fd1fe95ea14537b8ea911f615546f3e57f6fae587a92bb292dccf6bffda00",
-      "comparison": {
-        "map": "memory/requisitos/Estoque/stock-adjustment-create.map.json",
-        "mapSha256": "2f2fac4b702179ff1aaa48d09bcc006d1d8fdb8d382db4ca91f468ed61f9f8b9",
-        "recordedAt": "2026-09-06T12:28:23.347Z"
-      },
-      "tests": [],
-      "smokes": []
-    },
-    {
-      "source": "estoque-page.jsx",
-      "target": "resources/js/Pages/StockAdjustment/Index.tsx",
-      "sourceSha256": "ab5e12fd9d9d20007faa75fe1d8c926fd1714ab0e6e17841934c8e5b3aadb315",
-      "targetSha256": "c20529b058f9366ba725451987b129ff39a50f9c5d1265a74f9e845a75098ade",
-      "comparison": {
-        "map": "memory/requisitos/Estoque/stock-adjustment-index.map.json",
-        "mapSha256": "525643d8b33d7100311cef058c32c5e894570f1c15c9c79685fcb8095dcca4fa",
-        "recordedAt": "2026-09-06T12:28:22.077Z"
-      },
-      "tests": [],
-      "smokes": []
-    },
-    {
-      "source": "estoque-page.jsx",
-      "target": "resources/js/Pages/StockTransfer/Create.tsx",
-      "sourceSha256": "ab5e12fd9d9d20007faa75fe1d8c926fd1714ab0e6e17841934c8e5b3aadb315",
-      "targetSha256": "d496adc016003d0e215697614212cfb297158d74eb0df44bb824828575935e34",
-      "comparison": {
-        "map": "memory/requisitos/Estoque/stock-transfer-create.map.json",
-        "mapSha256": "44fc541e600e0599652301e6f0fe6d813c055f914fef85118c05081b71e1b385",
-        "recordedAt": "2026-09-06T12:28:25.946Z"
-      },
-      "tests": [],
-      "smokes": []
-    },
-    {
-      "source": "estoque-page.jsx",
-      "target": "resources/js/Pages/StockTransfer/Index.tsx",
-      "sourceSha256": "ab5e12fd9d9d20007faa75fe1d8c926fd1714ab0e6e17841934c8e5b3aadb315",
-      "targetSha256": "a653eea2fa538a7c49973d834241b62faa75b571c493c39bc6192f571f033d96",
-      "comparison": {
-        "map": "memory/requisitos/Estoque/stock-transfer-index.map.json",
-        "mapSha256": "2576fb577f6c905c07c6074dac38eeab7cd743709f52b1ee08fa18b51ba2e6ab",
-        "recordedAt": "2026-09-06T12:28:24.586Z"
-      },
-      "tests": [],
-      "smokes": []
-    },
-    {
       "source": "fiscal-page.jsx",
       "target": "resources/js/Pages/Fiscal/Cockpit.tsx",
       "sourceSha256": "6f302cead5a6f1d8b2033386131f7e640d0a8e3f325921051e107efef6a6659a",
@@ -244,6 +192,97 @@
         "evidenceSha256": "3eff39820a759c3151f22a5596d4a0eb66f2890023c26c57eeffad7eb4a64c4d",
         "recordedAt": "2026-09-06T07:01:10.649Z"
       }
+    },
+    {
+      "source": "ponto-page.jsx",
+      "target": "resources/js/Pages/Ponto/Dashboard/Index.tsx",
+      "sourceSha256": "a22f7fe6c5f25dfb373935c67175133a75fdbf4893eed0da02b2a228e33d44d2",
+      "targetSha256": "4750043c8955cb14e190d986e624ea303179899f4f85634af00105d8130b16b2",
+      "comparison": {
+        "map": "memory/requisitos/Ponto/dashboard-index.map.json",
+        "mapSha256": "cc1535b98706a142c6e3b1f6a043d23f94868f3728b63717aec43e27d3478ed9",
+        "recordedAt": "2026-09-06T12:32:08.316Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "ponto-page.jsx",
+      "target": "resources/js/Pages/Ponto/Espelho/Index.tsx",
+      "sourceSha256": "a22f7fe6c5f25dfb373935c67175133a75fdbf4893eed0da02b2a228e33d44d2",
+      "targetSha256": "fa0bb3d3aa2ce553e5a2232cfe5986570516b0e0915d1b7fc6d857d74bf96cb7",
+      "comparison": {
+        "map": "memory/requisitos/Ponto/espelho-index.map.json",
+        "mapSha256": "55c9ae78737ec3dfad1f4b55e08ebfc01e82e229a44d72236f5e17e48fca02a0",
+        "recordedAt": "2026-09-06T12:32:10.079Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "ponto-page.jsx",
+      "target": "resources/js/Pages/Ponto/Espelho/Show.tsx",
+      "sourceSha256": "a22f7fe6c5f25dfb373935c67175133a75fdbf4893eed0da02b2a228e33d44d2",
+      "targetSha256": "a7439b370b731f5500854a415f9377d8ce251e740d0455e95d60047357936649",
+      "comparison": {
+        "map": "memory/requisitos/Ponto/espelho-show.map.json",
+        "mapSha256": "396cae50b7024cd0c21de3bc2b83401d33c5a7ef8470a5064757c8a6df4db13c",
+        "recordedAt": "2026-09-06T12:32:12.247Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "estoque-page.jsx",
+      "target": "resources/js/Pages/StockAdjustment/Create.tsx",
+      "sourceSha256": "ab5e12fd9d9d20007faa75fe1d8c926fd1714ab0e6e17841934c8e5b3aadb315",
+      "targetSha256": "018fd1fe95ea14537b8ea911f615546f3e57f6fae587a92bb292dccf6bffda00",
+      "comparison": {
+        "map": "memory/requisitos/Estoque/stock-adjustment-create.map.json",
+        "mapSha256": "2f2fac4b702179ff1aaa48d09bcc006d1d8fdb8d382db4ca91f468ed61f9f8b9",
+        "recordedAt": "2026-09-06T12:28:23.347Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "estoque-page.jsx",
+      "target": "resources/js/Pages/StockAdjustment/Index.tsx",
+      "sourceSha256": "ab5e12fd9d9d20007faa75fe1d8c926fd1714ab0e6e17841934c8e5b3aadb315",
+      "targetSha256": "c20529b058f9366ba725451987b129ff39a50f9c5d1265a74f9e845a75098ade",
+      "comparison": {
+        "map": "memory/requisitos/Estoque/stock-adjustment-index.map.json",
+        "mapSha256": "525643d8b33d7100311cef058c32c5e894570f1c15c9c79685fcb8095dcca4fa",
+        "recordedAt": "2026-09-06T12:28:22.077Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "estoque-page.jsx",
+      "target": "resources/js/Pages/StockTransfer/Create.tsx",
+      "sourceSha256": "ab5e12fd9d9d20007faa75fe1d8c926fd1714ab0e6e17841934c8e5b3aadb315",
+      "targetSha256": "d496adc016003d0e215697614212cfb297158d74eb0df44bb824828575935e34",
+      "comparison": {
+        "map": "memory/requisitos/Estoque/stock-transfer-create.map.json",
+        "mapSha256": "44fc541e600e0599652301e6f0fe6d813c055f914fef85118c05081b71e1b385",
+        "recordedAt": "2026-09-06T12:28:25.946Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "estoque-page.jsx",
+      "target": "resources/js/Pages/StockTransfer/Index.tsx",
+      "sourceSha256": "ab5e12fd9d9d20007faa75fe1d8c926fd1714ab0e6e17841934c8e5b3aadb315",
+      "targetSha256": "a653eea2fa538a7c49973d834241b62faa75b571c493c39bc6192f571f033d96",
+      "comparison": {
+        "map": "memory/requisitos/Estoque/stock-transfer-index.map.json",
+        "mapSha256": "2576fb577f6c905c07c6074dac38eeab7cd743709f52b1ee08fa18b51ba2e6ab",
+        "recordedAt": "2026-09-06T12:28:24.586Z"
+      },
+      "tests": [],
+      "smokes": []
     },
     {
       "source": "manufacturing-page.jsx",

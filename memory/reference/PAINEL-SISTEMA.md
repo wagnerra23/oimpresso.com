@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-05**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-06**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -31,11 +31,11 @@ lente: [construir]
 | Connector | [BRIEFING](../requisitos/Connector/BRIEFING.md) | 2026-08-03 |
 | ConsultaOs | [BRIEFING](../requisitos/ConsultaOs/BRIEFING.md) | 2026-08-12 |
 | Crm | [BRIEFING](../requisitos/Crm/BRIEFING.md) | 2026-07-30 |
-| Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-07-23 |
+| Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-09-05 |
 | Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-08-18 |
 | Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-08-11 |
 | Forja | [BRIEFING](../requisitos/Forja/BRIEFING.md) | 2026-08-12 |
-| Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-08-13 |
+| Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-09-06 |
 | Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-09-03 |
 | KB | [BRIEFING](../requisitos/KB/BRIEFING.md) | 2026-07-29 |
 | Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-09-04 |
@@ -72,7 +72,7 @@ lente: [construir]
 
 ## Programa SDD (governança)
 
-- Scorecard: **12/13** métricas medidas · floor full-suite = **296**.
+- Scorecard: **12/13** métricas medidas · floor full-suite = **293**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -129,7 +129,7 @@ lente: [construir]
 - espelho — mexeu depois de verificar
 - Governance Gate (índice + memory-health + meta-teste)
 
-### Censo — 137 workflows por classe
+### Censo — 138 workflows por classe
 
 > Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
 
@@ -137,20 +137,20 @@ lente: [construir]
 |---|---|---|
 | gate (bloqueia/valida PR) | 105 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
 | meta (testa os gates) | 7 | block-brl-values-selftest, devcontainer-firewall, gate-selftest, guards-meta-gate, … |
-| automacao (cron/dispatch) | 21 | agent-cost-per-pr, agent-pr-outcomes, briefing-code-staleness, casos-results-publish, … |
+| automacao (cron/dispatch) | 22 | agent-cost-per-pr, agent-pr-outcomes, briefing-code-staleness, casos-results-publish, … |
 | deploy (entrega) | 2 | deploy, quick-sync |
 | governanca | 1 | required-always-run |
 | qualidade | 1 | brl-scan |
 
 ## Decisões (ADRs)
 
-- **394** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 354 · superseded: 16 · deprecated: 13 · proposto: 9 · rascunho: 1 · recusado: 1.
+- **395** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 354 · superseded: 16 · deprecated: 13 · proposto: 10 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 173 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 178 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -326,6 +326,11 @@ lente: [construir]
 - ~~2026-09-05 — Rodar ferramenta de governança pra ESPIAR um número, sem saber que ela ESCREVE — e o `git add -A` levou o artefato de outro dono junto~~
 - ~~2026-09-05 — Ler `1 failed` como prova de que o bite-test MORDE, e escrever caso cujo valor esperado COINCIDE com o que o bug produz~~
 - ~~2026-09-05 — EMENDA da lápide 2026-07-17 (deduzir QUEM RODA pelo código): o runtime tem MAIS DE UM oráculo, e o mais óbvio (`schedule:list`) responde a OUTRA pergunta~~
+- ~~2026-09-05 — EMENDA da lápide acima (bite-test): um terceiro modo de "não prova" — o assert cujo PREDICADO não separa os dois caminhos do endpoint~~
+- ~~2026-09-05 — Converter um teste que OUTRA sessão já estava convertendo: a defesa (`whats-active`) existia, estava disponível, e eu não a rodei~~
+- ~~2026-09-05 — DETECTAR a sessão paralela, AVISAR o dono, e seguir mesmo assim (a forma agravada do sub-caso dono-é-sessão-viva)~~
+- ~~2026-09-05 — Fechar a cegueira do eixo `a11y` por GUARD QUE LISTA NAMESPACES À MÃO, ou creditando a11y de quem só tem BASELINE DE PIXEL (MEDIDO: 34 de 46 seriam falso-positivo)~~
+- ~~2026-09-05 — EMENDA da lápide acima (`whats-active` não rodado): eu RODEI a checagem disponível, ela NÃO detectou, e o gatilho certo não é "antes de começar" — é **antes de publicar**~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -336,14 +341,14 @@ lente: [construir]
 
 ## Rastro
 
-- **498** handoffs · **678** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **502** handoffs · **694** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
-  - `2026-09-05-uc-id-escopo-de-modulo-medido-e-reprovado`
-  - `2026-09-04-ragas-agosto-lead-refutado-juiz-mudo`
-  - `2026-09-04-fiscal-onda10-sped-goals-cowork`
-  - `2026-09-03-watchdog-g6-tres-achados-ragas`
-  - `2026-09-03-visreg-baselines-auto-rail-nao-accent`
-  - `2026-09-03-forja-onda11-triagem-desfecho-declarado`
+  - `2026-09-06-seis-perguntas-design-sync-resolvidas`
+  - `2026-09-06-refutacao-gt-g5-lote-6917`
+  - `2026-09-06-refutacao-gt-g5-lote-6897`
+  - `2026-09-06-refutacao-gt-g5-lote-6897-r9`
+  - `2026-09-06-refutacao-gt-g5-lote-6897-r8`
+  - `2026-09-06-refutacao-gt-g5-lote-6897-r7`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-09-05 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-09-06 · deriva das fontes canônicas, não as substitui._
