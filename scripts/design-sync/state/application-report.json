@@ -1,6 +1,6 @@
 {
   "schema": "oimpresso-design-application-report/3",
-  "generatedAt": "2026-09-06T07:07:42.246Z",
+  "generatedAt": "2026-09-06T09:20:16.421Z",
   "bundle": {
     "id": "5023b274183d849dcc925eae85cef61a991c3541ca1daeb680267c1afda99e4d",
     "baseId": null,
@@ -11,16 +11,17 @@
   "summary": {
     "transportChanges": 255,
     "screens": 93,
-    "tested": 0,
+    "tested": 3,
     "smoked": 0,
     "lifecycle": {
       "applied": 1,
       "anchored": 62,
       "to-create": 23,
-      "compared": 7
+      "compared": 4,
+      "tested": 3
     },
-    "applied": 1,
-    "pending": 69,
+    "applied": 4,
+    "pending": 66,
     "to-create": 23
   },
   "transportChanges": [
@@ -2292,10 +2293,10 @@
       "module": "Fiscal",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "compared",
-      "applicationState": "pending",
+      "lifecycleState": "tested",
+      "applicationState": "applied",
       "compared": true,
-      "tested": false,
+      "tested": true,
       "smoked": false,
       "applicationEvidence": {
         "comparison": {
@@ -2303,12 +2304,33 @@
           "mapSha256": "133dfa083760f299b74f887a693e8e3c04c1e4f4d745f5fa7f9b21143bbb8e0f",
           "recordedAt": "2026-09-06T01:46:28.554Z"
         },
-        "application": null,
-        "tests": [],
+        "application": {
+          "evidence": "memory/requisitos/Fiscal/fiscal-config-visual-comparison.md",
+          "evidenceSha256": "27f55ec29f0075cf1661ba245d37beb4aefe034463713d3b8de4711de68e0a49",
+          "recordedAt": "2026-09-06T07:01:06.335Z"
+        },
+        "tests": [
+          {
+            "command": [
+              "gh",
+              "run",
+              "view",
+              "--job",
+              "101411155078",
+              "--exit-status"
+            ],
+            "exitCode": 0,
+            "runner": "ci",
+            "outputSha256": "35a2bfe0449fae5933b4b1218c86554ab1aea8ac31697177d5e34b2d879e74e6",
+            "sourceSha256": "6f302cead5a6f1d8b2033386131f7e640d0a8e3f325921051e107efef6a6659a",
+            "targetSha256": "a085d2b3781d1c4498c5297c07ac1f04de830dfb7434429aafb76f3c1e052a9c",
+            "recordedAt": "2026-09-06T07:01:08.412Z"
+          }
+        ],
         "smokes": [],
         "targetSha256": "a085d2b3781d1c4498c5297c07ac1f04de830dfb7434429aafb76f3c1e052a9c"
       },
-      "nextAction": "aplicar no alvo e registrar evidência durável"
+      "nextAction": "registrar smoke de produção com rota, deploy e screenshot"
     },
     {
       "source": "fiscal-page.jsx",
@@ -2342,10 +2364,10 @@
       "module": "Fiscal",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "compared",
-      "applicationState": "pending",
+      "lifecycleState": "tested",
+      "applicationState": "applied",
       "compared": true,
-      "tested": false,
+      "tested": true,
       "smoked": false,
       "applicationEvidence": {
         "comparison": {
@@ -2353,12 +2375,33 @@
           "mapSha256": "c744206dd95280366878536feeb5324c2ed0ace51d7b40495aa367e35ecb417a",
           "recordedAt": "2026-09-06T01:46:28.961Z"
         },
-        "application": null,
-        "tests": [],
+        "application": {
+          "evidence": "memory/requisitos/Fiscal/fiscal-eventos-visual-comparison.md",
+          "evidenceSha256": "77391510d20afbbf94eebd90090a8e2aa0a694cfff8745e941f418a908adcc4d",
+          "recordedAt": "2026-09-06T07:01:08.689Z"
+        },
+        "tests": [
+          {
+            "command": [
+              "gh",
+              "run",
+              "view",
+              "--job",
+              "101411155078",
+              "--exit-status"
+            ],
+            "exitCode": 0,
+            "runner": "ci",
+            "outputSha256": "35a2bfe0449fae5933b4b1218c86554ab1aea8ac31697177d5e34b2d879e74e6",
+            "sourceSha256": "6f302cead5a6f1d8b2033386131f7e640d0a8e3f325921051e107efef6a6659a",
+            "targetSha256": "bc1143eb516431b4ff0cb90a92274d3bd1e8488a0355b6eb22aafbaf37ef57cc",
+            "recordedAt": "2026-09-06T07:01:10.382Z"
+          }
+        ],
         "smokes": [],
         "targetSha256": "bc1143eb516431b4ff0cb90a92274d3bd1e8488a0355b6eb22aafbaf37ef57cc"
       },
-      "nextAction": "aplicar no alvo e registrar evidência durável"
+      "nextAction": "registrar smoke de produção com rota, deploy e screenshot"
     },
     {
       "source": "fiscal-page.jsx",
@@ -2417,10 +2460,10 @@
       "module": "Fiscal",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "compared",
-      "applicationState": "pending",
+      "lifecycleState": "tested",
+      "applicationState": "applied",
       "compared": true,
-      "tested": false,
+      "tested": true,
       "smoked": false,
       "applicationEvidence": {
         "comparison": {
@@ -2428,12 +2471,33 @@
           "mapSha256": "917f6e7c3492f92cc49c86d2f5d56c4ee30b3e77a0949d3acf2bc4bfc5b8939f",
           "recordedAt": "2026-09-06T01:46:29.565Z"
         },
-        "application": null,
-        "tests": [],
+        "application": {
+          "evidence": "memory/requisitos/Fiscal/fiscal-sped-visual-comparison.md",
+          "evidenceSha256": "3eff39820a759c3151f22a5596d4a0eb66f2890023c26c57eeffad7eb4a64c4d",
+          "recordedAt": "2026-09-06T07:01:10.649Z"
+        },
+        "tests": [
+          {
+            "command": [
+              "gh",
+              "run",
+              "view",
+              "--job",
+              "101411155078",
+              "--exit-status"
+            ],
+            "exitCode": 0,
+            "runner": "ci",
+            "outputSha256": "35a2bfe0449fae5933b4b1218c86554ab1aea8ac31697177d5e34b2d879e74e6",
+            "sourceSha256": "6f302cead5a6f1d8b2033386131f7e640d0a8e3f325921051e107efef6a6659a",
+            "targetSha256": "7ed9f21fc0ac7616237462e630e42079fab1a9abd969e1fb43d9b7f8d1da6570",
+            "recordedAt": "2026-09-06T07:01:12.763Z"
+          }
+        ],
         "smokes": [],
         "targetSha256": "7ed9f21fc0ac7616237462e630e42079fab1a9abd969e1fb43d9b7f8d1da6570"
       },
-      "nextAction": "aplicar no alvo e registrar evidência durável"
+      "nextAction": "registrar smoke de produção com rota, deploy e screenshot"
     },
     {
       "source": "forja-page.jsx",
