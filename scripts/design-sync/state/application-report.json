@@ -1,6 +1,6 @@
 {
   "schema": "oimpresso-design-application-report/3",
-  "generatedAt": "2026-09-06T11:25:39.669Z",
+  "generatedAt": "2026-09-06T12:08:15.994Z",
   "bundle": {
     "id": "5023b274183d849dcc925eae85cef61a991c3541ca1daeb680267c1afda99e4d",
     "baseId": null,
@@ -15,9 +15,9 @@
     "smoked": 0,
     "lifecycle": {
       "tested": 4,
-      "anchored": 62,
+      "anchored": 59,
       "to-create": 23,
-      "compared": 4
+      "compared": 7
     },
     "applied": 4,
     "pending": 66,
@@ -2987,13 +2987,23 @@
       "module": "Ponto",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Ponto/dashboard-index.map.json",
+          "mapSha256": "06e654b992a5d6f3d421ede11d5604d3e8aff30421d549202dc5e4b556b4eab3",
+          "recordedAt": "2026-09-06T12:08:13.428Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "4750043c8955cb14e190d986e624ea303179899f4f85634af00105d8130b16b2"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "ponto-page.jsx",
@@ -3002,13 +3012,23 @@
       "module": "Ponto",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Ponto/espelho-index.map.json",
+          "mapSha256": "a862e6089108e335583e2b311b2b5c6173345359109a12e998158b43f0e25bf1",
+          "recordedAt": "2026-09-06T12:08:14.718Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "fa0bb3d3aa2ce553e5a2232cfe5986570516b0e0915d1b7fc6d857d74bf96cb7"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "ponto-page.jsx",
@@ -3017,13 +3037,23 @@
       "module": "Ponto",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
+      "lifecycleState": "compared",
       "applicationState": "pending",
-      "compared": false,
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Ponto/espelho-show.map.json",
+          "mapSha256": "80b6c872095ce9c166c918ada4f824d4670ca40e01d91aa48025eb1d763dae74",
+          "recordedAt": "2026-09-06T12:08:15.929Z"
+        },
+        "application": null,
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "a7439b370b731f5500854a415f9377d8ce251e740d0455e95d60047357936649"
+      },
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "prefs-page.jsx",
