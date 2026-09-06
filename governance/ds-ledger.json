@@ -244,7 +244,7 @@
     },
     {
       "screen": "Essentials",
-      "note": "13 arquivo(s)",
+      "note": "16 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "yes",
@@ -422,8 +422,8 @@
   "progressPct": 37,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "adf6f0276",
-  "generatedAt": "2026-09-05T12:56:46.343Z",
+  "measuredAgainstSha": "2bcd8658c",
+  "generatedAt": "2026-09-06T13:03:42.116Z",
   "treeGuard": {
     "pass": true,
     "violations": 0

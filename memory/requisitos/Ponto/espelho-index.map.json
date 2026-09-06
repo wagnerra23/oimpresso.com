@@ -14,7 +14,7 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Espelho/Index.tsx",
-        "linhas": "82-89",
+        "linhas": "79-88",
         "ancora": false
       },
       "status": "vivo-a-frente",
@@ -25,11 +25,11 @@
       "id": "busca-por-nome-matricula",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
-        "linhas": "120-121"
+        "linhas": "121-122"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Espelho/Index.tsx",
-        "linhas": "74-79",
+        "linhas": "72-76",
         "ancora": false
       },
       "status": "decidir-w",
@@ -40,7 +40,7 @@
       "id": "filtro-por-escala",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
-        "linhas": "116-119"
+        "linhas": "116-120"
       },
       "vivo": {
         "arquivo": "n/a",
@@ -55,7 +55,7 @@
       "id": "filtro-so-com-divergencia-contador-da-competencia",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
-        "linhas": "123-127"
+        "linhas": "123-126"
       },
       "vivo": {
         "arquivo": "n/a",
@@ -63,7 +63,7 @@
         "ancora": false
       },
       "status": "decidir-w",
-      "acao": "Decidir. É o atalho operacional do mês (quem tem pendência), e o `Painel` já publica o mesmo número — `Dashboard/Index.tsx` calcula `divergencias` para a nota de fechamento. Custo real: agregar por colaborador no `index`, que hoje é `Inertia::defer` de uma paginação simples. Decisão de [W] porque muda a query da lista.",
+      "acao": "Decidir. É o atalho operacional do mês (quem tem pendência), e o `Painel` já publica o mesmo número — mas quem o calcula é o `DashboardController.php:105` (`ApuracaoDia::where(...)->whereMonth(...)`); a tela apenas recebe (`Dashboard/Index.tsx:234`, `divergencias={kpis?.divergencias_mes ?? 0}`, prop declarada em `:36`). Custo real: agregar por colaborador no `index`, que hoje é `Inertia::defer` de uma paginação simples. Decisão de [W] porque muda a query da lista.",
       "_acionavel": true
     },
     {
@@ -74,22 +74,22 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Espelho/Index.tsx",
-        "linhas": "107-111",
+        "linhas": "106-110",
         "ancora": false
       },
       "status": "decidir-w",
-      "acao": "Decidir. As 6 ausentes são dado agregado por competência, não layout — é a mesma query do item anterior. O CPF do vivo é exigência legal do documento (o `Show` o imprime, `Show.tsx:188`), então não sai. Decisão de [W]: a lista é índice de navegação (hoje) ou painel de competência (protótipo)?",
+      "acao": "Decidir. As 6 ausentes são dado agregado por competência, não layout — é a mesma query do item anterior. O CPF do vivo é exigência legal do documento (o `Show` o imprime, `Espelho/Show.tsx:188`), então não sai. Decisão de [W]: a lista é índice de navegação (hoje) ou painel de competência (protótipo)?",
       "_acionavel": true
     },
     {
       "id": "estado-vazio",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
-        "linhas": "131"
+        "linhas": "130"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Espelho/Index.tsx",
-        "linhas": "96-98",
+        "linhas": "97-100",
         "ancora": false
       },
       "status": "vivo-a-frente",
@@ -100,11 +100,11 @@
       "id": "paginacao",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
-        "linhas": "155"
+        "linhas": "153"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Espelho/Index.tsx",
-        "linhas": "132-155",
+        "linhas": "134-155",
         "ancora": false
       },
       "status": "paridade",

@@ -1,6 +1,6 @@
 {
   "schema": "oimpresso-design-application-report/3",
-  "generatedAt": "2026-09-06T12:34:58.534Z",
+  "generatedAt": "2026-09-06T18:25:53.382Z",
   "bundle": {
     "id": "5023b274183d849dcc925eae85cef61a991c3541ca1daeb680267c1afda99e4d",
     "baseId": null,
@@ -1948,7 +1948,7 @@
         "comparison": {
           "map": "memory/requisitos/RecurringBilling/cobranca-recorrente-configuracoes.map.json",
           "mapSha256": "d9ab3b8c1cf129156db146a9a0ab843030b57f2c009eb1018333c37b45926cc3",
-          "recordedAt": "2026-09-06T12:34:58.395Z"
+          "recordedAt": "2026-09-06T18:25:53.204Z"
         },
         "application": null,
         "tests": [],
@@ -1973,7 +1973,7 @@
         "comparison": {
           "map": "memory/requisitos/RecurringBilling/cobranca-recorrente-faturas.map.json",
           "mapSha256": "ea870dd0aed8405da3fceee8c9d13d7200fd4acc93781c34232883a3940f6795",
-          "recordedAt": "2026-09-06T12:34:57.144Z"
+          "recordedAt": "2026-09-06T18:25:51.968Z"
         },
         "application": null,
         "tests": [],
@@ -2013,7 +2013,7 @@
         "comparison": {
           "map": "memory/requisitos/RecurringBilling/cobranca-recorrente-planos.map.json",
           "mapSha256": "a91392c82fae1ba8f0af501ac2a05c1f406a7d19db966f0fbfaa9036620078da",
-          "recordedAt": "2026-09-06T12:34:55.818Z"
+          "recordedAt": "2026-09-06T18:25:50.617Z"
         },
         "application": null,
         "tests": [],
@@ -2621,7 +2621,7 @@
         "comparison": {
           "map": "memory/requisitos/Governance/governance-audit.map.json",
           "mapSha256": "b240a0f36e3593dae36cac150e9fdec332cfb7a2d8a4c05920542348c84d8be4",
-          "recordedAt": "2026-09-06T12:34:43.012Z"
+          "recordedAt": "2026-09-06T18:25:38.275Z"
         },
         "application": null,
         "tests": [],
@@ -2646,7 +2646,7 @@
         "comparison": {
           "map": "memory/requisitos/Governance/governance-dashboard.map.json",
           "mapSha256": "1488955c6ecc9e7fb230d9a3798bf27dfbd779a0ecd6eaf8e2d2823aed10e7cc",
-          "recordedAt": "2026-09-06T12:34:44.387Z"
+          "recordedAt": "2026-09-06T18:25:39.615Z"
         },
         "application": null,
         "tests": [],
@@ -2671,7 +2671,7 @@
         "comparison": {
           "map": "memory/requisitos/Governance/governance-drift-alerts.map.json",
           "mapSha256": "15c085a9e868e0f3b918ed5a70a93640db15c6bc33dbcad73da3fa9a5f8a9298",
-          "recordedAt": "2026-09-06T12:34:45.763Z"
+          "recordedAt": "2026-09-06T18:25:40.992Z"
         },
         "application": null,
         "tests": [],
@@ -2696,7 +2696,7 @@
         "comparison": {
           "map": "memory/requisitos/Governance/governance-module-grades.map.json",
           "mapSha256": "4562cb3b7d7d4291f24377ec1871021728e1a11e585f971227e675cc0ee6889b",
-          "recordedAt": "2026-09-06T12:34:47.111Z"
+          "recordedAt": "2026-09-06T18:25:42.355Z"
         },
         "application": null,
         "tests": [],
@@ -2721,7 +2721,7 @@
         "comparison": {
           "map": "memory/requisitos/Governance/governance-policies.map.json",
           "mapSha256": "f2d7995ecde11a232859efb9436f9868e9965dbbe829a143c8abd7fd7d815409",
-          "recordedAt": "2026-09-06T12:34:48.539Z"
+          "recordedAt": "2026-09-06T18:25:43.598Z"
         },
         "application": null,
         "tests": [],
@@ -3075,8 +3075,8 @@
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Ponto/dashboard-index.map.json",
-          "mapSha256": "06e654b992a5d6f3d421ede11d5604d3e8aff30421d549202dc5e4b556b4eab3",
-          "recordedAt": "2026-09-06T12:08:13.428Z"
+          "mapSha256": "cc1535b98706a142c6e3b1f6a043d23f94868f3728b63717aec43e27d3478ed9",
+          "recordedAt": "2026-09-06T12:32:08.316Z"
         },
         "application": null,
         "tests": [],
@@ -3100,8 +3100,8 @@
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Ponto/espelho-index.map.json",
-          "mapSha256": "a862e6089108e335583e2b311b2b5c6173345359109a12e998158b43f0e25bf1",
-          "recordedAt": "2026-09-06T12:08:14.718Z"
+          "mapSha256": "55c9ae78737ec3dfad1f4b55e08ebfc01e82e229a44d72236f5e17e48fca02a0",
+          "recordedAt": "2026-09-06T12:32:10.079Z"
         },
         "application": null,
         "tests": [],
@@ -3125,8 +3125,8 @@
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Ponto/espelho-show.map.json",
-          "mapSha256": "80b6c872095ce9c166c918ada4f824d4670ca40e01d91aa48025eb1d763dae74",
-          "recordedAt": "2026-09-06T12:08:15.929Z"
+          "mapSha256": "396cae50b7024cd0c21de3bc2b83401d33c5a7ef8470a5064757c8a6df4db13c",
+          "recordedAt": "2026-09-06T12:32:12.247Z"
         },
         "application": null,
         "tests": [],
@@ -3346,7 +3346,7 @@
         "comparison": {
           "map": "memory/requisitos/Superadmin/superadmin-assinaturas.map.json",
           "mapSha256": "322257c755a512bd967a2f7c36463d02da4ee6bae36b722de4b7adfbd8e246a2",
-          "recordedAt": "2026-09-06T12:34:50.021Z"
+          "recordedAt": "2026-09-06T18:25:44.885Z"
         },
         "application": null,
         "tests": [],
@@ -3371,7 +3371,7 @@
         "comparison": {
           "map": "memory/requisitos/Superadmin/superadmin-dashboard.map.json",
           "mapSha256": "0ba214b1aba5f159809b1c1ef19d24442ee06f6933dd176891af9e930bce8162",
-          "recordedAt": "2026-09-06T12:34:51.550Z"
+          "recordedAt": "2026-09-06T18:25:46.232Z"
         },
         "application": null,
         "tests": [],
@@ -3396,7 +3396,7 @@
         "comparison": {
           "map": "memory/requisitos/Superadmin/superadmin-negocios.map.json",
           "mapSha256": "b4635d77768765274f9e722dee138443fcc7151b344c36d236ba96f570f00130",
-          "recordedAt": "2026-09-06T12:34:53.081Z"
+          "recordedAt": "2026-09-06T18:25:47.609Z"
         },
         "application": null,
         "tests": [],
@@ -3421,7 +3421,7 @@
         "comparison": {
           "map": "memory/requisitos/Superadmin/superadmin-pacotes.map.json",
           "mapSha256": "264e2e5059cbc7c45a814e3caf3322655b9940aeee853d1da0b5e4583c51ed3a",
-          "recordedAt": "2026-09-06T12:34:54.545Z"
+          "recordedAt": "2026-09-06T18:25:49.005Z"
         },
         "application": null,
         "tests": [],

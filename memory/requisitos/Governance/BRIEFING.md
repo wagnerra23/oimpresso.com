@@ -4,7 +4,7 @@ distilled_at: "2026-08-13"
 distilled_by: "delta [C] 2026-08-13 — SÓ a US-GOV-061 + o achado medido no CT 100 (guard aborta; os 6 fósseis ficam intactos; o fato datado se perde no INDEX.md). NÃO é redistilação: zero releitura de rotas/controllers/config, e os números do delta anterior não foram re-rodados. Nota anterior: delta [C] 2026-08-05 — refresh so pelos 4 RUNBOOKs novos (audit/policies/drift-alerts/ds-rollout) + a strip de sub-navegacao; a releitura de fundo continua sendo a anterior. Nota anterior: delta [C] — NÃO é redistilação completa: a releitura de fundo é a de 2026-07-17 (abaixo, intacta). Este refresh só re-mede os números que mudaram e acrescenta as 3 US do canal HITL. Dizer 'redistilado' aqui seria teatro"
 module: Governance
 status: producao
-updated_at: "2026-08-13"
+updated_at: "2026-09-06"
 ---
 
 # BRIEFING — Governance (verdade destilada)
@@ -96,3 +96,11 @@ Ou seja: a frase *"regenerar trocaria o ✅ deles por n/d"* **não se confirma**
 **Contexto que originou:** [W] pediu o ciclo completo de cada máquina tocada; a medição achou **zero** testes cobrindo `scanAssets`/seção Assets do `ModuleSpecGenerator`, e o `ModuleBuildLayerAbsentTest` fechou a lacuna ([#5706](https://github.com/wagnerra23/oimpresso.com/pull/5706), 5 casos · 2 de controle negativo · bite-test no CT 100).
 
 **O que este delta NÃO fez:** releitura de rotas/controllers/comandos/config, nem re-rodou os números de SPEC/anchor-lint do delta anterior. A leitura de fundo continua sendo a de 2026-07-17; se apodrecer, o conserto é redistilar de verdade, não empilhar deltas.
+
+## Delta 2026-09-06 (não-redistilação — só o que mudou)
+
+**O que entrou:** o refutador GT-G5 virou **máquina** — `.claude/workflows/refutador-gt-g5.js`, caminho executável do §2 do `PROTOCOLO-REFUTADOR-BACKFILL.md` (§7 do protocolo aponta pra ele; [PR #6907](https://github.com/wagnerra23/oimpresso.com/pull/6907)). Uma rodada por invocação: 1 refutador (instância nova, `fable`, sessão fresca, proibido de abrir evidências anteriores) com o prompt adversarial canônico (itens 1–6, destilados das 9 rodadas do [#6897](https://github.com/wagnerra23/oimpresso.com/pull/6897)); veredito **calculado pela máquina** (erros/itens < 2%, `pii_hits = 0`, controles positivos 7/7); reprovado devolve os refutados e **para** (o workflow não edita o lote); aprovado grava a entry no ledger e cola o `ledger-check --enforce`. Selftest hermético em `scripts/governance/refutador-gt-g5-workflow.test.mjs` (arquivo vivo embrulhado com dublê de `agent()`), registrado em `governance-script-tests.yml`.
+
+**Custo medido (2026-09-06):** ~330–400k tokens por rodada; compensa só para lote > 10 arquivos.
+
+**O que este delta NÃO fez:** releitura de rotas/controllers/comandos/config; `distilled_at` segue 2026-08-13 (não foi re-destilado — carimbo à mão seria métrica-de-forma). A leitura de fundo continua sendo a de 2026-07-17; se apodrecer, o conserto é redistilar de verdade, não empilhar deltas.
