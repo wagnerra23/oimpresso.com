@@ -108,6 +108,30 @@ Escopo derivado do F1 PLAN em [`RUNBOOK-repair-settings.md`](RUNBOOK-repair-sett
 - [ ] Pest de contrato na lane MySQL real, tenant 98, cobrindo filtro por local/status/cliente e isolamento cross-tenant.
 - [ ] Teto de `length: '200'` resolvido: hoje a busca é fixa em 200 linhas sem paginação — inerte enquanto a tabela está vazia, silencioso quando não estiver.
 - [ ] Cor do status: o payload traz `status_color` e a tabela usa `bg-primary` genérico (gap já registrado no scorecard, esforço baixo).
+### US-REPA-005 · Manter o catálogo de status e de modelos que as OS usam
+
+> owner: — · priority: p2 · type: story
+> blocked_by: —
+
+**Como** admin do negócio
+**Quero** cadastrar as etapas por que uma OS passa e os modelos de aparelho que a oficina atende
+**Para** que quem abre a OS escolha de uma lista curada, em vez de digitar texto livre a cada vez
+
+**Implementado em:** `resources/js/Pages/Repair/Status/Index.tsx` · `resources/js/Pages/Repair/DeviceModels/Index.tsx` · `resources/js/Pages/Repair/DeviceModels/Create.tsx` · `resources/js/Pages/Repair/DeviceModels/Edit.tsx` · `Modules/Repair/Http/Controllers/RepairStatusController.php` · `Modules/Repair/Http/Controllers/DeviceModelController.php` · verificado@c8b3ad7 (2026-09-05) — as 4 telas já estavam vivas em coexistência opt-in; esta US registra o que existe e o contrato que o defende.
+
+**Testado em:** `Modules/Repair/Tests/Feature/RepairStatusContratoTest.php` e `Modules/Repair/Tests/Feature/DeviceModelsContratoTest.php` — lane **Verticais · Pest (MySQL)**, allowlist. Veredito medido no CT 100 em 2026-09-05, tenant 98: **20 `pass` (79 assertions), 0 `skip`**, estável em 3 rodadas com ordem aleatória diferente.
+
+**Por que esta US nasce agora, e não é escopo novo:** a [US-REPA-003](#us-repa-003--configurar-os-padrões-da-folha-de-os-e-o-que-sai-impresso) recortou de propósito **2 das 5 abas** do hub Blade e registrou que *"as abas de Status de OS e Modelos de dispositivo já têm Page própria e viva; esta tela aponta para elas em vez de reimplementar"*. As 4 telas ficaram, portanto, vivas e **sem US que as declarasse** — o que só apareceu quando o `charter-us-lint` mordeu o charter do Status. Esta US documenta o que já roda; não propõe construção.
+
+**Contrato que as telas não podem quebrar:** as duas portas de entrada são **diferentes**, e isso é contrato, não acaso. O catálogo de modelos exige `superadmin` **ou** a assinatura do `repair_module`; a tela de status exige `superadmin` **ou** (assinatura **e** `repair_status.access`) — e como essa permission não existe na base, na prática só superadmin entra. Quem for uniformizar precisa decidir **qual** dos dois gates é o certo. O contrato executável vive nos quatro `casos.md` ao lado das telas (UC-DMIDX-01..06, UC-DMCRE-01..04, UC-DMEDT-01..04, UC-RSTIDX-01..06).
+
+**Definition of Done:**
+- [x] Trio fechado nas 4 telas — charter + `casos.md` + teste citando cada UC (gates G-1/G-2).
+- [x] Isolamento multi-tenant provado nas 3 portas (ler, mover, escrever no alheio) em MySQL real, tenant 98.
+- [x] Testes na allowlist da lane `verticais-pest` — sem isso nasceriam mudos.
+- [ ] Divergência do `store()` vs. risco R1 do [RUNBOOK-device-models](RUNBOOK-device-models.md) resolvida: o método devolve JSON cru, não redirect, e a página Inertia fica parada após salvar (registrado em UC-DMCRE-04). Corrigir o controller **ou** o R1 é decisão [W].
+- [ ] `DeviceModelController::index()` sem `return` no caminho flag-off/não-ajax — devolve 200 com corpo vazio (registrado em UC-DMIDX-02). Decisão [W].
+- [ ] Smoke autenticado 1280px com screenshot — pendente por ambiente, como na US-REPA-003.
 
 ## 4. Regras de negócio (Gherkin)
 
