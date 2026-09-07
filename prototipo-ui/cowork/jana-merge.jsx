@@ -267,7 +267,7 @@ function JmMetaDrawer({ meta, onClose, onFalarComJana, onAviso }) {
 
 }
 
-function JmMetasSecao({ standalone, onOpen, vazio, erro, onAviso }) {
+function JmMetasSecao({ standalone, onOpen, vazio, erro, onAviso, onGoTab }) {
   const DS = window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
   const { EmptyState } = DS;
   const JcIcon = window.JcIcon;
@@ -290,6 +290,11 @@ function JmMetasSecao({ standalone, onOpen, vazio, erro, onAviso }) {
             onChange={setView}
             options={[{ key: "ativas", label: "Farol" }, { key: "cadastro", label: "Cadastro" }]} />
           <button className="jm-btn ghost" onClick={() => window.jmAbrirForm?.(null)}>Nova meta</button>
+          {/* PUXADOS da produção (Index.tsx, cabeçalho de METAS): o protótipo não os
+              tinha, e "Conversar com a Jana" é copy pinada no contrato
+              (data-contract painel-cta-conversar) — a ausência era gap do alvo. */}
+          <button className="jm-btn ghost" onClick={() => onAviso?.("Jana Pro vive em modo foco (/ia/pro) — página de decisão, sem abas.")}>Jana Pro</button>
+          <button className="jm-btn ghost" data-contract="painel-cta-conversar" onClick={() => onGoTab?.("conversa")}>Conversar com a Jana</button>
         </span>
       </h2>
       {cadastro && window.JmMetasCadastro ?
@@ -700,7 +705,7 @@ function JmConfigDrawer({ open, onClose, onGoTab, cfg, setCfg }) {
         <Toggle k="fat" label="Faturamento" sub="Curva 24 meses + sazonalidade" />
         <Toggle k="conc" label="Concentração" sub="Pareto de clientes" />
         <Toggle k="churn" label="Churn ouro" sub="LTV alto inativo >90d" />
-        <Toggle k="cheq" label="Cheques" sub="Previsão de depósito" />
+        <Toggle k="metodos" label="Métodos de pagamento" sub="Participação de cada forma" />
       </DrawerSection>
       <DrawerSection title="Até onde ela age">
         <Toggle k="hitl" label="Aprovação obrigatória (HITL)" sub="Toda ação passa por você — não pode ser desligado" fixo />
@@ -745,7 +750,7 @@ function JmAcaoModal({ acao, onClose, onAviso }) {
     setFase("enviando");
     setTimeout(() => {
       setFase("feito");
-      onAviso?.(acao.cta.label + " aprovado — cada mensagem ainda pede seu OK antes de sair.", "ok");
+      onAviso?.("Aprovação registrada — nada sai daqui: cada mensagem ainda pede seu OK antes de enviar.", "ok");
     }, 900);
   };
   return (
@@ -891,7 +896,7 @@ function JanaPage({ company, tab = "painel", metasMode = "secao", estado = "dado
   const [acao, setAcao] = useStateJM(null);
   const [cfg, setCfg] = useStateJM(() => {
     const base = { brief: true, briefHora: "06:00", audio: false, pro: true,
-      inad: true, fat: true, conc: true, churn: true, cheq: true,
+      inad: true, fat: true, conc: true, churn: true, metodos: true,
       hitl: true, retencao: "12 meses" };
     try {return { ...base, ...JSON.parse(localStorage.getItem("oimpresso.jana.cfg") || "{}") };} catch (e) {return base;}
   });
@@ -1039,7 +1044,7 @@ function JanaPage({ company, tab = "painel", metasMode = "secao", estado = "dado
         <JanaHeader company={company} person={data.person} biz={data.biz} updatedAt={hh} onConfig={() => setConfig(true)} plano={plano} exportar={exportar} onRefresh={atualizar} />
         {tabs}
         {carregando ? <JmPainelSkeleton compacto /> :
-        <JmMetasSecao standalone onOpen={abrirMeta} vazio={vazio || erro} erro={erro} onAviso={avisar} />}
+        <JmMetasSecao standalone onOpen={abrirMeta} vazio={vazio || erro} erro={erro} onAviso={avisar} onGoTab={onGoTab} />}
         <JmMetaDrawer meta={meta} onClose={() => setMeta(null)} onFalarComJana={falarComJana} onAviso={avisar} />
         {window.JmMetasOverlays && <window.JmMetasOverlays onAviso={avisar} />}
         {configDrawer}
@@ -1087,7 +1092,7 @@ function JanaPage({ company, tab = "painel", metasMode = "secao", estado = "dado
           })}
           </div>
 
-          {metasMode === "secao" && <JmMetasSecao onOpen={abrirMeta} onAviso={avisar} />}
+          {metasMode === "secao" && <JmMetasSecao onOpen={abrirMeta} onAviso={avisar} onGoTab={onGoTab} />}
 
           <h2 className="jc-h2">
             {JcIcon && <JcIcon name="chart" className="ic" />} ANÁLISES PRINCIPAIS
@@ -1095,7 +1100,7 @@ function JanaPage({ company, tab = "painel", metasMode = "secao", estado = "dado
           </h2>
           {!pro ?
         upsell({ t: "As 5 análises são do plano Pro", icon: "chart",
-          d: "Inadimplência, faturamento, concentração, churn ouro e cheques — recalculadas todo dia, com drill-down até a origem do número." }) :
+          d: "Inadimplência, faturamento, concentração, churn ouro e métodos de pagamento — recalculadas todo dia, com drill-down até a origem do número." }) :
         analises.length === 0 ?
         <div className="jm-mem-empty"><b>Todas as análises estão desligadas.</b><small>Ligue de volta em Configurar → Análises que ela roda.</small></div> :
 
