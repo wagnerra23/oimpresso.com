@@ -5,7 +5,10 @@
 const { useState: useStateJ, useRef: useRefJ, useEffect: useEffectJ } = React;
 
 // ─── Ícones (line, currentColor — sem emoji, conforme proibições visuais) ───
-function JcIcon({ name, className }) {
+// `s` = tamanho em px como ATRIBUTO (não CSS): quem já dimensiona por classe continua
+// mandando (folha vence atributo); quem renderiza o ícone sem folha (ex. o nó que o
+// CliTabs entrega ao TabBar do DS) passa `s` e não depende de classe nenhuma.
+function JcIcon({ name, className, s }) {
   const P = {
     settings:  <><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2.5 12h3M18.5 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></>,
     download:  <><path d="M12 4v11M7 11l5 4 5-4"/><path d="M5 19h14"/></>,
@@ -43,7 +46,7 @@ function JcIcon({ name, className }) {
     product:   <><path d="M12 3l8 4v10l-8 4-8-4V7z"/><path d="M4 7l8 4 8-4M12 11v10"/></>,
   };
   return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor"
+    <svg viewBox="0 0 24 24" className={className} width={s || undefined} height={s || undefined} fill="none" stroke="currentColor"
          strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       {P[name] || <circle cx="12" cy="12" r="2"/>}
     </svg>
@@ -202,26 +205,18 @@ function RichSpan({ runs }) {
 
 function JanaHeader({ company, person, biz, updatedAt, onNew, isChat, onConfig, plano, exportar, onRefresh }) {
   return (
-    <header className="jc-header">
-      <div className="jc-header-l">
-        <div className="jc-avatar">{person.initial}</div>
-        <div className="jc-id">
-          <h1>{person.name} <span className="dot">·</span> {person.role}</h1>
-          <p>
-            <span className="jc-tenant">{company?.name?.toUpperCase() || "OFFICEIMPRESSO"}</span>
-            <span className="jc-sep">·</span>{biz.code}<span className="jc-sep">·</span>{biz.version}
-          </p>
-        </div>
-      </div>
-      <div className="jc-header-r">
-        <span className="jc-updated">{onRefresh ? <button className="jc-updated-b" onClick={onRefresh} title="Atualizar agora"><span className="d"/>Atualizado {updatedAt}</button> : <><span className="d"/>Atualizado {updatedAt}</>}</span>
+    <window.CliPageHead
+      avatar={person.initial}
+      titulo={person.name} papel={person.role}
+      contexto={[company?.name?.toUpperCase() || "OFFICEIMPRESSO", biz.code, biz.version]}
+      atualizadoAs={updatedAt} onRefresh={onRefresh}
+      acoes={<>
         {plano}
         {isChat &&
           <button className="jc-btn ghost" onClick={onNew}><JcIcon name="plus" className="ic"/><span>Nova conversa</span></button>}
         <button className={"jc-btn ghost" + (isChat ? " jm-icon-only" : "")} onClick={onConfig} aria-label="Configurar" title="Configurar"><JcIcon name="settings" className="ic"/><span>Configurar</span></button>
         {exportar || <button className="jc-btn dark"><JcIcon name="download" className="ic"/><span>Exportar</span></button>}
-      </div>
-    </header>
+      </>} />
   );
 }
 
@@ -279,7 +274,7 @@ function Sparkline({ data, w = 280, h = 60 }) {
   }
   const area = d + ` L ${w} ${h} L 0 ${h} Z`;
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="jc-spark" preserveAspectRatio="none">
+    <svg viewBox={`0 0 ${w} ${h}`} className="jc-spark" preserveAspectRatio="none" aria-hidden="true">
       <defs>
         <linearGradient id="jcSparkGrad" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%"   stopColor="var(--pos)" stopOpacity="0.26"/>

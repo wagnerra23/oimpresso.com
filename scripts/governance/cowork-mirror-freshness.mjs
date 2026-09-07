@@ -665,6 +665,9 @@ export function ledgerEntry(rows, dateIso, meta = {}) {
   // é o número que responde "o espelho drifta com que frequência?", que é o que a ADR 0324
   // precisa do ledger. Sem ele a série histórica só sabe dizer 0 e vira carimbo.
   if (meta.origin) e.origin = meta.origin;
+  // ADR 0389: escrita inline DECLARADA (--origem agente). Viaja pro ledger pra que a rodada
+  // não se passe por export de saída persistida — a mentira, se houver, fica datada aqui.
+  if (meta.origemDeclarada) e.origemDeclarada = meta.origemDeclarada;
   if (typeof meta.stalePreExport === 'number') e.stalePreExport = meta.stalePreExport;
   return e;
 }
@@ -1982,7 +1985,7 @@ function main() {
       // O número que faltava já existia aqui (`tally.ATUALIZADO`). Agora ele viaja no snapshot,
       // o --compare o repassa e o ledger o grava como `stale_pre_export` — a rodada passa a
       // distinguir "estava em dia" de "acabei de arrumar".
-      writeFileSync(snapOut, JSON.stringify({ _origin: 'export', _stalePreExport: tally.ATUALIZADO, ...snapshotEmitido }, null, 2) + '\n');
+      writeFileSync(snapOut, JSON.stringify({ _origin: 'export', _stalePreExport: tally.ATUALIZADO, ...(origemAgente ? { _origemDeclarada: 'agente' } : {}), ...snapshotEmitido }, null, 2) + '\n');
       console.log(`  snapshot emitido em ${snapOut} (${Object.keys(snapshotEmitido).length} entrada(s)) — sem re-baixar.`);
       if (tally.ATUALIZADO) {
         console.log(`  ⚠ ${tally.ATUALIZADO} arquivo(s) ESTAVAM stale e foram consertados por este export.`);
@@ -2218,6 +2221,7 @@ function main() {
     try { entries = existsSync(lp) ? JSON.parse(readFileSync(lp, 'utf8')) : []; } catch { entries = []; }
     entries.push(ledgerEntry(rows, new Date().toISOString(), {
       origin: snapshot._origin, stalePreExport: snapshot._stalePreExport,
+      origemDeclarada: snapshot._origemDeclarada,
     }));
     writeFileSync(lp, JSON.stringify(entries, null, 2) + '\n');
     console.log(`  ledger: rodada registrada em ${LEDGER_REL} (${entries.length} entrada(s)). Commite o ledger.`);
