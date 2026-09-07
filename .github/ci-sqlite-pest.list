@@ -25,6 +25,7 @@ Modules/Jana/Tests/Feature/Mcp/McpAuthCostEstimateTest.php
 # syncPermissions e apagava os 17 `jana.mcp.*`, derrubando o MCP do time inteiro).
 # DB-less: compara catálogo do seeder × user_permissions(). sqlite-safe.
 Modules/Jana/Tests/Feature/McpScopesVisiveisNoRoleEditTest.php
+Modules/Jana/Tests/Feature/McpScopeAdminOnlyNaoAutoConcedivelTest.php
 # Poda preventiva de mcp_memory_documents_history (incidente 2026-06-21 — 5 GB → cota → revogou escrita). Schema sintético, sqlite-safe.
 Modules/Jana/Tests/Feature/MemoryHistoryPruneCommandTest.php
 # BriefDiarioAgent (US-COPI-202, ADR 0141) — vinha listado SÓ na allowlist MySQL do
