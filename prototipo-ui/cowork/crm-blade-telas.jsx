@@ -17,7 +17,13 @@ const DS = () => window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
 const UI = () => window.PBUI || {};
 const D = () => window.CBD || {};
 const U = () => window.CBUI || {};
-const Ic = ({ name, size = 14 }) => { const F = (window.I || {})[name]; return F ? <F size={size} /> : null; };
+const Ic = ({ name, size = 14, rotulo = null }) => {
+  const F = (window.I || {})[name];
+  if (!F) return null;
+  return rotulo
+    ? <span role="img" aria-label={rotulo} style={{ display: "inline-flex" }}><F size={size} /></span>
+    : <span aria-hidden="true" style={{ display: "inline-flex" }}><F size={size} /></span>;
+};
 
 // ─────────── Campanhas (campaign/index.blade.php) ───────────
 function Campanhas({ avisar, densa, setDensa, abrir }) {
@@ -245,7 +251,7 @@ function Relatorios({ densa, avisar }) {
       </Widget>
       <Widget contrato="crm-rel-conversao" titulo="Leads convertidos em cliente" nota="clique numa linha para ver quem foi">
         <table className="pb-tbl" style={{ width: "100%" }}>
-          <thead><tr><th>Convertido por</th><th style={{ textAlign: "right" }}>Total</th></tr></thead>
+          <thead><tr><th scope="col">Convertido por</th><th scope="col" style={{ textAlign: "right" }}>Total</th></tr></thead>
           <tbody>
             {PAINEL.conversao.map((r) => (
               <tr key={r.quem} onClick={() => setDrill(r)} style={{ cursor: "default" }}>
@@ -444,7 +450,7 @@ function Taxonomias({ avisar }) {
       {grupos.map((g) => (
         <Widget key={g.titulo} contrato={"crm-tax-" + g.titulo} titulo={g.titulo} nota={g.nota}>
           <table className="pb-tbl" style={{ width: "100%" }}>
-            <thead><tr><th>Nome</th><th style={{ textAlign: "right" }}>Em uso</th></tr></thead>
+            <thead><tr><th scope="col">Nome</th><th scope="col" style={{ textAlign: "right" }}>Em uso</th></tr></thead>
             <tbody>{g.itens.map((i) => <tr key={i.nome}><td>{i.nome}</td><td className="mono" style={{ textAlign: "right" }}>{i.uso}</td></tr>)}</tbody>
           </table>
           <div className="pb-filters-h" style={{ marginTop: 12 }}>

@@ -171,11 +171,7 @@ function WooCommercePage() {
             <button className="os-btn primary" onClick={() => avisar("Sincronizando todos os produtos — processo demorado; não recarregue a página.", "ok")}><Ic name="refresh" size={13} /> Sincronizar todos</button>
           </div>} />}
       <div className="pb-body">
-        <nav className="cli-moduletopnav vb-nav" aria-label="Áreas do WooCommerce">
-          {[["produtos", "Produtos"], ["pedidos", "Pedidos"], ["log", "Log de sincronização"], ["config", "Configuração"]].map(([k, l]) => (
-            <button key={k} className={"cli-moduletopnav-tab " + (aba === k ? "active" : "")} onClick={() => setAba(k)}>{l}</button>
-          ))}
-        </nav>
+        {window.CliTabs && <window.CliTabs ariaLabel="Áreas do WooCommerce" className="vb-nav" tabs={[["produtos", "Produtos"], ["pedidos", "Pedidos"], ["log", "Log de sincronização"], ["config", "Configuração"]].map(([k, l]) => ({ key: k, label: l }))} active={aba} onChange={setAba} />}
 
         {aba === "produtos" && Grade &&
           <>
@@ -395,10 +391,7 @@ function RestauranteExtrasPage({ view = "cfg-mesas" }) {
           glyph={<Ic name="grid" />}
           acoes={<button className="os-btn primary" onClick={() => avisar(mesas ? "Nova mesa — nome e local obrigatórios." : "Atendente vem de Usuários, marcado como pessoal de atendimento.", "ok")}><Ic name="plus" size={13} /> Adicionar</button>} />}
       <div className="pb-body">
-        <nav className="cli-moduletopnav vb-nav" aria-label="Restaurante">
-          <button className={"cli-moduletopnav-tab " + (mesas ? "active" : "")} onClick={() => ir("cfg-mesas")}>Mesas</button>
-          <button className={"cli-moduletopnav-tab " + (!mesas ? "active" : "")} onClick={() => ir("cfg-atendentes")}>Atendentes</button>
-        </nav>
+        {window.CliTabs && <window.CliTabs ariaLabel="Restaurante" className="vb-nav" tabs={[{ key: "cfg-mesas", label: "Mesas" }, { key: "cfg-atendentes", label: "Atendentes" }]} active={mesas ? "cfg-mesas" : "cfg-atendentes"} onChange={ir} />}
         {Alert && <Alert tone="info" title="Fora do piloto de comunicação visual">Mesa e atendente pertencem ao módulo Restaurante do legado — a permissão é uma só (<span className="mono">access_tables</span>) e vale pra tela inteira. Ficam aqui para quem liga o módulo; o relatório de mesas segue declarado fora de escopo no catálogo de relatórios.</Alert>}
         {Grade &&
           <>

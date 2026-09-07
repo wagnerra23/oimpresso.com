@@ -350,16 +350,14 @@ function AbaBens({ db, papel, dense, filtro, setFiltro, busca, setBusca, sel, on
 
   return (
     <div className="ptr-list">
-      <div className="ptr-subtabs">
-        {TabBar &&
-          <TabBar active={filtro} onChange={setFiltro}
-            tabs={[
-              { key: "todos", label: "Todos", count: visiveis.length },
-              { key: "alocaveis", label: "Alocáveis", count: visiveis.filter((b) => b.alocavel).length },
-              { key: "garantia", label: "Garantia crítica", count: visiveis.filter((b) => ["out", "soon"].includes(P.garantia(b).st)).length },
-              { key: "manutencao", label: "Em manutenção", count: visiveis.filter((b) => P.emManutencao(db.manutencoes, b.id)).length },
-            ]} />}
-      </div>
+      <window.CliTabs className="ptr-subtabs" ariaLabel="Recorte do patrimônio"
+        active={filtro} onChange={setFiltro}
+        tabs={[
+          { key: "todos", label: "Todos", n: visiveis.length },
+          { key: "alocaveis", label: "Alocáveis", n: visiveis.filter((b) => b.alocavel).length },
+          { key: "garantia", label: "Garantia crítica", n: visiveis.filter((b) => ["out", "soon"].includes(P.garantia(b).st)).length },
+          { key: "manutencao", label: "Em manutenção", n: visiveis.filter((b) => P.emManutencao(db.manutencoes, b.id)).length },
+        ]} />
       <div className="ptr-toolbar">
         <div className="ptr-filtro"><Select label="Categoria" value={cat} onChange={(e) => setCat(e.target.value)}
           options={[{ value: "todas", label: "todas" }].concat(Object.keys(P.CATEGORIAS).map((k) => ({ value: k, label: P.CATEGORIAS[k] })))} /></div>
@@ -453,11 +451,10 @@ function AbaAlocacoes({ db, papel, dense, onAbrirBem, onRevogar, onAlocar }) {
   return (
     <div className="ptr-list">
       <div className="ptr-subtabs">
-        {TabBar &&
-          <TabBar active={modo} onChange={setModo}
-            tabs={[{ key: "ativas", label: "Ativas", count: todas.filter((a) => !a.revoke).length },
-              { key: "revogadas", label: "Revogadas", count: todas.filter((a) => a.revoke).length },
-              { key: "todas", label: "Todas", count: todas.length }]} />}
+        <window.CliTabs ariaLabel="Situação das alocações" pad={0} active={modo} onChange={setModo}
+          tabs={[{ key: "ativas", label: "Ativas", n: todas.filter((a) => !a.revoke).length },
+            { key: "revogadas", label: "Revogadas", n: todas.filter((a) => a.revoke).length },
+            { key: "todas", label: "Todas", n: todas.length }]} />
         <div className="sp" />
         {P.can(papel, "allocate") && <Button size="sm" variant="ghost" onClick={() => onAlocar(null)}>+ Alocar recurso</Button>}
       </div>
@@ -665,13 +662,11 @@ function BemDrawer({ b, db, papel, close, acoes }) {
         <div className="ptr-trilha">
           <Breadcrumb items={[{ label: "Patrimônio" }, { label: "Bens" }, { label: b.id }]} />
         </div>}
-      <div className="ptr-drawer-nav">
-        {TabBar &&
-          <TabBar active={tab} onChange={setTab}
-            tabs={[{ key: "resumo", label: "Resumo" }, { key: "garantia", label: "Garantia" },
-              { key: "alocacoes", label: "Alocações", count: alocs.length }, { key: "manutencao", label: "Manutenção", count: mans.length },
-              { key: "depreciacao", label: "Depreciação" }, { key: "historico", label: "Histórico", count: logs.length }]} />}
-      </div>
+      <window.CliTabs className="ptr-drawer-nav" ariaLabel="Abas do ativo" pad={18} size="sm"
+        active={tab} onChange={setTab}
+        tabs={[{ key: "resumo", label: "Resumo" }, { key: "garantia", label: "Garantia" },
+          { key: "alocacoes", label: "Alocações", n: alocs.length }, { key: "manutencao", label: "Manutenção", n: mans.length },
+          { key: "depreciacao", label: "Depreciação" }, { key: "historico", label: "Histórico", n: logs.length }]} />
 
       {tab === "resumo" && <>
         <DrawerSection title="Identificação">
@@ -828,8 +823,8 @@ function PatrimonioPage({ view, dense, estado = "dados", toque, papel: papelProp
           glyph={<Ic name="database" />}
           acoes={<>
             <div className="mp-busca">
-              <span>⌕</span>
-              <input placeholder="Buscar bem, código, série..." value={busca} onChange={(e) => { setBusca(e.target.value); setAba("bens"); }} />
+              <span aria-hidden="true">⌕</span>
+              <input aria-label="Buscar bem, código ou número de série" placeholder="Buscar bem, código, série..." value={busca} onChange={(e) => { setBusca(e.target.value); setAba("bens"); }} />
               <kbd>/</kbd>
             </div>
             {Button && P.can(papel, "allocate") && <Button variant="ghost" onClick={() => acoes.alocar(null)}>Alocar recurso</Button>}

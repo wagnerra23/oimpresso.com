@@ -36,7 +36,14 @@ const VISTAS = [
 // Mesma palavra, renderização oposta — e é por isso que a travessia pro `Index.tsx`
 // trocou `tone="danger"` por `variant="destructive"`: **visualmente fiel ao espelho**.
 // Quem viola o AP7 ("fundo tintado 6% + borda 22%, nunca fill") primeiro é o próprio
-// caminho `tone` do espelho. Consertar lá é decisão [W] — aqui eu paro de usar `tone`.
+// caminho `tone` do espelho.
+// ⚠️ CORREÇÃO DE ESCOPO (medido 2026-09-01, e eu havia errado aqui): NÃO é só o
+// caminho `tone`. O `MAP` do StatusBadge roteia `kind`+`value` para as MESMAS entradas
+// sólidas — `documento.aprovado→success`, `payment.paid→success`, `os.atrasada→danger`,
+// `intercorrencia.aplicada→info`. Ou seja: "parar de usar `tone`" NÃO cumpre o AP7;
+// só escapa quem cai numa família namespaced (`sla-*`, `fresc-*`, `tipo-*`, `canal-*`),
+// que é o caso desta tela. A correção real é o mapa `C` do espelho — 4 entradas, um
+// componente. Aplicada como prova no `_ds_bundle.js` local; sobrevive só se descer no git.
 //
 // As únicas famílias SOFT do espelho são as namespaced (`sla-*`, `fresc-*`, `tipo-*`,
 // `canal-*`). Classificação não tem família própria, então uso `kind="sla"` pela COR e
@@ -607,11 +614,13 @@ function ArquivosPage({ view = "acervo", estado = "dados", papel = "gestor", den
           deprecou o Admin Center) e o item de sidebar existe desde 2026-08-25. Usuário não
           lê ADR na tela. */}
 
-      <div data-contract="abas">
-        {TabBar
-          ? <TabBar tabs={abas} active={vista} onChange={irPara} />
-          : <nav className="arq-tabs">{VISTAS.map((v) => <button key={v.id} className={"arq-chip" + (vista === v.id ? " active" : "")} aria-current={vista === v.id ? "page" : undefined} onClick={() => irPara(v.id)}>{v.label}</button>)}</nav>}
-      </div>
+      {/* Um dono só. Antes havia DOIS caminhos aqui — TabBar do DS direto e um <nav>
+          bespoke de fallback — e o fallback era código morto que ninguém via. Migrei o
+          morto primeiro por engano (2026-09-01); o vivo é este. `data-contract` desceu
+          pro próprio nav: o TabBar agora aceita, e atributo de contrato deve descrever
+          o elemento que ele nomeia, não um <div> em volta. */}
+      <window.CliTabs className="arq-tabs" dataContract="abas" ariaLabel="Vistas de arquivos"
+        active={vista} onChange={irPara} tabs={abas} />
 
       {vista === "acervo" && <Acervo arquivos={lista} papel={papel}
         onBaixar={(a) => { logar(a.enc ? "signed_url" : "download", a.id, a.enc ? `expira em ${CFG.signedMin} min · DownloadController` : "servido por Storage::url"); fala(a.enc ? `Link assinado gerado pra ${a.nome} — vale ${CFG.signedMin} min e o download passa pelo DownloadController.` : `Download de ${a.nome} iniciado.`); }}

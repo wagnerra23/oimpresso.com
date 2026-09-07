@@ -70,13 +70,13 @@ function OrcListPage() {
       </div>
 
       <div className="os-toolbar">
-        <div className="os-tabs">
-          {TABS.map(t => (
-            <button key={t.id} className={`os-tab ${statusFilter===t.id?"active":""}`} onClick={() => setStatusFilter(t.id)}>
-              {t.label} <span className="os-tab-count">{t.count}</span>
-            </button>
-          ))}
-        </div>
+        {/* `pad={0}` explícito: o nav fica dentro de `.os-toolbar`, que já paga os 24px.
+            Sem `pad`, a folha `.os-tabs{padding:8px 24px 0}` assume e soma igual — medido
+            aba em 308 contra título em 284 nas duas formas. Zero inline vence a folha.
+            Em vendas-page o mesmo `.os-tabs` precisa de 24, porque lá não há wrapper. */}
+        <window.CliTabs className="os-tabs" ariaLabel="Situação do orçamento" pad={0}
+          active={statusFilter} onChange={setStatusFilter}
+          tabs={TABS.map((t) => ({ key: t.id, label: t.label, n: t.count }))} />
         <div className="os-toolbar-r">
           <div className="os-search">
             <I.search size={13}/>

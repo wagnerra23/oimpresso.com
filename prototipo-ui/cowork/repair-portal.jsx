@@ -11,6 +11,9 @@ const val = (e) => (e && e.target ? e.target.value : e);
 
 // O que o cliente pode ver: status, datas, equipamento. Nunca senha, custo interno,
 // comentário do técnico ou nome do técnico (o legado só devolve o bloco de status).
+// 2026-09-04 (a11y/canon do alvo): o valor do orçamento SAIU daqui — ADR ARQ-0002 (Repair,
+// aceita 2026-04-22) manda mostrar "só status e data estimada — sem preço, sem peças, sem
+// assignee". O protótipo exibia R$ e estava contra o canon; agora mostra só a SITUAÇÃO.
 function Resultado({ f }) {
   const D = R(); const m = D.modeloDe(f.modelo);
   const st = D.statusDe(f.status);
@@ -27,7 +30,7 @@ function Resultado({ f }) {
       <div className="rp-res-grid">
         <div><label>Recebido em</label><span>{D.d2(f.criado)}</span></div>
         <div><label>Entrega prevista</label><span>{D.d2(f.entrega)}</span></div>
-        <div><label>Orçamento</label><span>{f.custo ? D.fmt(f.custo) : "em avaliação"}</span></div>
+        <div><label>Situação do orçamento</label><span>{f.custo ? "aprovado — valor na loja" : "em avaliação"}</span></div>
         <div><label>Garantia do serviço</label><span>90 dias</span></div>
       </div>
       <h4>Andamento</h4>

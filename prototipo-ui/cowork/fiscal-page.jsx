@@ -3,7 +3,8 @@
 // Ondas: 1 mutações (fiscal-actions.jsx) · 2 ⌘K + teclado · 3 densidade/visões/paginação/write-off · 4 SPED.
 const { useState: useStateFx, useMemo: useMemoFx, useEffect: useEffectFx, useRef: useRefFx } = React;
 
-const FxI = ({ name, size = 13 }) => { const F = (window.I || {})[name]; return F ? <F size={size} /> : null; };
+// A3 · ícone decorativo nunca entra na árvore de acessibilidade (medido 2026-09-03: 4 de 4 svg sem aria-hidden)
+const FxI = ({ name, size = 13 }) => { const F = (window.I || {})[name]; return F ? <span className="fx-i" aria-hidden="true" style={{ display: "inline-flex" }}><F size={size} /></span> : null; };
 const fxD = () => window.FISCAL_DATA;
 const fxBrl = (v) => "R$ " + Number(v).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const fxKey = (k) => (k && k.length > 20 ? k.slice(0, 10) + "…" + k.slice(-8) : k);
@@ -35,14 +36,7 @@ function FxSubnav({ current }) {
     "fiscal-dfe": st.dfe.filter(d => d.status === "pendente").length,
   };
   return (
-    <nav className="cli-moduletopnav" aria-label="Sub-páginas do módulo Fiscal">
-      {FX_TABS.map(t => (
-        <button key={t.id} className={"cli-moduletopnav-tab " + (current === t.id ? "active" : "")} onClick={() => fxGo(t.id)} aria-current={current === t.id ? "page" : undefined}>
-          <span>{t.label}</span>
-          {counts[t.id] != null && <span className="cli-moduletopnav-n">{counts[t.id]}</span>}
-        </button>
-      ))}
-    </nav>
+    window.CliTabs ? <window.CliTabs ariaLabel="Sub-páginas do módulo Fiscal" tabs={FX_TABS.map(t => ({ key: t.id, label: t.label, n: counts[t.id] }))} active={current} onChange={fxGo} /> : null
   );
 }
 
@@ -175,7 +169,8 @@ function FxNotasTable({ rows, selected, onToggle, onToggleAll, onOpen, openedId,
           {rows.map((n, i) => {
             const rej = fxRejected(n);
             return (
-              <tr key={n.id} className={(openedId === n.id ? "sel " : "") + (cursor === i ? "cursor" : "")} onClick={() => onOpen(n.id)}>
+              <tr key={n.id} className={(openedId === n.id ? "sel " : "") + (cursor === i ? "cursor" : "")} tabIndex={0} aria-label={"Abrir " + n.tipo + " " + n.num + " · " + n.cliente} onClick={() => onOpen(n.id)}
+                onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpen(n.id); } }}>
                 <td onClick={e => e.stopPropagation()}><input type="checkbox" checked={selected.has(n.id)} onChange={() => onToggle(n.id)} aria-label={"Selecionar nota " + n.num} /></td>
                 <td><span className={"fx-tipo " + (n.tipo === "NFC-e" ? "t-nfce" : n.tipo === "NFS-e" ? "t-nfse" : "t-nfe")}>{n.tipo}</span></td>
                 <td className="num"><b>{n.num}</b><small>{n.serie ? "série " + n.serie : n.when}</small></td>
@@ -211,20 +206,39 @@ function FxNotasTable({ rows, selected, onToggle, onToggleAll, onOpen, openedId,
   );
 }
 
-function FxNotaDrawer({ nota, onClose, onAcao }) {
+// A4 · overlay com foco: aria-modal, foco inicial no fechar, Tab preso no painel, esc fecha um nível
+const FX_FOCAVEIS = 'button:not([disabled]),a[href],input,select,textarea,[tabindex]:not([tabindex="-1"])';
+function fxUsaFocoPreso(ref, aberto, onClose) {
   useEffectFx(() => {
-    if (!nota) return;
-    const h = (e) => { if (e.key === "Escape") onClose(); };
+    if (!aberto) return;
+    const antes = document.activeElement;
+    const primeiro = ref.current && ref.current.querySelector(FX_FOCAVEIS);
+    if (primeiro) primeiro.focus();
+    const h = (e) => {
+      if (e.key === "Escape") { onClose(); return; }
+      if (e.key !== "Tab" || !ref.current) return;
+      const f = [...ref.current.querySelectorAll(FX_FOCAVEIS)].filter(el => el.offsetParent !== null);
+      if (!f.length) return;
+      const ini = f[0], fim = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === ini) { e.preventDefault(); fim.focus(); }
+      else if (!e.shiftKey && document.activeElement === fim) { e.preventDefault(); ini.focus(); }
+      else if (!ref.current.contains(document.activeElement)) { e.preventDefault(); ini.focus(); }
+    };
     document.addEventListener("keydown", h);
-    return () => document.removeEventListener("keydown", h);
-  }, [nota, onClose]);
+    return () => { document.removeEventListener("keydown", h); if (antes && antes.focus) antes.focus(); };
+  }, [aberto, onClose]);
+}
+
+function FxNotaDrawer({ nota, onClose, onAcao }) {
+  const painel = useRefFx(null);
+  fxUsaFocoPreso(painel, !!nota, onClose);
   if (!nota) return null;
   const n = nota, rej = fxRejected(n);
   const receita = n.statusKind === "sefaz" ? fxD().SEFAZ_ACTIONS[n.status] : null;
   return (
     <>
       <div className="fx-scrim" onClick={onClose}></div>
-      <aside className="fx-drawer" data-contract="drawer-nota" role="dialog" aria-label={"Nota " + n.num}>
+      <aside className="fx-drawer" data-contract="drawer-nota" role="dialog" aria-modal="true" ref={painel} aria-label={"Nota " + n.num}>
         <div className="fx-dr-h">
           <div>
             <h2>{n.tipo} {n.num}{n.serie ? " · série " + n.serie : ""}</h2>
@@ -303,12 +317,14 @@ function FxNotaDrawer({ nota, onClose, onAcao }) {
 }
 
 function FxContabilDrawer({ open, onClose }) {
+  const painel = useRefFx(null);
+  fxUsaFocoPreso(painel, !!open, onClose);
   if (!open) return null;
   const c = fxD().CONTABIL;
   return (
     <>
       <div className="fx-scrim" onClick={onClose}></div>
-      <aside className="fx-drawer" role="dialog" aria-label="Enviar para contabilidade">
+      <aside className="fx-drawer" role="dialog" aria-modal="true" ref={painel} aria-label="Enviar para contabilidade">
         <div className="fx-dr-h">
           <div><h2>Enviar p/ contabilidade <window.FxProc k="contabil" /></h2><p>Competência {c.periodo} · {c.destinatario}</p></div>
           <button className="fx-dr-x" onClick={onClose} aria-label="Fechar">×</button>

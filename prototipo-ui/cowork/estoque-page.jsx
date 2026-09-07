@@ -254,12 +254,12 @@ function AbaAjustes({ papel, dense, setDense, dados, filtro, setFiltro, local, s
 
   return (
     <>
-      {TabBar &&
-        <TabBar tabs={[
-          { key: "all", label: "Todos", count: visiveis.length },
-          { key: "normal", label: "Normal", count: visiveis.filter((a) => a.tipo === "normal").length },
-          { key: "abnormal", label: "Anormal", count: visiveis.filter((a) => a.tipo === "abnormal").length },
-        ]} active={filtro} onChange={setFiltro} />}
+      <window.CliTabs ariaLabel="Tipo de ajuste" pad={0} active={filtro} onChange={setFiltro}
+        tabs={[
+          { key: "all", label: "Todos", n: visiveis.length },
+          { key: "normal", label: "Normal", n: visiveis.filter((a) => a.tipo === "normal").length },
+          { key: "abnormal", label: "Anormal", n: visiveis.filter((a) => a.tipo === "abnormal").length },
+        ]} />
       <Toolbar colunas={COLS_AJ.filter((c) => !c.preco || verPreco)} cols={cols} setCols={setCols}
         onExport={exportar} dense={dense} setDense={setDense} busca={busca} setBusca={setBusca}
         periodo={periodo} setPeriodo={setPeriodo}
@@ -367,11 +367,11 @@ function AbaTransferencias({ papel, dense, setDense, filtro, setFiltro, local, s
 
   return (
     <>
-      {TabBar &&
-        <TabBar tabs={[
-          { key: "all", label: "Todas", count: visiveis.length },
-          ...Object.keys(D.STATUS_TRF).map((k) => ({ key: k, label: D.STATUS_TRF[k].l, count: visiveis.filter((t) => t.status === k).length })),
-        ]} active={filtro} onChange={setFiltro} />}
+      <window.CliTabs ariaLabel="Situação das transferências" pad={0} active={filtro} onChange={setFiltro}
+        tabs={[
+          { key: "all", label: "Todas", n: visiveis.length },
+          ...Object.keys(D.STATUS_TRF).map((k) => ({ key: k, label: D.STATUS_TRF[k].l, n: visiveis.filter((t) => t.status === k).length })),
+        ]} />
       <Toolbar colunas={COLS_TR.filter((c) => !c.preco || verPreco)} cols={cols} setCols={setCols}
         onExport={exportar} dense={dense} setDense={setDense} busca={busca} setBusca={setBusca}
         periodo={periodo} setPeriodo={setPeriodo}

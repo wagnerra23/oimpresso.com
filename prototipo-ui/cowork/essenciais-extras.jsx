@@ -80,10 +80,7 @@ function Compartilhar({ item, memo, onClose, onSalvar }) {
       footer={<><button className="os-btn ghost" onClick={onClose}>Cancelar</button>
         <button className="os-btn" onClick={() => onSalvar(comp)}>Salvar compartilhamento</button></>}>
       <Sec title="Quem passa a ver">
-        <div className="hrm-seg">
-          <button className={modo === "usuario" ? "on" : ""} onClick={() => { setModo("usuario"); setQuem(""); }}>Por usuário</button>
-          <button className={modo === "funcao" ? "on" : ""} onClick={() => { setModo("funcao"); setQuem(""); }}>Por função</button>
-        </div>
+        <window.CliSeg ariaLabel="Quem passa a ver" value={modo} onChange={(k) => { setModo(k); setQuem(""); }} options={[{ key: "usuario", label: "Por usuário" }, { key: "funcao", label: "Por função" }]} />
         <div className="ess-add-linha">
           <select className="hrm-sel" value={quem} onChange={(e) => setQuem(e.target.value)} aria-label={modo === "funcao" ? "Função" : "Usuário"}>
             <option value="">{modo === "funcao" ? "Escolha a função" : "Escolha a pessoa"}</option>

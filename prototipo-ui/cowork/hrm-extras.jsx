@@ -173,7 +173,7 @@ function Presenca() {
         </div>
         <div className="os-table-wrap">
           <table className="os-table hrm-esp">
-            <thead><tr><th>Colaborador</th>{espelho[0].dias.map((d) => <th key={d.d} className="hrm-esp-h">{d.d.slice(-2)}</th>)}<th className="hrm-num">Horas</th></tr></thead>
+            <thead><tr><th scope="col">Colaborador</th>{espelho[0].dias.map((d) => <th key={d.d} scope="col" className="hrm-esp-h">{d.d.slice(-2)}</th>)}<th scope="col" className="hrm-num">Horas</th></tr></thead>
             <tbody>{espelho.map((l) => {
               const min = l.dias.reduce((s, d) => s + (d.ponto ? durMin(d.ponto) : 0), 0);
               return (
@@ -207,7 +207,7 @@ function Presenca() {
               <Grafico tipo="bar" dados={dias.slice().reverse().map((d) => ({ label:H.dt(d.data).slice(0, 5), value:d.presentes }))} altura={120} destacaUltimo/>
             </Card>
             <div className="os-table-wrap"><table className="os-table">
-              <thead><tr><th>Data</th><th className="hrm-num">Presentes</th><th className="hrm-num">Ausentes</th><th>Cobertura</th></tr></thead>
+              <thead><tr><th scope="col">Data</th><th scope="col" className="hrm-num">Presentes</th><th scope="col" className="hrm-num">Ausentes</th><th scope="col">Cobertura</th></tr></thead>
               <tbody>{dias.map((d) => (
                 <tr key={d.data}><td className="hrm-mono">{H.dt(d.data)}</td><td className="hrm-num">{d.presentes}</td><td className="hrm-num hrm-neg">{d.ausentes}</td>
                   <td><div className="hrm-bar" style={{ width:140 }}><i style={{ width:`${d.presentes / H.EMP.length * 100}%` }}></i></div></td></tr>))}</tbody>
@@ -275,7 +275,7 @@ function Turnos() {
         <button className="os-btn primary" disabled={!podeGerir} title={podeGerir ? null : "Só o administrador cria turno"} onClick={() => setForm({})}>Novo turno</button>
       </div>
       {turnos.length ? <><div className="os-table-wrap"><table className="os-table">
-        <thead><tr><th>Turno</th><th>Tipo</th><th>Horário</th><th>Folgas</th><th>Saída automática</th><th className="hrm-num">Pessoas</th><th></th></tr></thead>
+        <thead><tr><th scope="col">Turno</th><th scope="col">Tipo</th><th scope="col">Horário</th><th scope="col">Folgas</th><th scope="col">Saída automática</th><th scope="col" className="hrm-num">Pessoas</th><th scope="col"></th></tr></thead>
         <tbody>{turnos.map((t) => (
           <tr key={t.id}>
             <td className="hrm-name">{t.nome}</td>
@@ -385,7 +385,7 @@ function Folha() {
       {sub === "lotes" && A.pode("gerir_folha") && <>
         <div className="hrm-toolbar"><span className="usr-count">{lotes.length} lotes</span><span className="hrm-spacer"></span><button className="os-btn primary" disabled={A.demo} onClick={() => setGerar(true)}>Gerar folha do mês</button></div>
         {carregando ? <Skel n={4}/> : lotes.length ? <div className="os-table-wrap"><table className="os-table">
-          <thead><tr><th>Lote</th><th>Competência</th><th>Local</th><th>Situação</th><th>Pagamento</th><th className="hrm-num">Bruto</th><th className="hrm-num">Itens</th><th></th></tr></thead>
+          <thead><tr><th scope="col">Lote</th><th scope="col">Competência</th><th scope="col">Local</th><th scope="col">Situação</th><th scope="col">Pagamento</th><th scope="col" className="hrm-num">Bruto</th><th scope="col" className="hrm-num">Itens</th><th scope="col"></th></tr></thead>
           <tbody>{lotes.map((l) => (
             <tr key={l.id}>
               <td><div className="hrm-name">{l.nome}</div><div className="hrm-meta">{l.criadoEm} · {l.criadoPor}</div></td>
@@ -408,7 +408,7 @@ function Folha() {
 
       {sub === "contra" && (folha.length ? <>
         <div className="os-table-wrap"><table className="os-table">
-          <thead><tr><th>Ref.</th><th>Colaborador</th><th>Competência</th><th className="hrm-num">Base</th><th className="hrm-num">Ganhos</th><th className="hrm-num">Deduções</th><th className="hrm-num">Líquido</th><th>Pagamento</th></tr></thead>
+          <thead><tr><th scope="col">Ref.</th><th scope="col">Colaborador</th><th scope="col">Competência</th><th scope="col" className="hrm-num">Base</th><th scope="col" className="hrm-num">Ganhos</th><th scope="col" className="hrm-num">Deduções</th><th scope="col" className="hrm-num">Líquido</th><th scope="col">Pagamento</th></tr></thead>
           <tbody>{pg.fatia.map((f) => { const e = H.emp(f.emp); const g = f.ganhos.reduce((s, x) => s + x[1], 0); const d = f.deducoes.reduce((s, x) => s + x[1], 0); return (
             <tr key={f.id} onClick={() => setSel(f)} style={{ cursor:"pointer" }}>
               <td className="hrm-mono">{f.ref}</td>
@@ -428,7 +428,7 @@ function Folha() {
       {sub === "gd" && <>
         <div className="hrm-toolbar"><span className="usr-count">{A.dados.gd.length} lançamentos recorrentes</span><span className="hrm-spacer"></span><button className="os-btn primary" disabled={A.demo || !A.pode("gerir_folha")}>Novo lançamento</button></div>
         {A.dados.gd.length ? <div className="os-table-wrap"><table className="os-table">
-          <thead><tr><th>Descrição</th><th>Natureza</th><th>Forma</th><th className="hrm-num">Valor</th><th>Aplica em</th></tr></thead>
+          <thead><tr><th scope="col">Descrição</th><th scope="col">Natureza</th><th scope="col">Forma</th><th scope="col" className="hrm-num">Valor</th><th scope="col">Aplica em</th></tr></thead>
           <tbody>{A.dados.gd.map((g) => (
             <tr key={g.id}>
               <td className="hrm-name">{g.desc}</td>
@@ -519,7 +519,7 @@ function Metas() {
         { l:"Base do cálculo", v:H.CFG.calculate_sales_target_commission_without_tax ? "Sem imposto" : "Com imposto", sub:"configuração do módulo" },
       ]}/>
       <div className="os-table-wrap"><table className="os-table">
-        <thead><tr><th>Colaborador</th><th className="hrm-num">Mês anterior</th><th className="hrm-num">Mês atual</th><th>Faixa atingida</th><th>Progresso na faixa</th><th className="hrm-num">Comissão</th><th></th></tr></thead>
+        <thead><tr><th scope="col">Colaborador</th><th scope="col" className="hrm-num">Mês anterior</th><th scope="col" className="hrm-num">Mês atual</th><th scope="col">Faixa atingida</th><th scope="col">Progresso na faixa</th><th scope="col" className="hrm-num">Comissão</th><th scope="col"></th></tr></thead>
         <tbody>{linhas.map((e) => {
           const r = H.REALIZADO[e.id] || { mes:0, anterior:0 };
           const faixas = metas[e.id] || [];

@@ -1,7 +1,8 @@
 /* produto-blade.css — módulo Produto (importado dos blades resources/views/product/*).
    Escopado em .pb-root. Zero paleta nova: só tokens do DS vivo (.cockpit). */
 .pb-root{ display:flex; flex-direction:column; height:100%; min-height:0; max-height:100vh; }
-.pb-body{ flex:1 1 auto; min-height:0; overflow:auto; padding:16px 20px 28px; display:flex; flex-direction:column; gap:14px; }
+/* 24px lateral = canon do shell ([W] 2026-09-01 "eu prefiro padrão"). */
+.pb-body{ flex:1 1 auto; min-height:0; overflow:auto; padding:16px 24px 28px; display:flex; flex-direction:column; gap:14px; }
 
 /* ── Widget (components.widget do blade) ── */
 .pb-widget{ background:var(--surface); border:1px solid var(--border); border-radius:12px; }
