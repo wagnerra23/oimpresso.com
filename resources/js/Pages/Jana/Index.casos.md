@@ -993,8 +993,8 @@ O título fica sozinho na linha dele, com a identidade do tenant em mono embaixo
 decisão [W]), e o título 22×19px (acima).
 
 ## UC-JPAIN-21 — o card de meta lê "<valor> de <alvo>" e "<pct>% do alvo"
-Status: 🧪 (`PainelContratoTest` — 4 blocos de asserção estrutural; aguarda run verde da lane
-`jana-pest` **e** o screenshot pós-deploy. Sem `✅` por leitura: G-7.)
+Status: 🧪 (**duas** defesas, as duas com mordida provada por mutação; aguardam o verde vir do
+MANIFESTO — G-7 — e o screenshot pós-deploy. Sem `✅` por leitura.)
 
 Derivado da **âncora** (`node prototipo-ui/ancora.mjs Jana/Index` →
 `prototipo-ui/cowork/jana-merge.jsx` §`JmMetaCard`, âncora de SÍMBOLO —
@@ -1031,5 +1031,25 @@ pinadas `painel-meta-apurando`/`painel-meta-sem-historico`, o cabeçalho da seç
 **11 antes, 11 depois** (`layout:check`, ratchet por arquivo) — o `<small>` é inline justamente
 pra não somar container.
 
-**Teste:** `Modules/Jana/Tests/Feature/PainelContratoTest.php` — `it('UC-JPAIN-21: …')`, lane
-`PHP / Pest (Jana · MySQL)`.
+**Testes — dois lados, de propósito:**
+
+| lado | arquivo | o que mede | lane |
+|---|---|---|---|
+| arquivo | `Modules/Jana/Tests/Feature/PainelContratoTest.php` | o JSX escreve o sufixo, a ternária e não escreve o rótulo antigo | `PHP / Pest (Jana · MySQL)` |
+| **DOM renderizado** | `tests/janaMetaCardRodape.spec.tsx` | o card **mostra** "64 de 200" e "32% do alvo"; sem apuração mostra "alvo 200" e nenhum "%"; a projeção só aparece quando o payload manda | `Jana Conversas Gate` (jsdom) |
+
+O par existe porque Pest não monta React: a asserção de arquivo passa mesmo que a mudança seja
+INERTE no runtime (classe LC-30). O spec jsdom fecha esse flanco — e ele já pagou por si na
+escrita: a primeira versão stubava o `JanaCockpit` sem repassar `aposKpis` e renderizava **0
+cards**, revelando que a seção METAS não é irmã do cockpit no JSX, é prop dele
+(`JanaCockpit.tsx:724`). Ler o `Index.tsx` não teria mostrado isso.
+
+**Mordida provada** (mutação no `Index.tsx`, restore = verde e arquivo byte-idêntico):
+
+| mutação | Pest | jsdom |
+|---|---|---|
+| `% do alvo` vira `%` no ternário | 1 failed (3 assertions) | vermelho |
+| o `<small>de {alvo}</small>` some | — | vermelho |
+
+**Contador da lane** (a prova de que o spec de fato EXECUTA, não só existe — §5 2026-08-02):
+`51 passed` antes, **`57 passed`** com este arquivo no comando; delta `+6` = os 6 casos daqui.

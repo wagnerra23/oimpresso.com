@@ -63,10 +63,31 @@ name: Jana Conversas Gate — histórico do chat (filtro real + J/K + ⌘⇧H + 
 # 2026-08-02). O `name:` do job segue intocado de propósito: renomear derruba o check
 # nos PRs já abertos (§5 2026-08-08).
 #
+# AMPLIADO EM 2026-09-07 — entrou `tests/janaMetaCardRodape.spec.tsx` (UC-JPAIN-21 do
+# `resources/js/Pages/Jana/Index.casos.md`, onda 2.1 da paridade × `jana-merge.jsx`
+# §JmMetaCard). Mesma razão estrutural das três anteriores: nenhuma lane roda `vitest run`
+# sem argumento, então spec fora de workflow é verde-por-não-execução (LC-13). O arquivo
+# SOB TESTE (`Index.tsx`) entra no gatilho junto com o spec (§5 2026-08-02).
+#   UC-JPAIN-21 — a linha do valor lê "<valor> de <alvo>" e o rodapé "<pct>% do alvo";
+#   sem apuração cai pra "alvo <X>", nunca "0% do alvo"; a projeção segue à direita e só
+#   quando o SERVIDOR manda.
+# Mordida provada por mutação antes do merge (restore = 6/6 verde, arquivo byte-idêntico):
+#   `% do alvo` -> `%` no ternário do rodapé  -> vermelho
+#   o `<small>de {alvo}</small>` some da linha -> vermelho
+# Par com o `PainelContratoTest` (Pest), que mede o ARQUIVO: este mede o DOM RENDERIZADO,
+# que é o único lado capaz de pegar a classe LC-30 (verde no CI, inerte no runtime).
+#
+# ⚠️ ACHADO DE PASSAGEM, não consertado aqui: `tests/janaKpiReplica.spec.tsx` (UC-JPAIN-20)
+# e `tests/janaAreaHeaderParidade.spec.tsx` (UC-JPAIN-19) NÃO estão wirados em lane
+# nenhuma — medido com `rg --hidden` no repo inteiro em 2026-09-07: zero ocorrência dos
+# dois nomes em `.github/`. São verde-por-não-execução hoje. Entram numa leva própria,
+# porque cada um precisa da sua mordida provada e do seu gatilho.
+#
 # Path-scoped (faz npm ci): roda quando a Page, o tipo do payload, o spec ou este
 # workflow mudam. Comando local:
 #   npx vitest run tests/jana-chat-conversas.test.tsx tests/jana-pro-voltar.test.tsx
 #     tests/jana-memoria-linha.test.tsx tests/jana-chat-composer-chips.test.tsx
+#     tests/janaMetaCardRodape.spec.tsx
 #
 # Advisory (ADR 0271/0314 — atalho e filtro de tela é qualidade/higiene, não
 # Tier-0). Promoção a required, se um dia fizer sentido, é flip [W] com mordida
@@ -93,6 +114,9 @@ on:
       - 'resources/js/Pages/Jana/_components/AssistantUiChat.tsx'
       - 'resources/js/Pages/Jana/_components/JanaConversaHeader.tsx'
       - 'tests/jana-chat-composer-chips.test.tsx'
+      # Onda 2.1 (2026-09-07): o spec e a Page que ele defende.
+      - 'resources/js/Pages/Jana/Index.tsx'
+      - 'tests/janaMetaCardRodape.spec.tsx'
       - '.github/workflows/jana-conversas-gate.yml'
   push:
     branches: [main]
@@ -108,6 +132,9 @@ on:
       - 'resources/js/Pages/Jana/_components/AssistantUiChat.tsx'
       - 'resources/js/Pages/Jana/_components/JanaConversaHeader.tsx'
       - 'tests/jana-chat-composer-chips.test.tsx'
+      # Onda 2.1 (2026-09-07): o spec e a Page que ele defende.
+      - 'resources/js/Pages/Jana/Index.tsx'
+      - 'tests/janaMetaCardRodape.spec.tsx'
 
 concurrency:
   group: jana-conversas-gate-${{ github.ref }}
@@ -141,13 +168,14 @@ jobs:
       # `success()` implícito nem rodaria quando o spec de cima ficasse vermelho.
       # O coletor por-UC varre TODOS os `<testcase>` do XML, então todos os vereditos
       # chegam ao G-7 pelo transporte que já existe.
-      - name: specs jsdom da Jana — conversas + Pro + Memória + composer/chips (vitest/jsdom)
+      - name: specs jsdom da Jana — conversas + Pro + Memória + composer/chips + card de meta (vitest/jsdom)
         run: |
           npx vitest run \
             tests/jana-chat-conversas.test.tsx \
             tests/jana-pro-voltar.test.tsx \
             tests/jana-memoria-linha.test.tsx \
             tests/jana-chat-composer-chips.test.tsx \
+            tests/janaMetaCardRodape.spec.tsx \
             --reporter=default \
             --reporter=junit \
             --outputFile=test-results/vitest-jana-conversas-junit.xml
