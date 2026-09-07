@@ -45,6 +45,7 @@ last_run_ci: "Revalidado em 2026-09-05 pela lane PHP / Pest (Compras · MySQL) �
 | UC-CMP-07 | Todo `sort` que o Service ordena é aceito pelo Request | must | `CU-COM-04` item 2 | `ComprasContratoFiltrosTest` | 🧪 **vermelho esperado** |
 | UC-CMP-08 | Cockpit respeita as localizações permitidas | must `[reg]` | `CU-COM-05` item 1 | `ComprasContratoFiltrosTest` | 🧪 **vermelho esperado** |
 | UC-CMP-09 | Entrada da compra grava valor e move estoque | must `[V0]` | `CU-COM-08` itens 1-3 | `PurchaseCalculoValorEstoqueE2ETest` | 🧪 (roda só no **nightly**, não no PR) |
+| UC-CMP-10 | As colunas Itens e NF-e do protótipo têm dado no payload | must | protótipo `compras-page.jsx:501,508` + charter §Goals | `ComprasContratoFiltrosTest` | 🧪 veredito na lane |
 
 > 🧪 **Nenhum status aqui é afirmação de verde.** Este PR não executou teste algum (CT 100/CI —
 > [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)). "Vermelho
