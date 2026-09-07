@@ -6,7 +6,7 @@ related_prototype: prototipo-ui/cowork/jana-merge.jsx
 states: [default]  # gate L2 — o `default` desta tela é semeado com UMA venda VENCIDA (routes/web.php `$seedJanaVisregFlow`), pra que o `JanaKpiCard` em `emphasis` do "A receber vencido" entre em baseline; sync com tests/Browser/visreg-states.json
 owner: wagner
 status: live
-last_validated: "2026-09-03"
+last_validated: "2026-09-07"
 parent_module: Jana
 parent_adr: memory/decisions/0052-memoria-jana-3-angulos-faturamento.md
 related_adrs: [26, 31, 35, 36, 52, 93, 94, 107, 114]
@@ -17,7 +17,7 @@ related_specs:
   - memory/requisitos/Jana/SPEC.md (US-COPI-010, US-COPI-011, US-COPI-012)
 runbook: memory/requisitos/Jana/RUNBOOK-index.md
 tier: A
-charter_version: 14
+charter_version: 15
 permissao: jana.access
 ---
 
@@ -195,6 +195,16 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 
 ## Charter version log
 
+- **v15 (2026-09-07)** — **card de meta lê `<valor> de <alvo>` e `<pct>% do alvo`** (Onda 2.1 do
+  pacote de paridade do Cowork, `design-docs/COLAR-NO-CODE-jana-tabs-cor-e-icone.md` §1-ter).
+  Âncora `jana-merge.jsx` §`JmMetaCard`: `jm-meta-v` = `<b>{atual}</b><small>de {alvo}</small>`,
+  `jm-meta-f` = `{pct}% do alvo` + projeção à direita. Produção escrevia `Alvo: X` no rodapé com o
+  `%` solto — o alvo não estava ao lado do número. Sem apuração, o rodapé cai pra `alvo X` (como o
+  `jm-meta-apurando` da âncora); copies pinadas e farol intactos; flex/grid do arquivo **11 → 11**.
+  Contrato em **UC-JPAIN-21** (`PainelContratoTest`). A **Onda 1.1** do mesmo pacote (pill do
+  contador inativo → `var(--bg-2)`) **já estava no `main`** desde 2026-09-04
+  (`Components/shared/PageHeaderTabs.tsx`, comentário do próprio ramo) — o pacote foi escrito contra
+  árvore anterior; nada a fazer.
 - **v14 (2026-09-03)** — **os 3 KPIs do topo viram RÉPLICA do `.jc-kpi` da âncora** (Onda 2 da
   paridade; pedido [W]: *"KPIs feios"*). Medição em
   [`Index-visual-comparison.md` §Rodada MEDIDA de 2026-09-03](../../../../memory/requisitos/Jana/Index-visual-comparison.md),
