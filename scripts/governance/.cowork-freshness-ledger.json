@@ -1650,5 +1650,40 @@
     "origin": "export",
     "origemDeclarada": "agente",
     "stalePreExport": 0
+  },
+  {
+    "date": "2026-09-07T21:25:54.098Z",
+    "files": 257,
+    "sync": 1,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 256,
+    "staleList": [],
+    "verified": [
+      "jana-merge.jsx"
+    ],
+    "verifiedHash": {
+      "jana-merge.jsx": "7bb8e713130a9f808d37349abde3f1badc837c4e3382f9878ca52c918028a570"
+    },
+    "origin": "export",
+    "stalePreExport": 1
+  },
+  {
+    "date": "2026-09-07T21:25:55.757Z",
+    "files": 257,
+    "sync": 1,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 256,
+    "staleList": [],
+    "verified": [
+      "chat-jana.jsx"
+    ],
+    "verifiedHash": {
+      "chat-jana.jsx": "d521790002cea43de5502aac6c6bc223b5e8a70ce7df5b731878e472facbb2f4"
+    },
+    "origin": "export",
+    "origemDeclarada": "agente",
+    "stalePreExport": 0
   }
 ]
