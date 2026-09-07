@@ -24,29 +24,11 @@ const brl0 = (n) => "R$ " + n.toLocaleString("pt-BR", { maximumFractionDigits: 0
 function initials(n){ return n.split(/\s+/).slice(0,2).map(w=>w[0]).join("").toUpperCase(); }
 function avColor(n){ const h=[...n].reduce((a,c)=>a+c.charCodeAt(0),0)%360; return { bg:`oklch(0.92 0.04 ${h})`, fg:`oklch(0.42 0.13 ${h})` }; }
 
+// Kebab: delega pro CliKebab (adaptador do Kebab do DS). Eram SEIS cópias
+// idênticas deste componente no build; o DS publica um que ainda navega por teclado,
+// coisa que nenhuma das seis fazia.
 function Kebab({ items }) {
-  const [open, setOpen] = useState(false);
-  const ref = React.useRef(null);
-  React.useEffect(() => {
-    if (!open) return;
-    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener("mousedown", h);
-    return () => document.removeEventListener("mousedown", h);
-  }, [open]);
-  return (
-    <div className="cli-kebab-wrap" ref={ref}>
-      <button className="cli-kebab-btn" onClick={(e) => { e.stopPropagation(); setOpen(!open); }} aria-expanded={open} title="Mais ações">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>
-      </button>
-      {open && (
-        <div className="cli-kebab-menu" onClick={(e) => e.stopPropagation()}>
-          {items.map((it, i) => it.sep
-            ? <div key={i} className="cli-kebab-sep"></div>
-            : <button key={i} className={it.danger ? "danger" : ""} onClick={() => { setOpen(false); it.action?.(); }}>{it.label}</button>)}
-        </div>
-      )}
-    </div>
-  );
+  return <window.CliKebab items={items} label="Mais ações" />;
 }
 
 function Campo({ label, req, valor, onChange, mono, ajuda, placeholder }) {

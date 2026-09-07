@@ -64,7 +64,7 @@ function Tabela({ cols, children }) {
   return (
     <div className="pt-tblwrap">
       <table className="pt-tbl">
-        <thead><tr>{cols.map((c, i) => <th key={i} className={c.num ? "num" : ""} style={c.w ? { width: c.w } : null}>{c.l}</th>)}</tr></thead>
+        <thead><tr>{cols.map((c, i) => <th key={i} scope="col" className={c.num ? "num" : ""} style={c.w ? { width: c.w } : null}>{c.l}</th>)}</tr></thead>
         <tbody>{children}</tbody>
       </table>
     </div>

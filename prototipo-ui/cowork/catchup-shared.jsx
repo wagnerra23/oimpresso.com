@@ -24,10 +24,7 @@ function Toolbar({ busca, setBusca, ph, densa, setDensa, buscaRef, children }) {
       <div className="pb-busca"><Ic name="search" size={12} /><input ref={buscaRef} value={busca} onChange={(e) => setBusca(e.target.value)} placeholder={ph} /></div>
       <span className="cu-kbd" aria-hidden="true"><b>j</b><b>k</b> andar<i>·</i><b>↵</b> abrir<i>·</i><b>/</b> buscar<i>·</i><b>d</b> densidade</span>
       <div className="sp" />
-      <div className="pb-seg" role="group" aria-label="Densidade">
-        <button className={densa ? "" : "on"} onClick={() => setDensa(false)}>Confortável</button>
-        <button className={densa ? "on" : ""} onClick={() => setDensa(true)}>Compacto</button>
-      </div>
+      <window.CliSeg ariaLabel="Densidade" value={densa ? "comp" : "conf"} onChange={(k) => setDensa(k === "comp")} options={[{ key: "conf", label: "Confortável" }, { key: "comp", label: "Compacto" }]} />
       {children}
     </div>
   );

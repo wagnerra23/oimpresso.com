@@ -117,29 +117,11 @@ const PERIODOS = [
 ];
 
 // ── Peças reusadas ──
+// Kebab: delega pro CliKebab (adaptador do Kebab do DS). Eram SEIS cópias
+// idênticas deste componente no build; o DS publica um que ainda navega por teclado,
+// coisa que nenhuma das seis fazia.
 function Kebab({ items }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-  React.useEffect(() => {
-    if (!open) return;
-    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener("mousedown", h);
-    return () => document.removeEventListener("mousedown", h);
-  }, [open]);
-  return (
-    <div className="cli-kebab-wrap" ref={ref}>
-      <button className="cli-kebab-btn" onClick={(e) => { e.stopPropagation(); setOpen(!open); }} aria-expanded={open} title="Mais ações">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>
-      </button>
-      {open && (
-        <div className="cli-kebab-menu" onClick={(e) => e.stopPropagation()}>
-          {items.map((it, i) => it.sep
-            ? <div key={i} className="cli-kebab-sep"></div>
-            : <button key={i} className={it.danger ? "danger" : ""} onClick={() => { setOpen(false); it.action?.(); }}>{it.label}</button>)}
-        </div>
-      )}
-    </div>
-  );
+  return <window.CliKebab items={items} label="Mais ações" />;
 }
 
 function FilterDropdown({ label, value, options, onChange }) {
@@ -362,11 +344,7 @@ function Seg({ label, valor, onChange, opcoes }) {
   return (
     <div className="sa-field">
       <label>{label}</label>
-      <div className="sa-seg sa-seg--form">
-        {opcoes.map((o) => (
-          <button key={o.id} className={valor === o.id ? "active" : ""} onClick={() => onChange(o.id)}>{o.label}</button>
-        ))}
-      </div>
+      <window.CliSeg value={valor} onChange={onChange} options={opcoes.map((o) => ({ key: o.id, label: o.label }))} />
     </div>
   );
 }
@@ -613,11 +591,7 @@ function ViewVisao() {
         </>}/>
 
       <div className="sa-periodo">
-        <div className="sa-seg">
-          {PERIODOS.map((x) => (
-            <button key={x.id} className={per === x.id ? "active" : ""} onClick={() => setPer(x.id)}>{x.label}</button>
-          ))}
-        </div>
+        <window.CliSeg ariaLabel="Período" value={per} onChange={setPer} options={PERIODOS.map((x) => ({ key: x.id, label: x.label }))} />
         <span className="sa-periodo-nota">Janela rolante — encerra em 18/08/2026</span>
       </div>
 

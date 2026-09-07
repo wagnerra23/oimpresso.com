@@ -9,10 +9,13 @@
 @media (max-width:860px){.ptr-root .jc-updated{display:none}}
 
 /* ── Áreas de lista ── */
-.ptr-list{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;gap:10px;padding:0 28px 18px}
+/* 24px lateral = canon do shell ([W] 2026-09-01 "eu prefiro padrão"). */
+.ptr-list{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;gap:10px;padding:0 24px 18px}
 @media (max-width:900px){.ptr-list{padding:0 16px 14px}}
 .ptr-grid{flex:1 1 auto;min-height:120px;border:1px solid var(--border);border-radius:var(--r-2,8px);overflow:hidden;background:var(--surface)}
-.ptr-subtabs{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+/* flex-wrap saiu: o CliTabs escreve flex-wrap:nowrap inline (o DS rola com fade em
+   vez de empilhar), então a declaração aqui não tinha efeito nenhum. */
+.ptr-subtabs{display:flex;align-items:center;gap:12px}
 .ptr-subtabs .sp{flex:1}
 .ptr-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
 
@@ -93,7 +96,10 @@
 /* TabBar do DS: nav tem height fixo + border-bottom (clientHeight 35) e filhos de 36px,
    então o overflow:auto do componente materializa uma scrollbar vertical de 15px.
    Neutralizamos só o eixo Y — o X segue rolando quando as abas não cabem. */
-.ptr-subtabs nav,.ptr-drawer-nav nav{overflow-y:hidden}
+/* Sem o `nav` descendente: depois da migração o nav É a classe (o wrapper foi
+   removido junto com o anti-padrão), então o seletor antigo não casava mais e o
+   clamp se perdia em silêncio. */
+.ptr-subtabs,.ptr-drawer-nav{overflow-y:hidden}
 .ptr-acoes-cel{display:flex;align-items:center;gap:4px}
 /* Nome acessível dos botões-ícone: o Button do DS não repassa aria-label,
    então o nome vem do conteúdo (texto recortado visualmente). */

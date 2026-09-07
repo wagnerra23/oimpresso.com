@@ -141,10 +141,7 @@ function VendaCaixa({ avisar, Grade, Toolbar }) {
   const { Alert } = DS();
   return (
     <>
-      <nav className="cli-moduletopnav vc-abas" aria-label="Visões do caixa">
-        <button className={"cli-moduletopnav-tab " + (visao === "dia" ? "active" : "")} onClick={() => setVisao("dia")}>Caixa do dia</button>
-        <button className={"cli-moduletopnav-tab " + (visao === "turnos" ? "active" : "")} onClick={() => setVisao("turnos")}>Turnos</button>
-      </nav>
+      {window.CliTabs && <window.CliTabs ariaLabel="Visões do caixa" className="vc-abas" tabs={[{ key: "dia", label: "Caixa do dia" }, { key: "turnos", label: "Turnos" }]} active={visao} onChange={setVisao} />}
       {visao === "dia" && <VendaCaixaDia avisar={avisar} />}
       {visao === "turnos" && <>
       {Alert && <Alert tone="info" title="Turno de gaveta">A conferência do dia está na aba ao lado (espelho de <span className="mono">/vendas/caixa</span>, vivo). Aqui é o <span className="mono">/cash-register</span>: abrir turno, contar a gaveta e fechar — o pedaço que o vivo ainda deixa no legado.</Alert>}

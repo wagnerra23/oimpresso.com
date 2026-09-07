@@ -1,10 +1,17 @@
 /* modulo-padrao.css — o pouco que o padrão de módulo acrescenta às classes jc-*/jm-*.
    Tudo em tokens do DS vivo (.cockpit) — zero cor crua, zero paleta paralela. */
 .mp-page{display:flex;flex-direction:column;min-width:0;overflow:hidden}
-/* Suspiro nas bordas: o módulo respira igual em cima, nos lados e no pé. */
-.mp-page>.mp-header{padding:20px 28px 0;margin-bottom:14px}
-.mp-page>.jm-tabs{padding:0 28px}
-.mp-body{padding:18px 28px 32px}
+/* Suspiro nas bordas: o módulo respira igual em cima, nos lados e no pé.
+   24px lateral = canon do shell ([W] 2026-09-01 "eu prefiro padrão"): `.os-page-h`
+   usa `padding:12px 24px` (styles.css:2087) em ~40 telas, contra os 28px que só o
+   ModuloPadrao usava. Duas convenções de página viraram uma. Drawer segue em 18px —
+   é outro nível, consistente nos 5 drawers, e recuo menor dentro de painel é correto. */
+/* ÓRFÃ desde 2026-09-01: o CliPageHead não emite `.mp-header`, então esta regra não
+   casa com nada. O respiro do header vem de `pad={24}` no CliPageHead (inline).
+   Mantida só como registro do canon — não a edite esperando efeito. */
+/* .mp-page>.mp-header{padding:20px 24px 0;margin-bottom:14px} */
+.mp-page>.jm-tabs{padding:0 24px}
+.mp-body{padding:18px 24px 32px}
 @media (max-width:900px){.mp-page>.mp-header{padding:16px 16px 0}.mp-page>.jm-tabs{padding:0 16px}.mp-body{padding:14px 16px 24px}}
 /* O painel tem a sua própria região rolável — header e abas ficam fixos, como na Jana. */
 .mp-body{flex:1 1 auto;min-height:0;overflow-y:auto;display:flex;flex-direction:column}

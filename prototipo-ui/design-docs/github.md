@@ -3,7 +3,14 @@ branch: main
 path: prototipo-ui/cowork
 
 ## Last sync
-date: 2026-09-04T16:26:43Z
+date: 2026-09-07T20:41:00Z
+
+### Updated in this project
+- **Paridade `Jana.Painel` medida e as 4 correções do alvo APLICADAS aqui** (não exportadas): `chat-jana.jsx` (CTAs das ações → `Revisar régua/proposta/recorte`; card `cheq` sem fonte → `metodos`) · `jana-merge.jsx` (toggle + `cfg` de `metodos`; copy do upsell; `Jana Pro` e `Conversar com a Jana` no cabeçalho de METAS, este com `data-contract="painel-cta-conversar"` e `onGoTab` como prop nova do `JmMetasSecao`). Verificado no render (dark, 0 erro de console).
+- **Pacote de export reescrito** (anti-scatter, 3ª vez) em `COLAR-NO-CODE-jana-tabs-cor-e-icone.md`: 10 blocos, ancoragem dupla, **2 ondas · 2 arquivos** (§1.1 token do pill · §2.1 `de <alvo>` + `<pct>% do alvo` no `MetaCard` do `Index.tsx`). Retrato de paridade ficou no chat, não em arquivo (mapa é COMANDO, ADR 0256 / L-42).
+- **Leitura do `main` neste turno** (árvore `43b76c1ec327`): `Modules/Jana/Http/Controllers/IndexController.php` · `Pages/Jana/Index.tsx` · `_components/JanaKpiCard.tsx` · `_components/useJanaConfig.ts` · buscas em `_components/` (JanaCockpit §análises/§ações, JanaConfigDrawer, JanaDrillDrawer). **Não lido ⇒ não verificado:** `JanaCockpit.tsx` inteiro (47.668 B — li por busca, não linha a linha), `Index.charter.md`, `Index.casos.md`, `PainelContratoTest.php`.
+- **Divergências medidas (11)**, com 2 pontos de **produção à frente** (CTAs `Revisar …` das ações HITL; conjunto de análises com `metodos` real) e 1 defeito interno do build daqui (upsell fala em 5 análises incluindo "cheques", que não tem fonte no `SellsCockpitAggregator`).
+- Nenhum pacote de export gerado — a decisão de virar pedido é de [W].
 
 ### Updated in this project
 - **Alvo `Jana.Painel` medido e pacote de export reescrito** em `COLAR-NO-CODE-jana-tabs-cor-e-icone.md` (o mesmo arquivo do módulo — anti-scatter; a onda das abas virou §1.1). 10 blocos + ARQUIVOS A EDITAR/REUSAR/NÃO TOCAR/PARAR SE + placar. **Vira pedido: 1 onda · 1 arquivo · 1 linha** — pill do contador inativo em `PageHeaderTabs.tsx` usa `var(--border-2)` e o `TabBar` do DS manda `var(--bg-2)` (autoridade DS → protótipo → produção).

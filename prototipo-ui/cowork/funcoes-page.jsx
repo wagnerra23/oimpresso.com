@@ -54,14 +54,8 @@ function Switch({ on, onToggle, travada }) {
   return <Sw on={on} onToggle={onToggle} disabled={travada} />;
 }
 function Seg({ value, opts, onChange, travada }) {
-  return (
-    <div className="fnc-seg">
-      {opts.map((o) => (
-        <button key={o.v} type="button" className={value === o.v ? "on" : ""} disabled={travada}
-          onClick={travada ? undefined : () => onChange(o.v)}>{o.label}</button>
-      ))}
-    </div>
-  );
+  // `travada` é do grupo; a API do CliSeg é por item — vira disabled em cada um.
+  return <window.CliSeg options={opts.map((o) => ({ key: o.v, label: o.label, disabled: travada }))} value={value} onChange={onChange} />;
 }
 function CrudChips({ value, acoes, onChange, travada }) {
   const v = Array.isArray(value) ? value : [];
