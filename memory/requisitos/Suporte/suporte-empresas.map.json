@@ -1,0 +1,115 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Suporte/Empresas (/suporte/empresas)",
+  "gap_fonte": "memory/requisitos/Suporte/suporte-empresas-gap.md",
+  "prototipo_sha": "sha256:2219383cf92c",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "cabecalho-da-pagina",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/suporte-page.jsx",
+        "linhas": "96-101"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Suporte/Empresas.tsx",
+        "linhas": "35-49",
+        "ancora": false
+      },
+      "status": "gap-parcial",
+      "acao": "Decidir. Duas coisas distintas na mesma região do mockup (`suporte-page.jsx:96-101`): (a) trocar `<h1>`+`Inline` por `PageHeader` do DS em `Empresas.tsx:35-49` — é conformidade de Shell (Constituição UI v2), não estética; (b) o botão \"Log de acessos\" abre a vista `log` (`support_access_logs`, ONDA O5) que não existe como rota viva — construir a rota é pré-requisito, e nem o charter nem o SPEC de Suporte a declaram. Construir ou rejeitar por escrito, item a item.",
+      "_acionavel": true
+    },
+    {
+      "id": "busca-local-por-nome-id",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/suporte-page.jsx",
+        "linhas": "61-65"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Suporte/Empresas.tsx",
+        "linhas": "23-48",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade.",
+      "_acionavel": false
+    },
+    {
+      "id": "aviso-somente-leitura",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/suporte-page.jsx",
+        "linhas": "109-114"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Suporte/Empresas.tsx",
+        "linhas": "49-51",
+        "ancora": false
+      },
+      "status": "gap",
+      "acao": "Decidir. Região do mockup: `suporte-page.jsx:109-114`. Entraria em `Empresas.tsx` entre o cabeçalho (`:49`) e a moldura da tabela (`:51`). Não é mock de dado — é copy de afordância que reforça o Non-Goal \"read-only\" do charter. O charter não a lista nos UX targets, então é adição. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "tabela-de-empresas",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/suporte-page.jsx",
+        "linhas": "75-91"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Suporte/Empresas.tsx",
+        "linhas": "51-77",
+        "ancora": false
+      },
+      "status": "gap-parcial",
+      "acao": "Decidir. Região do mockup: `suporte-page.jsx:75-91` (colunas) e `:122` (`DataTable`). No vivo, o ponto é `Empresas.tsx:51-77`, e há pré-condição de payload: a `interface Empresa` (`Empresas.tsx:13-16`) só recebe `id` e `name` — plano, data de início e contagens exigem prop nova do controller, escopada por `business_id` (ADR 0093). Os valores do protótipo são mock (`suporte-page.jsx:16-22`); a capacidade em disputa é a coluna, não o dado. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "estados-vazio-sem-resultado",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/suporte-page.jsx",
+        "linhas": "115-121"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Suporte/Empresas.tsx",
+        "linhas": "78-84",
+        "ancora": false
+      },
+      "status": "gap-parcial",
+      "acao": "Decidir. Só a descrição está em jogo — os dois estados já existem e cobrem os UX targets do charter. Região do mockup: `suporte-page.jsx:117-120`; ponto no vivo: `Empresas.tsx:78-84`. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "estados-erro-carregando",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/suporte-page.jsx",
+        "linhas": "103-107"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Suporte/Empresas.tsx",
+        "linhas": "61-61",
+        "ancora": false
+      },
+      "status": "gap",
+      "acao": "Decidir. Região do mockup: `suporte-page.jsx:103-107`; ponto no vivo: `Empresas.tsx:61`, envolvendo o `map`. O charter lista nos UX targets só três estados (cheia · busca-sem-resultado · vazia) — estes dois são adição do espelho, e o de carregamento só faz sentido se a prop virar `Inertia::defer`. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "navegacao-para-a-visao-do-cliente",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/suporte-page.jsx",
+        "linhas": "89-89"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Suporte/Empresas.tsx",
+        "linhas": "68-72",
+        "ancora": false
+      },
+      "status": "gap-parcial",
+      "acao": "Decidir. Só a linha clicável. Região do mockup: `suporte-page.jsx:122`; ponto no vivo: `Empresas.tsx:62-65` (o `<tr>`). É afordância redundante com o botão, e exige tratar acessibilidade de teclado se adotada. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    }
+  ]
+}
