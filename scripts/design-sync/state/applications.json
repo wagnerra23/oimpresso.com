@@ -121,7 +121,7 @@
       "comparison": {
         "map": "memory/requisitos/Essentials/documents-index.map.json",
         "mapSha256": "ccf70e2a779abf0f0e8aa35d312aa92e93b798271e27bc62480f583b0a07bd1f",
-        "recordedAt": "2026-09-07T00:48:04.019Z"
+        "recordedAt": "2026-09-07T00:54:45.134Z"
       },
       "tests": [],
       "smokes": []
@@ -134,7 +134,7 @@
       "comparison": {
         "map": "memory/requisitos/Essentials/knowledge-index.map.json",
         "mapSha256": "d6296f24224787d331f571c69fa0ebbdfca862733cd4dd9616b12c32f2874605",
-        "recordedAt": "2026-09-07T00:48:08.962Z"
+        "recordedAt": "2026-09-07T00:54:50.536Z"
       },
       "tests": [],
       "smokes": []
@@ -147,7 +147,7 @@
       "comparison": {
         "map": "memory/requisitos/Essentials/messages-index.map.json",
         "mapSha256": "b69436fc5bd1192953b55ca9d6ee80b26ac40897ea735c5ea0c1d5ff7eb5df87",
-        "recordedAt": "2026-09-07T00:48:06.503Z"
+        "recordedAt": "2026-09-07T00:54:47.912Z"
       },
       "tests": [],
       "smokes": []
@@ -160,7 +160,7 @@
       "comparison": {
         "map": "memory/requisitos/Essentials/reminders-index.map.json",
         "mapSha256": "9bde0339797526df87b4d1d7d6f2eaa530edc44ace18d13dc6f0e2b63c32dddc",
-        "recordedAt": "2026-09-07T00:48:07.739Z"
+        "recordedAt": "2026-09-07T00:54:49.210Z"
       },
       "tests": [],
       "smokes": []
@@ -173,7 +173,7 @@
       "comparison": {
         "map": "memory/requisitos/Essentials/todo-index.map.json",
         "mapSha256": "538d05916531a44dfede2f28f6c48d8c709e0691815545b66f621ce025fa5048",
-        "recordedAt": "2026-09-07T00:48:05.248Z"
+        "recordedAt": "2026-09-07T00:54:46.539Z"
       },
       "tests": [],
       "smokes": []
@@ -496,7 +496,7 @@
       "comparison": {
         "map": "memory/requisitos/Essentials/holidays-index.map.json",
         "mapSha256": "f2ae1f41dd190b65d1c4f9af3d6d750c08d1cdfd4277483c088ff7a710ff6b71",
-        "recordedAt": "2026-09-07T00:48:10.165Z"
+        "recordedAt": "2026-09-07T00:54:51.795Z"
       },
       "tests": [],
       "smokes": []
@@ -509,7 +509,7 @@
       "comparison": {
         "map": "memory/requisitos/Essentials/settings-index.map.json",
         "mapSha256": "c8a6ef87043e9a11ab82c786878d6171c5b0d60c91418cce5d9e42ac7d5816fe",
-        "recordedAt": "2026-09-07T00:48:11.406Z"
+        "recordedAt": "2026-09-07T00:54:53.070Z"
       },
       "tests": [],
       "smokes": []
@@ -522,7 +522,7 @@
       "comparison": {
         "map": "memory/requisitos/Essentials/tipos.map.json",
         "mapSha256": "cd3d1b8395296285a6a93845d3f6c532c624a1022425147ecc0e00e27d1117aa",
-        "recordedAt": "2026-09-07T00:48:12.629Z"
+        "recordedAt": "2026-09-07T00:54:54.407Z"
       },
       "tests": [],
       "smokes": []
