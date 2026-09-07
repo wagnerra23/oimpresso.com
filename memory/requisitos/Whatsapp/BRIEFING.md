@@ -16,7 +16,7 @@ Módulo de atendimento multicanal (inbox omnichannel) com WhatsApp como canal pr
 - Integração Meta Cloud (`MetaCloudDriver`); Embedded Signup v4 (Fase 2 da ADR 0202; em main desde 2026-05-27, PR #1768). O SPEC não tem story própria pra ele — quem carrega a âncora é US-WA-001 (Wizard 2 passos), `_parcial_` · verificado@dd3ed7c (2026-07-01), com nota de que a tela evoluiu pro Embedded Signup.
 - Jana (IA conversacional) no inbox.
 - Persistência de mensagens (`Services/Webhook/MessagePersister`) e lembretes (`Services/Notes/LembreteHandler`).
-- Testes de saturação (`Wave26WhatsappSaturationTest` e irmãs), idempotência de webhook e isolamento Tier 0; rota admin sob `can:whatsapp.access`.
+- Testes de saturação da Wave 26 (`Wave26WhatsappSaturationTest` e irmãs — o D3 dessa suíte exige a menção "Wave 26" nesta porta), idempotência de webhook e isolamento Tier 0; rota admin sob `can:whatsapp.access`.
 - Feedback do cliente em dois canais: `canal=whatsapp` (capturado no inbox) e `canal=web_form` (link público assinado, `php artisan feedback:link {biz}`, validade de 30 dias; a rota não tem auth — o global scope é no-op sem auth — então o `business_id` vem do HMAC da URL, nunca do input). Decisão de 2026-07-17 (`RUNBOOK-feedback-publico.md`): o canal público grava em `clients_feedbacks`, sem tabela nova; a ADR 0334 classificou a atrofia do órgão sensor (US-INFRA-002) e a entidade dedicada saiu depois em `Modules/VozDoCliente` (`voz_sinais`, 2026-07-28).
 
 ## Gaps
