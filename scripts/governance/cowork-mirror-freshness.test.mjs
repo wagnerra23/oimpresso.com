@@ -36,6 +36,8 @@ import {
   lerBundlePromovido,
   LIVE_ONLY_SLA_DAYS,
   exportPlan,
+  devolutivaDeRecusados,
+  renderDevolutiva,
   decodeDesignSyncPayload,
   artifactHash,
   dsRuntimeRelPath,
@@ -1327,6 +1329,59 @@ check('mesmo número → mesmo veredito (independe de --check)',
 
   check('lerBundlePromovido: caminho inexistente → null (não objeto vazio)',
     lerBundlePromovido(tmpdir(), 'nao-existe-jamais.json') === null);
+}
+
+// ── 12. DEVOLUTIVA DA RECUSA (D3/D4 · 2026-09-07) ──────────────────────────────────
+// O `exportPlan` recusa canon de tela desde sempre e IMPRIMIA a lista. Imprimir informa
+// quem olha o terminal; não informa o DESIGN, que produziu o arquivo e o produz de novo
+// no ciclo seguinte. Estes asserts pinam o que a devolutiva precisa dizer.
+{
+  const raiz = mkdtempSync(join(tmpdir(), 'devolutiva-'));
+  const escrever = (rel, txt) => { mkdirSync(dirname(join(raiz, rel)), { recursive: true }); writeFileSync(join(raiz, rel), txt); };
+
+  // canon vivo MADURO — o caso real de 2026-09-07 (Ponto: 20 de 20 divergiam, vivo 3-7× maior)
+  escrever('resources/js/Pages/Ponto/Espelho/Show.casos.md',
+    '---\nlast_run: "2026-09-04"\n---\n' + 'x'.repeat(9000));
+  // tela existe, canon NÃO — a lacuna que vale mandar adiante
+  escrever('resources/js/Pages/Novo/Tela.tsx', 'export default function T(){}');
+
+  const linhas = devolutivaDeRecusados([
+    { path: 'resources/js/Pages/Ponto/Espelho/Show.casos.md', content: '---\nlast_run: "—"\n---\ncurto' },
+    { path: 'inbox/nova.charter.md', content: '---\ncomponent: resources/js/Pages/Novo/Tela.tsx\n---\nrascunho' },
+    { path: 'inbox/orfa.charter.md', content: '# sem frontmatter nenhum' },
+    { path: 'inbox/x.contract.json', content: '{}' },
+  ], { root: raiz });
+
+  const porPath = Object.fromEntries(linhas.map((l) => [l.path, l]));
+
+  check('BITE: rascunho pobre contra canon maduro ⇒ COLIDE-COM-CANON-MAIS-RICO',
+    porPath['resources/js/Pages/Ponto/Espelho/Show.casos.md'].classe === 'COLIDE-COM-CANON-MAIS-RICO',
+    JSON.stringify(porPath['resources/js/Pages/Ponto/Espelho/Show.casos.md']));
+
+  check('BITE: a devolutiva CITA a data de execução do canon vivo (é o que muda a decisão de lá)',
+    /2026-09-04/.test(porPath['resources/js/Pages/Ponto/Espelho/Show.casos.md'].acao));
+
+  // O defeito que o 1º controle positivo pegou: comparar charter (4 KB) com .tsx (69 KB).
+  check('IRMÃO, não componente: `component: X.tsx` resolve o alvo para X.charter.md',
+    porPath['inbox/nova.charter.md'].alvo === 'resources/js/Pages/Novo/Tela.charter.md',
+    porPath['inbox/nova.charter.md'].alvo);
+
+  check('BITE: tela existe e canon NÃO ⇒ LACUNA-TELA-SEM-CANON (rascunho vira insumo, não lixo)',
+    porPath['inbox/nova.charter.md'].classe === 'LACUNA-TELA-SEM-CANON',
+    porPath['inbox/nova.charter.md'].classe);
+
+  check('CONTROLE NEGATIVO: sem `component:` e fora de Pages/ ⇒ SEM-ALVO-DECLARADO (não inventa alvo)',
+    porPath['inbox/orfa.charter.md'].classe === 'SEM-ALVO-DECLARADO' && porPath['inbox/orfa.charter.md'].alvo === null);
+
+  check('contrato roteia para prototipo-ui/contrato/ pelo nome do arquivo',
+    porPath['inbox/x.contract.json'].alvo === 'prototipo-ui/contrato/x.contract.json');
+
+  const md = renderDevolutiva(linhas, { quando: new Date('2026-09-07T00:00:00Z') });
+  check('render: declara-se DERIVADO (não editar à mão) e datado', /Derivado/.test(md) && /2026-09-07/.test(md));
+  check('render: NÃO se declara gate (a recusa informa, não reprova)', /NÃO é gate/.test(md));
+  check('render: uma linha por recusado, todas na tabela', linhas.every((l) => md.includes(l.path)));
+
+  rmSync(raiz, { recursive: true, force: true });
 }
 
 console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ contrato v3 do comparador de frescor preservado (path completo + hash normalizado + ledger/SLA + live-only + export fiel + absent-local que MORDE + refs-da-poda + fluxo e2e)');

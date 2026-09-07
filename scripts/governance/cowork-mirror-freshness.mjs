@@ -345,8 +345,12 @@ export function liveOnlyDetalhado(livePaths, manifest, { exts = null, jaEmDocs =
  */
 const RE_CANON_DE_TELA = /\.(charter\.md|casos\.md|contract\.json)$/i;
 
+/** Devolutiva da recusa — derivado, regenerado a cada export. Canal Code → design. */
+export const DEVOLUTIVA_REL = 'prototipo-ui/CODE_NOTES.recusados-canon.md';
+
 export function exportPlan(arquivosVivos, { prefixo = 'prototipo-ui/cowork/', prefixoDocs = null } = {}) {
   const recusados = [];
+  const recusadosConteudo = [];
   const plano = [];
 
   for (const { path: p, content, binary = false } of arquivosVivos) {
@@ -358,6 +362,9 @@ export function exportPlan(arquivosVivos, { prefixo = 'prototipo-ui/cowork/', pr
     // outro: o problema não é ONDE o charter cai, é que ele não desce por esta porta.
     if (RE_CANON_DE_TELA.test(p)) {
       recusados.push(p);
+      // O conteúdo viaja junto: a devolutiva compara o rascunho com o canon vivo, e
+      // reler o arquivo depois seria reler de onde ele NÃO está (ele não desceu).
+      recusadosConteudo.push({ path: p, content });
       continue;
     }
 
@@ -381,10 +388,160 @@ export function exportPlan(arquivosVivos, { prefixo = 'prototipo-ui/cowork/', pr
     console.log('     O canon nasce em resources/js/Pages/<Mod>/ via criar-tela.mjs, reconciliado');
     console.log('     contra SPEC/ADR. Rascunho vindo do design entra como PEDIDO em cowork-inbox/,');
     console.log('     não como charter. Ver o canon-sombra de 30 arquivos que isto passou a impedir.');
+    console.log(`     A devolutiva com o canon vivo ao lado sai em ${DEVOLUTIVA_REL}.`);
   }
 
   plano.recusados = recusados;
+  plano.recusadosConteudo = recusadosConteudo;
   return plano;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════════════
+ * DEVOLUTIVA DA RECUSA — o que o lado design NÃO tem como saber sozinho
+ *
+ * POR QUE EXISTE (medido 2026-09-07, no import do ciclo de 07/09): o `exportPlan` acima
+ * recusa canon de tela e IMPRIME a lista. Imprimir resolve para quem está olhando o
+ * terminal naquele segundo; não resolve para o DESIGN, que é quem produziu o arquivo e
+ * quem vai produzi-lo de novo no ciclo seguinte. Naquele import foram 54 recusados, e a
+ * sessão (eu) fechou o ciclo sem devolver nada — exatamente o buraco D3/D4 que [W]
+ * mandou consertar no mesmo dia.
+ *
+ * O QUE SÓ ESTE LADO SABE, e é o conteúdo da devolutiva: como o rascunho recusado se
+ * compara com o canon VIVO. Medição daquele import, e é o motivo de isto não ser
+ * burocracia — 20 charters/casos do Ponto vieram para sobrescrever os do repo, TODOS
+ * divergentes e de 3 a 7× MENORES (ex.: `Espelho/Show.casos.md` 2.539 B contra 17.528 B),
+ * com `last_run: "—"` contra um canon que registra medição datada. Se a porta tivesse
+ * aceitado, teria trocado contrato maduro por esqueleto em silêncio.
+ *
+ * NÃO É GATE, e não vira: reprovar o design por mandar rascunho puniria o ato de propor.
+ * A saída é INFORMAR — e informar com o número do outro lado, que é o que muda a
+ * decisão de quem desenha.
+ *
+ * DERIVADO, não escrito à mão (ADR 0256): o arquivo é REGENERADO a cada export, nunca
+ * append. Um registro append de "o que foi recusado" viraria pilha de retratos velhos
+ * competindo entre si; o que serve é o retrato de AGORA, com a data da medição.
+ *
+ * ── HISTÓRICO DE TENTATIVAS (append-only — [W] 2026-09-07: "manter o histórico de
+ *    evolução dessas tentativas de todas as máquinas é muito importante") ──────────────
+ *
+ * 1ª versão (2026-09-07, mesma sessão, REVERTIDA antes do commit): resolvia o alvo pelo
+ *   `component:` do frontmatter e comparava BYTES contra ele. Como `component:` aponta o
+ *   `.tsx`, a saída comparou um charter de 4.097 B com um componente de 69.748 B e emitiu
+ *   veredito "canon mais rico" a partir de grandezas incomensuráveis. Pego no PRIMEIRO
+ *   controle positivo, não em revisão — o número saiu plausível, que é como esta classe
+ *   atravessa. Conserto: o irmão do `.charter.md` é o `.charter.md` ao lado do componente,
+ *   nunca o componente. Pinado pelo assert "IRMÃO, não componente" no teste irmão.
+ *
+ * 2ª versão (a atual): ao consertar o alvo, apareceu um estado que a 1ª não sabia
+ *   representar — tela existe e canon NÃO. Virou `LACUNA-TELA-SEM-CANON`, e é o único
+ *   veredito que manda o rascunho ADIANTE em vez de recusá-lo: ali ele não colide com
+ *   nada, preenche buraco. Não disparou no corpus de 07/09 (cobertura de charter é
+ *   218/218), então é ramo provado por FIXTURE, não por dado real — declarado aqui para
+ *   ninguém tratá-lo como medido em produção.
+ *
+ * O QUE NÃO SE TENTOU, e por quê: transformar a recusa em GATE. Reprovar o design por
+ *   mandar rascunho puniria o ato de propor, e o §5 tem 4 lápides de guard sintático que
+ *   reprovava trabalho legítimo. A recusa já existia e funcionava; o que faltava era o
+ *   retorno.
+ * ═══════════════════════════════════════════════════════════════════════════════════════ */
+
+/** `last_run:`/`status:` do frontmatter — sinal de maturidade, não veredito. */
+function sinalDeMaturidade(texto) {
+  if (typeof texto !== 'string') return {};
+  const fm = /^---\r?\n([\s\S]*?)\r?\n---/.exec(texto);
+  if (!fm) return {};
+  const campo = (nome) => {
+    const m = new RegExp(`^${nome}:\\s*"?([^"\\n]*)"?\\s*$`, 'm').exec(fm[1]);
+    return m ? m[1].trim() : null;
+  };
+  return { last_run: campo('last_run'), status: campo('status'), component: campo('component'), page: campo('page') };
+}
+
+/**
+ * Cruza cada recusado com o canon vivo do repo. Devolve linhas prontas para a devolutiva.
+ * `recusadosConteudo`: [{ path, content }] — o conteúdo vem do próprio lote, não se relê nada.
+ */
+export function devolutivaDeRecusados(recusadosConteudo, { root = ROOT } = {}) {
+  const linhas = [];
+  for (const { path: p, content } of recusadosConteudo || []) {
+    const texto = Buffer.isBuffer(content) ? content.toString('utf8') : String(content || '');
+    const bytesRascunho = Buffer.byteLength(texto, 'utf8');
+    const meta = sinalDeMaturidade(texto);
+
+    // 3 formas de achar o receptor, nesta ordem: path que espelha o canon · alvo
+    // DECLARADO pelo próprio rascunho (`component:`) · contrato pelo nome do arquivo.
+    //
+    // ⚠️ IRMÃO, não componente (defeito meu, pego no 1º controle positivo 2026-09-07):
+    // o `component:` do frontmatter aponta o `.tsx`, e a 1ª versão disto comparou 4.097 B
+    // de um charter com 69.748 B de um `.tsx` — grandezas incomensuráveis, veredito sem
+    // sentido. O canon correspondente a um `.charter.md` é o `.charter.md` ao lado do
+    // componente, nunca o componente. Mesma família do §5 2026-07-17 (medir a coisa certa).
+    const sufixo = /\.charter\.md$/i.test(p) ? '.charter.md' : /\.casos\.md$/i.test(p) ? '.casos.md' : null;
+    let alvo = null; let telaExiste = null;
+    if (/^resources\/js\/Pages\//.test(p) || /^Modules\/[^/]+\/Resources\/js\/Pages\//.test(p)) alvo = p;
+    else if (meta.component && sufixo) {
+      const tsx = meta.component.replace(/\s*\(.*$/, '').trim();
+      telaExiste = existsSync(join(root, tsx));
+      alvo = tsx.replace(/\.tsx$/i, sufixo);
+    } else if (/\.contract\.json$/i.test(p)) alvo = 'prototipo-ui/contrato/' + p.split('/').pop();
+
+    const abs = alvo ? join(root, alvo) : null;
+    const existe = Boolean(abs && existsSync(abs));
+    const bytesCanon = existe ? statSync(abs).size : null;
+    const metaCanon = existe && alvo.endsWith('.md') ? sinalDeMaturidade(readFileSync(abs, 'utf8')) : {};
+
+    let classe; let acao;
+    if (!alvo) {
+      classe = 'SEM-ALVO-DECLARADO';
+      acao = 'declare o alvo no frontmatter (`component:`) ou mande como PEDIDO em cowork-inbox/';
+    } else if (!existe && telaExiste === true) {
+      // O caso que MAIS vale devolver: a tela existe e o canon dela não. Aqui o rascunho
+      // não colide com nada — ele preenche lacuna real, e o design deve ser mandado adiante.
+      classe = 'LACUNA-TELA-SEM-CANON';
+      acao = `a tela existe e o canon NÃO — vale virar canon: \`criar-tela.mjs\` cria \`${alvo}\`, e o seu rascunho é o insumo`;
+    } else if (!existe) {
+      classe = 'TELA-A-CRIAR';
+      acao = `o canon nasce no repo: \`criar-tela.mjs <Mod/Tela> <PT-0X>\` → ${alvo}`;
+    } else if (bytesCanon > bytesRascunho) {
+      classe = 'COLIDE-COM-CANON-MAIS-RICO';
+      acao = `NÃO reenvie: o vivo tem ${bytesCanon} B contra ${bytesRascunho} B do rascunho`
+        + (metaCanon.last_run && metaCanon.last_run !== '—' ? ` e registra execução em ${metaCanon.last_run}` : '')
+        + '. Leia o vivo antes de propor mudança nele.';
+    } else {
+      classe = 'COLIDE-RASCUNHO-MAIOR';
+      acao = 'pode conter conteúdo novo — abra como PEDIDO citando o que muda, não como arquivo inteiro';
+    }
+    linhas.push({ path: p, classe, alvo, bytesRascunho, bytesCanon, lastRunCanon: metaCanon.last_run || null, acao });
+  }
+  return linhas;
+}
+
+/** Renderiza a devolutiva. Retrato datado e derivado — regenerado, nunca append. */
+export function renderDevolutiva(linhas, { quando = new Date() } = {}) {
+  const porClasse = new Map();
+  for (const l of linhas) porClasse.set(l.classe, (porClasse.get(l.classe) || 0) + 1);
+  const cab = [...porClasse.entries()].map(([c, n]) => `${n} ${c}`).join(' · ') || 'nenhum';
+  const out = [];
+  out.push('# CODE_NOTES — canon de tela RECUSADO no transporte (devolutiva ao design)');
+  out.push('');
+  out.push('> **Derivado. Não edite à mão** — regenerado por `cowork-mirror-freshness --export-from`.');
+  out.push('> Retrato de ' + quando.toISOString().slice(0, 10) + ' · ' + linhas.length + ' arquivo(s) · ' + cab + '.');
+  out.push('>');
+  out.push('> **A recusa está certa e não vai mudar** (PROTOCOL §10.4): charter, casos e contract são');
+  out.push('> canon de tela e nascem no repo, reconciliados contra SPEC/ADR. O que faltava era o');
+  out.push('> retorno — sem ele o mesmo rascunho volta no ciclo seguinte, e os dois lados gastam.');
+  out.push('>');
+  out.push('> **Isto NÃO é gate:** ninguém reprova por mandar rascunho. É o número do lado de cá,');
+  out.push('> que é o que o lado de lá não tem como medir sozinho.');
+  out.push('');
+  out.push('| arquivo (design) | situação | canon vivo | o que fazer |');
+  out.push('|---|---|---|---|');
+  for (const l of linhas.sort((a, b) => a.classe.localeCompare(b.classe) || a.path.localeCompare(b.path))) {
+    const canon = l.bytesCanon == null ? '—' : `\`${l.alvo}\` (${l.bytesCanon} B)`;
+    out.push(`| \`${l.path}\` (${l.bytesRascunho} B) | ${l.classe} | ${canon} | ${l.acao} |`);
+  }
+  out.push('');
+  return out.join('\n') + '\n';
 }
 
 /** Decodifica UMA resposta persistida do DesignSync.get_file sem permitir que o
@@ -1975,6 +2132,25 @@ function main() {
 ✓ ${plano.length} arquivo(s) escritos do JSON — fiel por construção, sem transcrição.`);
     }
     console.log(`  ${tally.ATUALIZADO} atualizado(s) · ${tally.NOVO} novo(s) · ${tally.inalterado} inalterado(s)`);
+
+    // ── D3/D4: a recusa vira DEVOLUTIVA escrita, não só linha de terminal ────────────
+    // Sem `--dry` porque não há o que escolher: recusou, o design precisa saber. O
+    // arquivo é derivado e regenerado; quando não há recusa nenhuma, ele some — estado
+    // limpo não deve deixar retrato velho no repo afirmando um problema que acabou.
+    {
+      const absDev = join(ROOT, DEVOLUTIVA_REL);
+      if (plano.recusadosConteudo && plano.recusadosConteudo.length) {
+        const linhas = devolutivaDeRecusados(plano.recusadosConteudo, { root: ROOT });
+        mkdirSync(dirname(absDev), { recursive: true });
+        writeFileSync(absDev, renderDevolutiva(linhas));
+        const ricos = linhas.filter((l) => l.classe === 'COLIDE-COM-CANON-MAIS-RICO').length;
+        console.log(`  devolutiva escrita em ${DEVOLUTIVA_REL} (${linhas.length} recusado(s)`
+          + (ricos ? `, ${ricos} colidiria(m) com canon mais rico` : '') + ') — leve ao design.');
+      } else if (existsSync(absDev)) {
+        rmSync(absDev, { force: true });
+        console.log(`  ${DEVOLUTIVA_REL} removido — nenhuma recusa nesta rodada.`);
+      }
+    }
     if (snapOut) {
       // ⚠️ TAUTOLOGIA (achado do adversário 2026-08-13, provado em sandbox): este snapshot sai
       // do conteúdo que ACABOU de ser escrito, então o `--compare` seguinte SEMPRE dá SYNC —
