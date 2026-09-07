@@ -37,3 +37,14 @@ header 2 filhos · tabs 6 (buttons; nav sem classe no espelho) · brief 7 · kpi
 - T7 (`design-diff --compare --check` prod × proto) não rodou — exige prod autenticada.
 - O pacote do Cowork **não** foi regenerado (roda do lado do design). O comando foi entregue a [W] pra colar no Design.
 - Os dois `.md` do Cowork não foram persistidos no repo (`get_file` inline; ADR 0389 permite escrita inline sob 4 condições, mas não era o pedido).
+
+
+## 2026-09-07 — continuação: a resposta do Cowork e a descida inline (ADR 0389)
+
+- Cowork respondeu que **não regenera** o pacote (sem disco/node; tools read-only no git) e mediu no vivo o delta vs manifesto de 24/08 (8 arquivos). Sugeriu `--root prototipo-ui/cowork` — **recusado**: empacotaria o espelho (recibo falso, §5 2026-08-25).
+- Cruzado com o espelho: 4 já iguais ao vivo; 4 atrás e < 48 KB → rota inline. [W]: "libere".
+- `get_file` dos 4 (`truncated:false`), escrita do dado, verificação: tamanhos exatos nos 4; sha256 `fb24ce60` (cli-tabs) e `d2efd2c4` (chat-jana) iguais aos que o Cowork mediu no vivo.
+- Consumidor: espelho servido + alvo re-medido — header do vivo virou `div > header` (CliPageHead), seletor re-colhido pelo `--mapa`; 1022 nós, 9/9, 3 runs idênticos.
+- Gate required `espelho — mexeu depois de verificar` estava 🔴 3; ciclo `--export-from --origem agente --emit-snapshot` → `--compare --check --ledger` → 0 mexido-depois. Patch de 5 linhas: a declaração `--origem agente` passa a ser gravada no snapshot e no ledger.
+- #6918 já estava mergeado (06/09 12:41Z); o commit foi cherry-picked sobre `main` fresco (conflito só no ledger, resolvido anexando a entrada). PR [#6933](https://github.com/wagnerra23/oimpresso.com/pull/6933).
+- Não feito: sha256 independente de `oimpresso.com.html`/`modulo-padrao.jsx` (pedir ao Cowork); ratificação da 0389; 254/258 do espelho seguem sem veredito.
