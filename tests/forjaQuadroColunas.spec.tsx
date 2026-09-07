@@ -4,7 +4,8 @@
 //
 // A decisão [W] de 2026-08-11 — "F4 Merge É coluna" — mantém 7 colunas no eixo
 // Pipeline, divergindo DE PROPÓSITO do protótipo, que filtra F4 e desenha 6
-// (`prototipo-ui/cowork/forja-page.jsx`: `PHASES.filter(p => p.id !== "F4")`).
+// (`prototipo-ui/cowork/forja-quadro.jsx:33`: `PHASES.filter(p => p.id !== "F4")`
+// — estava no `forja-page.jsx` até a divisão por tela do ciclo de 2026-09-07).
 // A divergência está declarada no charter e no docblock do `TrabalhoQuadro.tsx`.
 //
 // Só que ela não tinha defesa mecânica. A cadeia de paridade que existe é toda
