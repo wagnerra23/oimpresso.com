@@ -7,7 +7,7 @@
 ## Resumo
 - **395** arquivos · **380** números únicos · máx **0390**
 - **ADRs ATIVOS (lifecycle ativo): 356** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 354 · superseded 16 · deprecated 13 · proposto 10 · rascunho 1 · recusado 1
+- Por status: aceito 355 · superseded 16 · deprecated 13 · proposto 9 · rascunho 1 · recusado 1
 - Por lifecycle: ativo 356 · arquivado 23 · substituido 16
 - Sem frontmatter (formato-tabela legado): 0
 
@@ -431,5 +431,5 @@ _(nenhuma)_
 | 0386 | aceito | ativo | decision | Âmbar da Oficina revogado — o roxo canon é a única identidade de chrome; superse |
 | 0387 | aceito | ativo | decision | github.md (diário de sync do Cowork) é artefato aceito e tratado pelo protocolo  |
 | 0388 | aceito | ativo | decision | Réplica primeiro: o protótipo é o contrato de layout e a conformidade do DS vira |
-| 0389 | proposto | ativo | decision | Emenda à 0374 — quando o `get_file` devolve INLINE, o agente escreve o arquivo ( |
+| 0389 | aceito | ativo | decision | Emenda à 0374 — quando o `get_file` devolve INLINE, o agente escreve o arquivo ( |
 | 0390 | proposto | ativo | decision | Emenda à 0384 — o smoke que leva a `validated` aceita ambiente controlado (host  |

@@ -3,7 +3,7 @@ slug: 0389-emenda-0374-escrita-do-espelho-quando-o-get-file-volta-inline
 number: 389
 title: "Emenda à 0374 — quando o `get_file` devolve INLINE, o agente escreve o arquivo (a proibição de transcrever passa a valer só onde existe rota de máquina)"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision
