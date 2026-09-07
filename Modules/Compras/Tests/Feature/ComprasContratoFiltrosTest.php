@@ -350,3 +350,77 @@ it('UC-CMP-08 · compra de local não permitido não aparece no cockpit', functi
         .'Se Compras NÃO deve ter escopo por localização, isto vira Non-Goal no charter ([W]).'
     );
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+/**
+ * UC-CMP-10 — as colunas "Itens" e "NF-e" do protótipo existem no payload.
+ *
+ * ORIGEM (2026-09-07): comparação MEDIDA prod × protótipo do cockpit
+ * (`memory/requisitos/Compras/_telas/cockpit-visual-comparison.md`). Das 4
+ * divergências que a máquina acusou, esta foi a ÚNICA que sobreviveu à
+ * verificação: o protótipo tem 9 colunas, a produção tinha 7, e o charter da
+ * tela declara as duas que faltavam. As outras 3 eram artefato de seletor ou
+ * acidente de markup do protótipo — estão refutadas com medição no documento.
+ *
+ * O QUE ESTE TESTE DEFENDE, e por que no BACKEND: a coluna "Itens" não existe
+ * em `transactions` — vem de subselect correlacionado que o ComprasService
+ * acrescenta. Um teste de front provaria que o `<td>` renderiza; só o payload
+ * prova que o DADO chega. Se alguém "simplificar" o subselect pra um join, o
+ * `amount_paid` infla (a query do core agrupa por transaction) e o assert de
+ * valor abaixo é o que denuncia — VALOR é Tier 0.
+ */
+it('UC-CMP-10 · o payload traz items_count e document (colunas Itens e NF-e do protótipo)', function () {
+    $sessao = ['user' => ['business_id' => $this->biz->id, 'id' => $this->user->id]];
+
+    $ref = 'CMP-COLS-'.uniqid();
+    $compra = comprasContratoCriarCompra($this->biz->id, $this->location->id, $this->user->id, $ref);
+
+    $linhas = 3;
+    for ($i = 0; $i < $linhas; $i++) {
+        DB::table('purchase_lines')->insert([
+            'transaction_id' => $compra->id,
+            'product_id' => 1,
+            'variation_id' => 1,
+            'quantity' => 1,
+            'pp_without_discount' => 10,
+            'purchase_price' => 10,
+            'purchase_price_inc_tax' => 10,
+            'created_at' => Carbon::now(),
+            'updated_at' => Carbon::now(),
+        ]);
+    }
+
+    $rows = collect(app(ComprasService::class)->listarCompras($this->biz->id)->get())
+        ->map(fn ($r) => (array) $r);
+
+    // PRÉ-CONDIÇÃO ANTI-VÁCUO: a compra criada aparece. Sem isto, um assert que
+    // "não achou divergência" poderia significar que a listagem veio vazia.
+    $linha = $rows->firstWhere('ref_no', $ref);
+    expect($linha)->not->toBeNull(
+        'PRÉ-CONDIÇÃO FALHOU: a compra de controle não apareceu na listagem — '
+        .'conferir fixture antes de ler o resultado dos asserts abaixo.'
+    );
+
+    expect((int) ($linha['items_count'] ?? -1))->toBe(
+        $linhas,
+        'A coluna "Itens" do protótipo (compras-page.jsx:501) não tem dado no payload. '
+        .'Ela vem de subselect no ComprasService::listarComprasInterno; se ele sumiu ou '
+        .'virou join, a contagem quebra.'
+    );
+
+    expect(array_key_exists('document', $linha))->toBeTrue(
+        'A coluna "NF-e" do protótipo (compras-page.jsx:508 — `xmlChave ? "✓ XML" : "—"`) '
+        .'lê `document`, que a query do core já seleciona. Se a chave sumiu do payload, '
+        .'a coluna renderiza "—" pra tudo em silêncio.'
+    );
+
+    // VALOR É TIER 0 (proibicoes.md §"CÁLCULO DE VALOR ou ESTOQUE"): o subselect
+    // NÃO pode multiplicar a linha do agregado. Se alguém trocar por join, o
+    // `final_total` continua certo mas o `amount_paid` (SUM sobre pagamentos)
+    // infla — este assert é o controle que pega isso.
+    expect((float) $linha['final_total'])->toBe(
+        500.00,
+        'O total da compra mudou com a coluna nova. O subselect de items_count NÃO pode '
+        .'entrar no GROUP BY da query do core — se virou join, o agregado multiplicou.'
+    );
+});

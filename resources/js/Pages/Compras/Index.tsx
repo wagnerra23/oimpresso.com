@@ -36,6 +36,8 @@ interface Row {
   final_total: number;
   location_name: string;
   amount_paid: number | null;
+  /** Contagem de linhas da compra — subselect do ComprasService, não coluna de `transactions`. */
+  items_count?: number | null;
 }
 
 interface RowsPayload {
@@ -90,8 +92,10 @@ const COLUMNS: ColumnDef[] = [
   { id: 'fornecedor', label: 'Fornecedor' },
   { id: 'data', label: 'Data' },
   { id: 'estagio', label: 'Estágio' },
+  { id: 'itens', label: 'Itens' },
   { id: 'total', label: 'Total' },
   { id: 'a_pagar', label: 'A pagar' },
+  { id: 'nfe', label: 'NF-e' },
 ];
 
 const DEFAULT_COL_VISIBILITY: Record<string, boolean> = {
@@ -100,8 +104,10 @@ const DEFAULT_COL_VISIBILITY: Record<string, boolean> = {
   fornecedor: true,
   data: true,
   estagio: true,
+  itens: true,
   total: true,
   a_pagar: true,
+  nfe: true,
 };
 
 const STAGES: { id: Stage; l: string; ic: string }[] = [
@@ -549,6 +555,10 @@ function TableCompras({
                 style={{ width: '100px' }}
               />
             )}
+            {/* Itens — `<td className="num">{p.items}</td>` no protótipo (compras-page.jsx:501),
+                alinhado à direita. Não é ordenável: a contagem vem de subselect, não de coluna
+                da tabela, então não há chave no SORT_MAP pra ela. */}
+            {v.itens && <th style={{ width: '60px', textAlign: 'right' }}>Itens</th>}
             {v.total && (
               <SortHeader
                 col="final_total"
@@ -571,6 +581,8 @@ function TableCompras({
                 style={{ width: '100px', textAlign: 'right' }}
               />
             )}
+            {/* NF-e — `{p.xmlChave ? "✓ XML" : "—"}` no protótipo (compras-page.jsx:508). */}
+            {v.nfe && <th style={{ width: '70px' }}>NF-e</th>}
           </tr>
         </thead>
         <tbody>
@@ -620,6 +632,7 @@ function TableCompras({
                     )}
                   </td>
                 )}
+                {v.itens && <td className="num">{p.items_count ?? '—'}</td>}
                 {v.total && (
                   <td className="num">
                     <b>{fmtMoney(p.final_total)}</b>
@@ -634,6 +647,17 @@ function TableCompras({
                     }}
                   >
                     {due > 0 ? fmtMoney(due) : '✓'}
+                  </td>
+                )}
+                {v.nfe && (
+                  <td
+                    className="mono"
+                    style={{
+                      color: p.document ? 'var(--cmp-ok)' : 'var(--cmp-ink-3)',
+                      fontSize: 11,
+                    }}
+                  >
+                    {p.document ? '✓ XML' : '—'}
                   </td>
                 )}
               </tr>
