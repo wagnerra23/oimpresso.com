@@ -1046,7 +1046,7 @@ it('UC-JPAIN-18: o grid tem os 3 KPIs da âncora e o PIX saiu como CARD, não co
  *
  * Âncora: `prototipo-ui/cowork/jana-merge.jsx` §`JmMetaCard` — `jm-meta-v` é
  * `<b>{atual}</b><small>de {alvo}</small>` e `jm-meta-f` abre com `{pct}% do alvo`, com a
- * projeção empurrada pra direita. A produção escrevia `Alvo: R$ 145.000` no rodapé com o `32%`
+ * projeção empurrada pra direita. A produção escrevia `Alvo: <valor>` no rodapé com a porcentagem
  * solto depois: o alvo aparecia como rótulo embaixo e em lugar nenhum ao lado do número, e o
  * "% do alvo" perdia o substantivo.
  *

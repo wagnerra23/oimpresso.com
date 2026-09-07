@@ -1004,9 +1004,9 @@ ONDA 2.1) — **não** do `.tsx`. Precedência de FORMA: protótipo > teste > ca
 ([ADR UI-0029](../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)).
 
 **Por que este caso existe.** Medido lado a lado pelo Cowork (leitura do `main` @ `43b76c1ec327`):
-o alvo desenha o valor grande com `de R$ 145k` na mesma linha (`jm-meta-v` = `<b>{atual}</b>
+o alvo desenha o valor grande com `de <alvo>` na mesma linha (`jm-meta-v` = `<b>{atual}</b>
 <small>de {alvo}</small>`) e o rodapé `32% do alvo` à esquerda com a projeção à direita
-(`jm-meta-f`). A produção escrevia `Alvo: R$ 145.000` no rodapé com o `32%` solto em negrito
+(`jm-meta-f`). A produção escrevia `Alvo: <valor>` no rodapé com a porcentagem solta em negrito
 depois — o alvo aparecia como rótulo embaixo e **não** ao lado do número, e o "% do alvo" perdia
 o substantivo.
 
