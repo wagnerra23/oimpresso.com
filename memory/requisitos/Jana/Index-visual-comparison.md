@@ -636,3 +636,93 @@ fonte (ver `Index.casos.md` §Pendência do UC-JPAIN-18); decisão [W] sobre mig
 | 3 | Conversa: histórico como card `jm-hist` (busca ⌘K · chips · itens ricos · atalhos) · thread header `título · só sua` · composer com chips de sugestão | chip — medição em `Chat-visual-comparison.md` §2026-09-03 |
 | 4 | Memória: largura toda · barra `busca + chips + n de m` · linha `jm-fato` com meta mono e botões-texto | chip — medição em `Memoria-visual-comparison.md` §2026-09-03 |
 | 5 | título 19×22px (Fundação) · Exportar em menu 3 itens · contador nas abas (backend) | decisão [W] |
+
+
+## Rodada MEDIDA de 2026-09-07 — por SEÇÃO, mesma sonda nos DOIS lados (dark × dark, 1440)
+
+> **Por que esta rodada existe:** [W] cobrou — *"esta errada, comparou por seção com ancoragem dupla?
+> em todas as camadas?"*. A resposta honesta era **não**: a onda 2.1 (#6944) foi validada por Pest +
+> jsdom + um smoke que mediu 4 propriedades soltas do DOM. Comparação **por seção** não tinha sido
+> feita. Esta é.
+
+**Como foi medido** (o fluxo da skill `comparar-design-prod`, sem pular passo):
+
+| passo | o que foi feito |
+|---|---|
+| âncora | `ancora.mjs Jana/Index` → `prototipo-ui/cowork/jana-merge.jsx` (frescor verificado 2026-09-07) |
+| lado design | espelho local servido em :5621, rota `chat` + tema dark, esperando `__oiLazyDone` **e** `.jm-sk` sumir **e** 1,5 s de janela quieta (1039 nós) |
+| lado produção | `/ia` autenticado, biz=1, dark, 1440px, duas leituras iguais (1061 nós) |
+| sonda por papel | `design-diff.mjs --probe` **byte-idêntica** nos dois lados (CSP da prod barra script externo → injetada inline) |
+| sonda por seção | mapa de 9 seções do `alvos/jana--index.secoes.json`, com os seletores da prod colhidos do DOM (nunca de lembrança) |
+| canários | 4, obrigatórios antes de qualquer veredito |
+
+### O veredito da máquina foi **NÃO MEDI** (exit 2), e ele está certo
+
+```
+✗ DIVERGE(bug): 0     ⛔ NÃO MEDI — o lado design veio do espelho local e a fidelidade
+                          dele não está provada. Última rodada é PARCIAL: 1/257 medidos.
+```
+
+Registrado como está: **"0 divergências" ali significa "igual a uma cópia de frescor desconhecido"**,
+não "igual ao design". Fechar a rodada de frescor é pré-requisito de qualquer veredito por papel.
+
+### Dois PONTOS CEGOS do comparador, achados por canário (e são de máquina, não desta tela)
+
+Os canários provaram a sonda viva — e, no mesmo movimento, o que ela **não** vê:
+
+| canário | esperado | obtido | leitura |
+|---|---|---|---|
+| `title.fontPx` 22 → 40 | DIVERGE | **DIVERGE** ✓ | sonda e comparador vivos |
+| `kpi.textAlign` → center | DIVERGE | **DIVERGE** ✓ | pega o defeito histórico que criou a ferramenta |
+| `primary.bg` → hue oposto | DIVERGE | **DIVERGE** ✓ | D6 viva |
+| `title.weight` 600 → 900 | DIVERGE | **IGUAL** ❌ | **a D4 nunca compara `weight` do título**, embora o docblock dela declare "font-size/weight" |
+
+**Consequência viva nesta rodada:** o `h1` da prod é **700** e o do alvo é **600** — e o relatório
+saiu `[D4] IGUAL`. Segundo ponto cego, mesma família: quando um dos lados tem cor **não-parseável**
+(o `primary` do alvo é `rgba(0,0,0,0)`), a D6 não compara e cai no `IGUAL` genérico em vez de
+`SEM-DADO`. É a doença que o próprio arquivo documenta pra linha de tabela: *"a mecanização
+implementava MENOS que a dimensão declarava"* — agora no título e na cor. **Não consertado aqui**
+(é máquina de outro dono, e conserto sem FP medido é a armadilha do §5).
+
+### Comparação POR SEÇÃO — o que a rodada por papel não alcançava
+
+Medido: nós · filhos · altura · `display` · `gap` · `grid-template-columns` · tipografia.
+
+| seção | campo | alvo (protótipo) | produção | veredito |
+|---|---|---|---|---|
+| **kpis** | display · gap · colunas | grid · 10px · 4 | grid · 10px · 4 | ✅ **IGUAL** (a onda 2 fechou) |
+| **header** | display · altura | flex · 80px | block · **130px** | ❌ DIVERGE |
+| **tabs** | altura · gap | 36px · 0px | **33px** · **2px** | ❌ DIVERGE |
+| **brief** | display · gap · filhos | block · normal · 7 | **flex** · **24px** · **1** | ❌ DIVERGE (estrutura) |
+| **análises (grade)** | colunas · gap | **3** · 12px | **2** · **16px** | ❌ DIVERGE |
+| **h2 análises** | tamanho · peso · tracking · cor | 11px · 700 · 0.88px · `text-3` | **14px** · **600** · **1.4px** · mais claro | ❌ DIVERGE |
+| **h2 ações** | idem acima | 11px · 700 · 0.88px | **14px** · **600** · **1.4px** | ❌ DIVERGE |
+| **ações** | gap | normal | **24px** | ❌ DIVERGE |
+| **corpo** | fonte base | 13px | **13,5px** | 🟡 direção a decidir — 13,5px é o `--fs-4` do RAMP canon; **o protótipo é que está fora dele** |
+| **metas** | — | 5 cards | **empty state** | ⬜ NÃO COMPARÁVEL |
+
+**Caixa alta dos h2:** ambos os lados têm `text-transform: uppercase` — a dúvida registrada em
+2026-09-04 (*"sentence case no código pode estar sendo uppercase no CSS"*) fica **resolvida: é
+uppercase nos dois**. O que diverge é tamanho, peso e tracking, não a caixa.
+
+### Metas — segue NÃO COMPARÁVEL, agora com data nova
+
+O alvo renderiza **5 cards**, no formato exato que a onda 2.1 implementou
+(`<realizado> de <alvo>` na linha do valor, `<pct>% do alvo` no rodapé, projeção à direita, e
+`Aguardando apuração… alvo <X>` na meta sem apuração). A produção mostra o **empty state**:
+**zero metas em biz=1**, confirmado também na aba Plataforma (as duas tabelas vazias). Terceira
+medição seguida com o mesmo resultado (08-21 · 08-31 · **09-07**).
+
+**Portanto a onda 2.1 NÃO foi verificada em produção** — só por Pest (arquivo) e por render jsdom
+(DOM, 6 casos com mordida provada). O card em si continua sem prova na tela real, e isso não é
+opinião: é a consequência de não haver dado.
+
+### O que esta rodada NÃO cobriu (declarado, não escondido)
+
+- **D1 rede** (partial-reload) — não exercitada.
+- **Shell/sidebar** — `__SB_ROLES` não declarado nos dois lados ⇒ o comparador diz SEM-DADO.
+- **Linha de tabela** — a tela não tem tabela; papel `tableRow` nulo dos dois lados.
+- **Contraste par-a-par** — não calculado.
+- **Camadas UI-0013** — o que se mediu foi **Shell** (header/tabs) e **Módulo** (seções da tela).
+  **Fundações** entrou só de raspão (a fonte base 13 × 13,5px), e **Padrão de Tela** não foi
+  avaliado contra nenhum PT — o Painel não declara PT no charter.
