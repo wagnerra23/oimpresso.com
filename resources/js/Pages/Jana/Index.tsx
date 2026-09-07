@@ -188,6 +188,15 @@ function MetaCard({ meta, onOpen }: { meta: Meta; onOpen: (meta: Meta, periodo: 
         {realizado !== null ? (
           <div className="text-2xl font-semibold tabular-nums">
             {formatValue(realizado, meta.unidade)}
+            {/* `jm-meta-v` da âncora: `<b>{atual}</b><small>de {alvo}</small>` — o alvo é a
+                régua do número e vive na MESMA linha, um degrau abaixo. `<small>` inline
+                (não flex) pra baseline nativa e pra não somar container ao `layout:check`
+                (ratchet POR ARQUIVO, baseline 11). */}
+            {alvo !== null && (
+              <small className="ml-1.5 text-[11px] font-normal text-muted-foreground">
+                de {formatValue(alvo, meta.unidade)}
+              </small>
+            )}
           </div>
         ) : (
           <div data-contract="painel-meta-apurando" className="text-sm text-muted-foreground">Aguardando apuração…</div>
@@ -217,11 +226,15 @@ function MetaCard({ meta, onOpen }: { meta: Meta; onOpen: (meta: Meta, periodo: 
             projeção não é projeção de zero. */}
         {alvo !== null && (
           <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
+            {/* `jm-meta-f` da âncora: "{pct}% do alvo" — o substantivo fica com a
+                porcentagem, e o alvo já foi lido na linha do valor (antes aparecia como
+                rótulo "Alvo:" aqui e em lugar nenhum lá em cima). Sem apuração não existe
+                "% do alvo": mostra-se só "alvo X", como o `jm-meta-apurando` da âncora —
+                nunca "0% do alvo". */}
             <span>
-              Alvo: {formatValue(alvo, meta.unidade)}
-              {progresso !== null && (
-                <span className="ml-2 font-medium text-foreground">{progresso.toFixed(0)}%</span>
-              )}
+              {progresso !== null
+                ? `${progresso.toFixed(0)}% do alvo`
+                : `alvo ${formatValue(alvo, meta.unidade)}`}
             </span>
             {meta.projecao && (
               <span className="ml-auto shrink-0 font-mono text-[10.5px] tabular-nums">

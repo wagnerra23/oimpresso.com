@@ -4,7 +4,7 @@ casos: Jana Painel · metas ativas · farol server-side · cockpit deferido · /
 irmaos: Index.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-index.md (runbook) · prototipo-ui/contrato/jana-painel.contract.json (contrato visual)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-09-03"
+last_run: "2026-09-07"
 ---
 
 # Casos de uso — /ia (Painel da Jana)
@@ -991,3 +991,45 @@ O título fica sozinho na linha dele, com a identidade do tenant em mono embaixo
 **O que NÃO entrou aqui, de propósito:** contador `n` nas abas (backend, R2 do
 `Index-visual-comparison.md`), Exportar em menu de 3 itens (o botão segue mudo — UC-JPAIN-16 /
 decisão [W]), e o título 22×19px (acima).
+
+## UC-JPAIN-21 — o card de meta lê "<valor> de <alvo>" e "<pct>% do alvo"
+Status: 🧪 (`PainelContratoTest` — 4 blocos de asserção estrutural; aguarda run verde da lane
+`jana-pest` **e** o screenshot pós-deploy. Sem `✅` por leitura: G-7.)
+
+Derivado da **âncora** (`node prototipo-ui/ancora.mjs Jana/Index` →
+`prototipo-ui/cowork/jana-merge.jsx` §`JmMetaCard`, âncora de SÍMBOLO —
+`grep -n "function JmMetaCard" prototipo-ui/cowork/jana-merge.jsx`) e do pacote de paridade do
+Cowork de 2026-09-07 (`prototipo-ui/design-docs/COLAR-NO-CODE-jana-tabs-cor-e-icone.md` §1-ter,
+ONDA 2.1) — **não** do `.tsx`. Precedência de FORMA: protótipo > teste > casos > charter
+([ADR UI-0029](../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)).
+
+**Por que este caso existe.** Medido lado a lado pelo Cowork (leitura do `main` @ `43b76c1ec327`):
+o alvo desenha o valor grande com `de <alvo>` na mesma linha (`jm-meta-v` = `<b>{atual}</b>
+<small>de {alvo}</small>`) e o rodapé `32% do alvo` à esquerda com a projeção à direita
+(`jm-meta-f`). A produção escrevia `Alvo: <valor>` no rodapé com a porcentagem solta em negrito
+depois — o alvo aparecia como rótulo embaixo e **não** ao lado do número, e o "% do alvo" perdia
+o substantivo.
+
+| eixo | âncora `JmMetaCard` | produção (antes) | agora |
+|---|---|---|---|
+| linha do valor | `<b>{atual}</b><small>de {alvo}</small>` | só o valor | valor + `<small>de {alvo}</small>` inline (baseline nativa, sem flex novo) |
+| rodapé | `{pct}% do alvo` · projeção à direita | `Alvo: X` + `32%` solto · projeção à direita | `{pct}% do alvo` · projeção intacta |
+| sem apuração | `Aguardando apuração…` + `<small>alvo X</small>` | `Aguardando apuração…` + rodapé `Alvo: X` | `Aguardando apuração…` (copy pinada intacta) + rodapé `alvo X` |
+| sem alvo | — | sem rodapé | sem rodapé (inalterado) |
+
+**Critério de aceite (o que o teste mede, no arquivo, com espaços normalizados):**
+
+1. o `<small>de {formatValue(alvo, …)}</small>` é filho do bloco do valor e condicionado a `alvo !== null`;
+2. o rodapé é a ternária `progresso !== null ? "<pct>% do alvo" : "alvo <X>"` — "% do alvo" nunca nasce com `progresso` nulo (nada de "0% do alvo");
+3. o literal antigo `Alvo: {formatValue(alvo, meta.unidade)}` saiu do JSX;
+4. a projeção segue `ml-auto shrink-0 font-mono text-[10.5px] tabular-nums` e segue lendo `meta.projecao.projetado` (servidor — o cálculo do protótipo, `atualN*1.3`, **não** foi portado; lei 4 do pacote).
+
+**O que NÃO mudou, de propósito:** `farolDaMeta` e a faixa lateral do farol (bolinha × faixa é
+decisão [W], ADR 0385 "diferente não é erro"), o `Badge` de unidade, o `Sparkline`, as copies
+pinadas `painel-meta-apurando`/`painel-meta-sem-historico`, o cabeçalho da seção
+(`painel-metas-header`), `JanaCockpit.tsx` e o drawer. Contagem de flex/grid do arquivo:
+**11 antes, 11 depois** (`layout:check`, ratchet por arquivo) — o `<small>` é inline justamente
+pra não somar container.
+
+**Teste:** `Modules/Jana/Tests/Feature/PainelContratoTest.php` — `it('UC-JPAIN-21: …')`, lane
+`PHP / Pest (Jana · MySQL)`.

@@ -1040,3 +1040,48 @@ it('UC-JPAIN-18: o grid tem os 3 KPIs da âncora e o PIX saiu como CARD, não co
         ->toContain('const pixHoje = coworkAggregates?.pixHojeTotal ?? 0;')
         ->toContain('custo zero vs maquininha');
 });
+
+/**
+ * UC-JPAIN-21 — o card de meta lê "<valor> de <alvo>" e "<pct>% do alvo" (Onda 2.1 da paridade).
+ *
+ * Âncora: `prototipo-ui/cowork/jana-merge.jsx` §`JmMetaCard` — `jm-meta-v` é
+ * `<b>{atual}</b><small>de {alvo}</small>` e `jm-meta-f` abre com `{pct}% do alvo`, com a
+ * projeção empurrada pra direita. A produção escrevia `Alvo: <valor>` no rodapé com a porcentagem
+ * solto depois: o alvo aparecia como rótulo embaixo e em lugar nenhum ao lado do número, e o
+ * "% do alvo" perdia o substantivo.
+ *
+ * Asserção de ARQUIVO e ESTRUTURAL (mesmo motivo dos UC-08/10/11: Pest não monta React), e
+ * sobre o CÓDIGO, não sobre a prosa — o comentário do `MetaCard` cita "Alvo:" e "0% do alvo"
+ * ao REGISTRAR a decisão, então `not->toContain('Alvo:')` reprovaria o próprio registro
+ * (§5 2026-07-26). O que morde:
+ *   1. o sufixo `de {alvo}` vive DENTRO do bloco do valor (mesma linha), condicionado a `alvo`;
+ *   2. o rodapé é a expressão ternária inteira: `% do alvo` SÓ quando `progresso` existe, e
+ *      sem apuração cai pra `alvo X` (o `jm-meta-apurando` da âncora) — nunca "0% do alvo";
+ *   3. o rótulo antigo `Alvo: {formatValue(...)}` saiu do JSX.
+ * Espaços são normalizados sem regex de propósito: zero barra invertida neste bloco (LC-26).
+ */
+it('UC-JPAIN-21: o card de meta lê "<valor> de <alvo>" e "<pct>% do alvo", nunca "0% do alvo"', function () {
+    $tsx = painelTsx();
+    $flat = str_replace([chr(13), chr(10), chr(9)], ' ', $tsx);
+    while (str_contains($flat, '  ')) {
+        $flat = str_replace('  ', ' ', $flat);
+    }
+
+    // 1. valor + alvo na mesma linha (jm-meta-v): o <small> é filho do bloco do valor
+    expect($flat)->toContain(
+        '{formatValue(realizado, meta.unidade)} '
+        .'{/* `jm-meta-v` da âncora'
+    );
+    expect($flat)->toContain('{alvo !== null && ( <small className="ml-1.5 text-[11px] font-normal text-muted-foreground"> de {formatValue(alvo, meta.unidade)} </small> )}');
+
+    // 2. rodapé (jm-meta-f): a ternária inteira — "% do alvo" guardado por `progresso`, fallback "alvo X"
+    expect($flat)->toContain('{progresso !== null ? `${progresso.toFixed(0)}% do alvo` : `alvo ${formatValue(alvo, meta.unidade)}`}');
+
+    // 3. o rótulo antigo saiu do JSX (o literal de CÓDIGO, não a palavra em comentário)
+    expect($tsx)->not->toContain('Alvo: {formatValue(alvo, meta.unidade)}');
+
+    // 4. a projeção continua à direita, em mono 10.5px, e continua vindo do servidor
+    expect($tsx)
+        ->toContain('ml-auto shrink-0 font-mono text-[10.5px] tabular-nums')
+        ->toContain('meta.projecao.projetado');
+});
