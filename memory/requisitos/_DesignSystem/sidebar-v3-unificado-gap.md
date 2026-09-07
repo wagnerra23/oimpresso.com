@@ -2,7 +2,8 @@
 id: requisitos-design-system-sidebar-v3-unificado-gap
 tipo: gap-spec
 tela: Shell / Sidebar (AppShellV2)
-prototipo: prototipo-ui/prototipos/sidebar-v3-unificado/visual-source.html
+prototipo: TODO
+prototipo_nota: "2026-09-06 [C]: o campo era `prototipo-ui/prototipos/sidebar-v3-unificado/visual-source.html` — apagado em 2026-06-23 (commit 9da73296d3, consolidação SSOT em prototipo-ui/cowork/). Não há sucessor no espelho: fonte viva é o DS em git (prototipo-ui/design-system). Âncora do lado protótipo fica TODO por desenho; o lado vivo é ancorado por grep real, arquivo a arquivo (AppShellV2 / Sidebar.tsx / shared.ts / cockpit.css)."
 tela_viva:
   - resources/js/Layouts/AppShellV2.tsx
   - resources/js/Components/cockpit/Sidebar.tsx
@@ -122,3 +123,29 @@ Os gaps reais e legítimos são **3, todos internos à sidebar**:
 backlog de fundação**, cada um PR sequencial isolado, com gap #1 **bloqueado em
 decisão Wagner** (é mexer em canon UI-0009/0014). Caráter de serialização
 mandatório — nada disso entra num lote de telas.
+
+---
+
+## Tabela de partes (derivada 2026-09-06 — veredito da prosa × código medido)
+
+> Escrita por [C] em 2026-09-06. Regra: cada Ação cita o veredito da prosa (tabela de gaps · §Ordem sugerida · §Veredito) **e** o estado do código medido hoje com `arquivo:linha`. "**Decidir.**" só onde a prosa registra gap aberto; "Nada — <veredito>" onde a prosa fecha ("NÃO fazer", "preservar", paridade) ou onde o código/uma decisão posterior fechou. Em conflito prosa × decisão datada posterior, a decisão vence e a linha diz qual. Lado protótipo = `TODO` (expurgado — ver `prototipo_nota`). Consumida por `prototipo-ui/gerar-map.mjs` → `sidebar-v3-unificado.map.json`.
+
+| Parte | Estado no vivo (medido 2026-09-06) | Ação |
+|---|---|---|
+| Tema (light/dark) | `resources/css/cockpit.css:187-204` bloco "Sidebar — DARK FIXO (Wagner 2026-05-05)": `.cockpit .sb { --sb-bg: oklch(0.21 0.025 295) … }`. | Nada — decisão [W] 2026-07-16 POSTERIOR à prosa: [ADR UI-0023](adr/ui/0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md) (dark fixo DEFINITIVO; supersede UI-0019/0009/0014). O "conflito de canon" acima foi desempatado — não reabrir. |
+| Largura sidebar | `cockpit.css:26` `grid-template-columns: 260px 1fr 320px`. | **Decidir.** 260→248 (P) — §Ordem sugerida 5: "trivial, só se Wagner quiser paridade exata". |
+| Logo/topo (CompanyPicker) | `resources/js/Components/cockpit/Sidebar.tsx:412` `CompanyPicker`; montado em `resources/js/Layouts/AppShellV2.tsx:570`. | Nada — paridade (#3). |
+| Busca / Cmd+K na sidebar | `AppShellV2.tsx:89,731` `CommandPalette` global; `Sidebar.tsx`: 0 ocorrências de caixa de busca ("Buscar"/`search`). | **Decidir.** Entry visual "Buscar tudo… ⌘K" na `sb-top` plugando no `CommandPalette` existente — §Ordem sugerida 2 (P-M, sem valor). |
+| Seção FIXADOS / Pinned | `Sidebar.tsx`: 0 ocorrências de `pinned`/`Fixados` no menu (o `.sb-pin-empty` de `cockpit.css:344` é da aba Chat, não do menu). | **Decidir.** Seção Pinned — §Ordem sugerida 3 (G · Fase 7 da ADR 0180 · LocalStorage scopado `b<bizId>` = Tier 0 multi-tenant). |
+| Grupos de navegação | `Sidebar.tsx:175` `SIDEBAR_GROUPS` (8 keys, direção [W] 2026-05-22). | Nada — NÃO fazer (§Ordem: #6 seria regressão 8→5; vivo mais recente que o protótipo). |
+| Labels dos grupos | `Sidebar.tsx:175` (mesmo array). | Nada — NÃO fazer (#7, vivo vence). |
+| Atalhos kbd (`G I`, `G V`…) | A prosa media "NÃO renderizado". Hoje: `Sidebar.tsx:490-501` `ItemEnd` renderiza `.sb-kbd` com o atalho; `:523-527` só pra atalho que o listener realmente liga (`atalhosUsaveis` — "não prometemos atalho que não funciona"); a sequência `G X` é ligada por `useSidebarShortcut` (`AppShellV2.tsx:355` → `resources/js/Components/cockpit/useSidebarShortcut.ts:178` `keydown`). | Nada — fechado no código depois da prosa (§Ordem 4 era "hints kbd (M)"): hint existe e só aparece pra atalho ligado. Quantos itens têm sequência `G X` ligada não foi medido aqui. |
+| Ícones dos itens | `Sidebar.tsx:60` `MENU_ICON_MAP` · `:130` `GROUP_ICON_MAP` (Lucide). | Nada — preservar Lucide (#9 "NÃO trocar por glyph"). |
+| Item ativo / hover | `cockpit.css:199` `--sb-hover`; `Sidebar.tsx:757-759` `--gh` por grupo. | Nada — paridade conceitual (#10); o eixo tema foi resolvido em #1. |
+| Hue por grupo | `resources/js/Components/cockpit/shared.ts:208` `SIDEBAR_GROUP_HUE` (comercial 55 · financas 145 · fiscal 175 …). | Nada — vivo vence (#11, escala [W] 2026-05-22). |
+| Colapso (rail/expanded) | `Sidebar.tsx:927-931` `SidebarMenuRail`; `AppShellV2.tsx:590-594` `.sb-collapse-handle`; `cockpit.css:55` rail 56px. | Nada — preservar (#12: "protótipo não cobre, não remover"). |
+| Mobile / off-canvas | `AppShellV2.tsx:357-366` `matchMedia('(max-width: 768px)')`; `:603-618` `.sb-mobile-toggle` + `.sb-mobile-backdrop`. | Nada — preservar (#13, [W] 2026-06-17). |
+| Rodapé / usuário | `Sidebar.tsx:1429` `SidebarFooter` → `:1091` `SidebarUserMenu`. | Nada — preservar (#14, vivo bem mais rico). |
+| Densidade / tema tweaks | `AppShellV2.tsx:104,734` `TweaksPanel`. | Nada — vivo tem a mais (#15). |
+| PageHeader + ghosts ARIA | Não é do shell — dono: [`pageheader-canon-v3-gap.md`](pageheader-canon-v3-gap.md). | Nada — fora de escopo (#16 "separar do PR de fundação"). |
+| Topbar / breadcrumb | `AppShellV2.tsx:144-149,245` `hideTopbar = true` default ([W] 2026-05-17); CSS em `cockpit.css:98`. | Nada — NÃO ressuscitar (#17, vivo decidiu remover). |
