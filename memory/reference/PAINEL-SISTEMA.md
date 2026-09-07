@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-06**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-07**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -30,29 +30,29 @@ lente: [construir]
 | ComunicacaoVisual | [BRIEFING](../requisitos/ComunicacaoVisual/BRIEFING.md) | 2026-08-12 |
 | Connector | [BRIEFING](../requisitos/Connector/BRIEFING.md) | 2026-08-03 |
 | ConsultaOs | [BRIEFING](../requisitos/ConsultaOs/BRIEFING.md) | 2026-08-12 |
-| Crm | [BRIEFING](../requisitos/Crm/BRIEFING.md) | 2026-07-30 |
+| Crm | [BRIEFING](../requisitos/Crm/BRIEFING.md) | 2026-09-07 |
 | Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-09-05 |
-| Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-08-18 |
-| Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-08-11 |
+| Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-09-07 |
+| Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-09-07 |
 | Forja | [BRIEFING](../requisitos/Forja/BRIEFING.md) | 2026-08-12 |
-| Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-09-06 |
-| Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-09-03 |
+| Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-09-07 |
+| Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-09-07 |
 | KB | [BRIEFING](../requisitos/KB/BRIEFING.md) | 2026-07-29 |
 | Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-09-04 |
-| NfeBrasil | [BRIEFING](../requisitos/NfeBrasil/BRIEFING.md) | 2026-07-28 |
+| NfeBrasil | [BRIEFING](../requisitos/NfeBrasil/BRIEFING.md) | 2026-09-07 |
 | NFSe | [BRIEFING](../requisitos/NFSe/BRIEFING.md) | 2026-08-16 |
 | Officeimpresso | [BRIEFING](../requisitos/Officeimpresso/BRIEFING.md) | 2026-07-30 |
-| OficinaAuto | [BRIEFING](../requisitos/OficinaAuto/BRIEFING.md) | 2026-07-27 |
-| PaymentGateway | [BRIEFING](../requisitos/PaymentGateway/BRIEFING.md) | 2026-07-23 |
+| OficinaAuto | [BRIEFING](../requisitos/OficinaAuto/BRIEFING.md) | 2026-09-07 |
+| PaymentGateway | [BRIEFING](../requisitos/PaymentGateway/BRIEFING.md) | 2026-09-07 |
 | Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-09-05 |
 | ProductCatalogue | [BRIEFING](../requisitos/ProductCatalogue/BRIEFING.md) | 2026-07-23 |
-| RecurringBilling | [BRIEFING](../requisitos/RecurringBilling/BRIEFING.md) | 2026-08-05 |
-| Repair | [BRIEFING](../requisitos/Repair/BRIEFING.md) | 2026-08-06 |
+| RecurringBilling | [BRIEFING](../requisitos/RecurringBilling/BRIEFING.md) | 2026-09-07 |
+| Repair | [BRIEFING](../requisitos/Repair/BRIEFING.md) | 2026-09-07 |
 | Spreadsheet | [BRIEFING](../requisitos/Spreadsheet/BRIEFING.md) | 2026-08-01 |
 | Superadmin | [BRIEFING](../requisitos/Superadmin/BRIEFING.md) | 2026-08-11 |
 | Vestuario | [BRIEFING](../requisitos/Vestuario/BRIEFING.md) | 2026-07-28 |
 | VozDoCliente | [BRIEFING](../requisitos/VozDoCliente/BRIEFING.md) | 2026-08-11 |
-| Whatsapp | [BRIEFING](../requisitos/Whatsapp/BRIEFING.md) | 2026-07-23 |
+| Whatsapp | [BRIEFING](../requisitos/Whatsapp/BRIEFING.md) | 2026-09-07 |
 | Woocommerce | [BRIEFING](../requisitos/Woocommerce/BRIEFING.md) | 2026-08-11 |
 
 ## Camada de IA
@@ -72,7 +72,7 @@ lente: [construir]
 
 ## Programa SDD (governança)
 
-- Scorecard: **12/13** métricas medidas · floor full-suite = **293**.
+- Scorecard: **12/13** métricas medidas · floor full-suite = **288**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -145,7 +145,7 @@ lente: [construir]
 ## Decisões (ADRs)
 
 - **395** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 354 · superseded: 16 · deprecated: 13 · proposto: 10 · rascunho: 1 · recusado: 1.
+- Por status: aceito: 355 · superseded: 16 · deprecated: 13 · proposto: 9 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
@@ -341,14 +341,14 @@ lente: [construir]
 
 ## Rastro
 
-- **502** handoffs · **694** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **505** handoffs · **709** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
   - `2026-09-06-seis-perguntas-design-sync-resolvidas`
-  - `2026-09-06-refutacao-gt-g5-lote-6917`
-  - `2026-09-06-refutacao-gt-g5-lote-6897`
-  - `2026-09-06-refutacao-gt-g5-lote-6897-r9`
-  - `2026-09-06-refutacao-gt-g5-lote-6897-r8`
-  - `2026-09-06-refutacao-gt-g5-lote-6897-r7`
+  - `2026-09-06-seis-gap-fundacao-shell-map-json`
+  - `2026-09-06-refutacao-gt-g5-seis-gap-fundacao-r2`
+  - `2026-09-06-refutacao-gt-g5-seis-gap-fundacao-r1`
+  - `2026-09-06-refutacao-gt-g5-lote-6926`
+  - `2026-09-06-refutacao-gt-g5-lote-6926-r2`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-09-06 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-09-07 · deriva das fontes canônicas, não as substitui._
