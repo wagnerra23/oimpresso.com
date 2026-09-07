@@ -2,7 +2,7 @@
 date: "2026-09-07"
 time: "0810 BRT"
 slug: "descida-inline-0389-jana-cowork-sem-disco"
-tldr: "O Cowork respondeu que NÃO regenera o pacote (sem disco/node do lado dele) e sugeriu empacotar o espelho — recusado (recibo falso). [W] liberou a rota inline da ADR 0389: 4 arquivos do ciclo Jana 04/09 desceram (2 com sha256 batendo o que o Cowork mediu no vivo, 2 por tamanho), consumidor re-medido (alvo 1022 nós, 3 runs idênticos), gate required 'espelho — mexeu depois' verde com origem DECLARADA no ledger. PR #6933 aberto; #6918 já mergeado. Achado pro painel: a rotina 'Cowork regenera ao fim do ciclo' não tem executor possível."
+tldr: "Cowork declarou que NAO regenera o pacote (sem disco/node) e sugeriu empacotar o espelho - recusado (recibo falso). [W] liberou a rota inline da ADR 0389: 4 arquivos do ciclo Jana 04/09 desceram (2 com sha256 igual ao medido pelo Cowork no vivo, 2 por tamanho), alvo re-medido (1022 nos, 3 runs identicos), gate required verde com origem DECLARADA no ledger. PR #6933 aberto; #6918 mergeado. Achado: a rotina de regeneracao do pacote nao tem executor do lado do design."
 decided_by: ["W"]
 cycle: null
 prs: [6933, 6918]
