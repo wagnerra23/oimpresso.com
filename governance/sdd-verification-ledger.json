@@ -1883,6 +1883,44 @@
       "evidencia": "memory/sessions/2026-09-06-refutacao-gt-g5-lote-6926-r2.md (rodada aprovada); r1 em memory/sessions/2026-09-06-refutacao-gt-g5-lote-6926.md",
       "trajetoria": "DUAS rodadas: 2,81% (r1, 15/534) -> 1,40% (r2, 10/712). Aberto como #6926 e migrado para #6931 (branch novo de origin/main) pelo 2o bloqueador da r2. DEFEITO DE FUNDO da r1, e nao era de forma: declarei ausente o filtro de periodo do Todo por ter medido os nomes do PROTOTIPO (date_from/date_to/periodo=0) e nao os do vivo (start_date/end_date em Todo/Index.tsx:267-283 + ToDoController.php:106-108) — sonda que responde a pergunta errada (§5 2026-08-13); a divergencia real e de semantica (o vivo exige os DOIS campos, o prototipo aceita um so). Mais 2 claims falsas: itens fora de escopo atribuidos ao LEIA-ME que ele nao lista, e a lista do Reminders declarada sem lastro quando o charter tem Non-Goal literal (:40) defendendo-a. A r2 achou um MECANISMO: as celulas ja corrigidas nao chegavam ao map porque gerar-map.mjs --atualizar faz antiga.acao || nova.acao (o valor VELHO vence) — os 8 maps foram regerados DO ZERO e acao==tabela verificado em 8/8. A r2 tambem mediu que os 2 state files conflitavam com o main e regrediriam 23 telas + 19 entries: o branch v2 nasce de origin/main fresco, 0 regressao medida. Do lote irmao #6917 (12,50%): licoes de citacao por grep -n e de pipe em code-span aplicadas ANTES de abrir, com efeito medido pelo refutador — citacoes 18/110 -> 5/197, ranges 10/44 -> 2/84, pipe 1 -> 0.",
       "marcador_absorcao": "n/a — lote nao afrouxa baseline nenhum; nenhum arquivo de codigo, prototipo ou contrato foi tocado."
+    },
+    {
+      "pr": 6932,
+      "lote_id": "distill-12-portas-briefing-2026-09-06",
+      "data": "2026-09-06",
+      "tipo": "prosa",
+      "gerador": "gpt-4o-mini (~haiku tier — externo, via jana:distill-module-truth / DistillerModuloVerdade + PiiRedactor, laravel/ai, CT 100 clone fresco 445efc7bb→e2bb4fdc1a); correções entre rodadas pelo gerador claude-fable-5-1 (sessão principal objective-jepsen)",
+      "refutador": "claude-opus-5 (Anthropic) — subagente em contexto próprio, instruído a não abrir nenhum memory/sessions/*refutacao* da data; uma instância NOVA por lote e por rodada (4 lotes de 3 portas por rodada). Tier > gerador externo (§2.3 / §4.1).",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 379,
+      "erros_confirmados": 6,
+      "error_rate_pct": 1.58,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "veredito": "aprovado",
+      "evidencia": "memory/sessions/2026-09-06-refutacao-gt-g5-distill-12-portas.md (§Rodada r10 = rodada aprovada; r1–r9 no mesmo arquivo)",
+      "trajetoria": "DEZ rodadas, lote inteiro re-verificado a cada uma: 31,8% (r1, 63/198) → 8,6% → 4,1% → 2,43% → 4,5% (subiu: restaurações de 'regressão factual' copiadas da porta HEAD reintroduziram fatos caducos) → 2,8% → 2,8% → 3,3% → 2,43% → 1,58% (r10, 6/379, aprovado). Os 6 da r10 (Cliente 1 · OficinaAuto 1 · Fiscal 2 · Financeiro 2) corrigidos no mesmo PR depois da aprovação, com re-medição em origin/main; restaurações só de fatos re-medidos. PII 0 em todas as rodadas, controle positivo por lote.",
+      "marcador_absorcao": "n/a — o PR APERTA o floor (distiller_freshness 13→0); baseline-tamper-guard só exige BASELINE-ABSORB em afrouxamento."
+    },
+    {
+      "pr": 6932,
+      "lote_id": "distill-governance-briefing-2026-09-06",
+      "data": "2026-09-06",
+      "tipo": "prosa",
+      "gerador": "gpt-4o-mini (~haiku tier — externo, via jana:distill-module-truth / DistillerModuloVerdade + PiiRedactor, laravel/ai, CT 100 clone fresco 445efc7bb→e2bb4fdc1a); correções entre rodadas pelo gerador claude-fable-5-1 (sessão principal objective-jepsen)",
+      "refutador": "claude-opus-5 (Anthropic) — subagente em contexto próprio, sessão fresca, uma instância NOVA por rodada (lote de 1 arquivo).",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 55,
+      "erros_confirmados": 1,
+      "error_rate_pct": 1.8,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "veredito": "aprovado",
+      "evidencia": "memory/sessions/2026-09-06-refutacao-gt-g5-distill-12-portas.md (§Lote E — Governance, r3 = rodada aprovada; r1/r2 em §Rodada r9)",
+      "trajetoria": "TRÊS rodadas: 59,1% (r1, 13/22 — saída bruta da LLM com 3 eventos de proveniência) → 18,4% (r2, 9/49 — erros do gerador: PRs #5443/#5444 trocados, #5308 vs #5311, #6928 atribuído sem tocar o módulo, recibo de grep citado em forma diferente da rodada) → 1,8% (r3, 1/55, aprovado; o refutado era o nome da rota do dashboard legado, herdado da porta anterior). Porta incluída porque o #6907 a deixou stale enquanto a sessão rodava (main 12→13).",
+      "marcador_absorcao": "n/a — mesmo PR do lote acima; aperta o floor."
     }
   ]
 }
