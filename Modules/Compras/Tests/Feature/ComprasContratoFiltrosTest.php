@@ -442,8 +442,25 @@ it('UC-CMP-10 · o payload traz items_count e document (colunas Itens e NF-e do 
         ]);
     }
 
-    $rows = collect(app(ComprasService::class)->listarCompras($this->biz->id)->get())
-        ->map(fn ($r) => (array) $r);
+    // PELO PAYLOAD DA TELA, não pelo service direto. Duas razões, e a 2ª só apareceu
+    // quando o teste ficou vermelho: (a) o que interessa é que o dado CHEGA onde a coluna
+    // renderiza; (b) chamar `listarCompras()` fora de uma requisição autenticada devolve
+    // listagem vazia — a query do core resolve `permitted_locations` a partir do usuário
+    // logado. A pré-condição anti-vácuo pegou isso e impediu que os asserts seguintes
+    // fossem lidos sobre uma lista vazia, que é exatamente pra isso que ela existe.
+    $response = $this->actingAs($this->user)
+        ->withSession($sessao)
+        ->withHeaders([
+            'X-Inertia' => 'true',
+            'X-Inertia-Version' => comprasContratoInertiaVersion(),
+            'X-Inertia-Partial-Data' => 'rows',
+            'X-Inertia-Partial-Component' => 'Compras/Index',
+        ])
+        ->get('/compras?per_page=100');
+
+    $response->assertStatus(200);
+
+    $rows = collect($response->json('props.rows.data') ?? []);
 
     // PRÉ-CONDIÇÃO ANTI-VÁCUO: a compra criada aparece. Sem isto, um assert que
     // "não achou divergência" poderia significar que a listagem veio vazia.
