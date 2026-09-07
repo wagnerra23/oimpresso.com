@@ -9,7 +9,7 @@
 > - O dono de "o que é required no merge" é `governance/required-checks-baseline.json` (vigiado por `protection-drift.mjs`) — a seção de gates abaixo é CÓPIA GERADA dele, re-derivada a cada `--write` e conferida pelo `--check`.
 
 ## Resumo
-- **56** wirings em `settings.json` (5 eventos) · **51** arquivos de hook distintos wired
+- **57** wirings em `settings.json` (5 eventos) · **51** arquivos de hook distintos wired
 - **51** arquivos de hook no disco (+43 `*.test.*` — testes, fora da conta de órfãos)
 - Órfãos (arquivo sem wiring): **0** · Fantasmas (wiring sem arquivo): **0**
 - Gates CI no baseline: **44** classic + **1** ruleset → ponto-de-corte merge
@@ -21,6 +21,7 @@
 | SessionStart | `*` | handoff-inline.mjs | node | sessão (início — injeção de contexto) | — |
 | SessionStart | `*` | check-skills-fresh.mjs | node | sessão (início — injeção de contexto) | — |
 | SessionStart | `*` | tier-a-banner.mjs | node | sessão (início — injeção de contexto) | — |
+| SessionStart | `*` | loop-fechar-check.mjs | node | sessão (início — injeção de contexto) | — |
 | SessionStart | `*` | loop-fechar-check.mjs | node | sessão (início — injeção de contexto) | — |
 | SessionStart | `*` | licoes-code-two-strikes.mjs | node | sessão (início — injeção de contexto) | — |
 | SessionStart | `*` | git-base-freshness-guard.mjs | node | sessão (início — injeção de contexto) | — |
