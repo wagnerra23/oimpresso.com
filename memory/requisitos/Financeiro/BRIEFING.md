@@ -2,55 +2,45 @@
 id: requisitos-financeiro-briefing
 module: Financeiro
 status: producao
-updated_at: "2026-08-18"
-distilled_at: "2026-08-18"
-distilled_by: "manual [C] — redestilação PARCIAL: re-lidos os 3 commits que tocaram SPEC/SCOPE/CHANGELOG/RUNBOOK-index desde 2026-08-05 (#5686 telas-no-módulo-dono, #5568 SCOPE fora de Modules, #5547 fusão dos CHANGELOG) — todos estruturais, nenhum muda capacidade. Seções Capacidades e Gaps re-conferidas e mantidas; acrescentada nota de localização das telas. Contrato de tela permanece do PR #4867."
+updated_at: "2026-09-06"
+distilled_at: "2026-09-06"
+distilled_by: jana:distill-module-truth
 ---
 
 # BRIEFING — Financeiro (verdade destilada)
 
-O módulo "Financeiro" fornece uma visão unificada de Contas a Receber (AR), Contas a Pagar (AP), Fluxo de Caixa, Boletos, Conciliação OFX e um workflow de aprovação. Está em operação com 87% de cobertura funcional e paridade visual de 9.5/10 em relação ao canon.
+## Estado atual
+Visão unificada de Contas a Receber, Contas a Pagar, Fluxo de Caixa, Cobrança (a tela Boletos foi aposentada por [W]; `GET /financeiro/boletos` responde 301 para `/financeiro/cobranca` e só o `POST /boletos/{remessaId}/cancelar` segue vivo), Conciliação OFX e workflow de aprovação, em produção. As telas vivem em `resources/js/Pages/Financeiro/` — a onda #5686 move `.tsx` pro módulo dono (quais já migraram é derivado: `git ls-files 'Modules/**/Resources/js/Pages/**/*.tsx'`) e o Financeiro ainda não migrou, por isso confirme o path antes de editar tela (não há `.tsx` dentro de `Modules/Financeiro/`). Cobertura funcional: `AUDIT-FUNCOES-2026-05-19.md` (snapshot datado, não porta viva — não copie o número). Paridade visual: gate `visual-regression` (baseline `financeiro-unificado`; o título `VISREG-FIN-001` tem 4 escritores com a mesma chave — seeder, closure de `routes/web.php`, `UnificadoController::ensureVisregFlowTitulo` e `FinanceiroFlowBaselineTest` — ver `memory/licoes-rejeitadas.md`). Contrato de tela: `SDD-tela-financeiro-v1.0.md` (ADR 0351, #4867) + contagem viva em `node scripts/governance/requisitos-status.mjs Financeiro` (`_STATUS-GENERATED.md`).
 
 ## Capacidades
-- Emissão de boletos real via Banco Inter com integração completa.
-- Conciliação automatizada de pagamentos através de eventos de cobrança.
-- Workflow para aprovação de transações com visualização integrada de AR/AP.
-- Integração de bulk actions para operações em lote com confirmação e audit trail.
-- Ações em lote na Visão Unificada para até 500 títulos por chamada.
+- Boleto real via Banco Inter (ADR 0170 `paymentgateway-extracao-camada-cobranca`, arquivada — a extração já é fato no código; Inter/C6/Asaas/BcbPix já plugados no PaymentGateway; habilitação por business é decisão [W] — estado de flag em prod não é fato de repo, ver `memory/what-oimpresso.md` §Padrão arquitetural, linha `Modules/PaymentGateway`).
+- Conciliação de extrato com match sugerido por score (`ConciliacaoController`, `POST /financeiro/conciliacao/{lineId}/match`). O evento `TituloCriado` tem listener de audit log (`OnTituloCriadoLog`) — log, não conciliação.
+- Workflow de aprovação com visão AR/AP integrada (`aprovacao_status` em `fin_titulos`).
+- Ações em lote na Visão Unificada (`POST /financeiro/unificado/bulk`) com confirmação e audit trail (até 500 títulos por chamada — limite de contrato do endpoint, US-FIN-031/#3905).
+- Bridge de despesas → títulos (`financeiro:bridge-expense-to-titulos`), corrigida após quebrar em produção (US-FIN-068: filtrava `transactions.deleted_at`, coluna inexistente; o comando não é agendado, então a falha era silenciosa).
 
 ## Gaps
-- Sicoob aguarda credenciais sandbox do cliente (Inter/C6/Asaas/BcbPix já ativos; flags OFF em prod — ADR 0170).
-- Mobile/PWA e notificações de vencimento (bucket ❌ do inventário).
-- Import CSV (bucket ❌ do inventário); parser de retorno CNAB pendente (🟡 P6 — sem parser em `Services/`).
-- **Testes do módulo em quarentena na lane** — parte da suíte não roda no CI e portanto não produz veredito. A lista viva (com o motivo de cada arquivo) é o dono do número: [`.github/financeiro-pest-quarantine.list`](../../../.github/financeiro-pest-quarantine.list); a lane que a consome é `.github/workflows/financeiro-pest.yml`. _Recibo: em 2026-08-05 a triagem dos 13 do grupo C ("defeito real") apontou 2 bugs de produto — US-FIN-068 (fechada) e US-FIN-055 (`total_remaining_amount`, aberta) —, 1 suspeita não fechada em `aprovacao_status` (toca US-FIN-027/028) e 5 testes desatualizados. Re-rode a lista, não edite este parágrafo._
+- Sicoob aguarda credenciais sandbox do cliente.
+- Mobile/PWA e notificações de vencimento não implementados.
+- Importação CSV pendente. O parser de retorno CNAB vive no `PaymentGateway` (`CnabRetornoProcessor` + tela `Settings/PaymentGateways/CnabRetorno`) desde a extração da ADR 0170 — o gap do Financeiro é só o CSV.
+- Testes em quarentena (quarentenado não roda na lane e portanto não produz veredito): lista e razões em `.github/financeiro-pest-quarantine.list` (lane `financeiro-pest.yml`, cujo context `PHP / Pest (Financeiro · MySQL)` consta de `governance/required-checks-baseline.json`); a triagem de 2026-08-02/03 (buckets A–E da própria lista) separou teste podre, RefreshDatabase, DB-dependente falhando, skip total e flake por ordem — re-rode a lista, não copie a triagem.
+- US-FIN-055 aberta (`total_remaining_amount`). Os demais defeitos vivos saem do bucket C de `.github/financeiro-pest-quarantine.list` — re-rode, não copie; em 2026-08-05 a triagem registrou uma suspeita não fechada em `aprovacao_status` (US-FIN-027/028), e nenhum dono a rastreia hoje.
 
 ## Última mudança
-Desde 2026-08-05 o módulo recebeu **3 mudanças estruturais, nenhuma de capacidade**: as telas Inertia passaram a morar no módulo dono ([#5686](https://github.com/wagnerra23/oimpresso.com/pull/5686), 5 ondas, 73 de 445) — **o Financeiro ainda NÃO migrou**, suas 59 `.tsx` seguem em `resources/js/Pages/Financeiro/` (já migraram Cms, Forja, KB, PaymentGateway, Superadmin, Whatsapp); o `SCOPE.md` saiu de `Modules/` ([#5568](https://github.com/wagnerra23/oimpresso.com/pull/5568), ADR 0375); e os 15 CHANGELOG duplicados foram fundidos em `memory/requisitos/` ([#5547](https://github.com/wagnerra23/oimpresso.com/pull/5547)). Quem for editar tela do Financeiro **confirme o path antes** — ele muda quando a onda alcançar o módulo.
-
-Antes disso, o comando `financeiro:bridge-expense-to-titulos` (bridge despesa do core → título AP) estava **quebrado em produção** e voltou a funcionar (US-FIN-068). Ele filtrava por `transactions.deleted_at`, coluna que não existe — medido em 3 fontes, incluindo produção — e falhava com `SQLSTATE[42S22]` em toda execução. O comando **não é agendado**, então a falha era silenciosa: só aparecia para quem o rodasse à mão. Corrigido removendo o filtro; o teste saiu de `6 failed / 2 assertions` para `8 passed / 26 assertions` e deixou a quarentena da lane (25 → 24).
-
-Antes disso: ações em lote na Visão Unificada (`POST /unificado/bulk`, ≤500 títulos por chamada, com audit trail) entregues pela US-FIN-031 (PR #3905, 2026-07-06). A cobertura de 87% já havia sido atingida antes, nas Ondas 12-21 (2026-05-19) — sem relação causal com a emissão de boleto.
+Desde 2026-08-18 o módulo recebeu mudança de segurança Tier 0 (#6335 — superadmin deixa de ver Financeiro/NFSe de todas as empresas, 2026-08-26), fix do `financeiro:install` que gravava fora do gate (#6305), saída de teste da quarentena (#6018) e E2E Browser novos — Conciliação (#6476), Caixa (#6631) e Cobrança (#6632), com fix de `SetSessionData` nas rotas de conciliação (#6629); Plano de Contas (#6457) e Impostos (#6466) ganharam contrato Pest Feature, não Browser. Antes disso, mudanças estruturais sem impacto em capacidade (#5686 telas no módulo dono, #5568 SCOPE fora de `Modules/` por ADR 0375, #5547 fusão dos CHANGELOG).
 
 ## Proveniência (destilado de)
 
 - audit `requisitos/Financeiro/AUDIT-FUNCOES-2026-05-19.md` — AUDIT-FUNCOES-2026-05-19.md
 - audit `requisitos/Financeiro/CAPTERRA-INVENTARIO.md` — CAPTERRA-INVENTARIO.md
-- handoff `handoffs/2026-07-16-1730-smoke-financeiro-15-dimensoes-verde-vazio-ziggy.md` (2026-07-16) — 2026-07-16-1730-smoke-financeiro-15-dimensoes-verde-vazio-ziggy.md
-- session `sessions/2026-07-13-financeiro-visreg-enforcing.md` (2026-07-13) — 2026-07-13-financeiro-visreg-enforcing.md
-- handoff `handoffs/2026-07-13-1719-financeiro-visreg-enforcing.md` (2026-07-13) — 2026-07-13-1719-financeiro-visreg-enforcing.md
-- session `sessions/2026-07-08-financeiro-borda-dark-token.md` (2026-07-08) — 2026-07-08-financeiro-borda-dark-token.md
-- session `sessions/2026-07-08-financeiro-fidelidade-fingerprint-protocolo.md` (2026-07-08) — 2026-07-08-financeiro-fidelidade-fingerprint-protocolo.md
-- handoff `handoffs/2026-07-08-1044-financeiro-fidelidade-fingerprint-furos.md` (2026-07-08) — 2026-07-08-1044-financeiro-fidelidade-fingerprint-furos.md
-- handoff `handoffs/2026-07-08-1431-financeiro-borda-dark-token-ui0022.md` (2026-07-08) — 2026-07-08-1431-financeiro-borda-dark-token-ui0022.md
-- handoff `handoffs/2026-07-07-1746-financeiro-fidelidade-dark-mecanismos-comparacao.md` (2026-07-07) — 2026-07-07-1746-financeiro-fidelidade-dark-mecanismos-comparacao.md
-
-## Contrato de tela (SDD)
-
-O módulo passou a ter **SDD** em [`SDD-tela-financeiro-v1.0.md`](SDD-tela-financeiro-v1.0.md) — §5 fluxos + §6 casos de uso — e `casos.md` por tela,
-gerados pelo chip `sdd-from-source` ([ADR 0351](../../decisions/0351-sdd-from-source.md), PR #4867).
-
-> **Contagem viva — não copiada aqui** (CU · UC · telas cobertas · onde a cadeia quebra):
-> `node scripts/governance/requisitos-status.mjs Financeiro`
->
-> O painel derivado fica em [`_STATUS-GENERATED.md`](_STATUS-GENERATED.md). Número escrito à mão apodrece —
-> este doc aponta para o dono, não restateia (proibições §5, 2026-07-17).
+- session `sessions/2026-09-05-arte-folha-encargos-br.md` (2026-09-05) — 2026-09-05-arte-folha-encargos-br.md
+- session `sessions/2026-08-20-visreg-narrativa-do-comentario.md` (2026-08-20) — 2026-08-20-visreg-narrativa-do-comentario.md
+- session `sessions/2026-08-17-financeiro-prototipo-medido-e-o-boletos-aposentado.md` (2026-08-17) — 2026-08-17-financeiro-prototipo-medido-e-o-boletos-aposentado.md
+- session `sessions/2026-08-17-visreg-relogios-divergentes-e-pedidos-cowork.md` (2026-08-17) — 2026-08-17-visreg-relogios-divergentes-e-pedidos-cowork.md
+- handoff `handoffs/2026-08-17-1615-financeiro-prototipo-ja-aplicado-boletos-aposentado.md` (2026-08-17) — 2026-08-17-1615-financeiro-prototipo-ja-aplicado-boletos-aposentado.md
+- session `sessions/2026-08-14-censo-redacao-brl-em-codigo.md` (2026-08-14) — 2026-08-14-censo-redacao-brl-em-codigo.md
+- session `sessions/2026-08-13-espelho-cowork-medir-vs-consertar.md` (2026-08-13) — 2026-08-13-espelho-cowork-medir-vs-consertar.md
+- handoff `handoffs/2026-08-12-1617-arquitetura-react-modulos-e-as-3-claims-derrubadas.md` (2026-08-12) — 2026-08-12-1617-arquitetura-react-modulos-e-as-3-claims-derrubadas.md
+- handoff `handoffs/2026-08-12-1755-glob-inertia-e-as-duas-camadas-de-mudez.md` (2026-08-12) — 2026-08-12-1755-glob-inertia-e-as-duas-camadas-de-mudez.md
+- session `sessions/2026-08-11-contrato-fantasma-e-a-fronteira-de-modulo-morto.md` (2026-08-11) — 2026-08-11-contrato-fantasma-e-a-fronteira-de-modulo-morto.md
+- session `sessions/2026-08-08-primary-os-btn-13-telas-e-o-override-fantasma.md` (2026-08-08) — 2026-08-08-primary-os-btn-13-telas-e-o-override-fantasma.md

@@ -1,99 +1,39 @@
 ---
 id: requisitos-sells-briefing
-distilled_at: "2026-08-07"
-distilled_by: "manual [L+C] — redestilação PARCIAL: registra a tela de preview /sells/create-v3 (PR #5356), que nasceu paralela porque /pos/create não pode mudar. Só a seção 'Tela de preview' é nova; o resto do corpo NÃO foi re-lido. Carimbo anterior: 2026-07-27 ([C], SDD + contratos de tela, PR #4868)."
 module: Sells
 status: producao
-updated_at: "2026-07-17"
+updated_at: "2026-09-06"
+distilled_at: "2026-09-06"
+distilled_by: jana:distill-module-truth
 ---
 
 # BRIEFING — Sells (verdade destilada)
 
 ## Estado atual
-
-**Sells é feature CORE do UltimatePOS, não um módulo nWidart próprio** — não há dir físico dela em `Modules/`; as telas vivem em `resources/js/Pages/Sells/*.tsx` (servidas por `SellController` + `SellPosController`), a Model é `app/Models/Transaction.php` (`type='sell'`), e o pipeline FSM em `app/Domain/Fsm/` ([ADR 0143](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md)). A migração MWART (Blade→Inertia/React) da tela de venda está **em produção para ROTA LIVRE (biz=4, 99% do volume)**.
-
-### Tela de preview `/sells/create-v3` (desde 2026-08-07, dono [L] Luiz)
-
-O cadastro de venda tem **duas** telas, e a distinção importa antes de qualquer edição:
-
-| | tela viva | preview |
-|---|---|---|
-| rota | `/pos/create` | `/sells/create-v3` |
-| componente | `Sells/Create.tsx` | `Sells/CreateV3.tsx` |
-| controller | `SellPosController@create` | `SellsV3Controller@create` (GET-only) |
-| dados | reais (~24 props) | **cena estática, já formatada** |
-| escreve? | sim | **não** — sem `store()`, sem POST, botão `disabled` |
-
-A preview nasceu **paralela, não como branch de flag**, porque a flag não protege:
-`FeatureFlagService::$fallbackDefaults['useV2SellsCreate'] = true` desde 2026-05-27 — a V2 React
-está ligada por padrão pra todos, então editar `Create.tsx` e deployar atinge a ROTA LIVRE direto.
-Restrição de negócio declarada por [L]: *"Tela do Guilherme e da Larissa não pode ser alterada de
-forma alguma, se não eles quebram contrato e perdemos dinheiro."*
-
-⚠️ **Não há cutover previsto** — a preview não substitui `/pos/create`. Contrato:
-[`CreateV3.charter.md`](../../../resources/js/Pages/Sells/CreateV3.charter.md) ·
-[`CreateV3.casos.md`](../../../resources/js/Pages/Sells/CreateV3.casos.md) ·
-[`RUNBOOK-create-v3.md`](RUNBOOK-create-v3.md).
-
-> **Sells não tem module-grade canônico** — sem dir físico em `Modules/`, o grader não varre. No baseline está em `deprecated_pending_decision` (score_v3:58 congelado, *"decisão Wagner pende: criar wrapper OU deprecar entry"*). As notas vivas de Sells são de **eixos diferentes, não somáveis**: **capacidade 60/100** ([CAPTERRA-FICHA.md](CAPTERRA-FICHA.md), mede cálculo/fiscal/offline) e **design 88-90** (screen-grade, *cega a cálculo/fiscal* — não confundir com "o módulo está 90%").
-
-> ⛔ **Errata do destilado anterior — não re-alegar.** (1) H1 duplicado (bug do distiller). (2) *"canário 7d biz=1, biz=4 aguardando reavaliação"* — **falso desde 2026-05-27**: ver Estado do rollout. (3) *"Observer de venda (ADR 0192) p95<50ms"* — a [ADR 0192](../../decisions/0192-auto-faturar-os-venda-jobsheet-observer.md) é *auto-faturar OS→Venda via JobSheetObserver* e **já está implementada** (não é gap); o "p95<50ms" é nota de guard-rail, não a ADR.
+Sells é feature CORE do UltimatePOS (não há `Modules/Sells`): telas em `resources/js/Pages/Sells/` (Index, Create, Drafts, Quotations, Subscriptions, entre outras — inventário vivo é o diretório), lógica em `SellController`, `SellPosController` e `SellsV3Controller`. A tela de venda V2 (Inertia/React) está LIVE para biz=4 (ROTA LIVRE, maior parte do volume) desde 2026-05-27 (evidência tripla: guard biz=4 removido, flag default `true`, bugs da Larissa corrigidos em 27/05); o relógio humano segue aberto (canary 7d / monitor 30d, `SPEC.md` §US-SELL-001), com a remoção da Blade em US-SELL-009 `_pendente_`. Model `app/Transaction.php` (`type='sell'`), pipeline `app/Domain/Fsm/`; SDD `SDD-tela-venda-v1.0.md` (ADR 0351, #4868). A restrição de negócio de [L] é literal: a tela do Guilherme e da Larissa não pode ser alterada — como a flag é default `true` no fallback offline-safe do `FeatureFlagService` (o valor vivo está no GrowthBook self-hosted, não consultado), editar `Create.tsx` e deployar atinge a ROTA LIVRE direto — por isso existe a preview `/sells/create-v3` (desde 2026-08-07), paralela à ativa `/pos/create`, sem cutover previsto (contrato em `CreateV3.charter.md` + `CreateV3.casos.md` + `RUNBOOK-create-v3.md`). Capacidade e design são eixos não somáveis; Sells não tem module-grade canônico (`governance/module-grades-baseline.json` marca `deprecated_pending_decision` — decisão [W] pendente: criar wrapper ou deprecar a entrada). Contagem viva: `node scripts/governance/requisitos-status.mjs Sells`.
 
 ## Capacidades
-
-Varridas em 2026-07-17: **8 telas** (`Index`, `Create`, `Edit`, `Show`, `Drafts`, `Quotations`, `Subscriptions`, `Caixa/Index`) + **35 componentes** em `_components/` + **~70 arquivos de teste** em `tests/Feature/Sells/`.
-
-- **Drawer FSM** (`FsmActionPanel` + `SaleSheet` + `SaleJourneyStepper` + `SaleTimeline`): ações dinâmicas por stage + RBAC + timeline auditável.
-- **Integração veículo/Oficina** (gated por `isModuleInstalled('OficinaAuto')`): `QuickAddVehicleSheet`, `CriarOsButton`, `CommissionSplitEditor` — com testes de gating.
-- **Fiscal/NFe em lote**: `VdNfeEmitModal`, `VdNfseEmitModal`, `VdBulkEmitModal`, `FiscalSection`, `VdNextActionPanel` (next-best-action).
-- **Cobrança/pagamento**: `CobrancaChip/Drawer`, `PaymentRow`, `QuickPaymentDialog`.
-- **Caixa do dia por origem** (`Caixa/Index.tsx` + `VdSource.tsx`) · **IA** (`SaleAiPanel`) · **impressão** (orçamento A4, recibo 80mm, PDF, modo apresentação).
+- Venda V2 em produção; a preview V3 não escreve (sem `store()`, sem POST) mas calcula no front o lançamento de item — área, quantidade faturada, unitário líquido, total, parcelas e tributação/DIFAL (conflito registrado no charter, decisão de [L]) — enquanto os totais de topo chegam prontos do controller (cena estática, `CreateV3.charter.md`); a preview tem drawer de item com abas (#6360).
+- Drawer `SaleSheet` com FSM: ações por estágio, RBAC e timeline auditável (ADR 0143).
+- Integração veículo/Oficina, ligada só quando `OficinaAuto` está instalado.
+- Emissão fiscal NFe/NFS-e individual e em lote a partir da lista de vendas.
+- Cobrança e pagamento: chip/drawer de cobrança, linha de pagamento e diálogo rápido.
+- Caixa do dia por origem (`Caixa/Index`), painel de IA da venda (`SaleAiPanel`) e impressão (orçamento A4, recibo 80mm, PDF, modo apresentação).
+- Guards Tier 0 de valor após o incidente `num_uf` (2026-06-05, `final_total` inflado em biz=4; fix #2279): `IncidentValorInfladoNumUfTest`, `NumUfHeuristicPtBRTest`, `NumericInputPtBR`, `SellsFinalTotalAuditCommand` e a rule `calculo-valor-estoque`.
 
 ## Gaps
-
-| Gap | Estado real | Âncora |
-|---|---|---|
-| **Rede E2E de valor ausente** — não há teste HTTP `POST /pos` provando que `final_total` grava certo; só invariantes estruturais (que a própria ficha chama de anti-padrão §5). É *"a rede mais barata contra um 2º incidente de valor"* | ❌ **ABERTO P0** | US-SELL-040 `_pendente_` (SPEC:211) |
-| Remover Blade legacy (`sale_pos/create`, 996 LOC) pós-monitor 30d | ❌ **ABERTO** | US-SELL-009 `_pendente_` (SPEC:258) |
-| Reverter/estornar um cancelamento (cancelar já existe, com `CancelarVendaCascade`) | 🟡 plausível, sem rota/SPEC achados | não-medido |
-
-> ⛔ **Errata — gaps do destilado anterior:** o *"dashboard `/relatorios/vendas-origem`"* é **fantasma** (a string só existe no próprio BRIEFING; virou a tela `Caixa/Index`). E o "Observer ADR 0192" não é gap (já implementado).
-
-## Diferencial + risco Tier 0 (valor/estoque)
-
-Sells é o palco do incidente **`num_uf` / valor inflado ~×100k** (2026-06-05, biz=4 Larissa — `final_total` corrompido; fix [#2279](https://github.com/wagnerra23/oimpresso.com/pull/2279)). Guardas **vivos** hoje: `tests/Unit/Utils/IncidentValorInfladoNumUfTest.php` (guard literal do incidente) + `NumUfHeuristicPtBRTest` + frontend `NumericInputPtBR.tsx` (parse pt-BR, arredonda a 2 casas no submit) + `SellsFinalTotalAuditCommand` (audita corrupção histórica) + a rule path-scoped [`.claude/rules/calculo-valor-estoque.md`](../../../.claude/rules/calculo-valor-estoque.md). **Risco residual honesto:** os guards pegam a *classe* `num_uf`, mas a prova ponta-a-ponta de que "a conta persiste certa" (US-SELL-040) ainda é `_pendente_`, P0.
+- US-SELL-040 (P0): os guards do `num_uf` pegam a classe do incidente, mas não há teste HTTP provando que `final_total` grava certo de ponta a ponta.
+- US-SELL-009: remover a Blade legacy da venda — só após cutover na ROTA LIVRE + 30 dias de monitor (relógio humano).
+- Reverter/estornar um cancelamento: plausível, sem rota nem US achadas — não medido.
+- Erratas que não voltam como gap: o dashboard `/relatorios/vendas-origem` é fantasma; ADR 0192 não é gap.
 
 ## Última mudança
-
-Recibo: `git log --since=2026-07-10 -- resources/js/Pages/Sells memory/requisitos/Sells app/Http/Controllers/Sell*Controller.php`, rodado 2026-07-17 → **4 commits, todos design/docs, zero código funcional**: errata "sidebar é PRETA" ([#4378](https://github.com/wagnerra23/oimpresso.com/pull/4378), que tocou o doc mais novo), backfill de frontmatter ([#4274](https://github.com/wagnerra23/oimpresso.com/pull/4274)), Padrão de Tela em 6 charters ([#4109](https://github.com/wagnerra23/oimpresso.com/pull/4109)/[#4117](https://github.com/wagnerra23/oimpresso.com/pull/4117)).
-
-> Nota honesta: como no OficinaAuto, **o gatilho desta redistilação foi ruído** — um bloco de errata num doc, não mudança de venda. O último trabalho substantivo de Sells é anterior: Onda 1.1 Capterra (2026-07-02/03 — ficha nota 60 + US-SELL-054..057, [#3699](https://github.com/wagnerra23/oimpresso.com/pull/3699)/[#3704](https://github.com/wagnerra23/oimpresso.com/pull/3704)).
-
-## Estado do rollout (a correção que lidera este arquivo)
-
-**V2 do Create está LIVE para biz=4 (ROTA LIVRE) desde 2026-05-27** — não "aguardando". Evidência tripla:
-1. **Guard biz=4 removido** — `SellController.php:1000-1009`: *"HOTFIX 2026-05-13 (biz=4 rollback) REMOVIDO em 2026-05-27… Wagner: 'remova hardcode, ative para todos'."*
-2. **Flag default `true`** — `FeatureFlagService.php:45` `'useV2SellsCreate' => true` (migrada pro GrowthBook self-hosted; valor vivo lá não consultado).
-3. **Uso real** — [session 2026-05-27](../../sessions/2026-05-27-sells-v2-larissa-13-bugs-batch.md): Larissa reportou 13 bugs em prod → 13 PRs na mesma tarde. `Sells/Index` (React) é servido incondicionalmente; `Sells/Create` V2 é gated só pela flag. O relógio humano (remover Blade = US-SELL-009) é que segue aberto.
+Contrato de comportamento do editor (#6455, 2026-08-31) e as abas do drawer de item (#6360, 2026-08-27); depois, a Fronteira da preview (#6484, 2026-09-03) e o design-sync (#6892, 2026-09-06).
 
 ## Proveniência (destilado de)
 
-Releitura direta em 2026-07-17:
-
-- código: `resources/js/Pages/Sells/` (8 telas + 35 `_components/`) · `app/Http/Controllers/SellController.php` · `SellPosController.php` · `app/Services/FeatureFlagService.php`
-- contrato: [SPEC.md](SPEC.md) (US-SELL-*) · [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md)
-- guards de valor: `tests/Unit/Utils/IncidentValorInfladoNumUfTest.php` · [`.claude/rules/calculo-valor-estoque.md`](../../../.claude/rules/calculo-valor-estoque.md)
-- números: [`governance/module-grades-baseline.json`](../../../governance/module-grades-baseline.json) (deprecated_pending_decision) · [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) (capacidade 60)
-- janela: `git log --since=2026-07-10 …` (4 commits)
-
-## Contrato de tela (SDD)
-
-O módulo passou a ter **SDD** em [`SDD-tela-venda-v1.0.md`](SDD-tela-venda-v1.0.md) — §5 fluxos + §6 casos de uso — e `casos.md` por tela,
-gerados pelo chip `sdd-from-source` ([ADR 0351](../../decisions/0351-sdd-from-source.md), PR #4868).
-
-> **Contagem viva — não copiada aqui** (CU · UC · telas cobertas · onde a cadeia quebra):
-> `node scripts/governance/requisitos-status.mjs Sells`
->
-> O painel derivado fica em [`_STATUS-GENERATED.md`](_STATUS-GENERATED.md). Número escrito à mão apodrece —
-> este doc aponta para o dono, não restateia (proibições §5, 2026-07-17).
+- audit `requisitos/Sells/AUDIT-cockpit-runbook-Create-2026-05-15.md` — AUDIT-cockpit-runbook-Create-2026-05-15.md
+- audit `requisitos/Sells/CAPTERRA-DESIGN-FICHA.md` — CAPTERRA-DESIGN-FICHA.md
+- audit `requisitos/Sells/CAPTERRA-FICHA.md` — CAPTERRA-FICHA.md
+- session `sessions/2026-08-14-censo-redacao-brl-em-codigo.md` (2026-08-14) — 2026-08-14-censo-redacao-brl-em-codigo.md
+- handoff `handoffs/2026-08-11-1514-venda-v3-densidade-e-a-utilitaria-que-nao-mordia.md` (2026-08-11) — 2026-08-11-1514-venda-v3-densidade-e-a-utilitaria-que-nao-mordia.md
