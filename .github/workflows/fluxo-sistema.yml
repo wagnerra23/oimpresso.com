@@ -1,0 +1,63 @@
+name: Fluxo do sistema (weekly · advisory)
+
+# ── O QUE MEDE ───────────────────────────────────────────────────────────────────
+# DORA + Flow do SISTEMA INTEIRO (não só PRs do agente): frequência de deploy, lead
+# time PR→merge, falha e recuperação do PIPELINE, retrabalho, PRs > 300 linhas,
+# adoção de telas (route-hits). Fila/WIP (brief MCP) só rodam LOCAL com token —
+# aqui saem declaradas como "não medido". Script: scripts/governance/fluxo-sistema.mjs
+# (docblock = âncora; DECONFLITO com agent-pr-outcomes = DORA dos PRs do agente).
+#
+# NÃO é gate de PR — é RELATÓRIO semanal (schedule) + on-demand (dispatch). Advisory
+# por construção (ADR 0275: nasce advisory). Vermelho aqui = o medidor não rodou,
+# nunca "o fluxo piorou" (§5 2026-07-09: advisory pode ficar vermelho).
+
+on:
+  schedule:
+    - cron: '10 9 * * 1'   # seg 09:10 UTC — 10 min depois do agent-pr-outcomes
+  workflow_dispatch:
+    inputs:
+      days:
+        description: 'janela em dias'
+        default: '30'
+        required: false
+
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read
+
+jobs:
+  fluxo:
+    name: DORA + Flow do sistema (advisory)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Self-test (fixtures mordem antes de medir)
+        run: node scripts/governance/fluxo-sistema.test.mjs
+      - name: Medir (gh ao vivo · sem MCP no CI)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DAYS: ${{ github.event.inputs.days || '30' }}
+        run: |
+          set -o pipefail
+          node scripts/governance/fluxo-sistema.mjs --days "$DAYS" --brief --no-mcp | tee fluxo-sistema.md
+          node scripts/governance/fluxo-sistema.mjs --days "$DAYS" --json --no-mcp > fluxo-sistema.json
+      - name: Job summary
+        if: always()
+        run: |
+          if [ -f fluxo-sistema.md ]; then cat fluxo-sistema.md >> "$GITHUB_STEP_SUMMARY"; else echo '⛔ fluxo-sistema não produziu relatório (medidor não rodou — não é "fluxo ok")' >> "$GITHUB_STEP_SUMMARY"; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fluxo-sistema-${{ github.run_id }}
+          path: |
+            fluxo-sistema.md
+            fluxo-sistema.json
+          if-no-files-found: ignore
+          retention-days: 90

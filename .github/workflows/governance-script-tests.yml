@@ -204,6 +204,9 @@ jobs:
       - name: Agent PR outcomes (DORA do agente · CFR morde/libera · card #0 grade-das-reguas)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/agent-pr-outcomes.test.mjs
+      - name: Fluxo do sistema (DORA + Flow do repo inteiro · CFR/recuperacao/WIP/adocao mordem por fixture · nao-medido nunca vira 0)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/fluxo-sistema.test.mjs
       - name: Agent cost per PR (custo USD por PR · join 2-sinais morde/libera · item #7 grade-das-reguas)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/agent-cost-per-pr.test.mjs
