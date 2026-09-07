@@ -1,0 +1,115 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Backup/Index (/backup)",
+  "gap_fonte": "memory/requisitos/Backup/backup-index-gap.md",
+  "prototipo_sha": "sha256:2d6fce561b2b",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "cabecalho",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/backup-page.jsx",
+        "linhas": "180-184"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Backup/Index.tsx",
+        "linhas": "158-172",
+        "ancora": "cabecalho"
+      },
+      "status": "gap-parcial",
+      "acao": "Decidir. Só o botão \"Auditoria\". Região do mockup: `backup-page.jsx:170`, que no protótipo chama o roteador do shell (`window.__selectRoute`). No vivo entraria em `Index.tsx:162-170`, apontando para `/auditoria` — rota que existe. É atalho cross-tela, não capacidade desta tela. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "cartoes-de-indicador",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/backup-page.jsx",
+        "linhas": "186-205"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Backup/Index.tsx",
+        "linhas": "174-193",
+        "ancora": "kpis"
+      },
+      "status": "gap-parcial",
+      "acao": "Decidir. Região do mockup: `backup-page.jsx:187-196`; ponto no vivo: `Index.tsx:175-192`. Pré-condição medida: o `KpiCard` do repo não tem essas props — `resources/js/Components/shared/KpiCard.tsx:77-86` expõe `icon`, `description`, `delta`, `action`, `tone`, `size`, `selected`, e nada de `hero`/`spark`/`progress`. Adotar exige estender um componente do Design System, que é decisão [W] (soberania Tier 0), não ajuste de tela. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "alertas-de-destino-e-de-escopo",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/backup-page.jsx",
+        "linhas": "208-236"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Backup/Index.tsx",
+        "linhas": "195-226",
+        "ancora": "alerta-destino"
+      },
+      "status": "gap-parcial",
+      "acao": "Decidir. Duas direções na mesma região (`backup-page.jsx:208-236` × `Index.tsx:195-226`). O alerta de multi-tenant é do vivo e não deve ser removido para \"convergir\" — é o UC-BKP-08. Das três notas do protótipo, a de destino remoto e a de demo dependem de props que o controller não envia hoje (`Index.tsx:36-43` tem `destino.remoto`, mas não estado de erro nem `APP_ENV`), e a de falha da última geração exige persistir o resultado do job assíncrono. Construir ou rejeitar por escrito, nota a nota.",
+      "_acionavel": true
+    },
+    {
+      "id": "progresso-da-geracao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/backup-page.jsx",
+        "linhas": "238-245"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Backup/Index.tsx",
+        "linhas": "24-25",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente. O bloco do protótipo descreve o modelo síncrono que o vivo já substituiu; adotá-lo seria regredir a arquitetura para poder desenhar a barra. Fica registrado como trecho STALE do espelho, não como gap.",
+      "_acionavel": false
+    },
+    {
+      "id": "lista-de-backups",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/backup-page.jsx",
+        "linhas": "246-252"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Backup/Index.tsx",
+        "linhas": "228-251",
+        "ancora": "lista"
+      },
+      "status": "gap-parcial",
+      "acao": "Decidir. Só o enfeite das células. Região do mockup: `backup-page.jsx:141-165`; ponto no vivo: o array de colunas em `Index.tsx:87-148` (as três células em disputa ficam em `:87-117`). O `Deferred` e a paginação são do vivo e não entram na conversa — nisso o vivo está à frente do protótipo, que lista um array em memória. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "confirmacao-de-gerar-e-de-excluir",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/backup-page.jsx",
+        "linhas": "269-281"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Backup/Index.tsx",
+        "linhas": "76-85",
+        "ancora": false
+      },
+      "status": "gap-parcial",
+      "acao": "Decidir. Região do mockup: `backup-page.jsx:269-281`; ponto no vivo: `Index.tsx:76-85`. Vale a forma (diálogo do DS em vez do nativo), não o texto: o corpo do protótipo afirma que a geração roda dentro da requisição e leva de um a três minutos, o que é o mesmo trecho STALE da linha anterior — o vivo já reescreveu a copy para o modelo assíncrono. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "bloco-do-cron",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/backup-page.jsx",
+        "linhas": "254-265"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Backup/Index.tsx",
+        "linhas": "253-280",
+        "ancora": "cron"
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade.",
+      "_acionavel": false
+    }
+  ]
+}

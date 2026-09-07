@@ -43,6 +43,16 @@ declare(strict_types=1);
  * chamado em tests/Browser/Support/VisregThreshold.php:163) e
  * `VisregThreshold::aguardarFontesReais`. O 1º run do workflow é a prova.
  *
+ * 1º RUN (main, 2026-09-06, run 34033586088): 4 failed / 0 fotografadas — as 4 na MESMA linha,
+ * `aguardarFontesReais` com `document.fonts.check = false`. Não era fonte quebrada: o self-host
+ * @fontsource só começa a baixar quando algum texto que a usa é RENDERIZADO, e este arquivo
+ * checava a fonte logo depois do `visit`, antes de o React montar a tela — `fonts.ready`
+ * resolvia sem pendência e o check saía false. O PixelBaselineTest (mesmo helper, verde) faz
+ * `assertSee($ancora)` antes, que espera o conteúdo; aqui a tela não tem âncora declarada,
+ * então a espera é genérica: Inertia montada + fonte disponível, com teto. Segunda diferença
+ * herdada dele: a role `Admin#{biz}` — `/arquivos` está atrás de `can:` e o seed do CI cria o
+ * user sem role, logo sem ela o smoke fotografaria um 403 com cara de tela.
+ *
  * @see scripts/design-sync/smoke-consumir.mjs (seleção + manifesto + consumo)
  * @see .github/workflows/design-smoke-ci.yml (quem invoca e publica)
  * @see memory/decisions/0390-emenda-0384-smoke-em-ambiente-controlado.md
@@ -51,6 +61,7 @@ declare(strict_types=1);
 use App\Business;
 use App\User;
 use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Role;
 use Tests\Browser\Support\VisregThreshold;
 
 $designSmokeScreens = array_values(array_filter(
@@ -80,7 +91,43 @@ function designSmokeAdmin(): User
         throw new RuntimeException('Sem user no business seedado: não dá pra autenticar.');
     }
 
+    // Mesmo idioma do PixelBaselineTest: o `Gate::before` do UPos libera qualquer ability pra
+    // quem tem `Admin#{biz}`; o seed cria o user sem role. Sufixo obrigatório (roles.business_id
+    // NOT NULL + FK). Idempotente.
+    $roleName = 'Admin#'.$business->id;
+    if (! $admin->hasRole($roleName)) {
+        $admin->assignRole(Role::firstOrCreate([
+            'name'        => $roleName,
+            'business_id' => $business->id,
+            'guard_name'  => 'web',
+        ]));
+    }
+
     return $admin;
+}
+
+/**
+ * Espera a tela EXISTIR antes de medir: Inertia montada (root com data-page + texto no body) e a
+ * fonte self-hosted disponível — o `fonts.check` só vira true depois que algum texto que a usa foi
+ * renderizado. Teto de ~10s; quem falha alto é o `aguardarFontesReais` logo depois, com a
+ * mensagem canônica.
+ */
+function designSmokeAguardarMontagem(object $page): void
+{
+    for ($tentativa = 0; $tentativa < 20; $tentativa++) {
+        $pronto = $page->script(<<<'JS'
+            (async () => {
+              const root = document.querySelector('[data-page]');
+              const texto = (document.body && document.body.innerText || '').trim().length;
+              await document.fonts.ready;
+              return !!root && texto > 50 && document.fonts.check('16px "IBM Plex Sans"');
+            })()
+        JS);
+        if ($pronto === true) {
+            return;
+        }
+        $page->wait(0.5);
+    }
 }
 
 if ($designSmokeScreens === []) {
@@ -103,10 +150,19 @@ if ($designSmokeScreens === []) {
         $pathname = (string) $page->script('(() => window.location.pathname)()');
         expect($pathname)->not->toStartWith('/login');
 
+        // Status HTTP da navegação final (Chromium expõe responseStatus no Navigation Timing).
+        // 403/404/500 renderizam página com cara de tela; o smoke não pode fotografar isso.
+        $status = $page->script('(() => { const n = performance.getEntriesByType("navigation")[0]; return n && typeof n.responseStatus === "number" ? n.responseStatus : null; })()');
+        if ($status !== null) {
+            expect((int) $status)->toBe(200, "rota {$route} respondeu HTTP {$status} — não é tela de pé");
+        }
+
         // Página de erro do Laravel/Whoops tem esses textos; tela viva não tem.
         $page->assertDontSee('Server Error')->assertDontSee('Whoops, looks like something went wrong');
 
-        // Mesma estabilização do PixelBaselineTest: fontes reais + React commitado.
+        // Espera a tela montar (Inertia + fonte usada por texto real) e só então exige a fonte —
+        // a ordem inversa foi a causa do 1º run vermelho (ver cabeçalho).
+        designSmokeAguardarMontagem($page);
         VisregThreshold::aguardarFontesReais($page);
         $page->wait(1.5);
 

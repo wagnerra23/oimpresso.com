@@ -169,7 +169,10 @@ function fetchOrphan(root) {
   git(root, ['archive', '--format=tar', '-o', tar, 'FETCH_HEAD']); // sem `ref:path` — MSYS mangleia o `:`
   const extraido = join(dir, 'tree');
   mkdirSync(extraido, { recursive: true });
-  execFileSync('tar', ['-xf', tar, '-C', extraido], { stdio: ['ignore', 'pipe', 'pipe'] });
+  // Caminhos RELATIVOS ao tmp (cwd), nunca absolutos: no Windows o `tar` do Git Bash lê
+  // `C:\…` como host remoto ("Cannot connect to C: resolve failed") — medido 2026-09-06 no
+  // 1º consumo real. Relativo funciona igual em Linux/macOS/Windows (§5 2026-08-07, plataforma).
+  execFileSync('tar', ['-xf', 'smokes.tar', '-C', 'tree'], { cwd: dir, stdio: ['ignore', 'pipe', 'pipe'] });
   const manifestPath = join(extraido, 'manifest.json');
   if (!existsSync(manifestPath)) throw new Error(`manifest.json ausente na branch ${SMOKE_BRANCH}`);
   return { dir, tree: extraido, manifest: JSON.parse(readFileSync(manifestPath, 'utf8')) };
