@@ -375,12 +375,64 @@ it('UC-CMP-10 · o payload traz items_count e document (colunas Itens e NF-e do 
     $ref = 'CMP-COLS-'.uniqid();
     $compra = comprasContratoCriarCompra($this->biz->id, (int) $this->locA->id, $this->user->id, $ref);
 
+    // Produto + variação REAIS: `purchase_lines` tem FK pra `products` e `variations`,
+    // então `product_id => 1` chutado estoura 1452 (foi o 1º vermelho deste UC — e o
+    // vermelho estava certo). Espelha a fixture do PurchaseCalculoValorEstoqueE2ETest.
+    $sku = 'CMPCOLS-'.uniqid();
+    $unitId = (int) (DB::table('units')->where('business_id', $this->biz->id)->value('id')
+        ?? DB::table('units')->insertGetId([
+            'business_id' => $this->biz->id,
+            'actual_name' => 'Unidade '.$sku,
+            'short_name' => 'un',
+            'allow_decimal' => 0,
+            'created_by' => $this->user->id,
+            'created_at' => Carbon::now(),
+            'updated_at' => Carbon::now(),
+        ]));
+
+    $productId = DB::table('products')->insertGetId([
+        'business_id' => $this->biz->id,
+        'name' => 'Produto '.$sku,
+        'type' => 'single',
+        'unit_id' => $unitId,
+        'sku' => $sku,
+        'enable_stock' => 1,
+        'alert_quantity' => 0,
+        'tax_type' => 'exclusive',
+        'barcode_type' => 'C128',
+        'created_by' => $this->user->id,
+        'created_at' => Carbon::now(),
+        'updated_at' => Carbon::now(),
+    ]);
+
+    $variationGroupId = DB::table('product_variations')->insertGetId([
+        'product_id' => $productId,
+        'name' => 'DUMMY',
+        'is_dummy' => 1,
+        'created_at' => Carbon::now(),
+        'updated_at' => Carbon::now(),
+    ]);
+
+    $variationId = DB::table('variations')->insertGetId([
+        'product_id' => $productId,
+        'product_variation_id' => $variationGroupId,
+        'name' => 'DUMMY',
+        'sub_sku' => $sku.'-1',
+        'default_purchase_price' => 10.00,
+        'dpp_inc_tax' => 10.00,
+        'profit_percent' => 0,
+        'default_sell_price' => 20.00,
+        'sell_price_inc_tax' => 20.00,
+        'created_at' => Carbon::now(),
+        'updated_at' => Carbon::now(),
+    ]);
+
     $linhas = 3;
     for ($i = 0; $i < $linhas; $i++) {
         DB::table('purchase_lines')->insert([
             'transaction_id' => $compra->id,
-            'product_id' => 1,
-            'variation_id' => 1,
+            'product_id' => $productId,
+            'variation_id' => $variationId,
             'quantity' => 1,
             'pp_without_discount' => 10,
             'purchase_price' => 10,
