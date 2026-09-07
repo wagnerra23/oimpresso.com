@@ -1,7 +1,8 @@
 /* manufacturing-page.css — módulo Manufacturing · Receitas (ficha técnica/BOM).
    Espelha Modules/Manufacturing/Resources/views/recipe/*. Escopado em .mfg-root. */
 .mfg-root{display:flex;flex-direction:column;min-height:0;flex:1}
-.mfg-tabs{display:flex;gap:2px;align-items:center;padding:0 20px;border-bottom:1px solid var(--border);background:var(--surface)}
+/* 24px = canon do shell; era 20px e desalinhava 4px do .os-page-h da própria tela. */
+.mfg-tabs{display:flex;gap:2px;align-items:center;padding:0 24px;border-bottom:1px solid var(--border);background:var(--surface)}
 .mfg-tab{display:flex;align-items:center;gap:7px;padding:9px 12px 8px;background:none;border:0;border-bottom:2px solid transparent;color:var(--text-dim);font:500 12.5px/1 var(--font-sans,inherit);cursor:pointer}
 .mfg-tab:hover{color:var(--text)}
 .mfg-tab.act{color:var(--accent);border-bottom-color:var(--accent)}

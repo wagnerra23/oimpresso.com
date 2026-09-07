@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"OfficeImpressoPontoWR2DesignSystem_019dd0","components":[{"name":"Alert","sourcePath":"components/Alert/Alert.jsx"},{"name":"AppSidebar","sourcePath":"components/AppSidebar/AppSidebar.jsx"},{"name":"Avatar","sourcePath":"components/Avatar/Avatar.jsx"},{"name":"BoardColumn","sourcePath":"components/BoardColumn/BoardColumn.jsx"},{"name":"Breadcrumb","sourcePath":"components/Breadcrumb/Breadcrumb.jsx"},{"name":"BulkBar","sourcePath":"components/BulkBar/BulkBar.jsx"},{"name":"Button","sourcePath":"components/Button/Button.jsx"},{"name":"Chart","sourcePath":"components/Chart/Chart.jsx"},{"name":"Checkbox","sourcePath":"components/Checkbox/Checkbox.jsx"},{"name":"Command","sourcePath":"components/Command/Command.jsx"},{"name":"DataTable","sourcePath":"components/DataTable/DataTable.jsx"},{"name":"DataTablePro","sourcePath":"components/DataTablePro/DataTablePro.jsx"},{"name":"DatePicker","sourcePath":"components/DatePicker/DatePicker.jsx"},{"name":"Dimension","sourcePath":"components/Dimension/Dimension.jsx"},{"name":"Drawer","sourcePath":"components/Drawer/Drawer.jsx"},{"name":"DrawerSection","sourcePath":"components/Drawer/Drawer.jsx"},{"name":"DropdownMenu","sourcePath":"components/DropdownMenu/DropdownMenu.jsx"},{"name":"EmptyState","sourcePath":"components/EmptyState/EmptyState.jsx"},{"name":"FilterChip","sourcePath":"components/FilterChip/FilterChip.jsx"},{"name":"FsmStepper","sourcePath":"components/FsmStepper/FsmStepper.jsx"},{"name":"Input","sourcePath":"components/Input/Input.jsx"},{"name":"Textarea","sourcePath":"components/Input/Input.jsx"},{"name":"Select","sourcePath":"components/Input/Input.jsx"},{"name":"KpiCard","sourcePath":"components/KpiCard/KpiCard.jsx"},{"name":"KpiFilterCard","sourcePath":"components/KpiFilterCard/KpiFilterCard.jsx"},{"name":"Logo","sourcePath":"components/Logo/Logo.jsx"},{"name":"Modal","sourcePath":"components/Modal/Modal.jsx"},{"name":"PageHeader","sourcePath":"components/PageHeader/PageHeader.jsx"},{"name":"Pagination","sourcePath":"components/Pagination/Pagination.jsx"},{"name":"PeriodBar","sourcePath":"components/PeriodBar/PeriodBar.jsx"},{"name":"PlacaVeiculo","sourcePath":"components/PlacaVeiculo/PlacaVeiculo.jsx"},{"name":"Progress","sourcePath":"components/Progress/Progress.jsx"},{"name":"ProofFrame","sourcePath":"components/ProofFrame/ProofFrame.jsx"},{"name":"ProofStrip","sourcePath":"components/ProofStrip/ProofStrip.jsx"},{"name":"RadioGroup","sourcePath":"components/RadioGroup/RadioGroup.jsx"},{"name":"RegistrationMark","sourcePath":"components/RegistrationMark/RegistrationMark.jsx"},{"name":"Skeleton","sourcePath":"components/Skeleton/Skeleton.jsx"},{"name":"StatusBadge","sourcePath":"components/StatusBadge/StatusBadge.jsx"},{"name":"Switch","sourcePath":"components/Switch/Switch.jsx"},{"name":"TabBar","sourcePath":"components/TabBar/TabBar.jsx"},{"name":"TagChip","sourcePath":"components/TagChip/TagChip.jsx"},{"name":"TaskCard","sourcePath":"components/TaskCard/TaskCard.jsx"},{"name":"Toast","sourcePath":"components/Toast/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/Tooltip/Tooltip.jsx"}],"sourceHashes":{"Norte/norte-app.jsx":"032253e5bb48","Norte/norte-data.jsx":"6f29edbe0218","components/Alert/Alert.jsx":"6e286e49d769","components/AppSidebar/AppSidebar.jsx":"f99e84d00339","components/Avatar/Avatar.jsx":"b048f23ec4f9","components/BoardColumn/BoardColumn.jsx":"adbbb54b5fb3","components/Breadcrumb/Breadcrumb.jsx":"257e48371799","components/BulkBar/BulkBar.jsx":"61d8c05959b8","components/Button/Button.jsx":"80807dc45cbb","components/Chart/Chart.jsx":"c6062288c717","components/Checkbox/Checkbox.jsx":"095cdd35c03f","components/Command/Command.jsx":"09e4d5e2ecd8","components/DataTable/DataTable.jsx":"fb889e64d89b","components/DataTablePro/DataTablePro.jsx":"9acb1559648b","components/DatePicker/DatePicker.jsx":"06226f7d6268","components/Dimension/Dimension.jsx":"ccfde33af6ff","components/Drawer/Drawer.jsx":"1e766133c429","components/DropdownMenu/DropdownMenu.jsx":"b934261b1049","components/EmptyState/EmptyState.jsx":"453df944697f","components/FilterChip/FilterChip.jsx":"dcbf9c9815df","components/FsmStepper/FsmStepper.jsx":"f54c8bf5dc86","components/Input/Input.jsx":"1f7c70023165","components/KpiCard/KpiCard.jsx":"03b6b1d40346","components/KpiFilterCard/KpiFilterCard.jsx":"4a74918d05af","components/Logo/Logo.jsx":"c86f0c3126cf","components/Modal/Modal.jsx":"71c782e4ede8","components/PageHeader/PageHeader.jsx":"870b40d21aec","components/Pagination/Pagination.jsx":"0105b56f5052","components/PeriodBar/PeriodBar.jsx":"b773697ef4e4","components/PlacaVeiculo/PlacaVeiculo.jsx":"9465ca04efbd","components/Progress/Progress.jsx":"879fb87ba200","components/ProofFrame/ProofFrame.jsx":"9ab9d4ed331d","components/ProofStrip/ProofStrip.jsx":"775796275e70","components/RadioGroup/RadioGroup.jsx":"4a5967735d11","components/RegistrationMark/RegistrationMark.jsx":"03406851d192","components/Skeleton/Skeleton.jsx":"d44e989f0a36","components/StatusBadge/StatusBadge.jsx":"78c0e9a52873","components/Switch/Switch.jsx":"cb639a41d4ca","components/TabBar/TabBar.jsx":"73eb1e6c0833","components/TagChip/TagChip.jsx":"54ba3d2ea026","components/TaskCard/TaskCard.jsx":"f0ce84e1c3a5","components/Toast/Toast.jsx":"c9188fbc0e54","components/Tooltip/Tooltip.jsx":"f8ad52fcecc9","public/cowork-preview/erp-shell-v2/tweaks-panel.jsx":"a1107c630a56","ui_kits/app/Icon.jsx":"4af337c66c2f","ui_kits/app/PontoWidgets.jsx":"5fb47953a705","ui_kits/app/Primitives.jsx":"b176ec3a02e3","ui_kits/app/Sidebar.jsx":"ee03bcc21698","ui_kits/site/DashboardMockup.jsx":"8eb9ea953996","ui_kits/site/FeatureGrid.jsx":"447215c14b71","ui_kits/site/Hero.jsx":"3bf4eb5a0fc5","ui_kits/site/PricingTiers.jsx":"cad02b6ccc17","ui_kits/site/SiteFooter.jsx":"29c8b030f269","ui_kits/site/SiteHeader.jsx":"94155431e660","ui_kits/site/SocialProof.jsx":"d310605c4fcd"},"inlinedExternals":[],"unexposedExports":[]} */
+/* @ds-bundle: {"format":4,"namespace":"OfficeImpressoPontoWR2DesignSystem_019dd0","components":[{"name":"Alert","sourcePath":"components/Alert/Alert.jsx"},{"name":"AppSidebar","sourcePath":"components/AppSidebar/AppSidebar.jsx"},{"name":"Avatar","sourcePath":"components/Avatar/Avatar.jsx"},{"name":"BoardColumn","sourcePath":"components/BoardColumn/BoardColumn.jsx"},{"name":"Breadcrumb","sourcePath":"components/Breadcrumb/Breadcrumb.jsx"},{"name":"BulkBar","sourcePath":"components/BulkBar/BulkBar.jsx"},{"name":"Button","sourcePath":"components/Button/Button.jsx"},{"name":"Chart","sourcePath":"components/Chart/Chart.jsx"},{"name":"Checkbox","sourcePath":"components/Checkbox/Checkbox.jsx"},{"name":"Command","sourcePath":"components/Command/Command.jsx"},{"name":"DataGrid","sourcePath":"components/DataGrid/DataGrid.jsx"},{"name":"DataTable","sourcePath":"components/DataTable/DataTable.jsx"},{"name":"DataTablePro","sourcePath":"components/DataTablePro/DataTablePro.jsx"},{"name":"DatePicker","sourcePath":"components/DatePicker/DatePicker.jsx"},{"name":"Dimension","sourcePath":"components/Dimension/Dimension.jsx"},{"name":"Drawer","sourcePath":"components/Drawer/Drawer.jsx"},{"name":"DrawerSection","sourcePath":"components/Drawer/Drawer.jsx"},{"name":"DropdownMenu","sourcePath":"components/DropdownMenu/DropdownMenu.jsx"},{"name":"EmptyState","sourcePath":"components/EmptyState/EmptyState.jsx"},{"name":"FilterChip","sourcePath":"components/FilterChip/FilterChip.jsx"},{"name":"FsmStepper","sourcePath":"components/FsmStepper/FsmStepper.jsx"},{"name":"Input","sourcePath":"components/Input/Input.jsx"},{"name":"Textarea","sourcePath":"components/Input/Input.jsx"},{"name":"Select","sourcePath":"components/Input/Input.jsx"},{"name":"Kebab","sourcePath":"components/Kebab/Kebab.jsx"},{"name":"KpiCard","sourcePath":"components/KpiCard/KpiCard.jsx"},{"name":"KpiFilterCard","sourcePath":"components/KpiFilterCard/KpiFilterCard.jsx"},{"name":"Logo","sourcePath":"components/Logo/Logo.jsx"},{"name":"Modal","sourcePath":"components/Modal/Modal.jsx"},{"name":"PageHeader","sourcePath":"components/PageHeader/PageHeader.jsx"},{"name":"Pagination","sourcePath":"components/Pagination/Pagination.jsx"},{"name":"PeriodBar","sourcePath":"components/PeriodBar/PeriodBar.jsx"},{"name":"PlacaVeiculo","sourcePath":"components/PlacaVeiculo/PlacaVeiculo.jsx"},{"name":"PresenterMode","sourcePath":"components/PresenterMode/PresenterMode.jsx"},{"name":"Progress","sourcePath":"components/Progress/Progress.jsx"},{"name":"ProofFrame","sourcePath":"components/ProofFrame/ProofFrame.jsx"},{"name":"ProofStrip","sourcePath":"components/ProofStrip/ProofStrip.jsx"},{"name":"RadioGroup","sourcePath":"components/RadioGroup/RadioGroup.jsx"},{"name":"RegistrationMark","sourcePath":"components/RegistrationMark/RegistrationMark.jsx"},{"name":"Segmented","sourcePath":"components/Segmented/Segmented.jsx"},{"name":"Skeleton","sourcePath":"components/Skeleton/Skeleton.jsx"},{"name":"StatusBadge","sourcePath":"components/StatusBadge/StatusBadge.jsx"},{"name":"Switch","sourcePath":"components/Switch/Switch.jsx"},{"name":"TabBar","sourcePath":"components/TabBar/TabBar.jsx"},{"name":"TagChip","sourcePath":"components/TagChip/TagChip.jsx"},{"name":"TaskCard","sourcePath":"components/TaskCard/TaskCard.jsx"},{"name":"Timeline","sourcePath":"components/Timeline/Timeline.jsx"},{"name":"Toast","sourcePath":"components/Toast/Toast.jsx"},{"name":"Toolbar","sourcePath":"components/Toolbar/Toolbar.jsx"},{"name":"ToolbarDivider","sourcePath":"components/Toolbar/Toolbar.jsx"},{"name":"ToolbarSpacer","sourcePath":"components/Toolbar/Toolbar.jsx"},{"name":"ToolbarButton","sourcePath":"components/Toolbar/Toolbar.jsx"},{"name":"ToolbarSearch","sourcePath":"components/Toolbar/Toolbar.jsx"},{"name":"Tooltip","sourcePath":"components/Tooltip/Tooltip.jsx"},{"name":"Widget","sourcePath":"components/Widget/Widget.jsx"}],"sourceHashes":{"Norte/norte-app.jsx":"032253e5bb48","Norte/norte-data.jsx":"6f29edbe0218","components/Alert/Alert.jsx":"6e286e49d769","components/AppSidebar/AppSidebar.jsx":"f99e84d00339","components/Avatar/Avatar.jsx":"b048f23ec4f9","components/BoardColumn/BoardColumn.jsx":"adbbb54b5fb3","components/Breadcrumb/Breadcrumb.jsx":"257e48371799","components/BulkBar/BulkBar.jsx":"61d8c05959b8","components/Button/Button.jsx":"80807dc45cbb","components/Chart/Chart.jsx":"c6062288c717","components/Checkbox/Checkbox.jsx":"095cdd35c03f","components/Command/Command.jsx":"09e4d5e2ecd8","components/DataGrid/DataGrid.jsx":"9e502619117b","components/DataTable/DataTable.jsx":"d995c444ba62","components/DataTablePro/DataTablePro.jsx":"c6a4e3f44847","components/DatePicker/DatePicker.jsx":"06226f7d6268","components/Dimension/Dimension.jsx":"ccfde33af6ff","components/Drawer/Drawer.jsx":"1e766133c429","components/DropdownMenu/DropdownMenu.jsx":"b934261b1049","components/EmptyState/EmptyState.jsx":"453df944697f","components/FilterChip/FilterChip.jsx":"dcbf9c9815df","components/FsmStepper/FsmStepper.jsx":"f54c8bf5dc86","components/Input/Input.jsx":"1f7c70023165","components/Kebab/Kebab.jsx":"50730baf348b","components/KpiCard/KpiCard.jsx":"5adeb0d1cef1","components/KpiFilterCard/KpiFilterCard.jsx":"b3cad8b3b316","components/Logo/Logo.jsx":"c86f0c3126cf","components/Modal/Modal.jsx":"71c782e4ede8","components/PageHeader/PageHeader.jsx":"5f5ad41c15c4","components/Pagination/Pagination.jsx":"66819b89c651","components/PeriodBar/PeriodBar.jsx":"a8c2b59cfb38","components/PlacaVeiculo/PlacaVeiculo.jsx":"9465ca04efbd","components/PresenterMode/PresenterMode.jsx":"8332bf26e55e","components/Progress/Progress.jsx":"879fb87ba200","components/ProofFrame/ProofFrame.jsx":"9ab9d4ed331d","components/ProofStrip/ProofStrip.jsx":"775796275e70","components/RadioGroup/RadioGroup.jsx":"4a5967735d11","components/RegistrationMark/RegistrationMark.jsx":"03406851d192","components/Segmented/Segmented.jsx":"7bdfe9a0113e","components/Skeleton/Skeleton.jsx":"d44e989f0a36","components/StatusBadge/StatusBadge.jsx":"78c0e9a52873","components/Switch/Switch.jsx":"cb639a41d4ca","components/TabBar/TabBar.jsx":"fcb85a0dd1f1","components/TagChip/TagChip.jsx":"54ba3d2ea026","components/TaskCard/TaskCard.jsx":"f0ce84e1c3a5","components/Timeline/Timeline.jsx":"a1a97ca8c292","components/Toast/Toast.jsx":"c9188fbc0e54","components/Toolbar/Toolbar.jsx":"bb1859b7a5de","components/Tooltip/Tooltip.jsx":"f8ad52fcecc9","components/Widget/Widget.jsx":"3e105ffc6579","public/cowork-preview/erp-shell-v2/tweaks-panel.jsx":"a1107c630a56","ui_kits/app/Icon.jsx":"4af337c66c2f","ui_kits/app/PontoWidgets.jsx":"5fb47953a705","ui_kits/app/Primitives.jsx":"b176ec3a02e3","ui_kits/app/Sidebar.jsx":"ee03bcc21698","ui_kits/site/DashboardMockup.jsx":"8eb9ea953996","ui_kits/site/FeatureGrid.jsx":"447215c14b71","ui_kits/site/Hero.jsx":"3bf4eb5a0fc5","ui_kits/site/PricingTiers.jsx":"cad02b6ccc17","ui_kits/site/SiteFooter.jsx":"29c8b030f269","ui_kits/site/SiteHeader.jsx":"94155431e660","ui_kits/site/SocialProof.jsx":"d310605c4fcd"},"inlinedExternals":[],"unexposedExports":[]} */
 
 (() => {
 
@@ -2836,23 +2836,20 @@ const kbF = {
 Object.assign(__ds_scope, { Command });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/Command/Command.jsx", error: String((e && e.message) || e) }); }
 
-// components/DataTable/DataTable.jsx
+// components/DataGrid/DataGrid.jsx
 try { (() => {
 /**
- * DataTable — dense table for the balcão (DS v4 canon).
- * Hover row · urgent rail · selected bg · mono IDs/values · tabular-right nums.
- * Keyboard-operable rows (Enter/Space), optional checkbox selection + sortable headers.
- * Pure, dependency-free (global React + inline token styles).
+ * DataGrid — a ÚNICA grade do DS (ver NOTAS_INTERNAS.md · fusão 2026-08).
+ * Absorveu DataTable (seleção/ordenação controladas) e DataTablePro (header
+ * fixo + resize de colunas). A paginação embutida reusa o componente Pagination.
  *
- * columns: [{ key, label, align?: 'right', mono?, width?, sortable? }]
- * rows:    [{ id, state?: 'urgent'|'selected'|'archived', cells: { [key]: node } }]
- *          A cell may be a string/number or any React node (Avatar, FsmStepper, …).
- *          For the primary two-line cell, pass { primary: 'Title', sub: 'subtitle' }.
- * onRowClick?(row)                       — makes rows clickable AND keyboard-operable.
- * selectable? · selectedIds? · onToggleRow?(id,row) · onToggleAll?(checked) — checkbox column.
- * sortKey? · sortDir?: 'asc'|'desc' · onSort?(key) — clickable sort on `sortable` columns.
+ * columns: [{ key, label, align?:'right', mono?, width?, sortable?, resizable?, sortValue?(row) }]
+ * rows:    [{ id, state?:'urgent'|'archived'|'selected', cells:{ [key]: node | {primary,sub} } }]
+ * pagination (default true) · resizable · density 'compact'|'comfortable'
+ * Seleção e ordenação: internas por padrão; passe selectedIds/onToggleRow ou
+ * sortKey/onSort para controlar por fora (API antiga do DataTable).
  */
-function Cell({
+function GridCell({
   value,
   mono
 }) {
@@ -2861,260 +2858,159 @@ function Cell({
       style: {
         display: 'block',
         fontWeight: 600,
-        fontSize: 13,
+        fontSize: 12.5,
         letterSpacing: '-0.006em',
-        color: 'var(--text)'
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis'
       }
     }, value.primary), value.sub && /*#__PURE__*/React.createElement("small", {
       style: {
         display: 'block',
-        fontSize: 11.5,
+        fontSize: 11,
         color: 'var(--text-mute)',
-        marginTop: 1
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis'
       }
     }, value.sub));
   }
   if (mono) return /*#__PURE__*/React.createElement("span", {
     style: {
       fontFamily: 'var(--font-mono)',
-      fontSize: 12.5,
+      fontSize: 12,
       letterSpacing: '-0.01em'
     }
   }, value);
   return value;
 }
-const CHECK = {
-  accentColor: 'var(--accent)',
-  width: 14,
-  height: 14,
-  cursor: 'pointer',
-  margin: 0,
-  display: 'block'
-};
-function DataTable({
+function gridPages(page, count) {
+  if (count <= 7) return Array.from({
+    length: count
+  }, (_, i) => i + 1);
+  const out = [1];
+  const lo = Math.max(2, page - 1),
+    hi = Math.min(count - 1, page + 1);
+  if (lo > 2) out.push('…');
+  for (let i = lo; i <= hi; i++) out.push(i);
+  if (hi < count - 1) out.push('…');
+  out.push(count);
+  return out;
+}
+function DataGrid({
   columns = [],
   rows = [],
-  onRowClick,
+  pagination = true,
+  pageSize: pageSizeProp = 10,
+  pageSizeOptions = [10, 25, 50, 100],
+  onPageSizeChange,
+  page: pageProp,
+  defaultPage = 1,
+  onPageChange,
+  density = 'compact',
   selectable = false,
+  zebra = true,
+  resizable = false,
+  onRowClick,
+  onSelectionChange,
+  defaultSort,
+  maxHeight = 420,
+  height,
+  emptyLabel = 'Nenhum registro encontrado',
+  totalLabel = 'registros',
   selectedIds,
   onToggleRow,
   onToggleAll,
-  sortKey,
-  sortDir,
+  sortKey: sortKeyProp,
+  sortDir: sortDirProp,
   onSort
 }) {
-  const selSet = new Set((selectedIds || []).map(String));
-  const allChecked = selectable && rows.length > 0 && rows.every(r => selSet.has(String(r.id)));
-  const someChecked = selectable && rows.some(r => selSet.has(String(r.id)));
-  const headRef = el => {
-    if (el) el.indeterminate = someChecked && !allChecked;
-  };
-  const thBase = {
-    background: 'var(--bg-2)',
-    padding: '9px 12px',
-    fontSize: 10.5,
-    fontWeight: 600,
-    textTransform: 'uppercase',
-    letterSpacing: '.05em',
-    color: 'var(--text-mute)',
-    whiteSpace: 'nowrap',
-    borderBottom: '1px solid var(--border)'
-  };
-  const tdBase = {
-    padding: '10px 12px',
-    borderBottom: '1px solid var(--border-2)',
-    verticalAlign: 'middle'
-  };
-  return /*#__PURE__*/React.createElement("table", {
-    style: {
-      width: '100%',
-      borderCollapse: 'separate',
-      borderSpacing: 0,
-      fontSize: 13,
-      background: 'var(--bg)'
-    }
-  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, selectable && /*#__PURE__*/React.createElement("th", {
-    style: {
-      ...thBase,
-      width: 36,
-      textAlign: 'center'
-    }
-  }, /*#__PURE__*/React.createElement("input", {
-    type: "checkbox",
-    ref: headRef,
-    checked: !!allChecked,
-    onChange: e => onToggleAll && onToggleAll(e.target.checked),
-    "aria-label": "Selecionar todas",
-    style: {
-      ...CHECK,
-      margin: '0 auto'
-    }
-  })), columns.map(c => {
-    const sortable = c.sortable === true && !!onSort;
-    const isSorted = sortKey === c.key;
-    const glyph = isSorted ? sortDir === 'desc' ? '↓' : '↑' : '↕';
-    return /*#__PURE__*/React.createElement("th", {
-      key: c.key,
-      "aria-sort": isSorted ? sortDir === 'desc' ? 'descending' : 'ascending' : sortable ? 'none' : undefined,
-      style: {
-        ...thBase,
-        textAlign: c.align === 'right' ? 'right' : 'left',
-        width: c.width
-      }
-    }, sortable ? /*#__PURE__*/React.createElement("span", {
-      role: "button",
-      tabIndex: 0,
-      onClick: () => onSort(c.key),
-      onKeyDown: e => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onSort(c.key);
-        }
-      },
-      style: {
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 3,
-        cursor: 'pointer',
-        color: isSorted ? 'var(--text)' : 'inherit'
-      }
-    }, c.label, /*#__PURE__*/React.createElement("span", {
-      "aria-hidden": true,
-      style: {
-        opacity: isSorted ? 1 : 0.4
-      }
-    }, glyph)) : c.label);
-  }))), /*#__PURE__*/React.createElement("tbody", null, rows.map(row => {
-    const st = row.state;
-    const isSel = selSet.has(String(row.id)) || st === 'selected';
-    const archived = st === 'archived';
-    const tdBg = isSel ? 'var(--accent-soft)' : 'transparent';
-    const clickable = !!onRowClick;
-    const label = row.cells && row.cells.cli && row.cells.cli.primary;
-    return /*#__PURE__*/React.createElement("tr", {
-      key: row.id,
-      onClick: clickable ? () => onRowClick(row) : undefined,
-      tabIndex: clickable ? 0 : undefined,
-      role: clickable ? 'button' : undefined,
-      "aria-label": clickable && label ? String(label) : undefined,
-      onKeyDown: clickable ? e => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onRowClick(row);
-        }
-      } : undefined,
-      style: {
-        cursor: clickable ? 'pointer' : 'default',
-        boxShadow: st === 'urgent' ? 'inset 3px 0 0 var(--color-destructive)' : 'none'
-      },
-      onMouseEnter: e => {
-        if (!isSel) for (const td of e.currentTarget.children) td.style.background = 'var(--bg-2)';
-      },
-      onMouseLeave: e => {
-        if (!isSel) for (const td of e.currentTarget.children) td.style.background = 'transparent';
-      }
-    }, selectable && /*#__PURE__*/React.createElement("td", {
-      style: {
-        ...tdBase,
-        width: 36,
-        textAlign: 'center',
-        background: tdBg,
-        opacity: archived ? 0.55 : 1
-      },
-      onClick: e => e.stopPropagation()
-    }, /*#__PURE__*/React.createElement("input", {
-      type: "checkbox",
-      checked: selSet.has(String(row.id)),
-      onChange: () => onToggleRow && onToggleRow(row.id, row),
-      "aria-label": 'Selecionar ' + (label || row.id),
-      style: {
-        ...CHECK,
-        margin: '0 auto'
-      }
-    })), columns.map(c => /*#__PURE__*/React.createElement("td", {
-      key: c.key,
-      style: {
-        ...tdBase,
-        background: tdBg,
-        textAlign: c.align === 'right' ? 'right' : 'left',
-        fontVariantNumeric: c.align === 'right' ? 'tabular-nums' : 'normal',
-        opacity: archived ? 0.55 : 1,
-        filter: archived ? 'saturate(0.7)' : 'none'
-      }
-    }, /*#__PURE__*/React.createElement(Cell, {
-      value: row.cells ? row.cells[c.key] : row[c.key],
-      mono: c.mono
-    }))));
-  })));
-}
-Object.assign(__ds_scope, { DataTable });
-})(); } catch (e) { __ds_ns.__errors.push({ path: "components/DataTable/DataTable.jsx", error: String((e && e.message) || e) }); }
-
-// components/DataTablePro/DataTablePro.jsx
-try { (() => {
-/**
- * DataTablePro — premium data grid (DS). Everything DataTable has, plus:
- * sticky header, drag-to-resize columns, internal sort + checkbox selection,
- * density toggle, row hover/urgent/selected states. Pure, dependency-free.
- *
- * columns: [{ key, label, align?:'right', mono?, width?(px), sortable?, resizable?, sortValue?(row) }]
- * rows:    [{ id, state?:'urgent'|'archived', cells:{ [key]: node | {primary,sub} } }]
- * height (px scroll area) · density 'comfortable'|'compact' · selectable · onRowClick · onSelectionChange
- */
-function ProCell({
-  value,
-  mono
-}) {
-  if (value && typeof value === 'object' && !React.isValidElement(value) && ('primary' in value || 'sub' in value)) {
-    return React.createElement(React.Fragment, null, React.createElement('b', {
-      style: {
-        display: 'block',
-        fontWeight: 600,
-        fontSize: 13,
-        letterSpacing: '-0.006em',
-        whiteSpace: 'nowrap',
-        overflow: 'hidden',
-        textOverflow: 'ellipsis'
-      }
-    }, value.primary), value.sub && React.createElement('small', {
-      style: {
-        display: 'block',
-        fontSize: 11.5,
-        color: 'var(--text-mute)',
-        whiteSpace: 'nowrap',
-        overflow: 'hidden',
-        textOverflow: 'ellipsis'
-      }
-    }, value.sub));
-  }
-  if (mono) return React.createElement('span', {
-    style: {
-      fontFamily: 'var(--font-mono)',
-      fontSize: 12.5,
-      letterSpacing: '-0.01em'
-    }
-  }, value);
-  return value;
-}
-function DataTablePro({
-  columns = [],
-  rows = [],
-  height = 440,
-  density = 'comfortable',
-  selectable = false,
-  onRowClick,
-  onSelectionChange,
-  defaultSort
-}) {
-  const h = React.createElement;
-  const [sortKey, setSortKey] = React.useState(defaultSort ? defaultSort.key : null);
-  const [sortDir, setSortDir] = React.useState(defaultSort ? defaultSort.dir || 'asc' : 'asc');
-  const [sel, setSel] = React.useState(() => new Set());
+  const [pageState, setPageState] = React.useState(defaultPage);
+  const [sizeState, setSizeState] = React.useState(pageSizeProp);
+  const [sortKeyState, setSortKeyState] = React.useState(defaultSort ? defaultSort.key : null);
+  const [sortDirState, setSortDirState] = React.useState(defaultSort && defaultSort.dir === 'desc' ? 'desc' : 'asc');
+  const [selState, setSelState] = React.useState(() => new Set());
   const [w, setW] = React.useState({});
   const drag = React.useRef(null);
-  const Hpx = typeof height === 'number' ? height : parseInt(height, 10) || 440;
-  const pad = density === 'compact' ? '6px 12px' : '10px 12px';
-  const colW = c => w[c.key] != null ? w[c.key] + 'px' : c.width || undefined;
+  const NS = typeof window !== 'undefined' && window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
+  const controlledSel = Array.isArray(selectedIds);
+  const controlledSort = onSort != null;
+  const sel = controlledSel ? new Set(selectedIds.map(String)) : selState;
+  const sortKey = controlledSort ? sortKeyProp : sortKeyState;
+  const sortDir = controlledSort ? sortDirProp || 'asc' : sortDirState;
+  const pageSize = onPageSizeChange ? pageSizeProp : sizeState;
+  const page = pageProp != null ? pageProp : pageState;
+  const setPage = p => {
+    if (pageProp == null) setPageState(p);
+    if (onPageChange) onPageChange(p);
+  };
+  const setSize = n => {
+    if (onPageSizeChange) onPageSizeChange(n);else setSizeState(n);
+    setPage(1);
+  };
+  const sortVal = (c, row) => {
+    if (c.sortValue) return c.sortValue(row);
+    const v = row.cells ? row.cells[c.key] : row[c.key];
+    if (v && typeof v === 'object' && 'primary' in v) return String(v.primary).toLowerCase();
+    if (typeof v === 'number') return v;
+    return String(v == null ? '' : v).toLowerCase();
+  };
+  let sorted = rows;
+  if (sortKey && !controlledSort) {
+    const c = columns.find(x => x.key === sortKey);
+    if (c) {
+      const dir = sortDir === 'desc' ? -1 : 1;
+      sorted = rows.slice().sort((a, b) => {
+        const x = sortVal(c, a),
+          y = sortVal(c, b);
+        return (x < y ? -1 : x > y ? 1 : 0) * dir;
+      });
+    }
+  }
+  const total = sorted.length;
+  const pageCount = pagination ? Math.max(1, Math.ceil(total / pageSize)) : 1;
+  const current = Math.min(page, pageCount);
+  const view = pagination ? sorted.slice((current - 1) * pageSize, current * pageSize) : sorted;
+  const doSort = c => {
+    if (!c.sortable) return;
+    if (controlledSort) {
+      onSort(c.key);
+      return;
+    }
+    if (sortKey === c.key) setSortDirState(d => d === 'asc' ? 'desc' : 'asc');else {
+      setSortKeyState(c.key);
+      setSortDirState('asc');
+    }
+    setPage(1);
+  };
+  const allChecked = selectable && view.length > 0 && view.every(r => sel.has(String(r.id)));
+  const someChecked = selectable && view.some(r => sel.has(String(r.id)));
+  const headChk = el => {
+    if (el) el.indeterminate = someChecked && !allChecked;
+  };
+  const emit = next => {
+    setSelState(next);
+    if (onSelectionChange) onSelectionChange([...next]);
+  };
+  const toggleAll = on => {
+    if (controlledSel || onToggleAll) {
+      if (onToggleAll) onToggleAll(on);
+      return;
+    }
+    const n = new Set(sel);
+    view.forEach(r => on ? n.add(String(r.id)) : n.delete(String(r.id)));
+    emit(n);
+  };
+  const toggleRow = row => {
+    if (controlledSel || onToggleRow) {
+      if (onToggleRow) onToggleRow(row.id, row);
+      return;
+    }
+    const n = new Set(sel);
+    const k = String(row.id);
+    if (n.has(k)) n.delete(k);else n.add(k);
+    emit(n);
+  };
   const startResize = (key, e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -3139,59 +3035,15 @@ function DataTablePro({
     document.addEventListener('mousemove', move);
     document.addEventListener('mouseup', up);
   };
-  const sortVal = (c, row) => {
-    if (c.sortValue) return c.sortValue(row);
-    const v = row.cells ? row.cells[c.key] : row[c.key];
-    if (v && typeof v === 'object' && 'primary' in v) return String(v.primary).toLowerCase();
-    if (typeof v === 'number') return v;
-    return String(v == null ? '' : v).toLowerCase();
-  };
-  const doSort = c => {
-    if (!c.sortable) return;
-    if (sortKey === c.key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');else {
-      setSortKey(c.key);
-      setSortDir('asc');
-    }
-  };
-  let view = rows;
-  if (sortKey) {
-    const c = columns.find(x => x.key === sortKey);
-    if (c) {
-      const dir = sortDir === 'desc' ? -1 : 1;
-      view = rows.slice().sort((a, b) => {
-        const x = sortVal(c, a),
-          y = sortVal(c, b);
-        return (x < y ? -1 : x > y ? 1 : 0) * dir;
-      });
-    }
-  }
-  const allChecked = selectable && view.length > 0 && view.every(r => sel.has(String(r.id)));
-  const someChecked = selectable && view.some(r => sel.has(String(r.id)));
-  const headChk = el => {
-    if (el) el.indeterminate = someChecked && !allChecked;
-  };
-  const emit = next => {
-    setSel(next);
-    onSelectionChange && onSelectionChange([...next]);
-  };
-  const toggleAll = on => emit(on ? new Set(view.map(r => String(r.id))) : new Set());
-  const toggleRow = id => {
-    const n = new Set(sel);
-    const k = String(id);
-    n.has(k) ? n.delete(k) : n.add(k);
-    emit(n);
-  };
-  const fixedSum = (selectable ? 38 : 0) + columns.reduce((a, c) => a + (w[c.key] != null ? w[c.key] : c.width ? parseInt(c.width, 10) || 0 : 0), 0);
-  const flexN = columns.filter(c => w[c.key] == null && !c.width).length;
-  const tableMin = fixedSum + flexN * 200;
-  const thBase = {
+  const relaxed = density === 'relaxed' || density === 'comfortable';
+  const pad = relaxed ? '9px 10px' : '5px 10px';
+  const th = {
     position: 'sticky',
     top: 0,
     zIndex: 1,
     background: 'var(--bg-2)',
-    padding: '9px 12px',
-    fontSize: 10.5,
-    fontWeight: 600,
+    padding: '7px 10px',
+    font: '600 10px/1.2 var(--font-sans)',
     textTransform: 'uppercase',
     letterSpacing: '.05em',
     color: 'var(--text-mute)',
@@ -3199,63 +3051,162 @@ function DataTablePro({
     borderBottom: '1px solid var(--border)',
     userSelect: 'none'
   };
-  const handle = key => h('span', {
-    onMouseDown: e => startResize(key, e),
+  const chk = {
+    accentColor: 'var(--accent)',
+    width: 13,
+    height: 13,
+    cursor: 'pointer'
+  };
+  const colW = c => w[c.key] != null ? w[c.key] + 'px' : c.width;
+  const numBtn = (p, on) => /*#__PURE__*/React.createElement("button", {
+    key: p,
+    type: "button",
+    onClick: () => setPage(p),
+    "aria-current": on ? 'page' : undefined,
     style: {
-      position: 'absolute',
-      top: 0,
-      right: -3,
-      width: 7,
-      height: '100%',
-      cursor: 'col-resize',
-      zIndex: 2
+      minWidth: 24,
+      height: 24,
+      padding: '0 6px',
+      border: '1px solid ' + (on ? 'transparent' : 'var(--border)'),
+      borderRadius: 5,
+      background: on ? 'var(--accent)' : 'transparent',
+      color: on ? 'var(--accent-fg)' : 'var(--text-dim)',
+      font: (on ? '600' : '500') + ' 11.5px/1 var(--font-sans)',
+      fontVariantNumeric: 'tabular-nums',
+      cursor: 'pointer'
     }
-  });
-  return h('div', {
+  }, p);
+  const edge = (dir, disabled) => /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    disabled: disabled,
+    onClick: () => setPage(current + (dir === 'left' ? -1 : 1)),
+    "aria-label": dir === 'left' ? 'Página anterior' : 'Próxima página',
     style: {
-      height: Hpx,
+      width: 24,
+      height: 24,
+      display: 'inline-grid',
+      placeItems: 'center',
+      border: '1px solid var(--border)',
+      borderRadius: 5,
+      background: 'transparent',
+      color: disabled ? 'var(--text-mute)' : 'var(--text)',
+      cursor: disabled ? 'not-allowed' : 'pointer',
+      opacity: disabled ? 0.45 : 1
+    }
+  }, /*#__PURE__*/React.createElement("svg", {
+    width: "12",
+    height: "12",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2.4",
+    strokeLinecap: "round",
+    strokeLinejoin: "round"
+  }, /*#__PURE__*/React.createElement("polyline", {
+    points: dir === 'left' ? '15 18 9 12 15 6' : '9 18 15 12 9 6'
+  })));
+  const footer = !pagination ? null : /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 'none',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'flex-end',
+      gap: 12,
+      flexWrap: 'wrap',
+      padding: '7px 10px',
+      borderTop: '1px solid var(--border)',
+      background: 'var(--bg-2)'
+    }
+  }, NS.Pagination ? /*#__PURE__*/React.createElement(NS.Pagination, {
+    compact: true,
+    page: current,
+    pageCount: pageCount,
+    onChange: setPage,
+    total: total,
+    pageSize: pageSize,
+    totalLabel: totalLabel,
+    onPageSize: pageSizeOptions && pageSizeOptions.length > 1 ? setSize : undefined,
+    pageSizeOptions: pageSizeOptions
+  }) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 12,
+      width: '100%',
+      justifyContent: 'space-between'
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      font: '400 11.5px/1 var(--font-sans)',
+      color: 'var(--text-mute)',
+      fontVariantNumeric: 'tabular-nums'
+    }
+  }, /*#__PURE__*/React.createElement("b", {
+    style: {
+      color: 'var(--text-dim)',
+      fontWeight: 600
+    }
+  }, total === 0 ? 0 : (current - 1) * pageSize + 1, "\u2013", Math.min(current * pageSize, total)), " de ", total, " ", totalLabel), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 4
+    }
+  }, edge('left', current <= 1), gridPages(current, pageCount).map((p, i) => p === '…' ? /*#__PURE__*/React.createElement("span", {
+    key: 'e' + i,
+    style: {
+      padding: '0 2px',
+      color: 'var(--text-mute)',
+      font: '400 11.5px/1 var(--font-sans)'
+    }
+  }, "\u2026") : numBtn(p, p === current)), edge('right', current >= pageCount))));
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      minWidth: 0,
+      background: 'var(--surface)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      maxHeight: height != null ? height : maxHeight,
       overflow: 'auto',
-      position: 'relative',
-      background: 'var(--bg)'
+      scrollbarGutter: 'stable'
     }
-  }, h('table', {
+  }, /*#__PURE__*/React.createElement("table", {
     style: {
       width: '100%',
-      minWidth: tableMin,
       borderCollapse: 'separate',
       borderSpacing: 0,
-      fontSize: 13,
-      tableLayout: 'fixed'
+      fontSize: 12.5,
+      color: 'var(--text)',
+      fontFamily: 'var(--font-sans)',
+      tableLayout: resizable ? 'fixed' : 'auto'
     }
-  }, h('thead', null, h('tr', null, selectable && h('th', {
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, selectable && /*#__PURE__*/React.createElement("th", {
     style: {
-      ...thBase,
-      width: 38,
+      ...th,
+      width: 34,
       textAlign: 'center'
     }
-  }, h('input', {
-    type: 'checkbox',
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
     ref: headChk,
     checked: !!allChecked,
     onChange: e => toggleAll(e.target.checked),
-    'aria-label': 'Selecionar todas',
-    style: {
-      accentColor: 'var(--accent)',
-      width: 14,
-      height: 14,
-      cursor: 'pointer'
-    }
-  })), columns.map(c => h('th', {
+    "aria-label": "Selecionar p\xE1gina",
+    style: chk
+  })), columns.map((c, ci) => /*#__PURE__*/React.createElement("th", {
     key: c.key,
-    'aria-sort': sortKey === c.key ? sortDir === 'desc' ? 'descending' : 'ascending' : undefined,
     style: {
-      ...thBase,
+      ...th,
       position: 'sticky',
       textAlign: c.align === 'right' ? 'right' : 'left',
       width: colW(c),
       cursor: c.sortable ? 'pointer' : 'default'
-    }
-  }, h('span', {
+    },
+    "aria-sort": sortKey === c.key ? sortDir === 'desc' ? 'descending' : 'ascending' : undefined
+  }, /*#__PURE__*/React.createElement("span", {
     onClick: () => doSort(c),
     style: {
       display: 'inline-flex',
@@ -3263,24 +3214,40 @@ function DataTablePro({
       gap: 3,
       color: sortKey === c.key ? 'var(--text)' : 'inherit'
     }
-  }, c.label, c.sortable && h('span', {
-    'aria-hidden': true,
+  }, c.label, c.sortable && /*#__PURE__*/React.createElement("span", {
+    "aria-hidden": true,
     style: {
       opacity: sortKey === c.key ? 1 : 0.4
     }
-  }, sortKey === c.key ? sortDir === 'desc' ? '↓' : '↑' : '↕')), c.resizable !== false && handle(c.key))))), h('tbody', null, view.map(row => {
-    const isSel = sel.has(String(row.id));
-    const st = row.state;
-    const tdBg = isSel ? 'var(--accent-soft)' : 'transparent';
-    const clickable = !!onRowClick;
-    const label = row.cells && row.cells.cli && row.cells.cli.primary;
-    return h('tr', {
+  }, sortKey === c.key ? sortDir === 'desc' ? '↓' : '↑' : '↕')), resizable && c.resizable !== false && ci < columns.length - 1 && /*#__PURE__*/React.createElement("span", {
+    onMouseDown: e => startResize(c.key, e),
+    style: {
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      width: 7,
+      height: '100%',
+      cursor: 'col-resize',
+      zIndex: 2,
+      transform: 'translateX(3px)'
+    }
+  }))))), /*#__PURE__*/React.createElement("tbody", null, view.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+    colSpan: columns.length + (selectable ? 1 : 0),
+    style: {
+      padding: '34px 12px',
+      textAlign: 'center',
+      color: 'var(--text-mute)',
+      font: '400 12.5px/1.4 var(--font-sans)'
+    }
+  }, emptyLabel)), view.map((row, i) => {
+    const isSel = sel.has(String(row.id)) || row.state === 'selected';
+    const base = isSel ? 'var(--accent-soft)' : zebra && i % 2 ? 'color-mix(in oklch, var(--bg-2) 55%, transparent)' : 'transparent';
+    return /*#__PURE__*/React.createElement("tr", {
       key: row.id,
-      onClick: clickable ? () => onRowClick(row) : undefined,
-      tabIndex: clickable ? 0 : undefined,
-      role: clickable ? 'button' : undefined,
-      'aria-label': clickable && label ? String(label) : undefined,
-      onKeyDown: clickable ? e => {
+      onClick: onRowClick ? () => onRowClick(row) : undefined,
+      tabIndex: onRowClick ? 0 : undefined,
+      role: onRowClick ? 'button' : undefined,
+      onKeyDown: onRowClick ? e => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           onRowClick(row);
@@ -3290,49 +3257,93 @@ function DataTablePro({
         if (!isSel) for (const td of e.currentTarget.children) td.style.background = 'var(--bg-2)';
       },
       onMouseLeave: e => {
-        if (!isSel) for (const td of e.currentTarget.children) td.style.background = 'transparent';
+        if (!isSel) for (const td of e.currentTarget.children) td.style.background = base;
       },
       style: {
-        cursor: clickable ? 'pointer' : 'default',
-        boxShadow: st === 'urgent' ? 'inset 3px 0 0 var(--color-destructive)' : 'none'
+        cursor: onRowClick ? 'pointer' : 'default',
+        boxShadow: row.state === 'urgent' ? 'inset 2px 0 0 var(--neg)' : 'none'
       }
-    }, selectable && h('td', {
+    }, selectable && /*#__PURE__*/React.createElement("td", {
       onClick: e => e.stopPropagation(),
       style: {
         padding: pad,
-        borderBottom: '1px solid var(--border-2)',
         textAlign: 'center',
-        background: tdBg,
-        width: 38
+        background: base,
+        borderBottom: '1px solid var(--border-2)',
+        width: 34
       }
-    }, h('input', {
-      type: 'checkbox',
-      checked: isSel,
-      onChange: () => toggleRow(row.id),
-      'aria-label': 'Selecionar ' + (label || row.id),
-      style: {
-        accentColor: 'var(--accent)',
-        width: 14,
-        height: 14,
-        cursor: 'pointer'
-      }
-    })), columns.map(c => h('td', {
+    }, /*#__PURE__*/React.createElement("input", {
+      type: "checkbox",
+      checked: sel.has(String(row.id)),
+      onChange: () => toggleRow(row),
+      "aria-label": 'Selecionar ' + row.id,
+      style: chk
+    })), columns.map(c => /*#__PURE__*/React.createElement("td", {
       key: c.key,
       style: {
         padding: pad,
+        background: base,
         borderBottom: '1px solid var(--border-2)',
-        verticalAlign: 'middle',
-        background: tdBg,
         textAlign: c.align === 'right' ? 'right' : 'left',
         fontVariantNumeric: c.align === 'right' ? 'tabular-nums' : 'normal',
-        opacity: st === 'archived' ? 0.55 : 1,
-        overflow: 'hidden'
+        opacity: row.state === 'archived' ? 0.55 : 1,
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        maxWidth: 320
       }
-    }, h(ProCell, {
+    }, /*#__PURE__*/React.createElement(GridCell, {
       value: row.cells ? row.cells[c.key] : row[c.key],
       mono: c.mono
     }))));
-  }))));
+  })))), footer);
+}
+Object.assign(__ds_scope, { DataGrid });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/DataGrid/DataGrid.jsx", error: String((e && e.message) || e) }); }
+
+// components/DataTable/DataTable.jsx
+try { (() => {
+/**
+ * DataTable — ALIAS de compatibilidade. A implementação única é DataGrid
+ * (fusão 2026-08, ver NOTAS_INTERNAS.md). Mantém a API antiga: seleção e
+ * ordenação controladas por fora, sem paginação e sem header fixo.
+ */
+function DataTable(props) {
+  const NS = typeof window !== 'undefined' && window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
+  const Grid = NS.DataGrid;
+  if (!Grid) return null;
+  return React.createElement(Grid, Object.assign({}, props, {
+    pagination: false,
+    zebra: false,
+    density: 'comfortable',
+    maxHeight: props.maxHeight != null ? props.maxHeight : 'none'
+  }));
+}
+Object.assign(__ds_scope, { DataTable });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/DataTable/DataTable.jsx", error: String((e && e.message) || e) }); }
+
+// components/DataTablePro/DataTablePro.jsx
+try { (() => {
+/**
+ * DataTablePro — ALIAS de compatibilidade. A implementação única é DataGrid
+ * com resizable + header fixo (fusão 2026-08, ver NOTAS_INTERNAS.md).
+ */
+function DataTablePro(props) {
+  const NS = typeof window !== 'undefined' && window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
+  const Grid = NS.DataGrid;
+  if (!Grid) return null;
+  const {
+    height,
+    density,
+    ...rest
+  } = props;
+  return React.createElement(Grid, Object.assign({}, rest, {
+    pagination: false,
+    resizable: true,
+    zebra: false,
+    density: density === 'compact' ? 'compact' : 'comfortable',
+    maxHeight: height != null ? height : 440
+  }));
 }
 Object.assign(__ds_scope, { DataTablePro });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/DataTablePro/DataTablePro.jsx", error: String((e && e.message) || e) }); }
@@ -4583,6 +4594,87 @@ function Select({
 Object.assign(__ds_scope, { Input, Textarea, Select });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/Input/Input.jsx", error: String((e && e.message) || e) }); }
 
+// components/Kebab/Kebab.jsx
+try { (() => {
+/**
+ * Kebab — gatilho "⋮" do DropdownMenu (fusão 2026-08, ver NOTAS_INTERNAS.md).
+ * Não reimplementa menu: desenha só o botão icônico e delega itens, teclado,
+ * clique-fora e ancoragem ao DropdownMenu do DS.
+ *
+ * items · align 'start'|'end' · width · size 'sm'|'md' · orientation · label · disabled
+ */
+function Kebab({
+  items = [],
+  align = 'end',
+  width = 200,
+  size = 'md',
+  label = 'Mais ações',
+  orientation = 'vertical',
+  disabled = false
+}) {
+  const NS = typeof window !== 'undefined' && window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
+  const Menu = NS.DropdownMenu;
+  const box = size === 'sm' ? 24 : 28;
+  const dots = orientation === 'horizontal' ? [[5, 12], [12, 12], [19, 12]] : [[12, 5], [12, 12], [12, 19]];
+  const trigger = ({
+    open,
+    onClick
+  }) => React.createElement('button', {
+    type: 'button',
+    'aria-haspopup': 'menu',
+    'aria-expanded': open,
+    'aria-label': label,
+    title: label,
+    disabled,
+    onClick: e => {
+      e.stopPropagation();
+      onClick();
+    },
+    onMouseEnter: e => {
+      if (!disabled && !open) e.currentTarget.style.background = 'var(--bg-2)';
+    },
+    onMouseLeave: e => {
+      if (!open) e.currentTarget.style.background = 'transparent';
+    },
+    style: {
+      width: box,
+      height: box,
+      display: 'inline-grid',
+      placeItems: 'center',
+      border: '1px solid transparent',
+      borderRadius: 6,
+      background: open ? 'var(--accent-soft)' : 'transparent',
+      color: disabled ? 'var(--text-mute)' : open ? 'var(--accent)' : 'var(--text-dim)',
+      cursor: disabled ? 'not-allowed' : 'pointer',
+      opacity: disabled ? 0.5 : 1,
+      transition: 'background .15s, color .15s'
+    }
+  }, React.createElement('svg', {
+    width: 15,
+    height: 15,
+    viewBox: '0 0 24 24',
+    fill: 'currentColor',
+    'aria-hidden': true
+  }, dots.map((d, i) => React.createElement('circle', {
+    key: i,
+    cx: d[0],
+    cy: d[1],
+    r: 1.7
+  }))));
+  if (!Menu) return trigger({
+    open: false,
+    onClick: () => {}
+  });
+  return React.createElement(Menu, {
+    trigger,
+    items,
+    align,
+    width
+  });
+}
+Object.assign(__ds_scope, { Kebab });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/Kebab/Kebab.jsx", error: String((e && e.message) || e) }); }
+
 // components/KpiCard/KpiCard.jsx
 try { (() => {
 /**
@@ -4647,6 +4739,94 @@ function Sparkline({
     strokeLinejoin: "round"
   }));
 }
+const KPI_FILTER_TONE = {
+  primary: ['color-mix(in oklch, var(--color-primary) 16%, transparent)', 'var(--color-primary)'],
+  amber: ['color-mix(in oklch, oklch(0.72 0.15 70) 18%, transparent)', 'oklch(0.80 0.13 70)'],
+  rose: ['color-mix(in oklch, oklch(0.65 0.20 20) 18%, transparent)', 'oklch(0.78 0.16 20)'],
+  emerald: ['color-mix(in oklch, oklch(0.65 0.14 155) 18%, transparent)', 'oklch(0.78 0.12 155)'],
+  violet: ['color-mix(in oklch, oklch(0.60 0.18 295) 18%, transparent)', 'oklch(0.80 0.14 295)']
+};
+
+/** Tile de KPI clicável usado como filtro (era o KpiFilterCard — fusão 2026-08). */
+function KpiFilterTile({
+  label,
+  value,
+  sub,
+  icon,
+  tone = 'primary',
+  selected = false,
+  onClick
+}) {
+  const [tileBg, tileFg] = KPI_FILTER_TONE[tone] || KPI_FILTER_TONE.primary;
+  return /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: onClick,
+    "aria-pressed": selected,
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 12,
+      width: '100%',
+      textAlign: 'left',
+      padding: 12,
+      borderRadius: 8,
+      cursor: 'pointer',
+      background: 'var(--color-card)',
+      border: '1px solid ' + (selected ? 'var(--color-primary)' : 'var(--color-border)'),
+      boxShadow: selected ? '0 0 0 1px var(--color-primary)' : '0 1px 2px rgba(0,0,0,.05)',
+      transition: 'box-shadow .15s, border-color .15s'
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      width: 36,
+      height: 36,
+      borderRadius: 8,
+      flexShrink: 0,
+      display: 'grid',
+      placeItems: 'center',
+      background: tileBg,
+      color: tileFg
+    }
+  }, typeof icon === 'string' ? /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 17,
+      lineHeight: 1
+    },
+    "aria-hidden": true
+  }, icon) : icon), /*#__PURE__*/React.createElement("span", {
+    style: {
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: 'block',
+      fontSize: 'var(--fs-1)',
+      fontWeight: 600,
+      letterSpacing: '.06em',
+      textTransform: 'uppercase',
+      color: 'var(--color-muted-foreground)',
+      lineHeight: 1
+    }
+  }, label), /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: 'block',
+      fontSize: 'var(--fs-6)',
+      fontWeight: 600,
+      fontVariantNumeric: 'tabular-nums',
+      color: 'var(--color-foreground)',
+      lineHeight: 1.2,
+      marginTop: 4
+    }
+  }, value), sub && /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: 'block',
+      fontSize: 'var(--fs-1)',
+      color: 'var(--color-muted-foreground)',
+      marginTop: 2,
+      lineHeight: 1
+    }
+  }, sub)));
+}
 function KpiCard({
   label,
   value,
@@ -4657,8 +4837,22 @@ function KpiCard({
   delta,
   deltaLabel,
   spark,
-  progress
+  progress,
+  variant,
+  sub,
+  icon,
+  selected,
+  onClick
 }) {
+  if (variant === 'filter') return KpiFilterTile({
+    label,
+    value,
+    sub: sub != null ? sub : description,
+    icon,
+    tone: tone === 'default' ? 'primary' : tone,
+    selected,
+    onClick
+  });
   const bar = (track, fill) => progress == null ? null : /*#__PURE__*/React.createElement("div", {
     style: {
       height: 4,
@@ -4846,98 +5040,16 @@ Object.assign(__ds_scope, { KpiCard });
 // components/KpiFilterCard/KpiFilterCard.jsx
 try { (() => {
 /**
- * KpiFilterCard — clickable KPI tile used as a filter toggle (DS v6).
- * The Clientes/CRM pattern: icon tile + label + value + sub, selectable.
- * Pure, dependency-free (global React + inline token styles).
- *
- * tone: primary | amber | rose | emerald | violet  (tints the icon tile)
- * selected: draws the accent ring (active filter)
+ * KpiFilterCard — ALIAS: é o KpiCard em variant="filter"
+ * (fusão 2026-08, ver NOTAS_INTERNAS.md).
  */
-function KpiFilterCard({
-  label,
-  value,
-  sub,
-  icon,
-  tone = 'primary',
-  selected = false,
-  onClick
-}) {
-  const TONE = {
-    primary: ['color-mix(in oklch, var(--color-primary) 16%, transparent)', 'var(--color-primary)'],
-    amber: ['color-mix(in oklch, oklch(0.72 0.15 70) 18%, transparent)', 'oklch(0.80 0.13 70)'],
-    rose: ['color-mix(in oklch, oklch(0.65 0.20 20) 18%, transparent)', 'oklch(0.78 0.16 20)'],
-    emerald: ['color-mix(in oklch, oklch(0.65 0.14 155) 18%, transparent)', 'oklch(0.78 0.12 155)'],
-    violet: ['color-mix(in oklch, oklch(0.60 0.18 295) 18%, transparent)', 'oklch(0.80 0.14 295)']
-  };
-  const [tileBg, tileFg] = TONE[tone] || TONE.primary;
-  return /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    onClick: onClick,
-    "aria-pressed": selected,
-    style: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: 12,
-      width: '100%',
-      textAlign: 'left',
-      padding: 12,
-      borderRadius: 8,
-      cursor: 'pointer',
-      background: 'var(--color-card)',
-      border: '1px solid ' + (selected ? 'var(--color-primary)' : 'var(--color-border)'),
-      boxShadow: selected ? '0 0 0 1px var(--color-primary)' : '0 1px 2px rgba(0,0,0,.05)',
-      transition: 'box-shadow .15s, border-color .15s'
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      width: 36,
-      height: 36,
-      borderRadius: 8,
-      flexShrink: 0,
-      display: 'grid',
-      placeItems: 'center',
-      background: tileBg,
-      color: tileFg
-    }
-  }, typeof icon === 'string' ? /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 17,
-      lineHeight: 1
-    },
-    "aria-hidden": true
-  }, icon) : icon), /*#__PURE__*/React.createElement("span", {
-    style: {
-      minWidth: 0
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      display: 'block',
-      fontSize: 'var(--fs-1)',
-      fontWeight: 600,
-      letterSpacing: '.06em',
-      textTransform: 'uppercase',
-      color: 'var(--color-muted-foreground)',
-      lineHeight: 1
-    }
-  }, label), /*#__PURE__*/React.createElement("span", {
-    style: {
-      display: 'block',
-      fontSize: 'var(--fs-6)',
-      fontWeight: 600,
-      fontVariantNumeric: 'tabular-nums',
-      color: 'var(--color-foreground)',
-      lineHeight: 1.2,
-      marginTop: 4
-    }
-  }, value), sub && /*#__PURE__*/React.createElement("span", {
-    style: {
-      display: 'block',
-      fontSize: 'var(--fs-1)',
-      color: 'var(--color-muted-foreground)',
-      marginTop: 2,
-      lineHeight: 1
-    }
-  }, sub)));
+function KpiFilterCard(props) {
+  const NS = typeof window !== 'undefined' && window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
+  const Kpi = NS.KpiCard;
+  if (!Kpi) return null;
+  return React.createElement(Kpi, Object.assign({
+    variant: 'filter'
+  }, props));
 }
 Object.assign(__ds_scope, { KpiFilterCard });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/KpiFilterCard/KpiFilterCard.jsx", error: String((e && e.message) || e) }); }
@@ -5149,18 +5261,32 @@ try { (() => {
 /**
  * PageHeader — flat index/page header (DS v4 canon, slot 1 of PT-01).
  * border-b warm · title 22/700 · tabular subtitle with toned stats · action slot.
- * Pure, dependency-free (global React + inline token styles). No icon box.
+ * Pure, dependency-free (global React + inline token styles).
  *
  * stats: array of { value, label?, tone? } rendered as "N abertas · N atrasadas …"
  *        tone: 'danger' | 'warn' | undefined (neutral). Or pass `subtitle` (node).
  * actions: React node (buttons) pinned right.
+ *
+ * Absorve o antigo `cli-pagehead`: `leading` (marca de identidade antes do título —
+ * dot de área, ícone, avatar), `context` (linha de contexto acima do título) e
+ * `freshness` (pílula de frescor à direita do título; string usa StatusBadge
+ * kind="frescor", nó React é renderizado como veio).
+ *
+ * `leading` vive DENTRO do h1, na linha de base do título — espelha o slot homônimo
+ * do header canon do repo (`Components/PageHeader`, opt-in 2026-08-08). Não é caixa:
+ * a caixa 40×40 `bg-primary/10` é do `shared/PageHeader.tsx`, que está CONGELADO.
  */
 function PageHeader({
   title,
   stats,
   subtitle,
-  actions
+  actions,
+  leading,
+  context,
+  freshness,
+  freshnessRel
 }) {
+  const NS = typeof window !== 'undefined' && window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
   const toneColor = t => t === 'danger' ? 'var(--color-destructive)' : t === 'warn' ? 'var(--color-warning)' : 'var(--text)';
   return /*#__PURE__*/React.createElement("header", {
     style: {
@@ -5177,6 +5303,24 @@ function PageHeader({
       minWidth: 0,
       flex: '1 1 auto'
     }
+  }, context && /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: '0 0 3px',
+      font: '500 11px/1.2 var(--font-mono)',
+      letterSpacing: '.04em',
+      textTransform: 'uppercase',
+      color: 'var(--text-dim)',
+      whiteSpace: 'nowrap',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis'
+    }
+  }, context), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      minWidth: 0
+    }
   }, /*#__PURE__*/React.createElement("h1", {
     style: {
       margin: 0,
@@ -5187,7 +5331,24 @@ function PageHeader({
       overflow: 'hidden',
       textOverflow: 'ellipsis'
     }
-  }, title), (stats || subtitle) && /*#__PURE__*/React.createElement("p", {
+  }, leading && /*#__PURE__*/React.createElement("span", {
+    "aria-hidden": true,
+    style: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      verticalAlign: 'baseline',
+      marginRight: 8,
+      color: 'var(--accent)'
+    }
+  }, leading), title), freshness && /*#__PURE__*/React.createElement("span", {
+    style: {
+      flex: '0 0 auto'
+    }
+  }, typeof freshness === 'string' ? NS.StatusBadge ? React.createElement(NS.StatusBadge, {
+    kind: 'frescor',
+    value: freshness,
+    rel: freshnessRel
+  }) : null : freshness)), (stats || subtitle) && /*#__PURE__*/React.createElement("p", {
     style: {
       margin: '4px 0 0',
       font: '400 13px/1.45 var(--font-sans)',
@@ -5270,7 +5431,8 @@ function Pagination({
   pageSizeOptions = [10, 20, 50, 100],
   compact = false,
   prevLabel = 'Anterior',
-  nextLabel = 'Próximo'
+  nextLabel = 'Próximo',
+  totalLabel
 }) {
   const go = p => {
     if (onChange && p >= 1 && p <= pageCount && p !== page) onChange(p);
@@ -5393,7 +5555,7 @@ function Pagination({
       color: 'var(--text-dim)',
       fontWeight: 600
     }
-  }, Math.min((page - 1) * pageSize + 1, total), "\u2013", Math.min(page * pageSize, total)), " de ", total), onPageSize && /*#__PURE__*/React.createElement("label", {
+  }, Math.min((page - 1) * pageSize + 1, total), "\u2013", Math.min(page * pageSize, total)), " de ", total, totalLabel ? ' ' + totalLabel : ''), onPageSize && /*#__PURE__*/React.createElement("label", {
     style: {
       display: 'inline-flex',
       alignItems: 'center',
@@ -5541,7 +5703,7 @@ function PeriodBar({
     }
   }, t);
 
-  // ---- segmented ----
+  // ---- segmented (reusa o Segmented do DS; fallback nativo) ----
   const segBtn = p => {
     const active = preset === p.id;
     return h('button', {
@@ -5570,13 +5732,26 @@ function PeriodBar({
       }
     }, p.label);
   };
+  const Segmented = NS.Segmented;
   const segmented = h('div', {
     style: {
       display: 'flex',
       flexDirection: 'column',
       gap: 6
     }
-  }, capLabel(label), h('div', {
+  }, capLabel(label), Segmented ? h(Segmented, {
+    ariaLabel: label,
+    value: preset || '',
+    onChange: id => {
+      const p = presets.find(x => x.id === id);
+      if (p) pickPreset(p);
+    },
+    options: presets.map(p => ({
+      value: p.id,
+      label: p.label,
+      disabled
+    }))
+  }) : h('div', {
     role: 'group',
     'aria-label': label,
     style: {
@@ -5776,6 +5951,247 @@ function PlacaVeiculo({
 }
 Object.assign(__ds_scope, { PlacaVeiculo });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/PlacaVeiculo/PlacaVeiculo.jsx", error: String((e && e.message) || e) }); }
+
+// components/PresenterMode/PresenterMode.jsx
+try { (() => {
+/**
+ * PresenterMode — modo apresentação / impressão do cockpit (DS print-craft).
+ * Cobre a tela com um palco escuro, some com toda a navegação, empilha as
+ * folhas em tamanho de papel real e imprime só elas (regras @media print
+ * próprias, sem CSS por módulo).
+ *
+ * open · onClose · title · subtitle · pages · children (nó ou (i) => nó)
+ * paper 'A4'|'letter' · orientation · zoom inicial · onPrint
+ * Teclado: ← → (folhas) · + − (zoom) · P (imprimir) · Esc (sair)
+ */
+const PAPER = {
+  A4: [210, 297],
+  letter: [216, 279]
+};
+const PRESENTER_STYLE_ID = 'ds-presenter-style';
+function usePresenterStyle() {
+  React.useEffect(() => {
+    if (document.getElementById(PRESENTER_STYLE_ID)) return;
+    const el = document.createElement('style');
+    el.id = PRESENTER_STYLE_ID;
+    el.textContent = '@media print{' + 'body.ds-presenting{background:#fff!important}' + 'body.ds-presenting > *{visibility:hidden!important}' + 'body.ds-presenting .ds-presenter{position:static!important;inset:auto!important;background:#fff!important;display:block!important;overflow:visible!important;visibility:visible!important}' + 'body.ds-presenting .ds-presenter *{visibility:visible}' + 'body.ds-presenting .ds-presenter__chrome{display:none!important}' + 'body.ds-presenting .ds-presenter__stage{padding:0!important;overflow:visible!important;display:block!important;background:#fff!important}' + 'body.ds-presenting .ds-presenter__sheet{transform:none!important;margin:0!important;box-shadow:none!important;border:0!important;border-radius:0!important;width:auto!important;min-height:auto!important;break-after:page;page-break-after:always}' + 'body.ds-presenting .ds-presenter__sheet:last-child{break-after:auto;page-break-after:auto}' + '}' + '@keyframes ds-presenter-in{from{opacity:0}to{opacity:1}}';
+    document.head.appendChild(el);
+  }, []);
+}
+function PresenterMode({
+  open = true,
+  onClose,
+  onPrint,
+  title,
+  subtitle,
+  pages = 1,
+  children,
+  paper = 'A4',
+  orientation = 'portrait',
+  zoom: zoomProp = 0.9,
+  showPrint = true,
+  hint = true
+}) {
+  usePresenterStyle();
+  const [zoom, setZoom] = React.useState(zoomProp);
+  const [page, setPage] = React.useState(0);
+  const stage = React.useRef(null);
+  const sheets = React.useRef([]);
+  React.useEffect(() => {
+    if (!open) return undefined;
+    document.body.classList.add('ds-presenting');
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.classList.remove('ds-presenting');
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
+  const goTo = React.useCallback(i => {
+    const n = Math.max(0, Math.min(i, pages - 1));
+    setPage(n);
+    const st = stage.current,
+      sh = sheets.current[n];
+    if (st && sh) st.scrollTop = Math.max(0, sh.offsetTop - 24);
+  }, [pages]);
+  const doPrint = React.useCallback(() => {
+    if (onPrint) onPrint();else window.print();
+  }, [onPrint]);
+  React.useEffect(() => {
+    if (!open) return undefined;
+    const onKey = e => {
+      if (e.key === 'Escape') {
+        if (onClose) onClose();
+      } else if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+        e.preventDefault();
+        goTo(page + 1);
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        goTo(page - 1);
+      } else if (e.key === '+' || e.key === '=') {
+        setZoom(z => Math.min(2, +(z + 0.1).toFixed(2)));
+      } else if (e.key === '-') {
+        setZoom(z => Math.max(0.4, +(z - 0.1).toFixed(2)));
+      } else if (e.key === 'p' || e.key === 'P') {
+        e.preventDefault();
+        doPrint();
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open, page, goTo, onClose, doPrint]);
+  if (!open) return null;
+  const dims = PAPER[paper] || PAPER.A4;
+  const W = orientation === 'landscape' ? dims[1] : dims[0];
+  const H = orientation === 'landscape' ? dims[0] : dims[1];
+  const btn = (label, onClick, extra) => /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: onClick,
+    title: label,
+    "aria-label": label,
+    onMouseEnter: e => {
+      e.currentTarget.style.background = 'rgba(255,255,255,.16)';
+    },
+    onMouseLeave: e => {
+      e.currentTarget.style.background = 'rgba(255,255,255,.07)';
+    },
+    style: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 6,
+      height: 30,
+      padding: '0 10px',
+      border: '1px solid rgba(255,255,255,.16)',
+      borderRadius: 7,
+      background: 'rgba(255,255,255,.07)',
+      color: '#fff',
+      font: '500 12.5px/1 var(--font-sans)',
+      cursor: 'pointer',
+      whiteSpace: 'nowrap',
+      ...extra
+    }
+  }, label);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "ds-presenter",
+    role: "dialog",
+    "aria-modal": "true",
+    "aria-label": title || 'Modo apresentação',
+    style: {
+      position: 'fixed',
+      inset: 0,
+      zIndex: 120,
+      display: 'flex',
+      flexDirection: 'column',
+      background: 'oklch(0.19 0.008 240)',
+      animation: 'ds-presenter-in .15s ease both'
+    }
+  }, /*#__PURE__*/React.createElement("header", {
+    className: "ds-presenter__chrome",
+    style: {
+      flex: 'none',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 12,
+      flexWrap: 'wrap',
+      padding: '10px 14px',
+      borderBottom: '1px solid rgba(255,255,255,.12)',
+      color: '#fff'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      minWidth: 0
+    }
+  }, title && /*#__PURE__*/React.createElement("div", {
+    style: {
+      font: '600 13.5px/1.2 var(--font-sans)',
+      whiteSpace: 'nowrap',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis'
+    }
+  }, title), subtitle && /*#__PURE__*/React.createElement("div", {
+    style: {
+      font: '400 11.5px/1.3 var(--font-sans)',
+      opacity: 0.65
+    }
+  }, subtitle)), pages > 1 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 6
+    }
+  }, btn('◀', () => goTo(page - 1)), /*#__PURE__*/React.createElement("span", {
+    style: {
+      font: '600 12px/1 var(--font-mono)',
+      color: '#fff',
+      opacity: 0.8,
+      fontVariantNumeric: 'tabular-nums'
+    }
+  }, page + 1, " / ", pages), btn('▶', () => goTo(page + 1))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 6
+    }
+  }, btn('−', () => setZoom(z => Math.max(0.4, +(z - 0.1).toFixed(2)))), /*#__PURE__*/React.createElement("span", {
+    style: {
+      minWidth: 42,
+      textAlign: 'center',
+      font: '600 12px/1 var(--font-mono)',
+      color: '#fff',
+      opacity: 0.8
+    }
+  }, Math.round(zoom * 100), "%"), btn('+', () => setZoom(z => Math.min(2, +(z + 0.1).toFixed(2))))), showPrint && btn('Imprimir', doPrint, {
+    background: 'var(--accent)',
+    borderColor: 'transparent',
+    color: 'var(--accent-fg)',
+    fontWeight: 600
+  }), onClose && btn('Sair', onClose)), /*#__PURE__*/React.createElement("div", {
+    ref: stage,
+    className: "ds-presenter__stage",
+    style: {
+      flex: 1,
+      minHeight: 0,
+      overflow: 'auto',
+      padding: '24px 16px 48px',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: 24
+    }
+  }, Array.from({
+    length: Math.max(1, pages)
+  }, (_, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    ref: el => {
+      sheets.current[i] = el;
+    },
+    className: "ds-presenter__sheet",
+    style: {
+      flex: 'none',
+      width: W + 'mm',
+      minHeight: H + 'mm',
+      background: '#fff',
+      color: '#111',
+      boxShadow: '0 18px 44px -18px rgba(0,0,0,.7)',
+      transform: 'scale(' + zoom + ')',
+      transformOrigin: 'top center',
+      marginBottom: (zoom - 1) * H * 3.78 + 'px'
+    }
+  }, typeof children === 'function' ? children(i) : children))), hint && /*#__PURE__*/React.createElement("footer", {
+    className: "ds-presenter__chrome",
+    style: {
+      flex: 'none',
+      padding: '7px 14px',
+      borderTop: '1px solid rgba(255,255,255,.12)',
+      font: '400 11px/1 var(--font-mono)',
+      color: 'rgba(255,255,255,.55)',
+      textAlign: 'center'
+    }
+  }, "\u2190 \u2192 folhas \xB7 + \u2212 zoom \xB7 P imprimir \xB7 Esc sair"));
+}
+Object.assign(__ds_scope, { PresenterMode });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/PresenterMode/PresenterMode.jsx", error: String((e && e.message) || e) }); }
 
 // components/Progress/Progress.jsx
 try { (() => {
@@ -6168,6 +6584,128 @@ function RegistrationMark({
 Object.assign(__ds_scope, { RegistrationMark });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/RegistrationMark/RegistrationMark.jsx", error: String((e && e.message) || e) }); }
 
+// components/Segmented/Segmented.jsx
+try { (() => {
+/**
+ * Segmented — controle segmentado (2–5 opções mutuamente exclusivas) para
+ * alternar visão, período ou densidade. Trilho único com pílula ativa;
+ * suporta ícone, contador, largura total e navegação por setas.
+ *
+ * options: [{ value, label?, icon?, count?, disabled? }] · value · onChange(value)
+ */
+function Segmented({
+  options = [],
+  value,
+  onChange,
+  size = 'md',
+  full = false,
+  iconOnly = false,
+  ariaLabel = 'Alternar visão'
+}) {
+  const H = size === 'sm' ? 26 : size === 'lg' ? 36 : 30;
+  const fs = size === 'sm' ? 11.5 : size === 'lg' ? 13.5 : 12.5;
+  const refs = React.useRef([]);
+  const move = (i, delta) => {
+    const n = options.length;
+    for (let s = 1; s <= n; s++) {
+      const j = (i + delta * s + n * 4) % n;
+      if (!options[j].disabled) {
+        if (onChange) onChange(options[j].value);
+        const el = refs.current[j];
+        if (el) el.focus();
+        return;
+      }
+    }
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    role: "tablist",
+    "aria-label": ariaLabel,
+    style: {
+      display: full ? 'grid' : 'inline-grid',
+      gridAutoFlow: 'column',
+      gridAutoColumns: full ? '1fr' : 'auto',
+      width: full ? '100%' : undefined,
+      gap: 2,
+      padding: 2,
+      background: 'var(--bg-2)',
+      border: '1px solid var(--border)',
+      borderRadius: 8
+    }
+  }, options.map((o, i) => {
+    const on = o.value === value;
+    return /*#__PURE__*/React.createElement("button", {
+      key: o.value,
+      type: "button",
+      role: "tab",
+      "aria-selected": on,
+      disabled: o.disabled,
+      ref: el => {
+        refs.current[i] = el;
+      },
+      tabIndex: on ? 0 : -1,
+      onClick: () => {
+        if (!o.disabled && onChange) onChange(o.value);
+      },
+      onKeyDown: e => {
+        if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          move(i, 1);
+        } else if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          move(i, -1);
+        }
+      },
+      title: iconOnly && typeof o.label === 'string' ? o.label : undefined,
+      "aria-label": iconOnly && typeof o.label === 'string' ? o.label : undefined,
+      onMouseEnter: e => {
+        if (!on && !o.disabled) e.currentTarget.style.color = 'var(--text)';
+      },
+      onMouseLeave: e => {
+        if (!on && !o.disabled) e.currentTarget.style.color = 'var(--text-dim)';
+      },
+      style: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 6,
+        height: H,
+        padding: iconOnly ? 0 : '0 ' + (size === 'sm' ? 9 : 12) + 'px',
+        width: iconOnly ? H : undefined,
+        border: 0,
+        borderRadius: 6,
+        background: on ? 'var(--surface)' : 'transparent',
+        boxShadow: on ? '0 1px 2px rgba(0,0,0,.10), 0 0 0 1px color-mix(in oklch, var(--accent) 22%, transparent)' : 'none',
+        color: o.disabled ? 'var(--text-mute)' : on ? 'var(--text)' : 'var(--text-dim)',
+        font: (on ? '600' : '500') + ' ' + fs + 'px/1 var(--font-sans)',
+        cursor: o.disabled ? 'not-allowed' : 'pointer',
+        opacity: o.disabled ? 0.5 : 1,
+        whiteSpace: 'nowrap',
+        transition: 'background .15s, color .15s, box-shadow .15s'
+      }
+    }, o.icon && /*#__PURE__*/React.createElement("span", {
+      style: {
+        display: 'inline-flex',
+        flex: 'none',
+        color: on ? 'var(--accent)' : 'inherit',
+        opacity: on ? 1 : 0.75
+      },
+      "aria-hidden": true
+    }, o.icon), !iconOnly && o.label, !iconOnly && o.count != null && /*#__PURE__*/React.createElement("span", {
+      style: {
+        font: '600 10px/1.4 var(--font-mono)',
+        padding: '0 5px',
+        minWidth: 16,
+        textAlign: 'center',
+        borderRadius: 99,
+        background: on ? 'var(--accent)' : 'var(--border-2)',
+        color: on ? 'var(--accent-fg)' : 'var(--text-dim)'
+      }
+    }, o.count));
+  }));
+}
+Object.assign(__ds_scope, { Segmented });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/Segmented/Segmented.jsx", error: String((e && e.message) || e) }); }
+
 // components/Skeleton/Skeleton.jsx
 try { (() => {
 /**
@@ -6286,22 +6824,37 @@ function StatusBadge({
   rel,
   tone: toneProp
 }) {
+  // ⚠️ EDIÇÃO LOCAL DO COWORK (2026-09-01) — prova do AP7, não upstream.
+  // Os 4 tons semânticos eram FILL sólido (`bg: var(--color-*)`, `fg:#fff`, sem dot),
+  // o que viola o AP7 ("fundo tintado 6% + borda 22% + dot, nunca fill"). Passaram à
+  // mesma forma que a família `fresc-*` deste mesmo mapa já usava. `neutral` fica —
+  // é o secondary do shadcn, fill neutro, não tom semântico. O `fg` do danger reusa
+  // o oklch(0.74 0.14 18) que o `fresc-cold` já adotou (legibilidade no shell dark).
+  // O próximo ds-push SOBRESCREVE isto: a correção só sobrevive se descer no git.
   const C = {
     success: {
-      bg: 'var(--color-success)',
-      fg: '#fff'
+      bg: 'color-mix(in oklch, var(--color-success) 6%, transparent)',
+      fg: 'var(--color-success)',
+      border: 'color-mix(in oklch, var(--color-success) 22%, transparent)',
+      dot: true
     },
     warning: {
-      bg: 'var(--color-warning)',
-      fg: '#fff'
+      bg: 'color-mix(in oklch, var(--color-warning) 6%, transparent)',
+      fg: 'var(--color-warning)',
+      border: 'color-mix(in oklch, var(--color-warning) 22%, transparent)',
+      dot: true
     },
     danger: {
-      bg: 'var(--color-destructive)',
-      fg: '#fff'
+      bg: 'color-mix(in oklch, var(--color-destructive) 6%, transparent)',
+      fg: 'oklch(0.74 0.14 18)',
+      border: 'color-mix(in oklch, var(--color-destructive) 22%, transparent)',
+      dot: true
     },
     info: {
-      bg: 'var(--color-info)',
-      fg: '#fff'
+      bg: 'color-mix(in oklch, var(--color-info) 6%, transparent)',
+      fg: 'var(--color-info)',
+      border: 'color-mix(in oklch, var(--color-info) 22%, transparent)',
+      dot: true
     },
     neutral: {
       bg: 'var(--color-secondary)',
@@ -6595,34 +7148,145 @@ Object.assign(__ds_scope, { Switch });
 
 // components/TabBar/TabBar.jsx
 try { (() => {
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 /**
  * TabBar — module sub-tabs with counts (DS v4 `moduletopnav`, slot 2 of PT-01).
  * The Clientes-style tab row: underline-active in accent, mono counters.
  * Pure, dependency-free (global React + inline token styles).
  *
+ * Rola horizontalmente sem barra nativa: `.ds-tabbar` esconde a scrollbar e,
+ * quando há conteúdo cortado, ganha máscara de fade nas bordas. A aba ativa é
+ * trazida para o viewport da nav via scrollLeft calculado (nunca scrollIntoView).
+ *
  * tabs: [{ key, label, icon?, count? }] · active key · onChange(key)
+ *
+ * O próprio <nav> é o contrato: `className` soma-se a `ds-tabbar` (não substitui),
+ * `ariaLabel` sobrepõe o rótulo default e todo `...rest` (data-contract, data-*,
+ * aria-*, id, role) cai direto no <nav>. Nenhum wrapper é necessário — nem pra
+ * contrato, nem pra recuo: `inset` dá o padding lateral no próprio <nav>, o que
+ * mantém a borda inferior sangrando de ponta a ponta.
  */
+const DS_TABBAR_STYLE_ID = 'ds-tabbar-style';
+function useTabBarStyle() {
+  React.useEffect(() => {
+    if (document.getElementById(DS_TABBAR_STYLE_ID)) return;
+    const el = document.createElement('style');
+    el.id = DS_TABBAR_STYLE_ID;
+    el.textContent = `.ds-tabbar{scrollbar-width:none;-ms-overflow-style:none;scroll-behavior:smooth}` + `.ds-tabbar::-webkit-scrollbar{display:none;width:0;height:0}` + `.ds-tabbar[data-overflow="both"]{-webkit-mask-image:linear-gradient(to right,transparent 0,#000 12px,#000 calc(100% - 12px),transparent 100%);mask-image:linear-gradient(to right,transparent 0,#000 12px,#000 calc(100% - 12px),transparent 100%)}` + `.ds-tabbar[data-overflow="end"]{-webkit-mask-image:linear-gradient(to right,#000 0,#000 calc(100% - 12px),transparent 100%);mask-image:linear-gradient(to right,#000 0,#000 calc(100% - 12px),transparent 100%)}` + `.ds-tabbar[data-overflow="start"]{-webkit-mask-image:linear-gradient(to right,transparent 0,#000 12px,#000 100%);mask-image:linear-gradient(to right,transparent 0,#000 12px,#000 100%)}` + `@media (prefers-reduced-motion: reduce){.ds-tabbar{scroll-behavior:auto}}`;
+    document.head.appendChild(el);
+  }, []);
+}
+const TABBAR_SIZES = {
+  sm: {
+    height: 30,
+    font: 12,
+    count: 10,
+    gap: 5
+  },
+  md: {
+    height: 36,
+    font: 13,
+    count: 10.5,
+    gap: 6
+  },
+  lg: {
+    height: 42,
+    font: 14,
+    count: 11.5,
+    gap: 7
+  }
+};
 function TabBar({
   tabs = [],
   active,
-  onChange
+  onChange,
+  className,
+  ariaLabel = 'Sub-navegação',
+  pad = 14,
+  size = 'md',
+  off = false,
+  icon,
+  inset,
+  ...rest
 }) {
-  return /*#__PURE__*/React.createElement("nav", {
-    "aria-label": "Sub-navega\xE7\xE3o",
+  useTabBarStyle();
+  const sz = TABBAR_SIZES[size] || TABBAR_SIZES.md;
+  const navRef = React.useRef(null);
+  const activeRef = React.useRef(null);
+
+  // Marca o estado de overflow (nenhum / início / fim / ambos) para a máscara de fade.
+  const syncOverflow = React.useCallback(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+    const max = nav.scrollWidth - nav.clientWidth;
+    if (max <= 1) {
+      nav.removeAttribute('data-overflow');
+      return;
+    }
+    const atStart = nav.scrollLeft <= 1;
+    const atEnd = nav.scrollLeft >= max - 1;
+    nav.dataset.overflow = atStart ? 'end' : atEnd ? 'start' : 'both';
+  }, []);
+  React.useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+    syncOverflow();
+    nav.addEventListener('scroll', syncOverflow, {
+      passive: true
+    });
+    let ro;
+    if (typeof ResizeObserver !== 'undefined') {
+      ro = new ResizeObserver(syncOverflow);
+      ro.observe(nav);
+    } else {
+      window.addEventListener('resize', syncOverflow);
+    }
+    return () => {
+      nav.removeEventListener('scroll', syncOverflow);
+      if (ro) ro.disconnect();else window.removeEventListener('resize', syncOverflow);
+    };
+  }, [syncOverflow, tabs.length]);
+
+  // Traz a aba ativa para dentro do viewport da nav sem mexer no scroll da página.
+  React.useEffect(() => {
+    const nav = navRef.current,
+      btn = activeRef.current;
+    if (!nav || !btn) return;
+    const pad = 16;
+    const left = btn.offsetLeft,
+      right = left + btn.offsetWidth;
+    let target = nav.scrollLeft;
+    if (left - pad < nav.scrollLeft) target = Math.max(0, left - pad);else if (right + pad > nav.scrollLeft + nav.clientWidth) target = right + pad - nav.clientWidth;
+    if (target !== nav.scrollLeft) nav.scrollLeft = target;
+    syncOverflow();
+  }, [active, tabs.length, syncOverflow]);
+  return /*#__PURE__*/React.createElement("nav", _extends({}, rest, {
+    ref: navRef,
+    className: className ? 'ds-tabbar ' + className : 'ds-tabbar',
+    "aria-label": ariaLabel,
+    "aria-disabled": off || undefined,
     style: {
       display: 'flex',
       alignItems: 'center',
       gap: 0,
       borderBottom: '1px solid var(--border)',
-      overflowX: 'auto'
+      overflowX: 'auto',
+      scrollbarWidth: 'none',
+      msOverflowStyle: 'none',
+      paddingInline: inset == null ? undefined : typeof inset === 'number' ? inset + 'px' : inset,
+      opacity: off ? 0.5 : undefined,
+      pointerEvents: off ? 'none' : undefined,
+      ...(rest.style || null)
     }
-  }, tabs.map(t => {
+  }), tabs.map(t => {
     const on = t.key === active;
     return /*#__PURE__*/React.createElement("button", {
       key: t.key,
       type: "button",
-      onClick: onChange ? () => onChange(t.key) : undefined,
+      ref: on ? activeRef : undefined,
+      onClick: onChange && !off ? () => onChange(t.key) : undefined,
       "aria-current": on ? 'page' : undefined,
+      disabled: off || t.disabled || undefined,
       onMouseEnter: e => {
         if (!on) {
           e.currentTarget.style.color = 'var(--text)';
@@ -6638,29 +7302,30 @@ function TabBar({
       style: {
         display: 'inline-flex',
         alignItems: 'center',
-        gap: 6,
-        padding: '0 14px',
-        height: 36,
+        gap: sz.gap,
+        padding: '0 ' + pad + 'px',
+        height: sz.height,
         border: 0,
         borderBottom: '2px solid ' + (on ? 'var(--accent)' : 'transparent'),
         marginBottom: -1,
         background: on ? 'color-mix(in oklch, var(--accent-soft) 50%, transparent)' : 'transparent',
         color: on ? 'var(--text)' : 'var(--text-dim)',
-        font: (on ? '600' : '500') + ' 13px/1 var(--font-sans)',
+        font: (on ? '600' : '500') + ' ' + sz.font + 'px/1 var(--font-sans)',
         cursor: 'pointer',
         whiteSpace: 'nowrap',
+        flex: '0 0 auto',
         transition: 'color .15s, background .15s, border-color .15s'
       }
-    }, t.icon && /*#__PURE__*/React.createElement("span", {
+    }, (t.icon || icon) && /*#__PURE__*/React.createElement("span", {
       style: {
         display: 'inline-flex',
         color: on ? 'var(--accent)' : 'inherit',
         opacity: on ? 1 : 0.7
       },
       "aria-hidden": true
-    }, t.icon), t.label, t.count != null && /*#__PURE__*/React.createElement("span", {
+    }, t.icon || icon), t.label, t.count != null && /*#__PURE__*/React.createElement("span", {
       style: {
-        font: '600 10.5px/1.4 var(--font-mono)',
+        font: '600 ' + sz.count + 'px/1.4 var(--font-mono)',
         padding: '0 6px',
         minWidth: 18,
         textAlign: 'center',
@@ -6890,6 +7555,211 @@ function TaskCard({
 Object.assign(__ds_scope, { TaskCard });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/TaskCard/TaskCard.jsx", error: String((e && e.message) || e) }); }
 
+// components/Timeline/Timeline.jsx
+try { (() => {
+/**
+ * Timeline — trilha de auditoria / histórico de eventos (DS). Trilho vertical
+ * com marcadores por tom, agrupamento por dia, ator + ação + detalhe,
+ * pares campo→valor (de/para) e horário monoespaçado.
+ *
+ * entries: [{ id, time, day?, actor?, action, detail?, tone?, icon?,
+ *             changes?: [{ field, from?, to? }], meta?: [{ label, value }] }]
+ */
+const TL_TONE = {
+  default: 'var(--text-mute)',
+  accent: 'var(--accent)',
+  success: 'var(--pos, var(--color-success))',
+  warning: 'var(--warn, var(--color-warning))',
+  danger: 'var(--neg, var(--color-destructive))'
+};
+function Timeline({
+  entries = [],
+  dense = false,
+  groupByDay = false,
+  emptyLabel = 'Sem eventos registrados'
+}) {
+  if (!entries.length) {
+    return /*#__PURE__*/React.createElement("p", {
+      style: {
+        margin: 0,
+        padding: '18px 0',
+        textAlign: 'center',
+        font: '400 12.5px/1.4 var(--font-sans)',
+        color: 'var(--text-mute)'
+      }
+    }, emptyLabel);
+  }
+  const groups = [];
+  if (groupByDay) {
+    entries.forEach(e => {
+      const key = e.day || '—';
+      const last = groups[groups.length - 1];
+      if (last && last.day === key) last.items.push(e);else groups.push({
+        day: key,
+        items: [e]
+      });
+    });
+  } else {
+    groups.push({
+      day: null,
+      items: entries
+    });
+  }
+  const gapY = dense ? 10 : 16;
+  const item = (e, isLast) => {
+    const color = TL_TONE[e.tone] || TL_TONE.default;
+    return /*#__PURE__*/React.createElement("li", {
+      key: e.id,
+      style: {
+        position: 'relative',
+        paddingLeft: 26,
+        paddingBottom: isLast ? 0 : gapY
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      "aria-hidden": true,
+      style: {
+        position: 'absolute',
+        left: 6,
+        top: 14,
+        bottom: isLast ? 'auto' : -2,
+        height: isLast ? 0 : 'auto',
+        width: 1,
+        background: 'var(--border)'
+      }
+    }), /*#__PURE__*/React.createElement("span", {
+      "aria-hidden": true,
+      style: {
+        position: 'absolute',
+        left: 0,
+        top: 4,
+        width: 13,
+        height: 13,
+        borderRadius: 99,
+        display: 'grid',
+        placeItems: 'center',
+        background: 'var(--surface)',
+        border: '2px solid ' + color,
+        color
+      }
+    }, e.icon), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        alignItems: 'baseline',
+        gap: 8,
+        flexWrap: 'wrap'
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        font: '400 12.5px/1.35 var(--font-sans)',
+        color: 'var(--text)'
+      }
+    }, e.actor && /*#__PURE__*/React.createElement("b", {
+      style: {
+        fontWeight: 600
+      }
+    }, e.actor), e.actor && ' ', e.action), /*#__PURE__*/React.createElement("time", {
+      style: {
+        font: '400 11px/1 var(--font-mono)',
+        color: 'var(--text-mute)',
+        fontVariantNumeric: 'tabular-nums'
+      }
+    }, e.time)), e.detail && /*#__PURE__*/React.createElement("p", {
+      style: {
+        margin: '2px 0 0',
+        font: '400 11.5px/1.45 var(--font-sans)',
+        color: 'var(--text-dim)',
+        textWrap: 'pretty'
+      }
+    }, e.detail), e.changes && e.changes.length > 0 && /*#__PURE__*/React.createElement("ul", {
+      style: {
+        listStyle: 'none',
+        margin: '5px 0 0',
+        padding: 0,
+        display: 'grid',
+        gap: 3
+      }
+    }, e.changes.map((c, i) => /*#__PURE__*/React.createElement("li", {
+      key: i,
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 6,
+        flexWrap: 'wrap',
+        font: '400 11px/1.4 var(--font-sans)',
+        color: 'var(--text-mute)'
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        font: '600 10px/1.4 var(--font-sans)',
+        textTransform: 'uppercase',
+        letterSpacing: '.05em'
+      }
+    }, c.field), c.from != null && /*#__PURE__*/React.createElement("span", {
+      style: {
+        padding: '1px 5px',
+        borderRadius: 4,
+        background: 'var(--bg-2)',
+        color: 'var(--text-dim)',
+        textDecoration: 'line-through',
+        fontFamily: 'var(--font-mono)'
+      }
+    }, c.from), /*#__PURE__*/React.createElement("span", {
+      "aria-hidden": true
+    }, "\u2192"), /*#__PURE__*/React.createElement("span", {
+      style: {
+        padding: '1px 5px',
+        borderRadius: 4,
+        background: 'var(--accent-soft)',
+        color: 'var(--accent)',
+        fontFamily: 'var(--font-mono)',
+        fontWeight: 600
+      }
+    }, c.to)))), e.meta && e.meta.length > 0 && /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        gap: 10,
+        flexWrap: 'wrap',
+        marginTop: 4
+      }
+    }, e.meta.map((m, i) => /*#__PURE__*/React.createElement("span", {
+      key: i,
+      style: {
+        font: '400 10.5px/1.4 var(--font-sans)',
+        color: 'var(--text-mute)'
+      }
+    }, m.label, ": ", /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontFamily: 'var(--font-mono)',
+        color: 'var(--text-dim)'
+      }
+    }, m.value)))));
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gap: dense ? 12 : 16
+    }
+  }, groups.map((g, gi) => /*#__PURE__*/React.createElement("section", {
+    key: gi
+  }, g.day && /*#__PURE__*/React.createElement("h4", {
+    style: {
+      margin: '0 0 8px',
+      font: '600 10px/1 var(--font-sans)',
+      textTransform: 'uppercase',
+      letterSpacing: '.08em',
+      color: 'var(--text-mute)'
+    }
+  }, g.day), /*#__PURE__*/React.createElement("ol", {
+    style: {
+      listStyle: 'none',
+      margin: 0,
+      padding: 0
+    }
+  }, g.items.map((e, i) => item(e, gi === groups.length - 1 && i === g.items.length - 1))))));
+}
+Object.assign(__ds_scope, { Timeline });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/Timeline/Timeline.jsx", error: String((e && e.message) || e) }); }
+
 // components/Toast/Toast.jsx
 try { (() => {
 /**
@@ -6935,6 +7805,212 @@ function Toast({
 }
 Object.assign(__ds_scope, { Toast });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/Toast/Toast.jsx", error: String((e && e.message) || e) }); }
+
+// components/Toolbar/Toolbar.jsx
+try { (() => {
+/**
+ * Toolbar — barra de ferramentas acima de listas, tabelas e editores (DS).
+ * Três zonas (left / center / right), divisores, busca embutida e variante
+ * sticky. Substitui as barras improvisadas módulo a módulo.
+ *
+ * Acompanham: ToolbarButton, ToolbarSearch, ToolbarDivider, ToolbarSpacer.
+ */
+function Toolbar({
+  left,
+  center,
+  right,
+  children,
+  sticky = false,
+  dense = false,
+  tone = 'surface',
+  bordered = true
+}) {
+  const bg = tone === 'muted' ? 'var(--bg-2)' : tone === 'transparent' ? 'transparent' : 'var(--surface)';
+  return /*#__PURE__*/React.createElement("div", {
+    role: "toolbar",
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      flexWrap: 'wrap',
+      minWidth: 0,
+      padding: dense ? '6px 10px' : '9px 12px',
+      background: bg,
+      borderBottom: bordered ? '1px solid var(--border)' : 0,
+      position: sticky ? 'sticky' : undefined,
+      top: sticky ? 0 : undefined,
+      zIndex: sticky ? 5 : undefined
+    }
+  }, left && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 6,
+      minWidth: 0
+    }
+  }, left), children, center ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      minWidth: 0
+    }
+  }, center) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      minWidth: 8
+    }
+  }), right && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 6,
+      minWidth: 0
+    }
+  }, right));
+}
+function ToolbarDivider() {
+  return /*#__PURE__*/React.createElement("span", {
+    "aria-hidden": true,
+    style: {
+      width: 1,
+      alignSelf: 'stretch',
+      minHeight: 20,
+      background: 'var(--border)',
+      margin: '0 2px'
+    }
+  });
+}
+function ToolbarSpacer() {
+  return /*#__PURE__*/React.createElement("span", {
+    style: {
+      flex: 1,
+      minWidth: 8
+    }
+  });
+}
+function ToolbarButton({
+  icon,
+  children,
+  active = false,
+  disabled = false,
+  tone = 'default',
+  onClick,
+  title,
+  iconOnly = false
+}) {
+  const danger = tone === 'danger';
+  const fg = disabled ? 'var(--text-mute)' : danger ? 'var(--neg)' : active ? 'var(--accent)' : 'var(--text)';
+  return /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    disabled: disabled,
+    onClick: onClick,
+    title: title,
+    "aria-pressed": active || undefined,
+    "aria-label": iconOnly ? title || undefined : undefined,
+    onMouseEnter: e => {
+      if (!disabled && !active) e.currentTarget.style.background = 'var(--bg-2)';
+    },
+    onMouseLeave: e => {
+      if (!disabled && !active) e.currentTarget.style.background = 'transparent';
+    },
+    style: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      height: 28,
+      padding: iconOnly ? 0 : '0 9px',
+      width: iconOnly ? 28 : undefined,
+      border: '1px solid ' + (active ? 'color-mix(in oklch, var(--accent) 40%, transparent)' : 'transparent'),
+      borderRadius: 6,
+      background: active ? 'var(--accent-soft)' : 'transparent',
+      color: fg,
+      font: '500 12.5px/1 var(--font-sans)',
+      cursor: disabled ? 'not-allowed' : 'pointer',
+      opacity: disabled ? 0.5 : 1,
+      transition: 'background .15s, color .15s, border-color .15s',
+      whiteSpace: 'nowrap'
+    }
+  }, icon && /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: 'inline-flex',
+      flex: 'none',
+      opacity: active ? 1 : 0.75
+    },
+    "aria-hidden": true
+  }, icon), !iconOnly && children);
+}
+function ToolbarSearch({
+  value,
+  onChange,
+  placeholder = 'Buscar…',
+  width = 240,
+  kbd
+}) {
+  const [focus, setFocus] = React.useState(false);
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 6,
+      height: 28,
+      padding: '0 8px',
+      width,
+      border: '1px solid ' + (focus ? 'var(--accent)' : 'var(--border)'),
+      borderRadius: 6,
+      background: 'var(--bg)',
+      boxShadow: focus ? '0 0 0 3px var(--accent-soft)' : 'none',
+      transition: 'border-color .15s, box-shadow .15s'
+    }
+  }, /*#__PURE__*/React.createElement("svg", {
+    width: "13",
+    height: "13",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2",
+    style: {
+      flex: 'none',
+      color: 'var(--text-mute)'
+    },
+    "aria-hidden": true
+  }, /*#__PURE__*/React.createElement("circle", {
+    cx: "11",
+    cy: "11",
+    r: "7"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "m20 20-3.2-3.2"
+  })), /*#__PURE__*/React.createElement("input", {
+    value: value,
+    onChange: onChange ? e => onChange(e.target.value) : undefined,
+    placeholder: placeholder,
+    onFocus: () => setFocus(true),
+    onBlur: () => setFocus(false),
+    style: {
+      flex: 1,
+      minWidth: 0,
+      border: 0,
+      outline: 'none',
+      background: 'transparent',
+      color: 'var(--text)',
+      font: '400 12.5px/1 var(--font-sans)'
+    }
+  }), kbd && /*#__PURE__*/React.createElement("kbd", {
+    style: {
+      font: '600 10px/1 var(--font-mono)',
+      color: 'var(--text-mute)',
+      background: 'var(--bg-2)',
+      border: '1px solid var(--border)',
+      borderRadius: 4,
+      padding: '2px 4px'
+    }
+  }, kbd));
+}
+Object.assign(__ds_scope, { Toolbar, ToolbarDivider, ToolbarSpacer, ToolbarButton, ToolbarSearch });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/Toolbar/Toolbar.jsx", error: String((e && e.message) || e) }); }
 
 // components/Tooltip/Tooltip.jsx
 try { (() => {
@@ -7072,6 +8148,144 @@ function Tooltip({
 }
 Object.assign(__ds_scope, { Tooltip });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/Tooltip/Tooltip.jsx", error: String((e && e.message) || e) }); }
+
+// components/Widget/Widget.jsx
+try { (() => {
+/**
+ * Widget — moldura de painel do cockpit: título + nota, ações no canto,
+ * corpo e rodapé opcional. Substitui os "cards com título" refeitos por módulo.
+ * Pure, dependency-free (global React + tokens inline).
+ *
+ * title · note (linha de apoio) · badge (nó à direita do título)
+ * actions (nó no canto sup. dir.) · footer · tone · pad · height · scroll
+ */
+const WIDGET_TONE = {
+  default: {
+    border: 'var(--border)',
+    bg: 'var(--surface)',
+    accent: null
+  },
+  muted: {
+    border: 'var(--border)',
+    bg: 'var(--bg-2)',
+    accent: null
+  },
+  accent: {
+    border: 'color-mix(in oklch, var(--accent) 26%, transparent)',
+    bg: 'color-mix(in oklch, var(--accent) 4%, var(--surface))',
+    accent: 'var(--accent)'
+  },
+  warning: {
+    border: 'color-mix(in oklch, var(--warn, var(--color-warning)) 26%, transparent)',
+    bg: 'color-mix(in oklch, var(--warn, var(--color-warning)) 5%, var(--surface))',
+    accent: 'var(--warn, var(--color-warning))'
+  },
+  danger: {
+    border: 'color-mix(in oklch, var(--neg) 26%, transparent)',
+    bg: 'color-mix(in oklch, var(--neg) 4%, var(--surface))',
+    accent: 'var(--neg)'
+  }
+};
+function Widget({
+  title,
+  note,
+  badge,
+  actions,
+  footer,
+  tone = 'default',
+  pad = 14,
+  height,
+  scroll = false,
+  flush = false,
+  children
+}) {
+  const t = WIDGET_TONE[tone] || WIDGET_TONE.default;
+  const hasHead = title != null || actions != null || note != null;
+  return /*#__PURE__*/React.createElement("section", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      minWidth: 0,
+      height,
+      border: '1px solid ' + t.border,
+      borderRadius: 12,
+      background: t.bg,
+      boxShadow: '0 1px 2px rgba(0,0,0,.04)',
+      overflow: 'hidden',
+      borderTop: t.accent ? '2px solid ' + t.accent : '1px solid ' + t.border
+    }
+  }, hasHead && /*#__PURE__*/React.createElement("header", {
+    style: {
+      display: 'flex',
+      alignItems: 'flex-start',
+      gap: 12,
+      padding: '12px ' + pad + 'px',
+      borderBottom: children ? '1px solid var(--border-2)' : 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      minWidth: 0,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 3
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      minWidth: 0
+    }
+  }, title && /*#__PURE__*/React.createElement("h3", {
+    style: {
+      margin: 0,
+      font: '600 13.5px/1.25 var(--font-sans)',
+      letterSpacing: '-0.008em',
+      color: 'var(--text)',
+      whiteSpace: 'nowrap',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis'
+    }
+  }, title), badge), note && /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: 0,
+      font: '400 11.5px/1.4 var(--font-sans)',
+      color: 'var(--text-mute)',
+      textWrap: 'pretty'
+    }
+  }, note)), actions && /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 'none',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 6
+    }
+  }, actions)), children != null && /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      minHeight: 0,
+      padding: flush ? 0 : pad,
+      overflow: scroll ? 'auto' : 'visible',
+      color: 'var(--text)',
+      font: '400 13px/1.5 var(--font-sans)'
+    }
+  }, children), footer && /*#__PURE__*/React.createElement("footer", {
+    style: {
+      flex: 'none',
+      padding: '9px ' + pad + 'px',
+      borderTop: '1px solid var(--border-2)',
+      background: 'color-mix(in oklch, var(--bg-2) 60%, transparent)',
+      font: '400 11.5px/1.4 var(--font-sans)',
+      color: 'var(--text-dim)',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10
+    }
+  }, footer));
+}
+Object.assign(__ds_scope, { Widget });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/Widget/Widget.jsx", error: String((e && e.message) || e) }); }
 
 // public/cowork-preview/erp-shell-v2/tweaks-panel.jsx
 try { (() => {
@@ -9132,6 +10346,8 @@ __ds_ns.Checkbox = __ds_scope.Checkbox;
 
 __ds_ns.Command = __ds_scope.Command;
 
+__ds_ns.DataGrid = __ds_scope.DataGrid;
+
 __ds_ns.DataTable = __ds_scope.DataTable;
 
 __ds_ns.DataTablePro = __ds_scope.DataTablePro;
@@ -9158,6 +10374,8 @@ __ds_ns.Textarea = __ds_scope.Textarea;
 
 __ds_ns.Select = __ds_scope.Select;
 
+__ds_ns.Kebab = __ds_scope.Kebab;
+
 __ds_ns.KpiCard = __ds_scope.KpiCard;
 
 __ds_ns.KpiFilterCard = __ds_scope.KpiFilterCard;
@@ -9174,6 +10392,8 @@ __ds_ns.PeriodBar = __ds_scope.PeriodBar;
 
 __ds_ns.PlacaVeiculo = __ds_scope.PlacaVeiculo;
 
+__ds_ns.PresenterMode = __ds_scope.PresenterMode;
+
 __ds_ns.Progress = __ds_scope.Progress;
 
 __ds_ns.ProofFrame = __ds_scope.ProofFrame;
@@ -9183,6 +10403,8 @@ __ds_ns.ProofStrip = __ds_scope.ProofStrip;
 __ds_ns.RadioGroup = __ds_scope.RadioGroup;
 
 __ds_ns.RegistrationMark = __ds_scope.RegistrationMark;
+
+__ds_ns.Segmented = __ds_scope.Segmented;
 
 __ds_ns.Skeleton = __ds_scope.Skeleton;
 
@@ -9196,8 +10418,22 @@ __ds_ns.TagChip = __ds_scope.TagChip;
 
 __ds_ns.TaskCard = __ds_scope.TaskCard;
 
+__ds_ns.Timeline = __ds_scope.Timeline;
+
 __ds_ns.Toast = __ds_scope.Toast;
 
+__ds_ns.Toolbar = __ds_scope.Toolbar;
+
+__ds_ns.ToolbarDivider = __ds_scope.ToolbarDivider;
+
+__ds_ns.ToolbarSpacer = __ds_scope.ToolbarSpacer;
+
+__ds_ns.ToolbarButton = __ds_scope.ToolbarButton;
+
+__ds_ns.ToolbarSearch = __ds_scope.ToolbarSearch;
+
 __ds_ns.Tooltip = __ds_scope.Tooltip;
+
+__ds_ns.Widget = __ds_scope.Widget;
 
 })();

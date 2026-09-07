@@ -132,26 +132,34 @@ function getJanaData(company) {
           { left:"CAPITAL CARGAS",    right:"LTV R$ 62k · 112d" },
         ],
         footer:"Cohort 2024: retenção 35% (target 60%) · drift alto" },
-      { id:"cheq", title:"Cheques previsão", sub:"Na mão / a depositar", icon:"receipt",
-        kind:"text",
-        big:{ value:"4.421 cheques" },
-        text:[
-          "Total circulou histórico: R$ 7.022.176",
-          "Quitados: 4.420 (99,9%)",
-          "Ativos hoje: 1 (R$ 8 — teste)",
+      // Métodos de pagamento — o 5o card REAL da produção (useJanaConfig.ts:39 +
+      // JanaCockpit.tsx:845-850), no lugar de "Cheques previsão", que não tem agregado
+      // no SellsCockpitAggregator (o JanaConfigDrawer do main registra: "frota e cheques
+      // NÃO existem"). Card sem fonte é promessa com selo de autoridade.
+      // Recorte: soma dos pagamentos por forma, as 5 maiores — venda paga em duas formas
+      // aparece nas duas.
+      { id:"metodos", title:"Métodos de pagamento", sub:"Participação de cada forma", icon:"receipt",
+        kind:"bars",
+        big:{ value:"R$ 1.24M" },
+        bars:[
+          { label:"Dinheiro", bar:38, pct:"38%" },
+          { label:"Pix",      bar:27, pct:"27%" },
+          { label:"Cheque",   bar:18, pct:"18%" },
+          { label:"Cartão",   bar:11, pct:"11%" },
+          { label:"Boleto",   bar:6,  pct:"6%"  },
         ],
-        footnote:"Atalho HITL: Jana lembra Larissa qual dia depositar cada cheque" },
+        footer:"Cheque ainda é 18% do recebido — a rotina de depósito da Larissa é terça e quinta" },
     ],
     acoes: [
       { id:"a1", icon:"mail",  tone:"rose", title:"Régua de cobrança · 8 clientes >90d sem contato",
         sub:"Potencial recuperação: R$ 287k · HITL aprovação a cada mensagem",
-        cta:{ label:"Disparar", tone:"danger" } },
+        cta:{ label:"Revisar régua", tone:"danger" } },
       { id:"a2", icon:"heart", tone:"violet", title:"Reativação · 8 clientes \"ouro\" inativos",
         sub:"LTV combinado R$ 612k · oferta de retorno personalizada",
-        cta:{ label:"Preparar", tone:"violet" } },
+        cta:{ label:"Revisar proposta", tone:"violet" } },
       { id:"a4", icon:"trash", tone:"grey", title:"Limpeza · 2.470 títulos candidatos a baixa",
         sub:"R$ 770k incobráveis >365d · liberar dashboard",
-        cta:{ label:"Revisar", tone:"dark" } },
+        cta:{ label:"Revisar recorte", tone:"dark" } },
     ],
     // Empty state — prompts iniciais
     prompts: [

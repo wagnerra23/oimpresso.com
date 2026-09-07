@@ -26,11 +26,9 @@ function Row({ t, s, v }) {
   );
 }
 function Seg({ value, onChange, options }) {
-  return (
-    <div className="hrm-seg" role="tablist">
-      {options.map((o) => <button key={o.id} role="tab" aria-selected={value === o.id} className={value === o.id ? "on" : ""} onClick={() => onChange(o.id)}>{o.label}</button>)}
-    </div>
-  );
+  // Desenho: CliSeg (segmented único do app). A classe .hrm-seg fica pelas regras de
+  // LAYOUT do hrm-page.css (margin-right:auto, flex:0 0 auto, 44px em pointer:coarse).
+  return <window.CliSeg role="tablist" options={options} value={value} onChange={onChange} />;
 }
 function Nota({ tone = "info", title, children }) {
   const { Alert } = ds();
@@ -50,7 +48,7 @@ function Kpis({ items }) {
 function Busca({ value, onChange, placeholder, inputRef }) {
   return (
     <div className="usr-search">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <input ref={inputRef} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} aria-label={placeholder} />
       {value && <button className="mod-search-x" onClick={() => onChange("")} aria-label="Limpar busca">×</button>}
     </div>

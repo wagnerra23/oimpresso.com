@@ -1,6 +1,6 @@
 # EXPORT Crm — pacote de export (10 blocos) · 2026-09-04
 
-> **Reescreve** este mesmo arquivo (anti-scatter §2-ter). A versão anterior (2026-08-24) pedia **criar `resources/js/Pages/Crm/`** com o trio de Painel/Leads/Acompanhamentos/Portal — **esse pedido está RETIRADO neste documento**: contradiz a [ADR 0301](../../../memory/decisions/0301-separar-cliente-deprecar-crm-pipeline.md) (aceita, [W] 2026-06-22), lida no `main` **neste turno**.
+> **Reescreve** este mesmo arquivo (anti-scatter §2-ter). A versão anterior (2026-08-24) pedia **criar `resources/js/Pages/Crm/`** com o trio de Painel/Leads/Acompanhamentos/Portal — **esse pedido está RETIRADO neste documento**: contradiz a [ADR 0301](https://github.com/wagnerra23/oimpresso.com/blob/main/memory/decisions/0301-separar-cliente-deprecar-crm-pipeline.md) (aceita, [W] 2026-06-22), lida no `main` **neste turno**.
 > **Ponte, não canon.** Eu não escrevo no git: desce por `cowork-inbox`/Issue → PR, ou [W] cola 1×.
 > **Veredito deste ciclo: 0 ondas exportáveis.** Detalhe no bloco 6 (placar) e 7 (o que a ancoragem não resolve).
 
@@ -17,7 +17,7 @@
 | 5 | `memory/reference/crm-e-o-modulo-de-cliente.md` | desambiguação Cliente (cadastro) ≠ CRM (pipeline) |
 | 6 | **`memory/requisitos/Crm/DEPRECATION-PLAN-pipeline.md`** | classificação A/B por controller + zona cinza do portal + gates E1–E6 |
 | 7 | `Modules/Crm/Http/Controllers/CrmDashboardController.php` | dado real por slot do Painel (o único controller de B que li) |
-| 8 | árvore `resources/js/Pages/**` (filtro `crm\|cliente\|lead`) + árvore `Modules/Crm/**` + busca `Crm` em `routes/` (**0 casos**) | onde a seção cairia — **`resources/js/Pages/Crm/` não existe** |
+| 8 | árvore `resources/js/Pages/**` (filtro `crm|cliente|lead`) + árvore `Modules/Crm/**` + busca `Crm` em `routes/` (**0 casos**) | onde a seção cairia — **`resources/js/Pages/Crm/` não existe** |
 
 **Âncora de implementação (o que existe hoje, lido):** `Modules/Crm/**` é **Blade legado** (`Resources/views/index.blade.php`, `crm.js`), sem Page Inertia. O único React vivo do módulo é o **cadastro (A)**: `resources/js/Pages/Cliente/{Index,Show,Edit,Create,Import,Ledger,Map}.tsx` + `_drawer/` (10) + `_show/` (13) + `_form/` (5) + `_components/` (4).
 
@@ -105,7 +105,7 @@ Bateria rodada no protótipo servido, tema **dark**, após `__oiLazyDone`, com *
 | — | `th scope` | **0 de 18** (painel) · 0 de 16 (leads) | 🔴 → ✅/🟠 | **corrigido no build** nas tabelas minhas (`Mini` + `crm-portal`/`telas`/`forms`: 15 `th` com `scope="col"`); os `th` da grade do DS seguem sem `scope` → bloco 7 |
 | — | campo sem rótulo | 2 de 16 (leads): busca da toolbar + `select` da grade do DS | 🔴 → parcial | **corrigido no build**: `aria-label` na busca (`.pb-busca input`). O `select` é do DS → bloco 7 |
 
-**Arquivos do build alterados neste ciclo (só a11y, zero mudança visual):** `crm-blade.jsx`, `crm-blade-telas.jsx`, `crm-blade-forms.jsx`, `crm-portal.jsx`, `crm-ficha.jsx` (+ bump de `?v=` no host `oimpresso.com.html`).
+**Arquivos do build alterados neste ciclo (só a11y, zero mudança visual):** `crm-blade.jsx` · `crm-blade-telas.jsx` · `crm-blade-forms.jsx` · `crm-portal.jsx` · `crm-ficha.jsx` (+ bump de `?v=` no host `oimpresso.com.html`).
 
 ---
 
@@ -211,17 +211,3 @@ Os 16 ausentes, com motivo:
 1. **O pipeline CRM continua em depreciação?** Se sim, o protótipo `crm-blade*` é **referência de legado**, não alvo de export — e eu paro de tratá-lo como tela a exportar.
 2. **Portal do contato: fica ou sai?** É a única parte do módulo com valor operacional plausível (pedido do cliente, login, comissão). Se fica, ela sai da zona cinza e vira `Pages/Portal/*` (nome a decidir) — e então há onda: 3 telas, ancoradas nos átomos de `Pages/Cliente/**`.
 3. **Alvo de toque em 1280 denso:** mínimo WCAG 24×24 ou exceção declarada? (mesma pergunta aberta da Forja — responder uma vez, vale para o ERP todo).
-
----
-
-## Resposta do Claude Code (2026-09-04)
-
-> Landeado por [W] colando 1× (rota sancionada — ADR 0389). As 3 verificações do PASSO A PASSO
-> foram executadas contra `origin/main` fresco; o veredito de cada uma está no
-> [`CODE_NOTES.md`](../../../CODE_NOTES.md) (canal Code→Cowork), entrada `[PROCESSADO 2026-09-04]`.
->
-> Resumo: **(1)** ADR 0301 segue `status: aceito` · `lifecycle: ativo`. **(2)** Pedido de 2026-08-24
-> retirado — este arquivo é o registro. **(3)** **Nenhuma etapa E1–E6 avançou desde 22/06**, medido
-> pela consequência (41 rotas `/crm/*` ativas, cron `everyMinute` de pé, API Connector exposta,
-> SPEC `rascunho`, BRIEFING `producao`). Bônus: o BLOQUEIO 3 do plano (`BrLookupService` pertence
-> a A?) foi **fechado por varredura contada** — pertence a A.

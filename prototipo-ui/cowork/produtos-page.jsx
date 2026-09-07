@@ -664,19 +664,9 @@ function ProdListPage({ typeFilter = "all", onTypeFilter, estado = "dados", dens
           </MenuAncorado>
           <button className="os-btn primary"><I.plus size={13} /> Novo produto</button>
         </div>
-        <nav className="pd-abas" aria-label="Recorte por tipo de item">
-          {ABAS_CATALOGO.map(([k, label]) => {
-            const on = aba === k;
-            return (
-              <button key={k} type="button" role="tab" aria-selected={on}
-              className={"pd-aba" + (on ? " on" : "")}
-              onClick={() => {setAba(k);setKpi("");}}>
-                {label}
-                <span className="pd-aba-n">{(contagens[k] || 0).toLocaleString("pt-BR")}</span>
-              </button>);
-
-          })}
-        </nav>
+        <window.CliTabs className="pd-abas" ariaLabel="Recorte por tipo de item"
+          active={aba} onChange={(k) => { setAba(k); setKpi(""); }}
+          tabs={ABAS_CATALOGO.map(([k, label]) => ({ key: k, label, n: (contagens[k] || 0).toLocaleString("pt-BR") }))} />
       </div>
 
       {estado === "carregando" ?

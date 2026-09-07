@@ -263,9 +263,7 @@ function Mobile({ avisar, rows, setRows }) {
 
       <div className="ptm-wrap">
         <div className="ptm-device-col">
-          <div className="ptm-seg">
-            {TELAS.map((t) => <button key={t.id} className={tela === t.id ? "on" : ""} onClick={() => setTela(t.id)}>{t.label}</button>)}
-          </div>
+          <window.CliSeg ariaLabel="Tela do app" value={tela} onChange={setTela} options={TELAS.map((t) => ({ key: t.id, label: t.label }))} />
           {window.AndroidDevice
             ? <window.AndroidDevice dark>
                 <div className="ptm-top">

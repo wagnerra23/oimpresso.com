@@ -179,6 +179,20 @@ const PAPEIS = {
 const PANEL = { background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", boxShadow: "0 1px 2px rgba(0,0,0,.04)", padding: 14 };
 const H3 = { margin: 0, fontSize: "13.5px", fontWeight: 600 };
 const META = { font: "10.5px/1 var(--font-mono)", color: "var(--text-mute)" };
+// sr-only inline (lei do protocolo: zero CSS novo) — alternativa textual dos gráficos
+const SR = { position: "absolute", width: 1, height: 1, padding: 0, margin: -1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap", border: 0 };
+function SerieSR({ titulo, dados, fmt }) {
+  if (!dados || !dados.length) return null;
+  const total = dados.reduce((s, p) => s + p.value, 0);
+  const pico = dados.reduce((m, p) => (p.value > m.value ? p : m), dados[0]);
+  return (
+    <table style={SR}>
+      <caption>{titulo}: total de {fmt(total)} no período; maior valor em {pico.label}, {fmt(pico.value)}.</caption>
+      <thead><tr><th scope="col">Período</th><th scope="col">Valor</th></tr></thead>
+      <tbody>{dados.map((p) => <tr key={p.label}><th scope="row">{p.label}</th><td>{fmt(p.value)}</td></tr>)}</tbody>
+    </table>
+  );
+}
 
 function DashLegacyPage() {
   const DS = NS();
@@ -211,7 +225,7 @@ function DashLegacyPage() {
   );
 
   return (
-    <div className="dash-legacy" style={{ flex: "1 1 auto", minHeight: 0, overflowY: "auto", padding: "0 14px 20px", color: "var(--text)", fontFamily: "var(--font-sans)" }}>
+    <div className="dash-legacy" data-screen-label="Visão geral" style={{ flex: "1 1 auto", minHeight: 0, overflowY: "auto", padding: "0 14px 20px", color: "var(--text)", fontFamily: "var(--font-sans)" }}>
       <PageHeader
         title="Visão geral"
         stats={dashboard ? [{ value: brlK(v(k.total_sell)), label: "vendas" }, { value: brlK(v(k.invoice_due)), label: "a receber", tone: "warn" }, { value: brlK(v(k.total_expense)), label: "despesas" }] : []}
@@ -255,9 +269,9 @@ function DashLegacyPage() {
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.4fr) minmax(240px, 1fr)", gap: 10, marginTop: 10 }}>
-            <section style={PANEL}>
+            <section style={PANEL} aria-label="Contrapartidas">
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10, marginBottom: 12 }}>
-                <h3 style={H3}>Contrapartidas</h3><span style={{ ...META, whiteSpace: "nowrap" }}>mesmo período</span>
+                <h2 style={H3}>Contrapartidas</h2><span style={{ ...META, whiteSpace: "nowrap" }}>mesmo período</span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(118px, 1fr))", gap: "12px 14px" }}>
                 {[["Compras", v(k.total_purchase), "incluindo impostos"],
@@ -272,8 +286,8 @@ function DashLegacyPage() {
                 ))}
               </div>
             </section>
-            <section style={PANEL}>
-              <h3 style={{ ...H3, marginBottom: 8 }}>Pendências</h3>
+            <section style={PANEL} aria-label="Pendências">
+              <h2 style={{ ...H3, marginBottom: 8 }}>Pendências</h2>
               <div style={{ display: "flex", flexDirection: "column" }}>
                 {PENDENCIAS.filter((p) => can(GRADES[p.aba].perm)).map((p, i, arr) => (
                   <button key={p.aba} onClick={() => setAba(p.aba)} className="dl-pend" style={{
@@ -289,21 +303,25 @@ function DashLegacyPage() {
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.5fr) minmax(0, 1fr)", gap: 10, marginTop: 10 }}>
-            <section style={PANEL}>
+            <section style={PANEL} aria-label="Vendas por dia">
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10, marginBottom: 12 }}>
-                <h3 style={H3}>Vendas por dia</h3><span style={{ ...META, whiteSpace: "nowrap" }}>últimos 30 dias</span>
+                <h2 style={H3}>Vendas por dia</h2><span style={{ ...META, whiteSpace: "nowrap" }}>últimos 30 dias</span>
               </div>
-              <Chart type="area" data={SERIE_30.map((n) => n * escala)} height={132} formatValue={(x) => "R$ " + x.toFixed(1) + "k"} />
+              <div aria-hidden="true"><Chart type="area" data={SERIE_30.map((n) => n * escala)} height={132} formatValue={(x) => "R$ " + x.toFixed(1) + "k"} /></div>
+              <SerieSR titulo="Vendas por dia, últimos 30 dias" fmt={(x) => "R$ " + x.toFixed(1) + "k"}
+                dados={SERIE_30.map((n, i) => ({ label: "dia " + (i + 1), value: n * escala }))} />
             </section>
-            <section style={PANEL}>
+            <section style={PANEL} aria-label="Vendas por mês">
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10, marginBottom: 12 }}>
-                <h3 style={H3}>Vendas por mês</h3><span style={{ ...META, whiteSpace: "nowrap" }}>ano fiscal</span>
+                <h2 style={H3}>Vendas por mês</h2><span style={{ ...META, whiteSpace: "nowrap" }}>ano fiscal</span>
               </div>
-              <Chart type="bar" data={SERIE_FY.map((d) => ({ ...d, value: d.value * escala }))} height={132} highlightLast formatValue={(x) => "R$ " + Math.round(x) + "k"} />
+              <div aria-hidden="true"><Chart type="bar" data={SERIE_FY.map((d) => ({ ...d, value: d.value * escala }))} height={132} highlightLast formatValue={(x) => "R$ " + Math.round(x) + "k"} /></div>
+              <SerieSR titulo="Vendas por mês, ano fiscal" fmt={(x) => "R$ " + Math.round(x) + "k"}
+                dados={SERIE_FY.map((d) => ({ ...d, value: d.value * escala }))} />
             </section>
           </div>
 
-          <section style={{ ...PANEL, marginTop: 10, padding: 0, overflow: "hidden" }}>
+          <section style={{ ...PANEL, marginTop: 10, padding: 0, overflow: "hidden" }} aria-label="Grades do painel">
             <div style={{ padding: "10px 14px 0" }}>
               <TabBar tabs={abas.map((id) => ({ key: id, label: GRADES[id].label, count: GRADES[id].count }))}
                 active={abaAtiva} onChange={setAba} />

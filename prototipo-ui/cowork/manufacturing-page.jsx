@@ -156,15 +156,12 @@ function ManufacturingPage({ initialView }) {
         </div>
       </div>
 
-      <nav className="mfg-tabs" aria-label="Manufacturing">
-        {ABAS.filter((a) => a.id !== "producao" || perms.prod).map((a) => (
-          <button key={a.id} className={"mfg-tab" + (aba === a.id ? " act" : "")} onClick={() => setAba(a.id)}>
-            {a.l}
-            {a.id === "receitas" && <span className="mfg-tab-n">{recipes.length}</span>}
-            {a.id === "producao" && <span className="mfg-tab-n">{producoes.length}{rascunhos ? " · " + rascunhos + " rasc." : ""}</span>}
-          </button>
-        ))}
-      </nav>
+      <window.CliTabs className="mfg-tabs" ariaLabel="Telas de manufatura" pad={24} active={aba} onChange={setAba}
+        tabs={ABAS.filter((a) => a.id !== "producao" || perms.prod).map((a) => ({
+          key: a.id, label: a.l,
+          n: a.id === "receitas" ? recipes.length
+            : a.id === "producao" ? producoes.length + (rascunhos ? " · " + rascunhos + " rasc." : "")
+            : null }))} />
 
       {aba === "receitas" && (
         <>

@@ -122,18 +122,8 @@ function PerfilPage() {
       </header>
 
       {/* Tabs */}
-      <nav className="pf-tabs" aria-label="Seções do perfil">
-        {TABS.map((t) => {
-          const Ic = t.ic;
-          return (
-            <button key={t.id}
-              className={"pf-tab" + (tab === t.id ? " active" : "")}
-              onClick={() => setTab(t.id)}>
-              <Ic s={14}/><span>{t.label}</span>
-            </button>
-          );
-        })}
-      </nav>
+      <window.CliTabs className="pf-tabs" ariaLabel="Seções do perfil" pad={24} active={tab} onChange={setTab}
+        tabs={TABS.map((t) => { const Ic = t.ic; return { key: t.id, label: t.label, icon: <Ic s={14} /> }; })} />
 
       <div className="pf-body">
         {tab === "conta" && (

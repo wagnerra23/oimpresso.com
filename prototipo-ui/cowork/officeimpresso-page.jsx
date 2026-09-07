@@ -94,28 +94,11 @@ const cmpVer = (a, b) => {
 };
 
 // ── Peças reusadas (mesmo vocabulário do superadmin-page) ──
+// Kebab: delega pro CliKebab (adaptador do Kebab do DS). Eram SEIS cópias
+// idênticas deste componente no build; o DS publica um que ainda navega por teclado,
+// coisa que nenhuma das seis fazia.
 function Kebab({ items }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-  React.useEffect(() => {
-    if (!open) return;
-    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener("mousedown", h);
-    return () => document.removeEventListener("mousedown", h);
-  }, [open]);
-  return (
-    <div className="cli-kebab-wrap" ref={ref}>
-      <button className="cli-kebab-btn" onClick={(e) => { e.stopPropagation(); setOpen(!open); }} aria-expanded={open} title="Mais ações">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>
-      </button>
-      {open &&
-        <div className="cli-kebab-menu" onClick={(e) => e.stopPropagation()}>
-          {items.map((it, i) => it.sep
-            ? <div key={i} className="cli-kebab-sep"></div>
-            : <button key={i} className={it.danger ? "danger" : ""} onClick={() => { setOpen(false); it.action?.(); }}>{it.label}</button>)}
-        </div>}
-    </div>
-  );
+  return <window.CliKebab items={items} label="Mais ações" />;
 }
 
 function FilterDropdown({ label, value, options, onChange }) {
@@ -569,10 +552,7 @@ function ViewLicencas() {
     <div className="os-page sa-page" data-screen-label="Office Impresso · Licenças">
       <PageHead titulo="Licenças de computador" sub={`${LICENCAS.length} registradas · ${LICENCAS.filter(l=>l.status==="ativa").length} ativas · ${LICENCAS.filter(l=>l.status==="bloqueada"||l.status==="excedente").length} travadas`}
         acoes={<>
-          <div className="oi-seg" role="tablist" aria-label="Modo de visualização">
-            <button role="tab" aria-selected={modo==="licencas"} className={modo==="licencas"?"active":""} onClick={() => setModo("licencas")}>Licenças</button>
-            <button role="tab" aria-selected={modo==="computadores"} className={modo==="computadores"?"active":""} onClick={() => setModo("computadores")}>Por empresa</button>
-          </div>
+          <window.CliSeg role="tablist" ariaLabel="Modo de visualização" value={modo} onChange={setModo} options={[{ key: "licencas", label: "Licenças" }, { key: "computadores", label: "Por empresa" }]} />
           <button className="os-btn ghost" onClick={() => window.__selectRoute?.("oi-log")}>Log de acesso</button>
         </>}/>
 
