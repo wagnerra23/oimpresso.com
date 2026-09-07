@@ -49,6 +49,19 @@
       }
     },
     {
+      "source": "backup-page.jsx",
+      "target": "resources/js/Pages/Backup/Index.tsx",
+      "sourceSha256": "88eec8930cdc5c3f91b4a5598415f2233b678d41973437d3b5f22f83f252571e",
+      "targetSha256": "03c0b54b4397a125c3c4b65d9224721d06d368bca710b30fa61bcb67c97445a4",
+      "comparison": {
+        "map": "memory/requisitos/Backup/backup-index.map.json",
+        "mapSha256": "1064b6327744f384fc05bf807fce000d9e0a0aabe308afd19ba2c60d63cb7790",
+        "recordedAt": "2026-09-06T19:13:58.487Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
       "source": "cobranca-recorrente-page.jsx",
       "target": "resources/js/Pages/RecurringBilling/Configuracoes/Index.tsx",
       "sourceSha256": "238f68871d7bff35b6111b948390b2a3dac06a35369352695a3285ccd38ded26",
@@ -88,14 +101,92 @@
       "smokes": []
     },
     {
+      "source": "dash-legacy-page.jsx",
+      "target": "resources/js/Pages/Home/Index.tsx",
+      "sourceSha256": "dcf4d23c7a95746aade08a6dbc3a631e8058e47f5c4b36215f479c90debebde7",
+      "targetSha256": "b3565e180e97835af6f1ac6a67c90830c18d02e99db72c1733b1e3b91d2167a8",
+      "comparison": {
+        "map": "memory/requisitos/Dashboard/home-index.map.json",
+        "mapSha256": "f193e61a7b844caed2c1afa5d0eadac44aec7dcadec2f30985dfe8136ea568bb",
+        "recordedAt": "2026-09-06T19:13:59.654Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "essenciais-page.jsx",
+      "target": "resources/js/Pages/Essentials/Documents/Index.tsx",
+      "sourceSha256": "c65f3ecadcffdffe7de44e5d1552706eff806cc59226c47a911c7d26b7214cd6",
+      "targetSha256": "dd92b921b63e2a8243151654635f0ebd049d3831caa3aaaa35ecaf9d4aa3593c",
+      "comparison": {
+        "map": "memory/requisitos/Essentials/documents-index.map.json",
+        "mapSha256": "ccf70e2a779abf0f0e8aa35d312aa92e93b798271e27bc62480f583b0a07bd1f",
+        "recordedAt": "2026-09-07T00:54:45.134Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "essenciais-page.jsx",
+      "target": "resources/js/Pages/Essentials/Knowledge/Index.tsx",
+      "sourceSha256": "c65f3ecadcffdffe7de44e5d1552706eff806cc59226c47a911c7d26b7214cd6",
+      "targetSha256": "4f6f20cffe55341ea785a3f9a2f88e9db61be686e209376c291c511a510b899d",
+      "comparison": {
+        "map": "memory/requisitos/Essentials/knowledge-index.map.json",
+        "mapSha256": "d6296f24224787d331f571c69fa0ebbdfca862733cd4dd9616b12c32f2874605",
+        "recordedAt": "2026-09-07T00:54:50.536Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "essenciais-page.jsx",
+      "target": "resources/js/Pages/Essentials/Messages/Index.tsx",
+      "sourceSha256": "c65f3ecadcffdffe7de44e5d1552706eff806cc59226c47a911c7d26b7214cd6",
+      "targetSha256": "bafad8474c40ebdd9adbcb230eb3572c71d5985fd6b79412d9550edfebdead7b",
+      "comparison": {
+        "map": "memory/requisitos/Essentials/messages-index.map.json",
+        "mapSha256": "b69436fc5bd1192953b55ca9d6ee80b26ac40897ea735c5ea0c1d5ff7eb5df87",
+        "recordedAt": "2026-09-07T00:54:47.912Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "essenciais-page.jsx",
+      "target": "resources/js/Pages/Essentials/Reminders/Index.tsx",
+      "sourceSha256": "c65f3ecadcffdffe7de44e5d1552706eff806cc59226c47a911c7d26b7214cd6",
+      "targetSha256": "2634277546c89de093e0e7992caf420430fc993ee64bf261c8520bca282f693f",
+      "comparison": {
+        "map": "memory/requisitos/Essentials/reminders-index.map.json",
+        "mapSha256": "9bde0339797526df87b4d1d7d6f2eaa530edc44ace18d13dc6f0e2b63c32dddc",
+        "recordedAt": "2026-09-07T00:54:49.210Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "essenciais-page.jsx",
+      "target": "resources/js/Pages/Essentials/Todo/Index.tsx",
+      "sourceSha256": "c65f3ecadcffdffe7de44e5d1552706eff806cc59226c47a911c7d26b7214cd6",
+      "targetSha256": "9d7d7319932f7fdbf10d7bec83ebf0c3423f70c5c87325b1408d6ec863d1d8fc",
+      "comparison": {
+        "map": "memory/requisitos/Essentials/todo-index.map.json",
+        "mapSha256": "538d05916531a44dfede2f28f6c48d8c709e0691815545b66f621ce025fa5048",
+        "recordedAt": "2026-09-07T00:54:46.539Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
       "source": "estoque-page.jsx",
       "target": "resources/js/Pages/StockAdjustment/Create.tsx",
       "sourceSha256": "ab5e12fd9d9d20007faa75fe1d8c926fd1714ab0e6e17841934c8e5b3aadb315",
       "targetSha256": "018fd1fe95ea14537b8ea911f615546f3e57f6fae587a92bb292dccf6bffda00",
       "comparison": {
         "map": "memory/requisitos/Estoque/stock-adjustment-create.map.json",
-        "mapSha256": "2f2fac4b702179ff1aaa48d09bcc006d1d8fdb8d382db4ca91f468ed61f9f8b9",
-        "recordedAt": "2026-09-06T19:14:51.883Z"
+        "mapSha256": "47f144cbe2a10bc7f30de8dba3cdff7b3a474b7637e1eb3b0bb39fa2273cdb89",
+        "recordedAt": "2026-09-06T19:34:39.383Z"
       },
       "tests": [],
       "smokes": []
@@ -120,8 +211,8 @@
       "targetSha256": "d496adc016003d0e215697614212cfb297158d74eb0df44bb824828575935e34",
       "comparison": {
         "map": "memory/requisitos/Estoque/stock-transfer-create.map.json",
-        "mapSha256": "7e66ae2d4fca8df3389175f102bf10b53a085b3cb99ee53902c431f0180ec209",
-        "recordedAt": "2026-09-06T19:14:54.232Z"
+        "mapSha256": "92bf883e5693691357c93192282c7794afd2f37ef47409440dad2a8f744d9d30",
+        "recordedAt": "2026-09-06T19:34:40.589Z"
       },
       "tests": [],
       "smokes": []
@@ -398,6 +489,58 @@
       "smokes": []
     },
     {
+      "source": "hrm-page.jsx",
+      "target": "resources/js/Pages/Essentials/Holidays/Index.tsx",
+      "sourceSha256": "d4169ee7fcc163f073626cb11fed3ead65c71abf2c816c176f77d8e7250a160f",
+      "targetSha256": "4d8d8bd8a70e0e126a3c9ac85cc4c5497772a5fc85b20d6a7e17a45e41ea517d",
+      "comparison": {
+        "map": "memory/requisitos/Essentials/holidays-index.map.json",
+        "mapSha256": "f2ae1f41dd190b65d1c4f9af3d6d750c08d1cdfd4277483c088ff7a710ff6b71",
+        "recordedAt": "2026-09-07T00:54:51.795Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "hrm-page.jsx",
+      "target": "resources/js/Pages/Essentials/Settings/Index.tsx",
+      "sourceSha256": "d4169ee7fcc163f073626cb11fed3ead65c71abf2c816c176f77d8e7250a160f",
+      "targetSha256": "41e32aa5049e13b37e469fed9bab98f61ad9c03f831f6daa7b5848965153d56b",
+      "comparison": {
+        "map": "memory/requisitos/Essentials/settings-index.map.json",
+        "mapSha256": "c8a6ef87043e9a11ab82c786878d6171c5b0d60c91418cce5d9e42ac7d5816fe",
+        "recordedAt": "2026-09-07T00:54:53.070Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "hrm-page.jsx",
+      "target": "resources/js/Pages/Essentials/Tipos.tsx",
+      "sourceSha256": "d4169ee7fcc163f073626cb11fed3ead65c71abf2c816c176f77d8e7250a160f",
+      "targetSha256": "6937f930b4f8612975d9668aba5a432c81cf90a3dea799c7c2a0b217dc5b873e",
+      "comparison": {
+        "map": "memory/requisitos/Essentials/tipos.map.json",
+        "mapSha256": "cd3d1b8395296285a6a93845d3f6c532c624a1022425147ecc0e00e27d1117aa",
+        "recordedAt": "2026-09-07T00:54:54.407Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "kb-page.jsx",
+      "target": "resources/js/Pages/kb/Index.v2.tsx",
+      "sourceSha256": "797f931adabd430c54cb5939e6c917274e9536205bf8ec764b3f026997b18840",
+      "targetSha256": "46d7e8bb4b72ea14a75d8340d35729d0c5b165f6f6479882138a2c3914ec5174",
+      "comparison": {
+        "map": "memory/requisitos/KB/kb-index-v2.map.json",
+        "mapSha256": "8b19992cc5906929eae78c21cabc64783c041600c4a29aef520b3e232e2e08fe",
+        "recordedAt": "2026-09-06T19:14:04.880Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
       "source": "manufacturing-page.jsx",
       "target": "resources/js/Pages/Manufacturing/Index.tsx",
       "sourceSha256": "f33f504638a019db98379561371d0c602be58bb953df241d4bf08e0546ae44d0",
@@ -424,53 +567,40 @@
       "smokes": []
     },
     {
-      "source": "officeimpresso-page.jsx",
-      "target": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Index.tsx",
-      "sourceSha256": "0626867a48191b1890cf2b05876f7d90715fb87fb654960475ad4bbbb88fd885",
-      "targetSha256": "5dab5f601ab8f001b1e441369a9dbe1440962a24bb4445b340554b9b05ed3afb",
+      "source": "modulos-page.jsx",
+      "target": "resources/js/Pages/Modules/Index.tsx",
+      "sourceSha256": "a6100cb00af3036c5c61018697b09a8859b94a68586d1f8c06e6065ce740527d",
+      "targetSha256": "2416a609ea667292fc6d4c4a5250985a13202ea53132085c579cc1f1c28cd1a8",
       "comparison": {
-        "map": "memory/requisitos/Officeimpresso/logs-index.map.json",
-        "mapSha256": "84af62aa33c6104da0fdec41c5cc01963bb9ee4f2c82c2cdc679bfe6302078a6",
-        "recordedAt": "2026-09-06T18:54:27.325Z"
+        "map": "memory/requisitos/Superadmin/modules-index.map.json",
+        "mapSha256": "763e66171fd2cf0505a723091b64aeb1560ab578dceeb1403ed56c49a72cf92a",
+        "recordedAt": "2026-09-06T19:14:00.810Z"
       },
       "tests": [],
       "smokes": []
     },
     {
-      "source": "officeimpresso-page.jsx",
-      "target": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Timeline.tsx",
-      "sourceSha256": "0626867a48191b1890cf2b05876f7d90715fb87fb654960475ad4bbbb88fd885",
-      "targetSha256": "1a69167d9c9ffec13a327cfaac7c4a113fa92ff8365f66661f673a365d64fa3c",
+      "source": "pg-cobranca-page.jsx",
+      "target": "resources/js/Pages/Financeiro/Cobranca/Index.tsx",
+      "sourceSha256": "4ee1617c7909d3579181d065b830988da4c05e3297b588ccb330c2bb6a81f805",
+      "targetSha256": "e5f51dea8a4313dfba7c7c0dc325355a765826f0a5cacf638d999e52cf9ad69c",
       "comparison": {
-        "map": "memory/requisitos/Officeimpresso/logs-timeline.map.json",
-        "mapSha256": "7edccb670d8f6bc16b65d5ceabd704091a345f8fc90962523bb7766655092c67",
-        "recordedAt": "2026-09-06T18:54:28.649Z"
+        "map": "memory/requisitos/Financeiro/cobranca-index.map.json",
+        "mapSha256": "99a407b4818ecae1b0e02c2c072befbe4b463cc5586274473c97c655edd7dd0e",
+        "recordedAt": "2026-09-06T19:14:03.718Z"
       },
       "tests": [],
       "smokes": []
     },
     {
-      "source": "oficina-os-page.jsx",
-      "target": "resources/js/Pages/OficinaAuto/ServiceOrders/Show.tsx",
-      "sourceSha256": "2644d9562a127ab8b434b3428e2dbeb2415aab7c85d2d46a57ab7eab7594ab25",
-      "targetSha256": "e947b89665f63e5548d6b9163b1bb2fe1a233a93c782e6390df61c8484fc6564",
+      "source": "pg-payment-gateways-page.jsx",
+      "target": "Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/Index.tsx",
+      "sourceSha256": "af1736ae1d9390283d0d92be7d13b9cafdd704269d08fb0f53aa75d04394a5cc",
+      "targetSha256": "363a0f298f9a024364772f7aea4d069e306dded78600bcb0bf570c4122749279",
       "comparison": {
-        "map": "memory/requisitos/OficinaAuto/service-orders-show.map.json",
-        "mapSha256": "4a7651c63cacd7058a87b1e92f00384b6b595926ca827357baca61bc79856a4d",
-        "recordedAt": "2026-09-06T18:54:25.957Z"
-      },
-      "tests": [],
-      "smokes": []
-    },
-    {
-      "source": "oficina-page.jsx",
-      "target": "resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx",
-      "sourceSha256": "1259f30cf94a532d2503f22e5834f2a8fca9826e47272f6aa7dba5247ae66e56",
-      "targetSha256": "deb2715486e0c1e94f5726d0a089f499c72230c2cd68ba36f3b50e3a0964a155",
-      "comparison": {
-        "map": "memory/requisitos/OficinaAuto/service-orders-board.map.json",
-        "mapSha256": "5f610b48d2803dfc31c91de2f2f9de7904889ab12c162e31e7a18ff179599e43",
-        "recordedAt": "2026-09-06T18:54:24.541Z"
+        "map": "memory/requisitos/PaymentGateway/settings-paymentgateways-index.map.json",
+        "mapSha256": "16ba2627f921b3dcaf568cbd4fd4b450f0bf38a854b5746d124997c0f465000d",
+        "recordedAt": "2026-09-06T19:14:02.036Z"
       },
       "tests": [],
       "smokes": []
@@ -653,6 +783,71 @@
         "map": "memory/requisitos/Superadmin/superadmin-pacotes.map.json",
         "mapSha256": "264e2e5059cbc7c45a814e3caf3322655b9940aeee853d1da0b5e4583c51ed3a",
         "recordedAt": "2026-09-06T18:25:49.005Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "suporte-page.jsx",
+      "target": "resources/js/Pages/Suporte/Empresas.tsx",
+      "sourceSha256": "db51d80606ec789421ae426f799b97a4b7c2848f2ebac8bd635dc9d2899156ad",
+      "targetSha256": "8d4c9146c0c972c632ad7dec08fcd13d64babdb09553e774e3d5c2ff68ec3bc8",
+      "comparison": {
+        "map": "memory/requisitos/Suporte/suporte-empresas.map.json",
+        "mapSha256": "55aee8c9a44eb17fbee5f6771d57594c694d4cc42678e1f6e7ea1ca50ee21c7c",
+        "recordedAt": "2026-09-06T19:13:57.256Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "officeimpresso-page.jsx",
+      "target": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Index.tsx",
+      "sourceSha256": "0626867a48191b1890cf2b05876f7d90715fb87fb654960475ad4bbbb88fd885",
+      "targetSha256": "5dab5f601ab8f001b1e441369a9dbe1440962a24bb4445b340554b9b05ed3afb",
+      "comparison": {
+        "map": "memory/requisitos/Officeimpresso/logs-index.map.json",
+        "mapSha256": "84af62aa33c6104da0fdec41c5cc01963bb9ee4f2c82c2cdc679bfe6302078a6",
+        "recordedAt": "2026-09-06T18:54:27.325Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "officeimpresso-page.jsx",
+      "target": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Timeline.tsx",
+      "sourceSha256": "0626867a48191b1890cf2b05876f7d90715fb87fb654960475ad4bbbb88fd885",
+      "targetSha256": "1a69167d9c9ffec13a327cfaac7c4a113fa92ff8365f66661f673a365d64fa3c",
+      "comparison": {
+        "map": "memory/requisitos/Officeimpresso/logs-timeline.map.json",
+        "mapSha256": "7edccb670d8f6bc16b65d5ceabd704091a345f8fc90962523bb7766655092c67",
+        "recordedAt": "2026-09-06T18:54:28.649Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "oficina-os-page.jsx",
+      "target": "resources/js/Pages/OficinaAuto/ServiceOrders/Show.tsx",
+      "sourceSha256": "2644d9562a127ab8b434b3428e2dbeb2415aab7c85d2d46a57ab7eab7594ab25",
+      "targetSha256": "e947b89665f63e5548d6b9163b1bb2fe1a233a93c782e6390df61c8484fc6564",
+      "comparison": {
+        "map": "memory/requisitos/OficinaAuto/service-orders-show.map.json",
+        "mapSha256": "4a7651c63cacd7058a87b1e92f00384b6b595926ca827357baca61bc79856a4d",
+        "recordedAt": "2026-09-06T18:54:25.957Z"
+      },
+      "tests": [],
+      "smokes": []
+    },
+    {
+      "source": "oficina-page.jsx",
+      "target": "resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx",
+      "sourceSha256": "1259f30cf94a532d2503f22e5834f2a8fca9826e47272f6aa7dba5247ae66e56",
+      "targetSha256": "deb2715486e0c1e94f5726d0a089f499c72230c2cd68ba36f3b50e3a0964a155",
+      "comparison": {
+        "map": "memory/requisitos/OficinaAuto/service-orders-board.map.json",
+        "mapSha256": "5f610b48d2803dfc31c91de2f2f9de7904889ab12c162e31e7a18ff179599e43",
+        "recordedAt": "2026-09-06T18:54:24.541Z"
       },
       "tests": [],
       "smokes": []

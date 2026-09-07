@@ -1,0 +1,115 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Essentials/Messages/Index (/essentials/messages)",
+  "gap_fonte": "memory/requisitos/Essentials/messages-index-gap.md",
+  "prototipo_sha": "sha256:3e0b0aa398f8",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "mural-em-ordem-cronologica",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/essenciais-page.jsx",
+        "linhas": "593-606"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Essentials/Messages/Index.tsx",
+        "linhas": "171-224",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — vivo à frente no polling.",
+      "_acionavel": false
+    },
+    {
+      "id": "compositor",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/essenciais-page.jsx",
+        "linhas": "607-616"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Essentials/Messages/Index.tsx",
+        "linhas": "228-267",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade.",
+      "_acionavel": false
+    },
+    {
+      "id": "copy-do-compositor",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/essenciais-page.jsx",
+        "linhas": "610"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Essentials/Messages/Index.tsx",
+        "linhas": "234",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir. Copy de contrato é soberania de [W]; renomeação, não ausência (§5 2026-07-15).",
+      "_acionavel": true
+    },
+    {
+      "id": "titulo-da-tela",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/essenciais-page.jsx",
+        "linhas": "583"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Essentials/Messages/Index.tsx",
+        "linhas": "167",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir. Mesma classe da linha acima.",
+      "_acionavel": true
+    },
+    {
+      "id": "filtro-de-localidade-no-cabecalho",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/essenciais-page.jsx",
+        "linhas": "585-587"
+      },
+      "vivo": {
+        "arquivo": "n/a",
+        "linhas": "n/a",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir. É comportamento (filtrar) → vira pedido pela régua do playbook. E note a inversão semântica: o mesmo controle serve a propósitos opostos nos dois lados — implementar o filtro sem tocar no seletor de envio é o desenho correto.",
+      "_acionavel": true
+    },
+    {
+      "id": "marcar-tudo-como-lido",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/essenciais-page.jsx",
+        "linhas": "589-590"
+      },
+      "vivo": {
+        "arquivo": "n/a",
+        "linhas": "n/a",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir. É mutação (marca leitura por usuário) — precisa de modelo de leitura por destinatário, que o blade não tem. Decisão de [W] sobre escopo.",
+      "_acionavel": true
+    },
+    {
+      "id": "estado-sem-permissao",
+      "prototipo": {
+        "arquivo": "n/a",
+        "linhas": "n/a"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Essentials/Messages/Index.tsx",
+        "linhas": "172-175",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade.",
+      "_acionavel": false
+    }
+  ]
+}

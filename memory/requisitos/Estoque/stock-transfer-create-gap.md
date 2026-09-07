@@ -1,7 +1,7 @@
 ---
 id: requisitos-estoque-stock-transfer-create-gap
 tela: StockTransfer/Create (/stock-transfers/create)
-prototipo: prototipo-ui/cowork/estoque-forms.jsx + estoque-page.jsx
+prototipo: prototipo-ui/cowork/estoque-page.jsx + estoque-forms.jsx
 tela_viva: resources/js/Pages/StockTransfer/Create.tsx
 gerado_em: 2026-09-06
 ---
@@ -26,7 +26,7 @@ gerado_em: 2026-09-06
 | Trava de saldo disponível na origem | Ausente — a quantidade é livre (`Create.tsx` não consulta saldo) | **Decidir.** O protótipo calcula o disponível na origem por linha (`dispDe`, `estoque-forms.jsx:271`), marca `negativa` (`:272`) e exibe alerta em vermelho *"Acima do disponível na origem"* citando INV-4 (`:320-321`), além de bloquear o submit (`podeSalvar`, `:274`). ⚠️ **Toca ESTOQUE e é o item mais pesado desta tela**: exige o backend expor disponível-por-local-e-lote, e exibir número errado induz lançamento errado. Construir ou rejeitar por escrito. |
 | Lote e validade nas linhas | Ausente | **Decidir.** O protótipo tem coluna de lote condicionada à flag `lote` (`estoque-forms.jsx:78`) e bloqueia o salvamento quando o produto tem lotes e nenhum foi escolhido (`semLote`, `estoque-forms.jsx:273`). ⚠️ **Toca ESTOQUE**. Construir ou rejeitar por escrito. |
 | Conservação do total | Ausente | **Decidir.** O protótipo afirma o invariante em tela: *"N sai de X · N entra em Y"* + *"Transferência não cria nem destrói saldo — o total da empresa fica igual (UC-EST-06)"* (`estoque-forms.jsx:323-327`). ⚠️ **Toca ESTOQUE**: é asserção sobre movimento de saldo; exibi-la exige que o backend de fato conserve, e essa prova é a dupla confirmação da REGRA MESTRE. Construir ou rejeitar por escrito. |
-| Frete e totais | Campo "Frete (R$)" e o fecho Subtotal / Frete / Total, atrás de `view_purchase_price` (`Create.tsx:335-360`; `totalFinal` em `:84`) | Nada — paridade. Mesmos três números no protótipo (`estoque-forms.jsx:338-340`). O protótipo acrescenta o `help` *"Entra no custo do material que chega no destino"* no campo de frete (`estoque-forms.jsx:333`) — copy, não capacidade. |
+| Frete e totais | Campo "Frete (R$)" (`Create.tsx:339-340`, **sem** gate) e o fecho Subtotal / Frete / Total atrás de `view_purchase_price` (`:348-357`; `totalFinal` em `:84`) | Nada — paridade. Mesmos três números no protótipo (`estoque-forms.jsx:338-340`). O protótipo acrescenta o `help` *"Entra no custo do material que chega no destino"* no campo de frete (`estoque-forms.jsx:333`) — copy, não capacidade. |
 | Notas / observação | `Textarea` (`Create.tsx:363-366`) | Nada — paridade. |
 | Edição de transferência existente | Fora do escopo desta tela — Create é só criação | Nada — não é gap desta tela. O `FormTransferencia` do protótipo é create **e** edit pelo mesmo componente (`editar` em `estoque-forms.jsx:253`), acionado pelo drawer da lista. Se a edição vier, a decisão é da tela de detalhe, não desta. |
-| Permissão por papel | `permissions.view_purchase_price` gateia custo unitário, subtotal e frete | Nada — vivo à frente. O protótipo tem uma tela inteira de "sem permissão" (`semPermissao`, `estoque-forms.jsx:281-284`) que no vivo é resolvida antes, no controller. |
+| Permissão por papel | `permissions.view_purchase_price` gateia o custo unitário e o subtotal por linha (`Create.tsx:275-280`, `:303-318`) e o fecho Subtotal/Frete/Total (`:348`). ⚠️ O **input** de Frete (`:339-340`) fica **fora** do gate — quem não pode ver preço de compra ainda digita frete, e só não vê o total | Nada — vivo à frente. O protótipo tem uma tela inteira de "sem permissão" (`semPermissao`, `estoque-forms.jsx:281-284`) que no vivo é resolvida antes, no controller. |

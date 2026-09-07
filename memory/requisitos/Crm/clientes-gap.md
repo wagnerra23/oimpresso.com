@@ -1,5 +1,6 @@
 ---
 id: requisitos-crm-clientes-gap
+map_json: n/a (a tela Cliente/Index já tem dono com map — memory/requisitos/Cliente/clientes-gap.md + clientes.map.json, ancorado no clientes-page.jsx que o charter declara; um 2º map da mesma tela é régua duplicada — ver bloco 2026-09-06)
 tela: Clientes (Index + Drawer 760px)
 prototipo: prototipo-ui/prototipos/clientes/ # ⚠️ PATH APAGADO em 2026-06-23 (e8b49f4b63, consolidação SSOT em prototipo-ui/cowork/) — é o artefato de 2026-05-22 que ESTA análise leu, preservado aqui como registro do que foi medido. NÃO trocar pelo espelho de hoje sem reler: ver "Por que ainda não há .map.json" abaixo
 tela_viva: resources/js/Pages/Cliente/ (Index.tsx 114KB + Show.tsx + _drawer/* + _show/* + _components/*)
@@ -48,6 +49,21 @@ governanca:
 > **O que falta pra existir um map:** reler a Fase 1 contra o espelho atual
 > (`clientes-page.jsx` + `cliente-drawer760.jsx` + `cliente-form/extrato/mapa/grupos/import`),
 > não converter esta tabela. É trabalho de análise, não de geração.
+
+> ## 2026-09-06 — por que continua sem map (não é "falta análise", é DONO)
+>
+> A releitura que o bloco acima pede **já tem dono**: [`memory/requisitos/Cliente/clientes-gap.md`](../Cliente/clientes-gap.md)
+> (2026-06-30) — mesma tela `Cliente/Index`, mesmo espelho `prototipo-ui/cowork/clientes-page.jsx`, que é o que
+> `resources/js/Pages/Cliente/Index.charter.md:5-6` declara em `related_prototype`/`bundle_source` — e
+> [`Cliente/clientes.map.json`](../Cliente/clientes.map.json) (7 partes, `prototipo_sha` por conteúdo; em 2026-09-06 o
+> `design-code-map-check` o acusa STALE porque o [#6893](https://github.com/wagnerra23/oimpresso.com/pull/6893) desceu o
+> `clientes-page.jsx` do Cowork vivo depois — regenerar com `--atualizar` é tarefa daquele par, não deste arquivo).
+> Um 2º map para a mesma tela aqui seria régua duplicada (§5 2026-07-09) — o mesmo motivo pelo qual o lote
+> [#6897](https://github.com/wagnerra23/oimpresso.com/pull/6897) tirou o `Crm/clientes.map.json` (refutação r4, R-A).
+>
+> Este arquivo fica como **registro datado de 2026-06-23** (drawer 540 mock × 760 vivo), fora do denominador do
+> `design-code-map-check` (`map_json: n/a` no frontmatter). Quem for reler o Cliente contra o espelho atualiza o par em
+> `Cliente/`, cujo banner de 2026-08-26 e o `PARIDADE-area-cliente-diagnostico-e-ondas.md` já carregam o veredito vigente.
 
 
 > **Veredito de uma linha:** a tela viva está **decisivamente à frente** do protótipo.

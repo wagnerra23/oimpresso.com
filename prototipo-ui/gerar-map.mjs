@@ -75,9 +75,21 @@ export function resolverArquivosPrototipo(fmProtoField) {
   return [...new Set(out)];
 }
 
-// 1º path resources/js/Pages/... (ou fixture) citado no campo `tela_viva:`.
+// 1º path de tela/componente vivo citado no campo `tela_viva:` — `resources/js/Pages/...`
+// (tela), `resources/js/Components/...` ou `resources/js/Layouts/...` (FUNDAÇÃO/SHELL) ou
+// fixture. A ordem é a do TEXTO: o 1º path que aparecer vence.
+//
+// Por que Components/Layouts (2026-09-06, refutação GT-G5 r2 do #6897 R-1/R-3): os gap.md de
+// fundação (`_DesignSystem/pageheader-canon-v3-gap.md`, `sidebar-v3-unificado-gap.md`)
+// declaram o vivo em `resources/js/Components/PageHeader/PageHeader.tsx` e
+// `resources/js/Layouts/AppShellV2.tsx`. Com o regex só-Pages, o PageHeader resolvia pro
+// CONSUMIDOR citado entre parênteses (`Pages/Cliente/Index.tsx` — âncora errada em 12/12
+// partes) e a sidebar nascia `vivo: TODO` em 17/17 (os 4 arquivos declarados descartados).
+// FP medido no corpus dos 23 `tela_viva` do repo antes de ligar: só esses 2 mudam de
+// resultado; os outros 21 resolvem igual (16 sob Pages/ · 2 com campo sem match nos dois regex —
+// caixa-unificada declara Modules/**/Resources/js/Pages e Crm/clientes declara um diretório · 3 sem campo).
 export function resolverArquivoVivo(fmTelaVivaField) {
-  const m = String(fmTelaVivaField || '').match(/((?:resources\/js\/Pages|prototipo-ui\/fixtures)\/[\w./-]+\.(?:tsx|jsx))/);
+  const m = String(fmTelaVivaField || '').match(/((?:resources\/js\/(?:Pages|Components|Layouts)|prototipo-ui\/fixtures)\/[\w./-]+\.(?:tsx|jsx))/);
   return m ? m[1] : null;
 }
 
@@ -243,6 +255,15 @@ function selftest() {
     return arqs.length === 2 && arqs[0] === 'prototipo-ui/cowork/financeiro-page.jsx' && arqs[1] === 'prototipo-ui/cowork/financeiro-ops.jsx';
   })());
   t('resolverArquivoVivo: extrai path Pages real', resolverArquivoVivo('resources/js/Pages/Financeiro/Unificado/Index.tsx (2784 ln) + _components/') === 'resources/js/Pages/Financeiro/Unificado/Index.tsx');
+  // BITE 2026-09-06 (GT-G5 r2 #6897 R-1/R-3): fundação/shell declara o vivo fora de Pages/.
+  t('MORDE R-1: Components/ vence o consumidor Pages/ citado DEPOIS no mesmo campo (era o anchor errado)',
+    resolverArquivoVivo('resources/js/Components/PageHeader/PageHeader.tsx + PageHeaderPrimary.tsx + index.ts (consumo de referência: resources/js/Pages/Cliente/Index.tsx)') === 'resources/js/Components/PageHeader/PageHeader.tsx');
+  t('MORDE R-3: lista YAML (fmVal devolve "- resources/js/Layouts/...") resolve o 1º item (era TODO)',
+    resolverArquivoVivo('- resources/js/Layouts/AppShellV2.tsx') === 'resources/js/Layouts/AppShellV2.tsx');
+  t('controle-negativo: Modules/**/Resources/js/Pages (maiúsculo) e prosa sem path seguem null (preenchimento humano)',
+    resolverArquivoVivo('Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx') === null && resolverArquivoVivo('sem path nenhum aqui') === null);
+  t('controle-negativo: Pages/ citado ANTES de Components/ continua vencendo (ordem do texto)',
+    resolverArquivoVivo('resources/js/Pages/X/Index.tsx (usa resources/js/Components/Y/Z.tsx)') === 'resources/js/Pages/X/Index.tsx');
   t('computeGitSha: arquivo inexistente / sem repo git → sem-historico, não lança', computeGitSha(['prototipo-ui/fixtures/gerar-map/__nao-existe.jsx'], '/tmp') === 'sem-historico');
 
   // BITE do fix 2026-08-14 (%h → %H + shaBate por prefixo) — o degrau literal do ledger:
