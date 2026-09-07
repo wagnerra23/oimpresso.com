@@ -16,41 +16,30 @@ function Pagina({ label, className, children }) {
 // Header de módulo — o equivalente do JanaHeader: quem sou, de qual empresa,
 // quando foi apurado (clicável = reapura) e as ações da tela.
 function Header({ modulo, papel, contexto = [], atualizadoAs, onRefresh, glyph, acoes }) {
-  const { JcIcon } = window;
+  // Desenho: CliPageHead (header de página único). Este arquivo só traduz o vocabulário
+  // do módulo (modulo/papel/contexto) pro da peça.
+  // `pad={24}`: no módulo a PÁGINA não tem padding lateral — cada bloco carrega os seus
+  // 24px (`modulo-padrao.css:5` header, `:6` abas, `:7` corpo). 24 é o canon do shell
+  // (`.os-page-h`, ~40 telas); os 28px de antes eram convenção só deste módulo.
+  // O default do CliPageHead é 0 porque outras páginas (Jana) pagam o respiro no container.
+  // `contextoWrap`: no legado `.mp-header .jc-id h1{white-space:nowrap}` cobria SÓ o h1 —
+  // o `<p>` de contexto envolvia e mostrava a contagem operacional inteira. O slot
+  // `context` do DS trunca, e aí "14 folhas · 11 pendentes" desaparecia.
+  // Sem `className`: o CliPageHead não repassa classe (de propósito — classe legada faz
+  // herdar regra não auditada). Por isso `.mp-page>.mp-header` deixou de existir no DOM,
+  // e o respiro vem do `pad` inline, não da folha.
   return (
-    <header className="jc-header mp-header">
-      <div className="jc-header-l">
-        <div className="mp-glyph" aria-hidden="true">{glyph || <JcIcon name="list" />}</div>
-        <div className="jc-id">
-          <h1>{modulo}{papel && <> <span className="dot">·</span> {papel}</>}</h1>
-          <p>{contexto.map((c, i) => <React.Fragment key={i}>{i > 0 && <span className="jc-sep">·</span>}{i === 0 ? <span className="jc-tenant">{c}</span> : c}</React.Fragment>)}</p>
-        </div>
-      </div>
-      <div className="jc-header-r">
-        {atualizadoAs && <span className="jc-updated">{onRefresh ?
-          <button className="jc-updated-b" onClick={onRefresh} title="Reapurar agora"><span className="d" />Atualizado {atualizadoAs}</button> :
-          <><span className="d" />Atualizado {atualizadoAs}</>}</span>}
-        {acoes}
-      </div>
-    </header>
+    <window.CliPageHead pad={24} contextoWrap glyph={glyph} titulo={modulo} papel={papel}
+      contexto={contexto} atualizadoAs={atualizadoAs} onRefresh={onRefresh}
+      refreshTitle="Reapurar agora" acoes={acoes} />
   );
 }
 
 // Abas de ÁREA — dentro da página, abaixo do header (canon [W] 2026-06-22).
 function Tabs({ tabs = [], tab, onTab, aria = "Áreas do módulo" }) {
-  const { JcIcon } = window;
-  return (
-    <nav className="cli-moduletopnav jm-tabs" aria-label={aria}>
-      {tabs.map((t) =>
-        <button key={t.key} className={"cli-moduletopnav-tab " + (tab === t.key ? "active" : "")}
-          onClick={() => onTab?.(t.key)} aria-current={tab === t.key ? "page" : undefined}>
-          {t.icon && JcIcon && <JcIcon name={t.icon} className="jm-tab-ic" />}
-          <span>{t.label}</span>
-          {t.n != null && <span className="cli-moduletopnav-n">{t.n}</span>}
-        </button>
-      )}
-    </nav>
-  );
+  // Abas: CliTabs (adaptador do TabBar do DS). Sem fallback — o cli-tabs.jsx entra no
+  // host antes de tudo que renderiza; um fallback aqui só reintroduziria a pele velha.
+  return <window.CliTabs tabs={tabs} active={tab} onChange={onTab} ariaLabel={aria} className="jm-tabs" pad={24} />;
 }
 
 // Resumo do dia — a leitura do módulo em texto, com atalhos que levam ao trabalho.
@@ -171,9 +160,13 @@ function useAviso(ms = 2600) {
     ref.current = setTimeout(() => setAviso(null), ms);
   };
   const { Toast } = DSx();
-  const node = aviso ?
-    <div className="jm-toast-wrap">{Toast ? <Toast tone={aviso.tone}>{aviso.msg}</Toast> : <div className="jm-toast">{aviso.msg}</div>}</div> :
-    null;
+  // A11y (2026-09-04): a região viva existe SEMPRE no DOM — leitor de tela só anuncia
+  // mudança em região que já estava lá. O wrapper visual segue condicional (zero mudança de layout).
+  const node = (
+    <div role="status" aria-live="polite" aria-atomic="true">
+      {aviso ? <div className="jm-toast-wrap">{Toast ? <Toast tone={aviso.tone}>{aviso.msg}</Toast> : <div className="jm-toast">{aviso.msg}</div>}</div> : null}
+    </div>
+  );
   return [node, avisar];
 }
 

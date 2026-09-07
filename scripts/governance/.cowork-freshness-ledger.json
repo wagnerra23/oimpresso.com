@@ -1626,5 +1626,29 @@
     ],
     "verified": [],
     "verifiedHash": {}
+  },
+  {
+    "date": "2026-09-07T11:06:42.871Z",
+    "files": 258,
+    "sync": 4,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 254,
+    "staleList": [],
+    "verified": [
+      "chat-jana.jsx",
+      "cli-tabs.jsx",
+      "modulo-padrao.jsx",
+      "oimpresso.com.html"
+    ],
+    "verifiedHash": {
+      "chat-jana.jsx": "d2efd2c4104574468a6186b1e2cfea18371717bcb74fde372b5a42e377e2be8c",
+      "cli-tabs.jsx": "fb24ce60506c7848b4d07a18e2ceed618c26db71510db623174ecd33ec4a50c5",
+      "modulo-padrao.jsx": "1b2cc5285a403ec91b4a03269b2e2d5e81fe7f17aec8cf7d07656ba81e586d2f",
+      "oimpresso.com.html": "9dcad7691d60ba639eb46316bf18fa12956ddb8e9b9d54d8db8645c33bd3c551"
+    },
+    "origin": "export",
+    "origemDeclarada": "agente",
+    "stalePreExport": 0
   }
 ]
