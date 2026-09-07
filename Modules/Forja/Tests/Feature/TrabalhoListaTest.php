@@ -367,7 +367,15 @@ it('UC-TRAB-13 — os PAPÉIS da barra de filtro são os da fonte de design', fu
 it('UC-TRAB-14 — os AGRUPAMENTOS da lista são os do protótipo, na mesma ordem', function () {
     // `FJ_GROUPS` é a barra "Agrupar" do protótipo. A ordem importa: é a ordem
     // dos botões na tela, e trocá-la muda o que a pessoa acha primeiro.
-    $bloco = forjaBlocoDoPrototipo('forja-page.jsx', 'FJ_GROUPS', '[', ']');
+    //
+    // Mora em `forja-atomos.jsx` desde 2026-09-07: o ciclo do Cowork daquele dia
+    // dividiu a Forja em 1 arquivo por tela, e o `forja-page.jsx` virou o shell
+    // que só roteia — os átomos (`FJ_GROUPS`, `FJ_PRIO`, rank, DSL de busca)
+    // desceram pro arquivo de fundação. Conteúdo idêntico, medido na migração:
+    // os 6 ids (onda · frente · fase · assignee · prio · modulo) na mesma ordem.
+    // Não é troca de ponteiro pra silenciar vermelho — é a âncora seguindo a
+    // fonte, que é o que a regra manda (o teste continua lendo o protótipo).
+    $bloco = forjaBlocoDoPrototipo('forja-atomos.jsx', 'FJ_GROUPS', '[', ']');
     preg_match_all('/id:\s*"([^"]+)"/', $bloco, $m);
     $doPrototipo = $m[1];
 
