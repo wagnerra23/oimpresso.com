@@ -2,7 +2,7 @@
 date: "2026-09-06"
 topic: "Re-destilação real das 12 portas BRIEFING stale (jana:distill-module-truth no CT 100, checkout fresco) + refutação GT-G5 em rodadas — distiller_freshness 12→0"
 authors: ["C"]
-prs: []
+prs: [6932]
 related_adrs: ["0291-distiller-modulo-verdade-contrato-emenda-0270-f3", "0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes"]
 ---
 
