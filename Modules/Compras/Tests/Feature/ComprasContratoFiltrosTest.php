@@ -373,7 +373,7 @@ it('UC-CMP-10 · o payload traz items_count e document (colunas Itens e NF-e do 
     $sessao = ['user' => ['business_id' => $this->biz->id, 'id' => $this->user->id]];
 
     $ref = 'CMP-COLS-'.uniqid();
-    $compra = comprasContratoCriarCompra($this->biz->id, $this->location->id, $this->user->id, $ref);
+    $compra = comprasContratoCriarCompra($this->biz->id, (int) $this->locA->id, $this->user->id, $ref);
 
     $linhas = 3;
     for ($i = 0; $i < $linhas; $i++) {
