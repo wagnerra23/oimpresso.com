@@ -373,3 +373,45 @@ Medição por sonda DOM ao vivo (browser MCP) + sentinela por-var. **Correção 
 | **Residual pendente** — superfície `bgEfetivo 56/57` | topo achata em `0.165` | proto quer painel `~0.238` atrás do filtro; tabela já tem `0.205` → **PR próprio** (precisa proto rodando) |
 
 **Fix aplicado (este PR):** DTCG `semantic.tokens.json` border/input/cockpit-border dark `0.30→0.335` + `tokens:build`. App-wide (fundação, igual UI-0021). VRT baselines dark regeneradas em modo UPDATE pós-merge.
+
+---
+
+## Onda 7 · paridade medida no runtime — 2026-09-07 [CC]
+
+Medição por sonda **canônica** (`design-diff.mjs --probe`), mesma sonda nos dois lados,
+**mesmo tema** (`data-theme=dark` nos dois, medido) e **mesma viewport** (`innerWidth=1440`
+nos dois, medido). Prod = `https://oimpresso.com/financeiro/unificado` (sessão WR2 Sistemas);
+design = espelho `prototipo-ui/cowork/` servido local, rota `financeiro`.
+
+**Frescor da âncora provado ANTES de comparar** (senão a comparação é inconclusiva sobre o
+vivo): `financeiro-page.jsx` e `financeiro-telas-extras.jsx` = **SYNC** contra o Cowork vivo
+(`--snapshot-from` → `--compare --check --ledger`, 0 stale / 2 medidos).
+
+Papéis (`__DD_ROLES`) — a classe difere por lado, o papel é o mesmo:
+prod `kpi=.fin-stat` · design `kpi=.os-stat` · ambos `title=h1`, `primary=.os-btn.primary`,
+`filterControls=.fin-filter-cb`, `tableRow=table tbody tr`.
+
+### Veredito da máquina: 8 `DIVERGE(bug)` — classificados a seguir
+
+O comparador REPORTA; quem classifica é humano. Das 8, **1 é defeito de produção**:
+
+| # | Sinal da máquina | Classificação **verificada** | Evidência medida |
+|---|---|---|---|
+| 1 | `[D8] kpi.text-align: prod=center · design=start` (5/5) | ❌ **DEFEITO DA PROD** | `.fin-stat` é `<button>` e herda `text-align:center` do UA stylesheet sem override. Pela cadeia de FORMA ([UI-0029](../_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)) o protótipo manda: alinhamento é `start`. Fix de 1 linha no CSS — **não** aplicado aqui (1 PR = 1 intent; exige PRE-MERGE-UI + smoke) |
+| 2 | `[D6] primary lightness: prod=0.55 · design=0.7` | 🔄 **DERIVA DO PROTÓTIPO** — volta ao Cowork, **não** desce | Prod = `oklch(0.55 0.15 295)`, que é o **canon** (ADR 0190, "primary universal roxo 295"). Design tem `--accent: oklch(0.70 0.15 295)`, **fora** do canon. Corrigir a prod aqui seria descer deriva do protótipo pra produção |
+| 3 | `[D8] kpi.tag: prod=BUTTON · design=DIV` | ✅ **DECIDIDA** (prod à frente) | KPI é clicável (filtra). `<button>` é o elemento correto; o protótipo usa `DIV` com `fin-stat-click`, pior em acessibilidade. Não é defeito — é a prod à frente do protótipo |
+| 4-7 | `col1.mono` · `col2.cor` · `col3.mono/cor` · `col8.mono` (+3 `col*.blocos`) | ⚠️ **ARTEFATO DE ÍNDICE** — 1 achado, não 6 | O comparador casa coluna **por índice**. Os `<thead>` estão **deslocados em 1**: prod `["","","Vencimento",…]` × design `["","Vencimento","",…]`. Logo compara colunas **diferentes**. O achado REAL é **estrutural e único**: a composição das 2 primeiras colunas difere (a prod tem coluna de ícone-direção própria) |
+| 8 | `[D2] kpi.overflowX: prod=estoura · design=cabe` | ⚠️ **REAL, marginal** | Prod `scrollW 1139 > clientW 1125` (14px); design `1132 = 1132`. Largura útil do container difere 7px entre os lados |
+
+`[D9] SEM-DADO ×5` **não é defeito de tela**: medido `document.querySelectorAll('[data-contract]').length = 0`
+no protótipo — o contrato-de-tela só existe do lado da prod. É ausência de instrumentação no
+protótipo, não divergência.
+
+> **Padrão confirmado** (mesmo do piloto, "4 acusadas → 1 real"): 8 acusadas → **1 defeito de
+> produção** · 1 deriva de protótipo · 1 decisão consciente · 1 artefato de índice cobrindo 4
+> sinais · 1 marginal. Verificar antes de virar trabalho evitou 7 correções indevidas — duas
+> delas na direção **errada** (descer deriva do protótipo pra prod).
+
+**Não medido nesta sessão** (e "não medido" não é "sem divergência"): Fluxo · Conciliação ·
+DRE · ProvaViva · RecurringBilling/Index. As âncoras de Fluxo/Conciliação/DRE
+(`financeiro-telas-extras.jsx`) estão provadas SYNC; falta o render pareado.

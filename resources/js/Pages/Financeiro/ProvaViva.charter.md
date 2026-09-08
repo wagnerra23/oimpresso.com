@@ -15,6 +15,7 @@ related_prototype: prototipo-ui/prototipos/financeiro-prova-viva/Financeiro - Pr
 related_decisions: memory/decisions/0253-primitivos-layout.md (critério de pronto = tela 100% primitivos)
 tier: A
 charter_version: 1
+related_visual_comparison: memory/requisitos/Financeiro/prova-viva-visual-comparison.md
 ---
 
 # Page Charter — /financeiro/prova-viva
