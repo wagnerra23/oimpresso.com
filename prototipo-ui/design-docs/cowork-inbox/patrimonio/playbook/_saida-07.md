@@ -6,7 +6,7 @@ criado: 2026-09-08
 base: origin/main @ 493f8eb535 (worktree recriado de origin/main fresco — o checkout de sessão estava −354)
 thread: 07-painel.md
 ancora: "REMEDIDA — o sha da thread não conferia. Ver §1."
-veredito: "entregue — tela + trio + teste que morde · 2 KPIs renderizam `—` por falta de fonte (declarado) · o `_shared` NAO e meu: a thread 08 mergeou antes e o fundou (§0) · 13 achados"
+veredito: "entregue (CI: 80 pass · 1 fail ADVISORY em tela FORA do raio — Fiscal/Cockpit, §7-bis) — tela + trio + teste que morde · 2 KPIs renderizam `—` por falta de fonte (declarado) · o `_shared` NAO e meu: a thread 08 mergeou antes e o fundou (§0) · 13 achados"
 invalida: "prefixo do §7 SEGUE INCOMPLETO nas threads de tela — o MWART + casos-gate geram 4 artefatos (RUNBOOK, e2e/, prototipo-ui/contrato/, tests/) fora dos paths declarados, e o #7039 nao os incluiu (§5) · o `criar-tela.mjs` carimba 5 campos ERRADOS em toda tela sob Pages/Patrimonio/, e isso NAO esta registrado em lugar nenhum ainda (§4) · a nota do CT 100 em proibicoes.md §Ambiente caducou (checkout esta em 2026-09-08, nao 2026-07-23). NADA sobre a colisao 07x08: o #7039 ja reconciliou o indice e a thread 07 antes deste PR (§0)"
 ---
 
@@ -211,7 +211,7 @@ e não vou tocá-lo). A prova de render vem do CI e do smoke pós-merge, que é 
     `resources/js/Pages/Patrimonio/Bens.tsx` (tela flat, sem subpasta). O `placar-indice.mjs`
     checa existência de arquivo — vai seguir dizendo `08 [pendente]` com a tela em produção.
 
-## 7-bis · O CI apontou 4 falhas — as 4 consertadas na origem, nenhuma por baseline
+## 7-bis · O CI apontou 6 vermelhos — 5 consertados na origem, 1 que NÃO é meu
 
 | check | causa | conserto |
 |---|---|---|
@@ -219,6 +219,30 @@ e não vou tocá-lo). A prova de render vem do CI e do smoke pós-merge, que é 
 | **UI Lint ratchet (LEI)** | regra **R4** (*"PT-01 Lista · Index.tsx sem PageHeader OU sem DataTable"*) acusa a falta de `DataTable`. A regra decide "é lista?" pelo **nome do arquivo**, e esta tela é PT-04 Dashboard — a lista do módulo é o `Bens.tsx`. | entrada na `$skipPaths` do `UiLintCommand.php`, que é o mecanismo que a própria regra oferece e onde `Home` e `Jana` (os outros dois painéis) já estão. |
 | **DS gate** | agregador — falhava só porque o UI Lint falhava | some com o de cima |
 | **SUPERFICIE.md == árvore** | a tela nova mudou a superfície do módulo (107 → 108 arquivos) | `module-surface.mjs AssetManagement --write` |
+| **PHPStan / Larastan · ratchet** | 15 achados: as 7 agregações do painel devolviam Model, e cada alias (`bruto`, `alocado`, `categoria`…) virava *"Access to an undefined property"*, mais 3 `map()` com *"unresolvable type"* | `->toBase()` nos 7 terminais — nenhuma delas quer um Model, todas querem linhas de agregação. Preserva wheres e scopes; não muda SQL nem valor. |
+| **`ADR 0216 PR scan`** | `composer install` levou **HTTP 503** do Azure DevOps ao clonar `myfatoorah/library` — rede, não código | `gh run rerun --failed`; passou |
+
+### O 6º: `visual-regression` — vermelho por tela FORA do raio deste PR
+
+**Não consertei, e a razão está medida.** O teste vermelho é `Fiscal/Cockpit`
+(`diff 2.1049% > τ_alto 2.0000%`). **Este PR não toca um único arquivo de Fiscal** —
+`git diff --name-only origin/main...HEAD | grep -ci fiscal` = **0**. E o próprio job diz, textual:
+
+> `Nenhuma tela DENTRO do raio deste PR na zona cinza (0.1000% .. 2.0000%).`
+
+As 17 telas listadas na zona cinza vêm todas marcadas `(herdada)`. O `compared=45` do canário
+anti-verde-vazio é consequência: o `Fiscal/Cockpit` falha **antes** de comparar, e sobram 45 de 46.
+
+Regravar a baseline de `Fiscal/Cockpit` seria mexer em tela alheia para pintar o meu PR de verde —
+e o próprio erro diz que a saída é `npm run visreg:update` **+ aprovação [W] (F1.5)**, que é
+decisão dele, não minha. O check é advisory. É a lápide §5 2026-08-24 (*gate visual bloqueando por
+tela fora do raio do PR*) acontecendo, e a resposta certa é declarar.
+
+⚠️ **`Patrimonio` e `Patrimonio/Bens` aparecem em `UNCOVERED_SCREENS`** — as duas telas novas do
+módulo não estão em `tests/Browser/visreg-screens.json` (46 telas, nenhuma de Patrimônio) e por
+isso não têm baseline de pixel. Em escopo `global` isso **não é a cobrança** (`ui-impact.mjs:388`
+só cobra uncovered fora do global), mas é dívida real e compartilhada com o #7035, que mergeou com
+ela. Criar a baseline exige render no CI + aprovação [W] — não dá pra fazer daqui.
 
 ⚠️ **A `$skipPaths` do R4 é allowlist por path** — a família que o §5 já enterrou 7×. Não a
 inventei: ela é o escape que a regra publica, e a alternativa (regravar o baseline do `ui:lint`)
