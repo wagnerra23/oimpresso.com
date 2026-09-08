@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-07**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-08**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -72,7 +72,7 @@ lente: [construir]
 
 ## Programa SDD (governança)
 
-- Scorecard: **12/13** métricas medidas · floor full-suite = **288**.
+- Scorecard: **12/13** métricas medidas · floor full-suite = **292**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -129,7 +129,7 @@ lente: [construir]
 - espelho — mexeu depois de verificar
 - Governance Gate (índice + memory-health + meta-teste)
 
-### Censo — 138 workflows por classe
+### Censo — 139 workflows por classe
 
 > Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
 
@@ -137,20 +137,20 @@ lente: [construir]
 |---|---|---|
 | gate (bloqueia/valida PR) | 105 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
 | meta (testa os gates) | 7 | block-brl-values-selftest, devcontainer-firewall, gate-selftest, guards-meta-gate, … |
-| automacao (cron/dispatch) | 22 | agent-cost-per-pr, agent-pr-outcomes, briefing-code-staleness, casos-results-publish, … |
+| automacao (cron/dispatch) | 23 | agent-cost-per-pr, agent-pr-outcomes, briefing-code-staleness, casos-results-publish, … |
 | deploy (entrega) | 2 | deploy, quick-sync |
 | governanca | 1 | required-always-run |
 | qualidade | 1 | brl-scan |
 
 ## Decisões (ADRs)
 
-- **395** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 355 · superseded: 16 · deprecated: 13 · proposto: 9 · rascunho: 1 · recusado: 1.
+- **398** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 357 · superseded: 16 · deprecated: 13 · proposto: 10 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 178 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 182 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -331,6 +331,10 @@ lente: [construir]
 - ~~2026-09-05 — DETECTAR a sessão paralela, AVISAR o dono, e seguir mesmo assim (a forma agravada do sub-caso dono-é-sessão-viva)~~
 - ~~2026-09-05 — Fechar a cegueira do eixo `a11y` por GUARD QUE LISTA NAMESPACES À MÃO, ou creditando a11y de quem só tem BASELINE DE PIXEL (MEDIDO: 34 de 46 seriam falso-positivo)~~
 - ~~2026-09-05 — EMENDA da lápide acima (`whats-active` não rodado): eu RODEI a checagem disponível, ela NÃO detectou, e o gatilho certo não é "antes de começar" — é **antes de publicar**~~
+- ~~2026-09-07 — `str.count(padrao) == N` como asserção de UNICIDADE quando o padrão é SUBSTRING (o YAML de um workflow nasceu inválido, e o assert disse que estava tudo certo)~~
+- ~~2026-09-08 — Dispensar o escopo multi-tenant do parent no eager-load da fonte da meta (a "armadilha" NÃO existe — li um dos dois escopos irmãos)~~
+- ~~2026-09-07 — Rodei DOIS consumidores do charter e os dois deram verde — nenhum era um parser YAML (o dois-pontos+espaço no meio do escalar derrubou um required)~~
+- ~~2026-09-08 — EMENDA das duas lápides de 2026-09-05 (dono-é-sessão-viva): entrei no território alheio pelo ARTEFATO, não pelo módulo — e o recibo do enunciado provava a PREMISSA, não a CONCLUSÃO~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -341,14 +345,14 @@ lente: [construir]
 
 ## Rastro
 
-- **505** handoffs · **709** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **510** handoffs · **713** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-09-08-onda7-paridade-crm-jana-forja`
+  - `2026-09-08-onda7-financeiro-recurring-paridade-medida`
+  - `2026-09-08-devolutiva-recusados-rodada-pontual`
+  - `2026-09-07-regime-evolucao-loops-blade-fora-fluxo-dora`
   - `2026-09-06-seis-perguntas-design-sync-resolvidas`
   - `2026-09-06-seis-gap-fundacao-shell-map-json`
-  - `2026-09-06-refutacao-gt-g5-seis-gap-fundacao-r2`
-  - `2026-09-06-refutacao-gt-g5-seis-gap-fundacao-r1`
-  - `2026-09-06-refutacao-gt-g5-lote-6926`
-  - `2026-09-06-refutacao-gt-g5-lote-6926-r2`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-09-07 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-09-08 · deriva das fontes canônicas, não as substitui._
