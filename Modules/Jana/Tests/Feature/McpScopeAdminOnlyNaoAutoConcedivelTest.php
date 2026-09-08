@@ -8,14 +8,13 @@ use Modules\Jana\Http\Controllers\DataController;
 uses(Tests\TestCase::class);
 
 /**
- * CATRACA do achado Tier 0 — scope `admin_only` e auto-concedivel pelo admin
- * do business.
+ * CONTRATO Tier 0 — scope `admin_only` NAO e auto-concedivel pelo admin do business.
  *
- * ⚠️ A lista `$conhecidos` NAO e o estado desejado. E o estado MEDIDO hoje,
- * travado pra nao piorar em silencio enquanto a decisao [W] nao sai. O
- * contrato Tier 0 correto e a lista VAZIA.
+ * ✅ FECHADO em 2026-09-07. Este arquivo nasceu CATRACA (lista dos 5 expostos,
+ * travada pra nao piorar enquanto a decisao [W] nao saia) e virou CONTRATO: a
+ * assercao agora e `[]`, que era o alvo declarado desde o primeiro dia.
  *
- * O vetor, medido controlador a controlador em `origin/main`:
+ * O VETOR que existia, medido controlador a controlador em `origin/main`:
  *
  *   1. `McpScopesSeeder` marca 5 de 22 scopes como `admin_only => true` — um
  *      deles, `jana.mcp.usage.all`, descrito no proprio catalogo como "Apenas
@@ -35,30 +34,46 @@ uses(Tests\TestCase::class);
  * telas do hub de engenharia da Forja (Forja, Scorecard, Team, Roadmap,
  * TasksAdmin, Search, Trabalho, Aprovacoes).
  *
- * PROVA — este teste JA RODOU VERMELHO com a assercao correta (`toBe([])`):
+ * PROVA de que este teste MORDE — ele ja rodou VERMELHO com esta mesma
+ * assercao (`toBe([])`), antes da correcao existir:
  *
  *   run 34169613882, lane `PHP / Pest (Unit)`
  *   FAIL Modules\Jana\Tests\Feature\McpScopeAdminOnlyNaoAutoConcedivelTest
  *   Tests: 1 failed, 79 skipped, 1206 passed (4561 assertions)
  *
- * Discussao e recibo completo: PR #6952.
+ * Historico e recibo do vermelho: PR #6952.
  *
- * POR QUE TRAVADO EM VEZ DE VERMELHO: `PHP / Pest (Unit)` e context REQUIRED e
- * `enforce_admins` esta ligado no main — um vermelho aqui trancaria o merge do
- * repo inteiro ate a decisao sair, transferindo pro time o custo de um achado.
- * A catraca preserva a mordida nos DOIS sentidos: expor um 6o scope quebra, e
- * CORRIGIR tambem quebra (obriga trocar a lista por `[]`, que e o contrato).
+ * ── COMO AS DUAS DEFESAS PASSARAM A CABER JUNTAS ─────────────────────────────
  *
- * A DECISAO [W] — as duas defesas nao sao satisfaziveis juntas hoje:
- *   A — `McpScopesVisiveisNoRoleEditTest` exige TODO scope no form, porque
- *       `syncPermissions` e destrutivo: scope ausente e apagado a cada save de
- *       qualquer role (incidente 2026-07-29, derrubou o MCP dos 4 users).
- *   B — Tier 0: scope `admin_only` nao pode ser auto-concedivel por admin de
- *       business.
+ * O impasse era real: A exigia TODO scope no form (porque `syncPermissions` e
+ * destrutivo e apaga o que nao vem no POST — incidente 2026-07-29, derrubou o
+ * MCP dos 4 usuarios do time) e B proibia expor `admin_only` na tela do admin
+ * de business. Enquanto a razao de A dependesse do checkbox, as duas se
+ * excluiam.
+ *
+ * O que dissolveu o impasse foi tirar A da tela e por na CLASSE:
+ *
+ *   B — `DataController@mcpScopePermissions` filtra `admin_only`. Como
+ *       `PermissionCatalog` e alimentado pelo MESMO `getModuleData('user_permissions')`
+ *       que monta o form, o slug sai junto do catalogo ACEITO, e
+ *       `RoleController@__somenteDoCatalogo` passa a DESCARTA-LO do POST —
+ *       inclusive de um POST forjado. Nao e a tela que barra; e a concessao.
+ *
+ *   A — `RoleController@__preservaNaoOfertadas` reune ao POST tudo o que o
+ *       papel JA TEM e o form nao oferece. Garantia MAIS FORTE que a de 07-29:
+ *       la ela dependia de o checkbox vir marcado (desmarcar apagava); aqui
+ *       nao depende do POST. E corrige a classe, nao a instancia `jana.mcp.*`.
+ *
+ * Efeito medido no que ja estava concedido: nada e revogado. O biz=164
+ * (Martinho, OficinaAuto LIVE) tem os 5 scopes numa role com 5 usuarios —
+ * seguem intactos, preservados. Revogar la e decisao [W] separada.
+ *
+ * Comportamento com DB real (POST HTTP nos dois sentidos):
+ * @see tests/Feature/Roles/RoleAdminOnlyScopeGuardTest.php
  *
  * Deterministico, sem DB — igual ao guard irmao.
  */
-it('trava os scopes admin_only expostos como checkbox — piorar quebra, e corrigir tambem', function () {
+it('nenhum scope admin_only e ofertado como checkbox — expor um so ja quebra', function () {
     $adminOnly = array_values(array_map(
         static fn (array $s): string => $s['slug'],
         array_filter(
@@ -78,12 +93,8 @@ it('trava os scopes admin_only expostos como checkbox — piorar quebra, e corri
     $expostos = array_values(array_intersect($adminOnly, $daTela));
     sort($expostos);
 
-    // MEDIDO em 2026-09-07 — NAO desejado. O contrato Tier 0 e `[]`.
-    expect($expostos)->toBe([
-        'jana.cc.curate',
-        'jana.cc.read.all',
-        'jana.mcp.memory.manage',
-        'jana.mcp.projects.manage',
-        'jana.mcp.usage.all',
-    ]);
+    // CONTRATO Tier 0. Era esta lista ate 2026-09-07 (`jana.cc.curate`,
+    // `jana.cc.read.all`, `jana.mcp.memory.manage`, `jana.mcp.projects.manage`,
+    // `jana.mcp.usage.all`); a correcao a levou a zero.
+    expect($expostos)->toBe([]);
 });
