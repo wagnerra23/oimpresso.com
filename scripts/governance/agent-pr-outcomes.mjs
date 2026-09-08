@@ -39,8 +39,26 @@
  *   G4 janela por mergedAt/closedAt; PR ainda ABERTO não entra (nem no denominador).
  *   G5 marcador de agente = título casa o conjunto canônico `[C]` / `[CC]` / `[X+C]`
  *      (AGENT_MARKER_RE) OU autor bot. Marcador humano sozinho (`[W]` `[M]` `[F]` `[L]`
- *      `[E]`) não conta. Ainda perde PR do agente SEM marcador algum — medidos 231 em 30d
- *      (2026-09-07), ~15% dos terminais da janela: o número é PISO da atividade do agente.
+ *      `[E]`) não conta. Ainda perde PR SEM marcador algum — 244 em 30d (2026-09-08),
+ *      ~16% dos terminais: o número é PISO da atividade do agente.
+ *
+ *      COMPOSIÇÃO dos sem-marcador (medida, pra ninguém "consertar" isto incluindo tudo):
+ *        • 138 (57%) em branch `chore/*` — automação de cron do próprio sistema de
+ *          governança (35 títulos distintos em 138 PRs: floor do scorecard, snapshot de
+ *          sinais vitais, shipped-log). NÃO É trabalho de agente e NÃO deve entrar:
+ *          sempre mergeia e nunca leva hotfix, então inflaria accept-rate e diluiria CFR.
+ *        • 89 (36%) em `claude/*` sem marcador — trabalho real perdido, o alvo legítimo.
+ *        • 17 (7%) em `codex/*` (outro agente de IA), `test/*`, `fix/*`.
+ *
+ *      Por que NÃO se usa `headRefName` como 2º sinal (medido e refutado 2026-09-08):
+ *      a branch diz ONDE o trabalho foi feito, não DE QUEM é o PR — 15 PRs em `claude/*`
+ *      carregam `[W]` no título e são atos de decisão do dono (ratificação de ADR,
+ *      supersede), que a regra do marcador exclui de propósito; e 76 `claude/*` são
+ *      `chore(`. Com a precedência correta (marcador humano vence a branch) o ganho
+ *      líquido é +74 PRs, e o accept-rate move 91,9% → 92,3%: 0,4pp, que não muda
+ *      decisão nenhuma. Reabrir só com sinal que distinga AUTORIA, não localização.
+ *      Reproduzir: `gh pr list --state all --limit 2000 --json number,title,headRefName,
+ *      mergedAt,closedAt` e agrupar os sem-marcador por prefixo de `headRefName`.
  *   G6 o fetch tem CAP (`--limit`): se o corpus voltar cheio e o PR mais antigo for mais
  *      novo que o início da janela, a janela não foi coberta — o relatório DECLARA isso
  *      (cobertura.truncado) em vez de publicar um número parcial como se fosse total.
@@ -240,7 +258,7 @@ const GAPS = [
   'G2 "rejeitado" = fechado-sem-merge; superseded/duplicado infla rejeição → accept_rate é piso de aceitação.',
   'G3 time_to_merge inclui espera por review humano (R10) — comparar com o próprio histórico, não absoluto.',
   'G4 janela por mergedAt/closedAt; PR ainda aberto não entra.',
-  'G5 marcador de agente = título casa [C]/[CC]/[X+C] ou autor bot; PR do agente sem marcador algum escapa (231 em 30d medidos 2026-09-07) → o número é PISO.',
+  'G5 marcador de agente = título casa [C]/[CC]/[X+C] ou autor bot; PR sem marcador algum escapa → o número é PISO. Medido 2026-09-08 (244 sem marcador em 30d): ~57% é automação de cron em branch chore/* (snapshot, floor, shipped-log — que NÃO deve contar: sempre mergeia, nunca leva hotfix), ~36% é trabalho real em claude/* sem marcador, ~7% outros agentes (codex/*) e branches ad-hoc.',
   'G6 fetch tem cap (--limit): se o corpus voltar cheio E o PR mais antigo for posterior ao início da janela, a janela ficou truncada — ver cobertura.truncado.',
 ];
 
