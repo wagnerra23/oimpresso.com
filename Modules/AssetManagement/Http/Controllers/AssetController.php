@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 use Modules\AssetManagement\Entities\Asset;
 use Modules\AssetManagement\Entities\AssetTransaction;
 use Modules\AssetManagement\Entities\AssetWarranty;
@@ -92,44 +93,9 @@ class AssetController extends Controller
         $purchase_types = $this->purchaseTypes;
 
         if ($request->ajax()) {
-            $assets = Asset::with(['media', 'warranties', 'maintenances'])
-                        ->leftJoin('categories as CAT', 'assets.category_id',
-                            '=', 'CAT.id')
-                        ->leftJoin('business_locations as BL', 'assets.location_id',
-                            '=', 'BL.id')
-                        ->leftJoin('asset_transactions as AT', function ($join) {
-                            $join->on('assets.id', '=', 'AT.asset_id')
-                                ->where('transaction_type', 'allocate');
-                        })
-                        ->where('assets.business_id', $business_id)
-                        ->select('asset_code', 'assets.name as asset', 'assets.quantity as quantity',
-                        'model', 'purchase_date',
-                        'unit_price', 'is_allocatable',
-                        'CAT.name as category', 'BL.name as location',
-                        'assets.id as id', DB::raw('SUM(COALESCE(AT.quantity, 0)) as allocated_qty'),
-                        DB::raw('(SELECT SUM(COALESCE(AR.quantity, 0)) FROM asset_transactions AS AR WHERE(AR.asset_id=assets.id AND AR.transaction_type=\'revoke\')) as revoked_qty'),
-                        'assets.description as description'
-                        )
-                        ->groupBy('id');
+            $assets = $this->baseAssetsQuery($business_id);
 
-            $permitted_locations = auth()->user()->permitted_locations();
-
-            if ($permitted_locations != 'all') {
-                $assets->whereIn('assets.location_id', $permitted_locations);
-            }
-
-            if (! empty(request()->input('location_id'))) {
-                $assets->where('assets.location_id', request()->input('location_id'));
-            }
-            if (! empty(request()->input('category_id'))) {
-                $assets->where('assets.category_id', request()->input('category_id'));
-            }
-            if (! empty(request()->input('purchase_type'))) {
-                $assets->where('assets.purchase_type', request()->input('purchase_type'));
-            }
-            if (! empty(request()->input('is_allocatable'))) {
-                $assets->where('assets.is_allocatable', 1);
-            }
+            $this->applyAssetFilters($assets);
 
             $now = \Carbon::now();
 
@@ -270,8 +236,200 @@ class AssetController extends Controller
         $business_locations = BusinessLocation::forDropdown($business_id);
         $asset_category = Category::forDropdown($business_id, 'asset');
 
-        return view('assetmanagement::asset.index')
-                ->with(compact('purchase_types', 'business_locations', 'asset_category'));
+        // MWART F3 (ADR 0104) — a tela de Bens virou Inertia em 2026-09-08, no endereco
+        // decidido pela ADR 0394 (`Pages/Patrimonio/**`, modulo proprio). A URL NAO muda:
+        // continua sendo a rota `assets.index` (`GET /asset/assets`) declarada pelo
+        // Route::resource — rota nova seria um segundo dono da mesma tela.
+        //
+        // O ramo `$request->ajax()` acima continua servindo o DataTables do Blade e fica
+        // INERTE para esta tela (o React recebe o paginator por prop). Remove-lo, junto
+        // com `Resources/views/asset/index.blade.php`, e cutover (F5) — nao frontend.
+        // Runbook: memory/requisitos/AssetManagement/RUNBOOK-bens.md
+        return Inertia::render('Patrimonio/Bens', [
+            'filtros' => [
+                'q' => $request->input('q'),
+                'location_id' => $request->input('location_id'),
+                'category_id' => $request->input('category_id'),
+                'purchase_type' => $request->input('purchase_type'),
+                'is_allocatable' => $request->input('is_allocatable'),
+                'sort' => $request->input('sort'),
+                'dir' => $request->input('dir'),
+            ],
+            // Eager de proposito: sao dois dropdowns pequenos e indexados, e o filtro
+            // nascer vazio no primeiro paint seria pior que o custo deles.
+            'opcoes' => [
+                'locais' => $business_locations,
+                'categorias' => $asset_category,
+                'tipos_compra' => $purchase_types,
+            ],
+            'permissoes' => [
+                'criar' => auth()->user()->can('asset.create'),
+                'editar' => auth()->user()->can('asset.update'),
+                'excluir' => auth()->user()->can('asset.delete'),
+                'manutencao' => auth()->user()->can('asset.view_all_maintenance')
+                    || auth()->user()->can('asset.view_own_maintenance'),
+            ],
+            // Inertia::defer — a prop cara da tela (3 leftJoin + agregacao + eager-load
+            // de media/warranties/maintenances). Regra default do projeto pra prop com
+            // paginate/with/subquery: RUNBOOK-inertia-defer-pattern.md
+            'bens' => Inertia::defer(fn () => $this->buildBensPayload($request, $business_id)),
+        ]);
+    }
+
+    /**
+     * Query base da listagem de bens — dono UNICO da agregacao.
+     *
+     * Extraida em 2026-09-08 do proprio `index()`, sem alterar uma virgula do SELECT,
+     * para que o ramo AJAX (DataTables do Blade) e o ramo Inertia leiam a MESMA
+     * expressao. Duas copias da mesma agregacao envelheceriam separadas, e a proxima
+     * correcao pousaria em so uma delas.
+     *
+     * ⚠️ RESIDUO Tier 0 HERDADO — nao introduzido aqui, e deliberadamente NAO corrigido
+     * nesta onda: nem o join `AT` (allocate) nem a subconsulta `AR` (revoke) filtram por
+     * `business_id`, entao as duas agregam transacao de QUALQUER empresa. E o gemeo ja
+     * catalogado em `_saida-01.md §9(a)` ("o gemeo AssetController:97 e o mesmo defeito e
+     * tem MAIOR alcance — e o indice"), que tem thread dona. Corrigir aqui esbarraria em
+     * duas leis que caem juntas: mexer em QUANTIDADE e REGRA MESTRE Tier 0 (prova por dois
+     * caminhos + antes→depois apresentado ao [W]) e 1 PR = 1 intent. A expressao fica
+     * byte-a-byte como estava; a medicao antes→depois esta pronta no `_saida-06-bens.md`.
+     * Enquanto nao fechar, `allocated_qty`/`revoked_qty` NAO sao numeros auditados.
+     */
+    private function baseAssetsQuery($business_id)
+    {
+        return Asset::with(['media', 'warranties', 'maintenances'])
+                    ->leftJoin('categories as CAT', 'assets.category_id',
+                        '=', 'CAT.id')
+                    ->leftJoin('business_locations as BL', 'assets.location_id',
+                        '=', 'BL.id')
+                    ->leftJoin('asset_transactions as AT', function ($join) {
+                        $join->on('assets.id', '=', 'AT.asset_id')
+                            ->where('transaction_type', 'allocate');
+                    })
+                    ->where('assets.business_id', $business_id)
+                    ->select('asset_code', 'assets.name as asset', 'assets.quantity as quantity',
+                    'model', 'purchase_date',
+                    'unit_price', 'is_allocatable',
+                    'CAT.name as category', 'BL.name as location',
+                    'assets.id as id', DB::raw('SUM(COALESCE(AT.quantity, 0)) as allocated_qty'),
+                    DB::raw('(SELECT SUM(COALESCE(AR.quantity, 0)) FROM asset_transactions AS AR WHERE(AR.asset_id=assets.id AND AR.transaction_type=\'revoke\')) as revoked_qty'),
+                    'assets.description as description'
+                    )
+                    ->groupBy('id');
+    }
+
+    /**
+     * Filtros compartilhados pelos dois ramos — mesma ordem e mesmos predicados de antes.
+     *
+     * `permitted_locations()` vem PRIMEIRO de proposito: e restricao de permissao, nao
+     * escolha do usuario, e nao pode ser afrouxada por parametro de query.
+     */
+    private function applyAssetFilters($assets)
+    {
+        $permitted_locations = auth()->user()->permitted_locations();
+
+        if ($permitted_locations != 'all') {
+            $assets->whereIn('assets.location_id', $permitted_locations);
+        }
+
+        if (! empty(request()->input('location_id'))) {
+            $assets->where('assets.location_id', request()->input('location_id'));
+        }
+        if (! empty(request()->input('category_id'))) {
+            $assets->where('assets.category_id', request()->input('category_id'));
+        }
+        if (! empty(request()->input('purchase_type'))) {
+            $assets->where('assets.purchase_type', request()->input('purchase_type'));
+        }
+        if (! empty(request()->input('is_allocatable'))) {
+            $assets->where('assets.is_allocatable', 1);
+        }
+
+        return $assets;
+    }
+
+    /**
+     * Paginator da tela Inertia de Bens (`Pages/Patrimonio/Bens.tsx`).
+     *
+     * Busca e ordenacao existem SO neste ramo: o DataTables do Blade faz a propria busca,
+     * e aplica-las tambem la mudaria o comportamento da tela legada, que nao e o escopo.
+     */
+    private function buildBensPayload(Request $request, $business_id)
+    {
+        $assets = $this->baseAssetsQuery($business_id);
+
+        $this->applyAssetFilters($assets);
+
+        // Busca — os 4 campos que identificam o bem, os mesmos que o prototipo procura
+        // (`patrimonio-page.jsx:275`: id + nome + modelo + serie).
+        $q = trim((string) $request->input('q', ''));
+        if ($q !== '') {
+            $assets->where(function ($query) use ($q) {
+                $termo = '%'.$q.'%';
+                $query->where('assets.name', 'like', $termo)
+                    ->orWhere('assets.asset_code', 'like', $termo)
+                    ->orWhere('assets.model', 'like', $termo)
+                    ->orWhere('assets.serial_no', 'like', $termo);
+            });
+        }
+
+        // Whitelist de ordenacao: o `sort` chega da query string, entao coluna fora desta
+        // lista nao vira SQL. As chaves sao as do payload; os valores, a coluna real.
+        $ordenaveis = [
+            'asset_code' => 'assets.asset_code',
+            'nome' => 'assets.name',
+            'categoria' => 'CAT.name',
+            'local' => 'BL.name',
+            'quantidade' => 'assets.quantity',
+            'valor_unitario' => 'assets.unit_price',
+            'compra_em' => 'assets.purchase_date',
+        ];
+        $sort = (string) $request->input('sort', '');
+        $dir = strtolower((string) $request->input('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+        $assets->orderBy($ordenaveis[$sort] ?? 'assets.name', isset($ordenaveis[$sort]) ? $dir : 'asc');
+
+        $now = \Carbon::now();
+
+        return $assets->paginate(25)->withQueryString()->through(function ($row) use ($now) {
+            $garantia = null;
+            foreach ($row->warranties as $w) {
+                $inicio = \Carbon::parse($w->start_date);
+                $fim = \Carbon::parse($w->end_date);
+                if ($now->between($inicio, $fim)) {
+                    $garantia = [
+                        'inicio' => $this->commonUtil->format_date($w->start_date),
+                        'fim' => $this->commonUtil->format_date($w->end_date),
+                        'dias_restantes' => (int) $now->diffInDays($fim, false),
+                    ];
+                    break;
+                }
+            }
+
+            $em_manutencao = $row->maintenances
+                ->whereIn('status', ['new', 'in_progress'])
+                ->count();
+
+            $midia = $row->media->first();
+
+            return [
+                'id' => $row->id,
+                'asset_code' => $row->asset_code,
+                'nome' => $row->asset,
+                'modelo' => $row->model,
+                'categoria' => $row->category,
+                'local' => $row->location,
+                'quantidade' => (float) $row->quantity,
+                // Herdam o residuo Tier 0 do §9 do RUNBOOK — nao sao numeros auditados.
+                'alocado' => (float) $row->allocated_qty - (float) $row->revoked_qty,
+                'alocavel' => (bool) $row->is_allocatable,
+                'valor_unitario' => (float) $row->unit_price,
+                'compra_em' => $row->purchase_date
+                    ? $this->commonUtil->format_date($row->purchase_date)
+                    : null,
+                'garantia' => $garantia,
+                'em_manutencao' => $em_manutencao,
+                'imagem_url' => $midia ? $midia->display_url : null,
+            ];
+        });
     }
 
     /**
