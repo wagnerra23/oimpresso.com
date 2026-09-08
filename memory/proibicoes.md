@@ -1169,6 +1169,23 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **⚠️ Sobre virar máquina — candidato MEDIDO nesta sessão, deliberadamente NÃO armado:** diferente das 7 formas sintáticas já enterradas (allowlist-de-pasta 06-30 · `@scope` 07-09 · vocabulário 130 FP 07-16 · `toHaveKey` 100% FP 07-26 · `toContain` 07-28 · `jq` 08-11 · limiar 3→2 08-12), este predicado é **determinístico** — consulta ao grafo do git, não texto: `git log --remotes="origin/claude/*" --not <sua-branch> --since=3.days -- <path>`. Medido aqui: **custo ~315ms**; nos **3** arquivos que eu editei legitimamente devolve **0**; nos **4** charters de território alheio devolve **1** — e o commit que ele encontra é exatamente o `2181863e8d`. ⚠️ Dois motivos para **não armar agora**, e nenhum é timidez: **(i)** isso é N=7 do meu próprio caso, **não é FP em corpus real** — a regra "LIGUE A MÁQUINA" item 4 exige a medição na população antes de instalar; **(ii)** o detector tem **ponto cego principiado**: só enxerga branch **pushada**, então sessão irmã que ainda não deu push continua invisível (foi sorte a desta ter pushado). Fica registrado com o comando exato para a próxima ocorrência nascer com o trabalho pronto — e, se armar, é **estendendo o dono** (o hook que já intercepta Edit), nunca máquina nova, que seria a própria LC-19 cometida dentro da correção dela.
 
+### 2026-09-08 — Teste de tela Inertia que monta uma requisicao que o BROWSER NUNCA ENVIA (verde no CI, skeleton eterno em prod) — e a mutacao nao pega, porque muta o CODIGO, nao a SONDA
+
+- **O limite (variante tambem proibida):** teste que exercita rota servida a um **cliente**
+  (Inertia, HTMX, DataTables, fetch de SPA) reproduz **os headers que aquele cliente manda de
+  fato** — nao um subconjunto conveniente. Vale pra `X-Requested-With`, `Accept`,
+  `X-Inertia*`, `X-CSRF-Token`, `Content-Type`. A pergunta que separa: *"um browser real
+  emitiria exatamente esta requisicao?"* — se a resposta nao for um sim medido no cliente
+  (aqui: `@inertiajs/core`, `getHeaders()`, que manda `X-Requested-With`
+  **incondicionalmente** junto com `X-Inertia`), o verde nao diz nada sobre a tela.
+
+- **⚠️ Nao virar gate por sintaxe:** acusar `if (request()->ajax())` em controller reprovaria
+  todo controller Blade legado que **nao** serve Inertia — a maioria do repo. O predicado real
+  e *"esta rota serve uma tela Inertia com prop deferida?"*, que cruza controller + render +
+  manifesto. Familia do guard sintatico ja enterrada 7x neste §5. O que fecha e a **Regra 0**
+  do [PROTOCOLO-COMPARACAO-RUNTIME](requisitos/_DesignSystem/PROTOCOLO-COMPARACAO-RUNTIME.md)
+  — medir a tela no runtime antes de dar por entregue — que eu **nao cumpri**.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:

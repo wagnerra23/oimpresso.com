@@ -1660,7 +1660,6 @@
 - **⚠️ Sobre virar máquina — MEDIDO, não armado:** o sub-caso é **mecanicamente decidível** (`str.count`/`.count(` num script de escrita cujo padrão começa por espaço e o arquivo-alvo é `.yml`), diferente do eixo semântico da lápide-mãe. Mas o dono já existe e é o `block-sonda-que-mente` **P2**, que cobre a sub-classe determinística da LC-16 pelo lado dos metacaracteres — seria **estender**, nunca abrir paralelo (LC-19). Não armado aqui por [ADR 0344](decisions/0344-two-strikes-cobre-processo.md): **1ª ocorrência conserta, não codifica**, e o dano foi contido antes do commit. Fica com o comando de medição para a 2ª: contar, no corpus de scripts de escrita, `count(` cujo argumento comece com espaço — separando os que editam arquivo indentado dos que não. A defesa barata e universal já é canon e é o que funcionou: **rode o parser do consumidor depois de escrever** (§5 2026-08-12, *"doc que a máquina LÊ é código com cara de doc"*).
 - **Evidência:** [#6962](https://github.com/wagnerra23/oimpresso.com/pull/6962) · 1ª tentativa: `assert n==2` verde + `yaml.parser.ParserError` na linha 88/106 · 2ª: `count==1` por bloco, teste de identidade `prova == antes` passou, `git diff` `+2 −0`.
 
-
 ### 2026-09-08 — Dispensar o escopo multi-tenant do parent no eager-load da fonte da meta (a "armadilha" NÃO existe — li um dos dois escopos irmãos)
 
 - **O que foi tentado:** no PR-3 das metas da Jana ([#6968](https://github.com/wagnerra23/oimpresso.com/pull/6968)), pôr `withoutGlobalScope(ScopeByBusinessViaParent::class)` no eager-load de `fonte` dentro do `buildMetasPayload`. A justificativa que escrevi — em **código, teste, `casos.md`, charter e corpo do PR** — era que meta de **plataforma** (`business_id` nulo) aparece no Painel pelo `orWhereNull('business_id')` da consulta, e que a fonte dela cairia fora do escopo do parent, fazendo a tela dizer *"sem fonte configurada"* para uma meta que tem fonte. Veio com o comentário `// SUPERADMIN:` que a regra exige, o que deu à afirmação **cara de recibo**.
@@ -1702,3 +1701,48 @@
   **O ponto cego é o INVERSO do que escrevi:** não é "só vê branch pushada, foi sorte a desta ter pushado" — é que **nenhuma consulta ao grafo do git vê trabalho que ainda não foi feito**, e era exatamente esse o caso. Portanto **não armar não foi cautela: era o veredito**. O candidato deixa de ser "par pronto para a próxima ocorrência" e passa a ser **registro do que NÃO serve** — informação melhor que um par prometendo pegar o que não pega.
   **⚠️ E o mais instrutivo:** apresentar *"o detector acha o commit **hoje**"* como prova de que *"**teria** pego"* é exatamente o **limite (2) desta mesma lápide** — recibo da PREMISSA passando por prova da CONCLUSÃO — cometido um parágrafo abaixo dele. Mesma família de §5 2026-08-14 (selftest que exercitava a cópia, não o chokepoint) e §5 2026-07-30 (mecanismo que anuncia capacidade que não tem). **Eu cometi, ao registrar a classe, a própria classe** — como já acontecera na lápide de 2026-07-30, e por isso fica aqui, não apagado.
   **O que o adversário confirmou e NÃO muda:** classe **LC-19** correta (LC-08 tem sabor na causa, mas somar infla os dois; LC-20 não serve — a base não estava velha) · **não é duplicata**, e a cronologia **fortalece** o argumento · contador **13→14** correto, sem double-count · o alarme two-strikes **segue tocando** (`Gate:` ainda começa com `none`) · zero LC-10, zero claim de superioridade. Controles dele: `is-shallow` false · `two-strikes --reconcile` rc=0 · `lapide-recheck` rc=0 · `gate-selftest` 82/82 · `sec5-derive --check` rc=0.
+
+### 2026-09-08 — Teste de tela Inertia que monta uma requisicao que o BROWSER NUNCA ENVIA (verde no CI, skeleton eterno em prod) — e a mutacao nao pega, porque muta o CODIGO, nao a SONDA
+
+- **O limite (variante tambem proibida):** teste que exercita rota servida a um **cliente**
+  (Inertia, HTMX, DataTables, fetch de SPA) reproduz **os headers que aquele cliente manda de
+  fato** — nao um subconjunto conveniente. Vale pra `X-Requested-With`, `Accept`,
+  `X-Inertia*`, `X-CSRF-Token`, `Content-Type`. A pergunta que separa: *"um browser real
+  emitiria exatamente esta requisicao?"* — se a resposta nao for um sim medido no cliente
+  (aqui: `@inertiajs/core`, `getHeaders()`, que manda `X-Requested-With`
+  **incondicionalmente** junto com `X-Inertia`), o verde nao diz nada sobre a tela.
+
+- **O corolario que esta lapide tem de proprio, e que custa caro:** **bite-test por MUTACAO
+  nao valida a sonda.** Eu rodei 3 variantes do controller x 3 cenarios e cada teste mordeu
+  na direcao certa — mas as **nove** celulas usavam o MESMO header errado. Mutacao prova que
+  o teste discrimina o codigo sob teste; **nao** prova que o teste fala a lingua do cliente
+  real. Sao dois eixos, e o segundo so se fecha reproduzindo o cliente ou medindo o runtime.
+
+- **Assinatura pra reconhecer sem saber a causa:** a tela tem prop **deferida** (`Inertia::defer`)
+  e o controller tem um ramo `if (request()->ajax())` legado do Blade. Toda a carga deferida
+  chega por partial reload, todo partial carrega `X-Requested-With`, e o ramo legado engole a
+  requisicao. O sintoma pro usuario e **skeleton que nunca vira tabela**; o sintoma no CI e
+  **verde**. Guarda correta, ja padrao da casa (`EssentialsLeaveController:95`):
+  `if (request()->ajax() && ! request()->inertia())`.
+
+- **⚠️ Nao virar gate por sintaxe:** acusar `if (request()->ajax())` em controller reprovaria
+  todo controller Blade legado que **nao** serve Inertia — a maioria do repo. O predicado real
+  e *"esta rota serve uma tela Inertia com prop deferida?"*, que cruza controller + render +
+  manifesto. Familia do guard sintatico ja enterrada 7x neste §5. O que fecha e a **Regra 0**
+  do [PROTOCOLO-COMPARACAO-RUNTIME](requisitos/_DesignSystem/PROTOCOLO-COMPARACAO-RUNTIME.md)
+  — medir a tela no runtime antes de dar por entregue — que eu **nao cumpri**.
+
+- **Terceira do modulo na mesma janela**, todas de telas migradas em paralelo antes de o
+  primeiro hotfix existir: Bens ([#7047](https://github.com/wagnerra23/oimpresso.com/pull/7047)),
+  Alocacoes e Manutencoes ([#7053](https://github.com/wagnerra23/oimpresso.com/pull/7053)).
+  A minha ([#7045](https://github.com/wagnerra23/oimpresso.com/pull/7045)) **chegou a prod**.
+  Corolario de paralelismo: quando N sessoes migram telas irmas ao mesmo tempo, o defeito
+  de UMA nasce nas N — e a que mergeia primeiro nao avisa as outras. `whats-active` antes de
+  abrir PR de tela irma (§5 2026-08-13) e o que teria encurtado isso.
+
+- **Consequencia operacional imediata, registrada porque quase virou dano:** eu ja tinha
+  disparado o `workflow_dispatch` do gate visual pra gerar a **baseline** desta tela quando o
+  defeito apareceu. O `PixelBaselineTest` roda Pest Browser — cliente Inertia real — logo a
+  baseline sairia sendo **foto do skeleton eterno**, e viraria o "estado correto" contra o qual
+  todo PR futuro seria comparado. **Cancelado antes de commitar** (`conclusion=cancelled`, 0
+  `.snap` na branch). Regra: **nao gerar baseline visual de tela cujo runtime nao foi medido.**
