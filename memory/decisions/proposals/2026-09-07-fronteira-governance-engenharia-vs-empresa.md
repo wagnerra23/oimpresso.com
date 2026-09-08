@@ -82,7 +82,11 @@ parâmetro, a tela agrega tudo e rotula `"Plataforma"`, o que é coerente com a 
 [W]-auditor; **com** o parâmetro, ela serve a série daquele tenant a quem alcançar a rota.
 
 Mitigações que existem hoje, e por isso é suspeita e não incêndio: a rota exige `auth`, e a
-Camada 1 só mostra o item a quem tem `governance_module`. O que **não** existe: nenhum `can:` nas
+Camada 1 só mostra o item a quem tem `governance_module`. **Errata 2026-09-08:** a mitigação
+principal ficou de fora desta lista — `QualidadeIaController` **tem** `can:jana.mcp.usage.all` no
+construtor, e o docblock dele declara o cross-business como intencional (ADR 0366). O buraco real
+não é a leitura do request: é a **concessão** dessa permission, confirmada em produção e travada
+por catraca no PR #6952. O que **não** existe: nenhum `can:` nas
 rotas do módulo, e o `ActionGate` — o middleware de policy do próprio módulo — **não é aplicado
 por rota nenhuma**. `git grep -iln actiongate origin/main -- '*routes*.php'` devolve 0 arquivos,
 com controle positivo (`Route::` no mesmo pathspec devolve 10).
@@ -172,6 +176,7 @@ Todas as medições em `origin/main` = `2e8da2b6f3`, repo não-raso.
 | 9 services, 0 filtram | grep de `DB::table(` × `where('business_id'` em `Modules/Governance/Services/` |
 | `mcp_audit_log` tem tenant | migration `create_mcp_audit_log_table` — 3 ocorrências de `business_id` |
 | `ActionGate` sem rota | `git grep -iln actiongate origin/main -- '*routes*.php'` = 0 arquivos (controle positivo: `Route::` = 10) |
-| nenhum `can:` no módulo | `git show origin/main:Modules/Governance/Http/routes.php` — só `throttle:` e o grupo `web/auth` |
+| nenhum `can:` nas ROTAS do módulo | `git show origin/main:Modules/Governance/Http/routes.php` — só `throttle:` e o grupo `web/auth` |
+| ⚠️ mas HÁ `can:` no CONSTRUTOR | `QualidadeIaController::__construct` → `middleware('can:jana.mcp.usage.all')`. Medido 2026-09-08 — a claim é verdadeira sobre `routes.php` e **incompleta sobre o sistema** (§5 2026-07-28) |
 | `Custos`/`Auditoria` escopam por sessão | `session()->get('user.business_id')` nos dois controllers |
 | audiência declarada | [ADR 0366](../0366-fronteira-jana-forja-governance-kb.md), tabela de papéis por módulo |
