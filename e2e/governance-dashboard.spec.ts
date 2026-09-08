@@ -55,19 +55,20 @@ test('/governance/dashboard renderiza o componente governance/Dashboard', async 
   // igualdade exata — o `JSON.parse` já normaliza a barra escapada.
   const html = await (await page.request.get('/governance/dashboard')).text();
 
-  // O `[{]` no início não é decoração: o documento traz ANTES do div do Inertia outra
-  // ocorrência de `data-page=` cujo valor não é JSON, e um padrão frouxo casa com ela
-  // primeiro — foi o que derrubou o run 34272343951 (`"app" is not valid JSON`).
-  // Exigir que o valor comece com `{` ancora no atributo que carrega o payload.
-  const atributo = html.match(/data-page="([{][^"]*)"/);
+  // O payload NÃO vem num atributo: este `@inertia` emite
+  // `<script data-page="app" type="application/json">{...}</script>`, onde `data-page`
+  // é o id do elemento raiz e o JSON é o CONTEÚDO do script. Medido no run 34273078141,
+  // que imprimiu o recorte do HTML servido — as três tentativas anteriores caçavam um
+  // atributo que nunca existiu aqui. Sem regex: recorta-se entre o `>` da abertura e o
+  // `</script>`, e o `JSON.parse` já normaliza a barra escapada de `governance\/...`.
+  const marcador = html.indexOf('data-page=');
   expect(
-    atributo,
-    `nenhum data-page com payload JSON no HTML servido. Recorte: ${html.slice(html.indexOf('data-page'), html.indexOf('data-page') + 220)}`,
-  ).not.toBeNull();
+    marcador,
+    `sem o script de payload do Inertia no HTML servido. Início do documento: ${html.slice(0, 220)}`,
+  ).toBeGreaterThan(-1);
 
-  const pagina = JSON.parse(
-    atributo![1].replace(/&quot;/g, '"').replace(/&#039;/g, "'").replace(/&amp;/g, '&'),
-  );
+  const abre = html.indexOf('>', marcador) + 1;
+  const pagina = JSON.parse(html.slice(abre, html.indexOf('</script>', abre)));
   expect(pagina.component).toBe('governance/Dashboard');
 });
 
