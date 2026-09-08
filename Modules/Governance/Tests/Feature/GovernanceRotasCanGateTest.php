@@ -27,6 +27,12 @@ uses(Tests\TestCase::class);
  *   de um business. Fechar aquele caminho é o passo 1 da ADR 0392 (o conflito
  *   A×B da CONCESSÃO), decisão [W] em aberto.
  *
+ * ⚠️ POR QUE NENHUM `toContain(needle, mensagem)` AQUI:
+ *   `toContain` do Pest é VARIÁDICO — o 2º argumento vira outro needle, não
+ *   mensagem, e o assert passa a procurar a própria frase de erro dentro do
+ *   array. Foi o que derrubou a 1ª versão deste arquivo no CI. Onde há mensagem,
+ *   usa-se assert do PHPUnit, que tem posição própria pra ela (§5 2026-09-05).
+ *
  * Refs:
  *   - memory/decisions/0392-fronteira-governance-audiencia-enforcement-na-concessao.md
  *   - memory/decisions/0393-governanca-da-empresa-aparece-no-fluxo.md
@@ -38,7 +44,7 @@ function govMiddlewareDaRota(string $nome): array
 {
     $rota = Route::getRoutes()->getByName($nome);
 
-    expect($rota)->not->toBeNull("rota `{$nome}` não está registrada no router");
+    test()->assertNotNull($rota, "rota `{$nome}` não está registrada no router");
 
     return $rota->gatherMiddleware();
 }
@@ -57,8 +63,9 @@ describe('Governance — gate can: armado por rota', function () {
         ];
 
         foreach ($esperado as $nome => $middleware) {
-            expect(govMiddlewareDaRota($nome))->toContain(
+            $this->assertContains(
                 $middleware,
+                govMiddlewareDaRota($nome),
                 "rota `{$nome}` deveria exigir `{$middleware}` (ADR 0392 §D-D passo 2)"
             );
         }
@@ -85,11 +92,12 @@ describe('Governance — gate can: armado por rota', function () {
             ->values()
             ->all();
 
-        expect($usadas)->not->toBeEmpty('nenhuma rota gateada — o teste estaria vazio');
+        $this->assertNotEmpty($usadas, 'nenhuma rota gateada — o teste estaria vazio');
 
         foreach ($usadas as $permission) {
-            expect($declaradas)->toContain(
+            $this->assertContains(
                 $permission,
+                $declaradas,
                 "`{$permission}` não é declarada em DataController::user_permissions() — "
                 . 'sem checkbox em /roles/{id}/edit, ninguém consegue conceder'
             );
@@ -101,9 +109,11 @@ describe('Governance — gate can: armado por rota', function () {
         // exigir permission — se alguém gatear, quem não tem a permission perde
         // o redirect em vez de ser levado ao hub. Este caso existe para provar
         // que o teste de cima distingue rota gateada de não-gateada.
-        $middleware = govMiddlewareDaRota('governance.admin.dashboard');
+        $comCan = collect(govMiddlewareDaRota('governance.admin.dashboard'))
+            ->filter(fn (string $m) => str_starts_with($m, 'can:'))
+            ->values()
+            ->all();
 
-        expect(collect($middleware)->filter(fn ($m) => str_starts_with($m, 'can:'))->all())
-            ->toBeEmpty('a redirect de entrada não deve exigir permission');
+        $this->assertEmpty($comCan, 'a redirect de entrada não deve exigir permission');
     });
 });
