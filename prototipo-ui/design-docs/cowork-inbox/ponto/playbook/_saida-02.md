@@ -141,6 +141,12 @@ O gate é **advisory** — li a união `classic_protection ∪ rulesets` do
 `governance/required-checks-baseline.json` (45 contextos): `PageHeader · ratchet` não está lá.
 Reprova é visível, não bloqueia o merge do [W].
 
+⚠️ **Não leia o verde deste PR como conserto.** Depois do push do merge o check **sumiu da lista**
+(122 → 82 checks) — e não foi porque passou: [`pageheader-gate.yml`](../../../../../.github/workflows/pageheader-gate.yml)
+declara `pull_request: types: [opened, reopened, ready_for_review]`, **sem `synchronize`**. Ele roda
+na abertura do PR e não re-executa a cada commit. A dívida segue no `main`, intacta e medida acima;
+o PR só deixou de perguntar.
+
 ⚠️ **Erro meu, corrigido aqui:** este `_saida` nasceu com `base: 2052c46ae302`. Errado — li o
 `origin/main` **depois** de já ter criado a branch. A base real é `a364bd65ede3`, e foi
 exatamente essa defasagem que produziu o vermelho do `SUPERFICIE`.
