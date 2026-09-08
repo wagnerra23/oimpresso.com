@@ -150,24 +150,38 @@ A thread 02 toca este mesmo Service e é o lugar natural para provar ou refutar.
 
 ## RESÍDUO — o gêmeo Tier 0 segue ABERTO
 
-`AssetController.php:97` — **cópia literal**, provada byte-a-byte:
+**Endereçado por SÍMBOLO, não por linha** — o PR #7008 (thread 03, draft) insere a guarda no
+`index()` e empurra o resto do arquivo. Medi nos dois lados: a subconsulta está em `:97` no `main`
+de hoje e cai em `:110` na branch dele. Ref de linha apodrece no primeiro refactor (lápide §5
+2026-07-26), então o endereço durável é o símbolo + o `grep` que o re-localiza:
 
 ```
-Service:112    md5 = a9733ecd33190e7f4a3bd340ec801a1c
-Controller:97  md5 = a9733ecd33190e7f4a3bd340ec801a1c   → IDÊNTICAS
+símbolo   AssetController::index() — a subconsulta que produz `revoked_qty`
+localiza  git grep -n "asset_transactions AS AR" -- Modules/AssetManagement/
+linha     :97 no main em 2026-09-08 (datado, não é endereço)
+```
+
+É **cópia literal** da minha, provada byte-a-byte com as duas linhas normalizadas:
+
+```
+AssetAllocationService::quantidadeDisponivel()  md5 = a9733ecd33190e7f4a3bd340ec801a1c
+AssetController::index()                        md5 = a9733ecd33190e7f4a3bd340ec801a1c
+                                                → IDÊNTICAS
 ```
 
 Varredura contada da família (`git grep "asset_transactions AS AR"`, repo inteiro): **2 sites de
-código, 2 de 2** — `Service:112` (corrigido aqui) e `Controller:97` (aberto). Os outros 3 hits são
-documentação.
+código, 2 de 2** — o meu (corrigido) e o do `index()` (aberto). Os outros 3 hits são documentação.
 
 **Não consertei: está fora do prefixo** (`nao_toca: Http/Controllers/`). E ele é o de **maior**
-alcance — é o índice/listagem, contra 1 consumidor do meu (`AssetAllocationController.php:251`;
-medido: `git grep quantidadeDisponivel` = 1 chamada de código no repo). Documentado em
+alcance — é o índice/listagem, contra 1 consumidor do meu (`AssetAllocationController`, método
+`update`; medido: `git grep quantidadeDisponivel` = 1 chamada de código no repo). Documentado em
 `CODE_NOTES.errata-playbook-patrimonio-2026-09-08.md` §4.
 
-**Terceira ordem** (a errata §4 aponta; **remedi antes de repassar**): `AssetController.php:430` e
-`:442` correlacionam por `AT.parent_id=asset_transactions.id`, mesmo padrão, também sem tenant.
+**Terceira ordem — corrigido o que eu havia repassado.** A errata §4 chama `dashboard()` (`:430`
+e `:442` no main de hoje) de *"mesmo padrão"*, e eu repassei assim depois de conferir só que a
+correlação era por `AT.parent_id`. A thread 04 mediu mais fundo e está certa: ali as queries
+**externas** também não filtram `business_id` — falta o amarre que salva o `index()`. É defeito
+**distinto e maior**, não a mesma família. Registro a correção em vez de deixar minha versão de pé.
 
 ## Nota — o SCOPE pedido não existe nesse caminho
 
@@ -184,7 +198,7 @@ abriu o **PR #7008**, que carrega a guarda `asset.view` no `index()` mais os tes
 
 Não toquei nesse arquivo em momento algum; meus dois `git checkout` no container nomearam apenas
 `AssetAllocationService.php` e `CrossTenantAssetTest.php`. Registro o episódio porque o **gêmeo
-Tier 0 mora nesse mesmo arquivo**: quem for fechar o `AssetController.php:97` precisa combinar
+Tier 0 mora nesse mesmo arquivo**: quem for fechar a subconsulta do `index()` precisa combinar
 com a 03 (ou esperar o #7008 mergear) para não colidir.
 
 Fica também a lição operacional, que vale para as threads seguintes: o checkout do CT 100 é
