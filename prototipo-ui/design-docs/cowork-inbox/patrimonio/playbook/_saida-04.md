@@ -672,6 +672,40 @@ rg --hidden -g '!.git/**' "(can\(|@can\(|'value' =>\s*)'asset\."             # r
 git grep -n StoreAssetAllocationRequest    # 8 linhas, nenhuma e use/type-hint
 ```
 
+---
+
+## 11 · Desfechos — o que fechou depois desta medição (datado, 2026-09-08)
+
+Registrado para que quem ler este arquivo não persiga item já resolvido. Verificado por
+`gh pr view` / `gh pr diff`, não aceito de segunda mão.
+
+| item | estado |
+|---|---|
+| §0 do índice dando **D1 como caído** | ✅ **errata no [#7016]** — cita esta medição como recibo e confirma independentemente (o arquivo não contém a string `superadmin`) |
+| **prefixo `asset.*`** (item 2 do RESÍDUO) | ✅ **corrigido no [#7016]** — `permission_prefix: asset.*` no `SCOPE.md`, com errata |
+| **canal furado** (§5) | ✅ **fechado no [#7016]** pelas **duas** saídas: o `§3` ganhou o item **(6)** *"os `_saida-NN.md` das threads JÁ FECHADAS, e em especial o campo `invalida:`"*, e o `02-trava-de-saldo.md:34` ganhou errata + passo exigindo provar que a trava roda no caminho vivo |
+| **`orWhereNull`** (§7c) | ✅ **PR #7015** (thread 03) |
+| **`created_by`** dos 2 testes Tier 0 (§7e) | ⛔ **ÚNICO ÓRFÃO RESTANTE** — sem dono |
+| **D-ENDERECO** (§8) | ⏸️ decisão de [W] |
+
+[#7016]: https://github.com/wagnerra23/oimpresso.com/pull/7016
+
+### Lição de método desta thread, sobre mim mesma
+
+O `§3` do índice mandava ler `memory/requisitos/**Patrimonio**/SCOPE.md` — **que não existe**;
+o real é `AssetManagement/SCOPE.md`. Detectei isso no **primeiro minuto** da medição, usei o
+path certo em todo o documento (§6, §8) — e **nunca registrei que o procedimento apontava para
+um arquivo fantasma**. O achado ficou na conversa e não chegou ao artefato; foi a coordenação
+que o encontrou depois, por conta própria, e corrigiu no #7016.
+
+É **exatamente a classe que este documento denuncia no §5**: informação que não chega ao
+artefato não chega a ninguém. Eu apontei o buraco no canal entre threads enquanto deixava um
+achado meu no mesmo tipo de buraco. Fica escrito porque a regra que vale é a mesma nos dois
+casos — **o que não está no `_saida` não existe para a próxima sessão**, e isso vale inclusive
+para o que parece pequeno demais para registrar.
+
+---
+
 **Ressalvas de método, declaradas:**
 
 - §7c estava *"medido por construção"* na 1ª redação; **hoje está executado** (`toSql()` no
