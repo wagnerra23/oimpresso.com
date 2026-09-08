@@ -38,7 +38,10 @@ test('/governance/dashboard renderiza o componente governance/Dashboard', async 
   await page.goto('/governance/dashboard');
   await page.waitForLoadState('networkidle');
 
-  await expect(page.getByRole('heading', { name: 'Governança' })).toBeVisible({ timeout: 15_000 });
+  // `exact: true` + `level: 1` não é zelo: o `name` do getByRole casa por SUBSTRING, e esta
+  // tela tem 3 headings contendo "Governança" (h1 "Governança", h2 "Governança MCP", h3
+  // "Atalhos de governança") — sem isso o locator é ambíguo e o strict mode reprova.
+  await expect(page.getByRole('heading', { name: 'Governança', exact: true, level: 1 })).toBeVisible({ timeout: 15_000 });
 
   const payload = await page.locator('#app[data-page]').getAttribute('data-page');
   expect(payload ?? '').toContain('governance/Dashboard');
@@ -59,8 +62,9 @@ test('o painel resolve as props deferidas sem exceção de runtime', async ({ pa
   // Sincronismo por REDE (o `<Deferred>` dispara um request próprio), nunca por relógio.
   await page.waitForLoadState('networkidle');
 
-  // A tela continua de pé depois que o deferido chegou.
-  await expect(page.getByRole('heading', { name: 'Governança' })).toBeVisible();
+  // A tela continua de pé depois que o deferido chegou. (`exact`+`level` pelo mesmo
+  // motivo do teste acima: 3 headings desta tela contêm "Governança".)
+  await expect(page.getByRole('heading', { name: 'Governança', exact: true, level: 1 })).toBeVisible();
   expect(excecoes, `exceções de runtime na página: ${excecoes.join(' | ')}`).toEqual([]);
 });
 
