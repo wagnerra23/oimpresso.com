@@ -181,9 +181,18 @@ function alocacoesContratoLimpar(): void
  *    calculou (mesmo passando `Inertia::getVersion()`, resolvido FORA do ciclo da request).
  *    A versao boa e a que o proprio render acabou de emitir — ela vem no `page` da root view.
  *    Por isso o primeiro GET nao e desperdicio: ele e a fonte da versao.
+ * 3. `flushHeaders()` NAO e enfeite. O test client do Laravel ACUMULA os headers passados em
+ *    `withHeaders()` para todas as requisicoes seguintes da MESMA instancia de teste. Sem o
+ *    flush, um cenario que chama esta helper DUAS vezes (UC-ALOC-03 e UC-ALOC-04 chamam) leva
+ *    o `X-Inertia` da chamada anterior para o GET inicial da seguinte — que entao devolve o
+ *    JSON do Inertia em vez da root view, e `viewData('page')` estoura com "The response is
+ *    not a view". MEDIDO no CT 100 em 2026-09-08: exatamente os 2 cenarios de chamada dupla
+ *    falhavam, e os 3 de chamada unica passavam.
  */
 function alocacoesContratoPropDeferida(User $user, int $businessId, array $query = []): array
 {
+    test()->flushHeaders();
+
     $inicial = alocacoesContratoGet($user, $businessId, $query);
 
     expect($inicial->status())->toBe(200);
