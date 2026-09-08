@@ -6,6 +6,7 @@ use App\Transaction;
 use App\Util\OtelHelper;
 use App\Utils\TransactionUtil;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Spatie\Activitylog\Models\Activity;
 
 /**
@@ -66,6 +67,20 @@ class ComprasService
     private function listarComprasInterno(int $businessId, array $filters)
     {
         $query = $this->transactionUtil->getListPurchases($businessId);
+
+        // Coluna "Itens" do protótipo (`compras-page.jsx:501` — `<td className="num">{p.items}</td>`).
+        // SUBSELECT, não join: a query do core já agrupa por `transactions.id` com SUM/COUNT
+        // (TransactionUtil::getListPurchases), e um join a mais em `purchase_lines` multiplicaria
+        // as linhas do agregado — o `amount_paid` sairia inflado. Isto é o pior tipo de defeito
+        // possível aqui, porque VALOR é Tier 0 (proibicoes.md §"CÁLCULO DE VALOR ou ESTOQUE"):
+        // sairia um número plausível e errado. O subselect correlacionado não toca o GROUP BY.
+        //
+        // NÃO entra no SORT_MAP de propósito: ordenar por ele exigiria repetir o subselect no
+        // ORDER BY, e a coluna do protótipo não é ordenável (`compras-page.jsx` só põe `SortTh`
+        // nas colunas de tabela).
+        $query->addSelect(DB::raw(
+            '(SELECT COUNT(*) FROM purchase_lines WHERE purchase_lines.transaction_id = transactions.id) as items_count'
+        ));
 
         if (! empty($filters['q'])) {
             $q = $filters['q'];
