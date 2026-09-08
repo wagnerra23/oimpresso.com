@@ -130,7 +130,7 @@ A operadora Gold faz HOJE manifestação manual no portal SEFAZ-SP (~30min/dia �
 |---|---|---|---|
 | KPI value (Pendentes/Vencendo) | h2 ~28px regular | 32-40px tabular-nums semibold | **40px tabular-nums semibold** + label tracking-widest text-xs uppercase muted |
 | Valor monetário (R$ na lista) | mono 14px regular | 14px tabular-nums | `font-mono tabular-nums` 14px (alinhamento perfeito de R$) |
-| CNPJ emitente | mono 12px muted | 12-13px mono | `font-mono` 12px text-muted-foreground (separador `12.345.678/0001-99`) |
+| CNPJ emitente | mono 12px muted | 12-13px mono | `font-mono` 12px text-muted-foreground (separador `XX.XXX.XXX/XXXX-XX`) |
 | Countdown prazo | n/a | badge 13px tabular-nums | **15px tabular-nums semibold** dentro do badge (legível à distância) |
 | Header h1 | 24px semibold | 28-32px semibold | **28px semibold** + line-height tight |
 
