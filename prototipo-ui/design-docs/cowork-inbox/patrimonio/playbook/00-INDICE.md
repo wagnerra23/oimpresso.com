@@ -283,7 +283,7 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
       "vaga": 2,
       "arquivo": "08-bens.md",
       "prefixo": [
-        "resources/js/Pages/Patrimonio/Bens/",
+        "resources/js/Pages/Patrimonio/Bens.tsx",
         "Modules/AssetManagement/Http/Controllers/AssetController.php"
       ],
       "nao_toca": [
