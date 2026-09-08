@@ -353,7 +353,7 @@ it('UC-CMP-08 · compra de local não permitido não aparece no cockpit', functi
 
 // ─────────────────────────────────────────────────────────────────────────────
 /**
- * UC-CMP-10 — as colunas "Itens" e "NF-e" do protótipo existem no payload.
+ * UC-CMP-10 — as colunas "Itens" e "NF-e" do protótipo têm o DADO CERTO no payload.
  *
  * ORIGEM (2026-09-07): comparação MEDIDA prod × protótipo do cockpit
  * (`memory/requisitos/Compras/_telas/cockpit-visual-comparison.md`). Das 4
@@ -368,8 +368,17 @@ it('UC-CMP-08 · compra de local não permitido não aparece no cockpit', functi
  * prova que o DADO chega. Se alguém "simplificar" o subselect pra um join, o
  * `amount_paid` infla (a query do core agrupa por transaction) e o assert de
  * valor abaixo é o que denuncia — VALOR é Tier 0.
+ *
+ * NF-e — A FONTE (corrigido em 2026-09-07, mesmo dia da 1ª versão): a coluna lê
+ * `transactions.chave_entrada` (chave de 44 dígitos, o `xmlChave` do protótipo),
+ * NÃO `transactions.document`. `document` é anexo genérico de arquivo — o core o
+ * grava com `uploadFile($request, 'document', 'documents')` e o serve como download,
+ * inclusive imagem (`isFileImage()`). Lê-lo como NF-e faz a tela afirmar "✓ XML" para
+ * um JPEG e "—" para uma compra com nota de verdade: um fato fiscal inventado a partir
+ * de um campo que não fala de fiscal. E o assert que o defendia era presence-gate
+ * (`array_key_exists`), que passa com o campo sempre nulo — agora prova VALOR.
  */
-it('UC-CMP-10 · o payload traz items_count e document (colunas Itens e NF-e do protótipo)', function () {
+it('UC-CMP-10 · o payload traz items_count e chave_entrada (colunas Itens e NF-e do protótipo)', function () {
     $sessao = ['user' => ['business_id' => $this->biz->id, 'id' => $this->user->id]];
 
     $ref = 'CMP-COLS-'.uniqid();
@@ -427,6 +436,12 @@ it('UC-CMP-10 · o payload traz items_count e document (colunas Itens e NF-e do 
         'updated_at' => Carbon::now(),
     ]);
 
+    // Chave fiscal de ENTRADA real (44 dígitos) na compra de controle — é o que a coluna
+    // "NF-e" lê. `transactions.chave_entrada` é `NOT NULL DEFAULT ''`, então sem gravar aqui
+    // o campo voltaria vazio e o assert de valor abaixo não teria o que provar.
+    $chave = '35260512345678000190550010000045211000045210';
+    DB::table('transactions')->where('id', $compra->id)->update(['chave_entrada' => $chave]);
+
     $linhas = 3;
     for ($i = 0; $i < $linhas; $i++) {
         DB::table('purchase_lines')->insert([
@@ -477,10 +492,17 @@ it('UC-CMP-10 · o payload traz items_count e document (colunas Itens e NF-e do 
         .'virou join, a contagem quebra.'
     );
 
-    expect(array_key_exists('document', $linha))->toBeTrue(
-        'A coluna "NF-e" do protótipo (compras-page.jsx:508 — `xmlChave ? "✓ XML" : "—"`) '
-        .'lê `document`, que a query do core já seleciona. Se a chave sumiu do payload, '
-        .'a coluna renderiza "—" pra tudo em silêncio.'
+    // NF-e — VALOR, não presença de chave. O assert anterior era `array_key_exists('document')`:
+    // passaria com o campo sempre nulo (LC-11, presence-gate) E fixava a fonte ERRADA.
+    // `document` é anexo genérico de arquivo (`uploadFile($request, 'document', 'documents')`),
+    // então lê-lo como NF-e faz a tela afirmar "✓ XML" para um JPEG anexado — e "—" para uma
+    // compra com nota de verdade. Este assert prova que a chave GRAVADA chega até a célula.
+    expect($linha['chave_entrada'] ?? null)->toBe(
+        $chave,
+        'A coluna "NF-e" do protótipo (compras-page.jsx:508 — `xmlChave ? "✓ XML" : "—"`) lê '
+        .'`transactions.chave_entrada`, a chave de 44 dígitos — o mesmo dado que o protótipo '
+        .'chama de `xmlChave`. Se voltar a ler `document`, a tela passa a afirmar um fato '
+        .'fiscal a partir de um anexo qualquer.'
     );
 
     // VALOR É TIER 0 (proibicoes.md §"CÁLCULO DE VALOR ou ESTOQUE"): o subselect

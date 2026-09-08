@@ -244,6 +244,15 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Kill-switch — flag de PARIDADE BLADE→React no Daily Brief
+    |--------------------------------------------------------------------------
+    | Liga/desliga o bullet `🟠 Blade por migrar: N endpoints …` na seção FLAGS.
+    | Origem [W] 2026-09-07: a fila existia no censo e ninguém era cobrado por ela.
+    */
+    'paridade_blade_brief_line' => true, // literal (não env): mesma razão do irmão acima
+
+    /*
+    |--------------------------------------------------------------------------
     | Seção OUTCOME DO AGENTE (7d) no Daily Brief (US-GOV-052 · evals de outcome)
     |--------------------------------------------------------------------------
     | Kill-switch do AgentOutcomeBriefSectionService (DORA dos PRs do agente via

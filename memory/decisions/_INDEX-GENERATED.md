@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **396** arquivos · **381** números únicos · máx **0391**
-- **ADRs ATIVOS (lifecycle ativo): 357** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 355 · superseded 16 · deprecated 13 · proposto 10 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 357 · arquivado 23 · substituido 16
+- **397** arquivos · **382** números únicos · máx **0392**
+- **ADRs ATIVOS (lifecycle ativo): 358** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 355 · superseded 16 · deprecated 13 · proposto 11 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 358 · arquivado 23 · substituido 16
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -35,7 +35,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (396)
+## Todas as ADRs (397)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -434,3 +434,4 @@ _(nenhuma)_
 | 0389 | aceito | ativo | decision | Emenda à 0374 — quando o `get_file` devolve INLINE, o agente escreve o arquivo ( |
 | 0390 | proposto | ativo | decision | Emenda à 0384 — o smoke que leva a `validated` aceita ambiente controlado (host  |
 | 0391 | proposto | ativo | decision | Regime de evolução por loops vale para tudo que não é Blade; Blade fica fora e m |
+| 0392 | proposto | ativo | decision | Fronteira do Governance por audiência — o enforcement vive na CONCESSÃO da permi |

@@ -10,8 +10,8 @@
       "scripts/governance/blade-migration-census.mjs --report"
     ]
   },
-  "gerado_em": "2026-08-08",
-  "total_blade": 471,
+  "gerado_em": "2026-09-08T00:50:12.237Z",
+  "total_blade": 454,
   "por_escopo": {
     "AssetManagement": {
       "blade": 21,
@@ -30,30 +30,26 @@
       "hibrido": 0
     },
     "Essentials": {
-      "blade": 38,
+      "blade": 33,
       "hibrido": 0
     },
     "Jana": {
-      "blade": 8,
+      "blade": 6,
       "hibrido": 0
     },
     "Manufacturing": {
-      "blade": 13,
-      "hibrido": 0
+      "blade": 12,
+      "hibrido": 1
     },
     "NfeBrasil": {
       "blade": 4,
       "hibrido": 0
     },
     "Officeimpresso": {
-      "blade": 16,
-      "hibrido": 0
+      "blade": 14,
+      "hibrido": 2
     },
     "OficinaAuto": {
-      "blade": 1,
-      "hibrido": 0
-    },
-    "Ponto": {
       "blade": 1,
       "hibrido": 0
     },
@@ -62,15 +58,15 @@
       "hibrido": 0
     },
     "Repair": {
-      "blade": 18,
-      "hibrido": 10
+      "blade": 17,
+      "hibrido": 11
     },
     "Spreadsheet": {
       "blade": 4,
       "hibrido": 0
     },
     "Superadmin": {
-      "blade": 25,
+      "blade": 20,
       "hibrido": 0
     },
     "VozDoCliente": {

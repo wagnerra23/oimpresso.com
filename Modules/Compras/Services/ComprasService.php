@@ -82,6 +82,20 @@ class ComprasService
             '(SELECT COUNT(*) FROM purchase_lines WHERE purchase_lines.transaction_id = transactions.id) as items_count'
         ));
 
+        // Coluna "NF-e" do protótipo (`compras-page.jsx:508` — `{p.xmlChave ? "✓ XML" : "—"}`).
+        //
+        // A fonte é a chave fiscal de ENTRADA, NÃO `transactions.document`: `document` é anexo
+        // genérico de arquivo (`PurchaseController` → `uploadFile($request, 'document', 'documents')`,
+        // baixável e podendo ser imagem — `isFileImage()` no próprio core). Lê-lo como NF-e faz a
+        // tela afirmar "✓ XML" para um JPEG e "—" para uma compra com nota de verdade.
+        // `chave_entrada` guarda a chave de 44 dígitos — o mesmo dado que o protótipo chama de
+        // `xmlChave` — e é o nome que o XML recebe em disco (`xml_entrada/<cnpj>/<chave>.xml`).
+        //
+        // Coluna simples, não subselect: já é funcionalmente dependente do `transactions.id` do
+        // GROUP BY, então não toca os agregados SUM/COUNT do core. O assert de `final_total` no
+        // UC-CMP-10 é a sentinela que denuncia se isso deixar de ser verdade.
+        $query->addSelect('transactions.chave_entrada');
+
         if (! empty($filters['q'])) {
             $q = $filters['q'];
             $query->where(function ($w) use ($q) {
@@ -306,6 +320,10 @@ class ComprasService
             'id' => $compra->id,
             'ref_no' => $compra->ref_no,
             'document' => $compra->document,
+            // `getAttribute` e não `->chave_entrada`: a coluna existe no banco mas o model
+            // `Transaction` não a declara (`$guarded = ['id']`, sem docblock), e o acesso dinâmico
+            // vira `property.notFound` no PHPStan — hoje baseline apenas para PurchaseXmlController.
+            'chave_entrada' => $compra->getAttribute('chave_entrada') ?: null,
             'transaction_date' => optional($compra->transaction_date)->toIso8601String(),
             'type' => $compra->type,
             'status' => $compra->status,
