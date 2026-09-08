@@ -12,9 +12,9 @@ module: AssetManagement
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs AssetManagement --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** o inventário completo das raízes `Modules/AssetManagement/**` + `resources/js/Pages/AssetManagement/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
+> **O que isto é:** o inventário completo das raízes `Modules/AssetManagement/**` + `resources/js/Pages/AssetManagement/**` + `resources/js/Pages/Patrimonio/**` (namespaces Inertia `AssetManagement`, `Patrimonio`, declarados em `module-surface.mjs::PAGES_NS` porque diferem do nome do módulo `AssetManagement` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 99 arquivos em 13 papéis.
+**Total mapeado:** 104 arquivos em 17 papéis.
 
 ## Controllers — 7
 
@@ -101,9 +101,25 @@ module: AssetManagement
 - [notification_settings.blade.php](../../../Modules/AssetManagement/Resources/views/settings/notification_settings.blade.php)
 - [prefix_settings.blade.php](../../../Modules/AssetManagement/Resources/views/settings/prefix_settings.blade.php)
 
-## Testes (Pest) — 9
+## Telas (Inertia/React) — 1
 
-- 9 em [Modules/AssetManagement/Tests/Feature/](../../../Modules/AssetManagement/Tests/Feature)
+- [Bens.tsx](../../../resources/js/Pages/Patrimonio/Bens.tsx)
+
+## Componentes / apoio de tela — 1
+
+- [PatrimonioSubNav.tsx](../../../resources/js/Pages/Patrimonio/_shared/PatrimonioSubNav.tsx)
+
+## Charters (lei da tela) — 1
+
+- [Bens.charter.md](../../../resources/js/Pages/Patrimonio/Bens.charter.md)
+
+## Casos (contrato UC) — 1
+
+- [Bens.casos.md](../../../resources/js/Pages/Patrimonio/Bens.casos.md)
+
+## Testes (Pest) — 10
+
+- 10 em [Modules/AssetManagement/Tests/Feature/](../../../Modules/AssetManagement/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 38

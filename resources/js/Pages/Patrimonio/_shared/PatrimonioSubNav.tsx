@@ -41,6 +41,17 @@ import PageHeaderTabs, {
   type PageHeaderOverflowItem,
 } from '@/Components/shared/PageHeaderTabs';
 
+interface EntradaDeMenu {
+  label: string;
+  group?: string;
+  primary?: PageHeaderPrimary;
+  ghosts?: PageHeaderGhost[];
+}
+
+interface ShellComMenu {
+  menu?: EntradaDeMenu[];
+}
+
 export interface PatrimonioSubNavProps {
   /** `key` do ghost desta tela — os do DataController: `dashboard` · `assets` · `allocation` · `revocation` · `asset-maintenance` · `settings`. */
   active: string;
@@ -58,20 +69,12 @@ export default function PatrimonioSubNav({
   extraOverflowItems,
   hidePrimary,
 }: PatrimonioSubNavProps) {
-  const sharedShell = (usePage().props as any)?.shell as
-    | {
-        menu?: Array<{
-          label: string;
-          group?: string;
-          primary?: PageHeaderPrimary;
-          ghosts?: PageHeaderGhost[];
-        }>;
-      }
-    | undefined;
+  // O shape da shared prop, declarado aqui em vez de `as any`: o `shell.menu` e LAZY
+  // (`HandleInertiaRequests`), entao tudo e opcional — quem consome tem de sobreviver a
+  // ausencia, e o tipo torna isso obrigatorio em vez de confiavel.
+  const { shell } = usePage<{ shell?: ShellComMenu }>().props;
 
-  const item = sharedShell?.menu?.find(
-    (m) => m.label?.toLowerCase() === LABEL_MODULO,
-  );
+  const item = shell?.menu?.find((m) => m.label?.toLowerCase() === LABEL_MODULO);
 
   // Degrada pra nada, nunca pra erro: sem a entry (módulo não assinado, usuário sem
   // nenhuma permission `asset.*`, ou rota sem o middleware `AdminSidebarMenu`) a tela

@@ -5,7 +5,7 @@ dono: "[CL]"
 criado: 2026-09-08
 base: 0f39a46a06 (origin/main fresco no início; +3 commits durante a sessão)
 thread: 06-ui-bloqueada.md
-prefixo_escrito: "resources/js/Pages/Patrimonio/{Bens.tsx,Bens.charter.md,Bens.casos.md,_shared/PatrimonioSubNav.tsx} · Modules/AssetManagement/Http/Controllers/AssetController.php (só o index()) · memory/requisitos/AssetManagement/RUNBOOK-bens.md · +1 FORA do prefixo: Modules/AssetManagement/Tests/Feature/BensContratoTest.php"
+prefixo_escrito: "resources/js/Pages/Patrimonio/{Bens.tsx,Bens.charter.md,Bens.casos.md,_shared/PatrimonioSubNav.tsx} · Modules/AssetManagement/Http/Controllers/AssetController.php (só o index()) · memory/requisitos/AssetManagement/RUNBOOK-bens.md · +3 FORA do prefixo, cada um exigido por gate required: Modules/AssetManagement/Tests/Feature/BensContratoTest.php (casos-gate G-2) · scripts/governance/module-surface.mjs (PAGES_NS, §1-bis) · memory/requisitos/AssetManagement/SUPERFICIE.md (derivado, regerado)"
 pr: "#7035 — aberto, NÃO mergeado"
 veredito: "entregue — tela migrada, `_shared` fundado, 4 UC com teste verde no CT 100 · 1 resíduo Tier 0 herdado MEDIDO e declarado · 3 achados que afetam as 6 threads irmãs"
 invalida: "06-ui-bloqueada.md §'Este arquivo NÃO é uma thread': o enunciado 'SubNav das 7 abas' está ERRADO — são 6, e a lista tem dono vivo (§2 abaixo) · o item 'a primeira rota Inertia no Routes/web.php' do prefixo: NÃO existe rota nova a criar (§3) · toda thread-filha do Patrimônio: o charter tem de vir ANTES do .tsx, senão o hook MWART bloqueia (§1)"
@@ -50,6 +50,29 @@ related_runbook: memory/requisitos/AssetManagement/RUNBOOK-<tela>.md
 ```
 
 e o RUNBOOK de fato existindo. Sem isso o hook barra, e ele **não tem override**.
+
+---
+
+## 1-bis · O SEGUNDO mecanismo que não conhecia a ADR 0394 — `PAGES_NS` (resolvido aqui, para as 7)
+
+O CI pegou o gêmeo do achado §1, em outro eixo. O `module-surface.mjs` mapeia módulo↔telas
+pelo **nome da pasta de `Pages/`**, igual ao hook — e o job `Mapa módulo↔Pages == renders
+reais` reprovou com a linha pronta:
+
+```
+✗ namespace(s) com dono ÚNICO fora do PAGES_NS — o módulo não enxerga as próprias telas:
+    Patrimonio (AssetManagement×1) → declare em PAGES_NS: AssetManagement: ['AssetManagement', 'Patrimonio']
+```
+
+Declarei, e isso vale **para as 7 telas de uma vez** — as irmãs não precisam repetir. Sem a
+linha, o `SUPERFICIE.md` do módulo sairia sem nenhuma tela: é o mesmo ponto cego que, medido
+em 2026-08-12, custou 26 telas ao Whatsapp (o gate ficava verde porque gerado e commitado
+compartilhavam a mesma cegueira).
+
+⚠️ **Este gate tem DOIS modos, e o CI roda os dois** (`--namespaces --check` e `--all --check`).
+Declarar o namespace resolve o primeiro; o segundo continuava vermelho até eu regenerar o
+derivado (`module-surface.mjs AssetManagement --write` → 104 arquivos). Rodar um modo e
+declarar verde é a armadilha do §5 2026-07-28.
 
 ---
 

@@ -4,6 +4,7 @@ component: resources/js/Pages/Patrimonio/Bens.tsx
 owner: wagner
 status: draft
 parent_module: AssetManagement
+related_us: [US-ASSET-001, US-ASSET-W05]
 related_adrs: [0394-endereco-de-ui-do-patrimonio-pages-patrimonio, 0104-processo-mwart-canonico-unico-caminho, 0093-multi-tenant-isolation-tier-0, 0180-sidebar-v3-5-grupos-ghosts-header]
 related_prototype: prototipo-ui/cowork/patrimonio-page.jsx
 related_runbook: memory/requisitos/AssetManagement/RUNBOOK-bens.md
@@ -123,10 +124,13 @@ cópia por ramo, e a próxima correção pousaria em só uma delas.
 3. `Bens-visual-comparison.md` — comparação medida contra o protótipo (`design-diff --probe`
    nos dois lados), não no olho.
 4. Decidir o resíduo Tier 0 de `Alocado` (thread do gêmeo).
-5. US no `SPEC.md`: a migração Blade→Inertia ainda está no **backlog** como
-   `US-ASSET-W05` (🔒 feature-wish). A [ADR 0394](../../../../memory/decisions/0394-endereco-de-ui-do-patrimonio-pages-patrimonio.md)
-   e o `SCOPE.md` já a liberaram — o SPEC é o artefato que ficou atrás e precisa da US ativa
-   (fora do prefixo desta onda; registrado em `_saida-06-bens.md`).
+5. **US no `SPEC.md` — declarada aqui, ainda 🔒 lá.** O `related_us` deste charter aponta
+   `US-ASSET-001` (o registry, cuja superfície de leitura é esta lista) e `US-ASSET-W05`
+   (a migração Blade→Inertia). A W05 segue marcada no SPEC como **backlog feature-wish sem
+   sinal qualificado**, embora a [ADR 0394](../../../../memory/decisions/0394-endereco-de-ui-do-patrimonio-pages-patrimonio.md)
+   e o `SCOPE.md` já a tenham liberado e esta tela seja a entrega dela. Pela regra de
+   precedência o SPEC é o elo mais fraco e deveria promovê-la a US ativa, com âncora
+   `**Implementado em:**` — fora do prefixo desta onda; registrado em `_saida-06-bens.md §8`.
 
 ## Refs
 

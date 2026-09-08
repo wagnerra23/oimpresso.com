@@ -35,6 +35,8 @@ import DataTable, { type EstadoDaLinha } from '@/Components/shared/DataTable';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
+import { Checkbox } from '@/Components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Skeleton } from '@/Components/ui/skeleton';
 import { Stack, Inline } from '@/Components/layout';
 import PatrimonioSubNav from './_shared/PatrimonioSubNav';
@@ -79,7 +81,7 @@ interface Paginator<T> {
   links: Array<{ url: string | null; label: string; active: boolean }>;
 }
 
-interface Filtros {
+interface FiltrosAtivos {
   q?: string | null;
   location_id?: string | number | null;
   category_id?: string | number | null;
@@ -92,7 +94,7 @@ interface Filtros {
 interface Props {
   /** Deferida — ausente no primeiro paint, por isso opcional. */
   bens?: Paginator<Bem>;
-  filtros: Filtros;
+  filtros: FiltrosAtivos;
   opcoes: {
     locais: Record<string, string>;
     categorias: Record<string, string>;
@@ -386,13 +388,20 @@ function colunas(permissoes: Props['permissoes']): ColumnDef<Bem, unknown>[] {
 /* ─── Filtros ─────────────────────────────────────────────────────────────────── */
 
 /** Tira nulo/vazio pra não empurrar `?location_id=` vazio na URL. */
-function limpar(filtros: Filtros): Record<string, string> {
+function limpar(filtros: FiltrosAtivos): Record<string, string> {
   const saida: Record<string, string> = {};
   for (const [chave, valor] of Object.entries(filtros)) {
     if (valor !== null && valor !== undefined && valor !== '') saida[chave] = String(valor);
   }
   return saida;
 }
+
+/**
+ * Sentinela do "todas" — o Radix `Select` NAO aceita `<SelectItem value="">`: string vazia e
+ * o valor que ele usa internamente para "nada selecionado", e passa-la explicitamente quebra
+ * o componente (§5 2026-06-29). Mesmo motivo do `ALL` que `Auditoria/Index.tsx` ja usa.
+ */
+const TODAS = '__todas__';
 
 function SelectFiltro({
   rotulo,
@@ -405,26 +414,37 @@ function SelectFiltro({
   opcoes: Record<string, string>;
   onChange: (valor: string) => void;
 }) {
+  const campoId = 'filtro-' + rotulo.toLowerCase().replace(/[^a-z]+/g, '-');
+
   return (
-    <label className="flex items-center gap-1.5 text-sm text-muted-foreground">
-      <span>{rotulo}</span>
-      <select
-        value={valor != null ? String(valor) : ''}
-        onChange={(e) => onChange(e.target.value)}
-        className="h-8 rounded-md border border-border bg-background px-2 text-sm text-foreground"
+    <Inline gap={1} align="center">
+      {/* O `<label>` deixa de ENVOLVER o controle porque o Radix renderiza um botao mais um
+          portal; o vinculo passa a ser explicito por `id`/`htmlFor`, que e o que o leitor de
+          tela de fato le. */}
+      <label htmlFor={campoId} className="text-sm text-muted-foreground">
+        {rotulo}
+      </label>
+      <Select
+        value={valor != null && valor !== '' ? String(valor) : TODAS}
+        onValueChange={(v) => onChange(v === TODAS ? '' : v)}
       >
-        <option value="">todas</option>
-        {Object.entries(opcoes)
-          // Chave vazia fora: ela colidiria com o "todas" acima e, no dia em que esta tela
-          // migrar pro Select do Radix, quebraria o componente (§5 2026-06-29).
-          .filter(([chave]) => chave !== '' && chave != null)
-          .map(([chave, texto]) => (
-            <option key={chave} value={chave}>
-              {texto}
-            </option>
-          ))}
-      </select>
-    </label>
+        <SelectTrigger id={campoId} className="w-40">
+          <SelectValue placeholder="todas" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value={TODAS}>todas</SelectItem>
+          {Object.entries(opcoes)
+            // Chave vazia fora: alem de colidir com o "todas" acima, `value=""` num
+            // `SelectItem` e exatamente o que o Radix recusa (ver TODAS, acima).
+            .filter(([chave]) => chave !== '' && chave != null)
+            .map(([chave, texto]) => (
+              <SelectItem key={chave} value={String(chave)}>
+                {texto}
+              </SelectItem>
+            ))}
+        </SelectContent>
+      </Select>
+    </Inline>
   );
 }
 
@@ -432,8 +452,8 @@ function SelectFiltro({
  * Os QUATRO filtros que o backend já servia, e só eles. Cada mudança navega — o estado de
  * filtro mora na URL, não em `useState`: link compartilhável e botão voltar honesto.
  */
-function Filtros({ filtros, opcoes }: { filtros: Filtros; opcoes: Props['opcoes'] }) {
-  const navegar = (campo: keyof Filtros, valor: string) => {
+function BarraDeFiltros({ filtros, opcoes }: { filtros: FiltrosAtivos; opcoes: Props['opcoes'] }) {
+  const navegar = (campo: keyof FiltrosAtivos, valor: string) => {
     router.get(
       '/asset/assets',
       // `page: undefined` de propósito: trocar o filtro tem de voltar pra página 1, senão o
@@ -463,15 +483,16 @@ function Filtros({ filtros, opcoes }: { filtros: Filtros; opcoes: Props['opcoes'
         opcoes={opcoes.tipos_compra}
         onChange={(v) => navegar('purchase_type', v)}
       />
-      <label className="flex items-center gap-1.5 text-sm text-muted-foreground">
-        <input
-          type="checkbox"
+      <Inline gap={1} align="center">
+        <Checkbox
+          id="filtro-alocaveis"
           checked={Boolean(filtros.is_allocatable)}
-          onChange={(e) => navegar('is_allocatable', e.target.checked ? '1' : '')}
-          className="h-3.5 w-3.5 rounded border-border"
+          onCheckedChange={(marcado) => navegar('is_allocatable', marcado ? '1' : '')}
         />
-        Somente alocáveis
-      </label>
+        <label htmlFor="filtro-alocaveis" className="text-sm text-muted-foreground">
+          Somente alocáveis
+        </label>
+      </Inline>
     </Inline>
   );
 }
@@ -519,7 +540,7 @@ export default function Bens({ bens, filtros, opcoes, permissoes }: Props) {
             repeti-lo na barra de abas daria dois botões idênticos lado a lado. */}
         <PatrimonioSubNav active="assets" hidePrimary />
 
-        <Filtros filtros={filtros} opcoes={opcoes} />
+        <BarraDeFiltros filtros={filtros} opcoes={opcoes} />
 
         <Deferred data="bens" fallback={<EsqueletoTabela />}>
           {bens && bens.data.length === 0 && !temFiltroAtivo ? (
