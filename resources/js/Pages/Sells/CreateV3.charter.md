@@ -1,6 +1,7 @@
 ---
 page: /sells/create-v3
 component: resources/js/Pages/Sells/CreateV3.tsx
+related_visual_comparison: memory/requisitos/Sells/CreateV3-visual-comparison.md
 owner: luiz
 status: draft
 last_validated: "2026-08-27"

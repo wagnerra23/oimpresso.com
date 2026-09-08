@@ -3,6 +3,7 @@ id: resources-js-pages-sells-index-charter
 page: /sells
 page_id: sells-index
 component: resources/js/Pages/Sells/Index.tsx
+related_visual_comparison: memory/requisitos/Sells/sells-index-dsv6-visual-comparison.md
 bundle_source: vendas-page.jsx
 related_prototype: prototipo-ui/cowork/vendas-page.jsx (formalizado 2026-07-09 — o visual_source já declarava vendas-page.jsx; campo canônico registrado pra âncora via ancora.mjs + proto-baseline)
 owner: wagner
