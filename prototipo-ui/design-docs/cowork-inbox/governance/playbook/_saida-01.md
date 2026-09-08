@@ -79,9 +79,26 @@ São observações verdadeiras e valiosas (documentam dívida real), mas num cam
 
 Nota de forma: os 3 vizinhos de estágio têm **três formatos diferentes entre si** (`configuracoes`/`patrimonio` usam `$schema/id/titulo/modulo/rota/…`; `venda-menu` usa `schema/page/source/gerado/…`; nenhum usa `tela`/`alvo`). A pasta de estágio não impõe schema único — mais uma razão pra não ter reescrito o de governança pro formato dos vizinhos.
 
-### B5 · Frontmatter do brief: `depois: 1 contrato advisory no CI` é **falso** (reconfirmado)
+### B5 · Frontmatter do brief: `depois: 1 contrato advisory no CI` é **falso** — mas "fora do CI" também é impreciso
 
-A errata de 2026-09-08 §6 já apontava. Reconfirmei por medição própria: `scripts/contrato-de-tela.mjs:136` define `ehDocDesign`, que exclui `prototipo-ui/design-docs/` inteiro, e é invocado em `:174` (pula o arquivo) e `:437` (filtra da lista de ativos). O arquivo fica **fora do CI**, não advisory dentro dele. Isso é o desenho correto de uma pasta de estágio — só a frase do frontmatter está errada.
+A errata de 2026-09-08 §6 já apontava que o contrato **não** vira advisory. Confirmado: `scripts/contrato-de-tela.mjs:136` define `ehDocDesign`, que exclui `prototipo-ui/design-docs/` inteiro, invocado em `:174` (pula o arquivo) e `:437` (filtra da lista de ativos). Rodando o verificador no arquivo:
+
+```
+node scripts/contrato-de-tela.mjs --contract prototipo-ui/design-docs/contrato-cowork/governance.contract.json
+  (pulado: … — documentação de design (design-docs/), não contrato vigente)
+  ✅ limpo.                                                              rc=0
+```
+
+**⚠️ Errata da minha própria 1ª redação, medida no CI deste PR e registrada, não apagada.** Eu escrevi aqui que "o arquivo fica **fora do CI**". **É impreciso**, e a imprecisão tem consequência: são **duas camadas independentes**, e o `ehDocDesign` só governa a segunda.
+
+| camada | quem decide | o meu arquivo |
+|---|---|---|
+| **dispara o job?** | filtro de path em `.github/workflows/contrato-de-tela.yml:83` — casa `\.contract\.json$`, **sem exclusão de `design-docs/`** | **SIM, dispara** |
+| **é validado como contrato?** | `ehDocDesign` no script | **não — pulado** |
+
+Ou seja: o arquivo **acorda** o job `Preflight + contratos ativos` e **passa** pelos verificadores de contrato. O que reprovou o PR na 1ª rodada foi o **preflight de base** (`branch atrás de origin/main`) — um check que roda no mesmo job e **nada tem a ver com contrato**. Quem lesse "fora do CI" concluiria que este arquivo não pode avermelhar nada, e concluiria errado.
+
+Isso importa pra thread de promoção: mexer neste arquivo **custa uma rodada de CI** e exige base ancestral de `origin/main`, mesmo o contrato em si sendo pulado.
 
 ### B6 · Índice §2-bis aponta pra um script que não existe
 
