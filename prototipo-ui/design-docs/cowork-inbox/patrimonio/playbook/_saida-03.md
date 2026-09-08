@@ -13,6 +13,14 @@ veredito: feito
 > **PASSO 1 (a trava) PASSOU:** `asset.view` **existe registrada**. A thread seguiu.
 > O defeito não era teórico: sem a guarda, o usuário sem permissão recebia **HTTP 200** na
 > listagem do patrimônio inteiro — medido por bite-test, não deduzido.
+>
+> **Cruzado com a thread 04 (medição):** o veredito D9 dela **confirma** esta medição, no
+> mesmo arquivo e linha (`DataController.php:31`), e acrescenta o consumidor a montante que
+> eu não tinha mapeado — `app/Http/Controllers/RoleController.php:101` e `:221`
+> (`getModuleData('user_permissions')`), que é quem renderiza os checkboxes de
+> `/roles/{id}/edit`. Ela também derrubou dois riscos que estavam em aberto: o prefixo
+> (`asset.*` vive, `assetmanagement.*` não existe) e um **defeito real no meu teste**, que
+> está consertado aqui — §2-bis (ii).
 
 ## 1 · `can('asset.view')` em `index()` ✅
 
@@ -81,14 +89,43 @@ fora do ramo ajax é pré-existente e este PR não o toca.
 
 **Tenant:** 98 (fictício, ADR 0358) por `find`-ou-`forceCreate`; biz=4 **não** aparece.
 
-### 2-bis · Um defeito do próprio teste, achado e consertado na sessão
+### 2-bis · Dois defeitos do próprio teste, achados e consertados na sessão
 
-A 1ª versão limpava os fixtures em `->afterEach()` encadeado ao `it()`. **Medido no CT 100:
-não executou** — 4 rodadas deixaram **8 usuários e 1 role órfãos** na base, que é clone de
-prod e **não se limpa entre runs**. A mesma função, chamada à mão via `tinker`, apagou os 8
-**sem uma exceção** → o defeito era o *gancho*, não a lógica. Trocado por `try/finally`
-dentro do closure (limpa inclusive quando o assert falha) + `withTrashed()` (o `App\User`
-usa SoftDeletes). **Órfãos deixados por mim: removidos**; prova abaixo.
+**(i) A limpeza não rodava.** A 1ª versão limpava os fixtures em `->afterEach()` encadeado
+ao `it()`. **Medido no CT 100: não executou** — 4 rodadas deixaram **8 usuários e 1 role
+órfãos** na base, que é clone de prod e **não se limpa entre runs**. A mesma função, chamada
+à mão via `tinker`, apagou os 8 **sem uma exceção** → o defeito era o *gancho*, não a lógica.
+Trocado por `try/finally` dentro do closure (limpa inclusive quando o assert falha) +
+`withTrashed()` (o `App\User` usa SoftDeletes). **Órfãos removidos**; prova abaixo.
+
+**(ii) O `MORDE` teria passado pelo motivo errado em CI — achado da thread 04.** Ela mediu
+que, **num banco limpo, `asset.view` NÃO existe na tabela `permissions`**: o seeder do módulo
+é vazio (`AssetManagementDatabaseSeeder`) e as permissões nascem sob demanda em
+`RoleController::__createPermissionIfNotExists()`, só quando alguém salva um Role. A minha 1ª
+versão só criava a Permission no ramo `comPermissao: true` — então, em CI com DB fresco, o
+`can()` do cenário `MORDE` devolveria `false` **por ausência da permissão**, e o 403 provaria
+outra coisa. **Confirmado por medição direta:** no CT 100 `asset.view` **já existe**
+(`asset_view_existe=SIM`), que é exatamente por que o teste passou lá pelo motivo certo e
+teria passado em CI pelo errado.
+
+Conserto em duas partes: o `firstOrCreate` da Permission subiu para **fora** do `if` (o que
+varia entre cenários é o usuário **ter** a permissão, nunca ela existir), e o `MORDE` ganhou
+um **canário de 2 asserts** que trava o pressuposto —
+
+```php
+expect(Permission::where('name', 'asset.view')->where('guard_name', 'web')->exists())->toBeTrue();
+expect($user->can('asset.view'))->toBeFalse();
+```
+
+Sem eles, remover o `firstOrCreate` deixaria o teste verde pelo motivo errado em silêncio.
+O bite-test pós-conserto é mais forte que o anterior: **os 2 asserts do canário passam** e
+só o `assertStatus` falha (`received 200`) — ou seja, fica provado na mesma execução que o
+`200` vem da **guarda ausente**, com o pressuposto verificado.
+
+> ⚠️ **Ressalva honesta:** o canário **não foi provado por mutação**. No CT 100 a permissão
+> existe de verdade, então remover o `firstOrCreate` ali não o faria falhar; provar exigiria
+> deletar `asset.view` de um clone de prod, o que não fiz. O canário é logicamente correto e
+> passa; a demonstração de que ele morde ficaria para uma lane de DB fresco.
 
 ## 3 · Veredito sobre `dashboard()` — ❌ NÃO entra junto (parada (b) do playbook)
 
@@ -106,7 +143,21 @@ thread manda evitar:
   `asset.view_all_maintenance`, e esse item aponta para o `dashboard()`. Um usuário só com
   `view_own_maintenance` tomaria 403 no item de menu que o próprio sistema exibiu para ele.
 
-**Decisão é de [W]**, e conversa com o RESÍDUO §2 (`asset.*` × `assetmanagement.*`).
+**Decisão é de [W]** — é escopo por dono, não `view`.
+
+**Dado novo da thread 04, que torna o `dashboard()` PIOR do que eu havia medido:** ele não
+tem **nem o gate de assinatura** — é o único método público que vai direto para a query
+(`:441` pega o `business_id`, `:443` já consulta) sem nenhum `abort(403)`. Isso é um buraco
+**diferente** do desta thread (assinatura ≠ permissão de tela) e **não** é "o mesmo buraco"
+que o passo 4 manda absorver, então segue fora deste PR. Fica dito porque é barato e não
+quebra perfil legítimo nenhum: quem chega pelo menu é do business que assina.
+
+⚠️ **E há um motivo forte para NÃO encostar no corpo do `dashboard()`** — achado inédito da
+thread 04 (`_saida-04.md` §7b/§7c): `:443` e `:455` filtram só por `receiver` sem
+`business_id`, e o bloco de garantias tem `orWhereNull('aw.end_date')` **fora do closure**,
+o que faz o SQL virar `(business_id = X AND …) OR (end_date IS NULL)` — **vazamento
+cross-tenant real**. Não tem dono em thread nenhuma. Mexer ali agora quebraria 1 PR = 1
+intent e invadiria o terreno da 01.
 
 ## 4 · Permissão confirmada como existente — **a origem, colada**
 
@@ -129,6 +180,7 @@ UltimatePOS que popula a lista de permissões de `/roles/{id}/edit`:
 
 | onde | linha | uso |
 |---|---|---|
+| `app/Http/Controllers/RoleController.php` | `:101`, `:221` | `getModuleData('user_permissions')` — **é quem renderiza os checkboxes de `/roles/{id}/edit`**, ou seja, a permissão é viva, não só declarada *(mapeado pela thread 04)* |
 | `Resources/views/layouts/nav.blade.php` | `:21` | `@can('asset.view')` envolvendo o link **"Ativos"** — a nav já dizia que esta tela é `asset.view` |
 | `DataController.php` | `:109` | item de sidebar do módulo (ADR 0180) |
 
@@ -145,21 +197,30 @@ tocar em nada. Medido no CT 100 com **antes→depois**, mesma árvore, mesmo com
 
 | | failed | passed | assertions |
 |---|---:|---:|---:|
-| **baseline** (meus 2 arquivos originais) | 8 | 61 | 142 |
-| **com a guarda** | 8 | **63** | **144** |
-| **delta** | **0** | **+2** | **+2** |
+| **baseline** (árvore 100% original) | 7 | 61 | 139 |
+| **com a guarda** | 7 | **63** | **143** |
+| **delta** | **0** | **+2** | **+4** |
 
-O delta bate **exatamente** com os 2 cenários novos (1 assertion cada) — prova de que eles
-**executaram**, não pularam (teste que pula sai com exit 0 e não conta assertion).
+O delta bate **exatamente**: `+2` testes e `+4` assertions — 3 no `MORDE` (2 do canário +
+`assertStatus`) e 1 no `CN`. Prova de que eles **executaram**, não pularam (teste que pula
+sai com exit 0 e não conta assertion).
 
-As **8 falhas são pré-existentes** e nenhuma toca `AssetController` ou `SmokeRoutesTest`:
+⚠️ **Este par foi re-medido.** A 1ª medição desta sessão deu `8 → 8 failed` / `142 → 144`
+porque a **thread 01 tinha o `CrossTenantAssetTest.php` modificado no mesmo container**, com
+um teste novo dela que falhava pela mesma FK. Ela reverteu o arquivo no meio da sessão
+(HEAD do container inalterado em `755f6de79`, `md5` do arquivo mudou, `git status` limpou),
+o que mudou o denominador. Os números acima são o par **honesto**: baseline e depois medidos
+com a **mesma** árvore, com o arquivo dela já revertido. Registro a 1ª medição em vez de
+apagá-la — o delta era o mesmo (`0` regressões), só o denominador é que era outro.
+
+As **7 falhas são pré-existentes** e nenhuma toca `AssetController` ou `SmokeRoutesTest`:
 todas são `QueryException` — `SQLSTATE[23000] … foreign key constraint fails
 (oimpresso_staging.assets, CONSTRAINT assets_created_by_foreign)` — fixtures de
-`MultiTenantIsolationTest` (4) e `CrossTenantAssetTest` (4) inserindo `assets` sem
-`created_by`. É dívida de fixture do módulo, **não deste PR**.
+`MultiTenantIsolationTest` e `CrossTenantAssetTest` inserindo `assets` sem `created_by`.
+É dívida de fixture do módulo, **não deste PR**.
 
-**Arquivo isolado, estado final:** `6 passed (6 assertions)` — os 4 cenários `Route::has()`
-originais **intactos** (o diff é `+145 / -0` nos dois arquivos: puramente aditivo) + os 2 novos.
+**Arquivo isolado, estado final:** `6 passed (8 assertions)` — os 4 cenários `Route::has()`
+originais **intactos** (o diff é `+174 / -0` nos dois arquivos: puramente aditivo) + os 2 novos.
 
 **Prova de não deixar rastro na base:** após a rodada final, a varredura por fixtures órfãos
 devolveu `encontrados=0`. O checkout do container foi restaurado (`git checkout --` só nos
@@ -204,13 +265,27 @@ Ficam aqui para não virarem "descoberta" futura (§5 2026-08-08).
    `CrossTenantAssetTest`, que é **prefixo da thread 01** — consertar aqui invadiria a Lei 1.
    O mesmo padrão sem tenant, via `AT.parent_id`, está em `:443` e `:455` (pré-PR `:430`
    e `:442`), ambos dentro do `dashboard()`.
-2. **`dashboard()` sem gate de assinatura** — além da §3, ele não checa
-   `assetmanagement_module`. Provavelmente deliberado (é a landing do menu), mas fica dito.
-3. **Thread irmã 01 ativa no mesmo container** — durante esta sessão o
-   `oimpresso-staging` acumulou `AssetAllocationService.php` + `CrossTenantAssetTest.php`
-   modificados (prefixo dela, **disjunto do meu**, como o §2 do índice previu). **Não toquei**
-   nos arquivos dela (LC-23). Um dos 8 vermelhos é o teste novo dela, pela mesma FK
-   `assets_created_by_foreign` — vale ela conferir.
+2. **`dashboard()` sem gate de assinatura** — ver §3. Confirmado pela thread 04: é o único
+   método público que vai direto à query sem `abort(403)` nenhum. Buraco **diferente** do
+   desta thread; fix pequeno e sem perfil legítimo quebrado, mas é outro intent.
+3. **O `SCOPE.md` do módulo está errado, e isso NÃO é decisão pendente** — ele declara
+   `permission_prefix: assetmanagement.*`, mas a thread 04 mediu que `assetmanagement.*`
+   **não existe como permissão em lugar nenhum do repo** (as 56 ocorrências de
+   `assetmanagement.<palavra>` são span OTel/log; controle positivo com `'asset\.` deu 30
+   hits). O prefixo vivo é `asset.*`. Ou seja, o **item 2 do RESÍDUO é errata de doc, não
+   fork de [W]** — some a única dúvida que poderia pesar sobre esta thread. Conserto do
+   `SCOPE.md` fica fora do meu prefixo.
+4. **Vazamento cross-tenant no corpo do `dashboard()`** — achado inédito da thread 04
+   (`_saida-04.md` §7b/§7c): consultas filtrando só por `receiver` sem `business_id`, e
+   `orWhereNull('aw.end_date')` fora do closure, virando
+   `(business_id = X AND …) OR (end_date IS NULL)` na lista de garantias. **Sem dono em
+   thread nenhuma.** Não encostei — seria 2º intent e terreno da 01.
+5. **Thread irmã 01 ativa no mesmo container** — durante esta sessão o `oimpresso-staging`
+   teve `AssetAllocationService.php` + `CrossTenantAssetTest.php` modificados por ela e
+   depois **revertidos** no meio do meu trabalho (HEAD do container inalterado, `md5` do
+   arquivo mudou, `git status` limpou). Isso mudou o denominador da suíte no meio da medição
+   — daí o par ter sido re-medido (§5). **Não toquei** nos arquivos dela (LC-23), e ela não
+   encostou no `AssetController.php`, como o §2 do índice previu.
 
 ## O que eu **não** fiz, e por quê
 

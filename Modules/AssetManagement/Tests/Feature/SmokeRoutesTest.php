@@ -105,18 +105,30 @@ function assetViewGateFixture(bool $comPermissao): array
         'allow_login' => 1,
     ]);
 
+    // A Permission é criada nos DOIS cenários, de propósito. Num banco limpo `asset.view`
+    // NÃO existe na tabela `permissions`: o seeder do módulo é vazio
+    // (`AssetManagementDatabaseSeeder`) e as permissões nascem sob demanda em
+    // `RoleController::__createPermissionIfNotExists()`, só quando alguém salva um Role.
+    // Se ela não existisse aqui, o `can()` do cenário MORDE devolveria false por AUSÊNCIA
+    // da permissão, e o 403 provaria a coisa errada — verde por acidente, que some no dia
+    // em que alguém cadastrar um Role. O que deve variar entre os cenários é o usuário
+    // TER ou não a permissão, nunca a permissão existir ou não.
+    // (Achado da thread 04 de medição, confirmado aqui: no CT 100, que é clone de prod,
+    //  `asset.view` já existia — em CI, com DB fresco, não existiria.)
+    $perm = Permission::firstOrCreate(['name' => 'asset.view', 'guard_name' => 'web']);
+
     if ($comPermissao) {
         // `roles.business_id` é NOT NULL + FK pra business e o sufixo `#{biz}` é a
         // convenção da casa pra role por tenant (proibicoes.md §FSM).
-        $perm = Permission::firstOrCreate(['name' => 'asset.view', 'guard_name' => 'web']);
         $role = Role::firstOrCreate(
             ['name' => 'asset-view-gate#'.$biz->id, 'guard_name' => 'web'],
             ['business_id' => $biz->id]
         );
         $role->givePermissionTo($perm);
         $user->assignRole($role);
-        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
     }
+
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
 
     return [$biz, $user];
 }
@@ -156,6 +168,13 @@ it('MORDE: usuário SEM asset.view recebe 403 em GET asset/assets', function () 
     [$biz, $user] = assetViewGateFixture(comPermissao: false);
 
     try {
+        // Canário do próprio cenário: o 403 tem de vir de "o usuário não TEM a permissão",
+        // nunca de "a permissão não existe no catálogo". Sem estas duas linhas, remover o
+        // `firstOrCreate` do fixture deixaria o teste verde pelo motivo errado e ninguém veria.
+        expect(Permission::where('name', 'asset.view')->where('guard_name', 'web')->exists())
+            ->toBeTrue('asset.view precisa EXISTIR no catálogo para este cenário significar algo');
+        expect($user->can('asset.view'))->toBeFalse();
+
         assetViewGateChamar($biz, $user)->assertStatus(403);
     } finally {
         assetViewGateLimpar();
