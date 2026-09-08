@@ -5,7 +5,7 @@ owner: wagner
 status: draft
 parent_module: AssetManagement
 related_us: [US-ASSET-004]
-related_adrs: [0394-endereco-de-ui-do-patrimonio-pages-patrimonio, 0104-processo-mwart-canonico-unico-caminho, 0093-multi-tenant-isolation-tier-0, 0180-sidebar-v3-5-grupos-ghosts-header, 0253-primitivos-de-layout]
+related_adrs: [0394-endereco-de-ui-do-patrimonio-pages-patrimonio, 0104-processo-mwart-canonico-unico-caminho, 0093-multi-tenant-isolation-tier-0, 0180-sidebar-v3-5-grupos-ghosts-header, 0253-primitivos-layout]
 related_prototype: prototipo-ui/cowork/patrimonio-page.jsx
 related_runbook: memory/requisitos/AssetManagement/RUNBOOK-manutencoes.md
 tier: B

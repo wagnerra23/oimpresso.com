@@ -12,7 +12,7 @@ preconditions:
   - "Módulo `assetmanagement_module` habilitado no pacote do business (Camada 1 — superadmin/packages)"
   - "Middleware `AdminSidebarMenu` na rota — é ele que dispara `DataController::modifyAdminMenu()`, dono dos ghosts que a sub-navegação lê"
 preconditions_short: uma das 2 permissions de manutenção, business_id na sessão, módulo habilitado, AdminSidebarMenu na rota
-related_adrs: [0104-processo-mwart-canonico-unico-caminho, 0093-multi-tenant-isolation-tier-0, 0180-sidebar-v3-5-grupos-ghosts-header, 0394-endereco-de-ui-do-patrimonio-pages-patrimonio, 0253-primitivos-de-layout]
+related_adrs: [0104-processo-mwart-canonico-unico-caminho, 0093-multi-tenant-isolation-tier-0, 0180-sidebar-v3-5-grupos-ghosts-header, 0394-endereco-de-ui-do-patrimonio-pages-patrimonio, 0253-primitivos-layout]
 ---
 
 # RUNBOOK — Patrimônio · Manutenções (`/asset/asset-maintenance`)
@@ -147,7 +147,7 @@ Com sessão, a tela deve renderizar a tabela e, para papel restrito, o aviso de 
 - ⛔ **Não reimplementar a guarda de permissão na tela.** Ela é do controller (#7034).
 - ⛔ **Não derivar "garantia crítica" no cliente** — é recorte que o servidor não tem.
 - ⛔ **Não usar `<div className="flex">` solto**: layout por primitivos `Stack`/`Inline`
-  ([ADR 0253](../../decisions/0253-primitivos-de-layout.md)); o `layout-primitives-guard` é catraca.
+  ([ADR 0253](../../decisions/0253-primitivos-layout.md)); o `layout-primitives-guard` é catraca.
 - ⛔ **Não passar `<SelectItem value="">`** ao Radix — string vazia é o valor interno de "nada
   selecionado" e quebra o componente (§5 2026-06-29). Use a sentinela `TODAS`.
 
