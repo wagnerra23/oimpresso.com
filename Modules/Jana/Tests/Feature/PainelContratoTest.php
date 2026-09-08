@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\User;
 use Modules\Jana\Entities\AcaoAprovacao;
+use Modules\Jana\Entities\Meta;
+use Modules\Jana\Entities\MetaFonte;
 use Modules\Jana\Services\AcaoHitlService;
 use Spatie\Permission\Models\Permission;
 
@@ -1084,4 +1086,114 @@ it('UC-JPAIN-21: o card de meta lê "<valor> de <alvo>" e "<pct>% do alvo", nunc
     expect($tsx)
         ->toContain('ml-auto shrink-0 font-mono text-[10.5px] tabular-nums')
         ->toContain('meta.projecao.projetado');
+});
+
+
+// ── PR-3 · o drawer absorve `metas/show` e `fontes/show` (RUNBOOK-metas §9.4) ──
+
+/**
+ * UC-JPAIN-22 — o payload de `/ia` carrega ORIGEM, ESCOPO e FONTE.
+ *
+ * Fonte da asserção: `Modules/Jana/Resources/views/metas/show.blade.php` (slug, tipo,
+ * origem, escopo) e `fontes/show.blade.php` (a config gravada) — as duas telas que o
+ * PR-3 absorve. Derivado das BLADES, não do payload: o RUNBOOK §9.4 diz que o PR-4 só
+ * pode remover aquelas views depois que o drawer entregar o que elas entregavam.
+ *
+ * ⚠️ ERRATA DO PRÓPRIO AUTOR, e é o motivo de este caso existir. A primeira versão deste
+ * UC afirmava uma "armadilha": que meta de PLATAFORMA (`business_id` nulo) entrava no
+ * Painel e que a fonte dela cairia fora do escopo do parent, exigindo um
+ * `withoutGlobalScope` no eager-load. **Falso, e o próprio teste provou** — ele reprovou
+ * em `expect($plataforma)->not->toBeNull()`: o que sumia era a **META**, nunca a fonte.
+ *
+ * Medido depois (`app/Scopes/ScopeByBusiness.php`): para usuário COMUM o escopo direto
+ * filtra `business_id = <sessão>` ESTRITO, então meta de plataforma nem chega ao payload;
+ * para SUPERADMIN ele abre para `= X OR IS NULL`, e o `ScopeByBusinessViaParent` abre
+ * exatamente igual para o parent. **Nos dois papéis os dois escopos concordam**, logo a
+ * dispensa não resolvia nada — só removia uma defesa Tier 0 sem necessidade. Ela saiu.
+ *
+ * Corolário que fica registrado: o `orWhereNull('business_id')` da consulta do Painel é
+ * **inerte** para usuário comum. Mexer nele é outro escopo, não deste PR.
+ *
+ * O isolamento cross-tenant das metas e das filhas já tem dono e não se duplica aqui:
+ * `MultiTenantIsolationTest` e `EntitiesFilhasMultiTenantViaParentTest`.
+ */
+it('UC-JPAIN-22: o payload traz origem, escopo e fonte da meta', function () {
+    painelBootstrap();
+    $businessId = (int) session('user.business_id');
+    $sufixo = uniqid();
+
+    $daCasa = Meta::withoutGlobalScopes()->create([
+        'business_id'    => $businessId,
+        'slug'           => 'pr3_casa_'.$sufixo,
+        'nome'           => 'PR3 meta do negocio',
+        'unidade'        => 'R$',
+        'tipo_agregacao' => 'soma',
+        'ativo'          => true,
+        'origem'         => 'manual',
+    ]);
+    $fonteDaCasa = MetaFonte::withoutGlobalScopes()->create([
+        'meta_id'     => $daCasa->id,
+        'driver'      => 'sql',
+        'config_json' => ['sql' => 'SELECT 1'],
+        'cadencia'    => 'diaria',
+    ]);
+
+    try {
+        $this->get('/ia')->assertInertia(function ($page) use ($daCasa) {
+            $metas = collect($page->toArray()['props']['metas'] ?? []);
+
+            $casa = $metas->firstWhere('id', $daCasa->id);
+            expect($casa)->not->toBeNull();
+            expect($casa['origem'])->toBe('manual');
+            expect($casa['business_id'])->not->toBeNull();
+            expect($casa['fonte'])->not->toBeNull();
+            expect($casa['fonte']['driver'])->toBe('sql');
+            expect($casa['fonte']['cadencia'])->toBe('diaria');
+            expect($casa['fonte']['config_json'])->toBe(['sql' => 'SELECT 1']);
+
+            return $page;
+        });
+    } finally {
+        // Limpeza em finally: no CT 100 a base PERSISTE entre execuções, e assert que
+        // falha no meio deixaria as linhas lá.
+        MetaFonte::withoutGlobalScopes()->whereIn('id', [$fonteDaCasa->id])->delete();
+        Meta::withoutGlobalScopes()->whereIn('id', [$daCasa->id])->delete();
+    }
+});
+
+/**
+ * UC-JPAIN-23 — o drawer desenha as seções que as duas Blades entregavam.
+ *
+ * Asserção de ARQUIVO, pela mesma razão do UC-04/05/06: a copy e a estrutura vivem no
+ * `.tsx`, não no payload. A copy do vazio é LITERAL da âncora
+ * (`prototipo-ui/cowork/jana-metas.jsx` §`JmApuracoesSecao` e §`JmFonteDrawer` —
+ * re-localize com `grep -n "function JmApuracoesSecao" prototipo-ui/cowork/jana-metas.jsx`).
+ * Precedência de FORMA: protótipo > teste > casos > charter (ADR UI-0029).
+ *
+ * ⚠️ Este caso NÃO prova runtime — asserção de arquivo passa mesmo com a mudança inerte
+ * (classe LC-30). Quem prova runtime é o UC-JPAIN-22, que lê o payload de verdade.
+ */
+it('UC-JPAIN-23: o drawer tem as seções Apurações gravadas e Fonte do número', function () {
+    $drawer = file_get_contents(base_path('resources/js/Pages/Jana/_components/JanaMetaDrawer.tsx'));
+
+    expect($drawer)
+        ->toContain('titulo="Identificação"')
+        ->toContain('Apurações gravadas ·')
+        ->toContain('titulo="Fonte do número"');
+
+    expect($drawer)->toContain('Nenhuma apuração ainda — a meta entra no farol depois do primeiro job.');
+
+    expect($drawer)
+        ->toContain('Só leitura, por decisão')
+        ->toContain('US-COPI-040');
+
+    expect($drawer)
+        ->toContain('<caption className="sr-only">')
+        ->toContain('Data ref.')
+        ->toContain('Realizado');
+
+    // Data em dd/mm/aaaa SEM `new Date()`: data sem hora vira UTC meia-noite e volta um
+    // dia em fuso negativo. O helper recorta a string justamente pra não converter.
+    expect($drawer)->toContain('function dataCurta(');
+    expect($drawer)->not->toContain('new Date(a.data_ref');
 });

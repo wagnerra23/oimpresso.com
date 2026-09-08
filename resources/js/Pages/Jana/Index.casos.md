@@ -4,7 +4,7 @@ casos: Jana Painel · metas ativas · farol server-side · cockpit deferido · /
 irmaos: Index.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-index.md (runbook) · prototipo-ui/contrato/jana-painel.contract.json (contrato visual)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-09-07"
+last_run: "2026-09-08"
 ---
 
 # Casos de uso — /ia (Painel da Jana)
@@ -1053,3 +1053,95 @@ cards**, revelando que a seção METAS não é irmã do cockpit no JSX, é prop 
 
 **Contador da lane** (a prova de que o spec de fato EXECUTA, não só existe — §5 2026-08-02):
 `51 passed` antes, **`57 passed`** com este arquivo no comando; delta `+6` = os 6 casos daqui.
+
+
+## UC-JPAIN-22 — o payload de `/ia` carrega origem, escopo e fonte da meta
+Status: 🧪 (o teste existe e cita este UC; o `✅` vem do MANIFESTO — G-7 —, nunca de leitura.)
+
+**Onda:** PR-3 do [`RUNBOOK-metas`](../../../../memory/requisitos/Jana/RUNBOOK-metas.md) §9.4 —
+*"Fonte e apurações como seções"*.
+
+Derivado das **duas Blades que esta onda absorve**, não do payload:
+
+| Blade | O que ela mostrava | Onde estava no payload |
+|---|---|---|
+| `metas/show.blade.php` | slug · tipo · **origem** · **escopo** | slug e tipo já vinham; origem e escopo **não existiam** |
+| `fontes/show.blade.php` | a `config_json` gravada, só-leitura | **não existia** |
+
+O §9.4 é explícito: o PR-4 (cutover) *"não antes do drawer entregar o que a Blade fazia"*.
+Enquanto os três campos não chegam, o cutover fica travado por construção.
+
+**⚠️ ERRATA DO PRÓPRIO AUTOR — a primeira redação deste caso afirmava uma armadilha que NÃO
+EXISTE, e o teste a derrubou.** Fica registrada, não apagada.
+
+O que eu escrevi: que meta de **plataforma** (`business_id` nulo) entrava no Painel e que a
+fonte dela cairia fora do escopo do parent, exigindo um `withoutGlobalScope` no eager-load.
+**Falso.** O teste reprovou em `expect($plataforma)->not->toBeNull()` — o que sumia era a
+**META**, nunca a fonte dela.
+
+Medido depois, em [`app/Scopes/ScopeByBusiness.php`](../../../../app/Scopes/ScopeByBusiness.php):
+
+| papel | escopo da META (`ScopeByBusiness`) | escopo da FONTE (`…ViaParent`) | concordam? |
+|---|---|---|---|
+| usuário comum | `business_id = <sessão>` **estrito** | `parent.business_id = <sessão>` | sim |
+| superadmin | `= X` **ou** `IS NULL` | `= X` **ou** `IS NULL` | sim |
+
+Nos **dois** papéis os dois escopos concordam, então a dispensa não resolvia nada — só removia
+uma defesa Tier 0 sem necessidade, que é o oposto do que a ADR 0093 pede. **Ela saiu.**
+
+**Corolário que fica:** o `orWhereNull('business_id')` da consulta do Painel é **inerte** para
+usuário comum. Mexer nele é outro escopo, não deste PR — mas quem for mexer deve saber que ele
+promete uma visibilidade que o escopo global já negou.
+
+**Isolamento cross-tenant não se duplica aqui:** já tem dono em `MultiTenantIsolationTest` e
+`EntitiesFilhasMultiTenantViaParentTest`.
+
+**Critério de aceite (o que o teste mede, no payload real de `/ia`):**
+
+1. a meta traz `origem`, `business_id` e `fonte` com `driver`, `cadencia` e `config_json` — some qualquer um dos três e o caso reprova;
+2. `business_id` sai **cru** do servidor: a frase "Plataforma" × "Este negócio" é decisão da tela, não do back.
+
+**Teste:** `Modules/Jana/Tests/Feature/PainelContratoTest.php` · lane `PHP / Pest (Jana · MySQL)`
+(o arquivo está no run-set do `jana-pest.yml`, e o gatilho casa `Modules/Jana/**` +
+`resources/js/Pages/Jana/**`). Fixtures criadas e removidas em `finally` — no CT 100 a base
+persiste entre execuções, e assert que falha no meio deixaria linha para trás.
+
+---
+
+## UC-JPAIN-23 — o drawer desenha Identificação, Apurações gravadas e Fonte do número
+Status: 🧪 (mesma regra do UC acima: veredito vem do manifesto.)
+
+**Onda:** PR-3, a metade de FORMA.
+
+Derivado da **âncora** `prototipo-ui/cowork/jana-metas.jsx` — §`JmApuracoesSecao` e
+§`JmFonteDrawer`, âncoras de SÍMBOLO
+(`grep -n "function JmApuracoesSecao" prototipo-ui/cowork/jana-metas.jsx`) — e do cabeçalho da
+própria fonte, que declara absorver `metas/{index,create,edit,show}` **+** `fontes/show`
+*"para dentro da tela única da Jana — sem rota nova"*. Precedência de FORMA: protótipo > teste >
+casos > charter ([ADR UI-0029](../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)).
+
+| seção | vem de | conteúdo |
+|---|---|---|
+| **Identificação** | `metas/show.blade.php` | identificador · agregação · origem · escopo |
+| **Apurações gravadas** | §`JmApuracoesSecao` | tabela `Data ref.` × `Realizado`, título com a contagem |
+| **Fonte do número** | §`JmFonteDrawer` + `fontes/show.blade.php` | driver · cadência · `config_json` + aviso de só-leitura |
+
+**Decisões declaradas, para não parecerem esquecimento:**
+
+- **A Série continua.** Ela mostra a FORMA da curva; a tabela mostra os NÚMEROS com data. A
+  Blade entregava a segunda, e a âncora tem as duas. Remover uma seria perder informação.
+- **O aviso não usa tom de alerta.** A âncora pede `tone="warn"`; o `Alert` do Design System
+  só tem `default` e `destructive`, e **variante nova de componente do DS é decisão do dono**
+  — então a copy carrega o sentido e nenhum token nasce aqui.
+- **A data é recortada, não convertida.** `dataCurta()` fatia a string em vez de usar
+  `new Date()`: `data_ref` é data **sem hora**, e construir um `Date` a partir de
+  `"2026-05-14"` interpreta como UTC meia-noite — em fuso negativo volta um dia, e a apuração
+  do dia 14 apareceria como 13.
+- **A tabela é semântica com `<caption class="sr-only">`.** O `DataTable` compartilhado exige
+  `pagination`/`endpoint`, que não existem aqui; forjar um paginador para 12 linhas seria pior.
+
+**⚠️ O que este caso NÃO prova.** É asserção de **arquivo** — passa mesmo que a mudança seja
+inerte no runtime (classe LC-30). Quem prova runtime é o **UC-JPAIN-22**, que lê o payload de
+verdade. O par existe justamente porque Pest não monta React.
+
+**Teste:** `Modules/Jana/Tests/Feature/PainelContratoTest.php` · mesma lane.

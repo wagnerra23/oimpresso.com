@@ -6328,7 +6328,7 @@ parameters:
 			path: Modules/Jana/Http/Controllers/IndexController.php
 
 		-
-			message: '#^Anonymous function should return array\{farol\: string, projecao\: array\{progresso\: float, projetado\: float, desvio_pct\: float\}\|null, id\: int, slug\: string, nome\: string, unidade\: ''%%''\|''dias''\|''qtd''\|''R\$'', tipo_agregacao\: ''contagem''\|''media''\|''soma''\|''ultimo'', periodo_atual\: array\{data_ini\: mixed, data_fim\: mixed, valor_alvo\: float, trajetoria\: mixed\}\|null, \.\.\.\} but returns array\{farol\: string, projecao\: array\{progresso\: float, projetado\: float, desvio_pct\: float\}\|null, id\: int, slug\: string, nome\: string, unidade\: ''%%''\|''dias''\|''qtd''\|''R\$'', tipo_agregacao\: ''contagem''\|''media''\|''soma''\|''ultimo'', periodo_atual\: array\{data_ini\: mixed, data_fim\: mixed, valor_alvo\: float, trajetoria\: mixed\}\|null, \.\.\.\}\.$#'
+			message: '#^Anonymous function should return array\{farol\: string, projecao\: array\{progresso\: float, projetado\: float, desvio_pct\: float\}\|null, id\: int, slug\: string, nome\: string, unidade\: ''%%''\|''dias''\|''qtd''\|''R\$'', tipo_agregacao\: ''contagem''\|''media''\|''soma''\|''ultimo'', origem\: ''chat_ia''\|''manual''\|''seed'', \.\.\.\} but returns array\{farol\: string, projecao\: array\{progresso\: float, projetado\: float, desvio_pct\: float\}\|null, id\: int, slug\: string, nome\: string, unidade\: ''%%''\|''dias''\|''qtd''\|''R\$'', tipo_agregacao\: ''contagem''\|''media''\|''soma''\|''ultimo'', origem\: ''chat_ia''\|''manual''\|''seed'', \.\.\.\}\.$#'
 			identifier: return.type
 			count: 1
 			path: Modules/Jana/Http/Controllers/IndexController.php

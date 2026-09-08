@@ -17,7 +17,7 @@ related_specs:
   - memory/requisitos/Jana/SPEC.md (US-COPI-010, US-COPI-011, US-COPI-012)
 runbook: memory/requisitos/Jana/RUNBOOK-index.md
 tier: A
-charter_version: 15
+charter_version: 16
 permissao: jana.access
 ---
 
@@ -194,6 +194,33 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 `brief-first` (Tier A) · `multi-tenant-patterns` (Tier A) · `inertia-defer-default` (Tier B) · `mwart-process` (Tier A)
 
 ## Charter version log
+
+- **v16 (2026-09-08)** — **o drawer da meta absorve `metas/show` e `fontes/show`** (PR-3 do
+  [`RUNBOOK-metas`](../../../../memory/requisitos/Jana/RUNBOOK-metas.md) §9.4, *"Fonte e apurações
+  como seções"*). Três seções novas em `_components/JanaMetaDrawer.tsx`: **Identificação**
+  (identificador · agregação · origem · escopo), **Apurações gravadas** (tabela `Data ref.` ×
+  `Realizado`, com a contagem no título) e **Fonte do número** (driver · cadência · `config_json`
+  + o aviso de só-leitura). Âncora: `prototipo-ui/cowork/jana-metas.jsx` §`JmApuracoesSecao` e
+  §`JmFonteDrawer` — que se declara, no próprio cabeçalho, a absorção daquelas Blades
+  *"para dentro da tela única da Jana"*.
+
+  **O payload de `/ia` ganhou três campos** (`origem`, `business_id`, `fonte`) porque nenhum
+  existia — e sem eles o **PR-4 (cutover)** não pode remover as views, já que o §9.4 exige que o
+  drawer entregue antes o que a Blade entregava.
+
+  **Uma armadilha multi-tenant foi afirmada e REFUTADA dentro do próprio PR.** A primeira versão
+  punha um `withoutGlobalScope` no eager-load da fonte, supondo que meta de **plataforma**
+  entrava no Painel e perderia a fonte pelo escopo do parent. O **UC-JPAIN-22 derrubou isso**:
+  reprovou porque a **META** de plataforma não aparece — o escopo direto (`ScopeByBusiness`)
+  filtra `business_id = <sessão>` estrito para usuário comum, e abre `= X OR IS NULL` para
+  superadmin, exatamente como o escopo do parent. Os dois concordam nos dois papéis; a dispensa
+  saiu. Registro em vez de apagamento, porque dispensar defesa Tier 0 sem necessidade é o oposto
+  do que a ADR 0093 pede. Contrato em **UC-JPAIN-22** (runtime, lê o payload) e **UC-JPAIN-23**
+  (forma, lê o arquivo), os dois no `PainelContratoTest`.
+
+  **Não** foi criada variante nova no `Alert` do Design System: a âncora pede tom de aviso e o
+  componente só tem `default`/`destructive` — token ou variante nova é decisão do dono do DS,
+  então a copy carrega o sentido. Nenhuma Blade foi removida aqui; remoção é o PR-4.
 
 - **v15 (2026-09-07)** — **card de meta lê `<valor> de <alvo>` e `<pct>% do alvo`** (Onda 2.1 do
   pacote de paridade do Cowork, `design-docs/COLAR-NO-CODE-jana-tabs-cor-e-icone.md` §1-ter).
