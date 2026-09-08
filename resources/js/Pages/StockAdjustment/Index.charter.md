@@ -4,6 +4,7 @@ page: /stock-adjustments
 component: resources/js/Pages/StockAdjustment/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
 related_visual_comparison: memory/requisitos/Estoque/_telas/stock-adjustment-index-visual-comparison.md
+related_us: [US-MWART-007]
 bundle_source: estoque-page.jsx
 tela: stock_adjustment/index
 tipo: LIST
