@@ -48,8 +48,19 @@ test('/governance/dashboard renderiza o componente governance/Dashboard', async 
   // aparece normalmente — com o cliente Inertia 3.0.3 o atributo não sobrevive no DOM
   // depois do mount. O `data-page` do HTML servido é a fonte que interessa de todo
   // jeito: ele é o que o SERVIDOR resolveu, e não muda com o que o cliente faz depois.
+  // Não se compara a STRING crua do HTML: o `json_encode` do PHP escapa a barra
+  // (o atributo traz `governance` + barra-escapada + `Dashboard`) e o Blade escapa as
+  // aspas como `&quot;`. Medido no run 34271194228, que reprovou por isso. Então
+  // extrai-se o atributo, desfaz-se o escape de entidades e compara-se o CAMPO, com
+  // igualdade exata — o `JSON.parse` já normaliza a barra escapada.
   const html = await (await page.request.get('/governance/dashboard')).text();
-  expect(html).toContain('governance/Dashboard');
+  const atributo = html.match(/data-page="([^"]+)"/);
+  expect(atributo, 'o HTML servido deveria carregar o data-page do Inertia').not.toBeNull();
+
+  const pagina = JSON.parse(
+    atributo![1].replace(/&quot;/g, '"').replace(/&#039;/g, "'").replace(/&amp;/g, '&'),
+  );
+  expect(pagina.component).toBe('governance/Dashboard');
 });
 
 test('o painel resolve as props deferidas sem exceção de runtime', async ({ page }) => {
