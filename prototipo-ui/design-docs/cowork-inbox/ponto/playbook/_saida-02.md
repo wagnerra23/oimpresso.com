@@ -3,7 +3,7 @@ sessao: "02"
 titulo: "Desamarrar UC ⛓ — saída da thread"
 autor: "[CL]"
 criado: 2026-09-08
-base: 2052c46ae302
+base: a364bd65ede3
 thread: 02-uc-desamarrar.md
 constituicao: "CONSTITUICAO-COWORK.md (C1–C12) + memory/proibicoes.md"
 veredito: "entregue — 0 UC desamarrado por mim, e o número é esse mesmo: os 18 ⛓ de 04/09 já estavam em ZERO nesta sha. O trabalho que sobrou era outro e foi feito: 63 Status defasados do veredito REAL da lane."
@@ -119,7 +119,33 @@ silenciosa é pior que exceção — se o [W] preferir fatiado, refatio.
 `Modules/Ponto/Tests/Feature/**` faz parte do prefixo e **não precisou de uma linha**: já estava
 convertido para `it('UC-…')`.
 
-## 7 · Achados para quem vier depois
+## 7 · Duas falhas de CI que NÃO são desta thread (medidas, não deduzidas)
+
+O PR abriu com 2 checks vermelhos, nenhum dos dois no meu raio. Não deduzi causa por
+proximidade — rodei os dois guards contra `origin/main` **puro**, num worktree limpo:
+
+| check | veredito | prova |
+|---|---|---|
+| `SUPERFICIE.md == árvore` | **era base defasada — RESOLVIDO** | meu branch `exit 1` × main `exit 0`. O fix estava no `2052c46ae3` (#7051), que entrou **depois** da minha base. `git merge origin/main` resolveu; agora `exit 0`. |
+| `PageHeader · ratchet` | **herdado do main — NÃO consertei** | `origin/main` em `b7c1581e21e3` dá `exit 1` com a mesma tela, sem um byte meu. |
+
+**Por que não consertei o PageHeader.** A causa é `resources/js/Pages/Patrimonio/Index.tsx`,
+que entrou pelo **#7040** (playbook Patrimônio, hoje) importando `@/Components/shared/PageHeader`
+— e é a **única das 4 telas do módulo** ainda no header antigo (`Alocacoes`, `Bens` e
+`Configuracoes` já usam o canon). Consertar aqui seria: tocar `.tsx` (a thread proíbe
+literalmente), migrar UI de **outro módulo** dentro de um PR de docs do Ponto (viola *1 PR = 1
+intent*), sem charter, sem gate visual e sem smoke — e trocar o import não basta, porque a API do
+canon v3.8 é outra (3 zonas + SubNav, ADR 0189/0190).
+
+O gate é **advisory** — li a união `classic_protection ∪ rulesets` do
+`governance/required-checks-baseline.json` (45 contextos): `PageHeader · ratchet` não está lá.
+Reprova é visível, não bloqueia o merge do [W].
+
+⚠️ **Erro meu, corrigido aqui:** este `_saida` nasceu com `base: 2052c46ae302`. Errado — li o
+`origin/main` **depois** de já ter criado a branch. A base real é `a364bd65ede3`, e foi
+exatamente essa defasagem que produziu o vermelho do `SUPERFICIE`.
+
+## 8 · Achados para quem vier depois
 
 1. **O `00-INDICE.md` §1 diz `casos.md 21/21` e o §2-bis fotografa 18 ⛓** — o segundo número
    caducou em 4 dias. Não editei o índice (a thread proíbe); fica registrado aqui.
