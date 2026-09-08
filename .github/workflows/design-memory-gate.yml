@@ -91,6 +91,11 @@ on:
       # (§5 2026-08-02: "gate mudo com cara de cobertura")
       - 'scripts/qa/cowork-pele-paralela.mjs'
       - 'scripts/qa/cowork-pele-paralela.baseline.json'
+      # idem pro comparador de frescor: o bite da devolutiva (secao 13 do .test.mjs) so
+      # defende se a lane VIR o arquivo mudar. Medido em 2026-09-08 no PR do fix: tocando
+      # so estes 2 arquivos, esta lane NAO disparava e o bite ficava mudo.
+      - 'scripts/governance/cowork-mirror-freshness.mjs'
+      - 'scripts/governance/cowork-mirror-freshness.test.mjs'
       - 'scripts/design-sync/alvo.mjs'
       - 'scripts/design-sync/recibos-ci.mjs'
   workflow_dispatch:
