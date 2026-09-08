@@ -158,6 +158,10 @@ function manutContratoPropDeferida(User $user, int $businessId, array $query = [
             'user' => ['business_id' => $businessId, 'id' => $user->id],
         ])
         ->withHeaders([
+            // `X-Requested-With` NAO e decoracao: o cliente Inertia o manda
+            // INCONDICIONALMENTE junto com `X-Inertia`. Sem ele, este teste montava uma
+            // requisicao que o BROWSER NUNCA ENVIA — e ficava verde com a tela quebrada.
+            'X-Requested-With' => 'XMLHttpRequest',
             'X-Inertia' => 'true',
             'X-Inertia-Version' => (string) $versao,
             'X-Inertia-Partial-Component' => 'Patrimonio/Manutencoes',
