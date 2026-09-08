@@ -38,24 +38,46 @@ use Spatie\Permission\Models\Role;
  * que cria as Spatie permissions (ADR 0256). Scope `admin_only` novo já nasce coberto.
  *
  * Uso:
- *   php artisan jana:mcp-revogar-admin-only 164            # mede e imprime (não escreve)
+ *   php artisan jana:mcp-revogar-admin-only --todos        # varre TODOS, só reporta
+ *   php artisan jana:mcp-revogar-admin-only 164            # mede um, imprime (não escreve)
  *   php artisan jana:mcp-revogar-admin-only 164 --apply    # revoga
+ *
+ * `--todos` recusa `--apply`: varredura responde "onde está aberto"; fechar é ato deliberado
+ * POR tenant, com o antes→depois daquele tenant na mesa — não uma flag que limpa a base toda.
  */
 class McpRevogarAdminOnlyCommand extends Command
 {
     protected $signature = 'jana:mcp-revogar-admin-only
-                            {business_id : ID do business cujo acesso será revogado}
+                            {business_id? : ID do business cujo acesso será revogado (obrigatório, exceto com --todos)}
+                            {--todos : Varre TODOS os businesses e apenas REPORTA quem tem concessão. Somente leitura.}
                             {--apply : Aplica de fato. Sem esta flag o comando só mede (dry-run).}';
 
-    protected $description = 'Revoga os scopes MCP admin_only concedidos num business (dry-run por padrão).';
+    protected $description = 'Revoga os scopes MCP admin_only concedidos num business (dry-run por padrão; --todos varre e só reporta).';
 
     public function handle(): int
     {
-        $businessId = (int) $this->argument('business_id');
+        $todos = (bool) $this->option('todos');
         $aplicar = (bool) $this->option('apply');
+        $argumento = $this->argument('business_id');
+        $businessId = $argumento === null ? null : (int) $argumento;
 
-        if ($businessId <= 0) {
-            $this->error('business_id inválido.');
+        // `--todos --apply` seria revogação em massa em TODOS os clientes a partir de uma flag.
+        // Uma varredura responde "onde está aberto"; fechar é ato deliberado POR tenant, com o
+        // antes→depois daquele tenant na mesa. Recusa explícita, não omissão.
+        if ($todos && $aplicar) {
+            $this->error('--todos é somente leitura. Para revogar, rode por business: jana:mcp-revogar-admin-only <id> --apply');
+
+            return self::FAILURE;
+        }
+
+        if ($todos && $businessId !== null) {
+            $this->error('Passe business_id OU --todos, não os dois.');
+
+            return self::FAILURE;
+        }
+
+        if (! $todos && ($businessId === null || $businessId <= 0)) {
+            $this->error('business_id inválido. Use um id > 0, ou --todos para varrer.');
 
             return self::FAILURE;
         }
@@ -75,6 +97,10 @@ class McpRevogarAdminOnlyCommand extends Command
             $this->line('  · '.$s);
         }
         $this->newLine();
+
+        if ($todos) {
+            return $this->varreduraGlobal($slugs);
+        }
 
         $viaRole = $this->concessoesViaRole($businessId, $slugs);
         $viaUser = $this->concessoesDiretasNoUser($businessId, $slugs);
@@ -103,6 +129,115 @@ class McpRevogarAdminOnlyCommand extends Command
 
         $this->newLine();
         $this->info(sprintf('Revogadas %d concessão(ões). Cache de permissões limpo.', $revogadas));
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * Varre TODOS os businesses e reporta onde ha concessao de scope `admin_only`. Nao escreve.
+     *
+     * POR QUE EXISTE: ate o #6962 o vetor estava aberto em TODO tenant — qualquer admin com
+     * `roles.update`, em qualquer business, podia se conceder os 5. Fechar o biz=164 porque foi
+     * o citado responderia o pedido e deixaria a pergunta em aberto: "e os outros?". Sem esta
+     * varredura, "nao sabemos" viraria "esta resolvido".
+     *
+     * Query AGREGADA, nao um laco de businesses: com N tenants, medir um a um seriam 2N
+     * consultas e o custo cresceria com a base. Aqui sao 2 consultas, independentes de N —
+     * uma por caminho de concessao do Spatie.
+     *
+     * `model_has_permissions.model_type` vem de `getMorphClass()`, nunca de string fixa: o
+     * projeto usa `App\User` (nao `App\Models\User`), e um literal errado devolveria ZERO
+     * silenciosamente — ausencia de dado lida como ausencia de risco.
+     *
+     * @param  array<int,string>  $slugs
+     */
+    private function varreduraGlobal(array $slugs): int
+    {
+        $viaRole = DB::table('roles as r')
+            ->join('role_has_permissions as rhp', 'rhp.role_id', '=', 'r.id')
+            ->join('permissions as p', 'p.id', '=', 'rhp.permission_id')
+            ->whereIn('p.name', $slugs)
+            ->select('r.business_id', 'r.id as role_id', 'r.name as role_name', 'p.name as scope')
+            ->orderBy('r.business_id')
+            ->get();
+
+        $viaUser = DB::table('users as u')
+            ->join('model_has_permissions as mhp', function ($j) {
+                $j->on('mhp.model_id', '=', 'u.id')
+                    ->where('mhp.model_type', '=', (new User())->getMorphClass());
+            })
+            ->join('permissions as p', 'p.id', '=', 'mhp.permission_id')
+            ->whereIn('p.name', $slugs)
+            ->select('u.business_id', 'u.id as user_id', 'p.name as scope')
+            ->orderBy('u.business_id')
+            ->get();
+
+        $porBusiness = [];
+        foreach ($viaRole as $l) {
+            $porBusiness[$l->business_id]['roles'][$l->role_id]['nome'] = $l->role_name;
+            $porBusiness[$l->business_id]['roles'][$l->role_id]['scopes'][] = $l->scope;
+        }
+        foreach ($viaUser as $l) {
+            $porBusiness[$l->business_id]['users'][$l->user_id][] = $l->scope;
+        }
+
+        ksort($porBusiness);
+
+        $totalBiz = DB::table('business')->count();
+
+        $this->line('=== VARREDURA GLOBAL (somente leitura) ===');
+        $this->line(sprintf('Businesses na base: %d', $totalBiz));
+        $this->newLine();
+
+        if ($porBusiness === []) {
+            $this->info('Nenhum business com scope admin_only concedido — o vetor nao foi usado.');
+
+            return self::SUCCESS;
+        }
+
+        $totalConcessoes = 0;
+
+        foreach ($porBusiness as $bizId => $dados) {
+            $nome = DB::table('business')->where('id', $bizId)->value('name') ?? '(sem nome)';
+            $this->warn(sprintf('business_id=%s — %s', $bizId, $nome));
+
+            foreach ($dados['roles'] ?? [] as $roleId => $r) {
+                $users = DB::table('model_has_roles')->where('role_id', $roleId)->count();
+                $scopes = array_values(array_unique($r['scopes']));
+                $totalConcessoes += count($scopes);
+                $this->line(sprintf(
+                    '    role #%d "%s" — %d usuario(s) — %d scope(s): %s',
+                    $roleId,
+                    $r['nome'],
+                    $users,
+                    count($scopes),
+                    implode(', ', $scopes)
+                ));
+            }
+
+            foreach ($dados['users'] ?? [] as $userId => $scopes) {
+                $scopes = array_values(array_unique($scopes));
+                $totalConcessoes += count($scopes);
+                $this->line(sprintf(
+                    '    user #%d (direta) — %d scope(s): %s',
+                    $userId,
+                    count($scopes),
+                    implode(', ', $scopes)
+                ));
+            }
+
+            $this->newLine();
+        }
+
+        $this->line(sprintf(
+            'RESUMO: %d de %d business(es) com concessao · %d concessao(oes) no total.',
+            count($porBusiness),
+            $totalBiz,
+            $totalConcessoes
+        ));
+        $this->newLine();
+        $this->warn('Somente leitura — nada foi escrito. Para fechar um deles:');
+        $this->warn('  php artisan jana:mcp-revogar-admin-only <business_id> --apply');
 
         return self::SUCCESS;
     }
