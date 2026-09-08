@@ -1,7 +1,7 @@
 ---
 module: AssetManagement
 purpose: "Patrimônio da empresa: cadastro de ativos físicos, alocação e devolução a colaboradores, manutenção e garantia — bem de uso interno, nunca item vendável de estoque."
-migracao_ui: "bloqueado-escopo — aguarda decisao [W]; ver proibicoes e o SCOPE deste modulo"
+migracao_ui: "liberado — endereco `resources/js/Pages/Patrimonio/**` (modulo proprio) por ADR 0394; cada tela segue o MWART da ADR 0104"
 contains:
   - "AssetAllocationController"
   - "AssetController"
@@ -27,6 +27,15 @@ drift_alerts: []
 ---
 
 # Modules/AssetManagement
+
+> **DECISAO 2026-09-08 [W] — `migracao_ui` sai de `bloqueado-escopo`.** O endereco de UI e
+> `resources/js/Pages/Patrimonio/**` (modulo proprio), por [ADR 0394](../../decisions/0394-endereco-de-ui-do-patrimonio-pages-patrimonio.md).
+> A decisao e de **2026-09-04** e ja estava no `main` desde entao — no cabecalho do
+> `.github/workflows/modules-pest.yml:36` (commit `d6457184ea`), com a lane de CI apontando para
+> `resources/js/Pages/Patrimonio/**` (`:48`, `:71`). Este arquivo, que e o dono canonico, seguia
+> dizendo `bloqueado-escopo`: os dois se contradiziam no `main` ate agora. **O agrupamento de
+> sidebar nao muda** — Patrimonio segue ghost de Estoque no grupo `operar` ([ADR 0180](../../decisions/0180-sidebar-v3-5-grupos-ghosts-header.md));
+> endereco de pasta e agrupamento de menu sao eixos independentes.
 
 > **ERRATA 2026-09-08 [CL] — `permission_prefix` corrigido de `assetmanagement.*` para `asset.*`.**
 > O valor anterior confundia a **permissao** com `assetmanagement_module`, que e o nome da *feature

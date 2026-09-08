@@ -1,33 +1,81 @@
 ---
 sessao: "06"
-titulo: A UI inteira — 46 arquivos travados em uma pergunta
+titulo: A UI — DESTRAVADA em 2026-09-08; vira frente de 5–7 threads, uma por tela
 dono: "[W]"
 base: cb475c0ca2f4
-prefixo: — (nenhum)
-nao_toca: resources/js/Pages/**
-depende: D-ENDERECO
+prefixo: — (nenhum; cada thread-filha declara o seu)
+nao_toca: resources/js/Pages/** enquanto a frente não for aberta thread a thread
+depende: — (D-ENDERECO respondida)
 ---
-# 06 · UI — BLOQUEADA
+# 06 · UI — DESTRAVADA (era: bloqueada)
 
-## O estado, medido hoje
-- `resources/js/Pages/`: busca `(?i)(patrimonio|asset)` = **0 de 794 arquivos**.
-- `Modules/AssetManagement`: **0 `Inertia::render`**. As 6 rotas são `Route::resource` Blade.
-- `memory/requisitos/AssetManagement/SCOPE.md`:4: **`migracao_ui: "bloqueado-escopo — aguarda decisao [W]"`** (ERRATA 08/09: o path citado era `requisitos/Patrimonio/SCOPE.md`, que nao existe).
+> ⚠️ **Este arquivo mudou de natureza em 2026-09-08.** Era o registro de um bloqueio; virou o
+> ponto de partida de uma frente. O histórico do bloqueio fica abaixo, datado — não apagado.
 
-Nenhuma tela React existe — e o `main` **diz por escrito** que não deve existir ainda.
+## A decisão que destravou
 
-## A pergunta que trava (D-ENDERECO)
-**Patrimônio é módulo próprio (`Pages/Patrimonio/**`) ou seção do Estoque (`Pages/Estoque/Patrimonio/**`)?**
-ADR 0180 chama Patrimônio de "ghost de Estoque" · ADR 0182 escreve "Estoque (AssetManagement+)" · o SCOPE não decide. **Errar o endereço custa refazer 12 arquivos**, porque muda import, rota, breadcrumb, sidebar e o caminho dos charters.
+**Endereço: `resources/js/Pages/Patrimonio/**` — módulo próprio.**
+[W] em **2026-09-04**, ratificado em **2026-09-08**. Registrada em
+[ADR 0394](../../../../../memory/decisions/0394-endereco-de-ui-do-patrimonio-pages-patrimonio.md);
+`SCOPE.md:4` saiu de `bloqueado-escopo` para o endereço decidido.
 
-## O que está travado
-7 Pages + 7 charters + 7 casos + 2 `_shared` + 6 `_components` (**29**) · 7 `.contract.json` · 6 controllers → Inertia + `Routes/web.php` · 3 testes de tela · ADR do endereço + `SCOPE.md` = **46 arquivos**.
-Os outros 20 do módulo **não dependem disto** — são as threads 01–05.
+**O agrupamento de sidebar não muda:** Patrimônio segue **ghost de Estoque** no grupo `operar`
+([ADR 0180](../../../../../memory/decisions/0180-sidebar-v3-5-grupos-ghosts-header.md)), com o
+item apontando para `AssetController::dashboard` (`DataController.php:109-138`). Endereço de
+pasta e agrupamento de menu são **eixos independentes** — foi a confusão entre os dois que
+fez a 0180 e a 0182 parecerem divergentes.
 
-## O que NÃO fazer
-- Não criar `Pages/Patrimonio/Index.tsx` "pra adiantar": Page sem rota é órfã, e se o endereço for Estoque, é retrabalho garantido.
-- Não converter controller pra Inertia antes da ADR — a rota muda junto com o endereço.
-- Não usar o protótipo `patrimonio-page.jsx` como autorização: ele é **alvo**, não decisão. Ter desenho não é ter endereço.
+## O estado, medido em `c7bd83944f42` (2026-09-08)
 
-## Prova
-Respondida a D-ENDERECO, esta thread se reescreve como **frente**: 5–7 threads, uma por tela, cada uma com sua ficha do §13.2 — 7 telas não cabem numa thread só. Até lá, `bloqueada`, e **não conta como pendência do Code**.
+- `resources/js/Pages/`: `(?i)(patrimonio|asset)` = **0 arquivos**.
+- `Modules/AssetManagement`: **0 `Inertia::render`**. As 6 rotas seguem `Route::resource` Blade.
+- Nada dos 46 arquivos existe. **Destravado ≠ começado.**
+
+## Por que isto NÃO é uma thread
+
+**7 telas não cabem numa thread só.** A fonte visual
+(`prototipo-ui/cowork/patrimonio-page.jsx:835`) declara 7 abas de topo:
+
+| # | aba | `key` |
+|---|---|---|
+| 1 | Painel | `painel` |
+| 2 | Bens | `bens` |
+| 3 | Alocações | `alocacoes` |
+| 4 | Manutenções | `manutencoes` |
+| 5 | Garantias | `garantias` |
+| 6 | Auditoria | `auditoria` |
+| 7 | Configurações | `config` |
+
+Os 46 arquivos: 7 Pages + 7 charters + 7 casos + 2 `_shared` + 6 `_components` (**29**) ·
+7 `.contract.json` · 6 controllers → Inertia + `Routes/web.php` · 3 testes de tela · a ADR +
+o `SCOPE.md` (estes dois **já entregues**).
+
+**Cada tela vira uma thread**, com a ficha do §13.2 e o veredito CABE/NÃO CABE. Onda nunca
+maior que 1 PR ≤300 linhas.
+
+## O que continua valendo (não caducou com a decisão)
+
+- **Não pular o MWART** ([ADR 0104](../../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)):
+  `RUNBOOK-<tela>.md` **antes** do `.tsx` — o hook `block-mwart-violation` bloqueia em runtime
+  e **não tem override**. Charter + casos ao lado do `.tsx`. O merge do `.tsx` segue humano.
+- **Ter protótipo não é ter autorização de escopo.** O `patrimonio-page.jsx` é **alvo**, não
+  decisão de produto: 4 das perguntas abertas do §6 do índice (Garantias é tela ou filtro?
+  Auditoria é daqui ou do `Modules/Auditoria`? depreciação? baixa?) mudam o que cada tela
+  contém. **Decidir a tela antes da pergunta dela é retrabalho.**
+- **Ordem sugerida, não imposta:** as telas cujas perguntas de produto estão fechadas primeiro
+  (Bens, Alocações); as que dependem de decisão aberta por último (Garantias, Auditoria).
+
+## Histórico — o bloqueio, e por que durou
+
+A pergunta era: `Pages/Patrimonio/**` ou `Pages/Estoque/Patrimonio/**`? Errar custava refazer
+~12 arquivos (import, rota, breadcrumb, sidebar, caminho dos charters).
+
+**A decisão existia desde 04/09 e o playbook não sabia.** Estava escrita no cabeçalho do
+`.github/workflows/modules-pest.yml:36` (commit `d6457184ea`, PR #6784), com a lane de CI já
+apontando para `resources/js/Pages/Patrimonio/**` — enquanto o `SCOPE.md`, que é o dono
+canônico, seguia dizendo `bloqueado-escopo`. **Os dois se contradiziam no `main` por 4 dias.**
+
+A thread 04 achou a contradição ao medir e escalou em vez de decidir sozinha
+(`_saida-04.md §8`); [W] ratificou em 08/09. **Lição de processo:** decisão registrada só em
+comentário de workflow não alcança quem lê o dono canônico — o `SCOPE.md` é onde a próxima
+sessão olha, e era ele que precisava mudar.

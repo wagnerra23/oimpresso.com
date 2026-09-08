@@ -11,7 +11,7 @@ destino_no_main: prototipo-ui/design-docs/cowork-inbox/patrimonio/playbook/
 # SINCRONIZAR Patrimônio — playbook
 
 > **Absorve** `COLAR-NO-CODE-patrimonio-ondas.md` (que vira ponteiro de 2 KB). Primeiro módulo emitido pelo fluxo do §13 — **ficha antes de escrever**.
-> **O módulo é 100% Blade:** 6 `Route::resource` sob o prefixo `asset`, **zero `Inertia::render`**, e a busca por `(?i)(patrimonio|asset)` em `resources/js/Pages/` bateu **0 de 794**. Nenhuma tela React existe — e nenhuma nasce antes da decisão D-ENDERECO.
+> **O módulo é 100% Blade:** 6 `Route::resource` sob o prefixo `asset`, **zero `Inertia::render`**, e a busca por `(?i)(patrimonio|asset)` em `resources/js/Pages/` bateu **0 de 794**. Nenhuma tela React existe. A D-ENDERECO **foi respondida** em 2026-09-08 (`Pages/Patrimonio/**`, ADR 0394) — as telas passam a nascer pelo MWART da ADR 0104, uma thread por tela.
 
 ## 0 · O passo 0 (RELER) mudou o pedido de 04/09
 
@@ -36,7 +36,7 @@ O passo 0 pagando por si: um pedido morreu por falta de prova, e um vazamento Ti
 | 03 | **Guarda `asset.view` no índice** | ~4 KB | ~8 ln | 2 | 2 | 0 | **CABE** |
 | 04 | **Remedir D1/D5 e os não-lidos** (frente 0) | ~25 KB | 0 | 0 | — | 0 | **CABE** (medição) |
 | 05 | **Job de retenção LGPD** `assetmanagement:retention-purge` | ~6 KB | ~120 ln | 3 | 2 | 0¹ | **CABE** |
-| 06 | **A UI inteira — 46 arquivos** | — | — | 0 | — | **1** | **BLOQUEADA** |
+| 06 | **A UI inteira — 46 arquivos** | — | — | 0 | — | 0 | **DESTRAVADA** (ADR 0394) — vira frente de 5-7 threads, 1 por tela |
 
 ¹ [W] 10 decide **quando ligar em canary**, não se o código nasce — o próprio doc de 04/09 diz "o código pode nascer já". Nasce com `enabled=false`.
 
@@ -63,15 +63,16 @@ Leia, do main: (1) CONSTITUICAO-COWORK.md — C1–C12, citada e não copiada
 (6) os _saida-NN.md das threads JÁ FECHADAS desta pasta, e em especial o campo
     `invalida:` de cada um. É por ali que uma thread corrige o plano das outras —
     e sem este passo o canal só existe de quem escreve, nunca de quem recebe.
-NÃO leia: as 17 views Blade, os 9 Pest inteiros, patrimonio-page.jsx (é alvo de UI, e a UI está bloqueada).
+NÃO leia: as 17 views Blade, os 9 Pest inteiros. O patrimonio-page.jsx é alvo de UI —
+não leia numa thread de backend; nas threads de tela (frente 06) ele é a fonte visual.
 Você escreve SOMENTE no seu prefixo e no seu _saida-NN.md. Terminou: escreva o _saida e pare.
 ```
 
 ## 4 · VERIFICAR
 Thread `feito` = `_saida-NN.md` + provas verdes lendo o `main`. **Reusar, não recriar:** os 9 Pest do módulo (`CrossTenantAssetTest`, `MultiTenantIsolationTest` e `LgpdComplianceTest` são os oráculos das threads 01, 02 e 05) · `AssetService`/`AssetAllocationService` · `OtelHelper::spanBiz` · `AssetUtil`.
 
-## 6 · RESÍDUO — as 11 decisões de [W] (travam 46 dos 66 arquivos)
-**1** Módulo próprio (`Pages/Patrimonio/**`) ou seção do Estoque? ADR 0180 × 0182 × SCOPE `bloqueado-escopo` — **trava 44 arquivos / 20 PRs** · **2** prefixo de permissão: `asset.*` (código) ou `assetmanagement.*` (SCOPE)? · **3** custo de manutenção entra (não há coluna)? · **4** Garantias é tela ou filtro de Bens? · **5** Auditoria é aba daqui ou do `Modules/Auditoria`? · **6** depreciação: linear ou SAC, com que fonte contábil? (a coluna já existe e é gravada, mas nunca calculada) · **7** baixa/disposal: `status` ou tabela própria? (hoje "dar baixa" = **deletar o bem**) · **8** transferência entre locais: transação ou edição do `location_id`? · **9** QR + scan mobile entra ou vira Non-Goal escrito? · **10** quando ligar o purge LGPD em canary? · **11** placa veicular: Patrimônio e Oficina falam do mesmo veículo?
+## 6 · RESÍDUO — 10 decisões de [W] ainda abertas (a 1ª foi respondida em 08/09)
+**1** ~~Módulo próprio ou seção do Estoque?~~ **RESPONDIDA [W] 2026-09-08** → `Pages/Patrimonio/**`, módulo próprio ([ADR 0394](../../../../../memory/decisions/0394-endereco-de-ui-do-patrimonio-pages-patrimonio.md)) · **2** prefixo de permissão: `asset.*` (código) ou `assetmanagement.*` (SCOPE)? · **3** custo de manutenção entra (não há coluna)? · **4** Garantias é tela ou filtro de Bens? · **5** Auditoria é aba daqui ou do `Modules/Auditoria`? · **6** depreciação: linear ou SAC, com que fonte contábil? (a coluna já existe e é gravada, mas nunca calculada) · **7** baixa/disposal: `status` ou tabela própria? (hoje "dar baixa" = **deletar o bem**) · **8** transferência entre locais: transação ou edição do `location_id`? · **9** QR + scan mobile entra ou vira Non-Goal escrito? · **10** quando ligar o purge LGPD em canary? · **11** placa veicular: Patrimônio e Oficina falam do mesmo veículo?
 
 Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º módulo** com o mesmo achado (CRM, Repair, HRM, Patrimônio). Vira pedido do DS, não onda daqui.
 
@@ -84,7 +85,7 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
   "absorve": ["prototipo-ui/COLAR-NO-CODE-patrimonio-ondas.md"],
   "constituicao": "CONSTITUICAO-COWORK.md",
   "decisoes": [
-    { "id": "D-ENDERECO", "pergunta": "Patrimonio e modulo proprio (Pages/Patrimonio/**) ou secao do Estoque (Pages/Estoque/Patrimonio/**)? ADR 0180 x ADR 0182 x SCOPE bloqueado-escopo.", "respondida": false, "destrava": ["06"], "custo": "44 arquivos / 20 PRs" },
+    { "id": "D-ENDERECO", "pergunta": "Patrimonio e modulo proprio (Pages/Patrimonio/**) ou secao do Estoque (Pages/Estoque/Patrimonio/**)? ADR 0180 x ADR 0182 x SCOPE bloqueado-escopo.", "respondida": true, "resposta": "Pages/Patrimonio/** (modulo proprio) — [W] 2026-09-04, ratificado 2026-09-08; ADR 0394; SCOPE.md migracao_ui liberado", "destrava": ["06"], "custo": "44 arquivos / 20 PRs" },
     { "id": "D-CANARY-LGPD", "pergunta": "Quando ligar assetmanagement:retention-purge em canary? (nao bloqueia escrever o job com enabled=false)", "respondida": false, "afeta": ["05"] }
   ],
   "threads": [
@@ -116,8 +117,10 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
       "provas": [{ "tipo": "contem", "path": "Modules/AssetManagement/Config/retention.php", "padrao": "enabled" }] },
     { "id": "06", "titulo": "A UI inteira — 46 arquivos", "dono": "W", "arquivo": "06-ui-bloqueada.md",
       "prefixo": [], "nao_toca": ["resources/js/Pages/"],
-      "bloqueio": "D-ENDERECO: migracao_ui bloqueado-escopo esta escrito no main. Errar o endereco = refazer 12 arquivos. Nenhuma Page nasce antes da ADR.",
-      "depende_decisoes": ["D-ENDERECO"], "provas": [] }
+      "desbloqueada_em": "2026-09-08",
+      "endereco": "resources/js/Pages/Patrimonio/** (ADR 0394; SCOPE migracao_ui liberado)",
+      "nota": "DESTRAVADA, nao pronta: 7 telas nao cabem numa thread. Reescrever como frente de 5-7 threads, uma por tela, cada uma com a ficha do §13.2 e o MWART da ADR 0104 (RUNBOOK antes do .tsx).",
+      "depende_decisoes": [], "provas": [] }
   ]
 }
 ```
