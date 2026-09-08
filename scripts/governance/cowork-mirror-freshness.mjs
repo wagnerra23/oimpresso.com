@@ -612,6 +612,68 @@ export function dsRuntimeRelPath(path) {
   return semSlug;
 }
 
+// ── ROTEAMENTO DO BUNDLE — fonte ÚNICA da regra "onde cada path do bundle pousa" ──────
+// Vivia SÓ dentro do `aplicar-payload.mjs`. Passou pra cá porque o `--compare-bundle`
+// (abaixo) precisa da MESMA regra pra saber ONDE conferir cada arquivo, e duas cópias da
+// mesma regra é o vetor do §5 2026-08-02 (corrigir uma implementação e a outra seguir
+// errada). O applier importa daqui — a direção do import já existia (`dsRuntimeRelPath`).
+// Retorna sempre com '/' — quem precisa de separador de plataforma usa join() no consumidor.
+export function destinoDoBundle(rel) {
+  const p = String(rel || '').split(String.fromCharCode(92)).join('/').replace(/^\.\//, '');
+  if (p.startsWith('_ds/')) return { destinoBase: 'scripts/design-sync/mirror-snapshot', destinoPath: dsRuntimeRelPath(p) };
+  if (p.toLowerCase().endsWith('.md')) return { destinoBase: 'prototipo-ui/design-docs', destinoPath: p };
+  return { destinoBase: 'prototipo-ui/cowork', destinoPath: p };
+}
+
+/** sha256 do buffer CRU — a mesma conta que o `gerar-payload-partes` faz do lado do vivo.
+ *  NÃO é o contentHash: aquele normaliza (BOM/CRLF/newline final) e serve à comparação com
+ *  o `get_file`. Misturar os dois daria STALE em 100% dos arquivos com CRLF, e o número
+ *  sairia plausível — o pior tipo de erro. Bruto compara com bruto, e só. */
+export function rawHash(buf) {
+  return createHash('sha256').update(buf).digest('hex');
+}
+
+/** Rows do `--compare-bundle` (PURA — recebe o leitor de arquivo, não toca fs direto).
+ *
+ *  ── POR QUE ISTO NÃO É TAUTOLOGIA (a pergunta que mata instrumentos, §5 2026-07-17) ──
+ *  O `liveHash` NÃO sai do espelho: sai do `bundle.manifest.json`, que o
+ *  `gerar-payload-partes` calculou do LADO DO VIVO, arquivo por arquivo, antes do transporte.
+ *  O `repoHash` sai do disco AGORA. São duas origens independentes, e é por isso que o
+ *  veredito significa algo: ele pega o espelho editado À MÃO depois da aplicação — que é
+ *  exatamente o remendo de 2026-08-13 que passou 4 dias sem ninguém ver.
+ *
+ *  ── O QUE ELE **NÃO** PROVA, e o instrumento diz isso em voz alta ────────────────────
+ *  Prova igualdade com o vivo **na data de emissão do bundle**, nunca "agora". Bundle de
+ *  ontem + tela mexida no Cowork hoje = SYNC honesto aqui e desatualizado no mundo. Por isso
+ *  a entrada de ledger é datada com o `generatedAt` do BUNDLE, não com `Date.now()`:
+ *  carimbar a hora da leitura faria o SLA acreditar num frescor que ninguém mediu.
+ */
+export function rowsDoBundle(bundle, manifest, lerArquivo) {
+  const rows = [];
+  const cobertos = new Set();
+  for (const f of (bundle?.files || [])) {
+    const { destinoBase, destinoPath } = destinoDoBundle(f.path);
+    // O universo do freshness é o espelho (`prototipo-ui/cowork/`). `_ds/**` e `.md` pousam
+    // em outros destinos e NÃO entram no denominador — contá-los inflaria a cobertura com
+    // arquivos que o --compare nunca mediu (§5 2026-07-27: denominador é o executável).
+    if (destinoBase !== 'prototipo-ui/cowork') continue;
+    cobertos.add(destinoPath);
+    const buf = lerArquivo(destinoBase + '/' + destinoPath);
+    rows.push({
+      cowork: destinoPath,
+      repoHash: buf == null ? null : rawHash(buf),
+      // FAIL-CLOSED: arquivo do bundle que sumiu do espelho não é SYNC nem silêncio.
+      veredito: buf == null ? 'STALE' : classifyMirror({ repoHash: rawHash(buf), liveHash: f.sha256 }),
+    });
+  }
+  // O que o espelho tem e o bundle NÃO cobriu segue UNCHECKED — nunca vira SYNC por omissão
+  // (LC-13: "0 failed" numa suíte que não rodou). É o mesmo contrato do --compare.
+  for (const m of manifest) {
+    if (!cobertos.has(m.cowork)) rows.push({ cowork: m.cowork, repoHash: m.repoHash, veredito: 'UNCHECKED' });
+  }
+  return rows;
+}
+
 // ── LEDGER + SLA (a metade que o CI headless PODE checar com honestidade) ─────
 // O CI não lê o Cowork vivo (auth interativa). Então o CI NÃO mede frescor — mede se a
 // ROTINA de dispatch rodou dentro do SLA e qual foi o último resultado. Ledger datado,
@@ -1771,6 +1833,62 @@ function main() {
       console.log(`  ledger: medição registrada em ${LEDGER_REL} (${faltando.length} live-only de ${paths.length} paths). Commite o ledger.`);
       console.log(`  O CI headless não mede isto (auth ADR 0315) — ele audita ESTE registro via --sla-live-only.\n`);
     }
+    return;
+  }
+
+  // --compare-bundle [<manifest.json>] [--check] [--ledger]: veredito a partir do BUNDLE v2
+  // já promovido, em vez de N chamadas `DesignSync.get_file`.
+  //
+  // POR QUE EXISTE (2026-09-08, [W] "estende o freshness pro bundle"): a rota PRINCIPAL de
+  // conteúdo virou o bundle (`gerar-payload-partes` -> `aplicar-payload`), que confere bytes
+  // por arquivo antes de escrever. Mas o ledger só aceitava snapshot vindo de `get_file` por
+  // path — então aplicar o bundle com fidelidade provada NÃO movia o `unchecked`, e fechar
+  // 273 arquivos custava 273 chamadas. Medido nesse dia: bundle promovido, espelho idêntico
+  // (0 mudança), e o --sla continuava dizendo "271 sem veredito". As duas metades do mesmo
+  // sistema não se falavam.
+  //
+  // NÃO é atalho pra medir o vivo: o `liveHash` é o sha256 que o gerador calculou DO VIVO
+  // antes do transporte. O que este modo NÃO faz é ir ao Cowork agora — e por isso a entrada
+  // é datada com o `generatedAt` do bundle. Bundle velho => rodada velha => o --sla cobra.
+  if (argv.includes('--compare-bundle')) {
+    const bi = argv.indexOf('--compare-bundle');
+    const alt = argv[bi + 1] && !argv[bi + 1].startsWith('--') ? argv[bi + 1] : null;
+    const bundle = alt
+      ? (existsSync(alt) ? JSON.parse(readFileSync(alt, 'utf8')) : null)
+      : lerBundlePromovido();
+    // FAIL-CLOSED: sem bundle não há liveHash, logo não há veredito — nunca verde por ausência.
+    if (!bundle || !Array.isArray(bundle.files) || bundle.files.length === 0) {
+      console.error('✗ --compare-bundle: bundle promovido ausente ou ilegível (scripts/design-sync/state/active-bundle.json). Rode aplicar-payload antes.');
+      process.exit(2);
+    }
+    const manifestB = buildManifest(ROOT, { all: false, shellHtml: lerShellHtml() });
+    const ler = (relPath) => { const p = join(ROOT, relPath); return existsSync(p) ? readFileSync(p) : null; };
+    const rows = rowsDoBundle(bundle, manifestB, ler);
+    const conta = (v) => rows.filter((r) => r.veredito === v).length;
+    const nSync = conta('SYNC'), nStale = conta('STALE'), nUnch = conta('UNCHECKED');
+    const dataBundle = bundle.generatedAt || null;
+    console.log(`\n  COMPARE-BUNDLE — espelho × bundle ${String(bundle.bundleId || '').slice(0, 16)} (emitido ${dataBundle || '?'})\n`);
+    console.log(`  ✓ sync: ${nSync} · ⛔ stale: ${nStale} · ⬜ unchecked: ${nUnch}  (de ${rows.length})`);
+    for (const r of rows.filter((x) => x.veredito === 'STALE')) console.log(`     ⛔ STALE  ${r.cowork}`);
+    // O superlativo só fala do MEDIDO, e o denominador anda junto (LC-13 · §5 2026-08-13).
+    console.log(nUnch === 0
+      ? `\n  Cobertura TOTAL do espelho por este bundle.`
+      : `\n  ⚠️ COBERTURA PARCIAL — ${nUnch} arquivo(s) do espelho não estão no bundle: seguem SEM VEREDITO.`);
+    console.log(`  ⚠️ Isto prova igualdade com o vivo NA DATA DE EMISSÃO (${dataBundle || '?'}), não "agora".\n`);
+    if (argv.includes('--ledger')) {
+      if (!dataBundle) {
+        console.error('✗ --ledger recusado: bundle sem `generatedAt`. Datar a rodada com a hora da LEITURA faria o SLA acreditar num frescor que ninguém mediu.');
+        process.exit(2);
+      }
+      const lp = join(ROOT, LEDGER_REL);
+      let entries = [];
+      try { entries = existsSync(lp) ? JSON.parse(readFileSync(lp, 'utf8')) : []; } catch { entries = []; }
+      if (!Array.isArray(entries)) entries = entries.runs || [];
+      entries.push(ledgerEntry(rows, dataBundle, { origin: `bundle:${String(bundle.bundleId || '').slice(0, 16)}` }));
+      writeFileSync(lp, JSON.stringify(entries, null, 2) + '\n');
+      console.log(`  ledger: rodada registrada em ${LEDGER_REL} (origin=bundle, datada de ${dataBundle}). Commite o ledger.\n`);
+    }
+    if (argv.includes('--check') && shouldFail(rows.map((r) => r.veredito))) process.exit(1);
     return;
   }
 
