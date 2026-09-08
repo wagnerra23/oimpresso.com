@@ -648,6 +648,7 @@ class AssetController extends Controller
             ->selectRaw('COALESCE(SUM(quantity), 0) as unidades')
             ->selectRaw('COALESCE(SUM(quantity * unit_price), 0) as bruto')
             ->selectRaw('COALESCE(SUM(CASE WHEN is_allocatable = 1 THEN quantity ELSE 0 END), 0) as alocaveis')
+            ->toBase()
             ->first();
 
         // allocate menos revoke — a MESMA conta do card legado. `quantity` e decimal(22,4)
@@ -655,6 +656,7 @@ class AssetController extends Controller
         $mov = AssetTransaction::where('business_id', $business_id)
             ->selectRaw("COALESCE(SUM(IF(transaction_type='allocate', quantity, 0)), 0) as alocado")
             ->selectRaw("COALESCE(SUM(IF(transaction_type='revoke', quantity, 0)), 0) as revogado")
+            ->toBase()
             ->first();
 
         return [
@@ -692,6 +694,7 @@ class AssetController extends Controller
             ->selectRaw('COALESCE(SUM(assets.quantity * assets.unit_price), 0) as valor')
             ->groupBy('cat.id', 'cat.name')
             ->orderByDesc('valor')
+            ->toBase()
             ->get()
             ->map(fn ($r) => [
                 'categoria' => $r->categoria,
@@ -721,6 +724,7 @@ class AssetController extends Controller
             ->selectRaw('COUNT(DISTINCT assets.id) as bens')
             ->selectRaw('COALESCE(SUM(assets.quantity * assets.unit_price), 0) as valor')
             ->groupBy('balde')
+            ->toBase()
             ->get()
             ->keyBy('balde');
 
@@ -748,6 +752,7 @@ class AssetController extends Controller
                 'asset_maintenances.created_at', 'assets.name as bem', 'assets.asset_code')
             ->orderBy('asset_maintenances.created_at')
             ->limit(20)
+            ->toBase()
             ->get()
             ->map(fn ($m) => [
                 'id' => $m->id,
@@ -766,6 +771,7 @@ class AssetController extends Controller
             ->where('receiver', $user_id)
             ->selectRaw("COALESCE(SUM(IF(transaction_type='allocate', quantity, 0)), 0) as alocado")
             ->selectRaw("COALESCE(SUM(IF(transaction_type='revoke', quantity, 0)), 0) as revogado")
+            ->toBase()
             ->first();
 
         $porCategoria = AssetTransaction::where('asset_transactions.business_id', $business_id)
@@ -775,6 +781,7 @@ class AssetController extends Controller
             ->selectRaw('COALESCE(cat.name, ?) as categoria', [__('lang_v1.none')])
             ->selectRaw("COALESCE(SUM(IF(asset_transactions.transaction_type='allocate', asset_transactions.quantity, -asset_transactions.quantity)), 0) as quantidade")
             ->groupBy('cat.id', 'cat.name')
+            ->toBase()
             ->get()
             ->map(fn ($r) => ['categoria' => $r->categoria, 'quantidade' => (float) $r->quantidade])
             ->filter(fn ($r) => $r['quantidade'] > 0)
