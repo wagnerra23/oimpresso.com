@@ -1157,6 +1157,12 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **⚠️ NÃO virar gate:** o predicado — *"esta afirmação fala de uma interação, e o autor leu os dois lados?"* — é **semântico por construção** ([ADR 0224](decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md): semântico = advisory), e a forma sintática (acusar `withoutGlobalScope` novo) reprovaria as dispensas **legítimas**, que existem e são canon quando comentadas. Pela [ADR 0344](decisions/0344-two-strikes-cobre-processo.md) também não se codifica na 1ª: **não chegou a prod** — o teste mordeu no CI, antes do merge. O que fechou a classe aqui foi o próprio caso de runtime, e a lição é que ele só existiu porque foi escrito para ler o payload de verdade em vez de afirmar sobre ele.
 
+### 2026-09-07 — Rodei DOIS consumidores do charter e os dois deram verde — nenhum era um parser YAML (o dois-pontos+espaço no meio do escalar derrubou um required)
+
+- **O limite (variante também proibida):** rodar **N consumidores** não satisfaz a Regra da [LC-22](LICOES_CODE.md) se nenhum deles **exerce a propriedade que você mudou** — dois leitores tolerantes são indistinguíveis de zero leitores, e o verde deles é ativamente enganoso porque parece validação. Antes de dar por validada uma mudança em artefato lido por máquina, pergunte **qual consumidor é ESTRITO naquela dimensão** — parser YAML/JSON para sintaxe, schema para shape, branch protection para nome de check — e rode ESSE. Corolário barato e específico: valor de frontmatter que carrega **prosa explicativa** é o lugar natural do `: `; quem escreve medição dentro de um campo YAML **quota o valor** ou remove o dois-pontos. Mesma raiz da lápide §5 2026-08-04 (placeholder `{{X}}` sem aspas quebra o consumidor), caractere diferente.
+
+- **⚠️ NÃO virar gate novo:** a máquina que pega isto **já existe, já é required e já mordeu** — o `memory-schema-gate` fez exatamente o trabalho dele. O buraco não é de cobertura de CI, é de ordem de execução local: o validador estrito não estava no meu roteiro antes do push. Propor detector novo aqui duplicaria régua consolidada (§5 2026-07-09) e seria [LC-19](LICOES_CODE.md) dentro do registro da lição.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
