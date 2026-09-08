@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · SDD-espelho-e-jornada-v1.0.md §6.5 (contrato)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a porta de entrada para configurar quem entra na apuração CLT — e é uma tela de BUSCA, onde o filtro de empregador é a coisa mais fácil de perder sem ninguém notar.
 owner: wagner
-last_run: "2026-09-04"
-last_run_ci: "2 UC rodados por mim no CT 100 (container oimpresso-staging, MySQL real oimpresso_staging), NAO em CI. O codigo desta tela e das entidades que ela toca esta IDENTICO ao main no container (medido: git diff c1abe9548..origin/main em Http/Controllers/ColaboradorController.php + Entities/Colaborador.php + Http/routes.php = vazio, com controle positivo em memory/proibicoes.md dando 157 linhas). CT100 != CI (proibicoes §Ambiente): la a base PERSISTE entre runs, aqui cada lane semeia do zero — logo verde no CT100 e CANDIDATURA, nao veredito; quem decide e a lane PHP / Pest (Ponto · MySQL), que e REQUIRED e estava verde nas ultimas 7 runs do main em 2026-09-04. Achado de metodo desta sessao, registrado porque quase virou achado falso: a 1a sonda do UC-COLIDX-01 procurava a MATRICULA do colaborador alheio no corpo da resposta e deu SIM (VAZA) — falso-positivo, porque o controller devolve o proprio termo buscado na prop `search`, entao a string aparece por eco. A prova limpa e buscar pelo CPF do alheio e procurar a MATRICULA dele (nao ha eco possivel): deu `nao`. O SQL confirmou (toSql): o grupo do global scope entra com AND depois do grupo do controller."
+last_run: "2026-09-08"
+last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-test-results.json (fonte: test-results/pest-ponto-junit.xml). Lane PHP / Pest (Ponto - MySQL) run 34215745965 em main (sha dced5fd3d8, 2026-09-08T10:32Z): 302 passed - 1 skipped - 1009 assertions, coherent=true, provou_algo=true. Li ASSERTIONS, nao a conclusion: 1009 > 0 prova que a suite rodou e nao caiu no skip-as-pass da lane (LC-13). O unico skipped da run nao e UC (o coletor trata skip como nao-pass, e os 69 vieram pass). A lane e ADVISORY: reprova e visivel, nao bloqueia merge."
 ---
 
 # Casos de Uso & Aceite — Lista de colaboradores
@@ -28,8 +28,8 @@ last_run_ci: "2 UC rodados por mim no CT 100 (container oimpresso-staging, MySQL
 
 | UC | Caso de uso | Prio | Âncora | Teste | Status |
 |----|-------------|------|--------|-------|--------|
-| UC-COLIDX-01 | Buscar por matrícula ou CPF não alcança colaborador de outro empregador | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `ColaboradorContratoTest` | 🧪 verde no CT 100, sem veredito de lane |
-| UC-COLIDX-02 | Busca que não casa ninguém devolve lista vazia, não a lista inteira | must | charter §Goals (busca + empty state de "busca sem resultado") | `ColaboradorContratoTest` | 🧪 verde no CT 100, sem veredito de lane |
+| UC-COLIDX-01 | Buscar por matrícula ou CPF não alcança colaborador de outro empregador | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `ColaboradorContratoTest` | ✅ verde na lane |
+| UC-COLIDX-02 | Busca que não casa ninguém devolve lista vazia, não a lista inteira | must | charter §Goals (busca + empty state de "busca sem resultado") | `ColaboradorContratoTest` | ✅ verde na lane |
 
 **[BACKLOG]** (medido nesta sessão, sem teste que o defenda — vira UC quando ganhar um):
 

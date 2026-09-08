@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Form.casos.md (a tela irmã, UC-ESCF-01..03) �
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a escala é o molde da jornada — é contra ela que a apuração compara entrada, saída e intervalo. Uma escala sem turno não apura nada, e é justamente isso que a lista precisa deixar visível.
 owner: wagner
-last_run: "2026-09-04"
-last_run_ci: "2 UC rodados por mim no CT 100 (container oimpresso-staging, MySQL real), NAO em CI. Codigo do EscalaController@index e da entity Escala identico ao main no container (medido por git diff c1abe9548..origin/main, com controle positivo). CT100 != CI: base persiste entre runs — verde la e CANDIDATURA, nao veredito. A tela irma (Escalas/Form) ja tem contrato proprio, com DOIS UC que nascem failing-first por desenho (UC-ESCF-01 atributo fantasma no @edit, UC-ESCF-02 `validated()` em Request que nao e FormRequest); este arquivo NAO os duplica — cobre so o que e da lista."
+last_run: "2026-09-08"
+last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-test-results.json (fonte: test-results/pest-ponto-junit.xml). Lane PHP / Pest (Ponto - MySQL) run 34215745965 em main (sha dced5fd3d8, 2026-09-08T10:32Z): 302 passed - 1 skipped - 1009 assertions, coherent=true, provou_algo=true. Li ASSERTIONS, nao a conclusion: 1009 > 0 prova que a suite rodou e nao caiu no skip-as-pass da lane (LC-13). O unico skipped da run nao e UC (o coletor trata skip como nao-pass, e os 69 vieram pass). A lane e ADVISORY: reprova e visivel, nao bloqueia merge."
 ---
 
 # Casos de Uso & Aceite — Lista de escalas
@@ -22,8 +22,8 @@ last_run_ci: "2 UC rodados por mim no CT 100 (container oimpresso-staging, MySQL
 
 | UC | Caso de uso | Prio | Âncora | Teste | Status |
 |----|-------------|------|--------|-------|--------|
-| UC-ESCIDX-01 | A lista não traz escala de outro empregador | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `EscalaIndexContratoTest` | 🧪 verde no CT 100, sem veredito de lane |
-| UC-ESCIDX-02 | Cada escala informa quantos turnos tem | must | charter §Goals + CLT Art. 58 | `EscalaIndexContratoTest` | 🧪 verde no CT 100, sem veredito de lane |
+| UC-ESCIDX-01 | A lista não traz escala de outro empregador | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `EscalaIndexContratoTest` | ✅ verde na lane |
+| UC-ESCIDX-02 | Cada escala informa quantos turnos tem | must | charter §Goals + CLT Art. 58 | `EscalaIndexContratoTest` | ✅ verde na lane |
 
 **[BACKLOG]** (pergunta aberta ao [W], ou contrato numa fonte só — não vira UC sem teste):
 

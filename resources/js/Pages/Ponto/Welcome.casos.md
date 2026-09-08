@@ -5,8 +5,8 @@ irmaos: Welcome.charter.md (lei) · Dashboard/Index.casos.md (a home real, UC-PA
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a única tela do módulo servida por closure de rota, sem controller — e a tela mais fácil de alguém "enriquecer" com um KPI, transformando uma página de navegação em superfície de dado de jornada sem passar por controller nenhum.
 owner: wagner
-last_run: "2026-09-04"
-last_run_ci: "1 UC rodado por mim no CT 100 (container oimpresso-staging, MySQL real), NAO em CI. A rota e uma closure em Modules/Ponto/Http/routes.php, identica ao main no container (medido). Medicao que originou o caso: GET /ponto/react devolveu 200, component `Ponto/Welcome`, e as props do payload eram SO as compartilhadas do HandleInertiaRequests (errors, auth, business, ai, flash, shell, sells, locale, csrf_token, publicRoutes, consent, clarity) — nenhuma prop de dominio do Ponto. CT100 != CI: verde la e CANDIDATURA, nao veredito."
+last_run: "2026-09-08"
+last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-test-results.json (fonte: test-results/pest-ponto-junit.xml). Lane PHP / Pest (Ponto - MySQL) run 34215745965 em main (sha dced5fd3d8, 2026-09-08T10:32Z): 302 passed - 1 skipped - 1009 assertions, coherent=true, provou_algo=true. Li ASSERTIONS, nao a conclusion: 1009 > 0 prova que a suite rodou e nao caiu no skip-as-pass da lane (LC-13). O unico skipped da run nao e UC (o coletor trata skip como nao-pass, e os 69 vieram pass). A lane e ADVISORY: reprova e visivel, nao bloqueia merge."
 ---
 
 # Casos de Uso & Aceite — Hub de boas-vindas do ponto
@@ -21,7 +21,7 @@ last_run_ci: "1 UC rodado por mim no CT 100 (container oimpresso-staging, MySQL 
 
 | UC | Caso de uso | Prio | Âncora | Teste | Status |
 |----|-------------|------|--------|-------|--------|
-| UC-PWEL-01 | A porta de entrada não carrega dado de ponto — é navegação, não painel | must | charter §Non-Goals + §Anti-hooks | `WelcomeContratoTest` | 🧪 verde no CT 100, sem veredito de lane |
+| UC-PWEL-01 | A porta de entrada não carrega dado de ponto — é navegação, não painel | must | charter §Non-Goals + §Anti-hooks | `WelcomeContratoTest` | ✅ verde na lane |
 
 **[BACKLOG]** (pergunta aberta ao [W], ou fora do alcance de teste de contrato):
 

@@ -5,8 +5,8 @@ irmaos: Reps.charter.md (lei) · Index.casos.md (a tela irmã) · RUNBOOK-config
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o identificador do REP é o que amarra cada marcação ao dispositivo que a gerou — é o campo que a fiscalização cruza, e um REP cadastrado errado contamina todo AFD gerado depois.
 owner: wagner
-last_run: "2026-09-04"
-last_run_ci: "2 UC rodados por mim no CT 100 (container oimpresso-staging, MySQL real), NAO em CI. Codigo do ConfiguracaoController@reps/@storeRep identico ao main no container (medido por git diff c1abe9548..origin/main, com controle positivo). CT100 != CI: base persiste entre runs — verde la e CANDIDATURA, nao veredito. Nota: o unico metodo que este arquivo NAO cobre e o @index da tela irma, coberto por UC-CFGIDX-01."
+last_run: "2026-09-08"
+last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-test-results.json (fonte: test-results/pest-ponto-junit.xml). Lane PHP / Pest (Ponto - MySQL) run 34215745965 em main (sha dced5fd3d8, 2026-09-08T10:32Z): 302 passed - 1 skipped - 1009 assertions, coherent=true, provou_algo=true. Li ASSERTIONS, nao a conclusion: 1009 > 0 prova que a suite rodou e nao caiu no skip-as-pass da lane (LC-13). O unico skipped da run nao e UC (o coletor trata skip como nao-pass, e os 69 vieram pass). A lane e ADVISORY: reprova e visivel, nao bloqueia merge."
 ---
 
 # Casos de Uso & Aceite — Cadastro de REPs
@@ -22,11 +22,11 @@ last_run_ci: "2 UC rodados por mim no CT 100 (container oimpresso-staging, MySQL
 
 | UC | Caso de uso | Prio | Âncora | Teste | Status |
 |----|-------------|------|--------|-------|--------|
-| UC-CFGREP-01 | A lista de REPs não mostra dispositivo de outro empregador | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `ConfiguracaoContratoTest` | 🧪 verde no CT 100, sem veredito de lane |
-| UC-CFGREP-02 | Identificador fora do formato da Portaria é recusado | must | Portaria 671/2021 Anexo I + charter §Goals | `ConfiguracaoContratoTest` | 🧪 verde no CT 100, sem veredito de lane |
-| UC-CFGREP-03 | A lista traz o REP do meu empregador com a identificação dele | must | charter §Mission + US-PONTO-007 | `ConfiguracaoContratoTest` | 🧪 verde no CT 100, sem veredito de lane |
-| UC-CFGREP-04 | REP cadastrado nasce no meu empregador, não no que veio na requisição | must `[T0]` | `CU-PONTO-12` + charter §Automation hooks | `ConfiguracaoContratoTest` | 🧪 verde no CT 100, sem veredito de lane |
-| UC-CFGREP-05 | Tipo fora de REP-P/C/A é recusado | must | Portaria 671/2021 (tipos taxativos) | `ConfiguracaoContratoTest` | 🧪 verde no CT 100, sem veredito de lane |
+| UC-CFGREP-01 | A lista de REPs não mostra dispositivo de outro empregador | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `ConfiguracaoContratoTest` | ✅ verde na lane |
+| UC-CFGREP-02 | Identificador fora do formato da Portaria é recusado | must | Portaria 671/2021 Anexo I + charter §Goals | `ConfiguracaoContratoTest` | ✅ verde na lane |
+| UC-CFGREP-03 | A lista traz o REP do meu empregador com a identificação dele | must | charter §Mission + US-PONTO-007 | `ConfiguracaoContratoTest` | ✅ verde na lane |
+| UC-CFGREP-04 | REP cadastrado nasce no meu empregador, não no que veio na requisição | must `[T0]` | `CU-PONTO-12` + charter §Automation hooks | `ConfiguracaoContratoTest` | ✅ verde na lane |
+| UC-CFGREP-05 | Tipo fora de REP-P/C/A é recusado | must | Portaria 671/2021 (tipos taxativos) | `ConfiguracaoContratoTest` | ✅ verde na lane |
 
 **[BACKLOG]** (medido, sem teste que defenda — ou pergunta ainda aberta ao [W]):
 
