@@ -33,6 +33,19 @@ rmSync(BASE, { force: true });
 let code; try { execFileSync('node', [SCRIPT, '--check', '--baseline', BASE], { encoding: 'utf8' }); code = 0; } catch (e) { code = e.status ?? 1; }
 ok(code === 1, 'baseline ausente → exit 1');
 
+// ── eixo PARIDADE (Onda 7) — back-compat + bite ────────────────────────────────
+const checkP = (obj) => {
+  writeFileSync(BASE, JSON.stringify(obj));
+  try { execFileSync('node', [SCRIPT, '--check', '--baseline', BASE], { encoding: 'utf8' }); return 0; }
+  catch (e) { return e.status ?? 1; }
+};
+// BACK-COMPAT: baseline anterior a Onda 7 nao tem `parityLinked`. Ausente NAO pode
+// virar 0 — se virasse, todo repo reprovaria no dia do merge (a doenca de §5 2026-08-24:
+// predicado que cobra do autor um estado que ele nao causou).
+ok(checkP({ declared: 0, totalCharters: 0 }) === 0, 'BACK-COMPAT: baseline sem parityLinked → exit 0 (eixo nao cobrado)');
+ok(checkP({ declared: 0, totalCharters: 0, parityLinked: 0 }) === 0, 'RELEASE: parityLinked baseline 0 ≤ atual → exit 0');
+ok(checkP({ declared: 0, totalCharters: 0, parityLinked: 9999 }) === 1, 'BITE: parityLinked 9999 > atual → exit 1 (vinculo perdido pega)');
+
 rmSync(DIR, { recursive: true, force: true });
 if (fails) { console.error(`\ndesign-coverage.test: ${fails} FALHA(S)`); process.exit(1); }
 console.log('\ndesign-coverage.test: OK');
