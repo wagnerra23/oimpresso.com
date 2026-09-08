@@ -191,6 +191,70 @@ it('R5 (Tier 0): nao alcanca papel de OUTRO business', function () {
     expect(count(array_intersect(revPerms($papelVizinho), $this->adminOnly)))->toBe(count($this->adminOnly));
 });
 
+it('R7: --todos ENCONTRA o business com concessao e diz o total', function () {
+    $this->papel->syncPermissions(array_merge(['sell.view'], $this->adminOnly));
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
+    Artisan::call('jana:mcp-revogar-admin-only', ['--todos' => true]);
+    $out = Artisan::output();
+
+    expect($out)->toContain('VARREDURA GLOBAL');
+    expect($out)->toContain('business_id='.$this->biz->id);
+    expect($out)->toContain($this->papel->name);
+    expect($out)->toContain('RESUMO:');
+});
+
+it('R8: --todos NAO escreve nada — e varredura, nao limpeza', function () {
+    $this->papel->syncPermissions(array_merge(['sell.view'], $this->adminOnly));
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
+    $antes = revPerms($this->papel);
+
+    Artisan::call('jana:mcp-revogar-admin-only', ['--todos' => true]);
+
+    expect(revPerms($this->papel))->toBe($antes);
+    expect(array_intersect($antes, $this->adminOnly))->not->toBeEmpty(); // controle positivo
+});
+
+it('R9: --todos --apply e RECUSADO (revogacao em massa nao cabe numa flag)', function () {
+    $this->papel->syncPermissions(array_merge(['sell.view'], $this->adminOnly));
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
+    $antes = revPerms($this->papel);
+
+    $rc = Artisan::call('jana:mcp-revogar-admin-only', ['--todos' => true, '--apply' => true]);
+
+    expect($rc)->toBe(1);                       // recusa, nao no-op silencioso
+    expect(revPerms($this->papel))->toBe($antes); // e de fato nao tocou
+});
+
+it('R10: --todos ACHA tambem a concessao direta no usuario', function () {
+    // O mesmo ponto cego do R4, agora no eixo varredura: uma varredura so-por-role reportaria
+    // "nenhum business com concessao" com o acesso vivo pelo caminho direto.
+    $user = User::factory()->create([
+        'business_id' => $this->biz->id,
+        'username' => 'rev_varre_'.uniqid(),
+        'user_type' => 'user',
+        'allow_login' => 1,
+    ]);
+    $user->givePermissionTo('jana.mcp.usage.all');
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
+    Artisan::call('jana:mcp-revogar-admin-only', ['--todos' => true]);
+    $out = Artisan::output();
+
+    expect($out)->toContain('user #'.$user->id.' (direta)');
+    expect($out)->toContain('jana.mcp.usage.all');
+});
+
+it('R11: sem business_id e sem --todos o comando RECUSA', function () {
+    // O argumento virou opcional pra viabilizar o --todos; sem esta guarda, rodar sem nada
+    // cairia em business_id=0 e varreria o vazio dizendo "nada a revogar".
+    $rc = Artisan::call('jana:mcp-revogar-admin-only', []);
+
+    expect($rc)->toBe(1);
+});
+
 it('R6: o catalogo de onde o comando deriva os slugs NAO esta vazio', function () {
     // Controle de sanidade dos casos acima, nao teste da aborcao. O nome diz exatamente
     // isso de proposito: o caminho `catalogo vazio -> FAILURE` existe no comando, mas
