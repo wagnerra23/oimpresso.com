@@ -1143,6 +1143,14 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **⚠️ NÃO virar gate:** detectar "duplica dono" por nome/pasta/palavra é o guard sintático que a §5 já enterrou 7× (allowlist-de-pasta 06-30 · `@scope` 07-09 · vocabulário **130 FP** 07-16 · `toHaveKey` **100% FP** 07-26 · `toContain` 07-28 · `jq` 08-11 · limiar 3→2 08-12). E o candidato mecanicamente honesto — *"o comando que motivou este PR ainda reprova em `origin/main`?"* — **não é derivável**: nada no diff diz qual comando motivou o trabalho. Por [ADR 0344](decisions/0344-two-strikes-cobre-processo.md) também não se codifica aqui: o dano foi **contido antes do merge** (PRs fechados com a medição colada). A defesa é a regra acima, e ela é cultural.
 
+### 2026-09-07 — `str.count(padrao) == N` como asserção de UNICIDADE quando o padrão é SUBSTRING (o YAML de um workflow nasceu inválido, e o assert disse que estava tudo certo)
+
+- **O limite (variante também proibida):** `count`/`in`/`indexOf` sobre **substring** não prova unicidade nem identidade de linha — em nenhuma linguagem. Quando o alvo é **uma linha** de arquivo estruturado (YAML, `.env`, `.ini`, lista de allowlist), a âncora inclui os delimitadores (`
+…
+`) **ou** a operação é por linha (`splitlines()` + comparação exata), nunca por texto solto. E o corolário que vale mais que a regra: **em arquivo cuja validade é verificável por parser, rode o parser depois de escrever** — o assert mede a sua hipótese sobre o arquivo; o parser mede o arquivo. Duas indentações do mesmo texto no mesmo arquivo é o caso normal em YAML (bloco literal aninhado), não a exceção.
+
+- **⚠️ Sobre virar máquina — MEDIDO, não armado:** o sub-caso é **mecanicamente decidível** (`str.count`/`.count(` num script de escrita cujo padrão começa por espaço e o arquivo-alvo é `.yml`), diferente do eixo semântico da lápide-mãe. Mas o dono já existe e é o `block-sonda-que-mente` **P2**, que cobre a sub-classe determinística da LC-16 pelo lado dos metacaracteres — seria **estender**, nunca abrir paralelo (LC-19). Não armado aqui por [ADR 0344](decisions/0344-two-strikes-cobre-processo.md): **1ª ocorrência conserta, não codifica**, e o dano foi contido antes do commit. Fica com o comando de medição para a 2ª: contar, no corpus de scripts de escrita, `count(` cujo argumento comece com espaço — separando os que editam arquivo indentado dos que não. A defesa barata e universal já é canon e é o que funcionou: **rode o parser do consumidor depois de escrever** (§5 2026-08-12, *"doc que a máquina LÊ é código com cara de doc"*).
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
