@@ -81,7 +81,7 @@ uma das duas notificações), com a lista de tags disponíveis de cada bloco.
 
 - **Carregando:** só a lista de **destinatários**. `usuarios` é `Inertia::defer` — é a única
   prop que cresce com o tamanho do tenant — e o bloco dela renderiza um skeleton até chegar
-  ([RUNBOOK-inertia-defer-pattern](_DesignSystem/RUNBOOK-inertia-defer-pattern.md)). As outras
+  ([RUNBOOK-inertia-defer-pattern](../_DesignSystem/RUNBOOK-inertia-defer-pattern.md)). As outras
   (um `value()` de coluna e dois `first()`) vêm eager: deferi-las também só somaria um
   ida-e-volta para economizar ~1ms.
 - **Vazio:** business novo tem `asset_settings` nulo; `getAssetSettings` devolve `[]` e os
