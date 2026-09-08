@@ -37,8 +37,13 @@
  *   G3 time_to_merge inclui a espera por review humano (R10) — não é só "qualidade
  *      do agente"; é o loop ponta-a-ponta. Comparar com o próprio histórico, não absoluto.
  *   G4 janela por mergedAt/closedAt; PR ainda ABERTO não entra (nem no denominador).
- *   G5 marcador de agente = título contém MARKER (default "[CC]") OU autor bot. Pode
- *      perder PR do agente sem marcador / incluir PR humano que cita "[CC]".
+ *   G5 marcador de agente = título casa o conjunto canônico `[C]` / `[CC]` / `[X+C]`
+ *      (AGENT_MARKER_RE) OU autor bot. Marcador humano sozinho (`[W]` `[M]` `[F]` `[L]`
+ *      `[E]`) não conta. Ainda perde PR do agente SEM marcador algum — medidos 231 em 30d
+ *      (2026-09-07), ~15% dos terminais da janela: o número é PISO da atividade do agente.
+ *   G6 o fetch tem CAP (`--limit`): se o corpus voltar cheio e o PR mais antigo for mais
+ *      novo que o início da janela, a janela não foi coberta — o relatório DECLARA isso
+ *      (cobertura.truncado) em vez de publicar um número parcial como se fosse total.
  *
  * Funções puras exportadas → testáveis SEM gh/rede (agent-pr-outcomes.test.mjs).
  * A camada de rede (`gh pr list`) só roda quando invocado direto e sem --fixture.
@@ -49,7 +54,9 @@
  *   --brief     seção markdown pronta pro brief semanal (o "próximo degrau" do card)
  *   --fixture <f.json>  usa um array de PRs de arquivo (hermético — não chama gh)
  *   --days <N>  janela (default 30); ou --since <ISO>
- *   --marker <s>  marcador de PR-de-agente (default "[CC]")
+ *   --marker <s>  OVERRIDE literal do marcador (sem ele vale o conjunto canônico
+ *                 `[C]` / `[CC]` / `[X+C]` — ver AGENT_MARKER_RE)
+ *   --limit <N>   cap do `gh pr list` (default 2000); ver G6 (cobertura da janela)
  *   --repo <o/r>  override do repo (default: gh infere do cwd)
  *   --selftest  fixtures-armadilha (morde CFR fora de 48h / sem #N / tipo errado)
  *
@@ -64,7 +71,26 @@ import { readFileSync } from 'node:fs';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 
 // ── constantes (exportadas pra teste) ─────────────────────────────────────────
-export const DEFAULT_MARKER = '[CC]';
+/**
+ * Formas VIVAS do marcador de PR-de-agente no título (convenção memory/regras-time.md):
+ *   `[C]`   Claude sozinho · `[CC]` Claude Code · `[X+C]` humano pareado com Claude
+ *           (medidos no corpus: `[M+C]` `[F+C]` `[L+C]` `[W+C]`).
+ * Marcador humano SOZINHO (`[W]` `[M]` `[F]` `[L]` `[E]`) NÃO é PR de agente e não casa.
+ *
+ * MEDIDO em 2026-09-07 (corpus `gh pr list --state all --limit 2000`, 2000 PRs, #4949..#6953):
+ *   • distribuição na janela 30d (1488 terminais): `[C]` 1116 · sem-marcador 231 · `[CC]` 70
+ *     · `[M+C]` 23 · `[L+C]` 17 · `[W]` 15 · `[W+C]` 13 · `[F+C]` 2 · `[L]` 1.
+ *   • falso-positivo: 0 casamentos fora do fim do título (nenhuma menção em prosa);
+ *     dos 23 PRs com marcador humano-sozinho, 0 capturados.
+ * Reproduzir: `gh pr list --state all --limit 2000 --json number,title,mergedAt,closedAt`
+ * e contar `title.match(/\[([^\]]{1,8})\]\s*(\(#\d+\))?\s*$/)`.
+ *
+ * Antes desta constante o default era só `[CC]` (9 PRs em 30d) — o medidor enxergava
+ * ~0,6% da população e publicava accept-rate de 3 PRs como se fosse a do agente.
+ */
+export const AGENT_MARKER_RE = /\[(?:C|CC|[A-Z]{1,2}\+C)\]/;
+/** rótulo do conjunto canônico (só p/ exibição; o override literal vem por `--marker`). */
+export const DEFAULT_MARKER = '[C] · [CC] · [X+C]';
 export const CFR_WINDOW_HOURS = 48;
 /** títulos que contam como hotfix pro CFR (o PR de conserto do merge anterior). */
 export const HOTFIX_TITLE_RE = /^\s*(fix|hotfix|revert)\b/i;
@@ -75,10 +101,14 @@ const MS_PER_HOUR = 3600 * 1000;
 
 // ── helpers puros ─────────────────────────────────────────────────────────────
 
-/** É PR do agente? título tem o marcador OU autor está na lista de bots. */
-export function isAgentPR(pr, marker = DEFAULT_MARKER) {
+/**
+ * É PR do agente? título casa o conjunto canônico de marcadores OU autor está na lista de bots.
+ * `marker` (vindo de `--marker`) é OVERRIDE literal: quando dado, vale só ele (substring exata),
+ * o conjunto canônico fica de fora. Sem override, vale `AGENT_MARKER_RE`.
+ */
+export function isAgentPR(pr, marker = null) {
   const title = String(pr.title || '');
-  if (marker && title.includes(marker)) return true;
+  if (marker ? title.includes(marker) : AGENT_MARKER_RE.test(title)) return true;
   const login = pr && pr.author && pr.author.login ? String(pr.author.login) : '';
   return AGENT_LOGINS.has(login);
 }
@@ -181,19 +211,44 @@ export function failedPRNumbers(cfr) {
   return new Set(hits.map((h) => h.pr));
 }
 
+/**
+ * A janela pedida foi COBERTA pelo corpus, ou o cap do fetch a truncou?
+ * Só é possível responder quando se sabe o cap (`fetchLimit`) — sem ele o veredito é
+ * `null` ("não medi"), nunca `false` ("está tudo bem"): instrumento não colapsa
+ * não-consegui-medir em estado do objeto medido (§5 2026-07-29).
+ * @returns {{truncado: boolean|null, corpus: number, limite: number|null, mais_antigo: string|null}}
+ */
+export function coberturaDaJanela(prs, sinceMs, fetchLimit = null) {
+  const datas = prs
+    .map((p) => Date.parse(p.createdAt))
+    .filter((t) => Number.isFinite(t));
+  const maisAntigo = datas.length ? Math.min(...datas) : null;
+  // truncou se o corpus veio CHEIO (bateu o cap) E nem o PR mais antigo alcança o início da janela
+  const truncado = fetchLimit == null
+    ? null
+    : prs.length >= fetchLimit && maisAntigo != null && maisAntigo > sinceMs;
+  return {
+    truncado,
+    corpus: prs.length,
+    limite: fetchLimit,
+    mais_antigo: maisAntigo == null ? null : new Date(maisAntigo).toISOString().slice(0, 10),
+  };
+}
+
 const GAPS = [
   'G1 CFR é PISO: hotfix que não cita #N ou não é fix/hotfix/revert escapa (subconta, nunca superconta).',
   'G2 "rejeitado" = fechado-sem-merge; superseded/duplicado infla rejeição → accept_rate é piso de aceitação.',
   'G3 time_to_merge inclui espera por review humano (R10) — comparar com o próprio histórico, não absoluto.',
   'G4 janela por mergedAt/closedAt; PR ainda aberto não entra.',
-  'G5 marcador de agente = título tem MARKER ou autor bot; pode perder/incluir por texto.',
+  'G5 marcador de agente = título casa [C]/[CC]/[X+C] ou autor bot; PR do agente sem marcador algum escapa (231 em 30d medidos 2026-09-07) → o número é PISO.',
+  'G6 fetch tem cap (--limit): se o corpus voltar cheio E o PR mais antigo for posterior ao início da janela, a janela ficou truncada — ver cobertura.truncado.',
 ];
 
 /**
  * monta o relatório a partir de uma LISTA de PRs já carregada (pura — sem I/O).
  * @param {{prs:any[], nowIso?:string, sinceIso?:string, days?:number, marker?:string}} o
  */
-export function buildReport({ prs, nowIso, sinceIso, days = 30, marker = DEFAULT_MARKER }) {
+export function buildReport({ prs, nowIso, sinceIso, days = 30, marker = null, fetchLimit = null }) {
   const now = nowIso ? Date.parse(nowIso) : Date.now();
   const since = sinceIso ? Date.parse(sinceIso) : now - days * 24 * MS_PER_HOUR;
   const inWindow = (iso) => { const t = Date.parse(iso); return Number.isFinite(t) && t >= since; };
@@ -219,7 +274,8 @@ export function buildReport({ prs, nowIso, sinceIso, days = 30, marker = DEFAULT
     ok: true,
     generated: nowIso || new Date(now).toISOString().slice(0, 10),
     window: { since: new Date(since).toISOString().slice(0, 10), days },
-    agent: { marker, total_terminais: agentTerminal.length, mergeados: agentMerged.length },
+    cobertura: coberturaDaJanela(prs, since, fetchLimit),
+    agent: { marker: marker || DEFAULT_MARKER, total_terminais: agentTerminal.length, mergeados: agentMerged.length },
     metrics,
     confianca: 'proxy (DORA de PR via gh; ver gaps)',
     gaps: GAPS,
@@ -228,8 +284,14 @@ export function buildReport({ prs, nowIso, sinceIso, days = 30, marker = DEFAULT
 
 // ── camada de rede (só quando invocado direto sem --fixture) ─────────────────────
 
-/** puxa os PRs via `gh pr list` (array-form, sem shell/`--jq` — lição Windows/proibicoes). */
-export function fetchPRsViaGh({ repo, limit = 300 } = {}) {
+/**
+ * puxa os PRs via `gh pr list` (array-form, sem shell/`--jq` — lição Windows/proibicoes).
+ * O cap default era 300 e cobria só os PRs mais RECENTES: medido 2026-09-07, 300 PRs
+ * alcançavam 4,3 dias — contra os 30 pedidos pela janela default (1488 terminais).
+ * Cap parcial não se lê como inventário (§5 2026-08-13, listagem paginada); daí 2000 +
+ * a declaração de cobertura em `coberturaDaJanela()`.
+ */
+export function fetchPRsViaGh({ repo, limit = 2000 } = {}) {
   const args = ['pr', 'list', '--state', 'all', '--limit', String(limit),
     '--json', 'number,title,body,author,createdAt,mergedAt,closedAt,state'];
   if (repo) { args.push('--repo', repo); }
@@ -258,9 +320,20 @@ export function renderHuman(r) {
   L.push(`  ACCEPT-RATE ...: ${pct(m.accept.accept_rate)}  (${m.accept.merged} merged ÷ ${m.accept.merged + m.accept.rejected} terminais; ${m.accept.rejected} rejeitados)`);
   L.push(`  CHANGE-FAILURE : ${pct(m.change_failure.cfr)}  (${m.change_failure.failures}/${m.change_failure.merged_count} mergeados com hotfix ≤${CFR_WINDOW_HOURS}h)`);
   if (m.change_failure.hits.length) {
-    for (const h of m.change_failure.hits) L.push(`      ↳ #${h.pr} consertado por #${h.hotfix} em ${h.horas}h`);
+    // cap só na LISTAGEM (o total já está na linha acima). Com o marcador vivo os hits
+    // passaram de ~0 a centenas — despejar todos tornava o modo humano ilegível.
+    const CAP = 15;
+    for (const h of m.change_failure.hits.slice(0, CAP)) L.push(`      ↳ #${h.pr} consertado por #${h.hotfix} em ${h.horas}h`);
+    const resto = m.change_failure.hits.length - CAP;
+    if (resto > 0) L.push(`      … e mais ${resto} (lista completa no --json)`);
   }
   L.push('');
+  if (r.cobertura && r.cobertura.truncado) {
+    L.push(`  ⚠ JANELA TRUNCADA: o corpus bateu o cap (${r.cobertura.limite}) e só alcança`);
+    L.push(`    ${r.cobertura.mais_antigo} — os números acima cobrem MENOS que os ${r.window.days}d pedidos.`);
+    L.push('    Suba --limit até o corpus deixar de vir cheio.');
+    L.push('');
+  }
   L.push('▸ HONESTIDADE (o número é PROXY — o que ele não vê)');
   for (const g of r.gaps) L.push(`  • ${g}`);
   L.push('═══════════════════════════════════════════════════════════════');
@@ -281,6 +354,10 @@ export function renderBriefMd(r) {
   L.push(`| Accept-rate | **${pct(m.accept.accept_rate)}** (${m.accept.merged}/${m.accept.merged + m.accept.rejected}) | ratio aceito/rejeitado publicado |`);
   L.push(`| Time-to-merge (mediana) | **${hrs(m.time_to_merge.median_h)}** · p90 ${hrs(m.time_to_merge.p90_h)} | comparar vs cycle anterior |`);
   L.push('');
+  if (r.cobertura && r.cobertura.truncado) {
+    L.push(`> ⚠ **Janela truncada** — o corpus bateu o cap (\`--limit ${r.cobertura.limite}\`) e só alcança ${r.cobertura.mais_antigo}: os números cobrem menos que os ${r.window.days}d pedidos.`);
+    L.push('');
+  }
   L.push('> Proxy (ver gaps no `--json`). Plotar por cycle: a tendência é o sinal, não o valor absoluto.');
   return L.join('\n');
 }
@@ -302,15 +379,17 @@ if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
     process.exit(r.status ?? 1);
   }
 
-  const marker = argVal(argv, '--marker', DEFAULT_MARKER);
+  const marker = argVal(argv, '--marker', null); // null = conjunto canônico (AGENT_MARKER_RE)
   const days = Number(argVal(argv, '--days', '30')) || 30;
   const sinceIso = argVal(argv, '--since', null);
   const fixture = argVal(argv, '--fixture', null);
   const repo = argVal(argv, '--repo', null);
 
+  const limit = Number(argVal(argv, '--limit', '2000')) || 2000;
+
   let prs;
   try {
-    prs = fixture ? JSON.parse(readFileSync(fixture, 'utf8')) : fetchPRsViaGh({ repo });
+    prs = fixture ? JSON.parse(readFileSync(fixture, 'utf8')) : fetchPRsViaGh({ repo, limit });
   } catch (e) {
     console.error(`[agent-pr-outcomes] falha ao carregar PRs: ${e.message}`);
     console.error(fixture ? '  (fixture inválido)' : '  (gh ausente/sem auth? use --fixture <arquivo> pra rodar offline)');
@@ -318,7 +397,8 @@ if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
   }
   if (!Array.isArray(prs)) { console.error('[agent-pr-outcomes] fonte de PRs não é array'); process.exit(1); }
 
-  const r = buildReport({ prs, sinceIso, days, marker });
+  // fetchLimit só é conhecido quando os PRs vieram do gh (fixture não tem cap → null = "não medi")
+  const r = buildReport({ prs, sinceIso, days, marker, fetchLimit: fixture ? null : limit });
   if (argv.includes('--json')) process.stdout.write(JSON.stringify(r, null, 2) + '\n');
   else if (argv.includes('--brief')) process.stdout.write(renderBriefMd(r) + '\n');
   else process.stdout.write(renderHuman(r) + '\n');
