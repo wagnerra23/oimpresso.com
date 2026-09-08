@@ -3,7 +3,7 @@ id: requisitos-governance-protocolo-refutador-backfill
 status: active
 owner: "[W] Wagner"
 module: Governance
-updated_at: "2026-07-30"
+updated_at: "2026-09-06"
 ---
 
 # PROTOCOLO-REFUTADOR-BACKFILL — verificação adversarial de lotes IA (GT-G5)
@@ -141,3 +141,39 @@ sessão fresca **funcionou na prática** no exato caso que motivou a emenda.
 - Amostra "aleatória" sem seed declarada = refazer.
 - Editar entry antiga pra mudar veredito = violação append-only (diff do ledger é revisado como qualquer código).
 - O ledger registra REPROVADOS também — taxa de reprovação é insumo da métrica `backfill_error_rate` do scorecard SDD (GT-G2).
+
+## 7. Caminho executável do §2 — workflow `refutador-gt-g5` (2026-09-06)
+
+O §2 acima é o protocolo; o que o **executa** é o workflow versionado
+[`.claude/workflows/refutador-gt-g5.js`](../../../.claude/workflows/refutador-gt-g5.js)
+(mesmo padrão dos irmãos `sdd-avaliador-processo.js` e `reguas-do-sistema.js`). Nasceu das
+9 rodadas manuais do PR #6897 — evidências `memory/sessions/2026-09-06-refutacao-gt-g5-lote-6897*.md`;
+a entry daquele PR no ledger (campo `trajetoria`) é o formato-alvo. Este parágrafo não
+reescreve o §2: só diz **onde ele virou máquina** e o que a máquina faz por conta própria.
+
+```
+Workflow({ scriptPath: ".claude/workflows/refutador-gt-g5.js",
+           args: { pr: <N>, base: "origin/main", tipo: "anchors", maxRodadas: 5,
+                   gerador: "<modelo real do gerador> (Anthropic) — ...", resume: false } })
+```
+
+| Passo do §2 | O que o workflow faz por invocação (= UMA rodada) |
+|---|---|
+| §2.1 lote | agente mecânico lista `git diff --name-only <base>...HEAD -- memory/requisitos`; ≤10 arquivos → sai sem gastar refutador (o gate nem dispara; `args.forcar` roda mesmo assim) |
+| §2.2 sessão fresca | **um** agente refutador por rodada, **sempre instância nova**, proibido de abrir `memory/sessions/*refutacao*`; se declarar que abriu, a rodada é descartada |
+| §2.3 tier | modelo do refutador = o máximo disponível (`fable` por default — o `ledger-check` aceita igualdade gerador/refutador só no tier máximo) |
+| §2.4 prompt | prompt adversarial canônico, itens 1–6: âncora existe em main · âncora não revogada no charter e lida pelo leitor real · Ação × veredito da prosa + afirmação sobre código com linha · célula íntegra · máquina derivada (`--check` com rc literal) · scan PII com controle positivo 7/7 |
+| §2.5 amostra | `anchors` = 100%; `prosa` = ≥30% com seed determinística declarada (8 chars do HEAD sha) |
+| §2.6 aceite | **calculado pela máquina** (`erros/itens`, < 2%, `pii_hits = 0`, controles 7/7) — o adjetivo do agente não vence a conta. Reprovado → devolve `refutados[{arquivo, item, evidencia}]` ao chamador e **PARA**: o conserto é do gerador/humano, o workflow **não edita o lote**; só repete quando reinvocado com `args.resume: true` (lê as rodadas já gravadas pelas caudas das evidências e roda a próxima; `maxRodadas` é o teto acumulado) |
+| §2.7 ledger | aprovado → monta a entry no formato da do PR #6897 (`gerador`/`refutador` com modelo real, `sessao_fresca: true`, `trajetoria` com todas as rodadas), um agente mecânico faz o **append** e roda `node scripts/governance/ledger-check.mjs --pr <N> --base <base> --head HEAD --enforce`; a saída volta colada no resultado e a entry gravada é conferida campo a campo contra a montada |
+
+Evidência de cada rodada: `memory/sessions/<data>-refutacao-gt-g5-lote-<pr>-r<N>.md`
+(schema `session.schema.json`, sem valor em reais, termina num bloco `json` com o recibo).
+
+**Custo (medido 2026-09-06):** ~330–400k tokens por rodada do refutador. Compensa só para
+lote > 10 arquivos — abaixo disso o `ledger-check` nem exige entry.
+
+**Selftest hermético:** `node scripts/governance/refutador-gt-g5-workflow.test.mjs` embrulha o
+arquivo vivo com um dublê de `agent()` (zero agentes/rede/git) e trava as partes puras (parse do
+JSON do refutador, montagem da entry, `error_rate`) e o controle de fluxo (reprovado para sem
+escrivão; aprovado registra; resume; teto). Roda em `governance-script-tests.yml`.

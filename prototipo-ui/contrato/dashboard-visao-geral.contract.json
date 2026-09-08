@@ -42,6 +42,17 @@
       ]
     },
     {
+      "id": "pendencias",
+      "copy": [
+        "Pendências"
+      ],
+      "estados": [
+        "default",
+        "vazio",
+        "carregando"
+      ]
+    },
+    {
       "id": "graficos",
       "copy": [
         "Vendas por dia",
@@ -68,6 +79,7 @@
     "cabecalho",
     "kpis",
     "contrapartidas",
+    "pendencias",
     "graficos",
     "grades"
   ]

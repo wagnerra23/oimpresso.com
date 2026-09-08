@@ -1,44 +1,35 @@
 ---
 id: requisitos-crm-briefing
-distilled_at: "2026-07-30"
-distilled_by: reconciliacao-manual-2026-07-30
 module: Crm
 status: producao
-updated_at: "2026-07-30"
+updated_at: "2026-09-06"
+distilled_at: "2026-09-06"
+distilled_by: jana:distill-module-truth
 ---
 
 # BRIEFING — Crm (verdade destilada)
 
-> **Reconciliação 2026-07-30 (manual, não destilação).** O `distiller_freshness` (métrica ARMADA, GT-G3) acusou este BRIEFING como *porta atrás dos eventos* porque um doc do módulo mudou depois do último carimbo. O evento foi **uma linha** em [`DEPRECATION-PLAN-pipeline.md`](DEPRECATION-PLAN-pipeline.md): a lápide-ponteiro `Modules/Crm/BRIEFING.md` foi **deletada** ([W] 2026-07-30, *"apagar os outros e revisar os vínculos"*) e a linha da etapa E6 foi repontada pra este arquivo — a **casa única** do BRIEFING.
->
-> **Conferido:** Estado, Capacidades e Gaps abaixo **seguem válidos**; nada no código do Crm mudou. O carimbo sobe porque a reconciliação foi feita de fato, não pra passar o gate — `distilled_by` declara que foi **manual**, não `jana:distill-module-truth` (o schedule do distiller segue desligado, [ADR 0291](../../decisions/0291-distiller-modulo-verdade-contrato-emenda-0270-f3.md)).
+## Estado atual
+`Modules/Crm` é módulo SPLIT: parte A = cadastro de Cliente (canon em `memory/requisitos/Cliente/`, KEEP intocável — hospeda os endpoints do drawer, o autosave, o `BrLookupService` e a auditoria LGPD); parte B = pipeline pré-venda herdado do UltimatePOS (leads, campanhas, propostas e follow-ups; o portal `/contact/*` é zona cinza, fora do escopo do plano), em depreciação sem sucessor (ADR 0301, `DEPRECATION-PLAN-pipeline.md`, com decisão por tabela). Silenciado desde 2026-06-08: sem investimento novo; entram só correções. Este arquivo é a casa única do BRIEFING (a lápide-ponteiro `Modules/Crm/BRIEFING.md` foi deletada por [W] em 2026-07-30). O carimbo de 2026-07-30 foi manual e o schedule do distiller segue desligado (ADR 0291, kill-switch no Kernel); o changelog legado foi desambiguado para CRM em 2026-07-22.
 
-# BRIEFING — Modules/Crm
+## Capacidades
+- Cadastro com dados pessoais e comerciais (abas Identificação, Contato, Endereço, Comercial e Classificação do drawer).
+- Drawer com autosave (`ClienteAutosaveController`).
+- Score de risco do cliente — endpoint determinístico (zero LLM, sinais fixos), no drawer desde 2026-05.
+- Exportação CSV e auditoria LGPD (`ClienteAuditoriaController`; o CSV nunca exporta `tax_number` em claro).
+- API externa `/connector/api/crm/*` (módulo Connector) e portal do contato `/contact/*` (zona cinza; uso real medido — ver `DEPRECATION-PLAN-pipeline.md` §Recibo do portal, 2026-09-04).
 
-## Estado atual  
-O módulo "Crm" atua na gestão de clientes, permitindo o cadastro e a consulta de informações de clientes (PJ/PF). O status atual é de silenciamento em memória, com o aplicativo ainda funcionando, mas sem evolução prevista até revisão explícita do Wagner.
+## Gaps
+- BLOQUEIO 1 do plano de depreciação — row count por business pagante nas tabelas `crm_*`: rodado no CT 100 em 2026-09-04, mas nenhum banco de lá é réplica de prod; o zero não autoriza DROP.
+- BLOQUEIO 2 — consumidor externo `Connector/api/crm`: oráculo rodado em 2026-09-04, resultado no plano (§Recibo, #6804); fechar é ato [W]+[F].
+- Zona cinza — portal `/contact/*`: uso real medido em 2026-09-04 com controle positivo (`DEPRECATION-PLAN-pipeline.md` §Recibo do portal); decisão [W].
 
-## Capacidades  
-- Cadastro de clientes (identificação, contato, endereço, comercial, classificação).
-- Interface em formato de drawer com 8 abas para facilitar navegação.
-- Funcionalidade de autosave nas edições de cadastro.
-- Análise de risco com novos endpoints de IA.
-- Exportação de dados em formato CSV.
-- Funcionalidades de auditoria conforme LGPD.
-
-## Gaps  
-- Necessidade de revisão sobre a continuidade do módulo e a estratégia de CRM no negócio.
-- Falta de integração completa com processos de vendas e marketing.
-- Ausência de feedback refinado de usuários sobre a experiência da interface.
-- Melhoria na documentação e no suporte ao usuário.
-
-## Última mudança  
-Nos eventos recentes, registrou-se um silenciamento do módulo, reafirmando que não deve haver evolução sem autorização, além de contínuas auditorias e análise de design em andamento.
-
-Revisão documental em 2026-07-22: o changelog legado foi desambiguado para CRM durante a limpeza de autoridades duplicadas; nenhuma verdade funcional do módulo mudou.
+## Última mudança
+2026-09-04/05 — os bloqueios do plano de depreciação passam a ter medição: BLOQUEIO 3 fechado (#6774, 2026-09-04), uso do portal medido em zero com controle positivo (#6804) e bloqueios 1 e 2 medidos no CT 100 (#6791), ambos 2026-09-05. Antes: gate de módulo real no endpoint de veículos (#5725/#5729, 2026-08-13) e o fix "salvar a tela apagava o CRM em silêncio" (#6302, 2026-08-26).
 
 ## Proveniência (destilado de)
 
-- session `sessions/2026-06-23-ancora-improvada-design-final.md` (2026-06-23) — 2026-06-23-ancora-improvada-design-final.md
-- session `sessions/2026-06-13-audit-adversario-ds-cliente-cadastro.md` (2026-06-13) — 2026-06-13-audit-adversario-ds-cliente-cadastro.md
-- session `sessions/2026-06-13-audit-sqlite-test-corruptors.md` (2026-06-13) — 2026-06-13-audit-sqlite-test-corruptors.md
+- session `sessions/2026-08-14-censo-redacao-brl-em-codigo.md` (2026-08-14) — 2026-08-14-censo-redacao-brl-em-codigo.md
+- session `sessions/2026-08-12-fronteiras-ciclo-fechado-e-a-premissa-derrubada.md` (2026-08-12) — 2026-08-12-fronteiras-ciclo-fechado-e-a-premissa-derrubada.md
+- handoff `handoffs/2026-08-12-1617-arquitetura-react-modulos-e-as-3-claims-derrubadas.md` (2026-08-12) — 2026-08-12-1617-arquitetura-react-modulos-e-as-3-claims-derrubadas.md
+- handoff `handoffs/2026-08-12-2115-fronteiras-3-eixos-e-a-mesa-refutada.md` (2026-08-12) — 2026-08-12-2115-fronteiras-3-eixos-e-a-mesa-refutada.md

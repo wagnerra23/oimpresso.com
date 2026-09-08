@@ -8,7 +8,7 @@
 .fin-subnav {
   display: flex;
   gap: 4px;
-  padding: 0 32px;
+  padding: 0 24px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   overflow-x: auto;

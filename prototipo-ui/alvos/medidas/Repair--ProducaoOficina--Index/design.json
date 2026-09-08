@@ -1,0 +1,192 @@
+{
+  "url": "http://127.0.0.1:57166/oimpresso.com.html",
+  "theme": "dark",
+  "assinatura": "OI Oimpresso Matriz IA 3 Visão geral G D Atendimento 6 Cadastro 3 Clientes G C Produtos 12 G P Fabricação 3 Comercial 4 CRM 14 G R Vendas 19 G V Oficina Auto 1 Vestuário 1 Finanças 4 Caixa G X Financeiro 11 G F Cobrança 1 Cobrança Recorrente 3 Fiscal 1 Fiscal 6 Produção 3 Ordens de Serviço Comunicação Visual Assistência técnica 7 Produção · oficina Folhas de OS Reparos faturados Status do reparo Modelos de equipamento ⋯ mais 2 Estoque 3 Compras 4 Movimentações 6 G E Patrimônio 4 RH 3 Ponto HRM 7 Essenciais 6 Sistema 10 Auditoria Voz do Cliente Suporte 1 Usuários 3 Preferências Configurações 11 Relatórios 4 Arquivos 3 Base de Conhecimento Planilhas 1 Plataforma 4 WR Wagner Rocha Administrador REPAIR · Matriz + 1 filial · 14 folhas · 11 pendentes Assistência técnica administrador Atualizado 09:42 ⌕ Buscar Adicionar folha Painel Produção 11 Folhas de OS 14 Reparos 5 Status 9 Modelos 6 Portal do cliente Configurações 1 folha(s) com entrega vencida Prazo de entrega é o que o cliente ouviu no balcão — vencido sem aviso, ele liga antes de você. Ver as atrasadas Folhas pendentes 11 abertas 2 sem técnico atribuído Concluídas 3 prontas, entregues e devolvidas Entrega vencida 1 folha pendente com data no passado Ticket médio R$ 1.528,33 custo estimado das folhas com orçamento Folhas por status Recebido no balcão 2 Em diagnóstico 2 Orçamento enviado 2 Aguardando peça 2 Em reparo 2 Em teste final 1 Pronto p/ retirada 1 Entregue 1 Sem reparo (devolvido) 1 Folhas por técnico Anderson Prado 3 Bruna Sales 3 Rafael Uchoa 3 Não atribuído 2 Marcas em alta Equipamentos em alta Modelos em alta",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 3,
+          "css": {
+            "height": "34px",
+            "minHeight": "0px",
+            "padding": "0px 10px",
+            "margin": "0px",
+            "gap": "10px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13px",
+            "fontWeight": "400",
+            "lineHeight": "18.85px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "6px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "243px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 243,
+            "h": 34
+          },
+          "icone": {
+            "w": 16,
+            "h": 16,
+            "strokeWidth": "1.6px"
+          }
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 36,
+          "css": {
+            "height": "34px",
+            "minHeight": "0px",
+            "padding": "0px 10px 0px 18px",
+            "margin": "0px",
+            "gap": "10px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13px",
+            "fontWeight": "400",
+            "lineHeight": "18.85px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "6px",
+            "borderWidth": "0px 0px 0px 2px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "243px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 243,
+            "h": 34
+          },
+          "icone": {
+            "w": 16,
+            "h": 16,
+            "strokeWidth": "1.6px"
+          }
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 9,
+          "css": {
+            "height": "25px",
+            "minHeight": "0px",
+            "padding": "6px 10px",
+            "margin": "0px",
+            "gap": "8px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "10px",
+            "fontWeight": "600",
+            "lineHeight": "normal",
+            "letterSpacing": "0.6px",
+            "textTransform": "uppercase",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "4px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "243px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 243,
+            "h": 25
+          },
+          "icone": {
+            "w": 10,
+            "h": 10,
+            "strokeWidth": "1.6px"
+          }
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "1646.94px",
+            "minHeight": "0px",
+            "padding": "8px",
+            "margin": "0px",
+            "gap": "normal",
+            "display": "block",
+            "alignItems": "normal",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "259px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 259,
+            "h": 1646.9
+          },
+          "icone": {
+            "w": 16,
+            "h": 16,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": [
+        {
+          "i": 0,
+          "rotulo": "IA3",
+          "atual": null
+        },
+        {
+          "i": 1,
+          "rotulo": "Visão geralG D",
+          "atual": null
+        },
+        {
+          "i": 2,
+          "rotulo": "Atendimento6",
+          "atual": null
+        }
+      ]
+    }
+  }
+}

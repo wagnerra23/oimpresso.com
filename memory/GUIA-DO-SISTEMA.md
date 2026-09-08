@@ -4,9 +4,9 @@ title: "Guia do Sistema — mapa do oimpresso + como usar (Claude Code)"
 type: guide
 authority: canonical
 lifecycle: ativo
-version: "1.6.0"
+version: "1.7.0"
 maintained_by: wagner
-last_updated: "2026-08-16"
+last_updated: "2026-09-04"
 related:
   - 0094-constituicao-v2-7-camadas-8-principios
   - 0121-oimpresso-modular-especializado-por-vertical
@@ -769,6 +769,30 @@ de esconder — é por isso que a saída sempre traz a linha `não propostos: �
 Receita completa, casos de uso cobertos por teste e o resíduo medido:
 [RUNBOOK-doc-auto-relink-orfaos.md](requisitos/Infra/RUNBOOK-doc-auto-relink-orfaos.md).
 
+#### Quando a catraca dá verde e mesmo assim está errado
+
+A seção acima trata do caso em que a catraca **acusa**. O caso inverso é mais caro, porque não
+produz sinal nenhum: o instrumento **passa**, e passa porque ele e o artefato que deveria vigiar
+envelheceram juntos.
+
+O caso canônico é o eixo de design. O `consumir-map.mjs` valida cada `.map.json` contra um
+`prototipo_sha`, e esse hash é calculado sobre o **espelho local** `prototipo-ui/cowork/`. Quando
+o espelho para de ser atualizado, o hash segue batendo: o verde quer dizer *"o map está em dia com
+a cópia velha"*, jamais *"o gap reflete o protótipo vivo"*. Os `*-gap.md` derivados herdam isso, e
+ainda citam **ranges de linha** do lado vivo — que qualquer merge desloca em silêncio.
+
+**Logo: nem `gap.md`, nem um `consumir-map.mjs` verde, nem grep pelo rótulo do protótipo provam
+que algo falta numa tela.** Os três respondem outra pergunta.
+
+A ordem correta para responder *"o que falta nesta tela"* — âncora, SLA do espelho, fonte viva por
+ID, sonda medida nos dois lados — é do dono do tema:
+[FLUXO-DESIGN § E3 · Comparação](reference/FLUXO-DESIGN.md), onde as duas armadilhas acima estão na
+tabela de falsos verdes, com o número que convence e a defesa de cada uma.
+
+> **Medido em 2026-09-04**, no módulo Fiscal: os 7 `.map.json` passaram `OK` no `consumir-map.mjs`
+> enquanto o espelho estava 11 dias atrás do vivo, e os 4 ranges conferidos nos `gap.md` erravam a
+> linha. O detalhe do caso fica no dono do módulo (`memory/requisitos/Fiscal/`), não aqui.
+
 ## Backbone operacional — como tudo se conecta
 
 > Como tarefas, backlog, changelog, ciclos e histórico ficam **em máquina e integrados** (auditoria 2026-07-04).
@@ -823,6 +847,7 @@ flowchart LR
 | Linhas vermelhas | [proibicoes.md](proibicoes.md) |
 | Time e papéis | [regras-time.md](regras-time.md) · [TEAM.md](../TEAM.md) |
 | Responsabilidade de um módulo | `memory/requisitos/<X>/SCOPE.md` + `BRIEFING.md` |
+| Saber o que falta numa tela (protótipo × produção) | [FLUXO-DESIGN § E3 · Comparação](reference/FLUXO-DESIGN.md) — a tabela de falsos verdes diz o que **não** serve de prova |
 | Planejar uma feature complexa por SDD | [B7 deste guia](#b7) · [template do trio](requisitos/_TEMPLATE_FEATURE/BRIEFING.md) |
 | Conectar um dev novo ao MCP | [MEMORY_TEAM_ONBOARDING.md](../MEMORY_TEAM_ONBOARDING.md) |
 

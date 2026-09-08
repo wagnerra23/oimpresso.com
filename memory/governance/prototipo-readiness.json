@@ -32,19 +32,26 @@
     "Ponto/Aprovacoes/Index",
     "Ponto/BancoHoras/Index",
     "Ponto/BancoHoras/Show",
+    "Ponto/Colaboradores/Edit",
+    "Ponto/Colaboradores/Index",
+    "Ponto/Configuracoes/Index",
+    "Ponto/Configuracoes/Reps",
     "Ponto/Dashboard/Index",
     "Ponto/Escalas/Form",
+    "Ponto/Escalas/Index",
     "Ponto/Espelho/Index",
     "Ponto/Espelho/Show",
     "Ponto/Importacoes/Create",
     "Ponto/Importacoes/Index",
     "Ponto/Importacoes/Show",
     "Ponto/Intercorrencias/Create",
+    "Ponto/Intercorrencias/Edit",
     "Ponto/Intercorrencias/Index",
     "Ponto/Intercorrencias/Show",
     "Ponto/Relatorios/Index",
     "Produto/SellingPrices",
     "RecurringBilling/Index",
+    "Sells/Create",
     "Sells/Index",
     "Forja/Roadmap/Gantt"
   ],
@@ -65,6 +72,26 @@
       "modulo": "core",
       "status": "1-ciclo",
       "prototipo": "prototipo-ui/cowork/backup-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Essentials/Metas",
+      "arquivo": "resources/js/Pages/Essentials/Metas.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/hrm-extras.jsx (Metas) · herda PT-01 Lista",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Essentials/Tipos",
+      "arquivo": "resources/js/Pages/Essentials/Tipos.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/hrm-page.jsx (subview \"tipos\" · copy literal)",
       "falta": [
         "scorecard"
       ]
@@ -110,6 +137,16 @@
       ]
     },
     {
+      "tela": "Manufacturing/Insumos",
+      "arquivo": "resources/js/Pages/Manufacturing/Insumos.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/manufacturing-insumos.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
       "tela": "Manufacturing/Recipes",
       "arquivo": "resources/js/Pages/Manufacturing/Recipes.tsx",
       "modulo": "core",
@@ -120,61 +157,21 @@
       ]
     },
     {
-      "tela": "Ponto/Colaboradores/Edit",
-      "arquivo": "resources/js/Pages/Ponto/Colaboradores/Edit.tsx",
+      "tela": "Manufacturing/Report",
+      "arquivo": "resources/js/Pages/Manufacturing/Report.tsx",
       "modulo": "core",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/ponto-telas.jsx",
+      "prototipo": "prototipo-ui/cowork/manufacturing-producao.jsx",
       "falta": [
-        "casos.md-com-UC"
+        "scorecard"
       ]
     },
     {
-      "tela": "Ponto/Colaboradores/Index",
-      "arquivo": "resources/js/Pages/Ponto/Colaboradores/Index.tsx",
+      "tela": "Manufacturing/Settings",
+      "arquivo": "resources/js/Pages/Manufacturing/Settings.tsx",
       "modulo": "core",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/ponto-telas.jsx",
-      "falta": [
-        "casos.md-com-UC"
-      ]
-    },
-    {
-      "tela": "Ponto/Configuracoes/Index",
-      "arquivo": "resources/js/Pages/Ponto/Configuracoes/Index.tsx",
-      "modulo": "core",
-      "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/ponto-telas.jsx",
-      "falta": [
-        "casos.md-com-UC"
-      ]
-    },
-    {
-      "tela": "Ponto/Configuracoes/Reps",
-      "arquivo": "resources/js/Pages/Ponto/Configuracoes/Reps.tsx",
-      "modulo": "core",
-      "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/ponto-telas.jsx",
-      "falta": [
-        "casos.md-com-UC"
-      ]
-    },
-    {
-      "tela": "Ponto/Escalas/Index",
-      "arquivo": "resources/js/Pages/Ponto/Escalas/Index.tsx",
-      "modulo": "core",
-      "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/ponto-telas.jsx",
-      "falta": [
-        "casos.md-com-UC"
-      ]
-    },
-    {
-      "tela": "Ponto/Intercorrencias/Edit",
-      "arquivo": "resources/js/Pages/Ponto/Intercorrencias/Edit.tsx",
-      "modulo": "core",
-      "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/ponto-telas.jsx",
+      "prototipo": "prototipo-ui/cowork/manufacturing-producao.jsx",
       "falta": [
         "scorecard"
       ]
@@ -300,5 +297,5 @@
       ]
     }
   ],
-  "total": 72
+  "total": 78
 }

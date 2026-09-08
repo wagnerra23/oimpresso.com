@@ -45,6 +45,24 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - `[BACKLOG]` A Blade `intercorrencias/edit.blade.php` virou fóssil (a 26ª do módulo) e
   **segue no repo de propósito**, como contrato de paridade desta migração. Limpar os
   fósseis é escopo próprio, não carona.
+- `[BACKLOG]` **O guard de estado parece existir só no caminho de LEITURA.** `@edit`
+  (`IntercorrenciaController:180-184`) tem `abort_unless($i->estado === RASCUNHO, 403)`;
+  `@update` (`:245-253`) é `findOrFail` + `update($request->validated())` — sem guard e sem
+  passar pelo `IntercorrenciaService`, que tem `abort_unless` em `:46`, `:57` e `:124`.
+  **Cinco camadas medidas, todas vazias:** middleware `ponto.access` (`CheckPontoAccess:14-31`
+  — auth + `business.id` + permissão, zero estado) · `boot()` da entity (só `creating` p/ UUID
+  — compare com `BancoHorasMovimento:92`, que **tem** `static::updating`, ou seja o módulo
+  conhece o padrão) · Observer/Policy (`IntercorrenciaPolicy` não existe no repo) ·
+  `IntercorrenciaRequest::authorize()` (`$this->user() !== null`) · teste (`git grep` de
+  `put(`/`patch(` em rota de intercorrência → **rc=1**; controle positivo `post(` → 1 hit).
+  Os três UC acima são **todos `->get(...)`**, então o caminho de escrita não tem um único
+  teste. Se confirmado, um PUT alcança intercorrência já submetida — contra `CU-PONTO-05` e
+  contra o próprio charter (`Edit.charter.md:56`, *"o backend responde 403"*), num módulo
+  regido pela Portaria MTP 671/2021. **Não vira UC até existir o teste vermelho** — achado
+  sem teste é hipótese ([proibicoes §5 2026-07-15](../../../../memory/proibicoes.md)).
+  Vizinhos medidos na mesma varredura: `'estado'` está no `$fillable` (superfície armada se
+  o FormRequest um dia validar o campo), e `Route::resource` registra
+  `ponto.intercorrencias.destroy` sem método `destroy` no controller.
 
 ---
 

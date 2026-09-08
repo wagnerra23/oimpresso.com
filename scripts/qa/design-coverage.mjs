@@ -11,7 +11,8 @@
 //
 // Uso:
 //   node scripts/qa/design-coverage.mjs           # relatório (read-only)
-//   node scripts/qa/design-coverage.mjs --json     # + grava baseline
+//   node scripts/qa/design-coverage.mjs --json     # relatorio em JSON no stdout (READ-ONLY)
+//   node scripts/qa/design-coverage.mjs --write-baseline   # GRAVA o baseline (sobe o piso)
 //   node scripts/qa/design-coverage.mjs --check    # exit 1 se `declared` regrediu vs baseline
 //
 // Contrato: Constituição UI v2 (UI-0013 — camadas/herança de Padrão de Tela) + ADR 0299/ancora.
@@ -63,6 +64,58 @@ const naComFonteCandidata = rows.filter((r) => {
 });
 
 
+// ── EIXO PARIDADE (protótipo↔produção) — Onda 7 do programa-ondas ──────────────────
+// A pergunta AQUI não é a de cima. Acima: "a tela declara DE ONDE veio seu design?".
+// Aqui: "existe medição de que a tela BATE com esse design?" — o artefato é
+// `memory/requisitos/<Mod>/<Tela>-visual-comparison.md` (PROTOCOLO-COMPARACAO-RUNTIME).
+//
+// MEDIDO 2026-09-08, e é por isso que o vínculo é LIDO DO CHARTER, nunca adivinhado:
+//   84 inventários · só 24 têm campo `tela:` · destes, só 16 casam com charter existente.
+//   Casar por NOME de arquivo seria guard sintático (§5 2026-06-30) — os nomes reais variam
+//   entre `cockpit-`, `cliente-index-`, `ProducaoOficina-r2-…`, `CaixaUnificadaV4-`.
+// O lado forte é o charter: `related_visual_comparison:` carrega um PATH verificável.
+//
+// REPORT-ONLY no que é dívida herdada (órfãos, quebrados). A catraca trava só
+// `parityLinked`, e ela SÓ SOBE — forward-only: charter novo nasce declarando, o legado
+// desce por onda, nunca por backfill em massa (§5 2026-07-12).
+const CHAVES_VC = ['related_visual_comparison:', 'visual_comparison:'];
+function vinculoDoCharter(txt) {
+  for (const linha of txt.split(String.fromCharCode(10))) {
+    const t = linha.trim();
+    for (const k of CHAVES_VC) {
+      if (t.startsWith(k)) {
+        let v = t.slice(k.length).trim();
+        if (v.startsWith('"') && v.endsWith('"')) v = v.slice(1, -1);
+        if (v.startsWith('./')) v = v.slice(2);
+        return v.trim() || null;
+      }
+    }
+  }
+  return null;
+}
+let inventarios = [];
+try {
+  inventarios = execFileSync('git', ['ls-files', 'memory/requisitos/**/*visual-comparison*.md'], { encoding: 'utf8', maxBuffer: 8 * 1024 * 1024 })
+    .split(String.fromCharCode(10)).map((x) => x.trim()).filter(Boolean);
+} catch { /* sem git o eixo fica vazio — o relatório diz isso em vez de fingir zero */ }
+const apontados = new Set();
+const parityBroken = [];
+let parityLinked = 0;
+for (const r of rows) {
+  if (!r.charter) continue;
+  const abs = join(ROOT, r.charter);
+  if (!existsSync(abs)) continue;
+  const bruto = vinculoDoCharter(readFileSync(abs, 'utf8'));
+  if (!bruto) continue;
+  // o path pode vir da raiz do repo OU relativo ao charter — aceita os dois, sem adivinhar nome
+  const daRaiz = join(ROOT, bruto);
+  const doCharter = join(ROOT, r.charter, '..', bruto);
+  const achou = existsSync(daRaiz) ? daRaiz : (existsSync(doCharter) ? doCharter : null);
+  if (achou) { parityLinked += 1; apontados.add(relative(ROOT, achou).split(String.fromCharCode(92)).join('/')); }
+  else parityBroken.push(r.charter + ' -> ' + bruto);
+}
+const parityOrphan = inventarios.filter((f) => !apontados.has(f));
+
 // 2. Contexto: páginas SEM charter nenhum (gap mais fundo — nem contrato de design têm)
 function walkTsx(dir) {
   const out = [];
@@ -81,22 +134,57 @@ const noCharter = pages.filter((p) => !existsSync(p.replace(/\.tsx$/, '.charter.
 
 const pct = (n, d) => d ? Math.round((n / d) * 100) : 0;
 
-// ── --json: grava baseline ──
+// ── métricas medidas (payload único, servido por --json e por --write-baseline) ──
+const metricas = { declared, totalCharters, parityLinked };
+
+// ── --json: RELATÓRIO em JSON no stdout. READ-ONLY. ──
+// Até 2026-09-08 esta flag GRAVAVA o baseline e não emitia JSON nenhum — era um
+// `--write-baseline` disfarçado com o nome que, em toda CLI, significa "formato de
+// saída". Custo medido: uma sessão rodou `--json` para LER o estado e subiu o piso
+// de 194 para 210 sem querer, apagando de quebra o campo `noteParidade`. O nome
+// honesto agora é `--write-baseline`, igual ao irmão `domain-dict-guard.mjs`.
 if (process.argv.includes('--json')) {
-  writeFileSync(BASELINE, JSON.stringify({ declared, totalCharters, note: 'Catraca de cobertura de design: `declared` (telas com fonte de design declarada) só sobe. Baixar exige decisão consciente.' }, null, 2) + '\n');
-  console.log(`baseline gravado: declared=${declared}/${totalCharters}`);
+  process.stderr.write('design-coverage: --json e READ-ONLY desde 2026-09-08 — para gravar o baseline use --write-baseline.\n');
+  console.log(JSON.stringify(metricas, null, 2));
+  process.exit(0);
+}
+
+// ── --write-baseline: grava o baseline (sobe o piso) ──
+// NÃO-LOSSY por contrato: preserva os campos que já existem no baseline (as `note*`
+// explicativas, por exemplo) e sobrescreve só as métricas medidas. A versão anterior
+// escrevia um objeto literal e apagava tudo que não estivesse nele.
+if (process.argv.includes('--write-baseline')) {
+  let anterior = {};
+  if (existsSync(BASELINE)) {
+    try { anterior = JSON.parse(readFileSync(BASELINE, 'utf8')); } catch { anterior = {}; }
+  }
+  const saida = { ...anterior, ...metricas };
+  if (!saida.note) saida.note = 'Catraca de cobertura de design: `declared` (telas com fonte de design declarada) só sobe. Baixar exige decisão consciente.';
+  writeFileSync(BASELINE, JSON.stringify(saida, null, 2) + '\n');
+  const preservados = Object.keys(anterior).filter((k) => !(k in metricas));
+  console.log(`baseline gravado: declared=${declared}/${totalCharters} · parityLinked=${parityLinked}` +
+    (preservados.length ? ` · campos preservados: ${preservados.join(', ')}` : ''));
   process.exit(0);
 }
 
 // ── --check: catraca ──
 if (process.argv.includes('--check')) {
-  if (!existsSync(BASELINE)) { console.error('design-coverage: baseline ausente — rode --json pra semear.'); process.exit(1); }
+  if (!existsSync(BASELINE)) { console.error('design-coverage: baseline ausente — rode --write-baseline pra semear.'); process.exit(1); }
   const base = JSON.parse(readFileSync(BASELINE, 'utf8'));
   if (declared < base.declared) {
     console.error(`design-coverage: cobertura de design REGREDIU — declared ${declared} < baseline ${base.declared}. Uma tela perdeu a fonte de design declarada.`);
     process.exit(1);
   }
-  console.log(`design-coverage: OK — declared ${declared} ≥ baseline ${base.declared} (catraca).`);
+  // Back-compat deliberado: baseline semeado antes da Onda 7 nao tem `parityLinked`.
+  // Ausente => eixo NAO cobrado (nunca lido como 0, que reprovaria o repo inteiro).
+  if (typeof base.parityLinked === 'number' && parityLinked < base.parityLinked) {
+    console.error(`design-coverage: PARIDADE regrediu — parityLinked ${parityLinked} < baseline ${base.parityLinked}. Um charter perdeu o vinculo com seu inventario de paridade.`);
+    process.exit(1);
+  }
+  const eixoParidade = typeof base.parityLinked === 'number'
+    ? ` · parityLinked ${parityLinked} ≥ ${base.parityLinked}`
+    : ' · paridade: baseline sem o campo (eixo nao cobrado ainda)';
+  console.log(`design-coverage: OK — declared ${declared} ≥ baseline ${base.declared} (catraca)${eixoParidade}.`);
   process.exit(0);
 }
 
@@ -113,3 +201,17 @@ if (naComFonteCandidata.length) {
 }
 console.log(`\ncontexto — páginas .tsx SEM charter algum      : ${noCharter} (gap mais fundo)`);
 console.log(`\ncatraca: 'declared' só sobe. Fechar = declarar o Padrão de Tela / protótipo no charter (a parte de Design).`);
+
+console.log('');
+console.log('═══ EIXO PARIDADE (protótipo↔produção · Onda 7) ═══');
+console.log(`inventários de paridade no repo               : ${inventarios.length}`);
+console.log(`  🔗 vinculados a um charter (path existe)     : ${parityLinked}`);
+console.log(`  🧩 órfãos — nenhum charter os aponta         : ${parityOrphan.length}  (report-only · dívida herdada)`);
+console.log(`  ❌ vínculo QUEBRADO (charter aponta p/ nada) : ${parityBroken.length}`);
+for (const b of parityBroken.slice(0, 8)) console.log('       ' + b);
+if (parityBroken.length > 8) console.log('       … +' + (parityBroken.length - 8));
+console.log('');
+console.log('como fechar: declarar related_visual_comparison: no charter da tela (path do');
+console.log('<Tela>-visual-comparison.md). O vínculo NÃO é adivinhado por nome de arquivo —');
+console.log(`medido 2026-09-08: só 16 dos ${inventarios.length} inventários casariam por convenção.`);
+console.log("catraca: 'parityLinked' só sobe. Órfão e quebrado são report-only (forward-only).");

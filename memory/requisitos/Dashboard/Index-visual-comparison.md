@@ -4,7 +4,7 @@ rota: /dashboard-legacy
 modulo: Dashboard
 ancora: prototipo-ui/cowork/dash-legacy-page.jsx
 ancora_frescor: "verificado 2026-08-27T21:56:54Z — MAS fidelidade da origem NAO PROVADA (ver §0)"
-comparado_em: "2026-08-28"
+comparado_em: "2026-09-03"
 metodo: sonda-DOM-identica-nos-dois-lados
 status: divergente
 ---
@@ -50,7 +50,7 @@ Toda divergência abaixo é contra um espelho cuja fidelidade a origem nunca pro
 | 7 | **Busca na grade** | **0** (não existe) | **1** (`input[placeholder*=Buscar]`) | ❌ **adição indevida — e MORTA: o controller não trata `?q=`** |
 | 8 | **Painel Pendências** | presente (5 itens com badge) | **ausente** | ❌ |
 | 9 | **Contagem por aba** | **9 abas com número** (7·5·12·4·6·3·2·8·9) | 5 abas, sem número | ❌ contagem · ⚠️ abas: ver nota |
-| 10 | **Sparkline no KPI Líquido** | presente | ausente | ❌ (2 evidências: `grep spark` 1×0 + render) |
+| 10 | **Sparkline no KPI Líquido** | presente | ausente | ❌ (2 evidências: `grep spark` 1×0 + render) — **SEGUE ABERTO em 2026-09-03**, ver Errata |
 | 11 | **Rodapé da grade** ("N de M · clique para abrir") | presente | ausente | ❌ **é a única affordance do drawer** |
 | 12 | **Alert de rodapé** | "Herança do Blade que não foi portada" | "Precisa dos gráficos de vendas…" | ❌ texto trocado **e factualmente falso** (os gráficos estão logo acima) |
 | 13 | Tom semântico dos KPI | `success` (Vendas) · `warning` · `info` (Despesas) | só `warning` | ❌ 2 de 3 |
@@ -89,7 +89,7 @@ depende de sessão autenticada em produção. É o buraco estrutural que este in
 ## Rodada 2 — 2026-08-28 · o ATALHO DE TOPO desta tela (shell), não o corpo
 
 > **Escopo, dito antes do veredito:** esta rodada compara o **atalho de sidebar que leva a esta
-> tela** — não o corpo dela (a Rodada 1 acima cobriu o corpo e o #6392 fechou as 6). É comparação
+> tela** — não o corpo dela (a Rodada 1 acima cobriu o corpo; o #6392 fechou **5 das 6** — ver a Errata da Rodada 3, no fim). É comparação
 > de **CONTRATO** (fonte do design × fonte da implementação), **não de runtime**: eu **não** rodei
 > a sonda nos dois renders nesta rodada, porque não havia render de prod disponível na sessão.
 > Logo **D2/D4/D6/D8 seguem NÃO MEDIDOS aqui** — nada abaixo vale como veredito de pixel, cor ou
@@ -195,3 +195,59 @@ PR próprio.
   (medido: 0 âncoras) — é instrumentação só-de-prod, então essa metade da sonda não tem par.
   O corpo já foi coberto pela Rodada 1 (sonda pareada) e as 6 regressões dela foram fechadas no #6392.
 - **D1 (rede/partial-reload)** e **contraste par-a-par**: fora do escopo desta rodada.
+
+
+---
+
+## Rodada 3 — 2026-09-03 · ERRATA: o #6392 fechou 5 das 6, não 6
+
+> **Escopo:** re-mediu-se o CORPO da tela (a Rodada 1) com a **mesma sonda nos dois renders**,
+> a pedido de [W] (*"abra a âncora e olhe visualmente com a produção"*). Isto **corrige uma
+> afirmação deste próprio documento**, não um defeito novo.
+
+**A afirmação corrigida.** O cabeçalho da Rodada 2 dizia *"o #6392 fechou as 6"*. Medido hoje:
+ele fechou **5**. O item **#10 (sparkline no KPI Líquido) nunca foi implementado** —
+`git show 29f889c570 -- resources/js/Pages/Home/Index.tsx` não contém uma linha de sparkline
+(o único bloco de gráfico que ele move é o `GraficosVendas`, que é outro componente). O mesmo
+PR **escreveu** a linha 10 desta tabela marcando o item como ❌ e não o corrigiu.
+
+### Como foi medido (sonda idêntica nos dois lados)
+
+- **Âncora**: espelho servido em `127.0.0.1:5602`, shell `oimpresso.com.html`, tela `dash-legacy`
+  (portão `cowork-mirror-freshness --preview-ds` passou: 10 dependências repostas, `rc=0`).
+- **Produção**: `oimpresso.com/dashboard-legacy`, sessão real, viewport 2560 × 951.
+- **Canário** (a sonda discrimina?): `pendencias` devolveu `PRESENTE` na âncora e `AUSENTE` na
+  produção — uma diferença **conhecida de antemão**, logo a sonda não é carimbo.
+
+| Item | Âncora | Produção | Veredito hoje |
+|---|---|---|---|
+| #6 Colunas ordenáveis | 4 | **4** | ✅ **fechado** pelo #6395 |
+| #7 Campo de busca | 0 | **0** | ✅ **fechado** |
+| #8 Painel Pendências | PRESENTE | AUSENTE | ⏸️ **declarado** — Backlog do charter, decisão [W] |
+| **#10 Sparkline no KPI Líquido** | **PRESENTE** | **AUSENTE** | ❌ **ABERTO e NÃO DECLARADO** |
+| #11 Rodapé da grade | presente | **presente** | ✅ **fechado** |
+| #12 Alert de rodapé | texto próprio | **ausente** | ✅ o texto falso saiu |
+| #9 Contagem por aba | 9 abas com número | 5 abas, 0 números | ⏸️ **Non-Goal declarado** |
+| Exportar CSV | PRESENTE | AUSENTE | ⏸️ **Non-Goal declarado** |
+| a11y — tabela `sr-only` | 0 | **2** | ✅ **produção à frente** |
+| Âncoras `data-contract` no DOM | — | `cabecalho>kpis>contrapartidas>graficos>grades` | ✅ ordem canônica |
+
+### Por que o #10 é diferente dos outros que faltam
+
+Contagem por aba, Exportar CSV e a aba "Fluxo de caixa" estão como **Non-Goal no charter**, com
+razão escrita. Pendências está no **Backlog** do charter (*"entra se [W] quiser o atalho"*).
+Todos são **decisão registrada**.
+
+O sparkline não é: `grep -i "spark"` devolve **zero** ocorrências em `Index.charter.md` e em
+`Index.casos.md`. Ele ficou órfão entre "corrigido" e "Non-Goal" — detectado, contado entre as
+6, e nunca implementado nem declarado. **Fechar isso é decisão [W]:** implementar (o
+`charts.dia` já existe, mas chega por `Inertia::defer` e o KPI é síncrono — haveria flash, ou
+uma segunda fonte de série) **ou** declarar Non-Goal com razão. Este documento não escolhe.
+
+### O que isto diz sobre os gates (e não mudou desde a Rodada 1)
+
+A seção *"Por que os gates não pegaram nada disso"* segue **inteira**. O sparkline sobreviveu a
+três PRs de fidelidade com CI verde porque a comparação **contra a âncora** não tem gate: o
+`visual-regression` compara a tela contra ela mesma, e o `contrato-de-tela` só confere o que o
+charter declara — e esta tela **segue sem `## Contrato visual`**. Enquanto for assim, achado
+desta classe depende de alguém rodar a sonda à mão, como foi hoje.

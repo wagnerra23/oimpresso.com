@@ -126,6 +126,7 @@ export function TituloCreateSheet({ open, onClose, tipo, categorias, planos }: T
                 cru. Sugestão de valor por histórico preservada via onBlurCapture no
                 wrapper (o blur do input interno do combobox borbulha até aqui). */}
             <div
+              data-contract="combobox-contraparte-no-novo-titulo"
               onBlurCapture={async () => {
                 const val = form.data.cliente_descricao.trim();
                 if (val.length < 3) { setSugestao(null); return; }

@@ -7,7 +7,8 @@
 
 import {
   buildReport, isAgentPR, terminalState, referencesPR, median, percentile,
-  timeToMerge, acceptReject, changeFailure, failedPRNumbers, DEFAULT_MARKER,
+  timeToMerge, acceptReject, changeFailure, failedPRNumbers, coberturaDaJanela,
+  DEFAULT_MARKER,
 } from './agent-pr-outcomes.mjs';
 
 let fails = 0;
@@ -19,7 +20,26 @@ check('referencesPR fronteira: "#1000" NÃO casa 100', referencesPR('ref #1000',
 check('median [2,3,4,4,4] = 4', median([2, 3, 4, 4, 4]) === 4);
 check('median par [2,4] = 3', median([2, 4]) === 3);
 check('percentile p90 de 5 itens = último quintil', percentile([2, 3, 4, 4, 9], 90) === 9);
-check('isAgentPR por marcador [CC]', isAgentPR({ title: 'feat: x [CC]' }) === true);
+// ── MARCADOR: os 3 formatos vivos MORDEM, o humano-sozinho LIBERA ───────────────
+// O default era só '[CC]' e cegava ~99% da população (medido 2026-09-07: 1116 `[C]`
+// vs 70 `[CC]` em 30d). Estes checks são o bite-test dessa correção.
+check('MORDE [C] (Claude sozinho — o marcador vivo, 1116 em 30d)', isAgentPR({ title: 'fix(x): y [C]' }) === true);
+check('MORDE [CC] (Claude Code — o default antigo)', isAgentPR({ title: 'feat: x [CC]' }) === true);
+check('MORDE [M+C] (par humano+Claude)', isAgentPR({ title: 'feat: x [M+C]' }) === true);
+check('MORDE [F+C] / [L+C] / [W+C] (demais pares medidos no corpus)',
+  isAgentPR({ title: 'a [F+C]' }) && isAgentPR({ title: 'b [L+C]' }) && isAgentPR({ title: 'c [W+C]' }));
+check('MORDE com sufixo do squash "(#6659)" depois do marcador',
+  isAgentPR({ title: 'docs(licoes): emenda [C] (#6659)' }) === true);
+check('LIBERA [W] sozinho (humano — NÃO é PR de agente)',
+  isAgentPR({ title: 'docs(adr): aceitar 0094 [W]', author: { login: 'wagnerra23' } }) === false);
+check('LIBERA [M] [F] [L] [E] sozinhos (humanos)',
+  !isAgentPR({ title: 'a [M]' }) && !isAgentPR({ title: 'b [F]' }) &&
+  !isAgentPR({ title: 'c [L]' }) && !isAgentPR({ title: 'd [E]' }));
+check('LIBERA marcador sem relação ([X] / [WIP])',
+  !isAgentPR({ title: 'a [X]' }) && !isAgentPR({ title: 'b [WIP]' }));
+check('--marker é OVERRIDE literal: com "[CC]", o [C] vivo NÃO conta',
+  isAgentPR({ title: 'fix: y [C]' }, '[CC]') === false &&
+  isAgentPR({ title: 'fix: y [CC]' }, '[CC]') === true);
 check('isAgentPR por autor bot', isAgentPR({ title: 'x', author: { login: 'github-actions[bot]' } }) === true);
 check('isAgentPR NÃO casa PR humano', isAgentPR({ title: 'feat: x', author: { login: 'wagnerra23' } }) === false);
 check('terminalState merged/rejected/open',
@@ -30,12 +50,12 @@ check('terminalState merged/rejected/open',
 // ── fixture de PRs (todos em julho; nowIso 2026-07-09, janela 30d cobre todos) ──
 const iso = (s) => `2026-07-${s}Z`;
 const PRS = [
-  // #100 [CC] mergeado — vai ser consertado por #101 em 10h (CFR HIT)
-  { number: 100, title: 'feat: base [CC]', body: '', author: { login: 'x' }, createdAt: iso('01T00:00:00'), mergedAt: iso('01T02:00:00'), closedAt: iso('01T02:00:00'), state: 'MERGED' },
+  // #100 [C] mergeado — vai ser consertado por #101 em 10h (CFR HIT). Marcador VIVO.
+  { number: 100, title: 'feat: base [C]', body: '', author: { login: 'x' }, createdAt: iso('01T00:00:00'), mergedAt: iso('01T02:00:00'), closedAt: iso('01T02:00:00'), state: 'MERGED' },
   // #101 [CC] fix que cita #100, mergeado 10h depois (dentro de 48h, tipo fix) → é o hotfix
   { number: 101, title: 'fix(x): corrige #100 [CC]', body: 'conserta o merge anterior', author: { login: 'x' }, createdAt: iso('01T08:00:00'), mergedAt: iso('01T12:00:00'), closedAt: iso('01T12:00:00'), state: 'MERGED' },
-  // #102 [CC] mergeado sem follow-up → sem falha
-  { number: 102, title: 'feat: y [CC]', body: '', author: { login: 'x' }, createdAt: iso('02T00:00:00'), mergedAt: iso('02T04:00:00'), closedAt: iso('02T04:00:00'), state: 'MERGED' },
+  // #102 [M+C] (par humano+Claude) mergeado sem follow-up → sem falha
+  { number: 102, title: 'feat: y [M+C]', body: '', author: { login: 'x' }, createdAt: iso('02T00:00:00'), mergedAt: iso('02T04:00:00'), closedAt: iso('02T04:00:00'), state: 'MERGED' },
   // #103 [CC] fix que cita #100 mas TARDE (>48h) → NÃO deve contar como hotfix de #100
   { number: 103, title: 'fix(x): tardio #100 [CC]', body: '', author: { login: 'x' }, createdAt: iso('04T20:00:00'), mergedAt: iso('05T00:00:00'), closedAt: iso('05T00:00:00'), state: 'MERGED' },
   // #104 [CC] REJEITADO (fechado sem merge)
@@ -44,12 +64,19 @@ const PRS = [
   { number: 105, title: 'feat: humano', body: '', author: { login: 'wagnerra23' }, createdAt: iso('02T00:00:00'), mergedAt: iso('02T05:00:00'), closedAt: iso('02T05:00:00'), state: 'MERGED' },
   // #106 [CC] cita #100 dentro de 48h MAS é feat (tipo errado) → NÃO é hotfix
   { number: 106, title: 'feat: melhora baseada em #100 [CC]', body: '', author: { login: 'x' }, createdAt: iso('01T20:00:00'), mergedAt: iso('01T23:00:00'), closedAt: iso('01T23:00:00'), state: 'MERGED' },
+  // #107 humano com marcador EXPLÍCITO [W] — fica FORA das métricas do agente
+  { number: 107, title: 'docs(adr): ratifica 0400 [W]', body: '', author: { login: 'wagnerra23' }, createdAt: iso('02T00:00:00'), mergedAt: iso('02T06:00:00'), closedAt: iso('02T06:00:00'), state: 'MERGED' },
 ];
 
-const r = buildReport({ prs: PRS, nowIso: '2026-07-09', days: 30, marker: DEFAULT_MARKER });
+// sem `marker` → conjunto canônico ([C]/[CC]/[X+C]). DEFAULT_MARKER é RÓTULO, não literal:
+// passá-lo como override casaria zero PR — por isso o buildReport não o recebe aqui.
+const r = buildReport({ prs: PRS, nowIso: '2026-07-09', days: 30 });
 
 // ── contagens de agente ──────────────────────────────────────────────────────
-check('6 PRs terminais do agente (#105 humano excluído)', r.agent.total_terminais === 6);
+check('6 PRs terminais do agente (#105 sem-marcador e #107 [W] excluídos)', r.agent.total_terminais === 6);
+check('os 3 formatos entram juntos no mesmo relatório ([C] #100 · [M+C] #102 · [CC] #106)',
+  r.agent.mergeados === 5 && r.metrics.change_failure.hits[0].pr === 100);
+check('rótulo do marcador no relatório = conjunto canônico', r.agent.marker === DEFAULT_MARKER);
 check('5 mergeados do agente', r.agent.mergeados === 5);
 
 // ── accept-rate ──────────────────────────────────────────────────────────────
@@ -86,5 +113,18 @@ check('failedPRNumbers extrai os #N dos hits do CFR real (#100)', (() => { const
 check('failedPRNumbers aceita o array .hits direto', failedPRNumbers([{ pr: 7 }, { pr: 9 }]).has(9) === true);
 check('failedPRNumbers de vazio/null → Set vazio (não quebra)', failedPRNumbers(null).size === 0 && failedPRNumbers({ hits: [] }).size === 0);
 
-console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — CFR morde (hotfix ≤48h + tipo + #N) e libera (tardio/feat/sem-#N); accept-rate + time-to-merge conferem; failedPRNumbers dá o conjunto "não sobreviveu" pro custo.');
+// ── cobertura da janela (G6): declara truncagem em vez de publicar número parcial ──
+const doisPRs = [{ createdAt: '2026-07-08T00:00:00Z' }, { createdAt: '2026-07-07T00:00:00Z' }];
+const since1jul = Date.parse('2026-07-01T00:00:00Z');
+check('cobertura: corpus CHEIO que não alcança o início da janela → truncado=true',
+  coberturaDaJanela(doisPRs, since1jul, 2).truncado === true);
+check('cobertura: corpus NÃO cheio (sobrou cap) → truncado=false',
+  coberturaDaJanela(doisPRs, since1jul, 50).truncado === false);
+check('cobertura: corpus cheio MAS alcança antes do início da janela → truncado=false',
+  coberturaDaJanela(doisPRs, Date.parse('2026-07-09T00:00:00Z'), 2).truncado === false);
+check('cobertura: sem cap conhecido (fixture) → truncado=null ("não medi", nunca "está ok")',
+  coberturaDaJanela(doisPRs, since1jul, null).truncado === null);
+check('cobertura entra no relatório e o fixture não afirma verde', r.cobertura.truncado === null);
+
+console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — marcador morde os 3 formatos vivos ([C]/[CC]/[X+C]) e libera humano-sozinho ([W][M][F][L][E]); --marker segue override literal; CFR morde (hotfix ≤48h + tipo + #N) e libera (tardio/feat/sem-#N); accept-rate + time-to-merge conferem; cobertura declara truncagem (e "não medi" quando não há cap); failedPRNumbers dá o conjunto "não sobreviveu" pro custo.');
 process.exit(fails ? 1 : 0);

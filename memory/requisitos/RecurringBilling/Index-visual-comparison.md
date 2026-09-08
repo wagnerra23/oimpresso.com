@@ -133,3 +133,48 @@ Existe hoje (✓): `rb_plans`, `rb_subscriptions`, `rb_invoices`, `rb_charge_att
 - ✅ Visual canon `recurring-page.jsx` 1.637ln + `recurring-data.jsx` 220ln + `recurring-icons.jsx` 38ln salvos em `prototipo-ui/prototipos/recurring/`
 
 **Próximo:** Onda 1 — migration aditiva + 3 models.
+
+---
+
+## Onda 7 · paridade medida no runtime — 2026-09-08 [CC]
+
+Mesma sonda estrutural · **mesmo tema** (`dark`, medido nos dois) · **mesma viewport** (`2560`) ·
+ambos estabilizados. Prod `/recurring-billing` × design rota `recurring`
+(`cobranca-recorrente-page.jsx`, servido do espelho).
+
+⚠️ **Ressalva de frescor, honesta:** as âncoras do Financeiro foram provadas SYNC por hash, mas
+esta **não** — o `cobranca-recorrente-page.jsx` volta **inline** no `get_file` (abaixo do piso de
+persistência), e a rota fiel pra ele depende do bundle, que o painel do protocolo declara **sem
+dono nem automação**. A comparação abaixo vale contra o espelho; não está provada contra o vivo.
+
+### Veredito: 1 achado REAL
+
+| Elemento | PROD | DESIGN | |
+|---|---|---|---|
+| Abas | Assinaturas(162) · Planos(109) · Faturas · Configurações | idem | ✅ |
+| KPI MRR | header + "MRR filtrado" | `.cr-stat` hero | ✅ presente |
+| KPI churn | "Churn este mês · 0 cancelamentos · taxa 0%" | "Churn este mês · taxa X%" | ✅ presente |
+| KPI próximas | "Próxima cobrança" | "Próximas cobranças" | ✅ presente (copy adaptada) |
+| KPI recuperar | "Retentado falhos · requer ação" | "A recuperar · N cobranças falhas" | ✅ presente (copy adaptada) |
+| h1 | "Cobrança recorrente" | "Assinaturas · Cobrança Recorrente" | ⚠️ difere |
+| **Branco puro (`rgb(255,255,255)`)** | **12 elementos** | **0** | ❌ **achado** |
+
+**O achado — `bg-white` hardcoded em tema dark.** Medido: 12 elementos com
+`background-color: rgb(255,255,255)` na prod, **todos os 12 dentro do `main`** (zero no shell) —
+KPI cards, painel de filtros e a lista de assinaturas. No design, `rgb(255,255,255)` aparece
+**zero** vezes: o hero usa token (`oklch(0.94 0.005 90)`) e os demais KPIs são transparentes,
+herdando o fundo do tema. É cor **crua**, não tokenizada, na camada de tela — e não responde ao
+tema. Hoje é legível **por acaso**, porque os textos dentro também são escuros hardcoded; qualquer
+tokenização futura do texto quebraria o contraste.
+
+### Dois falsos achados derrubados na verificação (e a mesma classe de erro, 2×)
+
+1. *"texto `oklch(0.94)` sobre branco = ilegível"* — **falso**. Isso era a cor **herdada no
+   container**; os textos-folha são escuros e medem **19–20:1** (passam AA folgado). 17 de 18 ok.
+2. *"53 elementos reprovam AA com contraste 1.0"* — **falso**. São iniciais de avatar, e o
+   medidor lia o fundo do **card ancestral** ignorando `background-image`: cada avatar tem
+   `linear-gradient(135deg, oklch(0.7 0.1 H), oklch(0.5 0.13 H))` próprio.
+
+Os dois são a mesma lápide (§5 2026-07-16, *medir a propriedade errada e chamar de verificado*),
+cometida duas vezes na mesma tela. O que separou o achado real dos falsos foi **medir o fundo
+efetivo**, subindo a árvore até um `background-color` opaco **ou** um `background-image`.

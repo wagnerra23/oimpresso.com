@@ -2,6 +2,7 @@
 id: resources-js-pages-team-mcp-tasks-index-charter
 page: /team-mcp/tasks
 component: Modules/Forja/Resources/js/Pages/team-mcp/Tasks/Index.tsx
+related_visual_comparison: memory/requisitos/TeamMcp/tasks-visual-comparison.md
 related_prototype: n/a (herda PT-05 Kanban; segue o Padrão de Tela)
 owner: wagner
 status: draft

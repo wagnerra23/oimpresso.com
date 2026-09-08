@@ -188,7 +188,7 @@ function Folhas({ folhas, papel, dense, filtro, setFiltro, busca, onAbrir, acoes
         os: f.os, servico: D.SERVICO[f.servico],
         entrega: <span className="rep-cell-2"><b className="mono">{D.d2(f.entrega)}</b><SeloPrazo f={f} /></span>,
         status: <SeloStatus id={f.status} />,
-        fase: window.FsmStepper ? <window.FsmStepper domain="repair" current={D.faseDe(f.status)} variant="dots-inline" /> : null,
+        fase: window.OiFsmStepper ? <window.OiFsmStepper domain="repair" current={D.faseDe(f.status)} variant="dots-inline" /> : null,
         tecnico: f.tecnico === "Não atribuído" ? <span className="rep-dim">não atribuído</span> : f.tecnico,
         cliente: { primary: f.cliente, sub: D.LOCAIS[f.local] },
         equip: { primary: m.marca + " " + m.nome, sub: m.dispositivo },
@@ -209,13 +209,14 @@ function Folhas({ folhas, papel, dense, filtro, setFiltro, busca, onAbrir, acoes
   return (
     <div className="rep-list">
       <div className="rep-subtabs">
-        {TabBar && <TabBar active={filtro} onChange={(k) => { setFiltro(k); setPag(1); }}
+        <window.CliTabs ariaLabel="Recorte das folhas" pad={0} active={filtro}
+          onChange={(k) => { setFiltro(k); setPag(1); }}
           tabs={[
-            { key: "pendentes", label: "Pendentes", count: D.pendentes(folhas).length },
-            { key: "concluidas", label: "Concluídas", count: D.concluidas(folhas).length },
-            { key: "atrasadas", label: "Entrega vencida", count: folhas.filter(D.atrasada).length },
-            { key: "todas", label: "Todas", count: folhas.length },
-          ]} />}
+            { key: "pendentes", label: "Pendentes", n: D.pendentes(folhas).length },
+            { key: "concluidas", label: "Concluídas", n: D.concluidas(folhas).length },
+            { key: "atrasadas", label: "Entrega vencida", n: folhas.filter(D.atrasada).length },
+            { key: "todas", label: "Todas", n: folhas.length },
+          ]} />
         <span className="sp" />
         <span className="rep-hint">Pendente = status sem <b className="mono">is_completed_status</b>. A folha só sai daqui quando o status conclui.</span>
       </div>
@@ -449,10 +450,9 @@ function FolhaDrawer({ f, close, acoes, papel, avisar }) {
         <SeloPrazo f={f} />
         {StatusBadge && <StatusBadge kind="tipo" value={f.tipoPf} />}
       </div>
-      {window.FsmStepper && <div className="rep-drawer-fsm"><window.FsmStepper domain="repair" current={D.faseDe(f.status)} variant="full-stepper" /></div>}
-      <nav className="rep-drawer-nav">
-        {abas.map(([k, l]) => <button key={k} className={aba === k ? "on" : ""} onClick={() => setAba(k)}>{l}</button>)}
-      </nav>
+      {window.OiFsmStepper && <div className="rep-drawer-fsm"><window.OiFsmStepper domain="repair" current={D.faseDe(f.status)} variant="full-stepper" /></div>}
+      <window.CliTabs className="rep-drawer-nav" ariaLabel="Abas da OS" pad={18} size="sm"
+        active={aba} onChange={setAba} tabs={abas.map(([k, l]) => ({ key: k, label: l }))} />
 
       {aba === "folha" && <>
         <DrawerSection title="Recebimento">
@@ -696,8 +696,8 @@ function RepairPage({ view, dense, estado = "dados", papel: papelProp }) {
           onRefresh={() => { setHora(new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })); avisar("Reapurado — folhas, status e prazos.", "ok"); }}
           acoes={<>
             <div className="mp-busca">
-              <span>⌕</span>
-              <input placeholder="Buscar folha, cliente, série, modelo..." value={busca}
+              <span aria-hidden="true">⌕</span>
+              <input aria-label="Buscar folha, cliente, série ou modelo" placeholder="Buscar folha, cliente, série, modelo..." value={busca}
                 onChange={(e) => { setBusca(e.target.value); setAba("folhas"); setFiltro("todas"); }} />
               <kbd>/</kbd>
             </div>

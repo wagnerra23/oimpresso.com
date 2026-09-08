@@ -14,7 +14,9 @@ use Illuminate\Support\Facades\Route;
  * já registra TestCase pra toda pasta `tests/Feature/`. Redeclarar gera
  * "The folder already uses the test case [Tests\TestCase]" e bloqueia
  * `vendor/bin/pest --filter`. Catalogado em
- * memory/decisions/proposals/drafts/_AGENT_A_AUDIT_FINDINGS.md:210-229.
+ * memory/decisions/proposals/drafts/_AGENT_A_AUDIT_FINDINGS.md
+ * secao "## Bug ambiental Pest local" (ancora por secao: a ref de linha :210-229
+ * quebrou em 2026-09-03 quando o doc ganhou a errata da entrada 1).
  * A redeclaração viveu aqui até 2026-08-26 e derrubava a suíte INTEIRA no
  * carregamento — não só este arquivo. Os irmãos
  * `Console/ArquivosHealthCheckScheduleTest.php` e `Console/BackupMonitorScheduleTest.php`

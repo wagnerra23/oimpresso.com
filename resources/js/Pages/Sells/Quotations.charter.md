@@ -2,6 +2,8 @@
 id: resources-js-pages-sells-quotations-charter
 page: /sells/quotations
 component: resources/js/Pages/Sells/Quotations.tsx
+related_us: [US-SELL-061]
+related_visual_comparison: memory/requisitos/Sells/quotations-visual-comparison.md
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
 owner: wagner
 status: draft

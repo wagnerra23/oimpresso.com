@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\User;
 use Modules\Jana\Entities\AcaoAprovacao;
+use Modules\Jana\Entities\Meta;
+use Modules\Jana\Entities\MetaFonte;
 use Modules\Jana\Services\AcaoHitlService;
 use Spatie\Permission\Models\Permission;
 
@@ -234,7 +236,7 @@ it('UC-JPAIN-07: sparkline sem série declara "Sem histórico" em vez de desenha
  *
  * A asserção é de ARQUIVO porque o defeito é de render, e Pest não monta React.
  * Ela morde no que importa: apagar o `carregandoCockpit`, ou voltar a passar o
- * `<KpiCard>` direto, derruba o caso. O par visual (screenshot 1280/1440) é o
+ * `<JanaKpiCard>` direto, derruba o caso. O par visual (screenshot 1280/1440) é o
  * portão F1.5 e vive fora daqui.
  */
 it('UC-JPAIN-08: o cockpit declara carregando em vez de pintar zero', function () {
@@ -942,7 +944,7 @@ it('UC-JPAIN-16: nenhum botão novo do Painel nasce clicável sem fazer nada', f
 });
 
 /**
- * Extrai, na ORDEM de arquivo, os rótulos dos `<KpiCard>` que vivem dentro do
+ * Extrai, na ORDEM de arquivo, os rótulos dos `<JanaKpiCard>` que vivem dentro do
  * `<KpiGrid>` do cockpit.
  *
  * Por que o recorte é o bloco, e não o arquivo: `label="Receita 30 dias"` aparece
@@ -950,7 +952,14 @@ it('UC-JPAIN-16: nenhum botão novo do Painel nasce clicável sem fazer nada', f
  * `Sells/Index.tsx` tem KPIs próprios. Contar no arquivo inteiro mediria outra
  * coisa e daria um número plausível — a armadilha do §5 2026-08-01.
  *
- * `<KpiCard\s` não casa `<KpiCardSkeleton` porque exige espaço logo após o nome.
+ * ⚠️ O NOME mudou em 2026-09-03 (Onda 2 da paridade · UC-JPAIN-20): o card deixou de
+ * ser o `KpiCard` shared (anatomia PT-04) e passou a ser a RÉPLICA do `.jc-kpi` da
+ * âncora, `_components/JanaKpiCard.tsx` (ADR 0388 §D-1 · precedência de FORMA da ADR
+ * UI-0029). Se este regex não tivesse acompanhado, ele voltaria `[]` e o caso ficaria
+ * VERDE por não achar nada — LC-11 na forma silenciosa.
+ *
+ * `<JanaKpiCard\s` não casa `<KpiCardSkeleton` (outro nome) porque exige o espaço
+ * logo após o nome.
  */
 function painelKpisDoGrid(string $src): array
 {
@@ -958,7 +967,7 @@ function painelKpisDoGrid(string $src): array
         return [];
     }
 
-    preg_match_all('/<KpiCard\s+label="([^"]+)"/u', $bloco[0], $m);
+    preg_match_all('/<JanaKpiCard\s+label="([^"]+)"/u', $bloco[0], $m);
 
     return $m[1];
 }
@@ -988,9 +997,9 @@ it('UC-JPAIN-18: o grid tem os 3 KPIs da âncora e o PIX saiu como CARD, não co
 
     // ── BITE-TEST do extrator: ele mede o que diz medir? ─────────────────────
     // Controle positivo E negativo antes de confiar no número real (§5 2026-08-01).
-    $fixtureBoa  = '<KpiGrid cols={3}><KpiCard label="A" /><KpiCard label="B" /></KpiGrid>';
-    $fixtureSkel = '<KpiGrid cols={3}><KpiCardSkeleton label="X" /><KpiCard label="A" /></KpiGrid>';
-    $fixtureFora = '<KpiCard label="Z" /><KpiGrid cols={3}><KpiCard label="A" /></KpiGrid>';
+    $fixtureBoa  = '<KpiGrid cols={4}><JanaKpiCard label="A" /><JanaKpiCard label="B" /></KpiGrid>';
+    $fixtureSkel = '<KpiGrid cols={4}><KpiCardSkeleton label="X" /><JanaKpiCard label="A" /></KpiGrid>';
+    $fixtureFora = '<JanaKpiCard label="Z" /><KpiGrid cols={4}><JanaKpiCard label="A" /></KpiGrid>';
 
     expect(painelKpisDoGrid($fixtureBoa))->toBe(['A', 'B']);   // conta os cards
     expect(painelKpisDoGrid($fixtureSkel))->toBe(['A']);       // ignora o skeleton
@@ -1005,9 +1014,19 @@ it('UC-JPAIN-18: o grid tem os 3 KPIs da âncora e o PIX saiu como CARD, não co
         'Ticket médio',
     ]);
 
-    // ── 2. o grid declara 3 colunas ──────────────────────────────────────────
-    // Sem isto, remover o card deixaria um vão de 1 coluna no desktop (`lg`).
-    expect($cockpit)->toContain('<KpiGrid cols={3}>');
+    // ── 2. o grid declara as 4 colunas da ÂNCORA, com o gap dela ─────────────
+    // A `jc-kpis` é `grid-template-columns: repeat(4, 1fr); gap: 10px`, e os 3 cards
+    // ocupam 3/4 — o vão à direita é do DESENHO, não sobra de card removido. Era
+    // `cols={3}` até 2026-09-03, quando a Onda 2 mediu a âncora (`gap-2.5` = 10px).
+    expect($cockpit)->toContain('<KpiGrid cols={4} className="gap-2.5">');
+
+    // ── 2b. e o card é a RÉPLICA, não o shared PT-04 ─────────────────────────
+    // Sem este par, trocar `JanaKpiCard` de volta por `KpiCard` deixaria o extrator
+    // devolvendo `[]` — um caso verde por ausência de alvo, que é o que o docblock
+    // do extrator acabou de avisar.
+    expect($cockpit)
+        ->toContain("import JanaKpiCard from './JanaKpiCard';")
+        ->not->toContain("from '@/Components/shared/KpiCard'");
 
     // ── 3. o PIX saiu como CARD ──────────────────────────────────────────────
     expect($cockpit)
@@ -1022,4 +1041,159 @@ it('UC-JPAIN-18: o grid tem os 3 KPIs da âncora e o PIX saiu como CARD, não co
     expect($cockpit)
         ->toContain('const pixHoje = coworkAggregates?.pixHojeTotal ?? 0;')
         ->toContain('custo zero vs maquininha');
+});
+
+/**
+ * UC-JPAIN-21 — o card de meta lê "<valor> de <alvo>" e "<pct>% do alvo" (Onda 2.1 da paridade).
+ *
+ * Âncora: `prototipo-ui/cowork/jana-merge.jsx` §`JmMetaCard` — `jm-meta-v` é
+ * `<b>{atual}</b><small>de {alvo}</small>` e `jm-meta-f` abre com `{pct}% do alvo`, com a
+ * projeção empurrada pra direita. A produção escrevia `Alvo: <valor>` no rodapé com a porcentagem
+ * solto depois: o alvo aparecia como rótulo embaixo e em lugar nenhum ao lado do número, e o
+ * "% do alvo" perdia o substantivo.
+ *
+ * Asserção de ARQUIVO e ESTRUTURAL (mesmo motivo dos UC-08/10/11: Pest não monta React), e
+ * sobre o CÓDIGO, não sobre a prosa — o comentário do `MetaCard` cita "Alvo:" e "0% do alvo"
+ * ao REGISTRAR a decisão, então `not->toContain('Alvo:')` reprovaria o próprio registro
+ * (§5 2026-07-26). O que morde:
+ *   1. o sufixo `de {alvo}` vive DENTRO do bloco do valor (mesma linha), condicionado a `alvo`;
+ *   2. o rodapé é a expressão ternária inteira: `% do alvo` SÓ quando `progresso` existe, e
+ *      sem apuração cai pra `alvo X` (o `jm-meta-apurando` da âncora) — nunca "0% do alvo";
+ *   3. o rótulo antigo `Alvo: {formatValue(...)}` saiu do JSX.
+ * Espaços são normalizados sem regex de propósito: zero barra invertida neste bloco (LC-26).
+ */
+it('UC-JPAIN-21: o card de meta lê "<valor> de <alvo>" e "<pct>% do alvo", nunca "0% do alvo"', function () {
+    $tsx = painelTsx();
+    $flat = str_replace([chr(13), chr(10), chr(9)], ' ', $tsx);
+    while (str_contains($flat, '  ')) {
+        $flat = str_replace('  ', ' ', $flat);
+    }
+
+    // 1. valor + alvo na mesma linha (jm-meta-v): o <small> é filho do bloco do valor
+    expect($flat)->toContain(
+        '{formatValue(realizado, meta.unidade)} '
+        .'{/* `jm-meta-v` da âncora'
+    );
+    expect($flat)->toContain('{alvo !== null && ( <small className="ml-1.5 text-[11px] font-normal text-muted-foreground"> de {formatValue(alvo, meta.unidade)} </small> )}');
+
+    // 2. rodapé (jm-meta-f): a ternária inteira — "% do alvo" guardado por `progresso`, fallback "alvo X"
+    expect($flat)->toContain('{progresso !== null ? `${progresso.toFixed(0)}% do alvo` : `alvo ${formatValue(alvo, meta.unidade)}`}');
+
+    // 3. o rótulo antigo saiu do JSX (o literal de CÓDIGO, não a palavra em comentário)
+    expect($tsx)->not->toContain('Alvo: {formatValue(alvo, meta.unidade)}');
+
+    // 4. a projeção continua à direita, em mono 10.5px, e continua vindo do servidor
+    expect($tsx)
+        ->toContain('ml-auto shrink-0 font-mono text-[10.5px] tabular-nums')
+        ->toContain('meta.projecao.projetado');
+});
+
+
+// ── PR-3 · o drawer absorve `metas/show` e `fontes/show` (RUNBOOK-metas §9.4) ──
+
+/**
+ * UC-JPAIN-22 — o payload de `/ia` carrega ORIGEM, ESCOPO e FONTE.
+ *
+ * Fonte da asserção: `Modules/Jana/Resources/views/metas/show.blade.php` (slug, tipo,
+ * origem, escopo) e `fontes/show.blade.php` (a config gravada) — as duas telas que o
+ * PR-3 absorve. Derivado das BLADES, não do payload: o RUNBOOK §9.4 diz que o PR-4 só
+ * pode remover aquelas views depois que o drawer entregar o que elas entregavam.
+ *
+ * ⚠️ ERRATA DO PRÓPRIO AUTOR, e é o motivo de este caso existir. A primeira versão deste
+ * UC afirmava uma "armadilha": que meta de PLATAFORMA (`business_id` nulo) entrava no
+ * Painel e que a fonte dela cairia fora do escopo do parent, exigindo um
+ * `withoutGlobalScope` no eager-load. **Falso, e o próprio teste provou** — ele reprovou
+ * em `expect($plataforma)->not->toBeNull()`: o que sumia era a **META**, nunca a fonte.
+ *
+ * Medido depois (`app/Scopes/ScopeByBusiness.php`): para usuário COMUM o escopo direto
+ * filtra `business_id = <sessão>` ESTRITO, então meta de plataforma nem chega ao payload;
+ * para SUPERADMIN ele abre para `= X OR IS NULL`, e o `ScopeByBusinessViaParent` abre
+ * exatamente igual para o parent. **Nos dois papéis os dois escopos concordam**, logo a
+ * dispensa não resolvia nada — só removia uma defesa Tier 0 sem necessidade. Ela saiu.
+ *
+ * Corolário que fica registrado: o `orWhereNull('business_id')` da consulta do Painel é
+ * **inerte** para usuário comum. Mexer nele é outro escopo, não deste PR.
+ *
+ * O isolamento cross-tenant das metas e das filhas já tem dono e não se duplica aqui:
+ * `MultiTenantIsolationTest` e `EntitiesFilhasMultiTenantViaParentTest`.
+ */
+it('UC-JPAIN-22: o payload traz origem, escopo e fonte da meta', function () {
+    painelBootstrap();
+    $businessId = (int) session('user.business_id');
+    $sufixo = uniqid();
+
+    $daCasa = Meta::withoutGlobalScopes()->create([
+        'business_id'    => $businessId,
+        'slug'           => 'pr3_casa_'.$sufixo,
+        'nome'           => 'PR3 meta do negocio',
+        'unidade'        => 'R$',
+        'tipo_agregacao' => 'soma',
+        'ativo'          => true,
+        'origem'         => 'manual',
+    ]);
+    $fonteDaCasa = MetaFonte::withoutGlobalScopes()->create([
+        'meta_id'     => $daCasa->id,
+        'driver'      => 'sql',
+        'config_json' => ['sql' => 'SELECT 1'],
+        'cadencia'    => 'diaria',
+    ]);
+
+    try {
+        $this->get('/ia')->assertInertia(function ($page) use ($daCasa) {
+            $metas = collect($page->toArray()['props']['metas'] ?? []);
+
+            $casa = $metas->firstWhere('id', $daCasa->id);
+            expect($casa)->not->toBeNull();
+            expect($casa['origem'])->toBe('manual');
+            expect($casa['business_id'])->not->toBeNull();
+            expect($casa['fonte'])->not->toBeNull();
+            expect($casa['fonte']['driver'])->toBe('sql');
+            expect($casa['fonte']['cadencia'])->toBe('diaria');
+            expect($casa['fonte']['config_json'])->toBe(['sql' => 'SELECT 1']);
+
+            return $page;
+        });
+    } finally {
+        // Limpeza em finally: no CT 100 a base PERSISTE entre execuções, e assert que
+        // falha no meio deixaria as linhas lá.
+        MetaFonte::withoutGlobalScopes()->whereIn('id', [$fonteDaCasa->id])->delete();
+        Meta::withoutGlobalScopes()->whereIn('id', [$daCasa->id])->delete();
+    }
+});
+
+/**
+ * UC-JPAIN-23 — o drawer desenha as seções que as duas Blades entregavam.
+ *
+ * Asserção de ARQUIVO, pela mesma razão do UC-04/05/06: a copy e a estrutura vivem no
+ * `.tsx`, não no payload. A copy do vazio é LITERAL da âncora
+ * (`prototipo-ui/cowork/jana-metas.jsx` §`JmApuracoesSecao` e §`JmFonteDrawer` —
+ * re-localize com `grep -n "function JmApuracoesSecao" prototipo-ui/cowork/jana-metas.jsx`).
+ * Precedência de FORMA: protótipo > teste > casos > charter (ADR UI-0029).
+ *
+ * ⚠️ Este caso NÃO prova runtime — asserção de arquivo passa mesmo com a mudança inerte
+ * (classe LC-30). Quem prova runtime é o UC-JPAIN-22, que lê o payload de verdade.
+ */
+it('UC-JPAIN-23: o drawer tem as seções Apurações gravadas e Fonte do número', function () {
+    $drawer = file_get_contents(base_path('resources/js/Pages/Jana/_components/JanaMetaDrawer.tsx'));
+
+    expect($drawer)
+        ->toContain('titulo="Identificação"')
+        ->toContain('Apurações gravadas ·')
+        ->toContain('titulo="Fonte do número"');
+
+    expect($drawer)->toContain('Nenhuma apuração ainda — a meta entra no farol depois do primeiro job.');
+
+    expect($drawer)
+        ->toContain('Só leitura, por decisão')
+        ->toContain('US-COPI-040');
+
+    expect($drawer)
+        ->toContain('<caption className="sr-only">')
+        ->toContain('Data ref.')
+        ->toContain('Realizado');
+
+    // Data em dd/mm/aaaa SEM `new Date()`: data sem hora vira UTC meia-noite e volta um
+    // dia em fuso negativo. O helper recorta a string justamente pra não converter.
+    expect($drawer)->toContain('function dataCurta(');
+    expect($drawer)->not->toContain('new Date(a.data_ref');
 });

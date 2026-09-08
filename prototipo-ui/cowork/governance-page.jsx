@@ -196,11 +196,7 @@ function SecaoMcp({ semPermissao, fonteAusente }) {
     <Secao titulo="Governança MCP" contrato="mcp-secao"
       sub="Consumo cross-team do servidor MCP. A seção herda a permissão da tela de origem — jana.mcp.usage.all —, não a do painel."
       direita={
-        <div className="gov-seg" role="group" aria-label="Período">
-          {PERIODOS.map((p) => (
-            <button key={p.id} className={preset === p.id ? "on" : ""} aria-pressed={preset === p.id} onClick={() => setPreset(p.id)}>{p.l}</button>
-          ))}
-        </div>
+        <window.CliSeg ariaLabel="Período" value={preset} onChange={setPreset} options={PERIODOS.map((p) => ({ key: p.id, label: p.l }))} />
       }>
       {fonteAusente ? (
         <A.Vazio variant="offline" title="mcp_audit_log não existe nesta base"
@@ -213,11 +209,9 @@ function SecaoMcp({ semPermissao, fonteAusente }) {
             <A.Kpi l="Latência p95" v={`${MCP.p95} ms`} tone="info" sub={`p50 ${MCP.p50} · p99 ${MCP.p99} · máx ${MCP.max}`} />
             <A.Kpi l="Custo" v={MCP.custo} sub="tokens de entrada e saída" />
           </div>
-          <nav className="gov-subtabs" role="group" aria-label="Recorte da seção MCP">
-            {[["consumo", "Consumo"], ["acesso", "Acesso e permissões"], ["uso", "Usuários e ferramentas"]].map(([id, l]) => (
-              <button key={id} className={aba === id ? "on" : ""} aria-pressed={aba === id} onClick={() => setAba(id)}>{l}</button>
-            ))}
-          </nav>
+          <window.CliTabs className="gov-subtabs" ariaLabel="Recorte da seção MCP" size="sm"
+            active={aba} onChange={setAba}
+            tabs={[{ key: "consumo", label: "Consumo" }, { key: "acesso", label: "Acesso e permissões" }, { key: "uso", label: "Usuários e ferramentas" }]} />
           {aba === "consumo" && (
             <div className="gov-card">
               {Chart ? <Chart type="area" data={MCP.serie} height={140} highlightLast formatValue={(v) => `${v} chamadas`} />
@@ -407,21 +401,14 @@ function GovernancePage({ view = "painel" }) {
         </div>
         <div className="os-page-h-r">
           {aba === "painel" && (
-            <div className="gov-seg" role="group" aria-label="Estado da base">
-              {CENARIOS.map((c) => (
-                <button key={c.id} className={cenario === c.id ? "on" : ""} aria-pressed={cenario === c.id} onClick={() => setCenario(c.id)}>{c.label}</button>
-              ))}
-            </div>
+            <window.CliSeg ariaLabel="Estado da base" value={cenario} onChange={setCenario} options={CENARIOS.map((c) => ({ key: c.id, label: c.label }))} />
           )}
           <span className="mod-scope">superadmin · cross-tenant</span>
         </div>
       </header>
 
-      <nav className="gov-tabs" role="tablist" data-contract="tabs">
-        {VIEWS.map((v) => (
-          <button key={v.id} role="tab" aria-selected={aba === v.id} className={`gov-tab ${aba === v.id ? "on" : ""}`} onClick={() => setAba(v.id)}>{v.label}</button>
-        ))}
-      </nav>
+      <window.CliTabs className="gov-tabs" dataContract="tabs" ariaLabel="Telas de governança" pad={24}
+        active={aba} onChange={setAba} tabs={VIEWS.map((v) => ({ key: v.id, label: v.label }))} />
 
       <div className="gov-body">
         {!D().ARTIGOS ? <div className="gov-pad"><p className="gov-hint">Carregando os dados do módulo…</p></div> : <>

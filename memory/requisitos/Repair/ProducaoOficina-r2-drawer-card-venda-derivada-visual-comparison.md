@@ -12,6 +12,16 @@ worker: B (sub-agent paralelo)
 
 # Visual Comparison — Drawer card "Esta OS gerou venda"
 
+> 🧩 **ÓRFÃO DECLARADO do eixo paridade (Onda 7) — por desenho, não por esquecimento.**
+> Este documento e o [r3](./ProducaoOficina-r3-venda-derivada-expanded-visual-comparison.md) medem
+> a MESMA tela (`resources/js/Pages/Repair/ProducaoOficina/Index.tsx`) em duas fases: r2 é a Onda 5
+> (2026-05-25) e r3 é a FASE B, que se declara "delta vs r2".
+>
+> O mecanismo do eixo paridade é **1 charter → 1 inventário**: `design-coverage.mjs::vinculoDoCharter`
+> retorna no primeiro match e `parityLinked` conta uma vez por charter. O charter da tela aponta
+> para o **r3** (estado vigente); este r2 fica como registro datado da fase anterior. Contar os dois
+> exigiria mudar o mecanismo — decisão de quem o mantém, não conserto silencioso aqui.
+
 > **Escopo:** adição cirúrgica ao drawer existente. NÃO toca kanban, drag-and-drop, filtros, mock data, ou demais sections do drawer. Renderiza UM card novo no topo do drawer body **quando** `card.approved === true` (= coluna `pronto` = FSM `entregue_completo`) AND `card.venda_derivada !== null`.
 
 ## Mapeamento Cowork → Inertia React

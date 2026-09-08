@@ -1,0 +1,205 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Officeimpresso/Logs/Index (/officeimpresso/licenca_log)",
+  "gap_fonte": "memory/requisitos/Officeimpresso/logs-index-gap.md",
+  "prototipo_sha": "sha256:e6fedacd530e",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "cabecalho",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/officeimpresso-page.jsx",
+        "linhas": "570"
+      },
+      "vivo": {
+        "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — vivo à frente. O `PageHead` do protótipo traz só contagens (`officeimpresso-page.jsx:570`); o vivo explica a origem, que é o que o suporte precisa saber quando a lista está vazia.",
+      "_acionavel": false
+    },
+    {
+      "id": "kpis",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/officeimpresso-page.jsx",
+        "linhas": "371-376"
+      },
+      "vivo": {
+        "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — decisão já registrada. O protótipo tem 4 KPIs na view Empresas (`officeimpresso-page.jsx:371-376`), com recorte diferente (empresas licenciadas, máquinas ativas, versão atrasada, empresas bloqueadas). O charter §Non-Goals fixa que os KPIs daqui são globais e não seguem o filtro, igual ao Blade — *\"KPI que reage a filtro é outra tela\"*. Não reabrir.",
+      "_acionavel": false
+    },
+    {
+      "id": "filtros",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/officeimpresso-page.jsx",
+        "linhas": "585-590"
+      },
+      "vivo": {
+        "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. O protótipo tem, além da busca, um `FilterDropdown` de Empresa (`officeimpresso-page.jsx:585-590`) — que numa lista cross-empresa é o filtro mais óbvio que falta. ⚠️ Antes de construir, conferir contra o Blade: o charter §Non-Goals proíbe adicionar o que o Blade não tem, então isto só é gap legítimo se o Blade já filtrar por empresa. Medir primeiro, decidir depois. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "chips-de-filtro-ativo",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/officeimpresso-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — vivo à frente. O protótipo não tem chips.",
+      "_acionavel": false
+    },
+    {
+      "id": "tabela-colunas",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/officeimpresso-page.jsx",
+        "linhas": "639"
+      },
+      "vivo": {
+        "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — vivo à frente e Non-Goal. O protótipo tem 7 (`officeimpresso-page.jsx:639`) e o charter proíbe adicionar coluna nova. As 10 são a paridade dos 54 itens do `logs-parity.md`.",
+      "_acionavel": false
+    },
+    {
+      "id": "toggle-licencas-por-empresa",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/officeimpresso-page.jsx",
+        "linhas": "572-575"
+      },
+      "vivo": {
+        "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — decisão já registrada. O toggle do protótipo (`officeimpresso-page.jsx:572-575`, hoje `window.CliSeg` no vivo do Cowork) troca o agrupamento da mesma lista. É reorganização visual, e a reorganização para a estrutura desenhada (`empresas`/`licencas`/`log`) é explicitamente Onda 2 no charter. Não reabrir agora.",
+      "_acionavel": false
+    },
+    {
+      "id": "acoes-de-bloqueio",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/officeimpresso-page.jsx",
+        "linhas": "659"
+      },
+      "vivo": {
+        "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — vivo à frente, e é Anti-hook Tier 0 do charter: *\"Nunca renderizar as ações de bloqueio como `<Link>`/`<a href>` … um href é seguível por prefetch, crawler e 'abrir em nova aba'.\"* O protótipo usa itens de `Kebab` (`officeimpresso-page.jsx:659`), que não carregam essa garantia.",
+      "_acionavel": false
+    },
+    {
+      "id": "drawer-da-licenca",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/officeimpresso-page.jsx",
+        "linhas": "715-753"
+      },
+      "vivo": {
+        "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. O protótipo tem o `LicencaDrawer` (`officeimpresso-page.jsx:715-753`) com ficha da máquina (serial, versão, sistema, IP, usuário, registrada, último acesso) e a timeline embutida. No vivo a timeline é página própria (`/licenca_log/timeline`), o que o charter da irmã registra como sendo o que a rota faz hoje. Decidir é escolher entre manter as duas telas ou colapsar no drawer — e isso é a Onda 2, não esta. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "estados-vazios",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/officeimpresso-page.jsx",
+        "linhas": "246-255"
+      },
+      "vivo": {
+        "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — vivo à frente. O `Vazio` do protótipo (`officeimpresso-page.jsx:246-255`) é genérico.",
+      "_acionavel": false
+    },
+    {
+      "id": "tri-estado-do-estado-no-ultimo-login",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/officeimpresso-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — vivo à frente. O protótipo não tem esse tri-estado; é regra que nasceu do dado real.",
+      "_acionavel": false
+    },
+    {
+      "id": "rotulo",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/officeimpresso-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — vivo à frente.",
+      "_acionavel": false
+    },
+    {
+      "id": "performance",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/officeimpresso-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — vivo à frente. Anti-hook do charter proíbe eager-load dos dois.",
+      "_acionavel": false
+    },
+    {
+      "id": "css-oi-do-modulo",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/officeimpresso-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Nada — Non-Goal do charter (*\"Não deixa o CSS `oi-*` do módulo atravessar — o módulo não tem Design System próprio\"*). O protótipo usa `oi-*` livremente; importar essas classes seria regressão declarada, não adoção.",
+      "_acionavel": false
+    }
+  ]
+}

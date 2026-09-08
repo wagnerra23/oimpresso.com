@@ -834,15 +834,8 @@ function VendasRelatoriosPage() {
       </header>
       <VdModNav here="relatorios" />
 
-      <nav className="vrep-tabs">
-        {[
-        { id: "periodo", l: "Por período" },
-        { id: "cliente", l: "Por cliente" },
-        { id: "origem", l: "Origem" }].
-        map((t) =>
-        <button key={t.id} className={view === t.id ? "active" : ""} onClick={() => setView(t.id)}>{t.l}</button>
-        )}
-      </nav>
+      <window.CliTabs className="vrep-tabs" ariaLabel="Recorte do relatório" pad={24} active={view} onChange={setView}
+        tabs={[{ key: "periodo", label: "Por período" }, { key: "cliente", label: "Por cliente" }, { key: "origem", label: "Origem" }]} />
 
       <div className="vrep-summary">
         <div><span>Total no período</span><strong>{_fmtBRL(totalPeriodo)}</strong></div>

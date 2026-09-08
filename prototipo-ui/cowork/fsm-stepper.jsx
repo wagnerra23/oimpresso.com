@@ -167,7 +167,11 @@
 
     return null;
   }
-  window.FsmStepper = FsmStepper;
+  // Nome PREFIXADO de propósito (2026-08-31): "FsmStepper" cru colidia com o
+  // FsmStepper publicado pelo Design System — dois componentes, um nome, quem
+  // ganhasse dependia da ordem de carga. O local é OiFsmStepper; o nome curto
+  // pertence ao DS. Consumidores: os-page, repair-page, financeiro-page.
+  window.OiFsmStepper = FsmStepper;
 
   /**
    * Helper específico pra Financeiro — calcula a fase a partir do row.

@@ -10,6 +10,17 @@ declare(strict_types=1);
  * recebe $business_id por parâmetro, não inventa).
  *
  * ADRs: 0104 (MWART), 0093 (Tier 0), 0149 (pattern reuse).
+ *
+ * ── Rastreabilidade (casos-gate G-2 · ADR 0264) ────────────────────────────
+ * Contrato: resources/js/Pages/Purchase/Create.casos.md
+ *   @covers-uc UC-PURCRE-01  dual path — SPA recebe React, Blade legacy preservado
+ *   @covers-uc UC-PURCRE-05  modo grade plugado + submit unico via useForm.post
+ *   @covers-uc UC-PURCRE-07  Tier 0 — a Page nao hardcoda business_id
+ *
+ * ⚠️ NATUREZA DA COBERTURA — ESTRUTURAL (o cabecalho acima ja diz "Estrutural"):
+ * 35 asserts de casamento de texto no fonte, ZERO requests HTTP. Prova que o modo
+ * grade esta PLUGADO no arquivo; nao prova a expansao celula->linha nem o formato
+ * do payload que createOrUpdatePurchaseLines espera. Classe LC-11 (presence-gate).
  */
 
 const CREATE_INERTIA_PATH = 'resources/js/Pages/Purchase/Create.tsx';
@@ -17,8 +28,8 @@ const CREATE_CHARTER_PATH = 'resources/js/Pages/Purchase/Create.charter.md';
 const CREATE_CONTROLLER_PATH = 'app/Http/Controllers/PurchaseController.php';
 // Reconciliado 2026-06-22 (US-COM-005): RUNBOOK/visual agora vivem em Purchase/ — alinha o hook
 // block-mwart-violation (que deriva o módulo do path da Page). Antes apontavam pra Inventory/ (inexistente).
-const CREATE_RUNBOOK_PATH = 'memory/requisitos/Purchase/RUNBOOK-create.md';
-const CREATE_VISUAL_PATH = 'memory/requisitos/Purchase/create-visual-comparison.md';
+const CREATE_RUNBOOK_PATH = 'memory/requisitos/Compras/_telas/RUNBOOK-purchase-create.md';
+const CREATE_VISUAL_PATH = 'memory/requisitos/Compras/_telas/purchase-create-visual-comparison.md';
 
 function readCreateInertia(): string
 {
@@ -44,7 +55,7 @@ it('Charter Create.charter.md existe ao lado (ADR 0149)', function () {
     expect($content)->toContain('derived_screens:');
 });
 
-it('RUNBOOK existe em memory/requisitos/Purchase/', function () {
+it('RUNBOOK existe em memory/requisitos/Compras/_telas/', function () {
     expect(file_exists(base_path(CREATE_RUNBOOK_PATH)))->toBeTrue();
 });
 

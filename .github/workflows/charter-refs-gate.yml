@@ -24,10 +24,6 @@ concurrency:
   group: charter-refs-gate-${{ github.ref }}
   cancel-in-progress: true
 
-concurrency:
-  group: charter-refs-gate-${{ github.ref }}
-  cancel-in-progress: true
-
 permissions:
   contents: read
 

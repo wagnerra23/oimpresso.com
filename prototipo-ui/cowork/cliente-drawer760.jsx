@@ -205,14 +205,7 @@ function CdIdentificacao({ client, derived, tipo, setTipo, onAviso }) {
 
   return (
     <div className="cd-tab">
-      <div className="cd-seg" role="radiogroup" aria-label="Tipo de pessoa">
-        {["PJ", "PF"].map((t) =>
-        <button key={t} role="radio" aria-checked={tipo === t}
-        className={"cd-seg-b" + (tipo === t ? " active" : "")} onClick={() => setTipo(t)}>
-            {t === "PJ" ? "Pessoa jurídica" : "Pessoa física"}
-          </button>
-        )}
-      </div>
+      <window.CliSeg role="radiogroup" ariaLabel="Tipo de pessoa" value={tipo} onChange={setTipo} options={[{ key: "PJ", label: "Pessoa jurídica" }, { key: "PF", label: "Pessoa física" }]} />
 
       <div className="cd-grid">
         <CdField label={pj ? "Razão social" : "Nome completo"} largura="full" st={st.razao}>
@@ -439,11 +432,8 @@ function CdOperacoes({ client, stats, derived, sub, onSub }) {
 
   return (
     <div className="cd-tab cd-ops">
-      <nav className="cd-subnav" aria-label="Sub-abas operacionais">
-        {CD_SUBTABS.map((t) =>
-        <button key={t.key} className={"cd-subnav-b" + (sub === t.key ? " active" : "")} onClick={() => onSub(t.key)}>{t.label}</button>
-        )}
-      </nav>
+      <window.CliTabs className="cd-subnav" wrap ariaLabel="Sub-abas operacionais" size="sm"
+        active={sub} onChange={onSub} tabs={CD_SUBTABS.map((t) => ({ key: t.key, label: t.label }))} />
       <div className="cd-ops-body">
         {sub === "ledger" &&
         <>
@@ -798,13 +788,9 @@ function ClienteDrawer760({ client, stats, derived, osList, abaInicial, subInici
           <span className="cd-chipsrow-hint"><kbd>1</kbd>–<kbd>6</kbd> troca de aba</span>
         </div>
 
-        <nav className="cd-tabs" aria-label="Abas do cadastro">
-          {CD_TABS.map((t) =>
-          <button key={t.key} className={"cd-tabb" + (tab === t.key && !leitura ? " active" : "")}
-          onClick={() => {setLeitura(null);setTab(t.key);}}
-          aria-current={tab === t.key && !leitura ? "page" : undefined}>{t.label}</button>
-          )}
-        </nav>
+        <window.CliTabs className="cd-tabs" ariaLabel="Abas do cadastro" pad={18} size="sm"
+          active={leitura ? null : tab} onChange={(k) => { setLeitura(null); setTab(k); }}
+          tabs={CD_TABS.map((t) => ({ key: t.key, label: t.label }))} />
 
         <div className="cd-body">
           {leitura === "placas" ? <CdPlacas onAviso={avisar} /> :

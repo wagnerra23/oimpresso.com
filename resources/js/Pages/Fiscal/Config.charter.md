@@ -3,6 +3,7 @@ id: resources-js-pages-fiscal-config-charter
 page: /fiscal/config
 component: resources/js/Pages/Fiscal/Config.tsx
 related_prototype: prototipo-ui/cowork/fiscal-subpages.jsx
+related_visual_comparison: memory/requisitos/Fiscal/fiscal-config-visual-comparison.md
 bundle_source: fiscal-page.jsx
 page_id: fiscal-config
 url: /fiscal/config

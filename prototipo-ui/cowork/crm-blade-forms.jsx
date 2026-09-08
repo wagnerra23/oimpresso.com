@@ -13,7 +13,13 @@ const DS = () => window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
 const UI = () => window.PBUI || {};
 const D = () => window.CBD || {};
 const U = () => window.CBUI || {};
-const Ic = ({ name, size = 14 }) => { const F = (window.I || {})[name]; return F ? <F size={size} /> : null; };
+const Ic = ({ name, size = 14, rotulo = null }) => {
+  const F = (window.I || {})[name];
+  if (!F) return null;
+  return rotulo
+    ? <span role="img" aria-label={rotulo} style={{ display: "inline-flex" }}><F size={size} /></span>
+    : <span aria-hidden="true" style={{ display: "inline-flex" }}><F size={size} /></span>;
+};
 
 // Faturas em aberto (getInvoicesForFollowUp) — alimenta o acompanhamento antecipado por pagamento.
 const FATURAS = [
@@ -115,11 +121,7 @@ function FichaLead({ lead, onVoltar, avisar, onConverter, onNovoAcompanhamento }
         </div>
       </Widget>
       <Widget contrato="crm-lead-abas" titulo={atual.nome} flush>
-        <nav className="cli-moduletopnav" aria-label="Abas da ficha do lead" style={{ padding: "0 12px" }}>
-          <button className={"cli-moduletopnav-tab " + (aba === "acompanhamentos" ? "active" : "")} onClick={() => setAba("acompanhamentos")}>Acompanhamento</button>
-          <button className={"cli-moduletopnav-tab " + (aba === "docs" ? "active" : "")} onClick={() => setAba("docs")}>Documentos e notas</button>
-          <button className={"cli-moduletopnav-tab " + (aba === "pessoas" ? "active" : "")} onClick={() => setAba("pessoas")}>Pessoas de contato</button>
-        </nav>
+        {window.CliTabs && <window.CliTabs ariaLabel="Abas da ficha do lead" pad={12} tabs={[{ key: "acompanhamentos", label: "Acompanhamento" }, { key: "docs", label: "Documentos e notas" }, { key: "pessoas", label: "Pessoas de contato" }]} active={aba} onChange={setAba} />}
         {aba === "acompanhamentos" && <Grade columns={cols} rows={rows} altura={240} />}
         {aba === "docs" &&
           <div className="pb-widget-b">
@@ -389,7 +391,7 @@ function AntecipadoForm({ onVoltar, avisar }) {
         <>
           <Widget contrato="crm-antecipado-grupo" titulo="Quem vai receber" nota={grupo.length + " acompanhamento(s)"}>
             <table className="pb-tbl" style={{ width: "100%" }}>
-              <thead><tr><th>Cliente</th><th>Referência</th><th>Detalhe</th><th style={{ width: 60 }}></th></tr></thead>
+              <thead><tr><th scope="col">Cliente</th><th scope="col">Referência</th><th scope="col">Detalhe</th><th scope="col" style={{ width: 60 }}></th></tr></thead>
               <tbody>
                 {grupo.map((g) => (
                   <tr key={g.id}>

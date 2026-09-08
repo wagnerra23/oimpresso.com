@@ -1,0 +1,73 @@
+# Avaliação MANUAL pelo método SCREEN-GRADE (memory/requisitos/_DesignSystem/SCREEN-GRADE-METODO.md).
+# NÃO veio do screen-grade-seed.mjs: o seed só materializa YAML a partir do baseline agregado
+# screen-grades-baseline-2026-05-30.json e o docblock dele diz que NÃO recomputa a nota. Esta tela
+# nasceu em 2026-08-28 (PR #6412, última Blade viva do módulo) e não existe naquele baseline.
+#
+# COMO A NOTA NASCEU. A 1ª versão deste arquivo copiou do seed a linha "a nota 16-dim é
+# LLM-as-judge — NÃO editar à mão"; era FALSA aqui e foi removida. Nos 192 irmãos a nota é
+# holística e as dimensões vieram depois; AQUI é o inverso — as 16 dimensões foram avaliadas uma
+# a uma e a nota é DERIVADA delas pela fórmula §1. Revisão adversarial 2026-09-05 mediu que o
+# corpus se aproxima de MÉDIA SIMPLES (erro médio 0,62): aqui média simples dá 79,25 e a
+# ponderada 79,75 — as duas arredondam para 80.
+#
+# Ponderação: coluna Kamila de framework-15-dimensoes.md (persona dona do Ponto por
+# personas-por-modulo.yml: kamila-martinho). O campo `persona` mantém o vocabulário dos 20 irmãos
+# (`tecnico`), que NÃO tem coluna de peso — como 163 dos 193 do corpus. Impacto medido da escolha
+# de persona: 0,19 ponto.
+# Denominador = 30 (soma real da coluna Kamila) + 2 da dim 16 = 32. O total "29" impresso naquele
+# doc NÃO bate com a própria coluna dele (as outras 3 batem) e infla ~3% toda nota ponderada por
+# Kamila. O peso 2 da dim 16 é ESCOLHA minha — nenhum doc canon atribui peso a ela; sensibilidade
+# medida: peso 1, 2 ou 3 muda no máximo 1 ponto e nunca muda o nível.
+screen: Ponto/Intercorrencias/Edit
+path: resources/js/Pages/Ponto/Intercorrencias/Edit.tsx
+archetype: form
+persona: tecnico
+nota: 80
+nivel: "Advanced"
+baseline_anterior: 80   # ratchet seed — 1ª nota da tela (redação do precedente oficinaauto-serviceorders-board)
+peso_real: 1.0
+source: screen-grade-2026-09-05
+graded_at: "2026-09-05"
+resumo: "Migração da última Blade do módulo. Superfície DS limpa (zero ds/*, zero paleta crua, Checkbox canon com htmlFor — corrige o input nativo do irmão Create) e microcopy que explica a regra antes de o operador digitar. Perde forte em a11y: o helper Field põe o Label como IRMÃO do controle sem htmlFor, então 7 dos 10 controles ficam sem rótulo programático e 4 sem nome acessível nenhum. O header os-page-h é inerte no Ponto e o h1 renderiza do tamanho do corpo. Charter draft, sem E2E, sem visreg."
+dimensoes: { density: 84, discoverability: 84, speed_to_task: 80, error_recovery: 70, cognitive_load: 86, aesthetic_usability: 72, affordance: 84, brand_confidence: 80, mobile_fit: 78, a11y_wcag: 58, i18n_ptbr: 90, performance_perceived: 84, information_hierarchy: 86, microcopy: 84, internal_consistency: 76, preflight_conformance: 72 }
+gaps:
+  - dim: "A11y-WCAG"
+    best_of_class: "O conserto canônico já está ESCRITO neste repo e não foi promovido — Pages/Cliente/_form/Field.tsx:15-51 usa React.useId com cloneElement para injetar aria-invalid e aria-describedby apontando a um FieldError com role=alert. É o mecanismo que Stripe e Linear aplicam em form de produção."
+    fix: "O defeito NÃO é (só) contador sem aria-describedby, como a 1ª versão deste gap dizia. O Label do Radix injeta ZERO id/for/aria, e o helper Field (Edit.tsx:329-337) põe o Label SEM htmlFor com o controle como IRMÃO. Medido no arquivo: htmlFor aparece 3 vezes e id 3 vezes — só nos checkboxes. Logo 7 dos 10 controles ficam sem rótulo programático e, desses, 4 sem nome acessível NENHUM (input date :176, dois inputs time :217 e :224, textarea :234) — WCAG 4.1.2 e 1.3.1, nível A. Os 3 SelectTrigger tomam nome do placeholder (Selecione o colaborador, em vez de Colaborador). ATENÇÃO ao que NÃO conserta - RequiredMark de field-state.tsx:45-51 é aria-hidden e tem o mesmo valor de acessibilidade que o after:content atual; quem anuncia obrigatório é aria-required no controle, que o Radix emite apenas se a prop required for passada, e a tela nunca passa."
+    esforco: baixo
+    origin: revisao-adversarial-2026-09-05 (leitura do dist de @radix-ui/react-label 2.1.12 · DOM renderizado e axe NAO medidos)
+  - dim: "Error-recovery"
+    best_of_class: "Notion e Linear interceptam a saída com alteração pendente, ou salvam sozinhos; Stripe foca o primeiro campo inválido e resume os erros no topo do form"
+    fix: "O charter declara como anti-hook que a tela não faz autosave — então sair da página descarta o digitado em silêncio, numa tela cujo propósito declarado é corrigir UM campo. Falta guarda de navegação (onBefore do router Inertia) e foco no primeiro erro depois do 422."
+    esforco: medio
+    origin: charter Anti-hooks + medicao-2026-09-05
+  - dim: "Aesthetic-usability"
+    best_of_class: "Linear e Shopify Admin têm header de página com estilo real; aqui a classe do header não resolve para regra nenhuma no contexto do módulo"
+    fix: "os-page-h tem 5 escopos no CSS da app (fin-cowork, fj-hub, fj-page, mfg-root, sells-cowork) — a 1ª versão deste gap dizia 2. O root do AppShellV2 é className cockpit (AppShellV2.tsx:557), então NENHUM casa e a classe é INERTE no Ponto. Pior: o fecho transitivo dos 32 CSS que o shell importa não tem regra de h1 aplicável, e com o preflight do Tailwind v4 o h1 herda font-size e font-weight do corpo — o TÍTULO DA PÁGINA não existe visualmente. Dívida sistemática de 22 telas do módulo, então o conserto é do módulo. Esta tela já fez a parte dela usando token no subtítulo em vez da paleta crua das irmãs."
+    esforco: alto
+    origin: revisao-adversarial-2026-09-05 (fecho transitivo de @import resolvido em Node) + gap Pre-Flight de ponto-intercorrencias-create
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "USWDS e VA.gov só contam a tela como madura quando o contrato está fechado e existe teste rodando contra ela — contrato aberto não pontua"
+    fix: "Charter em status draft com 3 pendências abertas (a dim 16 pede charter live), incluindo dois Non-Goals marcados como inferência à espera de [W] e a decisão sobre o campo anexo. O screen:files reporta e2e, visual-comparison e proto-baseline ausentes, e os 3 UC do casos.md seguem sem veredito. Positivos medidos: AP1 a AP10 do PRE-MERGE-UI todos limpos, T-AP-5 (shape controller contra tsx) bate 1 para 1, zero ds/*, zero paleta crua, só @/Components/ui."
+    esforco: medio
+    origin: Edit.charter.md (Pendências) + PRE-MERGE-UI AP1-AP10 + LICOES_F3 T-AP-5 + screen-coverage-map --screen
+  - dim: "Mobile-fit"
+    best_of_class: "WCAG 2.5.5 e o próprio framework-15-dimensoes §9 pedem alvo de toque de no mínimo 44px; Shopify e Stripe respeitam isso mesmo em form denso"
+    fix: "A 1ª versão deu 84 aqui — a nota MAIS ALTA das 21 telas do Ponto, sem uma única medição de viewport, e isso foi complacência. Medido: os 3 Checkbox são h-4 w-4 (Components/ui/checkbox.tsx:15) = 16px, 36% do alvo exigido. O layout mobile-first em si está correto (Grid cols 1 com md:grid-cols-2, inputs date e time nativos)."
+    esforco: baixo
+    origin: revisao-adversarial-2026-09-05 + framework-15-dimensoes §9
+  - dim: "Microcopy / i18n"
+    best_of_class: "Nenhum ERP maduro imprime token de enum do banco na cara do operador; e frase de estado que é constante por construção não informa nada"
+    fix: "Edit.tsx:120 renderiza {intercorrencia.estado} cru dentro de 'Esta intercorrência está em RASCUNHO'. Duas falhas: token SCREAMING_SNAKE não traduzido na UI, e a frase é CONSTANTE por construção — o abort_unless do controller (IntercorrenciaController.php:180-184) garante que só chega RASCUNHO nesta tela, logo o prop nunca varia. As notas 90 e 92 da 1ª versão eram o topo do corpus e não se sustentavam."
+    esforco: baixo
+    origin: revisao-adversarial-2026-09-05
+  - dim: "Internal-consistency"
+    best_of_class: "Um wrapper de campo único e canônico impede que telas irmãs drifem; Shopify Polaris não deixa a Page redeclarar o wrapper"
+    fix: "A 1ª versão contou 7 arquivos com o regex circunflexo-function-Field e apontou o conserto para Components/ui/field-state.tsx — as duas coisas erradas. São 10 declarações (o regex perdia export function e const), das quais 6 têm o MESMO papel; e field-state.tsx exporta 4 ÁTOMOS (FieldError, FieldSuccess, FieldValidating, RequiredMark), não um wrapper, logo não é substituto. O wrapper canônico de fato é Pages/Cliente/_form/Field.tsx, que já resolve a a11y do gap acima. O gap verdadeiro: ele está enterrado numa Page, não foi promovido ao DS, e não há precedente de import cross-módulo entre Pages (medido). Create e Edit do Ponto seguem byte-idênticos e vão drifar."
+    esforco: medio
+    origin: revisao-adversarial-2026-09-05 + REGISTRY_DS_COMPONENTES.md:156
+  - dim: "Speed-to-task"
+    best_of_class: "Linear salva com Cmd+Enter e Notion persiste sozinho; nenhum dos dois exige levar o mouse até o botão para gravar a correção de um campo"
+    fix: "Salvar exige clique no botão — não há atalho de teclado no submit. Barato de resolver e casa com o propósito da tela."
+    esforco: baixo
+    origin: medicao-2026-09-05

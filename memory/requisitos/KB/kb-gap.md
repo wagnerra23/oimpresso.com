@@ -1,4 +1,7 @@
 ---
+tela: kb/Index (/kb)
+prototipo: prototipo-ui/cowork/kb-page.jsx
+tela_viva: resources/js/Pages/kb/Index.tsx
 id: requisitos-kb-kb-gap
 ---
 
@@ -90,3 +93,16 @@ O mockup é maior, mas **é outro produto** (KB editorial de gráfica) montado s
 **NÃO adotar (Tier 0 / fora de escopo):** edição inline / Composer de artigos (viola git-canônico ADR 0061 append-only), categorias/níveis/equipamentos de gráfica, Troubleshooter, Trilhas, Apresentação, Imprimir SOP, votação útil/desatualizado, comentários inline, anexar-a-OS, métricas de leitura. Substituir busca server-side por client-side = regressão proibida.
 
 > **Multi-tenant:** docs de governança (`mcp_memory_documents`) são globais (não scopados por `business_id`); nenhuma adoção acima introduz vazamento cross-tenant. Favoritos/Recentes em localStorage são por-navegador (ok). Tier 0 intocado.
+
+## Tabela de partes (derivada 2026-09-06, r4)
+
+> Escrita à mão por [C] em 2026-09-06 (r4 — as rodadas r1–r3 da refutação GT-G5 derrubaram a derivação mecânica deste arquivo, que copiava o bullet "Mockup tem" em vez de "Gap real" e reabria itens que o §Veredito fecha como NÃO adotar). Cada Ação cita a seção e o item do §Veredito ("Adotar do mockup" #1–#4 / "NÃO adotar") que a sustenta. A fonte segue sendo a prosa; em conflito, a prosa vence.
+
+| Parte | Estado no vivo | Ação |
+|---|---|---|
+| Header / página | Gap: botões de ação editorial (Novo artigo, Trilhas, Saúde, Troubleshooter, IA) · Vivo à frente: PageHeader + KpiGrid canônicos, dado real multi-tenant | **Decidir.** só "Perguntar ao KB" (IA/RAG) + "Saúde do KB" adaptado — §Veredito adotar #4 (M/G). Trilhas, Troubleshooter e Composer/Novo artigo: NÃO adotar (§Veredito, Tier 0/ADR 0061). |
+| Navegação / categorias | Gap: Favoritos + Recentes + nuvem de tags + sidebar de categorias · Vivo à frente: filtro por type/module real do backend | **Decidir.** Recentes + Favoritos (localStorage) + nuvem de tags — §Veredito adotar #2 (P/M; tags exigem campo no schema, _pendente_). Categorias/níveis de gráfica: NÃO adotar (§Veredito). |
+| Busca | Gap: command palette ⌘K modal + fallback IA · Vivo à frente: busca server-side com debounce (escala pro MCP) | **Decidir.** Command palette ⌘K mantendo a busca server-side por baixo — §Veredito adotar #3 (M). Substituir server-side por client-side = regressão proibida (§Veredito). |
+| Lista de artigos / docs | Gap: ordenação por popularidade/utilidade/frescor · Vivo à frente: tabela densa + paginação real + colunas PII/tamanho/git_sha | **Decidir.** só sort por frescor (`updated_at`/`indexed_at`) — Parte 4 Esforço/risco: P, dado já existe. Não consta do §Veredito "Adotar" #1–#4 (é item menor da própria Parte 4). Métricas de leitura/utilidade e votação: NÃO adotar (§Veredito). |
+| Editor / detalhe (leitor) | Gap: resumo IA, TOC navegável, comentários inline, related, histórico · Vivo à frente: render markdown real (ReactMarkdown+remarkGfm), read-mostly por design | **Decidir.** TOC "nesta página" + prev/próximo — §Veredito adotar #1 (P) — e histórico de versões funcional — §Veredito #3 (backend já tem history_count). Comentários inline e edição/Composer: NÃO adotar (§Veredito, ADR 0061). |
+| Drawer / modais auxiliares | Gap: Saúde do KB (docs stale) + Troubleshooter · Vivo à frente: soft-delete LGPD auditado (governança ausente no mockup) | **Decidir.** "Saúde do KB" adaptado (docs stale/sem-sync) — §Veredito adotar #4 (M). Troubleshooter, Apresentação, Imprimir SOP, anexar-a-OS: NÃO adotar (§Veredito). |

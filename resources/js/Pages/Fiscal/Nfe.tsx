@@ -22,6 +22,7 @@ import { Deferred, Head, router } from '@inertiajs/react';
 import { Eraser, FileSearch, Plus, RefreshCw } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
+import DensidadeToggle from './_components/DensidadeToggle';
 import FxShell from './_components/FxShell';
 import InutilizacaoModal from './_components/InutilizacaoModal';
 import NotaDrawer, { type NotaRow } from './_components/NotaDrawer';
@@ -29,10 +30,13 @@ import { chipCount, chipProps } from './_lib/chip-filtro';
 import {
   brl,
   formatDoc,
+  juntarInfo,
   prazoCancel,
+  sefazPill,
   truncKey,
   type SefazCodesMap,
 } from './_lib/fiscal-helpers';
+import { useDensidadeFiscal } from './_lib/densidade-fiscal';
 
 import '../../../css/fiscal-cockpit.css';
 
@@ -71,6 +75,7 @@ export default function Nfe({ filters: initialFilters, counts, sefazCodes, rows 
   const [opened, setOpened] = useState<NotaRow | null>(null);
   const [cursor, setCursor] = useState(0);
   const [inutOpen, setInutOpen] = useState(false);
+  const [density, setDensity] = useDensidadeFiscal();
 
   const dataRows: NotaRow[] = rows?.data ?? [];
 
@@ -134,8 +139,13 @@ export default function Nfe({ filters: initialFilters, counts, sefazCodes, rows 
         cheats={[
           { keys: ['J', 'K'], label: 'navegar' },
           { keys: ['⏎'],      label: 'abrir' },
-          { keys: ['R'],      label: 'reconsultar SEFAZ (em breve)' },
-          { keys: ['X'],      label: 'cancelar (em breve)' },
+          // `R` (reconsultar SEFAZ) e `X` (cancelar) foram removidos em 2026-09-04: estavam
+          // anunciados aqui como "(em breve)" e não existe handler para nenhuma das duas — o
+          // `keydown` desta tela trata só j/k/setas/Enter. O rótulo era honesto, mas a barra de
+          // atalhos é onde o operador APRENDE as teclas: duas mortas ali ensinam errado, e ele
+          // aperta e conclui que a tela travou. As duas AÇÕES existem e seguem intactas no
+          // drawer (US-FISCAL-012/014). Reatalhar é decisão de produto: `X` abre um fluxo que
+          // exige motivo de 15–255 chars, então não é uma tecla, é uma porta.
         ]}
         actions={
           <>
@@ -154,10 +164,10 @@ export default function Nfe({ filters: initialFilters, counts, sefazCodes, rows 
               onClick={() => setInutOpen(true)}
               title="Inutiliza faixa numérica de NFe (SEFAZ cstat=102 — fecha buracos fiscais)"
             >
-              <Eraser size={12}/> Inutilizar faixa
+              <Eraser size={12} aria-hidden="true"/> Inutilizar faixa
             </Button>
             <Button variant="cowork-primary" disabled title="PR seguinte">
-              <Plus size={12}/> Emitir <kbd className="fx-kbd-inline">E</kbd>
+              <Plus size={12} aria-hidden="true"/> Emitir <kbd className="fx-kbd-inline">E</kbd>
             </Button>
           </>
         }
@@ -209,6 +219,7 @@ export default function Nfe({ filters: initialFilters, counts, sefazCodes, rows 
                 <FileSearch
                   size={13}
                   className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  aria-hidden="true"
                 />
                 <Input
                   type="search"
@@ -246,7 +257,7 @@ export default function Nfe({ filters: initialFilters, counts, sefazCodes, rows 
                 aria-pressed={filters.status === 'cancelaveis'}
                 onClick={() => applyFilters({ status: 'cancelaveis' })}
               >
-                <RefreshCw size={11}/> Janela 24h <span className={chipCount(filters.status === 'cancelaveis')}>{counts.cancelaveis}</span>
+                <RefreshCw size={11} aria-hidden="true"/> Janela 24h <span className={chipCount(filters.status === 'cancelaveis')}>{counts.cancelaveis}</span>
               </Button>
               <Button
                 type="button"
@@ -254,6 +265,8 @@ export default function Nfe({ filters: initialFilters, counts, sefazCodes, rows 
                 aria-pressed={filters.status === 'processando'}
                 onClick={() => applyFilters({ status: 'processando' })}
               >Processando <span className={chipCount(filters.status === 'processando')}>{counts.processando}</span></Button>
+
+              <DensidadeToggle value={density} onChange={setDensity} />
             </Inline>
 
             {/* Tabela com Deferred (Inertia partial reload) */}
@@ -269,6 +282,13 @@ export default function Nfe({ filters: initialFilters, counts, sefazCodes, rows 
                   <small>Ajuste os filtros ou inicie uma emissão.</small>
                 </div>
               ) : (
+                <div className={`fx-density-${density}`}>
+                {/* Wrapper da densidade: o CSS e `.fx-density-<x> .fx-table tbody td`
+                    (DESCENDENTE), entao a classe precisa de um ancestral. Fica no mesmo
+                    recuo do filho de proposito: reindentar o bloco inteiro por 2 espacos
+                    reescreveria 66 linhas so de whitespace e colidiria com o PR 6726, que
+                    edita a linha do `sefazPill` aqui dentro (medido: `git merge-tree`
+                    conflitava; sem a reindentacao, mergeia limpo). */}
                 <div className="fx-table" data-keyboard="true">
                   <table>
                     <thead>
@@ -282,14 +302,26 @@ export default function Nfe({ filters: initialFilters, counts, sefazCodes, rows 
                     </thead>
                     <tbody>
                       {dataRows.map((n, idx) => {
-                        const sefaz = sefazCodes[n.cstat] ?? { tone: 'warn', label: 'Status', hint: '' };
+                        const sefaz = sefazPill(n, sefazCodes);
                         const cancel = prazoCancel(n);
                         const isFocus = idx === cursor;
                         return (
                           <tr
                             key={n.id}
                             className={isFocus ? 'fx-row-focus' : ''}
+                            tabIndex={0}
+                            aria-label={`Abrir ${n.modelo === 65 ? 'NFC-e' : 'NF-e'} ${n.num} · ${n.dest || '—'}`}
                             onClick={() => setOpened(n)}
+                            onFocus={() => setCursor(idx)}
+                            onKeyDown={(e) => {
+                              if (e.key !== 'Enter' && e.key !== ' ') return;
+                              // preventDefault: sem ele o Space ROLA a página (default do browser
+                              // em elemento focável). stopPropagation: sem ele o Enter sobe pro
+                              // handler global de window (o J/K acima) e o drawer abriria duas vezes.
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setOpened(n);
+                            }}
                           >
                             <td className="fx-mono">
                               <b>{n.num}</b>
@@ -297,7 +329,7 @@ export default function Nfe({ filters: initialFilters, counts, sefazCodes, rows 
                             </td>
                             <td>
                               <div className="fx-cell-key">{truncKey(n.key)}</div>
-                              <small>{n.dest} · {formatDoc(n.cnpj, n.cpf)}</small>
+                              <small>{juntarInfo(n.dest, formatDoc(n.cnpj, n.cpf))}</small>
                             </td>
                             <td>
                               <span className={`fx-sefaz ${sefaz.tone}`} title={sefaz.hint}>
@@ -306,7 +338,7 @@ export default function Nfe({ filters: initialFilters, counts, sefazCodes, rows 
                               </span>
                               {cancel && (
                                 <span className={`fx-timepill u-${cancel.urgency} compact`}>
-                                  <RefreshCw size={9}/>
+                                  <RefreshCw size={9} aria-hidden="true"/>
                                   <span className="lbl"><b>{cancel.h}h</b></span>
                                 </span>
                               )}
@@ -322,6 +354,7 @@ export default function Nfe({ filters: initialFilters, counts, sefazCodes, rows 
                       })}
                     </tbody>
                   </table>
+                </div>
                 </div>
               )}
             </Deferred>

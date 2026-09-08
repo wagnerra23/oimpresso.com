@@ -49,6 +49,90 @@ Afetados: `D2 Code Quality FormRequests → StartFsmActionRequest existe e tem r
 - [ ] Os 3 voltam a verde **no CT 100**, com a causa escrita — e por conserto, não por `skip`.
 - [ ] Se a correção for `uses(TestCase::class)`, conferir se outros describes do mesmo arquivo passavam **por acidente** dependendo do bootstrap ausente.
 
+### US-REPA-003 · Configurar os padrões da folha de OS e o que sai impresso
+
+> owner: — · priority: p2 · type: story
+> blocked_by: —
+>
+> O campo de estado legado foi omitido de propósito: a fonte única de done-ness é o
+> `**Implementado em:**` ([ADR 0273](../../decisions/0273-anchor-spec-codigo-formato-canonico-fluxo-novo.md)),
+> e a [ADR 0302](../../decisions/0302-fonte-unica-doneness-anchor-aposenta-status-spec.md) o
+> aposentou como derivado. Declará-lo aberto ao lado de uma âncora viva é o dual-source que o
+> `doneness-lint` morde — e ele mordeu aqui, em 2026-09-05. O estado real está no `_parcial_`
+> da âncora, e a lista de pendências está na DoD abaixo.
+
+**Como** admin do negócio
+**Quero** definir num lugar só os padrões que toda nova folha de OS assume e o que sai impresso na folha e na etiqueta
+**Para** não repetir digitação a cada OS nem depender de quem lembra o padrão da casa
+
+**Implementado em:** _parcial_ · `resources/js/Pages/Repair/Settings/Index.tsx` · `Modules/Repair/Http/Controllers/RepairSettingsController.php` · `Modules/Repair/Tests/Feature/RepairSettingsContratoTest.php` · verificado@a2a5cb4 (2026-09-05) — contrato de gravação provado; falta o smoke 1280px (ambiente) e o cutover da flag, que é decisão [W]
+
+**Testado em:** `Modules/Repair/Tests/Feature/RepairSettingsContratoTest.php` (declara `@covers-us US-REPA-003`) — lane **Verticais · Pest (MySQL)**, allowlist. Veredito medido em 2026-09-05: 6 `pass` (17 assertions) · 2 `skip` (UC-RSET-07/08, por `system.repair_version` ausente no seed).
+
+Escopo derivado do F1 PLAN em [`RUNBOOK-repair-settings.md`](RUNBOOK-repair-settings.md) (Onda 1 do export do Repair, autorizado por [W] em 2026-09-04) — **não inventado aqui**. A US registra o escopo que já foi decidido; o contrato executável vive em [`Index.casos.md`](../../../resources/js/Pages/Repair/Settings/Index.casos.md) (UC-RSET-01..08).
+
+**Recorte:** cobre **2 das 5 abas** do hub Blade legado — `repair_settings_tab` (padrões da folha) e `jobsheet_settings_tab` (impressão/etiqueta). As abas de **Status de OS** e **Modelos de dispositivo** já têm Page própria e viva; esta tela **aponta** para elas em vez de reimplementar. A taxonomia de dispositivos fica para onda própria.
+
+**Contrato que a tela não pode quebrar:** são **dois endpoints com colunas disjuntas** — `store()` grava `business.repair_settings`, `updateJobsheetSettings()` grava `business.repair_jobsheet_settings` — e ambos fazem `$request->only()` + `json_encode()`, isto é, **substituem o JSON inteiro**: chave ausente no POST some do banco. Daí os dois `<form>` separados, cada um enviando o conjunto completo do seu endpoint.
+
+**Definition of Done:**
+- [x] Contrato de gravação provado por Pest em MySQL real, tenant 98 — 6 `pass` (17 assertions) na lane `verticais-pest`, medido em 2026-09-05.
+- [x] `casos.md` com UC citado por teste e Status derivado do manifesto (gate G-7).
+- [ ] Smoke autenticado, dark, 1280px, com screenshot — pendente por ambiente (ver charter §Pendências).
+- [ ] Flag `MWART_REPAIR_SETTINGS_INDEX` ligada por [W] após o smoke (F5 CUTOVER).
+- [ ] Header migrado para o canon `@/Components/PageHeader` (ADR 0189/0190) — hoje a tela usa `shared/PageHeader`, como as 6 Pages irmãs do módulo.
+
+### US-REPA-004 · Listar e filtrar as ordens de serviço abertas
+
+> owner: — · priority: p3 · type: story
+> blocked_by: —
+>
+> **Registro retroativo, não pedido novo.** A tela existe desde 2026-05-06 (PR #141) e está
+> live; o que não existia era a US. Ela nasceu aqui porque o `charter-us-lint` mordeu ao
+> tocarmos o charter — o gate é `no-new-lie`, e a dívida era real. O texto abaixo descreve a
+> capacidade **medida em 2026-09-05**, não um escopo desejado: nenhuma fonte de negócio foi
+> inventada. Se o dono quiser outro recorte, esta US é o lugar de corrigir.
+
+**Como** técnico ou atendente do reparo
+**Quero** ver as ordens de serviço numa lista filtrável por local, status e cliente
+**Para** achar a OS que preciso atender sem abrir uma a uma
+
+**Implementado em:** _parcial_ · `resources/js/Pages/Repair/JobSheet/Index.tsx` · `Modules/Repair/Http/Controllers/JobSheetController.php` · verificado@b33b73f06b (2026-09-05) — a tela renderiza e filtra, mas **não há um único teste automatizado** cobrindo-a (medido: nenhum Pest cita o path; trio sem `casos.md`; nenhum teste Browser). O charter prometia 7 GUARDs que nunca existiram — revogados no mesmo PR desta US.
+
+**Testado em:** `Modules/Repair/Tests/Feature/RepairJobSheetIndexContratoTest.php` (declara `@covers-us US-REPA-004`) — lane **Verticais · Pest (MySQL)**, allowlist. 6 UCs: gate 403, flag OFF→Blade, flag ON→Inertia com as 3 props, `datatable_url` apontando ao endpoint compartilhado, ramo `ajax` preservado com a flag ON, e isolamento cross-tenant. **Veredito ainda não medido:** Pest é proibido fora do CT 100 ([proibicoes.md](../../proibicoes.md)), então a primeira execução real é a desta lane — os UCs pulam por ambiente em vez de assertar cego, e um `skipped` aqui é ausência de medição, nunca aprovação (LC-13).
+
+**Contrato que a tela não pode quebrar:** a lista vem do **mesmo** endpoint que serve o Blade legado — `route('job-sheet.index')` sob `request()->ajax()`, no `JobSheetController@index`, que é triple-mode (DataTables JSON · Inertia · Blade). O endpoint devolve colunas com **HTML embutido** (`action`, `status`, `estimated_cost`, via `rawColumns`); a Page lê **apenas campos escalares**. Trocar o motor de dados desta tela **não pode** alterar o ramo `ajax`, sob pena de quebrar o Blade de quem não tem a flag.
+
+**Definition of Done:**
+- [ ] `Index.casos.md` com ao menos 1 UC citado por teste (hoje o trio está incompleto — gate `casos-gate` G-2).
+- [ ] Pest de contrato na lane MySQL real, tenant 98, cobrindo filtro por local/status/cliente e isolamento cross-tenant.
+- [ ] Teto de `length: '200'` resolvido: hoje a busca é fixa em 200 linhas sem paginação — inerte enquanto a tabela está vazia, silencioso quando não estiver.
+- [ ] Cor do status: o payload traz `status_color` e a tabela usa `bg-primary` genérico (gap já registrado no scorecard, esforço baixo).
+### US-REPA-005 · Manter o catálogo de status e de modelos que as OS usam
+
+> owner: — · priority: p2 · type: story
+> blocked_by: —
+
+**Como** admin do negócio
+**Quero** cadastrar as etapas por que uma OS passa e os modelos de aparelho que a oficina atende
+**Para** que quem abre a OS escolha de uma lista curada, em vez de digitar texto livre a cada vez
+
+**Implementado em:** `resources/js/Pages/Repair/Status/Index.tsx` · `resources/js/Pages/Repair/DeviceModels/Index.tsx` · `resources/js/Pages/Repair/DeviceModels/Create.tsx` · `resources/js/Pages/Repair/DeviceModels/Edit.tsx` · `Modules/Repair/Http/Controllers/RepairStatusController.php` · `Modules/Repair/Http/Controllers/DeviceModelController.php` · verificado@c8b3ad7 (2026-09-05) — as 4 telas já estavam vivas em coexistência opt-in; esta US registra o que existe e o contrato que o defende.
+
+**Testado em:** `Modules/Repair/Tests/Feature/RepairStatusContratoTest.php` e `Modules/Repair/Tests/Feature/DeviceModelsContratoTest.php` — lane **Verticais · Pest (MySQL)**, allowlist. Veredito medido no CT 100 em 2026-09-05, tenant 98: **20 `pass` (79 assertions), 0 `skip`**, estável em 3 rodadas com ordem aleatória diferente.
+
+**Por que esta US nasce agora, e não é escopo novo:** a [US-REPA-003](#us-repa-003--configurar-os-padrões-da-folha-de-os-e-o-que-sai-impresso) recortou de propósito **2 das 5 abas** do hub Blade e registrou que *"as abas de Status de OS e Modelos de dispositivo já têm Page própria e viva; esta tela aponta para elas em vez de reimplementar"*. As 4 telas ficaram, portanto, vivas e **sem US que as declarasse** — o que só apareceu quando o `charter-us-lint` mordeu o charter do Status. Esta US documenta o que já roda; não propõe construção.
+
+**Contrato que as telas não podem quebrar:** as duas portas de entrada são **diferentes**, e isso é contrato, não acaso. O catálogo de modelos exige `superadmin` **ou** a assinatura do `repair_module`; a tela de status exige `superadmin` **ou** (assinatura **e** `repair_status.access`) — e como essa permission não existe na base, na prática só superadmin entra. Quem for uniformizar precisa decidir **qual** dos dois gates é o certo. O contrato executável vive nos quatro `casos.md` ao lado das telas (UC-DMIDX-01..06, UC-DMCRE-01..04, UC-DMEDT-01..04, UC-RSTIDX-01..06).
+
+**Definition of Done:**
+- [x] Trio fechado nas 4 telas — charter + `casos.md` + teste citando cada UC (gates G-1/G-2).
+- [x] Isolamento multi-tenant provado nas 3 portas (ler, mover, escrever no alheio) em MySQL real, tenant 98.
+- [x] Testes na allowlist da lane `verticais-pest` — sem isso nasceriam mudos.
+- [ ] Divergência do `store()` vs. risco R1 do [RUNBOOK-device-models](RUNBOOK-device-models.md) resolvida: o método devolve JSON cru, não redirect, e a página Inertia fica parada após salvar (registrado em UC-DMCRE-04). Corrigir o controller **ou** o R1 é decisão [W].
+- [ ] `DeviceModelController::index()` sem `return` no caminho flag-off/não-ajax — devolve 200 com corpo vazio (registrado em UC-DMIDX-02). Decisão [W].
+- [ ] Smoke autenticado 1280px com screenshot — pendente por ambiente, como na US-REPA-003.
+
 ## 4. Regras de negócio (Gherkin)
 
 > Formato: `Dado ... Quando ... Então ...`. Cada regra deve ser

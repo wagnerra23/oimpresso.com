@@ -193,10 +193,7 @@ function Tarefas({ view }) {
           <option value="prioridade">Prioridade</option>
           <option value="horas">Maior esforço</option>
         </select>
-        <div className="hrm-seg">
-          <button className={densa === "comfortable" ? "on" : ""} onClick={() => setDensa("comfortable")}>Confortável</button>
-          <button className={densa === "compact" ? "on" : ""} onClick={() => setDensa("compact")}>Compacto</button>
-        </div>
+        <window.CliSeg ariaLabel="Densidade" value={densa} onChange={setDensa} options={[{ key: "comfortable", label: "Confortável" }, { key: "compact", label: "Compacto" }]} />
       </div>
 
       {carregando ? <Skel n={8}/> : lista.length === 0
@@ -672,15 +669,9 @@ function EssenciaisPage({ view = "essenciais" }) {
         </div>
       </header>
 
-      <nav className="hrm-tabs" role="tablist">
-        {TABS.map((t) => {
-          const n = t.n ? t.n(dados) : null;
-          return (
-            <button key={t.id} role="tab" aria-selected={t.id === (TAB_DE[view] || view)} className={t.id === (TAB_DE[view] || view) ? "on" : ""} onClick={() => go(t.id)}>
-              {t.label}{n ? <span className="hrm-tab-n">{n}</span> : null}
-            </button>);
-        })}
-      </nav>
+      <window.CliTabs className="hrm-tabs" ariaLabel="Telas de essenciais"
+        active={TAB_DE[view] || view} onChange={go}
+        tabs={TABS.map((t) => ({ key: t.id, label: t.label, n: t.n ? t.n(dados) : null }))} />
 
       {(demo || papel !== "admin") && (
         <div className="hrm-note-ds">

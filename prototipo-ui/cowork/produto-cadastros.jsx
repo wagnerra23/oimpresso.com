@@ -501,16 +501,14 @@ function ProdutoCadastros({ aba: abaInicial = "variacoes", onIr, avisar, estado 
   if (!Widget) return null;
   return (
     <Widget titulo={<><Ic name="grid" size={13} /> Cadastros de apoio</>} nota={atual.l + " · papel: " + P.label}>
-      <nav className="cli-moduletopnav" data-contract="produto-cadastros-abas" aria-label="Cadastros de apoio do produto" style={{ padding: 0, marginBottom: 14, flexWrap: "wrap", rowGap: 4 }}>
-        {ABAS.map((a) => {
+      <window.CliTabs dataContract="produto-cadastros-abas" ariaLabel="Cadastros de apoio do produto"
+        pad={0} wrap active={aba} onChange={setAba} style={{ marginBottom: 14 }}
+        tabs={ABAS.map((a) => {
           const oculta = a.base && !P.can(a.base + ".view") && !P.can(a.base + ".create");
-          return (
-            <button key={a.id} className={"cli-moduletopnav-tab " + (aba === a.id ? "active" : "")} onClick={() => setAba(a.id)}>
-              {a.l}<span className="cli-moduletopnav-n">{oculta ? "—" : (vazio ? 0 : dados[a.id].length)}</span>
-            </button>
-          );
-        })}
-      </nav>
+          // Aba SEM permissão continua visível com "—" (regra de contrato da tela);
+          // `off` apaga e tira do clique sem removê-la da fileira.
+          return { key: a.id, label: a.l, n: oculta ? "—" : (vazio ? 0 : dados[a.id].length), off: oculta };
+        })} />
       <atual.C rows={vazio ? [] : dados[atual.id]} setRows={setRows(atual.id)} avisar={avisar} onIr={onIr} perms={P}
         estado={estado === "vazio" ? "dados" : estado} />
     </Widget>

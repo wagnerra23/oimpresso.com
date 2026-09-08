@@ -1,0 +1,300 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "superadmin/Dashboard/Index (/superadmin)",
+  "gap_fonte": "memory/requisitos/Superadmin/superadmin-dashboard-gap.md",
+  "prototipo_sha": "sha256:c3ba0e10c548",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "pageheader-titulo",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "609"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx",
+        "linhas": "119",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade",
+      "_acionavel": false
+    },
+    {
+      "id": "pageheader-subtitulo-com-contagens",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "599-759"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx",
+        "linhas": "119",
+        "ancora": false
+      },
+      "status": "gap-parcial",
+      "acao": "Decidir. O mockup (superadmin-page.jsx:609) escreve no subtítulo total de negócios, pacotes ativos e MRR computados das listas; o vivo (Dashboard/Index.tsx:119) tem descrição estática, embora o MRR já chegue nas props (:152-154). Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "pageheader-acoes-comunicador-ver-negocios",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "599-759"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx",
+        "linhas": "119",
+        "ancora": false
+      },
+      "status": "artefato",
+      "acao": "Nada — mock/harness do protótipo (os 2 botões trocam a view do mock via `window.__selectRoute`, superadmin-page.jsx:611-612 — a \"view comunicador\" nem é destas telas)",
+      "_acionavel": false
+    },
+    {
+      "id": "segmented-de-periodo-nota-da-janela",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "599-759"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx",
+        "linhas": "121-141",
+        "ancora": "superadmin.dashboard.periodo"
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente (recalcula KPIs sem full reload :112-115 e a janela é real :140; no mockup a nota \"encerra em 18/08/2026\" é literal fixo, superadmin-page.jsx:621)",
+      "_acionavel": false
+    },
+    {
+      "id": "kpi-novas-assinaturas",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "625"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx",
+        "linhas": "179-185",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade (a dívida de FONTE deste card — soma o licenciamento legado zerado — já está registrada no charter §Pendências como mudança de VALOR sob REGRA MESTRE, decisão [W])",
+      "_acionavel": false
+    },
+    {
+      "id": "kpi-novos-cadastros",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "626"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx",
+        "linhas": "186",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade",
+      "_acionavel": false
+    },
+    {
+      "id": "kpi-sem-assinatura",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "627"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx",
+        "linhas": "191-194",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade",
+      "_acionavel": false
+    },
+    {
+      "id": "kpi-receita-recorrente",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "599-759"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx",
+        "linhas": "197-213",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente (a nota do mockup \"+8,4% contra o mês anterior\" é string fixa, superadmin-page.jsx:628 = mock; o MRR saiu da lista de Anti-hooks em 2026-08-20 com aprovação [W], charter §Anti-hooks)",
+      "_acionavel": false
+    },
+    {
+      "id": "bloco-trial-vira-assinatura",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "599-759"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx",
+        "linhas": "n/a (ausente no vivo — a célula do gap.md cita o recibo de ausência)",
+        "ancora": false
+      },
+      "status": "nao-adotar",
+      "acao": "Nada — Non-Goal do charter (Anti-hook \"Não inventa número que o banco não tem\" · `UC-SADASH-05`; RUNBOOK-dashboard §1 \"❌ sem query — SA-O1b\")",
+      "_acionavel": false
+    },
+    {
+      "id": "bloco-churn",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "599-759"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx",
+        "linhas": "200",
+        "ancora": false
+      },
+      "status": "nao-adotar",
+      "acao": "Nada — Non-Goal do charter (Anti-hook \"Não inventa número que o banco não tem\" · `UC-SADASH-05`; charter §Anti-hooks \"o que falta é o bloco, não a fonte\"; motivos dependem de `rb_subscriptions.churn_reason`, RUNBOOK §1)",
+      "_acionavel": false
+    },
+    {
+      "id": "bloco-receita-por-pacote",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "599-759"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx",
+        "linhas": "n/a (ausente no vivo — a célula do gap.md cita o recibo de ausência)",
+        "ancora": false
+      },
+      "status": "nao-adotar",
+      "acao": "Nada — Non-Goal do charter (Anti-hook \"Não inventa número que o banco não tem\" · `UC-SADASH-05`; RUNBOOK-dashboard §1 \"❌ sem query — SA-O1b\")",
+      "_acionavel": false
+    },
+    {
+      "id": "fila-vencendo-ou-vencido",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "599-759"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx",
+        "linhas": "n/a (ausente no vivo — a célula do gap.md cita o recibo de ausência)",
+        "ancora": false
+      },
+      "status": "nao-adotar",
+      "acao": "Nada — decisão já registrada (RUNBOOK-dashboard §1 \"🟡 derivável de `findOverdueApproved()` — SA-O1b\"; charter §Pendências \"em aberto\"; os botões do mockup navegam via `window.__selectRoute`, superadmin-page.jsx:696)",
+      "_acionavel": false
+    },
+    {
+      "id": "tendencia-mensal",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "599-759"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx",
+        "linhas": "216-253",
+        "ancora": "superadmin.dashboard.tendencia"
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente (série contínua com mês zerado — charter Goals SA-O1b; estado vazio :232-235; o mockup :706-716 usa título \"de vendas\" e `ds().Chart` com fallback nas mesmas barras. A dívida de fonte \"barras em zero\" já está registrada no charter §Pendências como REGRA MESTRE, decisão [W])",
+      "_acionavel": false
+    },
+    {
+      "id": "bloco-o-que-fazer-primeiro",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "599-759"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx",
+        "linhas": "n/a (ausente no vivo — a célula do gap.md cita o recibo de ausência)",
+        "ancora": false
+      },
+      "status": "artefato",
+      "acao": "Nada — mock/harness do protótipo (3 itens com nomes de negócio, datas e valor fixos + `window.__selectRoute`, superadmin-page.jsx:721-727; RUNBOOK-dashboard §1 registra \"❌ sem query — depende do funil e da fila\", sem onda)",
+      "_acionavel": false
+    },
+    {
+      "id": "cadastros-recentes-tabela",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "739-748"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx",
+        "linhas": "269-291",
+        "ancora": "superadmin.dashboard.recentes"
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade",
+      "_acionavel": false
+    },
+    {
+      "id": "cadastros-recentes-colunas-dono-pacote-mrr-cidade",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "599-759"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx",
+        "linhas": "271-275",
+        "ancora": false
+      },
+      "status": "gap-parcial",
+      "acao": "Decidir. O mockup (superadmin-page.jsx:739, :743-748) desenha 6 colunas — Dono, Pacote, MRR por negócio e cidade além das 3 do vivo (Dashboard/Index.tsx:271-287). O charter Goals já lista \"coluna dono\" como alvo do F1 não entregue, sem onda; Pacote/MRR/cidade nem isso. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "cadastros-recentes-header",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "599-759"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx",
+        "linhas": "261-264",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade (rótulo adaptado: o link \"Ver todos\" do mockup é `window.__selectRoute`, superadmin-page.jsx:735 — harness)",
+      "_acionavel": false
+    },
+    {
+      "id": "estado-carregando",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "599-759"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx",
+        "linhas": "97-107",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente (mockup renderiza mocks direto, sem skeleton — superadmin-page.jsx:599-759)",
+      "_acionavel": false
+    },
+    {
+      "id": "estado-vazio",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "599-759"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx",
+        "linhas": "232-235",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente (mockup não tem `Vazio` nesta view — superadmin-page.jsx:599-759)",
+      "_acionavel": false
+    }
+  ],
+  "mapping": {
+    "source": "superadmin-page.jsx",
+    "target": "Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx"
+  },
+  "_nota_mapeamento": "Protótipo = porte do Blade legado (superadmin-page.jsx:1-9), anterior às telas React. prototipo.linhas = range citado na célula 'Estado no vivo' do gap.md; vivo.linhas = 1º range citado na mesma célula (grep -n real). vivo.ancora = id de data-contract citado no nome da parte (existe no .tsx); false EXPLÍCITO nas partes sem região ancorada (opt-out consciente — o contrato-de-tela trava só as seções listadas)."
+}

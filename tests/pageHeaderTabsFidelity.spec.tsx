@@ -107,3 +107,74 @@ describe('PageHeaderTabs — aba ativa fiel ao protótipo (não regride)', () =>
     expect(hasRoundedUtility(inactive!.className)).toBe(false);
   });
 });
+
+// ── Pill do CONTADOR (`badge`) — autoridade = TabBar do DS ──────────────────
+// O `badge` é opt-in e NENHUM teste o cobria até 2026-09-04: os ghosts acima não
+// declaram contador, então as duas pernas do pill passavam despercebidas.
+//
+// Autoridade do token = componente `TabBar` do DS (`components/TabBar/TabBar.jsx`,
+// ramo `t.count != null`): ativo `--accent`/`--accent-fg`, inativo `--bg-2`/`--text-dim`.
+// Divergência conhecida e resolvida a favor do DS: o protótipo de TELA
+// `.cli-moduletopnav-n` (clientes-page.css:114) escreve `--border-2` no fundo inativo.
+// Os dois arquivos foram lidos em 2026-09-04; o componente do DS manda sobre o CSS
+// de uma tela. Se o DS mudar, estas constantes mudam CONSCIENTEMENTE (como as de cima).
+//
+// Resolução medida em browser real (harness com os `_generated-cockpit-{light,dark}.css`,
+// controle positivo `--accent` + controle negativo de token inexistente):
+//   --bg-2      light oklch(0.965 0.004 90)  · dark oklch(0.23 0.006 240)
+//   --border-2  light oklch(0.93 0.004 90)   · dark oklch(0.31 0.008 240)
+// Trocam com o tema E diferem entre si nos dois — a troca não é inerte.
+const BADGE_ATIVO = { bg: 'var(--accent)', fg: 'var(--accent-fg)' };
+const BADGE_INATIVO = { bg: 'var(--bg-2)', fg: 'var(--text-dim)' };
+
+const GHOSTS_COM_BADGE = [
+  { key: 'unificado', label: 'Unificado', href: '/x/unificado', badge: 7 },
+  { key: 'pagar', label: 'Pagar', href: '/x/pagar', badge: 3 },
+];
+
+function renderPills(activeKey: string) {
+  const { container } = render(
+    <PageHeaderTabs ghosts={GHOSTS_COM_BADGE} activeGhostKey={activeKey} />,
+  );
+  const pill = (selecionada: 'true' | 'false') =>
+    container.querySelector<HTMLElement>(
+      `[role="tab"][aria-selected="${selecionada}"] span.rounded-full`,
+    );
+  return { ativo: pill('true'), inativo: pill('false') };
+}
+
+describe('PageHeaderTabs — pill do contador segue o TabBar do DS', () => {
+  it('o pill RENDERIZA quando o ghost declara badge (senão o resto é vacuoso)', () => {
+    const { ativo, inativo } = renderPills('unificado');
+    expect(ativo).not.toBeNull();
+    expect(inativo).not.toBeNull();
+    expect(ativo!.textContent).toBe('7');
+    expect(inativo!.textContent).toBe('3');
+  });
+
+  it('INATIVO: fundo `--bg-2` + texto `--text-dim` (DS, não o `--border-2` da tela)', () => {
+    const { inativo } = renderPills('unificado');
+    expect(inativo!.style.backgroundColor).toBe(BADGE_INATIVO.bg);
+    expect(inativo!.style.color).toBe(BADGE_INATIVO.fg);
+  });
+
+  it('ATIVO: fundo `--accent` + texto `--accent-fg` (vizinhança intacta)', () => {
+    const { ativo } = renderPills('unificado');
+    expect(ativo!.style.backgroundColor).toBe(BADGE_ATIVO.bg);
+    expect(ativo!.style.color).toBe(BADGE_ATIVO.fg);
+  });
+
+  // Não-vacuoso: os dois ramos têm de DIFERIR — impede colapsar num token só.
+  it('ESPECIFICIDADE: ativo e inativo não compartilham o mesmo fundo', () => {
+    const { ativo, inativo } = renderPills('unificado');
+    expect(ativo!.style.backgroundColor).not.toBe(inativo!.style.backgroundColor);
+  });
+
+  // Sem `badge` declarado, nada renderiza — o opt-in continua opt-in.
+  it('ghost SEM badge não renderiza pill nenhum', () => {
+    const { container } = render(
+      <PageHeaderTabs ghosts={GHOSTS} activeGhostKey="unificado" />,
+    );
+    expect(container.querySelector('[role="tab"] span.rounded-full')).toBeNull();
+  });
+});

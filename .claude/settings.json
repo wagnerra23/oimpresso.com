@@ -40,6 +40,10 @@
           },
           {
             "type": "command",
+            "command": "node .claude/hooks/loop-fechar-check.mjs --manifest .claude/regime-evolucao.json"
+          },
+          {
+            "type": "command",
             "command": "node .claude/hooks/licoes-code-two-strikes.mjs"
           },
           {

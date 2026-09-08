@@ -9,6 +9,15 @@ declare(strict_types=1);
  * Cobertura ADR 0104 §F2 (regressão zero).
  *
  * Status: estrutural (file-existence + assinatura do método).
+ *
+ * ── Rastreabilidade (casos-gate G-2 · ADR 0264) ────────────────────────────
+ * Contrato: resources/js/Pages/Purchase/Create.casos.md
+ *   @covers-uc UC-PURCRE-01  o path Blade legacy do create continua de pe
+ *   @covers-uc UC-PURCRE-06  dropdown de filiais filtrado por business_id
+ *
+ * ⚠️ NATUREZA DA COBERTURA — ESTRUTURAL (o "Status:" acima ja diz). Guarda a
+ * REMOCAO do fallback legacy e dos gates; nao monta usuario com filial restrita
+ * nem observa a recusa. Classe LC-11 (presence-gate).
  */
 
 const CREATE_BLADE_LEGACY = 'resources/views/purchase/create.blade.php';

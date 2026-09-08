@@ -14,7 +14,7 @@ module: Essentials
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Essentials/**` + `resources/js/Pages/Essentials/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 272 arquivos em 15 papéis.
+**Total mapeado:** 294 arquivos em 17 papéis.
 
 ## Controllers — 19
 
@@ -38,11 +38,12 @@ module: Essentials
 - [ShiftController.php](../../../Modules/Essentials/Http/Controllers/ShiftController.php)
 - [ToDoController.php](../../../Modules/Essentials/Http/Controllers/ToDoController.php)
 
-## Requests (validação) — 10
+## Requests (validação) — 11
 
 - [StoreDocumentRequest.php](../../../Modules/Essentials/Http/Requests/StoreDocumentRequest.php)
 - [StoreHolidayRequest.php](../../../Modules/Essentials/Http/Requests/StoreHolidayRequest.php)
 - [StoreKnowledgeBaseRequest.php](../../../Modules/Essentials/Http/Requests/StoreKnowledgeBaseRequest.php)
+- [StoreLeaveRequest.php](../../../Modules/Essentials/Http/Requests/StoreLeaveRequest.php)
 - [StoreMessageRequest.php](../../../Modules/Essentials/Http/Requests/StoreMessageRequest.php)
 - [StoreReminderRequest.php](../../../Modules/Essentials/Http/Requests/StoreReminderRequest.php)
 - [ToDoCommentRequest.php](../../../Modules/Essentials/Http/Requests/ToDoCommentRequest.php)
@@ -51,11 +52,15 @@ module: Essentials
 - [ToDoUploadDocumentRequest.php](../../../Modules/Essentials/Http/Requests/ToDoUploadDocumentRequest.php)
 - [UpdateReminderRequest.php](../../../Modules/Essentials/Http/Requests/UpdateReminderRequest.php)
 
-## Services — 4
+## Services — 8
 
+- [AttendanceImportService.php](../../../Modules/Essentials/Services/AttendanceImportService.php)
 - [LeaveAuditService.php](../../../Modules/Essentials/Services/LeaveAuditService.php)
+- [LeaveBalanceService.php](../../../Modules/Essentials/Services/LeaveBalanceService.php)
 - [LeaveRequestService.php](../../../Modules/Essentials/Services/LeaveRequestService.php)
+- [PayrollTotalCalculator.php](../../../Modules/Essentials/Services/PayrollTotalCalculator.php)
 - [ReminderAuditService.php](../../../Modules/Essentials/Services/ReminderAuditService.php)
+- [SalesTargetFaixaValidator.php](../../../Modules/Essentials/Services/SalesTargetFaixaValidator.php)
 - [TodoService.php](../../../Modules/Essentials/Services/TodoService.php)
 
 ## Models / Entities — 18
@@ -78,6 +83,10 @@ module: Essentials
 - [Reminder.php](../../../Modules/Essentials/Entities/Reminder.php)
 - [Shift.php](../../../Modules/Essentials/Entities/Shift.php)
 - [ToDo.php](../../../Modules/Essentials/Entities/ToDo.php)
+
+## Jobs — 1
+
+- [ImportarPresencaJob.php](../../../Modules/Essentials/Jobs/ImportarPresencaJob.php)
 
 ## Console / Commands — 1
 
@@ -231,7 +240,7 @@ module: Essentials
 - [view.blade.php](../../../Modules/Essentials/Resources/views/todo/view.blade.php)
 - [view_shared_docs.blade.php](../../../Modules/Essentials/Resources/views/todo/view_shared_docs.blade.php)
 
-## Telas (Inertia/React) — 13
+## Telas (Inertia/React) — 16
 
 - [Index.tsx](../../../resources/js/Pages/Essentials/Documents/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Essentials/Holidays/Index.tsx)
@@ -239,15 +248,18 @@ module: Essentials
 - [Edit.tsx](../../../resources/js/Pages/Essentials/Knowledge/Edit.tsx)
 - [Index.tsx](../../../resources/js/Pages/Essentials/Knowledge/Index.tsx)
 - [Show.tsx](../../../resources/js/Pages/Essentials/Knowledge/Show.tsx)
+- [Index.tsx](../../../resources/js/Pages/Essentials/Licencas/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Essentials/Messages/Index.tsx)
+- [Metas.tsx](../../../resources/js/Pages/Essentials/Metas.tsx)
 - [Index.tsx](../../../resources/js/Pages/Essentials/Reminders/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Essentials/Settings/Index.tsx)
+- [Tipos.tsx](../../../resources/js/Pages/Essentials/Tipos.tsx)
 - [Create.tsx](../../../resources/js/Pages/Essentials/Todo/Create.tsx)
 - [Edit.tsx](../../../resources/js/Pages/Essentials/Todo/Edit.tsx)
 - [Index.tsx](../../../resources/js/Pages/Essentials/Todo/Index.tsx)
 - [Show.tsx](../../../resources/js/Pages/Essentials/Todo/Show.tsx)
 
-## Charters (lei da tela) — 13
+## Charters (lei da tela) — 16
 
 - [Index.charter.md](../../../resources/js/Pages/Essentials/Documents/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Essentials/Holidays/Index.charter.md)
@@ -255,20 +267,29 @@ module: Essentials
 - [Edit.charter.md](../../../resources/js/Pages/Essentials/Knowledge/Edit.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Essentials/Knowledge/Index.charter.md)
 - [Show.charter.md](../../../resources/js/Pages/Essentials/Knowledge/Show.charter.md)
+- [Index.charter.md](../../../resources/js/Pages/Essentials/Licencas/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Essentials/Messages/Index.charter.md)
+- [Metas.charter.md](../../../resources/js/Pages/Essentials/Metas.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Essentials/Reminders/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Essentials/Settings/Index.charter.md)
+- [Tipos.charter.md](../../../resources/js/Pages/Essentials/Tipos.charter.md)
 - [Create.charter.md](../../../resources/js/Pages/Essentials/Todo/Create.charter.md)
 - [Edit.charter.md](../../../resources/js/Pages/Essentials/Todo/Edit.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Essentials/Todo/Index.charter.md)
 - [Show.charter.md](../../../resources/js/Pages/Essentials/Todo/Show.charter.md)
 
-## Testes (Pest) — 15
+## Casos (contrato UC) — 3
 
-- 15 em [Modules/Essentials/Tests/Feature/](../../../Modules/Essentials/Tests/Feature)
+- [Index.casos.md](../../../resources/js/Pages/Essentials/Licencas/Index.casos.md)
+- [Metas.casos.md](../../../resources/js/Pages/Essentials/Metas.casos.md)
+- [Tipos.casos.md](../../../resources/js/Pages/Essentials/Tipos.casos.md)
+
+## Testes (Pest) — 21
+
+- 21 em [Modules/Essentials/Tests/Feature/](../../../Modules/Essentials/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 49
+## Demais arquivos (manifestos, docs, assets e misc) — 50
 
 - [.gitkeep](../../../Modules/Essentials/Config/.gitkeep)
 - [.gitkeep](../../../Modules/Essentials/Console/.gitkeep)
@@ -276,6 +297,7 @@ module: Essentials
 - [.gitkeep](../../../Modules/Essentials/Database/Seeders/.gitkeep)
 - [.gitkeep](../../../Modules/Essentials/Database/factories/.gitkeep)
 - [.gitkeep](../../../Modules/Essentials/Entities/.gitkeep)
+- [PayrollTotalDivergenteException.php](../../../Modules/Essentials/Exceptions/PayrollTotalDivergenteException.php)
 - [.gitkeep](../../../Modules/Essentials/Http/Controllers/.gitkeep)
 - [.gitkeep](../../../Modules/Essentials/Http/Middleware/.gitkeep)
 - [.gitkeep](../../../Modules/Essentials/Http/Requests/.gitkeep)

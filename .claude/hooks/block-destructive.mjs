@@ -184,6 +184,39 @@ Se a arvore estava LIMPA, o seu "git stash" nao criou entry — entao este pop p
 Confira com "git stash list" antes. Para consumir o SEU, empilhe com nome ("git stash push -m <marcador>") e passe a entry explicita.`;
 }
 
+// ── AVISO (advisory, NUNCA bloqueia): `git push --delete` com nome NÃO-LITERAL ──
+// 3ª ocorrência da classe LC-12 (2026-09-06): um `for b in $(git ls-remote --heads origin
+// 'claude/q*')` seguido de `git push origin --delete "$b"` apagou 4 branches de OUTRAS
+// sessões (quick-sync-lock-cleanup, quizzical-*) — o glob presumia "são meus". O nome
+// vinha de variável, então nem o autor leu quais eram. Mesma raiz do stash-pop: destruir
+// estado GLOBAL do repo por presunção de posse. Restaurados pelo head dos PRs.
+//
+// Predicado PURO e estreito: o comando apaga branch remoto E o nome NÃO é literal
+// (variável, glob, subshell, backtick). Nome literal fica em silêncio — apagar a própria
+// branch depois do merge é o fluxo comum e correto, e avisar ali seria ruído (família dos
+// guards sintáticos que o §5 mede e reprova). FP do predicado estreito ≈ 0: loop/variável
+// sobre `--delete` é exatamente o vetor, e o aviso só imprime o que conferir.
+const APAGA_BRANCH_REMOTO = /\bgit\s+push\b(?=.*\s(?:--delete|-d)\s)|\bgit\s+push\b[^|;&]*\s:refs\/heads\//i;
+const NOME_NAO_LITERAL = /\$\{?[A-Za-z_]|\$\(|`|\*|\?/;
+
+/**
+ * @param {string} cmd
+ * @returns {string|null}
+ */
+export function avisoPushDelete(cmd) {
+  const c = normalizeCmd(cmd);
+  if (!APAGA_BRANCH_REMOTO.test(c)) return null;
+  // o trecho depois de --delete/-d (ou o comando inteiro no formato :refs/heads/)
+  const alvo = (/(?:--delete|-d)\s+(.+)$/i.exec(c) || [, c])[1];
+  if (!NOME_NAO_LITERAL.test(alvo)) return null;   // nome literal → silêncio
+  return `[block-destructive] AVISO (nao bloqueia): "${c}" apaga branch REMOTO com nome NAO-LITERAL (variavel/glob/subshell).
+Branch remota e estado GLOBAL do repositorio, nao do seu worktree: um glob como 'claude/q*' casa branches de OUTRAS sessoes
+(3a ocorrencia LC-12, 2026-09-06: 4 branches alheias apagadas por loop sobre ls-remote). Antes de apagar:
+  1. liste os nomes RESOLVIDOS e leia um a um;
+  2. confira a posse de cada um: gh pr list --state all --head <branch> --author @me
+  3. apague por nome LITERAL, nunca por padrao.`;
+}
+
 // ── stdin wrapper (fail-open em TUDO) ────────────────────────────────────────────
 
 async function readStdin() {
@@ -223,6 +256,11 @@ async function main() {
       }
     } catch { /* fail-open: aviso nunca trava sessão */ }
   }
+  // advisory do push --delete não-literal — puro, sem ler estado; SEMPRE exit 0.
+  try {
+    const avisoDel = avisoPushDelete(cmd);
+    if (avisoDel) process.stderr.write(avisoDel + '\n');
+  } catch { /* fail-open */ }
   process.exit(0);
 }
 

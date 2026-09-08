@@ -53,14 +53,14 @@ function AndroidStatusBar({ dark = false }) {
       {/* status icons right */}
       <div style={{ display: 'flex', alignItems: 'center' }}>
         <div style={{ display: 'flex', paddingRight: 2 }}>
-          <svg width="16" height="16" viewBox="0 0 16 16" style={{ marginRight: -2 }}>
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" style={{ marginRight: -2 }}>
             <path d="M8 13.3L.67 5.97a10.37 10.37 0 0114.66 0L8 13.3z" fill={c}/>
           </svg>
-          <svg width="16" height="16" viewBox="0 0 16 16" style={{ marginRight: -2 }}>
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" style={{ marginRight: -2 }}>
             <path d="M14.67 14.67V1.33L1.33 14.67h13.34z" fill={c}/>
           </svg>
         </div>
-        <svg width="16" height="16" viewBox="0 0 16 16">
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16">
           <rect x="3.75" y="2" width="8.5" height="13" rx="1.5" fill={c}/>
           <rect x="5.5" y="0.9" width="5" height="2" rx="0.5" fill={c}/>
         </svg>

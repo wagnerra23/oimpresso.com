@@ -72,7 +72,9 @@
  *   --days <N>         janela de tempo, os DOIS lados (default 14) — G7
  *   --prs <N>          quantos PRs aparecem na TABELA (default 20; não afeta a
  *                      atribuição, que usa todos os PRs da janela)
- *   --marker <s>       marcador de PR-de-agente (default "[CC]")
+ *   --marker <s>       OVERRIDE literal do marcador de PR-de-agente. Sem ele vale o
+ *                      conjunto canônico `[C]` / `[CC]` / `[X+C]` (AGENT_MARKER_RE do
+ *                      agent-pr-outcomes — 1 definição de "PR do agente", 1 lugar).
  *   --repo <o/r>       override do repo pro gh
  *   --projects-dir <d> override de ~/.claude/projects
  *   --project-filter <s> só escaneia dirs cujo nome contém s (default "oimpresso")
@@ -356,7 +358,7 @@ export function costPerSurvivingPR(todosPR, falhados) {
  * @param {{prs:any[], sessions:Array<{id?:string, entries:any[], pr_mentions?:number[]}>,
  *          marker?:string, prWindow?:number, days?:number, nowIso?:string, generated?:string}} o
  */
-export function buildReport({ prs, sessions, marker = DEFAULT_MARKER, prWindow = DEFAULT_PR_WINDOW, days = DEFAULT_DAYS, nowIso, generated, fonteTruncada = false }) {
+export function buildReport({ prs, sessions, marker = null, prWindow = DEFAULT_PR_WINDOW, days = DEFAULT_DAYS, nowIso, generated, fonteTruncada = false }) {
   const now = nowIso ? Date.parse(nowIso) : (generated ? Date.parse(generated) : Date.now());
   const since = now - days * 86400000;
 
@@ -503,7 +505,7 @@ export function buildReport({ prs, sessions, marker = DEFAULT_MARKER, prWindow =
     generated: generated || new Date(now).toISOString().slice(0, 10),
     janela: {
       dias: days, desde: new Date(since).toISOString().slice(0, 10),
-      prs_no_universo: universo.length, prs_exibidos: porPR.length, marker,
+      prs_no_universo: universo.length, prs_exibidos: porPR.length, marker: marker || DEFAULT_MARKER,
       // se o fetch bateu no cap, o universo está incompleto e o RESÍDUO vem inflado
       // por artefato (PR ausente = sessão sem dono). Declarado, nunca silencioso.
       fonte_truncada: fonteTruncada || undefined,
@@ -844,7 +846,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
     process.exit(0);
   }
 
-  const marker = argVal(argv, '--marker', DEFAULT_MARKER);
+  const marker = argVal(argv, '--marker', null); // null = conjunto canônico (AGENT_MARKER_RE)
   const prWindow = Number(argVal(argv, '--prs', String(DEFAULT_PR_WINDOW))) || DEFAULT_PR_WINDOW;
   // --days: só aceita FINITO e POSITIVO. `Number('-5')||14` deixava -5 passar (truthy) →
   // `desde` no futuro + universo vazio, SEM avisar (H5, contra a própria doutrina no-silent).

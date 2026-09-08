@@ -1,0 +1,197 @@
+{
+  "id": "Fiscal/Nfse",
+  "source": "fiscal-page.jsx",
+  "target": "resources/js/Pages/Fiscal/Nfse.tsx",
+  "token": "fiscal-nfse",
+  "frescor": "verificado 2026-09-08",
+  "contrato": "prototipo-ui/contrato/fiscal-nfse.contract.json",
+  "compare": {
+    "rc": 0,
+    "veredito": "IGUAL",
+    "motivo": "",
+    "bugs": 0,
+    "shell": 2,
+    "sameTheme": true,
+    "porDim": {
+      "D2": {
+        "diverge": 0,
+        "bug": 0,
+        "semDado": 0,
+        "igual": 1
+      },
+      "D4": {
+        "diverge": 0,
+        "bug": 0,
+        "semDado": 1,
+        "igual": 1
+      },
+      "D6": {
+        "diverge": 0,
+        "bug": 0,
+        "semDado": 0,
+        "igual": 1
+      },
+      "D8": {
+        "diverge": 0,
+        "bug": 0,
+        "semDado": 0,
+        "igual": 1
+      },
+      "D9": {
+        "diverge": 0,
+        "bug": 0,
+        "semDado": 6,
+        "igual": 0
+      },
+      "SHELL": {
+        "diverge": 2,
+        "bug": 0,
+        "semDado": 4,
+        "igual": 0
+      }
+    },
+    "rows": [
+      {
+        "dim": "D2",
+        "campo": "layout",
+        "prod": "ok",
+        "design": "ok",
+        "veredito": "IGUAL"
+      },
+      {
+        "dim": "D4",
+        "campo": "tipografia",
+        "prod": "ok",
+        "design": "ok",
+        "veredito": "IGUAL"
+      },
+      {
+        "dim": "D6",
+        "campo": "cor",
+        "prod": "ok",
+        "design": "ok",
+        "veredito": "IGUAL"
+      },
+      {
+        "dim": "D8",
+        "campo": "kpi align",
+        "prod": "ok",
+        "design": "ok",
+        "veredito": "IGUAL"
+      },
+      {
+        "dim": "D9",
+        "campo": "debitos-conhecidos",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "fiscal-nfse-filters",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "procedencia",
+        "prod": "ausente",
+        "design": "presente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "tabela-notas",
+        "prod": "ausente",
+        "design": "presente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "toolbar-notas",
+        "prod": "ausente",
+        "design": "presente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "visoes-salvas",
+        "prod": "ausente",
+        "design": "presente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D4",
+        "campo": "linha da tabela",
+        "prod": "não medido",
+        "design": "não medido",
+        "veredito": "SEM-DADO",
+        "detalhe": "passe `tableRow` em __DD_ROLES nos DOIS lados"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.atalhoTopo.presenca",
+        "prod": "0 el (.sb-shortcuts .sb-shortcut)",
+        "design": "3 el (.sb-menu > .sb-item)",
+        "veredito": "SEM-DADO",
+        "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.containerMenu.presenca",
+        "prod": "0 el (.sb-menu-grouped)",
+        "design": "1 el (.sb-menu)",
+        "veredito": "SEM-DADO",
+        "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.grupoHeader.presenca",
+        "prod": "0 el (.sb-group-h)",
+        "design": "9 el (.sb-group-h)",
+        "veredito": "SEM-DADO",
+        "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.itemGrupo.presenca",
+        "prod": "0 el (.sb-item)",
+        "design": "36 el (.sb-group .sb-item, .sb-group-body .sb-item)",
+        "veredito": "SEM-DADO",
+        "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.atalhoTopo.sequencia",
+        "prod": "[]",
+        "design": "[IA3, Visão geralG D, Atendimento6]",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "ordem de navegação é contrato — classifique (DECIDIDA/DERIVA/DESIGN-ANDOU) antes de mexer"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.atalhoTopo.so-no-design",
+        "prod": "—",
+        "design": "IA3, Visão geralG D, Atendimento6",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "candidato típico a DESIGN-ANDOU — confira a data das duas fontes"
+      }
+    ]
+  },
+  "veredito": null,
+  "motivo": "",
+  "meta": {
+    "urlFinal": "https://staging.oimpresso.com/fiscal/nfse",
+    "componenteInertia": null
+  },
+  "medidoEm": "2026-09-08T13:13:56.287Z",
+  "baseUrl": "https://staging.oimpresso.com",
+  "bundle": "f99cbe0b5c32a054223b93610be82ef4c77408e722bde916079b90b4f6ed096c"
+}

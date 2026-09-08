@@ -1,0 +1,201 @@
+{
+  "url": "https://staging.oimpresso.com/fiscal",
+  "theme": "light",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C Notas Fiscais Maio 2026 · 0 notas · 0 requerem ação SEFAZ-SP operacional Buscar Procedência Eventos 5 Enviar p/ contabilidade Emitir Cockpit NF-e · NFC-e NFS-e Manifesto DF-e Eventos Certif. & Cfg. SPED & Livros Emitidas 0 ↑ 12 vs abr Autorizadas 0 0 % Rejeitadas 0 DF-e p/ manifestar 0 prazo 90d Certif. A1 — sem certificado Faturado fiscal R$ 0,00 Fechar mês → Auditoria mensal · write-off candidatos 2.470 títulos · R$ 770.000,00 · mais antigo 1847 d · Incobrável >365d Revisar Critério determinístico (sem IA): títulos vencidos >365d sem nenhum pagamento parcial registrado. Write-off requer aprovação Wagner + nota fiscal de baixa (CST/CSOSN 00 — não passa SEFAZ). Recomendação: rodar mensalmente após fechamento. Libera dashboard inadimplência. Todas 2 Pra resolver hoje 0 Janela 24h aberta 0 Aguardando SEFAZ 0 Só serviço (NFS-e) 0 Só balcão (NFC-e) 2 Todos os tipos · 2 Todos status · 2 Tipo Número Cliente / chave Status Prazo Valor NFC-e 990001 série 999 — — · Status 0 — XML PDF R$ 10,00 NFC-e 990002 série 999 — — · Status 0 — XML PDF R$ 10,00 1 – 2 de 2 carregadas 8 por página Anterior 1 / 1 Próxima Débitos conhecidos desta tela A série de 14 dias sai de uma consulta agrupada, sem repetição por dia Dado emissões nas últimas duas semanas · Quando a série é montada · Então há um ponto por dia por status, calculado de uma vez só. Anti-hook do charter; sem teste dedicado. sem teste O faturamento aparece formatado em moeda brasileira comportamento só de frontend, sem cobertura de Feature. sem teste Filtros, visões salvas, densidade e seleção em lote da tabela unificada a fonte real chegou em 2026-09-02 (UC-FCKP-07); vira contrato quando alguém escrever o teste de filtro/visão/densidade sobre ela. sem teste buscar emitir navegar mais atalhos Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "700",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": {
+      "bg": "oklch(0.55 0.15 295)",
+      "color": "rgb(255, 255, 255)",
+      "border": "rgb(255, 255, 255)"
+    },
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "procedencia",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "fiscal-cockpit-kpis",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "paginacao-notas",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "debitos-conhecidos",
+        "classes": {
+          "dataIso": 1,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {
+          "dataIso": [
+            "2026-09-02"
+          ]
+        }
+      }
+    ],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": "BUTTON",
+        "align": "left",
+        "larguraPct": 3.4,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 7.7,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "600",
+        "blocos": 1,
+        "pill": {
+          "radius": "99px",
+          "borda": false,
+          "bg": "oklch(0.96 0.03 300)",
+          "dot": false
+        }
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 6.8,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 14,
+        "weight": "700",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": "A",
+        "align": "left",
+        "larguraPct": 44.1,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "700",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 13.6,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 1,
+        "pill": {
+          "radius": "99px",
+          "borda": false,
+          "bg": "oklch(0.96 0.05 60)",
+          "dot": false
+        }
+      },
+      {
+        "col": 5,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 11.1,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 6,
+        "tag": "BUTTON",
+        "align": "right",
+        "larguraPct": 13.3,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 11,
+        "weight": "600",
+        "blocos": 3,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 2,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

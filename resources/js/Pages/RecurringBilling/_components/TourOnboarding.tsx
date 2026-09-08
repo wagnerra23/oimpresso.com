@@ -39,26 +39,26 @@ export default function TourOnboarding({ onClose }: Props) {
 
   return (
     <div role="dialog" aria-modal="true" className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/30 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-lg bg-white shadow-2xl ring-1 ring-stone-200">
-        <header className="flex items-center justify-between border-b border-stone-100 px-4 py-3">
-          <div className="flex items-center gap-2 text-xs text-stone-500">
+      <div className="w-full max-w-md rounded-lg bg-card shadow-2xl ring-1 ring-border">
+        <header className="flex items-center justify-between border-b border-border px-4 py-3">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <span className="rounded bg-primary/10 px-2 py-0.5 font-semibold text-primary">{step + 1}/{STEPS.length}</span>
             <span>Tour rápido</span>
           </div>
-          <button type="button" onClick={() => close(false)} aria-label="Fechar" className="rounded p-1 hover:bg-stone-100">
-            <X size={14} className="text-stone-500" />
+          <button type="button" onClick={() => close(false)} aria-label="Fechar" className="rounded p-1 hover:bg-muted">
+            <X size={14} className="text-muted-foreground" />
           </button>
         </header>
         <div className="px-6 py-6">
-          <h3 className="text-lg font-bold text-stone-900">{cur.title}</h3>
-          <p className="mt-2 text-sm text-stone-600">{cur.body}</p>
+          <h3 className="text-lg font-bold text-foreground">{cur.title}</h3>
+          <p className="mt-2 text-sm text-foreground">{cur.body}</p>
         </div>
-        <footer className="flex items-center justify-between gap-2 border-t border-stone-100 px-4 py-3">
-          <button type="button" onClick={() => close(true)} className="text-xs text-stone-500 hover:text-stone-700">
+        <footer className="flex items-center justify-between gap-2 border-t border-border px-4 py-3">
+          <button type="button" onClick={() => close(true)} className="text-xs text-muted-foreground hover:text-foreground">
             Não mostrar mais
           </button>
           <div className="flex items-center gap-2">
-            <button type="button" onClick={() => setStep(Math.max(0, step - 1))} disabled={step === 0} className="inline-flex items-center gap-1 rounded-lg border border-stone-200 px-3 py-1.5 text-xs text-stone-700 hover:bg-stone-50 disabled:opacity-40">
+            <button type="button" onClick={() => setStep(Math.max(0, step - 1))} disabled={step === 0} className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-xs text-foreground hover:bg-muted disabled:opacity-40">
               <ChevronLeft size={12} /> Anterior
             </button>
             {!isLast && (

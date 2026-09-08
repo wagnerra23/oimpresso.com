@@ -163,7 +163,8 @@
 .fx-row-v.txt{font-family:inherit}
 
 /* toasts */
-.fx-toasts{position:fixed;top:16px;right:16px;z-index:80;display:flex;flex-direction:column;gap:6px}
+.fx-toasts{position:fixed;top:16px;right:16px;z-index:80;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+.fx-toast{pointer-events:auto}
 .fx-toast{border:1px solid color-mix(in oklch,var(--accent) 32%,var(--border));background:var(--surface);color:var(--text);border-radius:8px;padding:8px 12px;font-size:var(--fs-3);box-shadow:0 14px 34px -18px rgba(0,0,0,.6);max-width:340px}
 
 /* modal de ação (PT-04) */

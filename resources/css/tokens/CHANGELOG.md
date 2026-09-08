@@ -2,6 +2,14 @@
 
 > Gerado por `ds-token-version.mjs` a partir da superfície dos `_generated-*.css`. Semver: MAJOR=remoção · MINOR=adição/valor.
 
+## v1.3.0 — 2026-09-08  (MINOR)
+
+**Valor alterado**
+- `--color-success-foreground` [light]: `oklch(0.51 0.12 162)` → `oklch(0.20 0.02 162)`
+- `--color-warning-foreground` [light]: `oklch(0.55 0.12 75)` → `oklch(0.20 0.02 75)`
+- `--color-success-foreground` [dark]: `oklch(0.78 0.11 162)` → `oklch(0.20 0.02 162)`
+- `--color-warning-foreground` [dark]: `oklch(0.80 0.10 75)` → `oklch(0.20 0.02 75)`
+
 ## v1.2.0 — 2026-09-02  (MINOR)
 
 **Adicionados**

@@ -108,6 +108,30 @@
         "D:/oimpresso.com/prototipo-ui/cowork"
       ],
       "port": 5611
+    },
+    {
+      "name": "cowork-jana-paridade-2-1",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "5621",
+        "--directory",
+        "D:/oimpresso.com/.claude/worktrees/modest-herschel-42b0b8/prototipo-ui/cowork"
+      ],
+      "port": 5621
+    },
+    {
+      "name": "sonda-design-diff",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "5622",
+        "--directory",
+        "C:/Users/wagne/AppData/Local/Temp/claude/D--oimpresso-com--claude-worktrees-modest-herschel-42b0b8/f2f778d6-4358-4341-8fa8-3e37750525f8/scratchpad/sonda"
+      ],
+      "port": 5622
     }
   ]
 }

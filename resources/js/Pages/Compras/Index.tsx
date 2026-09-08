@@ -27,7 +27,12 @@ interface Kpis {
 interface Row {
   id: number;
   ref_no: string | null;
-  document: string | null;
+  /**
+   * Chave de acesso da NF-e de ENTRADA (44 dígitos) — `transactions.chave_entrada`, o mesmo
+   * dado que o protótipo chama de `xmlChave`. NÃO é `transactions.document`, que é anexo
+   * genérico de arquivo (ver comentário no `ComprasService::listarCompras`).
+   */
+  chave_entrada: string | null;
   transaction_date: string;
   name: string | null; // contact name
   supplier_business_name: string | null;
@@ -36,6 +41,8 @@ interface Row {
   final_total: number;
   location_name: string;
   amount_paid: number | null;
+  /** Contagem de linhas da compra — subselect do ComprasService, não coluna de `transactions`. */
+  items_count?: number | null;
 }
 
 interface RowsPayload {
@@ -90,8 +97,10 @@ const COLUMNS: ColumnDef[] = [
   { id: 'fornecedor', label: 'Fornecedor' },
   { id: 'data', label: 'Data' },
   { id: 'estagio', label: 'Estágio' },
+  { id: 'itens', label: 'Itens' },
   { id: 'total', label: 'Total' },
   { id: 'a_pagar', label: 'A pagar' },
+  { id: 'nfe', label: 'NF-e' },
 ];
 
 const DEFAULT_COL_VISIBILITY: Record<string, boolean> = {
@@ -100,8 +109,10 @@ const DEFAULT_COL_VISIBILITY: Record<string, boolean> = {
   fornecedor: true,
   data: true,
   estagio: true,
+  itens: true,
   total: true,
   a_pagar: true,
+  nfe: true,
 };
 
 const STAGES: { id: Stage; l: string; ic: string }[] = [
@@ -236,7 +247,7 @@ function ComprasIndex({ filters, selected_id, permissions, kpis, rows, summary, 
     <div className="compras-root" data-screen-label="01 Compras">
       <div className="cmp-main">
         {/* HEAD */}
-        <header className="hd">
+        <header className="hd" data-contract="compras-cabecalho">
           <div className="crumbs">
             ERP · Operação · <b style={{ color: 'var(--cmp-ink-2)' }}>Compras</b>
           </div>
@@ -295,7 +306,7 @@ function ComprasIndex({ filters, selected_id, permissions, kpis, rows, summary, 
         </header>
 
         {/* TABS */}
-        <nav className="tbs">
+        <nav className="tbs" data-contract="compras-abas">
           <a
             className={localFilter === 'all' ? 'active' : ''}
             onClick={() => setLocalFilter('all')}
@@ -405,7 +416,7 @@ function ComprasIndex({ filters, selected_id, permissions, kpis, rows, summary, 
 
 function KpisGrid({ k }: { k: Kpis }) {
   return (
-    <div className="kpis">
+    <div className="kpis" data-contract="compras-kpis">
       <div className="kpi warn">
         <small>A pagar</small>
         <b>{k.aberto}</b>
@@ -506,7 +517,7 @@ function TableCompras({
 
   return (
     <div className="tbl">
-      <table className="purchases">
+      <table className="purchases" data-contract="compras-tabela">
         <thead>
           <tr>
             {v.acao && <th style={{ width: '90px' }}>Ação</th>}
@@ -549,6 +560,10 @@ function TableCompras({
                 style={{ width: '100px' }}
               />
             )}
+            {/* Itens — `<td className="num">{p.items}</td>` no protótipo (compras-page.jsx:501),
+                alinhado à direita. Não é ordenável: a contagem vem de subselect, não de coluna
+                da tabela, então não há chave no SORT_MAP pra ela. */}
+            {v.itens && <th style={{ width: '60px', textAlign: 'right' }}>Itens</th>}
             {v.total && (
               <SortHeader
                 col="final_total"
@@ -571,6 +586,8 @@ function TableCompras({
                 style={{ width: '100px', textAlign: 'right' }}
               />
             )}
+            {/* NF-e — `{p.xmlChave ? "✓ XML" : "—"}` no protótipo (compras-page.jsx:508). */}
+            {v.nfe && <th style={{ width: '70px' }}>NF-e</th>}
           </tr>
         </thead>
         <tbody>
@@ -620,6 +637,7 @@ function TableCompras({
                     )}
                   </td>
                 )}
+                {v.itens && <td className="num">{p.items_count ?? '—'}</td>}
                 {v.total && (
                   <td className="num">
                     <b>{fmtMoney(p.final_total)}</b>
@@ -634,6 +652,17 @@ function TableCompras({
                     }}
                   >
                     {due > 0 ? fmtMoney(due) : '✓'}
+                  </td>
+                )}
+                {v.nfe && (
+                  <td
+                    className="mono"
+                    style={{
+                      color: p.chave_entrada ? 'var(--cmp-ok)' : 'var(--cmp-ink-3)',
+                      fontSize: 11,
+                    }}
+                  >
+                    {p.chave_entrada ? '✓ XML' : '—'}
                   </td>
                 )}
               </tr>

@@ -1,0 +1,160 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Ponto/Dashboard/Index (/ponto)",
+  "gap_fonte": "memory/requisitos/Ponto/dashboard-index-gap.md",
+  "prototipo_sha": "sha256:587a1e3f2479",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "nota-o-que-trava-o-fechamento",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
+        "linhas": "38-44"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Dashboard/Index.tsx",
+        "linhas": "131-177",
+        "ancora": "painel-nota-fechamento"
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade.",
+      "_acionavel": false
+    },
+    {
+      "id": "kpis-do-painel",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
+        "linhas": "46-53"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Dashboard/Index.tsx",
+        "linhas": "240-303",
+        "ancora": "painel-kpis"
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade.",
+      "_acionavel": false
+    },
+    {
+      "id": "fila-de-aprovacoes",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
+        "linhas": "56-73"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Dashboard/Index.tsx",
+        "linhas": "333-363",
+        "ancora": "painel-fila-aprovacoes"
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade.",
+      "_acionavel": false
+    },
+    {
+      "id": "atividade-recente",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
+        "linhas": "75-85"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Dashboard/Index.tsx",
+        "linhas": "365-371",
+        "ancora": "painel-atividade"
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade.",
+      "_acionavel": false
+    },
+    {
+      "id": "rodape-legal",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
+        "linhas": "87"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Dashboard/Index.tsx",
+        "linhas": "382-392",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade.",
+      "_acionavel": false
+    },
+    {
+      "id": "grafico-ultimos-7-dias-e-painel-o-que-precisa-da-sua-atencao",
+      "prototipo": {
+        "arquivo": "n/a",
+        "linhas": "n/a"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Dashboard/Index.tsx",
+        "linhas": "315-327 e 376-378",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir. ⚠️ Não é \"vivo à frente\": o [`Dashboard-visual-comparison.md`](Dashboard-visual-comparison.md) §\"O que NÃO decidir a partir deste documento\" lista estes 2 painéis como o item 2 das *\"três coisas [que] dependem do [W]\"* — *\"produção evoluiu além da âncora. Ou a âncora incorpora, ou eles saem. Não assumir que 'extra = errado'\"*. Decisão pendente, não fechada.",
+      "_acionavel": true
+    },
+    {
+      "id": "estados-vazios",
+      "prototipo": {
+        "arquivo": "n/a",
+        "linhas": "n/a"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Dashboard/Index.tsx",
+        "linhas": "256 e 354-358",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente.",
+      "_acionavel": false
+    },
+    {
+      "id": "escala-tipografica",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
+        "linhas": "27-90"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Dashboard/Index.tsx",
+        "linhas": "204-396",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir. Já aberta em `Dashboard-visual-comparison.md` §\"O que NÃO decidir a partir deste documento\" item 1. Este gap não reabre: aponta. Enquanto não houver decisão de [W], o próprio doc proíbe mexer na tela.",
+      "_acionavel": true
+    },
+    {
+      "id": "header-titulo-subtitulo-e-acoes",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
+        "linhas": "495-505"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Dashboard/Index.tsx",
+        "linhas": "208-226",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir. Contrato de informação, não formatação — e a ação `Fechamento` pertence à frente 5 do `COLAR-NO-CODE-ponto-ondas.md`, travada nas decisões [W] 1–4 (estado da competência · permissão · exceções assinadas · reabertura). Sem elas, construir o header é inventar lei.",
+      "_acionavel": true
+    },
+    {
+      "id": "sub-navegacao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
+        "linhas": "10-24"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Dashboard/Index.tsx",
+        "linhas": "223",
+        "ancora": false
+      },
+      "status": "divergencia-declarada",
+      "acao": "Nada — divergência declarada, dono é a produção. As 3 telas ausentes vivem nas frentes 5–7, travadas em [W].",
+      "_acionavel": false
+    }
+  ]
+}

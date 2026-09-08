@@ -6,9 +6,11 @@
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { itemDone, resolverItens, formatBanner } from './loop-fechar-check.mjs';
+import { readFileSync, existsSync } from 'node:fs';
+import { itemDone, resolverItens, formatBanner, medirComando, formatBannerPrograma } from './loop-fechar-check.mjs';
 
 const HOOK = join(dirname(fileURLToPath(import.meta.url)), 'loop-fechar-check.mjs');
+const REPO = join(dirname(HOOK), '..', '..');
 let fails = 0;
 const check = (n, c) => { console.log((c ? '[OK]   ' : '[FAIL] ') + n); if (!c) fails++; };
 
@@ -85,5 +87,90 @@ check('formatBanner vazio quando sem itens', formatBanner([]) === '');
 const r = spawnSync(process.execPath, [HOOK], { encoding: 'utf8', cwd: dirname(fileURLToPath(import.meta.url)) });
 check('E2E: roda sem crash → exit 0', r.status === 0);
 
-console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — porte .mjs resolve itens idempotente (manual/arquivo), aponta pendente, advisory exit 0.');
+// ═══════════════════════════════════════════════════════════════════════════════
+// ADR 0391 — detect `comando`: MORDE por COMPORTAMENTO (roda a porta viva e compara
+// o número), nunca por presença. Tri-estado: feito | pendente | nao_medido.
+// ═══════════════════════════════════════════════════════════════════════════════
+const runnerDe = (status, stdout, stderr = '') => () => ({ status, stdout, stderr });
+const detCasos = { tipo: 'comando', cmd: 'x', regex: '"missing_casos":\\s*(\\d+)', op: '<=', alvo: 0 };
+check('comando: numero no alvo → feito', medirComando(detCasos, { runner: runnerDe(0, '{"missing_casos": 0}') }).estado === 'feito');
+check('MORDE: numero fora do alvo → pendente (valor 67)', (() => { const r = medirComando(detCasos, { runner: runnerDe(0, '{"missing_casos": 67}') }); return r.estado === 'pendente' && r.valor === 67; })());
+check('MORDE: exit≠0 → nao_medido (nao vira pendente nem feito — §5 2026-07-29)', medirComando(detCasos, { runner: runnerDe(2, '{"missing_casos": 0}') }).estado === 'nao_medido');
+check('MORDE: regex nao casou → nao_medido', medirComando(detCasos, { runner: runnerDe(0, 'nada') }).estado === 'nao_medido');
+check('comando: regex_ausente_vale 0 → feito quando o banner some (0 classes)', medirComando({ ...detCasos, regex_ausente_vale: 0 }, { runner: runnerDe(0, 'nada') }).estado === 'feito');
+const detFrac = { tipo: 'comando', cmd: 'x', regex: 'E2E[^:]*:\\s*(\\d+)/(\\d+)', op: '>=', alvo_grupo: 2 };
+check('comando: alvo_grupo deriva o alvo da propria saida (54/218 → pendente, alvo 218)', (() => { const r = medirComando(detFrac, { runner: runnerDe(0, 'E2E (Browser ∪ VRT)  : 54/218') }); return r.estado === 'pendente' && r.alvo === 218 && r.valor === 54; })());
+check('comando: alvo_grupo 218/218 → feito', medirComando(detFrac, { runner: runnerDe(0, 'E2E : 218/218') }).estado === 'feito');
+const detExit = { tipo: 'comando', cmd: 'x', op: 'exit0' };
+check('comando exit0: rc 0 → feito', medirComando(detExit, { runner: runnerDe(0, '') }).estado === 'feito');
+check('comando exit0: rc 1 → pendente (SLA violado e MEDIDO)', medirComando(detExit, { runner: runnerDe(1, '') }).estado === 'pendente');
+check('MORDE: exit0 com rc 127 (comando ausente) → nao_medido, nao pendente', medirComando(detExit, { runner: runnerDe(127, '') }).estado === 'nao_medido');
+check('comando: runner com error (nao spawnou) → nao_medido', medirComando(detExit, { runner: () => ({ status: null, stdout: '', stderr: '', error: new Error('ENOENT') }) }).estado === 'nao_medido');
+check('comando: contar_linhas conta linhas nao-vazias do stdout', medirComando({ tipo: 'comando', cmd: 'x', contar_linhas: true, op: '<=', alvo: 0 }, { runner: runnerDe(0, 'a.blade.php\nb.blade.php\n') }).valor === 2);
+check('comando: sem cmd → nao_medido', medirComando({ tipo: 'comando' }, { runner: runnerDe(0, '') }).estado === 'nao_medido');
+
+// resolverItens com comando: veto manual, sob_demanda/cache, tri-estado no banner
+const manComando = { slug: 'prog-teste', tipo: 'programa', _titulo: 'Programa de teste', itens: [
+  { id: 'a', ordem: 1, gap: 'E1', titulo: 'feita', prioridade: 'P0', detect: { ...detCasos } },
+  { id: 'b', ordem: 2, gap: 'E2', titulo: 'vetada', prioridade: 'P0', done: false, detect: { ...detCasos } },
+  { id: 'c', ordem: 3, gap: 'E3', titulo: 'sob demanda', prioridade: 'P1', detect: { ...detCasos, medir: 'sob_demanda' } },
+] };
+const okRunner = runnerDe(0, '{"missing_casos": 0}');
+const itC = resolverItens(manComando, '/r', fakeExists, { runner: okRunner, cache: null });
+check('resolverItens comando: medido feito', itC[0].estado === 'feito' && itC[0].done === true);
+check('MORDE: veto done:false derruba um feito MEDIDO', itC[1].estado === 'pendente' && itC[1].done === false);
+check('resolverItens comando: sob_demanda sem --medir e sem cache → nao_medido', itC[2].estado === 'nao_medido');
+const itCache = resolverItens(manComando, '/r', fakeExists, { runner: okRunner, cache: { medido_em: '2026-09-01T00:00:00Z', itens: { c: { estado: 'pendente', valor: 3, alvo: 0, medido_em: '2026-09-01T00:00:00Z' } } } });
+check('resolverItens comando: sob_demanda com cache → usa o retrato DATADO', itCache[2].estado === 'pendente' && itCache[2].deCache === '2026-09-01T00:00:00Z');
+const itMedir = resolverItens(manComando, '/r', fakeExists, { runner: okRunner, cache: null, medir: true });
+check('resolverItens comando: --medir roda o sob_demanda', itMedir[2].estado === 'feito');
+// cache com validade (TTL 24h) + memo por comando — custo de SessionStart sob controle
+const agora = Date.parse('2026-09-07T12:00:00Z');
+const cacheFresco = { itens: { a: { estado: 'pendente', valor: 5, alvo: 0, medido_em: '2026-09-07T11:00:00Z' } } };
+const cacheVencido = { itens: { a: { estado: 'pendente', valor: 5, alvo: 0, medido_em: '2026-09-06T06:00:00Z' } } };
+let chamadas = 0; const runnerConta = (...a) => { chamadas++; return okRunner(...a); };
+const itFresco = resolverItens({ itens: [manComando.itens[0]] }, '/r', fakeExists, { runner: runnerConta, cache: cacheFresco, agoraMs: agora });
+check('cache dentro do TTL: usa o retrato datado e NAO roda o comando', itFresco[0].estado === 'pendente' && itFresco[0].deCache === '2026-09-07T11:00:00Z' && chamadas === 0);
+const itVencido = resolverItens({ itens: [manComando.itens[0]] }, '/r', fakeExists, { runner: runnerConta, cache: cacheVencido, agoraMs: agora });
+check('MORDE: cache vencido (30h) → mede de novo (runner chamado, estado atual)', itVencido[0].estado === 'feito' && itVencido[0].deCache === null && chamadas === 1);
+chamadas = 0;
+resolverItens({ itens: [manComando.itens[0], { ...manComando.itens[0], id: 'a2', gap: 'E1b' }] }, '/r', fakeExists, { runner: runnerConta, cache: null });
+check('memo: duas etapas com o MESMO cmd rodam o comando 1 vez', chamadas === 1);
+const bp = formatBannerPrograma(itC, manComando, { cmdMedir: 'X' });
+check('banner programa: [OK]/[--]/[??] distintos + resumo conta os tres', /\[OK\] E1/.test(bp) && /\[--\] E2/.test(bp) && /\[\?\?\] E3/.test(bp) && /1 feita\(s\) · 1 pendente\(s\) · 1 nao medida\(s\)/.test(bp));
+check('banner programa: NAO MEDIDO nunca vira "cumprido"', !/PROGRAMA CUMPRIDO/.test(bp));
+check('banner programa: nao carrega a linha Brain B do IA-OS', !/Brain B/.test(bp));
+check('banner IA-OS (default) segue byte-compativel: item comando nao muda o formato antigo', /PROXIMO PENDENTE: #G2/.test(formatBanner(itens)));
+
+// ── O MANIFESTO REAL (.claude/regime-evolucao.json): cada etapa É VÁLIDA POR TESTE ──
+// Não basta o JSON estar bem formado: o selftest RODA o detect de cada etapa e falha se
+// alguma não mediu. Etapa sob demanda só escapa declarando a dependência externa.
+const REG = join(REPO, '.claude', 'regime-evolucao.json');
+let reg = null; try { reg = JSON.parse(readFileSync(REG, 'utf8')); } catch { /* falha abaixo */ }
+check('regime-evolucao.json existe, e programa e tem etapas', !!reg && reg.tipo === 'programa' && Array.isArray(reg.itens) && reg.itens.length > 0);
+if (reg) {
+  const ids = new Set();
+  for (const it of reg.itens) {
+    const d = it.detect || {};
+    const completo = d.tipo === 'comando' && typeof d.cmd === 'string' && d.cmd.length > 0
+      && (d.op === 'exit0' || ((d.regex || d.contar_linhas) && (Number.isFinite(d.alvo) || d.alvo_grupo)))
+      && typeof it.ancora === 'string' && typeof it.executor === 'string' && typeof it.id === 'string' && !ids.has(it.id);
+    ids.add(it.id);
+    check(`regime ${it.gap}: detect por COMPORTAMENTO completo (cmd+op+alvo) + ancora + executor + id unico`, completo);
+    check(`regime ${it.gap}: sob_demanda so com dependencia_externa declarada`, d.medir !== 'sob_demanda' || typeof d.dependencia_externa === 'string');
+  }
+  const t0 = Date.now();
+  const medidos = resolverItens(reg, REPO, existsSync, { medir: true, cache: null });
+  for (const r of medidos) {
+    const det = (reg.itens.find((i) => i.id === r.id) || {}).detect || {};
+    const ok = r.estado !== 'nao_medido' || (det.medir === 'sob_demanda' && /exit|nao rodou/.test(r.motivo || ''));
+    check(`regime ${r.gap}: MEDIU → ${r.estado}${r.valor != null ? ` (${r.valor}/${r.alvo})` : ''}${r.motivo ? ` [${r.motivo}]` : ''}`, ok);
+  }
+  console.log(`  (medicao real do regime em ${((Date.now() - t0) / 1000).toFixed(1)}s)`);
+  // E2E: o hook de verdade, com --manifest, imprime o banner de PROGRAMA e sai 0
+  const rp = spawnSync(process.execPath, [HOOK, '--manifest', '.claude/regime-evolucao.json'], { encoding: 'utf8', cwd: REPO });
+  check('E2E: hook --manifest regime → exit 0 e banner PROGRAMA', rp.status === 0 && /PROGRAMA: /.test(rp.stdout) && /RESUMO:/.test(rp.stdout));
+}
+
+console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — porte .mjs resolve itens idempotente (manual/arquivo/comando), aponta pendente, advisory exit 0.');
 process.exit(fails ? 1 : 0);

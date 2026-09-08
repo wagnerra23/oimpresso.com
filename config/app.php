@@ -31,6 +31,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Segredo das rotas de bypass do gate visual (staging)
+    |--------------------------------------------------------------------------
+    |
+    | `/_visreg-login/{id}` e `/_visreg-state/{tela}/{estado}` chamam
+    | `Auth::loginUsingId()` SEM senha. Em `local`/`testing` isso é inócuo (não
+    | são públicos). O staging É público na internet, então lá as duas exigem
+    | este segredo — sem ele, respondem 404. Vazio = rotas fechadas em staging.
+    | Ver o bloco de allowlist em routes/web.php.
+    |
+    */
+    'visreg_login_token' => env('VISREG_LOGIN_TOKEN', ''),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Debug Mode
     |--------------------------------------------------------------------------
     |

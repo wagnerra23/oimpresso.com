@@ -10,6 +10,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Forja\Services\ForjaAprovacoesService;
 use Modules\Jana\Entities\Mcp\McpCcMessage;
 use Modules\Jana\Entities\Mcp\McpCcSession;
 
@@ -46,6 +47,10 @@ class CcSessionsController extends Controller
         // devs (lista users autorizados), projects (distinct paths). Filters +
         // permissions inline (trivial scalar/bool).
         return Inertia::render('team-mcp/CcSessions/Index', [
+            // Badge de pendências do topnav (§3.1 do export): no protótipo ele vive no
+            // destino Aprovações em TODA view — é o que avisa que há algo esperando
+            // decisão enquanto você está em OUTRA tela. COUNT indexado, deferido.
+            'pendencias' => Inertia::defer(fn () => app(ForjaAprovacoesService::class)->contagem()),
             'sessions' => Inertia::defer(fn () => $this->buildSessionsPayload(
                 $user, $userId, $from, $to, $search, $status, $project, $page
             )),

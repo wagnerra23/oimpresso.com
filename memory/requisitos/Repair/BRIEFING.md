@@ -2,35 +2,36 @@
 id: requisitos-repair-briefing
 module: Repair
 status: shared-infra
-updated_at: "2026-08-06"
-distilled_at: "2026-08-06"
-distilled_by: manual (sessão 2026-08-06 — gap US-REPA-002 refletido à mão; o gerador jana:distill-module-truth NÃO rodou nesta data)
+updated_at: "2026-09-06"
+distilled_at: "2026-09-06"
+distilled_by: jana:distill-module-truth
 ---
 
 # BRIEFING — Repair (verdade destilada)
 
-> Última atualização: 2026-07-02
-
 ## Estado atual
-O módulo "Repair" gerencia ordens de serviço em infraestrutura compartilhada, usado por verticais como `OficinaAuto`, `ComunicacaoVisual` e `Vestuario`. O Kanban `ProducaoOficina` e o FSM Pipeline de OS (13 estágios) rodam em prod; o SPEC do próprio módulo é um placeholder (US-REPA-001 `_pendente_`) — as capacidades vivas foram construídas fora dele.
+Ordens de serviço como infraestrutura compartilhada entre verticais (`OficinaAuto`, `ComunicacaoVisual`, `Vestuario`). O Kanban `ProducaoOficina` e o FSM Pipeline de OS (13 estágios, ADR 0143) estão operacionais. O SPEC saiu do estado de placeholder: US-REPA-001 segue `_pendente_`, mas US-REPA-003/004/005 documentam telas vivas com âncora `**Testado em:**` (lane Verticais · Pest MySQL). O job `Pest Repair` vem da matriz `modules-pest.yml`; o enforcement dele é o que estiver em `governance/required-checks-baseline.json` — e foi por não bloquear merge que o vermelho do `Wave18RepairSaturationTest` (`Call to undefined method Container::basePath()`, run 31040822015 de 2026-08-05: 3 failed, 65 skipped, 80 passed) rodou sem segurar nada até o conserto em #6240 (2026-08-25); a matriz dispara por path de qualquer módulo dela, por isso o vermelho aparecia em PR alheio.
 
 ## Capacidades
-- **JobSheet** para gerenciamento de ordens de serviço.
-- Kanban com 5 colunas fixas (Recepção, Diagnóstico, Aguardando peças, Em execução, Pronto); os `repair_statuses` em si são configuráveis por business.
-- Interface **ProducaoOficina** com recursos de drag-and-drop para organização visual das ordens.
-- Integração com automação de faturamento ao término do serviço.
-- Implementação de **FSM Pipeline** para orquestramento dos estágios de ordem de serviço.
-- Suporte a múltiplas verticais, permitindo vocabulário genérico e ajustes específicos por negócio.
+- JobSheet (OS) com criação, edição e impressão.
+- Kanban com colunas fixas (Recepção, Diagnóstico, Aguardando peças, Em execução, Pronto) e `repair_statuses` configuráveis por business; drag-and-drop (US-REPAIR-PROD-4).
+- Venda derivada da OS: faturamento pelo POS a partir do JobSheet (`sub_type=repair&job_sheet_id=`), com card `VendaDerivadaCard` no Kanban.
+- FSM Pipeline de estágios (`FsmProcessoOsReparoPadraoSeeder`).
+- Vocabulário genérico multi-vertical com personalização por negócio.
+- Contrato executável em Pest Feature nas telas de OS e de cadastro (#6882/#6883/#6884/#6887), com E2E + a11y no Kanban `ProducaoOficina` (#6878); `JobSheet/Index` segue sem `casos.md` — US-REPA-004 `_parcial_`.
 
 ## Gaps
 - Top-5 da FICHA (US-REP-005..009): KPIs/dashboard, app mobile, comissão, catálogo, retention-purge.
-- Bulk-start de OS legadas pro FSM: comando `repair:fsm:bulk-start` inexistente (US-REP-FSM-006).
-- **Cobertura de teste com falso-verde (US-REPA-002):** 3 testes do `Wave18RepairSaturationTest` quebram com `Call to undefined method Container::basePath()` — `base_path()` fora do bootstrap do app (linhas 19 e 47). Ficaram invisíveis porque `Pest Repair` vem do `modules-pest.yml` (matrix de 6 módulos, dispara por path de qualquer um deles) e **não é required**: o vermelho não bloqueia merge. Recibo: [run 31040822015](https://github.com/wagnerra23/oimpresso.com/actions/runs/31040822015) — `3 failed, 65 skipped, 80 passed`.
+- Configurações migradas para Inertia atrás da flag `repair_settings_index` (default OFF, #6779) e no PageHeader canon (#6814); o cutover da flag é decisão [W] — SPEC US-REPA-003 `_parcial_`.
+- `repair:fsm:bulk-start` para iniciar OS legadas no FSM não existe (US-REP-FSM-006).
+- O `base_path()` fora do bootstrap que quebrava o `Wave18RepairSaturationTest` foi corrigido em #6240 (2026-08-25); `SPEC.md` US-REPA-002 ainda diz `_pendente_` — SPEC atrás do código (precedência: teste > SPEC), correção pendente.
 
 ## Última mudança
-Perf D-14 partial reload no Kanban `ProducaoOficina` (PR #3901, 2026-07-06) e draft de charter da OS (PR #4123, 2026-07-12).
+2026-09-04..06 — onda MWART das Configurações (Inertia, #6779), `Settings/Index` no PageHeader canon (#6814), primeiro E2E + a11y do módulo (#6878), contrato executável das telas (#6882/#6883/#6884/#6887) e revogação de GUARDs fantasmas no charter `JobSheet/Index` (#6874). Antes: perf D-14 partial reload em `DeviceModels/Index` e `Repair/Index` (telas MWART/Inertia; #3901, 2026-07-06) e o draft de charter da OS (#4123, 2026-07-12).
 
 ## Proveniência (destilado de)
 
 - audit `requisitos/Repair/CAPTERRA-FICHA.md` — CAPTERRA-FICHA.md
-- session `sessions/2026-07-02-dossie-triagem-onda4-revisao-adr.md` (2026-07-02) — 2026-07-02-dossie-triagem-onda4-revisao-adr.md
+- session `sessions/2026-09-06-refutacao-gt-g5-lote-6897-r3.md` (2026-09-06) — 2026-09-06-refutacao-gt-g5-lote-6897-r3.md
+- session `sessions/2026-09-05-raio-vazamento-variation-cross-tenant.md` (2026-09-05) — 2026-09-05-raio-vazamento-variation-cross-tenant.md
+- handoff `handoffs/2026-08-08-1938-permissoes-classe-d-idioma-gate-before.md` (2026-08-08) — 2026-08-08-1938-permissoes-classe-d-idioma-gate-before.md

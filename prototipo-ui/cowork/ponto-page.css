@@ -4,7 +4,8 @@
    da cascata do modulo-padrao.css: se ele chegar depois, o resultado é o mesmo). */
 .ponto-root{display:flex;flex-direction:column;min-width:0;min-height:0;height:100%;overflow:hidden}
 .ponto-root>.mp-header,.ponto-root>.jm-tabs{flex:0 0 auto}
-.pt-body{padding:18px 28px 32px;flex:1 1 auto;min-height:0;overflow-y:auto;display:flex;flex-direction:column}
+/* 24px lateral = canon do shell ([W] 2026-09-01 "eu prefiro padrão"). */
+.pt-body{padding:18px 24px 32px;flex:1 1 auto;min-height:0;overflow-y:auto;display:flex;flex-direction:column}
 .pt-body>*{flex:0 0 auto}
 @media (max-width:900px){.pt-body{padding:14px 16px 24px}}
 .pt-body>*+*{margin-top:16px}

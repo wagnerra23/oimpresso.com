@@ -52,7 +52,11 @@ function resolverIcone(icon) {
   if (!icon) return null;
   if (typeof icon === "string") {
     const JcIcon = window.JcIcon;
-    if (JcIcon) return <JcIcon name={icon} className="cli-tabs-ic" />;
+    // `s={14}` é obrigatório aqui: o JcIcon não tem width/height próprios e a folha que
+    // dimensionava o glyph casava a classe LEGADA da fileira (ex. `.jm-tabs .jm-tab-ic`),
+    // que o adaptador deixou de emitir — sem tamanho o ícone sumia da aba (4ª vez que
+    // deixar de emitir a classe legada removeu o trabalho útil dela). Tamanho é do nó.
+    if (JcIcon) return <JcIcon name={icon} className="cli-tabs-ic" s={14} />;
     const F = (window.I || {})[icon];
     return F ? <F size={14} /> : null;
   }
@@ -85,6 +89,41 @@ function CliTabs({ tabs = [], active, onChange, ariaLabel, pad = null, fullBleed
   const padAtual = pad == null ? null : (estreito && pad >= 24 ? 16 : pad);
   const itens = tabs.filter(Boolean);
 
+  // ── ARIA da fileira: PUXADO da produção (2026-09-04) ─────────────────────────────
+  // O `PageHeaderTabs` do main escreve `role="tab"` + `aria-selected` + `tabIndex`
+  // (roving) + nav ←/→/Home/End; o `TabBar` do DS escreve só `aria-current="page"` na
+  // ativa — medido no Painel da Jana: 0 `role="tab"` dentro do `nav.jm-tabs`, então a
+  // fileira não existe como tablist pro leitor de tela. A produção está À FRENTE, e a
+  // ancoragem manda corrigir o ALVO aqui, não pedir regressão pro Code.
+  // Só ACRESCENTA o que o DS não escreve: `aria-current` dele fica onde está.
+  useEffect(() => {
+    const nav = document.querySelector('[data-cli-tabs="' + marca + '"]');
+    if (!nav) return;
+    nav.setAttribute("role", "tablist");
+    const btns = itens.map((t, k) => nav.children[k]).filter(Boolean);
+    btns.forEach((b, k) => {
+      const on = active === itens[k].key;
+      b.setAttribute("role", "tab");
+      b.setAttribute("aria-selected", on ? "true" : "false");
+      b.tabIndex = on ? 0 : -1;
+    });
+    if (!btns.length) return;
+    const onKey = (e) => {
+      const i = btns.indexOf(e.target);
+      if (i < 0) return;
+      let n = i;
+      if (e.key === "ArrowLeft") n = (i - 1 + btns.length) % btns.length;
+      else if (e.key === "ArrowRight") n = (i + 1) % btns.length;
+      else if (e.key === "Home") n = 0;
+      else if (e.key === "End") n = btns.length - 1;
+      else return;
+      e.preventDefault();
+      btns[n].focus();
+    };
+    nav.addEventListener("keydown", onKey);
+    return () => nav.removeEventListener("keydown", onKey);
+  });
+
   // warn/off por aba: o TabBar ainda não tem. Casa por índice — o TabBar renderiza um
   // botão por entrada, na ordem. Sem ref disponível (o DS usa o próprio), o nav é
   // encontrado pela marca única passada via `...rest`.
@@ -97,13 +136,17 @@ function CliTabs({ tabs = [], active, onChange, ariaLabel, pad = null, fullBleed
       b.style.opacity = t.off ? "0.45" : "";
       if (t.off) b.setAttribute("aria-disabled", "true"); else b.removeAttribute("aria-disabled");
       // NUNCA gravar "" aqui. O TabBar do DS escreve `color` INLINE em cada botão
-      // (accent na ativa, text-dim nas outras); apagar com string vazia deleta esse
+      // (`--text` na ativa, `--text-dim` nas outras); apagar com string vazia deleta esse
       // valor, e o React não o reescreve — a prop dele não mudou. Resultado medido em
       // 2026-09-01: toda aba não-warn nascia PRETA sobre fundo escuro (contraste 2,26:1),
       // e só voltava ao cinza depois de um hover, porque os handlers do DS regravam a cor.
       // Foi por isso que passou por screenshot: a captura pega o estado pós-hover.
       // Regra: efeito que pisa em estilo de terceiro RESTAURA o valor dele, não limpa.
-      const corDS = active === t.key ? "var(--accent)" : "var(--text-dim)";
+      // Restaurar o valor do DS significa restaurar o que ele ESCREVE hoje, e o TabBar
+      // escreve `color: var(--text)` na ativa (o accent dele vai na borda inferior, no
+      // fundo soft e no ícone) — eu vinha regravando `var(--accent)`, o que pintava o
+      // rótulo da aba ativa de roxo sobre fundo escuro em vez do claro do DS.
+      const corDS = active === t.key ? "var(--text)" : "var(--text-dim)";
       b.style.color = t.warn && active !== t.key ? "var(--warn)" : corDS;
       // `itensFull`: divide a largura em partes iguais. `justifyContent` no nav não serve
       // — tem que ser `flex` nos próprios botões. `minWidth:0` pra o texto poder encolher.

@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **916 tarefas abertas** em **52 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **924 tarefas abertas** em **52 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -10,7 +10,7 @@
 |---|---:|---:|---:|---:|---:|
 | [`Jana`](#jana) | 83 | 2 | 0 | 0 | 81 |
 | [`Whatsapp`](#whatsapp) | 67 | 0 | 0 | 0 | 67 |
-| [`Sells`](#sells) | 53 | 0 | 0 | 0 | 53 |
+| [`Sells`](#sells) | 57 | 0 | 0 | 0 | 57 |
 | [`Governance`](#governance) | 47 | 0 | 0 | 3 | 44 |
 | [`Infra`](#infra) | 46 | 0 | 0 | 0 | 46 |
 | [`Financeiro`](#financeiro) | 45 | 0 | 0 | 0 | 45 |
@@ -35,9 +35,9 @@
 | [`Ponto`](#ponto) | 14 | 0 | 0 | 0 | 14 |
 | [`Mwart`](#mwart) | 13 | 0 | 0 | 0 | 13 |
 | [`PaymentGateway`](#paymentgateway) | 13 | 0 | 0 | 0 | 13 |
+| [`Essentials`](#essentials) | 12 | 0 | 0 | 0 | 12 |
 | [`NFSe`](#nfse) | 12 | 0 | 0 | 0 | 12 |
 | [`PontoWr2`](#pontowr2) | 12 | 0 | 0 | 0 | 12 |
-| [`Essentials`](#essentials) | 11 | 0 | 0 | 0 | 11 |
 | [`Superadmin`](#superadmin) | 11 | 0 | 0 | 0 | 11 |
 | [`Cms`](#cms) | 10 | 0 | 0 | 0 | 10 |
 | [`Cliente`](#cliente) | 9 | 1 | 0 | 0 | 8 |
@@ -50,13 +50,13 @@
 | [`SRS`](#srs) | 6 | 0 | 0 | 0 | 6 |
 | [`Woocommerce`](#woocommerce) | 6 | 0 | 0 | 0 | 6 |
 | [`LaravelAI`](#laravelai) | 5 | 0 | 0 | 0 | 5 |
+| [`Repair`](#repair) | 5 | 0 | 0 | 0 | 5 |
 | [`Spreadsheet`](#spreadsheet) | 5 | 0 | 0 | 0 | 5 |
 | [`ConsultaOs`](#consultaos) | 3 | 0 | 0 | 0 | 3 |
 | [`Dashboard`](#dashboard) | 3 | 0 | 0 | 0 | 3 |
 | [`ADS`](#ads) | 2 | 0 | 0 | 0 | 2 |
 | [`Documentacao`](#documentacao) | 2 | 0 | 0 | 0 | 2 |
 | [`MemoriaAutonoma`](#memoriaautonoma) | 2 | 0 | 0 | 0 | 2 |
-| [`Repair`](#repair) | 2 | 0 | 0 | 0 | 2 |
 | [`Admin`](#admin) | 1 | 0 | 0 | 0 | 1 |
 | [`Auditoria`](#auditoria) | 1 | 0 | 0 | 0 | 1 |
 | [`Mcp`](#mcp) | 1 | 0 | 0 | 0 | 1 |
@@ -285,6 +285,10 @@
 - **US-SELL-053** — FieldError por campo + auto-open details em erro
 - **US-SELL-058** — Redesenho do cadastro de venda em tela PARALELA (`/sells/create-v3`) — sem tocar na tela que a ROTA LIVRE opera
 - **US-SELL-059** — Editar venda existente (`/sells/{id}/edit`) — guards de prazo, devolução e tenant
+- **US-SELL-060** — Listar rascunhos de venda (`/sells/drafts`)
+- **US-SELL-061** — Listar cotações (`/sells/quotations`)
+- **US-SELL-062** — Listar vendas recorrentes e pausar/retomar (`/sells/subscriptions`)
+- **US-SELL-063** — Caixa do dia por forma de pagamento e por origem (`/vendas/caixa`)
 
 ## Governance
 
@@ -1013,6 +1017,24 @@
 - **US-PG-008** — Linkage cobranca_id no webhook genérico + re-resolve do órfão
 - **US-PG-009** — Executar smokes humano-limitados PaymentGateway Onda 5 (biz=1 + canary Larissa)
 
+## Essentials
+
+
+### todo
+
+- **US-ESS-001** — Listar tarefas (Todo) por business
+- **US-ESS-002** — Criar tarefa Todo
+- **US-ESS-003** — Editar tarefa (status/priority)
+- **US-ESS-004** — Deletar tarefa
+- **US-ESS-005** — Solicitação de Leave (ausência)
+- **US-ESS-006** — Aprovar/Rejeitar Leave
+- **US-ESS-007** — Compartilhar documentos via DocumentShare
+- **US-ESS-008** — Calendário Reminder
+- **US-ESS-009** — Module install/uninstall por business
+- **US-ESS-010** — Isolamento multi-tenant Tier 0 IRREVOGÁVEL ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md))
+- **US-ESS-011** — Metas de venda por colaborador (tela Inertia)
+- **US-ESSE-001** — [TODO — título]
+
 ## NFSe
 
 
@@ -1048,23 +1070,6 @@
 - **US-PONT-010** — Criar Importacao
 - **US-PONT-011** — Ver detalhe de Importacao
 - **US-PONT-012** — Listar Relatorio
-
-## Essentials
-
-
-### todo
-
-- **US-ESS-001** — Listar tarefas (Todo) por business
-- **US-ESS-002** — Criar tarefa Todo
-- **US-ESS-003** — Editar tarefa (status/priority)
-- **US-ESS-004** — Deletar tarefa
-- **US-ESS-005** — Solicitação de Leave (ausência)
-- **US-ESS-006** — Aprovar/Rejeitar Leave
-- **US-ESS-007** — Compartilhar documentos via DocumentShare
-- **US-ESS-008** — Calendário Reminder
-- **US-ESS-009** — Module install/uninstall por business
-- **US-ESS-010** — Isolamento multi-tenant Tier 0 IRREVOGÁVEL ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md))
-- **US-ESSE-001** — [TODO — título]
 
 ## Superadmin
 
@@ -1238,6 +1243,17 @@
 - **US-AI-004** — Auditoria temporal por subject
 - **US-AI-005** — Chat IA contextual nas telas (rota corrente)
 
+## Repair
+
+
+### todo
+
+- **US-REPA-002** — 3 testes do Wave18 quebram com `base_path()` fora do bootstrap do app _(`p2`)_
+- **US-REPA-003** — Configurar os padrões da folha de OS e o que sai impresso _(`p2`)_
+- **US-REPA-005** — Manter o catálogo de status e de modelos que as OS usam _(`p2`)_
+- **US-REPA-004** — Listar e filtrar as ordens de serviço abertas _(`p3`)_
+- **US-REPA-001** — [TODO — título]
+
 ## Spreadsheet
 
 
@@ -1290,14 +1306,6 @@
 
 - **US-MEMORIAAUTONOMA-001** — MEM-MIGRACAO Auto-mem → git/MCP (22 candidatos pós-consolidação 2026-05-10) _(`p2` · @wagner)_
 - **US-MEMORIAAUTONOMA-002** — MEM-VERIFICAR 8 pendências stale detectadas pós-consolidação 2026-05-10 _(`p3` · @wagner)_
-
-## Repair
-
-
-### todo
-
-- **US-REPA-002** — 3 testes do Wave18 quebram com `base_path()` fora do bootstrap do app _(`p2`)_
-- **US-REPA-001** — [TODO — título]
 
 ## Admin
 

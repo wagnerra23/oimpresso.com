@@ -13,8 +13,9 @@
 // (Input com Label associado) — testamos o componente canon, não uso-errado.
 
 import { describe, it, expect, afterEach } from "vitest"
-import { render, cleanup } from "@testing-library/react"
+import { render, cleanup, within } from "@testing-library/react"
 import axe from "axe-core"
+import type { ColumnDef } from "@tanstack/react-table"
 
 import { Button } from "@/Components/ui/button"
 import { Input } from "@/Components/ui/input"
@@ -23,6 +24,7 @@ import { Checkbox } from "@/Components/ui/checkbox"
 import { Textarea } from "@/Components/ui/textarea"
 import { Badge } from "@/Components/ui/badge"
 import StatusBadge from "@/Components/shared/StatusBadge"
+import DataTable, { type PaginatorShape } from "@/Components/shared/DataTable"
 import { Card, CardHeader, CardTitle, CardContent } from "@/Components/ui/card"
 import { Popover, PopoverTrigger, PopoverContent } from "@/Components/ui/popover"
 import {
@@ -120,6 +122,90 @@ describe("a11y axe (jsdom) — componentes canon, uso válido, 0 violações ser
     // decorativo: o texto ao lado já diz o estado, então o dot não pode virar ruído de leitor
     const dot = container.querySelector('[data-slot="badge-dot"]')
     expect(dot?.getAttribute("aria-hidden")).toBe("true")
+    expect(await impactfulViolations(container)).toEqual([])
+  })
+
+  // ── DataTable · nome acessível ────────────────────────────────────────────────
+  // O `shared/DataTable` renderizava `<table>` SEM `<caption>` e SEM `aria-label`: tabela
+  // sem nome acessível, em 8 pontos de render de 6 telas — e DUAS delas (`Arquivos/Index`,
+  // `Jana/Plataforma`) põem duas tabelas na MESMA página, indistinguíveis pra quem navega
+  // por tabela (NVDA `T`, lista de tabelas do JAWS, rotor do VoiceOver). Corrigido com
+  // `caption` OBRIGATÓRIA → `<caption class="sr-only">` (técnica WCAG H39).
+  //
+  // ⚠️ POR QUE ESTE TESTE NÃO É `impactfulViolations` — e é a parte que não pode se perder:
+  // o axe **não tem regra** que exija nome acessível em tabela. MEDIDO (axe-core 4.12.1 em
+  // jsdom, 2026-09-04) nos 5 arranjos — sem nada · só `scope` · só `caption` · os dois · só
+  // `aria-label` — **0 violações em TODOS, em qualquer impacto**. Logo o axe fica verde
+  // antes e depois do conserto: usá-lo aqui seria presence-gate que não mede nada (LC-11).
+  // Corolário pro `UC-DASH-18`: subir aquele `assertNoAccessibilityIssues(level: 0)` pra
+  // `level: 1` NÃO pegaria isto — o piso não está baixo, o axe é cego a esta classe.
+  //
+  // O que este teste mede, então, é o **nome COMPUTADO**: `getByRole('table', { name })`
+  // resolve o accname pela mesma cadeia que a AT usa, em vez de conferir o atributo que eu
+  // mesmo escrevi (§5 2026-07-16 — medir a propriedade resolvida, não a que você mandou).
+  it("DataTable: a tabela tem nome acessível vindo da prop `caption`", async () => {
+    type Linha = { id: number; nome: string }
+    const LINHAS: Linha[] = [{ id: 1, nome: "a.pdf" }]
+    const COLUNAS: ColumnDef<Linha, any>[] = [
+      { accessorKey: "nome", header: "Nome" },
+      { accessorKey: "id", header: "Código" },
+    ]
+    const umaPagina = (l: Linha[]): PaginatorShape<Linha> => ({
+      data: l, total: l.length, current_page: 1, last_page: 1, from: 1, to: l.length, links: [],
+    })
+
+    const { container, getByRole, queryByRole, getAllByRole } = render(
+      <div>
+        <div data-t="canon">
+          <DataTable<Linha>
+            columns={COLUNAS}
+            data={LINHAS}
+            pagination={umaPagina(LINHAS)}
+            endpoint="/arquivos"
+            caption="Acervo de arquivos"
+            showSearch={false}
+            rowKey={(r) => r.id}
+          />
+        </div>
+        {/* CONTROLE NEGATIVO — mesma estrutura, à mão, SEM caption. Sem ele, uma asserção
+            de nome passaria mesmo que o `getByRole` casasse por qualquer outro motivo. */}
+        <div data-t="sem-nome">
+          <table>
+            <thead><tr><th>Nome</th><th>Código</th></tr></thead>
+            <tbody><tr><td>a.pdf</td><td>1</td></tr></tbody>
+          </table>
+        </div>
+      </div>,
+    )
+
+    // 1) POSITIVO: o nome computado é a copy da prop.
+    expect(getByRole("table", { name: "Acervo de arquivos" })).toBeTruthy()
+
+    // 2) NEGATIVO: a tabela sem caption EXISTE (são 2 tabelas) mas não atende pelo nome —
+    //    é isso que prova que o nome, e não a mera presença de <table>, é o que discrimina.
+    expect(getAllByRole("table")).toHaveLength(2)
+    expect(
+      within(container.querySelector('[data-t="sem-nome"]') as HTMLElement)
+        .queryByRole("table", { name: "Acervo de arquivos" }),
+    ).toBeNull()
+    void queryByRole
+
+    // 3) O nome é INVISÍVEL: caption visível mexeria no layout das 6 telas já em produção.
+    //    E `<caption>` só é válida como PRIMEIRO filho de <table> — fora dali o parser a
+    //    reposiciona ou descarta, e o nome sumiria sem erro nenhum.
+    const tabela = container.querySelector('[data-t="canon"] table') as HTMLTableElement
+    const caption = tabela.querySelector("caption") as HTMLElement
+    expect(caption.textContent).toBe("Acervo de arquivos")
+    expect(caption.classList.contains("sr-only")).toBe(true)
+    expect(tabela.firstElementChild).toBe(caption)
+
+    // 4) `scope="col"` em todo <th> do cabeçalho — técnica WCAG H63 e o padrão que
+    //    `Pages/Home/Index.tsx:424-425` já escrevia à mão.
+    const ths = Array.from(tabela.querySelectorAll("thead th"))
+    expect(ths).toHaveLength(2)
+    expect(ths.every((th) => th.getAttribute("scope") === "col")).toBe(true)
+
+    // 5) O axe continua limpo (não é a defesa — ver o bloco acima —, é higiene).
     expect(await impactfulViolations(container)).toEqual([])
   })
 })

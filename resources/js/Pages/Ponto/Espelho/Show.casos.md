@@ -5,8 +5,8 @@ irmaos: Show.charter.md (lei) · SDD-espelho-e-jornada-v1.0.md §5.3 F2 + §6.1 
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o espelho é o documento que sustenta fechamento de folha e defesa em fiscalização — o que ele deixa de mostrar vira verba trabalhista.
 owner: wagner
-last_run: "2026-08-28"
-last_run_ci: "0 UC executado por mim — ZERO, e o numero e esse mesmo. O bump e REVALIDACAO DE LEITURA disparada pelo G-6 (o .tsx mudou depois do last_run anterior), nao veredito; Pest roda no CT100/CI (ADR 0062). O diff que a acordou sao os PR-A2 (sinal nao-cor na divergencia) e PR-A3 (mobile-fit) da Onda 1. A revalidacao tem um fato MEDIDO que a torna forte, e nao uma leitura otimista: abri o EspelhoContratoTest.php e conferi caso a caso — os 5 UC asseveram EXCLUSIVAMENTE sobre o payload Inertia (`props.totais.divergencias`, `props.linhas[].divergencia`, `assertCount` em `props.linhas`, `props.linhas[].marcacoes[].origem`, status 404, resolucao das props diferidas). NENHUM deles toca DOM, HTML renderizado ou classe CSS. Os dois PRs sao 100% renderizacao client-side e nao encostam no EspelhoController, no ApuracaoService nem em nenhuma prop — logo nenhum aceite pode mudar de sentido por construcao, nao por conveniencia. Caso a caso: 01 ganha REFORCO (o realce `bg-warning/5` e a coluna `Estado` continuam intocados e ganham ao lado um icone nao-cor na linha e na celula do heatmap); 02 segue com `rows` unico alimentando as duas renderizacoes, e o assert conta `props.linhas`, nao nos do DOM; 03 renderiza o mesmo array ja filtrado; 04 e de rota; 05 segue diferido — a lista de cartoes nasce DENTRO do mesmo <Deferred>. UMA ressalva que registro de proposito para quem vier depois: a partir do A3 cada dia existe em DOIS nos do HTML (a linha da tabela, >=md, e o cartao, <md), so um visivel por vez. Isso e irrelevante para os 5 UC atuais, que nao leem DOM — mas um teste FUTURO de nivel DOM que conte ocorrencias por dia vai contar em dobro se nao filtrar por visibilidade. O veredito segue com a lane PHP / Pest (Ponto - MySQL). RE-MEDIDO em 2026-08-28 depois que o #6405 reescreveu o EspelhoContratoTest inteiro (869 linhas trocadas, virou Pest) no meio deste PR: varredura contada no arquivo NOVO da o mesmo resultado - 10 asserts sobre `json('props`, ZERO sobre DOM/HTML/CSS (assertSee/assertDontSee/querySelector/getContent/assertViewHas). A conclusao acima nao foi herdada da leitura anterior, foi refeita contra a versao vigente."
+last_run: "2026-09-04"
+last_run_ci: "0 UC executado por mim - ZERO, e o numero e esse mesmo. O bump e REVALIDACAO DE LEITURA disparada pelo G-6 (o .tsx mudou depois do last_run anterior), nao veredito; Pest roda no CT100/CI (ADR 0062). O diff que a acordou e MINIMO e esta medido: um atributo ARIA no seletor de mes (rotulo acessivel, texto igual ao do Espelho/Index) + 3 linhas de comentario -- zero logica, zero prop, zero backend (git diff 46ebeb12fd..568625f2ff em Show.tsx da exatamente 4 linhas adicionadas). MOTIVO do diff: o A11yAxeBrowserTest passou a auditar esta tela e ela reprovou com axe CRITICAL pela regra `label` (Form elements must have labels), run 33925329742 -- o seletor nao tinha nome acessivel nenhum; depois do atributo, as 4 telas do Ponto ficaram verdes na mesma lane. POR QUE nenhum dos 5 UC muda de sentido, MEDIDO no arquivo vigente e nao herdado da revalidacao anterior: varredura contada no EspelhoContratoTest.php (496 linhas) da 10 asserts sobre o payload Inertia (`json('props` / `props.`) e ZERO sobre DOM/HTML/CSS (assertSee/assertDontSee/querySelector/getContent/assertViewHas), e os 5 ids UC-ESPSH-01..05 estao todos la. Atributo ARIA nao aparece em prop nenhuma, logo nenhum aceite pode mudar por construcao -- nao por conveniencia. O veredito dos 5 UC segue com a lane PHP / Pest (Ponto - MySQL), que e advisory."
 ---
 
 # Casos de Uso & Aceite — Espelho de ponto mensal
@@ -182,6 +182,25 @@ Entram como `[BACKLOG]` de propósito: são comportamento que o F3 de 2026-08-21
   visibilidade antes de contar** ocorrências por dia, senão conta em dobro. O `Show.tsx` já resolve
   isso no `alvoDoDia()` por `getClientRects()` — e não por `getComputedStyle`, que aqui mentiria: quem
   esconde é o ancestral, e o `display` computado do descendente continua `table-row`.
+
+## Coberto por teste de tela, sem id próprio — o nome acessível do seletor de mês
+
+O seletor de mês desta tela (o `<input type="month">` entre "Mês anterior" e "Próximo mês") **não
+tinha rótulo acessível**, e o defeito era `critical` pela regra `label` do axe: sem `<label>`
+implícito ou explícito, sem `aria-label`/`aria-labelledby`, sem `title` nem `placeholder`. Quem
+navega por leitor de tela ouvia um campo sem nome no meio de dois botões nomeados.
+
+**Não é achado de leitura — é veredito de máquina.** A tela entrou no `A11yAxeBrowserTest`
+(axe-core em Chromium real, `level: 0`) e reprovou na primeira execução, com o HTML do nó impresso
+no log; o conserto foi `aria-label="Mês de referência"`, e a mesma execução voltou verde nas 4
+telas do Ponto. O texto espelha o `<label htmlFor="mes">` que o `Espelho/Index` já usava — ali cabe
+rótulo visível, aqui não, porque o campo está espremido entre os dois botões e um rótulo visível
+mudaria o layout (o que exigiria gate visual, não uma correção de a11y).
+
+**Por que isto NÃO virou `## UC-ESPSH-06`:** o teste que cobre audita a **tela inteira** por um
+dataset de 4 telas — o nome dele não cita, nem poderia citar, um id de caso desta tela sozinha.
+Criar um `## UC-XX` que nenhum teste cita avermelharia o G-2 e fabricaria cobertura, que é
+exatamente o que a seção acima recusa fazer. Fica aqui como registro com veredito, não como caso.
 
 ## Decidido — CPF e PIS ficam à vista no cabeçalho legal
 

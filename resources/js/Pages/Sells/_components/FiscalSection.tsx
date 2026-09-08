@@ -111,7 +111,7 @@ export default function FiscalSection({ saleId, enabled = true }: Props) {
 
       {/* Lista emissões existentes */}
       {emissoes.length > 0 && (
-        <ul className="space-y-2 mb-3">
+        <ul className="space-y-2 mb-3" data-contract="drawer-fiscal">
           {emissoes.map((em) => (
             <EmissaoRow key={em.id} emissao={em} onReenviarEmail={reenviarEmail} />
           ))}

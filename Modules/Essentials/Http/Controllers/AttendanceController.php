@@ -5,12 +5,15 @@ namespace Modules\Essentials\Http\Controllers;
 use App\User;
 use App\Utils\ModuleUtil;
 use DB;
-use Excel;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use Modules\Essentials\Entities\EssentialsAttendance;
 use Modules\Essentials\Entities\Shift;
+use Modules\Essentials\Jobs\ImportarPresencaJob;
+use Modules\Essentials\Services\AttendanceImportService;
 use Modules\Essentials\Utils\EssentialsUtil;
 use Spatie\Permission\Models\Permission;
 use Yajra\DataTables\Facades\DataTables;
@@ -164,8 +167,27 @@ class AttendanceController extends Controller
 
         $days = $this->moduleUtil->getDays();
 
+        // Último relatório de import deste negócio (HRM-O6 / PR-6). Existe porque, com
+        // `QUEUE_CONNECTION=database`, o Job termina DEPOIS do redirect: sem esta chave
+        // estável o relatório só viveria no flash do request que enviou o arquivo, e a
+        // mensagem "o relatório aparece nesta tela ao terminar" seria falsa.
+        $import_presenca_relatorio = $this->ultimoRelatorioDeImport((int) $business_id);
+
         return view('essentials::attendance.index')
-            ->with(compact('is_employee_allowed', 'clock_in', 'employees', 'days'));
+            ->with(compact('is_employee_allowed', 'clock_in', 'employees', 'days', 'import_presenca_relatorio'));
+    }
+
+    /**
+     * Lê o último relatório de import de presença do negócio, escopado por business_id
+     * na própria chave de cache (ADR 0093 vale também pro cache).
+     *
+     * @return array<string, mixed>|null
+     */
+    private function ultimoRelatorioDeImport(int $businessId): ?array
+    {
+        $relatorio = Cache::get(ImportarPresencaJob::chaveDeCache($businessId, ImportarPresencaJob::TOKEN_ULTIMO));
+
+        return is_array($relatorio) ? $relatorio : null;
     }
 
     /**
@@ -431,9 +453,17 @@ class AttendanceController extends Controller
     /**
      * Function to validate clock in and clock out time
      *
+     * O predicado de sobreposição mora em `AttendanceImportService` — ÚNICA
+     * implementação, compartilhada com o import de planilha (HRM-O6 / PR-6, achado A7).
+     * Antes o SQL vivia só aqui, e por isso o import não o aplicava.
+     *
+     * A conversão de formato continua sendo `uf_date`: o formulário manda a data no
+     * formato de exibição do negócio (sessão). O import NÃO passa por aqui — ele já
+     * recebe `Y-m-d H:i:s` do arquivo e roda em fila, onde não existe sessão.
+     *
      * @return string
      */
-    public function validateClockInClockOut(Request $request)
+    public function validateClockInClockOut(Request $request, AttendanceImportService $importService)
     {
         $business_id = $request->session()->get('user.business_id');
         $user_ids = explode(',', $request->input('user_ids'));
@@ -441,41 +471,23 @@ class AttendanceController extends Controller
         $clock_out_time = $request->input('clock_out_time');
         $attendance_id = $request->input('attendance_id');
 
-        $is_valid = 'true';
-        if (! empty($user_ids)) {
-
-            //Check if clock in time falls under any existing attendance range
-            $is_clock_in_exists = false;
-            if (! empty($clock_in_time)) {
-                $clock_in_time = $this->essentialsUtil->uf_date($clock_in_time, true);
-
-                $is_clock_in_exists = EssentialsAttendance::where('business_id', $business_id)
-                                        ->where('id', '!=', $attendance_id)
-                                        ->whereIn('user_id', $user_ids)
-                                        ->where('clock_in_time', '<', $clock_in_time)
-                                        ->where('clock_out_time', '>', $clock_in_time)
-                                        ->exists();
-            }
-
-            //Check if clock out time falls under any existing attendance range
-            $is_clock_out_exists = false;
-            if (! empty($clock_out_time)) {
-                $clock_out_time = $this->essentialsUtil->uf_date($clock_out_time, true);
-
-                $is_clock_out_exists = EssentialsAttendance::where('business_id', $business_id)
-                                        ->where('id', '!=', $attendance_id)
-                                        ->whereIn('user_id', $user_ids)
-                                        ->where('clock_in_time', '<', $clock_out_time)
-                                        ->where('clock_out_time', '>', $clock_out_time)
-                                        ->exists();
-            }
-
-            if ($is_clock_in_exists || $is_clock_out_exists) {
-                $is_valid = 'false';
-            }
+        if (! empty($clock_in_time)) {
+            $clock_in_time = $this->essentialsUtil->uf_date($clock_in_time, true);
         }
 
-        return $is_valid;
+        if (! empty($clock_out_time)) {
+            $clock_out_time = $this->essentialsUtil->uf_date($clock_out_time, true);
+        }
+
+        $sobrepoe = $importService->sobrepoeMarcacaoExistente(
+            (int) $business_id,
+            $user_ids,
+            ! empty($clock_in_time) ? $clock_in_time : null,
+            ! empty($clock_out_time) ? $clock_out_time : null,
+            $attendance_id
+        );
+
+        return $sobrepoe ? 'false' : 'true';
     }
 
     /**
@@ -574,6 +586,22 @@ class AttendanceController extends Controller
     /**
      * Function to import attendance.
      *
+     * HRM-O6 / PR-6 (achado A7). O que mudou em relação ao legado:
+     *
+     *  1. **Validação linha a linha** — cada linha passa pela MESMA checagem de
+     *     sobreposição do `validateClockInClockOut` (agora em `AttendanceImportService`).
+     *     Antes o formulário validava e o import não, e o insert entrava cru.
+     *  2. **Relatório de recusadas em vez de rollback total** — o legado dava `break` no
+     *     primeiro defeito e `DB::rollBack()` no lote inteiro: uma linha ruim na posição
+     *     900 descartava 899 marcações boas. Agora as boas entram e as ruins voltam
+     *     listadas com número da linha e motivo.
+     *  3. **`ini_set('max_execution_time', 0)` removido** — o trabalho foi pra fila
+     *     (`ImportarPresencaJob`), e os SELECT por linha (N+1) viraram 2 queries em lote.
+     *
+     * Tier 0 (ADR 0093): o `business_id` da sessão é resolvido AQUI e entregue ao Job
+     * pelo construtor — `session()` não existe no worker. Linha cujo e-mail pertence a
+     * colaborador de outro negócio é recusada pelo service, nunca importada.
+     *
      * @param  Request  $request
      * @return Response
      */
@@ -586,105 +614,100 @@ class AttendanceController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        try {
-            $notAllowed = $this->moduleUtil->notAllowedInDemo();
-            if (! empty($notAllowed)) {
-                return $notAllowed;
-            }
-
-            //Set maximum php execution time
-            ini_set('max_execution_time', 0);
-
-            if ($request->hasFile('attendance')) {
-                $file = $request->file('attendance');
-                $parsed_array = Excel::toArray([], $file);
-                //Remove header row
-                $imported_data = array_splice($parsed_array[0], 1);
-
-                $formated_data = [];
-
-                $is_valid = true;
-                $error_msg = '';
-
-                DB::beginTransaction();
-                $ip_address = $this->moduleUtil->getUserIpAddr();
-                foreach ($imported_data as $key => $value) {
-                    $row_no = $key + 1;
-                    $temp = [];
-
-                    //Add user
-                    if (! empty($value[0])) {
-                        $email = trim($value[0]);
-                        $user = User::where('business_id', $business_id)->where('email', $email)->first();
-                        if (! empty($user)) {
-                            $temp['user_id'] = $user->id;
-                        } else {
-                            $is_valid = false;
-                            $error_msg = "User not found in row no. $row_no";
-                            break;
-                        }
-                    } else {
-                        $is_valid = false;
-                        $error_msg = "Email is required in row no. $row_no";
-                        break;
-                    }
-
-                    //clockin time
-                    if (! empty($value[1])) {
-                        $temp['clock_in_time'] = trim($value[1]);
-                    } else {
-                        $is_valid = false;
-                        $error_msg = "Clock in time is required in row no. $row_no";
-                        break;
-                    }
-                    $temp['clock_out_time'] = ! empty($value[2]) ? trim($value[2]) : null;
-
-                    //Add shift
-                    if (! empty($value[3])) {
-                        $shift_name = trim($value[3]);
-                        $shift = Shift::where('business_id', $business_id)->where('name', $shift_name)->first();
-                        if (! empty($shift)) {
-                            $temp['essentials_shift_id'] = $shift->id;
-                        } else {
-                            $is_valid = false;
-                            $error_msg = "Shift not found in row no. $row_no";
-                            break;
-                        }
-                    }
-
-                    $temp['clock_in_note'] = ! empty($value[4]) ? trim($value[4]) : null;
-                    $temp['clock_out_note'] = ! empty($value[5]) ? trim($value[5]) : null;
-                    $temp['ip_address'] = ! empty($value[6]) ? trim($value[6]) : $ip_address;
-                    $temp['business_id'] = $business_id;
-                    $formated_data[] = $temp;
-                }
-
-                if (! $is_valid) {
-                    throw new \Exception($error_msg);
-                }
-
-                if (! empty($formated_data)) {
-                    EssentialsAttendance::insert($formated_data);
-                }
-
-                $output = ['success' => 1,
-                    'msg' => __('product.file_imported_successfully'),
-                ];
-
-                DB::commit();
-            }
-        } catch (\Exception $e) {
-            DB::rollBack();
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
-
-            $output = ['success' => 0,
-                'msg' => $e->getMessage(),
-            ];
-
-            return redirect()->back()->with('notification', $output);
+        $notAllowed = $this->moduleUtil->notAllowedInDemo();
+        if (! empty($notAllowed)) {
+            return $notAllowed;
         }
 
-        return redirect()->back()->with('status', $output);
+        // `extensions` (e não `mimes`) de propósito: o próprio template do módulo é um
+        // .xls gerado pelo Calc, cujo MIME adivinhado varia — `mimes` recusaria arquivo
+        // legítimo. A extensão é declarada pelo cliente, então a proteção real é o
+        // arquivo ir pra disco privado, ser parseado e apagado em seguida.
+        $request->validate([
+            'attendance' => ['required', 'file', 'extensions:xls,xlsx,csv,txt', 'max:5120'],
+        ]);
+
+        try {
+            $arquivo = $request->file('attendance');
+            $token = (string) Str::uuid();
+
+            // Disco privado (`storage/app`), nunca `public`: a planilha traz e-mail e
+            // jornada de colaborador. O Job apaga o arquivo ao terminar.
+            $caminho = $arquivo->storeAs(
+                'essentials/import-presenca',
+                $token.'.'.$arquivo->getClientOriginalExtension(),
+                'local'
+            );
+
+            ImportarPresencaJob::dispatch(
+                businessId: (int) $business_id,
+                caminhoArquivo: $caminho,
+                chaveRelatorio: $token,
+                userId: auth()->id(),
+                ipPadrao: $this->moduleUtil->getUserIpAddr(),
+                nomeOriginal: $arquivo->getClientOriginalName(),
+            );
+        } catch (\Exception $e) {
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+
+            return redirect()->back()->with('notification', [
+                'success' => 0,
+                'msg' => $e->getMessage(),
+            ]);
+        }
+
+        // Com `QUEUE_CONNECTION=sync` o Job já rodou inline e o relatório está pronto
+        // agora; com `database` ele chega depois, e aí quem o exibe é o `index()`, que lê
+        // a chave estável do último relatório. Nada é prometido além disso — não existe
+        // notificação nem e-mail neste caminho.
+        $relatorio = Cache::get(ImportarPresencaJob::chaveDeCache((int) $business_id, $token));
+        $relatorio = is_array($relatorio) ? $relatorio : null;
+
+        return redirect()->back()
+            ->with('status', $this->mensagemDoImport($relatorio))
+            ->with('import_presenca_relatorio', $relatorio);
+    }
+
+    /**
+     * Monta a mensagem de retorno do import a partir do relatório (ou da ausência dele).
+     *
+     * @param  array<string, mixed>|null  $relatorio
+     * @return array{success:int, msg:string}
+     */
+    private function mensagemDoImport(?array $relatorio): array
+    {
+        if ($relatorio === null) {
+            return [
+                'success' => 1,
+                'msg' => __('essentials::lang.import_enfileirado'),
+            ];
+        }
+
+        if (($relatorio['estado'] ?? null) === 'erro') {
+            return [
+                'success' => 0,
+                'msg' => $relatorio['mensagem'] ?? __('messages.something_went_wrong'),
+            ];
+        }
+
+        $recusadas = count($relatorio['recusadas'] ?? []);
+
+        if ($recusadas === 0) {
+            return [
+                'success' => 1,
+                'msg' => __('essentials::lang.import_concluido', ['inseridas' => $relatorio['inseridas'] ?? 0]),
+            ];
+        }
+
+        // Sucesso PARCIAL é reportado como aviso, não como sucesso limpo: o operador
+        // precisa saber que ficaram linhas de fora — silêncio aqui é o estrago do A7.
+        return [
+            'success' => 0,
+            'msg' => __('essentials::lang.import_parcial', [
+                'inseridas' => $relatorio['inseridas'] ?? 0,
+                'recusadas' => $recusadas,
+            ]),
+        ];
     }
 
     /**

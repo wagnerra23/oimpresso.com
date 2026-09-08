@@ -14,10 +14,11 @@ import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import { Button } from '@/Components/ui/button';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, router } from '@inertiajs/react';
-import { Activity, Info } from 'lucide-react';
+import { Activity, Download, Info } from 'lucide-react';
 import { useState } from 'react';
 
 import FxShell from './_components/FxShell';
+import { btnProps } from './_lib/botao-fiscal';
 import { chipCount, chipProps } from './_lib/chip-filtro';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 
@@ -71,6 +72,11 @@ export default function Eventos({ filters: initialFilters, counts, rows }: Event
   const [filters, setFilters] = useState<Filters>(initialFilters);
   const dataRows: EventoRow[] = rows?.data ?? [];
 
+  // URL do CSV — carrega os filtros ATIVOS, então o arquivo bate com o que a
+  // contadora está vendo. É <a href> de propósito, não `router.visit`: Inertia
+  // espera resposta JSON e não dispara download de arquivo.
+  const urlExport = `/fiscal/eventos/export?kind=${encodeURIComponent(filters.kind)}&dias=${filters.dias}`;
+
   const apply = (next: Partial<Filters>) => {
     const merged = { ...filters, ...next };
     setFilters(merged);
@@ -97,19 +103,27 @@ export default function Eventos({ filters: initialFilters, counts, rows }: Event
           { keys: ['2'], label: 'NF-e' },
         ]}
         actions={
-          <Select
-            value={String(filters.dias)}
-            onValueChange={(v) => apply({ dias: parseInt(v, 10) })}
-          >
-            <SelectTrigger size="sm" className="w-auto" aria-label="Período">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="7">Últimos 7d</SelectItem>
-              <SelectItem value="30">Últimos 30d</SelectItem>
-              <SelectItem value="90">Últimos 90d</SelectItem>
-            </SelectContent>
-          </Select>
+          <>
+            <Select
+              value={String(filters.dias)}
+              onValueChange={(v) => apply({ dias: parseInt(v, 10) })}
+            >
+              <SelectTrigger size="sm" className="w-auto" aria-label="Período">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7">Últimos 7d</SelectItem>
+                <SelectItem value="30">Últimos 30d</SelectItem>
+                <SelectItem value="90">Últimos 90d</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button asChild {...btnProps('ghost')}>
+              <a href={urlExport} download>
+                <Download size={14} aria-hidden="true" />
+                Exportar CSV
+              </a>
+            </Button>
+          </>
         }
       >
         {/* Callout — janelas legais (port fiscal-page.jsx §9 EventosTab) */}

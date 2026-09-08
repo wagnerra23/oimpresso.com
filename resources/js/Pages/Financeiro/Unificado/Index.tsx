@@ -967,7 +967,7 @@ function KpiBar({ kpis, lancamentos, onKpiSelect, periodLabel, lenteAtiva }: { k
   };
 
   return (
-    <div className="fin-stats">
+    <div className="fin-stats" data-contract="kpis">
       <button type="button" className={`fin-stat fin-stat-hero ${kpiHover}${kpiOn('caixa')}`} onClick={() => onKpiSelect('caixa', ['ar', 'ap'])} aria-label="Filtrar abertos (a receber + a pagar)">
         {/* FX-2 (print 06-11): mês do hero vinha hardcoded "maio"; agora usa periodLabel
             (MESMA fonte do subtítulo da página — fonte única, sem drift de período). */}
@@ -1541,7 +1541,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
         suffix=" · Visão unificada"
         subtitle={<>{periodLabel}{businessName ? ` · ${businessName}` : ''} · caixa unificado</>}
       >
-        <div className="flex-shrink-0 flex items-center gap-1.5 ml-auto">
+        <div className="flex-shrink-0 flex items-center gap-1.5 ml-auto" data-contract="header-acoes">
           {/* US-FIN-029 (2026-06-10) — segmented 3 lentes (Caixa · A receber · A pagar),
               direção [W] 2026-05-31 (charter v14 + MWART unificado-3-lentes). Camada 1
               do filtro grosso; chips lifecycle refinam DENTRO da lente. Pattern visual =
@@ -1727,7 +1727,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
       </div>
 
       {/* LINHA 2 do filtro — chips lifecycle + toggles + contas + plano + busca/densidade. */}
-      <div className="fin-toolbar mt-2">
+      <div className="fin-toolbar mt-2" data-contract="filter-pills-toolbar">
         {/* US-FIN-029 — chips refinam DENTRO da lente: chip incompatível com a lente
             ativa NÃO renderiza (some, não desabilitado — menos ruído, MWART dim 4). */}
         <div className="fin-filter-group" role="group" aria-label="Filtros por ciclo de vida">
@@ -1903,7 +1903,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
       {/* Tabela agrupada */}
       <Card className="mt-3">
         <CardContent className="p-0">
-          <table className="w-full border-collapse">
+          <table className="w-full border-collapse" data-contract="tabela-linhas">
             <thead>
               <tr className="text-[10px] uppercase tracking-widest text-muted-foreground border-b border-border">
                 {/* Onda 12 (2026-05-20): checkbox select-all (referencia: visible rows). */}
@@ -2042,7 +2042,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
             DENTRO do drawer (CSS vars + grid layouts + spacing). Root cause descoberto
             via JS check: drawerInsideFinCowork=false, audit-row display=list-item
             (deveria ser grid). */}
-        <SheetContent side="right" className="fin-cowork fin-curadoria fin-drawer-wide w-[560px] sm:max-w-[560px]">
+        <SheetContent side="right" className="fin-cowork fin-curadoria fin-drawer-wide w-[560px] sm:max-w-[560px]" data-contract="drawer-detalhe">
           {selected && (
             <>
               {/* Onda 17 (2026-05-20) — Header canon match prototype financeiro-app.jsx:739-754.
@@ -2557,7 +2557,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
 
                   {/* Onda 21 (2026-05-19) #55 — Workflow aprovação pra títulos a pagar abertos. */}
                   {selected.kind === 'payable' && (selected.status === 'aberto' || selected.status === 'atrasado' || selected.status === 'vencendo') && (
-                    <div className="border-t border-border pt-4">
+                    <div className="border-t border-border pt-4" data-contract="aprovacao-de-pagamento">
                       <div className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium mb-2">Aprovação</div>
                       {!(selected.aprovacao_status) && (
                         <button

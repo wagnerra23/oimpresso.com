@@ -159,6 +159,24 @@ function isolatedStatesCases(): array
         }
     }
 
+    // Escopo TARGETED (o mesmo par VISREG_SCOPE + VISREG_SCREENS do PixelBaselineTest:95-104):
+    // fica só o estado cuja `source` foi pedida. Existe pro MODO UPDATE do workflow poder
+    // regenerar a baseline de estado de UMA tela sem regravar as outras 18 — carimbar tela que
+    // ninguem mediu e a lapide §5 2026-07-17 (drift-sentinel). Medido em 2026-09-03 (run
+    // 33782104647 → PR #6665): o dispatch com screens=["Jana",...] regenerou o L1 da Jana e
+    // PULOU este L2 inteiro ("estados/flows pulados"), entao `jana · estado=default` ficou
+    // fotografando o header antigo e reprovou em zona cinza (0,8583%) o proprio PR de baselines.
+    // Diferente do L1, NAO lanca quando um item pedido nao tem estado aqui: "Jana/Chat" e tela
+    // valida do L1 sem entrada neste manifesto, e o dispatch manda a MESMA lista pros dois.
+    $scope = getenv('VISREG_SCOPE') ?: 'global';
+    if ($scope === 'targeted') {
+        $requested = json_decode(getenv('VISREG_SCREENS') ?: '[]', true, 512, JSON_THROW_ON_ERROR);
+        $cases = array_filter(
+            $cases,
+            static fn (array $case): bool => in_array($case[4], $requested, true),
+        );
+    }
+
     return $cases;
 }
 

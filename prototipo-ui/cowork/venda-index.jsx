@@ -205,9 +205,8 @@ function VendaTodasPage({ avisar: avisarFora }) {
             <div className="vi-pills" role="tablist" aria-label="Situação da venda">
               {PILLS.map((p) => <button key={p.id} role="tab" aria-selected={pill === p.id} className={pill === p.id ? "on" : ""} onClick={() => setPill(p.id)}>{p.label}</button>)}
             </div>
-            <div className="vi-seg" role="tablist" aria-label="Visão da lista">
-              {VISOES.map((x) => <button key={x.id} role="tab" aria-selected={visao === x.id} title={x.dica} className={visao === x.id ? "on" : ""} onClick={() => setVisao(x.id)}>{x.label}</button>)}
-            </div>
+            <window.CliSeg role="tablist" ariaLabel="Visão da lista" value={visao} onChange={setVisao}
+              options={VISOES.map((x) => ({ key: x.id, label: x.label, title: x.dica }))} />
             <div className="pb-busca">
               <Ic name="search" size={12} />
               <input ref={buscaRef} value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar venda, cliente ou item…" />

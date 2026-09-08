@@ -246,10 +246,10 @@ function OficinaOSPage() {
             )}
 
             <OfxSection icon={<I.orders size={16} />} title="Itens da OS" desc="Serviço (mão de obra) e peças — naturezas fiscais distintas">
-              <div className="ofx-tabs" role="tablist">
-                <button role="tab" aria-selected={tab === "servicos"} className={"ofx-tab" + (tab === "servicos" ? " on" : "")} onClick={() => setTab("servicos")}>Serviços · {servicos.length}</button>
-                <button role="tab" aria-selected={tab === "pecas"} className={"ofx-tab" + (tab === "pecas" ? " on" : "")} onClick={() => setTab("pecas")}>Peças · {pecas.length}</button>
-              </div>
+              <window.CliTabs className="ofx-tabs" ariaLabel="Itens da OS" pad={4} size="sm"
+                active={tab} onChange={setTab}
+                tabs={[{ key: "servicos", label: "Serviços", n: servicos.length },
+                  { key: "pecas", label: "Peças", n: pecas.length }]} />
               <div className="ofx-search">
                 <I.search />
                 <input ref={searchRef} placeholder={tab === "servicos" ? "Buscar serviço ou tabela de mão de obra…" : "Buscar peça por nome, código ou aplicação…"} />

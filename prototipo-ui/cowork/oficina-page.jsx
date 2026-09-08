@@ -730,11 +730,7 @@ function Drawer({ os, onClose, onEdit, onAdvance, osItems, setOsItems, osDvi, se
 }
 
 const Seg = ({ value, set, options }) => (
-  <div className="seg">
-    {options.map(o => (
-      <button key={o.value} type="button" className={value === o.value ? "on" : ""} onClick={() => set(o.value)}>{o.label}</button>
-    ))}
-  </div>
+  <window.CliSeg options={options.map(o => ({ key: o.value, label: o.label }))} value={value} onChange={set} />
 );
 
 function ProducaoOficina({ foco, setFoco, densidade, setDensidade, pressao, setPressao, recursoFilter, setRecursoFilter, view, setView }) {

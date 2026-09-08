@@ -217,7 +217,11 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 
 ### US-PONTO-012 · Corrigir os atributos fantasma do modulo (4 instancias)
 
-**Implementado em:** _pendente_ — GAP-PONTO-004: padrao nomeado pelo SDD §9 (D-1/D-8); a varredura de 2026-08-03 fechou a pendencia do §10 Onda 1 e achou 2 instancias novas.
+**Implementado em:** `Modules/Ponto/Http/Controllers/EspelhoController.php` · `Modules/Ponto/Http/Controllers/EscalaController.php` · `Modules/Ponto/Http/Controllers/ImportacaoController.php` · `Modules/Ponto/Tests/Feature/EspelhoContratoTest.php` · `Modules/Ponto/Tests/Feature/EscalaFormContratoTest.php` · `Modules/Ponto/Tests/Feature/ImportacaoIndexContratoTest.php` · `Modules/Ponto/Tests/Feature/BancoHorasImportacaoContratoTest.php` · `Modules/Ponto/Tests/Feature/ImportacaoShowContratoTest.php` · verificado@153a65b (2026-09-05) — GAP-PONTO-004: padrao nomeado pelo SDD §9 (D-1/D-8); a varredura de 2026-08-03 fechou a pendencia do §10 Onda 1 e achou 2 instancias novas.
+
+**Testado em:** `Modules/Ponto/Tests/Feature/ImportacaoShowContratoTest.php`
+
+> Este campo lista o que declara `@covers-us US-PONTO-012` — e por isso traz UM arquivo, nao os cinco. As outras tres instancias tem teste proprio (`EspelhoContratoTest` · `EscalaFormContratoTest` · `ImportacaoIndexContratoTest` · `BancoHorasImportacaoContratoTest`, todos no `Implementado em:` acima e todos verdes no mesmo run), mas eles declaram as US que sao deles. Retro-anotar `@covers-us US-PONTO-012` neles seria escrever contrato alheio; quem cobrir mais instancias declara e entra aqui.
 
 **Como** RH que fecha folha,
 **preciso** que a tela mostre o que esta gravado no banco,
@@ -228,8 +232,15 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 - `ImportacaoController` le `linhas_criadas`/`linhas_ignoradas` (reais: `linhas_sucesso`/`linhas_erro`) em `index` E `show` → `UC-IMPIDX-03` e `UC-IMPSH-04`
 - `ImportacaoController` le `erro_mensagem` (reais: `log`/`erros_amostra`); o `Show.tsx:82` faz `{i.erro_mensagem && <Alert>}`, logo o alerta de erro NUNCA renderiza → vira `UC-IMPSH-05`
 - Os testes assertam COMPORTAMENTO, nao a chave literal — ha mais de uma correcao legitima (renomear a leitura, accessor, ou `$appends`), e assert por chave reprovaria as outras
-- DoD: os 4 UCs verdes na lane `ponto-pest`
-- **Status:** todo
+
+**DoD:** os 4 UCs verdes na lane `ponto-pest`.
+
+> Escrito como `**DoD:**` (e nao so no bullet abaixo) porque e a forma que a maquina le: o `DOD_RE` do `anchor-lint --check-entry` aceita `DoD`/`Aceite`/`Criterios de Aceite`, nao o `**Aceitacao:**` que este SPEC usa. Uma US que se declara IMPLEMENTADA sem DoD legivel reprova o gate de entrada (ADR 0275/0303) — as demais US daqui passam por grandfather no baseline, e divida nova nao herda isenção.
+
+- **DoD CUMPRIDA — recibo, nao afirmacao.** JUnit do run [33942364334](https://github.com/wagnerra23/oimpresso.com/actions/runs/33942364334) da lane `PHP / Pest (Ponto · MySQL)`, os 5 ids das 4 instancias no MESMO run e todos com assertions > 0 (assertions > 0 e o que separa "passou" de "pulou" — LC-13): `UC-ESPSH-01` pass/6 · `UC-ESCF-01` pass/6 · `UC-IMPIDX-03` pass/4 · `UC-IMPSH-04` pass/6 · `UC-IMPSH-05` pass/12. Lane inteira: 279 passed · 0 failed · 1 skipped · 939 assertions
+- **O ultimo a fechar foi o `UC-IMPSH-05`** (PR #6802): a LEITURA do `erro_mensagem` ja tinha sido corrigida antes, mas nenhum teste exercia o caso — `git grep -l UC-IMPSH-05` devolvia 3 arquivos e ZERO de teste. Codigo consertado sem prova nao fecha DoD que pede UC verde
+- ⚠️ Nos `*.casos.md` os `UC-IMPSH-01..04` seguem `🧪` e nao `✅`, e isso NAO contradiz este recibo: eles vivem em classe PHPUnit com o UC em docblock, o `name` do `<testcase>` sai sem hifen e o manifesto do G-7 nunca os enxerga — `✅` ali seria `status:unverified`. Converter `BancoHorasImportacaoContratoTest` pra `it()` e o que os tira do `⛓`, e e chip a parte
+- **Status:** done (as 4 instancias de atributo fantasma leem a coluna real; os 5 UCs verdes na lane no run 33942364334)
 
 ### US-PONTO-013 · Consertar as duas telas que nao persistem
 

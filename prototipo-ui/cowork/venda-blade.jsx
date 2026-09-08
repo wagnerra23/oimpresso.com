@@ -165,10 +165,8 @@ function Toolbar({ busca, setBusca, ph, densa, setDensa, children }) {
         <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder={ph} />
       </div>
       <div className="sp" />
-      <div className="pb-seg" role="group" aria-label="Densidade da tabela">
-        <button className={densa ? "" : "on"} onClick={() => setDensa(false)}>Confortável</button>
-        <button className={densa ? "on" : ""} onClick={() => setDensa(true)}>Compacto</button>
-      </div>
+      <window.CliSeg ariaLabel="Densidade da tabela" value={densa ? "comp" : "conf"} onChange={(k) => setDensa(k === "comp")}
+        options={[{ key: "conf", label: "Confortável" }, { key: "comp", label: "Compacto" }]} />
       {children}
     </div>
   );
@@ -674,11 +672,7 @@ function VendaBladePage({ view = "pos", dense = false, papel = "administrador", 
               <button className="os-btn primary" onClick={() => onIr("nova", { status: "final" })}><Ic name="plus" size={13} /> Adicionar venda</button>}
           </>} />}
       <div className="pb-body">
-        <nav className="cli-moduletopnav vb-nav" aria-label="Telas do módulo Venda">
-          {["pos", "rascunhos", "cotacoes", "remessas", "descontos", "assinaturas", "pedidos", "caixa", "importar"].map((k) => (
-            <button key={k} className={"cli-moduletopnav-tab " + (tela === k || ABA_DE[tela] === k ? "active" : "")} onClick={() => onIr(k)}>{TITULOS[k]}</button>
-          ))}
-        </nav>
+        {window.CliTabs && <window.CliTabs ariaLabel="Telas do módulo Venda" className="vb-nav" tabs={["pos", "rascunhos", "cotacoes", "remessas", "descontos", "assinaturas", "pedidos", "caixa", "importar"].map((k) => ({ key: k, label: TITULOS[k] }))} active={ABA_DE[tela] || tela} onChange={onIr} />}
         {corpo}
       </div>
       {avisoNode}

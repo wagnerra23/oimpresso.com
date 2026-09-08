@@ -148,6 +148,7 @@
 
             $(document).on('submit', 'form#add_leave_form', function(e) {
                 e.preventDefault();
+                var form = this;
                 $(this).find('button[type="submit"]').attr('disabled', true);
                 var data = $(this).serialize();
                 var ladda = Ladda.create(document.querySelector('.add-leave-btn'));
@@ -159,6 +160,7 @@
                     data: data,
                     success: function(result) {
                         ladda.stop();
+                        $(form).find('button[type="submit"]').attr('disabled', false);
                         if (result.success == true) {
                             $('div#add_leave_modal').modal('hide');
                             toastr.success(result.msg);
@@ -166,6 +168,16 @@
                         } else {
                             toastr.error(result.msg);
                         }
+                    },
+                    // HRM-O6: o servidor passou a recusar com 422 (validacao no
+                    // StoreLeaveRequest e limite do tipo no LeaveBalanceService).
+                    // Sem este `error`, o 422 nao cai no `success` e a tela ficava
+                    // muda, com o botao travado e o Ladda girando pra sempre.
+                    error: function(xhr) {
+                        ladda.stop();
+                        $(form).find('button[type="submit"]').attr('disabled', false);
+                        var payload = xhr.responseJSON || {};
+                        toastr.error(payload.msg || @json(__('messages.something_went_wrong')));
                     },
                 });
             });

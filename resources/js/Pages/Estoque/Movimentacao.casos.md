@@ -101,6 +101,14 @@ last_run: "2026-07-02"
 
 ---
 
+## UC-EST-09 · Transferência CONCLUÍDA é terminal → repetir NÃO movimenta de novo
+- **Fluxo:** a transferência move o saldo no instante em que vira terminal (`final`/`received`). Repetir a conclusão — `POST /stock-transfers/update-status/{id}` ou `PUT /stock-transfers/{id}` — tem de ser RECUSADO, senão o saldo é movido outra vez, sem teto (`decreaseProductQuantity` usa `decrement()` puro, então a origem atravessa o zero). Contrato R-XFER-003 do `StockTransfer/Index.charter.md`; complementa UC-EST-06, que cobre UMA transferência mas não a repetição.
+- **Aceite:** Dado origem=7 e destino=3 numa transferência já `final` · Quando repete a conclusão pelos DOIS caminhos · Então origem=7 e destino=3 (intocados). E: 3 repetições seguidas não levam a origem a −2.
+- **Teste:** `tests/Feature/Estoque/EstoqueTransferenciaIdempotenciaTest.php`.
+- **Status: 🧪** _(2 controles positivos provam que ambos os caminhos movimentam quando DEVEM — sem eles o verde seria vácuo. Defeito confirmado em 2026-09-04 e corrigido no mesmo PR: o guard comparava o status persistido com `'completed'`, que é vocabulário de ENTRADA e nunca é gravado desde a migration `2020_09_07_171059`. Dano em produção no dia do achado: ZERO — nenhuma transferência existia.)_
+
+---
+
 ## UC-INV-02 · INV-2: rascunho/cotação NÃO movimenta
 - **Contrato (§7 INV-2):** só status terminal (`final`/`received`) mexe saldo. Venda em RASCUNHO ou COTAÇÃO não toca `qty_available`.
 - **Aceite:** Dado `qty_available=10` · Quando `adjustProductStockForInvoice` draft→draft (ou quotation) · Então `qty_available=10` (intocado).
@@ -157,3 +165,4 @@ last_run: "2026-07-02"
 - 2026-07-02 · [CC] PR2 — UC-EST-05 ajuste · UC-EST-06 transferência (par 2-lados + conservação) · UC-EST-07 opening (fluxo real) · UC-EST-08 fabricação/kit (decomposição combo).
 - 2026-07-02 · [CC] PR3 — invariantes UC-INV-02 (rascunho não move) · UC-INV-03 (DB::transaction atômica, behavioral) · UC-INV-05 (enable_stock=0 guard) · UC-INV-06 (isolamento tenant transitivo biz=1 vs biz=2). INV-1/INV-4 já cobertas alhures.
 - 2026-07-02 · [CC] UC-EST-04 fix — `Vestuario\DevolucaoService::registrarDevolucao` passa a reintegrar estoque (ProductUtil auditável + guard Tier 0). Red-spec ❌ → contrato vivo 🧪. Scaffold não-wired = zero impacto retroativo.
+- 2026-09-04 · [CC] UC-EST-09 — idempotência da transferência (R-XFER-003). Defeito confirmado no CT 100 (origem 7→4 numa repetição; 7→−2 em três) e corrigido nos DOIS caminhos (`updateStatus` e `update`), com 2 controles positivos travando o verde contra vácuo. Produção media ZERO transferências no dia, então o fix é preventivo e não houve backfill.

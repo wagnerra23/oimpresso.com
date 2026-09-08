@@ -162,10 +162,9 @@
             <button className="cr-x" onClick={onClose}><I.x size={16} /></button>
           </div>
 
-          <div className="cr-dwr-tabs">
-            <button className={"cr-dwr-tab" + (tab === "detalhes" ? " on" : "")} onClick={() => setTab("detalhes")}>Detalhes</button>
-            <button className={"cr-dwr-tab" + (tab === "ia" ? " on" : "")} onClick={() => setTab("ia")}>✦ IA</button>
-          </div>
+          <window.CliTabs className="cr-dwr-tabs" ariaLabel="Abas da assinatura" pad={18} size="sm"
+            active={tab} onChange={setTab}
+            tabs={[{ key: "detalhes", label: "Detalhes" }, { key: "ia", label: "✦ IA" }]} />
 
           <div className="cr-dwr-body">
             {tab === "detalhes" && <>

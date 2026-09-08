@@ -55,11 +55,11 @@ Cross-refs externos: 5 ADRs (todas sobre A/cadastro: 0179/0185/0186/0197 + 0013 
 | `app/Http/Controllers/ContactController` | **A KEEP** | `use App\Contact` (nunca `CrmContact`) |
 | Pages `resources/js/Pages/Cliente/**` | **A KEEP** | "lead" nos arquivos = CSS `leading-*` ou comentário; 0 coupling real |
 | `users.crm_contact_id` FK→contacts | **A KEEP** | Link portal-cliente (`ClienteOssDataController::persons`) |
-| `ContactLoginController`, `OrderRequestController`, portal `/contact/*` | **ZONA CINZA** | Portal do cliente — NÃO é pré-venda. **Fora do escopo** (Wagner decide separado) |
+| `ContactLoginController`, `OrderRequestController`, portal `/contact/*` | **ZONA CINZA** | Portal do cliente — NÃO é pré-venda. **Fora do escopo** (Wagner decide separado). **Uso real medido 2026-09-04 → zero em todos os eixos** (ver §Recibo do portal) — o dado informa a decisão, não a toma |
 | `LeadController`, `ProposalController`, `ProposalTemplateController`, `CampaignController`, `CallLogController`, `ScheduleController`, `ScheduleLogController`, `CrmDashboardController`, `ReportController`, `CrmMarketplaceController`, `DataController`, `CrmSettingsController` | **B TARGET** | Rotas `/crm/*`, nav `crm::layouts.nav` |
 | Entities `Leaduser`, `CrmContact`, `Proposal`, `ProposalTemplate`, `Campaign`, `Schedule`, `ScheduleLog`, `ScheduleUser`, `CrmCallLog`, `Deal`, `CrmMarketplace`, `CrmContactPersonCommission` | **B TARGET** | Pipeline domain |
 | Services `CrmLeadService`, `ProposalService`, `CampaignService`, `CallLogService`, `ScheduleService`, `DealPipelineService`, `LeadAssignmentService` | **B TARGET** | Pipeline domain |
-| Services `BrLookupService`, `ContactBookingService` | **ZONA CINZA** | `BrLookupService` pode ser usado por `ClienteLookupController` (A) — **confirmar antes de remover** |
+| Services `BrLookupService`, `ContactBookingService` | `BrLookupService` = **A** (medido 2026-09-04) · `ContactBookingService` segue **ZONA CINZA** | `BrLookupService`: único consumidor de código é `ClienteLookupController` (A) — **fica em A, não move** (receita no §BLOQUEIOS). `ContactBookingService`: **não medido** |
 | Commands `pos:sendScheduleNotification` (everyMinute), `pos:createRecursiveFollowup` (daily), `crm:health` | **B TARGET** | Follow-up reminders |
 
 > ⚠️ **Ajuste vs premissa:** não existe command `crm:send-follow-up-reminders`. O que existe é `pos:sendScheduleNotification` + `pos:createRecursiveFollowup`, agendados em `CrmServiceProvider::registerScheduleCommands()` (não em `app/Console/Kernel.php`). Igualmente, `CrmMarketplace` usa `crm_marketplaces` (plural). Existe `Deal`/`crm_deals` (Wave 27, 2026-05-17) não citado na premissa.
@@ -76,8 +76,9 @@ Cross-refs externos: 5 ADRs (todas sobre A/cadastro: 0179/0185/0186/0197 + 0013 
 | `convertToCustomer` é usado no fluxo de venda da Larissa? | **NÃO.** Só `LeadController` (rota `/crm/lead/{id}/convert`) e `CrmLeadService` | grep confinado |
 | Colunas `contacts.crm_source`/`crm_life_stage` — A lê? | **NÃO (A).** Lidas por `CrmContact`, `CrmDashboardController`, `DataController` (B) e `Connector ContactController` (externo). `app/Contact.php` só tem 1 ref defensiva `where('type','!=','lead')` que deve PERMANECER | grep |
 | `users.crm_contact_id` é pipeline? | **NÃO — é A/portal.** FK→contacts CASCADE, usado por `ClienteOssDataController::persons` (drawer 760, KEEP) | `app/User.php:356` |
-| `BrLookupService` — usado por A? | **PROVÁVEL SIM.** `ClienteLookupController` (A) faz CEP/CNPJ/SEFAZ. **Confirmar antes de mover** | `routes/web.php:93` |
+| `BrLookupService` — usado por A? | **SIM — CONFIRMADO 2026-09-04** (era "provável"). Único consumidor de código é `ClienteLookupController` (A); **zero** no pipeline B. Fica em A | `Modules/Crm/Routes/web.php:93` · `ClienteLookupController::__construct` |
 | `CrmLeadRepositoryInterface` resolvido fora do Crm? | **NÃO.** Binding aspiracional | grep fora de `Modules/Crm/` = 0 |
+| Portal `/contact/*` tem **uso real**? (zona cinza — decisão [W]) | **NÃO — MEDIDO 2026-09-04.** Zero logins (`users.crm_contact_id` = 0 de 130 users), zero pedidos (`sales_order` = 0 de 75.421 transactions), zero comissões, zero hits de rota em 30d de prod. Rotas **existem** no roteador — ninguém as chama | §Recibo do portal (3 eixos + controle positivo em cada) |
 
 ### Acoplamentos de BORDA que exigem ação (não bloqueiam A, mas exigem cuidado)
 
@@ -164,7 +165,7 @@ Como B é **descontinuação** (não migração), não há receptor que absorve 
 | 5 | `down()` defeituosos (call_logs nome errado; followup_invoices/users vazios) | Alto | **SIM (proibicoes)** | Migration de remoção (E5) com `down()` reverso CORRETO; não confiar nas legacy | E5 |
 | 6 | Schedule cron órfão (everyMinute!) se remover command sem tirar do schedule | Alto | não | Remover schedule + command no MESMO PR | E4 |
 | 7 | `crm.*` permissions órfãs | Médio | não | Seed cleanup no MESMO PR + Pest | E5 |
-| 8 | `BrLookupService` removido por engano quebra CEP/CNPJ do cadastro | Alto | não | Confirmar se A usa antes; se sim, fica em A | E1 |
+| 8 | `BrLookupService` removido por engano quebra CEP/CNPJ do cadastro | Alto | não | ✅ **medido 2026-09-04: pertence a A** — fica em A, não entra em nenhuma etapa de remoção (receita no §BLOQUEIOS) | E1 ✅ |
 | 9 | Reversibilidade | Médio | não | E1-E2 só comentam (revert = descomentar); DROP só após 30d flag-off + dumps | E1-E5 |
 | 10 | Larissa biz=4 UX quebrada sem aviso | Alto | não | Query Fase 3 confirma biz=4 ~0 pipeline; canary 24h + aviso 7d | E2/E4 |
 
@@ -174,7 +175,7 @@ Como B é **descontinuação** (não migração), não há receptor que absorve 
 
 | Etapa | Tipo PR | LOC | Pré-req | Gate Wagner | Reversível? |
 |---|---|---|---|---|---|
-| **E1 — ADR deprecação + verificação rows** | docs + SELECT read-only staging | ~120 | Este plano aprovado; queries Fase 3 em réplica; confirmar BrLookupService=A | ADR proposal→accepted. **Rows em biz pagante → BLOQUEIO (ARCHIVE indefinido)** | n/a |
+| **E1 — ADR deprecação + verificação rows** | docs + SELECT read-only staging | ~120 | Este plano aprovado; queries Fase 3 em réplica; ~~confirmar BrLookupService=A~~ ✅ **feito 2026-09-04** | ADR proposal→accepted. **Rows em biz pagante → BLOQUEIO (ARCHIVE indefinido)** | n/a |
 | **E2 — Silenciar rota + nav (flag)** | chore | ~60 | E1 | `/cliente` + `/contact` intactos; `/crm/*` → 404; biz=4 OK | SIM |
 | **E3 — ARCHIVE dados (dump + PiiRedactor)** | feat (script, sem DML destrutivo) | ~200 | E2 + queries E1 | Dump por business + redaction; Pest cross-tenant | SIM (dumps = cópia) |
 | **E4 — Remover código + schedule + auditar Connector** | refactor | ~280 | E3 + auditoria Connector | Cron removido; Connector 410 só se morto; canary biz=4 24h | SIM (revert PR) |
@@ -193,9 +194,312 @@ Como B é **descontinuação** (não migração), não há receptor que absorve 
 
 ## BLOQUEIOS antes de qualquer DROP
 
-1. Row count por business (queries Fase 3 — rodar em réplica; **não rodado**).
-2. Auditoria do consumidor externo Connector (`log.delphi`).
-3. Confirmar `BrLookupService` pertence a A.
+1. Row count por business (queries Fase 3). 🔴 **aberto** — rodado no CT 100 em **2026-09-04**, mas
+   **o CT 100 não pode responder esta pergunta**: nenhum dos seus bancos é réplica de prod (4 businesses
+   fictícios de CI, zero pagante). O zero medido lá **não** autoriza DROP. Ver §Recibo do CT 100.
+2. Auditoria do consumidor externo Connector (`log.delphi`). 🟡 **query do oráculo RODADA em 2026-09-04** — `connector/api/crm%` = **0** de 32.800 linhas, com controle positivo (`connector%` = 20.476, `MAX(created_at)` = hoje). Segue **aberto como decisão**: o dado é condição, não ato — quem fecha é [W]+[F] na E4 (ver abaixo).
+3. ~~Confirmar `BrLookupService` pertence a A.~~ ✅ **FECHADO em 2026-09-04** — pertence a A.
+
+### Recibo do bloqueio 3 (fato datado — re-rodar em vez de confiar nesta linha)
+
+Em **2026-09-04**, varredura contada no repo inteiro contra `origin/main`:
+
+```
+git grep -n "BrLookupService" origin/main    → 26 arquivos
+```
+
+Dos 26, **3 são código** (o resto é doc/ADR/handoff/skill): o próprio
+`Modules/Crm/Services/BrLookupService.php`, o `Modules/Crm/Http/Controllers/ClienteLookupController.php`
+(injeção no `__construct`) e `tests/Feature/Cliente/ClienteLookupCnpjCepTest.php` (instancia direto).
+**Zero consumidor no pipeline B.** `ClienteLookupController` é classe **A** pela tabela §Fase 1 deste plano.
+
+→ **Consequência para as etapas:** `BrLookupService` **não entra** em E4 (remover código) nem em nenhuma
+etapa de remoção. O Risco 8 do §Fase 5 está mitigado por medição, não por promessa.
+
+⚠️ O recibo mede o **repo**, não o mundo: se um consumidor novo nascer, a conclusão muda — por isso a
+receita fica escrita aqui, para ser **re-rodada**, e não a conclusão sozinha.
+
+### Oráculo do bloqueio 2 (nomeado E medido em 2026-09-04 — resultado no fim da seção)
+
+O plano pedia "auditar o consumidor externo Connector (`log.delphi`)" sem dizer **onde** olhar. Rastreado
+no código: o alias `log.delphi` (`Modules/Officeimpresso/Providers/OfficeimpressoServiceProvider.php`)
+resolve `Modules\Officeimpresso\Http\Middleware\LogDelphiAccess`, que grava em **`licenca_log`**
+(`Modules\Officeimpresso\Entities\LicencaLog`, `protected $table`), com `endpoint` = `$request->path()`
+(**sem** barra inicial), `http_status`, `business_id` e `created_at`.
+
+Logo a pergunta *"o Delphi ainda chama a API CRM?"* é respondida por:
+
+```sql
+SELECT endpoint, COUNT(*) AS n, COUNT(DISTINCT business_id) AS bizs, MAX(created_at) AS ultima_chamada
+FROM licenca_log
+WHERE endpoint LIKE 'connector/api/crm%'
+GROUP BY endpoint
+ORDER BY ultima_chamada DESC;
+```
+
+Rodar em **réplica/staging** (nunca escrever em prod). Leitura do resultado: **0 linhas** ou
+`ultima_chamada` antiga = candidato a `410 Gone` na E4; **qualquer linha recente** = BLOQUEIO mantido até
+migrar o consumidor (Wagner + Felipe), como o §Fase 4 já manda.
+
+As **duas pernas do oráculo foram verificadas em 2026-09-04** (varredura contada, comandos no §Recibo):
+
+- o grupo `connector/api/crm` **passa mesmo** por `log.delphi` — `Modules/Connector/Routes/api.php:112`;
+- o middleware grava **sem flag e sem condicional de negócio** — o `LicencaLog::create` não está atrás
+  de nenhum `if` —, com `endpoint = $request->path()` **sem barra inicial** — `LogDelphiAccess.php:111`.
+
+⚠️ **Ressalva de precisão (leitura de código, não medida):** o `create` roda **depois** de `$next($request)`,
+e na cadeia do grupo o `log.delphi` vem **antes** do `auth:api`. Logo um request que aborte por exceção
+dentro do `$next()` (ex.: token inválido) pode **não** gerar linha. Isso não muda o veredito abaixo — que é
+sobre o produtor nunca ter rodado no ambiente —, mas significa que a linha registrada é do request que
+**completou**, não de toda tentativa. Não testei esse caminho; quem depender dele, meça.
+
+✅ **RODADA em 2026-09-04** (SELECT read-only em prod): **0 linhas** para `connector/api/crm%`.
+A ressalva que este parágrafo pedia foi cumprida — o middleware **grava** no ambiente consultado:
+`connector%` = **20.476** de **32.800** linhas e `MAX(created_at)` = **2026-09-04 19:17:29**. Ou seja,
+o vazio aqui mede o **consumidor**, não a instrumentação (diferente de `contact%`/`crm%`, que são
+vazios-por-construção — ver §Recibo do portal, eixo 0).
+
+⚠️ Isto **libera a condição técnica**, não a decisão: o `410 Gone` da E4 segue gate [W]+[F], e a
+janela medida é a que `licenca_log` reteve — re-rodar antes de agir.
+
+⚠️ **Refinamento do controle positivo (medido no repo em 2026-09-04):** `licenca_log` é escrita por
+**5 produtores**, não 1, e **sem convenção única de `endpoint`** (§Recibo do CT 100). O controle usado
+acima — `connector%` = 20.476 — prova que **a tabela** grava; o controle mais forte, que prova que
+**este middleware** grava, é `source = 'delphi_middleware'`. Por isso a receita reexecutável (§Recibo do
+CT 100) põe esse controle como **passo 1**: sem ele, ausência de linha pode medir o produtor em vez do
+consumidor (§5 2026-07-31). Não invalida o veredito acima — o endpoint `connector/api/crm` **é** servido
+pelo grupo que passa por `log.delphi`, verificado em `Modules/Connector/Routes/api.php:112`.
+
+### Recibo do portal — uso real (zona cinza · fato datado 2026-09-04 · re-rodar em vez de confiar)
+
+> **Escopo:** mede **uso** do portal do contato (`/contact/*`, `ContactLoginController`,
+> `OrderRequestController`, comissões de pessoa de contato). **NÃO decide fica/sai** — isso é [W].
+> Pedido de [W] em 2026-09-04: *"a decisão está sendo tomada sem nenhum dado de uso"*.
+
+**Veredito de dado: zero em todos os eixos medidos, com controle positivo em cada um.**
+
+#### Eixo 0 — a instrumentação (medir isto ANTES de ler qualquer zero)
+
+`licenca_log` **não cobre** o portal. Os middlewares que o alimentam (`log.delphi`, `log.desktop`)
+existem em **2 arquivos, 4 grupos, todos de API**: `Modules/Connector/Routes/api.php` (`/connector/api/*`)
+e `Modules/Officeimpresso/Routes/api.php` (`/api/officeimpresso/*`). O portal usa outro stack —
+`web, authh, SetSessionData, auth, language, timezone, ContactSidebarMenu, CheckContactLogin`
+(`Modules/Crm/Routes/web.php:6`) — e as telas admin da zona cinza usam `AdminSidebarMenu, CheckUserLogin`
+(idem `:24`). **Nenhum dos dois passa por `log.delphi`.**
+
+→ Consequência: `WHERE endpoint LIKE 'contact%'` retorna 0 **por construção**. Esse zero mede a
+instrumentação, não o consumidor — lê-lo como "ninguém usa" seria medir a propriedade errada.
+O eixo 1 abaixo confirma isso empiricamente; os eixos 2 e 3 são os que de fato respondem a pergunta.
+
+```bash
+git grep -n "log.delphi|log.desktop" origin/main -- '*.php'   # -E: 2 arquivos de rota, 4 grupos, todos /api
+```
+
+#### Eixo 1 — `licenca_log` em prod (SELECT read-only)
+
+| medida | resultado |
+|---|---|
+| linhas totais | **32.800** |
+| `endpoint LIKE 'connector%'` | **20.476** ← *controle positivo: a tabela grava* |
+| `MAX(created_at)` | **2026-09-04 19:17:29** ← *gravando no minuto da medição* |
+| `endpoint LIKE 'contact%'` | **0** ← *esperado: fora da instrumentação (eixo 0)* |
+| `endpoint LIKE 'crm%'` | **0** ← *idem* |
+| `endpoint LIKE 'connector/api/crm%'` | **0** ← *este É instrumentado — ver nota no BLOQUEIO 2* |
+
+#### Eixo 2 — rota servida em produção (`governance/route-hits.json`, versionado — não toca prod)
+
+Janela real do ledger: **2026-07-24 → 2026-08-22** · 104 rotas com hit · **7.001 hits** · `sample_rate` 1.0.
+Controle positivo de que a coleta estava viva: `login` 328 · `products.index` 186 · `contacts/customers` 115 ·
+`sells.index` 92 · `pos.store` 31. O coletor (`ContadorHitsRota`) está no **fim do grupo `web`**
+(`app/Http/Kernel.php:64`), por onde o portal passa, e o universo do `flush` é **todas** as rotas
+do roteador, sem filtro — logo o portal seria contado se tivesse sido servido.
+
+**Hits em qualquer identidade da zona cinza: 0 de 104 rotas.** Varridas as identidades que o
+`route:list` de prod confirma existirem: `contact.bookings.{index,store,create,show,edit,update,destroy}`,
+`contact-dashboard.{index,store,create,show,edit,update,destroy}`, `order-request.{index,store,create,show,update,destroy}`,
+`contact/contact-{profile,profile-update,password-update,purchases,sells,ledger,get-ledger}`,
+`contact/order-request/get_product_row/{variation_id}/{location_id}`, mais as telas admin
+`contact-login.*`, `crm/commissions`, `crm/all-contacts-login`, `crm/order-request`.
+
+⚠️ Dois hits que **casam por regex e não são** da zona cinza — desqualificados por leitura da fonte:
+`sales-commission-agents.index` (12 hits) é `routes/web.php:931` → `SalesCommissionAgentController`,
+comissão de **vendedor** do core UPOS, não `crm_contact_person_commissions`; e `bookings.index` (1 hit)
+é o `Restaurant\BookingController` de `routes/web.php`, não `contact.bookings.index` do portal.
+
+Para contraste (não é o escopo deste recibo): o pipeline B teve **`leads.index` = 3 hits, última 2026-08-13**.
+
+```bash
+git show origin/main:governance/route-hits.json   # ledger de prod; janela e sample_rate no proprio JSON
+```
+
+#### Eixo 3 — dado de negócio em prod (SELECT read-only, `php artisan tinker`)
+
+| medida | resultado | controle positivo na mesma sonda |
+|---|---|---|
+| `users.crm_contact_id IS NOT NULL` (logins de portal) | **0** | `users` = **130** · coluna existe (`Schema::hasColumn` = SIM) · **3 formulações**: `NOT NULL` = 0, `> 0` = 0, `= 0` = 0 — sem sentinela escondida |
+| `transactions` `type='sales_order'` (pedidos do portal) | **0** | `transactions` = **75.421** (`sell` 62.097 · `purchase` 7.621) |
+| `crm_contact_person_commissions` | **0 linhas** | tabela existe (`Schema::hasTable` = SIM) |
+| universo | — | `business` = **88** · `contacts` = **30.108** |
+
+**Número por business:** não há distribuição a reportar — os três eixos são **0 global**, em 88 businesses.
+**Última data de uso por rota:** não existe — nenhuma rota do portal registrou hit; `MAX()` de tabela vazia é nulo.
+As rotas **estão registradas** no roteador de prod (`route:list --path=contact` lista o grupo inteiro):
+o zero é *ninguém chama*, não *não existe endpoint*.
+
+#### Onde este recibo NÃO foi medido (e por quê)
+
+O CT 100 `oimpresso-staging` **não serve** para esta pergunta: é semeado pelo CI, não é réplica.
+Medido no mesmo dia: `business` = **4**, todos fictícios (`CI Biz`, `CI Biz 2`, `CI Tenant 98 (ficticio)`,
+`CTM Test Biz Adversario#99`), `contacts` = **1**, `transactions` = **2**, logins de portal = **0**.
+Ali o zero mediria o seeder. Por isso os eixos 1 e 3 rodaram em **prod, com SELECT puro** — nenhuma
+escrita, nenhum DML.
+
+```bash
+# staging (caracterizacao — NAO serve de fonte de uso)
+tailscale ssh root@ct100-mcp 'docker exec -i oimpresso-staging php artisan tinker' < snippet.php
+
+# prod: SELECT read-only. NUNCA escrever. Snippet por stdin (aspas aninhadas colapsam no transporte).
+ssh -4 -i ~/.ssh/id_ed25519_oimpresso -p 65002 u906587222@148.135.133.115 'cd public_html && php artisan tinker' < snippet.php
+```
+
+⚠️ **O recibo mede o mundo em 2026-09-04.** Se um cliente for onboardado no portal, a conclusão muda —
+por isso ficam aqui os **comandos**, não só o veredito. Re-rodar antes de agir sobre estes números.
+
+### Recibo do CT 100 — bloqueios 1 e 2 (medição em 2026-09-04)
+
+> **Leia o ambiente antes de ler qualquer número.** Este recibo registra o que foi medido, **onde**, e o que
+> aquele lugar consegue e **não** consegue responder. Nenhum DML foi executado — só `SELECT`. Nenhuma etapa
+> E1–E6 foi executada.
+
+> **Convergência independente:** o §Recibo do portal (acima, do [#6804](https://github.com/wagnerra23/oimpresso.com/pull/6804))
+> caracterizou o mesmo CT 100 no mesmo dia, em sessão separada, e chegou aos **mesmos números** — 4 businesses
+> fictícios, 1 contact, 2 transactions. Duas medições independentes, mesmo veredito: ali o zero mede o seeder.
+
+#### O ambiente medido — e por que ele não fecha o bloqueio 1
+
+O CT 100 expõe **4 bancos** com schema do oimpresso, e **nenhum é réplica nem anonimização de prod**:
+
+```bash
+tailscale ssh root@ct100-mcp 'PW=$(docker inspect oimpresso-staging-db --format "{{range .Config.Env}}{{println .}}{{end}}" | grep -m1 MARIADB_ROOT_PASSWORD | cut -d= -f2); docker exec -i oimpresso-staging-db mariadb -uroot -p"$PW" -e "SHOW DATABASES;"'
+# -> oimpresso_staging | oimpresso_qa | oimpresso_kbf | oimpresso_kb_flake
+```
+
+`oimpresso_staging` (o banco que o container `oimpresso-staging` usa — `DB_DATABASE` do `.env` dele) tem
+**387 tabelas** e os seguintes dados: **4 businesses, 1 contact, 2 transactions**. Os 4 businesses são
+`CI Biz` (1), `CI Biz 2` (2), `CI Tenant 98 (ficticio)` (98) e `CTM Test Biz Adversario#99` (99) — todos
+criados em 2026-08-20/24 pela receita de CI. **Não existe `business_id=4` (ROTA LIVRE), nem 164, nem
+qualquer business pagante.** `oimpresso_qa` e `oimpresso_kbf` têm o mesmo perfil (3–4 businesses de CI).
+
+→ **Consequência dura:** a regra de ouro do §Fase 3 fala em *"`n>0` em business **pagante**"*. No ambiente
+medido não há business pagante algum, logo **`n=0` aqui não é evidência de tabela morta** — mede o seed do
+CI, não o cliente. Ler esse zero como "candidata a DROP direto" seria a §5 2026-07-31 (vazio que era falha
+de medição) na forma mais cara possível: perda de dado de cliente.
+
+#### Bloqueio 1 — o que a medição de fato produziu
+
+As tabelas **existem** no schema e estão **todas vazias neste ambiente** (`COUNT(*)`, não `table_rows`):
+
+| Tabela | `COUNT(*)` em `oimpresso_staging` |
+|---|---|
+| `crm_schedules` · `crm_schedule_users` · `crm_schedule_logs` | 0 · 0 · 0 |
+| `crm_followup_invoices` · `crm_call_logs` · `crm_proposals` | 0 · 0 · 0 |
+| `crm_proposal_templates` · `crm_campaigns` · `crm_marketplaces` | 0 · 0 · 0 |
+| `crm_contact_person_commissions` · `crm_deals` · `crm_lead_users` | 0 · 0 · 0 |
+| `contacts WHERE type='lead'` | 0 (nenhum grupo retornado) |
+
+→ O que isto **prova**: as queries do §Fase 3 são **executáveis** e o schema bate com a tabela de decisão.
+→ O que isto **não prova**: nada sobre `crm_deals`/`crm_marketplaces` serem "DROP direto". Aquela
+  conclusão exige `n=0` **global em prod**, e prod não foi medido.
+
+⚠️ **Desvio de contagem, registrado sem reescrever o TL;DR:** o §TL;DR diz *"9 tabelas"*; o schema tem
+**12** tabelas `crm_*` e o §Fase 3 lista as **12** (3 delas marcadas `pivot` — 12−3=9 explica o número,
+mas o texto não diz isso). Contagem reproduzível:
+`SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='oimpresso_staging' AND SUBSTRING(table_name,1,4)='crm_'` → **12**.
+
+#### Bloqueio 2 no CT 100 — o vazio aqui é da instrumentação (prod respondeu diferente)
+
+O plano mandava conferir que o middleware grava no ambiente consultado antes de ler vazio como "morto".
+Conferido — e **reprovou**:
+
+| Banco | linhas em `licenca_log` | `source` das linhas |
+|---|---|---|
+| `oimpresso_staging` | **0** | — |
+| `oimpresso_kbf` | **0** | — |
+| `oimpresso_qa` | **188** | `desktop_audit` (**100%**) |
+
+**Zero linha `source='delphi_middleware'` em qualquer banco do CT 100.** As 188 do `oimpresso_qa` vieram do
+`LicencaAuditService` (`source='desktop_audit'`), não do middleware do oráculo — e por isso trazem
+`endpoint` em **outro formato** (`/api/sync`, `/oauth/token`, **com** barra).
+
+→ **A query do plano devolveu 0 linhas** — e esse 0 **não significa "o Delphi não chama mais"**. Significa
+  que o produtor daquela linha nunca rodou aqui. Controle negativo confirmando:
+  `SELECT COUNT(*) FROM oimpresso_qa.licenca_log WHERE endpoint LIKE 'connector/api%'` → **0**.
+
+→ **Reconciliação com o §Recibo do portal (eixo 1), que mediu prod no mesmo dia:** os dois obtiveram
+  **0 linhas** para `connector/api/crm%`, e **não se contradizem** — medem ambientes diferentes. No CT 100
+  o zero é da **instrumentação** (o produtor nunca rodou lá). Em prod o zero é do **consumidor**, porque lá
+  o controle positivo existe e está vivo (`connector%` = 20.476, `MAX(created_at)` = hoje). **O veredito do
+  bloqueio 2 é o de prod.** O valor desta seção não é o veredito: é mostrar que, sem o controle, os dois
+  zeros seriam indistinguíveis — e um deles não significa nada.
+
+#### Refinamento do oráculo: `licenca_log` tem **5 produtores**, não 1
+
+Varredura contada no repo (`rg --hidden -g '!.git/**' "LicencaLog::create"` → 5 arquivos de código + 2 de teste):
+
+| Produtor | `source` | formato de `endpoint` |
+|---|---|---|
+| `Http/Middleware/LogDelphiAccess.php:111` | `delphi_middleware` | `$request->path()` — **sem** barra |
+| `Http/Middleware/LogDesktopAccess.php:68` | `api_middleware` | `$request->path()` — **sem** barra |
+| `Services/LicencaAuditService.php:60` | `desktop_audit` | `$payload['endpoint']` — **livre** |
+| `Listeners/LogPassportAccessToken.php:89` | `passport_event` | literal `'/oauth/token'` — **com** barra |
+| `Console/ParseLicencaLogCommand.php` | `log_parser` | do arquivo de log |
+
+→ **Por que isto importa:** o `LIKE 'connector/api/crm%'` do oráculo está **correto para o produtor certo**
+  (o `LogDelphiAccess` grava sem barra), mas a tabela é **compartilhada** e sem convenção única. Rodar
+  a query e ver 0 sem antes contar `source='delphi_middleware'` mede o produtor, não o consumidor.
+
+#### Receita reexecutável — rodar **nesta ordem** (o controle vem primeiro)
+
+```sql
+-- PASSO 1 (CONTROLE, obrigatorio): o produtor do oraculo escreve neste ambiente?
+--   n = 0  -> PARE. O passo 2 nao tem significado aqui (mede a instrumentacao, nao o consumidor).
+SELECT COUNT(*) AS n, MIN(created_at) AS mais_antiga, MAX(created_at) AS mais_recente
+FROM licenca_log WHERE source = 'delphi_middleware';
+
+-- PASSO 2 (a pergunta): o Delphi ainda chama a API CRM?
+SELECT endpoint, source, COUNT(*) AS n, COUNT(DISTINCT business_id) AS bizs,
+       MAX(created_at) AS ultima_chamada
+FROM licenca_log
+WHERE endpoint LIKE 'connector/api/crm%' AND source = 'delphi_middleware'
+GROUP BY endpoint, source ORDER BY ultima_chamada DESC;
+
+-- PASSO 3 (rede contra a barra): pega linha que outro produtor tenha gravado com '/' na frente
+SELECT endpoint, source, COUNT(*) AS n, MAX(created_at) AS ultima_chamada
+FROM licenca_log WHERE endpoint LIKE '%connector/api/crm%'
+GROUP BY endpoint, source ORDER BY ultima_chamada DESC;
+```
+
+Transporte (aspas aninhadas colapsam — passar o SQL por **stdin**, nunca inline):
+
+```bash
+cat query.sql | tailscale ssh root@ct100-mcp 'PW=$(docker inspect oimpresso-staging-db --format "{{range .Config.Env}}{{println .}}{{end}}" | grep -m1 MARIADB_PASSWORD | cut -d= -f2); docker exec -i oimpresso-staging-db mariadb -ustaging -p"$PW" oimpresso_staging -t'
+```
+
+#### O que **de fato** fecharia cada bloqueio
+
+⚠️ **Atualizado após o [#6804](https://github.com/wagnerra23/oimpresso.com/pull/6804) (mesmo dia).** Este
+recibo nasceu dizendo que *"os dois bloqueios ficam abertos por falta de ambiente"*. Isso **caducou para o
+bloqueio 2**: aquele PR rodou a query em **prod**, com `SELECT` read-only, e obteve o controle positivo que
+o CT 100 não tinha. A correção fica registrada em vez de reescrita silenciosa — a linha antiga era ponteiro
+podre no instante em que prod foi medido.
+
+| # | Estado | Fecha quando |
+|---|---|---|
+| 1 | 🔴 **aberto** — o CT 100 mediu, e não pode responder | `COUNT(*)` por `business_id` das 12 `crm_*` num ambiente **com business pagante**. Não existe no CT 100 (medido). Exige réplica/dump anonimizado, ou `SELECT` read-only em prod — decisão [W] |
+| 2 | 🟡 **condição técnica liberada** pelo [#6804](https://github.com/wagnerra23/oimpresso.com/pull/6804) | Já respondido em prod (`connector/api/crm%` = 0 com controle positivo vivo). O que resta é **decisão**, não medição: o `410 Gone` da E4 segue gate [W]+[F] |
+
+⚠️ Este recibo mede **os bancos do CT 100 em 2026-09-04**, não o mundo. A receita fica escrita para ser
+**re-rodada** — nunca a conclusão sozinha.
 
 ## Refs
 

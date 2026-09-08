@@ -15,6 +15,7 @@ use Modules\Governance\Services\AdrReviewBriefLineService;
 use Modules\Governance\Services\AgentOutcomeBriefSectionService;
 use Modules\Governance\Services\ExposicaoTier0BriefLineService;
 use Modules\Governance\Services\ObraParadaBriefLineService;
+use Modules\Governance\Services\ParidadeBladeBriefLineService;
 use Modules\Governance\Services\PlanHealthBriefLineService;
 use Modules\Governance\Services\ShippedLogBriefLineService;
 use Modules\Governance\Services\SddBriefLineService;
@@ -118,6 +119,17 @@ final class GenerateBriefCommand extends Command
         // mcp:tasks:health-check (06:20), que mede staleness, não atribuição.
         // Best-effort: tabela ausente / 0 não-atribuídas → brief intacto.
         $content = app(TasksSemDonoBriefLineService::class)->inject($content);
+
+        // 2026-09-07 — FLAG de PARIDADE BLADE→React (pós-LLM, determinística) na seção
+        // FLAGS: shell-out de blade-migration-census.mjs --resumo-json. Origem [W]:
+        // "chato eu ter que pedir para deixar a paridade do módulo" + "automatize isso".
+        // O número já existia — o censo mede e a catraca --ratchet roda no governance-gate —
+        // mas ninguém era COBRADO por ele: a catraca só impede SUBIR, e o tamanho da fila só
+        // aparecia pra quem rodasse o script na mão. A linha traz as duas metades: a dívida
+        // e o ganho NÃO TRAVADO (escopo que mediu menos que o baseline e ninguém re-baselineou
+        // — 16 endpoints de folga em 2026-09-07, que é quanto dava pra reintroduzir sem gate).
+        // Best-effort: node ausente / 0 endpoints Blade → brief intacto.
+        $content = app(ParidadeBladeBriefLineService::class)->inject($content);
 
         // US-GOV-052 — seção OUTCOME DO AGENTE (7d) (pós-LLM, determinística)
         // antes de FLAGS: shell-out de agent-pr-outcomes.mjs --json (DORA dos

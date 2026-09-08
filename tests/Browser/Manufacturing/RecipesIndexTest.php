@@ -269,7 +269,7 @@ it('UC-RECIPE-01 · render — a tela monta autenticada com os 4 KPIs e a grade'
     $page->assertNoConsoleLogs();
 })->with([[1280, 800], [1440, 900]]);
 
-it('render — as abas do §4.1 apontam pra rotas que existem, e Insumos não existe', function () {
+it('render — as abas do §4.1 apontam pra rotas que existem, Insumos inclusive', function () {
     $abas = (string) mfgAbrirTela()->script(MFG_JS_ABAS);
 
     expect($abas)->not->toContain('AUSENTE')
@@ -278,19 +278,23 @@ it('render — as abas do §4.1 apontam pra rotas que existem, e Insumos não ex
     // A aba ativa é a própria tela (span com aria-current), não um link pra ela mesma.
     expect($abas)->toContain('Receitas=ATUAL');
 
-    // As duas telas legadas que as abas alcançam hoje — rotas reais de
-    // `Modules/Manufacturing/Routes/web.php` (report + resource settings).
+    // Endereços CANÔNICOS — desde o cutover de 2026-09-04 eles servem a tela React (antes
+    // serviam Blade, e a tela React vivia em `/v2/*`). Rotas reais de `Routes/web.php`.
     expect($abas)->toContain('Relatório=/manufacturing/report')
         ->and($abas)->toContain('Configurações=/manufacturing/settings');
 
-    // Non-Goal do charter + §18.3 do handoff: a aba Insumos NÃO sai enquanto `usosDoInsumo`
-    // não existir no RecipeBomService. Este é o único gate disso hoje.
-    expect($abas)->not->toContain('Insumos');
+    // ⚠️ INVERTIDO em 2026-09-04. O assert anterior era `not->toContain('Insumos')`, ancorado
+    // no §18.3 do handoff ("sem `usosDoInsumo`, a aba não sai") e no Non-Goal do charter. A
+    // premissa CAIU: o backend saiu na US-MANU-005 e a tela subiu sem nenhuma entrada — só
+    // abria digitando a URL. Agora a aba é exigida, não proibida.
+    expect($abas)->toContain('Insumos');
 
     // "Ordens de produção" é gated por `permissions.prod`, então a PRESENÇA não é exigida —
-    // mas se aparecer, o destino tem de ser a tela v2 (Wave J), não o formulário legado.
+    // mas se aparecer, o destino tem de ser o endereço CANÔNICO (que serve React desde o
+    // cutover de 2026-09-04), nunca uma rota alternativa `/v2/`.
     if (str_contains($abas, 'Ordens de produção=')) {
-        expect($abas)->toContain('Ordens de produção=/manufacturing/v2/production');
+        expect($abas)->toContain('Ordens de produção=/manufacturing/production');
+        expect($abas)->not->toContain('/manufacturing/v2/');
     }
 });
 

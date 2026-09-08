@@ -1,7 +1,7 @@
 {
   "screen": "Forja/Trabalho/Index",
   "path": "Modules/Forja/Resources/js/Pages/Forja/Trabalho/Index.tsx",
-  "measured_against_sha": "c1263f2e53",
+  "measured_against_sha": "9360ac6490",
   "generated_by": "scripts/design-spec-gen.mjs (DERIVADO — não editar à mão)",
   "shell": [
     "AppShellV2"
@@ -14,6 +14,7 @@
     "layout": [],
     "local": [
       "ForjaHub (../../team-mcp/Forja/_components/ForjaHub)",
+      "ForjaRunbook (./_components/ForjaRunbook)",
       "PAPEIS (./_components/trabalhoTokens)",
       "TrabalhoLista (./_components/TrabalhoLista)",
       "TrabalhoQuadro (./_components/TrabalhoQuadro)",
@@ -32,7 +33,7 @@
   },
   "totals": {
     "canon_components": 1,
-    "local_components": 6,
+    "local_components": 7,
     "uses_layout_primitives": false,
     "structural_violations": 2
   }

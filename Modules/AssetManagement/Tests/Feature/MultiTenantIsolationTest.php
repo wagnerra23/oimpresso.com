@@ -14,19 +14,23 @@ uses(Tests\TestCase::class);
  *
  * ATENÇÃO: Modules/AssetManagement é módulo LEGACY UltimatePOS — NÃO usa BusinessScope global.
  * Isolamento é feito MANUALMENTE nos Controllers via `where('business_id', $business_id)`.
- * Este test valida que dados de biz=1 não vazam para biz=99 quando filtros são aplicados.
+ * Este test valida que dados do tenant dono não vazam para o adversário quando os filtros
+ * são aplicados.
  *
  * ADR 0093: multi-tenant isolation Tier 0 IRREVOGÁVEL.
- * ADR 0101: NUNCA usar biz=4 (ROTA LIVRE — cliente Larissa) em tests; usar biz=1 (Wagner WR2) + biz=99 fictício.
+ * ADR 0358: tenant canônico de teste é o FICTÍCIO 98 (`seededTenant()`); 99 é o adversário
+ * cross-tenant (`seededSupportClientTenant()`). biz=1 é a WR2 Sistemas, empresa REAL — no
+ * CT 100 a base é clone de prod e não se limpa entre execuções, então fixture em biz=1 semeia
+ * dado dentro do espelho da empresa de verdade. biz=4 (ROTA LIVRE) é proibido sem exceção.
  *
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
- * @see memory/decisions/0101-tests-business-id-1-nunca-cliente.md
+ * @see memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md
  */
 
 // Guard SQLite: Models AssetManagement legacy dependem do schema MySQL UltimatePOS completo
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompatível: Models AssetManagement legacy requerem schema MySQL UltimatePOS — ADR 0101');
+        $this->markTestSkipped('SQLite-incompatível: Models AssetManagement legacy requerem schema MySQL UltimatePOS');
     }
     if (! Schema::hasTable('assets')) {
         $this->markTestSkipped('assets table missing — rode Modules/AssetManagement migrate primeiro');
@@ -36,92 +40,90 @@ beforeEach(function () {
     }
 });
 
-// IDs canônicos — biz=1 (Wagner WR2) e biz=99 (fictício)
-defined('BIZ_WAGNER') || define('BIZ_WAGNER', 1);
-defined('BIZ_FICTICIO') || define('BIZ_FICTICIO', 99);
-
 // ------------------------------------------------------------------
 // Asset — isolamento via filtro manual where('business_id', ...)
 // ------------------------------------------------------------------
 
-it('Asset biz=1 não aparece em query filtrada por biz=99', function () {
-    // Criar asset em biz=1
+it('Asset do tenant dono não aparece em query filtrada pelo adversário', function () {
+    $dono = $this->seededTenant();
+    $adversario = $this->seededSupportClientTenant();
+
     $asset = Asset::create([
-        'business_id'    => BIZ_WAGNER,
-        'name'           => 'Notebook Teste Isolamento WR2',
+        'business_id'    => $dono->id,
+        'name'           => 'Notebook Teste Isolamento',
         'asset_code'     => 'AST-TST-9991',
         'quantity'       => 1,
         'unit_price'     => 3500.00,
         'is_allocatable' => 1,
         'purchase_type'  => 'owned',
+        'created_by'     => $dono->owner_id,
     ]);
 
-    // Query filtrando por biz=99 — NÃO deve trazer o asset criado em biz=1
-    $resultado = Asset::where('business_id', BIZ_FICTICIO)
+    // Query filtrando pelo adversário — NÃO deve trazer o asset do tenant dono
+    $resultado = Asset::where('business_id', $adversario->id)
         ->where('id', $asset->id)
         ->get();
 
     expect($resultado)->toHaveCount(0);
 })->afterEach(function () {
-    Asset::where('business_id', BIZ_WAGNER)
-        ->where('asset_code', 'AST-TST-9991')
-        ->forceDelete();
+    Asset::where('asset_code', 'AST-TST-9991')->forceDelete();
 });
 
-it('Asset biz=1 aparece em query filtrada por biz=1', function () {
+it('Asset do tenant dono aparece em query filtrada por ele mesmo', function () {
+    $dono = $this->seededTenant();
+
     $asset = Asset::create([
-        'business_id'    => BIZ_WAGNER,
-        'name'           => 'Impressora Teste WR2',
+        'business_id'    => $dono->id,
+        'name'           => 'Impressora Teste',
         'asset_code'     => 'AST-TST-9992',
         'quantity'       => 2,
         'unit_price'     => 1200.00,
         'is_allocatable' => 1,
         'purchase_type'  => 'owned',
+        'created_by'     => $dono->owner_id,
     ]);
 
-    $resultado = Asset::where('business_id', BIZ_WAGNER)
+    $resultado = Asset::where('business_id', $dono->id)
         ->where('id', $asset->id)
         ->get();
 
     expect($resultado)->toHaveCount(1);
-    expect($resultado->first()->name)->toBe('Impressora Teste WR2');
-    expect((int) $resultado->first()->business_id)->toBe(BIZ_WAGNER);
+    expect($resultado->first()->name)->toBe('Impressora Teste');
+    expect((int) $resultado->first()->business_id)->toBe((int) $dono->id);
 })->afterEach(function () {
-    Asset::where('business_id', BIZ_WAGNER)
-        ->where('asset_code', 'AST-TST-9992')
-        ->forceDelete();
+    Asset::where('asset_code', 'AST-TST-9992')->forceDelete();
 });
 
 // ------------------------------------------------------------------
 // AssetMaintenance — isolamento via asset.business_id (relacionamento)
 // ------------------------------------------------------------------
 
-it('AssetMaintenance biz=1 não aparece em join filtrado por biz=99', function () {
-    // Criar asset pai em biz=1
+it('AssetMaintenance do dono não aparece em join filtrado pelo adversário', function () {
+    $dono = $this->seededTenant();
+    $adversario = $this->seededSupportClientTenant();
+
     $asset = Asset::create([
-        'business_id'    => BIZ_WAGNER,
+        'business_id'    => $dono->id,
         'name'           => 'Servidor Teste Manutencao',
         'asset_code'     => 'AST-TST-9993',
         'quantity'       => 1,
         'unit_price'     => 8000.00,
         'is_allocatable' => 0,
         'purchase_type'  => 'owned',
+        'created_by'     => $dono->owner_id,
     ]);
 
-    // Criar manutenção vinculada
     $maintenance = AssetMaintenance::create([
-        'asset_id'         => $asset->id,
-        'business_id'      => BIZ_WAGNER,
-        'maintenance_date' => now()->toDateString(),
-        'completion_date'  => now()->addDay()->toDateString(),
-        'description'      => 'Manutenção teste isolamento',
-        'cost'             => 200.00,
-        'status'           => 'completed',
+        'asset_id'    => $asset->id,
+        'business_id' => $dono->id,
+        'status'      => 'completed',
+        'details'     => 'Manutenção teste isolamento',
+        'created_by'  => $dono->owner_id,
     ]);
 
-    // Query JOIN filtrando por biz=99 NÃO deve retornar manutenção do biz=1
+    // Query JOIN filtrando pelo adversário NÃO deve retornar manutenção do dono
     $resultado = AssetMaintenance::join('assets', 'asset_maintenances.asset_id', '=', 'assets.id')
-        ->where('assets.business_id', BIZ_FICTICIO)
+        ->where('assets.business_id', $adversario->id)
         ->where('asset_maintenances.id', $maintenance->id)
         ->get();
 
@@ -134,34 +136,36 @@ it('AssetMaintenance biz=1 não aparece em join filtrado por biz=99', function (
     }
 });
 
-it('AssetMaintenance biz=1 aparece em join filtrado por biz=1', function () {
+it('AssetMaintenance do dono aparece em join filtrado por ele mesmo', function () {
+    $dono = $this->seededTenant();
+
     $asset = Asset::create([
-        'business_id'    => BIZ_WAGNER,
+        'business_id'    => $dono->id,
         'name'           => 'Servidor Teste Manutencao 2',
         'asset_code'     => 'AST-TST-9994',
         'quantity'       => 1,
         'unit_price'     => 8500.00,
         'is_allocatable' => 0,
         'purchase_type'  => 'owned',
+        'created_by'     => $dono->owner_id,
     ]);
 
     $maintenance = AssetMaintenance::create([
-        'asset_id'         => $asset->id,
-        'business_id'      => BIZ_WAGNER,
-        'maintenance_date' => now()->toDateString(),
-        'description'      => 'Manutenção teste positivo',
-        'cost'             => 350.00,
-        'status'           => 'in_progress',
+        'asset_id'    => $asset->id,
+        'business_id' => $dono->id,
+        'status'      => 'in_progress',
+        'details'     => 'Manutenção teste positivo',
+        'created_by'  => $dono->owner_id,
     ]);
 
     $resultado = AssetMaintenance::join('assets', 'asset_maintenances.asset_id', '=', 'assets.id')
-        ->where('assets.business_id', BIZ_WAGNER)
+        ->where('assets.business_id', $dono->id)
         ->where('asset_maintenances.id', $maintenance->id)
         ->select('asset_maintenances.*')
         ->get();
 
     expect($resultado)->toHaveCount(1);
-    expect($resultado->first()->description)->toBe('Manutenção teste positivo');
+    expect($resultado->first()->details)->toBe('Manutenção teste positivo');
 })->afterEach(function () {
     $asset = Asset::where('asset_code', 'AST-TST-9994')->first();
     if ($asset) {

@@ -138,7 +138,7 @@ function ProdutoIndex(props: ProdutoIndexPageProps) {
 
       <div className="min-h-screen bg-stone-50 text-stone-900">
         {/* Header sticky */}
-        <header className="sticky top-0 z-30 bg-white/85 backdrop-blur border-b border-stone-200">
+        <header className="sticky top-0 z-30 bg-white/85 backdrop-blur border-b border-stone-200" data-contract="header">
           <div className="px-6 pt-4 pb-3 flex items-center justify-between">
             <div>
               <div className="flex items-center gap-1.5 text-[12px] text-stone-500">
@@ -169,14 +169,14 @@ function ProdutoIndex(props: ProdutoIndexPageProps) {
 
         <div className="pb-16">
           {/* KPI strip */}
-          <section className="mx-6 mt-4 rounded-md bg-white border border-stone-200 shadow-sm">
+          <section className="mx-6 mt-4 rounded-md bg-white border border-stone-200 shadow-sm" data-contract="kpis-totalizadores">
             <Deferred data="kpis" fallback={<KpisSkeleton />}>
               <KpisStrip kpis={props.kpis ?? { total: 0, ativos: 0, categorias: 0, populares: 0 }} />
             </Deferred>
           </section>
 
           {/* Filtros + tabs categoria */}
-          <section className="mx-6 mt-4 flex items-center justify-between gap-3 flex-wrap">
+          <section className="mx-6 mt-4 flex items-center justify-between gap-3 flex-wrap" data-contract="filtros-busca">
             <div className="flex items-center gap-2">
               <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 w-4 h-4 text-stone-500" />
@@ -210,7 +210,7 @@ function ProdutoIndex(props: ProdutoIndexPageProps) {
           </section>
 
           {/* Lista cards */}
-          <section className="mx-6 mt-4">
+          <section className="mx-6 mt-4" data-contract="tabela-cards">
             <Deferred data="rows" fallback={<RowsSkeleton />}>
               <ProdutoCards rows={filterRows(props.rows)} permissions={permissions} />
             </Deferred>

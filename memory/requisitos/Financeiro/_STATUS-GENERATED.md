@@ -20,14 +20,13 @@ authority: generated
 | CU no SDD | 16 |
 | Telas (.tsx) | 21 |
 | Telas com `casos.md` | 21 |
-| UC declarados | 108 |
-| UC com teste que os cita | 91 |
+| UC declarados | 112 |
+| UC com teste que os cita | 95 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
 | Lacuna | O que falta escrever |
 |---|---|
-| `Index.casos.md` existe mas **não declara nenhum UC** | o contrato de verdade — arquivo presente ≠ tela coberta (LC-11) |
 | `Index.casos.md` existe mas **não declara nenhum UC** | o contrato de verdade — arquivo presente ≠ tela coberta (LC-11) |
 | `CU-FIN-09` sem UC | caso de uso que o exercite — Boleto do título não duplica o recebível |
 | `CU-FIN-10` sem UC | caso de uso que o exercite — Importar OFX é idempotente por hash |
@@ -184,6 +183,10 @@ authority: generated
 | UC-FLX-05 | Fluxo/Index | 📝 sem_teste |
 | UC-FLX-06 | Fluxo/Index | 🧪 aguarda veredito da lane |
 | UC-FLX-07 | Fluxo/Index | 🧪 aguarda veredito da lane |
+| UC-FPC-01 | PlanoContas/Index | 🧪 aguarda veredito da lane |
+| UC-FPC-02 | PlanoContas/Index | 🧪 aguarda veredito da lane |
+| UC-FPC-03 | PlanoContas/Index | 🧪 aguarda veredito da lane |
+| UC-FPC-04 | PlanoContas/Index | 🧪 aguarda veredito da lane |
 | UC-FUNI-01 | Unificado/Index | 🧪 aguarda veredito da lane |
 | UC-FUNI-02 | Unificado/Index | 🧪 aguarda veredito da lane |
 | UC-FUNI-03 | Unificado/Index | 🧪 aguarda veredito da lane |

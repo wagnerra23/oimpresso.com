@@ -95,3 +95,79 @@ it('fallbackSemIa devolve markdown honesto com citações limitadas', function (
     expect($out)->not->toContain('[c]'); // limitado a maxCitacoes=2
     expect($out)->toEndWith('Confiança: baixa');
 });
+
+/*
+|--------------------------------------------------------------------------
+| extrairJanela — a janela CONTEM o match (2026-09-04)
+|--------------------------------------------------------------------------
+| Medido no CT 100 contra o gold-set: o excerpt de 400 chars pegava o CABECALHO
+| do doc, e o juiz RAGAS via 0,3311 do ground_truth quando o doc certo ja estava
+| recuperado (teto 0,9805). A janela centrada no match leva isso a 0,7110.
+|
+| O teste que MORDE e o de alinhamento: o fold de acentos precisa preservar a
+| CONTAGEM DE CARACTERES, senao o offset do match desloca e a janela sai cortada
+| no lugar errado. Vem com controle negativo — o head no mesmo orcamento NAO
+| acha o marcador, entao o teste falha de verdade se alguem voltar pro head.
+*/
+
+it('extrairJanela devolve a janela que contém o match, mesmo com acentos antes dele', function () {
+    $svc = app(KbAnswerService::class);
+
+    // ~1200 chars acentuados ANTES do marcador — tem que passar do orçamento (600),
+    // senão o head TAMBÉM acha e o controle negativo abaixo não prova nada.
+    // É aqui que um fold que muda o comprimento desalinha o corte.
+    $prefixo = str_repeat('ções áàâã ', 120);
+    $body = $prefixo.' MARCADOR_UNICO_XYZ '.str_repeat('z', 3000);
+
+    $janela = $svc->extrairJanela($body, 'marcador unico xyz', 600);
+
+    expect($janela)->toContain('MARCADOR_UNICO_XYZ');
+
+    // CONTROLE NEGATIVO: o comportamento ANTIGO (head no mesmo orçamento) não acha.
+    // Sem esta linha o teste passaria mesmo se extrairJanela virasse um head.
+    expect($svc->extrairExcerpt($body, 600))->not->toContain('MARCADOR_UNICO_XYZ');
+});
+
+it('extrairJanela cai no head quando nenhum termo da pergunta casa', function () {
+    $svc = app(KbAnswerService::class);
+
+    $body = str_repeat('conteudo irrelevante ', 200);
+    $janela = $svc->extrairJanela($body, 'assunto completamente ausente disto', 300);
+
+    // Piso: nunca pior que o comportamento antigo.
+    expect($janela)->toBe($svc->extrairExcerpt($body, 300));
+});
+
+it('extrairJanela cai no head quando a pergunta só tem stopword/termo curto', function () {
+    $svc = app(KbAnswerService::class);
+
+    $body = str_repeat('texto qualquer ', 200);
+
+    // 'como', 'isso', 'e' → stopwords/curtos: sobra zero termo útil.
+    expect($svc->extrairJanela($body, 'como e isso', 300))
+        ->toBe($svc->extrairExcerpt($body, 300));
+});
+
+it('extrairJanela devolve o corpo inteiro quando cabe no orçamento', function () {
+    $svc = app(KbAnswerService::class);
+
+    $body = "---\ntitle: Foo\n---\nCorpo curto sobre multi-tenant.";
+
+    expect($svc->extrairJanela($body, 'multi-tenant', 400))
+        ->toBe('Corpo curto sobre multi-tenant.'); // frontmatter fora, sem reticências
+});
+
+it('renderFontes sem pergunta preserva o comportamento antigo (head)', function () {
+    $svc = app(KbAnswerService::class);
+
+    // 'ALVOZINHO' com 9 chars: termos <5 chars são descartados de propósito
+    // (stopword-like), então um alvo curto cairia no head e o teste mentiria.
+    $body = str_repeat('a', 300).'ALVOZINHO'.str_repeat('b', 3000);
+    $docs = new Collection([fakeKbDoc(['slug' => 'd', 'content_md' => $body])]);
+
+    // Sem pergunta → head puro: para em 200, muito antes do alvo em 300.
+    expect($svc->renderFontes($docs, '', 200))->not->toContain('ALVOZINHO');
+
+    // Com pergunta → janela centrada acha.
+    expect($svc->renderFontes($docs, 'alvozinho', 200))->toContain('ALVOZINHO');
+});

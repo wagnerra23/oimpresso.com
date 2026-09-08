@@ -1,6 +1,7 @@
 ---
 page: /governance/dashboard
 component: resources/js/Pages/governance/Dashboard.tsx
+related_visual_comparison: memory/requisitos/Jana/governance-dashboard-extension-visual-comparison.md
 bundle_source: governance-page.jsx
 related_runbook: memory/requisitos/Governance/RUNBOOK-dashboard.md
 owner: wagner

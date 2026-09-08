@@ -4,7 +4,7 @@ casos: Forja · lista única de trabalho · /forja/trabalho
 irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-09-02"
+last_run: "2026-09-03"
 ---
 
 # Casos de uso — /forja/trabalho
@@ -128,3 +128,37 @@ Mesma razão do `sort` (UC-TRAB-03): valor livre viraria estado desconhecido no 
 Status: 🧪 (1 teste cita este UC em [`PipelineParidadeTest.php`](../../../../Tests/Feature/PipelineParidadeTest.php) — extrai os trios dos DOIS lados linha a linha, com guarda anti-falso-verde e mensagem que diz qual fase e qual campo divergiu.)
 O `.fj-kcol-quem` diz **quem responde** pela fase e o `.fj-kcol-sai` diz **o que faz o card sair dela** — é o protocolo do loop Cowork↔Code escrito na própria coluna, e foi por isso que o protótipo o pôs ali. Como o payload não carrega esses campos, a tela os espelha da fonte; se o espelho drifar, a coluna passa a afirmar sobre o protocolo uma coisa que o design não diz — e afirma com a autoridade de estar na tela. É a mesma doença que o `PipelineParidadeTest` já trava nas fases, agora no cabeçalho delas.
 **Pronto quando:** para cada fase do espelho, o trio `owner`/`faz`/`sai` é idêntico ao de `FORJA_PHASES` no protótipo; o extrator prova que achou papel dos dois lados (não compara dois vazios); e fase que exista só no front reprova com o nome dela na mensagem.
+
+## Acessibilidade — o buraco que a comparação com o protótipo NÃO acha
+
+> Este caso não nasceu de uma onda de réplica. Nasceu de uma **medição nos dois lados** (2026-09-03): `aria-live` = **0** na produção **e** `0` no protótipo; `.fj-row` é `<div>` nos **dois**. Não era dívida de réplica — era buraco comum, e por isso comparar uma cópia com a outra jamais o encontraria. A ADR 0388 rege **aparência**; papel ARIA é invisível, e a produção já estava à frente do protótipo aqui (o `aria-expanded` do `fj-group-toggle` e os `data-testid` não existem no `forja-page.jsx`). A divergência está declarada no charter §"Reconciliações".
+
+## UC-TRAB-17 — A lista tem papéis ARIA, e a linha NÃO é interativa (a premissa do papel)
+Status: 🧪 (1 teste cita este UC — casa a linha de cada nó pelo `className`, com guarda anti-falso-verde que estoura dizendo qual nó sumiu.)
+São treze filhos inline por linha. Sem papel, o leitor de tela os lê em sequência e não há fronteira entre uma issue e a próxima — nem posição (*"3 de 17"*). E filtrar (KPI, papel, busca, ★) troca a lista inteira **sem mover o foco**: sem região viva, o clique é mudo pra quem não enxerga, e a pessoa não sabe se fez efeito.
+
+A metade que **não** é presença é a premissa: `listitem` só está correto enquanto a linha for um item que **não navega**. No protótipo ela tem `onClick` (abre o issue-drawer, que nesta tela não existe); aqui não tem. Se ganhar, `listitem` passa a mentir e o papel tem que virar `row`/`button` **junto com o teclado que ele promete** — prometer navegação 2D que a tela não implementa é a mesma afordância falsa do checkbox de seleção em massa (LC-15), só que invisível pra quem enxerga. Sem essa perna o caso seria presence-gate puro (LC-11).
+
+**Pronto quando:** `.fj-list` tem `role="list"`, `.fj-group` tem `role="group"` + `aria-label`, `.fj-row` tem `role="listitem"`, a contagem de issues da barra de totais tem `role="status"` — **e** a `.fj-row` continua sem `onClick`, reprovando com a instrução de rever o papel (não de apagar o caso) no dia em que ganhar.
+## PARIDADE §11 — o painel "Papéis" (`forja-runbook`)
+
+## UC-TRAB-18 — O painel de papéis DERIVA da fonte viva, e cala o que a fonte marcou superado
+Status: 🧪 (1 teste cita este UC — `tests/js/forja-runbook.test.tsx`, 5 casos; dois deles MUTAM `PAPEIS` em tempo de teste e exigem que a tela acompanhe, com guarda anti-falso-verde se a fonte vier vazia.)
+O botão "Papéis" estava na lista de ausências declaradas do `Index.tsx` — *"abre painéis (runbook e IA) que não existem"*. O painel é **onboarding**: quem chega novo lê ali quem faz o quê. Isso muda o risco de lugar — o perigo não é desenhar torto, é **ensinar errado**, e ensinar errado com cara de canon é o modo mais caro de errar (a próxima sessão obedece).
+
+Daí as duas metades deste caso. **Derivar:** a lista de papéis, a contagem do título e o dono de cada fase saem de `trabalhoTokens.ts` — o dono por **inversão** do `desc` (`'F1 — protótipo visual'` ⇒ F1 é do `[CC]`), nunca de um mapa escrito aqui. Papel novo aparece sozinho; papel que sai leva o badge junto. O protótipo escreve `6 papéis` literal e o main tem 7 — número à mão apodrece no primeiro papel novo.
+
+**Calar:** o `forja-runbook.jsx` declara que seu texto vem do `PROTOCOL.md §1–§3`, e o próprio PROTOCOL marca §1 e §3 como 🪦 **superado** (v2 tem 2 papéis, ADR 0282; os gates humanos viraram checks de CI). Copiar aquele texto entregaria uma tela que ensina o loop v1. Então a FORMA é do protótipo (UI-0029, classes `fj-rb-*` e estrutura de drawer) e o CONTEÚDO é do main — conteúdo normativo não é eixo do protótipo. O que não tem fonte válida fica **declarado ausente na própria tela**, não em branco: sem isso a próxima sessão lê o painel curto como bug e "completa" com o texto que este caso barra.
+
+Terceira perna, a que impede affordância falsa (LC-15): o painel é **leitura pura** — zero query, zero escrita. Se um dia ganhar ação, ela precisa de rota antes do botão.
+
+**Pronto quando:** a contagem de `<li>` de papéis bate com `Object.keys(PAPEIS).length` (e falha se a fonte esvaziar); acrescentar um papel à fonte faz surgir a linha **sem editar o componente**; realocar o `desc` do `[CC]` migra o badge de fase junto; o texto renderizado **não** contém `/design-override`, `/screenshot-override`, `/a11y-override` nem "Aprovação visual síncrona", **e** contém a declaração da ausência; o drawer tem `role="dialog"` + `aria-modal` + `aria-label` e fecha no `Esc`.
+## PARIDADE §11 — o Quadro (o que a tela DESENHA, não o que ela declara)
+
+## UC-TRAB-19 — Toda fase declarada vira coluna RENDERIZADA, na mesma ordem
+Status: 🧪 (1 teste cita este UC — `tests/forjaQuadroColunas.spec.tsx`, 5 casos em jsdom; monta o `TrabalhoQuadro` nos dois eixos e conta `.fj-kcol` no DOM, com guarda anti-falso-verde se as declarações esvaziarem.)
+A decisão [W] de 2026-08-11 — **F4 Merge É coluna** — mantém 7 colunas no Pipeline e diverge **de propósito** do protótipo, que filtra F4 e desenha 6. A divergência estava declarada em três lugares em prosa (charter, docblock do componente, `PipelineParidadeTest`) e defendida por **nenhum**: toda a cadeia de paridade é declarativa e lê constantes, nunca o render. Medido em 2026-09-03: um `.filter(f => f.key !== 'F4')` no `FASES.map(` não toca o bloco `const FASES`, então o `UC-TRAB-07` extrai a mesma lista antes e depois e segue verde — a decisão [W] seria revertida em silêncio por quem "corrigisse" 7→6 obedecendo o protótipo.
+
+O caso fecha o último elo da cadeia: `protótipo → backend → declaração → **colunas desenhadas**`. Ele **não** crava o número 7 — comparar o render contra a declaração é o que impede o falso-positivo no dia em que o protocolo ganhar uma fase legítima (aí os dois lados crescem juntos e o caso passa). E não é guard sintático: ele renderiza e conta o DOM, então `slice`, `if` ou índice fixo caem igual ao `.filter` (medido: FP 0/3 em mudanças legítimas, mordida 2/2 em regressões, incluindo a variante sem `.filter`).
+
+**Pronto quando:** no eixo Pipeline a contagem de `.fj-kcol` é igual a `FASES_PIPELINE.length` e os IDs saem na mesma ordem da declaração; `F4` é uma das colunas **e** recebe card (não cai no "fora do board"); no eixo Execução as colunas são exatamente `STATUS_ATIVOS` com o rótulo PT do canon, e `done` segue fora com a contagem visível.

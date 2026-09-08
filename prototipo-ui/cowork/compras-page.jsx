@@ -243,7 +243,7 @@ function SortTh({ col, label, sort, setSort, align, width }) {
   const ariaSort = active ? (sort.dir === "asc" ? "ascending" : "descending") : "none";
   const toggle = () => setSort(s => ({ col, dir: s.col === col && s.dir === "asc" ? "desc" : "asc" }));
   return (
-    <th style={{ width, textAlign: align || "left" }} aria-sort={ariaSort}>
+    <th scope="col" style={{ width, textAlign: align || "left" }} aria-sort={ariaSort}>
       <button type="button" className="cmp-sort-btn" onClick={toggle}
         style={{ justifyContent: align === "right" ? "flex-end" : "flex-start" }}
         title={`Ordenar por ${label}`}>
@@ -400,8 +400,8 @@ function ComprasPage() {
           glyph={<window.JcIcon name="truck" />}
           acoes={<>
             <div className="mp-busca">
-              <span>⌕</span>
-              <input placeholder="Buscar NF-e, fornecedor, chave..." />
+              <span aria-hidden="true">⌕</span>
+              <input aria-label="Buscar NF-e, fornecedor ou chave de acesso" placeholder="Buscar NF-e, fornecedor, chave..." />
               <kbd style={{ fontSize: 9, fontFamily: "var(--mono)", color: "var(--text-mute)", background: "var(--sunken)", padding: "1px 5px", borderRadius: 3 }}>/</kbd>
             </div>
             <button className="jc-btn ghost" onClick={() => avisar("Importar XML abre o seletor de arquivo — fora deste protótipo.")}><window.JcIcon name="download" className="ic" /><span>Importar XML</span></button>
@@ -471,7 +471,7 @@ function ComprasPage() {
               <table className="purchases">
                 <thead>
                   <tr>
-                    {cols.acao && <th style={{ width: "84px" }}>Ação</th>}
+                    {cols.acao && <th scope="col" style={{ width: "84px" }}>Ação</th>}
                     {cols.compra && <SortTh col="id" label="Compra" sort={sort} setSort={setSort} width="100px" />}
                     {cols.fornecedor && <SortTh col="fornecedor" label="Fornecedor" sort={sort} setSort={setSort} />}
                     {cols.data && <SortTh col="data" label="Data" sort={sort} setSort={setSort} width="95px" />}
@@ -479,7 +479,7 @@ function ComprasPage() {
                     {cols.itens && <SortTh col="itens" label="Itens" sort={sort} setSort={setSort} align="right" width="60px" />}
                     {cols.total && <SortTh col="total" label="Total" sort={sort} setSort={setSort} align="right" width="100px" />}
                     {cols.apagar && <SortTh col="apagar" label="A pagar" sort={sort} setSort={setSort} align="right" width="100px" />}
-                    {cols.nfe && <th style={{ width: "80px" }}>NF-e</th>}
+                    {cols.nfe && <th scope="col" style={{ width: "80px" }}>NF-e</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -644,7 +644,7 @@ function DrawerView({ p, tab, setTab, stageIdx, close }) {
             {p.products ? (
               <table className="items-tbl">
                 <thead><tr>
-                  <th>Produto</th><th className="num">Qtd</th><th className="num">Custo unit.</th><th className="num">Total</th><th className="num">Venda</th><th className="num">Margem</th>
+                  <th scope="col">Produto</th><th scope="col" className="num">Qtd</th><th scope="col" className="num">Custo unit.</th><th scope="col" className="num">Total</th><th scope="col" className="num">Venda</th><th scope="col" className="num">Margem</th>
                 </tr></thead>
                 <tbody>
                   {p.products.map((it, i) => (

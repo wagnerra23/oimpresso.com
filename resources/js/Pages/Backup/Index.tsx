@@ -242,6 +242,8 @@ export default function BackupIndex({
               data={lista}
               pagination={backups as PaginatorShape<Backup>}
               endpoint="/backup"
+              // Copy do empty-state da própria tela ("Nenhum backup no disco.").
+              caption="Backups no disco"
               rowKey={(b) => b.file_name}
             />
           )}

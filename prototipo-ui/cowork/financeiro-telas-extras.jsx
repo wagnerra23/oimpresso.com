@@ -460,12 +460,7 @@ const TelaDRE = ({ onBack }) => {
               <div className="text-[length:var(--fs-5)] font-semibold mt-0.5 whitespace-nowrap">{period}</div>
             </div>
             <div className="ml-auto flex items-center gap-2">
-              <div className="fin-seg">
-                {["Mês", "Trimestre", "Ano", "12m"].map((p) => (
-                  <button key={p} className={"fin-seg-btn" + (p === "Mês" ? " on" : "")}
-                          disabled={p !== "Mês"} title={p !== "Mês" ? "Em breve" : undefined}>{p}</button>
-                ))}
-              </div>
+              <window.CliSeg ariaLabel="Período" value="Mês" options={["Mês", "Trimestre", "Ano", "12m"].map((p) => ({ key: p, label: p, disabled: p !== "Mês" }))} />
               <button className="fin-sysbtn"><I.Download size={13}/> PDF</button>
               <button className="fin-sysbtn">Excel</button>
             </div>

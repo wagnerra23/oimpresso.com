@@ -350,3 +350,168 @@ it('UC-CMP-08 · compra de local não permitido não aparece no cockpit', functi
         .'Se Compras NÃO deve ter escopo por localização, isto vira Non-Goal no charter ([W]).'
     );
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+/**
+ * UC-CMP-10 — as colunas "Itens" e "NF-e" do protótipo têm o DADO CERTO no payload.
+ *
+ * ORIGEM (2026-09-07): comparação MEDIDA prod × protótipo do cockpit
+ * (`memory/requisitos/Compras/_telas/cockpit-visual-comparison.md`). Das 4
+ * divergências que a máquina acusou, esta foi a ÚNICA que sobreviveu à
+ * verificação: o protótipo tem 9 colunas, a produção tinha 7, e o charter da
+ * tela declara as duas que faltavam. As outras 3 eram artefato de seletor ou
+ * acidente de markup do protótipo — estão refutadas com medição no documento.
+ *
+ * O QUE ESTE TESTE DEFENDE, e por que no BACKEND: a coluna "Itens" não existe
+ * em `transactions` — vem de subselect correlacionado que o ComprasService
+ * acrescenta. Um teste de front provaria que o `<td>` renderiza; só o payload
+ * prova que o DADO chega. Se alguém "simplificar" o subselect pra um join, o
+ * `amount_paid` infla (a query do core agrupa por transaction) e o assert de
+ * valor abaixo é o que denuncia — VALOR é Tier 0.
+ *
+ * NF-e — A FONTE (corrigido em 2026-09-07, mesmo dia da 1ª versão): a coluna lê
+ * `transactions.chave_entrada` (chave de 44 dígitos, o `xmlChave` do protótipo),
+ * NÃO `transactions.document`. `document` é anexo genérico de arquivo — o core o
+ * grava com `uploadFile($request, 'document', 'documents')` e o serve como download,
+ * inclusive imagem (`isFileImage()`). Lê-lo como NF-e faz a tela afirmar "✓ XML" para
+ * um JPEG e "—" para uma compra com nota de verdade: um fato fiscal inventado a partir
+ * de um campo que não fala de fiscal. E o assert que o defendia era presence-gate
+ * (`array_key_exists`), que passa com o campo sempre nulo — agora prova VALOR.
+ */
+it('UC-CMP-10 · o payload traz items_count e chave_entrada (colunas Itens e NF-e do protótipo)', function () {
+    $sessao = ['user' => ['business_id' => $this->biz->id, 'id' => $this->user->id]];
+
+    $ref = 'CMP-COLS-'.uniqid();
+    $compra = comprasContratoCriarCompra($this->biz->id, (int) $this->locA->id, $this->user->id, $ref);
+
+    // Produto + variação REAIS: `purchase_lines` tem FK pra `products` e `variations`,
+    // então `product_id => 1` chutado estoura 1452 (foi o 1º vermelho deste UC — e o
+    // vermelho estava certo). Espelha a fixture do PurchaseCalculoValorEstoqueE2ETest.
+    $sku = 'CMPCOLS-'.uniqid();
+    $unitId = (int) (DB::table('units')->where('business_id', $this->biz->id)->value('id')
+        ?? DB::table('units')->insertGetId([
+            'business_id' => $this->biz->id,
+            'actual_name' => 'Unidade '.$sku,
+            'short_name' => 'un',
+            'allow_decimal' => 0,
+            'created_by' => $this->user->id,
+            'created_at' => Carbon::now(),
+            'updated_at' => Carbon::now(),
+        ]));
+
+    $productId = DB::table('products')->insertGetId([
+        'business_id' => $this->biz->id,
+        'name' => 'Produto '.$sku,
+        'type' => 'single',
+        'unit_id' => $unitId,
+        'sku' => $sku,
+        'enable_stock' => 1,
+        'alert_quantity' => 0,
+        'tax_type' => 'exclusive',
+        'barcode_type' => 'C128',
+        'created_by' => $this->user->id,
+        'created_at' => Carbon::now(),
+        'updated_at' => Carbon::now(),
+    ]);
+
+    $variationGroupId = DB::table('product_variations')->insertGetId([
+        'product_id' => $productId,
+        'name' => 'DUMMY',
+        'is_dummy' => 1,
+        'created_at' => Carbon::now(),
+        'updated_at' => Carbon::now(),
+    ]);
+
+    $variationId = DB::table('variations')->insertGetId([
+        'product_id' => $productId,
+        'product_variation_id' => $variationGroupId,
+        'name' => 'DUMMY',
+        'sub_sku' => $sku.'-1',
+        'default_purchase_price' => 10.00,
+        'dpp_inc_tax' => 10.00,
+        'profit_percent' => 0,
+        'default_sell_price' => 20.00,
+        'sell_price_inc_tax' => 20.00,
+        'created_at' => Carbon::now(),
+        'updated_at' => Carbon::now(),
+    ]);
+
+    // Chave fiscal de ENTRADA real (44 dígitos) na compra de controle — é o que a coluna
+    // "NF-e" lê. `transactions.chave_entrada` é `NOT NULL DEFAULT ''`, então sem gravar aqui
+    // o campo voltaria vazio e o assert de valor abaixo não teria o que provar.
+    $chave = '35260512345678000190550010000045211000045210';
+    DB::table('transactions')->where('id', $compra->id)->update(['chave_entrada' => $chave]);
+
+    $linhas = 3;
+    for ($i = 0; $i < $linhas; $i++) {
+        DB::table('purchase_lines')->insert([
+            'transaction_id' => $compra->id,
+            'product_id' => $productId,
+            'variation_id' => $variationId,
+            'quantity' => 1,
+            'pp_without_discount' => 10,
+            'purchase_price' => 10,
+            'purchase_price_inc_tax' => 10,
+            'created_at' => Carbon::now(),
+            'updated_at' => Carbon::now(),
+        ]);
+    }
+
+    // PELO PAYLOAD DA TELA, não pelo service direto. Duas razões, e a 2ª só apareceu
+    // quando o teste ficou vermelho: (a) o que interessa é que o dado CHEGA onde a coluna
+    // renderiza; (b) chamar `listarCompras()` fora de uma requisição autenticada devolve
+    // listagem vazia — a query do core resolve `permitted_locations` a partir do usuário
+    // logado. A pré-condição anti-vácuo pegou isso e impediu que os asserts seguintes
+    // fossem lidos sobre uma lista vazia, que é exatamente pra isso que ela existe.
+    $response = $this->actingAs($this->user)
+        ->withSession($sessao)
+        ->withHeaders([
+            'X-Inertia' => 'true',
+            'X-Inertia-Version' => comprasContratoInertiaVersion(),
+            'X-Inertia-Partial-Data' => 'rows',
+            'X-Inertia-Partial-Component' => 'Compras/Index',
+        ])
+        ->get('/compras?per_page=100');
+
+    $response->assertStatus(200);
+
+    $rows = collect($response->json('props.rows.data') ?? []);
+
+    // PRÉ-CONDIÇÃO ANTI-VÁCUO: a compra criada aparece. Sem isto, um assert que
+    // "não achou divergência" poderia significar que a listagem veio vazia.
+    $linha = $rows->firstWhere('ref_no', $ref);
+    expect($linha)->not->toBeNull(
+        'PRÉ-CONDIÇÃO FALHOU: a compra de controle não apareceu na listagem — '
+        .'conferir fixture antes de ler o resultado dos asserts abaixo.'
+    );
+
+    expect((int) ($linha['items_count'] ?? -1))->toBe(
+        $linhas,
+        'A coluna "Itens" do protótipo (compras-page.jsx:501) não tem dado no payload. '
+        .'Ela vem de subselect no ComprasService::listarComprasInterno; se ele sumiu ou '
+        .'virou join, a contagem quebra.'
+    );
+
+    // NF-e — VALOR, não presença de chave. O assert anterior era `array_key_exists('document')`:
+    // passaria com o campo sempre nulo (LC-11, presence-gate) E fixava a fonte ERRADA.
+    // `document` é anexo genérico de arquivo (`uploadFile($request, 'document', 'documents')`),
+    // então lê-lo como NF-e faz a tela afirmar "✓ XML" para um JPEG anexado — e "—" para uma
+    // compra com nota de verdade. Este assert prova que a chave GRAVADA chega até a célula.
+    expect($linha['chave_entrada'] ?? null)->toBe(
+        $chave,
+        'A coluna "NF-e" do protótipo (compras-page.jsx:508 — `xmlChave ? "✓ XML" : "—"`) lê '
+        .'`transactions.chave_entrada`, a chave de 44 dígitos — o mesmo dado que o protótipo '
+        .'chama de `xmlChave`. Se voltar a ler `document`, a tela passa a afirmar um fato '
+        .'fiscal a partir de um anexo qualquer.'
+    );
+
+    // VALOR É TIER 0 (proibicoes.md §"CÁLCULO DE VALOR ou ESTOQUE"): o subselect
+    // NÃO pode multiplicar a linha do agregado. Se alguém trocar por join, o
+    // `final_total` continua certo mas o `amount_paid` (SUM sobre pagamentos)
+    // infla — este assert é o controle que pega isso.
+    expect((float) $linha['final_total'])->toBe(
+        500.00,
+        'O total da compra mudou com a coluna nova. O subselect de items_count NÃO pode '
+        .'entrar no GROUP BY da query do core — se virou join, o agregado multiplicou.'
+    );
+});

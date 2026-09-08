@@ -47,6 +47,28 @@
 // licença de APARÊNCIA, nunca de comportamento. Selecionar sem poder agir seria
 // afordância falsa — a classe LC-15 do ledger. Fica declarado no charter e na
 // lista de inconsistências, não escondido.
+//
+// ── OS PAPÉIS ARIA, e por que `listitem` e NÃO `row`/`button` ───────────────
+// A linha tem treze filhos inline. Sem papel nenhum, o leitor de tela lê os
+// treze em sequência, sem fronteira entre uma issue e a próxima — o `role="list"`
+// / `group` / `listitem` desenha essa fronteira e dá a posição ("3 de 17").
+//
+// A escolha do papel saiu de MEDIÇÃO, não de gosto: aqui a `.fj-row` **não tem
+// `onClick`** (confira — não há um nesta árvore). No protótipo tem
+// (`forja-page.jsx` :418), porque lá a linha abre o issue-drawer, que nesta tela
+// não existe. Então:
+//   `role="row"` + `role="grid"` prometeria navegação 2D por teclado (setas,
+//   foco por célula) que a tela não implementa — afordância falsa, o mesmo LC-15
+//   do checkbox acima, só que invisível pra quem enxerga.
+//   `<a>`/`<button>` prometeria destino; não há destino.
+//   `listitem` descreve o que a linha É: um item de uma lista que não navega.
+// Se um dia a linha ganhar `onClick`, este papel fica ERRADO e tem que ser
+// revisto junto — o `UC-TRAB-17` quebra de propósito nesse dia.
+//
+// Isto é divergência do protótipo na direção "produção à frente" (o protótipo
+// tem 16 atributos aria no arquivo inteiro e zero papel de lista), da mesma
+// família do `aria-expanded` e dos `data-testid` que já estavam aqui. Declarada
+// no charter §"Reconciliações", como as outras.
 
 
 // Tipos canônicos do vocabulário de task — os mesmos que o Quadro e o Board
@@ -101,11 +123,11 @@ export default function TrabalhoLista({
   favoritos, onFavoritar, fixados, onFixar, agents, faseLabel,
 }: Props) {
   return (
-    <div className={'fj-list' + (denso ? ' compact' : '')} data-testid="trabalho-lista">
+    <div className={'fj-list' + (denso ? ' compact' : '')} role="list" data-testid="trabalho-lista">
       {grupos.map(([g, itens]) => {
         const colapsado = colapsados.has(g);
         return (
-          <div key={g} className={'fj-group' + (colapsado ? ' collapsed' : '')}>
+          <div key={g} className={'fj-group' + (colapsado ? ' collapsed' : '')} role="group" aria-label={g}>
             <div className="fj-group-head">
               <button type="button" className="fj-group-toggle" onClick={() => onColapsar(g)}
                 aria-expanded={!colapsado} data-testid="trabalho-grupo">
@@ -118,7 +140,7 @@ export default function TrabalhoLista({
             {!colapsado && itens.map((t) => {
               const tam = t.estimate_h != null ? `${t.estimate_h}h` : t.story_points != null ? `${t.story_points}sp` : null;
               return (
-                <div key={t.task_id} className={'fj-row' + (fixados.has(t.task_id) ? ' pinned' : '')} data-testid="trabalho-linha">
+                <div key={t.task_id} className={'fj-row' + (fixados.has(t.task_id) ? ' pinned' : '')} role="listitem" data-testid="trabalho-linha">
                   {/* Slot de recuo — no protótipo ele é o chevron de sub-issues
                       quando a issue tem filhas. Aqui é SEMPRE o recuo: ver o
                       docblock §"o épico que não existe". */}

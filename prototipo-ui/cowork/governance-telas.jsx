@@ -76,11 +76,7 @@ function AuditoriaView() {
       <div className="gov-pad gov-filtros" data-contract="auditoria-filtros">
         <div className="gov-filtro">
           <label>Período</label>
-          <div className="gov-seg">
-            {PERIODOS_AUD.map((p) => (
-              <button key={p.id} className={periodo === p.id ? "on" : ""} aria-pressed={periodo === p.id} onClick={() => setPeriodo(p.id)}>{p.l}</button>
-            ))}
-          </div>
+          <window.CliSeg ariaLabel="Período" value={periodo} onChange={setPeriodo} options={PERIODOS_AUD.map((p) => ({ key: p.id, label: p.l }))} />
         </div>
         <div className="gov-filtro">
           <label htmlFor="gov-ator">Ator</label>

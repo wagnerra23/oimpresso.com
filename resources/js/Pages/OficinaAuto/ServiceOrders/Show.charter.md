@@ -2,6 +2,7 @@
 id: resources-js-pages-oficina-auto-service-orders-show-charter
 page: /oficina-auto/service-orders/{id}
 component: resources/js/Pages/OficinaAuto/ServiceOrders/Show.tsx
+related_visual_comparison: memory/requisitos/OficinaAuto/oficina-os-nova-prototipo-visual-comparison.md
 visual_source: oficina-os-page.jsx
 owner: wagner
 status: live

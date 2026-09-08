@@ -23,6 +23,20 @@ use Modules\Governance\Http\Controllers\QualidadeIaController;
 |
 */
 
+// ── Gate `can:` por rota (2026-09-08, ADR 0392 §D-D passo 2) ────────────────
+// As 5 telas que só tinham `auth` passam a exigir a MESMA permission que o
+// `DataController::modifyAdminMenu` já usa pra publicar o item de menu — o gate
+// de sidebar e o gate de URL deixam de divergir (recibo da 0392: "gate de
+// sidebar não é gate de URL"). Nenhuma permission NOVA foi criada: as três
+// vêm de `DataController::user_permissions()`.
+//
+// ⚠️ O QUE ISTO NÃO FECHA — medido em 2026-09-08, não é afirmação atemporal:
+// `AuthServiceProvider` registra `Gate::before` que devolve `true` para quem
+// tem a role `Admin#{business_id}` em QUALQUER ability fora de
+// backup/superadmin/manage_modules. Logo `can:` NÃO barra o admin de um
+// business — barra usuário não-admin sem a permission. Fechar aquele caminho é
+// o passo 1 da 0392 (o conflito A×B da CONCESSÃO), decisão [W] em aberto.
+
 Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
     ->prefix('governance')
     ->name('governance.')
@@ -38,29 +52,29 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         // Policies CRUD (mcp_governance_rules) — throttle defensivo:
         // read 60/min, toggle 10/min (operação sensível afeta enforcement runtime)
         Route::get('/policies', [PoliciesController::class, 'index'])
-            ->middleware('throttle:60,1')
+            ->middleware(['throttle:60,1', 'can:governance.dashboard.view'])
             ->name('policies.index');
         Route::post('/policies/{id}/toggle', [PoliciesController::class, 'toggle'])
-            ->middleware('throttle:10,1')
+            ->middleware(['throttle:10,1', 'can:governance.policies.edit'])
             ->name('policies.toggle');
 
         // Audit log drill-down — throttle 30/min (query pesada DB com filtros)
         Route::get('/audit', [AuditController::class, 'index'])
-            ->middleware('throttle:30,1')
+            ->middleware(['throttle:30,1', 'can:governance.audit.view'])
             ->name('audit.index');
 
         // Drift alerts (Module Charter Art. 7) — throttle 20/min (scan filesystem caro)
         Route::get('/drift', [DriftAlertsController::class, 'index'])
-            ->middleware('throttle:20,1')
+            ->middleware(['throttle:20,1', 'can:governance.dashboard.view'])
             ->name('drift.index');
 
         // Module Grades — rubrica module-grade-v3 (ADR 0155)
         // index/show throttle 30/min — cache 5min mitiga repeat hits
         Route::get('/module-grades', [ModuleGradeController::class, 'index'])
-            ->middleware('throttle:30,1')
+            ->middleware(['throttle:30,1', 'can:governance.dashboard.view'])
             ->name('module-grades.index');
         Route::get('/module-grades/{name}', [ModuleGradeController::class, 'show'])
-            ->middleware('throttle:30,1')
+            ->middleware(['throttle:30,1', 'can:governance.dashboard.view'])
             ->name('module-grades.show')
             ->where('name', '[A-Za-z0-9_-]+');
 
@@ -68,7 +82,7 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         // (tradução F3 do protótipo Cowork · handoff claude.ai/design 2026-06-12).
         // Static render → throttle leve 60/min.
         Route::get('/ds-rollout', [DsRolloutController::class, 'index'])
-            ->middleware('throttle:60,1')
+            ->middleware(['throttle:60,1', 'can:governance.dashboard.view'])
             ->name('ds-rollout.index');
 
         // Custos de IA + Qualidade IA — recebidas do Modules/Jana em 2026-08-05

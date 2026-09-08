@@ -17,6 +17,19 @@ revisions:
 
 # OficinaAuto — Produção Oficina (Caçambas) — Visual comparison
 
+> ⚰️ **FÓSSIL DATADO — a tela que este documento mede foi REVOGADA.** Registro de 2026-05-13,
+> preservado como fato do dia (append-only). **Não é o design vigente de tela viva nenhuma.**
+> A [ADR 0265](../../decisions/0265-oficina-reparo-erradica-locacao.md) (2026-06-09) erradicou
+> "locação" do domínio da Oficina, e `resources/js/Pages/OficinaAuto/ProducaoOficina/Index.tsx`
+> **não existe mais**: `/oficina-auto/producao-oficina` é redirect **301** para o Quadro de OS
+> (`ServiceOrderController@board` + `Pages/OficinaAuto/ServiceOrders/Board.tsx`).
+>
+> **Por isso ele não recebe `related_visual_comparison` de charter nenhum** — órfão LEGÍTIMO do
+> eixo paridade (Onda 7), não dívida a fechar. Medido 2026-09-07: **16** ocorrências de vocabulário
+> de locação neste arquivo, com as colunas mapeadas literalmente em `disponivel`/`locada`.
+> Vinculá-lo declararia como fonte de design vigente um documento que ensina o domínio proibido
+> — o vetor exato da lápide §5 2026-06-09.
+
 > Referência canônica visual V1: [`prototipo-ui/prototipos/producao-oficina/F1.html`](../../../prototipo-ui/prototipos/producao-oficina/F1.html) (Cowork APROVADO simples)
 > Referência canônica visual V2: [`prototipo-ui/prototipos/producao-oficina/visual-source.html`](../../../prototipo-ui/prototipos/producao-oficina/visual-source.html) (1213 linhas — RICA, fonte canon V2)
 > Adaptação: 5 colunas Kanban estado caçambas (workflow Martinho), drawer próprio `CacambaProducaoSheet` (NÃO reusa ServiceOrderSheet — embute `ServiceOrderFsmActionPanel`).

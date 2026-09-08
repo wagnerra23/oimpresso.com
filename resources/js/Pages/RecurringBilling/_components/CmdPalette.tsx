@@ -79,34 +79,34 @@ export default function CmdPalette({ subs, plans, onClose, onPick }: Props) {
 
   return (
     <div role="dialog" aria-modal="true" onClick={onClose} className="fixed inset-0 z-50 flex items-start justify-center bg-stone-900/50 backdrop-blur-sm pt-32">
-      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-2xl rounded-lg bg-white shadow-2xl ring-1 ring-stone-200 overflow-hidden">
-        <div className="flex items-center gap-2 border-b border-stone-100 px-3 py-2.5">
-          <Search size={16} className="text-stone-400" />
+      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-2xl rounded-lg bg-card shadow-2xl ring-1 ring-border overflow-hidden">
+        <div className="flex items-center gap-2 border-b border-border px-3 py-2.5">
+          <Search size={16} className="text-muted-foreground" />
           <input
             ref={inputRef}
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Buscar assinante, CNPJ, OS — ou perguntar à Jana"
-            className="flex-1 bg-transparent text-sm outline-none placeholder:text-stone-400"
+            className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
           />
-          <kbd className="rounded bg-stone-100 px-1.5 py-0.5 text-[10px] font-mono text-stone-500 ring-1 ring-stone-200">Esc</kbd>
+          <kbd className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground ring-1 ring-border">Esc</kbd>
         </div>
         <ul className="max-h-96 overflow-y-auto py-1">
           {results.length === 0 && q.trim() && !iaText && !iaLoading && (
             <li className="p-4 text-center">
-              <p className="mb-2 text-sm text-stone-500">Nada encontrado para "<b>{q}</b>".</p>
+              <p className="mb-2 text-sm text-muted-foreground">Nada encontrado para "<b>{q}</b>".</p>
               <button type="button" onClick={askIa} className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white hover:opacity-90">
                 <Sparkles size={12} /> Perguntar à Jana →
               </button>
             </li>
           )}
           {iaLoading && (
-            <li className="px-4 py-3 text-xs text-stone-500">
+            <li className="px-4 py-3 text-xs text-muted-foreground">
               <Sparkles size={12} className="inline animate-pulse" /> Jana pensando…
             </li>
           )}
           {iaText && (
-            <li className="border-y border-primary/20 bg-primary/5 px-4 py-3 text-sm text-stone-800">
+            <li className="border-y border-primary/20 bg-primary/5 px-4 py-3 text-sm text-foreground">
               <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-primary">
                 <Sparkles size={10} className="inline" /> Jana
               </div>
@@ -118,20 +118,20 @@ export default function CmdPalette({ subs, plans, onClose, onPick }: Props) {
               key={`${r.kind}-${r.id}`}
               onMouseEnter={() => setSel(i)}
               onClick={() => onPick(r)}
-              className={`flex cursor-pointer items-center gap-3 px-4 py-2 text-sm ${i === sel ? 'bg-primary/10' : 'hover:bg-stone-50'}`}
+              className={`flex cursor-pointer items-center gap-3 px-4 py-2 text-sm ${i === sel ? 'bg-primary/10' : 'hover:bg-muted'}`}
             >
-              <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${r.kind === 'sub' ? 'bg-stone-200 text-stone-700' : 'bg-blue-200 text-blue-800'}`}>
+              <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${r.kind === 'sub' ? 'bg-muted text-foreground' : 'bg-blue-200 text-blue-800'}`}>
                 {r.kind === 'sub' ? 'assin.' : 'plano'}
               </span>
-              <b className="flex-1 truncate text-stone-900">{r.label}</b>
-              <small className="truncate text-xs text-stone-500">{(r as { sub: string }).sub}</small>
+              <b className="flex-1 truncate text-foreground">{r.label}</b>
+              <small className="truncate text-xs text-muted-foreground">{(r as { sub: string }).sub}</small>
             </li>
           ))}
         </ul>
-        <footer className="flex items-center justify-between gap-2 border-t border-stone-100 px-3 py-2 text-[10px] text-stone-500">
-          <span><kbd className="rounded bg-stone-100 px-1 ring-1 ring-stone-200">↑↓</kbd> navegar</span>
-          <span><kbd className="rounded bg-stone-100 px-1 ring-1 ring-stone-200">↵</kbd> selecionar</span>
-          <span><kbd className="rounded bg-stone-100 px-1 ring-1 ring-stone-200">Esc</kbd> fechar</span>
+        <footer className="flex items-center justify-between gap-2 border-t border-border px-3 py-2 text-[10px] text-muted-foreground">
+          <span><kbd className="rounded bg-muted px-1 ring-1 ring-border">↑↓</kbd> navegar</span>
+          <span><kbd className="rounded bg-muted px-1 ring-1 ring-border">↵</kbd> selecionar</span>
+          <span><kbd className="rounded bg-muted px-1 ring-1 ring-border">Esc</kbd> fechar</span>
         </footer>
       </div>
     </div>

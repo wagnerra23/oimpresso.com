@@ -16,6 +16,7 @@ alcance:
   pacote: manufacturing_module            # superadmin_package
 tier: B
 charter_version: 1
+smoke: "2026-09-03 — render prod OK (Chrome MCP, sessão WR2 Sistemas): /manufacturing/recipe (tela nova, KPIs + 1 receita listada) e /manufacturing/recipe?legacy=1 (rollback Blade) renderizam a tela certa, 0 erro no console. Regressão adjacente OK: /manufacturing/production e /manufacturing/settings (Blade legacy) inalterados. curl -sv sem cookie: 302→/login nas 4 rotas (RUNBOOK-recipes.md §5)."
 ---
 
 # Page Charter — Manufacturing/Recipes (DRAFT · PT-01 Lista)
@@ -55,8 +56,11 @@ quanto o custo mudou desde a última compra.
 - ❌ **Não atualiza preço de venda em massa.** O protótipo tem o botão usando `custo × 2`; §18.1
   do handoff diz literalmente *"Não implemente esse fator 2"*, a regra de markup real não foi
   decidida, e escrever em N preços é Tier 0 de VALOR.
-- ❌ **Não traz a aba Insumos.** §18.3: `usosDoInsumo` é cálculo novo sem backend — *"sem isso,
-  a aba não sai"*.
+- ~~❌ **Não traz a aba Insumos.**~~ — **SUPERADO em 2026-09-04.** A própria razão escrita
+  aqui era a ausência de backend (§18.3: *"sem isso, a aba não sai"*), e o backend saiu na
+  US-MANU-005 (`usosDoInsumo` no `RecipeBomService`). Sem a premissa, o Non-Goal deixa de
+  descrever uma intenção e passa a instruir regressão — a tela ficaria inalcançável.
+  ⚠️ Non-Goal é território [W]: se ele discordar, o lugar de barrar é este PR.
 - ❌ **Não edita ingredientes nem lança produção** — as duas têm tela própria.
 - ❌ **Não remove nem renomeia rota Blade legacy** do módulo.
 - ❌ **Não calcula custo no cliente.** Todo número vem derivado do servidor (§9).
@@ -78,6 +82,42 @@ quanto o custo mudou desde a última compra.
 - Linha de tabela ≥ 44px; cabeçalho sticky
 - §11 medido: `--text-mute` **não** é usado em texto pequeno (reprova AA nos dois temas — ADR
   `0410`), e `--accent` como **texto** vira `--accent-2` no tema escuro (ADR `0411`)
+
+## Acento visual — por que `--color-primary` e nunca `--accent`
+
+Medido em produção 2026-09-04 ([M] apontou; `getComputedStyle` no navegador, não leitura de CSS):
+
+| | Valor |
+|---|---|
+| aba ativa em prod | `oklch(0.76 0.15 220)` — **azul** |
+| protótipo declara | `oklch(0.55 0.15 295)` — **roxo** |
+| `--color-primary` | `oklch(70% .15 295)` — o roxo do DS, intacto |
+| `localStorage` | `oimpresso.cockpit.tweaks.accentHue = 220` |
+
+**Causa:** o `AppShellV2` reescreve `--accent` em runtime a partir de `accentHue`, um seletor de
+matiz salvo no navegador. Amarrar a identidade da tela nisso faz a preferência de **um** navegador
+mandar no Design System — cada pessoa veria uma cor diferente.
+
+**Regra:** as regras do bundle consomem `var(--color-primary)`. Quem "normalizar" de volta pra
+`--accent` reintroduz o bug.
+
+### O empate de especificidade do cabeçalho ordenado
+
+`.mfg-th.sort.act` (0,3,0) **empata** com `.mfg-root .mfg-th.sort` (0,3,0) do bloco §11
+(`--text-dim`), e no empate vence quem vem **depois** no arquivo — que é o §11.
+
+Até 2026-09-04 quem ganhava era o override de tema escuro, com especificidade maior. Ao
+removê-lo (por ser redundante), o cabeçalho **perdeu o acento e virou texto apagado** —
+medido em produção depois do deploy: matiz **90** (`oklch(0.72 0.005 90)`) em vez de 295.
+
+A regra `.mfg-root .mfg-th.sort.act` (0,4,0) resolve o empate sem ressuscitar o override.
+Quem mexer no bloco §11 precisa manter essa ordem de força.
+
+⚠️ **A 1ª tentativa foi `.mfg-root{--accent:var(--color-primary)}` e o `foundation-guard`
+reprovou, com razão:** bundle de módulo **consome** token, nunca **define** (ADR UI-0013 — token
+só mora na fundação). Trocar o consumidor é o caminho, e é o que o precedente do Produto
+(2026-08-24) já tinha feito. A ADR 0401 registra que *"o azul/ciano da aba ativa NÃO EXISTE na
+paleta do DS"*.
 
 ## Refs
 

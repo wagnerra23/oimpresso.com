@@ -1319,3 +1319,112 @@ Perceived performance no `Sells/Create`: skeleton inicial enquanto carrega + alv
 
 - Charter: [`Edit.charter.md`](../../../resources/js/Pages/Sells/Edit.charter.md) · casos: [`Edit.casos.md`](../../../resources/js/Pages/Sells/Edit.casos.md) · RUNBOOK: [RUNBOOK-edit.md](RUNBOOK-edit.md)
 - Landado em [#6455](https://github.com/wagnerra23/oimpresso.com/pull/6455).
+
+---
+
+### US-SELL-060 · Listar rascunhos de venda (`/sells/drafts`)
+
+**Implementado em:** `resources/js/Pages/Sells/Drafts.tsx` · `app/Http/Controllers/SellController.php` (`getDrafts()`) · `resources/js/Pages/Sells/Drafts.charter.md` · `memory/requisitos/Sells/RUNBOOK-drafts.md` · verificado@9101f86af5 (2026-09-08) — a capacidade já está viva em produção (rota viva em routes/web.php linha 716). Esta US é **retroativa**: registra o que existe e passa a ancorá-lo, no mesmo espírito da US-SELL-059.
+
+**Testado em:** `tests/Feature/Sells/SellsDraftsCoworkTest.php` — o arquivo existe, mas medido em 2026-09-08 tem **zero invocadores** (`git grep SellsDraftsCoworkTest -- .github/ phpunit.xml package.json` — a sonda foi validada com controle positivo num teste que SIM tem invocador). **Não roda em lane nenhuma** — esta linha registra existência, não cobertura.
+
+> owner: wagner · priority: p2 · estimate: 0h · type: story
+> blocked_by: —
+
+<!-- Sem `status:` de propósito (ADR 0302: a fonte única de done-ness é
+     `**Implementado em:**`). A capacidade está viva; o resíduo declarado no
+     Aceite é de COBERTURA (teste que não roda), não de funcionalidade. -->
+
+**Origem:** lacuna acusada pelo `charter-us-lint` em 2026-09-08, ao vincular os inventários de paridade da Onda 7 ([#6972](https://github.com/wagnerra23/oimpresso.com/pull/6972)). Tocar o charter acordou a dívida dele: `Drafts.charter.md` não declarava `related_us`, e a busca nas 53 US então existentes — por path e por termo de domínio — não achou nenhuma que cobrisse rascunhos. As `US-SELL-001..009` são todas sobre `/sells/create`. A tela existia, tinha charter, RUNBOOK e inventário de paridade, e não tinha US.
+
+**Problema:** rascunho é a venda que a Larissa deixa pela metade quando o telefone toca — foi a US-SELL-007 que criou o auto-save que os produz. A tela que os recupera não tinha contrato declarado, então nenhum gate sabia o que ela deve garantir.
+
+**Aceite:**
+- [x] Sem `draft.view_all` nem `draft.view_own`, a tela é negada com 403 (`SellController@getDrafts`).
+- [x] A listagem é escopada por `business_id` da sessão (Tier 0, ADR 0093).
+- [x] Só entram vendas com `status = draft`; cotação é tela própria (US-SELL-061).
+- [x] "Continuar" leva ao editor (`/sells/{id}/edit`), que aplica os próprios guards (US-SELL-059).
+- [ ] Pôr `SellsDraftsCoworkTest` numa lane ou aposentá-lo. O precedente da US-SELL-059 mostra que teste órfão fica vermelho por meses sem ninguém ver — decidir é intent próprio.
+- [ ] `Drafts.casos.md` não existe: a tela não tem UC citado por teste (G-2 do `casos-gate`).
+
+- Charter: [`Drafts.charter.md`](../../../resources/js/Pages/Sells/Drafts.charter.md) · RUNBOOK: [RUNBOOK-drafts.md](RUNBOOK-drafts.md) · paridade: [drafts-visual-comparison.md](drafts-visual-comparison.md)
+
+---
+
+### US-SELL-061 · Listar cotações (`/sells/quotations`)
+
+**Implementado em:** `resources/js/Pages/Sells/Quotations.tsx` · `app/Http/Controllers/SellController.php` (`getQuotations()`) · `resources/js/Pages/Sells/Quotations.charter.md` · `memory/requisitos/Sells/RUNBOOK-quotations.md` · verificado@9101f86af5 (2026-09-08) — capacidade viva (rota viva em routes/web.php linha 719). US **retroativa**, mesmo motivo da US-SELL-060.
+
+**Testado em:** `tests/Feature/Sells/SellsQuotationsCoworkTest.php` — existe, **zero invocadores** medidos em 2026-09-08 (mesma sonda e mesmo controle positivo da US-SELL-060). Não roda em lane nenhuma.
+
+> owner: wagner · priority: p2 · estimate: 0h · type: story
+> blocked_by: —
+
+<!-- Sem `status:` de propósito (ADR 0302). Resíduo é de cobertura, não de funcionalidade. -->
+
+**Origem:** a mesma lacuna do `charter-us-lint` (2026-09-08, Onda 7). `Quotations.charter.md` não declarava `related_us` e nenhuma US do SPEC cobria cotação.
+
+**Problema:** cotação é proposta formal enviada ao cliente — o passo comercial que antecede a venda. Ela compartilha a tabela `transactions` com o rascunho e se distingue **só** por `sub_status = quotation`; sem contrato declarado, essa distinção vivia apenas no código e no charter.
+
+**Aceite:**
+- [x] Sem `quotation.view_all` nem `quotation.view_own`, a tela é negada com 403 (`SellController@getQuotations`).
+- [x] A listagem é escopada por `business_id` da sessão (Tier 0, ADR 0093).
+- [x] O recorte é `status = draft` **mais** `sub_status = quotation` — é o que separa esta tela da US-SELL-060, e a separação é do backend, não da UI.
+- [ ] Pôr `SellsQuotationsCoworkTest` numa lane ou aposentá-lo (intent próprio).
+- [ ] `Quotations.casos.md` não existe: sem UC citado por teste (G-2).
+
+- Charter: [`Quotations.charter.md`](../../../resources/js/Pages/Sells/Quotations.charter.md) · RUNBOOK: [RUNBOOK-quotations.md](RUNBOOK-quotations.md) · paridade: [quotations-visual-comparison.md](quotations-visual-comparison.md)
+
+---
+
+### US-SELL-062 · Listar vendas recorrentes e pausar/retomar (`/sells/subscriptions`)
+
+**Implementado em:** `resources/js/Pages/Sells/Subscriptions.tsx` · `app/Http/Controllers/SellPosController.php` (`listSubscriptions()`) · `resources/js/Pages/Sells/Subscriptions.charter.md` · `memory/requisitos/Sells/RUNBOOK-subscriptions.md` · verificado@9101f86af5 (2026-09-08) — capacidade viva (rota viva em routes/web.php linha 714). US **retroativa**.
+
+**Testado em:** `tests/Feature/Sells/SellsSubscriptionsCoworkTest.php` — existe, **zero invocadores** medidos em 2026-09-08. Não roda em lane nenhuma.
+
+> owner: wagner · priority: p2 · estimate: 0h · type: story
+> blocked_by: —
+
+<!-- Sem `status:` de propósito (ADR 0302). Resíduo é de cobertura, não de funcionalidade. -->
+
+**Origem:** a mesma lacuna do `charter-us-lint` (2026-09-08, Onda 7).
+
+**Problema:** esta é a única das quatro que **escreve**: o toggle por linha pausa e retoma uma cobrança recorrente (`POST /sells/recurring-toggle/{id}`). Pausar uma assinatura é ato de faturamento — deixar de cobrar um cliente — e mesmo assim a tela não tinha US. O charter já declarava a permissão separada para escrita; agora o SPEC também.
+
+**Aceite:**
+- [x] Sem `sell.view` nem `direct_sell.access`, a tela é negada com 403 (`SellPosController@listSubscriptions`).
+- [x] A listagem é escopada por `transactions.business_id` (Tier 0, ADR 0093).
+- [x] O recorte é `status = final` **mais** `is_recurring = 1`.
+- [x] O toggle de pausar/retomar exige `sell.update` — permissão de **escrita**, distinta da de leitura da tela.
+- [ ] Pôr `SellsSubscriptionsCoworkTest` numa lane ou aposentá-lo (intent próprio).
+- [ ] `Subscriptions.casos.md` não existe: sem UC citado por teste (G-2). Vale mais aqui do que nas irmãs, porque esta tela escreve.
+
+- Charter: [`Subscriptions.charter.md`](../../../resources/js/Pages/Sells/Subscriptions.charter.md) · RUNBOOK: [RUNBOOK-subscriptions.md](RUNBOOK-subscriptions.md) · paridade: [subscriptions-visual-comparison.md](subscriptions-visual-comparison.md)
+
+---
+
+### US-SELL-063 · Caixa do dia por forma de pagamento e por origem (`/vendas/caixa`)
+
+**Implementado em:** `resources/js/Pages/Sells/Caixa/Index.tsx` · `app/Http/Controllers/SellController.php` (`inertiaCaixa()`) · `resources/js/Pages/Sells/Caixa/Index.charter.md` · verificado@9101f86af5 (2026-09-08) — capacidade viva (rota viva em routes/web.php linha 727, nome de rota `vendas.caixa`). US **retroativa**.
+
+**Testado em:** `tests/Feature/Sells/SellsCaixaPageTest.php` — existe, **zero invocadores** medidos em 2026-09-08. Não roda em lane nenhuma. Há ainda um teste de escopo Tier 0 do cash register (fora do escopo desta US, e por isso não citado como teste-que-cobre).
+
+> owner: wagner · priority: p2 · estimate: 0h · type: story
+> blocked_by: —
+
+<!-- Sem `status:` de propósito (ADR 0302). Resíduo é de cobertura, não de funcionalidade. -->
+
+**Origem:** a mesma lacuna do `charter-us-lint` (2026-09-08, Onda 7). Diferente das irmãs, esta tela **não tem RUNBOOK** — o inventário de paridade `Caixa-r1-visual-comparison.md` é o artefato mais próximo de um.
+
+**Problema:** o caixa do dia é onde a diferença entre o esperado e o conferido aparece — é conferência de dinheiro. A tela coexiste com o fluxo legacy `/cash-register/*`, que continua dono do fechamento real, e essa fronteira (quem lê × quem fecha) não estava declarada em US nenhuma.
+
+**Aceite:**
+- [x] Sem `direct_sell.view`, `view_own_sell_only` nem `view_commission_agent_sell`, a tela é negada com 403 (`SellController@inertiaCaixa`).
+- [x] Todos os agregados são escopados por `business_id` da sessão (Tier 0, ADR 0093).
+- [x] A tela **lê** e resume; o fechamento real permanece no legacy `/cash-register/close-register/{id}` — a tela navega para lá, não substitui o ato.
+- [ ] Pôr `SellsCaixaPageTest` numa lane ou aposentá-lo (intent próprio).
+- [ ] `Caixa/Index.casos.md` não existe: sem UC citado por teste (G-2).
+- [ ] A tela não tem RUNBOOK, ao contrário das irmãs `Drafts`/`Quotations`/`Subscriptions`.
+
+- Charter: [`Caixa/Index.charter.md`](../../../resources/js/Pages/Sells/Caixa/Index.charter.md) · paridade: [Caixa-r1-visual-comparison.md](Caixa-r1-visual-comparison.md)

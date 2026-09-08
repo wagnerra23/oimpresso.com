@@ -9,7 +9,7 @@
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { matchDestructive, normalizeCmd, blockMessage, avisoStashPop, consomeTopoPorPosicao } from './block-destructive.mjs';
+import { matchDestructive, normalizeCmd, blockMessage, avisoStashPop, consomeTopoPorPosicao, avisoPushDelete } from './block-destructive.mjs';
 
 const HOOK = join(dirname(fileURLToPath(import.meta.url)), 'block-destructive.mjs');
 let fails = 0;
@@ -113,6 +113,31 @@ check('consomeTopoPorPosicao: pop com entry = false', consomeTopoPorPosicao('git
 
 // E2E: o aviso NÃO bloqueia — esta é a diferença pro resto do hook
 check('E2E: git stash pop → exit 0 (ADVISORY, jamais bloqueia)', runHook(j('git stash pop')) === 0);
+
+// ── AVISO push --delete não-literal (advisory) — LC-12 3ª ocorrência 2026-09-06 ──
+// BITE: o comando exato do incidente (loop sobre ls-remote com glob → variável no --delete)
+check('BITE push-delete: nome em variável → avisa',
+  /NAO-LITERAL/.test(avisoPushDelete('git push origin --delete "$b"') || ''));
+check('BITE push-delete: glob direto → avisa',
+  avisoPushDelete("git push origin --delete claude/q*") !== null);
+check('BITE push-delete: subshell → avisa',
+  avisoPushDelete('git push origin --delete $(git branch --show-current)') !== null);
+check('BITE push-delete: forma -d curta → avisa',
+  avisoPushDelete('git push -d origin "$branch"') !== null);
+check('BITE push-delete: forma :refs/heads/ com variável → avisa',
+  avisoPushDelete('git push origin :refs/heads/$b') !== null);
+check('BITE push-delete: o aviso ensina a conferir posse (gh pr list --head)',
+  /gh pr list/.test(avisoPushDelete('git push origin --delete "$b"') || ''));
+// CONTROLES NEGATIVOS: apagar a PRÓPRIA branch por nome literal é o fluxo comum — silêncio
+check('CN push-delete: nome literal → silêncio',
+  avisoPushDelete('git push origin --delete claude/minha-branch-abc123') === null);
+check('CN push-delete: push normal → silêncio',
+  avisoPushDelete('git push -u origin claude/minha-branch') === null);
+check('CN push-delete: `-d` de git branch (local) não é push → silêncio',
+  avisoPushDelete('git branch -d claude/minha-branch') === null);
+check('CN push-delete: comando alheio → silêncio', avisoPushDelete('git status') === null);
+check('E2E: git push --delete "$b" → exit 0 (ADVISORY, jamais bloqueia)',
+  runHook(j('git push origin --delete "$b"')) === 0);
 
 console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — porte .mjs bloqueia as 8 categorias destrutivas em Win/Mac/Linux, whitelist rm preservada, DELETE-com-WHERE liberado (regra como escrita); fail-open provado (E2E). Aviso de `git stash pop` (advisory) morde no topo alheio e cala nos 8 controles negativos.');
 process.exit(fails ? 1 : 0);

@@ -47,6 +47,13 @@ class DfeController extends Controller
             // status_manifestacao IN ('confirmada','desconhecida','nao_realizada')
             // ordenado por manifestado_em DESC.
             'historicoMock' => $this->mockHistorico(),
+            // Relatório do último lote (US-FISCAL-008). Vem por prop, não por `flash`: o
+            // `HandleInertiaRequests` só compartilha as chaves fixas success/error/info/slash,
+            // e este payload é estruturado (nota a nota) porque falha parcial em manifestação
+            // precisa ser NOMEADA — "3 de 10 falharam" não diz quais 3 refazer.
+            // Eager de propósito: vem da sessão, não toca banco (a rule de `Inertia::defer`
+            // mira prop cara; esta custa uma leitura de array).
+            'loteResultado' => session('fiscal.dfe.lote'),
         ]);
     }
 
