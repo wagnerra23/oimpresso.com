@@ -70,6 +70,19 @@ class AssetController extends Controller
      */
     public function index(Request $request)
     {
+        // Permissão de TELA antes do gate de assinatura — mesmo formato de
+        // create() (:271), edit() e destroy(). Até 2026-09-08 o index() checava
+        // só a assinatura do módulo, então qualquer usuário da empresa com o
+        // módulo assinado listava o patrimônio inteiro; as checagens de
+        // `asset.update`/`asset.delete` mais abaixo só desenham botão de linha,
+        // e botão escondido não é autorização.
+        // `asset.view` é a permissão que o próprio módulo já declara para esta
+        // tela: registrada em DataController::user_permissions() e usada no
+        // `@can('asset.view')` que envolve o link "Ativos" na nav do módulo.
+        if (! auth()->user()->can('asset.view')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $business_id = request()->session()->get('user.business_id');
 
         if (! (auth()->user()->can('superadmin') || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'assetmanagement_module')))) {
