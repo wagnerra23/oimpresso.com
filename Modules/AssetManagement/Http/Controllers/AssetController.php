@@ -67,7 +67,13 @@ class AssetController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return Response
+     * O `@return` deixou de ser `Response` (`Illuminate\Http\Response`) em 2026-09-08: o
+     * metodo passou a ter DOIS retornos reais e o docblock antigo descrevia nenhum dos dois.
+     * O ramo `$request->ajax()` devolve o JSON do DataTables (`Datatables::make(true)`) e o
+     * caminho da tela devolve `Inertia\Response`. Nao e detalhe de estilo — o PHPStan pegou
+     * exatamente isto na primeira execucao apos a migracao.
+     *
+     * @return \Inertia\Response|\Illuminate\Http\JsonResponse
      */
     public function index(Request $request)
     {
