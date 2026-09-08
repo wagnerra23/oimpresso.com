@@ -12,6 +12,7 @@ parent_spec: memory/requisitos/Compras/SPEC.md
 related_adrs: [93, 94, 101, 104, 107, 114, 141, 149]
 related_us: [US-COM-001]
 related_prototype: prototipo-ui/cowork/compras-page.jsx
+related_visual_comparison: memory/requisitos/Compras/_telas/cockpit-visual-comparison.md
 tier: A
 charter_version: 2
 related_proposals:

@@ -3,6 +3,7 @@ id: resources-js-pages-purchase-show-charter
 page: /purchases/{id}
 component: resources/js/Pages/Purchase/Show.tsx
 related_prototype: n/a (tela de detalhe bespoke — não segue um dos 5 Padrões de Tela)
+related_visual_comparison: memory/requisitos/Compras/_telas/show-visual-comparison.md
 owner: wagner
 status: draft
 last_validated: "2026-07-11"

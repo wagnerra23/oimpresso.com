@@ -3,6 +3,7 @@ id: resources-js-pages-stock-transfer-index-charter
 page: /stock-transfers
 component: resources/js/Pages/StockTransfer/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
+related_visual_comparison: memory/requisitos/Estoque/_telas/stock-transfer-index-visual-comparison.md
 bundle_source: estoque-page.jsx
 tela: stock_transfers/index
 tipo: LIST
