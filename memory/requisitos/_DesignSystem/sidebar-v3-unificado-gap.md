@@ -59,6 +59,13 @@ exige Wagner desempatar explicitamente** (matriz governance UI-0013: Wagner é
 
 ## Tabela de gaps por PARTE
 
+> ⚠️ **Errata datada 2026-09-08 — as linhas #6/#7/#11 falam de um protótipo que já não é a fonte.**
+> Elas medem contra `prototipo-ui/prototipos/sidebar-v3-unificado/visual-source.html`, apagado em
+> 2026-06-23 (ver `prototipo_nota` no frontmatter). A fonte de hoje é `prototipo-ui/cowork/data.jsx`
+> — e ele **não** "congelou nos 5 originais": tem os **mesmos 8 grupos do vivo, na mesma ordem**, mais
+> um 9º (`PLATAFORMA`). O veredito "NÃO regredir 8→5" continua certo pelo motivo certo, mas a
+> premissa "protótipo desatualizado" caducou. Medição e o que mudou: §"Paridade do MENU" no fim.
+
 | # | PARTE | Protótipo | Código vivo | Mudou/Falta | POR QUÊ | Esforço | Risco |
 |---|---|---|---|---|---|---|---|
 | 1 | **Tema (light/dark)** | Sidebar **light** creme (`--bg-sb` 0.985) | **Dark fixo** override em `.cockpit .sb` (linhas 286-309) reverte UI-0009 | DIVERGE | Override dark de 2026-05-05 contradiz UI-0009 + UI-0014 (canon posteriores) | M | **Tier 0 governança** — conflito de canon, precisa Wagner desempatar |
@@ -137,15 +144,103 @@ mandatório — nada disso entra num lote de telas.
 | Logo/topo (CompanyPicker) | `resources/js/Components/cockpit/Sidebar.tsx:412` `CompanyPicker`; montado em `resources/js/Layouts/AppShellV2.tsx:570`. | Nada — paridade (#3). |
 | Busca / Cmd+K na sidebar | `AppShellV2.tsx:89,731` `CommandPalette` global; `Sidebar.tsx`: 0 ocorrências de caixa de busca ("Buscar"/`search`). | **Decidir.** Entry visual "Buscar tudo… ⌘K" na `sb-top` plugando no `CommandPalette` existente — §Ordem sugerida 2 (P-M, sem valor). |
 | Seção FIXADOS / Pinned | `Sidebar.tsx`: 0 ocorrências de `pinned`/`Fixados` no menu (o `.sb-pin-empty` de `cockpit.css:344` é da aba Chat, não do menu). | **Decidir.** Seção Pinned — §Ordem sugerida 3 (G · Fase 7 da ADR 0180 · LocalStorage scopado `b<bizId>` = Tier 0 multi-tenant). |
-| Grupos de navegação | `Sidebar.tsx:175` `SIDEBAR_GROUPS` (8 keys, direção [W] 2026-05-22). | Nada — NÃO fazer (§Ordem: #6 seria regressão 8→5; vivo mais recente que o protótipo). |
+| Grupos de navegação | `Sidebar.tsx` `SIDEBAR_GROUPS` = **9 keys** desde 2026-09-08 (as 8 da direção [W] 2026-05-22 + `plataforma`) + `mais` (fallback). Mesma lista e mesma ordem do `GROUP_META`/`MENU` de `prototipo-ui/cowork/data.jsx`. | Nada — fechado em 2026-09-08 ([W]: "no sidebar pode colocar a Forja na PLATAFORMA, como está no protótipo"). O "NÃO regredir 8→5" do #6 segue valendo; o que mudou é que o 9º grupo veio DO design, não contra ele. Ver §"Paridade do MENU". |
 | Labels dos grupos | `Sidebar.tsx:175` (mesmo array). | Nada — NÃO fazer (#7, vivo vence). |
 | Atalhos kbd (`G I`, `G V`…) | A prosa media "NÃO renderizado". Hoje: `Sidebar.tsx:490-501` `ItemEnd` renderiza `.sb-kbd` com o atalho; `:523-527` só pra atalho que o listener realmente liga (`atalhosUsaveis` — "não prometemos atalho que não funciona"); a sequência `G X` é ligada por `useSidebarShortcut` (`AppShellV2.tsx:355` → `resources/js/Components/cockpit/useSidebarShortcut.ts:178` `keydown`). | Nada — fechado no código depois da prosa (§Ordem 4 era "hints kbd (M)"): hint existe e só aparece pra atalho ligado. Quantos itens têm sequência `G X` ligada não foi medido aqui. |
 | Ícones dos itens | `Sidebar.tsx:60` `MENU_ICON_MAP` · `:130` `GROUP_ICON_MAP` (Lucide). | Nada — preservar Lucide (#9 "NÃO trocar por glyph"). |
 | Item ativo / hover | `cockpit.css:199` `--sb-hover`; `Sidebar.tsx:757-759` `--gh` por grupo. | Nada — paridade conceitual (#10); o eixo tema foi resolvido em #1. |
-| Hue por grupo | `resources/js/Components/cockpit/shared.ts:208` `SIDEBAR_GROUP_HUE` (comercial 55 · financas 145 · fiscal 175 …). | Nada — vivo vence (#11, escala [W] 2026-05-22). |
+| Hue por grupo | `resources/js/Components/cockpit/shared.ts` `SIDEBAR_GROUP_HUE` (comercial 55 · financas 145 · fiscal 175 …). ⚠️ **Dois hues declarados não são os efetivos** — `estoque` e `fiscal` aparecem 2× no mesmo objeto e o alias legado vence: efetivo `estoque=350` (declarado 315) e `fiscal=145` (declarado 175). Medido 2026-09-08, comando em §"Paridade do MENU". | **Decidir.** Remover as 2 chaves duplicadas devolve ESTOQUE/FISCAL ao hue que o design declara — mas muda a cor de 2 grupos em toda tela e mexe na baseline visual: é PR próprio com aprovação de [W]. O resto do eixo segue "vivo vence" (#11). |
 | Colapso (rail/expanded) | `Sidebar.tsx:927-931` `SidebarMenuRail`; `AppShellV2.tsx:590-594` `.sb-collapse-handle`; `cockpit.css:55` rail 56px. | Nada — preservar (#12: "protótipo não cobre, não remover"). |
 | Mobile / off-canvas | `AppShellV2.tsx:357-366` `matchMedia('(max-width: 768px)')`; `:603-618` `.sb-mobile-toggle` + `.sb-mobile-backdrop`. | Nada — preservar (#13, [W] 2026-06-17). |
 | Rodapé / usuário | `Sidebar.tsx:1429` `SidebarFooter` → `:1091` `SidebarUserMenu`. | Nada — preservar (#14, vivo bem mais rico). |
 | Densidade / tema tweaks | `AppShellV2.tsx:104,734` `TweaksPanel`. | Nada — vivo tem a mais (#15). |
 | PageHeader + ghosts ARIA | Não é do shell — dono: [`pageheader-canon-v3-gap.md`](pageheader-canon-v3-gap.md). | Nada — fora de escopo (#16 "separar do PR de fundação"). |
 | Topbar / breadcrumb | `AppShellV2.tsx:144-149,245` `hideTopbar = true` default ([W] 2026-05-17); CSS em `cockpit.css:98`. | Nada — NÃO ressuscitar (#17, vivo decidiu remover). |
+
+---
+
+## Paridade do MENU — vivo × protótipo, medição de 2026-09-08
+
+- **Pedido:** [W] em 2026-09-08 — *"no sidebar pode colocar a Forja na PLATAFORMA, como está no protótipo?. e fazer um relatório paridade com prototipo?"*.
+- **Base:** `origin/main` em `0ff7ff328e`; repo **não** raso (`git rev-parse --is-shallow-repository` = `false`).
+- **Fonte do lado design:** `prototipo-ui/cowork/data.jsx` (`MENU` + `GROUP_META`) e `prototipo-ui/cowork/sidebar.jsx` (o accordion). **Conferido contra o Cowork VIVO por ID**, não só contra o espelho: `DesignSync.get_file(projectId=019dcfd3-…, path=data.jsx)` devolveu `truncated: false` e o bloco `PLATAFORMA` **idêntico** ao do espelho — o espelho está em 2026-08-25 e, neste arquivo, não drifou.
+- **Fonte do lado vivo:** `SIDEBAR_GROUPS` + `SidebarShortcuts` + `SidebarMenuRail` (`resources/js/Components/cockpit/Sidebar.tsx`), `SIDEBAR_GROUP_HUE` (`cockpit/shared.ts`) e o `group` que cada `DataController@modifyAdminMenu` declara.
+
+> **Limite — leia antes de usar.** Isto mede a **estrutura do menu** (que grupos existem, em que ordem, o que cai em cada um, que atalhos ficam no topo, que hue cada grupo recebe). **Não** mede fidelidade de pixel: para isso é `design-diff.mjs --probe` nos dois renders, e ele **não rodou** — o lado vivo exige a app autenticada. Nenhuma linha daqui autoriza dizer "está igual ao design".
+
+### Grupos — paridade total (9 de 9, mesma ordem)
+
+Derivado, não escrito à mão — o comando está em `#pergunta-1` no fim desta seção.
+
+| # | Design (`data.jsx`) | Vivo (`SIDEBAR_GROUPS`) | Veredito |
+|---|---|---|---|
+| 1-8 | CADASTRO · COMERCIAL · FINANÇAS · FISCAL · PRODUÇÃO · ESTOQUE · RH · SISTEMA | idênticos, mesma ordem | ✅ |
+| 9 | **PLATAFORMA** (era "MAIS"; fechado por default; `hue: null`; ícone `folder`) | **criado em 2026-09-08** — último grupo nomeado, fechado por default, neutro, ícone `Folder` | ✅ (era o gap deste PR) |
+| — | (não existe: o design é mock, sem fallback) | `mais` — fallback de `findGroupKey`, depois do PLATAFORMA, só aparece com item visível | ⚠️ **vivo tem a mais, e é de propósito** |
+
+O `mais` **não** foi renomeado para PLATAFORMA, apesar de o design dizer que um "era" o outro: no vivo ele é o balde de quem não declara `group`, e renomeá-lo faria módulo novo não-mapeado nascer dentro de "Plataforma" por acidente — coisa que o design não diz em lugar nenhum.
+
+### Atalhos de topo — paridade total (3 de 3), depois de duas correções
+
+| Design | Vivo ANTES de 2026-09-08 | Vivo DEPOIS |
+|---|---|---|
+| IA · Visão geral · Atendimento | expandido: IA · Visão geral · **Forja** · Atendimento | IA · Visão geral · Atendimento ✅ |
+| (idem — o design não tem modo rail) | rail: IA · Visão geral · **Equipe → `/team-mcp/team`** · Atendimento | IA · Visão geral · Atendimento ✅ |
+
+O 3º botão **divergia entre os dois modos do próprio vivo**: o expandido apontava `/forja` ("Forja") desde a fusão de 2026-06-16, o rail continuou apontando `/team-mcp/team` ("Equipe") — o rail nunca acompanhou aquela mudança. Os dois saíram no mesmo PR.
+
+### Itens do grupo PLATAFORMA — 1 de 4
+
+| Design | Vivo | Veredito |
+|---|---|---|
+| **Forja** (`icon: bot`) | entry `Forja` → `/forja`, `group => 'plataforma'`, declarada em `Modules/Forja/Http/Controllers/DataController@modifyAdminMenu` | ✅ **fechado neste PR** |
+| **Governança** (`icon: scale`, 4 ghosts) | entry existe e é rica (10 ghosts), mas declara `group => 'sistema'` | ❌ **grupo diferente** |
+| **Tarefas** (`icon: inbox`) | a tela existe (`/team-mcp/tasks`, rota `team-mcp.tasks.index` viva), mas **não há entry de menu** — as únicas referências são ghosts do bloco morto do `DataController` da Forja | ❌ **alcançável só por URL / ⌘K** |
+| **Equipe** (`icon: users`) | idem — `/team-mcp/team`, rota `team-mcp.team.index` viva, sem entry | ❌ **alcançável só por URL / ⌘K** |
+
+Os três abertos **não** entraram: mover a Governança de grupo e criar duas entries novas muda onde as pessoas acham telas que já usam, e o pedido de [W] nomeou a Forja. São decisão dele, não conserto silencioso.
+
+### Hue por grupo — 8 de 9, com dois efetivos ≠ declarados
+
+Comando em `#pergunta-2` no fim desta seção. Saída em 2026-09-08: **`fiscal` design 175 · vivo 145** e **`estoque` design 315 · vivo 350** divergem; os outros 7 batem (`plataforma` bate como neutro dos dois lados).
+
+A causa não é escolha de cor — é que `estoque` e `fiscal` estão **declarados duas vezes** no mesmo objeto literal, e o alias legado (que vem depois) sobrescreve o canon. O `vite:esbuild` avisa isso em toda build de teste (`Duplicate key "estoque" in object literal`). Pré-existente, **não** tocado aqui: corrigir muda a cor de dois grupos em toda tela do ERP e mexe na baseline visual — PR próprio, com aprovação visual de [W].
+
+Uma terceira duplicata, `plataforma: 200` (alias v2 → sistema), **foi** removida: com `plataforma` virando key canon, ela deixaria de ser alias e passaria a pintar o grupo de ciano, contra o `hue: null` que o design declara. Isso foi consequência direta desta mudança, não faxina.
+
+### Divergências que este relatório NÃO fechou
+
+| # | O quê | Por que ficou | Custo de fechar |
+|---|---|---|---|
+| 1 | Governança em `sistema`, design diz `plataforma` | muda onde a equipe acha a tela hoje — decisão [W] | 1 linha no `DataController` do Governance |
+| 2 | Tarefas e Equipe sem entry de menu | duas entries novas num grupo recém-criado; e há a pergunta anterior de se o hub Forja já as cobre | ~2 entries + decisão de dono |
+| 3 | `estoque`/`fiscal` com hue efetivo ≠ declarado | muda cor de 2 grupos em todas as telas | 2 linhas + rebake de baseline visual |
+| 4 | `App\Sidebar\SidebarGroup` (enum PHP) não tem `Plataforma`, e seu `fromLegacy('plataforma')` devolve `Sistema` | o enum é do contrato v2 (`items()`), que **nenhum** DataController usa hoje — a Forja publica pelo v1 (`modifyAdminMenu`), onde o `group` viaja como string e o frontend resolve | latente: só morde quando alguém migrar um módulo para o contrato v2 declarando este grupo |
+
+### O que foi medido e como
+
+- Comportamento do menu: `tests/js/sidebar-plataforma-forja.test.tsx` — 6 casos de **render** (grupo existe · Forja dentro dele · último grupo · nasce fechado · neutro com controle positivo · atalhos de topo iguais nos dois modos). Render, não leitura de constante: três camadas independentes decidem o que aparece (o `group` declarado, o `findGroupKey`, o `hasVisibleItem`), e assertar a constante passaria com qualquer uma delas quebrada.
+- Gates locais verdes na medição: `layout-primitives-guard` · `components-tree-guard` · `cowork-ssot-guard` · `casos-coverage-guard` · `eslint-baseline` · `ds-guard`. `tsc --noEmit` acusa 2 erros neste arquivo, **os dois pré-existentes** e idênticos ao `origin/main` (`LEGACY_GROUP_MAP[item.group]` sob `noUncheckedIndexedAccess`; `tarefasCount` desestruturado e não lido).
+- **Não** medido: render em produção. O smoke de tela é pós-deploy (R1).
+
+### Comandos que reproduzem os dois números
+
+`#pergunta-1` — *quais grupos o design declara, em que ordem?*
+
+    node -e "const j=require('fs').readFileSync('prototipo-ui/cowork/data.jsx','utf8'); console.log([...j.matchAll(/group: \"([A-ZÇÃÕÁÉÍÓÚ]+)\", items:/g)].map(m=>m[1]).join(' > '))"
+
+`#pergunta-2` — *o hue efetivo de cada grupo bate com o que o design declara?* (salve como `.mjs` e rode com `node`; o `eval` é sobre dois literais de objeto simples, dentro do repo)
+
+    import fs from 'node:fs';
+    const ts = fs.readFileSync('resources/js/Components/cockpit/shared.ts', 'utf8');
+    const corpo = ts.match(/SIDEBAR_GROUP_HUE:[^{]*\{([\s\S]*?)\n\};/)[1].replace(/\/\/[^\n]*/g, '');
+    const hue = eval('({' + corpo + '})');            // chave posterior VENCE — é o efetivo
+    const jsx = fs.readFileSync('prototipo-ui/cowork/data.jsx', 'utf8');
+    const meta = jsx.match(/const GROUP_META = \{([\s\S]*?)\n\};/)[1].replace(/\/\/[^\n]*/g, '');
+    for (const m of Object.values(eval('({' + meta + '})'))) {
+      const v = hue[m.key];
+      const ok = m.hue === null ? v === undefined : m.hue === v;
+      console.log(m.key.padEnd(11), String(m.hue).padEnd(6), String(v).padEnd(6), ok ? 'OK' : 'DIVERGE');
+    }
+
+O segundo é uma sonda de uma sessão, não uma porta viva — por isso vive aqui como texto e não como script no repo. Se este eixo voltar a importar, o certo é **estender** um medidor existente do design, nunca nascer um terceiro (lápide §5 2026-07-09).
