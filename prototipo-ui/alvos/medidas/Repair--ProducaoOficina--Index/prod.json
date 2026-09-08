@@ -1,0 +1,52 @@
+{
+  "url": "http://127.0.0.1:8000/repair/producao-oficina",
+  "theme": "dark",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo TE AV Box Todos B1 B2 B3 B4 Elevador Todos E1 E2 mock 17 OS · 3 aguardando aprovação Recepção 3 RUI-2A45 há 12min Civic 2019 · Honda KM 78.420 CR Carlos R. QPF-7B12 há 38min Onix 2022 · Chevrolet KM 42.100 DM Diego M. SVE-9C03 há 1h HB20 2020 · Hyundai KM 105.880 CR Carlos R. Diagnóstico 4 TPL-3D88 B1 Corolla 2018 · Toyota KM 156.300 JP João P. UNK-5E27 B2 Polo 2021 · Volkswagen KM 31.770 DM Diego M. VWP-1F94 E1 Sandero 2017 · Renault KM 198.450 JP João P. WXR-8G56 B3 Yaris 2020 · Toyota KM 67.220 CR Carlos R. Aguardando peças 3 YTQ-4H73 Aprov? Strada 2019 · Fiat KM 88.350 R$ 2.480 · 4 items · Cliente não respondeu ZAB-6I20 3 dias Compass 2021 · Jeep KM 54.110 DM Diego M. · ETA sex. ACE-2J15 5 dias Tracker 2018 · Chevrolet KM 119.880 JP João P. · ETA seg. Em execução 4 BDF-9K61 B1 Kicks 2022 · Nissan KM 28.500 JP João P. CGE-3L08 E1 Hilux 2019 · Toyota KM 142.700 CR Carlos R. DHJ-7M52 B2 Argo 2021 · Fiat KM 49.330 DM Diego M. EIK-1N99 E2 Renegade 2020 · Jeep KM 71.060 JP João P. Pronto 3 FJL-5O44 ✓ aprovado Cronos 2020 · Fiat KM 88.100 Aguardando retirada GKM-8P77 ✓ aprovado Mobi 2018 · Fiat KM 64.220 Retirado às 14:30 HLN-2Q31 ✓ aprovado Saveiro 2019 · Volkswagen KM 121.450 Aguardando retirada Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": null,
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    }
+  }
+}
