@@ -117,18 +117,14 @@ Duas superfícies com donos distintos, cada uma com a regra que lhe cabe:
 1. **`Modules/Governance` = plano de engenharia.** Cross-tenant por decisão (Art. 6+8, 0366),
    audiência [W]-auditor. Consequência que hoje falta: **fechar de verdade** — gate explícito nas
    rotas, e reavaliar se `governance_module` deve seguir comprável por business.
-2. **Governança da empresa = plano de dados**, sempre `business_id` da sessão, vivendo no dono de
-   domínio que **já existe**: `Modules/Auditoria` (trilha por registro — a
+2. **Governança da empresa = plano de dados**, sempre `business_id` da sessão, **aparecendo no
+   fluxo de trabalho** (§6.1 — decisão [W] de 2026-09-08), nunca em tela própria. Os donos já
+   existem: `Modules/Auditoria` (trilha por registro — a
    [lápide de 2026-07-30](../../licoes-rejeitadas.md) já a classificou como capacidade de negócio,
    e o controller já escopa por sessão), alçadas do Financeiro (`aprovacao_status`), RBAC do FSM
    por business, permissões Spatie da Camada 3.
-3. **As três telas ambíguas viram decisão explícita, uma a uma:**
-   - `Custos` — já é de cliente e já escopa. Formalizar: sai do plano de engenharia, ou ganha um
-     par (custo da plataforma × custo do tenant).
-   - `Audit` — o dado tem `business_id`. Ou vira duas leituras (auditoria da plataforma × trilha
-     do tenant), ou o charter é corrigido para parar de prometer um escopo que o código não faz.
-   - `QualidadeIa` — trocar `request` por sessão, **ou** declarar a tela como plataforma-only e
-     remover o parâmetro.
+3. **As três telas ambíguas viram decisão explícita, uma a uma** (destinos em §6.1, já
+   reconciliados com a errata de 2026-09-08 sobre o `QualidadeIa`).
 
 ### C) Deprecar ou absorver o módulo
 
@@ -136,21 +132,71 @@ Duas superfícies com donos distintos, cada uma com a regra que lhe cabe:
 para viabilizar a deleção e concluiu o contrário. Esta proposta **não** a reabre: o módulo fica;
 o que muda é a fronteira de audiência.
 
-## 6. Decisão proposta (B) — regra curta o bastante para ser lembrada
+## 6. Decisão proposta (B) — as três formas, e nenhuma delas implícita
 
-> **Tela do Governance nunca lê `business_id` do request.**
-> Ou o escopo vem da sessão — e aí a tela é do cliente, e vive no dono de domínio —
-> ou não há escopo nenhum, e a tela é da plataforma, fechada para [W].
-> Não existe terceira forma.
+Toda tela do Governance cai em **uma** destas três formas, e a forma é declarada, nunca implícita:
+
+| forma | de onde vem o escopo | o que a torna legítima | o que precisa de vigilância |
+|---|---|---|---|
+| **plataforma** | não há escopo de tenant | audiência [W]-auditor (0366) | o gate de acesso à tela |
+| **empresa** | `business_id` da **sessão** | é produto — e produto **aparece no fluxo** (§6.1) | teste cross-tenant |
+| **exceção declarada** | pode vir do **request** | ADR que declare a exceção **e** permission dedicada | a **concessão** da permission, não a leitura |
+
+> **Reformulação de 2026-09-08.** A v1 desta proposta dizia *"tela do Governance nunca lê
+> `business_id` do request"*. A errata do §3 mostrou que a regra, nessa forma, é **falsa**: o
+> `QualidadeIaController` lê do request **por desenho** (ADR 0366 §D-B, decisão [W] 2026-08-03 —
+> eval é gate de conformidade), protegido por `can:jana.mcp.usage.all` no construtor. A terceira
+> forma existe; o que ela **não** pode ser é silenciosa.
 
 Corolário para quem for construir: se a tela responde *"a regra está sendo cumprida no meu
 sistema?"*, é engenharia. Se responde *"a regra está sendo cumprida na minha empresa?"*, é
-produto — e produto tem `business_id`, gate de permissão e teste cross-tenant.
+produto — e produto tem `business_id` da sessão, gate de permissão e teste cross-tenant.
+
+## 6.1 Decisão [W] de 2026-09-08 — o formato do lado da empresa
+
+Perguntado se a governança do cliente deveria ser uma **tela** ou aparecer **onde o trabalho
+acontece**, [W] respondeu, textual: *"que apareça onde o trabalho acontece"*.
+
+Isso fecha o formato do plano de dados e **não é virada de rumo**: é o padrão que o sistema já
+pratica. Medido em `origin/main`, a governança da empresa já vive embutida em quatro lugares,
+cada um dentro da tela onde a decisão é tomada:
+
+| onde | o que mostra | âncora |
+|---|---|---|
+| `Cliente/_drawer/AuditoriaTab.tsx` | timeline de alterações do cadastro, paginada, com export | `ClienteAuditoriaController` · [ADR 0127](../0127-modules-auditoria-undo-activity-log.md) |
+| `Sells/_components/SaleAuditTrail.tsx` | edições, emissões fiscais e transições de estágio, dentro do drawer da venda | `sale_stage_history` · [ADR 0143](../0143-fsm-pipeline-live-prod-marco-2026-05-12.md) |
+| `Financeiro/Unificado/_components/FinAuditTrail.tsx` | trilha do título, dentro do próprio título | idem |
+| `Sells/_components/FsmActionPanel.tsx` | as ações que **este** usuário pode executar neste estágio | RBAC do FSM |
+
+E o mesmo vale para alçada: `Financeiro/Unificado` filtra por `aprovacao_status`
+(`pendente` / `aprovado` / `rejeitado` / sem workflow) na própria lista de títulos — a pergunta
+*"o que espera minha aprovação?"* já se responde onde o trabalho está, sem tela de governança.
+
+**Consequência prática:** o lado da empresa **não vira módulo nem tela**. Ele cresce por
+presença — mais trilha embutida onde falta, selo de quem aprovou, aviso de alçada no ponto da
+ação — e, se um dia precisar de agregação, ela nasce como resumo de pendências dentro do fluxo
+que já existe, nunca como um segundo cockpit.
+
+**Destino das três telas do §2**, cada um determinado pela forma do §6 e pela errata do §3:
+
+| tela | forma | destino |
+|---|---|---|
+| `Custos` | **empresa** (já escopa por sessão) | o custo de IA da empresa passa a aparecer onde ela já olha IA; a versão da plataforma, se necessária, nasce sem escopo e fechada |
+| `Audit` | **plataforma** | a trilha da empresa **já** é embutida (as quatro linhas acima), então a tela do módulo é da plataforma e o `Audit.charter.md` é corrigido para parar de prometer escopo por tenant |
+| `QualidadeIa` | **exceção declarada** | fica como está — cross-business é o desenho (0366 §D-B) com permission dedicada. O trabalho **não** é mudar a leitura: é vigiar a **concessão** de `jana.mcp.usage.all`, já travada por catraca no [#6952](https://github.com/wagnerra23/oimpresso.com/pull/6952) |
 
 ## 7. O que NÃO muda
 
 - A exceção cross-tenant do Governance (Art. 6+8) **permanece** para o plano de engenharia.
 - `Modules/Governance` **não** é deprecado, absorvido nem consolidado (lápide 2026-07-31).
+- ⛔ **Não criar módulo, tela ou cockpit de "governança do cliente"** — nem como
+  `Modules/GovernancaEmpresa`, nem como aba nova no Governance, nem como dashboard de conformidade
+  por tenant. É a proposta que nasce sozinha toda vez que alguém lê *"governança serve pros dois"*,
+  e foi **decidida contra** por [W] em 2026-09-08 (§6.1): o lado da empresa aparece **no fluxo**,
+  e o padrão já está no ar em quatro telas. Candidata a lápide no §5 quando a ADR canônica for aceita.
+- ⛔ **Não "consertar" o `QualidadeIaController` trocando request por sessão** — a errata do §3
+  mostrou que o cross-business ali é desenho declarado (0366 §D-B) com permission dedicada. Quem
+  reabrir isso está corrigindo o alvo errado.
 - Nada aqui autoriza mexer no `AuditDrillDownService` ou no `QualidadeIaController` sem decisão
   [W]: são Tier 0, e a 0093 pede aprovação explícita.
 - A governança **executável** (gates de CI em `scripts/governance/`) não é tocada — ela não tem
@@ -158,13 +204,33 @@ produto — e produto tem `business_id`, gate de permissão e teste cross-tenant
 
 ## 8. Se [W] aprovar, o caminho é este (nesta ordem)
 
-1. ADR canônica registrando a fronteira por audiência, emendando a 0366 — que declarou a
-   audiência sem declarar a consequência de escopo.
+1. ADR canônica registrando a fronteira por audiência, **as três formas do §6 e o formato
+   embutido decidido em §6.1**, emendando a 0366 — que declarou a audiência sem declarar a
+   consequência de escopo.
 2. Fechar o plano de engenharia: `can:` nas rotas do módulo, e decidir o destino do `ActionGate`
    (implementar o gate que ele promete, ou remover a promessa — o §5 de 2026-07-30 proíbe
    mecanismo que anuncia saída que não honra).
-3. Só então, e uma a uma, as três telas ambíguas — cada uma com teste cross-tenant **antes** do
-   fix, porque a 0093 exige provar isolamento, não afirmar.
+3. Só então `Custos` e `Audit`, uma a uma, cada uma com teste cross-tenant **antes** do fix,
+   porque a 0093 exige provar isolamento, não afirmar. `QualidadeIa` **sai da fila** — a errata
+   do §3 mostrou que a forma dele já é a declarada.
+4. Do lado da empresa, nada de novo nasce até haver **sinal de cliente** (ADR 0105): o padrão já
+   está no ar em quatro telas, e o trabalho futuro é estendê-lo onde faltar — não inaugurar
+   superfície.
+
+### Chip menor, achado na medição (não é objeto desta proposta)
+
+`ClienteAuditoriaController` cita no docblock `memory/decisions/0127-modules-auditoria-ui-undo.md`;
+o arquivo real é `0127-modules-auditoria-undo-activity-log.md`. Ponteiro podre num comentário —
+conserto de uma linha, PR próprio.
+
+### Nota de método sobre esta própria proposta
+
+A v1 afirmou *"nenhum `can:` no módulo"* tendo medido apenas `routes.php`. A claim era verdadeira
+sobre o arquivo e **incompleta sobre o sistema** — o gate existe, no construtor do controller. É a
+lápide §5 de 2026-07-28 (*declarar ausência a partir de varredura estreita*) cometida dentro de um
+documento que cita essa mesma lápide. A errata que corrigiu isso entrou no merge do
+[#6950](https://github.com/wagnerra23/oimpresso.com/pull/6950); este PR foi escrito **em cima
+dela**, e não a reintroduz.
 
 ## 9. Recibos
 
