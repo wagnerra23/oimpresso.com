@@ -109,7 +109,7 @@ class AssetAllocationService
             ->select(
                 'assets.id as id',
                 DB::raw('SUM(COALESCE(AT.quantity, 0)) as allocated_qty'),
-                DB::raw('(SELECT SUM(COALESCE(AR.quantity, 0)) FROM asset_transactions AS AR WHERE(AR.asset_id=assets.id AND AR.transaction_type=\'revoke\')) as revoked_qty')
+                DB::raw('(SELECT SUM(COALESCE(AR.quantity, 0)) FROM asset_transactions AS AR WHERE(AR.asset_id=assets.id AND AR.business_id=assets.business_id AND AR.transaction_type=\'revoke\')) as revoked_qty')
             )
             ->first();
 
