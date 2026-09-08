@@ -423,12 +423,6 @@ export default function AppShellV2({
     const v = Number(localStorage.getItem(LS.TW_DENSITY));
     return isFinite(v) && v > 0 ? v : 50;
   });
-  // Default = roxo canon hue 295 (ADR 0190). Era 220 (azul) — re-azulava o cockpit.css via style inline.
-  const [accentHue, setAccentHue] = useState<number>(() => {
-    if (typeof window === 'undefined') return 295;
-    const v = Number(localStorage.getItem(LS.TW_HUE));
-    return isFinite(v) && v > 0 ? v : 295;
-  });
 
   // ── Persistência localStorage
   // (LS.TAB removido — sidebar single-pane não tem toggle Chat/Menu mais)
@@ -438,42 +432,19 @@ export default function AppShellV2({
   }, [effectiveActiveConvId]);
   useEffect(() => { localStorage.setItem(LS.TW_VIBE, vibe); }, [vibe]);
   useEffect(() => { localStorage.setItem(LS.TW_DENSITY, String(density)); }, [density]);
-  useEffect(() => { localStorage.setItem(LS.TW_HUE, String(accentHue)); }, [accentHue]);
   useEffect(() => { localStorage.setItem(LS.TW_OPEN, tweaksOpen ? '1' : '0'); }, [tweaksOpen]);
 
-  // ── CSS vars dinâmicas (densidade + accentHue)
-  // ⚠️ Estilo INLINE vence QUALQUER seletor — inclusive `.cockpit[data-theme="dark"]`,
-  // que é ESTE MESMO elemento (o style vai no div que carrega o data-theme). Então todo
-  // token escrito aqui e que TENHA par de tema no DTCG precisa escolher o par certo, senão
-  // o valor light vaza pro escuro sem alarme nenhum — foi o que aconteceu com --accent-soft.
-  //   --accent / --accent-2 / --accent-soft : têm `com.oimpresso.dark` → SEGUEM o tema.
-  //   --bubble-me                           : `dark_absent` no DTCG (herda o light) → 1 valor.
-  //
-  // ⚠️ NÃO "conserte" o --bubble-me pra seguir o --accent. O DTCG o declara como alias
-  // (`var(--accent)`), então desde a UI-0031 o CSS o resolveria em 0.70 no escuro — e este
-  // inline o segura em 0.55 DE PROPÓSITO, por duas razões medidas: (a) o protótipo faz o
-  // mesmo (declara 0.55 no `:root` e não redeclara no bloco escuro); (b) o par dele,
-  // `--bubble-me-fg`, é `#ffffff` FIXO, sem par de tema — branco sobre 0.70 perde contraste
-  // nos 14 sítios de bolha. Alinhar os dois é decisão de design, não limpeza de alias.
-  // Fonte dos pares: resources/css/tokens/semantic.tokens.json → cockpit.accent.
-  //
-  // 2026-09-02 (ADR UI-0031): --accent e --accent-2 ganharam par ESCURO. Eram `dark_absent`
-  // e o escuro herdava 0.55/0.62 do claro; o protótipo Cowork (styles.css, bloco
-  // `[data-theme="dark"]` "VIDA 06-11 [W]") pinta 0.70/0.76. Era a divergência "0,55 × 0,70"
-  // medida em toda rodada de comparação. Sem ESTA linha a mudança do DTCG não chega ao
-  // browser: o style inline vai no mesmo <div> do data-theme e vence o CSS gerado.
-  const accentLC = userTheme === 'dark' ? '0.70 0.15' : '0.55 0.15';
-  const accent2LC = userTheme === 'dark' ? '0.76 0.15' : '0.62 0.15';
-  const accentSoftLC = userTheme === 'dark' ? '0.33 0.09' : '0.95 0.04';
+  // ── CSS vars dinâmicas (só DENSIDADE — UI-0034)
+  // Este style inline já reescreveu `--accent`/`--accent-2`/`--accent-soft`/`--bubble-me` a
+  // partir de um seletor de matiz (`accentHue`, localStorage). Isso saiu: estilo inline vence
+  // QUALQUER seletor, então a preferência de UM navegador mandava na cor do Design System —
+  // e o azul que ela produzia (hue 220, o default até 2026-06-08) não existe na paleta do DS.
+  // Cor de acento agora vem SÓ do CSS gerado do DTCG, que já tem par de tema nos três
+  // (`_generated-cockpit-light/dark.css`, hue 295). Densidade continua aqui: é layout do
+  // usuário, não token de cor.
   const cockpitStyle: React.CSSProperties = {
     ['--row-h' as never]: `${26 + (density / 100) * 16}px`,
     ['--card-pad' as never]: `${8 + (density / 100) * 8}px`,
-    // L/C alinhados ao canon DTCG cockpit.accent (ADR 0190 no claro · UI-0031 no escuro):
-    // no hue default (295) o resting state bate exato nos dois temas.
-    ['--accent' as never]: `oklch(${accentLC} ${accentHue})`,
-    ['--accent-2' as never]: `oklch(${accent2LC} ${accentHue})`,
-    ['--accent-soft' as never]: `oklch(${accentSoftLC} ${accentHue})`,
-    ['--bubble-me' as never]: `oklch(0.55 0.15 ${accentHue})`,
   };
   const densityLabel = density < 30 ? 'skim' : density > 70 ? 'briefing' : 'normal';
 
@@ -736,8 +707,6 @@ export default function AppShellV2({
           onVibe={setVibe}
           density={density}
           onDensity={setDensity}
-          hue={accentHue}
-          onHue={setAccentHue}
           open={tweaksOpen}
           onToggle={() => setTweaksOpen((v) => !v)}
         />
