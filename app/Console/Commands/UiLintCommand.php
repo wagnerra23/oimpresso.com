@@ -496,9 +496,13 @@ class UiLintCommand extends Command
         // Permite alguns Index.tsx sem PT-01 (módulos que não são lista):
         // - Pages/Home/Index.tsx (dashboard, PT-04 futuro)
         // - Pages/Jana/Index.tsx (chat, custom)
+        // - Pages/Patrimonio/Index.tsx (painel PT-04: 4 KPIs + 3 análises, sem tabela —
+        //   a LISTA do módulo é `Bens.tsx`. O charter declara o PT; esta regra o adivinha
+        //   pelo nome do arquivo, e por isso precisa da exceção.)
         $skipPaths = [
             'resources/js/Pages/Home/Index.tsx',
             'resources/js/Pages/Jana/Index.tsx',
+            'resources/js/Pages/Patrimonio/Index.tsx',
             'Modules/PaymentGateway/Resources/js/Pages/Settings/Index.tsx',
             'resources/js/Pages/Modules/Index.tsx',
         ];

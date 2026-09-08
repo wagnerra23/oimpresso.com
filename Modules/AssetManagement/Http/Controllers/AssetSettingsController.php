@@ -9,6 +9,7 @@ use App\Utils\ModuleUtil;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Inertia\Inertia;
 use Modules\AssetManagement\Utils\AssetUtil;
 
 class AssetSettingsController extends Controller
@@ -32,7 +33,10 @@ class AssetSettingsController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return Response
+     * MWART F3 (ADR 0104): passou a devolver Inertia. O `use Illuminate\Http\Response`
+     * do topo continua servindo os demais metodos deste controller.
+     *
+     * @return \Inertia\Response
      */
     public function index(Request $request)
     {
@@ -82,8 +86,58 @@ class AssetSettingsController extends Controller
 
         $users = User::forDropdown($business_id, false);
 
-        return view('assetmanagement::settings.index')
-            ->with(compact('asset_settings', 'send_for_maintenance_template', 'assigned_for_maintenance_template', 'users'));
+        // MWART F3 (ADR 0104) — a tela virou Inertia; a URL NAO mudou (`settings.index`).
+        // O `store()` abaixo segue INTOCADO: o contrato de gravacao e o mesmo do Blade,
+        // inclusive o `$request->has()` dos checkboxes (ver RUNBOOK-configuracoes §8).
+        return Inertia::render('Patrimonio/Configuracoes', [
+            // Prefixos + interruptores + destinatarios, na forma EXATA em que o `store()`
+            // regrava o JSON. Chave ausente = desligado/vazio — nao inventamos default aqui,
+            // porque o default de verdade e a ausencia (o backend le com `!empty()`).
+            'settings' => [
+                'asset_code_prefix' => $asset_settings['asset_code_prefix'] ?? '',
+                'allocation_code_prefix' => $asset_settings['allocation_code_prefix'] ?? '',
+                'revoke_code_prefix' => $asset_settings['revoke_code_prefix'] ?? '',
+                'asset_maintenance_prefix' => $asset_settings['asset_maintenance_prefix'] ?? '',
+                // O typo `maintenence` e CONTRATO GRAVADO na coluna — nao se conserta aqui
+                // (RUNBOOK §11). Vem como lista de ids de `users`.
+                'send_for_maintenence_recipients' => array_values(array_map(
+                    'strval',
+                    (array) ($asset_settings['send_for_maintenence_recipients'] ?? [])
+                )),
+                'enable_asset_send_for_maintenance_email' => ! empty($asset_settings['enable_asset_send_for_maintenance_email']),
+                'enable_asset_assigned_for_maintenance_email' => ! empty($asset_settings['enable_asset_assigned_for_maintenance_email']),
+            ],
+
+            // Os dois templates ja vem preenchidos com o texto-padrao quando nao existem no
+            // banco (montado acima) — normalizados para array porque nesse caso sao array e
+            // no outro sao Model.
+            'templates' => [
+                'send_for_maintenance' => [
+                    'subject' => $send_for_maintenance_template['subject'] ?? '',
+                    'email_body' => $send_for_maintenance_template['email_body'] ?? '',
+                ],
+                'assigned_for_maintenance' => [
+                    'subject' => $assigned_for_maintenance_template['subject'] ?? '',
+                    'email_body' => $assigned_for_maintenance_template['email_body'] ?? '',
+                ],
+            ],
+
+            // DEFERIDA — e a UNICA prop desta tela que cresce com o tamanho do tenant
+            // (RUNBOOK-inertia-defer-pattern). As outras sao um `value()` de coluna e dois
+            // `first()`: deferir tambem essas so somaria um ida-e-volta pra economizar ~1ms.
+            // `forDropdown` devolve [id => nome]; o React precisa de lista ordenavel.
+            'usuarios' => Inertia::defer(fn () => collect($users)
+                ->map(fn ($nome, $id) => ['id' => (string) $id, 'nome' => (string) $nome])
+                ->values()
+                ->all()),
+
+            // As tags sao o contrato de `AssetUtil::replaceEmailTags()` e NAO coincidem entre
+            // os dois blocos — vem do backend para nao virarem lista decorativa no front.
+            'tags' => [
+                'send_for_maintenance' => ['{asset_code}', '{created_by}', '{maintenance_id}', '{status}', '{priority}', '{maintenance_note}'],
+                'assigned_for_maintenance' => ['{asset_code}', '{created_by}', '{maintenance_id}', '{status}', '{priority}', '{send_for_maintenance_details}'],
+            ],
+        ]);
     }
 
     /**

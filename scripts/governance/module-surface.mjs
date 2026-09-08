@@ -242,6 +242,13 @@ const PAGES_NS = {
   // apontam pra `Atendimento`, e o SUPERFICIE saía com 3 telas em vez de 29. O `--all --check`
   // ficava VERDE porque gerado e commitado compartilhavam o mesmo ponto cego.
   Whatsapp: ['Whatsapp', 'Atendimento'],
+  // AssetManagement rende o Patrimonio sob `Pages/Patrimonio/**` — pasta e modulo divergem
+  // POR DECISAO [W], nao por descuido: a ADR 0394 (2026-09-08) fixou o endereco de UI do
+  // Patrimonio como modulo proprio, enquanto o codigo PHP e os requisitos seguem em
+  // `AssetManagement`. Nao existe `Modules/Patrimonio`. Sem esta linha o modulo nao enxerga
+  // as proprias telas e o SUPERFICIE.md sai sem elas — o mesmo ponto cego que custou 26 telas
+  // ao Whatsapp acima.
+  AssetManagement: ['AssetManagement', 'Patrimonio'],
 };
 
 /** Namespaces de Pages que este módulo reivindica (sempre array; homônimo é o default). */
