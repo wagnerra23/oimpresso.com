@@ -285,6 +285,7 @@ class RoleController extends Controller
                     }
 
                     $permissions = $this->__somenteDoCatalogo($permissions);
+                    $permissions = $this->__preservaNaoOfertadas($permissions, $role);
 
                     $this->__createPermissionIfNotExists($permissions);
 
@@ -427,6 +428,62 @@ class RoleController extends Controller
         }
 
         return $permissions;
+    }
+
+    /**
+     * Reune ao POST as permissoes que o papel JA TEM e que o formulario nao oferece.
+     *
+     * POR QUE: `syncPermissions()` e destrutivo — apaga toda permissao ausente do POST. Isso so
+     * seria correto se o formulario fosse COMPLETO, e ele nunca foi: ele renderiza o nucleo mais
+     * o que os modulos declaram em `user_permissions()`. Tudo o que fica de fora some no primeiro
+     * save de qualquer papel, sem sinal em lugar nenhum — ausencia no POST vira revogacao sem
+     * ninguem ter pedido.
+     *
+     * Foi assim que, em 2026-07-29, um save no papel `Operacional#1` (biz=1) zerou os 17 scopes
+     * `jana.mcp.*` e derrubou o MCP dos 4 usuarios do time: token valido devolvendo
+     * `403 no_permission` no gate `jana.mcp.use`. Na epoca o conserto foi expor a familia no
+     * formulario; isto conserta a CLASSE, e nao aquela instancia.
+     *
+     * O predicado nao e uma lista: e o mesmo `PermissionCatalog::intrusas()` que
+     * `__somenteDoCatalogo()` usa, aplicado ao estado ATUAL do papel. "Intrusa" ali significa
+     * "o formulario nao oferece"; entao o conjunto preservado e, por construcao, exatamente o
+     * que o POST nunca teve como expressar. Uma fonte so, sem nome de modulo no nucleo.
+     *
+     * Consequencia deliberada: permissao nao ofertada tambem nao pode ser REVOGADA por aqui.
+     * E o que se quer de um scope `admin_only` (concessao e ato de superadmin, via
+     * `Role::findByName(...)->givePermissionTo(...)`) e de permissao de modulo hoje desativado —
+     * quem nao pode conceder tambem nao deveria poder revogar por omissao.
+     *
+     * Nao se aplica ao `store()`: papel recem-criado nao tem estado anterior a preservar.
+     *
+     * @param  array<int,string>  $permissions  o que sobreviveu ao filtro de catalogo
+     * @return array<int,string>
+     */
+    private function __preservaNaoOfertadas(array $permissions, Role $role): array
+    {
+        $atuais = $role->permissions->pluck('name')->all();
+
+        if (empty($atuais)) {
+            return $permissions;
+        }
+
+        $naoOfertadas = PermissionCatalog::intrusas(
+            $atuais,
+            $this->moduleUtil->getModuleData('user_permissions')
+        );
+
+        if (empty($naoOfertadas)) {
+            return $permissions;
+        }
+
+        \Log::info('RoleController: permissao fora do formulario PRESERVADA no save', [
+            'business_id' => request()->session()->get('user.business_id'),
+            'user_id' => auth()->id(),
+            'role_id' => $role->id,
+            'preservadas' => $naoOfertadas,
+        ]);
+
+        return array_values(array_unique(array_merge($permissions, $naoOfertadas)));
     }
 
     /**
