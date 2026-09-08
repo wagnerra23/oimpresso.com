@@ -35,12 +35,12 @@ O passo 0 pagando por si: um pedido morreu por falta de prova, e um vazamento Ti
 | 02 | **Trava de saldo na alocação** | ~9 KB | ~35 ln | 3 | 2 | 0 | **CABE** |
 | 03 | **Guarda `asset.view` no índice** | ~4 KB | ~8 ln | 2 | 2 | 0 | **CABE** |
 | 04 | **Remedir D1/D5 e os não-lidos** (frente 0) | ~25 KB | 0 | 0 | — | 0 | **CABE** (medição) |
-| 05 | **Job de retenção LGPD** `assetmanagement:retention-purge` | ~6 KB | ~120 ln | 3 | 2 | 0¹ | **CABE** |
+| 05 | **Retenção automática descartada** | — | 0 | 0 | — | 0 | **NÃO EXECUTAR** |
 | 06 | **A UI inteira — 46 arquivos** | — | — | 0 | — | **1** | **BLOQUEADA** |
 
-¹ [W] 10 decide **quando ligar em canary**, não se o código nasce — o próprio doc de 04/09 diz "o código pode nascer já". Nasce com `enabled=false`.
+A ficha 05 registra a invalidação do pedido antigo pela decisão canônica de 27/07.
 
-**Vaga 1:** 01 ∥ 03 ∥ 04 (prefixos disjuntos). **Vaga 2:** 02 (toca o mesmo Service da 01) ∥ 05.
+**Vaga 1:** 01 ∥ 03 ∥ 04 (prefixos disjuntos). **Vaga 2:** 02 após validar a 01. A 05 foi retirada da execução pela decisão de 27/07; veja sua ficha.
 **A ordem não é gosto:** 01 vem primeiro porque é multi-tenant em produção — Tier 0 fura antes de qualquer verniz.
 
 ## 2-bis · ESTADO — derivado, nunca escrito
@@ -59,18 +59,29 @@ Leia, do main: (1) CONSTITUICAO-COWORK.md — C1–C12, citada e não copiada
 (2) este índice §1/§2/§7  (3) o seu NN-*.md  (4) memory/requisitos/AssetManagement/SCOPE.md
     ^ ERRATA 08/09: era "requisitos/Patrimonio/SCOPE.md", que NAO EXISTE. O modulo
       e AssetManagement; nao ha diretorio Patrimonio em memory/requisitos/.
-(5) a faixa de linhas da sua ÂNCORA — e SÓ ela.
+(5) a ÂNCORA e seus chamadores/consumidores: rota, middleware, request/controller,
+    Service e resposta/tela. Prefixo restringe escrita, não leitura necessária.
 (6) os _saida-NN.md das threads JÁ FECHADAS desta pasta, e em especial o campo
     `invalida:` de cada um. É por ali que uma thread corrige o plano das outras —
     e sem este passo o canal só existe de quem escreve, nunca de quem recebe.
-NÃO leia: as 17 views Blade, os 9 Pest inteiros, patrimonio-page.jsx (é alvo de UI, e a UI está bloqueada).
-Você escreve SOMENTE no seu prefixo e no seu _saida-NN.md. Terminou: escreva o _saida e pare.
+Evite leitura integral das 17 views e dos 9 Pest; leia os trechos que sustentam o fluxo
+e os testes da ficha. patrimonio-page.jsx é alvo de UI, bloqueada por D-ENDERECO.
+Você escreve no prefixo e na sua saída/recibo. Achado que invalida tarefa irmã exige
+reconciliar a ficha e o JSON do índice no mesmo fechamento, antes de novo dispatch.
 ```
 
 ## 4 · VERIFICAR
-Thread `feito` = `_saida-NN.md` + provas verdes lendo o `main`. **Reusar, não recriar:** os 9 Pest do módulo (`CrossTenantAssetTest`, `MultiTenantIsolationTest` e `LgpdComplianceTest` são os oráculos das threads 01, 02 e 05) · `AssetService`/`AssetAllocationService` · `OtelHelper::spanBiz` · `AssetUtil`.
+Thread `feito` exige saída, provas estruturais, dependências e recibo dos testes exigidos,
+vinculado aos hashes atuais. Contrato: [README do placar](../../_scripts/README-placar.md).
+Saídas antigas sem recibo ficam para validação; isso não desfaz os PRs anteriores.
+Reusar os testes e serviços existentes; prova de presença não comprova execução.
 
-## 6 · RESÍDUO — as 11 decisões de [W] (travam 46 dos 66 arquivos)
+**Reconciliação de 08/09:** 02 passa a ler o fluxo HTTP e distinguir saldo livre de alocado;
+05 não é trabalho executável; `depende_threads` foi corrigido também no JSON. O item 2 do
+resíduo histórico foi resolvido pelo SCOPE (`asset.*`); o item 10 foi descartado pela regra
+canônica, não é uma pergunta de quando ligar. O bloco abaixo preserva o retrato original.
+
+## 6 · RESÍDUO HISTÓRICO — levantamento original, anterior à reconciliação acima
 **1** Módulo próprio (`Pages/Patrimonio/**`) ou seção do Estoque? ADR 0180 × 0182 × SCOPE `bloqueado-escopo` — **trava 44 arquivos / 20 PRs** · **2** prefixo de permissão: `asset.*` (código) ou `assetmanagement.*` (SCOPE)? · **3** custo de manutenção entra (não há coluna)? · **4** Garantias é tela ou filtro de Bens? · **5** Auditoria é aba daqui ou do `Modules/Auditoria`? · **6** depreciação: linear ou SAC, com que fonte contábil? (a coluna já existe e é gravada, mas nunca calculada) · **7** baixa/disposal: `status` ou tabela própria? (hoje "dar baixa" = **deletar o bem**) · **8** transferência entre locais: transação ou edição do `location_id`? · **9** QR + scan mobile entra ou vira Non-Goal escrito? · **10** quando ligar o purge LGPD em canary? · **11** placa veicular: Patrimônio e Oficina falam do mesmo veículo?
 
 Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º módulo** com o mesmo achado (CRM, Repair, HRM, Patrimônio). Vira pedido do DS, não onda daqui.
@@ -84,8 +95,7 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
   "absorve": ["prototipo-ui/COLAR-NO-CODE-patrimonio-ondas.md"],
   "constituicao": "CONSTITUICAO-COWORK.md",
   "decisoes": [
-    { "id": "D-ENDERECO", "pergunta": "Patrimonio e modulo proprio (Pages/Patrimonio/**) ou secao do Estoque (Pages/Estoque/Patrimonio/**)? ADR 0180 x ADR 0182 x SCOPE bloqueado-escopo.", "respondida": false, "destrava": ["06"], "custo": "44 arquivos / 20 PRs" },
-    { "id": "D-CANARY-LGPD", "pergunta": "Quando ligar assetmanagement:retention-purge em canary? (nao bloqueia escrever o job com enabled=false)", "respondida": false, "afeta": ["05"] }
+    { "id": "D-ENDERECO", "pergunta": "Patrimonio e modulo proprio (Pages/Patrimonio/**) ou secao do Estoque (Pages/Estoque/Patrimonio/**)? ADR 0180 x ADR 0182 x SCOPE bloqueado-escopo.", "respondida": false, "destrava": ["06"], "custo": "44 arquivos / 20 PRs" }
   ],
   "threads": [
     { "id": "01", "titulo": "Tenant na subconsulta de revoke (vazamento Tier 0)", "dono": "CL", "vaga": 1, "arquivo": "01-tenant-subquery-revoke.md",
@@ -93,27 +103,33 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
       "nao_toca": ["Modules/AssetManagement/Http/Controllers/", "resources/js/"],
       "provas": [
         { "tipo": "contem", "path": "Modules/AssetManagement/Services/AssetAllocationService.php", "padrao": "AR.business_id" },
-        { "tipo": "contem", "path": "Modules/AssetManagement/Tests/Feature/CrossTenantAssetTest.php", "padrao": "quantidadeDisponivel" }
+        { "tipo": "contem", "path": "Modules/AssetManagement/Tests/Feature/CrossTenantAssetTest.php", "padrao": "quantidadeDisponivel" },
+        { "tipo": "execucao", "path": "prototipo-ui/design-docs/cowork-inbox/patrimonio/playbook/recibos/01.json", "testes": ["Modules/AssetManagement/Tests/Feature/CrossTenantAssetTest.php"] }
       ] },
     { "id": "02", "titulo": "Trava de saldo na alocacao", "dono": "CL", "vaga": 2, "arquivo": "02-trava-de-saldo.md",
-      "prefixo": ["Modules/AssetManagement/Services/AssetAllocationService.php", "Modules/AssetManagement/Http/Requests/StoreAssetAllocationRequest.php", "Modules/AssetManagement/Tests/Feature/Wave27AssetManagementPolishTest.php"],
+      "prefixo": ["Modules/AssetManagement/Services/AssetAllocationService.php", "Modules/AssetManagement/Http/Controllers/AssetAllocationController.php", "Modules/AssetManagement/Tests/Feature/Wave27AssetManagementPolishTest.php"],
       "nao_toca": ["Modules/AssetManagement/Services/AssetMaintenanceService.php"],
-      "depende_thread": ["01"],
-      "provas": [{ "tipo": "contem", "path": "Modules/AssetManagement/Services/AssetAllocationService.php", "padrao": "quantidadeDisponivel" }] },
+      "depende_threads": ["01"],
+      "provas": [{ "tipo": "arquivo", "path": "Modules/AssetManagement/Services/AssetAllocationService.php" },
+        { "tipo": "arquivo", "path": "Modules/AssetManagement/Http/Controllers/AssetAllocationController.php" },
+        { "tipo": "execucao", "path": "prototipo-ui/design-docs/cowork-inbox/patrimonio/playbook/recibos/02.json", "testes": ["Modules/AssetManagement/Tests/Feature/Wave27AssetManagementPolishTest.php"] }
+      ] },
     { "id": "03", "titulo": "Guarda asset.view no indice", "dono": "CL", "vaga": 1, "arquivo": "03-guarda-asset-view.md",
       "prefixo": ["Modules/AssetManagement/Http/Controllers/AssetController.php", "Modules/AssetManagement/Tests/Feature/SmokeRoutesTest.php"],
       "nao_toca": ["Modules/AssetManagement/Services/", "Modules/AssetManagement/Http/Controllers/AssetAllocationController.php"],
       "nota_provas": "ERRATA 2026-09-08: o padrao era \"asset.view\", que ja passava ANTES do trabalho por casar prefixo com asset.view_all_maintenance (AssetController.php:145, linha que so desenha botao). Prova de carimbo. Trocado por can('asset.view'), medido com controle positivo: nao passa hoje, passa quando a guarda entrar.",
-      "provas": [{ "tipo": "contem", "path": "Modules/AssetManagement/Http/Controllers/AssetController.php", "padrao": "can('asset.view')" }] },
+      "provas": [{ "tipo": "contem", "path": "Modules/AssetManagement/Http/Controllers/AssetController.php", "padrao": "can('asset.view')" },
+        { "tipo": "execucao", "path": "prototipo-ui/design-docs/cowork-inbox/patrimonio/playbook/recibos/03.json", "testes": ["Modules/AssetManagement/Tests/Feature/SmokeRoutesTest.php"] }
+      ] },
     { "id": "04", "titulo": "Remedir D1/D5 e os nao-lidos (frente 0)", "dono": "CL", "vaga": 1, "arquivo": "04-remedir-frente-0.md",
       "prefixo": [], "nao_toca": ["*"],
       "nota_provas": "thread de MEDICAO: nao escreve codigo. Prova = _saida-04.md com veredito por defeito (confirmado com linha / nao existe / ja corrigido).",
       "provas": [] },
-    { "id": "05", "titulo": "Job de retencao LGPD (nasce com enabled=false)", "dono": "CL", "vaga": 2, "arquivo": "05-retencao-lgpd.md",
-      "prefixo": ["Modules/AssetManagement/Console/Commands/", "Modules/AssetManagement/Config/retention.php", "Modules/AssetManagement/Tests/Feature/LgpdComplianceTest.php"],
+    { "id": "05", "titulo": "Retencao automatica descartada", "dono": "CL", "vaga": 2, "arquivo": "05-retencao-lgpd.md",
+      "prefixo": [],
       "nao_toca": ["Modules/AssetManagement/Services/", "Modules/AssetManagement/Http/"],
-      "afeta_decisoes": ["D-CANARY-LGPD"],
-      "provas": [{ "tipo": "contem", "path": "Modules/AssetManagement/Config/retention.php", "padrao": "enabled" }] },
+      "bloqueio": "Descartada em memory/proibicoes.md (2026-07-27), corroborada por _saida-04.md. Nao executar.",
+      "provas": [] },
     { "id": "06", "titulo": "A UI inteira — 46 arquivos", "dono": "W", "arquivo": "06-ui-bloqueada.md",
       "prefixo": [], "nao_toca": ["resources/js/Pages/"],
       "bloqueio": "D-ENDERECO: migracao_ui bloqueado-escopo esta escrito no main. Errar o endereco = refazer 12 arquivos. Nenhuma Page nasce antes da ADR.",
