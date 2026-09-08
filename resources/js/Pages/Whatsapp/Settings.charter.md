@@ -1,6 +1,7 @@
 ---
 page: /whatsapp/settings
 component: resources/js/Pages/Whatsapp/Settings.tsx
+related_visual_comparison: memory/requisitos/Whatsapp/Settings-visual-comparison.md
 related_prototype: n/a (sem protótipo Cowork — configuração do módulo Whatsapp; segue DS)
 related_us: [US-WA-001, US-WA-067]
 owner: wagner

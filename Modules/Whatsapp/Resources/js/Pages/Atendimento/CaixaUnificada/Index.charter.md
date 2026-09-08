@@ -2,6 +2,7 @@
 id: resources-js-pages-atendimento-caixa-unificada-index-charter
 page: /atendimento/caixa-unificada
 component: Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx
+related_visual_comparison: memory/requisitos/Whatsapp/CaixaUnificadaV4-visual-comparison.md
 owner: wagner
 status: live
 last_validated: "2026-08-24"
