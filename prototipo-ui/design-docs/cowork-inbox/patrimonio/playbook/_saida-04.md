@@ -252,6 +252,21 @@ saldo escrita ali passa no CI e **não trava nada em produção** — LC-30 na f
 
 Escolher entre as duas é decisão de plano, não de código. Ela não é minha: **registro e paro.**
 
+⚠️ **RISCO DE O AVISO NÃO CHEGAR — e isso é decisão do coordenador, não minha.** Medido:
+
+- O `§3 · Abertura de thread` do `00-INDICE.md` manda a sessão nova ler **(1)** Constituição
+  **(2)** índice §1/§2/§7 **(3)** o próprio `NN-*.md` **(4)** SCOPE **(5)** a faixa da âncora —
+  e **não menciona os `_saida-NN.md` das outras threads**.
+- O `02-trava-de-saldo.md` cita `_saida` **uma vez**, no passo 6 da execução, e é o *dela*.
+  **Zero ponteiros** para este aviso.
+- Enquanto isso, o `02-trava-de-saldo.md:34` segue instruindo, com todas as letras, escrever a
+  trava no `StoreAssetAllocationRequest`.
+
+Ou seja: uma sessão da 02 aberta pelo procedimento canônico **não lê este arquivo** e vai
+direto para o Request órfão. O campo `invalida:` só corrige o plano se alguém o ler — e o
+procedimento não manda ler. **Não posso fechar isso**: meu prefixo é só o `_saida-04.md`; quem
+pode é o dono do índice e dos `NN-*.md`. Escalado.
+
 ---
 
 ## 6 · D9 — `asset.*` (código) × `assetmanagement.*` (SCOPE) · **RESOLVIDO — a thread 03 está DESTRAVADA**
