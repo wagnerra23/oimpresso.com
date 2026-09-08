@@ -104,3 +104,49 @@ não compara. Não é defeito de nenhum dos lados; é instrumentação que só u
 **A lição que este placar carrega:** 3 de 4 acusações não sobreviveram à verificação. Comparação
 medida é o começo do trabalho, não o veredito — cada divergência precisa da pergunta "o seletor
 está medindo a mesma coisa dos dois lados?" antes de virar código.
+
+---
+
+## Atualização — 2026-09-07, mesmo dia (o achado das colunas foi atendido)
+
+> **O corpo acima fica intacto de propósito.** Ele é o retrato do que foi MEDIDO às 20:00 de
+> 2026-09-07, e continua verdadeiro como registro daquela hora. Esta seção diz o que aconteceu
+> depois — quem for citar o achado das colunas como estado do mundo deve ler daqui.
+
+| quando | o quê |
+|---|---|
+| 20:00 | esta medição ([#6951](https://github.com/wagnerra23/oimpresso.com/pull/6951)) |
+| 21:24 | [#6955](https://github.com/wagnerra23/oimpresso.com/pull/6955) leva as 2 colunas ao cockpit — 84 min depois |
+| depois | este PR corrige a **fonte** da coluna NF-e |
+
+**A decisão [W] que o §Achados pedia não era necessária.** O texto acima diz *"com decisão [W]
+sobre qual dado a coluna NF-e mostra (número, chave, ou status de emissão)"*. Estava respondido na
+própria fonte de design, e eu não a tinha lido: `compras-page.jsx:508` renderiza
+`{p.xmlChave ? "✓ XML" : "—"}` — **status de presença**, com a chave de 44 dígitos aparecendo só no
+drawer (`:679`). Escalar o que a fonte já respondia é a classe LC-28. Registrado no #6955.
+
+**O que este PR corrigiu.** O #6955 ligou a coluna a `transactions.document` porque *"já vinha na
+query do core"* — critério de disponibilidade, não de significado. Medido depois:
+
+| campo | o que é | de onde vem |
+|---|---|---|
+| `transactions.document` | anexo genérico de arquivo, baixável, podendo ser imagem | `PurchaseController` → `uploadFile($request, 'document', 'documents')` |
+| `transactions.chave_entrada` | chave de acesso de 44 dígitos da NF-e de entrada | `PurchaseXmlController:341`, e nomeia o XML em `xml_entrada/<cnpj>/<chave>.xml` |
+
+Lido como NF-e, `document` faz a tela afirmar **"✓ XML" para um JPEG anexado** e **"—" para uma
+compra com nota de verdade**. O drawer já errava assim antes do #6955 — `Drawer.tsx:489` exibia o
+nome do arquivo sob o rótulo *"chave de acesso"*, sustentado por um comentário que afirmava
+*"UPos guarda chave NF-e em document quando há"*. Os dois passaram a ler `chave_entrada`.
+
+**Ressalva honesta sobre o valor prático.** O único escritor de `chave_entrada` é o
+`PurchaseXmlController`, que o canon do projeto já registrava como *"completo porém ÓRFÃO sem
+rota"* ([`INDICE-INVISIVEIS-2026-07.md`](../../../reguas/INDICE-INVISIVEIS-2026-07.md)) —
+confirmado aqui por varredura repo-inteiro com controle positivo: zero referência em `routes/`,
+enquanto o mesmo padrão acha `PurchaseController::class` em `routes/web.php:783`. Ou seja: a
+coluna nasce **honesta e quase sempre vazia**, e acende quando a bridge DF-e→compra
+(**US-COM-003**, Wave 6) ligar `nfe_dfe_recebidos.chave_44` à transação. Não medi a base de
+produção — se linhas migradas do legado carregam a chave, é pergunta de prod, não de repo.
+
+**O placar acima NÃO foi recontado.** Recontar exige os dois renders com a mesma sonda
+(`design-diff --probe` → `--compare`), e o lado produção só muda depois do deploy. Enquanto a
+re-medição não roda, o número de divergências desta tela segue sendo o de 20:00.

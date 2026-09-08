@@ -27,7 +27,12 @@ interface Kpis {
 interface Row {
   id: number;
   ref_no: string | null;
-  document: string | null;
+  /**
+   * Chave de acesso da NF-e de ENTRADA (44 dígitos) — `transactions.chave_entrada`, o mesmo
+   * dado que o protótipo chama de `xmlChave`. NÃO é `transactions.document`, que é anexo
+   * genérico de arquivo (ver comentário no `ComprasService::listarCompras`).
+   */
+  chave_entrada: string | null;
   transaction_date: string;
   name: string | null; // contact name
   supplier_business_name: string | null;
@@ -653,11 +658,11 @@ function TableCompras({
                   <td
                     className="mono"
                     style={{
-                      color: p.document ? 'var(--cmp-ok)' : 'var(--cmp-ink-3)',
+                      color: p.chave_entrada ? 'var(--cmp-ok)' : 'var(--cmp-ink-3)',
                       fontSize: 11,
                     }}
                   >
-                    {p.document ? '✓ XML' : '—'}
+                    {p.chave_entrada ? '✓ XML' : '—'}
                   </td>
                 )}
               </tr>
