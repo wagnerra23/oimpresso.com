@@ -33,10 +33,14 @@
 //      tem esse campo — inventar a frase seria a mesma mentira com selo de
 //      autoridade que o `JanaDrillDrawer` existe pra evitar.
 
-import { Link } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
+import * as React from 'react';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card } from '@/Components/ui/card';
+import { Input } from '@/Components/ui/input';
+import { Label } from '@/Components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import { Grid, Inline, Stack } from '@/Components/layout';
 import {
@@ -115,6 +119,13 @@ function Serie({ dados, unidade }: { dados: Apuracao[]; unidade: string }) {
 
 const codigo = 'rounded bg-muted px-1.5 py-1 font-mono text-[12px] text-foreground';
 
+/**
+ * Unidades do contrato — enum REAL da migration (RUNBOOK-metas §3), não inventado aqui.
+ * O `edit` tem 2 campos e o `create` tem 4 **de propósito**: `slug` e `tipo_agregacao`
+ * não se editam, porque a série histórica já foi gravada nessa chave.
+ */
+const UNIDADES = ['R$', 'qtd', '%', 'dias'] as const;
+
 export default function JanaMetaDrawer({
   meta,
   // Período já formatado pelo card. Chega como prop pra que `periodoLabel`
@@ -127,9 +138,48 @@ export default function JanaMetaDrawer({
   periodo: string | null;
   onClose: () => void;
 }) {
+  // PR-2 (RUNBOOK-metas §9.4): o CRUD passa a viver AQUI. Até 2026-09-07 o rodapé tinha um
+  // <Link> pra /ia/metas/{id} — a tela Blade — e era ele que "tirava o usuário do Painel",
+  // exatamente o buraco que este drawer nasceu pra fechar.
+  //
+  // ⚠️ Os hooks ficam ACIMA do early return de propósito: abaixo dele a ordem seria
+  // condicional (o `meta === null` acontece toda vez que o drawer está fechado), e o
+  // `react-hooks/rules-of-hooks` reprova — corretamente.
+  const [modo, setModo] = React.useState<'ver' | 'editar'>('ver');
+  const [nome, setNome] = React.useState(meta?.nome ?? '');
+  const [unidade, setUnidade] = React.useState(meta?.unidade ?? 'R$');
+  const [enviando, setEnviando] = React.useState(false);
+
+  // Trocar de meta reseta o formulário — sem isto o drawer reabre com o nome da anterior.
+  React.useEffect(() => {
+    setModo('ver');
+    setNome(meta?.nome ?? '');
+    setUnidade(meta?.unidade ?? 'R$');
+  }, [meta?.id, meta?.nome, meta?.unidade]);
+
   if (!meta) {
     return <Sheet open={false} onOpenChange={() => undefined} />;
   }
+
+  // Toda ação passa pelo servidor, que é quem valida (StoreMetaRequest/UpdateMetaRequest)
+  // e quem decide o business_id (Tier 0, ADR 0093). O front NÃO reimplementa validação.
+  const acao = (fn: () => void) => {
+    setEnviando(true);
+    fn();
+  };
+  const opcoes = { preserveScroll: true, onFinish: () => setEnviando(false) };
+
+  const salvar = () => acao(() => router.patch(`/ia/metas/${meta.id}`, { nome, unidade }, {
+    ...opcoes,
+    onSuccess: () => setModo('ver'),
+  }));
+
+  // "Desativar", NUNCA "excluir": o destroy do controller é SOFT
+  // (`update(['ativo' => false])`), e o RUNBOOK §3 crava que a UI não pode
+  // prometer exclusão de linha que continua no banco.
+  const desativar = () => acao(() => router.delete(`/ia/metas/${meta.id}`, opcoes));
+
+  const reapurar = () => acao(() => router.post(`/ia/metas/${meta.id}/reapurar`, {}, opcoes));
 
   const farol = farolDaMeta(meta);
   const realizado = meta.ultima_apuracao?.valor_realizado ?? null;
@@ -195,6 +245,38 @@ export default function JanaMetaDrawer({
               </p>
             )}
           </Secao>
+
+          {modo === 'editar' && (
+            <Secao titulo="Editar meta">
+              <Stack gap={3}>
+                <Stack gap={1}>
+                  <Label htmlFor="meta-nome">Nome</Label>
+                  <Input id="meta-nome" value={nome} onChange={(e) => setNome(e.target.value)} />
+                </Stack>
+                <Stack gap={1}>
+                  <Label htmlFor="meta-unidade">Unidade</Label>
+                  <Select value={unidade} onValueChange={setUnidade}>
+                    <SelectTrigger id="meta-unidade">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {UNIDADES.map((u) => (
+                        <SelectItem key={u} value={u}>
+                          {u}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Stack>
+                {/* Só estes dois — o RUNBOOK §3 diz que `slug` e `tipo_agregacao` são
+                    imutáveis, porque a apuração já gravou com essa chave. */}
+                <p className="text-sm text-muted-foreground">
+                  O identificador e o tipo de agregação não mudam: a série histórica já foi
+                  gravada com eles.
+                </p>
+              </Stack>
+            </Secao>
+          )}
 
           {/* Origem do número — mesmo contrato do `JanaDrillDrawer` (tabela · regra ·
               método), que é o padrão já validado desta área. Onda 5 da paridade:
@@ -263,23 +345,40 @@ export default function JanaMetaDrawer({
           </Secao>
         </Stack>
 
-        <SheetFooter className="flex-row justify-end gap-2 border-t p-4">
-          <Button variant="ghost" onClick={onClose}>
-            Fechar
-          </Button>
-          {/* Rótulo "Abrir a meta", não "Editar": o destino é a tela de leitura
-              (`show`) — que é pra onde o card já apontava antes deste drawer, e
-              nenhuma capacidade se perdeu. Prometer "editar" mandaria o usuário
-              pra um lugar que não é o formulário. */}
-          <Link href={`/ia/metas/${meta.id}`}>
-            <Button variant="outline">Abrir a meta</Button>
-          </Link>
-          {/* Sem semear a pergunta, pelo mesmo motivo medido no JanaDrillDrawer:
-              `ChatController@novaConversa` não aceita pergunta inicial e o
-              `Chat.tsx` não lê query param. */}
-          <Link href="/ia/conversa">
-            <Button>Conversar com a Jana</Button>
-          </Link>
+        <SheetFooter className="flex-row flex-wrap justify-end gap-2 border-t p-4">
+          {/* O <Link> "Abrir a meta" SAIU aqui (PR-2). Ele mandava o usuário pra
+              `/ia/metas/{id}`, que é Blade — e tirar o usuário do Painel era o
+              defeito que este drawer existe pra fechar. O que ele dava (ver e
+              editar) agora acontece nesta gaveta. */}
+          {modo === 'ver' ? (
+            <>
+              <Button variant="ghost" onClick={onClose}>
+                Fechar
+              </Button>
+              <Button variant="ghost" onClick={desativar} disabled={enviando}>
+                Desativar meta
+              </Button>
+              <Button variant="outline" onClick={reapurar} disabled={enviando}>
+                Forçar reapuração
+              </Button>
+              <Button variant="outline" onClick={() => setModo('editar')}>
+                Editar
+              </Button>
+              {/* Sem semear a pergunta, pelo mesmo motivo medido no JanaDrillDrawer:
+                  `ChatController@novaConversa` não aceita pergunta inicial e o
+                  `Chat.tsx` não lê query param. */}
+              <Button onClick={() => router.visit('/ia/conversa')}>Conversar com a Jana</Button>
+            </>
+          ) : (
+            <>
+              <Button variant="ghost" onClick={() => setModo('ver')} disabled={enviando}>
+                Cancelar
+              </Button>
+              <Button onClick={salvar} disabled={enviando || !nome.trim()}>
+                Salvar
+              </Button>
+            </>
+          )}
         </SheetFooter>
       </SheetContent>
     </Sheet>

@@ -22,6 +22,7 @@ import JanaConfigDrawer from './_components/JanaConfigDrawer'
 import { JanaPlanoBadge } from './_components/JanaPlanoBadge'
 import { useJanaPro } from './_components/useJanaPro'
 import JanaMetaDrawer from './_components/JanaMetaDrawer'
+import JanaMetaNovaDrawer from './_components/JanaMetaNovaDrawer'
 import { useJanaConfig } from './_components/useJanaConfig'
 // Tipos e formatadores com DOIS consumidores (Index + JanaMetaDrawer) moram em
 // `_components/metaFormat.ts` desde 2026-08-17: arquivo de componente não exporta
@@ -266,6 +267,9 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
   // o payload veio inteiro no first render, então reabrir não custa consulta, e
   // o `periodoLabel` continua morando num lugar só.
   const [metaAberta, setMetaAberta] = useState<{ meta: Meta; periodo: string | null } | null>(null)
+  // PR-2b: criar meta passou a acontecer no Painel. Antes o botão era `<a href>` nativo
+  // porque a rota devolvia Blade; agora a gaveta faz o POST e a rota `create` fica órfã.
+  const [novaMetaAberta, setNovaMetaAberta] = useState(false)
 
   return (
     <>
@@ -367,7 +371,14 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              {/* "Nova meta" — a âncora põe este botão no cabeçalho da seção METAS
+              {/* "Nova meta" — a âncora põe este botão no cabeçalho da seção METAS.
+
+                  ⚠️ ATÉ 2026-09-07 este botão era um `<a href>` NATIVO, e o comentário
+                  abaixo explicava por quê: `MetasController@create` devolvia Blade, e um
+                  `<Link>` do Inertia viraria no-op silencioso. Isso mudou no PR-2b — criar
+                  virou gaveta no próprio Painel (`JanaMetaNovaDrawer`), e a rota `create`
+                  ficou órfã (o cutover dela é o PR-4 do RUNBOOK-metas §9.4). O texto
+                  original fica abaixo como registro do que era verdade até aquela data.
                   (`jana-merge.jsx`, símbolo `JmMetasSecao`; re-localize com
                   `grep -n "Nova meta" prototipo-ui/cowork/jana-merge.jsx`).
 
@@ -384,11 +395,9 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
                   O charter proíbe "prometer no botão o que a rota não entrega"
                   (§Anti-hooks) — a rota entrega: `Modules/Jana/Resources/views/metas/create.blade.php`
                   existe e o prefixo do grupo é `ia` (routes.php:51). */}
-              <Button variant="outline" className="gap-2" asChild>
-                <a href="/ia/metas/create">
-                  <Target className="h-4 w-4" />
-                  Nova meta
-                </a>
+              <Button variant="outline" className="gap-2" onClick={() => setNovaMetaAberta(true)}>
+                <Target className="h-4 w-4" />
+                Nova meta
               </Button>
               {/* Entry-point pro paywall Jana Pro (ADR 0140). Upsell discreto —
                   a ação primária da Dashboard continua sendo "Conversar". */}
@@ -477,6 +486,8 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
           analisesVisiveis={config.analises}
         />
       </div>
+
+      <JanaMetaNovaDrawer aberto={novaMetaAberta} onClose={() => setNovaMetaAberta(false)} />
 
       <JanaMetaDrawer
         meta={metaAberta?.meta ?? null}

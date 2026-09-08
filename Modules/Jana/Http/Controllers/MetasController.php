@@ -86,7 +86,24 @@ class MetasController extends Controller
             'origem'             => 'manual',
         ]));
 
-        return redirect()->route('jana.metas.show', $meta->id);
+        // O drawer de criação (PR-2b) posta daqui sem sair do Painel — mesma regra das
+        // outras ações: origem Inertia volta pra origem, HTTP comum mantém o de sempre.
+        return $this->voltarPara($request, (int) $meta->id);
+    }
+
+    /**
+     * Pra onde volta depois de uma ação de escrita.
+     *
+     * O drawer do Painel (`JanaMetaDrawer`, PR-2 do RUNBOOK-metas §9.4) faz a ação SEM sair
+     * de `/ia` — mandar ele pro `metas.show` (Blade) desfaria justamente o que o drawer
+     * existe pra resolver. Requisição do Inertia volta pra origem; requisição comum mantém
+     * o redirect de sempre, que é o que o baseline F2 assevera em 3 casos.
+     */
+    private function voltarPara(Request $request, int $metaId)
+    {
+        return $request->header('X-Inertia')
+            ? back()
+            : redirect()->route('jana.metas.show', $metaId);
     }
 
     public function show($id)
@@ -111,13 +128,19 @@ class MetasController extends Controller
         // whitelist nos enums. Antes era `only([...])` sem validação alguma.
         $meta = Meta::findOrFail($id);
         $meta->update($request->validated());
-        return redirect()->route('jana.metas.show', $meta->id);
+
+        return $this->voltarPara($request, (int) $meta->id);
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
+        // SOFT de propósito (RUNBOOK §3): a linha sobrevive, e por isso a UI diz
+        // "desativar", nunca "excluir".
         Meta::findOrFail($id)->update(['ativo' => false]);
-        return redirect()->route('jana.metas.index');
+
+        return $request->header('X-Inertia')
+            ? back()
+            : redirect()->route('jana.metas.index');
     }
 
     /**
@@ -146,7 +169,7 @@ class MetasController extends Controller
         // profundidade contra scope drift entre o dispatch e a execução.
         ApurarMetaJob::dispatch($meta, now(), (int) $meta->business_id);
 
-        return redirect()->route('jana.metas.show', $meta->id)
+        return $this->voltarPara($request, (int) $meta->id)
             ->with('status', 'Reapuração enfileirada para hoje. O valor atualiza quando a fila processar.');
     }
 }
