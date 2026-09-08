@@ -120,15 +120,14 @@ um carona. Fica como resíduo abaixo.
 ## Achado 1 — a thread 01 §A erra a DIREÇÃO do efeito
 
 O doc diz: *"O saldo disponível fica **maior** do que é."* **É o contrário, e está medido: `10 → 6`.**
-
-O retorno é `allocated_qty − revoked_qty` (`:116`). Um revoke alheio **soma** em `revoked_qty`,
-logo o resultado **cai**. Acrescentar o filtro só pode reduzir `revoked_qty` — o valor corrigido é
-sempre **≥** o do bug.
+O retorno é `allocated_qty − revoked_qty` (`:116`); um revoke alheio **soma** em `revoked_qty`, logo
+o resultado **cai**. Acrescentar o filtro só pode reduzir `revoked_qty` — o valor corrigido é sempre
+**≥** o do bug.
 
 A consequência prática também inverte: o defeito **não** permite alocar além do estoque; ele
 **bloqueia alocação legítima**, mostrando saldo menor do que existe. Segue Tier 0 (o número de uma
-empresa depende de linha de outra), mas quem for priorizar precisa do sinal na direção certa.
-Não editei o playbook — não é meu prefixo.
+empresa depende de linha de outra), mas quem priorizar precisa do sinal na direção certa. Não
+editei o playbook — não é meu prefixo.
 
 ## Achado 2 — o irmão mora dentro do MESMO método, e eu não o toquei
 
@@ -183,27 +182,43 @@ correlação era por `AT.parent_id`. A thread 04 mediu mais fundo e está certa:
 **externas** também não filtram `business_id` — falta o amarre que salva o `index()`. É defeito
 **distinto e maior**, não a mesma família. Registro a correção em vez de deixar minha versão de pé.
 
+## Calibragem do risco — o caminho vivo não valida nada
+
+A thread 04 pediu para enunciar como *"defesa-em-profundidade ausente, não exfiltração
+garantida"*, pois o vazamento exige linha com `business_id` divergente. Fui medir como a linha
+nasce — e **na primeira versão desta seção eu errei o caminho**: citei o `exists:assets,id` do
+`StoreAssetAllocationRequest` como se fosse o gate da alocação. Não é: `git grep` do repo inteiro
+dá 8 linhas e **nenhuma** é `use`/type-hint/`app()`; `AssetAllocationController::store()` recebe
+`Illuminate\Http\Request` **cru** (único import, `:9`); e há **0** `validate()` no controller.
+O `rules()` nunca executa — aquele `exists` é código morto, e consertá-lo não fecharia porta
+alguma. Meu erro foi afirmar que um gate valida **sem checar se ele é invocado** (§5 2026-07-17);
+citá-lo mandaria o próximo agente consertar a cópia que o consumidor não usa (§5 2026-08-02).
+Correção medida pela thread 04, confirmada por mim em três vias.
+
+Os caminhos **vivos**, e o que eles amarram:
+
+| caminho vivo | `asset_id` preso ao business? |
+|---|---|
+| `store()` → `AssetAllocationService::criar()` | ❌ `$request->only(… 'asset_id')`, `business_id` da sessão, `create()` direto |
+| `RevokeAllocatedAssetController` (grava o revoke) | ❌ idem; **0** `validate()`/FormRequest no arquivo |
+
+A conclusão fica de pé e **mais forte**: não é "um ramo valida frouxo" — os dois ramos vivos não validam
+nada. A linha órfã é produzível por usuário autenticado em B postando o `asset_id` de A.
+
+Limite: provado por execução que, existindo a linha, o número do dono muda (`10 → 6`); provado por leitura
+que nenhum caminho vivo escopa `asset_id`. **Não** exercitei o POST end-to-end — fora deste prefixo.
+
 ## Nota — o SCOPE pedido não existe nesse caminho
 
-A abertura pede `memory/requisitos/Patrimonio/SCOPE.md`. Esse caminho **não existe** no `main`
-(`memory/requisitos/Patrimonio/` está vazio). O SCOPE do módulo é
-`memory/requisitos/AssetManagement/SCOPE.md` — lido de lá. Vale para as threads 02–06.
+A abertura pede `memory/requisitos/Patrimonio/SCOPE.md`, que **não existe** no `main`. O SCOPE do
+módulo é `memory/requisitos/AssetManagement/SCOPE.md` — lido de lá. Vale para as threads 02–06.
 
 ## Nota de coordenação — threads 03 e 04 em paralelo
 
-O container tinha `AssetController.php` modificado ao abrir a sessão: era a thread 03. Ao final
-estava limpo, e o motivo é **verificado, não suposto** — ela commitou e abriu o **PR #7008**
-(draft), que carrega a guarda `asset.view` no `index()` mais os testes. Nada se perdeu. Não
-toquei nesse arquivo em momento algum; meus dois `git checkout` no container nomearam apenas
-`AssetAllocationService.php` e `CrossTenantAssetTest.php`. A 03 e a 04 confirmaram, do lado
-delas, que os prefixos são disjuntos.
-
-Lição operacional para as threads seguintes: o checkout do CT 100 é **compartilhado** e as
-threads rodam nele em paralelo. Estado não-commitado ali é volátil por construção — commite ou
-use `git stash push -m <tag>` antes de rodar, e restaure apenas os paths que são seus,
-nominalmente. É a família da lápide §5 2026-07-27 (consumir estado global do repo por posição ou
-por presunção de posse).
-
-`gh pr list --state open` na abertura: 4 PRs (#7003, #7002, #6427, #6425), **nenhum** tocando
-`Modules/AssetManagement` — cruzado arquivo a arquivo. Ao fechar, apareceram os PRs #7008
-(thread 03) e #7009 (thread 04), do mesmo playbook e em prefixos disjuntos deste.
+`gh pr list` na abertura: 4 PRs, **nenhum** tocando `Modules/AssetManagement` (cruzado arquivo a
+arquivo). Ao fechar somaram-se #7008 (thread 03) e #7009 (thread 04), do mesmo playbook e em
+prefixos disjuntos — confirmado pelas três threads. O container tinha `AssetController.php`
+modificado ao abrir: era a 03, e ficou limpo porque ela commitou e abriu o #7008 (verificado, não
+suposto); nada se perdeu e não toquei nesse arquivo. Lição para as seguintes: o checkout do CT 100
+é **compartilhado** — commite ou `git stash push -m <tag>` antes de rodar, e restaure só os paths
+que são seus, nominalmente.
