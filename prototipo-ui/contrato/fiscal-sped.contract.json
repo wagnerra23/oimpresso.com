@@ -11,7 +11,13 @@
     {
       "id": "fiscal-sped-status",
       "copy": [
-        "Próximas Waves:"
+        "Próximas Waves:",
+        "Competência",
+        "Valor autorizado",
+        "Prazo",
+        "Entregue",
+        "Blocos",
+        "Validação"
       ]
     },
     {
@@ -64,5 +70,6 @@
   "_pendente_w": [
     "O callout cita \"(PR #8)\" e uma lista de Waves futuras — copy datada que apodrece. Candidata a virar texto derivado ou sair. Não incluída no contrato de propósito."
   ],
-  "_nota_previa": "Goal 3 decidido por [W] em 2026-09-04. A âncora `previa-txt` foi instrumentada, mas com semântica DIFERENTE da do protótipo: lá a prévia encena o arquivo do operador; aqui ela mostra linhas de um arquivo de REFERÊNCIA real (o golden), e a copy travada acima obriga a tela a dizer que não é a competência dele. `previaTxt` continua `null` — a ausência do arquivo do usuário segue declarada, e as duas coisas convivem sem se confundir."
+  "_nota_previa": "Goal 3 decidido por [W] em 2026-09-04. A âncora `previa-txt` foi instrumentada, mas com semântica DIFERENTE da do protótipo: lá a prévia encena o arquivo do operador; aqui ela mostra linhas de um arquivo de REFERÊNCIA real (o golden), e a copy travada acima obriga a tela a dizer que não é a competência dele. `previaTxt` continua `null` — a ausência do arquivo do usuário segue declarada, e as duas coisas convivem sem se confundir.",
+  "_nota_identidade_d0": "Seção de IDENTIDADE (D0), acrescentada em 2026-09-08. Não substitui nada: as seções acima seguem intactas, com o propósito original (travar copy que a Onda 1 tem de preservar). O problema que esta resolve é OUTRO: o `design-diff` usa o contrato como prova de que os dois renders são a MESMA tela, e para isso precisa de copy que exista nos DOIS lados. As seções originais foram extraídas da TELA VIVA (o próprio `_nota_fonte` declara \"produção-à-frente\"), então o protótipo não as tem — e o D0 recusava medir por assimetria. As copies abaixo foram MEDIDAS presentes nos dois renders (design + prod, staging, 2026-09-08) e escolhidas por NÃO serem substring de copy do shell (sidebar/subnav), que não distingue view nenhuma."
 }
