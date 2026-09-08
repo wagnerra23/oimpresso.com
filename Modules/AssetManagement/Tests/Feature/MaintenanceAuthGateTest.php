@@ -30,11 +30,25 @@ uses(Tests\TestCase::class);
  *     business que assina o modulo, o `if` colapsava em "o modulo esta assinado" — e e por
  *     isso que (a) nunca apareceu em producao. Consertar so o `&&` seria inerte em runtime.
  *
- * O CENARIO QUE PROVA (a) e o `CN view_own`: antes do conserto ele passava (200) pelo motivo
- * ERRADO — pelo `|| subscription`, nao pela permissao. Depois do conserto ele passa pela
- * permissao, e o MORDE (usuario sem nenhuma das duas) e quem toma 403. Por isso os cenarios
- * mockam `hasThePermissionInSubscription`: sem neutralizar a assinatura, o teste mediria o
- * gate seguinte e nao este.
+ * O QUE CADA CENARIO DISCRIMINA — matriz MEDIDA no CT 100 em 2026-09-08, nao deduzida
+ * (a 1a redacao deste docblock afirmava que o `CN view_own` provava (a); e FALSO, e fica
+ * registrado em vez de apagado):
+ *
+ *     variante do controller                    MORDE       CN view_own   CN view_all
+ *     ORIGINAL   (&& + || subscription)         FALHA 200   passa         passa
+ *     CONSERTADO (|| + assinatura separada)     passa 403   passa         passa
+ *     MUTANTE    (&& + assinatura separada)     passa 403   FALHA 403     FALHA 403
+ *
+ * Lendo a matriz: o MORDE e quem discrimina o defeito (b) — com o controller original ele
+ * devolve 200, porque a assinatura anula o gate. Os DOIS CN discriminam o conserto
+ * INCOMPLETO: quem remover o `|| subscription` e deixar o `&&` faz os dois quebrarem, que e
+ * a defesa executavel contra (a).
+ *
+ * O defeito (a) NAO e observavel isoladamente por HTTP, e isso e propriedade do sistema, nao
+ * limitacao do teste: com a assinatura FALSA, original e consertado devolvem 403 igualmente
+ * (no consertado quem barra e o gate de assinatura). Por isso os tres cenarios mockam
+ * `hasThePermissionInSubscription` como verdadeira — sem neutralizar a assinatura, o teste
+ * mediria o gate seguinte e nao este.
  *
  * PERMISSOES NAO INVENTADAS: as duas ja estao registradas em
  * Modules/AssetManagement/Http/Controllers/DataController.php (:51 e :58), que popula
