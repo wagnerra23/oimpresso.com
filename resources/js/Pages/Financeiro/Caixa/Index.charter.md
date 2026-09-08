@@ -12,6 +12,7 @@ related_prototype: n/a (F6 Soft wrapper — sem protótipo Cowork; reusa tabela 
 related_decisions: memory/requisitos/Financeiro/caixa-visual-comparison.md (F6 Soft 2026-05-21)
 tier: B
 charter_version: 1
+related_visual_comparison: memory/requisitos/Financeiro/caixa-visual-comparison.md
 ---
 
 # Page Charter — /financeiro/caixa

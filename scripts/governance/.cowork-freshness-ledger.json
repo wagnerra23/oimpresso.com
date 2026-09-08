@@ -1667,5 +1667,23 @@
     },
     "origin": "export",
     "stalePreExport": 2
+  },
+  {
+    "date": "2026-09-08T01:57:42.331Z",
+    "files": 273,
+    "sync": 2,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 271,
+    "staleList": [],
+    "verified": [
+      "financeiro-page.jsx",
+      "financeiro-telas-extras.jsx"
+    ],
+    "verifiedHash": {
+      "financeiro-page.jsx": "25455d92de9a1c1da361178adc270401e2677ffbb926f5fa8d9491eedbe79ae1",
+      "financeiro-telas-extras.jsx": "e0a161e4126f6cde39cae16c2abfad569f5590a664ac2899a86cd24246181df4"
+    },
+    "origin": "medicao"
   }
 ]

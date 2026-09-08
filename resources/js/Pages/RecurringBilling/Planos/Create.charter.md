@@ -9,6 +9,8 @@ related_adrs: [93, 94, 101, 104, 107, 110]
 tier: A
 charter_version: 1
 sidebar_group: fin (FINANCEIRO)
+related_prototype: n/a (herda PT-02 Form/Drawer; segue o Padrao de Tela)
+related_us: [US-RB-001]
 ---
 
 # Page Charter — /recurring-billing/planos/novo (Criar Plano · v1)

@@ -14,6 +14,7 @@ related_prototype: prototipo-ui/cowork/financeiro-telas-extras.jsx
 related_prototype_nota: '(TelaConciliacao) — tela viva evoluiu além do protótipo (extrato via API, ADR 0236)'
 tier: A
 charter_version: 2
+related_visual_comparison: memory/requisitos/Financeiro/index-visual-comparison.md
 ---
 
 # Page Charter — /financeiro/conciliacao

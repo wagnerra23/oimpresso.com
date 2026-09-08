@@ -19,6 +19,7 @@ canon_method: Bundle copy CSS 9054 LOC inteiro (regra Tier 0 feedback-cowork-bun
 runbook: memory/requisitos/Financeiro/RUNBOOK-unificado.md
 tier: A
 charter_version: 22
+related_visual_comparison: memory/requisitos/Financeiro/financeiro-unificado-visual-comparison.md
 ---
 
 # Page Charter — /financeiro/unificado
