@@ -20,8 +20,8 @@ Porta viva única: `node scripts/qa/design-coverage.mjs` (rodada nas duas pontas
 | medida | antes | depois |
 |---|---|---|
 | inventários de paridade (denominador) | 84 | 84 |
-| 🔗 `parityLinked` | **18** | **22** |
-| 🧩 órfãos | 66 | 62 |
+| 🔗 `parityLinked` | **18** | **27** |
+| 🧩 órfãos | 66 | 57 |
 | ❌ vínculo quebrado | 0 | **0** |
 
 **Denominador declarado** (§5 2026-07-27): os 84 são o universo do próprio script. A varredura
@@ -29,7 +29,7 @@ completa do repo devolve 87 arquivos casando `visual-comparison`; os 3 a mais **
 inventário** — uma ADR (`0107-…`), um script (`visual-comparison-staleness.mjs`) e uma cópia-patch
 sob `prototipo-ui/design-docs/`. Conferido antes de citar o número, não presumido.
 
-## Os 12 órfãos do lote, e a QUAL tela cada um pertence
+## Os 17 órfãos do lote, e a QUAL tela cada um pertence
 
 A tela foi lida **no conteúdo** de cada inventário (`inertia_target` / `target_charter` /
 `charter:`), nunca por semelhança de nome (§5 2026-06-30).
@@ -48,6 +48,11 @@ A tela foi lida **no conteúdo** de cada inventário (`inertia_target` / `target
 | 10 | `Crm/cliente-drawer-760-visual-comparison.md` | `Pages/Cliente/Index.tsx` (drawer 760) | 🧩 órfão — charter-alvo já vinculado (achado C) |
 | 11 | `Forja/projectmgmt-index-visual-comparison.md` | `Forja/Triage/Index.tsx` + `Forja/Inbox/Index.tsx` | 🧩 órfão legítimo — **telas revogadas** |
 | 12 | `Forja/triage-analista-visual-comparison.md` | `Forja/Triage/Index.tsx` | 🧩 idem |
+| 13 | `TeamMcp/cc-sessions-visual-comparison.md` | `Modules/Forja/…/team-mcp/CcSessions/Index.tsx` | 🔗 **vinculado** (achado E) |
+| 14 | `TeamMcp/scorecard-visual-comparison.md` | `Modules/Forja/…/team-mcp/Scorecard/Index.tsx` | 🔗 **vinculado** (achado E) |
+| 15 | `TeamMcp/tasks-visual-comparison.md` | `Modules/Forja/…/team-mcp/Tasks/Index.tsx` | 🔗 **vinculado** (achado E) |
+| 16 | `TeamMcp/team-visual-comparison.md` | `Modules/Forja/…/team-mcp/Team/Index.tsx` | 🔗 **vinculado** (achado E) |
+| 17 | `TeamMcp/forja-cockpit-visual-comparison.md` | `Modules/Forja/…/team-mcp/Forja/Cockpit.tsx` | 🔗 **vinculado** (achado E) |
 
 Os 6..9 caem no README **datado** da própria pasta (`_legado-fullpage/README.md`, 2026-06-01):
 *"docs da UI antiga de Cliente (pré-drawer 760px) … Status: histórico"*. As telas seguem vivas,
@@ -84,6 +89,22 @@ distintas são todas `*-page.jsx`**, e a âncora das 3 telas da Jana é `jana-me
 no relatório só em `transportChanges`/`manifestFiles`, nunca como fonte de tela. Logo o
 `--dry` lista 62 telas e nenhuma da Jana, embora `ancora.mjs Jana/<Tela>` resolva as três.
 Estender o universo é mexer no dono do report — PR próprio, não este.
+
+**E — 5 telas da Forja tinham inventário, e a contagem por NOME DE PASTA não os via.**
+Os 5 arquivos de `memory/requisitos/TeamMcp/` declaram, no próprio `inertia_target`,
+telas que vivem **dentro de `Modules/Forja/Resources/js/Pages/team-mcp/`** — logo são telas
+da Forja, não de um módulo `TeamMcp`. A fila do lote foi montada por pasta (`Forja: 2`) e
+por isso nasceu cega a eles; quem leu o conteúdo achou 5 telas vivas, com charter existente
+e sem vínculo. É a mesma classe do achado B — **a pasta do inventário não é o módulo dele**,
+e é a razão pela qual o método 7a manda ler o conteúdo. Os 5 foram vinculados.
+
+O `forja-cockpit-visual-comparison.md` declara o alvo como glob (`team-mcp/Forja/*.tsx`);
+conferido, ele resolve para **uma** Page — `Cockpit.tsx` — porque os outros 12 arquivos da
+pasta são `_components/`, que o walker de cobertura exclui. Sem ambiguidade, sem adivinhação.
+
+⚠️ O `team-visual-comparison.md` carrega `canon_reference: forja-mcp.jsx … ref expirada, ver
+nota` — é a **âncora de protótipo** dele que está vencida, não o casamento com a tela. O
+vínculo inventário↔tela vale; a âncora de design daquela tela é assunto da medição de runtime.
 
 ## O que este lote NÃO mediu, e por quê
 
