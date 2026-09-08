@@ -44,8 +44,13 @@ O passo 0 pagando por si: um pedido morreu por falta de prova, e um vazamento Ti
 **A ordem não é gosto:** 01 vem primeiro porque é multi-tenant em produção — Tier 0 fura antes de qualquer verniz.
 
 ## 2-bis · ESTADO — derivado, nunca escrito
-`node scripts/qa/placar-indice.mjs --indice prototipo-ui/design-docs/cowork-inbox/patrimonio/playbook/00-INDICE.md --root . --proximo`
-Render esperado: `Patrimônio: entregue 0 de 6 · próximo 5 · bloqueada 1`.
+`node prototipo-ui/design-docs/cowork-inbox/_scripts/placar-indice.mjs --indice prototipo-ui/design-docs/cowork-inbox/patrimonio/playbook/00-INDICE.md --root . --proximo`
+
+⚠️ **ERRATA [CL] 2026-09-08 — o comando e o render esperado estavam ambos errados.**
+- **Caminho:** era `node scripts/qa/placar-indice.mjs`, que **não existe no repo**. Esse é o *destino sugerido* da ponte, escrito no docblock do próprio script — não um caminho vivo. O script mora em `prototipo-ui/design-docs/cowork-inbox/_scripts/`. (O irmão `ponto/playbook` herda o mesmo ponteiro podre.)
+- **Render:** era `Patrimônio: entregue 0 de 6 · próximo 5 · bloqueada 1`. O formato real do `resumo` inclui `em curso` e `pendente`, e o `modulo` do §7 é `Patrimonio`, sem acento. O `próximo 5` só saía por causa do typo `depende_thread` (o placar lê `depende_threads`), que apagava a dependência 02→01.
+
+**Não decore o número: rode o comando.** O estado é derivado por construção — qualquer valor escrito aqui apodrece no primeiro merge.
 
 ## 3 · Abertura de thread (colar como 1ª mensagem — sessão limpa)
 ```
@@ -98,7 +103,8 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
     { "id": "03", "titulo": "Guarda asset.view no indice", "dono": "CL", "vaga": 1, "arquivo": "03-guarda-asset-view.md",
       "prefixo": ["Modules/AssetManagement/Http/Controllers/AssetController.php", "Modules/AssetManagement/Tests/Feature/SmokeRoutesTest.php"],
       "nao_toca": ["Modules/AssetManagement/Services/", "Modules/AssetManagement/Http/Controllers/AssetAllocationController.php"],
-      "provas": [{ "tipo": "contem", "path": "Modules/AssetManagement/Http/Controllers/AssetController.php", "padrao": "asset.view" }] },
+      "nota_provas": "ERRATA 2026-09-08: o padrao era \"asset.view\", que ja passava ANTES do trabalho por casar prefixo com asset.view_all_maintenance (AssetController.php:145, linha que so desenha botao). Prova de carimbo. Trocado por can('asset.view'), medido com controle positivo: nao passa hoje, passa quando a guarda entrar.",
+      "provas": [{ "tipo": "contem", "path": "Modules/AssetManagement/Http/Controllers/AssetController.php", "padrao": "can('asset.view')" }] },
     { "id": "04", "titulo": "Remedir D1/D5 e os nao-lidos (frente 0)", "dono": "CL", "vaga": 1, "arquivo": "04-remedir-frente-0.md",
       "prefixo": [], "nao_toca": ["*"],
       "nota_provas": "thread de MEDICAO: nao escreve codigo. Prova = _saida-04.md com veredito por defeito (confirmado com linha / nao existe / ja corrigido).",
