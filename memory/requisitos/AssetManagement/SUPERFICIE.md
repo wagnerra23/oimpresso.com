@@ -107,6 +107,7 @@ module: AssetManagement
 - [Bens.tsx](../../../resources/js/Pages/Patrimonio/Bens.tsx)
 - [Configuracoes.tsx](../../../resources/js/Pages/Patrimonio/Configuracoes.tsx)
 - [Index.tsx](../../../resources/js/Pages/Patrimonio/Index.tsx)
+- [Manutencoes.tsx](../../../resources/js/Pages/Patrimonio/Manutencoes.tsx)
 
 ## Componentes / apoio de tela — 1
 
@@ -118,6 +119,7 @@ module: AssetManagement
 - [Bens.charter.md](../../../resources/js/Pages/Patrimonio/Bens.charter.md)
 - [Configuracoes.charter.md](../../../resources/js/Pages/Patrimonio/Configuracoes.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Patrimonio/Index.charter.md)
+- [Manutencoes.charter.md](../../../resources/js/Pages/Patrimonio/Manutencoes.charter.md)
 
 ## Casos (contrato UC) — 3
 
@@ -125,6 +127,7 @@ module: AssetManagement
 - [Bens.casos.md](../../../resources/js/Pages/Patrimonio/Bens.casos.md)
 - [Configuracoes.casos.md](../../../resources/js/Pages/Patrimonio/Configuracoes.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Patrimonio/Index.casos.md)
+- [Manutencoes.casos.md](../../../resources/js/Pages/Patrimonio/Manutencoes.casos.md)
 
 ## Testes (Pest) — 12
 
