@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **398** arquivos · **383** números únicos · máx **0393**
-- **ADRs ATIVOS (lifecycle ativo): 359** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 357 · superseded 16 · deprecated 13 · proposto 10 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 359 · arquivado 23 · substituido 16
+- **399** arquivos · **384** números únicos · máx **0394**
+- **ADRs ATIVOS (lifecycle ativo): 360** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 358 · superseded 16 · deprecated 13 · proposto 10 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 360 · arquivado 23 · substituido 16
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -35,7 +35,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (398)
+## Todas as ADRs (399)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -436,3 +436,4 @@ _(nenhuma)_
 | 0391 | proposto | ativo | decision | Regime de evolução por loops vale para tudo que não é Blade; Blade fica fora e m |
 | 0392 | aceito | ativo | decision | Fronteira do Governance por audiência — o enforcement vive na CONCESSÃO da permi |
 | 0393 | aceito | ativo | decision | Governança da empresa aparece no fluxo de trabalho, não em tela própria — emenda |
+| 0394 | aceito | ativo | decision | Endereço de UI do Patrimônio é `Pages/Patrimonio/**` — módulo próprio, não seção |
