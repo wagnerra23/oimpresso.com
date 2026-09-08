@@ -5,8 +5,8 @@ irmaos: Edit.charter.md (lei) · SDD-espelho-e-jornada-v1.0.md §6.5 (contrato) 
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é aqui que se decide quem entra na apuração CLT e com qual período de vínculo — um período impossível contamina todo cálculo de jornada a jusante.
 owner: wagner
-last_run: "2026-09-04"
-last_run_ci: "2 UC rodados por mim no CT 100 (container oimpresso-staging, MySQL real), NAO em CI. Codigo identico ao main no container (mesma medicao declarada no Index.casos.md irmao). CT100 != CI: base persiste entre runs — verde la e CANDIDATURA, nao veredito. Nota de fixture, porque ela quase produziu um achado falso: a 1a sonda pegou o colaborador do meu business com DB::table (que ignora soft delete) e recebeu 404 na tela; a causa NAO era isolamento, era `deleted_at` — o Model aplica SoftDeletes e o registro escolhido estava apagado. Com um colaborador VIVO a mesma rota devolveu 200. Por isso o caso do 404 usa colaborador de OUTRO empregador criado na hora, e nao um id qualquer."
+last_run: "2026-09-08"
+last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-test-results.json (fonte: test-results/pest-ponto-junit.xml). Lane PHP / Pest (Ponto - MySQL) run 34215745965 em main (sha dced5fd3d8, 2026-09-08T10:32Z): 302 passed - 1 skipped - 1009 assertions, coherent=true, provou_algo=true. Li ASSERTIONS, nao a conclusion: 1009 > 0 prova que a suite rodou e nao caiu no skip-as-pass da lane (LC-13). O unico skipped da run nao e UC (o coletor trata skip como nao-pass, e os 69 vieram pass). A lane e ADVISORY: reprova e visivel, nao bloqueia merge."
 ---
 
 # Casos de Uso & Aceite — Configuração de ponto do colaborador
@@ -22,8 +22,8 @@ last_run_ci: "2 UC rodados por mim no CT 100 (container oimpresso-staging, MySQL
 
 | UC | Caso de uso | Prio | Âncora | Teste | Status |
 |----|-------------|------|--------|-------|--------|
-| UC-COLEDT-01 | Abrir a configuração de colaborador de outro empregador → 404 | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `ColaboradorContratoTest` | 🧪 verde no CT 100, sem veredito de lane |
-| UC-COLEDT-02 | Desligamento anterior à admissão é recusado | must | charter §Automation hooks + CLT (período de vínculo) | `ColaboradorContratoTest` | 🧪 verde no CT 100, sem veredito de lane |
+| UC-COLEDT-01 | Abrir a configuração de colaborador de outro empregador → 404 | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `ColaboradorContratoTest` | ✅ verde na lane |
+| UC-COLEDT-02 | Desligamento anterior à admissão é recusado | must | charter §Automation hooks + CLT (período de vínculo) | `ColaboradorContratoTest` | ✅ verde na lane |
 
 **[BACKLOG]** (contrato em uma fonte só, ou pergunta ainda aberta ao [W] — não vira UC sem teste):
 
