@@ -3,6 +3,7 @@ id: resources-js-pages-fiscal-eventos-charter
 page: /fiscal/eventos
 component: resources/js/Pages/Fiscal/Eventos.tsx
 related_prototype: prototipo-ui/cowork/fiscal-subpages.jsx
+related_visual_comparison: memory/requisitos/Fiscal/fiscal-eventos-visual-comparison.md
 bundle_source: fiscal-page.jsx
 page_id: fiscal-eventos
 url: /fiscal/eventos

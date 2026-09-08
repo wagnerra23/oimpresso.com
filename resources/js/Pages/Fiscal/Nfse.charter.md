@@ -3,6 +3,7 @@ id: resources-js-pages-fiscal-nfse-charter
 page: /fiscal/nfse
 component: resources/js/Pages/Fiscal/Nfse.tsx
 related_prototype: prototipo-ui/cowork/fiscal-page.jsx
+related_visual_comparison: memory/requisitos/Fiscal/fiscal-nfse-visual-comparison.md
 bundle_source: fiscal-page.jsx
 page_id: fiscal-nfse
 url: /fiscal/nfse
