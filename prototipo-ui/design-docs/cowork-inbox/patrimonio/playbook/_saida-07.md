@@ -298,6 +298,9 @@ porque a forma do vazamento mudou com a query: agora seria **numérico**, não u
    do AssetManagement exigem o schema MySQL do UltimatePOS. Recibo dele, no #7047:
    `21 skipped, 58 passed · job: success`. Verde, com os UCs sem rodar. As 20 lanes que usam
    `.github/actions/pest-mysql-setup` não incluem esta.
+   ⚠️ O #7049 **mergeou** (`768a413cf8`) e é `docs(ci)`: ele **documenta** o defeito numa proposta
+   (`memory/decisions/proposals/2026-09-08-lane-modules-pest-sem-mysql.md`) e **não conserta** a
+   lane — o `modules-pest.yml` segue em SQLite. Ter proposta mergeada não é ter gate consertado.
 
 ⚠️ **A causa 3 corrige o que eu ia escrever.** Minha formulação inicial era *"enquanto o gatilho
 não tiver `synchronize`, um PR pode atravessar verde"* — verdadeira e **incompleta**: com
@@ -313,10 +316,11 @@ entrado na coluna "✅".
 
 ⚠️ **Aviso pras threads 09–12, não achado a explorar aqui:** hoje um PR de tela do Patrimônio
 atravessa o CI inteiro verde sem que um único Pest do módulo **execute** — pelas duas portas acima
-(gatilho sem `synchronize`; e SQLite fazendo pular o que dispara). Enquanto o **#7049** não mergear,
-**a única execução real dos Pest deste módulo é manual, no CT 100, com o código do PR aplicado** —
-não contra o `main`, que foi o meu erro. Consertar a lane é governança de CI, não escopo de thread
-de tela: nem toquei no `modules-pest.yml`.
+(gatilho sem `synchronize`; e SQLite fazendo pular o que dispara). O #7049 mergeou, mas é `docs(ci)`
+— **descreve** o problema numa proposta e deixa a lane como está. Então, até alguém trocar o SQLite
+por `pest-mysql-setup` e adicionar `synchronize`, **a única execução real dos Pest deste módulo é
+manual, no CT 100, com o código do PR aplicado** — não contra o `main`, que foi o meu erro.
+Consertar a lane é governança de CI, não escopo de thread de tela: nem toquei no `modules-pest.yml`.
 
 **Segundo follow-up, que NÃO é meu:** o
 [#7047](https://github.com/wagnerra23/oimpresso.com/pull/7047) conserta a tabela de Bens, que nunca
