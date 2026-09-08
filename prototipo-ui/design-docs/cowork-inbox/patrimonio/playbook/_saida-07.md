@@ -7,7 +7,7 @@ base: origin/main @ 493f8eb535 (worktree recriado de origin/main fresco — o ch
 thread: 07-painel.md
 ancora: "REMEDIDA — o sha da thread não conferia. Ver §1."
 veredito: "entregue — tela + trio + teste que morde · 2 KPIs renderizam `—` por falta de fonte (declarado) · o `_shared` NAO e meu: a thread 08 mergeou antes e o fundou (§0) · 13 achados"
-invalida: "a thread 07 NAO e mais a 1a da frente nem a dona do `_shared` — a 08 (#7035) mergeou antes e o fundou; a sequencia `07 sozinha, depois 08∥09∥10` do §2 do indice ja nao descreve o que aconteceu (§0) · o placar NAO detecta a 08 como feita: ela criou `Pages/Patrimonio/Bens.tsx` e o §7 espera `Bens/Index.tsx` · prefixo do §7 INCOMPLETO para as threads de tela (o MWART gera 4 artefatos fora dos 3 paths) · o `criar-tela.mjs` carimba 5 campos ERRADOS em toda tela sob Pages/Patrimonio/ · a numeracao `_saida-06a`/`_saida-06-manutencoes` colide com o indice renumerado · a nota do CT 100 em proibicoes.md §Ambiente caducou (checkout esta em 2026-09-08, nao 2026-07-23)"
+invalida: "prefixo do §7 SEGUE INCOMPLETO nas threads de tela — o MWART + casos-gate geram 4 artefatos (RUNBOOK, e2e/, prototipo-ui/contrato/, tests/) fora dos paths declarados, e o #7039 nao os incluiu (§5) · o `criar-tela.mjs` carimba 5 campos ERRADOS em toda tela sob Pages/Patrimonio/, e isso NAO esta registrado em lugar nenhum ainda (§4) · a nota do CT 100 em proibicoes.md §Ambiente caducou (checkout esta em 2026-09-08, nao 2026-07-23). NADA sobre a colisao 07x08: o #7039 ja reconciliou o indice e a thread 07 antes deste PR (§0)"
 ---
 
 # _saída 07 · Painel do Patrimônio
@@ -22,13 +22,19 @@ manda. **Nenhum PR aberto tocava a pasta.** Enquanto eu trabalhava, o
 Blade para Inertia/React"*, a **thread 08** — foi aberto e mergeado, e ele **fundou o
 `_shared/PatrimonioSubNav.tsx`** que era o artefato desta thread.
 
-A premissa do índice (*"a 07 vai sozinha porque cria o `_shared` que as outras importam; errar ali
-custa seis telas"*) **não descreve mais o que aconteceu**. Duas threads correram em paralelo sobre
-o mesmo `_shared`, e o `gh pr list` não pega isso por construção: ele fotografa o instante da
-abertura, e a colisão nasceu depois. O `whats-active` ([ADR 0119](../../../../../memory/decisions/0119-paralelismo-sessoes-whats-active-tier-1.md))
-é a porta que veria uma sessão viva na mesma área — não a rodei, e ela não está no §3 do índice.
+Duas threads correram em paralelo sobre o mesmo `_shared`, e o `gh pr list` não pega isso por
+construção: ele fotografa o instante da abertura, e a colisão nasceu depois. O `whats-active`
+([ADR 0119](../../../../../memory/decisions/0119-paralelismo-sessoes-whats-active-tier-1.md)) é a
+porta que veria uma sessão viva na mesma área — não a rodei, e ela não está no §3 do índice.
 
-**Como reconciliei:** o `main` venceu, inteiro. Descartei o meu `PatrimonioSubNav.tsx`, o
+⚠️ **Nada disto é achado deste PR.** O [#7039](https://github.com/wagnerra23/oimpresso.com/pull/7039)
+(*"reconcilia o playbook com o que foi mergeado — o placar mentia"*) mergeou **antes** deste PR e já
+fez o trabalho: pôs a errata no `07-painel.md`, tirou `_shared/` do meu `prefixo` e o moveu para
+`nao_toca`, e corrigiu o path da 08 (`Bens.tsx`, não `Bens/Index.tsx`). O diff deste PR contra o
+`main` **respeita o `nao_toca` novo**: `_shared/` não aparece nele. Registro aqui a colisão porque é
+o que explica a forma desta entrega — não como descoberta.
+
+**Como reconciliei o meu lado:** o `main` venceu, inteiro. Descartei o meu `PatrimonioSubNav.tsx`, o
 `patrimonioMenu.ts` e o `tests/patrimonioSubNav.spec.ts` (9 casos, verdes e com bite-test) e adotei
 o do `main` **byte-a-byte** (`git diff origin/main -- <path>` = 0 linhas). Não é só ordem de
 chegada: o argumento dele é melhor que o meu. Ele **deriva** as abas do `shell.menu`; eu declarava
