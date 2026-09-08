@@ -296,3 +296,30 @@ Screenshot canon **já aprovado 2026-05-20** ([gate F1.5 ADR 0107](../../decisio
 - **US-FIN-DRE-PERIODOS** — Trim/Ano/12m funcionais (em F1 ficam disabled). Trigger: Wagner pedir "queria ver DRE do ano".
 - **US-FIN-DRE-SEED** — `CategoriaSeeder::seedHierarquiaCV()` se ROTA LIVRE biz=4 não tiver `fin_categorias.codigo` hierárquico mapeado. Trigger: descobrir em F3 que biz=4 está sem o mapping.
 - **US-FIN-DRE-COMPARE** — `?compare=avg3m` na URL pra trocar Δ% vs mês anterior por Δ% vs média 3 meses. Trigger: Wagner pedir contexto sazonal.
+
+---
+
+## Onda 7 · paridade medida no runtime — 2026-09-08 [CC]
+
+Mesma sonda estrutural · **mesmo tema** (`dark`) · **mesma viewport** (`2560`) · ambos estabilizados.
+Âncora `financeiro-telas-extras.jsx` (TelaDRE) provada **SYNC** antes de comparar.
+Prod `/financeiro/dre` × design rota `fin-dre`.
+
+### Veredito: **PARIDADE BOA** — a melhor das 5 telas do escopo
+
+| Elemento | PROD | DESIGN | |
+|---|---|---|---|
+| h1 | "Financeiro · DRE / Relatórios" | "Financeiro · DRE / Relatórios" | ✅ **idêntico** |
+| Colunas da tabela | `Conta · Set/2026 · % RL · Agosto 2026 · Δ · (vazio)` | `Conta · Mai/2026 · % RL · Abr/2026 · Δ · (vazio)` | ✅ **mesma estrutura** (o mês difere por ser dado, não forma) |
+| Nº de colunas | 6 | 6 | ✅ |
+| Relatórios | Demonstrativo DRE · Balanço patrimonial · Balancete verificação | idem | ✅ |
+| Período | Mês · Trimestre · Ano · **12m** | Mês · Trimestre · Ano | ➕ prod tem `12m` a mais |
+| Linhas | 7 | 18 | dado (contas com movimento), não forma |
+
+### Falso achado derrubado na verificação
+
+Uma primeira leitura acusou *"o design tem Demonstrativo/Balanço/Balancete e a prod não"*.
+**Falso**: o seletor de tabs (`.fin-tabpill, [role=tab]`) casou a **subnav do módulo**
+(Financeiro · Cobrança · Assinaturas…) em vez das tabs internas da tela. Medindo os botões
+do `main`, a prod tem os 3 relatórios **e** os 4 períodos. Medir o seletor errado devolve um
+veredito plausível — o pior tipo de erro (§5 2026-07-16).
