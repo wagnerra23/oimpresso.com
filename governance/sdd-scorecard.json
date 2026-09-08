@@ -68,22 +68,14 @@
     },
     "full_suite_pass_rate": {
       "status": "measured",
-      "value": 292,
+      "value": 296,
       "unit": "arquivos-que-falham (interseção ≥2 runs · ADR 0279)",
       "direction": "down",
       "target": 0,
       "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
       "detail": {
-        "floor_files_hash": "41a1296cdd17a688",
+        "floor_files_hash": "02a27717a15795b4",
         "runs": [
-          {
-            "sha": "04a2493d",
-            "ts": "20260905-020001",
-            "failed": 476,
-            "errors": 409,
-            "skipped": 2281,
-            "all_shards_measured": true
-          },
           {
             "sha": "f5f50123",
             "ts": "20260906-020001",
@@ -93,15 +85,23 @@
             "all_shards_measured": true
           },
           {
-            "sha": null,
+            "sha": "d3f8a347",
             "ts": "20260907-020002",
             "failed": 462,
             "errors": 406,
             "skipped": 2282,
             "all_shards_measured": true
+          },
+          {
+            "sha": null,
+            "ts": "20260908-020001",
+            "failed": 444,
+            "errors": 405,
+            "skipped": 2298,
+            "all_shards_measured": true
           }
         ],
-        "computed_at": "20260907-020002",
+        "computed_at": "20260908-020001",
         "intersection_of": 3
       },
       "stream": "FV"
@@ -130,13 +130,6 @@
         "total": 237106,
         "runs": [
           {
-            "sha": "8c308203",
-            "ts": "20260825-020001",
-            "coverage_pct": 21.6,
-            "covered": 51107,
-            "total": 236642
-          },
-          {
             "sha": "c1eb45d3",
             "ts": "20260826-020001",
             "coverage_pct": 21.6,
@@ -152,7 +145,7 @@
           }
         ],
         "computed_at": "20260827-020001",
-        "measured_of": 3
+        "measured_of": 2
       },
       "stream": "FV"
     },
