@@ -143,6 +143,28 @@ Pré-requisitos: aprovação explícita Wagner (R10) + PRs abertos catalogados (
 vetor não é o `paths:` — é a **divergência entre o workflow que a branch carrega e o context que
 a proteção exige**.
 
+### Antes do flip: o `types:` precisa ter `synchronize`
+
+> **Origem: #6622 (2026-09-03).** A sessão *"Fila do CI: o gargalo era o teto de 20 jobs
+> simultâneos"* tirou `synchronize` de 68 workflows advisory (`types: [opened, reopened,
+> ready_for_review]`) para cortar 49% do volume de jobs por push. Decisão medida e correta —
+> **ela não se toca**. Mas ela criou uma segunda condição de alcançabilidade para required, e
+> um advisory promovido sem reinserir `synchronize` trava o repo.
+
+Um check cujo `types:` omite `synchronize` nasce quando o PR **abre** e nunca mais. A branch
+protection avalia o **head SHA**: no segundo push o check-run não existe naquele SHA, e o PR
+fica `BLOCKED` com **0 falhas e 0 pendentes** — a mesma assinatura de 2026-07-02, por outra
+porta. É a única das 4 formas de "required que não nasce" que **passa no PR recém-aberto**,
+então não aparece em teste manual de um push só.
+
+**Antes de promover qualquer advisory, confira o `types:` do workflow dono e acrescente
+`synchronize` no MESMO PR do flip.** Medido em `main` 2026-09-08: **69** workflows estão
+nessa condição (todos advisory hoje, **0 required** — o gate abaixo garante que continue assim).
+
+```bash
+node scripts/governance/required-always-run.mjs   # 4 eixos, incl. `types:` sem synchronize
+```
+
 **No MESMO PR da promoção**, atualize os PRs abertos:
 
 ```bash
