@@ -345,11 +345,35 @@ As duas linhas são a **mesma string**: subconsulta `SUM(COALESCE(AR.quantity,0)
 (`:91` no Controller, `:107` no Service). Corrobora o
 `CODE_NOTES.errata-playbook-patrimonio-2026-09-08.md §4`, que já registrou o gêmeo.
 
-**Calibragem de alcance para a thread 01 — e ela precisa disto antes de escrever o teste.**
-`assets` já está travado no tenant e a correlação é por `asset_id`, que amarra ao asset dono.
-O vazamento só materializa se existir linha de `asset_transactions` cujo `business_id` divirja
-do asset. É **defesa-em-profundidade ausente** (o que a ADR 0093 exige), não exfiltração
-garantida — como o §4 do CODE_NOTES já dizia, sem inflar.
+**⚠️ CALIBRAGEM CORRIGIDA (após cruzamento com a thread 01) — a 1ª redação subestimava, e fica
+registrada.** Eu havia escrito: *"o vazamento só materializa se existir linha de
+`asset_transactions` cujo `business_id` divirja do asset — é defesa-em-profundidade ausente,
+não exfiltração garantida"*. A pré-condição é real (`assets` está travado no tenant e a
+correlação por `asset_id` amarra ao dono), **mas ela não exige dado corrompido prévio** — e é
+isso que eu não tinha medido.
+
+A thread 01 mediu **como a linha órfã nasce**. Verifiquei os dois ramos, e o quadro é pior do
+que os dois enunciados iniciais:
+
+| ramo | grava sem amarrar `asset_id` ao business? |
+|---|---|
+| **allocate** — `AssetAllocationController@store` `:186` → `AssetAllocationService::criar()` `:34-:53` | **sim** — `Request` cru (o arquivo tem **0** `validate()`), `$request->only(… 'asset_id' …)`, `business_id` da sessão em `:39`, `AssetTransaction::create()` em `:53`, sem checar o dono do asset |
+| **revoke** — `RevokeAllocatedAssetController` `:151-:153` | **sim** — **0** `validate()` e 0 FormRequest no arquivo inteiro (rc=1); `asset_id` cru do `$request->only()` |
+
+Um usuário autenticado em B, com o módulo assinado, posta o `asset_id` de A e a linha nasce.
+**Formulação correta: "pré-condição alcançável por request autenticado"** — nem *"exfiltração
+demonstrada"*, nem *"só com dado corrompido"*.
+
+⚠️ **Correção ao enunciado da própria 01, e ela importa:** a thread 01 listou
+`StoreAssetAllocationRequest:51` (`exists:assets,id` global) como um dos ramos. **Ele não é
+ramo — é o Request órfão do §5.** Nenhum controller o injeta; o `rules()` nunca executa. Citá-lo
+como caminho faz o próximo agente consertar aquele `exists` achando que fechou a porta, sem
+fechar nada — a lápide de 2026-08-02 (*o fix pousa na cópia que o consumidor não usa*)
+reproduzida dentro do enunciado. **O caminho vivo é o `store()` cru → `Service::criar()`**, que
+é a linha do quadro acima.
+
+**Limite do que se afirma:** ninguém exercitou o POST end-to-end (fora do prefixo de todas as
+threads). Isto é medição do **gate** por leitura, não exploração demonstrada.
 
 **Consequência prática:** um `CrossTenantAssetTest` com dados normais **fica verde antes do
 fix** — gate que não morde (LC-11). O teste da 01 tem de **fabricar** a transaction órfã
