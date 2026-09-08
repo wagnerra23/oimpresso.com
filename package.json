@@ -84,7 +84,7 @@
     "design:review": "node prototipo-ui/audit/review-gen.mjs",
     "design:coverage": "node scripts/qa/design-coverage.mjs",
     "design:coverage:check": "node scripts/qa/design-coverage.mjs --check",
-    "design:coverage:baseline:write": "node scripts/qa/design-coverage.mjs --json",
+    "design:coverage:baseline:write": "node scripts/qa/design-coverage.mjs --write-baseline",
     "pt:conformance": "node scripts/governance/pt-conformance.mjs",
     "pt:conformance:check": "node scripts/governance/pt-conformance.mjs --check",
     "test": "vitest run",
