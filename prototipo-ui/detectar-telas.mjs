@@ -219,7 +219,18 @@ export async function buildManifest({ staging, repoRoot }) {
   const rows = [];
   for (const f of stagingFiles) {
     const relStaging = relative(staging, f).replace(/\\/g, '/');
-    const kind = isScreenSource(relStaging);
+    // O universo NAO e so `*-page.jsx`. Ate 2026-09-08 era, e o efeito foi medido: 42 de 46
+    // telas cuja ancora aponta pra OUTRO arquivo do bundle (ponto-telas.jsx serve 17 telas do
+    // Ponto; tambem fiscal-subpages, jana-merge, cliente-form, oficina-forms...) nunca entravam
+    // no manifesto — logo sumiam do application-report e ficavam FORA do alcance do
+    // design-diff-lote. O arquivo estava no bundle e o charter o citava; so o ENUMERADOR nao o via.
+    //
+    // O conserto NAO alarga por nome (isso deixaria entrar data.jsx/icons.jsx e viraria ruido):
+    // alarga exatamente para quem ALGUM CHARTER CITA, usando o indice `byMockup` que este mesmo
+    // arquivo ja monta lendo os 4 campos (component · bundle_source · visual_source ·
+    // related_prototype). Quem entra por esta porta NAO pode virar ORFAO por construcao: estar em
+    // `byMockup` e precisamente a condicao que a via (4) usa pra resolver o alvo.
+    const kind = isScreenSource(relStaging) || (byMockup.has(basename(relStaging)) ? 'mockup' : null);
     if (!kind) continue;
     const b = basename(f);
     let alvo = null, alvos = null, via = null, ambiguo = false;
