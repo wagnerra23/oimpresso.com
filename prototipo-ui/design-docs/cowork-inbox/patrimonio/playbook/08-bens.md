@@ -4,10 +4,27 @@ titulo: Bens — o CRUD principal
 dono: "[CL]"
 base: main pos-ADR-0394
 constituicao: CONSTITUICAO-COWORK.md (C1-C12)
-prefixo: resources/js/Pages/Patrimonio/Bens/ · AssetController (index/create/edit/show)
-nao_toca: _shared/ (é da 06a) · as outras telas
-depende: **07** (importa o `PatrimonioSubNav` que ela cria)
+prefixo: resources/js/Pages/Patrimonio/Bens.tsx · AssetController (create/edit/show — o index JÁ MIGROU)
+nao_toca: `_shared/` (já no main) · o `index()` (entregue) · as outras telas
+depende: — (a fundação está no main; a dependência de 07 caiu)
 ---
+
+> ⚠️ **ERRATA 2026-09-08 [CL] — a LISTAGEM já foi entregue; sobra o CRUD.**
+> O `AssetController::index()` migrou para `Inertia::render('Patrimonio/Bens')` no
+> PR [#7035](https://github.com/wagnerra23/oimpresso.com/pull/7035) (mergeado 17:42Z), com
+> charter, casos e 4 UC verdes no CT 100. **O que resta desta thread é `create` / `edit` /
+> `show`**, que seguem Blade — Non-Goal declarado no charter, com motivo escrito.
+>
+> **Duas correções de mapa que vinham desta ficha e do JSON:**
+> - **caminho:** era `Pages/Patrimonio/Bens/Index.tsx` (subpasta); o arquivo mergeado é
+>   `Pages/Patrimonio/Bens.tsx` (flat). A prova do §7 nunca passaria, e o placar dizia
+>   *"pendente · arquivo ausente"* para uma tela em produção.
+> - **dependência:** `depende: 07` caiu — o `_shared` foi fundado pela própria tela de Bens.
+>
+> **Antes de mexer no `create`/`edit`, leia o que já está decidido** (`Bens.charter.md`):
+> o drawer de criação é onda própria, e o `Alocado` da listagem **não é número auditado**
+> enquanto o resíduo Tier 0 do gêmeo não fechar — a medição está em
+> [`_saida-06-bens.md`](_saida-06-bens.md) §5 (20 de 128 assets divergem).
 # 08 · Bens — o CRUD principal
 
 ## ÂNCORA (congelada — remedir se o sha mudou)
