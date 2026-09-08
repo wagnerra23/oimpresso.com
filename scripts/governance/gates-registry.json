@@ -615,6 +615,13 @@
       "anchor": "Dossiê grade-das-réguas card #0 'Evals de outcome' (Roubo #4): substituir 'zero evals de outcome' por número real (régua Codex/Cognition). DECONFLITO com outcome-metrics (design-loop) — eixo DORA-de-PR, não fidelidade de tela. Self-test hermético (CFR morde/libera) na suíte governance-script-tests.",
       "promote_by": "2026-09-30"
     },
+    "fluxo-sistema.yml": {
+      "nome": "Fluxo do sistema (advisory · DORA + Flow do repo inteiro · frequência de deploy + lead time PR + falha/recuperação do PIPELINE + retrabalho + PRs>300 + adoção de telas via route-hits · weekly schedule + dispatch · [W] 2026-09-07 \"quais fluxos eu deveria ter?\")",
+      "classe": "automacao",
+      "terminal": "advisory",
+      "anchor": "scripts/governance/fluxo-sistema.mjs (docblock). DECONFLITO: agent-pr-outcomes = DORA dos PRs do AGENTE; outcome-metrics = retrabalho do loop de DESIGN; charter-live-signal = servido POR TELA. Aqui: população = todos os PRs + runs de deploy + fila de US. cfr/recovery no nível do CLIENTE e flow_time_us saem not_yet_measured com fonte declarada (sdd-scorecard doutrina). Self-test hermético na suíte governance-script-tests.",
+      "promote_by": "2026-12-31"
+    },
     "agent-cost-per-pr.yml": {
       "nome": "Agent cost per PR (advisory · custo USD estimado por PR do agente · unidade = SESSÃO do JSONL local atribuída por branch==headRefName ou citação /pull/N · cobertura de ALOCAÇÃO do dinheiro + resíduo decomposto · calibração derivada do dado · weekly schedule + dispatch · item #7 ranking adversarial grade-das-réguas 2026-07-12; revisado 2026-07-17)",
       "classe": "automacao",
