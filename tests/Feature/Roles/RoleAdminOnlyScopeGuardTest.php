@@ -93,7 +93,7 @@ beforeEach(function () {
         'officeimpresso_numerodemaquinas' => 0,
     ]);
 
-    foreach (['roles.update', 'sell.view', 'jana.mcp.use', 'jana.mcp.usage.all'] as $p) {
+    foreach (['roles.update', 'roles.create', 'sell.view', 'jana.mcp.use', 'jana.mcp.usage.all'] as $p) {
         Permission::findOrCreate($p, 'web');
     }
 
@@ -206,6 +206,36 @@ it('B4: POST FORJADO tambem nao concede — a defesa e a concessao, nao a tela',
     expect($depois)->not->toContain('jana.mcp.usage.all');
     expect($depois)->not->toContain('jana.mcp.memory.manage');
     expect($depois)->not->toContain('jana.cc.curate');
+});
+
+it('B5: papel NOVO tambem nao nasce com admin_only — o create e o outro caminho', function () {
+    // `store()` e o segundo ponto de concessao do controller e roda o MESMO
+    // `__somenteDoCatalogo`, entao o filtro ja o fecha — mas fechado-por-construcao nao e
+    // fechado-por-prova. Sem este caso, alguem que reintroduza o admin_only so no create
+    // passaria por todos os outros.
+    $nome = 'AdminOnlyNovo'.uniqid();
+
+    test()->ator->givePermissionTo('roles.create');
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
+    test()
+        ->actingAs(User::findOrFail(test()->ator->id))
+        ->withSession([
+            'user.business_id' => test()->biz->id,
+            'user' => ['business_id' => test()->biz->id, 'id' => test()->ator->id],
+        ])
+        ->post('/roles', [
+            'name' => $nome,
+            'permissions' => ['sell.view', 'jana.mcp.use', 'jana.mcp.usage.all'],
+        ]);
+
+    $criado = Role::where('name', $nome.'#'.test()->biz->id)->first();
+    expect($criado)->not->toBeNull(); // senao o caso passaria por o papel nem ter nascido
+
+    $perms = $criado->permissions->pluck('name')->all();
+
+    expect($perms)->toContain('jana.mcp.use');          // controle positivo, como o B3
+    expect($perms)->not->toContain('jana.mcp.usage.all');
 });
 
 // ── A — anti-regressao do incidente 2026-07-29 ──────────────────────────────────────
