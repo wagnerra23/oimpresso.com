@@ -14,7 +14,7 @@ module: Jana
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 556 arquivos em 19 papéis.
+**Total mapeado:** 557 arquivos em 19 papéis.
 
 ## Controllers — 11
 
@@ -203,7 +203,7 @@ module: Jana
 - [NotificarDesvioListener.php](../../../Modules/Jana/Listeners/NotificarDesvioListener.php)
 - [LangfuseAgentTelemetryListener.php](../../../Modules/Jana/Listeners/Telemetry/LangfuseAgentTelemetryListener.php)
 
-## Console / Commands — 45
+## Console / Commands — 46
 
 - [ApurarMetricasCommand.php](../../../Modules/Jana/Console/Commands/ApurarMetricasCommand.php)
 - [AutomationsSyncCommand.php](../../../Modules/Jana/Console/Commands/AutomationsSyncCommand.php)
@@ -230,6 +230,7 @@ module: Jana
 - [JanaValidateMemoryCommand.php](../../../Modules/Jana/Console/Commands/JanaValidateMemoryCommand.php)
 - [JanaWeeklyDigestCommand.php](../../../Modules/Jana/Console/Commands/JanaWeeklyDigestCommand.php)
 - [McpAdrMigrarFrontmatterCommand.php](../../../Modules/Jana/Console/Commands/McpAdrMigrarFrontmatterCommand.php)
+- [McpRevogarAdminOnlyCommand.php](../../../Modules/Jana/Console/Commands/McpRevogarAdminOnlyCommand.php)
 - [McpSkillsImportFromGitCommand.php](../../../Modules/Jana/Console/Commands/McpSkillsImportFromGitCommand.php)
 - [McpSyncMemoryCommand.php](../../../Modules/Jana/Console/Commands/McpSyncMemoryCommand.php)
 - [McpSystemTokenCommand.php](../../../Modules/Jana/Console/Commands/McpSystemTokenCommand.php)
