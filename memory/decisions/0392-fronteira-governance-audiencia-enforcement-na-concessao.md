@@ -3,7 +3,7 @@ slug: 0392-fronteira-governance-audiencia-enforcement-na-concessao
 number: 392
 title: "Fronteira do Governance por audiência — o enforcement vive na CONCESSÃO da permissão, não na leitura do request"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision

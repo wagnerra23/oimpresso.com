@@ -3,7 +3,7 @@ slug: 0393-governanca-da-empresa-aparece-no-fluxo
 number: 393
 title: "Governança da empresa aparece no fluxo de trabalho, não em tela própria — emenda de FORMATO à 0392"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision
