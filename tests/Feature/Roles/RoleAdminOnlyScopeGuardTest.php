@@ -39,8 +39,10 @@ use Spatie\Permission\Models\Role;
  * no papel `Operacional#1` (biz=1) zerou os 17 scopes e derrubou o MCP dos 4 usuarios do
  * time — token valido devolvendo `403 no_permission` no gate `jana.mcp.use`.
  *
- * A2 cobre o caso `admin_only` (fora do form) e A3 o caso de scope ofertado que o POST
- * traz. A distincao e o contrato inteiro: o form so pode revogar o que ele oferece.
+ * O contrato inteiro cabe numa frase: O FORM SO PODE REVOGAR O QUE ELE OFERECE. A1 prova
+ * o lado geral (permission de origem qualquer que o form nao oferece sobrevive), A2 o caso
+ * `admin_only` que biz=164 tem hoje, e A3 a contra-prova — o que E ofertado continua
+ * revogavel, senao "preservar" teria virado "congelar" e o papel seria imutavel.
  *
  * ⚠️ CONTROLE POSITIVO OBRIGATORIO (B3). `getModuleData('user_permissions')` so devolve
  * dados de modulo INSTALADO (`System::getProperty('jana_version')`). Sem o Jana instalado,
@@ -208,14 +210,26 @@ it('B4: POST FORJADO tambem nao concede — a defesa e a concessao, nao a tela',
 
 // ── A — anti-regressao do incidente 2026-07-29 ──────────────────────────────────────
 
-it('A1: save de papel NAO apaga a familia jana.mcp.* que ele ja tinha', function () {
-    // O incidente literal: um save de papel, sem nenhum `jana.*` no POST, zerava a familia.
-    test()->alvo->syncPermissions(['sell.view', 'jana.mcp.use']);
+it('A1: permission de QUALQUER origem que o form nao oferece sobrevive ao save', function () {
+    // A generalizacao — e o caso que nem A2 nem A3 cobrem. O preserve nao conhece
+    // `jana.mcp.*`: o predicado e "o form nao oferece", entao permission de modulo
+    // desativado, ou legada, ou de um modulo que ainda nem existe, e igualmente preservada.
+    // Se alguem trocar o predicado por uma lista de slugs, este caso fica vermelho.
+    //
+    // ⚠️ `jana.mcp.use` NAO serve aqui: desde o conserto de 2026-07-29 ele E ofertado pelo
+    // form, logo sumir do POST e revogacao LEGITIMA — e o que A3 prova. A 1a versao deste
+    // caso o usava e ficou vermelha no CT 100, contradizendo A3; o teste estava errado, nao
+    // o codigo. A anti-regressao da familia OFERTADA e outra e continua onde sempre esteve:
+    // a paridade catalogo ⇄ tela do `McpScopesVisiveisNoRoleEditTest`.
+    $forano = 'modulo.desativado.fixture.'.uniqid();
+    Permission::findOrCreate($forano, 'web');
+
+    test()->alvo->syncPermissions(['sell.view', $forano]);
     app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
 
     aoSalvar(['sell.view']);
 
-    expect(aoPermissoes())->toContain('jana.mcp.use');
+    expect(aoPermissoes())->toContain($forano);
 });
 
 it('A2: scope admin_only JA CONCEDIDO sobrevive ao save (o form nao o oferece, logo nao o revoga)', function () {
