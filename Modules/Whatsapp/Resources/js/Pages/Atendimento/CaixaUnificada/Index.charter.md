@@ -11,6 +11,7 @@ supersedes: resources/js/Pages/Atendimento/Inbox/Index.charter.md
 parent_module: Whatsapp
 parent_adr: memory/decisions/0135-omnichannel-inbox-arquitetura.md
 visual_source: prototipo-ui/cowork/inbox-page.jsx
+related_us: [US-WA-012, US-WA-055, US-WA-066, US-WA-095]
 related_adrs:
   - 0093-multi-tenant-isolation-tier-0
   - 0094-constituicao-v2-7-camadas-8-principios
