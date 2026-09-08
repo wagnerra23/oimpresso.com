@@ -340,8 +340,21 @@ A leitura dela do `DataController` está correta; é a origem da materializaçã
 
 1. **Teste** — num banco limpo `asset.view` não existe, então um teste de 403 que não crie a
    Permission passa **pelo motivo errado** (`can()` false por ausência, não por negação).
-   A thread 03 já cobriu isso com `Permission::firstOrCreate` no setup, **e declarou que o
-   verde dela não é evidência do registro** — a evidência é a leitura do `DataController:31`.
+   A thread 03 cobriu isso com `Permission::firstOrCreate` no setup, **e declarou que o verde
+   dela não é evidência do registro** — a evidência é a leitura do `DataController:31`.
+
+   ⚠️ **E não era risco hipotético: já tinha se materializado.** A thread 03 mediu no CT 100
+   `asset_view_existe=SIM` e a princípio leu isso como "a permissão existe no ambiente"; ao
+   reconferir, achou que **o próprio teste dela a criara** (`id=194`, `created_at` da mesma
+   sessão — e `asset.create`, que ninguém cria, sequer está na tabela). Como o Pest roda em
+   **ordem aleatória** e só um cenário criava a permissão, a primeira rodada da sessão dela
+   (seed `1788872533`) executou o MORDE **antes** do cenário que a criava: aquele verde
+   **passou pelo motivo errado**. Ela registrou como errata no `_saida-03.md`.
+
+   **A lição generaliza para além deste teste:** *"a permissão existe no banco"* medido
+   **depois** de rodar a suíte não distingue o que o ambiente tinha do que o teste acabou de
+   criar. Com ordem aleatória, isso vira um teste que passa ou não conforme a seed — verde
+   instável indistinguível de verde real.
 2. **Deploy** — em business onde ninguém nunca salvou um Role com `asset.view` marcada, uma
    guarda nova dá **403 para todos** naquele tenant. **Calibrando:** o mesmo já vale para
    `create()` `:271`, `edit()` `:339` e `destroy()` `:399`, que estão em produção — quem
@@ -476,9 +489,20 @@ casos — não é leitura minha do builder, é o SQL que o Laravel emite.
 `orWhereNull` é a **única** ocorrência no módulo, e nenhum doc do Patrimônio o registra
 (`git grep -lni "precedencia|precedência"` nos docs do módulo devolve rc=1).
 
-**Nenhuma das 6 threads tem este site.** Vira thread nova ou entra na 01 com escopo ampliado
-— e ampliar a 01 conflita com o `nao_toca: Http/Controllers/` dela. **Decisão de plano, não
-minha.**
+**Nenhuma das 6 threads tinha este site** quando ele foi medido — vira thread nova ou entra na
+01 com escopo ampliado, e ampliar a 01 conflitaria com o `nao_toca: Http/Controllers/` dela.
+
+**✅ DESFECHO (2026-09-08, ainda nesta rodada):** deixou de ser órfão. A thread 03 abriu o
+**PR #7015** (`fix(patrimonio): o orWhereNull do dashboard escapava do filtro de tenant`),
+tocando `AssetController.php` + `SmokeRoutesTest.php`, empilhado sobre a branch do #7008 —
+PR próprio, para preservar 1 PR = 1 intent sem criar dependência de merge. Verificado por
+`gh pr view 7015` (OPEN). **Sai da lista de órfãos escalados.**
+
+As duas provas são complementares e nenhuma sozinha bastava: esta thread mostrou, por
+`toSql()`, que **o SQL está errado** (o `business_id` fora do grupo do `OR`); a thread 03
+mostrou, por bite-test, que **o dado alheio atravessa de fato** — a lista do dono contém o bem
+do tenant vizinho (`⨯ MORDE: Expecting […] not to contain 'AST-DASH-TNT99'`). Diagnóstico e
+consequência, medidos por vias diferentes.
 
 ### 7d · Mapa de gates do `AssetController` — o passo 4 da thread 03, respondido
 
