@@ -86,7 +86,9 @@ class MetasController extends Controller
             'origem'             => 'manual',
         ]));
 
-        return redirect()->route('jana.metas.show', $meta->id);
+        // O drawer de criação (PR-2b) posta daqui sem sair do Painel — mesma regra das
+        // outras ações: origem Inertia volta pra origem, HTTP comum mantém o de sempre.
+        return $this->voltarPara($request, (int) $meta->id);
     }
 
     /**

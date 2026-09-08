@@ -362,3 +362,21 @@ it('§9.2 · o drawer não tem mais o link que tirava o usuário do Painel', fun
         ->toContain('Desativar meta')
         ->toContain('Forçar reapuração');
 });
+
+it('§9.4 PR-2b · criar meta vem do Painel e volta pro Painel, e o botao nao aponta mais pra Blade', function () {
+    // A criação passou a ser uma gaveta no Painel (`JanaMetaNovaDrawer`). O que prova isso
+    // no servidor é o mesmo par das outras ações: com o header do Inertia, volta pra origem.
+    $this->withHeader('X-Inertia', 'true')
+        ->from('/ia')
+        ->post('/ia/metas', metaPayload(['nome' => 'Meta criada pelo Painel']))
+        ->assertRedirect('/ia');
+
+    expect(Meta::withoutGlobalScopes()->where('nome', 'Meta criada pelo Painel')->exists())->toBeTrue();
+
+    // E o botão do Painel deixou de mandar pra Blade. Sem esta metade, alguém devolve o
+    // `<a href="/ia/metas/create">` e o usuário volta a sair da tela — de novo.
+    $painel = file_get_contents(base_path('resources/js/Pages/Jana/Index.tsx'));
+    expect($painel)
+        ->not->toContain('<a href="/ia/metas/create">')
+        ->toContain('<JanaMetaNovaDrawer');
+});
