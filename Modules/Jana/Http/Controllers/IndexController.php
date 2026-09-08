@@ -3,11 +3,11 @@
 namespace Modules\Jana\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Scopes\ScopeByBusinessViaParent;
 use App\Services\Sells\SellsCockpitAggregator;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Modules\Jana\Entities\Meta;
+use Modules\Jana\Entities\MetaFonte;
 use Modules\Jana\Services\ApuracaoService;
 
 /**
@@ -71,17 +71,21 @@ class IndexController extends Controller
                 'periodoAtual',
                 'ultimaApuracao',
                 'apuracoes' => fn ($q) => $q->orderBy('data_ref')->limit(12),
-                // SUPERADMIN: a fonte herda tenancy do parent (BelongsToBusinessViaParent),
-                // e para usuario COMUM esse escopo exige `meta.business_id = <sessao>`.
-                // A consulta acima, porem, inclui DE PROPOSITO as metas de PLATAFORMA
-                // (`orWhereNull('business_id')`) — entao a fonte delas cairia fora do
-                // escopo e o drawer diria "sem fonte configurada" para uma meta que TEM
-                // fonte. Isso nao e ausencia de dado, e ausencia de permissao travestida.
-                // Dispensar o escopo aqui e seguro POR CONSTRUCAO: o eager-load ja nasce
-                // restrito a `meta_id IN (<ids das metas que esta sessao pode ver>)`, que
-                // e exatamente o conjunto que a consulta de cima acabou de filtrar —
-                // ninguem alcanca fonte de meta que nao enxerga. ADR 0093.
-                'fonte' => fn ($q) => $q->withoutGlobalScope(ScopeByBusinessViaParent::class),
+                // A fonte herda tenancy do parent (`BelongsToBusinessViaParent`) e NAO
+                // precisa de dispensa nenhuma — medido em 2026-09-08, depois de eu ter
+                // posto um `withoutGlobalScope` aqui por uma armadilha que NAO existe:
+                //
+                //   · usuario COMUM  — `ScopeByBusiness` filtra `business_id = <sessao>`
+                //     ESTRITO, entao meta de plataforma (nulo) nem chega no payload; toda
+                //     meta que chega casa o escopo do parent.
+                //   · SUPERADMIN     — `ScopeByBusiness` abre pra `= X OR IS NULL`, e o
+                //     `ScopeByBusinessViaParent` abre EXATAMENTE igual pro parent.
+                //
+                // Nos dois papeis os dois escopos concordam. Quem provou foi o UC-JPAIN-22:
+                // ele reprovou em `expect($plataforma)->not->toBeNull()` — o que sumia era a
+                // META, nunca a fonte dela. Dispensar defesa Tier 0 sem necessidade e o
+                // oposto do que a ADR 0093 pede.
+                'fonte',
             ])
             ->get();
 
@@ -107,11 +111,7 @@ class IndexController extends Controller
             // A fonte vinha de `fontes/show.blade.php`, so-leitura por decisao (o editor
             // com previa do numero antes de salvar e a US-COPI-040). `null` = meta sem
             // fonte gravada, que e estado REAL: sem fonte a meta nao apura.
-            'fonte'              => $meta->fonte ? [
-                'driver'      => $meta->fonte->driver,
-                'cadencia'    => $meta->fonte->cadencia,
-                'config_json' => $meta->fonte->config_json,
-            ] : null,
+            'fonte'              => $this->fontePayload($meta),
             'periodo_atual'      => $meta->periodoAtual ? [
                 'data_ini'   => $meta->periodoAtual->data_ini,
                 'data_fim'   => $meta->periodoAtual->data_fim,
@@ -127,5 +127,34 @@ class IndexController extends Controller
                 'valor_realizado' => (float) $a->valor_realizado,
             ])->values(),
         ]);
+    }
+
+    /**
+     * Payload da fonte da meta — o que a `fontes/show.blade.php` mostrava.
+     *
+     * Existe como METODO, e nao inline no `map`, por causa do analisador estatico:
+     * `Meta::fonte()` declara `HasOne` SEM o generico, entao `$meta->fonte` chega
+     * tipado como `Model` e acessar `->driver` vira "undefined property" (o PHPStan
+     * acusou as 3 linhas). O `instanceof` abaixo e o que estreita o tipo.
+     *
+     * Tipar a relacao seria o conserto de RAIZ e e melhor — mas ela tem outros dois
+     * consumidores vivos (`SqlDriver`, `ApuracaoService`), e mexer no tipo deles pode
+     * acordar achado novo num PR que e sobre tela. Fica declarado, nao escondido.
+     *
+     * `null` = meta sem fonte gravada. Estado REAL: sem fonte a meta nao apura.
+     */
+    private function fontePayload(Meta $meta): ?array
+    {
+        $fonte = $meta->fonte;
+
+        if (! $fonte instanceof MetaFonte) {
+            return null;
+        }
+
+        return [
+            'driver'      => $fonte->driver,
+            'cadencia'    => $fonte->cadencia,
+            'config_json' => $fonte->config_json,
+        ];
     }
 }

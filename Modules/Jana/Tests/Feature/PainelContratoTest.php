@@ -1099,14 +1099,25 @@ it('UC-JPAIN-21: o card de meta lê "<valor> de <alvo>" e "<pct>% do alvo", nunc
  * PR-3 absorve. Derivado das BLADES, não do payload: o RUNBOOK §9.4 diz que o PR-4 só
  * pode remover aquelas views depois que o drawer entregar o que elas entregavam.
  *
- * A segunda metade é a que importa, e é a armadilha do §4 do RUNBOOK: a fonte herda
- * tenancy do parent, e para usuário COMUM esse escopo exige `meta.business_id = <sessão>`.
- * Meta de PLATAFORMA tem `business_id` NULO e entra no Painel de propósito — sem
- * dispensar aquele escopo no eager-load, a fonte dela sumia e a tela diria "sem fonte
- * configurada" para uma meta que TEM fonte. Ausência de permissão travestida de
- * ausência de dado é pior que erro: não se denuncia.
+ * ⚠️ ERRATA DO PRÓPRIO AUTOR, e é o motivo de este caso existir. A primeira versão deste
+ * UC afirmava uma "armadilha": que meta de PLATAFORMA (`business_id` nulo) entrava no
+ * Painel e que a fonte dela cairia fora do escopo do parent, exigindo um
+ * `withoutGlobalScope` no eager-load. **Falso, e o próprio teste provou** — ele reprovou
+ * em `expect($plataforma)->not->toBeNull()`: o que sumia era a **META**, nunca a fonte.
+ *
+ * Medido depois (`app/Scopes/ScopeByBusiness.php`): para usuário COMUM o escopo direto
+ * filtra `business_id = <sessão>` ESTRITO, então meta de plataforma nem chega ao payload;
+ * para SUPERADMIN ele abre para `= X OR IS NULL`, e o `ScopeByBusinessViaParent` abre
+ * exatamente igual para o parent. **Nos dois papéis os dois escopos concordam**, logo a
+ * dispensa não resolvia nada — só removia uma defesa Tier 0 sem necessidade. Ela saiu.
+ *
+ * Corolário que fica registrado: o `orWhereNull('business_id')` da consulta do Painel é
+ * **inerte** para usuário comum. Mexer nele é outro escopo, não deste PR.
+ *
+ * O isolamento cross-tenant das metas e das filhas já tem dono e não se duplica aqui:
+ * `MultiTenantIsolationTest` e `EntitiesFilhasMultiTenantViaParentTest`.
  */
-it('UC-JPAIN-22: o payload traz origem, escopo e fonte — inclusive da meta de plataforma', function () {
+it('UC-JPAIN-22: o payload traz origem, escopo e fonte da meta', function () {
     painelBootstrap();
     $businessId = (int) session('user.business_id');
     $sufixo = uniqid();
@@ -1127,25 +1138,8 @@ it('UC-JPAIN-22: o payload traz origem, escopo e fonte — inclusive da meta de 
         'cadencia'    => 'diaria',
     ]);
 
-    // business_id NULO = meta de plataforma. É ela que prova o conserto.
-    $daPlataforma = Meta::withoutGlobalScopes()->create([
-        'business_id'    => null,
-        'slug'           => 'pr3_plataforma_'.$sufixo,
-        'nome'           => 'PR3 meta de plataforma',
-        'unidade'        => 'qtd',
-        'tipo_agregacao' => 'contagem',
-        'ativo'          => true,
-        'origem'         => 'seed',
-    ]);
-    $fonteDaPlataforma = MetaFonte::withoutGlobalScopes()->create([
-        'meta_id'     => $daPlataforma->id,
-        'driver'      => 'php',
-        'config_json' => ['classe' => 'ContagemDeAlgo'],
-        'cadencia'    => 'manual',
-    ]);
-
     try {
-        $this->get('/ia')->assertInertia(function ($page) use ($daCasa, $daPlataforma) {
+        $this->get('/ia')->assertInertia(function ($page) use ($daCasa) {
             $metas = collect($page->toArray()['props']['metas'] ?? []);
 
             $casa = $metas->firstWhere('id', $daCasa->id);
@@ -1157,20 +1151,13 @@ it('UC-JPAIN-22: o payload traz origem, escopo e fonte — inclusive da meta de 
             expect($casa['fonte']['cadencia'])->toBe('diaria');
             expect($casa['fonte']['config_json'])->toBe(['sql' => 'SELECT 1']);
 
-            $plataforma = $metas->firstWhere('id', $daPlataforma->id);
-            expect($plataforma)->not->toBeNull();
-            expect($plataforma['business_id'])->toBeNull();
-            // O coração deste UC: sem o `withoutGlobalScope` no eager-load isto vem NULO.
-            expect($plataforma['fonte'])->not->toBeNull();
-            expect($plataforma['fonte']['driver'])->toBe('php');
-
             return $page;
         });
     } finally {
         // Limpeza em finally: no CT 100 a base PERSISTE entre execuções, e assert que
         // falha no meio deixaria as linhas lá.
-        MetaFonte::withoutGlobalScopes()->whereIn('id', [$fonteDaCasa->id, $fonteDaPlataforma->id])->delete();
-        Meta::withoutGlobalScopes()->whereIn('id', [$daCasa->id, $daPlataforma->id])->delete();
+        MetaFonte::withoutGlobalScopes()->whereIn('id', [$fonteDaCasa->id])->delete();
+        Meta::withoutGlobalScopes()->whereIn('id', [$daCasa->id])->delete();
     }
 });
 

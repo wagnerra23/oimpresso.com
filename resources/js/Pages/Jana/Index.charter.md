@@ -208,14 +208,15 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   existia — e sem eles o **PR-4 (cutover)** não pode remover as views, já que o §9.4 exige que o
   drawer entregue antes o que a Blade entregava.
 
-  **A armadilha multi-tenant, medida e consertada no mesmo PR:** a fonte herda tenancy do parent
-  (`BelongsToBusinessViaParent`) e o escopo exige `meta.business_id = <sessão>` para usuário
-  comum — mas o Painel inclui **de propósito** as metas de **plataforma** (`business_id` nulo).
-  Sem dispensar aquele escopo no eager-load, a fonte delas sumia e a tela diria *"sem fonte
-  configurada"* para meta que **tem** fonte. Dispensar ali é seguro por construção: o eager-load
-  já nasce restrito aos ids que a consulta anterior filtrou (ADR 0093). Contrato em
-  **UC-JPAIN-22** (runtime, lê o payload) e **UC-JPAIN-23** (forma, lê o arquivo), os dois no
-  `PainelContratoTest`.
+  **Uma armadilha multi-tenant foi afirmada e REFUTADA dentro do próprio PR.** A primeira versão
+  punha um `withoutGlobalScope` no eager-load da fonte, supondo que meta de **plataforma**
+  entrava no Painel e perderia a fonte pelo escopo do parent. O **UC-JPAIN-22 derrubou isso**:
+  reprovou porque a **META** de plataforma não aparece — o escopo direto (`ScopeByBusiness`)
+  filtra `business_id = <sessão>` estrito para usuário comum, e abre `= X OR IS NULL` para
+  superadmin, exatamente como o escopo do parent. Os dois concordam nos dois papéis; a dispensa
+  saiu. Registro em vez de apagamento, porque dispensar defesa Tier 0 sem necessidade é o oposto
+  do que a ADR 0093 pede. Contrato em **UC-JPAIN-22** (runtime, lê o payload) e **UC-JPAIN-23**
+  (forma, lê o arquivo), os dois no `PainelContratoTest`.
 
   **Não** foi criada variante nova no `Alert` do Design System: a âncora pede tom de aviso e o
   componente só tem `default`/`destructive` — token ou variante nova é decisão do dono do DS,

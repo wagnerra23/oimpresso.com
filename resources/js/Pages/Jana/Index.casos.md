@@ -1071,23 +1071,35 @@ Derivado das **duas Blades que esta onda absorve**, não do payload:
 O §9.4 é explícito: o PR-4 (cutover) *"não antes do drawer entregar o que a Blade fazia"*.
 Enquanto os três campos não chegam, o cutover fica travado por construção.
 
-**A armadilha, que é o coração deste caso.** A fonte (`jana_meta_fontes`) herda tenancy do
-parent via `BelongsToBusinessViaParent`, e para usuário **comum** o escopo exige
-`meta.business_id = <sessão>`. Só que a consulta do Painel inclui **de propósito** as metas de
-**plataforma** (`orWhereNull('business_id')` no `buildMetasPayload`). Sem dispensar aquele
-escopo no eager-load, a fonte da meta de plataforma **cai fora** e a tela escreveria
-*"sem fonte configurada"* para uma meta que **tem** fonte gravada. Ausência de permissão
-travestida de ausência de dado é pior que erro: não se denuncia.
+**⚠️ ERRATA DO PRÓPRIO AUTOR — a primeira redação deste caso afirmava uma armadilha que NÃO
+EXISTE, e o teste a derrubou.** Fica registrada, não apagada.
 
-Dispensar o escopo ali é seguro **por construção** — o eager-load já nasce restrito a
-`meta_id IN (<ids das metas que esta sessão pode ver>)`, que é o conjunto que a consulta
-anterior acabou de filtrar. Ninguém alcança fonte de meta que não enxerga. ADR 0093.
+O que eu escrevi: que meta de **plataforma** (`business_id` nulo) entrava no Painel e que a
+fonte dela cairia fora do escopo do parent, exigindo um `withoutGlobalScope` no eager-load.
+**Falso.** O teste reprovou em `expect($plataforma)->not->toBeNull()` — o que sumia era a
+**META**, nunca a fonte dela.
+
+Medido depois, em [`app/Scopes/ScopeByBusiness.php`](../../../../app/Scopes/ScopeByBusiness.php):
+
+| papel | escopo da META (`ScopeByBusiness`) | escopo da FONTE (`…ViaParent`) | concordam? |
+|---|---|---|---|
+| usuário comum | `business_id = <sessão>` **estrito** | `parent.business_id = <sessão>` | sim |
+| superadmin | `= X` **ou** `IS NULL` | `= X` **ou** `IS NULL` | sim |
+
+Nos **dois** papéis os dois escopos concordam, então a dispensa não resolvia nada — só removia
+uma defesa Tier 0 sem necessidade, que é o oposto do que a ADR 0093 pede. **Ela saiu.**
+
+**Corolário que fica:** o `orWhereNull('business_id')` da consulta do Painel é **inerte** para
+usuário comum. Mexer nele é outro escopo, não deste PR — mas quem for mexer deve saber que ele
+promete uma visibilidade que o escopo global já negou.
+
+**Isolamento cross-tenant não se duplica aqui:** já tem dono em `MultiTenantIsolationTest` e
+`EntitiesFilhasMultiTenantViaParentTest`.
 
 **Critério de aceite (o que o teste mede, no payload real de `/ia`):**
 
-1. meta do próprio negócio traz `origem`, `business_id` não-nulo e `fonte` com `driver`, `cadencia` e `config_json`;
-2. meta de **plataforma** (`business_id` nulo) traz `fonte` **não-nula** — é esta asserção que morde se o escopo voltar;
-3. `business_id` sai **cru** do servidor: a frase "Plataforma" × "Este negócio" é decisão da tela, não do back.
+1. a meta traz `origem`, `business_id` e `fonte` com `driver`, `cadencia` e `config_json` — some qualquer um dos três e o caso reprova;
+2. `business_id` sai **cru** do servidor: a frase "Plataforma" × "Este negócio" é decisão da tela, não do back.
 
 **Teste:** `Modules/Jana/Tests/Feature/PainelContratoTest.php` · lane `PHP / Pest (Jana · MySQL)`
 (o arquivo está no run-set do `jana-pest.yml`, e o gatilho casa `Modules/Jana/**` +
