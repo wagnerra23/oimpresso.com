@@ -6,7 +6,7 @@ criado: 2026-09-08
 base: origin/main fresco (mergeado antes do PR)
 thread: 02-trava-de-saldo.md
 prefixo_escrito: "Modules/AssetManagement/Services/AssetAllocationService.php · Modules/AssetManagement/Tests/Feature/Wave27AssetManagementPolishTest.php · +1 arquivo NOVO fora do prefixo declarado: Modules/AssetManagement/Exceptions/SaldoInsuficienteException.php (a thread pedia mensagem PT-BR no Service; exceção de domínio é a forma de tê-la sem tocar o controller, que é `nao_toca`)"
-pr: "#7060 — aberto, NÃO mergeado"
+pr: "#7062 — aberto, NÃO mergeado"
 veredito: "entregue — trava no caminho vivo, provada por bite-test (5 failed sem ela, 5 passed com ela) · 1 achado Tier 0 INÉDITO corrigido junto (o gêmeo do lado `allocate`) · `atualizar()` NÃO entrou, com motivo medido"
 invalida: "NADA de thread irmã. CORRIGE por medição a premissa do §B da própria thread 02 — `quantidadeDisponivel()` NÃO retorna o disponível, retorna o ALOCADO; reusá-lo como saldo teria invertido a trava. COMPLETA a thread 01: ela pôs o predicado de tenant só na subconsulta de `revoke`, e o lado `allocate` do MESMO método ficou sem — o alocado somava transação de qualquer empresa. CONFIRMA 1:1 o `_saida-04.md §5` (o Request é órfão) — a trava não encostou nele."
 ---
@@ -169,7 +169,7 @@ tailscale ssh root@ct100-mcp "docker exec -e DB_CONNECTION=mysql oimpresso-stagi
 
 # a semântica de quantidadeDisponivel() e o gate (b)   -> sonda-saldo.php
 # o antes->depois do predicado no lado `allocate`      -> sonda-allocate-tenant.php
-# (as duas são LEITURA PURA; o corpo está no PR #7060)
+# (as duas são LEITURA PURA; o corpo está no PR #7062)
 ```
 
 ---
@@ -183,7 +183,7 @@ tailscale ssh root@ct100-mcp "docker exec -e DB_CONNECTION=mysql oimpresso-stagi
 | 3 | mensagem PT-BR **no Service**, não no Request órfão | ✅ com o limite do §6 declarado |
 | 4 | decisão sobre `atualizar()` registrada | ✅ vira **02b**, com o motivo medido (§5) |
 | 5 | Pest verdes | ✅ 14 no arquivo · 70 na regressão |
-| 6 | placar no PR | ✅ [#7060](https://github.com/wagnerra23/oimpresso.com/pull/7060) |
+| 6 | placar no PR | ✅ [#7062](https://github.com/wagnerra23/oimpresso.com/pull/7062) |
 | 7 | gate (b) verificado ANTES de aplicar | ✅ 0 de 308 sobre-alocados |
 | 8 | ambiente compartilhado restaurado | ✅ 2 fingerprints idênticos ao inicial |
 | 9 | PR aberto, **não mergeado** | ✅ |
