@@ -1,12 +1,14 @@
 #!/usr/bin/env node
-// placar-indice.mjs — PLACAR da LISTA de um playbook (SINCRONIZAR <Mod>), derivado do repo. Zero dependências.
+// placar-indice.mjs — PLACAR da LISTA de um playbook (SINCRONIZAR <Mod>), derivado do repo.
 // Ponte pro Code: destino sugerido scripts/qa/placar-indice.mjs (ou flag --indice em scripts/qa/placar.mjs, PR-A8).
 // Uso: node placar-indice.mjs --indice cowork-inbox/hrm/playbook/playbook.json --root . [--proximo] [--json] [--todos 'cowork-inbox/*/playbook/playbook.json']
 // Estado NUNCA é lido do JSON — é calculado das provas + do _saida-NN.md (Lei 2 por construção).
 // _saida-NN.md é prova IMPLÍCITA de toda thread; provas explícitas são evidência de trabalho NOVO (arquivo pré-existente não é prova — falseava "em curso").
 // Aceite T5: apagar uma prova do repo derruba X→X−1 nomeando a thread (ver teste no fim).
 
+import { validarIndice, avaliarExecucao, pathSeguro } from './placar-evidencia.mjs';
 export const ESTADOS = ["feito", "em curso", "proximo", "pendente", "bloqueada"];
+export const proximas = (r) => r.linhas.filter(l => l.executavel);
 
 export function resolverPath(p, variaveis = {}) {
   let indefinida = false;
@@ -15,10 +17,12 @@ export function resolverPath(p, variaveis = {}) {
     if (v === null || v === undefined) { indefinida = true; return `\${${k}}`; }
     return v.replace(/\/$/, "");
   });
+  if (!pathSeguro(out)) throw Error(`Path resolvido fora do repositório: ${out}`);
   return { path: out, indefinida };
 }
 
 export function avaliarProva(prova, ctx) {
+  if (prova.tipo === 'execucao') return avaliarExecucao({ ...prova, path: resolverPath(prova.path, ctx.variaveis).path }, { ...ctx, resolver: p => resolverPath(p, ctx.variaveis).path });
   // `um_de` usa `paths` (plural) e basta UMA existir — é como o schema expressa
   // "flat Licencas.tsx OU pasta Licencas/Index.tsx, quem decide é o criar-tela.mjs".
   // Tem de vir ANTES do resolverPath: sem `prova.path`, o replace estourava.
@@ -40,6 +44,7 @@ export function avaliarProva(prova, ctx) {
       const ok = !ctx.ler(path).includes(prova.padrao); return { ok, path, motivo: ok ? "" : `ainda contém "${prova.padrao}"` }; }
     case "json_com_chaves": { if (!existe) return { ok: false, path, motivo: "arquivo ausente" };
       let j; try { j = JSON.parse(ctx.ler(path)); } catch { return { ok: false, path, motivo: "JSON inválido" }; }
+      if (!j || typeof j !== 'object' || Array.isArray(j)) return { ok: false, path, motivo: 'JSON precisa ser objeto' };
       const faltam = (prova.chaves || []).filter((k) => !(k in j));
       return { ok: faltam.length === 0, path, motivo: faltam.length ? `faltam chaves ${faltam.join(", ")}` : "" }; }
     default: return { ok: false, path, motivo: `tipo desconhecido ${prova.tipo}` };
@@ -47,25 +52,35 @@ export function avaliarProva(prova, ctx) {
 }
 
 export function avaliar(indice, ctx) {
+  validarIndice(indice);
   const dir = ctx.dirPlaybook; // pasta onde vivem NN-*.md e _saida-NN.md
   const decis = Object.fromEntries((indice.decisoes || []).map((d) => [d.id, d]));
   const byId = {};
   const linhas = indice.threads.map((t) => {
-    const provas = t.provas.map((p) => ({ ...p, ...avaliarProva(p, { ...ctx, variaveis: indice.variaveis || {} }) }));
+    const provas = t.provas.map((p) => ({ ...p, ...avaliarProva(p, { ...ctx, thread: t, saidaPath: `${dir}/_saida-${t.id}.md`, variaveis: indice.variaveis || {} }) }));
     const saida = ctx.existe(`${dir}/_saida-${t.id}.md`);
-    const provasOk = provas.every((p) => p.ok);
-    const algumaOk = provas.some((p) => p.ok);
+    const provasOk = provas.every((p) => p.ok) && provas.some(p => p.tipo === 'execucao' && p.ok);
     const decisPend = (t.depende_decisoes || []).filter((id) => !(decis[id] && decis[id].respondida));
     let estado;
     if (t.bloqueio) estado = "bloqueada";
-    else if (saida && provasOk) estado = "feito";
-    else if (saida || algumaOk) estado = "em curso";
+    else if (saida) estado = "em curso";
     else estado = "pendente";
     const l = { id: t.id, titulo: t.titulo, dono: t.dono, vaga: t.vaga ?? null, estado, saida, provas, decisPend,
+      pronto: saida && provasOk, executavel: false,
       depende_threads: t.depende_threads || [], ausentes: provas.filter((p) => !p.ok).map((p) => `${p.path} (${p.motivo})`) };
+    if (!provas.some(p => p.tipo === 'execucao')) l.ausentes.push('sem recibo de execução — estrutura não prova entrega');
     byId[t.id] = l; return l;
   });
-  // "proximo" = pendente/em curso, sem bloqueio, deps de thread feitas, decisões respondidas, nenhuma prova indefinida
+  // Resolve em ordem topológica: recibo verde também depende das predecessoras.
+  const resolvidas = new Set();
+  function resolver(l) {
+    if (resolvidas.has(l.id)) return;
+    for (const id of l.depende_threads) resolver(byId[id]);
+    const depsOk = l.depende_threads.every(id => byId[id].estado === 'feito');
+    if (l.estado !== 'bloqueada' && depsOk && !l.decisPend.length && l.pronto) l.estado = 'feito';
+    resolvidas.add(l.id);
+  }
+  for (const l of linhas) resolver(l);
   for (const l of linhas) {
     if (l.estado === "bloqueada" || l.estado === "feito") continue;
     const depsOk = l.depende_threads.every((id) => byId[id] && byId[id].estado === "feito");
@@ -97,13 +112,15 @@ if (isMain) {
     const bruto = fs.readFileSync(path.join(root, idxPath), "utf8");
     const embutido = idxPath.endsWith(".md") ? (bruto.match(/```json\s*\n([\s\S]*?)\n```/) || [])[1] : bruto;
     if (!embutido) { console.error(`sem bloco json embutido em ${idxPath}`); process.exit(2); }
-    const indice = JSON.parse(embutido);
+    let indice;
+    try { indice = JSON.parse(embutido); validarIndice(indice); }
+    catch (e) { console.error(`${idxPath}: ${e.message}`); process.exit(2); }
     const r = avaliar(indice, { ...ctxBase, dirPlaybook: path.dirname(idxPath) });
     if (process.argv.includes("--json")) console.log(JSON.stringify(r, null, 2));
     else {
       console.log(r.resumo);
       for (const l of r.linhas) console.log(`  ${l.id} [${l.estado.padEnd(9)}] ${l.titulo}${l.estado === "feito" || l.estado === "bloqueada" ? "" : " — " + (l.ausentes[0] || (l.saida ? "" : "sem _saida"))}`);
-      if (process.argv.includes("--proximo")) { const p = r.linhas.filter((l) => l.estado === "proximo"); console.log(p.length ? `PRÓXIMO: ${p.map((l) => l.id + " " + l.titulo + " [" + l.dono + "]").join(" · ")}` : "PRÓXIMO: nenhum executável — decisões pendentes: " + [...new Set(r.linhas.flatMap((l) => l.decisPend))].join(", ")); }
+      if (process.argv.includes("--proximo")) { const p = proximas(r); console.log(p.length ? `PRÓXIMO: ${p.map((l) => l.id + " " + l.titulo + " [" + l.dono + "]" + (l.estado === 'em curso' ? ' (retomar/validar)' : '')).join(" · ")}` : "PRÓXIMO: nenhum executável — consulte dependências e decisões acima"); }
     }
     if (r.feito < r.total - r.cont.bloqueada) exit = 1;
   }

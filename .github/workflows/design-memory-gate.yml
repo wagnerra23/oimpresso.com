@@ -599,6 +599,8 @@ jobs:
       # modo --schema sai 2 (NAO MEDIDO) em vez de verde calado, e o self-test cobra isso.
       - name: Install deps do validador de schema (ajv)
         run: npm install --no-save ajv@^8.17.1 ajv-formats@^3.0.1
+      - name: Placar de playbook — dependências e recibos de execução
+        run: node --test prototipo-ui/design-docs/cowork-inbox/_scripts/placar-indice.test.mjs
 
       - name: Self-test (fixture boa passa + fixture ruim falha)
         run: node scripts/governance/dtcg-equivalence.test.mjs
