@@ -1,6 +1,7 @@
 ---
 page: /ia/conversa
 component: resources/js/Pages/Jana/Chat.tsx
+related_visual_comparison: memory/requisitos/Jana/Chat-visual-comparison.md
 related_prototype: prototipo-ui/cowork/jana-merge.jsx
 owner: wagner
 status: live

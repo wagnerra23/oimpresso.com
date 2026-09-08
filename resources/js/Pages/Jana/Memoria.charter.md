@@ -1,6 +1,7 @@
 ---
 page: /ia/memoria
 component: resources/js/Pages/Jana/Memoria.tsx
+related_visual_comparison: memory/requisitos/Jana/Memoria-visual-comparison.md
 owner: wagner
 status: draft
 last_validated: "2026-09-03"

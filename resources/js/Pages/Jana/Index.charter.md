@@ -2,6 +2,7 @@
 id: resources-js-pages-jana-index-charter
 page: /ia
 component: resources/js/Pages/Jana/Index.tsx
+related_visual_comparison: memory/requisitos/Jana/Index-visual-comparison.md
 related_prototype: prototipo-ui/cowork/jana-merge.jsx
 states: [default]  # gate L2 — o `default` desta tela é semeado com UMA venda VENCIDA (routes/web.php `$seedJanaVisregFlow`), pra que o `JanaKpiCard` em `emphasis` do "A receber vencido" entre em baseline; sync com tests/Browser/visreg-states.json
 owner: wagner
