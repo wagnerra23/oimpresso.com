@@ -553,10 +553,21 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     // via era uma tela VAZIA: metas ativas visíveis pra biz=4 = 0, e o farol
     // das metas é o conteúdo primário do Painel.
     //
-    // O ramo condicional também contradizia o canon do próprio shell: o
-    // `LANDING_GROUP` do `Sidebar.tsx` ([W] 2026-08-28) declara que a Visão
-    // geral "é o destino pós-login (/dashboard-legacy)" — e a rota mandava todo
-    // admin pra outro lugar. Dois artefatos, uma pergunta, respostas opostas.
+    // ⚠️ Correção do próprio autor, depois de revisão adversarial: a 1a versão
+    // deste bloco dizia que a rota "contradizia o canon do shell", citando o
+    // `LANDING_GROUP` do `Sidebar.tsx` como decisão [W] de 2026-08-28. MEDIDO, e
+    // é falso: em `Sidebar.tsx` o `([W] 2026-08-28)` está preso à sentença da
+    // ALOCAÇÃO no topo (:310); a frase "É o destino pós-login" é a sentença
+    // SEGUINTE (:312), sem atribuição. E ela nasceu FALSA pra admin — o
+    // condicional acima entrou no #4949 em 2026-07-28, um mês ANTES do bloco do
+    // Sidebar (#6435/#6449, 08-28/29). Ela valia só pros usuários sem
+    // `jana.access`, que é o subconjunto que o autor daquele bloco mediu.
+    //
+    // Logo NÃO houve "código contradizendo canon declarado". O que houve foi:
+    // a rota fazia o que o #4949 decidiu (deliberado, e correto pro fim dele —
+    // tirar a porta de entrada de trás de uma permissão), e um comentário
+    // generalizou um subconjunto. O que muda hoje é DECISÃO [W] nova, não
+    // conserto de drift — e ela torna aquela frase verdadeira pela 1a vez.
     //
     // Bônus estrutural: some o ÚLTIMO ramo em que a porta de entrada depende de
     // uma permissão de feature — que é o que o bloco acima já pedia desde o

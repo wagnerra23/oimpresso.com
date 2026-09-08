@@ -113,9 +113,15 @@ it('NÃO TRANCA O ERP: sem jana.access, /home leva ao dashboard legado — nunca
 // US-COPI-148). Virou: TODO MUNDO cai na Visão geral (`/dashboard-legacy`).
 // A troca é decisão [W], reportada a partir da ROTA LIVRE — a usuária tem o
 // papel `Admin#4`, passava neste gate por `Gate::before` e caía num Painel da
-// Jana VAZIO (metas ativas visíveis pra aquele business = 0). A rota também
-// contradizia o `LANDING_GROUP` do `Sidebar.tsx`, que já declarava a Visão
-// geral como destino pós-login desde 2026-08-28.
+// Jana VAZIO (metas ativas visíveis pra aquele business = 0).
+//
+// ⚠️ NÃO é conserto de drift, e a 1a redação deste bloco errava nisso: ela dizia
+// que a rota "contradizia o `Sidebar.tsx`, que já declarava a Visão geral como
+// destino pós-login desde 2026-08-28". Medido — aquela frase do Sidebar não tem
+// atribuição [W] (o `([W] 2026-08-28)` cobre a sentença vizinha, sobre alocação
+// no topo) e nasceu falsa pra admin, um mês depois de o condicional existir. O
+// contrato antigo era decisão deliberada do #4949; o novo é decisão [W] de
+// 2026-09-08. Duas decisões, não um bug.
 //
 // O gate de `/ia` NÃO mudou, e os dois casos acima seguem provando isso: sem a
 // permissão dá 403 lá, com a permissão entra. O que ESTE caso passa a defender
