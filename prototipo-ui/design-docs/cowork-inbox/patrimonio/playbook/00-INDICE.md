@@ -15,7 +15,7 @@ destino_no_main: prototipo-ui/design-docs/cowork-inbox/patrimonio/playbook/
 
 ## 0 · O passo 0 (RELER) mudou o pedido de 04/09
 
-- **D1 caiu.** O `&&` na permissão do `AssetMaitenanceController` **não se reconfirmou**: as 40 ocorrências que li nos controllers são `! (can('superadmin') || hasThePermissionInSubscription(...))`, o padrão UltimatePOS. **Não vira PR** → thread 04 remede.
+- ~~**D1 caiu.**~~ ⚠️ **ERRATA [CL] 2026-09-08 — D1 NÃO caiu; esta linha estava errada.** O texto original dizia que o `&&` *"não se reconfirmou"*, citando 40 ocorrências do padrão `! (can('superadmin') || hasThePermissionInSubscription(...))`. A varredura de 04/09 leu o padrão **majoritário** e concluiu sobre o arquivo que é a **exceção**. Medido por varredura contada na thread 04: `superadmin ||` aparece **18× em 5 arquivos** e **0×** no `AssetMaitenanceController`; o padrão com `&&` aparece **7×, todas nele**. Confirmado independentemente aqui: o arquivo (15.724 B, `rc=0`) **não contém a string `superadmin`**, e suas guardas são `! ((can('asset.view_all_maintenance') && can('asset.view_own_maintenance')) || …)` em `:63`, `:208`, `:243`, `:286`, `:322`. O `&&` exige **as duas** permissões, então quem tem só `view_own_maintenance` — o técnico — é bloqueado das próprias manutenções. **D1 vive, em 6 sítios**, e volta a ser candidato a PR. Recibo: `_saida-04.md` ([PR #7009](https://github.com/wagnerra23/oimpresso.com/pull/7009)).
 - **D4 ganhou linha exata, e é pior do que estava escrito.** `AssetAllocationService.php:112`: a subconsulta `SELECT SUM(...) FROM asset_transactions AS AR WHERE (AR.asset_id=assets.id AND AR.transaction_type='revoke')` **não filtra `business_id`**, enquanto a consulta externa filtra (`:107`). → **thread 01**.
 
 O passo 0 pagando por si: um pedido morreu por falta de prova, e um vazamento Tier 0 ganhou endereço.
@@ -51,7 +51,9 @@ Render esperado: `Patrimônio: entregue 0 de 6 · próximo 5 · bloqueada 1`.
 ```
 Sessão fresca. ANTES de abrir: gh pr list --state open e cruze com os arquivos do seu prefixo.
 Leia, do main: (1) CONSTITUICAO-COWORK.md — C1–C12, citada e não copiada
-(2) este índice §1/§2/§7  (3) o seu NN-*.md  (4) memory/requisitos/Patrimonio/SCOPE.md
+(2) este índice §1/§2/§7  (3) o seu NN-*.md  (4) memory/requisitos/AssetManagement/SCOPE.md
+    ^ ERRATA 08/09: era "requisitos/Patrimonio/SCOPE.md", que NAO EXISTE. O modulo
+      e AssetManagement; nao ha diretorio Patrimonio em memory/requisitos/.
 (5) a faixa de linhas da sua ÂNCORA — e SÓ ela.
 (6) os _saida-NN.md das threads JÁ FECHADAS desta pasta, e em especial o campo
     `invalida:` de cada um. É por ali que uma thread corrige o plano das outras —
