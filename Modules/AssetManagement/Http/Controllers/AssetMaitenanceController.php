@@ -113,7 +113,16 @@ class AssetMaitenanceController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
+        // `! inertia()` NAO e zelo: sem ele a tela Inertia NUNCA recebe a tabela.
+        // `Request::ajax()` le `X-Requested-With`, e o cliente Inertia manda esse header
+        // INCONDICIONALMENTE junto com `X-Inertia` (@inertiajs/core, `getHeaders()`). Como
+        // a prop `manutencoes` e DEFERIDA (:274), ela so chega por partial reload — e todo
+        // partial caia aqui, no ramo do DataTables. Efeito: o skeleton fica pra sempre.
+        //
+        // Terceiro caso da mesma classe no modulo (Bens #7047, Alocacoes neste PR). Todos
+        // chegaram por telas migradas em paralelo, antes de o primeiro hotfix existir.
+        // Padrao da casa: `EssentialsLeaveController:95`.
+        if (request()->ajax() && ! request()->inertia()) {
             $query = AssetMaintenance::with(['asset', 'asset.warranties'])
                         ->where('asset_maintenances.business_id', $business_id)
                         ->leftJoin('users as u', 'u.id', '=', 'asset_maintenances.assigned_to')

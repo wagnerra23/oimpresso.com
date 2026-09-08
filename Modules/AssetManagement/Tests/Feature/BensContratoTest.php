@@ -179,6 +179,15 @@ function bensContratoPropDeferida(User $user, int $businessId, array $query = []
             'user' => ['business_id' => $businessId, 'id' => $user->id],
         ])
         ->withHeaders([
+            // `X-Requested-With` NAO e decoracao: o cliente Inertia o manda
+            // INCONDICIONALMENTE junto com `X-Inertia` (@inertiajs/core, `getHeaders()`).
+            // Sem ele aqui, este teste montava uma requisicao que o BROWSER NUNCA ENVIA —
+            // e por isso deu verde enquanto a tela, em producao, recebia o JSON do
+            // DataTables e nunca renderizava a tabela. Medido no CT 100 em 2026-09-08:
+            //   sem o header .. {"component":"Patrimonio/Bens","props":{...,"bens":{...}}}
+            //   com o header .. {"draw":0,"recordsTotal":234,...}
+            // Ele fica aqui pra sempre: e o unico jeito de este teste medir o caminho real.
+            'X-Requested-With' => 'XMLHttpRequest',
             'X-Inertia' => 'true',
             'X-Inertia-Version' => (string) $versao,
             'X-Inertia-Partial-Component' => 'Patrimonio/Bens',
