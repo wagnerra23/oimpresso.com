@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 use Modules\AssetManagement\Entities\Asset;
 use Modules\AssetManagement\Entities\AssetMaintenance;
 use Modules\AssetManagement\Services\AssetMaintenanceService;
@@ -94,9 +95,12 @@ class AssetMaitenanceController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return Response
+     * Dois ramos: `ajax` devolve o DataTables do Blade legado (JsonResponse); o normal
+     * devolve a tela Inertia `Patrimonio/Manutencoes` desde 2026-09-08 (MWART F3).
+     *
+     * @return \Inertia\Response|\Illuminate\Http\JsonResponse
      */
-    public function index()
+    public function index(Request $request)
     {
         $business_id = request()->session()->get('user.business_id');
         // Permissao de TELA antes do gate de assinatura (ver docblock da classe).
@@ -109,7 +113,16 @@ class AssetMaitenanceController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
+        // `! inertia()` NAO e zelo: sem ele a tela Inertia NUNCA recebe a tabela.
+        // `Request::ajax()` le `X-Requested-With`, e o cliente Inertia manda esse header
+        // INCONDICIONALMENTE junto com `X-Inertia` (@inertiajs/core, `getHeaders()`). Como
+        // a prop `manutencoes` e DEFERIDA (:274), ela so chega por partial reload — e todo
+        // partial caia aqui, no ramo do DataTables. Efeito: o skeleton fica pra sempre.
+        //
+        // Terceiro caso da mesma classe no modulo (Bens #7047, Alocacoes neste PR). Todos
+        // chegaram por telas migradas em paralelo, antes de o primeiro hotfix existir.
+        // Padrao da casa: `EssentialsLeaveController:95`.
+        if (request()->ajax() && ! request()->inertia()) {
             $query = AssetMaintenance::with(['asset', 'asset.warranties'])
                         ->where('asset_maintenances.business_id', $business_id)
                         ->leftJoin('users as u', 'u.id', '=', 'asset_maintenances.assigned_to')
@@ -239,7 +252,36 @@ class AssetMaitenanceController extends Controller
 
         $users = User::forDropdown($business_id, false);
 
-        return view('assetmanagement::asset_maintenance.index')->with(compact('statuses', 'priorities', 'users'));
+        // MWART F3 (ADR 0104) - a tela de Manutencoes virou Inertia em 2026-09-08, no
+        // endereco `Pages/Patrimonio/**` (ADR 0394). O ramo `ajax` acima FICA: ele serve o
+        // DataTables do Blade legado, que outras telas ainda chamam.
+        //
+        // PARIDADE e o contrato desta onda: as colunas e os 3 filtros sao os do Blade. NAO
+        // entra custo - a tabela `asset_maintenances` nao tem coluna de valor e o Blade nao
+        // mostra nenhuma (decisao [W] 2026-09-08). O `UC-MANU-03` guarda esse contrato.
+        return Inertia::render('Patrimonio/Manutencoes', [
+            'filtros' => [
+                'q' => $request->input('q'),
+                'status' => $request->input('status'),
+                'priority' => $request->input('priority'),
+                'assigned_to' => $request->input('assigned_to'),
+                'sort' => $request->input('sort'),
+                'dir' => $request->input('dir'),
+            ],
+            'opcoes' => [
+                'status' => $statuses,
+                'prioridades' => $priorities,
+                'responsaveis' => $users,
+            ],
+            'permissoes' => [
+                // `false` => o usuario tem so `view_own_maintenance` e a lista vem recortada
+                // por dono. A tela DIZ isso; o Blade recortava calado.
+                'vejo_todas' => auth()->user()->can('asset.view_all_maintenance'),
+            ],
+            // Deferida: e a prop cara (paginate + joins + garantias). Primeiro paint sai com
+            // cabecalho, sub-nav e filtros; a lista chega depois (RUNBOOK-inertia-defer).
+            'manutencoes' => Inertia::defer(fn () => $this->buildManutencoesPayload($request, $business_id)),
+        ]);
     }
 
     /**
@@ -442,5 +484,134 @@ class AssetMaitenanceController extends Controller
 
             return $output;
         }
+    }
+
+    /**
+     * Paginator da tela Inertia de Manutencoes (`Pages/Patrimonio/Manutencoes.tsx`).
+     *
+     * Busca e paginacao existem SO neste ramo: o DataTables do Blade faz a propria busca, e
+     * aplica-las tambem la mudaria a tela legada, que nao e o escopo desta onda.
+     *
+     * TIER 0 (ADR 0093): `AssetMaintenance` NAO tem global scope - o filtro de
+     * `business_id` e explicito, e e o MESMO do ramo ajax. O recorte por dono tambem e o
+     * mesmo (`:73`): quem tem so `view_own_maintenance` ve onde e `created_by` ou
+     * `assigned_to`. Duplicar a regra com outro predicado aqui criaria duas verdades.
+     */
+    private function buildManutencoesPayload(Request $request, $business_id)
+    {
+        // A relacao EXISTE (`AssetMaintenance::asset()`, belongsTo em Entities:44) — o
+        // larastan e que nao a resolve neste Model, e o mesmo eager load ja e feito no ramo
+        // ajax logo acima. Ignore local em vez de crescer o phpstan-baseline.neon.
+        /** @phpstan-ignore-next-line larastan.relationExistence */
+        $query = AssetMaintenance::with(['asset', 'asset.warranties'])
+            ->where('asset_maintenances.business_id', $business_id)
+            ->leftJoin('users as u', 'u.id', '=', 'asset_maintenances.assigned_to')
+            ->leftJoin('users as u1', 'u1.id', '=', 'asset_maintenances.created_by');
+
+        // Recorte por dono - a precedencia do `!` em PHP torna isto `(!view_all) && view_own`,
+        // que e o perfil "vejo so as minhas". Identico ao ramo ajax.
+        if (! auth()->user()->can('asset.view_all_maintenance') && auth()->user()->can('asset.view_own_maintenance')) {
+            $query->where(function ($q) {
+                $q->where('asset_maintenances.created_by', auth()->user()->id)
+                    ->orWhere('asset_maintenances.assigned_to', auth()->user()->id);
+            });
+        }
+
+        // Os TRES filtros que o Blade ja oferecia, e so eles.
+        if (! empty($request->input('status'))) {
+            $query->where('asset_maintenances.status', $request->input('status'));
+        }
+        if (! empty($request->input('priority'))) {
+            $query->where('asset_maintenances.priority', $request->input('priority'));
+        }
+        if (! empty($request->input('assigned_to'))) {
+            $query->where('asset_maintenances.assigned_to', $request->input('assigned_to'));
+        }
+
+        $q = trim((string) $request->input('q', ''));
+        if ($q !== '') {
+            $termo = '%'.$q.'%';
+            $query->where(function ($sub) use ($termo) {
+                // O erro do larastan ancora no INICIO da cadeia fluente, nao na linha do
+                // orWhereHas abaixo — por isso o ignore vem aqui, e nao ao lado da relacao.
+                // Medido: com o ignore no orWhereHas o PHPStan seguia acusando a linha 526.
+                /** @phpstan-ignore-next-line larastan.relationExistence */
+                $sub->where('asset_maintenances.maitenance_id', 'like', $termo)
+                    ->orWhere('asset_maintenances.details', 'like', $termo)
+                    ->orWhere('asset_maintenances.maintenance_note', 'like', $termo)
+                    ->orWhereHas('asset', function ($a) use ($termo) {
+                        $a->where('assets.name', 'like', $termo)
+                            ->orWhere('assets.asset_code', 'like', $termo);
+                    });
+            });
+        }
+
+        $manutencoes = $query
+            ->select([
+                'asset_maintenances.id',
+                'asset_maintenances.asset_id',
+                'asset_maintenances.maitenance_id',
+                'asset_maintenances.status',
+                'asset_maintenances.priority',
+                'asset_maintenances.details',
+                'asset_maintenances.maintenance_note',
+                'asset_maintenances.created_at',
+                DB::raw("CONCAT(COALESCE(u.surname, ''), ' ', COALESCE(u.first_name, ''), ' ', COALESCE(u.last_name, '')) as assigned_to_user"),
+                DB::raw("CONCAT(COALESCE(u1.surname, ''), ' ', COALESCE(u1.first_name, ''), ' ', COALESCE(u1.last_name, '')) as created_by_user"),
+            ])
+            ->orderByDesc('asset_maintenances.created_at')
+            ->paginate(25)
+            ->withQueryString();
+
+        // `$this->assetUtil->...()` em vez de `$this->maintenanceStatuses`: a propriedade e
+        // dinamica (setada no constructor sem declaracao) e o PHPStan nao a ve. O Util e a
+        // MESMA fonte que o constructor usa — nao e outra verdade, e o mesmo array.
+        $statuses = $this->assetUtil->maintenanceStatuses();
+        $priorities = $this->assetUtil->maintenancePriorities();
+        $now = \Carbon::now();
+
+        $manutencoes->getCollection()->transform(function ($m) use ($statuses, $priorities, $now) {
+            // Garantia: a MESMA leitura do ramo ajax - vigente se hoje esta na janela.
+            $garantia = null;
+            foreach (optional($m->getAttribute('asset'))->warranties ?? [] as $w) {
+                $inicio = \Carbon::parse($w->start_date);
+                $fim = \Carbon::parse($w->end_date);
+                $garantia = [
+                    'inicio' => $inicio->format('d/m/Y'),
+                    'fim' => $fim->format('d/m/Y'),
+                    'vigente' => $now->between($inicio, $fim),
+                ];
+                if ($garantia['vigente']) {
+                    break;
+                }
+            }
+
+            // `getAttribute`: sao ALIASES do select (`DB::raw(... as assigned_to_user)`), nao
+            // colunas do Model — o PHPStan nao tem como saber que existem.
+            $atribuido = trim((string) $m->getAttribute('assigned_to_user'));
+            $criador = trim((string) $m->getAttribute('created_by_user'));
+
+            // SEM campo de valor, de proposito: a tabela nao tem coluna de custo e o Blade
+            // nao mostra nenhuma. Non-Goal do charter, guardado pelo UC-MANU-03.
+            return [
+                'id' => $m->id,
+                'codigo' => $m->maitenance_id,
+                'bem' => optional($m->getAttribute('asset'))->name ?? '',
+                'bem_id' => $m->asset_id,
+                'status' => $m->status,
+                'status_label' => $statuses[$m->status]['label'] ?? (string) $m->status,
+                'prioridade' => $m->priority,
+                'prioridade_label' => $priorities[$m->priority]['label'] ?? (string) $m->priority,
+                'garantia' => $garantia,
+                'detalhes' => $m->details,
+                'nota' => $m->maintenance_note,
+                'criado_em' => $m->created_at ? \Carbon::parse($m->created_at)->format('d/m/Y H:i') : '',
+                'criado_ha' => $m->created_at ? \Carbon::parse($m->created_at)->diffForHumans() : '',
+                'atribuido_a' => $atribuido !== '' ? $atribuido : null,
+                'criado_por' => $criador !== '' ? $criador : null,
+            ];
+        });
+
+        return $manutencoes;
     }
 }

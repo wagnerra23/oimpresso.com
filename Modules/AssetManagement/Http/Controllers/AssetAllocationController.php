@@ -66,7 +66,17 @@ class AssetAllocationController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if ($request->ajax()) {
+        // `! inertia()` NAO e zelo: sem ele a tela Inertia NUNCA recebe a tabela.
+        // `Request::ajax()` le `X-Requested-With`, e o cliente Inertia manda esse header
+        // INCONDICIONALMENTE junto com `X-Inertia` (@inertiajs/core, `getHeaders()`). Como a
+        // prop `alocacoes` e DEFERIDA (:159), ela so chega por partial reload — e todo
+        // partial caia aqui, no ramo do DataTables, devolvendo JSON nao-Inertia que o
+        // cliente descarta. Efeito: header e filtros pintam, o skeleton fica pra sempre.
+        //
+        // Mesmo defeito que a tela de Bens teve, medido e corrigido no PR #7047. Aqui ele
+        // chegou porque este `index()` foi migrado em paralelo, antes daquele hotfix
+        // existir. Padrao da casa, ja em producao: `EssentialsLeaveController:95`.
+        if ($request->ajax() && ! $request->inertia()) {
             $asset_allocated = $this->baseAllocationsQuery($business_id);
 
             return Datatables::of($asset_allocated)

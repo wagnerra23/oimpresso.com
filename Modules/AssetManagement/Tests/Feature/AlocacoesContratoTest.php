@@ -208,6 +208,13 @@ function alocacoesContratoPropDeferida(User $user, int $businessId, array $query
             'user' => ['business_id' => $businessId, 'id' => $user->id],
         ])
         ->withHeaders([
+            // `X-Requested-With` NAO e decoracao: o cliente Inertia o manda
+            // INCONDICIONALMENTE junto com `X-Inertia` (@inertiajs/core, `getHeaders()`).
+            // Sem ele, este teste montava uma requisicao que o BROWSER NUNCA ENVIA — e por
+            // isso ficava verde enquanto a tela, em producao, recebia o JSON do DataTables
+            // e nunca renderizava a tabela. Mesma cegueira que o `BensContratoTest` tinha
+            // ate o PR #7047.
+            'X-Requested-With' => 'XMLHttpRequest',
             'X-Inertia' => 'true',
             'X-Inertia-Version' => (string) $versao,
             'X-Inertia-Partial-Component' => 'Patrimonio/Alocacoes',
