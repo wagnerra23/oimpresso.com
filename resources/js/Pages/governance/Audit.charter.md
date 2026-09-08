@@ -33,14 +33,14 @@ Permitir a Wagner (operador sênior) investigar atividade do MCP server `mcp.oim
 - Badge status semântico (`bg-emerald-100` ok / `bg-red-100` error) consistente com Cockpit V2
 - Empty state via `<EmptyState>` shared quando filtros não retornam nada
 - **Plataforma, NÃO por tenant** — a leitura é cross-tenant por desenho (Constituição Art. 6+8;
-  [ADR 0392](../../../memory/decisions/0392-fronteira-governance-audiencia-enforcement-na-concessao.md) §D-C,
+  [ADR 0392](../../../../memory/decisions/0392-fronteira-governance-audiencia-enforcement-na-concessao.md) §D-C,
   ratificada 2026-09-08). Acesso gateado por `can:governance.audit.view` na rota.
   ⚠️ **Errata 2026-09-08:** este charter afirmava *"query scopada pelo `business_id` do usuário
   autenticado"*, e o código nunca fez isso — `AuditDrillDownService` seleciona a coluna
   `business_id` e não filtra por ela. A promessa era falsa desde sempre e foi removida em vez de
   virar tarefa: obedecê-la seria transformar uma tela de plataforma em tela de tenant, contra a
   fronteira que a 0392 fixou. A trilha POR EMPRESA existe e é embutida no fluxo
-  ([ADR 0393](../../../memory/decisions/0393-governanca-da-empresa-aparece-no-fluxo.md)):
+  ([ADR 0393](../../../../memory/decisions/0393-governanca-da-empresa-aparece-no-fluxo.md)):
   `Cliente/_drawer/AuditoriaTab`, `Sells/_components/SaleAuditTrail`,
   `Financeiro/Unificado/_components/FinAuditTrail`.
 
