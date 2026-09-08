@@ -53,6 +53,9 @@ Sessão fresca. ANTES de abrir: gh pr list --state open e cruze com os arquivos 
 Leia, do main: (1) CONSTITUICAO-COWORK.md — C1–C12, citada e não copiada
 (2) este índice §1/§2/§7  (3) o seu NN-*.md  (4) memory/requisitos/Patrimonio/SCOPE.md
 (5) a faixa de linhas da sua ÂNCORA — e SÓ ela.
+(6) os _saida-NN.md das threads JÁ FECHADAS desta pasta, e em especial o campo
+    `invalida:` de cada um. É por ali que uma thread corrige o plano das outras —
+    e sem este passo o canal só existe de quem escreve, nunca de quem recebe.
 NÃO leia: as 17 views Blade, os 9 Pest inteiros, patrimonio-page.jsx (é alvo de UI, e a UI está bloqueada).
 Você escreve SOMENTE no seu prefixo e no seu _saida-NN.md. Terminou: escreva o _saida e pare.
 ```
