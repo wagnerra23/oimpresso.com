@@ -297,7 +297,7 @@ A 1ª sonda leu `getComputedStyle(...).color` = `oklch(0.94 0.005 90)` com um re
 ```
 node scripts/design-sync/gerar-payload-partes.mjs --root <dir> --out sync/ --previous sync/bundle.manifest.json
 ```
-Não roda do lado do agente (o gerador exige os arquivos em disco; escrever pelo contexto é transcrição — ADR 0374). Paridade do espelho é do `cowork-mirror-freshness.mjs` + `cowork-ssot-guard` — **não pedir script novo nem exceção do R1**.
+Rodava só no repo até 2026-09-07, quando **[W] revogou a ADR 0374**; desde então o pacote PODE ser gerado do lado do agente — e foi (2026-09-07: 281 arquivos, 43 partes, bundleId 3fe98b64..., auditado remontando as partes: o sha de todos os pedaços confere). **Ressalva que viaja com o pacote:** a canonicalização de bundleId/manifestSha256/changesSha256 é do agente (sha256 sobre "path:sha" + JSON.stringify), não do gerador — se o validador do Code usar outra, ele recusa só esses 3 campos do cabeçalho; os sha por arquivo e por pedaço são independentes disso. Paridade do espelho é do `cowork-mirror-freshness.mjs` + `cowork-ssot-guard` — **não pedir script novo nem exceção do R1**.
 
 ### Bloco de contrato destilado (colar no charter, 1 por seção, no PR da seção)
 ```md
@@ -437,6 +437,56 @@ Nada aprende sozinho. O aprendizado existe porque cada onda deixa **3 resíduos 
 ---
 
 
+## 9-ter · Reavaliação com o §13 no lugar — **49/60** (busca pública 2026-09-08)
+
+Duas mudanças de método desde o placar 41/50: o §13 acrescentou uma dimensão que a tabela antiga não tinha (**orçamento de contexto**), e três notas mudaram **por medição**, não por opinião. Duas linhas novas; as 10 antigas continuam comparáveis.
+
+| dimensão | antes | agora | melhor da classe | por que mudou |
+|---|---:|---:|---|---|
+| aterramento just-in-time | 5 | **5** | Anthropic *context engineering* | empate mantido |
+| tokens como SSOT | 5 | **5** | DTCG + Style Dictionary | empate mantido |
+| rastreabilidade decisão→código | 5 | **5** | ADR + traceability | empate mantido |
+| tamanho de lote | 5 | **5** | trunk-based / small PRs | empate mantido |
+| reusar componente real | 4 | **4** | Figma Code Connect | mapa DS→arquivo segue **manual** |
+| ratchet anti-regressão | 4 | **4** | Betterer / `ds:report` | piso ainda em texto, não baseline por seção |
+| aprendizado institucional | 4 | **4** | postmortem + "erro no contexto" | injeção automática segue spec |
+| spec executável | 3 | **4** | Spec Kit / Kiro | **medido 08/09:** `prototipo-ui/contrato/` tem **31 arquivos**, incl. `compras-cockpit` e `purchase-create`. O receptáculo deixou de estar vazio. Falta o `ALVO` **gerar** o contrato (hoje é escrito à mão) |
+| fidelidade visual (VRT) | 3 | **3** | Chromatic / Percy | **sem mudança**: 0 baseline; o `--compare` segue órfão. É a nota mais baixa das antigas, e o bloqueio é do repo |
+| comportamento verificado | 3 | **4** | Storybook play + Playwright | **medido 08/09:** `e2e/` tem **17 specs** (essentials, jana, oficina, produto, sells, manufacturing) contra "Forja = 0" do placar antigo. Não é 5 porque **Compras tem 0** — é a thread 01 do playbook |
+| **orçamento de contexto / decomposição ativa** (novo) | — | **4** | *Context Engineering 2.0* (subagente + **lightweight references**) · SearchSwarm (decomposição **ativa** × compressão passiva) · ADaPT (decomposição recursiva até ser executável) | §13 põe o protocolo no lado **ativo**: decompõe **antes**, com referência leve (`arquivo :: símbolo :: faixa :: sha`) em vez de despejar o arquivo. Perde 1 porque a **ficha é manual** — nenhum script recusa a thread que não cabe |
+| **correção de plano em execução** (novo) | — | **2** | ADaPT declara isto como problema **aberto** da categoria | **nossa pior nota.** Quando uma thread descobre que o plano está errado, o único canal é `_saida-NN.md` + um humano ler. Nada marca as threads a jusante como suspeitas, nada re-planeja |
+
+### Quem fez melhor, por eixo (e o que é nosso)
+- **Kiro** — a implementação mais completa da disciplina: requisitos + design + tarefas com revisão humana **entre as fases**. É o nosso análogo mais próximo (charter · casos · playbook · gates [W]); onde ele ganha é em ser produto, não convenção.
+- **GitHub Spec Kit** — a melhor **ideia única** da categoria: o *constitution file*, um lugar só com as regras que toda mudança respeita, **consultado** pelos comandos em vez de repetido em cada spec. É exatamente o que nós **não** fazemos (ver melhoria 1).
+- **Chromatic / Percy** — baseline visual que reprova sem humano olhar. Continua sendo o eixo onde perdemos mais.
+- **Figma Code Connect** — resolução componente → caminho de arquivo real, consultável por máquina.
+- **Context Engineering 2.0 / subagentes** — isolamento com janela própria e *lightweight references*. O §13.4 é isso, aplicado a pedido em `.md`.
+- **Nosso, sem análogo:** a direção. A indústria exporta **do Figma**; aqui se exporta de um **protótipo rodando**, onde o comportamento é **observável** — daí T1–T7 (contagem, ordem, `getComputedStyle`) não terem equivalente nos frameworks de SDD, que param na redação da spec.
+
+### As 3 melhorias, em ordem de custo/benefício
+1. **Constituição em vez de repetição** (custo ~0, ganho alto). Hoje **cada** `COLAR-NO-CODE-*` reemite um `## 0 · Leis que não se renegociam` — o mesmo texto em 5 docs, que **divergem sozinhos** (foi o que aconteceu com a ADR 0374: revogada em 07/09 e ainda citada como vigente em 3 pontos deste arquivo até hoje). Trocar por **referência com sha**: `constituição: memory/proibicoes.md@<sha> + memory/INDEX.md` e, no §0, só o que é **específico daquele módulo**. Regra repetida é regra que envelhece em paralelo.
+2. **`ficha.mjs` — o gate do §13.2 por máquina** (custo médio, ganho alto). Hoje o orçamento depende da minha disciplina, e é a mesma crítica que a literatura faz ao EARS: *é disciplina de redação, não teste*. O script lê a árvore (bytes), o `MAPA` (nós) e o `00-INDICE.md` (prefixo, decisões) e **recusa emitir** o `NN-*.md` com teto furado. Sem isso, o §13 é conselho.
+3. **Canal de correção de plano** (custo baixo, tapa a nota 2). Acrescentar ao `_saida-NN.md` um campo obrigatório **`invalida:`** — quais threads/decisões esta descoberta mata — e fazer o `placar-indice.mjs` marcar as threads a jusante como **`suspeita`** em vez de `próximo`. É o furo que o ADaPT declara aberto, tapado com a máquina que já temos. Precedente real: em 08/09 a releitura invalidou 6 pedidos do Compras **e só um humano notou**.
+
+> Ressalva de método: leitura de fontes públicas e relatos de campo de 2026, não estudo controlado. As notas que **subiram** (spec executável, comportamento) subiram por contagem de arquivos no `main` lida no turno; as que ficaram, ficaram por ausência medida. E os riscos que a categoria nomeia valem para nós: **"markdown monster"** (processo virando documentação com passos extras) e **semantic diffusion** — comparar fluxo, nunca rótulo.
+
+---
+
+## 9-quater · CONTRA-PLACAR — medido em 2026-09-08, e reprova o método
+
+O §9-ter é auto-atribuído (eu escolhi os eixos, depois de escrever a seção avaliada; 41/50 e 49/60 dão os **mesmos 82%** — não melhorei, acrescentei eixos). Este bloco é a medição que não depende da minha régua.
+
+**Denominador — documentos de processo que eu escrevi na janela 2026-08-09 → 09-08:** 47 `.md` datados no nome, menos 17 do lote `casos-financeiro-2026-08-17/` (esses são entregável, não processo) = **30**, mais **31** arquivos de playbook (3 índices + 28 threads, todos de 05→08/09) = **61 documentos de processo em 30 dias — ~2 por dia.** Total de `.md` no projeto: **229**.
+
+**Numerador — PRs que eu consigo nomear com evidência:** 7 no HRM (#6778 · #6789 · #6797 · #6798 · #6799 · #6869 · #6876). **E os 7 são anteriores ao playbook que os descreve** (índice de 05/09). Nos outros módulos eu não tenho número: **não consigo calcular o delta de 30 dias do `main` daqui** — `github_compare` exige um sha de commit e o `github.md` só guarda árvores. Prometi a métrica e ela precisa de você: `gh pr list --state merged --search "merged:>=2026-08-09" | wc -l`.
+
+**O achado que importa não é a razão, é o sinal da causalidade.** Nos três módulos verificáveis o documento chegou **depois** do trabalho: HRM (7 PRs mergeados antes do playbook) · Jana (CTAs e conjunto de análises já corrigidos em produção; eu puxei) · Compras (4 `casos.md` + 2 contratos já no `main`; 6 dos 8 pedidos de 04/09 nasceram mortos). **Nesses casos o protocolo não causou entrega — narrou entrega alheia.** E o ciclo de 08/09 fecha com 6 arquivos de playbook para **2 threads executáveis e 0 PR**.
+
+**Gate que isso obriga (e que vale mais que o §13 inteiro):** documento de processo novo só se **destravar uma thread nomeada que abre PR em ≤7 dias**. Sem isso, a resposta certa é editar o que existe — ou não escrever nada. E a linha que passa a ir no `github.md` de cada ciclo: **`docs de processo escritos : PRs mergeados`** no mês. Enquanto esse número não existir, todo placar meu é elogio com tabela.
+
+---
+
 ## 10 · Anti-padrões (recusar o pedido se aparecerem)
 
 - **"Exporte a view inteira"** — sem seção e sem placar volta 3 de 5. Devolver pedindo o `MAPA`.
@@ -444,7 +494,7 @@ Nada aprende sozinho. O aprendizado existe porque cada onda deixa **3 resíduos 
 - **DoD com adjetivo** ("igual", "parecido") — trocar por contagem, ordem e `getComputedStyle`.
 - **Mapa/manifesto/inventário derivado virando arquivo** — L-42 · ADR 0256: é comando.
 - **`.md`/memória/screenshot em `cowork/`** — guard R1. **Pedir exceção do R1 ou script de paridade novo** — o dono existe.
-- **Transcrever arquivo pelo contexto do agente** em vez de descer pelo pacote — ADR 0374.
+- **Transcrever arquivo pelo contexto do agente** em vez de descer pelo pacote — era ADR 0374, **revogada por [W] em 2026-09-07**. O pacote agora se gera dos dois lados; o que continua proibido é *afirmar* que gerou sem auditar (remontar as partes e conferir sha) e omitir que o cabeçalho usa canonicalização própria.
 - **Editar `prototipo-ui/cowork/` à mão do lado do git** — espelho read-only; remendo some no próximo `--export-from`.
 - **Dizer "ficou igual ao design"** sem `design-diff` nos dois renders — isso é medição, nunca leitura.
 - **Big-bang de `casos.md`** — UC nasce na seção tocada, com teste citando.
@@ -498,4 +548,120 @@ _saida-NN.md         escrito pela própria thread — prova IMPLÍCITA de toda t
 4. **Fim** = 100% das provas verdes **e** T7 por seção. Antes disso o estado é "em curso", nunca "pronto".
 
 ### O que o comando NÃO faz (e não deve)
-Não decide qual seção entra na onda (julgamento) · não mergeia `.tsx` (ADR 0283) · não regenera o pacote (ADR 0374 — aviso o comando) · não afirma paridade sem T7 · não grava mapa/inventário fora do índice-pedido (L-42).
+Não decide qual seção entra na onda (julgamento) · não mergeia `.tsx` (ADR 0283) · regenera o pacote quando pedido (ADR 0374 revogada em 2026-09-07), sempre declarando o cabeçalho como canonicalização própria · não afirma paridade sem T7 · não grava mapa/inventário fora do índice-pedido (L-42).
+
+---
+
+## 13 · ORÇAMENTO DE SESSÃO — medir a capacidade ANTES de gerar (pedido [W] 2026-09-08)
+
+> **O que quebrou, medido:** o `COLAR-NO-CODE-compras-ondas.md` (04/09) pedia 8 arquivos. Em 08/09 a árvore mostrou que **6 já existiam** — os 4 `casos.md` do Purchase (19–28 KB cada) e os 2 `contract.json`. E a âncora que ele dava era **"leia `Compras/Index.tsx`"** = 28.813 B antes de escrever a primeira linha. Dois defeitos distintos: **frescor** (retrato velho) e **granularidade da âncora** (arquivo, não recorte).
+>
+> Este bloco não substitui §2-bis (granularidade da onda) nem §4-ter (instrução de execução): acrescenta o **gate que roda antes dos dois** e o **formato de âncora que cabe numa sessão**.
+
+### 13.1 · A unidade do handoff não é o módulo nem o arquivo
+
+| unidade | por que falha | veredito |
+|---|---|---|
+| módulo | 5–20 telas, 100–500 KB de leitura; o Code esgota contexto antes de escrever | ❌ |
+| tela | ainda 15–30 KB por `.tsx` + charter + casos | ❌ para tela grande |
+| **par (seção do alvo × símbolo do arquivo real)** | leitura recortada, escrita ≤300 linhas, 1 prefixo, 1 PR | ✅ **é esta** |
+
+**A ancoragem dupla passa a ser por símbolo:** alvo = seletor raiz da seção no protótipo; âncora = **`arquivo :: símbolo` + faixa de linhas + sha do arquivo naquele momento**. "Leia `Index.tsx`" é pedido malformado; "leia `Index.tsx` :: `ColunasVisiveis` (:180–:243, sha `4571190…`)" é pedido executável.
+
+### 13.2 · Ficha de capacidade — 6 números por thread candidata, e um veredito
+
+Medir **antes** de escrever o `NN-*.md`. Nenhum número sai de cabeça: bytes vêm de leitura de árvore, faixas de busca dirigida, nós do `MAPA`.
+
+```
+FICHA <Mod>.<view>.<seção>
+  1 alvo_nos          nós do seletor raiz no protótipo (do MAPA)          teto  ~400
+  2 leitura_bytes     soma dos RECORTES obrigatórios (não dos arquivos)   teto  40.000 B
+  3 escrita_linhas    linhas a escrever/alterar (estimativa declarada)    teto  300
+  4 prefixo_arquivos  arquivos onde a thread escreve (Lei 1)              teto  8
+  5 simbolos          símbolos distintos que ela toca                     teto  3
+  6 decisoes_abertas  itens do RESÍDUO que ela precisa respondidos        teto  0
+VEREDITO
+  0 tetos furados ......... CABE      → emite NN-*.md
+  1 teto furado ........... DIVIDE    → §13.3, e mede as filhas
+  ≥2 tetos furados ........ RECUSA    → pedido malformado; volta pro MAPA
+  decisoes_abertas > 0 .... BLOQUEADA → thread existe, com `bloqueio:` e prefixo vazio
+```
+
+**Os tetos são calibração declarada, não lei da natureza.** Vêm de: 300 linhas e 8 arquivos já eram o DoD de PR (§6); 40 KB é onde as threads do HRM ainda executaram sem pedir contexto de volta; 3 símbolos é onde o `PARAR SE` ainda cabe colado ao passo. Quando um teto reprovar uma thread que teria dado certo, **corrige-se o teto com o caso registrado** — não se abre exceção silenciosa.
+
+### 13.3 · Fatiar — a ordem é fixa (nunca agrupa)
+
+`módulo → view → seção → símbolo → (cabeçalho | corpo | rodapé | estado vazio)`
+
+Desce **um nível por vez** e remede a ficha em cada filha. Duas proibições: não fundir duas seções que couberam só porque "são pequenas" (a sessão limpa perde o teste do estranho); não fatiar por **tipo de arquivo** (tela numa thread, teste noutra) — isso separa o trabalho da sua própria prova.
+
+### 13.4 · Recorte de âncora — o formato que cabe
+
+```
+ÂNCORA (congelada no momento da geração)
+  arquivo   resources/js/Pages/Compras/components/Drawer.tsx     19.739 B  sha c3f2da501f16
+  símbolo   ItensTabela                                          :112–:186  (75 linhas)
+  ler       SÓ a faixa acima + a seção "Itens" do charter
+  NÃO ler   Index.tsx (28.813 B) · Index.casos.md (26.468 B) — oráculo, não leitura
+  frescor   sha mudou ⇒ a thread REMEDE antes de escrever, e diz isso no _saida
+```
+
+Três regras que isso impõe:
+1. **`NÃO ler` é obrigatório.** Sem ele, o Code lê o módulo inteiro "pra ter certeza" — é o que esgota a sessão.
+2. **Oráculo ≠ leitura.** `casos.md` de 26 KB e os 10 Pest entram como *onde conferir uma dúvida*, nunca como leitura de abertura.
+3. **Sha congelado é o antídoto do 04/09.** Âncora sem sha é retrato; com sha, a thread detecta sozinha que envelheceu.
+
+### 13.5 · Sequência incremental — pré e pós-condição por passo
+
+Cada thread declara o estado **antes** e **depois** em predicado verificável. O `depois` de N é literalmente o `antes` de N+1 — é isso que torna a cadeia retomável sem reler a conversa.
+
+```
+NN  antes:  e2e/compras-cockpit.spec.ts AUSENTE · contrato compras-cockpit PRESENTE (guarda)
+    depois: e2e/compras-cockpit.spec.ts PRESENTE e verde 3× · contrato INTACTO
+    quebra: se o "antes" já não vale (o arquivo apareceu), a thread NÃO executa — reporta e para
+```
+
+**Prova de preservação (`guarda: true` no schema) é obrigatória em toda thread que passa perto de peça viva.** Foi o que impediu, no Compras, um PR de rede desplugar a grade: `Purchase/Create.tsx` **contém** `GradeMatrixInput` antes e depois.
+
+### 13.6 · Escrever para não esquecer — 5 regras de redação
+
+1. **A invariante fica colada ao passo, não no §0.** `PARAR SE` no fim do arquivo é lido depois do erro. Repetir a regra crítica dentro do passo é redundância **deliberada**.
+2. **Toda instrução nomeia caminho completo.** "o drawer" → `resources/js/Pages/Compras/components/Drawer.tsx`. Nome curto exige memória que a sessão limpa não tem.
+3. **`REUSAR` antes de `CRIAR`, sempre com o caminho do que reusar.** Lista de reuso vazia é o sinal mais forte de que ninguém leu o repo.
+4. **Checklist de saída numerada dentro do próprio `NN-*.md`** — o `_saida` marca item por item. Prosa não fecha thread.
+5. **Teste do estranho, literal:** dar o arquivo a quem não viu a conversa. Se ele perguntar qualquer coisa, o arquivo está incompleto — e a pergunta vira **linha nova no arquivo**, não resposta no chat.
+
+### 13.7 · O fluxo inteiro, na ordem (7 passos)
+
+```
+0 RELER      árvore do main NO TURNO. Pedido com retrato >24h é INVÁLIDO — reemitir, não "atualizar".
+             (04/09 → 08/09 no Compras: 6 de 8 pedidos morreram nesse intervalo.)
+1 MAPA       denominador do alvo: seções colhidas do DOM, nunca de lembrança (§2, receita).
+2 FICHA      §13.2 nas candidatas → CABE | DIVIDE | RECUSA | BLOQUEADA. NADA se escreve antes disto.
+3 FATIAR     §13.3 nas que deram DIVIDE; remedir cada filha até CABE.
+4 RECORTE    §13.4 por thread: arquivo :: símbolo :: faixa :: sha, com o NÃO ler explícito.
+5 EMITIR     00-INDICE.md (JSON embutido, §12) + um NN-*.md por thread CABE, com pré/pós (§13.5)
+             e as 5 regras de redação (§13.6). Thread BLOQUEADA entra com `bloqueio:` e prefixo vazio.
+6 VERIFICAR  _saida-NN.md + placar-indice.mjs. Estado é DERIVADO — ninguém o escreve.
+```
+
+**O passo 2 é o único novo, e é o que muda o resultado:** hoje o pedido nasce e só na execução se descobre que não cabia. Com a ficha, quem não cabe **nunca é emitido** — é fatiado ou devolvido ao `MAPA`.
+
+### 13.8 · Aplicado ao Compras (ficha real, 08/09, árvore `9101f86af501`)
+
+| thread | alvo_nos | leitura_bytes | escrita_linhas | prefixo | símbolos | dec. abertas | veredito |
+|---|---:|---:|---:|---:|---:|---:|---|
+| 01 rede E2E | — | ~8.200 (2 contratos) | ~180 | 2 | 0 | 0 | **CABE** |
+| 02 Margem (build daqui) | ~30 (`items-tbl`) | ~2.000 (faixa do `Drawer.tsx`) | ~8 | 2 | 1 | 0 | **CABE** |
+| 03 Fornecedores | ~120 | — | — | 0 | — | **1** (D-FORN) | BLOQUEADA |
+| 04 ghost `/compras/create` | — | — | 1 ou ~400 | 1 ou 6 | — | **1** (D-GHOST) | BLOQUEADA |
+| 05 smoke da grade | — | — | 0 | 0 | — | **1** (D-GRADE) | BLOQUEADA |
+
+E a ficha do pedido **que o doc de 04/09 emitia**, reprovada retroativamente: `leitura_bytes` ≈ 97 KB (Index.tsx + charter + casos + os 4 charters do Purchase) para escrever 4 `casos.md`; `prefixo` = 4; `decisoes_abertas` = 2. **RECUSA por 2 tetos** — e, pior, 6 dos 8 arquivos já existiam. O passo 0 sozinho teria matado o pedido.
+
+### 13.9 · O que este bloco NÃO resolve
+
+- **A ficha não julga valor.** Diz se cabe, não se vale — qual seção entra na onda continua julgamento (§12, "o que o comando NÃO faz").
+- **Faixa de linhas envelhece mais rápido que arquivo.** O sha protege; a faixa, não. Se o símbolo se moveu, a thread remede — por isso o recorte cita **símbolo E faixa**, nunca faixa sozinha.
+- **Tetos não calibrados em módulo grande de verdade.** Vieram de HRM (11 threads) e Compras (5). Vendas/PDV e Forja vão furar algum — o caso furado se registra e o teto se corrige.
+- **Nada aqui afirma paridade.** T7 (`design-diff --compare --check` nos dois renders, prod deployada) continua o único que afirma.
