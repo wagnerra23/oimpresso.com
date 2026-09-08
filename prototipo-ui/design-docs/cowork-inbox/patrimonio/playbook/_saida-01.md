@@ -189,48 +189,21 @@ A abertura pede `memory/requisitos/Patrimonio/SCOPE.md`. Esse caminho **não exi
 (`memory/requisitos/Patrimonio/` está vazio). O SCOPE do módulo é
 `memory/requisitos/AssetManagement/SCOPE.md` — lido de lá. Vale para as threads 02–06.
 
-## Nota de coordenação — a thread 03 roda em paralelo (desfecho medido)
+## Nota de coordenação — threads 03 e 04 em paralelo
 
-Ao abrir a sessão o container tinha `AssetController.php` modificado e não-commitado: era a
-thread 03. Ao final ele estava limpo — e o motivo, **verificado, não suposto**: ela commitou e
-abriu o **PR #7008**, que carrega a guarda `asset.view` no `index()` mais os testes em
-`SmokeRoutesTest`. Nada se perdeu.
+O container tinha `AssetController.php` modificado ao abrir a sessão: era a thread 03. Ao final
+estava limpo, e o motivo é **verificado, não suposto** — ela commitou e abriu o **PR #7008**
+(draft), que carrega a guarda `asset.view` no `index()` mais os testes. Nada se perdeu. Não
+toquei nesse arquivo em momento algum; meus dois `git checkout` no container nomearam apenas
+`AssetAllocationService.php` e `CrossTenantAssetTest.php`. A 03 e a 04 confirmaram, do lado
+delas, que os prefixos são disjuntos.
 
-Não toquei nesse arquivo em momento algum; meus dois `git checkout` no container nomearam apenas
-`AssetAllocationService.php` e `CrossTenantAssetTest.php`. Registro o episódio porque o **gêmeo
-Tier 0 mora nesse mesmo arquivo**: quem for fechar a subconsulta do `index()` precisa combinar
-com a 03 (ou esperar o #7008 mergear) para não colidir.
-
-Fica também a lição operacional, que vale para as threads seguintes: o checkout do CT 100 é
-**compartilhado** e as threads rodam nele em paralelo. Estado não-commitado ali é volátil por
-construção — antes de rodar, commite ou use `git stash push -m <tag>`, e restaure apenas os
-paths que são seus, nominalmente. É a família da lápide §5 2026-07-27 (consumir estado global do
-repo por posição ou por presunção de posse).
+Lição operacional para as threads seguintes: o checkout do CT 100 é **compartilhado** e as
+threads rodam nele em paralelo. Estado não-commitado ali é volátil por construção — commite ou
+use `git stash push -m <tag>` antes de rodar, e restaure apenas os paths que são seus,
+nominalmente. É a família da lápide §5 2026-07-27 (consumir estado global do repo por posição ou
+por presunção de posse).
 
 `gh pr list --state open` na abertura: 4 PRs (#7003, #7002, #6427, #6425), **nenhum** tocando
 `Modules/AssetManagement` — cruzado arquivo a arquivo. Ao fechar, apareceram os PRs #7008
-(thread 03) e #7009 (thread 04), ambos do mesmo playbook e em prefixos disjuntos deste.
-
-## Calibragem do risco — medida depois do veredito da thread 04
-
-A thread 04 (PR #7009) pede para enunciar isto como *"defesa-em-profundidade ausente, não
-exfiltração garantida"*, porque o vazamento exige uma linha de `asset_transactions` cujo
-`business_id` divirja do asset. A pré-condição é real — mas medi **como ela nasce**, e o
-resultado empurra para o outro lado:
-
-| caminho que grava a linha | amarra `asset_id` ao business? |
-|---|---|
-| `StoreAssetAllocationRequest:51` | ❌ `exists:assets,id` — regra **global**, sem `->where('business_id', …)` |
-| `RevokeAllocatedAssetController:151-153` | ❌ `$request->only(… 'asset_id')` + `business_id` da sessão; **zero** `validate()`/FormRequest no arquivo inteiro |
-
-Ou seja: a linha órfã **não depende de corrupção prévia de dado** — é produzível por um usuário
-autenticado em B, com o módulo assinado, postando o `asset_id` de A. Os dois ramos (`allocate` e
-`revoke`) aceitam.
-
-**O que está provado e o que não:** provado por execução que, existindo a linha, o número do dono
-muda (`10 → 6`). Provado por leitura do gate que nenhuma das duas rotas escopa `asset_id` por
-tenant. **Não** exercitei o POST end-to-end — isso tocaria controllers e rotas, fora deste
-prefixo. Então a formulação honesta é *"pré-condição alcançável por request autenticado"*, não
-*"exfiltração demonstrada"* nem *"só com dado corrompido"*.
-
-Isso é insumo para quem decidir o escopo do gêmeo — não muda uma linha desta correção.
+(thread 03) e #7009 (thread 04), do mesmo playbook e em prefixos disjuntos deste.
