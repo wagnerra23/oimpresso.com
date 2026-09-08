@@ -196,3 +196,27 @@ repo por posição ou por presunção de posse).
 `gh pr list --state open` na abertura: 4 PRs (#7003, #7002, #6427, #6425), **nenhum** tocando
 `Modules/AssetManagement` — cruzado arquivo a arquivo. Ao fechar, apareceram os PRs #7008
 (thread 03) e #7009 (thread 04), ambos do mesmo playbook e em prefixos disjuntos deste.
+
+## Calibragem do risco — medida depois do veredito da thread 04
+
+A thread 04 (PR #7009) pede para enunciar isto como *"defesa-em-profundidade ausente, não
+exfiltração garantida"*, porque o vazamento exige uma linha de `asset_transactions` cujo
+`business_id` divirja do asset. A pré-condição é real — mas medi **como ela nasce**, e o
+resultado empurra para o outro lado:
+
+| caminho que grava a linha | amarra `asset_id` ao business? |
+|---|---|
+| `StoreAssetAllocationRequest:51` | ❌ `exists:assets,id` — regra **global**, sem `->where('business_id', …)` |
+| `RevokeAllocatedAssetController:151-153` | ❌ `$request->only(… 'asset_id')` + `business_id` da sessão; **zero** `validate()`/FormRequest no arquivo inteiro |
+
+Ou seja: a linha órfã **não depende de corrupção prévia de dado** — é produzível por um usuário
+autenticado em B, com o módulo assinado, postando o `asset_id` de A. Os dois ramos (`allocate` e
+`revoke`) aceitam.
+
+**O que está provado e o que não:** provado por execução que, existindo a linha, o número do dono
+muda (`10 → 6`). Provado por leitura do gate que nenhuma das duas rotas escopa `asset_id` por
+tenant. **Não** exercitei o POST end-to-end — isso tocaria controllers e rotas, fora deste
+prefixo. Então a formulação honesta é *"pré-condição alcançável por request autenticado"*, não
+*"exfiltração demonstrada"* nem *"só com dado corrompido"*.
+
+Isso é insumo para quem decidir o escopo do gêmeo — não muda uma linha desta correção.
