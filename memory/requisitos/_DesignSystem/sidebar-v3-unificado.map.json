@@ -4,7 +4,7 @@
   "tela": "Shell / Sidebar (AppShellV2)",
   "gap_fonte": "memory/requisitos/_DesignSystem/sidebar-v3-unificado-gap.md",
   "prototipo_sha": "sem-arquivo",
-  "gerado_em": "2026-09-06",
+  "gerado_em": "2026-09-08",
   "partes": [
     {
       "id": "tema",
@@ -93,7 +93,7 @@
         "ancora": false
       },
       "status": "vivo-a-frente",
-      "acao": "Nada — NÃO fazer (§Ordem: #6 seria regressão 8→5; vivo mais recente que o protótipo).",
+      "acao": "Nada — fechado em 2026-09-08 ([W]: \"no sidebar pode colocar a Forja na PLATAFORMA, como está no protótipo\"). O \"NÃO regredir 8→5\" do #6 segue valendo; o que mudou é que o 9º grupo veio DO design, não contra ele. Ver §\"Paridade do MENU\".",
       "_acionavel": false
     },
     {
@@ -168,8 +168,8 @@
         "ancora": false
       },
       "status": "vivo-a-frente",
-      "acao": "Nada — vivo vence (#11, escala [W] 2026-05-22).",
-      "_acionavel": false
+      "acao": "**Decidir.** Remover as 2 chaves duplicadas devolve ESTOQUE/FISCAL ao hue que o design declara — mas muda a cor de 2 grupos em toda tela e mexe na baseline visual: é PR próprio com aprovação de [W]. O resto do eixo segue \"vivo vence\" (#11).",
+      "_acionavel": true
     },
     {
       "id": "colapso",

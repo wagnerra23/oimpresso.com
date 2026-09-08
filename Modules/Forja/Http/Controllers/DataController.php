@@ -110,10 +110,50 @@ class DataController extends Controller
             return;
         }
 
-        // Wagner 2026-05-22 P0: a entry da Forja saiu DAQUI — virou ghost do
-        // hub Equipe. Este `return` e INCONDICIONAL: tudo abaixo dele nunca
-        // executa, o dropdown de /forja + /team-mcp inclusive. Se ele volta ou
-        // nao, e a fusao dos dois menus — decisao [W], fora da Onda 11.
+        // [W] 2026-09-08: "no sidebar pode colocar a Forja na PLATAFORMA, como
+        // esta no prototipo". Isto SUPERSEDE duas decisoes anteriores: a de
+        // 2026-05-22 (a entry saiu daqui e a Forja virou ghost do hub Equipe) e
+        // a fusao de 2026-06-16 (o atalho de topo virou o hub unico). O atalho
+        // de topo foi REMOVIDO no mesmo PR — manter os dois seria a mesma tela
+        // em duas portas do mesmo menu (Constituicao UI v2, ADR UI-0013).
+        //
+        // Fonte: `prototipo-ui/cowork/data.jsx`, grupo `PLATAFORMA`, entry
+        // `projects` com `icon: "bot"` e label "Forja". Conferido contra o
+        // Cowork VIVO por ID em 2026-09-08 (DesignSync.get_file de `data.jsx`,
+        // `truncated: false`) — espelho e vivo identicos nesse bloco.
+        //
+        // Forma single-link, NAO o `Menu::dropdown` do bloco legado abaixo:
+        // dropdown com submenu e o anti-padrao AP19 da ADR 0180 v3.
+        //
+        // SEM `ghosts` de proposito — o design nao da sub-itens a esta entry, e
+        // o hub /forja ja publica as proprias abas pelo topnav declarativo
+        // (Modules/Forja/Resources/menus/topnav.php, lido por
+        // LegacyMenuAdapter::buildTopNavs). Repetir ali seria a mesma
+        // duplicacao que o paragrafo acima acabou de desfazer.
+        //
+        // SEM `shortcut` de proposito: `G F` ja colide com o Financeiro no main,
+        // e `tests/sidebarShortcut.spec.ts` prova que sequencia em conflito nao
+        // navega nem vira dica — redeclarar so reconstruiria a colisao. O design
+        // tambem nao da atalho a Forja (`MENU_SHORTCUTS` de data.jsx nao tem
+        // `projects`).
+        //
+        // order 98: faixa 80-99 dos modulos custom (skill sidebar-menu-arch) e
+        // livre no main — medido em 2026-09-08 varrendo `order(N)` de todos os
+        // DataController.php e do AdminSidebarMenu (86,87,88,89,90,91,95,96,97
+        // ocupados; 98 nao).
+        Menu::modify('admin-sidebar-menu', function ($menu) {
+            $menu->url('/forja', 'Forja', [
+                'icon'   => 'fa fas fa-hammer',
+                'active' => request()->segment(1) === 'forja',
+                'group'  => 'plataforma',
+            ])->order(98);
+        });
+
+        // O `return` abaixo continua INCONDICIONAL e segue barrando o bloco
+        // legado: o dropdown que aponta /forja/* + /team-mcp/*, herdado do
+        // Modules/TeamMcp. Ele nao virou a entry acima — a entry acima e nova e
+        // segue o contrato v3. Fundir ou apagar o legado e decisao [W]
+        // separada, como ja dizia a nota da Onda 11.
         //
         // Onda 11 (2026-09-02): o dropdown que apontava /project-mgmt/* foi
         // APAGADO, nao apenas desativado. Ele chamava route('project-mgmt.
