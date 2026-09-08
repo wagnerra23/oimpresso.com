@@ -16,6 +16,7 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { Inline } from '@/Components/layout/inline';
+import { Stack } from '@/Components/layout/stack';
 import PageHeader from '@/Components/shared/PageHeader';
 import KpiCard from '@/Components/shared/KpiCard';
 import { Link } from '@inertiajs/react';
@@ -234,64 +235,70 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
             nada. Os `aria-label` saem porque o `<label>` visível já nomeia o controle — manter
             os dois faria o leitor anunciar um nome diferente do que está escrito na tela.
             `items-end` alinha os controles pela base, como o `.mfg-filters` do protótipo. */}
-        <div className="flex flex-wrap items-end gap-3">
+        <Inline gap={3} align="end" wrap>
           {hasLocations && (
-            <label className="flex flex-col gap-1" htmlFor="mfg-op-local">
-              <span className="text-[10px] uppercase tracking-[0.07em] text-muted-foreground">
-                Local
-              </span>
-              {/* eslint-disable-next-line no-restricted-syntax -- select nativo: filtro simples de local, estilizado com tokens DS */}
-              <select
-                id="mfg-op-local"
-                className="h-9 w-[180px] rounded-md border border-input bg-background px-2 text-sm text-foreground"
-                value={filters.location_id ?? ''}
-                onChange={(e) =>
-                  applyFilter(filters, {
-                    location_id: e.target.value ? Number(e.target.value) : null,
-                  })
-                }
-              >
-                <option value="">Todos os locais</option>
-                {locationEntries.map(([id, name]) => (
-                  <option key={id} value={id}>
-                    {String(name)}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <Stack gap={1} asChild>
+              <label htmlFor="mfg-op-local">
+                <span className="text-[10px] uppercase tracking-[0.07em] text-muted-foreground">
+                  Local
+                </span>
+                {/* eslint-disable-next-line no-restricted-syntax -- select nativo: filtro simples de local, estilizado com tokens DS */}
+                <select
+                  id="mfg-op-local"
+                  className="h-9 w-[180px] rounded-md border border-input bg-background px-2 text-sm text-foreground"
+                  value={filters.location_id ?? ''}
+                  onChange={(e) =>
+                    applyFilter(filters, {
+                      location_id: e.target.value ? Number(e.target.value) : null,
+                    })
+                  }
+                >
+                  <option value="">Todos os locais</option>
+                  {locationEntries.map(([id, name]) => (
+                    <option key={id} value={id}>
+                      {String(name)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </Stack>
           )}
 
-          <div className="flex items-end gap-1.5">
-            <label className="flex flex-col gap-1" htmlFor="mfg-op-data-inicial">
-              <span className="text-[10px] uppercase tracking-[0.07em] text-muted-foreground">
-                De
-              </span>
-              <Input
-                id="mfg-op-data-inicial"
-                type="date"
-                value={start}
-                onChange={(e) => setStart(e.target.value)}
-                onBlur={applyDateRange}
-                className="h-9 w-[150px]"
-              />
-            </label>
-            <label className="flex flex-col gap-1" htmlFor="mfg-op-data-final">
-              <span className="text-[10px] uppercase tracking-[0.07em] text-muted-foreground">
-                Até
-              </span>
-              <Input
-                id="mfg-op-data-final"
-                type="date"
-                value={end}
-                onChange={(e) => setEnd(e.target.value)}
-                onBlur={applyDateRange}
-                className="h-9 w-[150px]"
-              />
-            </label>
+          <Inline gap={2} align="end">
+            <Stack gap={1} asChild>
+              <label htmlFor="mfg-op-data-inicial">
+                <span className="text-[10px] uppercase tracking-[0.07em] text-muted-foreground">
+                  De
+                </span>
+                <Input
+                  id="mfg-op-data-inicial"
+                  type="date"
+                  value={start}
+                  onChange={(e) => setStart(e.target.value)}
+                  onBlur={applyDateRange}
+                  className="h-9 w-[150px]"
+                />
+              </label>
+            </Stack>
+            <Stack gap={1} asChild>
+              <label htmlFor="mfg-op-data-final">
+                <span className="text-[10px] uppercase tracking-[0.07em] text-muted-foreground">
+                  Até
+                </span>
+                <Input
+                  id="mfg-op-data-final"
+                  type="date"
+                  value={end}
+                  onChange={(e) => setEnd(e.target.value)}
+                  onBlur={applyDateRange}
+                  className="h-9 w-[150px]"
+                />
+              </label>
+            </Stack>
             <Button variant="outline" size="sm" onClick={applyDateRange} aria-label="Aplicar intervalo de datas">
               <Search className="h-4 w-4" />
             </Button>
-          </div>
+          </Inline>
 
           {/* §4.5 — "Só finalizadas" como checkbox. O KPI "Finalizadas" continua clicável
               (os 4 KPIs não mudam nesta onda); os dois governam o MESMO filtro. */}
@@ -314,7 +321,7 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
               <X className="mr-1 h-4 w-4" /> Limpar
             </Button>
           )}
-        </div>
+        </Inline>
       </div>
 
       {/* Slot 5 — Tabela tokenizada */}
