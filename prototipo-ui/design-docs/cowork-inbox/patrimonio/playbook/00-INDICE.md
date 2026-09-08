@@ -15,7 +15,7 @@ destino_no_main: prototipo-ui/design-docs/cowork-inbox/patrimonio/playbook/
 
 ## 0 · O passo 0 (RELER) mudou o pedido de 04/09
 
-- **D1 caiu.** O `&&` na permissão do `AssetMaitenanceController` **não se reconfirmou**: as 40 ocorrências que li nos controllers são `! (can('superadmin') || hasThePermissionInSubscription(...))`, o padrão UltimatePOS. **Não vira PR** → thread 04 remede.
+- ~~**D1 caiu.**~~ ⚠️ **ERRATA [CL] 2026-09-08 — D1 NÃO caiu; esta linha estava errada.** O texto original dizia que o `&&` *"não se reconfirmou"*, citando 40 ocorrências do padrão `! (can('superadmin') || hasThePermissionInSubscription(...))`. A varredura de 04/09 leu o padrão **majoritário** e concluiu sobre o arquivo que é a **exceção**. Medido por varredura contada na thread 04: `superadmin ||` aparece **18× em 5 arquivos** e **0×** no `AssetMaitenanceController`; o padrão com `&&` aparece **7×, todas nele**. Confirmado independentemente aqui: o arquivo (15.724 B, `rc=0`) **não contém a string `superadmin`**, e suas guardas são `! ((can('asset.view_all_maintenance') && can('asset.view_own_maintenance')) || …)` em `:63`, `:208`, `:243`, `:286`, `:322`. O `&&` exige **as duas** permissões, então quem tem só `view_own_maintenance` — o técnico — é bloqueado das próprias manutenções. **D1 vive, em 6 sítios**, e volta a ser candidato a PR. Recibo: `_saida-04.md` ([PR #7009](https://github.com/wagnerra23/oimpresso.com/pull/7009)).
 - **D4 ganhou linha exata, e é pior do que estava escrito.** `AssetAllocationService.php:112`: a subconsulta `SELECT SUM(...) FROM asset_transactions AS AR WHERE (AR.asset_id=assets.id AND AR.transaction_type='revoke')` **não filtra `business_id`**, enquanto a consulta externa filtra (`:107`). → **thread 01**.
 
 O passo 0 pagando por si: um pedido morreu por falta de prova, e um vazamento Tier 0 ganhou endereço.
@@ -44,15 +44,25 @@ O passo 0 pagando por si: um pedido morreu por falta de prova, e um vazamento Ti
 **A ordem não é gosto:** 01 vem primeiro porque é multi-tenant em produção — Tier 0 fura antes de qualquer verniz.
 
 ## 2-bis · ESTADO — derivado, nunca escrito
-`node scripts/qa/placar-indice.mjs --indice prototipo-ui/design-docs/cowork-inbox/patrimonio/playbook/00-INDICE.md --root . --proximo`
-Render esperado: `Patrimônio: entregue 0 de 6 · próximo 5 · bloqueada 1`.
+`node prototipo-ui/design-docs/cowork-inbox/_scripts/placar-indice.mjs --indice prototipo-ui/design-docs/cowork-inbox/patrimonio/playbook/00-INDICE.md --root . --proximo`
+
+⚠️ **ERRATA [CL] 2026-09-08 — o comando e o render esperado estavam ambos errados.**
+- **Caminho:** era `node scripts/qa/placar-indice.mjs`, que **não existe no repo**. Esse é o *destino sugerido* da ponte, escrito no docblock do próprio script — não um caminho vivo. O script mora em `prototipo-ui/design-docs/cowork-inbox/_scripts/`. (O irmão `ponto/playbook` herda o mesmo ponteiro podre.)
+- **Render:** era `Patrimônio: entregue 0 de 6 · próximo 5 · bloqueada 1`. O formato real do `resumo` inclui `em curso` e `pendente`, e o `modulo` do §7 é `Patrimonio`, sem acento. O `próximo 5` só saía por causa do typo `depende_thread` (o placar lê `depende_threads`), que apagava a dependência 02→01.
+
+**Não decore o número: rode o comando.** O estado é derivado por construção — qualquer valor escrito aqui apodrece no primeiro merge.
 
 ## 3 · Abertura de thread (colar como 1ª mensagem — sessão limpa)
 ```
 Sessão fresca. ANTES de abrir: gh pr list --state open e cruze com os arquivos do seu prefixo.
 Leia, do main: (1) CONSTITUICAO-COWORK.md — C1–C12, citada e não copiada
-(2) este índice §1/§2/§7  (3) o seu NN-*.md  (4) memory/requisitos/Patrimonio/SCOPE.md
+(2) este índice §1/§2/§7  (3) o seu NN-*.md  (4) memory/requisitos/AssetManagement/SCOPE.md
+    ^ ERRATA 08/09: era "requisitos/Patrimonio/SCOPE.md", que NAO EXISTE. O modulo
+      e AssetManagement; nao ha diretorio Patrimonio em memory/requisitos/.
 (5) a faixa de linhas da sua ÂNCORA — e SÓ ela.
+(6) os _saida-NN.md das threads JÁ FECHADAS desta pasta, e em especial o campo
+    `invalida:` de cada um. É por ali que uma thread corrige o plano das outras —
+    e sem este passo o canal só existe de quem escreve, nunca de quem recebe.
 NÃO leia: as 17 views Blade, os 9 Pest inteiros, patrimonio-page.jsx (é alvo de UI, e a UI está bloqueada).
 Você escreve SOMENTE no seu prefixo e no seu _saida-NN.md. Terminou: escreva o _saida e pare.
 ```
@@ -93,7 +103,8 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
     { "id": "03", "titulo": "Guarda asset.view no indice", "dono": "CL", "vaga": 1, "arquivo": "03-guarda-asset-view.md",
       "prefixo": ["Modules/AssetManagement/Http/Controllers/AssetController.php", "Modules/AssetManagement/Tests/Feature/SmokeRoutesTest.php"],
       "nao_toca": ["Modules/AssetManagement/Services/", "Modules/AssetManagement/Http/Controllers/AssetAllocationController.php"],
-      "provas": [{ "tipo": "contem", "path": "Modules/AssetManagement/Http/Controllers/AssetController.php", "padrao": "asset.view" }] },
+      "nota_provas": "ERRATA 2026-09-08: o padrao era \"asset.view\", que ja passava ANTES do trabalho por casar prefixo com asset.view_all_maintenance (AssetController.php:145, linha que so desenha botao). Prova de carimbo. Trocado por can('asset.view'), medido com controle positivo: nao passa hoje, passa quando a guarda entrar.",
+      "provas": [{ "tipo": "contem", "path": "Modules/AssetManagement/Http/Controllers/AssetController.php", "padrao": "can('asset.view')" }] },
     { "id": "04", "titulo": "Remedir D1/D5 e os nao-lidos (frente 0)", "dono": "CL", "vaga": 1, "arquivo": "04-remedir-frente-0.md",
       "prefixo": [], "nao_toca": ["*"],
       "nota_provas": "thread de MEDICAO: nao escreve codigo. Prova = _saida-04.md com veredito por defeito (confirmado com linha / nao existe / ja corrigido).",
