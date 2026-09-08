@@ -15,6 +15,8 @@ import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Card, CardContent } from '@/Components/ui/card';
+// ADR 0253 — layout é COMPOSIÇÃO destes primitivos, nunca `<div className="flex gap-2">` solto.
+import { Inline, Grid } from '@/Components/layout';
 import PatrimonioSubNav from './_shared/PatrimonioSubNav';
 
 interface Kpis {
@@ -101,10 +103,10 @@ function Painel({ titulo, descricao, children }: { titulo: string; descricao: st
 function Barra({ rotulo, pct, valor, cor = 'bg-primary' }: { rotulo: string; pct: number; valor: string; cor?: string }) {
   return (
     <div className="space-y-1">
-      <div className="flex items-baseline justify-between gap-2 text-xs">
+      <Inline align="baseline" justify="between" gap={2} className="text-xs">
         <span className="min-w-0 truncate text-muted-foreground">{rotulo}</span>
         <span className="shrink-0 tabular-nums text-foreground">{valor}</span>
-      </div>
+      </Inline>
       <div className="h-1.5 overflow-hidden rounded-full bg-muted">
         <div className={`h-full ${cor}`} style={{ width: `${Math.min(100, Math.max(0, pct))}%` }} />
       </div>
@@ -136,10 +138,10 @@ export default function Index({ is_admin, pode, apurado_em, kpis, porCategoria, 
         <div data-contract="resumo">
           <Card>
             <CardContent className="space-y-1 p-4">
-              <div className="flex items-baseline justify-between gap-2">
+              <Inline align="baseline" justify="between" gap={2}>
                 <h2 className="text-sm font-semibold text-foreground">Resumo de hoje</h2>
                 <span className="text-xs tabular-nums text-muted-foreground">{apurado}</span>
-              </div>
+              </Inline>
               <Deferred data="kpis" fallback={<Esqueleto linhas={2} />}>
                 {kpis ? (
                   <p className="text-sm leading-relaxed text-muted-foreground">
@@ -208,7 +210,7 @@ export default function Index({ is_admin, pode, apurado_em, kpis, porCategoria, 
 
         {/* ── 3 blocos de análise ──────────────────────────────────────────────────── */}
         {is_admin && (
-          <div data-contract="analises" className="grid gap-4 lg:grid-cols-3">
+          <Grid data-contract="analises" cols={3} gap={4}>
             <Painel titulo="Patrimônio por categoria" descricao="valor unitário × quantidade, por categoria">
               <Deferred data="porCategoria" fallback={<Esqueleto />}>
                 {porCategoria?.length ? (
@@ -265,14 +267,16 @@ export default function Index({ is_admin, pode, apurado_em, kpis, porCategoria, 
                   <>
                     <ul className="space-y-2">
                       {manutencoes.map((m) => (
-                        <li key={m.id} className="flex items-baseline justify-between gap-2 text-xs">
-                          <span className="min-w-0 truncate text-muted-foreground">
-                            {m.abertaEm ? new Date(m.abertaEm).toLocaleDateString('pt-BR') : SEM_FONTE} · {m.bem ?? SEM_FONTE}
-                          </span>
-                          <span className="shrink-0 tabular-nums text-foreground">
-                            {m.custo === null ? SEM_FONTE : brl(m.custo)}
-                          </span>
-                        </li>
+                        <Inline key={m.id} asChild align="baseline" justify="between" gap={2} className="text-xs">
+                          <li>
+                            <span className="min-w-0 truncate text-muted-foreground">
+                              {m.abertaEm ? new Date(m.abertaEm).toLocaleDateString('pt-BR') : SEM_FONTE} · {m.bem ?? SEM_FONTE}
+                            </span>
+                            <span className="shrink-0 tabular-nums text-foreground">
+                              {m.custo === null ? SEM_FONTE : brl(m.custo)}
+                            </span>
+                          </li>
+                        </Inline>
                       ))}
                     </ul>
                     {/* Sem coluna de custo em asset_maintenances: o total é `—`, não zero —
@@ -291,7 +295,7 @@ export default function Index({ is_admin, pode, apurado_em, kpis, porCategoria, 
                 )}
               </Deferred>
             </Painel>
-          </div>
+          </Grid>
         )}
 
         {/* Ramo não-admin: o painel Blade já mostrava "seus bens" — capacidade preservada. */}
@@ -302,10 +306,12 @@ export default function Index({ is_admin, pode, apurado_em, kpis, porCategoria, 
                 {meusBens?.porCategoria.length ? (
                   <ul className="space-y-2">
                     {meusBens.porCategoria.map((c) => (
-                      <li key={c.categoria} className="flex items-baseline justify-between gap-2 text-xs">
-                        <span className="min-w-0 truncate text-muted-foreground">{c.categoria}</span>
-                        <span className="shrink-0 tabular-nums text-foreground">{qtd(c.quantidade)}</span>
-                      </li>
+                      <Inline key={c.categoria} asChild align="baseline" justify="between" gap={2} className="text-xs">
+                        <li>
+                          <span className="min-w-0 truncate text-muted-foreground">{c.categoria}</span>
+                          <span className="shrink-0 tabular-nums text-foreground">{qtd(c.quantidade)}</span>
+                        </li>
+                      </Inline>
                     ))}
                   </ul>
                 ) : (

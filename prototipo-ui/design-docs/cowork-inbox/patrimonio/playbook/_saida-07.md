@@ -211,6 +211,21 @@ e não vou tocá-lo). A prova de render vem do CI e do smoke pós-merge, que é 
     `resources/js/Pages/Patrimonio/Bens.tsx` (tela flat, sem subpasta). O `placar-indice.mjs`
     checa existência de arquivo — vai seguir dizendo `08 [pendente]` com a tela em produção.
 
+## 7-bis · O CI apontou 4 falhas — as 4 consertadas na origem, nenhuma por baseline
+
+| check | causa | conserto |
+|---|---|---|
+| **Layout primitives · ratchet** | `Index.tsx` · 0 → 5 flex/grid solto (ADR 0253) | composto com `<Inline>`/`<Grid>` de `Components/layout`. **Não** rodei `--write-baseline` — o guard sugere, mas regravar esconderia a dívida que ele existe pra impedir. |
+| **UI Lint ratchet (LEI)** | regra **R4** (*"PT-01 Lista · Index.tsx sem PageHeader OU sem DataTable"*) acusa a falta de `DataTable`. A regra decide "é lista?" pelo **nome do arquivo**, e esta tela é PT-04 Dashboard — a lista do módulo é o `Bens.tsx`. | entrada na `$skipPaths` do `UiLintCommand.php`, que é o mecanismo que a própria regra oferece e onde `Home` e `Jana` (os outros dois painéis) já estão. |
+| **DS gate** | agregador — falhava só porque o UI Lint falhava | some com o de cima |
+| **SUPERFICIE.md == árvore** | a tela nova mudou a superfície do módulo (107 → 108 arquivos) | `module-surface.mjs AssetManagement --write` |
+
+⚠️ **A `$skipPaths` do R4 é allowlist por path** — a família que o §5 já enterrou 7×. Não a
+inventei: ela é o escape que a regra publica, e a alternativa (regravar o baseline do `ui:lint`)
+esconderia o achado em vez de nomeá-lo. **O conserto de verdade** é a R4 perguntar ao charter qual
+PT a tela declara, como o `pt-conformance` faz — e isso é PR próprio, não desta thread. Fica
+declarado como resíduo, com o `UiLintCommand.php` tocado em 2 linhas e comentário no lugar.
+
 ## 8 · Decisões de técnica que tomei (não são perguntas ao [W])
 
 - **Abas sem rota como `extraOverflowItems`, não como ghost desabilitado.** `PageHeaderGhost` não
@@ -241,6 +256,8 @@ e não vou tocá-lo). A prova de render vem do CI e do smoke pós-merge, que é 
   score e 173 sem VRT.
 - **E2E é `test.fixme`** — 11 dos 15 specs do repo são, e marcar como executável um teste que a lane
   não roda seria afirmar cobertura inexistente. Os 3 UCs do SubNav têm teste que **executa**.
+- **A regra R4 do `ui:lint` adivinha o PT pelo nome do arquivo** — deveria ler o charter. Resíduo
+  declarado no §7-bis.
 - **Golden do PT-04 está `draft`** — o `criar-tela.mjs` avisa que a tela não fecha "ciclo-completo"
   até o Design terminar o golden.
 - **`dashboard.blade.php` fica órfão** — não deletado (deleção de view é outro escopo, e o arquivo
