@@ -3,6 +3,7 @@ id: resources-js-pages-fiscal-cockpit-charter
 page: /fiscal
 component: resources/js/Pages/Fiscal/Cockpit.tsx
 related_prototype: prototipo-ui/cowork/fiscal-page.jsx
+related_visual_comparison: memory/requisitos/Fiscal/fiscal-cockpit-visual-comparison.md
 bundle_source: fiscal-page.jsx
 page_id: fiscal-cockpit
 url: /fiscal

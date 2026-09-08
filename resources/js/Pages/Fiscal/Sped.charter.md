@@ -3,6 +3,7 @@ id: resources-js-pages-fiscal-sped-charter
 page: /fiscal/sped
 component: resources/js/Pages/Fiscal/Sped.tsx
 related_prototype: prototipo-ui/cowork/fiscal-subpages.jsx
+related_visual_comparison: memory/requisitos/Fiscal/fiscal-sped-visual-comparison.md
 bundle_source: fiscal-page.jsx
 page_id: fiscal-sped
 url: /fiscal/sped
