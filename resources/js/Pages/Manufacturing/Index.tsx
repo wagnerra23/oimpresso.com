@@ -141,11 +141,22 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
 
   return (
     <div className="space-y-6 p-6">
-      {/* Slot 1 — PageHeader com CTA habilitado (rota legacy de create existe) */}
+      {/* Slot 1 — PageHeader com CTA habilitado (rota legacy de create existe)
+
+          §4.5 — o protótipo (`manufacturing-page.jsx:151`) conta receitas e ordens no
+          subtítulo. A 3ª parte dele ("custo recalculado pelo preço atual dos ingredientes")
+          fica de FORA de propósito: nesta tela o custo é o `final_total` GRAVADO, nunca
+          recalculado (US-MANU-004 + RUNBOOK-producao.md §1). Copiar a copy literal poria uma
+          afirmação FALSA na tela — o rodapé já diz a verdade ("custo congelado na data"). */}
       <PageHeader
         icon="factory"
         title="Produção"
-        description="Ordens de produção do módulo de Fabricação."
+        description={
+          recipes_count === undefined
+            ? 'Ordens de produção do módulo de Fabricação.'
+            : `${recipes_count} receita${recipes_count === 1 ? '' : 's'} · ` +
+              `${summary?.total_count ?? 0} ordens de produção`
+        }
         action={
           <Button asChild>
             <a href={CREATE_ROUTE}>
@@ -216,47 +227,68 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
 
       {/* Slot 3 — Toolbar de filtros (local + intervalo de data) */}
       <div className="rounded-lg border border-border bg-card p-4 space-y-3">
-        <div className="flex flex-wrap items-center gap-2">
+        {/* Rótulos LOCAL / DE / ATÉ: o protótipo (`MfgProducaoView`) põe cada controle num
+            `<Campo label=…>`, que rende `.mfg-fld > span` — 10px, caixa alta, tracking .07em,
+            cor `--text-mute`. Aqui a forma é replicada com token do DS. Sem eles a barra só
+            tinha `aria-label`: quem usa leitor de tela ouvia o campo, quem enxerga não lia
+            nada. Os `aria-label` saem porque o `<label>` visível já nomeia o controle — manter
+            os dois faria o leitor anunciar um nome diferente do que está escrito na tela.
+            `items-end` alinha os controles pela base, como o `.mfg-filters` do protótipo. */}
+        <div className="flex flex-wrap items-end gap-3">
           {hasLocations && (
-            // eslint-disable-next-line no-restricted-syntax -- select nativo: filtro simples de local, estilizado com tokens DS
-            <select
-              className="h-9 rounded-md border border-input bg-background px-2 text-sm text-foreground"
-              value={filters.location_id ?? ''}
-              onChange={(e) =>
-                applyFilter(filters, {
-                  location_id: e.target.value ? Number(e.target.value) : null,
-                })
-              }
-              aria-label="Filtrar por local"
-            >
-              <option value="">Todos os locais</option>
-              {locationEntries.map(([id, name]) => (
-                <option key={id} value={id}>
-                  {String(name)}
-                </option>
-              ))}
-            </select>
+            <label className="flex flex-col gap-1" htmlFor="mfg-op-local">
+              <span className="text-[10px] uppercase tracking-[0.07em] text-muted-foreground">
+                Local
+              </span>
+              {/* eslint-disable-next-line no-restricted-syntax -- select nativo: filtro simples de local, estilizado com tokens DS */}
+              <select
+                id="mfg-op-local"
+                className="h-9 w-[180px] rounded-md border border-input bg-background px-2 text-sm text-foreground"
+                value={filters.location_id ?? ''}
+                onChange={(e) =>
+                  applyFilter(filters, {
+                    location_id: e.target.value ? Number(e.target.value) : null,
+                  })
+                }
+              >
+                <option value="">Todos os locais</option>
+                {locationEntries.map(([id, name]) => (
+                  <option key={id} value={id}>
+                    {String(name)}
+                  </option>
+                ))}
+              </select>
+            </label>
           )}
 
-          <div className="flex items-center gap-1.5">
-            <Input
-              type="date"
-              value={start}
-              onChange={(e) => setStart(e.target.value)}
-              onBlur={applyDateRange}
-              className="h-9 w-[150px]"
-              aria-label="Data inicial"
-            />
-            <span className="text-sm text-muted-foreground">até</span>
-            <Input
-              type="date"
-              value={end}
-              onChange={(e) => setEnd(e.target.value)}
-              onBlur={applyDateRange}
-              className="h-9 w-[150px]"
-              aria-label="Data final"
-            />
-            <Button variant="outline" size="sm" onClick={applyDateRange}>
+          <div className="flex items-end gap-1.5">
+            <label className="flex flex-col gap-1" htmlFor="mfg-op-data-inicial">
+              <span className="text-[10px] uppercase tracking-[0.07em] text-muted-foreground">
+                De
+              </span>
+              <Input
+                id="mfg-op-data-inicial"
+                type="date"
+                value={start}
+                onChange={(e) => setStart(e.target.value)}
+                onBlur={applyDateRange}
+                className="h-9 w-[150px]"
+              />
+            </label>
+            <label className="flex flex-col gap-1" htmlFor="mfg-op-data-final">
+              <span className="text-[10px] uppercase tracking-[0.07em] text-muted-foreground">
+                Até
+              </span>
+              <Input
+                id="mfg-op-data-final"
+                type="date"
+                value={end}
+                onChange={(e) => setEnd(e.target.value)}
+                onBlur={applyDateRange}
+                className="h-9 w-[150px]"
+              />
+            </label>
+            <Button variant="outline" size="sm" onClick={applyDateRange} aria-label="Aplicar intervalo de datas">
               <Search className="h-4 w-4" />
             </Button>
           </div>

@@ -98,7 +98,10 @@ const mappings: Record<string, Record<string, StatusEntry>> = {
   // `mfg_is_final` é booleano no banco; o domínio nomeia os dois estados que a tela mostra.
   producao: {
     finalizada: { variant: 'default',   label: 'Finalizada', className: 'bg-success text-success-foreground hover:bg-success/90' },
-    rascunho:   { variant: 'secondary', label: 'Rascunho' },
+    // Âmbar, não cinza: o protótipo pinta o rascunho com `.mfg-pill.warn` (o `.ok` é a
+    // finalizada). UI-0029 — o protótipo é soberano na FORMA. Só ficou legível depois da
+    // UI-0033: com o par `warning` quebrado o texto dava 1,25:1; agora dá 7,72:1.
+    rascunho:   { variant: 'default',   label: 'Rascunho',  className: 'bg-warning text-warning-foreground hover:bg-warning/90' },
   },
   os: {
     ordered:    { variant: 'secondary', label: 'Solicitado' },
