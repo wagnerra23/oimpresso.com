@@ -5,7 +5,7 @@ tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 fonte: handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §4.5 + §15.1 — os UC abaixo DERIVAM dele
 owner: wagner
-last_run: "2026-09-04"
+last_run: "2026-09-08"
 ---
 
 # Casos de Uso & Aceite — Manufacturing/Index
@@ -15,6 +15,14 @@ last_run: "2026-09-04"
 >
 > A tela existe desde a Wave J (2026-05); estes UC nascem com a **US-MANU-004**, que é emenda
 > (5 → 8 colunas). Derivados do handoff, **não do `.tsx`** (§5 tautológico das proibições).
+>
+> **Revalidação 2026-09-08** (`last_run` bumpado): o `.tsx` mudou por um PR de **FORMA**
+> (rótulos dos filtros · subtítulo · âmbar do rascunho) — nenhum dos 5 UC abaixo fala de forma;
+> os cinco são de Service/backend, que este PR não toca. Revalidados de fato, não por suposição:
+> a lane `PHP / Pest (Manufacturing · MySQL)` rodou no
+> [run 34236466226](https://github.com/wagnerra23/oimpresso.com/actions/runs/34236466226)
+> — **146 passed · 426 assertions**, com `✓` em UC-OP-01/02/03/04/05 (conferido no log, item a
+> item; "0 failed" sozinho não prova execução).
 
 ---
 

@@ -60,6 +60,25 @@ Listar ordens de produção (production_purchase) do business ativo em UX Inerti
 - PT-BR em todos labels
 - Empty state com link pra rota legacy (`?legacy=1`) enquanto a migração não termina
 
+## Forma (alinhamento ao protótipo — 2026-09-08)
+
+Três divergências de FORMA foram medidas contra o protótipo (`manufacturing-producao.jsx` ·
+`manufacturing-page.jsx`) e corrigidas. A cadeia aqui é a do eixo FORMA — protótipo soberano
+([UI-0029](../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)):
+
+- **Rótulos LOCAL / DE / ATÉ** sobre os filtros. O protótipo põe cada controle num `<Campo label=…>`
+  (`.mfg-fld > span`: 10px, caixa alta, tracking .07em, `--text-mute`); a tela só tinha `aria-label`.
+  Cada `<label>` agora associa por `htmlFor`/`id` — o `aria-label` saiu, porque dois nomes fariam o
+  leitor de tela anunciar coisa diferente do que está escrito.
+- **Subtítulo conta receitas e ordens**, como o protótipo. ⚠️ A 3ª parte da copy dele
+  (*"custo recalculado pelo preço atual dos ingredientes"*) fica **de fora de propósito**: aqui o
+  custo é o `final_total` GRAVADO, nunca recalculado (US-MANU-004 · RUNBOOK-producao.md §1).
+  Copiar a copy literal poria afirmação FALSA na tela. **Não "corrigir" isso de volta.**
+- **"Rascunho" é âmbar, não cinza** — o protótipo usa `.mfg-pill.warn` (o `.ok` é a finalizada).
+  Só ficou legível depois da [UI-0033](../../../../memory/requisitos/_DesignSystem/adr/ui/0033-foreground-de-success-e-warning-vira-cor-de-contraste.md):
+  com o par `warning` quebrado o texto dava **1,25:1**; agora dá **7,72:1**. O domínio `producao`
+  do `StatusBadge` é usado **só por esta tela** (medido: 1 de 1 sítio).
+
 ## Anti-hooks
 - Não usar `withoutGlobalScopes` no Service
 - Não permitir UPDATE direto em transactions (FSM trait Sells/Repair não cobre Manufacturing ainda)
