@@ -5,7 +5,10 @@
 const { useState: useStateJ, useRef: useRefJ, useEffect: useEffectJ } = React;
 
 // ─── Ícones (line, currentColor — sem emoji, conforme proibições visuais) ───
-function JcIcon({ name, className }) {
+// `s` = tamanho em px como ATRIBUTO (não CSS): quem já dimensiona por classe continua
+// mandando (folha vence atributo); quem renderiza o ícone sem folha (ex. o nó que o
+// CliTabs entrega ao TabBar do DS) passa `s` e não depende de classe nenhuma.
+function JcIcon({ name, className, s }) {
   const P = {
     settings:  <><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2.5 12h3M18.5 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></>,
     download:  <><path d="M12 4v11M7 11l5 4 5-4"/><path d="M5 19h14"/></>,
@@ -43,7 +46,7 @@ function JcIcon({ name, className }) {
     product:   <><path d="M12 3l8 4v10l-8 4-8-4V7z"/><path d="M4 7l8 4 8-4M12 11v10"/></>,
   };
   return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor"
+    <svg viewBox="0 0 24 24" className={className} width={s || undefined} height={s || undefined} fill="none" stroke="currentColor"
          strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       {P[name] || <circle cx="12" cy="12" r="2"/>}
     </svg>
@@ -129,26 +132,34 @@ function getJanaData(company) {
           { left:"CAPITAL CARGAS",    right:"LTV R$ 62k · 112d" },
         ],
         footer:"Cohort 2024: retenção 35% (target 60%) · drift alto" },
-      { id:"cheq", title:"Cheques previsão", sub:"Na mão / a depositar", icon:"receipt",
-        kind:"text",
-        big:{ value:"4.421 cheques" },
-        text:[
-          "Total circulou histórico: R$ 7.022.176",
-          "Quitados: 4.420 (99,9%)",
-          "Ativos hoje: 1 (R$ 8 — teste)",
+      // Métodos de pagamento — o 5o card REAL da produção (useJanaConfig.ts:39 +
+      // JanaCockpit.tsx:845-850), no lugar de "Cheques previsão", que não tem agregado
+      // no SellsCockpitAggregator (o JanaConfigDrawer do main registra: "frota e cheques
+      // NÃO existem"). Card sem fonte é promessa com selo de autoridade.
+      // Recorte: soma dos pagamentos por forma, as 5 maiores — venda paga em duas formas
+      // aparece nas duas.
+      { id:"metodos", title:"Métodos de pagamento", sub:"Participação de cada forma", icon:"receipt",
+        kind:"bars",
+        big:{ value:"R$ 1.24M" },
+        bars:[
+          { label:"Dinheiro", bar:38, pct:"38%" },
+          { label:"Pix",      bar:27, pct:"27%" },
+          { label:"Cheque",   bar:18, pct:"18%" },
+          { label:"Cartão",   bar:11, pct:"11%" },
+          { label:"Boleto",   bar:6,  pct:"6%"  },
         ],
-        footnote:"Atalho HITL: Jana lembra Larissa qual dia depositar cada cheque" },
+        footer:"Cheque ainda é 18% do recebido — a rotina de depósito da Larissa é terça e quinta" },
     ],
     acoes: [
       { id:"a1", icon:"mail",  tone:"rose", title:"Régua de cobrança · 8 clientes >90d sem contato",
         sub:"Potencial recuperação: R$ 287k · HITL aprovação a cada mensagem",
-        cta:{ label:"Disparar", tone:"danger" } },
+        cta:{ label:"Revisar régua", tone:"danger" } },
       { id:"a2", icon:"heart", tone:"violet", title:"Reativação · 8 clientes \"ouro\" inativos",
         sub:"LTV combinado R$ 612k · oferta de retorno personalizada",
-        cta:{ label:"Preparar", tone:"violet" } },
+        cta:{ label:"Revisar proposta", tone:"violet" } },
       { id:"a4", icon:"trash", tone:"grey", title:"Limpeza · 2.470 títulos candidatos a baixa",
         sub:"R$ 770k incobráveis >365d · liberar dashboard",
-        cta:{ label:"Revisar", tone:"dark" } },
+        cta:{ label:"Revisar recorte", tone:"dark" } },
     ],
     // Empty state — prompts iniciais
     prompts: [
@@ -202,26 +213,18 @@ function RichSpan({ runs }) {
 
 function JanaHeader({ company, person, biz, updatedAt, onNew, isChat, onConfig, plano, exportar, onRefresh }) {
   return (
-    <header className="jc-header">
-      <div className="jc-header-l">
-        <div className="jc-avatar">{person.initial}</div>
-        <div className="jc-id">
-          <h1>{person.name} <span className="dot">·</span> {person.role}</h1>
-          <p>
-            <span className="jc-tenant">{company?.name?.toUpperCase() || "OFFICEIMPRESSO"}</span>
-            <span className="jc-sep">·</span>{biz.code}<span className="jc-sep">·</span>{biz.version}
-          </p>
-        </div>
-      </div>
-      <div className="jc-header-r">
-        <span className="jc-updated">{onRefresh ? <button className="jc-updated-b" onClick={onRefresh} title="Atualizar agora"><span className="d"/>Atualizado {updatedAt}</button> : <><span className="d"/>Atualizado {updatedAt}</>}</span>
+    <window.CliPageHead
+      avatar={person.initial}
+      titulo={person.name} papel={person.role}
+      contexto={[company?.name?.toUpperCase() || "OFFICEIMPRESSO", biz.code, biz.version]}
+      atualizadoAs={updatedAt} onRefresh={onRefresh}
+      acoes={<>
         {plano}
         {isChat &&
           <button className="jc-btn ghost" onClick={onNew}><JcIcon name="plus" className="ic"/><span>Nova conversa</span></button>}
         <button className={"jc-btn ghost" + (isChat ? " jm-icon-only" : "")} onClick={onConfig} aria-label="Configurar" title="Configurar"><JcIcon name="settings" className="ic"/><span>Configurar</span></button>
         {exportar || <button className="jc-btn dark"><JcIcon name="download" className="ic"/><span>Exportar</span></button>}
-      </div>
-    </header>
+      </>} />
   );
 }
 
@@ -279,7 +282,7 @@ function Sparkline({ data, w = 280, h = 60 }) {
   }
   const area = d + ` L ${w} ${h} L 0 ${h} Z`;
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="jc-spark" preserveAspectRatio="none">
+    <svg viewBox={`0 0 ${w} ${h}`} className="jc-spark" preserveAspectRatio="none" aria-hidden="true">
       <defs>
         <linearGradient id="jcSparkGrad" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%"   stopColor="var(--pos)" stopOpacity="0.26"/>

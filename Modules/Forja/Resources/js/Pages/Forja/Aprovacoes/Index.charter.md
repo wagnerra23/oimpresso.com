@@ -79,6 +79,20 @@ Saíram da tela o `PageHeader` canon e o `KpiGrid`/`KpiCard`: o protótipo põe 
 **herói** (`.fj-hj-n`) e não tem um segundo cabeçalho. O `ui:lint` R4 (que pede o PageHeader
 canon) vira item da lista de inconsistências, não veto — é exatamente o que a 0388 D-2 decide.
 
+### Tipografia da seção — medida em 2026-09-03 (Onda 6)
+
+O pacote de export do Cowork declarava, no §7, que Aprovações teve a **estrutura** medida
+(filhos e ordem) mas **não** a tipografia/gap. Medido agora, comparando bloco a bloco o
+`.ap-*` da fonte contra o bundle: **9 dos 77 blocos divergiam** — a fonte já usava o token
+(`var(--fs-1|2|3)`) e o bundle ainda trazia o literal (`10.5px`/`11.5px`/`12.5px`), porque a
+fonte recebeu o snap ao ramp em 2026-09-03 (PR #6596) e o bundle parou em 2026-09-02.
+
+Os valores computam **idênticos** (`--fs-1/2/3` = 10.5/11.5/12.5px em `:root`, e o dark não
+os redefine), então a troca **não move um pixel** — o que ela devolve é o **vínculo com o
+token**: mexer na fundação passa a alcançar esta seção. Feita a troca, os 77 blocos `.ap-*`
+batem 1:1 com a fonte. O resíduo do bundle (**90 blocos**: 88 `fj-*` + 2 `tf-*`) pertence às
+ondas donas daquelas seções — não foi tocado aqui.
+
 ### As três divergências DELIBERADAS
 
 São **categoria, não bug de paridade** ([ADR 0385](../../../../../../../memory/decisions/0385-sidebar-alinhado-ao-prototipo-diferenca-em-tres-categorias.md)):

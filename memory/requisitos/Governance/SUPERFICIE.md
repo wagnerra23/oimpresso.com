@@ -14,7 +14,7 @@ module: Governance
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Governance/**` + `resources/js/Pages/governance/**` (namespace Inertia `governance`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `Governance` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 168 arquivos em 15 papéis.
+**Total mapeado:** 170 arquivos em 15 papéis.
 
 ## Controllers — 10
 
@@ -40,7 +40,7 @@ module: Governance
 
 - [ActionGate.php](../../../Modules/Governance/Http/Middleware/ActionGate.php)
 
-## Services — 36
+## Services — 37
 
 - [AdrPendenteBriefLineService.php](../../../Modules/Governance/Services/AdrPendenteBriefLineService.php)
 - [AdrReviewBriefLineService.php](../../../Modules/Governance/Services/AdrReviewBriefLineService.php)
@@ -71,6 +71,7 @@ module: Governance
 - [ModuleGradeService.php](../../../Modules/Governance/Services/ModuleGradeService.php)
 - [ObraParadaBriefLineService.php](../../../Modules/Governance/Services/ObraParadaBriefLineService.php)
 - [ObservabilitySnapshotService.php](../../../Modules/Governance/Services/ObservabilitySnapshotService.php)
+- [ParidadeBladeBriefLineService.php](../../../Modules/Governance/Services/ParidadeBladeBriefLineService.php)
 - [PlanHealthBriefLineService.php](../../../Modules/Governance/Services/PlanHealthBriefLineService.php)
 - [PolicyEngine.php](../../../Modules/Governance/Services/PolicyEngine.php)
 - [PolicyResult.php](../../../Modules/Governance/Services/PolicyResult.php)
@@ -154,10 +155,10 @@ module: Governance
 
 - [DsRollout.casos.md](../../../resources/js/Pages/governance/DsRollout.casos.md)
 
-## Testes (Pest) — 59
+## Testes (Pest) — 60
 
 - 1 em [Modules/Governance/Tests/](../../../Modules/Governance/Tests)
-- 56 em [Modules/Governance/Tests/Feature/](../../../Modules/Governance/Tests/Feature)
+- 57 em [Modules/Governance/Tests/Feature/](../../../Modules/Governance/Tests/Feature)
 - 2 em [Modules/Governance/Tests/Unit/](../../../Modules/Governance/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 

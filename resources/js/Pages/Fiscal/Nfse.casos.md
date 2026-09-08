@@ -5,7 +5,7 @@ irmaos: Nfse.charter.md (lei) · memory/requisitos/Fiscal/SDD-cockpit-fiscal-v1.
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-09-01"
+last_run: "2026-09-04"
 last_run_ci: "0 UC executado nesta corrida — os 4 UC herdam testes que JÁ existem; veredito pendente das lanes PHP / Pest (NfeBrasil · MySQL) e Pest Fiscal"
 related_us: [US-FISCAL-005]
 ---
@@ -39,6 +39,7 @@ related_us: [US-FISCAL-005]
 |---|---|---|
 | `NfseCockpitMultiTenantTest` | `PHP / Pest (NfeBrasil · MySQL)` | ✅ **sim** — required no [baseline](../../../../governance/required-checks-baseline.json) e na allowlist do workflow |
 | `NfseCockpitControllerTest` | `Pest Fiscal` (**pula** em SQLite) + suíte noturna CT 100 | ❌ **não** — advisory |
+| `fiscal-densidade.test.tsx` | `Fiscal Densidade Gate` (vitest/jsdom) | ❌ **não** — advisory |
 
 ## Rastreabilidade
 
@@ -48,6 +49,7 @@ related_us: [US-FISCAL-005]
 | UC-FNFSE-02 | gate de permissão da tela | `[must]` `[T0]` | CU-FISC-13 | `NfseCockpitControllerTest` | 🧪 |
 | UC-FNFSE-03 | competência inválida não derruba | `[must]` | CU-FISC-04 | `NfseCockpitControllerTest` | 🧪 |
 | UC-FNFSE-04 | os 6 indicadores da competência | `[should]` | CU-FISC-04 | `NfseCockpitControllerTest` | 🧪 |
+| UC-FNFSE-05 | a densidade escolhida acompanha a navegação | `[should]` | **—** (ver nota no caso) | `fiscal-densidade.test.tsx` | 🧪 |
 
 ---
 
@@ -93,6 +95,38 @@ related_us: [US-FISCAL-005]
 
 ---
 
+## UC-FNFSE-05 — A densidade escolhida acompanha a navegação `[should]`
+
+**Dado** a contadora conferindo a competência na lista de NFS-e
+**Quando** ela escolhe **Compacto** para ver mais linhas por tela, e depois abre o Cockpit ou a lista de NF-e
+**Então** a tabela de lá já abre compacta — a preferência é do operador, não da tela.
+
+- **Âncora:** na fonte de design as três telas de notas são a **mesma função** (`FxNotasPage`,
+  chamada com `preset` diferente — [`fiscal-page.jsx:346,541-543`](../../../../prototipo-ui/cowork/fiscal-page.jsx)),
+  e a escolha persiste em `fxLS("oimpresso.fiscal.densidade")` (`:358,363`). O compartilhamento
+  é grátis lá porque há um dono só; aqui a produção separou em três arquivos.
+- **Estado que corrige (medido em `origin/main` d23bc3df34):** esta tela não tinha o controle
+  (`fx-density` = 0), e o Cockpit — o único que tinha — guardava a escolha em `useState`, que
+  morre ao trocar de tela.
+- **Regressão que defende:** alguém reintroduzir estado local de densidade numa das telas. A
+  preferência volta a morrer na navegação, e o sintoma é silencioso — cada tela "funciona".
+- **Teste:** `tests/js/fiscal-densidade.test.tsx` —
+  `it('UC-FNFSE-05 · escolher Relaxado na NFS-e faz a NF-e abrir relaxada (o caminho de volta)')`,
+  `it('UC-FNFSE-05 · storage indisponível não derruba a tela (janela privada)')` e
+  `it('UC-FNFSE-05 · todo valor de densidade tem classe correspondente no CSS')`.
+- **Mordida provada (contrafactual 2026-09-04):** devolver `useState('comfort')` a esta tela — o
+  defeito exato que o Cockpit tinha — derruba **2** casos, com a mensagem nomeando o sintoma
+  (*"a NF-e ignorou a escolha feita na NFS-e"*); divergir a chave da fonte de design derruba **1**.
+  Restaurado, 6/6 verde.
+- **Por que `—` na coluna CU:** os CU do SDD §6 tratam do que a pessoa fiscal **faz** (isolar
+  tenant, conferir competência, ler indicadores); nenhum trata de preferência de exibição.
+  Ancorar num CU plausível fecharia a lacuna do painel derivado sem lastro (LC-11).
+- **O que NÃO cobre:** a navegação HTTP real entre as rotas — o jsdom não a faz. A troca de
+  página com o Inertia no meio é olho humano no smoke (R1).
+- **Status:** 🧪 advisory (vitest/jsdom — não toca banco, logo não vira `skipped`).
+
+---
+
 ## Backlog de casos (sem id — viram UC quando ganharem contrato + teste)
 
 - **[BACKLOG · ⬜ sem teste] Os chips filtram por estado da nota de serviço** — autorizadas, rejeitadas, em processamento (rascunho + processando), canceladas. _Existe no Controller; sem teste do resultado filtrado._
@@ -107,6 +141,9 @@ related_us: [US-FISCAL-005]
 3. ⛔ **Nunca local** ([ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)).
 
 ## Trilha do tempo
+- 2026-09-04 · [C] `UC-FNFSE-05` — a tela ganha o controle de densidade, que nasce
+  compartilhado com Cockpit e NF-e (`_components/DensidadeToggle.tsx`). Os 4 UC anteriores
+  seguem intactos: conferi um a um — todos assertam backend e nenhum toca a tabela.
 
 - 2026-07-03 · [CC] stub criado no Passo 3 do programa de ondas — **0 UC**.
 - 2026-07-27 · [CC] `sdd-from-source` (Onda 1 / S2): **4 UC** derivados do §6 do SDD; todos herdam testes existentes. Registrado que o cabeçalho do `NfseCockpitControllerTest` ainda descreve a rota como quebrada em produção — texto **desatualizado** (a correção pelo schema antigo foi aplicada); não editado aqui para não misturar escopo, reportado no session log.

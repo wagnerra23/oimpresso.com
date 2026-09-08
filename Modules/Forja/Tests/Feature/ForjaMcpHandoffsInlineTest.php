@@ -12,7 +12,7 @@ use Spatie\Permission\Models\Permission;
 uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
- * Forja · UC-FORJA-15 — o painel de handoffs volta pra DENTRO da aba MCP, sem
+ * Forja · UC-FORJA-18 — o painel de handoffs volta pra DENTRO da aba MCP, sem
  * duplicar consulta e sem matar a tela própria (PARIDADE §11 Onda 8, ADR 0388).
  *
  * O QUE ESTE TESTE DEFENDE — e por que ele não é régua paralela ao `design-diff`.
@@ -45,7 +45,7 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  *
  * @see Modules\Forja\Http\Controllers\ForjaController::mcp()
  * @see Modules\Forja\Services\ForjaMcpService
- * @see Modules/Forja/Resources/js/Pages/team-mcp/Forja/Cockpit.casos.md (UC-FORJA-15)
+ * @see Modules/Forja/Resources/js/Pages/team-mcp/Forja/Cockpit.casos.md (UC-FORJA-18)
  * @see memory/requisitos/Forja/PARIDADE-area-forja-diagnostico-e-ondas.md (§11 Onda 8)
  */
 
@@ -141,7 +141,7 @@ function forjaInlinePropsDeferidas(User $user, string $url): array
     return $page['props'] ?? [];
 }
 
-it('UC-FORJA-15 · /forja/mcp entrega handoffs e heartbeat (o painel voltou pra dentro da aba)', function () {
+it('UC-FORJA-18 · /forja/mcp entrega handoffs e heartbeat (o painel voltou pra dentro da aba)', function () {
     $user = forjaInlineUsuario();
 
     $props = forjaInlinePropsDeferidas($user, '/forja/mcp');
@@ -156,7 +156,7 @@ it('UC-FORJA-15 · /forja/mcp entrega handoffs e heartbeat (o painel voltou pra 
     expect($props['heartbeat'])->toHaveKey('silent');
 });
 
-it('UC-FORJA-15 · /forja/handoffs segue entregando as mesmas props (a tela própria não morreu)', function () {
+it('UC-FORJA-18 · /forja/handoffs segue entregando as mesmas props (a tela própria não morreu)', function () {
     $user = forjaInlineUsuario();
 
     $props = forjaInlinePropsDeferidas($user, '/forja/handoffs');
@@ -166,7 +166,7 @@ it('UC-FORJA-15 · /forja/handoffs segue entregando as mesmas props (a tela pró
     expect($props['handoffs'])->toBeArray();
 });
 
-it('UC-FORJA-15 · as duas rotas servem a MESMA projeção (um dono, dois pontos de render)', function () {
+it('UC-FORJA-18 · as duas rotas servem a MESMA projeção (um dono, dois pontos de render)', function () {
     $user = forjaInlineUsuario();
 
     $naAba  = forjaInlinePropsDeferidas($user, '/forja/mcp');

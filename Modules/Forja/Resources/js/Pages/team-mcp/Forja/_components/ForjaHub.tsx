@@ -32,7 +32,7 @@
 // protótipo virou tela própria em `/forja/saude` (`ForjaSaude`). O Scorecard segue vivo
 // e é o destino do drill "ver →" dos cards, não mais o destino da pílula.
 
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 // O bundle do protótipo (Onda 1) vive AQUI, não no Cockpit: cada Page do hub é um chunk do Vite,
 // e só o import no componente compartilhado garante o CSS em Aprovações, Trabalho, Gantt,
 // Scorecard e CcSessions. Medido no .snap regenerado em 2026-09-02: sem isto o header de
@@ -86,6 +86,17 @@ export default function ForjaHub({
 }) {
   const sino = triagemCount ?? 0;
 
+  // A contagem também desce como prop DA PÁGINA em todo controller do hub (Onda 1 do
+  // export, §3.1): no protótipo o badge vive no destino Aprovações em TODA view — é o
+  // que avisa que há algo esperando decisão enquanto você está em OUTRA tela. Ler daqui
+  // evita repetir a prop nas 9 Pages e faz a próxima do hub nascer com o badge.
+  // A prop explícita VENCE: `Aprovacoes/Index` já tem a fila em mãos e passa o número
+  // que ela mesma mostra, sem esperar o 2º round-trip do defer.
+  // O hook vem ANTES do `??`: `a ?? usePage()` só chamaria o hook quando `a` fosse
+  // nulo — chamada condicional, que quebra a regra dos hooks do React.
+  const daPagina = usePage<{ pendencias?: number }>().props.pendencias;
+  const naMesa = pendencias ?? daPagina;
+
   return (
     <div className="fj-hub" data-testid="forja-hub">
       <div className="os-page-h">
@@ -114,7 +125,7 @@ export default function ForjaHub({
                   {tabs.map((t) => {
                     const Icon = t.icon;
                     const isActive = t.key === active;
-                    const badge = t.key === 'aprovacoes' ? pendencias : undefined;
+                    const badge = t.key === 'aprovacoes' ? naMesa : undefined;
                     // `as="button"`: o CSS do protótipo estiliza `.fj-viewtabs button` — uma âncora
                     // ficaria sem estilo. O Inertia navega no clique igual.
                     return (

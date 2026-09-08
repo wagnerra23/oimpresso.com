@@ -161,7 +161,7 @@ export default function SaleAiPanel({ saleId, enabled }: Props): ReactNode {
           const parsed = parseSuggest(text);
           if (!parsed) return null;
           return (
-            <div className="vd-ai-suggest" style={{ marginTop: 10 }}>
+            <div className="vd-ai-suggest" style={{ marginTop: 10 }} data-contract="painel-ia">
               <div className="vd-ai-suggest-h">
                 <span className="vd-ai-suggest-ic">🎯</span>
                 <div>

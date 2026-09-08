@@ -14,7 +14,7 @@ module: Fiscal
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Fiscal/**` + `resources/js/Pages/Fiscal/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 85 arquivos em 12 papéis.
+**Total mapeado:** 107 arquivos em 12 papéis.
 
 ## Controllers — 11
 
@@ -30,10 +30,12 @@ module: Fiscal
 - [PaletteSearchController.php](../../../Modules/Fiscal/Http/Controllers/PaletteSearchController.php)
 - [SpedController.php](../../../Modules/Fiscal/Http/Controllers/SpedController.php)
 
-## Services — 2
+## Services — 4
 
 - [NotasUnifiedService.php](../../../Modules/Fiscal/Services/NotasUnifiedService.php)
+- [SefazCstatService.php](../../../Modules/Fiscal/Services/SefazCstatService.php)
 - [SpedIcmsIpiGeneratorService.php](../../../Modules/Fiscal/Services/SpedIcmsIpiGeneratorService.php)
+- [SpedReferenciaArquivoService.php](../../../Modules/Fiscal/Services/SpedReferenciaArquivoService.php)
 
 ## Events / Listeners — 1
 
@@ -64,20 +66,27 @@ module: Fiscal
 - [Nfse.tsx](../../../resources/js/Pages/Fiscal/Nfse.tsx)
 - [Sped.tsx](../../../resources/js/Pages/Fiscal/Sped.tsx)
 
-## Componentes / apoio de tela — 12
+## Componentes / apoio de tela — 19
 
+- [AlertasFiscais.tsx](../../../resources/js/Pages/Fiscal/_components/AlertasFiscais.tsx)
 - [CmdKPalette.tsx](../../../resources/js/Pages/Fiscal/_components/CmdKPalette.tsx)
+- [DebitosConhecidos.tsx](../../../resources/js/Pages/Fiscal/_components/DebitosConhecidos.tsx)
+- [DecisaoPendente.tsx](../../../resources/js/Pages/Fiscal/_components/DecisaoPendente.tsx)
+- [DensidadeToggle.tsx](../../../resources/js/Pages/Fiscal/_components/DensidadeToggle.tsx)
 - [EventosDrawer.tsx](../../../resources/js/Pages/Fiscal/_components/EventosDrawer.tsx)
 - [FxShell.tsx](../../../resources/js/Pages/Fiscal/_components/FxShell.tsx)
 - [InutilizacaoModal.tsx](../../../resources/js/Pages/Fiscal/_components/InutilizacaoModal.tsx)
 - [NFSeDrawer.tsx](../../../resources/js/Pages/Fiscal/_components/NFSeDrawer.tsx)
 - [NotaDrawer.tsx](../../../resources/js/Pages/Fiscal/_components/NotaDrawer.tsx)
 - [NotaDrawerV2.tsx](../../../resources/js/Pages/Fiscal/_components/NotaDrawerV2.tsx)
+- [RibbonSpark.tsx](../../../resources/js/Pages/Fiscal/_components/RibbonSpark.tsx)
 - [SavedViewsChips.tsx](../../../resources/js/Pages/Fiscal/_components/SavedViewsChips.tsx)
+- [SeloProcedencia.tsx](../../../resources/js/Pages/Fiscal/_components/SeloProcedencia.tsx)
 - [SendToContabilDrawer.tsx](../../../resources/js/Pages/Fiscal/_components/SendToContabilDrawer.tsx)
 - [WriteOffAuditoriaCard.tsx](../../../resources/js/Pages/Fiscal/_components/WriteOffAuditoriaCard.tsx)
 - [DrawerBase.tsx](../../../resources/js/Pages/Fiscal/_components/_shared/DrawerBase.tsx)
 - [linkify.tsx](../../../resources/js/Pages/Fiscal/_lib/linkify.tsx)
+- [paginas-fiscais.tsx](../../../resources/js/Pages/Fiscal/_lib/paginas-fiscais.tsx)
 
 ## Charters (lei da tela) — 7
 
@@ -99,20 +108,26 @@ module: Fiscal
 - [Nfse.casos.md](../../../resources/js/Pages/Fiscal/Nfse.casos.md)
 - [Sped.casos.md](../../../resources/js/Pages/Fiscal/Sped.casos.md)
 
-## Testes (Pest) — 22
+## Testes (Pest) — 29
 
-- 22 em [Modules/Fiscal/Tests/Feature/](../../../Modules/Fiscal/Tests/Feature)
+- 29 em [Modules/Fiscal/Tests/Feature/](../../../Modules/Fiscal/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 10
+## Demais arquivos (manifestos, docs, assets e misc) — 16
 
 - [fiscal.php](../../../Modules/Fiscal/Resources/lang/pt-BR/fiscal.php)
 - [fiscal.php](../../../Modules/Fiscal/Resources/lang/pt/fiscal.php)
+- [sped-icms-ipi-golden.meta.md](../../../Modules/Fiscal/Tests/Fixtures/sped-icms-ipi-golden.meta.md)
+- [sped-icms-ipi-golden.txt](../../../Modules/Fiscal/Tests/Fixtures/sped-icms-ipi-golden.txt)
 - [composer.json](../../../Modules/Fiscal/composer.json)
 - [module.json](../../../Modules/Fiscal/module.json)
 - [SCOPE.md](../../../memory/requisitos/Fiscal/SCOPE.md)
 - [botao-fiscal.ts](../../../resources/js/Pages/Fiscal/_lib/botao-fiscal.ts)
 - [chip-filtro.ts](../../../resources/js/Pages/Fiscal/_lib/chip-filtro.ts)
+- [debitos-conhecidos.ts](../../../resources/js/Pages/Fiscal/_lib/debitos-conhecidos.ts)
+- [densidade-fiscal.ts](../../../resources/js/Pages/Fiscal/_lib/densidade-fiscal.ts)
 - [fiscal-helpers.ts](../../../resources/js/Pages/Fiscal/_lib/fiscal-helpers.ts)
+- [icones-alerta.ts](../../../resources/js/Pages/Fiscal/_lib/icones-alerta.ts)
+- [procedencia.ts](../../../resources/js/Pages/Fiscal/_lib/procedencia.ts)
 - [sefaz-actions.ts](../../../resources/js/Pages/Fiscal/_lib/sefaz-actions.ts)
 - [sefaz-codes.ts](../../../resources/js/Pages/Fiscal/_lib/sefaz-codes.ts)

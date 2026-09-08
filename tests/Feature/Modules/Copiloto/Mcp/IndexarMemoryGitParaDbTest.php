@@ -231,6 +231,15 @@ it('atualização gera snapshot history', function () use (&$repoTmp) {
 });
 
 it('soft-delete docs sumidos do filesystem', function () use (&$repoTmp) {
+    // Sentinela que PERMANECE no repo. Até 2026-09-05 este caso criava UM único
+    // arquivo e dava `unlink` nele, então o segundo run rodava com coleta VAZIA —
+    // isto é, a fixture codificava por acidente o próprio bug que a guarda de
+    // coleta vazia passou a barrar (`whereNotIn('slug', [])` = `where 1 = 1`).
+    // O contrato deste caso sempre foi "doc que SUMIU é soft-deletado", e ele
+    // exige coleta NÃO-vazia pra ser exercido de verdade: com a sentinela, o
+    // caso vira o controle negativo da guarda — a poda legítima segue podando.
+    file_put_contents("$repoTmp/memory/decisions/0013-fica.md", '# Fica');
+
     $path = "$repoTmp/memory/decisions/0012-some.md";
     file_put_contents($path, '# T');
     (new IndexarMemoryGitParaDb($repoTmp))->run();
@@ -243,6 +252,8 @@ it('soft-delete docs sumidos do filesystem', function () use (&$repoTmp) {
     expect($stats['removidos'])->toBe(1);
     expect(McpMemoryDocument::where('slug', '0012-some')->exists())->toBeFalse();
     expect(McpMemoryDocument::withTrashed()->where('slug', '0012-some')->exists())->toBeTrue();
+    expect(McpMemoryDocument::where('slug', '0013-fica')->exists())
+        ->toBeTrue('a sentinela sobrevive: a poda continua cirúrgica, não virou "nunca poda"');
 });
 
 it('detecta módulo via heurística no slug', function () use (&$repoTmp) {

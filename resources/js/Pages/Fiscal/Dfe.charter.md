@@ -3,6 +3,7 @@ id: resources-js-pages-fiscal-dfe-charter
 page: /fiscal/dfe
 component: resources/js/Pages/Fiscal/Dfe.tsx
 related_prototype: prototipo-ui/cowork/fiscal-subpages.jsx
+related_visual_comparison: memory/requisitos/Fiscal/fiscal-dfe-visual-comparison.md
 bundle_source: fiscal-page.jsx
 page_id: fiscal-dfe
 url: /fiscal/dfe

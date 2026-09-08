@@ -12,7 +12,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 # Casos de Uso & Aceite — Histórico de importações
 
 > **Âncora:** `CU-PONTO-11` (§6.4) e `CU-PONTO-12` (§6.5) do
-> [SDD](../../../../memory/requisitos/Ponto/SDD-espelho-e-jornada-v1.0.md) + **US-PONTO-002**
+> [SDD](../../../../../memory/requisitos/Ponto/SDD-espelho-e-jornada-v1.0.md) + **US-PONTO-002**
 > (*"registra arquivo + checksum + linhas processadas + erros"*) · **Portaria MTP 671/2021
 > Anexo I** (rastreabilidade). Fonte 4 (Delphi) **ausente** — SDD §0.1.
 >
@@ -35,17 +35,16 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 **[BACKLOG]:**
 
-- `[BACKLOG]` **Ampliação medida do D-8 (2026-08-02), pertence à tela `Show`:** além de
-  `linhas_criadas`/`linhas_ignoradas`, o controller lê **`erro_mensagem`** — que também não é
-  coluna nem está no `$fillable` (as reais são `log` e `erros_amostra`). O `Show.tsx:82 (verificado@70c36b4)` faz
-  `{i.erro_mensagem && <Alert>…}`, logo **o alerta de erro nunca renderiza**: uma importação
-  que falhou não mostra o motivo. É consequência mais séria que "exibe 0", e o SDD §5.3 F7
-  lista `erro_mensagem` entre os campos acompanhados **sem notar que é fantasma**. Vira
-  `UC-IMPSH-05` quando a tela `Show` for tocada por trabalho real — não abro aqui porque o
-  caso é dela, e varrer em lote acorda gate diff-aware sobre dívida alheia
-  ([proibicoes §5](../../../../memory/proibicoes.md) 2026-07-12).
 - `[BACKLOG]` Ordenação por `created_at` desc e paginação 20/pág — contrato de apresentação
   sem âncora em lei nem US; vira UC quando [W] confirmar que a ordem é parte do contrato.
+
+> ✅ **Backlog FECHADO em 2026-09-04 — a ampliação do D-8 virou `UC-IMPSH-05`.** O bullet que
+> vivia aqui descrevia o **4º atributo fantasma** (o controller lia `erro_mensagem`; a coluna
+> real é `log`), reservava o id `UC-IMPSH-05` e dizia que ele nasceria *"quando a tela `Show`
+> for tocada por trabalho real"* — porque o caso é dela, não da lista. Foi: o UC está aberto e
+> provado em [`Show.casos.md`](Show.casos.md). A leitura do controller já tinha sido corrigida
+> antes deste PR; o que faltava era a **prova** — `git grep UC-IMPSH-05` devolvia 3 arquivos e
+> **zero** de teste.
 
 ---
 
@@ -73,7 +72,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   `/ponto/importacoes` do meu · Então ele **não** aparece na lista.
 - **Teste:** `ImportacaoIndexContratoTest.php` — `UC-IMPIDX-02`.
 - **Contrato:** `CU-PONTO-12` (SDD §6.5) · US-PONTO-007 ·
-  [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
+  [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
 - **Regressão que defende:** complementa `UC-IMPSH-03` (que prova o **404 no detalhe**) pelo
   outro lado: um `show` blindado não impede uma **lista** vazada, e a lista é onde o nome do
   arquivo alheio ficaria visível sem ninguém precisar adivinhar um id.

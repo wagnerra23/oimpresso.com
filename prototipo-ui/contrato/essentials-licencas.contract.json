@@ -1,0 +1,79 @@
+{
+  "_nota": "Contrato VIGENTE da tela HRM · Licenças. Nasceu de criar-tela.mjs (PT-01) no PR-9 da onda HRM-O7 e recebeu as seções e a copy literal revisadas em design-docs/cowork-inbox/hrm/hrm-licencas.contract.json, que fica lá como retrato do que o Cowork mandou (o gate pula design-docs/ — `ehDocDesign`). Passa a valer agora porque a tela EXISTE: contrato só é vigente quando aplicado a uma tela real (scripts/contrato-de-tela.mjs §125-135).",
+  "tela": "Essentials/Licencas",
+  "fonte": "resources/js/Pages/Essentials/Licencas/Index.tsx",
+  "_nota_fonte": "`fonte` aponta pra própria tela porque esta não tem protótipo Cowork promovível a âncora: o build F1 (`prototipo-ui/cowork/hrm-page.jsx`) se declara porte reverso do `nav_hrm.blade`, e a lápide §5 2026-08-28 proíbe promover hub de porte reverso a âncora de design. A estrutura vem do arquétipo PT-01; o alvo POR SEÇÃO usado na implementação está medido em design-docs/cowork-inbox/hrm/EXPORT-HRM-2026-09-04.md §3.",
+  "alvo": [
+    "resources/js/Pages/Essentials/Licencas/Index.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "cabecalho",
+      "copy": ["Licenças", "Pedir licença"]
+    },
+    {
+      "id": "abas",
+      "copy": ["Licenças", "Saldo por tipo", "Tipos de licença"]
+    },
+    {
+      "id": "kpis",
+      "copy": ["Pendentes", "Aprovadas", "Tipos cadastrados"],
+      "estados": ["carregando"]
+    },
+    {
+      "id": "toolbar",
+      "copy": ["Todas as situações", "Todos os tipos"]
+    },
+    {
+      "id": "lote",
+      "copy": ["Cancelar licenças"]
+    },
+    {
+      "id": "vazio",
+      "copy": ["Limpar busca e filtros"],
+      "estados": ["vazio-primeira-vez", "vazio-sem-resultado"]
+    },
+    {
+      "id": "tabela",
+      "copy": ["Ref.", "Tipo", "Colaborador", "Período", "Motivo", "Situação"]
+    },
+    {
+      "id": "situacoes",
+      "copy": []
+    },
+    {
+      "id": "acoes-linha",
+      "copy": ["Aprovar", "Cancelar"],
+      "estados": ["sem-permissao-aprovar"]
+    },
+    {
+      "id": "drawer",
+      "copy": ["Saldo do tipo", "Conflitos no período", "Histórico"],
+      "estados": ["somente-proprias"]
+    }
+  ],
+  "ordem": ["cabecalho", "abas", "kpis", "toolbar", "vazio", "tabela", "drawer"],
+  "_proibicoes": [
+    "chamar licença de \"Sair\" ou a lista de \"Todas as folhas\" (lang pt quebrado — achado A1, fechado no PR #6778)",
+    "usar \"Comparecimento\" para presença ou \"Férias\" para feriado",
+    "oferecer editar licença (update() é vazio no servidor — R9)",
+    "oferecer excluir tipo de licença sem guarda de uso (fechado no PR #6789 — 422 com blocked_by)",
+    "aprovar ou cancelar em lote sem dizer quantas e que o colaborador é notificado",
+    "modal full-screen para o detalhe (é drawer, PT-02)",
+    "postar data em ISO no formulário: o servidor grava com uf_date no formato do negócio (R13)",
+    "inglês em UI cliente-facing e emoji no app"
+  ],
+  "_acordos": [
+    "situação é enum de 3 (pending/approved/cancelled) — nunca mostrar valor cru",
+    "dias do período são inclusivos nas duas pontas (diffInDays + 1)",
+    "referência é gerada no servidor com prefixo das configurações",
+    "quem só tem crud_own_leave não vê filtro de colaborador (e o recorte é do controller)",
+    "saldo por tipo é calculado (aprovado + em análise) e sinaliza risco de estouro",
+    "limite 0 no tipo significa SEM limite, nunca zero dias"
+  ],
+  "_copy_fora_do_contrato": {
+    "situacoes": "\"Pendente\" / \"Aprovada\" / \"Cancelada\" saíram da lista de copy: elas NÃO existem no .tsx — vêm do servidor em `status_label`, traduzidas por `lang_v1.pending` / `essentials::lang.approved` / `essentials::lang.cancelled`. O gate casa string literal no fonte da tela, então exigi-las aqui reprovaria por uma copy que a tela legitimamente não contém. A seção continua com âncora porque o ACORDO (enum de 3, nunca valor cru) segue valendo — ele é cobrado por `_acordos`, não por match de texto.",
+    "kpi-do-mes": "\"Dias de licença em {mês}\" ficou fora: o mês é derivado do relógio, e fixar o literal faria o gate quebrar na virada do mês.",
+    "placeholder-busca": "O placeholder da busca não entra como copy de contrato até [W] fixar o literal — hoje o .tsx usa \"Buscar por referência, colaborador, tipo ou motivo\", sem reticências tipográficas."
+  }
+}

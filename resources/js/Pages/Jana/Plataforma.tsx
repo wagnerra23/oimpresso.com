@@ -127,14 +127,14 @@ export default function Plataforma({ metasPlataforma, metasDeClientes, instalaca
         {/* Âncora LITERAL: o gate contrato-de-tela lê `data-contract="…"` no fonte, não em runtime. */}
         <div data-contract="plat-metas-plataforma">
         <Secao titulo="Metas da plataforma" sub={`business_id NULL · ${metasPlataforma.length} metas`}>
-          <DataTable<MetaPlataforma> columns={colsPlat} data={metasPlataforma} pagination={umaPagina(metasPlataforma)} endpoint="/ia/superadmin/metas" showSearch={false} rowKey={(r) => r.id} emptyMessage="Nenhuma meta da plataforma cadastrada." />
+          <DataTable<MetaPlataforma> columns={colsPlat} data={metasPlataforma} pagination={umaPagina(metasPlataforma)} endpoint="/ia/superadmin/metas" caption="Metas da plataforma" showSearch={false} rowKey={(r) => r.id} emptyMessage="Nenhuma meta da plataforma cadastrada." />
         </Secao>
         </div>
 
         {/* Âncora LITERAL: o gate contrato-de-tela lê `data-contract="…"` no fonte, não em runtime. */}
         <div data-contract="plat-metas-clientes">
         <Secao titulo="Metas de clientes" sub={`cross-business · ${metasDeClientes.length} metas em ${nEmpresas} empresas`}>
-          <DataTable<MetaCliente> columns={colsCli} data={metasDeClientes} pagination={umaPagina(metasDeClientes)} endpoint="/ia/superadmin/metas" showSearch={false} rowKey={(r) => r.id} rowState={(r) => (r.ultima ? undefined : 'archived')} emptyMessage="Nenhum cliente configurou metas ainda." />
+          <DataTable<MetaCliente> columns={colsCli} data={metasDeClientes} pagination={umaPagina(metasDeClientes)} endpoint="/ia/superadmin/metas" caption="Metas de clientes" showSearch={false} rowKey={(r) => r.id} rowState={(r) => (r.ultima ? undefined : 'archived')} emptyMessage="Nenhum cliente configurou metas ainda." />
           {/* Copy literal da âncora — o "27/08/2026" é fato datado (a medição), não presente. */}
           <p className="m-0 max-w-[82ch] text-[11px] leading-relaxed text-muted-foreground">
             Listagem crua, de propósito: a <b>agregação cross-business</b> que o docblock antigo prometia não

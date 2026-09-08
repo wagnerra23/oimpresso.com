@@ -4,31 +4,16 @@
 
 import { router } from '@inertiajs/react';
 import { btnProps } from '../_lib/botao-fiscal';
+import { type MapaProcedencia } from '../_lib/procedencia';
+import { BotaoProcedencia } from './SeloProcedencia';
+import { FX_PAGES } from '../_lib/paginas-fiscais';
 import { Button } from '@/Components/ui/button';
-import { Archive, FileText, Receipt, RefreshCw, Search, Shield, ShieldAlert } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useEffect, type ReactNode } from 'react';
 
 import CmdKPalette from './CmdKPalette';
-
-interface FxPage {
-  id: string;
-  label: string;
-  icon: ReactNode;
-  short: string;
-  url: string;
-}
-
-// 7 sub-páginas do Fiscal — PR #1 só implementa "nfe" (segunda).
-// Restantes apontam pra "#" e ficam disabled visualmente até serem entregues.
-const FX_PAGES: FxPage[] = [
-  { id: 'fiscal',          label: 'Cockpit',        icon: <ShieldAlert size={13}/>, short: '1', url: '/fiscal' },
-  { id: 'nfe',             label: 'NF-e · NFC-e',   icon: <Receipt size={13}/>,    short: '2', url: '/fiscal/nfe' },
-  { id: 'nfse',            label: 'NFS-e',          icon: <FileText size={13}/>,   short: '3', url: '/fiscal/nfse' },
-  { id: 'dfe',             label: 'Manifesto DF-e', icon: <ShieldAlert size={13}/>,short: '4', url: '/fiscal/dfe' },
-  { id: 'fiscal_eventos',  label: 'Eventos',        icon: <RefreshCw size={13}/>,  short: '5', url: '/fiscal/eventos' },
-  { id: 'fiscal_config',   label: 'Certif. & Cfg.', icon: <Shield size={13}/>,     short: '6', url: '/fiscal/config' },
-  { id: 'sped',            label: 'SPED & Livros',  icon: <Archive size={13}/>,    short: '7', url: '/fiscal/sped' },
-];
+import DebitosConhecidos from './DebitosConhecidos';
+import DecisaoPendente from './DecisaoPendente';
 
 interface FxShellProps {
   route: string;
@@ -36,6 +21,16 @@ interface FxShellProps {
   crumb?: string;
   env?: string;
   envTone?: 'ok' | 'warn' | 'bad';
+  /** Selo de procedência do próprio `env` — a situação da SEFAZ é uma superfície como as outras. */
+  envSelo?: ReactNode;
+  /**
+   * CU-FISC-16 — mapa superfície → procedência servido pelo controller da tela.
+   *
+   * Presente e não-vazio ⇒ o botão "Procedência" aparece no cabeçalho. Ausente ⇒ não
+   * aparece, de propósito: as telas que ainda não declararam o mapa ganhariam um toggle
+   * que não acende selo nenhum — e botão inerte é pior que botão ausente.
+   */
+  procedencia?: MapaProcedencia;
   actions?: ReactNode;
   cheats?: Array<{ keys: string[]; label: string }>;
   counts?: Partial<Record<string, number | null>>;
@@ -55,6 +50,8 @@ export default function FxShell({
   crumb,
   env,
   envTone = 'ok',
+  envSelo,
+  procedencia,
   actions,
   cheats = DEFAULT_CHEATS,
   counts = {},
@@ -86,7 +83,12 @@ export default function FxShell({
           {crumb && <span className="fx-hero-crumb">{crumb}</span>}
         </div>
         <div className="fx-hero-r">
-          {env && <span className={`fx-env ${envTone}`}>{env}</span>}
+          {env && (
+            <span className={`fx-env ${envTone}`}>
+              {env}
+              {envSelo}
+            </span>
+          )}
           <Button
             type="button"
             {...btnProps('ghost')} className="fx-cmdk-btn"
@@ -96,10 +98,11 @@ export default function FxShell({
             }}
             title="Busca global fiscal (Cmd/Ctrl+K)"
           >
-            <Search size={13}/>
+            <Search size={13} aria-hidden="true"/>
             <span>Buscar</span>
             <kbd>⌘K</kbd>
           </Button>
+          {procedencia && Object.keys(procedencia).length > 0 && <BotaoProcedencia />}
           {actions}
         </div>
       </header>
@@ -127,7 +130,17 @@ export default function FxShell({
         })}
       </nav>
 
-      <div className="fx-body">{children}</div>
+      <div className="fx-body">
+        {children}
+        {/* Um ponto de render cobre as 7 telas — é onde o protótipo os põe também
+            (`<FxDebitosPage tela={route} />`, `fiscal-page.jsx:524`), logo antes do rodapé.
+            Tela sem item não desenha nada.
+
+            A decisão pendente vem ANTES da dívida: ela é o que ainda não foi respondido, e
+            quem lê a tela precisa saber disso antes de ler o que já se sabe que falta. */}
+        <DecisaoPendente route={route} />
+        <DebitosConhecidos route={route} />
+      </div>
 
       <footer className="fx-shell-foot">
         <div className="fx-cheatsheet" role="region" aria-label="Atalhos de teclado">

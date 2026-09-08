@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o comportamento é durável — o escopo de quem-vê-o-quê e o contrato de filtro não mudam quando o cockpit ganhar abas novas.
 owner: wagner
-last_run: "2026-08-11"
-last_run_ci: "UC-CMP-06/07 reconciliados em 2026-08-11 ([W]: 'pague a dívida, e deixe requerido'); veredito segue da lane PHP / Pest (Compras · MySQL)"
+last_run: "2026-09-05"
+last_run_ci: "Revalidado em 2026-09-05 pela lane PHP / Pest (Compras · MySQL) — run 33941351234, 125 assertions, 0 skipped, no MESMO commit que instrumentou o .tsx com as ancoras data-contract. Bump exigido pelo G-6 (a tela mudou depois do last_run anterior); a mudanca foi aditiva de atributo, mas o gate mede data-git e nao semantica, e isso e o desenho certo. Historico: UC-CMP-06/07 reconciliados em 2026-08-11 ([W]: pague a divida, e deixe requerido)."
 ---
 
 # Casos de Uso & Aceite — Cockpit de Compras (`/compras`)
@@ -45,6 +45,7 @@ last_run_ci: "UC-CMP-06/07 reconciliados em 2026-08-11 ([W]: 'pague a dívida, e
 | UC-CMP-07 | Todo `sort` que o Service ordena é aceito pelo Request | must | `CU-COM-04` item 2 | `ComprasContratoFiltrosTest` | 🧪 **vermelho esperado** |
 | UC-CMP-08 | Cockpit respeita as localizações permitidas | must `[reg]` | `CU-COM-05` item 1 | `ComprasContratoFiltrosTest` | 🧪 **vermelho esperado** |
 | UC-CMP-09 | Entrada da compra grava valor e move estoque | must `[V0]` | `CU-COM-08` itens 1-3 | `PurchaseCalculoValorEstoqueE2ETest` | 🧪 (roda só no **nightly**, não no PR) |
+| UC-CMP-10 | Itens conta as linhas e NF-e lê a **chave fiscal de entrada** | must | protótipo `compras-page.jsx:501,508` + charter §Goals | `ComprasContratoFiltrosTest` | 🧪 veredito na lane |
 
 > 🧪 **Nenhum status aqui é afirmação de verde.** Este PR não executou teste algum (CT 100/CI —
 > [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)). "Vermelho
@@ -313,6 +314,17 @@ Não é esquecimento — é o critério de parada ([ADR 0351](../../../../memory
 - `[BACKLOG]` `throttle:60,1` está declarado na rota mas o **429 nunca foi provado comportamentalmente**
   (o teste atual é source-grep). **US-COM-008** admite o diferimento. SDD D11.
 - `[BACKLOG]` Drawer sem `role="dialog"`, focus-trap e handler `Esc` — **US-COM-020**. SDD D12.
+- `[BACKLOG]` A aba **Documentos** do drawer não tem UC. Ela exibia `transactions.document` — um
+  nome de arquivo anexado — sob o rótulo *"chave de acesso"*, e passou a ler `chave_entrada` junto
+  com a coluna NF-e (2026-09-07). O UC-CMP-10 prova o payload da **lista** (`listarCompras`), não o
+  do **detalhe** (`buscarDetalhe`), então a correção do drawer segue sem teste que a cite. Vira UC
+  quando ganhar um.
+- `[BACKLOG]` A coluna NF-e nasce **honesta e quase sempre vazia**: o único escritor de
+  `transactions.chave_entrada` é o `PurchaseXmlController`, que o canon do projeto registra como
+  *"completo porém ÓRFÃO sem rota"* (`memory/reguas/INDICE-INVISIVEIS-2026-07.md`) — confirmado por
+  varredura repo-inteiro: zero referência em `routes/`. Ela acende quando a bridge DF-e→compra
+  (**US-COM-003**, Wave 6) ligar `nfe_dfe_recebidos.chave_44` à transação. `—` é verdadeiro; o
+  `✓ XML` que vinha de `document` não era.
 
 ## ⚠️ Divergências que precisam de [W] (não corrigidas aqui — são INTENÇÃO)
 

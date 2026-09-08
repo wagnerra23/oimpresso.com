@@ -310,3 +310,73 @@ it('Tier 0 · CONTROLE POSITIVO: superadmin AINDA cria meta de plataforma (busin
     expect($meta)->not->toBeNull()
         ->and($meta->business_id)->toBeNull();   // plataforma, e foi um superadmin que pediu
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PR-2 (RUNBOOK-metas §9.4) — o CRUD passou a viver no DRAWER do Painel.
+// O contrato do §3 não muda; o que muda é PRA ONDE o usuário volta depois da ação.
+// ─────────────────────────────────────────────────────────────────────────────
+
+it('§9.4 PR-2 · ação vinda do drawer volta pro Painel, não pra Blade', function () {
+    $id = $this->metaPropria->id;
+
+    // `X-Inertia` é o que distingue a origem. Sem asserção sobre header nenhum, o
+    // controller devolveria `metas.show` (Blade) e salvar no drawer jogaria o usuário
+    // pra FORA do Painel — que é o defeito que este PR fecha.
+    // `assertRedirect()` SEM alvo NAO serve: ele passa tanto pro Painel quanto pra Blade.
+    // Medido por mutacao em 2026-09-07 — com o controller ignorando a origem, o caso ficava
+    // VERDE. O alvo e o que separa as duas coisas, e `from()` fixa o Referer que o back() le.
+    $this->withHeader('X-Inertia', 'true')
+        ->from('/ia')
+        ->patch("/ia/metas/{$id}", ['nome' => 'Nome pelo drawer'])
+        ->assertRedirect('/ia');
+
+    expect(Meta::withoutGlobalScopes()->find($id)->nome)->toBe('Nome pelo drawer');
+
+    $this->withHeader('X-Inertia', 'true')
+        ->from('/ia')
+        ->delete("/ia/metas/{$id}")
+        ->assertRedirect('/ia');
+
+    // Continua SOFT: a linha sobrevive desativada (§3 — a UI diz "desativar").
+    expect(Meta::withoutGlobalScopes()->find($id))->not->toBeNull()
+        ->and(Meta::withoutGlobalScopes()->find($id)->ativo)->toBeFalse();
+});
+
+it('§9.4 PR-2 · sem o header, o redirect de sempre continua — o baseline não muda', function () {
+    // Controle do caso acima: se a condição fosse global, o baseline F2 (3 casos com
+    // assertRedirect pro metas.show) teria virado mentira em silêncio.
+    $this->patch("/ia/metas/{$this->metaPropria->id}", ['nome' => 'Nome por HTTP comum'])
+        ->assertRedirect(route('jana.metas.show', $this->metaPropria->id));
+});
+
+it('§9.2 · o drawer não tem mais o link que tirava o usuário do Painel', function () {
+    // Asserção de ARQUIVO: o `<Link href="/ia/metas/{id}">` do rodapé é o ponto de costura
+    // que o RUNBOOK §9.2 nomeia — "é esse link que a migração faz desaparecer". Sem este
+    // caso, alguém o reintroduz e o Painel volta a expelir o usuário pra Blade.
+    $drawer = file_get_contents(base_path('resources/js/Pages/Jana/_components/JanaMetaDrawer.tsx'));
+
+    expect($drawer)
+        ->not->toContain('<Link href={`/ia/metas/${meta.id}`}>')
+        // Substring SEM interpolação: em aspas duplas o PHP tentaria expandir ${...}.
+        ->toContain('router.patch(')
+        ->toContain('Desativar meta')
+        ->toContain('Forçar reapuração');
+});
+
+it('§9.4 PR-2b · criar meta vem do Painel e volta pro Painel, e o botao nao aponta mais pra Blade', function () {
+    // A criação passou a ser uma gaveta no Painel (`JanaMetaNovaDrawer`). O que prova isso
+    // no servidor é o mesmo par das outras ações: com o header do Inertia, volta pra origem.
+    $this->withHeader('X-Inertia', 'true')
+        ->from('/ia')
+        ->post('/ia/metas', metaPayload(['nome' => 'Meta criada pelo Painel']))
+        ->assertRedirect('/ia');
+
+    expect(Meta::withoutGlobalScopes()->where('nome', 'Meta criada pelo Painel')->exists())->toBeTrue();
+
+    // E o botão do Painel deixou de mandar pra Blade. Sem esta metade, alguém devolve o
+    // `<a href="/ia/metas/create">` e o usuário volta a sair da tela — de novo.
+    $painel = file_get_contents(base_path('resources/js/Pages/Jana/Index.tsx'));
+    expect($painel)
+        ->not->toContain('<a href="/ia/metas/create">')
+        ->toContain('<JanaMetaNovaDrawer');
+});

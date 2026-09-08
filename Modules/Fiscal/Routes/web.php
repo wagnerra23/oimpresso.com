@@ -48,6 +48,14 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         // CC-e + Cancelamento + EPEC + Manifestação destinatário.
         Route::get('/eventos', [EventosController::class, 'index'])->name('eventos.index');
 
+        // Export CSV da timeline (Onda 7). Respeita os filtros ativos (tipo +
+        // período) — o conjunto filtrado, não a página de 50 nem a tabela inteira.
+        // Throttle 6/min: até 20 queries por download (chunk 500 × cap 10k),
+        // mesma razão do `sped.icms-ipi` acima.
+        Route::get('/eventos/export', [EventosController::class, 'exportarCsv'])
+            ->middleware('throttle:6,1')
+            ->name('eventos.export');
+
         // Manifesto DF-e (sub-página 4 — PR #3 Wave final).
         Route::get('/dfe', [DfeController::class, 'index'])->name('dfe.index');
 
@@ -66,6 +74,15 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
             ->middleware('throttle:3,1')
             ->name('sped.icms-ipi');
 
+        // ─── Onda 10: o bypass de superadmin deixa de ser silencioso ─────
+        // Só ALTERNA o bypass da própria sessão do superadmin, e só ele pode
+        // chamar (403 pra qualquer outro perfil). NÃO toca
+        // `fiscal.sped_simples_only_lock`: a flag global é decisão de [W] e
+        // segue fail-secure em `config/fiscal.php`. Ver SpedController::trava.
+        Route::post('/sped/trava', [SpedController::class, 'trava'])
+            ->middleware('throttle:20,1')
+            ->name('sped.trava');
+
         // ─── PR #4 Wave Ações Mutação ──────────────────────────────────
         // Cancelar NFe/NFC-e (delega NfeService::cancelar — FSM cascade ADR 0143).
         // Throttle 30/min anti-DOS (pattern Modules/NfeBrasil — protege SEFAZ).
@@ -73,6 +90,16 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
             ->whereNumber('emissao')
             ->middleware('throttle:30,1')
             ->name('acoes.nfe.cancelar');
+
+        // Manifestação em LOTE — a mesma ação pras N DF-e selecionadas (US-FISCAL-008).
+        // UM hit de throttle pro lote inteiro: o laço é sequencial DENTRO do request, com uma
+        // ida à SEFAZ por nota. N POSTs do navegador estourariam o `throttle:30,1` da rota por
+        // linha no 31º item, deixando parte manifestada sem relatório.
+        // Declarada ANTES da rota por linha só por clareza de leitura — `whereNumber('recebido')`
+        // já impediria a colisão com o literal `lote`.
+        Route::post('/acoes/dfe/lote', [AcoesController::class, 'manifestarDfeLote'])
+            ->middleware('throttle:30,1')
+            ->name('acoes.dfe.lote');
 
         // Manifestar DF-e (cienciar/confirmar/desconhecer/nao_realizada).
         // Delega ManifestacaoService Modules/NfeBrasil.

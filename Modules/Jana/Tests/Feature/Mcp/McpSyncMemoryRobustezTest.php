@@ -7,6 +7,7 @@ namespace Modules\Jana\Tests\Feature\Mcp;
 use Illuminate\Database\QueryException;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Entities\Mcp\McpMemoryDocument;
 use Modules\Jana\Services\Mcp\IndexarMemoryGitParaDb;
@@ -30,6 +31,18 @@ uses(\Tests\TestCase::class);
  *   (d) deadlock MySQL (1213) transitório → retry e sucesso
  *   (e) exceção não-deadlock propaga imediatamente (sem retry cego)
  *   (f) lock `mcp:sync-memory` ativo → segundo run pula sem tocar o índice
+ *   (g) sync completo com coleta VAZIA aborta alto e NÃO poda o índice
+ *
+ * ⚠️ (c) e (g) são um PAR e devem morrer juntos: (g) prova que a poda não roda
+ * com coleta vazia, e (c) é o CONTROLE NEGATIVO que prova que ela continua
+ * rodando com coleta cheia. Sem (c), a guarda de (g) poderia virar "nunca poda"
+ * — que passaria no teste e quebraria o produto.
+ *
+ * Âncora de (g): `whereNotIn('slug', [])` vira `where 1 = 1` no SQL. Medido no
+ * staging CT 100 em 2026-09-04 por sonda somente-leitura (`toSql()` + `count()`,
+ * nenhum delete executado): casaria 2555 de 2555 docs; controle positivo com um
+ * slug real casou 2554. A guarda que existia (`onlyType === null`) cobre o sync
+ * PARCIAL — caso DIFERENTE, e o completo estava descoberto.
  */
 
 beforeEach(function () {
@@ -276,5 +289,56 @@ it('(f) lock ativo → segundo run pula sem tocar o índice', function () {
         expect(McpMemoryDocument::count())->toBe(0, 'run pulado não indexa nada');
     } finally {
         $lock->release();
+    }
+});
+
+it('(g) sync completo com coleta VAZIA aborta alto e NÃO toca no índice', function () {
+    // Os 3 docs que o `whereNotIn('slug', [])` teria apagado — `[]` vira
+    // `where 1 = 1` no SQL. Medido no staging CT 100 (2026-09-04, sonda
+    // somente-leitura): casaria 2555 de 2555 docs.
+    foreach (['adr-um', 'adr-dois', 'session-tres'] as $slug) {
+        McpMemoryDocument::create([
+            'slug'        => $slug,
+            'business_id' => 1,
+            'type'        => str_starts_with($slug, 'session') ? 'session' : 'adr',
+            'title'       => "Doc $slug",
+            'content_md'  => "# $slug",
+            'admin_only'  => false,
+            'metadata'    => [],
+            'pii_redactions_count' => 0,
+            'indexed_at'  => now(),
+        ]);
+    }
+
+    // Base SEM `memory/` — reproduz o vetor real (checkout parcial, repoBasePath
+    // errado, pull a meio caminho). `coletarArquivos()` é glob() puro, e glob()
+    // sobre diretório inexistente devolve [] sem erro nenhum: é isso que torna o
+    // caminho alcançável E silencioso.
+    $vazio = storage_path('app/test-coleta-vazia-' . uniqid());
+    @mkdir($vazio, 0777, true);
+
+    Log::shouldReceive('channel')->andReturnSelf();
+    Log::shouldReceive('info')->andReturnNull();
+    Log::shouldReceive('warning')->andReturnNull();
+    Log::shouldReceive('error')
+        ->once()
+        ->withArgs(function ($msg, $ctx = null) {
+            return is_string($msg)
+                && str_contains($msg, 'ABORTADO')
+                && is_array($ctx)
+                && $ctx['docs_preservados'] === 3
+                && $ctx['memory_dir_existe'] === false;
+        });
+
+    try {
+        // Perna 1 — aborta, e aborta ALTO (exceção, não retorno silencioso).
+        expect(fn () => (new IndexarMemoryGitParaDb($vazio, 'test-coleta-vazia', null, 1))->run())
+            ->toThrow(\RuntimeException::class, 'coleta vazia em sync COMPLETO');
+
+        // Perna 2 — o índice está INTACTO: a poda não chegou a rodar.
+        expect(McpMemoryDocument::count())->toBe(3, 'corpus preservado — nenhum soft-delete');
+        expect(McpMemoryDocument::withTrashed()->count())->toBe(3, 'nem soft-deletado: zero linhas tocadas');
+    } finally {
+        @rmdir($vazio);
     }
 });

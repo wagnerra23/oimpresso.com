@@ -2,6 +2,7 @@
 id: resources-js-pages-repair-producao-oficina-index-charter
 page: /repair/producao-oficina
 component: resources/js/Pages/Repair/ProducaoOficina/Index.tsx
+related_visual_comparison: memory/requisitos/Repair/ProducaoOficina-r3-venda-derivada-expanded-visual-comparison.md
 related_prototype: n/a (herda PT-05 Kanban; segue o Padrão de Tela)
 bundle_source: repair-page.jsx
 owner: wagner

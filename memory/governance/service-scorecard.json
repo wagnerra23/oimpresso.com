@@ -14,7 +14,7 @@
     },
     "vital_signs": {
       "path": "memory/governance/vital-signs.json",
-      "generated_at": "2026-09-03"
+      "generated_at": "2026-09-08"
     }
   },
   "stats": {
@@ -36,8 +36,8 @@
       "ads"
     ],
     "maturity_levels": {
-      "ouro": 16,
-      "prata": 16,
+      "ouro": 7,
+      "prata": 25,
       "bronze": 7
     }
   },
@@ -464,8 +464,8 @@
           "pior_tela": "Auditoria/Detail",
           "charter_pct": 100,
           "casos_pct": 0,
-          "stale": false,
-          "idade_max_dias": 60
+          "stale": true,
+          "idade_max_dias": 65
         },
         "graph": {
           "depends_on": 4,
@@ -533,15 +533,15 @@
         },
         {
           "key": "no_stale_screens",
-          "ok": true,
+          "ok": false,
           "rot": "nenhuma tela stale"
         }
       ],
       "maturity": {
-        "passed": 9,
+        "passed": 8,
         "applicable": 9,
-        "ratio": 1,
-        "level": "ouro"
+        "ratio": 0.89,
+        "level": "prata"
       }
     },
     {
@@ -565,8 +565,8 @@
           "pior_tela": "Cliente/Map",
           "charter_pct": 100,
           "casos_pct": 100,
-          "stale": false,
-          "idade_max_dias": 60
+          "stale": true,
+          "idade_max_dias": 65
         },
         "graph": {
           "depends_on": 0,
@@ -582,7 +582,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-26",
+          "last_commit": "2026-09-07",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -634,14 +634,14 @@
         },
         {
           "key": "no_stale_screens",
-          "ok": true,
+          "ok": false,
           "rot": "nenhuma tela stale"
         }
       ],
       "maturity": {
-        "passed": 6,
+        "passed": 5,
         "applicable": 9,
-        "ratio": 0.67,
+        "ratio": 0.56,
         "level": "bronze"
       }
     },
@@ -770,8 +770,8 @@
           "pior_tela": "Compras/Index",
           "charter_pct": 100,
           "casos_pct": 100,
-          "stale": false,
-          "idade_max_dias": 60
+          "stale": true,
+          "idade_max_dias": 65
         },
         "graph": {
           "depends_on": 3,
@@ -839,15 +839,15 @@
         },
         {
           "key": "no_stale_screens",
-          "ok": true,
+          "ok": false,
           "rot": "nenhuma tela stale"
         }
       ],
       "maturity": {
-        "passed": 9,
+        "passed": 8,
         "applicable": 9,
-        "ratio": 1,
-        "level": "ouro"
+        "ratio": 0.89,
+        "level": "prata"
       }
     },
     {
@@ -875,8 +875,8 @@
           "pior_tela": "ComunicacaoVisual/Index",
           "charter_pct": 100,
           "casos_pct": 100,
-          "stale": false,
-          "idade_max_dias": 60
+          "stale": true,
+          "idade_max_dias": 65
         },
         "graph": {
           "depends_on": 2,
@@ -944,15 +944,15 @@
         },
         {
           "key": "no_stale_screens",
-          "ok": true,
+          "ok": false,
           "rot": "nenhuma tela stale"
         }
       ],
       "maturity": {
-        "passed": 9,
+        "passed": 8,
         "applicable": 9,
-        "ratio": 1,
-        "level": "ouro"
+        "ratio": 0.89,
+        "level": "prata"
       }
     },
     {
@@ -1080,8 +1080,8 @@
           "pior_tela": "ConsultaOs/Index",
           "charter_pct": 100,
           "casos_pct": 0,
-          "stale": false,
-          "idade_max_dias": 60
+          "stale": true,
+          "idade_max_dias": 65
         },
         "graph": {
           "depends_on": 3,
@@ -1149,15 +1149,15 @@
         },
         {
           "key": "no_stale_screens",
-          "ok": true,
+          "ok": false,
           "rot": "nenhuma tela stale"
         }
       ],
       "maturity": {
-        "passed": 9,
+        "passed": 8,
         "applicable": 9,
-        "ratio": 1,
-        "level": "ouro"
+        "ratio": 0.89,
+        "level": "prata"
       }
     },
     {
@@ -1194,7 +1194,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-07-30",
+          "last_commit": "2026-09-07",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -1278,19 +1278,19 @@
           "matched": true,
           "ns": "Essentials",
           "via": "direto",
-          "telas": 13,
+          "telas": 16,
           "com_scorecard": 13,
           "nota_media": 78,
           "nota_min": 73,
           "pior_tela": "Essentials/Settings/Index",
           "charter_pct": 100,
-          "casos_pct": 0,
-          "stale": false,
-          "idade_max_dias": 60
+          "casos_pct": 19,
+          "stale": true,
+          "idade_max_dias": 65
         },
         "graph": {
           "depends_on": 0,
-          "dependents": 0,
+          "dependents": 1,
           "provides_api": 2,
           "owns_tables": 0,
           "owns_legacy_views": 0,
@@ -1302,7 +1302,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-07-23",
+          "last_commit": "2026-09-05",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -1354,15 +1354,15 @@
         },
         {
           "key": "no_stale_screens",
-          "ok": true,
+          "ok": false,
           "rot": "nenhuma tela stale"
         }
       ],
       "maturity": {
-        "passed": 9,
+        "passed": 8,
         "applicable": 9,
-        "ratio": 1,
-        "level": "ouro"
+        "ratio": 0.89,
+        "level": "prata"
       }
     },
     {
@@ -1391,7 +1391,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 60
+          "idade_max_dias": 65
         },
         "graph": {
           "depends_on": 3,
@@ -1407,7 +1407,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-18",
+          "last_commit": "2026-09-07",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -1496,7 +1496,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 60
+          "idade_max_dias": 65
         },
         "graph": {
           "depends_on": 4,
@@ -1512,7 +1512,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-11",
+          "last_commit": "2026-09-07",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -1601,7 +1601,7 @@
           "charter_pct": 100,
           "casos_pct": 56,
           "stale": true,
-          "idade_max_dias": 60
+          "idade_max_dias": 65
         },
         "graph": {
           "depends_on": 4,
@@ -1705,8 +1705,8 @@
           "pior_tela": "governance/Audit",
           "charter_pct": 100,
           "casos_pct": 11,
-          "stale": false,
-          "idade_max_dias": 60
+          "stale": true,
+          "idade_max_dias": 65
         },
         "graph": {
           "depends_on": 5,
@@ -1722,7 +1722,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-13",
+          "last_commit": "2026-09-07",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -1774,15 +1774,15 @@
         },
         {
           "key": "no_stale_screens",
-          "ok": true,
+          "ok": false,
           "rot": "nenhuma tela stale"
         }
       ],
       "maturity": {
-        "passed": 9,
+        "passed": 8,
         "applicable": 9,
-        "ratio": 1,
-        "level": "ouro"
+        "ratio": 0.89,
+        "level": "prata"
       }
     },
     {
@@ -1811,7 +1811,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 60
+          "idade_max_dias": 65
         },
         "graph": {
           "depends_on": 7,
@@ -1827,7 +1827,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-09-03",
+          "last_commit": "2026-09-07",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -1915,8 +1915,8 @@
           "pior_tela": "kb/Graph",
           "charter_pct": 100,
           "casos_pct": 100,
-          "stale": false,
-          "idade_max_dias": 60
+          "stale": true,
+          "idade_max_dias": 65
         },
         "graph": {
           "depends_on": 7,
@@ -1984,15 +1984,15 @@
         },
         {
           "key": "no_stale_screens",
-          "ok": true,
+          "ok": false,
           "rot": "nenhuma tela stale"
         }
       ],
       "maturity": {
-        "passed": 9,
+        "passed": 8,
         "applicable": 9,
-        "ratio": 1,
-        "level": "ouro"
+        "ratio": 0.89,
+        "level": "prata"
       }
     },
     {
@@ -2013,15 +2013,15 @@
           "matched": true,
           "ns": "Manufacturing",
           "via": "direto",
-          "telas": 2,
+          "telas": 5,
           "com_scorecard": 1,
           "nota_media": 72,
           "nota_min": 72,
           "pior_tela": "Manufacturing/Index",
           "charter_pct": 100,
-          "casos_pct": 50,
+          "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 60
+          "idade_max_dias": 65
         },
         "graph": {
           "depends_on": 3,
@@ -2037,7 +2037,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-09-02",
+          "last_commit": "2026-09-04",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -2126,7 +2126,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 60
+          "idade_max_dias": 65
         },
         "graph": {
           "depends_on": 3,
@@ -2142,7 +2142,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-07-28",
+          "last_commit": "2026-09-07",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -2231,7 +2231,7 @@
           "charter_pct": 100,
           "casos_pct": 0,
           "stale": true,
-          "idade_max_dias": 60
+          "idade_max_dias": 65
         },
         "graph": {
           "depends_on": 3,
@@ -2441,7 +2441,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 62
+          "idade_max_dias": 67
         },
         "graph": {
           "depends_on": 3,
@@ -2457,7 +2457,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-07-27",
+          "last_commit": "2026-09-07",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -2546,7 +2546,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 62
+          "idade_max_dias": 67
         },
         "graph": {
           "depends_on": 5,
@@ -2562,7 +2562,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-07-23",
+          "last_commit": "2026-09-07",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -2644,17 +2644,17 @@
           "ns": "Ponto",
           "via": "direto",
           "telas": 21,
-          "com_scorecard": 20,
+          "com_scorecard": 21,
           "nota_media": 80,
           "nota_min": 71,
           "pior_tela": "Ponto/Espelho/Index",
           "charter_pct": 100,
-          "casos_pct": 71,
+          "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 60
+          "idade_max_dias": 65
         },
         "graph": {
-          "depends_on": 3,
+          "depends_on": 4,
           "dependents": 0,
           "provides_api": 3,
           "owns_tables": 0,
@@ -2667,7 +2667,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-21",
+          "last_commit": "2026-09-05",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -2851,8 +2851,8 @@
           "pior_tela": "Produto/Show",
           "charter_pct": 100,
           "casos_pct": 100,
-          "stale": false,
-          "idade_max_dias": 60
+          "stale": true,
+          "idade_max_dias": 65
         },
         "graph": {
           "depends_on": 0,
@@ -2920,14 +2920,14 @@
         },
         {
           "key": "no_stale_screens",
-          "ok": true,
+          "ok": false,
           "rot": "nenhuma tela stale"
         }
       ],
       "maturity": {
-        "passed": 6,
+        "passed": 5,
         "applicable": 9,
-        "ratio": 0.67,
+        "ratio": 0.56,
         "level": "bronze"
       }
     },
@@ -3053,7 +3053,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 60
+          "idade_max_dias": 65
         },
         "graph": {
           "depends_on": 3,
@@ -3069,7 +3069,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-05",
+          "last_commit": "2026-09-07",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -3150,15 +3150,15 @@
           "matched": true,
           "ns": "Repair",
           "via": "direto",
-          "telas": 13,
-          "com_scorecard": 13,
+          "telas": 14,
+          "com_scorecard": 14,
           "nota_media": 77,
           "nota_min": 71,
           "pior_tela": "Repair/JobSheet/Edit",
           "charter_pct": 100,
-          "casos_pct": 0,
-          "stale": false,
-          "idade_max_dias": 60
+          "casos_pct": 93,
+          "stale": true,
+          "idade_max_dias": 65
         },
         "graph": {
           "depends_on": 3,
@@ -3174,7 +3174,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-06",
+          "last_commit": "2026-09-07",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -3226,15 +3226,15 @@
         },
         {
           "key": "no_stale_screens",
-          "ok": true,
+          "ok": false,
           "rot": "nenhuma tela stale"
         }
       ],
       "maturity": {
-        "passed": 9,
+        "passed": 8,
         "applicable": 9,
-        "ratio": 1,
-        "level": "ouro"
+        "ratio": 0.89,
+        "level": "prata"
       }
     },
     {
@@ -3259,7 +3259,7 @@
           "charter_pct": 100,
           "casos_pct": 56,
           "stale": true,
-          "idade_max_dias": 60
+          "idade_max_dias": 65
         },
         "graph": {
           "depends_on": 0,
@@ -3275,7 +3275,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-07",
+          "last_commit": "2026-09-07",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -3664,8 +3664,8 @@
           "pior_tela": "Vestuario/Etiquetas/Index",
           "charter_pct": 100,
           "casos_pct": 100,
-          "stale": false,
-          "idade_max_dias": 60
+          "stale": true,
+          "idade_max_dias": 65
         },
         "graph": {
           "depends_on": 3,
@@ -3733,15 +3733,15 @@
         },
         {
           "key": "no_stale_screens",
-          "ok": true,
+          "ok": false,
           "rot": "nenhuma tela stale"
         }
       ],
       "maturity": {
-        "passed": 9,
+        "passed": 8,
         "applicable": 9,
-        "ratio": 1,
-        "level": "ouro"
+        "ratio": 0.89,
+        "level": "prata"
       }
     },
     {
@@ -3870,7 +3870,7 @@
           "charter_pct": 100,
           "casos_pct": 18,
           "stale": true,
-          "idade_max_dias": 60
+          "idade_max_dias": 65
         },
         "graph": {
           "depends_on": 6,
@@ -3886,7 +3886,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-07-23",
+          "last_commit": "2026-09-07",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {

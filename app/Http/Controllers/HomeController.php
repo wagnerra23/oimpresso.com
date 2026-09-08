@@ -202,6 +202,19 @@ class HomeController extends Controller
                     request()->integer('page', 1) ?: 1
                 )
             ),
+            // Pendências — o atalho que o charter mantinha em §Backlog, liberado por
+            // [W] em 2026-09-04. Deferido pelo MESMO motivo da grade: são 5 contagens,
+            // e o alvo de first-paint <= 800ms não paga por atalho.
+            //
+            // Gate igual ao de `charts` e `totals`: sem `dashboard.data` a prop nem é
+            // registrada, então um partial reload pedindo `pendencias` não encontra
+            // closure pra executar — a casca continua casca.
+            'pendencias' => $can_dashboard_data
+                ? Inertia::defer(fn () => $this->grades->pendencias(
+                    $business_id,
+                    $location_id ? (int) $location_id : null
+                ))
+                : null,
             'endpoints' => [
                 'totals' => '/home/get-totals',
                 'stock_alert' => '/home/product-stock-alert',

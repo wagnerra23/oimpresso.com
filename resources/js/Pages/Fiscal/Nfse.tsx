@@ -17,9 +17,11 @@ import { Deferred, Head, router } from '@inertiajs/react';
 import { FileSearch, FileText } from 'lucide-react';
 import { useState } from 'react';
 
+import DensidadeToggle from './_components/DensidadeToggle';
 import FxShell from './_components/FxShell';
 import { chipCount, chipProps } from './_lib/chip-filtro';
 import { brl, formatDoc } from './_lib/fiscal-helpers';
+import { useDensidadeFiscal } from './_lib/densidade-fiscal';
 
 import '../../../css/fiscal-cockpit.css';
 
@@ -76,6 +78,7 @@ const STATUS_LABEL: Record<string, { label: string; tone: 'ok' | 'warn' | 'bad' 
 
 export default function Nfse({ filters: initialFilters, counts, rows }: NfseProps) {
   const [filters, setFilters] = useState<Filters>(initialFilters);
+  const [density, setDensity] = useDensidadeFiscal();
   const dataRows: NfseRow[] = rows?.data ?? [];
 
   const apply = (next: Partial<Filters>) => {
@@ -172,6 +175,8 @@ export default function Nfse({ filters: initialFilters, counts, rows }: NfseProp
           >
             Canceladas <span className={chipCount(filters.status === 'canceladas')}>{counts.canceladas}</span>
           </Button>
+
+          <DensidadeToggle value={density} onChange={setDensity} />
         </Inline>
 
         {/* Tabela deferred */}
@@ -188,6 +193,11 @@ export default function Nfse({ filters: initialFilters, counts, rows }: NfseProp
               <small>Ajuste os filtros ou aguarde primeira emissão deste mês.</small>
             </div>
           ) : (
+            <div className={`fx-density-${density}`}>
+            {/* Wrapper da densidade: o CSS e `.fx-density-<x> .fx-table tbody td`
+                (DESCENDENTE), entao a classe precisa de um ancestral. Mesmo recuo do
+                filho de proposito — reindentar o bloco seria diff de whitespace puro.
+                Mesma forma do Nfe.tsx, que a mantem por causa de conflito medido. */}
             <div className="fx-table">
               <table>
                 <thead>
@@ -240,6 +250,7 @@ export default function Nfse({ filters: initialFilters, counts, rows }: NfseProp
                   })}
                 </tbody>
               </table>
+            </div>
             </div>
           )}
         </Deferred>

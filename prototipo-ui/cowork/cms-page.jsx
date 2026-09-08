@@ -180,15 +180,9 @@ function EditorDrawer({ p, tipo, onClose, onExcluir }) {
             <div className="cms-f">
               <label>{corpoLabel}</label>
               <div className="cms-ed-bar">
-                <div className="cms-ed-seg">
-                  <button className={modo === "visual" ? "active" : ""} onClick={() => setModo("visual")}>Prévia</button>
-                  <button className={modo === "codigo" ? "active" : ""} onClick={() => setModo("codigo")}>HTML</button>
-                </div>
+                <window.CliSeg ariaLabel="Modo do editor" value={modo} onChange={setModo} options={[{ key: "visual", label: "Prévia" }, { key: "codigo", label: "HTML" }]} />
                 {modo === "visual" &&
-                <div className="cms-ed-seg">
-                  <button className={largura === "desktop" ? "active" : ""} onClick={() => setLargura("desktop")}>Computador</button>
-                  <button className={largura === "celular" ? "active" : ""} onClick={() => setLargura("celular")}>Celular</button>
-                </div>}
+                <window.CliSeg ariaLabel="Largura da prévia" value={largura} onChange={setLargura} options={[{ key: "desktop", label: "Computador" }, { key: "celular", label: "Celular" }]} />}
                 <span className="cms-ed-note">{f.content.replace(/<[^>]+>/g, "").length} caracteres</span>
               </div>
               {modo === "codigo"

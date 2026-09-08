@@ -15,6 +15,7 @@ visual_source: prototipo-ui/cowork/cobranca-recorrente-page.jsx
 related_prototype: prototipo-ui/cowork/cobranca-recorrente-page.jsx
 canon_method: Cowork KB-9.75
 sidebar_group: fin (FINANCEIRO)
+related_visual_comparison: memory/requisitos/RecurringBilling/Index-visual-comparison.md
 ---
 
 # Page Charter — /recurring-billing (Cobrança Recorrente · v1 Cowork)

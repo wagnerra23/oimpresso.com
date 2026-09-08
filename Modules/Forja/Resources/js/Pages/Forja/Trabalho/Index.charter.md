@@ -10,7 +10,7 @@ parent_module: Forja
 related_us: [US-FORJA-006]
 related_adrs: [70, 93, 253, 388]
 tier: B
-charter_version: 6
+charter_version: 7
 ---
 
 # Page Charter — /forja/trabalho
@@ -253,10 +253,30 @@ O front passou a espelhá-los da fonte de design, pelo mesmo caminho e pelo mesm
 | **arrastar card** (`draggable` + `onDrop` → `onMove`/`onMoveExec`) | continua o Non-Goal escrito abaixo: mover card é **mutação**, e mutação fora do `TaskCrudService` seria o segundo caminho de escrita que a Mesa evitou de propósito. Não é dívida desta onda — é decisão anterior, mantida |
 | coluna vazia dizendo **"arraste aqui"** | consequência direta da linha acima: sem drag, a frase anuncia um gesto que a tela não escuta — afordância falsa (LC-15). A réplica diz **"vazia"** |
 | `FrescorPill` no rodapé do card | campo `frescor` que `mcp_tasks` não tem. É condicional no protótipo, então a falta do dado já o apaga lá; inventar valor seria dado fantasma. Mesma razão da Onda 4 |
-| **a ausência da coluna `F4 Merge`** | ⚠️ esta é a única em que a réplica **diverge por decisão anterior**, e a divergência é nossa de propósito. O `KanbanView` filtra F4 fora do board (`forja-page.jsx` :473, `PHASES.filter(p => p.id !== "F4")`) e o parágrafo dele diz *"no merge (F4) ele sai do quadro e vira entrada no changelog"* — o protótipo renderiza **6** colunas. Aqui são **7**: [W] decidiu em **2026-08-11** que *"F4 Merge É coluna — merge é estado de trabalho com dono humano, não arquivo"*, o backend ganhou a fase e a `DIVERGENCIA_DECLARADA` do `PipelineParidadeTest` esvaziou. Copiar o filtro do protótipo **reverteria** essa decisão em silêncio. Consequência de copy: o parágrafo-âncora daqui diz `(F0 → F4)` onde o protótipo diz `(F0 → F3.5)` + a frase do changelog — adaptação obrigatória, senão o texto contradiria as colunas logo abaixo dele |
+| **a ausência da coluna `F4 Merge`** | ⚠️ esta é a única em que a réplica **diverge por decisão anterior**, e a divergência é nossa de propósito. O `KanbanView` filtra F4 fora do board (`forja-page.jsx` :473, `PHASES.filter(p => p.id !== "F4")`) e o parágrafo dele diz *"no merge (F4) ele sai do quadro e vira entrada no changelog"* — o protótipo renderiza **6** colunas. Aqui são **7**: [W] decidiu em **2026-08-11** que *"F4 Merge É coluna — merge é estado de trabalho com dono humano, não arquivo"*, o backend ganhou a fase e a `DIVERGENCIA_DECLARADA` do `PipelineParidadeTest` esvaziou. Copiar o filtro do protótipo **reverteria** essa decisão — e até **2026-09-03** reverteria *em silêncio*, porque a cadeia de paridade inteira lê constantes e ninguém lia o render (medido: um `.filter` no `FASES.map()` não altera o bloco `const FASES`, então o `UC-TRAB-07` devolve a mesma lista antes e depois). O elo que faltava é o `UC-TRAB-19` — `tests/forjaQuadroColunas.spec.tsx` monta o Quadro em jsdom e conta `.fj-kcol` **contra a declaração**, não contra o número 7, para que fase nova legítima passe e corte reprove. Consequência de copy: o parágrafo-âncora daqui diz `(F0 → F4)` onde o protótipo diz `(F0 → F3.5)` + a frase do changelog — adaptação obrigatória, senão o texto contradiria as colunas logo abaixo dele |
 
 ### Reconciliação — o anti-hook do selo, e por que ele muda de forma
 
 O anti-hook abaixo diz *"não hand-rolar selo de prioridade/ator no card; existe canon em `shared/TaskBadges`"*. Ele foi escrito em 2026-08-08, **antes** da ADR 0388, e a Onda 4 já o resolveu de outro jeito na lista: os selos passaram a ser os átomos-réplica de `trabalhoAtomos.tsx`, que são cópia declarada do protótipo, com política escrita e travados contra a fonte (`UC-TRAB-11`/`12`/`13`). O Quadro agora usa os mesmos — o card do board e a linha da lista mostram o mesmo selo, que é o que o protótipo faz.
 
 **O que aquele anti-hook protege continua honrado, e é o que importa:** não perder a distinção **agente × humano**. É exatamente o que o `OwnerSeal` faz, lendo a allowlist `agents` que vem do backend (`TrabalhoService::agentes()`, ator `ai_agent` não revogado) — nunca heurística de nome. O anti-hook segue valendo com este alcance: **não invente um selo terceiro**; use o canon do DS, ou o átomo-réplica que já existe e é travado. O que ele não pode mais exigir é `shared/TaskBadges` especificamente numa tela cuja lei é replicar o protótipo.
+
+---
+
+## Acessibilidade (2026-09-03) — a produção à frente do protótipo, declarado
+
+Não é onda de réplica. Saiu de uma **medição pareada** feita ao conferir o relato do lado design contra `origin/main`, e o resultado inverteu a premissa do relato: dois dos três defeitos listados como *"só existem no protótipo"* existiam **nos dois lados**.
+
+| medido em 2026-09-03 | protótipo (`forja-page.jsx`) | produção (antes) |
+|---|---|---|
+| `aria-live` / região viva | **0** | **0** |
+| `.fj-row` | `<div>` **com `onClick`** (:418) | `<div>` **sem** `onClick` |
+| papel de lista (`list`/`group`/`listitem`) | **0** | **0** |
+| `aria-expanded` no `fj-group-toggle` | **não tem** | **tem** |
+| `data-testid` | **não tem** | 4 (contêineres) |
+
+**Por que isto não fere a ADR 0388.** A lei rege **aparência**; papel ARIA e região viva não desenham pixel nenhum. E a direção da divergência é *produção à frente* — a mesma direção do `aria-expanded` e dos `data-testid`, que já estavam aqui desde a Onda 4 sem nunca terem sido declarados. Ficam declarados agora, junto.
+
+**Por que `listitem` e não `row`/`grid`/`button`.** Porque a `.fj-row` daqui **não navega**: o `onClick` do protótipo abre o issue-drawer, que nesta tela não existe (é um dos receptáculos que a Forja ainda não tem). Dar `role="row"` dentro de um `grid` prometeria navegação 2D por teclado que a tela não implementa — a mesma afordância falsa do checkbox de seleção em massa (LC-15), só que invisível para quem enxerga. `UC-TRAB-17` trava a premissa: no dia em que a linha ganhar `onClick`, o caso reprova pedindo o papel novo **com o teclado que ele promete**, em vez de deixar `listitem` mentindo.
+
+⚠️ **Sem smoke visual, de propósito** — a mudança não tem pixel. As `.snap` da baseline continuam válidas; se alguma mexer, é sinal de que algo além do ARIA entrou junto.

@@ -204,6 +204,9 @@ jobs:
       - name: Agent PR outcomes (DORA do agente · CFR morde/libera · card #0 grade-das-reguas)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/agent-pr-outcomes.test.mjs
+      - name: Fluxo do sistema (DORA + Flow do repo inteiro · CFR/recuperacao/WIP/adocao mordem por fixture · nao-medido nunca vira 0)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/fluxo-sistema.test.mjs
       - name: Agent cost per PR (custo USD por PR · join 2-sinais morde/libera · item #7 grade-das-reguas)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/agent-cost-per-pr.test.mjs
@@ -525,6 +528,14 @@ jobs:
       - name: Porta-viva morde (LC-08 · fixtures boa/ruim + INVOCAÇÃO real por stdin)
         if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/block-instrumento-sem-porta-viva.mjs --selftest
+      # O hook está wirado no settings.json desde 2026-08-21 e o selftest dele nunca
+      # teve invocador — "selftest sem invocador é a máquina órfã" (mesma razão do
+      # step do design-agente-ativa acima). Quebrar os 4 padrões não acusaria ninguém.
+      # O P5 é injetado com jqExiste:false no selftest DE PROPÓSITO: aqui o runner é
+      # ubuntu e o jq EXISTE, então sem a injeção a fixture mediria o runner, não o hook.
+      - name: Sonda-que-mente morde (P2/P3/P4/P5 · fixtures + controles negativos)
+        if: always() && steps.setup.outcome == 'success'
+        run: node .claude/hooks/block-sonda-que-mente.mjs --selftest
       - name: Registro porta-viva em settings.json (LC-08 · matcher Glob E Grep)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/settings-porta-viva-registration.test.mjs
@@ -977,6 +988,17 @@ jobs:
       - name: Réguas workflow (persistência incremental · checkpoint antes da prosa · retrato parcial declarado)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/reguas-workflow.test.mjs
+      # Refutador GT-G5 como workflow (.claude/workflows/refutador-gt-g5.js) — caminho executável
+      # do §2 do PROTOCOLO-REFUTADOR-BACKFILL (§7). Mesmo idiom do teste acima: embrulha o
+      # arquivo VIVO com um dublê de agent() (zero agentes/rede/git). Trava as partes puras
+      # (parse do JSON do refutador · entry no formato da do PR #6897 · error_rate · veredito da
+      # MÁQUINA, não do adjetivo do agente) e o controle de fluxo (reprovado PARA sem tocar o
+      # ledger · aprovado grava + ledger-check --enforce · resume lê as caudas · teto). Bite
+      # conferido por mutação em 2026-09-06 (aceite `>` em vez de `>=` → 1 falha; escrivão em
+      # lote reprovado → 5 falhas). Advisory por desenho (ADR 0314/0275).
+      - name: Refutador GT-G5 workflow (reprovado para · aprovado registra · resume · entry 6897)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/refutador-gt-g5-workflow.test.mjs
       - name: Migração visual em ondas (duplo aceite · uma onda · Tier 0)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/migracao-layout-workflow.test.mjs

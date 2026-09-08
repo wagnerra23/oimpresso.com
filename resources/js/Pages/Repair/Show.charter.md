@@ -2,6 +2,7 @@
 id: resources-js-pages-repair-show-charter
 page: /repair/repair/{id}
 component: resources/js/Pages/Repair/Show.tsx
+related_visual_comparison: memory/requisitos/Repair/repair-visual-comparison.md
 related_prototype: n/a (herda PT-03 Detalhe; segue o Padrão de Tela)
 owner: wagner
 status: draft

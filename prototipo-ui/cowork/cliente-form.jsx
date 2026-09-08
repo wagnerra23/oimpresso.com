@@ -151,11 +151,7 @@ function ClienteFormPage({ modo = "novo" }) {
               <CfSel value={f.type} onChange={set("type")} options={CF_TIPOS}/>
             </CfCampo>
             <CfCampo label="Pessoa">
-              <div className="cf-seg" role="radiogroup" aria-label="Tipo de pessoa">
-                {[["person", "Física"], ["business", "Jurídica"]].map(([v, l]) => (
-                  <button key={v} role="radio" aria-checked={f.pessoa === v} className={"cf-seg-b" + (f.pessoa === v ? " on" : "")} onClick={() => set("pessoa")(v)}>{l}</button>
-                ))}
-              </div>
+              <window.CliSeg role="radiogroup" ariaLabel="Tipo de pessoa" value={f.pessoa} onChange={set("pessoa")} options={[{ key: "person", label: "Física" }, { key: "business", label: "Jurídica" }]} />
             </CfCampo>
             <CfCampo label={pj ? "Razão social" : "Nome completo"} largura="full" obrigatorio erro={err("first_name")}>
               <CfIn value={f.first_name} onChange={set("first_name")} onBlur={marcar("first_name")} maxLength={100}

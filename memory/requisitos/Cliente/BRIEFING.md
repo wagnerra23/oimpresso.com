@@ -2,56 +2,43 @@
 id: requisitos-cliente-briefing
 module: Cliente
 status: producao
-updated_at: "2026-08-26"
-distilled_at: "2026-08-26"
-distilled_by: "manual [C] — redestilação PARCIAL: só a seção 'Âncora de design' (revisão do veredito de paridade + correção da âncora do Map, que o texto dava como ausente). O resto do corpo NÃO foi re-lido; valem a redestilação de 2026-08-18 (Onda 0, PR #5924) e a de 2026-07-27 (SDD + contratos, PR #4870)."
+updated_at: "2026-09-06"
+distilled_at: "2026-09-06"
+distilled_by: jana:distill-module-truth
 ---
 
-# BRIEFING — Cliente (cadastro de clientes / contatos)
+# BRIEFING — Cliente (verdade destilada)
 
-> **Última atualização:** 2026-06-22 · **Owner:** Wagner · **Status produção:** ✅ usado por biz=4 (ROTA LIVRE — Larissa) e demais tenants.
-> 🪪 **Cliente ≠ CRM:** este é o **cadastro de Cliente/contatos** — coisa separada do *pipeline CRM* (leads/propostas/campanhas), que está em **depreciação** (ver [plano](../Crm/DEPRECATION-PLAN-pipeline.md)). Decisão Wagner 2026-06-22 ("contacts não é o crm").
+## Estado atual
+Cadastro de clientes (pessoas físicas e jurídicas) com validações brasileiras. Cliente ≠ CRM (decisão Wagner 2026-06-22, recibo em `audits/ALINHAMENTO-cliente-2026-06-22.md`): não existe módulo nWidart próprio de Cliente (nenhuma pasta com esse nome em `Modules/`); o código vive em `Modules/Crm/` (parte A, cadastro) e nas Pages `resources/js/Pages/Cliente/` (Index, Create, Edit, Show, Import, Ledger, Map — `Show.tsx` é legado dual-render). Em produção para biz=4 (ROTA LIVRE) e demais tenants; a superfície viva é o drawer de 760px do Index (dados em `App\Contact`/`App\ContactAddress` → `contacts`/`contact_addresses`). O SPEC declara as US do cadastro; a contagem viva de implementadas sai de `node scripts/governance/requisitos-status.mjs Cliente` (`_STATUS-GENERATED.md`) — não se copia aqui. Contrato de tela: `SDD-cadastro-cliente-v1.0.md` (ADR 0351) + `casos.md` por tela.
 
-## O que é
+## Capacidades
+- Cadastro PF/PJ com validação de CPF/CNPJ (US-CRM-072/076).
+- Lookup de CEP (ViaCEP) e CNPJ (BrasilAPI) via `BrLookupService`.
+- Drawer de 760px com abas e autosave (ADR 0179).
+- Auditoria LGPD por cliente (o cadastro não dispara hook WhatsApp/e-mail — Non-Goal LGPD; a única menção a canal no `ClienteAutosaveController` é o enum `CANAIS` de preferência de contato; export CSV que nunca leva `tax_number` em claro; o activity log exclui PII — `Contact::logOnly` sem `tax_number_1`, guard `ContactPiiLogsActivityTest`; o export PDF do ledger, ao contrário, sai com PII completa). `cpf_cnpj`/`ie_rg` são formatados, não redigidos — censura real é decisão pendente de [W]; só `bank_account_number` tem redação real (`UC-CSHW-03`).
+- Multi-tenant Tier 0 por `where('business_id')` manual (cross-tenant → 404, ADR 0093); `App\Contact` não usa global scope — US-CRM-080 aberta.
+- Múltiplos endereços por contato (`ContactAddress`, US-CRM-078 PR1/PR2, com Pest cross-tenant) e aba IA com score de risco determinístico no mesmo drawer.
+- Mapa de clientes em OpenStreetMap (US-CRM-091, Onda 3 da paridade — o SPEC ainda marca `_pendente_`; SPEC atrás do código).
 
-Cadastro de clientes **PF e PJ** com canon fiscal BR completo (CPF/CNPJ com validação mod-11, IE/RG, regime, endereço, contato) e tela de detalhe rica via **drawer 760px lateral** (8 abas cadastrais) aberto da listagem ([ADR 0179](../../decisions/0179-cliente-drawer-760px-substitui-show-fullpage.md)). Inclui múltiplos endereços por contato, lookup CEP (ViaCEP) e CNPJ (BrasilAPI), tab IA (Copiloto) e auditoria LGPD.
+## Gaps
+- Dropdown de endereço do cliente na venda (US-CRM-078 PR3): `Sells/Create.tsx` ainda usa `shipping_address` como texto livre.
+- Migrar RUNBOOKs, UI-CATALOG e ARCHITECTURE de `memory/requisitos/Crm/` para `Cliente/`.
+- Backlog secundário do SPEC (§3-bis) com âncoras `_pendente_`.
+- Fidelidade visual prod×protótipo: a última medição (2026-08-26) não cobriu listagem, Import e Map — donos datados do veredito: `Cliente/clientes-gap.md`, `Crm/clientes-gap.md` (#6294) e `prototipo-ui/FRESCOR-PRODUCAO-vs-PROTOTIPO.md`. Há baseline de pixel para `Cliente/Import` (#5937) e `Cliente/Map` (#6303), mas baseline não é fidelidade ao protótipo (âncora do Map = `prototipo-ui/cowork/cliente-mapa.jsx`, `Show` declara `n/a` e herda PT-03; resolver por `node prototipo-ui/ancora.mjs Cliente/<Tela>`; ondas em `PARIDADE-area-cliente-diagnostico-e-ondas.md`). O veredito "tela viva à frente" de 2026-08-26 vale só pro drawer 760, não pra listagem, Import e Map.
 
-## Estado atual (verificado @origin/main)
+## Última mudança
+2026-09-06 (#6910) — `data-contract` inerte no Index e o sha do protótipo atualizado; antes, sai a copy visível "Copiloto" da aba IA e do rail (#6344, 2026-08-27). Mudança de capacidade mais recente: o Mapa sai do Google e vai pro OSM (#6303, 2026-08-26, US-CRM-091 Onda 3, 1ª mudança visível ao cliente); antes, Import com drag-and-drop (#5937, 2026-08-20) e a âncora do protótipo do `Map` religada (#5938, 2026-08-18).
 
-- **15 US declaradas** na [SPEC.md](SPEC.md) — 14 com código verificado (`anchor_coverage 100%`, ADR 0273), 1 parcial (US-078 PR3: seletor de endereço salvo na venda).
-- **Telas Inertia:** `resources/js/Pages/Cliente/{Index,Create,Edit,Show,Import,Ledger,Map}.tsx`. Superfície de detalhe viva = drawer (Index); `Show.tsx` é legado dual-render.
-- **Multi-tenant Tier 0:** `App\Contact` com global scope `business_id`; cross-tenant → 404 ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)).
-- **LGPD:** `cpf_cnpj`/`ie_rg`/`bank_account` mascarados antes dos props; activity log exclui PII; sem hook WhatsApp/email no cadastro.
+## Proveniência (destilado de)
 
-## Onde está
-
-- **Requisitos (canon):** aqui em `memory/requisitos/Cliente/` — [SPEC.md](SPEC.md) + [relatório de alinhamento](audits/ALINHAMENTO-cliente-2026-06-22.md). RUNBOOKs/visual-comparisons ainda em `../Crm/` (a mover).
-- **Código:** `Modules/Crm/` (controllers `Cliente*Controller`, `ContactAddressController`) — rename de módulo não feito; **não há um módulo `Cliente` separado** (o código fica em `Modules/Crm`).
-- **Dados:** core `App\Contact` + `App\ContactAddress` (tabelas `contacts`/`contact_addresses`).
-
-## Falta / próximos
-
-- US-078 PR3 — dropdown de endereço salvo na tela de venda (`Sells/Create`; hoje `shipping_address` é texto livre), ~3h.
-- Migrar RUNBOOKs/UI-CATALOG/ARCHITECTURE de `Crm/` → `Cliente/` (execução do plano de separação).
-- Backlog secundário em [SPEC.md §5](SPEC.md).
-
-## Contrato de tela (SDD)
-
-O módulo passou a ter **SDD** em [`SDD-cadastro-cliente-v1.0.md`](SDD-cadastro-cliente-v1.0.md) — §5 fluxos + §6 casos de uso — e `casos.md` por tela,
-gerados pelo chip `sdd-from-source` ([ADR 0351](../../decisions/0351-sdd-from-source.md), PR #4870).
-
-> **Contagem viva — não copiada aqui** (CU · UC · telas cobertas · onde a cadeia quebra):
-> `node scripts/governance/requisitos-status.mjs Cliente`
->
-> O painel derivado fica em [`_STATUS-GENERATED.md`](_STATUS-GENERATED.md). Número escrito à mão apodrece —
-> este doc aponta para o dono, não restateia (proibições §5, 2026-07-17).
-
-## Âncora de design (protótipo)
-
-As telas passaram a declarar `related_prototype` no charter — antes a ligação vivia em `bundle_source`/`mwart_pattern_reuse`, campos que o resolvedor só lê com `--staging`. `Show` declara `n/a` (herda PT-03; o drawer 760 substituiu o fullpage). **`Map` TEM âncora** (`prototipo-ui/cowork/cliente-mapa.jsx`, religada em [#5938](https://github.com/wagnerra23/oimpresso.com/pull/5938) 2026-08-18) — a frase anterior, que dizia ficar sem âncora por decisão da [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md), apodreceu no mesmo mês; verificado 2026-08-26 por `node prototipo-ui/ancora.mjs Cliente/Map`.
-
-**Revisão de 2026-08-26 — o veredito "tela viva À FRENTE" era de 23/06 e tinha 3 donos.** Ele foi medido contra `prototipo-ui/prototipos/clientes/` (hoje com **0 arquivos versionados**) e numa janela em que o espelho tinha metade do arquivo vivo (58.331 vs 112.096 bytes, corpo do [#5743](https://github.com/wagnerra23/oimpresso.com/pull/5743)). Segue verdade para o **drawer 760** — cujo protótipo foi derivado *da produção*. **Não vale** para listagem/Import/Map. Os 3 donos foram datados e reapontados: `Crm/clientes-gap.md` ([#6294](https://github.com/wagnerra23/oimpresso.com/pull/6294)), `Cliente/clientes-gap.md` e `prototipo-ui/FRESCOR-PRODUCAO-vs-PROTOTIPO.md`. **Fidelidade visual segue NÃO MEDIDA** (Onda 6): nenhum comparador roda sem browser, e Cliente não tem baseline visual.
-
-> **Estado vivo — não copiado aqui:** `node prototipo-ui/ancora.mjs Cliente/<Tela>`
->
-> Diagnóstico medido, pareamento protótipo↔tela e ondas: [`PARIDADE-area-cliente-diagnostico-e-ondas.md`](PARIDADE-area-cliente-diagnostico-e-ondas.md).
+- audit `requisitos/Cliente/CAPTERRA-FICHA.md` — CAPTERRA-FICHA.md
+- audit `requisitos/Cliente/CAPTERRA-INVENTARIO.md` — CAPTERRA-INVENTARIO.md
+- session `sessions/2026-09-06-refutacao-gt-g5-lote-6897-r2.md` (2026-09-06) — 2026-09-06-refutacao-gt-g5-lote-6897-r2.md
+- session `sessions/2026-09-06-refutacao-gt-g5-lote-6897-r4.md` (2026-09-06) — 2026-09-06-refutacao-gt-g5-lote-6897-r4.md
+- session `sessions/2026-09-06-refutacao-gt-g5-lote-6897-r6.md` (2026-09-06) — 2026-09-06-refutacao-gt-g5-lote-6897-r6.md
+- session `sessions/2026-09-06-refutacao-gt-g5-lote-6897-r7.md` (2026-09-06) — 2026-09-06-refutacao-gt-g5-lote-6897-r7.md
+- session `sessions/2026-09-06-refutacao-gt-g5-lote-6897.md` (2026-09-06) — 2026-09-06-refutacao-gt-g5-lote-6897.md
+- session `sessions/2026-08-14-censo-redacao-brl-em-codigo.md` (2026-08-14) — 2026-08-14-censo-redacao-brl-em-codigo.md
+- session `sessions/2026-08-11-consulta-clientes-v3-dv-medido-e-smoke.md` (2026-08-11) — 2026-08-11-consulta-clientes-v3-dv-medido-e-smoke.md
+- handoff `handoffs/2026-08-11-1811-consulta-clientes-v3-e-o-cnpj-que-era-real.md` (2026-08-11) — 2026-08-11-1811-consulta-clientes-v3-e-o-cnpj-que-era-real.md

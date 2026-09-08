@@ -28,7 +28,7 @@ Regra Primária [`memory/proibicoes.md`](../../memory/proibicoes.md) §"REGRA PR
 - Toda Eloquent Model que toca dados de negócio DEVE ter `business_id` global scope
 - NÃO usar `withoutGlobalScopes` sem comentário `// SUPERADMIN: <razão>`
 - Job assíncrono SEMPRE recebe `$businessId` no constructor (session() não funciona em fila)
-- Pest test biz=1 obrigatório ([ADR 0101](../../memory/decisions/0101-tests-business-id-1-nunca-cliente.md)) — nunca biz=cliente real
+- Pest test no tenant fictício **98** ([ADR 0358](../../memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)), resolvido por `seededTenant()` — adversário cross-tenant é o **99**. **Nunca biz=4** (ROTA LIVRE, cliente real) e **nunca biz=1** (WR2 Sistemas, empresa real: no CT 100 a base é clone de prod e não se limpa entre runs)
 
 ## Nomenclatura PHP/DB dentro do módulo
 

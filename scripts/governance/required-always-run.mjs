@@ -21,7 +21,9 @@
 //   cada context required (governance/required-checks-baseline.json)
 //     → localiza o job produtor nos workflows
 //     → confirma `pull_request` SEM `paths:`/`paths-ignore:`
-//     → FALHA se filtrado (o context não nasceria em PR fora do path)
+//     → confirma que o `types:` inclui `synchronize` (ou que não há `types:`)
+//     → FALHA se filtrado (o context não nasceria em PR fora do path) ou se o
+//       context nasce no `opened` e não RE-nasce no push seguinte
 //
 // Resolve o job por 3 formas, porque o GitHub nomeia context de 3 jeitos:
 //   (a) `name:` literal no job
@@ -36,6 +38,30 @@
 // FP MEDIDO ANTES DE ARMAR (main, 2026-08-05): 40 contexts · 34 resolvidos ·
 // **0 path-triggered** · 0 sem pull_request. Zero falso-positivo no corpus real.
 //
+// ── `types:` sem `synchronize` — o 4º jeito, e o único que NÃO some no `opened` ──
+// Os 3 eixos acima matam o check-run em TODO evento do PR. Este mata só a partir do
+// SEGUNDO push: `types: [opened, reopened, ready_for_review]` faz o context nascer
+// quando o PR abre e NUNCA MAIS. A branch protection avalia o **head SHA**; no head
+// novo o check-run não existe, e o PR fica `BLOCKED` com 0 falhas e 0 pendentes — a
+// mesma assinatura do incidente de 2026-07-02 (proibicoes.md §Ambiente), por outra porta.
+//
+// POR QUE ISTO APARECEU AGORA: até 2026-09-02 era 1 workflow. O #6622 (sessão "Fila do
+// CI: o gargalo era o teto de 20 jobs simultâneos") tirou `synchronize` de 68 advisory
+// para cortar 49% do volume por push — decisão medida, correta, e que NÃO se toca aqui.
+// Ela criou junto uma regra de promoção, escrita em prosa em 3 lugares (a sessão, o
+// `gates-registry.json` do backup-pest, e um comentário no próprio backup-pest.yml):
+// **"quem promover um deles a required reinsere `synchronize` ANTES do flip"**.
+// Regra escrita+lembrada apodrece (ADR 0256); esta perna é ela derivada+enforçada.
+//
+// FP MEDIDO ANTES DE ARMAR (main 9101f86af5, 2026-09-08): 139 workflows · 119 disparam
+// em `pull_request` · 80 declaram `types:` · **69 sem `synchronize`** · 45 contexts
+// required (união classic+rulesets) · **0 required sem `synchronize`** ⇒ zero
+// falso-positivo. Controle positivo do matcher: 41 dos 45 casaram com um job por nome;
+// os 4 restantes são `name: ${{ matrix.label }}` de `memory-schema-gate`/`anchor-drift`,
+// conferidos à mão — os dois declaram `pull_request:` SEM `types:`, logo herdam o
+// default `[opened, synchronize, reopened]`. Balde perigoso (não-required hoje): 69
+// workflows / 79 jobs, ~17× o balde do eixo `if:` — mesmo desenho preventivo, risco maior.
+//
 // Parsing TEXTUAL de propósito (sem js-yaml): o `governance-script-tests.yml` não
 // instala deps, e um lint que só roda onde há `npm ci` é um lint que não roda.
 //
@@ -44,7 +70,9 @@
 //   node scripts/governance/required-always-run.mjs --json
 //   node scripts/governance/required-always-run.mjs --selftest # fixtures herméticas
 //
-// Exit: 0 = todo required é always-run | 1 = há required filtrado (deadlock latente)
+// Exit: 0 = todo required nasce em todo PR e re-nasce em todo push
+//       1 = há required filtrado, sem gatilho, com `if:` falso em PR, ou sem
+//           `synchronize` no `types:` — todos deadlock latente
 
 import { readFileSync, readdirSync, existsSync, mkdtempSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
@@ -78,15 +106,50 @@ export function blocoOn(srcCru) {
 }
 
 /**
+ * Os valores de `types:` dentro do corpo de um `pull_request:` — ou `null` quando não
+ * há `types:` (que é o caso BOM: o default do GitHub já é `[opened, synchronize,
+ * reopened]`).
+ *
+ * Aceita as duas formas do YAML mesmo o corpus sendo 100% inline hoje (medido: 81 de
+ * 81 com `[...]`, 0 em bloco). Suportar só a forma vigente deixaria o lint cego no dia
+ * em que alguém escrever em bloco — falso-NEGATIVO silencioso, a mesma doença que o
+ * CRLF causou aqui em 2026-08-05.
+ */
+export function typesDoPR(corpo) {
+  // `^[ \t]+types:` e não `types:` solto: as 3 linhas do repo que citam `types:` em
+  // PROSA vivem em comentário (`# ... types: ...`) e não podem virar veredito.
+  const m = String(corpo).match(/^[ \t]+types:[ \t]*(.*)$/m);
+  if (!m) return null;
+  const resto = m[1].trim();
+  if (resto.startsWith('[')) {
+    // inline: `types: [opened, reopened]` — corta em `]` e ignora comentário à direita
+    const fecha = resto.indexOf(']');
+    const dentro = fecha === -1 ? resto.slice(1) : resto.slice(1, fecha);
+    return dentro.split(',').map((s) => s.trim().replace(/^["']|["']$/g, '')).filter(Boolean);
+  }
+  // bloco: `types:` sozinho, seguido de `- valor` mais indentados
+  const bloco = String(corpo).match(/^([ \t]+)types:[ \t]*$([\s\S]*?)(?=^\1[^\s-]|$(?![\s\S]))/m);
+  const out = [];
+  if (bloco) {
+    for (const l of bloco[2].split('\n')) {
+      const v = l.match(/^[ \t]*-[ \t]*([^#\n]+)/);
+      if (v) out.push(v[1].trim().replace(/^["']|["']$/g, ''));
+    }
+  }
+  return out;
+}
+
+/**
  * O workflow dispara em TODO pull_request?
- * Retorna { temPR, filtrado, motivo }.
+ * Retorna { temPR, filtrado, semSync, types, motivo }.
  */
 export function gatilhoPR(srcCru) {
   const src = nl(srcCru);
   const on = blocoOn(src);
-  if (!on) return { temPR: false, filtrado: false, motivo: 'sem bloco on:' };
+  if (!on) return { temPR: false, filtrado: false, semSync: false, types: null, motivo: 'sem bloco on:' };
   if (/^on:\s*\[?[^\n]*pull_request/m.test(src) && !/^\s+pull_request:/m.test(on)) {
-    return { temPR: true, filtrado: false, motivo: 'on: inline com pull_request' };
+    // `on: [pull_request]` não tem onde declarar `types:` → default, tem `synchronize`.
+    return { temPR: true, filtrado: false, semSync: false, types: null, motivo: 'on: inline com pull_request' };
   }
   // `[ \t]` e NÃO `\s`: \s engloba \n, e aí a captura de indentação atravessa linhas —
   // o `\1` do lookahead vira "\n  " e o sub-bloco nunca fecha. O selftest pegou isso.
@@ -95,15 +158,25 @@ export function gatilhoPR(srcCru) {
   // Âncora de fim-absoluto em JS é `$(?![\s\S])`.
   const pr = on.match(/^([ \t]+)pull_request:[ \t]*$([\s\S]*?)(?=^\1[^\s]|$(?![\s\S]))/m);
   if (!pr) {
-    if (/pull_request/.test(on)) return { temPR: true, filtrado: false, motivo: 'pull_request sem sub-bloco' };
-    return { temPR: false, filtrado: false, motivo: 'sem pull_request no gatilho' };
+    // `pull_request:` sem sub-bloco → sem `types:` → default, tem `synchronize`.
+    if (/pull_request/.test(on)) return { temPR: true, filtrado: false, semSync: false, types: null, motivo: 'pull_request sem sub-bloco' };
+    return { temPR: false, filtrado: false, semSync: false, types: null, motivo: 'sem pull_request no gatilho' };
   }
   const corpo = pr[2] || '';
   const filtro = corpo.match(/^[ \t]+(paths|paths-ignore):/m);
+  const types = typesDoPR(corpo);
+  // `types: null` = sem `types:` declarado = default do GitHub, que JÁ inclui
+  // `synchronize`. Só a lista EXPLÍCITA que o omite é que mata o re-nascimento.
+  const semSync = Array.isArray(types) && !types.includes('synchronize');
+  const motivos = [];
+  if (filtro) motivos.push(`pull_request com \`${filtro[1]}:\``);
+  if (semSync) motivos.push(`\`types:\` sem \`synchronize\` (${types.join(', ')})`);
   return {
     temPR: true,
     filtrado: Boolean(filtro),
-    motivo: filtro ? `pull_request com \`${filtro[1]}:\`` : 'pull_request always-run',
+    semSync,
+    types,
+    motivo: motivos.join(' + ') || 'pull_request always-run',
   };
 }
 
@@ -275,7 +348,7 @@ function auditar(root = ROOT) {
       }
     }
   }
-  const filtrados = [], semPR = [], naoResolvidos = [], ok = [];
+  const filtrados = [], semPR = [], naoResolvidos = [], ok = [], semSync = [];
   const ifPerigoso = [], ifIndecidivel = [];
   for (const ctx of required) {
     const j = ifPorContext.get(ctx);
@@ -283,11 +356,14 @@ function auditar(root = ROOT) {
     else if (j?.veredito === 'INDECIDIVEL') ifIndecidivel.push({ ctx, ...j });
     const m = mapa.get(ctx);
     if (!m) { naoResolvidos.push(ctx); continue; }
+    // `semSync` é ORTOGONAL a `filtrado`: um workflow pode ter os dois defeitos, e
+    // reportar só o primeiro esconderia metade do conserto de quem for arrumar.
+    if (m.gatilho.semSync) semSync.push({ ctx, ...m });
     if (m.gatilho.filtrado) filtrados.push({ ctx, ...m });
     else if (!m.gatilho.temPR) semPR.push({ ctx, ...m });
-    else ok.push({ ctx, ...m });
+    else if (!m.gatilho.semSync) ok.push({ ctx, ...m });
   }
-  return { required, filtrados, semPR, naoResolvidos, ok, parserQuebrado, ifPerigoso, ifIndecidivel };
+  return { required, filtrados, semPR, semSync, naoResolvidos, ok, parserQuebrado, ifPerigoso, ifIndecidivel };
 }
 
 // ── selftest: fixtures herméticas, com controle negativo ────────────────────
@@ -433,6 +509,46 @@ function selftest() {
     writeFileSync(join(dir, '.github', 'workflows', 'w.yml'), comIfJob.replace("!= 'pull_request'", "== 'pull_request'"));
     ok(auditar(dir).ifPerigoso.length === 0, 'LIBERA: `if: == pull_request` não acusa');
     ok(rodarCli() === 0, 'LIBERA E2E (CLI): `if:` seguro → exit 0');
+
+    // ── eixo 4: `types:` sem `synchronize` (#6622 · 2026-09-08) ─────────────
+    // extrator puro — as duas formas do YAML, e o comentário que NÃO pode virar veredito
+    ok(JSON.stringify(typesDoPR('    types: [opened, reopened]\n')) === '["opened","reopened"]',
+      'extrator: `types:` inline');
+    ok(typesDoPR('    types: [opened, synchronize]  # nota à direita\n').includes('synchronize'),
+      'extrator: comentário à DIREITA do `]` não entra na lista');
+    ok(JSON.stringify(typesDoPR('    types:\n      - opened\n      - synchronize\n')) === '["opened","synchronize"]',
+      'extrator: `types:` em BLOCO (forma que o corpus não usa hoje — cegueira futura)');
+    ok(typesDoPR('    branches: [main]\n') === null,
+      'extrator: sem `types:` → null (default do GitHub JÁ tem synchronize)');
+    ok(typesDoPR('    # `types:` sem synchronize é o padrão dos advisory\n') === null,
+      'CN: `types:` dentro de COMENTÁRIO não vira veredito (3 linhas assim no repo)');
+
+    const semSyncW  = "name: X\n\non:\n  pull_request:\n    types: [opened, reopened, ready_for_review]\n\njobs:\n  a:\n    name: Job A\n";
+    const comSyncW  = "name: X\n\non:\n  pull_request:\n    types: [opened, reopened, synchronize]\n\njobs:\n  a:\n    name: Job A\n";
+    ok(gatilhoPR(semSyncW).semSync === true,  'MORDE: `types:` sem synchronize', JSON.stringify(gatilhoPR(semSyncW)));
+    ok(gatilhoPR(comSyncW).semSync === false, 'LIBERA: `types:` COM synchronize');
+    ok(gatilhoPR(semPaths).semSync === false, 'CN: sem `types:` → default, NÃO acusa (senão 39 workflows viram FP)');
+    // o eixo é ortogonal ao `paths:` — os dois defeitos juntos têm que aparecer juntos
+    const ambos = semSyncW.replace('    types:', "    paths:\n      - 'x/**'\n    types:");
+    const gAmbos = gatilhoPR(ambos);
+    ok(gAmbos.semSync === true && gAmbos.filtrado === true,
+      'ortogonal: `paths:` + `types:` sem sync acusa os DOIS', JSON.stringify(gAmbos.motivo));
+
+    writeFileSync(join(dir, 'governance', 'required-checks-baseline.json'),
+      JSON.stringify({ classic_protection: { contexts: ['Job A'] } }));
+    writeFileSync(join(dir, '.github', 'workflows', 'w.yml'), semSyncW);
+    ok(auditar(dir).semSync.length === 1, 'BITE E2E: required sem synchronize é acusado');
+    ok(auditar(dir).ok.length === 0, 'e NÃO entra em `ok` (senão o resumo diz "always-run" e mente)');
+    // fiação: sem o `process.exit(1)` no ramo semSync o assert de dado acima segue
+    // verde e o lint deixa de morder — o mutante só morre rodando o CLI de fora.
+    ok(rodarCli() === 1, 'BITE E2E (CLI): required sem synchronize → exit 1');
+    writeFileSync(join(dir, '.github', 'workflows', 'w.yml'), comSyncW);
+    ok(auditar(dir).semSync.length === 0, 'LIBERA E2E: required com synchronize passa');
+    ok(rodarCli() === 0, 'LIBERA E2E (CLI): required com synchronize → exit 0');
+    // CRLF: este repo é Windows — sem este par o eixo nasce cego, como o `paths:` nasceu
+    writeFileSync(join(dir, '.github', 'workflows', 'w.yml'), semSyncW.replace(/\n/g, '\r\n'));
+    ok(auditar(dir).semSync.length === 1, 'CRLF: `types:` sem synchronize em \\r\\n é acusado igual');
+    writeFileSync(join(dir, '.github', 'workflows', 'w.yml'), semPaths);
   } finally { rmSync(dir, { recursive: true, force: true }); }
 
   console.log(falhas ? `\n✗ ${falhas} falha(s)` : '\n✅ required-always-run: acusa filtrado, libera always-run, avisa o não-resolvido.');
@@ -464,7 +580,7 @@ function main() {
 const r = auditar();
 if (process.argv.includes('--json')) {
   console.log(JSON.stringify(r, null, 2));
-  process.exit(r.filtrados.length || r.parserQuebrado.length ? 1 : 0);
+  process.exit(r.filtrados.length || r.parserQuebrado.length || r.semSync.length ? 1 : 0);
 }
 
 if (r.parserQuebrado.length) {
@@ -477,9 +593,10 @@ if (r.parserQuebrado.length) {
   process.exit(1);
 }
 
-console.log(`\n  REQUIRED ALWAYS-RUN — ${r.required.length} contexts required · ${r.ok.length} always-run · ${r.filtrados.length} FILTRADO(s) · ${r.naoResolvidos.length} não-resolvido(s)\n`);
+console.log(`\n  REQUIRED ALWAYS-RUN — ${r.required.length} contexts required · ${r.ok.length} always-run · ${r.filtrados.length} FILTRADO(s) · ${r.semSync.length} SEM \`synchronize\` · ${r.naoResolvidos.length} não-resolvido(s)\n`);
 for (const f of r.filtrados) console.log(`  ❌ ${f.ctx}\n       ${f.arquivo} — ${f.gatilho.motivo}`);
 for (const s of r.semPR) console.log(`  ❌ ${s.ctx}\n       ${s.arquivo} — ${s.gatilho.motivo}`);
+for (const s of r.semSync) console.log(`  ❌ ${s.ctx}\n       ${s.arquivo} — ${s.gatilho.motivo}`);
 if (r.naoResolvidos.length) {
   console.log(`\n  ⚠️  não casei com job nenhum (AVISO — limite conhecido, não veredito):`);
   for (const n of r.naoResolvidos) console.log(`     ${n}`);
@@ -498,6 +615,18 @@ if (r.ifPerigoso.length) {
   console.log(`  ou não promova este context a required.\n`);
   process.exit(1);
 }
+if (r.semSync.length) {
+  console.log(`\n  ❌ ${r.semSync.length} required cujo \`types:\` omite \`synchronize\`:\n`);
+  for (const s of r.semSync) console.log(`     ${s.ctx}\n       ${s.arquivo} — types: [${(s.gatilho.types || []).join(', ')}]`);
+  console.log(`\n  Este context nasce quando o PR ABRE e nunca mais. A branch protection avalia o`);
+  console.log(`  **head SHA**: no segundo push o check-run não existe naquele SHA e o PR fica`);
+  console.log(`  \`BLOCKED\` com 0 falhas e 0 pendentes (lápide 2026-08-08 · RUNBOOK-branch-protection`);
+  console.log(`  §Promoção). É o 4º jeito de um required não nascer — e o único que passa no PR`);
+  console.log(`  recém-aberto, então não aparece em teste manual de 1 push.`);
+  console.log(`  CONSERTO: acrescente \`synchronize\` ao \`types:\` deste workflow (o #6622 tirou de 68`);
+  console.log(`  advisory de propósito, pra cortar fila de CI — mas required precisa re-nascer).\n`);
+  process.exit(1);
+}
 if (r.filtrados.length || r.semPR.length) {
   console.log(`\n  Um context required cujo workflow é filtrado NÃO fica vermelho — ele NÃO NASCE.`);
   console.log(`  O PR fica "Expected — waiting for status" pra sempre e o merge trava pro repo inteiro`);
@@ -506,6 +635,6 @@ if (r.filtrados.length || r.semPR.length) {
   console.log(`  \`dorny/paths-filter\` INTERNO com skip-as-pass — o gatilho fica always-run e o job sai cedo.`);
   process.exit(1);
 }
-console.log('  ✅ todo context required nasce em todo PR.\n');
+console.log('  ✅ todo context required nasce em todo PR — e RE-nasce em todo push.\n');
 process.exit(0);
 }

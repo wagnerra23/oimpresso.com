@@ -4,6 +4,22 @@ id: requisitos-admin-index-visual-comparison
 
 # Visual Comparison — `/admin` Index (Sprint 1 dia 3-4)
 
+> ⚰️ **REGISTRO HISTÓRICO — a tela que este documento descreve não existe mais.**
+> O `Modules/Admin` (Admin Center) foi **removido em 2026-07-30** pelo commit `2dfc5a183b`
+> ([PR #5062](https://github.com/wagnerra23/oimpresso.com/pull/5062)), executando a
+> [ADR 0360](../../decisions/0360-deprecacao-admin-center-supersede-0122.md) — decidida por [W] em
+> 2026-07-29, que **supersede a [ADR 0122](../../decisions/0122-admin-center-ct100.md)** citada abaixo.
+> Medido em 2026-09-07: `git ls-files "Modules/Admin/*"` = **0 arquivos**, e não há Page Inertia em
+> `resources/js/Pages/admin/` (nunca houve — o painel era Blade no CT 100).
+>
+> **O arquivo fica.** Ele preserva o que era verdade em 2026-05-10: o baseline de 15 dimensões que
+> orientou o Sprint 1 do painel. Não é ponteiro vivo — **nada abaixo desta linha descreve tela
+> existente**, e nenhum charter o aponta, então ele segue órfão no `design-coverage` (correto: órfão
+> mede ausência de vínculo, não defeito). O que sobreviveu do módulo foi resgatado **antes** da
+> remoção, em 2026-07-29: o `CuradorStatsReader` foi para o `Modules/Arquivos` (`ba36bd28c5`,
+> [PR #5046](https://github.com/wagnerra23/oimpresso.com/pull/5046)) e o gerador de UI-CATALOG para
+> o `Modules/Governance` (`5874d20e8f`, [PR #5045](https://github.com/wagnerra23/oimpresso.com/pull/5045)).
+
 **Status:** baseline-only · **Data:** 2026-05-10 · **ADR:** [0122](../../decisions/0122-admin-center-ct100.md)
 
 > ⚠️ **Não há prototipo Cowork prévio aprovado** pra essa página. Admin Center é greenfield Wagner-only — não passou pelo loop normal Cowork ↔ Claude Code formalizado em [`prototipo-ui/PROTOCOL.md`](../../../prototipo-ui/PROTOCOL.md). Visual-comparison aqui é **baseline pra futuro**, não comparativo retroativo.

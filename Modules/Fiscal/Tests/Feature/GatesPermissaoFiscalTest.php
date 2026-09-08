@@ -124,3 +124,53 @@ it('UC-FCFG-03 · controle: superadmin NÃO recebe 403 em /fiscal/config (a rota
 
     expect($this->get('/fiscal/config')->status())->not->toBe(403);
 });
+
+/**
+ * Usuário biz=1 com `fiscal.config.edit` mas SEM `fiscal.config.ambiente`.
+ *
+ * É o caso que dá sentido ao gate separado: quem pode editar a configuração
+ * NÃO pode, por isso, trocar o ambiente de emissão. Um teste só com "usuário
+ * sem permissão nenhuma" não distinguiria os dois gates.
+ */
+function fiscalUserComEditSemAmbiente(): \App\User
+{
+    \Spatie\Permission\Models\Permission::findOrCreate('fiscal.config.edit', 'web');
+    $u = \App\User::factory()->create(['business_id' => 1]);
+    $u->givePermissionTo('fiscal.config.edit');
+
+    return $u;
+}
+
+it('UC-FCFG-06 · POST ambiente aborta 403 com fiscal.config.edit mas sem fiscal.config.ambiente', function () {
+    $this->actingAs(fiscalUserComEditSemAmbiente());
+    session(['business.id' => 1, 'user.business_id' => 1]);
+
+    // A recusa é do SERVIDOR. A tela travar o campo é conforto; sem este 403, um
+    // POST direto (curl, devtools, extensão) trocaria o ambiente de emissão.
+    $this->post('/nfe-brasil/configuracao/certificado/ambiente', ['ambiente' => 1])
+        ->assertStatus(403);
+});
+
+it('UC-FCFG-06 · POST upload de certificado aborta 403 sem fiscal.config.ambiente', function () {
+    $this->actingAs(fiscalUserComEditSemAmbiente());
+    session(['business.id' => 1, 'user.business_id' => 1]);
+
+    $this->post('/nfe-brasil/configuracao/certificado', [])
+        ->assertStatus(403);
+});
+
+it('UC-FCFG-06 · controle: superadmin NÃO recebe 403 no POST ambiente (a rota existe e o gate passa)', function () {
+    $this->actingAs(fiscalSuperadmin());
+    session(['business.id' => 1, 'user.business_id' => 1]);
+
+    // CONTROLE POSITIVO SEM MUTAÇÃO: posta o ambiente que JÁ está gravado. O
+    // controller sai cedo ("já estava configurado nesse valor"), então isto prova
+    // que a rota existe e o gate deixou passar — sem trocar o ambiente de ninguém.
+    $atual = (int) (DB::table('business')->where('id', 1)->value('ambiente') ?? 2);
+
+    expect($this->post('/nfe-brasil/configuracao/certificado/ambiente', ['ambiente' => $atual])->status())
+        ->not->toBe(403);
+
+    // E o ambiente segue intacto — o controle positivo não pode ter efeito colateral.
+    expect((int) DB::table('business')->where('id', 1)->value('ambiente'))->toBe($atual);
+});

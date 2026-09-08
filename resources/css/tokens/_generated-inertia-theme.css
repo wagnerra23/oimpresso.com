@@ -36,9 +36,9 @@
   --color-popover: oklch(1 0 0);
   --color-popover-foreground: oklch(0.137 0.036 258.5);
   --color-success: oklch(0.62 0.13 162);
-  --color-success-foreground: oklch(0.51 0.12 162);
+  --color-success-foreground: oklch(0.20 0.02 162);
   --color-warning: oklch(0.70 0.13 75);
-  --color-warning-foreground: oklch(0.55 0.12 75);
+  --color-warning-foreground: oklch(0.20 0.02 75);
   --color-destructive-soft: oklch(0.97 0.02 18);
   --color-destructive-fg: oklch(0.51 0.19 18);
   --color-success-soft: oklch(0.97 0.02 162);

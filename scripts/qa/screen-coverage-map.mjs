@@ -103,10 +103,11 @@ const ESCOPO_TELAS =
 const browserFiles = walk(BROWSER_DIR, (f) => f.endsWith('.php'));
 const browserCorpus = browserFiles
   .map((f) => ({ file: f, body: readFileSync(f, 'utf8') }))
-  .map((x) => ({ ...x, hasAxe: /axe|accessibilit/i.test(x.body) }));
-const visregSources = new Set(
-  JSON.parse(readFileSync(VISREG_MANIFEST, 'utf8')).map((entry) => entry.source),
-);
+  .map((x) => ({ ...x, hasAxe: rodaAxeDeVerdade(x.body) }));
+const visregManifest = JSON.parse(readFileSync(VISREG_MANIFEST, 'utf8'));
+const visregSources = new Set(visregManifest.map((entry) => entry.source));
+// Telas cujo contrato visreg DECLARA auditoria axe ("a11y": true), ver telasComContratoA11y.
+const a11ySources = new Set(telasComContratoA11y(visregManifest));
 // Estados isolados (gate L2) — namespaces declarados no manifesto, ver telasComEstadosIsolados.
 const visregStateScreens = new Set(
   telasComEstadosIsolados(JSON.parse(readFileSync(VISREG_STATES_MANIFEST, 'utf8'))),
@@ -156,6 +157,81 @@ export function telasComEstadosIsolados(manifest) {
     .map((entry) => entry?.charter)
     .filter(Boolean)
     .map((charterPath) => pageNamespacePath(charterPath).replace(/\.charter\.md$/, ''));
+}
+
+/**
+ * rodaAxeDeVerdade — o .php INVOCA axe, não apenas MENCIONA. PURO/testável.
+ *
+ * POR QUE APERTOU (medido 2026-09-05 · residual declarado no [#6852](https://github.com/wagnerra23/oimpresso.com/pull/6852)):
+ *   O predicado era `/axe|accessibilit/i` sobre o corpo INTEIRO do arquivo. Como "axe" é
+ *   substring de "sint**axe**", o `PixelBaselineTest.php:58` (*"Validado por: (a) `php -l`
+ *   sintaxe"*) casava — e daí TODA tela citada naquele arquivo ganhava o eixo a11y sem
+ *   auditoria nenhuma existir. Cruzando as 9 telas creditadas com quem de fato chama a
+ *   assertion: **3 eram falso-positivo**. Dois vinham só desse arquivo (`Compras/Index` e
+ *   `Sells/Create`) — e `Sells/Create` é tela de VALOR, onde um "tem a11y" falso manda o
+ *   esforço pro lado errado.
+ *
+ *   Os 4 arquivos que casavam SEM invocar axe: `PixelBaselineTest` (pela palavra "sintaxe") e
+ *   `ConformanceProbesTest` / `PixelDimensionProbesTest` / `Tier0RenderIsolationTest`, estes
+ *   três por citarem `A11yAxeBrowserTest` como "padrão espelhado" no docblock.
+ *
+ * O QUE MEDE AGORA: a CHAMADA — `assertNoAccessibilityIssues` (a assertion nativa do
+ * pest-plugin-browser) ou `axe.run` (invocação direta via `$page->script(...)`). Menção em
+ * prosa não casa nenhuma das duas. É a mesma doutrina do eixo: medir COMPORTAMENTO, não
+ * presença de palavra (LC-11).
+ *
+ * ⚠️ NÃO resolve o arquivo que invoca axe numa tela e MENCIONA outra em docblock — ver o ⚠️
+ * de `telasComContratoA11y`.
+ *
+ * @param {string} corpo conteúdo do .php de tests/Browser/
+ * @returns {boolean}
+ */
+export function rodaAxeDeVerdade(corpo) {
+  return /assertNoAccessibilityIssues|axe\.run/i.test(String(corpo ?? ''));
+}
+
+/**
+ * telasComContratoA11y — sources das telas cujo contrato visreg DECLARA auditoria axe
+ * ("a11y": true em tests/Browser/visreg-screens.json). PURO/testável.
+ *
+ * POR QUE EXISTE (medido em 2026-09-05 contra origin/main f44c459272):
+ *   O eixo a11y era só `e2e.some((b) => b.hasAxe)` — isto é, "algum .php de tests/Browser/ que
+ *   cite o NAMESPACE desta tela também casa /axe|accessibilit/i". Isso é presença de dois
+ *   literais soltos, e cega justamente o padrão CERTO: quando o teste de axe DERIVA seu dataset
+ *   do manifesto — o caso do A11yAxeBrowserTest, e a razão está no docblock dele ("copiá-las pra
+ *   cá à mão criaria um segundo lugar pra elas drifarem em silêncio", ADR 0256) — não existe
+ *   namespace literal nenhum no corpo do arquivo, e o crédito fica invisível.
+ *
+ *   Buraco medido: as 11 telas do Ponto auditadas por axe desde o #6777 saíam `a11y=0`, e a
+ *   própria tela-carro-chefe do arquivo também — o .php escreve `Financeiro/Unificado`, o
+ *   namespace do .tsx é `Financeiro/Unificado/Index`, e `includes()` não casa. Ou seja: a boa
+ *   prática (derivar) era punida, e o eixo subestimava a cobertura real.
+ *
+ * COMO RESOLVE: a auditoria vira DECLARAÇÃO no manifesto e os DOIS lados a derivam — o .php
+ * monta o dataset com ela (em vez do filtro por prefixo "Ponto", que era predicado escondido)
+ * e este medidor credita a mesma coisa. Uma declaração, dois consumidores. Ampliar pra outro
+ * módulo passa a ser marcar a flag, não editar código nos dois lados.
+ *
+ * O crédito casa via `inertiaSourcesFor` — a MESMA resolução que `hasVisregContract` já usa, e
+ * o que faz `Ponto/Configuracoes` (manifesto) encontrar `Ponto/Configuracoes/Index` (.tsx).
+ *
+ * ⚠️ O braço LITERAL foi APERTADO no mesmo dia por `rodaAxeDeVerdade` (ver o docblock dela):
+ * dos 3 falso-positivos medidos em 2026-09-05, **2 morreram** — `Compras/Index` e
+ * `Sells/Create`, que entravam pela palavra "sint**axe**" no `PixelBaselineTest`. O **3º
+ * sobrevive por desenho**: `Produto/StockHistory` é citado num docblock do
+ * `A11yAxeBrowserTest` — arquivo que INVOCA axe de verdade, só que noutra tela. Separar isso
+ * exigiria saber qual `it()` audita qual tela, ou seja parsear PHP; e apagar a menção
+ * histórica pra "limpar" a medição seria editar o artefato pra o número ficar bonito. Fica
+ * DECLARADO, não escondido.
+ *
+ * @param {Array<{source?: string, a11y?: boolean}>} manifest conteúdo do visreg-screens.json
+ * @returns {string[]} sources declarados, ex.: ["Financeiro/Unificado", "Ponto/Dashboard"]
+ */
+export function telasComContratoA11y(manifest) {
+  return (manifest ?? [])
+    .filter((entry) => entry?.a11y === true)
+    .map((entry) => entry?.source)
+    .filter(Boolean);
 }
 
 export function inertiaSourcesFor(relTsx) {
@@ -564,6 +640,45 @@ if (flags.has('--selftest')) {
   // CONTROLE-NEGATIVO 3: o `_doc` do manifesto vive FORA de `screens` e não pode virar tela.
   assert.deepEqual(telasComEstadosIsolados({ _doc: 'texto', screens: {} }), []);
 
+  // --- rodaAxeDeVerdade: INVOCAÇÃO de axe, não menção da palavra ---------------------
+  // BITE: o predicado antigo (`/axe|accessibilit/i`) casava "sint**axe**" e creditava o eixo
+  // a11y a telas sem auditoria nenhuma — 3 falso-positivos de 9, medidos em 2026-09-05.
+  assert.equal(rodaAxeDeVerdade('$page->assertNoAccessibilityIssues(level: 0);'), true);
+  assert.equal(rodaAxeDeVerdade("await window.axe.run()"), true);
+  // CONTROLE-NEGATIVO 1: o FP que motivou o aperto — "sintaxe" contém "axe" como substring.
+  assert.equal(rodaAxeDeVerdade(' * Validado por: (a) `php -l` sintaxe, (b) espelhamento'), false);
+  // CONTROLE-NEGATIVO 2: citar o teste de axe como "padrão espelhado" NÃO é auditar.
+  assert.equal(rodaAxeDeVerdade(' * PADRÃO ESPELHADO: A11yAxeBrowserTest (cross-process DB)'), false);
+  // CONTROLE-NEGATIVO 3: "accessibility" solto em prosa também não é chamada.
+  assert.equal(rodaAxeDeVerdade(' * Fase 2: axe-core em jsdom pega accessibility no DOM simulado'), false);
+  // CONTROLE-NEGATIVO 4: o ponto do `axe.run` é ESCAPADO — `axeXrun` não pode casar.
+  assert.equal(rodaAxeDeVerdade('axeXrun'), false);
+  assert.equal(rodaAxeDeVerdade(''), false);
+  assert.equal(rodaAxeDeVerdade(undefined), false);
+
+  // --- telasComContratoA11y: a auditoria axe DECLARADA no contrato visreg ------------
+  // BITE: sem esta declaração o eixo a11y só enxerga NAMESPACE literal no corpo do .php, e
+  // um teste que DERIVA o dataset do manifesto fica invisível — as 11 telas do Ponto saíam
+  // `a11y=0` auditadas e verdes no CI (medido 2026-09-05).
+  assert.deepEqual(
+    telasComContratoA11y([
+      { source: 'Financeiro/Unificado', a11y: true },
+      { source: 'Ponto/Dashboard', a11y: true },
+    ]),
+    ['Financeiro/Unificado', 'Ponto/Dashboard'],
+  );
+  // CONTROLE-NEGATIVO 1: entrada SEM a flag não credita — é o que separa "tem baseline de
+  // pixel" (46 telas) de "é auditada por axe" (12). Sem isto, o eixo a11y viraria cópia do
+  // visreg e creditaria 34 telas que axe nenhum visita.
+  assert.deepEqual(telasComContratoA11y([{ source: 'Sells/Index' }]), []);
+  // CONTROLE-NEGATIVO 2: a flag é ESTRITAMENTE `true`. String/1/"yes" são truthy em JS e
+  // creditariam por acidente de digitação no manifesto.
+  assert.deepEqual(telasComContratoA11y([{ source: 'X', a11y: 'yes' }, { source: 'Y', a11y: 1 }]), []);
+  assert.deepEqual(telasComContratoA11y([{ source: 'Z', a11y: false }]), []);
+  // Manifesto vazio/ausente não explode (o parse roda no topo, antes de qualquer flag).
+  assert.deepEqual(telasComContratoA11y([]), []);
+  assert.deepEqual(telasComContratoA11y(undefined), []);
+
   // --- chavesDeNome: o kebab que faltava (defeito medido 2026-08-11) ---------------
   // BITE: sem o kebab, `feedbackpublico` nunca casa `RUNBOOK-feedback-publico.md` — era
   // falso-negativo silencioso em 7 das 210 telas migráveis.
@@ -642,6 +757,9 @@ const rows = screens.map((abs) => {
   const charter = existsSync(abs.replace(/\.tsx$/, '.charter.md'));
   const e2e = e2eFor(relTsx);
   const hasVisregContract = inertiaSourcesFor(relTsx).some((source) => visregSources.has(source));
+  // Auditoria axe DECLARADA no contrato visreg — cobre o teste que deriva o dataset do
+  // manifesto e por isso nao cita namespace literal. Ver telasComContratoA11y.
+  const hasA11yContract = inertiaSourcesFor(relTsx).some((source) => a11ySources.has(source));
   const slug = screenSlug(relTsx);
   return {
     screen: relTsx,
@@ -651,7 +769,10 @@ const rows = screens.map((abs) => {
     // derrubaria o número de 18 → 4 e a catraca reprovaria o PR por RECLASSIFICAÇÃO, não por
     // regressão de cobertura. A decomposição honesta vai nos eixos novos + no stdout.
     e2e: e2e.length > 0 || hasVisregContract,
-    a11y: e2e.some((b) => b.hasAxe),
+    // UNIAO, mesma forma do `e2e` acima: literal no corpo do teste ∪ contrato visreg que
+    // declara axe. Sem o 2o braco, todo teste que DERIVA o dataset do manifesto fica invisivel
+    // — era o caso das 11 telas do Ponto (#6777) e da Financeiro/Unificado, medido 2026-09-05.
+    a11y: e2e.some((b) => b.hasAxe) || hasA11yContract,
     scorecard: scorecards.has(slug),
     visreg: hasVisregContract,
     visreg_states: visregStateScreens.has(relTsx.replace(/\.tsx$/, '')),

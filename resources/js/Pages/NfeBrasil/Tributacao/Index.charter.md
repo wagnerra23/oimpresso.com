@@ -1,6 +1,7 @@
 ---
 page: /nfe-brasil/tributacao
 component: resources/js/Pages/NfeBrasil/Tributacao/Index.tsx
+related_prototype: n/a (hub de configuração — cards de config + tabela de regras NCM não-paginada; não casa a assinatura de um dos 5 Padrões de Tela; segue o DS)
 owner: wagner
 status: draft
 last_validated: "2026-07-27"

@@ -45,7 +45,12 @@ beforeEach(function () {
 
     $this->biz = $this->seededTenant();                 // biz=98 ficticio (ADR 0358)
 
-    $this->admin = User::factory()->create(['business_id' => $this->biz->id]);
+    // ->fresh() obrigatorio: o UserFactory nao declara `user_type`/`allow_login` (NOT NULL com
+    // DEFAULT no banco), entao a instancia do factory traz os dois NULL — o Eloquent nao rele a
+    // linha apos o INSERT. O actingAs autentica ESSA instancia e o middleware CheckUserLogin
+    // aborta 403 antes de qualquer permissao. Medido no run 33912397069 (desenho B/A/B):
+    // com fresh 200, sem fresh 403, com can('backup')=true nos dois.
+    $this->admin = User::factory()->create(['business_id' => $this->biz->id])->fresh();
     $this->admin->givePermissionTo('backup');
 
     $this->actingAs($this->admin);
@@ -113,7 +118,9 @@ test('em demo nao despacha job nenhum', function () {
 });
 
 test('sem a permissao backup nao despacha job', function () {
-    $semPermissao = User::factory()->create(['business_id' => $this->biz->id]);
+    // ->fresh() aqui e o que impede o verde tautologico: sem ele o 403 viria do CheckUserLogin
+    // (user_type NULL na instancia do factory), e o caso passaria sem provar nada sobre permissao.
+    $semPermissao = User::factory()->create(['business_id' => $this->biz->id])->fresh();
     $this->actingAs($semPermissao);
     Queue::fake();
 

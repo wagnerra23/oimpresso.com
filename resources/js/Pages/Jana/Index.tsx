@@ -22,6 +22,7 @@ import JanaConfigDrawer from './_components/JanaConfigDrawer'
 import { JanaPlanoBadge } from './_components/JanaPlanoBadge'
 import { useJanaPro } from './_components/useJanaPro'
 import JanaMetaDrawer from './_components/JanaMetaDrawer'
+import JanaMetaNovaDrawer from './_components/JanaMetaNovaDrawer'
 import { useJanaConfig } from './_components/useJanaConfig'
 // Tipos e formatadores com DOIS consumidores (Index + JanaMetaDrawer) moram em
 // `_components/metaFormat.ts` desde 2026-08-17: arquivo de componente não exporta
@@ -188,6 +189,15 @@ function MetaCard({ meta, onOpen }: { meta: Meta; onOpen: (meta: Meta, periodo: 
         {realizado !== null ? (
           <div className="text-2xl font-semibold tabular-nums">
             {formatValue(realizado, meta.unidade)}
+            {/* `jm-meta-v` da âncora: `<b>{atual}</b><small>de {alvo}</small>` — o alvo é a
+                régua do número e vive na MESMA linha, um degrau abaixo. `<small>` inline
+                (não flex) pra baseline nativa e pra não somar container ao `layout:check`
+                (ratchet POR ARQUIVO, baseline 11). */}
+            {alvo !== null && (
+              <small className="ml-1.5 text-[11px] font-normal text-muted-foreground">
+                de {formatValue(alvo, meta.unidade)}
+              </small>
+            )}
           </div>
         ) : (
           <div data-contract="painel-meta-apurando" className="text-sm text-muted-foreground">Aguardando apuração…</div>
@@ -217,11 +227,15 @@ function MetaCard({ meta, onOpen }: { meta: Meta; onOpen: (meta: Meta, periodo: 
             projeção não é projeção de zero. */}
         {alvo !== null && (
           <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
+            {/* `jm-meta-f` da âncora: "{pct}% do alvo" — o substantivo fica com a
+                porcentagem, e o alvo já foi lido na linha do valor (antes aparecia como
+                rótulo "Alvo:" aqui e em lugar nenhum lá em cima). Sem apuração não existe
+                "% do alvo": mostra-se só "alvo X", como o `jm-meta-apurando` da âncora —
+                nunca "0% do alvo". */}
             <span>
-              Alvo: {formatValue(alvo, meta.unidade)}
-              {progresso !== null && (
-                <span className="ml-2 font-medium text-foreground">{progresso.toFixed(0)}%</span>
-              )}
+              {progresso !== null
+                ? `${progresso.toFixed(0)}% do alvo`
+                : `alvo ${formatValue(alvo, meta.unidade)}`}
             </span>
             {meta.projecao && (
               <span className="ml-auto shrink-0 font-mono text-[10.5px] tabular-nums">
@@ -253,6 +267,9 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
   // o payload veio inteiro no first render, então reabrir não custa consulta, e
   // o `periodoLabel` continua morando num lugar só.
   const [metaAberta, setMetaAberta] = useState<{ meta: Meta; periodo: string | null } | null>(null)
+  // PR-2b: criar meta passou a acontecer no Painel. Antes o botão era `<a href>` nativo
+  // porque a rota devolvia Blade; agora a gaveta faz o POST e a rota `create` fica órfã.
+  const [novaMetaAberta, setNovaMetaAberta] = useState(false)
 
   return (
     <>
@@ -354,7 +371,14 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              {/* "Nova meta" — a âncora põe este botão no cabeçalho da seção METAS
+              {/* "Nova meta" — a âncora põe este botão no cabeçalho da seção METAS.
+
+                  ⚠️ ATÉ 2026-09-07 este botão era um `<a href>` NATIVO, e o comentário
+                  abaixo explicava por quê: `MetasController@create` devolvia Blade, e um
+                  `<Link>` do Inertia viraria no-op silencioso. Isso mudou no PR-2b — criar
+                  virou gaveta no próprio Painel (`JanaMetaNovaDrawer`), e a rota `create`
+                  ficou órfã (o cutover dela é o PR-4 do RUNBOOK-metas §9.4). O texto
+                  original fica abaixo como registro do que era verdade até aquela data.
                   (`jana-merge.jsx`, símbolo `JmMetasSecao`; re-localize com
                   `grep -n "Nova meta" prototipo-ui/cowork/jana-merge.jsx`).
 
@@ -371,11 +395,9 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
                   O charter proíbe "prometer no botão o que a rota não entrega"
                   (§Anti-hooks) — a rota entrega: `Modules/Jana/Resources/views/metas/create.blade.php`
                   existe e o prefixo do grupo é `ia` (routes.php:51). */}
-              <Button variant="outline" className="gap-2" asChild>
-                <a href="/ia/metas/create">
-                  <Target className="h-4 w-4" />
-                  Nova meta
-                </a>
+              <Button variant="outline" className="gap-2" onClick={() => setNovaMetaAberta(true)}>
+                <Target className="h-4 w-4" />
+                Nova meta
               </Button>
               {/* Entry-point pro paywall Jana Pro (ADR 0140). Upsell discreto —
                   a ação primária da Dashboard continua sendo "Conversar". */}
@@ -464,6 +486,8 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
           analisesVisiveis={config.analises}
         />
       </div>
+
+      <JanaMetaNovaDrawer aberto={novaMetaAberta} onClose={() => setNovaMetaAberta(false)} />
 
       <JanaMetaDrawer
         meta={metaAberta?.meta ?? null}

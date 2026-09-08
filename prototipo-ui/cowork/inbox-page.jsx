@@ -337,35 +337,6 @@
 
     useEffect(() => {if (!toast) return;const t = setTimeout(() => setToast(null), 2400);return () => clearTimeout(t);}, [toast]);
 
-    // Atalhos de teclado (V2)
-    if (window.useInboxKeyboard) {
-      window.useInboxKeyboard({
-        onPalette: () => setPaletteOpen(true),
-        onCheat: () => setCheatOpen(true),
-        onEsc: () => {setPaletteOpen(false);setCheatOpen(false);setShowTpl(false);setShowMacros(false);setSlashOpen(false);},
-        onNext: () => {
-          if (!filteredConvs.length) return;
-          const i = filteredConvs.findIndex((c) => c.id === selId);
-          const nx = filteredConvs[Math.min(filteredConvs.length - 1, i + 1)];
-          if (nx) {setSelId(nx.id);if (mobileView === "list") setMobileView("thread");}
-        },
-        onPrev: () => {
-          if (!filteredConvs.length) return;
-          const i = filteredConvs.findIndex((c) => c.id === selId);
-          const pv = filteredConvs[Math.max(0, i - 1)];
-          if (pv) {setSelId(pv.id);if (mobileView === "list") setMobileView("thread");}
-        },
-        onToggleFav: () => {
-          if (!selId) return;
-          toggleFav(selId);
-          setToast(isFav(selId) ? "Removido dos favoritos" : "Favoritado");
-        },
-        onFocusInput: () => {inputRef.current && inputRef.current.focus();if (mobileView !== "thread") setMobileView("thread");},
-        onResolve: () => {if (conv && !isPreview) resolve();},
-        deps: [filteredConvs, selId, mobileView, isFav]
-      });
-    }
-
     // ── Filtragem ─────────────────────────────────────────────────────
     const filteredConvs = useMemo(() => {
       const out = convs.filter((c) => {
@@ -395,6 +366,40 @@
     const convChannel = convAcc ? CHAN_BY_ID[convAcc.channel] : null;
     const convQueue = conv ? Q_BY_ID[conv.queue] : null;
     const isPreview = conv?.preview_only;
+
+    // Atalhos de teclado (V2) — DEPOIS de filteredConvs/conv/isPreview.
+    // BUG PRÉ-EXISTENTE (achado 2026-08-31): declarado ACIMA do useMemo, o array
+    // `deps: [filteredConvs, …]` é AVALIADO na chamada do hook, não no evento — dava
+    // "Cannot access 'filteredConvs' before initialization" e derrubava a tela inteira
+    // de Atendimento em todo render. Ordem importa aqui, não é estilo.
+    if (window.useInboxKeyboard) {
+      window.useInboxKeyboard({
+        onPalette: () => setPaletteOpen(true),
+        onCheat: () => setCheatOpen(true),
+        onEsc: () => {setPaletteOpen(false);setCheatOpen(false);setShowTpl(false);setShowMacros(false);setSlashOpen(false);},
+        onNext: () => {
+          if (!filteredConvs.length) return;
+          const i = filteredConvs.findIndex((c) => c.id === selId);
+          const nx = filteredConvs[Math.min(filteredConvs.length - 1, i + 1)];
+          if (nx) {setSelId(nx.id);if (mobileView === "list") setMobileView("thread");}
+        },
+        onPrev: () => {
+          if (!filteredConvs.length) return;
+          const i = filteredConvs.findIndex((c) => c.id === selId);
+          const pv = filteredConvs[Math.max(0, i - 1)];
+          if (pv) {setSelId(pv.id);if (mobileView === "list") setMobileView("thread");}
+        },
+        onToggleFav: () => {
+          if (!selId) return;
+          toggleFav(selId);
+          setToast(isFav(selId) ? "Removido dos favoritos" : "Favoritado");
+        },
+        onFocusInput: () => {inputRef.current && inputRef.current.focus();if (mobileView !== "thread") setMobileView("thread");},
+        onResolve: () => {if (conv && !isPreview) resolve();},
+        deps: [filteredConvs, selId, mobileView, isFav]
+      });
+    }
+
 
     const accountsForFilter = useMemo(() =>
     filter === "all" ? [] : ACCOUNTS.filter((a) => a.channel === filter),

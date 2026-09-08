@@ -1,0 +1,92 @@
+{
+  "url": "https://staging.oimpresso.com/fiscal/dfe",
+  "theme": "light",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C Manifestação do destinatário 0 aguardando ciência · R$ 0,00 · busca diária SEFAZ tudo manifestado Buscar Cockpit NF-e · NFC-e NFS-e Manifesto DF-e Eventos Certif. & Cfg. SPED & Livros Aguardando ciência Histórico 5 O que é manifestação? Toda NF-e emitida com o seu CNPJ no destinatário deve ser manifestada em até 90 dias . 4 respostas: ciência · confirmação · desconhecimento · não realizada . Sem manifestar, escrita fiscal e CIAP ficam inconsistentes. Pendentes 0 Confirmadas 0 Desconhecidas 0 Não realizadas 0 Todas 0 Nenhuma DF-e encontrada NF-e emitidas contra o CNPJ são captadas via NSU SEFAZ (job periódico). Decisão [W] pendente A aba Histórico mostra manifestações reais hoje ela é servida por dado de demonstração com ator e observação inventados (CU-FISC-16 do SDD §6.5 · §5.4.1). A consulta real está declarada como pendência no próprio código. Precisa de decisão [W] sobre marcar procedência, esconder atrás de flag ou declarar Non-Goal. Débitos conhecidos desta tela Nenhuma manifestação chegava à SEFAZ, por nenhum caminho ManifestacaoService::buildConfig() e DistribuicaoDfeService::buildConfig() fazem select(['name','tax_number_1','state']) em business. A coluna state não existe: 133 colunas no schema canônico (database/schema/mysql-schema.sql), 133 no staging CT 100 e 133 em produção Hostinger, sem state nos três — e nenhuma das 43 migrations que tocam business a cria. Toda manifestação morre em SQLSTATE[42S22] Unknown column 'state', incluindo o ManifestacaoController::bulkConfirmar do próprio NfeBrasil. Os dois sites já carregam ?? 'SP', e o docblock diz *\"UF default 35 (SP) — manifestação é nacional, mas Tools exige cUF\"* — o default parece ter sido sempre a intenção, e a coluna no select o acidente. Era motor fiscal, e a decisão [W] veio em 2026-09-04: consertar pelo resolverUF canônico. Feito no PR #6748, nos dois sites (a lápide §5 2026-08-02 é explícita sobre corrigir só um de N) — e ali apareceram mais dois defeitos empilhados atrás deste. O #6748 mergeou em 2026-09-04 13:59 — o item fica aqui até esta tela ganhar um UC que prove a manifestação ponta-a-ponta, que é o que falta para ele sair de vez. em revisão O prazo aparece com três níveis de urgência, vindo do prazo que a SEFAZ calculou Dado uma nota recebida com prazo definido · Quando a contadora lê a linha · Então vê quantos dias restam, sinalizado como crítico, atenção ou tranquilo. O charter é explícito: a fonte de verdade é o prazo gravado pela SEFAZ, não um \"90 dias\" fixo no código. O cálculo existe; nenhum teste valida os níveis. sem teste Os chips filtram por estado de manifestação pendentes (pendente + ciência), confirmadas, desconhecidas, não realizadas, todas. Existe no Controller; sem teste do resultado. sem teste A busca aceita chave, CNPJ do emitente e nome do emitente inclusive digitando o CNPJ com pontuação. Sem teste do resultado. sem teste buscar tudo NF-e navegar lista todos os atalhos Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "700",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "fiscal-dfe-filters",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "decisao-pendente",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "debitos-conhecidos",
+        "classes": {
+          "dataIso": 3,
+          "dataBr": 0,
+          "snakeCru": 1
+        },
+        "exemplos": {
+          "dataIso": [
+            "2026-09-04",
+            "2026-08-02"
+          ],
+          "snakeCru": [
+            "tax_number_1"
+          ]
+        }
+      }
+    ],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

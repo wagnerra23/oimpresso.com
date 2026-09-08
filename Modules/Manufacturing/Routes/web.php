@@ -19,14 +19,36 @@ Route::middleware('throttle:60,1', 'web', 'authh', 'SetSessionData', 'auth', 'la
     Route::resource('/recipe', 'Modules\Manufacturing\Http\Controllers\RecipeController')->except('edit', 'update');
     Route::resource('/production', 'Modules\Manufacturing\Http\Controllers\ProductionController');
 
-    // MWART Wave J — Index Inertia v2 (coexiste com a Resource Blade legacy acima).
-    // Mantida fora do Route::resource pra não colidir com /production/{production}.
-    Route::get('/v2/production', [Modules\Manufacturing\Http\Controllers\ProductionController::class, 'indexV2'])
-        ->name('manufacturing.production.v2.index');
-
     Route::resource('/settings', 'Modules\Manufacturing\Http\Controllers\SettingsController')->only('index', 'store');
 
-    Route::get('/report', [Modules\Manufacturing\Http\Controllers\ProductionController::class, 'getManufacturingReport']);
+    // US-MANU-005 — Insumos (impacto reverso + simulador). 100% leitura.
+    // Nasceu em `/v2/insumos` e passou ao endereço canônico no cutover de 2026-09-04.
+    Route::get('/insumos', [Modules\Manufacturing\Http\Controllers\RecipeController::class, 'insumos'])
+        ->name('manufacturing.insumos.index');
+
+    /*
+     * CUTOVER 2026-09-04 — pedido [F]: "módulo inteiro em produção, com os links e vínculos
+     * reais, sem rotas alternativas".
+     *
+     * As telas React passaram a ser servidas nos ENDEREÇOS CANÔNICOS (`/production`,
+     * `/report`, `/settings`, `/insumos`, e `/recipe` desde a US-MANU-001). Os `/v2/*` eram
+     * o andaime da migração: viram REDIRECT permanente pro canônico em vez de sumir, porque
+     * link salvo, favorito e histórico do time apontam pra eles — 301 preserva isso sem
+     * manter dois destinos vivos.
+     *
+     * Os métodos `indexV2`/`reportV2`/`indexV2` (Settings) continuam sendo a implementação
+     * única: o método canônico DELEGA pra eles. O que sumiu foi o segundo ENDEREÇO, não o
+     * segundo código.
+     */
+    Route::permanentRedirect('/v2/production', '/manufacturing/production');
+    Route::permanentRedirect('/v2/report', '/manufacturing/report');
+    Route::permanentRedirect('/v2/settings', '/manufacturing/settings');
+    Route::permanentRedirect('/v2/insumos', '/manufacturing/insumos');
+
+    // Nome adicionado no cutover 2026-09-04: a rota existia SEM nome (nada a referenciava
+    // por nome), e o charter da tela precisa apontar pra um `rota_nome` que exista.
+    Route::get('/report', [Modules\Manufacturing\Http\Controllers\ProductionController::class, 'getManufacturingReport'])
+        ->name('manufacturing.report.index');
 
     Route::post('/update-product-prices', [Modules\Manufacturing\Http\Controllers\RecipeController::class, 'updateRecipeProductPrices']);
 });

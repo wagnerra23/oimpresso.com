@@ -3,6 +3,8 @@ id: resources-js-pages-purchase-index-charter
 page: /purchases
 component: resources/js/Pages/Purchase/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
+related_visual_comparison: memory/requisitos/Compras/_telas/index-visual-comparison.md
+related_us: [US-MWART-008]
 owner: wagner
 status: draft
 last_validated: "2026-07-11"

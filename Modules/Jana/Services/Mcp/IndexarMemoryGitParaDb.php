@@ -105,6 +105,25 @@ class IndexarMemoryGitParaDb
         // de slugs vistos é um subconjunto, e o whereNotIn apagaria todo o
         // resto do índice (1400+ docs) por engano.
         if ($this->onlyType === null) {
+            // ⚠️ E SÓ com coleta NÃO-VAZIA. Esta guarda é OUTRA, não um reforço da
+            // de cima: aquela cobre o sync PARCIAL (subconjunto por type), esta
+            // cobre o COMPLETO com coleta vazia. Casos diferentes — e até
+            // 2026-09-05 só o primeiro estava coberto.
+            //
+            // `whereNotIn('slug', [])` vira `where 1 = 1` no SQL: apagaria o corpus
+            // INTEIRO. Medido no staging CT 100 em 2026-09-04 (sonda somente-leitura,
+            // toSql()+count(), nenhum delete executado): casaria 2555 de 2555 docs;
+            // controle positivo com 1 slug real casou 2554.
+            //
+            // E o caminho é alcançável E silencioso: coletarArquivos() é glob() puro
+            // sobre $repoBasePath, e glob() sobre diretório inexistente devolve []
+            // sem erro nenhum — checkout sem memory/, repoBasePath errado, pull a
+            // meio caminho. Coleta vazia num sync COMPLETO é FALHA DE AMBIENTE,
+            // nunca instrução de apagar o índice.
+            if ($slugsVistos === []) {
+                $this->abortarColetaVazia();
+            }
+
             $stats['removidos'] = McpMemoryDocument::whereNotIn('slug', $slugsVistos)->delete();
         }
 
@@ -115,6 +134,48 @@ class IndexarMemoryGitParaDb
         ]);
 
         return $stats;
+    }
+
+    /**
+     * Coleta vazia num sync COMPLETO — aborta ALTO, sem tocar no índice.
+     *
+     * Por que EXCEÇÃO e não só log: guarda silenciosa trocaria perda-de-dado
+     * silenciosa por NÃO-SYNC silencioso — o mesmo defeito com outra roupa. E o
+     * ruidoso não precisa de mecanismo novo: os dois consumidores do `run()` já
+     * têm caminho de falha visível, medido antes de escolher esta forma —
+     *   - {@see \Modules\Jana\Console\Commands\McpSyncMemoryCommand}: `catch` →
+     *     `$this->error()` + `FAILURE`, ou seja exit != 0 no cron de 5 min. O
+     *     `Ct100CircuitBreaker` NÃO engole: `isTransportFailure()` casa só 4
+     *     classes HTTP/Meilisearch, e `RuntimeException` não é uma delas.
+     *   - {@see \Modules\Forja\Http\Controllers\Mcp\SyncMemoryWebhookController}:
+     *     `catch` → `Log::error` + HTTP 500, que o GitHub mostra como delivery
+     *     falha na UI do webhook.
+     *
+     * Deliberadamente NÃO conto com `onFailure(Log::error)` do schedule: neste
+     * projeto ele não é falha visível (proibicoes.md §5 2026-08-08).
+     */
+    private function abortarColetaVazia(): never
+    {
+        $temMemoryDir = is_dir($this->repoBasePath . '/memory');
+        // Sem escopo extra de propósito: é exatamente o conjunto que o
+        // `whereNotIn('slug', [])` teria apagado.
+        $preservados = McpMemoryDocument::count();
+
+        $detalhe = sprintf(
+            'coleta vazia em sync COMPLETO — poda ABORTADA, %d doc(s) preservados; base=%s (memory/ %s)',
+            $preservados,
+            $this->repoBasePath,
+            $temMemoryDir ? 'existe, porém sem nenhum .md' : 'AUSENTE',
+        );
+
+        Log::channel('copiloto-ai')->error('IndexarMemoryGitParaDb ABORTADO: ' . $detalhe, [
+            'reason'           => $this->reason,
+            'repo_base_path'   => $this->repoBasePath,
+            'memory_dir_existe' => $temMemoryDir,
+            'docs_preservados' => $preservados,
+        ]);
+
+        throw new \RuntimeException('IndexarMemoryGitParaDb: ' . $detalhe);
     }
 
     /**

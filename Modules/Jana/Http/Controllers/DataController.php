@@ -126,18 +126,45 @@ class DataController extends Controller
      * `default => false` de propósito: aparecer na tela ≠ vir marcado. Quem
      * concede é o admin do business (Camada 3, multi-tenant).
      *
+     * ── EXCEÇÃO `admin_only` (Tier 0, 2026-09-07) ────────────────────────────
+     *
+     * Scope marcado `admin_only => true` NÃO entra. Eram 5 de 22
+     * (`jana.mcp.usage.all`, `jana.mcp.memory.manage`, `jana.mcp.projects.manage`,
+     * `jana.cc.read.all`, `jana.cc.curate`), e o `jana.mcp.usage.all` é o ÚNICO
+     * gate de `/governance/qualidade-ia` e das 8 telas do hub da Forja.
+     *
+     * O que este filtro fecha não é a UI — é a CONCESSÃO. `PermissionCatalog`
+     * é alimentado por `ModuleUtil::getModuleData('user_permissions')`, que é
+     * este mesmo método (`RoleController:416`); o que sai daqui sai também do
+     * catálogo aceito, então `RoleController@__somenteDoCatalogo` passa a
+     * DESCARTAR o slug do POST — inclusive de um POST forjado, que a tela
+     * sozinha nunca barraria. Ver `McpScopeAdminOnlyNaoAutoConcedivelTest`.
+     *
+     * E a razão original (não apagar no save) não depende mais de estar no
+     * form: `RoleController@__preservaNaoOfertadas` preserva do estado ATUAL
+     * da role tudo o que o form não oferece — garantia mais forte que a de
+     * 2026-07-29, porque não depende de o checkbox vir marcado no POST.
+     *
+     * Conceder `admin_only` é ato de superadmin, pelo caminho que o próprio
+     * seeder documenta (`Role::findByName(...)->givePermissionTo(...)`).
+     *
      * @return array<int, array<string, mixed>>
      */
     protected function mcpScopePermissions(): array
     {
-        return array_map(
+        $ofertaveis = array_filter(
+            \Modules\Jana\Database\Seeders\McpScopesSeeder::catalogo(),
+            static fn (array $scope): bool => ($scope['admin_only'] ?? false) !== true
+        );
+
+        return array_values(array_map(
             static fn (array $scope): array => [
                 'value'   => $scope['slug'],
                 'label'   => 'MCP: '.$scope['nome'],
                 'default' => false,
             ],
-            \Modules\Jana\Database\Seeders\McpScopesSeeder::catalogo()
-        );
+            $ofertaveis
+        ));
     }
 
     /**

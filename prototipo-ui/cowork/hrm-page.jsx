@@ -300,7 +300,7 @@ function Licencas({ lic, setLic }) {
 
       {subview === "saldo" && <>
         <div className="os-table-wrap"><table className="os-table">
-          <thead><tr><th>Tipo</th><th className="hrm-num">Limite</th><th className="hrm-num">Aprovado</th><th className="hrm-num">Em análise</th><th>Consumo</th><th>Risco</th></tr></thead>
+          <thead><tr><th scope="col">Tipo</th><th scope="col" className="hrm-num">Limite</th><th scope="col" className="hrm-num">Aprovado</th><th scope="col" className="hrm-num">Em análise</th><th scope="col">Consumo</th><th scope="col">Risco</th></tr></thead>
           <tbody>{saldo.map((t) => (
             <tr key={t.id}>
               <td className="hrm-name">{t.nome}<div className="hrm-meta">{t.intervalo === "year" ? "por ano" : "por mês"}</div></td>
@@ -322,7 +322,7 @@ function Licencas({ lic, setLic }) {
         </Nota>
         <div className="hrm-toolbar"><span className="usr-count">{A.dados.tipos.length} tipos</span><span className="hrm-spacer"></span><button className="os-btn primary" disabled={!A.pode("gerir_licenca") || A.demo}>Novo tipo</button></div>
         {A.dados.tipos.length ? <div className="os-table-wrap"><table className="os-table">
-          <thead><tr><th>Tipo</th><th className="hrm-num">Limite</th><th>Intervalo</th><th className="hrm-num">Pedidos no ano</th><th></th></tr></thead>
+          <thead><tr><th scope="col">Tipo</th><th scope="col" className="hrm-num">Limite</th><th scope="col">Intervalo</th><th scope="col" className="hrm-num">Pedidos no ano</th><th scope="col"></th></tr></thead>
           <tbody>{A.dados.tipos.map((t) => (
             <tr key={t.id}>
               <td className="hrm-name">{t.nome}</td>
@@ -433,11 +433,11 @@ function Feriados() {
       </div>
       {rows.length ? <div className="os-table-wrap"><table className="os-table">
         <thead><tr>
-          <th><button className="mod-sort" onClick={() => ord("nome")}>Feriado{marca("nome")}</button></th>
-          <th><button className="mod-sort" onClick={() => ord("ini")}>Início{marca("ini")}</button></th>
-          <th>Fim</th>
-          <th className="hrm-num"><button className="mod-sort" onClick={() => ord("dias")}>Dias{marca("dias")}</button></th>
-          <th>Localidade</th><th>Observação</th><th></th>
+          <th scope="col"><button className="mod-sort" onClick={() => ord("nome")}>Feriado{marca("nome")}</button></th>
+          <th scope="col"><button className="mod-sort" onClick={() => ord("ini")}>Início{marca("ini")}</button></th>
+          <th scope="col">Fim</th>
+          <th scope="col" className="hrm-num"><button className="mod-sort" onClick={() => ord("dias")}>Dias{marca("dias")}</button></th>
+          <th scope="col">Localidade</th><th scope="col">Observação</th><th scope="col"></th>
         </tr></thead>
         <tbody>{rows.map((f) => (
           <tr key={f.id}>
@@ -527,15 +527,8 @@ function HrmPage({ view = "hrm" }) {
         </div>
       </header>
 
-      <nav className="hrm-tabs" role="tablist">
-        {TABS.map((t) => {
-          const n = t.n ? t.n({ pend, dados:ambiente.dados }) : null;
-          return (
-            <button key={t.id} role="tab" aria-selected={t.id === view} className={t.id === view ? "on" : ""} onClick={() => go(t.id)}>
-              {t.label}{n ? <span className="hrm-tab-n">{n}</span> : null}
-            </button>);
-        })}
-      </nav>
+      <window.CliTabs className="hrm-tabs" ariaLabel="Telas de RH" active={view} onChange={go}
+        tabs={TABS.map((t) => ({ key: t.id, label: t.label, n: t.n ? t.n({ pend, dados: ambiente.dados }) : null }))} />
 
       {(demo || papel !== "admin") && (
         <div className="hrm-note-ds">

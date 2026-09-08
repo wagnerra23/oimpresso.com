@@ -322,11 +322,7 @@ function ComprasExtrasPage({ view = "cmp-pedidos" }) {
           glyph={<Ic name="archive" />}
           acoes={<button className="os-btn" onClick={() => ir("compras")}>Compras recebidas</button>} />}
       <div className="pb-body">
-        <nav className="cli-moduletopnav vb-nav" aria-label="Telas de Compras">
-          {Object.keys(TITULOS).map((k) => (
-            <button key={k} className={"cli-moduletopnav-tab " + (view === k ? "active" : "")} onClick={() => ir(k)}>{TITULOS[k]}</button>
-          ))}
-        </nav>
+        {window.CliTabs && <window.CliTabs ariaLabel="Telas de Compras" className="vb-nav" tabs={Object.keys(TITULOS).map((k) => ({ key: k, label: TITULOS[k] }))} active={view} onChange={ir} />}
         {!Grade ? <p className="pb-help">A base do catch-up (catchup-shared.jsx) não carregou.</p> :
           view === "cmp-pedidos" ? telaPedidos() : view === "cmp-requisicoes" ? telaReqs() : telaDevs()}
       </div>

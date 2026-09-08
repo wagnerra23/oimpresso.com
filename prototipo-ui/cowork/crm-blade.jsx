@@ -20,7 +20,16 @@ const { useState, useMemo, useEffect } = React;
 const MP = () => window.ModuloPadrao || {};
 const DS = () => window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
 const UI = () => window.PBUI || {};
-const Ic = ({ name, size = 14 }) => { const F = (window.I || {})[name]; return F ? <F size={size} /> : null; };
+// A3 (a11y do alvo, 2026-09-04): ícone decorativo nasce anônimo em window.I — 15 de 15 svg sem
+// aria-hidden nem nome na medição da view Leads. Corrigido AQUI (build), não pedido ao Code.
+// Ícone com significado passa `rotulo` e vira role="img" + aria-label.
+const Ic = ({ name, size = 14, rotulo = null }) => {
+  const F = (window.I || {})[name];
+  if (!F) return null;
+  return rotulo
+    ? <span role="img" aria-label={rotulo} style={{ display: "inline-flex" }}><F size={size} /></span>
+    : <span aria-hidden="true" style={{ display: "inline-flex" }}><F size={size} /></span>;
+};
 
 // ─────────── Domínio (selects dos blades: sources, life_stages, followup_category, statuses) ───────────
 const FONTES = [
@@ -247,13 +256,10 @@ function Grade({ columns, rows, densa, altura = 420, selectable, onSelectionChan
 function Toolbar({ busca, setBusca, ph, densa, setDensa, children }) {
   return (
     <div className="pb-toolbar" data-contract="crm-toolbar">
-      <div className="pb-busca"><Ic name="search" size={12} /><input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder={ph} /></div>
+      <div className="pb-busca"><Ic name="search" size={12} /><input aria-label={ph} value={busca} onChange={(e) => setBusca(e.target.value)} placeholder={ph} /></div>
       <div className="sp" />
       {setDensa &&
-        <div className="pb-seg" role="group" aria-label="Densidade da tabela">
-          <button className={densa ? "" : "on"} onClick={() => setDensa(false)}>Confortável</button>
-          <button className={densa ? "on" : ""} onClick={() => setDensa(true)}>Compacto</button>
-        </div>}
+        <window.CliSeg ariaLabel="Densidade da tabela" value={densa ? "comp" : "conf"} onChange={(k) => setDensa(k === "comp")} options={[{ key: "conf", label: "Confortável" }, { key: "comp", label: "Compacto" }]} />}
       {children}
     </div>
   );
@@ -264,7 +270,7 @@ const Rodape = ({ children }) => <div className="pb-pag" data-contract="crm-roda
 function Mini({ head, rows, vazio = "Sem dados" }) {
   return (
     <table className="pb-tbl" style={{ width: "100%" }}>
-      {head && <thead><tr>{head.map((h, i) => <th key={i} style={i > 0 ? { textAlign: "right" } : null}>{h}</th>)}</tr></thead>}
+      {head && <thead><tr>{head.map((h, i) => <th key={i} scope="col" style={i > 0 ? { textAlign: "right" } : null}>{h}</th>)}</tr></thead>}
       <tbody>
         {rows.length === 0 && <tr><td colSpan={(head || [1]).length} style={{ textAlign: "center", color: "var(--text-mute)" }}>{vazio}</td></tr>}
         {rows.map((r, i) => <tr key={i}>{r.map((c, j) => <td key={j} className={j > 0 ? "mono" : ""} style={j > 0 ? { textAlign: "right" } : null}>{c}</td>)}</tr>)}
@@ -428,10 +434,7 @@ function TelaLeads({ avisar, densa, setDensa, abrir, perms }) {
       ]} />
       <Widget contrato="crm-leads" titulo="Todos os leads" nota={rows.length + " de " + leads.length} flush>
         <Toolbar busca={busca} setBusca={setBusca} ph="Buscar por nome, ID ou celular" densa={densa} setDensa={vista === "list_view" ? setDensa : null}>
-          <div className="pb-seg" role="group" aria-label="Modo de exibição">
-            <button className={vista === "list_view" ? "on" : ""} onClick={() => setVista("list_view")}>Exibição de lista</button>
-            <button className={vista === "kanban" ? "on" : ""} onClick={() => setVista("kanban")}>Kanban</button>
-          </div>
+          <window.CliSeg ariaLabel="Modo de exibição" value={vista} onChange={setVista} options={[{ key: "list_view", label: "Exibição de lista" }, { key: "kanban", label: "Kanban" }]} />
           <button className="os-btn sm primary" onClick={() => avisar("Formulário de lead aberto.", "ok")}><Ic name="plus" size={12} /> Adicionar</button>
         </Toolbar>
         {vista === "list_view"
@@ -592,10 +595,7 @@ function TelaAcompanhamentos({ avisar, densa, setDensa, abrir }) {
           <button className="os-btn sm" onClick={() => abrir("antecipado")}><Ic name="plus" size={12} /> Acompanhamento antecipado</button>
           <button className="os-btn sm primary" onClick={() => setNovo({ status: "scheduled", tipo: "call", notificar: false, via: { mail: true, sms: false }, antes: 30, unidade: "minute" })}><Ic name="plus" size={12} /> Adicionar</button>
         </Toolbar>
-        <nav className="cli-moduletopnav" aria-label="Abas de acompanhamento" style={{ padding: "0 12px" }}>
-          <button className={"cli-moduletopnav-tab " + (aba === "todos" ? "active" : "")} onClick={() => setAba("todos")}>Acompanhamentos</button>
-          <button className={"cli-moduletopnav-tab " + (aba === "recor" ? "active" : "")} onClick={() => setAba("recor")}>Acompanhamento recorrente</button>
-        </nav>
+        {window.CliTabs && <window.CliTabs ariaLabel="Abas de acompanhamento" pad={12} tabs={[{ key: "todos", label: "Acompanhamentos" }, { key: "recor", label: "Acompanhamento recorrente" }]} active={aba} onChange={setAba} />}
         {aba === "todos"
           ? <>
               <Grade columns={cols} rows={grade} densa={densa} altura={430} onRowClick={(r) => setVer(r._s)} />
@@ -772,9 +772,7 @@ function CrmBladePage({ view = "painel", dense = false, papel = "administrador" 
             <button className="os-btn primary" onClick={() => onIr("leads")}><Ic name="plus" size={13} /> Adicionar lead</button>
           </>} />}
       <div className="pb-body">
-        <nav className="cli-moduletopnav cb-nav" aria-label="Telas do módulo CRM">
-          {abas.map((k) => <button key={k} className={"cli-moduletopnav-tab " + (tela === k ? "active" : "")} onClick={() => onIr(k)}>{TITULOS[k]}</button>)}
-        </nav>
+        {window.CliTabs && <window.CliTabs ariaLabel="Telas do módulo CRM" className="cb-nav" tabs={abas.map((k) => ({ key: k, label: TITULOS[k] }))} active={tela} onChange={onIr} />}
         {corpo}
       </div>
       {avisoNode}

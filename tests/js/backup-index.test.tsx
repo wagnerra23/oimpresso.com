@@ -65,4 +65,20 @@ describe('Backup/Index', () => {
 
     expect(screen.queryByText(/Backup no mesmo servidor/i)).toBeNull()
   })
+
+  // O id vai no TÍTULO, não só no docblock: UC citado apenas em comentário satisfaz o G-2 por
+  // string-match mas fica INALCANÇÁVEL pelo G-7 (casos-coverage-guard.mjs:195) — nunca poderia
+  // virar ✅ provado. É a forma forte da citação, e é de graça.
+  //
+  // Este é o caso POR TELA do nome acessível: `tests/a11y-primitives.test.tsx` prova o
+  // primitivo `shared/DataTable` isolado; aqui a asserção passa pela página inteira, que é o
+  // que o UC-BKP-11 promete. Sem isto, o UC seria "provado" por um teste que não renderiza
+  // esta tela — presence-gate com outro nome.
+  it('UC-BKP-11 · a lista de backups tem nome acessível (o zip nao fica numa tabela anonima)', () => {
+    render(<BackupIndex {...base} destino={{ disk: 's3', remoto: true, pasta: 'UltimatePOS' }} />)
+
+    // Nome COMPUTADO pela mesma cadeia de accname que a tecnologia assistiva usa — não o
+    // atributo que escrevemos (§5 2026-07-16: medir a propriedade resolvida).
+    expect(screen.getByRole('table', { name: 'Backups no disco' })).not.toBeNull()
+  })
 })

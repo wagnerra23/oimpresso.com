@@ -4,7 +4,7 @@ casos: Jana Painel · metas ativas · farol server-side · cockpit deferido · /
 irmaos: Index.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-index.md (runbook) · prototipo-ui/contrato/jana-painel.contract.json (contrato visual)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-09-03"
+last_run: "2026-09-08"
 ---
 
 # Casos de uso — /ia (Painel da Jana)
@@ -735,6 +735,157 @@ mostra número inventado é pior que card ausente.
 
 ---
 
+## UC-JPAIN-20 — os 3 KPIs do topo são RÉPLICA do `.jc-kpi`, não o card PT-04
+Status: 🧪 (render-test `tests/janaKpiReplica.spec.tsx` — 13 asserções, **13 passed** rodadas
+localmente em 2026-09-03, com bite-test provado por mutação; e `PainelContratoTest` reescrito. O
+`✅` só entra quando o verde vier do MANIFESTO — G-7 —, e ele ainda não veio: o CT 100 estava fora
+do ar nesta sessão (`tailscale ssh` devolveu 502), então o veredito é o das lanes de CI. Run local
+não é run do manifesto, e escrever `✅` aqui seria exatamente o "o Status pode mentir" que o
+casos-gate existe pra impedir.)
+
+Derivado da **âncora** (`node prototipo-ui/ancora.mjs Jana/Index` →
+`prototipo-ui/cowork/jana-merge.jsx` §`data.kpis.map` → `KPICard`; markup em `chat-jana.jsx`,
+estilo em `chat-jana.css` §`── KPIs ──`) e da medição registrada em
+[`Index-visual-comparison.md` §Rodada MEDIDA de 2026-09-03](../../../../memory/requisitos/Jana/Index-visual-comparison.md),
+tabela **KPIs** — **não** do `.tsx`. Pedido [W] de 2026-09-03, textual: *"KPIs feios"*.
+
+**Por que este caso existe.** A tabela da medição tem 4 linhas `❌` e 3 `🟡`, e as duas que [W]
+nomeia como "o feio" estão escritas lá com todas as letras: *"é o `feio`: a caixa de ícone e o
+padding"*. O card em produção era o `KpiCard` shared (anatomia PT-04): caixa de ícone 36×36
+`bg-muted`, `p-4`, r12, rótulo sans. A âncora desenha outra coisa — rótulo **mono** de 10px com o
+ícone de 15px **inline** ao lado, r8, `12px 14px 14px`.
+
+| eixo | âncora `.jc-kpi` | produção (antes) | agora |
+|---|---|---|---|
+| grid | `repeat(4, 1fr)` · gap 10 · 3 de 4 | `cols={3}` · gap 12 · ocupa tudo | `cols={4}` + `gap-2.5` |
+| moldura | `--r-2` (8px) · `12px 14px 14px` · gap 3 | r12 · `p-4` · gap 8 | `rounded-[var(--radius,8px)]` · `pt-3 px-3.5 pb-3.5` · `gap-[3px]` |
+| rótulo | mono 10px/700 `.06em` · ícone 15px inline | sans 11px/600 · ícone em caixa 36×36 | mono 10px/700 `.06em` · ícone 15px inline |
+| alarme | `--neg-soft` (tinta sólida) + valor `--fs-8` | `bg-destructive/5` + valor `--fs-7` | `bg-destructive-soft` + valor `--fs-8` |
+| delta | `-68% vs mai/25` | `+3 hoje vs ontem` (sem unidade) | `-22% em 4m` / `+3% 7d` |
+
+### Componente NOVO, e o shared fica intocado
+
+`_components/JanaKpiCard.tsx`, sob [ADR 0388](../../../../memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md)
+§D-1 ("réplica primeiro") e a precedência de FORMA da
+[ADR UI-0029](../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)
+(*protótipo > teste > casos > charter > SPEC*). Mudar o `KpiCard` shared imporia a forma da Jana
+às outras **36** telas que o consomem — a [ADR 0385](../../../../memory/decisions/0385-sidebar-alinhado-ao-prototipo-diferenca-em-tres-categorias.md)
+já dizia que *"diferente não é erro"*. Réplica local é o caminho que a 0388 abriu justamente pra
+isso não virar impasse.
+
+**Zero cor crua.** Cada declaração da âncora sai por token semântico do DS, e o mapa completo está
+no docblock do componente. O `--neg-soft` da âncora vira `bg-destructive-soft`, utility do DS já
+usada em 6 sites.
+
+⚠️ **O RAIO precisou ser MEDIDO, e a tradução óbvia estava errada.** A primeira versão deste
+caso afirmava que `--r-2` (8px) *"casa exatamente com `--radius-lg` (`0.5rem`), então é
+`rounded-lg`"*. Isso é verdade no `:root` e **falso onde a tela vive**: dentro do `.cockpit` o
+`--radius-lg` é **REDEFINIDO pra 12px**. Medido na bancada, com o CSS construído do próprio PR:
+
+```
+:root      --radius-lg .5rem                .cockpit   --radius-lg 12px   --radius 8px
+no .cockpit:  rounded-sm 6  rounded-md 6  rounded-lg 12  rounded-xl 12
+```
+
+Nenhuma utility da escala entrega 8px ali — e `rounded-lg` reproduziria **exatamente o r12 que
+esta onda existe pra consertar**. O token que vale 8px no escopo é `--radius`, que é o mesmo que
+o `--r-2` do espelho resolve; daí `rounded-[var(--radius,8px)]`, com fallback pra quem renderizar
+fora do `.cockpit`. Fica registrado porque a afirmação errada já estava escrita: ler o token no
+`:root` e concluir sobre o escopo é medir no lugar errado (§5 2026-07-16). **Inconsistência declarada, não escondida:** os dois tokens de alarme não têm o mesmo
+valor — âncora `oklch(0.36 0.12 25)` × prod `oklch(0.26 0.07 18)` no escuro. Ficou o token de
+produção, porque o vocabulário `destructive-*` é o que o resto do ERP lê; a diferença é de
+calibragem do token, e reconciliá-la é decisão de Fundação ([W]), não desta tela.
+
+### Os DOIS EIXOS voltam a ser dois
+
+A âncora separa o que produção fundira:
+
+```
+emphasize: true          → .jc-kpi.emph      = fundo + borda + valor no degrau --fs-8
+deltaCls === "red big"   → .jc-kpi-v.red     = a cor do VALOR, e só ela
+```
+
+O `KpiCard` shared pendura os dois num `tone` só, e o próprio `KpiCard.tsx` registrou isso como
+errata em 2026-08-27: *"pendurou-se no eixo do FUNDO um efeito que a âncora pendura no eixo do
+DELTA. Passou despercebido porque o dataset tem N=1"*. Aqui viram `emphasis` e `valueTone`,
+declaráveis em separado — e o teste **prova** a independência, que é o que N=1 não conseguia
+mostrar. O shared **não** foi desfusionado: ele tem outros 36 consumidores e a decisão é de quem
+os tem.
+
+### O que este caso NÃO muda, de propósito
+
+- **Os 3 rótulos e a ordem** — são do UC-JPAIN-18, e seguem intactos.
+- **`Receita 30 dias`** contra `Receita mês` da âncora — UC-JPAIN-14; aqui é o protótipo que está
+  atrás, e copiar a copy dele reintroduziria bug conhecido.
+- **O drill** dos 2 KPIs que têm análise do mesmo dado. Mudou só ONDE ele mora: o clicável é o
+  **wrapper**, e o card volta a ser `DIV`, como na âncora (lá é `.jm-an-hit` por fora do
+  `.jc-kpi`). Isso fecha o `DIVERGE(bug)` que a sonda acusou como `kpi.tag BUTTON×DIV`.
+  Divergência **consciente** da âncora: o wrapper é `<button>` de verdade, não `div role="button"`
+  — mesma affordance, sem o teclado à mão.
+- **UC-JPAIN-16** — o card só nasce clicável quando recebe `onClick`; sem ele não há `button`
+  nenhum no DOM, e o teste asserta isso.
+
+### Medição de runtime — mesma sonda nos dois lados (2026-09-03)
+
+Bancada: o HTML **real** que o `JanaKpiCard` renderiza (extraído do render, não escrito à mão) sobre
+o CSS **construído** deste PR (`app-*.css` + `AppShellV2-*.css`, os dois que a `/ia` carrega),
+dentro de `.cockpit[data-theme="dark"]` × o `.jc-kpi` do espelho sobre `styles.css` + `chat-jana.css`,
+mesmo tema, mesma viewport (1440), mesma função de sonda.
+
+| campo | âncora `.jc-kpi` | produção `JanaKpiCard` | |
+|---|---|---|---|
+| colunas do grid | 4 | 4 | ✅ |
+| gap do grid | 10px | 10px | ✅ |
+| raio | 8px | 8px | ✅ |
+| padding | `12px 14px 14px 14px` | `12px 14px 14px 14px` | ✅ |
+| gap interno | 3px | 3px | ✅ |
+| rótulo | 10px/700 · ls 0.6px · mono · uppercase | 10px/700 · ls 0.6px · mono · uppercase | ✅ |
+| valor (normal) | 22px/700 · lh 22px | 22px/700 · lh 22px | ✅ |
+| valor (`emph`) | 28px/700 · lh 28px | 28px/700 · lh 28px | ✅ |
+| `small` | 11px | 11px | ✅ |
+| ícone | 15×15 | 15×15 | ✅ |
+| tag do card | `DIV` | `DIV` | ✅ |
+| largura | 301px | 301px | ✅ |
+| altura | 94px | **98px** | 4px — line-height do `small` herdado do body de cada bancada; a **98** é a altura que a medição de 2026-09-03 registrou pra âncora |
+
+**Dois defeitos que só a medição pegou** — os dois passavam em typecheck, lint, vitest e CI, e os
+dois deixariam a correção **inerte** (LC-30):
+
+1. **O raio.** A tradução intuitiva `--r-2` → `rounded-lg` está certa no `:root` (`.5rem`) e
+   **errada onde a tela vive**: no `.cockpit` o `--radius-lg` é redefinido pra **12px**, e nenhuma
+   utility da escala entrega 8px ali (`sm` 6 · `md` 6 · `lg` 12 · `xl` 12). `rounded-lg`
+   reproduziria **exatamente o r12 que esta onda existe pra consertar**. O token que vale 8px no
+   escopo é `--radius` — o mesmo que o `--r-2` do espelho resolve.
+2. **O `leading-none` sumia.** Escrito ANTES do `text-[length:var(--fs-7)]`, o `twMerge` o
+   descarta (os dois caem no grupo do par `text-[size/leading]`), e o line-height voltava pro 1.5
+   herdado: **33px sobre fonte de 22px**, contra os 22px da âncora — o card ficava **112px** em vez
+   de 98. Provado isolado: `twMerge('leading-none … text-[length:var(--fs-7)]')` devolve a string
+   **sem** ele. Os dois consertos têm assert próprio no `janaKpiReplica.spec.tsx`, então reordenar
+   ou voltar pra utility da escala é teste vermelho, não card 18px mais alto que ninguém mede.
+
+### O teste morde — provado por mutação
+
+Reintroduzi a forma antiga no componente (`rounded-xl` + `bg-destructive/5`) e rodei:
+**3 falharam, 10 passaram**. Restaurado, **13 passaram**. Os dois detectores do spec (cor crua de
+palette · caixa de ícone) têm controle de sensibilidade E de especificidade, porque detector que
+nunca acusa é decoração (ADR 0258).
+
+### O perdedor foi corrigido no MESMO PR
+
+`PainelContratoTest` fixava a forma antiga em quatro pontos: o extrator `painelKpisDoGrid` casava
+`<KpiCard\s+label=`, as 3 fixtures do bite-test, e o `toContain('<KpiGrid cols={3}>')`. Fossem
+deixados, o extrator devolveria `[]` e o **UC-JPAIN-18 ficaria verde por não achar nada** — LC-11
+na forma silenciosa. Reescritos, nunca desabilitados (UI-0029), mais um par novo que trava a
+proveniência do card (`import JanaKpiCard from './JanaKpiCard'` presente, `shared/KpiCard`
+ausente) justamente pra que o extrator não possa voltar a medir o vazio.
+
+**Pronto quando:** o grid declara `cols={4}` com `gap-2.5`; o card é `JanaKpiCard` com moldura r8,
+rótulo mono 10px e ícone inline de 15px; o alarme usa tinta sólida e sobe o valor pro `--fs-8`;
+`emphasis` e `valueTone` são independentes; o drill segue com o card em `DIV`; e a lane
+`jana-pest.yml` fecha verde com o `PainelContratoTest` reescrito.
+
+---
+
 ## Revalidação de 2026-08-28 — o `.tsx` mudou de PATH de import, e só isso
 
 O `casos-gate` acusou `stale:` nesta tela. A causa é mecânica: a pasta
@@ -840,3 +991,157 @@ O título fica sozinho na linha dele, com a identidade do tenant em mono embaixo
 **O que NÃO entrou aqui, de propósito:** contador `n` nas abas (backend, R2 do
 `Index-visual-comparison.md`), Exportar em menu de 3 itens (o botão segue mudo — UC-JPAIN-16 /
 decisão [W]), e o título 22×19px (acima).
+
+## UC-JPAIN-21 — o card de meta lê "<valor> de <alvo>" e "<pct>% do alvo"
+Status: 🧪 (**duas** defesas, as duas com mordida provada por mutação; aguardam o verde vir do
+MANIFESTO — G-7 — e o screenshot pós-deploy. Sem `✅` por leitura.)
+
+Derivado da **âncora** (`node prototipo-ui/ancora.mjs Jana/Index` →
+`prototipo-ui/cowork/jana-merge.jsx` §`JmMetaCard`, âncora de SÍMBOLO —
+`grep -n "function JmMetaCard" prototipo-ui/cowork/jana-merge.jsx`) e do pacote de paridade do
+Cowork de 2026-09-07 (`prototipo-ui/design-docs/COLAR-NO-CODE-jana-tabs-cor-e-icone.md` §1-ter,
+ONDA 2.1) — **não** do `.tsx`. Precedência de FORMA: protótipo > teste > casos > charter
+([ADR UI-0029](../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)).
+
+**Por que este caso existe.** Medido lado a lado pelo Cowork (leitura do `main` @ `43b76c1ec327`):
+o alvo desenha o valor grande com `de <alvo>` na mesma linha (`jm-meta-v` = `<b>{atual}</b>
+<small>de {alvo}</small>`) e o rodapé `32% do alvo` à esquerda com a projeção à direita
+(`jm-meta-f`). A produção escrevia `Alvo: <valor>` no rodapé com a porcentagem solta em negrito
+depois — o alvo aparecia como rótulo embaixo e **não** ao lado do número, e o "% do alvo" perdia
+o substantivo.
+
+| eixo | âncora `JmMetaCard` | produção (antes) | agora |
+|---|---|---|---|
+| linha do valor | `<b>{atual}</b><small>de {alvo}</small>` | só o valor | valor + `<small>de {alvo}</small>` inline (baseline nativa, sem flex novo) |
+| rodapé | `{pct}% do alvo` · projeção à direita | `Alvo: X` + `32%` solto · projeção à direita | `{pct}% do alvo` · projeção intacta |
+| sem apuração | `Aguardando apuração…` + `<small>alvo X</small>` | `Aguardando apuração…` + rodapé `Alvo: X` | `Aguardando apuração…` (copy pinada intacta) + rodapé `alvo X` |
+| sem alvo | — | sem rodapé | sem rodapé (inalterado) |
+
+**Critério de aceite (o que o teste mede, no arquivo, com espaços normalizados):**
+
+1. o `<small>de {formatValue(alvo, …)}</small>` é filho do bloco do valor e condicionado a `alvo !== null`;
+2. o rodapé é a ternária `progresso !== null ? "<pct>% do alvo" : "alvo <X>"` — "% do alvo" nunca nasce com `progresso` nulo (nada de "0% do alvo");
+3. o literal antigo `Alvo: {formatValue(alvo, meta.unidade)}` saiu do JSX;
+4. a projeção segue `ml-auto shrink-0 font-mono text-[10.5px] tabular-nums` e segue lendo `meta.projecao.projetado` (servidor — o cálculo do protótipo, `atualN*1.3`, **não** foi portado; lei 4 do pacote).
+
+**O que NÃO mudou, de propósito:** `farolDaMeta` e a faixa lateral do farol (bolinha × faixa é
+decisão [W], ADR 0385 "diferente não é erro"), o `Badge` de unidade, o `Sparkline`, as copies
+pinadas `painel-meta-apurando`/`painel-meta-sem-historico`, o cabeçalho da seção
+(`painel-metas-header`), `JanaCockpit.tsx` e o drawer. Contagem de flex/grid do arquivo:
+**11 antes, 11 depois** (`layout:check`, ratchet por arquivo) — o `<small>` é inline justamente
+pra não somar container.
+
+**Testes — dois lados, de propósito:**
+
+| lado | arquivo | o que mede | lane |
+|---|---|---|---|
+| arquivo | `Modules/Jana/Tests/Feature/PainelContratoTest.php` | o JSX escreve o sufixo, a ternária e não escreve o rótulo antigo | `PHP / Pest (Jana · MySQL)` |
+| **DOM renderizado** | `tests/janaMetaCardRodape.spec.tsx` | o card **mostra** "64 de 200" e "32% do alvo"; sem apuração mostra "alvo 200" e nenhum "%"; a projeção só aparece quando o payload manda | `Jana Conversas Gate` (jsdom) |
+
+O par existe porque Pest não monta React: a asserção de arquivo passa mesmo que a mudança seja
+INERTE no runtime (classe LC-30). O spec jsdom fecha esse flanco — e ele já pagou por si na
+escrita: a primeira versão stubava o `JanaCockpit` sem repassar `aposKpis` e renderizava **0
+cards**, revelando que a seção METAS não é irmã do cockpit no JSX, é prop dele
+(`JanaCockpit.tsx:724`). Ler o `Index.tsx` não teria mostrado isso.
+
+**Mordida provada** (mutação no `Index.tsx`, restore = verde e arquivo byte-idêntico):
+
+| mutação | Pest | jsdom |
+|---|---|---|
+| `% do alvo` vira `%` no ternário | 1 failed (3 assertions) | vermelho |
+| o `<small>de {alvo}</small>` some | — | vermelho |
+
+**Contador da lane** (a prova de que o spec de fato EXECUTA, não só existe — §5 2026-08-02):
+`51 passed` antes, **`57 passed`** com este arquivo no comando; delta `+6` = os 6 casos daqui.
+
+
+## UC-JPAIN-22 — o payload de `/ia` carrega origem, escopo e fonte da meta
+Status: 🧪 (o teste existe e cita este UC; o `✅` vem do MANIFESTO — G-7 —, nunca de leitura.)
+
+**Onda:** PR-3 do [`RUNBOOK-metas`](../../../../memory/requisitos/Jana/RUNBOOK-metas.md) §9.4 —
+*"Fonte e apurações como seções"*.
+
+Derivado das **duas Blades que esta onda absorve**, não do payload:
+
+| Blade | O que ela mostrava | Onde estava no payload |
+|---|---|---|
+| `metas/show.blade.php` | slug · tipo · **origem** · **escopo** | slug e tipo já vinham; origem e escopo **não existiam** |
+| `fontes/show.blade.php` | a `config_json` gravada, só-leitura | **não existia** |
+
+O §9.4 é explícito: o PR-4 (cutover) *"não antes do drawer entregar o que a Blade fazia"*.
+Enquanto os três campos não chegam, o cutover fica travado por construção.
+
+**⚠️ ERRATA DO PRÓPRIO AUTOR — a primeira redação deste caso afirmava uma armadilha que NÃO
+EXISTE, e o teste a derrubou.** Fica registrada, não apagada.
+
+O que eu escrevi: que meta de **plataforma** (`business_id` nulo) entrava no Painel e que a
+fonte dela cairia fora do escopo do parent, exigindo um `withoutGlobalScope` no eager-load.
+**Falso.** O teste reprovou em `expect($plataforma)->not->toBeNull()` — o que sumia era a
+**META**, nunca a fonte dela.
+
+Medido depois, em [`app/Scopes/ScopeByBusiness.php`](../../../../app/Scopes/ScopeByBusiness.php):
+
+| papel | escopo da META (`ScopeByBusiness`) | escopo da FONTE (`…ViaParent`) | concordam? |
+|---|---|---|---|
+| usuário comum | `business_id = <sessão>` **estrito** | `parent.business_id = <sessão>` | sim |
+| superadmin | `= X` **ou** `IS NULL` | `= X` **ou** `IS NULL` | sim |
+
+Nos **dois** papéis os dois escopos concordam, então a dispensa não resolvia nada — só removia
+uma defesa Tier 0 sem necessidade, que é o oposto do que a ADR 0093 pede. **Ela saiu.**
+
+**Corolário que fica:** o `orWhereNull('business_id')` da consulta do Painel é **inerte** para
+usuário comum. Mexer nele é outro escopo, não deste PR — mas quem for mexer deve saber que ele
+promete uma visibilidade que o escopo global já negou.
+
+**Isolamento cross-tenant não se duplica aqui:** já tem dono em `MultiTenantIsolationTest` e
+`EntitiesFilhasMultiTenantViaParentTest`.
+
+**Critério de aceite (o que o teste mede, no payload real de `/ia`):**
+
+1. a meta traz `origem`, `business_id` e `fonte` com `driver`, `cadencia` e `config_json` — some qualquer um dos três e o caso reprova;
+2. `business_id` sai **cru** do servidor: a frase "Plataforma" × "Este negócio" é decisão da tela, não do back.
+
+**Teste:** `Modules/Jana/Tests/Feature/PainelContratoTest.php` · lane `PHP / Pest (Jana · MySQL)`
+(o arquivo está no run-set do `jana-pest.yml`, e o gatilho casa `Modules/Jana/**` +
+`resources/js/Pages/Jana/**`). Fixtures criadas e removidas em `finally` — no CT 100 a base
+persiste entre execuções, e assert que falha no meio deixaria linha para trás.
+
+---
+
+## UC-JPAIN-23 — o drawer desenha Identificação, Apurações gravadas e Fonte do número
+Status: 🧪 (mesma regra do UC acima: veredito vem do manifesto.)
+
+**Onda:** PR-3, a metade de FORMA.
+
+Derivado da **âncora** `prototipo-ui/cowork/jana-metas.jsx` — §`JmApuracoesSecao` e
+§`JmFonteDrawer`, âncoras de SÍMBOLO
+(`grep -n "function JmApuracoesSecao" prototipo-ui/cowork/jana-metas.jsx`) — e do cabeçalho da
+própria fonte, que declara absorver `metas/{index,create,edit,show}` **+** `fontes/show`
+*"para dentro da tela única da Jana — sem rota nova"*. Precedência de FORMA: protótipo > teste >
+casos > charter ([ADR UI-0029](../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)).
+
+| seção | vem de | conteúdo |
+|---|---|---|
+| **Identificação** | `metas/show.blade.php` | identificador · agregação · origem · escopo |
+| **Apurações gravadas** | §`JmApuracoesSecao` | tabela `Data ref.` × `Realizado`, título com a contagem |
+| **Fonte do número** | §`JmFonteDrawer` + `fontes/show.blade.php` | driver · cadência · `config_json` + aviso de só-leitura |
+
+**Decisões declaradas, para não parecerem esquecimento:**
+
+- **A Série continua.** Ela mostra a FORMA da curva; a tabela mostra os NÚMEROS com data. A
+  Blade entregava a segunda, e a âncora tem as duas. Remover uma seria perder informação.
+- **O aviso não usa tom de alerta.** A âncora pede `tone="warn"`; o `Alert` do Design System
+  só tem `default` e `destructive`, e **variante nova de componente do DS é decisão do dono**
+  — então a copy carrega o sentido e nenhum token nasce aqui.
+- **A data é recortada, não convertida.** `dataCurta()` fatia a string em vez de usar
+  `new Date()`: `data_ref` é data **sem hora**, e construir um `Date` a partir de
+  `"2026-05-14"` interpreta como UTC meia-noite — em fuso negativo volta um dia, e a apuração
+  do dia 14 apareceria como 13.
+- **A tabela é semântica com `<caption class="sr-only">`.** O `DataTable` compartilhado exige
+  `pagination`/`endpoint`, que não existem aqui; forjar um paginador para 12 linhas seria pior.
+
+**⚠️ O que este caso NÃO prova.** É asserção de **arquivo** — passa mesmo que a mudança seja
+inerte no runtime (classe LC-30). Quem prova runtime é o **UC-JPAIN-22**, que lê o payload de
+verdade. O par existe justamente porque Pest não monta React.
+
+**Teste:** `Modules/Jana/Tests/Feature/PainelContratoTest.php` · mesma lane.

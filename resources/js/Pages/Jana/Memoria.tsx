@@ -11,7 +11,6 @@ import React, { useMemo, useState } from 'react'
 import AppShellV2 from '@/Layouts/AppShellV2'
 import { router, useForm } from '@inertiajs/react'
 import { Button } from '@/Components/ui/button'
-import { Card, CardContent } from '@/Components/ui/card'
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert'
 import { Badge } from '@/Components/ui/badge'
 // Deriva do próprio componente em vez de repetir a união à mão: variante nova no DS
@@ -21,14 +20,14 @@ import { Input } from '@/Components/ui/input'
 import { Label } from '@/Components/ui/label'
 import { Textarea } from '@/Components/ui/textarea'
 import EmptyState from '@/Components/shared/EmptyState'
-import { Trash2, Pencil, Save, Search, Settings, X } from 'lucide-react'
+import { Search, Settings } from 'lucide-react'
 import FabJana from './_components/FabJana'
 import { JanaAreaHeader } from '@/Pages/Jana/_components/JanaAreaHeader'
 import JanaConfigDrawer from '@/Pages/Jana/_components/JanaConfigDrawer'
 import { JanaPlanoBadge } from '@/Pages/Jana/_components/JanaPlanoBadge'
 import { useJanaPro } from '@/Pages/Jana/_components/useJanaPro'
 import { useJanaConfig } from '@/Pages/Jana/_components/useJanaConfig'
-import { Inline } from '@/Components/layout'
+import { Box, Inline, Stack, Text } from '@/Components/layout'
 
 interface MemoriaFato {
   id: number
@@ -144,113 +143,144 @@ function FatoCard({ memoria }: { memoria: MemoriaFato }) {
     router.delete(`/ia/memoria/${memoria.id}`, { preserveScroll: true })
   }
 
+  // Onda 4 da paridade — a LINHA do fato toma a forma da âncora (`.jm-fato`,
+  // jana-merge.css). Era `Card > CardContent pt-6 space-y-3`, empilhado com a meta
+  // ACIMA do texto e ações em botão-ícone; a âncora é uma LINHA: corpo à esquerda
+  // (texto → meta), ações em TEXTO à direita, tudo dentro de uma superfície rasa.
+  //
+  // Deltas MEDIDOS contra a âncora, e por que cada um fica (escolha de técnica minha,
+  // §5 2026-08-24 — o que muda pixel de contrato vai medido no visual-comparison):
+  //   raio     `rounded="lg"` = 8px × 10px na âncora. A âncora usa 10px CRU, fora da
+  //            própria rampa dela (`--radius-lg: 12px` no cockpit); o token do DS é o
+  //            que vale aqui, e 2px é o preço declarado.
+  //   padding  `p={3}` = 12px × `11px 13px`. A escala do `Box` é enumerada por CVA de
+  //            propósito (recusa px cru em tempo de compilação) — 12/12 é o degrau.
+  //   pill     `Badge` = `text-xs` (12px) × 10.5px da `.jm-tag`. Padding e raio batem
+  //            exatos (`px-2 py-0.5` = 2px 8px · full). Tamanho é do componente do DS.
   return (
-    <Card>
-      <CardContent className="pt-6 space-y-3">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant={catCfg.variant}>{catCfg.label}</Badge>
-            {rel !== undefined && (
-              <span className="text-xs text-muted-foreground">
-                relevância {rel}/10
-              </span>
-            )}
-            {/* Charter Goal 4: "Mostrar `origem` do fato (chat / brief auto / inserção
-                manual) — transparência". O dado já vinha no payload e não era renderizado:
-                o titular via O QUE a Jana aprendeu, mas não DE ONDE. */}
-            {origem && (
-              <span className="text-xs text-muted-foreground">
-                · origem: {origem}
-              </span>
-            )}
-            <span className="text-xs text-muted-foreground">
-              · desde {formatData(memoria.valid_from)}
-            </span>
-          </div>
-          <div className="flex gap-1">
-            {!editando && confirmandoApagar ? (
+    <Box bg="card" border rounded="lg" p={3}>
+      {!editando ? (
+        <Inline gap={3} align="start">
+          <Stack gap={2} className="flex-1 min-w-0">
+            {/* `size="lg"` = `--fs-4` (13.5px) com leading 1.45 — a âncora é 13px/1.5.
+                A rampa é a âncora ÚNICA de tipografia (ADR 0253); px cru não entra. */}
+            <Text size="lg" className="text-pretty">{memoria.fato}</Text>
+
+            {/* Meta numa linha só, mono, na ORDEM da âncora: pill · origem · desde ·
+                relevância. A produção trazia relevância logo após a pill e prefixava
+                cada item com `·` — separador que o `gap` do flex já faz. */}
+            <Inline gap={3} align="center" wrap>
+              <Badge variant={catCfg.variant}>{catCfg.label}</Badge>
+              {/* Charter Goal 4: "Mostrar `origem` do fato (chat / brief auto / inserção
+                  manual) — transparência". */}
+              {origem && (
+                <Text as="span" size="xs" family="mono" tone="muted">origem: {origem}</Text>
+              )}
+              <Text as="span" size="xs" family="mono" tone="muted">
+                desde {formatData(memoria.valid_from)}
+              </Text>
+              {rel !== undefined && (
+                <Text as="span" size="xs" family="mono" tone="muted">relevância {rel}/10</Text>
+              )}
+              {/* ⚠️ AUSENTE de propósito: `editado por … · motivo`. A âncora mostra o rastro
+                  da última edição AQUI, e a produção GRAVA mais do que mostra (autor + motivo
+                  + PII redigida, UC-MEM-03/04) — mas o dado não chega ao componente: o payload
+                  é `MemoriaPersistida::toArray()`, DTO `final readonly` de 8 chaves, e o
+                  Controller não consulta `activity_log`. É backend (ordem 1 do
+                  Memoria-visual-comparison), não render — inventar aqui seria fingir. */}
+            </Inline>
+          </Stack>
+
+          {/* Ações em TEXTO, `h-6` (= os 24px da âncora), ghost, à direita. Eram
+              botão-ícone (Pencil/Trash2): ícone sozinho obriga hover pra saber o que faz,
+              e num fluxo LGPD "Apagar" precisa se anunciar. */}
+          <div className="shrink-0">
+            {confirmandoApagar ? (
               <Inline gap={2} align="center">
                 <span className="text-xs text-destructive">Apagar é irreversível.</span>
-                <Button size="sm" variant="destructive" onClick={onEsquecer}>
+                <Button size="xs" variant="destructive" onClick={onEsquecer}>
                   Apagar
                 </Button>
-                <Button size="sm" variant="ghost" onClick={() => setConfirmandoApagar(false)}>
+                <Button size="xs" variant="ghost" onClick={() => setConfirmandoApagar(false)}>
                   Manter
                 </Button>
               </Inline>
-            ) : !editando ? (
-              <>
-                <Button size="sm" variant="ghost" onClick={() => setEditando(true)} title="Editar">
-                  <Pencil className="size-4" />
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setConfirmandoApagar(true)}
-                  title="Esquecer"
-                >
-                  <Trash2 className="size-4 text-destructive" />
-                </Button>
-              </>
             ) : (
-              <>
+              <Inline gap={2} align="center">
+                <Button size="xs" variant="ghost" onClick={() => setEditando(true)}>
+                  Editar
+                </Button>
                 <Button
-                  size="sm"
+                  size="xs"
                   variant="ghost"
-                  onClick={onSalvar}
-                  disabled={processing || !podeSalvar}
-                  title={podeSalvar ? 'Salvar' : 'Preencha o fato e o motivo da correção'}
+                  className="text-destructive"
+                  onClick={() => setConfirmandoApagar(true)}
                 >
-                  <Save className="size-4 text-success" />
+                  Apagar
                 </Button>
-                <Button size="sm" variant="ghost" onClick={onCancelar} title="Cancelar">
-                  <X className="size-4" />
-                </Button>
-              </>
+              </Inline>
             )}
           </div>
-        </div>
+        </Inline>
+      ) : (
+        <Stack gap={2}>
+          {/* `rows` em vez de `min-h-[80px]`: `.cw-input.cw-textarea` mora UNLAYERED
+              (cowork-fields.css) e vence utilitária Tailwind de `@layer utilities` —
+              o `min-h-*` seria ignorado em silêncio, como o `pl-9` da busca de Clientes. */}
+          <Textarea
+            rows={4}
+            value={data.fato}
+            onChange={(e) => setData('fato', e.target.value)}
+            disabled={processing}
+            aria-label="Texto do fato"
+          />
+          {errors.fato && <p className="text-xs text-destructive">{errors.fato}</p>}
 
-        {!editando ? (
-          <p className="text-sm">{memoria.fato}</p>
-        ) : (
-          <div className="space-y-2">
-            {/* `rows` em vez de `min-h-[80px]`: `.cw-input.cw-textarea` mora UNLAYERED
-                (cowork-fields.css) e vence utilitária Tailwind de `@layer utilities` —
-                o `min-h-*` seria ignorado em silêncio, como o `pl-9` da busca de Clientes. */}
-            <Textarea
-              rows={4}
-              value={data.fato}
-              onChange={(e) => setData('fato', e.target.value)}
+          {/* ⚠️ A âncora edita também `Categoria` e `Relevância` (dois `<select>`); aqui só o
+              texto. NÃO é omissão de forma: o `MemoriaController@update` valida `fato` e
+              `motivo` e repassa `metadata` sem contrato — expor os campos sem o servidor
+              honrá-los seria UI que promete o que o backend não cumpre. Fila: ordem 2 do
+              `memory/requisitos/Jana/Memoria-visual-comparison.md`. */}
+
+          {/* Label CANON associada por `htmlFor`/`id` em vez de envolver o campo: o
+              `.cw-label` é `display:flex`, então envolver poria label e input lado a
+              lado. O `id` carrega o `memoria.id` porque a tela renderiza N cards. */}
+          <div>
+            <Label htmlFor={motivoId}>Motivo da correção</Label>
+            <Input
+              id={motivoId}
+              className="mt-1"
+              value={data.motivo}
+              onChange={(e) => setData('motivo', e.target.value)}
               disabled={processing}
-              aria-label="Texto do fato"
+              placeholder="fica no log de auditoria"
+              aria-label="Motivo da correção"
             />
-            {errors.fato && <p className="text-xs text-destructive">{errors.fato}</p>}
-
-            {/* Label CANON associada por `htmlFor`/`id` em vez de envolver o campo: o
-                `.cw-label` é `display:flex`, então envolver poria label e input lado a
-                lado. O `id` carrega o `memoria.id` porque a tela renderiza N cards. */}
-            <div>
-              <Label htmlFor={motivoId}>Motivo da correção</Label>
-              <Input
-                id={motivoId}
-                className="mt-1"
-                value={data.motivo}
-                onChange={(e) => setData('motivo', e.target.value)}
-                disabled={processing}
-                placeholder="fica no log de auditoria"
-                aria-label="Motivo da correção"
-              />
-            </div>
-            {errors.motivo && <p className="text-xs text-destructive">{errors.motivo}</p>}
-
-            <p className="text-xs text-muted-foreground">
-              Toda correção registra autor, horário e motivo.
-            </p>
           </div>
-        )}
-      </CardContent>
-    </Card>
+          {errors.motivo && <p className="text-xs text-destructive">{errors.motivo}</p>}
+
+          {/* Rodapé da âncora (`.jm-fato-edit-f`): a frase e os DOIS botões na mesma
+              linha, em texto. O `title` do Salvar é só-da-viva e fica — ele explica
+              POR QUE o botão está desabilitado, coisa que a âncora não faz. */}
+          <Inline gap={2} align="center" wrap>
+            <span className="flex-1 min-w-0 text-xs text-muted-foreground">
+              Toda correção registra autor, horário e motivo.
+            </span>
+            <Button
+              size="xs"
+              onClick={onSalvar}
+              disabled={processing || !podeSalvar}
+              title={podeSalvar ? 'Salvar' : 'Preencha o fato e o motivo da correção'}
+            >
+              Salvar
+            </Button>
+            <Button size="xs" variant="ghost" onClick={onCancelar}>
+              Cancelar
+            </Button>
+          </Inline>
+        </Stack>
+      )}
+    </Box>
   )
 }
 
@@ -336,7 +366,13 @@ function Memoria({ memorias, janaContext }: Props) {
         onAlternarAnalise={alternarAnalise}
       />
 
-      <div className="max-w-4xl mx-auto p-6 space-y-6">
+      {/* Onda 4 da paridade — LARGURA. Era `max-w-4xl mx-auto` (896px numa viewport de
+          2560): a Memória era a ÚNICA das quatro telas da área presa numa coluna central —
+          `Index.tsx` e `Chat.tsx` já ocupam a largura toda, e a âncora (`.jm-mem`) também
+          (medido `left=284 w=2252` a 2560). Coluna estreita numa tela de LISTA joga a meta
+          pra segunda linha e desperdiça metade do monitor de 1280 da Larissa.
+          `space-y-3` = os 12px do `gap` de `.jm-mem`; era 24px. */}
+      <Stack gap={3} className="p-6">
         {/* Título próprio REMOVIDO na onda de fusão (2026-08-08, US-COPI-148).
             Três motivos independentes, cada um suficiente:
             (a) era o SEGUNDO `<h1>` da página — o `<PageHeader>` canon já provê
@@ -434,7 +470,7 @@ function Memoria({ memorias, janaContext }: Props) {
         )}
 
         <FabJana />
-      </div>
+      </Stack>
     </>
   )
 }

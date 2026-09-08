@@ -33,10 +33,15 @@
 //      tem esse campo — inventar a frase seria a mesma mentira com selo de
 //      autoridade que o `JanaDrillDrawer` existe pra evitar.
 
-import { Link } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
+import * as React from 'react';
+import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card } from '@/Components/ui/card';
+import { Input } from '@/Components/ui/input';
+import { Label } from '@/Components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import { Grid, Inline, Stack } from '@/Components/layout';
 import {
@@ -46,6 +51,21 @@ import {
   type Apuracao,
   type Meta,
 } from './metaFormat';
+
+/**
+ * Data curta pra tabela de apurações. A âncora escreve `14/05/2026`, e o Blade
+ * escrevia `2026-05-14` — na FORMA quem manda é o protótipo (ADR UI-0029).
+ *
+ * ⚠️ Sem `new Date()` de propósito: `data_ref` é data SEM hora, e construir um
+ * `Date` a partir de `"2026-05-14"` interpreta como UTC meia-noite e volta um dia
+ * atrás em fuso negativo — a apuração do dia 14 apareceria como 13. Recortar a
+ * string não tem esse defeito porque não converte nada.
+ */
+function dataCurta(valor: string): string {
+  const so = String(valor).slice(0, 10);
+  const partes = so.split('-');
+  return partes.length === 3 ? partes[2] + '/' + partes[1] + '/' + partes[0] : so;
+}
 
 function Secao({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
@@ -115,6 +135,13 @@ function Serie({ dados, unidade }: { dados: Apuracao[]; unidade: string }) {
 
 const codigo = 'rounded bg-muted px-1.5 py-1 font-mono text-[12px] text-foreground';
 
+/**
+ * Unidades do contrato — enum REAL da migration (RUNBOOK-metas §3), não inventado aqui.
+ * O `edit` tem 2 campos e o `create` tem 4 **de propósito**: `slug` e `tipo_agregacao`
+ * não se editam, porque a série histórica já foi gravada nessa chave.
+ */
+const UNIDADES = ['R$', 'qtd', '%', 'dias'] as const;
+
 export default function JanaMetaDrawer({
   meta,
   // Período já formatado pelo card. Chega como prop pra que `periodoLabel`
@@ -127,9 +154,48 @@ export default function JanaMetaDrawer({
   periodo: string | null;
   onClose: () => void;
 }) {
+  // PR-2 (RUNBOOK-metas §9.4): o CRUD passa a viver AQUI. Até 2026-09-07 o rodapé tinha um
+  // <Link> pra /ia/metas/{id} — a tela Blade — e era ele que "tirava o usuário do Painel",
+  // exatamente o buraco que este drawer nasceu pra fechar.
+  //
+  // ⚠️ Os hooks ficam ACIMA do early return de propósito: abaixo dele a ordem seria
+  // condicional (o `meta === null` acontece toda vez que o drawer está fechado), e o
+  // `react-hooks/rules-of-hooks` reprova — corretamente.
+  const [modo, setModo] = React.useState<'ver' | 'editar'>('ver');
+  const [nome, setNome] = React.useState(meta?.nome ?? '');
+  const [unidade, setUnidade] = React.useState(meta?.unidade ?? 'R$');
+  const [enviando, setEnviando] = React.useState(false);
+
+  // Trocar de meta reseta o formulário — sem isto o drawer reabre com o nome da anterior.
+  React.useEffect(() => {
+    setModo('ver');
+    setNome(meta?.nome ?? '');
+    setUnidade(meta?.unidade ?? 'R$');
+  }, [meta?.id, meta?.nome, meta?.unidade]);
+
   if (!meta) {
     return <Sheet open={false} onOpenChange={() => undefined} />;
   }
+
+  // Toda ação passa pelo servidor, que é quem valida (StoreMetaRequest/UpdateMetaRequest)
+  // e quem decide o business_id (Tier 0, ADR 0093). O front NÃO reimplementa validação.
+  const acao = (fn: () => void) => {
+    setEnviando(true);
+    fn();
+  };
+  const opcoes = { preserveScroll: true, onFinish: () => setEnviando(false) };
+
+  const salvar = () => acao(() => router.patch(`/ia/metas/${meta.id}`, { nome, unidade }, {
+    ...opcoes,
+    onSuccess: () => setModo('ver'),
+  }));
+
+  // "Desativar", NUNCA "excluir": o destroy do controller é SOFT
+  // (`update(['ativo' => false])`), e o RUNBOOK §3 crava que a UI não pode
+  // prometer exclusão de linha que continua no banco.
+  const desativar = () => acao(() => router.delete(`/ia/metas/${meta.id}`, opcoes));
+
+  const reapurar = () => acao(() => router.post(`/ia/metas/${meta.id}/reapurar`, {}, opcoes));
 
   const farol = farolDaMeta(meta);
   const realizado = meta.ultima_apuracao?.valor_realizado ?? null;
@@ -196,6 +262,38 @@ export default function JanaMetaDrawer({
             )}
           </Secao>
 
+          {modo === 'editar' && (
+            <Secao titulo="Editar meta">
+              <Stack gap={3}>
+                <Stack gap={1}>
+                  <Label htmlFor="meta-nome">Nome</Label>
+                  <Input id="meta-nome" value={nome} onChange={(e) => setNome(e.target.value)} />
+                </Stack>
+                <Stack gap={1}>
+                  <Label htmlFor="meta-unidade">Unidade</Label>
+                  <Select value={unidade} onValueChange={setUnidade}>
+                    <SelectTrigger id="meta-unidade">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {UNIDADES.map((u) => (
+                        <SelectItem key={u} value={u}>
+                          {u}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Stack>
+                {/* Só estes dois — o RUNBOOK §3 diz que `slug` e `tipo_agregacao` são
+                    imutáveis, porque a apuração já gravou com essa chave. */}
+                <p className="text-sm text-muted-foreground">
+                  O identificador e o tipo de agregação não mudam: a série histórica já foi
+                  gravada com eles.
+                </p>
+              </Stack>
+            </Secao>
+          )}
+
           {/* Origem do número — mesmo contrato do `JanaDrillDrawer` (tabela · regra ·
               método), que é o padrão já validado desta área. Onda 5 da paridade:
               a âncora (§`JmMetaDrawer`) tem "Origem do número" e "Escopo", e o drawer
@@ -205,6 +303,32 @@ export default function JanaMetaDrawer({
               própria âncora cita 6 `Analise*Service` que NÃO existem no repo (o
               `ancora.mjs` acusa), então o que ela diz sobre FONTE DE DADO não vale —
               só o que ela diz sobre forma visual. */}
+          {/* PR-3 · Identificação — `metas/show.blade.php` abria com slug, tipo,
+              origem e escopo, e nenhum dos quatro existia aqui. Sem eles o PR-4
+              não pode remover aquela Blade, porque o drawer entregaria menos. */}
+          <Secao titulo="Identificação">
+            <Stack gap={1}>
+              <Linha rotulo="Identificador" valor={meta.slug} />
+              <Linha rotulo="Agregação" valor={meta.tipo_agregacao} />
+              {/* Opcionais no tipo: durante a janela de deploy o payload antigo
+                  ainda chega sem eles. Ausência se declara, não se inventa. */}
+              <Linha rotulo="Origem" valor={meta.origem ?? '—'} />
+              {/* A Blade escrevia "Business #N" ou "Plataforma". O back manda o id
+                  cru; a frase é da tela. `undefined` (payload velho) ≠ `null`
+                  (plataforma) — por isso o teste é contra `null` explícito. */}
+              <Linha
+                rotulo="Escopo"
+                valor={
+                  meta.business_id === undefined
+                    ? '—'
+                    : meta.business_id === null
+                      ? 'Plataforma — vale para todos os negócios'
+                      : 'Este negócio'
+                }
+              />
+            </Stack>
+          </Secao>
+
           <Secao titulo="Origem do número">
             <Stack gap={1}>
               <Linha rotulo="Tabelas" valor="jana_metas · jana_meta_periodos · jana_meta_apuracoes · jana_meta_fontes" />
@@ -232,6 +356,79 @@ export default function JanaMetaDrawer({
                 </Inline>
               </>
             )}
+          </Secao>
+
+          {/* PR-3 · Apurações gravadas — a tabela que `metas/show.blade.php` tinha.
+              Não substitui a Série acima: a Série mostra a FORMA da curva, esta mostra
+              os NÚMEROS com a data de cada janela, que era o que a Blade entregava. */}
+          <Secao
+            titulo={`Apurações gravadas · ${serie.length === 0 ? 'nenhuma ainda' : `${serie.length} ${serie.length === 1 ? 'janela' : 'janelas'}`}`}
+          >
+            {serie.length === 0 ? (
+              // Copy da âncora (`jana-metas.jsx` §JmApuracoesSecao), literal.
+              <p className="text-sm text-muted-foreground">
+                Nenhuma apuração ainda — a meta entra no farol depois do primeiro job.
+              </p>
+            ) : (
+              <table className="w-full text-sm">
+                <caption className="sr-only">
+                  Apurações gravadas desta meta, da janela mais antiga para a mais recente.
+                </caption>
+                <thead>
+                  <tr className="border-b text-xs uppercase tracking-wide text-muted-foreground">
+                    <th scope="col" className="py-1.5 text-left font-medium">
+                      Data ref.
+                    </th>
+                    <th scope="col" className="py-1.5 text-right font-medium">
+                      Realizado
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {serie.map((a) => (
+                    <tr key={a.data_ref} className="border-b last:border-0">
+                      <td className="py-1.5 tabular-nums">{dataCurta(a.data_ref)}</td>
+                      <td className="py-1.5 text-right font-mono tabular-nums">
+                        {formatValue(a.valor_realizado, meta.unidade)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </Secao>
+
+          {/* PR-3 · Fonte — `fontes/show.blade.php` inteira, que era uma rota só pra
+              mostrar um JSON e um aviso. O dono do endpoint de escrita é o
+              `ModulesKB` (ADR 0366); esta seção é LEITURA e não toca nele. */}
+          <Secao titulo="Fonte do número">
+            {!meta.fonte ? (
+              <p className="text-sm text-muted-foreground">
+                Sem fonte configurada — sem fonte a meta não apura.
+              </p>
+            ) : (
+              <Stack gap={3}>
+                <Stack gap={1}>
+                  <Linha rotulo="Driver" valor={meta.fonte.driver} />
+                  <Linha rotulo="Cadência" valor={meta.fonte.cadencia} />
+                </Stack>
+                <pre className="overflow-x-auto rounded-md border bg-muted/40 p-3 font-mono text-[11px] leading-relaxed">
+                  {JSON.stringify(meta.fonte.config_json, null, 2)}
+                </pre>
+              </Stack>
+            )}
+            {/* O aviso vem da âncora (§JmFonteDrawer) e da própria Blade, que já
+                dizia "somente leitura". A âncora pede tom de aviso; o Alert do DS
+                só tem `default` e `destructive`, e inventar variante nova é
+                decisão do dono do Design System — então a copy carrega o sentido. */}
+            <Alert>
+              <AlertTitle>Só leitura, por decisão</AlertTitle>
+              <AlertDescription>
+                Mudar a fonte muda o significado da série já gravada. O editor com prévia do
+                número antes de salvar é trabalho próprio (<code className={codigo}>US-COPI-040</code>)
+                — até lá, alteração passa por quem tem acesso ao servidor.
+              </AlertDescription>
+            </Alert>
           </Secao>
 
           <Secao titulo="De onde vem esse número">
@@ -263,23 +460,40 @@ export default function JanaMetaDrawer({
           </Secao>
         </Stack>
 
-        <SheetFooter className="flex-row justify-end gap-2 border-t p-4">
-          <Button variant="ghost" onClick={onClose}>
-            Fechar
-          </Button>
-          {/* Rótulo "Abrir a meta", não "Editar": o destino é a tela de leitura
-              (`show`) — que é pra onde o card já apontava antes deste drawer, e
-              nenhuma capacidade se perdeu. Prometer "editar" mandaria o usuário
-              pra um lugar que não é o formulário. */}
-          <Link href={`/ia/metas/${meta.id}`}>
-            <Button variant="outline">Abrir a meta</Button>
-          </Link>
-          {/* Sem semear a pergunta, pelo mesmo motivo medido no JanaDrillDrawer:
-              `ChatController@novaConversa` não aceita pergunta inicial e o
-              `Chat.tsx` não lê query param. */}
-          <Link href="/ia/conversa">
-            <Button>Conversar com a Jana</Button>
-          </Link>
+        <SheetFooter className="flex-row flex-wrap justify-end gap-2 border-t p-4">
+          {/* O <Link> "Abrir a meta" SAIU aqui (PR-2). Ele mandava o usuário pra
+              `/ia/metas/{id}`, que é Blade — e tirar o usuário do Painel era o
+              defeito que este drawer existe pra fechar. O que ele dava (ver e
+              editar) agora acontece nesta gaveta. */}
+          {modo === 'ver' ? (
+            <>
+              <Button variant="ghost" onClick={onClose}>
+                Fechar
+              </Button>
+              <Button variant="ghost" onClick={desativar} disabled={enviando}>
+                Desativar meta
+              </Button>
+              <Button variant="outline" onClick={reapurar} disabled={enviando}>
+                Forçar reapuração
+              </Button>
+              <Button variant="outline" onClick={() => setModo('editar')}>
+                Editar
+              </Button>
+              {/* Sem semear a pergunta, pelo mesmo motivo medido no JanaDrillDrawer:
+                  `ChatController@novaConversa` não aceita pergunta inicial e o
+                  `Chat.tsx` não lê query param. */}
+              <Button onClick={() => router.visit('/ia/conversa')}>Conversar com a Jana</Button>
+            </>
+          ) : (
+            <>
+              <Button variant="ghost" onClick={() => setModo('ver')} disabled={enviando}>
+                Cancelar
+              </Button>
+              <Button onClick={salvar} disabled={enviando || !nome.trim()}>
+                Salvar
+              </Button>
+            </>
+          )}
         </SheetFooter>
       </SheetContent>
     </Sheet>

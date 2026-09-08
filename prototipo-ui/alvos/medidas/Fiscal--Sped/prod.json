@@ -1,0 +1,209 @@
+{
+  "url": "https://staging.oimpresso.com/fiscal/sped",
+  "theme": "light",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C SPED & Livros Apuração mensal · EFD ICMS-IPI · PIS/COFINS em desenvolvimento Buscar Cockpit NF-e · NFC-e NFS-e Manifesto DF-e Eventos Certif. & Cfg. SPED & Livros Gerador EFD-ICMS/IPI MVP disponível (PR #8) SPED Fiscal (EFD ICMS-IPI) — gerador MVP saídas v3.1.1 disponível (PR #8). PIS/COFINS + Bloco E apuração + entradas em próximas Waves. Próximas Waves: Bloco E (apuração ICMS · saldo mês anterior) · Bloco H (inventário anual) · EFD-Contribuições (PIS/COFINS arquivo separado) · Entradas via DF-e manifestada. Todos 5 Em curso 1 Pronto 1 Entregue 3 Competência 08/2026 — geração bloqueada Ano dentro da faixa aceita — aprovado Ano 2026 está na faixa aceita (2020 até 2026) Competência não é futura — aprovado Competência 08/2026 não está no futuro Competência encerrada — aprovado Competência 08/2026 encerrou em 31/08/2026 — período de apuração completo Trava do gerador liberada — reprovado Trava fiscal.sped_simples_only_lock está ligada: o gerador ainda usa valores de fallback (CST 102, CFOP 5102) que só valem em Simples Nacional sem crédito de ICMS — liberar depende de decisão do responsável Notas autorizadas no período — reprovado Sem notas autorizadas no período Competência Status Notas autorizadas Valor autorizado Prazo entrega Export 09/2026 Em curso 0 R$ 0,00 — .txt 08/2026 Pronto 0 R$ 0,00 15/09/2026 .txt 07/2026 Entregue 0 R$ 0,00 15/08/2026 .txt 06/2026 Entregue 0 R$ 0,00 15/07/2026 .txt 05/2026 Entregue 0 R$ 0,00 15/06/2026 .txt Prévia do layout — arquivo de referência Não é a sua competência Estas linhas vêm de , cujo registro 0000 declara o emitente CI TENANT 98 (FICTICIO) . Servem para conferir o formato de cada registro antes de gerar — o arquivo da sua competência só existe depois de gerado, e nunca é exibido aqui. Uma linha por registro distinto — 22 registros das 47 linhas do arquivo de referência. Não é o arquivo encurtado: é a primeira ocorrência de cada registro, na ordem em que o layout as emite. Blocos do arquivo — registros que cada um contém 0 Abertura, identificação e referências 9 linha s C Documentos fiscais I — mercadorias (NF-e) 7 linha s E Apuração do ICMS e do IPI 4 linha s H Inventário físico 2 linha s 9 Controle e encerramento do arquivo 25 linha s Medido no arquivo de referência EFD-ICMS/IPI (CONFAZ v3.1.1, perfil A) — não na sua competência, que só é conhecida depois de gerada. Validação externa Smoke no PVA-EFD (validador CONFAZ) nunca executado Arquivo de referência (golden) existe · 1.794 bytes · 47 linhas SHA-256 da referência e4eeccd4c90ea67a … Apuração do ICMS no arquivo (Bloco E) Apuração de ISS · EFD-Contribuições (PIS/COFINS — arquivo separado) · Conciliação SEFAZ × ERP · Entradas (DF-e manifestada) backlog O arquivo de referência prova estrutura, blocos e contadores. O PVA-EFD é ferramenta externa: enquanto não houver recibo do smoke, nada aqui autoriza chamar o gerador de validado. Livros fiscais Apuração ICMS · Apuração ISS · Conciliação SEFAZ × ERP — em desenvolvimento. Por enquanto, conferir manualmente via relatórios em /financeiro/relatorios. Débitos conhecidos desta tela TXT traz os 23 registros canônicos dos Blocos 0+C+E+H+9 SpedIcmsIpiGeneratorServiceTest::contract: 23 registros canon procura os NOMES DE MÉTODO (registro0000…) no fonte e conta um array literal escrito no próprio teste. Não gera arquivo nem valida linha |REG|…|. source-grep Bloco E: E110 consolida os débitos do C190 e E116 só sai com ICMS a recolher os dois casos assertam toContain(\"array_sum(array_column(...))\") e toContain(\"if ($vlTotalDebitos > 0)\") no fonte. source-grep Bloco H é esqueleto (IND_MOV=1) asserta toContain('registroH001(1)') no fonte; o inventário real exige integração Stock/ProductCatalogue (declaração de 31/12). source-grep Span OTel fiscal.sped.gerar grep da string no fonte. source-grep Panorama das 5 competências mês, notas autorizadas, valor, status (aberto/pronto/entregue) e prazo. SpedController::index agrega; nenhum teste asserta o payload das 5 competências. (O gate do export deixou de ser só \"tem notas?\" em 2026-09-03: agora são as 4 checagens do UC-FSF1-03 mais a contagem de notas, e as checagens têm teste. O que segue sem teste é a agregação em si.) (O prazo exibido usa dia 15 como heurística; o prazo legal da EFD é fixado por cada UF.) sem teste Smoke PVA-EFD homologação CONFAZ importar o TXT no validador oficial sem erro estrutural. (O golden file passou a existir em 2026-09-03 — UC-FSF1-05 —, e ele confere estrutura, blocos e contadores. O que continua sem prova é a importação no PVA-EFD real, que é ferramenta externa; e o golden já expõe dois motivos pelos quais o PVA recusaria hoje: CNPJ/IE vazios e UF fixa. Ver o aviso no UC-FSF1-05.) sem teste Entradas (DF-e manifestada), EFD-Contribuições (PIS/COFINS) e saldo credor anterior real no E110 Non-Goals declarados; nenhum código nem teste. sem teste buscar tudo NF-e navegar lista todos os atalhos Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "700",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "fiscal-sped-status",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "validacao-competencia",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 1,
+          "snakeCru": 1
+        },
+        "exemplos": {
+          "dataBr": [
+            "31/08/2026"
+          ],
+          "snakeCru": [
+            "sped_simples_only_lock"
+          ]
+        }
+      },
+      {
+        "nome": "previa-txt",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "blocos-arquivo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "validacao-externa",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "debitos-conhecidos",
+        "classes": {
+          "dataIso": 2,
+          "dataBr": 0,
+          "snakeCru": 2
+        },
+        "exemplos": {
+          "dataIso": [
+            "2026-09-03"
+          ],
+          "snakeCru": [
+            "array_sum",
+            "array_column"
+          ]
+        }
+      }
+    ],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": "BUTTON",
+        "align": "left",
+        "larguraPct": 9.4,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "600",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 11.9,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 1,
+        "pill": {
+          "radius": "99px",
+          "borda": false,
+          "bg": "oklch(0.96 0.05 60)",
+          "dot": false
+        }
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 44.6,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 13.6,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "700",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 10.2,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 10,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 5,
+        "tag": "BUTTON",
+        "align": "left",
+        "larguraPct": 10.2,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "600",
+        "blocos": 1,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 5,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

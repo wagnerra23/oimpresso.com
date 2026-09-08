@@ -20,8 +20,9 @@ approved_at: 2026-05-09
 > **Persona secundária:** Contador terceiro (relatório mensal manifestações)
 > **Refs:**
 > - Blade legacy: ❌ **n/a** — tela nasce greenfield (não há legado pra portar)
-> - Canon Cockpit principal: [`os-page.jsx`](../_DesignSystem/ui_kits/cowork-2026-04-27/os-page.jsx) — list+detail com bulk
-> - Canon Cockpit secundário: [`tasks.jsx`](../_DesignSystem/ui_kits/cowork-2026-04-27/tasks.jsx) — inbox padrão (atalhos J/K + prazo countdown)
+> - Canon Cockpit principal: [`os-page.jsx`](../../../prototipo-ui/cowork/os-page.jsx) — list+detail com bulk
+> - Canon Cockpit secundário: [`tasks.jsx`](../../../prototipo-ui/cowork/tasks.jsx) — inbox padrão (atalhos J/K + prazo countdown)
+>   <br>⚠️ _Ponteiro atualizado em 2026-09-08 (o fato de 2026-05-09 fica): os dois arquivos seguem sendo o canon citado, mas o diretório `_DesignSystem/ui_kits/cowork-2026-04-27/` **não existe mais** no repo (0 arquivos sob `ui_kits`). Eles vivem hoje em `prototipo-ui/cowork/`. Isto é conserto de **caminho**, não revisão do veredito — e nenhum dos dois é âncora desta tela: `os-page.jsx` desenha Ordens de Serviço e `tasks.jsx` desenha Tarefas, então entram aqui como **referência de padrão**, papel que hoje é do PT-01 (§5 2026-08-11)._
 > - RUNBOOK: [`RUNBOOK-manifestacao.md`](RUNBOOK-manifestacao.md)
 > - SPEC: [`SPEC.md` US-NFE-052](SPEC.md)
 > - Backend: [PR #313](https://github.com/wagnerra23/oimpresso.com/pull/313) (US-NFE-049/050/051)
@@ -129,7 +130,7 @@ A operadora Gold faz HOJE manifestação manual no portal SEFAZ-SP (~30min/dia �
 |---|---|---|---|
 | KPI value (Pendentes/Vencendo) | h2 ~28px regular | 32-40px tabular-nums semibold | **40px tabular-nums semibold** + label tracking-widest text-xs uppercase muted |
 | Valor monetário (R$ na lista) | mono 14px regular | 14px tabular-nums | `font-mono tabular-nums` 14px (alinhamento perfeito de R$) |
-| CNPJ emitente | mono 12px muted | 12-13px mono | `font-mono` 12px text-muted-foreground (separador `12.345.678/0001-99`) |
+| CNPJ emitente | mono 12px muted | 12-13px mono | `font-mono` 12px text-muted-foreground (separador `XX.XXX.XXX/XXXX-XX`) |
 | Countdown prazo | n/a | badge 13px tabular-nums | **15px tabular-nums semibold** dentro do badge (legível à distância) |
 | Header h1 | 24px semibold | 28-32px semibold | **28px semibold** + line-height tight |
 
@@ -246,3 +247,19 @@ Skill mwart-comparative V4 orquestra 6 sub-skills do Claude Design plugin. Pra e
 ---
 
 **Última atualização:** 2026-05-09
+
+## Vínculo e âncora — 2026-09-08 (Onda 7)
+
+- **Vinculado ao charter:** `resources/js/Pages/NfeBrasil/Manifestacao/Index.charter.md` passou a
+  declarar `related_visual_comparison:` apontando para este arquivo. O casamento foi feito pelo
+  **conteúdo** (`inertia_target:` daqui × `component:` do charter), nunca por nome de arquivo.
+- **Âncora de protótipo: não existe, e a decisão é essa.** O charter declara
+  `related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)` — a tela é lista paginável
+  de NF-e com filtros, seleção múltipla e barra de ações em lote, que é a assinatura do PT-01
+  (o próprio PT-01 cita "NF-e" entre as entidades do padrão).
+- **Por que os canons acima não viraram âncora:** `os-page.jsx` desenha **Ordens de Serviço** e
+  `tasks.jsx` desenha **Tarefas** — nenhum desenha esta tela. Entram aqui como *referência de
+  padrão*, papel que é do Padrão de Tela, não de âncora (§5 2026-08-11: âncora tem de desenhar
+  AQUELA tela, e a prova é estrutural).
+- **Medição de runtime: não se aplica.** Sem âncora de protótipo não há par para o
+  `design-diff --compare`. O eixo desta tela é conformidade ao PT-01, não paridade com protótipo.

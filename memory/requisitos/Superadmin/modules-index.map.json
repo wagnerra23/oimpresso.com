@@ -1,0 +1,115 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Pages/Modules/Index (/modulos)",
+  "gap_fonte": "memory/requisitos/Superadmin/modules-index-gap.md",
+  "prototipo_sha": "sha256:a96f38cec4f0",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "cabecalho",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/modulos-page.jsx",
+        "linhas": "289-301"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Modules/Index.tsx",
+        "linhas": "157-178",
+        "ancora": "modulos.header"
+      },
+      "status": "gap-parcial",
+      "acao": "Decidir. Região do mockup: `modulos-page.jsx:297-300`; ponto no vivo: `Index.tsx:176-177`. O selo de escopo diz em voz alta o que o charter chama de \"rota cross-tenant intencional\" — hoje isso só existe na documentação, não na tela. O atalho `/` exige o handler de teclado, que também não existe no vivo. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "cartoes-de-contagem",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/modulos-page.jsx",
+        "linhas": "303-308"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Modules/Index.tsx",
+        "linhas": "180-185",
+        "ancora": "modulos.kpis"
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade.",
+      "_acionavel": false
+    },
+    {
+      "id": "filtros-por-area-e-status",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/modulos-page.jsx",
+        "linhas": "316-330"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Modules/Index.tsx",
+        "linhas": "187-235",
+        "ancora": "modulos.filtros"
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade.",
+      "_acionavel": false
+    },
+    {
+      "id": "busca",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/modulos-page.jsx",
+        "linhas": "311-315"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Modules/Index.tsx",
+        "linhas": "241-260",
+        "ancora": "modulos.busca"
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade.",
+      "_acionavel": false
+    },
+    {
+      "id": "tabela-de-modulos",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/modulos-page.jsx",
+        "linhas": "339-387"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Modules/Index.tsx",
+        "linhas": "266-374",
+        "ancora": "modulos.tabela"
+      },
+      "status": "gap-parcial",
+      "acao": "Decidir. Região do mockup: `modulos-page.jsx:341-346` (os três `<th>` com botão) mais o reducer de ordenação em `:249-263`; ponto no vivo: `Index.tsx:267-275` (o `<thead>`). O contrato de tela trava só a copy das colunas, então isto não é violação de contrato — é capacidade do protótipo que a tela não tem. Ordenar é local (a lista já vem inteira), logo não exige backend. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "estado-vazio",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/modulos-page.jsx",
+        "linhas": "388-398"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Modules/Index.tsx",
+        "linhas": "279-284",
+        "ancora": false
+      },
+      "status": "gap-parcial",
+      "acao": "Decidir. Região do mockup: `modulos-page.jsx:388-398`; ponto no vivo: `Index.tsx:279-284`. Decisão já mapeada, não inventada: o `modulos.contract.json` recortou esta seção de propósito (`_nota_recorte`) e o charter a reserva como `[BACKLOG]` UC-MOD-10 — o contrato entra quando a tela alcançar o desenho. Construir ou rejeitar por escrito; se construir, a copy do contrato passa a valer e a seção volta pro `.contract.json`.",
+      "_acionavel": true
+    },
+    {
+      "id": "drawer-de-detalhe",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/modulos-page.jsx",
+        "linhas": "143-194"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Modules/Index.tsx",
+        "linhas": "286-290",
+        "ancora": false
+      },
+      "status": "gap",
+      "acao": "Decidir. Região do mockup: `modulos-page.jsx:143-194`; ponto de entrada no vivo seria a linha da tabela em `Index.tsx:286-290`. É a decisão D3 do charter, explicitamente aberta e endereçada a [W], com `[BACKLOG]` reservado como UC-MOD-16 e o recorte registrado no `modulos.contract.json`. Não é achado novo: é a pendência nomeada, agora com âncora dos dois lados. Decidir.",
+      "_acionavel": true
+    }
+  ]
+}

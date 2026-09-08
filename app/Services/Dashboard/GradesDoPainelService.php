@@ -40,6 +40,12 @@ class GradesDoPainelService
     public const POR_PAGINA = 10;
 
     /**
+     * As abas que o painel "Pendências" resume, na ordem da âncora. Subconjunto
+     * deliberado das 8 do catálogo — a razão da escolha está em `pendencias()`.
+     */
+    private const ABAS_DE_PENDENCIA = ['venc-venda', 'venc-compra', 'estoque', 'validade', 'expedicao'];
+
+    /**
      * Colunas que a UI pode ordenar, por aba — e a expressão SQL de cada uma.
      *
      * ALLOWLIST, não passagem direta: `sort` vem da query string, e query string é entrada
@@ -214,6 +220,49 @@ class GradesDoPainelService
         }
 
         return $permitidas[0] ?? null;
+    }
+
+    /**
+     * Contagem por aba pro painel "Pendências" — o atalho que o charter mantinha em
+     * §Backlog ("entra se [W] quiser") e que [W] liberou em 2026-09-04.
+     *
+     * As 5 abas vêm da ÂNCORA (`prototipo-ui/cowork/dash-legacy-page.jsx`, const
+     * `PENDENCIAS`), não das 8 do catálogo: o protótipo escolhe deliberadamente as
+     * acionáveis. Pedido de venda, ordem de compra e requisição são fluxo em
+     * andamento, não pendência — e por isso ficam de fora aqui e seguem só como aba.
+     *
+     * O número sai do MESMO `linhas()` que serve a aba, e não de uma query própria.
+     * É a decisão central deste método: um segundo predicado de "o que está pendente"
+     * drifta do primeiro, e o painel passaria a prometer um número que a aba clicada
+     * não mostra. O charter já tinha nomeado esse risco ("repete o que as abas já
+     * dizem"). O preço é o `total()` vir junto com uma página de 10 linhas que se
+     * descarta; ele é pago FORA do first-paint, porque o controller entrega a prop
+     * por `Inertia::defer` — a mesma proteção que a grade já usa.
+     *
+     * Aba sem permissão nem chega aqui: `linhas()` devolve `null` e a linha some, a
+     * mesma regra da aba (nunca desabilitada, sempre ausente). Total zero também some
+     * — "Pendências" com um zero não é pendência, é ruído.
+     *
+     * @return array<int, array{aba: string, label: string, total: int}>
+     */
+    public function pendencias(int $businessId, ?int $locationId = null): array
+    {
+        $rotulos = array_column($this->abasPermitidas(), 'label', 'key');
+        $pendencias = [];
+
+        foreach (self::ABAS_DE_PENDENCIA as $aba) {
+            if (! isset($rotulos[$aba])) {
+                continue;
+            }
+
+            $total = $this->linhas($aba, $businessId, $locationId)?->total() ?? 0;
+
+            if ($total > 0) {
+                $pendencias[] = ['aba' => $aba, 'label' => $rotulos[$aba], 'total' => $total];
+            }
+        }
+
+        return $pendencias;
     }
 
     /**

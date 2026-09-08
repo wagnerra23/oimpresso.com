@@ -2,8 +2,8 @@
 id: requisitos-manufacturing-briefing
 module: Manufacturing
 status: parcial
-status_nota: "Legacy UltimatePOS estável (recipes/BOM + ordens de produção) + migração Inertia parcial — 2 páginas: a lista de produções (Wave J) e a consulta de receitas em /manufacturing/recipe (Wave 29). Sem pilot dedicado próprio; provê custeio/BOM."
-updated_at: "2026-09-02"
+status_nota: "Migração Inertia com CUTOVER concluído em 2026-09-04 — as 5 telas servem nos endereços canônicos (/manufacturing/recipe, /production, /report, /settings, /insumos), com ?legacy=1 devolvendo o Blade no mesmo endereço e /v2/* como 301. Faltam US-MANU-006 (editor de ingredientes) e US-MANU-007 (formulário de ordem, travada por decisão FSM). Sem pilot dedicado; provê custeio/BOM."
+updated_at: "2026-09-03"
 owner: W
 related_adrs:
   - 0011-alinhamento-padrao-jana
@@ -38,13 +38,13 @@ A capacidade de negócio real (CRUD receitas, ordens de produção, custeio) seg
 A versão anterior afirmava "Frontend Inertia/React ❌ pendente" e "Charter páginas Inertia ❌ N/A". **Ambas ficaram desatualizadas** — a migração MWART Wave J já landou:
 
 - Existe `resources/js/Pages/Manufacturing/Index.tsx` — lista de produções (`production_purchase`) em Inertia/React, padrão PT-01.
-- Rota `GET /manufacturing/v2/production` → `ProductionController@indexV2` → `ProductionService` (scoped por `business_id`, Tier 0 ADR 0093), **coexiste** com Blade legacy `/manufacturing/production`.
+- Rota `GET /manufacturing/production` → `ProductionController@index` (delega a `@indexV2`) → `ProductionService` (scoped por `business_id`, Tier 0 ADR 0093). **Cutover 2026-09-04:** o endereço canônico serve a tela React; `?legacy=1` devolve o Blade no MESMO endereço e `/v2/production` virou 301. Nenhuma rota removida.
 - Charter existe: `Index.charter.md` (`status: draft`, page_id `manufacturing-index`).
 
-## Onde é usado (claim herdado — não reverificado no código nesta sessão)
+## Onde é usado (reverificado por grep 2026-09-03)
 
-- **Modules/OficinaAuto** (prod Martinho, biz=164) e **Modules/ComunicacaoVisual** (em construção) — consumo de BOM/custeio afirmado no briefing anterior. **Não reverificado por grep nesta sessão** — tratar como claim, não fato.
-- Núcleo: qualquer biz com `manufacturing_module` na assinatura.
+- **Modules/OficinaAuto** e **Modules/ComunicacaoVisual** — **NÃO consomem** `RecipeBomService`/`ProductionService`/`MfgRecipe`/`ManufacturingUtil`. Varredura (`Manufacturing|mfg_recipe|MfgRecipe`, case-insensitive) nos dois módulos: **0 arquivos**. O claim herdado do briefing anterior ("consumo de BOM/custeio afirmado") era falso — corrigido aqui, não repetido.
+- Núcleo: qualquer biz com `manufacturing_module` na assinatura (não reverificado — é o pacote UltimatePOS, não um consumo de código).
 
 ## Capacidades atuais (estado real — pelo código)
 
@@ -61,16 +61,22 @@ A versão anterior afirmava "Frontend Inertia/React ❌ pendente" e "Charter pá
 | Multi-tenant isolation Pest | ✅ | `Tests/Feature/MultiTenantIsolationTest` |
 | BOM integrity + Smoke routes + Scaffold Pest | ✅ | `RecipeBomIntegrityTest`, `SmokeRoutesTest`, `ScaffoldManufacturingTest` |
 | **Consulta de receitas Inertia** (KPIs · busca · drawer de custo · ficha PT-07) | 🟢 **novo (Wave 29)** | `Pages/Manufacturing/Recipes.tsx` + `RecipeController@index` + `RecipeBomService::listRecipesWithCost` |
-| Charter páginas Inertia | 🟡 2 em draft (não `live`) | `Index.charter.md` · `Recipes.charter.md` |
+| **Relatório de produção do período, agrupado por produto** | 🟢 **em produção (Wave 30, US-MANU-002)** — mergeada em `ba5e61b6c`, deploy 2026-09-03 OK | `Pages/Manufacturing/Report.tsx` + `ProductionController@reportV2` + `ProductionService::reportByProduct` (reusa `RecipeBomService::calculateUnitCost`, prova algébrica em `RUNBOOK-report.md §1`) |
+| **Configurações do módulo (Inertia)** | 🟢 **novo (Wave 31, US-MANU-003)** — código escrito, Pest na lane de CI | `Pages/Manufacturing/Settings.tsx` + `SettingsController@indexV2` (o `@store` legado é reusado SEM alteração) |
+| **Ordens de produção — 8 colunas do §4.5** | 🟢 **emenda (Wave 32, US-MANU-004)** — Produto/Qtd/Custo unit. + sufixo `fix` + rodapé; corrigiu N+1 do `location` que existia desde a Wave J | `Pages/Manufacturing/Index.tsx` + `ProductionService::enrichProductionRows` + `StatusBadge` domínio `producao` |
+| **Insumos — impacto reverso + simulador de preço** | 🟢 **novo (Wave 33, US-MANU-005)** — traz o backend que o §18.3 declarava faltar (`usosDoInsumo`); simulação RECALCULA pela fórmula real, não pelo atalho aditivo do protótipo | `Pages/Manufacturing/Insumos.tsx` + `RecipeController@insumos` + `RecipeBomService::{usosDoInsumo,listInsumosComUso}` |
+| Charter páginas Inertia | 🟡 5 em draft (não `live`) | `Index` · `Recipes` · `Report` · `Settings` · `Insumos` |
 
 ## Gaps catalogados
 
-- **Charter draft → live** — `Index.charter.md` segue `status: draft`; promover exige Wagner aprovar UX screenshot (anti-hook do charter).
-- **Cobertura Spatie permissions** — `R-MANU-001..005` no SPEC ainda com `_lacuna_` (`PermissionsTest` não existe; reconciliação 2026-07-01 pendente).
+- **Charter draft → live** — `Index.charter.md` e `Report.charter.md` seguem `status: draft` (sem `smoke:` ainda); promover exige Wagner aprovar UX screenshot (anti-hook do charter).
+- **Wave 30 (US-MANU-002, Relatório) sem verificação real ainda** — código completo (backend + frontend + charter + casos + Pest), `php -l`/`tsc` limpos, mas **Pest não rodou no CT 100** e **smoke prod não foi feito**. Não declarar "pronto" até isso fechar — proibicoes.md §"Claim sem evidência".
+- ~~**Cobertura Spatie permissions** — `R-MANU-001..005` no SPEC ainda com `_lacuna_`~~ — **fechado em 2026-09-03**: `Modules/Manufacturing/Tests/Feature/PermissionsTest.php` criado (R-MANU-002/003/005 por HTTP real; R-MANU-001 já estava em `MultiTenantIsolationTest`, linha do SPEC só desatualizada). **Achado durante o fix:** R-MANU-004 (`manufacturing.edit_recipe`) protege uma rota que não existe — `UpdateRecipeRequest` não está wired a nenhum PUT/PATCH (`Route::resource(...)->except('edit','update')`). Fica registrado no SPEC, não escondido.
 - ~~**US-MANU** — SPEC sem user stories escritas~~ — **fechado em 2026-09-02**: `US-MANU-001` foi escrita a partir do handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" (§2 + §17), com DoD e `**Testado em:**` ancorados.
-- **MWART parcial** — migraram a lista de produções (Wave J) e a **consulta** de receitas (Wave 29). Seguem Blade: create/edit/destroy da receita, o editor de ingredientes, o formulário de ordem, relatório e configurações. A tela nova aponta pra elas em vez de duplicá-las.
-- **Aba Insumos não existe** — o handoff (§18.3) declara que `usosDoInsumo` é cálculo novo sem backend: "sem isso, a aba não sai".
+- **MWART parcial** — migraram a lista de produções (Wave J), a **consulta** de receitas (Wave 29), o **relatório do período** (Wave 30) e as **configurações** (Wave 31). Seguem Blade: create/edit/destroy da receita, o editor de ingredientes e o formulário de ordem — nessa ordem de custo crescente (decisão [M] 2026-09-02). **US-MANU-007 (formulário de ordem) está TRAVADA** aguardando decisão [W] sobre o caminho rascunho→finalizada (é Tier 0 de ESTOQUE — ver SPEC).
+- ~~**Aba Insumos não existe** — §18.3: `usosDoInsumo` é cálculo novo sem backend~~ — **fechado em 2026-09-04** (Wave 33): o método existe, com JOIN de tenant e teste. A lista de insumos é DERIVADA dos ingredientes (o app não tem flag de matéria-prima) — ver `RUNBOOK-insumos.md §2`.
 - **Atualizar preço de venda em massa não implementado** — §18.1 proíbe o `custo × 2` do protótipo, e a regra de markup real não foi decidida. É Tier 0 de valor.
+- **E2E de `Recipes.tsx` deixado pendente por decisão explícita ([F] 2026-09-03)** — `Recipes.casos.md` tem 8 itens no "Backlog de casos" (comportamento de navegador: busca/atalho `/`, KPI-filtro, ordenação, seleção, cor da margem, drawer, ficha sem valor). `e2e/manufacturing-recipes.spec.ts` já rascunha 4 deles como `test.fixme` — não rodam porque falta fixture Playwright autenticada (sessão + business com receitas semeadas) pro módulo Manufacturing; os outros 4 nem chegaram a ser esboçados. Não quebra gate nenhum hoje (backlog declarado ≠ UC órfão), mas fica sem cobertura de regressão de navegador. **Retomar quando alguém for mexer na tela de novo, ou se pedirem explicitamente.**
 
 ## Decisões canônicas relacionadas
 
@@ -80,10 +86,12 @@ A versão anterior afirmava "Frontend Inertia/React ❌ pendente" e "Charter pá
 
 ## Próximos passos sugeridos
 
-1. Reverificar (grep) se OficinaAuto/ComunicacaoVisual realmente consomem `RecipeBomService`/`ProductionService` — confirmar ou remover o claim acima.
-2. `PermissionsTest` fechando `R-MANU-001..005` (a US-MANU-001 já foi escrita em 2026-09-02).
-3. Promover os charters draft → live após screenshot aprovado por Wagner (agora são dois: `Index` e `Recipes`).
-4. Migração MWART do CRUD/Recipes avaliada quando OficinaAuto consumir BOM via UI Inertia.
+1. ~~Reverificar (grep) se OficinaAuto/ComunicacaoVisual realmente consomem `RecipeBomService`/`ProductionService`~~ — **fechado 2026-09-03**: reverificado, 0 arquivos, claim removido (ver seção acima).
+2. ~~`PermissionsTest` fechando `R-MANU-001..005`~~ — **fechado 2026-09-03** (ver Gaps catalogados).
+3. Promover os charters draft → live após screenshot aprovado por Wagner (agora são três: `Index`, `Recipes`, `Report`). Smoke de `Recipes.charter.md` **fechado 2026-09-03** — falta a aprovação do screenshot pelo Wagner (`Index.charter.md` e `Report.charter.md` seguem sem smoke registrado).
+4. **Smoke prod das 5 telas nos endereços canônicos** (`/manufacturing/recipe`, `/production`, `/report`, `/settings`, `/insumos`) — nenhuma foi aberta e verificada depois do cutover de 2026-09-04. CI verde não é smoke: conferir também que `?legacy=1` ainda devolve o Blade e que a entrada de Insumos aparece no menu lateral.
+5. **US-MANU-003 (Configurações do módulo)** é a próxima onda na ordem de custo crescente decidida por [M] — backend já existe (`SettingsController@index/@store`), 3 campos, escreve.
+6. Migração MWART do CRUD/Recipes avaliada quando OficinaAuto consumir BOM via UI Inertia (segue sem consumo — item 1 acima).
 
 ## Nota atual
 

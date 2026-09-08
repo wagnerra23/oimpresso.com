@@ -1,6 +1,8 @@
 ---
 page: /nfe-brasil/manifestacao
 component: resources/js/Pages/NfeBrasil/Manifestacao/Index.tsx
+related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
+related_visual_comparison: memory/requisitos/NfeBrasil/manifestacao-visual-comparison.md
 owner: wagner
 status: draft
 last_validated: "2026-05-10"

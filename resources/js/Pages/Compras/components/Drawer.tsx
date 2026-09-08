@@ -31,7 +31,8 @@ type TabId = (typeof TABS)[number]['id'];
 export interface CompraDetalhe {
   id: number;
   ref_no: string | null;
-  document: string | null;
+  /** Chave de acesso da NF-e de entrada (44 dígitos) — `transactions.chave_entrada`. */
+  chave_entrada: string | null;
   transaction_date: string | null;
   type: string;
   status: Stage | string;
@@ -486,7 +487,13 @@ function ItensTab({ compra }: { compra: CompraDetalhe }) {
 }
 
 function DocumentosTab({ compra }: { compra: CompraDetalhe }) {
-  const xmlChave = compra.document; // UPos guarda chave NF-e em `document` quando há
+  // `chave_entrada` (chave de 44 dígitos), não `document`.
+  //
+  // Até 2026-09-07 esta linha lia `compra.document` sob o comentário "UPos guarda chave NF-e em
+  // document quando há". Medido: é falso — `document` é o anexo genérico que o core grava com
+  // `uploadFile($request, 'document', 'documents')`, um nome de arquivo em `uploads/documents/`.
+  // O drawer exibia esse nome de arquivo sob o rótulo "chave de acesso".
+  const xmlChave = compra.chave_entrada;
 
   if (!xmlChave) {
     return (

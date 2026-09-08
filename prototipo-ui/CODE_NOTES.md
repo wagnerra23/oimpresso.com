@@ -1523,3 +1523,96 @@ O [#6488](https://github.com/wagnerra23/oimpresso.com/pull/6488) auditou o mesmo
 
 Como sempre: não editei `prototipo-ui/cowork/**` pra "consertar" nada — é espelho de leitura
 (ADR 0374) e edição minha some no próximo `--export-from`. O durável nasce no Cowork vivo e desce.
+
+---
+
+## 2026-09-03 [CL] → [W]/[CC] — Export da Forja chegou sem o pacote: 16 arquivos de fonte sem como descer
+
+**O pedido, e é a única coisa que este bloco pede:** regenerar o pacote deste ciclo. A regra em si já
+está no [passo 4 da ROTINA](COWORK-ESTRUTURA-E-TELAS.md) com o comando — não repito aqui.
+
+### O que medi (03/09, contra `origin/main` fresco + projeto Cowork por ID)
+
+O ciclo da Forja fechou e o `github.md` (Last sync `2026-09-03T17:10Z`) traz, no lugar do recibo, a
+frase **"Não afirmo que regenerei."** A linha `bundle regenerado (<data> · N arquivos)` que a
+[ADR 0387](../memory/decisions/0387-github-md-diario-cowork-aceito-e-tratado.md) usa como recibo não
+aparece no arquivo.
+
+Consequência medida, não estimada — `forja-*.jsx`: **22 no vivo · 6 no espelho**. Os 16 que nunca
+desceram: `forja-atomos` · `forja-lista` · `forja-quadro` · `forja-gantt` · `forja-saude` ·
+`forja-changelog` · `forja-issue-drawer` · `forja-cmdk` · `forja-triagem` · `forja-rag` · `forja-ia` ·
+`forja-novo-issue` · `forja-runbook` · `forja-handoff` · `forja-dossie` · `forja-notifs`.
+
+As duas rotas de transporte estão fechadas pra eles:
+
+- **PRINCIPAL (pacote):** o `sync/bundle.manifest.json` vivo ainda é a emissão de **24/08**, pré-split.
+  Conferido com controle positivo — `forja-page.jsx` e `forja-mcp.jsx` dão 2 hits cada no manifesto;
+  os 16 novos dão **0**.
+- **pontual (`get_file` → `--export-from`):** são 16, não "1-3 avulsos", e arquivo pequeno volta
+  inline — escrever de lá é transcrição (ADR 0374).
+
+### O que isso segura — e o que não segura
+
+O `COLAR-NO-CODE-EXPORT-FORJA-MODULO.md` pede 11 ondas de réplica. Medi o que dá pra executar sem o
+pacote: as **25 classes-chave do §3** estão nos 6 arquivos do espelho, e o `forja-page.css` é de
+03/09 — então as Ondas 1–11 têm alvo, ainda que medido no monolito de 01/09 e não na build split.
+
+Sem fonte no espelho estão 4 das 8 construções "sem receptor": `fj-cmdk`, `fj-notifs`, `fj-runbook` e
+`fj-composer` dão 0 no espelho **e** no CSS fresco. (Sondei por nome de classe adivinhado; se elas
+usam outro prefixo, o 0 é meu, não delas.)
+
+[W] optou por esperar a fonte fiel antes da Onda 1 — a fila da Forja está parada neste bloco.
+
+### 2 correções pro pacote de export (na fonte, não aqui)
+
+- **§8** afirma "17 arquivos `forja-*.jsx` + `forja-page.css` no `prototipo-ui/cowork/`". O espelho
+  tem 6 `.jsx` + 1 `.css`; o vivo tem 22 `.jsx`. Nenhum dos dois é 17.
+- **§1 Onda 1** aponta `team-mcp/Forja/ForjaHub.tsx`; o arquivo está em
+  `team-mcp/Forja/_components/ForjaHub.tsx`. As outras 15 âncoras conferem.
+
+### Por que este bloco está aqui, e não num `CODE_NOTES.prompt-*` novo
+
+Porque o de 01/09 já provou que ali não chega: a errata dele mediu que **nenhum** dos 6 documentos do
+read-order citava a regra, e por isso ela foi pro passo 4 da ROTINA. A regra está lá — conferi hoje,
+7 hits em `COWORK-ESTRUTURA-E-TELAS.md` — e o ciclo fechou sem cumprir. Logo o que falta não é texto
+novo, é a execução; abrir mais um arquivo de pedido repetiria o erro que a errata registrou.
+
+---
+
+## 2026-09-04 [CL] → [W] — export HRM pousou reconciliado; a busca anti-scatter do Cowork casou só a raiz
+
+**Branch:** `claude/hrm-export-ponte` (base `origin/main` `ac7e5e417c`). PR aberto — **não mergeei**.
+
+[W] colou o pacote de export do HRM. Ele abre declarando **"não havia `cowork-inbox/PEDIDO-*hrm*`
+(procurei). Este é o doc único do módulo — próximas ondas reescrevem este arquivo"**. Medido no `main`
+hoje: `cowork-inbox/hrm/` existe com **7 arquivos**, entre eles o `PEDIDO-CL-hrm.md` de 21/ago
+([#6132](https://github.com/wagnerra23/oimpresso.com/pull/6132)), que já decompôs o módulo em
+HRM-O0 (3 decisões [W]) + O5–O8 (PR-1..PR-10) e deixou charter, casos, contrato e teste prontos.
+
+**A busca não estava errada, estava rasa:** a convenção é `<modulo>/PEDIDO-CL-<modulo>.md`, uma pasta
+abaixo da raiz do `cowork-inbox/`. Um glob na raiz nunca acha. Vale pros próximos exports — o alvo
+é `cowork-inbox/<modulo>/`, não `cowork-inbox/`.
+
+**Mais duas claims refutadas**, ambas de leitura do espelho e não do `main`:
+
+- "**4 testes Feature**" no Essentials — são **14**. Dois deles, `MultiTenantLeaveTest` e
+  `SalesTargetShiftCrossTenantTest`, já provam o isolamento cross-tenant de licença, meta e turno.
+  O export lista essa guarda como trabalho a fazer; ela é trabalho a **não quebrar**.
+- Pages em `resources/js/Pages/Hrm/**` — o `PEDIDO-CL-hrm` já tinha escolhido
+  `Modules/Essentials/Resources/js/Pages/Hrm/**`, "como o módulo Cms faz", e o `app.tsx` documenta
+  que as duas convenções resolvem pro mesmo namespace. Prevalece a do pedido.
+
+**O que sobrevive e é bom:** a a11y do alvo com o método corrigido (a sonda por `cursor:pointer`
+**reprova** neste módulo — `button.os-btn` tem `cursor: default`, e isso produziu um falso negativo
+na 1ª rodada, pego pelo caso de sanidade), o aviso do skeleton (771 nós na 1ª leitura, 1007 estável,
+~23% de erro em quem não espera duas leituras iguais), o alvo por seção, e a leitura de que o
+`DataTablePro` do DS acumula `th` sem `scope` em **3 módulos** (CRM, Repair, HRM).
+
+**O que eu não fiz e por quê:** não landei o export como "doc único do módulo". A frase é uma
+instrução ativa pra próxima sessão sobrescrever o dono — o export virou anexo de um pouso que
+aponta pro `PEDIDO-CL-hrm`, com as 3 frases marcadas no lugar em vez de apagadas.
+
+**Achado que muda a ordem sugerida:** o pedido de 21/ago está com **execução zero** — sem
+`Pages/Hrm/`, teste e contrato nunca saíram do inbox, e o **PR-8 (lang PT)**, que o próprio pedido
+marcou como "pode ir sozinho e já", segue intacto: o menu do RH diz "Sair" para *licença* e "Folhas"
+para *licenças*. É o caminho mais curto pro primeiro valor, e não depende de nenhuma das 5 decisões.

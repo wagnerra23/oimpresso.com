@@ -26,6 +26,32 @@ Histórico congelado do contrato documental de **Essentials**. Mudanças posteri
 
 > HRM + essenciais (Documents/Reminders/ToDo/KnowledgeBase/Holidays/Leaves/Payroll/Shifts) sobre UltimatePOS legacy.
 
+## [Folha — total recalculado no servidor] — 2026-09-05
+
+### Corrigido — o total do contracheque deixa de vir do navegador
+
+- `PayrollTotalCalculator` (novo) passa a ser o dono único do total: recompõe
+  `base = duração × valor-por-unidade`, deriva as linhas percentuais do percentual (não do
+  valor enviado) e soma `base + Σ adicionais − Σ descontos`.
+- Os 3 sítios que gravavam `total_before_tax = final_total` cru — `store()`, `update()` e
+  `getUpdatePayrollGroup()` — passam a gravar o número do servidor. A divergência contra o
+  formulário nunca passa em silêncio: vira ALERT no log, e com forma de inflação (razão ≥ 10×)
+  derruba o salvamento com `PayrollTotalDivergenteException`.
+- `essentials_payroll_groups.gross_total` deixa de ser `num_uf(total_gross_amount)` e passa a
+  ser a soma dos totais recalculados. Este era o campo de fato EXPOSTO: o `num_uf` trata
+  "1 ponto + exatamente 3 dígitos" como separador de milhar, e o navegador produz 3 casas
+  (`Decimal.mul` de percentual não arredonda). Medido no CT 100 contra o `Util` real:
+  `330.033` → `330033` (1000×), mesma forma do incidente ROTA LIVRE de 2026-06-05.
+- Os blobs `essentials_allowances`/`essentials_deductions` passam a sair do MESMO calculador
+  que produz o total — antes o holerite podia imprimir verbas que não somavam o total ao lado.
+- Prova: `tests/Feature/Calculo/CalculoValorPayrollTest.php` (23 passed / 40 assertions no
+  CT 100), com bite-test — revertido o comportamento, 17 dos 23 ficam vermelhos com 31
+  assertions (a classe carrega; não é falha de bootstrap).
+- Dado gravado conferido em produção antes da mudança: 2 contracheques (biz=1, 2021 e 2023),
+  ambos com total zero e batendo com a recomputação. Nada a corrigir retroativamente.
+
+---
+
 ## [Wave 27 — Polish final ≥90] — 2026-05-17
 
 ### Adicionado — D7 LogsActivity SATURATION em 4 Models RH sensíveis

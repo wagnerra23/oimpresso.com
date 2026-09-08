@@ -20,6 +20,7 @@ use Modules\Manufacturing\Entities\MfgIngredientGroup;
 use Modules\Manufacturing\Entities\MfgRecipe;
 use Modules\Manufacturing\Http\Requests\StoreProductionRequest;
 use Modules\Manufacturing\Services\ProductionService;
+use Modules\Manufacturing\Services\RecipeBomService;
 use Modules\Manufacturing\Utils\ManufacturingUtil;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -59,14 +60,22 @@ class ProductionController extends Controller
      *
      * @return Response
      */
-    public function index()
+    public function index(ProductionService $productionService, RecipeBomService $bomService)
     {
         $business_id = request()->session()->get('user.business_id');
         if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.access_production')) {
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
+        // O ramo AJAX abaixo alimenta o DataTables da tela Blade e SEGUE INTACTO — é ele
+        // que faz `?legacy=1` continuar funcionando de verdade, não só renderizar.
+        // ⚠️ `! request()->header('X-Inertia')` é OBRIGATÓRIO aqui (bug em prod 2026-09-04).
+        // O cliente do Inertia manda `X-Requested-With: XMLHttpRequest`, então
+        // `request()->ajax()` é TRUE numa navegação SPA — sem este guarda o controller
+        // devolvia o JSON do DataTables e o Inertia estourava "All Inertia requests must
+        // receive a valid Inertia response". Quebrou ao clicar nas abas depois do cutover.
+        // Mesmo idioma do middleware AdminSidebarMenu (ver CoworkSidebarController §PEGADINHA).
+        if (request()->ajax() && ! request()->header('X-Inertia')) {
             $productions = Transaction::join(
                 'business_locations AS bl',
                 'transactions.location_id',
@@ -147,9 +156,15 @@ class ProductionController extends Controller
                 ->make(true);
         }
 
-        $business_locations = BusinessLocation::forDropdown($business_id);
+        // CUTOVER 2026-09-04 — ver a nota em SettingsController@index. `?legacy=1` devolve
+        // o Blade no MESMO endereço; nenhuma rota removida.
+        if (request()->boolean('legacy')) {
+            $business_locations = BusinessLocation::forDropdown($business_id);
 
-        return view('manufacturing::production.index')->with(compact('business_locations'));
+            return view('manufacturing::production.index')->with(compact('business_locations'));
+        }
+
+        return $this->indexV2($productionService, $bomService);
     }
 
     /**
@@ -879,7 +894,7 @@ class ProductionController extends Controller
      *
      * @return \Inertia\Response|Response
      */
-    public function indexV2(ProductionService $productionService)
+    public function indexV2(ProductionService $productionService, RecipeBomService $bomService)
     {
         $business_id = request()->session()->get('user.business_id');
         if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.access_production')) {
@@ -896,18 +911,12 @@ class ProductionController extends Controller
 
         // ROLLBACK Wave L/W7 PR #963: Inertia::defer quebrava Pages (initial render undefined).
         return Inertia::render('Manufacturing/Index', [
-            'productions' => $productionService
-                ->listProductions($business_id, $filters)
-                ->map(function ($p) {
-                    return [
-                        'id' => $p->id,
-                        'ref_no' => $p->ref_no,
-                        'transaction_date' => $p->transaction_date?->format('d/m/Y'),
-                        'location_name' => optional($p->location)->name,
-                        'final_total' => (float) $p->final_total,
-                        'mfg_is_final' => (int) $p->mfg_is_final,
-                    ];
-                })->values(),
+            // US-MANU-004 — as 8 colunas do §4.5. O enriquecimento (produto, nº de
+            // ingredientes, quem lançou, qtd, custo unit.) é feito em LOTE no Service.
+            'productions' => $productionService->enrichProductionRows(
+                $productionService->listProductions($business_id, $filters),
+                $business_id
+            ),
             'summary' => $productionService->summary($business_id),
             // Opções do filtro de local + estado dos filtros pra re-render (board uplift 50->70).
             // closure D-14: dropdown por business, não muda com filtro — pula no partial reload
@@ -918,6 +927,10 @@ class ProductionController extends Controller
                 'end_date' => $filters['end_date'],
                 'is_final' => (bool) $filters['is_final'],
             ],
+            // Contador da aba "Receitas" — mesmo payload que Report/Settings/Insumos já
+            // mandam. Esta tela nasceu na Wave J SEM a barra de abas (era a única do módulo
+            // na época) e ficou sem os dados dela; virou beco sem saída depois do cutover.
+            'recipes_count' => $bomService->countRecipes($business_id),
         ]);
     }
 
@@ -926,11 +939,17 @@ class ProductionController extends Controller
      *
      * @return Response
      */
-    public function getManufacturingReport()
+    public function getManufacturingReport(ProductionService $productionService, RecipeBomService $bomService)
     {
         $business_id = request()->session()->get('user.business_id');
 
-        if (request()->ajax()) {
+        // ⚠️ `! request()->header('X-Inertia')` é OBRIGATÓRIO aqui (bug em prod 2026-09-04).
+        // O cliente do Inertia manda `X-Requested-With: XMLHttpRequest`, então
+        // `request()->ajax()` é TRUE numa navegação SPA — sem este guarda o controller
+        // devolvia o JSON do DataTables e o Inertia estourava "All Inertia requests must
+        // receive a valid Inertia response". Quebrou ao clicar nas abas depois do cutover.
+        // Mesmo idioma do middleware AdminSidebarMenu (ver CoworkSidebarController §PEGADINHA).
+        if (request()->ajax() && ! request()->header('X-Inertia')) {
             $start_date = request()->get('start_date');
             $end_date = request()->get('end_date');
             $location_id = request()->get('location_id');
@@ -946,8 +965,62 @@ class ProductionController extends Controller
             return $output;
         }
 
-        $business_locations = BusinessLocation::forDropdown($business_id, true);
+        // CUTOVER 2026-09-04 — ver a nota em SettingsController@index.
+        if (request()->boolean('legacy')) {
+            $business_locations = BusinessLocation::forDropdown($business_id, true);
 
-        return view('manufacturing::production.report')->with(compact('business_locations'));
+            return view('manufacturing::production.report')->with(compact('business_locations'));
+        }
+
+        return $this->reportV2($productionService, $bomService);
+    }
+
+    /**
+     * MWART US-MANU-002 (SPEC.md) — porte Inertia do relatório de produção do período,
+     * agrupado por produto. Rota ADITIVA `/manufacturing/v2/report`: `/manufacturing/report`
+     * (Blade, acima) segue intocado — mesmo padrão da Onda 1 de Ordens de produção (Wave J
+     * `indexV2`), não o cutover-no-mesmo-endereço que a tela de Receitas usou (aquele foi
+     * decisão [W] explícita — {@see RUNBOOK-report.md}).
+     *
+     * Mesmo gate do Blade legado acima: só o pacote `manufacturing_module`, sem permissão
+     * Spatie granular própria (o legado nunca teve uma pra "relatório" — não inauguro
+     * restrição nova que o usuário de hoje não tem em `/manufacturing/report`).
+     */
+    public function reportV2(ProductionService $productionService, RecipeBomService $bomService)
+    {
+        $business_id = request()->session()->get('user.business_id');
+
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module'))) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // Sem Inertia::defer aqui, de propósito: `indexV2()` acima documenta o rollback do
+        // Wave L/W7 (PR #963) — defer quebrava o initial render desta mesma tela (props
+        // undefined). `relatorio`/`recipes_count` seguem eager, igual ao resto do módulo v2.
+        $filters = [
+            'start_date' => request()->get('start_date'),
+            'end_date'   => request()->get('end_date'),
+            // R-DoD "Só finalizadas com default LIGADO" — ausência do param = true, não false.
+            'is_final'   => ! request()->has('is_final') || request()->boolean('is_final'),
+        ];
+
+        $ordens = $productionService->summary($business_id);
+
+        return Inertia::render('Manufacturing/Report', [
+            'relatorio' => $productionService->reportByProduct($business_id, $filters),
+            'filters'   => [
+                'start_date' => $filters['start_date'],
+                'end_date'   => $filters['end_date'],
+                'is_final'   => $filters['is_final'],
+            ],
+            'permissions' => [
+                'prod' => auth()->user()->can('manufacturing.access_production'),
+            ],
+            'producao' => [
+                'total'     => (int) $ordens['total_count'],
+                'rascunhos' => (int) $ordens['pending_count'],
+            ],
+            'recipes_count' => $bomService->countRecipes($business_id),
+        ]);
     }
 }

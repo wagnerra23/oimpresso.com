@@ -286,8 +286,8 @@ function FolhaEspelho({ colab, mes, dias, t }) {
       <h2>Apuração diária</h2>
       <table className="dados">
         <thead><tr>
-          <th>Data</th><th>Dia</th><th>Prev. Ent.</th><th>Prev. Saí.</th><th>Real. Ent.</th><th>Real. Saí.</th><th>Marcações</th>
-          <th className="num">Trab.</th><th className="num">Atraso</th><th className="num">Falta</th><th className="num">HE Diu.</th><th className="num">HE Not.</th><th className="num">BH +</th><th className="num">BH −</th><th>Estado</th>
+          <th scope="col">Data</th><th scope="col">Dia</th><th scope="col">Prev. Ent.</th><th scope="col">Prev. Saí.</th><th scope="col">Real. Ent.</th><th scope="col">Real. Saí.</th><th scope="col">Marcações</th>
+          <th scope="col" className="num">Trab.</th><th scope="col" className="num">Atraso</th><th scope="col" className="num">Falta</th><th scope="col" className="num">HE Diu.</th><th scope="col" className="num">HE Not.</th><th scope="col" className="num">BH +</th><th scope="col" className="num">BH −</th><th scope="col">Estado</th>
         </tr></thead>
         <tbody>
           {dias.map((d) => (
@@ -407,10 +407,7 @@ function EspelhoShow({ colabId, mes, setMes, onVoltar, avisar }) {
         </Nota>}
 
       <Card contrato="espelho-apuracao-diaria" icon="calendar" titulo={"Apuração diária — " + comp.extenso} sub={dias.length + " dias apurados"}
-        acao={<span className="pt-seg" data-contract="espelho-modo-visao">
-          <button className={modo === "tabela" ? "on" : ""} onClick={() => setModo("tabela")}>Tabela</button>
-          <button className={modo === "grade" ? "on" : ""} onClick={() => setModo("grade")}>Grade do mês</button>
-        </span>}>
+        acao={<window.CliSeg ariaLabel="Modo de visão" value={modo} onChange={setModo} options={[{ key: "tabela", label: "Tabela" }, { key: "grade", label: "Grade do mês" }]} />}>
         {modo === "grade" ? <GradeMes dias={dias} mes={mes} onDia={setDiaFoco} /> :
         <Tabela cols={[{ l: "Data", w: "78px" }, { l: "Previsto", w: "104px" }, { l: "Realizado", w: "104px" }, { l: "Marcações" }, { l: "Atraso", num: true }, { l: "HE", num: true }, { l: "BH (+/−)", num: true }, { l: "Estado", w: "120px" }]}>
           {dias.map((d) => {

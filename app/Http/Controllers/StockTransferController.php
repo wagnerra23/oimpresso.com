@@ -19,6 +19,23 @@ use Inertia\Inertia;
 class StockTransferController extends Controller
 {
     /**
+     * Status TERMINAL do `sell_transfer` — o valor que a transferência assume DEPOIS
+     * de o estoque ter sido movido.
+     *
+     * ⚠️ Há DOIS vocabulários de status aqui, e confundi-los já custou um defeito:
+     *   · ENTRADA (o que chega em `$request->input('status')`, vindo do dropdown de
+     *     `stockTransferStatuses()`): `pending` · `in_transit` · `completed`;
+     *   · PERSISTÊNCIA (o que vai para `transactions.status`): `pending` · `in_transit`
+     *     · `final` (sell_transfer) / `received` (purchase_transfer).
+     *
+     * `completed` NUNCA é gravado: os três writers o traduzem (`store()`, `update()`,
+     * `updateStatus()`). A migration `2020_09_07_171059_change_completed_stock_transfer_
+     * status_to_final` converteu os remanescentes em 2020. Portanto comparar um status
+     * PERSISTIDO com a string `'completed'` compara camadas diferentes e nunca casa.
+     */
+    private const SELL_TRANSFER_TERMINAL = 'final';
+
+    /**
      * All Utils instance.
      */
     protected $productUtil;
@@ -815,6 +832,23 @@ class StockTransferController extends Controller
                     ->where('type', 'sell_transfer')
                     ->findOrFail($id);
 
+            // R-XFER-003 — mesma recusa do `updateStatus()`, no 2o caminho. O `edit()` (GET)
+            // já não abre uma transferência concluída (:751), mas o PUT não tinha o filtro e
+            // o bloco `if ($status == 'completed')` mais abaixo movimentava o saldo OUTRA VEZ
+            // — alcançável por request mesmo com a tela fechada.
+            //
+            // É recusa EXPLÍCITA, e não `->where('status','!=',...)` na query acima, porque
+            // ali o `findOrFail` lançaria DENTRO do `try`: o catch genérico chama
+            // `DB::rollBack()` antes de este método ter aberto transação própria, revertendo
+            // a transação de quem chamou. Medido em teste: a transferência sumia junto.
+            // Retornar cedo não movimenta, não lança e ainda diz ao usuário o que houve.
+            if ($sell_transfer->status === self::SELL_TRANSFER_TERMINAL) {
+                return redirect('stock-transfers')->with('status', [
+                    'success' => 0,
+                    'msg' => __('lang_v1.stock_transfer_already_completed'),
+                ]);
+            }
+
             $sell_transfer_before = $sell_transfer->replicate();
 
             $purchase_transfer = Transaction::where('business_id',
@@ -1031,8 +1065,29 @@ class StockTransferController extends Controller
 
             $status = $request->input('status');
 
+            // R-XFER-003 — transferência concluída é TERMINAL, e o backend passa a honrar
+            // o que a UI já assume: a Blade não renderiza o link de troca de status para
+            // concluídas (`index()` :137/:140) e o `edit()` (GET) não abre uma `final` (:751).
+            //
+            // Sem esta recusa, repetir o POST ou (a) movimentava o saldo OUTRA VEZ, sem teto
+            // — `decreaseProductQuantity` usa `decrement()` puro (ProductUtil:424), então a
+            // origem atravessa o zero — ou (b) reabria a transferência para `pending`/
+            // `in_transit` sem estornar o que já tinha saído. O guard antigo comparava o
+            // status PERSISTIDO com `'completed'`, que é vocabulário de ENTRADA e nunca é
+            // gravado (ver self::SELL_TRANSFER_TERMINAL), logo era sempre verdadeiro.
+            //
+            // Fica ANTES do `beginTransaction`: recusa não abre transação.
+            if ($sell_transfer->status === self::SELL_TRANSFER_TERMINAL) {
+                return [
+                    'success' => 0,
+                    'msg' => __('lang_v1.stock_transfer_already_completed'),
+                ];
+            }
+
             DB::beginTransaction();
-            if ($status == 'completed' && $sell_transfer->status != 'completed') {
+            // O `&& status != completed` que existia aqui era o guard quebrado; a recusa
+            // acima já garante que uma transferência terminal nunca chega neste ponto.
+            if ($status == 'completed') {
                 foreach ($sell_transfer->sell_lines as $sell_line) {
                     if ($sell_line->product->enable_stock) {
                         $this->productUtil->decreaseProductQuantity(

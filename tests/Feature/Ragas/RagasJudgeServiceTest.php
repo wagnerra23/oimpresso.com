@@ -154,3 +154,86 @@ it('erro sem corpo JSON nao quebra o log (fallback declarado)', function () {
     Log::shouldHaveReceived('warning')->withArgs(fn (string $m) => str_contains($m, '503')
         && str_contains($m, '(sem corpo)'));
 });
+
+
+// --- Curto-circuito SEM-CREDITO (2026-09-03) -------------------------------------
+//
+// Medido no canary run 33744191426: 51 perguntas x 2 metricas = 102 chamadas, TODAS
+// com `429 erro=credit_balance_exhausted`, e 102 linhas identicas de WARNING. A 1a ja
+// respondia; as 101 seguintes gastaram runner e enterraram a causa.
+//
+// Os dois testes abaixo sao um PAR: o 1o prova que a familia sem-credito para o run,
+// o 2o prova que `rate_limit_exceeded` NAO para. Sem o 2o, um breaker que abortasse
+// em QUALQUER 429 passaria no 1o e derrubaria 50 perguntas boas por uma rajada de 1s.
+
+it('sem-credito abre o circuito: a 2a metrica nao faz HTTP nenhum', function () {
+    config(['openai.api_key' => 'sk-fake-para-teste']);
+
+    Http::fake(['api.openai.com/*' => Http::response([
+        'error' => [
+            'message' => 'Your credit balance is too low.',
+            'type'    => 'invalid_request_error',
+            'code'    => 'credit_balance_exhausted',
+        ],
+    ], 429)]);
+
+    $judge = new RagasJudgeService();
+
+    // MESMA instancia, como no `JanaRagasCiCommand` (o `app(RagasJudgeService::class)`
+    // e resolvido UMA vez, antes do loop das perguntas). Se fosse uma instancia por
+    // pergunta, o breaker nao seguraria nada — e este teste seria teatro.
+    expect($judge->scoreFaithfulness('q', 'a', 'ctx'))->toBe(0.0);
+    expect($judge->scoreAnswerRelevancy('q', 'a'))->toBe(0.0);
+    expect($judge->scoreContextPrecision('q', 'ctx'))->toBe(0.0);
+
+    // O assert que MORDE: 3 metricas pedidas, UMA chamada HTTP. Contar requests e o
+    // unico jeito de provar que as outras 2 nao sairam — o score 0.0 seria identico
+    // com ou sem breaker, entao assertar so o score nao provaria nada.
+    Http::assertSentCount(1);
+});
+
+it('CONTROLE NEGATIVO: rate_limit_exceeded NAO abre o circuito', function () {
+    config(['openai.api_key' => 'sk-fake-para-teste']);
+
+    Http::fake(['api.openai.com/*' => Http::response([
+        'error' => [
+            'message' => 'Rate limit reached for gpt-4o-mini.',
+            'type'    => 'requests',
+            'code'    => 'rate_limit_exceeded',
+        ],
+    ], 429)]);
+
+    $judge = new RagasJudgeService();
+
+    expect($judge->scoreFaithfulness('q', 'a', 'ctx'))->toBe(0.0);
+    expect($judge->scoreAnswerRelevancy('q', 'a'))->toBe(0.0);
+    expect($judge->scoreContextPrecision('q', 'ctx'))->toBe(0.0);
+
+    // 3 pedidas, 3 enviadas: rajada e TRANSITORIA. Abortar o run por causa dela
+    // descartaria perguntas que teriam medido bem 1 segundo depois.
+    Http::assertSentCount(3);
+});
+
+it('sem-credito loga UMA linha que nomeia a causa e onde ela se resolve', function () {
+    config(['openai.api_key' => 'sk-fake-para-teste']);
+
+    Http::fake(['api.openai.com/*' => Http::response([
+        'error' => ['code' => 'insufficient_quota'],
+    ], 429)]);
+
+    Log::spy();
+
+    $judge = new RagasJudgeService();
+    $judge->scoreFaithfulness('q', 'a', 'ctx');
+    $judge->scoreAnswerRelevancy('q', 'a');
+
+    // A linha existe e diz billing/conta — quem abre a issue do canary le a causa
+    // sem precisar cavar 102 warnings identicos.
+    Log::shouldHaveReceived('warning')->withArgs(fn (string $m) => str_contains($m, 'SEM CREDITO')
+        && str_contains($m, 'insufficient_quota')
+        && str_contains($m, 'billing'));
+
+    // E ela sai UMA vez, nao a cada chamada pulada — senao o breaker trocaria 102
+    // linhas de um tipo por 102 de outro.
+    Log::shouldHaveReceived('warning')->withArgs(fn (string $m) => str_contains($m, 'SEM CREDITO'))->once();
+});

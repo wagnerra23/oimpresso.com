@@ -1,0 +1,330 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "superadmin/Assinaturas/Index (/superadmin/superadmin-subscription)",
+  "gap_fonte": "memory/requisitos/Superadmin/superadmin-assinaturas-gap.md",
+  "prototipo_sha": "sha256:c3ba0e10c548",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "pageheader-titulo",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "1072"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx",
+        "linhas": "167",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade",
+      "_acionavel": false
+    },
+    {
+      "id": "pageheader-subtitulo",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "1044-1175"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx",
+        "linhas": "167",
+        "ancora": false
+      },
+      "status": "nao-adotar",
+      "acao": "Nada — decisão já registrada (charter §Divergências \"subtítulo com total aprovado em R$ → contagens apenas — MRR tem dono, 2º oráculo seria régua duplicada\"; RUNBOOK-assinaturas §7; o \"· 1 pendente de baixa\" do mockup :1072 é literal fixo = mock)",
+      "_acionavel": false
+    },
+    {
+      "id": "pageheader-botao-exportar",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "1044-1175"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx",
+        "linhas": "165-251",
+        "ancora": false
+      },
+      "status": "nao-adotar",
+      "acao": "Nada — decisão já registrada (RUNBOOK-assinaturas §7 \"Exportar / Lançar assinatura — decisão [W], não migração\"; mockup superadmin-page.jsx:1074 só dispara toast)",
+      "_acionavel": false
+    },
+    {
+      "id": "pageheader-botao-lancar-assinatura",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "1044-1175"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx",
+        "linhas": "n/a (ausente no vivo — a célula do gap.md cita o recibo de ausência)",
+        "ancora": false
+      },
+      "status": "nao-adotar",
+      "acao": "Nada — decisão já registrada (RUNBOOK-assinaturas §7 \"permissão diferente da que guarda esta tela — decisão [W], não migração\"; charter Anti-hook \"Não escrever `status` direto\")",
+      "_acionavel": false
+    },
+    {
+      "id": "kpis-ativas-em-trial-pendentes-vencidas-ou-canceladas",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "1078-1083"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx",
+        "linhas": "277-296",
+        "ancora": "superadmin.assinaturas.kpis"
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente (recorte `declined` dito em texto — charter Anti-hook \"Não fundir Bloqueada com Cancelada\"; rótulo \"Aprovadas\"→\"Ativas\" é divergência declarada no contrato `_papel`)",
+      "_acionavel": false
+    },
+    {
+      "id": "filtros-pacote-status-criada-em-limpar",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "1085-1095"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx",
+        "linhas": "180-218",
+        "ancora": "superadmin.assinaturas.filtros"
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente (RUNBOOK-assinaturas §3 \"paridade com o F1\"; no mockup \"Criada em\" é inerte — `onChange={() => {}}`, superadmin-page.jsx:1091 — e o status \"Bloqueada\" não existe como filtro)",
+      "_acionavel": false
+    },
+    {
+      "id": "filtros-ordenacao-na-url",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "1044-1175"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx",
+        "linhas": "137-152",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente (charter Goals \"sobrevivem a refresh e a link colado\"; `UC-SAASS-09`; mockup usa `useState` local :1045-1051)",
+      "_acionavel": false
+    },
+    {
+      "id": "contador-n-de-n",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "1094"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx",
+        "linhas": "444-446",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade (posição adaptada; charter Goals \"total dito em texto\")",
+      "_acionavel": false
+    },
+    {
+      "id": "tabela-6-colunas-assinatura-negocio-status-vigencia-fundida-valor-pagamento",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "1105-1149"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx",
+        "linhas": "123-130",
+        "ancora": "superadmin.assinaturas.tabela"
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade (charter Goals \"vigência fundida\"; valor formatado do payload via `Intl.NumberFormat` :134, :424)",
+      "_acionavel": false
+    },
+    {
+      "id": "tabela-ordenacao-por-cabecalho",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "1111-1115"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx",
+        "linhas": "154-156",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente (server-side + whitelist, `UC-SAASS-08`, charter Anti-hook \"Não trocar `orderBy` whitelisted por input direto\"; a coluna Assinatura do mockup ordena por `id`, no vivo o default `criado desc` cobre a mesma ordem — `id: null` :124)",
+      "_acionavel": false
+    },
+    {
+      "id": "tabela-selecao-multipla-bulkbar",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "1044-1175"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx",
+        "linhas": "382-437",
+        "ancora": false
+      },
+      "status": "nao-adotar",
+      "acao": "Nada — decisão já registrada (charter §Divergências \"as 2 ações do F1 não existem no backend\"; RUNBOOK-assinaturas §7; mockup superadmin-page.jsx:1107-1110, :1155-1159)",
+      "_acionavel": false
+    },
+    {
+      "id": "tabela-kebab-por-linha",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "1137-1144"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx",
+        "linhas": "481-499",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade (charter Goals \"Ações por linha (SA-O4b)\")",
+      "_acionavel": false
+    },
+    {
+      "id": "tabela-kebab-baixar-comprovante",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "1044-1175"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx",
+        "linhas": "n/a (ausente no vivo — a célula do gap.md cita o recibo de ausência)",
+        "ancora": false
+      },
+      "status": "nao-adotar",
+      "acao": "Nada — decisão já registrada (charter §Divergências \"não há comprovante — `payment_transaction_id` é string do gateway, medido\"; RUNBOOK-assinaturas §7)",
+      "_acionavel": false
+    },
+    {
+      "id": "tabela-kebab-cancelar-assinatura-confirm",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "1044-1175"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx",
+        "linhas": "532-536",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente (charter Goals \"cada ação diz o efeito antes de aplicar\"; R3 `UC-SAASS-12`; mockup superadmin-page.jsx:1143, :1161-1165 usa confirmação genérica sem motivo)",
+      "_acionavel": false
+    },
+    {
+      "id": "gaveta-modo-status",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "575-580"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx",
+        "linhas": "521-537",
+        "ancora": "superadmin.assinaturas.form"
+      },
+      "status": "nao-adotar",
+      "acao": "Nada — Non-Goal do charter (Anti-hook \"Não ampliar a gaveta para os 5 status do F1\"; contrato `_nota_recorte`; `UC-SAASS-11`)",
+      "_acionavel": false
+    },
+    {
+      "id": "gaveta-modo-vigencia",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "583-590"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx",
+        "linhas": "625-665",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade (`UC-SA-009`)",
+      "_acionavel": false
+    },
+    {
+      "id": "gaveta-misturar-status-e-datas",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "557-566"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx",
+        "linhas": "543-551",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade (contrato `_nota_recorte` explica o desenho)",
+      "_acionavel": false
+    },
+    {
+      "id": "feedback-pos-acao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "1044-1175"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx",
+        "linhas": "560-563",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade (mockup superadmin-page.jsx:1168, :1143-1144 confirma com toast local; no vivo o toast é global via `app.tsx:75` + flash do controller — mesma capacidade, outro dono)",
+      "_acionavel": false
+    },
+    {
+      "id": "paginacao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "1044"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx",
+        "linhas": "440-467",
+        "ancora": "superadmin.assinaturas.paginacao"
+      },
+      "status": "nao-adotar",
+      "acao": "Nada — decisão já registrada (charter §Divergências \"paginação 6/página → 20 — decisão [W] em aberto\")",
+      "_acionavel": false
+    },
+    {
+      "id": "estado-carregando",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "1044-1175"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx",
+        "linhas": "255-263",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente (mockup só tem `SkelTable` via `useCarga` harness, superadmin-page.jsx:1053, :1098 — sem skeleton de KPI)",
+      "_acionavel": false
+    },
+    {
+      "id": "estado-vazio",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "linhas": "1044-1175"
+      },
+      "vivo": {
+        "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx",
+        "linhas": "358-372",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente (mockup só tem o vazio de filtro, superadmin-page.jsx:1099-1101; charter Goals)",
+      "_acionavel": false
+    }
+  ],
+  "mapping": {
+    "source": "superadmin-page.jsx",
+    "target": "Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx"
+  },
+  "_nota_mapeamento": "Protótipo = porte do Blade legado (superadmin-page.jsx:1-9), anterior às telas React. prototipo.linhas = range citado na célula 'Estado no vivo' do gap.md (default = a view inteira, 1044-1175); vivo.linhas = 1º range citado na mesma célula (grep -n real). vivo.ancora = id de data-contract citado no nome da parte (existe no .tsx); false EXPLÍCITO nas partes sem região ancorada (opt-out consciente — o contrato-de-tela trava só as seções listadas)."
+}

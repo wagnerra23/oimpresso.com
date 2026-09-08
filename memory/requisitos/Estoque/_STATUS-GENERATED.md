@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 0 |
 | Telas (.tsx) | 0 |
 | Telas com `casos.md` | 1 |
-| UC declarados | 14 |
-| UC com teste que os cita | 12 |
+| UC declarados | 15 |
+| UC com teste que os cita | 13 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -50,6 +50,7 @@ _Nenhuma._
 | UC-EST-07 | Movimentacao | 🧪 aguarda veredito da lane |
 | UC-EST-08 | Movimentacao | 🧪 aguarda veredito da lane |
 | UC-EST-08B | Movimentacao | 📝 sem_teste |
+| UC-EST-09 | Movimentacao | 🧪 aguarda veredito da lane |
 | UC-INV-02 | Movimentacao | 🧪 aguarda veredito da lane |
 | UC-INV-03 | Movimentacao | 🧪 aguarda veredito da lane |
 | UC-INV-05 | Movimentacao | 🧪 aguarda veredito da lane |

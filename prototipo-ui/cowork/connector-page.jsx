@@ -30,29 +30,11 @@ const CLIENTS0 = [
   { id:7, name:"App do técnico (Android)", user:"Wagner", criado:"09/06/2026", tokens:0 },
 ];
 
+// Kebab: delega pro CliKebab (adaptador do Kebab do DS). Eram SEIS cópias
+// idênticas deste componente no build; o DS publica um que ainda navega por teclado,
+// coisa que nenhuma das seis fazia.
 function Kebab({ items }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-  useEffect(() => {
-    if (!open) return;
-    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener("mousedown", h);
-    return () => document.removeEventListener("mousedown", h);
-  }, [open]);
-  return (
-    <div className="cli-kebab-wrap" ref={ref}>
-      <button className="cli-kebab-btn" onClick={(e) => { e.stopPropagation(); setOpen(!open); }} aria-expanded={open} title="Ações do client">
-        <I.moreV size={14}/>
-      </button>
-      {open && (
-        <div className="cli-kebab-menu" onClick={(e) => e.stopPropagation()}>
-          {items.map((it, i) => it.sep
-            ? <div key={i} className="cli-kebab-sep"></div>
-            : <button key={i} className={it.danger ? "danger" : ""} onClick={() => { setOpen(false); it.action?.(); }}>{it.label}</button>)}
-        </div>
-      )}
-    </div>
-  );
+  return <window.CliKebab items={items} label="Ações do client" />;
 }
 
 // Segredo NUNCA é exibível depois da criação ([W] 2026-08-19): a tela não tem caminho de leitura.
@@ -376,23 +358,15 @@ function ConnectorPage({ view = "clients" }) {
         </div>
         <div className="os-page-h-r">
           {aba === "clients" && (
-            <div className="cnx-seg" role="group" aria-label="Estado da tela">
-              {CENARIOS.map((c) => (
-                <button key={c.id} className={cenario === c.id ? "on" : ""} aria-pressed={cenario === c.id}
-                  onClick={() => setCenario(c.id)}>{c.label}</button>
-              ))}
-            </div>
+            <window.CliSeg ariaLabel="Estado da tela" value={cenario} onChange={setCenario}
+              options={CENARIOS.map((c) => ({ key: c.id, label: c.label }))} />
           )}
           <span className="mod-scope">superadmin · cross-tenant</span>
         </div>
       </header>
 
-      <nav className="cnx-tabs" role="tablist" data-contract="tabs">
-        {VIEWS.map((v) => (
-          <button key={v.id} role="tab" aria-selected={aba === v.id}
-            className={`cnx-tab ${aba === v.id ? "on" : ""}`} onClick={() => setAba(v.id)}>{v.label}</button>
-        ))}
-      </nav>
+      <window.CliTabs className="cnx-tabs" dataContract="tabs" ariaLabel="Telas do conector" pad={24}
+        active={aba} onChange={setAba} tabs={VIEWS.map((v) => ({ key: v.id, label: v.label }))} />
 
       <div className="cnx-body">
         {aba === "clients" && <ClientsView key={cenario} toast={setToast} cenario={cenario}/>}

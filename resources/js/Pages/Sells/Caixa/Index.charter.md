@@ -2,6 +2,8 @@
 id: resources-js-pages-sells-caixa-index-charter
 page: /vendas/caixa
 component: resources/js/Pages/Sells/Caixa/Index.tsx
+related_us: [US-SELL-063]
+related_visual_comparison: memory/requisitos/Sells/Caixa-r1-visual-comparison.md
 owner: wagner
 status: draft
 status_detail: rascunho

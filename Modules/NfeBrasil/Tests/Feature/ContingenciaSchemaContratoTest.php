@@ -35,6 +35,34 @@ uses(Tests\TestCase::class);
 const CONT_BIZ = 1;
 const CONT_SERIE = '999';   // série reservada ao teste — não colide com sequência real
 
+/**
+ * Apaga o que ESTE arquivo cria. Espelha o `retrLimpar()` do `ContingenciaRetransmissaoTest`,
+ * que já fazia isso com a série dele.
+ *
+ * POR QUE PRECISA EXISTIR: o `UC-CONT-05` insere uma emissão com `status = 'contingencia'` no
+ * MESMO tenant (`biz=1`) que o `ContingenciaRetransmissaoTest` usa. O `RetentarContingenciaJob`
+ * varre por `business_id` + `status`, **sem filtrar série** — então a emissão deste arquivo
+ * entrava no lote FIFO do outro teste e, como `99000x < 997203`, aparecia na FRENTE da ordem
+ * esperada. Falha real observada no CI: `[990002, 997203, 997204, 997205]` num run e
+ * `[990001, …]` no seguinte — qual registro vaza depende da ordem aleatória do Pest, e é por
+ * isso que o defeito ficou latente e só apareceu quando a ordem mudou.
+ *
+ * Isto NÃO responde se o job deveria filtrar por série — essa é uma pergunta de produção, e
+ * está registrada. Independente da resposta, um teste não pode deixar registro pendente no
+ * tenant compartilhado.
+ */
+function contLimpar(): void
+{
+    try {
+        DB::table('nfe_emissoes')
+            ->where('business_id', CONT_BIZ)
+            ->where('serie', CONT_SERIE)
+            ->delete();
+    } catch (\Throwable) {
+        // tabela ausente no ambiente — o `beforeEach` já skipa os casos
+    }
+}
+
 beforeEach(function () {
     if (DB::connection()->getDriverName() !== 'mysql') {
         $this->markTestSkipped(
@@ -42,6 +70,12 @@ beforeEach(function () {
             . 'No sqlite :memory: o ENUM vira TEXT e o verde seria falso.'
         );
     }
+
+    contLimpar();
+});
+
+afterEach(function () {
+    contLimpar();
 });
 
 /** Insere uma emissão mínima e devolve o id. `numero` alto evita colidir com dado semeado. */

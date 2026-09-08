@@ -1290,6 +1290,32 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // Worker da fila `attendance-import` (HRM-O6 / PR-6, achado A7): drena o
+        // ImportarPresencaJob despachado pela tela /hrm/attendance.
+        //
+        // POR QUE FILA PROPRIA, e NAO `default` — mesma razao do worker de `backups`
+        // logo acima: quem drena `default` esta atras de `queue.backlog_worker_enabled`
+        // (default FALSE), e `default` ainda esta na lista de filas que o
+        // `jobs:purge-represados` apaga. Import de presenca despachado pra `default`
+        // nao aconteceria, em silencio — e o dado aqui e jornada de colaborador, onde
+        // sumico silencioso e o pior desfecho possivel.
+        //
+        // NAO gated, porque esta fila so recebe job recem-despachado por acao humana na
+        // tela: nao existe o backlog stale de ~48k jobs que justifica o gate da `default`.
+        //
+        // withoutOverlapping(15) casa com o $timeout=900 do job. Hostinger e shared
+        // hosting sem supervisor — cron everyMinute e o workaround padrao.
+        $schedule->command('queue:work database --queue=attendance-import --max-time=55 --tries=1')
+            ->everyMinute()
+            ->withoutOverlapping(15)
+            ->environments(['live'])
+            ->runInBackground()
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule queue:work attendance-import FALHOU — import de presenca pode ficar parado na jobs table'
+                );
+            });
+
         // US-WA-082 — Cleanup nonces antigos (>24h) da tabela webhook_nonces.
         // Replay window é 5min, mas mantemos 24h por margem segurança vs time
         // skew + audit forense. Após 24h é seguro deletar (replay já seria

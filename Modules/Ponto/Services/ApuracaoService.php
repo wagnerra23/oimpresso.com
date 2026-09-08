@@ -5,6 +5,7 @@ namespace Modules\Ponto\Services;
 use App\Util\OtelHelper;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Modules\Essentials\Entities\EssentialsLeave;
 use Modules\Ponto\Entities\ApuracaoDia;
 use Modules\Ponto\Entities\Colaborador;
 use Modules\Ponto\Entities\Intercorrencia;
@@ -79,6 +80,14 @@ class ApuracaoService
             $self->aplicarRegraHoraExtra($apuracao, $colaborador, $data);
             $self->aplicarRegraAdicionalNoturno($apuracao, $colaborador, $data);
             $self->aplicarRegraDsr($apuracao, $colaborador, $data);
+            // Licença aprovada abona o dia — HRM-O6 PR-7 / Onda 2 do plano de integração.
+            // POSIÇÃO MEDIDA, não escolhida: tem de vir DEPOIS de aplicarRegraTolerancia()
+            // (que é quem SETA `falta_minutos = prevista_carga` quando qtd_marcacoes === 0,
+            // linha ~206) e ANTES de calcularBancoHoras() (que converte falta em DÉBITO de
+            // banco, linha ~420). O plano de integração pedia "antes de aplicarIntercorrencias";
+            // ali o zero seria desfeito pela tolerância logo em seguida, justamente no caso
+            // principal — licença sem batida nenhuma. Ver LicencaAbonaDiaContratoTest::UC-LIC-06.
+            $self->aplicarLicencas($apuracao, $colaborador, $data);
             $self->calcularBancoHoras($apuracao, $colaborador);
 
             $temDivergencia = is_array($apuracao->divergencias) && count($apuracao->divergencias) > 0;
@@ -477,5 +486,93 @@ class ApuracaoService
         $lista = is_array($a->divergencias) ? $a->divergencias : [];
         $lista[] = ['chave' => $chave, 'mensagem' => $mensagem];
         $a->divergencias = $lista;
+    }
+
+    /**
+     * Licença aprovada no HRM abona o dia (HRM-O6 PR-7 · Onda 2 do plano de integração).
+     *
+     * DECISÃO [W] 2026-09-05 (emenda de D3, no PEDIDO-CL-hrm.md): a licença **NÃO bloqueia**
+     * a marcação — ela SINALIZA divergência e SAI da conta de ausência. Nenhuma origem é
+     * recusada, porque `REP_P`/`AFD` são leitura do que já aconteceu no equipamento e no
+     * arquivo fiscal: apagar do sistema um registro que existe no REP cria exatamente o buraco
+     * que a auditoria do MTE procura. A marcação entra marcada, e o gestor trata.
+     *
+     * ⚠️ Essa emenda SUPERSEDE a tabela §4.1 do plano de integração (session log de 2026-09-05),
+     * que ainda propunha `MANUAL`/`INTEGRACAO` → RECUSA 422. O plano foi a MEDIÇÃO que motivou a
+     * decisão; a decisão veio depois e é do dono. Por isso não existe guard de criação aqui.
+     *
+     * Leitura DIRETA de `essentials_leaves`, sem materializar Intercorrência — recomendação do
+     * plano §3.3: dado materializado drifta (a licença pode ser cancelada depois e deixaria a
+     * Intercorrência órfã abonando um dia sem licença); leitura direta se corrige sozinha na
+     * próxima reapuração.
+     *
+     * NÃO credita `realizada_trabalhada_minutos`: não houve trabalho. Zera o que é PENALIDADE
+     * por ausência (falta/atraso/saída antecipada) e nada mais — HE e adicional noturno de quem
+     * de fato bateu ponto ficam intactos, e a divergência manda o caso ao RH.
+     *
+     * Tier 0 (ADR 0093): a query filtra por `business_id` do colaborador. Licença de outro
+     * tenant não abona dia nenhum — `UC-LIC-05` prova com o adversário 99.
+     *
+     * Usa a Entity do DONO, e não uma query crua na tabela — a primeira versão deste método
+     * fazia o contrário. O `catalog-graph` reprovou e tinha razão: `EssentialsLeave`
+     * carrega `HasBusinessScope` (ADR 0093, Tier 0 IRREVOGÁVEL), então a query crua abriria mão
+     * do global scope de business e passaria a depender de alguém lembrar do `where` à mão.
+     * O `where('business_id')` abaixo fica como defesa em profundidade — explícito e redundante
+     * de propósito —, mas quem garante o isolamento agora é o scope do Model.
+     *
+     * Custo assumido e declarado: este é o PRIMEIRO `use Modules\<Outro>` do `Modules/Ponto`
+     * (medido: zero antes deste PR). O par `Ponto>Essentials` é acoplamento novo e deliberado —
+     * a alternativa era manter a fronteira de código e perder a defesa Tier 0, o que inverte a
+     * prioridade. A ADR sucessora da 0014 (Onda 0) é quem formaliza a dependência.
+     */
+    public function aplicarLicencas(ApuracaoDia $a, Colaborador $c, Carbon $data)
+    {
+        if (empty($c->user_id)) {
+            return; // colaborador sem vínculo com usuário do HRM — nada a abonar
+        }
+
+        $licenca = EssentialsLeave::where('business_id', $c->business_id)
+            ->where('user_id', $c->user_id)
+            ->where('status', 'approved')
+            ->whereDate('start_date', '<=', $data->toDateString())
+            ->whereDate('end_date', '>=', $data->toDateString())
+            ->orderBy('id')
+            ->first();
+
+        if ($licenca === null) {
+            return;
+        }
+
+        // A tolerância já rodou e pode ter marcado falta/atraso como se fosse ausência
+        // injustificada. Num dia de licença aprovada isso é falso-positivo: some com as
+        // duas chaves para o RH não ver "sem marcações" num dia legitimamente abonado.
+        $a->divergencias = array_values(array_filter(
+            is_array($a->divergencias) ? $a->divergencias : [],
+            static function ($d) {
+                $chave = is_array($d) ? ($d['chave'] ?? null) : null;
+
+                return ! in_array($chave, ['falta', 'atraso_acima_tolerancia'], true);
+            }
+        ));
+
+        $a->falta_minutos             = 0;
+        $a->atraso_minutos            = 0;
+        $a->saida_antecipada_minutos  = 0;
+
+        $this->addDivergencia(
+            $a,
+            'licenca_abonou_dia',
+            "Dia abonado por licença aprovada #{$licenca->id} — não conta como falta."
+        );
+
+        // A sinalização da D3: bateu ponto em dia de licença. Não recusamos a batida (ela pode
+        // vir do REP e existir no arquivo fiscal), mas o dia vai para DIVERGENCIA e o RH decide.
+        if ((int) $a->qtd_marcacoes > 0) {
+            $this->addDivergencia(
+                $a,
+                'marcacao_em_dia_de_licenca',
+                "Há {$a->qtd_marcacoes} marcação(ões) em dia coberto pela licença aprovada #{$licenca->id}."
+            );
+        }
     }
 }

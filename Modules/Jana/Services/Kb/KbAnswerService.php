@@ -44,6 +44,29 @@ class KbAnswerService
      */
     public const TIPOS_VALIDOS = ['adr', 'spec', 'session', 'handoff', 'briefing', 'surface', 'charter', 'casos', 'all'];
 
+    /**
+     * Orcamento de caracteres por fonte no bloco FONTES.
+     *
+     * Config-as-code SEM env() E SEM config() de proposito. Sem env() pelo mesmo
+     * criterio do `docs_query_instruction` (Modules/Jana/Config/config.php): mexer
+     * aqui muda a QUALIDADE do retrieval, logo e PR medido contra o gold-set, nunca
+     * ajuste de .env. Sem config() porque `renderFontes` e PURA (roda sem container)
+     * — o teste `renderiza bloco FONTES` quebrou com `Target class [config] does not
+     * exist` quando isto passou por config(); a constante e o dono unico do numero.
+     */
+    public const EXCERPT_CHARS = 1200;
+
+    /** Teto de posicoes varridas por doc — evita O(n^2) em doc gigante (max medido: 815k chars). */
+    protected const MAX_POSICOES_JANELA = 400;
+
+    /** Stopwords PT-BR de >=5 chars — sem elas o "centro" da janela vira ruido. */
+    protected const STOPWORDS = [
+        'para', 'como', 'esse', 'essa', 'isso', 'pelo', 'pela', 'mais', 'deve', 'sobre',
+        'entre', 'quando', 'porque', 'qual', 'quais', 'onde', 'esta', 'estao', 'cada',
+        'todo', 'toda', 'todos', 'todas', 'pode', 'fazer', 'antes', 'depois', 'apenas',
+        'tambem', 'primeiro', 'segundo', 'existe', 'existem', 'precisa', 'devem',
+    ];
+
     /** Retrieval veio do hybrid (semântico + lexical) — caminho pleno. */
     public const RETRIEVAL_HYBRID = 'hybrid';
 
@@ -167,18 +190,41 @@ class KbAnswerService
 
     /**
      * Renderiza bloco "FONTES" pro prompt do LLM. Cada doc vira bloco markdown
-     * numerado com slug + title + path + excerpt 400 chars.
+     * numerado com slug + title + path + trecho do corpo.
+     *
+     * O TRECHO e a janela que CONTEM O MATCH (nao mais os primeiros 400 chars).
+     * Medido no CT 100 staging contra o gold-set (N=51, corpus 2555 docs, 2026-09-04):
+     * o doc certo JA ESTAVA no top-10 em 98% dos casos (cobertura lexica do
+     * ground_truth = 0,9805 contra o doc inteiro), mas o excerpt de 400 chars pegava
+     * o CABECALHO — titulo + preambulo — e entregava 0,3311 ao juiz. O retriever nao
+     * era o gargalo; a MONTAGEM do contexto era. Curva medida:
+     *
+     *   orcamento | head (antigo) | janela centrada
+     *   400       | 0,3311        | 0,4850
+     *   800       | 0,4871        | 0,6039
+     *   1200      | 0,6034        | 0,6992
+     *
+     * Centrar rende ~1,5-2x por token: centrada@400 (0,485) empata com head@800
+     * (0,487) pela metade do orcamento. Mesma tecnica que o irmao
+     * {@see \Modules\KB\Services\KbCorpusBuilder} ja usa via Meilisearch
+     * (`attributesToCrop`/`cropLength`/`_formatted`) — trazida pra ca, nao inventada.
+     *
+     * `$pergunta` vazia mantem o comportamento antigo (head) byte-a-byte, pra quem
+     * chama sem contexto de query.
      *
      * @param  Collection<int,McpMemoryDocument>  $docs
      */
-    public function renderFontes(Collection $docs): string
+    public function renderFontes(Collection $docs, string $pergunta = '', ?int $maxLen = null): string
     {
+        $maxLen ??= self::EXCERPT_CHARS;
         $blocos = [];
         $i = 1;
 
         foreach ($docs as $doc) {
             $path = $doc->git_path ?: "memory/{$doc->type}s/{$doc->slug}.md";
-            $excerpt = $this->extrairExcerpt($doc->content_md ?? '', 400);
+            $excerpt = $pergunta === ''
+                ? $this->extrairExcerpt($doc->content_md ?? '', $maxLen)
+                : $this->extrairJanela($doc->content_md ?? '', $pergunta, $maxLen);
 
             $blocos[] = sprintf(
                 "### Fonte #%d — `%s`\n**%s** _(tipo: %s · módulo: %s)_\nPath: `%s`\n\n%s",
@@ -227,6 +273,111 @@ class KbAnswerService
         }
 
         return mb_substr($clean, 0, $maxLen).'...';
+    }
+
+    /**
+     * Dobra pra busca: minusculas + acentos removidos, PRESERVANDO a contagem de
+     * caracteres — cada char acentuado vira exatamente 1 char ASCII.
+     *
+     * O alinhamento 1:1 e o que torna o offset da janela confiavel: `mb_strpos` na
+     * string dobrada devolve indice de CARACTERE valido pra `mb_substr` no original.
+     * (Fold que muda o comprimento desalinha o corte — o texto sai deslocado.)
+     */
+    protected function foldParaBusca(string $texto): string
+    {
+        $de = 'áàâãäéèêëíìîïóòôõöúùûüçñÁÀÂÃÄÉÈÊËÍÌÎÏÓÒÔÕÖÚÙÛÜÇÑ';
+        $para = 'aaaaaeeeeiiiiooooouuuucnAAAAAEEEEIIIIOOOOOUUUUCN';
+        $mapa = [];
+        $dc = mb_str_split($de);
+        $pc = mb_str_split($para);
+        foreach ($dc as $i => $ch) {
+            $mapa[$ch] = $pc[$i];
+        }
+
+        return mb_strtolower(strtr($texto, $mapa), 'UTF-8');
+    }
+
+    /**
+     * Termos uteis da pergunta (>=5 chars, sem stopword PT-BR), ja dobrados.
+     *
+     * @return list<string>
+     */
+    protected function termosDaPergunta(string $pergunta): array
+    {
+        $partes = preg_split('/[^a-z0-9]+/', $this->foldParaBusca($pergunta), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        $out = [];
+        foreach ($partes as $parte) {
+            if (mb_strlen($parte) < 5 || in_array($parte, self::STOPWORDS, true)) {
+                continue;
+            }
+            $out[$parte] = true;
+        }
+
+        return array_keys($out);
+    }
+
+    /**
+     * Extrai a janela de `$maxLen` chars que MAIS cobre os termos da pergunta.
+     *
+     * Sem termo casado (ou pergunta sem termo util) cai no `extrairExcerpt` — o
+     * comportamento antigo continua sendo o piso, nunca uma janela pior que ele.
+     *
+     * @param  string  $pergunta  query do usuario; os termos dela definem o centro
+     */
+    public function extrairJanela(string $body, string $pergunta, int $maxLen): string
+    {
+        $semFrontmatter = preg_replace('/^\s*---\n.*?\n---\n?/s', '', $body);
+        $clean = trim($semFrontmatter ?? '');
+
+        if ($clean === '' || mb_strlen($clean) <= $maxLen) {
+            return $clean;
+        }
+
+        $termos = $this->termosDaPergunta($pergunta);
+        if ($termos === []) {
+            return $this->extrairExcerpt($body, $maxLen);
+        }
+
+        $hay = $this->foldParaBusca($clean);
+        $posicoes = [];
+        foreach ($termos as $termo) {
+            $off = 0;
+            while (($p = mb_strpos($hay, $termo, $off)) !== false) {
+                $posicoes[] = $p;
+                $off = $p + 1;
+                if (count($posicoes) >= self::MAX_POSICOES_JANELA) {
+                    break 2;
+                }
+            }
+        }
+
+        if ($posicoes === []) {
+            return $this->extrairExcerpt($body, $maxLen);
+        }
+
+        sort($posicoes);
+
+        // Janela deslizante: comeca em cada match e conta quantos cabem adiante.
+        $melhorInicio = $posicoes[0];
+        $melhorCnt = -1;
+        foreach ($posicoes as $inicio) {
+            $cnt = 0;
+            foreach ($posicoes as $pos) {
+                if ($pos >= $inicio && $pos < $inicio + $maxLen) {
+                    $cnt++;
+                }
+            }
+            if ($cnt > $melhorCnt) {
+                $melhorCnt = $cnt;
+                $melhorInicio = $inicio;
+            }
+        }
+
+        // Recua um quarto do orcamento pra dar contexto ANTES do match.
+        $ini = max(0, $melhorInicio - (int) ($maxLen * 0.25));
+        $trecho = mb_substr($clean, $ini, $maxLen);
+
+        return ($ini > 0 ? '...' : '').$trecho.($ini + $maxLen < mb_strlen($clean) ? '...' : '');
     }
 
     /**

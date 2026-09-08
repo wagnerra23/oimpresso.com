@@ -5,18 +5,108 @@
 > Sub-agent Opus 4.7 auditou os drafts em `migrations/`, `tests/`, `repair-shared-refactor/` e `modules-comunicacao-visual-scaffold/` em 2026-05-10. Achou 6 críticos + 8 médios + 3 cosméticos.
 >
 > **Todos os 6 críticos pre-fixados nos drafts** (2 triviais 2026-05-10 manhã + 2 schema benchmark 2026-05-10 tarde + 2 BackfillCommand 2026-05-10 tarde tarde). Felipe segunda **só valida** que concorda com as escolhas, roda Pest local, e abre PR US-INFRA-012.
+>
+> ---
+>
+> ⚠️ **STATUS 2026-09-03 — este é um registro DATADO, não uma lista de ação viva.** A
+> "segunda-feira" do cabeçalho acima foi **2026-05-11**. Medido nesta data contra `origin/main`:
+> as migrations deste draft nunca chegaram em `database/migrations/`
+> (`git ls-tree origin/main --name-only database/migrations/ | grep -iE 'benchmark|vertical|cnae'`
+> → vazio); `BackfillBusinessVerticalCommand` não existe em `app/` nem em `Modules/`; e o id
+> **US-INFRA-012** foi reaproveitado em 2026-05-25 para outro tema
+> (`memory/requisitos/Infra/SPEC.md:366` — migration order do `visual-regression.yml`, ADR 0108).
+> **Não trate as seções abaixo como tarefas pendentes.**
+>
+> **Única seção com consumidor vivo:** `## Bug ambiental Pest local` — citada pelos docblocks de
+> `tests/Feature/Ads/AdsProjectsRoutesContratoTest.php` e
+> `tests/Feature/Console/ArquivosHealthCheckScheduleTest.php`.
+>
+> ❌ **A entrada nº 1 (`authh`) está REFUTADA** — era instrução ativa para remover um middleware
+> legítimo (`IsInstalled`), e a remoção que ela declara já tinha atingido o scaffold deste draft.
+> Errata medida dentro da própria seção; o scaffold foi corrigido em 2026-09-03.
 
 ---
 
 ## Pre-fixados nesta auditoria (6 críticos — TODOS)
 
-### 1. ✅ Typo middleware `'authh'` em scaffold ComunicacaoVisual
+### 1. ❌ REFUTADO — `'authh'` NÃO é typo, é alias registrado (errata 2026-09-03)
 
-**Arquivo:** `modules-comunicacao-visual-scaffold/Routes/web.php:27`
+> **Errata append-only.** O texto original desta entrada fica preservado no fim da seção — ele foi
+> a hipótese de trabalho de 2026-05-10 e é o que explica o estado atual do scaffold. **A hipótese
+> é falsa**, e a "correção" que ela declara aplicada é o que introduziu o defeito.
 
-**Problema:** Middleware list tinha `'authh'` (4 letras h) duplicado em paralelo ao `'auth'` real. Em runtime daria `Target class [authh] does not exist`.
+**Medido em 2026-09-03 contra `origin/main`:**
 
-**Fix aplicado:** removido `'authh'`, mantido só `'auth'`.
+| # | Afirmação de 2026-05-10 | Veredito | Recibo |
+|---|---|---|---|
+| a | `'authh'` é typo de `'auth'` ("4 letras h") | ❌ falso | `app/Http/Kernel.php:95` → `'authh' => \App\Http\Middleware\IsInstalled::class` — alias **registrado**, apontando pra outra classe |
+| b | "Em runtime daria `Target class [authh] does not exist`" | ❌ falso | o alias resolve; a classe existe em `app/Http/Middleware/IsInstalled.php` |
+| c | `'authh'` estava "duplicado em paralelo ao `'auth'` real" | ❌ falso | os dois coexistem **por desenho** — são middlewares diferentes, um não substitui o outro |
+
+**O que `authh` faz** (`app/Http/Middleware/IsInstalled.php`, método `handle()`): se
+`base_path('.env')` não existe, redireciona pra `/install`. É o gate que manda o request pro
+instalador quando o app não está instalado. Removê-lo **não** produz erro visível — apaga o gate
+em silêncio, que é a forma cara de quebrar.
+
+**É convenção UltimatePOS, não acidente.** Comando que reproduz a contagem:
+`git grep -l authh origin/main -- 'Modules/*/Routes/*.php' | wc -l` → **22** em 2026-09-03
+(Arquivos, AssetManagement, Auditoria, ComunicacaoVisual, Connector, ConsultaOs, Crm, Essentials,
+Financeiro, Fiscal, Manufacturing, NFSe, NfeBrasil, OficinaAuto, PaymentGateway, ProductCatalogue,
+RecurringBilling, Repair, Spreadsheet, Vestuario, VozDoCliente, Whatsapp), além de
+`Modules/Governance/Http/routes.php:26`. Documentado como stack canônica em
+[ADR 0011](../../0011-alinhamento-padrao-jana.md) (linhas 102-103),
+[ADR 0024](../../0024-instalacao-1-clique-modulos.md) (linha 97) e no
+[RUNBOOK-criar-modulo](../../../requisitos/Infra/RUNBOOK-criar-modulo.md) (linha 176).
+
+**O agravante — o bug já tinha sido corrigido 4 dias antes.** Em 2026-05-06 a **ausência** de
+`authh` foi catalogada como bug nº 6 da maratona Governance e corrigida pelo commit `46fd81d66f`
+(*"fix(governance): middleware stack rotas inclui 'authh' + 'SetSessionData' (skill
+criar-modulo)"*), registrado em
+`memory/sessions/2026-05-06-governance-ui-completa-bugfix-marathon.md:51`. Esta auditoria removeu
+do template exatamente o que tinha acabado de ser reposto no módulo vivo.
+
+**Onde o dano ficou (correção de escopo — importa pra quem for medir):** o "fix aplicado" **existe**,
+mas no *draft*, que é o arquivo que esta entrada cita. Medido em 2026-09-03, **antes** da correção
+descrita logo abaixo:
+
+- `memory/decisions/proposals/drafts/modules-comunicacao-visual-scaffold/Routes/web.php:27` →
+  `['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu']` — **sem** `authh`:
+  era o **scaffold** que carregava o defeito;
+- `Modules/ComunicacaoVisual/Routes/web.php:35` (módulo **vivo**) →
+  `['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu']` —
+  **correto**; ele nasceu pelo RUNBOOK canônico, não por cópia deste scaffold.
+
+Quem medisse o módulo vivo concluiria "o fix nunca foi aplicado"; quem medisse o arquivo citado veria
+que foi — e que era o **scaffold** o errado.
+
+**Corrigido em 2026-09-03:** o `authh` foi reposto no **grupo Install** do scaffold, alinhando a
+stack **literalmente** à [ADR 0024](../../0024-instalacao-1-clique-modulos.md) (linha 97) e ao
+[RUNBOOK-criar-modulo](../../../requisitos/Infra/RUNBOOK-criar-modulo.md) (linha 176) — as três
+strings conferidas idênticas caractere a caractere. Base da escolha, medida no mesmo dia: entre os
+módulos que têm `InstallController`, **14 de 17** usam essa forma no grupo Install (as 3 exceções
+são Cms, Compras e Woocommerce).
+
+**O grupo admin do scaffold NÃO foi tocado**, e isso é decisão, não esquecimento: ele já reproduz a
+stack do `CLAUDE.md` §"Sempre fazer"
+(`['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin']`),
+que é **sem** `authh`. No agregado dos 22 arquivos de rota a convenção não é uniforme — 14
+ocorrências com `authh` contra 10 sem, na mesma forma — então repor em bloco trocaria um erro por
+outro. `authh` é legítimo e dominante **no grupo Install**; não é obrigatório em toda rota.
+
+**Nenhum `Modules/*/Routes/*.php` foi tocado** — os módulos vivos já estavam certos.
+
+<details>
+<summary>Texto original de 2026-05-10, preservado (append-only) — hipótese refutada acima</summary>
+
+> ### 1. ✅ Typo middleware `'authh'` em scaffold ComunicacaoVisual
+>
+> **Arquivo:** `modules-comunicacao-visual-scaffold/Routes/web.php:27`
+>
+> **Problema:** Middleware list tinha `'authh'` (4 letras h) duplicado em paralelo ao `'auth'` real. Em runtime daria `Target class [authh] does not exist`.
+>
+> **Fix aplicado:** removido `'authh'`, mantido só `'auth'`.
+
+</details>
 
 ### 2. ✅ `DataController.php` em `Http/` (deveria estar em `Http/Controllers/`)
 

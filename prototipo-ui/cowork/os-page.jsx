@@ -24,7 +24,7 @@ function OsRow({ os, selected, onSelect, onOpen, checked, onCheck }) {
       </td>
       <td className="os-cell-product">{os.product}</td>
       <td className="os-cell-stage">
-        <window.FsmStepper domain="os" current={fsm.current} terminal={fsm.terminal} variant="dots-inline"/>
+        <window.OiFsmStepper domain="os" current={fsm.current} terminal={fsm.terminal} variant="dots-inline"/>
       </td>
       <td className="os-cell-resp">
         <span className="os-resp-av av-1">{os.responsible.split(" ").map(p=>p[0]).slice(0,2).join("")}</span>
@@ -115,17 +115,7 @@ function OsListPage({ onOpenDetail }) {
         </div>
       </header>
 
-      <nav className="cli-moduletopnav" aria-label="Etapa">
-        {stageFilters.map(f => (
-          <button key={f.id}
-            className={`cli-moduletopnav-tab ${stage===f.id?"active":""} ${f.warn?"warn":""}`}
-            onClick={() => setStage(f.id)}
-            aria-current={stage===f.id ? "page" : undefined}>
-            <span>{f.label}</span>
-            {f.n != null && <span className="cli-moduletopnav-n">{f.n}</span>}
-          </button>
-        ))}
-      </nav>
+      {window.CliTabs && <window.CliTabs ariaLabel="Etapa" pad={24} tabs={stageFilters.map(f => ({ key: f.id, label: f.label, n: f.n, warn: f.warn }))} active={stage} onChange={setStage} />}
 
       <div className="os-toolbar">
         <div className="os-toolbar-l">
@@ -314,7 +304,7 @@ function OsDetailDrawer({ os, onClose, onEdit, onApprove }) {
           <h3>Pipeline</h3>
           {(() => {
             const fsm = window.osFsmStage(os.stage);
-            return <window.FsmStepper domain="os" current={fsm.current} terminal={fsm.terminal} variant="full-stepper"/>;
+            return <window.OiFsmStepper domain="os" current={fsm.current} terminal={fsm.terminal} variant="full-stepper"/>;
           })()}
         </div>
 

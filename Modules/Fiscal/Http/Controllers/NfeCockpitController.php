@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Fiscal\Services\SefazCstatService;
 use Modules\NfeBrasil\Models\NfeEmissao;
 
 /**
@@ -29,7 +30,9 @@ class NfeCockpitController extends Controller
      *  - filters (search, status, tab) — para reidratar UI
      *  - counts (eager) — barra de chips
      *  - rows (deferred) — lista paginada
-     *  - sefazCodes (eager, estático) — para SefazPill render no client
+     *  - sefazCodes (eager) — tradução dos cStat que ESTE business tem, derivada da tabela
+     *    oficial da SEFAZ (SefazCstatService). Não é lista fixa: business novo com código
+     *    novo passa a ser traduzido sem deploy.
      */
     public function index(Request $request): Response
     {
@@ -53,7 +56,7 @@ class NfeCockpitController extends Controller
         return Inertia::render('Fiscal/Nfe', [
             'filters'    => $filters,
             'counts'     => $counts,
-            'sefazCodes' => $this->sefazCodes(),
+            'sefazCodes' => $this->sefazCodes($this->cstatsDoBusiness()),
             'rows'       => Inertia::defer(fn () => $this->buildRowsPayload($filters)),
         ]);
     }
@@ -184,24 +187,39 @@ class NfeCockpitController extends Controller
     }
 
     /**
-     * Mapa de códigos SEFAZ → tom/label/hint. Estático, baixo custo.
-     * Espelha fiscal-data.jsx SEFAZ_CODES do design (R#1 KB-9.75).
+     * Códigos cStat DISTINTOS que este business realmente tem (scope multi-tenant automático).
+     *
+     * Serve para não despejar as 528 linhas da tabela oficial em toda request: traduz-se o que a
+     * tela vai mostrar. Uma linha por código distinto — em produção biz=1 tem 4, biz=164 tem 2.
+     * `cstat` nulo (falha de transmissão, antes de a SEFAZ responder) fica de fora: nesses casos a
+     * tela mostra o status de domínio, não um código que não existe.
+     *
+     * @return array<int, int>
      */
-    protected function sefazCodes(): array
+    protected function cstatsDoBusiness(): array
     {
-        return [
-            100 => ['tone' => 'ok',   'label' => 'Autorizada',              'hint' => 'Nota válida na SEFAZ.'],
-            101 => ['tone' => 'ok',   'label' => 'Cancelamento homologado', 'hint' => 'Cancelamento aceito.'],
-            102 => ['tone' => 'ok',   'label' => 'Inutilização homologada', 'hint' => 'Faixa de numeração inutilizada.'],
-            104 => ['tone' => 'ok',   'label' => 'Autorizada (NFC-e)',      'hint' => 'NFC-e válida na SEFAZ.'],
-            110 => ['tone' => 'bad',  'label' => 'Uso denegado',            'hint' => 'Destinatário irregular na SEFAZ.'],
-            135 => ['tone' => 'ok',   'label' => 'Evento registrado',       'hint' => 'CC-e ou manifestação aceita.'],
-            204 => ['tone' => 'bad',  'label' => 'Duplicidade de NF-e',     'hint' => 'Já existe nota com a mesma chave.'],
-            220 => ['tone' => 'bad',  'label' => 'Duplicidade',             'hint' => 'Numeração já usada. Inutilize ou pule a numeração.'],
-            539 => ['tone' => 'bad',  'label' => 'Duplicidade de chave',    'hint' => 'Chave de acesso já existe. Verifique o cNF aleatório.'],
-            691 => ['tone' => 'warn', 'label' => 'NCM divergente',          'hint' => 'NCM informado não bate com o cadastro.'],
-            778 => ['tone' => 'bad',  'label' => 'CST/CFOP inválido',       'hint' => 'Combinação CST+CFOP rejeitada pela UF destino.'],
-            999 => ['tone' => 'warn', 'label' => 'Processando',             'hint' => 'SEFAZ não respondeu ainda. Reenvio automático em 30s.'],
-        ];
+        return NfeEmissao::query()
+            ->whereNotNull('cstat')
+            ->distinct()
+            ->pluck('cstat')
+            ->map(fn ($c) => (int) $c)
+            ->filter(fn (int $c) => $c > 0)
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Mapa {cstat => tom/rótulo} dos códigos pedidos, traduzido pela tabela oficial da SEFAZ.
+     *
+     * Puro e sem query de propósito — quem consulta o banco é `cstatsDoBusiness()`. Isso mantém o
+     * método testável sem `nfe_emissoes` (a lane de CI não tem as migrations do NfeBrasil) e deixa
+     * a fronteira explícita: aqui é tradução, lá é dado.
+     *
+     * @param  array<int, int|string|null>  $codigos
+     * @return array<int, array{tone: string, label: string, hint: string}>
+     */
+    protected function sefazCodes(array $codigos): array
+    {
+        return app(SefazCstatService::class)->mapaPara($codigos);
     }
 }

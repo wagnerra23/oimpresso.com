@@ -15,6 +15,7 @@ related_prototype_nota: '(TelaFluxo; corrigido 2026-07-06 — antes apontava pra
 related_decisions: memory/requisitos/Financeiro/fluxo-visual-comparison.md (Q1-Q4 aprovadas [W] 2026-05-14)
 tier: A
 charter_version: 2
+related_visual_comparison: memory/requisitos/Financeiro/fluxo-visual-comparison.md
 ---
 
 # Page Charter — /financeiro/fluxo

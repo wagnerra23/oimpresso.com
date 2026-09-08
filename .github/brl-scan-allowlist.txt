@@ -186,3 +186,13 @@ Ticket médio de volta em R$
 Conciliar Itaú e Mercado Pago. Diferença de R$
 origem:"financeiro", valor:"R$
 Pedido acima de R$
+# -- repair/show · contrato de formatacao pt-BR (2026-09-05) -----------------
+# UC-RSHW-04 fixa que `final_total_formatted` sai com ponto de milhar e virgula
+# decimal, e que o numero CRU sobrevive ao lado. O valor 1.234,56 e uma fixture
+# sintetica criada pelo proprio teste (`rshwVenda(... 'final_total' => 1234.56)`)
+# no tenant ficticio 98 -- nao e faturamento, meta, MRR nem dado de cliente.
+# O numero E a assercao: trocar pelo sentinela deixaria o teste sem contrato, que
+# e exatamente a corrupcao de fixtures registrada no handoff 2026-06-13-1923.
+# Substrings com contexto de proposito -- "R$ 1.234,56" solto seguiria pegando.
+->toBe('R$ 1.234,56')
+`"R$ 1.234,56"` (ponto de milhar

@@ -22,22 +22,68 @@ uses(Tests\TestCase::class);
  * time — token válido devolvendo `403 no_permission` no gate `jana.mcp.use`.
  *
  * Este teste trava a paridade catálogo ⇄ tela. Sem DB, determinístico.
+ *
+ * ── EMENDA 2026-09-07: a exigência deixou de ser "TODO scope" ────────────────
+ *
+ * A cláusula original era `catálogo ⊆ tela`, sem exceção. Ela colidia de frente
+ * com o Tier 0: 5 dos 22 scopes são `admin_only` (`jana.mcp.usage.all`,
+ * `jana.mcp.memory.manage`, `jana.mcp.projects.manage`, `jana.cc.read.all`,
+ * `jana.cc.curate`), e exigi-los na tela de `/roles/{id}/edit` — que pede
+ * `roles.update`, permission de admin de BUSINESS — os tornava auto-concedíveis.
+ * Confirmado em produção: biz=164 tem os 5 numa role com 5 usuários.
+ *
+ * A cláusula foi estreitada para `catálogo − admin_only ⊆ tela`. Isso NÃO
+ * afrouxa a defesa de 2026-07-29 — ela mudou de lugar e ficou mais forte:
+ * `RoleController@__preservaNaoOfertadas` reúne ao POST tudo o que o papel já
+ * tem e o form não oferece, então nem os `admin_only` (agora fora da tela) nem
+ * qualquer permission de módulo desativado somem num save. Antes a proteção
+ * dependia de o checkbox vir MARCADO no POST — desmarcar apagava; agora não
+ * depende do POST.
+ *
+ * O outro lado (não-concessão) é contrato em `McpScopeAdminOnlyNaoAutoConcedivelTest`;
+ * o comportamento com DB real, em `tests/Feature/Roles/RoleAdminOnlyScopeGuardTest.php`.
  */
-it('expõe TODO scope do catálogo MCP como checkbox da tela de roles (senão o save apaga)', function () {
-    $doCatalogo = array_map(
+it('expõe todo scope NÃO-admin_only como checkbox da tela de roles (senão o save apaga)', function () {
+    $ofertaveis = array_values(array_map(
         static fn (array $s): string => $s['slug'],
-        McpScopesSeeder::catalogo()
-    );
+        array_filter(
+            McpScopesSeeder::catalogo(),
+            static fn (array $s): bool => ($s['admin_only'] ?? false) !== true
+        )
+    ));
 
     $daTela = array_column((new DataController())->user_permissions(), 'value');
 
-    // Controle de sanidade: o catálogo não pode estar vazio, senão o teste
-    // passaria por não-execução (verde tautológico).
-    expect($doCatalogo)->not->toBeEmpty();
+    // Controles de sanidade: sem eles o teste passaria por não-execução
+    // (verde tautológico) se o catálogo ou a tela viessem vazios.
+    expect($ofertaveis)->not->toBeEmpty();
+    expect($daTela)->not->toBeEmpty();
 
-    $invisiveis = array_values(array_diff($doCatalogo, $daTela));
+    $invisiveis = array_values(array_diff($ofertaveis, $daTela));
 
     expect($invisiveis)->toBe([]);
+});
+
+it('e o recorte tirado da tela é EXATAMENTE o admin_only — nem um scope a mais', function () {
+    // Sem este caso, o filtro do `mcpScopePermissions` poderia comer scopes
+    // legítimos e o teste acima continuaria verde (ele só olha os ofertáveis).
+    // Aqui a conta fecha nos dois sentidos: 22 = ofertados + admin_only.
+    $catalogo = McpScopesSeeder::catalogo();
+
+    $adminOnly = array_values(array_map(
+        static fn (array $s): string => $s['slug'],
+        array_filter($catalogo, static fn (array $s): bool => ($s['admin_only'] ?? false) === true)
+    ));
+
+    $slugs = array_map(static fn (array $s): string => $s['slug'], $catalogo);
+    $daTela = array_column((new DataController())->user_permissions(), 'value');
+
+    $ausentes = array_values(array_diff($slugs, $daTela));
+    sort($ausentes);
+    sort($adminOnly);
+
+    expect($adminOnly)->not->toBeEmpty();
+    expect($ausentes)->toBe($adminOnly);
 });
 
 it('não deixa o catálogo encolher em silêncio', function () {

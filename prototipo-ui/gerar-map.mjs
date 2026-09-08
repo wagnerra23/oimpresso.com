@@ -75,9 +75,21 @@ export function resolverArquivosPrototipo(fmProtoField) {
   return [...new Set(out)];
 }
 
-// 1º path resources/js/Pages/... (ou fixture) citado no campo `tela_viva:`.
+// 1º path de tela/componente vivo citado no campo `tela_viva:` — `resources/js/Pages/...`
+// (tela), `resources/js/Components/...` ou `resources/js/Layouts/...` (FUNDAÇÃO/SHELL) ou
+// fixture. A ordem é a do TEXTO: o 1º path que aparecer vence.
+//
+// Por que Components/Layouts (2026-09-06, refutação GT-G5 r2 do #6897 R-1/R-3): os gap.md de
+// fundação (`_DesignSystem/pageheader-canon-v3-gap.md`, `sidebar-v3-unificado-gap.md`)
+// declaram o vivo em `resources/js/Components/PageHeader/PageHeader.tsx` e
+// `resources/js/Layouts/AppShellV2.tsx`. Com o regex só-Pages, o PageHeader resolvia pro
+// CONSUMIDOR citado entre parênteses (`Pages/Cliente/Index.tsx` — âncora errada em 12/12
+// partes) e a sidebar nascia `vivo: TODO` em 17/17 (os 4 arquivos declarados descartados).
+// FP medido no corpus dos 23 `tela_viva` do repo antes de ligar: só esses 2 mudam de
+// resultado; os outros 21 resolvem igual (16 sob Pages/ · 2 com campo sem match nos dois regex —
+// caixa-unificada declara Modules/**/Resources/js/Pages e Crm/clientes declara um diretório · 3 sem campo).
 export function resolverArquivoVivo(fmTelaVivaField) {
-  const m = String(fmTelaVivaField || '').match(/((?:resources\/js\/Pages|prototipo-ui\/fixtures)\/[\w./-]+\.(?:tsx|jsx))/);
+  const m = String(fmTelaVivaField || '').match(/((?:resources\/js\/(?:Pages|Components|Layouts)|prototipo-ui\/fixtures)\/[\w./-]+\.(?:tsx|jsx))/);
   return m ? m[1] : null;
 }
 
@@ -200,8 +212,18 @@ export function fundirComExistente(esqueleto, existente) {
     if (!antiga) return nova;
     antigas.delete(nova.id);
     preservadas++;
+    // Chaves da PARTE que o esqueleto não produz (`_nota`, `_nota_ancora`, e qualquer outra
+    // `_*` anotada à mão) sobrevivem à fusão — mesmo tratamento das chaves de TOPO logo abaixo.
+    // Sem isto, `--atualizar` reconstruía cada parte só com o esqueleto e apagava a anotação em
+    // SILÊNCIO (medido 2026-09-06: memory/requisitos/Compras/compras-grade-matrix.map.json
+    // perdia `_nota` em 10 de 10 partes e `_nota_ancora` em 2 — e `--atualizar` é justamente o
+    // comando que a mensagem de STALE do design-code-map-check.mjs manda rodar).
+    // Só chaves AUSENTES do esqueleto: id/prototipo/vivo/status/acao/_acionavel seguem vindo
+    // dele, e a precedência do preenchido continua sendo a das 4 chaves explícitas abaixo.
+    const extrasParte = Object.fromEntries(Object.entries(antiga).filter(([k]) => !(k in nova)));
     return {
       ...nova,
+      ...extrasParte,
       prototipo: { ...nova.prototipo, ...(antiga.prototipo?.linhas && antiga.prototipo.linhas !== 'TODO' ? { arquivo: antiga.prototipo.arquivo, linhas: antiga.prototipo.linhas } : {}) },
       vivo: { ...nova.vivo, ...(antiga.vivo?.arquivo && antiga.vivo.arquivo !== 'TODO' ? antiga.vivo : {}) },
       status: antiga.status && antiga.status !== 'pendente-mapeamento' ? antiga.status : nova.status,
@@ -233,6 +255,15 @@ function selftest() {
     return arqs.length === 2 && arqs[0] === 'prototipo-ui/cowork/financeiro-page.jsx' && arqs[1] === 'prototipo-ui/cowork/financeiro-ops.jsx';
   })());
   t('resolverArquivoVivo: extrai path Pages real', resolverArquivoVivo('resources/js/Pages/Financeiro/Unificado/Index.tsx (2784 ln) + _components/') === 'resources/js/Pages/Financeiro/Unificado/Index.tsx');
+  // BITE 2026-09-06 (GT-G5 r2 #6897 R-1/R-3): fundação/shell declara o vivo fora de Pages/.
+  t('MORDE R-1: Components/ vence o consumidor Pages/ citado DEPOIS no mesmo campo (era o anchor errado)',
+    resolverArquivoVivo('resources/js/Components/PageHeader/PageHeader.tsx + PageHeaderPrimary.tsx + index.ts (consumo de referência: resources/js/Pages/Cliente/Index.tsx)') === 'resources/js/Components/PageHeader/PageHeader.tsx');
+  t('MORDE R-3: lista YAML (fmVal devolve "- resources/js/Layouts/...") resolve o 1º item (era TODO)',
+    resolverArquivoVivo('- resources/js/Layouts/AppShellV2.tsx') === 'resources/js/Layouts/AppShellV2.tsx');
+  t('controle-negativo: Modules/**/Resources/js/Pages (maiúsculo) e prosa sem path seguem null (preenchimento humano)',
+    resolverArquivoVivo('Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx') === null && resolverArquivoVivo('sem path nenhum aqui') === null);
+  t('controle-negativo: Pages/ citado ANTES de Components/ continua vencendo (ordem do texto)',
+    resolverArquivoVivo('resources/js/Pages/X/Index.tsx (usa resources/js/Components/Y/Z.tsx)') === 'resources/js/Pages/X/Index.tsx');
   t('computeGitSha: arquivo inexistente / sem repo git → sem-historico, não lança', computeGitSha(['prototipo-ui/fixtures/gerar-map/__nao-existe.jsx'], '/tmp') === 'sem-historico');
 
   // BITE do fix 2026-08-14 (%h → %H + shaBate por prefixo) — o degrau literal do ledger:
@@ -293,6 +324,22 @@ function selftest() {
       comExtra.mapa.mapping?.source === 'x.jsx' && comExtra.mapa.mapping?.target === 'resources/js/Pages/X/Index.tsx');
     t('controle-negativo: chave que o esqueleto PRODUZ segue vindo dele (não do map velho)',
       fundirComExistente(g.mapa, { ...preenchido, gap_fonte: 'MENTIRA.md' }).mapa.gap_fonte === g.mapa.gap_fonte);
+
+    // BITE do fix 2026-09-06 — chave da PARTE que o esqueleto NÃO produz sobrevive.
+    // Sem ele, `--atualizar` reconstruía cada parte só com o esqueleto e apagava a anotação
+    // feita à mão (na data, 10 partes do compras-grade-matrix.map.json estavam nessa condição).
+    const comExtraParte = fundirComExistente(g.mapa, {
+      ...preenchido,
+      partes: [
+        { ...preenchido.partes[0], _nota: 'anotada a mao', _nota_ancora: '2026-09-05: data-contract="parte-a"', _acionavel: false },
+        preenchido.partes[1],
+      ],
+    });
+    const pae = comExtraParte.mapa.partes.find((p) => p.id === 'parte-a');
+    t('MORDE: chave da PARTE desconhecida do esqueleto (`_nota`/`_nota_ancora`) sobrevive ao --atualizar',
+      pae._nota === 'anotada a mao' && pae._nota_ancora === '2026-09-05: data-contract="parte-a"');
+    t('controle-negativo: chave que o esqueleto PRODUZ na parte (`_acionavel`) segue vindo dele, não do map velho',
+      pae._acionavel === true && pae.status === 'paridade' && pae.prototipo.linhas === '10-20');
   } else { t('fixtures presentes', false); }
 
   console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — esqueleto do map.json deriva do gap.md; verificação = design-code-map-check.mjs.');

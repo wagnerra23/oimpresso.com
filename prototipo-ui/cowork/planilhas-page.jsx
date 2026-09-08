@@ -224,7 +224,8 @@ function Editor({ sheet, onVoltar, fala }) {
         </table>
       </div>
       <div className="pl-ed-abas">
-        {abas.map((a, i) => <button key={a} className={"pl-aba" + (i === aba ? " on" : "")} onClick={() => setAba(i)}>{a}</button>)}
+        <window.CliTabs ariaLabel="Abas da planilha" pad={0} size="sm" active={aba} onChange={setAba}
+          tabs={abas.map((a, i) => ({ key: i, label: a }))} />
         <button className="pl-aba pl-aba-add" onClick={() => fala("Abas novas são criadas no editor do módulo ao salvar.", 4500)} aria-label="Nova aba"><IcPlus /></button>
         <span className="pl-ed-hint">O conteúdo vai para <code>sheet_data</code> (JSON) ao salvar — o payload inteiro, não a célula.</span>
       </div>

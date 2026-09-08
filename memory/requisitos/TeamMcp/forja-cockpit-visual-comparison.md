@@ -467,6 +467,131 @@ A tabela acima comparou a `fj-row`. Faltava o resto, e a medição por `children
 
 **O que fica pro pós-deploy:** injetar a MESMA sonda (`design-diff.mjs --probe`, papéis `tableRow=.fj-mcp-tbl tbody tr` · `filterControls=.fj-ho-tab` · `title=.os-page-h-l h1` · `primary=.os-btn.primary`) em `oimpresso.com/forja/mcp` autenticado, dark, 1440, e rodar `--compare prod.json design.json --check`. A meta do §11 é **0 `DIVERGE(bug)`** em D2/D4/D6/D8.
 
+### Onda 8 · verificação PÓS-DEPLOY (2026-09-03) — o `--compare` que a rodada anterior deixou pendente
+
+> **O que esta seção é, e o que ela NÃO é.** A Onda 8 já foi implementada e mergeada em
+> [#6575](https://github.com/wagnerra23/oimpresso.com/pull/6575) (`baf3d173c7`, 2026-09-02). Nada de
+> layout foi reimplementado aqui. Esta rodada fecha as **duas pernas que a seção acima declarou em
+> aberto**: o `--compare` pareado (que não pôde rodar porque o código ainda não estava em produção) e a
+> tipografia/gap por seção, que o pacote de export marca como **não medida** no seu §7.
+
+> **Recibo do que rodou.** Produção = `https://oimpresso.com/forja/mcp` **autenticado**, tema **dark**,
+> deploy do sha `63b9fecba1` (`deploy.yml` `success` 18:09Z) — e `git merge-base --is-ancestor
+> baf3d173c7 63b9fecba1` confirma que o código da onda ESTÁ no ar. Protótipo = espelho
+> `prototipo-ui/cowork` servido por HTTP estático, `localStorage["oimpresso.route"]="teammcp"` +
+> `oimpresso.forja.view="mcp"`, dark. Nos **dois** lados: espera ativa até `__oiLazyDone` e **duas
+> leituras consecutivas iguais** do número de nós (design 1014/1014 · prod 803/803) — nunca medir
+> durante o lazy (§5 2026-08-24). Medição por `getComputedStyle`, jamais pela classe declarada.
+
+**Frescor da fonte — provado onde importa, e o limite dito por inteiro.** O `forja-mcp.jsx` do espelho
+é de **23/06** e o vivo mudou (o cabeçalho dele diz *"Overlays e RAG saíram daqui (Onda 3)"*): 31.406
+bytes contra ~6,9 KB. O arquivo **está STALE** e não se finge o contrário. Mas a pergunta que decide a
+validade desta medição não é *"o arquivo mudou?"* e sim *"a parte que renderiza esta view mudou?"* —
+e essa foi respondida por diff mecânico, não por leitura:
+
+| função que gera o DOM de `.fj-mcp` | espelho | vivo (`get_file`) | diff |
+|---|---|---|---|
+| `HandoffPanel` | 83 linhas | 83 linhas | **vazio — idêntico** |
+| `ForjaMCPView` | 62 linhas | 62 linhas | **vazio — idêntico** |
+
+E o CSS, que é a fonte de toda a tipografia/gap/cor medida abaixo, foi provado pela máquina:
+`cowork-mirror-freshness --snapshot-from --emit-snapshot` → `forja-page.css` **`igual`** (`7097103e6f1c`).
+O `--compare` do `design-diff` **recusou** a conclusão com `⛔ NÃO MEDI` (exit 2) porque a rodada de
+frescor do espelho segue **parcial** (1/258) — está certo, e a ressalva fica: o veredito abaixo vale para
+`forja-mcp.jsx` + `forja-page.css`, provados um a um, não para o espelho inteiro. Regenerar o pacote é o
+pedido de [#6671](https://github.com/wagnerra23/oimpresso.com/pull/6671).
+
+**Veredito do comparador** (`design-diff --compare prod.json design.json --check`, papéis exatamente os
+que a seção acima declarou):
+
+```
+OK [D2] layout      -> IGUAL      OK [D8] kpi align       -> IGUAL
+OK [D4] tipografia  -> IGUAL      OK [D9] texto           -> IGUAL
+OK [D6] cor         -> IGUAL      OK [D4] linha da tabela -> IGUAL
+DIVERGE(bug): 0
+```
+
+**A meta do §11 — 0 `DIVERGE(bug)` em D2/D4/D6/D8 — foi atingida.** Os três `DIVERGE` da rodada da
+manhã de 02/09 (col0 sem mono · col1/col2 sem cor própria · col2 `right`) estão **fechados**: as três
+células agora medem `align=left`, `larguraPct` 26,3/34,2/39,4 e `mono` na col0 dos **dois** lados.
+
+**Estrutura — §3.8 do pacote de export, conferida item a item:**
+
+| alvo (§3.8) | protótipo | produção | |
+|---|---|---|---|
+| `.fj-mcp` 4 filhos, ordem `[intro, card Handoffs, grid, card auditoria]` | 4, na ordem | 4, **ordem idêntica** | OK |
+| `.fj-mcp-grid` = contrato + credenciais | 2 colunas | 2 colunas | OK |
+| 9 `.fj-perm` | 9 | 9 | OK |
+| 9 `.fj-role` | 9 | 9 | OK |
+| `.fj-audit` 6 linhas, 2 `deny` | 6 / 2 | 6 / 2 | OK |
+| `.fj-mcp-tbl` linhas de contrato | 9 | 9 | OK |
+| itens de credencial | 3 | 3 | OK |
+| 6 `.fj-ho-tab` | 6 | **5** | X desvio de DADO, já declarado acima |
+| 6 `.fj-ho-item` | 6 (mock) | **1** (banco) | dado real, não defeito |
+
+**Tipografia e gap — o que o §7 do pacote marcava como NÃO MEDIDO.** 11 seletores de tipografia e 9
+caixas, medidos nos dois lados:
+
+- **`font-size`, `font-weight`, `font-family`, `letter-spacing` e `color`: idênticos em 11 de 11.**
+- **`display`, `gap`, `padding` e `grid-template-columns`: idênticos em 9 de 9** — `.fj-mcp` `18px 32px 40px` ·
+  `.fj-mcp-card` `16px 18px` · `.fj-mcp-grid` `gap 16px` · `.fj-ho-list` `gap 7px` · `.fj-ho-item` `gap 11px`,
+  `padding 11px 13px` · `.fj-ho-meta` `gap 8px` · `.fj-ho-tabs` `gap 3px` · `.fj-audit li` `gap 10px`, `padding 6px 8px`.
+- **As 3 cores de `.fj-perm` batem** — e este ponto quase virou falso-positivo: prod reporta
+  `rgb(137, 226, 157)` e design `oklch(0.84 0.13 150)`. **Notação diferente, cor igual.** Convertidas ao
+  mesmo espaço pintando num canvas (a engine resolve, o olho não): `ok` 136,226,156 × 137,226,157 ·
+  `propoe` 166,136,240 × 166,137,241 · `deny` 254,151,141 × 255,150,141 — delta de arredondamento.
+  Comparar a string teria produzido três `DIVERGE` falsos.
+
+**A ÚNICA divergência que a tipografia revelou — e ela é de FUNDAÇÃO, não desta view.** O
+`line-height` difere em 6 seletores, e a causa-raiz está medida na raiz do documento:
+
+| | protótipo | produção |
+|---|---|---|
+| `body` font-size / line-height | **13,5px** / **19,575px** (x1,45) | **16px** / **24px** (x1,5) |
+| `.fj-mcp` line-height | 19,575px | 20,25px |
+| `.fj-mcp-card h3` · `.fj-ho-head h3` | 14,4px (12 x **1,2** = `normal`) | 18px (12 x **1,5**) |
+| `.fj-audit-ts` · `.fj-ho-slug` · `.fj-perm` | x1,45 | x1,5 |
+
+Onde o bundle **declara** `line-height` (`.fj-mcp-intro` 1,55 · `.fj-ho-sub` 1,5 · `.fj-ho-nota` 1,45) os dois
+lados batem exatamente. A divergência aparece **só onde o valor é herdado** — logo não é defeito da view
+`mcp`: atinge toda tela que use o bundle, e o conserto é na fundação. Mesmo tratamento que o §7 do pacote
+dá ao 1280px (*"fundação, fora do escopo da Forja"*). **Declarado, não consertado — é decisão [W].**
+
+**Corrigido nesta rodada (1 item).** O link do PR mostrava `PR` e o protótipo desenha o **número**
+(`{h.pr}`). O número **não é dado novo** — já vem dentro do `pr_url` que o `ForjaMcpService` projeta;
+derivar o rótulo é formatar o que existe, não inventar. `rotuloPr()` no `ForjaHandoffs.tsx`, com fallback
+`PR` para URL fora do padrão `/pull/<n>` — melhor um `PR` honesto que um `#` vazio. Bite-test **8/8**, com
+4 controles negativos (issue, GitLab, lixo, vazio), e a regex lida **do próprio componente**, não de uma
+cópia que poderia divergir.
+
+**NÃO corrigido, com o motivo — nenhum destes é aparência com dado disponível:**
+
+| item | protótipo | produção | por que fica |
+|---|---|---|---|
+| 6ª aba de filtro | `mergeado` | ausente | `cowork_handoffs` não produz `merged`; aba com contador 0 eterno é afordância falsa |
+| rótulo do 4º estado | `bloqueado` | `rejeitado` | o estado no banco é `rejected`; chamar de "bloqueado" mentiria sobre o dado |
+| lever extra em `parado` / `rejeitado` | 2 (`+ supersede`) | 1 | é **mutação**, não aparência — a ADR 0388 é licença de aparência. Decisão [W] |
+| sufixo `.fj-ho-sig-ok` | tem | não tem | o bundle **não define** `.fj-ho-sig-*` (só `.fj-ho-sig`, linha 401) — a classe nasceria morta |
+
+```
+PLACAR - Onda 8 - MCP + Handoffs
+entregue 7 de 8 elementos estruturais do alvo 3.8 (o 8o e a 6a aba, sem dado que a produza)
+tipografia/gap: 11 de 11 seletores e 9 de 9 caixas IGUAIS - 3 de 3 cores IGUAIS
+comparador: 0 DIVERGE(bug) em D2/D4/D6/D8/D9 + linha da tabela
+ausentes: .fj-ho-tab[mergeado] - estado inexistente em cowork_handoffs
+divergencias declaradas: line-height herdado (fundacao, x1,45 x x1,5) - decisao [W]
+                         rotulo "bloqueado"->"rejeitado" - fidelidade ao dado
+                         2a lever em parado/rejeitado - mutacao, fora da 0388
+nao medido: hover/focus/disabled por atomo - viewport 1280 (fundacao, 7 do pacote)
+```
+
+**Duas notas de método que valem além desta tela.** (1) O `resize_window` do Chrome MCP devolveu
+**"Successfully resized"** duas vezes e o `innerWidth` seguiu em **2560** — a armadilha que a seção do
+1280px acima já registra. A medição só sobreviveu porque a largura foi **provada pelo `innerWidth`**,
+nunca pela mensagem da tool; o pareamento foi fechado igualando o lado controlável. (2) A sonda devolveu
+`larguraPct` **26,3 / 34,2 / 39,4 idênticos** apesar de viewports diferentes — porque é fração da linha,
+não px cru; é o que o docblock dela promete, e aqui isso foi **observado**, não assumido.
+
 ### Onda 3 (2026-09-02) — o "0,55 × 0,70" fechou NA FUNDAÇÃO ([ADR UI-0031](../_DesignSystem/adr/ui/0031-fundacao-dark-adota-o-accent-do-prototipo.md))
 
 A linha `--accent no dark` acima dizia *"reconciliar a fundação é decisão [W]"*. [W] decidiu em 2026-09-02
@@ -598,3 +723,737 @@ O charter e o comentário do `.tsx` previam que o contador de vencidas *"normalm
 Não é comparação pareada com o protótipo, e não podia ser: o corpo do gantt tem **motores diferentes** dos dois lados (`.fj-g-*` desenhado à mão no protótipo × `@svar-ui/react-gantt` em produção), o que a onda declarou como diferença medida — 163 dependências contra 7 prazos, decisão em aberto de [W]. O que este recibo prova é o que a onda **entregou**: os dois elementos que vivem fora do motor, com a fidelidade de token verificada. A tela também não tem contrato em `tests/Browser/visreg-screens.json`; o comando para criá-lo está no [#6624](https://github.com/wagnerra23/oimpresso.com/pull/6624), e o passo final é a aprovação visual de [W] (F1.5).
 
 **Observação lateral, não do escopo:** o cabeçalho diz `Timeline (530 linhas)` e a barra diz `500 tarefas`. São contagens de coisas diferentes (linhas do gantt incluem as *summary* por módulo; tarefas são o teto `MAX_TASKS = 500`), mas a proximidade dos números convida à leitura errada de quem olhar rápido.
+
+
+## 2026-09-03 — Onda 1 do export (shell/header + topnav): o alvo §3.1 JÁ estava entregue, menos o badge
+
+> **O achado, com recibo.** O pacote `COLAR-NO-CODE-EXPORT-FORJA-MODULO.md` (Cowork, 2026-09-03) numera
+> "Onda 1 — shell/header + topnav" como se fosse trabalho a fazer. **Medido, ela já estava no `main`
+> desde 02/09**, sob a numeração do PARIDADE §11: estrutura na **Onda 2** ([#6553](https://github.com/wagnerra23/oimpresso.com/pull/6553)),
+> geometria na **Onda 2.1** ([#6563](https://github.com/wagnerra23/oimpresso.com/pull/6563)), `--accent` dark na
+> [UI-0031](../_DesignSystem/adr/ui/0031-fundacao-dark-adota-o-accent-do-prototipo.md) ([#6581](https://github.com/wagnerra23/oimpresso.com/pull/6581)).
+> Reimplementar seria autorar em paralelo a um dono existente (LC-19). Item a item do §3.1:
+
+| item do §3.1 | estado medido no `main` | onde |
+|---|---|---|
+| `.os-page-h` com 2 zonas | **já entregue** | `ForjaHub.tsx` |
+| direita na ordem `[fj-bell, fj-kbtn, fj-viewtabs, os-btn]` | **já entregue** | idem — e medido IGUAL na Onda 2 |
+| 6 destinos em 3 `.fj-navgroup` (Trabalho/Esteira/Histórico) | **já entregue** | `FORJA_GRUPOS` + `FORJA_TABS`, defendidos por UC-FORJA-02/14 |
+| `--accent` dark `oklch(0.70 0.15 295)` | **já entregue** | `resources/css/tokens/_generated-cockpit-dark.css` (função, não escopo) |
+| **badge de pendências no destino Aprovações** | **→ ERA O ÚNICO ABERTO** | fechado aqui (UC-FORJA-19) |
+
+**O que estava errado, e por que ninguém viu.** A prop `pendencias` existia no `ForjaHub` desde a Onda 2, mas
+só `Forja/Aprovacoes/Index` a passava — o badge aparecia na única tela onde é redundante (a fila já está na
+frente) e sumia nas outras oito, que é justamente onde ele serve. Esta página **já tinha medido o efeito**
+— os −**35px** de largura do nav, classificados como *"dado (badge de pendências), não CSS"* nas linhas de
+2026-09-02 — sem nomear a causa. Os 7 controllers do hub passam a servir a prop; o `ForjaHub` a lê via
+`usePage()`, de modo que a próxima Page do hub nasce com o badge.
+
+⚠️ **Isso muda um número desta página.** As linhas de 2026-09-02 registram o nav de produção em **749,4px**
+contra **784,4px** do protótipo, com o delta atribuído ao badge ausente. Com o badge servido nas 9 telas
+esse delta deve fechar — **e isso NÃO foi medido**: o código ainda não está deployado e o merge de `.tsx`
+é ato [W] ([ADR 0283](../../decisions/0283-handoff-loop-zero-paste.md)). Aquelas linhas seguem válidas como **fato datado**
+do dia; quem re-medir depois do deploy deve **re-rodar a sonda**, nunca citar os 749,4px como estado atual.
+
+**Divergência DECLARADA, não consertada — a fórmula.** No protótipo (`forja-page.jsx:936`) `pendencias` soma
+**três** fontes: aprovações + triagem + handoffs `stale`/`gateConflito`. Em produção o badge usa
+`ForjaAprovacoesService::contagem()`, que conta **só** `mcp_tasks` em `AWAITING_HUMAN`. Esta onda **propaga a
+fórmula que a mesa já usa desde a Onda 3**; trocá-la mudaria o número que `/forja/aprovacoes` exibe hoje, o
+que é outra decisão. O Service já tem `handoffsComProblema()` se [W] quiser as 3 parcelas.
+
+**PLACAR — Onda 1 (shell/header + topnav)**
+```
+entregue 5 de 5 elementos do alvo §3.1 (4 já estavam; 1 fechado aqui)
+ausentes: nenhum
+divergências declaradas: fórmula do `pendencias` (1 parcela em prod × 3 no protótipo) — decisão [W]
+não medido: compare pareado pós-deploy (D2/D4/D6/D8) — o código não está em produção
+```
+---
+
+## 2026-09-03 (Onda 9 · fecho) — Changelog: a tipografia/gap que o §7 do export declarou NÃO medida
+
+> **Por que esta seção existe.** O `COLAR-NO-CODE-EXPORT-FORJA-MODULO.md` §7 declara, com todas as
+> letras, o que ficou de fora da medição de 03/09: *"Aprovações, Saúde, MCP, Changelog, Integrador:
+> medi a **estrutura** (filhos e ordem) e as contagens; **não** medi tipografia/gap por seção como
+> fiz na lista/quadro."* A réplica já tinha sido aplicada ([#6591](https://github.com/wagnerra23/oimpresso.com/pull/6591))
+> e a estrutura provada em harness (seção de 2026-09-02 acima). O que faltava era o eixo de
+> **valor**: a folha que produção serve entrega os mesmos px/cor que a do protótipo? Esta seção
+> mede isso e **não** repete o que já estava medido.
+
+### O alvo mudou de arquivo — e não mudou de conteúdo
+
+A build de 03/09 quebrou o protótipo em **1 arquivo por tela**: o `ChangelogFeed`, que vivia dentro
+do `forja-page.jsx` (a âncora que a Onda 9 portou), agora é o `forja-changelog.jsx`. Esse arquivo
+**não está no espelho** — é um dos 157 que o `cowork-mirror-freshness --sla` lista como presentes só
+no vivo (`⬜ existem no VIVO e não estão no espelho`, medido 2026-09-01; a regeneração do bundle é o
+[#6671](https://github.com/wagnerra23/oimpresso.com/pull/6671)). Foi lido pelo `DesignSync.get_file`
+do projeto `019dcfd3`, `truncated: false`, 1.699 B.
+
+**Risco real:** portar de uma âncora que a refatoração do build podia ter mudado. Medido — não
+mudou. A sequência de classes que cada lado escreve no JSX, na ordem:
+
+```
+protótipo vivo : fj-changelog → fj-clog-tabs → fj-clog-tab → fj-feed → fj-feed-item →
+                 fj-feed-dot → fj-feed-body → fj-feed-top → fj-feed-ref → fj-flag →
+                 fj-feed-when → fj-feed-resumo → fj-feed-meta → fj-mod
+réplica (main) : … idêntica, com fj-empty a mais …
+```
+
+Único delta: **`fj-empty`**, a divergência que o docblock do `ForjaChangelog.tsx` já declarava
+(estado vazio usando o idioma do próprio protótipo, `forja-page.jsx:588`) — o protótipo não precisa
+dele porque o mock nunca fica vazio, e produção filtrando por `PRs`/`Ondas` sempre dá zero.
+
+**Isto corrige uma dúvida que o §3.9 do export podia induzir.** Ele descreve `.fj-feed-top` como
+`[fj-feed-ref, fj-feed-when]` e o 3º bloco como `flags/módulos`. O `forja-changelog.jsx` vivo põe as
+**flags no topo** (entre ref e data) e o 3º bloco é `[selo de ator, módulos]` — que é exatamente o
+que a réplica faz. A leitura do §3.9 casa com itens do mock **sem flag** (3 dos 8 têm); a estrutura
+do protótipo é a da réplica.
+
+### Tipografia/gap: o diff de VALOR, seletor a seletor
+
+Regras de `.fj-changelog`/`.fj-clog*`/`.fj-feed*`/`.fj-flag`/`.fj-mod` no `forja-page.css` do
+protótipo × `resources/css/cowork-forja-bundle.css` (a folha que produção serve), comparadas por
+corpo normalizado — não por presença do seletor, que seria presence-gate (LC-11):
+
+| | |
+|---|---|
+| seletores da seção no protótipo | **17** |
+| corpo **idêntico** no bundle | **14** |
+| corpo divergente | **3** |
+| ausentes no bundle | **0** |
+
+As 3 divergências são **a mesma**, e não mudam um pixel:
+
+| seletor | protótipo | bundle | efeito |
+|---|---|---|---|
+| `.fj-mod.sm` | `font-size:var(--fs-1)` | `font-size:10.5px` | idêntico |
+| `.fj-feed-ref` | `font-size:var(--fs-3)` | `font-size:12.5px` | idêntico |
+| `.fj-feed-when` | `font-size:var(--fs-1)` | `font-size:10.5px` | idêntico |
+
+O bundle **inlinou o token**. Os dois lados definem os mesmos valores — protótipo em
+`prototipo-ui/cowork/styles.css:6407-6409`, repo em
+`resources/css/tokens/_generated-foundations-light.css:7-9`: `--fs-1: 10.5px` · `--fs-2: 11.5px` ·
+`--fs-3: 12.5px`. Logo o px computado é o mesmo e **não há bug de tamanho**. O que há é perda de
+aderência ao DS (literal onde existe token), e ela é do **bundle**, cuja dona é a Onda 1 — esta onda
+**reporta, não conserta**, porque mexer no CSS aqui violaria o `NÃO TOCAR: bundle CSS (Onda 1)` do
+§1-bis e a lei 5 (`zero CSS novo`).
+
+### PLACAR — Changelog (§3.9)
+
+```
+entregue 6 de 6 elementos do alvo
+  ✓ .fj-changelog com 2 filhos [fj-clog-tabs, fj-feed]
+  ✓ .fj-feed-item com 2 filhos [fj-feed-dot, fj-feed-body]
+  ✓ .fj-feed-top começando em fj-feed-ref e terminando em fj-feed-when
+  ✓ corpo em 3 blocos (topo · resumo · meta)
+  ✓ segmentos Tudo · PRs · ADRs · Sessões · Ondas
+  ✓ tipografia/gap: 14 de 17 seletores idênticos, 3 equivalentes, 0 bug
+ausentes: nenhuma
+divergências declaradas:
+  · fj-empty — estado vazio; o mock do protótipo nunca fica vazio, produção fica
+  · resumo condicional — sessão sem summary e sem 1º prompt não ganha rótulo sintético
+  · 3 font-size literais no bundle onde o protótipo usa var(--fs-N) — MESMO px; dona é a Onda 1
+contagem do alvo: os "8 .fj-feed-item" do §3.9 são o MOCK. Em produção o teto é
+  ForjaChangelogService::MAX_ENTRIES = 30 — não é divergência de estrutura.
+```
+
+### O que esta seção NÃO prova
+
+O `design-diff --compare --check` pós-deploy **segue pendente**, exatamente como a seção de
+2026-09-02 registrou e o §11 da PARIDADE marca. Re-testado hoje, não herdado (a §5 2026-09-01 proíbe
+herdar afirmação de bloqueio): `curl` em `https://oimpresso.com/forja/changelog` devolve
+**`302 → /login`** — o compare exige sessão autenticada, e sem ela nenhum número aqui autoriza
+dizer "igual ao design" (lei 6 do export: nada é 0-bug antes do T7). O comando continua escrito na
+seção de 2026-09-02. Esta medição é do eixo **folha × folha**, que não depende de deploy; a cascata
+real de produção (preflight do Tailwind + fundação) continua fora dela.
+
+---
+
+## 2026-09-03 (Onda 10 · fecho) — Integrador: tipografia/gap medida, e o TabBar do DS confirmado por leitura do bundle
+
+> **Mesmo motivo da seção anterior.** O §7 do `COLAR-NO-CODE-EXPORT-FORJA-MODULO.md` lista o
+> Integrador entre as views com **estrutura** medida e **tipografia/gap não** medida. A réplica já
+> tinha sido aplicada na Onda 10 ([#6620](https://github.com/wagnerra23/oimpresso.com/pull/6620)),
+> que trocou o `.fj-int-tabs` de `<button>` pelo TabBar do DS. Falta o eixo de **valor**.
+
+### Estrutura: re-conferida contra o protótipo vivo
+
+`forja-integra.jsx` **está** no espelho (7.263 B, 01/09) e foi relido do vivo por
+`DesignSync.get_file` (`truncated: false`) — os dois conferem. Sequência de classes que cada lado
+escreve no JSX:
+
+```
+protótipo vivo : fj-int-acao → fj-integra → fj-int-verdict → fj-int-src → fj-int-tabs →
+                 fj-int-table → fj-int-row → fj-int-head → … → fj-int-conf → fj-int-foot
+réplica (main) : … idêntica, SEM fj-int-tabs …
+```
+
+O alvo do §3.10 bate: `.fj-integra` com **4** filhos `[fj-int-verdict, ds-tabbar, fj-int-table,
+fj-int-foot]` · **9** `.fj-int-row` na aba `absorb` (1 cabeçalho + 8 dados) de **4 células nuas** ·
+**8** `.fj-int-tab`.
+
+### O `fj-int-tabs` ausente é correto — e agora está PROVADO, não afirmado
+
+O docblock do `ForjaIntegrador.tsx` já declarava que `.fj-int-tabs` é *"regra MORTA nos dois lados,
+já que o TabBar do DS ignora `className`"*. Essa é uma afirmação sobre comportamento de terceiro, do
+tipo que a §5 2026-09-01 manda **re-executar em vez de herdar**. Re-executada, em duas camadas:
+
+1. `prototipo-ui/cowork/cli-tabs.jsx:123` — o adaptador **passa** `className` adiante
+   (`className={className || undefined}`). Sozinho, isso sugeriria que a regra vive.
+2. `scripts/design-sync/mirror-snapshot/_ds_bundle.js` — o `TabBar` do DS desestrutura
+   **`{ tabs, active, onChange }`** e nada mais. `className`, `ariaLabel` e `inset` são
+   **descartados**; o `<nav>` nasce sem classe e com `aria-label="Sub-navegação"` fixo.
+
+Logo a regra é morta de fato, e **duas consequências** caem junto:
+
+- **`pad={0}`** do protótipo vira `inset` no `CliTabs` e é descartado pelo DS. O `NAV` do
+  `ForjaTabBar` não escreve `paddingInline` e o `<nav>` computa `0px`. **Equivalentes** — por razão
+  mais forte do que "os dois calham em zero".
+- **`ariaLabel="Integrador"`** também é descartado pelo DS: no protótipo o `<nav>` sai como
+  `"Sub-navegação"`. A réplica **implementa** o `ariaLabel` e rotula `"Integrador"`. É divergência
+  **deliberada e a favor** — exatamente o que a Onda 0a (§2 do export) manda: *"o protótipo não é
+  certificado de a11y; estes são defeitos MEUS, pedir ao Code que replique é exportar dívida."*
+
+### Tipografia/gap: o diff de VALOR
+
+Regras `.fj-integra`/`.fj-int-*`/`.fj-est-*` no `forja-page.css` × `cowork-forja-bundle.css`, por
+corpo normalizado:
+
+| | |
+|---|---|
+| seletores da seção no protótipo | **29** |
+| corpo **idêntico** no bundle | **22** |
+| corpo divergente | **6** |
+| reescrito com efeito equivalente | **1** |
+
+As **6** são a mesma divergência da Onda 9 — token inlinado, `var(--fs-N)` → o px que aquele token
+já vale (`.fj-int-verdict code` · `.fj-int-tabs button` · `.fj-int-tela, .fj-int-mud` ·
+`.fj-int-tela` · `.fj-int-foot` · `.fj-int-foot code`). Zero bug de tamanho; a dona é a Onda 1.
+
+A **1 reescrita** merece nome, porque quase virou um achado falso: minha primeira varredura, que
+casava seletor por string exata, reportou `.fj-int-rota small.fj-int-tab` como **ausente** no bundle.
+Não está — foi reescrita como `.fj-int-tab{ color:var(--text-dim) !important; }` (`:703`).
+Conferida a cascata, o efeito é o mesmo no único consumidor que existe
+(`<small className="mono fj-int-tab">`, 1 ocorrência em cada lado): o protótipo vence por
+especificidade `(0,3,1)` sobre `.fj-int-rota small`; o bundle vence por `!important`. **Declarado o
+que difere:** a versão do bundle é mais **larga** — pinta qualquer `.fj-int-tab`, não só o que está
+dentro de `.fj-int-rota small`. Hoje isso não tem consequência porque o seletor tem um consumidor só;
+se ganhar outro, o bundle pinta e o protótipo não.
+
+### PLACAR — Integrador (§3.10)
+
+```
+entregue 4 de 4 elementos do alvo
+  ✓ .fj-integra com 4 filhos [fj-int-verdict, ds-tabbar, fj-int-table, fj-int-foot]
+  ✓ 9 .fj-int-row (1 cabeçalho + 8 dados) de 4 células nuas
+  ✓ 8 .fj-int-tab
+  ✓ tipografia/gap: 22 de 29 idênticos, 6 equivalentes, 1 reescrita equivalente, 0 bug
+ausentes: nenhuma
+divergências declaradas:
+  · className="fj-int-tabs" não escrito — o TabBar do DS descarta className (medido no
+    _ds_bundle.js); a regra é morta nos DOIS lados
+  · aria-label real ("Integrador") em vez do "Sub-navegação" fixo do DS — melhoria de a11y
+    deliberada, Onda 0a §2
+  · .fj-int-tab reescrito com !important e escopo mais largo que o do protótipo — mesmo
+    efeito no único consumidor; dona é a Onda 1
+  · 6 font-size literais no bundle onde o protótipo usa var(--fs-N) — MESMO px; dona é a Onda 1
+```
+
+### O que esta seção NÃO prova
+
+O mesmo limite da Onda 9, pela mesma razão e re-testado hoje: `curl` em
+`https://oimpresso.com/forja/integrador` devolve **`302 → /login`**. O `compare --check` exige prod
+autenticada; sem ele, **nada aqui é "0 bug"** (lei 6 do export). O que esta seção fecha é o eixo
+folha × folha e a estrutura contra o protótipo vivo — não o T7.
+
+---
+
+## 2026-09-03 (Onda 3 do export · fecho da lista) — Trabalho · lista: a onda já estava entregue; o que faltava era o registro
+
+> **Numeração:** esta é a **Onda 3** do `COLAR-NO-CODE-EXPORT-FORJA-MODULO.md` §1 (`Trabalho · lista`) e a
+> **linha 4** da tabela de ondas do [PARIDADE](../Forja/PARIDADE-area-forja-diagnostico-e-ondas.md) — as duas
+> numerações são independentes e sempre foram. Quem procurar "Onda 3" naquela tabela cai em *Aprovações*.
+>
+> **Escopo deste PR: zero código.** A réplica e a a11y já estão no `main`; o que este PR faz é medir de novo,
+> declarar o desfecho e corrigir uma linha de tabela que estava factualmente errada.
+
+### 1 · Quem entregou o quê — e a errata que este PR paga
+
+Medido com `gh pr view` + `git log` do próprio arquivo (`git rev-parse --is-shallow-repository` = `false`,
+então a história vale — a lápide §5 2026-07-24 não se aplica aqui):
+
+| PR | estado medido | commit no `main` | o que trouxe |
+|---|---|---|---|
+| [#6577](https://github.com/wagnerra23/oimpresso.com/pull/6577) | **CLOSED**, `mergedAt = null`, fechado 2026-09-02 19:05Z | — | **nada** |
+| [#6582](https://github.com/wagnerra23/oimpresso.com/pull/6582) | MERGED 2026-09-02 23:44Z | `ae7689d8d8` | a réplica da lista (3 barras de filtro, `.fj-row` densa, KPI que filtra) |
+| [#6669](https://github.com/wagnerra23/oimpresso.com/pull/6669) | MERGED 2026-09-03 18:09Z | `63b9fecba1` | `role="list"` / `group` / `listitem` + `role="status" aria-live="polite"` |
+
+A linha 4 do PARIDADE afirmava **"🟡 #6577 aberto, aguardando merge [W]"**. Estava errada nos dois pontos: o PR
+não está aberto, e não foi ele que entregou. `git log --oneline origin/main -- .../TrabalhoLista.tsx` devolve
+exatamente **2** commits, os da tabela acima. Corrigido na mesma leva.
+
+### 2 · A ordem dos slots, re-medida nos DOIS lados (não citada)
+
+Abri os dois arquivos e comparei a sequência de emissão, não a lembrança dela:
+
+| # | protótipo — `forja-page.jsx:414-441` (`IssueRow`) | produção — `TrabalhoLista.tsx` |
+|---|---|---|
+| 1 | `fj-rowcheck` (BUTTON) | — *(ausência declarada)* |
+| 2 | `fj-epic-chev` **ou** `fj-row-indent` | `fj-row-indent` *(sempre — ver §3)* |
+| 3 | `fj-prio-dot` | `PrioDot` |
+| 4 | `fj-id` | `fj-id` |
+| 5 | `TypeChip` | `TypeChip` |
+| 6 | `fj-title` | `fj-title` |
+| 7 | `fj-carry` *(condicional)* | — *(ausência declarada)* |
+| 8 | `fj-tam` *(condicional)* | `fj-tam` *(condicional)* |
+| 9 | `EpicRoll` *(condicional)* | — *(ausência declarada)* |
+| 10 | `fj-row-mid` | `fj-row-mid` |
+| 11 | `LockIco` *(condicional)* | `LockIco` *(condicional)* |
+| 12 | `FrescorPill` *(condicional)* | — *(ausência declarada)* |
+| 13 | `PhaseBadge` **ou** `StatusPill` | `PhaseBadge` **ou** `StatusPill` |
+| 14 | `OwnerSeal` | `OwnerSeal` |
+| 15 | `Pin` | `Pin` |
+| 16 | `Star` | `Star` |
+
+**Veredito:** removidos os 4 slots sem dado, a sequência é **idêntica posição a posição**. A ordem é parte do
+alvo (§3.3 do export), e é o item que este fecho estava devendo por medição própria em vez de herdada.
+
+### 3 · PLACAR — Trabalho · lista (§3.3)
+
+```
+entregue 11 de 13 elementos do alvo (linha) · 4 de 6 (.fj-totalbar)
+ausentes:
+  · fj-rowcheck + .fj-bulkbar — mutação em massa sem endpoint. O charter proíbe escrita fora do
+    TaskCrudService (que valida o FSM); selecionar sem poder agir é afordância falsa (LC-15)
+  · fj-fresco / FrescorPill  — exige carimbo de verificação contra o main; não existe fora do mock
+  · fj-epic-chev / EpicRoll  — no protótipo o pai é issue da MESMA lista (kidsOf); em mcp_tasks
+    epic_id é FK pra McpEpic, OUTRA entidade. Chegou a ser implementado e ficaria mudo pra
+    sempre; removido antes do merge (LC-08)
+  · carry xN                 — exige histórico de ondas, que mcp_tasks não guarda
+  · fj-total-warn            — depende do mesmo frescor acima
+  · fj-total-hint (kbd j k ? )— a tela não escuta esses atalhos; anunciar seria afordância falsa
+divergências declaradas:
+  · .fj-row é role="listitem", não role="row"/button — ela NÃO tem onClick nesta tela (não há
+    drawer aqui); prometer navegação 2D por teclado seria o mesmo LC-15, só que invisível.
+    Produção à frente do protótipo, que tem 0 papel de lista
+  · role="status" aria-live="polite" no span de issues, e não na barra inteira: role="status" é
+    atômico, e na barra todo pin re-anunciaria os quatro números
+```
+
+As 6 ausências estão escritas no docblock do `TrabalhoLista.tsx`, com o motivo de cada uma. Nenhuma
+renderiza placeholder no lugar.
+
+### 4 · O `gap 14px` do §3.3 × o `gap:20px` da folha — dissolvido pela medição
+
+O export §3.3 pede `.fj-totalbar` com **gap 14px**; as duas folhas dizem **20px**. Não é divergência:
+
+- `grep -n "fj-totalbar"` devolve as **mesmas 4 regras** nos dois arquivos, com os **mesmos valores** —
+  base `gap:20px` (`cowork-forja-bundle.css:133` · `prototipo-ui/cowork/forja-page.css:114`) e
+  `gap:14px` dentro de `@media (max-width:1100px)` (`:296` · `:277`). O `diff` do bloco `.fj-totalbar`
+  volta **vazio**.
+- O **§7 do próprio export declara** que a medição rodou a **924px** de viewport. 924 < 1100 ⇒ o media
+  query estava ativo ⇒ **14px é o valor certo naquela viewport, nos dois lados**. A 1280 (a do DoD) os
+  dois dão 20px.
+
+**Resíduo honesto:** o build de 03/09 não desceu ao espelho (§6 abaixo), então não dá pra *excluir* que ele
+tenha mudado o valor-base. Só que nada do que é mensurável hoje sustenta isso — e o export §5 proíbe CSS
+novo. **Nenhuma folha foi tocada neste PR.**
+
+### 5 · O que já estava verde, e não se mexeu
+
+- **UC:** `Index.casos.md` tem **17** `UC-TRAB-*`, e o `TrabalhoListaTest.php` cita os **17** — cobertura
+  17/17, contada com `grep -o … | sort -u` nos dois arquivos.
+- **`design-spec.json`:** `node scripts/design-spec-gen.mjs --check` → *"3 spec(s) por-tela em sincronia"*,
+  `rc=0`. O `measured_against_sha: c1263f2e53` do `Index.design-spec.json` aponta pra um commit anterior ao
+  #6616 e ao #6669, mas isso **não é drift**: o campo está em `VOLATILE` (`design-spec-gen.mjs:87`), que a
+  comparação de frescor descarta por desenho — ela mede a **estrutura derivada**
+  (`stable(committed) !== stable(fresh)`, `:125`). Ler o `sha` como régua seria medir a propriedade errada;
+  o spec **não foi regravado**.
+- **Pest:** não rodou aqui. Teste é CT 100 ou CI, nunca local (proibição Tier 0).
+
+### 6 · O que esta seção NÃO prova
+
+1. **T7 continua pendente**, pelo mesmo motivo das Ondas 9 e 10: prod pede auth (`302 → /login`), e o
+   `design-diff --compare --check` exige os dois renders. **Nada aqui é "0 bug"** (lei 6 do export).
+2. **O espelho não está fechado.** `node scripts/governance/cowork-mirror-freshness.mjs --sla` acusa
+   rodada **PARCIAL**: mediu **1 de 258** (1 sync · 0 stale · **257 unchecked**), e reporta **157**
+   arquivos que existem no vivo e não estão no espelho. A regeneração do bundle é pedida no
+   [#6671](https://github.com/wagnerra23/oimpresso.com/pull/6671) e **não roda do lado do agente**
+   ([ADR 0374](../../decisions/0374-emenda-0315-espelho-cowork-e-rota-prevista.md)) — logo o `forja-page.jsx`
+   que a §2 mede é o do espelho, que pode estar atrás do build de 03/09.
+3. **A a11y não foi re-auditada** — a §3 registra o que o #6669 entregou, não uma varredura axe nova.
+
+## 2026-09-03 (Onda 5 do export · fecho) — Gantt: o corpo NÃO vira réplica, e o custo está medido
+
+> **Numeração — os dois documentos contam diferente.** Esta é a **Onda 5 do
+> `COLAR-NO-CODE-EXPORT-FORJA-MODULO.md`** (§1: *"5 · Trabalho · gantt"*), que é a mesma tela da
+> **Onda 6 da tabela do [PARIDADE §11](../Forja/PARIDADE-area-forja-diagnostico-e-ondas.md)**. Não
+> são duas ondas: são duas réguas sobre a mesma tela. Quem cruzar os documentos pelo número vai
+> concluir que uma onda sumiu.
+
+**Esta seção fecha declarando** — a moldura foi entregue e medida em produção; o corpo é
+**decisão [W] em aberto**, e o desfecho da onda é devolver a escolha com o custo ao lado.
+
+### O que já está entregue (Onda 6 do PARIDADE, [#6624](https://github.com/wagnerra23/oimpresso.com/pull/6624) + recibo [#6644](https://github.com/wagnerra23/oimpresso.com/pull/6644))
+
+Não re-medido aqui — o recibo em produção já está na [§2026-09-03 (Onda 6)](#2026-09-03--onda-6-gantt-smoke-em-produção-e-ele-corrigiu-uma-afirmação-minha)
+desta mesma página, autenticado e dark: `.fj-quadro-ancora` (**1** · 12px · `oklch(0.58 0.005 90)`
+= `--text-mute`) + `.fj-totalbar.fj-g-foot` (**1** · `display:flex` · **3** `.fj-g-leg`). Re-medir
+para reafirmar seria refazer trabalho pago; o que esta seção acrescenta é o **outro lado do
+placar**.
+
+Uma conferência que faltava, e que fecha a estrutura da barra: o §3.5 pede `.fj-totalbar` com
+**6 filhos**. A produção escreve exatamente **6** `<span>` (`Gantt.tsx` :704-711) — total ·
+`fj-total-warn` · 3× `fj-g-leg` · `fj-total-hint`. **6 de 6.**
+
+### O corpo: os 7 alvos do §3.5, medidos no repo
+
+O §3.5 do export descreve o corpo como `.fj-gantt` → `[fj-quadro-ancora, fj-g-scale, fj-g-body,
+fj-totalbar]`, com `.fj-g-row` (**32**), `fj-g-lbl` (**33**), `fj-g-fds` (**192**) e `fj-g-bar`
+(**32**). Varredura contada no `main`, excluindo o espelho (`git grep -l <classe> -- ':(glob)**'
+':(exclude)prototipo-ui/**'`):
+
+| classe do §3.5 | regra no bundle | markup em `.tsx` |
+|---|---|---|
+| `fj-g-scale` | ✅ `cowork-forja-bundle.css:1107` | **0** |
+| `fj-g-body` | ✅ `:1113` | **0** |
+| `fj-g-row` | ✅ `:1115-1119` (5 seletores) | **0** |
+| `fj-g-lbl` | ✅ `:1108` | **0** |
+| `fj-g-track` | ✅ `:1122, :1134` | **0** |
+| `fj-g-bar` | ✅ `:1124-1130` (7 seletores) | **0** |
+| `fj-g-fds` | ✅ `:1133` | **0** |
+
+E o contêiner: `.fj-gantt` também existe **só como regra** (`:1106`), sem markup — em produção os
+três blocos vivem soltos no `Stack` da página, não dentro de um wrapper.
+
+**O número que resume o eixo:** o bundle publica **17** classes `fj-g-*` distintas (34 seletores);
+**2** têm consumidor em `.tsx` — `fj-g-foot` e `fj-g-leg`, exatamente as que a Onda 6 entregou. As
+outras **15 estão inertes** enquanto o motor for o SVAR.
+
+Isso muda o formato da decisão de [W], e a favor dela: **o CSS já está pago**. A Onda 1 desceu o
+bundle inteiro (lei 5 do export: zero CSS novo), então trocar o motor não custaria folha de estilo
+— custaria markup + a capacidade que o motor atual entrega.
+
+### O custo de trocar o motor — medido, não estimado
+
+A tela usa `@svar-ui/react-gantt` (`package.json:247` → `^2.6.1`, MIT), com **1** consumidor no
+repo inteiro (`Gantt.tsx` :46-47). Os números de produção são de 2026-09-03 e estão ancorados na
+tabela do [`Gantt.charter.md`](../../../Modules/Forja/Resources/js/Pages/Forja/Roadmap/Gantt.charter.md) §PARIDADE §11 Onda 6 — não os reescrevo aqui, aponto:
+
+| medida | valor | o que decorre |
+|---|---:|---|
+| tasks | 1186 | teto do controller: `MAX_TASKS = 500` (`RoadmapGanttController:53`) |
+| com `due_date` real | **7** (0,6%) | a linha do tempo tem 7 pontos de dado |
+| com `blocked_by` | **163** (13,7%) | as setas **têm** o que desenhar — servidas como links SVAR `{source,target,type:'e2s'}` (`Gantt.tsx` :219-243) |
+
+O protótipo **não desenha setas de dependência** (só um cadeado no card). Trocar o motor, então,
+troca **163 dependências desenhadas** por um cronograma mais bonito de **7 prazos** — e o desenho
+das setas o protótipo não define, então portá-las seria inventar design, que é o que a
+[ADR 0388](../../decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md)
+D-5 evita ("réplica não é licença para tocar comportamento").
+
+**Por isso esta onda não decide.** Ela devolve a escolha com o custo ao lado, que é o que o §7-bis
+do export já listava como uma das 2 decisões [W] abertas do módulo.
+
+### PLACAR — Gantt (§3.5)
+
+```
+entregue 2 de 4 filhos do alvo .fj-gantt
+  ✓ .fj-quadro-ancora  — 1 · 12px · oklch(0.58 0.005 90) = --text-mute (prod, #6644)
+  ✓ .fj-totalbar.fj-g-foot — 1 · display:flex · 6 filhos · 3 fj-g-leg (6 de 6 do §3.5)
+  ✗ .fj-g-scale — 0 markup
+  ✗ .fj-g-body  — 0 markup
+ausentes: fj-g-scale · fj-g-body · fj-g-row · fj-g-lbl · fj-g-track · fj-g-bar · fj-g-fds
+  motivo ÚNICO: decisão [W] em aberto (trocar @svar-ui/react-gantt pelo markup à mão)
+  — não é esquecimento, não é dívida da onda, e não é falta de CSS (as 7 regras estão
+    no bundle desde a Onda 1; 15 das 17 classes fj-g-* estão inertes)
+alvos que ficam SEM contraparte enquanto o motor for o SVAR:
+  32 .fj-g-row · 33 fj-g-lbl · 192 fj-g-fds · 32 fj-g-bar · 1 wrapper .fj-gantt
+divergências declaradas:
+  · copy do arrasto é condicional a can_edit — sem jana.mcp.tasks.write a barra é
+    readonly, e anunciar o gesto seria afordância falsa (LC-15)
+  · o contador de vencidas lê due_date REAL, não a janela start+3d que o toGanttTasks
+    inventa pra dar largura à barra
+```
+
+### O que esta seção NÃO prova
+
+Nada aqui é "0 bug" — e neste caso não pode ser, por duas razões independentes:
+
+1. **`compare --check` exige prod autenticada**, e `https://oimpresso.com/forja/roadmap-gantt`
+   responde `302 → /login` sem sessão (mesmo limite das Ondas 9 e 10). Lei 6 do export.
+2. **A comparação pareada do corpo não seria honesta enquanto a decisão estiver aberta.** Os dois
+   lados têm **motores diferentes** — `.fj-g-*` à mão no protótipo × `@svar-ui/react-gantt` em
+   produção. Um `--compare` do corpo mediria a distância entre duas implementações que ninguém
+   decidiu unificar, e devolveria `DIVERGE` para cada célula: ruído com aparência de veredito.
+   O eixo comparável é a **moldura**, e ela foi medida em prod no #6644.
+
+A tela também **não tem contrato** em `tests/Browser/visreg-screens.json` (39 entradas, nenhuma do
+gantt — `grep` contado); o comando para criá-lo está no [#6624](https://github.com/wagnerra23/oimpresso.com/pull/6624).
+
+**Observação lateral já catalogada no #6644, repetida aqui só para não ser redescoberta como
+achado:** o cabeçalho diz `Timeline (530 linhas)` e a barra diz `500 tarefas`. São contagens de
+coisas diferentes — linhas incluem as *summary* por módulo, tarefas é o teto `MAX_TASKS = 500` —
+mas a proximidade convida à leitura errada.
+
+## 2026-09-03 (Onda 4 · fecho) — Quadro: o alvo §3.4 já estava entregue, e as 2 diferenças são decisão [W] anterior, não bug
+
+> **Onda 4 do export** = **linha 5** da tabela do [PARIDADE §11](../Forja/PARIDADE-area-forja-diagnostico-e-ondas.md) = `PARIDADE §11 Onda 5` no
+> `Index.casos.md`. O offset de 1 entre as duas numerações é antigo e fica declarado aqui para
+> ninguém concluir que são ondas diferentes.
+>
+> Âncora: [`TrabalhoQuadro.tsx`](../../../Modules/Forja/Resources/js/Pages/Forja/Trabalho/_components/TrabalhoQuadro.tsx) (279 ln) · alvo: `KanbanView` do
+> [`forja-page.jsx`](../../../prototipo-ui/cowork/forja-page.jsx) `:467-503`. Medido em `origin/main` `da03d82c93`, rebase 0/0.
+
+### A armadilha do §3.4, e por que ela NÃO se conserta
+
+O alvo diz **6** `.fj-kcol`. Produção tem **7**. Contado nos quatro lados, com `grep -o` (não `-c`,
+que conta linha e aqui devolveria 8 e 10 por causa da assinatura de tipo e da mensagem de erro):
+
+| lado | fases | inclui `F4`? |
+|---|---|---|
+| fonte de design — `forja-data.jsx` `FORJA_PHASES` | **7** (`F0 · F1 · F1.5 · F2 · F3 · F3.5 · F4`) | **sim** |
+| `KanbanView` do protótipo — filtro `p.id !== "F4"` | **6** | não (filtro de **view**) |
+| backend — `ForjaQuadroService::FASES` | **7** | **sim** |
+| front — `TrabalhoQuadro.tsx` `const FASES` | **7** | **sim** |
+
+A fonte de design **tem** F4; quem o remove é o filtro do `KanbanView`, que é view, não dado. [W]
+decidiu em **2026-08-11** que *"F4 Merge É coluna — merge é estado de trabalho com dono humano, não
+arquivo"*; foi essa decisão que fez o backend ganhar a fase e esvaziou a `DIVERGENCIA_DECLARADA` do
+[`PipelineParidadeTest`](../../../Modules/Forja/Tests/Feature/PipelineParidadeTest.php) (`:49` — lista vazia, com o comentário `fechada por [W] em 2026-08-11`).
+Copiar o filtro reverteria a decisão em silêncio. O charter já registra isso em
+§"Diferenças declaradas do Quadro" (`:256`) e o docblock do componente em `:44-58`.
+
+**Segunda diferença, também declarada:** eixo Execução é `todo · doing · review · blocked` em
+produção × `todo · doing · review · done` no protótipo (`BOARD`, em `forja-page.jsx`). Vem da regra
+do charter (`:71`): o eixo mostra **toda task ativa**, e `done`/`cancelled` ficam fora. `blocked` é
+trabalho ativo; `done` não é. Produção é internamente consistente — o protótipo é que se contradiz,
+porque rotula "4 colunas ativas" e inclui Concluído entre elas.
+
+### Estrutura — contada no arquivo, contra o protótipo vivo
+
+A árvore é 1:1 com `KanbanView`, e o docblock do componente (`:3-15`) já a desenha:
+`.fj-quadro-wrap` → `[.fj-quadro-ancora, .fj-kanban]` → `.fj-kcol[--ph]` → `.fj-kcol-head`
+(`.fj-kcol-top` · `.fj-kcol-quem` · `.fj-kcol-sai`) + `.fj-kcol-body` → `.fj-kc` / `.fj-kcol-empty`.
+As duas últimas linhas do cabeçalho são condicionais ao eixo Pipeline nos **dois** lados
+(no protótipo `:491-492`; na réplica `:250-256`).
+
+### Tipografia/gap — o diff de VALOR, folha × folha
+
+20 seletores da seção comparados corpo-a-corpo entre `cowork-forja-bundle.css` e
+`prototipo-ui/cowork/forja-page.css`:
+
+- **15 idênticos byte-a-byte** — incluindo os que o alvo nomeia: `.fj-kcol` (`flex:0 0 248px` +
+  `width:248px`), `.fj-kanban` (`overflow:auto` — o alvo reportou o eixo x porque foi lido por
+  `getComputedStyle`, e `overflow:auto` computa `auto` nos dois eixos), `.fj-quadro-wrap`
+  (`overflow:hidden`, o recorte proposital), `.fj-kc`, `.fj-kcol-empty`, `.fj-kcol-top`,
+  `.fj-kcol-quem`, `.fj-kcol-sai`.
+- **5 divergem só por token inlinado, com o MESMO px:** `.fj-kcol-lbl`, `.fj-kcol-faz`,
+  `.fj-onda-chip`, `.fj-kcol-count` (`10.5`/`11.5px` literais × `var(--fs-1)`/`var(--fs-2)`) e
+  `.fj-kc-title` (`12.5px` × `var(--fs-3)`). **Os tokens valem o mesmo nos dois lados** e isso foi
+  medido, não suposto: `--fs-1: 10.5px` · `--fs-2: 11.5px` · `--fs-3: 12.5px`, idênticos em
+  `prototipo-ui/cowork/ds-v6/tokens.css` `:105-107` e em
+  `resources/css/tokens/_generated-foundations-light.css` `:7-9`. Zero divergência de pixel. É a
+  **mesma classe** que a Onda 10 catalogou ("6 font-size literais… MESMO px; dona é a Onda 1") —
+  não é achado novo, e a dona continua sendo a Onda 1.
+- **0 ausente · 0 bug de valor.**
+
+### O "13,5px" do alvo — e o achado falso que a medição evitou
+
+O §3.4 diz que `.fj-kc` é "13,5px", e o bundle declara `.fj-kc-title` com **12,5px**. Parece
+divergência e **não é**: são elementos diferentes. `.fj-kc` não declara `font-size` — herda o corpo
+padrão, que é `--fs-4: 13.5px` (comentado na fonte como *corpo padrão (= body)*), e esse token
+**existe em produção** com a mesma descrição (`_generated-foundations-light.css` `:10` +
+`resources/css/tokens/base.tokens.json` `:36`). O `.fj-kc-title` é `--fs-3` = 12,5px nos dois lados.
+As duas leituras do alvo estão certas; eu quase registrei uma como bug por ter comparado o filho com
+o número do pai.
+
+### ⚠️ O gap de DEFESA que esta medição encontrou (declarado, não consertado)
+
+A decisão das 7 colunas está defendida por **prosa em três lugares** (charter `:256`, docblock
+`:44-58`, `casos.md` §PARIDADE §11 Onda 5) e por **nenhuma máquina**. Medido:
+
+- `UC-TRAB-07` ([`TrabalhoListaTest.php`](../../../Modules/Forja/Tests/Feature/TrabalhoListaTest.php) `:164`) cruza `ForjaQuadroService` × `TrabalhoQuadro.tsx`
+  extraindo o bloco `const FASES` por regex. Um filtro acrescentado ao `FASES.map(` (`:176`) **não
+  altera aquele bloco** — o caso seguiria verde.
+- `PipelineParidadeTest` cruza fonte de design × backend. Também não vê o render.
+- Specs de render `.tsx` da Forja: **0** (de 25 no repo). E2E Browser da Forja: **0**.
+
+Ou seja: se uma sessão futura "corrigir" as 7 para 6 obedecendo o §3.4, **nada reprova**. O gap é o
+mesmo que o export §7-bis já nomeia ("E2E = 0 na Forja"), agora com o vetor concreto. **Não armei
+gate aqui**, por três razões: seria intent diferente do PR de fechamento; a forma sintática
+(procurar o filtro perto do `map`) é a família de guard sintático que o §5 já enterrou; e a forma
+honesta — contar `.fj-kcol` renderizadas por eixo — exige infra de render que a Forja não tem, logo
+é escopo próprio com FP a medir antes. Fica como chip, não como afirmação de cobertura.
+
+### PLACAR — Quadro (§3.4)
+
+```
+entregue 6 de 7 elementos do alvo
+  ✓ .fj-quadro-wrap display:flex com 2 filhos [fj-quadro-ancora, fj-kanban]
+  ✓ scroller é o .fj-kanban (overflow auto); o wrap é overflow:hidden de propósito
+  ✓ .fj-kcol de 248px (flex:0 0 248px + width:248px, byte-idêntico ao protótipo)
+  ✓ .fj-kcol-head de 3 linhas (dot·id·rótulo·count · quem/faz · sai), as 2 últimas só no Pipeline
+  ✓ .fj-kc com 3 filhos na ordem [fj-kc-top, fj-kc-title, fj-kc-foot]
+  ✓ eixo alternável (pipeline × execução), uma forma só no JSX
+  ⏳ altura 111px do card — derivada do conteúdo, não declarada; exige render (T7)
+ausentes: draggable no .fj-kc — mover card é mutação, e mutação fora do TaskCrudService seria
+          um 2º caminho de escrita. Non-Goal do charter, não esquecimento; por isso a coluna
+          vazia diz "vazia" e não "arraste aqui" (anunciar gesto que a tela não escuta = LC-15)
+divergências declaradas:
+  · 7 .fj-kcol no eixo Pipeline onde o KanbanView desenha 6 — [W] 2026-08-11: "F4 Merge É
+    coluna". A fonte de design TEM F4; quem filtra é a view. Copiar o filtro reverteria a
+    decisão em silêncio
+  · copy do parágrafo-âncora diz (F0 → F4) onde o protótipo diz (F0 → F3.5) + a frase do
+    changelog — adaptação obrigatória: a copy literal contradiria as 7 colunas abaixo dela
+  · eixo Execução todo·doing·review·blocked × todo·doing·review·done do protótipo — regra do
+    charter :71 (board mostra o ativo; done/cancelled saem)
+  · FrescorPill fora do rodapé do card — campo que mcp_tasks não tem
+  · 5 font-size literais no bundle onde o protótipo usa var(--fs-N) — MESMO px medido; dona
+    é a Onda 1
+```
+
+### O que esta seção NÃO prova
+
+O mesmo limite das Ondas 9 e 10, re-testado hoje: `curl` em
+`https://oimpresso.com/forja/trabalho?visao=quadro` devolve **`302 → /login`** (e `/forja/trabalho`
+idem). O `compare --check` exige prod autenticada; sem ele **nada aqui é "0 bug"** (lei 6 do
+export). O que esta seção fecha é o eixo folha × folha, a estrutura contra o protótipo vivo e a
+contagem das fases nos quatro lados — não o T7. A altura de 111px do card e os estados
+hover/focus/disabled dos átomos seguem fora do medido, como o §7 do export já declarava.
+## 2026-09-03 (Onda 2 do export · fecho) — Trabalho · chrome: o alvo §3.2 já estava no `main`, e o `padding` do alvo era o do `@media`
+
+Fui executar a **Onda 2 do export** (`Trabalho · chrome` — §3.2: frentebar · KPI · toolbar ·
+filterbar2) e, medindo antes de escrever, encontrei o alvo **já entregue** desde 02/09 — pela **Onda
+4 do `PARIDADE §11`**, que é outra numeração para o mesmo trabalho. Reimplementar seria autorar em
+paralelo a um dono existente ([LC-19](../../LICOES_CODE.md)), então esta seção **declara**, não recodifica.
+
+**Recibo da proveniência — e ele corrige o que a tabela do PARIDADE dizia.** A linha da Onda 4
+creditava o [#6577](https://github.com/wagnerra23/oimpresso.com/pull/6577) *"aberto, aguardando merge [W]"*.
+Medido hoje: o **#6577 está `CLOSED` sem merge** (`mergedAt: null`). Quem levou o chrome ao `main` foi
+o **[#6582](https://github.com/wagnerra23/oimpresso.com/pull/6582)** (merge `ae7689d8d8`, 2026-09-02
+23:44Z), achado por `git log -S "fj-frentebar"` no arquivo — não por proximidade de data
+(§5 2026-08-15). A linha da tabela é corrigida no mesmo PR desta seção.
+
+### O alvo §3.2 × o `main`, bloco a bloco
+
+Medição por leitura do `origin/main` (`Trabalho/Index.tsx`, 414 ln) contra `prototipo-ui/cowork/forja-page.jsx`.
+
+| bloco do alvo | alvo §3.2 | medido no `main` | veredito |
+|---|---|---|---|
+| `.fj-frentebar` | 2 filhos: segmented + nota mono com contagem de `mcp_tasks` | `<Segmented>` + `<span class="fj-frente-note">` com `<b class="mono">{kpis.total}</b> mcp_tasks` — copy literal do protótipo (:1138) | **2 de 2** ✓ |
+| `.fj-kpirow` | 5 filhos · `gap 10px` · KPI é `BUTTON` · valor 17px · rótulo 10px · clique filtra lista **e** quadro | 4 `<button class="tf-kpi">` + `.fj-kpirow-note`; `onClick={alternarSaude}` + `aria-pressed`; `gap:10px` no bundle | **5 de 5** ✓ |
+| `.fj-toolbar` | **4** filhos · `gap 14px` | `.fj-groupby` + `<form class="fj-search">` — os 2 `.fj-ia-btn` não existem | **2 de 4** ⚠️ |
+| `.fj-filterbar2` | 9 filhos base · `gap 6px` · 8 chips de papel | `.fj-groupby-lbl` + "todos" + `papeis.map` — estrutura e ordem idênticas | **9 de 9** ✓ |
+
+### Os 2 ausentes da toolbar são SUPERFÍCIE SEM RECEPTOR, não re-skin esquecido
+
+No protótipo (`forja-page.jsx:1061-1062`) os filhos que faltam são os dois `.fj-ia-btn` — **Papéis**
+(`onClick={() => setRunbook(true)}`) e **Perguntar ✦** (`onClick={() => setIaPanel({mode:"ask"})}`).
+
+Varredura contada (`rg --hidden -g '!.git/**'` + `git grep` no `origin/main` como oráculo de
+desempate, §5 2026-07-30): `fj-ia-btn` aparece em **4 arquivos — protótipo (`.jsx` + `.css`), o
+bundle de produção e este próprio doc. Zero em `.tsx` de produção.** Os painéis que eles abrem
+(`forja-runbook`, `forja-ia`) estão no **§1 do export** entre as **8 superfícies sem receptor no
+`main`** — construção, não re-skin. O header do `Index.tsx` (:36-40) já declara isso desde a Onda 4:
+*"`Papéis` e `Perguntar ✦` → abrem painéis (runbook e IA) que não existem"*.
+
+**Renderizá-los desabilitados seria pior que ausentá-los:** botão que não leva a lugar nenhum é
+afordância falsa ([LC-15](../../LICOES_CODE.md)) — a mesma razão pela qual a hint de atalhos `j`/`k`/`?`
+também ficou de fora. Declarar o receptor é decisão [W]; até lá o placar diz **2 de 4** e não finge 4.
+
+### Achado que corrige a leitura do alvo: `padding 11px 18px` é o valor do `@media`, não divergência
+
+O §3.2 pede `.fj-toolbar` com `padding 11px 18px`. O bundle de produção diz `11px 32px`
+(`cowork-forja-bundle.css:48`) — o que pareceria bug. **Não é.** O `11px 18px` mora em
+`@media (max-width:1100px)` (mesma folha, :295), e o próprio §7 do export declara que *"a medição
+rodou a **924px** de viewport"*. A 924 o alvo caiu na media query.
+
+Conferido nos **dois** breakpoints, protótipo × bundle: `11px 32px` fora e `11px 18px` dentro —
+**idênticos**. O mesmo vale para os outros três gaps do §3.2 (`frentebar` 10px · `kpirow` 10px ·
+`filterbar2` 6px): todos byte-idênticos entre `forja-page.css` e `cowork-forja-bundle.css`.
+Zero CSS novo nesta onda, como a lei 5 exige.
+
+> ⚠️ **Fora dos 4 seletores do §3.2 as duas folhas NÃO são byte-idênticas** — o bundle usa literais
+> (`12.5px`, `11.5px`) onde o protótipo usa `var(--fs-3)`/`var(--fs-2)`. Mesmo px, fonte diferente;
+> é a divergência que as Ondas 9 e 10 já registraram e cuja dona é a Onda 1. Não a re-abro aqui.
+
+### Divergência declarada: o segmentado emite `aria-pressed`, não `aria-selected`
+
+O §3.2 pede `role=tablist` + `aria-selected` 3 de 3. A produção usa o `Segmented` canon
+(`resources/js/Components/ui/segmented.tsx`), que é **Radix `ToggleGroup` `type="single"`** — lido no
+arquivo, o import é `ToggleGroup as ToggleGroupPrimitive`, **não** `Tabs`. Logo não há `tablist`.
+
+**Isto é consequência de uma decisão [W] já registrada, não descuido.** O `Index.charter.md` §"A 3ª
+vista: Gantt — ATALHO, não fusão de payload" mede **4 colisões** (payload defer-first × eager por
+hotfix de produção; a prop `tasks` com shapes distintos; mutação própria `PATCH .../schedule`; trio
+próprio) e o anti-hook §153 é explícito: *"**Não** dar `aria-pressed` ao botão Gantt. Ele não é
+estado desta tela, é navegação"*. O charter (:217-220) fecha o raciocínio: aqui o valor do
+segmentado **nunca** é `gantt` — escolher Gantt navega na hora para `/forja/roadmap-gantt`.
+
+`role=tablist` prometeria um `tabpanel` que não existe nesta tela — afordância falsa outra vez.
+**Não reverto decisão [W] declarada em charter** ([ADR 0388](../../decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md)
+é licença de **aparência**, nunca de comportamento).
+
+> **Nota de precisão, porque os dois lados dizem "Segmented" e são artefatos diferentes.** O
+> `cli-seg.js` (:15-21) registra que o `Segmented` do **DS publicado no Cowork** *"crava
+> `role="tablist"`"*, e o chama de **pendência 12 do DS** — com a ressalva do próprio autor de que
+> dois call sites são semanticamente rádio, não aba. Ou seja: o `tablist` do alvo vem do DS
+> publicado, e o `ToggleGroup` da produção vem do DS em git. Reconciliar os dois é trabalho do **DS**,
+> não desta tela — e é onde a pendência 12 já está.
+
+### Os 7 papéis batem — e a primeira medição minha estava errada
+
+O `.fj-filterbar2` é data-driven dos dois lados. Contei as chaves de `FORJA_ACTORS` com um `grep -oE`
+cuja classe de caracteres não aceitava dígito, e obtive **6** — o regex descartou a chave `W2`. Lendo
+o bloco inteiro: `W · CC · CD · CL · CA · AN · W2` = **7**, e `TrabalhoService::PAPEIS` traz
+exatamente os mesmos 7. Logo 1 rótulo + "todos" + 7 chips = **9 filhos base** e **8 chips de papel**,
+que é o alvo. Registro o erro porque a sonda respondeu a pergunta errada calada (§5 2026-08-13) — um
+número plausível não é prova de execução.
+
+### PLACAR — Trabalho · chrome (§3.2)
+
+```
+PLACAR — Trabalho · chrome (§3.2)
+entregue 18 de 20 elementos do alvo
+  ✓ .fj-frentebar  2 de 2  (Segmented + .fj-frente-note com <b class="mono"> e a contagem)
+  ✓ .fj-kpirow     5 de 5  (4 tf-kpi BUTTON com aria-pressed + .fj-kpirow-note; gap 10px)
+  ⚠ .fj-toolbar    2 de 4  (.fj-groupby + form.fj-search; gap 14px)
+  ✓ .fj-filterbar2 9 de 9  (7 papéis medidos nos DOIS lados; gap 6px; 8 chips)
+ausentes:
+  · .fj-ia-btn "Papéis"      — sem receptor: painel forja-runbook não existe no main (§1 do export)
+  · .fj-ia-btn "Perguntar" — sem receptor: painel forja-ia não existe no main (§1 do export)
+divergências declaradas:
+  · segmentado emite aria-pressed (Radix ToggleGroup), não role=tablist/aria-selected —
+    o Gantt e OUTRA tela (charter §"A 3a vista", 4 colisoes medidas); tablist prometeria
+    um tabpanel inexistente. Decisao [W] em charter §153/§217-220, nao revertida aqui
+  · o padding "11px 18px" do alvo e o valor @media(max-width:1100px) — a medicao do export
+    rodou a 924px; a 1280 sao 11px 32px, identicos nos dois CSS. NAO e divergencia
+```
+
+### O que esta seção NÃO prova
+
+O mesmo limite das Ondas 9 e 10, re-testado hoje: `curl` em `https://oimpresso.com/forja/trabalho`
+devolve **`302 → /login`**. O `compare --check` exige prod autenticada; sem ele **nada aqui é "0 bug"**
+(lei 6 do export). O que esta seção fecha é a **estrutura e a contagem** do §3.2 contra o protótipo
+vivo, mais a proveniência do código — não o T7.
+
+> **Errata da própria nota (2026-09-03, mesmo dia) — o #6691 mergeou, e a previsão que eu tinha
+> escrito aqui estava ERRADA.** A nota dizia que, com o [#6691](https://github.com/wagnerra23/oimpresso.com/pull/6691)
+> (*painel "Papéis"*) no `main`, a toolbar passaria a **3 de 4**. Ele mergeou (`fd83e6db06`) e o
+> placar estrutural **continua 2 de 4** — medido, não previsto.
+>
+> **O que de fato mudou, e o que não mudou.** O receptor **existe**: nasceu
+> `_components/ForjaRunbook.tsx`, e o botão está montado e funcional
+> (`aria-haspopup="dialog"` + `aria-expanded`, `data-testid="trabalho-papeis"`). Logo a **razão**
+> da ausência que esta seção declarou — *"painel que não existe"* — **caducou** para este item.
+> Mas a régua do §3.2 conta **filhos diretos da `.fj-toolbar`**, e eles seguem **2**
+> (`.fj-groupby` + `form.fj-search`, conferido por indentação no `main`): o botão foi montado
+> **dentro** do `.fj-groupby` e com `className="fj-gb-btn"`, não como filho direto da toolbar com
+> `.fj-ia-btn`, que é o que o protótipo desenha (`forja-page.jsx:1061`).
+>
+> Então o item deixa de ser *ausência por falta de receptor* e passa a ser **divergência de posição
+> e de classe** vs o protótipo — outra natureza, mesmo número. Se isso deve ser reconciliado (mover
+> o botão para filho direto com `.fj-ia-btn`) é decisão [W]: o #6691 tem charter e casos próprios,
+> e mexer neles a partir daqui seria tocar onda alheia. **O `Perguntar ✦` segue sem receptor**
+> (painel `forja-ia`), esse inalterado.
