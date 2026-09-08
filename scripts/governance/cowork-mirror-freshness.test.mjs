@@ -28,6 +28,9 @@ import {
   liveOnlyDetalhado,
   buildDocsSet,
   liveOnlyEntry,
+  destinoDoBundle,
+  rowsDoBundle,
+  rawHash,
   liveOnlyVerdict,
   docsEntry,
   docsVerdict,
@@ -1447,6 +1450,47 @@ check('mesmo número → mesmo veredito (independe de --check)',
     && lerRetratoDevolutiva(null) === null);
 
   rmSync(tmp, { recursive: true, force: true });
+}
+
+// ── COMPARE-BUNDLE (2026-09-08) — veredito a partir do bundle v2 promovido ────────────
+// POR QUE ESTES CASOS EXISTEM: o ledger só aceitava snapshot de `get_file` por path, então
+// aplicar o bundle com fidelidade provada não movia o `unchecked` — medido no dia: bundle
+// promovido, espelho idêntico (0 mudança), `--sla` ainda dizendo "271 sem veredito".
+{
+  const H = (s) => rawHash(Buffer.from(s));
+
+  // roteamento — a regra que o applier passou a IMPORTAR daqui (fonte única)
+  check('bundle 1/8: `.md` roteia pra design-docs (R1 do ssot-guard reprova .md em cowork/)',
+    destinoDoBundle('PEDIDO.md').destinoBase === 'prototipo-ui/design-docs');
+  check('bundle 2/8: `_ds/**` roteia pro mirror-snapshot (build de preview, não versionamento)',
+    destinoDoBundle('_ds/slug-qualquer/colors_and_type.css').destinoBase === 'scripts/design-sync/mirror-snapshot');
+  check('bundle 3/8: o resto pousa no espelho',
+    destinoDoBundle('app.jsx').destinoBase === 'prototipo-ui/cowork'
+    && destinoDoBundle('app.jsx').destinoPath === 'app.jsx');
+
+  const manifestFake = [{ cowork: 'app.jsx', repoHash: 'x' }, { cowork: 'orfao.jsx', repoHash: 'y' }];
+  const bundleFake = { files: [{ path: 'app.jsx', sha256: H('conteudo') }] };
+
+  // SYNC: o hash do disco bate com o que o gerador calculou DO VIVO
+  const rSync = rowsDoBundle(bundleFake, manifestFake, (p) => p === 'prototipo-ui/cowork/app.jsx' ? Buffer.from('conteudo') : null);
+  check('bundle 4/8: hash do disco == hash do manifesto ⇒ SYNC',
+    rSync.find((r) => r.cowork === 'app.jsx').veredito === 'SYNC');
+
+  // BITE — é o caso que motiva o modo: espelho remendado À MÃO depois da aplicação
+  const rStale = rowsDoBundle(bundleFake, manifestFake, (p) => p === 'prototipo-ui/cowork/app.jsx' ? Buffer.from('remendado a mao') : null);
+  check('bundle 5/8: BITE — espelho editado à mão depois de aplicar ⇒ STALE',
+    rStale.find((r) => r.cowork === 'app.jsx').veredito === 'STALE');
+  check('bundle 6/8: e o --check morde nesse caso',
+    shouldFail(rStale.map((r) => r.veredito)) === true);
+
+  // FAIL-CLOSED: sumiu do espelho não é SYNC nem silêncio
+  const rSumiu = rowsDoBundle(bundleFake, manifestFake, () => null);
+  check('bundle 7/8: arquivo do bundle ausente no espelho ⇒ STALE (nunca verde por ausência)',
+    rSumiu.find((r) => r.cowork === 'app.jsx').veredito === 'STALE');
+
+  // O que o bundle não cobre segue SEM VEREDITO — a suíte não mente por omissão (LC-13)
+  check('bundle 8/8: arquivo do espelho fora do bundle ⇒ UNCHECKED, nunca SYNC por omissão',
+    rSync.find((r) => r.cowork === 'orfao.jsx').veredito === 'UNCHECKED');
 }
 
 console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ contrato v3 do comparador de frescor preservado (path completo + hash normalizado + ledger/SLA + live-only + export fiel + absent-local que MORDE + refs-da-poda + fluxo e2e)');
