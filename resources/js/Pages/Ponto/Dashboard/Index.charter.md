@@ -10,6 +10,7 @@ last_validated: "2026-07-11"
 parent_module: Ponto
 related_us: [US-PONT-006]
 related_adrs: [114, 101, 93, 182]
+related_visual_comparison: memory/requisitos/Ponto/Dashboard-visual-comparison.md
 tier: B
 charter_version: 1
 ---
