@@ -396,12 +396,26 @@ renderizados em `dashboard.blade.php`.
 Diferente do `:97`, aqui **não há nada correlacionando ao tenant** no ramo do `OR`. É o único
 dos três com vazamento cross-tenant sem pré-condição de dado corrompido.
 
-**Estado da prova, declarado:** confirmado por construção Eloquent mais a regra de precedência
-SQL. **Não executei a query** — não rodo contra prod, e o CT 100 exigiria montar o cenário.
-Quem pegar fecha barato: no CT 100, montar o mesmo encadeamento
-(`where(business_id) -> leftjoin -> where(closure) -> orWhereNull('aw.end_date')`) e imprimir
-`->toSql()`. Se o SQL sair **sem parênteses** envolvendo o `business_id` junto do closure,
-está provado.
+**PROVA FECHADA — executado no CT 100** (`docker exec oimpresso-staging php artisan tinker`,
+`toSql()` do encadeamento real; nenhuma linha lida ou escrita no banco). A 1ª redação desta
+seção dizia *"medido por construção, não executado"* — o acesso ao staging veio da thread 01,
+e com ele a prova saiu de inferência para recibo:
+
+```sql
+-- COMO ESTÁ NO MAIN (defeito)
+... where `assets`.`business_id` = ? and (CURDATE() BETWEEN start_date AND end_date
+    and DATEDIFF(end_date, CURDATE()) <= 30 and DATEDIFF(end_date, CURDATE()) > 0)
+    or `aw`.`end_date` is null
+
+-- CONTROLE POSITIVO — a forma correta (orWhereNull DENTRO do closure)
+... where `assets`.`business_id` = ? and ((CURDATE() BETWEEN start_date AND end_date
+    and DATEDIFF(end_date, CURDATE()) <= 30 and DATEDIFF(end_date, CURDATE()) > 0)
+    or `aw`.`end_date` is null)
+```
+
+O `business_id` fica **fora** do grupo do `OR` na forma atual. A diferença entre vazar e não
+vazar é **um par de parênteses**, e o controle positivo prova que a sonda distingue os dois
+casos — não é leitura minha do builder, é o SQL que o Laravel emite.
 
 `orWhereNull` é a **única** ocorrência no módulo, e nenhum doc do Patrimônio o registra
 (`git grep -lni "precedencia|precedência"` nos docs do módulo devolve rc=1).
@@ -438,6 +452,31 @@ dono — encostar nas queries transformaria o PR da 03 em dois intents e invadir
 (busca por string exata devolve rc=1). O `:145` é `asset.view_all_maintenance` /
 `asset.view_own_maintenance`. Quem buscar por prefixo conclui, errado, que o controller já usa
 `asset.view` — a thread 03 vai introduzir o **primeiro** uso dele nesse arquivo.
+
+### 7e · A falsa cobertura tinha DUAS camadas — as defesas Tier 0 não executam uma assertion
+
+Achado da **thread 01**, que rodou a suíte no CT 100; **verifiquei independentemente por
+leitura** e confirma.
+
+`CrossTenantAssetTest` e `MultiTenantIsolationTest` — os dois arquivos que existem para provar
+isolamento Tier 0 (ADR 0093) — **morrem antes de assertar**. Todo `Asset::create()` neles omite
+`created_by`, que é `int unsigned NOT NULL` com FK `assets_created_by_foreign` → `users(id)`
+(`database/schema/mysql-schema.sql:674-:691`). A inserção estoura na FK.
+
+| via | evidência |
+|---|---|
+| execução (thread 01) | 7 falhas, todas a mesma FK; restaurando ao main: `Tests: 3 failed (0 assertions)` |
+| leitura (esta thread) | `grep -c created_by` nos dois arquivos = **0** e **0**; coluna NOT NULL + FK no schema |
+
+**Por que isto fecha o círculo do módulo.** O cabeçalho do `modules-pest.yml:23-:30` registrou
+em 04/09 que os 9 testes estavam no `phpunit.xml` e **nenhuma lane os disparava** — falsa
+cobertura, camada 1. Agora que passaram a rodar, descobre-se a camada 2: **os dois testes Tier 0
+não executam uma assertion sequer**. Zero assertions, não zero falhas — é o LC-13 exato
+(*"`0 failed` nunca prova execução; leia assertions"*), e é o mesmo vício do
+`LgpdComplianceTest` do §2b, que fica verde medindo `array_key_exists` num array.
+
+**Três dos quatro instrumentos de defesa do módulo estavam mudos ao mesmo tempo.** O conserto é
+informar `created_by` — PR próprio, fora do prefixo de qualquer thread aberta.
 
 ---
 
@@ -526,8 +565,13 @@ git grep -n StoreAssetAllocationRequest    # 8 linhas, nenhuma e use/type-hint
 
 **Ressalvas de método, declaradas:**
 
-- §7c está **medido por construção**, não executado — a receita de fechamento está lá.
+- §7c estava *"medido por construção"* na 1ª redação; **hoje está executado** (`toSql()` no
+  CT 100, SQL colado, com controle positivo da forma correta ao lado).
+- §7e é medição da **thread 01** (execução) mais verificação independente minha (leitura).
 - O aviso `num_uf` do §4 é **vetor identificado por leitura**, não comportamento medido.
+- Não medi o banco de **produção** em ponto nenhum — onde o veredito dependeria disso (quantos
+  businesses têm `asset.*` materializada; se existe hoje linha órfã em `asset_transactions`),
+  está escrito que não medi, com a receita de quem quiser fechar.
 - Tudo o mais foi lido de `a875e200c044` com varredura contada; onde a sonda podia mentir
   (vazio-que-é-erro, rc de pipeline, falso-positivo por prefixo — `asset.view` casa com
   `asset.view_all_maintenance`, por isso as sondas usam borda de palavra ou aspa de
