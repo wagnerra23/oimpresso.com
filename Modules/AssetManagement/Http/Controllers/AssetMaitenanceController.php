@@ -19,6 +19,45 @@ use Yajra\DataTables\Facades\DataTables;
 /**
  * Wave 16 governance D4 Architecture: Controller magro — regras de
  * persistencia delegadas a AssetMaintenanceService.
+ *
+ * AUTORIZACAO (corrigida em 2026-09-08 — eram DOIS defeitos no mesmo `if`).
+ *
+ * Ate aqui os 6 metodos guardados (index, create, store, edit, update, destroy)
+ * usavam a forma:
+ *
+ *     if (! ((can('asset.view_all_maintenance') && can('asset.view_own_maintenance'))
+ *            || hasThePermissionInSubscription($business_id, 'assetmanagement_module')))
+ *
+ * (a) O `&&` exigia as DUAS permissoes. Elas sao declaradas como `is_radio` com o
+ *     mesmo `radio_input_name` = `view_maintenance` em DataController::user_permissions()
+ *     (:51 e :58), ou seja, sao mutuamente exclusivas na UI de papeis: nenhum usuario
+ *     nao-admin consegue marcar as duas. O gate era insatisfazivel por construcao — e
+ *     barrava exatamente o perfil para o qual o filtro de escopo do proprio metodo foi
+ *     escrito (index() :73 faz `(!view_all) && view_own`, o "vejo so as minhas").
+ *
+ * (b) O `|| subscription` anulava o gate inteiro: como o segundo operando e verdadeiro
+ *     para todo usuario do business que assina o modulo, o `if` colapsava em "o modulo
+ *     esta assinado". Por isso (a) nunca apareceu em producao — e consertar so o `&&`
+ *     nao mudaria nada em runtime (LC-30: verde no CI, inerte no ar).
+ *
+ * A forma correta e a de AssetController::create() (:271) e index() (PR #7008):
+ * permissao de TELA primeiro, gate de assinatura DEPOIS, dois `if` sequenciais — nunca
+ * em `OR` um com o outro. A permissao NAO foi inventada: as duas ja estao registradas
+ * em DataController::user_permissions() e sao as que o modulo declara para esta area.
+ *
+ * O dono do negocio nao depende de nenhuma das duas: o `Gate::before` de
+ * App\Providers\AuthServiceProvider (:34-46) devolve `true` para quem tem o role
+ * `Admin#{business_id}` em qualquer ability fora de backup/superadmin/manage_modules.
+ *
+ * RESIDUO DECLARADO, NAO CONSERTADO (decisao de produto — [W]): edit(), update() e
+ * destroy() filtram apenas por `business_id`, nao por dono. Quem tem so
+ * `view_own_maintenance` enxerga apenas as suas na listagem, mas pode editar/remover a
+ * de outro se souber o id. Isso NAO e regressao deste conserto — hoje qualquer usuario
+ * do business ja podia, por (b) — e fechar exigiria uma permissao de escrita que o
+ * modulo nao declara.
+ *
+ * @see Modules/AssetManagement/Http/Controllers/AssetController::create()
+ * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  */
 class AssetMaitenanceController extends Controller
 {
@@ -60,7 +99,13 @@ class AssetMaitenanceController extends Controller
     public function index()
     {
         $business_id = request()->session()->get('user.business_id');
-        if (! ((auth()->user()->can('asset.view_all_maintenance') && auth()->user()->can('asset.view_own_maintenance')) || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'assetmanagement_module')))) {
+        // Permissao de TELA antes do gate de assinatura (ver docblock da classe).
+        // As duas permissoes sao `is_radio` do mesmo `view_maintenance`, logo `||`.
+        if (! (auth()->user()->can('asset.view_all_maintenance') || auth()->user()->can('asset.view_own_maintenance'))) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        if (! (auth()->user()->can('superadmin') || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'assetmanagement_module')))) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -205,7 +250,13 @@ class AssetMaitenanceController extends Controller
     public function create()
     {
         $business_id = request()->session()->get('user.business_id');
-        if (! ((auth()->user()->can('asset.view_all_maintenance') && auth()->user()->can('asset.view_own_maintenance')) || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'assetmanagement_module')))) {
+        // Permissao de TELA antes do gate de assinatura (ver docblock da classe).
+        // As duas permissoes sao `is_radio` do mesmo `view_maintenance`, logo `||`.
+        if (! (auth()->user()->can('asset.view_all_maintenance') || auth()->user()->can('asset.view_own_maintenance'))) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        if (! (auth()->user()->can('superadmin') || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'assetmanagement_module')))) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -240,7 +291,13 @@ class AssetMaitenanceController extends Controller
     public function store(Request $request)
     {
         $business_id = request()->session()->get('user.business_id');
-        if (! ((auth()->user()->can('asset.view_all_maintenance') && auth()->user()->can('asset.view_own_maintenance')) || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'assetmanagement_module')))) {
+        // Permissao de TELA antes do gate de assinatura (ver docblock da classe).
+        // As duas permissoes sao `is_radio` do mesmo `view_maintenance`, logo `||`.
+        if (! (auth()->user()->can('asset.view_all_maintenance') || auth()->user()->can('asset.view_own_maintenance'))) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        if (! (auth()->user()->can('superadmin') || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'assetmanagement_module')))) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -283,7 +340,13 @@ class AssetMaitenanceController extends Controller
     public function edit($id)
     {
         $business_id = request()->session()->get('user.business_id');
-        if (! ((auth()->user()->can('asset.view_all_maintenance') && auth()->user()->can('asset.view_own_maintenance')) || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'assetmanagement_module')))) {
+        // Permissao de TELA antes do gate de assinatura (ver docblock da classe).
+        // As duas permissoes sao `is_radio` do mesmo `view_maintenance`, logo `||`.
+        if (! (auth()->user()->can('asset.view_all_maintenance') || auth()->user()->can('asset.view_own_maintenance'))) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        if (! (auth()->user()->can('superadmin') || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'assetmanagement_module')))) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -319,7 +382,13 @@ class AssetMaitenanceController extends Controller
     public function update(Request $request, $id)
     {
         $business_id = request()->session()->get('user.business_id');
-        if (! ((auth()->user()->can('asset.view_all_maintenance') && auth()->user()->can('asset.view_own_maintenance')) || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'assetmanagement_module')))) {
+        // Permissao de TELA antes do gate de assinatura (ver docblock da classe).
+        // As duas permissoes sao `is_radio` do mesmo `view_maintenance`, logo `||`.
+        if (! (auth()->user()->can('asset.view_all_maintenance') || auth()->user()->can('asset.view_own_maintenance'))) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        if (! (auth()->user()->can('superadmin') || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'assetmanagement_module')))) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -351,7 +420,13 @@ class AssetMaitenanceController extends Controller
     public function destroy($id)
     {
         $business_id = request()->session()->get('user.business_id');
-        if (! ((auth()->user()->can('asset.view_all_maintenance') && auth()->user()->can('asset.view_own_maintenance')) || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'assetmanagement_module')))) {
+        // Permissao de TELA antes do gate de assinatura (ver docblock da classe).
+        // As duas permissoes sao `is_radio` do mesmo `view_maintenance`, logo `||`.
+        if (! (auth()->user()->can('asset.view_all_maintenance') || auth()->user()->can('asset.view_own_maintenance'))) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        if (! (auth()->user()->can('superadmin') || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'assetmanagement_module')))) {
             abort(403, 'Unauthorized action.');
         }
 
