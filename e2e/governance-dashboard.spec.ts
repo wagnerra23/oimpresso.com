@@ -54,8 +54,16 @@ test('/governance/dashboard renderiza o componente governance/Dashboard', async 
   // extrai-se o atributo, desfaz-se o escape de entidades e compara-se o CAMPO, com
   // igualdade exata — o `JSON.parse` já normaliza a barra escapada.
   const html = await (await page.request.get('/governance/dashboard')).text();
-  const atributo = html.match(/data-page="([^"]+)"/);
-  expect(atributo, 'o HTML servido deveria carregar o data-page do Inertia').not.toBeNull();
+
+  // O `[{]` no início não é decoração: o documento traz ANTES do div do Inertia outra
+  // ocorrência de `data-page=` cujo valor não é JSON, e um padrão frouxo casa com ela
+  // primeiro — foi o que derrubou o run 34272343951 (`"app" is not valid JSON`).
+  // Exigir que o valor comece com `{` ancora no atributo que carrega o payload.
+  const atributo = html.match(/data-page="([{][^"]*)"/);
+  expect(
+    atributo,
+    `nenhum data-page com payload JSON no HTML servido. Recorte: ${html.slice(html.indexOf('data-page'), html.indexOf('data-page') + 220)}`,
+  ).not.toBeNull();
 
   const pagina = JSON.parse(
     atributo![1].replace(/&quot;/g, '"').replace(/&#039;/g, "'").replace(/&amp;/g, '&'),
