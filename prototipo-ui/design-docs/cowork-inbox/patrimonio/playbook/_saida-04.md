@@ -289,16 +289,42 @@ Logo o D9 **não é "código diverge do SCOPE, [W] escolhe"**. É: **o código t
 os dois. **Não é decisão de [W]: é errata do SCOPE**, e o item 2 do RESÍDUO do índice
 (*"prefixo: `asset.*` ou `assetmanagement.*`?"*) pode ser fechado sem consultá-lo.
 
-### Insumo operacional para a 03 (economiza uma rodada vermelha)
+### Onde a permissão NASCE — e a ressalva de deploy que sai daí
 
 O seeder do módulo é **vazio** (`AssetManagementDatabaseSeeder.php:15-:20`, só
 `Model::unguard()`), e `asset.*` não aparece em catálogo nenhum fora do módulo
-(`git grep "'asset\.[a-z_]+'"` excluindo o módulo devolve **rc=1**). As permissões nascem sob
-demanda em `RoleController::__createPermissionIfNotExists()` `:495-:512`, quando alguém salva
-um Role. **Num banco de teste limpo, `asset.view` não existe na tabela `permissions`** — o
-teste de 403 da thread 03 precisa criá-la
-(`Permission::create(['name' => 'asset.view', 'guard_name' => 'web'])`), senão o `can()`
-retorna false por ausência da permissão e o teste passa **pelo motivo errado**.
+(`git grep "'asset\.[a-z_]+'"` excluindo o módulo devolve **rc=1**).
+
+**Também não nasce na instalação.** `InstallController.php` não menciona `Permission` /
+`permission` / `firstOrCreate` — **rc=1, zero**. Quem materializa é
+`app/Http/Controllers/RoleController.php::__createPermissionIfNotExists()` `:495-:512`, e só
+quando **alguém salva um Role** em `/roles/{id}/edit`. Antes disso a linha não existe na
+tabela `permissions`.
+
+*(Medido ao cruzar com a thread 03, que havia registrado "lido pelo módulo na instalação".
+A leitura dela do `DataController` está correta; é a origem da materialização que é outra.)*
+
+**Duas consequências, de naturezas diferentes:**
+
+1. **Teste** — num banco limpo `asset.view` não existe, então um teste de 403 que não crie a
+   Permission passa **pelo motivo errado** (`can()` false por ausência, não por negação).
+   A thread 03 já cobriu isso com `Permission::firstOrCreate` no setup, **e declarou que o
+   verde dela não é evidência do registro** — a evidência é a leitura do `DataController:31`.
+2. **Deploy** — em business onde ninguém nunca salvou um Role com `asset.view` marcada, uma
+   guarda nova dá **403 para todos** naquele tenant. **Calibrando:** o mesmo já vale para
+   `create()` `:271`, `edit()` `:339` e `destroy()` `:399`, que estão em produção — quem
+   cadastra bem já passou pela materialização. O risco fica restrito a tenant que só **lista**
+   e nunca cadastrou. **Não medi o banco de produção** e não afirmo quantos estão nesse
+   estado; fecha com um `SELECT` em `permissions where name like 'asset.%'` por business no
+   CT 100, ou declara-se a ressalva no PR e o [W] decide sobre canary.
+
+### O defeito é MATERIAL — medição da thread 03, não minha
+
+Esta thread é read-only e não roda Pest, então eu só podia mostrar a **ausência** do gate.
+A thread 03 rodou bite-test no CT 100 com o `AssetController` **original** e obteve
+`Expected response status code [403] but received 200`: usuário sem `asset.view` recebia
+**200** na listagem do patrimônio inteiro. **A consequência está provada, não inferida** — e o
+crédito é dela.
 
 ---
 
