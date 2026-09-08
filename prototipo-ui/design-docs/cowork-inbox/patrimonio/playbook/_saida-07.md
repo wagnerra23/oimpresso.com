@@ -6,13 +6,15 @@ criado: 2026-09-08
 base: origin/main @ 493f8eb535 (worktree recriado de origin/main fresco — o checkout de sessão estava −354)
 thread: 07-painel.md
 ancora: "REMEDIDA — o sha da thread não conferia. Ver §1."
-veredito: "entregue — tela + trio + teste que morde · 2 KPIs renderizam `—` por falta de fonte (declarado) · o `_shared` NAO e meu: a thread 08 mergeou antes e o fundou (§0) · 13 achados"
-invalida: "prefixo do §7 SEGUE INCOMPLETO nas threads de tela — o MWART + casos-gate geram 4 artefatos (RUNBOOK, e2e/, prototipo-ui/contrato/, tests/) fora dos paths declarados, e o #7039 nao os incluiu (§5) · o `criar-tela.mjs` carimba 5 campos ERRADOS em toda tela sob Pages/Patrimonio/, e isso NAO esta registrado em lugar nenhum ainda (§4) · a nota do CT 100 em proibicoes.md §Ambiente caducou (checkout esta em 2026-09-08, nao 2026-07-23). NADA sobre a colisao 07x08: o #7039 ja reconciliou o indice e a thread 07 antes deste PR (§0)"
+veredito: "MERGEADO por [W] em 2026-09-08 18:36Z (4f70a09460) — e QUEBROU uma catraca Tier 0 no caminho, consertada pelo #7048 (§7-ter) — tela + trio + teste que morde · 2 KPIs renderizam `—` por falta de fonte (declarado) · o `_shared` NAO e meu: a thread 08 mergeou antes e o fundou (§0) · 13 achados"
+invalida: "o item 7 do meu proprio checklist ('9 Pest verdes') NAO era prova desta entrega — a lane modules-pest teve 0 runs neste PR e o Pest que rodei foi contra o main sem meu codigo (§7-ter) · prefixo do §7 SEGUE INCOMPLETO nas threads de tela — o MWART + casos-gate geram 4 artefatos (RUNBOOK, e2e/, prototipo-ui/contrato/, tests/) fora dos paths declarados, e o #7039 nao os incluiu (§5) · o `criar-tela.mjs` carimba 5 campos ERRADOS em toda tela sob Pages/Patrimonio/, e isso NAO esta registrado em lugar nenhum ainda (§4) · a nota do CT 100 em proibicoes.md §Ambiente caducou (checkout esta em 2026-09-08, nao 2026-07-23). NADA sobre a colisao 07x08: o #7039 ja reconciliou o indice e a thread 07 antes deste PR (§0)"
 ---
 
 # _saída 07 · Painel do Patrimônio
 
-> **Não mergeado.** Merge é [W] (R10).
+> **Mergeado por [W]** em 2026-09-08 18:36:42Z (`4f70a09460`). O corpo abaixo foi escrito ANTES
+> do merge e diz "não mergeado" em vários pontos — fica como está (retrato do que eu sabia na
+> hora). O que mudou depois está no **§7-ter**, incluindo um defeito Tier 0 que este PR causou.
 
 ## 0 · A thread 08 chegou primeiro — e o `_shared` não é meu
 
@@ -78,7 +80,7 @@ contra 679 LF), e não como um hunk. O RUNBOOK carrega a âncora pós-merge.
 | 4 | `_shared/PatrimonioSubNav.tsx` | ⚠️ **não foi feito por esta thread** — a 08 o fundou antes (§0). Consumido com `active="dashboard"`. |
 | 5 | `Inertia::defer` nas props caras | ✅ 5 de 8 props deferidas; eager só `is_admin`, `pode`, `apurado_em` |
 | 6 | KPI sem fonte renderiza `—` | ✅ 2 deles — valor residual e custo de manutenção (§3) |
-| 7 | 9 Pest verdes | ✅ **69 passed · 237 assertions · 0 failed** (CT 100, §6) — medidos ANTES do merge do #7035 |
+| 7 | 9 Pest verdes | ❌ **este ✅ estava errado — ver §7-ter.** O run (`69 passed · 237 assertions`) foi contra o `main` SEM meu código, e a lane `modules-pest` teve **0 runs** neste PR. Com a mudança aplicada, o `SmokeRoutesTest` quebra (`Inertia\Response::getData` não existe) |
 | 8 | placar no PR | ✅ colado no corpo do PR |
 
 ## 3 · Os dois `—` (a condição de PARAR da thread, exercida)
@@ -211,7 +213,7 @@ e não vou tocá-lo). A prova de render vem do CI e do smoke pós-merge, que é 
     `resources/js/Pages/Patrimonio/Bens.tsx` (tela flat, sem subpasta). O `placar-indice.mjs`
     checa existência de arquivo — vai seguir dizendo `08 [pendente]` com a tela em produção.
 
-## 7-bis · O CI apontou 4 falhas — as 4 consertadas na origem, nenhuma por baseline
+## 7-bis · O CI apontou 6 vermelhos — 5 consertados na origem, 1 que NÃO é meu
 
 | check | causa | conserto |
 |---|---|---|
@@ -219,12 +221,112 @@ e não vou tocá-lo). A prova de render vem do CI e do smoke pós-merge, que é 
 | **UI Lint ratchet (LEI)** | regra **R4** (*"PT-01 Lista · Index.tsx sem PageHeader OU sem DataTable"*) acusa a falta de `DataTable`. A regra decide "é lista?" pelo **nome do arquivo**, e esta tela é PT-04 Dashboard — a lista do módulo é o `Bens.tsx`. | entrada na `$skipPaths` do `UiLintCommand.php`, que é o mecanismo que a própria regra oferece e onde `Home` e `Jana` (os outros dois painéis) já estão. |
 | **DS gate** | agregador — falhava só porque o UI Lint falhava | some com o de cima |
 | **SUPERFICIE.md == árvore** | a tela nova mudou a superfície do módulo (107 → 108 arquivos) | `module-surface.mjs AssetManagement --write` |
+| **PHPStan / Larastan · ratchet** | 15 achados: as 7 agregações do painel devolviam Model, e cada alias (`bruto`, `alocado`, `categoria`…) virava *"Access to an undefined property"*, mais 3 `map()` com *"unresolvable type"* | `->toBase()` nos 7 terminais — nenhuma delas quer um Model, todas querem linhas de agregação. Preserva wheres e scopes; não muda SQL nem valor. |
+| **`ADR 0216 PR scan`** | `composer install` levou **HTTP 503** do Azure DevOps ao clonar `myfatoorah/library` — rede, não código | `gh run rerun --failed`; passou |
+
+### O 6º: `visual-regression` — vermelho por tela FORA do raio deste PR
+
+**Não consertei, e a razão está medida.** O teste vermelho é `Fiscal/Cockpit`
+(`diff 2.1049% > τ_alto 2.0000%`). **Este PR não toca um único arquivo de Fiscal** —
+`git diff --name-only origin/main...HEAD | grep -ci fiscal` = **0**. E o próprio job diz, textual:
+
+> `Nenhuma tela DENTRO do raio deste PR na zona cinza (0.1000% .. 2.0000%).`
+
+As 17 telas listadas na zona cinza vêm todas marcadas `(herdada)`. O `compared=45` do canário
+anti-verde-vazio é consequência: o `Fiscal/Cockpit` falha **antes** de comparar, e sobram 45 de 46.
+
+Regravar a baseline de `Fiscal/Cockpit` seria mexer em tela alheia para pintar o meu PR de verde —
+e o próprio erro diz que a saída é `npm run visreg:update` **+ aprovação [W] (F1.5)**, que é
+decisão dele, não minha. É a lápide §5 2026-08-24 (*gate visual bloqueando por tela fora do raio
+do PR*) acontecendo, e a resposta certa é declarar.
+
+**O check não bloqueia o merge — medido nos dois donos, não deduzido.** Runtime:
+`gh api repos/.../branches/main/protection/required_status_checks` devolve **44 contexts** e
+`grep -ci visual` neles dá **0**. Baseline: `classic_protection.contexts` (44) ∪
+`rulesets.contexts` (1) = **45**, e `visual-regression` não está na união. ⚠️ Cuidado ao ler o
+`required-checks-baseline.json`: ele carrega uma **nota datada de 2026-07-06** dizendo *"o context
+`visual-regression` já era LEI (ADR 0314)"* — isso era verdade naquela data e **caducou** (o §5
+2026-08-26 registra a demoção por [W]). Li a nota antes dos contexts e quase escrevi o oposto;
+o runtime desempatou.
+
+⚠️ **`Patrimonio` e `Patrimonio/Bens` aparecem em `UNCOVERED_SCREENS`** — as duas telas novas do
+módulo não estão em `tests/Browser/visreg-screens.json` (46 telas, nenhuma de Patrimônio) e por
+isso não têm baseline de pixel. Em escopo `global` isso **não é a cobrança** (`ui-impact.mjs:388`
+só cobra uncovered fora do global), mas é dívida real e compartilhada com o #7035, que mergeou com
+ela. Criar a baseline exige render no CI + aprovação [W] — não dá pra fazer daqui.
 
 ⚠️ **A `$skipPaths` do R4 é allowlist por path** — a família que o §5 já enterrou 7×. Não a
 inventei: ela é o escape que a regra publica, e a alternativa (regravar o baseline do `ui:lint`)
 esconderia o achado em vez de nomeá-lo. **O conserto de verdade** é a R4 perguntar ao charter qual
 PT a tela declara, como o `pt-conformance` faz — e isso é PR próprio, não desta thread. Fica
 declarado como resíduo, com o `UiLintCommand.php` tocado em 2 linhas e comentário no lugar.
+
+## 7-ter · ERRATA pós-merge — este PR QUEBROU uma catraca Tier 0
+
+> Escrito depois do merge (`4f70a09460`, [W] às 18:36:42Z). O corpo acima foi redigido antes e
+> dizia "entregue" sem isto. **Fica como está** — o que veio antes é o retrato do que eu sabia na
+> hora; esta seção é o que se descobriu depois.
+
+**O defeito.** Migrar o `dashboard()` de `view()` para `Inertia::render()` matou o teste que
+defendia o fix de vazamento cross-tenant do [#7018](https://github.com/wagnerra23/oimpresso.com/pull/7018):
+ele lia `$view->getData()`, e `Inertia\Response` não tem esse método. Medido no `main` **depois**
+do meu merge: `BadMethodCallException — Method Inertia\Response::getData does not exist`,
+`SmokeRoutesTest.php:319`, `1 failed, 6 passed`. Consertado por
+[#7048](https://github.com/wagnerra23/oimpresso.com/pull/7048) — que reescreveu a asserção pela
+rota (o Blade era o motivo do desvio, e sumiu junto) e mede **delta** do balde `sem` da garantia,
+porque a forma do vazamento mudou com a query: agora seria **numérico**, não um nome à mostra.
+
+**Por que não peguei — três causas, todas medidas, nenhuma é desculpa.**
+
+1. **Rodei a suíte contra o `main`, sem o meu código.** `php artisan test Modules/AssetManagement/Tests`
+   no CT 100 deu `69 passed · 237 assertions · 0 failed` — e o `SmokeRoutesTest` estava entre os
+   69. Ele é verde sem a minha mudança e vermelho com ela. **Eu declarei essa lacuna** no §6 e no
+   corpo do PR (*"é baseline, não prova da minha mudança"*) — e declarar não fechou nada. O defeito
+   chegou ao `main` com o aviso escrito ao lado.
+2. **A lane que rodaria esse teste NUNCA disparou neste PR.** Medido com controle positivo:
+   `gh api .../workflows/modules-pest.yml/runs?branch=claude/patrimonio-painel-inertia` → `total_count: 0`;
+   a mesma consulta no branch `claude/hotfix-bens-inertia-deferida` → `1`. Dos 83 checks do PR, os
+   9 de Pest eram Compras · Estoque · Financeiro · KB · NfeBrasil · Ponto · Purchase · Sells —
+   **nenhum de AssetManagement**, embora o `modules-pest.yml` liste `Modules/AssetManagement/**` e
+   `resources/js/Pages/Patrimonio/**` nos `paths`. O gatilho é
+   `types: [opened, reopened, ready_for_review]` — **sem `synchronize`**: mesmo que tivesse rodado
+   na abertura, nenhum dos 9 pushes seguintes (incluindo o `toBase()`, que reescreveu as 7 queries)
+   seria coberto. O vermelho só apareceu no `push main` das 18:36, **depois** do merge.
+3. **E mesmo se ela tivesse disparado, o teste teria PULADO.** Isto não é meu — é o
+   [#7049](https://github.com/wagnerra23/oimpresso.com/pull/7049), aberto por [CC] enquanto eu
+   media a causa 2, e ele acha mais fundo: a `modules-pest` roda **SQLite in-memory**, e os testes
+   do AssetManagement exigem o schema MySQL do UltimatePOS. Recibo dele, no #7047:
+   `21 skipped, 58 passed · job: success`. Verde, com os UCs sem rodar. As 20 lanes que usam
+   `.github/actions/pest-mysql-setup` não incluem esta.
+   ⚠️ O #7049 **mergeou** (`768a413cf8`) e é `docs(ci)`: ele **documenta** o defeito numa proposta
+   (`memory/decisions/proposals/2026-09-08-lane-modules-pest-sem-mysql.md`) e **não conserta** a
+   lane — o `modules-pest.yml` segue em SQLite. Ter proposta mergeada não é ter gate consertado.
+
+⚠️ **A causa 3 corrige o que eu ia escrever.** Minha formulação inicial era *"enquanto o gatilho
+não tiver `synchronize`, um PR pode atravessar verde"* — verdadeira e **incompleta**: com
+`synchronize` ligado e SQLite mantido, o `SmokeRoutesTest` continuaria pulando e o defeito passaria
+igual. São **dois defeitos independentes na mesma lane** (não dispara · quando dispara, não mede), e
+consertar só um deixa o buraco aberto. O dono do tema é o **#7049**; esta seção aponta pra ele em
+vez de propor conserto paralelo.
+
+**O que isto invalida no meu próprio texto:** o §6 lista `69 passed` como prova do item 7 do
+checklist ("9 Pest verdes"). Com a lane fora e o run feito contra o `main`, aquilo **não era prova
+desta entrega** — era do estado anterior. A ressalva estava escrita; o número não deveria ter
+entrado na coluna "✅".
+
+⚠️ **Aviso pras threads 09–12, não achado a explorar aqui:** hoje um PR de tela do Patrimônio
+atravessa o CI inteiro verde sem que um único Pest do módulo **execute** — pelas duas portas acima
+(gatilho sem `synchronize`; e SQLite fazendo pular o que dispara). O #7049 mergeou, mas é `docs(ci)`
+— **descreve** o problema numa proposta e deixa a lane como está. Então, até alguém trocar o SQLite
+por `pest-mysql-setup` e adicionar `synchronize`, **a única execução real dos Pest deste módulo é
+manual, no CT 100, com o código do PR aplicado** — não contra o `main`, que foi o meu erro.
+Consertar a lane é governança de CI, não escopo de thread de tela: nem toquei no `modules-pest.yml`.
+
+**Segundo follow-up, que NÃO é meu:** o
+[#7047](https://github.com/wagnerra23/oimpresso.com/pull/7047) conserta a tabela de Bens, que nunca
+chegava ao browser (`$request->ajax()` casa com o header que o cliente Inertia manda sempre, e todo
+partial reload caía no ramo do DataTables). É defeito do #7035. Meu `dashboard()` não tem ramo
+`ajax()` — conferido.
 
 ## 8 · Decisões de técnica que tomei (não são perguntas ao [W])
 

@@ -21,6 +21,10 @@ last_run: "2026-09-08"
 > ([`proibicoes.md §Ambiente`](../../../../memory/proibicoes.md)). Tenant fictício **98**
 > (`seededTenant()`), adversário **99**; biz=1 é empresa real e biz=4 é ROTA LIVRE, ambos
 > proibidos ([ADR 0358](../../../../memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)).
+>
+> Veredito da suíte do arquivo: **5 passed · 35 assertions** (2026-09-08, seed 1788892480).
+> Regressão do módulo no mesmo estado: **74 passed · 277 assertions**, 0 falhas.
+> Leia *assertions*, não `0 failed`: teste que pula sai com exit 0.
 
 ---
 
@@ -43,7 +47,7 @@ last_run: "2026-09-08"
 - **Nota de método:** `is_admin` é `hasRole('Admin#'.$business_id)` (`app/Utils/Util.php:486`),
   não uma permission — por isso o fixture não-admin recebe `asset.view` e ainda assim é
   barrado. Fosse permission, o teste passaria pelo motivo errado.
-- **Status: 🧪** — passa no CT 100 (run 2026-09-08, seed 1788891505).
+- **Status: 🧪** — passa no CT 100 (run 2026-09-08, seed 1788892480).
 
 ---
 
@@ -64,7 +68,7 @@ last_run: "2026-09-08"
   existe**. Defende também o endereço da
   [ADR 0394](../../../../memory/decisions/0394-endereco-de-ui-do-patrimonio-pages-patrimonio.md):
   mover a tela de pasta quebra este teste.
-- **Status: 🧪** — passa no CT 100 (run 2026-09-08, seed 1788891505).
+- **Status: 🧪** — passa no CT 100 (run 2026-09-08, seed 1788892480).
 
 ---
 
@@ -83,7 +87,7 @@ last_run: "2026-09-08"
   (`AssetUtil::getAssetSettings`) — não há global scope. Trocar esse `where` por sessão mal
   resolvida vazaria configuração entre empresas
   ([ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md), Tier 0).
-- **Status: 🧪** — passa no CT 100 (run 2026-09-08, seed 1788891505).
+- **Status: 🧪** — passa no CT 100 (run 2026-09-08, seed 1788892480).
 
 ---
 
@@ -106,7 +110,7 @@ last_run: "2026-09-08"
 - **Nota de método:** o teste faz backup da coluna `asset_settings` do tenant e a restaura em
   `finally` — o CT 100 é base persistente que não se limpa entre execuções, e esta é a única
   suíte da frente que **escreve** em `business`.
-- **Status: 🧪** — passa no CT 100 (run 2026-09-08, seed 1788891505).
+- **Status: 🧪** — passa no CT 100 (run 2026-09-08, seed 1788892480).
 
 ---
 
