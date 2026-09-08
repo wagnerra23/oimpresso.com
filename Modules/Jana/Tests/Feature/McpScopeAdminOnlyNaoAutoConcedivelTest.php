@@ -8,45 +8,57 @@ use Modules\Jana\Http\Controllers\DataController;
 uses(Tests\TestCase::class);
 
 /**
- * ACHADO Tier 0 — scope `admin_only` e auto-concedivel pelo admin do business.
+ * CATRACA do achado Tier 0 — scope `admin_only` e auto-concedivel pelo admin
+ * do business.
  *
- * O catalogo do `McpScopesSeeder` marca 5 scopes como `admin_only => true`,
- * um deles descrito no proprio catalogo como "Apenas Wagner/admin":
- * `jana.mcp.usage.all`. Essa permission e o UNICO gate de:
- *
- *   - `/governance/qualidade-ia` (QualidadeIaController, `can:` no construtor)
- *   - 8 telas do hub de engenharia da Forja (Forja, Scorecard, Team, Roadmap,
- *     TasksAdmin, Search, Trabalho, Aprovacoes — todas `can:jana.mcp.usage.all`)
+ * ⚠️ A lista `$conhecidos` NAO e o estado desejado. E o estado MEDIDO hoje,
+ * travado pra nao piorar em silencio enquanto a decisao [W] nao sai. O
+ * contrato Tier 0 correto e a lista VAZIA.
  *
  * O vetor, medido controlador a controlador em `origin/main`:
  *
- *   1. `DataController@mcpScopePermissions` faz `array_map` sobre o catalogo
- *      INTEIRO, sem filtrar `admin_only` — todo scope vira checkbox em
- *      `/roles/{id}/edit`.
- *   2. Essa tela exige `roles.update`, permission normal de admin de business
- *      (Camada 3 do multi-tenant) — nao de superadmin.
- *   3. `RoleController@__somenteDoCatalogo` NAO barra: ele descarta apenas
- *      permission FORA do catalogo (`PermissionCatalog::intrusas`), e
- *      `jana.mcp.usage.all` esta DENTRO dele.
- *   4. `syncPermissions` concede.
- *   5. As rotas do grupo `governance` nao tem gate de modulo — a Camada 1
- *      (`hasThePermissionInSubscription`) so governa o item de sidebar, nao a
- *      URL. Acesso direto funciona.
+ *   1. `McpScopesSeeder` marca 5 de 22 scopes como `admin_only => true` — um
+ *      deles, `jana.mcp.usage.all`, descrito no proprio catalogo como "Apenas
+ *      Wagner/admin".
+ *   2. `DataController@user_permissions` faz `...$this->mcpScopePermissions()`
+ *      (`:102`), e o `array_map` de `:131` percorre o catalogo INTEIRO sem
+ *      filtrar `admin_only` — os 5 viram checkbox em `/roles/{id}/edit`.
+ *   3. Essa tela exige `roles.update`, permission de admin de BUSINESS
+ *      (Camada 3 do multi-tenant), nao de superadmin.
+ *   4. `RoleController@__somenteDoCatalogo` NAO barra: `PermissionCatalog::intrusas`
+ *      descarta so o que esta FORA do catalogo, e a permission esta DENTRO.
+ *   5. `syncPermissions` concede.
+ *   6. As rotas do grupo `governance` nao tem gate de modulo — a Camada 1
+ *      governa o item de sidebar, nao a URL.
  *
- * Por que o desenho atual e assim, e por que a correcao NAO e "some com o
- * checkbox": o guard irmao `McpScopesVisiveisNoRoleEditTest` existe por causa
- * do incidente 2026-07-29 — `syncPermissions` e destrutivo, entao scope que
- * nao aparece no form e apagado a cada save de qualquer role. Tirar os 5 da
- * tela sem tratar isso reintroduz aquele incidente. As duas defesas estao em
- * conflito real, e reconciliar as duas e decisao [W] (Tier 0 multi-tenant).
+ * `jana.mcp.usage.all` e o UNICO gate de `/governance/qualidade-ia` e das 8
+ * telas do hub de engenharia da Forja (Forja, Scorecard, Team, Roadmap,
+ * TasksAdmin, Search, Trabalho, Aprovacoes).
  *
- * Este teste NAO propoe a correcao — ele prova que o buraco existe, que e o
- * que a proposta #6950 declarou faltar ("hipotese forte, nao achado fechado:
- * falta o teste vermelho", §5 2026-07-15).
+ * PROVA — este teste JA RODOU VERMELHO com a assercao correta (`toBe([])`):
  *
- * Determinístico, sem DB — igual ao guard irmao.
+ *   run 34169613882, lane `PHP / Pest (Unit)`
+ *   FAIL Modules\Jana\Tests\Feature\McpScopeAdminOnlyNaoAutoConcedivelTest
+ *   Tests: 1 failed, 79 skipped, 1206 passed (4561 assertions)
+ *
+ * Discussao e recibo completo: PR #6952.
+ *
+ * POR QUE TRAVADO EM VEZ DE VERMELHO: `PHP / Pest (Unit)` e context REQUIRED e
+ * `enforce_admins` esta ligado no main — um vermelho aqui trancaria o merge do
+ * repo inteiro ate a decisao sair, transferindo pro time o custo de um achado.
+ * A catraca preserva a mordida nos DOIS sentidos: expor um 6o scope quebra, e
+ * CORRIGIR tambem quebra (obriga trocar a lista por `[]`, que e o contrato).
+ *
+ * A DECISAO [W] — as duas defesas nao sao satisfaziveis juntas hoje:
+ *   A — `McpScopesVisiveisNoRoleEditTest` exige TODO scope no form, porque
+ *       `syncPermissions` e destrutivo: scope ausente e apagado a cada save de
+ *       qualquer role (incidente 2026-07-29, derrubou o MCP dos 4 users).
+ *   B — Tier 0: scope `admin_only` nao pode ser auto-concedivel por admin de
+ *       business.
+ *
+ * Deterministico, sem DB — igual ao guard irmao.
  */
-it('nao expoe scope admin_only como checkbox auto-concedivel pelo admin do business', function () {
+it('trava os scopes admin_only expostos como checkbox — piorar quebra, e corrigir tambem', function () {
     $adminOnly = array_values(array_map(
         static fn (array $s): string => $s['slug'],
         array_filter(
@@ -55,17 +67,23 @@ it('nao expoe scope admin_only como checkbox auto-concedivel pelo admin do busin
         )
     ));
 
-    // Controle positivo: sem nenhum `admin_only` no catalogo este teste
-    // passaria por NAO-EXECUCAO — verde tautologico (§5 2026-07-24 / LC-13).
-    expect($adminOnly)->not->toBeEmpty();
-
     $daTela = array_column((new DataController())->user_permissions(), 'value');
 
-    // Controle positivo do outro lado: a tela precisa estar devolvendo algo,
-    // senao a intersecao seria vazia por ausencia de dado, nao por seguranca.
+    // Controles positivos dos DOIS lados: sem `admin_only` no catalogo, ou com a
+    // tela vazia, a intersecao seria vazia por AUSENCIA DE DADO e o teste passaria
+    // por nao-execucao — verde tautologico (§5 2026-07-24 / LC-13).
+    expect($adminOnly)->not->toBeEmpty();
     expect($daTela)->not->toBeEmpty();
 
     $expostos = array_values(array_intersect($adminOnly, $daTela));
+    sort($expostos);
 
-    expect($expostos)->toBe([]);
+    // MEDIDO em 2026-09-07 — NAO desejado. O contrato Tier 0 e `[]`.
+    expect($expostos)->toBe([
+        'jana.cc.curate',
+        'jana.cc.read.all',
+        'jana.mcp.memory.manage',
+        'jana.mcp.projects.manage',
+        'jana.mcp.usage.all',
+    ]);
 });
