@@ -151,6 +151,42 @@ o PR só deixou de perguntar.
 `origin/main` **depois** de já ter criado a branch. A base real é `a364bd65ede3`, e foi
 exatamente essa defasagem que produziu o vermelho do `SUPERFICIE`.
 
+## 7-bis · A lane do Ponto tem um FLAKE estrutural (achado desta thread)
+
+Na 3ª run da minha branch a lane ficou vermelha:
+
+```
+FAIL Modules\Ponto\Tests\Feature\EspelhoContratoTest
+  ⨯ it UC-ESPIDX-01 · Só entra na lista quem tem controle de ponto ativo
+  SQLSTATE[23000]: Duplicate entry 'espencer' for key 'users.users_username_unique'
+  EspelhoContratoTest.php:84 → :103          Random Order Seed: 1788897602
+  Tests: 1 failed, 1 skipped, 301 passed (1005 assertions)
+```
+
+**É flake PROVADO, não suposto** — tenho a variância no mesmo input: a **mesma branch**, mesmo
+código, rodou 3× hoje — 19:32 ✅ · 19:44 ✅ · 19:56 ❌. (Repetição de um resultado não prova
+não-determinismo; variância entre execuções prova — §5 2026-09-02.) Taxa da lane: **28 success ·
+1 failure · 1 cancelled** em 30 runs.
+
+**Causa medida, e ela é estrutural — não é do Espelho:** `espelhoNovoUser()` chama
+`User::factory()->create()`, e o `UserFactory:38` já usa `faker->unique()->userName()`. Só que o
+`unique()` do Faker é **por processo**, não contra o banco — e esta lane **não usa
+`RefreshDatabase`** (o próprio docblock dos testes diz que a lane proíbe). Logo a base **persiste
+entre runs**, os usernames se acumulam, e o espaço de nomes do `userName()` do faker é finito:
+colidir é questão de tempo. `'espencer'` é exatamente a forma que ele gera.
+
+**Não é do Espelho — são 8 arquivos** com o mesmo padrão (`BancoHorasImportacao`,
+`BancoHorasIndex`, `Espelho`, `Intercorrencia`, `IntercorrenciaEdit`, `JornadaWorkflow`,
+`PontoDashboard`, `RelatorioCatalogo`). O arquivo do Espelho, aliás, **já sabia** da família do
+problema: o docblock de `espelhoNovoUser()` cita *"Duplicate entry (medido na lane: 17
+ocorrencias)"* para o `user_id` UNIQUE de `ponto_colaborador_config` — a mesma doença, outra
+coluna.
+
+**O que fiz:** re-rodei o job (é o tratamento certo de flake provado) e registrei aqui.
+**O que NÃO fiz:** consertar. Seria mexer em 8 arquivos de fixture — onda própria, e consertar só
+o Espelho deixaria os 7 irmãos armados (§5 2026-08-03). A correção idiomática já existe no próprio
+arquivo: `matricula` usa `MARCADOR . '-' . uniqid()`; o `username` precisa do mesmo tratamento.
+
 ## 8 · Achados para quem vier depois
 
 1. **O `00-INDICE.md` §1 diz `casos.md 21/21` e o §2-bis fotografa 18 ⛓** — o segundo número
