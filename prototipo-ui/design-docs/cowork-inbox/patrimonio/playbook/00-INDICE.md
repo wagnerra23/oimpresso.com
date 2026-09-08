@@ -246,20 +246,20 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
     },
     {
       "id": "07",
-      "titulo": "Painel do Patrimonio — cria o _shared da frente",
+      "titulo": "Painel do Patrimonio — consome o _shared (ja no main)",
       "dono": "CL",
       "vaga": 1,
       "arquivo": "07-painel.md",
       "prefixo": [
         "resources/js/Pages/Patrimonio/Index.tsx",
-        "resources/js/Pages/Patrimonio/_shared/",
         "Modules/AssetManagement/Http/Controllers/AssetController.php"
       ],
       "nao_toca": [
+        "resources/js/Pages/Patrimonio/_shared/",
         "Modules/AssetManagement/Services/",
         "Modules/Auditoria/"
       ],
-      "nota_provas": "primeira da frente: cria o PatrimonioSubNav que as 08-12 importam.",
+      "nota_provas": "ERRATA 2026-09-08 [CL]: esta thread NAO cria mais o _shared. O PatrimonioSubNav ja esta no main (PR #7035, mergeado 17:42Z) porque [W] mandou a tela de Bens fundar o compartilhado. Ela agora CONSOME o _shared, que virou nao_toca. Ele DERIVA as abas de shell.menu (DataController::modifyAdminMenu) e nao declara lista propria: sao 6 ghosts vivos, nao as 7 do prototipo.",
       "provas": [
         {
           "tipo": "arquivo",
@@ -289,14 +289,16 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
       "nao_toca": [
         "resources/js/Pages/Patrimonio/_shared/"
       ],
-      "depende_threads": [
-        "07"
-      ],
-      "nota_provas": "a guarda can('asset.view') do PR #7008 tem de SOBREVIVER a migracao — mas ela nao entra como prova: ja passa hoje, entao marcaria a thread como 'em curso' sem trabalho nenhum (carimbo). Fica no checklist, onde o humano confere.",
+      "nota_provas": "ERRATA 2026-09-08 [CL], DOIS consertos medidos. (1) O caminho da prova era `Bens/Index.tsx` (subpasta) e o arquivo mergeado e `Bens.tsx` (flat) — a prova NUNCA passaria, e o placar marcava 'pendente · arquivo ausente' para uma tela que esta em producao. (2) `depende_threads: [07]` caiu: a dependencia era o _shared, que a propria thread de Bens fundou (PR #7035). O estado correto desta thread e EM CURSO, nao feito: o `index()` migrou, mas `create`/`edit`/`show` seguem Blade — Non-Goal declarado no charter, com motivo. A guarda can('asset.view') do PR #7008 sobreviveu a migracao (SmokeRoutesTest: 7 passed, identico ao baseline) e segue fora das provas, porque ja passava antes e seria carimbo.",
       "provas": [
         {
           "tipo": "arquivo",
-          "path": "resources/js/Pages/Patrimonio/Bens/Index.tsx"
+          "path": "resources/js/Pages/Patrimonio/Bens.tsx"
+        },
+        {
+          "tipo": "contem",
+          "path": "Modules/AssetManagement/Http/Controllers/AssetController.php",
+          "padrao": "Inertia::render('Patrimonio/Bens'"
         }
       ]
     },
