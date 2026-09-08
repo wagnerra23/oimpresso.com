@@ -53,6 +53,10 @@
  *       existe fora de produção — é o mesmo boot do `visual-regression.yml`: migrate + seeds
  *       `Visreg*` + `npm run build:inertia` + `php artisan serve`);
  *     · rede para o shell do Cowork: o `oimpresso.com.html` carrega React/Babel/Tailwind de CDN.
+ *   Alvo em STAGING: a rota existe lá desde 2026-09-08, mas exige segredo (`?t=…`) porque o host
+ *   é público na internet. Exporte `VISREG_LOGIN_TOKEN` com o valor do `.env` do staging — sem ele
+ *   a rota responde 404 e o login cai em /login (o erro abaixo diz isso). Em `local`/`testing` a
+ *   env não existe e nada muda.
  *   Login sem senha: `--user-id N` (default 1, o admin que o `VisregTenantSeeder` cria). Se o app
  *   alvo não expõe `/_visreg-login`, passe a sessão por env `DESIGN_DIFF_COOKIE="nome=valor"`
  *   (cookie de sessão já autenticada, obtido por quem tem acesso — NUNCA credencial em arquivo).
@@ -529,7 +533,11 @@ async function renderVivo(browser, { baseUrl, rota, userId, cookie, probe, roles
       await ctx.addCookies([{ name: name.trim(), value: rest.join('='), url: baseUrl }]);
       await page.goto(`${baseUrl}${rota}`, { waitUntil: 'domcontentloaded' });
     } else {
-      await page.goto(`${baseUrl}${LOGIN_PATH}/${userId}?to=${encodeURIComponent(rota)}`, { waitUntil: 'domcontentloaded' });
+      // `&t=` só é exigido quando o alvo roda em `staging` (rota pública na internet —
+      // routes/web.php). Em `local`/`testing` a env não existe e a URL sai igual à de antes.
+      const segredo = process.env.VISREG_LOGIN_TOKEN || '';
+      const qs = `?to=${encodeURIComponent(rota)}` + (segredo ? `&t=${encodeURIComponent(segredo)}` : '');
+      await page.goto(`${baseUrl}${LOGIN_PATH}/${userId}${qs}`, { waitUntil: 'domcontentloaded' });
     }
     await page.waitForLoadState('networkidle').catch(() => {});
     await esperarEstavel(page);
