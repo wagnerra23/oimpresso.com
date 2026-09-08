@@ -45,7 +45,7 @@ o que está parado ou sem cobertura de garantia.**
 - 3 análises com origem declarada: patrimônio por categoria · situação da garantia (4 baldes) ·
   manutenção em aberto
 - "Resumo de hoje" em prosa, derivado dos mesmos números — nada digitado à mão
-- Barra de abas da área (`_shared/PatrimonioSubNav.tsx`), herdada pelas telas 08–12
+- Consome a barra de abas da área (`_shared/PatrimonioSubNav.tsx`), fundada pela tela de Bens
 - Ramo não-admin: os bens alocados ao próprio usuário (capacidade que o painel Blade já tinha)
 - PT-BR em todo label/placeholder/mensagem
 
@@ -61,7 +61,9 @@ o que está parado ou sem cobertura de garantia.**
 - ❌ **Não mostra custo de manutenção.** `asset_maintenances` não tem coluna de valor. RESÍDUO 3
   do playbook. A lista e o total mostram `—`, não zero.
 - ❌ **Não cria rota para Garantias nem para Auditoria.** As duas abas existem no protótipo e não
-  no backend; ficam inertes no `⋯ Mais` com `title`. Bloqueios `D-GARANTIAS` e `D-AUDITORIA`.
+  no backend. A sub-navegação **deriva** do `shell.menu` e por isso simplesmente não as mostra —
+  decisão da tela de Bens, que a fundou (*"renderizar aba que não navega é afordância falsa"*).
+  Bloqueios `D-GARANTIAS` e `D-AUDITORIA`.
 
 ## UX Targets
 

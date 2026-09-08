@@ -4,8 +4,8 @@ import { test, expect } from '@playwright/test';
 //
 // test.fixme = PENDENTE (não executa, não quebra o CI). Fica assim de propósito: 11 dos 15
 // specs deste diretório são `fixme`, e marcar como executável um teste que a lane não roda
-// seria afirmar cobertura inexistente. Os 3 UCs do SubNav (UC-PAT-02/03/04) têm teste que
-// RODA em tests/patrimonioSubNav.spec.ts — é de lá que vem a prova hoje.
+// seria afirmar cobertura inexistente. Os 3 UCs de conteúdo (UC-PAT-02/03/04) têm teste que
+// RODA em tests/js/patrimonio-painel-sem-fonte.test.tsx — é de lá que vem a prova hoje.
 //
 // Locators RESILIENTES (role/label/text), nunca classe CSS (L-24).
 
@@ -24,7 +24,7 @@ test.fixme('UC-PAT-01: o painel mostra os 4 KPIs do próprio business', async ({
   }
 });
 
-test.fixme('UC-PAT-05: número sem fonte mostra travessão, nunca zero', async ({ page }) => {
+test.fixme('UC-PAT-02: número sem fonte mostra travessão, nunca zero', async ({ page }) => {
   await page.goto('/asset/dashboard');
   // "Valor residual" não é calculado (a regra de depreciação é decisão [W] em aberto) —
   // o card mostra o travessão. Um `R$ 0,00` aqui seria afirmar que não sobrou valor nenhum,

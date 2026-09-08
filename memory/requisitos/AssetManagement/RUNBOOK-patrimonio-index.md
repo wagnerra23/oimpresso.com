@@ -11,6 +11,7 @@ preconditions:
 steps:
   - "Medir a âncora do dashboard() antes de editar — o sha muda a cada PR no controller"
   - "Conferir a coluna-fonte de cada KPI: sem fonte, renderiza — (C7)"
+  - "A SubNav e da tela de Bens (#7035) — esta tela so a consome com active=dashboard"
   - "Rodar a suíte Asset no CT 100 e ler assertions, não '0 failed'"
 related_adrs:
   - 0394-endereco-de-ui-do-patrimonio-pages-patrimonio
@@ -21,15 +22,16 @@ related_adrs:
 
 # RUNBOOK — Patrimonio/Index (Painel do Patrimônio)
 
-> **MWART F1 (PLAN)** da thread 07 do playbook SINCRONIZAR Patrimônio. Primeira tela React do
-> módulo: ela cria o `_shared/PatrimonioSubNav.tsx` que as threads 08–12 vão importar.
+> **MWART F1 (PLAN)** da thread 07 do playbook SINCRONIZAR Patrimônio. A thread previa que este
+> painel fundasse o `_shared/PatrimonioSubNav.tsx`; ele foi fundado pela tela de Bens, que
+> mergeou primeiro ([#7035](https://github.com/wagnerra23/oimpresso.com/pull/7035)). Ver §5.
 
 ## 1 · Âncoras (medidas em 2026-09-08, não herdadas)
 
 | o quê | onde | medição |
 |---|---|---|
 | rota | `Modules/AssetManagement/Routes/web.php:21` | `Route::get('dashboard', …)` — **sem `->name()`** |
-| controller | `AssetController::dashboard()` | `:436`–`:516` · arquivo 24.416 B · sha `c55d031fccfe` |
+| controller | `AssetController::dashboard()` | `:617` (+ os 5 privados que ele chama, até `:788`) · arquivo 35.378 B · sha `ef1ac93dddd6` — pós-merge do #7035, que converteu o arquivo de CRLF para LF |
 | fonte visual | `prototipo-ui/cowork/patrimonio-page.jsx` | aba "Painel": `painelData()` `:149`–`:194` · `PatPainel()` `:195`–`:245` |
 | padrão | `PT-04 Dashboard` (golden `governance/Dashboard.tsx`) | `status: draft` — ver §7 |
 
@@ -82,34 +84,31 @@ impressão: isso é **cenário do mock**, não copy de contrato — não há fon
 dos três. O painel renderiza a parte derivável e **omite** a parte de cenário, em vez de imitá-la
 com texto plausível. Substituto plausível é a forma mais duradoura de mentira.
 
-## 5 · SubNav — 7 abas, 5 com rota
+## 5 · SubNav — consumida, não fundada por esta tela
 
-`_shared/PatrimonioSubNav.tsx` segue o padrão do `FinanceiroSubNav` (ADR 0313): lista de abas
-**canônica no frontend** (a do protótipo), com o `shell.menu` servindo de **gate de permissão** e
-fonte do `primary`. Sem entry do módulo no menu → `return null` (multi-tenant Tier 0).
+⚠️ **Corrigido em 2026-09-08, depois do merge do [#7035](https://github.com/wagnerra23/oimpresso.com/pull/7035).**
+A thread 07 previa que este painel fundasse o `_shared/PatrimonioSubNav.tsx`. Ele foi fundado
+**antes**, pela tela de Bens (thread 08), que mergeou primeiro. Este painel apenas o consome:
 
-| aba | rota | origem |
-|---|---|---|
-| Painel | `/asset/dashboard` | shell.menu `dashboard` |
-| Bens | `/asset/assets` | shell.menu `assets` (lá rotulado "Ativos" — ver §6) |
-| Alocações | `/asset/allocation` | shell.menu `allocation` |
-| Manutenções | `/asset/asset-maintenance` | shell.menu `asset-maintenance` |
-| Configurações | `/asset/settings` | shell.menu `settings` |
-| **Garantias** | **não existe** | bloqueada por `D-GARANTIAS` |
-| **Auditoria** | **não existe** | bloqueada por `D-AUDITORIA` |
+```tsx
+<PatrimonioSubNav active="dashboard" />
+```
 
-As duas sem rota entram como `extraOverflowItems` no `⋯ Mais`, **inertes**, com `title`
-explicando o bloqueio. Não invento rota. Alternativa considerada e rejeitada: estender
-`PageHeaderGhost` com `disabled`/`title` — o tipo não os tem, e `PageHeaderTabs.tsx` é shared por
-4 módulos e está fora do prefixo desta thread. `PageHeaderOverflowItem` **já** tem `title`.
+O componente do `main` **deriva** as abas do `shell.menu` (`DataController::modifyAdminMenu`) em
+vez de declarar lista própria — para não criar um segundo dono da mesma lista. Consequência
+prática: são **6 abas** (Painel · Ativos · Alocações · Devoluções · Manutenção · Configurações),
+não as 7 do protótipo. **Garantias** e **Auditoria** não têm rota e simplesmente não aparecem —
+*"renderizar aba que não navega é afordância falsa"*, decisão registrada no cabeçalho dele.
 
-Também fora: `revocation` ("Devoluções"), que existe no shell mas o protótipo funde em Alocações.
-Fundir a **rota** é decisão [W]; a thread 09 funde a **tela**. Fica no overflow, navegável.
+Esta tela **não altera** esse componente. Duas divergências foram medidas e ficam declaradas,
+para quem tiver escopo de mexer nele:
 
-**Grupo/hue:** `estoque`. Medido, não herdado — `Sidebar.tsx:243` lista `'Gestão de ativos'` na
-whitelist do grupo `estoque`, e o `DataController` do módulo não declara `group`, então o
-`findGroupKey` resolve por label. (A ADR 0180 e o comentário do `DataController` dizem `operar`,
-que é **alias legacy v2** → `producao`. Divergência registrada no `_saida-07.md`.)
+- **Vocabulário.** Derivando do menu, a aba se chama **"Ativos"**. O `pt/lang.php:9` traduz
+  `assets` como **"Bens"**, e o protótipo também diz "Bens". Ver §6.
+- **Hue.** Ele passa `group="operar"` (ADR 0180). Medido: `Sidebar.tsx:243` lista
+  `'Gestão de ativos'` na whitelist do grupo **`estoque`**, e a entry não declara `group`, então o
+  `findGroupKey` resolve por label. `operar` é alias legacy v2 → `producao` (hue 8) e `estoque` é
+  350 — ou seja, o botão primary do header e o grupo da sidebar usam matizes diferentes.
 
 ## 6 · Vocabulário — três em disputa, e qual vence
 

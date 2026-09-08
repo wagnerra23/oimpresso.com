@@ -6,13 +6,46 @@ criado: 2026-09-08
 base: origin/main @ 493f8eb535 (worktree recriado de origin/main fresco — o checkout de sessão estava −354)
 thread: 07-painel.md
 ancora: "REMEDIDA — o sha da thread não conferia. Ver §1."
-veredito: "entregue — tela + _shared + trio + teste que morde · 2 KPIs renderizam `—` por falta de fonte (declarado) · 11 achados · 4 itens do plano das threads 08–12 corrigidos"
-invalida: "prefixo do §7 INCOMPLETO para as threads 07–12 (o MWART gera 4 artefatos fora dos 3 paths declarados) · o `criar-tela.mjs` carimba 5 campos ERRADOS em toda tela sob Pages/Patrimonio/ (infere o módulo do path) · a numeração `_saida-06a`/`_saida-06-manutencoes` colide com o índice renumerado · a nota do CT 100 em proibicoes.md §Ambiente caducou (checkout está em 2026-09-08, não 2026-07-23)"
+veredito: "entregue — tela + trio + teste que morde · 2 KPIs renderizam `—` por falta de fonte (declarado) · o `_shared` NAO e meu: a thread 08 mergeou antes e o fundou (§0) · 13 achados"
+invalida: "a thread 07 NAO e mais a 1a da frente nem a dona do `_shared` — a 08 (#7035) mergeou antes e o fundou; a sequencia `07 sozinha, depois 08∥09∥10` do §2 do indice ja nao descreve o que aconteceu (§0) · o placar NAO detecta a 08 como feita: ela criou `Pages/Patrimonio/Bens.tsx` e o §7 espera `Bens/Index.tsx` · prefixo do §7 INCOMPLETO para as threads de tela (o MWART gera 4 artefatos fora dos 3 paths) · o `criar-tela.mjs` carimba 5 campos ERRADOS em toda tela sob Pages/Patrimonio/ · a numeracao `_saida-06a`/`_saida-06-manutencoes` colide com o indice renumerado · a nota do CT 100 em proibicoes.md §Ambiente caducou (checkout esta em 2026-09-08, nao 2026-07-23)"
 ---
 
 # _saída 07 · Painel do Patrimônio
 
 > **Não mergeado.** Merge é [W] (R10).
+
+## 0 · A thread 08 chegou primeiro — e o `_shared` não é meu
+
+Abri esta thread cruzando `gh pr list --state open` com `Pages/Patrimonio/`, como o §3 do índice
+manda. **Nenhum PR aberto tocava a pasta.** Enquanto eu trabalhava, o
+[#7035](https://github.com/wagnerra23/oimpresso.com/pull/7035) — *"migra a listagem de Bens de
+Blade para Inertia/React"*, a **thread 08** — foi aberto e mergeado, e ele **fundou o
+`_shared/PatrimonioSubNav.tsx`** que era o artefato desta thread.
+
+A premissa do índice (*"a 07 vai sozinha porque cria o `_shared` que as outras importam; errar ali
+custa seis telas"*) **não descreve mais o que aconteceu**. Duas threads correram em paralelo sobre
+o mesmo `_shared`, e o `gh pr list` não pega isso por construção: ele fotografa o instante da
+abertura, e a colisão nasceu depois. O `whats-active` ([ADR 0119](../../../../../memory/decisions/0119-paralelismo-sessoes-whats-active-tier-1.md))
+é a porta que veria uma sessão viva na mesma área — não a rodei, e ela não está no §3 do índice.
+
+**Como reconciliei:** o `main` venceu, inteiro. Descartei o meu `PatrimonioSubNav.tsx`, o
+`patrimonioMenu.ts` e o `tests/patrimonioSubNav.spec.ts` (9 casos, verdes e com bite-test) e adotei
+o do `main` **byte-a-byte** (`git diff origin/main -- <path>` = 0 linhas). Não é só ordem de
+chegada: o argumento dele é melhor que o meu. Ele **deriva** as abas do `shell.menu`; eu declarava
+lista própria no frontend (padrão `FinanceiroSubNav`/ADR 0313). Declarar cria um **segundo dono** da
+mesma lista — que é a LC-19 —, e o comentário dele nomeia isso antes de eu ter pensado no problema.
+
+**O que se perdeu com a minha versão, e fica registrado como divergência, não como perda:**
+
+| eixo | meu (descartado) | o do `main` (vigente) |
+|---|---|---|
+| Garantias/Auditoria | visíveis no `⋯ Mais`, inertes, com `title` citando D-GARANTIAS/D-AUDITORIA | **não aparecem** — *"renderizar aba que não navega é afordância falsa"* |
+| rótulo da entidade | "Bens" (`lang.php:9`, e o protótipo) | "Ativos" (o que o `shell.menu` declara) |
+| `group` (hue do primary) | `estoque` — medido em `Sidebar.tsx:243` | `operar` — o que a ADR 0180 diz |
+
+O 1º eixo **contradiz o passo 5 da minha thread** (*"as 7 abas · Auditoria visível mas inerte"*).
+O `main` decidiu o contrário, com argumento escrito. **Não reverto decisão mergeada** — registro,
+e a escolha entre as duas leituras é [W].
 
 ## 1 · A âncora estava velha — remedida antes de ler
 
@@ -24,17 +57,22 @@ começa em `:436` e termina em `:516`. Causa: o [PR #7018](https://github.com/wa
 Lido `:436`–`:516` inteiro, não a faixa da thread — que hoje aponta para o meio do método.
 **Bytes iguais não provam conteúdo igual**; foi só o sha que denunciou.
 
+E ela envelheceu **de novo** durante a sessão: com o merge do #7035 o arquivo virou
+`ef1ac93dddd6`, **35.378 B**, e o `dashboard()` foi pra `:617`. O #7035 também converteu o arquivo
+inteiro de **CRLF para LF** — é por isso que o conflito veio como arquivo inteiro (625 linhas CRLF
+contra 679 LF), e não como um hunk. O RUNBOOK carrega a âncora pós-merge.
+
 ## 2 · Checklist de saída — item a item
 
 | # | item | estado |
 |---|---|---|
-| 1 | RUNBOOK | ✅ `memory/requisitos/AssetManagement/RUNBOOK-patrimonio-index.md` (152 ln) |
+| 1 | RUNBOOK | ✅ `memory/requisitos/AssetManagement/RUNBOOK-patrimonio-index.md` |
 | 2 | charter + casos | ✅ ambos, via `criar-tela.mjs` + correções (§4) |
 | 3 | `Inertia::render` no `dashboard()` | ✅ `Inertia::render('Patrimonio/Index', …)` |
-| 4 | `_shared/PatrimonioSubNav.tsx` | ✅ + `_shared/patrimonioMenu.ts` (módulo puro testável) |
+| 4 | `_shared/PatrimonioSubNav.tsx` | ⚠️ **não foi feito por esta thread** — a 08 o fundou antes (§0). Consumido com `active="dashboard"`. |
 | 5 | `Inertia::defer` nas props caras | ✅ 5 de 8 props deferidas; eager só `is_admin`, `pode`, `apurado_em` |
 | 6 | KPI sem fonte renderiza `—` | ✅ 2 deles — valor residual e custo de manutenção (§3) |
-| 7 | 9 Pest verdes | ✅ **69 passed · 237 assertions · 0 failed** (CT 100, §6) |
+| 7 | 9 Pest verdes | ✅ **69 passed · 237 assertions · 0 failed** (CT 100, §6) — medidos ANTES do merge do #7035 |
 | 8 | placar no PR | ✅ colado no corpo do PR |
 
 ## 3 · Os dois `—` (a condição de PARAR da thread, exercida)
@@ -105,7 +143,8 @@ da renumeração 06 → 07-13. Escrevi `_saida-07.md`, que é o que o `placar-in
 | o quê | comando | resultado |
 |---|---|---|
 | Pest do módulo | `docker exec … php artisan test Modules/AssetManagement/Tests` (CT 100) | **69 passed · 237 assertions · 0 failed** |
-| sintaxe PHP | `php -l /dev/stdin` (CT 100, arquivo por stdin) | `No syntax errors detected` |
+| sintaxe PHP | `php -l /dev/stdin` (CT 100, por stdin) | `No syntax errors detected` — rodado 2×, antes e depois do merge |
+| merge sem comer o vizinho | `diff` das 599 primeiras linhas contra `:3` do índice | **idêntico** — só o import novo difere |
 | typecheck | `npx tsc --noEmit` | **0** erros em `Pages/Patrimonio` (497 pré-existentes noutros módulos — a ferramenta de fato rodou) |
 | lint | `npx eslint` nos arquivos novos | 0 erros · 1 warning (`as any` no `usePage`, idêntico ao `JanaSubNav`/`FinanceiroSubNav`) |
 | build | `npm run build:inertia` | exit 0 · 4444 módulos · `assets/PatrimonioSubNav-tSFr3A_h.js` **7,75 kB** no bundle |
@@ -158,6 +197,13 @@ e não vou tocá-lo). A prova de render vem do CI e do smoke pós-merge, que é 
 11. **As duas consultas do ramo não-admin do `dashboard()` filtravam só `receiver`, sem
     `business_id`.** Reescritas para alimentar as props novas, **nasceram com o filtro** (ADR 0093).
     Não é um fix à parte: é a query nova nascendo correta. Declarado no PR.
+12. **O #7035 converteu o `AssetController.php` inteiro de CRLF para LF** (625 → 679 linhas de
+    line ending). Por isso o conflito do merge veio como arquivo inteiro. Não reverti — o `main`
+    é o dono do arquivo agora, e o resto do repo tem os dois padrões.
+13. **O placar não vai marcar a thread 08 como feita.** O `§7` do índice espera
+    `resources/js/Pages/Patrimonio/Bens/Index.tsx`; o #7035 criou
+    `resources/js/Pages/Patrimonio/Bens.tsx` (tela flat, sem subpasta). O `placar-indice.mjs`
+    checa existência de arquivo — vai seguir dizendo `08 [pendente]` com a tela em produção.
 
 ## 8 · Decisões de técnica que tomei (não são perguntas ao [W])
 
@@ -176,9 +222,9 @@ e não vou tocá-lo). A prova de render vem do CI e do smoke pós-merge, que é 
 
 ## 9 · O que fica em aberto
 
-- **Tamanho do PR: 1.272 linhas** (`--numstat`), contra as ≤300 do `commit-discipline`.
-  Decomposição: código 726 (controller 250 · tela 331 · `_shared` 140) · testes 158 · docs e
-  contrato 388. O intent é **um** (a tela) e o MWART o torna indivisível — charter e casos **antes**
+- **Tamanho do PR: ~1.100 linhas** (`--numstat`), contra as ≤300 do `commit-discipline`.
+  Decomposição após descartar o `_shared` duplicado: código ~580 (controller 250 · tela 331) ·
+  testes ~160 · docs e contrato ~390. O intent é **um** (a tela) e o MWART o torna indivisível — charter e casos **antes**
   do `.tsx` (o hook bloqueia sem RUNBOOK), controller junto ou a tela não recebe prop. Dividir em
   dois PRs deixaria o `_shared` sem consumidor no primeiro. **Registro o estouro; a decisão de
   exigir divisão é [W].**
