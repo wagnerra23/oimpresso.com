@@ -212,12 +212,12 @@ const STATUS_STYLES: Record<VisualStatus, { label: string; classes: string; dot:
   },
   pausada: {
     label: 'pausada',
-    classes: 'bg-stone-100 text-stone-600 ring-stone-200',
+    classes: 'bg-muted text-foreground ring-border',
     dot: 'bg-stone-400',
   },
   cancelada: {
     label: 'cancelada',
-    classes: 'bg-stone-100 text-stone-400 ring-stone-200 line-through',
+    classes: 'bg-muted text-muted-foreground ring-border line-through',
     dot: 'bg-stone-300',
   },
 };
@@ -234,7 +234,7 @@ const FISCAL_TYPE_BADGE: Record<string, string> = {
   nfe: 'bg-blue-100 text-blue-700',
   nfse: 'bg-emerald-100 text-emerald-700',
 };
-const FISCAL_TYPE_BADGE_NONE = 'bg-stone-100 text-stone-500';
+const FISCAL_TYPE_BADGE_NONE = 'bg-muted text-muted-foreground';
 
 // ────────────────────────────────────────────────────────────────
 // SUB-COMPONENTES
@@ -291,7 +291,7 @@ function StatusBadge({ status, retry, retryMax }: { status: VisualStatus; retry?
 
 function MethodIcon({ method, size = 12 }: { method: PaymentMethod; size?: number }) {
   const Icon = METHOD_ICONS[method];
-  return <Icon size={size} className="text-stone-500" />;
+  return <Icon size={size} className="text-muted-foreground" />;
 }
 
 function KpiCard({ label, value, delta, deltaTone = 'neutral', hero = false, sparkline }: {
@@ -306,19 +306,19 @@ function KpiCard({ label, value, delta, deltaTone = 'neutral', hero = false, spa
     ok: 'text-emerald-300',
     warn: 'text-amber-400',
     bad: 'text-rose-400',
-    neutral: 'text-stone-400',
+    neutral: 'text-muted-foreground',
   }[deltaTone];
   const deltaClsLight = {
     ok: 'text-emerald-700',
     warn: 'text-amber-700',
     bad: 'text-rose-700',
-    neutral: 'text-stone-500',
+    neutral: 'text-muted-foreground',
   }[deltaTone];
 
   if (hero) {
     return (
       <div className="rounded-lg bg-stone-900 p-4 text-white shadow-sm ring-1 ring-stone-800">
-        <div className="flex items-center justify-between text-[11px] font-medium uppercase tracking-wider text-stone-400">
+        <div className="flex items-center justify-between text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
           <span>{label}</span>
           {/* Chart do shared (porte 1:1 do DS vivo) no lugar do hand-roll: a cor sai de
               token, não de literal. w-20 = os 80px que a caixa antiga tinha. */}
@@ -343,9 +343,9 @@ function KpiCard({ label, value, delta, deltaTone = 'neutral', hero = false, spa
     );
   }
   return (
-    <div className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-stone-200">
-      <div className="text-[11px] font-medium uppercase tracking-wider text-stone-500">{label}</div>
-      <div className="mt-2 text-2xl font-bold text-stone-900 tabular-nums">{value}</div>
+    <div className="rounded-lg bg-card p-4 shadow-sm ring-1 ring-border">
+      <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{label}</div>
+      <div className="mt-2 text-2xl font-bold text-foreground tabular-nums">{value}</div>
       {delta && <div className={`mt-1 text-xs font-medium ${deltaClsLight}`}>{delta}</div>}
     </div>
   );
@@ -506,13 +506,13 @@ export default function RecurringBillingIndex(props: PageProps) {
     <>
       <Head title="Cobrança Recorrente" />
 
-      <div className="min-h-screen bg-stone-50 p-4 md:p-6">
+      <div className="min-h-screen bg-muted p-4 md:p-6">
         {/* ── HEADER ── */}
         <header className="mb-4">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight text-stone-900">Cobrança recorrente</h1>
-              <div className="mt-1 font-mono text-[11px] uppercase tracking-wider text-stone-500">
+              <h1 className="text-2xl font-semibold tracking-tight text-foreground">Cobrança recorrente</h1>
+              <div className="mt-1 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
                 {kpis ? (
                   <>
                     {kpis.active_count} ATIVAS · MRR {BRL(kpis.mrr)} · CHURN {kpis.churn_rate}%
@@ -523,7 +523,7 @@ export default function RecurringBillingIndex(props: PageProps) {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <nav className="flex gap-1 rounded-lg bg-white p-1 shadow-sm ring-1 ring-stone-200">
+              <nav className="flex gap-1 rounded-lg bg-card p-1 shadow-sm ring-1 ring-border">
                 {TABS.map((t) => (
                   <button
                     key={t.key}
@@ -543,12 +543,12 @@ export default function RecurringBillingIndex(props: PageProps) {
                     className={`flex items-center gap-1.5 rounded px-3 py-1.5 text-sm font-medium transition ${
                       tab === t.key
                         ? 'bg-primary/10 text-primary'
-                        : 'text-stone-600 hover:bg-stone-100'
+                        : 'text-foreground hover:bg-muted'
                     }`}
                   >
                     {t.label}
                     {t.count !== undefined && (
-                      <span className="rounded bg-stone-200 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-stone-700">
+                      <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-foreground">
                         {t.count}
                       </span>
                     )}
@@ -616,26 +616,26 @@ export default function RecurringBillingIndex(props: PageProps) {
         {tab === 'assinaturas' && (
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-[220px_1fr_340px]">
             {/* COL 1 · FILTROS */}
-            <aside className="rounded-lg bg-white p-3 shadow-sm ring-1 ring-stone-200">
+            <aside className="rounded-lg bg-card p-3 shadow-sm ring-1 ring-border">
               <button
                 type="button"
                 onClick={() => setOnlyPinned((p) => !p)}
                 className={`mb-3 flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium transition ${
                   onlyPinned
                     ? 'bg-amber-50 text-amber-800 ring-1 ring-amber-200'
-                    : 'text-stone-700 hover:bg-stone-50'
+                    : 'text-foreground hover:bg-muted'
                 }`}
               >
                 <Star size={14} className={onlyPinned ? 'fill-amber-500 text-amber-500' : ''} />
                 <span className="flex-1 text-left">
                   {onlyPinned ? 'Mostrando favoritos' : 'Mostrar só favoritos'}
                 </span>
-                <span className="rounded bg-stone-200 px-1.5 py-0.5 text-[10px] tabular-nums">
+                <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] tabular-nums">
                   {subsData.filter((s) => s.is_pinned).length}
                 </span>
               </button>
 
-              <div className="mt-3 text-[11px] font-semibold uppercase tracking-wider text-stone-400">
+              <div className="mt-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                 Próxima cobrança
               </div>
               <ul className="mt-1">
@@ -649,7 +649,7 @@ export default function RecurringBillingIndex(props: PageProps) {
                     className={`flex cursor-pointer items-center justify-between rounded-lg px-2 py-1.5 text-sm transition ${
                       whenFilter === f.key
                         ? 'bg-primary/10 font-medium text-primary'
-                        : 'text-stone-700 hover:bg-stone-50'
+                        : 'text-foreground hover:bg-muted'
                     }`}
                   >
                     <span>{f.label}</span>
@@ -661,7 +661,7 @@ export default function RecurringBillingIndex(props: PageProps) {
                   próxima cobrança (server-side via applyFilters, igual aos presets).
                   Layout via primitivos Stack/Inline (ADR 0253) + token DS — sem flex/stone crus. */}
               {whenFilter === 'custom' && (
-                <Stack gap={2} className="mt-2 rounded-lg border border-input bg-white p-2">
+                <Stack gap={2} className="mt-2 rounded-lg border border-input bg-card p-2">
                   <Inline gap={2} justify="between">
                     <span className="text-[12px] text-muted-foreground">De</span>
                     <Input
@@ -687,7 +687,7 @@ export default function RecurringBillingIndex(props: PageProps) {
                 </Stack>
               )}
 
-              <div className="mt-4 text-[11px] font-semibold uppercase tracking-wider text-stone-400">
+              <div className="mt-4 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                 Status
               </div>
               <ul className="mt-1">
@@ -701,7 +701,7 @@ export default function RecurringBillingIndex(props: PageProps) {
                     className={`flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-sm transition ${
                       statusFilter === f.key
                         ? 'bg-primary/10 font-medium text-primary'
-                        : 'text-stone-700 hover:bg-stone-50'
+                        : 'text-foreground hover:bg-muted'
                     }`}
                   >
                     <span className={`h-2 w-2 rounded-full ${f.dot}`} />
@@ -712,16 +712,16 @@ export default function RecurringBillingIndex(props: PageProps) {
 
               {plans && plans.length > 0 && (
                 <>
-                  <div className="mt-4 text-[11px] font-semibold uppercase tracking-wider text-stone-400">
+                  <div className="mt-4 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                     Plano
                   </div>
                   <ul className="mt-1 space-y-1">
                     {plans.map((p) => {
                       const n = subsData.filter((s) => s.plan_id === p.id && s.status !== 'cancelada').length;
                       return (
-                        <li key={p.id} className="rounded-lg px-2 py-1.5 text-xs text-stone-700">
+                        <li key={p.id} className="rounded-lg px-2 py-1.5 text-xs text-foreground">
                           <div className="font-medium">{p.name}</div>
-                          <div className="text-stone-500 tabular-nums">
+                          <div className="text-muted-foreground tabular-nums">
                             {BRL(p.price)} · {n} ativ.
                           </div>
                         </li>
@@ -731,22 +731,22 @@ export default function RecurringBillingIndex(props: PageProps) {
                 </>
               )}
 
-              <div className="mt-4 border-t border-stone-200 pt-3">
-                <div className="text-[11px] font-semibold uppercase tracking-wider text-stone-400">
+              <div className="mt-4 border-t border-border pt-3">
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                   MRR filtrado
                 </div>
-                <div className="mt-1 font-mono text-base font-bold text-stone-900 tabular-nums">
+                <div className="mt-1 font-mono text-base font-bold text-foreground tabular-nums">
                   {BRL(filteredMrr)}
                 </div>
-                <div className="text-[11px] text-stone-500">
+                <div className="text-[11px] text-muted-foreground">
                   {filtered.filter((s) => s.status !== 'cancelada').length} ativ. de {subsData.length}
                 </div>
               </div>
             </aside>
 
             {/* COL 2 · LISTA */}
-            <section className="overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-stone-200">
-              <div className="flex items-center gap-2 border-b border-stone-200 p-2.5">
+            <section className="overflow-hidden rounded-lg bg-card shadow-sm ring-1 ring-border">
+              <div className="flex items-center gap-2 border-b border-border p-2.5">
                 <div className="relative flex-1">
                   <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -761,11 +761,11 @@ export default function RecurringBillingIndex(props: PageProps) {
                     className="cw-input-icon-left cw-input-icon-right"
                     aria-label="Buscar assinaturas"
                   />
-                  <kbd className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded bg-white px-1.5 py-0.5 text-[10px] font-mono text-stone-500 ring-1 ring-stone-200">
+                  <kbd className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded bg-card px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground ring-1 ring-border">
                     /
                   </kbd>
                 </div>
-                <span className="text-xs text-stone-500 tabular-nums">
+                <span className="text-xs text-muted-foreground tabular-nums">
                   {filtered.length} / {subsData.length}
                 </span>
               </div>
@@ -774,8 +774,8 @@ export default function RecurringBillingIndex(props: PageProps) {
                 <div className="max-h-[calc(100vh-360px)] overflow-y-auto">
                   {filtered.length === 0 && (
                     <div className="p-8 text-center">
-                      <div className="font-medium text-stone-700">Nada por aqui.</div>
-                      <div className="mt-1 text-sm text-stone-500">
+                      <div className="font-medium text-foreground">Nada por aqui.</div>
+                      <div className="mt-1 text-sm text-muted-foreground">
                         Nenhuma assinatura com este filtro + busca.
                       </div>
                     </div>
@@ -786,10 +786,10 @@ export default function RecurringBillingIndex(props: PageProps) {
                       <div
                         key={s.id}
                         onClick={() => setActiveId(s.id)}
-                        className={`flex cursor-pointer items-center gap-3 border-b border-stone-100 px-3 py-2.5 transition ${
+                        className={`flex cursor-pointer items-center gap-3 border-b border-border px-3 py-2.5 transition ${
                           isActive
                             ? 'border-l-2 border-l-primary bg-primary/5'
-                            : 'hover:bg-stone-50'
+                            : 'hover:bg-muted'
                         }`}
                       >
                         {/* Onda 19 v9,75 — ★ favorite toggle persistente (POST backend). */}
@@ -807,22 +807,22 @@ export default function RecurringBillingIndex(props: PageProps) {
                         >
                           <Star
                             size={14}
-                            className={s.is_pinned ? 'fill-amber-500 text-amber-500' : 'text-stone-300 hover:text-amber-400'}
+                            className={s.is_pinned ? 'fill-amber-500 text-amber-500' : 'text-muted-foreground hover:text-amber-400'}
                           />
                         </button>
                         <Avatar name={s.client} />
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5 truncate text-sm font-semibold text-stone-900">
+                          <div className="flex items-center gap-1.5 truncate text-sm font-semibold text-foreground">
                             <span className="truncate">{s.client}</span>
                           </div>
-                          <div className="truncate text-xs text-stone-500">
+                          <div className="truncate text-xs text-muted-foreground">
                             {s.plan_name} · {s.plan_cycle} · desde {daysAgoLabel(s.since) || '—'}
                           </div>
                         </div>
                         <div className="flex flex-col items-end gap-1">
                           <StatusBadge status={s.status} retry={s.retry} retryMax={s.retry_max} />
                           {s.status !== 'cancelada' && (
-                            <span className="inline-flex items-center gap-1 text-xs font-medium tabular-nums text-stone-700">
+                            <span className="inline-flex items-center gap-1 text-xs font-medium tabular-nums text-foreground">
                               <MethodIcon method={s.method} size={11} />
                               {BRL(s.next_value)}
                             </span>
@@ -836,9 +836,9 @@ export default function RecurringBillingIndex(props: PageProps) {
             </section>
 
             {/* COL 3 · DETAIL DRAWER */}
-            <aside className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-stone-200">
+            <aside className="rounded-lg bg-card p-4 shadow-sm ring-1 ring-border">
               {!active && (
-                <div className="flex h-full items-center justify-center text-sm text-stone-400">
+                <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
                   Selecione uma assinatura
                 </div>
               )}
@@ -943,17 +943,17 @@ function DetailDrawer({ sub, onTrouble, onEdit }: { sub: SubRow; onTrouble?: (t:
   return (
     <div className="space-y-4">
       {/* Header — Onda 13 v9,75 add botão PDF (print extrato) */}
-      <div className="flex items-start gap-3 border-b border-stone-100 pb-3">
+      <div className="flex items-start gap-3 border-b border-border pb-3">
         <Avatar name={sub.client} size={40} />
         <div className="min-w-0 flex-1">
-          <h3 className="truncate text-base font-semibold text-stone-900">{sub.client}</h3>
-          <div className="truncate text-xs text-stone-500">{sub.cnpj || '—'}</div>
+          <h3 className="truncate text-base font-semibold text-foreground">{sub.client}</h3>
+          <div className="truncate text-xs text-muted-foreground">{sub.cnpj || '—'}</div>
         </div>
         <button
           type="button"
           title="Imprimir extrato (⇧E)"
           onClick={() => printSubDetail(sub.id)}
-          className="inline-flex items-center gap-1 rounded border border-stone-300 px-2 py-1 text-[10px] text-stone-600 hover:bg-stone-50"
+          className="inline-flex items-center gap-1 rounded border border-border px-2 py-1 text-[10px] text-foreground hover:bg-muted"
         >
           PDF
         </button>
@@ -969,21 +969,21 @@ function DetailDrawer({ sub, onTrouble, onEdit }: { sub: SubRow; onTrouble?: (t:
               ? 'bg-amber-50 ring-1 ring-amber-200'
               : 'bg-primary/10 ring-1 ring-primary/30'
         }`}>
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-stone-600">
+          <div className="text-[11px] font-semibold uppercase tracking-wider text-foreground">
             {sub.status === 'falhou' ? 'Ação manual' : 'Próxima cobrança'}
           </div>
           <div className="mt-1 flex items-end justify-between">
             <div>
-              <div className="text-lg font-bold text-stone-900">{nextLabel(sub.next_at)}</div>
-              <div className="text-xs text-stone-600">
+              <div className="text-lg font-bold text-foreground">{nextLabel(sub.next_at)}</div>
+              <div className="text-xs text-foreground">
                 {nextDateBR(sub.next_at)} · ciclo {sub.plan_cycle}
               </div>
             </div>
             <div className="text-right">
-              <div className="font-mono text-base font-semibold tabular-nums text-stone-900">
+              <div className="font-mono text-base font-semibold tabular-nums text-foreground">
                 {BRL(sub.next_value)}
               </div>
-              <div className="mt-0.5 inline-flex items-center gap-1 text-[11px] text-stone-600">
+              <div className="mt-0.5 inline-flex items-center gap-1 text-[11px] text-foreground">
                 <MethodIcon method={sub.method} size={10} />
                 {sub.method === 'pix' ? 'Pix' : sub.method === 'boleto' ? 'Boleto' : 'Cartão'}
               </div>
@@ -994,34 +994,34 @@ function DetailDrawer({ sub, onTrouble, onEdit }: { sub: SubRow; onTrouble?: (t:
 
       {/* KV grid */}
       <dl className="grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
-        <dt className="text-stone-500">Plano</dt>
-        <dd className="font-medium text-stone-800">{sub.plan_name}</dd>
-        <dt className="text-stone-500">Ciclo</dt>
-        <dd className="text-stone-800">{sub.plan_cycle}</dd>
-        <dt className="text-stone-500">Desde</dt>
-        <dd className="text-stone-800">{daysAgoLabel(sub.since) || '—'}</dd>
-        <dt className="text-stone-500">Cobranças pagas</dt>
-        <dd className="font-mono tabular-nums text-stone-800">{sub.paid}</dd>
-        <dt className="text-stone-500">Falhas</dt>
-        <dd className={`font-mono tabular-nums ${sub.missed > 0 ? 'text-destructive font-semibold' : 'text-stone-800'}`}>
+        <dt className="text-muted-foreground">Plano</dt>
+        <dd className="font-medium text-foreground">{sub.plan_name}</dd>
+        <dt className="text-muted-foreground">Ciclo</dt>
+        <dd className="text-foreground">{sub.plan_cycle}</dd>
+        <dt className="text-muted-foreground">Desde</dt>
+        <dd className="text-foreground">{daysAgoLabel(sub.since) || '—'}</dd>
+        <dt className="text-muted-foreground">Cobranças pagas</dt>
+        <dd className="font-mono tabular-nums text-foreground">{sub.paid}</dd>
+        <dt className="text-muted-foreground">Falhas</dt>
+        <dd className={`font-mono tabular-nums ${sub.missed > 0 ? 'text-destructive font-semibold' : 'text-foreground'}`}>
           {sub.missed}
         </dd>
-        <dt className="text-stone-500">LTV</dt>
-        <dd className="font-mono tabular-nums text-stone-800">{BRL(sub.ltv)}</dd>
-        <dt className="text-stone-500">Contato</dt>
-        <dd className="truncate text-stone-800">
+        <dt className="text-muted-foreground">LTV</dt>
+        <dd className="font-mono tabular-nums text-foreground">{BRL(sub.ltv)}</dd>
+        <dt className="text-muted-foreground">Contato</dt>
+        <dd className="truncate text-foreground">
           {sub.contact.name} · <span className="font-mono">{sub.contact.phone}</span>
         </dd>
         {sub.os && (
           <>
-            <dt className="text-stone-500">OS recente</dt>
-            <dd className="font-mono text-stone-800">{sub.os}</dd>
+            <dt className="text-muted-foreground">OS recente</dt>
+            <dd className="font-mono text-foreground">{sub.os}</dd>
           </>
         )}
         {sub.churn_reason && (
           <>
-            <dt className="text-stone-500">Motivo cancelamento</dt>
-            <dd className="text-stone-800">{sub.churn_reason}</dd>
+            <dt className="text-muted-foreground">Motivo cancelamento</dt>
+            <dd className="text-foreground">{sub.churn_reason}</dd>
           </>
         )}
       </dl>
@@ -1035,7 +1035,7 @@ function DetailDrawer({ sub, onTrouble, onEdit }: { sub: SubRow; onTrouble?: (t:
       )}
 
       {/* Bloco Fiscal */}
-      <div className="rounded-lg border border-stone-200 p-3">
+      <div className="rounded-lg border border-border p-3">
         <div className="flex items-center justify-between">
           <div>
             <span className={`inline-flex rounded px-1.5 py-0.5 text-[10px] font-semibold ${
@@ -1043,13 +1043,13 @@ function DetailDrawer({ sub, onTrouble, onEdit }: { sub: SubRow; onTrouble?: (t:
             }`}>
               {fiscal.label}
             </span>
-            <div className="mt-1 text-[10px] text-stone-500">{fiscal.long}</div>
+            <div className="mt-1 text-[10px] text-muted-foreground">{fiscal.long}</div>
           </div>
           {sub.fiscal?.last_nf && (
             <button
               type="button"
               onClick={() => postAction(`/recurring-billing/${sub.id}/reenviar-nfe`, {}, `Reenviar ${sub.fiscal?.last_nf}?`)}
-              className="inline-flex items-center gap-1 rounded border border-stone-300 px-2 py-1 text-[11px] text-stone-600 hover:bg-stone-50"
+              className="inline-flex items-center gap-1 rounded border border-border px-2 py-1 text-[11px] text-foreground hover:bg-muted"
               title="Reenviar última NFe por e-mail/WhatsApp"
             >
               <RefreshCw size={10} />
@@ -1166,8 +1166,8 @@ function PaymentHistory({ paid, missed }: { paid: number; missed: number }) {
   }, []);
 
   return (
-    <div className="rounded-lg border border-stone-200 p-3">
-      <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-stone-500">
+    <div className="rounded-lg border border-border p-3">
+      <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
         Histórico de pagamentos
       </div>
       <div className="flex gap-1">
@@ -1179,14 +1179,14 @@ function PaymentHistory({ paid, missed }: { paid: number; missed: number }) {
                   ? 'bg-emerald-400'
                   : c === 'missed'
                     ? 'bg-rose-400'
-                    : 'bg-stone-100 ring-1 ring-stone-200'
+                    : 'bg-muted ring-1 ring-border'
               }`}
             />
-            <div className="mt-0.5 text-[9px] text-stone-400">{months[i]?.slice(0, 1) || ''}</div>
+            <div className="mt-0.5 text-[9px] text-muted-foreground">{months[i]?.slice(0, 1) || ''}</div>
           </div>
         ))}
       </div>
-      <div className="mt-2 flex items-center gap-3 text-[10px] text-stone-500">
+      <div className="mt-2 flex items-center gap-3 text-[10px] text-muted-foreground">
         <span className="inline-flex items-center gap-1">
           <span className="inline-block h-2 w-2 rounded-sm bg-emerald-400" /> pago ({paid})
         </span>
@@ -1194,7 +1194,7 @@ function PaymentHistory({ paid, missed }: { paid: number; missed: number }) {
           <span className="inline-block h-2 w-2 rounded-sm bg-rose-400" /> falhou ({missed})
         </span>
         <span className="inline-flex items-center gap-1">
-          <span className="inline-block h-2 w-2 rounded-sm bg-stone-100 ring-1 ring-stone-200" /> futuro
+          <span className="inline-block h-2 w-2 rounded-sm bg-muted ring-1 ring-border" /> futuro
         </span>
       </div>
     </div>
@@ -1269,9 +1269,9 @@ function SubscriptionTimeline({ subId, subStatus }: { subId: number; subStatus: 
   };
 
   return (
-    <div className="rounded-lg border border-stone-200 p-3">
+    <div className="rounded-lg border border-border p-3">
       <div className="mb-2 flex items-center justify-between">
-        <div className="text-[10px] font-semibold uppercase tracking-wider text-stone-500">
+        <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
           Notas & Eventos {events.length > 0 ? `· ${events.length}` : ''}
         </div>
       </div>
@@ -1307,13 +1307,13 @@ function SubscriptionTimeline({ subId, subStatus }: { subId: number; subStatus: 
       {loading && (
         <div className="space-y-1.5">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-8 animate-pulse rounded bg-stone-100" />
+            <div key={i} className="h-8 animate-pulse rounded bg-muted" />
           ))}
         </div>
       )}
 
       {!loading && events.length === 0 && (
-        <div className="py-3 text-center text-[11px] text-stone-400">
+        <div className="py-3 text-center text-[11px] text-muted-foreground">
           Nenhum evento registrado.
         </div>
       )}
@@ -1332,14 +1332,14 @@ function SubscriptionTimeline({ subId, subStatus }: { subId: number; subStatus: 
               <li key={ev.id} className="flex gap-2 text-xs">
                 <span className={`mt-1 h-2 w-2 shrink-0 rounded-full ${ks.dot}`} />
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 text-[10px] text-stone-500">
+                  <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
                     <span className="font-semibold uppercase">{ks.label}</span>
                     <span>·</span>
                     <span>{ev.by_actor}</span>
                     <span>·</span>
                     <span>{when}</span>
                   </div>
-                  <div className="text-stone-800">{ev.body}</div>
+                  <div className="text-foreground">{ev.body}</div>
                 </div>
               </li>
             );
@@ -1359,7 +1359,7 @@ function ActionBtn({ icon: Icon, label, hint, primary = false, onClick }: {
 }) {
   const cls = primary
     ? 'bg-primary text-white hover:opacity-90'
-    : 'bg-white text-stone-700 ring-1 ring-stone-200 hover:bg-stone-50';
+    : 'bg-card text-foreground ring-1 ring-border hover:bg-muted';
   return (
     <button
       type="button"
@@ -1370,7 +1370,7 @@ function ActionBtn({ icon: Icon, label, hint, primary = false, onClick }: {
       {label}
       {hint && (
         <kbd className={`rounded px-1 text-[10px] font-mono ${
-          primary ? 'bg-primary' : 'bg-stone-100 text-stone-500 ring-1 ring-stone-200'
+          primary ? 'bg-primary' : 'bg-muted text-muted-foreground ring-1 ring-border'
         }`}>{hint}</kbd>
       )}
     </button>
@@ -1385,7 +1385,7 @@ function KpiSkeleton() {
   return (
     <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="h-24 animate-pulse rounded-lg bg-stone-100" />
+        <div key={i} className="h-24 animate-pulse rounded-lg bg-muted" />
       ))}
     </div>
   );
@@ -1393,15 +1393,15 @@ function KpiSkeleton() {
 
 function ListSkeleton() {
   return (
-    <div className="divide-y divide-stone-100">
+    <div className="divide-y divide-border">
       {Array.from({ length: 6 }).map((_, i) => (
         <div key={i} className="flex items-center gap-3 px-3 py-2.5">
-          <div className="h-7 w-7 animate-pulse rounded-full bg-stone-200" />
+          <div className="h-7 w-7 animate-pulse rounded-full bg-muted" />
           <div className="flex-1 space-y-1">
-            <div className="h-3 w-32 animate-pulse rounded bg-stone-200" />
-            <div className="h-2 w-48 animate-pulse rounded bg-stone-100" />
+            <div className="h-3 w-32 animate-pulse rounded bg-muted" />
+            <div className="h-2 w-48 animate-pulse rounded bg-muted" />
           </div>
-          <div className="h-4 w-16 animate-pulse rounded-full bg-stone-100" />
+          <div className="h-4 w-16 animate-pulse rounded-full bg-muted" />
         </div>
       ))}
     </div>

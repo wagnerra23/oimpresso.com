@@ -78,8 +78,8 @@ export default function JanaPanel({ sub }: Props) {
 
       {tab === 'sugerir' && (
         <div>
-          <div className="text-xs text-stone-700">{clientDiagnostic(sub)}</div>
-          <button type="button" disabled title="Em breve" className="mt-2 rounded-lg bg-stone-200 px-2 py-1 text-[11px] text-stone-500">
+          <div className="text-xs text-foreground">{clientDiagnostic(sub)}</div>
+          <button type="button" disabled title="Em breve" className="mt-2 rounded-lg bg-muted px-2 py-1 text-[11px] text-muted-foreground">
             Aplicar sugestão (em breve)
           </button>
         </div>
@@ -87,7 +87,7 @@ export default function JanaPanel({ sub }: Props) {
 
       {tab === 'resumir' && (
         <div>
-          <pre className="whitespace-pre-wrap rounded bg-white p-2 text-[11px] text-stone-700 ring-1 ring-stone-200">{clientSummary(sub)}</pre>
+          <pre className="whitespace-pre-wrap rounded bg-card p-2 text-[11px] text-foreground ring-1 ring-border">{clientSummary(sub)}</pre>
         </div>
       )}
 
@@ -100,7 +100,7 @@ export default function JanaPanel({ sub }: Props) {
               onChange={(e) => setIaQ(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') ask(); }}
               placeholder="Pergunte sobre esta assinatura…"
-              className="flex-1 rounded border border-stone-200 bg-white px-2 py-1 text-xs outline-none focus:border-primary"
+              className="flex-1 rounded border border-border bg-card px-2 py-1 text-xs outline-none focus:border-primary"
             />
             <button
               type="button"
@@ -112,7 +112,7 @@ export default function JanaPanel({ sub }: Props) {
             </button>
           </div>
           {iaResp && (
-            <div className="mt-2 whitespace-pre-wrap rounded bg-white p-2 text-xs text-stone-700 ring-1 ring-primary/30">{iaResp}</div>
+            <div className="mt-2 whitespace-pre-wrap rounded bg-card p-2 text-xs text-foreground ring-1 ring-primary/30">{iaResp}</div>
           )}
         </div>
       )}
