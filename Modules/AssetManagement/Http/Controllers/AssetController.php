@@ -99,7 +99,21 @@ class AssetController extends Controller
 
         $purchase_types = $this->purchaseTypes;
 
-        if ($request->ajax()) {
+        // `! inertia()` NAO e zelo: sem ele a tela Inertia NUNCA recebe a tabela.
+        // `Request::ajax()` le `X-Requested-With`, e o cliente Inertia manda esse header
+        // INCONDICIONALMENTE, junto com `X-Inertia` (@inertiajs/core, getHeaders()). Como
+        // a prop `bens` e DEFERIDA, ela so chega por partial reload — e todo partial caia
+        // aqui, no ramo do DataTables, devolvendo JSON nao-Inertia que o cliente descarta.
+        // Efeito em producao: header e filtros pintam, o skeleton fica pra sempre.
+        //
+        // MEDIDO no CT 100 (2026-09-08), mesma rota, mesma sessao:
+        //   sem X-Requested-With .. {"component":"Patrimonio/Bens","props":{...,"bens":{...}}}
+        //   com X-Requested-With .. {"draw":0,"recordsTotal":234,...}   <- o browser recebia ISTO
+        //
+        // O `BensContratoTest` nao pegou porque montava o partial SEM `X-Requested-With`,
+        // ou seja, media uma requisicao que o browser nunca envia. Corrigido no mesmo PR.
+        // Padrao da casa, ja em producao: `EssentialsLeaveController:95`.
+        if ($request->ajax() && ! $request->inertia()) {
             $assets = $this->baseAssetsQuery($business_id);
 
             $this->applyAssetFilters($assets);
