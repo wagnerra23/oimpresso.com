@@ -256,31 +256,92 @@ function assetDashboardTenantFixture(): array
     );
     $admin->assignRole($roleAdmin);
 
-    // O vetor: bem do ADVERSÁRIO sem nenhuma linha em `asset_warranties`,
-    // logo `aw.end_date IS NULL` no leftjoin.
+    // Os bens NÃO nascem aqui — o teste os cria em ETAPAS, porque a asserção virou um
+    // delta (ver o `it` abaixo). Devolver o adversário junto é o que permite isso.
+    return [$dono, $adversario, $admin];
+}
+
+/**
+ * Bem SEM nenhuma linha em `asset_warranties` — é o que cai no balde `sem` do painel
+ * (`aw.end_date IS NULL` no leftjoin de `painelGarantia`).
+ *
+ * `created_by` é preenchido de propósito: a FK `assets_created_by_foreign` é justamente o
+ * que derruba as suítes vizinhas do módulo quando esquecida.
+ */
+function assetDashboardBemSemGarantia(int $businessId, string $codigo, string $nome, int $criadoPor): void
+{
     Asset::create([
-        'business_id' => $adversario->id,
-        'name' => 'Bem sigiloso do adversario',
-        'asset_code' => 'AST-DASH-TNT99',
+        'business_id' => $businessId,
+        'name' => $nome,
+        'asset_code' => $codigo,
         'quantity' => 1,
         'unit_price' => 10,
         'is_allocatable' => 0,
         'purchase_type' => 'owned',
-        'created_by' => $admin->id,
+        'created_by' => $criadoPor,
     ]);
+}
 
-    Asset::create([
-        'business_id' => $dono->id,
-        'name' => 'Bem legitimo do dono',
-        'asset_code' => 'AST-DASH-TNT98',
-        'quantity' => 1,
-        'unit_price' => 10,
-        'is_allocatable' => 0,
-        'purchase_type' => 'owned',
-        'created_by' => $admin->id,
-    ]);
+/**
+ * Quantos BENS o painel do `$dono` conta no balde `sem` (sem garantia registrada).
+ *
+ * Vai pela ROTA, não pelo controller. Até 2026-09-08 este teste chamava
+ * `app(AssetController::class)->dashboard()` e lia `$view->getData()`, com um comentário
+ * explicando que a `dashboard.blade.php` estourava no `@num_format` em ambiente de teste.
+ * O PR #7040 migrou o `dashboard()` para `Inertia::render('Patrimonio/Index')` e **não
+ * atualizou este teste**: `Inertia\Response` não tem `getData()`, então a catraca passou a
+ * morrer com `BadMethodCallException` — verde nenhum, e a proteção Tier 0 do #7018 ficou
+ * sem quem a defendesse. Sem Blade no caminho, o motivo do desvio deixou de existir.
+ *
+ * `flushHeaders()` não é zelo: `withHeaders()` grava em `$defaultHeaders` da INSTÂNCIA do
+ * TestCase, então o `X-Inertia: true` do partial reload sobrevive à chamada e faria o GET
+ * seguinte devolver JSON em vez da root view ("The response is not a view"). Só morde
+ * quando o mesmo teste resolve as props mais de uma vez — que é exatamente o caso aqui.
+ */
+function assetDashboardBensSemGarantia(Business $dono, User $admin): int
+{
+    $sessao = [
+        'user.business_id' => $dono->id,
+        'user' => ['business_id' => $dono->id, 'id' => $admin->id],
+    ];
 
-    return [$dono, $admin];
+    test()->flushHeaders();
+
+    // O primeiro GET não é desperdício: é a FONTE DA VERSÃO. O XHR do Inertia devolve 409
+    // quando o header não bate com a que o middleware calculou, e a versão boa é a que este
+    // render acabou de emitir.
+    $inicial = test()->actingAs($admin)->withSession($sessao)->get('/asset/dashboard');
+
+    expect($inicial->status())->toBe(200);
+
+    $versao = data_get($inicial->viewData('page'), 'version');
+
+    test()->flushHeaders();
+
+    // `garantia` é `Inertia::defer` — não vem no primeiro render. `is_admin` vai junto
+    // porque o partial devolve só o que se pede, e ele é o canário.
+    $parcial = test()->actingAs($admin)->withSession($sessao)
+        ->withHeaders([
+            'X-Inertia' => 'true',
+            'X-Inertia-Version' => (string) $versao,
+            'X-Inertia-Partial-Component' => 'Patrimonio/Index',
+            'X-Inertia-Partial-Data' => 'garantia,is_admin',
+        ])
+        ->get('/asset/dashboard');
+
+    expect($parcial->status())->toBe(200);
+
+    $props = $parcial->json('props');
+
+    // Canário: `painelGarantia()` devolve `null` quando não é admin, e a lista viria vazia
+    // — o teste passaria sem exercitar nada.
+    expect(data_get($props, 'is_admin'))->toBeTrue('os baldes de garantia só rodam sob is_admin');
+
+    $balde = collect(data_get($props, 'garantia', []))->firstWhere('balde', 'sem');
+
+    expect($balde)->not->toBeNull('o balde `sem` é sempre emitido, mesmo zerado');
+
+    return (int) $balde['bens'];
 }
 
 function assetDashboardTenantLimpar(): void
@@ -294,42 +355,42 @@ function assetDashboardTenantLimpar(): void
     }
 }
 
-it('MORDE: bem SEM garantia de outra empresa não vaza na lista de garantias do dashboard', function () {
-    [$dono, $admin] = assetDashboardTenantFixture();
+it('UC-PAT-01: bem SEM garantia de outra empresa não entra nos baldes de garantia do painel', function () {
+    [$dono, $adversario, $admin] = assetDashboardTenantFixture();
 
     try {
-        // POR QUE chamar o controller em vez de `->get('/asset/dashboard')`: a view
-        // `dashboard.blade.php:14` estoura no ambiente de teste dentro do `num_format`
-        // ("Trying to access array offset on null"), por razão alheia a este fix — o HTTP
-        // devolveria 500 e o teste falharia sem nunca chegar na query. `view()` NÃO renderiza
-        // até `render()`, então `getData()` entrega a variável real que o controller montou,
-        // sem tocar no Blade. A query exercitada é a de produção, não uma cópia dela — o que
-        // um teste que remontasse o SQL à mão seria (tautológico, §5 2026-06-05).
-        test()->actingAs($admin);
+        // POR QUE DELTA, E NÃO CONTAGEM ABSOLUTA: no CT 100 a base é clone de prod e NÃO se
+        // limpa entre execuções — o tenant 98 já chega com dezenas de assets, boa parte sem
+        // garantia. Um assert de total exato mediria o histórico da base, não a regra, e
+        // quebraria no run seguinte.
+        $base = assetDashboardBensSemGarantia($dono, $admin);
 
-        // `session([...])` sozinho não basta: o controller lê por
-        // `request()->session()->get(...)`, e fora de um ciclo HTTP o Request não tem store
-        // ligado ("Session store not set on request"). `setLaravelSession` faz esse vínculo.
-        $sessao = app('session.store');
-        $sessao->put('user.business_id', $dono->id);
-        $sessao->put('user', ['business_id' => $dono->id, 'id' => $admin->id]);
-        request()->setLaravelSession($sessao);
+        // ETAPA 1 — só o ADVERSÁRIO ganha um bem sem garantia.
+        assetDashboardBemSemGarantia(
+            (int) $adversario->id, 'AST-DASH-TNT99', 'Bem sigiloso do adversario', (int) $admin->id
+        );
 
-        $view = app(\Modules\AssetManagement\Http\Controllers\AssetController::class)->dashboard();
-        $dados = $view->getData();
+        // O painel do DONO não pode ter se mexido. É aqui que o vazamento apareceria — e a
+        // forma dele mudou: o `painelGarantia()` de hoje agrega em baldes e não devolve mais
+        // `name`/`asset_code`, então o vazamento seria NUMÉRICO (um bem a mais na contagem),
+        // não um nome à mostra. O predicado Tier 0 é o mesmo; o que se observa é outro.
+        expect(assetDashboardBensSemGarantia($dono, $admin))->toBe(
+            $base,
+            'bem sem garantia do biz 99 entrou na contagem do biz 98 — vazamento cross-tenant'
+        );
 
-        // Canário: o bloco vulnerável só roda sob `is_admin`. Sem esta linha, um fixture
-        // sem a role faria a lista vir nula e o teste passaria sem exercitar nada.
-        expect($dados['is_admin'])->toBeTrue('o bloco de $expiring_assets só roda sob is_admin');
+        // ETAPA 2 — agora o DONO ganha o dele.
+        assetDashboardBemSemGarantia(
+            (int) $dono->id, 'AST-DASH-TNT98', 'Bem legitimo do dono', (int) $admin->id
+        );
 
-        $expirando = collect($dados['expiring_assets']);
-
-        // Âncora de que a query de fato rodou e enxerga o tenant do dono.
-        expect($expirando->pluck('asset_code')->all())->toContain('AST-DASH-TNT98');
-
-        // O vazamento: bem SEM garantia do biz=99 entrando na lista do biz=98.
-        expect($expirando->pluck('asset_code')->all())->not->toContain('AST-DASH-TNT99');
-        expect($expirando->pluck('name')->all())->not->toContain('Bem sigiloso do adversario');
+        // CANÁRIO, e ele é o que dá sentido à etapa 1: prova que a contagem REAGE a um bem
+        // sem garantia do próprio tenant. Sem esta asserção, uma query quebrada (ou um
+        // `where` que zerasse tudo) faria a etapa 1 passar por não medir nada.
+        expect(assetDashboardBensSemGarantia($dono, $admin))->toBe(
+            $base + 1,
+            'a contagem não subiu com o bem sem garantia do PRÓPRIO tenant — o instrumento não mede'
+        );
     } finally {
         assetDashboardTenantLimpar();
     }
