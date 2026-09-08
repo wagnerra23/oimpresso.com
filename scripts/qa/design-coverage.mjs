@@ -11,7 +11,8 @@
 //
 // Uso:
 //   node scripts/qa/design-coverage.mjs           # relatório (read-only)
-//   node scripts/qa/design-coverage.mjs --json     # + grava baseline
+//   node scripts/qa/design-coverage.mjs --json     # relatorio em JSON no stdout (READ-ONLY)
+//   node scripts/qa/design-coverage.mjs --write-baseline   # GRAVA o baseline (sobe o piso)
 //   node scripts/qa/design-coverage.mjs --check    # exit 1 se `declared` regrediu vs baseline
 //
 // Contrato: Constituição UI v2 (UI-0013 — camadas/herança de Padrão de Tela) + ADR 0299/ancora.
@@ -133,16 +134,42 @@ const noCharter = pages.filter((p) => !existsSync(p.replace(/\.tsx$/, '.charter.
 
 const pct = (n, d) => d ? Math.round((n / d) * 100) : 0;
 
-// ── --json: grava baseline ──
+// ── métricas medidas (payload único, servido por --json e por --write-baseline) ──
+const metricas = { declared, totalCharters, parityLinked };
+
+// ── --json: RELATÓRIO em JSON no stdout. READ-ONLY. ──
+// Até 2026-09-08 esta flag GRAVAVA o baseline e não emitia JSON nenhum — era um
+// `--write-baseline` disfarçado com o nome que, em toda CLI, significa "formato de
+// saída". Custo medido: uma sessão rodou `--json` para LER o estado e subiu o piso
+// de 194 para 210 sem querer, apagando de quebra o campo `noteParidade`. O nome
+// honesto agora é `--write-baseline`, igual ao irmão `domain-dict-guard.mjs`.
 if (process.argv.includes('--json')) {
-  writeFileSync(BASELINE, JSON.stringify({ declared, totalCharters, parityLinked, note: 'Catraca de cobertura de design: `declared` (telas com fonte de design declarada) só sobe. Baixar exige decisão consciente.' }, null, 2) + '\n');
-  console.log(`baseline gravado: declared=${declared}/${totalCharters}`);
+  process.stderr.write('design-coverage: --json e READ-ONLY desde 2026-09-08 — para gravar o baseline use --write-baseline.\n');
+  console.log(JSON.stringify(metricas, null, 2));
+  process.exit(0);
+}
+
+// ── --write-baseline: grava o baseline (sobe o piso) ──
+// NÃO-LOSSY por contrato: preserva os campos que já existem no baseline (as `note*`
+// explicativas, por exemplo) e sobrescreve só as métricas medidas. A versão anterior
+// escrevia um objeto literal e apagava tudo que não estivesse nele.
+if (process.argv.includes('--write-baseline')) {
+  let anterior = {};
+  if (existsSync(BASELINE)) {
+    try { anterior = JSON.parse(readFileSync(BASELINE, 'utf8')); } catch { anterior = {}; }
+  }
+  const saida = { ...anterior, ...metricas };
+  if (!saida.note) saida.note = 'Catraca de cobertura de design: `declared` (telas com fonte de design declarada) só sobe. Baixar exige decisão consciente.';
+  writeFileSync(BASELINE, JSON.stringify(saida, null, 2) + '\n');
+  const preservados = Object.keys(anterior).filter((k) => !(k in metricas));
+  console.log(`baseline gravado: declared=${declared}/${totalCharters} · parityLinked=${parityLinked}` +
+    (preservados.length ? ` · campos preservados: ${preservados.join(', ')}` : ''));
   process.exit(0);
 }
 
 // ── --check: catraca ──
 if (process.argv.includes('--check')) {
-  if (!existsSync(BASELINE)) { console.error('design-coverage: baseline ausente — rode --json pra semear.'); process.exit(1); }
+  if (!existsSync(BASELINE)) { console.error('design-coverage: baseline ausente — rode --write-baseline pra semear.'); process.exit(1); }
   const base = JSON.parse(readFileSync(BASELINE, 'utf8'));
   if (declared < base.declared) {
     console.error(`design-coverage: cobertura de design REGREDIU — declared ${declared} < baseline ${base.declared}. Uma tela perdeu a fonte de design declarada.`);
