@@ -95,6 +95,26 @@ depreciation · is_allocatable · description · created_by · created_at · upd
 **não está no whitelist**. Logo a auditoria LGPD do módulo **nunca registra alteração de
 valor do bem** — que é justamente o campo que um audit trail patrimonial existe para vigiar.
 
+#### 2a-bis · O MESMO defeito no segundo Model — `AssetMaintenance` (medido 2026-09-08)
+
+```
+arquivo  Modules/AssetManagement/Entities/AssetMaintenance.php
+símbolo  getActivitylogOptions()  ->logOnly([...])
+mortas   'start_date' · 'end_date' · 'amount'      <- 3 de 8 NÃO existem na tabela
+ausentes 'details' · 'priority' · 'maintenance_note'  <- existem e NÃO são auditadas
+```
+
+Checado coluna a coluna contra `asset_maintenances` (5 das 8 existem; 3 não). **Não é
+inferência:** um `DB::pretend()` do `create` no CT 100 mostrou o INSERT que o audit trail
+emitiria — `insert into activity_log (... properties ...) values ('assetmanagement.maintenance',
+'{"attributes":{"asset_id":…,"start_date":null,"end_date":null,"status":"completed","amount":null}}'…)`.
+A auditoria grava **null literal** para as três colunas fantasma, e **não grava** o texto real
+da manutenção (`details`).
+
+É o §2a replicado num segundo Model, e **ninguém tinha registrado**. Quem for corrigir o
+`purchase_amount` do `Asset.php` corrige os dois no mesmo PR — é a mesma família e o mesmo
+raciocínio (whitelist escrita contra colunas que não existem).
+
 ### 2b · O whitelist de retenção aponta para 4 tabelas inexistentes · **INÉDITO no playbook**
 
 ```
@@ -685,10 +705,35 @@ Registrado para que quem ler este arquivo não persiga item já resolvido. Verif
 | **prefixo `asset.*`** (item 2 do RESÍDUO) | ✅ **corrigido no [#7016]** — `permission_prefix: asset.*` no `SCOPE.md`, com errata |
 | **canal furado** (§5) | ✅ **fechado no [#7016]** pelas **duas** saídas: o `§3` ganhou o item **(6)** *"os `_saida-NN.md` das threads JÁ FECHADAS, e em especial o campo `invalida:`"*, e o `02-trava-de-saldo.md:34` ganhou errata + passo exigindo provar que a trava roda no caminho vivo |
 | **`orWhereNull`** (§7c) | ✅ **PR #7015** (thread 03) |
-| **`created_by`** dos 2 testes Tier 0 (§7e) | ⛔ **ÚNICO ÓRFÃO RESTANTE** — sem dono |
+| **`created_by`** dos 2 testes Tier 0 (§7e) | ✅ **fechado no PR #7020** (`b915c90ce7`) — ver abaixo |
 | **D-ENDERECO** (§8) | ⏸️ decisão de [W] |
 
 [#7016]: https://github.com/wagnerra23/oimpresso.com/pull/7016
+
+### O órfão do `created_by` fechou — e o meu near-miss ao tentar pegá-lo
+
+[W] mandou pegar o `created_by`. Fiz o trabalho inteiro (14 creates nos 2 arquivos) e medi o
+antes→depois no CT 100 — **`8 failed (3 assertions)` → `2 failed, 6 passed (24 assertions)`**,
+com a mensagem literal `foreign key constraint fails (assets_created_by_foreign)` e o INSERT
+saindo sem a coluna. **Essa medição vale como confirmação independente do §7e**, e é o único
+resíduo aproveitável do que fiz.
+
+**Mas o trabalho estava duplicado, e a minha versão era pior.** Enquanto eu editava, entrou o
+**PR #7020** (`b915c90ce7` — *"destrava os 2 testes Tier 0 — created_by, colunas reais e tenant
+canônico"*), que fez as três coisas: o `created_by` (11/11 e 6/6 creates), as **colunas reais**
+(`details` no lugar do `description` inexistente, sem `cost`/`maintenance_date`) e a migração
+para o **tenant canônico 98/99** via `seededTenant()`.
+
+**Eu teria mantido `BIZ_WAGNER = 1`** — e a rule `.claude/rules/modules.md`, que só carregou no
+meu contexto **depois** de eu já ter editado, diz por quê isso é proibido: *"nunca biz=1 (WR2
+Sistemas, empresa real: no CT 100 a base é clone de prod e não se limpa entre runs)"*. Meu fix
+semearia fixture dentro do espelho da empresa real. **Descartei o commit sem publicar.**
+
+**A causa é a que esta própria thread existe para prevenir.** Medi a base ao criar a branch
+(`0/0`) e **não re-medi no instante de editar**; nesse intervalo entraram 6 commits. É a lápide
+§5 de 2026-08-03 (*despachar escrita sem medir a base no instante do dispatch*) e a LC-19
+(*duplicar trabalho de sessão viva*) — as duas cometidas pela thread cujo trabalho era pagar o
+passo 0 contra PR fantasma. O `whats-active` / `gh pr list` custaria uma chamada.
 
 ### Lição de método desta thread, sobre mim mesma
 
