@@ -345,6 +345,10 @@ class DataController extends Controller
                         'ghosts'   => [
                             // Wagner 2026-05-25: Dashboard PROMOVIDO pra primeira aba canon
                             // da Jana — destino pós-login (`/home → /ia/dashboard`). Charter
+                            // [2026-09-08] o "destino pós-login" caducou: `/home` vai pra
+                            // `/dashboard-legacy` (Visão geral). A promoção do Painel a
+                            // PRIMEIRA ABA da Jana, que é o que este bloco decide, segue
+                            // valendo — ela nunca dependeu de ser o alvo do login.
                             // Pages/Jana/Index.charter.md já cobre empty state. Substitui
                             // Copiloto (chat) como entry-point default da Jana — chat continua
                             // acessível em 2ª aba e via FAB. Tentativas anteriores travaram em
