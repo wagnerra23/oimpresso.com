@@ -172,7 +172,7 @@ export default function ConfiguracoesIndex(props: PageProps) {
     <>
       <Head title="Configurações · Cobrança Recorrente" />
 
-      <div className="min-h-screen bg-stone-50 p-4 md:p-6">
+      <div className="min-h-screen bg-muted p-4 md:p-6">
         {/* ── HEADER ── */}
         <header className="mb-6">
           <div className="flex items-start justify-between gap-3">
@@ -181,10 +181,10 @@ export default function ConfiguracoesIndex(props: PageProps) {
                 <Settings size={20} />
               </span>
               <div>
-                <h1 className="text-2xl font-semibold tracking-tight text-stone-900">
+                <h1 className="text-2xl font-semibold tracking-tight text-foreground">
                   Configurações · cobrança recorrente
                 </h1>
-                <div className="mt-0.5 text-sm text-stone-500">
+                <div className="mt-0.5 text-sm text-muted-foreground">
                   Gateways de pagamento, régua de dunning, NFe automática e webhooks por gateway.
                 </div>
               </div>
@@ -194,10 +194,10 @@ export default function ConfiguracoesIndex(props: PageProps) {
               type="button"
               onClick={() => setShowCheatsheet(true)}
               title="Ver atalhos de teclado"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-stone-200 bg-white px-2.5 py-1.5 text-xs font-medium text-stone-600 hover:bg-stone-50"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs font-medium text-foreground hover:bg-muted"
             >
               atalhos
-              <kbd className="rounded bg-stone-100 px-1.5 py-0.5 font-mono text-[10px] text-stone-700 ring-1 ring-stone-200">?</kbd>
+              <kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] text-foreground ring-1 ring-border">?</kbd>
             </button>
           </div>
         </header>
@@ -221,7 +221,7 @@ export default function ConfiguracoesIndex(props: PageProps) {
             title="Régua de dunning (cobrança)"
             subtitle="Cronograma de retentativas quando uma fatura falha no pagamento."
           >
-            <p className="mb-4 text-sm leading-relaxed text-stone-600">
+            <p className="mb-4 text-sm leading-relaxed text-foreground">
               {regua_dunning.descricao}
             </p>
 
@@ -234,13 +234,13 @@ export default function ConfiguracoesIndex(props: PageProps) {
                     key={r.ordem}
                     className={`flex items-start gap-3 rounded-lg p-3 ring-1 ${t.bg} ${t.ring}`}
                   >
-                    <span className={`mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white ring-1 ${t.ring}`}>
+                    <span className={`mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-card ring-1 ${t.ring}`}>
                       <Icon size={14} className={t.iconColor} />
                     </span>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
                         <div className={`text-sm font-semibold ${t.text}`}>{r.rotulo}</div>
-                        <span className={`shrink-0 rounded-full bg-white px-2 py-0.5 text-[11px] font-medium tabular-nums ring-1 ${t.text} ${t.ring}`}>
+                        <span className={`shrink-0 rounded-full bg-card px-2 py-0.5 text-[11px] font-medium tabular-nums ring-1 ${t.text} ${t.ring}`}>
                           +{r.dias}d
                         </span>
                       </div>
@@ -251,7 +251,7 @@ export default function ConfiguracoesIndex(props: PageProps) {
               })}
             </div>
 
-            <div className="mt-3 rounded-lg bg-stone-50 px-3 py-2 text-[11px] italic text-stone-500 ring-1 ring-stone-100">
+            <div className="mt-3 rounded-lg bg-muted px-3 py-2 text-[11px] italic text-muted-foreground ring-1 ring-border">
               {regua_dunning.editavel_em}
             </div>
           </SectionCard>
@@ -262,7 +262,7 @@ export default function ConfiguracoesIndex(props: PageProps) {
             title="NFe-de-boleto-pago automática"
             subtitle="Emissão fiscal disparada automaticamente ao receber pagamento."
           >
-            <div className="mb-4 flex items-center justify-between rounded-lg bg-stone-50 px-4 py-3 ring-1 ring-stone-200">
+            <div className="mb-4 flex items-center justify-between rounded-lg bg-muted px-4 py-3 ring-1 ring-border">
               <div className="flex items-center gap-3">
                 <span
                   className={`inline-flex h-6 w-11 items-center rounded-full p-0.5 transition-colors ${
@@ -270,28 +270,28 @@ export default function ConfiguracoesIndex(props: PageProps) {
                   }`}
                 >
                   <span
-                    className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform ${
+                    className={`inline-block h-5 w-5 transform rounded-full bg-card shadow-sm transition-transform ${
                       nfe_auto.ativo ? 'translate-x-5' : 'translate-x-0'
                     }`}
                   />
                 </span>
                 <div>
-                  <div className="text-sm font-medium text-stone-800">
+                  <div className="text-sm font-medium text-foreground">
                     {nfe_auto.ativo ? 'Ativada' : 'Desativada'}
                   </div>
-                  <div className="text-[11px] text-stone-500">
-                    Ref. <code className="rounded bg-white px-1.5 py-0.5 font-mono text-[10px] ring-1 ring-stone-200">{nfe_auto.us_ref}</code>
+                  <div className="text-[11px] text-muted-foreground">
+                    Ref. <code className="rounded bg-card px-1.5 py-0.5 font-mono text-[10px] ring-1 ring-border">{nfe_auto.us_ref}</code>
                   </div>
                 </div>
               </div>
-              <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-stone-500 ring-1 ring-stone-200">
+              <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground ring-1 ring-border">
                 Em breve
               </span>
             </div>
 
-            <p className="text-sm leading-relaxed text-stone-600">{nfe_auto.descricao}</p>
+            <p className="text-sm leading-relaxed text-foreground">{nfe_auto.descricao}</p>
 
-            <div className="mt-3 rounded-lg bg-stone-50 px-3 py-2 text-[11px] italic text-stone-500 ring-1 ring-stone-100">
+            <div className="mt-3 rounded-lg bg-muted px-3 py-2 text-[11px] italic text-muted-foreground ring-1 ring-border">
               {nfe_auto.editavel_em}
             </div>
           </SectionCard>
@@ -377,9 +377,9 @@ function TourConfiguracoes({ onClose }: { onClose: () => void }) {
       aria-modal="true"
       className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/30 backdrop-blur-sm"
     >
-      <div className="w-full max-w-md rounded-lg bg-white shadow-2xl ring-1 ring-stone-200">
-        <header className="flex items-center justify-between border-b border-stone-100 px-4 py-3">
-          <div className="flex items-center gap-2 text-xs text-stone-500">
+      <div className="w-full max-w-md rounded-lg bg-card shadow-2xl ring-1 ring-border">
+        <header className="flex items-center justify-between border-b border-border px-4 py-3">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <span className="rounded bg-primary/10 px-2 py-0.5 font-semibold text-primary">
               {step + 1}/{TOUR_STEPS_CONFIG.length}
             </span>
@@ -389,20 +389,20 @@ function TourConfiguracoes({ onClose }: { onClose: () => void }) {
             type="button"
             onClick={() => close(false)}
             aria-label="Fechar"
-            className="rounded p-1 hover:bg-stone-100"
+            className="rounded p-1 hover:bg-muted"
           >
-            <X size={14} className="text-stone-500" />
+            <X size={14} className="text-muted-foreground" />
           </button>
         </header>
         <div className="px-6 py-6">
-          <h3 className="text-lg font-bold text-stone-900">{cur.title}</h3>
-          <p className="mt-2 text-sm text-stone-600">{cur.body}</p>
+          <h3 className="text-lg font-bold text-foreground">{cur.title}</h3>
+          <p className="mt-2 text-sm text-foreground">{cur.body}</p>
         </div>
-        <footer className="flex items-center justify-between gap-2 border-t border-stone-100 px-4 py-3">
+        <footer className="flex items-center justify-between gap-2 border-t border-border px-4 py-3">
           <button
             type="button"
             onClick={() => close(true)}
-            className="text-xs text-stone-500 hover:text-stone-700"
+            className="text-xs text-muted-foreground hover:text-foreground"
           >
             Não mostrar mais
           </button>
@@ -411,7 +411,7 @@ function TourConfiguracoes({ onClose }: { onClose: () => void }) {
               type="button"
               onClick={() => setStep(Math.max(0, step - 1))}
               disabled={step === 0}
-              className="inline-flex items-center gap-1 rounded-lg border border-stone-200 px-3 py-1.5 text-xs text-stone-700 hover:bg-stone-50 disabled:opacity-40"
+              className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-xs text-foreground hover:bg-muted disabled:opacity-40"
             >
               <ChevronLeft size={12} /> Anterior
             </button>
@@ -456,14 +456,14 @@ function SectionCard({
   children: ReactNode;
 }) {
   return (
-    <section className="overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-stone-200">
-      <header className="flex items-start gap-3 border-b border-stone-100 px-5 py-4">
+    <section className="overflow-hidden rounded-lg bg-card shadow-sm ring-1 ring-border">
+      <header className="flex items-start gap-3 border-b border-border px-5 py-4">
         <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
           <Icon size={16} />
         </span>
         <div className="min-w-0 flex-1">
-          <h2 className="text-base font-semibold text-stone-900">{title}</h2>
-          {subtitle && <p className="mt-0.5 text-xs text-stone-500">{subtitle}</p>}
+          <h2 className="text-base font-semibold text-foreground">{title}</h2>
+          {subtitle && <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>}
         </div>
       </header>
       <div className="p-5">{children}</div>
@@ -474,12 +474,12 @@ function SectionCard({
 function GatewaysContent({ gateways }: { gateways: GatewayRow[] }) {
   if (gateways.length === 0) {
     return (
-      <div className="rounded-lg border-2 border-dashed border-stone-200 p-8 text-center">
-        <Banknote size={28} className="mx-auto text-stone-300" />
-        <div className="mt-2 text-sm font-medium text-stone-700">
+      <div className="rounded-lg border-2 border-dashed border-border p-8 text-center">
+        <Banknote size={28} className="mx-auto text-muted-foreground" />
+        <div className="mt-2 text-sm font-medium text-foreground">
           Nenhum gateway cadastrado
         </div>
-        <div className="mt-1 text-xs text-stone-500">
+        <div className="mt-1 text-xs text-muted-foreground">
           Cadastre uma credencial Inter PJ, C6 ou Asaas para começar a cobrar.
         </div>
         <a
@@ -499,7 +499,7 @@ function GatewaysContent({ gateways }: { gateways: GatewayRow[] }) {
         {gateways.map((g) => (
           <li
             key={g.id}
-            className="flex items-center gap-3 rounded-lg border border-stone-200 px-3 py-2.5"
+            className="flex items-center gap-3 rounded-lg border border-border px-3 py-2.5"
           >
             <span
               className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold ring-1 ${BANCO_BG[g.banco]}`}
@@ -509,7 +509,7 @@ function GatewaysContent({ gateways }: { gateways: GatewayRow[] }) {
             </span>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <div className="truncate text-sm font-semibold text-stone-900">
+                <div className="truncate text-sm font-semibold text-foreground">
                   {g.nome_display || g.banco_label}
                 </div>
                 {g.ambiente === 'sandbox' && (
@@ -518,7 +518,7 @@ function GatewaysContent({ gateways }: { gateways: GatewayRow[] }) {
                   </span>
                 )}
               </div>
-              <div className="mt-0.5 truncate text-[11px] text-stone-500">
+              <div className="mt-0.5 truncate text-[11px] text-muted-foreground">
                 {g.banco_label} · {g.ambiente_label}
               </div>
             </div>
@@ -528,7 +528,7 @@ function GatewaysContent({ gateways }: { gateways: GatewayRow[] }) {
                 ativo
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-medium text-stone-500 ring-1 ring-stone-200">
+              <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground ring-1 ring-border">
                 <XCircle size={11} />
                 inativo
               </span>
@@ -539,12 +539,12 @@ function GatewaysContent({ gateways }: { gateways: GatewayRow[] }) {
 
       <a
         href="/financeiro/contas-bancarias"
-        className="mt-4 inline-flex items-center gap-1.5 rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50"
+        className="mt-4 inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted"
         title="Cadastro fica em Contas Bancárias (Onda futura move pra cá)"
       >
         <Plus size={14} />
         Adicionar gateway
-        <span className="ml-1 rounded bg-stone-100 px-1.5 py-0.5 text-[10px] text-stone-500">em breve aqui</span>
+        <span className="ml-1 rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">em breve aqui</span>
       </a>
     </div>
   );
@@ -568,13 +568,13 @@ function WebhookCard({ webhook }: { webhook: WebhookRow }) {
   }
 
   return (
-    <div className="rounded-lg border border-stone-200 p-3">
+    <div className="rounded-lg border border-border p-3">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <span className="rounded bg-stone-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-stone-600 ring-1 ring-stone-200">
+          <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-foreground ring-1 ring-border">
             {webhook.metodo}
           </span>
-          <span className="text-sm font-semibold text-stone-900">{webhook.gateway_label}</span>
+          <span className="text-sm font-semibold text-foreground">{webhook.gateway_label}</span>
         </div>
         <a
           href={webhook.docs_link}
@@ -587,10 +587,10 @@ function WebhookCard({ webhook }: { webhook: WebhookRow }) {
         </a>
       </div>
 
-      <div className="mt-1 text-xs text-stone-500">{webhook.rotulo}</div>
+      <div className="mt-1 text-xs text-muted-foreground">{webhook.rotulo}</div>
 
       <div className="mt-2 flex items-center gap-2">
-        <code className="flex-1 truncate rounded-lg bg-stone-50 px-3 py-2 font-mono text-xs text-stone-700 ring-1 ring-stone-200">
+        <code className="flex-1 truncate rounded-lg bg-muted px-3 py-2 font-mono text-xs text-foreground ring-1 ring-border">
           {webhook.url}
         </code>
         <button
@@ -599,7 +599,7 @@ function WebhookCard({ webhook }: { webhook: WebhookRow }) {
           className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition ${
             copied
               ? 'bg-success text-white'
-              : 'bg-white text-stone-700 ring-1 ring-stone-200 hover:bg-stone-50'
+              : 'bg-card text-foreground ring-1 ring-border hover:bg-muted'
           }`}
           title="Copiar URL pra área de transferência"
         >
@@ -608,8 +608,8 @@ function WebhookCard({ webhook }: { webhook: WebhookRow }) {
         </button>
       </div>
 
-      <div className="mt-2 rounded-lg bg-stone-50 px-3 py-2 text-[11px] leading-relaxed text-stone-500 ring-1 ring-stone-100">
-        <span className="font-semibold text-stone-600">Autenticação:</span> {webhook.auth}
+      <div className="mt-2 rounded-lg bg-muted px-3 py-2 text-[11px] leading-relaxed text-muted-foreground ring-1 ring-border">
+        <span className="font-semibold text-foreground">Autenticação:</span> {webhook.auth}
       </div>
     </div>
   );
@@ -623,13 +623,13 @@ function GatewaysSkeleton() {
   return (
     <ul className="space-y-2">
       {Array.from({ length: 3 }).map((_, i) => (
-        <li key={i} className="flex items-center gap-3 rounded-lg border border-stone-200 px-3 py-2.5">
-          <div className="h-8 w-8 animate-pulse rounded-lg bg-stone-200" />
+        <li key={i} className="flex items-center gap-3 rounded-lg border border-border px-3 py-2.5">
+          <div className="h-8 w-8 animate-pulse rounded-lg bg-muted" />
           <div className="flex-1 space-y-1">
-            <div className="h-3 w-32 animate-pulse rounded bg-stone-200" />
-            <div className="h-2 w-48 animate-pulse rounded bg-stone-100" />
+            <div className="h-3 w-32 animate-pulse rounded bg-muted" />
+            <div className="h-2 w-48 animate-pulse rounded bg-muted" />
           </div>
-          <div className="h-5 w-14 animate-pulse rounded-full bg-stone-100" />
+          <div className="h-5 w-14 animate-pulse rounded-full bg-muted" />
         </li>
       ))}
     </ul>
