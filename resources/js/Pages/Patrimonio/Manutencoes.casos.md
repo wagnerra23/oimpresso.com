@@ -38,6 +38,7 @@ last_run: "2026-09-08"
 - **Regressão que defende:** vazamento cross-tenant
   ([ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md), Tier 0).
   `AssetMaintenance` **não tem global scope** — o isolamento é o `where` explícito do `index()`.
+- **Status: 🧪** — os dois cenarios (direto e espelho) passam no CT 100 (run 2026-09-08): 4 passed / 34 assertions no arquivo, estavel em 3 execucoes seguidas.
 
 ## UC-MANU-02 · Quem só pode ver as suas, vê só as suas — e a tela AVISA
 
@@ -55,6 +56,7 @@ last_run: "2026-09-08"
 - **Nota de método:** as duas manutenções são do mesmo business de propósito — assim o recorte
   por dono é a **única** explicação possível para a segunda sumir; se fossem de businesses
   diferentes, o filtro de tenant já bastaria e o teste mediria outra coisa.
+- **Status: 🧪** — passa no CT 100 (run 2026-09-08). O mutante B (controller sem o recorte por dono) o DERRUBA — bite-test por mutacao, nao afirmacao.
 
 ## UC-MANU-03 · A tela não inventa dinheiro que o banco não guarda
 
@@ -72,6 +74,7 @@ last_run: "2026-09-08"
   copiado.
 - **Nota de método:** o teste asserta sobre o **payload servido**, não sobre o texto do `.tsx` —
   grep em fonte mediria a escrita, não o contrato (LC-11: presença ≠ comportamento).
+- **Status: 🧪** — passa no CT 100 (run 2026-09-08). O mutante A (payload com campo `custo`) o DERRUBA — bite-test por mutacao, nao afirmacao.
 
 ---
 
@@ -91,3 +94,4 @@ Prosa sem id de propósito: **vira UC quando existir teste que o cite** (G-2).
 - `[BACKLOG]` **Escopo de escrita por dono** — `edit`/`update`/`destroy` filtram só por
   `business_id`. Não é regressão desta tela; é decisão de produto pendente de [W], e a
   permissão para isso não existe no módulo.
+
