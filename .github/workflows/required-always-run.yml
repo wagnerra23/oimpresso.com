@@ -42,7 +42,10 @@ jobs:
           node-version: '20'
 
       # selftest primeiro: se a lógica do lint quebrou, o veredito dele não vale nada.
-      # 12 asserts, incl. o par CRLF (este repo é Windows; sem ele o lint fica cego).
+      # Cobre os 4 eixos (`paths:` · sem gatilho de PR · `if:` de job · `types:` sem
+      # `synchronize`), cada um com BITE + controle negativo + o par CRLF (este repo é
+      # Windows; sem ele o lint fica cego). A contagem de asserts sai do próprio run —
+      # restateá-la aqui só a faria apodrecer (já apodreceu uma vez: dizia 12).
       - name: Selftest do lint (a régua antes da medida)
         run: node scripts/governance/required-always-run.mjs --selftest
 
