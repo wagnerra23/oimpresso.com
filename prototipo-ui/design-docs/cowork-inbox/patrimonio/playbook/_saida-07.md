@@ -235,8 +235,17 @@ anti-verde-vazio é consequência: o `Fiscal/Cockpit` falha **antes** de compara
 
 Regravar a baseline de `Fiscal/Cockpit` seria mexer em tela alheia para pintar o meu PR de verde —
 e o próprio erro diz que a saída é `npm run visreg:update` **+ aprovação [W] (F1.5)**, que é
-decisão dele, não minha. O check é advisory. É a lápide §5 2026-08-24 (*gate visual bloqueando por
-tela fora do raio do PR*) acontecendo, e a resposta certa é declarar.
+decisão dele, não minha. É a lápide §5 2026-08-24 (*gate visual bloqueando por tela fora do raio
+do PR*) acontecendo, e a resposta certa é declarar.
+
+**O check não bloqueia o merge — medido nos dois donos, não deduzido.** Runtime:
+`gh api repos/.../branches/main/protection/required_status_checks` devolve **44 contexts** e
+`grep -ci visual` neles dá **0**. Baseline: `classic_protection.contexts` (44) ∪
+`rulesets.contexts` (1) = **45**, e `visual-regression` não está na união. ⚠️ Cuidado ao ler o
+`required-checks-baseline.json`: ele carrega uma **nota datada de 2026-07-06** dizendo *"o context
+`visual-regression` já era LEI (ADR 0314)"* — isso era verdade naquela data e **caducou** (o §5
+2026-08-26 registra a demoção por [W]). Li a nota antes dos contexts e quase escrevi o oposto;
+o runtime desempatou.
 
 ⚠️ **`Patrimonio` e `Patrimonio/Bens` aparecem em `UNCOVERED_SCREENS`** — as duas telas novas do
 módulo não estão em `tests/Browser/visreg-screens.json` (46 telas, nenhuma de Patrimônio) e por
