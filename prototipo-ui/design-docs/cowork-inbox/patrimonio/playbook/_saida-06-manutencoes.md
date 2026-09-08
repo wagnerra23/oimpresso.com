@@ -5,7 +5,7 @@ dono: "[C]"
 base: 0f39a46a06 (origin/main fresco, lido 2026-09-08) → rebaseado em 62c9a0f623
 thread: 06-ui-bloqueada.md (aba 4 de 7)
 prefixo_escrito: Modules/AssetManagement/Http/Controllers/AssetMaitenanceController.php · Modules/AssetManagement/Tests/Feature/MaintenanceAuthGateTest.php
-veredito: "PARCIAL — tela NÃO feita (gate de dependência bateu); defeito D1 de autorização CONSERTADO em PR próprio (#7034, não mergeado)"
+veredito: "PARCIAL — tela NÃO feita (gate de dependência bateu); defeito D1 de autorização CONSERTADO em PR próprio (#7034, mergeado por [W] em 2026-09-08 17:11Z · commit 0ff7ff328e · EM PRODUÇÃO, ver §8)"
 invalida: "NADA. Não invalida thread nenhuma. CORRIGE uma afirmação MINHA, feita neste mesmo PR e refutada pela minha própria medição (ver §4). CONFIRMA integralmente o `_saida-04.md §1` (D1) e o `§2a-bis` (campos auditados inexistentes) — reproduzi as duas medições e batem 1:1."
 ---
 
@@ -150,7 +150,21 @@ nem `checkout` global**; só toquei os 2 arquivos que confirmei limpos antes, e 
 
 ## 8 · Estado no fechamento
 
-- **PR [#7034](https://github.com/wagnerra23/oimpresso.com/pull/7034)** — aberto, **não mergeado** (merge é [W]).
+- **PR [#7034](https://github.com/wagnerra23/oimpresso.com/pull/7034)** — **mergeado por [W] em 2026-09-08 17:11Z**, commit `0ff7ff328e`, CI 80 verdes / 0 falhas.
+  _(a 1ª redação desta linha dizia "aberto, não mergeado"; apodreceu no instante do merge — LC-10, afirmação em presente. Corrigida para fato datado.)_
+
+- **EM PRODUÇÃO, verificado — não é declaração de deploy, é o arquivo lá.** `Deploy to Hostinger`
+  `success`; `HEAD` em prod = `0ff7ff328`; e as **mesmas 3 sondas** rodadas em prod e no main
+  batem: controle positivo `8` · `can('superadmin')` (só existe na forma nova) **`6`** · gate
+  velho **`0`** com `rc=1` (não-encontrado, não erro de execução).
+
+  Smoke HTTP com status literal: `/login` → **`200 OK`** (fatal de PHP derrubaria toda rota com
+  500); `/asset/asset-maintenance` → **`302`**; adjacentes `/asset/assets`, `/asset/allocation`,
+  `/asset/dashboard` → **`302 → /login`**, idênticas — zero regressão de roteamento.
+
+  ⚠️ **O que este smoke NÃO prova:** o `302` vem do middleware `auth`, que roda **antes** do
+  controller — logo ele **não exercita o gate**. Provar o 403 em produção exigiria sessão
+  autenticada. Quem prova o comportamento é a bateria do CT 100 (§3), com MySQL e sessão reais.
 - **Impacto em produção NÃO medido.** O `oimpresso-staging` tem `total_businesses=4` e **não é**
   clone de prod (errata do #7008) — nenhum número dele extrapola. Quem perde acesso é o usuário
   **não-admin sem nenhuma das duas permissões**; o dono do negócio passa pelo `Gate::before`
