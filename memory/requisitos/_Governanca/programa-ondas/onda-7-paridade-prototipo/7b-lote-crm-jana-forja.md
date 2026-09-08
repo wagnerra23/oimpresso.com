@@ -78,7 +78,11 @@ segue na pasta da Jana — mover é realocação de documento, que tem dono e ad
 O charter declara `cliente-index-visual-comparison.md` (2026-05-15 · descreve **drawer 480px** ·
 `Gate F1.5: ⏳ Pendente`). O órfão `cliente-drawer-760-visual-comparison.md` (2026-05-21 ·
 `status: validated-prod` · aprovado por [W] em smoke ao vivo) afirma no corpo que **substitui**
-aquele paradigma. O enunciado desta sessão proibiu mexer nos charters de Cliente já vinculados —
+aquele paradigma. **Medido no código, não herdado do doc:** `resources/js/Pages/Cliente/Index.tsx:1953`
+renderiza `className="cw-sheet w-[760px] sm:max-w-[760px]"`, e a linha 1792 registra
+*"ClienteSheet: drawer 480 → 760 + 8 tabs cadastrais"*. Ou seja: a tela viva **é** o drawer 760,
+e o inventário que o charter aponta descreve um drawer 480 que o código não tem mais.
+O enunciado desta sessão proibiu mexer nos charters de Cliente já vinculados —
 respeitado. Trocar o ponteiro **não move o contador** (um sobe, o outro vira órfão); o ganho seria
 de verdade, não de cobertura.
 
