@@ -35,7 +35,7 @@
 // Layout por PRIMITIVOS (ADR 0253) — `Stack`/`Inline`, nunca `<div className="flex gap-4">`
 // solto; o `layout-primitives-guard` é catraca e reprova adotante novo.
 
-import { useForm } from '@inertiajs/react';
+import { Deferred, useForm } from '@inertiajs/react';
 import { Save } from 'lucide-react';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { PageHeader } from '@/Components/PageHeader';
@@ -44,9 +44,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
+import { Skeleton } from '@/Components/ui/skeleton';
 import { Switch } from '@/Components/ui/switch';
 import { Textarea } from '@/Components/ui/textarea';
-import { Stack, Inline } from '@/Components/layout';
+import { Stack, Inline, Grid, Box } from '@/Components/layout';
 import PatrimonioSubNav from './_shared/PatrimonioSubNav';
 
 /* ─── Contrato com o backend ──────────────────────────────────────────────────── */
@@ -79,7 +80,8 @@ interface Props {
     send_for_maintenance: Modelo;
     assigned_for_maintenance: Modelo;
   };
-  usuarios: Usuario[];
+  /** DEFERIDA (Inertia::defer) — nao vem no primeiro render. */
+  usuarios?: Usuario[];
   /** Contrato de `AssetUtil::replaceEmailTags()`. NÃO coincide entre os dois blocos — por
    *  isso vem do backend, em vez de virar lista mantida à mão aqui. */
   tags: {
@@ -134,6 +136,53 @@ function ListaDeTags({ tags }: { tags: string[] }) {
         </span>
       ))}
     </p>
+  );
+}
+
+function EsqueletoDestinatarios() {
+  return (
+    <Stack gap={2}>
+      {Array.from({ length: 4 }).map((_, i) => (
+        <Skeleton key={i} className="h-5 w-48" />
+      ))}
+    </Stack>
+  );
+}
+
+/** Lista de destinatários. Recebe `usuarios` já resolvida pelo `<Deferred>` — por isso é
+ *  componente próprio: o `<Deferred>` só renderiza os filhos quando a prop chegou. */
+function ListaDeDestinatarios({
+  usuarios,
+  selecionados,
+  onToggle,
+}: {
+  usuarios: Usuario[];
+  selecionados: string[];
+  onToggle: (id: string, marcado: boolean) => void;
+}) {
+  if (usuarios.length === 0) {
+    return (
+      <p className="text-sm text-muted-foreground">Nenhum usuário disponível nesta empresa.</p>
+    );
+  }
+
+  return (
+    <Box className="max-h-48 overflow-y-auto rounded-md border p-3">
+      <Stack gap={2}>
+        {usuarios.map((u) => (
+          <Inline key={u.id} gap={2} align="center">
+            <Checkbox
+              id={`destinatario-${u.id}`}
+              checked={selecionados.includes(u.id)}
+              onCheckedChange={(m) => onToggle(u.id, m === true)}
+            />
+            <label htmlFor={`destinatario-${u.id}`} className="cursor-pointer text-sm">
+              {u.nome}
+            </label>
+          </Inline>
+        ))}
+      </Stack>
+    </Box>
   );
 }
 
@@ -245,7 +294,9 @@ export default function Configuracoes({ settings, templates, usuarios, tags }: P
                     Cada sequência é por empresa. Mudar o prefixo <strong>não renumera</strong> o
                     que já existe — vale do próximo código em diante.
                   </p>
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  {/* `min` (auto-fill por token) em vez de `sm:grid-cols-2`: reflowa entre
+                      1280 (Larissa) e 1440 (Wagner) sem media-query na tela — ADR 0253. */}
+                  <Grid min="lg" gap={4}>
                     <CampoPrefixo
                       id="asset_code_prefix"
                       rotulo="Prefixo do código do bem"
@@ -274,7 +325,7 @@ export default function Configuracoes({ settings, templates, usuarios, tags }: P
                       valor={form.data.asset_maintenance_prefix}
                       onChange={(v) => form.setData('asset_maintenance_prefix', v)}
                     />
-                  </div>
+                  </Grid>
                 </Stack>
               </CardContent>
             </Card>
@@ -290,31 +341,14 @@ export default function Configuracoes({ settings, templates, usuarios, tags }: P
 
                   <Stack gap={2}>
                     <Label>Destinatários</Label>
-                    {usuarios.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">
-                        Nenhum usuário disponível nesta empresa.
-                      </p>
-                    ) : (
-                      <div className="max-h-48 overflow-y-auto rounded-md border p-3">
-                        <Stack gap={2}>
-                          {usuarios.map((u) => (
-                            <Inline key={u.id} gap={2} align="center">
-                              <Checkbox
-                                id={`destinatario-${u.id}`}
-                                checked={form.data.send_for_maintenence_recipients.includes(u.id)}
-                                onCheckedChange={(m) => alternarDestinatario(u.id, m === true)}
-                              />
-                              <label
-                                htmlFor={`destinatario-${u.id}`}
-                                className="cursor-pointer text-sm"
-                              >
-                                {u.nome}
-                              </label>
-                            </Inline>
-                          ))}
-                        </Stack>
-                      </div>
-                    )}
+                    {/* `usuarios` é DEFERIDA — é a única prop que cresce com o tenant. */}
+                    <Deferred data="usuarios" fallback={<EsqueletoDestinatarios />}>
+                      <ListaDeDestinatarios
+                        usuarios={usuarios ?? []}
+                        selecionados={form.data.send_for_maintenence_recipients}
+                        onToggle={alternarDestinatario}
+                      />
+                    </Deferred>
                     <p className="text-xs text-muted-foreground">
                       Sem nenhum destinatário, esta notificação não é enviada.
                     </p>

@@ -52,8 +52,12 @@ last_run: "2026-09-08"
 - **Persona:** o próprio time — a migração precisa ser verificável, não afirmada.
 - **Aceite:** Dado o admin do business · Quando abre `/asset/settings` · Então recebe **200** e
   a página Inertia é o componente **`Patrimonio/Configuracoes`**, com as props `settings`,
-  `templates`, `usuarios` e `tags`.
+  `templates` e `tags` no primeiro render (`usuarios` é **deferida** — ver nota de método).
 - **Teste:** `ConfiguracoesContratoTest.php` — `it()` citando `UC-CFG-02`, com `assertInertia`.
+- **Nota de método:** `usuarios` fica **fora** do assert de propósito. Ela é `Inertia::defer`
+  (a única prop que cresce com o tenant), logo **não vem no primeiro render** — assertar
+  `has(usuarios)` mediria a ausência dela, que é o comportamento correto do defer, e o teste
+  reprovaria justamente quando a otimização está funcionando.
 - **Regressão que defende:** a URL **não muda** na migração (`settings.index`, `GET
   /asset/settings`), então 200 sozinho não distingue "virou Inertia" de "continua Blade". O que
   distingue é o componente — e o assert do Inertia verifica que **o arquivo do componente

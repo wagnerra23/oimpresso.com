@@ -187,12 +187,15 @@ it('UC-CFG-02: a rota /asset/settings devolve Inertia com o componente Patrimoni
 
         cfgContratoGet($user, (int) $biz->id)
             ->assertStatus(200)
+            // `usuarios` NAO entra neste assert de proposito: ela e `Inertia::defer` e por
+            // isso NAO vem no primeiro render. Assertar `has('usuarios')` aqui mediria a
+            // ausencia dela — que e o comportamento CORRETO do defer — e o teste passaria a
+            // reprovar justamente quando a otimizacao esta funcionando.
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->component('Patrimonio/Configuracoes')
                 ->has('settings')
                 ->has('templates.send_for_maintenance.subject')
                 ->has('templates.assigned_for_maintenance.subject')
-                ->has('usuarios')
                 ->has('tags.send_for_maintenance')
             );
     } finally {

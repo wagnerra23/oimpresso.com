@@ -33,7 +33,10 @@ class AssetSettingsController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return Response
+     * MWART F3 (ADR 0104): passou a devolver Inertia. O `use Illuminate\Http\Response`
+     * do topo continua servindo os demais metodos deste controller.
+     *
+     * @return \Inertia\Response
      */
     public function index(Request $request)
     {
@@ -119,11 +122,14 @@ class AssetSettingsController extends Controller
                 ],
             ],
 
+            // DEFERIDA — e a UNICA prop desta tela que cresce com o tamanho do tenant
+            // (RUNBOOK-inertia-defer-pattern). As outras sao um `value()` de coluna e dois
+            // `first()`: deferir tambem essas so somaria um ida-e-volta pra economizar ~1ms.
             // `forDropdown` devolve [id => nome]; o React precisa de lista ordenavel.
-            'usuarios' => collect($users)
+            'usuarios' => Inertia::defer(fn () => collect($users)
                 ->map(fn ($nome, $id) => ['id' => (string) $id, 'nome' => (string) $nome])
                 ->values()
-                ->all(),
+                ->all()),
 
             // As tags sao o contrato de `AssetUtil::replaceEmailTags()` e NAO coincidem entre
             // os dois blocos — vem do backend para nao virarem lista decorativa no front.

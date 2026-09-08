@@ -47,12 +47,15 @@ de cada mensagem. Tela de configuração inicial, não de operação diária.
   `AssetUtil::replaceEmailTags()`, e não coincidem entre os dois blocos. Vêm do backend na prop
   `tags`, para não virarem lista decorativa mantida à mão no front.
 
-**Props do `Inertia::render`:** `settings` · `templates` · `usuarios` · `tags`. Não há prop de
+**Props do `Inertia::render`:** `settings` · `templates` · `tags` (eager) · **`usuarios`
+(`Inertia::defer`)** — é a única que cresce com o tamanho do tenant; as outras são um
+`value()` de coluna e dois `first()`, e deferi-las só somaria um ida-e-volta. Não há prop de
 permissão: quem chega na tela é admin por construção (a guarda barra antes), então um
 `permissoes` aqui seria campo que nunca varia.
 - Sub-navegação do módulo **derivada** de `shell.menu`, via `_shared/PatrimonioSubNav`,
   nunca declarada aqui.
-- Estados: carregado · salvando · sucesso · erro do backend · 403 (não-admin não vê a tela).
+- Estados: carregado · **skeleton** da lista de destinatários (prop deferida) · salvando ·
+  sucesso · erro do backend · 403 (não-admin não vê a tela).
 
 ## Non-Goals — Features (NÃO faz)
 
