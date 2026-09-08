@@ -1,13 +1,32 @@
 ---
 sessao: "07"
-titulo: Painel do Patrimônio — a tela que cria o shell
+titulo: Painel do Patrimônio — consome o shell (que já existe)
 dono: "[CL]"
 base: main pos-ADR-0394
 constituicao: CONSTITUICAO-COWORK.md (C1-C12)
-prefixo: resources/js/Pages/Patrimonio/Index.tsx (+ charter, casos) · _shared/PatrimonioSubNav.tsx · AssetController::dashboard
-nao_toca: as outras 5 telas · Services/ · Modules/Auditoria
-depende: — (primeira da frente; as 08–12 herdam o _shared que você criar)
+prefixo: resources/js/Pages/Patrimonio/Index.tsx (+ charter, casos) · AssetController::dashboard
+nao_toca: `_shared/` (JÁ EXISTE — ver ERRATA) · as outras 5 telas · Services/ · Modules/Auditoria
+depende: — (a fundação está no main desde o PR #7035)
 ---
+
+> ⚠️ **ERRATA 2026-09-08 [CL] — esta thread NÃO cria mais o `_shared`.**
+> Ela nasceu como "a tela que cria o shell", mas [W] mandou a tela de **Bens** fundar o
+> compartilhado, e ele foi mergeado antes (PR [#7035](https://github.com/wagnerra23/oimpresso.com/pull/7035),
+> 17:42Z). O `resources/js/Pages/Patrimonio/_shared/PatrimonioSubNav.tsx` **está no main** —
+> esta thread o **importa**, e ele virou `nao_toca`.
+>
+> **Três coisas que você herda dele, medidas e não supostas:**
+> 1. O SubNav **deriva** as abas de `shell.menu` (`DataController::modifyAdminMenu`). Não
+>    declare lista de abas em lugar nenhum — criaria um segundo dono.
+> 2. **São 6 ghosts vivos, não as 7 do protótipo** (tem *Devoluções*, não tem
+>    *Garantias*/*Auditoria* — essas duas são decisão ABERTA do [W], itens 4 e 5 do §6).
+> 3. **Escreva o charter ANTES do `.tsx`**, com `related_runbook:` apontando pro
+>    `memory/requisitos/AssetManagement/RUNBOOK-<tela>.md`. O hook `block-mwart-violation`
+>    deriva o RUNBOOK do nome da pasta de `Pages/` (`Patrimonio` ⇒ `requisitos/Patrimonio/`,
+>    que não existe nem deve) e **bloqueia sem override**. A declaração do charter é a saída
+>    prevista pelo próprio hook.
+>
+> Detalhe e recibos: [`_saida-06-bens.md`](_saida-06-bens.md) §1, §1-bis e §2.
 # 07 · Painel do Patrimônio — a tela que cria o shell
 
 ## ÂNCORA (congelada — remedir se o sha mudou)
