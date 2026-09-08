@@ -8,18 +8,16 @@ use App\Notifications\S0Alert;
 use App\Util\OtelHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Str;
 use Throwable;
 
 /**
  * ErrorReporter — os efeitos colaterais do report() (Fase 1 · E-1).
  *
  * Mantém o Handler magro (estende, não substitui): classifica → audita
- * (mcp_audit_log + log estruturado + span OTel) → dispara S0 (rate-limited).
+ * (log estruturado + span OTel) → agrupa em error_groups → dispara S0
+ * (rate-limited).
  *
  * Resiliente por contrato: NUNCA deve lançar — um reporter que quebra derruba
  * o próprio tratamento de erro. Todo caminho de falha cai em log.
@@ -38,7 +36,7 @@ class ErrorReporter
     {
         $c = $this->classifier->classify($e, $request);
 
-        // Auditoria — todas as severidades vão pro log/dashboard (OTel + mcp_audit_log).
+        // Auditoria — todas as severidades vão pro log estruturado + span OTel.
         $this->audit($c, $e);
 
         // Fase 2 (E-2): deduplica em error_groups (1000 iguais = 1 linha + contador).
@@ -57,8 +55,12 @@ class ErrorReporter
     }
 
     /**
-     * Log estruturado + span OTel + insert guarded em mcp_audit_log. Sem trace/PII.
+     * Log estruturado + span OTel. Sem trace/PII.
      * Nunca lança — uma auditoria que falha (ex: DB fora) NÃO pode bloquear o S0Alert.
+     *
+     * NÃO escreve mais em `mcp_audit_log` desde 2026-09-08 — ver o porquê logo abaixo,
+     * onde o `writeAuditLog` existia. A trilha por-erro vive em `error_groups`
+     * (ErrorGrouper, chamado no report()), que é o dono do tema e deduplica.
      */
     private function audit(Classification $c, Throwable $e): void
     {
@@ -76,38 +78,48 @@ class ErrorReporter
 
             // Zero-cost se OTel ausente (PII filtrado pelo próprio helper).
             OtelHelper::span('error.classified', $context, fn () => null);
-
-            $this->writeAuditLog($c, $e);
         } catch (Throwable) {
-            // Auditoria é best-effort — segue pro alerta mesmo se o log/DB falhar.
+            // Auditoria é best-effort — segue pro alerta mesmo se o log/OTel falhar.
         }
     }
 
-    /** Reusa o writer canônico do mcp_audit_log (ver UserLockoutService::auditMcp). */
-    private function writeAuditLog(Classification $c, Throwable $e): void
-    {
-        try {
-            if (! Schema::hasTable('mcp_audit_log')) {
-                return;
-            }
-
-            DB::table('mcp_audit_log')->insert([
-                'request_id'       => (string) Str::uuid(),
-                'user_id'          => optional(auth()->user())->id,
-                'business_id'      => optional(auth()->user())->business_id,
-                'ts'               => now(),
-                'endpoint'         => 'exception',
-                'tool_or_resource' => get_class($e),
-                'status'           => $c->severity->value,
-                'payload_summary'  => json_encode($c->toAuditArray() + [
-                    'local' => basename($e->getFile()).':'.$e->getLine(),
-                ]),
-                'created_at'       => now(),
-            ]);
-        } catch (Throwable $ex) {
-            Log::warning('error.audit_failed', ['error' => $ex->getMessage()]);
-        }
-    }
+    /*
+    |--------------------------------------------------------------------------
+    | Por que o writeAuditLog() saiu daqui (2026-09-08)
+    |--------------------------------------------------------------------------
+    | Ele inseria uma linha por exceção em `mcp_audit_log`. Medido em prod (SHA
+    | 3e9f463e54), esse insert tinha DOIS defeitos — e o barulhento não era o pior:
+    |
+    | (a) `user_id` é NOT NULL com FK pra `users`, e o valor vinha de
+    |     `optional(auth()->user())->id`. Em contexto de CRON não há usuário
+    |     autenticado, então o insert estourava SQLSTATE[23000] e a linha se perdia.
+    |     20.021 ocorrências de `error.audit_failed` no laravel.log.
+    |
+    | (b) Silencioso e pior: gravava `endpoint => 'exception'` e
+    |     `status => 'S0'..'S3'`, valores que NÃO existem nos ENUMs dessas colunas
+    |     (`enum('tools/list','tools/call',...)` e `enum('ok','denied','error',
+    |     'quota_exceeded')`). Como o `strict` do config/database.php é false, o
+    |     MySQL não recusa: coage pra ''. Resultado — 165 linhas gravadas com
+    |     endpoint='' e status='', severidade destruída na COLUNA (sobrevivia só
+    |     dentro do JSON de payload_summary).
+    |
+    | Consertar (a) sozinho converteria 20 mil linhas PERDIDAS em 20 mil linhas
+    | CORROMPIDAS. E consertar os dois exigiria mexer no schema de uma tabela Tier 0
+    | (append-only, com triggers de imutabilidade e hash-chain da ADR 0294) que a
+    | proibicoes.md lista explicitamente em "onde NÃO inventar".
+    |
+    | A remoção não perde informação porque `mcp_audit_log` NUNCA foi o dono deste
+    | tema. Todo consumidor dele o lê como razão de uso/custo MCP — sum('custo_brl'),
+    | count() de calls, distinct user_id de usuários ativos, topTools (TeamController,
+    | ForjaSaudeService, ScorecardBuilderService). Nenhum lê linha de exceção; as 165
+    | só POLUÍAM essas métricas, inflando "calls MCP" e "usuários ativos".
+    |
+    | O dono do tema é `error_groups` (ErrorGrouper, chamado no report() logo acima),
+    | que já capturava tudo isso deduplicado — inclusive os erros de cron que (a)
+    | perdia. Em prod: 64 grupos com severidade, contador e janela.
+    |
+    | As 165 linhas antigas ficam onde estão: a tabela é append-only por lei.
+    */
 
     /**
      * Dispara S0Alert no máx 1×/dedupKey/janela (Cache::add, NUNCA Cache::flush).
