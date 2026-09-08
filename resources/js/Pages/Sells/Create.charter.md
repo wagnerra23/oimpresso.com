@@ -8,6 +8,7 @@ status: live
 last_validated: "2026-06-02"
 parent_module: Sells
 related_adrs: [110, 107, 104, 93, 105]
+related_us: [US-SELL-001, US-SELL-007, US-SELL-008]
 tier: A
 charter_version: 2
 ---
