@@ -35,6 +35,7 @@
 
 import { router } from '@inertiajs/react';
 import * as React from 'react';
+import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card } from '@/Components/ui/card';
@@ -50,6 +51,21 @@ import {
   type Apuracao,
   type Meta,
 } from './metaFormat';
+
+/**
+ * Data curta pra tabela de apurações. A âncora escreve `14/05/2026`, e o Blade
+ * escrevia `2026-05-14` — na FORMA quem manda é o protótipo (ADR UI-0029).
+ *
+ * ⚠️ Sem `new Date()` de propósito: `data_ref` é data SEM hora, e construir um
+ * `Date` a partir de `"2026-05-14"` interpreta como UTC meia-noite e volta um dia
+ * atrás em fuso negativo — a apuração do dia 14 apareceria como 13. Recortar a
+ * string não tem esse defeito porque não converte nada.
+ */
+function dataCurta(valor: string): string {
+  const so = String(valor).slice(0, 10);
+  const partes = so.split('-');
+  return partes.length === 3 ? partes[2] + '/' + partes[1] + '/' + partes[0] : so;
+}
 
 function Secao({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
@@ -287,6 +303,32 @@ export default function JanaMetaDrawer({
               própria âncora cita 6 `Analise*Service` que NÃO existem no repo (o
               `ancora.mjs` acusa), então o que ela diz sobre FONTE DE DADO não vale —
               só o que ela diz sobre forma visual. */}
+          {/* PR-3 · Identificação — `metas/show.blade.php` abria com slug, tipo,
+              origem e escopo, e nenhum dos quatro existia aqui. Sem eles o PR-4
+              não pode remover aquela Blade, porque o drawer entregaria menos. */}
+          <Secao titulo="Identificação">
+            <Stack gap={1}>
+              <Linha rotulo="Identificador" valor={meta.slug} />
+              <Linha rotulo="Agregação" valor={meta.tipo_agregacao} />
+              {/* Opcionais no tipo: durante a janela de deploy o payload antigo
+                  ainda chega sem eles. Ausência se declara, não se inventa. */}
+              <Linha rotulo="Origem" valor={meta.origem ?? '—'} />
+              {/* A Blade escrevia "Business #N" ou "Plataforma". O back manda o id
+                  cru; a frase é da tela. `undefined` (payload velho) ≠ `null`
+                  (plataforma) — por isso o teste é contra `null` explícito. */}
+              <Linha
+                rotulo="Escopo"
+                valor={
+                  meta.business_id === undefined
+                    ? '—'
+                    : meta.business_id === null
+                      ? 'Plataforma — vale para todos os negócios'
+                      : 'Este negócio'
+                }
+              />
+            </Stack>
+          </Secao>
+
           <Secao titulo="Origem do número">
             <Stack gap={1}>
               <Linha rotulo="Tabelas" valor="jana_metas · jana_meta_periodos · jana_meta_apuracoes · jana_meta_fontes" />
@@ -314,6 +356,79 @@ export default function JanaMetaDrawer({
                 </Inline>
               </>
             )}
+          </Secao>
+
+          {/* PR-3 · Apurações gravadas — a tabela que `metas/show.blade.php` tinha.
+              Não substitui a Série acima: a Série mostra a FORMA da curva, esta mostra
+              os NÚMEROS com a data de cada janela, que era o que a Blade entregava. */}
+          <Secao
+            titulo={`Apurações gravadas · ${serie.length === 0 ? 'nenhuma ainda' : `${serie.length} ${serie.length === 1 ? 'janela' : 'janelas'}`}`}
+          >
+            {serie.length === 0 ? (
+              // Copy da âncora (`jana-metas.jsx` §JmApuracoesSecao), literal.
+              <p className="text-sm text-muted-foreground">
+                Nenhuma apuração ainda — a meta entra no farol depois do primeiro job.
+              </p>
+            ) : (
+              <table className="w-full text-sm">
+                <caption className="sr-only">
+                  Apurações gravadas desta meta, da janela mais antiga para a mais recente.
+                </caption>
+                <thead>
+                  <tr className="border-b text-xs uppercase tracking-wide text-muted-foreground">
+                    <th scope="col" className="py-1.5 text-left font-medium">
+                      Data ref.
+                    </th>
+                    <th scope="col" className="py-1.5 text-right font-medium">
+                      Realizado
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {serie.map((a) => (
+                    <tr key={a.data_ref} className="border-b last:border-0">
+                      <td className="py-1.5 tabular-nums">{dataCurta(a.data_ref)}</td>
+                      <td className="py-1.5 text-right font-mono tabular-nums">
+                        {formatValue(a.valor_realizado, meta.unidade)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </Secao>
+
+          {/* PR-3 · Fonte — `fontes/show.blade.php` inteira, que era uma rota só pra
+              mostrar um JSON e um aviso. O dono do endpoint de escrita é o
+              `ModulesKB` (ADR 0366); esta seção é LEITURA e não toca nele. */}
+          <Secao titulo="Fonte do número">
+            {!meta.fonte ? (
+              <p className="text-sm text-muted-foreground">
+                Sem fonte configurada — sem fonte a meta não apura.
+              </p>
+            ) : (
+              <Stack gap={3}>
+                <Stack gap={1}>
+                  <Linha rotulo="Driver" valor={meta.fonte.driver} />
+                  <Linha rotulo="Cadência" valor={meta.fonte.cadencia} />
+                </Stack>
+                <pre className="overflow-x-auto rounded-md border bg-muted/40 p-3 font-mono text-[11px] leading-relaxed">
+                  {JSON.stringify(meta.fonte.config_json, null, 2)}
+                </pre>
+              </Stack>
+            )}
+            {/* O aviso vem da âncora (§JmFonteDrawer) e da própria Blade, que já
+                dizia "somente leitura". A âncora pede tom de aviso; o Alert do DS
+                só tem `default` e `destructive`, e inventar variante nova é
+                decisão do dono do Design System — então a copy carrega o sentido. */}
+            <Alert>
+              <AlertTitle>Só leitura, por decisão</AlertTitle>
+              <AlertDescription>
+                Mudar a fonte muda o significado da série já gravada. O editor com prévia do
+                número antes de salvar é trabalho próprio (<code className={codigo}>US-COPI-040</code>)
+                — até lá, alteração passa por quem tem acesso ao servidor.
+              </AlertDescription>
+            </Alert>
           </Secao>
 
           <Secao titulo="De onde vem esse número">

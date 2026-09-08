@@ -3,6 +3,7 @@
 namespace Modules\Jana\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Scopes\ScopeByBusinessViaParent;
 use App\Services\Sells\SellsCockpitAggregator;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -70,6 +71,17 @@ class IndexController extends Controller
                 'periodoAtual',
                 'ultimaApuracao',
                 'apuracoes' => fn ($q) => $q->orderBy('data_ref')->limit(12),
+                // SUPERADMIN: a fonte herda tenancy do parent (BelongsToBusinessViaParent),
+                // e para usuario COMUM esse escopo exige `meta.business_id = <sessao>`.
+                // A consulta acima, porem, inclui DE PROPOSITO as metas de PLATAFORMA
+                // (`orWhereNull('business_id')`) — entao a fonte delas cairia fora do
+                // escopo e o drawer diria "sem fonte configurada" para uma meta que TEM
+                // fonte. Isso nao e ausencia de dado, e ausencia de permissao travestida.
+                // Dispensar o escopo aqui e seguro POR CONSTRUCAO: o eager-load ja nasce
+                // restrito a `meta_id IN (<ids das metas que esta sessao pode ver>)`, que
+                // e exatamente o conjunto que a consulta de cima acabou de filtrar —
+                // ninguem alcanca fonte de meta que nao enxerga. ADR 0093.
+                'fonte' => fn ($q) => $q->withoutGlobalScope(ScopeByBusinessViaParent::class),
             ])
             ->get();
 
@@ -87,6 +99,19 @@ class IndexController extends Controller
             'nome'               => $meta->nome,
             'unidade'            => $meta->unidade,
             'tipo_agregacao'     => $meta->tipo_agregacao,
+            // Os tres abaixo vinham de `metas/show.blade.php` e nao existiam no payload.
+            // `business_id` sai CRU: quem decide como escrever "Plataforma" x "este
+            // negocio" e a tela; o back nao manda frase pronta.
+            'origem'             => $meta->origem,
+            'business_id'        => $meta->business_id,
+            // A fonte vinha de `fontes/show.blade.php`, so-leitura por decisao (o editor
+            // com previa do numero antes de salvar e a US-COPI-040). `null` = meta sem
+            // fonte gravada, que e estado REAL: sem fonte a meta nao apura.
+            'fonte'              => $meta->fonte ? [
+                'driver'      => $meta->fonte->driver,
+                'cadencia'    => $meta->fonte->cadencia,
+                'config_json' => $meta->fonte->config_json,
+            ] : null,
             'periodo_atual'      => $meta->periodoAtual ? [
                 'data_ini'   => $meta->periodoAtual->data_ini,
                 'data_fim'   => $meta->periodoAtual->data_fim,
