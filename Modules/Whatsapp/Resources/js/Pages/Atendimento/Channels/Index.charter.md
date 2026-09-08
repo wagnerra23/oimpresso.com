@@ -1,7 +1,7 @@
 ---
 page: /atendimento/channels
 component: Modules/Whatsapp/Resources/js/Pages/Atendimento/Channels/Index.tsx
-related_prototype: n/a (herda PT-01 Lista; o inbox-page.jsx desenha o USO e a RECONEXAO do canal dentro da inbox — chips, filtro, drawer de leitura e modal Reconectar — nao a GESTAO: medido 2026-09-07, zero ocorrencia de "Novo canal"/"Criar canal"/"Desativar", e o proprio prototipo se posiciona como "vs link /canais")
+related_prototype: n/a (herda PT-01 Lista; o inbox-page.jsx desenha o USO e a RECONEXÃO do canal dentro da inbox — chips, filtro, drawer de leitura, modal Reconectar — não a GESTÃO; medido 2026-09-07, zero ocorrência de "Novo canal"/"Criar canal"/"Desativar", e o próprio protótipo se posiciona como "vs link /canais")
 owner: wagner
 status: draft
 last_validated: "2026-05-16"
