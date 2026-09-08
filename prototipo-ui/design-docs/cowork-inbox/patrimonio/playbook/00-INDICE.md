@@ -36,11 +36,18 @@ O passo 0 pagando por si: um pedido morreu por falta de prova, e um vazamento Ti
 | 03 | **Guarda `asset.view` no índice** | ~4 KB | ~8 ln | 2 | 2 | 0 | **CABE** |
 | 04 | **Remedir D1/D5 e os não-lidos** (frente 0) | ~25 KB | 0 | 0 | — | 0 | **CABE** (medição) |
 | 05 | **Job de retenção LGPD** `assetmanagement:retention-purge` | ~6 KB | ~120 ln | 3 | 2 | 0¹ | **CABE** |
-| 06 | **A UI inteira — 46 arquivos** | — | — | 0 | — | 0 | **DESTRAVADA** (ADR 0394) — vira frente de 5-7 threads, 1 por tela |
+| **07** | **Painel** — cria o `_shared` da frente | ~6 KB | ~180 ln | 3 | 2 | 0 | **CABE** · 1ª da frente |
+| **08** | **Bens** — o CRUD principal | ~9 KB | ~250 ln | 2 | 2 | 0 | **CABE** · atrás da 07 |
+| **09** | **Alocações** — funde `allocation`+`revocation` | ~12 KB | ~280 ln | 3 | 3 | **1** | **CABE** se a fusão for só de tela |
+| **10** | **Manutenções** — carrega o D1 | ~8 KB | ~220 ln | 2 | 2 | 0 | **CABE** · não corrige o D1 |
+| **11** | **Configurações** | ~5 KB | ~150 ln | 2 | 2 | 0 | **CABE** · menor da frente |
+| **12** | **Garantias** — tela nova, dado existente | ~6 KB | ~200 ln | 2 | 2 | **1** | **BLOQUEADA** por D-GARANTIAS |
+| **13** | **Auditoria** | — | — | 0 | — | **1** | **BLOQUEADA** por D-AUDITORIA |
 
 ¹ [W] 10 decide **quando ligar em canary**, não se o código nasce — o próprio doc de 04/09 diz "o código pode nascer já". Nasce com `enabled=false`.
 
-**Vaga 1:** 01 ∥ 03 ∥ 04 (prefixos disjuntos). **Vaga 2:** 02 (toca o mesmo Service da 01) ∥ 05.
+**Backend (01-05):** 01 e 03 e 04 feitas; 02 atrás da 01; 05 barrada pela lápide §5.
+**Frente de UI (07-13), aberta pela ADR 0394:** a **07** vai sozinha — ela cria o `_shared/PatrimonioSubNav.tsx` que as outras importam, e errar ali custa seis telas. Depois **08 ∥ 09 ∥ 10** (prefixos disjuntos), então **11**. A **12** espera D-GARANTIAS e a **13**, D-AUDITORIA.
 **A ordem não é gosto:** 01 vem primeiro porque é multi-tenant em produção — Tier 0 fura antes de qualquer verniz.
 
 ## 2-bis · ESTADO — derivado, nunca escrito
@@ -82,45 +89,347 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
   "modulo": "Patrimonio",
   "sha": "cb475c0ca2f4",
   "gerado": "2026-09-08",
-  "absorve": ["prototipo-ui/COLAR-NO-CODE-patrimonio-ondas.md"],
+  "absorve": [
+    "prototipo-ui/COLAR-NO-CODE-patrimonio-ondas.md"
+  ],
   "constituicao": "CONSTITUICAO-COWORK.md",
   "decisoes": [
-    { "id": "D-ENDERECO", "pergunta": "Patrimonio e modulo proprio (Pages/Patrimonio/**) ou secao do Estoque (Pages/Estoque/Patrimonio/**)? ADR 0180 x ADR 0182 x SCOPE bloqueado-escopo.", "respondida": true, "resposta": "Pages/Patrimonio/** (modulo proprio) — [W] 2026-09-04, ratificado 2026-09-08; ADR 0394; SCOPE.md migracao_ui liberado", "destrava": ["06"], "custo": "44 arquivos / 20 PRs" },
-    { "id": "D-CANARY-LGPD", "pergunta": "Quando ligar assetmanagement:retention-purge em canary? (nao bloqueia escrever o job com enabled=false)", "respondida": false, "afeta": ["05"] }
+    {
+      "id": "D-ENDERECO",
+      "pergunta": "Patrimonio e modulo proprio (Pages/Patrimonio/**) ou secao do Estoque (Pages/Estoque/Patrimonio/**)? ADR 0180 x ADR 0182 x SCOPE bloqueado-escopo.",
+      "respondida": true,
+      "resposta": "Pages/Patrimonio/** (modulo proprio) — [W] 2026-09-04, ratificado 2026-09-08; ADR 0394; SCOPE.md migracao_ui liberado",
+      "destrava": [
+        "06"
+      ],
+      "custo": "44 arquivos / 20 PRs"
+    },
+    {
+      "id": "D-CANARY-LGPD",
+      "pergunta": "Quando ligar assetmanagement:retention-purge em canary? (nao bloqueia escrever o job com enabled=false)",
+      "respondida": false,
+      "afeta": [
+        "05"
+      ]
+    },
+    {
+      "id": "D-GARANTIAS",
+      "pergunta": "Garantias e tela propria ou filtro da tela de Bens? (RESIDUO 4). A tabela asset_warranties existe e ja e lida pelo dashboard; o prototipo desenhou aba propria.",
+      "respondida": false,
+      "destrava": [
+        "12"
+      ]
+    },
+    {
+      "id": "D-AUDITORIA",
+      "pergunta": "Auditoria do Patrimonio e aba deste modulo ou deep-link para o Modules/Auditoria ja filtrado? (RESIDUO 5). Duplicar cria dois donos do mesmo tema.",
+      "respondida": false,
+      "destrava": [
+        "13"
+      ]
+    }
   ],
   "threads": [
-    { "id": "01", "titulo": "Tenant na subconsulta de revoke (vazamento Tier 0)", "dono": "CL", "vaga": 1, "arquivo": "01-tenant-subquery-revoke.md",
-      "prefixo": ["Modules/AssetManagement/Services/AssetAllocationService.php", "Modules/AssetManagement/Tests/Feature/CrossTenantAssetTest.php"],
-      "nao_toca": ["Modules/AssetManagement/Http/Controllers/", "resources/js/"],
+    {
+      "id": "01",
+      "titulo": "Tenant na subconsulta de revoke (vazamento Tier 0)",
+      "dono": "CL",
+      "vaga": 1,
+      "arquivo": "01-tenant-subquery-revoke.md",
+      "prefixo": [
+        "Modules/AssetManagement/Services/AssetAllocationService.php",
+        "Modules/AssetManagement/Tests/Feature/CrossTenantAssetTest.php"
+      ],
+      "nao_toca": [
+        "Modules/AssetManagement/Http/Controllers/",
+        "resources/js/"
+      ],
       "provas": [
-        { "tipo": "contem", "path": "Modules/AssetManagement/Services/AssetAllocationService.php", "padrao": "AR.business_id" },
-        { "tipo": "contem", "path": "Modules/AssetManagement/Tests/Feature/CrossTenantAssetTest.php", "padrao": "quantidadeDisponivel" }
-      ] },
-    { "id": "02", "titulo": "Trava de saldo na alocacao", "dono": "CL", "vaga": 2, "arquivo": "02-trava-de-saldo.md",
-      "prefixo": ["Modules/AssetManagement/Services/AssetAllocationService.php", "Modules/AssetManagement/Http/Requests/StoreAssetAllocationRequest.php", "Modules/AssetManagement/Tests/Feature/Wave27AssetManagementPolishTest.php"],
-      "nao_toca": ["Modules/AssetManagement/Services/AssetMaintenanceService.php"],
-      "depende_thread": ["01"],
-      "provas": [{ "tipo": "contem", "path": "Modules/AssetManagement/Services/AssetAllocationService.php", "padrao": "quantidadeDisponivel" }] },
-    { "id": "03", "titulo": "Guarda asset.view no indice", "dono": "CL", "vaga": 1, "arquivo": "03-guarda-asset-view.md",
-      "prefixo": ["Modules/AssetManagement/Http/Controllers/AssetController.php", "Modules/AssetManagement/Tests/Feature/SmokeRoutesTest.php"],
-      "nao_toca": ["Modules/AssetManagement/Services/", "Modules/AssetManagement/Http/Controllers/AssetAllocationController.php"],
+        {
+          "tipo": "contem",
+          "path": "Modules/AssetManagement/Services/AssetAllocationService.php",
+          "padrao": "AR.business_id"
+        },
+        {
+          "tipo": "contem",
+          "path": "Modules/AssetManagement/Tests/Feature/CrossTenantAssetTest.php",
+          "padrao": "quantidadeDisponivel"
+        }
+      ]
+    },
+    {
+      "id": "02",
+      "titulo": "Trava de saldo na alocacao",
+      "dono": "CL",
+      "vaga": 2,
+      "arquivo": "02-trava-de-saldo.md",
+      "prefixo": [
+        "Modules/AssetManagement/Services/AssetAllocationService.php",
+        "Modules/AssetManagement/Http/Requests/StoreAssetAllocationRequest.php",
+        "Modules/AssetManagement/Tests/Feature/Wave27AssetManagementPolishTest.php"
+      ],
+      "nao_toca": [
+        "Modules/AssetManagement/Services/AssetMaintenanceService.php"
+      ],
+      "depende_thread": [
+        "01"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "Modules/AssetManagement/Services/AssetAllocationService.php",
+          "padrao": "quantidadeDisponivel"
+        }
+      ]
+    },
+    {
+      "id": "03",
+      "titulo": "Guarda asset.view no indice",
+      "dono": "CL",
+      "vaga": 1,
+      "arquivo": "03-guarda-asset-view.md",
+      "prefixo": [
+        "Modules/AssetManagement/Http/Controllers/AssetController.php",
+        "Modules/AssetManagement/Tests/Feature/SmokeRoutesTest.php"
+      ],
+      "nao_toca": [
+        "Modules/AssetManagement/Services/",
+        "Modules/AssetManagement/Http/Controllers/AssetAllocationController.php"
+      ],
       "nota_provas": "ERRATA 2026-09-08: o padrao era \"asset.view\", que ja passava ANTES do trabalho por casar prefixo com asset.view_all_maintenance (AssetController.php:145, linha que so desenha botao). Prova de carimbo. Trocado por can('asset.view'), medido com controle positivo: nao passa hoje, passa quando a guarda entrar.",
-      "provas": [{ "tipo": "contem", "path": "Modules/AssetManagement/Http/Controllers/AssetController.php", "padrao": "can('asset.view')" }] },
-    { "id": "04", "titulo": "Remedir D1/D5 e os nao-lidos (frente 0)", "dono": "CL", "vaga": 1, "arquivo": "04-remedir-frente-0.md",
-      "prefixo": [], "nao_toca": ["*"],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "Modules/AssetManagement/Http/Controllers/AssetController.php",
+          "padrao": "can('asset.view')"
+        }
+      ]
+    },
+    {
+      "id": "04",
+      "titulo": "Remedir D1/D5 e os nao-lidos (frente 0)",
+      "dono": "CL",
+      "vaga": 1,
+      "arquivo": "04-remedir-frente-0.md",
+      "prefixo": [],
+      "nao_toca": [
+        "*"
+      ],
       "nota_provas": "thread de MEDICAO: nao escreve codigo. Prova = _saida-04.md com veredito por defeito (confirmado com linha / nao existe / ja corrigido).",
-      "provas": [] },
-    { "id": "05", "titulo": "Job de retencao LGPD (nasce com enabled=false)", "dono": "CL", "vaga": 2, "arquivo": "05-retencao-lgpd.md",
-      "prefixo": ["Modules/AssetManagement/Console/Commands/", "Modules/AssetManagement/Config/retention.php", "Modules/AssetManagement/Tests/Feature/LgpdComplianceTest.php"],
-      "nao_toca": ["Modules/AssetManagement/Services/", "Modules/AssetManagement/Http/"],
-      "afeta_decisoes": ["D-CANARY-LGPD"],
-      "provas": [{ "tipo": "contem", "path": "Modules/AssetManagement/Config/retention.php", "padrao": "enabled" }] },
-    { "id": "06", "titulo": "A UI inteira — 46 arquivos", "dono": "W", "arquivo": "06-ui-bloqueada.md",
-      "prefixo": [], "nao_toca": ["resources/js/Pages/"],
-      "desbloqueada_em": "2026-09-08",
-      "endereco": "resources/js/Pages/Patrimonio/** (ADR 0394; SCOPE migracao_ui liberado)",
-      "nota": "DESTRAVADA, nao pronta: 7 telas nao cabem numa thread. Reescrever como frente de 5-7 threads, uma por tela, cada uma com a ficha do §13.2 e o MWART da ADR 0104 (RUNBOOK antes do .tsx).",
-      "depende_decisoes": [], "provas": [] }
+      "provas": []
+    },
+    {
+      "id": "05",
+      "titulo": "Job de retencao LGPD (nasce com enabled=false)",
+      "dono": "CL",
+      "vaga": 2,
+      "arquivo": "05-retencao-lgpd.md",
+      "prefixo": [
+        "Modules/AssetManagement/Console/Commands/",
+        "Modules/AssetManagement/Config/retention.php",
+        "Modules/AssetManagement/Tests/Feature/LgpdComplianceTest.php"
+      ],
+      "nao_toca": [
+        "Modules/AssetManagement/Services/",
+        "Modules/AssetManagement/Http/"
+      ],
+      "afeta_decisoes": [
+        "D-CANARY-LGPD"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "Modules/AssetManagement/Config/retention.php",
+          "padrao": "enabled"
+        }
+      ]
+    },
+    {
+      "id": "07",
+      "titulo": "Painel do Patrimonio — cria o _shared da frente",
+      "dono": "CL",
+      "vaga": 1,
+      "arquivo": "07-painel.md",
+      "prefixo": [
+        "resources/js/Pages/Patrimonio/Index.tsx",
+        "resources/js/Pages/Patrimonio/_shared/",
+        "Modules/AssetManagement/Http/Controllers/AssetController.php"
+      ],
+      "nao_toca": [
+        "Modules/AssetManagement/Services/",
+        "Modules/Auditoria/"
+      ],
+      "nota_provas": "primeira da frente: cria o PatrimonioSubNav que as 08-12 importam.",
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "resources/js/Pages/Patrimonio/Index.tsx"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "resources/js/Pages/Patrimonio/Index.charter.md"
+        },
+        {
+          "tipo": "contem",
+          "path": "Modules/AssetManagement/Http/Controllers/AssetController.php",
+          "padrao": "Inertia::render('Patrimonio/Index'"
+        }
+      ]
+    },
+    {
+      "id": "08",
+      "titulo": "Bens — o CRUD principal",
+      "dono": "CL",
+      "vaga": 2,
+      "arquivo": "08-bens.md",
+      "prefixo": [
+        "resources/js/Pages/Patrimonio/Bens/",
+        "Modules/AssetManagement/Http/Controllers/AssetController.php"
+      ],
+      "nao_toca": [
+        "resources/js/Pages/Patrimonio/_shared/"
+      ],
+      "depende_threads": [
+        "07"
+      ],
+      "nota_provas": "a guarda can('asset.view') do PR #7008 tem de SOBREVIVER a migracao — mas ela nao entra como prova: ja passa hoje, entao marcaria a thread como 'em curso' sem trabalho nenhum (carimbo). Fica no checklist, onde o humano confere.",
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "resources/js/Pages/Patrimonio/Bens/Index.tsx"
+        }
+      ]
+    },
+    {
+      "id": "09",
+      "titulo": "Alocacoes — funde allocation + revocation numa aba",
+      "dono": "CL",
+      "vaga": 2,
+      "arquivo": "09-alocacoes.md",
+      "prefixo": [
+        "resources/js/Pages/Patrimonio/Alocacoes/",
+        "Modules/AssetManagement/Http/Controllers/AssetAllocationController.php",
+        "Modules/AssetManagement/Http/Controllers/RevokeAllocatedAssetController.php"
+      ],
+      "nao_toca": [
+        "Modules/AssetManagement/Services/AssetAllocationService.php"
+      ],
+      "depende_threads": [
+        "07"
+      ],
+      "nota_provas": "o prototipo funde 2 rotas numa aba; fundir a ROTA e decisao [W].",
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "resources/js/Pages/Patrimonio/Alocacoes/Index.tsx"
+        },
+        {
+          "tipo": "contem",
+          "path": "Modules/AssetManagement/Http/Controllers/AssetAllocationController.php",
+          "padrao": "Inertia::render"
+        }
+      ]
+    },
+    {
+      "id": "10",
+      "titulo": "Manutencoes — e o D1 que ainda vive",
+      "dono": "CL",
+      "vaga": 2,
+      "arquivo": "10-manutencoes.md",
+      "prefixo": [
+        "resources/js/Pages/Patrimonio/Manutencoes/",
+        "Modules/AssetManagement/Http/Controllers/AssetMaitenanceController.php"
+      ],
+      "nao_toca": [
+        "resources/js/Pages/Patrimonio/_shared/"
+      ],
+      "depende_threads": [
+        "07"
+      ],
+      "nota_provas": "D1 vive em 6 sitios deste controller (&& onde deveria ser ||). NAO corrigir aqui: registrar.",
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "resources/js/Pages/Patrimonio/Manutencoes/Index.tsx"
+        },
+        {
+          "tipo": "contem",
+          "path": "Modules/AssetManagement/Http/Controllers/AssetMaitenanceController.php",
+          "padrao": "Inertia::render"
+        }
+      ]
+    },
+    {
+      "id": "11",
+      "titulo": "Configuracoes — prefixos e notificacoes",
+      "dono": "CL",
+      "vaga": 3,
+      "arquivo": "11-configuracoes.md",
+      "prefixo": [
+        "resources/js/Pages/Patrimonio/Configuracoes/",
+        "Modules/AssetManagement/Http/Controllers/AssetSettingsController.php"
+      ],
+      "nao_toca": [
+        "Modules/AssetManagement/Config/retention.php"
+      ],
+      "depende_threads": [
+        "07"
+      ],
+      "nota_provas": "retention.php e da thread 05, BARRADA pela lapide 5 de 2026-07-27.",
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "resources/js/Pages/Patrimonio/Configuracoes/Index.tsx"
+        },
+        {
+          "tipo": "contem",
+          "path": "Modules/AssetManagement/Http/Controllers/AssetSettingsController.php",
+          "padrao": "Inertia::render"
+        }
+      ]
+    },
+    {
+      "id": "12",
+      "titulo": "Garantias — tela nova sobre dado que ja existe",
+      "dono": "CL",
+      "vaga": 3,
+      "arquivo": "12-garantias.md",
+      "prefixo": [
+        "resources/js/Pages/Patrimonio/Garantias/",
+        "Modules/AssetManagement/Routes/web.php"
+      ],
+      "nao_toca": [
+        "Modules/AssetManagement/Http/Controllers/AssetController.php"
+      ],
+      "depende_threads": [
+        "07"
+      ],
+      "depende_decisoes": [
+        "D-GARANTIAS"
+      ],
+      "nota_provas": "asset_warranties EXISTE (1 migration) e ja e lida no dashboard; falta rota e tela.",
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "resources/js/Pages/Patrimonio/Garantias/Index.tsx"
+        }
+      ]
+    },
+    {
+      "id": "13",
+      "titulo": "Auditoria — aba daqui ou do Modules/Auditoria?",
+      "dono": "W",
+      "arquivo": "13-auditoria-bloqueada.md",
+      "prefixo": [],
+      "nao_toca": [
+        "*"
+      ],
+      "bloqueio": "Decisao [W] 5 do RESIDUO: o Modules/Auditoria ja e dono da trilha por-registro; abrir uma segunda aqui cria dois donos do mesmo tema (LC-19). A opcao barata e deep-link para a tela dele ja filtrada por subject_type=Asset — e ai nao ha tela a construir.",
+      "depende_decisoes": [
+        "D-AUDITORIA"
+      ],
+      "provas": []
+    }
   ]
 }
 ```

@@ -9,6 +9,26 @@ depende: — (D-ENDERECO respondida)
 ---
 # 06 · UI — DESTRAVADA (era: bloqueada)
 
+> 📌 **A frente foi ABERTA em 2026-09-08 [CL] — são 7 threads, e o `§7` do índice não lista mais a `06`.**
+>
+> | thread | tela | rota hoje | estado |
+> |---|---|---|---|
+> | [`07-painel.md`](07-painel.md) | Painel | `dashboard` | **1ª** — cria o `_shared/PatrimonioSubNav.tsx` |
+> | [`08-bens.md`](08-bens.md) | Bens | `assets` | atrás da 07 |
+> | [`09-alocacoes.md`](09-alocacoes.md) | Alocações | `allocation` **+** `revocation` | atrás da 07 · **fusão de 2 rotas numa aba** |
+> | [`10-manutencoes.md`](10-manutencoes.md) | Manutenções | `asset-maintenance` | atrás da 07 · **carrega o D1** |
+> | [`11-configuracoes.md`](11-configuracoes.md) | Configurações | `settings` | atrás da 07 |
+> | [`12-garantias.md`](12-garantias.md) | Garantias | **nenhuma** | **bloqueada** por `D-GARANTIAS` |
+> | [`13-auditoria-bloqueada.md`](13-auditoria-bloqueada.md) | Auditoria | **nenhuma** | **bloqueada** por `D-AUDITORIA` |
+>
+> **A conta não é 7 telas migradas.** São **5 migradas** (as que têm rota Blade), **1 tela nova sobre
+> dado que já existe** (`asset_warranties` tem migration e já é lida no `dashboard()` — falta rota e
+> tela) e **1 que talvez não deva existir**: o `Modules/Auditoria` já é dono da trilha por-registro,
+> e abrir uma segunda aqui cria dois donos do mesmo tema.
+>
+> **A 07 vai sozinha, e isso não é cautela**: ela cria o `_shared` que as outras cinco importam.
+> Errar ali custa seis telas, não uma.
+
 > ⚠️ **Este arquivo mudou de natureza em 2026-09-08.** Era o registro de um bloqueio; virou o
 > ponto de partida de uma frente. O histórico do bloqueio fica abaixo, datado — não apagado.
 
