@@ -444,9 +444,31 @@ Medido a pedido da sessão coordenadora. `AssetController.php` sha `085fd16d516a
 tem o gate de assinatura (`:75`); o `dashboard()` não tem nada — `:425` pega o `$business_id`
 e `:427` já consulta. É o único método público do arquivo sem `abort(403)`.
 
-**Ressalva para quem pegar:** o `dashboard()` cabe na thread 03 pelo critério do passo 4 dela,
-**mas só a guarda**. O corpo dele carrega os defeitos de tenant do §7b e §7c, que são de outro
-dono — encostar nas queries transformaria o PR da 03 em dois intents e invadiria o terreno da 01.
+**⚠️ ERRATA (mesma sessão, após cruzamento com a thread 03) — a 1ª redação desta ressalva
+estava ERRADA e fica registrada, não apagada.** Eu havia escrito: *"o `dashboard()` cabe na
+thread 03 pelo critério do passo 4 dela, mas só a guarda"*. **Pôr `can('asset.view')` no
+`dashboard()` quebra perfil legítimo** — é o `PARAR SE (b)` do playbook da 03, e eu o
+atravessei. Medido depois que ela discordou:
+
+```
+DataController.php:109   gate do item de sidebar — aceita can('asset.view_own_maintenance') SOZINHO (é um ||)
+DataController.php:117   e o item aponta para  action([AssetController::class, 'dashboard'])
+```
+
+Ou seja: um colaborador com **só** `view_own_maintenance` vê o item "Patrimônio" no menu, e o
+destino dele **é** o `dashboard()`. Com a guarda `asset.view` ali, ele tomaria **403 num menu
+que o próprio sistema exibiu para ele**. Some-se que o `dashboard()` filtra
+`receiver = auth()->user()->id` (`:427`, `:435`) — é a **tela pessoal** do colaborador; o bloco
+da empresa já está sob `if ($is_admin)` (`:453`). A regra ali não é "view", é escopo por dono.
+
+**O que continua verdadeiro:** `dashboard()` não tem **nem o gate de assinatura** que o
+`index()` tem no `:75` — é o único método público do arquivo sem nenhum `abort(403)`. Isso é
+buraco real, mas o fix é **assinatura**, não permissão de tela, e é intent separado (a 03 o
+registrou assim). O corpo do método continua fora de qualquer thread por causa de §7b/§7c.
+
+**Por que a errata fica escrita:** a proibição do projeto é explícita — anti-padrão inventado
+em doc canônico é pior que ausente, porque parece canon e a próxima sessão obedece. A 1ª
+redação teria mandado alguém quebrar um caminho vivo.
 
 **Falso-positivo por prefixo, confirmado:** `asset.view` **não aparece** no `AssetController`
 (busca por string exata devolve rc=1). O `:145` é `asset.view_all_maintenance` /
@@ -463,10 +485,17 @@ isolamento Tier 0 (ADR 0093) — **morrem antes de assertar**. Todo `Asset::crea
 `created_by`, que é `int unsigned NOT NULL` com FK `assets_created_by_foreign` → `users(id)`
 (`database/schema/mysql-schema.sql:674-:691`). A inserção estoura na FK.
 
-| via | evidência |
-|---|---|
-| execução (thread 01) | 7 falhas, todas a mesma FK; restaurando ao main: `Tests: 3 failed (0 assertions)` |
-| leitura (esta thread) | `grep -c created_by` nos dois arquivos = **0** e **0**; coluna NOT NULL + FK no schema |
+| via | evidência | estável? |
+|---|---|---|
+| execução (thread 01) | falhas todas na mesma FK; restaurando ao main: `Tests: 3 failed (0 assertions)` | **não** — ver ressalva |
+| leitura (esta thread) | `grep -c created_by` nos dois arquivos = **0** e **0**; coluna NOT NULL + FK no schema | **sim** |
+
+**Ressalva sobre o número de falhas:** a contagem oscilou (8 → 7) durante as medições, porque
+a thread 01 tinha o `CrossTenantAssetTest.php` modificado no container e reverteu no meio da
+sessão — a thread 03 detectou pelo md5 e teve de re-medir o par dela. **Portanto o número
+exato de falhas é datado e volátil, e não deve ser citado como fato do módulo.** O que é
+estável, e basta para o veredito, é a leitura: `created_by` ausente em 2 de 2 arquivos contra
+coluna `NOT NULL` com FK. O `0 assertions` é o dado que importa, não o `N failed`.
 
 **Por que isto fecha o círculo do módulo.** O cabeçalho do `modules-pest.yml:23-:30` registrou
 em 04/09 que os 9 testes estavam no `phpunit.xml` e **nenhuma lane os disparava** — falsa
