@@ -1,5 +1,7 @@
 {
   "declared": 194,
   "totalCharters": 218,
-  "note": "Catraca de cobertura de design: `declared` (telas com fonte de design declarada) só sobe. Baixar exige decisão consciente."
+  "note": "Catraca de cobertura de design: `declared` (telas com fonte de design declarada) só sobe. Baixar exige decisão consciente.",
+  "parityLinked": 18,
+  "noteParidade": "Eixo paridade (Onda 7): parityLinked = charters que declaram related_visual_comparison apontando pra arquivo existente. So sobe. Orfaos (66) e quebrados sao report-only — divida herdada nao reprova o autor do PR."
 }

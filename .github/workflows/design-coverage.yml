@@ -47,7 +47,7 @@ jobs:
       - name: Catraca de cobertura de design (só sobe)
         run: |
           node scripts/qa/design-coverage.mjs --check || {
-            echo "::error title=DS design-coverage::Uma tela perdeu a fonte de design declarada (declared regrediu). Declare o Padrão de Tela/protótipo no charter + rode 'node scripts/qa/design-coverage.mjs --json' pra subir o piso."
+            echo "::error title=DS design-coverage::Regressao na cobertura de design. Duas causas possiveis: (1) declared caiu — uma tela perdeu a fonte de design declarada; declare o Padrao de Tela/prototipo no charter. (2) parityLinked caiu — um charter perdeu o related_visual_comparison que apontava pro seu inventario de paridade. A mensagem do script diz qual dos dois. Depois rode 'node scripts/qa/design-coverage.mjs --json' pra subir o piso."
             exit 1
           }
           echo "✅ cobertura de design não regrediu."
