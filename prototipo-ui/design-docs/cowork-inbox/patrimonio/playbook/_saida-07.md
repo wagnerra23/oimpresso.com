@@ -276,7 +276,7 @@ do meu merge: `BadMethodCallException — Method Inertia\Response::getData does 
 rota (o Blade era o motivo do desvio, e sumiu junto) e mede **delta** do balde `sem` da garantia,
 porque a forma do vazamento mudou com a query: agora seria **numérico**, não um nome à mostra.
 
-**Por que não peguei — duas causas, ambas medidas, nenhuma é desculpa.**
+**Por que não peguei — três causas, todas medidas, nenhuma é desculpa.**
 
 1. **Rodei a suíte contra o `main`, sem o meu código.** `php artisan test Modules/AssetManagement/Tests`
    no CT 100 deu `69 passed · 237 assertions · 0 failed` — e o `SmokeRoutesTest` estava entre os
@@ -292,15 +292,31 @@ porque a forma do vazamento mudou com a query: agora seria **numérico**, não u
    `types: [opened, reopened, ready_for_review]` — **sem `synchronize`**: mesmo que tivesse rodado
    na abertura, nenhum dos 9 pushes seguintes (incluindo o `toBase()`, que reescreveu as 7 queries)
    seria coberto. O vermelho só apareceu no `push main` das 18:36, **depois** do merge.
+3. **E mesmo se ela tivesse disparado, o teste teria PULADO.** Isto não é meu — é o
+   [#7049](https://github.com/wagnerra23/oimpresso.com/pull/7049), aberto por [CC] enquanto eu
+   media a causa 2, e ele acha mais fundo: a `modules-pest` roda **SQLite in-memory**, e os testes
+   do AssetManagement exigem o schema MySQL do UltimatePOS. Recibo dele, no #7047:
+   `21 skipped, 58 passed · job: success`. Verde, com os UCs sem rodar. As 20 lanes que usam
+   `.github/actions/pest-mysql-setup` não incluem esta.
+
+⚠️ **A causa 3 corrige o que eu ia escrever.** Minha formulação inicial era *"enquanto o gatilho
+não tiver `synchronize`, um PR pode atravessar verde"* — verdadeira e **incompleta**: com
+`synchronize` ligado e SQLite mantido, o `SmokeRoutesTest` continuaria pulando e o defeito passaria
+igual. São **dois defeitos independentes na mesma lane** (não dispara · quando dispara, não mede), e
+consertar só um deixa o buraco aberto. O dono do tema é o **#7049**; esta seção aponta pra ele em
+vez de propor conserto paralelo.
 
 **O que isto invalida no meu próprio texto:** o §6 lista `69 passed` como prova do item 7 do
 checklist ("9 Pest verdes"). Com a lane fora e o run feito contra o `main`, aquilo **não era prova
 desta entrega** — era do estado anterior. A ressalva estava escrita; o número não deveria ter
 entrado na coluna "✅".
 
-⚠️ **Não é achado a explorar aqui, é aviso pras threads 09–12:** enquanto o `modules-pest.yml` não
-disparar em `synchronize`, um PR de tela do Patrimônio pode atravessar o CI inteiro verde sem que
-um único Pest do módulo rode. Mudar o gatilho é governança de CI, não escopo de thread de tela.
+⚠️ **Aviso pras threads 09–12, não achado a explorar aqui:** hoje um PR de tela do Patrimônio
+atravessa o CI inteiro verde sem que um único Pest do módulo **execute** — pelas duas portas acima
+(gatilho sem `synchronize`; e SQLite fazendo pular o que dispara). Enquanto o **#7049** não mergear,
+**a única execução real dos Pest deste módulo é manual, no CT 100, com o código do PR aplicado** —
+não contra o `main`, que foi o meu erro. Consertar a lane é governança de CI, não escopo de thread
+de tela: nem toquei no `modules-pest.yml`.
 
 **Segundo follow-up, que NÃO é meu:** o
 [#7047](https://github.com/wagnerra23/oimpresso.com/pull/7047) conserta a tabela de Bens, que nunca
