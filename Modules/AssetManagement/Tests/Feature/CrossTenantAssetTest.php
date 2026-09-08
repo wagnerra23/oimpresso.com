@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\AssetManagement\Entities\Asset;
 use Modules\AssetManagement\Entities\AssetMaintenance;
+use Modules\AssetManagement\Entities\AssetTransaction;
+use Modules\AssetManagement\Services\AssetAllocationService;
 
 uses(Tests\TestCase::class);
 
@@ -174,5 +176,78 @@ it('cross-tenant: Asset::forDropdown($biz) sanity — só retorna assets do busi
 })->afterEach(function () {
     foreach (['AST-CRS-X99D', 'AST-CRS-X1D'] as $code) {
         Asset::where('asset_code', $code)->forceDelete();
+    }
+});
+
+/**
+ * UC-ASSET-TENANT-01 — o saldo disponível de um bem é do SEU tenant.
+ *
+ * `AssetAllocationService::quantidadeDisponivel()` filtra o tenant na consulta externa
+ * (`assets.business_id`) mas a subconsulta de revogados correlaciona só por `AR.asset_id`
+ * e `AR.transaction_type`. Como `assets.id` é PK GLOBAL e `asset_transactions.asset_id`
+ * é FK sem restrição de tenant, uma transação `revoke` gravada por OUTRA empresa sobre o
+ * bem alheio entra na conta — e o saldo do dono muda sem que ninguém do lado dele mexa.
+ *
+ * O caso monta exatamente isso: o dono (biz=98, canônico) aloca 10; o adversário (biz=99)
+ * grava um `revoke` de 4 apontando o `asset_id` do dono. O disponível do dono tem de
+ * continuar 10 — o número dele não pode depender de linha de terceiro.
+ *
+ * ADR 0093 (multi-tenant Tier 0 IRREVOGÁVEL) · ADR 0358 (tenant canônico 98; 99 é o
+ * adversário cross-tenant) — biz=4 (ROTA LIVRE, cliente real) é proibido aqui.
+ */
+const ASSET_CODE_TNT01 = 'AST-CRS-TNT01';
+
+it('cross-tenant: revoke do adversário NÃO altera quantidadeDisponivel do tenant dono (UC-ASSET-TENANT-01)', function () {
+    $dono = $this->seededTenant();                  // biz=98 — dono do bem
+    $adversario = $this->seededSupportClientTenant(); // biz=99 — outra empresa
+
+    expect($dono->id)->not->toBe($adversario->id);  // sem isso o teste seria tautológico
+
+    $bem = Asset::create([
+        'business_id'    => $dono->id,
+        'name'           => 'Bem do tenant dono',
+        'asset_code'     => ASSET_CODE_TNT01,
+        'quantity'       => 10,
+        'unit_price'     => 100.00,
+        'is_allocatable' => 1,
+        'purchase_type'  => 'owned',
+        'created_by'     => $dono->owner_id,
+    ]);
+
+    $alocacaoDoDono = AssetTransaction::create([
+        'business_id'          => $dono->id,
+        'asset_id'             => $bem->id,
+        'transaction_type'     => 'allocate',
+        'ref_no'               => 'ALOC-TNT01',
+        'quantity'             => 10,
+        'transaction_datetime' => now(),
+        'created_by'           => $dono->owner_id,
+    ]);
+
+    $service = app(AssetAllocationService::class);
+
+    $antes = $service->quantidadeDisponivel($alocacaoDoDono);
+    expect($antes)->toBe(10);  // sanity: o cenário montou
+
+    // A outra empresa grava um revoke sobre o bem que não é dela.
+    AssetTransaction::create([
+        'business_id'          => $adversario->id,
+        'asset_id'             => $bem->id,
+        'transaction_type'     => 'revoke',
+        'ref_no'               => 'REVOKE-ADVERSARIO-TNT01',
+        'quantity'             => 4,
+        'transaction_datetime' => now(),
+        'created_by'           => $adversario->owner_id,
+    ]);
+
+    $depois = $service->quantidadeDisponivel($alocacaoDoDono);
+
+    expect($depois)->toBe($antes);
+    expect($depois)->toBe(10);
+})->afterEach(function () {
+    $bem = Asset::where('asset_code', ASSET_CODE_TNT01)->first();
+    if ($bem) {
+        AssetTransaction::where('asset_id', $bem->id)->forceDelete();
+        $bem->forceDelete();
     }
 });
