@@ -38,6 +38,7 @@ import {
   exportPlan,
   devolutivaDeRecusados,
   renderDevolutiva,
+  lerRetratoDevolutiva,
   decodeDesignSyncPayload,
   artifactHash,
   dsRuntimeRelPath,
@@ -1382,6 +1383,70 @@ check('mesmo número → mesmo veredito (independe de --check)',
   check('render: uma linha por recusado, todas na tabela', linhas.every((l) => md.includes(l.path)));
 
   rmSync(raiz, { recursive: true, force: true });
+}
+
+// ── 13. QUANDO A DEVOLUTIVA PODE SER APAGADA (bite pelo CLI · 2026-09-08) ──────────
+// A seção 12 prova o CONTEÚDO da devolutiva. Esta prova a decisão de APAGÁ-LA, que vive
+// no CLI e não numa função exportada — então o bite roda o comando de FORA (§5 2026-07-30:
+// assert sobre helper exportado não prova contrato de pipeline).
+//
+// O defeito (medido 2026-09-08, PR #6990): o bloco removia a devolutiva em toda rodada sem
+// recusa. Um pouso de UM `.md` avulso — a rota que o painel chama de "caso pontual" — apagou
+// o retrato de 54 recusados de 07/09 imprimindo "nenhuma recusa nesta rodada". Universo da
+// RODADA lido como universo GLOBAL.
+{
+  const tmp = mkdtempSync(join(tmpdir(), 'devolutiva-cli-'));
+  mkdirSync(join(tmp, 'prototipo-ui', 'cowork'), { recursive: true });
+  const dirCompleta = join(tmp, 'r-com-recusa'); mkdirSync(dirCompleta);
+  const dirPontual = join(tmp, 'r-pontual'); mkdirSync(dirPontual);
+  writeFileSync(join(dirCompleta, 'a.json'), JSON.stringify({ path: 'telaA.charter.md', content: '---\ncomponent: resources/js/Pages/X/A.tsx\n---\nrascunho' }));
+  writeFileSync(join(dirCompleta, 'b.json'), JSON.stringify({ path: 'comum.jsx', content: 'const x=1\n' }));
+  // rodada PONTUAL: 1 JSON, e um `.md` que NÃO é canon de tela ⇒ zero recusa
+  writeFileSync(join(dirPontual, 'z.json'), JSON.stringify({ path: 'github.md', content: '# nota avulsa\n' }));
+
+  const cliPath = fileURLToPath(new URL('./cowork-mirror-freshness.mjs', import.meta.url));
+  const rodar = (args) => {
+    try { return { out: execFileSync(process.execPath, [cliPath, ...args], { cwd: tmp, encoding: 'utf8' }), code: 0 }; }
+    catch (e) { return { out: (e.stdout || '') + (e.stderr || ''), code: e.status }; }
+  };
+  const devAbs = join(tmp, 'prototipo-ui', 'CODE_NOTES.recusados-canon.md');
+
+  // SETUP + CONTROLE: rodada COM recusa escreve o retrato (o comportamento que não mudou)
+  rodar(['--export-from', dirCompleta]);
+  check('CLI 1/4: rodada COM recusa escreve a devolutiva', existsSync(devAbs));
+
+  // ⚠️ O BITE: é este assert que fica vermelho se alguém voltar o `rmSync` incondicional.
+  const pontual = rodar(['--export-from', dirPontual]);
+  check('BITE: rodada PONTUAL sem recusa NÃO apaga retrato de outra rodada (o defeito de 2026-09-08)',
+    existsSync(devAbs) && /PRESERVADO/.test(pontual.out), pontual.out);
+
+  // "Preservado" sem dizer de quando é não informa nada: o operador não consegue decidir.
+  check('CLI 2/4: a mensagem DIZ de quando é o retrato preservado (data + contagem)',
+    /retrato de \d{4}-\d{2}-\d{2} · \d+ arquivo\(s\)/.test(pontual.out), pontual.out);
+
+  // ESCAPE ANUNCIADO TEM DE FUNCIONAR (§5 2026-07-30 · LC-15): a mensagem acima ensina
+  // `--limpar-devolutiva`. Se a flag fosse decorativa, isto ficaria vermelho.
+  const limpo = rodar(['--export-from', dirPontual, '--limpar-devolutiva']);
+  check('BITE: --limpar-devolutiva (o escape que a mensagem anuncia) DE FATO remove',
+    !existsSync(devAbs) && /removido por --limpar-devolutiva/.test(limpo.out), limpo.out);
+
+  // CONTROLE NEGATIVO: sem retrato no disco, a rodada pontual não cria nada nem quebra
+  const vazio = rodar(['--export-from', dirPontual]);
+  check('CONTROLE NEGATIVO: sem devolutiva no disco, rodada pontual não a inventa nem falha',
+    vazio.code === 0 && !existsSync(devAbs) && !/PRESERVADO|removido/.test(vazio.out), vazio.out);
+
+  // ── a função pura que alimenta a mensagem ──────────────────────────────────────
+  const md = renderDevolutiva(
+    [{ path: 'x.charter.md', classe: 'TELA-A-CRIAR', alvo: 'a/x.charter.md', bytesRascunho: 10, bytesCanon: null, acao: 'crie' }],
+    { quando: new Date('2026-09-07T00:00:00Z') });
+  const lido = lerRetratoDevolutiva(md);
+  check('CLI 3/4: lerRetratoDevolutiva lê data e total do render REAL (não de um formato inventado)',
+    lido && lido.data === '2026-09-07' && lido.total === 1, JSON.stringify(lido));
+  check('CLI 4/4: cabeçalho ilegível ⇒ null (o CLI diz que não leu, não inventa data)',
+    lerRetratoDevolutiva('# arquivo qualquer sem cabeçalho') === null
+    && lerRetratoDevolutiva(null) === null);
+
+  rmSync(tmp, { recursive: true, force: true });
 }
 
 console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ contrato v3 do comparador de frescor preservado (path completo + hash normalizado + ledger/SLA + live-only + export fiel + absent-local que MORDE + refs-da-poda + fluxo e2e)');

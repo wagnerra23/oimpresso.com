@@ -439,6 +439,14 @@ export function exportPlan(arquivosVivos, { prefixo = 'prototipo-ui/cowork/', pr
  *   218/218), então é ramo provado por FIXTURE, não por dado real — declarado aqui para
  *   ninguém tratá-lo como medido em produção.
  *
+ * 3ª versão (2026-09-08, defeito descoberto no PR #6990): o `exportPlan`/devolutiva não mudou — mudou QUANDO o
+ *   arquivo é APAGADO. A 2ª versão removia a devolutiva em toda rodada sem recusa, e um
+ *   pouso de UM `.md` avulso apagou o retrato de 54 recusados de 07/09. O erro não estava
+ *   no `rmSync`: estava em tratar o universo da RODADA como universo GLOBAL. Agora a
+ *   rodada que não pode provar que o retrato acabou o PRESERVA e diz de quando ele é; o
+ *   descarte é `--limpar-devolutiva`, declaração do operador. O teste de cobertura que
+ *   pareceria a saída certa foi medido e é insatisfazível (ver o bloco no call site).
+ *
  * O QUE NÃO SE TENTOU, e por quê: transformar a recusa em GATE. Reprovar o design por
  *   mandar rascunho puniria o ato de propor, e o §5 tem 4 lápides de guard sintático que
  *   reprovava trabalho legítimo. A recusa já existia e funcionava; o que faltava era o
@@ -542,6 +550,18 @@ export function renderDevolutiva(linhas, { quando = new Date() } = {}) {
   }
   out.push('');
   return out.join('\n') + '\n';
+}
+
+/**
+ * Lê o cabeçalho de um retrato JÁ ESCRITO. Existe porque a decisão "posso apagar isto?"
+ * precisa dizer O QUE seria apagado — data e contagem — em vez de sumir com o arquivo em
+ * silêncio. Devolve null quando o cabeçalho não é legível: aí o CLI diz que não conseguiu
+ * ler, nunca inventa a data (§5 2026-07-29 — instrumento não afirma o que não mediu).
+ */
+export function lerRetratoDevolutiva(texto) {
+  if (typeof texto !== 'string') return null;
+  const m = /^>\s*Retrato de\s*(\d{4}-\d{2}-\d{2})\s*·\s*(\d+)\s*arquivo/m.exec(texto);
+  return m ? { data: m[1], total: Number(m[2]) } : null;
 }
 
 /** Decodifica UMA resposta persistida do DesignSync.get_file sem permitir que o
@@ -2134,9 +2154,34 @@ function main() {
     console.log(`  ${tally.ATUALIZADO} atualizado(s) · ${tally.NOVO} novo(s) · ${tally.inalterado} inalterado(s)`);
 
     // ── D3/D4: a recusa vira DEVOLUTIVA escrita, não só linha de terminal ────────────
-    // Sem `--dry` porque não há o que escolher: recusou, o design precisa saber. O
-    // arquivo é derivado e regenerado; quando não há recusa nenhuma, ele some — estado
-    // limpo não deve deixar retrato velho no repo afirmando um problema que acabou.
+    // Sem `--dry` porque não há o que escolher: recusou, o design precisa saber.
+    //
+    // ⚠️ O QUE MUDOU E POR QUÊ (medido 2026-09-08, no pouso do ciclo 08/09 — PR #6990,
+    // onde o arquivo foi restaurado À MÃO; o mecanismo é este PR): este bloco removia a
+    // devolutiva sempre que a rodada não tivesse recusa, sob a premissa "estado limpo não
+    // deve deixar retrato velho no repo". A premissa é verdadeira para uma rodada COMPLETA
+    // (universo = o espelho todo) e FALSA para uma rodada PONTUAL (universo = 1 arquivo) —
+    // e o `--export-from` é, por desenho do painel, a rota do caso pontual
+    // (`protocolo.config.mjs`: "ARQUIVO AVULSO (1-3) -> --export-from [caso pontual]").
+    // Consequência real: um pouso de UM `.md` avulso apagou o retrato de 54 recusados de
+    // 07/09 (12.913 B) imprimindo "nenhuma recusa nesta rodada" — usar o universo DA RODADA
+    // como se fosse o universo GLOBAL, a classe do §5 2026-08-10 (catraca cujo universo vem
+    // do lado mutável) e 2026-08-04 (isenção que casa com a saída-padrão do produtor).
+    //
+    // A FORMA ÓBVIA FOI MEDIDA E É INSATISFAZÍVEL: "só remover quando a rodada cobre o
+    // universo do retrato". O retrato só contém paths que passaram por RE_CANON_DE_TELA
+    // (o `recusados.push` está DENTRO daquele `if`), e esse teste é determinístico no path
+    // — então incluir um path do retrato nesta rodada o recusa DE NOVO, e este ramo (zero
+    // recusa) nunca roda. "Cobriu o universo" e "zero recusa" são mutuamente exclusivos por
+    // construção; implementar aquilo seria um ramo de remoção que nunca dispara.
+    //
+    // Descartado também o limiar ("N arquivos = rodada completa"): denominador que decisão
+    // nenhuma estabeleceu (§5 2026-07-27) — é o mesmo erro com um número na frente.
+    //
+    // O QUE SOBROU: a rodada não consegue PROVAR que o retrato acabou, então ela não apaga.
+    // Preserva, diz de quando é o retrato, e oferece o descarte EXPLÍCITO. `--limpar-devolutiva`
+    // é declaração do operador — mesmo desenho do `--origem agente` acima, e nomeada pelo
+    // EFEITO (apaga) e não por uma propriedade que o script não checa (§5 2026-07-16 · LC-10).
     {
       const absDev = join(ROOT, DEVOLUTIVA_REL);
       if (plano.recusadosConteudo && plano.recusadosConteudo.length) {
@@ -2147,8 +2192,17 @@ function main() {
         console.log(`  devolutiva escrita em ${DEVOLUTIVA_REL} (${linhas.length} recusado(s)`
           + (ricos ? `, ${ricos} colidiria(m) com canon mais rico` : '') + ') — leve ao design.');
       } else if (existsSync(absDev)) {
-        rmSync(absDev, { force: true });
-        console.log(`  ${DEVOLUTIVA_REL} removido — nenhuma recusa nesta rodada.`);
+        const retrato = lerRetratoDevolutiva(readFileSync(absDev, 'utf8'));
+        const de = retrato ? `de ${retrato.data} · ${retrato.total} arquivo(s)` : 'de data ILEGÍVEL (cabeçalho não reconhecido)';
+        if (argv.includes('--limpar-devolutiva')) {
+          rmSync(absDev, { force: true });
+          console.log(`  ${DEVOLUTIVA_REL} removido por --limpar-devolutiva — retrato ${de} descartado por decisão do operador.`);
+        } else {
+          console.log(`  ${DEVOLUTIVA_REL} PRESERVADO — retrato ${de}, de OUTRA rodada.`);
+          console.log(`    Esta rodada trouxe ${plano.length} arquivo(s) e nenhum canon de tela. Isso NÃO prova que`);
+          console.log('    o universo do retrato esteja limpo: o insumo é o dir DESTA rodada, não o Cowork inteiro.');
+          console.log('    Se o retrato de fato acabou (rodada completa), descarte explicitamente: --limpar-devolutiva');
+        }
       }
     }
     if (snapOut) {
