@@ -98,15 +98,32 @@ ao `it()`. **Medido no CT 100: não executou** — 4 rodadas deixaram **8 usuár
 Trocado por `try/finally` dentro do closure (limpa inclusive quando o assert falha) +
 `withTrashed()` (o `App\User` usa SoftDeletes). **Órfãos removidos**; prova abaixo.
 
-**(ii) O `MORDE` teria passado pelo motivo errado em CI — achado da thread 04.** Ela mediu
-que, **num banco limpo, `asset.view` NÃO existe na tabela `permissions`**: o seeder do módulo
-é vazio (`AssetManagementDatabaseSeeder`) e as permissões nascem sob demanda em
-`RoleController::__createPermissionIfNotExists()`, só quando alguém salva um Role. A minha 1ª
-versão só criava a Permission no ramo `comPermissao: true` — então, em CI com DB fresco, o
-`can()` do cenário `MORDE` devolveria `false` **por ausência da permissão**, e o 403 provaria
-outra coisa. **Confirmado por medição direta:** no CT 100 `asset.view` **já existe**
-(`asset_view_existe=SIM`), que é exatamente por que o teste passou lá pelo motivo certo e
-teria passado em CI pelo errado.
+**(ii) O `MORDE` NÃO "teria passado" pelo motivo errado — ele PASSOU. Achado da thread 04,
+e a correção é minha.** Ela mediu que, **num banco limpo, `asset.view` não existe na tabela
+`permissions`**: o seeder do módulo é vazio (`AssetManagementDatabaseSeeder`) e as permissões
+nascem sob demanda em `RoleController::__createPermissionIfNotExists()` (`:495`), só quando
+alguém salva um Role. A minha 1ª versão só criava a Permission no ramo `comPermissao: true`.
+
+⚠️ **Errata da minha própria 1ª redação, registrada e não apagada.** Escrevi aqui, no commit
+e no PR que *"no CT 100 `asset.view` já existe, por isso o teste passou pelo motivo certo"*.
+**É falso.** Medido:
+
+```
+asset.view  id=194  created_at=2026-09-08 10:02:15
+outras asset.*: (nenhuma — nem asset.create existe no catálogo)
+```
+
+A permissão nasceu **hoje, na minha própria sessão**, criada pelo `firstOrCreate` do cenário
+`CN`. Quando eu a "medi como pré-existente" (`asset_view_existe=SIM`), já tinha rodado o
+teste várias vezes — eu estava medindo o meu próprio rastro. A prova de que não é do
+ambiente: `asset.create` **não existe** no catálogo, embora a guarda de `create()` esteja em
+produção há tempo; se o ambiente tivesse materializado as permissões do módulo, teria as duas.
+
+E o defeito é pior do que "em CI seria": o teste era **não-determinístico**, porque o Pest
+roda em ordem aleatória e só o `CN` criava a permissão. Na **primeira** rodada desta sessão
+(seed `1788872533`) a ordem foi `cenário 1 → MORDE → cenário 3 → cenário 2 → CN → cenário 4`:
+o `MORDE` executou **antes** do `CN`, com a tabela ainda sem a permissão. Ou seja, aquele
+verde **passou pelo motivo errado**, e teria voltado a passar ou não conforme o seed.
 
 Conserto em duas partes: o `firstOrCreate` da Permission subiu para **fora** do `if` (o que
 varia entre cenários é o usuário **ter** a permissão, nunca ela existir), e o `MORDE` ganhou
@@ -122,10 +139,35 @@ O bite-test pós-conserto é mais forte que o anterior: **os 2 asserts do canár
 só o `assertStatus` falha (`received 200`) — ou seja, fica provado na mesma execução que o
 `200` vem da **guarda ausente**, com o pressuposto verificado.
 
-> ⚠️ **Ressalva honesta:** o canário **não foi provado por mutação**. No CT 100 a permissão
-> existe de verdade, então remover o `firstOrCreate` ali não o faria falhar; provar exigiria
-> deletar `asset.view` de um clone de prod, o que não fiz. O canário é logicamente correto e
-> passa; a demonstração de que ele morde ficaria para uma lane de DB fresco.
+> ⚠️ **Ressalva honesta:** o canário **não foi provado por mutação**. A permissão agora existe
+> no staging (criada pelo meu próprio teste, ver errata acima), então remover o `firstOrCreate`
+> ali não o faria falhar hoje. Provar exigiria apagá-la primeiro. O canário é logicamente
+> correto e passa; a demonstração de mordida fica para uma lane de DB fresco — que é
+> exatamente onde ele importa.
+
+### 2-ter · Risco de deploy levantado pela thread 04 — **medido, e a medição NÃO conclui**
+
+A ressalva dela: em business onde ninguém nunca salvou um Role com `asset.view`, a permissão
+não existe, `can()` devolve `false`, e a guarda nova dá **403 para todos** naquele tenant —
+inclusive para quem hoje usa a tela.
+
+Tentei medir no CT 100 e **o ambiente não sustenta a extrapolação**:
+
+| medida (CT 100 staging) | valor |
+|---|---:|
+| `total_businesses` | **4** |
+| businesses com bem cadastrado | 1 (o **98**, meu tenant de teste) |
+| roles carregando `asset.view` | 0 |
+| `asset.create` no catálogo | **não existe** |
+
+**Prod tem 82 businesses** (proibicoes.md, medido 2026-07-28). Com 4, este ambiente **não é**
+o clone de prod que eu havia suposto, e nenhum número acima extrapola. Não afirmo impacto
+zero — **não medi produção**, e não tenho como daqui.
+
+O que se pode dizer sem inventar: a guarda de `create()`/`edit()`/`destroy()` já está em
+produção com o **mesmo** mecanismo, então tenant que cadastra bem já materializou as
+permissões dele. O risco residual é o tenant que **só lista e nunca cadastrou**. É decisão de
+[W] se isso pede canary — e é uma frase no PR, não uma suposição minha.
 
 ## 3 · Veredito sobre `dashboard()` — ❌ NÃO entra junto (parada (b) do playbook)
 
@@ -158,6 +200,48 @@ thread 04 (`_saida-04.md` §7b/§7c): `:443` e `:455` filtram só por `receiver`
 o que faz o SQL virar `(business_id = X AND …) OR (end_date IS NULL)` — **vazamento
 cross-tenant real**. Não tem dono em thread nenhuma. Mexer ali agora quebraria 1 PR = 1
 intent e invadiria o terreno da 01.
+
+## 3-bis · O `orWhereNull` do `dashboard()` — **VEREDITO: confirmado, e ganha PR próprio AGORA**
+
+O coordenador me devolveu esta decisão pedindo o veredito registrado. Aqui está.
+
+**Primeiro, medi — não aceitei o enunciado.** `AssetController.php:480-489` (pós-PR):
+
+```php
+$expiring_assets = Asset::where('assets.business_id', $business_id)
+        ->leftjoin('asset_warranties as aw', 'aw.asset_id', '=', 'assets.id')
+        ->where(function ($q) {
+            $q->whereRaw('CURDATE() BETWEEN start_date AND end_date')
+                ->whereRaw('DATEDIFF(end_date, CURDATE()) <= 30')
+                ->whereRaw('DATEDIFF(end_date, CURDATE()) > 0');
+        })
+        ->orWhereNull('aw.end_date')          // ← FORA do closure
+        ->select('assets.name', 'asset_code', 'end_date')
+```
+
+**Confirmado.** `AND` liga mais forte que `OR`, então o SQL é
+`(assets.business_id = X AND datas…) OR (aw.end_date IS NULL)` — o `OR` escapa do filtro de
+tenant, e o `select` traz `assets.name` + `asset_code`. Todo bem **sem garantia**, de
+**qualquer** empresa, entra no dashboard de todas. Não depende de dado corrompido: vaza sempre.
+
+**Veredito: NÃO entra no PR #7008 — e NÃO fica sem dono.** O coordenador ofereceu duas saídas
+("entra no seu PR" ou "fica aberto até o merge"). **Escolho uma terceira**, que ele não
+considerou: **abrir PR próprio imediatamente**, empilhado sobre este. Razões:
+
+1. **1 PR = 1 intent** (Tier A). "Mesmo arquivo" não é "mesmo intent": um é guarda de
+   autorização, o outro é isolamento multi-tenant.
+2. **Vazamento cross-tenant Tier 0 merece revisão dedicada, não carona.** Misturado a um PR
+   de permissão, ele é aprovado junto com o resto — e é a metade mais perigosa das duas.
+3. **A objeção do coordenador ("ficar sem dono") não sobrevive à terceira opção.** Ele propôs
+   abrir thread *"assim que o seu PR mergear"*; abrir agora remove a dependência de merge.
+4. **Lei 1 respeitada:** o arquivo é meu, então sou eu quem abre — não delego nem espero.
+
+O PR do `:467` sai empilhado sobre esta branch (as regiões não se tocam: `index()` ~`:82`,
+`dashboard()` ~`:485`), com teste de isolamento próprio.
+
+⚠️ **E ele NÃO leva a guarda de permissão junto** — §3 continua valendo: `asset.view` no
+`dashboard()` quebraria o colaborador que vê só o próprio bem. Consertar o vazamento **não**
+implica fechar a porta; são decisões separadas, e a segunda é de [W].
 
 ## 4 · Permissão confirmada como existente — **a origem, colada**
 
