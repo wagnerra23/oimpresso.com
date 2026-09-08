@@ -267,6 +267,23 @@ direto para o Request órfão. O campo `invalida:` só corrige o plano se algué
 procedimento não manda ler. **Não posso fechar isso**: meu prefixo é só o `_saida-04.md`; quem
 pode é o dono do índice e dos `NN-*.md`. Escalado.
 
+**Duas saídas estruturais** (a escolha é do dono do índice): trocar a instrução do
+`02-trava-de-saldo.md:34` e apontar este §5 — resolve **este** caso; ou acrescentar ao `§3` um
+item *"leia os `_saida-NN.md` das threads já fechadas"* — fecha **a classe**, e vale para os
+próximos módulos.
+
+⛔ **Contorno JÁ CONSIDERADO E DESCARTADO — não re-propor** (decisão da thread 01, registrada
+aqui para não ser reinventada): deixar um **comentário de aviso no `AssetAllocationService.php`**,
+que está no prefixo das duas threads e por onde a 02 inevitavelmente passaria. **Rejeitado:**
+comentário de código que afirma estado de *outro* arquivo é a lápide §5 de 2026-08-17
+(*comentário que se autodefende com medição obsoleta*) — ele apodreceria no instante em que
+alguém ligasse ou removesse o Request órfão, e passaria a instruir errado com cara de canon.
+**O aviso pertence ao plano da 02, não ao código de ninguém.**
+
+**Backstop, não plano:** quando a 02 abrir, ela provavelmente trocará mensagens com as sessões
+irmãs — foi o que as threads 01, 03 e 04 fizeram. Aí quem estiver de pé avisa. Isso é rede de
+segurança acidental e depende de sessões vivas; **não substitui** corrigir o `02-trava-de-saldo.md`.
+
 ---
 
 ## 6 · D9 — `asset.*` (código) × `assetmanagement.*` (SCOPE) · **RESOLVIDO — a thread 03 está DESTRAVADA**
