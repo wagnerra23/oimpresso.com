@@ -7,6 +7,7 @@ use App\User;
 use App\Utils\ModuleUtil;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Modules\AssetManagement\Entities\Asset;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -113,8 +114,13 @@ function assetViewGateFixture(bool $comPermissao): array
     // da permissão, e o 403 provaria a coisa errada — verde por acidente, que some no dia
     // em que alguém cadastrar um Role. O que deve variar entre os cenários é o usuário
     // TER ou não a permissão, nunca a permissão existir ou não.
-    // (Achado da thread 04 de medição, confirmado aqui: no CT 100, que é clone de prod,
-    //  `asset.view` já existia — em CI, com DB fresco, não existiria.)
+    //
+    // NÃO É HIPOTÉTICO — aconteceu aqui. Como só o cenário CN criava a permissão e o Pest
+    // roda em ordem aleatória, a 1ª execução desta suíte (seed 1788872533) rodou o MORDE
+    // ANTES do CN, com a tabela `permissions` ainda sem `asset.view`: aquele verde passou
+    // pelo motivo errado. Medido depois: `asset.view id=194 created_at=2026-09-08 10:02:15`,
+    // criada pela própria suíte — e `asset.create` sequer existe no catálogo do ambiente,
+    // apesar de a guarda de `create()` estar em produção.
     $perm = Permission::firstOrCreate(['name' => 'asset.view', 'guard_name' => 'web']);
 
     if ($comPermissao) {
@@ -194,5 +200,137 @@ it('CN: usuário COM asset.view NÃO é barrado pela guarda (o 403 acima veio de
         expect(assetViewGateChamar($biz, $user)->status())->not->toBe(403);
     } finally {
         assetViewGateLimpar();
+    }
+});
+
+/**
+ * Isolamento multi-tenant da lista de garantias do `dashboard()` — ADR 0093, Tier 0.
+ *
+ * O DEFEITO: em `AssetController::dashboard()`, o `->orWhereNull('aw.end_date')` do
+ * `$expiring_assets` ficava FORA do `->where(function ($q) {...})`. Como AND liga mais forte
+ * que OR, o SQL virava
+ *     (assets.business_id = X AND datas…) OR (aw.end_date IS NULL)
+ * e o segundo ramo do OR não carregava filtro de tenant nenhum. Como o `select` traz
+ * `assets.name` e `asset_code`, TODO bem sem garantia registrada — de QUALQUER empresa —
+ * era renderizado no dashboard de todas. Não dependia de dado corrompido: vazava sempre.
+ *
+ * O CASO monta exatamente o vetor: o adversário (biz=99) tem um bem SEM garantia; o dono
+ * (biz=98) abre o próprio dashboard. O bem do adversário não pode aparecer na lista.
+ *
+ * POR QUE `viewData` E NÃO O HTML: a asserção mira a QUERY (a variável que o controller
+ * passa à view), não o template. Um template que deixasse de renderizar a lista faria o
+ * teste passar por acidente se ele olhasse só o HTML.
+ *
+ * ADMIN: o bloco vulnerável só executa sob `if ($is_admin)`, e `Util::is_admin()` resolve
+ * por `hasRole('Admin#'.$business_id)` — daí a role no fixture.
+ *
+ * `created_by` é preenchido de propósito: a FK `assets_created_by_foreign` é justamente o
+ * que derruba as suítes vizinhas do módulo (7 falhas pré-existentes no CT 100).
+ *
+ * @see Modules/AssetManagement/Http/Controllers/AssetController::dashboard()
+ * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
+ */
+function assetDashboardTenantFixture(): array
+{
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        test()->markTestSkipped('SQLite-incompatível: exige schema MySQL UltimatePOS.');
+    }
+    foreach (['business', 'users', 'roles', 'assets', 'asset_warranties'] as $tabela) {
+        if (! Schema::hasTable($tabela)) {
+            test()->markTestSkipped("Schema ausente (tabela {$tabela}) — suíte roda em MySQL real semeado.");
+        }
+    }
+
+    $dono = test()->seededTenant();                    // 98 — tenant canônico (ADR 0358)
+    $adversario = test()->seededSupportClientTenant(); // 99 — outra empresa
+
+    $admin = User::factory()->create([
+        'business_id' => $dono->id,
+        'username' => 'asset_dash_tnt_'.uniqid(),
+        'user_type' => 'user',
+        'allow_login' => 1,
+    ]);
+    $roleAdmin = Role::firstOrCreate(
+        ['name' => 'Admin#'.$dono->id, 'guard_name' => 'web'],
+        ['business_id' => $dono->id]
+    );
+    $admin->assignRole($roleAdmin);
+
+    // O vetor: bem do ADVERSÁRIO sem nenhuma linha em `asset_warranties`,
+    // logo `aw.end_date IS NULL` no leftjoin.
+    Asset::create([
+        'business_id' => $adversario->id,
+        'name' => 'Bem sigiloso do adversario',
+        'asset_code' => 'AST-DASH-TNT99',
+        'quantity' => 1,
+        'unit_price' => 10,
+        'is_allocatable' => 0,
+        'purchase_type' => 'owned',
+        'created_by' => $admin->id,
+    ]);
+
+    Asset::create([
+        'business_id' => $dono->id,
+        'name' => 'Bem legitimo do dono',
+        'asset_code' => 'AST-DASH-TNT98',
+        'quantity' => 1,
+        'unit_price' => 10,
+        'is_allocatable' => 0,
+        'purchase_type' => 'owned',
+        'created_by' => $admin->id,
+    ]);
+
+    return [$dono, $admin];
+}
+
+function assetDashboardTenantLimpar(): void
+{
+    foreach (['AST-DASH-TNT99', 'AST-DASH-TNT98'] as $code) {
+        Asset::where('asset_code', $code)->forceDelete();
+    }
+    foreach (User::withTrashed()->where('username', 'like', 'asset_dash_tnt_%')->get() as $u) {
+        DB::table('model_has_roles')->where('model_id', $u->id)->delete();
+        $u->forceDelete();
+    }
+}
+
+it('MORDE: bem SEM garantia de outra empresa não vaza na lista de garantias do dashboard', function () {
+    [$dono, $admin] = assetDashboardTenantFixture();
+
+    try {
+        // POR QUE chamar o controller em vez de `->get('/asset/dashboard')`: a view
+        // `dashboard.blade.php:14` estoura no ambiente de teste dentro do `num_format`
+        // ("Trying to access array offset on null"), por razão alheia a este fix — o HTTP
+        // devolveria 500 e o teste falharia sem nunca chegar na query. `view()` NÃO renderiza
+        // até `render()`, então `getData()` entrega a variável real que o controller montou,
+        // sem tocar no Blade. A query exercitada é a de produção, não uma cópia dela — o que
+        // um teste que remontasse o SQL à mão seria (tautológico, §5 2026-06-05).
+        test()->actingAs($admin);
+
+        // `session([...])` sozinho não basta: o controller lê por
+        // `request()->session()->get(...)`, e fora de um ciclo HTTP o Request não tem store
+        // ligado ("Session store not set on request"). `setLaravelSession` faz esse vínculo.
+        $sessao = app('session.store');
+        $sessao->put('user.business_id', $dono->id);
+        $sessao->put('user', ['business_id' => $dono->id, 'id' => $admin->id]);
+        request()->setLaravelSession($sessao);
+
+        $view = app(\Modules\AssetManagement\Http\Controllers\AssetController::class)->dashboard();
+        $dados = $view->getData();
+
+        // Canário: o bloco vulnerável só roda sob `is_admin`. Sem esta linha, um fixture
+        // sem a role faria a lista vir nula e o teste passaria sem exercitar nada.
+        expect($dados['is_admin'])->toBeTrue('o bloco de $expiring_assets só roda sob is_admin');
+
+        $expirando = collect($dados['expiring_assets']);
+
+        // Âncora de que a query de fato rodou e enxerga o tenant do dono.
+        expect($expirando->pluck('asset_code')->all())->toContain('AST-DASH-TNT98');
+
+        // O vazamento: bem SEM garantia do biz=99 entrando na lista do biz=98.
+        expect($expirando->pluck('asset_code')->all())->not->toContain('AST-DASH-TNT99');
+        expect($expirando->pluck('name')->all())->not->toContain('Bem sigiloso do adversario');
+    } finally {
+        assetDashboardTenantLimpar();
     }
 });

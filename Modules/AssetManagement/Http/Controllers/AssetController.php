@@ -479,12 +479,23 @@ class AssetController extends Controller
 
             $expiring_assets = Asset::where('assets.business_id', $business_id)
                                     ->leftjoin('asset_warranties as aw', 'aw.asset_id', '=', 'assets.id')
+                                    // O `orWhereNull` ficava FORA deste closure. Como AND liga
+                                    // mais forte que OR, o SQL virava
+                                    //   (assets.business_id = X AND datas…) OR (aw.end_date IS NULL)
+                                    // e o OR escapava do filtro de tenant: todo bem SEM garantia,
+                                    // de QUALQUER empresa, entrava nesta lista — e o select traz
+                                    // `assets.name` e `asset_code`. Não dependia de dado corrompido;
+                                    // vazava sempre. Trazer o `orWhereNull` para dentro do closure
+                                    // mantém a intenção (garantia vencendo em 30d OU bem sem
+                                    // garantia registrada) com o `business_id` aplicado aos dois
+                                    // lados do OR. ADR 0093 — multi-tenant Tier 0 IRREVOGÁVEL.
                                     ->where(function ($q) {
-                                        $q->whereRaw('CURDATE() BETWEEN start_date AND end_date')
-                                            ->whereRaw('DATEDIFF(end_date, CURDATE()) <= 30')
-                                            ->whereRaw('DATEDIFF(end_date, CURDATE()) > 0');
+                                        $q->where(function ($sub) {
+                                            $sub->whereRaw('CURDATE() BETWEEN start_date AND end_date')
+                                                ->whereRaw('DATEDIFF(end_date, CURDATE()) <= 30')
+                                                ->whereRaw('DATEDIFF(end_date, CURDATE()) > 0');
+                                        })->orWhereNull('aw.end_date');
                                     })
-                                    ->orWhereNull('aw.end_date')
                                     ->select('assets.name', 'asset_code', 'end_date')
                                     ->get();
 
