@@ -3,6 +3,8 @@ id: resources-js-pages-stock-transfer-create-charter
 page: /stock-transfers/create
 component: resources/js/Pages/StockTransfer/Create.tsx
 related_prototype: n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)
+related_visual_comparison: memory/requisitos/Estoque/_telas/stock-transfer-create-visual-comparison.md
+related_us: [US-MWART-007]
 bundle_source: estoque-page.jsx
 tela: stock_transfers/create
 tipo: FORM CREATE

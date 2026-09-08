@@ -3,6 +3,8 @@ id: resources-js-pages-purchase-edit-charter
 page: /purchases/{id}/edit
 component: resources/js/Pages/Purchase/Edit.tsx
 related_prototype: n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)
+related_visual_comparison: memory/requisitos/Compras/_telas/purchase-edit-visual-comparison.md
+related_us: [US-MWART-008]
 tela: purchase/edit
 tipo: FORM (EDIT)
 modulo: Purchase
