@@ -43,8 +43,13 @@ test('/governance/dashboard renderiza o componente governance/Dashboard', async 
   // "Atalhos de governança") — sem isso o locator é ambíguo e o strict mode reprova.
   await expect(page.getByRole('heading', { name: 'Governança', exact: true, level: 1 })).toBeVisible({ timeout: 15_000 });
 
-  const payload = await page.locator('#app[data-page]').getAttribute('data-page');
-  expect(payload ?? '').toContain('governance/Dashboard');
+  // O nome do componente é lido da RESPOSTA DO SERVIDOR, não do DOM já hidratado.
+  // Medido no run 34270197342: `#app[data-page]` expira em 30s enquanto o h1 acima
+  // aparece normalmente — com o cliente Inertia 3.0.3 o atributo não sobrevive no DOM
+  // depois do mount. O `data-page` do HTML servido é a fonte que interessa de todo
+  // jeito: ele é o que o SERVIDOR resolveu, e não muda com o que o cliente faz depois.
+  const html = await (await page.request.get('/governance/dashboard')).text();
+  expect(html).toContain('governance/Dashboard');
 });
 
 test('o painel resolve as props deferidas sem exceção de runtime', async ({ page }) => {
