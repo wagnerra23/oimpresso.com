@@ -56,6 +56,7 @@ class JanaServiceProvider extends ServiceProvider
                 \Modules\Jana\Console\Commands\McpSystemTokenCommand::class,    // MEM-MEM-MCP-1
                 \Modules\Jana\Console\Commands\McpSyncMemoryCommand::class,     // MEM-MCP-1.a
                 \Modules\Jana\Console\Commands\McpTokenGerarCommand::class,     // MEM-MCP-1.b
+                \Modules\Jana\Console\Commands\McpRevogarAdminOnlyCommand::class, // Tier 0 #6962 — revoga admin_only concedido antes do filtro
                 \Modules\Jana\Console\Commands\McpAdrMigrarFrontmatterCommand::class, // MEM-KB-3 / F1
                 \Modules\Jana\Console\Commands\SeedAdrsCommand::class,          // MEM-MULTI-1
                 \Modules\Jana\Console\Commands\CleanupMemoriaCommand::class,   // MEM-FASE8
