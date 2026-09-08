@@ -2,7 +2,7 @@
   "ledger": [
     {
       "screen": "Jana",
-      "note": "23 arquivo(s)",
+      "note": "24 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -422,8 +422,8 @@
   "progressPct": 37,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "512152348",
-  "generatedAt": "2026-09-07T15:09:49.265Z",
+  "measuredAgainstSha": "ad607e183",
+  "generatedAt": "2026-09-08T13:49:33.569Z",
   "treeGuard": {
     "pass": true,
     "violations": 0
