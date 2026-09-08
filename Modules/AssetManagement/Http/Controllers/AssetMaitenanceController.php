@@ -95,7 +95,10 @@ class AssetMaitenanceController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return Response
+     * Dois ramos: `ajax` devolve o DataTables do Blade legado (JsonResponse); o normal
+     * devolve a tela Inertia `Patrimonio/Manutencoes` desde 2026-09-08 (MWART F3).
+     *
+     * @return \Inertia\Response|\Illuminate\Http\JsonResponse
      */
     public function index(Request $request)
     {
@@ -487,6 +490,10 @@ class AssetMaitenanceController extends Controller
      */
     private function buildManutencoesPayload(Request $request, $business_id)
     {
+        // A relacao EXISTE (`AssetMaintenance::asset()`, belongsTo em Entities:44) — o
+        // larastan e que nao a resolve neste Model, e o mesmo eager load ja e feito no ramo
+        // ajax logo acima. Ignore local em vez de crescer o phpstan-baseline.neon.
+        /** @phpstan-ignore-next-line larastan.relationExistence */
         $query = AssetMaintenance::with(['asset', 'asset.warranties'])
             ->where('asset_maintenances.business_id', $business_id)
             ->leftJoin('users as u', 'u.id', '=', 'asset_maintenances.assigned_to')
@@ -516,6 +523,10 @@ class AssetMaitenanceController extends Controller
         if ($q !== '') {
             $termo = '%'.$q.'%';
             $query->where(function ($sub) use ($termo) {
+                // O erro do larastan ancora no INICIO da cadeia fluente, nao na linha do
+                // orWhereHas abaixo — por isso o ignore vem aqui, e nao ao lado da relacao.
+                // Medido: com o ignore no orWhereHas o PHPStan seguia acusando a linha 526.
+                /** @phpstan-ignore-next-line larastan.relationExistence */
                 $sub->where('asset_maintenances.maitenance_id', 'like', $termo)
                     ->orWhere('asset_maintenances.details', 'like', $termo)
                     ->orWhere('asset_maintenances.maintenance_note', 'like', $termo)
@@ -543,14 +554,17 @@ class AssetMaitenanceController extends Controller
             ->paginate(25)
             ->withQueryString();
 
-        $statuses = $this->maintenanceStatuses;
-        $priorities = $this->maintenancePriorities;
+        // `$this->assetUtil->...()` em vez de `$this->maintenanceStatuses`: a propriedade e
+        // dinamica (setada no constructor sem declaracao) e o PHPStan nao a ve. O Util e a
+        // MESMA fonte que o constructor usa — nao e outra verdade, e o mesmo array.
+        $statuses = $this->assetUtil->maintenanceStatuses();
+        $priorities = $this->assetUtil->maintenancePriorities();
         $now = \Carbon::now();
 
         $manutencoes->getCollection()->transform(function ($m) use ($statuses, $priorities, $now) {
             // Garantia: a MESMA leitura do ramo ajax - vigente se hoje esta na janela.
             $garantia = null;
-            foreach (optional($m->asset)->warranties ?? [] as $w) {
+            foreach (optional($m->getAttribute('asset'))->warranties ?? [] as $w) {
                 $inicio = \Carbon::parse($w->start_date);
                 $fim = \Carbon::parse($w->end_date);
                 $garantia = [
@@ -563,15 +577,17 @@ class AssetMaitenanceController extends Controller
                 }
             }
 
-            $atribuido = trim((string) $m->assigned_to_user);
-            $criador = trim((string) $m->created_by_user);
+            // `getAttribute`: sao ALIASES do select (`DB::raw(... as assigned_to_user)`), nao
+            // colunas do Model — o PHPStan nao tem como saber que existem.
+            $atribuido = trim((string) $m->getAttribute('assigned_to_user'));
+            $criador = trim((string) $m->getAttribute('created_by_user'));
 
             // SEM campo de valor, de proposito: a tabela nao tem coluna de custo e o Blade
             // nao mostra nenhuma. Non-Goal do charter, guardado pelo UC-MANU-03.
             return [
                 'id' => $m->id,
                 'codigo' => $m->maitenance_id,
-                'bem' => optional($m->asset)->name ?? '',
+                'bem' => optional($m->getAttribute('asset'))->name ?? '',
                 'bem_id' => $m->asset_id,
                 'status' => $m->status,
                 'status_label' => $statuses[$m->status]['label'] ?? (string) $m->status,
