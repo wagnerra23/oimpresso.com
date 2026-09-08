@@ -3,11 +3,11 @@ sessao: "06-configuracoes"
 titulo: "Configurações — as 3 blades viram uma tela Inertia; a armadilha do checkbox foi medida"
 dono: "[C]"
 criado: 2026-09-08
-base: 0f39a46a06 (origin/main no início da sessão) → e6d53daf1f (rebaseado durante; ver §0)
+base: 0f39a46a06 (origin/main no início da sessão) → e6d53daf1f → merge de 4f70a09460 (Painel #7040); ver §0 e §9-quater
 thread: 11-configuracoes.md
 prefixo_escrito: "resources/js/Pages/Patrimonio/{Configuracoes.tsx,Configuracoes.charter.md,Configuracoes.casos.md} · Modules/AssetManagement/Http/Controllers/AssetSettingsController.php (só o index()) · memory/requisitos/AssetManagement/RUNBOOK-configuracoes.md · +2 FORA do prefixo, cada um exigido por gate required: Modules/AssetManagement/Tests/Feature/ConfiguracoesContratoTest.php (casos-gate G-2) · memory/requisitos/AssetManagement/SUPERFICIE.md (derivado, regerado)"
-pr: "aberto, NÃO mergeado — merge é humano (ADR 0283)"
-veredito: "entregue — 3 blades migradas para 1 tela Inertia, 5 testes verdes no CT 100 (36 assertions), paridade integral com o Blade · 1 armadilha de migração MEDIDA e neutralizada · 2 achados declarados e não consertados"
+pr: "#7044 — aberto, NÃO mergeado; merge é humano (ADR 0283). CI: 79 checks verdes, 0 falhas"
+veredito: "entregue — 3 blades migradas para 1 tela Inertia, 5 testes verdes no CT 100 (35 assertions), paridade integral com o Blade · 1 armadilha de migração MEDIDA e neutralizada · 2 achados declarados e não consertados · 5 gates do CI reprovaram e foram corrigidos (§9-bis), nenhum por carimbo"
 invalida: "11-configuracoes.md §prefixo: o caminho declarado é `Pages/Patrimonio/Configuracoes/` (subpasta) e o padrão real da frente é FLAT — `Configuracoes.tsx` ao lado de `Bens.tsx` (§4) · 11-configuracoes.md §Execução PASSO 1 ('confirmar 07 mergeada'): a 07 NÃO está mergeada e não precisa estar — quem fundou o `_shared` foi Bens (a errata do topo da própria ficha já diz isso; o checklist ficou desatualizado) · CONFIRMA integralmente o `_saida-06-bens.md §1` (charter antes do .tsx) e `§3` (não mexer no Routes/web.php) — reproduzi os dois e batem 1:1"
 ---
 
@@ -118,7 +118,8 @@ subpasta criaria o segundo padrão que a própria thread manda evitar.
 
 ## 5 · Evidência — CT 100, nunca local
 
-**Suíte da tela:** `5 passed · 36 assertions` (seed 1788891505).
+**Suíte da tela:** `5 passed · 35 assertions` (seed 1788892480 — run FINAL, depois do defer).
+O run anterior tinha 36; a assertion a menos é exatamente o `has(usuarios)` removido (§9-ter).
 
 ```
 ✓ UC-CFG-01: usuário NÃO-admin do business recebe 403 em /asset/settings
@@ -201,6 +202,60 @@ declarar verde tendo rodado um é a armadilha do §5 2026-07-28.
 
 ---
 
+## 9-bis · Os 5 gates que reprovaram, e o que cada um ensina (custo real desta thread)
+
+O CI reprovou **5 vezes** depois do PR aberto. Nenhum era falso-positivo; **4 eram meus**.
+Registro cada um porque as threads irmãs vão bater exatamente nos mesmos.
+
+| Gate | Causa | Lição pra próxima |
+|---|---|---|
+| `Layout primitives · ratchet` | `<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">` | Use `<Grid>`. E prefira **`min="lg"`** (auto-fill por token) a `sm:grid-cols-2`: reflowa entre 1280 e 1440 sem media-query. **Eu tinha escrito a regra no cabeçalho do próprio arquivo e a violei 200 linhas abaixo** |
+| `PHPStan · ratchet` | `index()` com `@return Response` (Illuminate) devolvendo `Inertia\Response` | Ao migrar um método pra Inertia, **o docblock migra junto**. O `use Illuminate\Http\Response` do topo continua servindo os outros métodos — muda só a anotação do método migrado |
+| `module-grades-gate` | `-4 pts D6.a` — controller renderiza Inertia **sem** `Inertia::defer` | Ver §9-ter: o conserto certo não é carimbo |
+| `deadlink-gate` | `[…](_DesignSystem/RUNBOOK-…)` a partir de `requisitos/AssetManagement/` | Link relativo em RUNBOOK de módulo precisa de **`../`** pra alcançar `requisitos/_DesignSystem/`. O gate reporta o alvo exato — leia a linha em vez de adivinhar |
+| `Preflight + contratos ativos` | **`branch atrás de origin/main (não-ancestral)`** | **Não era divergência de contrato.** A mensagem lista 7 causas possíveis; a linha que disparou estava acima, no log. Num repo que anda ~41 commits/dia, a base envelhece entre o rebase e o push |
+
+**`Pest Repair` também reprovou, e NÃO é meu:** na última run do `main`, o único job vermelho
+é exatamente `Pest Repair` (5 de 5 runs recentes em falha). Dívida **herdada** — este PR não
+toca `Modules/Repair`. Depois do merge do `main` ele parou de aparecer na lista, porque a lane
+não dispara pros meus paths.
+
+## 9-ter · O gap do grader: por que NÃO foi carimbo
+
+O `module-grades` reprovou com `-4 pts D6.a [P2] Inertia::defer em Controllers que renderizam
+Inertia`. Havia três saídas: aplicar `defer` em qualquer prop pra satisfazer a métrica, pedir
+o label `module-grades-allowed-regression`, ou rebaselinar.
+
+**Nenhuma das três.** A regra da casa
+([RUNBOOK-inertia-defer-pattern](../../../../../memory/requisitos/_DesignSystem/RUNBOOK-inertia-defer-pattern.md))
+se aplica **de verdade** a exatamente uma prop desta tela: `usuarios` (`User::forDropdown`) é a
+única que **cresce com o tamanho do tenant**. As outras são um `value()` de coluna e dois
+`first()` — deferi-las somaria um ida-e-volta pra economizar ~1ms, que é o oposto do objetivo.
+
+Então `usuarios` virou `Inertia::defer` com skeleton, e as outras seguem eager. **Medido no
+CT 100: D6 saiu de `5/10` para `9/10`** e o gap sumiu dos top-gaps — não por carimbo, por
+consertar o que de fato estava errado.
+
+**A consequência que o teste teve de acompanhar** — e é o detalhe que pega quem não conhece o
+defer: prop deferida **não vem no primeiro render**. O `has('usuarios')` do `assertInertia`
+passaria a medir a **ausência** dela, que é o comportamento *correto* do defer — o teste
+reprovaria exatamente quando a otimização funciona. Assert removido, com o porquê no teste e
+nota de método no `casos.md`. (Bens registrou a mesma armadilha em `_saida-06-bens.md`.)
+
+## 9-quater · O merge do Painel (#7040) — conflito só no derivado
+
+Durante esta thread o `main` recebeu o **Painel** (`Index.tsx`, thread 07). O merge deu **um**
+conflito: `SUPERFICIE.md`.
+
+**Derivado não se resolve à mão** — regenerei da árvore já mergeada
+(`module-surface AssetManagement --write` → 112 arquivos, agora com Painel + Configurações) e
+reconferi os **dois** modos do gate. Resolver conflito de arquivo gerado editando o texto é
+congelar um snapshot contra um alvo móvel.
+
+O `_shared/PatrimonioSubNav.tsx` **não mudou** no #7040 e a API que consumo (`active`,
+`hidePrimary`) está idêntica — mesmo uso de Bens. O Painel usa sem `hidePrimary`, porque é ele
+quem mostra o primary.
+
 ## 10 · Para a próxima thread da frente
 
 1. **Escreva o charter ANTES do `.tsx`**, com `related_runbook` apontando pro RUNBOOK real. Sem
@@ -211,3 +266,12 @@ declarar verde tendo rodado um é a armadilha do §5 2026-07-28.
 4. **Se a sua ficha manda parar por dependência, re-fetch antes de concluir** (§0). A base
    envelhece sozinha em repo com worktrees compartilhados.
 5. **`PAGES_NS` já está declarado** para as 7 telas; você só regenera o `SUPERFICIE.md`.
+6. **Layout:** `<Grid>`/`<Stack>`/`<Inline>`, nunca `<div className="grid|flex …">`. Em
+   formulário, `<Grid min="lg">` em vez de `sm:grid-cols-2`.
+7. **Migrou um método pra Inertia?** O `@return` do docblock migra junto, ou o PHPStan reprova.
+8. **Vai deferir uma prop?** Tire-a do `assertInertia` do primeiro render — senão o teste
+   reprova quando o defer está funcionando.
+9. **Link relativo em RUNBOOK de módulo** precisa de `../` pra alcançar `requisitos/_DesignSystem/`.
+10. **Conflito em `SUPERFICIE.md` no merge?** Regenere, não edite — é derivado.
+11. **`Preflight + contratos ativos` vermelho** costuma ser só *branch atrás*, não divergência
+    de contrato. Leia a linha que disparou, acima da lista de causas no log.
