@@ -384,6 +384,35 @@ está provado.
 — e ampliar a 01 conflita com o `nao_toca: Http/Controllers/` dela. **Decisão de plano, não
 minha.**
 
+### 7d · Mapa de gates do `AssetController` — o passo 4 da thread 03, respondido
+
+Medido a pedido da sessão coordenadora. `AssetController.php` sha `085fd16d516a`, todos os
+`can(` / `abort(` do arquivo cruzados com os métodos públicos:
+
+| método | linha | gate |
+|---|---|---|
+| `index()` | :71 | só `:75` assinatura — **o alvo da thread 03** |
+| `create()` | :269 | `:271` `asset.create` + `:277` assinatura — **o modelo correto** |
+| `store()` | :298 | via `StoreAssetRequest` (FormRequest vivo) |
+| `show()` | :326 | **nenhum** — mas é stub scaffold (`return view('assetmanagement::show')`), código morto |
+| `edit()` | :337 | `:339` `asset.update` + `:345` assinatura |
+| `update()` | :371 | via `UpdateAssetRequest` (FormRequest vivo) |
+| `destroy()` | :397 | `:399` `asset.delete` + `:405` assinatura |
+| `dashboard()` | :423 | **NENHUM — nem permissão, nem assinatura** |
+
+**Veredito sobre `dashboard()`: o buraco é PIOR que o do `index()`.** O `index()` ao menos
+tem o gate de assinatura (`:75`); o `dashboard()` não tem nada — `:425` pega o `$business_id`
+e `:427` já consulta. É o único método público do arquivo sem `abort(403)`.
+
+**Ressalva para quem pegar:** o `dashboard()` cabe na thread 03 pelo critério do passo 4 dela,
+**mas só a guarda**. O corpo dele carrega os defeitos de tenant do §7b e §7c, que são de outro
+dono — encostar nas queries transformaria o PR da 03 em dois intents e invadiria o terreno da 01.
+
+**Falso-positivo por prefixo, confirmado:** `asset.view` **não aparece** no `AssetController`
+(busca por string exata devolve rc=1). O `:145` é `asset.view_all_maintenance` /
+`asset.view_own_maintenance`. Quem buscar por prefixo conclui, errado, que o controller já usa
+`asset.view` — a thread 03 vai introduzir o **primeiro** uso dele nesse arquivo.
+
 ---
 
 ## 8 · Achado de plano — a D-ENDERECO pode já estar decidida
