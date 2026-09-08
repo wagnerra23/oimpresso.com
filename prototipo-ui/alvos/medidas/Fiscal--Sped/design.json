@@ -1,0 +1,252 @@
+{
+  "url": "http://127.0.0.1:50456/oimpresso.com.html",
+  "theme": "light",
+  "assinatura": "OI Oimpresso Matriz IA 3 Visão geral G D Atendimento 6 Cadastro 3 Clientes G C Produtos 12 G P Fabricação 3 Comercial 4 CRM 14 G R Vendas 19 G V Oficina Auto 1 Vestuário 1 Finanças 4 Caixa G X Financeiro 11 G F Cobrança 1 Cobrança Recorrente 3 Fiscal 1 Fiscal 6 NF-e · NFC-e NFS-e Eventos Manifesto DF-e SPED e livros ⋯ mais 1 Produção 3 Ordens de Serviço Comunicação Visual Assistência técnica 7 Estoque 3 Compras 4 Movimentações 6 G E Patrimônio 4 RH 3 Ponto HRM 7 Essenciais 6 Sistema 10 Auditoria Voz do Cliente Suporte 1 Usuários 3 Preferências Configurações 11 Relatórios 4 Arquivos 3 Base de Conhecimento Planilhas 1 Plataforma 4 WR Wagner Rocha Administrador SPED e livros fiscais EFD-ICMS/IPI · layout CONFAZ Guia Prático v3.1.1, perfil A SEFAZ-SP operacional Procedência ⌘ K Ver prévia do TXT Gerar TXT abril/2026 Notas fiscais NF-e · NFC-e 8 NFS-e 2 Eventos 5 Manifesto DF-e 3 Certificado SPED e livros Competência 04/2026 ✓ ano ≥ 2020 ✓ não-futura ✓ competência fechada ✕ trava sped_simples_only_lock ativa Liberar como superadmin Competência Notas Situação Prazo (heurística) Valor autorizado maio/2026 competência 05/2026 184 Aberto 15/06/2026 R$ 486.320,00 abril/2026 competência 04/2026 209 Pronto pra gerar 15/05/2026 R$ 542.180,00 março/2026 competência 03/2026 178 Entregue 15/04/2026 R$ 431.900,00 fevereiro/2026 competência 02/2026 141 Entregue 15/03/2026 R$ 358.440,00 janeiro/2026 competência 01/2026 133 Entregue 15/02/2026 R$ 322.760,00 Blocos do arquivo · abril/2026 23 registros 0 — Abertura, identificação e referências 7 C — Documentos fiscais I — mercadorias (NF-e) 9 E — Apuração do ICMS e do IPI 4 H — Inventário físico (esqueleto IND_MOV=1) 2 9 — Controle e encerramento do arquivo 1 Validação e livros Smoke no PVA-EFD (validador CONFAZ) nunca executado Golden file do TXT não existe Apuração ICMS no arquivo (Bloco E) Apuração ISS · EFD-Contribuições · Conciliação SEFAZ × ERP backlog Só saídas por ora; CFOP sai da UF origem × destino (5xxx interno, 6xxx interestadual) e o tributo por item vem do motor tributário — com fallback Simples Nacional (CSOSN 102) enquanto a trava estiver ativa. Débitos conhecidos desta tela Gerador não validado no PVA-EFD Os testes dos blocos são source-grep (procuram nome de método no fonte); nenhum golden file, nenhum smoke no validador oficial da CONFAZ.",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": {
+      "bg": "oklch(0.55 0.15 295)",
+      "color": "oklch(1 0 0)",
+      "border": "oklch(0.55 0.15 295)"
+    },
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "procedencia",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "validacao-competencia",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 1
+        },
+        "exemplos": {
+          "snakeCru": [
+            "sped_simples_only_lock"
+          ]
+        }
+      },
+      {
+        "nome": "panorama-sped",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 5,
+          "snakeCru": 0
+        },
+        "exemplos": {
+          "dataBr": [
+            "15/06/2026",
+            "15/05/2026",
+            "15/04/2026"
+          ]
+        }
+      },
+      {
+        "nome": "blocos-arquivo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "validacao-externa",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 3,
+          "css": {
+            "height": "34px",
+            "minHeight": "0px",
+            "padding": "0px 10px",
+            "margin": "0px",
+            "gap": "10px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13px",
+            "fontWeight": "400",
+            "lineHeight": "18.85px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "6px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "243px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 243,
+            "h": 34
+          },
+          "icone": {
+            "w": 16,
+            "h": 16,
+            "strokeWidth": "1.6px"
+          }
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 36,
+          "css": {
+            "height": "34px",
+            "minHeight": "0px",
+            "padding": "0px 10px 0px 18px",
+            "margin": "0px",
+            "gap": "10px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13px",
+            "fontWeight": "400",
+            "lineHeight": "18.85px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "6px",
+            "borderWidth": "0px 0px 0px 2px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "243px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 243,
+            "h": 34
+          },
+          "icone": {
+            "w": 16,
+            "h": 16,
+            "strokeWidth": "1.6px"
+          }
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 9,
+          "css": {
+            "height": "25px",
+            "minHeight": "0px",
+            "padding": "6px 10px",
+            "margin": "0px",
+            "gap": "8px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "10px",
+            "fontWeight": "600",
+            "lineHeight": "normal",
+            "letterSpacing": "0.6px",
+            "textTransform": "uppercase",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "4px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "243px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 243,
+            "h": 25
+          },
+          "icone": {
+            "w": 10,
+            "h": 10,
+            "strokeWidth": "1.6px"
+          }
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "1646.94px",
+            "minHeight": "0px",
+            "padding": "8px",
+            "margin": "0px",
+            "gap": "normal",
+            "display": "block",
+            "alignItems": "normal",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "259px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 259,
+            "h": 1646.9
+          },
+          "icone": {
+            "w": 16,
+            "h": 16,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": [
+        {
+          "i": 0,
+          "rotulo": "IA3",
+          "atual": null
+        },
+        {
+          "i": 1,
+          "rotulo": "Visão geralG D",
+          "atual": null
+        },
+        {
+          "i": 2,
+          "rotulo": "Atendimento6",
+          "atual": null
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "url": "https://staging.oimpresso.com/fiscal/nfse",
+  "theme": "light",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C NFS-e Sistema Nacional NT 2024-001 · 0 no período · R$ 0,00 autorizado tudo autorizado Buscar Cockpit NF-e · NFC-e NFS-e Manifesto DF-e Eventos Certif. & Cfg. SPED & Livros Todas 0 Autorizadas 0 Rejeitadas 0 Processando 0 Canceladas 0 Nenhuma NFS-e encontrada Ajuste os filtros ou aguarde primeira emissão deste mês. Débitos conhecidos desta tela Os chips filtram por estado da nota de serviço autorizadas, rejeitadas, em processamento (rascunho + processando), canceladas. Existe no Controller; sem teste do resultado filtrado. sem teste A busca aceita número, código de verificação, nome e documento do tomador sem teste do resultado. sem teste O filtro de competência restringe as linhas ao mês escolhido só o caminho de mês inválido tem teste; o caminho feliz não. sem teste O município da prestação aparece na linha a coluna não existe no schema em produção (duelo de duas migrations para a mesma tabela, resolvido revertendo o Controller para o schema antigo e traduzindo os estados). Hoje o campo volta vazio por desenho. Ver SDD §5.2. sem teste · débito de schema Cockpit NF-e Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "700",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "fiscal-nfse-filters",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "debitos-conhecidos",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

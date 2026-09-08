@@ -1,0 +1,202 @@
+{
+  "url": "http://127.0.0.1:55400/oimpresso.com.html",
+  "theme": "light",
+  "assinatura": "OI Oimpresso Matriz IA 3 Visão geral G D Atendimento 6 Cadastro 3 Clientes G C Produtos 12 G P Fabricação 3 Comercial 4 CRM 14 G R Vendas 19 G V Oficina Auto 1 Vestuário 1 Finanças 4 Caixa G X Financeiro 11 G F Cobrança 1 Cobrança Recorrente 3 Fiscal 1 Fiscal 6 NF-e · NFC-e NFS-e Eventos Manifesto DF-e Certificado e configuração ⋯ mais 1 Produção 3 Ordens de Serviço Comunicação Visual Assistência técnica 7 Estoque 3 Compras 4 Movimentações 6 G E Patrimônio 4 RH 3 Ponto HRM 7 Essenciais 6 Sistema 10 Auditoria Voz do Cliente Suporte 1 Usuários 3 Preferências Configurações 11 Relatórios 4 Arquivos 3 Base de Conhecimento Planilhas 1 Plataforma 4 WR Wagner Rocha Administrador Eventos fiscais Timeline append-only · 5 eventos nos últimos 30 dias · auditoria LGPD Art. 37 SEFAZ-SP operacional Procedência ⌘ K 7 dias 30 dias 90 dias Exportar CSV Notas fiscais NF-e · NFC-e 8 NFS-e 2 Eventos 5 Manifesto DF-e 3 Certificado SPED e livros Todos 5 CC-e (110110) 1 Cancelamento (110111) 2 Inutilização (102) 1 Manifesto destinatário 1 Eventos aplicados 5 18/05 11:40 Carta de Correção #1 · NF-e 8424 Corrigir info adicional natureza operação cstat 100 18/05 06:30 Cancelamento · NF-e 8420 Cliente desistiu da compra antes de envelopamento cstat 101 17/05 14:12 Inutilização · Faixa 8418-8419 Inutilização de faixa numérica saltada (erro de digitação) cstat 102 16/05 09:48 Manifestação destinatário · NF-e entrada 982 Confirmação operação fornecedor TechSupply Ltda cstat 135 15/05 17:22 Cancelamento · NFC-e 9005 Cliente devolveu mercadoria na mesma data cstat 101 Eventos são append-only (NfeEvento sem updated_at) — a tela não permite edição. Emissão de CC-e, cancelamento e inutilização acontece nas telas de notas. Débitos conhecidos desta tela Justificativa truncada em 200 caracteres Corte feito no Controller para não vazar PII do xMotivo do XML; a tela não re-expande.",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "procedencia",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 3,
+          "css": {
+            "height": "34px",
+            "minHeight": "0px",
+            "padding": "0px 10px",
+            "margin": "0px",
+            "gap": "10px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13px",
+            "fontWeight": "400",
+            "lineHeight": "18.85px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "6px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "243px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 243,
+            "h": 34
+          },
+          "icone": {
+            "w": 16,
+            "h": 16,
+            "strokeWidth": "1.6px"
+          }
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 36,
+          "css": {
+            "height": "34px",
+            "minHeight": "0px",
+            "padding": "0px 10px 0px 18px",
+            "margin": "0px",
+            "gap": "10px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13px",
+            "fontWeight": "400",
+            "lineHeight": "18.85px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "6px",
+            "borderWidth": "0px 0px 0px 2px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "243px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 243,
+            "h": 34
+          },
+          "icone": {
+            "w": 16,
+            "h": 16,
+            "strokeWidth": "1.6px"
+          }
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 9,
+          "css": {
+            "height": "25px",
+            "minHeight": "0px",
+            "padding": "6px 10px",
+            "margin": "0px",
+            "gap": "8px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "10px",
+            "fontWeight": "600",
+            "lineHeight": "normal",
+            "letterSpacing": "0.6px",
+            "textTransform": "uppercase",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "4px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "243px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 243,
+            "h": 25
+          },
+          "icone": {
+            "w": 10,
+            "h": 10,
+            "strokeWidth": "1.6px"
+          }
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "1646.94px",
+            "minHeight": "0px",
+            "padding": "8px",
+            "margin": "0px",
+            "gap": "normal",
+            "display": "block",
+            "alignItems": "normal",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "259px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 259,
+            "h": 1646.9
+          },
+          "icone": {
+            "w": 16,
+            "h": 16,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": [
+        {
+          "i": 0,
+          "rotulo": "IA3",
+          "atual": null
+        },
+        {
+          "i": 1,
+          "rotulo": "Visão geralG D",
+          "atual": null
+        },
+        {
+          "i": 2,
+          "rotulo": "Atendimento6",
+          "atual": null
+        }
+      ]
+    }
+  }
+}

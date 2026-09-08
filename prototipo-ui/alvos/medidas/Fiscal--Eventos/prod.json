@@ -1,0 +1,66 @@
+{
+  "url": "https://staging.oimpresso.com/fiscal/eventos",
+  "theme": "light",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C Eventos fiscais Últimos 30d · 0 eventos · 0 autorizados SEFAZ append-only log Buscar Últimos 30d Exportar CSV Cockpit NF-e · NFC-e NFS-e Manifesto DF-e Eventos Certif. & Cfg. SPED & Livros Janelas legais que o sistema valida CC-e: até 30 dias · máx 20 por nota · não corrige valor/CFOP/qtd. Cancelamento: até 24h (NFC-e) / 168h (NF-e se UF permitir). Inutilização: faixas de numeração não usadas. Todos 0 CC-e 0 Cancelamento 0 EPEC 0 Manifesto 0 Nenhum evento no período Eventos aparecem após cancelamento, CC-e, EPEC ou manifestação. Débitos conhecidos desta tela A justificativa exibida é truncada, para não vazar PII do XML Dado um evento com justificativa longa · Quando a linha renderiza · Então só um trecho inicial aparece. Anti-hook do charter (o texto do motivo da SEFAZ pode conter dado pessoal); o corte existe no Controller, sem teste. sem teste Filtro por categoria e por janela de tempo 7, 30 ou 90 dias, com 30 como padrão. Existe no Controller; sem teste do resultado. sem teste A nota de origem vem junto sem multiplicar consultas o charter limita a um relacionamento carregado; nenhum teste guarda esse limite. sem teste As ações que GERAM evento (cancelamento, carta de correção, inutilização, retransmissão, manifestação) têm contrato em Nfe.casos.md (UC-FNFE-04..07) e Dfe.casos.md (UC-FDFE-03/04) — o dispatch vive lá, esta tela só lê o resultado. Não se duplica UC entre telas irmãs. coberto em outra tela Cockpit NF-e Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "700",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "debitos-conhecidos",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    }
+  }
+}
