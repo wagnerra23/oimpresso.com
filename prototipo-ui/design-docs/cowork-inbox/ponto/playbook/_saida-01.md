@@ -6,7 +6,7 @@ criado: 2026-09-08
 base: a364bd65ed
 thread: 01-rede-e2e.md
 ancora: "e2e/global-setup.ts + playwright.config.ts + e2e-gate.yml — lidos no main a364bd65ed; harness cobre Inertia autenticado, PARAR SE #1 NÃO disparou"
-veredito: "entregue — 2 specs executáveis + 1 fixme com razão medida · 0 run local (impossível neste worktree, declarado abaixo) · 7 achados"
+veredito: "entregue — 2 specs executáveis VERDES no e2e-gate (run real, 14 passed) + 1 fixme skipped como projetado · 8 achados"
 ---
 
 # _saída 01 · Rede mínima (E2E de fumaça do Ponto)
@@ -28,16 +28,29 @@ devolve `true` para quem `hasRole('Admin#'.$user->business_id)`; e `CheckPontoAc
 
 ### 2 ⚠️ Não feito, e por quê
 
-**(a) Não rodei os specs — nem 2×, nem 3×.** Não é escolha: este worktree **não tem `node_modules`**
-(0 pacotes) e **não tem PHP** no PATH; sem eles não há `playwright test` nem `artisan serve`. A
-limitação é a que o próprio `playwright.config.ts` já declara em comentário (*"o agente desktop não
-tem PHP/serve"*). **Não afirmo estabilidade que não medi** — o primeiro run real destes 3 specs será
-o `e2e-gate` na abertura deste PR, e o veredito é dele, não meu.
+**(a) Não rodei os specs localmente — nem 2×, nem 3×.** Não é escolha: este worktree **não tem
+`node_modules`** (0 pacotes) e **não tem PHP** no PATH; sem eles não há `playwright test` nem
+`artisan serve`. É a limitação que o próprio `playwright.config.ts` declara (*"o agente desktop não
+tem PHP/serve"*). Não afirmei estabilidade que não tinha medido — e o veredito veio do lugar certo:
 
-O que consegui provar aqui, e com controle positivo: **sintaxe válida nos 3** (`node --check`, via
-type-stripping do Node 24). O controle negativo — arquivo `.ts` propositalmente quebrado, criado no
-**mesmo diretório** para não trocar o contexto de resolução — **reprovou**, então o `OK` dos 3 não é
-carimbo. Arquivo temporário removido (`git status` limpo).
+**O `e2e-gate` RODOU DE VERDADE na abertura do PR e passou.** Prova colada do log
+(run `34267658387`, job `E2E Playwright · UCs críticos`), não `conclusion=success` sozinho — que
+seria compatível com skip-as-pass (medido: **0** ocorrências de "Skip-as-pass" no log, porque o
+`paths-filter` viu `e2e/**` mudado):
+
+```
+✓  29 [chromium-1280] › e2e/ponto-dashboard.spec.ts:27:1 › painel do ponto abre autenticado e monta as âncoras do contrato (1.2s)
+-  30 [chromium-1280] › e2e/ponto-espelho-show.spec.ts:24:6 › espelho mensal de um colaborador abre com o cabeçalho legal
+✓  31 [chromium-1280] › e2e/ponto-espelho.spec.ts:20:1 › lista do espelho abre autenticada com o seletor de mês (1.1s)
+
+30 skipped
+14 passed (38.9s)
+```
+
+O run confirma, contra o app real, o que eu só tinha deduzido estaticamente: as duas rotas **abrem**
+para o admin da lane, e as âncoras sob `<Deferred>` **chegam ao DOM** dentro do timeout das
+web-first assertions (1,2 s e 1,1 s — sem sinal de espera no limite). O `-` da linha 30 é o `fixme`
+sendo pulado, exatamente como projetado.
 
 **(b) `ponto-espelho-show.spec.ts` nasce `fixme`** — a rota responde **404** na lane, medido em três
 pontos: `EspelhoController@show:70` resolve por `findOrFail()`; `VisregTenantSeeder` tem **zero**
@@ -83,18 +96,34 @@ Não fabriquei o colaborador dentro do spec: é o anti-padrão de `memory/proibi
    `resources/js/Pages/Ponto/Dashboard/Index.casos.md:110` traz um `[BACKLOG]`: *"Ordem no DOM de
    verdade exige E2E (Playwright), e não há lane de browser para esta tela."* Continua `[BACKLOG]` —
    virar UC exige teste que **cite** o id, e mexer em `casos.md` é prefixo da **thread 02**.
-7. **Contexto de tenant:** a lane E2E roda em **biz=1** (`VisregTenantSeeder`, o mesmo do
+7. **Gate `SUPERFICIE.md == árvore` chegou vermelho por dívida de TERCEIRO, e a causa é de base.**
+   O `--all --check` acusou `DRIFT em AssetManagement` — módulo que este PR **não toca** (`git diff
+   --name-only origin/main...HEAD | grep -i asset` = vazio). Diagnóstico: o `origin/main` avançou 3
+   commits durante a sessão (#7045 trouxe a tela `Manutencoes`, #7051 regenerou o `SUPERFICIE`
+   **listando** os arquivos novos mas deixando os **contadores** velhos — 116/4/4/4 onde a árvore
+   pede 120/5/5/5). Trouxe o main por `merge` (nunca rebase) e regenerei com o comando oficial
+   (`module-surface.mjs AssetManagement --write`): 6 linhas, só contadores, `--all --check` **exit 0**.
+   ⚠️ **Há 3 PRs abertos com o MESMO conserto** (#7050, #7053, #7055 — todos indo para `120`). Mantive
+   o meu porque o gate é **required + always-run** e sem ele o PR não mergeia; como o gerador é
+   determinístico e o resultado é idêntico ao dos três, o risco de conflito é baixo. **É dívida
+   herdada, não introduzida por esta thread** — registro para que o merge não a atribua a mim.
+8. **Contexto de tenant:** a lane E2E roda em **biz=1** (`VisregTenantSeeder`, o mesmo do
    visual-regression), não no tenant fictício 98 da doutrina Pest (ADR 0358) — que governa Pest/CT 100,
    não Playwright. O que importa para a lei: **biz=4 (ROTA LIVRE) não é tocado em lugar nenhum**.
 
-### 5 🗂 Prefixo tocado — e só ele
+### 5 🗂 Arquivos tocados — o prefixo, mais 1 declarado
 
 ```
-e2e/ponto-dashboard.spec.ts     (novo)
-e2e/ponto-espelho.spec.ts       (novo)
-e2e/ponto-espelho-show.spec.ts  (novo)
+e2e/ponto-dashboard.spec.ts     (novo)   ← prefixo
+e2e/ponto-espelho.spec.ts       (novo)   ← prefixo
+e2e/ponto-espelho-show.spec.ts  (novo)   ← prefixo
 prototipo-ui/design-docs/cowork-inbox/ponto/playbook/_saida-01.md  (este arquivo)
+memory/requisitos/AssetManagement/SUPERFICIE.md  (+6/-6)  ← FORA do prefixo, ver achado 7
 ```
+
+O `SUPERFICIE.md` **não é meu assunto** e está declarado como tal: entrou porque o gate
+`SUPERFICIE.md == árvore` é **required + always-run** e chegou vermelho por dívida de terceiro
+(achado 7). É saída do gerador oficial (`--write`), não edição à mão — só contadores.
 
 `nao_toca` respeitado, verificado por `git status`: **zero** linha em `resources/js/Pages/Ponto/**`,
 **zero** em `Modules/Ponto/**`, **zero** em `e2e/global-setup.ts`, nenhum harness novo.
