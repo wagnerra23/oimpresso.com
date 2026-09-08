@@ -81,3 +81,29 @@ Sem decisão, o caminho seguro é **Opção A, P1 primeiro** (check-in + combust
 - Fonte: Claude Design bundle `Oimpresso ERP Conunicação Visual` (claude.ai/design), arquivo `project/oficina-os-page.jsx` + `oficina-os-page.css` + `data-os.jsx`.
 - Intenção (chats): chat37 (2026-06-02) — foco na homologação Martinho; *"o fluxo real da Oficina… Recepção → Diagnóstico (DVI semáforo) → Orçamento → Aprovação (gate) → Execução… é o diferencial que brilhou os olhos dela."*
 - Regras aplicadas: README do bundle ("recriar o output visual, perguntar se ambíguo, não copiar estrutura do protótipo"), ADR 0104 (MWART), commit-discipline (1 PR = 1 US), handoff §10.4 ("F1 = proposta, estender não recriar").
+
+---
+
+## Medição de runtime — 2026-09-08 (`ServiceOrders/Show`)
+
+> `design-diff-lote.mjs`, mesma sonda nos dois lados, tema pareado `dark`, app local
+> `APP_ENV=testing`, rota concreta `--url /oficina-auto/service-orders/1`.
+> Artefatos: `prototipo-ui/alvos/medidas/OficinaAuto--ServiceOrders--Show/`.
+
+**Veredito bruto: `DIVERGE (bug)` — D4 título `24px` (prod) × `16px` (design).**
+
+**VERIFICADO, e a divergência NÃO é real.** O `<h1>` da tela é `OS #1`
+(`text-xl md:text-2xl font-semibold`, 20px na viewport estreita / 24px em `md:`), fora do banner
+LGPD. Do lado design, `16px` **não é título**: a assinatura do render começa pelo sidebar do
+shell (`OI Oimpresso Matriz IA 3 Visão geral G D Atendimento 6 …`), ou seja o papel `title`
+casou um elemento do shell, não o título da view.
+
+A view certa renderizou dos dois lados (`OS` · `Ordem` · `Diagnóstico` · `Aprovação` · `Itens`
+presentes na assinatura do design) — o defeito é de **mapa de papéis**, não de paridade.
+
+**Ação: nenhuma na tela.** O que fecha isto é declarar `roles.design.title` no override
+(`prototipo-ui/alvos/roles/OficinaAuto--ServiceOrders--Show.json`), e isso é configuração que
+depende de escolher o seletor certo no protótipo — decisão de quem conhece o `oficina-os-page.jsx`.
+
+⚠️ Pegadinha de execução registrada: `--url "/rota"` no Git Bash vira
+`C:/Program Files/Git/rota` (MSYS path conversion). Use `MSYS_NO_PATHCONV=1`.
