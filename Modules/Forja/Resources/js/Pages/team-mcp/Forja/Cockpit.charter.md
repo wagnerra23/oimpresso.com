@@ -2,6 +2,7 @@
 id: resources-js-pages-team-mcp-forja-cockpit-charter
 page: /forja
 component: Modules/Forja/Resources/js/Pages/team-mcp/Forja/Cockpit.tsx
+related_visual_comparison: memory/requisitos/TeamMcp/forja-cockpit-visual-comparison.md
 related_prototype: prototipo-ui/cowork/forja-page.jsx
 owner: wagner
 status: draft
