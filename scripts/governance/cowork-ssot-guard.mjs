@@ -64,7 +64,28 @@ const PROTOTIPOS_HISTORICOS = new Set(['financeiro-prova-viva']);
 // 2026-09-09 (a própria fonte declara o limite: configuracoes-page.jsx:324, prefs-page.jsx:121).
 // 'nfse-emitir'    — Nfse/Emitir; a única emissão NFS-e desenhada é o modal dentro da venda
 // (vendas-flow.jsx:573) e o botão do cockpit só navega (fiscal-page.jsx:96). Medido 2026-09-09.
-const PROTOTIPOS_GERADOS = new Set(['nfe-tributacao', 'nfse-emitir']);
+// 'payment-gateway-cnab' — Settings/PaymentGateways/CnabRetorno (tela de dinheiro sem fonte);
+// ausência medida nos 2 donos em 2026-09-09. O espelho TEM vocabulário parcial de CNAB — dois
+// `SheetRemessaRetorno` (boletos-page.jsx:509, pg-cobranca-page.jsx:863) — mas os dois são sheet
+// de LISTA dentro da Cobrança, sem dropzone/validação/contadores por arquivo (G1-G4 do charter),
+// e pertencem a outra US (US-FIN-018, cujo `Implementado em:` aponta outro .tsx).
+// 'transaction-payment' — TransactionPayment/{Edit,Show} (`/payments/v2`), 2 telas de dinheiro
+// sem fonte; ausência medida nos 2 donos em 2026-09-09: `TransactionPayment` dá 10 hits em
+// `prototipo-ui/`, TODOS .md/docs, zero em arquivo de design. O drawer mais próximo
+// (financeiro-legado.jsx:369, `sel.k === "titulo"`) detalha TÍTULO, objeto diferente.
+// 'recurring-billing-planos' — RecurringBilling/Planos/{Create,Edit}, 2 telas de dinheiro sem
+// fonte; ausência medida nos 2 donos em 2026-09-09. A aba "planos" do hub
+// (cobranca-recorrente-page.jsx:369) é `<Placeholder>` de 3 elementos, e o arquivo é porte
+// REVERSO (`:2` "Reescreve a RecurringBilling do git") — mesmo veredito dos 3 irmãos no #7099.
+// 'financeiro-assinatura-atualizar' — Financeiro/AssinaturaAtualizar (FIN-004). O espelho TEM um
+// `cowork/AssinaturaAtualizar.tsx`, mas é porte REVERSO do vivo (310 vs 309 linhas, difere só na
+// API do PageHeader) — ancorar nele seria ancorar a tela nela mesma. Medido 2026-09-09.
+// 'financeiro-contador' — Financeiro/Configuracoes/Contador (US-FIN-037); `contador|advisor` nos 3
+// `configuracoes-*.jsx` dá rc=1, com controle positivo na mesma sonda (`configura` → 15 hits).
+const PROTOTIPOS_GERADOS = new Set([
+  'nfe-tributacao', 'nfse-emitir', 'payment-gateway-cnab', 'transaction-payment',
+  'recurring-billing-planos', 'financeiro-assinatura-atualizar', 'financeiro-contador',
+]);
 
 const errors = [];
 

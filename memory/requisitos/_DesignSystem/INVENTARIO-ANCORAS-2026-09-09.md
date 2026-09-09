@@ -681,6 +681,124 @@ máquina o consome:
 
 Isso é mais confiável que qualquer heurística — e é o material natural para fechar §4.
 
+### 5.7 · Errata dos recibos + a causa-raiz das 7 telas de dinheiro (2026-09-09, sessão seguinte)
+
+> **Append, não reescrita.** Os recibos de §5.3 ficam como estavam — eram o que se mediu no dia.
+> Esta seção corrige DOIS deles e nomeia a causa-raiz comum. Escopo: as 7 telas que tocam valor
+> (`TransactionPayment/{Edit,Show}` · `RecurringBilling/Planos/{Create,Edit}` ·
+> `Settings/PaymentGateways/CnabRetorno` · `Financeiro/AssinaturaAtualizar` ·
+> `Financeiro/Configuracoes/Contador`).
+
+**Nenhuma das 7 estava sem declaração.** As 7 declaram `related_prototype: n/a (...)`, e a máquina
+classifica isso como *declaração legítima* (`ehDeclaracaoNa`). Para 5 delas a declaração nasceu na
+wave [#4109](https://github.com/wagnerra23/oimpresso.com/pull/4109), que classificou 75 telas **por
+conteúdo** (assinatura do `.tsx`), passou a rede `pt-conformance` e **reverteu 9 mismatches** — logo
+não é default silencioso (§5 2026-08-10), é declaração conferida. O que falta não é a declaração:
+é o **artefato que ela aponta**.
+
+#### Errata — 2 recibos de §5.3 usaram grep de string literal (§5 2026-08-18)
+
+| tela | recibo de §5.3 | o que a medição de 09-09 (3 pernas) mostrou |
+|---|---|---|
+| `Financeiro/AssinaturaAtualizar` | *"`FIN-004`/`atualizar cobran` → 0"* | **`prototipo-ui/cowork/AssinaturaAtualizar.tsx` EXISTE.** É porte REVERSO do vivo (310 vs 309 linhas; difere só na API do PageHeader). Conclusão "sem fonte" **mantida**; o recibo é que era o instrumento errado. |
+| `Settings/PaymentGateways/CnabRetorno` | *"o batch Cowork declara 3 telas, e essa não está"* | Verdadeiro, mas incompleto: o termo de domínio `cnab` dá **15 hits em 5 arquivos** do espelho, e há **dois** `SheetRemessaRetorno` (`boletos-page.jsx:509` e `pg-cobranca-page.jsx:863`). Vocabulário visual PARCIAL existe; a tela (dropzone + validação + contadores) não. |
+
+Os outros 3 recibos foram re-medidos com sonda própria e **conferem** — incl. controle positivo
+(`contador|advisor` nos `configuracoes-*.jsx` → rc=1, enquanto `configura` → 15 hits na mesma sonda).
+
+#### A causa-raiz: a camada que as 7 apontam não tem artefato
+
+Existem **6 Padrões de Tela canônicos** em `padroes-tela/` (PT-01, PT-02, PT-03, PT-04, PT-05, PT-07)
+e **3 templates renderizados** em `design-system/templates/` (`pt-01-lista`, `pt-05-dashboard`,
+`pt-07-os-detail` — este último é a tela-assinatura de OS, não o Detalhe genérico).
+
+**PT-02 Form-Drawer e PT-03 Detalhe — declarados por 5 das 7 — não têm template.** E para o PT-02 a
+razão é mecânica, não esquecimento: as regras R3/R4/R6/R8 do PT-02 exigem `FormSection`, `FormGrid`,
+`Field`, `FieldError` e `InputGroup`, e **nenhum dos cinco existe no DS** (manifesto = 0, refs no
+`_ds_bundle.js` = 0), com controle positivo na mesma sonda (`Input`/`Select`/`Segmented` = 1 cada).
+Eles existem **só no código** (`resources/js/Components/ui/{field-state,form-section}.tsx`). Ou seja:
+**o PT-02 não é renderizável pelo DS de hoje.** O PT-03, ao contrário, usa só componentes que o DS
+tem (KpiCard · Timeline · EmptyState · DropdownMenu · Skeleton · StatusBadge) — é construível.
+
+#### ~~Por que o protótipo não nasce neste repo~~ — ERRADO, corrigido no mesmo dia
+
+> ⚠️ **Esta subseção nasceu falsa e fica registrada, não apagada.** Eu medi os 4 destinos e conclui
+> que *"o protótipo não nasce neste repo"*. Era verdade **quando medi** e falso **quando publiquei**:
+> horas antes, no mesmo 2026-09-09, o [#7145](https://github.com/wagnerra23/oimpresso.com/pull/7145)
+> **abriu a rota** — e eu não vi porque minha base estava atrás. Foi o merge de `origin/main` que me
+> denunciou: ele trouxe `prototipos/nfe-tributacao/` e o guard passou **verde** num diretório que meu
+> próprio bite-test dizia que reprovaria. É a lápide [§5 2026-09-03](../../proibicoes.md) em ato —
+> *"lápide que declara um GAP tem prazo de validade implícito; antes de citar um gap como estado do
+> mundo, re-medir"* — cometida no dia seguinte a ela existir.
+
+**A rota existe e tem nome.** O `cowork-ssot-guard` ganhou uma **terceira lista**,
+`PROTOTIPOS_GERADOS`, cuja razão de ser é exatamente este caso — e a **direção** é o que a distingue
+das outras duas. O allowlist transitório é design que **veio** do Cowork e ainda não voltou (meta = 0);
+`PROTOTIPOS_GERADOS` é design que **nasceu aqui**, gerado pelo agente Code como designer-agente
+([ADR 0282](../../decisions/0282-protocolo-v2-colapso-ratificacao.md) §0.1), para tela sem fonte
+visual em nenhum dos dois donos. Não tem de onde ser exportado — precisa **subir**.
+
+O que sobrevive da medição original, re-conferido pós-merge:
+
+| destino | veredito |
+|---|---|
+| `prototipo-ui/prototipos/<slug>` **+ entrada em `PROTOTIPOS_GERADOS`** | ✅ **é a rota** — precedente `nfe-tributacao` (#7145), com `SOURCE.md` declarando proveniência, âncora de domínio e status |
+| `prototipo-ui/prototipos/<slug>` **sem** declarar na lista | ❌ R3 morde (bite-test do #7145: bom→0 · não-declarado→1 · volta→0) |
+| `prototipo-ui/cowork/` | ❌ espelho read-only ([ADR 0374](../../decisions/0374-emenda-0315-espelho-cowork-e-rota-prevista.md)) |
+| `prototipo-ui/design-system/` | ❌ **também espelho** — README: *"Espelho, não fonte"* |
+| `DesignSync.write_files` | ⚠️ publicação externa ([ADR 0315](../../decisions/0315-design-sync-claude-design-vs-cowork-charter.md) + R10) — necessária só para **subir** o desenho depois, não para gerá-lo |
+
+**Consequência para as 7 telas de dinheiro:** o desenho **pode e deve ser gerado agora**, na forma do
+#7145 — `SOURCE.md` + `-page.jsx` + `-page.css`, entrada em `PROTOTIPOS_GERADOS`, charters **intactos**
+(o `n/a` permanece), status **proposta de forma, não lei**. Promover a `related_prototype` é que segue
+sendo decisão [W], porque tornaria um desenho novo soberano sobre tela viva pela cadeia FORMA da
+[UI-0029](adr/ui/0029-prototipo-soberano-sobre-adr-ui.md).
+
+#### Decisões que são do [W]
+
+1. **Primitivas de form no DS** (`FormSection` · `FormGrid` · `Field` · `FieldError` · `InputGroup`) —
+   sem elas o PT-02 não renderiza, e 4 das 7 telas seguem sem a fonte que declaram. Componente novo
+   do DS é soberania [W] (ADR 0282 "o ouro").
+2. ~~**Opt-in de publicação** para o artefato ter destino durável~~ — **caducou** com a correção
+   acima: o destino é `prototipos/<slug>` + `PROTOTIPOS_GERADOS`. O opt-in volta a importar só no
+   passo seguinte, quando o desenho **subir** pro Cowork.
+3. **PT-03 primeiro?** É construível hoje sem (1), e destrava `TransactionPayment/Show` + o gate de
+   screenshot que segura o PT-03 em `status: draft`. Depende só de (2).
+
+#### Por que só 4 dos 7 charters foram anotados (e o achado que isso revelou)
+
+A anotação foi aplicada nos 7 e **revertida em 3**: `Settings/PaymentGateways/CnabRetorno`,
+`TransactionPayment/Edit` e `TransactionPayment/Show`. Motivo medido no CI do PR: tocar um charter
+acorda o `charter-us-lint --check` (regra *no-new-lie* — charter novo/tocado declara a US que atende),
+e **esses 3 não têm `related_us`**. É a lápide [§5 2026-07-27](../../proibicoes.md) (*"tocar legado
+acorda gate diff-aware"*) em ato.
+
+Procurei a US real e **não existe** — declarar uma seria inventar (a ordem de fonte manda PERGUNTAR):
+
+- **`CnabRetorno`** — a US mais próxima é `US-FIN-018 · Boletos — Sheet Remessa/Retorno CNAB`, mas o
+  `**Implementado em:**` dela aponta `resources/js/Pages/Financeiro/Cobranca/_components/SheetRemessaRetorno.tsx`,
+  **outra superfície**, com dados MOCK. A tela do PaymentGateway é uma página por credencial
+  (`/settings/payment-gateways/{id}/cnab-retorno`) com processor REAL. Declarar `US-FIN-018` aqui
+  seria uma âncora falsa. _(De quebra: isso explica o `SheetRemessaRetorno` do espelho — ele é o
+  design da US-FIN-018, não desta tela; e há hoje **quatro** artefatos distintos com esse nome — contados 2026-09-09 com `rg -l --hidden` no repo inteiro: `prototipo-ui/cowork/boletos-page.jsx` · `prototipo-ui/cowork/pg-cobranca-page.jsx` (998 ln) · `prototipo-ui/cowork/prototipos/payment-gateway-ui/cobranca-page.jsx` (830 ln — **não** é cópia do anterior: 206 linhas de diff, md5 distinto) · e o vivo `resources/js/Pages/Financeiro/Cobranca/_components/SheetRemessaRetorno.tsx` (US-FIN-018).)_
+- **`TransactionPayment/{Edit,Show}`** — `payments/v2` e `TransactionPayment` não aparecem em SPEC
+  nenhum como US de tela; os hits são o `TransactionPaymentController` do core UPOS e traits de
+  auditoria. **Duas telas que mexem em pagamento, sem US.**
+
+**Decisão [W]:** declarar a US dessas 3 (criando-a se for o caso) ou aceitar a dívida explicitamente.
+Enquanto isso, elas ficam **sem a anotação** — o registro da ausência de fonte vive aqui, nesta seção,
+que é o dono do tema.
+
+#### Achado Tier 0 — registrado, NÃO consertado
+
+O `CnabRetornoProcessor` incrementa **6** contadores (`paga`, `cancelada`, `vencida`, `registrada`,
+`sem_match`, `ignorada` — contados por `rg -o`), mas a migration
+`2026_05_26_120100_create_cnab_retorno_uploads_table` tem **4** colunas e o `update()` do
+`finalizarUpload` persiste **4**. `sem_match` (pagamento sem cobrança correspondente) e `ignorada`
+(ocorrências de protesto/alteração/erro) são calculados e **descartados** — exatamente as linhas que
+exigem follow-up humano numa tela de dinheiro. Mudar isso é comportamento sobre VALOR: decisão [W]
+(regra-mestre de [proibicoes.md](../../proibicoes.md)), nunca conserto silencioso desta sessão.
+
 ## 6 · Portas vivas (o estado de hoje, não o deste arquivo)
 
 ```bash

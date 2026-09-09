@@ -194,7 +194,7 @@ mock, o mesmo motivo que ja tinha derrubado a 2a frase do Resumo.
 **O nome do icone foi medido, nao suposto.** `Components/Icon` resolve por string e cai em
 `Circle` quando o nome nao existe no lucide; o TS nao valida (o componente faz cast). Render
 comparado em 2026-09-09: `calendar` sai `class="lucide lucide-calendar"`, um nome invalido sai
-`lucide-circle`. O **UC-PAT-06** trava isso — sem ele, o defeito seria tsc verde, eslint verde,
+`lucide-circle`. O **UC-PAT-08** trava isso — sem ele, o defeito seria tsc verde, eslint verde,
 build verde e uma bola vazia na tela (foi o bug de 2026-05-07,
 [#184](https://github.com/wagnerra23/oimpresso.com/pull/184)).
 

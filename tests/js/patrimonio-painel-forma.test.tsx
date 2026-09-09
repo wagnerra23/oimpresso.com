@@ -1,4 +1,4 @@
-// UC-PAT-05 / UC-PAT-06 · Patrimonio/Index — os dois detalhes de FORMA que o painel porta do
+// UC-PAT-07 / UC-PAT-08 · Patrimonio/Index — os dois detalhes de FORMA que o painel porta do
 // protótipo: o selo da categoria dominante e o ícone que abre o "Resumo de hoje".
 //
 // ── POR QUE ESTE ARQUIVO EXISTE (e é separado do irmão) ──────────────────────
@@ -21,11 +21,11 @@
 //
 // ── A MORDIDA (provada por mutação, não afirmada) ────────────────────────────
 // Aplicadas ao código real em 2026-09-09, uma de cada vez, com o `.tsx` restaurado depois:
-//   1. `porCategoria.reduce(...)` → `porCategoria[0]`  ⇒ UC-PAT-05 caso 2 VERMELHO
+//   1. `porCategoria.reduce(...)` → `porCategoria[0]`  ⇒ UC-PAT-07 caso 2 VERMELHO
 //      (o selo passa a dizer a categoria errada, porque a fixture põe a dominante no MEIO).
 //   2. `name="calendar"` → `name="calendario"` (nome que não existe no lucide)
-//      ⇒ UC-PAT-06 VERMELHO (`lucide-circle` no lugar de `lucide-calendar`).
-//   3. remover o `&& kpis?.bruto` da guarda ⇒ UC-PAT-05 caso 3 VERMELHO. E o que a mutação
+//      ⇒ UC-PAT-08 VERMELHO (`lucide-circle` no lugar de `lucide-calendar`).
+//   3. remover o `&& kpis?.bruto` da guarda ⇒ UC-PAT-07 caso 3 VERMELHO. E o que a mutação
 //      imprimiu não foi `0% em ...` e sim **`Infinity% em impressão`** — divisão por um
 //      denominador ausente, que é pior que zero: o zero ao menos parece um número.
 // Sem esses três pares o arquivo seria carimbo: verde que não sabe ficar vermelho.
@@ -38,7 +38,7 @@
 //     que o teste não dependa dela.
 //   - Nada sobre COR ou posição do selo — isso é a baseline visual, não este arquivo.
 //
-// @see resources/js/Pages/Patrimonio/Index.casos.md (UC-PAT-05, UC-PAT-06)
+// @see resources/js/Pages/Patrimonio/Index.casos.md (UC-PAT-07, UC-PAT-08)
 // @see prototipo-ui/cowork/patrimonio-page.jsx:176 (o `pill`) e modulo-padrao.jsx:52 (o ícone)
 
 import { describe, it, expect, afterEach, vi } from 'vitest';
@@ -82,7 +82,7 @@ const BASE = {
 
 afterEach(cleanup);
 
-describe('UC-PAT-05 · selo da categoria dominante no card de análise', () => {
+describe('UC-PAT-07 · selo da categoria dominante no card de análise', () => {
   it('CONTROLE POSITIVO: o card "Patrimônio por categoria" existe (o harness renderiza)', () => {
     render(<PainelPatrimonio {...BASE} kpis={KPIS} porCategoria={POR_CATEGORIA} />);
     expect(screen.getByText('Patrimônio por categoria')).toBeDefined();
@@ -115,7 +115,7 @@ describe('UC-PAT-05 · selo da categoria dominante no card de análise', () => {
   });
 });
 
-describe('UC-PAT-06 · ícone do "Resumo de hoje" resolve no lucide, não no fallback', () => {
+describe('UC-PAT-08 · ícone do "Resumo de hoje" resolve no lucide, não no fallback', () => {
   it('o bloco abre com o ícone de calendário — `lucide-calendar`, nunca `lucide-circle`', () => {
     render(<PainelPatrimonio {...BASE} kpis={KPIS} porCategoria={[]} />);
     const resumo = document.querySelector('[data-contract="resumo"]');
