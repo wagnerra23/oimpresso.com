@@ -490,7 +490,7 @@ Procurei a US real e **não existe** — declarar uma seria inventar (a ordem de
   **outra superfície**, com dados MOCK. A tela do PaymentGateway é uma página por credencial
   (`/settings/payment-gateways/{id}/cnab-retorno`) com processor REAL. Declarar `US-FIN-018` aqui
   seria uma âncora falsa. _(De quebra: isso explica o `SheetRemessaRetorno` do espelho — ele é o
-  design da US-FIN-018, não desta tela; e há hoje **três** artefatos com esse nome.)_
+  design da US-FIN-018, não desta tela; e há hoje **quatro** artefatos distintos com esse nome — contados 2026-09-09 com `rg -l --hidden` no repo inteiro: `prototipo-ui/cowork/boletos-page.jsx` · `prototipo-ui/cowork/pg-cobranca-page.jsx` (998 ln) · `prototipo-ui/cowork/prototipos/payment-gateway-ui/cobranca-page.jsx` (830 ln — **não** é cópia do anterior: 206 linhas de diff, md5 distinto) · e o vivo `resources/js/Pages/Financeiro/Cobranca/_components/SheetRemessaRetorno.tsx` (US-FIN-018).)_
 - **`TransactionPayment/{Edit,Show}`** — `payments/v2` e `TransactionPayment` não aparecem em SPEC
   nenhum como US de tela; os hits são o `TransactionPaymentController` do core UPOS e traits de
   auditoria. **Duas telas que mexem em pagamento, sem US.**
