@@ -475,6 +475,30 @@ Design. A via 2 é justamente a que a 0315 reserva ao [W]. Gerar eu gero; o que 
 3. **PT-03 primeiro?** É construível hoje sem (1), e destrava `TransactionPayment/Show` + o gate de
    screenshot que segura o PT-03 em `status: draft`. Depende só de (2).
 
+#### Por que só 4 dos 7 charters foram anotados (e o achado que isso revelou)
+
+A anotação foi aplicada nos 7 e **revertida em 3**: `Settings/PaymentGateways/CnabRetorno`,
+`TransactionPayment/Edit` e `TransactionPayment/Show`. Motivo medido no CI do PR: tocar um charter
+acorda o `charter-us-lint --check` (regra *no-new-lie* — charter novo/tocado declara a US que atende),
+e **esses 3 não têm `related_us`**. É a lápide [§5 2026-07-27](../../proibicoes.md) (*"tocar legado
+acorda gate diff-aware"*) em ato.
+
+Procurei a US real e **não existe** — declarar uma seria inventar (a ordem de fonte manda PERGUNTAR):
+
+- **`CnabRetorno`** — a US mais próxima é `US-FIN-018 · Boletos — Sheet Remessa/Retorno CNAB`, mas o
+  `**Implementado em:**` dela aponta `resources/js/Pages/Financeiro/Cobranca/_components/SheetRemessaRetorno.tsx`,
+  **outra superfície**, com dados MOCK. A tela do PaymentGateway é uma página por credencial
+  (`/settings/payment-gateways/{id}/cnab-retorno`) com processor REAL. Declarar `US-FIN-018` aqui
+  seria uma âncora falsa. _(De quebra: isso explica o `SheetRemessaRetorno` do espelho — ele é o
+  design da US-FIN-018, não desta tela; e há hoje **três** artefatos com esse nome.)_
+- **`TransactionPayment/{Edit,Show}`** — `payments/v2` e `TransactionPayment` não aparecem em SPEC
+  nenhum como US de tela; os hits são o `TransactionPaymentController` do core UPOS e traits de
+  auditoria. **Duas telas que mexem em pagamento, sem US.**
+
+**Decisão [W]:** declarar a US dessas 3 (criando-a se for o caso) ou aceitar a dívida explicitamente.
+Enquanto isso, elas ficam **sem a anotação** — o registro da ausência de fonte vive aqui, nesta seção,
+que é o dono do tema.
+
 #### Achado Tier 0 — registrado, NÃO consertado
 
 O `CnabRetornoProcessor` incrementa **6** contadores (`paga`, `cancelada`, `vencida`, `registrada`,

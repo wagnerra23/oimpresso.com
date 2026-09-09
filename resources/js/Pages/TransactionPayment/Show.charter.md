@@ -2,7 +2,7 @@
 id: resources-js-pages-transaction-payment-show-charter
 page: /payments/v2/{id}
 component: resources/js/Pages/TransactionPayment/Show.tsx
-related_prototype: n/a (herda PT-03 Detalhe; segue o Padrão de Tela)  # 2026-09-09 [C]: declaração de PT herdado, verificada por conteúdo na wave #4109. Mesma medição da irmã `Edit.charter.md`: zero arquivo de design cita esta tela. ⚠️ O PT-03 que ela herda também não tem template renderizado (só PT-01/PT-05/PT-07 têm) — mas, ao contrário do PT-02, o DS TEM os componentes que o PT-03 exige (KpiCard/Timeline/EmptyState/DropdownMenu/Skeleton), então o template é construível hoje. Decisão [W] em §5.7. medido 2026-09-09 pelas 3 pernas (repo inteiro com --hidden, projeto Cowork por ID via DesignSync.list_files, espelho). Ver memory/requisitos/_DesignSystem/INVENTARIO-ANCORAS-2026-09-09.md §5.3 + §5.7.
+related_prototype: n/a (herda PT-03 Detalhe; segue o Padrão de Tela)
 status: draft
 ---
 

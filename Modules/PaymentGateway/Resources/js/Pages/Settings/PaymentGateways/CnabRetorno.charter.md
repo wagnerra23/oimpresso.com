@@ -8,7 +8,7 @@ route: /settings/payment-gateways/{credentialId}/cnab-retorno
 controller: Modules/PaymentGateway/Http/Controllers/Settings/PaymentGatewaysCnabRetornoController
 page: /settings/payment-gateways/{id}/cnab-retorno
 component: Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/CnabRetorno.tsx
-related_prototype: n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)  # 2026-09-09 [C]: declaração de PT herdado. ⚠️ ERRATA do recibo herdado: buscar `cnab-retorno`/`CnabRetorno` dá 0, mas isso é grep de string literal (§5 2026-08-18) — o termo de domínio `cnab` dá 15 hits em 5 arquivos do espelho, e existem DOIS `SheetRemessaRetorno` (`boletos-page.jsx:509` e `pg-cobranca-page.jsx:863`), sheet de 560px que lista arquivos REM/RET dentro da Cobrança. Logo: vocabulário visual PARCIAL existe; a TELA (dropzone + validação + contadores por arquivo, G1-G4 deste charter) não. Não promover: sheet de lista ≠ tela de importação. medido 2026-09-09 pelas 3 pernas (repo inteiro com --hidden, projeto Cowork por ID via DesignSync.list_files, espelho). Ver memory/requisitos/_DesignSystem/INVENTARIO-ANCORAS-2026-09-09.md §5.3 + §5.7.
+related_prototype: n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)
 last_validated: "2026-05-31"
 parent_module: PaymentGateway
 tier: B
