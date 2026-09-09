@@ -92,6 +92,8 @@ interface FiltrosAtivos {
 }
 
 interface Props {
+  /** Deferida (contador da aba). Ausente no primeiro paint -- o pill so aparece depois. */
+  abas_contadores?: Record<string, number> | null;
   /** Deferida — ausente no primeiro paint, por isso opcional. */
   bens?: Paginator<Bem>;
   filtros: FiltrosAtivos;
@@ -510,7 +512,7 @@ function EsqueletoTabela() {
   );
 }
 
-export default function Bens({ bens, filtros, opcoes, permissoes }: Props) {
+export default function Bens({ abas_contadores, bens, filtros, opcoes, permissoes }: Props) {
   // Distingue "não há bem nenhum" de "não há bem PARA ESTE RECORTE" — são dois vazios
   // diferentes, e oferecer "cadastre o primeiro bem" a quem só filtrou demais é ruído.
   const temFiltroAtivo = Boolean(
@@ -538,7 +540,7 @@ export default function Bens({ bens, filtros, opcoes, permissoes }: Props) {
 
         {/* `hidePrimary`: o primary do menu ("Novo ativo") já está no header acima —
             repeti-lo na barra de abas daria dois botões idênticos lado a lado. */}
-        <PatrimonioSubNav active="assets" hidePrimary />
+        <PatrimonioSubNav active="assets" hidePrimary badges={abas_contadores ?? undefined} />
 
         <BarraDeFiltros filtros={filtros} opcoes={opcoes} />
 

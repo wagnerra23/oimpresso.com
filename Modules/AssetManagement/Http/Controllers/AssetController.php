@@ -18,6 +18,7 @@ use Modules\AssetManagement\Entities\AssetTransaction;
 use Modules\AssetManagement\Entities\AssetWarranty;
 use Modules\AssetManagement\Http\Requests\StoreAssetRequest;
 use Modules\AssetManagement\Http\Requests\UpdateAssetRequest;
+use Modules\AssetManagement\Services\AssetMaintenanceService;
 use Modules\AssetManagement\Services\AssetService;
 use Modules\AssetManagement\Utils\AssetUtil;
 use Yajra\DataTables\Facades\DataTables;
@@ -267,6 +268,16 @@ class AssetController extends Controller
         // com `Resources/views/asset/index.blade.php`, e cutover (F5) — nao frontend.
         // Runbook: memory/requisitos/AssetManagement/RUNBOOK-bens.md
         return Inertia::render('Patrimonio/Bens', [
+            // Contador da aba "Manutencoes" (pill do PageHeaderTabs). DEFERIDO: o
+            // CLAUDE.md manda `Inertia::defer` em toda prop que faz query, e o pill nao
+            // participa do first paint. Cobre `asset-maintenance` e mais nada -- dos 5
+            // contadores do prototipo, so este tem numero AUDITADO hoje: Garantias e
+            // Auditoria nao tem aba (D-GARANTIAS/D-AUDITORIA) e Alocacoes depende de
+            // `allocated_qty`/`revoked_qty`, que o `baseAssetsQuery()` declara nao serem
+            // numeros auditados enquanto o residuo Tier 0 dela nao fechar.
+            'abas_contadores' => Inertia::defer(fn () => [
+                'asset-maintenance' => app(AssetMaintenanceService::class)->contarAbertas($business_id),
+            ]),
             'filtros' => [
                 'q' => $request->input('q'),
                 'location_id' => $request->input('location_id'),
@@ -635,6 +646,16 @@ class AssetController extends Controller
         $is_admin = $this->commonUtil->is_admin(auth()->user());
 
         return Inertia::render('Patrimonio/Index', [
+            // Contador da aba "Manutencoes" (pill do PageHeaderTabs). DEFERIDO: o
+            // CLAUDE.md manda `Inertia::defer` em toda prop que faz query, e o pill nao
+            // participa do first paint. Cobre `asset-maintenance` e mais nada -- dos 5
+            // contadores do prototipo, so este tem numero AUDITADO hoje: Garantias e
+            // Auditoria nao tem aba (D-GARANTIAS/D-AUDITORIA) e Alocacoes depende de
+            // `allocated_qty`/`revoked_qty`, que o `baseAssetsQuery()` declara nao serem
+            // numeros auditados enquanto o residuo Tier 0 dela nao fechar.
+            'abas_contadores' => Inertia::defer(fn () => [
+                'asset-maintenance' => app(AssetMaintenanceService::class)->contarAbertas($business_id),
+            ]),
             'is_admin' => $is_admin,
             'pode' => [
                 'ver' => auth()->user()->can('asset.view'),
