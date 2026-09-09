@@ -49,7 +49,11 @@ vi.mock('@inertiajs/react', () => ({
   usePage: () => ({ props: {} }),
 }));
 vi.mock('@/Pages/Patrimonio/_shared/PatrimonioSubNav', () => ({ default: () => null }));
-vi.mock('@/Components/shared/PageHeader', () => ({ default: () => null }));
+// O header é canon (`@/Components/PageHeader`, export NOMEADO) desde a migração do
+// `shared/PageHeader`. O mock segue o import da Page: apontá-lo pro caminho antigo
+// deixaria de interceptar em silêncio e o header real entraria no render — o teste
+// continuaria verde medindo outra coisa.
+vi.mock('@/Components/PageHeader', () => ({ PageHeader: () => null }));
 
 import PainelPatrimonio from '@/Pages/Patrimonio/Index';
 

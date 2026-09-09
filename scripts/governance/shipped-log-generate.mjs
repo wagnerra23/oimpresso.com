@@ -8,6 +8,17 @@
  *   G2 push-direto na main      → API /commits (commits sem objeto-PR)
  *   G3 borda BRT × UTC          → coleta com margem ±1 dia, filtra por timestamp BRT (-03:00)
  *   G4 truncação silenciosa     → cross-check: soma das sub-janelas vs total_count do Search → exit 1 ao divergir
+ *   G10 leitura do dia MENTE     → o `gh pr list` devolve resposta INCOMPLETA com rc=0, em duas formas
+ *       calada (rc=0!)             (medido 2026-09-09, chamadas idênticas, zero erros visíveis):
+ *                                   · RESPOSTA VAZIA (dominante) — devolve 0 e o dia INTEIRO some.
+ *                                     Varrendo a janela 2x: 21 dos 104 dias divergiram, e nos 21 o
+ *                                     menor valor era 0. Num repo de 40-113 PRs/dia, um dia perdido
+ *                                     já é da ordem do diff que derrubou o cron.
+ *                                   · PÁGINA PERDIDA — devolve uma página cheia (100 de 106/113).
+ *                                 A guarda do G4 media o teto errado (1000) e NUNCA disparava; quem
+ *                                 acusou foi o cross-check da janela — tarde e sem dizer o dia.
+ *                                 Agora: leitura suspeita (vazia ou na borda) → re-coleta com alvo
+ *                                 conhecido. O cross-check segue como rede final, fail-closed.
  *   G7 merged ≠ entregue        → reconcilia pares de revert (líquido zero)
  *   G9 ruído de agrupamento     → aliases de scope + normalize NFD (acento)
  *   G8 merge ≠ deploy           → cruza /api/mcp/version (SHA+data do deploy de produção) → marca 🚀 no-ar / ⏳ aguardando
@@ -43,6 +54,8 @@ import { pathToFileURL } from 'node:url';
 export const BRT_OFFSET_MS = 3 * 60 * 60 * 1000; // UTC = BRT + 3h
 export const FRESH_DAYS = 4;                       // --check: shipped-log mais velho que isto = stale
 export const SHIPPED_DIR = 'memory/governance/shipped';
+export const PAGE_SIZE = 100;                      // página do `gh pr list` — onde a truncação silenciosa corta
+export const RECOLETA_MAX = 5;                     // tentativas por dia de borda — truncação medida em ~30%/leitura
 export const NOISE = new Set(['docs', 'chore', 'test', 'ci', 'build']);
 export const SCOPE_ALIAS = {
   'caixa-unif': 'caixa-unificada', 'caixa': 'caixa-unificada', 'governanca': 'governance',
@@ -96,6 +109,101 @@ export function groupByArea(prs, reverted = new Map()) {
   const totalMean = [...areas.values()].reduce((s, a) => s + a.meaningful.length, 0);
   const totalNoise = [...areas.values()].reduce((s, a) => s + a.noise, 0);
   return { sorted, dsAll, totalMean, totalNoise };
+}
+
+/**
+ * O dia caiu numa borda de página? Só aí a truncação silenciosa é POSSÍVEL — abaixo de uma
+ * página não há 2ª página pra se perder. Múltiplo exato de PAGE_SIZE é o sinal.
+ *
+ * Medido em 2026-09-09, chamadas idênticas, mesmo token, sem --write:
+ *   `merged:2026-09-05` (certo=106) → 21 de 25 certas, 4 devolveram exatamente 100
+ *   `merged:2026-09-08` (certo=113) → 20 de 30 certas, 10 devolveram exatamente 100
+ * **Todas com rc=0, zero erros** — o `gh pr list` perde a 2ª página em silêncio (16–33%
+ * conforme a pressão), e o valor truncado é sempre uma página cheia. A guarda antiga
+ * (`>= 1000`) media o teto errado, então nunca disparava.
+ */
+export function naBordaDePagina(n) { return n > 0 && n % PAGE_SIZE === 0; }
+
+/**
+ * A leitura do dia merece re-conferência? Duas formas de truncação foram observadas, e
+ * as duas saem com rc=0 — o que as torna indistinguíveis de resposta legítima:
+ *
+ *   PÁGINA PERDIDA → devolve uma página cheia (100). Medido acima.
+ *   RESPOSTA VAZIA → devolve 0. Sessão irmã mediu em 2026-09-09, `merged:2026-09-04`:
+ *                    `n=64 · 64 · 64 · 64 · 0` em 5 tentativas idênticas, rc=0 nas cinco.
+ *
+ * A 2ª é a mais cara: perde o dia INTEIRO, e num repo que mergeia 40-113 PRs/dia um único
+ * dia perdido já é da ordem do diff que derrubou o cron. `naBordaDePagina` sozinha é cega
+ * pra ela (0 % 100 === 0, mas o guarda `n > 0` a exclui) — daí esta função existir.
+ *
+ * Dia legitimamente sem PR também cai aqui, e isso é barato: com alvo conhecido ele para
+ * na 1ª tentativa (alvo 0, coletado 0). Família §5 2026-07-31 / 2026-08-01 de `proibicoes.md`:
+ * vazio que é falha de execução, lido como ausência.
+ */
+export function leituraSuspeita(n) { return n === 0 || naBordaDePagina(n); }
+
+/**
+ * A re-coleta daquele dia já pode parar?
+ *
+ *   alvo > 0   → determinístico: para quando o coletado alcança o que o oráculo diz existir.
+ *   alvo === 0 → AMBÍGUO, e é onde domingo e falha se confundem: o dia pode ser vazio de
+ *                verdade (medido: 2026-06-28 e 2026-07-19 são domingos, mais o dia +1 da
+ *                margem) ou o oráculo pode ter falhado igual à coleta. Exige 2 leituras
+ *                para confirmar, em vez de aceitar o primeiro zero.
+ *   alvo null  → sem oráculo (degradou): cai na leitura, aceitando só a que não é suspeita.
+ */
+export function recoletaSuficiente({ alvo, coletado, leitura, tentativas }) {
+  if (alvo == null) return !leituraSuspeita(leitura);
+  if (alvo > 0) return coletado >= alvo;
+  return tentativas >= 2;
+}
+
+/**
+ * O ALVO também mente, e do mesmo jeito: devolve `0` com rc=0. Medido 2026-09-09 no
+ * `search/issues` (25 leituras de `merged:2026-09-05`, certo=101): 14 certas, **2 zeradas
+ * com rc=0**, 9 com rc≠0 (falha visível → vira null → seguro). O modo cruel é o zero: alvo 0
+ * faz `coletado >= alvo` bater por acidente e a re-coleta se declarar completa tendo perdido
+ * o dia. Como o erro é unidirecional (subestima, nunca acima), basta reconsultar o valor
+ * suspeito — não é preciso dobrar a chamada em todo dia, o que agravaria o rate limit.
+ *
+ * ⚠️ Esta defesa NÃO é específica do transporte, e trocá-lo não a dispensa. O GraphQL
+ * (`search(type:ISSUE){issueCount}`) é candidato tentador — cota separada, sem os 30/min do
+ * REST — mas ele também responde zero. Medido no mesmo alvo, 2026-09-09:
+ *
+ *   sessão irmã, N=40, corpo bruto capturado → 38 certas, **2 zeros**
+ *     {"data":{"rateLimit":{"cost":1,"remaining":2634},"search":{"issueCount":0}}}
+ *     rc=0, stderr vazio, sem chave `errors`, `cost: 1` — a query foi executada e COBRADA,
+ *     e a resposta é bem-formada. É a API respondendo 0 com sucesso, não erro engolido.
+ *   esta sessão, N=65 (25 + 40 com corpo bruto) → **zero ocorrências**
+ *
+ * ⚠️ NÃO calibre nada por frequência — ela não é estável. Os 3 zeros observados caem todos
+ * numa janela de ~10min; nas 190 leituras somadas fora dela, nenhum. A sessão irmã deixou
+ * de reproduzir na MESMA máquina, mesmo token, mesma rede, ~3min depois, e o A/B dela
+ * (frio com pausa × sob carga, 30+30) deu zero nos dois braços — o que descarta pressão
+ * sobre a API, e também token/rede/região, como explicação. Trate como evento POSSÍVEL,
+ * nunca como taxa: quem escrever "~N%" aqui estará congelando uma janela como se fosse
+ * constante, e a próxima sessão calibraria retry por um número que já não valia 3min depois.
+ *
+ * O que se calibra é a EXISTÊNCIA do modo: o consolida precisa existir porque a API PODE
+ * responder zero com sucesso. Corolário para quem tentar reproduzir e não conseguir (foi o
+ * meu caso, 65 leituras limpas): não ver não é evidência de ausência — o recibo acima tem
+ * `cost: 1` e não admite leitura alternativa. Se um dia o transporte mudar, mude por rate
+ * limit ou ruído de 403 — nunca para remover este consolida.
+ *
+ * A premissa que a defesa assume — erro unidirecional, subestima e NUNCA acima — se sustenta
+ * em 130 leituras somadas das duas sessões: nenhuma veio acima do valor certo.
+ */
+export function consolidaAlvo(primeira, segunda) {
+  if (primeira == null) return segunda ?? null;
+  if (primeira !== 0) return primeira;
+  return segunda ?? null;
+}
+
+/** Quantos dos já coletados caem no dia UTC — alimenta o critério de parada da re-coleta. */
+export function contaDoDia(prs, day) {
+  let n = 0;
+  for (const p of prs) if (String(p.mergedAt || '').slice(0, 10) === day) n++;
+  return n;
 }
 
 /** Cross-check anti-truncação: coletado deve bater com a contagem independente do Search. */
@@ -257,21 +365,78 @@ export function evalShippedHealth(files, today) {
 }
 
 // ── coleta (impura — gh) ────────────────────────────────────────────────────────
-function gh(args) { return execFileSync('gh', args, { encoding: 'utf8', shell: false, maxBuffer: 96 * 1024 * 1024 }); }
+function sleepSync(ms) { Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms); }
 
-function collectPRs(repoArgs, since, until) {
-  const seen = new Map();
+/**
+ * `gh` com backoff. O secondary rate limit chega como 403 (rc≠0) — falha VISÍVEL, que passa
+ * esperando. Sem retry, um 403 no meio da varredura derruba a run inteira.
+ */
+function gh(args, tries = 4) {
+  for (let i = 0; ; i++) {
+    try { return execFileSync('gh', args, { encoding: 'utf8', shell: false, maxBuffer: 96 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] }); }
+    catch (e) {
+      const msg = String(e.stderr || '');
+      if (i < tries - 1 && /rate limit|abuse detection|HTTP 5\d\d/i.test(msg)) { sleepSync(15000 * (i + 1)); continue; }
+      // stderr agora é capturado (pra detectar o rate limit) — reemitir, senão a falha fica muda
+      if (msg) process.stderr.write(msg);
+      throw e;
+    }
+  }
+}
+
+function listaDia(repoArgs, day) {
+  // `base:main` filtrado no SERVIDOR: alinha a semântica dos dois lados do cross-check
+  // (independentTotal já usa `base:main`) e encolhe a página — medido em 2026-09-05: 106 → 101.
+  const raw = gh(['pr', 'list', '--state', 'merged', '--search', `merged:${day} base:main`, '--json', 'number,title,mergedAt,baseRefName', '-L', '1000', ...repoArgs]);
+  return JSON.parse(raw);
+}
+
+function collectPRs(repo, repoArgs, since, until, seen = new Map()) {
   let anyDayHitCap = false;
+  const suspeitos = [];
   for (const day of dayList(since, until)) {
-    const raw = gh(['pr', 'list', '--state', 'merged', '--search', `merged:${day}`, '--json', 'number,title,mergedAt,baseRefName', '-L', '1000', ...repoArgs]);
-    const arr = JSON.parse(raw);
+    const arr = listaDia(repoArgs, day);
     if (arr.length >= 1000) anyDayHitCap = true;
+    if (leituraSuspeita(arr.length)) suspeitos.push(day);
     for (const p of arr) if (p.baseRefName === 'main') seen.set(p.number, p);
+  }
+  // 2ª passada só nos dias de leitura suspeita. A união só cresce (o erro é unidirecional:
+  // resposta truncada subestima, nunca inventa PR), então re-coletar e unir converge —
+  // medido em 2026-09-09: a união de 2 passadas deu 4761 contra `total_count` 4752 da
+  // janela, excedendo só pelos dias de margem que o filtro final descarta.
+  //
+  // O critério de parada é ALVO CONHECIDO, não tentativa-e-torcida: pergunta ao mesmo
+  // oráculo do cross-check quantos PRs o dia tem e para quando alcança. Sem isso a parada
+  // seria estatística, e a falha é frequente demais pra isso — 21 dos 104 dias divergiram
+  // entre duas passadas seguidas. Só os dias suspeitos pagam a chamada extra.
+  for (const day of suspeitos) {
+    const alvo = totalDoDia(repo, day);
+    for (let tentativa = 1; tentativa <= RECOLETA_MAX; tentativa++) {
+      const arr = listaDia(repoArgs, day);
+      for (const p of arr) if (p.baseRefName === 'main') seen.set(p.number, p);
+      const coletado = contaDoDia(seen.values(), day);
+      if (recoletaSuficiente({ alvo, coletado, leitura: arr.length, tentativas: tentativa })) break;
+    }
   }
   const all = [...seen.values()];
   const inWindow = all.filter((p) => inBrtRange(p.mergedAt, since, until)).sort((a, b) => (a.mergedAt < b.mergedAt ? -1 : a.mergedAt > b.mergedAt ? 1 : a.number - b.number));
   const inUtc = all.filter((p) => { const t = Date.parse(p.mergedAt); return t >= Date.parse(since + 'T00:00:00Z') && t <= Date.parse(until + 'T23:59:59Z'); }).length;
-  return { inWindow, inUtc, anyDayHitCap };
+  return { inWindow, inUtc, anyDayHitCap, seen };
+}
+
+/** Alvo do dia — mesmo oráculo do cross-check, escopado a um dia. Degrada → null. */
+function totalDoDia(repo, day) {
+  if (!repo) return null;
+  const uma = () => {
+    try {
+      const q = `repo:${repo} is:pr is:merged base:main merged:${day}`;
+      const n = Number(gh(['api', '-X', 'GET', 'search/issues', '-f', `q=${q}`, '--jq', '.total_count']).trim());
+      return Number.isFinite(n) ? n : null;
+    } catch { return null; }
+  };
+  const primeira = uma();
+  // só o valor suspeito (0) paga a 2ª leitura — ver consolidaAlvo
+  return consolidaAlvo(primeira, primeira === 0 ? uma() : null);
 }
 
 function independentTotal(repo, since, until) {
@@ -371,9 +536,21 @@ async function main() {
 
   const repo = resolveRepo(repoArg);
   const repoArgs = repo ? ['--repo', repo] : [];
-  const { inWindow, inUtc, anyDayHitCap } = collectPRs(repoArgs, since, until);
-  const cc = crossCheck(inUtc, independentTotal(repo, since, until), anyDayHitCap);
+  let col = collectPRs(repo, repoArgs, since, until);
+  let cc = crossCheck(col.inUtc, independentTotal(repo, since, until), col.anyDayHitCap);
+
+  // Passada de RECUPERAÇÃO — só quando o cross-check reprovou, então custo zero no caminho
+  // feliz. Reaproveita o `seen`: a união acumula e o erro é unidirecional, então repetir a
+  // coleta inteira só pode melhorar. Existe porque a detecção por assinatura (`leituraSuspeita`)
+  // cobre as duas formas MEDIDAS de truncação — uma terceira que ninguém mediu passaria batido,
+  // e aqui a recuperação não precisa reconhecer a assinatura da falha, só refazer o trabalho.
+  if (!cc.ok && !col.anyDayHitCap) {
+    console.error(`⚠ cross-check reprovou (${cc.reason}) — 2ª passada completa antes de desistir.`);
+    col = collectPRs(repo, repoArgs, since, until, col.seen);
+    cc = crossCheck(col.inUtc, independentTotal(repo, since, until), col.anyDayHitCap);
+  }
   if (!cc.ok) { console.error(`✗ CROSS-CHECK FALHOU (${cc.reason}) — não gravo registro incompleto.`); process.exit(1); }
+  const { inWindow } = col;
 
   const direct = collectDirect(repo, since, until);
   const reverted = reconcileReverts(inWindow);

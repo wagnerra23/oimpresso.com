@@ -4,13 +4,24 @@ declare(strict_types=1);
 
 /**
  * F4 QA — Inertia stock_transfers/create (MWART Wave2 B5).
+ *
+ * PONTEIRO CONSERTADO EM 2026-09-09: as consts de RUNBOOK e visual-comparison apontavam
+ * pra `memory/requisitos/Inventory/`, onde esses arquivos NUNCA estiveram — o material de
+ * tela do Estoque vive em `memory/requisitos/Estoque/_telas/`. O diretorio `Inventory/`
+ * existe (tem BRIEFING.md e SPEC.md), o que deixou o ponteiro plausivel o bastante pra
+ * atravessar revisao. Mesmo defeito, mesma leva (generated_by Agent W2-D, 2026-05-15) e
+ * mesmo conserto ja aplicado em Produto (2026-07-26) e Purchase (2026-09-05).
+ *
+ * E POR QUE o vermelho nunca apareceu: nenhuma lane de PR rodava tests/Feature/Stock/ —
+ * medido pelo dono do inventario, test-lane-coverage.mjs, que classificava os 8 arquivos
+ * do diretorio como ORFAOS. Este PR liga o diretorio na lane estoque-pest.yml.
  */
 
 const ST_CR_INERTIA_PATH = 'resources/js/Pages/StockTransfer/Create.tsx';
 const ST_CR_CHARTER_PATH = 'resources/js/Pages/StockTransfer/Create.charter.md';
 const ST_CR_CONTROLLER_PATH = 'app/Http/Controllers/StockTransferController.php';
-const ST_CR_RUNBOOK_PATH = 'memory/requisitos/Inventory/RUNBOOK-stock-transfer-create.md';
-const ST_CR_VISUAL_PATH = 'memory/requisitos/Inventory/stock-transfer-create-visual-comparison.md';
+const ST_CR_RUNBOOK_PATH = 'memory/requisitos/Estoque/_telas/RUNBOOK-stock-transfer-create.md';
+const ST_CR_VISUAL_PATH = 'memory/requisitos/Estoque/_telas/stock-transfer-create-visual-comparison.md';
 
 function readSTCreateInertia(): string
 {

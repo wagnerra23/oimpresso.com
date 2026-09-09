@@ -2,6 +2,7 @@
 id: resources-js-pages-suporte-visao-charter
 page: /suporte/empresas/{business}
 component: resources/js/Pages/Suporte/Visao.tsx
+bundle_source: suporte-page.jsx
 page_id: suporte-visao
 owner: wagner
 status: draft
