@@ -264,6 +264,32 @@ Fonte real no shell **e** sem porte reverso. São as únicas em que promover é 
   *"ESCOPO NOVO… não existe no Blade nem no React vivo"*. Reconciliar regra com o vivo não é
   portar desenho do vivo. Ao promover, **trocar** o `blueprint_cowork` errado (§4.2) pelo
   `bundle_source`, que já está certo.
+
+  > **ERRATA 2026-09-09 (PR de correção do §4.2) — as 4 de Estoque NÃO foram promovidas.**
+  > A leitura acima sobre `estoque-forms.jsx` (regra ≠ layout) está correta, mas duas coisas
+  > foram medidas depois e mudam o veredito **destas quatro**:
+  >
+  > 1. **A promoção tem custo, não é "sem dívida".** [`pt-conformance.mjs:56`](../../../scripts/governance/pt-conformance.mjs)
+  >    lê o PT **de `related_prototype`** (`claimedPT(fmGet(fm,'related_prototype'))`). Trocar
+  >    `n/a (herda PT-0X)` pelo path tira as 4 da única checagem **falsificável** que elas têm —
+  >    o script existe declaradamente contra COUNT-PUMP. Medido aplicando a promoção e rodando:
+  >    **91 → 87** declarações de PT.
+  > 2. **O ganho na catraca é zero.** `design-coverage` ficou **idêntico** nos dois estados
+  >    (`declared 221` · `parityLinked 66`): `declared` conta `hasSource`, e o `n/a` já é `true`;
+  >    `parityLinked` lê `related_visual_comparison:`, não este campo. O único delta real é o
+  >    `--list` sair de `isNa:true` para `isNa:false` — que é o **Defeito 1 (§4.1)**, um bug de
+  >    precedência no resolvedor que atinge **15 charters**. Consertar 4 por edição de dado
+  >    deixa 11 e troca o conserto do `||` por backfill.
+  >
+  > Some-se que [§5 2026-08-28 (c)](../../proibicoes.md) é Tier 0 e diz que o `n/a` **coexiste**
+  > com a âncora de bundle por desenho. E o `bundle_source` das duas **Create** aponta
+  > `estoque-page.jsx`, não o `estoque-forms.jsx:157`/`:253` que a tabela §5.1 nomeia como fonte
+  > delas — logo "o `bundle_source`, que já está certo" vale para as 2 Index, não para as 4.
+  >
+  > O `blueprint_cowork` errado do §4.2 **foi removido** (nos 4 charters e nos 8 irmãos:
+  > `RUNBOOK-stock-*.md` e `stock-*-visual-comparison.md`, que carregavam o mesmo ponteiro).
+  > Promover segue possível — mas como decisão [W] que aceite o custo em (1), não como
+  > "ganho sem dívida".
 - **team-mcp:** a `canon_reference` cita `forja-page.jsx`, que foi decomposto em `forja-*.jsx`
   na Onda 2. A promoção precisa apontar o arquivo **atual**, não o citado.
 - **Financeiro/PlanoContas:** `financeiro-page.jsx` e `financeiro-telas-extras.jsx` **não**
