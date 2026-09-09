@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- @template name="Atendimento — Inbox omnichannel" description="Caixa de entrada nível Norte: lista de conversas (canal + SLA + frescor) à esquerda + thread com bolhas e compositor à direita. WhatsApp/Instagram/E-mail/Mercado Livre. Dark premium." -->
+<helmet>
+<script src="./ds-base.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  .nav-item:hover { background: var(--accent-soft) !important; }
+  .grp { display:flex; align-items:center; gap:8px; padding:13px 9px 5px; font:600 9.5px/1 var(--font-sans); letter-spacing:.08em; text-transform:uppercase; color:var(--text-mute); }
+  .grp .n { margin-left:auto; font:600 10px/1 var(--font-mono); color:var(--text-mute); opacity:.8; }
+  .rowbtn:hover { background:color-mix(in oklch, var(--text) 8%, transparent) !important; }
+  .conv:hover { background:color-mix(in oklch, var(--text) 5%, transparent); }
+  .conv { cursor:pointer; transition:background .12s; }
+</style>
+</helmet>
+<div class="cockpit dark" data-theme="dark" ref="{{ cockpitRef }}" style="display:flex; height:100vh; overflow:hidden; background:radial-gradient(1100px 620px at 84% -10%, oklch(0.30 0.07 295 / .16), transparent 60%), var(--bg); color:var(--text); font-family:var(--font-sans); font-size:13px; line-height:1.4; -webkit-font-smoothing:antialiased;">
+
+  <!-- ░░ SIDEBAR ░░ -->
+  <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.AppSidebar" active="atendimento" hint-size="222px,100%"></x-import>
+
+  <!-- ░░ LISTA DE CONVERSAS ░░ -->
+  <section style="width:340px; flex:none; border-right:1px solid var(--border); display:flex; flex-direction:column; background:color-mix(in oklch, var(--bg) 84%, #000 3%);">
+    <div style="padding:16px 18px 12px; border-bottom:1px solid var(--border);">
+      <div style="display:flex; align-items:baseline; gap:9px;"><h1 style="margin:0; font:600 17px/1 var(--font-sans); letter-spacing:-0.01em;">Caixa de entrada</h1><span style="font:600 11px/1 var(--font-mono); color:var(--accent);">6</span></div>
+      <div style="display:flex; gap:6px; margin-top:12px;">
+        <button class="rowbtn" style="height:26px; padding:0 11px; border:1px solid var(--accent); border-radius:99px; background:var(--accent-soft); color:var(--accent); font:600 11.5px/1 var(--font-sans); cursor:pointer;">Não lidos</button>
+        <button class="rowbtn" style="height:26px; padding:0 11px; border:1px solid var(--border); border-radius:99px; background:transparent; color:var(--text-dim); font:500 11.5px/1 var(--font-sans); cursor:pointer;">Meus</button>
+        <button class="rowbtn" style="height:26px; padding:0 11px; border:1px solid var(--border); border-radius:99px; background:transparent; color:var(--text-dim); font:500 11.5px/1 var(--font-sans); cursor:pointer;">Todos</button>
+      </div>
+    </div>
+    <div style="flex:1; overflow-y:auto;">
+
+      <div class="conv" style="display:flex; gap:11px; padding:13px 16px; border-bottom:1px solid var(--border-2); background:var(--accent-soft); box-shadow:inset 3px 0 0 var(--accent);">
+        <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Avatar" name="Acme Comércio" size="md" hint-size="32px,32px"></x-import>
+        <div style="min-width:0; flex:1;">
+          <div style="display:flex; align-items:center; gap:6px;"><b style="flex:1; font-weight:600; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Acme Comércio Ltda</b><span style="font:10.5px/1 var(--font-mono); color:var(--text-mute);">14:32</span></div>
+          <div style="font-size:12px; color:var(--text-dim); margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Perfeito. Consigo retirar amanhã de manhã?</div>
+          <div style="display:flex; align-items:center; gap:6px; margin-top:6px;"><span style="display:inline-flex; align-items:center; gap:4px; font:600 9.5px/1 var(--font-sans); color:var(--pos);"><span style="width:6px; height:6px; border-radius:50%; background:var(--pos);"></span>WhatsApp</span><span style="margin-left:auto; display:inline-flex; align-items:center; gap:4px; font:9.5px/1 var(--font-sans); color:var(--pos);">no prazo</span></div>
+        </div>
+      </div>
+
+      <div class="conv" style="display:flex; gap:11px; padding:13px 16px; border-bottom:1px solid var(--border-2);">
+        <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Avatar" name="TechPro Sistemas" size="md" hint-size="32px,32px"></x-import>
+        <div style="min-width:0; flex:1;">
+          <div style="display:flex; align-items:center; gap:6px;"><b style="flex:1; font-weight:600; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">TechPro Sistemas</b><span style="font:10.5px/1 var(--font-mono); color:var(--text-mute);">13:10</span></div>
+          <div style="font-size:12px; color:var(--text-mute); margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Segue em anexo a nota fiscal do pedido…</div>
+          <div style="display:flex; align-items:center; gap:6px; margin-top:6px;"><span style="display:inline-flex; align-items:center; gap:4px; font:600 9.5px/1 var(--font-sans); color:oklch(0.70 0.13 250);"><span style="width:6px; height:6px; border-radius:50%; background:oklch(0.70 0.13 250);"></span>E-mail</span><span style="margin-left:auto; font:9.5px/1 var(--font-sans); color:var(--warn);">vencendo</span></div>
+        </div>
+      </div>
+
+      <div class="conv" style="display:flex; gap:11px; padding:13px 16px; border-bottom:1px solid var(--border-2);">
+        <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Avatar" name="Padaria Estrela" size="md" hint-size="32px,32px"></x-import>
+        <div style="min-width:0; flex:1;">
+          <div style="display:flex; align-items:center; gap:6px;"><b style="flex:1; font-weight:600; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Padaria Estrela</b><span style="font:10.5px/1 var(--font-mono); color:var(--text-mute);">11:48</span></div>
+          <div style="font-size:12px; color:var(--text-mute); margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Vocês fazem cardápio em A4 plastificado?</div>
+          <div style="display:flex; align-items:center; gap:6px; margin-top:6px;"><span style="display:inline-flex; align-items:center; gap:4px; font:600 9.5px/1 var(--font-sans); color:oklch(0.66 0.20 0);"><span style="width:6px; height:6px; border-radius:50%; background:oklch(0.66 0.20 0);"></span>Instagram</span><span style="margin-left:auto; font:9.5px/1 var(--font-sans); color:var(--pos);">no prazo</span></div>
+        </div>
+      </div>
+
+      <div class="conv" style="display:flex; gap:11px; padding:13px 16px; border-bottom:1px solid var(--border-2);">
+        <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Avatar" name="Mercado União" size="md" hint-size="32px,32px"></x-import>
+        <div style="min-width:0; flex:1;">
+          <div style="display:flex; align-items:center; gap:6px;"><b style="flex:1; font-weight:600; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Mercado União</b><span style="font:10.5px/1 var(--font-mono); color:var(--text-mute);">10:05</span></div>
+          <div style="font-size:12px; color:var(--text-mute); margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Pedido #ML-8841 — dúvida no prazo</div>
+          <div style="display:flex; align-items:center; gap:6px; margin-top:6px;"><span style="display:inline-flex; align-items:center; gap:4px; font:600 9.5px/1 var(--font-sans); color:var(--warn);"><span style="width:6px; height:6px; border-radius:50%; background:var(--warn);"></span>Mercado Livre</span><span style="margin-left:auto; font:9.5px/1 var(--font-sans); color:var(--neg);">atrasado</span></div>
+        </div>
+      </div>
+
+      <div class="conv" style="display:flex; gap:11px; padding:13px 16px; border-bottom:1px solid var(--border-2); opacity:.72;">
+        <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Avatar" name="Studio Vega" size="md" hint-size="32px,32px"></x-import>
+        <div style="min-width:0; flex:1;">
+          <div style="display:flex; align-items:center; gap:6px;"><b style="flex:1; font-weight:600; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Studio Vega</b><span style="font:10.5px/1 var(--font-mono); color:var(--text-mute);">ontem</span></div>
+          <div style="font-size:12px; color:var(--text-mute); margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Aprovado! Pode produzir.</div>
+          <div style="display:flex; align-items:center; gap:6px; margin-top:6px;"><span style="display:inline-flex; align-items:center; gap:4px; font:600 9.5px/1 var(--font-sans); color:var(--pos);"><span style="width:6px; height:6px; border-radius:50%; background:var(--pos);"></span>WhatsApp</span><span style="margin-left:auto; font:9.5px/1 var(--font-sans); color:var(--text-mute);">resolvido</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ░░ THREAD ░░ -->
+  <main style="flex:1; min-width:0; display:flex; flex-direction:column; background:var(--bg);">
+    <header style="display:flex; align-items:center; gap:12px; padding:12px 22px; border-bottom:1px solid var(--border); background:var(--surface); flex:none;">
+      <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Avatar" name="Acme Comércio" size="md" hint-size="32px,32px"></x-import>
+      <div style="min-width:0;">
+        <div style="font-weight:600; font-size:14px;">Acme Comércio Ltda</div>
+        <div style="font:11px/1.3 var(--font-mono); color:var(--text-mute); margin-top:1px;">+55 11 98712-3344</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:7px; margin-left:14px;">
+        <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.StatusBadge" kind="atendimento" value="whatsapp" hint-size="auto,22px"></x-import>
+        <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.StatusBadge" kind="sla" value="fresh" hint-size="auto,22px"></x-import>
+      </div>
+      <div style="margin-left:auto; display:flex; gap:8px;">
+        <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Button" variant="ghost" size="sm" hint-size="auto,30px">Atribuir</x-import>
+        <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Button" variant="primary" size="sm" hint-size="auto,30px">Resolver</x-import>
+      </div>
+    </header>
+
+    <div style="flex:1; overflow-y:auto; padding:22px 26px; display:flex; flex-direction:column; gap:3px;">
+      <div style="text-align:center; margin:4px 0 14px;"><span style="font:600 10px/1 var(--font-mono); color:var(--text-mute); background:var(--bg-2); border:1px solid var(--border-2); padding:4px 10px; border-radius:99px;">Hoje · 14:30</span></div>
+      <div class="bub" style="display:flex; justify-content:flex-start;"><div style="max-width:62%; padding:9px 13px; border-radius:14px; border-top-left-radius:4px; background:var(--surface); border:1px solid var(--border); font-size:13px; line-height:1.45;">Boa tarde! O banner 3×2m em lona já está pronto?<span style="display:block; font:9.5px/1 var(--font-mono); color:var(--text-mute); margin-top:5px;">14:30</span></div></div>
+      <div class="bub" style="display:flex; justify-content:flex-end;"><div style="max-width:62%; padding:9px 13px; border-radius:14px; border-top-right-radius:4px; background:var(--accent); color:oklch(0.17 0.03 295); font-weight:500; font-size:13px; line-height:1.45;">Oi! Está em acabamento agora — fica pronto hoje até as 17h.<span style="display:block; font:9.5px/1 var(--font-mono); opacity:.7; margin-top:5px; text-align:right;">14:31 · enviado</span></div></div>
+      <div class="bub" style="display:flex; justify-content:flex-start;"><div style="max-width:62%; padding:9px 13px; border-radius:14px; border-top-left-radius:4px; background:var(--surface); border:1px solid var(--border); font-size:13px; line-height:1.45;">Perfeito. Consigo retirar amanhã de manhã?<span style="display:block; font:9.5px/1 var(--font-mono); color:var(--text-mute); margin-top:5px;">14:32</span></div></div>
+      <div class="bub" style="display:flex; justify-content:flex-end;"><div style="max-width:62%; padding:9px 13px; border-radius:14px; border-top-right-radius:4px; background:var(--accent); color:oklch(0.17 0.03 295); font-weight:500; font-size:13px; line-height:1.45;">Claro, a partir das 8h. Te aviso aqui quando estiver embalado.<span style="display:block; font:9.5px/1 var(--font-mono); opacity:.7; margin-top:5px; text-align:right;">14:32 · enviado</span></div></div>
+    </div>
+
+    <div style="flex:none; padding:14px 22px 18px; border-top:1px solid var(--border); background:var(--surface);">
+      <div style="display:flex; align-items:center; gap:10px; padding:7px 8px 7px 14px; background:var(--bg-2); border:1px solid var(--border); border-radius:12px;">
+        <input placeholder="Responder Acme Comércio…" style="flex:1; border:0; outline:0; background:transparent; font:inherit; font-size:13px; color:var(--text);">
+        <span style="font:10px/1 var(--font-mono); color:var(--text-mute);">/resp · ⌘↵</span>
+        <button style="display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; border:0; border-radius:8px; background:var(--accent); cursor:pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(0.17 0.03 295)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"></path></svg></button>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: &quot;100%&quot;, &quot;height&quot;: 760}, &quot;theme&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;dark&quot;, &quot;light&quot;], &quot;default&quot;: &quot;dark&quot;, &quot;tsType&quot;: &quot;'dark' | 'light'&quot;}, &quot;accentHue&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 295, &quot;min&quot;: 0, &quot;max&quot;: 360, &quot;step&quot;: 5, &quot;tsType&quot;: &quot;number&quot;}}">
+class Component extends DCLogic {
+  componentDidMount() { this.applyTheme(); }
+  componentDidUpdate() { this.applyTheme(); }
+
+  applyTheme() {
+    const el = this._cockpit; if (!el) return;
+    const dark = (this.props.theme || 'dark') !== 'light';
+    if (dark) { el.setAttribute('data-theme', 'dark'); el.classList.add('dark'); }
+    else { el.removeAttribute('data-theme'); el.classList.remove('dark'); }
+    const hue = this.props.accentHue != null ? this.props.accentHue : 295;
+    const aL = dark ? '0.72' : '0.55';
+    el.style.setProperty('--accent', 'oklch(' + aL + ' 0.15 ' + hue + ')');
+    el.style.setProperty('--accent-2', 'oklch(' + (dark ? '0.78' : '0.62') + ' 0.15 ' + hue + ')');
+    el.style.setProperty('--accent-soft', dark ? 'oklch(0.32 0.07 ' + hue + ')' : 'oklch(0.95 0.04 ' + hue + ')');
+    el.style.setProperty('--color-primary', 'oklch(' + aL + ' 0.15 ' + hue + ')');
+  }
+
+  renderVals() {
+    const cockpitRef = (el) => { this._cockpit = el; if (el) this.applyTheme(); };
+    return { cockpitRef };
+  }
+}
+</script>
+</body>
+</html>

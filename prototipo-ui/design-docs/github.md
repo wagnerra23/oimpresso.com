@@ -3,6 +3,56 @@ branch: main
 path: prototipo-ui/cowork
 
 ## Last sync
+date: 2026-09-09T11:46:22Z
+tree: 752041ac450d (a última busca do turno já respondeu de 7742b9621c32 — a árvore andou)
+
+### Updated in this project
+- **Auditoria dos vínculos de tela do `ancora.mjs`** (`prototipo-ui/ancora.mjs`, 49.089 B, lido inteiro). Denominador: **189** charters em `resources/js/Pages/**`; **~146** declarações de `related_prototype`/`bundle_source`/`visual_source` lidas. **Todo** caminho citado que li **existe** no git — inclusive os formatos sujos (`hrm-extras.jsx (Metas) …`, `Financeiro - Prova Viva (primitivos).html`, que só passa porque o valor cru é testado antes do regex).
+- **3 defeitos medidos.** **D1** — a perna do `-page.jsx` está guardada em `if (stagingDir)` e não cai no `LUGAR_FIXO`: **14** telas cujo único vínculo é `bundle_source`/`visual_source` saem "sem protótipo" sem `--staging`, com o arquivo no git (`repair-page.jsx` 46.532 B · `governance-page.jsx` 20.212 B · `oficina-page.jsx` · `oficina-os-page.jsx` · `produtos-page.jsx`) — `--list` foi consertado em 2026-08-28, o comando de 1 tela não, e as duas portas discordam. **D2** — `norm()` derruba `/index` e o loop aceita `comp.includes(q)`/`relc.includes(q)`: `Ponto/Index` → `q="ponto"` → casa 21 charters e o **último na ordem de `walk`** vence, sem aviso, exit 0, selo `✓`. **D3** — `--list` carimba `hasSource` sem chamar `caminhoDaAncora`/`existsSync`, e o 3º fallback (`mockupJsx(fm.component)`) é tautológico (âncora = a própria tela).
+- **Limite estrutural declarado, não resolvível por PR:** 20 charters do Ponto → 2 arquivos · `Financeiro/{Conciliacao,Dre,Fluxo,Impostos}` → 1 · 5 do Patrimônio → 1 · 7 do Fiscal → 2. A skill já diz "responde QUAL ARQUIVO, nunca QUAL VIEW" ⇒ contrato de tela **não** é decidível pela âncora hoje. Único charter do corpus que resolve: `Sells/Caixa/Index` → `vendas-extras.jsx · função VendasCaixaPage (linhas 123-354)` — mesma ancoragem por símbolo das threads 13–15 do Ponto. Virou decisão `D-SIMBOLO` ([W]), não pedido.
+- **Playbook emitido: `cowork-inbox/ancora/playbook/`** (4 arquivos, JSON embutido no 1º bloco do índice): **01** perna do bundle no `LUGAR_FIXO` · **02** query ambígua devolve candidatos e sai 2 · **03** `--list` ganha `caminho`/`existe` e mede o fallback `component`. **Não são paralelas** — as 3 escrevem no mesmo arquivo, então 01 → 02 → 03 com remedição de sha por thread, e a API pública (que o hook `post-merge-ui-smoke-required.mjs:316-322` importa) é guarda.
+- **Retratação preventiva registrada no pedido:** `Jana/Chat → jana-merge.jsx` **não** é mis-anchor — `jana-merge.jsx` é dono de `window.JanaPage` (`app.jsx:810`) e `chat-jana.jsx:722` se declara peça reusada por ele. Minha suspeita inicial era hipótese, não medição.
+- **Cobertura declarada (não medido ⇒ não verificado):** `kb`, `Modules`, `NfeBrasil`, `Nfse`, `Purchase`, `RecurringBilling`, `Site`, `Stock*`, `Suporte`, `Tarefas`, `TransactionPayment`, `User`, `Vestuario`, `Whatsapp`, `Essentials/{Holidays,Reminders,Knowledge/Index}`, `Manufacturing/{Report,Settings}`; a varredura A→Manufacturing saiu parcial (328 de 400 arquivos). **Não rodei `node`** — nenhum veredito de `--selftest`/`--list` é afirmado aqui.
+- ⚠️ **Ciclo fechado SEM pacote regenerado** — o `gerar-payload-partes.mjs` exige os arquivos em disco. Não afirmo que regenerei. Comando: `node scripts/design-sync/gerar-payload-partes.mjs --root <dir> --out sync/ --previous sync/bundle.manifest.json`.
+
+## Sync anterior
+date: 2026-09-09T11:04:51Z
+tree: 2b4a3ec3b48a (começou em a0db7b0177b8 — a árvore andou durante o turno)
+
+### Updated in this project
+- **Ponto: 4 ondas de DS no build** (`ponto-ui.jsx` deixou de ser paralelo e delega ao bundle; `ponto-page/telas/fechamento/mobile.jsx` só call-site). 7 átomos + **62** botões → `Button`/`Tooltip` · **38** campos → `Input`/`Select`/`Textarea` · **8** `pt-check` → `Checkbox` · **7** `pt-toolbar` → `Toolbar`. Zero arquivo novo, zero CSS novo, API de `window.PontoUI` inalterada.
+- **Retratação 1:** eu afirmei que o `Input` do DS não repassa `min`/`max`/`maxLength`/`accept` e que era lacuna **pro Code**. Lido no turno: `ui/input.tsx` e `ui/textarea.tsx` fazem `{...props}` — **passa em produção**. O fechado é o componente compilado do **espelho**. Zero pedido por isso.
+- **Retratação 2:** eu disse que "não existe `PontoSubNav`". Existe em produção (`Pages/Ponto/_shared/PontoSubNav.tsx`, 2.296 B, ADR 0182 → `PageHeaderTabs`, **5 ghosts + ⋯ Mais**). Eu respondi pelo protótipo e falei como se fosse do módulo.
+- **Achado que muda o pedido:** **o Ponto de produção já é React inteiro e já compõe o DS** — 21 Pages `.tsx` + 21 charters, 24 `Inertia::render`, 2 contratos vigentes, imports `@/Components/ui/*` + `@/Components/shared/*`. O outlier era o meu protótipo. Logo o pedido "Ponto usa DS" **não tem objeto**.
+- **Pedido emitido no eixo certo: `cowork-inbox/ds-atomos/playbook/`** (4 arquivos, JSON embutido). [W] pediu "o visual igual ao seu" → a diferença é **anatomia de átomo**, não escolha de componente: 3 threads no primitivo em vez de 21 PRs por tela. **01** `ui/card.tsx` (+`badge`/`note`/`flush`, 1.987 B @733033864088) · **02** `shared/KpiCard.tsx` (+`variant="filter"`, 11.135 B @670b3f645b9b) · **03** `shared/Toolbar.tsx` (CRIAR — produção tem `PageFilters`, que é outra peça) · 04 tabela BLOQUEADA (`D-GRADE`) · 05 `StatusBadge` NÃO MEDIDA (17.674 B não recortados).
+- **Lei da pasta: aditivo ou nada**, com **prova de guarda** por thread — `Card`/`KpiCard` são consumidos fora do Ponto (Backup · Financeiro/Advisor · Financeiro/Unificado; varredura **parcial**: 360 de 928 arquivos, então é piso, não teto).
+- **A11y do alvo corrigida no build antes de exportar (§5-bis), com sonda validada por caso de sanidade** (branco sobre `--surface` = **13,62**): `.pt-tbl th` em `--text-mute` dava **3,18** (falha AA) → `--text-dim` = **5,49**, e **9,5px → 11px**; os outros **24** `color:var(--text-mute)` do `ponto-page.css` tinham o mesmo 3,18 e foram com ele. Label roxo do KPI = **4,85** ✓, não mexido.
+- **Defeito da própria migração, achado na verificação e corrigido:** `.pt-toolbar → PtBarra` arrastou **7** `<span className="pt-sp">` do CSS antigo, convivendo com o spacer do `Toolbar` — 82px de gap fantasma. Removidos (page 1 · telas 5 · fechamento 1). **O bloco C da thread 03 tinha sido emitido em cima disso e mentia em 3 números** ("7 filhos, todos `flex:none`, `nowrap`") — remedido: 6 filhos, `0 1 auto`/`1 1 260px`/`1 1 0%`, barra **1215×71px a 1280px**. Toda medida do playbook passa a citar a largura.
+- **KPI-filtro:** `variant="filter"` usa o dicionário próprio do bundle (`primary/amber/rose/emerald/violet`), não o `tone` semântico — sem isso os 6 tiles saíam todos roxos. Abriu `D-KPI-LABEL` (label accent 13.3/400 do bundle × 11px/600 uppercase muted da ADR 0110, que o próprio `KpiCard.tsx` documenta): fila de [W].
+- **`COLAR-NO-CODE-ponto-ondas.md` reescrito** (anti-scatter, segue ponteiro): mapa **espelho → `main`** de 12 linhas — os três que **não** casam são `Widget`×`ui/card.tsx`, `Toolbar`×`PageFilters.tsx` e o KPI. **W12 morreu** (`BulkActionBar` aceita `children`, o "motivo do lote" cabe dentro). W9 virou divergência medida (13 abas planas × 5+overflow). W11/W13 mantidas, W14 nova.
+- **Colisão de prefixo declarada:** as reescritas caíram em `ponto-page/telas.jsx` (threads 08/09) e `ponto-mobile.jsx`+host (thread 10), cujo `base:` é `e86130722de1` — quem abrir **remede antes de escrever**. **Thread 10 segue violada:** `ponto-mobile.jsx` ainda tem selfie (`:38`, `:72-76`, `:184`, `:261`) contra a ADR 0383.
+- **Promovido à NORMA, para todos os módulos** (pedido [W] no mesmo turno): **§15 · ACERTOS** no `COLAR-NO-CODE-PROTOCOLO-COWORK-EXPORT.md` (21 títulos `##`, nenhum perdido) + **C13** na `CONSTITUICAO-COWORK.md` (citação atualizada a C1–C13; a linha declara que C13 **nasceu no §15**, porque nenhuma lei nasce na constituição). O canal virou a **5ª saída** do §6 (eram "4 saídas, e só 4") e o **item 9 do DoD** (§4 bloco D): ciclo que leu o `main` sem bloco de acerto **não fechou** — e "nenhum acerto medido" é resposta válida, silêncio não é. Zero script, zero gate de CI: é arquivo que se acrescenta.
+- **Canal novo, pedido por [W]: `COLAR-NO-CODE-ACERTOS-E-LICOES.md`** (acumulativo, bloco por ciclo, mais novo em cima). O sistema catalogava erro (`LICOES_CC`), ausência (placar) e proibição — **faltava o que a produção acertou e não se refaz**. Ciclo 09/09 entrou com **8 acertos com sha** (A1 Ponto já compõe o DS · A2 `{...props}` no `input.tsx` · A3 `PontoSubNav` 5+⋯ · A4 `BulkActionBar` com `children` · A5 semântica do KPI-filtro pronta · A6 o arquivo documenta melhor que meu pedido · A7 `PageFilters` é outra peça · A8 precedente do Fiscal 03/09) e **5 lições com regra colada**. Registrado no §14 (mapa de destinos) e no read-order do §2-quater da norma.
+- **Reincidência medida, e é minha:** "produção está atrás do protótipo" é minha hipótese-padrão e **falhou 2 de 2** quando testada contra leitura (Fiscal 03/09 · Ponto 09/09). Regra nova: antes de afirmar "o módulo X não tem Y" → controle positivo na busca + ler 1 arquivo real. Custo 3 chamadas; custo de errar = pacote no eixo errado, que foi o que aconteceu neste turno antes da correção.
+- **Causa-raiz do erro do dia, mecânica:** busquei `from "@/Components/…"` com aspas **duplas**; o repo usa **simples** → "No matches" virou o fato "o Ponto não usa o DS", errado em 21 arquivos. A regra do §5-bis ("toda sonda roda um caso de sanidade antes do veredito") passa a valer para **busca de código**, não só sonda de DOM.
+- **Reexport do Ponto com ancoragem dupla por SÍMBOLO:** threads **13** (Painel · `Dashboard/Index.tsx :: DashboardIndex(:183)` @`19c5ad41dc7c`) · **14** (Espelho lista · `Espelho/Index.tsx :: EspelhoIndex(:42)` @`5e4a3c209d3f`) · **15** (Aprovações · `Aprovacoes/Index.tsx :: AprovacoesIndex(:119)` @`6dc451b3c541`), cada uma com o **NÃO É** em caixa alta: paridade de **forma**, não de inventário de seção — `PresenceStrip`/`ActivityFeed`/`AlertInbox`/`MonthHeatmap` **ficam**, com prova de guarda. Ficha das **19 Pages** medida em `_delta-indice-13a15.md`: 20 threads no eixo (3 emitidas · `Espelho/Show` DIVIDE por 6 símbolos · 14 medidas e não emitidas · 3 bloqueadas).
+- **Delta em vez de índice:** o `00-INDICE.md` do Ponto **local tem 24.411 B e o do `main` 24.929** — 518 B de divergência, com o `main` à frente. Editar o local e mandar descer sobrescreveria isso ⇒ desce **patch** (3 objetos no §7.threads, 2 no §7.decisoes, 3 linhas no §2). A pasta local do playbook é cache e acabou de provar.
+- ⚠️ **Ciclo fechado SEM pacote regenerado** — 6 arquivos do build mudaram e o `gerar-payload-partes.mjs` exige os arquivos em disco. Não afirmo que regenerei. Comando: `node scripts/design-sync/gerar-payload-partes.mjs --root <dir> --out sync/ --previous sync/bundle.manifest.json`.
+
+## Sync anterior
+date: 2026-09-08T14:52:00Z
+
+### Updated in this project
+- **Playbook do Patrimônio emitido pelo fluxo do §13** (`cowork-inbox/patrimonio/playbook/`, 7 arquivos): 5 threads CABE + 1 BLOQUEADA, com âncora recortada (`arquivo :: símbolo :: faixa :: sha`) em cada uma. O root `COLAR-NO-CODE-patrimonio-ondas.md` virou **ponteiro de 1,3 KB** (padrão HRM/Ponto).
+- **Achado novo, Tier 0 em produção:** `AssetAllocationService.php:112` — a subconsulta de revoke não filtra `business_id` enquanto a externa filtra (`:107`); saldo disponível fica maior do que é, silenciosamente. Virou a thread 01.
+- **Um pedido de 04/09 morreu no passo 0:** o `&&` da permissão (D1) não se reconfirmou nas 40 ocorrências lidas hoje — virou thread de medição, não PR. Segundo módulo seguido em que releitura mata pedido (Compras: 6 de 8).
+- **Teto do índice corrigido com caso registrado** (§13.2): passa a ser 8 KB de **prosa** (o bloco json é para máquina, não conta). Patrimônio 5.505 ✅ · Compras 9.545 ❌ · Ponto 16.614 ❌ · HRM 18.038 ❌ — os 3 antigos ficam como **dívida nomeada**, não exceção.
+- **Protocolo partido em NORMA × DOSSIÊ** (2026-09-08): `COLAR-NO-CODE-PROTOCOLO-COWORK-EXPORT.md` fica com as 19 seções de *o que se faz* (47.722 B) e `DOSSIE-PROTOCOLO-COWORK.md` recebe as 6 de *por que se sabe* (§1 · §7 · §9 · §9-bis · §9-ter · §9-quater, 16.666 B). **Numeração preservada** — toda citação antiga resolve. Alvo declarado era norma ≤15 KB e **não foi atingido**: 62 KB → 47,7 KB.
+- **`CONSTITUICAO-COWORK.md` (3.335 B) criada e as 8 cópias do `§0` podadas**: relatórios · patrimônio · fiscal · Forja · CRM · repair · compras · jana passam a citar C1–C12 numa linha e mantêm só a lei do próprio módulo (as medições de C1 ficaram, como medição). Guarda rodada na mesma edição: contagem de `^## ` idêntica antes/depois nos 8 arquivos — **zero cabeçalho perdido**.
+- **Gate de escrita adotado** (do §9-quater): documento de processo novo só se destravar thread nomeada com PR em ≤7 dias; cada ciclo registra `docs de processo : PRs mergeados`. Janela 09/08→08/09 medida: **61 : 7**.
+- **Playbook do Compras emitido** (`cowork-inbox/compras/playbook/`, 6 arquivos): 2 threads executáveis (E2E · Margem sem fonte) e 3 bloqueadas em [W]. Corrige o doc de 04/09, cujos 6 de 8 pedidos já estavam feitos no `main`.
+
+## Sync anterior
 date: 2026-09-07T20:41:00Z
 
 ### Updated in this project
@@ -20,7 +70,41 @@ date: 2026-09-07T20:41:00Z
 - **Pendências do DS (bundle é espelho, não se edita aqui):** cor crua `rgb(255,255,255)` no `Avatar` dentro do `<h1>` · `TabBar` sem `role="tab"` de origem.
 - ⚠️ **Ciclo fechado SEM pacote regenerado** — 2 arquivos do build mudaram e o `gerar-payload-partes.mjs` exige os arquivos em disco (ADR 0374). Não afirmo que regenerei. Comando: `node scripts/design-sync/gerar-payload-partes.mjs --root <dir> --out sync/ --previous sync/bundle.manifest.json`.
 
-## Last sync
+## Sync anterior
+date: 2026-09-06 (hora não registrada — ciclo do alvo Jana.Painel, árvore fb2240427978)
+
+### Updated in this project
+- **Alvo `Jana.Painel` medido e pacote de export reescrito** em `COLAR-NO-CODE-jana-tabs-cor-e-icone.md` (o mesmo arquivo do módulo — anti-scatter; a onda das abas virou §1.1). 10 blocos + ARQUIVOS A EDITAR/REUSAR/NÃO TOCAR/PARAR SE + placar. **Vira pedido: 1 onda · 1 arquivo · 1 linha** — pill do contador inativo em `PageHeaderTabs.tsx` usa `var(--border-2)` e o `TabBar` do DS manda `var(--bg-2)` (autoridade DS → protótipo → produção).
+- **Leitura do `main` neste turno** (árvore `fb2240427978`): `prototipo-ui/FRESCOR-PRODUCAO-vs-PROTOTIPO.md` · `prototipo-ui/PRE-FLIGHT-TELA.md` · `Pages/Jana/Index.tsx` · `_components/JanaAreaHeader.tsx` · `_shared/JanaSubNav.tsx` · `Components/shared/PageHeaderTabs.tsx`. **Não lido ⇒ não verificado:** `JanaCockpit.tsx` (47.668 B, dono de brief/KPIs/análises/ações), `Index.charter.md`, `Index.casos.md`, `SidebarGhost.php`.
+- **`main` à frente em 2 pontos, e as duas melhorias foram PUXADAS pro build daqui:** (a) `cli-tabs.jsx` acrescenta `role="tablist"` no nav + `role="tab"`/`aria-selected`/roving `tabIndex` + nav ←/→/Home/End (o `TabBar` do DS só escreve `aria-current="page"`; medido antes: **0 de 6** `role="tab"` no `nav.jm-tabs`); (b) `chat-jana.jsx` — `svg.jc-spark` ganhou `aria-hidden`. Medido depois (1103 nós, duas leituras iguais, dark): 6/6 `role="tab"`, ativa `tabIndex=0` e inativas `-1`, 0 svg anônimo, cores inline do DS intactas.
+- **Erro meu registrado:** a 1ª medição de `role="tab"` contou a página inteira em vez do `nav` e devolveu "5 de 6" — escopo de seletor errado quase transformou defeito real em "pendência do DS, nada a fazer". Está no §2/§8 do pacote.
+- **Pendências do DS (bundle é espelho, não se edita aqui):** cor crua `rgb(255,255,255)` no `Avatar` dentro do `<h1>` · `TabBar` sem `role="tab"` de origem.
+- ⚠️ **Ciclo fechado SEM pacote regenerado** — 2 arquivos do build mudaram e o `gerar-payload-partes.mjs` exige os arquivos em disco (ADR 0374). Não afirmo que regenerei. Comando: `node scripts/design-sync/gerar-payload-partes.mjs --root <dir> --out sync/ --previous sync/bundle.manifest.json`.
+
+## Screen map
+| Tela | Arquivos do build | Âncora no `main` |
+|---|---|---|
+| Fiscal · Cockpit | fiscal-page.jsx · fiscal-actions.jsx · fiscal-page.css | resources/js/Pages/Fiscal/Cockpit.tsx (+ `_components/FxShell.tsx`, `WriteOffAuditoriaCard.tsx`, `SavedViewsChips.tsx`) |
+| Fiscal · NF-e/NFC-e | fiscal-page.jsx (`FxNotasPage` preset 55/65) | resources/js/Pages/Fiscal/Nfe.tsx (+ `NotaDrawer.tsx`, `InutilizacaoModal.tsx`) |
+| Fiscal · NFS-e | fiscal-page.jsx (preset NFS-e) | resources/js/Pages/Fiscal/Nfse.tsx (+ `NFSeDrawer.tsx`) |
+| Fiscal · Manifesto DF-e | fiscal-subpages.jsx (`FxDfePage`) | resources/js/Pages/Fiscal/Dfe.tsx + `DfeController` |
+| Fiscal · Eventos | fiscal-subpages.jsx (`FxEventosPage`) | resources/js/Pages/Fiscal/Eventos.tsx + `EventosController` |
+| Fiscal · Certificado e config. | fiscal-subpages.jsx (`FxConfigPage`) | resources/js/Pages/Fiscal/Config.tsx + `ConfigController` |
+| Fiscal · SPED e livros | fiscal-subpages.jsx (`FxSpedPage`) | resources/js/Pages/Fiscal/Sped.tsx + `SpedController` + `SpedIcmsIpiGeneratorService` |
+| Fiscal · mutações e ⌘K | fiscal-actions.jsx | `AcoesController` · `PaletteSearchController` · `_components/CmdKPalette.tsx` |
+| Ponto · átomos (todas as 13 abas) | ponto-ui.jsx | `Components/ui/{button,card,input,select,textarea,checkbox}.tsx` · `Components/shared/{KpiCard,StatusBadge,EmptyState,PageFilters,BulkActionBar}.tsx` |
+| Ponto · Painel | ponto-page.jsx | resources/js/Pages/Ponto/Dashboard/Index.tsx (+ `_components/{PresenceStrip,ActivityFeed,AlertInbox}.tsx`) |
+| Ponto · Espelho (lista + mês) | ponto-page.jsx · ponto-telas.jsx | Pages/Ponto/Espelho/Index.tsx · Show.tsx (+ `_components/MonthHeatmap.tsx`) |
+| Ponto · Intercorrências · Aprovações | ponto-telas.jsx | Pages/Ponto/Intercorrencias/{Index,Create,Edit,Show}.tsx · Aprovacoes/Index.tsx |
+| Ponto · Banco de horas · Escalas · Colaboradores | ponto-telas.jsx | Pages/Ponto/BancoHoras/{Index,Show}.tsx · Escalas/{Index,Form}.tsx · Colaboradores/{Index,Edit}.tsx |
+| Ponto · Importações · Relatórios · Configurações | ponto-telas.jsx | Pages/Ponto/Importacoes/{Index,Create,Show}.tsx · Relatorios/Index.tsx · Configuracoes/{Index,Reps}.tsx |
+| Ponto · Fechamento · Conformidade | ponto-fechamento.jsx | **sem receptor** — threads 04/05 bloqueadas em W1–W4 |
+| Ponto · REP-P (celular) | ponto-mobile.jsx | `Api/MobileMarcacaoController.php` (existe **sem rota**) · 7 rotas `abort(501)` |
+| Ponto · sub-nav | (13 abas planas em `ponto-page.jsx`) | Pages/Ponto/_shared/PontoSubNav.tsx → `shared/PageHeaderTabs.tsx` (5 + ⋯ Mais) |
+
+## Sync history (resumo — narrativa completa em `DOSSIE-PROTOCOLO-COWORK.md` §14)
+
+## Sync anterior
 date: 2026-09-03T20:45:00Z
 
 ### Updated in this project
@@ -45,7 +129,7 @@ date: 2026-09-03T20:45:00Z
 | Fiscal · SPED e livros | fiscal-subpages.jsx (`FxSpedPage`) | resources/js/Pages/Fiscal/Sped.tsx + `SpedController` + `SpedIcmsIpiGeneratorService` |
 | Fiscal · mutações e ⌘K | fiscal-actions.jsx | `AcoesController` · `PaletteSearchController` · `_components/CmdKPalette.tsx` |
 
-## Last sync
+## Sync anterior
 date: 2026-09-03T17:10:00Z
 
 ### Updated in this project
@@ -56,7 +140,7 @@ date: 2026-09-03T17:10:00Z
 - ⚠️ **Ciclo fechado SEM pacote regenerado.** O passo 4 da `## 🔁 ROTINA` não roda daqui (o `gerar-payload-partes.mjs` exige os arquivos em disco; escrever pelo contexto do agente é transcrição — ADR 0374). Comando pro lado que tem disco: `node scripts/design-sync/gerar-payload-partes.mjs --root <dir> --out sync/ --previous sync/bundle.manifest.json`. **Não afirmo que regenerei.**
 - **O que isto NÃO prova:** fidelidade visual. A divisão é estrutural (mesmo markup, mesmas classes `fj-`/`tf-`/`ap-`, zero CSS novo); o `compare 0 bug` das Ondas 3-10 do §11 segue com o dono que já tem (`design-diff --compare --check` nos dois renders).
 
-## Last sync
+## Sync anterior
 date: 2026-09-01T19:36:00Z
 
 ### Updated in this project
@@ -65,7 +149,7 @@ date: 2026-09-01T19:36:00Z
 - Achado 🔴: `tpEmis` **hardcoded em 1** (`NfeService.php:1198`) — não existe contingência; só um comentário citando EPEC 110140.
 - Decisões [W] pendentes: 8 → **11**.
 
-## Last sync
+## Sync anterior
 date: 2026-09-01T19:24:00Z
 
 ### Updated in this project
@@ -74,19 +158,19 @@ date: 2026-09-01T19:24:00Z
 - Não medido, declarado como tarefa PR-F0: linha do Fiscal no `screen-coverage` (E2E/a11y/VRT).
 - Divergência registrada: `US-FISCAL-022` está `todo` no SPEC, mas `CertHealthCheckCommand` + teste existem no `main`.
 
-## Last sync
+## Sync anterior
 date: 2026-09-01T18:15:00Z
 
-## Last sync
+## Sync anterior
 date: 2026-09-01T20:10:00Z
 
-## Last sync
+## Sync anterior
 date: 2026-09-01T21:05:00Z
 
-## Last sync
+## Sync anterior
 date: 2026-09-01T21:48:00Z
 
-## Last sync
+## Sync anterior
 date: 2026-09-01T22:30:00Z
 
 ### O erro pior: usei a existência de uma regra como argumento, sem medir
@@ -527,3 +611,4 @@ Diagnóstico medido, para quem retomar:
 ## Sync history
 ### 2026-08-31 (anterior, revertido)
 Migração de abas/segmented para o DS exportada neste projeto e depois desfeita pelo restore acima. Nada disso chegou ao git.
+

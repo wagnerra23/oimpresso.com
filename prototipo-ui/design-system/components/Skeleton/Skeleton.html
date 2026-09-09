@@ -1,0 +1,38 @@
+<!doctype html>
+<!-- @dsCard group="Components" name="Skeleton" subtitle="Shimmer loaders — text / avatar / row / card" viewport="620x240" -->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Skeleton</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<style>
+  body { padding: 18px; }
+  .lbl { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--fg-2); margin: 12px 0 6px; }
+  .card { border: 1px solid var(--border); border-radius: 12px; padding: 14px; background: var(--surface); }
+  .head { display:flex; gap: 10px; align-items: center; margin-bottom: 12px; }
+  .head .col { flex: 1; display:flex; flex-direction: column; gap: 6px; }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/javascript">
+  const { Skeleton } = window.OfficeImpressoPontoWR2DesignSystem_019dd0;
+  const h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    h('div', null,
+      h('div', { className: 'lbl' }, 'Card placeholder'),
+      h('div', { className: 'card' },
+        h('div', { className: 'head' },
+          h(Skeleton, { variant: 'avatar-md' }),
+          h('div', { className: 'col' }, h(Skeleton, { variant: 'title' }), h(Skeleton, { variant: 'caption' }))),
+        h(Skeleton, { variant: 'text', count: 3 })),
+      h('div', { className: 'lbl' }, 'Rows'),
+      h(Skeleton, { variant: 'row', count: 3 }),
+    )
+  );
+</script>
+</body>
+</html>

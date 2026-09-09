@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- @template name="PT-05 — Dashboard" description="Visão geral do módulo, densidade de ERP moderno: PageHeader + linha de KPI cards (hero + spark) + grid 2-col de painéis (barras, gauge, pendências) + rodapé. Tweak de densidade compacto/confortável." -->
+<helmet>
+<script src="./ds-base.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  .nav-item:hover { background: var(--accent-soft) !important; }
+  .grp { display:flex; align-items:center; gap:8px; padding:13px 9px 5px; font:600 9.5px/1 var(--font-sans); letter-spacing:.08em; text-transform:uppercase; color:var(--text-mute); }
+  .grp .n { margin-left:auto; font:600 10px/1 var(--font-mono); color:var(--text-mute); opacity:.8; }
+  .rowbtn:hover { background:color-mix(in oklch, var(--text) 8%, transparent) !important; }
+</style>
+</helmet>
+<div class="cockpit" ref="{{ cockpitRef }}" style="display:flex; min-height:100vh; background:radial-gradient(1100px 620px at 84% -10%, oklch(0.30 0.07 295 / .16), transparent 60%), radial-gradient(900px 520px at 6% 110%, oklch(0.26 0.05 250 / .12), transparent 62%), var(--bg); color:var(--text); font-family:var(--font-sans); font-size:var(--d-fontsz,13px); line-height:1.4; -webkit-font-smoothing:antialiased;">
+
+  <!-- ░░ SIDEBAR ░░ -->
+  <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.AppSidebar" active="inicio" hint-size="222px,100%"></x-import>
+
+  <!-- ░░ MAIN ░░ -->
+  <main style="flex:1; min-width:0; display:flex; flex-direction:column; background:var(--bg);">
+
+    <!-- topbar (App Shell) -->
+    <header style="display:flex; align-items:center; gap:12px; height:46px; padding:0 var(--d-cpad-x,14px); border-bottom:1px solid var(--border); background:var(--surface); flex:none;">
+      <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Breadcrumb" items="{{ crumbs }}" hint-size="auto,20px"></x-import>
+      <label style="display:flex; align-items:center; gap:8px; height:30px; padding:0 10px; margin-left:auto; background:var(--bg-2); border:1px solid var(--border); border-radius:var(--radius-md); width:300px; max-width:32vw; color:var(--text-mute);">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+        <input placeholder="Buscar em tudo…" style="border:0; outline:0; background:transparent; font:inherit; color:var(--text); width:100%;">
+        <kbd style="font:600 10px/1 var(--font-mono); color:var(--text-mute); background:var(--surface); border:1px solid var(--border); border-radius:4px; padding:2px 5px;">⌘K</kbd>
+      </label>
+      <button style="display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border:1px solid var(--border); border-radius:var(--radius-md); background:var(--surface); color:var(--text-dim); font:600 13px/1 var(--font-sans); cursor:pointer;">?</button>
+    </header>
+
+    <div style="padding:0 var(--d-cpad-x,14px);">
+      <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.PageHeader" title="Visão geral" stats="{{ stats }}" actions="{{ headerActions }}" hint-size="100%,64px"></x-import>
+    </div>
+
+    <div class="nxc" style="flex:1; overflow:auto; padding:var(--d-cpad-y,12px) var(--d-cpad-x,14px) 0;">
+
+      <!-- slot 2 — linha de KPI cards -->
+      <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:var(--d-gap-kpi,8px);">
+        <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.KpiCard" hero="{{ yes }}" label="Faturamento — outubro" value="R$ 142,8k" delta="{{ d18 }}" deltaLabel="vs setembro" spark="{{ sparkFat }}" hint-size="100%,116px"></x-import>
+        <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.KpiCard" tone="warning" label="OS abertas" value="16" description="3 atrasadas" hint-size="100%,116px"></x-import>
+        <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.KpiCard" tone="success" label="A receber" value="R$ 28,4k" description="7 títulos em aberto" hint-size="100%,116px"></x-import>
+        <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.KpiCard" tone="info" label="Ticket médio" value="R$ 1.190" delta="{{ d6 }}" deltaLabel="vs mês passado" hint-size="100%,116px"></x-import>
+      </div>
+
+      <!-- slot 3 — grid 2-col de painéis -->
+      <div style="display:grid; grid-template-columns:1.5fr 1fr; gap:var(--d-panelgap,10px); margin-top:var(--d-panelgap,10px);">
+
+        <!-- painel: barras (Widget) -->
+        <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Widget" title="Faturamento por semana" note="Últimas 8 semanas · fechamento parcial de outubro" actions="{{ chartActions }}" hint-size="100%,220px">
+          <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Chart" type="bar" data="{{ fatData }}" height="128" highlightLast="{{ yes }}" formatValue="{{ fmtK }}" hint-size="100%,128px"></x-import>
+        </x-import>
+
+        <!-- coluna direita: gauge + pendências (Widgets) -->
+        <div style="display:flex; flex-direction:column; gap:var(--d-panelgap,10px);">
+          <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Widget" tone="accent" title="Capacidade de produção" note="2 máquinas perto do limite nesta semana" hint-size="100%,120px">
+            <div style="display:flex; align-items:center; gap:14px;">
+              <div style="position:relative; width:72px; height:72px; flex:none;">
+                <svg width="72" height="72" viewBox="0 0 72 72" style="transform:rotate(-90deg);">
+                  <circle cx="36" cy="36" r="29" fill="none" stroke="var(--border)" stroke-width="8"></circle>
+                  <circle cx="36" cy="36" r="29" fill="none" stroke="var(--accent)" stroke-width="8" stroke-linecap="round" stroke-dasharray="182.2" stroke-dashoffset="25.5"></circle>
+                </svg>
+                <span style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font:700 17px/1 var(--font-mono);">86<span style="font-size:10px; margin-top:2px;">%</span></span>
+              </div>
+              <p style="margin:0; font-size:12px; color:var(--text-dim); line-height:1.5;">Impressão UV e corte a laser acima de 90 % de ocupação. Reprogramar acabamento libera 6 h.</p>
+            </div>
+          </x-import>
+
+          <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Widget" tone="warning" title="Pendências" note="Precisa de decisão sua hoje" actions="{{ pendActions }}" footer="6 itens no total" hint-size="100%,190px">
+            <div style="display:flex; flex-direction:column;">
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; padding:7px 0; border-bottom:1px solid var(--border-2);"><span style="font-size:12.5px;">3 títulos vencidos</span><x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.StatusBadge" kind="payment" value="overdue" hint-size="auto,20px"></x-import></div>
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; padding:7px 0; border-bottom:1px solid var(--border-2);"><span style="font-size:12.5px;">2 intercorrências a aprovar</span><x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.StatusBadge" kind="intercorrencia" value="pendente" hint-size="auto,20px"></x-import></div>
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; padding:7px 0;"><span style="font-size:12.5px;">1 OS atrasada</span><x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.StatusBadge" kind="prioridade" value="urgente" hint-size="auto,20px"></x-import></div>
+            </div>
+          </x-import>
+        </div>
+      </div>
+
+      <!-- slot 4 — rodapé -->
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:var(--d-panelgap,10px) 0 var(--d-cpad-x,14px);">
+        <span style="font:11.5px/1 var(--font-mono); color:var(--text-mute);">Período: 1–31 de outubro · atualizado há 4 min</span>
+        <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Button" variant="ghost" size="sm" hint-size="auto,30px">Exportar relatório</x-import>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: &quot;100%&quot;, &quot;height&quot;: 720}, &quot;density&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;compacto&quot;, &quot;confortável&quot;], &quot;default&quot;: &quot;compacto&quot;, &quot;tsType&quot;: &quot;'compacto' | 'confortável'&quot;}, &quot;theme&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;dark&quot;, &quot;light&quot;], &quot;default&quot;: &quot;dark&quot;, &quot;tsType&quot;: &quot;'dark' | 'light'&quot;}, &quot;accentHue&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 295, &quot;min&quot;: 0, &quot;max&quot;: 360, &quot;step&quot;: 5, &quot;tsType&quot;: &quot;number&quot;}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { periodo: 'mes' };
+    this._poll = null;
+  }
+
+  componentDidMount() {
+    if (!window.OfficeImpressoPontoWR2DesignSystem_019dd0) {
+      this._poll = setInterval(() => {
+        if (window.OfficeImpressoPontoWR2DesignSystem_019dd0) { clearInterval(this._poll); this._poll = null; this.forceUpdate(); }
+      }, 60);
+    }
+    this.applyTheme();
+  }
+  componentDidUpdate() { this.applyTheme(); }
+  componentWillUnmount() { if (this._poll) clearInterval(this._poll); }
+
+  applyTheme() {
+    const el = this._cockpit; if (!el) return;
+    const S = el.style, set = (k, v) => S.setProperty(k, v);
+    const dark = (this.props.theme || 'dark') !== 'light';
+    if (dark) { el.setAttribute('data-theme', 'dark'); el.classList.add('dark'); }
+    else { el.removeAttribute('data-theme'); el.classList.remove('dark'); }
+    const hue = this.props.accentHue != null ? this.props.accentHue : 295;
+    const aL = dark ? '0.72' : '0.55';
+    set('--accent', 'oklch(' + aL + ' 0.15 ' + hue + ')');
+    set('--accent-2', 'oklch(' + (dark ? '0.78' : '0.62') + ' 0.15 ' + hue + ')');
+    set('--accent-soft', dark ? 'oklch(0.32 0.07 ' + hue + ')' : 'oklch(0.95 0.04 ' + hue + ')');
+    set('--color-primary', 'oklch(' + aL + ' 0.15 ' + hue + ')');
+
+    const compact = (this.props.density || 'compacto') !== 'confortável';
+    if (compact) {
+      set('--d-fontsz', '13px'); set('--d-sidebar', '208px'); set('--d-navpy', '5px');
+      set('--d-cpad-x', '14px'); set('--d-cpad-y', '12px');
+      set('--d-gap-kpi', '8px'); set('--d-panelpad', '13px'); set('--d-panelgap', '10px');
+      ['10px', '11px', '11.5px', '12.5px', '13.5px', '15.5px', '19px', '23px', '31px'].forEach((v, i) => set('--fs-' + (i + 1), v));
+    } else {
+      set('--d-fontsz', '13.5px'); set('--d-sidebar', '236px'); set('--d-navpy', '7px');
+      set('--d-cpad-x', '22px'); set('--d-cpad-y', '18px');
+      set('--d-gap-kpi', '12px'); set('--d-panelpad', '18px'); set('--d-panelgap', '14px');
+      ['10.5px', '11.5px', '12.5px', '13.5px', '15px', '18px', '22px', '28px', '38px'].forEach((v, i) => set('--fs-' + (i + 1), v));
+    }
+  }
+
+  renderVals() {
+    const NS = window.OfficeImpressoPontoWR2DesignSystem_019dd0;
+    const cockpitRef = (el) => { this._cockpit = el; if (el) this.applyTheme(); };
+    const base = {
+      cockpitRef,
+      crumbs: [{ label: 'Início', href: '#' }, { label: 'Visão geral' }],
+      yes: true, d18: 18, d6: 6,
+      sparkFat: [86, 102, 94, 118, 110, 132, 124, 143],
+      fatData: [86, 102, 94, 118, 110, 132, 124, 143].map((v, i) => ({ label: 's' + (i + 1), value: v })),
+      fmtK: (v) => 'R$ ' + v + 'k',
+      stats: [
+        { value: 'outubro 2025' },
+        { value: '142 OS', label: 'no mês' },
+      ],
+    };
+    if (!NS) return base;
+    const h = React.createElement;
+    base.headerActions = h(React.Fragment, null,
+      h(NS.Segmented, {
+        size: 'sm', value: this.state && this.state.periodo ? this.state.periodo : 'mes',
+        onChange: (v) => this.setState({ periodo: v }),
+        options: [{ value: 'sem', label: 'Semana' }, { value: 'mes', label: 'Mês' }, { value: 'ano', label: 'Ano' }],
+      }),
+      h(NS.Button, { variant: 'primary', size: 'sm' }, 'Exportar'),
+    );
+    base.chartActions = h(NS.Kebab, { items: [
+      { id: 'csv', label: 'Baixar CSV', kbd: '⌘E' },
+      { id: 'comp', label: 'Comparar com set.' },
+      { separator: true },
+      { id: 'full', label: 'Abrir em tela cheia' },
+    ] });
+    base.pendActions = h(NS.Kebab, { orientation: 'horizontal', items: [
+      { id: 'all', label: 'Ver todas' },
+      { id: 'mute', label: 'Silenciar por hoje' },
+    ] });
+    return base;
+  }
+}
+</script>
+</body>
+</html>

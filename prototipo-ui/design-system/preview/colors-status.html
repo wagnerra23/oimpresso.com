@@ -1,0 +1,65 @@
+<!doctype html>
+<!-- @dsCard group="Colors" name="Colors — Semantic / Status" subtitle="Emerald, amber, rose, blue — Ponto domain" viewport="700x220" -->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Colors — Status</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { padding: 20px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .card { border:1px solid var(--border); border-radius: var(--radius-xl); padding: 12px; background: var(--card); display:flex; flex-direction:column; gap:8px; }
+  .swatch { height: 36px; border-radius: var(--radius-md); display:flex; align-items:center; justify-content:center; font-weight: 600; font-size: 12px; }
+  .meta { font-size: 11px; color: var(--fg-2); line-height: 1.4; }
+  h4 { font-size: 13px; }
+  .pill { display:inline-flex; align-items:center; gap:5px; font-size: 10px; padding: 2px 8px; border-radius: 999px; font-weight: 500; }
+  .row { display:flex; gap:6px; flex-wrap: wrap; }
+  code { font-size: 10px; }
+</style>
+</head>
+<body>
+  <div class="grid">
+    <div class="card" style="border-color: hsl(160 84% 39% / 0.20); background: hsl(160 84% 39% / 0.05);">
+      <h4 style="color: hsl(161 94% 30%);">Success / Aprovada</h4>
+      <div class="swatch" style="background: hsl(160 84% 39%); color: white;">emerald-500</div>
+      <div class="row">
+        <span class="pill" style="background: hsl(160 84% 39%); color: white;">Aprovada</span>
+        <span class="pill" style="background: hsl(160 84% 39%); color: white;">Pago</span>
+        <span class="pill" style="background: hsl(160 84% 39%); color: white;">Presente</span>
+      </div>
+      <p class="meta">"Aprovada", "Pago", "Quitado", "Presente". KPI tone <code>success</code>.</p>
+    </div>
+
+    <div class="card" style="border-color: hsl(38 92% 50% / 0.20); background: hsl(38 92% 50% / 0.05);">
+      <h4 style="color: hsl(32 95% 44%);">Warning / Atenção</h4>
+      <div class="swatch" style="background: hsl(38 92% 50%); color: white;">amber-500</div>
+      <div class="row">
+        <span class="pill" style="background: hsl(32 95% 44%); color: white;">Parcial</span>
+        <span class="pill" style="background: hsl(32 95% 44%); color: white;">Atrasado</span>
+      </div>
+      <p class="meta">"Atrasado", "Parcial". Banco de horas zerado, vencendo hoje.</p>
+    </div>
+
+    <div class="card" style="border-color: hsl(0 84% 60% / 0.20); background: hsl(0 84% 60% / 0.05);">
+      <h4 style="color: hsl(0 72% 51%);">Destructive / Rejeitada</h4>
+      <div class="swatch" style="background: hsl(0 84.2% 60.2%); color: white;">rose-500 / destructive</div>
+      <div class="row">
+        <span class="pill" style="background: hsl(0 84.2% 60.2%); color: white;">Rejeitada</span>
+        <span class="pill" style="background: hsl(0 84.2% 60.2%); color: white;">Erro</span>
+        <span class="pill" style="background: hsl(0 84.2% 60.2%); color: white;">Atrasado</span>
+      </div>
+      <p class="meta">"Rejeitada", "Erro", "Vencido", "Urgente" (com pulse).</p>
+    </div>
+
+    <div class="card" style="border-color: oklch(0.58 0.13 244 / 0.20); background: oklch(0.58 0.13 244 / 0.05);">
+      <h4 style="color: oklch(0.58 0.13 244);">Info / Aplicada</h4>
+      <div class="swatch" style="background: oklch(0.58 0.13 244); color: white;">blue-500</div>
+      <div class="row">
+        <span class="pill" style="background: oklch(0.58 0.13 244); color: white;">Aplicada</span>
+        <span class="pill" style="background: oklch(0.58 0.13 244); color: white;">Processando</span>
+      </div>
+      <p class="meta">Estado intermediário. KPI tone <code>info</code>. Banco horas positivo.</p>
+    </div>
+  </div>
+</body>
+</html>
