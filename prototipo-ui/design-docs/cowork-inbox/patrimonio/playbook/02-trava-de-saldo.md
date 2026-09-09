@@ -1,54 +1,52 @@
 ---
 sessao: "02"
-titulo: Trava de saldo na alocação — criar() aloca mais do que existe
+titulo: Trava de saldo na alocação — validar o fluxo completo
 dono: "[CL]"
-base: cb475c0ca2f4
-constituicao: CONSTITUICAO-COWORK.md (C1–C12)
-prefixo: AssetAllocationService.php · StoreAssetAllocationRequest.php · Wave27AssetManagementPolishTest.php
-nao_toca: AssetMaintenanceService · os controllers · resources/js/**
-depende: **thread 01** (mesmo arquivo — vaga 2, nunca em paralelo: Lei 1)
-antes:  criar() grava sem consultar quantidadeDisponivel()
-depois: alocação acima do saldo é recusada, com mensagem PT-BR
+base: c7bd83944f
+prefixo: AssetAllocationService.php · AssetAllocationController.php · Wave27AssetManagementPolishTest.php
+nao_toca: AssetMaintenanceService · resources/js/**
+depende: thread 01 — veja depende_threads no índice
 ---
 # 02 · Trava de saldo na alocação
 
-## ÂNCORA
-```
-arquivo  Modules/AssetManagement/Services/AssetAllocationService.php   5.054 B  sha bc036e9ed701
-símbolo  criar(Request, int $businessId, int $userId): AssetTransaction      :31–:58
-         quantidadeDisponivel(AssetTransaction): int                          :101–:116
-         ↑ existe, e criar() NÃO chama
-arquivo  Modules/AssetManagement/Http/Requests/StoreAssetAllocationRequest.php  1.964 B  sha c1d3ad6d5709
-NÃO ler  AssetAllocationController.php (13 KB) — o fluxo está nas 2 faixas acima
-```
+## Correção do plano — 2026-09-08
 
-## A · O defeito
-`criar()` (`:31–:58`) monta o input com `asset_id` e `quantity`, carimba `business_id` (`:39`) e grava. **Em nenhum ponto consulta o saldo.** O método que faria isso — `quantidadeDisponivel()` — está no mesmo arquivo (`:101`) e não é chamado por `criar()`.
+O pedido continua sendo recusar alocação acima do saldo livre. A orientação anterior de
+reutilizar diretamente quantidadeDisponivel() estava errada: o método recebe uma alocação
+existente e retorna **alocado − devolvido**, não a quantidade livre. A fórmula de livre já
+aparece em Asset::forDropdown: **quantidade do bem − alocado + devolvido**.
+Bem com 3 unidades e nenhuma alocação: livre=3, retorno daquele método=0.
+Bem com 10 unidades, 8 alocadas e 1 devolvida: livre=3, retorno daquele método=7.
 
-Resultado: dá pra alocar 10 unidades de um bem que tem 3. Não há erro; o rastro de responsabilidade nasce falso — que é exatamente o que o módulo existe pra entregar.
+O StoreAssetAllocationRequest estava órfão, conforme _saida-04.md §5 e PR #7016.
+Não escrever validação ali sem ligar o Request ao caminho HTTP. Esta ficha substitui a
+instrução anterior; o histórico e a causa permanecem no PR #7016.
 
-**A ordem importa:** a thread 01 conserta o **cálculo** do saldo. Aplicar esta antes faria a trava usar um número contaminado por outro tenant. Por isso 02 é vaga 2, e o primeiro passo dela é confirmar que a 01 está mergeada.
+## Leitura e escrita
 
-## B · Não inventar
-- **Reusar** `quantidadeDisponivel()`. Não escrever segunda contagem: duas fontes pro mesmo número é como o bug renasce.
-- Mensagem de validação em **PT-BR** (C2), no `StoreAssetAllocationRequest` — é onde as outras regras do módulo já moram —, não `abort()` cru no Service.
-- `Wave27AssetManagementPolishTest.php` (4.594 B) já hospeda casos de polimento do módulo: estender, não criar arquivo de teste novo.
+Ler rota/middleware, AssetAllocationController::store/update, Service, cálculo do dropdown
+e views de criação/edição que exibem o erro. Prefixo limita **escrita**, não impede conferir
+chamadores e consumidores. O controller captura Exception e troca a mensagem por erro
+genérico: testar somente uma exceção no Service não prova o erro recebido pelo usuário.
 
-## Execução
-```
-PASSO   1) confirmar a 01 mergeada (git log no arquivo) — senão PARE
-        2) caso de teste: bem com saldo 3 → alocar 4 recusa; alocar 3 passa
-        3) trava em criar(), reusando quantidadeDisponivel()
-        4) mensagem PT-BR no Request (C2)
-        5) atualizar() (:65–:83) tem o MESMO buraco — se o total couber em
-           ≤300 linhas, entra junto; se não, vira thread 02b. Não empurrar
-           com a barriga.
-        6) _saida-02.md
-PARAR SE (a) a 01 não estiver mergeada
-         (b) existir bem com saldo legitimamente negativo em produção (dado
-             sujo): a trava quebraria fluxo real → RESÍDUO pra [W] ANTES de aplicar
-         (c) passar de 300 linhas com atualizar() junto → divide (C6)
-```
+Escrever nos três arquivos do frontmatter. Se a correção exigir outro consumidor, atualizar
+o prefixo no índice antes de despachar; não deixar o elo necessário órfão.
 
-## Checklist de saída
-1. `criar()` chama `quantidadeDisponivel()` · 2. caso de recusa e caso de sucesso · 3. mensagem PT-BR · 4. decisão sobre `atualizar()` registrada (entrou ou virou 02b) · 5. 9 Pest verdes · 6. placar no PR
+## Execução e aceite
+
+1. Conferir base atual, PRs ativos, dependência 01 e invalidações nas saídas irmãs.
+2. Reconciliar o contrato de saldo livre com os consumidores existentes, sem transformar
+   o significado do helper de alocação silenciosamente. Verificar também o tenant no JOIN
+   de alocação, o dono do bem e o destinatário, conforme resíduos da thread 01.
+3. Provar criação com saldo 3: alocar 3 passa; 4 recusa; zero/negativo recusa. Na edição,
+   considerar a própria alocação; provar devolução e concorrência (duas solicitações não
+   podem consumir juntas mais do que existe). Validação e gravação precisam ser atômicas.
+4. Provar pelo HTTP real a recusa, ausência de escrita, preservação dos campos e mensagem
+   em PT-BR, incluindo o tratamento no controller. Testar o cálculo isolado também.
+5. Rodar os testes no CT 100 com tenants fictícios canônicos. Produzir JUnit e resumo via
+   scripts/tests/junit-summary.mjs; ligar o recibo à revisão efetivamente executada.
+6. Antes de merge/deploy, apresentar duas confirmações independentes e impacto antes→depois
+   de quantidades, conforme regra mestre de memory/proibicoes.md. Nenhum dado de produção
+   foi alterado pela correção desta ficha.
+7. Registrar saída e recibo conforme [contrato do placar](../../_scripts/README-placar.md).
+   Falha em teste ou dado não medido permanece explícita, nunca vira “feito”.

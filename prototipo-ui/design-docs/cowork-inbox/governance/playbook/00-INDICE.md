@@ -13,6 +13,8 @@ destino_no_main: prototipo-ui/design-docs/cowork-inbox/governance/playbook/
 > **O módulo mais adiantado do ERP, e o mais desigual.** Backend maduro (22 Services, 19 Commands, 13 Checkers, **57 testes Feature**), **9 telas React todas com `Inertia::render`**, 9 charters — e **1 único `casos.md`** entre as nove. O trio não fecha em 8 telas.
 > **Produção está À FRENTE do meu protótipo** (C4): meu build tem **5 vistas**, produção tem **9**. Quatro telas nasceram lá e nunca chegaram aqui: `Custos`, `DsRollout`, `QualidadeIa`, `ModuleGrades/Show`. Isso é defeito **meu** → thread 04, não pedido.
 
+> **Compatibilidade verificada em 08/09/2026:** este índice não declarou recibos de execução. A estrutura pode ser avaliada, mas nenhuma tarefa recebe fechamento automático até definir sua evidência no contrato do placar. E2E, comparação visual e medição exigem os respectivos produtores de evidência; não preencher um resumo Pest fictício.
+
 ## 0 · LEVANTAR — 4 denominadores
 
 **D1 rota** `Modules/Governance/Http/routes.php` (5.982 B, **editado hoje** — ADR 0392 §D-D passo 2): `/` **redireciona pra `/ia`** (302, canon [W] 2026-05-22) · `/dashboard` · `/policies` (+`POST /policies/{id}/toggle`) · `/audit` · `/drift` · `/module-grades` (+`/{name}`) · `/ds-rollout` · `/custos` · `/qualidade-ia` + 3 hooks de install.
@@ -50,7 +52,7 @@ destino_no_main: prototipo-ui/design-docs/cowork-inbox/governance/playbook/
 **03 é frente, não thread:** 8 `casos.md` num PR reprova no `casos-gate` G-2 (`1 seção = 1 PR`, prosa é o que conta). E `Dashboard.tsx` sozinho tem **42 KB** — estoura o teto de 40 KB de leitura antes de escrever a primeira linha. Ordem proposta pela ficha, do menor para o maior: `Policies` (4,9 KB) → `Audit` (8,4) → `DriftAlerts` (8,6) → `Custos` (13,9) → `QualidadeIa` (20,8) → `ModuleGrades/Index` (22,3) → `Show` (28,8) → `Dashboard` (42,3, **fatiar por seção**).
 
 ## 2-bis · ESTADO — derivado, nunca escrito
-`node scripts/qa/placar-indice.mjs --indice prototipo-ui/design-docs/cowork-inbox/governance/playbook/00-INDICE.md --root . --proximo`
+`node prototipo-ui/design-docs/cowork-inbox/_scripts/placar-indice.mjs --indice prototipo-ui/design-docs/cowork-inbox/governance/playbook/00-INDICE.md --root . --proximo`
 Render esperado: `Governança: entregue 0 de 5 · próximo 3 · bloqueada 1`.
 
 ## 3 · Abertura de thread (colar como 1ª mensagem — sessão limpa)

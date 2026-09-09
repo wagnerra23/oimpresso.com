@@ -23,15 +23,16 @@
 
 ---
 
-## 0 · Leis DESTE módulo
-
-constituição: `CONSTITUICAO-COWORK.md` (C1–C12) + `memory/proibicoes.md` — **citadas, não copiadas**. Abaixo, só o que é lei DESTE módulo.
+## 0 · Leis que não se renegociam
 
 1. **Cliente (cadastro) ≠ CRM (pipeline)** — ADR 0301. Falar "CRM" aqui = pipeline pré-venda.
 2. **O pipeline CRM está em depreciação** (ADR 0301 §Decisão 3 + `DEPRECATION-PLAN-pipeline.md`, 6 etapas com gate [W] por etapa, **nada executado**). Construir tela React nova para B = criar superfície que o plano manda remover.
 3. **`Modules/Crm/Routes/web.php:24-80` (`/crm/*`) é alvo de silenciamento na etapa E2.** Pedir Page nova nessa rota é pedir para o Code trabalhar contra o plano.
-4. **Portal do contato (`/contact/*`) é ZONA CINZA declarada** ("NÃO é pré-venda · fora do escopo · Wagner decide separado"). Sem decisão [W], não vira onda *(C9)*.
-5. **Medição de C1 aqui:** `crm-blade.css` tem **0** `#hex`/`rgb()`/`oklch()` literal; cor só via `var(--*)`.
+4. **Portal do contato (`/contact/*`) é ZONA CINZA declarada** ("NÃO é pré-venda · fora do escopo · Wagner decide separado"). Sem decisão [W], não vira onda.
+5. **Autoridade de token:** `TabBar` do DS → protótipo → produção. Zero cor crua: `crm-blade.css` tem **0** `#hex`/`rgb()`/`oklch()` literal (medido); cor só via `var(--*)`.
+6. **Medir e aplicar são passos separados**; o que a a11y reprovar no alvo **corrige-se aqui**, não vira pedido.
+
+---
 
 ## 1 · Ordem das ondas + âncora por onda
 

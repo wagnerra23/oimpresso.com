@@ -18,13 +18,17 @@
 
 ---
 
-## 0 · Leis DESTE módulo
+## 0 · Leis que não se renegociam
 
-constituição: `CONSTITUICAO-COWORK.md` (C1–C13) + `memory/proibicoes.md` — **citadas, não copiadas**. Abaixo, só o que é lei DESTE módulo.
+1. **Zero cor crua.** Roxo canon `oklch(0.55 0.15 295)` light / `oklch(0.70 0.15 295)` dark, **sempre por token** (ADR 0190/0235).
+2. **Autoridade de token:** `TabBar`/DS → protótipo medido → produção. Onde os três discordam, ganha o primeiro.
+3. **Ancoragem dupla.** Alvo de layout = protótipo medido; **âncora de implementação = arquivo real do `main`**, reusando os átomos que já existem lá. O `main` responde *onde* e *com que dado*; o protótipo responde *como*. Onde o `main` está à frente, **corrige-se o build daqui** (§2) — nunca se pede regressão.
+4. **Apresentação sim, cálculo não.** O protótipo calcula projeção no front (`jmMeta`: `atualN*1.3` e uma extrapolação de tendência). **Não copiar.** Produção consome `meta.projecao` do `ApuracaoService::projecao` — mesma porta do farol.
+5. **Número sem fonte não renderiza.** Card de análise sem agregado no `SellsCockpitAggregator` **não existe** (é o caso de "Cheques").
+6. **Copy pinada por `data-contract` não se mexe** sem [W]: `painel-metas-header`, `painel-metas-vazio`, `painel-cta-conversar`, `painel-meta-apurando`, `painel-meta-sem-historico`.
+7. Onda ≤ 1 PR ≤ 300 linhas, escopo fechado no arquivo nomeado.
 
-1. **Apresentação sim, cálculo não.** O protótipo calcula projeção no front (`jmMeta`: `atualN*1.3` e uma extrapolação de tendência). **Não copiar.** Produção consome `meta.projecao` do `ApuracaoService::projecao` — mesma porta do farol. *(É a C7 na sua forma mais fácil de violar: o número existe, mas a autoridade dele não.)*
-2. **Copy pinada por `data-contract` não se mexe** sem [W]: `painel-metas-header`, `painel-metas-vazio`, `painel-cta-conversar`, `painel-meta-apurando`, `painel-meta-sem-historico`.
-3. **Análise sem agregado no `SellsCockpitAggregator` não existe** — foi o caso de "Cheques", removido do build em 2026-09-07 *(C7)*.
+---
 
 ## 1 · Ordem das ondas + âncora dupla
 

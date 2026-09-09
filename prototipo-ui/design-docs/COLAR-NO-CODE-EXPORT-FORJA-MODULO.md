@@ -6,13 +6,16 @@
 
 ---
 
-## 0 · Leis DESTE pacote
+## 0 · Leis que este pacote NÃO renegocia
 
-constituição: `CONSTITUICAO-COWORK.md` (C1–C13) + `memory/proibicoes.md` — **citadas, não copiadas**. Abaixo, só o que é lei DESTE módulo.
+1. **Réplica primeiro** (ADR 0388 + [W] 2026-09-02): o protótipo é o contrato de **layout**. Divergir é bug, salvo divergência declarada.
+2. **Ancoragem dupla** ([W] 2026-09-03): o **alvo** vem do protótipo; a **âncora de implementação** é o arquivo real do `main`, reusando os átomos que já existem lá (eles têm `aria-*`/`data-testid` que o protótipo não tem).
+3. **1 seção = 1 PR ≤300 linhas de prosa** (CSS/JSX copiado não conta). Big-bang de `casos.md` proibido (`casos-gate` G-2).
+4. **Escrita é PROPOSTA**; sem fonte no banco ⇒ `—` + linha no PR. **Nunca número inventado.**
+5. **Zero CSS novo** — `cowork-forja-bundle.css` já cobre `fj-*`/`ap-*`/`tf-*`. Zero utilitária Tailwind de cor/espaço no que o bundle cobre.
+6. **Nada é "0 bug" antes do T7** (`design-diff --compare --check` nos dois renders, prod deployada e autenticada).
 
-1. **Big-bang de `casos.md` proibido** (`casos-gate` G-2) — é o agravante de C6 aqui: 1 seção = 1 PR, e prosa é o que conta (CSS/JSX copiado não).
-2. **Zero CSS novo** — `cowork-forja-bundle.css` já cobre `fj-*`/`ap-*`/`tf-*`. Zero utilitária Tailwind de cor/espaço no que o bundle cobre.
-3. **Escrita é PROPOSTA** — nenhuma onda deste pacote grava sem passar pelo fluxo de aprovação declarado na onda.
+---
 
 ## 1 · Ordem de execução
 

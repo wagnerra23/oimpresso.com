@@ -27,13 +27,14 @@ Os 2 editados: `routes/web.php` (grupo Inertia novo, **sem tocar nas 41 rotas le
 
 ---
 
-## 0 · Leis DESTE módulo
-
-constituição: `CONSTITUICAO-COWORK.md` (C1–C13) + `memory/proibicoes.md` — **citadas, não copiadas**. Abaixo, só o que é lei DESTE módulo.
+## 0 · Leis que não se renegociam
 
 - Relatório é **100% leitura**. Nenhuma rota nova escreve; **nenhuma mutação em GET**.
-- **C1 aplicada aqui, com medição:** o banner de `/financeiro/relatorios` tem `oklch(...)` **literal em `style={{}}`** (lido no bloco DRE) — é o `main` **ATRÁS** do DS: não copiar esse padrão, e não vira alvo.
-- **Granularidade deste módulo (C6):** onda = **grupo do catálogo**; página única → onda = seção.
+- **Zero cor crua.** Autoridade de token: **TabBar/DS → protótipo → produção**. O banner de `/financeiro/relatorios` tem `oklch(...)` **literal em `style={{}}`** (lido hoje, linhas do bloco DRE) — **é o `main` ATRÁS do DS: não copiar esse padrão**, e não vira alvo.
+- PT-BR em toda UI · sentence case · sem emoji no app · sem `rounded-xl+` fora do canon · sidebar preta (UI-0023).
+- **Um `<main>` por documento** (AP9) + chain de overflow (AP10).
+- Onda nunca > 1 PR ≤300 linhas. Onda = **grupo do catálogo** (página única → onda = seção).
+- Nada derivado do build vira arquivo (L-42 / ADR 0256): mapa, manifesto e inventário são **comando**, não `.md`.
 
 ## 1 · Ordem das ondas + âncora por onda
 
