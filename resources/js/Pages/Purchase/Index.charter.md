@@ -2,7 +2,7 @@
 id: resources-js-pages-purchase-index-charter
 page: /purchases
 component: resources/js/Pages/Purchase/Index.tsx
-related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
+related_prototype: prototipo-ui/cowork/compras-page.jsx (ComprasPage)
 related_visual_comparison: memory/requisitos/Compras/_telas/index-visual-comparison.md
 related_us: [US-MWART-008]
 owner: wagner
@@ -19,6 +19,12 @@ charter_version: 1
 > **Status:** draft criado em 2026-07-11 no lote de cobertura de charters. Wagner aprova **Non-Goals + Anti-hooks** ANTES de virar `status: live`.
 >
 > Backend: `app/Http/Controllers/PurchaseController@indexInertia` (dual-path MWART do `index`; rota `GET /purchases`, `Route::resource('purchases')`, permissão `purchase.view`/`view_own_purchase`). Lista densa de compras do tenant migrada de Blade legacy pra Inertia/React.
+>
+> **Âncora de design promovida em 2026-09-09** (era `n/a (herda PT-01 Lista)`): `prototipo-ui/cowork/compras-page.jsx` — a aba **Pedidos** do `ComprasPage` (`:326`; a tabela começa em `:426`). O piloto continua herdando o **PT-01 Lista**; o que muda é que agora existe também uma fonte visual, e ela não contradiz o Padrão.
+>
+> **Por que este protótipo é fonte, e não porte reverso** (o critério de [§5 2026-08-28](../../../../memory/proibicoes.md)): o cabeçalho do hub (`compras-page.jsx:2`) declara *“Migrado de Compras.html”* — ele nasce de um HTML de design, não do código vivo. E a direção Design→Code é declarada pelo **próprio código**: `Index.tsx:9` diz *“Origem: protótipo Cowork «Compras»”*, apontando `prototipo-ui/prototipos/compras/visual-source.html` — que **não existe mais** (medido em 2026-09-09: o diretório sumiu do repo; de `prototipos/compras*` sobrou só `compras-grade-matrix/`). Esta promoção troca um ponteiro podre por um vivo.
+>
+> ⚠️ **Mesma fonte, duas telas vivas — não é duplicação.** O hub também ancora o cockpit `/compras` ([`Compras/Index.charter.md`](../Compras/Index.charter.md), que já o declara). São telas distintas por desenho: o cockpit delega o CRUD pro trilho A `Pages/Purchase/*` (convergência C1 · ADR 0141), e é este charter que descreve o trilho A. O protótipo cobre as duas porque tem as abas Painel/Pedidos/Fornecedores **e** o drawer.
 
 ---
 
