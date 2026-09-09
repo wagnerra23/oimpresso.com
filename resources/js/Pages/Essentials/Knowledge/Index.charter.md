@@ -2,6 +2,7 @@
 page: /essentials/knowledge-base
 component: resources/js/Pages/Essentials/Knowledge/Index.tsx
 related_prototype: prototipo-ui/cowork/essenciais-extras.jsx#BaseConhecimento (:127-188)
+related_us: [US-ESS-013]
 bundle_source: essenciais-page.jsx
 owner: wagner
 status: draft
