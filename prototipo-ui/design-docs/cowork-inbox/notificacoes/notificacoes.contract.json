@@ -1,6 +1,6 @@
 {
   "tela": "NotificationTemplate/Index",
-  "fonte": "prototipo-ui/cowork/notificacoes/notificacoes-page.jsx",
+  "fonte": "prototipo-ui/cowork/notificacoes-page.jsx",
   "alvo": ["resources/js/Pages/NotificationTemplate"],
   "secoes": [
     { "id": "lista-modelos", "copy": ["Notificações", "Cliente", "Fornecedor", "Buscar modelo"], "estados": ["empty", "filtered", "selected"] },
