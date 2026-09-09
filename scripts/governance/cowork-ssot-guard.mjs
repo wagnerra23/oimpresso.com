@@ -62,7 +62,12 @@ const PROTOTIPOS_HISTORICOS = new Set(['financeiro-prova-viva']);
 // Cada entrada tem SOURCE.md declarando proveniência, âncora de domínio e status.
 // 'nfe-tributacao' — 4 telas de NfeBrasil/Tributacao; ausência medida nos 2 donos em
 // 2026-09-09 (a própria fonte declara o limite: configuracoes-page.jsx:324, prefs-page.jsx:121).
-const PROTOTIPOS_GERADOS = new Set(['nfe-tributacao']);
+// 'payment-gateway-cnab' — Settings/PaymentGateways/CnabRetorno (tela de dinheiro sem fonte);
+// ausência medida nos 2 donos em 2026-09-09. O espelho TEM vocabulário parcial de CNAB — dois
+// `SheetRemessaRetorno` (boletos-page.jsx:509, pg-cobranca-page.jsx:863) — mas os dois são sheet
+// de LISTA dentro da Cobrança, sem dropzone/validação/contadores por arquivo (G1-G4 do charter),
+// e pertencem a outra US (US-FIN-018, cujo `Implementado em:` aponta outro .tsx).
+const PROTOTIPOS_GERADOS = new Set(['nfe-tributacao', 'payment-gateway-cnab']);
 
 const errors = [];
 
