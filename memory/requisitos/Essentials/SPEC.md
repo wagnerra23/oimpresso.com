@@ -231,6 +231,26 @@ Então recebe `403 Unauthorized`
 
 **DoD:** os 7 UCs de `Metas.casos.md` verdes na lane `essentials-pest` (MySQL real, tenant 98) — render Inertia com as props, faixas exibidas como estão no banco, colaborador sem faixa como ausência (não zero fabricado), busca server-side sem vazar outro tenant, equivalência **medida** entre texto pt-BR e número cru na gravação, leitura do `num_uf` com controle negativo que pode ficar vermelho, e o ramo DataTables da Blade legada preservado. Nenhum valor gravado muda: `saveSalesTarget`, `montarFaixas`, `SalesTargetFaixaValidator` e `num_uf` ficam intactos.
 
+### US-ESS-012 · Mural de mensagens internas por localidade
+
+**Implementado em:** `Modules/Essentials/Http/Controllers/EssentialsMessageController.php` (`index`, `store`, `getNewMessages`) · `resources/js/Pages/Essentials/Messages/Index.tsx` (+ `Index.charter.md`) · rota `messages` em `Modules/Essentials/Routes/web.php` · smoke em `Modules/Essentials/Tests/Feature/SmokeRoutesEssentialsTest.php`
+
+**Como** colaborador com `essentials.view_message`
+**Quero** ler o mural do negocio e recortar por localidade
+**Para** achar o recado da MINHA loja sem rolar o mural inteiro
+
+**Regras:**
+
+- O mural chega INTEIRO (nao e paginado) e o polling repoe a lista completa — por isso o recorte por localidade e client-side. Ida ao banco aqui seria custo sem ganho.
+- Sao DOIS seletores de localidade com propositos opostos, e isso e proposital: o do cabecalho RECORTA o que se le; o do compositor define a localidade da mensagem a ENVIAR. Mexer num nao pode mexer no outro.
+- Quem nao tem `essentials.view_message` ve o bloqueio com o motivo escrito, nunca a tela vazia sem explicacao.
+
+**Fora desta US:** marcar mensagem como lida (individual ou em lote). Exige modelo de LEITURA POR DESTINATARIO, que `essentials_messages` nao tem — e enquanto nao tiver, contador de nao-lidas e legenda de "nova" sao decoracao. Escopo novo, decisao de [W].
+
+**Testado em:** `Modules/Essentials/Tests/Feature/MessagesIndexTest.php`
+
+**DoD:** a tela responde 200 com o component Inertia (`EssentialsBladeT1InertiaSmokeTest`), o recorte por localidade nao altera o que e enviado, e o vazio distingue "nao ha mensagens" de "nenhuma nesta localidade".
+
 ### US-ESS-013 · Base de conhecimento interna com busca
 
 **Implementado em:** `Modules/Essentials/Http/Controllers/KnowledgeBaseController.php` (`index`) · `resources/js/Pages/Essentials/Knowledge/Index.tsx` (+ `Index.charter.md`) · resource `knowledge-base` em `Modules/Essentials/Routes/web.php` · `Modules/Essentials/Tests/Feature/KnowledgeIndexTest.php`
