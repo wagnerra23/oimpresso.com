@@ -59,7 +59,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # preflight/omissão precisam de origin/main + o diff de detecção
+          fetch-depth: 0   # preflight/omissão precisam do histórico + o diff de detecção
 
       - name: Detecta arquivos relevantes (skip-as-pass · ADR 0261)
         id: detect
@@ -161,14 +161,14 @@ jobs:
         if: failure()
         run: |
           echo ""
-          echo "❌ Contrato de Tela divergente OU base atrás de origin/main."
+          echo "❌ Contrato de Tela divergente OU base atrás da base do PR."
           echo "   - 'caminho proibido' → uma ação voltou pra rota legada (ex: /financeiro/unificado/novo). Use o fluxo atual."
           echo "   - 'sem âncora' → instrumente a tela com <... data-contract=\"<id>\">."
           echo "   - 'copy ausente' → a string literal do contrato sumiu/mudou no .tsx."
           echo "   - 'ordem divergente' → a sequência das seções no fonte != contrato."
           echo "   - 'frontend NÃO menciona' → backend e frontend usam vocabulários de 'state' diferentes (ex: paired≠connected). Ver ADR 0286 §5."
           echo "   - 'backend não emite' → 'valores' do acordo declara um state morto (drift de contrato)."
-          echo "   - 'branch atrás' → git rebase origin/main."
+          echo "   - 'branch atrás' → a branch não contém a base do PR: git merge origin/main (ou rebase)."
           echo "   Desvio INTENCIONAL do protótipo? declare no corpo do PR:"
           echo "     <!-- design-deviation: <o quê> → <por quê> (ADR/charter) -->"
           echo "   Doc: memory/requisitos/_DesignSystem/RUNBOOK-contrato-de-tela.md"
