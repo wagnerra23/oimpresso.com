@@ -20,6 +20,10 @@ on:
       - 'prototipo-ui/**'
       - 'prototipo-ui/cowork-map.json'
       - 'scripts/governance/reconcile-triplet.mjs'
+      # o self-test é o 1º step do job: sem ele no trigger, mudar SÓ o teste não re-roda a
+      # lane que o executa — gate mudo com cara de cobertura (§5 2026-08-02). Ele cobre os
+      # DOIS scripts acima (o caso (e) exercita o charter-blueprint-pointers).
+      - 'scripts/governance/reconcile-triplet.test.mjs'
       - 'scripts/governance/charter-blueprint-pointers.mjs'
       - '.github/workflows/reconcile-triplet.yml'
   workflow_dispatch:
