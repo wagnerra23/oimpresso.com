@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Testing\AssertableInertia;
+use Modules\Repair\Tests\Support\JobSheetFixtures as Fx;
 use Spatie\Permission\Models\Permission;
 use Tests\Support\WithSeededTenant;
 
@@ -62,7 +63,31 @@ afterEach(function () {
 /** Apaga só o que este arquivo cria — sem global scope, em qualquer tenant. */
 function rstLimpa(): void
 {
-    DB::table('repair_statuses')->where('name', 'like', '%'.RST_TAG.'%')->delete();
+    // ⚠️ Roda tambem no afterEach de teste PULADO. Na lane `modules-pest` a conexao e
+    // sqlite `:memory:` SEM migrate, e nenhuma destas tabelas existe: sem o guard, o
+    // delete estoura QueryException DEPOIS do skip e pinta de vermelho um teste que nem
+    // chegou a rodar. Medido no CI em 2026-09-09 (run 34346422173): 8 ocorrencias de
+    // "no such table: repair_statuses", apontando a linha nua desta funcao.
+    // A ordem importa onde as tabelas existem (CT 100 / MySQL): a folha sai antes do
+    // status, porque `status_id` e FK do catalogo - apagar o pai primeiro deixaria
+    // folha orfa, que e justamente o acidente que a tela avisa.
+    foreach ([
+        ['repair_job_sheets', 'job_sheet_no'],
+        ['repair_statuses', 'name'],
+    ] as [$tabela, $coluna]) {
+        if (Schema::hasTable($tabela)) {
+            DB::table($tabela)->where($coluna, 'like', '%'.RST_TAG.'%')->delete();
+        }
+    }
+}
+
+
+/** Folha marcada com a tag deste arquivo, pendurada no status pedido. */
+function rstFolha(int $businessId, int $statusId, int $criadoPor): int
+{
+    return Fx::os($businessId, Fx::cliente($businessId, $criadoPor), $statusId, $criadoPor, [
+        'job_sheet_no' => 'OS-'.RST_TAG.'-'.uniqid(),
+    ]);
 }
 
 /** Status cru no tenant pedido. Sem auth o global scope não filtra (ScopeByBusiness). */
@@ -244,4 +269,70 @@ it('UC-RSTIDX-06: sem a permissão de status a tela responde 403, mesmo com o m�
     // então quem não é superadmin fica de fora. As duas telas do mesmo hub de
     // configuração têm porta de entrada diferente, e isso é contrato, não acaso.
     expect($r->status())->toBe(403);
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UC-RSTIDX-07 / 08 — o que a FORMA do protótipo passou a exigir do payload.
+// Origem: prototipo-ui/cowork/repair-page.jsx região `Status` (L304-337), que mostra
+// o modelo de SMS e "N folha(s)" em cada linha. Ver §3.4 do
+// memory/requisitos/Repair/6telas-index-visual-comparison.md.
+// ─────────────────────────────────────────────────────────────────────────────
+
+it('UC-RSTIDX-07: o modelo de SMS de cada status chega à tela como está no banco', function () {
+    $biz = $this->seededTenant();
+    // Um com template e um sem: a tela mostra "sem modelo de SMS" no segundo, e sem os
+    // dois casos o assert não distingue "veio null" de "não veio a coluna".
+    $comSms = rstStatus((int) $biz->id, 'Pronto', '#00aa00', 10);
+    rstStatus((int) $biz->id, 'Recebido', '#aa0000', 20);
+    DB::table('repair_statuses')->where('id', $comSms)
+        ->update(['sms_template' => 'Seu aparelho esta pronto para retirada.']);
+
+    $user = rstUser((int) $biz->id);
+    rstSessao((int) $biz->id, (int) $user->id);
+    rstFlagLigada();
+
+    $r = $this->actingAs($user)->get('/repair/status');
+
+    expect($r->status())->toBe(200);
+    $meus = rstSoOsMeus($r->viewData('page')['props']['statuses']);
+    expect($meus)->toHaveCount(2);
+    expect($meus->firstWhere('id', $comSms)['sms_template'])
+        ->toBe('Seu aparelho esta pronto para retirada.');
+    expect($meus->firstWhere('id', '!=', $comSms)['sms_template'])->toBeNull();
+});
+
+it('UC-RSTIDX-08: a contagem de folhas por status conta só as do próprio tenant (Tier 0 · ADR 0093)', function () {
+    foreach (['contacts', 'repair_job_sheets'] as $t) {
+        if (! Schema::hasTable($t)) {
+            $this->markTestSkipped("Schema incompleto — tabela {$t} ausente.");
+        }
+    }
+
+    $biz = $this->seededTenant();
+    $vizinho = $this->seededSupportClientTenant();
+
+    $usado = rstStatus((int) $biz->id, 'EmReparo', '#0000aa', 10);
+    $vazio = rstStatus((int) $biz->id, 'Cancelado', '#888888', 20);
+
+    $user = rstUser((int) $biz->id);
+    $userVizinho = rstUser((int) $vizinho->id);
+    rstFolha((int) $biz->id, $usado, (int) $user->id);
+    rstFolha((int) $biz->id, $usado, (int) $user->id);
+
+    // A armadilha: uma folha do VIZINHO pendurada num status do vizinho. Se a agregação
+    // esquecesse o business_id, a contagem somaria — e o aviso de FK da tela mentiria
+    // sobre quantas folhas ficariam órfãs.
+    $statusVizinho = rstStatus((int) $vizinho->id, 'EmReparo', '#0000aa', 10);
+    rstFolha((int) $vizinho->id, $statusVizinho, (int) $userVizinho->id);
+
+    rstSessao((int) $biz->id, (int) $user->id);
+    rstFlagLigada();
+
+    $r = $this->actingAs($user)->get('/repair/status');
+
+    expect($r->status())->toBe(200);
+    $meus = rstSoOsMeus($r->viewData('page')['props']['statuses']);
+    expect($meus->firstWhere('id', $usado)['job_sheets_count'])->toBe(2);
+    // Status sem folha vem 0 explícito, não ausente — a tela imprime "0 folha(s)".
+    expect($meus->firstWhere('id', $vazio)['job_sheets_count'])->toBe(0);
 });
