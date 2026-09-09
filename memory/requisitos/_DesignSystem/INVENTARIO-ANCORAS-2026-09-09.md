@@ -413,6 +413,78 @@ máquina o consome:
 
 Isso é mais confiável que qualquer heurística — e é o material natural para fechar §4.
 
+### 5.7 · Errata dos recibos + a causa-raiz das 7 telas de dinheiro (2026-09-09, sessão seguinte)
+
+> **Append, não reescrita.** Os recibos de §5.3 ficam como estavam — eram o que se mediu no dia.
+> Esta seção corrige DOIS deles e nomeia a causa-raiz comum. Escopo: as 7 telas que tocam valor
+> (`TransactionPayment/{Edit,Show}` · `RecurringBilling/Planos/{Create,Edit}` ·
+> `Settings/PaymentGateways/CnabRetorno` · `Financeiro/AssinaturaAtualizar` ·
+> `Financeiro/Configuracoes/Contador`).
+
+**Nenhuma das 7 estava sem declaração.** As 7 declaram `related_prototype: n/a (...)`, e a máquina
+classifica isso como *declaração legítima* (`ehDeclaracaoNa`). Para 5 delas a declaração nasceu na
+wave [#4109](https://github.com/wagnerra23/oimpresso.com/pull/4109), que classificou 75 telas **por
+conteúdo** (assinatura do `.tsx`), passou a rede `pt-conformance` e **reverteu 9 mismatches** — logo
+não é default silencioso (§5 2026-08-10), é declaração conferida. O que falta não é a declaração:
+é o **artefato que ela aponta**.
+
+#### Errata — 2 recibos de §5.3 usaram grep de string literal (§5 2026-08-18)
+
+| tela | recibo de §5.3 | o que a medição de 09-09 (3 pernas) mostrou |
+|---|---|---|
+| `Financeiro/AssinaturaAtualizar` | *"`FIN-004`/`atualizar cobran` → 0"* | **`prototipo-ui/cowork/AssinaturaAtualizar.tsx` EXISTE.** É porte REVERSO do vivo (310 vs 309 linhas; difere só na API do PageHeader). Conclusão "sem fonte" **mantida**; o recibo é que era o instrumento errado. |
+| `Settings/PaymentGateways/CnabRetorno` | *"o batch Cowork declara 3 telas, e essa não está"* | Verdadeiro, mas incompleto: o termo de domínio `cnab` dá **15 hits em 5 arquivos** do espelho, e há **dois** `SheetRemessaRetorno` (`boletos-page.jsx:509` e `pg-cobranca-page.jsx:863`). Vocabulário visual PARCIAL existe; a tela (dropzone + validação + contadores) não. |
+
+Os outros 3 recibos foram re-medidos com sonda própria e **conferem** — incl. controle positivo
+(`contador|advisor` nos `configuracoes-*.jsx` → rc=1, enquanto `configura` → 15 hits na mesma sonda).
+
+#### A causa-raiz: a camada que as 7 apontam não tem artefato
+
+Existem **6 Padrões de Tela canônicos** em `padroes-tela/` (PT-01, PT-02, PT-03, PT-04, PT-05, PT-07)
+e **3 templates renderizados** em `design-system/templates/` (`pt-01-lista`, `pt-05-dashboard`,
+`pt-07-os-detail` — este último é a tela-assinatura de OS, não o Detalhe genérico).
+
+**PT-02 Form-Drawer e PT-03 Detalhe — declarados por 5 das 7 — não têm template.** E para o PT-02 a
+razão é mecânica, não esquecimento: as regras R3/R4/R6/R8 do PT-02 exigem `FormSection`, `FormGrid`,
+`Field`, `FieldError` e `InputGroup`, e **nenhum dos cinco existe no DS** (manifesto = 0, refs no
+`_ds_bundle.js` = 0), com controle positivo na mesma sonda (`Input`/`Select`/`Segmented` = 1 cada).
+Eles existem **só no código** (`resources/js/Components/ui/{field-state,form-section}.tsx`). Ou seja:
+**o PT-02 não é renderizável pelo DS de hoje.** O PT-03, ao contrário, usa só componentes que o DS
+tem (KpiCard · Timeline · EmptyState · DropdownMenu · Skeleton · StatusBadge) — é construível.
+
+#### Por que o protótipo não nasce neste repo (medido, não suposto)
+
+| destino | veredito |
+|---|---|
+| `prototipo-ui/prototipos/<novo>` | **bloqueado** — `cowork-ssot-guard` R3. Bite-test 2026-09-09: baseline `exit=0` → com o diretório `exit=1` → após remover `exit=0`. O allowlist se declara transitório, **meta = 0**. |
+| `prototipo-ui/cowork/` | espelho read-only ([ADR 0374](../../decisions/0374-emenda-0315-espelho-cowork-e-rota-prevista.md)); R1 proíbe `.md`, R4 proíbe `.html` novo na raiz; escrita some no próximo export. |
+| `prototipo-ui/design-system/` | **também espelho** — o próprio README: *"Espelho, não fonte. git é SSOT (ADR 0239); este projeto é vitrine derivada."* É o `DS_MIRROR_DIR` do painel. |
+| `DesignSync.write_files` | `canEdit: true` tecnicamente, mas [ADR 0315](../../decisions/0315-design-sync-claude-design-vs-cowork-charter.md) classifica escrita como **publicação externa** — `publication-policy` + R10: *"exige aprovação, não default"*. |
+
+Isto **não** é o anti-padrão *"precisa vir do Cowork / me autorize a desenhar"* ([ADR 0282](../../decisions/0282-protocolo-v2-colapso-ratificacao.md) §0.1).
+O §0.1 manda o Code **gerar** — e diz por onde: *"via 2/3 acima"* = `DesignSync` ou o plugin Claude
+Design. A via 2 é justamente a que a 0315 reserva ao [W]. Gerar eu gero; o que falta é **onde pousar**.
+
+#### Decisões que são do [W]
+
+1. **Primitivas de form no DS** (`FormSection` · `FormGrid` · `Field` · `FieldError` · `InputGroup`) —
+   sem elas o PT-02 não renderiza, e 4 das 7 telas seguem sem a fonte que declaram. Componente novo
+   do DS é soberania [W] (ADR 0282 "o ouro").
+2. **Opt-in de publicação** (`OIMPRESSO_DESIGN_SYNC_OK=1` / `.design-sync-allow`) para o template
+   pousar no projeto de design. Sem ele, o artefato não tem destino durável.
+3. **PT-03 primeiro?** É construível hoje sem (1), e destrava `TransactionPayment/Show` + o gate de
+   screenshot que segura o PT-03 em `status: draft`. Depende só de (2).
+
+#### Achado Tier 0 — registrado, NÃO consertado
+
+O `CnabRetornoProcessor` incrementa **6** contadores (`paga`, `cancelada`, `vencida`, `registrada`,
+`sem_match`, `ignorada` — contados por `rg -o`), mas a migration
+`2026_05_26_120100_create_cnab_retorno_uploads_table` tem **4** colunas e o `update()` do
+`finalizarUpload` persiste **4**. `sem_match` (pagamento sem cobrança correspondente) e `ignorada`
+(ocorrências de protesto/alteração/erro) são calculados e **descartados** — exatamente as linhas que
+exigem follow-up humano numa tela de dinheiro. Mudar isso é comportamento sobre VALOR: decisão [W]
+(regra-mestre de [proibicoes.md](../../proibicoes.md)), nunca conserto silencioso desta sessão.
+
 ## 6 · Portas vivas (o estado de hoje, não o deste arquivo)
 
 ```bash

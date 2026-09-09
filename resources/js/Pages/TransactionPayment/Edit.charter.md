@@ -2,7 +2,7 @@
 id: resources-js-pages-transaction-payment-edit-charter
 page: /payments/v2/{id}/edit
 component: resources/js/Pages/TransactionPayment/Edit.tsx
-related_prototype: n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)
+related_prototype: n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)  # 2026-09-09 [C]: declaração de PT herdado, verificada por conteúdo na wave #4109 — NÃO é lacuna esquecida. Ausência de protótipo dedicado: `TransactionPayment`/`payments/v2` aparece em 10 arquivos de `prototipo-ui/`, TODOS .md/docs — zero em arquivo de design (.jsx/.css/.html). O drawer mais próximo (`financeiro-legado.jsx:369` `sel.k === "titulo"`) detalha TÍTULO (`fin_titulos`), objeto diferente de linha de pagamento. ⚠️ O PT-02 que esta tela herda NÃO tem template renderizado no DS — decisão [W] em §5.7. medido 2026-09-09 pelas 3 pernas (repo inteiro com --hidden, projeto Cowork por ID via DesignSync.list_files, espelho). Ver memory/requisitos/_DesignSystem/INVENTARIO-ANCORAS-2026-09-09.md §5.3 + §5.7.
 status: draft
 ---
 
