@@ -137,6 +137,15 @@ export default function Index({ is_admin, pode, apurado_em, kpis, porCategoria, 
             }
             title="Patrimônio"
             subtitle="O que a empresa tem, quanto vale e quem está com o quê."
+            /* `-mx-6` NÃO é enfeite, e remover reintroduz o defeito: o canon tem `px-6`
+               PRÓPRIO no div interno e este container já é `p-6`, então os dois SOMAM. O
+               header ANTIGO não tinha padding horizontal nenhum, e por isso alinhava sem
+               ajuste — a migração, sozinha, empurrou o título 24px pra dentro. MEDIDO no
+               render real (getBoundingClientRect), não no olho: sem isto o h1 nasce em 48px
+               contra 24px dos KPIs; com isto, delta 0 em 1280 E em 1600, sem scroll
+               horizontal, e a linha divisora fica full-width — que é o que o canon flat
+               v3.8 desenha. */
+            className="-mx-6"
           />
         </div>
 
