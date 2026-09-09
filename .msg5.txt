@@ -1,0 +1,29 @@
+revert(visreg): remove a baseline de Patrimonio/Bens — ela congelava a tela DIVERGENTE [C]
+
+Decisao [W] 2026-09-09, e ele esta certo. Eu tinha registrado `Patrimonio/Bens`
+no `visreg-screens.json` + gerado o `.snap` pra fechar o `visual-regression`.
+Isso conserta o vermelho pelo lado errado: a foto que virou referencia mostra a
+tela SEM as 7 abas, SEM sub-abas, SEM breadcrumb, SEM busca no header e com o
+botao "Novo ativo" onde o prototipo diz "Adicionar recurso".
+
+Congelar essa foto como baseline cria uma catraca que trava o estado divergente:
+todo PR futuro que APROXIME a tela do prototipo passaria a reprovar contra ela.
+Baseline nao e ancora — ela fotografa o que ESTA, nunca o que DEVE SER.
+
+A ancora de verdade, resolvida pela porta canonica
+(`node prototipo-ui/ancora.mjs Patrimonio/Bens`):
+  prototipo-ui/cowork/patrimonio-page.jsx  [related_prototype (charter)]
+
+Reverte:
+- entrada de `Patrimonio/Bens` em tests/Browser/visreg-screens.json
+  (o arquivo volta byte-identico ao main — 52 entradas)
+- tests/.pest/snapshots/.../it_Patrimonio_Bens_...snap
+
+Consequencia assumida: o `visual-regression` volta a reprovar esta tela com
+"tela sem contrato visual (fail-closed)". Isso e HONESTO — a tela nao tem
+contrato visual porque ainda nao esta fiel a ancora. O vermelho passa a dizer a
+verdade em vez de ser silenciado por uma foto do estado errado.
+
+Refs: ADR 0290 (comparacao visual por render pareado) · ADR 0108 · #7160
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
