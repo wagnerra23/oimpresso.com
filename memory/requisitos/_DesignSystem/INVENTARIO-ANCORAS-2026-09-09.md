@@ -292,14 +292,28 @@ Fonte real no shell **e** sem porte reverso. São as únicas em que promover é 
   >    deixa 11 e troca o conserto do `||` por backfill.
   >
   > Some-se que [§5 2026-08-28 (c)](../../proibicoes.md) é Tier 0 e diz que o `n/a` **coexiste**
-  > com a âncora de bundle por desenho. E o `bundle_source` das duas **Create** aponta
-  > `estoque-page.jsx`, não o `estoque-forms.jsx:157`/`:253` que a tabela §5.1 nomeia como fonte
-  > delas — logo "o `bundle_source`, que já está certo" vale para as 2 Index, não para as 4.
+  > com a âncora de bundle por desenho.
   >
-  > O `blueprint_cowork` errado do §4.2 **foi removido** (nos 4 charters e nos 8 irmãos:
-  > `RUNBOOK-stock-*.md` e `stock-*-visual-comparison.md`, que carregavam o mesmo ponteiro).
-  > Promover segue possível — mas como decisão [W] que aceite o custo em (1), não como
-  > "ganho sem dívida".
+  > **Sobre "trocar pelo `bundle_source`, que já está certo":** o `bundle_source` diz
+  > `estoque-page.jsx` nas **quatro**, mas a tabela §5.1 acima nomeia `estoque-forms.jsx:157` /
+  > `:253` como a fonte das duas **Create**. As duas afirmações não podem estar certas ao mesmo
+  > tempo — a segunda é a correta, e é a que o [PR #7079](https://github.com/wagnerra23/oimpresso.com/pull/7079)
+  > adotou (ver abaixo). Logo a instrução vale para as 2 Index, não para as 4.
+  >
+  > **Estado do §4.2 — corrigido, e por outra mão.** Enquanto este PR corria, o #7079 mergeou e
+  > consertou o `blueprint_cowork` dos **4 charters** de um jeito melhor que o originalmente
+  > planejado aqui: em vez de **remover** a chave, **apontou o arquivo real**, e par a par —
+  > Index → `prototipo-ui/cowork/estoque-page.jsx`, Create → `prototipo-ui/cowork/estoque-forms.jsx`.
+  > Este PR aceitou esse lado no merge e **realinhou os 8 irmãos** que o #7079 não tocou e que
+  > carregavam o mesmo ponteiro morto (`RUNBOOK-stock-*.md` em `blueprint_cowork`;
+  > `stock-*-visual-comparison.md` em `cowork_source`), com o mesmo par-a-par.
+  >
+  > ⚠️ Por isso o **corpo do §4.2 acima descreve um estado que já não existe** — ele é retrato
+  > de 2026-09-09 e fica intacto como tal (é o que o cabeçalho deste documento já avisa). Para o
+  > estado de hoje: `grep -n blueprint_cowork resources/js/Pages/Stock*/*.charter.md`.
+  >
+  > Promover o `related_prototype` segue possível — mas como decisão [W] que aceite o custo
+  > em (1), não como "ganho sem dívida".
 - **team-mcp:** a `canon_reference` cita `forja-page.jsx`, que foi decomposto em `forja-*.jsx`
   na Onda 2. A promoção precisa apontar o arquivo **atual**, não o citado.
 - **Financeiro/PlanoContas:** `financeiro-page.jsx` e `financeiro-telas-extras.jsx` **não**

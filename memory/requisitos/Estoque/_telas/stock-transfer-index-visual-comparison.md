@@ -9,14 +9,11 @@ status: aguardando-screenshot-wagner
 runbook: memory/requisitos/Estoque/_telas/RUNBOOK-stock-transfer-index.md
 draft_tsx: resources/js/Pages/StockTransfer/Index.tsx
 controller_delta: app/Http/Controllers/StockTransferController.php@indexInertia
-# cowork_source removido em 2026-09-09 — apontava
-# prototipo-ui/prototipos/inventario-migracao/ (visual-source.html == F1.html, mesmo blob),
-# que é o relatório "Migração Blade → React", não o desenho desta tela.
-# Medido no dia (grep -oi <termo> | wc -l, rc=0): Blade=67 React=36 Inventário=8 · estoque=0 SKU=0 saldo=0 quantidade=0 ajuste=0.
-# O recorte tem alvo próprio, nunca construído: o README dele pede charter em
-# Pages/Stocks|Inventario/Index e marca "F3 bloqueado por charter ausente".
-# Casou por homônimo ("inventário" de código × "inventário" de estoque).
-# A âncora de design da tela vive no charter ao lado do .tsx (`bundle_source`).
+# corrigido em 2026-09-09: apontava prototipo-ui/prototipos/inventario-migracao/,
+# que e o relatorio "Migracao Blade -> React" (medido: Blade=67 React=36 · estoque=0 SKU=0
+# saldo=0 ajuste=0), nao o desenho desta tela -- casou por homonimo. Alinhado ao main:
+# o PR #7079 fez a mesma correcao nos 4 charters. Regiao que desenha esta tela: AbaTransferencias (estoque-page.jsx:318).
+cowork_source: prototipo-ui/cowork/estoque-page.jsx
 ---
 
 # Visual Comparison — `stock_transfers/index` (LIST)
