@@ -131,7 +131,11 @@ describe('UC-PAT-04 · quantidade é decimal e não se arredonda', () => {
     // "conserto" que quase virou defeito quando os cards do Blade mostravam 0,00.
     const fracionado = { ...KPIS_SEM_RESIDUAL, alocados: 4.5, alocaveis: 13.25 };
     render(<PainelPatrimonio {...BASE} kpis={fracionado} manutencoes={[]} />);
-    const card = screen.getByText('Alocados').closest('div[class*="rounded-xl"]');
+    // `selector: 'span'` desambigua o LABEL do KPI do CHIP de navegação homônimo que o
+    // painel ganhou junto com o resumo (o chip é um `<a data-slot="button">`). A palavra
+    // se repete na tela porque se repete no protótipo; quem tem de ser específico é o
+    // seletor. O que o caso mede segue idêntico — os dois asserts abaixo não mudaram.
+    const card = screen.getByText('Alocados', { selector: 'span' }).closest('div[class*="rounded-xl"]');
     expect(card!.textContent).toContain('4,5');
     expect(card!.textContent).toContain('13,25');
   });

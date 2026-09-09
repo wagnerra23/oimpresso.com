@@ -16,8 +16,10 @@ import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Card, CardContent } from '@/Components/ui/card';
+import { Button } from '@/Components/ui/button';
+import { Input } from '@/Components/ui/input';
 // ADR 0253 — layout é COMPOSIÇÃO destes primitivos, nunca `<div className="flex gap-2">` solto.
-import { Inline, Grid } from '@/Components/layout';
+import { Inline, Grid, Stack } from '@/Components/layout';
 import PatrimonioSubNav from './_shared/PatrimonioSubNav';
 
 interface Kpis {
@@ -115,6 +117,48 @@ function Barra({ rotulo, pct, valor, cor = 'bg-primary' }: { rotulo: string; pct
   );
 }
 
+/** Linha do "O que fazer primeiro" — espelha o `AcaoRow` do protótipo
+ *  (`chat-jana.jsx:403`, consumido por `MP.Acoes`): ícone · (título + sub) · CTA à direita. */
+function Acao({
+  titulo,
+  sub,
+  icone,
+  cta,
+  href,
+}: {
+  titulo: string;
+  sub: string;
+  icone: string;
+  cta: string;
+  href: string;
+}) {
+  return (
+    <Card>
+      <CardContent className="p-3">
+        <Inline gap={3} align="center" justify="between">
+          <Inline gap={3} align="center" className="min-w-0">
+            <span
+              aria-hidden
+              className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground"
+            >
+              <Icon name={icone} size={16} strokeWidth={1.8} />
+            </span>
+            {/* `min-w-0` não é enfeite: sem ele o flex não encolhe abaixo do min-content e o
+                título longo vaza pra fora do card (§5 2026-08-24). */}
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium text-foreground">{titulo}</p>
+              <p className="truncate text-xs text-muted-foreground">{sub}</p>
+            </div>
+          </Inline>
+          <Button variant="outline" size="sm" asChild className="shrink-0">
+            <a href={href}>{cta}</a>
+          </Button>
+        </Inline>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function Index({ is_admin, pode, apurado_em, kpis, porCategoria, garantia, manutencoes, meusBens }: Props) {
   const apurado = new Date(apurado_em).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
 
@@ -132,11 +176,52 @@ export default function Index({ is_admin, pode, apurado_em, kpis, porCategoria, 
                 aria-hidden
                 className="mr-2 inline-flex translate-y-[1px] align-middle text-muted-foreground"
               >
-                <Icon name="boxes" size={18} strokeWidth={1.8} />
+                {/* `database` NÃO é escolha minha: é o `glyph` que o contrato de tela do
+                    Cowork declara pra esta seção (`contrato/patrimonio.contract.json`,
+                    seção `header`, `copy.glyph`). O `boxes` que estava aqui era herança do
+                    header antigo, e sobreviveu à migração porque eu portei o ícone sem
+                    conferir a especificação — que nunca tinha descido pro repo. */}
+                <Icon name="database" size={18} strokeWidth={1.8} />
               </span>
             }
             title="Patrimônio"
             subtitle="O que a empresa tem, quanto vale e quem está com o quê."
+            /* Os TRÊS elementos que o contrato de tela do Cowork declara pra seção `header`
+               (`contrato/patrimonio.contract.json` → `elementos`), na ordem dele:
+                 · busca    placeholder literal do contrato → `/asset/assets?q=`. O índice de
+                            Bens LÊ `q` (`AssetController:271` e `:385`): a busca navega.
+                 · alocar   `Button variant=ghost`, perm `allocate`.
+                 · novo     `Button variant=primary`, perm `create` → `/asset/assets/create`,
+                            a mesma rota que `Bens.tsx` já usa.
+
+               DESVIO DECLARADO no destino do `alocar` — o contrato fixa copy, variante e
+               permissão, não a rota. O destino óbvio (`/asset/allocation/create`) NÃO serve:
+               `AssetAllocationController::create()` só responde dentro de
+               `if (request()->ajax())` e cai em `null` fora dele (`:307-323`), ou seja,
+               devolve página em branco — é o mesmo achado que `Alocacoes.tsx` já registra.
+               Aponta então pra LISTA de alocações, que navega de verdade. O formulário chega
+               com o `D-FORMS` ([W]); até lá o botão leva ao lugar certo sem prometer o form. */
+            actions={
+              <Inline gap={2} align="center">
+                <form method="GET" action="/asset/assets" role="search">
+                  <Input
+                    type="search"
+                    name="q"
+                    aria-label="Buscar bem, código ou número de série"
+                    placeholder="Buscar bem, código, série..."
+                    className="h-8 w-56"
+                  />
+                </form>
+                <Button variant="ghost" size="sm" asChild>
+                  <a href="/asset/allocation">Alocar recurso</a>
+                </Button>
+                {pode.criar ? (
+                  <Button size="sm" asChild>
+                    <a href="/asset/assets/create">Adicionar recurso</a>
+                  </Button>
+                ) : null}
+              </Inline>
+            }
             /* `-mx-6` NÃO é enfeite, e remover reintroduz o defeito: o canon tem `px-6`
                PRÓPRIO no div interno e este container já é `p-6`, então os dois SOMAM. O
                header ANTIGO não tinha padding horizontal nenhum, e por isso alinhava sem
@@ -183,6 +268,34 @@ export default function Index({ is_admin, pode, apurado_em, kpis, porCategoria, 
                   </p>
                 )}
               </Deferred>
+
+              {/* Chips do protótipo (`patrimonio-page.jsx:224-229`), atrás do mesmo separador
+                  que ele desenha (`modulo-padrao.jsx:58` `jc-brief-sep`). São TRÊS, não quatro:
+                  o 4º do protótipo é `Auditoria`, e o charter declara em Non-Goals que a rota
+                  NÃO existe (`D-AUDITORIA`) — renderizá-lo seria a afordância falsa que a tela
+                  de Bens já recusou ao derivar as abas do menu. Os três aqui navegam de fato;
+                  as rotas estão em `Routes/web.php:13-22`.
+                  `Garantia crítica` leva à lista de Bens sem pré-filtro: o filtro por garantia
+                  do protótipo não existe no índice (`AssetController` lê `q`, `location_id`,
+                  `category_id`, `purchase_type`, `is_allocatable` — não garantia). Levar ao
+                  lugar certo sem filtrar é honesto; inventar `?garantia=` seria um parâmetro
+                  que o backend ignora em silêncio. */}
+              {is_admin ? (
+                <>
+                  <div className="mt-3 border-t border-border" />
+                  <Inline gap={2} align="center" className="flex-wrap pt-3">
+                    <Button variant="outline" size="sm" asChild>
+                      <a href="/asset/assets">Garantia crítica</a>
+                    </Button>
+                    <Button variant="outline" size="sm" asChild>
+                      <a href="/asset/asset-maintenance">Em manutenção</a>
+                    </Button>
+                    <Button variant="outline" size="sm" asChild>
+                      <a href="/asset/allocation">Alocados</a>
+                    </Button>
+                  </Inline>
+                </>
+              ) : null}
             </CardContent>
           </Card>
         </div>
@@ -231,7 +344,21 @@ export default function Index({ is_admin, pode, apurado_em, kpis, porCategoria, 
 
         {/* ── 3 blocos de análise ──────────────────────────────────────────────────── */}
         {is_admin && (
-          <Grid data-contract="analises" cols={3} gap={4}>
+          <Stack gap={3}>
+            {/* Cabeçalho de seção do protótipo (`patrimonio-page.jsx:231` · `MP.Secao`, que
+                renderiza `<h2 class="jc-h2">` com ícone + título). O SUBTÍTULO dele — "clique
+                num card pra ver de onde vem o número" — NÃO desce: ele promete o drill
+                (`MP.Drill`, `:234`), e a produção não tem essa tela. Copy que promete
+                interação inexistente é afordância falsa em forma de texto. */}
+            <Inline gap={2} align="center">
+              <span aria-hidden className="inline-flex text-muted-foreground">
+                <Icon name="chart-bar" size={15} strokeWidth={1.8} />
+              </span>
+              <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Análises do módulo
+              </h2>
+            </Inline>
+            <Grid data-contract="analises" cols={3} gap={4}>
             <Painel titulo="Patrimônio por categoria" descricao="valor unitário × quantidade, por categoria">
               <Deferred data="porCategoria" fallback={<Esqueleto />}>
                 {porCategoria?.length ? (
@@ -316,7 +443,64 @@ export default function Index({ is_admin, pode, apurado_em, kpis, porCategoria, 
                 )}
               </Deferred>
             </Painel>
-          </Grid>
+            </Grid>
+
+            {/* ── O QUE FAZER PRIMEIRO (protótipo `:233` + `MP.Acoes` `:111`) ──────────
+                A AFORDÂNCIA desce; a COPY do protótipo NÃO. Lá o texto nomeia um equipamento
+                específico e crava o custo da peça em reais — é cenário do mock (e citar o
+                valor aqui reprovaria no `brl-scan`, com razão: número em real não entra no
+                git). O `Index-visual-comparison.md` já fixou o precedente ao recusar a
+                2ª frase do Resumo pelo mesmo motivo: prosa de protótipo que cita número
+                específico é dado de mock até prova em contrário. Aqui cada linha é derivada
+                dos MESMOS agregados que os KPIs usam.
+                As três rotas existem (`Routes/web.php:13-22`) — é o que separa este bloco
+                do chip `Auditoria`, que ficou de fora. */}
+            <Stack gap={3} data-contract="acoes">
+              <Inline gap={2} align="center">
+                <span aria-hidden className="inline-flex text-muted-foreground">
+                  <Icon name="lightbulb" size={15} strokeWidth={1.8} />
+                </span>
+                <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  O que fazer primeiro
+                </h2>
+              </Inline>
+              <Deferred data="kpis" fallback={<Esqueleto linhas={3} />}>
+                {kpis ? (
+                  <Stack gap={2}>
+                    <Acao
+                      titulo={
+                        kpis.garantiaCritica > 0
+                          ? `${kpis.garantiaCritica} ${kpis.garantiaCritica === 1 ? 'bem' : 'bens'} sem cobertura de garantia`
+                          : 'Nenhum bem com garantia vencida ou vencendo'
+                      }
+                      sub={
+                        kpis.garantiaCritica > 0
+                          ? 'Sem contrato, cada conserto sai integral do caixa.'
+                          : 'Tudo coberto nos próximos 30 dias.'
+                      }
+                      icone="shield"
+                      cta="Ver bens"
+                      href="/asset/assets"
+                    />
+                    <Acao
+                      titulo={`${manutencoes?.length ?? 0} ${(manutencoes?.length ?? 0) === 1 ? 'manutenção' : 'manutenções'} em aberto`}
+                      sub="O que está fora de operação não aparece como disponível pra alocar."
+                      icone="wrench"
+                      cta="Ver manutenções"
+                      href="/asset/asset-maintenance"
+                    />
+                    <Acao
+                      titulo={`${qtd(Math.max(0, kpis.alocaveis - kpis.alocados))} unidades alocáveis paradas`}
+                      sub="Equipamento sem alocação não tem responsável registrado."
+                      icone="target"
+                      cta="Ver alocações"
+                      href="/asset/allocation"
+                    />
+                  </Stack>
+                ) : null}
+              </Deferred>
+            </Stack>
+          </Stack>
         )}
 
         {/* Ramo não-admin: o painel Blade já mostrava "seus bens" — capacidade preservada. */}

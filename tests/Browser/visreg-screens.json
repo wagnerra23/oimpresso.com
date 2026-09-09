@@ -388,6 +388,14 @@
     "baseline": "it_Patrimonio_Manutencoes_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   },
   {
+    "screen": "Patrimonio/Index",
+    "source": "Patrimonio",
+    "component": "Patrimonio/Index",
+    "route": "/asset/dashboard",
+    "anchor": "Resumo de hoje",
+    "baseline": "it_Patrimonio_Index_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
     "screen": "StockAdjustment/Index",
     "source": "StockAdjustment",
     "component": "StockAdjustment/Index",
