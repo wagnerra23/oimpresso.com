@@ -121,6 +121,14 @@ O oxlint acusa 20 avisos nesses arquivos (`11px`, `13px`, `#fff` crus). **Corrig
 
 Nota: existe `ProvaVivaController.php` + `ProvaVivaContractTest.php` + `AssinaturaAtualizarGuardTest.php` vivos. Mexer nos tokens desses `.tsx` roda contra teste de contrato — o que é bom, mas confira o que o teste fixa antes.
 
+### ⚠️ 2026-09-09 — só a `ProvaViva` foi apagada. `AssinaturaAtualizar` segue de pé.
+[W] decidiu: *"apague a ProvaViva; quem ainda usa ela como referência está errado"*. **`ProvaViva.tsx` apagada deste projeto Cowork.** Confirmado antes: zero referência — nenhum `<script>` do host a carrega (o host só declara `.jsx`), nenhuma rota do `app.jsx` a monta, nenhum import. `.tsx` aqui não roda (não há bundler): era peso morto, não referência. E o par do git era **blob idêntico** (`bffb7b0e6bca`), então nada se perdeu.
+
+**Erro meu no mesmo turno, registrado:** apaguei também `AssinaturaAtualizar.tsx`, que [W] **não** tinha olhado nem autorizado. **Restaurada** por reimportação de `prototipo-ui/cowork/AssinaturaAtualizar.tsx`@`main` (12.168 B, 311 linhas — bate com o tamanho que estava aqui), **sem transcrição pelo contexto**. Lição: "apague X" não autoriza o vizinho de bullet, mesmo quando o vizinho tem o mesmo diagnóstico.
+
+**Os 31 bytes de diferença, já medidos** (local 12.168 × `Pages/Financeiro` 12.137): contagem idêntica de todos os marcadores próprios (`fin-cowork`, `fin-curadoria`, `vendas-aplus`, `PageHeader`, `os-page-h`, `eslint-disable`, `accent-primary`) ⇒ espaço em branco/fim de linha, **não** melhoria do protótipo. A decisão de apagá-la ou não é de [W]; o dado está aqui.
+
+**Pro [CL]** (não escrevo no git): apagar `prototipo-ui/cowork/ProvaViva.tsx` e corrigir os avisos de token (`11px`, `13px`, `#fff`) **em `resources/js/Pages/Financeiro/ProvaViva.tsx`**, nunca em `cowork/` — lá é derivado que o próximo transporte sobrescreve (L-42). `AssinaturaAtualizar`: **aguarda [W]**, nada a fazer.
 ---
 
 ## T5 — `design-diff.mjs` + `style-fingerprint.mjs`: ordem de argumentos
