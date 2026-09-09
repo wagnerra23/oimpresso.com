@@ -76,6 +76,9 @@ jobs:
             base="$(git rev-parse HEAD~1 2>/dev/null || git rev-parse HEAD)"
           fi
           echo "Base do diff: ${base}"
+          # A MESMA base serve ao preflight logo abaixo. Ela é ESTÁVEL (congelada no
+          # instante do evento) — ver o comentário do step "Preflight de base".
+          echo "base=${base}" >> "${GITHUB_OUTPUT}"
           changed="$(git diff --name-only "${base}" HEAD || true)"
           echo "Arquivos mudados:"; echo "${changed:-<nenhum>}"
           # Filtro IDÊNTICO ao antigo workflow-level `paths:` (+ os scripts de intenção, que
@@ -94,9 +97,24 @@ jobs:
         with:
           node-version: '24'
 
-      - name: Preflight de base (branch ancestral de origin/main)
+      # A ref é a BASE DO PR (estável), não `origin/main` (móvel). A pergunta do gate é
+      # "o autor rebaseou antes de codar?", e ela se responde contra a base que o evento
+      # congelou — não contra o main re-buscado no runner, minutos depois, já com commits
+      # de terceiros. MEDIDO em 2026-09-09: 16 de 21 runs de `pull_request` reprovavam
+      # aqui, em 6 branches DIFERENTES, num repo de ~41 commits/dia. O autor mergeava o
+      # main, empurrava, e o run reprovava porque OUTRA pessoa mergeou no intervalo.
+      #
+      # A MORDIDA CONTINUA, e é o ponto: `pull_request.base.sha` é o TOPO da base no
+      # instante do evento — não o merge-base. Branch genuinamente atrasada tem essa base
+      # à frente dela e cai igual. O que sai é só o falso-positivo da corrida.
+      #
+      # Predicado ABSOLUTO contra ref móvel é a família da lápide §5 2026-08-24 (guard que
+      # o estado herdado tranca). Bite-test dos dois sentidos no `contrato-de-tela.test.mjs`
+      # (base congelada LIBERA · ref que avançou depois MORDE) — a catraca 1 do gate era a
+      # única sem controle nenhum até aqui.
+      - name: Preflight de base (branch ancestral da base do PR)
         if: steps.detect.outputs.relevant == 'true'
-        run: node scripts/contrato-de-tela.mjs --preflight origin/main
+        run: node scripts/contrato-de-tela.mjs --preflight "${{ steps.detect.outputs.base }}"
 
       - name: Contratos de tela ativos (ignora EXEMPLO/template)
         if: steps.detect.outputs.relevant == 'true'

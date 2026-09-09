@@ -432,5 +432,58 @@ function makeGitRepo() {
   }
 }
 
+// ── Preflight de base: a ref importa, e ate hoje nao havia controle nenhum ────
+// POR QUE ESTE BLOCO EXISTE: o `--preflight` e a catraca 1 do gate e era a UNICA sem
+// bite-test — medido em 2026-09-09 (`grep -c preflight` neste arquivo dava 0). O custo
+// apareceu em producao: 16 de 21 runs de `pull_request` do contrato-de-tela.yml
+// reprovaram nesse step, em 6 branches DIFERENTES, porque o job comparava contra
+// `origin/main` — ref MOVEL, re-buscada no runner depois da fila. Num repo de ~41
+// commits/dia a branch fica "atras" por commit de terceiro, entre o push e o fetch.
+//
+// O que os dois casos fixam e a SEMANTICA, nao a implementacao: base congelada (o
+// `pull_request.base.sha` do evento) LIBERA; ref que avancou depois MORDE. A mordida
+// legitima continua — branch de verdade atrasada tem a base do PR a frente dela.
+function makePreflightRepo() {
+  const root = mkdtempSync(join(tmpdir(), 'contrato-pre-'));
+  git(root, ['init', '-q']);
+  git(root, ['config', 'user.email', 't@t.t']);
+  git(root, ['config', 'user.name', 't']);
+  writeFileSync(join(root, 'a.txt'), 'base');
+  git(root, ['add', '-A']);
+  git(root, ['commit', '-q', '-m', 'base']);
+  const inicial = git(root, ['rev-parse', '--abbrev-ref', 'HEAD']).stdout.trim();
+  const base = git(root, ['rev-parse', 'HEAD']).stdout.trim();
+
+  git(root, ['checkout', '-q', '-b', 'feature']);
+  writeFileSync(join(root, 'b.txt'), 'feature');
+  git(root, ['add', '-A']);
+  git(root, ['commit', '-q', '-m', 'feature']);
+
+  // O main ANDA depois disso — commit de terceiro, que a branch nao tem.
+  git(root, ['checkout', '-q', inicial]);
+  writeFileSync(join(root, 'c.txt'), 'terceiro');
+  git(root, ['add', '-A']);
+  git(root, ['commit', '-q', '-m', 'commit de terceiro']);
+  const avancado = git(root, ['rev-parse', 'HEAD']).stdout.trim();
+  git(root, ['checkout', '-q', 'feature']);
+  return { root, base, avancado };
+}
+
+{
+  const { root, base, avancado } = makePreflightRepo();
+  const gitAvail = git(root, ['rev-parse', 'HEAD']).status === 0;
+  if (!gitAvail) { console.log('[SKIP] preflight (git indisponivel)'); }
+  else {
+    const rOk = node(root, ['--preflight', base]);
+    check('--preflight <base congelada do PR> -> exit 0 (LIBERA)',
+      rOk.status === 0 && /ancestral de HEAD/.test(out(rOk)), `status=${rOk.status} ${out(rOk)}`);
+
+    const rBad = node(root, ['--preflight', avancado]);
+    check('--preflight <ref que avancou depois> -> exit 1 (MORDE)',
+      rBad.status === 1 && /ancestral/.test(out(rBad)), `status=${rBad.status} ${out(rBad)}`);
+  }
+  drop(root);
+}
+
 console.log(fails ? `\n❌ ${fails} regressão(ões).` : `\n✅ todos os controles passam (gate morde e libera certo).`);
 process.exit(fails ? 1 : 0);
