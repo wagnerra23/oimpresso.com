@@ -1,0 +1,50 @@
+<!doctype html>
+<!-- @dsCard group="Components" name="Components — Buttons" subtitle="6 variants × 4 sizes" viewport="700x220" -->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Buttons</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { padding: 18px; }
+  .group { margin-bottom: 12px; }
+  .label { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--fg-2); margin-bottom: 8px; }
+  .row { display:flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap: 6px; font-size: 14px; font-weight: 500; border-radius: var(--radius-md); transition: all .15s; cursor: pointer; border: 1px solid transparent; padding: 0 16px; height: 36px; }
+  .btn.lg { height: 40px; padding: 0 24px; }
+  .btn.sm { height: 32px; padding: 0 12px; font-size: 13px; }
+  .btn.xs { height: 24px; padding: 0 8px; font-size: 12px; }
+  .btn-default { background: var(--primary); color: var(--primary-fg); }
+  .btn-default:hover { background: oklch(0.48 0.15 295); }
+  .btn-outline { background: var(--bg); color: var(--fg); border-color: var(--border); box-shadow: 0 1px 2px rgb(0 0 0 / .05); }
+  .btn-outline:hover { background: var(--accent); }
+  .btn-secondary { background: var(--secondary); color: var(--secondary-fg); }
+  .btn-ghost { background: transparent; color: var(--fg); }
+  .btn-ghost:hover { background: var(--accent); }
+  .btn-destructive { background: var(--destructive); color: white; }
+  .btn-link { background: transparent; color: var(--primary); text-decoration: underline; text-underline-offset: 4px; padding: 0; height: auto; }
+</style>
+</head>
+<body>
+  <div class="group">
+    <div class="label">Variants</div>
+    <div class="row">
+      <button class="btn btn-default">Começar grátis</button>
+      <button class="btn btn-outline">Ver recursos</button>
+      <button class="btn btn-secondary">Secondary</button>
+      <button class="btn btn-ghost">Ghost</button>
+      <button class="btn btn-destructive">Excluir</button>
+      <button class="btn btn-link">Saiba mais</button>
+    </div>
+  </div>
+  <div class="group">
+    <div class="label">Sizes</div>
+    <div class="row">
+      <button class="btn xs btn-outline">xs</button>
+      <button class="btn sm btn-default">sm</button>
+      <button class="btn btn-default">default</button>
+      <button class="btn lg btn-default">lg · Começar 14 dias grátis</button>
+    </div>
+  </div>
+</body>
+</html>

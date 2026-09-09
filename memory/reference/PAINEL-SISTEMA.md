@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-08**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-09**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -72,7 +72,7 @@ lente: [construir]
 
 ## Programa SDD (governança)
 
-- Scorecard: **12/13** métricas medidas · floor full-suite = **292**.
+- Scorecard: **12/13** métricas medidas · floor full-suite = **295**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -144,13 +144,13 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **398** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 357 · superseded: 16 · deprecated: 13 · proposto: 10 · rascunho: 1 · recusado: 1.
+- **399** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 358 · superseded: 16 · deprecated: 13 · proposto: 10 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 182 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 185 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -335,6 +335,9 @@ lente: [construir]
 - ~~2026-09-08 — Dispensar o escopo multi-tenant do parent no eager-load da fonte da meta (a "armadilha" NÃO existe — li um dos dois escopos irmãos)~~
 - ~~2026-09-07 — Rodei DOIS consumidores do charter e os dois deram verde — nenhum era um parser YAML (o dois-pontos+espaço no meio do escalar derrubou um required)~~
 - ~~2026-09-08 — EMENDA das duas lápides de 2026-09-05 (dono-é-sessão-viva): entrei no território alheio pelo ARTEFATO, não pelo módulo — e o recibo do enunciado provava a PREMISSA, não a CONCLUSÃO~~
+- ~~2026-09-08 — Teste de tela Inertia que monta uma requisicao que o BROWSER NUNCA ENVIA (verde no CI, skeleton eterno em prod) — e a mutacao nao pega, porque muta o CODIGO, nao a SONDA~~
+- ~~2026-09-08 — Absolver um artefato citando uma atribuição `[W] <data>` que estava na sentença VIZINHA (a frase nasceu falsa, e eu publiquei a absolvição EM CÓDIGO)~~
+- ~~2026-09-09 — Promover `blueprint_cowork` e `canon_reference` a ÂNCORA de design (as 2 chaves que a cadeia "ignora")~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -345,14 +348,14 @@ lente: [construir]
 
 ## Rastro
 
-- **510** handoffs · **713** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **514** handoffs · **716** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-09-08-session-02`
+  - `2026-09-08-patrimonio-manutencoes-gate-e-conserto-403`
   - `2026-09-08-onda7-paridade-crm-jana-forja`
   - `2026-09-08-onda7-financeiro-recurring-paridade-medida`
   - `2026-09-08-devolutiva-recusados-rodada-pontual`
-  - `2026-09-07-regime-evolucao-loops-blade-fora-fluxo-dora`
-  - `2026-09-06-seis-perguntas-design-sync-resolvidas`
-  - `2026-09-06-seis-gap-fundacao-shell-map-json`
+  - `2026-09-08-compatibilidade-placar-modulos`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-09-08 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-09-09 · deriva das fontes canônicas, não as substitui._

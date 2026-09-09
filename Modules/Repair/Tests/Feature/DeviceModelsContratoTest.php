@@ -6,6 +6,7 @@ use App\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Testing\AssertableInertia;
+use Modules\Repair\Tests\Support\JobSheetFixtures as Fx;
 use Spatie\Permission\Models\Permission;
 use Tests\Support\WithSeededTenant;
 
@@ -69,10 +70,27 @@ afterEach(function () {
  */
 function dmLimpa(): void
 {
-    DB::table('repair_device_models')->where('name', 'like', '%'.DM_TAG.'%')->delete();
-    DB::table('brands')->where('name', 'like', '%'.DM_TAG.'%')->delete();
-    DB::table('categories')->where('name', 'like', '%'.DM_TAG.'%')->delete();
+    // ⚠️ Roda tambem no afterEach de teste PULADO. Na lane `modules-pest` a conexao e
+    // sqlite `:memory:` SEM migrate, entao NENHUMA destas tabelas existe: sem o guard,
+    // o delete estoura QueryException DEPOIS do skip e pinta de vermelho um teste que
+    // nem chegou a rodar. Medido no CI em 2026-09-09 (run 34346422173): 12 FAILED com
+    // "no such table: repair_device_models", em PR que nao tocava este arquivo.
+    // A ordem importa onde as tabelas existem (CT 100 / MySQL): filho antes do pai,
+    // porque `device_model_id` e `status_id` sao FK.
+    foreach ([
+        ['repair_job_sheets', 'job_sheet_no'],
+        ['repair_device_models', 'name'],
+        ['repair_statuses', 'name'],
+        ['contacts', 'name'],
+        ['brands', 'name'],
+        ['categories', 'name'],
+    ] as [$tabela, $coluna]) {
+        if (Schema::hasTable($tabela)) {
+            DB::table($tabela)->where($coluna, 'like', '%'.DM_TAG.'%')->delete();
+        }
+    }
 }
+
 
 /**
  * Marca real do tenant. `repair_device_models.brand_id` tem FK para `brands`, então
@@ -294,6 +312,81 @@ it('UC-DMIDX-06: modelo de outro tenant não aparece na listagem (Tier 0 · ADR 
     $nomes = collect($r->json('props.models'))->pluck('name')->implode(' | ');
     expect($nomes)->toContain('Meu-Unico')
         ->and($nomes)->not->toContain('Alheio-Invisivel');
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UC-DMIDX-07 / 08 — o que a FORMA do protótipo passou a exigir do payload.
+// Origem: prototipo-ui/cowork/repair-page.jsx região `Modelos` (L338-369), que mostra
+// o checklist em chips e a coluna "Folhas". Ver §3.5 do
+// memory/requisitos/Repair/6telas-index-visual-comparison.md.
+// ─────────────────────────────────────────────────────────────────────────────
+
+it('UC-DMIDX-07: o checklist chega quebrado em itens, não como a string do legado', function () {
+    $biz = $this->seededTenant();
+    $comLista = dmModelo((int) $biz->id, 'Com-Checklist');
+    $semLista = dmModelo((int) $biz->id, 'Sem-Checklist');
+    // O legado guarda separado por "|" e tolera item vazio e espaço em volta — se a
+    // tela renderizasse a string crua, o usuário leria "Tela|Bateria||Carcaca ".
+    DB::table('repair_device_models')->where('id', $comLista)
+        ->update(['repair_checklist' => 'Tela trincada| Bateria ||Carcaca']);
+
+    $user = dmUser((int) $biz->id);
+    dmSessao((int) $biz->id, (int) $user->id);
+    config(['mwart.repair_device_models_index.enabled' => true, 'mwart.repair_device_models_index.business_ids' => []]);
+
+    $r = $this->actingAs($user)
+        ->withHeaders(dmParcial('Repair/DeviceModels/Index', 'models'))
+        ->get('/repair/device-models');
+
+    $linhas = collect($r->json('props.models'))->keyBy('id');
+    expect($linhas[$comLista]['checklist_items'])
+        ->toBe(['Tela trincada', 'Bateria', 'Carcaca']);
+    // Sem checklist a lista vem vazia, não com um item em branco — senão a tela
+    // desenharia um chip fantasma.
+    expect($linhas[$semLista]['checklist_items'])->toBe([]);
+});
+
+it('UC-DMIDX-08: a contagem de folhas por modelo conta só as do próprio tenant (Tier 0 · ADR 0093)', function () {
+    foreach (['contacts', 'repair_job_sheets', 'repair_statuses'] as $t) {
+        if (! Schema::hasTable($t)) {
+            $this->markTestSkipped("Schema incompleto — tabela {$t} ausente.");
+        }
+    }
+
+    $biz = $this->seededTenant();
+    $vizinho = $this->seededSupportClientTenant();
+    $usado = dmModelo((int) $biz->id, 'Modelo-Usado');
+    $nunca = dmModelo((int) $biz->id, 'Modelo-Nunca-Usado');
+
+    $user = dmUser((int) $biz->id);
+    $status = Fx::status((int) $biz->id, 'Recebido '.DM_TAG);
+    $cliente = Fx::cliente((int) $biz->id, (int) $user->id, 'Cliente '.DM_TAG);
+    Fx::os((int) $biz->id, $cliente, $status, (int) $user->id, [
+        'device_model_id' => $usado,
+        'job_sheet_no' => 'OS-'.DM_TAG.'-1',
+    ]);
+
+    // A armadilha: o VIZINHO usa um modelo com o MESMO id do meu. Se a agregada
+    // esquecesse o business_id, a coluna "Folhas" contaria a oficina do vizinho.
+    $userVizinho = dmUser((int) $vizinho->id);
+    Fx::os((int) $vizinho->id,
+        Fx::cliente((int) $vizinho->id, (int) $userVizinho->id, 'Cliente '.DM_TAG),
+        Fx::status((int) $vizinho->id, 'Recebido '.DM_TAG),
+        (int) $userVizinho->id,
+        ['device_model_id' => $usado, 'job_sheet_no' => 'OS-'.DM_TAG.'-2'],
+    );
+
+    dmSessao((int) $biz->id, (int) $user->id);
+    config(['mwart.repair_device_models_index.enabled' => true, 'mwart.repair_device_models_index.business_ids' => []]);
+
+    $r = $this->actingAs($user)
+        ->withHeaders(dmParcial('Repair/DeviceModels/Index', 'models'))
+        ->get('/repair/device-models');
+
+    $linhas = collect($r->json('props.models'))->keyBy('id');
+    expect($linhas[$usado]['job_sheets_count'])->toBe(1);
+    // Modelo sem folha vem 0 explícito — a coluna imprime "0", não vazio.
+    expect($linhas[$nunca]['job_sheets_count'])->toBe(0);
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

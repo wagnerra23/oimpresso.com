@@ -1,0 +1,43 @@
+<!doctype html>
+<!-- @dsCard group="Components" name="DataTablePro" subtitle="Grid premium — header fixo, resize de colunas, ordenação + seleção" viewport="820x360" -->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>DataTablePro</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<style> body { margin: 0; } </style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+</head>
+<body>
+<div class="cockpit dark" data-theme="dark" style="padding:18px; background:var(--bg);">
+  <div style="border:1px solid var(--border); border-radius:12px; overflow:hidden;"><div id="root"></div></div>
+</div>
+<script type="text/javascript">
+  document.querySelector('.cockpit').classList.add('dark');
+  const { DataTablePro, Avatar, StatusBadge } = window.OfficeImpressoPontoWR2DesignSystem_019dd0;
+  const h = React.createElement;
+  const columns = [
+    { key: 'os', label: 'OS', mono: true, width: '80px', sortable: true },
+    { key: 'cli', label: 'Cliente', sortable: true },
+    { key: 'pag', label: 'Pag.', width: '110px' },
+    { key: 'resp', label: 'Resp.', width: '70px', resizable: false },
+    { key: 'valor', label: 'Valor', align: 'right', mono: true, width: '110px', sortable: true, sortValue: (r) => r.cells._v },
+  ];
+  const mk = (os, cli, sub, pay, who, v, state) => ({ id: os, state, cells: {
+    os: '#' + os, cli: { primary: cli, sub }, pag: h(StatusBadge, { kind: 'payment', value: pay }),
+    resp: h(Avatar, { name: who }), valor: 'R$ ' + v.toLocaleString('pt-BR'), _v: v } });
+  const rows = [
+    mk(4821, 'Acme Comércio Ltda', 'Banner 3×2m', 'overdue', 'João Lima', 1240, 'urgent'),
+    mk(4820, 'TechPro Sistemas', 'Adesivos 200un', 'partial', 'Fernanda Alves', 680),
+    mk(4819, 'Padaria Estrela', 'Cardápios A4', 'paid', 'Marina Prado', 320),
+    mk(4818, 'Studio Vega', 'Placas PS 2mm', 'pending', 'Carlos Souza', 2150),
+    mk(4815, 'Escola Aurora', 'Faixa 4×1m', 'paid', 'Carlos Souza', 540, 'archived'),
+  ];
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    h(DataTablePro, { columns, rows, height: 300, selectable: true, onRowClick: () => {}, defaultSort: { key: 'valor', dir: 'desc' } })
+  );
+</script>
+</body>
+</html>

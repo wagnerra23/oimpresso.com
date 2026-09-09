@@ -1,0 +1,28 @@
+{
+  "_nota": "Contrato da SUB-NAV do módulo Fiscal — os 7 rótulos e a ordem das abas. Schema: prototipo-ui/contrato/contract.schema.json (ADR 0286).",
+  "_nota_fonte": "A copy vem do PROTÓTIPO (`prototipo-ui/cowork/fiscal-page.jsx` → `FX_TABS`), extraída do arquivo em 2026-09-09, NÃO da tela viva. É a diferença que faz este contrato valer: um contrato cuja copy sai da própria tela compara a tela consigo mesma e nunca acusa divergência de FORMA — foi por isso que os 7 contratos do Fiscal ficaram verdes enquanto as abas divergiam. No eixo forma o protótipo é soberano (ADR UI-0029).",
+  "_nota_alvo": "O alvo é ESTREITO de propósito: só o mapa dos rótulos + o shell que os renderiza. Apontar pro `.tsx` da tela faria a catraca virar carimbo — 'Notas fiscais' também é o título da página, então a string continuaria PRESENTE no blob mesmo com a aba escrita errada (medido por mutação em 2026-09-09: 3 de 3 mutações passaram com o alvo largo). Presença só vira prova quando a única origem possível da string é a que se quer travar.",
+  "tela": "Fiscal/_subnav",
+  "fonte": "prototipo-ui/cowork/fiscal-page.jsx",
+  "alvo": [
+    "resources/js/Pages/Fiscal/_lib/paginas-fiscais.tsx",
+    "resources/js/Pages/Fiscal/_components/FxShell.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "fiscal-subnav",
+      "copy": [
+        "Notas fiscais",
+        "NF-e · NFC-e",
+        "NFS-e",
+        "Eventos",
+        "Manifesto DF-e",
+        "Certificado",
+        "SPED e livros"
+      ]
+    }
+  ],
+  "ordem": [
+    "fiscal-subnav"
+  ]
+}

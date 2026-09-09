@@ -1,0 +1,39 @@
+<!doctype html>
+<!-- @dsCard group="Type" name="Type — Display & Headings" subtitle="60→14 system sans · tracking-tight on display" viewport="700x320" -->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Type — display & headings</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { padding: 18px; }
+  .row { display:flex; align-items: baseline; gap: 14px; padding: 6px 0; border-bottom: 1px dashed var(--border); }
+  .row:last-child { border:0; }
+  .meta { font-family: var(--font-mono); font-size: 10px; color: var(--fg-2); white-space:nowrap; }
+  .sample { color: var(--fg); }
+  h1.brand { color: var(--primary); }
+</style>
+</head>
+<body>
+  <div class="row">
+    <span class="meta">60/1.05 -0.025em · 700</span>
+    <span class="sample" style="font-size: 60px; line-height: 1.05; letter-spacing: -.025em; font-weight: 700;">orça, imprime,</span>
+  </div>
+  <div class="row">
+    <span class="meta">36/1.1 · 700 · h2 hero</span>
+    <span class="sample" style="font-size: 36px; line-height: 1.1; font-weight: 700;">Oito módulos. Uma plataforma.</span>
+  </div>
+  <div class="row">
+    <span class="meta">24/1.25 · 600 · h1 app</span>
+    <span class="sample" style="font-size: 24px; font-weight: 600;">Aprovações pendentes</span>
+  </div>
+  <div class="row">
+    <span class="meta">18/1.25 · 600 · h3</span>
+    <span class="sample" style="font-size: 18px; font-weight: 600;">Profissional</span>
+  </div>
+  <div class="row">
+    <span class="meta">14/1.45 · 500</span>
+    <span class="sample" style="font-size: 14px; font-weight: 500;">12 solicitações aguardando revisão</span>
+  </div>
+</body>
+</html>

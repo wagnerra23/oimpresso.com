@@ -43,10 +43,16 @@ import { readFileSync, readdirSync, mkdirSync, writeFileSync, realpathSync, stat
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
+// Fonte única da regra "que valor de charter é um mockup de bundle": o `mockupJsx` do
+// ancora.mjs. Reimplementar a regex aqui recriaria as DUAS definições divergindo que o
+// próprio ancora.mjs catalogou (auditoria 2026-06-30, duas denylists). O módulo guarda o
+// main atrás de `invokedDirectly`, então importar não executa CLI nem toca disco.
+import { mockupJsx } from '../../prototipo-ui/ancora.mjs';
 
 const ROOT = process.cwd();
 const PAGES = join(ROOT, 'resources/js/Pages');
 const COWORK_MAP = join(ROOT, 'prototipo-ui/cowork-map.json');
+const COWORK_MIRROR = join(ROOT, 'prototipo-ui/cowork');
 
 // ── existsExact: case-SENSITIVE (espelha CI Linux / Hostinger). Sem isto, Windows/macOS
 //    mente (case-insensitive) e o veredito diverge entre dev e CI. ─────────────────────
@@ -101,10 +107,35 @@ function pathsForCharter(charterRel) {
 
 /* ─────────────────────── resolução do path de protótipo ─────────────────────── */
 
+// ── índice basename→relpath do espelho Cowork (lazy, 1× por processo) ─────────────────
+// O alvo do bundle é casado por BASENAME, não por path flat: o `ancora.mjs` faz
+// `walk(stagingDir)` + `basename(f).toLowerCase() === declarado.toLowerCase()`, e medido
+// 2026-09-09 um dos 54 `-page.jsx` do espelho vive em subpasta
+// (prototipo-ui/cowork/prototipos/payment-gateway-ui). Assumir `cowork/<valor>` acertaria
+// 53/54 e resolveria o 54º pro arquivo ERRADO (inexistente) em silêncio.
+let _mirrorIdx = null;
+function coworkMirrorIndex() {
+  if (_mirrorIdx) return _mirrorIdx;
+  _mirrorIdx = new Map();
+  if (!dirExists(COWORK_MIRROR)) return _mirrorIdx;
+  (function walk(dir) {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      const p = join(dir, e.name);
+      if (e.isDirectory()) walk(p);
+      else if (e.isFile()) {
+        const key = e.name.toLowerCase();
+        if (!_mirrorIdx.has(key)) _mirrorIdx.set(key, p.slice(ROOT.length + 1).replaceAll('\\', '/'));
+      }
+    }
+  })(COWORK_MIRROR);
+  return _mirrorIdx;
+}
+
 /**
  * Resolve onde o protótipo da tela DEVERIA estar e se EXISTE.
- * Fontes (em ordem): frontmatter mwart_pattern_reuse.blueprint_cowork → cowork-map (por
- * page_id / chave) → Refs do corpo do charter. DETECTA ausência (vácuo).
+ * Fontes (em ordem): frontmatter mwart_pattern_reuse.blueprint_cowork → frontmatter
+ * bundle_source/visual_source (arquivo no espelho Cowork) → cowork-map (por page_id /
+ * chave) → Refs do corpo do charter. DETECTA ausência (vácuo).
  *
  * @returns {{declared: string[], existing: string[], missing: string[], source: string}}
  */
@@ -115,7 +146,25 @@ function resolvePrototype(charterAbs, fm, body, coworkMap) {
   const bp = fmScalar(fm, 'blueprint_cowork');
   if (bp) declared.push({ path: bp.replace(/\/$/, ''), src: 'frontmatter:blueprint_cowork' });
 
-  // 2. cowork-map: casa pela pasta destino (.to) cuja screen mapeia este page/module.
+  // 2. frontmatter bundle_source/visual_source → `-page.jsx` do espelho Cowork.
+  //    Por que esta perna existe (2026-09-09): o `bundle_source` é o campo que o
+  //    `prototipo-ui/ancora.mjs` PREFERE (determinístico) e que o inventário de âncoras
+  //    aponta como dono do ponteiro de desenho — e este gate não o conhecia. Medido:
+  //    36 charters declaram bundle/visual e NÃO declaram `blueprint_cowork`, e o
+  //    cowork-map (22 chaves) não casa nenhum deles. Sem esta perna, todos caíam no ramo
+  //    de ausência (vácuo) e o gate perdia a coluna do meio — inclusive nas telas cuja
+  //    âncora acabou de ser CORRIGIDA removendo o `blueprint_cowork` duplicado.
+  //    A regra de extração vem do `mockupJsx` do ancora.mjs (fonte única), e o casamento
+  //    é por basename no espelho: as duas máquinas resolvem o MESMO arquivo.
+  const bundleDecl = mockupJsx(fmScalar(fm, 'bundle_source')) || mockupJsx(fmScalar(fm, 'visual_source'));
+  if (bundleDecl) {
+    // sem hit no espelho, declara o alvo canônico assim mesmo: vira ponteiro ÓRFÃO
+    // visível (`missing`), que é o sinal honesto — nunca silêncio.
+    const alvo = coworkMirrorIndex().get(bundleDecl.toLowerCase()) || 'prototipo-ui/cowork/' + bundleDecl;
+    if (!declared.some((d) => d.path === alvo)) declared.push({ path: alvo, src: 'frontmatter:bundle_source' });
+  }
+
+  // 3. cowork-map: casa pela pasta destino (.to) cuja screen mapeia este page/module.
   //    Heurística honesta: pega o page do frontmatter (`page:`) ou o nome do dir.
   if (coworkMap && coworkMap.screens) {
     for (const [key, screen] of Object.entries(coworkMap.screens)) {
@@ -135,7 +184,7 @@ function resolvePrototype(charterAbs, fm, body, coworkMap) {
     }
   }
 
-  // 3. Refs do corpo: linhas markdown apontando p/ prototipo-ui/** ou ui_kits/**
+  // 4. Refs do corpo: linhas markdown apontando p/ prototipo-ui/** ou ui_kits/**
   for (const mm of body.matchAll(/`(prototipo-ui\/[^`]+|ui_kits\/[^`]+)`/g)) {
     const raw = mm[1].trim();
     if (/\.(jsx|tsx|html|css)$/.test(raw) || raw.endsWith('/')) {

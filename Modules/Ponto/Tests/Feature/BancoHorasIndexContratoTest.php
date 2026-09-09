@@ -106,6 +106,7 @@ function bhIdxCriarColaboradorComSaldo(int $businessId, int $saldoMinutos, int $
     $user = User::factory()->create([
         'business_id' => $userBusinessId,
         'user_type'   => 'user',
+        'username'    => strtolower(BHIDX_MARCADOR) . '-' . uniqid(),
     ]);
 
     $colab = new Colaborador();

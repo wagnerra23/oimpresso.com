@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Modules\PaymentGateway\Events\CobrancaPaga;
 use Modules\PaymentGateway\Events\CobrancaVencida;
+use Modules\Superadmin\Console\SubscriptionExpiryAlert;
 use Modules\Superadmin\Console\SuperadminHealthCommand;
 use Modules\Superadmin\Entities\Subscription;
 use Modules\Superadmin\Entities\SuperadminFrontendPage;
@@ -32,6 +33,14 @@ class SuperadminServiceProvider extends ServiceProvider
     private static bool $businessObserverRegistered = false;
 
     /**
+     * Guard contra duplicação do agendamento (mesmo motivo nWidart).
+     *
+     * Faltava: o arquivo já guardava listener e observer contra o boot() duplo, mas
+     * não o schedule — e era ele que estava duplicado em prod (2026-09-09).
+     */
+    private static bool $scheduleRegistered = false;
+
+    /**
      * Boot the application events.
      *
      * @return void
@@ -49,8 +58,16 @@ class SuperadminServiceProvider extends ServiceProvider
 
         // Wave 23 D9.c — registra o health-check command (espelha ConnectorServiceProvider).
         // Sem este registro o comando superadmin:health nunca aparece em Artisan::all().
+        //
+        // 2026-09-09 — SubscriptionExpiryAlert entrou aqui pelo MESMO motivo, 10 meses
+        // depois. Ele já era agendado por `registerScheduleCommands()` logo abaixo, mas
+        // nunca esteve neste array: em prod o cron das 00:00 morria em
+        // CommandNotFoundException — 410 linhas no laravel.log, e o alerta de expiração
+        // de assinatura nunca saiu. O registro do `superadmin:health` foi feito sem medir
+        // o irmão que tinha o mesmo defeito no mesmo arquivo.
         $this->commands([
             SuperadminHealthCommand::class,
+            SubscriptionExpiryAlert::class,
         ]);
 
         view::composer('superadmin::layouts.partials.active_subscription', function ($view) {
@@ -79,11 +96,23 @@ class SuperadminServiceProvider extends ServiceProvider
             $view->with(compact('__system_currency'));
         });
 
-        $this->registerScheduleCommands();
+        // 2026-09-09 — havia um segundo `$this->registerScheduleCommands()` AQUI, além do
+        // que abre o boot() junto dos outros register*. Como o método agenda de dentro de
+        // `$this->app->booted()`, chamá-lo 2× criava 2 Events por comando: em prod o
+        // `schedule:list` mostrava `pos:sendSubscriptionExpiryAlert` e
+        // `paymentgateway:emit-trial-expired` DUPLICADOS, cada um rodando 2× por dia.
+        // Sem dano de dinheiro medido no dia (o emit tem guarda de idempotência por
+        // origem+mês, e a tabela `cobrancas` tinha 0 linhas de `subscription_license`),
+        // mas é execução dobrada de um comando que emite cobrança — não fica.
     }
 
     public function registerScheduleCommands()
     {
+        if (self::$scheduleRegistered) {
+            return;
+        }
+        self::$scheduleRegistered = true;
+
         $env = config('app.env');
         //schedule command for sending subscription expiry alert
         if ($env === 'live') {

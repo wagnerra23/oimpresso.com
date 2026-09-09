@@ -743,6 +743,14 @@
       "anchor": "sinal de custo: o UC-COB-03 afirmava \"trocar tab/chip/dropdown reflete na URL e a volta pela URL reproduz a visão\" — FALSO nas duas metades, numa tela de DINHEIRO. Metade 1 sem mecanismo (varredura contada 11/11 arquivos: zero router.get/history/URLSearchParams). Metade 2 invertida (lsGet vence a querystring), provado por execução + mutação. A tela tinha cobertura de execução ZERO quando isto nasceu: CobrancaControllerTest em .github/financeiro-pest-quarantine.list e CobrancaIndexTest (Browser) vermelho 6/6 no run 33762382505 sob continue-on-error. Contestação registrada no PR #6632; desfecho neste PR. ADR 0264 G-2.",
       "promote_by_razao": "nasce sem run nenhum — amostra zero. Promoção a required é flip [W] na branch protection (R10 / ADR 0275 §5), com o número de runs na mão."
     },
+    "governance-filtros-gate.yml": {
+      "nome": "Governance filtros gate — os 4 itens de front dos GAP-SPEC de 2026-09-06 (Audit \"Limpar filtros\"; Policies busca local + aviso \"Alternar não deixa rastro\"; ModuleGrades \"Limpar\" no vazio). vitest determinístico (jsdom, sem browser, sem rede); as 3 Pages são REAIS, mocks só na casca. Mordida provada por mutação (M1 4 failed · M2 3 failed · M3 1 failed), restauro conferido por sha256 e verde reconfirmado 16/16.",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-09-23",
+      "anchor": "sinal de custo medido em 2026-09-09: os cinco governance-*-gap.md (2026-09-06) fecharam item a item e deixaram 7 marcados \"Decidir. Construir ou rejeitar por escrito\" — este PR constrói 4 e rejeita 1 por escrito (a régua de conformidade por artigo, sem fonte: DashboardController.php:65 soma 3 literais). Os 4 são invisíveis às réguas que já existem: o e2e/governance-policies.spec.ts declara no próprio corpo que NENHUM seeder popula mcp_governance_rules (tela cai no EmptyState, casos com test.skip), as baselines de PixelBaselineTest fotografam mas não clicam, e tests/js/*governance* era ZERO. LC-30 (correção verde no CI e inerte no runtime) tem 2 ocorrências no ledger. ADR 0264 G-2.",
+      "promote_by_razao": "nasce sem run nenhum — amostra zero. Promoção a required é flip [W] na branch protection (R10 / ADR 0275 §5), com o número de runs na mão."
+    },
     "datatable-nome-acessivel-gate.yml": {
       "nome": "DataTable Nome Acessível — a tabela do DS não volta a ser anônima (caption sr-only + scope col)",
       "classe": "gate",

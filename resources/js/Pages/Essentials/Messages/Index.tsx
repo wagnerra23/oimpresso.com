@@ -21,6 +21,7 @@ import {
   AlertDialogTitle,
 } from '@/Components/ui/alert-dialog';
 import { Button } from '@/Components/ui/button';
+import { Inline } from '@/Components/layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import {
   Select,
@@ -69,6 +70,7 @@ export default function MessagesIndex({
 }: Props) {
   const [messages, setMessages] = useState<Message[]>(initialMessages ?? []);
   const [deleteTarget, setDeleteTarget] = useState<Message | null>(null);
+  const [filtroLocal, setFiltroLocal] = useState('ALL');
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
   // TODO inertia-v3: revisar timing reset (agora so no onFinish)
@@ -82,6 +84,15 @@ export default function MessagesIndex({
     (locations ?? []).forEach((l) => (map[l.id] = l.label));
     return map;
   }, [locations]);
+
+  // Filtro de localidade do CABEÇALHO (essenciais-page.jsx:585-587). Atenção à inversão
+  // semântica: o `Select` do compositor define a localidade da mensagem a ENVIAR; este
+  // recorta o mural. Mesmo controle, propósitos opostos — são dois, não um.
+  // Client-side porque o mural já chega inteiro (não é paginado).
+  const visiveis = useMemo(
+    () => (filtroLocal === 'ALL' ? messages : messages.filter((m) => String(m.location_id) === filtroLocal)),
+    [messages, filtroLocal],
+  );
 
   // Auto-scroll pra última mensagem em cada update
   useEffect(() => {
@@ -162,10 +173,31 @@ export default function MessagesIndex({
     <>
       <div className="mx-auto max-w-4xl p-6">
         <Card className="flex flex-col h-[calc(100vh-12rem)]">
-          <CardHeader className="border-b border-border">
-            <CardTitle className="flex items-center gap-2">
-              <MessageCircle size={18} /> Mural de mensagens
-            </CardTitle>
+          <CardHeader className="border-b border-border" data-contract="cabecalho-filtro">
+            <Inline gap={2} align="center" justify="between" wrap>
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageCircle size={18} /> Mensagens
+                </CardTitle>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Mural interno do negócio: uma mensagem por vez, com a localidade a que se
+                  refere. Sem thread, sem privado.
+                </p>
+              </div>
+              {can.view && (locations ?? []).length > 0 && (
+                <Select value={filtroLocal} onValueChange={setFiltroLocal}>
+                  <SelectTrigger className="w-52" aria-label="Filtrar o mural por localidade">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">Todas as localidades</SelectItem>
+                    {(locations ?? []).map((l) => (
+                      <SelectItem key={l.id} value={String(l.id)}>{l.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </Inline>
           </CardHeader>
 
           <CardContent className="flex-1 overflow-y-auto p-4" ref={scrollRef}>
@@ -173,13 +205,15 @@ export default function MessagesIndex({
               <div className="py-8 text-center text-sm text-muted-foreground">
                 Você não tem permissão para ver mensagens.
               </div>
-            ) : messages.length === 0 ? (
-              <div className="py-12 text-center text-sm text-muted-foreground">
-                Ainda não há mensagens. Seja o primeiro a escrever.
+            ) : visiveis.length === 0 ? (
+              <div className="py-12 text-center text-sm text-muted-foreground" data-contract="vazio">
+                {messages.length === 0
+                  ? 'Ainda não há mensagens. Seja o primeiro a escrever.'
+                  : 'Nenhuma mensagem desta localidade. Escolha "Todas as localidades" pra ver o mural inteiro.'}
               </div>
             ) : (
               <ul className="space-y-3">
-                {messages.map((m) => {
+                {visiveis.map((m) => {
                   const mine = m.user_id === me;
                   return (
                     <li key={m.id} className={`flex gap-2 items-start ${mine ? 'flex-row-reverse' : ''}`}>
@@ -231,7 +265,7 @@ export default function MessagesIndex({
                     rows={2}
                     value={form.data.message}
                     onChange={(e) => form.setData('message', e.target.value)}
-                    placeholder="Digite sua mensagem…"
+                    placeholder="Escreva uma mensagem"
                     required
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && !e.shiftKey) {

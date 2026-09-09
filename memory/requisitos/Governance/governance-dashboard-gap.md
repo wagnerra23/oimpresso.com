@@ -12,6 +12,14 @@ gerado_em: 2026-09-06
 
 **Veredito:** VIVO-À-FRENTE com 1 item a decidir — o vivo tem badge do ActionGate, intervalo custom na seção MCP, links de drill-down, atalhos e documentos canônicos que o retrato não desenha; o retrato acrescenta só a régua de conformidade por artigo com selo "auto-declarado".
 
+> **Decidido em 2026-09-09 — régua "Conformidade por artigo" REJEITADA nesta leva, por escrito.**
+>
+> **Razão: não existe a fonte.** Re-medido no `origin/main` (não citado de segunda mão): o valor é literal em DOIS pontos — `DashboardController.php:65` e `:268`, ambos `$compliancePct = (7 * 10) + (2 * 5) + 0; // = 80`. Os "7 plenos" e "2 parciais" são constantes dentro da própria expressão; não há tabela, serviço ou arquivo que enumere os 10 artigos com estado por artigo. Desenhar a régua exigiria **inventar** o breakdown a partir de uma soma que já vem pronta.
+>
+> Número que o sistema não mede não entra em tela: o selo "auto-declarado" do retrato (`governance-page.jsx:74-102`) seria honesto sobre a proveniência e **desonesto sobre a granularidade** — daria ao operador uma leitura por artigo que ninguém apurou. Anti-padrão inventado em tela parece canon, e a próxima sessão obedece.
+>
+> **O que reabre:** uma fonte real por artigo (checker, tabela ou comando que apure estado por artigo da Constituição). Aí a régua deixa de ser desenho e vira dado — e é escopo novo, com dono e ADR, não item de PR de front.
+
 | Parte | Estado no vivo | Ação |
 |---|---|---|
 | Header / PageHeader | `Dashboard.tsx:745-753` — `<PageHeader icon="shield-check" title="Governança" description=…>` com `Badge` "ActionGate: {modo}" (`modeBadge` `:141`); layout `AppShellV2` em `:1050`. Mockup: `governance-page.jsx:403-418` (h1 `TITULOS.painel` + subtítulo de rota + selo `superadmin · cross-tenant`); badge de modo do ActionGate ausente — `ActionGate／modo aviso` só em prosa (`:98`) e num sub de KPI da vista Políticas (`:325`) | Nada — vivo à frente (o badge do modo off/warn/strict só existe no vivo) |
