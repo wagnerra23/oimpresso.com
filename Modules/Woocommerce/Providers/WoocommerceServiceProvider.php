@@ -39,7 +39,9 @@ class WoocommerceServiceProvider extends ServiceProvider
             $view->with(compact('__is_woo_enabled'));
         });
 
-        $this->registerScheduleCommands();
+        // 2026-09-09 — havia um segundo `$this->registerScheduleCommands()` AQUI, além do
+        // que abre o boot(). Ver o comentário do método: em prod isso agendava cada sync
+        // 2×, e a guarda estática agora cobre também o boot() duplo do nWidart.
     }
 
     /**
@@ -142,8 +144,32 @@ class WoocommerceServiceProvider extends ServiceProvider
         ]);
     }
 
+    /**
+     * Guard contra duplicação do agendamento — nWidart pode rodar boot() 2x.
+     * Mesmo pattern que o SuperadminServiceProvider já usa pra listener e observer.
+     */
+    private static bool $scheduleRegistered = false;
+
+    /**
+     * Agenda o sync WooCommerce por business com auto-sync ligado.
+     *
+     * ⚠️ IDEMPOTENTE POR CONTRATO (2026-09-09). Medido em prod (SHA a0db7b0177): o
+     * `schedule:list` mostrava `pos:WoocommerceSyncProducts` e `pos:WooCommerceSyncOrder`
+     * DUPLICADOS para os business 1, 41 e 43 — 6 pares — porque o boot() chamava este
+     * método 2×. Cada sync rodava 4×/dia em vez das 2 que o `twiceDaily(1, 13)` declara.
+     * Além do agendamento, a duplicação repetia a query `Business::whereNotNull(...)`.
+     *
+     * A chamada extra foi removida do boot(); a guarda abaixo cobre o caso em que o
+     * próprio nWidart boota o provider 2× — cenário que o Superadmin já documentava e
+     * guardava para outros registros, mas que ninguém tinha aplicado ao schedule.
+     */
     public function registerScheduleCommands()
     {
+        if (self::$scheduleRegistered) {
+            return;
+        }
+        self::$scheduleRegistered = true;
+
         $env = config('app.env');
         $module_util = new ModuleUtil();
         $is_installed = $module_util->isModuleInstalled(config('woocommerce.name'));
