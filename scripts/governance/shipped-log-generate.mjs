@@ -159,12 +159,19 @@ export function recoletaSuficiente({ alvo, coletado, leitura, tentativas }) {
 }
 
 /**
- * O ALVO também mente, e do mesmo jeito: `search/issues` devolve `total_count: 0` com rc=0.
- * Medido 2026-09-09 (25 leituras de `merged:2026-09-05`, certo=101): 14 certas, **2 zeradas
+ * O ALVO também mente, e do mesmo jeito: devolve `0` com rc=0. Medido 2026-09-09 no
+ * `search/issues` (25 leituras de `merged:2026-09-05`, certo=101): 14 certas, **2 zeradas
  * com rc=0**, 9 com rc≠0 (falha visível → vira null → seguro). O modo cruel é o zero: alvo 0
  * faz `coletado >= alvo` bater por acidente e a re-coleta se declarar completa tendo perdido
  * o dia. Como o erro é unidirecional (subestima, nunca acima), basta reconsultar o valor
  * suspeito — não é preciso dobrar a chamada em todo dia, o que agravaria o rate limit.
+ *
+ * ⚠️ Esta defesa NÃO é específica do transporte, e trocá-lo não a dispensa. O GraphQL
+ * (`search(type:ISSUE){issueCount}`) é candidato tentador — cota separada, sem os 30/min do
+ * REST —, mas no mesmo alvo uma medição independente viu 1 zero em 25 leituras com rc=0, e
+ * a minha de 25 saiu 25/25 limpa: amostras compatíveis (não ver um evento de ~4% em 25 tem
+ * ~36% de chance), nenhuma delas autoriza chamar o GraphQL de confiável. Se um dia o
+ * transporte mudar, mude por rate limit ou ruído de 403 — nunca para remover este consolida.
  */
 export function consolidaAlvo(primeira, segunda) {
   if (primeira == null) return segunda ?? null;
