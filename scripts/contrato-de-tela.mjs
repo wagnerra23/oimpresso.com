@@ -62,7 +62,12 @@ function collectTargets(alvo) {
         if (name === 'node_modules' || name.startsWith('.')) continue;
         walk(join(p, name));
       }
-    } else if (/\.tsx?$/.test(p) && !/\.d\.ts$/.test(p)) {
+    // `.php` entrou em 2026-09-09: neste projeto há copy de tela que NÃO vive no `.tsx`.
+    // O caso que forçou: os rótulos da sub-nav da Governança moram nos ghosts do
+    // `DataController`, e o próprio `GovernancaSubNav.tsx` manda não duplicar a lista lá.
+    // Sem isso, a copy que o operador lê ficava fora do alcance do contrato — e 4 dos 5
+    // rótulos divergiram do protótipo (e do PT-BR) sem nenhum gate acusar.
+    } else if ((/\.tsx?$/.test(p) && !/\.d\.ts$/.test(p)) || /\.php$/.test(p)) {
       out.push(p);
     }
   };

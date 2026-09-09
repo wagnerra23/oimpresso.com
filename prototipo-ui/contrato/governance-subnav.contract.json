@@ -1,0 +1,27 @@
+{
+  "_nota": "Contrato da SUB-NAV do módulo Governança — os rótulos das abas, na ordem. Schema: prototipo-ui/contrato/contract.schema.json (ADR 0286).",
+  "_nota_fonte": "A copy vem do PROTÓTIPO (`prototipo-ui/cowork/governance-page.jsx` → `VIEWS`), extraída do arquivo em 2026-09-09, NÃO da tela. Isto é o ponto do contrato: no eixo FORMA o protótipo é soberano (ADR UI-0029), e um contrato cuja copy sai da própria tela compara a tela consigo mesma — nunca acusa divergência. Quatro dos cinco rótulos estavam em inglês na tela ('Policies', 'Audit log', 'Drift alerts', 'Module Grades'), divergindo do protótipo E da regra PT-BR do projeto, e nenhum gate acusou.",
+  "_nota_alvo": "Alvo ESTREITO: só o `DataController.php`, que é onde os rótulos vivem (o `GovernancaSubNav.tsx` os lê dos ghosts do menu e diz, no próprio comentário, pra não duplicar a lista). Apontar pra tela faria a catraca virar carimbo — 'Painel' e 'Auditoria' aparecem em título e prosa de várias telas, então a string continuaria PRESENTE com a aba escrita errada. Medido no irmão do Fiscal em 2026-09-09: com alvo largo, 3 de 3 mutações passaram.",
+  "_nota_extras": "As abas `DS Rollout`, `Custos de IA` e `Qualidade IA` NÃO entram nesta lista de propósito: são telas que chegaram depois (ADR 0366 §D-B) e o protótipo não as desenha. Vivo-à-frente é legítimo — o contrato trava os 5 que o protótipo declara, não impede a tela de ter mais.",
+  "_nota_o_que_NAO_prova": "MEDIDO por mutação em 2026-09-09, e declarado aqui em vez de deixar o leitor supor cobertura total: das 3 mutações testadas, 2 morderam (`Políticas`→`Policies`, `Notas dos módulos`→`Module Grades`) e 1 NÃO (`Auditoria`→`Audit log`). O motivo é estrutural do checker, que mede PRESENÇA da string no arquivo: a palavra `Auditoria` também aparece num comentário pré-existente do próprio DataController (sobre o módulo homônimo `Modules/Auditoria`), então ela continua presente mesmo com o rótulo trocado. Presença só vira prova quando a única origem possível da string é a que se quer travar — e aqui, para esse rótulo, não é. Quem for endurecer isto: o caminho NÃO é apagar o comentário legítimo, e sim um checker que case a copy no CONTEXTO (o par `'label' => …`), o que é mudança no `contrato-de-tela.mjs`, não neste arquivo.",
+  "tela": "governance/_subnav",
+  "fonte": "prototipo-ui/cowork/governance-page.jsx",
+  "alvo": [
+    "Modules/Governance/Http/Controllers/DataController.php"
+  ],
+  "secoes": [
+    {
+      "id": "governance-subnav",
+      "copy": [
+        "Painel",
+        "Políticas",
+        "Auditoria",
+        "Drift",
+        "Notas dos módulos"
+      ]
+    }
+  ],
+  "ordem": [
+    "governance-subnav"
+  ]
+}
