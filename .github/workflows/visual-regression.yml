@@ -845,7 +845,9 @@ jobs:
       # ── E2E DE RENDER POR TELA — Manufacturing/Recipes (NASCE ADVISORY) ─────────────
       # Buraco medido em 2026-09-03 no `memory/governance/screen-coverage-baseline.json`
       # (gravado 2026-08-31): `Manufacturing: {total:1, charter:1, scorecard:1, e2e:0,
-      # a11y:0}` — e o baseline nem conta a tela nova, que entrou em 2026-09-02 (#6546).
+      # a11y:0}` — e o baseline nem contava a tela nova, que entrou em 2026-09-02 (#6546).
+      # Esse baseline foi REMOVIDO em 2026-09-09 (era justamente o apodrecimento que ele
+      # exibe aqui); hoje o número sai de `node scripts/qa/screen-coverage-map.mjs`.
       # O contrato dela vive no `Wave29RecipeInertiaTest`; nada exercitava a tela
       # RENDERIZADA.
       #

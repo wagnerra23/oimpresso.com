@@ -17,6 +17,7 @@ import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Card, CardContent } from '@/Components/ui/card';
+import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 // ADR 0253 — layout é COMPOSIÇÃO destes primitivos, nunca `<div className="flex gap-2">` solto.
@@ -91,14 +92,32 @@ function Esqueleto({ linhas = 3 }: { linhas?: number }) {
   );
 }
 
-function Painel({ titulo, descricao, children }: { titulo: string; descricao: string; children: React.ReactNode }) {
+/** `selo` espelha o `a.pill` do `AnaliseCard` do protótipo (`chat-jana.jsx:329`): no header do
+ *  card, título+descrição à esquerda e o selo à direita. Opcional porque no protótipo também é —
+ *  das três análises do Patrimônio, só a de categoria define `pill` (`patrimonio-page.jsx:176`). */
+function Painel({
+  titulo,
+  descricao,
+  selo,
+  children,
+}: {
+  titulo: string;
+  descricao: string;
+  selo?: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
     <Card>
       <CardContent className="space-y-3 p-4">
-        <div>
-          <h2 className="text-sm font-semibold text-foreground">{titulo}</h2>
-          <p className="text-xs text-muted-foreground">{descricao}</p>
-        </div>
+        <Inline align="start" justify="between" gap={2}>
+          {/* `min-w-0` não é enfeite: sem ele o flex não encolhe abaixo do min-content e o
+              título longo vaza pra fora do card (§5 2026-08-24). */}
+          <div className="min-w-0">
+            <h2 className="text-sm font-semibold text-foreground">{titulo}</h2>
+            <p className="text-xs text-muted-foreground">{descricao}</p>
+          </div>
+          {selo ? <div className="shrink-0">{selo}</div> : null}
+        </Inline>
         {children}
       </CardContent>
     </Card>
@@ -240,6 +259,31 @@ export default function Index({ abas_contadores, is_admin, pode, apurado_em, kpi
   const nomeDaSessao = useBusiness()?.name ?? null;
   const negocio = nomeDoShell ?? nomeDaSessao;
 
+  // Selo da análise de categoria — o `pill` do protótipo (`patrimonio-page.jsx:176`):
+  // percentual da categoria que concentra a maior fatia do patrimônio.
+  //
+  // A dominante é derivada AQUI, por maior valor, e não lida como `porCategoria[0]`: hoje o
+  // `painelPorCategoria` ordena por valor desc (`AssetController::painelPorCategoria`
+  // `orderByDesc('valor')`), mas um selo que AFIRMA "a maior fatia" não pode depender de o
+  // servidor manter a ordenação. Com o reduce, o selo e a primeira barra concordam por
+  // construção enquanto a ordem existir, e o selo segue correto se ela mudar.
+  const catDominante = porCategoria?.length
+    ? porCategoria.reduce((maior, c) => (c.valor > maior.valor ? c : maior))
+    : null;
+
+  // Denominador = `kpis.bruto`, o MESMO que a `Barra` deste card usa. Os dois agregados são a
+  // mesma expressão sobre o mesmo tenant (`SUM(quantity * unit_price)` em `painelKpis` e em
+  // `painelPorCategoria`, este agrupado por categoria via `leftJoin` — que não descarta bem sem
+  // categoria nem duplica linha, porque `category_id` referencia a PK). Somam igual; derivar um
+  // segundo total aqui só criaria dois números discordando na mesma tela.
+  //
+  // Sem `kpis` (prop deferida, chega depois) não há selo: `0%` afirmaria concentração nenhuma,
+  // que não é o que se sabe — é o mesmo critério do `—` dos números sem fonte.
+  const seloCategoria =
+    catDominante && kpis?.bruto
+      ? `${Math.round((catDominante.valor / kpis.bruto) * 100)}% em ${catDominante.categoria.toLowerCase()}`
+      : null;
+
   return (
     <AppShellV2 title="Patrimônio">
       <div className="mx-auto max-w-7xl space-y-4 p-6">
@@ -340,8 +384,16 @@ export default function Index({ abas_contadores, is_admin, pode, apurado_em, kpi
         <div data-contract="resumo">
           <Card>
             <CardContent className="space-y-1 p-4">
+              {/* O ícone abre o bloco como no protótipo (`modulo-padrao.jsx:52`, `MP.Resumo`:
+                  `<JcIcon name="calendar"/> <b>{titulo}</b>`). É o mesmo idioma que as duas
+                  seções abaixo já usam nesta tela — ícone mudo à esquerda do título. */}
               <Inline align="baseline" justify="between" gap={2}>
-                <h2 className="text-sm font-semibold text-foreground">Resumo de hoje</h2>
+                <Inline align="center" gap={2}>
+                  <span aria-hidden className="inline-flex text-muted-foreground">
+                    <Icon name="calendar" size={15} strokeWidth={1.8} />
+                  </span>
+                  <h2 className="text-sm font-semibold text-foreground">Resumo de hoje</h2>
+                </Inline>
                 <span className="text-xs tabular-nums text-muted-foreground">{apurado}</span>
               </Inline>
               <Deferred data="kpis" fallback={<Esqueleto linhas={2} />}>
@@ -455,7 +507,23 @@ export default function Index({ abas_contadores, is_admin, pode, apurado_em, kpi
               </h2>
             </Inline>
             <Grid data-contract="analises" cols={3} gap={4}>
-            <Painel titulo="Patrimônio por categoria" descricao="valor unitário × quantidade, por categoria">
+            {/* `uppercase tracking-wide` no selo porque o `.jc-pill` do protótipo é
+                `text-transform: uppercase` + `letter-spacing: .06em` (`chat-jana.css:78`), e
+                `.warn` usa o par `--warn-soft`/`--warn` — o mesmo que `variant="warning"`
+                resolve aqui. Mesmo idioma que o `JanaCockpit` já usa pra portar pill deste
+                bundle. O `toLowerCase()` do texto fica: é o que o protótipo faz também
+                (`patrimonio-page.jsx:176`), e o caixa-alta é do CSS, não do dado. */}
+            <Painel
+              titulo="Patrimônio por categoria"
+              descricao="valor unitário × quantidade, por categoria"
+              selo={
+                seloCategoria ? (
+                  <Badge variant="warning" className="uppercase tracking-wide">
+                    {seloCategoria}
+                  </Badge>
+                ) : undefined
+              }
+            >
               <Deferred data="porCategoria" fallback={<Esqueleto />}>
                 {porCategoria?.length ? (
                   <div className="space-y-2.5">

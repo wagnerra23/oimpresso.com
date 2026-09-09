@@ -11,7 +11,7 @@ status: rascunho
 # (hoje: 46 dos 79). Sem eles, este arquivo envelheceria calado, que e o defeito que ele
 # proprio existe pra evitar. O gate le `last_updated`/`date`/`updated_at`, NAO `last_validated`.
 inertia_target: resources/js/Pages/Patrimonio/Index.tsx
-last_updated: "2026-09-08"
+last_updated: "2026-09-09"
 last_validated: "2026-09-08"
 ---
 
@@ -93,7 +93,18 @@ custo por peca que **sao o cenario do mock**, nao dados do banco. Omitida, nao i
 Isto e o comportamento certo, e vale registrar como precedente: **prosa de prototipo que cita
 numero especifico e dado de mock ate prova em contrario.**
 
-## D7 — Chips do "Resumo de hoje": **AUSENTE (decisao NAO declarada)** ⚠️
+## D7 — Chips do "Resumo de hoje": ~~AUSENTE~~ → **PORTADO em 2026-09-09** ✅
+
+> **Fato datado, e o retrato abaixo e de 2026-09-08.** Os tres chips que apontam para rota
+> existente entraram no [#7133](https://github.com/wagnerra23/oimpresso.com/pull/7133)
+> (`0e6012b46f`); o quarto (`Auditoria`) segue de fora, agora com o motivo **escrito na propria
+> tela** — o comentario acima do bloco cita o Non-Goal `D-AUDITORIA`. Ou seja: a ausencia que
+> este paragrafo cobrava — a **nao declarada** — deixou de existir. Recontado em 2026-09-09
+> direto no `.tsx`: `Garantia critica` 2 · `Em manutencao` 1 · `Alocados` 2 ocorrencias.
+>
+> O texto original fica porque era verdade na data. O que **nao** pode ficar e a frase em
+> presente: doc canon que afirma ausencia do que existe vira instrucao de trabalho duplicado
+> pra proxima sessao (§5 2026-09-01).
 
 O prototipo desenha quatro chips de navegacao logo abaixo do resumo
 (`PatPainel:216-222`), cada um com `aba` e `filtro` de destino:
@@ -114,7 +125,16 @@ visivel na tela. Estes chips simplesmente nao aparecem, e nao ha Non-Goal, `[BAC
 comentario que os mencione. **Ausencia sem declaracao e indistinguivel de esquecimento** — e a
 proxima sessao nao tem como saber qual dos dois foi.
 
-## D7 — Bloco "O QUE FAZER PRIMEIRO": **AUSENTE (decisao NAO declarada)** ⚠️
+## D7 — Bloco "O QUE FAZER PRIMEIRO": ~~AUSENTE~~ → **PORTADO em 2026-09-09** ✅
+
+> **Fato datado, e o retrato abaixo e de 2026-09-08.** O bloco entrou no mesmo
+> [#7133](https://github.com/wagnerra23/oimpresso.com/pull/7133), com `data-contract="acoes"`.
+> A ressalva que este documento fez foi **respeitada e esta escrita no `.tsx`**: desceu a
+> AFORDANCIA (as tres linhas com CTA pras rotas que existem), nao a COPY — o texto do prototipo
+> nomeia equipamento e crava o custo da peca em reais, que e cenario de mock (e citar valor em
+> real reprovaria no `brl-scan`, com razao). Cada linha e derivada dos mesmos agregados que os
+> KPIs usam. Recontado em 2026-09-09: `O que fazer primeiro` 2 · `Ver bens` 1 ·
+> `Ver manutencoes` 1 · `Ver alocacoes` 1 · `data-contract="acoes"` 1.
 
 O prototipo fecha o painel com tres acoes acionaveis (`PatPainel:204-214`), cada uma com CTA:
 
@@ -143,6 +163,41 @@ Nao e invencao: e o bloco pessoal que a `dashboard.blade.php` legada ja exibia
 desenhou o painel so na visao de quem administra; o backend sempre teve as duas visoes.
 **Prod a frente, e corretamente.**
 
+## D7 — Icone do "Resumo de hoje" e selo da analise: **PORTADOS em 2026-09-09** ✅
+
+Os dois ultimos detalhes de forma do painel, medidos com a mesma sonda nos dois lados.
+
+| Item | Prototipo | Producao (antes) | Producao (agora) |
+|---|---|---|---|
+| Icone abrindo o "Resumo de hoje" | `MP.Resumo` → `<JcIcon name="calendar"/>` antes do titulo (`modulo-padrao.jsx:52`) | nenhum icone | `<Icon name="calendar">`, `aria-hidden`, mesmo idioma das duas secoes abaixo |
+| Selo no card "Patrimonio por categoria" | `a.pill` do `AnaliseCard` (`chat-jana.jsx:329`), alimentado por `pill:` em `patrimonio-page.jsx:176` | nenhum selo | `<Badge variant="warning">` com o percentual da categoria dominante |
+
+**O selo nao precisou de backend novo:** `porCategoria` (categoria/unidades/valor) ja chegava na
+tela; o percentual e derivado dela sobre `kpis.bruto` — o **mesmo** denominador que as barras
+deste card ja usavam. Derivar um segundo total criaria dois numeros discordando na mesma tela.
+
+**Uma precisao sobre a contagem que motivou o pedido.** A medicao falava em *"3 selos nos cards
+de analise"* no prototipo. Recontado por varredura do codigo-fonte da ancora, o numero e **1**:
+`jc-pill` tem tres sites no bundle (`modulo-padrao.jsx:53` o selo `IA` do resumo, que so
+renderiza com `ia` verdadeiro e o Patrimonio nao passa; `chat-jana.jsx:236` idem no Jana;
+`chat-jana.jsx:329` o `a.pill` do card de analise), e das tres analises do Patrimonio **so a de
+categoria define `pill`** — `gar` e `man` nao tem. O `AcaoRow`, que renderiza as tres linhas do
+"O que fazer primeiro", tambem nao tem pill nenhum. O alvo **nomeado** no pedido (*"um selo no
+card 'Patrimonio por categoria' com o percentual da categoria dominante"*) bate exatamente com o
+codigo — foi esse que desceu. Se a sonda contou 3, contou outro seletor.
+
+**Nao desceu, e segue sem descer:** o subtitulo da secao ANALISES (*"clique num card pra ver de
+onde vem o numero"*), porque promete o `MP.Drill` que a producao nao tem; e o destaque com
+lampada do resumo, porque o texto do prototipo nomeia equipamento e custo de peca — cenario de
+mock, o mesmo motivo que ja tinha derrubado a 2a frase do Resumo.
+
+**O nome do icone foi medido, nao suposto.** `Components/Icon` resolve por string e cai em
+`Circle` quando o nome nao existe no lucide; o TS nao valida (o componente faz cast). Render
+comparado em 2026-09-09: `calendar` sai `class="lucide lucide-calendar"`, um nome invalido sai
+`lucide-circle`. O **UC-PAT-08** trava isso — sem ele, o defeito seria tsc verde, eslint verde,
+build verde e uma bola vazia na tela (foi o bug de 2026-05-07,
+[#184](https://github.com/wagnerra23/oimpresso.com/pull/184)).
+
 ## D1 — Rede / partial reload: **CONFORME**
 
 Todas as cinco props pesadas sao `Inertia::defer` (`kpis`, `porCategoria`, `garantia`,
@@ -165,7 +220,7 @@ componente: *"renderizar aba que nao navega e afordancia falsa"*.
 | # | Item | Dono |
 |---|---|---|
 | 1 | **D6** — render pareado com `design-diff --probe` nos dois lados (cor, espacamento, tipografia) | precisa de render de producao autenticado |
-| 2 | Decidir os **chips** e o **bloco de acoes**: portar a afordancia (sem o texto de mock) ou declarar Non-Goal | **[W]** — e decisao de produto |
+| 2 | ~~Decidir os **chips** e o **bloco de acoes**~~ — **FECHADO em 2026-09-09**: os dois desceram no [#7133](https://github.com/wagnerra23/oimpresso.com/pull/7133) portando a afordancia sem o texto de mock, que era exatamente a ressalva deste doc | — |
 | 3 | Screenshot aprovado por [W] (gate visual F1.5 · [ADR 0107](../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md)) — o charter esta `draft` ate la | **[W]** |
 | 4 | `Bens-visual-comparison.md` e `Alocacoes-visual-comparison.md` — as duas telas irmas seguem sem registro | proxima onda |
 | 5 | Depreciacao (`US-ASSET-W01`) e rota de Garantias/Auditoria — destravam KPI e abas | **[W]** |

@@ -109,6 +109,28 @@ impressão: isso é **cenário do mock**, não copy de contrato — não há fon
 dos três. O painel renderiza a parte derivável e **omite** a parte de cenário, em vez de imitá-la
 com texto plausível. Substituto plausível é a forma mais duradoura de mentira.
 
+**O ícone do bloco desceu em 2026-09-09** ([#7157](https://github.com/wagnerra23/oimpresso.com/pull/7157)).
+O `MP.Resumo` abre com `<JcIcon name="calendar"/>` antes do título (`modulo-padrao.jsx:52`); a
+produção agora faz o mesmo, `aria-hidden`, no mesmo idioma que as seções ANÁLISES e O QUE FAZER
+PRIMEIRO já usavam. **Consequência medida, e não é defeito:** o `<span>` do ícone é `inline-flex`
+e, dentro de um `Inline align="baseline"`, muda o baseline da linha — todo o conteúdo abaixo
+desceu ~2px, o que reprovou 4,48% dos pixels da baseline anterior. A baseline foi regenerada no
+runner canônico e o diff decodificado (`scripts/tests/snap-diff.mjs`, Δmax=253 = conteúdo). Quem
+mexer aqui e vir esse número na baseline: é deslocamento vertical, não regressão de conteúdo.
+
+**O selo do card de categoria também desceu no mesmo PR.** É o `pill` do protótipo
+(`patrimonio-page.jsx:176`): percentual da categoria de maior valor, derivado de `porCategoria` —
+**sem backend novo**. Duas regras que quem mexer precisa preservar: a dominante sai de um `reduce`
+por maior valor (**não** de `porCategoria[0]`, ainda que hoje o servidor ordene por valor desc —
+um selo que afirma "a maior fatia" não pode depender disso), e o denominador é `kpis.bruto`, o
+**mesmo** que as barras deste card usam. Sem `kpis` não há selo: removida a guarda, o selo sai
+`Infinity%`. `UC-PAT-07` trava as três coisas.
+
+⚠️ **O selo não é coberto pela baseline visual**, e isso é declarado de propósito: o tenant do
+visreg tem zero bens, então os três cards caem no `EmptyState` e `porCategoria` chega vazio. Quem
+for confiar no gate de pixel pra validar o selo não vai encontrá-lo lá — a prova dele é o
+`UC-PAT-07`, em `tests/js/patrimonio-painel-forma.test.tsx`.
+
 ## 5 · SubNav — consumida, não fundada por esta tela
 
 ⚠️ **Corrigido em 2026-09-08, depois do merge do [#7035](https://github.com/wagnerra23/oimpresso.com/pull/7035).**
