@@ -35,7 +35,8 @@ import { fileURLToPath } from 'node:url';
 import { ehPrintSemantico } from '../.claude/hooks/block-ancora-no-olho.mjs';
 import { read, frontmatter, walk } from './_lib-charter.mjs';
 import { raizesDePages } from '../scripts/qa/page-path.mjs';
-import { ultimaVerificacaoDe, KIND_LIVE_ONLY } from '../scripts/governance/cowork-mirror-freshness.mjs';
+import { ultimaVerificacaoDe, KIND_LIVE_ONLY, liveOnlyVerdict } from '../scripts/governance/cowork-mirror-freshness.mjs';
+import { COWORK_PROJECT_ID } from './protocolo.config.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)); // prototipo-ui/
 const REPO_DEFAULT = resolve(HERE, '..');
@@ -296,6 +297,62 @@ export function frescorDoEspelho(relPath, rodada, hashLocal) {
   const registrado = (rodada.verifiedHash || {})[relPath];
   if (registrado && hashLocal && registrado !== hashLocal) return { estado: 'stale', data: rodada.date };
   return { estado: 'verificado', data: rodada.date };
+}
+
+// ── EIXO COBERTURA — o que o `✓ frescor` NÃO diz ────────────────────────────────
+//
+// O bloco FRESCOR acima nasceu do incidente de 2026-08-26 e fechou o eixo CONTEÚDO:
+// "este arquivo do espelho bate com o vivo?". Ficou aberto o eixo vizinho, e ele derrubou
+// outra sessão em 2026-09-09 (Patrimonio/Index): o `✓ verificado` foi lido como "a fonte
+// está em dia, posso trabalhar pelo espelho" — e o espelho não COBRE o vivo.
+//
+// As duas perguntas são diferentes, e o próprio sistema já sabia da segunda: no mesmo dia,
+// `cowork-mirror-freshness --sla` devolvia ⬜ INCONCLUSIVO com "98 arquivo(s) existem no
+// VIVO e não estão no espelho" — enquanto esta ferramenta imprimia um `✓` limpo. Régua cujo
+// universo vem do lado que a gente controla mede a NOSSA diligência, não a realidade.
+//
+// Não é régua nova: o dono do eixo é `liveOnlyVerdict` (cowork-mirror-freshness), e aqui só
+// se LÊ o veredito dele. Reporter puro — não bloqueia, não muda exit code. E imprime a rota
+// da fonte viva, porque foi ela que resolveu o caso: ir direto no projeto por ID.
+//
+/**
+ * Linhas de aviso do eixo COBERTURA, ou `[]` quando não há o que dizer.
+ * Puro (recebe as entradas e o instante) pra ser testável pelo `--selftest`.
+ *
+ * @param {Array} entradasLedger todas as entradas do ledger (append-only)
+ * @param {string} relEspelho    caminho do arquivo, relativo ao espelho
+ * @returns {string[]}
+ */
+export function avisoDeCobertura(entradasLedger, relEspelho, nowIso = new Date().toISOString()) {
+  const v = liveOnlyVerdict(entradasLedger, nowIso);
+  const rota = `                 Fonte viva: DesignSync.get_file(projectId=${COWORK_PROJECT_ID}, path=${relEspelho})`;
+
+  // Nunca medido / vencido: ausência de medição não é cobertura boa (§5 2026-07-29).
+  if (v.veredito === 'NEVER-RAN') {
+    return [
+      '              ⚠️ cobertura: NUNCA MEDIDA — ninguém mediu o que existe no vivo e não desceu.',
+      '                 O ✓ acima fala deste arquivo; ele não prova que a fonte da tela está toda aqui.',
+      rota,
+    ];
+  }
+  if (v.veredito === 'OVERDUE') {
+    return [
+      `              ⚠️ cobertura: MEDIÇÃO VENCIDA — última em ${v.last.date} (há ${v.ageDays}d).`,
+      '                 O que entrou no vivo depois disso é invisível para o espelho.',
+      rota,
+    ];
+  }
+
+  const faltando = v.last?.liveOnly ?? 0;
+  if (faltando > 0) {
+    const denom = v.last?.denom ? ` de ${v.last.denom}` : '';
+    return [
+      `              ⚠️ cobertura: o espelho NÃO cobre o vivo — ${faltando} arquivo(s)${denom} existem lá e nunca desceram (medido ${v.last.date}).`,
+      '                 O ✓ acima fala deste arquivo; ele não prova que a fonte da tela está toda aqui.',
+      rota,
+    ];
+  }
+  return [];
 }
 
 /** sha256 do arquivo, ou `null` quando não abre (não inventa hash pra não fabricar veredito). */
@@ -618,6 +675,25 @@ async function printResolve(r) {
   // legítima, mas não é âncora — imprimir "âncora ✓: n/a" é sinal de saúde falso e foi
   // o que fez uma sessão (2026-08-11) ler "tem âncora" onde não havia nenhuma.
   // Ver LC-10 (artefato afirmando o próprio estado) — aqui no eixo do OUTPUT.
+  //
+  // A PARTIR DA 2ª que resolve em arquivo, o rótulo muda (2026-09-09). Medido: 5 telas
+  // declaram os dois campos apontando arquivos DIFERENTES, e em todas as 5 o
+  // `related_prototype` é o desenho ESPECÍFICO e o `bundle_source` é o HUB do módulo que a
+  // contém — `fiscal-subpages.jsx` ("sub-páginas … Vivo: Pages/Fiscal/{Eventos,Dfe,Config,
+  // Sped}.tsx") × `fiscal-page.jsx`; `essenciais-extras.jsx` (base de conhecimento) ×
+  // `essenciais-page.jsx`. As duas são declarações VERDADEIRAS, então suprimir a 2ª seria
+  // apagar fato do charter — e pioraria o cross-check do `gerar-map`, que fica mais
+  // permissivo justamente por enxergar as duas. O defeito era só de APRESENTAÇÃO: duas
+  // linhas `âncora ✓` com o mesmo peso, e o leitor sem saber qual vale.
+  //
+  // Qual vale já estava decidido e os consumidores JÁ respeitam — `design-diff-lote` dá
+  // `break` na primeira que resolve (L412) e `render-proto-baseline` só olha
+  // `related_prototype` (L297). O printer é que não dizia. Agora diz.
+  //
+  // A 2ª NÃO é medida (nem selo, nem frescor, nem P-1): medir custa I/O e afirmaria sobre um
+  // arquivo que ninguém vai abrir por esta tela. Sem medição, sem selo — é a regra do próprio
+  // bloco acima (§5 2026-07-29: instrumento não afirma verde sem ter medido).
+  let jaTemEfetiva = false;
   for (const a of r.ancoras) {
     if (ehDeclaracaoNa(a.valor)) {
       console.log(`  sem âncora: ${a.valor}`);
@@ -640,6 +716,14 @@ async function printResolve(r) {
         console.log('                Pode ser declaração de Padrão de Tela, ou related_prototype incompleto.)');
         continue;
       }
+      if (jaTemEfetiva) {
+        console.log(`  também declarado: [${a.tipo}] ${a.valor}`);
+        if (caminho !== desasparValor(a.valor)) console.log(`              → resolvido em: ${caminho}`);
+        console.log('              (o bundle de ORIGEM do módulo, não o desenho desta tela. A âncora');
+        console.log('               efetiva é a de cima — é a que design-diff-lote e proto-baseline abrem.');
+        console.log('               Não medido aqui de propósito: sem leitura, sem selo.)');
+        continue;
+      }
       const d = await defeitosDaAncora(caminho, raizGit, raizLeitura);
       // `✓` exige LEITURA. `lido:false` = não consegui abrir o arquivo da âncora (path que
       // não resolve — p.ex. `arquivo.jsx (PT-04 Dashboard)`, onde o parêntese entra no path).
@@ -648,6 +732,7 @@ async function printResolve(r) {
       // aqui, no consumidor. É LC-11/§5 2026-07-29 (instrumento afirma verde sem ter medido).
       const selo = !d.lido ? '⚠️' : d.fantasmas.length ? '⚠️' : '✓';
       console.log(`  âncora ${selo}:   [${a.tipo}] ${a.valor}`);
+      jaTemEfetiva = true; // as próximas que resolverem viram "também declarado"
       // O valor é texto livre; quando o caminho medido não é o valor cru, dizer QUAL foi —
       // senão o leitor não sabe se o ✓/⚠️ fala do arquivo que ele acha que declarou.
       if (caminho !== desasparValor(a.valor)) console.log(`              → resolvido em: ${caminho}`);
@@ -659,7 +744,8 @@ async function printResolve(r) {
       if (relEspelho && !relEspelho.startsWith('..')) {
         const f = frescorDoEspelho(relEspelho, rodadaFrescor, hashDoArquivo(caminho));
         if (f.estado === 'verificado') {
-          console.log(`              ✓ frescor: verificado contra o Cowork vivo em ${f.data}`);
+          console.log(`              ✓ frescor: verificado contra o Cowork vivo em ${f.data} — fala DESTE arquivo`);
+          for (const linha of avisoDeCobertura(entradasFrescor, relEspelho)) console.log(linha);
         } else if (f.estado === 'stale') {
           console.log(`              ✗ frescor: STALE — o Cowork vivo mudou depois da última medição (${f.data}).`);
           console.log('                 O que você abrir aqui NÃO é o design atual. Refresque antes de comparar.');
@@ -1223,6 +1309,38 @@ async function selftest() {
   t('CONTROLE dedup: mesmo arquivo nos dois campos → UMA âncora, e é o related_prototype',
     rDup.ok && rDup.ancoras.length === 1 && rDup.ancoras[0].tipo === 'related_prototype (charter)');
 
+  // ── ÂNCORA EFETIVA × "também declarado" (2026-09-09) ────────────────────────
+  // Quando os dois campos apontam arquivos DIFERENTES (5 telas no corpus: as 4 sub-páginas
+  // do Fiscal + Essentials/Knowledge), as DUAS declarações são verdadeiras e ficam na
+  // estrutura — quem some daqui some do cross-check do `gerar-map`. O que muda é o RÓTULO:
+  // a 1ª que resolve é a efetiva; a 2ª é o bundle de origem, e sai sem selo porque não é
+  // medida. O BITE exercita o `printResolve` DE FORA (capturando stdout), não um helper
+  // satélite — assert sobre cópia paralela fica verde enquanto o pipeline regride (§5 2026-08-14).
+  await mkdir(pages('Diverge'), { recursive: true });
+  await writeFile(join(fxBRepo, 'prototipo-ui', 'cowork', 'especifico-page.jsx'), '// o desenho DESTA tela\n', 'utf8');
+  await writeFile(join(pages('Diverge'), 'Index.charter.md'),
+    chB('/fxb/diverge', ['related_prototype: prototipo-ui/cowork/especifico-page.jsx', 'bundle_source: bundle-page.jsx']), 'utf8');
+  const rDiv = await resolveAncora('Diverge/Index', { repoRoot: fxBRepo });
+  t('BITE divergente: arquivos DIFERENTES nos dois campos → as DUAS ficam na estrutura',
+    rDiv.ok && rDiv.ancoras.length === 2);
+  const capDiv = [];
+  const logDiv = console.log;
+  console.log = (...a) => { capDiv.push(a.join(' ')); };
+  try { await printResolve(rDiv); } finally { console.log = logDiv; }
+  const saidaDiv = capDiv.join('\n');
+  t('BITE divergente: o printer marca UMA como efetiva (`âncora`) e a outra como `também declarado`',
+    (saidaDiv.match(/^ {2}âncora [✓⚠️]/gm) || []).length === 1
+      && saidaDiv.includes('também declarado')
+      && /âncora [✓⚠️][\s\S]*também declarado/.test(saidaDiv));
+  t('BITE divergente: a efetiva é o related_prototype (a específica), não o hub do bundle',
+    /âncora [✓⚠️].*especifico-page\.jsx/.test(saidaDiv));
+  // Sem este, imprimir "também declarado" pra TODA âncora ficaria verde no BITE acima.
+  const capUm = [];
+  console.log = (...a) => { capUm.push(a.join(' ')); };
+  try { await printResolve(await resolveAncora('Fixo/Index', { repoRoot: fxBRepo })); } finally { console.log = logDiv; }
+  t('CONTROLE divergente: com UMA âncora só, o rótulo `também declarado` NÃO aparece',
+    !capUm.join('\n').includes('também declarado'));
+
   // ── FRESCOR: os 4 estados + o controle que impede o selo herdado ──────────────
   // A rodada de fixture imita a forma real do ledger (date/verified/verifiedHash/staleList).
   const rodada = {
@@ -1252,6 +1370,44 @@ async function selftest() {
 
   t('CONTROLE FRESCOR: medido e sem hash registrado não inventa stale',
     frescorDoEspelho('x.jsx', { ...rodada, verified: ['x.jsx'], verifiedHash: {} }, 'zzz').estado === 'verificado');
+
+  // ── COBERTURA: o eixo que o `✓ frescor` NÃO cobre (incidente 2026-09-09) ──────
+  // Duas rodadas com o MESMO denominador: sem isso o veredito sai SCOPE-CHANGED (não
+  // comparável) e o assert mediria outra coisa que não a cobertura.
+  const AGORA = '2026-09-09T12:00:00.000Z';
+  const loFalta = [
+    { date: '2026-09-07T10:00:00.000Z', kind: KIND_LIVE_ONLY, liveOnly: 2, denom: 748, liveOnlyList: ['a.jsx', 'b.jsx'] },
+    { date: '2026-09-08T11:47:11.090Z', kind: KIND_LIVE_ONLY, liveOnly: 2, denom: 748, liveOnlyList: ['a.jsx', 'b.jsx'] },
+  ];
+
+  t('COBERTURA: espelho não cobre o vivo → avisa, com o número e a rota da fonte viva',
+    (() => {
+      const l = avisoDeCobertura(loFalta, 'patrimonio-page.jsx', AGORA);
+      return l.length === 3
+        && l[0].includes('2 arquivo(s) de 748')
+        && l[2].includes(COWORK_PROJECT_ID)
+        && l[2].includes('patrimonio-page.jsx');
+    })());
+
+  // O controle que dá sentido ao assert acima: se o espelho COBRE o vivo, o aviso some.
+  // Sem esta perna o aviso seria carimbo — texto que aparece sempre não informa nada.
+  t('CONTROLE COBERTURA: nada faltando no vivo → NENHUM aviso (não é carimbo)',
+    avisoDeCobertura(
+      loFalta.map((e) => ({ ...e, liveOnly: 0, liveOnlyList: [] })),
+      'patrimonio-page.jsx',
+      AGORA,
+    ).length === 0);
+
+  t('COBERTURA: ledger sem nenhuma rodada de live-only → NUNCA MEDIDA (ausência ≠ saúde)',
+    avisoDeCobertura([], 'x.jsx', AGORA)[0].includes('NUNCA MEDIDA'));
+
+  // Medição velha não vira silêncio: o que entrou no vivo depois dela é invisível.
+  t('COBERTURA: medição fora do SLA → MEDIÇÃO VENCIDA, não OK',
+    avisoDeCobertura(
+      [{ date: '2026-01-01T00:00:00.000Z', kind: KIND_LIVE_ONLY, liveOnly: 0, denom: 748, liveOnlyList: [] }],
+      'x.jsx',
+      AGORA,
+    )[0].includes('VENCIDA'));
 
   // ── LEDGER APPEND-ONLY: o oráculo é o dono, e ele varre TODAS as rodadas ──────
   // Regressão de 2026-08-27: este arquivo lia `entradas[entradas.length - 1]` e afirmava
