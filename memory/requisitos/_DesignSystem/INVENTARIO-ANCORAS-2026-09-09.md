@@ -425,13 +425,28 @@ no gate — medido `89 → 90 declaram · 90 conforme`, com `detectSignals` dand
 **Claim de ausência, as duas pernas** ([§5 2026-07-28](../../proibicoes.md) + [§5 2026-08-07](../../proibicoes.md)):
 repo — `rg -l -i --hidden -g '!.git/**'` por `usuario360` dá **46 arquivos** (0 protótipo; `--hidden` e
 sem mudam nada aqui, conferido); Cowork vivo — `DesignSync.list_files` = **771 paths**, sem nenhum
-`*rollout*`, `*qualidade*`, `*custos*` ou `*usuario360*`. O `--live-only` foi **remedido hoje**
-(estava vencido, 8d): **74 live-only de 771** — era 157 de 929 em 2026-09-01. Nenhum dos 74 é
-protótipo de tela: são `sync/payload.part*`, testes `.php`, `.mjs` e o `repo/` espelhado do
-`cowork-inbox`. ⚠️ A primeira passada do dia deu **87**; o número caiu para 74 quando este PR
-rebaseou sobre o [#7141](https://github.com/wagnerra23/oimpresso.com/pull/7141), que desceu 13
-desses arquivos. Os dois valores estão certos — em bases diferentes; **74 é o medido contra a base
-deste PR**, e é por isso que o ledger se regera rodando o script, nunca editando o JSON.
+`*rollout*`, `*qualidade*`, `*custos*` ou `*usuario360*`. O `--live-only` **não é medido aqui, e o
+número não se repete aqui** — o dono desse eixo é o [#7150](https://github.com/wagnerra23/oimpresso.com/pull/7150),
+que remediu no mesmo dia com a lista **completa** e registrou no ledger. Consulte-o para o valor
+vigente ([§5 2026-07-17](../../proibicoes.md) — doc canônico não restateia número que outro sistema
+sabe melhor).
+
+> ⚠️ **Por que este PR cedeu o eixo, e é um recibo contra mim.** Eu remedi o `--live-only` por conta
+> própria e cheguei a `87` (depois `74`, ao incorporar o [#7141](https://github.com/wagnerra23/oimpresso.com/pull/7141)),
+> com denominador **771**. O #7150 mediu **876**. A diferença não é a base: é que
+> `DesignSync.list_files` devolve **arquivos e entradas de diretório**, e ao transcrever a saída
+> para o JSON do `--live-only` eu **omiti as 105 entradas de diretório** — medido: a minha lista
+> tem **zero** paths sem extensão, e `876 − 771 = 105`. O numerador coincidiu (87 nos dois), porque
+> o script descarta essas entradas de qualquer modo; **o denominador que eu teria publicado estaria
+> errado**, e o `--sla-live-only` compara denominadores. É a §5 2026-08-11 na veia — transcrever
+> perde dado — e a razão de a entrada do ledger deste PR ter sido **revertida** para a do main.
+>
+> **A causa de raiz é anterior:** três PRs abertos hoje tocam este mesmo arquivo e o mesmo ledger
+> (#7147, #7150 e este). Quem detectou foi o `dup-detector`, não eu — **não rodei checagem de
+> sessão paralela** antes de abrir, e o gatilho do meu trabalho foi um hook de **máquina
+> compartilhada** (`live-only vencido`), que a [emenda §5 2026-08-13](../../proibicoes.md) nomeia
+> como *o caso de maior probabilidade de colisão que existe*. A ocorrência dessa classe já está
+> registrada no ledger pelo próprio #7150 (n+13, mesmo gatilho, mesmo dia) — não a duplico aqui.
 
 ⚠️ **`usuarios-page.jsx` existe no vivo e NÃO serve** — verificado abrindo, não herdado: `:1-2` diz
 *"Lista de usuários (gerenciar acessos do ERP)… Redesign do datatable legado UltimatePOS
