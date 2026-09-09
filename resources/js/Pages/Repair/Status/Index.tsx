@@ -12,6 +12,7 @@ import EmptyState from '@/Components/shared/EmptyState';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import { Button } from '@/Components/ui/button';
 import { Icon } from '@/Components/Icon';
+import { Grid, Stack } from '@/Components/layout';
 import type { ReactNode } from 'react';
 
 interface StatusRow {
@@ -87,11 +88,13 @@ export default function StatusIndex({ statuses }: PageProps) {
         />
       ) : (
         <>
-          <div className="flex flex-col gap-1.5">
+          {/* .rep-status-list do prototipo: gap 6px -> gap={2} (8px), o token vizinho. */}
+          <Stack gap={2}>
             {statuses.map((s) => (
-              <div
+              <Grid
                 key={s.id}
-                className="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-1 rounded-lg border border-border bg-card px-3 py-2.5 transition-colors hover:bg-accent/40 focus-within:bg-accent/40 xl:grid-cols-[190px_230px_160px_1fr_auto]"
+                gap={3}
+                className="grid-cols-[1fr_auto] items-center rounded-lg border border-border bg-card px-3 py-2.5 transition-colors hover:bg-accent/40 focus-within:bg-accent/40 xl:grid-cols-[190px_230px_160px_1fr_auto]"
               >
                 <SeloStatus name={s.name} color={s.color} />
 
@@ -114,9 +117,9 @@ export default function StatusIndex({ statuses }: PageProps) {
                 <Button variant="ghost" size="sm" asChild className="justify-self-end">
                   <Link href={`/repair/status/${s.id}/edit`}>Editar</Link>
                 </Button>
-              </div>
+              </Grid>
             ))}
-          </div>
+          </Stack>
 
           {emUso > 0 && (
             <Alert className="border-warning bg-warning/10">
@@ -131,7 +134,7 @@ export default function StatusIndex({ statuses }: PageProps) {
           )}
 
           <p className="text-xs text-muted-foreground">
-            Permissão: <b className="font-mono">access_job_sheet_status</b>
+            Permissão: <code className="font-mono">access_job_sheet_status</code>
           </p>
         </>
       )}

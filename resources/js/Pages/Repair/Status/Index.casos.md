@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + criterio de aceite verificavel (D
 por_que: comportamento e duravel — "a tela e read-only e a cor vem do banco" vale em qualquer refactor
 owner: wagner
 autor: "[C] 2026-09-05"
-last_run: "2026-09-05"
+last_run: "2026-09-09"
 ---
 
 # Casos de Uso & Aceite — Status de OS
@@ -93,11 +93,39 @@ last_run: "2026-09-05"
 
 ---
 
+## UC-RSTIDX-07 · Vejo qual aviso o cliente recebe, sem abrir o formulário
+- **Persona:** quem configura o fluxo e precisa conferir o texto que sai pro cliente.
+- **Aceite:** Dado um status com modelo de SMS gravado · Quando abro `/repair/status` · Então
+  vejo o texto na linha; e um status **sem** modelo mostra "sem modelo de SMS", não um campo vazio.
+- **Por que existe:** a coluna `sms_template` existe desde 2020 (`2020_08_22_104640`) e nunca chegou
+  à tela — o operador só descobria o texto entrando no formulário de edição, um por um. O protótipo
+  (`repair-page.jsx` região `Status`) mostra na linha.
+- **Atenção ao caso vazio:** o teste cobre com **e sem** template de propósito. Sem os dois casos o
+  assert não distingue "veio null" de "a coluna não veio no payload".
+- **Teste:** `RepairStatusContratoTest` — *"UC-RSTIDX-07: o modelo de SMS de cada status chega à tela como está no banco"*.
+- **Status: 🧪**
+
+---
+
+## UC-RSTIDX-08 · Sei quantas folhas cada status carrega antes de mexer nele
+- **Persona:** quem vai excluir ou renomear um status e não sabe o estrago.
+- **Aceite:** Dado um status usado por 2 folhas do meu negócio e outro sem nenhuma · Quando abro
+  `/repair/status` · Então vejo `2 folha(s)` e `0 folha(s)`, e a contagem **ignora** as folhas de
+  outra empresa.
+- **Por que é Tier 0, e não cosmético:** `status_id` é FK em `repair_job_sheets` sem
+  `ON DELETE SET NULL`. A tela avisa que apagar status usado deixa folha órfã — se a agregada
+  esquecesse o `business_id`, esse aviso **mentiria** sobre quantas folhas ficariam órfãs, e a
+  decisão de apagar seria tomada em cima de um número da oficina do vizinho.
+- **Teste:** `RepairStatusContratoTest` — *"UC-RSTIDX-08: a contagem de folhas por status conta só as do próprio tenant (Tier 0 · ADR 0093)"*, com uma folha do vizinho pendurada num status do vizinho.
+- **Status: 🧪**
+
+---
+
 ## Rastreabilidade
 
 | UC | Defendido por |
 |---|---|
-| 01, 02, 03, 04, 05, 06 | `Modules/Repair/Tests/Feature/RepairStatusContratoTest.php` |
+| 01, 02, 03, 04, 05, 06, 07, 08 | `Modules/Repair/Tests/Feature/RepairStatusContratoTest.php` |
 
 Os testes rodam no CT 100, nunca local ([ADR 0062](../../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)),
 no tenant fictício 98 ([ADR 0358](../../../../../memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)).
