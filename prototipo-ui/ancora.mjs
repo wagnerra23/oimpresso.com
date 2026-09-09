@@ -35,7 +35,8 @@ import { fileURLToPath } from 'node:url';
 import { ehPrintSemantico } from '../.claude/hooks/block-ancora-no-olho.mjs';
 import { read, frontmatter, walk } from './_lib-charter.mjs';
 import { raizesDePages } from '../scripts/qa/page-path.mjs';
-import { ultimaVerificacaoDe, KIND_LIVE_ONLY } from '../scripts/governance/cowork-mirror-freshness.mjs';
+import { ultimaVerificacaoDe, KIND_LIVE_ONLY, liveOnlyVerdict } from '../scripts/governance/cowork-mirror-freshness.mjs';
+import { COWORK_PROJECT_ID } from './protocolo.config.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)); // prototipo-ui/
 const REPO_DEFAULT = resolve(HERE, '..');
@@ -296,6 +297,62 @@ export function frescorDoEspelho(relPath, rodada, hashLocal) {
   const registrado = (rodada.verifiedHash || {})[relPath];
   if (registrado && hashLocal && registrado !== hashLocal) return { estado: 'stale', data: rodada.date };
   return { estado: 'verificado', data: rodada.date };
+}
+
+// ── EIXO COBERTURA — o que o `✓ frescor` NÃO diz ────────────────────────────────
+//
+// O bloco FRESCOR acima nasceu do incidente de 2026-08-26 e fechou o eixo CONTEÚDO:
+// "este arquivo do espelho bate com o vivo?". Ficou aberto o eixo vizinho, e ele derrubou
+// outra sessão em 2026-09-09 (Patrimonio/Index): o `✓ verificado` foi lido como "a fonte
+// está em dia, posso trabalhar pelo espelho" — e o espelho não COBRE o vivo.
+//
+// As duas perguntas são diferentes, e o próprio sistema já sabia da segunda: no mesmo dia,
+// `cowork-mirror-freshness --sla` devolvia ⬜ INCONCLUSIVO com "98 arquivo(s) existem no
+// VIVO e não estão no espelho" — enquanto esta ferramenta imprimia um `✓` limpo. Régua cujo
+// universo vem do lado que a gente controla mede a NOSSA diligência, não a realidade.
+//
+// Não é régua nova: o dono do eixo é `liveOnlyVerdict` (cowork-mirror-freshness), e aqui só
+// se LÊ o veredito dele. Reporter puro — não bloqueia, não muda exit code. E imprime a rota
+// da fonte viva, porque foi ela que resolveu o caso: ir direto no projeto por ID.
+//
+/**
+ * Linhas de aviso do eixo COBERTURA, ou `[]` quando não há o que dizer.
+ * Puro (recebe as entradas e o instante) pra ser testável pelo `--selftest`.
+ *
+ * @param {Array} entradasLedger todas as entradas do ledger (append-only)
+ * @param {string} relEspelho    caminho do arquivo, relativo ao espelho
+ * @returns {string[]}
+ */
+export function avisoDeCobertura(entradasLedger, relEspelho, nowIso = new Date().toISOString()) {
+  const v = liveOnlyVerdict(entradasLedger, nowIso);
+  const rota = `                 Fonte viva: DesignSync.get_file(projectId=${COWORK_PROJECT_ID}, path=${relEspelho})`;
+
+  // Nunca medido / vencido: ausência de medição não é cobertura boa (§5 2026-07-29).
+  if (v.veredito === 'NEVER-RAN') {
+    return [
+      '              ⚠️ cobertura: NUNCA MEDIDA — ninguém mediu o que existe no vivo e não desceu.',
+      '                 O ✓ acima fala deste arquivo; ele não prova que a fonte da tela está toda aqui.',
+      rota,
+    ];
+  }
+  if (v.veredito === 'OVERDUE') {
+    return [
+      `              ⚠️ cobertura: MEDIÇÃO VENCIDA — última em ${v.last.date} (há ${v.ageDays}d).`,
+      '                 O que entrou no vivo depois disso é invisível para o espelho.',
+      rota,
+    ];
+  }
+
+  const faltando = v.last?.liveOnly ?? 0;
+  if (faltando > 0) {
+    const denom = v.last?.denom ? ` de ${v.last.denom}` : '';
+    return [
+      `              ⚠️ cobertura: o espelho NÃO cobre o vivo — ${faltando} arquivo(s)${denom} existem lá e nunca desceram (medido ${v.last.date}).`,
+      '                 O ✓ acima fala deste arquivo; ele não prova que a fonte da tela está toda aqui.',
+      rota,
+    ];
+  }
+  return [];
 }
 
 /** sha256 do arquivo, ou `null` quando não abre (não inventa hash pra não fabricar veredito). */
@@ -687,7 +744,8 @@ async function printResolve(r) {
       if (relEspelho && !relEspelho.startsWith('..')) {
         const f = frescorDoEspelho(relEspelho, rodadaFrescor, hashDoArquivo(caminho));
         if (f.estado === 'verificado') {
-          console.log(`              ✓ frescor: verificado contra o Cowork vivo em ${f.data}`);
+          console.log(`              ✓ frescor: verificado contra o Cowork vivo em ${f.data} — fala DESTE arquivo`);
+          for (const linha of avisoDeCobertura(entradasFrescor, relEspelho)) console.log(linha);
         } else if (f.estado === 'stale') {
           console.log(`              ✗ frescor: STALE — o Cowork vivo mudou depois da última medição (${f.data}).`);
           console.log('                 O que você abrir aqui NÃO é o design atual. Refresque antes de comparar.');
@@ -1312,6 +1370,44 @@ async function selftest() {
 
   t('CONTROLE FRESCOR: medido e sem hash registrado não inventa stale',
     frescorDoEspelho('x.jsx', { ...rodada, verified: ['x.jsx'], verifiedHash: {} }, 'zzz').estado === 'verificado');
+
+  // ── COBERTURA: o eixo que o `✓ frescor` NÃO cobre (incidente 2026-09-09) ──────
+  // Duas rodadas com o MESMO denominador: sem isso o veredito sai SCOPE-CHANGED (não
+  // comparável) e o assert mediria outra coisa que não a cobertura.
+  const AGORA = '2026-09-09T12:00:00.000Z';
+  const loFalta = [
+    { date: '2026-09-07T10:00:00.000Z', kind: KIND_LIVE_ONLY, liveOnly: 2, denom: 748, liveOnlyList: ['a.jsx', 'b.jsx'] },
+    { date: '2026-09-08T11:47:11.090Z', kind: KIND_LIVE_ONLY, liveOnly: 2, denom: 748, liveOnlyList: ['a.jsx', 'b.jsx'] },
+  ];
+
+  t('COBERTURA: espelho não cobre o vivo → avisa, com o número e a rota da fonte viva',
+    (() => {
+      const l = avisoDeCobertura(loFalta, 'patrimonio-page.jsx', AGORA);
+      return l.length === 3
+        && l[0].includes('2 arquivo(s) de 748')
+        && l[2].includes(COWORK_PROJECT_ID)
+        && l[2].includes('patrimonio-page.jsx');
+    })());
+
+  // O controle que dá sentido ao assert acima: se o espelho COBRE o vivo, o aviso some.
+  // Sem esta perna o aviso seria carimbo — texto que aparece sempre não informa nada.
+  t('CONTROLE COBERTURA: nada faltando no vivo → NENHUM aviso (não é carimbo)',
+    avisoDeCobertura(
+      loFalta.map((e) => ({ ...e, liveOnly: 0, liveOnlyList: [] })),
+      'patrimonio-page.jsx',
+      AGORA,
+    ).length === 0);
+
+  t('COBERTURA: ledger sem nenhuma rodada de live-only → NUNCA MEDIDA (ausência ≠ saúde)',
+    avisoDeCobertura([], 'x.jsx', AGORA)[0].includes('NUNCA MEDIDA'));
+
+  // Medição velha não vira silêncio: o que entrou no vivo depois dela é invisível.
+  t('COBERTURA: medição fora do SLA → MEDIÇÃO VENCIDA, não OK',
+    avisoDeCobertura(
+      [{ date: '2026-01-01T00:00:00.000Z', kind: KIND_LIVE_ONLY, liveOnly: 0, denom: 748, liveOnlyList: [] }],
+      'x.jsx',
+      AGORA,
+    )[0].includes('VENCIDA'));
 
   // ── LEDGER APPEND-ONLY: o oráculo é o dono, e ele varre TODAS as rodadas ──────
   // Regressão de 2026-08-27: este arquivo lia `entradas[entradas.length - 1]` e afirmava
