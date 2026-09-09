@@ -63,13 +63,24 @@ afterEach(function () {
 /** Apaga só o que este arquivo cria — sem global scope, em qualquer tenant. */
 function rstLimpa(): void
 {
-    // As folhas primeiro: `status_id` é FK do catálogo, e apagar o status antes deixaria
-    // folha órfã — exatamente o acidente que o aviso da tela existe para evitar.
-    if (Schema::hasTable('repair_job_sheets')) {
-        DB::table('repair_job_sheets')->where('job_sheet_no', 'like', '%'.RST_TAG.'%')->delete();
+    // ⚠️ Roda tambem no afterEach de teste PULADO. Na lane `modules-pest` a conexao e
+    // sqlite `:memory:` SEM migrate, e nenhuma destas tabelas existe: sem o guard, o
+    // delete estoura QueryException DEPOIS do skip e pinta de vermelho um teste que nem
+    // chegou a rodar. Medido no CI em 2026-09-09 (run 34346422173): 8 ocorrencias de
+    // "no such table: repair_statuses", apontando a linha nua desta funcao.
+    // A ordem importa onde as tabelas existem (CT 100 / MySQL): a folha sai antes do
+    // status, porque `status_id` e FK do catalogo - apagar o pai primeiro deixaria
+    // folha orfa, que e justamente o acidente que a tela avisa.
+    foreach ([
+        ['repair_job_sheets', 'job_sheet_no'],
+        ['repair_statuses', 'name'],
+    ] as [$tabela, $coluna]) {
+        if (Schema::hasTable($tabela)) {
+            DB::table($tabela)->where($coluna, 'like', '%'.RST_TAG.'%')->delete();
+        }
     }
-    DB::table('repair_statuses')->where('name', 'like', '%'.RST_TAG.'%')->delete();
 }
+
 
 /** Folha marcada com a tag deste arquivo, pendurada no status pedido. */
 function rstFolha(int $businessId, int $statusId, int $criadoPor): int
