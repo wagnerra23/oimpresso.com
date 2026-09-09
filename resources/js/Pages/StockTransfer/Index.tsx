@@ -204,7 +204,7 @@ function StockTransferIndex({ rows, filters, business_locations, statuses, permi
       </Card>
 
       {/* Legenda dos estados de linha — o `info` da Toolbar do protótipo, literal. */}
-      <p className="mt-2 px-1 text-[11.5px] text-stone-500">
+      <p className="mt-2 px-1 text-[11.5px] text-muted-foreground">
         Pendente e em trânsito só reservam. Concluída e finalizada movem o saldo (R-XFER-005).
       </p>
 

@@ -162,7 +162,7 @@ function StockAdjustmentIndex({ rows, filters, business_locations, permissions }
 
       {/* Legenda do trilho — o `info` da Toolbar do protótipo, literal. Sem ela a faixa
           vermelha é decoração; com ela é afordância. */}
-      <p className="mt-2 px-1 text-[11.5px] text-stone-500">
+      <p className="mt-2 px-1 text-[11.5px] text-muted-foreground">
         Trilho vermelho = ajuste anormal. Excluir devolve o saldo (UC-EST-05).
       </p>
 
@@ -213,7 +213,7 @@ function StockAdjustmentIndex({ rows, filters, business_locations, permissions }
                   </td>
                   {/* Coluna do protótipo (`COLS_AJ` → `{ key: 'motivo', label: 'Motivo do ajuste' }`).
                       O dado já chegava e só alimentava a busca — não é prop nova. */}
-                  <td className="px-2 text-stone-600 text-[12px] max-w-[300px]">
+                  <td className="px-2 text-muted-foreground text-[12px] max-w-[300px]">
                     <span className="block truncate" title={r.additional_notes ?? undefined}>
                       {r.additional_notes || '—'}
                     </span>

@@ -346,7 +346,7 @@ function StockTransferCreate({
               />
               {/* `help` do campo no protótipo (`estoque-forms.jsx`, FormTransferencia).
                   Explica por que o frete entra no fecho — copy, não cálculo. */}
-              <p className="mt-1 text-[11.5px] text-stone-500">
+              <p className="mt-1 text-[11.5px] text-muted-foreground">
                 Entra no custo do material que chega no destino
               </p>
             </div>
