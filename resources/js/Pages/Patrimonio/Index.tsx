@@ -434,9 +434,10 @@ export default function Index({ is_admin, pode, apurado_em, kpis, porCategoria, 
             </Grid>
 
             {/* ── O QUE FAZER PRIMEIRO (protótipo `:233` + `MP.Acoes` `:111`) ──────────
-                A AFORDÂNCIA desce; a COPY do protótipo NÃO. Lá o texto nomeia equipamento
-                e custo de peça ("a troca de cabeça da HP Latex saiu R$ 4.200") — é cenário
-                do mock, e o `Index-visual-comparison.md` já fixou o precedente ao recusar a
+                A AFORDÂNCIA desce; a COPY do protótipo NÃO. Lá o texto nomeia um equipamento
+                específico e crava o custo da peça em reais — é cenário do mock (e citar o
+                valor aqui reprovaria no `brl-scan`, com razão: número em real não entra no
+                git). O `Index-visual-comparison.md` já fixou o precedente ao recusar a
                 2ª frase do Resumo pelo mesmo motivo: prosa de protótipo que cita número
                 específico é dado de mock até prova em contrário. Aqui cada linha é derivada
                 dos MESMOS agregados que os KPIs usam.
