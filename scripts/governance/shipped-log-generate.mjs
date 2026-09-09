@@ -8,6 +8,9 @@
  *   G2 push-direto na main      → API /commits (commits sem objeto-PR)
  *   G3 borda BRT × UTC          → coleta com margem ±1 dia, filtra por timestamp BRT (-03:00)
  *   G4 truncação silenciosa     → cross-check: soma das sub-janelas vs total_count do Search → exit 1 ao divergir
+ *   G10 lista do dia ≠ o dia    → `gh pr list --search` erra com exit 0 de duas formas (vazio total ~10% das chamadas;
+ *                                 1ª página só — 100 de 114 em 2026-09-03). Cada dia é conferido contra o issueCount
+ *                                 do próprio dia, retentado, e o que não fecha reprova NOMEANDO o dia (2026-09-09)
  *   G7 merged ≠ entregue        → reconcilia pares de revert (líquido zero)
  *   G9 ruído de agrupamento     → aliases de scope + normalize NFD (acento)
  *   G8 merge ≠ deploy           → cruza /api/mcp/version (SHA+data do deploy de produção) → marca 🚀 no-ar / ⏳ aguardando
@@ -15,6 +18,10 @@
  * Rótulo HONESTO: lista o que foi MERGEADO em `main`, e cruza com o deploy real (G8): 🚀 no-ar / ⏳ aguardando-deploy.
  * Limites conhecidos declarados no doc: área = scope do título (G5 paths-por-PR fora por custo); janela via args/cron (G6 MCP-live pendente);
  * deploy marcado por DATA do último deploy (aproximação barata, não ancestralidade por-PR).
+ * Limite do G10: 1 chamada GraphQL por dia (cost 1, cota 5000/h — não toca os 30/min do Search REST, que
+ * segue exclusivo do cross-check agregado). Numa janela de 100 dias são ~100 pontos e ~1,5min a mais.
+ * Oráculo mudo NÃO vira verde por omissão: com a lista vazia o dia é suspeito e reprova; com itens, é
+ * aceito e contado à parte — aí quem guarda é o cross-check agregado, que continua intacto.
  *
  * Funções puras exportadas → testáveis sem rede (shipped-log-generate.test.mjs). Execução só quando rodado direto.
  *
@@ -98,9 +105,39 @@ export function groupByArea(prs, reverted = new Map()) {
   return { sorted, dsAll, totalMean, totalNoise };
 }
 
-/** Cross-check anti-truncação: coletado deve bater com a contagem independente do Search. */
-export function crossCheck(collectedInUtcRange, independentTotal, anyDayHitCap) {
+/**
+ * Veredito sobre a lista de UM dia, confrontada com o `issueCount` do mesmo dia (oráculo).
+ * Existe porque `gh pr list --search` erra de duas formas, ambas com exit 0 (medido 2026-09-09):
+ *   (a) devolve `[]` — indistinguível de "esse dia não teve PR";
+ *   (b) devolve a 1ª página e para — 2026-09-03 voltou 100 de 114, e o agregado só via o rombo.
+ * Um só confronto cobre as duas. O oráculo é pedido ANTES da lista de propósito: no dia corrente
+ * um merge no meio da coleta faz n > esperado ('acima', benigno) em vez de fabricar 'incompleto'.
+ *   'completo'   → n === esperado.
+ *   'incompleto' → n < esperado: a listagem perdeu itens (vazio total ou página parcial).
+ *   'acima'      → n > esperado: mergearam depois do oráculo. Benigno.
+ *   'sem-oraculo-vazio' / 'sem-oraculo-com-itens' → não medi; o vazio não-medido NUNCA vira zero.
+ * Pura de propósito (sem rede) — é a política, o I/O fica em collectPRs.
+ */
+export function classificaDia(nColetado, esperado) {
+  if (esperado === null || esperado === undefined || !Number.isFinite(esperado)) {
+    return nColetado > 0 ? 'sem-oraculo-com-itens' : 'sem-oraculo-vazio';
+  }
+  if (nColetado === esperado) return 'completo';
+  return nColetado < esperado ? 'incompleto' : 'acima';
+}
+
+/**
+ * Cross-check anti-truncação: coletado deve bater com a contagem independente do Search.
+ * `diasSuspeitos` chega de collectPRs — dias cuja lista o oráculo do dia NÃO confirmou
+ * (vazia ou parcial). Ele vem ANTES do diff agregado de propósito: nomear o dia que não
+ * fechou diz ONDE está o buraco, enquanto "diff 160" só diz que ele existe.
+ */
+export function crossCheck(collectedInUtcRange, independentTotal, anyDayHitCap, diasSuspeitos = []) {
   if (anyDayHitCap) return { ok: false, reason: `uma sub-janela bateu no teto de 1000 — janela de dia densa demais` };
+  if (diasSuspeitos.length) {
+    const det = diasSuspeitos.map((d) => `${d.day} (${d.motivo})`).join('; ');
+    return { ok: false, reason: `coleta incompleta em ${diasSuspeitos.length} dia(s) — ${det}` };
+  }
   if (independentTotal == null) return { ok: true, reason: 'sem total independente (cross-check pulado)' };
   const diff = Math.abs(collectedInUtcRange - independentTotal);
   if (diff > 0) return { ok: false, reason: `coletado(${collectedInUtcRange}) ≠ Search total_count(${independentTotal}) — diff ${diff}` };
@@ -259,19 +296,75 @@ export function evalShippedHealth(files, today) {
 // ── coleta (impura — gh) ────────────────────────────────────────────────────────
 function gh(args) { return execFileSync('gh', args, { encoding: 'utf8', shell: false, maxBuffer: 96 * 1024 * 1024 }); }
 
-function collectPRs(repoArgs, since, until) {
+/** Pausa síncrona (o loop de coleta é sequencial; sem dependência externa). */
+function sleepSync(ms) { Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms); }
+
+/** Backoff entre as retentativas de um dia que não fechou com o oráculo. Tamanho = nº de retentativas. */
+export const BACKOFF_RETRY_MS = [400, 1200, 3000];
+
+/**
+ * Quantos PRs o GitHub diz que aquele dia tem — oráculo por dia. null = não medi.
+ * GraphQL (cota 5000 pontos/h, cost 1) e NÃO o Search REST: aquele tem 30 req/min e um dia
+ * por chamada estouraria a cota na primeira execução. A query espelha a que o `gh pr list
+ * --state merged --search merged:<dia>` monta — SEM `base:main`, porque o filtro de base é
+ * aplicado depois, no laço; medido em 2026-09-03: com base:main dá 113, sem dá 114, e a
+ * lista bruta tem 114. Comparar contra a query errada fabricaria 'acima' todo dia.
+ */
+function issueCountDoDia(repo, day) {
+  if (!repo) return null;
+  try {
+    const raw = gh(['api', 'graphql', '-f', 'query=query($q:String!){search(query:$q,type:ISSUE,first:1){issueCount}}',
+      '-f', `q=repo:${repo} is:pr is:merged merged:${day}`, '--jq', '.data.search.issueCount']);
+    const n = Number(String(raw).trim());
+    return Number.isFinite(n) ? n : null;
+  } catch { return null; }
+}
+
+/**
+ * Coleta por sub-janela de DIA (G1), com a lista de cada dia CONFERIDA contra o oráculo daquele
+ * dia. Antes ela era aceita como veio, e `gh pr list --search` erra de duas formas, ambas com
+ * exit 0 (medido 2026-09-09 · 104 dias × 3 rodadas):
+ *   vazio total  → ~10% das chamadas devolveram `[]`, indistinguível de "dia sem PR";
+ *   página única → 2026-09-03 devolveu 100 de 114 (o 100 é o tamanho de página do gh).
+ * Perder um dia inteiro custava ~45 PRs e o agregado só via o rombo (diff 160 no cron de 09-09);
+ * a página parcial custava ~14 e passava despercebida no ruído. O confronto por dia pega as duas
+ * e, o que é o ponto, DIZ QUAL DIA — o diff agregado só dizia que faltava alguma coisa.
+ */
+function collectPRs(repoArgs, since, until, repo) {
   const seen = new Map();
   let anyDayHitCap = false;
+  const diasSuspeitos = [];
+  let conferidos = 0, retentados = 0, recuperados = 0, semOraculo = 0;
+  const listaDoDia = (day) => JSON.parse(gh(['pr', 'list', '--state', 'merged', '--search', `merged:${day}`, '--json', 'number,title,mergedAt,baseRefName', '-L', '1000', ...repoArgs]));
+  const MOTIVO = {
+    incompleto: (n, e) => `a listagem trouxe ${n} de ${e} — incompleta mesmo após ${BACKOFF_RETRY_MS.length} retentativa(s)`,
+    'sem-oraculo-vazio': () => 'veio vazia e o oráculo do dia não respondeu — vazio NÃO verificado',
+  };
+
   for (const day of dayList(since, until)) {
-    const raw = gh(['pr', 'list', '--state', 'merged', '--search', `merged:${day}`, '--json', 'number,title,mergedAt,baseRefName', '-L', '1000', ...repoArgs]);
-    const arr = JSON.parse(raw);
+    const esperado = issueCountDoDia(repo, day);   // ANTES da lista: merge no meio vira 'acima', não 'incompleto'
+    let arr = listaDoDia(day);
+    let v = classificaDia(arr.length, esperado);
+    if (v === 'incompleto' || v === 'sem-oraculo-vazio') {
+      retentados++;
+      for (const espera of BACKOFF_RETRY_MS) {
+        sleepSync(espera);
+        arr = listaDoDia(day);
+        v = classificaDia(arr.length, esperado);
+        if (v !== 'incompleto' && v !== 'sem-oraculo-vazio') { recuperados++; break; }
+      }
+    }
+    if (v === 'incompleto' || v === 'sem-oraculo-vazio') diasSuspeitos.push({ day, motivo: MOTIVO[v](arr.length, esperado) });
+    else if (v === 'sem-oraculo-com-itens') semOraculo++;
+    else conferidos++;
     if (arr.length >= 1000) anyDayHitCap = true;
     for (const p of arr) if (p.baseRefName === 'main') seen.set(p.number, p);
   }
+  console.error(`· dias conferidos contra o oráculo: ${conferidos} · retentados: ${retentados} (recuperados: ${recuperados}) · sem oráculo (aceitos, com itens): ${semOraculo} · suspeitos: ${diasSuspeitos.length}`);
   const all = [...seen.values()];
   const inWindow = all.filter((p) => inBrtRange(p.mergedAt, since, until)).sort((a, b) => (a.mergedAt < b.mergedAt ? -1 : a.mergedAt > b.mergedAt ? 1 : a.number - b.number));
   const inUtc = all.filter((p) => { const t = Date.parse(p.mergedAt); return t >= Date.parse(since + 'T00:00:00Z') && t <= Date.parse(until + 'T23:59:59Z'); }).length;
-  return { inWindow, inUtc, anyDayHitCap };
+  return { inWindow, inUtc, anyDayHitCap, diasSuspeitos };
 }
 
 function independentTotal(repo, since, until) {
@@ -371,8 +464,8 @@ async function main() {
 
   const repo = resolveRepo(repoArg);
   const repoArgs = repo ? ['--repo', repo] : [];
-  const { inWindow, inUtc, anyDayHitCap } = collectPRs(repoArgs, since, until);
-  const cc = crossCheck(inUtc, independentTotal(repo, since, until), anyDayHitCap);
+  const { inWindow, inUtc, anyDayHitCap, diasSuspeitos } = collectPRs(repoArgs, since, until, repo);
+  const cc = crossCheck(inUtc, independentTotal(repo, since, until), anyDayHitCap, diasSuspeitos);
   if (!cc.ok) { console.error(`✗ CROSS-CHECK FALHOU (${cc.reason}) — não gravo registro incompleto.`); process.exit(1); }
 
   const direct = collectDirect(repo, since, until);

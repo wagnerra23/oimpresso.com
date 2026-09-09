@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import {
   parseTitle, normScope, isDS, reconcileReverts, groupByArea,
-  crossCheck, dayList, inBrtRange, markDeployed,
+  crossCheck, dayList, inBrtRange, markDeployed, classificaDia, BACKOFF_RETRY_MS,
   evalShippedHealth, parseShippedMeta, pickLiveLogs, FRESH_DAYS, SHIPPED_DIR,
 } from './shipped-log-generate.mjs';
 
@@ -110,6 +110,50 @@ t('crossCheck ok quando bate', () => assert.equal(crossCheck(50, 50, false).ok, 
 t('crossCheck FALHA quando diverge', () => assert.equal(crossCheck(49, 50, false).ok, false));
 t('crossCheck FALHA quando sub-janela bateu no teto', () => assert.equal(crossCheck(1000, 1000, true).ok, false));
 t('crossCheck ok (pulado) quando não há total independente', () => assert.equal(crossCheck(50, null, false).ok, true));
+
+// ── G10: a lista do dia ≠ o dia (`gh pr list --search` erra com exit 0) ──
+// A pergunta que o gerador não sabia responder: o dia não teve PR, ou a chamada não funcionou?
+t('classificaDia: n === esperado → completo', () => {
+  assert.equal(classificaDia(64, 64), 'completo');
+  assert.equal(classificaDia(0, 0), 'completo');          // domingo sem merge é resposta legítima
+});
+t('classificaDia: vazio com oráculo > 0 → incompleto (o [] era FALSO)', () => {
+  assert.equal(classificaDia(0, 45), 'incompleto');
+});
+t('classificaDia: página parcial → incompleto (o caso 2026-09-03: 100 de 114)', () => {
+  assert.equal(classificaDia(100, 114), 'incompleto');
+});
+t('classificaDia: n > esperado → acima (mergearam depois do oráculo; benigno, não reprova)', () => {
+  assert.equal(classificaDia(37, 36), 'acima');
+});
+t('classificaDia: oráculo mudo NUNCA vira completo por omissão', () => {
+  for (const mudo of [null, undefined, NaN]) {
+    assert.equal(classificaDia(0, mudo), 'sem-oraculo-vazio');
+    assert.equal(classificaDia(10, mudo), 'sem-oraculo-com-itens');
+  }
+});
+// Controle negativo do gate: sem dia suspeito o cross-check segue como era.
+t('crossCheck: lista de suspeitos vazia não muda o veredito antigo', () => {
+  assert.equal(crossCheck(50, 50, false, []).ok, true);
+  assert.equal(crossCheck(49, 50, false, []).ok, false);
+});
+// A mordida: com dia suspeito reprova MESMO com o agregado batendo — porque um dia perdido
+// pode ser compensado por outro no total e o diff agregado não veria (foi o buraco de 09-09).
+t('crossCheck REPROVA por dia suspeito ainda que o total agregado bata', () => {
+  const r = crossCheck(50, 50, false, [{ day: '2026-08-11', motivo: 'a listagem trouxe 0 de 45 — incompleta mesmo após 3 retentativa(s)' }]);
+  assert.equal(r.ok, false);
+  assert.match(r.reason, /2026-08-11/);          // nomeia o DIA, não só o rombo
+  assert.match(r.reason, /coleta incompleta/);
+});
+t('crossCheck: dia não-verificável também reprova (não medi ≠ está tudo bem)', () => {
+  const r = crossCheck(50, 50, false, [{ day: '2026-07-13', motivo: 'veio vazia e o oráculo do dia não respondeu — vazio NÃO verificado' }]);
+  assert.equal(r.ok, false);
+  assert.match(r.reason, /2026-07-13/);
+});
+t('BACKOFF_RETRY_MS: crescente e não-vazio (retry sem backoff volta a bater no mesmo limite)', () => {
+  assert.ok(BACKOFF_RETRY_MS.length >= 1);
+  for (let i = 1; i < BACKOFF_RETRY_MS.length; i++) assert.ok(BACKOFF_RETRY_MS[i] > BACKOFF_RETRY_MS[i - 1]);
+});
 
 // ── borda BRT × UTC ──
 t('inBrtRange inclui noite BRT do último dia (29/jun 01:00 UTC = 28/jun 22:00 BRT)', () => {
