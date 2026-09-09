@@ -619,6 +619,25 @@ async function printResolve(r) {
   // legítima, mas não é âncora — imprimir "âncora ✓: n/a" é sinal de saúde falso e foi
   // o que fez uma sessão (2026-08-11) ler "tem âncora" onde não havia nenhuma.
   // Ver LC-10 (artefato afirmando o próprio estado) — aqui no eixo do OUTPUT.
+  //
+  // A PARTIR DA 2ª que resolve em arquivo, o rótulo muda (2026-09-09). Medido: 5 telas
+  // declaram os dois campos apontando arquivos DIFERENTES, e em todas as 5 o
+  // `related_prototype` é o desenho ESPECÍFICO e o `bundle_source` é o HUB do módulo que a
+  // contém — `fiscal-subpages.jsx` ("sub-páginas … Vivo: Pages/Fiscal/{Eventos,Dfe,Config,
+  // Sped}.tsx") × `fiscal-page.jsx`; `essenciais-extras.jsx` (base de conhecimento) ×
+  // `essenciais-page.jsx`. As duas são declarações VERDADEIRAS, então suprimir a 2ª seria
+  // apagar fato do charter — e pioraria o cross-check do `gerar-map`, que fica mais
+  // permissivo justamente por enxergar as duas. O defeito era só de APRESENTAÇÃO: duas
+  // linhas `âncora ✓` com o mesmo peso, e o leitor sem saber qual vale.
+  //
+  // Qual vale já estava decidido e os consumidores JÁ respeitam — `design-diff-lote` dá
+  // `break` na primeira que resolve (L412) e `render-proto-baseline` só olha
+  // `related_prototype` (L297). O printer é que não dizia. Agora diz.
+  //
+  // A 2ª NÃO é medida (nem selo, nem frescor, nem P-1): medir custa I/O e afirmaria sobre um
+  // arquivo que ninguém vai abrir por esta tela. Sem medição, sem selo — é a regra do próprio
+  // bloco acima (§5 2026-07-29: instrumento não afirma verde sem ter medido).
+  let jaTemEfetiva = false;
   for (const a of r.ancoras) {
     if (ehDeclaracaoNa(a.valor)) {
       console.log(`  sem âncora: ${a.valor}`);
@@ -641,6 +660,14 @@ async function printResolve(r) {
         console.log('                Pode ser declaração de Padrão de Tela, ou related_prototype incompleto.)');
         continue;
       }
+      if (jaTemEfetiva) {
+        console.log(`  também declarado: [${a.tipo}] ${a.valor}`);
+        if (caminho !== desasparValor(a.valor)) console.log(`              → resolvido em: ${caminho}`);
+        console.log('              (o bundle de ORIGEM do módulo, não o desenho desta tela. A âncora');
+        console.log('               efetiva é a de cima — é a que design-diff-lote e proto-baseline abrem.');
+        console.log('               Não medido aqui de propósito: sem leitura, sem selo.)');
+        continue;
+      }
       const d = await defeitosDaAncora(caminho, raizGit, raizLeitura);
       // `✓` exige LEITURA. `lido:false` = não consegui abrir o arquivo da âncora (path que
       // não resolve — p.ex. `arquivo.jsx (PT-04 Dashboard)`, onde o parêntese entra no path).
@@ -649,6 +676,7 @@ async function printResolve(r) {
       // aqui, no consumidor. É LC-11/§5 2026-07-29 (instrumento afirma verde sem ter medido).
       const selo = !d.lido ? '⚠️' : d.fantasmas.length ? '⚠️' : '✓';
       console.log(`  âncora ${selo}:   [${a.tipo}] ${a.valor}`);
+      jaTemEfetiva = true; // as próximas que resolverem viram "também declarado"
       // O valor é texto livre; quando o caminho medido não é o valor cru, dizer QUAL foi —
       // senão o leitor não sabe se o ✓/⚠️ fala do arquivo que ele acha que declarou.
       if (caminho !== desasparValor(a.valor)) console.log(`              → resolvido em: ${caminho}`);
@@ -1196,6 +1224,38 @@ async function selftest() {
   const rDup = await resolveAncora('Dupla/Index', { repoRoot: fxBRepo });
   t('CONTROLE dedup: mesmo arquivo nos dois campos → UMA âncora, e é o related_prototype',
     rDup.ok && rDup.ancoras.length === 1 && rDup.ancoras[0].tipo === 'related_prototype (charter)');
+
+  // ── ÂNCORA EFETIVA × "também declarado" (2026-09-09) ────────────────────────
+  // Quando os dois campos apontam arquivos DIFERENTES (5 telas no corpus: as 4 sub-páginas
+  // do Fiscal + Essentials/Knowledge), as DUAS declarações são verdadeiras e ficam na
+  // estrutura — quem some daqui some do cross-check do `gerar-map`. O que muda é o RÓTULO:
+  // a 1ª que resolve é a efetiva; a 2ª é o bundle de origem, e sai sem selo porque não é
+  // medida. O BITE exercita o `printResolve` DE FORA (capturando stdout), não um helper
+  // satélite — assert sobre cópia paralela fica verde enquanto o pipeline regride (§5 2026-08-14).
+  await mkdir(pages('Diverge'), { recursive: true });
+  await writeFile(join(fxBRepo, 'prototipo-ui', 'cowork', 'especifico-page.jsx'), '// o desenho DESTA tela\n', 'utf8');
+  await writeFile(join(pages('Diverge'), 'Index.charter.md'),
+    chB('/fxb/diverge', ['related_prototype: prototipo-ui/cowork/especifico-page.jsx', 'bundle_source: bundle-page.jsx']), 'utf8');
+  const rDiv = await resolveAncora('Diverge/Index', { repoRoot: fxBRepo });
+  t('BITE divergente: arquivos DIFERENTES nos dois campos → as DUAS ficam na estrutura',
+    rDiv.ok && rDiv.ancoras.length === 2);
+  const capDiv = [];
+  const logDiv = console.log;
+  console.log = (...a) => { capDiv.push(a.join(' ')); };
+  try { await printResolve(rDiv); } finally { console.log = logDiv; }
+  const saidaDiv = capDiv.join('\n');
+  t('BITE divergente: o printer marca UMA como efetiva (`âncora`) e a outra como `também declarado`',
+    (saidaDiv.match(/^ {2}âncora [✓⚠️]/gm) || []).length === 1
+      && saidaDiv.includes('também declarado')
+      && /âncora [✓⚠️][\s\S]*também declarado/.test(saidaDiv));
+  t('BITE divergente: a efetiva é o related_prototype (a específica), não o hub do bundle',
+    /âncora [✓⚠️].*especifico-page\.jsx/.test(saidaDiv));
+  // Sem este, imprimir "também declarado" pra TODA âncora ficaria verde no BITE acima.
+  const capUm = [];
+  console.log = (...a) => { capUm.push(a.join(' ')); };
+  try { await printResolve(await resolveAncora('Fixo/Index', { repoRoot: fxBRepo })); } finally { console.log = logDiv; }
+  t('CONTROLE divergente: com UMA âncora só, o rótulo `também declarado` NÃO aparece',
+    !capUm.join('\n').includes('também declarado'));
 
   // ── FRESCOR: os 4 estados + o controle que impede o selo herdado ──────────────
   // A rodada de fixture imita a forma real do ledger (date/verified/verifiedHash/staleList).
