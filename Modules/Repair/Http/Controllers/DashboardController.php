@@ -75,21 +75,61 @@ class DashboardController extends Controller
                 ->get()
                 ->toArray();
 
+            $trendingDevices = collect($this->repairUtil->getTrendingDevices($business_id))
+                ->map(fn ($r) => [
+                    'device' => $r->device ?? '—',
+                    'count' => (int) ($r->job_sheet_devices ?? 0),
+                ])->values()->all();
+
             return Inertia::render('Repair/Dashboard/Index', [
-                'kpis' => [
-                    'total_repairs' => is_countable($job_sheets_by_status) ? count($job_sheets_by_status) : 0,
-                    'service_staff_count' => is_countable($job_sheets_by_service_staff) ? count($job_sheets_by_service_staff) : 0,
-                ],
+                'kpis' => $this->buildDashboardKpis((int) $business_id),
                 'job_sheets_by_status' => $statusRows,
                 'job_sheets_by_service_staff' => $staffRows,
                 'trending_brand_chart' => $trendingBrands,
-                'trending_devices_chart' => [],
+                'trending_devices_chart' => $trendingDevices,
                 'trending_dm_chart' => $trendingModels,
             ]);
         }
 
         return view('repair::dashboard.index')
             ->with(compact('job_sheets_by_status', 'job_sheets_by_service_staff', 'trending_devices_chart', 'trending_dm_chart', 'trending_brand_chart'));
+    }
+
+    /**
+     * KPIs de OPERAÇÃO da oficina — os que o protótipo (repair-page.jsx, região `Painel`)
+     * põe no topo: quantas folhas estão abertas, quantas fecharam e quantas passaram do
+     * prazo prometido no balcão.
+     *
+     * Substitui `count($job_sheets_by_status)`, que contava as LINHAS do agrupamento (=
+     * quantos status distintos aparecem) e ficava preso em ~6 para sempre, com 3 ou 3.000
+     * OS. Ver RUNBOOK-repair-dashboard.md §"Os dois defeitos que esta onda conserta".
+     *
+     * Uma agregada só, com `leftJoin` no catálogo: folha cujo status foi apagado no legado
+     * conta como PENDENTE, que é o lado seguro — some da tela é pior que aparecer aberta.
+     *
+     * Multi-tenant: `business_id` explícito (ADR 0093 Tier 0 — JobSheet não tem global scope).
+     */
+    private function buildDashboardKpis(int $business_id): array
+    {
+        $linha = JobSheet::leftJoin('repair_statuses as RS', 'repair_job_sheets.status_id', '=', 'RS.id')
+            ->where('repair_job_sheets.business_id', $business_id)
+            ->selectRaw('
+                SUM(CASE WHEN COALESCE(RS.is_completed_status, 0) = 1 THEN 1 ELSE 0 END) as concluidas,
+                SUM(CASE WHEN COALESCE(RS.is_completed_status, 0) = 0 THEN 1 ELSE 0 END) as pendentes,
+                SUM(CASE WHEN COALESCE(RS.is_completed_status, 0) = 0
+                         AND COALESCE(repair_job_sheets.service_staff, 0) = 0 THEN 1 ELSE 0 END) as sem_tecnico,
+                SUM(CASE WHEN COALESCE(RS.is_completed_status, 0) = 0
+                         AND repair_job_sheets.delivery_date IS NOT NULL
+                         AND repair_job_sheets.delivery_date < ? THEN 1 ELSE 0 END) as vencidas
+            ', [now()])
+            ->first();
+
+        return [
+            'pending' => (int) ($linha->pendentes ?? 0),
+            'pending_unassigned' => (int) ($linha->sem_tecnico ?? 0),
+            'completed' => (int) ($linha->concluidas ?? 0),
+            'overdue' => (int) ($linha->vencidas ?? 0),
+        ];
     }
 
     /**
