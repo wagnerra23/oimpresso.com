@@ -74,6 +74,12 @@ use Modules\Jana\Services\TaskRegistry\HitlEscalationService;
  *      desde X"), não N investigações. Não sonda nada — correlaciona o que os
  *      donos de cada sinal mediram neste run e rebaixa a advisory os sintomas
  *      que a causa raiz explica.
+ *  10h. schedule_comando_fantasma (2026-09-09) — comando AGENDADO que não existe no
+ *      `Artisan::all()`, e agendamento DUPLICADO (mesmo comando+args+cron 2×). Vive
+ *      aqui, e não no CI, porque vários providers agendam sob `if ($env === 'live')`:
+ *      um teste com app.env=testing enumeraria meio schedule e nasceria MUDO. Achou 2
+ *      defeitos vivos no dia em que nasceu — um cron morto há meses (410 exceptions,
+ *      alerta de assinatura nunca enviado) e 8 pares duplicados.
  *  11. Lesson ledger graduation (ADVISORY · Reflexion runtime) — toda lição de
  *      operação em LICOES-OPERACAO.md nasceu graduada (MEC→check / JULG→regra);
  *      acende amarelo se há entrada malformada ou `status:pendente`.
@@ -166,6 +172,7 @@ class HealthCheckCommand extends Command
             $this->checkDbStorageQuota(),
             $this->checkMcpIndexSyncGap(),
             $this->checkMcpTokenSemPermission(),
+            $this->checkScheduleFantasma(),
             $this->checkLessonLedgerGraduation(),
             $this->checkGovernancaGraduationRatio(),
             $this->checkProtocolFreshness(),
@@ -1048,6 +1055,141 @@ class HealthCheckCommand extends Command
      * @param  array<int, array{label: string, business_id: int, last_inbound: ?string}>  $channels
      * @return array{ok: bool, vigiados: int, mudos: list<string>, fora_horario: bool}
      */
+    /**
+     * Comando agendado que NÃO EXISTE, e agendamento DUPLICADO.
+     *
+     * Por que aqui e não no CI: o schedule só existe inteiro em produção. Vários
+     * providers registram dentro de `if ($env === 'live')`, então um teste Pest com
+     * `app.env=testing` enumeraria um schedule pela metade e nasceria MUDO — pior que
+     * ausente. Aqui o oráculo é o runtime real dos dois lados: o que o scheduler
+     * agenda × o que o `Artisan::all()` conhece.
+     *
+     * Origem (2026-09-09): dois defeitos vivos e silenciosos, achados só porque alguém
+     * foi medir. `pos:sendSubscriptionExpiryAlert` estava agendado e não existia — 410
+     * CommandNotFoundException no log, alerta de expiração de assinatura nunca enviado;
+     * e 8 pares (comando, cron) duplicados, entre eles os syncs do WooCommerce rodando
+     * 4×/dia em vez de 2. Nenhuma máquina viu: schedule que falha só escreve `Schedule
+     * ... FALHOU` num log de 1 GB.
+     *
+     * FP MEDIDO ANTES de armar (regra "LIGUE A MÁQUINA" #4), em prod SHA a0db7b0177:
+     * fantasmas 1/80; duplicados 8/89 chaves. ⚠️ A chave PRECISA incluir os argumentos —
+     * com só o nome do comando, as 5 filas de `queue:work` colidiam e viravam
+     * falso-positivo por construção. Com a chave certa, zero FP.
+     */
+    protected function checkScheduleFantasma(): array
+    {
+        $name = 'schedule_comando_fantasma';
+        $threshold = '0 fantasma · 0 duplicado';
+
+        try {
+            $registrados = array_keys(\Illuminate\Support\Facades\Artisan::all());
+            $agendamentos = array_map(
+                fn ($e) => ['command' => (string) ($e->command ?? ''), 'expression' => (string) $e->expression],
+                app(\Illuminate\Console\Scheduling\Schedule::class)->events()
+            );
+
+            $r = self::evaluateSchedule($agendamentos, $registrados);
+
+            $fantasmas = $r['fantasmas'];
+            $duplicados = $r['duplicados'];
+            $naoParseados = $r['nao_parseados'];
+            $medidos = $r['medidos'];
+            $nFantasmas = count($fantasmas);
+            $nDuplicados = count($duplicados);
+
+            $sufixo = $naoParseados > 0
+                ? " · {$naoParseados} evento(s) não-artisan não medido(s) (Job/closure)"
+                : '';
+
+            if ($nFantasmas === 0 && $nDuplicados === 0) {
+                return [
+                    'name' => $name,
+                    'ok' => true,
+                    'value' => "{$medidos} agendamento(s) medido(s)",
+                    'threshold' => $threshold,
+                    'message' => "Todos os {$medidos} comandos agendados existem no Artisan e nenhum está duplicado{$sufixo}",
+                ];
+            }
+
+            $partes = [];
+            if ($nFantasmas > 0) {
+                $partes[] = "AGENDADO MAS NÃO EXISTE ({$nFantasmas}): " . implode(', ', $fantasmas)
+                    . ' — o cron dele morre em CommandNotFoundException sem falhar nada visível;'
+                    . ' registre a classe no commands([...]) do provider';
+            }
+            if ($nDuplicados > 0) {
+                $partes[] = "AGENDADO EM DUPLICIDADE ({$nDuplicados}): " . implode(' · ', $duplicados)
+                    . ' — provider chamando o registrador 2× (ou boot() duplo do nWidart sem guarda estática)';
+            }
+
+            return [
+                'name' => $name,
+                'ok' => false,
+                'value' => "{$nFantasmas} fantasma(s) · {$nDuplicados} duplicado(s)",
+                'threshold' => $threshold,
+                'message' => implode(' | ', $partes) . $sufixo,
+            ];
+        } catch (\Throwable $e) {
+            // NÃO consegui medir ≠ está tudo bem. Advisory + estado nomeado, nunca um
+            // verde que finge ter percorrido o schedule (§5 2026-07-29).
+            return [
+                'name' => $name,
+                'ok' => false,
+                'advisory' => true,
+                'value' => 'não-medido',
+                'threshold' => $threshold,
+                'message' => 'Não consegui enumerar o schedule — ' . $e->getMessage()
+                    . ' (isto NÃO afirma que o schedule está são)',
+            ];
+        }
+    }
+
+    /**
+     * Decisão PURA do check acima (mesmo pattern de `evaluateInboundFlow`): sem app,
+     * sem Schedule, sem DB — testável com dado sintético.
+     *
+     * @param  array<int, array{command: string, expression: string}>  $agendamentos
+     * @param  array<int, string>  $registrados  nomes vindos de `Artisan::all()`
+     * @return array{fantasmas: array<int, string>, duplicados: array<int, string>, nao_parseados: int, medidos: int}
+     */
+    public static function evaluateSchedule(array $agendamentos, array $registrados): array
+    {
+        $fantasmas = [];
+        $chaves = [];
+        $naoParseados = 0;
+
+        foreach ($agendamentos as $a) {
+            $raw = (string) ($a['command'] ?? '');
+
+            // Só sabemos julgar evento que invoca artisan. Job/closure agendado é
+            // legítimo e NÃO é medido — conta separado, nunca entra como "ok".
+            if ($raw === '' || ! preg_match('/artisan[\'"]?\s+(.+)$/', $raw, $m)) {
+                $naoParseados++;
+
+                continue;
+            }
+
+            $completo = trim($m[1]);
+            $nomeComando = trim(explode(' ', $completo)[0], "'\"");
+
+            if (! in_array($nomeComando, $registrados, true)) {
+                $fantasmas[$nomeComando] = true;
+            }
+
+            // Chave COM argumentos: `queue:work --queue=a` e `--queue=b` são entradas
+            // distintas e legítimas. Sem os args isto dá falso-positivo (medido).
+            $chave = $completo . ' @ ' . ($a['expression'] ?? '');
+            $chaves[$chave] = ($chaves[$chave] ?? 0) + 1;
+        }
+
+        return [
+            'fantasmas' => array_keys($fantasmas),
+            'duplicados' => array_keys(array_filter($chaves, fn ($n) => $n > 1)),
+            'nao_parseados' => $naoParseados,
+            'medidos' => count($agendamentos) - $naoParseados,
+        ];
+    }
+
     public static function evaluateInboundFlow(array $channels, \Illuminate\Support\Carbon $nowBrt, int $thresholdHours): array
     {
         // Janela comercial BRT (08–20, seg–sáb). Fora dela, silêncio é normal.
