@@ -1,0 +1,26 @@
+<!doctype html>
+<!-- @dsCard group="Components" name="Breadcrumb" subtitle="Current-page hierarchy trail" viewport="620x90" -->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Breadcrumb</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<style> body { padding: 18px; display:flex; flex-direction: column; gap: 14px; } </style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/javascript">
+  const { Breadcrumb } = window.OfficeImpressoPontoWR2DesignSystem_019dd0;
+  const h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    h(React.Fragment, null,
+      h(Breadcrumb, { items: [{ label: 'Início', href: '#' }, { label: 'Produção', href: '#' }, { label: 'Ordens de serviço', href: '#' }, { label: '#1574' }] }),
+      h(Breadcrumb, { items: [{ label: 'Início', href: '#' }, { label: 'Financeiro', href: '#' }, { label: 'Contas a receber', href: '#' }, { label: '#4821' }] }),
+    )
+  );
+</script>
+</body>
+</html>

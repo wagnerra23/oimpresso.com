@@ -1,0 +1,41 @@
+<!doctype html>
+<!-- @dsCard group="Components" name="Timeline" subtitle="Trilha de auditoria — eventos, de/para, agrupamento por dia" viewport="660x460" -->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Timeline</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<style>body{margin:0}</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+</head>
+<body>
+<div class="cockpit" style="padding:18px;background:var(--bg)"><div id="root"></div></div>
+<script type="text/javascript">
+
+  const { Timeline, Widget } = window.OfficeImpressoPontoWR2DesignSystem_019dd0;
+  const h = React.createElement;
+  const entries = [
+    { id: 1, day: 'Hoje · 12 mar', time: '14:32', actor: 'Marina Prado', action: 'alterou o status da OS #4821', tone: 'accent',
+      changes: [{ field: 'status', from: 'em_producao', to: 'concluida' }] },
+    { id: 2, day: 'Hoje · 12 mar', time: '13:58', actor: 'Sistema', action: 'registrou pagamento parcial', tone: 'success',
+      detail: 'PIX conciliado automaticamente pelo extrato Banco 341.',
+      meta: [{ label: 'valor', value: 'R$ 620,00' }, { label: 'saldo', value: 'R$ 620,00' }] },
+    { id: 3, day: 'Hoje · 12 mar', time: '11:04', actor: 'Carlos Souza', action: 'anexou arquivo de prova', tone: 'default',
+      meta: [{ label: 'arquivo', value: 'banner-3x2-v2.pdf' }] },
+    { id: 4, day: 'Ontem · 11 mar', time: '17:20', actor: 'João Lima', action: 'aprovou o orçamento', tone: 'success',
+      changes: [{ field: 'valor', from: 'R$ 1.180', to: 'R$ 1.240' }] },
+    { id: 5, day: 'Ontem · 11 mar', time: '09:12', actor: 'Sistema', action: 'marcou prazo em risco', tone: 'warning',
+      detail: 'Entrega prevista em menos de 24 h sem etapa de acabamento iniciada.' },
+    { id: 6, day: 'Ontem · 11 mar', time: '08:45', actor: 'Fernanda Alves', action: 'cancelou a NF-e 10442', tone: 'danger',
+      changes: [{ field: 'fiscal', from: 'autorizada', to: 'cancelada' }] },
+  ];
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    h(Widget, { title: 'Histórico da OS #4821', note: 'Trilha de auditoria — 6 eventos', scroll: true, height: 400 },
+      h(Timeline, { entries, groupByDay: true }))
+  );
+
+</script>
+</body>
+</html>

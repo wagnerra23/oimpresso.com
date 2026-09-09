@@ -1,0 +1,30 @@
+<!doctype html>
+<!-- @dsCard group="Components" name="Input" subtitle="Field controls — label, help, error · Input/Search/Select/Textarea" viewport="700x360" -->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Input / Select / Textarea</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<style> body { padding: 18px; } .grid { display:grid; grid-template-columns: 1fr 1fr; gap: 16px 20px; } .span { grid-column: span 2; } </style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/javascript">
+  const { Input, SearchInput, Select, Textarea } = window.OfficeImpressoPontoWR2DesignSystem_019dd0;
+  const h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    h('div', { className: 'grid' },
+      h('div', { className: 'span' }, h(SearchInput, { label: 'Buscar OS / peça', placeholder: 'Nº da OS, placa, peça…', help: 'Pressione / em qualquer lugar da tela para focar.' })),
+      h(Input, { label: 'Razão social', defaultValue: 'Acme Comércio Ltda', help: 'Como aparece na NF-e.' }),
+      h(Input, { label: 'CNPJ', defaultValue: '12.345.678/0001', error: 'CNPJ inválido.' }),
+      h(Select, { label: 'Tipo', defaultValue: 'pj', options: [{ value: 'pj', label: 'Pessoa jurídica' }, { value: 'pf', label: 'Pessoa física' }] }),
+      h(Input, { label: 'Inativo', defaultValue: '—', readOnly: true }),
+      h('div', { className: 'span' }, h(Textarea, { label: 'Observações', placeholder: 'Anotações internas sobre o cliente…', rows: 2 })),
+    )
+  );
+</script>
+</body>
+</html>

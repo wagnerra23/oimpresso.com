@@ -3,6 +3,7 @@ id: resources-js-pages-essentials-documents-index-charter
 page: /essentials/document
 component: resources/js/Pages/Essentials/Documents/Index.tsx
 related_prototype: prototipo-ui/cowork/essenciais-page.jsx#Arquivos (:338-400)
+related_us: [US-ESS-007]
 bundle_source: essenciais-page.jsx
 owner: wagner
 status: draft
