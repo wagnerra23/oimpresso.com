@@ -75,6 +75,44 @@ last_run: "2026-09-09"
 
 ---
 
+## UC-PAT-05 · O selo da análise nomeia a categoria de MAIOR valor, não a primeira da lista
+- **Persona:** Wagner (gestor) — quer ler de relance onde o patrimônio está concentrado, sem
+  somar as barras de cabeça.
+- **Aceite:** Dado um business cujo bem de maior valor **não** é o primeiro item de
+  `porCategoria` · Quando o card "Patrimônio por categoria" renderiza · Então o selo mostra o
+  percentual **da categoria de maior valor** sobre o patrimônio bruto, e nada aparece quando o
+  denominador ainda não chegou (`kpis` é prop deferida).
+- **Teste:** `tests/js/patrimonio-painel-forma.test.tsx` — `describe('UC-PAT-05 …')`, 4 casos
+  (o 1º é controle positivo do harness).
+- **Regressão que defende:** ler `porCategoria[0]` em vez de derivar o máximo. Hoje o servidor
+  ordena por valor desc (`AssetController::painelPorCategoria`, `orderByDesc('valor')`), então
+  os dois coincidem — e é exatamente por isso que o defeito passaria despercebido: o selo
+  continua **aparecendo**, com a categoria errada, no dia em que a ordenação mudar. Percentual
+  errado é pior que percentual nenhum, porque tem cara de apurado.
+  **Bite-test (provado 2026-09-09):** trocar o `reduce` por `porCategoria[0]` derruba o caso 2;
+  remover a guarda `&& kpis?.bruto` derruba o caso 3 (o selo sai `Infinity% em …`).
+- **Status: 🧪** — idem UC-PAT-02.
+
+---
+
+## UC-PAT-06 · O ícone do "Resumo de hoje" resolve no lucide, nunca no fallback
+- **Persona:** Larissa (opera a tela) — o painel abre com o mesmo vocabulário visual das outras
+  seções, não com uma bola vazia onde deveria haver um ícone.
+- **Aceite:** Dado que `Components/Icon` resolve o ícone **por string** · Quando o bloco
+  `data-contract="resumo"` renderiza · Então o `<svg>` sai como `lucide-calendar` e **não** como
+  `lucide-circle`.
+- **Teste:** `tests/js/patrimonio-painel-forma.test.tsx` — `describe('UC-PAT-06 …')`, 1 caso.
+- **Regressão que defende:** o nome do ícone errar e ninguém ver. O `Icon` aceita qualquer
+  string e cai em `Circle` quando o nome não existe no lucide (`Components/Icon.tsx:29`) — o TS
+  **não** valida, o componente faz cast. tsc verde, eslint verde, build verde, e a tela mostra
+  uma bola. Foi o bug de 2026-05-07 ([#184](https://github.com/wagnerra23/oimpresso.com/pull/184)),
+  que atingiu todas as telas Inertia de uma vez.
+  **Bite-test (provado 2026-09-09):** trocar `name="calendar"` por um nome inexistente derruba
+  o caso — `lucide-circle` no lugar de `lucide-calendar`.
+- **Status: 🧪** — idem UC-PAT-02.
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** Chego na tela pelo menu, sem digitar URL: a camada de ALCANCE
@@ -99,3 +137,10 @@ last_run: "2026-09-09"
   manter caso aqui criaria um segundo dono do mesmo contrato. Entraram os 3 que são desta tela
   (número sem fonte × 2, decimal × 1), cobertos por
   `tests/js/patrimonio-painel-sem-fonte.test.tsx` (6 casos, bite-test em 2 mutações).
+- 2026-09-09 · [CL] os dois detalhes de FORMA que faltavam pro painel espelhar o protótipo
+  (ícone do resumo · selo da categoria dominante) entraram com UC próprio — **UC-PAT-05** e
+  **UC-PAT-06**, em `tests/js/patrimonio-painel-forma.test.tsx` (5 casos, bite-test em 3
+  mutações). Arquivo separado do irmão de propósito: aquele defende contrato de **dado**
+  (número sem fonte mostra `—`), estes defendem **forma**. O contador da lane subiu de
+  60 arquivos/702 testes para 61/707 — a prova de que o arquivo novo entrou não é o nome
+  no log, é o delta (§5 2026-08-02).

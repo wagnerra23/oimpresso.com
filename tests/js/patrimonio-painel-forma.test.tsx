@@ -25,7 +25,9 @@
 //      (o selo passa a dizer a categoria errada, porque a fixture põe a dominante no MEIO).
 //   2. `name="calendar"` → `name="calendario"` (nome que não existe no lucide)
 //      ⇒ UC-PAT-06 VERMELHO (`lucide-circle` no lugar de `lucide-calendar`).
-//   3. remover o `&& kpis?.bruto` da guarda ⇒ UC-PAT-05 caso 3 VERMELHO (aparece `0% em ...`).
+//   3. remover o `&& kpis?.bruto` da guarda ⇒ UC-PAT-05 caso 3 VERMELHO. E o que a mutação
+//      imprimiu não foi `0% em ...` e sim **`Infinity% em impressão`** — divisão por um
+//      denominador ausente, que é pior que zero: o zero ao menos parece um número.
 // Sem esses três pares o arquivo seria carimbo: verde que não sabe ficar vermelho.
 //
 // ── O QUE **NÃO** PROVA (resíduo declarado) ──────────────────────────────────
@@ -97,7 +99,9 @@ describe('UC-PAT-05 · selo da categoria dominante no card de análise', () => {
     expect(card!.contains(selo), 'o selo está dentro do card de categoria').toBe(true);
   });
 
-  it('sem denominador (`kpis` ainda deferido) NÃO inventa selo — zero afirmaria concentração nenhuma', () => {
+  // Sem a guarda o selo sai `Infinity% em impressão` (medido na mutação 3) — o assert é sobre
+  // a AUSÊNCIA do selo, não sobre um valor específico, pra pegar as duas formas de errar.
+  it('sem denominador (`kpis` ainda deferido) NÃO inventa selo', () => {
     const { container } = render(
       <PainelPatrimonio {...BASE} kpis={null} porCategoria={POR_CATEGORIA} />,
     );
