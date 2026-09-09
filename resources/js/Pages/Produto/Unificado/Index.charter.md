@@ -3,6 +3,7 @@ id: resources-js-pages-produto-unificado-index-charter
 page: /products/unificado
 component: resources/js/Pages/Produto/Unificado/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela — referência viva /contacts = Pages/Cliente/Index.tsx)
+bundle_source: produtos-page.jsx  # 2026-09-09 [C]: porte REVERSO — `produtos-page.jsx:1-2` declara "Porte do main lido em 2026-08-25: Pages/Produto/Unificado/Index.tsx", que e ESTA tela. Fonte de bundle, NAO design aprovado (§5 2026-08-28). Movido de Produto/Index, onde estava pendurado na tela errada.
 owner: wagner
 status: draft
 last_validated: "2026-05-09"
