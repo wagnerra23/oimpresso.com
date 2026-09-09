@@ -45,20 +45,28 @@ class DashboardController extends Controller
         if ($this->mwartEnabled('repair_dashboard_index', (int) $business_id)) {
             // Util methods retornam CommonChart (objeto Highcharts) — incompatível com TSX que espera arrays.
             // Re-query inline pra entregar shape limpo {label,count}.
+            //
+            // ⚠️ A chave É `label` nas CINCO séries, e isso é contrato com o consumidor:
+            // `BarChartCard` (Index.tsx) lê `r.label`. Até 2026-09-09 este bloco mandava
+            // `status`/`staff`/`brand`/`model` — os 4 gráficos renderizavam o rótulo VAZIO
+            // em produção, enquanto o `.tsx:17` afirmava que "toda série é normalizada
+            // pelo Controller pra {label,count}". O comentário estava certo sobre a
+            // intenção e errado sobre o fato; agora os dois batem. Renomear aqui é seguro:
+            // nenhum teste asserta a chave interna (todos usam `sum('count')`).
             $statusRows = collect($job_sheets_by_status)->map(fn ($r) => [
-                'status' => $r->status_name ?? '—',
+                'label' => $r->status_name ?? '—',
                 'count' => (int) $r->total_job_sheets,
             ])->values()->all();
 
             $staffRows = collect($job_sheets_by_service_staff)->map(fn ($r) => [
-                'staff' => trim($r->service_staff ?? '—') ?: '—',
+                'label' => trim($r->service_staff ?? '—') ?: '—',
                 'count' => (int) $r->total_job_sheets,
             ])->values()->all();
 
             $trendingBrands = JobSheet::leftJoin('brands', 'repair_job_sheets.brand_id', '=', 'brands.id')
                 ->where('repair_job_sheets.business_id', $business_id)
                 ->whereNotNull('repair_job_sheets.brand_id')
-                ->select('brands.name as brand', DB::raw('COUNT(repair_job_sheets.id) as count'))
+                ->select('brands.name as label', DB::raw('COUNT(repair_job_sheets.id) as count'))
                 ->groupBy('brands.id')
                 ->orderBy('count', 'desc')
                 ->limit(10)
@@ -68,18 +76,27 @@ class DashboardController extends Controller
             $trendingModels = JobSheet::leftJoin('repair_device_models as RDM', 'repair_job_sheets.device_model_id', '=', 'RDM.id')
                 ->where('repair_job_sheets.business_id', $business_id)
                 ->whereNotNull('repair_job_sheets.device_model_id')
-                ->select('RDM.name as model', DB::raw('COUNT(repair_job_sheets.id) as count'))
+                ->select('RDM.name as label', DB::raw('COUNT(repair_job_sheets.id) as count'))
                 ->groupBy('RDM.id')
                 ->orderBy('count', 'desc')
                 ->limit(10)
                 ->get()
                 ->toArray();
 
-            $trendingDevices = collect($this->repairUtil->getTrendingDevices($business_id))
-                ->map(fn ($r) => [
-                    'device' => $r->device ?? '—',
-                    'count' => (int) ($r->job_sheet_devices ?? 0),
-                ])->values()->all();
+            // Re-query inline, no MESMO padrao dos dois irmaos acima — e nao
+            // `collect(getTrendingDevices(...))`. O Util devolve um CommonChart
+            // (objeto Highcharts), nao linhas: iterar sobre ele nao produz {device,count},
+            // e o proprio comentario no topo deste bloco ja avisava disso. O ramo Blade
+            // continua consumindo o CommonChart da linha 41, intacto.
+            $trendingDevices = JobSheet::leftJoin('categories as CAT', 'repair_job_sheets.device_id', '=', 'CAT.id')
+                ->where('repair_job_sheets.business_id', $business_id)
+                ->whereNotNull('repair_job_sheets.device_id')
+                ->select('CAT.name as label', DB::raw('COUNT(repair_job_sheets.id) as count'))
+                ->groupBy('CAT.id')
+                ->orderBy('count', 'desc')
+                ->limit(10)
+                ->get()
+                ->toArray();
 
             return Inertia::render('Repair/Dashboard/Index', [
                 'kpis' => $this->buildDashboardKpis((int) $business_id),
@@ -122,6 +139,12 @@ class DashboardController extends Controller
                          AND repair_job_sheets.delivery_date IS NOT NULL
                          AND repair_job_sheets.delivery_date < ? THEN 1 ELSE 0 END) as vencidas
             ', [now()])
+            // `toBase()` antes do first(): sem ele o Eloquent devolve um JobSheet e os
+            // aliases da agregada (`pendentes`, `vencidas`...) viram propriedade dinamica
+            // num Model — que o PHPStan reprova com razao, e que arma a mina do
+            // "atributo persistivel" descrita em proibicoes.md §FSM. Aqui o resultado e
+            // uma linha de agregacao, nao uma entidade: stdClass e o tipo honesto.
+            ->toBase()
             ->first();
 
         return [

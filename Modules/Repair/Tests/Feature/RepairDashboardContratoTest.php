@@ -267,8 +267,45 @@ it('UC-RDSH-03 · Top aparelhos entrega a consulta que o Controller já roda', f
     // criada acima TEM de aparecer — é exatamente o que o `[]` literal impedia.
     if ($deviceId !== null) {
         expect(collect($props['trending_devices_chart'])->sum('count'))->toBeGreaterThan(0);
-        expect(collect($props['trending_devices_chart'])->first())->toHaveKeys(['device', 'count']);
+        expect(collect($props['trending_devices_chart'])->first())->toHaveKeys(['label', 'count']);
     }
+});
+
+it('UC-RDSH-05 · toda série de gráfico chega com a chave que a tela lê', function () {
+    $biz = $this->seededTenant();
+    $user = rdshUser((int) $biz->id);
+
+    if (rdshCriarOs((int) $biz->id, 'LABEL') === null) {
+        test()->markTestSkipped('Tenant 98 sem contact/status/location/user — sem como criar OS de fixture.');
+    }
+
+    $props = rdshAbrirPainel($this, $user);
+
+    // O consumidor é o `BarChartCard` do Index.tsx, e ele lê `r.label`. Até 2026-09-09 o
+    // Controller mandava `status`/`staff`/`brand`/`model`: os 4 gráficos renderizavam o
+    // rótulo VAZIO em produção, e o `.tsx:17` afirmava que "toda série é normalizada pelo
+    // Controller pra {label,count}" — comentario certo sobre a intenção, errado sobre o
+    // fato. Nenhum teste pegava porque todos somavam `count`, que era a metade que batia.
+    // Este UC trava a OUTRA metade.
+    foreach ([
+        'job_sheets_by_status',
+        'job_sheets_by_service_staff',
+        'trending_brand_chart',
+        'trending_dm_chart',
+        'trending_devices_chart',
+    ] as $serie) {
+        expect($props)->toHaveKey($serie);
+        foreach ($props[$serie] ?? [] as $linha) {
+            expect($linha)->toHaveKeys(['label', 'count']);
+            // `label` é o que aparece na barra: vazio ali é o defeito, não o dado.
+            expect($linha['label'])->not->toBeNull();
+            expect((string) $linha['label'])->not->toBe('');
+        }
+    }
+
+    // ANTI-VÁCUO: pelo menos uma série tem linha — senão o foreach acima passa por
+    // vacuidade e o UC vira carimbo.
+    expect(collect($props['job_sheets_by_status'] ?? [])->count())->toBeGreaterThan(0);
 });
 
 it('UC-RDSH-04 · nenhum dos agregados enxerga OS de outro tenant', function () {

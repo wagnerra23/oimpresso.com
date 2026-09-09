@@ -80,6 +80,22 @@ last_run: "2026-09-09"
 - **Status: 🧪**
 
 
+## UC-RDSH-05 · O rótulo da barra não chega vazio
+- **Persona:** quem olha "OS por status" e precisa saber QUAL status é cada barra.
+- **Aceite:** Dado o painel aberto · Quando leio qualquer das 5 séries · Então cada linha tem
+  `label` **e** `count`, e o `label` não é vazio nem nulo.
+- **O defeito que ele fecha, e ele era invisível:** o `BarChartCard` lê `r.label`, e o Controller
+  mandava `status` / `staff` / `brand` / `model`. Os **4 gráficos** desenhavam a barra com o
+  número certo e o rótulo **VAZIO** em produção. O `.tsx:17` afirmava que *"toda série é
+  normalizada pelo Controller pra {label,count}"* — certo sobre a intenção, errado sobre o fato
+  (a família [LC-10](../../../../../memory/LICOES_CODE.md): artefato afirmando o que não cumpre).
+- **Por que nenhum teste pegava:** todos somavam `count`, que era justamente a metade que batia.
+  Este UC trava a OUTRA metade — a que o olho vê.
+- **Anti-vácuo embutido:** exige que pelo menos uma série tenha linha, senão o `foreach` passaria
+  por vacuidade e o caso viraria carimbo.
+- **Teste:** `Modules/Repair/Tests/Feature/RepairDashboardContratoTest.php`
+- **Status: 🧪**
+
 ## UC-RDSH-04 · Nenhum dos agregados enxerga OS de outro tenant
 - **Persona:** dois clientes na mesma instalação — o painel de um não pode contar o trabalho do outro.
 - **Aceite:** Dado OS no tenant 98 e OS no tenant 99 · Quando abro o painel como usuário do 98 ·
