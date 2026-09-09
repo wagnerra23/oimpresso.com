@@ -11,7 +11,7 @@ related_adrs: [93, 94, 190, 286]
 tier: B
 charter_version: 1
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/cowork/cms/cms-page.jsx (aba Detalhes do site)"
+  blueprint_cowork: "prototipo-ui/cowork/cms-page.jsx (aba Detalhes do site)"
   blueprint_screenshot_approval: "pendente [W2]"
   derived_screens: [Index]
   divergence_from_blueprint: "rail de seções + um único POST, divergente do PT-01 lista (página de configuração)"
