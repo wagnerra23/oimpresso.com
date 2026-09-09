@@ -379,6 +379,87 @@ Sem fonte no shell, por bloco:
 | `ads/Admin/{Projects,ProjectShow}` · `KB ads/Admin/Graph` | a chave `projects` do mockup é **ProjectMgmt** (gantt/timesheet), outro domínio |
 | `Auditoria/Detail` | o mockup não tem drill-down/diff/revert |
 
+### 5.3-bis · ERRATA — as 6 telas internas (governança + superadmin): 5 não eram dívida, 1 era
+
+> **Medido em 2026-09-09**, `origin/main @ 4d284d5e29`, no mesmo dia deste inventário e depois dele.
+> Um chip pediu "gerar a fonte de design das 6 telas internas que não têm nenhuma". A medição
+> **encolheu o escopo de 6 para 1** — e o conserto da 1 não é um protótipo.
+
+**O que o `ancora.mjs <path .tsx> --staging prototipo-ui/cowork` respondeu, uma por uma:**
+
+| tela | veredito da porta viva | é dívida? |
+|---|---|---|
+| `governance/Custos` | `n/a (herda PT-04 Dashboard; segue o Padrão de Tela)` | **não** |
+| `governance/DsRollout` | `n/a (herda PT-04 Dashboard; …)` | **não** |
+| `governance/QualidadeIa` | `n/a (herda PT-04 Dashboard; …)` | **não** |
+| `superadmin/Usuario360/Index` | `n/a (herda PT-01 Lista; …)` | **não** |
+| `superadmin/Usuario360/Show` | `n/a (herda PT-03 Detalhe; …)` | **não** |
+| `governance/ModuleGrades/Show` | ⚠️ *"charter sem related_prototype nem -page.jsx"* | **sim** |
+
+As cinco primeiras declaram `n/a` — a **declaração legítima** que a própria porta rotula como
+*"a tela nasce do DS; NÃO entra no anchor-content-check"*, e que
+[§5 2026-08-28 (c)](../../proibicoes.md) fixa como coexistindo com a âncora de bundle **por desenho**.
+Ausência de `related_prototype` **não é** ausência de fonte.
+
+**O custo de "promover" foi medido, não citado** (a errata do §5.1 afirmava isto para Estoque; aqui
+foi reproduzido de fora, aplicando e rodando — [LC-22](../../LICOES_CODE.md)). Trocando o `n/a` de
+`Custos` por um path e rodando `pt-conformance`:
+
+```
+baseline                                        → 89 declaram · 89 conforme
+com related_prototype: …/governance-page.jsx    → 88 declaram · 88 conforme   ← a tela SAI do gate
+revertido                                       → 89 declaram · 89 conforme
+```
+
+A causa está em [`pt-conformance.mjs:56-57`](../../../scripts/governance/pt-conformance.mjs): o PT vem de
+`claimedPT(related_prototype)`, e `if (!pt) return null` — *"não declara PT → fora do escopo deste gate"*.
+Promover as 5 custaria **−5** na única checagem falsificável que elas têm, em troca de âncoras que
+seriam **porte reverso**: as 6 telas já existem, vivas e no DS canon (AppShellV2 em todas), então um
+`.jsx` gerado hoje retrataria o código — [§5 2026-06-05](../../proibicoes.md) e o §5.2 acima.
+
+**A 1 que era dívida foi consertada, e o conserto não é um `.jsx`:** `ModuleGrades/Show` não declarava
+PT nenhum. Declarar o que ela **já segue** (`n/a (herda PT-03 Detalhe; segue o Padrão de Tela)`) a põe
+no gate — medido `89 → 90 declaram · 90 conforme`, com `detectSignals` dando `detail:true` (PT-03 exige
+`detail || kpi`). O `ancora.mjs` saiu do ⚠️ para "declaração legítima".
+
+**Claim de ausência, as duas pernas** ([§5 2026-07-28](../../proibicoes.md) + [§5 2026-08-07](../../proibicoes.md)):
+repo — `rg -l -i --hidden -g '!.git/**'` por `usuario360` dá **46 arquivos** (0 protótipo; `--hidden` e
+sem mudam nada aqui, conferido); Cowork vivo — `DesignSync.list_files` = **771 paths**, sem nenhum
+`*rollout*`, `*qualidade*`, `*custos*` ou `*usuario360*`. O `--live-only` foi **remedido hoje**:
+**87 live-only de 771** (era 157 de 929 em 2026-09-01), e nenhum dos 87 é protótipo de tela — são
+`sync/payload.part*`, testes `.php` e `.mjs`.
+
+⚠️ **`usuarios-page.jsx` existe no vivo e NÃO serve** — verificado abrindo, não herdado: `:1-2` diz
+*"Lista de usuários (gerenciar acessos do ERP)… Redesign do datatable legado UltimatePOS
+(ManageUserController index)"*. É a tela **por-tenant** de acessos; o Usuario360 é **cross-tenant**
+(roles, permissions efetivas, scopes MCP, tokens, quotas, sessions, lockouts). Casar as duas por
+semelhança de nome seria o guard sintático que este documento já reprova em §4.3.
+
+**O que o próprio Cowork diz sobre o Usuario360** — `cowork-inbox/SUPERADMIN-F3-ONDAS-PARA-CODE.md:153`,
+sob o título *"Fora destas 6 ondas (de propósito)"*: *"existe no `main` com 5 rotas … e **não tem tela
+no meu protótipo**. É uma tela nova de F1, não tradução; peço briefing antes de desenhar. Provável
+SA-O7."* Ou seja: a ausência do lado do design é **deliberada e declarada**, com uma pergunta em aberto
+para [W] — não é lacuna a tapar por conta própria.
+
+⚠️ **E o `design-coverage` sugere a âncora ERRADA para as duas `Usuario360`.** Ele as lista sob
+*"n/a com fonte candidata JÁ no espelho"* (32 telas, report-only, *"revisar a decisão"*). A regra que
+elege a candidata é [`design-coverage.mjs:60-64`](../../../scripts/qa/design-coverage.mjs): extrai o
+módulo de `Pages/<Mod>/` e testa `existsSync(prototipo-ui/cowork/<mod>-page.jsx)` — **casamento por
+nome de pasta**, a mesma heurística que o §4.3 acima mede com **73% de erro**. Aqui ela erra: a
+candidata é `superadmin-page.jsx`, cujo cabeçalho (`:2-8`) traduz seis views do Blade legado
+(`superadmin/index`, `business/index`, `subscription`, `packages`, `communicator`, `settings`) e
+**nenhuma de usuários**. Sonda com controle: `360` = 0 · `lockout` = 0 · `scope` = 0 · `permission` = 0;
+controle positivo `business` = 3 · `package` = 3. Os 12 hits de `usuario` são **cota de licenciamento**
+(`pkg.usuarios`, `<Uso rotulo="Usuários" teto={pkg.usuarios}/>`), não uma tela de usuários.
+**Quem for "fechar" essas duas decisões `n/a` apontando `superadmin-page.jsx` cria âncora falsa.**
+A decisão `n/a` delas está certa e deve permanecer.
+
+**Uso real (sinal fraco, declarado como tal):** no `governance/route-hits.json` (janela 30d) só
+`governance/ModuleGrades/Show` aparece — 3 hits, última data 2026-08-22. As outras 5 não constam.
+Isso **não** prova abandono: o ledger tem 104 rotas e 41 pages para 226+ charters, e sua data mais
+recente é 2026-08-22 (18d), então ausência ali é ausência de *coleta*, não de uso. O próprio `_meta`
+avisa: *"NAO e lista de telas existentes"*. Todas as 6 têm rota, controller e teste no `main`.
+
 ### 5.4 · Não deveriam ter âncora no shell
 
 Telas públicas, fora do `AppShellV2`. Ausência aqui **não é dívida** — e classificá-las como
@@ -455,6 +536,7 @@ node scripts/governance/cowork-mirror-freshness.mjs --compare --check    # o esp
 | `ancora.mjs` — precedência | o `n/a` truthy que esconde 15 `bundle_source` (§4.1) | conserto de máquina, não de charter |
 | `ancora.mjs` — chaves 4 e 5 | `blueprint_cowork` (38) + `canon_reference` (31) + colisão `Nfse/Index` | idem |
 | heurística `startsWith` | 73% de erro medido (§4.3) — decidir entre remover ou rotular como não-âncora | **decisão de [W]**: mexer na regra dura |
+| ~~governança + superadmin (6 telas)~~ | **FECHADO em 2026-09-09 — ver §5.3-bis** | 5 de 6 não eram dívida (`n/a` legítimo); a 6ª (`ModuleGrades/Show`) foi consertada declarando o PT-03 que já segue: `pt-conformance` 89 → 90 |
 
 ## 9 · O que este inventário NÃO faz
 
