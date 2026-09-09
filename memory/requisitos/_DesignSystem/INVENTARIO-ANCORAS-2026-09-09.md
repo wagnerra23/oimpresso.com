@@ -568,6 +568,14 @@ O `ancora.mjs` saiu do ⚠️ para "declaração legítima".
 > deve **rodar** `node scripts/governance/pt-conformance.mjs`, não citar o absoluto daqui — é o que
 > o cabeçalho deste documento já avisa sobre contagens.
 
+> 🏁 **Marco, e o crédito não é deste PR sozinho:** com este conserto, com o
+> [#7144](https://github.com/wagnerra23/oimpresso.com/pull/7144) (que tirou charter de **componente**
+> da conta de tela) e com as demais sessões do dia, o `design:coverage` passou a reportar **zero
+> telas silenciosas**. Não congelo o número aqui — rode `npm run design:coverage`, que é o dono
+> ([§5 2026-07-17](../../proibicoes.md)). O que fica registrado é qual peça foi desta sessão: o
+> `ModuleGrades/Show` era uma das silenciosas, e deixou de ser por **declarar o PT que já seguia**,
+> não por ganhar um protótipo.
+
 **Claim de ausência, as duas pernas** ([§5 2026-07-28](../../proibicoes.md) + [§5 2026-08-07](../../proibicoes.md)):
 repo — `rg -l -i --hidden -g '!.git/**'` por `usuario360` dá **46 arquivos** (0 protótipo; `--hidden` e
 sem mudam nada aqui, conferido); Cowork vivo — `DesignSync.list_files` = **771 paths**, sem nenhum
