@@ -2,7 +2,7 @@
 id: resources-js-pages-essentials-messages-index-charter
 page: /essentials/messages
 component: resources/js/Pages/Essentials/Messages/Index.tsx
-related_prototype: n/a (mural de chat bespoke — bolhas de mensagem + composer com polling; não segue um dos 5 Padrões de Tela)
+related_prototype: prototipo-ui/cowork/essenciais-page.jsx#Mensagens (:565-622) — mural bespoke, NÃO segue um dos 5 Padrões de Tela
 bundle_source: essenciais-page.jsx
 owner: wagner
 status: draft
@@ -18,6 +18,13 @@ charter_version: 1
 > **Status:** draft criado em 2026-07-11 no lote de cobertura de charters. Wagner aprova **Non-Goals + Anti-hooks** ANTES de virar `status: live`.
 >
 > Backend: `Modules/Essentials/Http/Controllers/EssentialsMessageController@index` + `@store` + `@getNewMessages` (resource `messages` only index/destroy). Mural de mensagens internas do business em formato de chat, com polling de novas mensagens.
+>
+> **Correção de `related_prototype` (2026-09-09).** O campo dizia só `n/a (mural de chat
+> bespoke … não segue um dos 5 Padrões de Tela)`. A parte sobre o Padrão de Tela é VERDADE e
+> ficou; o que era falso é o `n/a`: a tela TEM fonte visual — `essenciais-page.jsx` é carregado
+> pelo shell canônico `prototipo-ui/cowork/oimpresso.com.html`, e a região `Mensagens` (`:565-622`)
+> desenha este mural. As duas coisas coexistem: não seguir um PT não é o mesmo que não ter
+> protótipo. Inventário: [`messages-index-gap.md`](../../../../../memory/requisitos/Essentials/messages-index-gap.md).
 
 ---
 

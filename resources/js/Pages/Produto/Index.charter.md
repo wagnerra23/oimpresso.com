@@ -3,7 +3,7 @@ id: resources-js-pages-produto-index-charter
 page: /products
 component: resources/js/Pages/Produto/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
-bundle_source: produtos-page.jsx
+bundle_source: produtos-page.jsx  # 2026-09-09 [C]: ⚠️ PENDURADO NA TELA ERRADA, mantido de proposito. `produtos-page.jsx:1-2` declara "Consulta de Produtos (/products/unificado) — Porte do main: Pages/Produto/Unificado/Index.tsx" — retrata o UNIFICADO, nao esta (/products). NAO remover o campo: `ancora.mjs:266-278` so cai na heuristica startsWith(dir) quando o campo falta, e ela reancora esta tela no MESMO mockup, so que em silencio (medido 2026-09-09). Resolver exige decisao [W]. O charter do Unificado ganhou o campo correto. Esta tela citava `prototipo-ui/prototipos/produto-cockpit/`, diretorio que NAO existe mais.
 owner: wagner
 status: live
 last_validated: "2026-07-12"
