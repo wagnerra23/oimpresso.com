@@ -1,7 +1,7 @@
 {
   "_nota": "Contrato de Tela dos Detalhes do site (ADR 0286). As chaves de `cms_site_details` são o contrato real com o site público — a copy trava a tradução das 8 seções do settings/index.blade.",
   "tela": "Cms/SiteDetails",
-  "fonte": "prototipo-ui/cowork/cms/cms-page.jsx",
+  "fonte": "prototipo-ui/cowork/cms-page.jsx",
   "alvo": ["Modules/Cms/Resources/js/Pages/Admin/SiteDetails"],
   "secoes": [
     { "id": "rail", "copy": ["Aplicação", "Contato", "Redes sociais", "Estatísticas", "Perguntas frequentes", "Atendimento por chat", "Integrações", "Botões do site"] },
