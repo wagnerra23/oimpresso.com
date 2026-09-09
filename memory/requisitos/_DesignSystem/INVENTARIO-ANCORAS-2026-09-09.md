@@ -212,6 +212,16 @@ cobranca-recorrente-page.jsx` — e as tabs correspondentes ali são stubs de 3 
 O protótipo é honesto (`"não fingir pronto"`); quem não é honesto é a cadeia, que conta isso
 como fonte declarada.
 
+> **Tratado em 2026-09-09** ([PR #7099](https://github.com/wagnerra23/oimpresso.com/pull/7099)):
+> os 3 `visual_source` ganharam a ressalva **por anotação**, não foram removidos — remover
+> derrubaria a catraca `design-coverage` (`declared` só sobe) e promover ancoraria a tela nela
+> mesma (porte reverso). Trocar por "sem fonte" segue decisão [W]. A ausência de outra fonte foi
+> medida pelas 3 pernas (repo · projeto Cowork por ID · ledger do espelho, compare 2026-09-08 =
+> `sync`) — o `<Placeholder>` é o estado do design **vivo**, não um retrato velho. Efeito medido
+> junto: `detect-handoff.mjs:52` casa `visual_source` ancorado em fim de linha e `map[k]=v`
+> sobrescreve, então o arquivo roteava para `Planos/Index` (o stub); passou a rotear para
+> `RecurringBilling/Index` (Assinaturas), a tela que ele de fato desenha.
+
 ### 4.6 · Defeito 6 — cosmético (37 charters)
 
 Para charter sob `Modules/<X>/Resources/js/Pages/`, o `ancora.mjs` imprime `tela viva: —` mesmo
