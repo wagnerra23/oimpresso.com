@@ -2,6 +2,7 @@
 page: /essentials/reminder
 component: resources/js/Pages/Essentials/Reminders/Index.tsx
 related_prototype: prototipo-ui/cowork/essenciais-page.jsx#Lembretes (:444-537)
+related_us: [US-ESS-008]
 bundle_source: essenciais-page.jsx
 owner: wagner
 status: draft
