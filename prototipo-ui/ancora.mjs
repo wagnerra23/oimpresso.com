@@ -465,6 +465,27 @@ async function printResolve(r) {
   return 0;
 }
 
+/**
+ * Precedência de campos do charter → a fonte de design que o `--list` reporta.
+ *
+ * PURA e EXPORTADA de propósito: o selftest exercita ESTA função, que é a MESMA que o
+ * `listAll` chama — asserção sobre cópia paralela fica verde enquanto o pipeline regride
+ * (§5 2026-08-14). Documentação da regra: ver o bloco de comentário dentro do `listAll`.
+ */
+export function fonteDoCharter(fm = {}) {
+  const doBundle = mockupJsx(fm.bundle_source) || mockupJsx(fm.visual_source);
+  const declaracaoNa = ehDeclaracaoNa(fm.related_prototype) ? fm.related_prototype : null;
+  const bespoke = fm.related_prototype && !declaracaoNa ? fm.related_prototype : null;
+  const source = bespoke || doBundle || declaracaoNa || mockupJsx(fm.component) || null;
+  const via = bespoke ? 'related_prototype'
+    : doBundle ? 'bundle_source/visual_source'
+    : declaracaoNa ? 'related_prototype'
+    : source ? 'component' : null;
+  // o `n/a` que o bundle eclipsou — só existe quando as duas pernas estão no charter
+  const naEclipsado = !bespoke && doBundle && declaracaoNa ? declaracaoNa : null;
+  return { source, via, declaracaoNa, naEclipsado };
+}
+
 async function listAll(repoRoot, asJson = false) {
   // idem `resolveAncora`: as duas raízes. Este é o `--list`, consumido por design-coverage,
   // ancora-guard e integrity-check — os três mediam 172 de 209 charters por causa desta linha.
@@ -482,11 +503,30 @@ async function listAll(repoRoot, asJson = false) {
     // Medido: 42 sem `related_prototype` -> 18 salvos por bundle/visual, 24 gap real.
     // `via` é ADITIVO (mesmo critério de `charter`/`isNa` acima): diz QUAL perna resolveu,
     // pro consumidor distinguir design APROVADO de porte de bundle sem re-derivar.
-    const doBundle = mockupJsx(fm.bundle_source) || mockupJsx(fm.visual_source);
-    const source = fm.related_prototype || doBundle || mockupJsx(fm.component) || null;
-    const via = fm.related_prototype ? 'related_prototype'
-      : doBundle ? 'bundle_source/visual_source'
-      : source ? 'component' : null;
+    //
+    // 2026-09-09 — a PERNA que o fix acima NÃO cobriu (é a mesma lesão, outra porta; por isso
+    // esta nota estende a de cima em vez de abrir bloco paralelo). Aquele fix tratou
+    // `related_prototype` AUSENTE. O caso `n/a` PRESENTE ficou — e é pior, porque
+    // `"n/a (herda PT-01 Lista; segue o Padrão de Tela)"` é uma string TRUTHY: o `||`
+    // curto-circuitava nela e o `doBundle` da linha anterior nunca era alcançado.
+    // Medido em 14 charters (ComVis · Essentials ×3 · Manufacturing · Produto · Repair ×3 ·
+    // Estoque ×4 · Vestuario): o `--list` reportava `isNa: true` / `via: related_prototype`
+    // enquanto a porta per-tela resolvia a mesma tela com âncora ✓ do bundle
+    // (`ancora.mjs Produto/Index --staging prototipo-ui/cowork` → `produtos-page.jsx`).
+    // É a MESMA contradição porta-viva × lista que o fix de 08-28 veio matar, e ela se
+    // propagava: `design-coverage` (único consumidor do `--list --json`, medido) herdava a
+    // cegueira no 3º balde.
+    //
+    // A regra: `n/a` NÃO tem precedência sobre campo estruturado que aponta ARQUIVO REAL.
+    // Os dois COEXISTEM por desenho (§5 2026-08-28 item c) porque respondem a perguntas
+    // diferentes — "qual Padrão de Tela eu herdo?" × "qual é a minha âncora de design". Com
+    // ambos no charter, a ÂNCORA é o bundle; o `n/a` continua sendo o PT herdado e é
+    // preservado em `declaracaoNa` (aditivo — sem ele o `--list` PERDERIA o PT dos 14, que é
+    // o mesmo tipo de sub-reporte silencioso que esta linha existe pra impedir).
+    // Onde há SÓ `n/a`, nada muda: 106 charters seguem `isNa: true`, como devem.
+    // `ehDeclaracaoNa` é o dono desta distinção neste arquivo — reusado, não reimplementado.
+    // A regra mora em `fonteDoCharter` (pura, exportada) pro selftest morder o caminho REAL.
+    const { source, via, declaracaoNa, naEclipsado } = fonteDoCharter(fm);
     // hasSource = o charter DECLAROU a fonte de design (protótipo bespoke OU "n/a — segue DS"
     // explícito, que também vem em related_prototype). null = silencioso (gap real).
     // `charter` e `isNa` sao ADITIVOS (2026-08-26): o unico consumidor de `--list --json` e o
@@ -494,8 +534,19 @@ async function listAll(repoRoot, asJson = false) {
     // fonte e declaracao `n/a` — sem isso ele contava `n/a` como ✅ pra sempre e escondia a tela
     // cuja fonte JA DESCEU pro espelho depois da decisao. `isNa` reusa `ehDeclaracaoNa`, o dono
     // dessa distincao neste mesmo arquivo — nao reimplementar (§5 2026-08-26).
-    rows.push({ page: fm.page || relative(repoRoot, cf), source: source || '⚠️ sem protótipo declarado', hasSource: !!source, charter: relative(repoRoot, cf).split(String.fromCharCode(92)).join('/'), isNa: ehDeclaracaoNa(source), via });
-    if (!asJson) console.log(`${(fm.page || relative(repoRoot, cf)).padEnd(40)} → ${source || '⚠️ sem protótipo declarado'}`);
+    rows.push({ page: fm.page || relative(repoRoot, cf), source: source || '⚠️ sem protótipo declarado', hasSource: !!source, charter: relative(repoRoot, cf).split(String.fromCharCode(92)).join('/'), isNa: ehDeclaracaoNa(source), via, declaracaoNa });
+    // A saída de TEXTO precisa carregar o que o `via` do JSON já carrega. Medido nesta
+    // sessão: 2 dos 14 (`ComunicacaoVisual/Index`, `Vestuario/Etiquetas/Index`) declaram no
+    // comentário do próprio `bundle_source` que ele é «porte REVERSO do vivo … fonte de
+    // bundle, NÃO design aprovado (§5 2026-08-28)». Sem o rótulo, o leitor humano lê
+    // `produtos-page.jsx` e supõe design aprovado — a distinção que o `via` foi criado pra
+    // fazer (nota de 08-28 acima) existia só no `--json`. O risco não nasce aqui, mas esta
+    // mudança o AMPLIA de 17 para 31 linhas, então o rótulo entra junto.
+    if (!asJson) {
+      const rotulo = via === 'bundle_source/visual_source' ? '  [bundle]' : '';
+      const corte = naEclipsado && naEclipsado.length > 64 ? naEclipsado.slice(0, 63) + '…' : naEclipsado;
+      console.log(`${(fm.page || relative(repoRoot, cf)).padEnd(40)} → ${source || '⚠️ sem protótipo declarado'}${rotulo}${naEclipsado ? `   [+ ${corte}]` : ''}`);
+    }
   }
   if (asJson) console.log(JSON.stringify(rows, null, 2));
 }
@@ -510,6 +561,38 @@ async function selftest() {
   t('CONTROLE n/a: caminho real NÃO é declaração', ehDeclaracaoNa('prototipo-ui/cowork/jana-merge.jsx') === false);
   t('CONTROLE n/a: nome que só CONTÉM "na" não casa', ehDeclaracaoNa('prototipo-ui/cowork/nao-a-toa.jsx') === false);
   t('CONTROLE n/a: undefined não quebra', ehDeclaracaoNa(undefined) === false);
+  // ── BITE da PRECEDÊNCIA do `--list` (2026-09-09) ───────────────────────────
+  // `"n/a (…)"` é string truthy: o `||` do listAll curto-circuitava nela e o `bundle_source`
+  // nunca era alcançado — 14 charters saíam `isNa: true` com âncora de bundle resolvível.
+  // Exercita `fonteDoCharter`, a MESMA função que o `listAll` chama (não uma cópia).
+  const fNaBundle = fonteDoCharter({ related_prototype: 'n/a (herda PT-01 Lista; segue o Padrão de Tela)', bundle_source: 'produtos-page.jsx' });
+  t('BITE precedência: n/a + bundle_source → a âncora é o BUNDLE',
+    fNaBundle.source === 'produtos-page.jsx' && fNaBundle.via === 'bundle_source/visual_source');
+  t('BITE precedência: o n/a eclipsado é PRESERVADO (não some do --list)',
+    fNaBundle.naEclipsado === 'n/a (herda PT-01 Lista; segue o Padrão de Tela)' && fNaBundle.declaracaoNa === fNaBundle.naEclipsado);
+  t('BITE precedência: com bundle, a linha deixa de ser contada como n/a',
+    ehDeclaracaoNa(fNaBundle.source) === false);
+  t('BITE precedência: visual_source vale igual a bundle_source',
+    fonteDoCharter({ related_prototype: 'n/a (herda PT-04)', visual_source: 'essenciais-page.jsx' }).source === 'essenciais-page.jsx');
+  t('CONTROLE precedência: fonte que NÃO é -page.jsx não vira âncora de bundle (mockupJsx manda)',
+    fonteDoCharter({ related_prototype: 'n/a (herda PT-04)', visual_source: 'jana-merge.jsx' }).via === 'related_prototype');
+  t('BITE precedência: n/a ENTRE ASPAS também cede ao bundle (o parser não desaspa)',
+    fonteDoCharter({ related_prototype: '"n/a (herda PT-01 Lista)"', bundle_source: 'estoque-page.jsx' }).source === 'estoque-page.jsx');
+  // CONTROLES — o que NÃO pode mudar. Sem eles o bite acima é carimbo.
+  const fNaPuro = fonteDoCharter({ related_prototype: 'n/a (herda PT-01 Lista; segue o Padrão de Tela)' });
+  t('CONTROLE precedência: n/a SEM bundle segue declaração (106 charters intactos)',
+    fNaPuro.source === 'n/a (herda PT-01 Lista; segue o Padrão de Tela)' && fNaPuro.via === 'related_prototype' &&
+    ehDeclaracaoNa(fNaPuro.source) === true && fNaPuro.naEclipsado === null);
+  t('CONTROLE precedência: protótipo bespoke GANHA do bundle (design aprovado vem 1º)',
+    fonteDoCharter({ related_prototype: 'prototipo-ui/cowork/jana-merge.jsx', bundle_source: 'produtos-page.jsx' }).via === 'related_prototype');
+  t('CONTROLE precedência: charter sem fonte alguma segue silencioso (gap real)',
+    fonteDoCharter({}).source === null && fonteDoCharter({}).via === null);
+  t('CONTROLE precedência: fallback por component preservado',
+    fonteDoCharter({ component: 'financeiro-page.jsx (window.X)' }).via === 'component');
+  // BITE REAL contra a árvore: o charter que o defeito escondia resolve pelo bundle.
+  const fmProduto = frontmatter(await read(join(REPO_DEFAULT, 'resources/js/Pages/Produto/Index.charter.md')));
+  t('BITE real: Produto/Index declara n/a + bundle — e o --list agora vê o bundle',
+    ehDeclaracaoNa(fmProduto.related_prototype) === true && fonteDoCharter(fmProduto).source === 'produtos-page.jsx');
   t('audit-financeiro.png é ÂNCORA ILEGÍTIMA', ehAncoraIlegitima('audit-financeiro.png') === true);
   t('Tribunal-x.png é ilegítima', ehAncoraIlegitima('Tribunal-x.png') === true);
   t('financeiro-page.jsx NÃO é ilegítima', ehAncoraIlegitima('financeiro-page.jsx') === false);
