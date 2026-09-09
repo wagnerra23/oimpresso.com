@@ -3,6 +3,19 @@ branch: main
 path: prototipo-ui/cowork
 
 ## Last sync
+date: 2026-09-09T11:46:22Z
+tree: 752041ac450d (a última busca do turno já respondeu de 7742b9621c32 — a árvore andou)
+
+### Updated in this project
+- **Auditoria dos vínculos de tela do `ancora.mjs`** (`prototipo-ui/ancora.mjs`, 49.089 B, lido inteiro). Denominador: **189** charters em `resources/js/Pages/**`; **~146** declarações de `related_prototype`/`bundle_source`/`visual_source` lidas. **Todo** caminho citado que li **existe** no git — inclusive os formatos sujos (`hrm-extras.jsx (Metas) …`, `Financeiro - Prova Viva (primitivos).html`, que só passa porque o valor cru é testado antes do regex).
+- **3 defeitos medidos.** **D1** — a perna do `-page.jsx` está guardada em `if (stagingDir)` e não cai no `LUGAR_FIXO`: **14** telas cujo único vínculo é `bundle_source`/`visual_source` saem "sem protótipo" sem `--staging`, com o arquivo no git (`repair-page.jsx` 46.532 B · `governance-page.jsx` 20.212 B · `oficina-page.jsx` · `oficina-os-page.jsx` · `produtos-page.jsx`) — `--list` foi consertado em 2026-08-28, o comando de 1 tela não, e as duas portas discordam. **D2** — `norm()` derruba `/index` e o loop aceita `comp.includes(q)`/`relc.includes(q)`: `Ponto/Index` → `q="ponto"` → casa 21 charters e o **último na ordem de `walk`** vence, sem aviso, exit 0, selo `✓`. **D3** — `--list` carimba `hasSource` sem chamar `caminhoDaAncora`/`existsSync`, e o 3º fallback (`mockupJsx(fm.component)`) é tautológico (âncora = a própria tela).
+- **Limite estrutural declarado, não resolvível por PR:** 20 charters do Ponto → 2 arquivos · `Financeiro/{Conciliacao,Dre,Fluxo,Impostos}` → 1 · 5 do Patrimônio → 1 · 7 do Fiscal → 2. A skill já diz "responde QUAL ARQUIVO, nunca QUAL VIEW" ⇒ contrato de tela **não** é decidível pela âncora hoje. Único charter do corpus que resolve: `Sells/Caixa/Index` → `vendas-extras.jsx · função VendasCaixaPage (linhas 123-354)` — mesma ancoragem por símbolo das threads 13–15 do Ponto. Virou decisão `D-SIMBOLO` ([W]), não pedido.
+- **Playbook emitido: `cowork-inbox/ancora/playbook/`** (4 arquivos, JSON embutido no 1º bloco do índice): **01** perna do bundle no `LUGAR_FIXO` · **02** query ambígua devolve candidatos e sai 2 · **03** `--list` ganha `caminho`/`existe` e mede o fallback `component`. **Não são paralelas** — as 3 escrevem no mesmo arquivo, então 01 → 02 → 03 com remedição de sha por thread, e a API pública (que o hook `post-merge-ui-smoke-required.mjs:316-322` importa) é guarda.
+- **Retratação preventiva registrada no pedido:** `Jana/Chat → jana-merge.jsx` **não** é mis-anchor — `jana-merge.jsx` é dono de `window.JanaPage` (`app.jsx:810`) e `chat-jana.jsx:722` se declara peça reusada por ele. Minha suspeita inicial era hipótese, não medição.
+- **Cobertura declarada (não medido ⇒ não verificado):** `kb`, `Modules`, `NfeBrasil`, `Nfse`, `Purchase`, `RecurringBilling`, `Site`, `Stock*`, `Suporte`, `Tarefas`, `TransactionPayment`, `User`, `Vestuario`, `Whatsapp`, `Essentials/{Holidays,Reminders,Knowledge/Index}`, `Manufacturing/{Report,Settings}`; a varredura A→Manufacturing saiu parcial (328 de 400 arquivos). **Não rodei `node`** — nenhum veredito de `--selftest`/`--list` é afirmado aqui.
+- ⚠️ **Ciclo fechado SEM pacote regenerado** — o `gerar-payload-partes.mjs` exige os arquivos em disco. Não afirmo que regenerei. Comando: `node scripts/design-sync/gerar-payload-partes.mjs --root <dir> --out sync/ --previous sync/bundle.manifest.json`.
+
+## Sync anterior
 date: 2026-09-09T11:04:51Z
 tree: 2b4a3ec3b48a (começou em a0db7b0177b8 — a árvore andou durante o turno)
 
