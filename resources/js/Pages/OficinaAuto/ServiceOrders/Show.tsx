@@ -18,6 +18,7 @@ import ServiceOrderItemRow, {
 } from './_components/ServiceOrderItemRow';
 import ServiceOrderItemFormSheet from './_components/ServiceOrderItemFormSheet';
 import DviBudgetSection, { type DviItemDto } from './_components/DviBudgetSection';
+import ServiceOrderStagePipeline from './_components/ServiceOrderStagePipeline';
 import ApprovalGateCard from './_components/ApprovalGateCard';
 import FiscalSplitCard from './_components/FiscalSplitCard';
 
@@ -277,6 +278,11 @@ export default function ServiceOrdersShow({ order }: Props) {
             </div>
           )}
         </div>
+
+        {/* Stepper FSM "você está aqui" — o protótipo o põe no topo (oficina-os-page.jsx:49-63, uso :151).
+            O componente já existia e estava ORFAO (zero consumidor .tsx); aqui ele é ligado, não criado.
+            Autossuficiente: busca /service-orders/{id}/fsm/actions (Routes/web.php:140). */}
+        <ServiceOrderStagePipeline serviceOrderId={order.id} enabled />
 
         {/* Gate de aprovação do cliente (US-OFICINA-041) — execução travada até aprovar */}
         <ApprovalGateCard serviceOrderId={order.id} status={order.status} />
