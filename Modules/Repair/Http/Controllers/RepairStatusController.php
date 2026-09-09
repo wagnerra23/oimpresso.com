@@ -81,15 +81,25 @@ class RepairStatusController extends Controller
                 ->groupBy('status_id')
                 ->pluck('total', 'status_id');
 
+            // Array puro, nao o Model mutado: atribuir propriedade dinamica num Eloquent
+            // (`$s->job_sheets_count = ...`) faz o Eloquent tratar o nome como atributo
+            // PERSISTIVEL, e um save() futuro levaria a coluna inexistente pro SET
+            // (proibicoes.md §FSM). O PHPStan pega isso como propriedade indefinida, e
+            // esta certo. O payload da tela e um contrato, entao vale ser explicito.
             $statuses = RepairStatus::where('business_id', $business_id)
                 ->orderBy('sort_order')
                 ->orderBy('name')
                 ->get(['id', 'name', 'color', 'sort_order', 'is_completed_status', 'sms_template'])
-                ->map(function ($s) use ($usoPorStatus) {
-                    $s->job_sheets_count = (int) ($usoPorStatus[$s->id] ?? 0);
-
-                    return $s;
-                });
+                ->map(fn ($s) => [
+                    'id' => (int) $s->id,
+                    'name' => $s->name,
+                    'color' => $s->color,
+                    'sort_order' => (int) $s->sort_order,
+                    'is_completed_status' => (int) $s->is_completed_status,
+                    'sms_template' => $s->sms_template,
+                    'job_sheets_count' => (int) ($usoPorStatus[$s->id] ?? 0),
+                ])
+                ->values();
 
             return Inertia::render('Repair/Status/Index', [
                 'statuses' => $statuses,
