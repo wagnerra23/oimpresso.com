@@ -1,6 +1,8 @@
 ---
 page: /essentials/knowledge-base
 component: resources/js/Pages/Essentials/Knowledge/Index.tsx
+related_prototype: prototipo-ui/cowork/essenciais-extras.jsx#BaseConhecimento (:127-188)
+related_us: [US-ESS-013]
 bundle_source: essenciais-page.jsx
 owner: wagner
 status: draft
@@ -14,6 +16,19 @@ charter_version: 2
 # Page Charter — /essentials/knowledge-base (Base de conhecimento interna)
 
 > Migração Blade T1 Wave D — `Modules/Essentials/Resources/views/knowledge_base/index.blade.php` (cards Bootstrap collapse + jQuery accordion) → React/Inertia com grid de cards + collapse interativo. **NÃO confundir com `Modules/KB` (grafo Jana RAG)** — esta é base interna textual lite.
+>
+> **`related_prototype` (2026-09-09) — o campo NÃO EXISTIA neste charter.** Não é o caso do
+> `n/a` vencido das telas irmãs: aqui simplesmente não havia declaração, e o `design-coverage`
+> contava a tela como não-declarada. A fonte é `essenciais-extras.jsx#BaseConhecimento`
+> (`:127-188`) — o `essenciais-page.jsx:649` só despacha a rota `ess-kb` pra lá, e é por isso
+> que o `bundle_source` aponta o page (arquivo de entrada do bundle) enquanto o
+> `related_prototype` aponta o extras. Os dois são verdade e não conflitam.
+>
+> ⚠️ **A FORMA das duas telas diverge, e isso NÃO foi resolvido.** O protótipo é árvore lateral
+> (`ess-kb`: aside 240px) + leitura do artigo INLINE; o vivo é grade de cards com árvore dentro
+> de cada card e leitura em rota própria (`/essentials/knowledge-base/{id}`, que tem âncora
+> própria declarada). Fundir as duas telas é decisão de [W], não conserto — ver
+> [`knowledge-index-gap.md`](../../../../../memory/requisitos/Essentials/knowledge-index-gap.md).
 
 ---
 
