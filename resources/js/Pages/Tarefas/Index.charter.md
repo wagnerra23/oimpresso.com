@@ -2,7 +2,7 @@
 id: resources-js-pages-tarefas-index-charter
 page: /tarefas
 component: resources/js/Pages/Tarefas/Index.tsx
-related_prototype: n/a (stub visual — cockpit master/detail; ainda não segue um dos 5 Padrões de Tela)
+related_prototype: prototipo-ui/cowork/tasks.jsx (TasksPage)
 owner: wagner
 status: draft
 last_validated: "2026-07-11"
@@ -17,6 +17,8 @@ charter_version: 1
 > **Status:** draft criado em 2026-07-11 no lote de cobertura de charters. ⚠️ **A tela é um STUB visual** (`MOCK_TASKS: Task[] = []`) — o backend de tarefas (TaskProvider/TaskRegistry, Fase 4 ADR 0039) **ainda não existe**. Este charter documenta a intenção/placeholder, não uma capacidade viva. Wagner decide se vale manter charter de stub ou fechar este PR.
 >
 > Layout: `tasks.jsx` canon Cowork 2026-04-27 (master/detail interno). ADR 0039 (Cockpit), UI-0008, UI-0011.
+>
+> **Âncora de design promovida em 2026-09-09** (era `n/a (stub visual)`): `prototipo-ui/cowork/tasks.jsx` — `TasksPage` (`:177`, exposto em `:244`). É a mais provada das três telas do lote: o próprio `.tsx:5` **já declarava a fonte** (`layout: tasks.jsx canon Cowork 2026-04-27`) e o `.tsx:6` declara `status: stub` — a tela nasceu do design e o backend nunca existiu, o que torna porte reverso impossível. Medição de 2026-09-09: as classes `tk-*` batem **40 de 40**, sem nenhuma exclusiva de qualquer lado.
 
 ---
 
