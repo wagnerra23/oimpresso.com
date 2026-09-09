@@ -386,5 +386,37 @@
     "route": "/asset/asset-maintenance",
     "anchor": "Manutenções",
     "baseline": "it_Patrimonio_Manutencoes_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Essentials/Todo",
+    "source": "Essentials/Todo",
+    "component": "Essentials/Todo/Index",
+    "route": "/essentials/todo",
+    "anchor": "Tarefas (To-Do)",
+    "baseline": "it_Essentials_Todo_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Essentials/Documents",
+    "source": "Essentials/Documents",
+    "component": "Essentials/Documents/Index",
+    "route": "/essentials/document",
+    "anchor": "Todos os documentos",
+    "baseline": "it_Essentials_Documents_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Essentials/Messages",
+    "source": "Essentials/Messages",
+    "component": "Essentials/Messages/Index",
+    "route": "/essentials/messages",
+    "anchor": "Mensagens",
+    "baseline": "it_Essentials_Messages_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Essentials/Reminders",
+    "source": "Essentials/Reminders",
+    "component": "Essentials/Reminders/Index",
+    "route": "/essentials/reminder",
+    "anchor": "Lembretes",
+    "baseline": "it_Essentials_Reminders_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   }
 ]
