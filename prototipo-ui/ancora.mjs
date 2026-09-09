@@ -34,7 +34,7 @@ import { join, resolve, dirname, basename, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ehPrintSemantico } from '../.claude/hooks/block-ancora-no-olho.mjs';
 import { read, frontmatter, walk } from './_lib-charter.mjs';
-import { raizesDePages } from '../scripts/qa/page-path.mjs';
+import { isAuxiliaryPagePath, raizesDePages } from '../scripts/qa/page-path.mjs';
 import { ultimaVerificacaoDe, KIND_LIVE_ONLY, liveOnlyVerdict } from '../scripts/governance/cowork-mirror-freshness.mjs';
 import { COWORK_PROJECT_ID } from './protocolo.config.mjs';
 
@@ -570,6 +570,9 @@ export async function resolveAncora(query, { repoRoot = REPO_DEFAULT, stagingDir
     // ADITIVO (mesmo critério de `via`/`isNa`): consumidor nenhum quebra por um campo novo,
     // e quem quiser pode decidir por conta. `null` quando a resolução foi única.
     ambiguidade,
+    // idem, ADITIVO: qual DEGRAU da escada resolveu (4 rota · 3 path inteiro · 2 sufixo ·
+    // 1 substring). O printer usa pra declarar match fraco; consumidor que ignorar não muda.
+    forca: maxForca,
     // idem: reporter puro. `[]` quando o charter não declara nenhuma das duas.
     naoAncora,
     aviso: 'ÂNCORA = um dos itens acima. audit-*.png / critique / screenshot NUNCA é âncora.',
@@ -694,6 +697,24 @@ async function printResolve(r) {
   }
   console.log(`ÂNCORA da tela: ${r.query}`);
   console.log(`  charter:    ${r.charter}`);
+  // MATCH FRACO declarado — a metade que faltava do desfecho de ambiguidade. Lá, 2+ empatados
+  // viram recusa; aqui, UM candidato resolve, mas pelo degrau mais frouxo da escada: casou como
+  // SUBSTRING (`relc.includes(q)`), não por rota, path inteiro nem sufixo. Resolver único é o
+  // que torna legítimo devolver — e continuar em exit 0; calar QUE foi frouxo é o que faz o
+  // leitor tratar palpite como medição, a mesma família do `✓` sorteado (LC-08 no eixo da
+  // RESOLUÇÃO). O playbook da thread 02 pedia exatamente isto: "resolve como hoje, exit 0, mas
+  // a saída DIZ que foi match fraco e por qual critério".
+  //
+  // Só a força 1 fala, e o silêncio é MEDIDO, não torcida — sobre a árvore inteira em
+  // 2026-09-09: query = `component:` do charter → 226/226 na força 3; query = `page:` →
+  // 226/226 na força 4; atalho `Mod/Tela` → 217/217 na força 3. Nenhuma forma legítima de
+  // consulta cai na 1, então este aviso não aparece no uso normal: ele existe pro caso em que
+  // alguém digitou um pedaço solto e mereceu o alerta.
+  if (r.forca === 1) {
+    console.log(`  ⚠️  match FRACO — "${r.query}" casou como SUBSTRING do caminho: não bate rota,`);
+    console.log('              nem caminho inteiro, nem sufixo. Resolveu ÚNICO, por isso vale — mas');
+    console.log('              confira se é esta tela; o preciso é o `component:` ou a rota (`page:`).');
+  }
   console.log(`  tela viva:  ${r.telaViva || '—'}`);
   if (!r.ancoras.length) console.log('  âncora:     ⚠️ charter sem related_prototype nem -page.jsx — registre o protótipo');
   // `✓` só para âncora que RESOLVE em arquivo. `n/a` é uma DECLARAÇÃO ("segue o DS"),
@@ -953,7 +974,28 @@ async function listAll(repoRoot, asJson = false) {
     // fonte e declaracao `n/a` — sem isso ele contava `n/a` como ✅ pra sempre e escondia a tela
     // cuja fonte JA DESCEU pro espelho depois da decisao. `isNa` reusa `ehDeclaracaoNa`, o dono
     // dessa distincao neste mesmo arquivo — nao reimplementar (§5 2026-08-26).
-    rows.push({ page: fm.page || relative(repoRoot, cf), source: source || '⚠️ sem protótipo declarado', hasSource: !!source, charter: relative(repoRoot, cf).split(String.fromCharCode(92)).join('/'), isNa: ehDeclaracaoNa(source), via, declaracaoNa, caminho, existe });
+    // 2026-09-09 (QUARTO eixo da MESMA lesao das tres notas acima; por isso estende, nao
+    // abre bloco paralelo) — as tres trataram QUAL fonte resolve. Esta trata QUEM entra na
+    // pergunta: o `--list` enumera CHARTER, e o consumidor (`design-coverage`) pergunta por
+    // TELA. Charter de COMPONENTE caia no denominador de cobertura de tela e saia
+    // `sem prototipo declarado`. Medido: 3 de 226 (`kb/_components/{NodeReader,PathsDialog,
+    // TroubleshooterDialog}`), e uma auditoria (#7087) leu os 3 como gap de ancora. NAO e gap:
+    // eles governam drawer (o proprio charter diz `drawer concept - sem .tsx de pagina
+    // dedicada`), a fonte esta nomeada NO CODIGO (`NodeReader.tsx:43` -> `kb-page.jsx::
+    // ArticleReader`, porte Cowork) e a classificacao ja fora decidida em 2026-07-09, quando o
+    // integrity-check IT2 os MOVEU pra `_components/` justamente por nao terem tela irma.
+    //
+    // ADITIVO, e a escolha importa: nenhuma linha SOME do `--list`. Eles tem ancora — filtrar
+    // aqui esconderia informacao verdadeira do inventario de charters. O campo ROTULA; quem
+    // pergunta por TELA filtra por ele. `isAuxiliaryPagePath` (`scripts/qa/page-path.mjs`) e o
+    // dono unico da distincao, ja consumido por 8 portas (casos-coverage-guard,
+    // screen-coverage-map, module-surface, ciclo-completo, exposicao-tier0, ...) e pinado por
+    // `page-path.test.mjs:16`. ZERO criterio novo: um 2o dono seria regua duplicada
+    // (§5 2026-07-09) e criterio por nome/pasta escrito aqui seria guard sintatico (§5
+    // 2026-06-30). Ele olha SO os diretorios pais, entao vale pra `.charter.md` sem gambiarra.
+    const relCharter = relative(repoRoot, cf).split(String.fromCharCode(92)).join('/');
+    const auxiliar = isAuxiliaryPagePath(relCharter);
+    rows.push({ page: fm.page || relative(repoRoot, cf), source: source || '⚠️ sem protótipo declarado', hasSource: !!source, charter: relCharter, isNa: ehDeclaracaoNa(source), via, declaracaoNa, caminho, existe, auxiliar });
     // A saída de TEXTO precisa carregar o que o `via` do JSON já carrega. Medido nesta
     // sessão: 2 dos 14 (`ComunicacaoVisual/Index`, `Vestuario/Etiquetas/Index`) declaram no
     // comentário do próprio `bundle_source` que ele é «porte REVERSO do vivo … fonte de
@@ -968,7 +1010,11 @@ async function listAll(repoRoot, asJson = false) {
       // ausencia de alvo), e DEPOIS de tudo que ja se imprimia — as colunas de hoje nao
       // mudam de posicao, senao quem le esta saida por posicao quebra sem regressao real.
       const naoAbre = existe === false ? `   ⚠️ NÃO ABRE: ${caminho}` : '';
-      console.log(`${(fm.page || relative(repoRoot, cf)).padEnd(40)} → ${source || '⚠️ sem protótipo declarado'}${rotulo}${naEclipsado ? `   [+ ${corte}]` : ''}${naoAbre}`);
+      // SUFIXO tambem (mesma razao da nota acima): quem le esta saida por posicao nao quebra.
+      // Sem isto o rotulo so existiria no `--json`, e foi lendo a saida do `--list` que a
+      // auditoria #7087 contou os 3 charters de drawer como tela sem fonte.
+      const marcaAux = auxiliar ? '   [componente — nao e tela]' : '';
+      console.log(`${(fm.page || relative(repoRoot, cf)).padEnd(40)} → ${source || '⚠️ sem protótipo declarado'}${rotulo}${naEclipsado ? `   [+ ${corte}]` : ''}${naoAbre}${marcaAux}`);
     }
   }
   if (asJson) console.log(JSON.stringify(rows, null, 2));
@@ -1103,6 +1149,52 @@ async function selftest() {
   const cFraco = cli('Financeiro/Conc');
   t('CONTROLE CLI: 1 match FRACO e único ainda resolve, exit 0',
     cFraco.status === 0 && /Conciliacao\/Index\.charter\.md/.test(cFraco.stdout));
+  // ...e agora DIZ que foi fraco. O par completa o de cima: aquele prova que resolve; este,
+  // que não resolve calado. Provado por mutação em 2026-09-09 (apagar o bloco deixa vermelho).
+  t('BITE CLI: match FRACO se DECLARA fraco e nomeia o critério (substring)',
+    cFraco.status === 0 && /match FRACO/.test(cFraco.stdout) && /SUBSTRING/.test(cFraco.stdout));
+  // CONTROLES do silêncio: as duas formas legítimas de consulta (rota e caminho do
+  // `component:`) resolvem forte e NÃO podem ganhar o aviso — senão ele vira ruído de fundo
+  // e para de ser lido, que é como um alerta morre.
+  t('CONTROLE CLI: match FORTE por rota NÃO ganha aviso de fraco',
+    !/match FRACO/.test(cForte.stdout));
+  const cComp = cli('resources/js/Pages/Financeiro/Conciliacao/Index.tsx');
+  t('CONTROLE CLI: query canônica (component do charter) resolve forte e SEM aviso',
+    cComp.status === 0 && !/match FRACO/.test(cComp.stdout));
+  t('CONTROLE API: a força sai no retorno — 4 pra rota, 1 pro substring',
+    (await resolveAncora('/financeiro/unificado')).forca === 4 && (await resolveAncora('Financeiro/Conc')).forca === 1);
+
+  // ── COMPONENTE nao e TELA (2026-09-09) ────────────────────────────────
+  // Os asserts de criterio usam o formato REAL que o listAll passa: path de `.charter.md`
+  // relativo ao repo. O `page-path.test.mjs` pina o mesmo dono, mas so com `.tsx` — e o
+  // `isAuxiliaryPagePath` olha SO os diretorios pais, entao a extensao nao importa. Sem
+  // este assert isso ficaria por SUPOSICAO.
+  t('BITE aux: charter sob _components/ e auxiliar (nao e tela)',
+    isAuxiliaryPagePath('resources/js/Pages/kb/_components/NodeReader.charter.md') === true);
+  t('CONTROLE aux: charter de tela normal NAO e auxiliar',
+    isAuxiliaryPagePath('resources/js/Pages/Sells/Index.charter.md') === false);
+  t('CONTROLE aux: tela no MODULO dono tambem nao e auxiliar (as 2 raizes)',
+    isAuxiliaryPagePath('Modules/Whatsapp/Resources/js/Pages/Atendimento/Csat/Index.charter.md') === false);
+  // BITE de WIRING — assert sobre helper puro NAO prova contrato de pipeline (§5 2026-07-30).
+  // `listAll` nao e exportado e nao retorna: entao o caminho real so se exercita chamando o
+  // CLI de FORA, que e o que este bloco faz. Se alguem remover o campo do `rows.push`, os 3
+  // asserts de cima seguem verdes e ESTE cai.
+  // Reusa o `cli()` do bloco acima (PR #7131) — mesmo CLI, um caminho so. `status !== 0`
+  // vira lista vazia de proposito: os asserts caem VERMELHOS e visiveis, em vez de o
+  // selftest morrer com excecao de parse (ausencia de medicao nao vira estado do medido).
+  {
+    const cLista = cli('--list', '--json');
+    const rowsReais = cLista.status === 0 ? JSON.parse(cLista.stdout) : [];
+    const aux = rowsReais.filter((x) => x.auxiliar === true).map((x) => x.charter);
+    const telas = rowsReais.filter((x) => x.auxiliar === false);
+    t('BITE wiring: o --list --json ROTULA os charters de componente',
+      aux.length >= 3 && aux.every((c) => /\/_/.test(c)) &&
+      aux.includes('resources/js/Pages/kb/_components/NodeReader.charter.md'));
+    t('CONTROLE wiring: a MAIORIA das linhas segue tela (o campo nao vazou pra todo mundo)',
+      telas.length > rowsReais.length - 10 && telas.length > 200);
+    t('CONTROLE wiring: NENHUMA linha some do --list (o campo ROTULA, nao filtra)',
+      rowsReais.length === aux.length + telas.length && rowsReais.length > 200);
+  }
 
   // ── AS DUAS CHAVES QUE NÃO SÃO ÂNCORA (reporter, nunca promoção) ────────────
   const FX_CHARTER = [
