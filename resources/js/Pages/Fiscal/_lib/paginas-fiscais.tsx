@@ -33,9 +33,13 @@ export interface FxPage {
 // RÓTULOS E ORDEM SEGUEM O PROTÓTIPO (eixo FORMA · ADR UI-0029: protótipo soberano).
 // Fonte: `prototipo-ui/cowork/fiscal-page.jsx` → `FX_TABS` — conferido em 2026-09-09
 // contra o projeto Cowork VIVO por ID (não só contra o espelho): os dois são idênticos.
-// Divergiam quatro coisas, e todas eram da tela, não do protótipo:
-//   'Cockpit' → 'Notas fiscais' · 'Certif. & Cfg.' → 'Certificado'
-//   'SPED & Livros' → 'SPED e livros' · Eventos passa a vir ANTES de Manifesto DF-e
+// Quatro divergiam — dois rótulos, um "&" no lugar de "e", e a ordem de duas abas — e
+// todas eram da tela, não do protótipo. O par antes/depois de cada uma está no PR, e NÃO
+// aqui, de propósito: `fiscal-subnav.contract.json` procura estas strings NESTE arquivo,
+// então repetir a copy antiga (ou a nova) em comentário faz a catraca passar com a aba
+// escrita errada. Medido em 2026-09-09: com a copy no comentário, 3 mutações de 3 NÃO
+// morderam. Ao mexer nesta lista, não traga os rótulos de volta pra prosa.
+//
 // O `short` é renumerado junto com a ordem para manter os dígitos 1-7 contíguos na
 // sequência visual — o listener do FxShell casa por `short`, não por posição, e os
 // casos de uso descrevem "os dígitos 1-7" (não um dígito fixo por tela).

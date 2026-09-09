@@ -532,7 +532,23 @@ function main() {
     const base = argVal('--preflight') && !argVal('--preflight').startsWith('--') ? argVal('--preflight') : 'origin/main';
     fail += preflight(base);
   } else if (a.includes('--contract')) {
-    fail += checkContract(argVal('--contract'));
+    // `--contract <f.json>` checa UM (é como o CI entra: um `for` no bash, um path por vez).
+    // `--contract` SEM path passou a checar TODOS em vez de crashar: era o que o
+    // `npm run contrato:check` fazia — `resolve(ROOT, undefined)` → ERR_INVALID_ARG_TYPE.
+    // Um atalho que só sabe estourar não é usado por ninguém, e o efeito prático é que a
+    // catraca de copy/ordem nunca era exercida fora do CI (medido 2026-09-09).
+    const alvo = argVal('--contract');
+    if (alvo && !alvo.startsWith('--')) {
+      fail += checkContract(alvo);
+    } else {
+      const dir = resolve(ROOT, 'prototipo-ui/contrato');
+      const todos = readdirSync(dir)
+        .filter(f => f.endsWith('.contract.json') && f !== 'EXEMPLO.contract.json')
+        .sort()
+        .map(f => `prototipo-ui/contrato/${f}`);
+      log(`contrato-de-tela · ${todos.length} contrato(s) ativo(s)\n`);
+      for (const c of todos) fail += checkContract(c);
+    }
   } else if (a.includes('--omission')) {
     const base = argVal('--omission') && !argVal('--omission').startsWith('--') ? argVal('--omission') : 'origin/main';
     const alvoFlag = argVal('--alvo');
