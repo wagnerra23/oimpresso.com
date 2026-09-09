@@ -103,25 +103,37 @@ não as 7 do protótipo. **Garantias** e **Auditoria** não têm rota e simplesm
 Esta tela **não altera** esse componente. Duas divergências foram medidas e ficam declaradas,
 para quem tiver escopo de mexer nele:
 
-- **Vocabulário.** Derivando do menu, a aba se chama **"Ativos"**. O `pt/lang.php:9` traduz
-  `assets` como **"Bens"**, e o protótipo também diz "Bens". Ver §6.
+- **Vocabulário.** RESOLVIDO em 2026-09-09 por decisão [W]: a aba passou a dizer **"Bens"** e
+  **"Manutenções"**, alinhada ao `pt/lang.php:9`, ao protótipo e ao `PageHeader` das próprias
+  telas. Trocado no dono ÚNICO (`DataController`), não no componente. Ver §6.
 - **Hue.** Ele passa `group="operar"` (ADR 0180). Medido: `Sidebar.tsx:243` lista
   `'Gestão de ativos'` na whitelist do grupo **`estoque`**, e a entry não declara `group`, então o
   `findGroupKey` resolve por label. `operar` é alias legacy v2 → `producao` (hue 8) e `estoque` é
   350 — ou seja, o botão primary do header e o grupo da sidebar usam matizes diferentes.
 
-## 6 · Vocabulário — três em disputa, e qual vence
+## 6 · Vocabulário — três em disputa, e qual venceu
+
+> **Decidido por [W] em 2026-09-09: "Bens" e "Manutenções".** A tabela abaixo fica como estava
+> — ela e o retrato da disputa — e a coluna `shell.menu` ganha o valor de hoje entre parênteses.
+> O argumento que decidiu não foi a contagem do `lang.php`, e sim que as duas palavras estavam
+> **na mesma dobra da mesma tela**: em dez linhas de `Bens.tsx` liam-se "Bens" (`:528`, o `h1`),
+> "Novo ativo" (`:534`, o botão) e "Ativos" (`:539`, a aba). Trava: os 4 cenários de
+> `Modules/AssetManagement/Tests/Feature/MenuGhostsContratoTest.php`, com bite-test.
 
 | termo | `pt/lang.php` | protótipo | shell.menu |
 |---|---|---|---|
-| a entidade, no plural | **`assets` → "Bens"** | "Bens" (54×) | "Ativos" |
+| a entidade, no plural | **`assets` → "Bens"** | "Bens" (54×) | "Ativos" → **"Bens"** (2026-09-09) |
 | a entidade, no singular | `asset` → "Ativo" | "bem" | — |
 | o módulo | `asset_management` → "Gestão de ativos" | "Patrimônio" | "Gestão de ativos" |
 
 A tela usa o `pt/lang.php`, que para o plural **já diz "Bens"** — coincidindo com o protótipo. A
-divergência real é o `shell.menu` ("Ativos") e o próprio `lang.php` internamente ("recurso" em
-`view_asset`, `add_asset`, `asset_name`). **Não unifico** — é decisão de produto, registrada no
-`_saida-07.md`.
+divergência real era o `shell.menu` ("Ativos"), **fechada em 2026-09-09**. O que **permanece** em
+aberto é o `lang.php` internamente inconsistente — medido em 2026-09-09 nos 99 valores do
+arquivo: "ativo/ativos" em **20**, "recurso" em **9** (`view_asset`, `add_asset`, `asset_name`),
+"Bens" em **1** — e o nome do módulo na sidebar, que segue "Gestão de ativos" enquanto a aba diz
+"Bens". **Não unifiquei esses dois**: é decisão de produto com escopo próprio (tocaria a sidebar
+de todo mundo), e [W] escolheu deliberadamente a opção menor. O retrato da disputa segue na
+`_saida-07.md`, que é registro datado e não se edita.
 
 ## 7 · Riscos e travas
 
