@@ -8,6 +8,7 @@ use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 use Modules\Repair\Concerns\LogsWithPiiRedactor;
+use Modules\Repair\Entities\JobSheet;
 use Modules\Repair\Entities\RepairStatus;
 use Modules\Repair\Utils\RepairUtil;
 use Yajra\DataTables\Facades\DataTables;
@@ -72,11 +73,26 @@ class RepairStatusController extends Controller
         // MWART-0002 (Sprint 2.5) — branch Inertia/React quando flag ativa.
         // Caminho Blade legacy continua intacto (Settings page inclui status/index.blade.php).
         if ($this->mwartEnabled('repair_status_index', (int) $business_id)) {
+            // Quantas folhas usam cada status. O protótipo (repair-page.jsx, região `Status`)
+            // mostra "N folha(s)" na linha: é o que diz se dá pra excluir o status sem deixar
+            // folha órfã — status_id é FK em job_sheets, não tem ON DELETE SET NULL.
+            $usoPorStatus = JobSheet::where('business_id', $business_id)
+                ->selectRaw('status_id, COUNT(*) as total')
+                ->groupBy('status_id')
+                ->pluck('total', 'status_id');
+
+            $statuses = RepairStatus::where('business_id', $business_id)
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get(['id', 'name', 'color', 'sort_order', 'is_completed_status', 'sms_template'])
+                ->map(function ($s) use ($usoPorStatus) {
+                    $s->job_sheets_count = (int) ($usoPorStatus[$s->id] ?? 0);
+
+                    return $s;
+                });
+
             return Inertia::render('Repair/Status/Index', [
-                'statuses' => RepairStatus::where('business_id', $business_id)
-                    ->orderBy('sort_order')
-                    ->orderBy('name')
-                    ->get(['id', 'name', 'color', 'sort_order', 'is_completed_status']),
+                'statuses' => $statuses,
             ]);
         }
 
