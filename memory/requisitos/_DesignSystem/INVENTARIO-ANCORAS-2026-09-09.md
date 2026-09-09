@@ -513,6 +513,125 @@ codifica. **1 caso em 95** — consertado no dado, par-a-par.
    isso e, sob pipe, com `rc=0` — a mesma armadilha da
    [§5 2026-07-31](../../proibicoes.md) (`git grep -F` com `\E`). Pego por controle positivo;
    todas as sondas acima usam `grep -i` sem `-F`. Registrado por ser near-miss, não incidente.
+### 5.3.2 · ERRATA — as 6 telas internas (governança + superadmin): 5 não eram dívida, 1 era
+
+> **Medido em 2026-09-09**, `origin/main @ 4d284d5e29`, no mesmo dia deste inventário e depois dele.
+> A §5.3.1 acima chegou à MESMA conclusão pelo lado da cauda de 9 telas, em sessão paralela e
+> independente — e mediu a correção de premissa no corpus inteiro (**115** charters declaram `n/a`
+> com razão escrita). Esta seção **não repete** aquela medição: cobre outras 6 telas, com escopo
+> disjunto (ela mesma registra *"governance+Superadmin"* como sessão dona separada, zero colisão
+> de path). Duas medições independentes convergindo é corroboração, não duplicata.
+> Um chip pediu "gerar a fonte de design das 6 telas internas que não têm nenhuma". A medição
+> **encolheu o escopo de 6 para 1** — e o conserto da 1 não é um protótipo.
+
+**O que o `ancora.mjs <path .tsx> --staging prototipo-ui/cowork` respondeu, uma por uma:**
+
+| tela | veredito da porta viva | é dívida? |
+|---|---|---|
+| `governance/Custos` | `n/a (herda PT-04 Dashboard; segue o Padrão de Tela)` | **não** |
+| `governance/DsRollout` | `n/a (herda PT-04 Dashboard; …)` | **não** |
+| `governance/QualidadeIa` | `n/a (herda PT-04 Dashboard; …)` | **não** |
+| `superadmin/Usuario360/Index` | `n/a (herda PT-01 Lista; …)` | **não** |
+| `superadmin/Usuario360/Show` | `n/a (herda PT-03 Detalhe; …)` | **não** |
+| `governance/ModuleGrades/Show` | ⚠️ *"charter sem related_prototype nem -page.jsx"* | **sim** |
+
+As cinco primeiras declaram `n/a` — a **declaração legítima** que a própria porta rotula como
+*"a tela nasce do DS; NÃO entra no anchor-content-check"*, e que
+[§5 2026-08-28 (c)](../../proibicoes.md) fixa como coexistindo com a âncora de bundle **por desenho**.
+Ausência de `related_prototype` **não é** ausência de fonte.
+
+**O custo de "promover" foi medido, não citado** (a errata do §5.1 afirmava isto para Estoque; aqui
+foi reproduzido de fora, aplicando e rodando — [LC-22](../../LICOES_CODE.md)). Trocando o `n/a` de
+`Custos` por um path e rodando `pt-conformance`:
+
+```
+(base 4d284d5e29 — os absolutos são daquele commit; o que importa é o sinal do delta)
+baseline                                        → 89 declaram · 89 conforme
+com related_prototype: …/governance-page.jsx    → 88 declaram · 88 conforme   ← a tela SAI do gate
+revertido                                       → 89 declaram · 89 conforme
+```
+
+A causa está em [`pt-conformance.mjs:56-57`](../../../scripts/governance/pt-conformance.mjs): o PT vem de
+`claimedPT(related_prototype)`, e `if (!pt) return null` — *"não declara PT → fora do escopo deste gate"*.
+Promover as 5 custaria **−5** na única checagem falsificável que elas têm, em troca de âncoras que
+seriam **porte reverso**: as 6 telas já existem, vivas e no DS canon (AppShellV2 em todas), então um
+`.jsx` gerado hoje retrataria o código — [§5 2026-06-05](../../proibicoes.md) e o §5.2 acima.
+
+**A 1 que era dívida foi consertada, e o conserto não é um `.jsx`:** `ModuleGrades/Show` não declarava
+PT nenhum. Declarar o que ela **já segue** (`n/a (herda PT-03 Detalhe; segue o Padrão de Tela)`) a põe
+no gate — **delta medido `+1`**, com `detectSignals` dando `detail:true` (PT-03 exige `detail || kpi`).
+O `ancora.mjs` saiu do ⚠️ para "declaração legítima".
+
+> ⚠️ **O delta é o número, não o absoluto** ([§5 2026-08-24](../../proibicoes.md)). Este PR mediu
+> `89 → 90` na sua primeira base e `88 → 89` depois de incorporar o `origin/main` (o #7152 e o #7154
+> mexeram no `ancora.mjs` e o denominador do gate mudou). Os dois são o mesmo `+1`. Quem reler isto
+> deve **rodar** `node scripts/governance/pt-conformance.mjs`, não citar o absoluto daqui — é o que
+> o cabeçalho deste documento já avisa sobre contagens.
+
+> 🏁 **Marco, e o crédito não é deste PR sozinho:** com este conserto, com o
+> [#7144](https://github.com/wagnerra23/oimpresso.com/pull/7144) (que tirou charter de **componente**
+> da conta de tela) e com as demais sessões do dia, o `design:coverage` passou a reportar **zero
+> telas silenciosas**. Não congelo o número aqui — rode `npm run design:coverage`, que é o dono
+> ([§5 2026-07-17](../../proibicoes.md)). O que fica registrado é qual peça foi desta sessão: o
+> `ModuleGrades/Show` era uma das silenciosas, e deixou de ser por **declarar o PT que já seguia**,
+> não por ganhar um protótipo.
+
+**Claim de ausência, as duas pernas** ([§5 2026-07-28](../../proibicoes.md) + [§5 2026-08-07](../../proibicoes.md)):
+repo — `rg -l -i --hidden -g '!.git/**'` por `usuario360` dá **46 arquivos** (0 protótipo; `--hidden` e
+sem mudam nada aqui, conferido); Cowork vivo — `DesignSync.list_files` = **771 paths**, sem nenhum
+`*rollout*`, `*qualidade*`, `*custos*` ou `*usuario360*`. O `--live-only` **não é medido aqui, e o
+número não se repete aqui** — o dono desse eixo é o [#7150](https://github.com/wagnerra23/oimpresso.com/pull/7150),
+que remediu no mesmo dia com a lista **completa** e registrou no ledger. Consulte-o para o valor
+vigente ([§5 2026-07-17](../../proibicoes.md) — doc canônico não restateia número que outro sistema
+sabe melhor).
+
+> ⚠️ **Por que este PR cedeu o eixo, e é um recibo contra mim.** Eu remedi o `--live-only` por conta
+> própria e cheguei a `87` (depois `74`, ao incorporar o [#7141](https://github.com/wagnerra23/oimpresso.com/pull/7141)),
+> com denominador **771**. O #7150 mediu **876**. A diferença não é a base: é que
+> `DesignSync.list_files` devolve **arquivos e entradas de diretório**, e ao transcrever a saída
+> para o JSON do `--live-only` eu **omiti as 105 entradas de diretório** — medido: a minha lista
+> tem **zero** paths sem extensão, e `876 − 771 = 105`. O numerador coincidiu (87 nos dois), porque
+> o script descarta essas entradas de qualquer modo; **o denominador que eu teria publicado estaria
+> errado**, e o `--sla-live-only` compara denominadores. É a §5 2026-08-11 na veia — transcrever
+> perde dado — e a razão de a entrada do ledger deste PR ter sido **revertida** para a do main.
+>
+> **A causa de raiz é anterior:** três PRs abertos hoje tocam este mesmo arquivo e o mesmo ledger
+> (#7147, #7150 e este). Quem detectou foi o `dup-detector`, não eu — **não rodei checagem de
+> sessão paralela** antes de abrir, e o gatilho do meu trabalho foi um hook de **máquina
+> compartilhada** (`live-only vencido`), que a [emenda §5 2026-08-13](../../proibicoes.md) nomeia
+> como *o caso de maior probabilidade de colisão que existe*. A ocorrência dessa classe já está
+> registrada no ledger pelo próprio #7150 (n+13, mesmo gatilho, mesmo dia) — não a duplico aqui.
+
+⚠️ **`usuarios-page.jsx` existe no vivo e NÃO serve** — verificado abrindo, não herdado: `:1-2` diz
+*"Lista de usuários (gerenciar acessos do ERP)… Redesign do datatable legado UltimatePOS
+(ManageUserController index)"*. É a tela **por-tenant** de acessos; o Usuario360 é **cross-tenant**
+(roles, permissions efetivas, scopes MCP, tokens, quotas, sessions, lockouts). Casar as duas por
+semelhança de nome seria o guard sintático que este documento já reprova em §4.3.
+
+**O que o próprio Cowork diz sobre o Usuario360** — `cowork-inbox/SUPERADMIN-F3-ONDAS-PARA-CODE.md:153`,
+sob o título *"Fora destas 6 ondas (de propósito)"*: *"existe no `main` com 5 rotas … e **não tem tela
+no meu protótipo**. É uma tela nova de F1, não tradução; peço briefing antes de desenhar. Provável
+SA-O7."* Ou seja: a ausência do lado do design é **deliberada e declarada**, com uma pergunta em aberto
+para [W] — não é lacuna a tapar por conta própria.
+
+⚠️ **E o `design-coverage` sugere a âncora ERRADA para as duas `Usuario360`.** Ele as lista sob
+*"n/a com fonte candidata JÁ no espelho"* (32 telas, report-only, *"revisar a decisão"*). A regra que
+elege a candidata é [`design-coverage.mjs:60-64`](../../../scripts/qa/design-coverage.mjs): extrai o
+módulo de `Pages/<Mod>/` e testa `existsSync(prototipo-ui/cowork/<mod>-page.jsx)` — **casamento por
+nome de pasta**, a mesma heurística que o §4.3 acima mede com **73% de erro**. Aqui ela erra: a
+candidata é `superadmin-page.jsx`, cujo cabeçalho (`:2-8`) traduz seis views do Blade legado
+(`superadmin/index`, `business/index`, `subscription`, `packages`, `communicator`, `settings`) e
+**nenhuma de usuários**. Sonda com controle: `360` = 0 · `lockout` = 0 · `scope` = 0 · `permission` = 0;
+controle positivo `business` = 3 · `package` = 3. Os 12 hits de `usuario` são **cota de licenciamento**
+(`pkg.usuarios`, `<Uso rotulo="Usuários" teto={pkg.usuarios}/>`), não uma tela de usuários.
+**Quem for "fechar" essas duas decisões `n/a` apontando `superadmin-page.jsx` cria âncora falsa.**
+A decisão `n/a` delas está certa e deve permanecer.
+
+**Uso real (sinal fraco, declarado como tal):** no `governance/route-hits.json` (janela 30d) só
+`governance/ModuleGrades/Show` aparece — 3 hits, última data 2026-08-22. As outras 5 não constam.
+Isso **não** prova abandono: o ledger tem 104 rotas e 41 pages para 226+ charters, e sua data mais
+recente é 2026-08-22 (18d), então ausência ali é ausência de *coleta*, não de uso. O próprio `_meta`
+avisa: *"NAO e lista de telas existentes"*. Todas as 6 têm rota, controller e teste no `main`.
 
 ### 5.4 · Não deveriam ter âncora no shell
 
@@ -630,6 +749,7 @@ node scripts/governance/cowork-mirror-freshness.mjs --compare --check    # o esp
 | `ancora.mjs` — precedência | o `n/a` truthy que esconde 15 `bundle_source` (§4.1) | conserto de máquina, não de charter |
 | `ancora.mjs` — chaves 4 e 5 | `blueprint_cowork` (38) + `canon_reference` (31) + colisão `Nfse/Index` | idem |
 | heurística `startsWith` | 73% de erro medido (§4.3) — decidir entre remover ou rotular como não-âncora | **decisão de [W]**: mexer na regra dura |
+| ~~governança + superadmin (6 telas)~~ | **FECHADO em 2026-09-09 — ver §5.3.2** | 5 de 6 não eram dívida (`n/a` legítimo); a 6ª (`ModuleGrades/Show`) foi consertada declarando o PT-03 que já segue: `pt-conformance` **+1** (rode o gate; o absoluto muda com o main) |
 
 ## 9 · O que este inventário NÃO faz
 
