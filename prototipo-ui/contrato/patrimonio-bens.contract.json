@@ -1,0 +1,65 @@
+{
+  "_nota": "Contrato de tela da lista de Bens (PT-01 Lista). Segundo contrato do Patrimonio, irmao do `patrimonio-index.contract.json` — o padrao do repo e 1 prototipo de modulo para N contratos de TELA (medido: `fiscal-page.jsx` serve 4, `superadmin-page.jsx` 4, `jana-telas-novas.jsx` 3). Roda em `node scripts/contrato-de-tela.mjs --contract <este-arquivo>`. A copy declarada aqui e a que a tela TEM hoje e que o gate consegue provar; onde o prototipo do Cowork diverge, a divergencia esta em `_pendente_w` — nao foi resolvida no silencio.",
+  "tela": "Patrimonio/Bens",
+  "fonte": "prototipo-ui/cowork/patrimonio-page.jsx",
+  "alvo": [
+    "resources/js/Pages/Patrimonio/Bens.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "cabecalho",
+      "copy": [
+        "Bens",
+        "O patrimônio da empresa: o que a casa tem, onde está e com quem",
+        "Novo ativo"
+      ]
+    },
+    {
+      "id": "subnav",
+      "copy": []
+    },
+    {
+      "id": "filtros",
+      "copy": [
+        "Categoria",
+        "Local",
+        "Tipo de compra",
+        "Somente alocáveis"
+      ]
+    },
+    {
+      "id": "tabela",
+      "copy": [
+        "Ações",
+        "Código",
+        "Imagem",
+        "Bem",
+        "Categoria",
+        "Local",
+        "Qtd",
+        "Alocado",
+        "Valor unitário",
+        "Garantia",
+        "Compra",
+        "Situação",
+        "Buscar bem, código, modelo, série...",
+        "Nenhum bem cadastrado ainda"
+      ]
+    }
+  ],
+  "ordem": [
+    "cabecalho",
+    "subnav",
+    "filtros",
+    "tabela"
+  ],
+  "_pendente_w": [
+    "seção `subnav` — copy VAZIA de propósito, e isto não é lacuna. A sub-navegação DERIVA de `shell.menu` (`DataController::modifyAdminMenu`); o charter de Bens proíbe declarar a lista aqui, e `Index.charter.md` fixa a razão: renderizar aba que não navega é afordância falsa. Pinar os rótulos neste contrato criaria uma segunda fonte para a mesma lista — o oposto do que a derivação resolve.",
+    "AÇÃO DE LINHA — o protótipo declara `Editar bem` e `Excluir bem`; a tela diz `Editar — {nome}` e `Excluir — {nome}`, porque o nome do bem no título é o que impede o usuário de perceber tarde que clicou na linha errada. As outras duas batem literalmente (`Alocar recurso`, `Enviar pra manutenção`) e por isso NÃO entram aqui: o título é template literal com o nome interpolado, e o gate casa a copy no fonte, não o rótulo renderizado. Fixar as 4 como copy de gate é decisão [W].",
+    "COLUNA DE VALOR — o protótipo diz `Valor`; a tela diz `Valor unitário`, que é o que o charter promete e o que o dado é. Declarei a da tela. Se [W] preferir o rótulo do protótipo, é troca de copy, não de dado.",
+    "SUB-RECORTES (`Todos` · `Alocáveis` · `Garantia crítica` · `Em manutenção`) — fora do contrato porque são **Non-Goal declarado** no charter: pedem predicado SQL novo, e recorte que filtra só a página corrente mente na contagem da pílula. Entram quando a onda correspondente entrar.",
+    "LOTE (`Exportar seleção` · `Enviar pra manutenção` em BulkBar) — mesmo caso: Non-Goal declarado, as duas ações não têm endpoint hoje.",
+    "DRAWER (`Resumo` · `Garantia` · `Alocações` · `Manutenção` · `Depreciação` · `Histórico`) — o protótipo desenha um drawer de detalhe do bem que esta tela não tem. Não é divergência: é tela que ainda não existe.",
+    "VOCABULÁRIO `revogação` × `devolução` — o protótipo e o backend dizem *revogar* (8 chaves em `Modules/AssetManagement/Resources/lang/pt/lang.php`); a UI React diz *devolução*. Não toquei em nenhum dos dois. Decisão 2 da proposta `patrimonio-dois-contratos`."
+  ]
+}
