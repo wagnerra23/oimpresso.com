@@ -56,39 +56,11 @@ function notaInMain(relPath) {
   }
 }
 
-/**
- * Vetor 2 — DELEÇÃO (o buraco medido em 2026-08-10, §5 "Catraca que itera o LADO DO PR").
- *
- * O laço principal itera `readdirSync` do PR: arquivo deletado NUNCA entra nele,
- * então apagar um scorecard passava por baixo da catraca. A promessa "robusto
- * contra burla" do cabeçalho cobria só o vetor de BAIXAR `baseline_anterior`.
- *
- * A distinção NÃO é heurística — o scorecard declara `path:`:
- *   - sumiu o YAML **e** o `.tsx` daquele path também  → tela removida, LEGÍTIMO (cala)
- *   - sumiu o YAML **e** o `.tsx` continua vivo         → vetor de fuga (acusa)
- *
- * FP medido no histórico completo antes de armar (regra "LIGUE A MÁQUINA" item 4):
- * 258 deleções de scorecard, 258 com o `.tsx` morto junto ⇒ **0 falso-positivo**.
- * (E 0 verdadeiro-positivo: o vetor nunca foi usado — isto é defesa preventiva.)
- *
- * NÚCLEO PURO + injeção, pra o selftest poder exercitar sem git. Mas assert sobre
- * helper puro NÃO prova o pipeline (§5 2026-07-30) — por isso o `--selftest`
- * também roda um bite-test E2E contra um repo git de verdade.
- */
-export function classificarDelecoes({ naBase, noPr, pathDe, tsxVivo }) {
-  const noPrSet = new Set(noPr);
-  const fuga = [];
-  let legitimas = 0;
-  let semPath = 0;
-  for (const f of naBase) {
-    if (noPrSet.has(f)) continue; // não foi deletado
-    const p = pathDe(f);
-    if (!p) { semPath++; continue; } // sem `path:` declarado → não dá pra decidir; não acusa
-    if (tsxVivo(p)) fuga.push({ file: f, path: p });
-    else legitimas++;
-  }
-  return { fuga, legitimas, semPath };
-}
+// A regra de "deleção legítima × fuga" mora em scripts/lib/ desde 2026-09-09: este arquivo
+// executa a catraca no top-level, então quem importasse a função daqui rodaria este gate junto.
+// Re-exportada para não quebrar consumidor que já a importava deste módulo.
+import { classificarDelecoes } from '../lib/delecao-legitima.mjs';
+export { classificarDelecoes };
 
 /** Lista os scorecards que existem na ref de base. */
 function scorecardsNaBase() {
