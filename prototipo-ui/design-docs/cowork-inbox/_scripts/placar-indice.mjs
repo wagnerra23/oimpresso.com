@@ -6,6 +6,18 @@
 // _saida-NN.md é prova IMPLÍCITA de toda thread; provas explícitas são evidência de trabalho NOVO (arquivo pré-existente não é prova — falseava "em curso").
 // Aceite T5: apagar uma prova do repo derruba X→X−1 nomeando a thread (ver teste no fim).
 
+import { readdirSync, existsSync } from 'node:fs';
+import { join } from 'node:path';
+
+export function descobrirIndices(root) {
+  const base = 'prototipo-ui/design-docs/cowork-inbox';
+  if (!existsSync(join(root, base))) return [];
+  return readdirSync(join(root, base), { withFileTypes: true })
+    .filter(d => d.isDirectory())
+    .map(d => `${base}/${d.name}/playbook/00-INDICE.md`)
+    .filter(p => existsSync(join(root, p))).sort();
+}
+
 import { validarIndice, avaliarExecucao, pathSeguro } from './placar-evidencia.mjs';
 export const ESTADOS = ["feito", "em curso", "proximo", "pendente", "bloqueada"];
 export const proximas = (r) => r.linhas.filter(l => l.executavel);
@@ -101,7 +113,14 @@ if (isMain) {
   const fs = await import("node:fs"); const path = await import("node:path"); const { globSync } = await import("node:fs");
   const arg = (k, d) => { const i = process.argv.indexOf(k); return i > -1 ? process.argv[i + 1] : d; };
   const root = path.resolve(arg("--root", "."));
-  const alvos = process.argv.includes("--todos") ? (globSync ? globSync(arg("--todos"), { cwd: root }) : []) : [arg("--indice")];
+  const todos = process.argv.includes('--todos');
+  const padrao = arg('--todos');
+  let alvos;
+  if (todos && padrao && !padrao.startsWith('--')) {
+    if (!globSync) { console.error('--todos com glob exige Node >=22; use --todos sem padrão no Node 20'); process.exit(2); }
+    alvos = globSync(padrao, { cwd: root });
+  } else alvos = todos ? descobrirIndices(root) : [arg('--indice')].filter(Boolean);
+  if (!alvos.length) { console.error('Nenhum índice selecionado; use --indice <arquivo> ou --todos'); process.exit(2); }
   const ctxBase = { existe: (p) => fs.existsSync(path.join(root, p)), ler: (p) => fs.readFileSync(path.join(root, p), "utf8") };
   let exit = 0;
   for (const idxPath of alvos) {
@@ -109,12 +128,14 @@ if (isMain) {
     // DesignSync, então .json solto não chega (00-INDICE §0 + _schema/playbook.schema.json).
     // Antes daqui o script fazia JSON.parse do arquivo cru e só rodava com um playbook.json
     // paralelo, que é justamente o segundo dono do estado que o §0 proíbe.
-    const bruto = fs.readFileSync(path.join(root, idxPath), "utf8");
+    let bruto;
+    try { bruto = fs.readFileSync(path.join(root, idxPath), "utf8"); }
+    catch (e) { console.error(`${idxPath}: ${e.message}`); exit = 2; continue; }
     const embutido = idxPath.endsWith(".md") ? (bruto.match(/```json\s*\n([\s\S]*?)\n```/) || [])[1] : bruto;
-    if (!embutido) { console.error(`sem bloco json embutido em ${idxPath}`); process.exit(2); }
+    if (!embutido) { console.error(`sem bloco json embutido em ${idxPath}`); exit = 2; continue; }
     let indice;
     try { indice = JSON.parse(embutido); validarIndice(indice); }
-    catch (e) { console.error(`${idxPath}: ${e.message}`); process.exit(2); }
+    catch (e) { console.error(`${idxPath}: ${e.message}`); exit = 2; continue; }
     const r = avaliar(indice, { ...ctxBase, dirPlaybook: path.dirname(idxPath) });
     if (process.argv.includes("--json")) console.log(JSON.stringify(r, null, 2));
     else {
@@ -122,7 +143,7 @@ if (isMain) {
       for (const l of r.linhas) console.log(`  ${l.id} [${l.estado.padEnd(9)}] ${l.titulo}${l.estado === "feito" || l.estado === "bloqueada" ? "" : " — " + (l.ausentes[0] || (l.saida ? "" : "sem _saida"))}`);
       if (process.argv.includes("--proximo")) { const p = proximas(r); console.log(p.length ? `PRÓXIMO: ${p.map((l) => l.id + " " + l.titulo + " [" + l.dono + "]" + (l.estado === 'em curso' ? ' (retomar/validar)' : '')).join(" · ")}` : "PRÓXIMO: nenhum executável — consulte dependências e decisões acima"); }
     }
-    if (r.feito < r.total - r.cont.bloqueada) exit = 1;
+    if (r.feito < r.total - r.cont.bloqueada) exit = Math.max(exit, 1);
   }
   process.exit(exit);
 }
