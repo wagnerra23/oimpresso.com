@@ -1,0 +1,39 @@
+<!doctype html>
+<!-- @dsCard group="Components" name="Command" subtitle="Paleta ⌘K — filtro ao vivo + navegação por teclado" viewport="620x480" -->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Command</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<style> body { margin: 0; } </style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+</head>
+<body>
+<div class="cockpit dark" data-theme="dark" style="height:480px; background:var(--bg);">
+  <div id="root"></div>
+</div>
+<script type="text/javascript">
+  document.querySelector('.cockpit').classList.add('dark');
+  const { Command } = window.OfficeImpressoPontoWR2DesignSystem_019dd0;
+  const h = React.createElement;
+  const groups = [
+    { label: 'Navegar', items: [
+      { id: 'n1', label: 'Clientes', hint: 'CRM', kbd: 'G C' },
+      { id: 'n2', label: 'Ordens de serviço', hint: 'Produção', kbd: 'G O' },
+      { id: 'n3', label: 'Financeiro', hint: 'Títulos' },
+      { id: 'n4', label: 'Atendimento', hint: 'Inbox' },
+    ] },
+    { label: 'Ações', items: [
+      { id: 'a1', label: 'Novo cliente', kbd: '⌘N' },
+      { id: 'a2', label: 'Nova OS' },
+      { id: 'a3', label: 'Exportar relatório' },
+    ] },
+  ];
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    h(Command, { open: true, onClose: () => {}, groups })
+  );
+</script>
+</body>
+</html>
