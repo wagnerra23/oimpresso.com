@@ -49,6 +49,21 @@ const PROTOTIPOS_ALLOWLIST = new Set(['compras-grade-matrix', 'inventario-migrac
 // por hash idêntico entre o espelho de 06/23 e o download do vivo na véspera da deleção).
 const PROTOTIPOS_HISTORICOS = new Set(['financeiro-prova-viva']);
 
+// TERCEIRA natureza — e a DIREÇÃO é o que a distingue das duas de cima.
+// O allowlist transitório é pra design que VEIO do Cowork e ainda não voltou (sai quando o
+// design exportar; meta = 0). Estes são o inverso: design que NASCEU aqui, gerado pelo
+// agente Code como designer-agente (ADR 0282 §0.1 — "onde não há protótipo, o agente gera,
+// ancorado no DS canon"), pra tela cuja fonte visual não existe em nenhum dos dois donos do
+// inventário (espelho + Cowork vivo por ID). Não têm de onde ser "exportados" — precisam
+// SUBIR. Sai daqui quando o design subir pro Cowork e voltar pelo cowork/ normal, ou quando
+// [W] decidir descartar.
+// Misturá-los no transitório inverteria a semântica dele e apodreceria a meta "allowlist = 0"
+// (é a mesma razão pela qual PROTOTIPOS_HISTORICOS não virou parte do transitório).
+// Cada entrada tem SOURCE.md declarando proveniência, âncora de domínio e status.
+// 'nfe-tributacao' — 4 telas de NfeBrasil/Tributacao; ausência medida nos 2 donos em
+// 2026-09-09 (a própria fonte declara o limite: configuracoes-page.jsx:324, prefs-page.jsx:121).
+const PROTOTIPOS_GERADOS = new Set(['nfe-tributacao']);
+
 const errors = [];
 
 function walk(dir) {
@@ -80,7 +95,7 @@ if (existsSync(pu)) {
 const proto = join(ROOT, 'prototipo-ui/prototipos');
 if (existsSync(proto)) {
   for (const e of readdirSync(proto, { withFileTypes: true })) {
-    if (e.isDirectory() && !PROTOTIPOS_ALLOWLIST.has(e.name) && !PROTOTIPOS_HISTORICOS.has(e.name)) {
+    if (e.isDirectory() && !PROTOTIPOS_ALLOWLIST.has(e.name) && !PROTOTIPOS_HISTORICOS.has(e.name) && !PROTOTIPOS_GERADOS.has(e.name)) {
       errors.push(`R3 protótipo fora do cowork/ (mova o build pro cowork/): prototipo-ui/prototipos/${e.name}`);
     }
   }
@@ -101,13 +116,21 @@ if (existsSync(coworkAbs)) {
 }
 
 if (process.argv.includes('--json')) {
-  console.log(JSON.stringify({ ok: errors.length === 0, errors, allowlist: [...PROTOTIPOS_ALLOWLIST] }, null, 2));
+  console.log(JSON.stringify({
+    ok: errors.length === 0,
+    errors,
+    allowlist: [...PROTOTIPOS_ALLOWLIST],
+    historicos: [...PROTOTIPOS_HISTORICOS],
+    gerados: [...PROTOTIPOS_GERADOS],
+  }, null, 2));
 } else if (errors.length) {
   console.error(`✗ cowork-ssot-guard: ${errors.length} violação(ões) de fonte única:`);
   for (const e of errors) console.error('  - ' + e);
   console.error('\nRegra: prototipo-ui/cowork/ = ÚNICA fonte de design (BUILD-ONLY). Conhecimento = canon (memory/ + prototipo-ui root).');
   console.error('ADR: memory/decisions/proposals/2026-06-23-prototipo-ssot-unico-com-historico.md');
   if (PROTOTIPOS_ALLOWLIST.size) console.error(`Allowlist transitório (design deve exportar pro cowork/): ${[...PROTOTIPOS_ALLOWLIST].join(', ')}`);
+  if (PROTOTIPOS_HISTORICOS.size) console.error(`Âncoras históricas (upstream aposentado, charter ainda ancora): ${[...PROTOTIPOS_HISTORICOS].join(', ')}`);
+  if (PROTOTIPOS_GERADOS.size) console.error(`Gerados pelo Code (ADR 0282 §0.1, aguardam subir pro Cowork): ${[...PROTOTIPOS_GERADOS].join(', ')}`);
 } else {
   console.log('✓ cowork-ssot-guard: fonte única OK (cowork/ build-only · sem bundles datados · prototipos só allowlist/histórico · host único na raiz).');
 }

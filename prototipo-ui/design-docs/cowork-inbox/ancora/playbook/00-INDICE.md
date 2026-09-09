@@ -35,6 +35,9 @@ Um único charter do corpus medido resolve isso, e resolve bem:
 
 É a mesma ancoragem por **símbolo** das threads 13–15 do Ponto. Virar norma do campo é **decisão de [W]** (`D-SIMBOLO` abaixo), não PR do Code.
 
+## Contrato de evidência (decidido neste ciclo — `_contrato-evidencia.md`)
+`D-EVIDENCIA` respondida por [CC], a ratificar por [W]: **E0 declarado (não é evidência) · E1 abre · E2 símbolo · E3 conteúdo (`ds-anchor-check --check`) · E4 pixel (T7)**. Piso: charter `draft` = E1 · promover a `live` = E3 · onda de módulo = E2. `via='component'` é **E0**. Query ambígua = **veredito nulo**, não E1. As 3 threads abaixo não mudam de prefixo nem de prova — mudam de **significado**: 01 torna o E1 alcançável sem `--staging`, 02 proíbe E-nenhum disfarçado de E1, 03 faz `hasSource` significar E1. `D-SIMBOLO` segue de [W] — sem ela, módulo muitos-para-um tem **teto E1**.
+
 ## Threads
 | # | thread | prefixo | veredito |
 |---|---|---|---|
@@ -74,6 +77,15 @@ Li em `752041ac450d`; a última busca do turno já respondeu de `7742b9621c32`. 
    "pergunta": "O fallback mockupJsx(fm.component) do --list pode morrer? Ele é tautológico (âncora = a própria tela), mas nao medi quantas linhas hoje saem com via='component' — se for >0, alguma tela perde 'fonte' no design-coverage e a remoção precisa de [W].",
    "respondida": false,
    "define": "MATA_FALLBACK_COMPONENT"
+  },
+  {
+   "id": "D-EVIDENCIA",
+   "pergunta": "O que autoriza afirmar que uma tela tem ancora?",
+   "respondida": true,
+   "resposta": "escala E0..E4 — E0 declarado (nao e evidencia) · E1 abre · E2 simbolo · E3 conteudo (ds-anchor-check) · E4 pixel (T7). Piso: draft=E1, live=E3, onda=E2. via='component' e E0. Ambiguidade = veredito nulo. Decidida por CC em _contrato-evidencia.md; ratifica W.",
+   "custo": "nenhum PR novo — as 3 threads ja existentes mudam de significado, nao de prefixo",
+   "afeta": ["01", "02", "03"],
+   "define": "NIVEL_EVIDENCIA"
   }
  ],
  "threads": [
