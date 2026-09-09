@@ -9,7 +9,14 @@ status: aguardando-screenshot-wagner
 runbook: memory/requisitos/Estoque/_telas/RUNBOOK-stock-adjustment-create.md
 draft_tsx: resources/js/Pages/StockAdjustment/Create.tsx
 controller_delta: app/Http/Controllers/StockAdjustmentController.php@createInertia
-cowork_source: prototipo-ui/prototipos/inventario-migracao/F1.html
+# cowork_source removido em 2026-09-09 — apontava
+# prototipo-ui/prototipos/inventario-migracao/ (visual-source.html == F1.html, mesmo blob),
+# que é o relatório "Migração Blade → React", não o desenho desta tela.
+# Medido no dia (grep -oi <termo> | wc -l, rc=0): Blade=67 React=36 Inventário=8 · estoque=0 SKU=0 saldo=0 quantidade=0 ajuste=0.
+# O recorte tem alvo próprio, nunca construído: o README dele pede charter em
+# Pages/Stocks|Inventario/Index e marca "F3 bloqueado por charter ausente".
+# Casou por homônimo ("inventário" de código × "inventário" de estoque).
+# A âncora de design da tela vive no charter ao lado do .tsx (`bundle_source`).
 ---
 
 # Visual Comparison — `stock_adjustment/create` (FORM CREATE)
