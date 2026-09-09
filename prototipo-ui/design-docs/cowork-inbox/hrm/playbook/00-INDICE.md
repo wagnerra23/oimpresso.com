@@ -13,7 +13,7 @@ regra: este índice é PEDIDO (lista de threads a executar, com sha), não inven
 
 > **Absorve, não duplica:** `cowork-inbox/hrm/PEDIDO-CL-hrm.md` (D1/D2/D3 respondidas por [W] em 2026-09-05) + `cowork-inbox/hrm/EXPORT-HRM-2026-09-04.md`. Onde divergem, **a emenda [W] manda**: Presença sai do HRM; Folha vira projeto com ADR própria. **Metas já está em produção (#6869)** — a onda 9 do export está feita.
 
-> **Compatibilidade verificada em 08/09/2026:** este índice não declarou recibos de execução. A estrutura pode ser avaliada, mas nenhuma tarefa recebe fechamento automático até definir sua evidência no contrato do placar. E2E, comparação visual e medição exigem os respectivos produtores de evidência; não preencher um resumo Pest fictício.
+> **Adaptação em 09/09/2026:** os contratos de evidência declarados no JSON seguem o [contrato do placar](../../_scripts/README-placar.md). Recibos devem vir da execução/revisão real; os demais trabalhos permanecem sem fechamento certificado até declarar a evidência adequada.
 
 ## 0 · Landing — como esta pasta desce (resposta ao [CL], 2026-09-05)
 - **A unidade é a PASTA inteira** (`00-INDICE.md` + 11 `NN-*.md`): índice sozinho aponta pra arquivos inexistentes — o mesmo defeito do item 3 do §5. Rota: DesignSync `get_file` de cada `.md` → `--export-from <dir>`; `.md` roteia pra `prototipo-ui/design-docs/cowork-inbox/hrm/playbook/`.
@@ -114,6 +114,7 @@ Thread `feito` segue o [contrato do placar](../../_scripts/README-placar.md): sa
 ```json
 {
   "modulo": "Hrm",
+  "modulo_codigo": "Essentials",
   "sha": "45e63465d2e4",
   "gerado": "2026-09-05",
   "absorve": ["prototipo-ui/design-docs/cowork-inbox/hrm/PEDIDO-CL-hrm.md", "prototipo-ui/design-docs/cowork-inbox/hrm/EXPORT-HRM-2026-09-04.md"],
@@ -142,6 +143,8 @@ Thread `feito` segue o [contrato do placar](../../_scripts/README-placar.md): sa
         { "tipo": "json_com_chaves", "path": "prototipo-ui/contrato/essentials-licencas.contract.json", "chaves": ["alvo", "secoes"], "nota": "nome segue a irmã (essentials-metas); o hrm-licencas.contract.json do cowork-inbox é insumo, o gerador carimba" },
         { "tipo": "arquivo", "path": "e2e/essentials-licencas.spec.ts" },
         { "tipo": "contem", "path": "Modules/Essentials/Http/Controllers/EssentialsLeaveController.php", "padrao": "Inertia::render('Essentials/Licencas", "nota": "D4: a rota passa a ter Page" }
+      ,
+        {"tipo":"execucao","formato":"playwright-json","raiz_testes":"e2e","path":"prototipo-ui/design-docs/cowork-inbox/hrm/playbook/recibos/02-e2e.json","testes":["e2e/essentials-licencas.spec.ts"]}
       ] },
     { "id": "03", "titulo": "Tipos de licença — Page", "dono": "CL", "vaga": 1, "arquivo": "03-tipos-licenca.md",
       "prefixo": ["${PAGES}/Tipos.tsx", "${PAGES}/Tipos/", "Modules/Essentials/Http/Controllers/EssentialsLeaveTypeController.php", "prototipo-ui/contrato/essentials-tipos.contract.json", "e2e/essentials-tipos.spec.ts"],
@@ -152,6 +155,8 @@ Thread `feito` segue o [contrato do placar](../../_scripts/README-placar.md): sa
         { "tipo": "um_de", "paths": ["${PAGES}/Tipos.casos.md", "${PAGES}/Tipos/Index.casos.md"] },
         { "tipo": "json_com_chaves", "path": "prototipo-ui/contrato/essentials-tipos.contract.json", "chaves": ["alvo", "secoes"] },
         { "tipo": "contem", "path": "Modules/Essentials/Http/Controllers/EssentialsLeaveTypeController.php", "padrao": "Inertia::render('Essentials/Tipos" }
+      ,
+        {"tipo":"execucao","formato":"playwright-json","raiz_testes":"e2e","path":"prototipo-ui/design-docs/cowork-inbox/hrm/playbook/recibos/03-e2e.json","testes":["e2e/essentials-tipos.spec.ts"]}
       ] },
     { "id": "04", "titulo": "Metas — PUXAR (produção à frente, #6869)", "dono": "CC", "vaga": 1, "arquivo": "04-metas-venda.md",
       "prefixo": ["prototipo-ui/cowork/hrm-extras.jsx"], "nao_toca": ["${PAGES}/Metas.tsx", "Modules/Essentials/Http/Controllers/SalesTargetController.php"],

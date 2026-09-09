@@ -98,6 +98,7 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
 ```json
 {
   "modulo": "Patrimonio",
+  "modulo_codigo": "AssetManagement",
   "sha": "cb475c0ca2f4",
   "gerado": "2026-09-08",
   "absorve": [
@@ -243,7 +244,9 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
         "*"
       ],
       "nota_provas": "thread de MEDICAO: nao escreve codigo. Prova = _saida-04.md com veredito por defeito (confirmado com linha / nao existe / ja corrigido).",
-      "provas": []
+      "provas": [
+        {"tipo":"revisao","path":"prototipo-ui/design-docs/cowork-inbox/patrimonio/playbook/recibos/04-revisao.json","fontes":["prototipo-ui/design-docs/cowork-inbox/patrimonio/playbook/04-remedir-frente-0.md","Modules/AssetManagement/Http/Controllers/AssetMaitenanceController.php","Modules/AssetManagement/Services/AssetAllocationService.php"],"criterios":["veredito-por-defeito","ancoras-conferidas","invalidacoes-reconciliadas"]}
+      ]
     },
     {
       "id": "05",
@@ -289,6 +292,10 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
           "path": "Modules/AssetManagement/Http/Controllers/AssetController.php",
           "padrao": "Inertia::render('Patrimonio/Index'"
         }
+      ,
+        {"tipo":"execucao","formato":"playwright-json","raiz_testes":"e2e","path":"prototipo-ui/design-docs/cowork-inbox/patrimonio/playbook/recibos/07-e2e.json","testes":["e2e/patrimonio-index.spec.ts"]}
+      ,
+        {"tipo":"comparacao","path":"prototipo-ui/design-docs/cowork-inbox/patrimonio/playbook/recibos/07-visual.json","fontes":["prototipo-ui/cowork/patrimonio-page.jsx","resources/js/Pages/Patrimonio/Index.tsx"],"contrato":"prototipo-ui/contrato/patrimonio-index.contract.json","dimensoes":["D2","D4","D6","D8","D9","SHELL"]}
       ]
     },
     {

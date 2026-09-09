@@ -13,7 +13,7 @@ destino_no_main: prototipo-ui/design-docs/cowork-inbox/governance/playbook/
 > **O módulo mais adiantado do ERP, e o mais desigual.** Backend maduro (22 Services, 19 Commands, 13 Checkers, **57 testes Feature**), **9 telas React todas com `Inertia::render`**, 9 charters — e **1 único `casos.md`** entre as nove. O trio não fecha em 8 telas.
 > **Produção está À FRENTE do meu protótipo** (C4): meu build tem **5 vistas**, produção tem **9**. Quatro telas nasceram lá e nunca chegaram aqui: `Custos`, `DsRollout`, `QualidadeIa`, `ModuleGrades/Show`. Isso é defeito **meu** → thread 04, não pedido.
 
-> **Compatibilidade verificada em 08/09/2026:** este índice não declarou recibos de execução. A estrutura pode ser avaliada, mas nenhuma tarefa recebe fechamento automático até definir sua evidência no contrato do placar. E2E, comparação visual e medição exigem os respectivos produtores de evidência; não preencher um resumo Pest fictício.
+> **Adaptação em 09/09/2026:** os contratos de evidência declarados no JSON seguem o [contrato do placar](../../_scripts/README-placar.md). Recibos devem vir da execução/revisão real; os demais trabalhos permanecem sem fechamento certificado até declarar a evidência adequada.
 
 ## 0 · LEVANTAR — 4 denominadores
 
@@ -82,6 +82,7 @@ Você escreve SOMENTE no seu prefixo e no seu _saida-NN.md. Terminou: escreva o 
 ```json
 {
   "modulo": "Governanca",
+  "modulo_codigo": "Governance",
   "sha": "0d159eb84a10",
   "gerado": "2026-09-08",
   "constituicao": "CONSTITUICAO-COWORK.md",
@@ -97,6 +98,8 @@ Você escreve SOMENTE no seu prefixo e no seu _saida-NN.md. Terminou: escreva o 
       "provas": [
         { "tipo": "arquivo", "path": "prototipo-ui/design-docs/contrato-cowork/governance.contract.json" },
         { "tipo": "contem", "path": "prototipo-ui/design-docs/contrato-cowork/governance.contract.json", "padrao": "cobertura_parcial" }
+      ,
+        {"tipo":"revisao","path":"prototipo-ui/design-docs/cowork-inbox/governance/playbook/recibos/01-revisao.json","fontes":["prototipo-ui/design-docs/cowork-inbox/governance/playbook/01-contrato-desce.md","prototipo-ui/design-docs/contrato-cowork/governance.contract.json"],"criterios":["cobertura-parcial-explicita","cinco-telas-conferidas"]}
       ] },
     { "id": "02", "titulo": "Rede: 2 specs E2E (dashboard + policies toggle)", "dono": "CL", "vaga": 1, "arquivo": "02-rede-e2e.md",
       "prefixo": ["e2e/governance-dashboard.spec.ts", "e2e/governance-policies.spec.ts"],
@@ -104,6 +107,8 @@ Você escreve SOMENTE no seu prefixo e no seu _saida-NN.md. Terminou: escreva o 
       "provas": [
         { "tipo": "arquivo", "path": "e2e/governance-dashboard.spec.ts" },
         { "tipo": "arquivo", "path": "e2e/governance-policies.spec.ts" }
+      ,
+        {"tipo":"execucao","formato":"playwright-json","raiz_testes":"e2e","path":"prototipo-ui/design-docs/cowork-inbox/governance/playbook/recibos/02-e2e.json","testes":["e2e/governance-dashboard.spec.ts","e2e/governance-policies.spec.ts"]}
       ] },
     { "id": "03a", "titulo": "casos.md de Policies (a menor tela) — abre a frente do trio", "dono": "CL", "vaga": 2, "arquivo": "03a-casos-policies.md",
       "prefixo": ["resources/js/Pages/governance/Policies.casos.md"],
@@ -111,11 +116,15 @@ Você escreve SOMENTE no seu prefixo e no seu _saida-NN.md. Terminou: escreva o 
       "provas": [
         { "tipo": "arquivo", "path": "resources/js/Pages/governance/Policies.casos.md" },
         { "tipo": "arquivo", "path": "resources/js/Pages/governance/DsRollout.casos.md", "guarda": true, "nota": "o unico casos.md existente e o MOLDE — nao editar" }
+      ,
+        {"tipo":"revisao","path":"prototipo-ui/design-docs/cowork-inbox/governance/playbook/recibos/03a-revisao.json","fontes":["prototipo-ui/design-docs/cowork-inbox/governance/playbook/03a-casos-policies.md","resources/js/Pages/governance/Policies.casos.md"],"criterios":["cenarios-derivados-do-pedido","rastreabilidade-dos-casos"]}
       ] },
     { "id": "04", "titulo": "Meu build esta 4 telas atras da producao", "dono": "CC", "vaga": 1, "arquivo": "04-build-atras.md",
       "prefixo": [], "nao_toca": ["resources/js/", "Modules/"],
       "nota_provas": "read-only + decisao [W]: prova = _saida-04.md com o custo de cada tela e a recomendacao. Nao vira PR no main.",
-      "provas": [] },
+      "provas": [
+        {"tipo":"revisao","path":"prototipo-ui/design-docs/cowork-inbox/governance/playbook/recibos/04-revisao.json","fontes":["prototipo-ui/design-docs/cowork-inbox/governance/playbook/04-build-atras.md"],"criterios":["quatro-fichas-com-custo","recomendacoes-por-tela","pergunta-dsrollout-formulada"]}
+      ] },
     { "id": "05", "titulo": "Gate::before deixa admin passar por qualquer can:", "dono": "W", "arquivo": "00-INDICE.md",
       "prefixo": [], "nao_toca": ["app/Providers/AuthServiceProvider.php"],
       "bloqueio": "D-GATE: passo 1 da ADR 0392, decisao [W] em aberto. Thread bloqueada nao ganha arquivo proprio.",

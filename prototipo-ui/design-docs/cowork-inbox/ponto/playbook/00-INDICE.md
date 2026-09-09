@@ -13,7 +13,7 @@ regra: este índice é PEDIDO (lista de threads a executar, com sha), não inven
 > **Absorve, não duplica:** `COLAR-NO-CODE-ponto-ondas.md` (doc único de 04/09: 8 frentes · 45 arquivos · RESÍDUO 1–7) + `cowork-inbox/ponte/COLAR-NO-CODE-ponto.md` e `_pedido-CL-ponto-teste-pratico.md` (23/08 — **executados**: `PontoDashboardContratoTest.php` 28 KB existe) + `cowork-inbox/ponto-dashboard/Index.casos.md` (movido; a cópia no inbox é resíduo). Onde o doc de 04/09 diverge desta sha, **a sha manda** — três frentes dele já envelheceram em 2 dias (§5 R4).
 > **Ponto é o módulo mais à frente do repo:** 21 rotas web → **21 `Inertia::render`** → 21 Pages com charter **e casos.md 21/21** · 44 testes Feature · lane `ponto-pest.yml`. Aqui SINCRONIZAR é sobretudo **PUXAR** (produção → protótipo) e **fechar rede + 3 telas que não existem** — nunca repintar tela viva.
 
-> **Compatibilidade verificada em 08/09/2026:** este índice não declarou recibos de execução. A estrutura pode ser avaliada, mas nenhuma tarefa recebe fechamento automático até definir sua evidência no contrato do placar. E2E, comparação visual e medição exigem os respectivos produtores de evidência; não preencher um resumo Pest fictício.
+> **Adaptação em 09/09/2026:** os contratos de evidência declarados no JSON seguem o [contrato do placar](../../_scripts/README-placar.md). Recibos devem vir da execução/revisão real; os demais trabalhos permanecem sem fechamento certificado até declarar a evidência adequada.
 
 ## 0 · Landing
 Só `.md` roteia (DesignSync `get_file` → `--export-from <dir>`); fonte da máquina = 1º bloco ```json deste arquivo (§7); schema/script = anexos A8.1/A8.2 de `COLAR-NO-CODE-AUTOMACAO-DO-PROTOCOLO.md`. Rodar: `node prototipo-ui/design-docs/cowork-inbox/_scripts/placar-indice.mjs --indice prototipo-ui/design-docs/cowork-inbox/ponto/playbook/00-INDICE.md --root . --proximo`.
@@ -122,6 +122,7 @@ Thread `feito` segue o [contrato do placar](../../_scripts/README-placar.md): sa
 ```json
 {
   "modulo": "Ponto",
+  "modulo_codigo": "Ponto",
   "sha": "e86130722de1",
   "gerado": "2026-09-06",
   "absorve": ["COLAR-NO-CODE-ponto-ondas.md (2026-09-04)", "prototipo-ui/design-docs/cowork-inbox/ponte/COLAR-NO-CODE-ponto.md", "prototipo-ui/design-docs/cowork-inbox/ponte/_pedido-CL-ponto-teste-pratico.md"],
@@ -145,6 +146,8 @@ Thread `feito` segue o [contrato do placar](../../_scripts/README-placar.md): sa
       "provas": [
         { "tipo": "um_de", "paths": ["e2e/ponto-dashboard.spec.ts", "e2e/ponto-smoke.spec.ts"] },
         { "tipo": "arquivo", "path": "e2e/ponto-espelho.spec.ts" }
+      ,
+        {"tipo":"execucao","formato":"playwright-json","raiz_testes":"e2e","path":"prototipo-ui/design-docs/cowork-inbox/ponto/playbook/recibos/01-e2e.json","testes":["e2e/ponto-dashboard.spec.ts","e2e/ponto-espelho.spec.ts","e2e/ponto-espelho-show.spec.ts"]}
       ] },
     { "id": "02", "titulo": "Desamarrar UC ⛓ (docblock → it('UC-…'))", "dono": "CL", "vaga": 1, "arquivo": "02-uc-desamarrar.md",
       "prefixo": ["Modules/Ponto/Tests/Feature/", "${PAGES}/**/*.casos.md (só colunas Teste/Status/last_run)"],
