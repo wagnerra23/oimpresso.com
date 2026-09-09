@@ -478,5 +478,52 @@ function makeGitRepo() {
   }
 }
 
+// ── Catraca 4 (--anti-tautologia): o contrato deriva da ÂNCORA, não da TELA ────
+// Par good/bad + o terceiro controle que impede o modo de virar carimbo: copy só
+// no alvo AVISA, não bloqueia (o FP medido é 15/31 — reprovar ali seria guard
+// sintático). Origem: erro do [C] em 2026-09-09 (contrato de Patrimonio/Bens com a
+// copy extraída do .tsx), nomeado pelo [W]: "tá pegando baseline e não pego a
+// âncora certa".
+{
+  const mkAnti = ({ fonte, copy, tsx }) => {
+    const root = mkdtempSync(join(tmpdir(), 'anti-taut-'));
+    mkdirSync(join(root, 'prototipo-ui', 'contrato'), { recursive: true });
+    mkdirSync(join(root, 'prototipo-ui', 'cowork'), { recursive: true });
+    mkdirSync(join(root, 'resources', 'js', 'Pages', 'Foo'), { recursive: true });
+    writeFileSync(join(root, 'resources', 'js', 'Pages', 'Foo', 'Index.tsx'), tsx);
+    writeFileSync(join(root, 'prototipo-ui', 'cowork', 'foo-page.jsx'), `const P = () => <div>Titulo Foo</div>;`);
+    writeFileSync(join(root, 'prototipo-ui', 'contrato', 'foo.contract.json'), JSON.stringify({
+      tela: 'Foo/Index', fonte, alvo: ['resources/js/Pages/Foo/Index.tsx'],
+      secoes: [{ id: 'cab', copy }],
+    }));
+    return root;
+  };
+  const TSX_OK = `export default function X(){return <div data-contract="cab">Titulo Foo</div>}`;
+
+  // (a) RUIM: `fonte` é a própria tela → contrato tautológico → MORDE
+  let root = mkAnti({ fonte: 'resources/js/Pages/Foo/Index.tsx', copy: ['Titulo Foo'], tsx: TSX_OK });
+  let r = node(root, ['--anti-tautologia']);
+  check('anti-tautologia: fonte = a propria tela -> exit 1',
+    r.status === 1 && /PR[ÓO]PRIA TELA/i.test(out(r)), `status=${r.status} ${out(r)}`);
+  drop(root);
+
+  // (b) BOM: `fonte` é o protótipo → passa (controle negativo — não é carimbo ao contrário)
+  root = mkAnti({ fonte: 'prototipo-ui/cowork/foo-page.jsx', copy: ['Titulo Foo'], tsx: TSX_OK });
+  r = node(root, ['--anti-tautologia']);
+  check('anti-tautologia: fonte = prototipo -> exit 0',
+    r.status === 0, `status=${r.status} ${out(r)}`);
+  drop(root);
+
+  // (c) CONTROLE que impede virar bloqueio: copy só no alvo AVISA e NÃO reprova
+  root = mkAnti({
+    fonte: 'prototipo-ui/cowork/foo-page.jsx', copy: ['Titulo Foo', 'Botao Inventado'],
+    tsx: `export default function X(){return <div data-contract="cab">Titulo Foo Botao Inventado</div>}`,
+  });
+  r = node(root, ['--anti-tautologia']);
+  check('anti-tautologia: copy so no alvo -> AVISA, exit 0 (nao vira guard sintatico)',
+    r.status === 0 && /existe no ALVO e n[ãa]o na FONTE/i.test(out(r)), `status=${r.status} ${out(r)}`);
+  drop(root);
+}
+
 console.log(fails ? `\n❌ ${fails} regressão(ões).` : `\n✅ todos os controles passam (gate morde e libera certo).`);
 process.exit(fails ? 1 : 0);
