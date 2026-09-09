@@ -203,6 +203,11 @@ function StockTransferIndex({ rows, filters, business_locations, statuses, permi
         </CardContent>
       </Card>
 
+      {/* Legenda dos estados de linha — o `info` da Toolbar do protótipo, literal. */}
+      <p className="mt-2 px-1 text-[11.5px] text-stone-500">
+        Pendente e em trânsito só reservam. Concluída e finalizada movem o saldo (R-XFER-005).
+      </p>
+
       <Card className="mt-3">
         <CardContent className="p-0">
           <table className="w-full border-collapse">
@@ -220,7 +225,23 @@ function StockTransferIndex({ rows, filters, business_locations, statuses, permi
             </thead>
             <tbody>
               {rowsFiltradas.map(r => (
-                <tr key={r.id} className="h-11 text-[13px] border-b border-stone-100 hover:bg-stone-50/60">
+                <tr
+                  key={r.id}
+                  className={
+                    'h-11 text-[13px] border-b border-stone-100 hover:bg-stone-50/60' +
+                    // Estados de linha do protótipo (`estoque-page.jsx`, AbaTransferencias):
+                    // `state: pending ? "urgent" : move ? "archived" : undefined`.
+                    // Classes idênticas a `CLASSE_ESTADO` de `Components/shared/DataTable.tsx`
+                    // — a `<table>` aqui é manual, então reusa o token, não o componente.
+                    // O predicado do "já moveu" é o `mexeuNoSaldo` que esta tela já media
+                    // (medido nos 3 sites do controller), NÃO o nome do status do protótipo.
+                    (r.status === 'pending'
+                      ? ' [&>td:first-child]:shadow-[inset_3px_0_0_var(--color-destructive)]'
+                      : mexeuNoSaldo(r.status)
+                        ? ' opacity-60'
+                        : '')
+                  }
+                >
                   <td className="pl-4 pr-2 tabular-nums">{formatDateTime(r.transaction_date)}</td>
                   <td className="px-2 font-medium text-stone-900">{r.ref_no}</td>
                   <td className="px-2 text-stone-700">
