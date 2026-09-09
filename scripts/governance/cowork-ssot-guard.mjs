@@ -69,7 +69,13 @@ const PROTOTIPOS_HISTORICOS = new Set(['financeiro-prova-viva']);
 // `SheetRemessaRetorno` (boletos-page.jsx:509, pg-cobranca-page.jsx:863) — mas os dois são sheet
 // de LISTA dentro da Cobrança, sem dropzone/validação/contadores por arquivo (G1-G4 do charter),
 // e pertencem a outra US (US-FIN-018, cujo `Implementado em:` aponta outro .tsx).
-const PROTOTIPOS_GERADOS = new Set(['nfe-tributacao', 'nfse-emitir', 'payment-gateway-cnab']);
+// 'transaction-payment' — TransactionPayment/{Edit,Show} (`/payments/v2`), 2 telas de dinheiro
+// sem fonte; ausência medida nos 2 donos em 2026-09-09: `TransactionPayment` dá 10 hits em
+// `prototipo-ui/`, TODOS .md/docs, zero em arquivo de design. O drawer mais próximo
+// (financeiro-legado.jsx:369, `sel.k === "titulo"`) detalha TÍTULO, objeto diferente.
+const PROTOTIPOS_GERADOS = new Set([
+  'nfe-tributacao', 'nfse-emitir', 'payment-gateway-cnab', 'transaction-payment',
+]);
 
 const errors = [];
 
