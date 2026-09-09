@@ -124,6 +124,12 @@
       "nome": "Baseline tamper-guard (anti-grandfather · afrouxar baseline + código no mesmo PR · ADR 0256/0258 · Gap-2 blueprint SDD)",
       "classe": "gate"
     },
+    "baseline-folga.yml": {
+      "nome": "Baseline folga — auto-aperto (direção oposta do tamper-guard: trava o ganho que ninguém lembrou de travar · cron semanal + PR · ADR 0256 pilar CADÊNCIA)",
+      "classe": "automacao",
+      "terminal": "cron",
+      "anchor": "sinal de custo medido em 2026-09-09: 4 de 16 gates sondados com baseline FROUXO (~25 unidades de dívida já paga e não travada) e, pior, 3 dos 4 em estado MISTO — obedecer a mensagem que eles imprimem ('rode --write-baseline pra travar o ganho') teria travado o ganho E grandfatherado dívida nova junto (perf-static paginate_sem_eager 28→33, a11y media-has-caption 2→4, cowork-pele R4:Sidebar+R5:StatusBadge), que é o vetor do Gap-2 que o baseline-tamper-guard existe pra barrar. Pedido [W] 2026-09-09: 'baseline só incomoda, sempre fica desatualizado, resolve isso definitivamente com maquina'."
+    },
     "jana-logica-pura-pest.yml": {
       "nome": "Jana lógica pura Pest (event-time + histórico + audit-chain · funde 3 lanes Unit · ADR 0294/0295)",
       "classe": "gate"

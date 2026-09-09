@@ -109,6 +109,14 @@ jobs:
       - name: §5 derive bite-test (corta arqueologia, NUNCA come limite · lapide de 2 eixos)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/sec5-derive.mjs --selftest
+      # O auto-aperto de baseline ESCREVE em arquivo de catraca — se o medidor de direcao
+      # errar, ele grandfathera divida em vez de travar ganho, que e o Gap-2 do tamper-guard.
+      # Por isso o bite-test dele roda em PR (aqui), nao so no cron semanal que o invoca:
+      # gate que so se testa quando ja rodou sozinho e gate que se testa tarde demais.
+      # Zero deps (node:fs/child_process/path/os), entao cabe nesta lane que nao instala nada.
+      - name: baseline-folga bite-test (aperta MORDE · afrouxa/misto REVERTE · quebrado = NAO_MEDIDO)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/baseline-folga.mjs --selftest
       # O contrato de completude da ADR 0277 ("migrado = route Blade morto") foi decidido em
       # 2026-06-13 e NUNCA ganhou maquina — medido: 0 scripts, 0 workflows contavam route Blade
       # vivo, e o censo A-L do roadmap era digitado a mao. Este selftest defende o MEDIDOR;
