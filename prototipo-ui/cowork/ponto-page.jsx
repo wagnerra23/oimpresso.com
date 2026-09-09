@@ -39,22 +39,22 @@ function Painel({ onIr, intercorrencias }) {
         {pendentes.length === 0 && divergencias === 0
           ? <>Nenhuma intercorrência aguardando decisão e nenhum dia em divergência — a competência pode consolidar.</>
           : pendentes.length === 0
-            ? <>Nenhuma intercorrência aguardando decisão, mas {divergencias} {divergencias === 1 ? "dia está" : "dias estão"} em <b>DIVERGENCIA</b> na apuração — o espelho não consolida assim, e o AFD gerado sai com a jornada errada.</>
-            : <>{pendentes.length === 1 ? "Uma intercorrência espera" : pendentes.length + " intercorrências esperam"} decisão e {divergencias} {divergencias === 1 ? "dia está" : "dias estão"} em <b>DIVERGENCIA</b> na apuração. Enquanto isso, o espelho do mês não consolida — e o AFD gerado sai com a jornada errada.</>}
+            ? <>Nenhuma intercorrência aguardando decisão, mas {divergencias} {divergencias === 1 ? "dia está" : "dias estão"} em <b>divergência</b> na apuração — o espelho não consolida assim, e o AFD gerado sai com a jornada errada.</>
+            : <>{pendentes.length === 1 ? "Uma intercorrência espera" : pendentes.length + " intercorrências esperam"} decisão e {divergencias} {divergencias === 1 ? "dia está" : "dias estão"} em <b>divergência</b> na apuração. Enquanto isso, o espelho do mês não consolida — e o AFD gerado sai com a jornada errada.</>}
       </Nota>
 
       <div className="pt-kpis" data-contract="painel-kpis">
-        <Kpi label="Colaboradores ativos" valor={k.colaboradores_ativos} ln="com controle de ponto" onClick={() => onIr("colaboradores")} />
-        <Kpi label="Presentes agora" valor={k.presentes_agora} tom="ok" ln="última marcação 13:02" onClick={() => onIr("espelho")} />
-        <Kpi label="Atrasos hoje" valor={k.atrasos_hoje} tom="warn" ln={"além da tolerância de " + D.CONFIG.clt.tolerancia_minutos_por_marcacao + " min"} onClick={() => onIr("espelho")} />
-        <Kpi label="Faltas hoje" valor={k.faltas_hoje} tom="neg" ln="sem marcação e sem intercorrência" onClick={() => onIr("espelho")} />
-        <Kpi label="HE do mês" valor={D.fmtMin(k.he_mes_minutos)} tom="acc" ln={"limite " + D.CONFIG.clt.limite_he_diaria_horas + "h/dia (Art. 59)"} onClick={() => onIr("banco-horas")} />
-        <Kpi label="Aprovações pendentes" valor={pendentes.length} tom={pendentes.length ? "warn" : "ok"} ln={urgentes ? urgentes + (urgentes === 1 ? " urgente" : " urgentes") : "nada urgente"} onClick={() => onIr("aprovacoes")} />
+        <Kpi icon="database" label="Colaboradores ativos" valor={k.colaboradores_ativos} ln="com controle de ponto" onClick={() => onIr("colaboradores")} />
+        <Kpi icon="check" label="Presentes agora" valor={k.presentes_agora} tom="ok" ln="última marcação 13:02" onClick={() => onIr("espelho")} />
+        <Kpi icon="clock" label="Atrasos hoje" valor={k.atrasos_hoje} tom="warn" ln={"além da tolerância de " + D.CONFIG.clt.tolerancia_minutos_por_marcacao + " min"} onClick={() => onIr("espelho")} />
+        <Kpi icon="alert" label="Faltas hoje" valor={k.faltas_hoje} tom="neg" ln="sem marcação e sem intercorrência" onClick={() => onIr("espelho")} />
+        <Kpi icon="chart" label="HE do mês" valor={D.fmtMin(k.he_mes_minutos)} tom="acc" ln={"limite " + D.CONFIG.clt.limite_he_diaria_horas + "h/dia (Art. 59)"} onClick={() => onIr("banco-horas")} />
+        <Kpi icon="list" label="Aprovações pendentes" valor={pendentes.length} tom={pendentes.length ? "warn" : "ok"} ln={urgentes ? urgentes + (urgentes === 1 ? " urgente" : " urgentes") : "nada urgente"} onClick={() => onIr("aprovacoes")} />
       </div>
 
       <div className="pt-cols-2">
         <Card contrato="painel-fila-aprovacoes" icon="check" titulo="Fila de aprovações" sub={"(" + pendentes.length + " pendentes)"}
-          acao={<button className="pt-btn" onClick={() => onIr("aprovacoes")}>Ver fila completa</button>}>
+          acao={<window.PtBtn  onClick={() => onIr("aprovacoes")}>Ver fila completa</window.PtBtn>}>
           <Tabela cols={[{ l: "Colaborador" }, { l: "Tipo" }, { l: "Data / intervalo" }, { l: "Estado" }, { l: "Prioridade" }]}>
             {pendentes.length === 0 && <Vazio icon="check" colSpan={5}>Nenhuma intercorrência aguardando decisão.</Vazio>}
             {pendentes.map((a) => {
@@ -108,23 +108,20 @@ function EspelhoLista({ mes, setMes, onAbrir }) {
   const totalDiverg = base.reduce((n, c) => n + D.totaisEspelho(D.dias(mes, c.id)).divergencias, 0);
   return (
     <>
-      <div className="pt-toolbar">
-        <div className="pt-fld"><label htmlFor="es-mes">Mês de referência</label>
-          <select id="es-mes" value={mes} onChange={(e) => setMes(e.target.value)}>
+      <window.PtBarra>
+        <window.PtEscolha label={"Mês de referência"} value={mes} onChange={(e) => setMes(e.target.value)}>
             {D.MESES.map((m) => <option key={m.key} value={m.key}>{m.extenso}</option>)}
-          </select></div>
-        <div className="pt-fld"><label htmlFor="es-esc">Escala</label>
-          <select id="es-esc" value={escala} onChange={(e) => setEscala(e.target.value)}>
+          </window.PtEscolha>
+        <window.PtEscolha label={"Escala"} value={escala} onChange={(e) => setEscala(e.target.value)}>
             <option value="">Todas</option>
             {D.ESCALAS.map((e) => <option key={e.id} value={e.id}>{e.nome}</option>)}
-          </select></div>
-        <div className="pt-fld wide"><label htmlFor="es-q">Buscar</label>
-          <input id="es-q" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Nome ou matrícula" /></div>
-        <label className="pt-check"><input type="checkbox" checked={soDiverg} onChange={(e) => setSoDiverg(e.target.checked)} />Só com divergência</label>
-        {(escala || busca || soDiverg) && <button className="pt-btn" onClick={() => { setEscala(""); setQ(""); setSoDiverg(false); }}>Limpar</button>}
-        <span className="pt-sp" />
+          </window.PtEscolha>
+        <window.PtCampo label={"Buscar"} wide value={q} onChange={(e) => setQ(e.target.value)} placeholder="Nome ou matrícula" />
+        <window.PtCheck checked={soDiverg} onChange={(e) => setSoDiverg(e.target.checked)} label={<>Só com divergência</>} />
+        {(escala || busca || soDiverg) && <window.PtBtn  onClick={() => { setEscala(""); setQ(""); setSoDiverg(false); }}>Limpar</window.PtBtn>}
+        
         <span style={{ fontSize: 12, color: "var(--text-dim)" }}>{totalDiverg} dias em divergência na competência</span>
-      </div>
+      </window.PtBarra>
       <Card icon="database" titulo="Colaboradores" sub={"(" + lista.length + " de " + base.length + " ativos)"}>
         <Tabela cols={[{ l: "Matrícula", w: "92px" }, { l: "Colaborador" }, { l: "Escala" }, { l: "Trabalhado", num: true }, { l: "HE", num: true }, { l: "Saldo BH", num: true }, { l: "Controla ponto" }, { l: "Divergências", num: true }, { l: "Ação", num: true, w: "120px" }]}>
           {lista.length === 0 && <Vazio colSpan={9}>Nenhum colaborador com esse filtro nesta competência.</Vazio>}
@@ -143,7 +140,7 @@ function EspelhoLista({ mes, setMes, onAbrir }) {
                 <td className="num">{c.controla_ponto ? (t.divergencias ? <span className="pt-warnt">{t.divergencias}</span> : <span className="pt-dim">0</span>) : <span className="pt-dim">—</span>}</td>
                 <td className="num" onClick={(e) => e.stopPropagation()}>
                   {c.controla_ponto
-                    ? <button className="pt-btn primary" onClick={() => onAbrir(c.id)}>Ver espelho</button>
+                    ? <window.PtBtn primary onClick={() => onAbrir(c.id)}>Ver espelho</window.PtBtn>
                     : <span className="pt-dim">—</span>}
                 </td>
               </tr>
@@ -254,8 +251,8 @@ function DiaDrawer({ dia, colab, mes, onClose, onAnular }) {
               <td className="num">
                 {m.anulada || m.origem === "ANULACAO"
                   ? <Pill tom="danger">{m.anulada ? "anulada" : "anulação"}</Pill>
-                  : <button className="pt-btn danger" disabled={fechado} title={fechado ? "Competência fechada" : "Anula esta marcação com registro de contrapartida"}
-                      onClick={() => { if (window.confirm("Anular a marcação " + m.hora + " (NSR " + m.nsr + ")? A original permanece; entra um registro de anulação.")) onAnular(dia.dia, i); }}>Anular</button>}
+                  : <window.PtBtn danger disabled={fechado} title={fechado ? "Competência fechada" : "Anula esta marcação com registro de contrapartida"}
+                      onClick={() => { if (window.confirm("Anular a marcação " + m.hora + " (NSR " + m.nsr + ")? A original permanece; entra um registro de anulação.")) onAnular(dia.dia, i); }}>Anular</window.PtBtn>}
               </td>
             </tr>
           ))}
@@ -359,12 +356,12 @@ function EspelhoShow({ colabId, mes, setMes, onVoltar, avisar }) {
       <div className="pt-sub">
         <Voltar onClick={onVoltar}>Voltar à lista</Voltar>
         <div className="pt-group">
-          <button className="pt-btn" disabled={!anterior} onClick={() => anterior && setMes(anterior.key)}>{anterior ? anterior.extenso : "Mês anterior"}</button>
-          <button className="pt-btn" disabled={!proximo} onClick={() => proximo && setMes(proximo.key)}>{proximo ? proximo.extenso : "Próximo mês"}</button>
+          <window.PtBtn  disabled={!anterior} onClick={() => anterior && setMes(anterior.key)}>{anterior ? anterior.extenso : "Mês anterior"}</window.PtBtn>
+          <window.PtBtn  disabled={!proximo} onClick={() => proximo && setMes(proximo.key)}>{proximo ? proximo.extenso : "Próximo mês"}</window.PtBtn>
         </div>
         <div><h2>{c.nome}</h2><span className="pt-sub-sub">{comp.extenso} · matrícula {c.matricula} · {c.cargo}</span></div>
         <span className="pt-sp" />
-        <button className="pt-btn" onClick={() => { avisar("Abrindo a folha do espelho para impressão."); setTimeout(() => window.print(), 120); }}><Ic name="receipt" />Imprimir PDF</button>
+        <window.PtBtn  onClick={() => { avisar("Abrindo a folha do espelho para impressão."); setTimeout(() => window.print(), 120); }}><Ic name="receipt" />Imprimir PDF</window.PtBtn>
       </div>
 
       <Card contrato="espelho-dados-colaborador" icon="database" titulo="Dados do colaborador">
@@ -496,9 +493,9 @@ function PontoPage({ view }) {
           onRefresh={() => { setHora(new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })); avisar("Reapurado agora — marcações, apuração do dia e saldos.", "ok"); }}
           glyph={<window.JcIcon name="clock" />}
           acoes={<>
-            <button className="pt-btn" onClick={() => irPara("fechamento")}><window.JcIcon name="lock" className="ic" />Fechamento</button>
-            <button className="pt-btn" onClick={() => irPara("importacoes")}><window.JcIcon name="download" className="ic" />Importar AFD</button>
-            <button className="pt-btn primary" onClick={() => irPara("intercorrencias")}><window.JcIcon name="plus" className="ic" />Nova intercorrência</button>
+            <window.PtBtn  onClick={() => irPara("fechamento")}><window.JcIcon name="lock" className="ic" />Fechamento</window.PtBtn>
+            <window.PtBtn  onClick={() => irPara("importacoes")}><window.JcIcon name="download" className="ic" />Importar AFD</window.PtBtn>
+            <window.PtBtn primary onClick={() => irPara("intercorrencias")}><window.JcIcon name="plus" className="ic" />Nova intercorrência</window.PtBtn>
           </>} />}
       {MP.Tabs && <MP.Tabs tab={aba} onTab={irPara} aria="Telas do Ponto" tabs={abas} />}
       <div className="pt-body">{corpo}</div>

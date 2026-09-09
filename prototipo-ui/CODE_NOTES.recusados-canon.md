@@ -1,7 +1,7 @@
 # CODE_NOTES — canon de tela RECUSADO no transporte (devolutiva ao design)
 
 > **Derivado. Não edite à mão** — regenerado por `cowork-mirror-freshness --export-from`.
-> Retrato de 2026-09-09 · 105 arquivo(s) · 28 TELA-A-CRIAR · 70 SEM-ALVO-DECLARADO · 6 COLIDE-COM-CANON-MAIS-RICO · 1 COLIDE-RASCUNHO-MAIOR.
+> Retrato de 2026-09-09 · 146 arquivo(s) · 45 TELA-A-CRIAR · 74 SEM-ALVO-DECLARADO · 26 COLIDE-COM-CANON-MAIS-RICO · 1 COLIDE-RASCUNHO-MAIOR.
 >
 > **A recusa está certa e não vai mudar** (PROTOCOL §10.4): charter, casos e contract são
 > canon de tela e nascem no repo, reconciliados contra SPEC/ADR. O que faltava era o
@@ -18,6 +18,26 @@
 | `cowork-inbox/modulos-faltantes/arquivos.charter.md` (4097 B) | COLIDE-COM-CANON-MAIS-RICO | `resources/js/Pages/Arquivos/Index.charter.md` (14786 B) | NÃO reenvie: o vivo tem 14786 B contra 4097 B do rascunho. Leia o vivo antes de propor mudança nele. |
 | `cowork-inbox/modulos/repo/prototipo-ui/contrato/modulos.contract.json` (2385 B) | COLIDE-COM-CANON-MAIS-RICO | `prototipo-ui/contrato/modulos.contract.json` (2626 B) | NÃO reenvie: o vivo tem 2626 B contra 2385 B do rascunho. Leia o vivo antes de propor mudança nele. |
 | `cowork-inbox/modulos/repo/resources/js/Pages/Modules/Index.charter.md` (5050 B) | COLIDE-COM-CANON-MAIS-RICO | `resources/js/Pages/Modules/Index.charter.md` (8855 B) | NÃO reenvie: o vivo tem 8855 B contra 5050 B do rascunho. Leia o vivo antes de propor mudança nele. |
+| `resources/js/Pages/Ponto/Aprovacoes/Index.casos.md` (2321 B) | COLIDE-COM-CANON-MAIS-RICO | `resources/js/Pages/Ponto/Aprovacoes/Index.casos.md` (6885 B) | NÃO reenvie: o vivo tem 6885 B contra 2321 B do rascunho e registra execução em 2026-09-08. Leia o vivo antes de propor mudança nele. |
+| `resources/js/Pages/Ponto/Aprovacoes/Index.charter.md` (2012 B) | COLIDE-COM-CANON-MAIS-RICO | `resources/js/Pages/Ponto/Aprovacoes/Index.charter.md` (3237 B) | NÃO reenvie: o vivo tem 3237 B contra 2012 B do rascunho. Leia o vivo antes de propor mudança nele. |
+| `resources/js/Pages/Ponto/BancoHoras/Index.casos.md` (2342 B) | COLIDE-COM-CANON-MAIS-RICO | `resources/js/Pages/Ponto/BancoHoras/Index.casos.md` (9896 B) | NÃO reenvie: o vivo tem 9896 B contra 2342 B do rascunho e registra execução em 2026-09-08. Leia o vivo antes de propor mudança nele. |
+| `resources/js/Pages/Ponto/BancoHoras/Index.charter.md` (2128 B) | COLIDE-COM-CANON-MAIS-RICO | `resources/js/Pages/Ponto/BancoHoras/Index.charter.md` (2738 B) | NÃO reenvie: o vivo tem 2738 B contra 2128 B do rascunho. Leia o vivo antes de propor mudança nele. |
+| `resources/js/Pages/Ponto/Colaboradores/Index.casos.md` (2099 B) | COLIDE-COM-CANON-MAIS-RICO | `resources/js/Pages/Ponto/Colaboradores/Index.casos.md` (8241 B) | NÃO reenvie: o vivo tem 8241 B contra 2099 B do rascunho e registra execução em 2026-09-08. Leia o vivo antes de propor mudança nele. |
+| `resources/js/Pages/Ponto/Colaboradores/Index.charter.md` (2145 B) | COLIDE-COM-CANON-MAIS-RICO | `resources/js/Pages/Ponto/Colaboradores/Index.charter.md` (2410 B) | NÃO reenvie: o vivo tem 2410 B contra 2145 B do rascunho. Leia o vivo antes de propor mudança nele. |
+| `resources/js/Pages/Ponto/Configuracoes/Index.casos.md` (2003 B) | COLIDE-COM-CANON-MAIS-RICO | `resources/js/Pages/Ponto/Configuracoes/Index.casos.md` (7759 B) | NÃO reenvie: o vivo tem 7759 B contra 2003 B do rascunho e registra execução em 2026-09-08. Leia o vivo antes de propor mudança nele. |
+| `resources/js/Pages/Ponto/Configuracoes/Index.charter.md` (2106 B) | COLIDE-COM-CANON-MAIS-RICO | `resources/js/Pages/Ponto/Configuracoes/Index.charter.md` (2628 B) | NÃO reenvie: o vivo tem 2628 B contra 2106 B do rascunho. Leia o vivo antes de propor mudança nele. |
+| `resources/js/Pages/Ponto/Escalas/Index.casos.md` (1858 B) | COLIDE-COM-CANON-MAIS-RICO | `resources/js/Pages/Ponto/Escalas/Index.casos.md` (8833 B) | NÃO reenvie: o vivo tem 8833 B contra 1858 B do rascunho e registra execução em 2026-09-08. Leia o vivo antes de propor mudança nele. |
+| `resources/js/Pages/Ponto/Escalas/Index.charter.md` (2038 B) | COLIDE-COM-CANON-MAIS-RICO | `resources/js/Pages/Ponto/Escalas/Index.charter.md` (2214 B) | NÃO reenvie: o vivo tem 2214 B contra 2038 B do rascunho. Leia o vivo antes de propor mudança nele. |
+| `resources/js/Pages/Ponto/Espelho/Index.casos.md` (2538 B) | COLIDE-COM-CANON-MAIS-RICO | `resources/js/Pages/Ponto/Espelho/Index.casos.md` (5901 B) | NÃO reenvie: o vivo tem 5901 B contra 2538 B do rascunho e registra execução em 2026-09-08. Leia o vivo antes de propor mudança nele. |
+| `resources/js/Pages/Ponto/Espelho/Index.charter.md` (2216 B) | COLIDE-COM-CANON-MAIS-RICO | `resources/js/Pages/Ponto/Espelho/Index.charter.md` (2898 B) | NÃO reenvie: o vivo tem 2898 B contra 2216 B do rascunho. Leia o vivo antes de propor mudança nele. |
+| `resources/js/Pages/Ponto/Espelho/Show.casos.md` (2539 B) | COLIDE-COM-CANON-MAIS-RICO | `resources/js/Pages/Ponto/Espelho/Show.casos.md` (16777 B) | NÃO reenvie: o vivo tem 16777 B contra 2539 B do rascunho e registra execução em 2026-09-08. Leia o vivo antes de propor mudança nele. |
+| `resources/js/Pages/Ponto/Espelho/Show.charter.md` (2573 B) | COLIDE-COM-CANON-MAIS-RICO | `resources/js/Pages/Ponto/Espelho/Show.charter.md` (3202 B) | NÃO reenvie: o vivo tem 3202 B contra 2573 B do rascunho. Leia o vivo antes de propor mudança nele. |
+| `resources/js/Pages/Ponto/Importacoes/Index.casos.md` (2317 B) | COLIDE-COM-CANON-MAIS-RICO | `resources/js/Pages/Ponto/Importacoes/Index.casos.md` (7953 B) | NÃO reenvie: o vivo tem 7953 B contra 2317 B do rascunho e registra execução em 2026-09-08. Leia o vivo antes de propor mudança nele. |
+| `resources/js/Pages/Ponto/Importacoes/Index.charter.md` (2217 B) | COLIDE-COM-CANON-MAIS-RICO | `resources/js/Pages/Ponto/Importacoes/Index.charter.md` (2649 B) | NÃO reenvie: o vivo tem 2649 B contra 2217 B do rascunho. Leia o vivo antes de propor mudança nele. |
+| `resources/js/Pages/Ponto/Intercorrencias/Index.casos.md` (2306 B) | COLIDE-COM-CANON-MAIS-RICO | `resources/js/Pages/Ponto/Intercorrencias/Index.casos.md` (7134 B) | NÃO reenvie: o vivo tem 7134 B contra 2306 B do rascunho e registra execução em 2026-09-08. Leia o vivo antes de propor mudança nele. |
+| `resources/js/Pages/Ponto/Intercorrencias/Index.charter.md` (2380 B) | COLIDE-COM-CANON-MAIS-RICO | `resources/js/Pages/Ponto/Intercorrencias/Index.charter.md` (2702 B) | NÃO reenvie: o vivo tem 2702 B contra 2380 B do rascunho. Leia o vivo antes de propor mudança nele. |
+| `resources/js/Pages/Ponto/Relatorios/Index.casos.md` (2006 B) | COLIDE-COM-CANON-MAIS-RICO | `resources/js/Pages/Ponto/Relatorios/Index.casos.md` (12255 B) | NÃO reenvie: o vivo tem 12255 B contra 2006 B do rascunho e registra execução em 2026-09-08. Leia o vivo antes de propor mudança nele. |
+| `resources/js/Pages/Ponto/Relatorios/Index.charter.md` (2039 B) | COLIDE-COM-CANON-MAIS-RICO | `resources/js/Pages/Ponto/Relatorios/Index.charter.md` (2772 B) | NÃO reenvie: o vivo tem 2772 B contra 2039 B do rascunho. Leia o vivo antes de propor mudança nele. |
 | `cowork-inbox/fiscal/Dfe.charter.md` (2704 B) | COLIDE-RASCUNHO-MAIOR | `resources/js/Pages/Fiscal/Dfe.charter.md` (2008 B) | pode conter conteúdo novo — abra como PEDIDO citando o que muda, não como arquivo inteiro |
 | `cowork-inbox/acessos/repo/resources/js/Pages/CommissionAgents/Index.casos.md` (3392 B) | SEM-ALVO-DECLARADO | — | declare o alvo no frontmatter (`component:`) ou mande como PEDIDO em cowork-inbox/ |
 | `cowork-inbox/acessos/repo/resources/js/Pages/Roles/Index.casos.md` (5311 B) | SEM-ALVO-DECLARADO | — | declare o alvo no frontmatter (`component:`) ou mande como PEDIDO em cowork-inbox/ |
@@ -89,6 +109,13 @@
 | `cowork-inbox/venda-menu/PedidoVenda.charter.md` (930 B) | SEM-ALVO-DECLARADO | — | declare o alvo no frontmatter (`component:`) ou mande como PEDIDO em cowork-inbox/ |
 | `cowork-inbox/venda-menu/Remessas.casos.md` (396 B) | SEM-ALVO-DECLARADO | — | declare o alvo no frontmatter (`component:`) ou mande como PEDIDO em cowork-inbox/ |
 | `cowork-inbox/venda-menu/Remessas.charter.md` (1168 B) | SEM-ALVO-DECLARADO | — | declare o alvo no frontmatter (`component:`) ou mande como PEDIDO em cowork-inbox/ |
+| `handoff-crm/Acompanhamentos.casos.md` (3432 B) | SEM-ALVO-DECLARADO | — | declare o alvo no frontmatter (`component:`) ou mande como PEDIDO em cowork-inbox/ |
+| `handoff-crm/Leads.casos.md` (3086 B) | SEM-ALVO-DECLARADO | — | declare o alvo no frontmatter (`component:`) ou mande como PEDIDO em cowork-inbox/ |
+| `handoff-crm/Painel.casos.md` (3230 B) | SEM-ALVO-DECLARADO | — | declare o alvo no frontmatter (`component:`) ou mande como PEDIDO em cowork-inbox/ |
+| `handoff-crm/Portal.casos.md` (2701 B) | SEM-ALVO-DECLARADO | — | declare o alvo no frontmatter (`component:`) ou mande como PEDIDO em cowork-inbox/ |
+| `contrato/configuracoes.contract.json` (12837 B) | TELA-A-CRIAR | — | o canon nasce no repo: `criar-tela.mjs <Mod/Tela> <PT-0X>` → prototipo-ui/contrato/configuracoes.contract.json |
+| `contrato/patrimonio.contract.json` (9902 B) | TELA-A-CRIAR | — | o canon nasce no repo: `criar-tela.mjs <Mod/Tela> <PT-0X>` → prototipo-ui/contrato/patrimonio.contract.json |
+| `contrato/venda-menu.contract.json` (1238 B) | TELA-A-CRIAR | — | o canon nasce no repo: `criar-tela.mjs <Mod/Tela> <PT-0X>` → prototipo-ui/contrato/venda-menu.contract.json |
 | `cowork-inbox/acessos/repo/prototipo-ui/contrato/comissoes.contract.json` (1560 B) | TELA-A-CRIAR | — | o canon nasce no repo: `criar-tela.mjs <Mod/Tela> <PT-0X>` → prototipo-ui/contrato/comissoes.contract.json |
 | `cowork-inbox/acessos/repo/prototipo-ui/contrato/funcoes.contract.json` (1567 B) | TELA-A-CRIAR | — | o canon nasce no repo: `criar-tela.mjs <Mod/Tela> <PT-0X>` → prototipo-ui/contrato/funcoes.contract.json |
 | `cowork-inbox/acessos/repo/resources/js/Pages/Roles/Index.charter.md` (2880 B) | TELA-A-CRIAR | — | o canon nasce no repo: `criar-tela.mjs <Mod/Tela> <PT-0X>` → resources/js/Pages/Roles/Index.charter.md |
@@ -117,4 +144,18 @@
 | `cowork-inbox/notificacoes/notificacoes.contract.json` (1025 B) | TELA-A-CRIAR | — | o canon nasce no repo: `criar-tela.mjs <Mod/Tela> <PT-0X>` → prototipo-ui/contrato/notificacoes.contract.json |
 | `cowork-inbox/programa-doc/programa-doc.contract.json` (2903 B) | TELA-A-CRIAR | — | o canon nasce no repo: `criar-tela.mjs <Mod/Tela> <PT-0X>` → prototipo-ui/contrato/programa-doc.contract.json |
 | `cowork-inbox/programa-doc/Programa.charter.md` (4330 B) | TELA-A-CRIAR | — | o canon nasce no repo: `criar-tela.mjs <Mod/Tela> <PT-0X>` → resources/js/Pages/Documentacao/Programa.charter.md |
+| `handoff-crm/Acompanhamentos.charter.md` (2991 B) | TELA-A-CRIAR | — | o canon nasce no repo: `criar-tela.mjs <Mod/Tela> <PT-0X>` → resources/js/Pages/Crm/Acompanhamentos.charter.md |
+| `handoff-crm/Leads.charter.md` (2767 B) | TELA-A-CRIAR | — | o canon nasce no repo: `criar-tela.mjs <Mod/Tela> <PT-0X>` → resources/js/Pages/Crm/Leads.charter.md |
+| `handoff-crm/Painel.charter.md` (2747 B) | TELA-A-CRIAR | — | o canon nasce no repo: `criar-tela.mjs <Mod/Tela> <PT-0X>` → resources/js/Pages/Crm/Painel.charter.md |
+| `handoff-crm/Portal.charter.md` (2734 B) | TELA-A-CRIAR | — | o canon nasce no repo: `criar-tela.mjs <Mod/Tela> <PT-0X>` → resources/js/Pages/Crm/Portal.charter.md |
+| `resources/js/Pages/Ponto/Conformidade.casos.md` (2049 B) | TELA-A-CRIAR | — | o canon nasce no repo: `criar-tela.mjs <Mod/Tela> <PT-0X>` → resources/js/Pages/Ponto/Conformidade.casos.md |
+| `resources/js/Pages/Ponto/Conformidade.charter.md` (2215 B) | TELA-A-CRIAR | — | o canon nasce no repo: `criar-tela.mjs <Mod/Tela> <PT-0X>` → resources/js/Pages/Ponto/Conformidade.charter.md |
+| `resources/js/Pages/Ponto/Fechamento.casos.md` (5625 B) | TELA-A-CRIAR | — | o canon nasce no repo: `criar-tela.mjs <Mod/Tela> <PT-0X>` → resources/js/Pages/Ponto/Fechamento.casos.md |
+| `resources/js/Pages/Ponto/Fechamento.charter.md` (4833 B) | TELA-A-CRIAR | — | o canon nasce no repo: `criar-tela.mjs <Mod/Tela> <PT-0X>` → resources/js/Pages/Ponto/Fechamento.charter.md |
+| `resources/js/Pages/Ponto/Index.casos.md` (2401 B) | TELA-A-CRIAR | — | o canon nasce no repo: `criar-tela.mjs <Mod/Tela> <PT-0X>` → resources/js/Pages/Ponto/Index.casos.md |
+| `resources/js/Pages/Ponto/Index.charter.md` (2544 B) | TELA-A-CRIAR | — | o canon nasce no repo: `criar-tela.mjs <Mod/Tela> <PT-0X>` → resources/js/Pages/Ponto/Index.charter.md |
+| `resources/js/Pages/Ponto/RepP.casos.md` (2704 B) | TELA-A-CRIAR | — | o canon nasce no repo: `criar-tela.mjs <Mod/Tela> <PT-0X>` → resources/js/Pages/Ponto/RepP.casos.md |
+| `resources/js/Pages/Ponto/RepP.charter.md` (2398 B) | TELA-A-CRIAR | — | o canon nasce no repo: `criar-tela.mjs <Mod/Tela> <PT-0X>` → resources/js/Pages/Ponto/RepP.charter.md |
+| `resources/js/Pages/Relatorios/Index.casos.md` (7608 B) | TELA-A-CRIAR | — | o canon nasce no repo: `criar-tela.mjs <Mod/Tela> <PT-0X>` → resources/js/Pages/Relatorios/Index.casos.md |
+| `resources/js/Pages/Relatorios/Index.charter.md` (5428 B) | TELA-A-CRIAR | — | o canon nasce no repo: `criar-tela.mjs <Mod/Tela> <PT-0X>` → resources/js/Pages/Relatorios/Index.charter.md |
 
