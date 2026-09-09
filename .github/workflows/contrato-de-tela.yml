@@ -59,7 +59,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # preflight/omissão precisam do histórico + o diff de detecção
+          fetch-depth: 0   # preflight/omissão precisam de origin/main + o diff de detecção
 
       - name: Detecta arquivos relevantes (skip-as-pass · ADR 0261)
         id: detect
@@ -76,9 +76,6 @@ jobs:
             base="$(git rev-parse HEAD~1 2>/dev/null || git rev-parse HEAD)"
           fi
           echo "Base do diff: ${base}"
-          # A MESMA base serve ao preflight logo abaixo. Ela é ESTÁVEL (congelada no
-          # instante do evento) — ver o comentário do step "Preflight de base".
-          echo "base=${base}" >> "${GITHUB_OUTPUT}"
           changed="$(git diff --name-only "${base}" HEAD || true)"
           echo "Arquivos mudados:"; echo "${changed:-<nenhum>}"
           # Filtro IDÊNTICO ao antigo workflow-level `paths:` (+ os scripts de intenção, que
@@ -97,24 +94,14 @@ jobs:
         with:
           node-version: '24'
 
-      # A ref é a BASE DO PR (estável), não `origin/main` (móvel). A pergunta do gate é
-      # "o autor rebaseou antes de codar?", e ela se responde contra a base que o evento
-      # congelou — não contra o main re-buscado no runner, minutos depois, já com commits
-      # de terceiros. MEDIDO em 2026-09-09: 16 de 21 runs de `pull_request` reprovavam
-      # aqui, em 6 branches DIFERENTES, num repo de ~41 commits/dia. O autor mergeava o
-      # main, empurrava, e o run reprovava porque OUTRA pessoa mergeou no intervalo.
-      #
-      # A MORDIDA CONTINUA, e é o ponto: `pull_request.base.sha` é o TOPO da base no
-      # instante do evento — não o merge-base. Branch genuinamente atrasada tem essa base
-      # à frente dela e cai igual. O que sai é só o falso-positivo da corrida.
-      #
-      # Predicado ABSOLUTO contra ref móvel é a família da lápide §5 2026-08-24 (guard que
-      # o estado herdado tranca). Bite-test dos dois sentidos no `contrato-de-tela.test.mjs`
-      # (base congelada LIBERA · ref que avançou depois MORDE) — a catraca 1 do gate era a
-      # única sem controle nenhum até aqui.
-      - name: Preflight de base (branch ancestral da base do PR)
+      # Em `pull_request` o checkout@v4 usa o MERGE REF (o HEAD ja contem a base), enquanto o
+      # fetch do mesmo step traz o `origin/main` de AGORA — comparar os dois mede a FILA DO CI,
+      # nao a base. Por isso `--merge-ref` aqui: pula SO a perna de ancestralidade e diz que
+      # pulou. Em push/schedule o HEAD e o commit real e a perna roda inteira.
+      - name: Preflight de base (higiene de base)
         if: steps.detect.outputs.relevant == 'true'
-        run: node scripts/contrato-de-tela.mjs --preflight "${{ steps.detect.outputs.base }}"
+        run: |
+          node scripts/contrato-de-tela.mjs --preflight origin/main             ${{ github.event_name == 'pull_request' && '--merge-ref' || '' }}
 
       - name: Contratos de tela ativos (ignora EXEMPLO/template)
         if: steps.detect.outputs.relevant == 'true'
@@ -161,14 +148,14 @@ jobs:
         if: failure()
         run: |
           echo ""
-          echo "❌ Contrato de Tela divergente OU base atrás da base do PR."
+          echo "❌ Contrato de Tela divergente OU base atrás de origin/main."
           echo "   - 'caminho proibido' → uma ação voltou pra rota legada (ex: /financeiro/unificado/novo). Use o fluxo atual."
           echo "   - 'sem âncora' → instrumente a tela com <... data-contract=\"<id>\">."
           echo "   - 'copy ausente' → a string literal do contrato sumiu/mudou no .tsx."
           echo "   - 'ordem divergente' → a sequência das seções no fonte != contrato."
           echo "   - 'frontend NÃO menciona' → backend e frontend usam vocabulários de 'state' diferentes (ex: paired≠connected). Ver ADR 0286 §5."
           echo "   - 'backend não emite' → 'valores' do acordo declara um state morto (drift de contrato)."
-          echo "   - 'branch atrás' → a branch não contém a base do PR: git merge origin/main (ou rebase)."
+          echo "   - 'branch atrás' → git rebase origin/main."
           echo "   Desvio INTENCIONAL do protótipo? declare no corpo do PR:"
           echo "     <!-- design-deviation: <o quê> → <por quê> (ADR/charter) -->"
           echo "   Doc: memory/requisitos/_DesignSystem/RUNBOOK-contrato-de-tela.md"

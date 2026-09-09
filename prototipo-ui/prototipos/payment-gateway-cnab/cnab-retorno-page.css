@@ -1,0 +1,94 @@
+/* cnab-retorno-page.css — Retorno CNAB por credencial de gateway. Cockpit V2.
+   Token-driven (claro/escuro pelo toggle do host). Prefixo .cn- pra nao colidir.
+   So tokens do DS canon: --bg --muted --card --border --fg --fg-2 --fg-3
+   --accent --accent-fg --accent-soft --radius --radius-lg --radius-sm.
+   Cor crua e proibida (conformance-gate = LEI). */
+
+.cn{ display:flex; flex-direction:column; min-height:100%; background:var(--bg); }
+
+/* -- cabecalho da credencial -- */
+.cn-cred{ display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  padding:14px 24px; border-bottom:1px solid var(--border); background:var(--card); }
+.cn-cred-k{ font-size:13px; font-weight:600; color:var(--fg); }
+.cn-cred-n{ font-size:12.5px; color:var(--fg-2); }
+.cn-cred-sep{ color:var(--fg-3); }
+
+/* -- chips de estado -- */
+.cn-chip{ display:inline-flex; align-items:center; gap:5px; height:20px; padding:0 8px;
+  border:1px solid var(--border); border-radius:999px; background:var(--muted);
+  font-size:10.5px; font-weight:600; color:var(--fg-2); letter-spacing:.02em; }
+.cn-chip-on{ background:var(--accent-soft); border-color:var(--accent); color:var(--accent); }
+
+/* -- secao -- */
+.cn-sec{ padding:18px 24px 0; }
+.cn-sec-h{ display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
+.cn-sec-t{ font-size:14px; font-weight:600; color:var(--fg); }
+.cn-sec-s{ font-size:12px; color:var(--fg-3); }
+
+/* -- dropzone (acao primaria, G1) -- */
+.cn-dz{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+  padding:28px 20px; border:1.5px dashed var(--border); border-radius:var(--radius-lg);
+  background:var(--card); text-align:center; transition:border-color .12s, background .12s; }
+.cn-dz-on{ border-color:var(--accent); background:var(--accent-soft); }
+.cn-dz-t{ font-size:13px; font-weight:600; color:var(--fg); }
+.cn-dz-s{ font-size:11.5px; color:var(--fg-3); max-width:52ch; line-height:1.5; }
+.cn-dz-ic{ color:var(--fg-3); }
+.cn-dz-on .cn-dz-ic{ color:var(--accent); }
+
+/* -- previa do arquivo escolhido -- */
+.cn-file{ display:flex; align-items:center; gap:10px; margin-top:10px; padding:10px 12px;
+  border:1px solid var(--border); border-radius:var(--radius); background:var(--card); }
+.cn-file-n{ flex:1; min-width:0; font-size:12.5px; font-weight:500; color:var(--fg);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cn-file-s{ font-size:11px; color:var(--fg-3); font-variant-numeric:tabular-nums; }
+
+/* -- erro de validacao no front (G2) -- */
+.cn-inval{ margin-top:8px; padding:8px 10px; border:1px solid var(--border);
+  border-left:2px solid var(--accent); border-radius:var(--radius-sm);
+  background:var(--muted); font-size:11.5px; color:var(--fg-2); }
+
+/* -- botoes -- */
+.cn-acts{ display:flex; justify-content:flex-end; gap:8px; margin-top:10px; }
+.cn-btn{ display:inline-flex; align-items:center; gap:6px; height:30px; padding:0 12px;
+  border:1px solid var(--border); border-radius:var(--radius); background:var(--card);
+  font-size:12.5px; font-weight:500; color:var(--fg); cursor:pointer; }
+.cn-btn-p{ background:var(--accent); border-color:var(--accent); color:var(--accent-fg); }
+.cn-btn[disabled]{ opacity:.5; cursor:not-allowed; }
+
+/* -- tabela do historico (G3) -- */
+.cn-wrap{ margin-top:4px; border:1px solid var(--border); border-radius:var(--radius-lg);
+  background:var(--card); overflow-x:auto; }
+.cn-tb{ width:100%; border-collapse:collapse; font-size:12.5px; min-width:760px; }
+.cn-tb th{ text-align:left; font-weight:500; font-size:11px; color:var(--fg-3);
+  letter-spacing:.04em; text-transform:uppercase; padding:9px 12px;
+  border-bottom:1px solid var(--border); white-space:nowrap; }
+.cn-tb td{ padding:9px 12px; border-bottom:1px solid var(--border); color:var(--fg-2);
+  vertical-align:middle; }
+.cn-tb tr:last-child td{ border-bottom:0; }
+.cn-num{ text-align:right; font-variant-numeric:tabular-nums; }
+.cn-arq{ color:var(--fg); font-weight:500; }
+.cn-zero{ color:var(--fg-3); }
+
+/* -- linha de erros expansivel (G4) -- */
+.cn-errbtn{ display:inline-flex; align-items:center; gap:5px; height:22px; padding:0 8px;
+  border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--muted);
+  font-size:11px; font-weight:600; color:var(--fg-2); cursor:pointer; }
+.cn-errs{ padding:0 12px 10px; }
+.cn-err{ display:flex; gap:8px; padding:6px 10px; border-radius:var(--radius-sm);
+  background:var(--muted); font-size:11.5px; color:var(--fg-2); line-height:1.5; }
+.cn-err + .cn-err{ margin-top:4px; }
+.cn-err-i{ color:var(--fg-3); font-variant-numeric:tabular-nums; flex:none; }
+
+/* -- vazio + skeleton -- */
+.cn-empty{ display:flex; flex-direction:column; align-items:center; gap:6px; padding:34px 20px;
+  text-align:center; }
+.cn-empty-t{ font-size:13px; font-weight:600; color:var(--fg); }
+.cn-empty-s{ font-size:12px; color:var(--fg-3); max-width:46ch; line-height:1.5; }
+.cn-sk{ height:12px; border-radius:var(--radius-sm); background:var(--muted); }
+.cn-sk-row{ display:flex; gap:10px; padding:10px 12px; border-bottom:1px solid var(--border); }
+
+/* -- nota de rodape -- */
+.cn-note{ margin:14px 24px 22px; padding:10px 12px; border:1px solid var(--border);
+  border-left:2px solid var(--accent); border-radius:var(--radius-sm);
+  background:var(--muted); font-size:11.5px; color:var(--fg-2); line-height:1.6; }
+.cn-note b{ color:var(--fg); }

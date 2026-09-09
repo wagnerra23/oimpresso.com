@@ -432,57 +432,50 @@ function makeGitRepo() {
   }
 }
 
-// ── Preflight de base: a ref importa, e ate hoje nao havia controle nenhum ────
-// POR QUE ESTE BLOCO EXISTE: o `--preflight` e a catraca 1 do gate e era a UNICA sem
-// bite-test — medido em 2026-09-09 (`grep -c preflight` neste arquivo dava 0). O custo
-// apareceu em producao: 16 de 21 runs de `pull_request` do contrato-de-tela.yml
-// reprovaram nesse step, em 6 branches DIFERENTES, porque o job comparava contra
-// `origin/main` — ref MOVEL, re-buscada no runner depois da fila. Num repo de ~41
-// commits/dia a branch fica "atras" por commit de terceiro, entre o push e o fetch.
-//
-// O que os dois casos fixam e a SEMANTICA, nao a implementacao: base congelada (o
-// `pull_request.base.sha` do evento) LIBERA; ref que avancou depois MORDE. A mordida
-// legitima continua — branch de verdade atrasada tem a base do PR a frente dela.
-function makePreflightRepo() {
-  const root = mkdtempSync(join(tmpdir(), 'contrato-pre-'));
-  git(root, ['init', '-q']);
-  git(root, ['config', 'user.email', 't@t.t']);
-  git(root, ['config', 'user.name', 't']);
-  writeFileSync(join(root, 'a.txt'), 'base');
-  git(root, ['add', '-A']);
-  git(root, ['commit', '-q', '-m', 'base']);
-  const inicial = git(root, ['rev-parse', '--abbrev-ref', 'HEAD']).stdout.trim();
-  const base = git(root, ['rev-parse', 'HEAD']).stdout.trim();
-
-  git(root, ['checkout', '-q', '-b', 'feature']);
-  writeFileSync(join(root, 'b.txt'), 'feature');
-  git(root, ['add', '-A']);
-  git(root, ['commit', '-q', '-m', 'feature']);
-
-  // O main ANDA depois disso — commit de terceiro, que a branch nao tem.
-  git(root, ['checkout', '-q', inicial]);
-  writeFileSync(join(root, 'c.txt'), 'terceiro');
-  git(root, ['add', '-A']);
-  git(root, ['commit', '-q', '-m', 'commit de terceiro']);
-  const avancado = git(root, ['rev-parse', 'HEAD']).stdout.trim();
-  git(root, ['checkout', '-q', 'feature']);
-  return { root, base, avancado };
-}
-
+// 10. PREFLIGHT x --merge-ref — a perna de ancestralidade e PULADA quando o HEAD e o merge ref
+//     de um PR (checkout@v4 em pull_request), mas as demais seguem. O caso (c) e o que impede
+//     a flag de virar carimbo: com a flag ligada, worktree orfao AINDA reprova.
 {
-  const { root, base, avancado } = makePreflightRepo();
-  const gitAvail = git(root, ['rev-parse', 'HEAD']).status === 0;
-  if (!gitAvail) { console.log('[SKIP] preflight (git indisponivel)'); }
-  else {
-    const rOk = node(root, ['--preflight', base]);
-    check('--preflight <base congelada do PR> -> exit 0 (LIBERA)',
-      rOk.status === 0 && /ancestral de HEAD/.test(out(rOk)), `status=${rOk.status} ${out(rOk)}`);
+  // repo com uma branch genuinamente NAO-ancestral da base
+  const mk = () => {
+    const root = mkdtempSync(join(tmpdir(), 'preflight-'));
+    const g = (...a) => git(root, a);
+    g('init', '-q'); g('config', 'user.email', 't@t.t'); g('config', 'user.name', 't');
+    writeFileSync(join(root, 'a.txt'), '1'); g('add', '-A'); g('commit', '-q', '-m', 'base');
+    g('branch', 'base-ref');
+    g('checkout', '-q', '-b', 'feature');
+    writeFileSync(join(root, 'b.txt'), '2'); g('add', '-A'); g('commit', '-q', '-m', 'feature');
+    // base-ref anda DEPOIS: feature deixa de ser descendente dela
+    g('checkout', '-q', 'base-ref');
+    writeFileSync(join(root, 'c.txt'), '3'); g('add', '-A'); g('commit', '-q', '-m', 'base anda');
+    g('checkout', '-q', 'feature');
+    return root;
+  };
+  if (git(mkdtempSync(join(tmpdir(), 'probe-')), ['--version']).status !== 0) {
+    console.log('[SKIP] preflight (git indisponivel)');
+  } else {
+    // (a) SEM a flag, base nao-ancestral -> MORDE
+    let root = mk();
+    let r = node(root, ['--preflight', 'base-ref']);
+    check('preflight sem --merge-ref, base nao-ancestral -> exit 1',
+      r.status === 1 && /nao-ancestral|não-ancestral/.test(out(r)), `status=${r.status} ${out(r)}`);
+    drop(root);
 
-    const rBad = node(root, ['--preflight', avancado]);
-    check('--preflight <ref que avancou depois> -> exit 1 (MORDE)',
-      rBad.status === 1 && /ancestral/.test(out(rBad)), `status=${rBad.status} ${out(rBad)}`);
+    // (b) COM a flag, MESMA base nao-ancestral -> PULA (e diz que pulou)
+    root = mk();
+    r = node(root, ['--preflight', 'base-ref', '--merge-ref']);
+    check('preflight com --merge-ref, base nao-ancestral -> exit 0 + diz PULADA',
+      r.status === 0 && /ancestralidade PULADA/.test(out(r)), `status=${r.status} ${out(r)}`);
+    drop(root);
+
+    // (c) CONTROLE NEGATIVO: com a flag ligada, worktree orfao AINDA reprova (nao virou carimbo)
+    root = mkdtempSync(join(tmpdir(), 'preflight-orfao-'));
+    git(root, ['init', '-q']);
+    r = node(root, ['--preflight', 'HEAD', '--merge-ref']);
+    check('preflight com --merge-ref, worktree orfao -> exit 1 (a flag NAO e carimbo)',
+      r.status === 1 && /worktree/.test(out(r)), `status=${r.status} ${out(r)}`);
+    drop(root);
   }
-  drop(root);
 }
 
 console.log(fails ? `\n❌ ${fails} regressão(ões).` : `\n✅ todos os controles passam (gate morde e libera certo).`);
