@@ -10,7 +10,7 @@
 import * as React from 'react';
 import { Deferred, router } from '@inertiajs/react';
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { useBusiness } from '@/Hooks/usePageProps';
+import { useBusiness, usePageProps } from '@/Hooks/usePageProps';
 import { PageHeader } from '@/Components/PageHeader';
 import { Icon } from '@/Components/Icon';
 import KpiGrid from '@/Components/shared/KpiGrid';
@@ -224,11 +224,19 @@ export default function Index({ is_admin, pode, apurado_em, kpis, porCategoria, 
   // não substitui o outro.
   const apuradoHora = new Date(apurado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
-  // Nome do negócio: prop COMPARTILHADA do shell, eager (`HandleInertiaRequests:85` — valor
-  // direto, não closure). Pelo hook canon, não `usePage()` cru: é o idioma do repo
-  // (`Hooks/usePageProps.ts:12`, usado por `Ponto/Welcome.tsx:20`) e o que tipa `SharedProps`.
-  // Optional chaining porque o payload é `null` sem sessão de business.
-  const negocio = useBusiness()?.name;
+  // Nome da empresa: MESMA fonte que o AppShellV2 usa na sidebar (`shell.cockpit.businessNome`,
+  // uma query em `App\Business`), com o `business.name` do shared prop — que vem da SESSÃO — só
+  // de fallback. A ordem NÃO é preferência: `Produto/Unificado/Index.tsx:235` já tinha medido
+  // que o da sessão chega VAZIO em ambiente de teste, e a primeira baseline visual desta tela
+  // PROVOU o mesmo aqui — o eyebrow saiu como `0 BENS`, sem o negócio, enquanto a sidebar do
+  // MESMO render mostrava o nome. Idioma copiado de lá, não reinventado.
+  // Sem default: imprimir 'Oimpresso' afirmaria um tenant que não é o do usuário (ADR 0093).
+  // Os DOIS hooks são chamados incondicionalmente — `a ?? b` não avalia `b` quando `a` tem
+  // valor, e hook em avaliação condicional quebra as Rules of Hooks.
+  const shell = usePageProps().shell as ({ cockpit?: { businessNome?: string } } | undefined);
+  const nomeDoShell = shell?.cockpit?.businessNome ?? null;
+  const nomeDaSessao = useBusiness()?.name ?? null;
+  const negocio = nomeDoShell ?? nomeDaSessao;
 
   return (
     <AppShellV2 title="Patrimônio">

@@ -104,14 +104,21 @@ last_run: "2026-09-09"
   o número que está lendo.
 - **Aceite:** Dado o painel aberto · Quando o header renderiza · Então **acima** do título (é
   eyebrow, não subtítulo) aparece o nome do negócio e a contagem de bens, juntos por ` · `;
-  e enquanto `kpis` não chegou (prop deferida) a linha mostra só o negócio, **sem separador
-  órfão** no fim.
-- **Teste:** `tests/js/patrimonio-header-contexto.test.tsx` — `describe('UC-PAT-06 …')`, 3 casos.
+  o nome vem de `shell.cockpit.businessNome` e **cai** pra `business.name` quando aquele falta;
+  faltando as duas, mostra só a contagem — **nunca** um tenant inventado (ADR 0093); e enquanto
+  `kpis` não chegou (prop deferida) a linha mostra só o negócio, **sem separador órfão** no fim.
+- **Teste:** `tests/js/patrimonio-header-contexto.test.tsx` — `describe('UC-PAT-06 …')`, 6 casos.
   Lane: `patrimonio-painel-gate.yml`.
-- **Regressão que defende:** concatenar os pedaços à mão. O `filter` que o protótipo já tem
-  (`cli-pagehead.jsx:79`) é o que faz o pedaço ausente **sair** do join em vez de deixar um
-  ` · ` pendurado — e a contagem SEMPRE chega depois, porque `kpis` é `Inertia::defer`.
-  **Bite-test:** remover `<LinhaDeContexto>` derruba os 3.
+- **Regressão que defende:** duas, e a segunda foi **medida em render real, não imaginada**.
+  (a) concatenar os pedaços à mão — o `filter` que o protótipo já tem (`cli-pagehead.jsx:79`) é
+  o que faz o pedaço ausente **sair** do join em vez de deixar um ` · ` pendurado, e a contagem
+  SEMPRE chega depois porque `kpis` é `Inertia::defer`.
+  (b) **ler o nome só da sessão** — a última baseline de pixel gerada pra esta tela (antes de a
+  prática ser descontinuada) renderizou o eyebrow como `0 BENS`, **sem a empresa**, enquanto a
+  sidebar do mesmo render mostrava o nome. `business.name` vem da SESSÃO e chega vazio em
+  ambiente de teste; `shell.cockpit.businessNome` sai de uma query. Causa já registrada em
+  `Produto/Unificado/Index.tsx:235` — a tela passou a usar o mesmo idioma de lá, não um novo.
+  **Bite-test:** remover `<LinhaDeContexto>` derruba os 3 primeiros.
 - **Desvio declarado:** o `contexto` do protótipo tem **três** pedaços
   (`patrimonio-page.jsx:820`) e descem **dois**. Os locais não chegam a esta página (0 ocorrências
   de local/locais em todo o `share()` do `HandleInertiaRequests`), e buscá-los seria pior que
