@@ -430,6 +430,32 @@ node scripts/governance/cowork-mirror-freshness.mjs --compare --check    # o esp
    sinaliza 98 arquivos que existem no Cowork e não no espelho. Os nomeados na saída não incluem
    nenhum `-page.jsx`, e a lista completa não é versionada. Logo: firme sobre o shell,
    **inconclusiva sobre o vivo**.
+
+   > **EMENDA 2026-09-09 — o limite 1 foi MEDIDO e, para o eixo protótipo, ele CAIU.**
+   > A lista completa do vivo foi puxada (`DesignSync.list_files`, **876 paths**) e passada ao
+   > `--live-only`, que classifica o resultado em duas famílias por construção: *protótipo de
+   > tela* (`.jsx`/`.css` na raiz) e *outros*. Veredito: **87 live-only, dos quais 0 protótipos
+   > de tela**. O item 1 dizia que os *nomeados na saída* não incluíam `-page.jsx` — agora a
+   > **lista inteira** foi medida e a família está vazia, não só a amostra. Logo a claim de
+   > ausência de protótipo deste inventário é **firme sobre o vivo também**, e não só sobre o shell.
+   >
+   > O que os 87 eram, contado (nenhum é âncora de design, e por isso nenhum move `ancora.mjs`):
+   > **44** `sync/**` (as 43 partes do bundle + o manifesto — é o *transporte*, nunca desce) ·
+   > **13** `.md` de playbook/pedido · **12** `cowork-inbox/*/repo/**` (cópia do nosso próprio
+   > código, feita pelo design) · **6** fixtures `.php` · **3** `_ds/**` (dono é o `--preview-ds`) ·
+   > **9** avulsos (`.gitignore`, `.thumbnail`, `AssinaturaAtualizar.tsx`, 4 `.mjs`/`.json` de
+   > ferramenta, 1 `.napkin`).
+   >
+   > Os **13 `.md`** desceram para `prototipo-ui/design-docs/cowork-inbox/` — pelo
+   > [#7141](https://github.com/wagnerra23/oimpresso.com/pull/7141), de uma sessão paralela do
+   > mesmo dia, e **em paralelo** por esta rodada. As duas transcrições independentes saíram
+   > **byte a byte idênticas nos 13** (sha256 conferido arquivo a arquivo), o que corrobora a
+   > fidelidade que a ADR 0389 só permite *declarar*. Live-only depois deles: **74**.
+   >
+   > O `--sla` segue **INCONCLUSIVO** por causa dos 74 — desenho do instrumento, não pendência de
+   > design: ele não distingue transporte de fonte, e *o que merece descer é decisão [W]*. Recibo,
+   > a anatomia dos 74 e as ressalvas: [session
+   > 2026-09-09](../../sessions/2026-09-09-espelho-cowork-live-only-remedido.md).
 2. **"Porte reverso" não é mecanizável por regex.** Um detector de marcadores marcou 62 dos 199
    arquivos; ao separar marcador forte de fraco, 40 exigiram leitura humana — e a separação
    automática ela mesma errou nos dois sentidos (`forja-page.jsx` diz *"Tela = projeção do git"*,
