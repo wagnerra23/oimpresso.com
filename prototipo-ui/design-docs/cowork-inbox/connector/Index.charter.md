@@ -11,7 +11,7 @@ related_adrs: [21, 93, 155, 180, 190, 286, 300]
 tier: A
 charter_version: 1
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/cowork/connector/connector-page.jsx"
+  blueprint_cowork: "prototipo-ui/cowork/connector-page.jsx"
   blueprint_screenshot_approval: "pendente [W2]"
   derived_screens: [Api/Index (clients), Api/Docs, Api/Health, Api/Module]
   divergence_from_blueprint: "nenhuma — PT-01 lista + PT-04 confirmação; sem drawer (o client tem 4 campos)"
@@ -20,7 +20,7 @@ related_us: [US-CONN-001, US-CONN-013]
 
 # Page Charter — /connector/api (DRAFT)
 
-> **Status:** draft. O F1 existe (`prototipo-ui/cowork/connector/connector-page.jsx`); a tela viva **não** — hoje `/connector/api` é Blade/AdminLTE (`connector::clients.index`) com DataTables, modal do Bootstrap e `Form::open` no excluir. Vira `live` quando [W2] aprovar o screenshot da tela Inertia em produção.
+> **Status:** draft. O F1 existe (`prototipo-ui/cowork/connector-page.jsx`); a tela viva **não** — hoje `/connector/api` é Blade/AdminLTE (`connector::clients.index`) com DataTables, modal do Bootstrap e `Form::open` no excluir. Vira `live` quando [W2] aprovar o screenshot da tela Inertia em produção.
 > Backend canon: `Modules\Connector\Http\Controllers\ClientController` (`index/store/destroy/regenerate`) + `Http\Requests\StoreOauthClientRequest`.
 > Middleware da rota: `web · SetSessionData · auth · language · timezone · AdminSidebarMenu · throttle:60,1`. As rotas de instalação usam `throttle:30,1` e o grupo `authh`.
 > Autorização vigente: `auth()->user()->can('superadmin')` inline em `index`, `destroy`, `regenerate` + `authorize()` do FormRequest.
