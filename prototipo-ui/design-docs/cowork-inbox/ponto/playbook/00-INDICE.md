@@ -13,10 +13,8 @@ regra: este índice é PEDIDO (lista de threads a executar, com sha), não inven
 > **Absorve, não duplica:** `COLAR-NO-CODE-ponto-ondas.md` (doc único de 04/09: 8 frentes · 45 arquivos · RESÍDUO 1–7) + `cowork-inbox/ponte/COLAR-NO-CODE-ponto.md` e `_pedido-CL-ponto-teste-pratico.md` (23/08 — **executados**: `PontoDashboardContratoTest.php` 28 KB existe) + `cowork-inbox/ponto-dashboard/Index.casos.md` (movido; a cópia no inbox é resíduo). Onde o doc de 04/09 diverge desta sha, **a sha manda** — três frentes dele já envelheceram em 2 dias (§5 R4).
 > **Ponto é o módulo mais à frente do repo:** 21 rotas web → **21 `Inertia::render`** → 21 Pages com charter **e casos.md 21/21** · 44 testes Feature · lane `ponto-pest.yml`. Aqui SINCRONIZAR é sobretudo **PUXAR** (produção → protótipo) e **fechar rede + 3 telas que não existem** — nunca repintar tela viva.
 
-> **Compatibilidade verificada em 08/09/2026:** este índice não declarou recibos de execução. A estrutura pode ser avaliada, mas nenhuma tarefa recebe fechamento automático até definir sua evidência no contrato do placar. E2E, comparação visual e medição exigem os respectivos produtores de evidência; não preencher um resumo Pest fictício.
-
 ## 0 · Landing
-Só `.md` roteia (DesignSync `get_file` → `--export-from <dir>`); fonte da máquina = 1º bloco ```json deste arquivo (§7); schema/script = anexos A8.1/A8.2 de `COLAR-NO-CODE-AUTOMACAO-DO-PROTOCOLO.md`. Rodar: `node prototipo-ui/design-docs/cowork-inbox/_scripts/placar-indice.mjs --indice prototipo-ui/design-docs/cowork-inbox/ponto/playbook/00-INDICE.md --root . --proximo`.
+Só `.md` roteia (DesignSync `get_file` → `--export-from <dir>`); fonte da máquina = 1º bloco ```json deste arquivo (§7); schema/script = anexos A8.1/A8.2 de `COLAR-NO-CODE-AUTOMACAO-DO-PROTOCOLO.md`. Rodar: `node scripts/qa/placar-indice.mjs --indice prototipo-ui/design-docs/cowork-inbox/ponto/playbook/00-INDICE.md --root . --proximo`.
 
 ## 1 · LEVANTAR — 4 denominadores · 4 sinais · 1 sha
 
@@ -65,7 +63,7 @@ Só `.md` roteia (DesignSync `get_file` → `--export-from <dir>`); fonte da má
 **Âncora de implementação** (Page nova = 06 apenas): irmã golden **`Pages/Ponto/Espelho/Show.tsx`** (24 KB, 5 `data-contract`, `EspelhoContratoTest` 20 KB, contrato `ponto-espelho`) — o pacote do Ponto é tsx · charter · casos · contrato · `*ContratoTest` · lane `ponto-pest.yml` · e2e. Alvo de layout = protótipo medido (`ponto-mobile.jsx`, 991 nós em 04/09).
 
 ## 2-bis · ESTADO — derivado, nunca escrito (o Code lê ESTA)
-> Fonte = §7 + o repo. `feito` exige saída, dependências e evidência de execução conforme [contrato do placar](../../_scripts/README-placar.md); sem `_saida` = não feito mesmo com PR mergeado; `bloqueada` é fila de [W]. `PRÓXIMO:` = deps feitas + decisões respondidas + nenhuma variável nula.
+> Fonte = §7 + o repo. `_saida-NN.md` presente **e** provas verdes = `feito`; sem `_saida` = não feito mesmo com PR mergeado; `bloqueada` é fila de [W]. `PRÓXIMO:` = deps feitas + decisões respondidas + nenhuma variável nula.
 
 **Render 2026-09-06 (saída do script contra repo simulado = `main` e8613072):** `Ponto: entregue 0 de 12 · próximo 5 · em curso 0 · pendente 4 · bloqueada 3` — **PRÓXIMO: 01 · 02 · 08 · 10 · 11.** Presos: 03 (01) · 06 (W10) · 09 (10) · 07 (04·05·06). Bloqueadas por [W]: 04 · 05 · 12.
 
@@ -96,7 +94,7 @@ Terminou: escreva _saida-NN.md e pare.
 ```
 
 ## 4 · VERIFICAR — placar da lista
-Thread `feito` segue o [contrato do placar](../../_scripts/README-placar.md): saída, dependências, provas estruturais e execução vinculada à revisão. `PLACAR Ponto` = rodar o script (ou [CC] lendo o `main` no turno). **T7** (`design-diff --compare --check`, prod deployada), CI e `casos:report` **não são visíveis daqui** — o placar não certifica paridade nem "0 UC ⛓". Parciais já no `main` que as threads **reusam**: `PontoDashboardContratoTest` · 21 casos.md · `Wave28MobileMarcacaoTest` (GUARD LGPD) · `MobileMarcacaoService` (anti-fraude: accuracy ≤500 m · skew ≤30 s · geofence sinaliza) · `e2e/global-setup.ts`.
+Thread `feito` = `_saida-NN.md` com os 5 itens **e** provas verdes lendo o `main`. `PLACAR Ponto` = rodar o script (ou [CC] lendo o `main` no turno). **T7** (`design-diff --compare --check`, prod deployada), CI e `casos:report` **não são visíveis daqui** — o placar afirma "arquivos verdes", nunca "paridade" nem "0 UC ⛓". Parciais já no `main` que as threads **reusam**: `PontoDashboardContratoTest` · 21 casos.md · `Wave28MobileMarcacaoTest` (GUARD LGPD) · `MobileMarcacaoService` (anti-fraude: accuracy ≤500 m · skew ≤30 s · geofence sinaliza) · `e2e/global-setup.ts`.
 
 ## 5 · Revisão 3× por passo — o que reprovou e foi corrigido
 | passo | R1 · fonte | R2 · falsificação | R3 · frescor | R4 · o que o doc de 04/09 já tinha errado nesta sha |

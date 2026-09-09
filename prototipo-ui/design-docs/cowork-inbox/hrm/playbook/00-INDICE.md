@@ -13,8 +13,6 @@ regra: este índice é PEDIDO (lista de threads a executar, com sha), não inven
 
 > **Absorve, não duplica:** `cowork-inbox/hrm/PEDIDO-CL-hrm.md` (D1/D2/D3 respondidas por [W] em 2026-09-05) + `cowork-inbox/hrm/EXPORT-HRM-2026-09-04.md`. Onde divergem, **a emenda [W] manda**: Presença sai do HRM; Folha vira projeto com ADR própria. **Metas já está em produção (#6869)** — a onda 9 do export está feita.
 
-> **Compatibilidade verificada em 08/09/2026:** este índice não declarou recibos de execução. A estrutura pode ser avaliada, mas nenhuma tarefa recebe fechamento automático até definir sua evidência no contrato do placar. E2E, comparação visual e medição exigem os respectivos produtores de evidência; não preencher um resumo Pest fictício.
-
 ## 0 · Landing — como esta pasta desce (resposta ao [CL], 2026-09-05)
 - **A unidade é a PASTA inteira** (`00-INDICE.md` + 11 `NN-*.md`): índice sozinho aponta pra arquivos inexistentes — o mesmo defeito do item 3 do §5. Rota: DesignSync `get_file` de cada `.md` → `--export-from <dir>`; `.md` roteia pra `prototipo-ui/design-docs/cowork-inbox/hrm/playbook/`.
 - **Só `.md` roteia.** Por isso a fonte da máquina (`playbook.json`) **não é arquivo**: é o primeiro bloco ```json deste índice (§7). O schema e o script viajam como anexos de `COLAR-NO-CODE-AUTOMACAO-DO-PROTOCOLO.md` (PR-A8) e o [CL] os cria nos paths lá declarados. Nada `.json`/`.mjs` solto neste pacote.
@@ -61,7 +59,7 @@ Também medido nesta sha: `.claude/commands/onda.md` **não existe** (PR-A7 não
 
 ## 2-bis · ESTADO — derivado, nunca escrito (o Code lê ESTA)
 
-> **Fonte = bloco ```json do §7 + o repo.** Rode `node prototipo-ui/design-docs/cowork-inbox/_scripts/placar-indice.mjs --indice prototipo-ui/design-docs/cowork-inbox/hrm/playbook/00-INDICE.md --root . --proximo`. Regra: `feito` exige saída, dependências e evidência de execução conforme [contrato do placar](../../_scripts/README-placar.md); sem `_saida` = não feito mesmo com PR mergeado; `bloqueada` é fila de [W], não do Code. `PRÓXIMO:` = deps de thread feitas + decisões respondidas + nenhuma variável nula.
+> **Fonte = bloco ```json do §7 + o repo.** Rode `node scripts/qa/placar-indice.mjs --indice prototipo-ui/design-docs/cowork-inbox/hrm/playbook/00-INDICE.md --root . --proximo`. Regra: `_saida-NN.md` presente **e** provas verdes = `feito`; sem `_saida` = não feito mesmo com PR mergeado; `bloqueada` é fila de [W], não do Code. `PRÓXIMO:` = deps de thread feitas + decisões respondidas + nenhuma variável nula.
 
 **Render 2026-09-05 rev.2 (saída do script contra repo simulado = `main` 45e63465):** `Hrm: entregue 0 de 11 · próximo 6 · em curso 0 · pendente 4 · bloqueada 1` — **PRÓXIMO: 01 · 02 · 03 · 07 · 08 · 09.** Presos: 04 (RESÍDUO 5) · 05 (09 + RESÍDUO 3) · 06 (09) · 11 (02·03·05·06). O RESÍDUO 1 (`<PAGES>`) **deixou de existir** — a árvore respondeu. Testado: entrega flat **ou** pasta conta; Page criada sem `Inertia::render` no controller fica "em curso" nomeando o controller (D4 é prova); 09 com o cron vivo fica "em curso" nomeando `EssentialsServiceProvider.php:108`.
 
@@ -92,7 +90,7 @@ Terminou: escreva _saida-NN.md e pare.
 ```
 
 ## 4 · VERIFICAR — placar da lista
-Thread `feito` segue o [contrato do placar](../../_scripts/README-placar.md): saída, dependências, provas estruturais e execução vinculada à revisão. `PLACAR Hrm` = rodar o script (ou [CC] lendo o `main` no turno, se o script ainda não aterrissou). **T7** (`design-diff --compare --check` nos dois renders, prod deployada) e CI verde não são visíveis daqui — o placar não certifica paridade visual. Parciais já no `main` que as threads **reusam** (não recriar): #6778 lang PT · #6797 validação + `HrmLicencaTest` · #6799 faixas · #6789 `destroy` 422 · #6798 import · **#6869 Metas completa**.
+Thread `feito` = `_saida-NN.md` com os 5 itens **e** provas verdes lendo o `main`. `PLACAR Hrm` = rodar o script (ou [CC] lendo o `main` no turno, se o script ainda não aterrissou). **T7** (`design-diff --compare --check` nos dois renders, prod deployada) e CI verde não são visíveis daqui — o placar afirma "arquivos verdes", nunca "paridade". Parciais já no `main` que as threads **reusam** (não recriar): #6778 lang PT · #6797 validação + `HrmLicencaTest` · #6799 faixas · #6789 `destroy` 422 · #6798 import · **#6869 Metas completa**.
 
 ## 5 · Revisão 3× por passo — o que reprovou e foi corrigido
 | passo | R1 · fonte | R2 · falsificação | R3 · frescor | **R4 · medição do [CL] (a88c66a)** |
