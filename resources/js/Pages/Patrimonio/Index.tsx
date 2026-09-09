@@ -134,6 +134,13 @@ export default function Index({ is_admin, pode, apurado_em, kpis, porCategoria, 
             }
             title="Patrimônio"
             subtitle="O que a empresa tem, quanto vale e quem está com o quê."
+            /* `-mx-6` NÃO é enfeite: o canon tem `px-6` PRÓPRIO e este container já tem `p-6`,
+               então sem isto os dois somam e o h1 fica 24px à direita dos cards. MEDIDO no
+               render real (1280 e 1600): sem `-mx-6` o h1 nasce em 48px contra 24px dos KPIs;
+               com ele, delta 0 nas duas larguras, sem scroll horizontal, e a linha divisora
+               fica full-width — que é o que o canon flat v3.8 desenha. O header ANTIGO não
+               tinha padding horizontal, e por isso alinhava sem ajuste nenhum. */
+            className="-mx-6"
           />
         </div>
 
