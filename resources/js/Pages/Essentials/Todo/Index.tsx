@@ -299,12 +299,15 @@ export default function TodoIndex({
                 <table className="w-full text-sm">
                   <thead className="border-b border-border bg-muted/30 text-xs text-muted-foreground">
                     <tr>
+                      <th className="text-left p-3 font-medium">Criado em</th>
                       <th className="text-left p-3 font-medium">Código</th>
                       <th className="text-left p-3 font-medium">Tarefa</th>
                       <th className="text-left p-3 font-medium">Status</th>
                       <th className="text-left p-3 font-medium">Prioridade</th>
                       <th className="text-left p-3 font-medium">Início</th>
                       <th className="text-left p-3 font-medium">Fim</th>
+                      <th className="text-right p-3 font-medium">Horas est.</th>
+                      <th className="text-left p-3 font-medium">Atribuído por</th>
                       <th className="text-left p-3 font-medium">Atribuído a</th>
                       <th className="text-right p-3 font-medium">Ações</th>
                     </tr>
@@ -312,16 +315,12 @@ export default function TodoIndex({
                   <tbody className="divide-y divide-border">
                     {rows.map((t) => (
                       <tr key={t.id} className="hover:bg-accent/30">
+                        <td className="p-3 text-xs text-muted-foreground">{t.created_at_human ?? '—'}</td>
                         <td className="p-3 font-mono text-xs">{t.task_id ?? '—'}</td>
                         <td className="p-3">
                           <Link href={`/essentials/todo/${t.id}`} className="font-medium hover:underline">
                             {t.task}
                           </Link>
-                          {t.created_at_human && (
-                            <div className="text-[10px] text-muted-foreground">
-                              criada {t.created_at_human}
-                            </div>
-                          )}
                         </td>
                         <td className="p-3">
                           {t.status ? (
@@ -347,6 +346,8 @@ export default function TodoIndex({
                         </td>
                         <td className="p-3 text-xs">{t.date ?? '—'}</td>
                         <td className="p-3 text-xs">{t.end_date ?? '—'}</td>
+                        <td className="p-3 text-xs text-right tabular-nums">{t.estimated_hours ?? '—'}</td>
+                        <td className="p-3 text-xs">{t.assigned_by ?? '—'}</td>
                         <td className="p-3 text-xs">
                           {t.users.length === 0 ? (
                             <span className="text-muted-foreground">—</span>

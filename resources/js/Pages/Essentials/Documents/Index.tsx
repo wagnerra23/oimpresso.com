@@ -247,7 +247,7 @@ export default function DocumentsIndex({ documents, memos, initialTab, me }: Pro
           <div>
             <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
               {tab === 'memos' ? <Mail size={22} /> : <FileText size={22} />}
-              {tab === 'memos' ? 'Memos' : 'Documentos'}
+              {tab === 'memos' ? 'Todas as notas' : 'Todos os documentos'}
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
               {tab === 'memos'
