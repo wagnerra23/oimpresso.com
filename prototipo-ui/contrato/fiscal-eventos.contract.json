@@ -1,8 +1,8 @@
 {
-  "_nota": "Contrato de Tela do ledger de eventos fiscais (módulo Fiscal). Declara copy literal + âncora que a Onda 1 (saneamento fx-* → DS) tem de preservar. Schema: prototipo-ui/contrato/contract.schema.json (ADR 0286). Copy extraída da TELA VIVA (frescor 🔵 produção-à-frente), não do protótipo.",
+  "_nota": "A copy deste contrato foi extraída da TELA VIVA quando ele nasceu — então ele NÃO prova conformidade com o protótipo: comparar a tela com uma cópia dela mesma é tautológico. Medido em 2026-09-09: o espelho bate 271/271 com o manifesto do bundle e o `fiscal-page.jsx` do Cowork vivo é idêntico ao do repo, ou seja o protótipo NÃO estava atrás — a redação anterior dizia que estava e isso induziu um diagnóstico errado. Quem for usar este contrato pra julgar FORMA precisa re-derivar a copy do protótipo primeiro (ADR UI-0029: no eixo forma o protótipo é soberano).",
   "tela": "Fiscal/Eventos",
   "fonte": "prototipo-ui/cowork/fiscal-subpages.jsx",
-  "_nota_fonte": "Protótipo declarado no related_prototype do charter da tela. A copy deste contrato NÃO veio dele — veio da tela viva, que tem frescor produção-à-frente (o protótipo é que está atrás).",
+  "_nota_fonte": "A copy deste contrato foi extraída da TELA VIVA quando ele nasceu — então ele NÃO prova conformidade com o protótipo: comparar a tela com uma cópia dela mesma é tautológico. Medido em 2026-09-09: o espelho bate 271/271 com o manifesto do bundle e o `fiscal-page.jsx` do Cowork vivo é idêntico ao do repo, ou seja o protótipo NÃO estava atrás — a redação anterior dizia que estava e isso induziu um diagnóstico errado. Quem for usar este contrato pra julgar FORMA precisa re-derivar a copy do protótipo primeiro (ADR UI-0029: no eixo forma o protótipo é soberano).",
   "alvo": [
     "resources/js/Pages/Fiscal/Eventos.tsx"
   ],
