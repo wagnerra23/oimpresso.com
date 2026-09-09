@@ -146,8 +146,19 @@ class DeviceModelController extends Controller
             $query->where('device_id', (int) $request->get('device_id'));
         }
 
-        return $query->orderBy('id', 'desc')
-            ->get(['id', 'name', 'device_id', 'brand_id', 'repair_checklist'])
+        $modelos = $query->orderBy('id', 'desc')
+            ->get(['id', 'name', 'device_id', 'brand_id', 'repair_checklist']);
+
+        // Quantas folhas cada modelo já gerou. O protótipo (repair-page.jsx, região
+        // `Modelos`) tem a coluna "Folhas": é o que separa o catálogo que a oficina usa
+        // do que alguém cadastrou e nunca voltou a tocar. Agregada única, não N+1.
+        $usoPorModelo = JobSheet::where('business_id', $business_id)
+            ->whereIn('device_model_id', $modelos->pluck('id'))
+            ->selectRaw('device_model_id, COUNT(*) as total')
+            ->groupBy('device_model_id')
+            ->pluck('total', 'device_model_id');
+
+        return $modelos
             ->map(fn ($m) => [
                 'id'            => $m->id,
                 'name'          => $m->name,
@@ -156,6 +167,13 @@ class DeviceModelController extends Controller
                 'device_name'   => $m->Device?->name,
                 'brand_name'    => $m->Brand?->name,
                 'has_checklist' => ! empty($m->repair_checklist),
+                // No legado o checklist é uma string separada por "|". A tela mostra os
+                // itens; quem edita continua vendo a string crua no formulário.
+                'checklist_items' => array_values(array_filter(
+                    array_map('trim', explode('|', (string) $m->repair_checklist)),
+                    fn ($item) => $item !== '',
+                )),
+                'job_sheets_count' => (int) ($usoPorModelo[$m->id] ?? 0),
             ])
             ->toArray();
     }

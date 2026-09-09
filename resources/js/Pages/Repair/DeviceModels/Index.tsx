@@ -21,6 +21,10 @@ interface ModelRow {
   device_name: string | null;
   brand_name: string | null;
   has_checklist: boolean;
+  /** Itens do checklist já quebrados — no legado é uma string separada por "|". */
+  checklist_items: string[];
+  /** Quantas folhas de OS já usaram este modelo. */
+  job_sheets_count: number;
 }
 
 interface Kpis {
@@ -213,6 +217,12 @@ export default function DeviceModelsIndex({ filters, models, kpis, brands, devic
         </div>
       </div>
 
+      {/* Hint do protótipo (região `Modelos`): quem abre este catálogo pela primeira vez
+          não sabe onde o checklist reaparece, e é isso que dá sentido à coluna. */}
+      <p className="text-xs text-muted-foreground">
+        O checklist do modelo é o que aparece na folha ao escolher o equipamento.
+      </p>
+
       <Deferred data="models" fallback={<TableSkeleton />}>
         {(models ?? []).length === 0 ? (
           <EmptyState
@@ -232,7 +242,8 @@ export default function DeviceModelsIndex({ filters, models, kpis, brands, devic
                   <th className="px-4 py-3 font-medium text-foreground">Modelo</th>
                   <th className="px-4 py-3 font-medium text-foreground">Marca</th>
                   <th className="px-4 py-3 font-medium text-foreground">Categoria</th>
-                  <th className="px-4 py-3 font-medium text-center text-foreground">Checklist</th>
+                  <th className="px-4 py-3 font-medium text-foreground">Checklist de pré-reparo</th>
+                  <th className="px-4 py-3 font-medium text-right text-foreground">Folhas</th>
                   <th className="px-4 py-3 font-medium w-24"></th>
                 </tr>
               </thead>
@@ -251,15 +262,30 @@ export default function DeviceModelsIndex({ filters, models, kpis, brands, devic
                     <td className="px-4 py-3 text-foreground">
                       {m.device_name ?? <span className="text-muted-foreground">—</span>}
                     </td>
-                    <td className="px-4 py-3 text-center">
-                      {m.has_checklist ? (
-                        <Badge variant="secondary" className="gap-1">
-                          <Icon name="list-checks" className="h-3 w-3" />
-                          Sim
-                        </Badge>
+                    <td className="px-4 py-3">
+                      {m.checklist_items.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {m.checklist_items.map((item) => (
+                            <Badge key={item} variant="secondary" className="font-normal lowercase">
+                              {item}
+                            </Badge>
+                          ))}
+                        </div>
                       ) : (
                         <span className="text-muted-foreground" aria-label="Sem checklist">
                           —
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-right tabular-nums">
+                      {m.job_sheets_count > 0 ? (
+                        <span className="font-mono text-foreground">{m.job_sheets_count}</span>
+                      ) : (
+                        <span
+                          className="font-mono text-muted-foreground"
+                          title="Nenhuma folha usou este modelo ainda"
+                        >
+                          0
                         </span>
                       )}
                     </td>
