@@ -34,8 +34,14 @@ use Modules\Jana\Services\TaskRegistry\HitlEscalationService;
  *   7. Spec ID drift (ADR 0134) — colisão DB↔SPEC.md (mesmo ID, title diferente)
  *   8. Whatsapp media pending 1h (Guardião 6 Camada 6) — mídia órfã > 1h
  *   8b. Whatsapp inbound flow (sentinela de fluxo real · incidente 2026-06-16
- *       #2726) — por canal ativo com histórico, último inbound > Nh em horário
- *       comercial = ALERTA. Pega QUALQUER causa de silêncio no recebimento.
+ *       #2726) — canal ativo, com histórico E que se diz SAUDÁVEL, cujo último
+ *       inbound passou de Nh em horário comercial = ALERTA. A classe que ele
+ *       cobre sozinho é a do #2726: `channel_health` dizendo 'healthy' enquanto
+ *       o recebimento está morto. Canal já CAÍDO fica de fora desde 2026-09-08
+ *       — esse fato tem dono (whatsapp:channel-health-snapshot, ADR 0288, que
+ *       alerta 1×/streak e chega no humano), e re-alarmá-lo aqui saturava o exit
+ *       code deste comando (2 canais biz=1 caídos desde julho mantinham exit 1
+ *       em toda execução em horário comercial).
  *   8c. Whatsapp inbound canary (auto-teste do alarme · Fase 1 perda-zero) — lê
  *       o último tick do cron `whatsapp:webhook-canary`; stale/falha em horário
  *       comercial = ALERTA. Prova que a VIA responde 200 E que o monitor não
@@ -102,6 +108,20 @@ class HealthCheckCommand extends Command
      * o SQL (whereRaw) e o predicado puro `valueExceedsCeiling` — não divergem.
      */
     public const VALUE_SANITY_MARGIN = 1.5;
+
+    /**
+     * Estados de `channels.channel_health` que significam "o canal está FORA".
+     *
+     * Espelha `ChannelHealthSnapshotCommand::DOWN_HEALTHS` (ADR 0288), que é o DONO
+     * desse fato — ele alerta 1×/streak por 3 sinks. O check 8b usa esta lista pra NÃO
+     * re-alarmar o que aquele já cobre (ver evaluateInboundFlow). Conferido idêntico
+     * em 2026-09-08; a cópia existe porque `evaluateInboundFlow` é estática PURA e não
+     * pode depender de o módulo Whatsapp estar carregado.
+     *
+     * Duas listas em módulos diferentes é drift em potencial. Se divergirem, o sintoma
+     * é barulhento, não silencioso: 8b volta a duplicar o alarme do 0288.
+     */
+    public const SAUDE_CANAL_CAIDA = ['disconnected', 'banned', 'degraded'];
 
     /**
      * Predicado puro da invariante de valor do check 1b (incidente "Guilherme").
@@ -938,12 +958,17 @@ class HealthCheckCommand extends Command
                 ];
             }
 
+            $temColunaSaude = \Illuminate\Support\Facades\Schema::hasColumn('channels', 'channel_health');
+
             $channels = DB::table('channels')
                 ->where('status', 'active')
-                ->get(['id', 'label', 'business_id'])
+                ->get($temColunaSaude ? ['id', 'label', 'business_id', 'channel_health'] : ['id', 'label', 'business_id'])
                 ->map(fn ($ch) => [
                     'label' => $ch->label ?? "canal {$ch->id}",
                     'business_id' => (int) $ch->business_id,
+                    // Sem a coluna → null → evaluateInboundFlow trata como saudável e
+                    // vigia. O default nunca deixa de vigiar (dado faltando ≠ silêncio).
+                    'channel_health' => $temColunaSaude ? ($ch->channel_health ?? null) : null,
                     'last_inbound' => DB::table('messages')
                         ->join('conversations', 'conversations.id', '=', 'messages.conversation_id')
                         ->where('conversations.channel_id', $ch->id)
@@ -965,16 +990,45 @@ class HealthCheckCommand extends Command
             }
 
             $count = count($r['mudos']);
+            $caidos = (int) ($r['ja_caidos'] ?? 0);
+
+            // Nomeia quem ficou FORA da vigilância. Sem isso, um verde aqui é
+            // indistinguível de "não havia o que medir" — que é o modo de falha do
+            // instrumento que afirma sobre o que não percorreu.
+            $notaCaidos = $caidos > 0
+                ? " · {$caidos} canal(is) fora desta vigilância por já estarem CAÍDOS"
+                    . ' (queda de canal é alarme do whatsapp:channel-health-snapshot, ADR 0288)'
+                : '';
+
+            if ($count > 0) {
+                return [
+                    'name' => $name,
+                    'ok' => false,
+                    'value' => $count,
+                    'threshold' => "<= {$thresholdHours}h",
+                    'message' => 'ALERTA recebimento parado: ' . implode(' · ', $r['mudos'])
+                        . ' — checar webhook/daemon/auth (classe do incidente #2726)' . $notaCaidos,
+                ];
+            }
+
+            if ($r['vigiados'] === 0) {
+                return [
+                    'name' => $name,
+                    'ok' => true,
+                    'value' => '0 canais vigiáveis',
+                    'threshold' => "<= {$thresholdHours}h",
+                    'message' => 'Nenhum canal saudável com histórico pra vigiar — este check'
+                        . ' não está afirmando que o recebimento está bom, só que não há o que'
+                        . ' medir aqui agora' . $notaCaidos,
+                ];
+            }
 
             return [
                 'name' => $name,
-                'ok' => $count === 0,
-                'value' => $count === 0 ? "{$r['vigiados']} canal(is) com fluxo" : $count,
+                'ok' => true,
+                'value' => "{$r['vigiados']} canal(is) com fluxo",
                 'threshold' => "<= {$thresholdHours}h",
-                'message' => $count === 0
-                    ? "Todos os {$r['vigiados']} canais ativos receberam inbound nas últimas {$thresholdHours}h"
-                    : 'ALERTA recebimento parado: ' . implode(' · ', $r['mudos'])
-                        . ' — checar webhook/daemon/auth (classe do incidente #2726)',
+                'message' => "Todos os {$r['vigiados']} canais saudáveis receberam inbound nas últimas {$thresholdHours}h" . $notaCaidos,
             ];
         } catch (\Throwable $e) {
             return [
@@ -1004,7 +1058,30 @@ class HealthCheckCommand extends Command
 
         $mudos = [];
         $vigiados = 0;
+        $jaCaidos = 0;
         foreach ($channels as $ch) {
+            // Canal JÁ CAÍDO não entra aqui — o fato "canal ativo está fora" já tem
+            // dono: `whatsapp:channel-health-snapshot` (ADR 0288), que alerta 1× por
+            // STREAK e entrega por 3 sinks (log, Centrifugo→Caixa, mcp_alertas_eventos
+            // → chega no humano). Re-alarmar aqui não acrescenta informação e custa
+            // caro: como este é um check DURO horário sem dedup, uma queda conhecida
+            // satura o exit code do jana:health-check e ele deixa de conseguir
+            // sinalizar qualquer coisa NOVA (medido em prod 2026-09-08 — 2 canais
+            // biz=1 em provision_pending desde julho mantinham o exit 1 em toda
+            // execução em horário comercial, 14-23 por dia).
+            //
+            // O que ESTE check cobre, e mais nenhum: canal que se diz SAUDÁVEL e
+            // parou de receber — a classe do incidente #2726, onde `channel_health`
+            // ficava 'healthy' mentindo enquanto o recebimento estava morto. Essa
+            // continua alarmando, que é o ponto.
+            //
+            // Ausência de `channel_health` = trata como saudável (vigia): o default
+            // nunca pode ser "deixa de vigiar", senão dado faltando vira silêncio.
+            if (in_array(strtolower(trim((string) ($ch['channel_health'] ?? ''))), self::SAUDE_CANAL_CAIDA, true)) {
+                $jaCaidos++;
+                continue;
+            }
+
             $last = $ch['last_inbound'] ?? null;
             if ($last === null || $last === '') {
                 continue; // sem histórico → sem baseline, não vigia
@@ -1020,7 +1097,13 @@ class HealthCheckCommand extends Command
             }
         }
 
-        return ['ok' => $mudos === [], 'vigiados' => $vigiados, 'mudos' => $mudos, 'fora_horario' => false];
+        return [
+            'ok' => $mudos === [],
+            'vigiados' => $vigiados,
+            'mudos' => $mudos,
+            'ja_caidos' => $jaCaidos,
+            'fora_horario' => false,
+        ];
     }
 
     /**
