@@ -1,7 +1,7 @@
 {
   "_nota": "Contrato de Tela do painel do Conector (ADR 0286). Trava as seções, a copy literal e os estados da tradução Blade → Inertia. Rodar advisory no contrato-de-tela.yml antes de promover a required.",
   "tela": "Connector/Api",
-  "fonte": "prototipo-ui/cowork/connector/connector-page.jsx + connector-api.jsx",
+  "fonte": "prototipo-ui/cowork/connector-page.jsx + connector-api.jsx",
   "alvo": ["Modules/Connector/Resources/js/Pages/Api"],
   "secoes": [
     { "id": "page-header", "copy": ["Conector — API clients", "Conector — documentação da API", "Conector — saúde", "Conector — módulo", "superadmin · cross-tenant"] },
