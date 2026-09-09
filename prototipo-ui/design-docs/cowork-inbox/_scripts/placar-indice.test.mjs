@@ -1,7 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { avaliar, proximas } from './placar-indice.mjs';
+import { readFileSync, mkdtempSync, writeFileSync, unlinkSync, rmdirSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
+import { avaliar, proximas, descobrirIndices } from './placar-indice.mjs';
 import { hash, validarIndice } from './placar-evidencia.mjs';
 
 function fixture() {
@@ -80,9 +84,42 @@ test('decisão pendente e bloqueio vencem recibo verde',()=>{
   f.indice.threads[0].bloqueio='Descartada';assert.equal(f.run().linhas[0].executavel,false);assert.equal(f.run().feito,0);
 });
 test('playbooks reais continuam parseáveis e dependência/retencao estão reconciliadas',()=>{
-  for(const mod of ['patrimonio','hrm','ponto']) {
-    const raw=readFileSync(new URL(`../${mod}/playbook/00-INDICE.md`,import.meta.url),'utf8');
+  const root = fileURLToPath(new URL('../../../../', import.meta.url));
+  const paths = descobrirIndices(root);
+  assert.ok(paths.length > 0, 'inventário não pode ficar vazio');
+  for(const p of paths) {
+    const raw=readFileSync(new URL('../../../../'+p,import.meta.url),'utf8');
     const index=JSON.parse(raw.match(/```json\s*\n([\s\S]*?)\n```/)[1]); validarIndice(index);
-    if(mod==='patrimonio'){assert.deepEqual(index.threads.find(t=>t.id==='02').depende_threads,['01']);assert.ok(index.threads.find(t=>t.id==='05').bloqueio);}
+    if(index.modulo==='Patrimonio'){assert.deepEqual(index.threads.find(t=>t.id==='02').depende_threads,['01']);assert.ok(index.threads.find(t=>t.id==='05').bloqueio);}
   }
 });
+
+test('Governança: sufixo 03a participa das dependências sem renumerar a ficha',()=>{
+ const f=fixture(); f.indice.threads[0].depende_threads=['03a'];
+ f.indice.threads.push({id:'03a',titulo:'Contrato',dono:'CL',arquivo:'03a-contrato.md',prefixo:[],provas:[]});
+ assert.equal(f.run().linhas[0].executavel,false);
+});
+test('CLI sem índices falha; --todos descobre todos sem depender de glob nativo',()=>{
+ const cli=fileURLToPath(new URL('./placar-indice.mjs',import.meta.url));
+ const root=fileURLToPath(new URL('../../../../',import.meta.url));
+ const vazio=spawnSync(process.execPath,[cli],{cwd:root,encoding:'utf8'});
+ assert.equal(vazio.status,2);
+ const todos=spawnSync(process.execPath,[cli,'--todos','--root',root],{cwd:root,encoding:'utf8'});
+ assert.equal(todos.status,1,todos.stderr);
+ assert.equal(todos.stdout.split('entregue').length-1,descobrirIndices(root).length);
+});
+
+for (const [nome, assertions, esperado] of [['PHPUnit', ' assertions="2"', 1], ['JUnit sem assertions', '', 0]]) {
+ test('produtor real de resumo: '+nome,()=>{
+  const dir=mkdtempSync(join(tmpdir(),'placar-junit-'));
+  const xml=join(dir,'suite.xml');
+  try {
+   writeFileSync(xml,'<testsuites><testsuite tests="1"><testcase file="test.php" name="saldo"'+assertions+'/></testsuite></testsuites>');
+   const root=fileURLToPath(new URL('../../../../',import.meta.url));
+   const result=spawnSync(process.execPath,[join(root,'scripts/tests/junit-summary.mjs'),xml],{cwd:root,encoding:'utf8',env:{...process.env,GITHUB_STEP_SUMMARY:''}});
+   assert.equal(result.status,0,result.stderr);
+   const f=fixture();f.files['summary.json']=result.stdout;f.receipt();
+   assert.equal(f.run().feito,esperado);
+  } finally { unlinkSync(xml); rmdirSync(dir); }
+ });
+}

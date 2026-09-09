@@ -56,3 +56,19 @@ sozinho não altera o grafo; o placar não interpreta decisões em prosa.
 
 Testes do instrumento: `node --test prototipo-ui/design-docs/cowork-inbox/_scripts/placar-indice.test.mjs`.
 Eles rodam no workflow existente `design-memory-gate.yml`.
+
+## Alcance entre módulos
+
+Use `node prototipo-ui/design-docs/cowork-inbox/_scripts/placar-indice.mjs --todos --root . --proximo`
+para descobrir os índices disponíveis, sem lista fixa de nomes. O teste de integração percorre
+o mesmo inventário; um novo módulo com playbook passa a ser validado automaticamente.
+Nenhum índice selecionado ou índice inválido retorna 2, nunca verde por universo vazio.
+O glob opcional depende de Node >=22; sem padrão, --todos funciona no Node 20 do CI.
+
+Leitura de schema/grafo não é cobertura dos fluxos de negócio. A prova execucao atual
+consome o resumo PHPUnit/Pest com contagem de assertions. Não aceita automaticamente
+JUnit de E2E sem esse campo, saída TAP/Node, comparação visual nem parecer documental.
+Essas tarefas precisam de um contrato de evidência apropriado; até lá ficam sem
+fechamento certificado. Não converter exitCode=0 em assertions inventadas.
+Módulos sem playbook não pertencem ao universo deste placar; verificar sua aplicação
+por scripts/design-sync/status.mjs e os contratos/testes próprios.
