@@ -510,11 +510,6 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
         ->middleware('superadmin')
         ->name('showcase.components');
 
-    // Tarefas — inbox unificada cross-módulo (UI-0011, 2026-05-05).
-    // Stub que renderiza Page placeholder até Fase 4 do plano de migração ADR 0039
-    // (TaskProvider interface + TaskRegistry agregando providers de cada módulo).
-    Route::get('/tarefas', fn () => inertia('Tarefas/Index'))->name('tarefas.index');
-
     // Wagner 2026-05-22: /home redireciona pra hub IA/Jana — sidebar v3 ADR 0180.
     // Wagner 2026-05-25: alvo passou de /ia (chat) pra /ia/dashboard (Dashboard
     // Jana = primeira aba canon, com farol das metas + KPIs do business). Chat

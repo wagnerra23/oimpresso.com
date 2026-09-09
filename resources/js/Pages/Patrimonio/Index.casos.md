@@ -75,6 +75,59 @@ last_run: "2026-09-09"
 
 ---
 
+## UC-PAT-05 · O selo diz quando o painel foi apurado — e reapura no clique
+- **Persona:** Wagner (gestor) — deixa o painel aberto e precisa saber se está olhando número de
+  agora ou de duas horas atrás.
+- **Aceite:** Dado o painel aberto · Quando o header renderiza · Então o **primeiro** item das
+  ações é o selo `Atualizado HH:MM`, **antes** da busca; a hora vem de `apurado_em`
+  (`AssetController:643`), não do relógio do navegador; e clicar nele chama `router.reload()`,
+  que refaz a apuração de verdade.
+- **Teste:** `tests/js/patrimonio-header-contexto.test.tsx` — `describe('UC-PAT-05 …')`, 5 casos
+  (o 1º é controle positivo do harness). Lane: `patrimonio-painel-gate.yml`.
+- **Regressão que defende:** o selo virar enfeite — hora do relógio em vez da apuração (mostra
+  "agora" para um número de meia hora atrás), ou escorregar pra depois da busca, perdendo a
+  posição que o `CliPageHead:159` fixou depois de medir que o slot `freshness` do DS roubava
+  largura do título.
+  **Bite-test:** trocar `apuradoHora` por `new Date()` derruba 1 caso; mover a pílula pra depois
+  do `<form role="search">` derruba o caso da ordem; removê-la derruba 4.
+- **Origem:** o item não estava na tela porque não mora no `patrimonio-page.jsx` — mora no
+  `MP.Header` (`modulo-padrao.jsx:18`), que delega pro `CliPageHead`. Quem lê só a página do
+  módulo não o vê, e foi o que aconteceu nos PRs [#7133](https://github.com/wagnerra23/oimpresso.com/pull/7133)/[#7139](https://github.com/wagnerra23/oimpresso.com/pull/7139).
+- **Status: 🧪** — o teste cita o UC e passa (14/14 nos dois arquivos da lane). Vira ✅ quando o
+  manifesto `scripts/casos-test-results.json` receber o veredito, e ele só é publicado por run
+  verde de `main` (`casos-results-publish.yml`) — não por afirmação minha (G-7).
+
+---
+
+## UC-PAT-06 · A linha de contexto diz de quem é o patrimônio, acima do título
+- **Persona:** Wagner — opera mais de um business e precisa saber, sem clicar, de qual empresa é
+  o número que está lendo.
+- **Aceite:** Dado o painel aberto · Quando o header renderiza · Então **acima** do título (é
+  eyebrow, não subtítulo) aparece o nome do negócio e a contagem de bens, juntos por ` · `;
+  o nome vem de `shell.cockpit.businessNome` e **cai** pra `business.name` quando aquele falta;
+  faltando as duas, mostra só a contagem — **nunca** um tenant inventado (ADR 0093); e enquanto
+  `kpis` não chegou (prop deferida) a linha mostra só o negócio, **sem separador órfão** no fim.
+- **Teste:** `tests/js/patrimonio-header-contexto.test.tsx` — `describe('UC-PAT-06 …')`, 6 casos.
+  Lane: `patrimonio-painel-gate.yml`.
+- **Regressão que defende:** duas, e a segunda foi **medida em render real, não imaginada**.
+  (a) concatenar os pedaços à mão — o `filter` que o protótipo já tem (`cli-pagehead.jsx:79`) é
+  o que faz o pedaço ausente **sair** do join em vez de deixar um ` · ` pendurado, e a contagem
+  SEMPRE chega depois porque `kpis` é `Inertia::defer`.
+  (b) **ler o nome só da sessão** — a última baseline de pixel gerada pra esta tela (antes de a
+  prática ser descontinuada) renderizou o eyebrow como `0 BENS`, **sem a empresa**, enquanto a
+  sidebar do mesmo render mostrava o nome. `business.name` vem da SESSÃO e chega vazio em
+  ambiente de teste; `shell.cockpit.businessNome` sai de uma query. Causa já registrada em
+  `Produto/Unificado/Index.tsx:235` — a tela passou a usar o mesmo idioma de lá, não um novo.
+  **Bite-test:** remover `<LinhaDeContexto>` derruba os 3 primeiros.
+- **Desvio declarado:** o `contexto` do protótipo tem **três** pedaços
+  (`patrimonio-page.jsx:820`) e descem **dois**. Os locais não chegam a esta página (0 ocorrências
+  de local/locais em todo o `share()` do `HandleInertiaRequests`), e buscá-los seria pior que
+  omiti-los: os KPIs filtram só `business_id`, então nomear locais afirmaria um escopo de
+  permissão que a tela não aplica. Fechar a R4 do contrato Cowork nos KPIs primeiro é decisão [W].
+- **Status: 🧪** — idem UC-PAT-05.
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** Chego na tela pelo menu, sem digitar URL: a camada de ALCANCE
@@ -94,6 +147,15 @@ last_run: "2026-09-09"
 ## Trilha do tempo
 - 2026-09-08 · [CC] carimbado por `criar-tela.mjs` — trio nascido junto. Refs: UI-0013 · ADR 0264 G-1/G-2.
 - 2026-09-08 · [CL] thread 07 do playbook: UCs reais escritos, ids `UC-INDEX-*` → `UC-PAT-*`.
+- 2026-09-09 · [CC] entram UC-PAT-05 e UC-PAT-06 — os dois itens do header que os PRs
+  [#7133](https://github.com/wagnerra23/oimpresso.com/pull/7133)/[#7139](https://github.com/wagnerra23/oimpresso.com/pull/7139)
+  não pegaram porque vêm do **shell** do protótipo (`MP.Header` → `CliPageHead`), não do
+  `patrimonio-page.jsx`. Cobertos por `tests/js/patrimonio-header-contexto.test.tsx` (8 casos,
+  bite-test em 4 mutações), com o `PageHeader` REAL no render — sem mock, senão o teste mediria
+  a minha cópia do slot `actions`. No mesmo PR nasce a lane `patrimonio-painel-gate.yml`: os 6
+  casos de 2026-09-08 **não estavam em lane nenhuma** (medido — 0 ocorrências do nome do arquivo
+  em `.github/workflows/**` e `package.json`), então rodavam só à mão e os UC-PAT-02/03/04 nunca
+  teriam veredito no manifesto.
 - 2026-09-08 · [CL] pós-merge do [#7035](https://github.com/wagnerra23/oimpresso.com/pull/7035): os
   3 UCs que cobriam a sub-navegação **saíram** — ela é da tela de Bens, que a fundou primeiro, e
   manter caso aqui criaria um segundo dono do mesmo contrato. Entraram os 3 que são desta tela
