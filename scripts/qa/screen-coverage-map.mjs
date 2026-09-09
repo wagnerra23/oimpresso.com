@@ -825,7 +825,27 @@ if (flags.has('--selftest')) {
         } catch (e) { return e.status ?? -1; }
       })();
       assert.equal(cego, 2, 'E2E: base ilegível → exit 2 (cego), nunca 0');
-      console.log('  ✓ bite E2E: morde a fuga, cala a remoção legítima, e acusa cegueira');
+      // DÍVIDA HERDADA × PRÓPRIA — o par que justifica comparar com o MERGE-BASE.
+      // Sem o primeiro, o gate cobra do autor o charter que `main` ganhou depois do fork.
+      // Sem o SEGUNDO, "consertar" o primeiro seria indistinguível de afrouxar o gate.
+      // Os bites acima mexeram só no working tree — devolve a árvore ao commit antes de
+      // montar o cenário de branch atrasada (fixture isolado; `.` aqui é o tmp, não o repo).
+      G(['checkout', '--', '.']);
+      G(['checkout', '-qb', 'atrasada']);
+      wf(join(fx, 'doc.md'), 'trabalho que nao toca tela\n');
+      G(['add', '-A']); G(['commit', '-qm', 'branch nao toca tela']);
+      G(['checkout', '-q', 'main']);
+      wf(join(fx, 'resources/js/Pages/Mod/C.tsx'), 'export default function X() { return null; }\n');
+      wf(join(fx, 'resources/js/Pages/Mod/C.charter.md'), '---\nstatus: draft\n---\n');
+      G(['add', '-A']); G(['commit', '-qm', 'main avanca com tela nova']);
+      G(['checkout', '-q', 'atrasada']);
+      assert.equal(check(), 0, 'E2E CN: branch atrasada que não tocou tela → exit 0 (dívida HERDADA não é do autor)');
+
+      rm(join(fx, 'resources/js/Pages/Mod/A.charter.md'));
+      G(['add', '-A']); G(['commit', '-qm', 'branch tira charter de A']);
+      assert.equal(check(), 1, 'E2E BITE: branch atrasada COM dívida própria → exit 1 (merge-base não é escape)');
+
+      console.log('  ✓ bite E2E: morde a fuga, cala a remoção legítima, separa dívida herdada da própria, e acusa cegueira');
     } finally {
       try { rm(fx, { recursive: true, force: true }); } catch { /* tmp órfão não falha o selftest */ }
     }
@@ -992,12 +1012,33 @@ export function pathspecsParaBase(pathsDaRef) {
  * Devolve `{ ok, snapshot, motivo }`. NUNCA lança e nunca devolve snapshot vazio como se
  * fosse "main não tem cobertura" — não-medição não pode virar estado do objeto medido.
  */
+/**
+ * Ponto de comparação: o MERGE-BASE entre BASE_REF e HEAD — não o tip de BASE_REF.
+ *
+ * A diferença é DÍVIDA PRÓPRIA × HERDADA, e foi medida: numa branch atrasada que não tocou
+ * tela NENHUMA, comparar com o tip acusa a tela que ganhou charter em `main` DEPOIS do fork —
+ * o gate cobrando do autor o trabalho de terceiro. É a lápide §5 2026-08-24, e o
+ * `casos-coverage-guard` já adotou a mesma separação ("não pode reprovar por isso").
+ *
+ * No CI nada afrouxa: `pull_request` faz checkout do merge ref, então HEAD já contém `main` e
+ * o merge-base É o tip. O ganho é local — e é também parar de DEPENDER desse detalhe do
+ * checkout, que este repo já catalogou como armadilha (§5 2026-09-02, merge ref × ref cru).
+ */
+function refDeComparacao() {
+  try {
+    const mb = git(['merge-base', BASE_REF, 'HEAD']).trim();
+    if (mb) return mb;
+  } catch { /* repo recém-init, HEAD órfão ou sem ancestral comum → cai no tip */ }
+  return BASE_REF;
+}
+
 function snapshotDaBase() {
   let tmp = null;
+  const REF = refDeComparacao();
   try {
     let paths;
     try {
-      paths = git(['ls-tree', '-r', BASE_REF, '--name-only']).split('\n').map((l) => l.trim()).filter(Boolean);
+      paths = git(['ls-tree', '-r', REF, '--name-only']).split('\n').map((l) => l.trim()).filter(Boolean);
     } catch (e) {
       return { ok: false, motivo: `não consegui ler ${BASE_REF} (git ls-tree falhou: ${String(e.message).split('\n')[0]})` };
     }
@@ -1005,7 +1046,7 @@ function snapshotDaBase() {
     if (!specs.length) return { ok: false, motivo: `${BASE_REF} não tem nenhuma raiz de Pages — ref errada?` };
 
     tmp = mkdtempSync(join(tmpdir(), 'screen-coverage-base-'));
-    git(['--work-tree=' + tmp, 'checkout', BASE_REF, '--', ...specs], {
+    git(['--work-tree=' + tmp, 'checkout', REF, '--', ...specs], {
       env: { ...process.env, GIT_INDEX_FILE: tmp + '.index' },
     });
 
@@ -1025,7 +1066,14 @@ function snapshotDaBase() {
     execFileSync(process.execPath, [fileURLToPath(import.meta.url), '--emit-snapshot', destino], {
       cwd: tmp, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 64 * 1024 * 1024,
     });
-    return { ok: true, snapshot: JSON.parse(readFileSync(destino, 'utf8')) };
+    const snapBase = JSON.parse(readFileSync(destino, 'utf8'));
+    // Base com ZERO telas NÃO é "main não tinha cobertura" — é sinal de que a raiz de Pages
+    // mudou de lugar (ou a materialização quebrou), e nesse estado a catraca calaria em massa.
+    // Medido no harness de casos-limite. Gate mudo é pior que gate ausente (CLAUDE.md §5).
+    if ((snapBase.screens?.length ?? 0) === 0) {
+      return { ok: false, motivo: `${BASE_REF} não devolveu tela nenhuma — a raiz de Pages mudou de lugar?` };
+    }
+    return { ok: true, snapshot: snapBase };
   } catch (e) {
     return { ok: false, motivo: String(e && e.message ? e.message : e).split('\n')[0] };
   } finally {
