@@ -164,7 +164,7 @@ export default function MessagesIndex({
         <Card className="flex flex-col h-[calc(100vh-12rem)]">
           <CardHeader className="border-b border-border">
             <CardTitle className="flex items-center gap-2">
-              <MessageCircle size={18} /> Mural de mensagens
+              <MessageCircle size={18} /> Mensagens
             </CardTitle>
           </CardHeader>
 
@@ -231,7 +231,7 @@ export default function MessagesIndex({
                     rows={2}
                     value={form.data.message}
                     onChange={(e) => form.setData('message', e.target.value)}
-                    placeholder="Digite sua mensagem…"
+                    placeholder="Escreva uma mensagem"
                     required
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && !e.shiftKey) {

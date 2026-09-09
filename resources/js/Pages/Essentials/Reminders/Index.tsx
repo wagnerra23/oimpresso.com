@@ -139,7 +139,7 @@ export default function RemindersIndex({ reminders, repeats }: Props) {
             </p>
           </div>
           <Button onClick={openCreate}>
-            <Plus size={14} className="mr-1.5" /> Novo lembrete
+            <Plus size={14} className="mr-1.5" /> Adicionar lembrete
           </Button>
         </header>
 
