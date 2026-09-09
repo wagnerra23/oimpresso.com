@@ -12,6 +12,8 @@ gerado_em: 2026-09-06
 >
 > **Porte reverso** (cabeçalho `estoque-page.jsx:1-3` cita `StockAdjustment/Create` no vivo lido em 2026-08-22) → expectativa-base é paridade. Frescor: **STALE** — `TabBar` no espelho x `window.CliTabs` no vivo (nota completa e errata no [gap do Index](stock-adjustment-index-gap.md)).
 >
+> ⚠️ **Errata datada (2026-09-09):** o `STALE` acima **caducou** — o espelho foi reimportado em 2026-09-07 (PR #6940) e a rodada de frescor de 2026-09-08 mediu `estoque-page.jsx` como **sync** (273/273, `staleList: []`, os 5 arquivos do Estoque em `verified`). Medição e recibos completos no [gap do StockAdjustment/Index](stock-adjustment-index-gap.md). O **porte reverso** e a expectativa de **paridade** seguem valendo.
+>
 > **Região do protótipo:** `FormAjuste` (`estoque-forms.jsx:157-249`), montado pela aba `ajuste-novo` (`estoque-page.jsx:641-657`), mais os componentes que ele reusa, ambos no MESMO `estoque-forms.jsx` — `BuscaProduto` (`estoque-forms.jsx:12-64`) e `LinhasItens` (`estoque-forms.jsx:68-146`).
 >
 > ⚠️ **Tier 0 — esta tela ESCREVE estoque e valor.** Toda linha marcada "Decidir" que mexa em quantidade, custo unitário, total ou saldo carrega, na própria ação, a exigência da REGRA MESTRE (proibicoes.md): **dupla confirmação do cálculo por dois caminhos independentes + tabela antes→depois apresentada ao [W] antes de aplicar**.
