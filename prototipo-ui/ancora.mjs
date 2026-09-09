@@ -450,6 +450,54 @@ export async function resolveAncora(query, { repoRoot = REPO_DEFAULT, stagingDir
     let via = cand ? 'bundle_source' : null;
     if (cand) ancoras.push({ tipo: `-page.jsx (bundle · ${via})`, valor: relative(stagingDir, cand).replace(/\\/g, '/'), raiz: resolve(stagingDir) });
   }
+  // 3) o MESMO -page.jsx, mas no LUGAR FIXO do repo — SEM precisar de `--staging`.
+  //
+  // O bloco de cima nasceu preso ao staging, e o arquivo saiu de lá: `bundle_source` aponta
+  // pra um `-page.jsx` que hoje está VERSIONADO em `prototipo-ui/cowork/`. Sem a flag, esta
+  // função dizia "charter sem related_prototype nem -page.jsx" pra tela cujo desenho está
+  // no git — enquanto `fonteDoCharter`/`listAll` liam o mesmo campo e respondiam o contrário.
+  // Duas portas do MESMO arquivo discordando sobre a mesma tela é defeito, não escolha.
+  //
+  // `--staging` VENCE, e o guard é sobre `ancoras` (não um `else`): quem tem staging já
+  // empurrou a perna 2 e esta não duplica; quem não tem cai aqui. Amarrar a precedência à
+  // SINTAXE do `if` faria a ordem depender de onde o bloco mora no arquivo.
+  //
+  // `raiz` = o REPO, porque é onde o arquivo está — passar o staging aqui seria reintroduzir
+  // o defeito de 2026-08-25 que o docblock de `defeitosDaAncora` cataloga.
+  //
+  // Só empurra se ABRIR: nome declarado que não está no lugar fixo NÃO vira âncora, e a
+  // ausência segue visível no ⚠️. Âncora que aponta pro vazio é pior que âncora ausente.
+  if (!ancoras.some((a) => a.tipo.startsWith('-page.jsx'))) {
+    const doBundle = mockupJsx(fm.bundle_source);
+    const declaradoFixo = doBundle || mockupJsx(fm.visual_source);
+    // O campo REAL, não o rótulo fixo: 5 das telas que esta perna resolve declaram por
+    // `visual_source`, e chamá-las de `bundle_source` seria o printer mentindo a fonte.
+    // (A perna 2 rotula sempre `bundle_source` — divergência conhecida, dela, não tocada aqui.)
+    const campo = doBundle ? 'bundle_source' : 'visual_source';
+    if (declaradoFixo && ehArquivo(resolve(raizRepo, LUGAR_FIXO, declaradoFixo))) {
+      ancoras.push({ tipo: `-page.jsx (bundle · ${campo})`, valor: `${LUGAR_FIXO}/${declaradoFixo}`, raiz: raizRepo });
+    }
+  }
+  // DEDUP por ARQUIVO RESOLVIDO — nunca por tipo de perna. As pernas são de tipos
+  // DIFERENTES por construção (`related_prototype (charter)` × `-page.jsx (bundle · …)`),
+  // então comparar `tipo` não pegaria nada. O caso real: `Sells/Index` declara os DOIS
+  // campos apontando pro mesmo `vendas-page.jsx` e passaria a imprimir a âncora duas vezes.
+  // `n/a` não resolve em arquivo (`caminhoDaAncora` devolve null), logo charter com
+  // `n/a` + `bundle_source` segue imprimindo as DUAS coisas — a declaração e a âncora.
+  // Varre PRA FRENTE e mantém a PRIMEIRA menção: a ordem do array É a precedência
+  // (`related_prototype` antes do bundle). Varrer de trás pra frente mantinha a ÚLTIMA e
+  // rebaixava o protótipo aprovado do `Sells/Index` a âncora de bundle — pego pelo controle
+  // positivo, não pela revisão, que é justamente o que ele existe pra fazer.
+  const vistos = new Set();
+  const unicas = [];
+  for (const a of ancoras) {
+    const rel = caminhoDaAncora(a.valor, a.raiz);
+    const abs = rel ? resolve(a.raiz, rel) : null; // não nomeia arquivo: nunca colide
+    if (abs && vistos.has(abs)) continue;          // 2ª menção do MESMO arquivo: some
+    if (abs) vistos.add(abs);
+    unicas.push(a);
+  }
+  ancoras.splice(0, ancoras.length, ...unicas);
   // As duas chaves que declaram fonte e NÃO são âncora (bloco do topo). Duas leituras a
   // mais, só pro charter ESCOLHIDO — nunca pros 226 da varredura. Falha de leitura degrada
   // pra lista vazia: reporter que some é aceitável, reporter que inventa não é.
@@ -736,6 +784,42 @@ async function listAll(repoRoot, asJson = false) {
     // `ehDeclaracaoNa` é o dono desta distinção neste arquivo — reusado, não reimplementado.
     // A regra mora em `fonteDoCharter` (pura, exportada) pro selftest morder o caminho REAL.
     const { source, via, declaracaoNa, naEclipsado } = fonteDoCharter(fm);
+    //
+    // 2026-09-09 (terceiro eixo da MESMA lesao das duas notas acima) — o `hasSource`
+    // carimbava "tem fonte" sem NUNCA ter aberto arquivo. `!!source` e verdadeiro pra
+    // QUALQUER string: um `related_prototype` podre (path velho, arquivo renomeado, prosa
+    // sem arquivo) contava como coberto no `design-coverage`, enquanto a porta de 1 tela
+    // — que MEDE — diria o contrario sobre o MESMO charter. 08-28 tratou a fonte AUSENTE,
+    // a nota acima a fonte `n/a` ECLIPSADA, esta a fonte que NAO ABRE. E presence-gate
+    // classico (LC-11): media a PRESENCA da string, nao o comportamento "o valor resolve".
+    //
+    // ADITIVO. `hasSource` NAO muda de semantica e nao sai do JSON: ele continua sendo
+    // "o charter DECLAROU a fonte" (inclusive `n/a` explicito) e o `design-coverage`
+    // conta com isso. Os campos abaixo respondem OUTRA pergunta.
+    //
+    // TRES estados, e `null` != `false` — colapsar seria falso-positivo em massa:
+    //   caminho: null  = o valor nao nomeia arquivo (`n/a`, PT-0X, diretorio) ou nao ha fonte
+    //   existe : null  = idem — NAO MEDI, porque nao havia alvo a abrir
+    //   existe : false = o valor NOMEIA arquivo e ele nao esta la   <- o unico defeito
+    // Os 105 `n/a` do corpus sao declaracao legitima (§5 2026-08-28 item c); trata-los como
+    // `false` inventaria 105 defeitos — e "nao medi" nunca colapsa num estado do medido
+    // (§5 2026-07-29).
+    //
+    // ZERO extrator novo: `caminhoDaAncora` e o dono, neste mesmo arquivo, e o docblock dele
+    // ja declara por que nenhum dos outros 3 do repo serve (seria o 5o). `repoRoot` vai
+    // EXPLICITO — a raiz de leitura do `--list` nao muda (segue `REPO_DEFAULT` pelo main);
+    // quem precisa da propria raiz e a fixture hermetica do selftest.
+    //
+    // `ehDeclaracaoNa` PRIMEIRO, e nao e detalhe: MEDIDO nesta sessao, 7 dos 105 `n/a`
+    // citam um arquivo NA PROSA justamente pra explicar por que a tela NAO se ancora nele
+    // (`Repair/Settings`: «ancorar aqui seria ancorar a tela nela mesma»; `Jana/Pro`: «e
+    // RETRATO do Pro.tsx, ancorar seria tautologico»; +2 Whatsapp/Atendimento e +3 Oficina).
+    // Sem a guarda, `caminhoDaAncora` acha o token e o `--list` passa a AFIRMAR uma ancora
+    // que o charter NEGA em prosa — defeito pior que o consertado aqui, porque parece medido.
+    // Reusa o dono da distincao neste mesmo arquivo (o mesmo que decide o `isNa` 3 linhas
+    // abaixo), entao `caminho`/`existe` sao consistentes com `isNa` POR CONSTRUCAO.
+    const caminho = source && !ehDeclaracaoNa(source) ? caminhoDaAncora(source, repoRoot) : null;
+    const existe = caminho === null ? null : ehArquivo(resolve(repoRoot, caminho));
     // hasSource = o charter DECLAROU a fonte de design (protótipo bespoke OU "n/a — segue DS"
     // explícito, que também vem em related_prototype). null = silencioso (gap real).
     // `charter` e `isNa` sao ADITIVOS (2026-08-26): o unico consumidor de `--list --json` e o
@@ -743,7 +827,7 @@ async function listAll(repoRoot, asJson = false) {
     // fonte e declaracao `n/a` — sem isso ele contava `n/a` como ✅ pra sempre e escondia a tela
     // cuja fonte JA DESCEU pro espelho depois da decisao. `isNa` reusa `ehDeclaracaoNa`, o dono
     // dessa distincao neste mesmo arquivo — nao reimplementar (§5 2026-08-26).
-    rows.push({ page: fm.page || relative(repoRoot, cf), source: source || '⚠️ sem protótipo declarado', hasSource: !!source, charter: relative(repoRoot, cf).split(String.fromCharCode(92)).join('/'), isNa: ehDeclaracaoNa(source), via, declaracaoNa });
+    rows.push({ page: fm.page || relative(repoRoot, cf), source: source || '⚠️ sem protótipo declarado', hasSource: !!source, charter: relative(repoRoot, cf).split(String.fromCharCode(92)).join('/'), isNa: ehDeclaracaoNa(source), via, declaracaoNa, caminho, existe });
     // A saída de TEXTO precisa carregar o que o `via` do JSON já carrega. Medido nesta
     // sessão: 2 dos 14 (`ComunicacaoVisual/Index`, `Vestuario/Etiquetas/Index`) declaram no
     // comentário do próprio `bundle_source` que ele é «porte REVERSO do vivo … fonte de
@@ -754,7 +838,11 @@ async function listAll(repoRoot, asJson = false) {
     if (!asJson) {
       const rotulo = via === 'bundle_source/visual_source' ? '  [bundle]' : '';
       const corte = naEclipsado && naEclipsado.length > 64 ? naEclipsado.slice(0, 63) + '…' : naEclipsado;
-      console.log(`${(fm.page || relative(repoRoot, cf)).padEnd(40)} → ${source || '⚠️ sem protótipo declarado'}${rotulo}${naEclipsado ? `   [+ ${corte}]` : ''}`);
+      // O defeito novo entra como SUFIXO: so `existe === false` (nem `null`, que e
+      // ausencia de alvo), e DEPOIS de tudo que ja se imprimia — as colunas de hoje nao
+      // mudam de posicao, senao quem le esta saida por posicao quebra sem regressao real.
+      const naoAbre = existe === false ? `   ⚠️ NÃO ABRE: ${caminho}` : '';
+      console.log(`${(fm.page || relative(repoRoot, cf)).padEnd(40)} → ${source || '⚠️ sem protótipo declarado'}${rotulo}${naEclipsado ? `   [+ ${corte}]` : ''}${naoAbre}`);
     }
   }
   if (asJson) console.log(JSON.stringify(rows, null, 2));
@@ -1034,6 +1122,106 @@ async function selftest() {
       && caminhoDaAncora(ALVO, fxOrdem) === ALVO);
   t('CONTROLE: valor vazio não vira o próprio diretório-raiz',
     caminhoDaAncora('') === null && caminhoDaAncora(undefined) === null);
+
+  // ── `--list` PROVA O ARQUIVO — os 3 estados de `existe` (2026-09-09) ─────────
+  // Fixture HERMETICA propria: o corpus real e movel (226 linhas hoje) e assertar contagem
+  // dele aqui seria congelar numero derivado de arvore viva (§5 2026-08-24). A fixture fixa
+  // os 3 casos que a mudanca precisa SEPARAR; o numero do corpus vai no corpo do PR.
+  // O BITE exercita `listAll` DE FORA (capturando o stdout dela), nao um helper satelite:
+  // assert sobre copia paralela fica verde enquanto o pipeline regride (§5 2026-08-14).
+  const fxList = join(fx, 'lista');
+  const fxListPages = join(fxList, 'resources', 'js', 'Pages', 'Fx');
+  await mkdir(join(fxList, 'prototipo-ui', 'cowork'), { recursive: true });
+  await mkdir(fxListPages, { recursive: true });
+  await writeFile(join(fxList, 'prototipo-ui', 'cowork', 'fx-real.jsx'), '// existe de verdade\n', 'utf8');
+  const charterFx = (page, rp) => ['---', `page: ${page}`, `related_prototype: ${rp}`, '---', '# fx'].join('\n');
+  await writeFile(join(fxListPages, 'Quebrado.charter.md'), charterFx('/fx/quebrado', 'prototipo-ui/cowork/fx-nao-existe.jsx'), 'utf8');
+  await writeFile(join(fxListPages, 'Real.charter.md'), charterFx('/fx/real', 'prototipo-ui/cowork/fx-real.jsx'), 'utf8');
+  await writeFile(join(fxListPages, 'Na.charter.md'), charterFx('/fx/na', 'n/a (herda PT-01 Lista; segue o Padrão de Tela)'), 'utf8');
+  await writeFile(join(fxListPages, 'NaCita.charter.md'), charterFx('/fx/na-cita', 'n/a (herda PT-01; o fx-real.jsx desenha OUTRA tela — ancorar aqui seria tautologico)'), 'utf8');
+
+  // `listAll` so imprime — capturar o stdout e o unico jeito de assertar o JSON dela sem
+  // mudar a assinatura (mudar a API publica esta proibido: o hook post-merge-ui-smoke
+  // importa deste arquivo e degrada em SILENCIO se o import quebrar).
+  const capturado = [];
+  const logOriginal = console.log;
+  console.log = (...a) => { capturado.push(a.join(' ')); };
+  try { await listAll(fxList, true); } finally { console.log = logOriginal; }
+  const linhasFx = JSON.parse(capturado.join('\n'));
+  const linhaFx = (p) => linhasFx.find((l) => l.page === p);
+  const lQuebrado = linhaFx('/fx/quebrado');
+  const lReal = linhaFx('/fx/real');
+  const lNa = linhaFx('/fx/na');
+
+  t('BITE list: fonte que nao abre → existe:false, e `hasSource` segue TRUE (a guarda)',
+    !!lQuebrado && lQuebrado.existe === false && lQuebrado.hasSource === true
+      && lQuebrado.caminho === 'prototipo-ui/cowork/fx-nao-existe.jsx');
+  t('CONTROLE list: caminho real da o existe true',
+    !!lReal && lReal.existe === true && lReal.caminho === 'prototipo-ui/cowork/fx-real.jsx');
+  // Sem este, colapsar `null` em `false` deixaria o BITE acima verde e inventaria 105 defeitos.
+  t('CONTROLE list: n/a nao vira existe false — fica null, e `isNa` segue true',
+    !!lNa && lNa.existe === null && lNa.caminho === null && lNa.isNa === true && lNa.hasSource === true);
+  // O caso que a formula literal errava: `n/a` cuja PROSA cita um arquivo REAL — 7 no corpus,
+  // e em todos os 7 a citacao existe pra NEGAR a ancoragem. Sem este controle, tirar o
+  // `!ehDeclaracaoNa` da guarda mantem o selftest verde (carimbo) e o `--list` afirma ancora
+  // que o charter nega. O arquivo citado EXISTE na fixture de proposito — e o que torna o
+  // controle capaz de ficar vermelho.
+  const lNaCita = linhaFx('/fx/na-cita');
+  t('CONTROLE list: n/a que CITA arquivo real na prosa segue caminho:null (nao vira ancora)',
+    !!lNaCita && lNaCita.caminho === null && lNaCita.existe === null && lNaCita.isNa === true);
+
+  // ── BITE do bundle NO LUGAR FIXO, sem `--staging` (2026-09-09) ───────────────
+  // Fixture PRÓPRIA, separada da de staging de propósito: lá o charter e o mockup têm o
+  // mesmo basename e reusá-la acoplaria os dois casos — mexer num quebraria o outro por
+  // motivo que não é o do teste. Aqui o mockup vive no LUGAR_FIXO do repo-fixture, que é
+  // exatamente a condição que a perna nova lê.
+  const fxB = join(fx, 'bundle');
+  const fxBRepo = join(fxB, 'repo');
+  const fxBStaging = join(fxB, 'staging');
+  const pages = (n) => join(fxBRepo, 'resources', 'js', 'Pages', n);
+  await mkdir(join(fxBRepo, 'prototipo-ui', 'cowork'), { recursive: true });
+  await mkdir(join(fxBStaging, 'sub'), { recursive: true });
+  for (const n of ['Fixo', 'Ausente', 'Dupla', 'Visual']) await mkdir(pages(n), { recursive: true });
+  await writeFile(join(fxBRepo, 'prototipo-ui', 'cowork', 'bundle-page.jsx'), '// no lugar fixo do repo\n', 'utf8');
+  // MESMO basename no staging: é o que permite provar QUAL das duas pernas ganhou.
+  await writeFile(join(fxBStaging, 'sub', 'bundle-page.jsx'), '// no staging\n', 'utf8');
+  const chB = (page, linhas) => ['---', `page: ${page}`, ...linhas, '---', '# fx bundle'].join('\n');
+  await writeFile(join(pages('Fixo'), 'Index.charter.md'), chB('/fxb/fixo', ['bundle_source: bundle-page.jsx']), 'utf8');
+  await writeFile(join(pages('Ausente'), 'Index.charter.md'), chB('/fxb/ausente', ['bundle_source: nao-existe-page.jsx']), 'utf8');
+  await writeFile(join(pages('Visual'), 'Index.charter.md'), chB('/fxb/visual', ['visual_source: bundle-page.jsx']), 'utf8');
+  await writeFile(join(pages('Dupla'), 'Index.charter.md'),
+    chB('/fxb/dupla', ['related_prototype: prototipo-ui/cowork/bundle-page.jsx', 'bundle_source: bundle-page.jsx']), 'utf8');
+  const soBundle = (r) => (r.ok ? r.ancoras.filter((a) => a.tipo.startsWith('-page.jsx')) : []);
+
+  const rFixo = await resolveAncora('Fixo/Index', { repoRoot: fxBRepo });
+  t('BITE bundle sem staging: `bundle_source` resolve no LUGAR_FIXO, sem a flag',
+    soBundle(rFixo).length === 1 && soBundle(rFixo)[0].valor === 'prototipo-ui/cowork/bundle-page.jsx');
+  // O defeito de 2026-08-25 catalogado em `defeitosDaAncora` foi passar o staging como raiz:
+  // o arquivo está NO GIT, então a raiz de leitura é o repo. Sem esta asserção, trocar a raiz
+  // mantém a âncora "resolvida" e o P-1 volta a medir contra o lugar errado.
+  t('BITE bundle sem staging: a raiz de leitura é o REPO (o arquivo está no git, não em staging)',
+    soBundle(rFixo).length === 1 && resolve(soBundle(rFixo)[0].raiz) === resolve(fxBRepo));
+  t('BITE bundle sem staging: o rótulo diz o campo REAL — `visual_source` não vira `bundle_source`',
+    soBundle(await resolveAncora('Visual/Index', { repoRoot: fxBRepo }))[0]?.tipo === '-page.jsx (bundle · visual_source)');
+  // CONTROLE que impede o "empurra sempre": nome declarado que NÃO abre não pode virar âncora,
+  // senão o ⚠️ de ausência some e a tela passa a exibir um ponteiro pro vazio.
+  t('CONTROLE bundle sem staging: nome declarado que NÃO está no lugar fixo não vira âncora',
+    soBundle(await resolveAncora('Ausente/Index', { repoRoot: fxBRepo })).length === 0);
+  // Precedência: `--staging` VENCE. Se o guard virasse `else` (ou sumisse), esta e a de baixo
+  // ficariam vermelhas — é o par que fixa a ordem sem depender de onde o bloco mora no arquivo.
+  const rStg = await resolveAncora('Fixo/Index', { repoRoot: fxBRepo, stagingDir: fxBStaging });
+  t('CONTROLE staging vence o fixo: com a flag, a perna é a DO STAGING (valor e raiz)',
+    soBundle(rStg).length === 1 && soBundle(rStg)[0].valor === 'sub/bundle-page.jsx'
+      && resolve(soBundle(rStg)[0].raiz) === resolve(fxBStaging));
+  t('CONTROLE staging vence o fixo: resolve UMA perna de bundle, não duas',
+    soBundle(rStg).length === 1);
+  // O caso do `Sells/Index`: os DOIS campos apontam o MESMO arquivo. Sem dedup ele imprime a
+  // âncora 2×; deduplicando por TIPO não pegaria nada (os tipos diferem por construção). E a
+  // varredura tem que ser PRA FRENTE: de trás pra frente mantém a última e rebaixa o
+  // protótipo aprovado a âncora de bundle — foi o bug que este controle pegou.
+  const rDup = await resolveAncora('Dupla/Index', { repoRoot: fxBRepo });
+  t('CONTROLE dedup: mesmo arquivo nos dois campos → UMA âncora, e é o related_prototype',
+    rDup.ok && rDup.ancoras.length === 1 && rDup.ancoras[0].tipo === 'related_prototype (charter)');
 
   // ── FRESCOR: os 4 estados + o controle que impede o selo herdado ──────────────
   // A rodada de fixture imita a forma real do ledger (date/verified/verifiedHash/staleList).

@@ -4,13 +4,24 @@ declare(strict_types=1);
 
 /**
  * F4 QA — Inertia stock_adjustment/index (MWART Wave2 B5).
+ *
+ * PONTEIRO CONSERTADO EM 2026-09-09: as consts de RUNBOOK e visual-comparison apontavam
+ * pra `memory/requisitos/Inventory/`, onde esses arquivos NUNCA estiveram — o material de
+ * tela do Estoque vive em `memory/requisitos/Estoque/_telas/`. O diretorio `Inventory/`
+ * existe (tem BRIEFING.md e SPEC.md), o que deixou o ponteiro plausivel o bastante pra
+ * atravessar revisao. Mesmo defeito, mesma leva (generated_by Agent W2-D, 2026-05-15) e
+ * mesmo conserto ja aplicado em Produto (2026-07-26) e Purchase (2026-09-05).
+ *
+ * E POR QUE o vermelho nunca apareceu: nenhuma lane de PR rodava tests/Feature/Stock/ —
+ * medido pelo dono do inventario, test-lane-coverage.mjs, que classificava os 8 arquivos
+ * do diretorio como ORFAOS. Este PR liga o diretorio na lane estoque-pest.yml.
  */
 
 const SA_IDX_INERTIA_PATH = 'resources/js/Pages/StockAdjustment/Index.tsx';
 const SA_IDX_CHARTER_PATH = 'resources/js/Pages/StockAdjustment/Index.charter.md';
 const SA_IDX_CONTROLLER_PATH = 'app/Http/Controllers/StockAdjustmentController.php';
-const SA_IDX_RUNBOOK_PATH = 'memory/requisitos/Inventory/RUNBOOK-stock-adjustment-index.md';
-const SA_IDX_VISUAL_PATH = 'memory/requisitos/Inventory/stock-adjustment-index-visual-comparison.md';
+const SA_IDX_RUNBOOK_PATH = 'memory/requisitos/Estoque/_telas/RUNBOOK-stock-adjustment-index.md';
+const SA_IDX_VISUAL_PATH = 'memory/requisitos/Estoque/_telas/stock-adjustment-index-visual-comparison.md';
 
 function readSAIndexInertia(): string
 {
@@ -48,10 +59,17 @@ it('Page declara AdjustmentRow + AdjustmentType + Permissions', function () {
     expect($source)->toContain('interface Permissions');
 });
 
-it('Page tem type pill com 2 estados (normal/abnormal)', function () {
+it('Page distingue o ajuste anormal — badge do DS + trilho por ramificação', function () {
+    // Reescrito em 2026-09-09. O assert original procurava as chaves `normal:` / `abnormal:`
+    // de um objeto de pill montado à mão; o PR #7079 trocou isso pelo `StatusBadge` do DS
+    // mais um trilho condicional com token (`--color-destructive`). Precedência do eixo FORMA
+    // (proibicoes.md §5 2026-08-28): o teste que fixou a forma antiga é reescrito, não
+    // desabilitado. Ancorado no contrato — os 2 valores do tipo existem, o componente do DS
+    // renderiza o estado, e o anormal ganha destaque por ramificação.
     $source = readSAIndexInertia();
-    expect($source)->toContain("normal:");
-    expect($source)->toContain("abnormal:");
+    expect($source)->toContain("'normal' | 'abnormal'");
+    expect($source)->toContain('StatusBadge');
+    expect($source)->toContain("r.adjustment_type === 'abnormal'");
 });
 
 it('Page respeita view_purchase_price (esconde valores)', function () {

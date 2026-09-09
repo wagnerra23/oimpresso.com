@@ -144,6 +144,17 @@
       }
     },
     {
+      "screen": "Patrimonio",
+      "note": "6 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
       "screen": "RecurringBilling",
       "note": "16 arquivo(s)",
       "cells": {
@@ -419,18 +430,18 @@
       }
     }
   ],
-  "progressPct": 37,
+  "progressPct": 38,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "ad607e183",
-  "generatedAt": "2026-09-08T13:49:33.569Z",
+  "measuredAgainstSha": "447161b22",
+  "generatedAt": "2026-09-09T13:51:21.614Z",
   "treeGuard": {
     "pass": true,
     "violations": 0
   },
   "counts": {
-    "screens": 38,
-    "done": 14,
+    "screens": 39,
+    "done": 15,
     "references": 0
   }
 }
