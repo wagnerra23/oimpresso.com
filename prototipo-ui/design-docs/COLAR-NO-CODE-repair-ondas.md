@@ -26,15 +26,14 @@
 
 ---
 
-## 0 · Leis que não se renegociam
+## 0 · Leis DESTE módulo
 
-1. **A produção é réplica e está À FRENTE em a11y nesta área.** Medido nos arquivos acima: `role="img"`+`<title>`+`sr-only` nos gráficos, `aria-label` em todos os selects de filtro, `<label htmlFor>` em DeviceModels. **Não se pede ao Code que regrida** para a minha versão.
+constituição: `CONSTITUICAO-COWORK.md` (C1–C13) + `memory/proibicoes.md` — **citadas, não copiadas**. Abaixo, só o que é lei DESTE módulo.
+
+1. **A produção é réplica e está À FRENTE em a11y nesta área** *(C4)*. Medido: `role="img"`+`<title>`+`sr-only` nos gráficos, `aria-label` em todos os selects de filtro, `<label htmlFor>` em DeviceModels. **Não se pede ao Code que regrida** para a minha versão.
 2. **Vocabulário shared é lei de CI** (`repair-shared-vocab.yml` + ADR 0121 §P8): nada de `placa/vehicle/km/mecanico/box/elevador` em `Modules/Repair/**` ou `resources/js/Pages/Repair/**`. Use `code/item/usage_meter/executor/slot/area`.
 3. **Portal público é Tier de risco:** `throttle:30,1` por IP (R-REPA-008) e **ADR ARQ-0002** manda mostrar **só status e data estimada — sem preço, sem peças, sem responsável**.
-4. **Autoridade de token:** `TabBar` do DS → protótipo → produção. Medido: as 8 abas do protótipo são `NAV.ds-tabbar`, `gap 0px`, **8 de 8 com `aria-selected`**; `--accent` dark resolvido = `oklch(0.70 0.15 295)`. `repair-page.css` não tem cor crua no que o alvo cobre (o único hex do módulo é `--st`, a **cor do status vinda do banco**, `repair_statuses.color` — dado, não decisão de design).
-5. **Onda nunca > 1 PR ≤300 linhas**; medir e aplicar são passos separados.
-
----
+4. **Medição de C1 aqui:** as 8 abas do protótipo são `NAV.ds-tabbar`, `gap 0px`, **8 de 8 com `aria-selected`**; `--accent` dark resolvido = `oklch(0.70 0.15 295)`. O único hex do módulo é `--st`, a **cor do status vinda do banco** (`repair_statuses.color`) — dado, não decisão de design.
 
 ## 1 · Ordem das ondas + âncora por onda (MAPA colhido do DOM)
 

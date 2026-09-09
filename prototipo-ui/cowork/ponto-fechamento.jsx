@@ -51,12 +51,12 @@ function achados(mes) {
 }
 
 const REGRAS = [
-  { id: "impar", titulo: "Jornada sem fechamento", lei: "marcação ímpar / falta sem justificativa", tom: "warn" },
-  { id: "interjornada", titulo: "Interjornada abaixo do mínimo", lei: "Art. 66 CLT — 11h entre jornadas", tom: "danger" },
-  { id: "intrajornada", titulo: "Intrajornada abaixo do mínimo", lei: "Art. 71 CLT — 60 min acima de 6h", tom: "danger" },
-  { id: "he", titulo: "Hora extra acima do limite diário", lei: "Art. 59 CLT — 2h/dia", tom: "warn" },
-  { id: "nsr", titulo: "NSR fora de sequência", lei: "Portaria 671/2021 Anexo I", tom: "danger" },
-  { id: "sem_pis", titulo: "Colaborador sem PIS", lei: "bloqueia AFD e eSocial S-2230", tom: "warn" },
+  { id: "impar", icon: "alert", titulo: "Jornada sem fechamento", lei: "marcação ímpar / falta sem justificativa", tom: "warn" },
+  { id: "interjornada", icon: "shield", titulo: "Interjornada abaixo do mínimo", lei: "Art. 66 CLT — 11h entre jornadas", tom: "danger" },
+  { id: "intrajornada", icon: "clock", titulo: "Intrajornada abaixo do mínimo", lei: "Art. 71 CLT — 60 min acima de 6h", tom: "danger" },
+  { id: "he", icon: "chart", titulo: "Hora extra acima do limite diário", lei: "Art. 59 CLT — 2h/dia", tom: "warn" },
+  { id: "nsr", icon: "receipt", titulo: "NSR fora de sequência", lei: "Portaria 671/2021 Anexo I", tom: "danger" },
+  { id: "sem_pis", icon: "database", titulo: "Colaborador sem PIS", lei: "bloqueia AFD e eSocial S-2230", tom: "warn" },
 ];
 
 // ═══════════════════════════ CONFORMIDADE ═══════════════════════════
@@ -82,7 +82,7 @@ function Conformidade({ mes, onVerColaborador }) {
 
       <div className="pt-kpis" data-contract="conformidade-regras">
         {REGRAS.map((r) => (
-          <Kpi key={r.id} label={r.titulo} valor={a[r.id].length} ln={r.lei}
+          <Kpi key={r.id} icon={r.icon} label={r.titulo} valor={a[r.id].length} ln={r.lei}
             tom={a[r.id].length === 0 ? "" : r.tom === "danger" ? "neg" : "warn"}
             onClick={() => setRegra(r.id)} />
         ))}
@@ -98,7 +98,7 @@ function Conformidade({ mes, onVerColaborador }) {
               <td><Pill tom={sel.tom === "danger" ? "danger" : "warn"} mono>{x.valor}</Pill></td>
               <td className="mono">{x.limite || "—"}</td>
               <td><small style={{ color: "var(--text-dim)" }}>{x.detalhe}</small></td>
-              <td className="num"><button className="pt-btn" onClick={() => onVerColaborador(x.colab.id)}>Ver espelho</button></td>
+              <td className="num"><window.PtBtn  onClick={() => onVerColaborador(x.colab.id)}>Ver espelho</window.PtBtn></td>
             </tr>
           ))}
         </Tabela>
@@ -154,42 +154,41 @@ function Fechamento({ mes, setMes, avisar, onVerColaborador, onIr, intercorrenci
 
   return (
     <>
-      <div className="pt-toolbar" data-contract="fechamento-acoes">
-        <div className="pt-fld"><label htmlFor="fc-mes">Competência</label>
-          <select id="fc-mes" value={mes} onChange={(e) => setMes(e.target.value)}>
+      <window.PtBarra contrato="fechamento-acoes">
+        <window.PtEscolha label={"Competência"} value={mes} onChange={(e) => setMes(e.target.value)}>
             {D.MESES.map((m) => <option key={m.key} value={m.key}>{m.extenso}</option>)}
-          </select></div>
+          </window.PtEscolha>
         <div className="pt-fld"><label>Situação</label>
           <div style={{ paddingTop: 4 }}>
             <Pill tom={estado === "fechado" ? "ok" : estado === "consolidado" ? "info" : "warn"}>
               {estado === "fechado" ? "Fechada" : estado === "consolidado" ? "Consolidada" : "Aberta"}
             </Pill>
           </div></div>
-        <span className="pt-sp" />
+        
         {estado === "aberto" && <>
           {graves.length > 0 &&
-            <button className="pt-btn" title="Consolida registrando os bloqueios como exceção assinada"
+            <window.PtBtn  title="Consolida registrando os bloqueios como exceção assinada"
               onClick={() => {
                 const n = graves.reduce((s, b) => s + b.n, 0);
                 if (!window.confirm("Consolidar " + comp.extenso + " COM " + n + " exceções?\n\nOs bloqueios ficam registrados no fechamento com o seu nome — caminho para quando o mês precisa fechar e a pendência será tratada depois.")) return;
                 setExcecoes(n);
                 mudar("consolidado", "Consolidada com " + n + " exceções registradas — constam no fechamento.", "warn");
-              }}>Consolidar com exceções</button>}
-          <button className="pt-btn primary" disabled={graves.length > 0}
+              }}>Consolidar com exceções</window.PtBtn>}
+          <window.PtBtn primary disabled={graves.length > 0}
             title={graves.length ? "Resolva os bloqueios graves — ou consolide com exceções" : "Consolida a apuração do mês"}
             onClick={() => { setExcecoes(0); mudar("consolidado", "Apuração consolidada — dias passam a CONSOLIDADO e o espelho vira base do fechamento.", "ok"); }}>
             <Ic name="check" />Consolidar apuração
-          </button>
+          </window.PtBtn>
         </>}
         {estado === "consolidado" && <>
-          <button className="pt-btn" onClick={() => mudar("aberto", "Consolidação revertida — a competência volta a aceitar ajuste.", "warn")}>Reabrir</button>
-          <button className="pt-btn primary" onClick={() => { if (window.confirm("Fechar " + D.comp(mes).extenso + "? Depois disso a marcação só muda por anulação com trilha de auditoria.")) mudar("fechado", "Competência fechada — edição travada, só anulação com auditoria.", "ok"); }}>
+          <window.PtBtn  onClick={() => mudar("aberto", "Consolidação revertida — a competência volta a aceitar ajuste.", "warn")}>Reabrir</window.PtBtn>
+          <window.PtBtn primary onClick={() => { if (window.confirm("Fechar " + D.comp(mes).extenso + "? Depois disso a marcação só muda por anulação com trilha de auditoria.")) mudar("fechado", "Competência fechada — edição travada, só anulação com auditoria.", "ok"); }}>
             <Ic name="lock" />Fechar competência
-          </button>
+          </window.PtBtn>
         </>}
         {estado === "fechado" &&
-          <button className="pt-btn" onClick={() => onIr("relatorios")}><Ic name="download" />Gerar AFD / AEJ</button>}
-      </div>
+          <window.PtBtn  onClick={() => onIr("relatorios")}><Ic name="download" />Gerar AFD / AEJ</window.PtBtn>}
+      </window.PtBarra>
 
       <div className="pt-passos" data-contract="fechamento-passos">
         {PASSOS.map((p, i) => (
@@ -217,7 +216,7 @@ function Fechamento({ mes, setMes, avisar, onVerColaborador, onIr, intercorrenci
               <tr key={b.id}>
                 <td><b>{b.titulo}</b><small>{b.sub}</small></td>
                 <td><Pill tom={b.grave ? "danger" : "warn"}>{b.grave ? "bloqueia" : "conferir"}</Pill></td>
-                <td className="num"><button className="pt-btn" onClick={b.ir}>{b.acao}</button></td>
+                <td className="num"><window.PtBtn  onClick={b.ir}>{b.acao}</window.PtBtn></td>
               </tr>
             ))}
           </Tabela>
@@ -244,7 +243,7 @@ function Fechamento({ mes, setMes, avisar, onVerColaborador, onIr, intercorrenci
                 <td><b>{x.c.nome}</b><small>{x.c.matricula} · {x.c.cargo}</small></td>
                 <td>{D.escala(x.c.escala_atual_id)?.nome || "—"}</td>
                 <td className="num"><span className="pt-warnt">{x.n}</span></td>
-                <td className="num" onClick={(e) => e.stopPropagation()}><button className="pt-btn" onClick={() => onVerColaborador(x.c.id)}>Ver espelho</button></td>
+                <td className="num" onClick={(e) => e.stopPropagation()}><window.PtBtn  onClick={() => onVerColaborador(x.c.id)}>Ver espelho</window.PtBtn></td>
               </tr>
             ))}
           </Tabela>
