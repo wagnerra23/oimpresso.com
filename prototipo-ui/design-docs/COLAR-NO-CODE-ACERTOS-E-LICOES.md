@@ -8,6 +8,44 @@
 
 ---
 
+## Ciclo 2026-09-09 · Protocolo (§6-bis + §16) no `main` e o cron do shipped-log (árvores `9d1fa67ac8` → `6f529985368c`)
+
+> Escrito pelo **[CL]** a pedido de [W] ("escreva"). O ciclo foi: colar a norma nova do Cowork ([PR #7136](https://github.com/wagnerra23/oimpresso.com/pull/7136), `66/5`), atacá-la pelo próprio §16 que ela introduz, e destravar o único CI vermelho.
+
+### ✅ O que a produção já acertou (não refazer · não re-perguntar · não regredir)
+
+| # | acerto, medido no `main` neste turno | onde | consequência prática |
+|---|---|---|---|
+| A1 | **A correção de caminho do §12 está certa, e o caminho antigo estava quebrado.** O script canon tem `descobrirIndices` (`:12`), monta paths `…/00-INDICE.md` (`:17`) e lê `.md` **ou** `.json` por ternário `.endsWith(".md")` (`:127`, `:134`) | `design-docs/cowork-inbox/_scripts/placar-indice.mjs` @`08479554` | não re-apontar doc nenhum para `cowork-inbox/_scripts/…` sem o prefixo `prototipo-ui/design-docs/` — aquele path **não existe** |
+| A2 | **O CI roda a cópia canon**, não a do espelho | `.github/workflows/design-memory-gate.yml:603` | ao falar do placar, citar a canon. A do espelho não é a que decide nada |
+| A3 | **O schema bate palavra a palavra com o §12**: `dono` enum `[CC, CL, W, W+CL, CC->CL]`, `guarda` boolean, thread `required` = `[id, titulo, dono, arquivo, prefixo, provas]`, `decisoes` com `custo`/`afeta`/`destrava` | `design-docs/cowork-inbox/_schema/playbook.schema.json` @`1dcd29ba` | não re-descrever o schema de memória — ele já está descrito certo na norma |
+| A4 | **O `cowork-ssot-guard` já tem R4** — *host único na raiz de `cowork/`*, nascido em **2026-09-01 a pedido do próprio lado design** | `scripts/governance/cowork-ssot-guard.mjs:25` | a regra proposta no §6-bis é **R5**. E "R1/R2/R3 já moram lá" está desatualizado |
+| A5 | **O mesmo cabeçalho já registra por que uma regra sintática de path NÃO virou R4** — FP medido *antes*: 24 hits, ~5 FP por construção (fixtures precisam da cópia), 19 cópias declaradas — citando as 4 lápides de guard sintático do §5 | idem `:13–:21` | antes de propor guard por path/pasta, ler esse cabeçalho. O projeto já pagou essa medição |
+| A6 | **O `shipped-log-generate` é fail-closed e funcionou**: recusou gravar com `coletado(4606) ≠ total_count(4752)`. O docblock já documenta a Search API respondendo **`0` com `rc=0`, corpo bem-formado e `cost: 1`** — erro unidirecional, subestima e nunca inventa (130 leituras) | `scripts/governance/shipped-log-generate.mjs:155–214` | vermelho isolado desse cron **se re-roda**, não se conserta nem se silencia. O docblock avisa em letra maiúscula: *"nunca para remover este consolida"* |
+| A7 | **O watchdog G6 lê a última run AGENDADA, não a última run** | `.github/workflows/shipped-log-cron.yml` + watchdog G6 (ADR 0317) | verde por `workflow_dispatch` **não limpa** o alarme — havia um verde às 17:01Z e o watchdog seguia vermelho, corretamente. Destrava-se re-rodando a run com `event=schedule` (feito: `34358072747` → `success`) |
+| A8 | **A cópia obsoleta do placar dentro do espelho tem ZERO invocadores** — varredura em `.github`, `scripts`, `package.json`, `.claude`, `prototipo-ui`: nenhuma referência; as únicas menções são dois `_saida-*.md` de threads que **tropeçaram nela e anotaram** | `prototipo-ui/cowork/cowork-inbox/_scripts/` @`ae69d188` | é **ruído inerte**, não bug vivo. E o conserto não é apagar à mão: §10 proíbe editar `cowork/` do lado do git (espelho read-only; some no próximo `--export-from`) |
+
+### ❌ O que eu errei — e a lição com regra colada
+
+**Erro 1 · Busquei num path adivinhado, li o zero como ausência, e quase reportei.**
+Rodei o grep de `ds-anchor-check` contra `prototipo-ui/ds-anchor-check.mjs` — path que eu **supus**. Voltou zero, e eu estava a um passo de escrever "não achei os 15 casos". O arquivo existe, em `prototipo-ui/cowork/cowork-inbox/ancora-ds/ds-anchor-check.mjs`, e declara os 15 casos na `:229`.
+→ **Lição (proposta):** *claim de ausência exige controle positivo **e** o dono do inventário — nunca um path adivinhado.* Concretamente: `git ls-tree -r --name-only origin/main | grep <termo>` responde "onde está", e é isso que precede qualquer frase com "não existe". Um `git show <ref>:<path>` que volta vazio é indistinguível de arquivo ausente, de path errado e de mangling do MSYS.
+
+**Erro 2 · Meu controle positivo estava miscalibrado, e ele acusou duas sondas que estavam certas.**
+Para checar colapso de escape (LC-26) montei um arquivo de controle com `printf 'a\\b\nc\\\\d\n'` e previ 3 barras invertidas. `grep` e `tr` responderam 1 — e eu tratei as sondas como não-confiáveis. O `cat -A` mostrou `a^H$`: o `printf` interpretou `\b` como **backspace**, não como barra + `b`. O controle é que tinha 1 barra. As duas sondas estavam corretas o tempo todo.
+→ **Lição (proposta):** *o controle só valida a sonda se você conhece o valor verdadeiro DELE.* Antes de julgar a sonda pelo controle, **inspecione o controle** (`cat -A`, `od -c`). Um controle mal-calibrado tem dois modos e os dois são caros: transforma sonda boa em suspeita (o meu caso) e, invertido, **absolve sonda cega**.
+
+**Erro 3 · Apresentei gravidade antes de contá-la.**
+Escrevi no corpo do PR que *"o buraco do §6-bis já está ocupado no `main`"*, com moldura de achado grave, tendo medido só que a cópia **existe** e **diverge**. Só depois contei invocadores: zero. A moldura estava mais forte que a medida.
+→ **Lição (proposta):** *gravidade se conta, não se infere da existência.* Antes de chamar duplicata/órfão/divergência de bug vivo, contar **quem invoca** — repo inteiro mais o dono do inventário. "Existe e diverge" e "está em uso" são duas afirmações, e só a segunda justifica urgência.
+
+### 🔁 Reincidência — o que este ciclo prova sobre o método
+
+**O Erro 1 acima é, literalmente, a Lição do Erro 1 do bloco de baixo** — escrita horas antes, no mesmo dia, e que eu **tinha lido** ao revisar o §15 para julgar se a norma nova era melhor. Reincidiu mesmo assim, agora do lado [CL] em vez do [CC]: a classe não é de um agente, é do ato de afirmar ausência.
+→ **Consequência de método, e ela é a favor do §16:** o que me pegou não foi ter lido a regra — foi **ter rodado o ataque B** (controle positivo), e eu só rodei porque estava avaliando o §16 e ele obriga. Ou seja: a seção adversarial pegou o erro do próprio avaliador dela, no turno em que estava sendo avaliada. Regra escrita não protegeu; **regra executada protegeu**. É o argumento mais forte que este ciclo produziu para o §16 não ser tratado como cerimônia.
+
+---
+
 ## Ciclo 2026-09-09 · Ponto — DS nos átomos (árvores `a0db7b0177b8` → `2b4a3ec3b48a`)
 
 ### ✅ O que a produção já acertou (não refazer · não re-perguntar · não regredir)

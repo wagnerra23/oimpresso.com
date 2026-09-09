@@ -1,7 +1,7 @@
 {
   "_nota": "Contrato de Tela do painel de conteúdo do CMS (ADR 0286). Trava as seções e a copy literal da tradução Blade → Inertia. Rodar advisory no contrato-de-tela.yml antes de promover a required.",
   "tela": "Cms/Content",
-  "fonte": "prototipo-ui/cowork/cms/cms-page.jsx",
+  "fonte": "prototipo-ui/cowork/cms-page.jsx",
   "alvo": ["Modules/Cms/Resources/js/Pages/Admin/Content"],
   "secoes": [
     { "id": "page-header", "copy": ["Site", "Ver o site", "Nova página", "Nova publicação", "Novo depoimento"] },
