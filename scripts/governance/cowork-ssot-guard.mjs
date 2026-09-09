@@ -77,9 +77,14 @@ const PROTOTIPOS_HISTORICOS = new Set(['financeiro-prova-viva']);
 // fonte; ausência medida nos 2 donos em 2026-09-09. A aba "planos" do hub
 // (cobranca-recorrente-page.jsx:369) é `<Placeholder>` de 3 elementos, e o arquivo é porte
 // REVERSO (`:2` "Reescreve a RecurringBilling do git") — mesmo veredito dos 3 irmãos no #7099.
+// 'financeiro-assinatura-atualizar' — Financeiro/AssinaturaAtualizar (FIN-004). O espelho TEM um
+// `cowork/AssinaturaAtualizar.tsx`, mas é porte REVERSO do vivo (310 vs 309 linhas, difere só na
+// API do PageHeader) — ancorar nele seria ancorar a tela nela mesma. Medido 2026-09-09.
+// 'financeiro-contador' — Financeiro/Configuracoes/Contador (US-FIN-037); `contador|advisor` nos 3
+// `configuracoes-*.jsx` dá rc=1, com controle positivo na mesma sonda (`configura` → 15 hits).
 const PROTOTIPOS_GERADOS = new Set([
   'nfe-tributacao', 'nfse-emitir', 'payment-gateway-cnab', 'transaction-payment',
-  'recurring-billing-planos',
+  'recurring-billing-planos', 'financeiro-assinatura-atualizar', 'financeiro-contador',
 ]);
 
 const errors = [];
