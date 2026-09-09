@@ -568,10 +568,103 @@ function buildMap(doCheck) {
 }
 
 function argVal(flag) { const i = process.argv.indexOf(flag); return i >= 0 ? process.argv[i + 1] : null; }
+// ── Catraca 4: ANTI-TAUTOLOGIA — o contrato deriva da ÂNCORA, nunca da TELA ────
+//
+// O erro que isto mata (cometido por mim, [C], em 2026-09-09, e nomeado pelo [W]:
+// *"tá pegando baseline e não pego a âncora certa"*): escrever o `.contract.json`
+// extraindo a copy do `.tsx` que já existe. O contrato nasce VERDE POR CONSTRUÇÃO —
+// ele compara a tela com ela mesma e nunca pode acusar a divergência que é a razão
+// dele existir. É o gate-de-teatro na forma mais cara: parece cobertura, prova nada.
+// Mesma família do §5 2026-06-05 (teste derivado do código) e 2026-08-10 (construir
+// tela derivando do código quando existe fonte de design).
+//
+// DOIS predicados, com FORÇA diferente porque o FP medido é diferente (medido no
+// corpus real em 2026-09-09: 31 contratos ativos):
+//
+//   DURO   — `fonte` aponta pra `resources/js/Pages/**`, isto é, pra PRÓPRIA TELA.
+//            FP ZERO POR CONSTRUÇÃO: se a fonte é o alvo, toda copy está nela e o
+//            gate não tem como reprovar. Prova viva: `purchase-create` mede
+//            "limpo (24 copy, todas na fonte)" — e só pode medir isso.
+//            Medido: 4 de 31 (essentials-licencas · essentials-metas · jana-painel ·
+//            purchase-create). Nascem GRANDFATHERED na lista abaixo, forward-only
+//            (§5 2026-07-12: backfill de legado em massa morre no CI).
+//
+//   AVISO  — copy que NÃO existe na `fonte` mas existe no `alvo`. Sinal de que
+//            aquela string foi lida da tela. Medido: 15 de 31 contratos, e NÃO é
+//            tudo defeito — copy legitimamente adaptada cai aqui (o protótipo diz
+//            "Todas", a tela diz "Todos"). Por isso AVISA e não reprova: virar
+//            bloqueio sem separar adaptação de extração seria o guard sintático que
+//            este §5 já enterrou 8× (allowlist-de-pasta · @scope · vocabulário 130 FP
+//            · toHaveKey 100% FP · toContain · jq · limiar 3→2 · par usuário/senha).
+//
+// A lista é de EXCEÇÃO DECLARADA, não allowlist que cresce: cada entrada diz por que
+// existe, e sai quando a dívida for paga (§5 2026-08-02).
+const FONTE_TELA_GRANDFATHERED = {
+  'prototipo-ui/contrato/essentials-licencas.contract.json': 'legado 2026-08: nasceu apontando pra própria tela; re-ancorar exige a fonte de design da Essentials',
+  'prototipo-ui/contrato/essentials-metas.contract.json': 'idem essentials-licencas',
+  'prototipo-ui/contrato/jana-painel.contract.json': 'legado: fonte = Pages/Jana/Index.tsx; a âncora da Jana é decisão [W] (proposal jana)',
+  'prototipo-ui/contrato/purchase-create.contract.json': 'legado: fonte = Pages/Purchase/Create.tsx',
+};
+
+function checkAncoraDaCopy() {
+  const dir = resolve(ROOT, 'prototipo-ui/contrato');
+  if (!existsSync(dir)) { ok('sem diretório de contratos — nada a checar'); return 0; }
+  const arquivos = readdirSync(dir)
+    .filter(f => f.endsWith('.contract.json') && !/EXEMPLO/i.test(f))
+    .sort()
+    .map(f => `prototipo-ui/contrato/${f}`);
+
+  let fail = 0, avisos = 0, limpos = 0;
+  for (const rel of arquivos) {
+    let c;
+    try { c = JSON.parse(readFileSync(resolve(ROOT, rel), 'utf8')); } catch { continue; }
+    if (!Array.isArray(c.secoes) || !Array.isArray(c.alvo)) continue;
+
+    const fonte = normalizaPath(c.fonte || '');
+
+    // DURO: a fonte é a própria tela?
+    if (/^resources\/js\/Pages\//.test(fonte)) {
+      const razao = FONTE_TELA_GRANDFATHERED[rel];
+      if (razao) {
+        warn(`${rel} — fonte é a própria tela (grandfathered): ${razao}`);
+      } else {
+        err(`${rel}: \`fonte\` aponta pra PRÓPRIA TELA (${fonte}) — contrato tautológico, nasce verde por construção.`);
+        err(`    A fonte tem de ser a ÂNCORA. Resolva com: node prototipo-ui/ancora.mjs <Mod>/<Tela>`);
+        fail++;
+      }
+      continue;
+    }
+
+    // AVISO: copy que só existe no alvo (lida da tela, não da âncora)
+    const abs = resolve(ROOT, fonte);
+    if (!fonte || !existsSync(abs)) continue; // `--map --check` já é dono de "fonte inexistente"
+    const blobFonte = readFileSync(abs, 'utf8');
+    const arqsAlvo = c.alvo.flatMap(collectTargets);
+    if (!arqsAlvo.length) continue;
+    const blobAlvo = arqsAlvo.map(f => readFileSync(f, 'utf8')).join('\n');
+
+    const todas = c.secoes.flatMap(s => s.copy ?? []);
+    if (!todas.length) continue;
+    const soNoAlvo = todas.filter(s => !copyPresente(blobFonte, s) && copyPresente(blobAlvo, s));
+    if (soNoAlvo.length) {
+      warn(`${rel} — ${soNoAlvo.length}/${todas.length} copy existe no ALVO e não na FONTE (pode ser copy adaptada, pode ser copy lida da tela):`);
+      for (const s of soNoAlvo.slice(0, 3)) log(`      ~ ${JSON.stringify(s)}`);
+      avisos++;
+    } else {
+      limpos++;
+    }
+  }
+  log(`\nanti-tautologia · ${arquivos.length} contrato(s) · ${limpos} com toda a copy ancorada na fonte · ${avisos} com aviso · ${fail} reprovado(s)`);
+  if (!fail) ok('nenhum contrato NOVO derivando da própria tela');
+  return fail;
+}
+
 function main() {
   const a = process.argv.slice(2);
   let fail = 0;
-  if (a.includes('--preflight')) {
+  if (a.includes('--anti-tautologia')) {
+    fail += checkAncoraDaCopy();
+  } else if (a.includes('--preflight')) {
     const base = argVal('--preflight') && !argVal('--preflight').startsWith('--') ? argVal('--preflight') : 'origin/main';
     fail += preflight(base, { mergeRef: a.includes('--merge-ref') });
   } else if (a.includes('--contract')) {
@@ -605,7 +698,7 @@ function main() {
     fail += buildMap(a.includes('--check'));
     if (!a.includes('--check')) process.exit(0); // --map informativo: só a tabela, sem resumo
   } else {
-    log('uso: node scripts/contrato-de-tela.mjs [--preflight [base] | --contract <f.json> | --omission [base] (--alvo a,b | --contract-alvo f.json) [--notes f] | --map [--check] | --resolve <f.json> --ctx <cliente:biz=N,tela:X,…>]');
+    log('uso: node scripts/contrato-de-tela.mjs [--preflight [base] | --contract <f.json> | --omission [base] (--alvo a,b | --contract-alvo f.json) [--notes f] | --map [--check] | --anti-tautologia | --resolve <f.json> --ctx <cliente:biz=N,tela:X,…>]');
     process.exit(2);
   }
   if (fail) { log(`\n❌ ${fail} falha(s).`); process.exit(1); }
