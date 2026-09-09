@@ -176,11 +176,19 @@ export function recoletaSuficiente({ alvo, coletado, leitura, tentativas }) {
  *     e a resposta é bem-formada. É a API respondendo 0 com sucesso, não erro engolido.
  *   esta sessão, N=65 (25 + 40 com corpo bruto) → **zero ocorrências**
  *
- * A assimetria fica registrada de propósito: quem tentar reproduzir pode não conseguir, e
- * não ver não é evidência de ausência (a ~3% esperado, 0 em 65 tem ~11% de chance; pode
- * ainda ser dependente de token, rede ou região). O que decide não é a frequência, é que
- * o modo EXISTE e sai com sucesso. Se um dia o transporte mudar, mude por rate limit ou
- * ruído de 403 — nunca para remover este consolida.
+ * ⚠️ NÃO calibre nada por frequência — ela não é estável. Os 3 zeros observados caem todos
+ * numa janela de ~10min; nas 190 leituras somadas fora dela, nenhum. A sessão irmã deixou
+ * de reproduzir na MESMA máquina, mesmo token, mesma rede, ~3min depois, e o A/B dela
+ * (frio com pausa × sob carga, 30+30) deu zero nos dois braços — o que descarta pressão
+ * sobre a API, e também token/rede/região, como explicação. Trate como evento POSSÍVEL,
+ * nunca como taxa: quem escrever "~N%" aqui estará congelando uma janela como se fosse
+ * constante, e a próxima sessão calibraria retry por um número que já não valia 3min depois.
+ *
+ * O que se calibra é a EXISTÊNCIA do modo: o consolida precisa existir porque a API PODE
+ * responder zero com sucesso. Corolário para quem tentar reproduzir e não conseguir (foi o
+ * meu caso, 65 leituras limpas): não ver não é evidência de ausência — o recibo acima tem
+ * `cost: 1` e não admite leitura alternativa. Se um dia o transporte mudar, mude por rate
+ * limit ou ruído de 403 — nunca para remover este consolida.
  *
  * A premissa que a defesa assume — erro unidirecional, subestima e NUNCA acima — se sustenta
  * em 130 leituras somadas das duas sessões: nenhuma veio acima do valor certo.
