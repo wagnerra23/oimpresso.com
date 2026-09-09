@@ -46,6 +46,7 @@ on:
       - 'resources/js/Hooks/usePageProps.ts'
       - 'tests/js/patrimonio-header-contexto.test.tsx'
       - 'tests/js/patrimonio-painel-sem-fonte.test.tsx'
+      - 'tests/js/patrimonio-painel-forma.test.tsx'
       - 'tests/js/setup.ts'
       - '.github/workflows/patrimonio-painel-gate.yml'
   push:
@@ -56,6 +57,7 @@ on:
       - 'resources/js/Hooks/usePageProps.ts'
       - 'tests/js/patrimonio-header-contexto.test.tsx'
       - 'tests/js/patrimonio-painel-sem-fonte.test.tsx'
+      - 'tests/js/patrimonio-painel-forma.test.tsx'
       - 'tests/js/setup.ts'
       # o workflow entra no gatilho de push porque é o run de `main` que o publisher
       # colhe: mexer na lane sem re-rodar deixaria o artifact envelhecer até expirar,
@@ -91,6 +93,7 @@ jobs:
           npx vitest run \
             tests/js/patrimonio-header-contexto.test.tsx \
             tests/js/patrimonio-painel-sem-fonte.test.tsx \
+            tests/js/patrimonio-painel-forma.test.tsx \
             --reporter=default \
             --reporter=junit \
             --outputFile=test-results/vitest-patrimonio-painel-junit.xml
