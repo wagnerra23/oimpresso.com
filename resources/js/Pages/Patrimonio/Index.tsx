@@ -46,6 +46,8 @@ interface Manutencao {
 interface MeusBens { alocado: number; porCategoria: Array<{ categoria: string; quantidade: number }> }
 
 interface Props {
+  /** Deferida (contador da aba). Ausente no primeiro paint -- o pill so aparece depois. */
+  abas_contadores?: Record<string, number> | null;
   is_admin: boolean;
   pode: { ver: boolean; criar: boolean };
   apurado_em: string;
@@ -235,7 +237,7 @@ function PilulaFrescor({ hora }: { hora: string }) {
   );
 }
 
-export default function Index({ is_admin, pode, apurado_em, kpis, porCategoria, garantia, manutencoes, meusBens }: Props) {
+export default function Index({ abas_contadores, is_admin, pode, apurado_em, kpis, porCategoria, garantia, manutencoes, meusBens }: Props) {
   const apurado = new Date(apurado_em).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
   // Só HH:MM no selo do header — é o formato do protótipo (`patrimonio-page.jsx:822`,
   // `toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})`). O carimbo COMPLETO
@@ -374,7 +376,7 @@ export default function Index({ is_admin, pode, apurado_em, kpis, porCategoria, 
 
         {/* Linha própria full-width, como no protótipo (e como a Unificada, ADR 0313). */}
         <div data-contract="subnav" className="border-b border-border pb-1">
-          <PatrimonioSubNav active="dashboard" />
+          <PatrimonioSubNav active="dashboard" badges={abas_contadores ?? undefined} />
         </div>
 
         {/* Resumo de hoje. A 2ª frase do protótipo cita equipamentos e um custo por peça

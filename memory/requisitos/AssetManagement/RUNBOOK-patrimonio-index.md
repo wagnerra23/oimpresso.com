@@ -153,6 +153,18 @@ para quem tiver escopo de mexer nele:
 - **Vocabulário.** RESOLVIDO em 2026-09-09 por decisão [W]: a aba passou a dizer **"Bens"** e
   **"Manutenções"**, alinhada ao `pt/lang.php:9`, ao protótipo e ao `PageHeader` das próprias
   telas. Trocado no dono ÚNICO (`DataController`), não no componente. Ver §6.
+- **Contador da aba (2026-09-09).** A barra aceita `badges` (`Record<key, number>`), que
+  ENRIQUECE por chave a lista derivada do `shell.menu` — **não** a declara: some a aba do
+  menu e o contador some junto. Hoje sai **um só**: `asset-maintenance`, via
+  `AssetMaintenanceService::contarAbertas()` em `Inertia::defer`. Dos 5 contadores do
+  protótipo, é o único com número **auditado** — Garantias/Auditoria não têm aba, e
+  Alocações depende de `allocated_qty`/`revoked_qty`, que o `baseAssetsQuery()` declara
+  não serem auditados enquanto o resíduo Tier 0 dela não fechar.
+  ⚠️ **Só Painel e Bens o exibem** (os dois renders do `AssetController`). Alocações,
+  Manutenções e Configurações ficam sem o pill: os controllers delas ainda são CRLF e o
+  `.gitattributes` (`eol=lf`) obrigaria a converter — **2.694 linhas** de ruído medidas em
+  2026-09-09, em arquivos que as threads 09-12 estão tocando. Entra por **forward-only**:
+  quem tocar aquele controller adiciona a prop de graça.
 - **Hue.** Ele passa `group="operar"` (ADR 0180). Medido: `Sidebar.tsx:243` lista
   `'Gestão de ativos'` na whitelist do grupo **`estoque`**, e a entry não declara `group`, então o
   `findGroupKey` resolve por label. `operar` é alias legacy v2 → `producao` (hue 8) e `estoque` é
