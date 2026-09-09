@@ -159,12 +159,39 @@ export function recoletaSuficiente({ alvo, coletado, leitura, tentativas }) {
 }
 
 /**
- * O ALVO também mente, e do mesmo jeito: `search/issues` devolve `total_count: 0` com rc=0.
- * Medido 2026-09-09 (25 leituras de `merged:2026-09-05`, certo=101): 14 certas, **2 zeradas
+ * O ALVO também mente, e do mesmo jeito: devolve `0` com rc=0. Medido 2026-09-09 no
+ * `search/issues` (25 leituras de `merged:2026-09-05`, certo=101): 14 certas, **2 zeradas
  * com rc=0**, 9 com rc≠0 (falha visível → vira null → seguro). O modo cruel é o zero: alvo 0
  * faz `coletado >= alvo` bater por acidente e a re-coleta se declarar completa tendo perdido
  * o dia. Como o erro é unidirecional (subestima, nunca acima), basta reconsultar o valor
  * suspeito — não é preciso dobrar a chamada em todo dia, o que agravaria o rate limit.
+ *
+ * ⚠️ Esta defesa NÃO é específica do transporte, e trocá-lo não a dispensa. O GraphQL
+ * (`search(type:ISSUE){issueCount}`) é candidato tentador — cota separada, sem os 30/min do
+ * REST — mas ele também responde zero. Medido no mesmo alvo, 2026-09-09:
+ *
+ *   sessão irmã, N=40, corpo bruto capturado → 38 certas, **2 zeros**
+ *     {"data":{"rateLimit":{"cost":1,"remaining":2634},"search":{"issueCount":0}}}
+ *     rc=0, stderr vazio, sem chave `errors`, `cost: 1` — a query foi executada e COBRADA,
+ *     e a resposta é bem-formada. É a API respondendo 0 com sucesso, não erro engolido.
+ *   esta sessão, N=65 (25 + 40 com corpo bruto) → **zero ocorrências**
+ *
+ * ⚠️ NÃO calibre nada por frequência — ela não é estável. Os 3 zeros observados caem todos
+ * numa janela de ~10min; nas 190 leituras somadas fora dela, nenhum. A sessão irmã deixou
+ * de reproduzir na MESMA máquina, mesmo token, mesma rede, ~3min depois, e o A/B dela
+ * (frio com pausa × sob carga, 30+30) deu zero nos dois braços — o que descarta pressão
+ * sobre a API, e também token/rede/região, como explicação. Trate como evento POSSÍVEL,
+ * nunca como taxa: quem escrever "~N%" aqui estará congelando uma janela como se fosse
+ * constante, e a próxima sessão calibraria retry por um número que já não valia 3min depois.
+ *
+ * O que se calibra é a EXISTÊNCIA do modo: o consolida precisa existir porque a API PODE
+ * responder zero com sucesso. Corolário para quem tentar reproduzir e não conseguir (foi o
+ * meu caso, 65 leituras limpas): não ver não é evidência de ausência — o recibo acima tem
+ * `cost: 1` e não admite leitura alternativa. Se um dia o transporte mudar, mude por rate
+ * limit ou ruído de 403 — nunca para remover este consolida.
+ *
+ * A premissa que a defesa assume — erro unidirecional, subestima e NUNCA acima — se sustenta
+ * em 130 leituras somadas das duas sessões: nenhuma veio acima do valor certo.
  */
 export function consolidaAlvo(primeira, segunda) {
   if (primeira == null) return segunda ?? null;
