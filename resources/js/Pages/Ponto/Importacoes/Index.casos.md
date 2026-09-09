@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · SDD-espelho-e-jornada-v1.0.md §5.3 F7 + §6.4
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é o registro de origem das marcações vindas de REP-A — a rastreabilidade que a fiscalização pede começa aqui.
 owner: wagner
-last_run: "2026-08-08"
-last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Ponto · MySQL)"
+last_run: "2026-09-08"
+last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-test-results.json (fonte: test-results/pest-ponto-junit.xml). Lane PHP / Pest (Ponto - MySQL) run 34215745965 em main (sha dced5fd3d8, 2026-09-08T10:32Z): 302 passed - 1 skipped - 1009 assertions, coherent=true, provou_algo=true. Li ASSERTIONS, nao a conclusion: 1009 > 0 prova que a suite rodou e nao caiu no skip-as-pass da lane (LC-13). O unico skipped da run nao e UC (o coletor trata skip como nao-pass, e os 69 vieram pass). A lane e ADVISORY: reprova e visivel, nao bloqueia merge."
 ---
 
 # Casos de Uso & Aceite — Histórico de importações
@@ -29,9 +29,9 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 | UC | Caso de uso | Prio | Âncora | Teste | Status |
 |----|-------------|------|--------|-------|--------|
-| UC-IMPIDX-01 | O histórico traz as importações do meu empregador, recentes primeiro | must | `CU-PONTO-11` + US-PONTO-002 | `ImportacaoIndexContratoTest` | 🧪 sem veredito |
-| UC-IMPIDX-02 | Importação de outro empregador não aparece no histórico | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `ImportacaoIndexContratoTest` | 🧪 sem veredito |
-| UC-IMPIDX-03 | A contagem exibida na lista reflete o que foi processado | must | `CU-PONTO-11` + SDD §9 D-8 | `ImportacaoIndexContratoTest` | 🧪 **vermelho ESPERADO** (predição) |
+| UC-IMPIDX-01 | O histórico traz as importações do meu empregador, recentes primeiro | must | `CU-PONTO-11` + US-PONTO-002 | `ImportacaoIndexContratoTest` | ✅ verde na lane |
+| UC-IMPIDX-02 | Importação de outro empregador não aparece no histórico | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `ImportacaoIndexContratoTest` | ✅ verde na lane |
+| UC-IMPIDX-03 | A contagem exibida na lista reflete o que foi processado | must | `CU-PONTO-11` + SDD §9 D-8 | `ImportacaoIndexContratoTest` | ✅ verde na lane (predição de vermelho caducou) |
 
 **[BACKLOG]:**
 

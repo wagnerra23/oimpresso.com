@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · SDD-espelho-e-jornada-v1.0.md §5.3 F1 + §6.1
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a porta do espelho — quem entra na lista define quem tem jornada auditável no mês.
 owner: wagner
-last_run: "2026-07-27"
-last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Ponto · MySQL)"
+last_run: "2026-09-08"
+last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-test-results.json (fonte: test-results/pest-ponto-junit.xml). Lane PHP / Pest (Ponto - MySQL) run 34215745965 em main (sha dced5fd3d8, 2026-09-08T10:32Z): 302 passed - 1 skipped - 1009 assertions, coherent=true, provou_algo=true. Li ASSERTIONS, nao a conclusion: 1009 > 0 prova que a suite rodou e nao caiu no skip-as-pass da lane (LC-13). O unico skipped da run nao e UC (o coletor trata skip como nao-pass, e os 69 vieram pass). A lane e ADVISORY: reprova e visivel, nao bloqueia merge."
 ---
 
 # Casos de Uso & Aceite — Seleção de colaborador para o espelho
@@ -25,9 +25,9 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 | UC | Caso de uso | Prio | Âncora | Teste | Status |
 |----|-------------|------|--------|-------|--------|
-| UC-ESPIDX-01 | Só entra na lista quem tem controle de ponto ativo e não foi desligado | must | `CU-PONTO-04` + Blade | `EspelhoContratoTest` | 🧪 sem veredito |
-| UC-ESPIDX-02 | A lista não atravessa empregadores | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `EspelhoContratoTest` | 🧪 sem veredito |
-| UC-ESPIDX-03 | O mês escolhido viaja junto para o espelho | should | `CU-PONTO-04` + Blade | `EspelhoContratoTest` | 🧪 sem veredito |
+| UC-ESPIDX-01 | Só entra na lista quem tem controle de ponto ativo e não foi desligado | must | `CU-PONTO-04` + Blade | `EspelhoContratoTest` | ✅ verde na lane |
+| UC-ESPIDX-02 | A lista não atravessa empregadores | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `EspelhoContratoTest` | ✅ verde na lane |
+| UC-ESPIDX-03 | O mês escolhido viaja junto para o espelho | should | `CU-PONTO-04` + Blade | `EspelhoContratoTest` | ✅ verde na lane |
 
 **[BACKLOG]:**
 

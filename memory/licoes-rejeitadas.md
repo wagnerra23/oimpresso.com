@@ -1746,3 +1746,37 @@
   baseline sairia sendo **foto do skeleton eterno**, e viraria o "estado correto" contra o qual
   todo PR futuro seria comparado. **Cancelado antes de commitar** (`conclusion=cancelled`, 0
   `.snap` na branch). Regra: **nao gerar baseline visual de tela cujo runtime nao foi medido.**
+
+### 2026-09-08 — Absolver um artefato citando uma atribuição `[W] <data>` que estava na sentença VIZINHA (a frase nasceu falsa, e eu publiquei a absolvição EM CÓDIGO)
+
+- **O limite (variante também proibida):** citar autoria, decisão ou aprovação — `[W] <data>`,
+  `Wagner 2026-XX-XX`, `decisão de <fulano>` — a partir de **proximidade textual**. O marcador
+  vale pra **sentença que o carrega**, nunca pro parágrafo, o bloco ou o docblock inteiro. Antes
+  de tratar uma frase como canon atribuído: ler onde a atribuição **fecha** e, se a frase afirma
+  comportamento, **datá-la contra o comportamento** (`git log -S`, em repo comprovadamente
+  não-raso — §5 2026-07-24). Uma frase escrita DEPOIS do mecanismo que ela descreve pode ter
+  **nascido falsa**, e foi o caso: em `Sidebar.tsx` o `([W] 2026-08-28)` prende-se à sentença da
+  ALOCAÇÃO da entry no topo (`:310`); a frase *"É o destino pós-login"* é a SEGUINTE (`:312`), sem
+  atribuição — e o condicional que ela contradiz existia desde o #4949, **um mês antes**. Ela era
+  verdadeira só pro subconjunto sem `jana.access`.
+
+- **O corolário que esta lápide tem de próprio: ABSOLVIÇÃO TAMBÉM É CLAIM.** Dizer *"este
+  artefato estava certo, quem errou foi o outro"* exige a mesma medição que a acusação — e é mais
+  perigosa que ela, por duas razões. Ela **inverte a culpa** (o artefato absolvido vira referência
+  pra próxima sessão), e ela sai como **justificativa em comentário de código e corpo de PR**, que
+  é onde a próxima sessão lê canon. Aqui a absolvição atravessou um commit, dois comentários de
+  código e um PR body antes de alguém medir a atribuição. A pergunta barata que teria pego:
+  *"a atribuição que estou citando cobre a frase que estou citando?"*
+
+- **⚠️ NÃO virar gate:** o predicado — *"até onde esta atribuição alcança?"* — é **semântico por
+  construção** ([ADR 0224](decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md): semântico =
+  advisory), e a forma sintática (casar `[W] <data>` e exigir que a sentença seguinte não afirme
+  comportamento) é a família de guard sintático que este §5 já enterrou 7× — allowlist-de-pasta
+  06-30 · `@scope` 07-09 · vocabulário **130 FP** 07-16 · `toHaveKey` **100% FP** 07-26 ·
+  `toContain` 07-28 · `jq` 08-11 · par usuário/senha 08-02. **O que pegou foi PROCESSO:** o agente
+  `ciclo-adversary`, rodado ANTES de escrever no ledger — exatamente o gatilho que o canon dele
+  declara. Ele derrubou 2 das 3 razões do meu fechamento, incluindo a que eu mais pesava.
+
+- Origem: sessão 2026-09-08 · [PR #7065](https://github.com/wagnerra23/oimpresso.com/pull/7065)
+  (a errata está no commit `55423fc2a1`, dentro do próprio código que carregava a atribuição
+  falsa). Ocorrência **LC-08 nº 151**.

@@ -41,11 +41,15 @@ use Modules\Whatsapp\Jobs\DeleteBaileysInstanceJob;
  *   php artisan whatsapp:channels-reconcile --dry-run # preview
  *   php artisan whatsapp:channels-reconcile --channel=4 --detail # 1 só
  *
- * **Cron (Kernel.php):**
- *   $schedule->command('whatsapp:channels-reconcile')
- *            ->everyFiveMinutes()
- *            ->withoutOverlapping(5)
- *            ->runInBackground();
+ * **DESAGENDADO 2026-09-08 — não confie neste docblock pra saber se roda.**
+ * Até essa data ele estava no schedule a cada 5 min. Saiu porque a ADR 0202
+ * (2026-05-27) descomissionou o Baileys e removeu a seção `baileys` do config:
+ * o `config('whatsapp.baileys.daemon_url')` do handle() passou a cair no default
+ * '' e o comando retornava FAILURE na primeira guarda — 14.454 falhas registradas
+ * na janela de log observável. E, mesmo configurado, não teria trabalho: o filtro
+ * `type = whatsapp_baileys` casava 0 canais em prod. Segue registrado e invocável
+ * à mão; reviver o cron exige antes reverter a 0202 (que hoje lista 'baileys' em
+ * `forbidden_drivers`). Quem roda de fato é sempre `php artisan schedule:list`.
  *
  * **Multi-tenant Tier 0 (ADR 0093):**
  * - `withoutGlobalScopes` justificado: cron sem session() user

@@ -540,12 +540,29 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     // dashboard legado UltimatePOS, que não tem `can:` nenhum — some o 403, e
     // ninguém ganha acesso que não tinha.
     // Onda 3 da fusão (US-COPI-148, 2026-08-07): o destino passou de
-    // `/ia/dashboard` pra `/ia` — a MESMA tela, que mudou de endereço. Apontar
-    // direto evita a cadeia 302→301 em TODO login de quem tem `jana.access`.
-    Route::get('/home', fn () => auth()->user()?->can('jana.access')
-        ? redirect('/ia', 302)
-        : redirect('/dashboard-legacy', 302)
-    )->name('home');
+    // `/ia/dashboard` pra `/ia` — a MESMA tela, que mudou de endereço.
+    //
+    // ── 2026-09-08 [W]: o destino é a VISÃO GERAL, pra TODO MUNDO ─────────────
+    // Reportado por [W] a partir da ROTA LIVRE: "o login da Larissa está
+    // bloqueado (...) acho que deveria ser o dashboard Visão geral".
+    //
+    // Medido em produção ANTES de mexer — não era permissão: a usuária da
+    // biz=4 tem o papel `Admin#4`, então `Gate::before` devolve `true` pra
+    // `jana.access`, ela caía em `/ia`, e o Painel da Jana RESOLVE 200 pra ela
+    // (exercitado no host, `IndexController@index` + `toResponse`). O que ela
+    // via era uma tela VAZIA: metas ativas visíveis pra biz=4 = 0, e o farol
+    // das metas é o conteúdo primário do Painel.
+    //
+    // O ramo condicional também contradizia o canon do próprio shell: o
+    // `LANDING_GROUP` do `Sidebar.tsx` ([W] 2026-08-28) declara que a Visão
+    // geral "é o destino pós-login (/dashboard-legacy)" — e a rota mandava todo
+    // admin pra outro lugar. Dois artefatos, uma pergunta, respostas opostas.
+    //
+    // Bônus estrutural: some o ÚLTIMO ramo em que a porta de entrada depende de
+    // uma permissão de feature — que é o que o bloco acima já pedia desde o
+    // incidente da Maiara. A Jana não perde nada: `/ia` segue de pé, com o gate
+    // `can:jana.access` intacto, e é o PRIMEIRO item do sidebar.
+    Route::get('/home', fn () => redirect('/dashboard-legacy', 302))->name('home');
     Route::get('/dashboard-legacy', [HomeController::class, 'index'])->name('home.legacy');
     Route::get('/home/get-totals', [HomeController::class, 'getTotals']);
     Route::get('/home/product-stock-alert', [HomeController::class, 'getProductStockAlert']);

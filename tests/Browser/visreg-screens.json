@@ -378,5 +378,13 @@
     "route": "/ponto/relatorios",
     "anchor": "Apuração Eletrônica de Jornada",
     "baseline": "it_Ponto_Relatorios_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Patrimonio/Manutencoes",
+    "source": "Patrimonio/Manutencoes",
+    "component": "Patrimonio/Manutencoes",
+    "route": "/asset/asset-maintenance",
+    "anchor": "Manutenções",
+    "baseline": "it_Patrimonio_Manutencoes_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   }
 ]

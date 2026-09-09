@@ -5,8 +5,8 @@ irmaos: Show.charter.md (lei) · SDD-espelho-e-jornada-v1.0.md §5.3 F7 + §6.4 
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a ponte entre o relógio físico (REP-A homologado) e a jornada apurada — duplicar aqui infla a folha.
 owner: wagner
-last_run: "2026-09-05"
-last_run_ci: "5 de 5 VERDES no run 33942364334 da lane PHP / Pest (Ponto · MySQL) — UC-IMPSH-01/02/03 2 assertions cada, UC-IMPSH-04 6, UC-IMPSH-05 12; lane inteira 279 passed / 0 failed / 1 skipped / 939 assertions. Os 5 estão ALCANÇÁVEIS pelo manifesto G-7 (o #6794 converteu o BancoHorasImportacaoContratoTest pra it() com o UC no título 12s antes deste arquivo entrar — ver nota ⛓); todos viram ✅ no primeiro publish do cron casos-results-publish"
+last_run: "2026-09-08"
+last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-test-results.json (fonte: test-results/pest-ponto-junit.xml). Lane PHP / Pest (Ponto - MySQL) run 34215745965 em main (sha dced5fd3d8, 2026-09-08T10:32Z): 302 passed - 1 skipped - 1009 assertions, coherent=true, provou_algo=true. Li ASSERTIONS, nao a conclusion: 1009 > 0 prova que a suite rodou e nao caiu no skip-as-pass da lane (LC-13). O unico skipped da run nao e UC (o coletor trata skip como nao-pass, e os 69 vieram pass). A lane e ADVISORY: reprova e visivel, nao bloqueia merge."
 ---
 
 # Casos de Uso & Aceite — Resultado da importação AFD
@@ -31,11 +31,11 @@ last_run_ci: "5 de 5 VERDES no run 33942364334 da lane PHP / Pest (Ponto · MySQ
 
 | UC | Caso de uso | Prio | Âncora | Teste | Status |
 |----|-------------|------|--------|-------|--------|
-| UC-IMPSH-01 | Reimportar o mesmo arquivo não duplica marcação | must | `CU-PONTO-10` + US-PONTO-002 | `BancoHorasImportacaoContratoTest` | 🧪 sem veredito |
-| UC-IMPSH-02 | A dedup é do meu empregador, não global | must `[T0]` | `CU-PONTO-10` + ADR 0093 | `BancoHorasImportacaoContratoTest` | 🧪 sem veredito |
-| UC-IMPSH-03 | Importação de outro empregador → 404 | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `BancoHorasImportacaoContratoTest` | 🧪 sem veredito |
-| UC-IMPSH-04 | As contagens exibidas refletem o que foi processado | must | `CU-PONTO-11` + US-PONTO-002 | `BancoHorasImportacaoContratoTest` | 🧪 predição REFUTADA — verde na lane, sem entrada no manifesto |
-| UC-IMPSH-05 | A importação que falhou mostra o motivo da falha | must | `CU-PONTO-11` + charter §Goals | `ImportacaoShowContratoTest` | 🧪 VERDE na lane (12 assertions) |
+| UC-IMPSH-01 | Reimportar o mesmo arquivo não duplica marcação | must | `CU-PONTO-10` + US-PONTO-002 | `BancoHorasImportacaoContratoTest` | ✅ verde na lane |
+| UC-IMPSH-02 | A dedup é do meu empregador, não global | must `[T0]` | `CU-PONTO-10` + ADR 0093 | `BancoHorasImportacaoContratoTest` | ✅ verde na lane |
+| UC-IMPSH-03 | Importação de outro empregador → 404 | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `BancoHorasImportacaoContratoTest` | ✅ verde na lane |
+| UC-IMPSH-04 | As contagens exibidas refletem o que foi processado | must | `CU-PONTO-11` + US-PONTO-002 | `BancoHorasImportacaoContratoTest` | ✅ verde na lane |
+| UC-IMPSH-05 | A importação que falhou mostra o motivo da falha | must | `CU-PONTO-11` + charter §Goals | `ImportacaoShowContratoTest` | ✅ verde na lane |
 
 > ⛓ **SUPERADO em 2026-09-05 — o texto abaixo é fato datado, preservado porque a razão de os
 > quatro seguirem `🧪` MUDOU, e saber qual razão vale hoje importa.**

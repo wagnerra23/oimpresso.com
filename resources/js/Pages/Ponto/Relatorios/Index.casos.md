@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · SDD-espelho-e-jornada-v1.0.md §5.3 F8 + §6.5
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a vitrine de compliance do módulo — e a única tela cujo contrato é sobre o que ele NÃO entrega.
 owner: wagner
-last_run: "2026-08-28"
-last_run_ci: "5 UC executados na lane PHP / Pest (Ponto · MySQL): 01/02/05 verdes, 03/04 vermelhos por defeito DO TESTE (corrigidos no mesmo PR) — veredito dos 5 pendente de re-run"
+last_run: "2026-09-08"
+last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-test-results.json (fonte: test-results/pest-ponto-junit.xml). Lane PHP / Pest (Ponto - MySQL) run 34215745965 em main (sha dced5fd3d8, 2026-09-08T10:32Z): 302 passed - 1 skipped - 1009 assertions, coherent=true, provou_algo=true. Li ASSERTIONS, nao a conclusion: 1009 > 0 prova que a suite rodou e nao caiu no skip-as-pass da lane (LC-13). O unico skipped da run nao e UC (o coletor trata skip como nao-pass, e os 69 vieram pass). A lane e ADVISORY: reprova e visivel, nao bloqueia merge."
 ---
 
 # Casos de Uso & Aceite — Catálogo de relatórios
@@ -31,11 +31,11 @@ last_run_ci: "5 UC executados na lane PHP / Pest (Ponto · MySQL): 01/02/05 verd
 
 | UC | Caso de uso | Prio | Âncora | Teste | Status |
 |----|-------------|------|--------|-------|--------|
-| UC-RELIDX-01 | Relatório não implementado aparece marcado como indisponível | should | `CU-PONTO-14` + F8 | `RelatorioCatalogoContratoTest` | 🧪 sem veredito |
-| UC-RELIDX-02 | Nenhum relatório do catálogo entrega download sem aviso | should | `CU-PONTO-14` + F8 | `RelatorioCatalogoContratoTest` | 🧪 sem veredito |
-| UC-RELIDX-03 | Relatório por colaborador não gera sem um escolhido | must | `CU-PONTO-14` + Portaria 671 Art. 85 | `RelatorioCatalogoContratoTest` | 🧪 sem veredito |
-| UC-RELIDX-04 | Relatório disponível, COM os insumos que exige, leva ao gerador | must | `CU-PONTO-14` + F3/F8 | `RelatorioCatalogoContratoTest` | 🧪 sem veredito |
-| UC-RELIDX-05 | Relatório de colaborador de outro empregador é recusado | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `RelatorioCatalogoContratoTest` | 🧪 sem veredito |
+| UC-RELIDX-01 | Relatório não implementado aparece marcado como indisponível | should | `CU-PONTO-14` + F8 | `RelatorioCatalogoContratoTest` | ✅ verde na lane |
+| UC-RELIDX-02 | Nenhum relatório do catálogo entrega download sem aviso | should | `CU-PONTO-14` + F8 | `RelatorioCatalogoContratoTest` | ✅ verde na lane |
+| UC-RELIDX-03 | Relatório por colaborador não gera sem um escolhido | must | `CU-PONTO-14` + Portaria 671 Art. 85 | `RelatorioCatalogoContratoTest` | ✅ verde na lane |
+| UC-RELIDX-04 | Relatório disponível, COM os insumos que exige, leva ao gerador | must | `CU-PONTO-14` + F3/F8 | `RelatorioCatalogoContratoTest` | ✅ verde na lane |
+| UC-RELIDX-05 | Relatório de colaborador de outro empregador é recusado | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `RelatorioCatalogoContratoTest` | ✅ verde na lane |
 
 > 📋 **O que a lane disse até agora (run de 2026-08-28, commit anterior ao fix):**
 > `UC-RELIDX-01` ✓ · `UC-RELIDX-02` ✓ · `UC-RELIDX-05` ✓ · **`UC-RELIDX-03` ⨯ · `UC-RELIDX-04` ⨯**.

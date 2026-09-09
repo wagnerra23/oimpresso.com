@@ -25,8 +25,17 @@ use Modules\Whatsapp\Services\WhatsmeowReconciler;
  *     exige QR humano (invariante "reconnect tímido"; estudo channel-reliability
  *     2026-06-18, gap b: antes o whatsmeow nem era probado → queda invisível).
  *
- * Roda diariamente 03:30 (schedule em app/Console/Kernel.php). Itera Channels
- * status='active' de cada driver.
+ * Itera Channels status='active' de cada driver.
+ *
+ * ⚠️ **NÃO ESTÁ REGISTRADO NEM AGENDADO — medido em prod 2026-09-08.** Esta classe
+ * não constava do `commands([...])` do WhatsappServiceProvider (nem era importada
+ * lá), então `php artisan whatsapp:health-probe-channels` respondia "Command is not
+ * defined" e o schedule diário das 03:30 morria em CommandNotFoundException — 226
+ * linhas no laravel.log da janela observável. O agendamento órfão foi retirado
+ * naquela data; a classe ficou. Reativar = registrar no provider E reagendar, e
+ * antes disso decidir se a perna whatsmeow daqui não é redundante com
+ * `whatsmeow:health-probe` (US-WA-308, cron 3min). A perna Baileys está morta pela
+ * ADR 0202. Quem roda de fato é sempre `php artisan schedule:list`.
  *
  * Multi-tenant Tier 0 (ADR 0093):
  * - Job cross-business — `withoutGlobalScope(ScopeByBusiness)` com SUPERADMIN
@@ -54,7 +63,7 @@ use Modules\Whatsapp\Services\WhatsmeowReconciler;
  *   - HTTP error (timeout/5xx/cert inválido) → trata como state=unknown,
  *     tenta connect (fail-safe)
  *
- * @see app/Console/Kernel.php  (schedule daily 03:30)
+ * @see app/Console/Kernel.php  (onde o agendamento das 03:30 existiu até 2026-09-08)
  * @see Modules/Whatsapp/Http/Controllers/Admin/ChannelsController.php (connect/status canonical)
  * @see Modules/Whatsapp/Console/Commands/ReconnectAndImportCommand.php (Camada 4 — combo manual)
  * @see memory/requisitos/Whatsapp/SPEC.md (self-healing channels — Camada 2)
