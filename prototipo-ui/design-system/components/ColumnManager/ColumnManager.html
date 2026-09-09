@@ -1,0 +1,87 @@
+<!doctype html>
+<!-- @dsCard group="Components" name="ColumnManager" subtitle="Escolher e reordenar colunas — arrastar + ↑↓, grupos, coluna fixa, preferência salva" viewport="980x620" -->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>ColumnManager</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<style>body{margin:0}</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+</head>
+<body>
+<div class="cockpit" style="padding:18px;background:var(--bg)"><div id="root"></div></div>
+<script type="text/javascript">
+
+  const { ColumnManager, ColumnPrefs, DataGrid } = window.OfficeImpressoPontoWR2DesignSystem_019dd0;
+  const h = React.createElement;
+
+  const groups = [
+    { key: 'ident', label: 'Identificação' },
+    { key: 'valor', label: 'Valores' },
+    { key: 'fiscal', label: 'Classificação fiscal' },
+    { key: 'estoque', label: 'Estoque' },
+  ];
+  const columns = [
+    { key: 'produto', label: 'Produto / serviço', group: 'ident', fixed: true, width: '240px' },
+    { key: 'qtd', label: 'Quant.', group: 'valor', default: true, width: '84px' },
+    { key: 'preco', label: 'R$ Valor', group: 'valor', default: true, width: '104px' },
+    { key: 'desc', label: 'Desc. %', group: 'valor', default: true, width: '84px' },
+    { key: 'total', label: 'R$ Total', group: 'valor', fixed: true, width: '110px' },
+    { key: 'sku', label: 'SKU', group: 'ident', width: '110px' },
+    { key: 'un', label: 'Unidade', group: 'ident', width: '84px' },
+    { key: 'categoria', label: 'Categoria', group: 'ident', width: '130px' },
+    { key: 'ncm', label: 'NCM', group: 'fiscal', width: '104px' },
+    { key: 'cfop', label: 'CFOP', group: 'fiscal', width: '84px' },
+    { key: 'cst', label: 'CST', group: 'fiscal', width: '84px' },
+    { key: 'saldo', label: 'Saldo', group: 'estoque', width: '92px' },
+    { key: 'deposito', label: 'Depósito', group: 'estoque', width: '120px' },
+  ];
+
+  const dados = [
+    ['Banner lona 440g 3×2m', 'BN-4402', 'm²', 'Comunicação visual', 6, 148.9, 5, '3921.90.19', '5102', '00', 42, 'Galpão A'],
+    ['Adesivo vinil recorte', 'AD-VNL1', 'm²', 'Comunicação visual', 12, 62.5, 0, '3919.10.00', '5102', '00', 118, 'Galpão A'],
+    ['Cartão de visita 4×4', 'CT-1000', 'un', 'Off-set', 1000, 0.19, 10, '4911.10.10', '5101', '20', 0, 'Loja'],
+    ['Placa PS 2mm 40×60', 'PL-PS26', 'un', 'Sinalização', 8, 37.4, 0, '3920.30.00', '5102', '00', 15, 'Galpão B'],
+    ['Cardápio A4 laminado', 'CD-A4LM', 'un', 'Off-set', 40, 8.9, 5, '4911.10.90', '5101', '00', 6, 'Loja'],
+    ['Faixa lona 4×1m', 'FX-4010', 'm²', 'Comunicação visual', 4, 132.0, 0, '3921.90.19', '5102', '00', 27, 'Galpão A'],
+  ];
+  const brl = (v) => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  function Demo() {
+    const [active, setActive] = React.useState(() => ColumnPrefs.defaults(columns));
+    const visiveis = ColumnPrefs.resolve(columns, active);
+
+    const gridCols = visiveis.map((c) => ({
+      key: c.key, label: c.label, width: c.width, sortable: true,
+      align: ['qtd', 'preco', 'desc', 'total', 'saldo'].includes(c.key) ? 'right' : undefined,
+      mono: ['sku', 'ncm', 'cfop', 'cst', 'qtd', 'preco', 'desc', 'total', 'saldo'].includes(c.key) || undefined,
+      sortValue: ['qtd', 'preco', 'desc', 'total', 'saldo'].includes(c.key) ? (r) => r.cells['_' + c.key] : undefined,
+    }));
+
+    const rows = dados.map((d, i) => {
+      const [nome, sku, un, cat, qtd, preco, desc, ncm, cfop, cst, saldo, dep] = d;
+      const total = qtd * preco * (1 - desc / 100);
+      return { id: sku, cells: {
+        produto: { primary: nome, sub: sku + ' · ' + un },
+        sku, un, categoria: cat, ncm, cfop, cst, deposito: dep,
+        qtd: qtd.toLocaleString('pt-BR'), preco: brl(preco), desc: desc + '%',
+        total: brl(total), saldo: saldo === 0 ? '—' : saldo.toLocaleString('pt-BR'),
+        _qtd: qtd, _preco: preco, _desc: desc, _total: total, _saldo: saldo,
+      } };
+    });
+
+    return h('div', { style: { display: 'flex', flexDirection: 'column', gap: 16 } },
+      h('div', { style: { border: '1px solid var(--border)', borderRadius: 'var(--radius-lg, 12px)', background: 'var(--surface)', padding: 16 } },
+        h(ColumnManager, { columns, groups, active, onChange: setActive, maxHeight: 236 })),
+      h('div', { style: { border: '1px solid var(--border)', borderRadius: 'var(--radius-lg, 12px)', overflow: 'hidden' } },
+        h(DataGrid, { columns: gridCols, rows, pagination: false, maxHeight: 220, totalLabel: 'itens' }))
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+
+</script>
+</body>
+</html>
