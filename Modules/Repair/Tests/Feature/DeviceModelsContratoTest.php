@@ -70,21 +70,27 @@ afterEach(function () {
  */
 function dmLimpa(): void
 {
-    // As folhas primeiro: `device_model_id` e `status_id` sao FK, e apagar o catalogo
-    // antes deixaria folha orfa no banco compartilhado do CT 100.
-    if (Schema::hasTable('repair_job_sheets')) {
-        DB::table('repair_job_sheets')->where('job_sheet_no', 'like', '%'.DM_TAG.'%')->delete();
+    // ⚠️ Roda tambem no afterEach de teste PULADO. Na lane `modules-pest` a conexao e
+    // sqlite `:memory:` SEM migrate, entao NENHUMA destas tabelas existe: sem o guard,
+    // o delete estoura QueryException DEPOIS do skip e pinta de vermelho um teste que
+    // nem chegou a rodar. Medido no CI em 2026-09-09 (run 34346422173): 12 FAILED com
+    // "no such table: repair_device_models", em PR que nao tocava este arquivo.
+    // A ordem importa onde as tabelas existem (CT 100 / MySQL): filho antes do pai,
+    // porque `device_model_id` e `status_id` sao FK.
+    foreach ([
+        ['repair_job_sheets', 'job_sheet_no'],
+        ['repair_device_models', 'name'],
+        ['repair_statuses', 'name'],
+        ['contacts', 'name'],
+        ['brands', 'name'],
+        ['categories', 'name'],
+    ] as [$tabela, $coluna]) {
+        if (Schema::hasTable($tabela)) {
+            DB::table($tabela)->where($coluna, 'like', '%'.DM_TAG.'%')->delete();
+        }
     }
-    DB::table('repair_device_models')->where('name', 'like', '%'.DM_TAG.'%')->delete();
-    if (Schema::hasTable('repair_statuses')) {
-        DB::table('repair_statuses')->where('name', 'like', '%'.DM_TAG.'%')->delete();
-    }
-    if (Schema::hasTable('contacts')) {
-        DB::table('contacts')->where('name', 'like', '%'.DM_TAG.'%')->delete();
-    }
-    DB::table('brands')->where('name', 'like', '%'.DM_TAG.'%')->delete();
-    DB::table('categories')->where('name', 'like', '%'.DM_TAG.'%')->delete();
 }
+
 
 /**
  * Marca real do tenant. `repair_device_models.brand_id` tem FK para `brands`, então
