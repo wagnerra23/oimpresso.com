@@ -653,22 +653,47 @@ export async function defeitosDaAncora(ancoraRel, repoRoot = REPO_DEFAULT, raizL
   return { fantasmas, naoMedidos, lido: true, raiz: raizLeitura };
 }
 
+// TETO da lista de candidatos numa query ambígua. O empate real do `Ponto/Index` é de 21;
+// despejar 21 linhas afoga a única linha que importa (como sair do empate). 10 basta pra
+// reconhecer o módulo, e o resto vira contagem.
+const TETO_CANDIDATOS = 10;
+
 async function printResolve(r) {
   if (!r.ok) { console.error(`✗ ${r.query}: ${r.motivo}`); return 1; }
   if (r.avisoMangle) console.log(`⚠️ ${r.avisoMangle}`);
+  // AMBIGUIDADE do atalho — RECUSA, não escolha. Duas etapas, e a segunda é decisão [W].
+  //
+  // #7100 (2026-09-09) montou a escada de força (rota > path inteiro > sufixo > substring) e
+  // levou o erro SILENCIOSO de 14 pra 0 nos 226 atalhos. Sobraram os empates sem resposta
+  // certa (`Dashboard/Index` são 4 telas; `Ponto/Index`, 21) — e ali ele escolhia o primeiro
+  // da varredura, AVISAVA, e saía 0. O aviso era honesto, mas saía colado num `âncora ✓` com
+  // selo de frescor, e exit 0 não barra script nem agente com pressa.
+  //
+  // Decisão [W] 2026-09-09: recusar, e recusar SÓ AQUI. O `resolveAncora` segue devolvendo
+  // `ok:true` + `r.ambiguidade` DE PROPÓSITO. Degradar pra `ok:false` faria o
+  // `design-diff-lote.mjs` (:419) imprimir "sem charter resolvível pelo ancora.mjs" para uma
+  // query que resolve 21 charters — trocaria um `✓` errado por uma negativa errada, o mesmo
+  // LC-08 virado do avesso — e faria o `render-proto-baseline.mjs` (:295) LANÇAR, porque ele
+  // dá `throw` em `!r.ok` e o `--check` re-resolve a âncora de cada baseline commitado.
+  //
+  // Medido em 2026-09-09 ANTES de decidir, contra a árvore inteira (226 charters):
+  //   · uso canônico (query = `component:` do charter): 226/226 resolvem únicos, 0 ambíguos
+  //     — ou seja, esta recusa não alcança o caminho canônico;
+  //   · atalhos `Mod/Tela`: 217 distintos, 7 ambíguos (`Dashboard/Index` é o pior, 4);
+  //   · baselines commitados que o `--check` re-resolve: 0 de 9 usam query ambígua.
+  //
+  // Nada de "adivinhar melhor": sem pontuar, sem ordenar por similaridade, sem eleger o mais
+  // provável. A saída é a lista + erro; quem sabe qual das N telas quer é o humano.
+  if (r.ambiguidade) {
+    const lista = [...r.ambiguidade].sort();
+    console.error(`✗ ${r.query}: query AMBÍGUA — ${lista.length} charters casam com a mesma força. Não vou sortear um.`);
+    for (const c of lista.slice(0, TETO_CANDIDATOS)) console.error(`    ${c}`);
+    if (lista.length > TETO_CANDIDATOS) console.error(`    … e mais ${lista.length - TETO_CANDIDATOS}.`);
+    console.error('  Desambigue com o caminho .tsx completo (o `component:` do charter) ou com a rota (`page:`).');
+    return 2;
+  }
   console.log(`ÂNCORA da tela: ${r.query}`);
   console.log(`  charter:    ${r.charter}`);
-  // AMBIGUIDADE do atalho — imprimir é metade do conserto. O desempate por força resolveu
-  // os empates que TINHAM resposta certa; sobram os atalhos que 2+ telas compartilham
-  // (`Dashboard/Index` é 4 telas), onde não existe escolha correta a fazer. Aí a única
-  // saída honesta é dizer que escolheu, entre quais, e como desambiguar — em vez de um
-  // `âncora ✓` com selo de frescor sobre a tela errada (LC-08 no eixo da RESOLUÇÃO).
-  if (r.ambiguidade) {
-    console.log(`  ⚠️  ATALHO AMBÍGUO — "${r.query}" casa ${r.ambiguidade.length} charters com a mesma força.`);
-    for (const c of r.ambiguidade) console.log(`              ${c === r.charter ? '→ (escolhido)' : '  '} ${c}`);
-    console.log('              O escolhido é o PRIMEIRO da varredura, não o mais certo.');
-    console.log('              Desambigue com o caminho .tsx completo (o `component:` do charter).');
-  }
   console.log(`  tela viva:  ${r.telaViva || '—'}`);
   if (!r.ancoras.length) console.log('  âncora:     ⚠️ charter sem related_prototype nem -page.jsx — registre o protótipo');
   // `✓` só para âncora que RESOLVE em arquivo. `n/a` é uma DECLARAÇÃO ("segue o DS"),
@@ -1008,6 +1033,57 @@ async function selftest() {
     Array.isArray(rd.ambiguidade) && rd.ambiguidade.length >= 2 && rd.ambiguidade.includes(rd.charter));
   t('CONTROLE real: atalho sem empate NÃO inventa ambiguidade',
     (await resolveAncora('/financeiro/unificado')).ambiguidade === null);
+
+  // ── DESFECHO da CLI (decisão [W] 2026-09-09) — o exit code só existe na FIAÇÃO ────
+  // Os `t` acima medem o CAMPO `r.ambiguidade`, que é a API. Nenhum deles prova o que a
+  // CLI faz com ele: o exit code nasce em `process.exit(await printResolve(r))`, e um
+  // assert que chamasse `printResolve` direto mediria a FUNÇÃO, não a fiação — é a lição
+  // §5 2026-07-30 ("assert sobre helper exportado não prova contrato de pipeline"). Por
+  // isso estes rodam o CLI DE FORA, em processo próprio, e leem o `status` de verdade.
+  const { spawnSync } = await import('node:child_process');
+  const CLI_PATH = fileURLToPath(import.meta.url);
+  const cli = (...args) => spawnSync(process.execPath, [CLI_PATH, ...args], { encoding: 'utf8' });
+
+  const cAmb = cli('Dashboard/Index');
+  const saidaAmb = `${cAmb.stdout}${cAmb.stderr}`;
+  t('BITE CLI: query ambígua SAI 2 — não escolhe',
+    cAmb.status === 2);
+  t('BITE CLI: query ambígua LISTA os candidatos (2+)',
+    (saidaAmb.match(/\.charter\.md/g) || []).length >= 2);
+
+  // TETO: o empate real do Ponto é de 21 hoje. O assert NÃO fixa o 21 (a árvore muda e o
+  // teste viraria falso-vermelho) — ele cobra a RELAÇÃO: nunca mais de TETO_CANDIDATOS
+  // listados, e o excedente declarado em contagem em vez de sumir calado.
+  const cTeto = cli('Ponto/Index');
+  const listados = (cTeto.stderr.match(/\.charter\.md/g) || []).length;
+  const totalTeto = Number((cTeto.stderr.match(/— (\d+) charters casam/) || [])[1] || 0);
+  t('BITE CLI: a lista respeita o teto e DECLARA quantos ficaram de fora',
+    cTeto.status === 2 && listados <= TETO_CANDIDATOS && (totalTeto <= TETO_CANDIDATOS || /e mais \d+/.test(cTeto.stderr)));
+
+  // O dano que motivou a decisão não era o empate — era o `✓` verde com selo de frescor
+  // sobre uma tela sorteada entre N. Se ele voltar a sair, o exit 2 sozinho não conserta:
+  // quem bate o olho lê o check e segue em frente.
+  //
+  // Mede as DUAS saídas de propósito, e a do Ponto é a que MORDE. A primeira versão deste
+  // assert olhava só o `Dashboard/Index` e SOBREVIVEU à mutação que apaga o `return 2` —
+  // porque o charter que aquela query elege declara `n/a (herda PT-04)`, então ele nunca
+  // imprimiria `âncora ✓` nem selo, com defeito ou sem. Era carimbo. O `Ponto/Index` elege
+  // um charter COM `related_prototype`, e aí a mutação fica vermelha (provado por mutação
+  // em 2026-09-09). Se um dia as duas telas eleitas passarem a declarar `n/a`, este assert
+  // volta a ser carimbo — quem mexer aqui re-prova por mutação antes de confiar nele.
+  const saidaTeto = `${cTeto.stdout}${cTeto.stderr}`;
+  t('BITE CLI: query ambígua NÃO imprime veredito de âncora nem selo de frescor',
+    !/âncora ✓/.test(saidaAmb + saidaTeto) && !/frescor/.test(saidaAmb + saidaTeto));
+
+  // Os dois CONTROLES — o que resolvia antes tem que seguir resolvendo, exit 0.
+  const cForte = cli('/financeiro/unificado');
+  t('CONTROLE CLI: match FORTE segue resolvendo, exit 0',
+    cForte.status === 0 && /ÂNCORA da tela/.test(cForte.stdout));
+  // Força 1 (substring no meio: não é `page`, não é path inteiro, não é sufixo) e ÚNICO.
+  // Se a recusa vazasse pro caso de UM candidato só, este cai.
+  const cFraco = cli('Financeiro/Conc');
+  t('CONTROLE CLI: 1 match FRACO e único ainda resolve, exit 0',
+    cFraco.status === 0 && /Conciliacao\/Index\.charter\.md/.test(cFraco.stdout));
 
   // ── AS DUAS CHAVES QUE NÃO SÃO ÂNCORA (reporter, nunca promoção) ────────────
   const FX_CHARTER = [

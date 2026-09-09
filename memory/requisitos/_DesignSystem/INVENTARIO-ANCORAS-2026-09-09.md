@@ -425,9 +425,13 @@ no gate — medido `89 → 90 declaram · 90 conforme`, com `detectSignals` dand
 **Claim de ausência, as duas pernas** ([§5 2026-07-28](../../proibicoes.md) + [§5 2026-08-07](../../proibicoes.md)):
 repo — `rg -l -i --hidden -g '!.git/**'` por `usuario360` dá **46 arquivos** (0 protótipo; `--hidden` e
 sem mudam nada aqui, conferido); Cowork vivo — `DesignSync.list_files` = **771 paths**, sem nenhum
-`*rollout*`, `*qualidade*`, `*custos*` ou `*usuario360*`. O `--live-only` foi **remedido hoje**:
-**87 live-only de 771** (era 157 de 929 em 2026-09-01), e nenhum dos 87 é protótipo de tela — são
-`sync/payload.part*`, testes `.php` e `.mjs`.
+`*rollout*`, `*qualidade*`, `*custos*` ou `*usuario360*`. O `--live-only` foi **remedido hoje**
+(estava vencido, 8d): **74 live-only de 771** — era 157 de 929 em 2026-09-01. Nenhum dos 74 é
+protótipo de tela: são `sync/payload.part*`, testes `.php`, `.mjs` e o `repo/` espelhado do
+`cowork-inbox`. ⚠️ A primeira passada do dia deu **87**; o número caiu para 74 quando este PR
+rebaseou sobre o [#7141](https://github.com/wagnerra23/oimpresso.com/pull/7141), que desceu 13
+desses arquivos. Os dois valores estão certos — em bases diferentes; **74 é o medido contra a base
+deste PR**, e é por isso que o ledger se regera rodando o script, nunca editando o JSON.
 
 ⚠️ **`usuarios-page.jsx` existe no vivo e NÃO serve** — verificado abrindo, não herdado: `:1-2` diz
 *"Lista de usuários (gerenciar acessos do ERP)… Redesign do datatable legado UltimatePOS
