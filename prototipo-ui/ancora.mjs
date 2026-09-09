@@ -451,6 +451,54 @@ export async function resolveAncora(query, { repoRoot = REPO_DEFAULT, stagingDir
     }
     if (cand) ancoras.push({ tipo: `-page.jsx (bundle · ${via})`, valor: relative(stagingDir, cand).replace(/\\/g, '/'), raiz: resolve(stagingDir) });
   }
+  // 3) o MESMO -page.jsx, mas no LUGAR FIXO do repo — SEM precisar de `--staging`.
+  //
+  // O bloco de cima nasceu preso ao staging, e o arquivo saiu de lá: `bundle_source` aponta
+  // pra um `-page.jsx` que hoje está VERSIONADO em `prototipo-ui/cowork/`. Sem a flag, esta
+  // função dizia "charter sem related_prototype nem -page.jsx" pra tela cujo desenho está
+  // no git — enquanto `fonteDoCharter`/`listAll` liam o mesmo campo e respondiam o contrário.
+  // Duas portas do MESMO arquivo discordando sobre a mesma tela é defeito, não escolha.
+  //
+  // `--staging` VENCE, e o guard é sobre `ancoras` (não um `else`): quem tem staging já
+  // empurrou a perna 2 e esta não duplica; quem não tem cai aqui. Amarrar a precedência à
+  // SINTAXE do `if` faria a ordem depender de onde o bloco mora no arquivo.
+  //
+  // `raiz` = o REPO, porque é onde o arquivo está — passar o staging aqui seria reintroduzir
+  // o defeito de 2026-08-25 que o docblock de `defeitosDaAncora` cataloga.
+  //
+  // Só empurra se ABRIR: nome declarado que não está no lugar fixo NÃO vira âncora, e a
+  // ausência segue visível no ⚠️. Âncora que aponta pro vazio é pior que âncora ausente.
+  if (!ancoras.some((a) => a.tipo.startsWith('-page.jsx'))) {
+    const doBundle = mockupJsx(fm.bundle_source);
+    const declaradoFixo = doBundle || mockupJsx(fm.visual_source);
+    // O campo REAL, não o rótulo fixo: 5 das telas que esta perna resolve declaram por
+    // `visual_source`, e chamá-las de `bundle_source` seria o printer mentindo a fonte.
+    // (A perna 2 rotula sempre `bundle_source` — divergência conhecida, dela, não tocada aqui.)
+    const campo = doBundle ? 'bundle_source' : 'visual_source';
+    if (declaradoFixo && ehArquivo(resolve(raizRepo, LUGAR_FIXO, declaradoFixo))) {
+      ancoras.push({ tipo: `-page.jsx (bundle · ${campo})`, valor: `${LUGAR_FIXO}/${declaradoFixo}`, raiz: raizRepo });
+    }
+  }
+  // DEDUP por ARQUIVO RESOLVIDO — nunca por tipo de perna. As pernas são de tipos
+  // DIFERENTES por construção (`related_prototype (charter)` × `-page.jsx (bundle · …)`),
+  // então comparar `tipo` não pegaria nada. O caso real: `Sells/Index` declara os DOIS
+  // campos apontando pro mesmo `vendas-page.jsx` e passaria a imprimir a âncora duas vezes.
+  // `n/a` não resolve em arquivo (`caminhoDaAncora` devolve null), logo charter com
+  // `n/a` + `bundle_source` segue imprimindo as DUAS coisas — a declaração e a âncora.
+  // Varre PRA FRENTE e mantém a PRIMEIRA menção: a ordem do array É a precedência
+  // (`related_prototype` antes do bundle). Varrer de trás pra frente mantinha a ÚLTIMA e
+  // rebaixava o protótipo aprovado do `Sells/Index` a âncora de bundle — pego pelo controle
+  // positivo, não pela revisão, que é justamente o que ele existe pra fazer.
+  const vistos = new Set();
+  const unicas = [];
+  for (const a of ancoras) {
+    const rel = caminhoDaAncora(a.valor, a.raiz);
+    const abs = rel ? resolve(a.raiz, rel) : null; // não nomeia arquivo: nunca colide
+    if (abs && vistos.has(abs)) continue;          // 2ª menção do MESMO arquivo: some
+    if (abs) vistos.add(abs);
+    unicas.push(a);
+  }
+  ancoras.splice(0, ancoras.length, ...unicas);
   // As duas chaves que declaram fonte e NÃO são âncora (bloco do topo). Duas leituras a
   // mais, só pro charter ESCOLHIDO — nunca pros 226 da varredura. Falha de leitura degrada
   // pra lista vazia: reporter que some é aceitável, reporter que inventa não é.
@@ -1095,6 +1143,59 @@ async function selftest() {
   const lNaCita = linhaFx('/fx/na-cita');
   t('CONTROLE list: n/a que CITA arquivo real na prosa segue caminho:null (nao vira ancora)',
     !!lNaCita && lNaCita.caminho === null && lNaCita.existe === null && lNaCita.isNa === true);
+
+  // ── BITE do bundle NO LUGAR FIXO, sem `--staging` (2026-09-09) ───────────────
+  // Fixture PRÓPRIA, separada da de staging de propósito: lá o charter e o mockup têm o
+  // mesmo basename e reusá-la acoplaria os dois casos — mexer num quebraria o outro por
+  // motivo que não é o do teste. Aqui o mockup vive no LUGAR_FIXO do repo-fixture, que é
+  // exatamente a condição que a perna nova lê.
+  const fxB = join(fx, 'bundle');
+  const fxBRepo = join(fxB, 'repo');
+  const fxBStaging = join(fxB, 'staging');
+  const pages = (n) => join(fxBRepo, 'resources', 'js', 'Pages', n);
+  await mkdir(join(fxBRepo, 'prototipo-ui', 'cowork'), { recursive: true });
+  await mkdir(join(fxBStaging, 'sub'), { recursive: true });
+  for (const n of ['Fixo', 'Ausente', 'Dupla', 'Visual']) await mkdir(pages(n), { recursive: true });
+  await writeFile(join(fxBRepo, 'prototipo-ui', 'cowork', 'bundle-page.jsx'), '// no lugar fixo do repo\n', 'utf8');
+  // MESMO basename no staging: é o que permite provar QUAL das duas pernas ganhou.
+  await writeFile(join(fxBStaging, 'sub', 'bundle-page.jsx'), '// no staging\n', 'utf8');
+  const chB = (page, linhas) => ['---', `page: ${page}`, ...linhas, '---', '# fx bundle'].join('\n');
+  await writeFile(join(pages('Fixo'), 'Index.charter.md'), chB('/fxb/fixo', ['bundle_source: bundle-page.jsx']), 'utf8');
+  await writeFile(join(pages('Ausente'), 'Index.charter.md'), chB('/fxb/ausente', ['bundle_source: nao-existe-page.jsx']), 'utf8');
+  await writeFile(join(pages('Visual'), 'Index.charter.md'), chB('/fxb/visual', ['visual_source: bundle-page.jsx']), 'utf8');
+  await writeFile(join(pages('Dupla'), 'Index.charter.md'),
+    chB('/fxb/dupla', ['related_prototype: prototipo-ui/cowork/bundle-page.jsx', 'bundle_source: bundle-page.jsx']), 'utf8');
+  const soBundle = (r) => (r.ok ? r.ancoras.filter((a) => a.tipo.startsWith('-page.jsx')) : []);
+
+  const rFixo = await resolveAncora('Fixo/Index', { repoRoot: fxBRepo });
+  t('BITE bundle sem staging: `bundle_source` resolve no LUGAR_FIXO, sem a flag',
+    soBundle(rFixo).length === 1 && soBundle(rFixo)[0].valor === 'prototipo-ui/cowork/bundle-page.jsx');
+  // O defeito de 2026-08-25 catalogado em `defeitosDaAncora` foi passar o staging como raiz:
+  // o arquivo está NO GIT, então a raiz de leitura é o repo. Sem esta asserção, trocar a raiz
+  // mantém a âncora "resolvida" e o P-1 volta a medir contra o lugar errado.
+  t('BITE bundle sem staging: a raiz de leitura é o REPO (o arquivo está no git, não em staging)',
+    soBundle(rFixo).length === 1 && resolve(soBundle(rFixo)[0].raiz) === resolve(fxBRepo));
+  t('BITE bundle sem staging: o rótulo diz o campo REAL — `visual_source` não vira `bundle_source`',
+    soBundle(await resolveAncora('Visual/Index', { repoRoot: fxBRepo }))[0]?.tipo === '-page.jsx (bundle · visual_source)');
+  // CONTROLE que impede o "empurra sempre": nome declarado que NÃO abre não pode virar âncora,
+  // senão o ⚠️ de ausência some e a tela passa a exibir um ponteiro pro vazio.
+  t('CONTROLE bundle sem staging: nome declarado que NÃO está no lugar fixo não vira âncora',
+    soBundle(await resolveAncora('Ausente/Index', { repoRoot: fxBRepo })).length === 0);
+  // Precedência: `--staging` VENCE. Se o guard virasse `else` (ou sumisse), esta e a de baixo
+  // ficariam vermelhas — é o par que fixa a ordem sem depender de onde o bloco mora no arquivo.
+  const rStg = await resolveAncora('Fixo/Index', { repoRoot: fxBRepo, stagingDir: fxBStaging });
+  t('CONTROLE staging vence o fixo: com a flag, a perna é a DO STAGING (valor e raiz)',
+    soBundle(rStg).length === 1 && soBundle(rStg)[0].valor === 'sub/bundle-page.jsx'
+      && resolve(soBundle(rStg)[0].raiz) === resolve(fxBStaging));
+  t('CONTROLE staging vence o fixo: resolve UMA perna de bundle, não duas',
+    soBundle(rStg).length === 1);
+  // O caso do `Sells/Index`: os DOIS campos apontam o MESMO arquivo. Sem dedup ele imprime a
+  // âncora 2×; deduplicando por TIPO não pegaria nada (os tipos diferem por construção). E a
+  // varredura tem que ser PRA FRENTE: de trás pra frente mantém a última e rebaixa o
+  // protótipo aprovado a âncora de bundle — foi o bug que este controle pegou.
+  const rDup = await resolveAncora('Dupla/Index', { repoRoot: fxBRepo });
+  t('CONTROLE dedup: mesmo arquivo nos dois campos → UMA âncora, e é o related_prototype',
+    rDup.ok && rDup.ancoras.length === 1 && rDup.ancoras[0].tipo === 'related_prototype (charter)');
 
   // ── FRESCOR: os 4 estados + o controle que impede o selo herdado ──────────────
   // A rodada de fixture imita a forma real do ledger (date/verified/verifiedHash/staleList).
