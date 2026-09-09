@@ -30,13 +30,22 @@ export interface FxPage {
 
 // 7 sub-páginas do Fiscal — PR #1 só implementa "nfe" (segunda).
 // Restantes apontam pra "#" e ficam disabled visualmente até serem entregues.
+// RÓTULOS E ORDEM SEGUEM O PROTÓTIPO (eixo FORMA · ADR UI-0029: protótipo soberano).
+// Fonte: `prototipo-ui/cowork/fiscal-page.jsx` → `FX_TABS` — conferido em 2026-09-09
+// contra o projeto Cowork VIVO por ID (não só contra o espelho): os dois são idênticos.
+// Divergiam quatro coisas, e todas eram da tela, não do protótipo:
+//   'Cockpit' → 'Notas fiscais' · 'Certif. & Cfg.' → 'Certificado'
+//   'SPED & Livros' → 'SPED e livros' · Eventos passa a vir ANTES de Manifesto DF-e
+// O `short` é renumerado junto com a ordem para manter os dígitos 1-7 contíguos na
+// sequência visual — o listener do FxShell casa por `short`, não por posição, e os
+// casos de uso descrevem "os dígitos 1-7" (não um dígito fixo por tela).
 export const FX_PAGES: FxPage[] = [
-  { id: 'fiscal',          label: 'Cockpit',        icon: <ShieldAlert size={13} aria-hidden="true"/>, short: '1', url: '/fiscal' },
+  { id: 'fiscal',          label: 'Notas fiscais',  icon: <ShieldAlert size={13} aria-hidden="true"/>, short: '1', url: '/fiscal' },
   { id: 'nfe',             label: 'NF-e · NFC-e',   icon: <Receipt size={13} aria-hidden="true"/>,    short: '2', url: '/fiscal/nfe' },
   { id: 'nfse',            label: 'NFS-e',          icon: <FileText size={13} aria-hidden="true"/>,   short: '3', url: '/fiscal/nfse' },
-  { id: 'dfe',             label: 'Manifesto DF-e', icon: <ShieldAlert size={13} aria-hidden="true"/>,short: '4', url: '/fiscal/dfe' },
-  { id: 'fiscal_eventos',  label: 'Eventos',        icon: <RefreshCw size={13} aria-hidden="true"/>,  short: '5', url: '/fiscal/eventos' },
-  { id: 'fiscal_config',   label: 'Certif. & Cfg.', icon: <Shield size={13} aria-hidden="true"/>,     short: '6', url: '/fiscal/config' },
-  { id: 'sped',            label: 'SPED & Livros',  icon: <Archive size={13} aria-hidden="true"/>,    short: '7', url: '/fiscal/sped' },
+  { id: 'fiscal_eventos',  label: 'Eventos',        icon: <RefreshCw size={13} aria-hidden="true"/>,  short: '4', url: '/fiscal/eventos' },
+  { id: 'dfe',             label: 'Manifesto DF-e', icon: <ShieldAlert size={13} aria-hidden="true"/>,short: '5', url: '/fiscal/dfe' },
+  { id: 'fiscal_config',   label: 'Certificado',    icon: <Shield size={13} aria-hidden="true"/>,     short: '6', url: '/fiscal/config' },
+  { id: 'sped',            label: 'SPED e livros',  icon: <Archive size={13} aria-hidden="true"/>,    short: '7', url: '/fiscal/sped' },
 ];
 
