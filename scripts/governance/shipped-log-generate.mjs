@@ -8,6 +8,7 @@
  *   G2 push-direto na main      → API /commits (commits sem objeto-PR)
  *   G3 borda BRT × UTC          → coleta com margem ±1 dia, filtra por timestamp BRT (-03:00)
  *   G4 truncação silenciosa     → cross-check: soma das sub-janelas vs total_count do Search → exit 1 ao divergir
+ *   G4-bis Search inconsistente → recoleta até o cross-check fechar (a MESMA query devolveu 99 e 113; ver coletaReconciliada)
  *   G7 merged ≠ entregue        → reconcilia pares de revert (líquido zero)
  *   G9 ruído de agrupamento     → aliases de scope + normalize NFD (acento)
  *   G8 merge ≠ deploy           → cruza /api/mcp/version (SHA+data do deploy de produção) → marca 🚀 no-ar / ⏳ aguardando
@@ -105,6 +106,29 @@ export function crossCheck(collectedInUtcRange, independentTotal, anyDayHitCap) 
   const diff = Math.abs(collectedInUtcRange - independentTotal);
   if (diff > 0) return { ok: false, reason: `coletado(${collectedInUtcRange}) ≠ Search total_count(${independentTotal}) — diff ${diff}` };
   return { ok: true, reason: 'bate com total_count' };
+}
+
+/**
+ * G4-bis — a Search API do GitHub é eventualmente consistente, e o resultado curto vem SEM erro.
+ * Medido em 2026-09-09: `gh pr list --state merged --search "merged:2026-09-03"` devolveu **99**
+ * PRs numa chamada e **113** minutos depois, mesma query, exit 0 nas duas. O git local do mesmo
+ * dia tem 113. Com ~104 sub-janelas por run, um hiccup desses vira `coletado ≠ total_count` e o
+ * cron morre sem gravar (foi o que derrubou a run agendada de 2026-09-09T13:35:42Z: 4585 ≠ 4745).
+ *
+ * A correção é RECOLETAR, nunca afrouxar: o `crossCheck` segue exigindo igualdade exata, e se
+ * nenhuma tentativa fechar o gerador continua saindo 1 sem gravar registro incompleto. Custo zero
+ * no caminho feliz — a 2ª tentativa só acontece quando a 1ª já teria falhado.
+ *
+ * `tentar` e `esperar` entram por parâmetro para o teste rodar sem rede e sem relógio.
+ */
+export function coletaReconciliada(tentar, { tentativas = 3, esperar = () => {} } = {}) {
+  let ultima = null;
+  for (let i = 1; i <= tentativas; i++) {
+    if (i > 1) esperar(i);
+    ultima = { ...tentar(i), tentativa: i };
+    if (ultima.cc.ok) break;
+  }
+  return ultima;
 }
 
 /**
@@ -371,9 +395,16 @@ async function main() {
 
   const repo = resolveRepo(repoArg);
   const repoArgs = repo ? ['--repo', repo] : [];
-  const { inWindow, inUtc, anyDayHitCap } = collectPRs(repoArgs, since, until);
-  const cc = crossCheck(inUtc, independentTotal(repo, since, until), anyDayHitCap);
-  if (!cc.ok) { console.error(`✗ CROSS-CHECK FALHOU (${cc.reason}) — não gravo registro incompleto.`); process.exit(1); }
+  // G4-bis: recoleta quando o cross-check não fecha (Search eventualmente consistente — ver docblock).
+  // A espera entre tentativas deixa o índice assentar e alivia o limite secundário da Search API.
+  const dormir = (s) => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, s * 1000);
+  const { inWindow, cc, tentativa } = coletaReconciliada((i) => {
+    if (i > 1) console.error(`↻ recoletando (tentativa ${i}) — o cross-check não fechou na anterior.`);
+    const c = collectPRs(repoArgs, since, until);
+    return { ...c, cc: crossCheck(c.inUtc, independentTotal(repo, since, until), c.anyDayHitCap) };
+  }, { esperar: () => dormir(20) });
+  if (!cc.ok) { console.error(`✗ CROSS-CHECK FALHOU após ${tentativa} tentativa(s) (${cc.reason}) — não gravo registro incompleto.`); process.exit(1); }
+  if (tentativa > 1) console.error(`⚠ cross-check fechou na tentativa ${tentativa} — a Search devolveu resultado curto antes (G4-bis).`);
 
   const direct = collectDirect(repo, since, until);
   const reverted = reconcileReverts(inWindow);

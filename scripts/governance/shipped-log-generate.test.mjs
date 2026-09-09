@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import {
   parseTitle, normScope, isDS, reconcileReverts, groupByArea,
-  crossCheck, dayList, inBrtRange, markDeployed,
+  crossCheck, coletaReconciliada, dayList, inBrtRange, markDeployed,
   evalShippedHealth, parseShippedMeta, pickLiveLogs, FRESH_DAYS, SHIPPED_DIR,
 } from './shipped-log-generate.mjs';
 
@@ -110,6 +110,41 @@ t('crossCheck ok quando bate', () => assert.equal(crossCheck(50, 50, false).ok, 
 t('crossCheck FALHA quando diverge', () => assert.equal(crossCheck(49, 50, false).ok, false));
 t('crossCheck FALHA quando sub-janela bateu no teto', () => assert.equal(crossCheck(1000, 1000, true).ok, false));
 t('crossCheck ok (pulado) quando não há total independente', () => assert.equal(crossCheck(50, null, false).ok, true));
+
+// ── G4-bis: Search eventualmente consistente (99 → 113 na mesma query, medido 2026-09-09) ──
+// A recoleta NAO vira "tenta ate passar": o crossCheck segue exigindo igualdade.
+t('coletaReconciliada: fecha na 1a e nao gasta tentativa extra', () => {
+  let chamadas = 0;
+  const r = coletaReconciliada(() => { chamadas++; return { inWindow: ['a'], cc: crossCheck(50, 50, false) }; });
+  assert.equal(chamadas, 1);
+  assert.equal(r.tentativa, 1);
+  assert.equal(r.cc.ok, true);
+});
+
+t('coletaReconciliada: coleta curta na 1a e completa na 2a fecha, reportando a tentativa', () => {
+  let chamadas = 0;
+  const tentar = () => {
+    chamadas++;
+    if (chamadas === 1) return { inWindow: ['a'], cc: crossCheck(4585, 4745, false) };
+    return { inWindow: ['a', 'b'], cc: crossCheck(4745, 4745, false) };
+  };
+  const r = coletaReconciliada(tentar, { esperar: () => {} });
+  assert.equal(r.tentativa, 2);
+  assert.equal(r.cc.ok, true);
+  assert.deepEqual(r.inWindow, ['a', 'b']);
+});
+
+t('coletaReconciliada: divergencia PERSISTENTE nao e perdoada, ok:false apos esgotar', () => {
+  let chamadas = 0;
+  const tentar = () => {
+    chamadas++;
+    return { inWindow: [], cc: crossCheck(4585, 4745, false) };
+  };
+  const r = coletaReconciliada(tentar, { tentativas: 3, esperar: () => {} });
+  assert.equal(chamadas, 3);
+  assert.equal(r.tentativa, 3);
+  assert.equal(r.cc.ok, false);
+});
 
 // ── borda BRT × UTC ──
 t('inBrtRange inclui noite BRT do último dia (29/jun 01:00 UTC = 28/jun 22:00 BRT)', () => {
