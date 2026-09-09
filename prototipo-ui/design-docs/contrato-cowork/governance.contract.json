@@ -1,12 +1,12 @@
 {
-  "_nota": "Contrato de Tela do módulo Governança (ADR 0286). Trava seções, copy literal e estados das cinco vistas. Rodar advisory no contrato-de-tela.yml antes de promover a required.",
+  "_nota": "Contrato de Tela do módulo Governança (ADR 0286). Trava seções, copy literal e estados das cinco vistas. Rodar advisory no contrato-de-tela.yml antes de promover a required. O F1 tem 3 arquivos: `fonte` aponta o principal `governance-page.jsx` (o campo e resolvido por existsSync e nao aceita lista); os companheiros sao `prototipo-ui/cowork/governance-telas.jsx` e `governance-data.jsx`.",
   "cobertura_parcial": {
     "cobertas": ["Dashboard","Policies","Audit","DriftAlerts","ModuleGrades/Index"],
     "nao_cobertas": ["Custos","DsRollout","QualidadeIa","ModuleGrades/Show"],
     "motivo": "telas nascidas em producao depois do contrato; estender custa 96 KB de leitura (D-CONTRATO-9)"
   },
   "tela": "Governance/Index",
-  "fonte": "prototipo-ui/cowork/governance/governance-page.jsx + governance-telas.jsx + governance-data.jsx",
+  "fonte": "prototipo-ui/cowork/governance-page.jsx",
   "alvo": [
     "resources/js/Pages/governance/Dashboard.tsx",
     "resources/js/Pages/governance/Policies.tsx",
