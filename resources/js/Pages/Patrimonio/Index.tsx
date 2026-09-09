@@ -411,10 +411,22 @@ export default function Index({ is_admin, pode, apurado_em, kpis, porCategoria, 
               </h2>
             </Inline>
             <Grid data-contract="analises" cols={3} gap={4}>
+            {/* `uppercase tracking-wide` no selo porque o `.jc-pill` do protótipo é
+                `text-transform: uppercase` + `letter-spacing: .06em` (`chat-jana.css:78`), e
+                `.warn` usa o par `--warn-soft`/`--warn` — o mesmo que `variant="warning"`
+                resolve aqui. Mesmo idioma que o `JanaCockpit` já usa pra portar pill deste
+                bundle. O `toLowerCase()` do texto fica: é o que o protótipo faz também
+                (`patrimonio-page.jsx:176`), e o caixa-alta é do CSS, não do dado. */}
             <Painel
               titulo="Patrimônio por categoria"
               descricao="valor unitário × quantidade, por categoria"
-              selo={seloCategoria ? <Badge variant="warning">{seloCategoria}</Badge> : undefined}
+              selo={
+                seloCategoria ? (
+                  <Badge variant="warning" className="uppercase tracking-wide">
+                    {seloCategoria}
+                  </Badge>
+                ) : undefined
+              }
             >
               <Deferred data="porCategoria" fallback={<Esqueleto />}>
                 {porCategoria?.length ? (
