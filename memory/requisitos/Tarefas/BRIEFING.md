@@ -1,5 +1,9 @@
 ---
 id: requisitos-tarefas-briefing
+module: Tarefas
+status: deprecated
+updated_at: "2026-09-09"
+lifecycle: arquivado
 ---
 
 # BRIEFING — Tarefas · ⚰️ LÁPIDE (planejado, não existe)
