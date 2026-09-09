@@ -9,6 +9,9 @@
 // visual subjetivo (cor/ícone/densidade) fica com o humano (screenshot · ADR 0114) — NÃO automatizado.
 //
 // 3 modos (cada um fecha um buraco real catalogado na sessão):
+//   --merge-ref               Só com --preflight: HEAD é o merge ref de um PR (checkout@v4 em
+//                             pull_request), que JÁ contém a base — PULA a perna de ancestralidade,
+//                             que ali mede a fila do CI. As demais seguem. Ver preflight().
 //   --preflight [base]        Catraca 1 (higiene de base). Falha se <base> (default origin/main) NÃO
 //                             é ancestral de HEAD (branch atrás → rebase), ou se o worktree é órfão
 //                             (0 arquivos trackeados). Avisa se o diff remove > LIMIAR% dos arquivos
@@ -71,19 +74,45 @@ function collectTargets(alvo) {
 }
 
 // ── Catraca 1: preflight de base ──────────────────────────────────────────────
-function preflight(base = 'origin/main') {
+function preflight(base = 'origin/main', { mergeRef = false } = {}) {
   let fail = 0;
   const tracked = git('ls-files');
   const nTracked = tracked ? tracked.split('\n').filter(Boolean).length : 0;
   if (nTracked === 0) { err(`worktree órfão (0 arquivos trackeados) — base inválida pra trabalhar`); return 1; }
 
-  const isAncestor = git(`merge-base --is-ancestor ${base} HEAD`) !== null
-    && execAncestor(base);
-  if (!isAncestor) {
-    err(`branch atrás de ${base} (não-ancestral) — rebase antes de codar (\`git rebase ${base}\`)`);
-    fail++;
+  // ── perna 2: ancestralidade ────────────────────────────────────────
+  // Ela responde "minha base está velha?" — pergunta REAL no uso local, onde HEAD é a sua
+  // branch e `origin/main` é o alvo. Num CI de PULL REQUEST ela não é mensurável, e o log do
+  // runner mostra por quê: o `checkout@v4` sem `ref:` checa o MERGE REF, então o HEAD JÁ é o
+  // merge da branch com a base —
+  //     git checkout --force refs/remotes/pull/7155/merge
+  //     HEAD is now at 39339707 Merge 2a87c0e448 into 85260440cd
+  // — enquanto o `fetch +refs/heads/*` do mesmo step traz o `origin/main` de AGORA. Comparar
+  // os dois mede a FILA DO CI, não a saúde da branch. Medido em 2026-09-09: `main` a 28
+  // commits em 3h (~1/6min) e 16 min entre push e job (20:06 -> 20:22 UTC, 3 commits na
+  // janela); as últimas 20 runs em PR deram 4 failure, TODAS neste step por não-ancestral, em
+  // 4 branches distintas (uma automática, `vrt/baselines-*`). Vermelho que ninguém pode usar:
+  // o check não é required.
+  //
+  // O que NÃO fizemos, de propósito: trocar a base por `pull_request.base.sha`. O merge ref é
+  // descendente dela POR CONSTRUÇÃO, então a perna passaria a ser SEMPRE verde — trocar
+  // vermelho falso por verde falso é gate-de-teatro. Aqui ela é PULADA e o relatório DIZ que
+  // foi pulada; nunca afirma "base limpa" sem ter medido.
+  //
+  // Recorte honesto do que sobra no PR: `worktree órfão` MORDE (return 1) e `deleção em massa`
+  // AVISA (warn — nunca contou pra `fail`). É a perna 1 que cumpre o propósito declarado no
+  // cabeçalho: a assinatura de `worktree --no-checkout`.
+  if (mergeRef) {
+    warn(`ancestralidade PULADA — HEAD é o merge ref do PR (já contém a base); comparar com ${base} vivo mediria a fila do CI`);
   } else {
-    ok(`base limpa — ${base} é ancestral de HEAD`);
+    const isAncestor = git(`merge-base --is-ancestor ${base} HEAD`) !== null
+      && execAncestor(base);
+    if (!isAncestor) {
+      err(`branch atrás de ${base} (não-ancestral) — rebase antes de codar (\`git rebase ${base}\`)`);
+      fail++;
+    } else {
+      ok(`base limpa — ${base} é ancestral de HEAD`);
+    }
   }
 
   // diff de massa removida vs base (assinatura --no-checkout)
@@ -544,7 +573,7 @@ function main() {
   let fail = 0;
   if (a.includes('--preflight')) {
     const base = argVal('--preflight') && !argVal('--preflight').startsWith('--') ? argVal('--preflight') : 'origin/main';
-    fail += preflight(base);
+    fail += preflight(base, { mergeRef: a.includes('--merge-ref') });
   } else if (a.includes('--contract')) {
     // `--contract <f.json>` checa UM (é como o CI entra: um `for` no bash, um path por vez).
     // `--contract` SEM path passou a checar TODOS em vez de crashar: era o que o
