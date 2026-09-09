@@ -14,10 +14,10 @@ status: draft
 status_note: "F3 implementado"
 adr_refs: [0104, 0093, 0114, 0149]
 mwart_pattern_reuse:
-  blueprint_cowork: prototipo-ui/prototipos/inventario-migracao/visual-source.html
+  blueprint_cowork: prototipo-ui/cowork/estoque-page.jsx
   blueprint_screenshot_approval: "SYNC_LOG (pendente)"
   derived_screens: [Index]
-  divergence_from_blueprint: "Inspirado em Purchase/Index.tsx + StockTransfer/Index.tsx."
+  divergence_from_blueprint: "Regiao do blueprint: aba Ajustes (AbaAjustes). Densidade de tabela herdada de Purchase/Index.tsx."
 ---
 
 # Charter — StockAdjustment/Index.tsx
