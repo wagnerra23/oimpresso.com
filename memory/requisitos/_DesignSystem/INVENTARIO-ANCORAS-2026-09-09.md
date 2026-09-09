@@ -452,26 +452,48 @@ Eles existem **só no código** (`resources/js/Components/ui/{field-state,form-s
 **o PT-02 não é renderizável pelo DS de hoje.** O PT-03, ao contrário, usa só componentes que o DS
 tem (KpiCard · Timeline · EmptyState · DropdownMenu · Skeleton · StatusBadge) — é construível.
 
-#### Por que o protótipo não nasce neste repo (medido, não suposto)
+#### ~~Por que o protótipo não nasce neste repo~~ — ERRADO, corrigido no mesmo dia
+
+> ⚠️ **Esta subseção nasceu falsa e fica registrada, não apagada.** Eu medi os 4 destinos e conclui
+> que *"o protótipo não nasce neste repo"*. Era verdade **quando medi** e falso **quando publiquei**:
+> horas antes, no mesmo 2026-09-09, o [#7145](https://github.com/wagnerra23/oimpresso.com/pull/7145)
+> **abriu a rota** — e eu não vi porque minha base estava atrás. Foi o merge de `origin/main` que me
+> denunciou: ele trouxe `prototipos/nfe-tributacao/` e o guard passou **verde** num diretório que meu
+> próprio bite-test dizia que reprovaria. É a lápide [§5 2026-09-03](../../proibicoes.md) em ato —
+> *"lápide que declara um GAP tem prazo de validade implícito; antes de citar um gap como estado do
+> mundo, re-medir"* — cometida no dia seguinte a ela existir.
+
+**A rota existe e tem nome.** O `cowork-ssot-guard` ganhou uma **terceira lista**,
+`PROTOTIPOS_GERADOS`, cuja razão de ser é exatamente este caso — e a **direção** é o que a distingue
+das outras duas. O allowlist transitório é design que **veio** do Cowork e ainda não voltou (meta = 0);
+`PROTOTIPOS_GERADOS` é design que **nasceu aqui**, gerado pelo agente Code como designer-agente
+([ADR 0282](../../decisions/0282-protocolo-v2-colapso-ratificacao.md) §0.1), para tela sem fonte
+visual em nenhum dos dois donos. Não tem de onde ser exportado — precisa **subir**.
+
+O que sobrevive da medição original, re-conferido pós-merge:
 
 | destino | veredito |
 |---|---|
-| `prototipo-ui/prototipos/<novo>` | **bloqueado** — `cowork-ssot-guard` R3. Bite-test 2026-09-09: baseline `exit=0` → com o diretório `exit=1` → após remover `exit=0`. O allowlist se declara transitório, **meta = 0**. |
-| `prototipo-ui/cowork/` | espelho read-only ([ADR 0374](../../decisions/0374-emenda-0315-espelho-cowork-e-rota-prevista.md)); R1 proíbe `.md`, R4 proíbe `.html` novo na raiz; escrita some no próximo export. |
-| `prototipo-ui/design-system/` | **também espelho** — o próprio README: *"Espelho, não fonte. git é SSOT (ADR 0239); este projeto é vitrine derivada."* É o `DS_MIRROR_DIR` do painel. |
-| `DesignSync.write_files` | `canEdit: true` tecnicamente, mas [ADR 0315](../../decisions/0315-design-sync-claude-design-vs-cowork-charter.md) classifica escrita como **publicação externa** — `publication-policy` + R10: *"exige aprovação, não default"*. |
+| `prototipo-ui/prototipos/<slug>` **+ entrada em `PROTOTIPOS_GERADOS`** | ✅ **é a rota** — precedente `nfe-tributacao` (#7145), com `SOURCE.md` declarando proveniência, âncora de domínio e status |
+| `prototipo-ui/prototipos/<slug>` **sem** declarar na lista | ❌ R3 morde (bite-test do #7145: bom→0 · não-declarado→1 · volta→0) |
+| `prototipo-ui/cowork/` | ❌ espelho read-only ([ADR 0374](../../decisions/0374-emenda-0315-espelho-cowork-e-rota-prevista.md)) |
+| `prototipo-ui/design-system/` | ❌ **também espelho** — README: *"Espelho, não fonte"* |
+| `DesignSync.write_files` | ⚠️ publicação externa ([ADR 0315](../../decisions/0315-design-sync-claude-design-vs-cowork-charter.md) + R10) — necessária só para **subir** o desenho depois, não para gerá-lo |
 
-Isto **não** é o anti-padrão *"precisa vir do Cowork / me autorize a desenhar"* ([ADR 0282](../../decisions/0282-protocolo-v2-colapso-ratificacao.md) §0.1).
-O §0.1 manda o Code **gerar** — e diz por onde: *"via 2/3 acima"* = `DesignSync` ou o plugin Claude
-Design. A via 2 é justamente a que a 0315 reserva ao [W]. Gerar eu gero; o que falta é **onde pousar**.
+**Consequência para as 7 telas de dinheiro:** o desenho **pode e deve ser gerado agora**, na forma do
+#7145 — `SOURCE.md` + `-page.jsx` + `-page.css`, entrada em `PROTOTIPOS_GERADOS`, charters **intactos**
+(o `n/a` permanece), status **proposta de forma, não lei**. Promover a `related_prototype` é que segue
+sendo decisão [W], porque tornaria um desenho novo soberano sobre tela viva pela cadeia FORMA da
+[UI-0029](adr/ui/0029-prototipo-soberano-sobre-adr-ui.md).
 
 #### Decisões que são do [W]
 
 1. **Primitivas de form no DS** (`FormSection` · `FormGrid` · `Field` · `FieldError` · `InputGroup`) —
    sem elas o PT-02 não renderiza, e 4 das 7 telas seguem sem a fonte que declaram. Componente novo
    do DS é soberania [W] (ADR 0282 "o ouro").
-2. **Opt-in de publicação** (`OIMPRESSO_DESIGN_SYNC_OK=1` / `.design-sync-allow`) para o template
-   pousar no projeto de design. Sem ele, o artefato não tem destino durável.
+2. ~~**Opt-in de publicação** para o artefato ter destino durável~~ — **caducou** com a correção
+   acima: o destino é `prototipos/<slug>` + `PROTOTIPOS_GERADOS`. O opt-in volta a importar só no
+   passo seguinte, quando o desenho **subir** pro Cowork.
 3. **PT-03 primeiro?** É construível hoje sem (1), e destrava `TransactionPayment/Show` + o gate de
    screenshot que segura o PT-03 em `status: draft`. Depende só de (2).
 
