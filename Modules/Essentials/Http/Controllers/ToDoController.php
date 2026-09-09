@@ -7,6 +7,7 @@ use App\User;
 use App\Utils\ModuleUtil;
 use App\Utils\Util;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -103,16 +104,32 @@ class ToDoController extends Controller
             $userId = $request->integer('user_id');
             $query->whereHas('users', fn ($q) => $q->where('user_id', $userId));
         }
-        if ($request->filled('start_date') && $request->filled('end_date')) {
-            $query->whereDate('date', '>=', $request->string('start_date'))
-                ->whereDate('date', '<=', $request->string('end_date'));
+        // Range ABERTO, como o protótipo (essenciais-page.jsx:53-58 aceita `de` OU `ate`).
+        // O Blade exigia os dois; com um só campo a tela não filtrava e não avisava.
+        if ($request->filled('start_date')) {
+            $query->whereDate('date', '>=', $request->string('start_date'));
         }
+        if ($request->filled('end_date')) {
+            $query->whereDate('date', '<=', $request->string('end_date'));
+        }
+
+        // Busca do protótipo (`Buscar tarefa ou ID  ·  /`) — lá filtra `tarefa + ref`.
+        // Aqui vai ao banco porque a lista é paginada: filtrar só a página seria mentira.
+        if ($request->filled('q')) {
+            $termo = '%'.$request->string('q').'%';
+            $query->where(function ($q) use ($termo) {
+                $q->where('task', 'like', $termo)
+                    ->orWhere('task_id', 'like', $termo);
+            });
+        }
+
+        $ordem = $this->ordemValida($request->string('ordem')->toString());
 
         // Wave 25 D6.a — Inertia::defer em paginate (com transform map) + dropdownUsers
         // (forDropdown DB call). Filtros + statuses/priorities/can ficam eager (UI state).
         return Inertia::render('Essentials/Todo/Index', [
-            'todos'           => Inertia::defer(function () use ($query) {
-                $paginated = $query->orderByDesc('created_at')
+            'todos'           => Inertia::defer(function () use ($query, $ordem) {
+                $paginated = $this->aplicarOrdem($query, $ordem)
                     ->paginate(25)
                     ->withQueryString();
 
@@ -121,6 +138,8 @@ class ToDoController extends Controller
                 return $paginated;
             }),
             'filtros'         => [
+                'q'          => $request->string('q')->toString() ?: null,
+                'ordem'      => $ordem,
                 'status'     => $request->string('status')->toString() ?: null,
                 'priority'   => $request->string('priority')->toString() ?: null,
                 'user_id'    => $request->integer('user_id') ?: null,
@@ -526,6 +545,31 @@ class ToDoController extends Controller
             'delete' => (bool) $u?->can('essentials.delete_todos'),
             'assign' => (bool) $u?->can('essentials.assign_todos'),
         ];
+    }
+
+    /**
+     * Ordenações do protótipo (essenciais-page.jsx:63-68): mais recentes · prazo mais
+     * próximo · prioridade · maior esforço. Whitelist — nada vem cru do request.
+     */
+    protected function ordemValida(string $ordem): string
+    {
+        return in_array($ordem, ['recentes', 'prazo', 'prioridade', 'horas'], true)
+            ? $ordem
+            : 'recentes';
+    }
+
+    protected function aplicarOrdem(Builder $query, string $ordem): Builder
+    {
+        return match ($ordem) {
+            // NULL por último nos dois: tarefa sem prazo/sem estimativa não encabeça a lista.
+            'prazo'      => $query->orderByRaw('end_date IS NULL, end_date ASC'),
+            'prioridade' => $query->orderByRaw(
+                "FIELD(priority, 'urgent', 'high', 'medium', 'low') = 0, ".
+                "FIELD(priority, 'urgent', 'high', 'medium', 'low') ASC"
+            ),
+            'horas'      => $query->orderByRaw('estimated_hours IS NULL, estimated_hours DESC'),
+            default      => $query->orderByDesc('created_at'),
+        };
     }
 
     protected function toRowShape(ToDo $t): array
