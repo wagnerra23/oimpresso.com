@@ -558,6 +558,10 @@ class ToDoController extends Controller
             : 'recentes';
     }
 
+    /**
+     * @param  Builder<ToDo>  $query
+     * @return Builder<ToDo>
+     */
     protected function aplicarOrdem(Builder $query, string $ordem): Builder
     {
         return match ($ordem) {
