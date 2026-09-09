@@ -63,7 +63,7 @@ Conversar com a Jana (IA assistente do oimpresso) pra **consultar dados** (venda
 - ❌ Editar mensagem enviada (canon = nova mensagem)
 - ❌ Comparar respostas de múltiplos modelos lado-a-lado (não é playground)
 - ❌ Configurar system prompt por usuário (system prompt é canon do business — superadmin-only)
-- ❌ Executar SQL livre na conversa (toda ação passa por TaskProvider/tool registrado, ADR 0094)
+- ❌ Executar SQL livre na conversa (toda ação passa por uma das tools declaradas em `ChatCopilotoAgent::toolsAtivas()`, ADR 0094). ⚠️ Até 2026-09-09 esta linha dizia *"por TaskProvider/tool registrado"* e **as duas metades eram falsas**: o `TaskProvider` da Fase 4 da [ADR 0039](../../../../memory/decisions/0039-ui-chat-cockpit-padrao.md) nunca foi construído (medido em 2026-09-09 contra `origin/main`: `viewerComponent` = 0 linhas em `app/ Modules/ resources/`, com `AppShellV2` = 334 arquivos nos mesmos paths como controle positivo), e *"tool registry"* também não existe no Jana — as tools do chat são lista fixa em `toolsAtivas()`, e o `ToolRegistry` que existe é o da Forja, que o Jana não consome (medição própria do `ChatAntiHooksAcaoTest`, docblock (b))
 - ❌ Mostrar custo $ por mensagem ao usuário final (custo vai pra `/governance` — Wagner-only)
 - ❌ Histórico cross-business (cada business vê só suas threads, ADR 0093)
 - ❌ Auto-execução destrutiva sem confirmação (delete/cancel exige `confirm_required` no tool result)
