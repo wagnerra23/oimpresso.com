@@ -12,6 +12,8 @@ gerado_em: 2026-09-06
 
 **Veredito:** VIVO-À-FRENTE com 1 item a decidir — o vivo tem links de remediação e lista de alertas persistidos que o retrato não desenha; o retrato acrescenta só a nota de "escopo ilegível" (YAML).
 
+> **Decidido em 2026-09-09 — nota "Escopo ilegível" NÃO construída nesta leva.** Não é rejeição de mérito: o item é legítimo (hoje o `DriftAlertService.php:154` só loga o parse falho, e um módulo com SCOPE.md inválido some da comparação em silêncio). Mas construir exige **expor o erro no payload** — é backend, fora do intent deste PR, que fecha só os itens de front dos GAP-SPEC. Segue como item aberto, com a razão registrada em vez de esquecida.
+
 | Parte | Estado no vivo | Ação |
 |---|---|---|
 | Header / PageHeader | `DriftAlerts.tsx:65-69` — `<PageHeader icon="alert-triangle" title="Drift Alerts" description=…>` (Art. 7, `bin/check-scope.php`, cron Enforcement #5); layout `AppShellV2` em `:225`. Mockup: `governance-page.jsx:403-418` (h1 `TITULOS.drift` "Governança — drift de escopo" + subtítulo + selo) | Nada — paridade (títulos adaptados) |

@@ -9,6 +9,7 @@ import AppShellV2 from '@/Layouts/AppShellV2'
 import { Card, CardContent } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
+import { Stack } from '@/Components/layout'
 import PageHeader from '@/Components/shared/PageHeader'
 import GovernancaSubNav from '@/Pages/governance/_shared/GovernancaSubNav'
 import KpiGrid from '@/Components/shared/KpiGrid'
@@ -229,7 +230,19 @@ function ModuleGradesIndex({ grades, kpis, catalog }: Props): React.ReactElement
                 {filteredGrades.length === 0 ? (
                   <tr>
                     <td colSpan={13} className="px-4 py-8 text-center text-zinc-500">
-                      Nenhum módulo combina com o filtro.
+                      <Stack gap={2} align="center">
+                        <span>
+                          Nenhum módulo combina com o filtro. Solte a faixa ou limpe a busca para ver
+                          a lista inteira, ordenada da maior nota para a menor.
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => { setFilterBucket('Todos'); setSearch('') }}
+                        >
+                          Limpar
+                        </Button>
+                      </Stack>
                     </td>
                   </tr>
                 ) : (

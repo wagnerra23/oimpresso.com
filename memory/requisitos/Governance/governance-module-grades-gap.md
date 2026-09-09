@@ -12,6 +12,8 @@ gerado_em: 2026-09-06
 
 **Veredito:** VIVO-À-FRENTE com 1 item a decidir — o vivo tem a aba "Catálogo & Sinais", drill-down por linha, links no banner do gate e o rodapé da rubrica, nada disso no retrato; o retrato acrescenta só um botão "Limpar" no vazio de filtro.
 
+> **Decidido em 2026-09-09 — botão "Limpar" CONSTRUÍDO.** O vazio de filtro (`Index.tsx`) passou a explicar a saída e zera bucket + busca num clique, como o retrato desenha (`governance-telas.jsx:277`). Front puro: só `setFilterBucket('Todos')` + `setSearch('')`, nenhum estado novo e nenhum `localStorage` — o anti-hook "❌ NÃO armazenar localStorage filter" segue intacto. Travado por `tests/js/governance-filtros.test.tsx` (mutar o `onClick` para no-op deixa 1 caso vermelho).
+
 | Parte | Estado no vivo | Ação |
 |---|---|---|
 | Header / PageHeader | `Index.tsx:150-159` — `<Head>` + `<PageHeader title="Module Grades" subtitle=… breadcrumbs=[Governança, Module Grades]>`; layout `AppShellV2` em `:513`. Mockup: `governance-page.jsx:403-418` (h1 `TITULOS.notas` "Governança — notas dos módulos" + subtítulo + selo) | Nada — paridade (títulos adaptados; breadcrumb é detalhe do shell vivo) |
