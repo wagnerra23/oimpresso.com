@@ -430,6 +430,25 @@ node scripts/governance/cowork-mirror-freshness.mjs --compare --check    # o esp
    sinaliza 98 arquivos que existem no Cowork e não no espelho. Os nomeados na saída não incluem
    nenhum `-page.jsx`, e a lista completa não é versionada. Logo: firme sobre o shell,
    **inconclusiva sobre o vivo**.
+
+   > **Emenda 2026-09-09 (mesmo dia, sessão do bloco Atendimento) — o limite fica FECHADO para
+   > o domínio Atendimento/WhatsApp, e só para ele.** A lista do vivo passou a ser versionada:
+   > `DesignSync.list_files` no projeto por ID → `cowork-mirror-freshness --live-only --ledger`
+   > registrou a medição em [`scripts/governance/.cowork-freshness-ledger.json`](../../../scripts/governance/.cowork-freshness-ledger.json).
+   > Resultado: **87 live-only de 771 paths**, e a decomposição por bucket é o que resolve a
+   > pergunta — **44** `sync/` (partes do bundle), **33** `cowork-inbox/` (intake: teste PHP,
+   > playbook, snapshot de repo), **3** `_ds/`, **7** outros. Arquivo de design de tela
+   > (`.jsx`/`.css`/`.html` fora de intake e bundle): **1**, e é o `styles.css` do próprio `_ds`.
+   > Do domínio Atendimento/WhatsApp: **0**.
+   >
+   > ⚠️ O primeiro filtro que rodei deu **33 falsos-positivos** — todos casaram pelo prefixo
+   > `cowork-inbox/`, não pelo Inbox do WhatsApp. O número acima é o da medição refeita com o
+   > prefixo removido. Fica registrado porque a armadilha é reutilizável: `inbox` é subpalavra de
+   > um diretório de intake deste repo.
+   >
+   > **O que isto NÃO autoriza:** generalizar para os outros blocos do §5.3. A medição é do
+   > universo inteiro, mas o veredito por tela continua exigindo leitura — e nada aqui promove
+   > âncora nenhuma (§9 segue valendo).
 2. **"Porte reverso" não é mecanizável por regex.** Um detector de marcadores marcou 62 dos 199
    arquivos; ao separar marcador forte de fraco, 40 exigiram leitura humana — e a separação
    automática ela mesma errou nos dois sentidos (`forja-page.jsx` diz *"Tela = projeção do git"*,
