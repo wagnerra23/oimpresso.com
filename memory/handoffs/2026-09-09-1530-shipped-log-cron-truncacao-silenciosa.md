@@ -1,11 +1,17 @@
 ---
-data: "2026-09-09"
-hora: "15:30 BRT"
-sessao: sincronizar-governanca-playbook-386f86
-autor: "[C]"
-tipo: handoff
-cycle: CYCLE-08
+date: "2026-09-09"
+time: "15:30 BRT"
+slug: "shipped-log-cron-truncacao-silenciosa"
+tldr: "O cron falhou porque o `gh pr list` devolve resposta INCOMPLETA com rc=0 — vazia (dominante: 21 de 104 dias divergiram em 2 varreduras) e pagina perdida (100 de 106/113). A hipotese do `total_count` aproximado foi REFUTADA: ele bate com os itens paginados (101=101). A guarda `>= 1000` media o teto errado e nunca pode disparar. #7118 mergeado; 4 runs completos batendo."
+decided_by: [W]
 prs: [7118, 7122]
+cycle: "CYCLE-08"
+related_adrs: ["0130-handoff-append-only-mcp-first", "0167-errata-0130-indice-handoff-historico-longo"]
+next_steps:
+  - "[W] decide o merge do #7122 (so comentario: a defesa do alvo NAO e especifica do transporte)"
+  - "Sexta 2026-09-11 09:00 UTC — a proxima run AGENDADA do cron e o que apaga o vermelho do watchdog G6. `cron-watchdog.mjs:151` filtra `--event schedule`, entao workflow_dispatch nao conta e nada em branch muda aquele estado"
+  - "[W] decide se a lapide §5 sai, e se a guarda-com-limiar-errado e classe NOVA. O gate `governance-script-tests.yml:478` cobra marcador de recorrencia, e a propria mensagem diz que para classe nova marcador nenhum e honesto — levar ao [W] em vez de inventar a palavra"
+  - "`governance/cron-vermelho-esperado.json` NAO foi usado: havendo conserto, declarar silencio e atalho. Decisao [W] se quiser silenciar ate sexta"
 ---
 
 # shipped-log-cron: o `gh pr list` mente com `rc=0`, e o cross-check estava certo o tempo todo
@@ -86,6 +92,14 @@ pelo GraphQL e **remover o `consolidaAlvo` junto**.
    `checkout -B` sobre o remoto + `cherry-pick`, push fast-forward. Force ali descartaria o commit
    que já estava no remoto.
 5. **Comparei ambientes diferentes** (meu run local × run do CI) antes de perceber — §5 2026-07-26.
+6. **Inventei slugs de ADR** no frontmatter deste handoff (`0294-shipped-log-...`, `0317-cron-watchdog-...`).
+   Os NÚMEROS vim dos docblocks (`shipped-log-generate.mjs` cita "ADR 0294 (loop)"; `cron-watchdog.mjs`
+   cita "ADR 0317 §2"), mas os slugs eu supus — e os reais são outros: **0294** é
+   `mcp-audit-log-hash-chain-tamper-evident` e **0317** é `maquina-revisao-adr-quando-rever-gatilhos`.
+   Pego pelo gate de schema + conferência com `ls memory/decisions/`. Removidos do frontmatter;
+   ficam só os dois que verifiquei. ⚠️ Resíduo para quem passar por aqui: **os números citados nos
+   dois docblocks não batem com os títulos dos ADRs daqueles números** — não investiguei se é
+   renumeração ou citação errada na origem, e não vou afirmar qual.
 
 ## Três sessões no mesmo arquivo
 
