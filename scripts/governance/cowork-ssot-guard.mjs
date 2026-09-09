@@ -62,7 +62,9 @@ const PROTOTIPOS_HISTORICOS = new Set(['financeiro-prova-viva']);
 // Cada entrada tem SOURCE.md declarando proveniência, âncora de domínio e status.
 // 'nfe-tributacao' — 4 telas de NfeBrasil/Tributacao; ausência medida nos 2 donos em
 // 2026-09-09 (a própria fonte declara o limite: configuracoes-page.jsx:324, prefs-page.jsx:121).
-const PROTOTIPOS_GERADOS = new Set(['nfe-tributacao']);
+// 'nfse-emitir'    — Nfse/Emitir; a única emissão NFS-e desenhada é o modal dentro da venda
+// (vendas-flow.jsx:573) e o botão do cockpit só navega (fiscal-page.jsx:96). Medido 2026-09-09.
+const PROTOTIPOS_GERADOS = new Set(['nfe-tributacao', 'nfse-emitir']);
 
 const errors = [];
 
