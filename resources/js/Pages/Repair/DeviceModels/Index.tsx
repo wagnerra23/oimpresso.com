@@ -12,6 +12,7 @@ import { Button } from '@/Components/ui/button';
 import { Badge } from '@/Components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Icon } from '@/Components/Icon';
+import { Inline } from '@/Components/layout';
 
 interface ModelRow {
   id: number;
@@ -264,13 +265,13 @@ export default function DeviceModelsIndex({ filters, models, kpis, brands, devic
                     </td>
                     <td className="px-4 py-3">
                       {m.checklist_items.length > 0 ? (
-                        <div className="flex flex-wrap gap-1">
+                        <Inline wrap gap={1}>
                           {m.checklist_items.map((item) => (
                             <Badge key={item} variant="secondary" className="font-normal lowercase">
                               {item}
                             </Badge>
                           ))}
-                        </div>
+                        </Inline>
                       ) : (
                         <span className="text-muted-foreground" aria-label="Sem checklist">
                           —
