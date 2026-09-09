@@ -12,7 +12,7 @@ page: /financeiro/configuracoes/contador
 component: resources/js/Pages/Financeiro/Configuracoes/Contador.tsx
 last_validated: "2026-05-31"
 parent_module: Financeiro
-related_prototype: n/a (sem protótipo Cowork — config de acesso do contador parceiro, US-FIN-037; segue DS)
+related_prototype: n/a (sem protótipo Cowork — config de acesso do contador parceiro, US-FIN-037; segue DS)  # 2026-09-09 [C]: ausência confirmada por sonda própria: `contador|advisor` nos 3 `configuracoes-*.jsx` do espelho → rc=1, com controle positivo na mesma sonda (`configura` → 15 hits, prova que ela funciona). O `configuracoes-page.jsx:3` se declara "Configuração da empresa (BusinessController) — 16 abas", outro domínio. medido 2026-09-09 pelas 3 pernas (repo inteiro com --hidden, projeto Cowork por ID via DesignSync.list_files, espelho). Ver memory/requisitos/_DesignSystem/INVENTARIO-ANCORAS-2026-09-09.md §5.3 + §5.7.
 tier: B
 charter_version: 1
 ---
