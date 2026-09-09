@@ -1616,3 +1616,64 @@ aponta pro `PEDIDO-CL-hrm`, com as 3 frases marcadas no lugar em vez de apagadas
 `Pages/Hrm/`, teste e contrato nunca saíram do inbox, e o **PR-8 (lang PT)**, que o próprio pedido
 marcou como "pode ir sozinho e já", segue intacto: o menu do RH diz "Sair" para *licença* e "Folhas"
 para *licenças*. É o caminho mais curto pro primeiro valor, e não depende de nenhuma das 5 decisões.
+
+---
+
+## 2026-09-09 [CL] → [CC]/[W] — OficinaAuto/Vehicles: as 4 telas sem fonte de design, medidas e especificadas
+
+### Contexto
+`Modules/OficinaAuto` está em **piloto LIVE** (Martinho, `business_id=164`, ~91 veículos reais
+importados). O CRUD de Veículos é o cadastro que sustenta as OS dele, e é a única família do
+módulo **sem nenhuma fonte de design** — ausência **declarada pela própria fonte**
+(`oficina-forms.jsx:7`: *"FORA DE ESCOPO: Veículos CRUD"*).
+
+### Claim de ausência — fechada nos dois donos (2026-09-09)
+- **Repo:** `ancora.mjs` nas 4 telas → `n/a` classificado como *"declaração legítima — a tela nasce
+  do DS"*. Nenhuma âncora do repo aponta para fora de `prototipo-ui/cowork/` (medido: 88 `n/a` +
+  o resto no espelho + 1 histórica).
+- **Projeto Cowork (por ID):** `list_files` → 876 paths, zero `veiculos-*`/`vehicles-*`.
+  `--live-only --ledger` rodado no mesmo dia → **0 protótipos de tela** no vivo fora do espelho
+  (87 de 876 são shell/uploads/bundle/docs). O SLA de live-only estava vencido (8d) e foi remedido.
+
+### O que produzi (fonte de design, não pedido de fonte)
+Quatro GAP-SPEC no dono do tema (`memory/requisitos/<Mod>/*-gap.md`, 71 exemplares no repo),
+ancorados em **PT-01/02/03 + charter + componentes canon** — que é o que a ADR 0282 §0.1 manda
+fazer quando falta a fonte visual. Os quatro parseiam no `gerar-map.mjs` (8+8+6+8 = 30 partes,
+`prototipo_sha=sem-arquivo`, sem warning de âncora):
+
+- `vehicles-index-gap.md` · `vehicles-create-gap.md` · `vehicles-edit-gap.md` · `vehicles-show-gap.md`
+
+O `related_prototype: n/a` dos 4 charters **permanece** — não promovi nada a âncora falsa.
+
+### O achado que interessa ao design
+`MercosulPlate` é canon com **8 arquivos consumidores** (Sells/Create, Sells/Show,
+SellsTabelaUnificada, Board ×2, ServiceOrderKanbanCard, ServiceOrderRichSheet). As 4 telas de
+Vehicles têm **zero**. Ou seja: **a Venda mostra a placa Mercosul e o cadastro de veículos, não** —
+apesar de `Index.charter.md:34` exigir e `:56` proibir o contrário, e apesar de `:24` registrar o
+feedback do Martinho de 2026-05-26 (*"placa Mercosul ficou top"*) como diferencial vs concorrentes.
+Nenhum UC cobre a forma da placa, então não há teste disputando o charter.
+
+### Duas promessas de charter que o código não cumpre (medidas)
+1. **Create/Edit, "1 col stack em 360px"** — os 5 grids de cada tela são `grid-cols-2`/`grid-cols-3`
+   **sem prefixo de breakpoint**; não colapsam. O charter declara o alvo como *"low-end Android"*.
+2. **Index, `Inertia::defer` no count de OS** — Goal do charter, anti-pattern explícito contra o
+   eager; a tela não tem `<Deferred>`. O Show tem o mesmo débito com `service_orders` eager.
+
+### Placar contra os Padrões de Tela
+`Create`/`Edit` = **PT-02 3/10** (faixa que o próprio PT-02 marca como redesenho do corpo) ·
+`Show` = **PT-03 5/8** (a um round; o R6/FSM é `n/a` por Non-Goal declarado, não gap).
+
+### O que NÃO fiz, e por quê
+- **Não** criei protótipo `.jsx` em `prototipo-ui/prototipos/<novo>`: o `cowork-ssot-guard` R3
+  reprova (exit 1) fora do allowlist, cuja meta declarada é **zero**.
+- **Não** escrevi no espelho `prototipo-ui/cowork/`: é build-only do vivo (ADR 0374) — arquivo
+  nascido aqui vira `--unverified` e some no próximo bundle.
+- **Não** usei `DesignSync.write_files`: é **publicação externa** com opt-in [W] (ADR 0315 + R10),
+  e o §10.6 restringe a subida ao *"que já é canon"* — não é rota para design novo.
+
+### Pendências pra vocês
+- **[CC]** se/quando desenhar as 4, os GAP-SPEC acima são o briefing pronto (partes, ações e
+  componentes canon já resolvidos). O `PlacaVeiculo` do DS (`padrao`/`size`/`categoria`/`uf`) é mais
+  rico que o `MercosulPlate` vivo — convergir os dois é decisão de DS, fora do escopo da tela.
+- **[W]** as decisões marcadas "Construir ou rejeitar por escrito" nos 4 documentos; e a
+  aprovação de `Show.charter.md`, que segue `status: draft` aguardando Non-Goals + Anti-hooks.
