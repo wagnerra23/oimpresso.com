@@ -570,6 +570,9 @@ export async function resolveAncora(query, { repoRoot = REPO_DEFAULT, stagingDir
     // ADITIVO (mesmo critério de `via`/`isNa`): consumidor nenhum quebra por um campo novo,
     // e quem quiser pode decidir por conta. `null` quando a resolução foi única.
     ambiguidade,
+    // idem, ADITIVO: qual DEGRAU da escada resolveu (4 rota · 3 path inteiro · 2 sufixo ·
+    // 1 substring). O printer usa pra declarar match fraco; consumidor que ignorar não muda.
+    forca: maxForca,
     // idem: reporter puro. `[]` quando o charter não declara nenhuma das duas.
     naoAncora,
     aviso: 'ÂNCORA = um dos itens acima. audit-*.png / critique / screenshot NUNCA é âncora.',
@@ -694,6 +697,24 @@ async function printResolve(r) {
   }
   console.log(`ÂNCORA da tela: ${r.query}`);
   console.log(`  charter:    ${r.charter}`);
+  // MATCH FRACO declarado — a metade que faltava do desfecho de ambiguidade. Lá, 2+ empatados
+  // viram recusa; aqui, UM candidato resolve, mas pelo degrau mais frouxo da escada: casou como
+  // SUBSTRING (`relc.includes(q)`), não por rota, path inteiro nem sufixo. Resolver único é o
+  // que torna legítimo devolver — e continuar em exit 0; calar QUE foi frouxo é o que faz o
+  // leitor tratar palpite como medição, a mesma família do `✓` sorteado (LC-08 no eixo da
+  // RESOLUÇÃO). O playbook da thread 02 pedia exatamente isto: "resolve como hoje, exit 0, mas
+  // a saída DIZ que foi match fraco e por qual critério".
+  //
+  // Só a força 1 fala, e o silêncio é MEDIDO, não torcida — sobre a árvore inteira em
+  // 2026-09-09: query = `component:` do charter → 226/226 na força 3; query = `page:` →
+  // 226/226 na força 4; atalho `Mod/Tela` → 217/217 na força 3. Nenhuma forma legítima de
+  // consulta cai na 1, então este aviso não aparece no uso normal: ele existe pro caso em que
+  // alguém digitou um pedaço solto e mereceu o alerta.
+  if (r.forca === 1) {
+    console.log(`  ⚠️  match FRACO — "${r.query}" casou como SUBSTRING do caminho: não bate rota,`);
+    console.log('              nem caminho inteiro, nem sufixo. Resolveu ÚNICO, por isso vale — mas');
+    console.log('              confira se é esta tela; o preciso é o `component:` ou a rota (`page:`).');
+  }
   console.log(`  tela viva:  ${r.telaViva || '—'}`);
   if (!r.ancoras.length) console.log('  âncora:     ⚠️ charter sem related_prototype nem -page.jsx — registre o protótipo');
   // `✓` só para âncora que RESOLVE em arquivo. `n/a` é uma DECLARAÇÃO ("segue o DS"),
@@ -1103,6 +1124,20 @@ async function selftest() {
   const cFraco = cli('Financeiro/Conc');
   t('CONTROLE CLI: 1 match FRACO e único ainda resolve, exit 0',
     cFraco.status === 0 && /Conciliacao\/Index\.charter\.md/.test(cFraco.stdout));
+  // ...e agora DIZ que foi fraco. O par completa o de cima: aquele prova que resolve; este,
+  // que não resolve calado. Provado por mutação em 2026-09-09 (apagar o bloco deixa vermelho).
+  t('BITE CLI: match FRACO se DECLARA fraco e nomeia o critério (substring)',
+    cFraco.status === 0 && /match FRACO/.test(cFraco.stdout) && /SUBSTRING/.test(cFraco.stdout));
+  // CONTROLES do silêncio: as duas formas legítimas de consulta (rota e caminho do
+  // `component:`) resolvem forte e NÃO podem ganhar o aviso — senão ele vira ruído de fundo
+  // e para de ser lido, que é como um alerta morre.
+  t('CONTROLE CLI: match FORTE por rota NÃO ganha aviso de fraco',
+    !/match FRACO/.test(cForte.stdout));
+  const cComp = cli('resources/js/Pages/Financeiro/Conciliacao/Index.tsx');
+  t('CONTROLE CLI: query canônica (component do charter) resolve forte e SEM aviso',
+    cComp.status === 0 && !/match FRACO/.test(cComp.stdout));
+  t('CONTROLE API: a força sai no retorno — 4 pra rota, 1 pro substring',
+    (await resolveAncora('/financeiro/unificado')).forca === 4 && (await resolveAncora('Financeiro/Conc')).forca === 1);
 
   // ── AS DUAS CHAVES QUE NÃO SÃO ÂNCORA (reporter, nunca promoção) ────────────
   const FX_CHARTER = [
