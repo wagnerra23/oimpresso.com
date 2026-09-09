@@ -49,7 +49,9 @@ vi.mock('@inertiajs/react', () => ({
   usePage: () => ({ props: {} }),
 }));
 vi.mock('@/Pages/Patrimonio/_shared/PatrimonioSubNav', () => ({ default: () => null }));
-vi.mock('@/Components/shared/PageHeader', () => ({ default: () => null }));
+// O header é canon (`@/Components/PageHeader`, ADR 0189/0190) e o Index o importa como
+// export NOMEADO — mockar só `default` deixaria `PageHeader` undefined e quebraria o render.
+vi.mock('@/Components/PageHeader', () => ({ PageHeader: () => null }));
 
 import PainelPatrimonio from '@/Pages/Patrimonio/Index';
 

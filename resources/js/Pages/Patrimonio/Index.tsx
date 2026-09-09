@@ -10,7 +10,8 @@
 import * as React from 'react';
 import { Deferred } from '@inertiajs/react';
 import AppShellV2 from '@/Layouts/AppShellV2';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
+import { Icon } from '@/Components/Icon';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import EmptyState from '@/Components/shared/EmptyState';
@@ -121,10 +122,18 @@ export default function Index({ is_admin, pode, apurado_em, kpis, porCategoria, 
     <AppShellV2 title="Patrimônio">
       <div className="mx-auto max-w-7xl space-y-4 p-6">
         <div data-contract="cabecalho">
+          {/* Canon v3.8 (ADR 0189/0190). O `icon="boxes"` do header antigo vira `leading`:
+              o slot existe justamente porque o PT-04 R6 pede "ícone · título · descrição" e
+              o `title` é string — a Jana perdeu o dot da área ao migrar sem ele. Forma copiada
+              de `Home/Index.tsx:252` (o outro PT-04 com ícone lucide), não inventada aqui. */}
           <PageHeader
+            leading={
+              <span className="mr-2 inline-flex translate-y-[1px] align-middle text-muted-foreground">
+                <Icon name="boxes" size={18} strokeWidth={1.8} />
+              </span>
+            }
             title="Patrimônio"
-            description="O que a empresa tem, quanto vale e quem está com o quê."
-            icon="boxes"
+            subtitle="O que a empresa tem, quanto vale e quem está com o quê."
           />
         </div>
 
