@@ -168,10 +168,22 @@ export function recoletaSuficiente({ alvo, coletado, leitura, tentativas }) {
  *
  * ⚠️ Esta defesa NÃO é específica do transporte, e trocá-lo não a dispensa. O GraphQL
  * (`search(type:ISSUE){issueCount}`) é candidato tentador — cota separada, sem os 30/min do
- * REST —, mas no mesmo alvo uma medição independente viu 1 zero em 25 leituras com rc=0, e
- * a minha de 25 saiu 25/25 limpa: amostras compatíveis (não ver um evento de ~4% em 25 tem
- * ~36% de chance), nenhuma delas autoriza chamar o GraphQL de confiável. Se um dia o
- * transporte mudar, mude por rate limit ou ruído de 403 — nunca para remover este consolida.
+ * REST — mas ele também responde zero. Medido no mesmo alvo, 2026-09-09:
+ *
+ *   sessão irmã, N=40, corpo bruto capturado → 38 certas, **2 zeros**
+ *     {"data":{"rateLimit":{"cost":1,"remaining":2634},"search":{"issueCount":0}}}
+ *     rc=0, stderr vazio, sem chave `errors`, `cost: 1` — a query foi executada e COBRADA,
+ *     e a resposta é bem-formada. É a API respondendo 0 com sucesso, não erro engolido.
+ *   esta sessão, N=65 (25 + 40 com corpo bruto) → **zero ocorrências**
+ *
+ * A assimetria fica registrada de propósito: quem tentar reproduzir pode não conseguir, e
+ * não ver não é evidência de ausência (a ~3% esperado, 0 em 65 tem ~11% de chance; pode
+ * ainda ser dependente de token, rede ou região). O que decide não é a frequência, é que
+ * o modo EXISTE e sai com sucesso. Se um dia o transporte mudar, mude por rate limit ou
+ * ruído de 403 — nunca para remover este consolida.
+ *
+ * A premissa que a defesa assume — erro unidirecional, subestima e NUNCA acima — se sustenta
+ * em 130 leituras somadas das duas sessões: nenhuma veio acima do valor certo.
  */
 export function consolidaAlvo(primeira, segunda) {
   if (primeira == null) return segunda ?? null;
