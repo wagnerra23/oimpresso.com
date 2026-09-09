@@ -405,5 +405,32 @@ function makeGitRepo() {
   }
 }
 
+// 9. ESPELHO/DOC de design — contrato de OUTRO schema (sem `alvo`) e PULADO sob
+//    `prototipo-ui/design-docs/` e sob `prototipo-ui/cowork/` (espelho de leitura, ADR 0374),
+//    mas REPROVA fora dessas pastas. O par good/bad e o que impede o skip de virar carimbo:
+//    se alguem trocar o predicado por um `return 0` cego, o caso (c) fica vermelho.
+{
+  // schema do Cowork: tem `secoes`, NAO tem `alvo` — invalido como contrato do repo.
+  const COWORK_SCHEMA = { id: 'x', titulo: 'X', build: ['x-page.jsx'], raiz: '.x-root', secoes: [{ id: 'header' }] };
+  const casos = [
+    ['prototipo-ui/design-docs/contrato-cowork/x.contract.json', 0, 'design-docs/'],
+    ['prototipo-ui/cowork/contrato/x.contract.json', 0, 'prototipo-ui/cowork/'],
+    ['prototipo-ui/contrato/x.contract.json', 1, null],   // controle NEGATIVO: fora do espelho, morde
+  ];
+  for (const [rel, esperado, pasta] of casos) {
+    const root = mkdtempSync(join(tmpdir(), 'contrato-doc-'));
+    mkdirSync(join(root, dirname(rel)), { recursive: true });
+    writeFileSync(join(root, rel), JSON.stringify(COWORK_SCHEMA));
+    const r = node(root, ['--contract', rel]);
+    const okStatus = r.status === esperado;
+    const okMsg = esperado === 0
+      ? new RegExp(`pulado.*${pasta.replace('/', '\/')}`).test(out(r))
+      : /contrato sem `alvo`/.test(out(r));
+    check(`--contract ${rel} → exit ${esperado}${esperado === 0 ? ' (pulado)' : ' (REPROVA)'}`,
+      okStatus && okMsg, `status=${r.status} ${out(r)}`);
+    drop(root);
+  }
+}
+
 console.log(fails ? `\n❌ ${fails} regressão(ões).` : `\n✅ todos os controles passam (gate morde e libera certo).`);
 process.exit(fails ? 1 : 0);

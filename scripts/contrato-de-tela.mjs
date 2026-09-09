@@ -133,7 +133,20 @@ function loadContract(file) {
 // `design-docs/contrato-cowork/` e reprovaram por não terem `alvo`/`secoes`: são de OUTRO schema,
 // legítimos como proposta e inválidos como contrato do repo. Filtrar só o `cowork-inbox` deixaria
 // cada subpasta nova de design-docs reabrir o mesmo buraco.
-const ehDocDesign = (p) => String(p || '').split(String.fromCharCode(92)).join('/').includes('prototipo-ui/design-docs/');
+// Ampliado de novo em 2026-09-09: o mesmo buraco reabriu FORA de `design-docs/`. O
+// `prototipo-ui/cowork/` e o ESPELHO de leitura do projeto Cowork (ADR 0374) — retrato do lado
+// design, regenerado por `--export-from`, nunca contrato vigente do repo. O
+// `cowork/contrato/patrimonio.contract.json`, descido pelo #7133, e do schema do Cowork (`build`,
+// `raiz`, `screenLabel`, `ds`, sem `alvo`) e reprovou exatamente como os 3 de `contrato-cowork/`
+// haviam reprovado em 2026-08-24. O contrato VIGENTE da mesma tela existe e passa:
+// `prototipo-ui/contrato/patrimonio-index.contract.json` (mesmo #7133). Falso-negativo medido
+// ANTES de afrouxar (proibicoes §"Sempre fazer" 4): 0 — censo de `git ls-files '*.contract.json'`
+// deu 1 unico arquivo sob o espelho, e ele ja reprovava; nenhum contrato hoje VALIDO passa a ser
+// pulado. Bite-test em `contrato-de-tela.test.mjs` (pula sob o espelho, REPROVA fora dele).
+const PASTAS_DOC_DESIGN = ['prototipo-ui/design-docs/', 'prototipo-ui/cowork/'];
+const normalizaPath = (p) => String(p || '').split(String.fromCharCode(92)).join('/');
+const pastaDocDesign = (p) => PASTAS_DOC_DESIGN.find((d) => normalizaPath(p).includes(d)) || null;
+const ehDocDesign = (p) => pastaDocDesign(p) !== null;
 
 // ── Casamento de COPY: fronteira de identificador (endurecimento medido · 2026-08-25) ──
 //
@@ -171,7 +184,8 @@ function checkContract(file) {
   // monta a lista no bash e chama `--contract <path>` um a um, enquanto `--map` coleta por dentro.
   // Filtrar numa rota só deixa a outra reprovando (§5 2026-07-28 — validar UM dos modos que o CI
   // roda). Aqui embaixo passam AS DUAS.
-  if (ehDocDesign(file)) { console.log(`  (pulado: ${file} — documentação de design (design-docs/), não contrato vigente)`); return 0; }
+  const pastaDoc = pastaDocDesign(file);
+  if (pastaDoc) { console.log(`  (pulado: ${file} — documentação/espelho de design (${pastaDoc}), não contrato vigente)`); return 0; }
   const c = loadContract(file);
   const files = c.alvo.flatMap(collectTargets);
   if (!files.length) { err(`nenhum .tsx/.ts no alvo do contrato (${c.alvo.join(', ')})`); return 1; }

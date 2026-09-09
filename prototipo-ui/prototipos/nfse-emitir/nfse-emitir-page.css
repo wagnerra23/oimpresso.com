@@ -1,0 +1,121 @@
+/* nfse-emitir-page.css — Emissão de NFS-e. Cockpit V2.
+   Token-driven (claro/escuro pelo host). Prefixo .ne- pra não colidir.
+   Tokens MEDIDOS no DS (não copiados de outro protótipo — 8 dos 14 do
+   prototipos/perfil/ não existem): --bg --muted --card --border --fg --fg-2
+   --fg-3 --accent --accent-fg --accent-soft --radius --radius-lg --radius-sm.
+   Cor crua é proibida (conformance-gate = LEI). */
+
+.ne{ display:flex; flex-direction:column; min-height:100%; background:var(--bg); }
+.ne-wrap{ padding:18px 24px 24px; }
+.ne-form{ display:flex; flex-direction:column; gap:14px; max-width:900px; }
+
+/* ── Faixa de ambiente + certificado ── */
+.ne-amb{
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  padding:10px 13px; margin-bottom:14px;
+  background:var(--card); border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+}
+.ne-amb-t{ font-size:12.5px; font-weight:600; color:var(--fg); }
+.ne-amb-d{ font-size:11.5px; color:var(--fg-2); }
+.ne-amb .spacer{ margin-left:auto; }
+
+/* ── Chips ── */
+.ne-chip{
+  display:inline-flex; align-items:center; gap:5px;
+  font-size:10px; font-weight:600; letter-spacing:.02em;
+  padding:2px 8px; border-radius:999px;
+  background:var(--accent-soft); color:var(--accent);
+}
+.ne-chip.mute{ background:var(--muted); color:var(--fg-3); }
+
+/* ── Bloqueio (certificado vencido) ── */
+.ne-block{
+  display:flex; gap:10px; align-items:flex-start;
+  background:var(--muted); border:1px solid var(--border);
+  border-left:3px solid var(--accent);
+  border-radius:var(--radius); padding:12px 14px;
+  font-size:12px; color:var(--fg-2); line-height:1.5;
+}
+.ne-block b{ color:var(--fg); font-weight:600; }
+
+/* ── Card ── */
+.ne-card{
+  background:var(--card); border:1px solid var(--border);
+  border-radius:var(--radius-lg); overflow:hidden;
+}
+.ne-card-h{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:12px 14px; border-bottom:1px solid var(--border);
+}
+.ne-card-t{ display:flex; align-items:center; gap:7px; font-size:13px; font-weight:600; color:var(--fg); }
+.ne-card-b{ padding:12px 14px; }
+
+/* ── Venda de origem (modo vinculado) ── */
+.ne-venda{ display:grid; gap:10px; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); }
+.ne-vi-l{ font-size:10.5px; font-weight:600; letter-spacing:.03em; text-transform:uppercase; color:var(--fg-3); }
+.ne-vi-v{ font-size:13px; font-weight:600; color:var(--fg); margin-top:2px; }
+.ne-vi-v.num{ font-variant-numeric:tabular-nums; }
+
+/* ── Campos (PT-02) ── */
+.ne-fs{ display:grid; gap:12px; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); }
+.ne-f{ display:flex; flex-direction:column; gap:5px; min-width:0; }
+.ne-f.wide{ grid-column:1 / -1; }
+.ne-f-l{ display:flex; align-items:center; gap:5px; font-size:11.5px; font-weight:600; color:var(--fg-2); }
+.ne-f-req{ color:var(--accent); }
+.ne-f input, .ne-f select, .ne-f textarea{
+  padding:0 9px; min-width:0;
+  background:var(--card); border:1px solid var(--border);
+  border-radius:var(--radius); font-size:12.5px; color:var(--fg); outline:0;
+  font-family:inherit;
+}
+.ne-f input, .ne-f select{ height:32px; }
+.ne-f textarea{ padding:8px 9px; min-height:78px; resize:vertical; line-height:1.5; }
+.ne-f input:focus, .ne-f select:focus, .ne-f textarea:focus{ border-color:var(--accent); }
+.ne-f-hint{ display:flex; justify-content:space-between; gap:8px; font-size:10.5px; color:var(--fg-3); line-height:1.4; }
+.ne-suffix{ position:relative; display:flex; align-items:center; }
+.ne-suffix input{ flex:1 1 auto; padding-right:32px; text-align:right; font-variant-numeric:tabular-nums; }
+.ne-suffix span{ position:absolute; right:9px; font-size:11px; color:var(--fg-3); pointer-events:none; }
+.ne-prefix{ position:relative; display:flex; align-items:center; }
+.ne-prefix input{ flex:1 1 auto; padding-left:34px; text-align:right; font-variant-numeric:tabular-nums; }
+.ne-prefix span{ position:absolute; left:10px; font-size:11px; color:var(--fg-3); pointer-events:none; }
+
+/* ── Checkbox ISS retido ── */
+.ne-check{ display:flex; align-items:flex-start; gap:9px; padding:2px 0; }
+.ne-check input{ margin-top:2px; width:15px; height:15px; accent-color:var(--accent); }
+.ne-check-t{ font-size:12.5px; font-weight:600; color:var(--fg); }
+.ne-check-d{ font-size:11px; color:var(--fg-3); line-height:1.45; margin-top:1px; }
+
+/* ── Resumo do cálculo ── */
+.ne-calc{ background:var(--muted); border-top:1px solid var(--border); padding:12px 14px; }
+.ne-calc-r{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:5px 0; font-size:12px; color:var(--fg-2);
+}
+.ne-calc-r.total{
+  border-top:1px solid var(--border); margin-top:5px; padding-top:9px;
+  font-size:13px; font-weight:600; color:var(--fg);
+}
+.ne-calc-v{ font-variant-numeric:tabular-nums; font-weight:600; color:var(--fg); }
+.ne-calc-nota{ font-size:10.5px; color:var(--fg-3); margin-top:8px; line-height:1.45; }
+
+/* ── Botões ── */
+.ne-btn{
+  display:inline-flex; align-items:center; gap:6px;
+  height:32px; padding:0 12px; border-radius:var(--radius);
+  font-size:12.5px; font-weight:600; cursor:pointer;
+  background:var(--card); color:var(--fg); border:1px solid var(--border);
+}
+.ne-btn:hover{ background:var(--muted); }
+.ne-btn.primary{ background:var(--accent); color:var(--accent-fg); border-color:var(--accent); }
+.ne-btn.primary:hover{ filter:brightness(1.06); }
+.ne-btn.sm{ height:28px; padding:0 10px; font-size:12px; }
+.ne-btn[disabled]{ opacity:.5; cursor:not-allowed; }
+
+/* ── Rodapé ── */
+.ne-foot{
+  display:flex; align-items:center; justify-content:flex-end; gap:8px;
+  padding-top:12px; border-top:1px solid var(--border);
+}
+.ne-foot .spacer{ margin-right:auto; }
+.ne-foot-nota{ font-size:11px; color:var(--fg-3); }
