@@ -176,22 +176,31 @@ export default function Index({ is_admin, pode, apurado_em, kpis, porCategoria, 
                 aria-hidden
                 className="mr-2 inline-flex translate-y-[1px] align-middle text-muted-foreground"
               >
-                <Icon name="boxes" size={18} strokeWidth={1.8} />
+                {/* `database` NÃO é escolha minha: é o `glyph` que o contrato de tela do
+                    Cowork declara pra esta seção (`contrato/patrimonio.contract.json`,
+                    seção `header`, `copy.glyph`). O `boxes` que estava aqui era herança do
+                    header antigo, e sobreviveu à migração porque eu portei o ícone sem
+                    conferir a especificação — que nunca tinha descido pro repo. */}
+                <Icon name="database" size={18} strokeWidth={1.8} />
               </span>
             }
             title="Patrimônio"
             subtitle="O que a empresa tem, quanto vale e quem está com o quê."
-            /* Zona R do protótipo (`patrimonio-page.jsx:822-829`): busca + duas ações.
-               Só DUAS das três descem, e o corte é medido, não estético:
-                 · busca      → `/asset/assets?q=` — o índice de Bens LÊ `q`
-                                (`AssetController:271` e `:385`), então a busca navega de verdade.
-                 · Adicionar  → `/asset/assets/create`, a mesma rota que `Bens.tsx` já usa.
-                 · Alocar     → FICA DE FORA. `AssetAllocationController::create()` só responde
-                                dentro de `if (request()->ajax())` e cai em `null` fora dele
-                                (`:307-323`) — a rota existe e devolve página em branco. É o
-                                mesmo achado que `Alocacoes.tsx` já registra sobre create/edit
-                                daquele controller. Renderizar o botão seria a afordância falsa
-                                que o módulo proíbe; ele volta com o D-FORMS ([W]). */
+            /* Os TRÊS elementos que o contrato de tela do Cowork declara pra seção `header`
+               (`contrato/patrimonio.contract.json` → `elementos`), na ordem dele:
+                 · busca    placeholder literal do contrato → `/asset/assets?q=`. O índice de
+                            Bens LÊ `q` (`AssetController:271` e `:385`): a busca navega.
+                 · alocar   `Button variant=ghost`, perm `allocate`.
+                 · novo     `Button variant=primary`, perm `create` → `/asset/assets/create`,
+                            a mesma rota que `Bens.tsx` já usa.
+
+               DESVIO DECLARADO no destino do `alocar` — o contrato fixa copy, variante e
+               permissão, não a rota. O destino óbvio (`/asset/allocation/create`) NÃO serve:
+               `AssetAllocationController::create()` só responde dentro de
+               `if (request()->ajax())` e cai em `null` fora dele (`:307-323`), ou seja,
+               devolve página em branco — é o mesmo achado que `Alocacoes.tsx` já registra.
+               Aponta então pra LISTA de alocações, que navega de verdade. O formulário chega
+               com o `D-FORMS` ([W]); até lá o botão leva ao lugar certo sem prometer o form. */
             actions={
               <Inline gap={2} align="center">
                 <form method="GET" action="/asset/assets" role="search">
@@ -203,6 +212,9 @@ export default function Index({ is_admin, pode, apurado_em, kpis, porCategoria, 
                     className="h-8 w-56"
                   />
                 </form>
+                <Button variant="ghost" size="sm" asChild>
+                  <a href="/asset/allocation">Alocar recurso</a>
+                </Button>
                 {pode.criar ? (
                   <Button size="sm" asChild>
                     <a href="/asset/assets/create">Adicionar recurso</a>
