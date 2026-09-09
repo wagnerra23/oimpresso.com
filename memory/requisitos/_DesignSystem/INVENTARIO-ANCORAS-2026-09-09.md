@@ -532,6 +532,20 @@ e já está nomeada **dentro do código** (`NodeReader.tsx:43`: *"Port consolida
 `kb-page.jsx::ArticleReader` (Cowork)"*). Não falta âncora: falta a declaração estar num campo
 que alguma máquina leia.
 
+> **Desfecho — 2026-09-09 (mesmo dia).** O campo passou a existir e a máquina o lê. O
+> `ancora.mjs --list` agora **rotula** a linha (`auxiliar: true`), de forma **aditiva**: nenhum
+> charter some do inventário — eles *têm* âncora, só não são tela. O `design-coverage` deixou de
+> contá-los no denominador de tela e passou a listá-los à parte. Medido antes→depois:
+> `charters de página 226 → 223` · `silenciosa 4 → 1` · `declared` **intacto em 222** (os 3 tinham
+> `hasSource:false`, então nenhuma catraca se moveu; `parityLinked` segue 66).
+>
+> A classificação **não era nova**: o `integrity-check` IT2 já os havia MOVIDO para
+> `_components/` em 2026-07-09, justamente por não terem `.tsx` de página irmão. O que faltava
+> era esta porta herdar aquela decisão — e o critério saiu do dono único já existente
+> (`isAuxiliaryPagePath`, `scripts/qa/page-path.mjs`), nunca de um filtro escrito à mão aqui.
+>
+> Sobra **1** silencioso, e esse é gap de verdade: `governance/ModuleGrades/Show.charter.md`.
+
 ### 5.6 · O inventário que já existe em código e ninguém lê
 
 O melhor mapa de "o que o protótipo NÃO desenha" **já está escrito**, dos dois lados, e nenhuma
