@@ -844,11 +844,26 @@ export function fonteDoCharter(fm = {}) {
   const doBundle = mockupJsx(fm.bundle_source) || mockupJsx(fm.visual_source);
   const declaracaoNa = ehDeclaracaoNa(fm.related_prototype) ? fm.related_prototype : null;
   const bespoke = fm.related_prototype && !declaracaoNa ? fm.related_prototype : null;
-  const source = bespoke || doBundle || declaracaoNa || mockupJsx(fm.component) || null;
+  // 2026-09-09 — o 4º e ÚLTIMO fallback (`mockupJsx(fm.component)`) MORREU. Ele fazia a
+  // âncora cair na PRÓPRIA TELA quando o charter não declarava fonte: tautológico, e é o que
+  // o charter de `Repair/Settings` já recusava em prosa ("ancorar aqui seria ancorar a tela
+  // nela mesma"). Pior que inútil — dava `hasSource: true` ao `design-coverage` para tela sem
+  // design nenhum, escondendo o gap real atrás de um ✅.
+  //
+  // A remoção estava atrás da decisão D-COMPONENT do playbook da âncora, que pedia UM número:
+  // "não medi quantas linhas hoje saem com via='component'; se for >0, alguma tela perde
+  // fonte no design-coverage". Medido em 2026-09-09 sobre os 226 charters do `--list`:
+  // `related_prototype` 193 · `bundle_source/visual_source` 29 · nenhuma fonte 4 ·
+  // **`component` 0**. O ramo não resolvia NADA — era caminho morto esperando pra mentir.
+  // Prova de identidade no PR: `--list --json` byte-idêntico antes e depois (88.350 B, 222
+  // com fonte). Zero tela perdeu `hasSource`.
+  //
+  // `mockupJsx` NÃO morre: o `doBundle` acima usa, e o `reconcile-triplet.mjs:50` importa.
+  const source = bespoke || doBundle || declaracaoNa || null;
   const via = bespoke ? 'related_prototype'
     : doBundle ? 'bundle_source/visual_source'
     : declaracaoNa ? 'related_prototype'
-    : source ? 'component' : null;
+    : null;
   // o `n/a` que o bundle eclipsou — só existe quando as duas pernas estão no charter
   const naEclipsado = !bespoke && doBundle && declaracaoNa ? declaracaoNa : null;
   return { source, via, declaracaoNa, naEclipsado };
@@ -995,8 +1010,12 @@ async function selftest() {
     fonteDoCharter({ related_prototype: 'prototipo-ui/cowork/jana-merge.jsx', bundle_source: 'produtos-page.jsx' }).via === 'related_prototype');
   t('CONTROLE precedência: charter sem fonte alguma segue silencioso (gap real)',
     fonteDoCharter({}).source === null && fonteDoCharter({}).via === null);
-  t('CONTROLE precedência: fallback por component preservado',
-    fonteDoCharter({ component: 'financeiro-page.jsx (window.X)' }).via === 'component');
+  // Era `CONTROLE ... fallback por component preservado`, fixando o ramo tautológico. Ele
+  // morreu medido em 0 uso (nota em `fonteDoCharter`), e o assert vira o BITE do contrário:
+  // quem ressuscitar o fallback encontra vermelho, em vez de um controle que o abençoa.
+  const fComp = fonteDoCharter({ component: 'financeiro-page.jsx (window.X)' });
+  t('BITE: fallback tautológico por `component` NÃO ressuscita (âncora ≠ a própria tela)',
+    fComp.source === null && fComp.via === null);
   // BITE REAL contra a árvore: o charter que o defeito escondia resolve pelo bundle.
   const fmProduto = frontmatter(await read(join(REPO_DEFAULT, 'resources/js/Pages/Produto/Index.charter.md')));
   t('BITE real: Produto/Index declara n/a + bundle — e o --list agora vê o bundle',
