@@ -4,7 +4,7 @@ irmaos: Index.charter.md (lei) · memory/requisitos/AssetManagement/RUNBOOK-patr
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-09-08"
+last_run: "2026-09-09"
 ---
 
 # Casos de Uso & Aceite — Patrimonio/Index
@@ -18,6 +18,13 @@ last_run: "2026-09-08"
 > **A sub-navegação não tem UC aqui.** O `_shared/PatrimonioSubNav.tsx` é da tela de Bens
 > ([#7035](https://github.com/wagnerra23/oimpresso.com/pull/7035)), que a fundou primeiro — os
 > casos dele moram em `Bens.casos.md`. Este painel apenas a consome com `active="dashboard"`.
+>
+> **`last_run` 2026-09-08 → 2026-09-09** (o G-6 acusou `stale`): a tela trocou o header antigo
+> pelo canon v3.8. Nenhum UC daqui fala do header — os três 🧪 são sobre `—` vs `R$ 0,00` e
+> sobre decimal não arredondado — então o contrato não mudou, só precisava ser reexercido.
+> Foi: `vitest tests/js/patrimonio-painel-sem-fonte.test.tsx` **6/6 depois da mudança**, e o
+> mock migrou junto (apontava pro componente antigo). O Status de cada UC segue como estava —
+> revalidar não promove ⬜ nem 🧪 a ✅, que só o manifesto do G-7 concede.
 
 ---
 
