@@ -6,8 +6,9 @@
 // _saida-NN.md é prova IMPLÍCITA de toda thread; provas explícitas são evidência de trabalho NOVO (arquivo pré-existente não é prova — falseava "em curso").
 // Aceite T5: apagar uma prova do repo derruba X→X−1 nomeando a thread (ver teste no fim).
 
-import { readdirSync, existsSync } from 'node:fs';
+import { readdirSync, existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { compararNoRepo } from './placar-comparacao.mjs';
 
 export function descobrirIndices(root) {
   const base = 'prototipo-ui/design-docs/cowork-inbox';
@@ -16,6 +17,25 @@ export function descobrirIndices(root) {
     .filter(d => d.isDirectory())
     .map(d => `${base}/${d.name}/playbook/00-INDICE.md`)
     .filter(p => existsSync(join(root, p))).sort();
+}
+
+export function coberturaModulos(root) {
+  const porModulo = new Map(), semVinculo = [];
+  for (const p of descobrirIndices(root)) {
+    const index=JSON.parse(readFileSync(join(root,p),'utf8').match(/```json\s*\n([\s\S]*?)\n```/)[1]);
+    validarIndice(index);
+    if (!index.modulo_codigo) { semVinculo.push({modulo:null,scope:null,playbook:p,entrada:'vínculo de módulo não declarado; consultar índice',status:'não avaliado'}); continue; }
+    if (porModulo.has(index.modulo_codigo)) throw Error('Mais de um playbook para '+index.modulo_codigo);
+    porModulo.set(index.modulo_codigo,p);
+  }
+  const modulos = readdirSync(join(root,'memory/requisitos'),{withFileTypes:true})
+    .filter(d=>d.isDirectory() && existsSync(join(root,'memory/requisitos',d.name,'SCOPE.md')))
+    .map(d=>({modulo:d.name,scope:'memory/requisitos/'+d.name+'/SCOPE.md',
+      playbook:porModulo.get(d.name)||null,
+      entrada:porModulo.has(d.name)?'playbook':'contratos do módulo + design-sync',
+      status:'não avaliado'})).sort((a,b)=>a.modulo.localeCompare(b.modulo));
+  for (const m of porModulo.keys()) if (!modulos.some(r=>r.modulo===m)) throw Error('Módulo declarado sem SCOPE: '+m);
+  return [...modulos,...semVinculo];
 }
 
 import { validarIndice, avaliarExecucao, pathSeguro } from './placar-evidencia.mjs';
@@ -34,7 +54,12 @@ export function resolverPath(p, variaveis = {}) {
 }
 
 export function avaliarProva(prova, ctx) {
-  if (prova.tipo === 'execucao') return avaliarExecucao({ ...prova, path: resolverPath(prova.path, ctx.variaveis).path }, { ...ctx, resolver: p => resolverPath(p, ctx.variaveis).path });
+  if (['execucao','comparacao','revisao'].includes(prova.tipo)) {
+    const resolver = p => resolverPath(p, ctx.variaveis);
+    const paths=[prova.path,...(prova.testes || []),...(prova.fontes || []),...(prova.contrato ? [prova.contrato] : [])].map(resolver);
+    if (paths.some(p=>p.indefinida)) return {ok:false,indefinida:true,path:prova.path,motivo:'variável não decidida'};
+    return avaliarExecucao({...prova,path:resolver(prova.path).path,...(prova.contrato?{contrato:resolver(prova.contrato).path}:{})}, {...ctx,resolver:p=>resolver(p).path});
+  }
   // `um_de` usa `paths` (plural) e basta UMA existir — é como o schema expressa
   // "flat Licencas.tsx OU pasta Licencas/Index.tsx, quem decide é o criar-tela.mjs".
   // Tem de vir ANTES do resolverPath: sem `prova.path`, o replace estourava.
@@ -71,7 +96,7 @@ export function avaliar(indice, ctx) {
   const linhas = indice.threads.map((t) => {
     const provas = t.provas.map((p) => ({ ...p, ...avaliarProva(p, { ...ctx, thread: t, saidaPath: `${dir}/_saida-${t.id}.md`, variaveis: indice.variaveis || {} }) }));
     const saida = ctx.existe(`${dir}/_saida-${t.id}.md`);
-    const provasOk = provas.every((p) => p.ok) && provas.some(p => p.tipo === 'execucao' && p.ok);
+    const provasOk = provas.every((p) => p.ok) && provas.some(p => ['execucao','comparacao','revisao'].includes(p.tipo) && p.ok);
     const decisPend = (t.depende_decisoes || []).filter((id) => !(decis[id] && decis[id].respondida));
     let estado;
     if (t.bloqueio) estado = "bloqueada";
@@ -80,7 +105,7 @@ export function avaliar(indice, ctx) {
     const l = { id: t.id, titulo: t.titulo, dono: t.dono, vaga: t.vaga ?? null, estado, saida, provas, decisPend,
       pronto: saida && provasOk, executavel: false,
       depende_threads: t.depende_threads || [], ausentes: provas.filter((p) => !p.ok).map((p) => `${p.path} (${p.motivo})`) };
-    if (!provas.some(p => p.tipo === 'execucao')) l.ausentes.push('sem recibo de execução — estrutura não prova entrega');
+    if (!provas.some(p => ['execucao','comparacao','revisao'].includes(p.tipo))) l.ausentes.push('sem evidência de conclusão — estrutura não prova entrega');
     byId[t.id] = l; return l;
   });
   // Resolve em ordem topológica: recibo verde também depende das predecessoras.
@@ -113,6 +138,10 @@ if (isMain) {
   const fs = await import("node:fs"); const path = await import("node:path"); const { globSync } = await import("node:fs");
   const arg = (k, d) => { const i = process.argv.indexOf(k); return i > -1 ? process.argv[i + 1] : d; };
   const root = path.resolve(arg("--root", "."));
+  if (process.argv.includes('--modulos')) {
+    try { console.log(JSON.stringify(coberturaModulos(root),null,2)); process.exit(0); }
+    catch (e) {console.error(e.message);process.exit(2);}
+  }
   const todos = process.argv.includes('--todos');
   const padrao = arg('--todos');
   let alvos;
@@ -121,7 +150,7 @@ if (isMain) {
     alvos = globSync(padrao, { cwd: root });
   } else alvos = todos ? descobrirIndices(root) : [arg('--indice')].filter(Boolean);
   if (!alvos.length) { console.error('Nenhum índice selecionado; use --indice <arquivo> ou --todos'); process.exit(2); }
-  const ctxBase = { existe: (p) => fs.existsSync(path.join(root, p)), ler: (p) => fs.readFileSync(path.join(root, p), "utf8") };
+  const ctxBase = { comparar: (r,p) => compararNoRepo(root,r,p), existe: (p) => fs.existsSync(path.join(root, p)), ler: (p) => fs.readFileSync(path.join(root, p), "utf8") };
   let exit = 0;
   for (const idxPath of alvos) {
     // A fonte é o PRIMEIRO bloco ```json embutido no 00-INDICE.md — só .md roteia pelo

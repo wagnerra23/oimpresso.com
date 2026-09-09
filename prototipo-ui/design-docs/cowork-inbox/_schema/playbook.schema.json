@@ -10,6 +10,7 @@
     "$schema": { "type": "string" },
     "constituicao": { "type": "string" },
     "nota_caminho": { "type": "string" },
+    "modulo_codigo": { "type": "string" },
     "modulo": { "type": "string", "minLength": 1 },
     "sha": { "type": "string", "pattern": "^[0-9a-f]{7,40}$", "description": "árvore/commit do main lida quando o playbook nasceu" },
     "gerado": { "type": "string", "format": "date" },
@@ -65,21 +66,30 @@
               "type": "object",
               "required": ["tipo"],
               "allOf": [
-                { "if": { "properties": { "tipo": { "const": "execucao" } } }, "then": { "required": ["testes"] } },
-                { "if": { "properties": { "tipo": { "const": "um_de" } } }, "then": { "required": ["paths"], "not": { "required": ["path"] } }, "else": { "required": ["path"], "not": { "required": ["paths"] } } },
-                { "if": { "properties": { "tipo": { "enum": ["contem", "nao_contem"] } } }, "then": { "required": ["padrao"], "properties": { "padrao": { "minLength": 1 } } } },
-                { "if": { "properties": { "tipo": { "const": "json_com_chaves" } } }, "then": { "required": ["chaves"], "properties": { "chaves": { "minItems": 1 } } } }
+                {"if":{"properties":{"tipo":{"const":"execucao"}}},"then":{"required":["testes"]}},
+                {"if":{"properties":{"tipo":{"const":"um_de"}}},"then":{"required":["paths"],"not":{"required":["path"]}},"else":{"required":["path"],"not":{"required":["paths"]}}},
+                {"if":{"properties":{"tipo":{"enum":["contem","nao_contem"]}}},"then":{"required":["padrao"],"properties":{"padrao":{"minLength":1}}}},
+                {"if":{"properties":{"tipo":{"const":"json_com_chaves"}}},"then":{"required":["chaves"],"properties":{"chaves":{"minItems":1}}}},
+                {"if":{"properties":{"tipo":{"const":"revisao"}}},"then":{"required":["fontes","criterios"]}},
+                {"if":{"properties":{"tipo":{"const":"comparacao"}}},"then":{"required":["fontes","contrato","dimensoes"]}},
+                {"if":{"required":["formato"],"properties":{"formato":{"const":"playwright-json"}}},"then":{"required":["raiz_testes"],"properties":{"tipo":{"const":"execucao"}}}}
               ],
               "additionalProperties": false,
               "properties": {
-                "tipo": { "type": "string", "enum": ["arquivo", "ausente", "contem", "nao_contem", "json_com_chaves", "um_de", "execucao"] },
-                "path": { "type": "string" },
-                "paths": { "type": "array", "minItems": 1, "items": { "type": "string" } },
-                "guarda": { "type": "boolean" },
-                "testes": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string" } },
-                "padrao": { "type": "string", "description": "contem/nao_contem: texto literal procurado" },
-                "chaves": { "type": "array", "items": { "type": "string" }, "description": "json_com_chaves: chaves obrigatórias no topo (ex.: alvo, secoes)" },
-                "nota": { "type": "string" }
+                "tipo": {"type":"string","enum":["arquivo","ausente","contem","nao_contem","json_com_chaves","um_de","execucao","revisao","comparacao"]},
+                "path": {"type":"string"},
+                "paths": {"type":"array","minItems":1,"items":{"type":"string"}},
+                "guarda": {"type":"boolean"},
+                "testes": {"type":"array","minItems":1,"uniqueItems":true,"items":{"type":"string"}},
+                "padrao": {"type":"string","description":"contem/nao_contem: texto literal procurado"},
+                "chaves": {"type":"array","items":{"type":"string"},"description":"json_com_chaves: chaves obrigatórias no topo (ex.: alvo, secoes)"},
+                "nota": {"type":"string"},
+                "formato": {"enum":["junit-summary","playwright-json"]},
+                "raiz_testes": {"type":"string"},
+                "fontes": {"type":"array","minItems":1,"uniqueItems":true,"items":{"type":"string"}},
+                "criterios": {"type":"array","minItems":1,"uniqueItems":true,"items":{"type":"string","minLength":1}},
+                "contrato": {"type":"string"},
+                "dimensoes": {"type":"array","minItems":1,"uniqueItems":true,"items":{"enum":["D2","D4","D6","D8","D9","SHELL"]}}
               }
             }
           }

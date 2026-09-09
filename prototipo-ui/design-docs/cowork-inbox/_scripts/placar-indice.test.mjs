@@ -1,11 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, mkdtempSync, writeFileSync, unlinkSync, rmdirSync } from 'node:fs';
+import { compararNoRepo } from './placar-comparacao.mjs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
-import { avaliar, proximas, descobrirIndices } from './placar-indice.mjs';
+import { avaliar, proximas, descobrirIndices, coberturaModulos } from './placar-indice.mjs';
 import { hash, validarIndice } from './placar-evidencia.mjs';
 
 function fixture() {
@@ -123,3 +124,84 @@ for (const [nome, assertions, esperado] of [['PHPUnit', ' assertions="2"', 1], [
   } finally { unlinkSync(xml); rmdirSync(dir); }
  });
 }
+
+function playwrightFixture() {
+ const f=fixture();f.indice.threads[0].provas[1].formato='playwright-json';
+ f.indice.threads[0].provas[1].raiz_testes='.';
+ f.files['summary.json']=JSON.stringify({errors:[],stats:{expected:1,unexpected:0,flaky:0,skipped:0},
+   suites:[{specs:[{file:'test.php',ok:true,tests:[{expectedStatus:'passed',status:'expected',results:[{status:'passed',retry:0,errors:[]}]}]}]}]});
+ f.receipt();return f;
+}
+test('Playwright: aceita o formato nativo sem inventar assertions',()=>assert.equal(playwrightFixture().run().feito,1));
+for(const erro of ['skip','flaky','zero','arquivo','retry','error','failed','sem-results']) test('Playwright recusa '+erro,()=>{
+ const f=playwrightFixture(),s=JSON.parse(f.files['summary.json']);const t=s.suites[0].specs[0].tests[0];
+ if(erro==='skip')s.stats.skipped=1;
+ if(erro==='flaky')t.status='flaky';
+ if(erro==='zero')s.stats.expected=0;
+ if(erro==='arquivo')s.suites[0].specs[0].file='outro.php';
+ if(erro==='retry')t.results[0].retry=1;
+ if(erro==='error')s.errors.push({message:'falhou'});
+ if(erro==='failed')t.results[0].status='failed';
+ if(erro==='sem-results')t.results=[];
+ f.files['summary.json']=JSON.stringify(s);f.receipt();assert.equal(f.run().feito,0);
+});
+function revisaoFixture() {
+ const f=fixture();f.indice.threads[0].prefixo=['parecer.md'];
+ f.indice.threads[0].provas=[{tipo:'revisao',path:'revisao.json',fontes:['parecer.md'],criterios:['rotas','limites']}];
+ f.files['parecer.md']='levantamento';
+ f.files['revisao.json']=JSON.stringify({thread:'01',revisor:'revisor-teste',resultado:'aprovado',
+  criterios:['rotas','limites'].map(id=>({id,resultado:'aprovado',justificativa:'Conferido no levantamento'})),
+  arquivos:Object.fromEntries(['parecer.md','pb/_saida-01.md'].map(p=>[p,hash(f.files[p])]))});
+ return f;
+}
+test('revisão documental conclui e libera dependência',()=>{
+ const f=revisaoFixture();f.indice.threads.push({id:'02',titulo:'Seguinte',dono:'CL',arquivo:'02.md',prefixo:[],provas:[],depende_threads:['01']});
+ assert.equal(f.run().feito,1);assert.equal(f.run().linhas[1].executavel,true);
+});
+for(const erro of ['codigo','fonte-stale','criterio','reprovado','outra-thread']) test('revisão recusa '+erro,()=>{
+ const f=revisaoFixture(),r=JSON.parse(f.files['revisao.json']);
+ if(erro==='codigo')f.indice.threads[0].prefixo=['controller.php'];
+ if(erro==='fonte-stale')f.files['parecer.md']+='modificado';
+ if(erro==='criterio')r.criterios.pop();
+ if(erro==='reprovado')r.resultado='reprovado';
+ if(erro==='outra-thread')r.thread='02';
+ f.files['revisao.json']=JSON.stringify(r);assert.equal(f.run().feito,0);
+});
+test('comparação exige snapshots, contrato, fontes atuais e comparador verde',()=>{
+ const f=fixture();f.indice.threads[0].provas=[{tipo:'comparacao',path:'visual.json',fontes:['service.php'],contrato:'tela.contract.json',dimensoes:['D2']}];
+ for(const p of ['prod.json','proto.json','tela.contract.json'])f.files[p]='{}';
+ f.files['visual.json']=JSON.stringify({thread:'01',producao:'prod.json',prototipo:'proto.json',arquivos:Object.fromEntries(Object.entries(f.files).map(([p,v])=>[p,hash(v)]))});
+ assert.equal(f.run().feito,0);
+ f.ctx.comparar=()=>true;assert.equal(f.run().feito,1);
+ f.ctx.comparar=()=>false;assert.equal(f.run().feito,0);
+ f.ctx.comparar=()=>true;f.files['proto.json']='alterado';assert.equal(f.run().feito,0);
+});
+test('inventário inclui módulos sem playbook sem afirmar conclusão',()=>{
+ const r=coberturaModulos(fileURLToPath(new URL('../../../../',import.meta.url)));
+ assert.ok(r.length>descobrirIndices(fileURLToPath(new URL('../../../../',import.meta.url))).length);
+ assert.ok(r.some(m=>m.modulo==='AssetManagement'&&m.playbook));
+ assert.ok(r.some(m=>m.modulo==='Financeiro'&&!m.playbook));
+ assert.ok(r.some(m=>m.modulo===null && m.playbook.endsWith('/ancora/playbook/00-INDICE.md')));
+ assert.ok(r.every(m=>m.status==='não avaliado'));
+});
+
+test('comparador canônico real: igualdade passa; tema, identidade e bug recusam',()=>{
+ const root=fileURLToPath(new URL('../../../../',import.meta.url));
+ const dir=mkdtempSync(join(root,'.placar-visual-'));
+ const prefix=dir.slice(root.length).replaceAll('\\','/');
+ const paths=['prod.json','proto.json','tela.contract.json'];
+ const receipt={producao:prefix+'/prod.json',prototipo:prefix+'/proto.json'};
+ const prova={contrato:prefix+'/tela.contract.json',dimensoes:['D2','SHELL']};
+ const prod={url:'https://oimpresso.com/asset/dashboard',theme:'dark',assinatura:'Titulo da prova',roles:{
+  filterRows:1,kpi:{tag:'DIV',count:1,overflowX:false,items:[{textAlign:'left',smallAlign:'left',valueFontPx:20}]},
+  shell:{papeis:{menu:{n:1,css:{fontSize:'13px'},caixa:{w:200,h:40},icone:null}},atalhos:[]}}};
+ const design=structuredClone(prod);design.url='https://claude.ai/design/fixture';
+ try {
+  writeFileSync(join(dir,paths[0]),JSON.stringify(prod));
+  writeFileSync(join(dir,paths[2]),JSON.stringify({secoes:[{id:'titulo',copy:['Titulo da prova']}]}));
+  writeFileSync(join(dir,paths[1]),JSON.stringify(design));assert.equal(compararNoRepo(root,receipt,prova),true);
+  design.theme='light';writeFileSync(join(dir,paths[1]),JSON.stringify(design));assert.equal(compararNoRepo(root,receipt,prova),false);
+  design.theme='dark';design.assinatura='Outra tela';writeFileSync(join(dir,paths[1]),JSON.stringify(design));assert.equal(compararNoRepo(root,receipt,prova),false);
+  design.assinatura='Titulo da prova';design.roles.kpi.count=2;writeFileSync(join(dir,paths[1]),JSON.stringify(design));assert.equal(compararNoRepo(root,receipt,prova),false);
+ } finally {for(const p of paths)unlinkSync(join(dir,p));rmdirSync(dir);}
+});

@@ -9,7 +9,8 @@ passou a exigir também uma prova `execucao`, com `path` para o recibo JSON abai
 `testes` listando os arquivos de teste exigidos pelo plano. O recibo não escolhe a suíte.
 Saídas antigas continuam como registro histórico; sem recibo verificável são “em curso”
 (retomar/validar), não uma afirmação de que a correção antiga deixou de existir.
-Tarefas de medição sem teste automatizado também não recebem fechamento automático.
+Desde 09/09/2026, revisão documental e comparação medida têm contratos próprios abaixo.
+Todas as provas declaradas são obrigatórias; uma comparação não substitui o E2E declarado.
 
 ## Recibo de execução
 
@@ -65,10 +66,52 @@ o mesmo inventário; um novo módulo com playbook passa a ser validado automatic
 Nenhum índice selecionado ou índice inválido retorna 2, nunca verde por universo vazio.
 O glob opcional depende de Node >=22; sem padrão, --todos funciona no Node 20 do CI.
 
-Leitura de schema/grafo não é cobertura dos fluxos de negócio. A prova execucao atual
-consome o resumo PHPUnit/Pest com contagem de assertions. Não aceita automaticamente
-JUnit de E2E sem esse campo, saída TAP/Node, comparação visual nem parecer documental.
-Essas tarefas precisam de um contrato de evidência apropriado; até lá ficam sem
-fechamento certificado. Não converter exitCode=0 em assertions inventadas.
-Módulos sem playbook não pertencem ao universo deste placar; verificar sua aplicação
-por scripts/design-sync/status.mjs e os contratos/testes próprios.
+Use também `--modulos --root .`: a entrada enumera cada módulo com SCOPE.md, liga os
+playbooks por `modulo_codigo` explícito e aponta os demais aos contratos do módulo e
+a design-sync. Não cria tarefas fictícias nem declara conclusão pelo inventário.
+Para incorporar outro playbook, declarar o dono do código (ex.: HRM → Essentials),
+as tarefas e o contrato de evidência adequado. Ausência de recibo continua sendo pendência.
+
+Leitura de schema/grafo não comprova fluxos de negócio. TAP/Node não é aceito como se
+fosse Pest; os formatos suportados são os explicitados abaixo.
+
+## E2E — Playwright nativo
+
+No índice: `{"tipo":"execucao","formato":"playwright-json","raiz_testes":"e2e","path":"recibos/02-e2e.json","testes":["e2e/exemplo.spec.ts"]}`.
+O recibo mantém o envelope de execução acima; summary aponta ao JSON nativo do Playwright.
+O reporter JSON foi acrescentado em playwright.config.ts ao lado do JUnit existente.
+Rodar pelo harness/CI existente, sem mudar autenticação ou fixtures do módulo.
+
+O adaptador confere todos os resultados, estatísticas e arquivos exigidos. Skip, flaky,
+retry, erro global, expected failure e execução vazia recusam fechamento. Não há contagem
+de assertions inventada: o formato nativo tem outros sinais. raiz_testes é a raiz relativa
+do reporter no repositório (testDir = e2e na configuração atual), não o cwd da máquina.
+
+## Parecer documental
+
+No índice: `{"tipo":"revisao","path":"recibos/04-revisao.json","fontes":["levantamento.md"],"criterios":["rotas-conferidas"]}`.
+O recibo contém thread, revisor identificado, resultado: aprovado, criterios com id,
+resultado: aprovado e justificativa não vazia para cada critério declarado, além de arquivos
+com SHA-256 das fontes e da saída. Não criar um parecer aprovado sem realizar a revisão.
+
+Apenas escrita em .md ou .contract.json (ou tarefa de leitura sem prefixo) pode encerrar
+por revisão. Isso não prova execução nem autoriza alteração de código. Mudança de fonte
+ou critério ausente/reprovado invalida o fechamento; a decisão [W] continua prevalecendo.
+
+## Comparação medida
+
+No índice: tipo comparacao, path do recibo, fontes com os arquivos fonte/alvo, contrato
+apontando ao .contract.json da tela e dimensoes exigidas (D2, D4, D6, D8, D9, SHELL).
+O recibo contém thread, producao e prototipo (paths dos snapshots da sonda canônica),
+além dos hashes das fontes, snapshots, contrato e saída. Colher os snapshots pelo processo
+existente de design-diff; não escrever medições à mão.
+
+O placar reexecuta somente design-diff.mjs --compare com --contrato, --check, --check-shell
+e --json. O command do recibo não é executado. Identidade, proveniência, tema e dimensões
+medidas precisam passar. Dados ausentes ou contrato sem copy para D0 não recebem um
+carimbo de comparação. O resultado certifica só as dimensões exigidas; smoke, acessibilidade
+e comportamento continuam com seus próprios testes. As tolerâncias pertencem a design-diff.
+
+As fichas existentes de E2E em Ponto/Governança/HRM, leitura em Patrimônio/Governança e
+Painel de Patrimônio foram ligadas aos novos formatos. Outros contratos devem ser escolhidos
+a partir da ficha e dos testes reais, nunca pela simples presença de um arquivo de teste.
