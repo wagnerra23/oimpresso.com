@@ -4,6 +4,7 @@ page: /stock-adjustments/create
 component: resources/js/Pages/StockAdjustment/Create.tsx
 related_prototype: n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)
 related_visual_comparison: memory/requisitos/Estoque/_telas/stock-adjustment-create-visual-comparison.md
+related_runbook: memory/requisitos/Estoque/_telas/RUNBOOK-stock-adjustment-create.md
 related_us: [US-MWART-007]
 bundle_source: estoque-page.jsx
 tela: stock_adjustment/create
@@ -13,7 +14,7 @@ status: draft
 status_note: "F3 implementado"
 adr_refs: [0104, 0093, 0114, 0149]
 mwart_pattern_reuse:
-  blueprint_cowork: prototipo-ui/prototipos/inventario-migracao/F1.html
+  blueprint_cowork: prototipo-ui/cowork/estoque-forms.jsx
   blueprint_screenshot_approval: "SYNC_LOG (pendente)"
   derived_screens: [Create]
   divergence_from_blueprint: "Tipo Normal/Abnormal destacado com cor (abnormal=rose perda)."

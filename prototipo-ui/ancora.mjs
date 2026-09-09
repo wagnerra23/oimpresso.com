@@ -8,8 +8,15 @@
 // máquina pra isso." Esta é a máquina: dado uma tela, ela resolve, do charter canônico,
 // QUAL é a fonte-de-design legítima — e diz explicitamente o que NÃO é âncora.
 //
-// Regra dura: âncora ∈ { related_prototype do charter, -page.jsx do bundle via charter }.
-// audit-*.png / critique / screenshot solto NUNCA é âncora.
+// Regra dura: âncora ∈ { related_prototype do charter, -page.jsx do bundle via charter
+// (`bundle_source`/`visual_source`) }. audit-*.png / critique / screenshot solto NUNCA é âncora.
+//
+// E o que a regra dura NÃO diz — e por isso foi lida como esquecimento em 2026-09-09:
+// uma tela declara fonte em CINCO lugares, e os outros DOIS não são âncora **por decisão**,
+// não por omissão: `mwart_pattern_reuse.blueprint_cowork` (reuso de pattern, ADR 0149) e
+// `canon_reference` (referência de paridade do `*-visual-comparison.md`). Esta máquina os
+// LÊ e os REPORTA rotulados, sem promover — medição e razão completas no bloco
+// "AS DUAS CHAVES QUE DECLARAM FONTE E NÃO SÃO ÂNCORA", mais abaixo.
 //
 // Uso:
 //   node prototipo-ui/ancora.mjs <tela>            # tela = rota (/financeiro/unificado)
@@ -77,6 +84,136 @@ export function ehDeclaracaoNa(valor) {
 // `ancora-guard.mjs` (R1, [W] 2026-07-01). Aqui a constante é só de RESOLUÇÃO: charter que
 // cita o arquivo pelo nome solto (`fiscal-page.jsx`) resolve nesse lugar, não em qualquer um.
 const LUGAR_FIXO = 'prototipo-ui/cowork';
+
+// ── AS DUAS CHAVES QUE DECLARAM FONTE E **NÃO SÃO ÂNCORA** ───────────────────
+//
+// Uma tela declara "de onde veio o desenho" em CINCO lugares. Três são âncora e esta
+// máquina os lê (`related_prototype` · `bundle_source` · `visual_source`). Os outros dois
+// NÃO são, e até aqui o arquivo não dizia isso em lugar nenhum — o silêncio foi lido como
+// esquecimento, e um inventário de 2026-09-09 registrou "a cadeia ignora 2 chaves" como
+// defeito a corrigir. É LC-15 no eixo da OMISSÃO: quem não declara o que ignora convida a
+// próxima sessão a "consertar" o que está certo.
+//
+// **`mwart_pattern_reuse.blueprint_cowork` (38 charters)** — NÃO é âncora POR DEFINIÇÃO.
+// A [ADR 0149](memory/decisions/0149-mwart-screen-pattern-reuse-cowork.md), aceita por [W]
+// em 2026-05-15, a cria pra dizer *"esta tela derivada REUSA o pattern visual do Index de
+// outra tela"* — o blueprint é de OUTRA tela por construção. Medido 2026-09-09 nos 38:
+//   · 38/38 estão sob `mwart_pattern_reuse`, com `derived_screens` declarado
+//   · 31/38 declaram `divergence_from_blueprint` REAL — o próprio charter diz que o
+//     blueprint NÃO desenha esta tela (ex.: *"datatable multi-row edit — pattern distinto
+//     de Index Cockpit"*, *"reuso parcial header+stats apenas"*); só 6 dizem "none/nenhuma"
+//   · 37/38 JÁ têm `related_prototype`, e **0** estão sem nenhuma das 3 chaves de âncora —
+//     promover não fecharia gap nenhum, só sobrescreveria declaração existente
+//   · 5/38 nem resolvem (3 path inexistente, 2 valem literalmente `n/a (form CRUD simples)`)
+// E ela NÃO é órfã: `charter-blueprint-pointers.mjs` e `reconcile-triplet.mjs` a leem como
+// ponteiro-de-blueprint, e `detectar-telas.test.mjs` tem um teste que asserta que ela NÃO é
+// alvo de âncora. A razão mecânica de o `frontmatter()` não a enxergar é outra e é banal:
+// o parser compartilhado casa `^([a-z_]+):` (nível raiz), e ela vive indentada.
+//
+// **`canon_reference` (31 `*-visual-comparison.md`)** — é referência de PARIDADE: registra
+// contra o que a tela foi comparada, não de onde ela nasce. Medido nos 31:
+//   · 4 apontam Blade legacy (`resources/views/contact/*.blade.php`) e 1 aponta `.tsx` do
+//     próprio repo — porte REVERSO, que como âncora é a lápide de 2026-06-05 (derivar do
+//     código); 1 aponta tool MCP, que não é design; 1 se declara *"ref expirada"*
+//   · só 10 dos 31 nomeiam arquivo que EXISTE (7 apontam um `produto-cockpit-page.jsx` que
+//     não resolve)
+//   · e o número que decide: nos **19** casos em que o charter tem `related_prototype` E o
+//     inventário vinculado tem `canon_reference`, eles apontam o MESMO arquivo **0 vezes**
+//     (12 o rp é declaração `n/a`, 6 nomeiam arquivos DIFERENTES, 1 não nomeia arquivo).
+//     E onde dá pra julgar, o `related_prototype` é o certo: `Forja/Cockpit` tem
+//     rp=`forja-page.jsx` contra cr=`os-page.jsx` (que desenha Ordem de Serviço).
+//
+// **Decisão (2026-09-09): reportar, nunca promover.** Promover em leva já é lápide —
+// §5 2026-08-28 diz, sobre exatamente esta forma, que é *"decisão par-a-par, nunca carimbo"*,
+// e que promover porte reverso a "design APROVADO" ancora a tela nela mesma. O que faltava
+// não era leitura: era o rótulo. Então a máquina passa a DIZER que a chave existe e por que
+// não é âncora. `--list` e `design-coverage` seguem intocados de propósito (a catraca não
+// se mexe: 226/221/66 antes e depois).
+
+/** As linhas do bloco de frontmatter, ou null. Split puro — sem regex, de propósito:
+ *  a versão com `new RegExp` colapsou os escapes na escrita e virou um casamento errado
+ *  que ainda assim passa no `node --check` (LC-26 · §5 2026-08-19). */
+export function linhasDoFrontmatter(src) {
+  const LF = String.fromCharCode(10);
+  const linhas = String(src || '').split(LF).map((l) => l.replace(String.fromCharCode(13), ''));
+  if ((linhas[0] || '').trim() !== '---') return null;
+  const fim = linhas.findIndex((l, k) => k > 0 && l.trim() === '---');
+  return fim < 0 ? null : linhas.slice(1, fim);
+}
+
+/** `divergence_from_blueprint` diz "nao diverge"? Substring, sem regex (ver LC-26 abaixo). */
+export function ehSemDivergencia(valor) {
+  const v = String(valor || '').trim().toLowerCase();
+  return v.startsWith('none') || v.startsWith('nenhuma');
+}
+
+/** O valor aponta código do PRÓPRIO repo (porte reverso), não desenho? Substring, sem regex. */
+export function ehCodigoDoRepo(valor) {
+  const v = String(valor || '');
+  return v.includes('.blade.php') || (v.includes('resources/js/Pages') && v.includes('.tsx'));
+}
+
+/** Valor de uma chave de frontmatter em QUALQUER nível de indentação, ou null.
+ *
+ *  ⚠️ Duplicação declarada (§5 2026-08-02 — "ou unifica, ou declara por que as duas existem"):
+ *  `charter-blueprint-pointers::pointersOf` e `reconcile-triplet::fmScalar` fazem o mesmo, e
+ *  nenhum dos dois é `export` — e ambos escopam só `resources/js/Pages`, enquanto esta máquina
+ *  tem DUAS raízes (`raizesDePages`). Unificar os três é PR próprio: os dois consumidores são
+ *  gates com selftest, e mexer neles aqui misturaria intents. O `frontmatter()` compartilhado
+ *  NÃO serve: ele casa `^([a-z_]+):` (nível raiz) e a chave que interessa vive indentada.
+ */
+export function chaveAninhada(src, chave) {
+  if (!src || !chave) return null;
+  const linhas = linhasDoFrontmatter(src);
+  if (!linhas) return null;
+  const prefixo = chave + ':';
+  for (const linha of linhas) {
+    const t = linha.trim();
+    if (t.startsWith(prefixo)) return desasparValor(t.slice(prefixo.length));
+  }
+  return null;
+}
+
+/**
+ * As declarações de fonte que NÃO são âncora, com o motivo de cada uma. Pura e testável.
+ *
+ * Reporter, nunca gate: não muda `ok`, não muda exit code, não entra no `--list`.
+ * @param {{charterSrc?: string, canonRefSrc?: string|null}} entrada
+ * @returns {{chave:string, valor:string, motivo:string, nota?:string}[]}
+ */
+export function declaracoesNaoAncora({ charterSrc = '', canonRefSrc = null } = {}) {
+  const out = [];
+  const bp = chaveAninhada(charterSrc, 'blueprint_cowork');
+  if (bp) {
+    const div = chaveAninhada(charterSrc, 'divergence_from_blueprint');
+    // Substring, nao regex: a versao com `\b` gravou um BACKSPACE literal (0x08) no
+    // arquivo -- regex valida que nunca casa, invisivel no grep e verde no `node --check`
+    // (LC-26 na forma mais traicoeira: a inspecao visual mente, so o `od -c` mostra).
+    const semDivergencia = ehSemDivergencia(div);
+    out.push({
+      chave: 'mwart_pattern_reuse.blueprint_cowork',
+      valor: bp,
+      motivo: 'screen-pattern reuse (ADR 0149) — é o blueprint do Index de OUTRA tela, reusado aqui.',
+      nota: !div
+        ? 'O charter não declara `divergence_from_blueprint` — e o blueprint segue sendo o do Index de outra tela.'
+        : semDivergencia
+          ? `O charter declara divergence_from_blueprint: ${div} — mesmo assim, reuso de pattern não é fonte.`
+          : `O próprio charter declara que DIVERGE do blueprint: ${div}`,
+    });
+  }
+  const cr = canonRefSrc ? chaveAninhada(canonRefSrc, 'canon_reference') : null;
+  if (cr) {
+    out.push({
+      chave: 'canon_reference (visual-comparison)',
+      valor: cr,
+      motivo: 'referência de PARIDADE — diz contra o que a tela foi comparada, não de onde ela nasce.',
+      nota: ehCodigoDoRepo(cr)
+        ? 'Este valor aponta código do próprio repo (Blade/.tsx) — porte REVERSO. Como âncora, ancoraria a tela nela mesma (§5 2026-06-05).'
+        : undefined,
+    });
+  }
+  return out;
+}
 
 // ── FRESCOR DA ÂNCORA ────────────────────────────────────────────────────────────
 //
@@ -217,6 +354,19 @@ export function caminhoDaAncora(valor, raiz = REPO_DEFAULT) {
 // normaliza a query da tela → tokens comparáveis
 function norm(s) { return (s || '').toLowerCase().replace(/\\/g, '/').replace(/\.(tsx|charter\.md)$/i, '').replace(/\/index$/i, ''); }
 
+// Irmão do `norm` que NÃO strippa o `/index` final — existe só pra DESEMPATE.
+// O strip é o que faz `Nfse/Index` e `Fiscal/Nfse` colapsarem no mesmo `…/nfse`: os dois
+// casam com a mesma força e quem ganha é o primeiro da ordem alfabética. Preservando o
+// segmento, só o charter cujo path termina em `nfse/index` casa — e aí não há empate.
+function normFull(s) { return (s || '').toLowerCase().replace(/\\/g, '/').replace(/\.(tsx|charter\.md)$/i, ''); }
+
+/** `full` termina no path `qq` (igualdade ou sufixo de segmento inteiro)? Puro, pra ser testado. */
+export function casaPathInteiro(full, qq) {
+  if (!full || !qq) return false;
+  const a = String(full).toLowerCase(), b = String(qq).toLowerCase().replace(/^\/+/, '');
+  return a === b || a.endsWith('/' + b);
+}
+
 // ── núcleo: resolve a âncora de UMA tela a partir dos charters do repo ────────
 export async function resolveAncora(query, { repoRoot = REPO_DEFAULT, stagingDir = null } = {}) {
   // Git Bash (MSYS) mangleia arg iniciado em "/" pra "<raiz-msys>/<rota>" (ex.:
@@ -239,18 +389,41 @@ export async function resolveAncora(query, { repoRoot = REPO_DEFAULT, stagingDir
     .flat().filter((f) => f.endsWith('.charter.md')); // [busca-por-query]
   const q = norm(query);
 
-  let hit = null;
+  // FORÇA do match — antes, `hit` era SOBRESCRITO a cada candidato e o `break` do "match
+  // forte" fazia o primeiro da ordem alfabética ganhar quando dois charters empatavam.
+  // Medido 2026-09-09 sobre os 226 atalhos `Mod/Tela`: **14** resolviam num charter DIFERENTE
+  // do esperado — e com `âncora ✓` + selo de frescor, ou seja, resposta confiante e errada
+  // (o caso citado no inventário: `Nfse/Index` → `Fiscal/Nfse`, porque o `norm` strippa o
+  // `/index` e os dois viram `…/nfse`). Agora todo candidato é coletado com uma força:
+  //   4 rota exata · 3 path INTEIRO (o `normFull`, que desempata o caso acima)
+  //   2 sufixo após o strip (o "match forte" de antes) · 1 substring (fraco)
+  // e a resolução é: força máxima com UM candidato resolve; com DOIS ou mais resolve o
+  // primeiro **e DECLARA a ambiguidade** (`r.ambiguidade`), que o printer estampa.
+  // Deliberadamente NÃO vira `ok:false`: degradar empate pra "sem charter" trocaria
+  // informação por silêncio, que é a doença que este bloco existe pra curar.
+  // CUSTO declarado: sem o `break`, a varredura sempre percorre os 226 charters. Medido
+  // 2026-09-09 no mesmo repo, 20 chamadas: 525ms → 816ms (~26ms → ~41ms por chamada).
+  // Aceito de propósito — é CLI de diagnóstico, e o `break` era justamente o que fazia a
+  // ordem alfabética decidir empate. Se um dia pesar, o caminho é cachear a leitura dos
+  // charters (o `--list` já varre os mesmos), nunca voltar a parar no primeiro match.
+  const qFull = normFull(query);
+  const candidatos = [];
   for (const cf of charters) {
     const fm = frontmatter(await read(cf));
     const page = norm(fm.page);                 // rota: /financeiro/unificado
     const comp = norm(fm.component);            // resources/js/Pages/Financeiro/Unificado/Index.tsx
     const relc = norm(relative(repoRoot, cf));  // .../Unificado/Index.charter.md
-    if ((page && page === q) || (comp && comp.endsWith(q)) || (comp && q.endsWith(comp)) ||
-        relc.includes(q) || (q && comp && comp.includes(q))) {
-      hit = { charter: relative(repoRoot, cf).replace(/\\/g, '/'), fm };
-      if (page === q || comp.endsWith(q)) break; // match forte ganha
-    }
+    let forca = 0;
+    if (page && page === q) forca = 4;
+    else if (casaPathInteiro(normFull(fm.component), qFull) || casaPathInteiro(normFull(relative(repoRoot, cf)), qFull)) forca = 3;
+    else if ((comp && comp.endsWith(q)) || (comp && q.endsWith(comp))) forca = 2;
+    else if (relc.includes(q) || (q && comp && comp.includes(q))) forca = 1;
+    if (forca) candidatos.push({ forca, charter: relative(repoRoot, cf).replace(/\\/g, '/'), fm });
   }
+  const maxForca = candidatos.reduce((m, c) => (c.forca > m ? c.forca : m), 0);
+  const topo = candidatos.filter((c) => c.forca === maxForca);
+  const hit = topo[0] || null;
+  const ambiguidade = topo.length > 1 ? topo.map((c) => c.charter) : null;
   if (!hit) return { ok: false, query, motivo: 'sem charter pra essa tela — NÃO invente âncora; registre ou pergunte' };
 
   const fm = hit.fm;
@@ -278,10 +451,23 @@ export async function resolveAncora(query, { repoRoot = REPO_DEFAULT, stagingDir
     }
     if (cand) ancoras.push({ tipo: `-page.jsx (bundle · ${via})`, valor: relative(stagingDir, cand).replace(/\\/g, '/'), raiz: resolve(stagingDir) });
   }
+  // As duas chaves que declaram fonte e NÃO são âncora (bloco do topo). Duas leituras a
+  // mais, só pro charter ESCOLHIDO — nunca pros 226 da varredura. Falha de leitura degrada
+  // pra lista vazia: reporter que some é aceitável, reporter que inventa não é.
+  const charterSrc = await read(join(repoRoot, hit.charter));
+  const vcRel = desasparValor(fm.related_visual_comparison || '');
+  const canonRefSrc = vcRel ? await read(join(repoRoot, vcRel)) : null;
+  const naoAncora = declaracoesNaoAncora({ charterSrc: charterSrc || '', canonRefSrc });
+
   const liveTsx = repoTsx(fm.component);
   return {
     ok: true, query, charter: hit.charter,
     telaViva: liveTsx, ancoras, repoRoot: raizRepo,
+    // ADITIVO (mesmo critério de `via`/`isNa`): consumidor nenhum quebra por um campo novo,
+    // e quem quiser pode decidir por conta. `null` quando a resolução foi única.
+    ambiguidade,
+    // idem: reporter puro. `[]` quando o charter não declara nenhuma das duas.
+    naoAncora,
     aviso: 'ÂNCORA = um dos itens acima. audit-*.png / critique / screenshot NUNCA é âncora.',
   };
 }
@@ -368,6 +554,17 @@ async function printResolve(r) {
   if (r.avisoMangle) console.log(`⚠️ ${r.avisoMangle}`);
   console.log(`ÂNCORA da tela: ${r.query}`);
   console.log(`  charter:    ${r.charter}`);
+  // AMBIGUIDADE do atalho — imprimir é metade do conserto. O desempate por força resolveu
+  // os empates que TINHAM resposta certa; sobram os atalhos que 2+ telas compartilham
+  // (`Dashboard/Index` é 4 telas), onde não existe escolha correta a fazer. Aí a única
+  // saída honesta é dizer que escolheu, entre quais, e como desambiguar — em vez de um
+  // `âncora ✓` com selo de frescor sobre a tela errada (LC-08 no eixo da RESOLUÇÃO).
+  if (r.ambiguidade) {
+    console.log(`  ⚠️  ATALHO AMBÍGUO — "${r.query}" casa ${r.ambiguidade.length} charters com a mesma força.`);
+    for (const c of r.ambiguidade) console.log(`              ${c === r.charter ? '→ (escolhido)' : '  '} ${c}`);
+    console.log('              O escolhido é o PRIMEIRO da varredura, não o mais certo.');
+    console.log('              Desambigue com o caminho .tsx completo (o `component:` do charter).');
+  }
   console.log(`  tela viva:  ${r.telaViva || '—'}`);
   if (!r.ancoras.length) console.log('  âncora:     ⚠️ charter sem related_prototype nem -page.jsx — registre o protótipo');
   // `✓` só para âncora que RESOLVE em arquivo. `n/a` é uma DECLARAÇÃO ("segue o DS"),
@@ -461,6 +658,19 @@ async function printResolve(r) {
       }
     }
   }
+  // As chaves que declaram fonte e NÃO são âncora — imprimir é o conserto. Sem isto, quem
+  // abre o charter, vê `blueprint_cowork`/`canon_reference` apontando um `-page.jsx` e roda
+  // esta máquina sem ver menção nenhuma conclui que a cadeia ESQUECEU de ler — foi o que
+  // um inventário concluiu em 2026-09-09. Rotular é mais barato que promover, e é correto.
+  if (r.naoAncora && r.naoAncora.length) {
+    console.log('  ℹ️  declarações de fonte que NÃO são âncora (lidas de propósito, reportadas, nunca promovidas):');
+    for (const d of r.naoAncora) {
+      console.log(`     · ${d.chave}: ${d.valor}`);
+      console.log(`       ${d.motivo}`);
+      if (d.nota) console.log(`       ${d.nota}`);
+    }
+    console.log('     Promover qualquer uma a âncora é decisão [W], par-a-par — nunca em leva (§5 2026-08-28).');
+  }
   console.log(`  ⛔ ${r.aviso}`);
   return 0;
 }
@@ -522,6 +732,64 @@ async function selftest() {
   // query mangleada pelo MSYS (Git Bash converte "/" inicial) DEVE recuperar a rota
   const rm = await resolveAncora('C:/Program Files/Git/financeiro/unificado');
   t('resolve query mangleada MSYS recupera /financeiro/unificado', rm.ok === true && /Unificado/.test(rm.charter || '') && !!rm.avisoMangle);
+
+  // ── DESEMPATE DE ATALHO (colisão medida em 2026-09-09: 14 dos 226) ──────────
+  t('BITE path: casaPathInteiro casa sufixo de segmento inteiro',
+    casaPathInteiro('resources/js/pages/nfse/index', 'nfse/index') === true);
+  t('CONTROLE path: NÃO casa segmento partido (fiscal/nfse ≠ .../nfse/index)',
+    casaPathInteiro('resources/js/pages/fiscal/nfse', 'nfse/index') === false);
+  t('CONTROLE path: igualdade também casa (query = component inteiro)',
+    casaPathInteiro('resources/js/pages/x/y', 'resources/js/pages/x/y') === true);
+  t('CONTROLE path: vazio não casa nada', casaPathInteiro('', 'x') === false && casaPathInteiro('x', '') === false);
+  // Contra a árvore REAL — é o caso concreto que o inventário citou. Antes deste PR,
+  // `Nfse/Index` devolvia o charter de `Fiscal/Nfse` com `âncora ✓` e selo de frescor.
+  const rn = await resolveAncora('Nfse/Index');
+  t('BITE real: atalho Nfse/Index resolve o PRÓPRIO charter, não Fiscal/Nfse',
+    rn.ok === true && rn.charter === 'resources/js/Pages/Nfse/Index.charter.md');
+  // E o que NÃO tem desempate possível precisa DECLARAR o empate, não escolher calado.
+  const rd = await resolveAncora('Dashboard/Index');
+  t('BITE real: atalho ambíguo (Dashboard/Index) DECLARA os candidatos',
+    Array.isArray(rd.ambiguidade) && rd.ambiguidade.length >= 2 && rd.ambiguidade.includes(rd.charter));
+  t('CONTROLE real: atalho sem empate NÃO inventa ambiguidade',
+    (await resolveAncora('/financeiro/unificado')).ambiguidade === null);
+
+  // ── AS DUAS CHAVES QUE NÃO SÃO ÂNCORA (reporter, nunca promoção) ────────────
+  const FX_CHARTER = [
+    '---',
+    'page: /x/y',
+    'component: resources/js/Pages/X/Y.tsx',
+    'mwart_pattern_reuse:',
+    '  blueprint_cowork: prototipo-ui/cowork/outra-page.jsx',
+    '  divergence_from_blueprint: "wizard substitui o modal do blueprint"',
+    '---',
+    '# corpo',
+    'blueprint_cowork: prototipo-ui/cowork/ISTO-E-PROSA.jsx',
+  ].join(String.fromCharCode(10));
+  t('BITE fm: chaveAninhada lê chave INDENTADA (o frontmatter() compartilhado não lê)',
+    chaveAninhada(FX_CHARTER, 'blueprint_cowork') === 'prototipo-ui/cowork/outra-page.jsx');
+  t('CONTROLE fm: chave depois do frontmatter é PROSA, não declaração',
+    chaveAninhada(FX_CHARTER, 'blueprint_cowork') !== 'prototipo-ui/cowork/ISTO-E-PROSA.jsx');
+  t('CONTROLE fm: chave ausente devolve null, não string vazia',
+    chaveAninhada(FX_CHARTER, 'nao_existe') === null);
+  t('CONTROLE fm: texto sem frontmatter devolve null', linhasDoFrontmatter('# só corpo') === null);
+  t('BITE divergência: "none — …" conta como SEM divergência', ehSemDivergencia('none — Index é o blueprint') === true);
+  t('CONTROLE divergência: divergência real NÃO vira none', ehSemDivergencia('wizard substitui o modal') === false);
+  t('CONTROLE divergência: ausente não explode', ehSemDivergencia(undefined) === false);
+  t('BITE porte reverso: .blade.php é código do repo', ehCodigoDoRepo('resources/views/contact/show.blade.php') === true);
+  t('BITE porte reverso: Page .tsx é código do repo', ehCodigoDoRepo('resources/js/Pages/governance/Dashboard.tsx') === true);
+  t('CONTROLE porte reverso: -page.jsx do espelho NÃO é código do repo',
+    ehCodigoDoRepo('prototipo-ui/cowork/produtos-page.jsx') === false);
+  const dna = declaracoesNaoAncora({ charterSrc: FX_CHARTER, canonRefSrc: ['---', 'canon_reference: resources/views/contact/index.blade.php', '---'].join(String.fromCharCode(10)) });
+  t('BITE não-âncora: acha as DUAS chaves', dna.length === 2);
+  t('BITE não-âncora: a divergência declarada entra na nota',
+    /DIVERGE do blueprint/.test((dna[0] || {}).nota || ''));
+  t('BITE não-âncora: canon_reference apontando Blade é marcado porte REVERSO',
+    /porte REVERSO/.test((dna[1] || {}).nota || ''));
+  // Sem este, o bloco inteiro poderia estar imprimindo sempre — e um reporter que fala
+  // sobre toda tela é ruído, não sinal.
+  t('CONTROLE não-âncora: charter sem as duas chaves devolve LISTA VAZIA',
+    declaracoesNaoAncora({ charterSrc: ['---', 'page: /a', '---'].join(String.fromCharCode(10)), canonRefSrc: null }).length === 0);
+  t('CONTROLE não-âncora: entrada vazia não explode', declaracoesNaoAncora().length === 0);
   // ── BITE do detector de âncora defeituosa (P-1 símbolo fantasma) ───────────
   // Morde no ruim E fica quieto no bom — sem o segundo, é carimbo, não teste.
   t('BITE fantasma: extrai símbolo de backend citado como string',

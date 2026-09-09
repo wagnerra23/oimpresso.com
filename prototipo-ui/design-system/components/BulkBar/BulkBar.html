@@ -1,0 +1,32 @@
+<!doctype html>
+<!-- @dsCard group="Components" name="BulkBar" subtitle="Floating bulk-action bar for multi-select" viewport="620x160" -->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>BulkBar</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<style> body { padding: 30px 18px; } </style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/javascript">
+  const { BulkBar } = window.OfficeImpressoPontoWR2DesignSystem_019dd0;
+  const h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    h(BulkBar, {
+      count: 4, label: 'OS selecionadas',
+      actions: [
+        { label: 'Mover etapa', icon: '⇄' },
+        { label: 'Atribuir', icon: '☺' },
+        { label: 'Exportar', icon: '↧' },
+        { label: 'Cancelar', icon: '✕', tone: 'danger' },
+      ],
+      onClose: () => {},
+    })
+  );
+</script>
+</body>
+</html>

@@ -344,6 +344,11 @@ function StockTransferCreate({
                 value={form.data.shipping_charges}
                 onChange={(e) => form.setData('shipping_charges', Number(e.target.value))}
               />
+              {/* `help` do campo no protótipo (`estoque-forms.jsx`, FormTransferencia).
+                  Explica por que o frete entra no fecho — copy, não cálculo. */}
+              <p className="mt-1 text-[11.5px] text-muted-foreground">
+                Entra no custo do material que chega no destino
+              </p>
             </div>
             {permissions.view_purchase_price && (
               <div className="space-y-1 text-[13px] pt-2 border-t border-stone-200">

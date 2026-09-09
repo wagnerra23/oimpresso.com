@@ -251,6 +251,27 @@ Então recebe `403 Unauthorized`
 
 **DoD:** a tela responde 200 com o component Inertia (`EssentialsBladeT1InertiaSmokeTest`), o recorte por localidade nao altera o que e enviado, e o vazio distingue "nao ha mensagens" de "nenhuma nesta localidade".
 
+### US-ESS-013 · Base de conhecimento interna com busca
+
+**Implementado em:** `Modules/Essentials/Http/Controllers/KnowledgeBaseController.php` (`index`) · `resources/js/Pages/Essentials/Knowledge/Index.tsx` (+ `Index.charter.md`) · resource `knowledge-base` em `Modules/Essentials/Routes/web.php` · `Modules/Essentials/Tests/Feature/KnowledgeIndexTest.php`
+
+**Testado em:** `Modules/Essentials/Tests/Feature/KnowledgeIndexTest.php`
+
+**Como** colaborador do business
+**Quero** achar um artigo pelo que ele DIZ, nao pelo lugar onde ele esta
+**Para** nao precisar abrir livro por livro procurando o procedimento
+
+**Regras:**
+
+- A arvore inteira (livro -> secao -> artigo) chega no payload, entao a busca e client-side. Ida ao banco aqui seria custo sem ganho.
+- O conteudo e HTML: a busca tira as tags antes de comparar, senao buscar "li" casaria com todo `<li>` do texto.
+- Com termo ativo as secoes abrem sozinhas — busca cujo resultado fica escondido atras de um collapse nao serve pra nada.
+- A guarda do controller (`authorizeAccess`) e de ACESSO AO MODULO (`essentials_module` no pacote), nao por acao. Nao existe permissao `gerir_kb` neste modulo — quem entra na tela edita.
+
+**Fora desta US:** leitura do artigo INLINE na propria tela. O protótipo desenha árvore lateral + painel de leitura; o vivo navega pra `/essentials/knowledge-base/{id}`, que e OUTRA tela com ancora propria. Fundir as duas e decisao de [W].
+
+**DoD:** a tela responde 200 com o component Inertia e a arvore aninhada (livro -> secao -> artigo) chega inteira no payload — que e a pre-condicao da busca client-side.
+
 ---
 
 ## Cobertura de testes Pest (2026-05-16 Wave Massive)

@@ -1,0 +1,36 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Brand — Marca" subtitle="Logo oficial — cubo CMYK + wordmark Office Impresso" viewport="760x240" -->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Marca</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { padding: 24px; margin: 0; }
+  .row { display:grid; grid-template-columns: 1.4fr 1.4fr 1fr; gap: 16px; align-items: stretch; }
+  .panel { padding: 26px; border: 1px solid var(--border); border-radius: 12px; display:flex; align-items:center; justify-content:center; min-height: 120px; }
+  .panel.dark { background: oklch(0.20 0.01 280); border-color: transparent; }
+  .panel.brand { background: #440d41; border-color: transparent; }
+  .meta { font-size: 11px; color: var(--fg-2); font-family: var(--font-mono); margin-top: 8px; text-align:center; }
+  .col { display:flex; flex-direction: column; }
+  .lock { height: 46px; }
+  .mark { height: 64px; }
+</style>
+</head>
+<body>
+  <div class="row">
+    <div class="col">
+      <div class="panel brand"><img class="lock" src="../assets/brand/logo-full.svg" alt="Office Impresso"></div>
+      <span class="meta">sobre o roxo da marca · #440d41</span>
+    </div>
+    <div class="col">
+      <div class="panel dark"><img class="lock" src="../assets/brand/logo-full.svg" alt="Office Impresso"></div>
+      <span class="meta">sobre escuro</span>
+    </div>
+    <div class="col">
+      <div class="panel"><img class="mark" src="../assets/brand/logo-mark.svg" alt="símbolo"></div>
+      <span class="meta">símbolo isolado</span>
+    </div>
+  </div>
+</body>
+</html>

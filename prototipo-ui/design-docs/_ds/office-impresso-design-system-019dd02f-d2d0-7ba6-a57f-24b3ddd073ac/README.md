@@ -295,7 +295,7 @@ Allowed only in marketing feature grids. The current `<FeatureGrid>` uses 📐 �
 
 ### Brand mark / logo
 
-The brand mark is the **Office Impresso CMYK cube** — an isometric cube built from four process-colour sub-cubes (amarelo `#F0E62D` / magenta `#EB3088` / ciano-azul `#7DD1EB`–`#235EA9` / cinza `#89869D`), the printing inks of comunicação visual rendered as a 3D symbol. It locks up with the **“Office Impresso”** wordmark (“Office” branco, “Impresso” azul `#2987D0`) over a assinatura.
+The brand mark is the **Office Impresso CMYK cube** — an isometric cube built from four process-colour sub-cubes (amarelo `#F0E62D` / magenta `#EB3088` / ciano-azul `#7DD1EB`–`#235EA9` / cinza `#89869D`), the printing inks of comunicação visual rendered as a 3D symbol. It locks up with the **“Office Impresso”** wordmark (“Office” branco, “Impresso” azul `#2987D0`) over the assinatura.
 
 **Vector assets** (`assets/brand/`):
 

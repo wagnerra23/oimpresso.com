@@ -72,7 +72,7 @@ Antes de escrever pedido novo: procurar `COLAR-NO-CODE-*<modulo>*` e `cowork-inb
 2. **O pedido da onda** (este pacote, a seção dela) — alvo, comportamento, DoD, placar.
 3. **O charter + `casos.md`** da tela — inclusive o bloco de contrato destilado que as ondas anteriores deixaram.
 4. `PARIDADE-area-<Mod>-*.md` — ordem, veredito e os ausentes com motivo das ondas passadas.
-5. `memory/proibicoes.md` + `LICOES_CC.md` — o erro já catalogado.
+5. `memory/proibicoes.md` + `LICOES_CC.md` — o erro já catalogado. **E `COLAR-NO-CODE-ACERTOS-E-LICOES.md` — o acerto catalogado** (o que a produção já resolveu e não se refaz; pedido [W] 2026-09-09).
 6. **Os 2-4 arquivos da âncora** no `main` (§3-bis) — no momento da onda.
 
 **Teste do estranho (o que torna a regra checável):** entregue o pedido a quem não viu nenhuma conversa. Se ele precisar perguntar *qualquer coisa* sobre o alvo, a âncora, o dado ou o critério de aceite, **o pedido está incompleto** — a falha é do pedido, não dele. Concretamente, o pedido passa quando responde sem histórico: quais arquivos editar · o que reusar · o alvo em número e ordem · o dado real por slot · o que **não** tocar · quando **parar** · como se prova.
@@ -173,6 +173,8 @@ D · COMO VALIDAR (recibo do PR)
   6 PLACAR no corpo do PR
   7 bloco de contrato destilado (§6) no charter — MESMO PR
   8 github.md: linha do ciclo + "bundle regenerado (<data> · N arquivos)"
+  9 ACERTOS: bloco do ciclo em COLAR-NO-CODE-ACERTOS-E-LICOES.md (§15) —
+    ≥1 acerto com sha OU "nenhum medido"; erro do ciclo com a regra colada
 
 ESCOPO FECHADO: só esta seção. Não tocar <vizinhas nomeadas>. Não tocar no shell.
 ```
@@ -320,7 +322,7 @@ A 1ª sonda leu `getComputedStyle(...).color` = `oklch(0.94 0.005 90)` com um re
 
 ## 6 · O canal (o que sai, por qual rota)
 
-**4 saídas, e só 4:** ① **build** (`jsx/css/html`) → `prototipo-ui/cowork/` · ② **pedido** (ponte `.md`) → `prototipo-ui/` root · ③ **contrato destilado** → `<Tela>.charter.md`/`.casos.md` · ④ **recibo** → `github.md`.
+**4 saídas, e só 4:** ① **build** (`jsx/css/html`) → `prototipo-ui/cowork/` · ② **pedido** (ponte `.md`) → `prototipo-ui/` root · ③ **contrato destilado** → `<Tela>.charter.md`/`.casos.md` · ④ **recibo** → `github.md`. **⑤ acerto+lição** → `COLAR-NO-CODE-ACERTOS-E-LICOES.md` (§15, acumulativo) — são **5** desde 2026-09-09.
 **Nunca sai:** memória · process doc · charter duplicado · screenshot · dupe `?v=` · `.bak` · manifesto/mapa/inventário **derivado do build**.
 
 **Rota — com a consequência medida da divisão em 1 arquivo por tela.** Fronteira do `DesignSync.get_file` (`protocolo.config.mjs:214-217`): **> ~48 KB** volta persistido e desce pela rota avulsa; **< 48 KB** volta inline e **não desce** por ela. Medido em 2026-09-03: o `forja-page.jsx` era o único grande da área (90.365 B) e virou shell de ~41 KB ⇒ **os 17 arquivos da Forja estão todos abaixo do piso**, e a descida **exige o pacote**:
@@ -606,13 +608,19 @@ E a ficha do pedido **que o doc de 04/09 emitia**, reprovada retroativamente: `l
 | origem (projeto Cowork) | destino no `main` | tipo | desce quando |
 |---|---|---|---|
 | `oimpresso.com.html` · `*-page.jsx` · `*.css` | `prototipo-ui/cowork/` | **build** | a cada ciclo de UI |
-| `CONSTITUICAO-COWORK.md` | `prototipo-ui/` (raiz) | **lei** | **1×**, primeiro de todos — depois só emenda |
-| `COLAR-NO-CODE-PROTOCOLO-COWORK-EXPORT.md` | `prototipo-ui/` (raiz) | **norma** | quando o método muda |
-| `DOSSIE-PROTOCOLO-COWORK.md` | `prototipo-ui/` (raiz) | **evidência** | junto com a norma |
-| `COLAR-NO-CODE-<mod>-*.md` (ponteiro) | `prototipo-ui/` (raiz) | **ponte** | junto com o playbook do módulo |
+| `CONSTITUICAO-COWORK.md` | `prototipo-ui/design-docs/` | **lei** | **1×**, primeiro de todos — depois só emenda |
+| `COLAR-NO-CODE-PROTOCOLO-COWORK-EXPORT.md` | `prototipo-ui/design-docs/` | **norma** | quando o método muda |
+| `DOSSIE-PROTOCOLO-COWORK.md` | `prototipo-ui/design-docs/` | **evidência** | junto com a norma |
+| `COLAR-NO-CODE-<mod>-*.md` (ponteiro) | `prototipo-ui/design-docs/` | **ponte** | junto com o playbook do módulo |
+| `COLAR-NO-CODE-ACERTOS-E-LICOES.md` | `prototipo-ui/design-docs/` | **ponte (acumulativa)** | **a cada ciclo** — bloco novo em cima; as lições descem como PROPOSTA pra `memory/LICOES_CC.md`, nunca commit direto |
 | `cowork-inbox/<mod>/playbook/**` | `prototipo-ui/design-docs/cowork-inbox/<mod>/playbook/` | **pedido** | **pasta inteira**, nunca arquivo solto |
-| `contrato/*.contract.json` | `prototipo-ui/contrato/` | **contrato** | com a onda que o cria |
+| `*.contract.json` **nascido no Cowork** | `prototipo-ui/design-docs/contrato-cowork/` | **contrato (estágio)** | ao emitir — nome minúsculo do módulo |
+| `*.contract.json` **promovido ao CI** | `prototipo-ui/contrato/` | **contrato (vigente)** | quando vira advisory/required no `contrato-de-tela.yml` |
 | `sync/bundle.manifest.json` + `sync/payload.part*.json` | `sync/` | **pacote** | ao fechar ciclo (ADR 0387) |
+
+**Correção de destino — 2026-09-08, medida na árvore `0ff7ff328e6d`.** Este bloco dizia `prototipo-ui/` (raiz) para norma, dossiê, constituição e ponteiros. **Estava errado:** eles vivem em **`prototipo-ui/design-docs/`** — é lá que estão hoje o `COLAR-NO-CODE-PROTOCOLO-COWORK-EXPORT.md` (53.386 B), o `DOSSIE-PROTOCOLO-COWORK.md` (79.195 B), o `github.md` e os 15 `COLAR-NO-CODE-*`. Colar na raiz teria criado pasta paralela com o mesmo nome de arquivo — o pior defeito possível num mapa de destinos.
+
+**E há DUAS pastas de contrato, com papéis diferentes** (também medido hoje): `prototipo-ui/design-docs/contrato-cowork/` é **estágio** — 3 arquivos, nome minúsculo do módulo (`patrimonio.contract.json`, `configuracoes.contract.json`, `venda-menu.contract.json`), origem Cowork; `prototipo-ui/contrato/` é **vigente** — 31 arquivos, nome de tela (`fiscal-cockpit`, `purchase-create`), é a que o `contrato-de-tela.yml` lê. Contrato novo **nasce no estágio e é promovido**, não desce direto no vigente.
 
 **Três invariantes de destino** (violar qualquer uma reprova no CI):
 1. **Zero `.md` em `prototipo-ui/cowork/`** — guard R1 (`cowork-ssot-guard.mjs`). Doc que "acompanha o build" vai pra raiz ou pro playbook, nunca junto.
@@ -626,3 +634,34 @@ MAPA EXPORT           ← comando; devolve destino + sha256(12) + bytes por arqu
 O Code confere o sha depois de colar. Se não bater, o arquivo mudou entre a geração e o commit — **recola, não "ajusta"**.
 
 **O que este mapa NÃO resolve:** ele diz *onde*, não *se já está lá*. Arquivo que eu emiti e você não colou continua listado aqui e ausente no `main` — a paridade espelho×git é do `cowork-mirror-freshness.mjs` (`--absent-local` e `--check-orfaos`), não deste bloco.
+
+---
+
+## 15 · ACERTOS — o acerto catalogado (pedido [W] 2026-09-09) · vale para TODO módulo
+
+> **A assimetria que isto conserta.** O sistema catalogava **erro** (`memory/LICOES_CC.md`), **ausência** (placar) e **proibição** (`memory/proibicoes.md`). Nada catalogava **o que a produção já acertou** — e é por isso que o mesmo diagnóstico errado nasceu duas vezes: Fiscal 2026-09-03 ("PR-A1 pendente", já entregue via `_lib/botao-fiscal.ts`) e Ponto 2026-09-09 ("não usa o DS", usa em 21 Pages). Placar diz o que falta; **ninguém dizia o que já está certo, e por isso se refazia**.
+> **Palavras de [W]:** *"deveria ir acrescentando e informando pro Code o que ele acertou do que você já escreveu, e as novas memórias — isso mantém o Code para não errar novamente."*
+
+**Arquivo único, cross-módulo, append-only:** `COLAR-NO-CODE-ACERTOS-E-LICOES.md` → destino `prototipo-ui/design-docs/` (§14). **Um bloco por ciclo, mais novo em cima; bloco antigo nunca se reescreve** — o erro registrado é o valor. Não é por módulo: o acerto do Fiscal é o que evita o erro do Ponto.
+
+### 15.1 · Quando é obrigatório
+**Todo ciclo que leu o `main`** — mesmo o que não emite pedido. Sem bloco, o ciclo não fechou (§4 bloco D item 9). Se nada foi medido, escreve-se **"nenhum acerto medido neste ciclo"**: ausência declarada é dado; silêncio é omissão grátis.
+
+### 15.2 · Forma do bloco (3 partes, nenhuma opcional)
+| parte | o que entra | o que **reprova** |
+|---|---|---|
+| ✅ **acerto** | tabela `A1..An`: o que está certo no `main` + **caminho + sha** + **consequência prática** ("não refazer X", "não re-perguntar Y") | acerto sem sha/caminho — é elogio, não evidência. Acerto que eu não medi **neste turno** |
+| ❌ **erro** | o que eu afirmei e era falso + **a regra colada** (o que muda no método, em imperativo verificável) | erro sem regra = desabafo. Erro de gosto ("ficou feio") não entra: só o que uma regra evita |
+| 🔁 **reincidência** | quando o erro é o **mesmo** de um ciclo anterior: citar o ciclo e o que a repetição prova sobre o método | inventar reincidência sem o ciclo anterior nomeado |
+
+**Numeração das lições é do [CL] no merge.** Eu emito `L-??` como **proposta** para `memory/LICOES_CC.md` — nunca invento número, nunca commito direto (o `01-LISTA-COMPLETA.md` 7.13 já dizia "proposta no PR").
+
+### 15.3 · As duas regras que nasceram aqui e valem para tudo
+1. **Controle positivo antes de afirmar ausência.** "Zero resultado" **não** é evidência de que não existe, até rodar uma busca que **tem** de casar. Causa-raiz medida em 09/09: procurei `from "@/Components/…"` com aspas **duplas**; o repo usa **simples** → "No matches" virou o fato "o Ponto não usa o DS", errado em 21 arquivos. A regra do §5-bis ("toda sonda nova roda um caso de sanidade de valor conhecido antes de qualquer veredito") **passa a valer para busca de código**, não só para sonda de DOM. Ordem: (1) controle positivo · (2) ler 1 arquivo real do módulo · (3) só então afirmar. **Custo: 3 chamadas.**
+2. **O espelho não é evidência sobre o `main`.** `_ds/…/_ds_bundle.js` é componente **compilado** do espelho. Toda frase "o DS não tem X" exige o `.tsx` real lido no turno — senão a frase honesta é **"o bundle do espelho não tem X"**, que é outra afirmação, com outro dono. (Em 09/09 afirmei lacuna de passthrough no `Input`; `ui/input.tsx` faz `{...props}`.)
+
+### 15.4 · Onde é lido
+Entra no read-order do §2-quater **junto** com `LICOES_CC.md`: o pre-flight injeta **erro** catalogado, este injeta **acerto** catalogado. Consequência direta na hora de escrever o pedido — o bloco `B · NÃO INVENTAR` passa a ter um irmão: **NÃO REFAZER**, com a lista de acertos que já cobrem aquele eixo.
+
+### 15.5 · O que isto NÃO é
+Não é changelog (isso é `github.md`) · não é elogio ao [CL] (acerto sem sha não entra) · não é memória (memória é `memory/**`, no git; aqui é **ponte**, e as lições descem como proposta) · não é máquina nova: **zero script, zero gate de CI** — é um arquivo que se acrescenta. Se algum dia precisar de máquina, ela deriva daqui, não o contrário.

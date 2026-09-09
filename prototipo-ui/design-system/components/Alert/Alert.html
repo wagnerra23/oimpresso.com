@@ -1,0 +1,28 @@
+<!doctype html>
+<!-- @dsCard group="Components" name="Alert" subtitle="Banner inline — info/sucesso/atenção/erro, tom tintado" viewport="640x380" -->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Alert</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<style> body { margin: 0; } </style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+</head>
+<body>
+<div class="cockpit dark" data-theme="dark" style="min-height:380px; background:var(--bg); padding:22px;">
+  <div id="root"></div>
+</div>
+<script type="text/javascript">
+  const { Alert } = window.OfficeImpressoPontoWR2DesignSystem_019dd0;
+  const h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    h('div', { style: { display: 'flex', flexDirection: 'column', gap: 11, maxWidth: 560 } },
+      h(Alert, { tone: 'info', title: 'Fechamento começa em 3 dias', onClose: () => {} }, 'Revise as marcações pendentes antes de 30/06.'),
+      h(Alert, { tone: 'success', title: 'NF-e autorizada', children: 'Protocolo 135240000123456 — disponível para download.' }),
+      h(Alert, { tone: 'warn', title: 'Intercorrência aguardando aprovação', children: '2 colaboradores solicitaram ajuste de marcação.' }),
+      h(Alert, { tone: 'danger', title: 'Certificado A1 expira em 5 dias', children: 'Renove para não interromper a emissão fiscal.', onClose: () => {} })));
+</script>
+</body>
+</html>

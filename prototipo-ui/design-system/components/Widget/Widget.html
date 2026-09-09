@@ -1,0 +1,37 @@
+<!doctype html>
+<!-- @dsCard group="Components" name="Widget" subtitle="Painel com título + nota, ações e rodapé" viewport="880x340" -->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Widget</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<style>body{margin:0}</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+</head>
+<body>
+<div class="cockpit" style="padding:18px;background:var(--bg)"><div id="root"></div></div>
+<script type="text/javascript">
+
+  const { Widget, Button, StatusBadge, Progress } = window.OfficeImpressoPontoWR2DesignSystem_019dd0;
+  const h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, alignItems: 'start' } },
+      h(Widget, { title: 'Produção da semana', note: 'Atualizado há 4 min · fonte: OS', actions: h(Button, { size: 'sm', variant: 'ghost' }, 'Ver tudo') },
+        h('div', { style: { display: 'grid', gap: 8 } },
+          h('div', { style: { display: 'flex', justifyContent: 'space-between' } }, h('span', null, 'Impressão'), h('b', null, '18')),
+          h('div', { style: { display: 'flex', justifyContent: 'space-between' } }, h('span', null, 'Acabamento'), h('b', null, '7')),
+          h('div', { style: { display: 'flex', justifyContent: 'space-between' } }, h('span', null, 'Entrega'), h('b', null, '3')))),
+      h(Widget, { tone: 'warning', title: 'Prazos em risco', note: 'OS com entrega em menos de 24 h', badge: h(StatusBadge, { kind: 'prioridade', value: 'urgente' }), footer: '3 de 41 OS abertas' },
+        h('ul', { style: { margin: 0, paddingLeft: 16, display: 'grid', gap: 4 } },
+          h('li', null, '#4821 — Acme Comércio'), h('li', null, '#4818 — Studio Vega'), h('li', null, '#4802 — Escola Aurora'))),
+      h(Widget, { tone: 'accent', title: 'Meta do mês', note: 'Faturamento consolidado', footer: 'Fecha em 6 dias' },
+        h('div', { style: { display: 'grid', gap: 10 } },
+          h('div', { style: { font: '700 26px/1 var(--font-sans)', fontVariantNumeric: 'tabular-nums' } }, 'R$ 84.320'),
+          h(Progress, { value: 68 }))))
+  );
+
+</script>
+</body>
+</html>
