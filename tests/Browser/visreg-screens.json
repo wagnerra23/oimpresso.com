@@ -386,5 +386,37 @@
     "route": "/asset/asset-maintenance",
     "anchor": "Manutenções",
     "baseline": "it_Patrimonio_Manutencoes_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "StockAdjustment/Index",
+    "source": "StockAdjustment",
+    "component": "StockAdjustment/Index",
+    "route": "/stock-adjustments",
+    "anchor": "Ajustes de estoque",
+    "baseline": "it_StockAdjustment_Index_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "StockAdjustment/Create",
+    "source": "StockAdjustment/Create",
+    "component": "StockAdjustment/Create",
+    "route": "/stock-adjustments/create",
+    "anchor": "Novo ajuste de estoque",
+    "baseline": "it_StockAdjustment_Create_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "StockTransfer/Index",
+    "source": "StockTransfer",
+    "component": "StockTransfer/Index",
+    "route": "/stock-transfers",
+    "anchor": "Transferências de estoque",
+    "baseline": "it_StockTransfer_Index_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "StockTransfer/Create",
+    "source": "StockTransfer/Create",
+    "component": "StockTransfer/Create",
+    "route": "/stock-transfers/create",
+    "anchor": "Nova transferência de estoque",
+    "baseline": "it_StockTransfer_Create_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   }
 ]
