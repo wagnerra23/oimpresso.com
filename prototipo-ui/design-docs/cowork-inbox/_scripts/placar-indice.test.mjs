@@ -181,6 +181,7 @@ test('inventário inclui módulos sem playbook sem afirmar conclusão',()=>{
  assert.ok(r.length>descobrirIndices(fileURLToPath(new URL('../../../../',import.meta.url))).length);
  assert.ok(r.some(m=>m.modulo==='AssetManagement'&&m.playbook));
  assert.ok(r.some(m=>m.modulo==='Financeiro'&&!m.playbook));
+ assert.ok(r.some(m=>m.modulo===null && m.playbook.endsWith('/ancora/playbook/00-INDICE.md')));
  assert.ok(r.every(m=>m.status==='não avaliado'));
 });
 

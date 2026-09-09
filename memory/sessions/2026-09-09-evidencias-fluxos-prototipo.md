@@ -25,3 +25,7 @@ integrity-check passou em todos os invariantes hard; diff --check limpo. Sem Pes
 Nenhuma entrega dos módulos foi marcada feita por esta alteração e nenhum recibo aprovado foi fabricado. O recibo de revisão verifica uma declaração vinculada aos arquivos; não autentica a identidade do revisor. Comparação mede as dimensões declaradas, não substitui smoke ou teste de comportamento. O contrato do Painel de Patrimônio tinha copy pendente; D0 deve recusar enquanto não houver identidade comprovada, sem inventar copy de [W].
 
 A extensão permite utilizar os formatos nos módulos, mas não significa que todas as 40 tarefas tenham sido executadas ou que todo critério de negócio esteja coberto. Fichas ainda sem contrato de evidência permanecem explicitamente pendentes. O tamanho do patch reúne os adaptadores, seus testes e os consumidores em uma intenção; não cria novo workflow nem outro comparador.
+
+## Atualização após integração de main
+
+O inventário encontrou sete playbooks (entraram Compras, Fiscal e Âncora). O primeiro teste após merge falhou porque o inventário exigia um módulo de negócio para Âncora, que é processo transversal. A correção preservou esse índice como vínculo não declarado, sem atribuir dono por adivinhação; Compras e Fiscal foram ligados aos SCOPEs correspondentes. O teste passou a cobrir explicitamente o playbook sem vínculo.

@@ -20,20 +20,22 @@ export function descobrirIndices(root) {
 }
 
 export function coberturaModulos(root) {
-  const porModulo = new Map();
+  const porModulo = new Map(), semVinculo = [];
   for (const p of descobrirIndices(root)) {
     const index=JSON.parse(readFileSync(join(root,p),'utf8').match(/```json\s*\n([\s\S]*?)\n```/)[1]);
     validarIndice(index);
-    if (!index.modulo_codigo) throw Error('Índice sem módulo de código explícito: '+p);
+    if (!index.modulo_codigo) { semVinculo.push({modulo:null,scope:null,playbook:p,entrada:'vínculo de módulo não declarado; consultar índice',status:'não avaliado'}); continue; }
     if (porModulo.has(index.modulo_codigo)) throw Error('Mais de um playbook para '+index.modulo_codigo);
     porModulo.set(index.modulo_codigo,p);
   }
-  return readdirSync(join(root,'memory/requisitos'),{withFileTypes:true})
+  const modulos = readdirSync(join(root,'memory/requisitos'),{withFileTypes:true})
     .filter(d=>d.isDirectory() && existsSync(join(root,'memory/requisitos',d.name,'SCOPE.md')))
     .map(d=>({modulo:d.name,scope:'memory/requisitos/'+d.name+'/SCOPE.md',
       playbook:porModulo.get(d.name)||null,
       entrada:porModulo.has(d.name)?'playbook':'contratos do módulo + design-sync',
       status:'não avaliado'})).sort((a,b)=>a.modulo.localeCompare(b.modulo));
+  for (const m of porModulo.keys()) if (!modulos.some(r=>r.modulo===m)) throw Error('Módulo declarado sem SCOPE: '+m);
+  return [...modulos,...semVinculo];
 }
 
 import { validarIndice, avaliarExecucao, pathSeguro } from './placar-evidencia.mjs';
