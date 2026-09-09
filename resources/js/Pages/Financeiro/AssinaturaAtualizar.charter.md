@@ -14,7 +14,7 @@ component: resources/js/Pages/Financeiro/AssinaturaAtualizar.tsx
 related_us: [US-FIN-063]
 last_validated: "2026-05-31"
 parent_module: Financeiro
-related_prototype: n/a (sem protótipo Cowork — form de atualização de cobrança, FIN-004; segue DS)
+related_prototype: n/a (sem protótipo Cowork — form de atualização de cobrança, FIN-004; segue DS)  # 2026-09-09 [C]: ⚠️ ERRATA do recibo herdado: buscar `FIN-004`/`atualizar cobran` dá 0, mas `prototipo-ui/cowork/AssinaturaAtualizar.tsx` EXISTE no espelho. Medido: é porte REVERSO do código vivo (310 vs 309 linhas; difere só na API do PageHeader — `@/Components/shared/PageHeader` + `description`/`action` contra `@/Components/PageHeader` + `subtitle`/`actions`). Ancorar nele seria ancorar a tela nela mesma (§5 2026-06-05). Conclusão "sem fonte" MANTIDA, recibo corrigido. medido 2026-09-09 pelas 3 pernas (repo inteiro com --hidden, projeto Cowork por ID via DesignSync.list_files, espelho). Ver memory/requisitos/_DesignSystem/INVENTARIO-ANCORAS-2026-09-09.md §5.3 + §5.7.
 tier: B
 charter_version: 1
 ---

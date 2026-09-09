@@ -17,10 +17,14 @@
 // O protótipo (`prototipo-ui/cowork/patrimonio-page.jsx:835`) declara SETE abas; o menu
 // vivo declara SEIS ghosts, e as listas não coincidem:
 //
-//   menu vivo  · Painel · Ativos · Alocações · Devoluções · Manutenção · Configurações
-//   protótipo  · Painel · Bens   · Alocações · Manutenções · Garantias · Auditoria · Configurações
+//   menu vivo  · Painel · Bens · Alocações · Devoluções · Manutenções · Configurações
+//   protótipo  · Painel · Bens · Alocações · Manutenções · Garantias · Auditoria · Configurações
 //
-// A diferença não é descuido de um dos lados — é escopo em aberto:
+// Os RÓTULOS convergiram em 2026-09-09 por decisão [W]: a aba dizia "Ativos"/"Manutenção"
+// enquanto o `PageHeader` da MESMA tela dizia "Bens"/"Manutenções". Trocado no dono ÚNICO
+// (`DataController`), não aqui — este arquivo continua sem saber o nome de aba nenhuma.
+//
+// O que RESTA divergindo não é descuido de um dos lados — é escopo em aberto:
 //   • **Devoluções** existe como rota real (`/asset/revocation`, `Route::resource`) e o
 //     protótipo a trata como estado dentro de Alocações. A rota manda.
 //   • **Garantias** e **Auditoria** são decisões de produto ABERTAS do [W] — itens 4 e 5

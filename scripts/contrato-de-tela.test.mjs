@@ -432,5 +432,51 @@ function makeGitRepo() {
   }
 }
 
+// 10. PREFLIGHT x --merge-ref — a perna de ancestralidade e PULADA quando o HEAD e o merge ref
+//     de um PR (checkout@v4 em pull_request), mas as demais seguem. O caso (c) e o que impede
+//     a flag de virar carimbo: com a flag ligada, worktree orfao AINDA reprova.
+{
+  // repo com uma branch genuinamente NAO-ancestral da base
+  const mk = () => {
+    const root = mkdtempSync(join(tmpdir(), 'preflight-'));
+    const g = (...a) => git(root, a);
+    g('init', '-q'); g('config', 'user.email', 't@t.t'); g('config', 'user.name', 't');
+    writeFileSync(join(root, 'a.txt'), '1'); g('add', '-A'); g('commit', '-q', '-m', 'base');
+    g('branch', 'base-ref');
+    g('checkout', '-q', '-b', 'feature');
+    writeFileSync(join(root, 'b.txt'), '2'); g('add', '-A'); g('commit', '-q', '-m', 'feature');
+    // base-ref anda DEPOIS: feature deixa de ser descendente dela
+    g('checkout', '-q', 'base-ref');
+    writeFileSync(join(root, 'c.txt'), '3'); g('add', '-A'); g('commit', '-q', '-m', 'base anda');
+    g('checkout', '-q', 'feature');
+    return root;
+  };
+  if (git(mkdtempSync(join(tmpdir(), 'probe-')), ['--version']).status !== 0) {
+    console.log('[SKIP] preflight (git indisponivel)');
+  } else {
+    // (a) SEM a flag, base nao-ancestral -> MORDE
+    let root = mk();
+    let r = node(root, ['--preflight', 'base-ref']);
+    check('preflight sem --merge-ref, base nao-ancestral -> exit 1',
+      r.status === 1 && /nao-ancestral|não-ancestral/.test(out(r)), `status=${r.status} ${out(r)}`);
+    drop(root);
+
+    // (b) COM a flag, MESMA base nao-ancestral -> PULA (e diz que pulou)
+    root = mk();
+    r = node(root, ['--preflight', 'base-ref', '--merge-ref']);
+    check('preflight com --merge-ref, base nao-ancestral -> exit 0 + diz PULADA',
+      r.status === 0 && /ancestralidade PULADA/.test(out(r)), `status=${r.status} ${out(r)}`);
+    drop(root);
+
+    // (c) CONTROLE NEGATIVO: com a flag ligada, worktree orfao AINDA reprova (nao virou carimbo)
+    root = mkdtempSync(join(tmpdir(), 'preflight-orfao-'));
+    git(root, ['init', '-q']);
+    r = node(root, ['--preflight', 'HEAD', '--merge-ref']);
+    check('preflight com --merge-ref, worktree orfao -> exit 1 (a flag NAO e carimbo)',
+      r.status === 1 && /worktree/.test(out(r)), `status=${r.status} ${out(r)}`);
+    drop(root);
+  }
+}
+
 console.log(fails ? `\n❌ ${fails} regressão(ões).` : `\n✅ todos os controles passam (gate morde e libera certo).`);
 process.exit(fails ? 1 : 0);
