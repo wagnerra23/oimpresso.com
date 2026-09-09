@@ -435,20 +435,19 @@ export async function resolveAncora(query, { repoRoot = REPO_DEFAULT, stagingDir
   const ancoras = [];
   // 1) protótipo aprovado declarado no charter (related_prototype)
   if (fm.related_prototype) ancoras.push({ tipo: 'related_prototype (charter)', valor: fm.related_prototype, raiz: raizRepo });
-  // 2) -page.jsx do bundle (se staging dado).
-  // PREFERE o campo estruturado `bundle_source:` do charter (determinístico) — musing-elion 2026-06-30:
-  // a heurística startsWith(dir) falhava quando o bundle nomeia o mockup pela RAIZ do módulo
-  // (financeiro-page) e a tela vive em sub-pasta (Unificado). Só cai na heurística se não houver campo.
+  // 2) -page.jsx do bundle (se staging dado) — SÓ pelo campo estruturado do charter.
+  // Havia aqui um fallback `startsWith(dir)` que casava o mockup por NOME DE PASTA. Removido
+  // em 2026-09-09 por decisão [W], medido: das 42 telas que ele resolvia, 25 já tinham
+  // `related_prototype` (o consumidor pega o [0], ele era supérfluo) e 16 declaravam `n/a` —
+  // nessas ele SOBRESCREVIA a decisão do charter e deixava inalcançável o aviso "sem âncora
+  // POR DECISÃO" do design-diff-lote. Era o guard sintático que a regra dura do topo proíbe
+  // (§5 proibicoes tem 7 lápides da família). Tela sem campo declarado NÃO tem âncora de
+  // bundle — é a verdade, e `--list` já sabe dizer isso. Ver o BITE no --selftest.
   if (stagingDir) {
     const stFiles = await walk(stagingDir);
     const declarado = mockupJsx(fm.bundle_source) || mockupJsx(fm.visual_source);
     let cand = declarado ? stFiles.find((f) => basename(f).toLowerCase() === declarado.toLowerCase()) : null;
     let via = cand ? 'bundle_source' : null;
-    if (!cand) {
-      const wanted = (basename(dirname(repoTsx(fm.component) || hit.charter)) || '').toLowerCase();
-      cand = stFiles.find((f) => /-page\.jsx$/i.test(f) && basename(f).toLowerCase().startsWith(wanted));
-      if (cand) via = 'heurística startsWith(dir)';
-    }
     if (cand) ancoras.push({ tipo: `-page.jsx (bundle · ${via})`, valor: relative(stagingDir, cand).replace(/\\/g, '/'), raiz: resolve(stagingDir) });
   }
   // As duas chaves que declaram fonte e NÃO são âncora (bloco do topo). Duas leituras a
@@ -977,6 +976,33 @@ async function selftest() {
   const dRuim = ab ? await defeitosDaAncora(ab.valor, REPO_DEFAULT, REPO_DEFAULT) : { lido: true };
   t('CONTROLE staging: com a raiz do REPO o MESMO valor não é lido (é o defeito de 2026-08-25)',
     dRuim.lido === false);
+
+  // ── BITE do fallback REMOVIDO (heurística startsWith(dir)) — 2026-09-09 ────
+  // O ramo removido casava o mockup por NOME DE PASTA: `Pages/<Dir>/X.tsx` + qualquer
+  // `<dir>*-page.jsx` no staging viravam âncora. Medido antes de remover (42 telas que ele
+  // resolvia): 25 já tinham `related_prototype` — ele era supérfluo, o consumidor pega o [0];
+  // 16 declaravam `n/a` — ali ele SOBRESCREVIA a decisão do charter, e o aviso "sem âncora POR
+  // DECISÃO" do design-diff-lote ficava inalcançável. Ele viveu meses sem fixture nenhuma: a
+  // única do staging usa `bundle_source`, e o selftest ficava VERDE com o ramo apagado. Este
+  // par fecha isso — sem ele, quem reintroduzir o fallback não encontra vermelho.
+  const fxHeur = join(fx, 'heur');
+  await mkdir(join(fxHeur, 'repo', 'resources', 'js', 'Pages', 'SemCampo'), { recursive: true });
+  await mkdir(join(fxHeur, 'staging'), { recursive: true });
+  // O basename do mockup CASA a pasta do componente — é exatamente o que o fallback exigia.
+  await writeFile(join(fxHeur, 'staging', 'semcampo-page.jsx'), '// isca do fallback por nome de pasta\n', 'utf8');
+  const charterSemCampo = ['---', 'page: /sem-campo', 'component: resources/js/Pages/SemCampo/Index.tsx', '---', '# sem campo'].join('\n');
+  await writeFile(join(fxHeur, 'repo', 'resources', 'js', 'Pages', 'SemCampo', 'Index.charter.md'), charterSemCampo, 'utf8');
+  const rSem = await resolveAncora('SemCampo/Index', { repoRoot: join(fxHeur, 'repo'), stagingDir: join(fxHeur, 'staging') });
+  t('BITE fallback: charter SEM bundle_source NÃO ganha âncora de bundle, mesmo com o -page.jsx casando a pasta',
+    rSem.ok === true && !rSem.ancoras.some((a) => a.tipo.startsWith('-page.jsx')));
+  // CONTROLE POSITIVO — sem ele o BITE acima passaria com o resolvedor de bundle QUEBRADO
+  // (verde por não-execução: nada resolve, logo o BITE fica verde por acidente).
+  await mkdir(join(fxHeur, 'repo2', 'resources', 'js', 'Pages', 'SemCampo'), { recursive: true });
+  await writeFile(join(fxHeur, 'repo2', 'resources', 'js', 'Pages', 'SemCampo', 'Index.charter.md'),
+    charterSemCampo.replace('---\n# sem campo', 'bundle_source: semcampo-page.jsx\n---\n# sem campo'), 'utf8');
+  const rDecl = await resolveAncora('SemCampo/Index', { repoRoot: join(fxHeur, 'repo2'), stagingDir: join(fxHeur, 'staging') });
+  t('CONTROLE fallback: o MESMO staging COM bundle_source declarado RESOLVE (o resolvedor está vivo)',
+    rDecl.ok === true && rDecl.ancoras.some((a) => a.tipo === '-page.jsx (bundle · bundle_source)' && a.valor === 'semcampo-page.jsx'));
 
   // ── CLASSIFICAÇÃO do valor de related_prototype (texto livre) — 2026-08-25 ─
   // 4 formatos no corpus; 2 deles nunca chegavam a ser lidos e 1 era confundido com
