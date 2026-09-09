@@ -73,8 +73,13 @@ const PROTOTIPOS_HISTORICOS = new Set(['financeiro-prova-viva']);
 // sem fonte; ausência medida nos 2 donos em 2026-09-09: `TransactionPayment` dá 10 hits em
 // `prototipo-ui/`, TODOS .md/docs, zero em arquivo de design. O drawer mais próximo
 // (financeiro-legado.jsx:369, `sel.k === "titulo"`) detalha TÍTULO, objeto diferente.
+// 'recurring-billing-planos' — RecurringBilling/Planos/{Create,Edit}, 2 telas de dinheiro sem
+// fonte; ausência medida nos 2 donos em 2026-09-09. A aba "planos" do hub
+// (cobranca-recorrente-page.jsx:369) é `<Placeholder>` de 3 elementos, e o arquivo é porte
+// REVERSO (`:2` "Reescreve a RecurringBilling do git") — mesmo veredito dos 3 irmãos no #7099.
 const PROTOTIPOS_GERADOS = new Set([
   'nfe-tributacao', 'nfse-emitir', 'payment-gateway-cnab', 'transaction-payment',
+  'recurring-billing-planos',
 ]);
 
 const errors = [];
