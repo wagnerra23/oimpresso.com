@@ -61,6 +61,31 @@ Colunas reais de `assets` (baseline `database/schema/mysql-schema.sql:674`): `id
 asset_code · name · quantity · model · serial_no · category_id · location_id · purchase_date ·
 purchase_type · unit_price · depreciation · is_allocatable · description · created_by · timestamps`.
 
+### 2.1 · O header também mostra dado — e ele vem do SHELL do protótipo
+
+Dois elementos do header não moram no `patrimonio-page.jsx`: vêm do `MP.Header`
+(`modulo-padrao.jsx:18`), que delega pro `CliPageHead`. **Foi por isso que passaram batido** nos
+PRs [#7133](https://github.com/wagnerra23/oimpresso.com/pull/7133)/[#7139](https://github.com/wagnerra23/oimpresso.com/pull/7139),
+que alinharam o corpo da tela: quem lê só a página do módulo não os enxerga. Ao mexer neste
+header, a fonte a abrir são os **três** arquivos, não só o primeiro.
+
+| elemento | fonte do dado | fonte do desenho | veredito |
+|---|---|---|---|
+| **selo `Atualizado HH:MM`** | prop `apurado_em` (`AssetController:643`, eager) | `patrimonio-page.jsx:821-822` · posição em `cli-pagehead.jsx:159` (1º item de `actions`) | ✅ renderiza · clique = `router.reload()` |
+| **linha de contexto** | `business.name` (share eager, `HandleInertiaRequests:85`) + `kpis.totalBens` (deferida) | `patrimonio-page.jsx:820` · `cli-pagehead.jsx:89` (`<p>` irmão acima do header) | ⚠️ parcial — 2 de 3 pedaços |
+| ↳ **locais** (3º pedaço) | **não chega a esta página** — 0 ocorrências de local/locais em todo o `share()` | idem | ❌ omitido · ver abaixo |
+
+O pedaço de locais é o único desvio, e a omissão é deliberada: `permitted_locations()` existe no
+backend (o índice de Bens o usa, `AssetController:349`) mas **não é filtro deste painel** — as
+consultas de `painelKpis()` filtram só `business_id`. Escrever "todos os locais" afirmaria um
+escopo de permissão que a tela não aplica; escrever os locais restritos do usuário mentiria sobre
+a abrangência de números que somam o business inteiro. Fechar a **R4** do contrato Cowork
+(`permitted_locations` filtra lista, contadores e KPIs) nos KPIs vem primeiro — decisão [W].
+
+A contagem de bens vem de prop **deferida**: no 1º paint a linha nasce só com o negócio, e o
+pedaço entra quando `kpis` chega. Quem sustenta isso é o `filter` que o protótipo já tem
+(`cli-pagehead.jsx:79`) — pedaço vazio **sai** do join, em vez de deixar um ` · ` órfão.
+
 ## 3 · Os dois `—`, e por que não invento fórmula
 
 **Valor residual.** A coluna `assets.depreciation` existe e é **gravada**, mas ninguém a calcula:
@@ -169,6 +194,11 @@ tailscale ssh root@ct100-mcp "docker exec -e DB_CONNECTION=mysql oimpresso-stagi
   php artisan test --filter=Asset"
 npm run casos:report
 node scripts/governance/anchor-lint.mjs --check
+
+# Contrato de RENDER (a lane `patrimonio-painel-gate.yml` roda estes dois):
+npx vitest run tests/js/patrimonio-header-contexto.test.tsx \
+               tests/js/patrimonio-painel-sem-fonte.test.tsx
+node scripts/contrato-de-tela.mjs --contract prototipo-ui/contrato/patrimonio-index.contract.json
 ```
 
 Ler **assertions**, nunca "0 failed" — teste que pula sai com exit 0. Tenant de teste é o

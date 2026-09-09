@@ -8,8 +8,9 @@
 // nunca é calculada, e a regra é decisão [W] em aberto) e custo de manutenção (a tabela
 // não tem coluna de valor). Ver RUNBOOK §3 — não invente fórmula pra preenchê-los.
 import * as React from 'react';
-import { Deferred } from '@inertiajs/react';
+import { Deferred, router } from '@inertiajs/react';
 import AppShellV2 from '@/Layouts/AppShellV2';
+import { useBusiness, usePageProps } from '@/Hooks/usePageProps';
 import { PageHeader } from '@/Components/PageHeader';
 import { Icon } from '@/Components/Icon';
 import KpiGrid from '@/Components/shared/KpiGrid';
@@ -161,13 +162,103 @@ function Acao({
   );
 }
 
+/**
+ * Eyebrow de contexto — o `contexto` do `MP.Header` (`modulo-padrao.jsx:18`), que o
+ * `CliPageHead` renderiza como `<p>` IRMÃO ACIMA do header quando `contextoWrap` é pedido
+ * (`cli-pagehead.jsx:89`), e o Patrimônio pede (`modulo-padrao.jsx:32`). É irmão porque o
+ * slot `context` do DS é `nowrap`+`ellipsis` e ENGOLIA a contagem operacional — o docblock
+ * do `CliPageHead` mede a perda ("14 folhas · 11 pendentes" sumindo) e conclui que a
+ * contagem é conteúdo de domínio, não decoração. O `PageHeader` canon daqui não tem slot
+ * nenhum pra isso, então a mesma solução: irmão, não override do canon.
+ *
+ * Tokens do protótipo (`cli-pagehead.jsx:90-92`) traduzidos pro vocabulário do repo:
+ * mono 11px/500, uppercase, tracking .04em, cor dim, `text-wrap: pretty`.
+ *
+ * `-mb-5` compensa o `pt-6` (24px) do `PageHeader` canon, como o `-11px` do protótipo
+ * compensa os 14px do `<header>` do DS: sem isso o eyebrow fica a 24px do título, contra
+ * os ~3px que o legado tinha (`chat-jana.css:45`).
+ */
+function LinhaDeContexto({ partes }: { partes: Array<string | null | undefined> }) {
+  // O filtro é do protótipo, não conveniência: `contexto.filter(c => c != null && c !== '')`
+  // (`cli-pagehead.jsx:79`). Pedaço ausente SAI do join em vez de virar separador órfão —
+  // é o que sustenta a contagem de bens chegar depois (prop deferida) sem quebrar a linha.
+  const linha = partes.filter((p): p is string => p != null && p !== '').join(' · ');
+  if (!linha) return null;
+
+  return (
+    <p className="-mb-5 font-mono text-[11px] font-medium uppercase tracking-[0.04em] text-muted-foreground [text-wrap:pretty]">
+      {linha}
+    </p>
+  );
+}
+
+/**
+ * Pílula de frescor — o `atualizadoAs` + `onRefresh` do `MP.Header`. Vai como PRIMEIRO item
+ * de `actions`, e a posição não é escolha minha: o `CliPageHead` monta `{frescor}{acoes}`
+ * (`:159`) depois de medir que pô-la no slot `freshness` do DS roubava largura do título
+ * permanentemente (`:30-37` — o h1 de `repair` truncava em 218×173).
+ *
+ * Clicável porque o protótipo passa `onRefresh` (`patrimonio-page.jsx:822`), e aqui existe
+ * o equivalente honesto: `router.reload()` refaz o request, e o `apurado_em` é
+ * `now()->toIso8601String()` no controller (`AssetController:643`) — a hora do selo muda
+ * porque a apuração aconteceu de verdade, não porque um `setState` a reescreveu.
+ * A copy do título é a literal do protótipo (`modulo-padrao.jsx:34` `refreshTitle`).
+ */
+function PilulaFrescor({ hora }: { hora: string }) {
+  return (
+    <button
+      type="button"
+      onClick={() => router.reload()}
+      title="Reapurar agora"
+      className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+    >
+      <span aria-hidden className="size-1.5 rounded-full bg-success" />
+      Atualizado {hora}
+    </button>
+  );
+}
+
 export default function Index({ abas_contadores, is_admin, pode, apurado_em, kpis, porCategoria, garantia, manutencoes, meusBens }: Props) {
   const apurado = new Date(apurado_em).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+  // Só HH:MM no selo do header — é o formato do protótipo (`patrimonio-page.jsx:822`,
+  // `toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})`). O carimbo COMPLETO
+  // segue no "Resumo de hoje": o protótipo tem os dois (`MP.Resumo quando=` :215), e um
+  // não substitui o outro.
+  const apuradoHora = new Date(apurado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+  // Nome da empresa: MESMA fonte que o AppShellV2 usa na sidebar (`shell.cockpit.businessNome`,
+  // uma query em `App\Business`), com o `business.name` do shared prop — que vem da SESSÃO — só
+  // de fallback. A ordem NÃO é preferência: `Produto/Unificado/Index.tsx:235` já tinha medido
+  // que o da sessão chega VAZIO em ambiente de teste, e a primeira baseline visual desta tela
+  // PROVOU o mesmo aqui — o eyebrow saiu como `0 BENS`, sem o negócio, enquanto a sidebar do
+  // MESMO render mostrava o nome. Idioma copiado de lá, não reinventado.
+  // Sem default: imprimir 'Oimpresso' afirmaria um tenant que não é o do usuário (ADR 0093).
+  // Os DOIS hooks são chamados incondicionalmente — `a ?? b` não avalia `b` quando `a` tem
+  // valor, e hook em avaliação condicional quebra as Rules of Hooks.
+  const shell = usePageProps().shell as ({ cockpit?: { businessNome?: string } } | undefined);
+  const nomeDoShell = shell?.cockpit?.businessNome ?? null;
+  const nomeDaSessao = useBusiness()?.name ?? null;
+  const negocio = nomeDoShell ?? nomeDaSessao;
 
   return (
     <AppShellV2 title="Patrimônio">
       <div className="mx-auto max-w-7xl space-y-4 p-6">
         <div data-contract="cabecalho">
+          {/* O `contexto` do protótipo tem TRÊS pedaços — `["OFFICEIMPRESSO", locais, "N bens"]`
+              (`patrimonio-page.jsx:820`). Descem DOIS, e a ausência do terceiro é medida, não
+              esquecimento: `permitted_locations()` existe no backend (o índice de Bens o usa,
+              `AssetController:349`) mas NÃO chega a esta página — 0 ocorrências de local/locais
+              em todo o `share()` do `HandleInertiaRequests` (medido: `grep -ic` sobre :46-205).
+              E buscá-lo seria pior que omiti-lo: os KPIs deste painel filtram só `business_id`
+              (`painelKpis:653`), então escrever "TODOS OS LOCAIS" afirmaria um escopo de
+              permissão que a tela não aplica, e escrever os locais restritos do usuário MENTIRIA
+              sobre a abrangência de números que somam o business inteiro. É a mesma recusa que
+              esta tela já fez 3× (chip `Auditoria`, `?garantia=`, subtítulo do drill).
+              Reabrir isso é fechar a R4 do contrato Cowork nos KPIs primeiro — decisão [W].
+
+              A contagem de bens vem de prop DEFERIDA: no 1º paint `kpis` é `undefined`, o pedaço
+              sai do join (o `filter` que o protótipo já tem) e a linha nasce com o negócio só. */}
+          <LinhaDeContexto partes={[negocio, kpis ? `${kpis.totalBens} bens` : null]} />
           {/* Canon v3.8 (ADR 0189/0190). O ícone entra por `leading` — o slot existe no canon
               justamente porque o PT-04 R6 descreve o header como "ícone · título · descrição"
               (`PageHeader.tsx:49`), e a Jana PERDEU o dot da área ao migrar sem ele. Idioma
@@ -205,6 +296,9 @@ export default function Index({ abas_contadores, is_admin, pode, apurado_em, kpi
                com o `D-FORMS` ([W]); até lá o botão leva ao lugar certo sem prometer o form. */
             actions={
               <Inline gap={2} align="center">
+                {/* PRIMEIRO item de `actions` — ordem do `CliPageHead:159` (`{frescor}{acoes}`),
+                    não preferência minha. Antes da busca e dos dois botões. */}
+                <PilulaFrescor hora={apuradoHora} />
                 <form method="GET" action="/asset/assets" role="search">
                   <Input
                     type="search"

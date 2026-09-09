@@ -1,0 +1,90 @@
+/* planos-form-page.css — Plano de assinatura: Criar + Editar. Cockpit V2.
+   Token-driven (claro/escuro pelo host). Prefixo .pl- pra nao colidir.
+   So tokens do DS canon: --bg --muted --card --border --fg --fg-2 --fg-3
+   --accent --accent-fg --accent-soft --radius --radius-lg --radius-sm.
+   Cor crua e proibida (conformance-gate = LEI). */
+
+.pl{ display:flex; flex-direction:column; min-height:100%; background:var(--bg); }
+
+/* alternador das 2 telas — so do prototipo */
+.pl-nav{ display:flex; gap:6px; padding:10px 24px; border-bottom:1px solid var(--border);
+  background:var(--card); }
+.pl-nav button{ height:28px; padding:0 12px; border:1px solid var(--border);
+  border-radius:var(--radius); background:var(--card); color:var(--fg-2);
+  font-size:12.5px; font-weight:500; cursor:pointer; }
+.pl-nav button[aria-current="true"]{ background:var(--accent); border-color:var(--accent);
+  color:var(--accent-fg); }
+
+/* cabecalho + breadcrumb (charter: header + Voltar) */
+.pl-head{ padding:16px 24px 12px; }
+.pl-crumb{ display:inline-flex; align-items:center; gap:5px; font-size:11.5px;
+  color:var(--fg-3); background:none; border:0; padding:0; cursor:pointer; }
+.pl-crumb:hover{ color:var(--accent); }
+.pl-h1{ font-size:20px; font-weight:600; color:var(--fg); letter-spacing:-.01em; margin:6px 0 0; }
+.pl-sub{ font-size:12.5px; color:var(--fg-3); margin-top:3px; }
+
+/* grade conteudo + trilho */
+.pl-grid{ display:grid; grid-template-columns:1fr 290px; gap:16px; padding:4px 24px 22px;
+  align-items:start; }
+@media (max-width:900px){ .pl-grid{ grid-template-columns:1fr; } }
+
+.pl-card{ border:1px solid var(--border); border-radius:var(--radius-lg);
+  background:var(--card); overflow:hidden; }
+.pl-card + .pl-card{ margin-top:14px; }
+.pl-card-h{ padding:11px 16px; border-bottom:1px solid var(--border); }
+.pl-card-t{ font-size:13px; font-weight:600; color:var(--fg); }
+.pl-card-s{ font-size:11.5px; color:var(--fg-3); margin-top:2px; }
+.pl-card-b{ padding:14px 16px; }
+
+/* alerta de erro do servidor (charter: server fala a palavra final) */
+.pl-alert{ margin:0 24px 12px; padding:10px 12px; border:1px solid var(--border);
+  border-left:2px solid var(--accent); border-radius:var(--radius-sm);
+  background:var(--accent-soft); font-size:12px; color:var(--fg); }
+.pl-alert b{ font-weight:600; }
+
+/* campos */
+.pl-fg{ display:grid; grid-template-columns:1fr 1fr; gap:12px 14px; }
+@media (max-width:640px){ .pl-fg{ grid-template-columns:1fr; } }
+.pl-f{ display:flex; flex-direction:column; gap:5px; min-width:0; }
+.pl-f-full{ grid-column:1 / -1; }
+.pl-lb{ font-size:11.5px; font-weight:500; color:var(--fg-2); }
+.pl-req{ color:var(--accent); margin-left:2px; }
+.pl-in{ height:32px; padding:0 10px; border:1px solid var(--border);
+  border-radius:var(--radius); background:var(--card); color:var(--fg);
+  font:inherit; font-size:12.5px; width:100%; }
+.pl-in:focus{ outline:2px solid var(--accent); outline-offset:-1px; }
+textarea.pl-in{ height:auto; min-height:70px; padding:8px 10px; resize:vertical; line-height:1.5; }
+.pl-in[aria-invalid="true"]{ border-color:var(--accent); }
+.pl-hint{ font-size:11px; color:var(--fg-3); }
+.pl-err{ font-size:11px; color:var(--accent); font-weight:500; }
+.pl-money{ font-variant-numeric:tabular-nums; text-align:right; font-weight:600; }
+
+/* linha de checkbox */
+.pl-check{ display:flex; align-items:center; gap:8px; padding:2px 0; }
+.pl-check input{ width:15px; height:15px; accent-color:var(--accent); }
+.pl-check span{ font-size:12.5px; color:var(--fg); }
+
+/* bloco condicional (ciclo custom · fiscal nfe/nfse) */
+.pl-cond{ margin-top:12px; padding:12px; border:1px solid var(--border);
+  border-left:2px solid var(--accent); border-radius:var(--radius-sm); background:var(--muted); }
+.pl-cond-t{ font-size:11.5px; font-weight:600; color:var(--fg-2); margin-bottom:9px; }
+
+/* trilho: previa do que o cliente vai pagar */
+.pl-kv{ display:flex; justify-content:space-between; gap:10px; padding:6px 0;
+  font-size:12.5px; border-bottom:1px solid var(--border); }
+.pl-kv:last-child{ border-bottom:0; }
+.pl-kv dt{ color:var(--fg-3); margin:0; }
+.pl-kv dd{ color:var(--fg); margin:0; text-align:right; font-variant-numeric:tabular-nums; }
+.pl-kv-forte dd{ font-weight:600; }
+.pl-preco{ font-size:24px; font-weight:600; color:var(--fg); letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums; }
+.pl-preco-s{ font-size:11.5px; color:var(--fg-3); margin-top:2px; }
+
+/* acoes */
+.pl-acts{ display:flex; justify-content:flex-end; gap:8px; padding:12px 16px;
+  border-top:1px solid var(--border); background:var(--muted); }
+.pl-btn{ display:inline-flex; align-items:center; gap:6px; height:30px; padding:0 12px;
+  border:1px solid var(--border); border-radius:var(--radius); background:var(--card);
+  font-size:12.5px; font-weight:500; color:var(--fg); cursor:pointer; }
+.pl-btn-p{ background:var(--accent); border-color:var(--accent); color:var(--accent-fg); }
+.pl-btn[disabled]{ opacity:.5; cursor:not-allowed; }
