@@ -116,6 +116,7 @@ function painelCriarColaborador(int $businessId, int $userBusinessId): Colaborad
     $user = User::factory()->create([
         'business_id' => $userBusinessId,
         'user_type'   => 'user',
+        'username'    => strtolower(PAINEL_MARCADOR) . '-' . uniqid(),
     ]);
 
     $colab = new Colaborador();
