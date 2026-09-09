@@ -33,6 +33,14 @@ class SuperadminServiceProvider extends ServiceProvider
     private static bool $businessObserverRegistered = false;
 
     /**
+     * Guard contra duplicação do agendamento (mesmo motivo nWidart).
+     *
+     * Faltava: o arquivo já guardava listener e observer contra o boot() duplo, mas
+     * não o schedule — e era ele que estava duplicado em prod (2026-09-09).
+     */
+    private static bool $scheduleRegistered = false;
+
+    /**
      * Boot the application events.
      *
      * @return void
@@ -100,6 +108,11 @@ class SuperadminServiceProvider extends ServiceProvider
 
     public function registerScheduleCommands()
     {
+        if (self::$scheduleRegistered) {
+            return;
+        }
+        self::$scheduleRegistered = true;
+
         $env = config('app.env');
         //schedule command for sending subscription expiry alert
         if ($env === 'live') {
