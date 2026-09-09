@@ -3,7 +3,7 @@ id: resources-js-pages-manufacturing-index-charter
 page: /manufacturing/production
 component: resources/js/Pages/Manufacturing/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
-bundle_source: manufacturing-page.jsx
+bundle_source: manufacturing-page.jsx  # 2026-09-09 [C]: porte REVERSO — `manufacturing-page.jsx:2` declara "Espelho de Modules/Manufacturing"; o gap-spec de 06/09 mede o prototipo ATRAS do vivo nos KPIs. Fonte de bundle, NAO design aprovado (§5 2026-08-28).
 page_id: manufacturing-index
 status: draft
 owner: wagner
