@@ -17,6 +17,17 @@ charter_version: 1
 > **Status:** draft — aguardando aprovação visual de Wagner (gate F2 do PROTOCOL: Wagner aprova SCREENSHOT, não tabela).
 > Tradução F3 (PROTOCOL §2) do protótipo Cowork `DS Rollout - Ondas e Testes.html` (handoff claude.ai/design, sessão 2026-06-12).
 > Origem: Wagner perguntou "quantas ondas pra portar todo o DS? com teste pra ver se tudo foi aplicado" → o protótipo respondeu com o plano + o **Ledger de Conformidade**.
+>
+> ⚠️ **Nota de proveniência — medido em 2026-09-09.** A frase acima é fato datado de 2026-06-12 e fica
+> como está. O que se acrescenta é a medição de hoje: **o arquivo `DS Rollout - Ondas e Testes.html`
+> não existe em nenhum dos dois donos do inventário de design.** No repo,
+> `rg -l -i --hidden -g '!.git/**' -e "Ondas e Testes"` devolve **5 hits, todos do próprio DsRollout**
+> (`ds-ledger.mjs`, `DsRolloutController.php`, `.tsx`, `.charter.md`, `.casos.md`) — nenhum é o `.html`.
+> No Cowork vivo, `DesignSync.list_files` (**771 paths**, medido hoje) não traz nada de rollout.
+> O handoff de 2026-06-12 **nunca pousou**; a citação é ponteiro sem alvo. Isso **não** invalida a tela:
+> o `related_prototype: n/a (herda PT-04 Dashboard)` do frontmatter é a declaração vigente e legítima
+> ([§5 2026-08-28 (c)](../../../../memory/proibicoes.md)), e é ela que põe esta tela no `pt-conformance`.
+> Quem for procurar o `.html`: ele não está lá — não gaste a sessão.
 
 ---
 
