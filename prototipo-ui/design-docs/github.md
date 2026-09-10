@@ -3,6 +3,18 @@ branch: main
 path: prototipo-ui/cowork
 
 ## Last sync
+date: 2026-09-10T10:38:13Z
+commit: (não sei — `github_get_tree` resolveu a árvore `af09f7c3a0fd`, que é hash de árvore, não de commit)
+branch: main
+
+### Updated in this project
+- **Playbook do Sidebar emitido** (`cowork-inbox/sidebar/playbook/`, 7 arquivos): 3 threads executáveis na vaga 1 (01 corpo/a11y · 02 auto-rail · 04 modo `hidden` no vivo), 2 na vaga 2/3 e 1 bloqueada em [W] (ghosts × ADR 0180). **Absorve e supera** `handoff-sidebar/PEDIDO-CODE.md` (28/08) — anti-scatter, sem doc novo.
+- **O pedido de 28/08 relido contra o código, não contra si mesmo: 3 dos 4 deltas caíram.** (A) aba Chat não está órfã no vivo — foi **removida de propósito** (UI-0011 single-pane, `Sidebar.tsx:5-7,519`; conv switcher em `Pages/Copiloto/Chat.tsx`), logo quem está atrasado é o build daqui; (B) atalho `G X` **feito** (`useSidebarShortcut` importado no `AppShellV2`, `.sb-kbd` em `Sidebar.tsx:537`); (C) o conflito de ghosts **mudou de lado** — o vivo implementou `GHOST_TETO = 5` (`Sidebar.tsx:542-544,569`) contra a letra da ADR 0180/AP19; (D) modo `hidden` + `SidebarReopenHandle` **segue de pé** — `SidebarMode` é só `rail|expanded` e o único uso vivo está em `Pages/Financeiro/_cowork-bundle/shell-app.jsx:509`.
+- **Produção à frente em 4 pontos, virados em thread de PUXAR:** auto-rail por largura (UI-0030, `matchMedia(AUTO_RAIL_MQ)`) · persistir **só** a escolha manual (`chooseSidebarMode` — o build daqui grava todo valor, defeito medido no espelho em 2026-09-02) · `<nav className="sb-body" aria-label="Navegação principal">` (o protótipo usa `div`) · slot do `NfeCertBadge` após o `CompanyPicker`.
+- **Leitura do `main` neste turno** (árvore `af09f7c3a0fd`): `Layouts/AppShellV2.tsx` (inteiro) · buscas em `Components/cockpit/` e `resources/js/` · `app/Sidebar/` (4 arquivos, só a árvore). **Não lido ⇒ não verificado:** `Components/cockpit/Sidebar.tsx` linha a linha (li por busca), `shared.ts`, `useSidebarShortcut.ts`, `cockpit.css`, **ADR 0180 nesta sha** (AP19 citada pela leitura de 28/08). Duas buscas voltaram **bounded** — a ausência de `SidebarReopenHandle` no shell vem de ler o `AppShellV2`, não do zero-match.
+- ⚠️ **Ciclo fechado SEM pacote regenerado** — nenhum arquivo do build mudou neste turno (só `.md` de ponte), mas registro a regra: `node scripts/design-sync/gerar-payload-partes.mjs --root <dir> --out sync/ --previous sync/bundle.manifest.json`. Não roda daqui.
+
+## Sync anterior
 date: 2026-09-09T11:46:22Z
 tree: 752041ac450d (a última busca do turno já respondeu de 7742b9621c32 — a árvore andou)
 
@@ -55,7 +67,6 @@ date: 2026-09-08T14:52:00Z
 - **Gate de escrita adotado** (do §9-quater): documento de processo novo só se destravar thread nomeada com PR em ≤7 dias; cada ciclo registra `docs de processo : PRs mergeados`. Janela 09/08→08/09 medida: **61 : 7**.
 - **Playbook do Compras emitido** (`cowork-inbox/compras/playbook/`, 6 arquivos): 2 threads executáveis (E2E · Margem sem fonte) e 3 bloqueadas em [W]. Corrige o doc de 04/09, cujos 6 de 8 pedidos já estavam feitos no `main`.
 
-
 ## Sync anterior
 date: 2026-09-07T20:41:00Z
 
@@ -83,6 +94,7 @@ date: 2026-09-06 (hora não registrada — ciclo do alvo Jana.Painel, árvore fb
 ## Screen map
 | Tela | Arquivos do build | Âncora no `main` |
 |---|---|---|
+| Shell · Sidebar | sidebar.jsx · app.jsx (modos + drawer mobile) · styles.css (bloco `.sb-*`) | resources/js/Components/cockpit/Sidebar.tsx · shared.ts · useSidebarShortcut.ts · Layouts/AppShellV2.tsx · resources/css/cockpit.css · app/Sidebar/*.php (contrato v2, ADR 0180) |
 | Fiscal · Cockpit | fiscal-page.jsx · fiscal-actions.jsx · fiscal-page.css | resources/js/Pages/Fiscal/Cockpit.tsx (+ `_components/FxShell.tsx`, `WriteOffAuditoriaCard.tsx`, `SavedViewsChips.tsx`) |
 | Fiscal · NF-e/NFC-e | fiscal-page.jsx (`FxNotasPage` preset 55/65) | resources/js/Pages/Fiscal/Nfe.tsx (+ `NotaDrawer.tsx`, `InutilizacaoModal.tsx`) |
 | Fiscal · NFS-e | fiscal-page.jsx (preset NFS-e) | resources/js/Pages/Fiscal/Nfse.tsx (+ `NFSeDrawer.tsx`) |
