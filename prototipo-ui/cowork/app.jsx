@@ -69,66 +69,9 @@ function RouteSlot({ children }) {
 // oficina-page.jsx). Não usamos mais iframes — ROUTE_HTML/IframeView removidos.
 // ─────────────────────────────────────────────────────────────────
 
-function ChatPage({ company, activeConvId, onSelectConv, linkedCollapsed, onToggleLinked }) {
-  const conversations = MOCK.CONV[company.id] || [];
-  const [convs, setConvs] = useStateA(conversations);
-  const [convTab, setConvTab] = useStateA(() => {
-    try {return localStorage.getItem("oimpresso.chat.tab") || "todas";} catch (e) {return "todas";}
-  });
-  const [convQuery, setConvQuery] = useStateA("");
-
-  useEffectA(() => {setConvs(MOCK.CONV[company.id] || []);}, [company.id]);
-  useEffectA(() => {try {localStorage.setItem("oimpresso.chat.tab", convTab);} catch (e) {}}, [convTab]);
-
-  const conv = convs.find((c) => c.id === activeConvId) || convs[0];
-
-  useEffectA(() => {
-    if (!conv || !conv.unread) return;
-    setConvs((cs) => cs.map((c) => c.id === conv.id ? { ...c, unread: 0 } : c));
-  }, [conv?.id]);
-
-  const handleSend = (text, raw) => {
-    setConvs((cs) => cs.map((c) => {
-      if (c.id !== conv.id) return c;
-      const newMsg = raw || { d: "Hoje", who: "você", side: "me", t: text, time: "agora", read: false };
-      return { ...c, msgs: [...c.msgs, newMsg], time: "agora", preview: (raw?.who ? raw.who + ': ' : 'você: ') + (raw?.t || text || '') };
-    }));
-  };
-
-  return (
-    <div className="chat-page">
-      <div className="chat-main">
-        <ConvTabsBar tab={convTab} onTab={setConvTab} query={convQuery} onQuery={setConvQuery} />
-        <Thread conv={conv} onSend={handleSend} />
-      </div>
-      <LinkedAppsPanel conv={conv} collapsed={linkedCollapsed} onToggle={onToggleLinked} />
-    </div>);
-
-}
-
-function ConvTabsBar({ tab, onTab, query, onQuery }) {
-  const tabs = [
-  { id: "todas", label: "Todos" },
-  { id: "os", label: "OS" },
-  { id: "team", label: "Equipe" },
-  { id: "client", label: "Clientes" }];
-
-  return (
-    <div className="chat-tabsbar">
-      <div className="chat-tabs">
-        {tabs.map((t) =>
-        <button key={t.id}
-        className={"chat-tab" + (tab === t.id ? " active" : "")}
-        onClick={() => onTab(t.id)}>{t.label}</button>
-        )}
-      </div>
-      <div className="chat-search">
-        <I.search size={12} />
-        <input placeholder="Buscar nesta conversa..." value={query} onChange={(e) => onQuery(e.target.value)} />
-      </div>
-    </div>);
-
-}
+// UI-0011 (2026-09-10): ChatPage e ConvTabsBar removidos — zero call sites; a rota "chat" renderiza
+// window.JanaPage. Saíram junto com SidebarTabs/SidebarChat/ConvRow (sidebar.jsx) e o estado morto
+// tab/activeConvId. Thread/LinkedAppsPanel vivem em outro arquivo — não são deste prefixo.
 
 // Stub para módulos do menu — em produção, abre Inertia page do módulo
 // MIGRATION_INFO — auditoria dos 36 módulos do repo wagnerra23/oimpresso.com@main
@@ -546,10 +489,6 @@ function App() {
       return MOCK.COMPANIES.find((c) => c.id === id) || MOCK.COMPANIES[0];
     } catch (e) {return MOCK.COMPANIES[0];}
   });
-  const [tab, setTab] = useStateA(() => {
-    try {return localStorage.getItem("oimpresso.sidebar.tab") || "menu";}
-    catch (e) {return "menu";}
-  });
   const [tick, setTick] = useStateA(0);
   // O loader dispara um tick a cada 6 dos ~190 módulos: sem coalescer, isso re-renderiza
   // o App inteiro ~30x durante o boot — é a "piscada" que [W] viu. Agora os ticks são
@@ -573,10 +512,6 @@ function App() {
   const [route, setRoute] = useStateA(() => {
     try {return localStorage.getItem("oimpresso.route") || "chat";}
     catch (e) {return "chat";}
-  });
-  const [activeConvId, setActiveConvId] = useStateA(() => {
-    try {return localStorage.getItem("oimpresso.conv") || "c1";}
-    catch (e) {return "c1";}
   });
   const [showLaravel, setShowLaravel] = useStateA(false);
   const [linkedCollapsed, setLinkedCollapsed] = useStateA(() => {
@@ -622,17 +557,48 @@ function App() {
   }, []);
 
   // ─── Sidebar: modo expanded | rail | hidden ───
-  const [sbMode, setSbMode] = useStateA(() => {
+  // Paridade com AppShellV2 (ADR UI-0030), 2026-09-10. Dois consertos:
+  // (1) o limiar é 1280 INCLUSIVE — `AUTO_RAIL_MAX_W = 1280` / `AUTO_RAIL_MQ = "(max-width: 1280px)"`
+  //     em Components/cockpit/shared.ts. Usávamos `innerWidth < 1280`, então a 1280px exatos (o monitor
+  //     do [W]) o vivo nascia em rail e o protótipo expandido — um pixel de drift que já contaminou
+  //     uma comparação.
+  // (2) só a ESCOLHA MANUAL persiste. Antes um useEffect gravava TODO valor de sbMode, inclusive o
+  //     automático: uma chave "rail" de um run a 1279px sobrevivia e mantinha o shell em rail a 1728px
+  //     (medido no espelho em 2026-09-02). Agora quem grava é escolherModo(), e enquanto não houver
+  //     escolha o modo segue a largura ao vivo.
+  const SB_MODE_KEY = "oimpresso.sidebar.mode";
+  const AUTO_RAIL_MQ = "(max-width: 1280px)";
+  const modoSalvo = () => {
     try {
-      const v = localStorage.getItem("oimpresso.sidebar.mode");
-      if (v === "rail" || v === "hidden" || v === "expanded") return v;
-    } catch (e) {}
-    // auto-rail em telas estreitas
-    return typeof window !== "undefined" && window.innerWidth < 1280 ? "rail" : "expanded";
+      const v = localStorage.getItem(SB_MODE_KEY);
+      return v === "rail" || v === "hidden" || v === "expanded" ? v : null;
+    } catch (e) {return null;}
+  };
+  const [sbMode, setSbMode] = useStateA(() => {
+    const v = modoSalvo();
+    if (v) return v;
+    return typeof window !== "undefined" && window.matchMedia(AUTO_RAIL_MQ).matches ? "rail" : "expanded";
   });
+  // Escolha do usuário: só ela grava. hidden nunca é automático.
+  // O ref existe por causa do listener de teclado: o useEffect do ⌘\ tem deps [] e captura o
+  // PRIMEIRO escolherModo. Resolver o updater contra `sbMode` direto o congelaria em "expanded",
+  // e o toggle viraria mão única (⌘\ ia pra rail e nunca voltava) — regressão pega na verificação
+  // de 2026-09-10. O código antigo era imune porque usava o updater do próprio React; o ref repõe
+  // essa imunidade sem gravar em fase de render (que duplicaria em StrictMode).
+  const sbModeRef = React.useRef(sbMode);
+  sbModeRef.current = sbMode;
+  const escolherModo = (v) => {
+    const proximo = typeof v === "function" ? v(sbModeRef.current) : v;
+    setSbMode(proximo);
+    try {localStorage.setItem(SB_MODE_KEY, proximo);} catch (e) {}
+  };
+  // Sem escolha persistida, o modo acompanha a largura ao vivo (plugar/desplugar monitor).
   useEffectA(() => {
-    try {localStorage.setItem("oimpresso.sidebar.mode", sbMode);} catch (e) {}
-  }, [sbMode]);
+    const mq = window.matchMedia(AUTO_RAIL_MQ);
+    const h = () => {if (!modoSalvo()) setSbMode(mq.matches ? "rail" : "expanded");};
+    mq.addEventListener("change", h);
+    return () => mq.removeEventListener("change", h);
+  }, []);
 
   // ─── Mobile: sidebar vira menu flutuante (off-canvas) ───
   // [W] 2026-06-17: "tem como esse menu no celular ficar flutuante? o layout
@@ -666,9 +632,9 @@ function App() {
       if (e.key === "\\") {
         e.preventDefault();
         if (e.shiftKey) {
-          setSbMode((m) => m === "hidden" ? "expanded" : "hidden");
+          escolherModo((m) => m === "hidden" ? "expanded" : "hidden");
         } else {
-          setSbMode((m) => m === "rail" ? "expanded" : "rail");
+          escolherModo((m) => m === "rail" ? "expanded" : "rail");
         }
       }
     };
@@ -677,9 +643,7 @@ function App() {
   }, []);
 
   useEffectA(() => {localStorage.setItem("oimpresso.company", company.id);}, [company]);
-  useEffectA(() => {localStorage.setItem("oimpresso.sidebar.tab", tab);}, [tab]);
   useEffectA(() => {localStorage.setItem("oimpresso.route", route);}, [route]);
-  useEffectA(() => {if (activeConvId) localStorage.setItem("oimpresso.conv", activeConvId);}, [activeConvId]);
 
   // exposto p/ sidebar
   window.__company = company;
@@ -780,7 +744,6 @@ function App() {
 
   const handleSelectRoute = (r) => {
     setRoute(r);
-    if (r === "chat") setTab("chat");
     // persiste última rota visitada por área (pra "lean sidebar → goToGroup" funcionar)
     const fi = MOCK.MENU_FLAT.find((i) => i.id === r);
     if (fi?.group && fi.group !== "__user__") {
@@ -789,11 +752,6 @@ function App() {
   };
   window.__go = handleSelectRoute;
   window.__selectRoute = handleSelectRoute;
-
-  const handleSelectConv = (id) => {
-    setActiveConvId(id);
-    setRoute("chat");
-  };
 
   // Permite componentes filhos (ex: telas PG) navegarem cross-tela via
   // window.PgGotoRoute('payment-gateways'). Ver pg-shell-adapters.jsx.
@@ -951,14 +909,12 @@ function App() {
       {(isMobile || sbMode !== "hidden") &&
       <Sidebar
         company={company} onCompany={setCompany}
-        tab={tab} onTab={setTab}
-        activeConvId={activeConvId} onSelectConv={handleSelectConv}
         activeRoute={route} onSelectRoute={handleSelectRoute}
-        mode={isMobile ? "expanded" : sbMode} onModeChange={setSbMode}
+        mode={isMobile ? "expanded" : sbMode} onModeChange={escolherModo}
         papel={tweaks.sbPapel} showGhosts={tweaks.sbGhosts} />
       }
       {!isMobile && sbMode === "hidden" &&
-      <window.SidebarReopenHandle onOpen={() => setSbMode("expanded")} />
+      <window.SidebarReopenHandle onOpen={() => escolherModo("expanded")} />
       }
       {isMobile &&
       <button

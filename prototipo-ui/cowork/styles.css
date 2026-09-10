@@ -273,37 +273,7 @@ body{
 }
 .sb-dd-foot:hover{ background: var(--sb-hover); color: var(--sb-text-hi); }
 
-/* Tabs Chat/Menu */
-.sb-tabs{
-  display: flex;
-  gap: 2px;
-  padding: 8px;
-  border-bottom: 1px solid var(--sb-border);
-}
-.sb-tab{
-  flex: 1 1 0;
-  appearance: none;
-  border: 0;
-  background: transparent;
-  color: var(--sb-text-dim);
-  padding: 6px 8px;
-  border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: default;
-}
-.sb-tab:hover{ color: var(--sb-text-hi); background: var(--sb-hover); }
-.sb-tab.active{
-  background: var(--sb-active);
-  color: var(--sb-text-hi);
-}
-
-/* Body scrollable */
+/* Body scrollable — chain de overflow (AP10). VIVO: é o wrapper .sb-body do Sidebar. */
 .sb-body{
   flex: 1 1 auto;
   overflow-y: auto;
@@ -318,109 +288,9 @@ body{
   background-clip: content-box;
 }
 
-/* ── Aba CHAT ── */
-.sb-chat{ padding: 8px; }
-.sb-actions{ display: flex; flex-direction: column; gap: 1px; margin-bottom: 8px; }
-.sb-action{
-  display: flex; align-items: center; gap: 10px;
-  padding: 0 10px;
-  height: 30px;
-  border-radius: var(--radius-sm);
-  color: var(--sb-text);
-  font-size: 13px;
-  cursor: default;
-}
-.sb-action:hover{ background: var(--sb-hover); color: var(--sb-text-hi); }
-.sb-action .ic{ width: 14px; height: 14px; opacity: .85; flex: 0 0 auto; }
-.sb-action span{ flex: 1 1 auto; }
-.sb-action .kbd{
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  color: var(--sb-text-dim);
-}
-.sb-action .kbd-badge{
-  font-size: 10px; font-weight: 700;
-  background: oklch(0.55 0.15 30);
-  color: #fff;
-  padding: 1px 5px;
-  border-radius: 999px;
-  min-width: 16px;
-  text-align: center;
-}
-.sb-action .beta{
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: .04em;
-  text-transform: uppercase;
-  color: var(--sb-text-dim);
-  border: 1px solid var(--sb-border);
-  padding: 1px 5px;
-  border-radius: 3px;
-}
-
-.sb-section-h{
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  color: var(--sb-text-dim);
-  padding: 14px 10px 6px;
-}
-
-.sb-pin-empty{
-  display: flex; align-items: center; gap: 8px;
-  padding: 8px 10px;
-  font-size: 11.5px;
-  color: var(--sb-text-dim);
-  border: 1px dashed var(--sb-border);
-  border-radius: var(--radius-sm);
-  margin: 0 4px;
-}
-
-.sb-bullet{
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  flex: 0 0 auto;
-  margin-top: 1px;
-}
-.sb-bullet.outline{ border: 1.4px solid oklch(0.40 0 0); }
-.sb-bullet.filled{ background: oklch(0.78 0.16 75); border: 0; }
-
-.sb-conv{
-  display: flex; align-items: center; gap: 10px;
-  padding: 0 10px;
-  height: 30px;
-  border-radius: var(--radius-sm);
-  color: var(--sb-text);
-  font-size: 13px;
-  cursor: default;
-}
-.sb-conv:hover{ background: var(--sb-hover); color: var(--sb-text-hi); }
-.sb-conv.active{ background: var(--sb-active); color: var(--sb-text-hi); font-weight: 500; }
-.sb-conv-t{
-  flex: 1 1 auto;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-
-.sb-routine{
-  display: flex; align-items: center; gap: 10px;
-  padding: 0 10px;
-  height: 28px;
-  border-radius: var(--radius-sm);
-  color: var(--sb-text);
-  font-size: 12.5px;
-  cursor: default;
-}
-.sb-routine:hover{ background: var(--sb-hover); color: var(--sb-text-hi); }
-.sb-routine-t{
-  flex: 1 1 auto;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.sb-routine-f{
-  font-size: 10.5px;
-  color: var(--sb-text-dim);
-  flex: 0 0 auto;
-}
+/* UI-0011 (2026-09-10): CSS da aba Chat removido — .sb-tabs/.sb-tab, .sb-chat, .sb-actions/.sb-action*,
+   .sb-section-h, .sb-pin-empty, .sb-bullet*, .sb-conv*, .sb-routine*. Zero consumidores após a remoção de
+   SidebarTabs/SidebarChat/ConvRow do sidebar.jsx (medido: nenhuma outra tela usava). */
 
 /* ── Aba MENU ── */
 .sb-menu{ padding: 8px; }
@@ -438,6 +308,22 @@ body{
 }
 .sb-group-h:hover{ color: var(--sb-text-hi); }
 .sb-group-h .chev{ width: 10px; height: 10px; opacity: .7; flex: 0 0 auto; }
+/* A1 (2026-09-10): .sb-item/.um-item/.sb-dd-i/.sb-dd-foot viraram <button> — zera o desenho nativo
+   do controle sem tocar no layout já medido. font-size NÃO entra aqui: quem manda segue sendo a regra
+   de classe (autor vence UA), e herdar aqui sobrescreveria o 13px por especificidade. */
+button.sb-item, button.um-item, button.sb-dd-i, button.sb-dd-foot{
+  appearance: none; -webkit-appearance: none;
+  background: none; border: 0; margin: 0;
+  width: 100%; box-sizing: border-box;
+  font-family: inherit; text-align: left;
+}
+/* A5: foco visível em toda linha navegável — o teclado precisa ver onde está na sidebar preta. */
+.sb-item:focus-visible, .um-item:focus-visible, .sb-dd-i:focus-visible, .sb-dd-foot:focus-visible,
+.sb-ghost-more:focus-visible, .sb-group-h:focus-visible{
+  outline: 2px solid var(--accent-2, oklch(0.70 0.14 295));
+  outline-offset: -2px;
+  color: var(--sb-text-hi);
+}
 .sb-item{
   display: flex; align-items: center; gap: 10px;
   padding: 0 10px;
