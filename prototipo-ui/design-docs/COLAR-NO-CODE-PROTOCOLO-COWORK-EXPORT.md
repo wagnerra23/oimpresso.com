@@ -726,5 +726,3 @@ VEREDITO · aceito | recusado por <claim nomeada>   ("está bom" NÃO é veredit
 **Onde já roda por máquina (não duplicar):** `--selftest` com BITE+controle em cada sonda (`ds-anchor-check.mjs`, 15 casos) · T5 do placar (apagar prova derruba X→X−1 nomeando a thread) · o gate de recusa do lote (§6-bis). O adversário humano ataca o que **nenhuma dessas** cobre: a hipótese, a proveniência e a palavra escolhida.
 
 **O que isto NÃO faz:** não substitui [CA] (a11y F3.5) nem o T7 · não autoriza recusar por estilo · e não me deixa dizer "revisado" — só "atacado por A/B/C, sobreviveu ao que rodei".
-
----
