@@ -1937,6 +1937,21 @@
 .cockpit .sb-menu-grouped { display: flex; flex-direction: column; padding: 8px; gap: 0; }
 .cockpit .sb-group { position: relative; }
 .cockpit .sb-group-noheader { padding: 0; }
+/* Contador de itens do grupo (accordion). A regra IRMÃ existia só pro flyout do rail
+   e faltava aqui — o comentário do `.sb-group-n` no Sidebar.tsx já registrava isso.
+   Sem ela o span herdava o sans 600 do `.sb-group-l` e o número saía fora da família.
+   Medido 2026-09-10, sonda pareada 2560px dark, protótipo × vivo (ADR UI-0029 — o
+   protótipo manda na FORMA):  protótipo mono 9.5px/500  ×  vivo sans 10.5px/600.
+   Tokens espelhados do `.sb-kbd`/`.sb-ghost-count`, que são os que RESOLVEM: medido
+   no vivo, `var(--mono)` e `var(--fs-1)` (usados na regra do flyout) não existem em
+   CSS nenhum e caem no fallback — ver conserto 2 abaixo. */
+.cockpit .sb-group-n {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: normal;
+  color: var(--sb-text-dim);
+}
 .cockpit .sb-group-h {
   display: flex;
   align-items: center;
@@ -2419,10 +2434,13 @@
 .cockpit[data-theme="dark"] .sb-rail-flyout-l {
   color: oklch(0.78 0.08 var(--gh, 220));
 }
+/* `--fs-1` e `--mono` NÃO existem em CSS nenhum do projeto (medido 2026-09-10:
+   0 definições). A regra caía no fallback `ui-monospace` e o tamanho nem aplicava.
+   Trocado pelos tokens que resolvem, os mesmos do `.sb-kbd`. */
 .cockpit .sb-rail-flyout .sb-group-n {
-  font-size: var(--fs-1);
-  font-family: var(--mono, ui-monospace, monospace);
-  color: var(--text-mute, var(--sb-text-dim));
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 9.5px;
+  color: var(--sb-text-dim);
   font-weight: 500;
 }
 
