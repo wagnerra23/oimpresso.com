@@ -163,7 +163,9 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
       "prefixo": ["memory/decisions/0180-sidebar-v3-5-grupos-ghosts-header.md"],
       "nao_toca": ["${CKPT}/Sidebar.tsx"],
       "depende_decisoes": ["RESIDUO-1"],
-      "provas": [], "nota_provas": "quando despachado: {tipo:contem, path:<ADR 0180>, padrao:'2026-09'} — emenda datada, nunca ADR paralela (LC-19)" },
+      "provas": [
+        { "tipo": "contem", "path": "memory/decisions/0180-sidebar-v3-5-grupos-ghosts-header.md", "padrao": "## Emenda 2026-09-10", "nota": "emenda datada DENTRO da 0180 — nunca ADR paralela (LC-19). Landou no #7186 com label adr-body-edit-W (ADR 0377)" }
+      ] },
     { "id": "06", "titulo": "Contrato de tela do shell + gates", "dono": "CL", "vaga": 3, "arquivo": "06-contrato-e-gates.md",
       "prefixo": ["prototipo-ui/contrato/cockpit-sidebar.contract.json", "tests/Feature/Sidebar/"],
       "nao_toca": ["${CKPT}/", "resources/js/Layouts/AppShellV2.tsx"],
