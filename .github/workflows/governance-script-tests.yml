@@ -617,6 +617,15 @@ jobs:
       - name: bundle transacional morde (sequência/SHA/staging/rollback/módulos/evidências)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/bundle-transaction.test.mjs
+      # Recepção do handoff .zip (decisão [W] 2026-09-10). O teste MONTA os zips em memória, então
+      # é também o controle positivo do leitor: se o formato que ele escreve e o que o `zip-reader`
+      # lê divergissem, os casos "solta" cairiam. Trava CRC-32 conferido, ZIP64 recusado, zip-slip
+      # barrado, pacote velho detectado por sha256 (não por `generatedAt`) e o `classificar` que
+      # se recusa a nomear direção — o rótulo `ZIP-NOVO` da 1a versão caiu num caso em que o zip
+      # era mais VELHO, e afirmar novidade que não se mede é o LC-08 de sempre.
+      - name: receber-handoff morde (zip/CRC/zip-slip/pacote velho/3 pontos · hermético)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/design-sync/receber-handoff.test.mjs
       - name: ds-push orquestrador morde (dry-run VALOR:0 + determinismo · loop diff-first)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/ds-push.test.mjs

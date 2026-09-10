@@ -88,6 +88,17 @@ export const PROJETOS = {
 //   · o destino do design versionado é MIRROR_DIR, e o shell mora lá desde 2026-08-13.
 // Ler design de dentro do STAGING_DIR é reabrir a doença: o pacote de lá estava congelado em
 // 01/jul e conhecia 103 deps quando o vivo já tinha 120.
+//
+// 📌 EMENDA 2026-09-10 — o ZIP VOLTOU como insumo, e isto acima segue valendo INTEIRO.
+// [W] entregou 3 handoffs .zip neste dia e pediu a recepção automatizada ("exportar uma única
+// vez"). Decisão do dono, não proposta — e ela reverte só o "não existe mais zip" de 13/08,
+// nada mais. O que NÃO muda, e é o motivo do parágrafo acima existir:
+//   · `receber-handoff.mjs` extrai pra um tmpdir EFÊMERO, nunca pra cá — sem árvore persistente
+//     não há árvore velha alimentando captura nova, que era a doença de fato;
+//   · `Downloads/` e `_cowork-handoff-staging` seguem LUGAR PROIBIDO pra âncora no
+//     `ancora-guard::PROIBIDOS`. O ZIP é INSUMO DE IMPORTAÇÃO, nunca fonte de design;
+//   · o destino do design versionado continua sendo MIRROR_DIR.
+// Ou seja: o que foi banido era o STAGING PERSISTENTE, não o formato .zip.
 export const STAGING_DIR = join(homedir(), 'Downloads', '_cowork-handoff-staging');
 export const MIRROR_DIR  = join(REPO_ROOT, 'prototipo-ui', 'cowork');
 
@@ -286,6 +297,15 @@ export const FASES = [
   // Quem seguisse o ponteiro concluiria "a rota nao tem dono" a partir de um 404 que era do
   // ponteiro, nao da rota. O README real desceu pelo transporte e vive no git desde entao.
   { fase: '-1', nome: 'Importar/baixar o design', comandos: [
+      '# [ROTA ZIP — 1 COMANDO] [W] entrega o handoff .zip e o Code faz o resto (decisao [W] 2026-09-10:',
+      '#   "o objetivo e eu exportar uma unica vez, sem depender de uma receita manual em cada importacao").',
+      '#   Orquestra o que JA existe, nao reimplementa nada: extrai (CRC-32 conferido) -> audita o sync/ que',
+      '#   veio -> classifica por 3 pontos (zip x espelho x bundle ativo) -> RECUSA se o zip estiver ATRAS',
+      '#   (conteudo que ja esteve versionado) -> reconcilia o _ds/ pelo dono (projeto DS, #7096) -> rege pelo',
+      '#   gerador CANONICO -> valida no --dry. Sem --apply nao promove. Extracao vai pra tmpdir EFEMERO.',
+      'node scripts/design-sync/receber-handoff.mjs --zip <handoff.zip>            # mede + valida',
+      'node scripts/design-sync/receber-handoff.mjs --zip <handoff.zip> --apply    # + promove',
+      'selftest: node scripts/design-sync/receber-handoff.test.mjs',
       '# [ROTA PRINCIPAL] bundle v2 — snapshot inicial; depois delta por manifesto anterior',
       '# ⚠ A EMISSAO DESTE BUNDLE NAO TEM DONO NEM AUTOMACAO (medido 2026-08-31, contado):',
       '#   os UNICOS invocadores de `gerar-payload-partes` no repo sao o .test.mjs e o workflow que roda',
