@@ -21,8 +21,8 @@
 // O QUE FAZ (SessionStart, exit 0 sempre — nunca bloqueia a sessão):
 //   1. Lê o shell do espelho e deriva os arquivos `_ds/<id>/…` que ele referencia (mesma fonte
 //      de verdade que o `--preview-ds` usa: o <link>/<script> do html, não uma lista à mão).
-//   2. Se TODOS já existem no `_ds/` → SILÊNCIO (zero fricção, ~1ms).
-//   3. Se falta algum → roda `node scripts/governance/cowork-mirror-freshness.mjs --preview-ds`
+//   2. Se o grafo inteiro tem bytes iguais ao runtime versionado → SILÊNCIO.
+//   3. Se falta algum ou mudou de conteúdo → roda `node scripts/governance/cowork-mirror-freshness.mjs --preview-ds`
 //      (local, ~0,35s, lê só o mirror-snapshot versionado — sem DesignSync, sem rede) e imprime
 //      uma linha com o resultado. Fontes `.woff2` referenciadas por `url()` dentro do CSS não
 //      aparecem no html; o `--preview-ds` as repõe junto (seu plano é o grafo recursivo).
@@ -37,6 +37,7 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { previewDsPlan } from '../../scripts/governance/cowork-mirror-freshness.mjs';
 
 export const SHELL_REL = join('prototipo-ui', 'cowork', 'oimpresso.com.html');
 export const DS_DIR_REL = join('prototipo-ui', 'cowork', '_ds');
@@ -68,6 +69,15 @@ export function precisaMaterializar(refs, existe) {
   return { precisa: faltam.length > 0, faltam };
 }
 
+// O plano canônico inclui CSS importado e fontes; existir não prova que o cache é atual.
+export function cacheAtual(plano) {
+  if (plano.erro) return false;
+  return plano.arquivos.every(a => {
+    try { return a.temNoRepo && readFileSync(a.de).equals(readFileSync(a.para)); }
+    catch { return false; }
+  });
+}
+
 export function main(cwd = process.cwd()) {
   if (process.env.OIMPRESSO_DS_PREVIEW_OFF === '1') return 0;
   const shell = join(cwd, SHELL_REL);
@@ -77,12 +87,12 @@ export function main(cwd = process.cwd()) {
   const refs = refsDoShell(html);
   if (refs.length === 0) return 0;
   const { precisa, faltam } = precisaMaterializar(refs, (p) => existsSync(join(cwd, 'prototipo-ui', 'cowork', p)));
-  if (!precisa) return 0;
+  if (!precisa && cacheAtual(previewDsPlan(html, cwd))) return 0;
 
   const r = spawnSync(process.execPath, PRODUTOR, { cwd, encoding: 'utf8', timeout: 30_000 });
   const resumo = (r.stdout || '').split('\n').find((l) => /reposto\(s\)/.test(l))?.trim();
   if (r.status === 0) {
-    console.log(`[ds-preview-materialize] _ds/ do espelho estava incompleto (${faltam.length} de ${refs.length} refs do shell ausentes) → ${resumo || 'materializado'} (cache gitignored, fonte = scripts/design-sync/mirror-snapshot/).`);
+    console.log(`[ds-preview-materialize] _ds/ incompleto ou desatualizado (${faltam.length} de ${refs.length} refs do shell ausentes) → ${resumo || 'materializado'} (cache gitignored, fonte = scripts/design-sync/mirror-snapshot/).`);
   } else {
     const erro = ((r.stderr || '') + (r.stdout || '')).trim().split('\n').slice(-3).join(' | ');
     console.log(`[ds-preview-materialize] _ds/ incompleto (${faltam.length} refs) e o produtor FALHOU (exit ${r.status}): ${erro}. Rode: node ${PRODUTOR.join(' ')}`);

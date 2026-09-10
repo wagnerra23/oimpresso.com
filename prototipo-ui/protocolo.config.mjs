@@ -80,9 +80,9 @@ export const PROJETOS = {
 // MIRROR_DIR: SSOT do design no repo, build-only (R1 do cowork-ssot-guard rejeita .md aqui).
 //
 // ⚠️ STAGING_DIR é LEGADO do caminho ZIP ([W] 2026-08-13: "não existe mais zip"). Continua
-// exportado porque `render-proto-baseline.mjs` ainda o usa como default (com `args.staging ||`
-// na frente, então quem passa o path explícito não depende dele) — remover a constante hoje
-// quebraria esse consumidor sem ganho. Mas NÃO é destino de nada novo:
+// exportado por compatibilidade com consumidores legados. Em 2026-09-10 o default de
+// `render-proto-baseline.mjs` foi corrigido para MIRROR_DIR; o Downloads antigo não deve
+// alimentar capturas novas implicitamente. NÃO é destino de nada novo:
 //   · a catraca `ancora-guard` já lista `_cowork-handoff-staging` e `Downloads/` como LUGAR
 //     PROIBIDO pra âncora ([W] 2026-07-01: "não pode trocar de lugar nunca");
 //   · o destino do design versionado é MIRROR_DIR, e o shell mora lá desde 2026-08-13.
