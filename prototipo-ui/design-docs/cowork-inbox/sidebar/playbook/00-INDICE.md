@@ -104,7 +104,12 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
 | REACT | um só delta sobra pro vivo (modo `hidden`) — o resto é build ou decisão | busca de `SidebarReopenHandle` veio **bounded**; confirmei por `AppShellV2` (o tipo `SidebarMode` não tem `hidden`), não pelo zero-match | — |
 | PLAYBOOK | Lei 1: 01 e 03 tocam o mesmo `sidebar.jsx` → vagas diferentes, não paralelas | teste do estranho na 04 (tem o caminho, o nome do tipo e o CSS) | ADR 0180 não relida nesta sha — a 05 abre **lendo-a** |
 
-## 6 · RESÍDUO Sidebar — fila de decisão [W]
+## 6 · RESÍDUO Sidebar — o que sobrou depois da UI-0029
+
+> **Correção 2026-09-10.** Este bloco nasceu como "fila de decisão [W]" com 4 itens. Dois deles
+> **nunca foram decisão**: a [ADR UI-0029](../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)
+> (accepted 2026-08-28) já resolvia, e o corolário 1 dela é explícito — *"divergência é DEFEITO, não
+> pauta; o agente não devolve a [W] qual dos dois vale"*. Perguntar foi a violação, não a resposta.
 1. **Ghosts (thread 05):** o vivo implementou `GHOST_TETO = 5`; a ADR 0180 (AP19) diz que ghost vira tab na Zona C do PageHeader. Emenda a ADR (código venceu) ou reverte o vivo?
 2. **Aba Chat no protótipo:** confirmar a aposentadoria (UI-0011). Remover `SidebarTabs`/`SidebarChat`/`ConvRow` do build **ou** mantê-los com selo "fora do canon — demo"?
 3. **`hidden` é canon?** o modo existe no protótipo e no bundle do Financeiro, mas nunca virou `SidebarMode` do shell. Vira canon (thread 04) ou morre nos dois lados?
@@ -119,9 +124,9 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
   "absorve": ["prototipo-ui/design-docs/handoff-sidebar/PEDIDO-CODE.md"],
   "variaveis": { "CKPT": "resources/js/Components/cockpit", "BUILD": "prototipo-ui/cowork" },
   "decisoes": [
-    { "id": "RESIDUO-1", "pergunta": "Ghosts: emendar ADR 0180 (código venceu) ou reverter GHOST_TETO do vivo?", "respondida": false, "destrava": ["05"] },
+    { "id": "RESIDUO-1", "pergunta": "Ghosts: emendar ADR 0180 ou reverter GHOST_TETO do vivo?", "respondida": true, "resposta": "NUNCA foi pauta: ADR UI-0029 (accepted 2026-08-28) já decide — protótipo soberano na FORMA, e o corolário 4 alcança ADR de memory/decisions/ pela cláusula visual. Emenda aplicada na 0180 em 2026-09-10.", "destrava": ["05"] },
     { "id": "RESIDUO-2", "pergunta": "Aposentar SidebarTabs/SidebarChat/ConvRow do protótipo (UI-0011) ou selar como demo?", "respondida": false, "destrava": ["01"] },
-    { "id": "RESIDUO-3", "pergunta": "Modo hidden vira canon do shell (SidebarMode) ou morre nos dois lados?", "respondida": false, "destrava": ["04"] },
+    { "id": "RESIDUO-3", "pergunta": "Modo hidden vira canon do shell (SidebarMode) ou morre nos dois lados?", "respondida": true, "resposta": "Modo/alça é FORMA e o protótipo TEM (SidebarReopenHandle sidebar.jsx:590). ADR UI-0029: o protótipo vence e divergência é DEFEITO, não pauta — o shell ganha o 3º modo. Não era decisão.", "destrava": ["04"] },
     { "id": "RESIDUO-4", "pergunta": "Slot de alerta pós-CompanyPicker no protótipo: NfeCertBadge real ou placeholder?", "respondida": false, "destrava": ["03"] }
   ],
   "threads": [
@@ -154,10 +159,9 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
         { "tipo": "contem", "path": "resources/js/Layouts/AppShellV2.tsx", "padrao": "SidebarReopenHandle" },
         { "tipo": "contem", "path": "resources/css/cockpit.css", "padrao": ".sb-reopen-handle" }
       ] },
-    { "id": "05", "titulo": "Ghosts × ADR 0180 — emenda ou reversão", "dono": "W", "vaga": 2, "arquivo": "05-ghosts-adr-0180.md",
+    { "id": "05", "titulo": "Ghosts × ADR 0180 — emenda (UI-0029 corolário 4)", "dono": "CL", "vaga": 2, "arquivo": "05-ghosts-adr-0180.md",
       "prefixo": ["memory/decisions/0180-sidebar-v3-5-grupos-ghosts-header.md"],
       "nao_toca": ["${CKPT}/Sidebar.tsx"],
-      "bloqueio": "RESIDUO-1: o vivo implementou GHOST_TETO contra a letra da ADR; nenhuma linha de código antes do despacho",
       "depende_decisoes": ["RESIDUO-1"],
       "provas": [], "nota_provas": "quando despachado: {tipo:contem, path:<ADR 0180>, padrao:'2026-09'} — emenda datada, nunca ADR paralela (LC-19)" },
     { "id": "06", "titulo": "Contrato de tela do shell + gates", "dono": "CL", "vaga": 3, "arquivo": "06-contrato-e-gates.md",
