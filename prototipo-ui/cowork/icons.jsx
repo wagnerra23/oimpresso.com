@@ -1,8 +1,14 @@
 // Icon set — outline 1.6px stroke, 16/14px, lucide-flavored but hand-rolled.
-const Icon = ({ d, size = 16, stroke = 1.6, className = "ic", style }) => (
+// A3 (2026-09-10): `...rest` + `aria-hidden` default. Antes o componente descartava toda prop
+// não-listada, então `aria-hidden` passado por chamada sumia e nenhuma tela conseguia corrigir
+// o glyph anônimo item a item. Todo ícone daqui é decorativo por padrão (as linhas têm rótulo
+// de texto ao lado); quem precisar de ícone COM nome passa `aria-hidden={false}` + `role="img"`
+// + `aria-label`, e a prop agora chega.
+const Icon = ({ d, size = 16, stroke = 1.6, className = "ic", style, ...rest }) => (
   <svg className={className} width={size} height={size} viewBox="0 0 24 24"
        fill="none" stroke="currentColor" strokeWidth={stroke}
-       strokeLinecap="round" strokeLinejoin="round" style={style}>
+       strokeLinecap="round" strokeLinejoin="round" style={style}
+       aria-hidden="true" focusable="false" {...rest}>
     {d}
   </svg>
 );
