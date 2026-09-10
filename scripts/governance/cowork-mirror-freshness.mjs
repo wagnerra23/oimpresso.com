@@ -308,6 +308,31 @@ export function liveOnlyDetalhado(livePaths, manifest, { exts = null, jaEmDocs =
     if (/\.(png|jpe?g|gif|webp|svg|ico)$/i.test(p)) { ignorados.push({ path: p, motivo: 'imagem (nao e fonte de construcao — block-ancora-no-olho)' }); continue; }
     if (p.startsWith('_arquivo/')) { ignorados.push({ path: p, motivo: 'proveniencia: _arquivo/ (morto declarado upstream)' }); continue; }
     if (p.startsWith('prototipo-ui/')) { ignorados.push({ path: p, motivo: 'proveniencia: prototipo-ui/ (copia do proprio espelho)' }); continue; }
+    // ── O ENVELOPE DO BUNDLE NAO E CARGA (2026-09-10) ──────────────────────────────
+    // `payload.partNN.json` e `bundle.manifest.json` sao o TRANSPORTE emitido pelo
+    // `scripts/design-sync/gerar-payload-partes.mjs` (`:204` e `:250`) do lado do design.
+    // Eles CARREGAM a fonte; nao SAO fonte. Descê-los pro espelho seria copiar o caminhão
+    // junto com a carga — e o `aplicar-payload.mjs` nem os quer lá: ele lê as partes e
+    // escreve o CONTEUDO nos destinos.
+    //
+    // MEDIDO no corpus real (lista live-only de 2026-09-09, 74 acusados de 876):
+    //   43  payload.partNN.json
+    //    1  bundle.manifest.json
+    //   ──  44 de 74 (59%) eram o proprio mecanismo acusando o proprio envelope.
+    // Mesmo FP de mecanismo proprio que o bloco dos `.md` matou em 08-28 e o dos `_ds/`
+    // em 09-01. Custo real do ruido, e ele nao e teorico: o [W] reimportou o bundle
+    // 7x em 2026-09-09 porque o aviso dizia "74 nunca desceram" enquanto o `--compare`
+    // do mesmo dia media 273/273 EM SYNC, 0 stale.
+    //
+    // ANCORADO NO NOME QUE O PRODUTOR EMITE, nao no diretorio: o `--out` e parametro
+    // (`--out sync` e so a convencao do painel), entao casar `sync/` deixaria passar o
+    // mesmo envelope emitido noutro lugar. Os 30 restantes seguem acusados — `cowork-inbox/`
+    // nao-`.md` (20) por decisao ja registrada acima, `_ds/` fora da classe runtime (3),
+    // dotfiles (2) e 5 avulsos. Nenhum deles e prototipo de tela.
+    if (/(^|\/)(bundle\.manifest\.json|payload\.part\d+\.json)$/.test(p)) {
+      ignorados.push({ path: p, motivo: 'transporte: envelope do bundle (gerar-payload-partes) — carrega a fonte, nao e fonte' });
+      continue;
+    }
     faltando.push(p);
   }
   return { faltando: faltando.sort(), ignorados: ignorados.sort((a, b) => a.path.localeCompare(b.path)) };

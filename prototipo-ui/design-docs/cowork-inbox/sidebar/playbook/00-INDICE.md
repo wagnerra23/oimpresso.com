@@ -22,7 +22,7 @@ regra: este índice é PEDIDO (lista de threads com prefixo e prova), não inven
 
 > **Correção 2026-09-10 (leitura de `shared.ts` posterior à 1ª emissão do índice):** `AUTO_RAIL_MAX_W = 1280` e `AUTO_RAIL_MQ = "(max-width: 1280px)"` — **inclusive**. O build daqui usa `innerWidth < 1280`: **a 1280px exatos o vivo nasce em rail e o protótipo nasce expandido** (e 1280 é a largura do monitor do [W]). Além disso a chave diverge: `LS.SB_MODE = "oimpresso.sb.mode"` no vivo × `"oimpresso.sidebar.mode"` no build. Detalhe na thread 02. Confirmado na mesma leitura: `SidebarMode = 'expanded' | 'rail'` — sem `hidden`, como a thread 04 previu.
 
-Denominadores usados (Sidebar não tem rota própria — o denominador é **componente**, não rota): **D1** `resources/js/Components/cockpit/Sidebar.tsx` · **D2** `resources/js/Layouts/AppShellV2.tsx` (quem monta e o que passa) · **D3** o build daqui (`sidebar.jsx` 623 linhas · `app.jsx` shell) · **D4 (runtime)** o contrato backend `app/Sidebar/*.php` (4 arquivos: `SidebarGhost` · `SidebarGroup` · `SidebarMenuItem` · `SidebarPrimaryAction`).
+Denominadores usados (Sidebar não tem rota própria — o denominador é **componente**, não rota): **D1** `resources/js/Components/cockpit/Sidebar.tsx` · **D2** `resources/js/Layouts/AppShellV2.tsx` (quem monta e o que passa) · **D3** o build daqui (`sidebar.jsx` 622 linhas · `app.jsx` shell) · **D4 (runtime)** o contrato backend `app/Sidebar/*.php` (4 arquivos: `SidebarGhost` · `SidebarGroup` · `SidebarMenuItem` · `SidebarPrimaryAction`).
 
 | delta do PEDIDO-CODE (28/08) | o que o `main` diz **hoje** (medido nesta sha) | veredito | thread |
 |---|---|---|---|
@@ -32,7 +32,7 @@ Denominadores usados (Sidebar não tem rota própria — o denominador é **comp
 | **D · promover `SidebarReopenHandle`** | sem ocorrência em `Components/cockpit/`; `SidebarMode` do shell é só `'rail' \| 'expanded'`; o único uso vivo segue em `Pages/Financeiro/_cowork-bundle/shell-app.jsx:509-510` | **o delta real, ainda de pé** | 04 |
 
 **Produção à frente do protótipo (🔵 puxar, não refazer)** — medido em `AppShellV2.tsx` nesta sha:
-- **auto-rail (ADR UI-0030):** sem escolha persistida, o modo vem da largura (`matchMedia(AUTO_RAIL_MQ)`), e segue a largura ao vivo por listener. O build daqui **não tem**.
+- **auto-rail (ADR UI-0030):** sem escolha persistida, o modo vem da largura (`matchMedia(AUTO_RAIL_MQ)`), e segue a largura ao vivo por listener. O build daqui decide **só no mount** e por `innerWidth < 1280` (`app.jsx:629-630`) — tem auto-rail, faltam o **listener** e o **inclusive** (ver a correção acima e a thread 02).
 - **persistência só da escolha manual** (`chooseSidebarMode`): o comentário do vivo diz literalmente que o protótipo grava TODO valor, inclusive o automático, e que isso foi **medido no espelho em 2026-09-02** (chave `rail` de um run a 1279px sobrevivendo a 1728px). É defeito do nosso build, com dono nomeado.
 - **`<nav className="sb-body" aria-label="Navegação principal">`** no vivo × `<div className="sb-body">` no protótipo.
 - **`NfeCertBadge`** entre `CompanyPicker` e o menu (slot documentado em `NfeCertBadge.tsx:25`) — não existe no build.
@@ -47,18 +47,18 @@ Instrumentos do protótipo que **nunca** vão pro vivo: `WipMark` · `podeVer(pa
 | 01 | Seção CORPO: `nav` + a11y A1–A12 + aposentar Tabs/Chat/ConvRow (UI-0011) | [CC] | `sidebar.jsx` · `styles.css` (bloco Sidebar) | RESÍDUO-2 (**só** a parte "aposentar"; `nav`+a11y andam sozinhos) | 1 |
 | 02 | Seção MODOS: auto-rail UI-0030 + persistir **só** escolha manual | [CC] | `app.jsx` | — | 1 |
 | 03 | Seção TOPO: paridade `CompanyPicker` + slot de alerta pós-picker | [CC] | `sidebar.jsx` (topo) · `data.jsx` | 01 (mesmo arquivo) · RESÍDUO-4 | 2 |
-| 04 | Modo `hidden` + `SidebarReopenHandle` → promover pro vivo | [CL] | `Components/cockpit/{Sidebar.tsx,shared.ts}` · `Layouts/AppShellV2.tsx` · `resources/css/cockpit.css` | 01 (a11y do alvo) · RESÍDUO-3 | 1 |
+| 04 | Modo `hidden` + `SidebarReopenHandle` → promover pro vivo | [CL] | `Components/cockpit/{Sidebar.tsx,shared.ts}` · `Layouts/AppShellV2.tsx` · `resources/css/cockpit.css` | 01 (a11y do alvo) · RESÍDUO-3 | 2 |
 | 05 | Ghosts × ADR 0180 — emenda ou reversão | [W] → [CL] | `memory/decisions/0180-*.md` | RESÍDUO-1 (despacho [W]) | 2 |
 | 06 | Contrato de tela do shell + gates | [CL] | `prototipo-ui/contrato/cockpit-sidebar.contract.json` · `tests/Feature/Sidebar/` | 01 · 03 · 04 | 3 |
 
 > **Vaga 1 na prática:** só a **02** está 100% destravada. A **01** roda parcial sem [W] (faz `nav`+a11y, deixa a remoção do Chat fora) e a **04** está presa ao RESÍDUO-3. O `--proximo` do placar lista as três; a leitura correta é "3 abertas, 1 integral".
 
-**Vaga 1:** 01 ∥ 02 ∥ 04 · **Vaga 2:** 03 ∥ 05 · **Vaga 3:** 06. Entre vagas, S0 consolida.
+**Vaga 1:** 01 ∥ 02 · **Vaga 2:** 03 ∥ 04 ∥ 05 · **Vaga 3:** 06. Entre vagas, S0 consolida.
 **Ancoragem dupla:** alvo de layout = o protótipo medido (`prototipo-ui/cowork/sidebar.jsx`); **âncora de implementação = `Components/cockpit/Sidebar.tsx` + `cockpit.css`** — reusar `.sb-*`, `SidebarMode`, `LS.SB_MODE`, `AUTO_RAIL_MQ` que já existem lá. O `main` responde *onde e com que dado*; o protótipo responde *como*.
 
 ## 2-bis · ESTADO — derivado, nunca escrito
-> **Fonte = bloco ```json do §7 + o repo.** `node scripts/qa/placar-indice.mjs --indice prototipo-ui/design-docs/cowork-inbox/sidebar/playbook/00-INDICE.md --root . --proximo`. Regra: `_saida-NN.md` presente **e** provas verdes = `feito`; sem `_saida` = não feito, mesmo com PR mergeado; `bloqueada` é fila de [W].
-> Render esperado na abertura: `Sidebar: entregue 0 de 6 · próximo 3 · pendente 2 · bloqueada 1` — **PRÓXIMO: 01 (parcial) · 02 (integral) · 04 (presa em RESÍDUO-3).**
+> **Fonte = bloco ```json do §7 + o repo.** `node prototipo-ui/design-docs/cowork-inbox/_scripts/placar-indice.mjs --indice prototipo-ui/design-docs/cowork-inbox/sidebar/playbook/00-INDICE.md --root . --proximo`. Regra: `_saida-NN.md` presente **e** provas verdes = `feito`; sem `_saida` = não feito, mesmo com PR mergeado; `bloqueada` é fila de [W].
+> Render **medido** na aterrissagem (2026-09-10, sha `71109f60d3`): `Sidebar: entregue 0 de 6 · próximo 1 · em curso 0 · pendente 4 · bloqueada 1` — **PRÓXIMO: 02.** Só a 02 é executável hoje: 01/03/04 estão presas em decisão pendente ([W]) e a 04 ainda depende da 01. Respondidas RESÍDUO-2 e -3, o placar passa a `PRÓXIMO: 01 · 02` (controle positivo rodado).
 
 ### Fluxo (6 passos, iguais para toda thread)
 ```
@@ -89,7 +89,7 @@ Terminou: escreva _saida-NN.md e pare.
 Thread `feito` = `_saida-NN.md` com os 5 itens **e** provas verdes lendo o `main`. Gates das threads do vivo (04 · 06):
 ```
 php artisan optimize:clear && composer dump-autoload
-php artisan test --filter=Sidebar     # tests/Feature/Sidebar/* + SidebarConsolidacaoTest + SidebarCountsTest
+php artisan test --filter=Sidebar     # tests/Feature/Sidebar/* + Modules/Fiscal/…/SidebarConsolidacaoTest + Modules/Whatsapp/…/SidebarCountsTest
 php artisan test --filter=Cockpit     # CockpitPatternConformance · Typography · AccentCanon
 php artisan test --filter=AppShellUsageGate
 node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readiness.mjs
@@ -116,7 +116,6 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
   "modulo": "Sidebar",
   "sha": "af09f7c3a0fd",
   "gerado": "2026-09-10",
-  "granularidade": "secao",
   "absorve": ["prototipo-ui/design-docs/handoff-sidebar/PEDIDO-CODE.md"],
   "variaveis": { "CKPT": "resources/js/Components/cockpit", "BUILD": "prototipo-ui/cowork" },
   "decisoes": [
@@ -138,25 +137,25 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
       "prefixo": ["${BUILD}/app.jsx"],
       "nao_toca": ["${BUILD}/sidebar.jsx", "${BUILD}/styles.css"],
       "provas": [
-        { "tipo": "contem", "path": "${BUILD}/app.jsx", "padrao": "matchMedia", "nota": "auto-rail por largura quando não há escolha persistida" },
-        { "tipo": "nao_contem", "path": "${BUILD}/app.jsx", "padrao": "useEffectA(() => {\n    try {localStorage.setItem(\"oimpresso.sidebar.mode\"", "nota": "grava só na escolha manual, nunca no valor automático" }
+        { "tipo": "contem", "path": "${BUILD}/app.jsx", "padrao": "(max-width: 1280px)", "nota": "o MESMO AUTO_RAIL_MQ do vivo (inclusive); 0 ocorrências no build hoje — prova trabalho novo" },
+        { "tipo": "nao_contem", "path": "${BUILD}/app.jsx", "padrao": "localStorage.setItem(\"oimpresso.sidebar.mode\", sbMode)", "nota": "grava só na escolha manual; sem indentação no padrão (§5 2026-07-29)" }
       ] },
     { "id": "03", "titulo": "Seção TOPO: paridade CompanyPicker + slot de alerta", "dono": "CC", "vaga": 2, "arquivo": "03-topo-picker.md",
       "prefixo": ["${BUILD}/sidebar.jsx", "${BUILD}/data.jsx"],
       "nao_toca": ["${BUILD}/app.jsx"],
       "depende_threads": ["01"], "depende_decisoes": ["RESIDUO-4"],
       "provas": [], "nota_provas": "medição primeiro: _saida-03.md com o diff CompanyPicker protótipo × vivo nos dois sentidos" },
-    { "id": "04", "titulo": "Modo hidden + SidebarReopenHandle → promover pro vivo", "dono": "CL", "vaga": 1, "arquivo": "04-hidden-reopen.md",
+    { "id": "04", "titulo": "Modo hidden + SidebarReopenHandle → promover pro vivo", "dono": "CL", "vaga": 2, "arquivo": "04-hidden-reopen.md",
       "prefixo": ["${CKPT}/Sidebar.tsx", "${CKPT}/shared.ts", "resources/js/Layouts/AppShellV2.tsx", "resources/css/cockpit.css"],
       "nao_toca": ["resources/js/Pages/Financeiro/_cowork-bundle/", "${CKPT}/useSidebarShortcut.ts", "app/Sidebar/"],
       "depende_threads": ["01"], "depende_decisoes": ["RESIDUO-3"],
       "provas": [
-        { "tipo": "contem", "path": "${CKPT}/shared.ts", "padrao": "hidden", "nota": "SidebarMode ganha o 3º modo" },
+        { "tipo": "contem", "path": "${CKPT}/shared.ts", "padrao": "| 'hidden'", "nota": "o 3º membro do type SidebarMode; 0 ocorrências hoje" },
         { "tipo": "contem", "path": "resources/js/Layouts/AppShellV2.tsx", "padrao": "SidebarReopenHandle" },
         { "tipo": "contem", "path": "resources/css/cockpit.css", "padrao": ".sb-reopen-handle" }
       ] },
     { "id": "05", "titulo": "Ghosts × ADR 0180 — emenda ou reversão", "dono": "W", "vaga": 2, "arquivo": "05-ghosts-adr-0180.md",
-      "prefixo": ["memory/decisions/0180-sidebar-contrato-v2.md"],
+      "prefixo": ["memory/decisions/0180-sidebar-v3-5-grupos-ghosts-header.md"],
       "nao_toca": ["${CKPT}/Sidebar.tsx"],
       "bloqueio": "RESIDUO-1: o vivo implementou GHOST_TETO contra a letra da ADR; nenhuma linha de código antes do despacho",
       "depende_decisoes": ["RESIDUO-1"],
@@ -171,3 +170,32 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
   ]
 }
 ```
+
+---
+
+## 8 · Aterrissagem — o que o [CL] corrigiu no índice em 2026-09-10 (fato datado)
+
+Os 6 `NN-*.md` desceram **como vieram** (byte a byte, conferido). As 15 âncoras de linha que eles citam
+foram medidas uma a uma contra `origin/main` e **todas conferem** (`sidebar.jsx` 25/31/42/160/180/208/256/390/590/561/566/177 ·
+`shared.ts` 182/197/198 · `NfeCertBadge.tsx:25` · `styles.css` 5219/5267 · `shell-app.jsx` 509-510).
+Os 6 gates da §4 e da thread 06 existem — `SidebarConsolidacaoTest` e `SidebarCountsTest` vivem em
+`Modules/Fiscal/` e `Modules/Whatsapp/`, e o `--filter=Sidebar` os pega pelo nome.
+
+O `00-INDICE.md` recebeu **13 consertos**, todos medidos na sha `71109f60d3`:
+
+| # | era | virou | por quê |
+|---|---|---|---|
+| C1 | `"granularidade": "secao"` no §7 | removido (a prosa do §0 já diz "onda = seção") | `_schema/playbook.schema.json` tem `additionalProperties: false` — com o campo, o placar saía `Playbook inválido: data must NOT have additional properties`, ou seja **não rodava** |
+| C2 | `node scripts/qa/placar-indice.mjs` | `node prototipo-ui/design-docs/cowork-inbox/_scripts/placar-indice.mjs` | aquele path é o **destino sugerido** no docblock do script, não onde ele está |
+| C3 | render *esperado* (`próximo 3 · pendente 2`) | render **medido** (`próximo 1 · pendente 4`) | o placar nunca produziria o número anterior; agora é saída colada, não previsão |
+| C4 | §2 "Vaga 1: 01 ∥ 02 ∥ 04" | "Vaga 1: 01 ∥ 02 · Vaga 2: 03 ∥ 04 ∥ 05" (+ `vaga` da 04 no §7) | a prosa contradizia o próprio §7: a 04 declara `depende_threads: ["01"]`, e a thread 04 dá a razão ("a11y do alvo corrigida antes de exportar"). A dependência é intencional — quem estava errado era o §2 |
+| C5 | prova t02 `contem "matchMedia"` | `contem "(max-width: 1280px)"` | `matchMedia` já casava **2×** no `app.jsx` (linhas 641/644, do drawer mobile ≤768px): a prova nascia verde sem trabalho algum |
+| C6 | prova t02 `nao_contem` com indentação e `\n` embutidos | `nao_contem "localStorage.setItem(\"oimpresso.sidebar.mode\", sbMode)"` | âncora dita estrutural comparando literal de formatação (§5 2026-07-29) — um reindent a satisfaria |
+| C7 | prova t04 `contem "hidden"` | `contem "\| 'hidden'"` | `hidden` é genérico (22× em `cockpit.css`); um `aria-hidden` futuro em `shared.ts` satisfaria a prova sem o modo existir |
+| C8 | `memory/decisions/0180-sidebar-contrato-v2.md` | `memory/decisions/0180-sidebar-v3-5-grupos-ghosts-header.md` | o arquivo anterior não existe; como estava, a thread 05 criaria **ADR paralela** — o LC-19 que a própria thread quer evitar. (Há colisão de número: existe também `0180-drift-numero-adr-0178-conflito-paralelo.md`) |
+| C9 | `sidebar.jsx` 623 linhas | 622 | contagem |
+| C10 | "auto-rail … O build daqui **não tem**" | "decide só no mount, por `innerWidth < 1280` (`app.jsx:629-630`) — faltam o listener e o inclusive" | contradizia a correção que este mesmo arquivo já trazia acima, e mandaria a thread 02 reimplementar o que existe |
+| C11 | comentário do §4 sugerindo os 3 testes sob `tests/Feature/Sidebar/` | caminhos reais | 2 dos 3 vivem em `Modules/` |
+
+Verificação: o placar foi rodado antes e depois, e o controle positivo (responder RESIDUO-2 e -3 e ver
+`PRÓXIMO` virar `01 · 02`) confirmou que a fila deriva das decisões, não do texto.
