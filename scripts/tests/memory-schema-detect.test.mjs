@@ -43,6 +43,33 @@ const ok = (cond, msg) => {
 const env = { ...process.env, PYTHONIOENCODING: 'utf-8' };
 const git = (cwd, ...argv) => spawnSync('git', argv, { cwd, encoding: 'utf8', env });
 
+/**
+ * Extrai do YAML o PIPELINE de detecção daquele job — da atribuição que roda o
+ * `git diff` até a linha que escreve no GITHUB_OUTPUT. É o chokepoint real: quem
+ * decide o rc do step. Testar só o pathspec (perna 1) não pega o `|| true`.
+ */
+function pipelineDoWorkflow(pasta) {
+  const linhas = readFileSync(WORKFLOW, 'utf8').split('\n');
+  const ini = linhas.findIndex((l) => l.includes(`:(glob)memory/${pasta}`));
+  if (ini < 0) throw new Error(`nao achei o pipeline de memory/${pasta}`);
+  const fim = linhas.findIndex((l, k) => k > ini && l.includes('echo "files<<EOF"'));
+  if (fim < 0) throw new Error(`nao achei o fim do pipeline de memory/${pasta}`);
+  return linhas.slice(ini, fim).filter((l) => !l.trim().startsWith('#')).join('\n');
+}
+
+/** Roda o pipeline do workflow com BASE/HEAD dados, no shell que o `run:` usa (`bash -e`). */
+function rodaPipeline(cwd, pasta, base, head) {
+  const script = [
+    'set -e',
+    `BASE="${base}"`,
+    `HEAD="${head}"`,
+    pipelineDoWorkflow(pasta),
+    'printf "FILES=[%s]" "$FILES"',
+  ].join('\n');
+  const r = spawnSync('bash', ['-e', '-c', script], { cwd, encoding: 'utf8', env });
+  return { rc: r.status, out: (r.stdout || '').trim() };
+}
+
 /** Lê do YAML o pathspec que o job realmente usa — a fonte é o workflow, não esta cópia. */
 function pathspecDoWorkflow(pasta) {
   const yml = readFileSync(WORKFLOW, 'utf8');
@@ -145,6 +172,28 @@ try {
   ok(sBoa.status === 0, `session boa libera (exit ${sBoa.status})`);
   const sRuim = roda('session', 'memory/sessions/2026-01-02-session-ruim.md');
   ok(sRuim.status === 1, `session sem TL;DR/Contexto reprova (exit ${sRuim.status})`);
+
+  // PERNA 3 — o rc do `git diff` chega ao step. Antes de 2026-09-10 o `|| true` no fim
+  // do pipeline engolia a falha do diff e o step saía VERDE com a lista vazia: "diff
+  // quebrado" e "nada a validar" eram indistinguíveis (§5 2026-08-11). Mas tirar o
+  // `|| true` cru NÃO servia — o `grep` sai 1 quando não casa nada, então o caso mais
+  // comum (0 arquivos) viraria vermelho. Os 3 casos abaixo pinam a distinção; qualquer
+  // um deles sozinho aceitaria uma das duas formas erradas.
+  console.log('PERNA 3 — o rc do git diff chega ao step, e o grep vazio nao');
+  const SHA_RUIM = '0'.repeat(40);
+  for (const pasta of ['handoffs', 'sessions']) {
+    const comArquivos = rodaPipeline(dir, pasta, BASE, HEAD);
+    ok(comArquivos.rc === 0 && /2026-01-02/.test(comArquivos.out),
+      `${pasta}: diff ok + arquivos -> rc=${comArquivos.rc} ${comArquivos.out.slice(0, 46)}`);
+
+    const semArquivos = rodaPipeline(dir, pasta, BASE, BASE);
+    ok(semArquivos.rc === 0 && semArquivos.out === 'FILES=[]',
+      `${pasta}: diff ok + 0 arquivos -> rc=${semArquivos.rc} (o caso comum segue VERDE)`);
+
+    const diffQuebrado = rodaPipeline(dir, pasta, SHA_RUIM, HEAD);
+    ok(diffQuebrado.rc !== 0,
+      `${pasta}: diff FALHA -> rc=${diffQuebrado.rc} (VERMELHO, nao mais verde-com-lista-vazia)`);
+  }
 } finally {
   rmSync(dir, { recursive: true, force: true });
 }
