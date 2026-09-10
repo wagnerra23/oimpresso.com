@@ -1937,11 +1937,9 @@
 .cockpit .sb-menu-grouped { display: flex; flex-direction: column; padding: 8px; gap: 0; }
 .cockpit .sb-group { position: relative; }
 .cockpit .sb-group-noheader { padding: 0; }
-/* Contador do grupo no accordion — a regra irmã só existia pro flyout do rail, e sem
-   ela o span herdava o sans 600 do `.sb-group-l`. Medido 2026-09-10 (sonda pareada
-   2560px dark): protótipo mono 9.5px/500 × vivo sans 10.5px/600 — UI-0029, protótipo
-   manda na forma. 9.5px é literal porque o ramp começa em 10.5px e os irmãos desta
-   faixa (`.sb-kbd`, `.sb-ghost-count`) já são literais; fontramp re-cravado. */
+/* Faltava no accordion (só existia pro flyout) — o span herdava o sans 600 do
+   `.sb-group-l`. 9.5px literal: o ramp começa em 10.5px e os irmãos da faixa
+   (`.sb-kbd`, `.sb-ghost-count`) já são literais. Medido em 2026-09-10, PR #7198. */
 .cockpit .sb-group-n {
   font-family: var(--font-mono, ui-monospace, monospace);
   font-size: 9.5px;
@@ -2431,9 +2429,7 @@
 .cockpit[data-theme="dark"] .sb-rail-flyout-l {
   color: oklch(0.78 0.08 var(--gh, 220));
 }
-/* `var(--mono)` não existe (medido 2026-09-10: 0 definições) — caía no fallback
-   `ui-monospace`, em silêncio. O token que resolve é `--font-mono`, o do `.sb-kbd`.
-   `--fs-1` existe e vale 10.5px: aplicava, no tamanho errado pra este papel. */
+/* `var(--mono)` não existe — caía no fallback, em silêncio. O token é `--font-mono`. */
 .cockpit .sb-rail-flyout .sb-group-n {
   font-family: var(--font-mono, ui-monospace, monospace);
   font-size: 9.5px;
