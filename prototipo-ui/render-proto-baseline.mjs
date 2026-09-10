@@ -16,7 +16,11 @@
 // FRONTEIRA ADR 0290 (render-diff EM CI foi REJEITADO — passa verde quando os DOIS lados quebram):
 //   · --gerar   = render LOCAL/dispatch logado, SÓ local. RECUSA sob CI (exit 4).
 //   · --check   = HERMÉTICO (schema + âncora re-resolvida + freshness por sha) — é O QUE roda em
-//                 CI (design-memory-gate, advisory). Zero browser, zero rede: só o JSON commitado.
+//                 CI (design-memory-gate, advisory). Zero browser, zero rede. NÃO é read-only:
+//                 pra conferir o `render_sha256` ele repõe o cache `_ds/` (GITIGNORED, logo
+//                 ausente no checkout do CI) a partir do mirror-snapshot VERSIONADO — mesma
+//                 escrita que o hook de SessionStart já faz, em dir que o git ignora. Se nem
+//                 assim der pra medir, o veredito é NÃO MEDIDO (aviso), NUNCA "baseline STALE".
 //   · --extract = tira 1 célula do baseline como proto.json → o --compare EXISTENTE
 //                 (style-fingerprint.mjs --compare proto.json prod.json --tela <Mod/Tela>) roda
 //                 prod×proto-baseline com a trava fail-closed de sempre.
@@ -106,6 +110,19 @@ export function superficieRender(root, repoRoot = REPO) {
 export function conferirSuperficie(b, hashAtual) {
   if (!b.render_sha256) throw Error('baseline histórico sem identidade do render completo; regenere --gerar antes de comparar');
   if (b.render_sha256 !== hashAtual) throw Error('baseline STALE: protótipo, shell ou DS mudaram; regenere --gerar antes de comparar');
+}
+
+// "Não consegui MEDIR" não é um estado do objeto medido (proibicoes.md §5, 2026-07-29). O grafo
+// do render depende do cache `_ds/`, que é GITIGNORED — em checkout fresco (o do CI) ele NÃO
+// existe: medido 2026-09-10, `superficieRender(MIRROR_DIR)` lança "cache DS ausente" ali. Se o
+// --check colapsasse isso em "baseline STALE", acusaria o JSON commitado de um defeito que é do
+// AMBIENTE. Este veredito separa os dois: sem medição → aviso (o --check segue reportando âncora
+// e sha, que ele mediu de fato); com medição → confere de verdade.
+export function vereditoSuperficie(b, hashAtual, erroMedicao) {
+  if (!b.render_sha256) return { warn: 'baseline histórico: sem identidade do render completo; --extract exige regeneração' };
+  if (hashAtual == null) return { warn: `render NÃO MEDIDO neste ambiente (${erroMedicao || 'cache _ds indisponível'}) — o grafo do protótipo não foi conferido` };
+  try { conferirSuperficie(b, hashAtual); return {}; }
+  catch (e) { return { drift: e.message }; }
 }
 
 // ── puras (testáveis herméticas) ────────────────────────────────────────────────
@@ -496,6 +513,15 @@ async function cmdCheck(args) {
   const files = args._.length ? args._.map((f) => resolve(f)) : acharBaselines(join(REPO, 'memory', 'requisitos'));
   if (!files.length) { console.log('✓ nenhum *.proto-baseline.json no repo — nada a verificar (0 baselines não é drift).'); process.exit(0); }
   let totalDrift = 0, totalWarn = 0;
+  // Mede o grafo UMA vez. Materializa o `_ds/` a partir do mirror-snapshot VERSIONADO — o
+  // produtor é offline (não usa DesignSync nem rede) e escreve só nesse cache gitignored, que é
+  // o mesmo que o hook de SessionStart repõe. Medido 2026-09-10 em worktree fresco: 10 artefatos
+  // repostos, preview completo. Falhou? o veredito por baseline vira NÃO MEDIDO, nunca STALE.
+  let superficieAtual = null, erroSuperficie = null;
+  try {
+    materializePreviewDs(previewDsPlan(readFileSync(join(MIRROR_DIR, 'oimpresso.com.html'), 'utf8'), REPO));
+    superficieAtual = superficieRender(MIRROR_DIR);
+  } catch (e) { erroSuperficie = e.message; }
   for (const f of files) {
     let b;
     const rel = relative(REPO, f).replace(/\\/g, '/');
@@ -504,13 +530,15 @@ async function cmdCheck(args) {
     try { ancoraAtual = (await resolverFatos(b.tela)).ancora; } catch (e) { console.error(`✗ ${rel}: âncora não re-resolvível — ${e.message}`); totalDrift++; }
     const shaAtual = b.ancora ? computeGitSha([b.ancora], REPO) : null;
     const v = verificarBaseline(b, { ancoraAtual, shaAtual });
-    if (b.render_sha256) {
-      try { conferirSuperficie(b, superficieRender(MIRROR_DIR)); }
-      catch (e) { v.drift.push(e.message); v.ok = false; }
-    } else v.warn.push('baseline histórico: sem identidade do render completo; --extract exige regeneração');
+    const vs = vereditoSuperficie(b, superficieAtual, erroSuperficie);
+    if (vs.drift) { v.drift.push(vs.drift); v.ok = false; }
+    if (vs.warn) v.warn.push(vs.warn);
     for (const d of v.drift) { console.error(`✗ ${rel}: ${d}`); totalDrift++; }
     for (const w of v.warn) { console.error(`⚠ ${rel}: ${w}`); totalWarn++; }
-    if (v.ok && ancoraAtual != null) console.log(`✓ ${rel} — íntegro (âncora ✓ · sha ✓ · ${Object.keys(b.celulas).length} células)`);
+    // a linha do veredito só pode falar do que ele MEDIU (§5 2026-07-29): se o grafo não foi
+    // conferido, o ✓ diz isso na cara, em vez de deixar o ⚠ acima passar batido na rolagem.
+    const semRender = b.render_sha256 && vs.warn ? ' · render NÃO MEDIDO' : '';
+    if (v.ok && ancoraAtual != null) console.log(`✓ ${rel} — íntegro (âncora ✓ · sha ✓ · ${Object.keys(b.celulas).length} células${semRender})`);
   }
   if (totalDrift) { console.error(`\n✗ ${totalDrift} drift(s) em ${files.length} baseline(s).`); process.exit(1); }
   console.log(`\n✓ ${files.length} baseline(s) íntegro(s)${totalWarn ? ` (${totalWarn} aviso(s))` : ''}.`);
@@ -589,6 +617,17 @@ function selftest() {
     let incompleto = false;
     try { superficieRender(fx); } catch { incompleto = true; }
     t('BITE: dependência removida impede comparar', incompleto);
+
+    // O veredito do --check: ambiente cego (cache `_ds` ausente, o caso do CI) NÃO pode virar
+    // acusação de STALE contra o JSON commitado — só o hash medido e DIFERENTE é drift.
+    const vHist = vereditoSuperficie({}, 'qualquer', null);
+    t('veredito: baseline histórico → aviso, nunca drift', !!vHist.warn && !vHist.drift);
+    const vCego = vereditoSuperficie({ render_sha256: 'aaa' }, null, 'cache DS ausente: colors_and_type.css');
+    t('BITE: sem medição → NÃO MEDIDO (aviso), NUNCA STALE', !!vCego.warn && !vCego.drift && /NÃO MEDIDO/.test(vCego.warn));
+    const vIgual = vereditoSuperficie({ render_sha256: 'aaa' }, 'aaa', null);
+    t('veredito: hash medido e igual → libera (sem aviso, sem drift)', !vIgual.warn && !vIgual.drift);
+    const vDif = vereditoSuperficie({ render_sha256: 'aaa' }, 'bbb', null);
+    t('BITE: hash medido e DIFERENTE → drift STALE', !!vDif.drift && /STALE/.test(vDif.drift) && !vDif.warn);
   } finally {
     for (const p of Object.keys(dados)) if (existsSync(join(fx, p))) unlinkSync(join(fx, p));
     rmdirSync(fx);
