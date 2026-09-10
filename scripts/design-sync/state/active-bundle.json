@@ -455,8 +455,8 @@
     },
     {
       "path": "documentacao-page.jsx",
-      "bytes": 50948,
-      "sha256": "53deac04d76edd3c5234857ed7143b67fa876b789e5952b623defee67ff7b460",
+      "bytes": 54038,
+      "sha256": "434b9907319d47c0b8dc4b6ae4b840b3908734299317f4f7128737a81b1d4475",
       "role": "cowork-source"
     },
     {
@@ -1175,8 +1175,8 @@
     },
     {
       "path": "oimpresso.com.html",
-      "bytes": 34752,
-      "sha256": "11314efec42f22cea1c0bece671a6afd8e838189480bc1a232737c7b6dfa4478",
+      "bytes": 34753,
+      "sha256": "3c4e3249e8d759300cef3224182cf4ca2500f68e3f5bae67a4ab5e5e9c94c11d",
       "role": "cowork-source"
     },
     {
@@ -1691,34 +1691,21 @@
     }
   ],
   "missing": [],
-  "bundleId": "545cc4696ab84735b412438dc8a492472d7a3876fe35eea2e37678ff50b0a757",
-  "baseBundleId": "f99cbe0b5c32a054223b93610be82ef4c77408e722bde916079b90b4f6ed096c",
+  "bundleId": "5c0ebe0985d95176f4662041bb717d98f8ef152b9542a3697bff469677611e9d",
+  "baseBundleId": "545cc4696ab84735b412438dc8a492472d7a3876fe35eea2e37678ff50b0a757",
   "mode": "delta",
-  "generatedAt": "2026-09-10T18:46:31.729Z",
+  "generatedAt": "2026-09-10T19:55:08.819Z",
   "totals": {
     "files": 281,
-    "bytes": 7401595
+    "bytes": 7404686
   },
   "changes": {
     "added": [],
     "modified": [
-      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/_ds_bundle.js",
-      "app.jsx",
-      "data.jsx",
-      "documentacao-page.css",
       "documentacao-page.jsx",
-      "icons.jsx",
-      "oimpresso.com.html",
-      "ponto-fechamento.jsx",
-      "ponto-mobile.jsx",
-      "ponto-page.css",
-      "ponto-page.jsx",
-      "ponto-telas.jsx",
-      "ponto-ui.jsx",
-      "sidebar.jsx",
-      "styles.css"
+      "oimpresso.com.html"
     ],
     "deleted": [],
-    "unchanged": 266
+    "unchanged": 279
   }
 }
