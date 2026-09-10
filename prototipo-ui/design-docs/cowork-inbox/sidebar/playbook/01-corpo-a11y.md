@@ -11,10 +11,11 @@ depende: RESÍDUO-2 (só a parte "remover Chat"); o resto anda sozinho — vaga 
 
 ## A · Identidade — ancoragem dupla
 - **alvo (layout):** o próprio `sidebar.jsx` — `SidebarMenu` (l.256) · `MenuGroup` (l.208) · `ItemRow` (l.160) · `GhostList` (l.180) · `ItemEnd`/`Kbd` (l.25-39). Layout **não muda** nesta thread: ela conserta semântica, não desenho.
-- **âncora (código):** `resources/js/Components/cockpit/Sidebar.tsx` + o wrapper em `AppShellV2.tsx`, onde o corpo é `<nav className="sb-body" aria-label="Navegação principal">`. O protótipo usa `<div className="sb-body">` (`sidebar.jsx:566`). **O vivo está certo; copiar dele.**
+- **âncora (código):** `resources/js/Components/cockpit/Sidebar.tsx` + o wrapper em `AppShellV2.tsx`, onde o corpo é `<nav className="sb-body" aria-label="Navegação principal">` (`AppShellV2.tsx:576`).
+- ⚠️ **Correção 2026-09-10 (medido no vivo por `DesignSync.get_file` + espelho):** a 1ª redação desta linha dizia *"o protótipo usa `<div className="sb-body">` — o vivo está certo; copiar dele"*. É verdade na letra e **falso na conclusão**: aquele `<div>` (`sidebar.jsx:566`) **contém** o `SidebarMenu`, que abre com `<nav className="sb-menu" aria-label="Navegação principal">` — 3 ocorrências (`:260`, `:268`, `:451`). **O protótipo JÁ TEM o landmark com nome acessível.** A divergência real é de **nível** (o vivo põe o `<nav>` no `sb-body`; o protótipo, um abaixo, no `sb-menu`), não de ausência — e nível de landmark não é defeito de a11y por si. Não "copiar do vivo" sem antes decidir se mover o landmark um nível acima vale alguma coisa.
 
 ## B · O que fazer
-1. **`sb-body` vira `<nav aria-label="Navegação principal">`** no `Sidebar` do protótipo (l.566-570), nos dois modos (expandido e rail). Uma `<nav>` só — não duplicar landmark.
+1. **Landmark: nada a criar — verificar e decidir.** O `<nav aria-label="Navegação principal">` já existe no `SidebarMenu` (`:260`/`:268`) e no `SidebarMenuRail` (`:451`); o ternário do `sb-body` monta **um** por vez, então já há uma `<nav>` só. O que resta é decisão, não trabalho: mover o landmark do `sb-menu` para o `sb-body` (paridade estrutural com o vivo) **ou** declarar a diferença de nível como aceita no `_saida-01.md`. ⛔ Não duplicar landmark.
 2. **Bateria a11y A1–A12 no alvo.** O protocolo é explícito: *o alvo não é sagrado* — o que falhar **corrige-se aqui**, não vira pedido pro [CL]. Pontos já visíveis na leitura (confirmar medindo, não de cabeça):
    - `ItemRow`/`GhostList`/`MenuGroup`: elemento clicável é `div`? → precisa ser `button`/`a` real, não `div` com `onClick` (exportar `DIV` clicável é exportar dívida com selo).
    - grupo accordion: `aria-expanded` + `aria-controls` na cabeça do grupo.
@@ -44,7 +45,7 @@ PARAR SE          : (a) trocar div→button mudar o layout medido → parar e re
 ```
 
 ## Prova
-- `sidebar.jsx` contém `aria-label="Navegação principal"` e **um** `<nav>` no corpo.
+- `sidebar.jsx` **sem** `role="link" aria-current`: os 2 clicáveis que hoje são `div[role="link"][tabIndex]` (`ItemRow:165` e o atalho de topo `:278`) viraram `<a>`/`<button>` reais. (O `aria-label="Navegação principal"` **não** serve de prova — já existe em 3 lugares desde antes desta thread.)
 - Tabela A1–A12 no `_saida-01.md` com valor medido (não "ok"): nome acessível de cada linha, `aria-expanded` do grupo, contraste em número.
 - Se RESÍDUO-2 = remover: `sidebar.jsx` sem `function SidebarChat` / `SidebarTabs` / `ConvRow`, e `app.jsx` **ainda monta** (as props `tab`/`onTab`/`activeConvId` viram no-op documentado — quem as remove é a thread 02, não esta).
 - Não verificável daqui: axe em prod · T7.
