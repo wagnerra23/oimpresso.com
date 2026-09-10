@@ -26,7 +26,7 @@ import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { lerZip, extrairZip, crc32, nomeSeguro } from './zip-reader.mjs';
 import { createManifest } from './bundle-contract.mjs';
-import { acharRaiz, auditarPacote, classificar } from './receber-handoff.mjs';
+import { acharRaiz, auditarPacote, classificar, listarRelativos } from './receber-handoff.mjs';
 
 let falhas = 0;
 const ok = (cond, nome) => {
@@ -116,6 +116,19 @@ export function selftest() {
   extrairZip(zipBom, base);
   ok(acharRaiz(base) === join(base, 'projeto'), 'SOLTA: acha a raiz pelo shell');
   ok(acharRaiz(mkdtempSync(join(tmpdir(), 'oi-vazio-'))) === null, 'MORDE: arvore sem shell devolve null');
+
+  // ── listarRelativos (o insumo do --live-only, tirado da arvore) ─────────────
+  const arvore = mkdtempSync(join(tmpdir(), 'oi-lista-'));
+  extrairZip(montarZip([
+    { nome: 'oimpresso.com.html', dados: 'x' },
+    { nome: 'sub/a.jsx', dados: 'y' },
+    { nome: 'sub/mais/b.css', dados: 'z' },
+  ]), arvore);
+  const rels = listarRelativos(arvore);
+  ok(rels.length === 3, 'SOLTA: lista os 3 arquivos, em qualquer profundidade');
+  ok(rels.includes('sub/mais/b.css'), 'SOLTA: path relativo POSIX, com barra normal');
+  ok(!rels.some((r) => r.startsWith('/') || r.includes('\\')), 'MORDE: nunca emite absoluto nem barra invertida');
+  ok(!rels.includes('sub'), 'MORDE: diretorio NAO entra na lista (o denominador e de arquivos)');
 
   // ── auditarPacote ───────────────────────────────────────────────────────────
   const conteudo = { 'app.jsx': Buffer.from('const a = 1;\n'), 'styles.css': Buffer.from('body{}\n') };

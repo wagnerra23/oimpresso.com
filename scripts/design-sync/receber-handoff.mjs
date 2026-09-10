@@ -29,6 +29,9 @@
  *     `AMBOS-DIVERGEM` explicitamente indecidido, em vez de chutar.
  *   · `_ds/**` (role `preview-cache`): o dono é o projeto Design System (#7096), não o export de
  *     telas. Aqui o espelho do repo vence POR REGRA declarada, nunca por inferência de frescor.
+ *   · "o que existe no vivo e NUNCA desceu?" (live-only, passo [3c]) — a árvore extraída responde
+ *     sozinha, sem `DesignSync`. Era rotina separada que só a sessão logada rodava, e vencia por
+ *     isso; virou subproduto do ciclo. O medidor segue sendo o `cowork-mirror-freshness`.
  *
  * FAIL-CLOSED: qualquer passo que não fecha aborta antes de escrever. Sem `--apply` nada é
  * promovido — o default é só medir e validar.
@@ -80,6 +83,26 @@ export function acharRaiz(base, existe = existsSync, listar = readdirSync) {
     for (const d of itens) if (d.isDirectory()) fila.push(join(dir, d.name));
   }
   return null;
+}
+
+/**
+ * Todos os arquivos da árvore, como paths relativos POSIX. É o insumo do `--live-only`, que
+ * aceita `{paths:[…]}` de QUALQUER origem — não é acoplado ao `DesignSync`.
+ */
+export function listarRelativos(raiz, listar = readdirSync) {
+  const saida = [];
+  const fila = [''];
+  while (fila.length) {
+    const sub = fila.shift();
+    let itens = [];
+    try { itens = listar(join(raiz, sub), { withFileTypes: true }); } catch { continue; }
+    for (const d of itens) {
+      const rel = sub ? `${sub}/${d.name}` : d.name;
+      if (d.isDirectory()) fila.push(rel);
+      else saida.push(rel);
+    }
+  }
+  return saida.sort();
 }
 
 /**
@@ -243,6 +266,35 @@ function principal() {
     for (const r of regressoes) console.log(`                   ${r.rel}  (versao do zip = a de ${r.commit})`);
     console.log(`                   => este ZIP esta ATRAS do espelho. Aplicar REVERTE esses arquivos.`);
   }
+
+  // 3c. LIVE-ONLY: o que existe no export e NUNCA desceu pro espelho.
+  //
+  // POR QUE AQUI ([W] 2026-09-10: "ali esta o bundle inteiro"): esta medicao existia como
+  // ROTINA SEPARADA que so a sessao logada conseguia rodar — o medidor pedia
+  // `DesignSync.list_files`, cuja auth e interativa (ADR 0315), entao CI nao alcanca e sobrava
+  // "o agente, quando lembra". Ela vencia. Mas o `--live-only` aceita `{paths:[...]}` de
+  // qualquer origem, e o ZIP TEM o projeto inteiro: a lista sai da arvore que o passo [1] ja
+  // extraiu, de graca. A medicao deixa de ser rotina com dono humano e vira subproduto do ciclo.
+  //
+  // O MEDIDOR CONTINUA SENDO O `cowork-mirror-freshness` — aqui so entrego a lista.
+  //
+  // ⚠️ O DENOMINADOR MUDA, e isso e esperado: o `list_files` conta DIRETORIOS, a arvore nao
+  // (876 x 808 no ciclo de 10/09). O `--sla-live-only` ja recusa comparar escopos diferentes e
+  // vai dizer "denominador mudou" na 1a rodada por esta rota. E o comportamento certo — inventar
+  // entradas de diretorio pra casar o numero seria fabricar o denominador.
+  const listaPath = join(destino, '_live-only.json');
+  writeFileSync(listaPath, JSON.stringify({ paths: listarRelativos(raiz) }));
+  // Ledger so no --apply: medicao de run exploratorio nao vira registro.
+  const lo = roda('scripts/governance/cowork-mirror-freshness.mjs',
+    ['--live-only', listaPath, ...(aplicar ? ['--ledger'] : [])]);
+  const resumo = (lo.out.match(/\((\d+) de (\d+) paths\)/) || []);
+  const telas = (lo.out.match(/prot[oó]tipo de tela \((\d+)\)/) || [])[1];
+  console.log(`\n  [3c] LIVE-ONLY   ${resumo[1] ?? '?'} de ${resumo[2] ?? '?'} paths do export nunca desceram pro espelho`);
+  if (telas !== undefined) {
+    console.log(`                   destes, prototipo de TELA: ${telas}${telas === '0' ? ' (o resto e dotfile, interno do _ds e copia de repo)' : ' <- candidatos reais a versionar'}`);
+  }
+  if (!lo.ok) console.log(`                   ! o medidor saiu != 0 - nao medi, e isso NAO e "zero live-only"`);
+  else if (aplicar) console.log(`                   registrado no ledger de frescor`);
 
   // 4. RECONCILIAR O DS (regra, não inferência)
   let reconciliados = 0;
