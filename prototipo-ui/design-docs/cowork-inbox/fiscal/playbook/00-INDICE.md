@@ -52,7 +52,7 @@ regra: PEDIDO, não inventário. Estado é derivado (§2-bis). Nunca em prototip
 **Vaga 1:** 01 ∥ 02 (prefixos disjuntos). Nenhuma outra thread — e não se inventa terceira para o playbook parecer cheio.
 
 ## 2-bis · ESTADO — derivado, nunca escrito
-`node scripts/qa/placar-indice.mjs --indice prototipo-ui/design-docs/cowork-inbox/fiscal/playbook/00-INDICE.md --root . --proximo`
+`node prototipo-ui/design-docs/cowork-inbox/_scripts/placar-indice.mjs --indice prototipo-ui/design-docs/cowork-inbox/fiscal/playbook/00-INDICE.md --root . --proximo`
 Render esperado: `Fiscal: entregue 1 de 3 · próximo 2 · bloqueada 0` — **PRÓXIMO: 01 · 02.**
 
 ## 3 · Abertura de thread (colar como 1ª mensagem — sessão limpa)
