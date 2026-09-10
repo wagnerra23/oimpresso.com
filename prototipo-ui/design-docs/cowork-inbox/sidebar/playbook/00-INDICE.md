@@ -130,7 +130,7 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
       "nao_toca": ["${BUILD}/app.jsx", "${BUILD}/data.jsx", "${CKPT}/"],
       "depende_decisoes": ["RESIDUO-2"],
       "provas": [
-        { "tipo": "contem", "path": "${BUILD}/sidebar.jsx", "padrao": "aria-label=\"Navegação principal\"", "nota": "sb-body vira <nav> como no vivo" },
+        { "tipo": "nao_contem", "path": "${BUILD}/sidebar.jsx", "padrao": "role=\"link\"", "nota": "os 2 div[role=link] (ItemRow:165 e atalho:278) viram <a>/<button> reais; a prova antiga (contem aria-label) JÁ passava — 3 ocorrências" },
         { "tipo": "nao_contem", "path": "${BUILD}/sidebar.jsx", "padrao": "function SidebarChat", "nota": "só com RESIDUO-2 respondida por remover" }
       ] },
     { "id": "02", "titulo": "Seção MODOS: auto-rail UI-0030 + persistir só escolha manual", "dono": "CC", "vaga": 1, "arquivo": "02-modos-auto-rail.md",
@@ -199,3 +199,26 @@ O `00-INDICE.md` recebeu **13 consertos**, todos medidos na sha `71109f60d3`:
 
 Verificação: o placar foi rodado antes e depois, e o controle positivo (responder RESIDUO-2 e -3 e ver
 `PRÓXIMO` virar `01 · 02`) confirmou que a fila deriva das decisões, não do texto.
+
+### 8.1 · Errata de 2026-09-10 — a âncora da thread 01 era mentirosa (e passou pela minha revisão)
+
+Quatro horas depois de aterrissar este playbook, [W] apontou que o desenho que eu apresentava como
+"o protótipo" não era o protótipo. Estava certo, e a causa é minha: **nunca resolvi a âncora**.
+Rodado agora, `node prototipo-ui/ancora.mjs cockpit/Sidebar` responde
+`✗ sem charter pra essa tela — NÃO invente âncora; registre ou pergunte`. A Sidebar não tem charter,
+logo não tem âncora computável — e eu escolhi uma no olho, que é o anti-padrão da lápide §5 2026-06-30.
+
+Medido depois, com `DesignSync.get_file` no projeto Cowork por ID e conferido contra o espelho:
+
+| afirmação | estado |
+|---|---|
+| "o protótipo usa `<div className="sb-body">` — o vivo está certo, copiar dele" (01, §A) | **enganosa por omissão** — o div **contém** `<nav aria-label="Navegação principal">` (`:260`, `:268`, `:451`). A divergência é de **nível**, não de ausência |
+| prova `contem "aria-label=\"Navegação principal\""` (§7, thread 01) | **nascia verde** — 3 ocorrências antes da thread começar. Mesmo defeito do `matchMedia` que corrigi na aterrissagem, e que deixei passar neste |
+| passo 1 da thread 01: "`sb-body` vira `<nav>`" | **manda criar o que já existe** — virou verificação + decisão de nível |
+
+Corrigido acima (A1–A4). A prova da 01 passa a ser `nao_contem "role=\"link\""`: os 2 clicáveis que
+hoje são `div[role="link"][tabIndex]` (`ItemRow:165` e o atalho de topo `:278`) precisam virar
+`<a>`/`<button>` reais — que é o trabalho de a11y que a thread de fato tem.
+
+⚠️ **O que NÃO mudou, e é o resto da thread 01:** a bateria A1–A12, o `aria-expanded` do grupo,
+o nome acessível do "⋯ mais N", o contraste medido por `getComputedStyle`. Tudo isso segue de pé.
