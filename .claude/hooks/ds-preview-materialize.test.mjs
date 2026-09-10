@@ -6,7 +6,7 @@
 // Rodar: node .claude/hooks/ds-preview-materialize.test.mjs   (exit 0 = passa)
 
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readdirSync, renameSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readdirSync, renameSync, rmSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -47,6 +47,22 @@ if (existsSync(shellReal) && existsSync(snapReal) && existsSync(produtor)) {
 
     const r2 = spawnSync(process.execPath, [HOOK], { cwd: REPO, encoding: 'utf8' });
     check(`silêncio quando completo (exit ${r2.status}, stdout vazio)`, r2.status === 0 && r2.stdout.trim() === '');
+
+    const bundle = readdirSync(dsDir, { recursive: true }).find(p => String(p).endsWith('_ds_bundle.js'));
+    const pathBundle = join(dsDir, bundle);
+    const original = readFileSync(pathBundle);
+    writeFileSync(pathBundle, '// cache antigo, mas arquivo presente');
+    const atualizado = spawnSync(process.execPath, [HOOK], { cwd: REPO, encoding: 'utf8' });
+    check('BITE: bundle presente e antigo é substituído pelos bytes atuais',
+      atualizado.status === 0 && /reposto/.test(atualizado.stdout) && readFileSync(pathBundle).equals(original));
+
+    const fonte = readdirSync(dsDir, { recursive: true }).find(p => String(p).endsWith('.woff2'));
+    const pathFonte = join(dsDir, fonte);
+    const fonteOriginal = readFileSync(pathFonte);
+    writeFileSync(pathFonte, 'fonte antiga');
+    const fonteAtualizada = spawnSync(process.execPath, [HOOK], { cwd: REPO, encoding: 'utf8' });
+    check('BITE: dependência indireta do CSS também é atualizada',
+      fonteAtualizada.status === 0 && readFileSync(pathFonte).equals(fonteOriginal));
 
     rmSync(dsDir, { recursive: true, force: true });
     const r3 = spawnSync(process.execPath, [HOOK], { cwd: REPO, encoding: 'utf8', env: { ...process.env, OIMPRESSO_DS_PREVIEW_OFF: '1' } });
