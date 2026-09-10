@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-09**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-10**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -80,7 +80,7 @@ lente: [construir]
 
 > Fontes versionadas (offline, sem `gh api`): censo [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o que **existe**) + [`required-checks-baseline.json`](../../governance/required-checks-baseline.json) (o que **bloqueia**, congelado). Anti-demoção invisível: `protection-drift.mjs` (GT-G4). As catracas mordem: `gate-selftest` (GT-G6). Censo cobrado por `memory-health` Check G/M.
 
-### Bloqueiam merge — 45 required (enforcement: everyone)
+### Bloqueiam merge — 46 required (enforcement: everyone)
 > Congelados no baseline (captura 2026-06-20). Divergência do vivo é sinalizada pelo `protection-drift`, não reconciliada aqui.
 
 - ADR (memory/decisions/*.md)
@@ -106,6 +106,7 @@ lente: [construir]
 - No hardcode business_id (Tier 0)
 - No-mock-in-prod · ratchet
 - Nota de tela não desce vs origin/main
+- PageHeader · ratchet (header antigo só decresce)
 - PHP / Pest (Compras · MySQL)
 - PHP / Pest (Estoque · MySQL)
 - PHP / Pest (Financeiro · MySQL)
@@ -129,23 +130,23 @@ lente: [construir]
 - espelho — mexeu depois de verificar
 - Governance Gate (índice + memory-health + meta-teste)
 
-### Censo — 139 workflows por classe
+### Censo — 142 workflows por classe
 
 > Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
 
 | Classe | Qtd | Exemplos |
 |---|---|---|
-| gate (bloqueia/valida PR) | 105 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
+| gate (bloqueia/valida PR) | 107 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
 | meta (testa os gates) | 7 | block-brl-values-selftest, devcontainer-firewall, gate-selftest, guards-meta-gate, … |
-| automacao (cron/dispatch) | 23 | agent-cost-per-pr, agent-pr-outcomes, briefing-code-staleness, casos-results-publish, … |
+| automacao (cron/dispatch) | 24 | agent-cost-per-pr, agent-pr-outcomes, baseline-folga, briefing-code-staleness, … |
 | deploy (entrega) | 2 | deploy, quick-sync |
 | governanca | 1 | required-always-run |
 | qualidade | 1 | brl-scan |
 
 ## Decisões (ADRs)
 
-- **399** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 358 · superseded: 16 · deprecated: 13 · proposto: 10 · rascunho: 1 · recusado: 1.
+- **400** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 358 · superseded: 16 · deprecated: 13 · proposto: 11 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
@@ -348,14 +349,14 @@ lente: [construir]
 
 ## Rastro
 
-- **514** handoffs · **716** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **516** handoffs · **718** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-09-09-evidencias-fluxos-prototipo`
+  - `2026-09-09-espelho-cowork-live-only-remedido`
   - `2026-09-08-session-02`
   - `2026-09-08-patrimonio-manutencoes-gate-e-conserto-403`
   - `2026-09-08-onda7-paridade-crm-jana-forja`
   - `2026-09-08-onda7-financeiro-recurring-paridade-medida`
-  - `2026-09-08-devolutiva-recusados-rodada-pontual`
-  - `2026-09-08-compatibilidade-placar-modulos`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-09-09 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-09-10 · deriva das fontes canônicas, não as substitui._
