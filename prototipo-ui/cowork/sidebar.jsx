@@ -78,6 +78,62 @@ function CompanyPicker({ company, onChange }) {
 
 }
 
+// ─── Alerta de certificado A1 (paridade com NfeCertBadge do vivo) ───
+// Âncora: Components/cockpit/NfeCertBadge.tsx (lido no main 2026-09-10). Posição documentada
+// em :25 — "após CompanyPicker, antes do SidebarMenu". No vivo lê shell.nfe_cert_status
+// (HandleInertiaRequests::nfeCertStatus); aqui vem de MOCK.NFE_CERT.
+// Silencioso em "ok" e "sem_cert" — sem_cert é legítimo pra quem não emite NF-e.
+// Cores cruas são a exceção R-DS-002 (status fixo de alerta), copiadas do vivo, não inventadas.
+const NFE_CERT_CORES = {
+  vencido:  { border: "oklch(0.55 0.20 25)", bg: "oklch(0.32 0.10 25 / 0.40)", fg: "oklch(0.78 0.10 25)" },
+  vencendo: { border: "oklch(0.78 0.15 80)", bg: "oklch(0.32 0.08 80 / 0.40)", fg: "oklch(0.82 0.10 80)" }
+};
+
+function useNfeCert() {
+  const c = MOCK.NFE_CERT;
+  if (!c || c.status !== "vencendo" && c.status !== "vencido") return null;
+  const dias = c.dias_restantes ?? 0;
+  const vencido = c.status === "vencido";
+  const abs = Math.abs(dias);
+  return {
+    vencido,
+    cores: NFE_CERT_CORES[vencido ? "vencido" : "vencendo"],
+    label: vencido ? "Certificado vencido" : "Cert vence em breve",
+    detalhe: vencido ? `há ${abs} dia${abs === 1 ? "" : "s"}` : `${dias} dia${dias === 1 ? "" : "s"} restantes`
+  };
+}
+
+function NfeCertBadge({ onSelectRoute }) {
+  const c = useNfeCert();
+  if (!c) return null;
+  const Icon = c.vencido ? I.shield : I.alert;
+  return (
+    <button type="button" className="sb-cert" onClick={() => onSelectRoute?.("fiscal-config")}
+    title={`${c.label} — ${c.detalhe}. Clique pra renovar.`}
+    style={{ borderColor: c.cores.border, background: c.cores.bg, color: c.cores.fg }}>
+      <Icon className="ic" size={14} />
+      <span className="sb-cert-txt">
+        <b>{c.label}</b>
+        <span>{c.detalhe}</span>
+      </span>
+    </button>);
+
+}
+
+// No rail (56px) o texto não cabe: vira só o ícone, com o mesmo nome acessível do tooltip.
+function NfeCertBadgeRail({ onSelectRoute }) {
+  const c = useNfeCert();
+  if (!c) return null;
+  const Icon = c.vencido ? I.shield : I.alert;
+  return (
+    <button type="button" className="sb-rail-btn sb-cert-rail" onClick={() => onSelectRoute?.("fiscal-config")}
+    aria-label={`${c.label} — ${c.detalhe}. Clique pra renovar.`} data-tip={c.label}
+    style={{ borderColor: c.cores.border, background: c.cores.bg, color: c.cores.fg }}>
+      <Icon className="ic" size={16} />
+    </button>);
+
+}
+
 // ─── Linha de item (hub ou ghost) ───
 // A1 (2026-09-10): era `<div role="link" tabIndex={0}>` com onKeyDown à mão. Virou `<button>` real —
 // foco, Enter/Espaço e papel vêm do agente do usuário, não de código nosso.
@@ -491,6 +547,9 @@ function Sidebar({ company, onCompany, activeRoute, onSelectRoute, mode = "expan
         <CompanyPickerRail company={company} onChange={onCompany} /> :
         <CompanyPicker company={company} onChange={onCompany} />}
       </div>
+      {rail ?
+      <NfeCertBadgeRail onSelectRoute={onSelectRoute} /> :
+      <NfeCertBadge onSelectRoute={onSelectRoute} />}
       <div className="sb-body">
         {rail ?
         <SidebarMenuRail activeRoute={activeRoute} onSelectRoute={onSelectRoute} papel={papel} showGhosts={showGhosts} /> :

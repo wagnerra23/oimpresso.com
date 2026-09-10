@@ -25,8 +25,13 @@ Tema dark, após `__oiLazyDone`, `getComputedStyle` (nunca a classe declarada). 
 |---|---|---|
 | `.sb-item` (1ª linha) | DIV · h 34px · pl 10px · fs 13px · IBM Plex Sans · w 233px | **BUTTON** · h 34px · pl 10px · fs 13px · IBM Plex Sans · w 233px |
 | item ativo | pl 18px · cor `oklch(0.97 0.004 295)` · bg `oklch(0.34 0.05 295)` | idem, idem, idem |
+| `.um-item` (menu do usuário) | 12.5px · h 30px | 12.5px · h 30px |
+| `.sb-dd-i` (dropdown de empresa) | 12.5px | 12.5px |
+| `.sb-dd-foot` | 12px | 12px |
 | `aside.sb` | 260px | 260px |
 | `.sb-body` overflow-y | auto | auto |
+
+> **Correção 2026-09-10 (apontada na verificação):** a tabela acima nasceu com **só a linha do `.sb-item`**, e eu generalizei "layout inalterado" a partir dela. Estava errado — ver a seção *Especificidade* abaixo. As linhas de `.um-item`/`.sb-dd-i`/`.sb-dd-foot` são da remedição, com o conserto aplicado.
 
 Contadores depois: `role="link"` **42 → 0** · `div` com `onClick` na sidebar **42 → 0** · `.sb-item` que são `<button>` **0/42 → 42/42** · `.sb-kbd` todos `aria-hidden` **true** · `.sb-wip` `role="img"` · `.sb-tabs/.sb-conv/.sb-chat` **0** · `<nav>` na sidebar **1**.
 
@@ -40,4 +45,6 @@ Contadores depois: `role="link"` **42 → 0** · `div` com `onClick` na sidebar 
 ## Descobertas
 1. **O playbook estava errado no item 1.** Ele mandava transformar `.sb-body` em `<nav aria-label="Navegação principal">` porque o vivo faz isso. Mas o protótipo **já tinha** a `<nav>` com esse mesmo rótulo — em `.sb-menu` (e em `.sb-menu-rail`), um nível abaixo. Executar ao pé da letra criaria **landmark duplicado**. Comparei string de classe, não árvore. Nada a fazer: 1 `<nav>`, rótulo correto, nos dois modos.
 2. **Quase apaguei uma regra viva.** O bloco de CSS morto era contíguo… menos por `.sb-body`, que morava no meio dele e **é usado**. Removi junto e recuperei a regra exata (`flex`/`overflow-y`/scrollbar) do `sync/payload.part35-36.json` de 07/09 — o pacote serviu de backup. Lição: recortar bloco por marcador de comentário sem listar as classes que saem é apostar.
-3. `.sb-item` não tem `font-family` própria — herdava do documento enquanto era `div`. Como `<button>`, herdaria Arial do UA. Por isso o reset traz `font-family: inherit` e **não** `font: inherit` (que sobrescreveria o `font-size: 13px` da classe por especificidade). Medido: continua IBM Plex Sans 13px.
+3. **Especificidade — o defeito que passou, e o conserto que quase piorou.** `.sb-item` declara `font-size: 13px` na classe; `.um-item` e `.sb-dd-i` **não declaram nada** e viviam de herança. Como `<div>`, herança bastava; como `<button>`, o UA **declara** `13.33px`, e herança só vale na ausência de declaração — então o menu do usuário e o dropdown de empresa cresceram ≈ 6,7% (12.5px → 13.33px) sem eu ver. Minha nota original ("a regra de classe vence o UA, então `font-size` não entra no reset") era **verdadeira só pra quem tem regra de classe**.
+   O 1º conserto — `font-size: inherit` dentro de `button.sb-item, button.um-item, …` — **inverteu o erro**: `button.sb-item` pesa (0,1,1) e passou a vencer `.sb-item{13px}`, levando o item de menu a 13.5px. Versão final: `button:where(.sb-item, .um-item, .sb-dd-i, .sb-dd-foot){ font-size: inherit }` — `:where()` custa **0**, então a regra pesa (0,0,1): qualquer classe vence, e só quem não tem nenhuma cai na herança. Remedido: `.sb-item` 13px · `.um-item` 12.5px · `.sb-dd-i` 12.5px · `.sb-dd-foot` 12px — todos nos valores originais.
+   **Lição:** trocar a tag de um elemento muda quem ganha a cascata, e **a prova tem de cobrir cada família de controle tocada** — medir uma e generalizar foi o erro; e todo reset de tag precisa nascer com especificidade **menor** que as regras que ele não quer atropelar.

@@ -5,7 +5,7 @@ dono: "[CC]"
 base: af09f7c3a0fd
 prefixo: prototipo-ui/cowork/app.jsx
 nao_toca: sidebar.jsx · styles.css · Components/cockpit/**
-depende: — (vaga 1). Produção está à frente: 🔵 PUXAR, não inventar.
+depende: — (vaga 1). Produção está à frente: 🔵 PUXAR, não inventar. Acumula o corte do estado morto do Chat (RESÍDUO-2, §C-bis) — coordenar com a 01.
 ---
 # 02 · Seção MODOS (expanded · rail · hidden)
 
@@ -29,6 +29,15 @@ depende: — (vaga 1). Produção está à frente: 🔵 PUXAR, não inventar.
 5. `hidden` continua sendo escolha manual apenas (⌘⇧\\) — nunca automático.
 6. Mobile (≤768px) intocado: `app.jsx` já força `expanded` no drawer, igual ao vivo.
 
+## C-bis · Cortar o estado do Chat morto (RESÍDUO-2 — respondido 2026-09-10: remover)
+Medido nesta data: `SidebarTabs`/`SidebarChat`/`ConvRow` (em `sidebar.jsx`) e **`ChatPage` (`app.jsx:72`)** têm **zero call sites** — a rota `chat` renderiza `window.JanaPage`. A thread 01 remove o JSX/CSS do lado da sidebar; **esta corta o estado na origem**, porque `app.jsx` é o prefixo dela (Lei 1):
+- `const [tab, setTab]` (l.549) e `tab={tab} onTab={setTab}` no `<Sidebar>` (l.954);
+- `const [activeConvId, setActiveConvId]` (l.577) + `handleSelectConv` (l.793) + as props (l.955);
+- os `useEffectA` de persistência **órfãos**: `oimpresso.sidebar.tab` (l.680) e `oimpresso.conv` (l.682) — estado que ninguém lê, gravando a cada mudança;
+- em `handleSelectRoute`, a linha `if (r === "chat") setTab("chat")` (l.783);
+- `ChatPage` + `ConvTabsBar`, e `Thread`/`LinkedAppsPanel` **só se não sobrar consumidor** — conferir por busca, não presumir.
+**Não apagar as chaves já gravadas** no `localStorage` do [W] sem dizer no `_saida`: parar de escrever ≠ limpar.
+
 ## D · Não inventar
 - Nome da chave permanece `oimpresso.sidebar.mode` (o vivo usa `LS.SB_MODE`; a paridade é de comportamento, não de string).
 - Não migrar/limpar chave existente do usuário sem dizer no `_saida` — storage é do [W].
@@ -38,11 +47,14 @@ depende: — (vaga 1). Produção está à frente: 🔵 PUXAR, não inventar.
 ARQUIVOS A EDITAR : prototipo-ui/cowork/app.jsx (só o bloco "Sidebar: modo expanded | rail | hidden")
 MEDIR             : com localStorage limpo, abrir em largura acima e abaixo do AUTO_RAIL_MQ e conferir o modo;
                     depois escolher manualmente e reabrir na outra largura — a escolha tem de vencer
-PASSO A PASSO     : 1) ler AUTO_RAIL_MQ no main  2) init por chave→largura  3) escolherModo()  4) listener
-                    5) 4 casos medidos (sem chave × com chave) × (estreito × largo)  6) _saida-02.md
+PASSO A PASSO     : 1) ler AUTO_RAIL_MQ no main  2) init por chave→largura (1280 INCLUSIVE)  3) escolherModo()  4) listener
+                    5) cortar o estado morto do Chat (§C-bis)  6) 4 casos medidos (sem chave × com chave) × (estreito × largo)
+                    7) a app monta sem prop faltando no Sidebar  8) _saida-02.md
 PARAR SE          : AUTO_RAIL_MQ não existir mais em shared.ts → parar e reportar (não escolher breakpoint à mão)
+                    a 01 ainda não tiver removido o JSX → cortar as props aqui quebra o Sidebar: faça a 01 primeiro
 ```
 
 ## Prova
 - `app.jsx` contém `matchMedia` no bloco de sidebar e **não** grava `sbMode` num efeito disparado por toda mudança.
+- `app.jsx` sem `oimpresso.sidebar.tab`, sem `oimpresso.conv`, sem `function ChatPage`.
 - `_saida-02.md` com a matriz de 4 casos medidos e o valor literal do `AUTO_RAIL_MQ` lido do `main`.
