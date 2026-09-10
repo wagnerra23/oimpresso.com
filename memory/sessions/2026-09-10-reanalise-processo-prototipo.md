@@ -1,5 +1,7 @@
 # Reanálise do processo de aplicação — 2026-09-10
 
+## Contexto
+
 Pedido de [W]: reanalisar em branch fresca, incluindo a aplicabilidade aos módulos.
 Base examinada: `origin/main` em `af09f7c3a0` (#7175), após fetch.
 Branch: `codex/reanalisa-processo-prototipo-20260910`.

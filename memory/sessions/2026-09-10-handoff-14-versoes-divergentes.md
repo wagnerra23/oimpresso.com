@@ -1,5 +1,7 @@
 # Handoff 14: projeto e payload de versões diferentes — 2026-09-10
 
+## Contexto
+
 [W] forneceu `Oimpresso ERP Conunicação Visual.-handoff (14).zip` como último handoff do protótipo. Foi inspecionado diretamente com ZipArchive, sem executar conteúdo nem sobrescrever o espelho. SHA-256 do ZIP: `5a5636313336523df9b751ee452717a1ec4768440429e8362d887b6950dc0468`.
 
 ## Resultado medido

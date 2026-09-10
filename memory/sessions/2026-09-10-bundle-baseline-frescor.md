@@ -1,5 +1,7 @@
 # Bundle e baseline antigos — 2026-09-10
 
+## Contexto
+
 [W] reportou que a comparação/aplicação usava cópia antiga em Patrimônio e Governança. A análise continuou na branch `codex/reanalisa-processo-prototipo-20260910`, base `af09f7c3a0`.
 
 ## Diagnóstico medido
