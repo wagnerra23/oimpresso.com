@@ -3,11 +3,12 @@
 const { useState, useEffect, useRef } = React;
 
 // Marcador de frescor do destino: link válido mas tela não desenhada (mock) ou inexistente (stub).
+// A2: `aria-label` em `<span>` mudo é ignorado pela AT — precisa de `role="img"` pra virar nome acessível.
 function WipMark({ routeId }) {
   const st = (MOCK.ROUTE_STATE || {})[routeId];
   if (!st) return null;
   const t = (MOCK.ROUTE_STATE_LABEL || {})[st] || st;
-  return <span className={"sb-wip sb-wip--" + st} title={t} aria-label={t} />;
+  return <span className={"sb-wip sb-wip--" + st} role="img" title={t} aria-label={t} />;
 }
 
 // Contadores: no vivo existem 3 (chat · atendimento · tarefas) e vêm do backend.
@@ -22,9 +23,10 @@ function podeVer(papel, id) {
   return !lista || lista.indexOf(id) >= 0;
 }
 // Dica de atalho "G X" — aparece no hover/foco da linha (o teclado real vive no listener abaixo).
+// A4: decorativa — o atalho funciona sem ela; anunciar "G V" no meio do nome do item é ruído.
 function Kbd({ routeId }) {
   const k = (MOCK.MENU_SHORTCUTS || {})[routeId];
-  return k ? <span className="sb-kbd">G {k}</span> : null;
+  return k ? <span className="sb-kbd" aria-hidden="true">G {k}</span> : null;
 }
 // Slot da direita: em repouso mostra QUANTAS telas o hub tem; no hover troca pelo atalho.
 // Os dois ocupam a mesma célula (grid 1/1), então nada empurra o label.
@@ -51,126 +53,49 @@ function CompanyPicker({ company, onChange }) {
 
   return (
     <div className="sb-cp" ref={ref}>
-      <button className="sb-cp-btn" onClick={() => setOpen(!open)}>
-        <span className={`avatar ${company.grad}`}>{company.initials}</span>
+      <button type="button" className="sb-cp-btn" onClick={() => setOpen(!open)}
+      aria-haspopup="menu" aria-expanded={open} aria-label={`Empresa: ${company.name}. Trocar de empresa`}>
+        <span className={`avatar ${company.grad}`} aria-hidden="true">{company.initials}</span>
         <span className="name">{company.name}</span>
         <I.chev className="ic chev" />
       </button>
       {open &&
-      <div className="sb-dd">
+      <div className="sb-dd" role="menu">
           <div className="sb-dd-h">EMPRESAS</div>
           {MOCK.COMPANIES.map((c) =>
-        <div key={c.id} className="sb-dd-i" onClick={() => {onChange(c);setOpen(false);}}>
-              <span className={`avatar ${c.grad}`} style={{ width: 18, height: 18, borderRadius: 4, fontSize: 10, fontWeight: 700, color: "#fff", display: "grid", placeItems: "center" }}>{c.initials}</span>
+        <button type="button" key={c.id} className="sb-dd-i" role="menuitemradio" aria-checked={c.id === company.id}
+        onClick={() => {onChange(c);setOpen(false);}}>
+              <span className={`avatar ${c.grad}`} aria-hidden="true" style={{ width: 18, height: 18, borderRadius: 4, fontSize: 10, fontWeight: 700, color: "#fff", display: "grid", placeItems: "center" }}>{c.initials}</span>
               <span>{c.name}</span>
               {c.id === company.id && <I.check className="ic check" size={14} />}
-            </div>
+            </button>
         )}
           <div className="sb-dd-sep" />
-          <div className="sb-dd-foot">+ Adicionar empresa</div>
+          <button type="button" className="sb-dd-foot" role="menuitem">+ Adicionar empresa</button>
         </div>
       }
     </div>);
 
 }
 
-function SidebarTabs({ tab, onTab }) {
-  return (
-    <div className="sb-tabs">
-      <button
-        className={`sb-tab ${tab === "chat" ? "active" : ""}`}
-        onClick={() => onTab("chat")}>
-        <I.chat size={14} /> <span>Chat</span>
-      </button>
-      <button
-        className={`sb-tab ${tab === "menu" ? "active" : ""}`}
-        onClick={() => onTab("menu")}>
-        <I.hash size={14} /> <span>Menu</span>
-      </button>
-    </div>);
-
-}
-
-// ─── ABA CHAT (estilo da imagem do print) ───
-function SidebarChat({ activeConvId, onSelectConv, onSelectRoute }) {
-  const company = window.__company;
-  const convs = MOCK.CONV[company.id] || [];
-  const pinned = convs.filter((c) => c.pinned);
-  const recents = convs.filter((c) => !c.pinned);
-
-  return (
-    <div className="sb-chat">
-      {/* Ações principais */}
-      <div className="sb-actions">
-        <div className="sb-action" onClick={() => onSelectRoute("chat")}>
-          <I.plus className="ic" /> <span>Nova conversa</span>
-          <span className="kbd">⌘N</span>
-        </div>
-        <div className="sb-action" onClick={() => onSelectRoute("tarefas")}>
-          <I.inbox className="ic" /> <span>Tarefas</span>
-          <span className="kbd-badge">{countOf("tarefas")}</span>
-        </div>
-        <div className="sb-action">
-          <I.bell className="ic" /> <span>Despachos</span>
-          <span className="beta">Beta</span>
-        </div>
-        <div className="sb-action">
-          <I.cog className="ic" /> <span>Personalizar</span>
-        </div>
-      </div>
-
-      <div className="sb-section-h">FIXADAS</div>
-      {pinned.length === 0 ?
-      <div className="sb-pin-empty">
-          <I.pin className="ic" /> <span>Arraste para fixar</span>
-        </div> :
-      pinned.map((c) =>
-      <ConvRow key={c.id} c={c} active={c.id === activeConvId}
-      onClick={() => onSelectConv(c.id)} />
-      )}
-
-      <div className="sb-section-h">ROTINAS</div>
-      {MOCK.ROUTINES.map((r) =>
-      <div key={r.id} className="sb-routine">
-          <span className="sb-bullet outline"></span>
-          <span className="sb-routine-t">{r.title}</span>
-          <span className="sb-routine-f">{r.freq}</span>
-        </div>
-      )}
-
-      <div className="sb-section-h">RECENTES</div>
-      {recents.map((c) =>
-      <ConvRow key={c.id} c={c} active={c.id === activeConvId}
-      onClick={() => onSelectConv(c.id)} />
-      )}
-    </div>);
-
-}
-
-function ConvRow({ c, active, onClick }) {
-  return (
-    <div className={`sb-conv ${active ? "active" : ""}`} onClick={onClick}>
-      <span className={`sb-bullet ${c.unread ? "filled" : "outline"}`}></span>
-      <span className="sb-conv-t">{c.title}</span>
-    </div>);
-
-}
-
 // ─── Linha de item (hub ou ghost) ───
+// A1 (2026-09-10): era `<div role="link" tabIndex={0}>` com onKeyDown à mão. Virou `<button>` real —
+// foco, Enter/Espaço e papel vêm do agente do usuário, não de código nosso.
+// UI-0011 (2026-09-10): SidebarTabs · SidebarChat · ConvRow removidos daqui — zero call sites,
+// e o vivo aposentou a aba Chat em 2026-05-05 (conv switcher vive em Pages/Copiloto/Chat.tsx).
 function ItemRow({ item, active, ghost, groupDot, onSelect, count, anchor, ghostCount }) {
   const Icon = I[item.icon];
   return (
-    <div
+    <button type="button"
       className={`sb-item sb-sub${ghost ? " sb-ghost" : ""}${active ? " active" : ""}`}
-      role="link" aria-current={active ? "page" : undefined} tabIndex={0}
-      onKeyDown={(e) => {if (e.key === "Enter" || e.key === " ") {e.preventDefault();onSelect();}}}
+      aria-current={active ? "page" : undefined}
       onClick={onSelect}
       style={active && groupDot ? { borderLeftColor: groupDot } : null}>
       {Icon && <Icon className="ic" />}
       <span className="label" data-comment-anchor={anchor}>{item.label}</span>
       <WipMark routeId={item.id} />
       {count ? <span className="badge">{count}</span> : <ItemEnd routeId={item.id} ghostCount={ghostCount} />}
-    </div>);
+    </button>);
 
 }
 
@@ -194,12 +119,14 @@ function GhostList({ ghosts, activeRoute, groupDot, onSelectRoute }) {
       onSelect={() => onSelectRoute(g.id)} />
       )}
       {extras.length > 0 &&
-      <button type="button" className="sb-ghost-more" onClick={() => setTudo(true)} aria-expanded="false">
-        <span className="sb-ghost-more-d">⋯</span><span>mais {extras.length}</span>
+      <button type="button" className="sb-ghost-more" onClick={() => setTudo(true)}
+      aria-expanded="false" aria-label={`Mostrar mais ${extras.length} telas`}>
+        <span className="sb-ghost-more-d" aria-hidden="true">⋯</span><span>mais {extras.length}</span>
       </button>}
       {tudo && ghosts.length > GHOST_TETO &&
-      <button type="button" className="sb-ghost-more" onClick={() => setTudo(false)} aria-expanded="true">
-        <span className="sb-ghost-more-d">⌃</span><span>mostrar menos</span>
+      <button type="button" className="sb-ghost-more" onClick={() => setTudo(false)}
+      aria-expanded="true" aria-label="Mostrar menos telas">
+        <span className="sb-ghost-more-d" aria-hidden="true">⌃</span><span>mostrar menos</span>
       </button>}
     </React.Fragment>);
 }
@@ -274,15 +201,14 @@ function SidebarMenu({ activeRoute, onSelectRoute, papel, showGhosts }) {
           const isActive = activeRoute === entry.id;
           const n = entry.badge || countOf(entry.id);
           return (
-            <div key={entry.id} className={`sb-item ${isActive ? "active" : ""}`}
-            role="link" aria-current={isActive ? "page" : undefined} tabIndex={0}
-            onKeyDown={(e) => {if (e.key === "Enter" || e.key === " ") {e.preventDefault();onSelectRoute(entry.id);}}}
+            <button type="button" key={entry.id} className={`sb-item ${isActive ? "active" : ""}`}
+            aria-current={isActive ? "page" : undefined}
             onClick={() => onSelectRoute(entry.id)}>
               <Icon className="ic" />
               <span className="label">{entry.label}</span>
               <WipMark routeId={entry.id} />
               {n ? <span className="badge">{n}</span> : <ItemEnd routeId={entry.id} />}
-            </div>);
+            </button>);
 
         }
         // Grupo — some inteiro quando o papel não vê nenhum item (canon PR #1669)
@@ -305,58 +231,59 @@ function UserMenu({ onClose }) {
   return (
     <div className="user-menu" onClick={(e) => e.stopPropagation()}>
       <div className="user-menu-head">
-        <span className="avatar">WR</span>
+        <span className="avatar" aria-hidden="true">WR</span>
         <div className="meta">
           <b>Wagner Rocha Araujo</b>
           <small>wagner@oimpresso.com.br</small>
         </div>
       </div>
-      <div className="um-item" onClick={() => go("perfil")}><I.user className="ic" /> <span className="label">Meu perfil</span></div>
+      <button type="button" className="um-item" onClick={() => go("perfil")}><I.user className="ic" /> <span className="label">Meu perfil</span></button>
       {/* Itens de usuário — canon repo: vivem no rodapé, não no corpo */}
       {(MOCK.USER_MENU || []).map((it) => {
         const Icon = I[it.icon] || I.cog;
         return (
-          <div key={it.id} className="um-item" onClick={() => go(it.id)}>
+          <button type="button" key={it.id} className="um-item" onClick={() => go(it.id)}>
             <Icon className="ic" /> <span className="label">{it.label}</span>
-          </div>);
+          </button>);
 
       })}
       {/* Cascata Superadmin — admin de plataforma fora do menu principal */}
       {superItems.length > 0 &&
-      <div className={"um-item um-cascade" + (sub === "super" ? " active" : "")}
+      <button type="button" className={"um-item um-cascade" + (sub === "super" ? " active" : "")}
+      aria-expanded={sub === "super"}
       onClick={() => setSub(sub === "super" ? null : "super")}>
-          <I.shield className="ic" /> <span className="label">Superadmin</span> <span className="arrow">›</span>
-        </div>
+          <I.shield className="ic" /> <span className="label">Superadmin</span> <span className="arrow" aria-hidden="true">›</span>
+        </button>
       }
       {sub === "super" &&
       <div className="um-sub">
           {superItems.map((it) => {
           const Icon = I[it.icon] || I.cog;
           return (
-            <div key={it.id} className="um-item" onClick={() => go(it.id)}>
+            <button type="button" key={it.id} className="um-item" onClick={() => go(it.id)}>
                 <Icon className="ic" /> <span className="label">{it.label}</span>
                 <WipMark routeId={it.id} />
-              </div>);
+              </button>);
 
         })}
         </div>
       }
       <div className="um-sep" />
-      <div className="um-item"><span className="um-status" style={{ background: "oklch(0.72 0.18 145)" }} /> <span className="label">Disponível</span> <span className="arrow">›</span></div>
-      <div className="um-item"><I.moon className="ic" /> <span className="label">Aparência</span> <span className="arrow">›</span></div>
+      <button type="button" className="um-item"><span className="um-status" aria-hidden="true" style={{ background: "oklch(0.72 0.18 145)" }} /> <span className="label">Disponível</span> <span className="arrow" aria-hidden="true">›</span></button>
+      <button type="button" className="um-item"><I.moon className="ic" /> <span className="label">Aparência</span> <span className="arrow" aria-hidden="true">›</span></button>
       <div className="um-sep" />
-      <div className="um-item" onClick={() => {onClose?.();window.__openCmdK?.();}}><I.keyboard className="ic" /> <span className="label">Buscar tela</span> <span className="kbd">⌘K</span></div>
+      <button type="button" className="um-item" onClick={() => {onClose?.();window.__openCmdK?.();}}><I.keyboard className="ic" /> <span className="label">Buscar tela</span> <span className="kbd" aria-hidden="true">⌘K</span></button>
       {(MOCK.FOOTER_LINKS || []).map((it) => {
         const Icon = I[it.icon] || I.book;
         return (
-          <div key={it.id} className="um-item" onClick={() => go(it.id)}>
+          <button type="button" key={it.id} className="um-item" onClick={() => go(it.id)}>
             <Icon className="ic" /> <span className="label">{it.label}</span>
-          </div>);
+          </button>);
 
       })}
-      <div className="um-item"><I.help className="ic" /> <span className="label">Central de ajuda</span></div>
+      <button type="button" className="um-item"><I.help className="ic" /> <span className="label">Central de ajuda</span></button>
       <div className="um-sep" />
-      <div className="um-item"><I.exit className="ic" /> <span className="label">Sair</span></div>
+      <button type="button" className="um-item"><I.exit className="ic" /> <span className="label">Sair</span></button>
     </div>);
 
 }
@@ -374,8 +301,8 @@ function SidebarUser() {
   return (
     <div className="sb-user" ref={ref}>
       {open && <UserMenu onClose={() => setOpen(false)} />}
-      <button className="sb-user-btn" onClick={() => setOpen(!open)}>
-        <span className="avatar">WR</span>
+      <button type="button" className="sb-user-btn" onClick={() => setOpen(!open)} aria-haspopup="menu" aria-expanded={open}>
+        <span className="avatar" aria-hidden="true">WR</span>
         <div className="who">
           <b>Wagner Rocha</b>
           <small>Administrador</small>
@@ -398,21 +325,22 @@ function CompanyPickerRail({ company, onChange }) {
   }, [open]);
   return (
     <div className="sb-cp sb-cp-rail" ref={ref}>
-      <button className="sb-rail-btn sb-cp-rail-btn" onClick={() => setOpen(!open)} data-tip={company.name}>
-        <span className={`avatar ${company.grad}`}>{company.initials}</span>
+      <button type="button" className="sb-rail-btn sb-cp-rail-btn" onClick={() => setOpen(!open)}
+      aria-haspopup="menu" aria-expanded={open} aria-label={`Empresa: ${company.name}. Trocar de empresa`} data-tip={company.name}>
+        <span className={`avatar ${company.grad}`} aria-hidden="true">{company.initials}</span>
       </button>
       {open &&
-      <div className="sb-dd sb-dd-rail">
+      <div className="sb-dd sb-dd-rail" role="menu">
           <div className="sb-dd-h">EMPRESAS</div>
           {MOCK.COMPANIES.map((c) =>
-        <div key={c.id} className="sb-dd-i" onClick={() => {onChange(c);setOpen(false);}}>
+        <button type="button" key={c.id} className="sb-dd-i" role="menuitemradio" aria-checked={c.id === company.id} onClick={() => {onChange(c);setOpen(false);}}>
               <span className={`avatar ${c.grad}`} style={{ width: 18, height: 18, borderRadius: 4, fontSize: 10, fontWeight: 700, color: "#fff", display: "grid", placeItems: "center" }}>{c.initials}</span>
               <span>{c.name}</span>
               {c.id === company.id && <I.check className="ic check" size={14} />}
-            </div>
+            </button>
         )}
           <div className="sb-dd-sep" />
-          <div className="sb-dd-foot">+ Adicionar empresa</div>
+          <button type="button" className="sb-dd-foot" role="menuitem">+ Adicionar empresa</button>
         </div>
       }
     </div>);
@@ -543,15 +471,15 @@ function SidebarUserRail() {
   return (
     <div className="sb-user sb-user-rail" ref={ref}>
       {open && <UserMenu onClose={() => setOpen(false)} />}
-      <button className="sb-rail-btn sb-user-rail-btn" onClick={() => setOpen(!open)} data-tip="Wagner Rocha">
-        <span className="avatar">WR</span>
+      <button type="button" className="sb-rail-btn sb-user-rail-btn" onClick={() => setOpen(!open)} aria-haspopup="menu" aria-expanded={open} aria-label="Wagner Rocha — menu do usuário" data-tip="Wagner Rocha">
+        <span className="avatar" aria-hidden="true">WR</span>
       </button>
     </div>);
 
 }
 
 // ─── Sidebar principal ───
-function Sidebar({ company, onCompany, tab, onTab, activeConvId, onSelectConv, activeRoute, onSelectRoute, mode = "expanded", onModeChange, papel = "wagner (admin)", showGhosts = true }) {
+function Sidebar({ company, onCompany, activeRoute, onSelectRoute, mode = "expanded", onModeChange, papel = "wagner (admin)", showGhosts = true }) {
   const rail = mode === "rail";
   const nextMode = rail ? "expanded" : "rail";
   const toggleTitle = rail ? "Expandir sidebar (⌘\\)" : "Recolher sidebar (⌘\\)";
