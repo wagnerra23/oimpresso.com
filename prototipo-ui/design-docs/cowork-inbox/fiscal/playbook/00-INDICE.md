@@ -90,7 +90,6 @@ Terminou: escreva _saida-NN.md e pare.
 ```json
 {
   "modulo": "Fiscal",
-  "modulo_codigo": "Fiscal",
   "sha": "99530522729d",
   "gerado": "2026-09-08",
   "absorve": ["prototipo-ui/COLAR-NO-CODE-fiscal-notafiscal-ondas.md"],

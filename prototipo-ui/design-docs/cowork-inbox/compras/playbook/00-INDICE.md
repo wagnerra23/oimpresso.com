@@ -114,7 +114,6 @@ Thread `feito` = `_saida-NN.md` com os 5 itens **e** provas verdes lendo o `main
 ```json
 {
   "modulo": "Compras",
-  "modulo_codigo": "Compras",
   "sha": "9101f86af501",
   "gerado": "2026-09-08",
   "absorve": ["prototipo-ui/COLAR-NO-CODE-compras-ondas.md"],
