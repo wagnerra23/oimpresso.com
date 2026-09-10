@@ -121,12 +121,21 @@ class DataController extends Controller
                         'href'     => '/governance/policies',
                         'shortcut' => 'P',
                     ],
+                    // data-contract="governance-subnav" — âncora do Contrato de Tela (ADR 0286).
+                    // Fica aqui porque é aqui que a copy da sub-nav vive; o `.tsx` só a lê.
                     'ghosts'   => [
+                        // Rótulos vêm do PROTÓTIPO (`prototipo-ui/cowork/governance-page.jsx` → VIEWS),
+                        // não da tela: no eixo FORMA o protótipo é soberano (ADR UI-0029). Quatro
+                        // estavam em inglês, o que divergia do protótipo E da regra PT-BR do projeto
+                        // (CLAUDE.md/proibicoes.md: PT-BR em tudo, label incluído).
+                        // Travado por `prototipo-ui/contrato/governance-subnav.contract.json` —
+                        // NÃO repita estes rótulos em comentário: a catraca procura estas strings
+                        // neste arquivo, e citá-las na prosa a faz passar com o rótulo errado.
                         ['key' => 'dashboard',     'label' => 'Painel',          'href' => '/governance/dashboard'],
-                        ['key' => 'policies',      'label' => 'Policies',        'href' => '/governance/policies'],
-                        ['key' => 'audit',         'label' => 'Audit log',       'href' => '/governance/audit'],
-                        ['key' => 'drift',         'label' => 'Drift alerts',    'href' => '/governance/drift'],
-                        ['key' => 'module-grades', 'label' => 'Module Grades',   'href' => '/governance/module-grades'],
+                        ['key' => 'policies',      'label' => 'Políticas',       'href' => '/governance/policies'],
+                        ['key' => 'audit',         'label' => 'Auditoria',       'href' => '/governance/audit'],
+                        ['key' => 'drift',         'label' => 'Drift',           'href' => '/governance/drift'],
+                        ['key' => 'module-grades', 'label' => 'Notas dos módulos', 'href' => '/governance/module-grades'],
                         ['key' => 'ds-rollout',    'label' => 'DS Rollout',      'href' => '/governance/ds-rollout'],
                         // Recebidas do Modules/Jana em 2026-08-05 (ADR 0366 §D-B).
                         // Com estas duas a lista vai a 8 e o GovernancaSubNav usa
