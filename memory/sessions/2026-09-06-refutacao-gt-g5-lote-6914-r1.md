@@ -11,6 +11,8 @@ outcomes:
 
 # Refutação GT-G5 — lote PR #6914 · rodada r1
 
+## Contexto
+
 **Base:** `origin/main` = `c1292448ee` (no início da sessão; avançou para `e556453ebf` durante a rodada — todas as medições foram re-ancoradas no SHA `c1292448ee`, não na ref móvel).
 **HEAD do lote:** `dcb74c7b0a` (merge de `claude/gap-map-estoque-mfg-oficina-oi` em `claude/gap-map-oficina-officeimpresso`).
 **Repo raso:** `git rev-parse --is-shallow-repository` → `false`.

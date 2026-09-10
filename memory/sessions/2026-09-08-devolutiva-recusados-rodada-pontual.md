@@ -12,7 +12,7 @@ outcomes:
 
 # A devolutiva que sumia, e a medição que quase mentiu
 
-## O pedido
+## Contexto — o pedido
 
 Consertar o bloco do `--export-from` em [`cowork-mirror-freshness.mjs`](../../scripts/governance/cowork-mirror-freshness.mjs)
 que regenera/remove `prototipo-ui/CODE_NOTES.recusados-canon.md`. Uma rodada pontual (1 JSON)

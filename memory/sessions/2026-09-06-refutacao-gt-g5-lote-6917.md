@@ -13,6 +13,8 @@ outcomes:
 
 # Refutação GT-G5 — lote PR #6917 (`claude/gap-ponto-3-telas`)
 
+## Contexto
+
 > Protocolo: [`PROTOCOLO-REFUTADOR-BACKFILL.md`](../requisitos/Governance/PROTOCOLO-REFUTADOR-BACKFILL.md) §2/§3/§4.
 > Base medida: `origin/main` = `4fbab283a7` (= merge-base do branch) · HEAD do lote = `37ead00f24` · repo **não** raso (`git rev-parse --is-shallow-repository` = false).
 > Refutador: Claude (Fable 5.1) em sessão fresca, worktree `heuristic-bose-8ee418`, sem contexto do gerador. ⚠️ O worktree estava com o HEAD **no próprio commit do lote** (disco = branch, conferido por `git hash-object` nos 8 arquivos); todo lado "vivo"/"protótipo" foi lido de `origin/main` via `git show`, e o branch **não toca** `prototipo-ui/`, `resources/js/Pages/Ponto/`, `Modules/Ponto/` nem `scripts/` (diff vazio).

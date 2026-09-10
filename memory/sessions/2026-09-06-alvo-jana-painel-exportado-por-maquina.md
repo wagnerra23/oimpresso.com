@@ -13,7 +13,7 @@ outcomes:
 
 # O ALVO do Painel da Jana saiu da máquina
 
-## Pedido
+## Contexto — pedido
 
 [W]: *"consegue mandar o design como deve transportar com protocolo, ele está bom? EXPORTE o ALVO"* · *"vai ter que separar por módulo → tela → blocos → ancoragem dupla? senão contratos de construção de telas não ficam tão detalhados, e o code acaba não entendendo e corta os comandos"* · *"é usado máquina para baixar?"* · *"gere o comando para o designsync fazer agora"*.
 

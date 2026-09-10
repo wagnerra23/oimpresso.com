@@ -15,7 +15,7 @@ outcomes:
 
 # 2026-09-08 · Patrimônio/Manutenções — o gate barrou a tela, o defeito saiu
 
-## O que foi pedido e o que aconteceu
+## Contexto — o que foi pedido e o que aconteceu
 
 Pedido: migrar **uma** tela do Patrimônio (Manutenções) de Blade para Inertia/React, com uma
 dependência declarada — *"a tela Bens funda `Pages/Patrimonio/_shared/**`; se ainda não existir

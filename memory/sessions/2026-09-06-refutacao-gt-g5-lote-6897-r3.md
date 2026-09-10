@@ -8,6 +8,8 @@ outcomes: ["reprovado — 6 erros em 105 itens (5,71%); PII 0"]
 
 # Refutação GT-G5 · lote PR #6897 · rodada 3
 
+## Contexto
+
 > Refutador em sessão fresca, sem contexto do gerador nem das rodadas r1/r2 (nenhum arquivo `memory/sessions/*refutacao*` foi aberto).
 > Modelo do refutador: **Fable 5.1** (tier acima de opus — teto de política da §4.2 satisfeito por excesso).
 > Base medida: `HEAD 5f57a63841` (branch `claude/q6-gap-md-tabela-e-11-mapas`) × `origin/main 26ac293f46`, `git fetch` feito no início da sessão.
