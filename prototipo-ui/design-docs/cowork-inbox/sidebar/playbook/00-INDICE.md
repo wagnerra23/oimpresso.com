@@ -130,7 +130,7 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
       "nao_toca": ["${BUILD}/app.jsx", "${BUILD}/data.jsx", "${CKPT}/"],
       "depende_decisoes": ["RESIDUO-2"],
       "provas": [
-        { "tipo": "nao_contem", "path": "${BUILD}/sidebar.jsx", "padrao": "role=\"link\"", "nota": "os 2 div[role=link] (ItemRow:165 e atalho:278) viram <a>/<button> reais; a prova antiga (contem aria-label) JÁ passava — 3 ocorrências" },
+        { "tipo": "nao_contem", "path": "${BUILD}/sidebar.jsx", "padrao": "role=\"link\" aria-current", "nota": "os 2 div[role=link] (ItemRow:165 e atalho:278) viram <button> reais. O padrão inclui `aria-current` de propósito: `role=\"link\"` sozinho casaria com o COMENTÁRIO que documenta a remoção (fato datado). Medido no bundle 11: 2 antes, 0 depois. A prova original (contem aria-label) JÁ passava — 3 ocorrências" },
         { "tipo": "nao_contem", "path": "${BUILD}/sidebar.jsx", "padrao": "function SidebarChat", "nota": "só com RESIDUO-2 respondida por remover" }
       ] },
     { "id": "02", "titulo": "Seção MODOS: auto-rail UI-0030 + persistir só escolha manual", "dono": "CC", "vaga": 1, "arquivo": "02-modos-auto-rail.md",

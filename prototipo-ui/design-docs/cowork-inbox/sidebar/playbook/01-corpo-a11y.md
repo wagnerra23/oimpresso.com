@@ -45,7 +45,7 @@ PARAR SE          : (a) trocar div→button mudar o layout medido → parar e re
 ```
 
 ## Prova
-- `sidebar.jsx` **sem** `role="link"`: os 2 clicáveis que hoje são `div[role="link"][tabIndex]` (`ItemRow:165` e o atalho de topo `:278`) viraram `<a>`/`<button>` reais. (O `aria-label="Navegação principal"` **não** serve de prova — já existe em 3 lugares desde antes desta thread.)
+- `sidebar.jsx` **sem** `role="link" aria-current`: os 2 clicáveis que hoje são `div[role="link"][tabIndex]` (`ItemRow:165` e o atalho de topo `:278`) viraram `<a>`/`<button>` reais. (O `aria-label="Navegação principal"` **não** serve de prova — já existe em 3 lugares desde antes desta thread.)
 - Tabela A1–A12 no `_saida-01.md` com valor medido (não "ok"): nome acessível de cada linha, `aria-expanded` do grupo, contraste em número.
 - Se RESÍDUO-2 = remover: `sidebar.jsx` sem `function SidebarChat` / `SidebarTabs` / `ConvRow`, e `app.jsx` **ainda monta** (as props `tab`/`onTab`/`activeConvId` viram no-op documentado — quem as remove é a thread 02, não esta).
 - Não verificável daqui: axe em prod · T7.
