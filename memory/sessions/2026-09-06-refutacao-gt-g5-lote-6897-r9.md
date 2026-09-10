@@ -7,6 +7,8 @@ prs: [6897]
 
 # Refutação GT-G5 · rodada r9 · lote PR #6897
 
+## Contexto
+
 > Protocolo: `memory/requisitos/Governance/PROTOCOLO-REFUTADOR-BACKFILL.md` §2–§4. Sessão fresca (worktree `compras-migration-complete-15fd56`, branch `claude/q6-gap-md-tabela-e-11-mapas`, HEAD `bd57cd8334`, `origin/main` `26ac293f46`). Nenhum arquivo `*refutacao*` de rodada anterior foi aberto. Refutador: Fable 5.1 (tier acima de opus). Tipo `anchors`, amostra 100%.
 
 ## Checklist §3

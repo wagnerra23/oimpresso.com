@@ -12,7 +12,7 @@ related_adrs: ["0264-governanca-executavel-trio-dominio-e2e", "0344-two-strikes-
 
 # Sessão 2026-09-05 — Escopo de módulo no UC-id: medido, reprovado, virou lápide
 
-## O pedido
+## Contexto — o pedido
 
 Chip de medição aberto depois do [#6785](https://github.com/wagnerra23/oimpresso.com/pull/6785): *medir o falso-positivo de dar escopo de módulo ao UC-id, e só então decidir se vale mexer nas 3 camadas que o consomem*. O chip já dizia, na abertura, que podia terminar em "não vale" — e que isso seria resultado legítimo.
 

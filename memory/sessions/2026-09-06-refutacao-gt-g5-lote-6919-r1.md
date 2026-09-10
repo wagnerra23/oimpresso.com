@@ -11,6 +11,8 @@ outcomes:
 
 # Refutação GT-G5 — lote PR #6919 · rodada r1
 
+## Contexto
+
 **Base:** `origin/main` = `c1292448ee` · **HEAD:** `79abb2f76c` · **merge-base:** `c1292448ee` · **repo raso:** `false` (`git rev-parse --is-shallow-repository`) · **sessão fresca:** sim (instância nova; nenhum `memory/sessions/*refutacao*` nem `memory/handoffs/` de hoje foi aberto; corpo do PR/commit message NÃO lidos como evidência).
 
 **Mandato:** provar que o lote está errado. Tudo medido contra `origin/main` (`git ls-tree`, `git show origin/main:`, `git grep … origin/main`); working tree == origin/main fora do lote (confirmado: `git diff --stat origin/main -- . ':!memory/requisitos'` só lista os 3 arquivos que o PR também toca).

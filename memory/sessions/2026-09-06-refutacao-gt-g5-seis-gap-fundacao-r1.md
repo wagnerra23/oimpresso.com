@@ -11,6 +11,8 @@ outcomes:
 
 # Refutação GT-G5 r1 — seis gap.md de fundação/shell (+3 scripts)
 
+## Contexto
+
 > Protocolo: [`PROTOCOLO-REFUTADOR-BACKFILL.md`](../requisitos/Governance/PROTOCOLO-REFUTADOR-BACKFILL.md) §2–§4.
 > Sessão fresca (zero contexto do gerador; nenhum `memory/sessions/*refutacao*` de outro lote foi aberto).
 > Modelo refutador: Fable 5.1 (`claude-fable-5-1`). Base real = `git merge-base origin/main HEAD` = `80bc4ef8b9`

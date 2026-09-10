@@ -7,6 +7,8 @@ prs: [6908]
 
 # Refutação GT-G5 — lote PR #6908 (Repair × `repair-page.jsx`, modo PARIDADE)
 
+## Contexto
+
 > Sessão fresca, sem contexto do gerador. Mandato: provar que o lote está errado, buscando evidência no código real — nunca no texto do PR. Base medida: `merge-base origin/main HEAD` = `80bc4ef8b9` (o `origin/main` local já está em `29fdc3e0f0`; conferido por `git diff --name-only 80bc4ef8b9 HEAD` que **nenhum** arquivo-fonte citado pelo lote — `resources/js/Pages/Repair/**`, `Modules/Repair/**`, `prototipo-ui/cowork/repair-page.jsx`, `repair-data.jsx`, scripts — mudou entre a base e o HEAD, logo o worktree é fonte válida). HEAD do lote: `136cd66fa9`. `git rev-parse --is-shallow-repository` = `false`.
 
 ## Checklist §3
