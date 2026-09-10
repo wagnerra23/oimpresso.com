@@ -336,3 +336,53 @@ Módulos não-migrados ainda funcionam — caem no grupo certo via map. Migraç�
 - [Dossiê comparativo Linear/Stripe/Shopify/Notion/Vercel](../sessions/2026-05-21-arte-sidebar-navegacao-comparativo.md)
 - [Skill `sidebar-menu-arch`](../../.claude/skills/sidebar-menu-arch.md) — arquitetura DataController
 - [Protótipo Cowork v3](../../prototipo-ui/prototipos/sidebar-v3-unificado/visual-source.html)
+
+---
+
+## Emenda 2026-09-10 — a cláusula VISUAL cai por UI-0029 (protótipo soberano)
+
+[W] 2026-09-10, textual: *"remover a LEI ADR 0180, quero igual ao protótipo, quero manter os dois
+em sincronia. essa seria o modo que eu vou fazer o sistema."*
+
+**Isto não é decisão nova.** A [ADR UI-0029](../requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)
+(accepted 2026-08-28, ratificada 2026-08-31) já decidiu, com a mesma razão textual do [W]:
+*"se meu protótipo mudar eu vou querer que a tela mude também."* Dois corolários dela se aplicam
+diretamente a esta ADR:
+
+- **corolário 4** — *"ADR de núcleo (`memory/decisions/`) que decide visual de tela entra aqui pela
+  cláusula visual — o resto dela (contrato, dado, multi-tenant) não é afetado."*
+- **corolário 1** — *"Divergência é DEFEITO, não pauta. O agente não devolve a [W] 'qual dos dois
+  vale?' — a regra já respondeu."*
+
+Registro honesto do processo: o playbook SINCRONIZAR Sidebar ([#7180](https://github.com/wagnerra23/oimpresso.com/pull/7180))
+abriu isto como `RESÍDUO-1`, "decisão bloqueada em [W]", e a revisão que fiz dele não cruzou com a
+UI-0029. Foi preciso [W] repetir em 09-10 uma regra que ele já tinha dado em 08-28.
+
+### O que CAI
+
+A cláusula visual do §Decisão 3 — *"Hierarquia segue **in-screen, não in-sidebar**"* e o corolário
+de que ghost vive exclusivamente como aba na Zona C do PageHeader.
+
+### O que FICA (não é forma, logo a UI-0029 não toca)
+
+5 grupos canônicos · hue por grupo (`--gh`) · Cmd+K global · Pinned/Favoritos · atalhos `G X` ·
+Contrato DataController v2 · LEGACY_GROUP_MAP · Multi-tenant Tier 0 · métricas de sucesso.
+A Zona C do PageHeader **não é revogada** — passa a ser complemento, não substituto.
+
+### O estado que passa a ser canon (medido nos dois lados em 2026-09-10)
+
+| o que | protótipo (`prototipo-ui/cowork/sidebar.jsx`) | vivo (`Components/cockpit/Sidebar.tsx`) |
+|---|---|---|
+| ghosts sob o item ativo | `GhostList` `:180` | `:569` fatia por `GHOST_TETO` |
+| teto 5 + "⋯ mais N" | `GHOST_TETO = 5` `:179` | `GHOST_TETO = 5` `:544` |
+| rota ativa promovida à faixa visível | `:183-186` | idem |
+| contador de telas por hub | `ItemEnd`/`ghostCount` `:31` | `:642` passa `telas={ghosts.length}` |
+
+Os dois lados já concordavam. Quem divergia era esta ADR.
+
+### Corolário operacional
+
+O comentário em [`Sidebar.tsx:529`](../../resources/js/Components/cockpit/Sidebar.tsx) afirma que o
+contador de telas *"NÃO vem junto: ghost no sidebar contraria a ADR 0180"* — enquanto a linha 642,
+treze abaixo, o passa. Esse comentário está **errado desde 2026-08-28** e se corrige no PR que
+tocar o arquivo. Não é regressão a consertar: é doc que apodreceu.

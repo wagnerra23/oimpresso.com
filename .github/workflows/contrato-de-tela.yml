@@ -127,6 +127,15 @@ jobs:
           echo "::endgroup::"
           node scripts/contrato-de-tela.mjs --map --check
 
+      # O contrato tem de derivar da ÂNCORA (protótipo), nunca da TELA. Contrato extraído
+      # do .tsx nasce VERDE POR CONSTRUÇÃO — compara a tela com ela mesma e nunca acusa a
+      # divergência que é a razão dele existir. Bloqueia só o caso sem ambiguidade
+      # (`fonte` apontando pra `resources/js/Pages/**`, FP zero por construção, 4 legados
+      # grandfathered no script); copy-só-no-alvo AVISA, porque o FP medido é 15/31.
+      - name: Anti-tautologia (contrato deriva da âncora, não da tela)
+        if: steps.detect.outputs.relevant == 'true'
+        run: node scripts/contrato-de-tela.mjs --anti-tautologia
+
       - name: Intenção de fluxo (bloqueante — rota legada = vermelho)
         if: steps.detect.outputs.relevant == 'true'
         run: |

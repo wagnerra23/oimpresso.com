@@ -12,6 +12,8 @@ outcomes:
 
 # Integridade protótipo × produção — dupla ancoragem SHA
 
+## Contexto
+
 > Pedido [W]: *"confira a integridade entre o protótipo e a produção com dupla ancoragem sha do git"*
 > → *"faça lista módulos telas funções"* → *"pode fazer todos… sincronize tudo"*.
 > Medido sobre `origin/main` = `e86130722d`. Portas vivas usadas, nesta ordem:

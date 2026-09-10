@@ -164,12 +164,30 @@ const D = [
 
 { id:"tec-front", grp:"tec", nav:"Front-end & tokens", title:"Front-end — Inertia, React 19 e os tokens",
   sub:"Inertia v3 + React 19 + TypeScript + Tailwind 4. Cor, tipo e espaçamento nunca são literais: vêm de tokens DTCG compilados por Style Dictionary.",
-  type:"reference", auth:"canonical", upd:"2026-07-10", git:"memory/decisions/0239-ds-git-ssot.md",
+  type:"reference", auth:"canonical", upd:"2026-09-10", git:"memory/decisions/0239-ds-git-ssot.md",
   rel:["ADR 0239 — DS git SSOT","ADR 0190/0235 — primary roxo hue 295","ADR 0300 — errata de tokens"],
   blocks:[
   {k:"h2",t:"Cadeia dos tokens"},
   {k:"fsm",label:"De onde a cor vem",hue:295,steps:[["tokens.json (DTCG)","done"],["Style Dictionary","done"],["CSS vars","current"],["Tela","todo"]]},
   {k:"ul",items:["<code>npm run tokens:build</code> roda antes de <code>dev:inertia</code> e <code>build:inertia</code> — o CSS de token é <b>gerado</b>, não editado.","App operacional herda a paleta com <code>&lt;html class=\"cockpit\"&gt;</code>: <code>--bg</code>, <code>--surface</code>, <code>--border</code>, <code>--text</code>, <code>--accent</code>.","Primary roxo <code>oklch(0.55 0.15 295)</code>. Cor crua em componente é erro de lint, não questão de gosto.","IBM Plex Sans/Mono self-hosted — sem CDN, sem FOUT, imprime igual."]},
+  {k:"h2",t:"Onde o DS mora no git"},
+  {k:"p",t:"Três endereços, três papéis. Lido no <code>main</code> em 10/09/2026 (árvore <code>ed4398d77437</code>) — se divergir, a árvore manda."},
+  {k:"table",head:["Camada","Caminho no repo","Papel"],rows:[
+    ["DS compilado","<code>prototipo-ui/design-system/_ds_bundle.js</code> · <code>colors_and_type.css</code> · <code>cockpit_domains.css</code> · <code>styles.css</code> · <code>support.js</code>","o que a página carrega; manifesto em <code>_ds_manifest.json</code>"],
+    ["Snapshot de paridade","<code>scripts/design-sync/mirror-snapshot/</code>","cópia byte-idêntica do compilado — sentinela de drift, <b>não</b> fonte"],
+    ["DS fonte — tokens","<code>resources/css/tokens/base.tokens.json</code> + <code>semantic.tokens.json</code> → <code>_generated-{cockpit,foundations,inertia}-*.css</code>","DTCG → Style Dictionary → CSS vars"],
+    ["DS fonte — shell &amp; ramp","<code>resources/css/cockpit.css</code> (bloco <i>Sidebar — DARK FIXO</i>) · <code>foundations.css</code>","paleta do cockpit e Type RAMP"],
+    ["DS fonte — componentes","<code>resources/js/Components/ui/*.tsx</code> · <code>shared/*.tsx</code> · <code>Components/PageHeader/</code> · <code>Layouts/AppShellV2.tsx</code>","o componente real que a tela importa"]]},
+  {k:"h2",t:"Âncoras de tela"},
+  {k:"p",t:"O protótipo responde <i>como</i>; o <code>main</code> responde <i>onde</i> e <i>com que dado</i>. Toda tela tem os dois lados amarrados:"},
+  {k:"kv",rows:[
+    ["contrato","<code>prototipo-ui/contrato/&lt;Tela&gt;.contract.json</code> — seções + copy literal + estados (ADR 0286)"],
+    ["charter · casos","<code>resources/js/Pages/&lt;Mod&gt;/&lt;Tela&gt;.charter.md</code> + <code>.casos.md</code>"],
+    ["alvo real","clientes-crm → <code>Pages/Cliente/Index.tsx</code> · financeiro → <code>Pages/Financeiro/Unificado/</code> · oficina-auto e OS → <code>Pages/OficinaAuto/ServiceOrders/</code>"],
+    ["canon de padrão","PT-01 → Cliente/Produto/Sells <code>Index</code> · PT-05 → <code>Pages/Home/Index.tsx</code>, <code>Pages/governance/Dashboard.tsx</code>"],
+    ["sem par 1:1","atendimento — tela nova (adjacentes <code>Pages/Jana/</code>, <code>Pages/Whatsapp/_components/</code>) → exige charter antes"],
+    ["resolvedor","<code>prototipo-ui/PRE-FLIGHT-TELA.md</code> + <code>FRESCOR-PRODUCAO-vs-PROTOTIPO.md</code> · mapa componente→arquivo em <code>design-system/HANDOFF.md</code> §3–§4"]]},
+  {k:"alert",tone:"warn",title:"Pendência declarada no loop de tokens",body:"<code>HANDOFF.md</code> §6 manda rodar <code>scripts/design-sync/ds-push.mjs</code>, mas esse arquivo <b>não aparece</b> em <code>scripts/design-sync/</code> na leitura de 10/09/2026. Até reconferir, não afirme que o loop VALOR:0 roda."},
   {k:"h2",t:"Proibições de UI"},
   {k:"ul",items:["Sem modal full-screen pra detalhe — detalhe é <b>drawer lateral</b> (PT-02).","Sem inglês em UI cliente-facing; sem emoji no app.","Sem <code>rounded-xl</code> pra cima em card de lista; sem paleta inventada.","Densidade de ERP: tabela apertada, sidebar <code>py-2</code>, número tabular."]}]},
 
@@ -183,6 +201,52 @@ const D = [
   {k:"h2",t:"Pré-flight (antes de mexer)"},
   {k:"ul",items:["Ler <code>SPEC.md</code> + <code>RUNBOOK*.md</code> do módulo e o charter da tela.","Checar frescor: 🟠 desenvolver · 🔵 puxar o vivo (não refazer) · ⚪ fundação (espera [W]).","Não inventar token, Model ou componente que já existe — estender, nunca recriar.","Prontidão é <b>máquina</b>: <code>scripts/qa/prototipo-readiness.mjs</code>, não fila manual."]},
   {k:"alert",tone:"warn",title:"Variação é tweak, não arquivo",body:"Explorar duas versões de uma tela = <code>useTweaks</code> no mesmo componente. Arquivo novo por variação vira cópia que apodrece — o guard reprova."}]},
+
+{ id:"tec-ancoras", grp:"tec", nav:"Âncoras de tela", title:"Âncoras de tela — o que o repo declara, e onde ele se contradiz",
+  sub:"Cada charter declara de onde a tela veio: related_prototype · bundle_source · visual_source. Esta página é o retrato dessas declarações e dos conflitos entre elas.",
+  type:"reference", auth:"derivado", upd:"2026-09-10", git:"prototipo-ui/ancora.mjs",
+  rel:["ADR 0286 — Contrato de Tela","ADR 0256 — derivado e enforçado sobrevive"],
+  blocks:[
+  {k:"alert",tone:"info",title:"Retrato datado, não fonte",body:"Lido do <code>main</code> em <b>10/09/2026</b>, árvore <code>ed4398d77437</code>. A fonte é o campo no charter — se divergir, o charter manda. Regenerar: <code>node prototipo-ui/ancora.mjs --list</code> (ou busca por <code>^(related_prototype|bundle_source|visual_source):</code> em <code>resources/js/Pages/</code>)."},
+  {k:"h2",t:"Os três campos"},
+  {k:"kv",rows:[
+    ["<code>related_prototype</code>","campo canônico — caminho do protótipo que serviu de alvo de layout"],
+    ["<code>bundle_source</code>","arquivo do bundle Cowork que originou o código; <b>não</b> é design aprovado"],
+    ["<code>visual_source</code>","campo legado — sobrevive em 3 telas (OficinaAuto Board/Show, Sells/Index)"],
+    ["<code>n/a (herda PT-0x…)</code>","ausência declarada: a tela segue um dos 5 Padrões de Tela, sem protótipo próprio"]]},
+  {k:"h2",t:"Âncoras 1:1 (as que resolvem sozinhas)"},
+  {k:"table",head:["Tela no main","Protótipo"],rows:[
+    ["<code>Cliente/Index</code>","clientes-page.jsx"],
+    ["<code>Cliente/{Create,Edit}</code> · <code>Import</code> · <code>Ledger</code> · <code>Map</code>","cliente-form · cliente-import · cliente-extrato · cliente-mapa"],
+    ["<code>Financeiro/Unificado/Index</code>","financeiro-page.jsx"],
+    ["<code>Financeiro/Cobranca/Index</code>","pg-cobranca-page.jsx"],
+    ["<code>Fiscal/{Cockpit,Nfe,Nfse}</code>","fiscal-page.jsx"],
+    ["<code>Home/Index</code>","dash-legacy-page.jsx (PT-04)"],
+    ["<code>Jana/{Index,Chat,Memoria}</code> · <code>{Acoes,Alertas,Plataforma}</code>","jana-merge.jsx · jana-telas-novas.jsx"],
+    ["<code>Sells/Create</code> · <code>CreateV3</code>","vendas-create-page.jsx · venda-v3/sells-create.jsx"],
+    ["<code>Sells/Caixa/Index</code>","vendas-extras.jsx :: <code>VendasCaixaPage</code> (123-354) — <b>o padrão bom</b>: âncora por símbolo e faixa"],
+    ["<code>Arquivos</code> · <code>Backup</code> · <code>Compras</code> · <code>Modules</code>","arquivos-page · backup-page · compras-page · modulos-page"]]},
+  {k:"h2",t:"Conflitos medidos"},
+  {k:"table",head:["#","Conflito","Evidência"],rows:[
+    ["1","<b>Muitos-para-um</b> — a âncora não decide qual view","<code>ponto-telas.jsx</code> serve 15 charters · <code>fiscal-page.jsx</code> 7 · <code>repair-page.jsx</code> 6 · <code>patrimonio-page.jsx</code> 5 · <code>essenciais-page.jsx</code> 5 · <code>financeiro-telas-extras.jsx</code> 4"],
+    ["2","<b>Dois campos discordando na mesma tela</b>","<code>Fiscal/{Config,Dfe,Eventos,Sped}</code>: related=<code>fiscal-subpages.jsx</code> × bundle=<code>fiscal-page.jsx</code>. <code>Sells/Index</code> carrega os três campos"],
+    ["3","<b>Pendurado na tela errada, de propósito</b>","<code>Produto/Index.bundle_source: produtos-page.jsx</code> — o arquivo se declara porte do <i>Unificado</i>; remover faz <code>ancora.mjs:266-278</code> reancorar em silêncio. Fila de [W]"],
+    ["4","<b>Porte reverso</b> — o protótipo é retrato do vivo","ComunicacaoVisual/Index · Manufacturing/Index · Produto/Unificado · Repair/Settings · Financeiro/AssinaturaAtualizar · Jana/Pro"],
+    ["5","<b><code>visual_source</code> órfão</b>","só OficinaAuto Board/Show e Sells/Index — e é a perna que o D1 do <code>ancora.mjs</code> não resolve sem <code>--staging</code> (14 telas saem “sem protótipo” com o arquivo no git)"],
+    ["6","<b>Formato sujo que passa por sorte</b>","<code>hrm-extras.jsx (Metas)</code> · <code>oficina-forms.jsx (OsCreateDrawer — create/store)</code> · <code>essenciais-page.jsx#Arquivos (:338-400)</code>"],
+    ["7","<b>Contratos ≠ telas</b>","32 contratos vigentes para 189 charters; <code>financeiro-unificado.<b>intent</b>.json</code> não casa o glob <code>*.contract.json</code> — não é cobrado pelo CI como os outros"]]},
+  {k:"h2",t:"Cobertura — o que esta página NÃO cobre"},
+  {k:"p",t:"O sistema tem <b>189</b> charters em <code>resources/js/Pages/**</code> (medido em 09/09). Esta leitura viu <b>~150</b> declarações. <b>Não está tudo coberto</b>, e o motivo é mecânico, não editorial:"},
+  {k:"ul",items:["A varredura ampla é <b>bounded</b> por budget de 10 s — parou em 343 de 400 de 808 candidatos. Baixa contagem ali <b>não</b> é prova de ausência.","Completei por prefixo só Ponto (21) · Repair (17) · Sells (11) · Produto (10) · OficinaAuto (9) · Patrimônio (5).","<b>Não varridos ⇒ não verificados:</b> Nfse, Purchase, RecurringBilling, Site, Stock*, Suporte, Tarefas, User, Vestuario, Whatsapp, governance, Copiloto, superadmin.","A tabela “1:1” acima é <b>amostra</b> das que resolvem sozinhas — as ~60 telas com <code>n/a (herda PT-0x)</code> não estão listadas uma a uma."]},
+  {k:"alert",tone:"warn",title:"Quem fecha esse número é a máquina, não esta página",body:"O denominador honesto sai de <code>node prototipo-ui/ancora.mjs --list --json</code> com um resumo <code>{total, com_ancora, na_declarado, sem_campo}</code> que <b>tem</b> que somar. Isso hoje não existe — virou pedido ao Code."},
+  {k:"h2",t:"O que já foi mandado pro Code"},
+  {k:"table",head:["Thread","O que resolve","Estado"],rows:[
+    ["<b>04</b> · denominador","<code>--list --json</code> imprime <code>{total, com_ancora, na_declarado, sem_campo, por_via}</code> e falha se não somar","pedido emitido"],
+    ["<b>05</b> · campo duplo","conflito <code>related</code> × <code>bundle</code> vira aviso declarado (as 4 telas do Fiscal), com controle positivo em <code>Cliente/Index</code>","pedido emitido · precedência é decisão de [W]"],
+    ["<b>06</b> · contrato fora do glob","<code>financeiro-unificado.intent.json</code> — renomear ou declarar, e o gate passa a contar quantos carregou","pedido emitido"],
+    ["<code>Produto/Index</code>","reancorar exige matar a heurística <code>startsWith(dir)</code> junto","<b>bloqueada</b> — decisão de [W]"],
+    ["formato por símbolo","<code>arquivo :: símbolo :: faixa</code> como <code>Sells/Caixa</code> já faz — é o que resolve o muitos-para-um","<b>bloqueada</b> — decisão de [W]"]]},
+  {k:"alert",tone:"info",title:"Onde o pedido mora",body:"<code>cowork-inbox/ancora/playbook/</code> — <code>_PATCH-INDICE-2026-09-10.md</code> (delta do índice, porque a pasta local é cache) + <code>04-denominador-cobertura.md</code> · <code>05-campo-duplo-divergente.md</code> · <code>06-contrato-fora-do-glob.md</code>. Cada thread fecha por <b>execução com recibo</b>, não por \"o arquivo contém a string\"."}]},
 
 { id:"tec-qa", grp:"tec", nav:"Qualidade & CI", title:"Qualidade — o que o CI cobra de verdade",
   sub:"Pest v4 nos testes, baselines pra dívida existente, guards pra doutrina. A régua não é opinião: é script com nome.",
@@ -302,7 +366,7 @@ function Blocks({ doc }){
   if(b.k==="table")return (
    <table className="doc-t" key={i}><thead><tr>{b.head.map((h,j)=><th key={j}>{h}</th>)}</tr></thead>
    <tbody>{b.rows.map((r,j)=><tr key={j}>{r.map((c,k)=><td key={k} dangerouslySetInnerHTML={{__html:c}} />)}</tr>)}</tbody></table>);
-  if(b.k==="kv")return <div className="doc-kv" key={i}>{b.rows.map((r,j)=>[<div key={"k"+j}>{r[0]}</div>,<div key={"v"+j} dangerouslySetInnerHTML={{__html:r[1]}} />])}</div>;
+  if(b.k==="kv")return <div className="doc-kv" key={i}>{b.rows.map((r,j)=>[<div key={"k"+j} dangerouslySetInnerHTML={{__html:r[0]}} />,<div key={"v"+j} dangerouslySetInnerHTML={{__html:r[1]}} />])}</div>;
   if(b.k==="fsm")return (
    <div className="doc-fsm" key={i}><div className="doc-fsm-h">{b.label}</div>
     {DS.FsmStepper

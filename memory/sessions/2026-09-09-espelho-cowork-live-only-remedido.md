@@ -11,7 +11,7 @@ related_adrs: ["0389-emenda-0374-escrita-do-espelho-quando-o-get-file-volta-inli
 
 # Espelho Cowork × vivo — o que o `--live-only` respondeu quando recebeu a lista inteira
 
-## O pedido
+## Contexto — o pedido
 
 Fechar a lacuna entre o Cowork vivo e `prototipo-ui/cowork/`, porque ela *"invalida parcialmente
 toda claim de ausência de protótipo"* — limite declarado no §7 item 1 do

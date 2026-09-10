@@ -1175,6 +1175,36 @@ check('mesmo número → mesmo veredito (independe de --check)',
     liveOnlyDetalhado(vivos, [], {}).faltando.length === 2);
 }
 
+// ── O ENVELOPE DO BUNDLE NÃO É CARGA (2026-09-10) ────────────────────────────────
+// `payload.partNN.json` / `bundle.manifest.json` são o TRANSPORTE que o
+// `gerar-payload-partes.mjs` emite do lado do design — carregam a fonte, não são fonte.
+// MEDIDO na lista live-only de 2026-09-09: 44 dos 74 acusados (59%) eram o próprio
+// mecanismo acusando o próprio envelope, enquanto o `--compare` do mesmo dia media
+// 273/273 EM SYNC. O custo do ruído não é teórico — o [W] reimportou o bundle 7× por
+// causa desse número.
+//
+// A âncora é o NOME que o produtor emite, não o diretório: `--out` é parâmetro, então
+// casar `sync/` deixaria passar o mesmo envelope emitido noutro lugar. Os 3 controles
+// negativos abaixo são o que impede a isenção de virar peneira.
+{
+  const envelope = ['sync/payload.part01.json', 'sync/bundle.manifest.json', 'outro-lugar/payload.part07.json'];
+  const det = liveOnlyDetalhado(envelope, []);
+  check('live-only: envelope do bundle (payload.partNN / bundle.manifest) => ignorado com motivo',
+    det.faltando.length === 0 && det.ignorados.every((i) => /transporte: envelope/.test(i.motivo)),
+    JSON.stringify(det));
+
+  // CONTROLE NEGATIVO — sem estes, a regra viraria peneira e esconderia fonte de verdade.
+  const naoEnvelope = [
+    'sync/patrimonio-page.jsx',      // DENTRO de sync/, mas é protótipo de tela
+    'payload.json',                  // nome parecido, não é o formato do produtor
+    'payload.partABC.json',          // sem dígitos
+    'meu-bundle.manifest.json.bak',  // sufixo: não casa a âncora de fim
+  ];
+  check('live-only: protótipo de tela e nomes parecidos seguem ACUSADOS (isenção não é peneira)',
+    liveOnlyDetalhado(naoEnvelope, []).faltando.length === 4,
+    JSON.stringify(liveOnlyDetalhado(naoEnvelope, []).faltando));
+}
+
 // ── CLI --docs-compare + --sla-docs: bites pelo CLI de fora (sandbox por cwd) ───
 {
   const tmp = mkdtempSync(join(tmpdir(), 'freshness-docs-'));

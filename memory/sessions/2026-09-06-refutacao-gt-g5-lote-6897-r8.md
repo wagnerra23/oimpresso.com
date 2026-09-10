@@ -14,6 +14,8 @@ related_adrs: ["0324-frescor-espelho-cowork-dispatch-sla-limite-plataforma", "00
 
 # Refutação GT-G5 — PR #6897 · rodada 8
 
+## Contexto
+
 > Protocolo: [`PROTOCOLO-REFUTADOR-BACKFILL.md`](../requisitos/Governance/PROTOCOLO-REFUTADOR-BACKFILL.md) §2-§4. Sessão fresca, sem leitura de nenhum `*refutacao*` anterior. Base medida: `origin/main = 26ac293f46` · `HEAD = cb03fd73a8` (branch `claude/q6-gap-md-tabela-e-11-mapas`). Clone completo (`is-shallow-repository = false`).
 
 ## Checklist §3

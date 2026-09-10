@@ -50,6 +50,8 @@
     "Ponto/Intercorrencias/Show",
     "Ponto/Relatorios/Index",
     "Produto/SellingPrices",
+    "Purchase/Index",
+    "Purchase/Show",
     "RecurringBilling/Index",
     "Sells/Create",
     "Sells/Index",
@@ -397,5 +399,5 @@
       ]
     }
   ],
-  "total": 88
+  "total": 90
 }
