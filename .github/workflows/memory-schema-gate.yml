@@ -46,6 +46,13 @@ name: Memory schema gate (ONDA 5 S1)
 # `prototipo-ui/**` e `resources/js/Pages/**` do design-memory-gate medem igual nas
 # duas formas (636=636 · 249=249), porque terminam em `**` e não em `**/<arquivo>`.
 # Regressão coberta por scripts/tests/memory-schema-detect.test.mjs (job `selftest`).
+#
+# 2026-09-10 (2º passo, mesma família) — os 3 jobs também deixaram de engolir o rc do
+# `git diff`. O `|| true` no fim do pipeline fazia diff-que-falha sair rc=0 com a lista
+# vazia (§5 2026-08-11, já consertado no job `validate` acima). O conserto NÃO foi tirar
+# o `|| true`: medido, isso deixaria VERMELHO o caso mais comum, porque o `grep` sai 1
+# quando não casa nada. O `git diff` passou a rodar sozinho (falha ⇒ `bash -e` mata o
+# step) e o `|| true` ficou só no pipeline de `grep`, onde vazio é legítimo.
 
 # ALWAYS-RUN desde 2026-07-17 (ADR 0341 · flip [W]) — o filtro `paths:` FOI REMOVIDO.
 # POR QUÊ: `Charter (...)` e `SPEC (...)` viraram REQUIRED. Required + path-scoped =
@@ -363,7 +370,12 @@ jobs:
             BASE="${{ github.event.before }}"
             HEAD="${{ github.sha }}"
           fi
-          FILES="$(git diff --name-only --diff-filter=AM "${BASE}" "${HEAD}" -- ':(glob)memory/requisitos/**/SPEC.md' || true)"
+          # O `git diff` roda SOZINHO: se ele falhar, o `bash -e` mata o step aqui.
+          # Medido 2026-09-10: com `|| true` no fim do pipeline, SHA invalido saia
+          # rc=0 com a lista vazia — "diff quebrado" e "nada a validar" ficavam
+          # indistinguiveis. Tirar o `|| true` cru NAO servia: o `grep` sai 1 quando
+          # nao casa nada, entao o caso mais comum (0 arquivos) virava VERMELHO.
+          FILES="$(git diff --name-only --diff-filter=AM "${BASE}" "${HEAD}" -- ':(glob)memory/requisitos/**/SPEC.md')"
           echo "files<<EOF" >> "$GITHUB_OUTPUT"
           echo "$FILES" >> "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
@@ -453,7 +465,14 @@ jobs:
             BASE="${{ github.event.before }}"
             HEAD="${{ github.sha }}"
           fi
-          FILES="$(git diff --name-only --diff-filter=AM "${BASE}" "${HEAD}" -- ':(glob)memory/sessions/**/*.md' \
+          # O `git diff` roda SOZINHO: se ele falhar, o `bash -e` mata o step aqui.
+          # Medido 2026-09-10: com `|| true` no fim do pipeline, SHA invalido saia
+          # rc=0 com a lista vazia — "diff quebrado" e "nada a validar" ficavam
+          # indistinguiveis. Tirar o `|| true` cru NAO servia: o `grep` sai 1 quando
+          # nao casa nada, entao o caso mais comum (0 arquivos) virava VERMELHO.
+          RAW="$(git diff --name-only --diff-filter=AM "${BASE}" "${HEAD}" -- ':(glob)memory/sessions/**/*.md')"
+          # grep sem match e' legitimo (nenhum casou) — o `|| true` fica SO aqui.
+          FILES="$(printf '%s\n' "$RAW" \
             | grep -v '_TEMPLATE' \
             | grep -v 'README.md' \
             | grep -v '_INDEX' || true)"
@@ -538,7 +557,14 @@ jobs:
           fi
           # Handoffs são append-only (ADR 0130) — só pegamos arquivos ADDED
           # (diff-filter=A). Modified seria violação de ADR.
-          FILES="$(git diff --name-only --diff-filter=A "${BASE}" "${HEAD}" -- ':(glob)memory/handoffs/**/*.md' \
+          # O `git diff` roda SOZINHO: se ele falhar, o `bash -e` mata o step aqui.
+          # Medido 2026-09-10: com `|| true` no fim do pipeline, SHA invalido saia
+          # rc=0 com a lista vazia — "diff quebrado" e "nada a validar" ficavam
+          # indistinguiveis. Tirar o `|| true` cru NAO servia: o `grep` sai 1 quando
+          # nao casa nada, entao o caso mais comum (0 arquivos) virava VERMELHO.
+          RAW="$(git diff --name-only --diff-filter=A "${BASE}" "${HEAD}" -- ':(glob)memory/handoffs/**/*.md')"
+          # grep sem match e' legitimo (nenhum casou) — o `|| true` fica SO aqui.
+          FILES="$(printf '%s\n' "$RAW" \
             | grep -v '_TEMPLATE' \
             | grep -v 'README.md' || true)"
           echo "files<<EOF" >> "$GITHUB_OUTPUT"
