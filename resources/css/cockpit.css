@@ -1937,17 +1937,11 @@
 .cockpit .sb-menu-grouped { display: flex; flex-direction: column; padding: 8px; gap: 0; }
 .cockpit .sb-group { position: relative; }
 .cockpit .sb-group-noheader { padding: 0; }
-/* Contador de itens do grupo (accordion). A regra IRMÃ existia só pro flyout do rail
-   e faltava aqui — o comentário do `.sb-group-n` no Sidebar.tsx já registrava isso.
-   Sem ela o span herdava o sans 600 do `.sb-group-l` e o número saía fora da família.
-   Medido 2026-09-10, sonda pareada 2560px dark, protótipo × vivo (ADR UI-0029 — o
-   protótipo manda na FORMA):  protótipo mono 9.5px/500  ×  vivo sans 10.5px/600.
-   Tokens espelhados do `.sb-kbd`/`.sb-ghost-count` — ver conserto 2 abaixo.
-   9.5px é LITERAL de propósito: o ramp `--fs-1..9` começa em 10.5px (medido no vivo),
-   e os dois irmãos desta faixa (`.sb-kbd` 9.5px, `.sb-ghost-count` 10px) já são
-   literais fora do ramp desde antes. Número pequeno de sidebar opera abaixo do ramp
-   por desenho; `--fs-1` daria 10.5px e divergiria do protótipo. Baseline do
-   fontramp re-cravado conscientemente, que é a saída que o próprio gate oferece. */
+/* Contador do grupo no accordion — a regra irmã só existia pro flyout do rail, e sem
+   ela o span herdava o sans 600 do `.sb-group-l`. Medido 2026-09-10 (sonda pareada
+   2560px dark): protótipo mono 9.5px/500 × vivo sans 10.5px/600 — UI-0029, protótipo
+   manda na forma. 9.5px é literal porque o ramp começa em 10.5px e os irmãos desta
+   faixa (`.sb-kbd`, `.sb-ghost-count`) já são literais; fontramp re-cravado. */
 .cockpit .sb-group-n {
   font-family: var(--font-mono, ui-monospace, monospace);
   font-size: 9.5px;
@@ -2437,11 +2431,9 @@
 .cockpit[data-theme="dark"] .sb-rail-flyout-l {
   color: oklch(0.78 0.08 var(--gh, 220));
 }
-/* `var(--mono)` NÃO existe em CSS nenhum do projeto (medido 2026-09-10: 0 definições)
-   — a regra caía no fallback `ui-monospace` em vez de IBM Plex Mono, em silêncio.
-   O token que resolve é `--font-mono` (definido em fin-cowork.css, carregado global),
-   o mesmo do `.sb-kbd`. Já `--fs-1` EXISTE e vale 10.5px: aplicava, só que no tamanho
-   errado pra este papel. Trocado por 9.5px literal, igual ao irmão `.sb-kbd`. */
+/* `var(--mono)` não existe (medido 2026-09-10: 0 definições) — caía no fallback
+   `ui-monospace`, em silêncio. O token que resolve é `--font-mono`, o do `.sb-kbd`.
+   `--fs-1` existe e vale 10.5px: aplicava, no tamanho errado pra este papel. */
 .cockpit .sb-rail-flyout .sb-group-n {
   font-family: var(--font-mono, ui-monospace, monospace);
   font-size: 9.5px;
