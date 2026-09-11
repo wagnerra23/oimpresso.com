@@ -6,7 +6,7 @@ type: visual-comparison
 module: Financeiro
 status: pending_wagner_decisions
 date: 2026-05-14
-canon_reference: prototipo-ui/cowork/Wagner/legado/boletos/cowork-app.jsx (Cowork F1 export 2026-05-14, "Boleto e Contas Inter")
+canon_reference: prototipo-ui/prototipos/boletos/cowork-app.jsx (Cowork F1 export 2026-05-14, "Boleto e Contas Inter")
 inertia_target_atual: resources/js/Pages/Financeiro/Boletos/Index.tsx (já em prod, 175 linhas)
 controller_atual: Modules/Financeiro/Http/Controllers/BoletoController.php (já em prod, 71 linhas — refator mínimo)
 stories: US-BOL-XXX (a criar)
@@ -19,7 +19,7 @@ related_adrs: [ui/0114, 0093]
 > **Persona alvo:** Eliana [E] — financeiro escritório. Desktop ≥1024px.
 > **Refs:**
 > - Tela atual em prod: [`resources/js/Pages/Financeiro/Boletos/Index.tsx`](../../../resources/js/Pages/Financeiro/Boletos/Index.tsx) (Inertia, 175 linhas, sem charter)
-> - Canon Cockpit: [`prototipo-ui/cowork/Wagner/legado/boletos/cowork-app.jsx`](../../../prototipo-ui/cowork/Wagner/legado/boletos/cowork-app.jsx) — F1 export Claude Design 2026-05-14
+> - Canon Cockpit: [`prototipo-ui/prototipos/boletos/cowork-app.jsx`](../../../prototipo-ui/prototipos/boletos/cowork-app.jsx) — F1 export Claude Design 2026-05-14
 > - ADRs: [ui/0114](../../decisions/0114-prototipo-ui-cowork-loop-formalizado.md), [0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)
 
 ## Resumo executivo

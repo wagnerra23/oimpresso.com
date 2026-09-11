@@ -6,7 +6,7 @@ id: requisitos-compras-capterra-design-ficha
 
 > **Cruzamento gerado:** 2026-05-21
 > **Skill aplicada:** `design-arte` (input pra CAPTERRA-DESIGN-INVENTARIO.md futuro)
-> **Alvo:** protótipo canon Cowork `prototipo-ui/cowork/Wagner/compras-page.{jsx,css}` + standalone `Compras.html` — F1 pré-MWART (módulo `Modules/Compras` AINDA NÃO EXISTE)
+> **Alvo:** protótipo canon Cowork `prototipo-ui/cowork/compras-page.{jsx,css}` + standalone `Compras.html` — F1 pré-MWART (módulo `Modules/Compras` AINDA NÃO EXISTE)
 > **Persona:** Larissa @ ROTA LIVRE biz=4 (vestuário Termas do Gravatal/SC, 1280px, balcão + telefone, **não-técnica**, 99% volume oimpresso, decora horários e fluxos)
 > **Charter:** ❌ ausente — protótipo Cowork é o único artefato design canon até aqui
 > **Visual-comparison prévio:** ❌ ausente (módulo não migrado; legacy é UltimatePOS `app/Http/Controllers/PurchaseController.php` + 14 Blade views em `resources/views/purchase/*`)

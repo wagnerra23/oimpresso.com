@@ -11,7 +11,7 @@ Substituir listagem Blade jQuery por React/Inertia preservando endpoint legacy `
 
 ## 3. Pré-flight checks
 - [x] Charter Index.charter.md atualizado (ADR 0149 YAML)
-- [x] Blueprint Cowork: `prototipo-ui/cowork/Wagner/legado/clientes/cowork-app.jsx`
+- [x] Blueprint Cowork: `prototipo-ui/prototipos/clientes/cowork-app.jsx`
 - [x] ADRs lidas: 0093 (multi-tenant), 0104 (MWART), 0107 (visual gate), 0149 (pattern reuse)
 
 ## 4. Risco / Rollback

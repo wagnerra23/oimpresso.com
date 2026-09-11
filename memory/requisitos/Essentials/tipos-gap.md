@@ -15,7 +15,7 @@ gerado_em: 2026-09-06
 > **Fase 1 = PARIDADE:** `hrm-page.jsx:2` declara o porte reverso de `nav_hrm.blade`.
 > Dono da copy: [`essentials-tipos.contract.json`](../../../governance/design/contracts/essentials-tipos.contract.json),
 > gerado e preenchido no MESMO PR da tela (HRM-O7 PR-9), com a copy **literal do protótipo**.
-> O playbook histórico foi removido com a árvore duplicada.
+> Playbook: `03-tipos-licenca.md` (`prototipo-ui/design-docs/cowork-inbox/hrm/playbook/03-tipos-licenca.md`, removido do git em 2026-09-11 · #7224 · ADR 0397).
 > Esta tela **já tem `data-contract`** nas 3 seções — âncora estável, não range de linha.
 
 | Parte | Estado no vivo | Ação |

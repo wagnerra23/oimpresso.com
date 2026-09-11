@@ -8,7 +8,7 @@ status: draft
 lifecycle: ativo
 module: Whatsapp
 tela: caixa-unificada
-visual_source: prototipo-ui/cowork/Wagner/legado/caixa-unificada/inbox-page.jsx
+visual_source: prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx
 target_component: Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx
 related_adrs: [0093, 0104, 0107, 0110, 0114, 0135]
 session_date: '2026-05-15'
@@ -240,7 +240,7 @@ Todo em PT-BR. ✅
 - [ADR 0135 — Omnichannel inbox arquitetura](../../decisions/0135-omnichannel-inbox-arquitetura.md)
 - [LICOES_F3_FINANCEIRO_REJEITADO.md](../../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md)
 - [PROTOCOL.md](../../../memory/reference/prototipo-ui/PROTOCOL.md)
-- [prototipo-ui/cowork/Wagner/legado/caixa-unificada/inbox-page.jsx](../../../prototipo-ui/cowork/Wagner/legado/caixa-unificada/inbox-page.jsx) — fonte visual canônica (802 LOC)
+- [prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx](../../../prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx) — fonte visual canônica (802 LOC)
 - [RUNBOOK-inertia-defer-pattern.md](../_DesignSystem/RUNBOOK-inertia-defer-pattern.md)
 
 ---

@@ -14,7 +14,7 @@ date: 2026-05-15
 > **Refs:** [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md), [ADR 0149](../../decisions/0149-mwart-screen-pattern-reuse-cowork.md), [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)
 > **Origem:** Blade `view('product.edit')` via [ProductController@edit](../../../app/Http/Controllers/ProductController.php#L610)
 > **Alvo:** `Pages/Produto/Edit.tsx`
-> **Blueprint Cowork:** [`produto-cockpit/`](../../../prototipo-ui/cowork/Wagner/legado/produto-cockpit/) — mesma família visual do Create (form full-width AppShellV2)
+> **Blueprint Cowork:** [`produto-cockpit/`](../../../prototipo-ui/prototipos/produto-cockpit/) — mesma família visual do Create (form full-width AppShellV2)
 
 ## 1. Estado final esperado
 

@@ -23,7 +23,7 @@ related_adrs:
 # RUNBOOK — Tipos de licença (`/hrm/leave-type`)
 
 > **Migração Blade → Inertia/React** da lista de tipos de licença do HRM. É o **PR-9 (HRM-O7)**
-> do pedido histórico de HRM.
+> do pedido `PEDIDO-CL-hrm.md` (`prototipo-ui/design-docs/cowork-inbox/hrm/PEDIDO-CL-hrm.md`, removido do git em 2026-09-11 · #7224 · ADR 0397).
 > A tela não é afetada por D1/D2/D3 da emenda [W] de 2026-09-05: aquelas respostas movem
 > **jornada** (presença/folha) para o `Modules/Ponto`; **licença** permanece no Essentials.
 
@@ -145,5 +145,6 @@ aprovado por [W]. Remover o legado aqui misturaria intents no mesmo PR.
 
 ## Referências
 
-- Evidências históricas de HRM foram removidas com a árvore duplicada.
+- `PEDIDO-CL-hrm.md` (`prototipo-ui/design-docs/cowork-inbox/hrm/PEDIDO-CL-hrm.md`, removido do git em 2026-09-11 · #7224 · ADR 0397) — HRM-O7 PR-9
+- `EXPORT-HRM-2026-09-04.md` (`prototipo-ui/design-docs/cowork-inbox/hrm/EXPORT-HRM-2026-09-04.md`, removido do git em 2026-09-11 · #7224 · ADR 0397) — onda 3
 - [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) · [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) · [ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)

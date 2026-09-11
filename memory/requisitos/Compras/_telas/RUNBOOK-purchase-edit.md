@@ -12,7 +12,7 @@ related_adrs:
   - 0114-prototipo-ui-cowork-loop-formalizado
   - 0149-pattern-reuse-mwart-create-edit
 spec_ref: memory/requisitos/Compras/SPEC.md
-blueprint_cowork: prototipo-ui/cowork/Wagner/legado/compras/visual-source.html
+blueprint_cowork: prototipo-ui/prototipos/compras/visual-source.html
 ---
 
 # RUNBOOK — `purchase/edit` (FORM EDIT)

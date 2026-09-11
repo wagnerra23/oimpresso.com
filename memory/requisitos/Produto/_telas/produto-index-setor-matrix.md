@@ -21,8 +21,8 @@ veredito: CONFORME
 
 ### ⚠️ Ponteiros de protótipo órfãos (apontam pro vácuo)
 
-- `prototipo-ui/cowork/Wagner/legado/produto-cockpit (frontmatter:blueprint_cowork)`
-- `prototipo-ui/cowork/Wagner/legado/produto (cowork-map:produto)`
+- `prototipo-ui/prototipos/produto-cockpit (frontmatter:blueprint_cowork)`
+- `prototipo-ui/prototipos/produto (cowork-map:produto)`
 - `ui_kits/cowork-2026-05-09/prod-page.jsx (charter:Refs)`
 
 ## Matriz (6 slots PT-01)

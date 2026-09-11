@@ -13,7 +13,7 @@
 
 ## F1 PLAN
 
-1. Pattern reuse: blueprint `prototipo-ui/cowork/Wagner/legado/os/cowork-app.jsx` (form variant).
+1. Pattern reuse: blueprint `prototipo-ui/prototipos/os/cowork-app.jsx` (form variant).
 2. Form completo: contact_id, service_type, brand_id, device_id, device_model_id, serial_no, status_id (legacy), delivery_date, estimated_cost, defects, product_condition, service_staff, custom_fields (1-5), checklist.
 3. **FSM**: `status_id` (RepairStatus legacy) coexiste com `current_stage_id` FSM. Form UI mostra apenas `status_id` (compat); transições FSM ficam no `Show.tsx` panel.
 4. **Submit**: POST `/repair/job-sheet/{id}` (PUT via `_method=PUT`) → `JobSheetController::update` — caminho legacy preservado (NÃO toca FSM).

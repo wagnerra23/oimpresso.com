@@ -6,13 +6,13 @@ type: visual-comparison
 module: Inventory
 status: approved
 date: 2026-05-15
-canon_reference: prototipo-ui/cowork/Wagner/legado/produto-cockpit/produto-cockpit-page.jsx
+canon_reference: prototipo-ui/prototipos/produto-cockpit/produto-cockpit-page.jsx
 blade_source: resources/views/product/index.blade.php
 inertia_target: resources/js/Pages/Produto/Index.tsx
 approved_by: pending_wagner_screenshot_approval
 generated_retroactively: false
 pattern_reuse: true
-blueprint_cowork: prototipo-ui/cowork/Wagner/legado/produto-cockpit/
+blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/
 ---
 
 # Comparativo visual — Lista de produtos (`/products`)
@@ -21,7 +21,7 @@ blueprint_cowork: prototipo-ui/cowork/Wagner/legado/produto-cockpit/
 > **Persona:** Larissa (ROTA LIVRE biz=4), 1280px
 > **Refs:**
 > - Blade legacy: `resources/views/product/index.blade.php` (DataTables jQuery + Yajra server-side)
-> - Canon Cowork: [`produto-cockpit/produto-cockpit-page.jsx`](../../../prototipo-ui/cowork/Wagner/legado/produto-cockpit/produto-cockpit-page.jsx)
+> - Canon Cowork: [`produto-cockpit/produto-cockpit-page.jsx`](../../../prototipo-ui/prototipos/produto-cockpit/produto-cockpit-page.jsx)
 > - Page MWART: `resources/js/Pages/Produto/Index.tsx`
 > - RUNBOOK: [`RUNBOOK-produto-index.md`](RUNBOOK-produto-index.md)
 > - ADR 0149 screen-pattern reuse (este é o blueprint pra Show/Edit/Create/SellingPrices)

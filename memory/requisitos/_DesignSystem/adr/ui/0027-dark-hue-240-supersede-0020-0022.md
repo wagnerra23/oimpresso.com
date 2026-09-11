@@ -89,7 +89,7 @@ Os **3 tokens de bolha/thread do chat continuam regidos pela UI-0020**, e não p
 
 ### Por que o `ds-v6` ainda dizer 282 não contradiz esta ADR
 
-Quem abrir [`prototipo-ui/cowork/Wagner/legado/ds-v6/gabarito-vendas.html`](../../../../../prototipo-ui/cowork/Wagner/legado/ds-v6/gabarito-vendas.html) — a fonte histórica que a UI-0020 chama de *"fonte de TODOS os valores novos, verbatim"* — vai ler `--text: oklch(0.965 0.004 282)` e concluir que esta ADR está errada. Não está:
+Quem abrir `prototipo-ui/cowork/Wagner/legado/ds-v6/gabarito-vendas.html` (removido do git em 2026-09-11 · #7224 · ADR 0397) — a fonte que a UI-0020 chama de *"fonte de TODOS os valores novos, verbatim"* — vai ler `--text: oklch(0.965 0.004 282)` e concluir que esta ADR está errada. Não está:
 
 - **o shell do protótipo não carrega o `ds-v6`.** Medido: os 69 `<link rel=stylesheet>` de `prototipo-ui/cowork/Wagner/oimpresso.com.html` incluem `_ds/office-impresso-design-system-019dd02f-…/colors_and_type.css` e **nenhum** aponta para `ds-v6/tokens.css`. As duas menções a `ds-v6` no shell são **comentários**, não links;
 - os dois arquivos são **fósseis pré-decisão**: `gabarito-vendas.html` não é tocado desde **2026-06-23**, `ds-v6/tokens.css` desde **2026-07-01** — ambos anteriores a 07-08. O resync do espelho de 2026-08-27 ([#6379](https://github.com/wagnerra23/oimpresso.com/pull/6379), 55 arquivos) não tocou nenhum dos dois;

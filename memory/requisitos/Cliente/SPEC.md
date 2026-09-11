@@ -354,5 +354,5 @@ Obrigação LGPD Art. 18 §VI + lane de mercado vazia (erasure fiscal-aware — 
 - [ADR 0273 — Anchor spec↔código (formato canônico `Implementado em`)](../../decisions/0273-anchor-spec-codigo-formato-canonico-fluxo-novo.md)
 - Investigação base: [`memory/sessions/2026-05-21-investigar-campos-br-cliente.md`](../../sessions/2026-05-21-investigar-campos-br-cliente.md)
 - Coord paralela: [`memory/sessions/2026-05-21-coord-cliente-show-paridade-5waves.md`](../../sessions/2026-05-21-coord-cliente-show-paridade-5waves.md)
-- HANDOFF Claude Design: `prototipo-ui/cowork/Wagner/legado/clientes/HANDOFF_CLIENTES.md`
+- HANDOFF Claude Design: `prototipo-ui/prototipos/clientes/HANDOFF_CLIENTES.md`
 - SPEC canônico do módulo: [`memory/requisitos/Crm/SPEC.md`](../Crm/SPEC.md)

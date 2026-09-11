@@ -11,12 +11,13 @@ gerado_em: 2026-09-06
 > **Fase 1 = PARIDADE, não wishlist.** `essenciais-page.jsx:1-3` declara: *"Importado do blade do
 > main: Modules/Essentials/Resources/views/*"* — **porte reverso**, logo o protótipo é retrato do
 > vivo. Região: `Tarefas` (`:33-231`).
-> Os contratos e charter históricos de tarefas foram removidos com a árvore duplicada.
+> Contrato do intake: `cowork-inbox/essenciais/contrato/tarefas.contract.json` (`prototipo-ui/design-docs/cowork-inbox/essenciais/contrato/tarefas.contract.json`, removido do git em 2026-09-11 · #7224 · ADR 0397)
+> (6 seções · 9 colunas · copy literal). Charter: `Tarefas.charter.md` (`prototipo-ui/design-docs/cowork-inbox/essenciais/Tarefas.charter.md`, removido do git em 2026-09-11 · #7224 · ADR 0397).
 > ⚠️ O charter do intake declara **3 itens fora de escopo esperando [W]** (vínculo tarefa ↔ OS/cliente ·
 > versionamento de documento · canal de notificação) — este gap **não os reabre**.
 
 > ⚠️ **O contrato citado ainda NÃO é gate ativo.** Ele vive em
-> A árvore de contratos legada não é mais fonte canônica.
+> `prototipo-ui/design-docs/cowork-inbox/essenciais/contrato/`, **não** em `governance/design/contracts/`
 > (medido com o critério do próprio gate — `git ls-files "governance/design/contracts/*.contract.json"` sem o EXEMPLO, como `scripts/contrato-de-tela.mjs` faz: **28** contratos ativos, que incluem `essentials-tipos`, `essentials-licencas` e
 > `essentials-metas` — nenhum dos 5 dos essenciais). Ele é **proposta de contrato**: descreve a
 > copy literal pretendida e serve de âncora para esta comparação, mas **não trava merge hoje**.

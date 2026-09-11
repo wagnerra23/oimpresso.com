@@ -14,7 +14,7 @@ last_validated: "2026-07-28"
 date: 2026-05-15
 wave: W1-A (Bucket B1 Sells)
 mwart_pattern_reuse:
-  # Corrigido 2026-07-28: `prototipo-ui/cowork/Wagner/legado/vendas-cockpit/` NÃO EXISTE no repo
+  # Corrigido 2026-07-28: `prototipo-ui/prototipos/vendas-cockpit/` NÃO EXISTE no repo
   # (path fantasma herdado da ADR 0149). O blueprint real é o que o charter sempre
   # declarou — verificado no disco, 92 KB. Agora travado pelo Pest `Wave1ShowInertiaTest`
   # ("Charter declara blueprint Cowork que EXISTE no disco").

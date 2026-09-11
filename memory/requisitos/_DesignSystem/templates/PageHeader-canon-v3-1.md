@@ -7,7 +7,7 @@ id: requisitos-design-system-templates-page-header-canon-v3-1
 > **Status:** proposto · pending Larissa biz=4 validação 7d
 > **Origem:** [ADR 0189](../../../decisions/0189-pageheader-canon-v3-1-cadastro-roxo.md) + [ADR 0190](../../../decisions/0190-primary-button-roxo-universal-295.md) (primary universal)
 > **Supersedes parcialmente:** [ADR 0189](../../../decisions/0189-pageheader-canon-v3-1-cadastro-roxo.md) (PageHeader canon 3 zonas → v3.1), [ADR 0182](../../../decisions/0182-pageheadertabs-canon-pattern-telas.md)
-> **Protótipo visual:** [prototipo-ui/cowork/Wagner/legado/pageheader-canon-v3/](../../../../prototipo-ui/cowork/Wagner/legado/pageheader-canon-v3/)
+> **Protótipo visual:** [prototipo-ui/prototipos/pageheader-canon-v3/](../../../../prototipo-ui/prototipos/pageheader-canon-v3/)
 > **Diário evolutivo:** [PageHeader-LEARNINGS.md](./PageHeader-LEARNINGS.md)
 > **Última atualização:** 2026-05-25 (ADR 0190 primary universal)
 

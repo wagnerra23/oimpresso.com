@@ -13,7 +13,7 @@ related_adrs:
   - 0149-pattern-reuse-mwart-create-edit
   - 0105-cliente-como-sinal-guiar-sem-mandar
 spec_ref: memory/requisitos/Compras/SPEC.md
-blueprint_cowork: prototipo-ui/cowork/Wagner/legado/compras/visual-source.html
+blueprint_cowork: prototipo-ui/prototipos/compras/visual-source.html
 ---
 
 # RUNBOOK — `/purchases/create` (criar Compra, Inertia/React)

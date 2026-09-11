@@ -13,7 +13,7 @@
 
 ## F1 PLAN
 
-1. **Pattern reuse**: blueprint `prototipo-ui/cowork/Wagner/legado/os/cowork-app.jsx` (detalhe OS).
+1. **Pattern reuse**: blueprint `prototipo-ui/prototipos/os/cowork-app.jsx` (detalhe OS).
 2. Diferente de `JobSheet/Show`: Repair/Show é a **VENDA-de-reparo** (Transaction com `sub_type='repair'`) — mostra invoice/sell-lines/payments/warranty.
 3. Sections: Header (invoice_no, status, valor) · Cliente · Aparelho · Sell lines (peças/serviços faturados) · Pagamentos · Warranty · Activities.
 4. **Sem FSM em Repair**: Transaction sub_type='repair' usa estado-da-venda via FSM Sells (Sprint 4 já LIVE). Mostra `<FsmActionPanel saleId={id}>` shared componente quando flag `repair_fsm_panel_in_show=true`.

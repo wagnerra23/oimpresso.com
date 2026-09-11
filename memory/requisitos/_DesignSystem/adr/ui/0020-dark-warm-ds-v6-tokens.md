@@ -10,7 +10,7 @@ id: requisitos-design-system-adr-ui-0020-dark-warm-ds-v6-tokens
 - **Decisores**: Wagner (aprovação), Claude Code (medição + execução)
 - **Categoria**: ui · fundações · tokens
 - **Refs**:
-  - Gabarito histórico aprovado: [`prototipo-ui/cowork/Wagner/legado/ds-v6/gabarito-vendas.html`](../../../../../prototipo-ui/cowork/Wagner/legado/ds-v6/gabarito-vendas.html) (bloco dark, linhas ~25-36) — origem dos valores novos, verbatim
+  - Gabarito canônico: `prototipo-ui/cowork/Wagner/legado/ds-v6/gabarito-vendas.html` (removido do git em 2026-09-11 · #7224 · ADR 0397) (bloco dark, linhas ~25-36) — fonte de TODOS os valores novos, verbatim
   - [UI-0018](0018-canon-visual-vivo-ds-v6-manual-identidade.md) — DS-v6 como canon visual vivo
   - [financeiro-unificado-visual-comparison.md §Round 2026-07-07](../../../Financeiro/financeiro-unificado-visual-comparison.md) — o smoke dark que expôs o delta
   - ADR 0300 (DTCG SSOT) — o fluxo de edição usado (json → `tokens:build` → CSS gerado)

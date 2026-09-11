@@ -100,5 +100,5 @@ Reusa: atoms canon (`Btn`, `KpiCard`, `PageHeader`, `Field`) via `@/Pages/Financ
 
 - ADR 0144 + ADR 0170 PaymentGateway
 - Charter live: `Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/Index.charter.md`
-- Cowork F1: `prototipo-ui/cowork/Wagner/legado/payment-gateway-ui/components/pg-payment-gateways-page.jsx`
+- Cowork F1: `prototipo-ui/prototipos/payment-gateway-ui/components/pg-payment-gateways-page.jsx`
 - LICOES_F3 + KB-9.75

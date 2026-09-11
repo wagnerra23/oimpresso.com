@@ -3,7 +3,7 @@ id: requisitos-design-system-sidebar-v3-unificado-gap
 tipo: gap-spec
 tela: Shell / Sidebar (AppShellV2)
 prototipo: TODO
-prototipo_nota: "2026-09-06 [C]: o campo era `prototipo-ui/cowork/Wagner/legado/sidebar-v3-unificado/visual-source.html` — apagado em 2026-06-23 (commit 9da73296d3, consolidação SSOT em prototipo-ui/cowork/Wagner/). Não há sucessor no espelho: fonte viva é o DS em git (prototipo-ui/design-system). Âncora do lado protótipo fica TODO por desenho; o lado vivo é ancorado por grep real, arquivo a arquivo (AppShellV2 / Sidebar.tsx / shared.ts / cockpit.css)."
+prototipo_nota: "2026-09-06 [C]: o campo era `prototipo-ui/prototipos/sidebar-v3-unificado/visual-source.html` — apagado em 2026-06-23 (commit 9da73296d3, consolidação SSOT em prototipo-ui/cowork/). Não há sucessor no espelho: fonte viva é o DS em git (prototipo-ui/design-system). Âncora do lado protótipo fica TODO por desenho; o lado vivo é ancorado por grep real, arquivo a arquivo (AppShellV2 / Sidebar.tsx / shared.ts / cockpit.css)."
 tela_viva:
   - resources/js/Layouts/AppShellV2.tsx
   - resources/js/Components/cockpit/Sidebar.tsx
@@ -60,7 +60,7 @@ exige Wagner desempatar explicitamente** (matriz governance UI-0013: Wagner é
 ## Tabela de gaps por PARTE
 
 > ⚠️ **Errata datada 2026-09-08 — as linhas #6/#7/#11 falam de um protótipo que já não é a fonte.**
-> Elas medem contra `prototipo-ui/cowork/Wagner/legado/sidebar-v3-unificado/visual-source.html`, apagado em
+> Elas medem contra `prototipo-ui/prototipos/sidebar-v3-unificado/visual-source.html`, apagado em
 > 2026-06-23 (ver `prototipo_nota` no frontmatter). A fonte de hoje é `prototipo-ui/cowork/Wagner/data.jsx`
 > — e ele **não** "congelou nos 5 originais": tem os **mesmos 8 grupos do vivo, na mesma ordem**, mais
 > um 9º (`PLATAFORMA`). O veredito "NÃO regredir 8→5" continua certo pelo motivo certo, mas a

@@ -113,4 +113,4 @@ curl -sv https://oimpresso.com/cliente -H "Cookie: laravel_session=<sess_biz4>" 
 - [ADR 0149 — Pattern reuse Crm](../../decisions/0149-mwart-screen-pattern-reuse-cowork.md)
 - Charter: [`resources/js/Pages/Cliente/Index.charter.md`](../../../resources/js/Pages/Cliente/Index.charter.md)
 - PR #1309 — KB-9.75 Slice A (⌘K palette + cheat-sheet)
-- Blueprint visual: `prototipo-ui/cowork/Wagner/legado/clientes/`
+- Blueprint visual: `prototipo-ui/prototipos/clientes/`

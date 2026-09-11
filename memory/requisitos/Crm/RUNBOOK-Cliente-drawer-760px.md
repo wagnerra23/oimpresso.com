@@ -20,7 +20,7 @@ estimate_total: ~70h elapsed (~35h IA-pair + margem 2x ADR 0106)
 
 ## 1. Objetivo
 
-Migrar paradigma da tela `/cliente` — deixar de abrir `Show.tsx` em rota dedicada (`/cliente/{id}` full-page com 8 tabs operacionais) e passar a abrir **drawer lateral 760px** sobre `Index.tsx` com **8 tabs cadastrais** (Identificação · Contato · Endereço · Comercial · Classificação · OSs · IA · Auditoria). Origem: protótipo Cowork `prototipo-ui/cowork/Wagner/legado/clientes/` aprovado por Wagner com score KB-9.75 9,4/10. Show.tsx full-page é **deletado no mesmo PR** (Q1 zero-sunset). Tab "OSs" wrapping das 8 sub-tabs Wave Final 2026-05-21 (`_show/LedgerTab`, `SalesTab`, `PaymentsTab`, `DocumentsTab`, `ActivitiesTab`, `PessoasContatoTab`, `SubscriptionsTab`, `RewardPointsTab`). Larissa biz=4 ROTA LIVRE em 1280×1024 é alvo de UX; biz=1 WR2 SC é canary de prod. Estimate ~35h IA-pair × margem 2x ([ADR 0106](../../decisions/0106-recalibracao-velocidade-fator-10x-ia-pair.md)) = **~70h elapsed**.
+Migrar paradigma da tela `/cliente` — deixar de abrir `Show.tsx` em rota dedicada (`/cliente/{id}` full-page com 8 tabs operacionais) e passar a abrir **drawer lateral 760px** sobre `Index.tsx` com **8 tabs cadastrais** (Identificação · Contato · Endereço · Comercial · Classificação · OSs · IA · Auditoria). Origem: protótipo Cowork `prototipo-ui/prototipos/clientes/` aprovado por Wagner com score KB-9.75 9,4/10. Show.tsx full-page é **deletado no mesmo PR** (Q1 zero-sunset). Tab "OSs" wrapping das 8 sub-tabs Wave Final 2026-05-21 (`_show/LedgerTab`, `SalesTab`, `PaymentsTab`, `DocumentsTab`, `ActivitiesTab`, `PessoasContatoTab`, `SubscriptionsTab`, `RewardPointsTab`). Larissa biz=4 ROTA LIVRE em 1280×1024 é alvo de UX; biz=1 WR2 SC é canary de prod. Estimate ~35h IA-pair × margem 2x ([ADR 0106](../../decisions/0106-recalibracao-velocidade-fator-10x-ia-pair.md)) = **~70h elapsed**.
 
 ## 2. Decisões Q1-Q4 finais Wagner (2026-05-21)
 
@@ -38,7 +38,7 @@ Antes de Edit/Write em `Modules/Crm/` ou `resources/js/Pages/Cliente/`:
 - [ ] Ler [ADR 0179](../../decisions/0179-cliente-drawer-760px-substitui-show-fullpage.md) inteira (162 linhas — paradigma + Q1-Q4 + pegadinhas Tier 0)
 - [ ] Ler [Charter Index v3](../../../resources/js/Pages/Cliente/Index.charter.md) (113 linhas — Mission/Goals/Non-Goals/Anti-hooks)
 - [ ] Ler [visual-comparison](cliente-drawer-760-visual-comparison.md) (310 linhas — 15 dimensões + gate F1.5)
-- [ ] Ler [`prototipo-ui/cowork/Wagner/legado/clientes/HANDOFF_CLIENTES.md`](../../../prototipo-ui/cowork/Wagner/legado/clientes/HANDOFF_CLIENTES.md) (381 linhas — schema BR + 4 endpoints IA + checklist KB-9.75 9,4/10)
+- [ ] Ler [`prototipo-ui/prototipos/clientes/HANDOFF_CLIENTES.md`](../../../prototipo-ui/prototipos/clientes/HANDOFF_CLIENTES.md) (381 linhas — schema BR + 4 endpoints IA + checklist KB-9.75 9,4/10)
 - [ ] Ler [`memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) (6 meta-anti-padrões + 15 técnicos — Wave Financeiro rejeitada 2026-05-09)
 - [ ] Skill `multi-tenant-patterns` Tier A ativa (ADR 0093 IRREVOGÁVEL — `business_id` global scope obrigatório em 10 endpoints novos)
 - [ ] Skill `mwart-process` Tier A ativa (5 fases obrigatórias — PLAN → BACKEND BASELINE → FRONTEND INCREMENTAL → QA → CUTOVER)
@@ -180,7 +180,7 @@ Critério aceitação. Entregáveis:
 - [ ] `cliente-drawer-760-visual-comparison.md` muda `status: draft` → `status: approved` + `approved_by: wagner` + notas REAIS pós-merge (substituir estimativas calibradas por medições)
 - [ ] ADR 0179 muda `status: proposed` → `status: accepted` (Wagner aprova manualmente)
 - [ ] `Pages/Cliente/Show.charter.md` v2 `status: superseded` + `superseded_by: [Pages/Cliente/Index.charter.md v3]`
-- [ ] HANDOFF append `prototipo-ui/cowork/Wagner/legado/clientes/HANDOFF_CLIENTES.md` — entrada final "Wave A-Z concluída 2026-05-XX, drawer 760 em prod biz=1+biz=4"
+- [ ] HANDOFF append `prototipo-ui/prototipos/clientes/HANDOFF_CLIENTES.md` — entrada final "Wave A-Z concluída 2026-05-XX, drawer 760 em prod biz=1+biz=4"
 - [ ] Commit conventional `chore(crm): smoke prod drawer 760 biz=1 + brief-update + handoff Wave Z` refs `Refs: SPRINT-N PASSO Z`
 
 ## 5. Estrutura de arquivos
@@ -380,7 +380,7 @@ npm run build:inertia                               # NÃO npm run build
 - [Charter Index v3](../../../resources/js/Pages/Cliente/Index.charter.md) — drawer_pattern 760px-lateral + 8 tabs
 - [visual-comparison drawer 760](cliente-drawer-760-visual-comparison.md) — 15 dimensões + gate F1.5 (310 linhas)
 - [Dossiê wagner-understand](../../sessions/2026-05-21-understand-cliente-drawer-760px-opcao-A.md) — decodificação completa opção A
-- [HANDOFF_CLIENTES.md](../../../prototipo-ui/cowork/Wagner/legado/clientes/HANDOFF_CLIENTES.md) — spec protótipo KB-9.75 9,4/10 (381 linhas — schema BR + 4 endpoints IA + checklist)
+- [HANDOFF_CLIENTES.md](../../../prototipo-ui/prototipos/clientes/HANDOFF_CLIENTES.md) — spec protótipo KB-9.75 9,4/10 (381 linhas — schema BR + 4 endpoints IA + checklist)
 - [LICOES_F3_FINANCEIRO_REJEITADO.md](../../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) — pré-flight Wave C-F (6 meta-anti-padrões + 15 técnicos)
 - [PROTOCOL.md Cowork loop](../../../memory/reference/prototipo-ui/PROTOCOL.md) — loop formalizado ADR 0114
 - [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) — multi-tenant Tier 0 IRREVOGÁVEL

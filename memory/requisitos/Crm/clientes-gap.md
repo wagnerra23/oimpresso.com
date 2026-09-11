@@ -2,7 +2,7 @@
 id: requisitos-crm-clientes-gap
 map_json: n/a (a tela Cliente/Index já tem dono com map — memory/requisitos/Cliente/clientes-gap.md + clientes.map.json, ancorado no clientes-page.jsx que o charter declara; um 2º map da mesma tela é régua duplicada — ver bloco 2026-09-06)
 tela: Clientes (Index + Drawer 760px)
-prototipo: prototipo-ui/cowork/Wagner/legado/clientes/ # ⚠️ PATH APAGADO em 2026-06-23 (e8b49f4b63, consolidação SSOT em prototipo-ui/cowork/Wagner/) — é o artefato de 2026-05-22 que ESTA análise leu, preservado aqui como registro do que foi medido. NÃO trocar pelo espelho de hoje sem reler: ver "Por que ainda não há .map.json" abaixo
+prototipo: prototipo-ui/prototipos/clientes/ # ⚠️ PATH APAGADO em 2026-06-23 (e8b49f4b63, consolidação SSOT em prototipo-ui/cowork/) — é o artefato de 2026-05-22 que ESTA análise leu, preservado aqui como registro do que foi medido. NÃO trocar pelo espelho de hoje sem reler: ver "Por que ainda não há .map.json" abaixo
 tela_viva: resources/js/Pages/Cliente/ (Index.tsx 114KB + Show.tsx + _drawer/* + _show/* + _components/*)
 paridade_atual: 100% (tela viva À FRENTE do protótipo) # MEDIDO EM 2026-06-23 contra o protótipo daquela data — ver ressalva abaixo
 veredito: "À FRENTE em 2026-06-23 no escopo DRAWER (o protótipo do drawer foi derivado DA produção). NÃO vale pra listagem/Import/Map — superseded por memory/requisitos/Cliente/PARIDADE-area-cliente-diagnostico-e-ondas.md (2026-08-18), que lista 5 itens a adotar."
@@ -28,7 +28,7 @@ governanca:
 >
 > Medido hoje, com commit e número:
 >
-> - `prototipo-ui/cowork/Wagner/legado/clientes/` (a chave `prototipo:` acima) tem **0 arquivos versionados**.
+> - `prototipo-ui/prototipos/clientes/` (a chave `prototipo:` acima) tem **0 arquivos versionados**.
 >   Foi apagado em **2026-06-23** por `e8b49f4b63` — *"protótipo Cowork = 1 SSOT com histórico
 >   (prototipo-ui/cowork/Wagner/) + apaga recortes"*, no MESMO dia em que este gap foi escrito.
 > - O sucessor no espelho, `prototipo-ui/cowork/Wagner/clientes-page.jsx` (o que a charter declara em

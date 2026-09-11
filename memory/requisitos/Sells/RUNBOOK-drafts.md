@@ -9,7 +9,7 @@ last_validated: "2026-05-15"
 date: 2026-05-15
 wave: W1-A (Bucket B1 Sells)
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/cowork/Wagner/legado/vendas-cockpit/"
+  blueprint_cowork: "prototipo-ui/prototipos/vendas-cockpit/"
   blueprint_screenshot_approval: "SYNC_LOG pendente verificar Wagner (ADR 0149)"
   derived_from: "Sells/Index (mesma entidade + lista Cockpit pattern V2)"
   divergence_from_blueprint: "Lista filtrada por status=draft + sub_status NULL/draft. Sem KPIs adversários (só 'Rascunhos pendentes' total)."

@@ -9,7 +9,7 @@ status: aguardando-screenshot-wagner
 runbook: memory/requisitos/Compras/_telas/RUNBOOK-purchase-edit.md
 draft_tsx: resources/js/Pages/Purchase/Edit.tsx
 controller_delta: app/Http/Controllers/PurchaseController.php@editInertia
-cowork_source: prototipo-ui/cowork/Wagner/legado/compras/visual-source.html
+cowork_source: prototipo-ui/prototipos/compras/visual-source.html
 ---
 
 # Visual Comparison — `purchase/edit` (FORM EDIT)

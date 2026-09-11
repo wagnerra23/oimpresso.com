@@ -12,7 +12,7 @@ gerado_em: 2026-09-06
 > (`knowledge_base/{index,sidebar,show,create,edit}.blade.php`). A rota `ess-kb` é despachada em
 > `essenciais-page.jsx:649` para `X.BaseConhecimento`, que vive em
 > `essenciais-extras.jsx:127-188`.
-> O charter histórico foi removido com a árvore duplicada.
+> Charter: `BaseConhecimento.charter.md` (`prototipo-ui/design-docs/cowork-inbox/essenciais/BaseConhecimento.charter.md`, removido do git em 2026-09-11 · #7224 · ADR 0397)
 > (4 seções: Busca · Árvore · Artigo · Ações de autoria). **Não há contrato de tela** para esta —
 > os 5 contratos do intake cobrem tarefas, documentos, memorandos, lembretes e mensagens.
 > ⚠️ **Recorte:** a seção "Artigo" do charter pertence à rota `/essentials/knowledge-base/{id}`, que

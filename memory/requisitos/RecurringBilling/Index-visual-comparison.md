@@ -6,7 +6,7 @@ id: requisitos-recurring-billing-index-visual-comparison
 
 > **Status:** Cowork output renderizado e validado em 2026-05-16. Match exato com 2 screenshots Wagner.
 > **Destino visual:** `9,75/10` (Método KB-9.75 alvo final, **NÃO** R#1 intermediário `3,8/10`).
-> **Fonte canônica:** [`prototipo-ui/cowork/Wagner/legado/recurring/recurring-page.jsx`](../../../prototipo-ui/cowork/Wagner/legado/recurring/recurring-page.jsx) (1.637 linhas IIFE expondo `window.RecurringPage`) + [`recurring-data.jsx`](../../../prototipo-ui/cowork/Wagner/legado/recurring/recurring-data.jsx) (mock 18 assinaturas + 5 planos + timelines + troubleshooters) + [`recurring-icons.jsx`](../../../prototipo-ui/cowork/Wagner/legado/recurring/recurring-icons.jsx)
+> **Fonte canônica:** [`prototipo-ui/prototipos/recurring/recurring-page.jsx`](../../../prototipo-ui/prototipos/recurring/recurring-page.jsx) (1.637 linhas IIFE expondo `window.RecurringPage`) + [`recurring-data.jsx`](../../../prototipo-ui/prototipos/recurring/recurring-data.jsx) (mock 18 assinaturas + 5 planos + timelines + troubleshooters) + [`recurring-icons.jsx`](../../../prototipo-ui/prototipos/recurring/recurring-icons.jsx)
 > **Snapshot vivo:** `prototipo-ui/cowork-snapshot/` (rodar `python -m http.server --directory prototipo-ui/cowork-snapshot 5550` → `http://localhost:5550/Oimpresso%20ERP%20-%20Chat.html` → localStorage `oimpresso.route=recurring`).
 
 ---
@@ -130,7 +130,7 @@ Existe hoje (✓): `rb_plans`, `rb_subscriptions`, `rb_invoices`, `rb_charge_att
 - ✅ Estrutura DOM mapeada: header, 4 KPIs, 3-col body, drawer com 6 cards
 - ✅ Schema gap enumerado: 3 tables + 12 cols
 - ✅ Cross-module dependências identificadas: link Repair OS (soft FK), Jana panel (fallback graceful), reenviar NFe (endpoint já existe em `POST /nfe/emissoes/{id}/reenviar-email`)
-- ✅ Visual canon `recurring-page.jsx` 1.637ln + `recurring-data.jsx` 220ln + `recurring-icons.jsx` 38ln salvos em `prototipo-ui/cowork/Wagner/legado/recurring/`
+- ✅ Visual canon `recurring-page.jsx` 1.637ln + `recurring-data.jsx` 220ln + `recurring-icons.jsx` 38ln salvos em `prototipo-ui/prototipos/recurring/`
 
 **Próximo:** Onda 1 — migration aditiva + 3 models.
 

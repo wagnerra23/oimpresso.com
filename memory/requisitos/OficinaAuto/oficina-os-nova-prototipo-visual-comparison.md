@@ -102,7 +102,7 @@ A view certa renderizou dos dois lados (`OS` · `Ordem` · `Diagnóstico` · `Ap
 presentes na assinatura do design) — o defeito é de **mapa de papéis**, não de paridade.
 
 **Ação: nenhuma na tela.** O que fecha isto é declarar `roles.design.title` no override
-(`governance/design/targets/roles/OficinaAuto--ServiceOrders--Show.json`), e isso é configuração que
+(`prototipo-ui/alvos/roles/OficinaAuto--ServiceOrders--Show.json`), e isso é configuração que
 depende de escolher o seletor certo no protótipo — decisão de quem conhece o `oficina-os-page.jsx`.
 
 ⚠️ Pegadinha de execução registrada: `--url "/rota"` no Git Bash vira

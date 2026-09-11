@@ -8,7 +8,7 @@ id: requisitos-crm-handoff-cliente-drawer-760-canon
 >
 > **Audiência:** Sub-agents Claude/Codex que vão aplicar Wave H técnica (15h) ou replicar drawer 760 nas 6 entidades cadastrais (Produto/ServiceOrders/Vehicles/DeviceModels/Planos/TransactionPayment).
 >
-> **Versão pre-implementação:** [`prototipo-ui/cowork/Wagner/legado/clientes/HANDOFF_CLIENTES.md`](../../../prototipo-ui/cowork/Wagner/legado/clientes/HANDOFF_CLIENTES.md) (380 linhas, mockup era spec; pós Wave A-G entregue, este HANDOFF assume o pattern como canon).
+> **Versão pre-implementação:** [`prototipo-ui/prototipos/clientes/HANDOFF_CLIENTES.md`](../../../prototipo-ui/prototipos/clientes/HANDOFF_CLIENTES.md) (380 linhas, mockup era spec; pós Wave A-G entregue, este HANDOFF assume o pattern como canon).
 
 ---
 
@@ -225,7 +225,7 @@ PR de cada entidade NÃO mergeia sem:
 - [Feedback canon Tier 0](../../reference/feedback-drawer-760-canon-style.md) — Wagner preferência forte
 - [Auditoria estado-da-arte 2026-05-22](../../sessions/2026-05-22-arte-drawer-760-vs-mundo.md) — Nota 76,4/100 + 10 gaps + 14 URLs canon
 - [RUNBOOK Wave A-G+Z Cliente](RUNBOOK-Cliente-drawer-760px.md) — Receita executável detalhada
-- [HANDOFF_CLIENTES.md original](../../../prototipo-ui/cowork/Wagner/legado/clientes/HANDOFF_CLIENTES.md) — Versão pre-implementação (mockup era spec)
+- [HANDOFF_CLIENTES.md original](../../../prototipo-ui/prototipos/clientes/HANDOFF_CLIENTES.md) — Versão pre-implementação (mockup era spec)
 
 ---
 

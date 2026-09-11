@@ -9,7 +9,7 @@ status: aguardando-screenshot-wagner
 runbook: memory/requisitos/Compras/_telas/RUNBOOK-purchase-create.md
 draft_tsx: resources/js/Pages/Purchase/Create.tsx
 controller_delta: app/Http/Controllers/PurchaseController.php@createInertia
-cowork_source: prototipo-ui/cowork/Wagner/legado/compras/visual-source.html
+cowork_source: prototipo-ui/prototipos/compras/visual-source.html
 ---
 
 # Visual Comparison — `purchase/create` (FORM CREATE)
@@ -66,7 +66,7 @@ npm run build
 
 ## Modo grade tam×cor (US-COM-005) — comparação adicional
 
-> Consolidado P5 (2026-07-02): incorpora o gate visual do **modo grade** (antes em `Purchase/create-visual-comparison.md`, `last_validated 2026-06-22`). Gate visual ADR 0114/0107 — Wagner aprova o **SCREENSHOT 1280px**, não a tabela. Blueprint Cowork consolidado em 2026-09-11: `prototipo-ui/cowork/Wagner/compras-grade-matrix.jsx`. Status: `pendente-aprovacao-wagner`.
+> Consolidado P5 (2026-07-02): incorpora o gate visual do **modo grade** (antes em `Purchase/create-visual-comparison.md`, `last_validated 2026-06-22`). Gate visual ADR 0114/0107 — Wagner aprova o **SCREENSHOT 1280px**, não a tabela. Blueprint Cowork: `prototipo-ui/prototipos/compras-grade-matrix/Compras - Grade Matrix.html`. Status: `pendente-aprovacao-wagner`.
 
 Adiciona um bloco **"Adicionar por grade"** dentro do card "Itens da compra" da `Purchase/Create.tsx`: combobox de produto `variable` → `<GradeMatrixInput>` (matriz tam×cor, Σ linha/coluna/total, teclado Cin7/Lightspeed) → botão "Adicionar à compra" que acumula as células no repeater `linhas` existente. O fluxo manual (buscar texto → "Adicionar item") permanece intacto.
 

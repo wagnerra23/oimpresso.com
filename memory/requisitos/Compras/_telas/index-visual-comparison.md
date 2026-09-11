@@ -8,7 +8,7 @@ status: aguardando-screenshot-wagner (STEP 4 da skill)
 snapshot: memory/mwart-inventory/purchase/index.snapshot.md
 draft_tsx: resources/js/Pages/Purchase/Index.tsx
 controller_delta: app/Http/Controllers/PurchaseController.php@indexInertia
-cowork_source: prototipo-ui/cowork/Wagner/legado/compras/visual-source.html
+cowork_source: prototipo-ui/prototipos/compras/visual-source.html
 ---
 
 # Visual Comparison — `purchase/index` (LIST)
@@ -209,4 +209,4 @@ npm run build
 - [ADR 0141 — skill migracao-blade-react](../../decisions/0141-skill-migracao-blade-react.md)
 - [runbook-LIST.template.md](../../../.claude/skills/migracao-blade-react/runbook-LIST.template.md)
 - [Snapshot paridade](../../mwart-inventory/purchase/index.snapshot.md)
-- [Cowork visual source](../../../prototipo-ui/cowork/Wagner/legado/compras/visual-source.html)
+- [Cowork visual source](../../../prototipo-ui/prototipos/compras/visual-source.html)

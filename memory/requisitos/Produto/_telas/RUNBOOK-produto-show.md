@@ -15,7 +15,7 @@ date: 2026-05-15
 > **Refs:** [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md), [ADR 0149](../../decisions/0149-mwart-screen-pattern-reuse-cowork.md), [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)
 > **Estado origem:** Blade legacy `view('product.show')` via [ProductController@show](../../../app/Http/Controllers/ProductController.php#L592) — usa `getRackDetails()`
 > **Estado alvo:** `Pages/Produto/Show.tsx` (drawer pattern → Page full)
-> **Blueprint Cowork:** [`prototipo-ui/cowork/Wagner/legado/produto-cockpit/`](../../../prototipo-ui/cowork/Wagner/legado/produto-cockpit/) — drawer detalhe canon serve de blueprint pra tela full Show
+> **Blueprint Cowork:** [`prototipo-ui/prototipos/produto-cockpit/`](../../../prototipo-ui/prototipos/produto-cockpit/) — drawer detalhe canon serve de blueprint pra tela full Show
 
 ## 1. Estado final esperado
 

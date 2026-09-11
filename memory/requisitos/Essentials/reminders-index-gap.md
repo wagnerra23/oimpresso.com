@@ -10,16 +10,16 @@ gerado_em: 2026-09-06
 
 > **Fase 1 = PARIDADE.** `essenciais-page.jsx:1-3` declara o porte reverso do blade
 > (`reminder/{index,create,show}.blade.php`). Região: `Lembretes` (`:444-537`).
-> O contrato histórico de lembretes foi removido com a árvore duplicada.
+> Contrato: `lembretes.contract.json` (`prototipo-ui/design-docs/cowork-inbox/essenciais/contrato/lembretes.contract.json`, removido do git em 2026-09-11 · #7224 · ADR 0397)
 > (5 seções: `toolbar-mes` · `grade-mes` · `legenda` · `drawer` · `form`).
-> O charter histórico de lembretes foi removido com a árvore duplicada.
+> Charter: `Lembretes.charter.md` (`prototipo-ui/design-docs/cowork-inbox/essenciais/Lembretes.charter.md`, removido do git em 2026-09-11 · #7224 · ADR 0397) —
 > objetivo declarado: *"um calendário que mostra junto o que a equipe marcou e o que os outros
 > módulos cobram"*.
 > ⚠️ Esta é a tela com a **maior divergência estrutural** das 11 medidas: o protótipo é calendário,
 > o vivo é lista.
 
 > ⚠️ **O contrato citado ainda NÃO é gate ativo.** Ele vive em
-> A árvore de contratos legada não é mais fonte canônica.
+> `prototipo-ui/design-docs/cowork-inbox/essenciais/contrato/`, **não** em `governance/design/contracts/`
 > (medido com o critério do próprio gate — `git ls-files "governance/design/contracts/*.contract.json"` sem o EXEMPLO, como `scripts/contrato-de-tela.mjs` faz: **28** contratos ativos, que incluem `essentials-tipos`, `essentials-licencas` e
 > `essentials-metas` — nenhum dos 5 dos essenciais). Ele é **proposta de contrato**: descreve a
 > copy literal pretendida e serve de âncora para esta comparação, mas **não trava merge hoje**.

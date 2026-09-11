@@ -203,7 +203,7 @@ Cobrança de [W] (2026-08-18): *"o diretório permitido tem que ser sempre o mes
 | # | caminho | estado |
 |---|---|---|
 | 1 | `prototipo-ui/design-system/` | **versionado** — `colors_and_type.css` · `cockpit_domains.css` · 4 fontes sans. Existe pro sentinela `ds-mirror-drift` comparar (o CI não tem login claude.ai) |
-| 2 | `prototipo-ui/cowork/Wagner/_ds/office-impresso-design-system-019dd02f…/` | **onde o host pede** (`<link>`/`<script>` do `oimpresso.com.html`) — **vazio** |
+| 2 | `prototipo-ui/cowork/_ds/office-impresso-design-system-019dd02f…/` | **onde o host pede** (`<link>`/`<script>` do `oimpresso.com.html`) — **vazio** |
 | 3 | `prototipo-ui/design-system/` | onde `--export-from --ds` escreveria — **0 arquivos no git**, ninguém consome |
 | 4 | `.claude/launch.json` → `.claude/worktrees/<nome>/prototipo-ui/cowork` | **efêmero e gitignored** — 3 das 5 entradas apontam pra worktrees de sessões que podem já não existir |
 
@@ -228,7 +228,7 @@ E o **destino instável** (4 locais para o mesmo conteúdo) fechou junto: o
 `cowork-mirror-freshness --preview-ds` materializa o snapshot versionado **no slug que o host
 pede**, derivando o id do próprio shell em vez de hardcode — é o elo (1) → (2) que a tabela dos
 4 locais dizia nunca ter sido ligado. O `README.md` do `mirror-snapshot/` agora declara
-`prototipo-ui/cowork/Wagner/_ds/` como **cache derivado, gitignored**, encerrando a ambiguidade.
+`prototipo-ui/cowork/_ds/` como **cache derivado, gitignored**, encerrando a ambiguidade.
 
 **Recibos (dois oráculos independentes, nesta ordem):**
 

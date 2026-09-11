@@ -138,7 +138,7 @@ Tabela 50 linhas/página (paginated). 7 colunas em 1280px → cada cell tem espa
 
 ## Refs
 
-- HANDOFF: `prototipo-ui/cowork/Wagner/legado/clientes/HANDOFF_CLIENTES.md`
+- HANDOFF: `prototipo-ui/prototipos/clientes/HANDOFF_CLIENTES.md`
 - ADR 0107 (gate F1.5)
 - ADR 0110 (Cockpit V2)
 - ADR 0149 (pattern reuse)

@@ -11,12 +11,12 @@ adr_pattern_reuse: 0149
 
 # Visual Comparison — `/sells/{id}` (Show)
 
-> **Pattern Reuse declarado:** ADR 0149 aplica — Show é tela DERIVADA de `Sells/Index` (mesma entidade `transactions`). Blueprint Cowork `prototipo-ui/cowork/Wagner/legado/vendas-cockpit/` aprovado em F2 do ADR 0114 cobre Show.
+> **Pattern Reuse declarado:** ADR 0149 aplica — Show é tela DERIVADA de `Sells/Index` (mesma entidade `transactions`). Blueprint Cowork `prototipo-ui/prototipos/vendas-cockpit/` aprovado em F2 do ADR 0114 cobre Show.
 > **Wagner aprovação SCREENSHOT:** referência `Vendas Cockpit.html` da pasta `vendas-cockpit/` + drawer `SaleSheet` pattern já aprovado no PR #261.
 
 ## Blueprint Cowork base
 
-`prototipo-ui/cowork/Wagner/legado/vendas-cockpit/Vendas Cockpit.html` + `visual-source-fsm-v1.html` — pattern detail view com:
+`prototipo-ui/prototipos/vendas-cockpit/Vendas Cockpit.html` + `visual-source-fsm-v1.html` — pattern detail view com:
 - Cabeçalho dense `bg-card border-border rounded-lg` + nº da venda em h1 24px
 - 4 KPI cards grandes (Total / Pago / Falta / Status pgto)
 - Tabela de linhas zebra-strip leve + tipografia tabular-nums em valores
@@ -51,5 +51,5 @@ Wagner valida em 1 venda real biz=1: confere visual + dados + ações FSM funcio
 - [ADR 0149](../../decisions/0149-mwart-screen-pattern-reuse-cowork.md)
 - [ADR 0114](../../decisions/0114-prototipo-ui-cowork-loop-formalizado.md)
 - [ADR 0107](../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md)
-- Blueprint Cowork: `prototipo-ui/cowork/Wagner/legado/vendas-cockpit/`
+- Blueprint Cowork: `prototipo-ui/prototipos/vendas-cockpit/`
 - Index charter (parent visual): `resources/js/Pages/Sells/Index.charter.md`

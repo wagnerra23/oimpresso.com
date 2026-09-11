@@ -934,7 +934,7 @@ Refator completo da tela `/jana` aplicando amendment `COWORK_NOTES.amendment-jan
 
 **Estado atual:** V0 em prod mostra problemas catalogados (topnav 9-10 itens vs charter ≤6, empty empurrado pra ⅔ tela, avatar "CP" não-canon, lista repetida "Nova conversa", sem block renderer, sem streaming token-a-token, sem citations). Score 24/100 vs Glean/ChatGPT Enterprise/Notion AI/Copilot M365 (2026).
 
-**Protótipo F1 V2 navegável** existe em `prototipo-ui/cowork/Wagner/legado/chat/cowork-app-v2.jsx`:
+**Protótipo F1 V2 navegável** existe em `prototipo-ui/prototipos/chat/cowork-app-v2.jsx`:
 - JanaAvatar quadrado mono "J" `bg-primary`
 - 4 block kinds: MarkdownBubble (citations `[1][2]`) + ToolUseChip + DataTableBubble + ActionCardBubble (`confirm_required`)
 - ThinkingIndicator 1-pulse (substitui 3-dots loop anti-pattern)

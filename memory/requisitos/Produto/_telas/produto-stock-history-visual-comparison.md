@@ -6,13 +6,13 @@ type: visual-comparison
 module: Inventory
 status: approved
 date: 2026-05-15
-canon_reference: prototipo-ui/cowork/Wagner/legado/produto-cockpit/produto-cockpit-page.jsx
+canon_reference: prototipo-ui/prototipos/produto-cockpit/produto-cockpit-page.jsx
 blade_source: resources/views/product/stock_history.blade.php
 inertia_target: resources/js/Pages/Produto/StockHistory.tsx
 approved_by: pending_wagner_screenshot_approval
 pattern_reuse: true
 divergence: "timeline movimento por variação — pattern cronológico distinto"
-blueprint_cowork: prototipo-ui/cowork/Wagner/legado/produto-cockpit/
+blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/
 ---
 
 # Comparativo visual — Histórico de estoque (`/products/stock-history/{id}`)
