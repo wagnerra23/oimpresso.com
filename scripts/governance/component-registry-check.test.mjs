@@ -23,7 +23,7 @@ const uiDir = join(root, 'resources', 'js', 'Components', 'ui');
 const layoutDir = join(root, 'resources', 'js', 'Components', 'layout');
 mkdirSync(uiDir, { recursive: true });
 mkdirSync(layoutDir, { recursive: true });
-mkdirSync(join(root, 'prototipo-ui'), { recursive: true });
+mkdirSync(join(root, 'governance', 'design'), { recursive: true });
 
 writeFileSync(join(uiDir, 'button.tsx'), `
 export function Button() { return null }
@@ -35,7 +35,7 @@ writeFileSync(join(uiDir, 'badge.tsx'), `export { Badge, badgeVariants }\n`);
 writeFileSync(join(layoutDir, 'box.tsx'), `export function Box() { return null }\n`);
 writeFileSync(join(layoutDir, 'index.ts'), `export { Box, type BoxProps } from "./box"\n`);
 
-const REG = join(root, 'prototipo-ui', 'component-registry.json');
+const REG = join(root, 'governance', 'design', 'component-registry.json');
 const writeReg = (entries) => writeFileSync(REG, JSON.stringify({ version: '1', entries }, null, 2));
 const run = (extra = []) => spawnSync('node', [SCRIPT, '--root', root, '--registry', REG, ...extra], { encoding: 'utf8' });
 

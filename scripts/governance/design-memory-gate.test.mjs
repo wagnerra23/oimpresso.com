@@ -47,8 +47,8 @@ ok(/prototipo-ui\/\*\*/.test(yml) && /resources\/js\/Pages\/\*\*/.test(yml),
   'T3 paths-filter cobre prototipo-ui/** + resources/js/Pages/**');
 
 // ---- T4 — invoca os dois scripts ------------------------------------------
-ok(/prototipo-ui\/ds-guard\.mjs/.test(yml), 'T4 invoca scripts/design/ds-guard.mjs (§8)');
-ok(/prototipo-ui\/integrity-check\.mjs/.test(yml), 'T4 invoca scripts/design/integrity-check.mjs (§15)');
+ok(/scripts\/design\/ds-guard\.mjs/.test(yml), 'T4 invoca scripts/design/ds-guard.mjs (§8)');
+ok(/scripts\/design\/integrity-check\.mjs/.test(yml), 'T4 invoca scripts/design/integrity-check.mjs (§15)');
 
 // ---- T5 — alimenta ds-guard com arquivos tocados via git diff -------------
 ok(/git diff --name-only/.test(yml), 'T5 usa git diff --name-only pra arquivos tocados');
@@ -73,9 +73,9 @@ const runExit = (args) => {
   try { execFileSync(node, args, { cwd: ROOT, stdio: 'pipe' }); return 0; }
   catch (e) { return typeof e.status === 'number' ? e.status : 1; }
 };
-ok(runExit([join(ROOT, 'prototipo-ui', 'ds-guard.mjs'), '--all']) === 0,
+ok(runExit([join(ROOT, 'scripts', 'design', 'ds-guard.mjs'), '--all']) === 0,
   'T7 ds-guard.mjs --all sai 0 (relatorio de divida, NAO bloqueia)');
-ok(runExit([join(ROOT, 'prototipo-ui', 'integrity-check.mjs')]) === 0,
+ok(runExit([join(ROOT, 'scripts', 'design', 'integrity-check.mjs')]) === 0,
   'T7 integrity-check.mjs sai 0 (estrutura sa)');
 
 // ---- T8 — ds-guard tem dente (arquivo com paleta inventada sai 1) ---------
@@ -84,7 +84,7 @@ ok(runExit([join(ROOT, 'prototipo-ui', 'integrity-check.mjs')]) === 0,
 {
   const knownBad = join(ROOT, 'prototipo-ui', 'cowork-2026-05-26-comunicacao-visual', 'project', 'compras-page.css');
   if (existsSync(knownBad)) {
-    ok(runExit([join(ROOT, 'prototipo-ui', 'ds-guard.mjs'), knownBad]) === 1,
+    ok(runExit([join(ROOT, 'scripts', 'design', 'ds-guard.mjs'), knownBad]) === 1,
       'T8 ds-guard.mjs <arquivo paleta-inventada> sai 1 (gate tem dente)');
   } else {
     // fallback: cria fixture temporaria com >=4 tokens --bad-* e checa
@@ -92,7 +92,7 @@ ok(runExit([join(ROOT, 'prototipo-ui', 'integrity-check.mjs')]) === 0,
     const fs = await import('node:fs');
     const tmp = join(os.tmpdir(), `dsg-fixture-${process.pid}.css`);
     fs.writeFileSync(tmp, '.x-scope{--bad-a:oklch(0.5 0 0);--bad-b:oklch(0.5 0 0);--bad-c:oklch(0.5 0 0);--bad-d:oklch(0.5 0 0);}');
-    const r = runExit([join(ROOT, 'prototipo-ui', 'ds-guard.mjs'), tmp]);
+    const r = runExit([join(ROOT, 'scripts', 'design', 'ds-guard.mjs'), tmp]);
     try { fs.unlinkSync(tmp); } catch { /* noop */ }
     ok(r === 1, 'T8 ds-guard.mjs <fixture paleta-inventada> sai 1 (gate tem dente)');
   }

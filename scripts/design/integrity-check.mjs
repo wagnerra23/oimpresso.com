@@ -32,7 +32,8 @@ import { raizesDePages } from '../qa/page-path.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)); // prototipo-ui/
 const ROOT = resolve(HERE, '../..');                     // repo root
-const PROTO = HERE;
+const PROTO = join(ROOT, 'memory', 'reference', 'prototipo-ui'); // docs do processo (ADR 0397)
+const PROTO_UI = join(ROOT, 'prototipo-ui');                     // espelho (DS + fontes por dono)
 const MEMORY = join(ROOT, 'memory');
 
 const rel = (p) => relative(ROOT, p).replace(/\\/g, '/');
@@ -160,7 +161,7 @@ const spine = {
   // Ausencia do canon deixa de ser PASS: antes o 3o argumento era 'true' e o IT6 carimbava verde
   // exatamente quando nao achava o DS — verde que nao podia ficar vermelho.
   const dsFiles = ['colors_and_type.css', 'styles.css', 'cockpit_domains.css']
-    .map((f) => join(PROTO, 'design-system', f)).filter((p) => existsSync(p));
+    .map((f) => join(PROTO_UI, 'design-system', f)).filter((p) => existsSync(p));
   if (!dsFiles.length) add('IT6', false, false, 'DS canonico AUSENTE: prototipo-ui/design-system/ (espelho 019dd02f) sem CSS de token');
   else {
     let unreadable = 0;
