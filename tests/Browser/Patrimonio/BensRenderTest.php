@@ -64,12 +64,32 @@ beforeEach(function () {
 /** As 4 âncoras que `prototipo-ui/contrato/patrimonio-bens.contract.json` declara, na ordem. */
 const ANCORAS_BENS = ['cabecalho', 'subnav', 'filtros', 'tabela'];
 
-/** Sequência de `data-contract` COMO O BROWSER PINTOU (ordem de documento). */
-const ANCORAS_NO_DOM_JS = <<<'JS'
-(() => Array.from(document.querySelectorAll('[data-contract]'))
-  .map((el) => el.getAttribute('data-contract'))
-  .join(','))()
-JS;
+/**
+ * Sequência de `data-contract` DA TELA, como o browser pintou (ordem de documento).
+ *
+ * ⚠️ FILTRA pelas âncoras que o contrato DESTA tela declara, e a razão é um incidente real:
+ * a versão anterior lia `document.querySelectorAll('[data-contract]')` SEM filtro, o que só
+ * funcionava enquanto a página fosse a única a emitir âncoras. Em 2026-09-11 o #7212 deu ao
+ * SHELL cinco âncoras próprias (`sb-modos`, `sb-topo`, `sb-corpo`, `sb-rodape`, `sb-alcas`,
+ * em `AppShellV2.tsx:595-621`) e este teste — que é ENFORCING — passou a reprovar com
+ *   -'cabecalho,subnav,filtros,tabela'
+ *   +'sb-modos,sb-topo,sb-corpo,sb-rodape,sb-alcas,cabecalho,subnav,filtros,tabela'
+ * sem que nada da tela de Bens tivesse mudado.
+ *
+ * Filtrar pelo conjunto DECLARADO (em vez de excluir um prefixo `sb-`) é o corte certo: um
+ * denylist de prefixo quebraria de novo na primeira âncora de shell que não começasse com
+ * `sb-`. Assim o teste segue pegando âncora FALTANDO e âncora FORA DE ORDEM — que é o que
+ * ele existe pra pegar — e para de depender de quem mais pinta âncora na página.
+ */
+function ancorasDaTelaJs(array $declaradas): string
+{
+    $querido = json_encode(array_values($declaradas));
+
+    return '(() => { const querido = ' . $querido . ';'
+        . ' return Array.from(document.querySelectorAll("[data-contract]"))'
+        . ' .map((el) => el.getAttribute("data-contract"))'
+        . ' .filter((a) => querido.includes(a)).join(","); })()';
+}
 
 /**
  * Há scroll horizontal no documento? Mede o que o browser resolveu, não a classe.
@@ -113,9 +133,10 @@ function abrirBens(): object
  */
 function ancorasEstaveis($page, string $esperado): string
 {
+    $js = ancorasDaTelaJs(ANCORAS_BENS);
     $visto = '';
     for ($i = 0; $i < 20; $i++) {
-        $visto = (string) $page->script(ANCORAS_NO_DOM_JS);
+        $visto = (string) $page->script($js);
         if ($visto === $esperado) {
             return $visto;
         }
