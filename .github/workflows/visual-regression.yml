@@ -834,11 +834,41 @@ jobs:
       #
       # Voltar a advisory é recolocar o `continue-on-error`, e é decisão [W] como esta foi.
       # Este step nunca entrou na lista do "Veredito dos advisory de Browser" mais abaixo
-      # (nasceu depois dela) — logo não há nada a remover lá; a lista segue com os 7 advisory.
+      # (nasceu depois dela) — logo não há nada a remover lá.
+      #
+      # ERRATA 2026-09-11: a redação anterior fechava com "a lista segue com os 7 advisory".
+      # Era afirmação em PRESENTE sobre um número que muda a cada step novo — e mudou no mesmo
+      # dia, quando o Patrimonio/Alocacoes entrou como 8º (abaixo). Quem quiser o número de
+      # AGORA lê o `${total}` que o próprio step do Veredito calcula; comentário não é oráculo
+      # de contagem (LC-10 · §5 2026-07-16).
       - name: E2E de render · Patrimonio/Bens (ENFORCING)
         if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         id: e2e-patrimonio-bens
         run: ./vendor/bin/pest tests/Browser/Patrimonio/BensRenderTest.php
+
+      # ── E2E DE RENDER POR TELA — Patrimonio/Alocacoes (NASCE ADVISORY) ───────────────
+      # Mesma forma e mesmas razões do step de Bens acima (#7179). O buraco, medido em
+      # 2026-09-11 por `node scripts/qa/screen-coverage-map.mjs --screen Patrimonio/Alocacoes`:
+      # trio ✓ · RUNBOOK ✓ · 4/4 UC citados por teste — e `e2e (Browser) ✗`.
+      #
+      # DIFERENÇA vs Bens, e ela importa: lá a baseline de pixel EMPRESTAVA o crédito e2e, e o
+      # teste entrou pra substituir o empréstimo quando a baseline saiu (decisão [W] 2026-09-09).
+      # Aqui não há empréstimo nenhum — `Patrimonio/Alocacoes` nunca esteve no
+      # `visreg-screens.json` (medido: dos 52 entries, os de Patrimônio são `Index` e
+      # `Manutencoes`). Este step ADICIONA cobertura; não substitui nada e não toca baseline
+      # de tela alguma.
+      #
+      # Não semeia NADA no banco e não captura screenshot (não gera baseline). ADVISORY no
+      # nascimento (ADR 0261/0275) pelo motivo literal dos irmãos: Pest Browser é CI/CT-100 only
+      # (Tier 0 — `memory/proibicoes.md` §Ambiente) e NÃO pôde ser executado antes do PR.
+      # Promoção a ENFORCING = REMOVER o `continue-on-error`, após 2 verdes que EXECUTARAM,
+      # lidos NO LOG do job (`skipped` lido como verde é o presence-gate de sempre — é pra isso
+      # que serve o `always()`, idêntico aos steps acima).
+      - name: E2E de render · Patrimonio/Alocacoes (ADVISORY)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        id: e2e-patrimonio-alocacoes
+        continue-on-error: true
+        run: ./vendor/bin/pest tests/Browser/Patrimonio/AlocacoesRenderTest.php
 
       # ── E2E DE RENDER POR TELA — Financeiro/Caixa (NASCE ADVISORY) ───────────────────
       # Buraco medido em 2026-09-03 por `screen-coverage-map.mjs --screen Financeiro/Caixa/Index`:
@@ -1109,6 +1139,7 @@ jobs:
           A_RECIPES: ${{ steps.e2e-recipes.outcome }}
           A_VISAO_GERAL: ${{ steps.e2e-visao-geral.outcome }}
           A_REPAIR_PRODUCAO: ${{ steps.e2e-repair-producao.outcome }}
+          A_PATR_ALOCACOES: ${{ steps.e2e-patrimonio-alocacoes.outcome }}
         run: |
           resumo="$(mktemp)"
           {
@@ -1145,6 +1176,7 @@ jobs:
           registrar "E2E de render · Manufacturing/Recipes" "$A_RECIPES"
           registrar "E2E de render · Home/Visao geral" "$A_VISAO_GERAL"
           registrar "E2E de render · Repair/ProducaoOficina" "$A_REPAIR_PRODUCAO"
+          registrar "E2E de render · Patrimonio/Alocacoes" "$A_PATR_ALOCACOES"
 
           {
             echo ""
@@ -1490,7 +1522,8 @@ jobs:
              {"nome":"Fluxos visuais Financeiro (ENFORCING · L2.5)","outcome":"${{ steps.financeiro-flows.outcome }}"},
              {"nome":"Fluxos visuais Compras (ENFORCING · L2.5)","outcome":"${{ steps.compras-flows.outcome }}"},
              {"nome":"Fluxos visuais Sells/Create (ENFORCING · L2.5)","outcome":"${{ steps.sells-flows.outcome }}"},
-             {"nome":"Canário anti-verde-vazio","outcome":"${{ steps.canario.outcome }}"}]
+             {"nome":"Canário anti-verde-vazio","outcome":"${{ steps.canario.outcome }}"},
+             {"nome":"E2E de render · Patrimonio/Bens (ENFORCING)","outcome":"${{ steps.e2e-patrimonio-bens.outcome }}"}]
         run: |
           node scripts/governance/ui-impact.mjs --explain-failure \
             --scope="$SCOPE" --uncovered-screens="${UNCOVERED:-[]}" \
