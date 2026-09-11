@@ -43,10 +43,18 @@ it('AppShellV2 nao tem seletor de matiz - nada reescreve o accent em runtime (UI
 it('TweaksPanel nao oferece controle de cor - so vibe e densidade (UI-0034)', function () {
     $src = file_get_contents(accentRepoRoot().'/resources/js/Components/cockpit/TweaksPanel.tsx');
 
+    // ALVO DELIMITADO, de proposito: o cabecalho do arquivo carrega a NOTA HISTORICA da
+    // UI-0034, e ela CITA o rotulo removido pra explicar por que ele saiu. Medir o arquivo
+    // inteiro casaria o proprio comentario - o presence-gate que este repo ja catalogou
+    // ("o ratchet pegou o COMENTARIO que citava o anti-padrao, porque o guard casa texto",
+    // Manufacturing/Index.tsx). O JSX vive do `export function` pra baixo; e la que se mede.
+    $corpo = substr($src, (int) strpos($src, 'export function TweaksPanel'));
+    expect(strpos($src, 'export function TweaksPanel'))->not->toBeFalse();
+
     // Densidade CONTINUA: e layout do usuario. Cor nao: e token do DS.
-    expect($src)->not->toContain('onHue')
-        ->and($src)->not->toContain('Tom do accent')
-        ->and($src)->toContain('onDensity');
+    expect($corpo)->not->toContain('onHue')
+        ->and($corpo)->not->toContain('Tom do accent')
+        ->and($corpo)->toContain('onDensity');
 });
 
 it('o cockpitStyle nao escreve NENHUM token de cor - so densidade (UI-0034)', function () {
