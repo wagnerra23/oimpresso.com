@@ -23,6 +23,10 @@ related_adrs:
 > Worktree: `claude/pr-7224-review-563828` · HEAD `bfd95ba952` · base `origin/main` `85e9cbf12f` · `git rev-parse --is-shallow-repository` = `false`.
 > Nenhum arquivo do lote foi editado; nenhum commit/push/stash/checkout. Árvore limpa ao final (`git status --short` vazio).
 
+## TL;DR
+
+Refutação GT-G5 rodada 1 do lote `memory/requisitos/**` do PR #7224 (gerador Codex): **REPROVADO** — 189/1387 pares (13,63%): 49 paths fabricados (141 pares), 15 fatos datados falsificados, 28 hunks de prosa reescrita, 4 âncoras no dono errado, 1 sha divergente. PII 0 hits (controle positivo mordeu). O conserto é do gerador; re-verificação do lote inteiro na rodada 2.
+
 ## Checklist §3 do protocolo
 
 - [x] Sessão fresca (sem nenhum contexto do gerador) — instância nova; proibição de abrir refutações anteriores cumprida
