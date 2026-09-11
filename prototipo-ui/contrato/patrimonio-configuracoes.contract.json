@@ -1,0 +1,61 @@
+{
+  "_nota": "Contrato de tela das Configuracoes do Patrimonio. Derivado da ANCORA resolvida pela porta canonica (`node prototipo-ui/ancora.mjs Patrimonio/Configuracoes`) — `prototipo-ui/cowork/patrimonio-page.jsx`, componente `AbaConfig` (:589-626), mais o rotulo da aba no shell (:842) — e NUNCA da tela. Mesmo modelo de `patrimonio-bens.contract.json` (PR #7176). Cada string foi medida nos DOIS lados com o matcher REAL do gate (`copyPresente`, extraido verbatim de `scripts/contrato-de-tela.mjs`) e, na tela, verificada FORA de comentario — a Catraca 2 casa contra o blob CRU do alvo (`stripComments` so roda na 2b), entao string que so existe em comentario deixa o gate verde por casar PROSA. UMA candidata caiu nisso e NAO entrou: `asset.settings` casa so na linha :2, que e o comentario de cabecalho da tela.",
+  "tela": "Patrimonio/Configuracoes",
+  "fonte": "prototipo-ui/cowork/patrimonio-page.jsx",
+  "alvo": [
+    "resources/js/Pages/Patrimonio/Configuracoes.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "cabecalho",
+      "copy": [
+        "Configurações"
+      ]
+    },
+    {
+      "id": "subnav",
+      "copy": []
+    },
+    {
+      "id": "prefixos",
+      "copy": [
+        "Prefixos de código",
+        "Cada sequência é por empresa",
+        "Mudar o prefixo",
+        "não renumera",
+        "Prefixo do código de alocação"
+      ]
+    },
+    {
+      "id": "notificacoes",
+      "copy": []
+    },
+    {
+      "id": "acoes",
+      "copy": [
+        "Salvar configurações"
+      ]
+    }
+  ],
+  "ordem": [
+    "cabecalho",
+    "subnav",
+    "prefixos",
+    "notificacoes",
+    "acoes"
+  ],
+  "_gap_vs_ancora": [
+    "As entradas abaixo existem NA ANCORA e NAO na tela (ou divergem). Ficam AQUI, com a razao de cada, em vez de dentro de `secoes` — pinar tudo hoje deixaria o gate VERMELHO PERMANENTE, e a decisao [W] de 2026-08-21 (proposal `2026-08-21-ponto-contratos-retidos-decisao-w.md` §7) diz que contrato vermelho permanente treina o time a ignorar gate. Cada uma migra pra `secoes` quando a tela passar a atende-la.",
+    "OS 3 INTERRUPTORES `Garantia expirando em 30 dias` · `Bem enviado ou devolvido de manutenção` · `Alocação registrada pro colaborador` — o prototipo (:612-619) desenha 3 `Switch`. Non-Goal DECLARADO no charter (:70-73) com razao MEDIDA: dois deles NAO TEM BACKEND — nenhuma coluna, nenhum job, nenhuma `Notification`. As duas que existem sao `AssetSentForMaintenance` e `AssetAssignedForMaintenance`, e a tela as expoe como dois Cards NOMEADOS, nao como interruptor.",
+    "TITULO `Notificações` — o prototipo (:610) tem UMA secao com esse `h3`; a tela quebrou em DOIS Cards com titulo proprio (`Bem enviado para manutenção` :336 e `Manutenção atribuída a um responsável` :389), que sao os nomes das duas `Notification` reais. Nao ha literal compartilhado, entao a secao `notificacoes` do contrato tem copy VAZIA de proposito: ela ancora a POSICAO do bloco (ordem entre `prefixos` e `acoes`), que e correspondencia estrutural real, sem fingir copy que os dois lados nao dividem.",
+    "PREFIXO `Prefixo do código do ativo` — o prototipo (:604) diz `ativo`; a tela (:302) diz `Prefixo do código do bem`. Divergencia de VOCABULARIO do dominio (`ativo` vs `bem`). Decisao de copy = [W].",
+    "PREFIXO `Prefixo do código de revogação` — o prototipo (:606) diz `revogação`; a tela (:316) diz `de devolução`. Mesmo eixo `revogar`/`devolver` que o contrato da irma Alocacoes registrou. ⚠️ Aqui tem uma camada a mais: o CAMPO continua sendo `revoke_code_prefix`, entao rotulo e chave ja divergem HOJE na propria tela. Decisao de vocabulario = [W].",
+    "TRECHO `o que já existe` — ⚠️ NAO e divergencia, e ARTEFATO DE CASAMENTO. A frase e a MESMA nos dois lados; na tela (:294-295) ela quebra de linha entre `o` e `que`, e o matcher casa literal contiguo. Declara-la reprovaria o gate por formatacao de fonte, nao por fidelidade. Por isso o contrato declara os pedacos que sobrevivem a quebra (`Cada sequência é por empresa`, `Mudar o prefixo`, `não renumera`) e deixa a frase inteira aqui.",
+    "AJUDA `PAT-0012 é o próximo` (e as irmas `ALO-0032`, `REV-0013`) — o prototipo (:604-606) mostra o proximo codigo ao lado de cada prefixo. Non-Goal DECLARADO (charter :78-80): a sequencia e calculada na gravacao do bem e nao ha endpoint que a exponha sem duplicar a regra.",
+    "RODAPE `Retenção do histórico de alocação: 5 anos (Config/retention.php).` — o prototipo (:623) mostra a linha de retencao. Non-Goal DECLARADO (charter :74-77) com DUAS razoes: ela aponta a thread 05, BARRADA pela lapide §5 de 2026-07-27 (num ERP nao se apaga PII), e as tabelas que aquele arquivo declara (`am_assets`, `am_maintenance_logs`) NAO EXISTEM — migration nenhuma as cria.",
+    "ESTADO SEM PERMISSAO `Configuração é do gestor do patrimônio` + `asset.settings` — o prototipo (:595-598) desenha um estado proprio pra quem nao tem `asset.settings`; a tela guarda por `is_admin` no servidor. ⚠️ ARMADILHA VERIFICADA: `asset.settings` CASA no `.tsx`, mas so na linha :2 — comentario de cabecalho declarando a rota. Declara-la deixaria o gate verde por casar prosa. Ficou fora.",
+    "PREFIXO EXTRA da tela `Prefixo do código de manutenção` (:323) — a tela tem 4 prefixos, o prototipo tem 3. NAO e gap da tela: e o prototipo que esta ATRAS do backend. Registrado aqui pra nao virar 'divergencia a consertar' na leitura seguinte; o charter (:131-133) ja o declara como uma das 3 divergencias conhecidas.",
+    "seção `subnav` — copy VAZIA de proposito, igual as irmas. O charter (:55, :102) e explicito: a sub-navegacao DERIVA de `shell.menu` via `_shared/PatrimonioSubNav`. O prototipo desenha 7 abas, das quais 2 (`Garantias`, `Auditoria`) NAO tem rota (`D-GARANTIAS`/`D-AUDITORIA`). Pinar rotulo aqui criaria uma segunda fonte pra mesma lista.",
+    "NAO-DECLARADO DE PROPOSITO (copy que existe na TELA e nao no componente-fonte): `Prefixo do código do bem`, `Prefixo do código de devolução`, `Prefixo do código de manutenção`, `Bem enviado para manutenção`, `Manutenção atribuída a um responsável`, `Assunto do e-mail`, `Corpo do e-mail (HTML)`, `Destinatários`. Medido com o componente ISOLADO (:589-626) como fonte: todas dao FONTE:NAO. Declara-las seria derivar da tela."
+  ]
+}

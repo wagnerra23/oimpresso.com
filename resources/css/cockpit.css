@@ -279,6 +279,24 @@
   cursor: default;
 }.cockpit .sb-dd-foot:hover { background: var(--sb-hover); color: var(--sb-text-hi); }
 
+/* Reset de cascata — os itens do dropdown viraram <button> pra que
+   role="menuitemradio"/"menuitem" seja verdadeiro (focável por teclado). O UA
+   declara font-size/font-family/background/border/text-align/width em <button>,
+   e declaração do UA vence HERANÇA: sem este reset, `.sb-dd-i` (que herda os
+   12.5px de `.sb-dd`) ia a 13.33px e encolhia pro conteúdo — 18 divergências
+   de computed style, medidas. `:where()` custa 0, então a regra pesa (0,1,1) e
+   perde pra `.cockpit .sb-dd-i` (0,2,0): só o que a classe NÃO declara cai
+   aqui. Especificidade MAIOR inverteria o erro — `_saida-01.md` §Especificidade. */
+.cockpit button:where(.sb-dd-i, .sb-dd-foot) {
+  appearance: none;
+  font: inherit;
+  background: none;
+  border: 0;
+  text-align: start;
+  width: 100%;
+  display: block;
+}
+
 /* Tabs Chat/Menu */.cockpit .sb-tabs {
   display: flex;
   gap: 2px;

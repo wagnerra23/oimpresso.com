@@ -563,15 +563,15 @@ export default function AppShellV2({
             No MOBILE ela monta sempre — lá o menu é drawer off-canvas e `hidden` não
             se aplica (mesma condição do protótipo, `app.jsx`). */}
         {(isMobile || sidebarMode !== 'hidden') && (
-          <aside className={`sb${renderSidebarMode === 'rail' ? ' sb--rail' : ''}`}>
-            <div className="sb-top">
+          <aside className={`sb${renderSidebarMode === 'rail' ? ' sb--rail' : ''}`} data-contract="sb-modos">
+            <div className="sb-top" data-contract="sb-topo">
               <CompanyPicker businesses={business.opcoes} fallbackNome={business.nome} />
             </div>
             {/* Alerta cert NFe vencendo/vencido (US-NFE-001 último item) — só renderiza
                 em estados críticos via shared prop shell.nfe_cert_status. Silencioso
                 quando OK ou business não emite NFe. */}
             <NfeCertBadge />
-            <nav className="sb-body" aria-label="Navegação principal">
+            <nav className="sb-body" aria-label="Navegação principal" data-contract="sb-corpo">
               <SidebarMenu items={shellMenu} mode={renderSidebarMode} />
             </nav>
             <SidebarFooter
@@ -589,6 +589,7 @@ export default function AppShellV2({
             <button
               type="button"
               className="sb-collapse-handle"
+              data-contract="sb-alcas"
               onClick={toggleSidebarMode}
               title={sidebarMode === 'rail' ? 'Expandir sidebar (⌘\\)' : 'Recolher sidebar (⌘\\)'}
               aria-label={sidebarMode === 'rail' ? 'Expandir sidebar' : 'Recolher sidebar'}
