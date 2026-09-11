@@ -54,8 +54,8 @@ import { tmpdir } from 'node:os';
 
 const HERE = dirname(fileURLToPath(import.meta.url));            // scripts/design-sync/
 const ROOT = resolve(HERE, '..', '..');                          // raiz do repo
-const DIR_ALVOS = join(ROOT, 'prototipo-ui', 'alvos');
-const DESIGN_DIFF = join(ROOT, 'prototipo-ui', 'design-diff.mjs');
+const DIR_ALVOS = join(ROOT, 'governance', 'design', 'targets');
+const DESIGN_DIFF = join(ROOT, 'scripts', 'design', 'design-diff.mjs');
 
 const argv = process.argv.slice(2);
 const flag = (n) => argv.includes(n);

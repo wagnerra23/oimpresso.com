@@ -26,7 +26,7 @@ git(root, ['init', '-q']);
 git(root, ['config', 'user.email', 'test@test.local']);
 git(root, ['config', 'user.name', 'test']);
 
-const protoDir = join(root, 'prototipo-ui', 'cowork');
+const protoDir = join(root, 'prototipo-ui', 'cowork', 'Wagner');
 const vivoDir = join(root, 'resources', 'js', 'Pages', 'Fixture');
 const reqDir = join(root, 'memory', 'requisitos', 'Fixture');
 mkdirSync(protoDir, { recursive: true });
