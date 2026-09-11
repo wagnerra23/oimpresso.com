@@ -416,10 +416,7 @@ function Fatura({ A, aviso, carregando }) {
 
   return (
     <>
-      <div className="hrm-seg" role="tablist">
-        <button className={aba === "esquemas" ? "on" : ""} onClick={() => setAba("esquemas")}>Esquemas de numeração</button>
-        <button className={aba === "layouts" ? "on" : ""} onClick={() => setAba("layouts")}>Layouts da fatura</button>
-      </div>
+      <window.CliSeg role="tablist" ariaLabel="Cadastros de fatura" value={aba} onChange={setAba} options={[{ key: "esquemas", label: "Esquemas de numeração" }, { key: "layouts", label: "Layouts da fatura" }]} />
 
       {aba === "esquemas" ? (
         <Grade g={g} cols={cols} linhas={linhas} carregando={carregando} altura={280} porPagina={6}

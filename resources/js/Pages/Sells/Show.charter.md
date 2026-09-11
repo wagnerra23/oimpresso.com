@@ -2,6 +2,7 @@
 id: resources-js-pages-sells-show-charter
 page: /sells/{id}
 component: resources/js/Pages/Sells/Show.tsx
+related_visual_comparison: memory/requisitos/Sells/show-visual-comparison.md
 related_prototype: n/a (herda PT-03 Detalhe; segue o Padrão de Tela)
 owner: wagner
 status: draft

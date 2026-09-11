@@ -166,10 +166,8 @@ function Tabela({ rep, cols, acoes, nota, apurado, todas, carregando, onLimpar, 
       <div className="rel-tabela-h">
         <span className="rel-cont">{todas.length} linhas apuradas · página {pagina} de {pageCount}</span>
         <span className="rel-acoes">
-          <span className="rel-dens" role="group" aria-label="Densidade">
-            <button className={"rel-dens-b" + (densidade === "comfortable" ? " on" : "")} onClick={() => setDensidade("comfortable")}>Confortável</button>
-            <button className={"rel-dens-b" + (densidade === "compact" ? " on" : "")} onClick={() => setDensidade("compact")}>Compacto</button>
-          </span>
+          <window.CliSeg ariaLabel="Densidade" size="sm" value={densidade} onChange={setDensidade}
+            options={[{ key: "comfortable", label: "Confortável" }, { key: "compact", label: "Compacto" }]} />
           <Colunas cols={cols} ocultas={ocultas} setOcultas={setOcultas} />
           <button className="rel-btn" onClick={() => onAviso("CSV gerado — o download real sai no Inertia (F3).")}><Ic name="sheet" size={12} /> CSV</button>
           <button className="rel-btn" onClick={() => onAviso("PDF gerado — o download real sai no Inertia (F3).")}><Ic name="doc" size={12} /> PDF</button>
@@ -318,8 +316,9 @@ function Relatorio({ rep, onVoltar }) {
           </div>
         </div>}
 
-      {(rep.tabs || []).length > 0 && TabBar &&
-        <TabBar tabs={rep.tabs.map((t) => ({ key: t.key, label: t.label }))} active={aba} onChange={setAba} />}
+      {(rep.tabs || []).length > 0 &&
+        <window.CliTabs ariaLabel="Abas do relatório" pad={0} active={aba} onChange={setAba}
+          tabs={rep.tabs.map((t) => ({ key: t.key, label: t.label }))} />}
 
       {cols && <Tabela rep={repEfetivo} cols={cols} acoes={acoes} apurado={apurado} todas={linhas} carregando={carregando}
         onLimpar={() => { setValores({}); reapurar("Filtros limpos.", {}); }}

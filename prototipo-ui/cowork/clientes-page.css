@@ -315,7 +315,11 @@
   .cli-pageheader-icon{ display: none; }
   .cli-pageheader-title-wrap h1{ font-size: 14pt; font-weight: 700; }
   .cli-pageheader-title-wrap p{ font-size: 10pt; color: #444; }
-  .cli-pageheader-r, .cli-moduletopnav{ display: none; }
+  /* !important porque o TabBar do DS escreve display:flex INLINE, e inline vence
+     folha — inclusive dentro de @media print. Sem isto toda fileira de abas do app
+     saía no papel (medido 2026-09-01). O alvo é .ds-tabbar: o nav É um TabBar do DS;
+     .cli-moduletopnav fica só pelo markup legado que ainda não passou pelo adaptador. */
+  .cli-pageheader-r, .cli-moduletopnav, .ds-tabbar{ display: none !important; }
 }
 
 /* ════════════════════════════════════════════════════════════════════════════

@@ -85,6 +85,16 @@ return [
         'business_ids' => $parseBizIds('MWART_REPAIR_JOB_SHEET_INDEX_BIZ'),
     ],
 
+    // Onda 1 do export Repair (2026-09-04) — Configurações (RepairSettingsController@index).
+    // Cobre 2 das 5 abas do Blade legado: `repair_settings_tab` (store) e
+    // `jobsheet_settings_tab` (updateJobsheetSettings). As abas de Status e Modelos
+    // JÁ têm Page própria e viva — a Page nova aponta pra elas, não reimplementa.
+    // RUNBOOK: memory/requisitos/Repair/RUNBOOK-repair-settings.md
+    'repair_settings_index' => [
+        'enabled'      => env('MWART_REPAIR_SETTINGS_INDEX', false),
+        'business_ids' => $parseBizIds('MWART_REPAIR_SETTINGS_INDEX_BIZ'),
+    ],
+
     // Wave 3 B6 Repair — 2026-05-15 (MWART massiva): show/edit/create/add-parts
     // + Repair/Show (venda-de-reparo). Cliente piloto canary biz=1 (Wagner WR2).
     // ROTA LIVRE (biz=4) NÃO usa Repair — sem ROI canary lá.

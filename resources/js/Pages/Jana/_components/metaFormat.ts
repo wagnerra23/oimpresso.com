@@ -59,6 +59,37 @@ export interface Meta {
    * exatamente os casos em que o farol é 'cinza'.
    */
   projecao?: Projecao | null;
+  /**
+   * PR-3 (RUNBOOK-metas §9.4) — os tres campos abaixo vinham das Blades que o
+   * drawer absorve, e ate 2026-09-08 nao existiam no payload de `/ia`.
+   *
+   * Opcionais de proposito, pelo mesmo motivo do `farol`: durante a janela de
+   * deploy o payload antigo ainda chega sem eles, e a tela precisa degradar em
+   * vez de quebrar.
+   */
+  /** `metas/show.blade.php` — de onde a meta veio (seed, cliente, plataforma). */
+  origem?: string | null;
+  /**
+   * Escopo da meta. `null` = meta de PLATAFORMA, que vale para todos os negocios
+   * — a consulta de `/ia` inclui essas de proposito (`orWhereNull`). Vem CRU:
+   * a frase ("Plataforma" x "Este negocio") e decisao da tela.
+   */
+  business_id?: number | null;
+  /**
+   * `fontes/show.blade.php` — a configuracao que a Jana usa pra calcular o
+   * realizado. `null` = meta sem fonte gravada, estado REAL (sem fonte nao apura),
+   * nunca "nao tenho permissao": o eager-load dispensa o escopo do parent
+   * justamente pra que meta de plataforma nao minta ausencia.
+   */
+  fonte?: MetaFonte | null;
+}
+
+/** Shape de `jana_meta_fontes` — so-leitura na tela (o editor e a US-COPI-040). */
+export interface MetaFonte {
+  driver: string;
+  cadencia: string;
+  /** JSON livre por driver — a tela imprime, nao interpreta. */
+  config_json: unknown;
 }
 
 /** Shape de `ApuracaoService::projecao()`. */

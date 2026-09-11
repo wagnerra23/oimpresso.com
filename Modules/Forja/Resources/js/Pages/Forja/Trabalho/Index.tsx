@@ -37,7 +37,11 @@
 //
 //   · checkbox + `.fj-bulkbar`  → mutação em massa; sem endpoint, e o charter
 //                                 proíbe escrita fora do `TaskCrudService` (FSM)
-//   · `Papéis` e `Perguntar ✦`  → abrem painéis (runbook e IA) que não existem
+//   · `Perguntar ✦`             → abre o painel de IA, que não existe
+//     (`Papéis` SAIU desta lista em 2026-09-03: o painel virou
+//      `_components/ForjaRunbook.tsx` e o botão está montado na `fj-toolbar`.
+//      O painel é leitura pura, derivada de `trabalhoTokens.ts` — sem query,
+//      sem escrita, logo sem a afordância falsa que motivou a ausência.)
 //   · `carry ×N` e `frescor`    → campos que `mcp_tasks` não tem
 //   · atalhos `j`/`k`/`↵`/`?`   → a hint do rodapé sairia anunciando teclado que
 //                                 esta tela não escuta (afordância falsa, LC-15)
@@ -57,6 +61,7 @@ import { Segmented } from '@/Components/ui/segmented';
 import ForjaHub from '../../team-mcp/Forja/_components/ForjaHub';
 import TrabalhoQuadro, { type EixoQuadro } from './_components/TrabalhoQuadro';
 import TrabalhoLista, { type TarefaLista } from './_components/TrabalhoLista';
+import ForjaRunbook from './_components/ForjaRunbook';
 import { PAPEIS as PAPEL_INFO } from './_components/trabalhoTokens';
 import { LayoutGrid, List as ListIcon, GanttChartSquare, Search, Star as StarIcon } from 'lucide-react';
 
@@ -129,6 +134,7 @@ export default function Trabalho({
   const [fixados, setFixados] = useState<Set<string>>(() => new Set(lerLocal<string[]>('oimpresso.forja.pin', [])));
   const [visoes, setVisoes] = useState<{ name: string; qs: string }[]>(() => lerLocal('oimpresso.forja.views', []));
   const [colapsados, setColapsados] = useState<Set<string>>(() => new Set());
+  const [runbookAberto, setRunbookAberto] = useState(false);
 
   useEffect(() => { gravarLocal('oimpresso.forja.denso', denso); }, [denso]);
   useEffect(() => { gravarLocal('oimpresso.forja.fav', [...favoritos]); }, [favoritos]);
@@ -330,6 +336,13 @@ export default function Trabalho({
               <StarIcon className={'fj-fav-glyph' + (favOnly ? ' on' : '')} size={13} fill={favOnly ? 'currentColor' : 'none'} aria-hidden />
               favoritos
             </button>
+            {/* "Papéis" — o botão que a lista de ausências acima citava. Abre painel
+                de LEITURA, sem query e sem escrita: nada aqui muda de estado no
+                servidor, então não há afordância falsa a criar. */}
+            <button type="button" className="fj-gb-btn" onClick={() => setRunbookAberto(true)}
+              aria-haspopup="dialog" aria-expanded={runbookAberto} data-testid="trabalho-papeis">
+              Papéis
+            </button>
             {saude && (
               <button type="button" className="fj-fchip" onClick={() => aplicar({ saude: null })} data-testid="trabalho-chip-saude">
                 {SAUDE_LABEL[saude] ?? saude} ✕
@@ -392,7 +405,15 @@ export default function Trabalho({
         )}
 
         <div className="fj-totalbar" data-testid="trabalho-total">
-          <span><b>{totais.n}</b> issues</span>
+          {/* A ÚNICA região viva da tela. Filtrar (KPI, papel, busca, ★) troca a
+              lista inteira sem mover o foco — sem isto o leitor de tela não é
+              avisado de nada, e a pessoa fica sem saber se o clique fez efeito.
+              `role="status"` já implica `aria-live="polite"`; o atributo vai
+              explícito porque a medição que motivou este PR contou `aria-live`.
+              Fica NESTE span, não na barra: `role="status"` é atômico, e na
+              barra inteira todo pin re-anunciaria os quatro números. Aqui só o
+              que muda com o filtro é anunciado. */}
+          <span role="status" aria-live="polite"><b>{totais.n}</b> issues</span>
           <span><b>{totais.p0}</b> P0</span>
           <span><b>{totais.bloqueados}</b> bloqueados</span>
           <span className="fj-total-rank" title="Ordem vem do backend (rank = estado do trabalho, depois prioridade). Fixado fura a fila.">
@@ -400,6 +421,8 @@ export default function Trabalho({
             {fixados.size > 0 && <b> + {fixados.size} fixado{fixados.size > 1 ? 's' : ''}</b>}
           </span>
         </div>
+
+        {runbookAberto && <ForjaRunbook onClose={() => setRunbookAberto(false)} />}
       </div>
     </AppShellV2>
   );

@@ -55,6 +55,9 @@ longo do tempo. O `score_composto` é candidato a 11ª métrica do scorecard SDD
 ## Trio do sistema imunológico SDD
 - **sdd-avaliar** (este) — audita o PROCESSO (estrutura vs correção).
 - **Refutador G5** (`PROTOCOLO-REFUTADOR-BACKFILL.md`) — valida cada LOTE IA antes do merge.
+  Caminho executável (§7 do protocolo, 2026-09-06): `Workflow({ scriptPath: ".claude/workflows/refutador-gt-g5.js", args: { pr, gerador, tipo, resume } })`
+  — 1 refutador (instância nova, fable) por rodada; reprovado devolve os refutados e PARA (não edita o lote);
+  aprovado grava a entry no ledger e cola o `ledger-check --enforce`. Selftest: `scripts/governance/refutador-gt-g5-workflow.test.mjs`.
 - **Reprodução** (DB scratch / counterfactual) — valida cada DIAGNOSE custosa antes de virar P0.
 
 Regra de ouro: nenhuma onda fecha, nenhum gate vira required, e nenhuma diagnose vira

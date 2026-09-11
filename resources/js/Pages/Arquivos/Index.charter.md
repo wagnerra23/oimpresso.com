@@ -7,6 +7,7 @@ parent_module: Arquivos
 related_us: [US-ARQ-013]
 related_adrs: [0123-modules-arquivos-backbone, 0093-multi-tenant-isolation-tier-0, 0360-deprecacao-admin-center-supersede-0122]
 related_prototype: prototipo-ui/cowork/arquivos-page.jsx
+related_visual_comparison: memory/requisitos/Arquivos/Index-visual-comparison.md
 tier: B
 charter_version: 2
 ---

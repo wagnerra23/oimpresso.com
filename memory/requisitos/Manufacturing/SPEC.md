@@ -44,8 +44,11 @@ depois que um insumo subiu
 - [x] Ficha técnica PT-07 em duas variantes; a **via de produção** não mostra nenhum valor de
       compra (R-22)
 - [x] Nenhuma rota Blade legada removida; `?legacy=1` devolve a tela antiga no mesmo endereço
-- [ ] Smoke real em prod (`curl` + screenshot) — só existe depois do deploy; receita no
-      [RUNBOOK-recipes.md](RUNBOOK-recipes.md) §5
+- [x] Smoke real em prod (`curl` + screenshot) — feito 2026-09-03: `curl -sv` nas 4 rotas do
+      §5 (sem cookie) devolve `302→/login` nas quatro; screenshot autenticado (Chrome MCP,
+      sessão WR2 Sistemas) confirma `/manufacturing/recipe` e `?legacy=1` renderizando a tela
+      certa, 0 erro de console, e as rotas Blade adjacentes (`production`/`settings`)
+      inalteradas. Registrado em `Recipes.charter.md` (`smoke:`)
 
 **Fora do escopo desta US** (declarado, com a razão):
 - Atualizar preço de venda em massa — §18.1 do handoff proíbe o `custo × 2` do protótipo e a regra
@@ -71,17 +74,33 @@ depois que um insumo subiu
 **Quero** ver quanto custou produzir no período, agrupado por produto
 **Para** saber para onde o dinheiro de produção foi antes de fechar o mês
 
-**Fonte:** handoff §4.6. **Backend: já existe** — `ProductionController@getManufacturingReport`.
+**Fonte:** handoff §4.6. **Backend original: `ProductionController@getManufacturingReport`** —
+achado ao construir (2026-09-03): esse método legado **não agrupa por produto** (só 3 totais
+soltos: `total_production`/`total_production_cost`/`total_sold`). O agrupamento por produto é
+capacidade **nova**: `ProductionService::reportByProduct()`, que REUSA
+`RecipeBomService::calculateUnitCost()` (já testado em US-MANU-001) — não reimplementa a
+fórmula de custo. Prova algébrica em `RUNBOOK-report.md §1`.
 **Custo: o menor da fila** — leitura pura, uma tabela agrupada + barra proporcional, zero escrita.
 
-**Implementado em:** _pendente_
+**Implementado em:** `resources/js/Pages/Manufacturing/Report.tsx` ·
+`Modules/Manufacturing/Http/Controllers/ProductionController.php` (`@reportV2`) ·
+`Modules/Manufacturing/Services/ProductionService.php` (`reportByProduct`) — endereço canônico
+`/manufacturing/report` desde o **cutover de 2026-09-04** (pedido [F], "sem rotas alternativas";
+nasceu aditiva em `/v2/report`, que virou 301). O Blade responde no MESMO endereço com
+`?legacy=1` — nenhuma rota removida.
+
+**Testado em:** `Modules/Manufacturing/Tests/Feature/Wave30ReportInertiaTest.php`
+(`@covers-us US-MANU-002`) — ⚠️ escrito e com `php -l` limpo, **ainda não rodou** (Pest só roda
+no CT 100, proibicoes.md). Verificação real fica pendente até a próxima sessão rodar lá.
 
 **Definition of Done:**
-- [ ] Período (De/Até) + `Só finalizadas` com default **ligado**
-- [ ] Agrupa por produto: ordens · quantidade · custo total · custo médio · `% do período` com barra
-- [ ] Ordenado por custo desc
-- [ ] Rodapé verbatim: `Custo de produção do período R$ X · lançado como entrada de estoque no Financeiro`
-- [ ] Divisão por zero no `% do período` devolve 0 (§7.3)
+- [x] Período (De/Até) + `Só finalizadas` com default **ligado** (`ProductionController::reportV2`)
+- [x] Agrupa por produto: ordens · quantidade · custo total · custo médio · `% do período` com barra
+- [x] Ordenado por custo desc
+- [x] Rodapé verbatim: `Custo de produção do período R$ X · lançado como entrada de estoque no Financeiro`
+- [x] Divisão por zero no `% do período` devolve 0 (§7.3)
+- [ ] Pest rodado no CT 100 (verde) — pendente
+- [ ] Smoke real em prod (`curl` + screenshot) — pendente, receita em `RUNBOOK-report.md §3`
 
 ### US-MANU-003 · Configurações do módulo
 
@@ -91,16 +110,32 @@ depois que um insumo subiu
 
 **Fonte:** handoff §4.7 (cartões 1 e 3 — o cartão 2 é ferramenta do protótipo e **não existe** no app).
 **Backend: já existe** — `SettingsController@index/@store`. **Custo: baixo** — 3 campos, mas **escreve**.
+Confirmado ao construir (2026-09-03): o `store()` já lê exatamente as 3 chaves e já grava
+scoped (`Business::where('id', $business_id)`), e o `redirect()->back()` dele já é compatível
+com Inertia — **nenhuma linha do backend de escrita mudou**. Só o `index()` ganhou variante
+Inertia (`indexV2`).
 
-**Implementado em:** _pendente_
+**Implementado em:** `resources/js/Pages/Manufacturing/Settings.tsx` ·
+`Modules/Manufacturing/Http/Controllers/SettingsController.php` (`@indexV2` — o `@store` é
+reusado sem alteração) — endereço canônico `/manufacturing/settings` desde o **cutover de
+2026-09-04** (nasceu em `/v2/settings`, que virou 301). O Blade responde no MESMO endereço com
+`?legacy=1`; o POST nunca mudou.
+
+**Testado em:** `Modules/Manufacturing/Tests/Feature/Wave31SettingsInertiaTest.php`
+(`@covers-us US-MANU-003`) — ⚠️ escrito, `php -l` limpo, **ainda não rodou** (Pest roda na lane
+de CI da PR).
 
 **Definition of Done:**
-- [ ] As 3 chaves reais de `business.manufacturing_settings` (§16): `ref_no_prefix` ·
+- [x] As 3 chaves reais de `business.manufacturing_settings` (§16): `ref_no_prefix` ·
       `disable_editing_ingredient_qty` · `enable_updating_product_price`
-- [ ] Botão `Atualizar` **desabilitado enquanto nada mudou** (R-24)
-- [ ] Rodapé com a versão do módulo (`System::getProperty('manufacturing_version')`)
-- [ ] Cartão "Integrações" (3 links) · o cartão de permissões simuladas **não** entra
-- [ ] Escrita scoped por `business_id`
+- [x] Botão `Atualizar` **desabilitado enquanto nada mudou** (R-24) — e durante o envio
+- [x] Rodapé com a versão do módulo (`System::getProperty('manufacturing_version')`)
+- [x] Cartão "Integrações" (3 links reais: `/products` · `/purchases` · `/manufacturing/production`) ·
+      o cartão de permissões simuladas **não** entra
+- [x] Escrita scoped por `business_id` (herdada do `store()` legado, com UC-CFG-04 travando)
+- [ ] Pest verde na lane de CI — pendente
+- [ ] Smoke real em prod (`curl` + screenshot + **submit de verdade**) — pendente, receita em
+      `RUNBOOK-settings.md §3`
 
 ### US-MANU-004 · Ordens de produção — as 8 colunas e as duas marcas do §4.5
 
@@ -111,15 +146,32 @@ depois que um insumo subiu
 **Fonte:** handoff §4.5 + o diff do §15.1. **A tela JÁ EXISTE** (`Pages/Manufacturing/Index.tsx`,
 Wave J) — esta onda é **emenda**, não tela nova. **Custo: médio-baixo.**
 
-**Implementado em:** _pendente_ (a tela existe; o diff do §15.1 é que está pendente)
+**Implementado em:** `resources/js/Pages/Manufacturing/Index.tsx` (emenda) ·
+`Modules/Manufacturing/Services/ProductionService.php` (`enrichProductionRows` — enriquecimento
+em LOTE) · `resources/js/Components/shared/StatusBadge.tsx` (domínio `producao` novo)
+
+**Testado em:** `Modules/Manufacturing/Tests/Feature/Wave32ProducaoColunasTest.php`
+(`@covers-us US-MANU-004`) — 5 UC; Pest roda na lane de CI da PR.
+
+> ⚠️ **O "congelado" desta tela, com o dado que EXISTE hoje:** o protótipo distingue custo
+> `vivo` de `congelado` (`op.custoSnap`), mas **`custoSnap` não existe no banco** — conferido:
+> `transactions` só tem `mfg_production_cost`/`mfg_production_cost_type`/`mfg_wasted_units`/
+> `mfg_is_final`. Quem o introduz é a US-MANU-007. Então esta tela mostra
+> `transactions.final_total` (o valor GRAVADO na criação) e usa o `fix` para marcar a ordem
+> finalizada. Consequência declarada: o rodapé soma valor gravado, **diferente** do Relatório
+> (US-MANU-002), que recalcula pelo preço de hoje. Detalhe em `RUNBOOK-producao.md §1`.
 
 **Definition of Done:**
-- [ ] 8 colunas do §4.5 (hoje são 5): + Produto com `N ingredientes · quem lançou`, Qtd, Custo unit.
-- [ ] Sufixo `fix` em ordem finalizada, com `title="custo congelado na data da produção"` (R-21)
-- [ ] Rodapé: `N ordens · custo do período R$ X · ordens finalizadas mostram o custo congelado na data`
-- [ ] `Só finalizadas` como checkbox (hoje só existe como KPI clicável)
-- [ ] `StatusPill` local → `StatusBadge kind="producao"` (o componente autoriza estender `mappings`)
-- [ ] Os 4 KPIs atuais **não** mudam — os de §4.2 são da aba Receitas
+- [x] 8 colunas do §4.5 (hoje são 5): + Produto com `N ingredientes · quem lançou`, Qtd, Custo unit.
+- [x] Sufixo `fix` em ordem finalizada, com `title="custo congelado na data da produção"` (R-21)
+- [x] Rodapé: `N ordens · custo do período R$ X · ordens finalizadas mostram o custo congelado na data`
+- [x] `Só finalizadas` como checkbox (hoje só existe como KPI clicável) — os dois governam o mesmo filtro
+- [x] `StatusPill` local → `StatusBadge kind="producao"` (domínio adicionado ao componente compartilhado)
+- [x] Os 4 KPIs atuais **não** mudam — os de §4.2 são da aba Receitas
+- [x] **Achado ao construir:** o `optional($p->location)->name` do map era **N+1 desde a Wave J**
+      (uma query por linha). Corrigido com eager-load de `location`; UC-OP-03 trava a regressão.
+- [ ] Pest verde na lane de CI — pendente
+- [ ] Smoke real em prod (`curl` + screenshot da tabela de 8 colunas) — pendente
 
 ### US-MANU-005 · Insumos — impacto reverso e simulador de preço
 
@@ -131,16 +183,38 @@ Wave J) — esta onda é **emenda**, não tela nova. **Custo: médio-baixo.**
 cálculo novo; precisa de um método no `RecipeBomService` com o JOIN de tenant e teste.
 Sem isso, a aba não sai."* **Custo: médio** — leitura pura, mas nasce com backend novo e Tier 0.
 
-**Implementado em:** _pendente_ — bloqueada pelo backend
+**Implementado em:** `resources/js/Pages/Manufacturing/Insumos.tsx` ·
+`Modules/Manufacturing/Http/Controllers/RecipeController.php` (`@insumos`) ·
+`Modules/Manufacturing/Services/RecipeBomService.php` (`usosDoInsumo` + `listInsumosComUso`) —
+endereço canônico `/manufacturing/insumos` desde o **cutover de 2026-09-04** (nasceu em
+`/v2/insumos`, que virou 301). **O backend que o §18.3 declarava faltar agora existe.**
+
+**Testado em:** `Modules/Manufacturing/Tests/Feature/Wave33InsumosTest.php`
+(`@covers-us US-MANU-005`) — 6 testes; Pest roda na lane de CI da PR.
+
+> ⚠️ **Desvio DECLARADO do protótipo (a simulação):** o protótipo aproxima o custo simulado
+> somando um delta (`total + qtd × preço × pct`). Esta tela **recalcula** com
+> `calculateCost()` e o preço novo, porque o atalho **subestima** quando
+> `production_cost_type = percentage` (o extra é % dos ingredientes e sobe junto). Medido:
+> receita de 92,00 + 18% com insumo +10% dá **119,416** recalculando e **117,76** pelo atalho.
+> Razão completa em `RUNBOOK-insumos.md §1`; travado por UC-INS-02.
+
+> ⚠️ **"Insumo" aqui é derivado**, não entidade: é toda variação que aparece como ingrediente
+> nas receitas do tenant (o app não tem flag de matéria-prima). Efeito: o estado "sem receita"
+> do protótipo não ocorre. Declarado em `RUNBOOK-insumos.md §2` — se [W] quiser o catálogo
+> inteiro, é outra decisão de escopo.
 
 **Definition of Done:**
-- [ ] `RecipeBomService::usosDoInsumo($variationId, $businessId)` com o JOIN de tenant
-      (`mfg_recipes → variations → products.business_id`) e teste que prova o isolamento
-- [ ] Tabela: nome · código · custo/unidade · estoque · **nº de receitas que o usam** · **maior peso**
-- [ ] Insumo sem receita mostra `—` e `sem receita`, e **não é clicável**
-- [ ] Drawer com simulador `-30%..+60%`, passo 5, default `+10%`
-- [ ] Nota verbatim sobre o consumo convertido à unidade base
-- [ ] A aba só aparece quando o backend existir — nada de aba vazia
+- [x] `RecipeBomService::usosDoInsumo($variationId, $businessId)` com o JOIN de tenant
+      (`mfg_recipes → variations → products.business_id`) e teste que prova o isolamento (UC-INS-01)
+- [x] Tabela: nome · código · custo/unidade · estoque · **nº de receitas que o usam** · **maior peso**
+- [~] Insumo sem receita mostra `—` e `sem receita`, e **não é clicável** — caminho de render
+      presente, mas **inalcançável** com a lista derivada (RUNBOOK §2, declarado)
+- [x] Drawer com simulador `-30%..+60%`, passo 5, default `+10%` — faixa clampada no SERVIDOR (UC-INS-05)
+- [x] Nota verbatim sobre o consumo convertido à unidade base
+- [x] A aba só aparece quando o backend existir — nada de aba vazia
+- [ ] Pest verde na lane de CI — pendente
+- [ ] Smoke real em prod (`curl` + screenshot + mexer no slider) — pendente
 
 ### US-MANU-006 · Editor de ingredientes
 
@@ -209,7 +283,7 @@ Então só vê registros com `business_id = A`
 ```
 
 **Implementação:** Controllers fazem `where('business_id', session('business.id'))`  
-**Testado em:** _lacuna — Modules/Manufacturing/Tests/Feature/PermissionsTest não existe (stub pendente; reconciliação 2026-07-01, cobertura a criar)_
+**Testado em:** `Modules/Manufacturing/Tests/Feature/MultiTenantIsolationTest.php` (cadeia `mfg_recipes.variation_id → variations.product_id → products.business_id`) — corrigido 2026-09-03, o teste já existia e a linha estava desatualizada.
 
 ### R-MANU-002 · Autorização Spatie `manufacturing.access_recipe`
 
@@ -220,7 +294,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('manufacturing.access_recipe')`  
-**Testado em:** _lacuna — Modules/Manufacturing/Tests/Feature/PermissionsTest não existe (stub pendente; reconciliação 2026-07-01, cobertura a criar)_
+**Testado em:** `Modules/Manufacturing/Tests/Feature/PermissionsTest.php` (dataset `manufacturing_permission_routes` — GET `/manufacturing/recipe`), criado 2026-09-03. Lane MySQL only (auto-skip em sqlite).
 
 ### R-MANU-003 · Autorização Spatie `manufacturing.add_recipe`
 
@@ -231,7 +305,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('manufacturing.add_recipe')`  
-**Testado em:** _lacuna — Modules/Manufacturing/Tests/Feature/PermissionsTest não existe (stub pendente; reconciliação 2026-07-01, cobertura a criar)_
+**Testado em:** `Modules/Manufacturing/Tests/Feature/PermissionsTest.php` (dataset `manufacturing_permission_routes` — GET `/manufacturing/recipe/create`), criado 2026-09-03.
 
 ### R-MANU-004 · Autorização Spatie `manufacturing.edit_recipe`
 
@@ -241,8 +315,14 @@ Quando ele tenta acessar a funcionalidade correspondente
 Então recebe `403 Unauthorized`
 ```
 
-**Implementação:** Controllers checam `$user->can('manufacturing.edit_recipe')`  
-**Testado em:** _lacuna — Modules/Manufacturing/Tests/Feature/PermissionsTest não existe (stub pendente; reconciliação 2026-07-01, cobertura a criar)_
+> ⚠️ **Achado 2026-09-03 (medido, não suposto):** hoje **não existe rota** que exercite este
+> gate. `Routes/web.php` faz `Route::resource('/recipe', ...)->except('edit', 'update')`, e
+> nenhuma rota manual referencia `UpdateRecipeRequest` (onde o `can('manufacturing.edit_recipe')`
+> vive). O gate é código real, só sem porta HTTP que o alcance — o gherkin acima descreve um
+> cenário hoje inalcançável via navegador.
+
+**Implementação:** `UpdateRecipeRequest::authorize()` checa `$user->can('manufacturing.edit_recipe')` — classe **não wired** a nenhuma rota  
+**Testado em:** `Modules/Manufacturing/Tests/Feature/PermissionsTest.php` (par permission+`can()` + trava que quebra se uma rota PUT/PATCH `/manufacturing/recipe/{id}` reaparecer), criado 2026-09-03. Não é teste HTTP — não há rota pra testar.
 
 ### R-MANU-005 · Autorização Spatie `manufacturing.access_production`
 
@@ -253,4 +333,4 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('manufacturing.access_production')`  
-**Testado em:** _lacuna — Modules/Manufacturing/Tests/Feature/PermissionsTest não existe (stub pendente; reconciliação 2026-07-01, cobertura a criar)_
+**Testado em:** `Modules/Manufacturing/Tests/Feature/PermissionsTest.php` (dataset `manufacturing_permission_routes` — GET `/manufacturing/production`), criado 2026-09-03.

@@ -1,0 +1,35 @@
+<!doctype html>
+<!-- @dsCard group="Components" name="TagChip" subtitle="Lowercase category chip — fixed semantic palette" viewport="620x160" -->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>TagChip</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<style>
+  body { padding: 18px; }
+  .row { display:flex; gap: 6px; align-items: center; margin-bottom: 14px; flex-wrap: wrap; }
+  .lbl { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--fg-2); width: 90px; }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/javascript">
+  const { TagChip } = window.OfficeImpressoPontoWR2DesignSystem_019dd0;
+  const h = React.createElement;
+  const cats = ['varejo','atacado','corporativo','evento','parceiro','agencia','governo','vip','reincidente'];
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    h(React.Fragment, null,
+      h('div', { className: 'row' }, h('span', { className: 'lbl' }, 'Categorias'),
+        cats.map((c) => h(TagChip, { key: c, label: c }))),
+      h('div', { className: 'row' }, h('span', { className: 'lbl' }, 'Removível'),
+        h(TagChip, { label: 'vip', removable: true }),
+        h(TagChip, { label: 'corporativo', removable: true }),
+        h(TagChip, { label: 'varejo', removable: true })),
+    )
+  );
+</script>
+</body>
+</html>

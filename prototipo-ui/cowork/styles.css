@@ -273,37 +273,49 @@ body{
 }
 .sb-dd-foot:hover{ background: var(--sb-hover); color: var(--sb-text-hi); }
 
-/* Tabs Chat/Menu */
-.sb-tabs{
-  display: flex;
-  gap: 2px;
-  padding: 8px;
-  border-bottom: 1px solid var(--sb-border);
+/* Alerta de certificado A1 NF-e — paridade com NfeCertBadge do vivo (após CompanyPicker,
+   antes do menu). Cores vêm inline do componente (exceção R-DS-002: status fixo de alerta,
+   valores copiados do vivo). Aqui fica só a caixa. */
+.sb-cert{
+  display: flex; align-items: center; gap: 8px;
+  width: calc(100% - 16px);
+  margin: 6px 8px; padding: 8px 10px;
+  border: 1px solid; border-radius: 8px;
+  font-family: inherit; font-size: 11px; font-weight: 500; line-height: 1.3;
+  text-align: left; cursor: pointer;
+  appearance: none; -webkit-appearance: none; box-sizing: border-box;
 }
-.sb-tab{
-  flex: 1 1 0;
-  appearance: none;
-  border: 0;
-  background: transparent;
-  color: var(--sb-text-dim);
-  padding: 6px 8px;
-  border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: default;
+.sb-cert .ic{ flex-shrink: 0; }
+.sb-cert-txt{ min-width: 0; flex: 1; display: grid; gap: 1px; }
+.sb-cert-txt b{ font-size: 11px; font-weight: 600; }
+.sb-cert-txt span{ font-size: 10px; opacity: .85; }
+.sb-cert:hover{ filter: brightness(1.12); }
+/* No rail o texto não cabe (56px): só o ícone, mesmo nome acessível via aria-label.
+   Ele herdava a caixa larga do .sb-cert (flex + gap + padding + width calc), e por
+   isso saía fora do eixo de 40px dos .sb-rail-btn — daí o desalinhamento. Aqui a
+   caixa é redefinida pra MESMA métrica do botão do rail (40x40 centrado em 56px). */
+.sb-cert-rail{
+  border: 1px solid;
+  /* `height` sozinho não bastava: o pai é flex-column e comprimia o botão
+     (medido 29,7px de 40px) — o eixo travado é o flex, não a altura. */
+  flex: 0 0 40px;
+  width: 40px; height: 40px;
+  margin: 0 auto;
+  padding: 0; gap: 0;
+  display: grid; place-items: center;
+  border-radius: 8px;
 }
-.sb-tab:hover{ color: var(--sb-text-hi); background: var(--sb-hover); }
-.sb-tab.active{
-  background: var(--sb-active);
-  color: var(--sb-text-hi);
+.sb-cert-rail:hover{ filter: brightness(1.12); }
+.sb-cert:focus-visible, .sb-cert-rail:focus-visible{
+  outline: 2px solid var(--accent-2, oklch(0.70 0.14 295)); outline-offset: 2px;
 }
 
-/* Body scrollable */
+/* Body scrollable — chain de overflow (AP10). VIVO: é o wrapper .sb-body do Sidebar.
+   NÃO usar `scrollbar-gutter: stable` aqui: ele reserva 10px de calha e encolhe o
+   content box do body pra 45px, enquanto o cert e o botão do topo vivem FORA do
+   body e centram nos 56px do aside — dois eixos de centro, 5px de desvio visível
+   no rail. O eixo se conserta tirando a largura da barra do jogo (abaixo), não
+   compensando pixel. */
 .sb-body{
   flex: 1 1 auto;
   overflow-y: auto;
@@ -318,109 +330,9 @@ body{
   background-clip: content-box;
 }
 
-/* ── Aba CHAT ── */
-.sb-chat{ padding: 8px; }
-.sb-actions{ display: flex; flex-direction: column; gap: 1px; margin-bottom: 8px; }
-.sb-action{
-  display: flex; align-items: center; gap: 10px;
-  padding: 0 10px;
-  height: 30px;
-  border-radius: var(--radius-sm);
-  color: var(--sb-text);
-  font-size: 13px;
-  cursor: default;
-}
-.sb-action:hover{ background: var(--sb-hover); color: var(--sb-text-hi); }
-.sb-action .ic{ width: 14px; height: 14px; opacity: .85; flex: 0 0 auto; }
-.sb-action span{ flex: 1 1 auto; }
-.sb-action .kbd{
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  color: var(--sb-text-dim);
-}
-.sb-action .kbd-badge{
-  font-size: 10px; font-weight: 700;
-  background: oklch(0.55 0.15 30);
-  color: #fff;
-  padding: 1px 5px;
-  border-radius: 999px;
-  min-width: 16px;
-  text-align: center;
-}
-.sb-action .beta{
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: .04em;
-  text-transform: uppercase;
-  color: var(--sb-text-dim);
-  border: 1px solid var(--sb-border);
-  padding: 1px 5px;
-  border-radius: 3px;
-}
-
-.sb-section-h{
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  color: var(--sb-text-dim);
-  padding: 14px 10px 6px;
-}
-
-.sb-pin-empty{
-  display: flex; align-items: center; gap: 8px;
-  padding: 8px 10px;
-  font-size: 11.5px;
-  color: var(--sb-text-dim);
-  border: 1px dashed var(--sb-border);
-  border-radius: var(--radius-sm);
-  margin: 0 4px;
-}
-
-.sb-bullet{
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  flex: 0 0 auto;
-  margin-top: 1px;
-}
-.sb-bullet.outline{ border: 1.4px solid oklch(0.40 0 0); }
-.sb-bullet.filled{ background: oklch(0.78 0.16 75); border: 0; }
-
-.sb-conv{
-  display: flex; align-items: center; gap: 10px;
-  padding: 0 10px;
-  height: 30px;
-  border-radius: var(--radius-sm);
-  color: var(--sb-text);
-  font-size: 13px;
-  cursor: default;
-}
-.sb-conv:hover{ background: var(--sb-hover); color: var(--sb-text-hi); }
-.sb-conv.active{ background: var(--sb-active); color: var(--sb-text-hi); font-weight: 500; }
-.sb-conv-t{
-  flex: 1 1 auto;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-
-.sb-routine{
-  display: flex; align-items: center; gap: 10px;
-  padding: 0 10px;
-  height: 28px;
-  border-radius: var(--radius-sm);
-  color: var(--sb-text);
-  font-size: 12.5px;
-  cursor: default;
-}
-.sb-routine:hover{ background: var(--sb-hover); color: var(--sb-text-hi); }
-.sb-routine-t{
-  flex: 1 1 auto;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.sb-routine-f{
-  font-size: 10.5px;
-  color: var(--sb-text-dim);
-  flex: 0 0 auto;
-}
+/* UI-0011 (2026-09-10): CSS da aba Chat removido — .sb-tabs/.sb-tab, .sb-chat, .sb-actions/.sb-action*,
+   .sb-section-h, .sb-pin-empty, .sb-bullet*, .sb-conv*, .sb-routine*. Zero consumidores após a remoção de
+   SidebarTabs/SidebarChat/ConvRow do sidebar.jsx (medido: nenhuma outra tela usava). */
 
 /* ── Aba MENU ── */
 .sb-menu{ padding: 8px; }
@@ -438,6 +350,28 @@ body{
 }
 .sb-group-h:hover{ color: var(--sb-text-hi); }
 .sb-group-h .chev{ width: 10px; height: 10px; opacity: .7; flex: 0 0 auto; }
+/* A1 (2026-09-10): .sb-item/.um-item/.sb-dd-i/.sb-dd-foot viraram <button> — zera o desenho nativo
+   do controle sem tocar no layout já medido. */
+button.sb-item, button.um-item, button.sb-dd-i, button.sb-dd-foot{
+  appearance: none; -webkit-appearance: none;
+  background: none; border: 0; margin: 0;
+  width: 100%; box-sizing: border-box;
+  font-family: inherit; text-align: left;
+}
+/* font-size é caso à parte e precisa de especificidade ZERO (`:where()` custa 0,0,0, então isto
+   pesa só o `button` = 0,0,1). Motivo: quem NÃO declara tamanho (.um-item, .sb-dd-i) herdava do pai
+   como <div> e pegaria os 13.33px do UA como <button> — herança só vale na ausência de declaração,
+   e o UA declara. Mas escrever `button.sb-item` (0,1,1) venceria `.sb-item{13px}` e inflaria o item
+   pra 13.5px — foi o que aconteceu na 1ª tentativa deste conserto. Com 0,0,1 qualquer regra de
+   classe vence, e só quem não tem nenhuma cai na herança. */
+button:where(.sb-item, .um-item, .sb-dd-i, .sb-dd-foot){ font-size: inherit; }
+/* A5: foco visível em toda linha navegável — o teclado precisa ver onde está na sidebar preta. */
+.sb-item:focus-visible, .um-item:focus-visible, .sb-dd-i:focus-visible, .sb-dd-foot:focus-visible,
+.sb-ghost-more:focus-visible, .sb-group-h:focus-visible{
+  outline: 2px solid var(--accent-2, oklch(0.70 0.14 295));
+  outline-offset: -2px;
+  color: var(--sb-text-hi);
+}
 .sb-item{
   display: flex; align-items: center; gap: 10px;
   padding: 0 10px;
@@ -5465,7 +5399,7 @@ body{
   z-index: 60;
   box-shadow: 0 4px 14px oklch(0 0 0 / 0.22);
 }
-.sb--rail [data-tip]:hover::after{
+.sb--rail [data-tip]:hover.__legado::after{
   opacity: 1;
   transform: translateY(-50%) translateX(0);
 }
@@ -6651,3 +6585,51 @@ body{
 .rota-carregando{ display:flex; align-items:center; gap:10px; padding:48px 32px; color:var(--text-mute); font-size:var(--fs-3,12.5px) }
 .rota-carregando-b{ width:9px; height:9px; border-radius:50%; background:var(--accent); animation:rota-pulso 1s ease-in-out infinite }
 @keyframes rota-pulso{ 0%,100%{ opacity:.25; transform:scale(.8) } 50%{ opacity:1; transform:scale(1) } }
+
+/* Modo de trabalho (Vibes) — puxado do vivo 2026-09-10 (Sidebar.tsx:1348+) */
+.um-vibe-cur{margin-left:auto;font-family:var(--font-mono);font-size:10.5px;color:var(--text-mute)}
+.um-cascade.active .um-vibe-cur{color:var(--accent)}
+.um-vibe .label{display:flex;flex-direction:column;gap:1px;line-height:1.25}
+.um-vibe-d{font-style:normal;font-size:10.5px;color:var(--text-mute)}
+.um-vibe.active .label{color:var(--text)}
+.um-vibe-ck{margin-left:auto;color:var(--accent);flex:0 0 auto}
+
+/* Dica do rail — camada fixa, fora do contexto de scroll do .sb-body */
+.sb-rail-tip{
+  position: fixed;
+  transform: translateY(-50%);
+  z-index: 90;
+  pointer-events: none;
+  white-space: nowrap;
+  padding: 5px 9px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  line-height: 1.2;
+  color: var(--sb-text-hi, oklch(0.97 0 0));
+  background: oklch(0.22 0.01 280);
+  border: 1px solid var(--sb-border);
+  box-shadow: 0 6px 18px -6px rgba(0,0,0,.55);
+}
+
+/* As dicas em `::after` do rail foram DESLIGADAS: elas eram a causa do overflow
+   horizontal (pseudo absoluto conta como overflow rolável do .sb-body). Quem
+   desenha a dica agora é `.sb-rail-tip`, em camada fixa. Mantidas as regras
+   originais acima como registro do que existia — só o conteúdo sai. */
+.sb--rail [data-tip]::after,
+.sb--rail .sb-rail-group[data-tip]::after,
+.sb--rail .sb-rail-btn.open[data-tip]::after,
+.sb-rail-btn[data-tip]:focus-visible::after{ content: none; display: none; }
+
+/* Rail (56px): a barra vertical não participa da largura, então TODO filho —
+   dentro ou fora do .sb-body — centra no mesmo box de 56px. Scroll preservado
+   (overlay), só a calha sai da conta. */
+.sb--rail .sb-body{ scrollbar-width: none; }
+.sb--rail .sb-body::-webkit-scrollbar{ width: 0; height: 0; }
+
+/* Sair — confirmação inline (não há auth no protótipo: confirmar e recarregar
+   é o mais honesto; fingir logout seria pior que o botão morto) */
+.um-sair{padding:8px 10px 10px}
+.um-sair-q{margin:0 0 8px;font-size:12px;color:var(--text-dim)}
+.um-sair-acoes{display:flex;gap:6px}
+.um-sair-acoes .um-item{width:auto;flex:1 1 auto;justify-content:center;border:1px solid var(--border);border-radius:6px}
+.um-sair-ok{color:oklch(0.62 0.20 25)}

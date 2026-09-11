@@ -5,8 +5,8 @@
   "files": [
     {
       "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/_ds_bundle.js",
-      "bytes": 289864,
-      "sha256": "9d2f6ce4808e5c941910276980e97b75046222ce3ace023cb82b7f763c7415d8",
+      "bytes": 348172,
+      "sha256": "a3ac15c110308f9bda133c1b210ad37cb962af30232a0dad6a35df51421950b0",
       "role": "preview-cache"
     },
     {
@@ -77,26 +77,26 @@
     },
     {
       "path": "android-frame.jsx",
-      "bytes": 10316,
-      "sha256": "cbf1bf9e56aa62bd2bd592cb76391524b21b938e49d98ead5c70a64358fb3335",
+      "bytes": 10373,
+      "sha256": "924d73ae7438970d453f3a59b35f8ceaeaf53d1130ce39997ef5c6d9ce243ed5",
       "role": "cowork-source"
     },
     {
       "path": "app.jsx",
-      "bytes": 74348,
-      "sha256": "afa9663c6c4fd54c3a04525ccafda7c5ba3fdcec85b70139c3efc27003468a75",
+      "bytes": 74738,
+      "sha256": "b98c332790aa275c4acd883c29c00f1ebf6dfc0baee2b5b22e07718dd13a5000",
       "role": "cowork-source"
     },
     {
       "path": "arquivos-data.jsx",
-      "bytes": 7270,
-      "sha256": "28037303d6a05e22da0fd2923e06c4cdeb88bcf06fc7dd9c8ec45d8744b16fc0",
+      "bytes": 7906,
+      "sha256": "b73f043723013a7529a8b517fa6a9e1834026d314b68994a697369a354442589",
       "role": "cowork-source"
     },
     {
       "path": "arquivos-page.jsx",
-      "bytes": 35842,
-      "sha256": "08a8bebe9e4fd8ed3b950a0fc245780f653fec495078f83bc3a328f794e71a89",
+      "bytes": 43649,
+      "sha256": "846a34652eb8b28a5d1acc86e29d9816945fd25566331741baa5e53bb0f56f34",
       "role": "cowork-source"
     },
     {
@@ -113,8 +113,8 @@
     },
     {
       "path": "boletos-page.jsx",
-      "bytes": 58763,
-      "sha256": "cf6f97880df3abdf1393e5c5c3699b00b84f0d7ddec9e3ca7165d668399b2a53",
+      "bytes": 59133,
+      "sha256": "c953ecaac64be8ba3ec94334c4c056fc9972351202ad8a78df66af1b706c3853",
       "role": "cowork-source"
     },
     {
@@ -125,8 +125,8 @@
     },
     {
       "path": "catchup-shared.jsx",
-      "bytes": 6811,
-      "sha256": "130e422e49ca3b4921360e1d2ce7df4dea2b6c6bead13344c8690f12667461cb",
+      "bytes": 6742,
+      "sha256": "500e454d3f09bb76f5eee53bfd95ce3eae1aedb0a51f21798dd5791fa6f76c19",
       "role": "cowork-source"
     },
     {
@@ -137,20 +137,44 @@
     },
     {
       "path": "chat-jana.css",
-      "bytes": 24563,
-      "sha256": "6c41286d1356742fa25f20585706b970158cdcc422890cb5e8a117f05b3956d0",
+      "bytes": 25952,
+      "sha256": "aa4767556377fb65df9c627c2c603ae58aadad100186885489dd3a912e657688",
       "role": "cowork-source"
     },
     {
       "path": "chat-jana.jsx",
-      "bytes": 34835,
-      "sha256": "700faba1870bb64ad607f4728b9f6a0fc9245012b2de7380f17c5b01f82e1816",
+      "bytes": 33756,
+      "sha256": "d521790002cea43de5502aac6c6bc223b5e8a70ce7df5b731878e472facbb2f4",
       "role": "cowork-source"
     },
     {
       "path": "chat.jsx",
       "bytes": 8673,
       "sha256": "864c3835e439f1945c9aec4fc313448e1181aeaf38da296ba4cdaeb8c4a78825",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cli-kebab.jsx",
+      "bytes": 2100,
+      "sha256": "79c5d66f2cd040d938a338381cda7332ba2b1ee61e7ca7139988b68840b15cbb",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cli-pagehead.jsx",
+      "bytes": 12115,
+      "sha256": "c06faaf26551bc532b6be9a4ccc9c8802127e09ccb837a04d2d7b28c9b34a3ca",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cli-seg.js",
+      "bytes": 2411,
+      "sha256": "73e2f55b6e223e0e31953dbca9f8db8683a9aca8a1f7e5705edf897645201e23",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cli-tabs.jsx",
+      "bytes": 11231,
+      "sha256": "fb24ce60506c7848b4d07a18e2ceed618c26db71510db623174ecd33ec4a50c5",
       "role": "cowork-source"
     },
     {
@@ -161,8 +185,8 @@
     },
     {
       "path": "cliente-drawer760.jsx",
-      "bytes": 42605,
-      "sha256": "3be7df441f2c1949a1af4415c39a5a10b26c8e8cba79e8239520f84cd6ee06d0",
+      "bytes": 42246,
+      "sha256": "29b509950b6aadd90baf952d07e175553a3e0bfbf3c14ba085a337a0f835fa56",
       "role": "cowork-source"
     },
     {
@@ -173,8 +197,8 @@
     },
     {
       "path": "cliente-form.jsx",
-      "bytes": 17028,
-      "sha256": "c6c0380ad6a06dabb500f2f9bfb755e4a97e8e0ad6a90f04d84474848e9344c0",
+      "bytes": 16846,
+      "sha256": "beddd393b8bd68dac19e018deb5704ab29be58b9979ff8919b5eb006c4bf34ce",
       "role": "cowork-source"
     },
     {
@@ -203,14 +227,14 @@
     },
     {
       "path": "clientes-page.css",
-      "bytes": 51068,
-      "sha256": "1fd05e5fd99c15583f997a70e1e7077508b7ac27c8cb72eae267f8cd91200269",
+      "bytes": 51440,
+      "sha256": "d21b236bb4f2711b92bb9ce18e9aa3967a2edcdb9ecadaaaf198c8000d066ae9",
       "role": "cowork-source"
     },
     {
       "path": "clientes-page.jsx",
-      "bytes": 112096,
-      "sha256": "e5a1de7b0f650947e8c316ac91d7b425c9a21ef96c1fd60cec734c25ba111af5",
+      "bytes": 111804,
+      "sha256": "8086f48f54849c4adf66ceaee76b6108fc12ca3b3006be439594aca7139eac7e",
       "role": "cowork-source"
     },
     {
@@ -227,8 +251,8 @@
     },
     {
       "path": "cms-page.jsx",
-      "bytes": 41129,
-      "sha256": "76d47c98ca87a25dbabd1364b380e30ed61a1c4e66a56f264fc8140229332f33",
+      "bytes": 40853,
+      "sha256": "704cd70edebb08c06d8c70a52fc80f4f4bcc05a2f932fc7a13d1e0fb9b3c5b28",
       "role": "cowork-source"
     },
     {
@@ -239,14 +263,14 @@
     },
     {
       "path": "cobranca-recorrente-page.jsx",
-      "bytes": 24423,
-      "sha256": "238f68871d7bff35b6111b948390b2a3dac06a35369352695a3285ccd38ded26",
+      "bytes": 24350,
+      "sha256": "a74c03d47ab4e5217f3d6aa519ee20bca45c502eed3f775c8f7131977a6abeb7",
       "role": "cowork-source"
     },
     {
       "path": "comissionados-page.jsx",
-      "bytes": 18222,
-      "sha256": "07fc4da883d806f45fbc7ef425e6d09fc78b9af08c939dce90bac9716d6c72d1",
+      "bytes": 17372,
+      "sha256": "eaab6f7a569ed9d6848012e5300e30e50e0905b85e06048c3ed852c7932f7761",
       "role": "cowork-source"
     },
     {
@@ -263,8 +287,8 @@
     },
     {
       "path": "compras-extras.jsx",
-      "bytes": 25592,
-      "sha256": "c75cbe79a300ed016e10add71cae34f13f060923b69b1d8188a96b916b4d703c",
+      "bytes": 25494,
+      "sha256": "d03d1530ccb287e98d1aaf4245102f77f1e75be026b6dd0ce1eb5cd5bf4b01eb",
       "role": "cowork-source"
     },
     {
@@ -275,8 +299,8 @@
     },
     {
       "path": "compras-grade-matrix.jsx",
-      "bytes": 12463,
-      "sha256": "d81bbaa3a8f66c4b1f7a04af7f6b379b21803a2471fc2c2fa1be1a26658100a6",
+      "bytes": 12607,
+      "sha256": "aecdc9181f31e44594879b185732d44431adb8c612bb2d2e676046af1933acf7",
       "role": "cowork-source"
     },
     {
@@ -287,8 +311,8 @@
     },
     {
       "path": "compras-page.jsx",
-      "bytes": 45098,
-      "sha256": "f419ec366e92d1392c3651a6a7c7d48277f5297ec1b942fd8894d5d422f058b4",
+      "bytes": 45281,
+      "sha256": "24bc9f55af936f1259b5407bafc2390b8c8e8c3890eeb0d6572be5a9c22b71c1",
       "role": "cowork-source"
     },
     {
@@ -299,8 +323,8 @@
     },
     {
       "path": "configuracoes-cadastros.jsx",
-      "bytes": 51669,
-      "sha256": "83843866dc0e8624a7fc37eece65da2c6c155510ee67aca7380b77275cd55d0e",
+      "bytes": 51578,
+      "sha256": "17d751dba951b82fb5e122f551973d1c40cf84170d89a4baad5350ab63203c69",
       "role": "cowork-source"
     },
     {
@@ -317,8 +341,8 @@
     },
     {
       "path": "configuracoes-page.jsx",
-      "bytes": 44272,
-      "sha256": "3e8075d8662d8b92607e8eefa7f8b66d18ec9540a8f5b26c90e6c5abf51f8e02",
+      "bytes": 44170,
+      "sha256": "f5b1a1136eb13420c20e4ecb12f86472e32f27fea795fb32b310312aeec8e970",
       "role": "cowork-source"
     },
     {
@@ -335,32 +359,32 @@
     },
     {
       "path": "connector-page.jsx",
-      "bytes": 23487,
-      "sha256": "c1ea84bbf53ae0d89b9ab725d3988ee9dcde0e50f88a406263bbaee62464008b",
+      "bytes": 22542,
+      "sha256": "fb7559984a98bb58a8cf160fbd3a583005726f66deab572dc8507880e127372f",
       "role": "cowork-source"
     },
     {
       "path": "crm-blade-forms.jsx",
-      "bytes": 33323,
-      "sha256": "0585979baf218dd270a47fd2765441d5c29400951eac5c6eef2bc63dcbe70441",
+      "bytes": 33271,
+      "sha256": "82ee9ffa031b89df5193edef0dca03ee4cd02d52ebcde70fa61220bb10eaeaaa",
       "role": "cowork-source"
     },
     {
       "path": "crm-blade-telas.jsx",
-      "bytes": 31281,
-      "sha256": "a0b317127c0a652f395a2cf754ce474943b3717b8cf9c4669bcaea0e5c76fd3c",
+      "bytes": 31543,
+      "sha256": "ed172d0f8832546f13a24a59b15d15af9d4a6af854a67f020f1cd1c96e35e96f",
       "role": "cowork-source"
     },
     {
       "path": "crm-blade.css",
-      "bytes": 2765,
-      "sha256": "324740998c4015f80e830a04a10535e6cfc7f263acdb0173002add0045550bed",
+      "bytes": 2933,
+      "sha256": "2b3944c3267eee6dda2ae64dde9cb57b340306e8d998c6312152b5c5224cc94e",
       "role": "cowork-source"
     },
     {
       "path": "crm-blade.jsx",
-      "bytes": 61593,
-      "sha256": "eb0d0c1f8ecfac5644767d4f024a6c16287e689aa852f789b92a53838823b1c7",
+      "bytes": 61606,
+      "sha256": "5f1c3934a40461f0d33cc06ada580cd635ec1737075ddfd868e7fc1d2008a746",
       "role": "cowork-source"
     },
     {
@@ -371,20 +395,20 @@
     },
     {
       "path": "crm-ficha.jsx",
-      "bytes": 11895,
-      "sha256": "356d6975f3dc885c25d5193a4e3a6de12359c19744b9a8a254b6c22afa046422",
+      "bytes": 12041,
+      "sha256": "e9bfd97da7159f4db2fb4f65975d4afda898029a3c2cc0d4674f86adc084c4d5",
       "role": "cowork-source"
     },
     {
       "path": "crm-portal.jsx",
-      "bytes": 21721,
-      "sha256": "3e9d09379191030ce42065d3f7a2d4d9daed0fb18db2b7b4155998a7758c803d",
+      "bytes": 21925,
+      "sha256": "3ba9df5ad2fafad349ed9b141b17a9c9ddcfe96c9510378c7c48d679af529b1b",
       "role": "cowork-source"
     },
     {
       "path": "dash-legacy-page.jsx",
-      "bytes": 25113,
-      "sha256": "dcf4d23c7a95746aade08a6dbc3a631e8058e47f5c4b36215f479c90debebde7",
+      "bytes": 26581,
+      "sha256": "65ec5710d493eb7057b916d3b9ae10207b10967460fa0e80766013fd2287369c",
       "role": "cowork-source"
     },
     {
@@ -395,8 +419,8 @@
     },
     {
       "path": "data-orc-prod.jsx",
-      "bytes": 17559,
-      "sha256": "c7837de945db6bf9f6de1c38de10fed31724d6a0f7cf28f15d4cb6f55415a9c6",
+      "bytes": 20077,
+      "sha256": "179497c4840db6f77a2e3b4d17f2e273c1cbcc26318ef601c55ea117dedf732d",
       "role": "cowork-source"
     },
     {
@@ -419,20 +443,20 @@
     },
     {
       "path": "data.jsx",
-      "bytes": 34882,
-      "sha256": "3551732e5d8060101ba60d180b35e248ad23095e7835977733fa506a96282ecf",
+      "bytes": 35228,
+      "sha256": "5183db6e7e336cb0be45d52cba24257b77a5190aeac350ce8cbb557006be5de6",
       "role": "cowork-source"
     },
     {
       "path": "documentacao-page.css",
-      "bytes": 10711,
-      "sha256": "f088cfc35a3b2f2770ce2d1af7bad0f5cc5c2f4969ef3bb8e6ba8cbe037a8d79",
+      "bytes": 11177,
+      "sha256": "caca5c1f89264780f6ad86e5e324539019d18fe9d376fbb8db4b4575ae2513f1",
       "role": "cowork-source"
     },
     {
       "path": "documentacao-page.jsx",
-      "bytes": 41000,
-      "sha256": "46c306928e06900f6ea47fc71be4fb1f298ddaf3408616945a82bacb41be74a0",
+      "bytes": 54038,
+      "sha256": "434b9907319d47c0b8dc4b6ae4b840b3908734299317f4f7128737a81b1d4475",
       "role": "cowork-source"
     },
     {
@@ -455,8 +479,8 @@
     },
     {
       "path": "essenciais-extras.jsx",
-      "bytes": 17340,
-      "sha256": "424be06aebc9d1590d62d329ee62d302589d5a641cb02abb5d7e1b834650daab",
+      "bytes": 17232,
+      "sha256": "948723aba503756018306bd192fa2f1ae68bad5e60cd28d8091b2782d6b0e921",
       "role": "cowork-source"
     },
     {
@@ -467,8 +491,8 @@
     },
     {
       "path": "essenciais-page.jsx",
-      "bytes": 41409,
-      "sha256": "c65f3ecadcffdffe7de44e5d1552706eff806cc59226c47a911c7d26b7214cd6",
+      "bytes": 41082,
+      "sha256": "91643224c26e9209cf8719bcc2fd6a451e7c5d31e80a8788a2c246885f563ab9",
       "role": "cowork-source"
     },
     {
@@ -497,14 +521,14 @@
     },
     {
       "path": "estoque-page.jsx",
-      "bytes": 43996,
-      "sha256": "ab5e12fd9d9d20007faa75fe1d8c926fd1714ab0e6e17841934c8e5b3aadb315",
+      "bytes": 44054,
+      "sha256": "2fa322cf6e87671252516a022149e8effac1687e60a1fe97ce59a02a99015b53",
       "role": "cowork-source"
     },
     {
       "path": "fin-boletos.css",
       "bytes": 16777,
-      "sha256": "5d6adb354c933df5baf7c50b2c6a4ee99ea5a416a25c50cb92d6a4c7a448d8b9",
+      "sha256": "3346600957cf02c85f68a31b4928010cfb2366ad05abc331dd5647b17bca5c90",
       "role": "cowork-source"
     },
     {
@@ -533,8 +557,8 @@
     },
     {
       "path": "financeiro-legado.jsx",
-      "bytes": 35710,
-      "sha256": "e9948f04c747282ab2db358519108077ed2770f4498b2b3368cf6ac10c800fc5",
+      "bytes": 35451,
+      "sha256": "f2ec2f786fdda757c23e9c7c8e3e6b0cdf18c0331e981299323b56d31e69f892",
       "role": "cowork-source"
     },
     {
@@ -557,20 +581,20 @@
     },
     {
       "path": "financeiro-page.jsx",
-      "bytes": 132171,
-      "sha256": "afb0e4dc13a9b210a226d7bc607d6af0aa4e3643aaf204eb704e32150d6e000d",
+      "bytes": 131326,
+      "sha256": "f61a6c58e508f4962e00cd3fe96c3ab2d2bae8519b4121525bc709fd66bb1e77",
       "role": "cowork-source"
     },
     {
       "path": "financeiro-relatorios.jsx",
-      "bytes": 27081,
-      "sha256": "569da242df0b6d44a9f2b27d7f733255b3de24ce98db40505ffc929af40db050",
+      "bytes": 26949,
+      "sha256": "3ee34b966c60438a545aaa947e75728f237a1c8d402eef06daae459330c1bc61",
       "role": "cowork-source"
     },
     {
       "path": "financeiro-telas-extras.jsx",
-      "bytes": 54058,
-      "sha256": "d36d427cd1c03fa68199a5a16a1d055b545716f8e1a9ad0076b955ac212d2f4f",
+      "bytes": 53883,
+      "sha256": "e0a161e4126f6cde39cae16c2abfad569f5590a664ac2899a86cd24246181df4",
       "role": "cowork-source"
     },
     {
@@ -581,8 +605,8 @@
     },
     {
       "path": "fiscal-actions.jsx",
-      "bytes": 14819,
-      "sha256": "e9f8c00bbd04ef5bcc01acce5adb5ba975f98bb90aca94258d5df4ff4541c61b",
+      "bytes": 14990,
+      "sha256": "3af7384d876bea8d9dad38a246686a7629547da5508063871fdb65315f24d2ce",
       "role": "cowork-source"
     },
     {
@@ -593,20 +617,20 @@
     },
     {
       "path": "fiscal-page.css",
-      "bytes": 22848,
-      "sha256": "6a36fc70fcada391b3f31e7d789b7cef446575e578cef8d404cd7d9ad0ae684d",
+      "bytes": 22899,
+      "sha256": "006ec1e5a879600d6c83105ea19a91454dbfbf10b02352471675914a22631da3",
       "role": "cowork-source"
     },
     {
       "path": "fiscal-page.jsx",
-      "bytes": 32221,
-      "sha256": "6f302cead5a6f1d8b2033386131f7e640d0a8e3f325921051e107efef6a6659a",
+      "bytes": 33579,
+      "sha256": "eedd5b9c201370e0d0922aa24dca3dc46c0590f25331645c550d46d647e49823",
       "role": "cowork-source"
     },
     {
       "path": "fiscal-subpages.jsx",
-      "bytes": 29692,
-      "sha256": "3ead824c9ad373815eff22600b5f633b5158fbf62b84e357968c6a7f6404af19",
+      "bytes": 29804,
+      "sha256": "ebf333e683e517ed446bcb3c91b58c7ca0589369411075fb2dcf2b8efc2c8f3f",
       "role": "cowork-source"
     },
     {
@@ -616,33 +640,123 @@
       "role": "cowork-source"
     },
     {
+      "path": "forja-atomos.jsx",
+      "bytes": 11575,
+      "sha256": "6d16ef32753c64f657a3d2390196407997bf3b27e9fcb50e4f450776c2893b1f",
+      "role": "cowork-source"
+    },
+    {
+      "path": "forja-changelog.jsx",
+      "bytes": 1699,
+      "sha256": "443d233685a389965d213af212b320d74463a63a2f4d05a97bd1c528668ec5ef",
+      "role": "cowork-source"
+    },
+    {
+      "path": "forja-cmdk.jsx",
+      "bytes": 3679,
+      "sha256": "1a70b695fdf1e30edfe0f5c0d6d0146ab4fb6b98baabd85dbe13fbc490fe68fe",
+      "role": "cowork-source"
+    },
+    {
       "path": "forja-data.jsx",
       "bytes": 26935,
       "sha256": "f043f5bddecd57f389b9a0a98cc2838b4b260478e1725738a7e5c8de0d6293de",
       "role": "cowork-source"
     },
     {
+      "path": "forja-dossie.jsx",
+      "bytes": 5342,
+      "sha256": "1c70ae38797aabac06eb10fe796ee39087d1c86d2dc19c1814142b198c2da4d9",
+      "role": "cowork-source"
+    },
+    {
+      "path": "forja-gantt.jsx",
+      "bytes": 7809,
+      "sha256": "f0237ba1e613454b179a269865a47150932ff37d05ce320b94735b45cd0cb263",
+      "role": "cowork-source"
+    },
+    {
+      "path": "forja-handoff.jsx",
+      "bytes": 2427,
+      "sha256": "5f4e6f478db67f9c10509471277950bef843b0a211f0dc2cb39965ecff4e716f",
+      "role": "cowork-source"
+    },
+    {
+      "path": "forja-ia.jsx",
+      "bytes": 5493,
+      "sha256": "d797edb95c12de770fe2ca2fcd89c38cb37f7b40829f5e29f4d2398b066936aa",
+      "role": "cowork-source"
+    },
+    {
       "path": "forja-integra.jsx",
-      "bytes": 7323,
-      "sha256": "31af3dfe26f1407874181e9549b3a872158a14459b451f895b513b0a417a3534",
+      "bytes": 7263,
+      "sha256": "d26cf0a21a63070eeaa4602768102a6b7100f8558180ac38dfaca5ebd225f48d",
+      "role": "cowork-source"
+    },
+    {
+      "path": "forja-issue-drawer.jsx",
+      "bytes": 15063,
+      "sha256": "d0cc70a11976b42b66db2744d4accc8aaf4f98ceb27cabaaecf894ba5da58953",
+      "role": "cowork-source"
+    },
+    {
+      "path": "forja-lista.jsx",
+      "bytes": 6374,
+      "sha256": "7630b27a3b6a530f64a448a72cfba78663871e419cb99487a942da11fcbeedba",
       "role": "cowork-source"
     },
     {
       "path": "forja-mcp.jsx",
-      "bytes": 31406,
-      "sha256": "8000b54a9795045de0cb216679791e643c53a699ddd87d8e2c765a0cc85451c1",
+      "bytes": 8104,
+      "sha256": "0ee90c8bef4c0c0e787428cbdf468ebdd269c81d32b597e392f94eb507ae2e35",
+      "role": "cowork-source"
+    },
+    {
+      "path": "forja-notifs.jsx",
+      "bytes": 2331,
+      "sha256": "ab908d45895e46ad0be0972cd6bfa209011acdaaff99662e6861439b3e38edb9",
+      "role": "cowork-source"
+    },
+    {
+      "path": "forja-novo-issue.jsx",
+      "bytes": 3395,
+      "sha256": "099afa20c07d8fae16b8c30d88a98945a22468743e748de7ab39af2e816cbb69",
       "role": "cowork-source"
     },
     {
       "path": "forja-page.css",
-      "bytes": 97514,
-      "sha256": "9c180a5d92aebb3bd1243c3ea6200f18b92b8102549fc565652b90ec2f21ed44",
+      "bytes": 98016,
+      "sha256": "7097103e6f1c19397b8968cf614a24fdce6e520d89b58a7af6e0105e8fefec45",
       "role": "cowork-source"
     },
     {
       "path": "forja-page.jsx",
-      "bytes": 90503,
-      "sha256": "e5e908530e3cb33b7a52bc4cf01cbb064d6aeeef82f836230c60d8991c6f0791",
+      "bytes": 35852,
+      "sha256": "bfcc19cd8931182138e6d28115aa13fb8cb0e1d7628ae222603cff96eb941d39",
+      "role": "cowork-source"
+    },
+    {
+      "path": "forja-quadro.jsx",
+      "bytes": 4272,
+      "sha256": "36483f6a1e2cef5a59651bb16ab27dffad990fb063c790ebd532bbd2cb877b56",
+      "role": "cowork-source"
+    },
+    {
+      "path": "forja-rag.jsx",
+      "bytes": 2968,
+      "sha256": "4086d2b625185cbd5465e01a2da10414ad07958c1a9c870b283b81e963716d43",
+      "role": "cowork-source"
+    },
+    {
+      "path": "forja-runbook.jsx",
+      "bytes": 3152,
+      "sha256": "db2c9660a727a7c8130e510817e406f535405476526f37d81bbcb22a121120d9",
+      "role": "cowork-source"
+    },
+    {
+      "path": "forja-saude.jsx",
+      "bytes": 5393,
+      "sha256": "fb5bf89091655278ee0a68b450afada6bb733a4ac5614bbe495cc7bc7cc43e1b",
       "role": "cowork-source"
     },
     {
@@ -652,15 +766,21 @@
       "role": "cowork-source"
     },
     {
+      "path": "forja-triagem.jsx",
+      "bytes": 3350,
+      "sha256": "f24dc76cca69ca0ba49d592e407eadb2d556aa4f2790dd9c26060e4aaa0c204a",
+      "role": "cowork-source"
+    },
+    {
       "path": "fsm-stepper.jsx",
-      "bytes": 8685,
-      "sha256": "df7810afbfa9632c29ba0a44fa8e03a1cc381974c498ba08b206c632fa77f52a",
+      "bytes": 9001,
+      "sha256": "eda6ba35f2bff12c83a345a6b15d7656169290263e6acc36daf4af449037ba8f",
       "role": "cowork-source"
     },
     {
       "path": "funcoes-page.jsx",
-      "bytes": 18155,
-      "sha256": "349b1d2f5472cab6036ee62bb5167c0abac4c8182c66c800f18eeb37beb4471e",
+      "bytes": 18110,
+      "sha256": "8b8d6e3c11533442515deefe0396d7a608f9860e5519bb6ebb72d430838e93f6",
       "role": "cowork-source"
     },
     {
@@ -683,14 +803,14 @@
     },
     {
       "path": "governance-page.jsx",
-      "bytes": 20674,
-      "sha256": "d3cc2aa35c58ac044b25db806bb4ee88b71f7433c6de9ec1345dd65f81bd31ec",
+      "bytes": 20212,
+      "sha256": "13a73d59c16ca6f23454185f7730332c60c856d7f6b59bee0b7d349aa4387054",
       "role": "cowork-source"
     },
     {
       "path": "governance-telas.jsx",
-      "bytes": 16906,
-      "sha256": "411a9791537f8a77ac6419f727d60090070ef26b40d775ec3ad627ea51233877",
+      "bytes": 16794,
+      "sha256": "8ebefbb636993638012ea718f5c65c11c4c2f6b8df81c964b1ab161728726aad",
       "role": "cowork-source"
     },
     {
@@ -701,8 +821,8 @@
     },
     {
       "path": "hrm-extras.jsx",
-      "bytes": 43892,
-      "sha256": "fc5587f2613d77e9fac2763059ce253f8eb1aa9b1e0ce61ebbd69767169ab1ff",
+      "bytes": 44396,
+      "sha256": "80783a7385d9b4cc73ea3408488a788e9f586a0260d90e48cafe171c195315a8",
       "role": "cowork-source"
     },
     {
@@ -719,20 +839,20 @@
     },
     {
       "path": "hrm-page.jsx",
-      "bytes": 32769,
-      "sha256": "d4169ee7fcc163f073626cb11fed3ead65c71abf2c816c176f77d8e7250a160f",
+      "bytes": 32777,
+      "sha256": "6712d4d9886c73259de9edc417dd96ef2ef2870726ec53c71727abc1830079fe",
       "role": "cowork-source"
     },
     {
       "path": "hrm-ui.jsx",
-      "bytes": 15162,
-      "sha256": "a2e802fe49c192d46312649958743b105d3c3a841693117e0ab3aa564e83c484",
+      "bytes": 15201,
+      "sha256": "d5c2351ad2c59f5c30e11a21d03ca020a9f0b83b06f904e65ee904b7ca4c7d7a",
       "role": "cowork-source"
     },
     {
       "path": "icons.jsx",
-      "bytes": 11078,
-      "sha256": "f4169b6c5222899917f9d86da29656d1fb4df67b82ed0778e39afc39f4d61038",
+      "bytes": 12255,
+      "sha256": "9c7999c4d8ac2db8f70474ebf787b531a2c4ae13534e56a142e690b43628cb1c",
       "role": "cowork-source"
     },
     {
@@ -755,8 +875,8 @@
     },
     {
       "path": "inbox-extras.jsx",
-      "bytes": 15865,
-      "sha256": "a32c843fed512dcd6e728de01398785f80a243c77236a8d5f8ad6d6344438bd0",
+      "bytes": 16220,
+      "sha256": "90a8eecb5d7c2f8f9b24b8d5defbebe8739ec986ada271839a39df374b4a1675",
       "role": "cowork-source"
     },
     {
@@ -773,14 +893,14 @@
     },
     {
       "path": "inbox-page.jsx",
-      "bytes": 87890,
-      "sha256": "37ff306a453d9ef4ea939dc058aba9dc4006b44f4e1b01825f5dcee223b517d1",
+      "bytes": 87828,
+      "sha256": "10ab0b18e34509192a30575e994a8474e5caf32e80a4428de586cee6b2534163",
       "role": "cowork-source"
     },
     {
       "path": "integra-extras.jsx",
-      "bytes": 29733,
-      "sha256": "5ce34c203611f57e954dfa6241f147ffe0c1d96ea154279c892d5615c6f754f7",
+      "bytes": 29526,
+      "sha256": "15693cf8e1cd265122c3b8a5a19049f6fd3716f4a42eca39913b2c3da09bc68e",
       "role": "cowork-source"
     },
     {
@@ -791,8 +911,20 @@
     },
     {
       "path": "jana-merge.jsx",
-      "bytes": 58381,
-      "sha256": "a265b6e685672887c624191abbe44f625d5a89e04ac25f1161c1a17136254253",
+      "bytes": 60716,
+      "sha256": "7bb8e713130a9f808d37349abde3f1badc837c4e3382f9878ca52c918028a570",
+      "role": "cowork-source"
+    },
+    {
+      "path": "jana-metas.css",
+      "bytes": 3087,
+      "sha256": "1e3964e4acfd8cc8b820967c40d72e0f5137e5fa2b2ddb2a71ca0026543c49d2",
+      "role": "cowork-source"
+    },
+    {
+      "path": "jana-metas.jsx",
+      "bytes": 24187,
+      "sha256": "6a2682469b317490bf4b67f071baf54eb33ea47d24123ba9052b7fac841c7dfc",
       "role": "cowork-source"
     },
     {
@@ -805,6 +937,18 @@
       "path": "jana-pro.jsx",
       "bytes": 8222,
       "sha256": "4ca65540af74aa14a2c1652bb1f02d42f6e59e68d3a249715fafc7abc3d5ce91",
+      "role": "cowork-source"
+    },
+    {
+      "path": "jana-telas-novas.css",
+      "bytes": 4004,
+      "sha256": "4a6dbf5fd8401c008db565c75a66049b39429a1e288c2d50f6ab448de158db80",
+      "role": "cowork-source"
+    },
+    {
+      "path": "jana-telas-novas.jsx",
+      "bytes": 35454,
+      "sha256": "0a68ceb11c43affecad39a8eb225df714e350bf86830005ebd84d2c379d5b670",
       "role": "cowork-source"
     },
     {
@@ -875,14 +1019,14 @@
     },
     {
       "path": "manufacturing-page.css",
-      "bytes": 21119,
-      "sha256": "c5e8fdc311b53a2ee613f1ff78199625041d1810a99caf8a6e78ff034ea9d0a6",
+      "bytes": 21207,
+      "sha256": "00cc5b6036915a13d5c9fa631602164e406a5ab0f2de76a5f502cbfbbdfed6e4",
       "role": "cowork-source"
     },
     {
       "path": "manufacturing-page.jsx",
-      "bytes": 20722,
-      "sha256": "f33f504638a019db98379561371d0c602be58bb953df241d4bf08e0546ae44d0",
+      "bytes": 20594,
+      "sha256": "d9581fcab21cf2435cdcf4f758ff719a4a76cd48c550fdc1ee1f94419448d7d6",
       "role": "cowork-source"
     },
     {
@@ -923,20 +1067,20 @@
     },
     {
       "path": "modulo-padrao.css",
-      "bytes": 3298,
-      "sha256": "67d428f8a43317c08acf289ef5d37977b1aec84ea787d34917b9443f834da443",
+      "bytes": 3900,
+      "sha256": "4bcda15b945308d3f201a95567dbc7fb1a9ba7ada42909751aa9aa47463ac82c",
       "role": "cowork-source"
     },
     {
       "path": "modulo-padrao.jsx",
-      "bytes": 8219,
-      "sha256": "41a0681b6c1decdf7a2f3bc7435b498d55a23fd192bf9ba4e7501b78054bc297",
+      "bytes": 8566,
+      "sha256": "1b2cc5285a403ec91b4a03269b2e2d5e81fe7f17aec8cf7d07656ba81e586d2f",
       "role": "cowork-source"
     },
     {
       "path": "modulos-faltantes.css",
-      "bytes": 24547,
-      "sha256": "83c09b1c49f7fc29df9e9976209d0cc1f80fc7788023214e9cceab13c776840e",
+      "bytes": 27150,
+      "sha256": "17da8d6280c6e1020122432c170a3e2d72250364c6cc74750863d7819d6c0b3e",
       "role": "cowork-source"
     },
     {
@@ -947,8 +1091,8 @@
     },
     {
       "path": "modulos-page.jsx",
-      "bytes": 23079,
-      "sha256": "a6100cb00af3036c5c61018697b09a8859b94a68586d1f8c06e6065ce740527d",
+      "bytes": 22218,
+      "sha256": "e0bcbd247c6c5bb82dac110259c0357b5784674083960d640d6382e4abcdb429",
       "role": "cowork-source"
     },
     {
@@ -959,8 +1103,8 @@
     },
     {
       "path": "notificacoes-page.jsx",
-      "bytes": 32910,
-      "sha256": "7add85418e999a487beac20aeefb2790d9956eff093914c5d917e5330ce7323e",
+      "bytes": 32709,
+      "sha256": "8d28e6c8dab806d5352ac2b1d4a673738b2403e084a7eb4343967bbb940d52c5",
       "role": "cowork-source"
     },
     {
@@ -971,8 +1115,8 @@
     },
     {
       "path": "officeimpresso-page.jsx",
-      "bytes": 73288,
-      "sha256": "0626867a48191b1890cf2b05876f7d90715fb87fb654960475ad4bbbb88fd885",
+      "bytes": 72222,
+      "sha256": "39b2cfcfba453ce030bc9f8cb2e76851488ef6ff8dc900daf5f823c722926244",
       "role": "cowork-source"
     },
     {
@@ -1001,8 +1145,8 @@
     },
     {
       "path": "oficina-os-page.jsx",
-      "bytes": 19066,
-      "sha256": "2644d9562a127ab8b434b3428e2dbeb2415aab7c85d2d46a57ab7eab7594ab25",
+      "bytes": 18896,
+      "sha256": "209d1ad413a189db0a6a58ab0a870b90eea4bc0a08f48c87bf08351a227ff519",
       "role": "cowork-source"
     },
     {
@@ -1013,8 +1157,8 @@
     },
     {
       "path": "oficina-page.jsx",
-      "bytes": 72619,
-      "sha256": "1259f30cf94a532d2503f22e5834f2a8fca9826e47272f6aa7dba5247ae66e56",
+      "bytes": 72534,
+      "sha256": "409e02172cd394c3d77838f4b9499d9681a2cbde4b48654cc589fe22015c12e2",
       "role": "cowork-source"
     },
     {
@@ -1031,20 +1175,20 @@
     },
     {
       "path": "oimpresso.com.html",
-      "bytes": 31800,
-      "sha256": "5df05ae9679536f84030fef8af695abbf68fe1b758906cc43dde38d480e85845",
+      "bytes": 34753,
+      "sha256": "3c4e3249e8d759300cef3224182cf4ca2500f68e3f5bae67a4ab5e5e9c94c11d",
       "role": "cowork-source"
     },
     {
       "path": "orc-page.jsx",
-      "bytes": 6298,
-      "sha256": "dc2180993d0fa3ed70cb52c019605ea2fa3441445d8b4c5c3de4e2b09de079f2",
+      "bytes": 6585,
+      "sha256": "fbf236fd59d183a1119096713b656a14f87d4d1ac97f14fe7743edb1a4ade4fb",
       "role": "cowork-source"
     },
     {
       "path": "os-page.jsx",
-      "bytes": 45274,
-      "sha256": "7cbc155eace614e818d6904e04f4e66ae41a4c74330cb70e202f81a7f096a194",
+      "bytes": 44988,
+      "sha256": "81603cbba470bffd0fbd0469921e10e76993ae2ed0c18c5060802047aad7a638",
       "role": "cowork-source"
     },
     {
@@ -1067,14 +1211,14 @@
     },
     {
       "path": "patrimonio-page.css",
-      "bytes": 8172,
-      "sha256": "1a829550b5678a536b407182803565f96f91e7e0057f04526302ed602493961a",
+      "bytes": 8587,
+      "sha256": "682a6499938d9a09ae0b13cea3959d164bb28e70f8feace25ef28df40ec3e123",
       "role": "cowork-source"
     },
     {
       "path": "patrimonio-page.jsx",
-      "bytes": 58227,
-      "sha256": "5013af0a43de384f28672d5de8a5d90eb1ec9b4461ab90b36fd25563207a8deb",
+      "bytes": 58265,
+      "sha256": "23c34cb2d1f4c05425276fe99bfdae7d5420e741098d2f76c3497f37d5bf1c99",
       "role": "cowork-source"
     },
     {
@@ -1085,8 +1229,8 @@
     },
     {
       "path": "perfil-page.jsx",
-      "bytes": 19989,
-      "sha256": "5297e46076d525d39b4c1e5f087b078526a2a52296e9671bb82a6d26500a7eb0",
+      "bytes": 19827,
+      "sha256": "9143ae686aca09fe0c07b75d6b195a1f232f59e6fe4665c83f99243efd2c1d65",
       "role": "cowork-source"
     },
     {
@@ -1139,8 +1283,8 @@
     },
     {
       "path": "planilhas-page.jsx",
-      "bytes": 25018,
-      "sha256": "12048b15caddfdb46ca55f6fc4f75b7167e0889ea45a876c73e1bd21c30bffe1",
+      "bytes": 25050,
+      "sha256": "1833ff060ed61ad87aa9d012d64570128895547c45c050d2f33d70d9edf41e3b",
       "role": "cowork-source"
     },
     {
@@ -1151,44 +1295,44 @@
     },
     {
       "path": "ponto-fechamento.jsx",
-      "bytes": 17755,
-      "sha256": "6d4d6ce92d525a95b8dd50ca4ccb93d903e3514d3722fd44feaa630e15d1fd3c",
+      "bytes": 17729,
+      "sha256": "b3d329595f3555232a1cc3531b90fe9f26d1c6df6fba9e5f178fcc6fa0385eb0",
       "role": "cowork-source"
     },
     {
       "path": "ponto-mobile.jsx",
-      "bytes": 17802,
-      "sha256": "1f91796996dba71ee2ab199b52a8c936b2e83b14ca4359e17cba3fed3730dc6b",
+      "bytes": 17717,
+      "sha256": "82a0ae302e18410e79d4d653a5dcb156d047628a8a710b6333799baebce31724",
       "role": "cowork-source"
     },
     {
       "path": "ponto-page.css",
-      "bytes": 25974,
-      "sha256": "21b49078e1d85873ccbc666eb8a256ef13f1ba2756a606ba4c90b08573ec40ac",
+      "bytes": 26024,
+      "sha256": "62852fdbf4ae007b87ff8663ec1120eb4633a353020344e8bc19cd549c64650a",
       "role": "cowork-source"
     },
     {
       "path": "ponto-page.jsx",
-      "bytes": 34104,
-      "sha256": "a22f7fe6c5f25dfb373935c67175133a75fdbf4893eed0da02b2a228e33d44d2",
+      "bytes": 33942,
+      "sha256": "ff7ab70558cb1e8f2dbc70f3fd991fe4f88921c74b792af22b0e74e0314a0a43",
       "role": "cowork-source"
     },
     {
       "path": "ponto-telas.jsx",
-      "bytes": 66169,
-      "sha256": "2763936029cb72edecf9bb2bc5ddbf582c1572bd89acace8d35de2a07689c040",
+      "bytes": 62342,
+      "sha256": "49a7706184413d4be6a9745a45cf8138282ad988e95133cb08f1a7a5920a25db",
       "role": "cowork-source"
     },
     {
       "path": "ponto-ui.jsx",
-      "bytes": 5900,
-      "sha256": "5f69317bbf00a2fac48bc407a8e5ca6beca00175d42973511e79076246c57b30",
+      "bytes": 17003,
+      "sha256": "aa66bdc92a4d276eecf296998c5327815c4a5d7c0d4f2f5cb88fce6a29ef473e",
       "role": "cowork-source"
     },
     {
       "path": "prefs-page.jsx",
-      "bytes": 11948,
-      "sha256": "fff0b0f84ac6cad495cc1dd6710eda249a9e068369d4f84ac385543e482ade10",
+      "bytes": 11881,
+      "sha256": "cbc8ff0adc9782a2172758a6266354fa948322b81fe2d21d98332a6acb7b7d21",
       "role": "cowork-source"
     },
     {
@@ -1217,8 +1361,8 @@
     },
     {
       "path": "produto-analises.jsx",
-      "bytes": 13448,
-      "sha256": "77a4aec5e73c8e33fde4a8797634d8a946d156c7a74df4be12434a33cb2a2f9d",
+      "bytes": 13217,
+      "sha256": "3178b26f4a73be2642c1041be772645ff698aadb9f4f51045b7935248ca71fee",
       "role": "cowork-source"
     },
     {
@@ -1229,20 +1373,32 @@
     },
     {
       "path": "produto-blade.css",
-      "bytes": 19873,
-      "sha256": "335a352c00ee70121e266fb9385105c387329548049b45008cb5ed38fb41d322",
+      "bytes": 19948,
+      "sha256": "86184942672a5633fcf969ace85a0bad0df3b39ce2287c55e9ab1b3d2ee80b0e",
       "role": "cowork-source"
     },
     {
       "path": "produto-blade.jsx",
-      "bytes": 73101,
-      "sha256": "e37ef9eb008d308b5638939933beca1a5771bb48a00213e3173da524d5df6b34",
+      "bytes": 72668,
+      "sha256": "3c0ae52af3a6033300f25cc1a2658ca2dc80250a78fb70f91cd0bbc82101f71e",
       "role": "cowork-source"
     },
     {
       "path": "produto-cadastros.jsx",
-      "bytes": 35979,
-      "sha256": "4cb9078fc26d258b1941ca1518da06b42163d6f98100d761a65e3eebb9dcb8ae",
+      "bytes": 35934,
+      "sha256": "f22c6a66f0237b2a34a4b7b3147c202676bd6bbe52e1edb315549b671295eae5",
+      "role": "cowork-source"
+    },
+    {
+      "path": "produto-catalogo.css",
+      "bytes": 24038,
+      "sha256": "52e77224883eac343c5009fa0eb126818ff6e0dc17257037f2290611a7ee0f13",
+      "role": "cowork-source"
+    },
+    {
+      "path": "produto-detalhe.jsx",
+      "bytes": 7860,
+      "sha256": "d4e401c323899b0e62e99551427c272fba6a6693559047ddb89dc4be2801143f",
       "role": "cowork-source"
     },
     {
@@ -1253,8 +1409,8 @@
     },
     {
       "path": "produtos-page.jsx",
-      "bytes": 34024,
-      "sha256": "15ef5a24bcade0181bbad660d85296c8781a5727eb58fefc01206e65d32c430a",
+      "bytes": 44275,
+      "sha256": "e2df79f731eca3bc2198199f068fd46b7176d2334470aad47d9cfda0a0d6c7e9",
       "role": "cowork-source"
     },
     {
@@ -1283,14 +1439,14 @@
     },
     {
       "path": "relatorios-page.css",
-      "bytes": 9776,
-      "sha256": "b2b1cef450b17e8d64fbb5c4dab9c889b7d6b62be53134751599c699f4908661",
+      "bytes": 10043,
+      "sha256": "3a22d92dc4b39717d078778b7ef122bf6ce33de9c1b4cbc0530117a003d96a4e",
       "role": "cowork-source"
     },
     {
       "path": "relatorios-page.jsx",
-      "bytes": 24274,
-      "sha256": "9e70b32a7c350bf5606bc6e038f2c6d1306905f75c121d36f5539e16e7aecf49",
+      "bytes": 24140,
+      "sha256": "cce9f201354a86b842822837cf060420abc1f3a1fd1d59bd85f7061b6824887c",
       "role": "cowork-source"
     },
     {
@@ -1307,20 +1463,20 @@
     },
     {
       "path": "repair-page.css",
-      "bytes": 15743,
-      "sha256": "4d9e7d59f14ea3960db15b82d784c741dc5a698c56a3b15640289af00a27bac0",
+      "bytes": 15818,
+      "sha256": "c6492898d7bf9f7593f79e616b7c5d4ff8dee01bb69d66058dbdbe065ea4c079",
       "role": "cowork-source"
     },
     {
       "path": "repair-page.jsx",
-      "bytes": 46411,
-      "sha256": "d3fcbbea66a34180ee148fc5cca0bdf51613ea8b19572107d2dbe205a9511538",
+      "bytes": 46532,
+      "sha256": "f9261334bda39914fd1e1c9e5eff67021d148943cada054060372b160c91630a",
       "role": "cowork-source"
     },
     {
       "path": "repair-portal.jsx",
-      "bytes": 6149,
-      "sha256": "6da0bcd694337509ec0206f71bb6412868ab939ea37febf15569accc2c99d9b5",
+      "bytes": 6461,
+      "sha256": "ee48f3f5e6ae7d4695be60e5b231adec3d37da4fe89c7c470f03df3669780107",
       "role": "cowork-source"
     },
     {
@@ -1337,14 +1493,14 @@
     },
     {
       "path": "sidebar.jsx",
-      "bytes": 26302,
-      "sha256": "ec018f63f5f6dcf9899d8ca41b525b6fd9f15b3fd0e559cb1c8867fc690f9fa8",
+      "bytes": 27712,
+      "sha256": "3ff806aa4f0456009842c81b4de1b37dd484729a01563c8d473eace7e1487349",
       "role": "cowork-source"
     },
     {
       "path": "styles.css",
-      "bytes": 219650,
-      "sha256": "065edc1ec5e0ddbbf98c047b4cc257c83784ffd0334436de5c9942003f1ad3f5",
+      "bytes": 219505,
+      "sha256": "4b648aa50d7304651f212a296d46da7361655328347625519a2e4c1f199599dd",
       "role": "cowork-source"
     },
     {
@@ -1355,8 +1511,8 @@
     },
     {
       "path": "superadmin-page.jsx",
-      "bytes": 82780,
-      "sha256": "3946e9c5c60d828d45e31a342a3c9a294fc663e4eac70ecc3496465d1e372c1c",
+      "bytes": 81760,
+      "sha256": "871fb232df50fff6e75f3cfcd0f539538b138e2958bdeb7ea8b125dabfaa26c9",
       "role": "cowork-source"
     },
     {
@@ -1385,14 +1541,14 @@
     },
     {
       "path": "usuarios-page.jsx",
-      "bytes": 20995,
-      "sha256": "0e53c073a2472fa96d6494bccf433bba050f1997cced956937b1886dae7101b0",
+      "bytes": 20151,
+      "sha256": "e00ba78600ec81e4ef5678d144db7b5d9339ee3cac4f264aaf1af09e83a96ec0",
       "role": "cowork-source"
     },
     {
       "path": "venda-blade-caixa.jsx",
-      "bytes": 25031,
-      "sha256": "077af9106dcbcd431771da647e1ad63ea4e8cd7757426b347af835d62a43f20c",
+      "bytes": 24867,
+      "sha256": "057ad1f5c00b6a7f2f938b0e3d2c9e4a8762ac8da52a5f6b0c23cb7d5cb15adb",
       "role": "cowork-source"
     },
     {
@@ -1409,8 +1565,8 @@
     },
     {
       "path": "venda-blade-telas.jsx",
-      "bytes": 24656,
-      "sha256": "278d4ee1f7c7791d23c39ae78f5cc6192d6abbcba6e8ea3c48e9b17cbb085ce4",
+      "bytes": 24583,
+      "sha256": "6f7dd87345fcfb8fc85a872748b45de0f8ee11347391000e601e28faf32ba1c7",
       "role": "cowork-source"
     },
     {
@@ -1421,8 +1577,8 @@
     },
     {
       "path": "venda-blade.jsx",
-      "bytes": 49461,
-      "sha256": "f7945424ec321776d45cd755ce4d54d9136701dec668e5fdf0031d856647d4b2",
+      "bytes": 49296,
+      "sha256": "09a7d15890e49e306feec93208a80cd86767dc290ccda663d2b48b10735f225e",
       "role": "cowork-source"
     },
     {
@@ -1433,8 +1589,8 @@
     },
     {
       "path": "venda-index.jsx",
-      "bytes": 21458,
-      "sha256": "524e191c233e977706ce5551fd3e61521285aa22fc011f7f7beaaa8830951552",
+      "bytes": 21355,
+      "sha256": "d842b193105ca3455393446b9e09bc9564f60442928967a9695f53017f4be3d5",
       "role": "cowork-source"
     },
     {
@@ -1475,8 +1631,8 @@
     },
     {
       "path": "vendas-extras.jsx",
-      "bytes": 64291,
-      "sha256": "9c2637446a84d2e8cb3e9331c5a072475476ab2271353d0fbd4c05766bfd80bc",
+      "bytes": 64176,
+      "sha256": "eef32106d3ead4072e5c3abfcb5cada328803af8d5dbfa683c89c3f52eb57ad6",
       "role": "cowork-source"
     },
     {
@@ -1493,8 +1649,8 @@
     },
     {
       "path": "vendas-page.jsx",
-      "bytes": 92181,
-      "sha256": "e8419e7def78301a21c646b0aee9ea492ac5927a663687c472eb7d54261f9dc8",
+      "bytes": 91787,
+      "sha256": "6415238d7121208900cdf9a34c255b777aca477563f4099714f3d529309e465d",
       "role": "cowork-source"
     },
     {
@@ -1535,274 +1691,21 @@
     }
   ],
   "missing": [],
-  "bundleId": "5023b274183d849dcc925eae85cef61a991c3541ca1daeb680267c1afda99e4d",
-  "baseBundleId": null,
-  "mode": "snapshot",
-  "generatedAt": "2026-08-24T22:49:15.818Z",
+  "bundleId": "5c0ebe0985d95176f4662041bb717d98f8ef152b9542a3697bff469677611e9d",
+  "baseBundleId": "545cc4696ab84735b412438dc8a492472d7a3876fe35eea2e37678ff50b0a757",
+  "mode": "delta",
+  "generatedAt": "2026-09-10T19:55:08.819Z",
   "totals": {
-    "files": 255,
-    "bytes": 7163784
+    "files": 281,
+    "bytes": 7404686
   },
   "changes": {
-    "added": [
-      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/_ds_bundle.js",
-      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-mono-400.woff2",
-      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-mono-500.woff2",
-      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-mono-600.woff2",
-      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-sans-400.woff2",
-      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-sans-500.woff2",
-      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-sans-600.woff2",
-      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-sans-700.woff2",
-      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/cockpit_domains.css",
-      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/colors_and_type.css",
-      "acessos-ds.jsx",
-      "acessos-page.css",
-      "android-frame.jsx",
-      "app.jsx",
-      "arquivos-data.jsx",
-      "arquivos-page.jsx",
-      "backup-page.css",
-      "backup-page.jsx",
-      "boletos-page.jsx",
-      "catalogo-qr-page.jsx",
-      "catchup-shared.jsx",
-      "catchup.css",
-      "chat-jana.css",
-      "chat-jana.jsx",
-      "chat.jsx",
-      "cliente-drawer760.css",
-      "cliente-drawer760.jsx",
-      "cliente-extrato.jsx",
-      "cliente-form.jsx",
-      "cliente-grupos.jsx",
-      "cliente-import.jsx",
-      "cliente-mapa.jsx",
-      "cliente-telas.css",
-      "clientes-page.css",
-      "clientes-page.jsx",
-      "cms-extras.jsx",
-      "cms-page.css",
-      "cms-page.jsx",
-      "cobranca-recorrente-page.css",
-      "cobranca-recorrente-page.jsx",
-      "comissionados-page.jsx",
-      "comissoes-page.jsx",
-      "command-palette.jsx",
-      "compras-extras.jsx",
-      "compras-grade-matrix.css",
-      "compras-grade-matrix.jsx",
-      "compras-page.css",
-      "compras-page.jsx",
-      "comunicacao-visual-page.jsx",
-      "configuracoes-cadastros.jsx",
-      "configuracoes-fatura.jsx",
-      "configuracoes-page.css",
-      "configuracoes-page.jsx",
-      "connector-api.jsx",
-      "connector-page.css",
-      "connector-page.jsx",
-      "crm-blade-forms.jsx",
-      "crm-blade-telas.jsx",
-      "crm-blade.css",
-      "crm-blade.jsx",
-      "crm-ficha.css",
-      "crm-ficha.jsx",
-      "crm-portal.jsx",
-      "dash-legacy-page.jsx",
-      "data-clientes.jsx",
-      "data-orc-prod.jsx",
-      "data-os.jsx",
-      "data-people.jsx",
-      "data-vendas.jsx",
-      "data.jsx",
-      "documentacao-page.css",
+    "added": [],
+    "modified": [
       "documentacao-page.jsx",
-      "equipe-page.css",
-      "equipe-page.jsx",
-      "essenciais-data.jsx",
-      "essenciais-extras.jsx",
-      "essenciais-page.css",
-      "essenciais-page.jsx",
-      "estoque-contagem.jsx",
-      "estoque-data.jsx",
-      "estoque-forms.jsx",
-      "estoque-page.css",
-      "estoque-page.jsx",
-      "fin-boletos.css",
-      "financeiro-ai.jsx",
-      "financeiro-curation.jsx",
-      "financeiro-data.jsx",
-      "financeiro-icons.jsx",
-      "financeiro-legado.jsx",
-      "financeiro-ops.css",
-      "financeiro-ops.jsx",
-      "financeiro-output.jsx",
-      "financeiro-page.jsx",
-      "financeiro-relatorios.jsx",
-      "financeiro-telas-extras.jsx",
-      "financeiro.css",
-      "fiscal-actions.jsx",
-      "fiscal-data.jsx",
-      "fiscal-page.css",
-      "fiscal-page.jsx",
-      "fiscal-subpages.jsx",
-      "forja-aprova.jsx",
-      "forja-data.jsx",
-      "forja-integra.jsx",
-      "forja-mcp.jsx",
-      "forja-page.css",
-      "forja-page.jsx",
-      "forja-tarefas.jsx",
-      "fsm-stepper.jsx",
-      "funcoes-page.jsx",
-      "funcoes-perms.jsx",
-      "governance-data.jsx",
-      "governance-page.css",
-      "governance-page.jsx",
-      "governance-telas.jsx",
-      "hrm-data.jsx",
-      "hrm-extras.jsx",
-      "hrm-forms.jsx",
-      "hrm-page.css",
-      "hrm-page.jsx",
-      "hrm-ui.jsx",
-      "icons.jsx",
-      "impressao.css",
-      "inbox-ai.jsx",
-      "inbox-cur.jsx",
-      "inbox-extras.jsx",
-      "inbox-out.jsx",
-      "inbox-page.css",
-      "inbox-page.jsx",
-      "integra-extras.jsx",
-      "jana-merge.css",
-      "jana-merge.jsx",
-      "jana-pro.css",
-      "jana-pro.jsx",
-      "kb-extras.jsx",
-      "kb-images-print.jsx",
-      "kb-page.css",
-      "kb-page.jsx",
-      "kb-paths.jsx",
-      "kb-trouble-editor.jsx",
-      "kb-trouble-lib.jsx",
-      "laravel-panel.jsx",
-      "linked-apps.jsx",
-      "manufacturing-data.jsx",
-      "manufacturing-insumos.jsx",
-      "manufacturing-page.css",
-      "manufacturing-page.jsx",
-      "manufacturing-print.jsx",
-      "manufacturing-producao.jsx",
-      "manufacturing-recipe.jsx",
-      "mockup-bodies.js",
-      "mockup-pages.css",
-      "mockup-pages.jsx",
-      "modulo-padrao.css",
-      "modulo-padrao.jsx",
-      "modulos-faltantes.css",
-      "modulos-page.css",
-      "modulos-page.jsx",
-      "notificacoes-page.css",
-      "notificacoes-page.jsx",
-      "officeimpresso-page.css",
-      "officeimpresso-page.jsx",
-      "oficina-fila.css",
-      "oficina-fila.jsx",
-      "oficina-forms.jsx",
-      "oficina-os-page.css",
-      "oficina-os-page.jsx",
-      "oficina-page.css",
-      "oficina-page.jsx",
-      "oficina-print.css",
-      "oficina-print.js",
-      "oimpresso.com.html",
-      "orc-page.jsx",
-      "os-page.jsx",
-      "otimiza-ondas.css",
-      "patrimonio-data.jsx",
-      "patrimonio-forms.jsx",
-      "patrimonio-page.css",
-      "patrimonio-page.jsx",
-      "perfil-page.css",
-      "perfil-page.jsx",
-      "pg-cobranca-page.jsx",
-      "pg-payment-gateways-page.jsx",
-      "pg-sells-cobranca-preview.jsx",
-      "pg-shared.jsx",
-      "pg-shell-adapters.jsx",
-      "pg-styles.css",
-      "pg-vendas-integration.jsx",
-      "planilhas-page.css",
-      "planilhas-page.jsx",
-      "ponto-data.jsx",
-      "ponto-fechamento.jsx",
-      "ponto-mobile.jsx",
-      "ponto-page.css",
-      "ponto-page.jsx",
-      "ponto-telas.jsx",
-      "ponto-ui.jsx",
-      "prefs-page.jsx",
-      "prod-mec.css",
-      "prod-page-extras.css",
-      "producao-page.jsx",
-      "produto-acoes.jsx",
-      "produto-analises.jsx",
-      "produto-blade-forms.jsx",
-      "produto-blade.css",
-      "produto-blade.jsx",
-      "produto-cadastros.jsx",
-      "produto-perms.jsx",
-      "produtos-page.jsx",
-      "programa-doc-page.css",
-      "programa-doc-page.jsx",
-      "qa-conformance.js",
-      "relatorios-data.jsx",
-      "relatorios-page.css",
-      "relatorios-page.jsx",
-      "repair-data.jsx",
-      "repair-forms.jsx",
-      "repair-page.css",
-      "repair-page.jsx",
-      "repair-portal.jsx",
-      "repair-print.css",
-      "repair-print.js",
-      "sidebar.jsx",
-      "styles.css",
-      "superadmin-page.css",
-      "superadmin-page.jsx",
-      "suporte-page.jsx",
-      "tasks.jsx",
-      "tweaks-panel.jsx",
-      "usuarios-page.css",
-      "usuarios-page.jsx",
-      "venda-blade-caixa.jsx",
-      "venda-blade-pos.jsx",
-      "venda-blade-recibos.jsx",
-      "venda-blade-telas.jsx",
-      "venda-blade.css",
-      "venda-blade.jsx",
-      "venda-index.css",
-      "venda-index.jsx",
-      "venda-v3.css",
-      "venda-v3.jsx",
-      "vendas-ai.jsx",
-      "vendas-create-page.css",
-      "vendas-create-page.jsx",
-      "vendas-curation.jsx",
-      "vendas-extras.jsx",
-      "vendas-flow.jsx",
-      "vendas-output.jsx",
-      "vendas-page.jsx",
-      "vendas-shortcuts.jsx",
-      "vendas-tweaks.jsx",
-      "vendas.css",
-      "vestuario-page.jsx",
-      "viewers.jsx",
-      "voz-do-cliente-page.jsx"
+      "oimpresso.com.html"
     ],
-    "modified": [],
     "deleted": [],
-    "unchanged": 0
+    "unchanged": 279
   }
 }

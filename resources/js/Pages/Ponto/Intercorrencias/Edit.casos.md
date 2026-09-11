@@ -5,8 +5,8 @@ irmaos: Edit.charter.md (lei) · SDD-espelho-e-jornada-v1.0.md §5.3 F4 + §5.4 
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: era a última tela Blade viva do módulo — e a que decide o que ainda pode ser reescrito.
 owner: wagner
-last_run: "2026-08-28"
-last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Ponto · MySQL)"
+last_run: "2026-09-08"
+last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-test-results.json (fonte: test-results/pest-ponto-junit.xml). Lane PHP / Pest (Ponto - MySQL) run 34215745965 em main (sha dced5fd3d8, 2026-09-08T10:32Z): 302 passed - 1 skipped - 1009 assertions, coherent=true, provou_algo=true. Li ASSERTIONS, nao a conclusion: 1009 > 0 prova que a suite rodou e nao caiu no skip-as-pass da lane (LC-13). O unico skipped da run nao e UC (o coletor trata skip como nao-pass, e os 69 vieram pass). A lane e ADVISORY: reprova e visivel, nao bloqueia merge."
 ---
 
 # Casos de Uso & Aceite — Editar rascunho de intercorrência
@@ -32,9 +32,9 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 | UC | Caso de uso | Prio | Âncora | Teste | Status |
 |----|-------------|------|--------|-------|--------|
-| UC-INTEDT-01 | Só rascunho é editável | must | `CU-PONTO-05` + F4 | `IntercorrenciaEditContratoTest` | 🧪 sem veredito |
-| UC-INTEDT-02 | O form abre com os valores atuais do rascunho | must | paridade `_form.blade.php` | `IntercorrenciaEditContratoTest` | 🧪 sem veredito |
-| UC-INTEDT-03 | Rascunho de outro empregador não abre | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `IntercorrenciaEditContratoTest` | 🧪 sem veredito |
+| UC-INTEDT-01 | Só rascunho é editável | must | `CU-PONTO-05` + F4 | `IntercorrenciaEditContratoTest` | ✅ verde na lane |
+| UC-INTEDT-02 | O form abre com os valores atuais do rascunho | must | paridade `_form.blade.php` | `IntercorrenciaEditContratoTest` | ✅ verde na lane |
+| UC-INTEDT-03 | Rascunho de outro empregador não abre | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `IntercorrenciaEditContratoTest` | ✅ verde na lane |
 
 **[BACKLOG]:**
 
@@ -45,6 +45,24 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - `[BACKLOG]` A Blade `intercorrencias/edit.blade.php` virou fóssil (a 26ª do módulo) e
   **segue no repo de propósito**, como contrato de paridade desta migração. Limpar os
   fósseis é escopo próprio, não carona.
+- `[BACKLOG]` **O guard de estado parece existir só no caminho de LEITURA.** `@edit`
+  (`IntercorrenciaController:180-184`) tem `abort_unless($i->estado === RASCUNHO, 403)`;
+  `@update` (`:245-253`) é `findOrFail` + `update($request->validated())` — sem guard e sem
+  passar pelo `IntercorrenciaService`, que tem `abort_unless` em `:46`, `:57` e `:124`.
+  **Cinco camadas medidas, todas vazias:** middleware `ponto.access` (`CheckPontoAccess:14-31`
+  — auth + `business.id` + permissão, zero estado) · `boot()` da entity (só `creating` p/ UUID
+  — compare com `BancoHorasMovimento:92`, que **tem** `static::updating`, ou seja o módulo
+  conhece o padrão) · Observer/Policy (`IntercorrenciaPolicy` não existe no repo) ·
+  `IntercorrenciaRequest::authorize()` (`$this->user() !== null`) · teste (`git grep` de
+  `put(`/`patch(` em rota de intercorrência → **rc=1**; controle positivo `post(` → 1 hit).
+  Os três UC acima são **todos `->get(...)`**, então o caminho de escrita não tem um único
+  teste. Se confirmado, um PUT alcança intercorrência já submetida — contra `CU-PONTO-05` e
+  contra o próprio charter (`Edit.charter.md:56`, *"o backend responde 403"*), num módulo
+  regido pela Portaria MTP 671/2021. **Não vira UC até existir o teste vermelho** — achado
+  sem teste é hipótese ([proibicoes §5 2026-07-15](../../../../memory/proibicoes.md)).
+  Vizinhos medidos na mesma varredura: `'estado'` está no `$fillable` (superfície armada se
+  o FormRequest um dia validar o campo), e `Route::resource` registra
+  `ponto.intercorrencias.destroy` sem método `destroy` no controller.
 
 ---
 

@@ -3,6 +3,9 @@ id: resources-js-pages-stock-transfer-index-charter
 page: /stock-transfers
 component: resources/js/Pages/StockTransfer/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
+related_visual_comparison: memory/requisitos/Estoque/_telas/stock-transfer-index-visual-comparison.md
+related_runbook: memory/requisitos/Estoque/_telas/RUNBOOK-stock-transfer-index.md
+related_us: [US-MWART-007]
 bundle_source: estoque-page.jsx
 tela: stock_transfers/index
 tipo: LIST
@@ -11,10 +14,10 @@ status: draft
 status_note: "F3 implementado"
 adr_refs: [0104, 0093, 0114, 0149]
 mwart_pattern_reuse:
-  blueprint_cowork: prototipo-ui/cowork/inventario-migracao/index.html
+  blueprint_cowork: prototipo-ui/cowork/estoque-page.jsx
   blueprint_screenshot_approval: "SYNC_LOG (pendente)"
   derived_screens: [Index]
-  divergence_from_blueprint: "Inspirado em Purchase/Index.tsx (mesma densidade)."
+  divergence_from_blueprint: "Regiao do blueprint: aba Transferencias (AbaTransferencias). Densidade de tabela herdada de Purchase/Index.tsx."
 ---
 
 # Charter — StockTransfer/Index.tsx

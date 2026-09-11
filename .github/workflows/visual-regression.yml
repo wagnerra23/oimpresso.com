@@ -82,7 +82,42 @@ jobs:
     # `cancelled`, agrupados em 11-15 min — o teto ja mordia antes deste PR.
     timeout-minutes: ${{ github.event_name == 'workflow_dispatch' && 35 || 25 }}
     env:
-      VISREG_GRAY_APPROVED: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'visreg-gray-approved') && '1' || '0' }}
+      # ZONA CINZA — bloqueio DESLIGADO por decisão [W] em 2026-09-04.
+      #
+      # A banda do meio pedia a label `visreg-gray-approved` por PR (gate F1.5). [W] textual:
+      # "todos são aprovados agora, vou usar isso quando o software estiver maduro" — enquanto
+      # o produto muda todo dia, a aprovação era dada em 100% dos casos, então o mecanismo só
+      # custava runner e vermelho que se aprende a ignorar.
+      #
+      # O QUE FOI MEDIDO NO DIA (não é impressão): as 3 telas que travaram o #6753 — Jana
+      # 1.6746%, Fiscal/Config 0.1812%, Fiscal/Cockpit 0.1200% — tinham 5 PRs abertos mexendo
+      # justamente nelas (#6738 Config, #6736 e #6732 Cockpit, #6425 e #6427 Jana). Regenerar
+      # baseline ali carimbaria foto que morre em horas; exigir aprovação, idem.
+      #
+      # ⚠️ EMENDA 2026-09-04 (revisão adversarial, mesmo dia): a redação original seguia
+      # "a Jana repetia o ratio IDÊNTICO de #6742/#6745, prova de que a divergência vinha da
+      # main". O ratio idêntico prova herança **só para a Jana**. `Fiscal/Config` e
+      # `Fiscal/Cockpit` NÃO estavam cinzas naqueles runs — em #6745 o Config estava VERDE,
+      # 1h20 antes. O recibo que sustenta as outras duas é outro, e é mais incômodo: entre
+      # 12:19Z e 13:39Z entraram no main 3 PRs de Fiscal tocando exatamente essas telas
+      # (#6719, #6733 Cockpit.tsx · #6725 Config.tsx), TODOS com 0 `.snap` no diff, e DOIS
+      # deles (#6733, #6725) mergearam com `visual-regression` em `conclusion: failure` —
+      # o job é advisory. É a §5 2026-08-24 inteira: a divergência entra pelo advisory, não
+      # deixa rastro na baseline, e reaparece como vermelho de terceiro. Desligar a banda do
+      # meio remove o ALARME; o DÉBITO segue na baseline e volta no próximo PR de escopo global.
+      #
+      # O QUE **NÃO** MUDOU — e é o que sustenta a defesa:
+      #  · REGRESSÃO CLARA (> τ_alto) segue reprovando. O double-threshold continua com as
+      #    duas bandas e segue MEDINDO e reportando a cinza no log, no step summary e no
+      #    artifact `pixel-diff-views`. Desligou-se o BLOQUEIO da banda do meio, não a medição.
+      #  · O filtro de raio (só bloqueia tela dentro do raio do PR — bite-test de 2026-08-24
+      #    em tests/Unit/VisregGrayApprovalTest.php) segue intacto e é ortogonal a isto.
+      #  · A label `visreg-gray-approved` continua existindo e sendo aceita; ela só deixou de
+      #    ser NECESSÁRIA. Nada que a aplique hoje quebra.
+      #
+      # COMO RELIGAR (é uma linha, quando o software amadurecer — [W] 2026-09-04):
+      #   VISREG_GRAY_APPROVED: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'visreg-gray-approved') && '1' || '0' }}
+      VISREG_GRAY_APPROVED: ${{ github.event_name == 'pull_request' && '1' || '0' }}
 
     services:
       mysql:
@@ -738,6 +773,157 @@ jobs:
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Financeiro/ConciliacaoIndexTest.php
 
+      # ── E2E DE RENDER POR TELA — Patrimonio/Bens (NASCE ADVISORY) ───────────────────
+      # Buraco medido em 2026-09-10: `git grep -l "Patrimonio/" tests/Browser/` devolvia SÓ
+      # o manifesto visreg — nenhum teste exercitava a tela. Todo o crédito de `e2e` que o
+      # `screen-coverage-map` dava a ela vinha do contrato visreg lido como E2E (o próprio
+      # mapa documenta: "14 dos 18 eram crédito de visreg lido como E2E"). Ao remover a
+      # baseline de pixel — decisão [W] 2026-09-09, registrada no cabeçalho do
+      # `screen-coverage-gate.yml` — o eixo caiu 61 → 60 e o gate required reprovou.
+      #
+      # O que este arquivo mede e o gate estático NÃO alcança: o `contrato-de-tela.mjs` casa
+      # `data-contract` no TEXTO do `.tsx`; aqui prova-se que as âncoras chegaram ao DOM, na
+      # ordem. É a fronteira que a própria `KpiGrid.tsx` do módulo registra — "presença na
+      # fonte ≠ presença no DOM".
+      #
+      # ADVISORY no nascimento (ADR 0261/0275), pelo mesmo motivo literal dos dois steps
+      # acima: Pest Browser é CI/CT-100 only e o autor não pôde executá-lo antes do PR
+      # (`php`/`vendor` não existem na worktree). Promoção a enforcing = REMOVER o
+      # `continue-on-error`, após 2 verdes que EXECUTARAM — `skipped` lido como verde seria
+      # o presence-gate de sempre, e é pra isso que serve o `always()`.
+      #
+      # PROMOVIDO A ENFORCING em 2026-09-11 — flip [W] explícito, que é a única autoridade
+      # que remove um `continue-on-error` (ADR 0336). O pedido veio com a condição escrita
+      # ("havendo 2 verdes que executaram") e ela está cumprida abaixo.
+      #
+      # OS VERDES QUE EXECUTARAM — a ADR 0336 pede 2; houve 3 PRs distintos, todos com o
+      # MESMO contador `PASS Tests\Browser\Patrimonio\BensRenderTest` · 3 passed (6 assertions),
+      # lidos NO LOG do job (não no `conclusion`, que `continue-on-error` falsifica):
+      #   1. run 34468474659 — 2026-09-10, `claude/bens-e2e-e-remove-baseline` (o PR #7179 que criou o step)
+      #   2. run 34521569364 — 2026-09-10, `claude/sidebar-tipografia-prototipo`
+      #   3. run 34594395036 — 2026-09-11, `fix/ds-remove-seletor-matiz`
+      # (houve um 4º, run 34520755204, no MESMO branch do nº 2 e com o step verde no log; não
+      # entra na contagem porque o run foi CANCELADO por concurrency — recibo frágil, e o PR
+      # já está representado.) Os 3 sortearam ordens diferentes (`Random Order Seed` distinto),
+      # o que também mostra que os casos não dependem de ordem. O contador de ASSERTIONS é o
+      # que prova execução: pulado sairia `0 assertions` SEM falhar (LC-13).
+      # Denominador medido: dos 49 runs do workflow desde 2026-09-10, 34 vieram `skipped`
+      # (o `ui-impact.mjs` pulou o pesado porque o PR não tocou UI) e 11 nem tinham o step
+      # (base anterior ao #7179). `skipped` NÃO foi contado como verde.
+      #
+      # ⚠️ O QUE MUDA AO FICAR ENFORCING, dito na frente: este step passa a REPROVAR o job
+      # inteiro — o job não tem `continue-on-error` próprio (conferido). O que ele NÃO faz é
+      # bloquear merge: o context `visual-regression` foi DEMOVIDO de required em 2026-08-26
+      # por decisão [W], e segue fora da união classic ∪ rulesets (medido aqui em 2026-09-11:
+      # 0 de 45+1). Quem é required vive em `governance/required-checks-baseline.json` — este
+      # comentário aponta pro dono em vez de restatear (LC-10).
+      # O vermelho aqui depende de 4 coisas fora do próprio teste: o auth-bridge
+      # `/_visreg-login/{id}` (a MESMA causa que manteve o step do Conciliacao vermelho 6/6
+      # entre #6476 e #6632 — telas renderizando com business 0; investigue o bridge ANTES de
+      # culpar o teste), a rota `/asset/assets`, as 4 âncoras `data-contract` que
+      # `prototipo-ui/contrato/patrimonio-bens.contract.json` declara (cabecalho, subnav,
+      # filtros, tabela) e a copy do contrato (`Bens`, `Categoria`, `Local`, `Tipo de compra`).
+      # Nenhum caso depende de DADO — foi o desenho do arquivo, e é o que permite promover.
+      #
+      # RESIDUAL DECLARADO, não consertado neste flip: `abrirBens()` faz `markTestSkipped`
+      # quando o `VisregTenantSeeder` não deixou business/user. Se o seeder sumir, este step
+      # sai `3 skipped (0 assertions)` e o job fica VERDE — o formato LC-13 que o próprio
+      # arquivo de teste cita (run 33675746851, `4 skipped` marcado SUCCESS). Enforcing fecha
+      # o vazamento do `conclusion`, não o do skip. Trocar skip→falha é mudar o contrato do
+      # teste (outro intent, outro PR) e é decisão [W].
+      #
+      # Voltar a advisory é recolocar o `continue-on-error`, e é decisão [W] como esta foi.
+      # Este step nunca entrou na lista do "Veredito dos advisory de Browser" mais abaixo
+      # (nasceu depois dela) — logo não há nada a remover lá.
+      #
+      # ERRATA 2026-09-11: a redação anterior fechava com "a lista segue com os 7 advisory".
+      # Era afirmação em PRESENTE sobre um número que muda a cada step novo — e mudou no mesmo
+      # dia, quando o Patrimonio/Alocacoes entrou como 8º (abaixo). Quem quiser o número de
+      # AGORA lê o `${total}` que o próprio step do Veredito calcula; comentário não é oráculo
+      # de contagem (LC-10 · §5 2026-07-16).
+      - name: E2E de render · Patrimonio/Bens (ENFORCING)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        id: e2e-patrimonio-bens
+        run: ./vendor/bin/pest tests/Browser/Patrimonio/BensRenderTest.php
+
+      # ── E2E DE RENDER POR TELA — Patrimonio/Alocacoes (NASCE ADVISORY) ───────────────
+      # Mesma forma e mesmas razões do step de Bens acima (#7179). O buraco, medido em
+      # 2026-09-11 por `node scripts/qa/screen-coverage-map.mjs --screen Patrimonio/Alocacoes`:
+      # trio ✓ · RUNBOOK ✓ · 4/4 UC citados por teste — e `e2e (Browser) ✗`.
+      #
+      # DIFERENÇA vs Bens, e ela importa: lá a baseline de pixel EMPRESTAVA o crédito e2e, e o
+      # teste entrou pra substituir o empréstimo quando a baseline saiu (decisão [W] 2026-09-09).
+      # Aqui não há empréstimo nenhum — `Patrimonio/Alocacoes` nunca esteve no
+      # `visreg-screens.json` (medido: dos 52 entries, os de Patrimônio são `Index` e
+      # `Manutencoes`). Este step ADICIONA cobertura; não substitui nada e não toca baseline
+      # de tela alguma.
+      #
+      # Não semeia NADA no banco e não captura screenshot (não gera baseline). ADVISORY no
+      # nascimento (ADR 0261/0275) pelo motivo literal dos irmãos: Pest Browser é CI/CT-100 only
+      # (Tier 0 — `memory/proibicoes.md` §Ambiente) e NÃO pôde ser executado antes do PR.
+      # Promoção a ENFORCING = REMOVER o `continue-on-error`, após 2 verdes que EXECUTARAM,
+      # lidos NO LOG do job (`skipped` lido como verde é o presence-gate de sempre — é pra isso
+      # que serve o `always()`, idêntico aos steps acima).
+      - name: E2E de render · Patrimonio/Alocacoes (ADVISORY)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        id: e2e-patrimonio-alocacoes
+        continue-on-error: true
+        run: ./vendor/bin/pest tests/Browser/Patrimonio/AlocacoesRenderTest.php
+
+      # ── E2E DE RENDER POR TELA — Patrimonio/Configuracoes (NASCE ADVISORY) ───────────
+      # Mesma forma dos dois steps acima. Buraco medido em 2026-09-11 por
+      # `node scripts/qa/screen-coverage-map.mjs --screen Patrimonio/Configuracoes`:
+      # trio ✓ · RUNBOOK ✓ · 4/4 UC citados por teste — e `e2e (Browser) ✗`. Sem empréstimo
+      # de visreg: a tela nunca esteve no `visreg-screens.json`.
+      #
+      # ⚠️ ESTA TELA TEM UMA GUARDA QUE AS IRMÃS NÃO TÊM, e ela foi MEDIDA antes de o step
+      # existir — 403 aqui deixaria o step permanentemente vermelho, que é o anti-padrão que
+      # o `ConciliacaoIndexTest` já custou. O `AssetSettingsController:47` acrescenta
+      # `&& ! $is_admin` ao guard que Bens/Painel usam. Medido: `Util::is_admin()` é
+      # `hasRole('Admin#'.$business_id)` (`app/Utils/Util.php:486`), e o
+      # `VisregTenantSeeder::ensureAdminRole()` CRIA e vincula `Admin#1` ao admin do tenant —
+      # logo a guarda passa. A primeira metade do guard é literalmente a mesma de
+      # `AssetController:97`, que já renderiza verde nesta lane.
+      #
+      # Não semeia NADA no banco e não captura screenshot (não gera baseline). ADVISORY no
+      # nascimento (ADR 0261/0275): Pest Browser é CI/CT-100 only e não pôde ser executado
+      # antes do PR. Promoção a ENFORCING = REMOVER o `continue-on-error`, após 2 verdes que
+      # EXECUTARAM, lidos NO LOG do job.
+      - name: E2E de render · Patrimonio/Configuracoes (ADVISORY)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        id: e2e-patrimonio-configuracoes
+        continue-on-error: true
+        run: ./vendor/bin/pest tests/Browser/Patrimonio/ConfiguracoesRenderTest.php
+
+      # ── E2E DE RENDER POR TELA — Patrimonio/Manutencoes (NASCE ADVISORY) ─────────────
+      # Diferente dos dois steps acima: esta tela JÁ contava como coberta no eixo `e2e` — mas
+      # por EMPRÉSTIMO. Ela está no `visreg-screens.json`, e o `screen-coverage-map` computa o
+      # eixo como a UNIÃO `e2e.length > 0 || hasVisregContract` (o mapa documenta, `:17-21`,
+      # que "14 dos 18 eram crédito de visreg lido como E2E"). Medido em 2026-09-11: o
+      # `--screen` dizia `e2e (Browser) ✗` enquanto a catraca a contava.
+      #
+      # Este step não muda o NÚMERO do eixo; muda a NATUREZA dele — e é isso que DESTRAVA a
+      # remoção da baseline de pixel (decisão [W] 2026-09-09) sem repetir o #7174, que foi
+      # fechado porque remover a foto sozinha derrubava o `screen-coverage-gate` (required).
+      # A remoção em si NÃO é feita aqui: ela também tornaria a tela `uncovered` no
+      # fail-closed deste mesmo workflow, trocando um verde por um vermelho — decisão [W].
+      #
+      # ⚠️ SÃO 3 ÂNCORAS, NÃO AS 4 DO CONTRATO, e isso foi medido: `alerta` vive dentro de
+      # `{!permissoes.vejo_todas ? ... : null}`, e no harness o usuário vê TUDO
+      # (`can('asset.view_all_maintenance')` cai no `else` do `Gate::before`, que concede a
+      # `Admin#<biz>`; o seeder cria `Admin#1`). Assertar 4 deixaria o step permanentemente
+      # vermelho. O teste ASSERTA a ausência como contrato, em vez de tolerá-la calado.
+      #
+      # Não semeia NADA no banco e não captura screenshot (não gera baseline). ADVISORY no
+      # nascimento (ADR 0261/0275): Pest Browser é CI/CT-100 only e não pôde ser executado
+      # antes do PR. Promoção a ENFORCING = REMOVER o `continue-on-error`, após 2 verdes que
+      # EXECUTARAM, lidos NO LOG do job.
+      - name: E2E de render · Patrimonio/Manutencoes (ADVISORY)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        id: e2e-patrimonio-manutencoes
+        continue-on-error: true
+        run: ./vendor/bin/pest tests/Browser/Patrimonio/ManutencoesRenderTest.php
+
       # ── E2E DE RENDER POR TELA — Financeiro/Caixa (NASCE ADVISORY) ───────────────────
       # Buraco medido em 2026-09-03 por `screen-coverage-map.mjs --screen Financeiro/Caixa/Index`:
       # trio ✓ · scorecard ✓ · 5/5 UC citados por teste — e `e2e (Browser) ✗`. O contrato vive
@@ -810,7 +996,9 @@ jobs:
       # ── E2E DE RENDER POR TELA — Manufacturing/Recipes (NASCE ADVISORY) ─────────────
       # Buraco medido em 2026-09-03 no `memory/governance/screen-coverage-baseline.json`
       # (gravado 2026-08-31): `Manufacturing: {total:1, charter:1, scorecard:1, e2e:0,
-      # a11y:0}` — e o baseline nem conta a tela nova, que entrou em 2026-09-02 (#6546).
+      # a11y:0}` — e o baseline nem contava a tela nova, que entrou em 2026-09-02 (#6546).
+      # Esse baseline foi REMOVIDO em 2026-09-09 (era justamente o apodrecimento que ele
+      # exibe aqui); hoje o número sai de `node scripts/qa/screen-coverage-map.mjs`.
       # O contrato dela vive no `Wave29RecipeInertiaTest`; nada exercitava a tela
       # RENDERIZADA.
       #
@@ -839,7 +1027,139 @@ jobs:
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Manufacturing/RecipesIndexTest.php
 
-      # ── VEREDITO DOS 5 ADVISORY DE BROWSER (visibilidade, NÃO enforcement) ───────
+      # ── E2E DE RENDER POR TELA — Home/Visão geral (NASCE ADVISORY) ─────────────
+      # Buraco medido em 2026-09-03 por `node scripts/qa/screen-coverage-map.mjs`: a linha
+      # `Home` sai `Telas 1 · Charter 1 · E2E 1 · Score 1 · VRT 1 · L2 0`, e esse `E2E 1` é da
+      # UNIÃO `Browser ∪ VRT` — a perna Browser está VAZIA (`git grep "Pages/Home/Index" --
+      # tests/Browser/` = ZERO). Como o eixo `a11y` do mesmo report é
+      # `e2e.some((b) => b.hasAxe)` (screen-coverage-map.mjs:654), a tela tem `a11y=false`
+      # POR CONSTRUÇÃO enquanto nenhum teste Browser citar o path dela — e não está entre
+      # os 8/211 do agregado.
+      #
+      # O QUE ESTE STEP COBRE, e que nenhum outro alcança:
+      #   1. as âncoras `data-contract` chegam ao DOM RENDERIZADO na ordem do contrato. O
+      #      gate `contrato-de-tela` lê o FONTE (o próprio Index.tsx:287 diz isso), e a
+      #      diferença JÁ MORDEU nesta tela: o #6395 (2026-08-28) corrigiu literalmente "a
+      #      âncora do cabeçalho nunca chegou ao DOM", com o gate verde o tempo todo —
+      #      classe LC-30. O risco é estrutural: 4 das 5 âncoras estão em COMPONENTES React
+      #      e só chegam ao HTML porque `KpiGrid.tsx:61` e `layout/grid.tsx:52` espalham
+      #      `{...rest}`; trocar um deles apaga a âncora sem tocar no `Index.tsx`.
+      #   2. axe CRITICAL (level 0, o mesmo ratchet do `A11yAxeBrowserTest`).
+      #   3. todo gráfico desenhado tem a sua tabela `sr-only`. O `Chart` do DS é SVG puro:
+      #      sem alternativa textual, quem não enxerga não recebe número nenhum.
+      #
+      # NÃO semeia dado e NÃO captura screenshot: a tela JÁ tem baseline de pixel via
+      # `tests/Browser/visreg-screens.json` (âncora `Contrapartidas`) e este step não a toca.
+      # Todo caso é independente de dado, pela razão literal do step do Caixa acima.
+      #
+      # DIFERENTE de Conciliacao/Cobranca num ponto MEDIDO: a causa daqueles vermelhos
+      # (grupo de rotas sem `SetSessionData` → business 0 sob o auth-bridge) NÃO se aplica
+      # aqui — `/dashboard-legacy` (routes/web.php:527) está no grupo de routes/web.php:473,
+      # que declara `SetSessionData`. Isso é razão pra ESPERAR verde, não recibo de que
+      # ficou: o veredito sai da coluna `outcome` do step de veredito abaixo, nunca desta prosa.
+      #
+      # ADVISORY no nascimento (ADR 0261/0275): Pest Browser é CI/CT-100 only e o autor não
+      # pôde executá-lo antes do PR. Promoção a ENFORCING = REMOVER o `continue-on-error`,
+      # após 2 verdes que EXECUTARAM — `skipped` lido como verde é o presence-gate de sempre.
+      - name: E2E de render · Home/Visão geral (ADVISORY)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        id: e2e-visao-geral
+        continue-on-error: true
+        run: ./vendor/bin/pest tests/Browser/Home/VisaoGeralIndexTest.php
+
+      # ── E2E DE COMPORTAMENTO — Purchase/Index · ação Etiquetas (NASCE ADVISORY) ──
+      # Buraco medido em 2026-09-04 (`npm run screen-coverage:report`): `Purchase` sai
+      # `4 telas · 4 charter · 0 E2E · 0 VRT`. O módulo Compras ao lado tem 11 baselines;
+      # o Purchase não tinha NADA — e a consequência não é hipotética.
+      #
+      # O CASO CONCRETO: a ação **Etiquetas** existia no dropdown Blade de `/purchases`,
+      # incondicional, e não foi portada na migração MWART. Larissa (ROTA LIVRE, biz=4)
+      # reportou por WhatsApp em 2026-06-17 — "não tem opção de imprimir as etiquetas das
+      # compras". Foi corrigida, e até este step NADA impedia que voltasse: nenhum assert do
+      # repo citava `labels/show`, `purchase_id=` ou `Barcode` nesta tela. O contrato existia
+      # só em prosa (RUNBOOK §2), e o dual-path ESCONDE a falta — quem confere pelo Blade vê
+      # a ação e conclui que está tudo certo.
+      #
+      # POR QUE PRECISA DE BROWSER, e Pest de contrato não alcança: a ação não é um `<a href>`
+      # — é `<Button onClick={window.open(...)}>` (`Index.tsx:303`). Nenhuma URL chega ao DOM,
+      # então só resta casar string no fonte (presence-gate, LC-11 — a dívida que o
+      # `Index.casos.md` desta tela já declara) ou CLICAR e ler o que foi pedido. Este step é
+      # a segunda opção: o probe substitui `window.open`, clica, e compara com o id real do
+      # banco. Trocar por `router.visit` devolve `NAO-CHAMOU` — que é o UC-PURIDX-05.
+      #
+      # ROTA com `?v=2`: `PurchaseController@index:74` só entrega Inertia com `X-Inertia` ou
+      # `?v=2`; o redirect do auth-bridge é um GET normal e cairia no Blade legacy. A sentinela
+      # `SEM-BUSCA-REACT` do probe existe exatamente para denunciar isso em vez de medir a
+      # tela errada em silêncio.
+      #
+      # DADO: reusa `VisregComprasFlowSeeder` (a compra `VISREG-COM-001` dos fluxos de
+      # `/compras`). Medido: `/purchases` sai da MESMA query `getListPurchases` e não filtra
+      # por data por default, então a mesma linha serve as duas telas — seeder novo seria um
+      # segundo dono do mesmo dado.
+      #
+      # ADVISORY no nascimento (ADR 0261/0275) e a razão é MEDIDA, não formalidade: o autor
+      # não pôde executar. O CT 100 (`oimpresso-staging`) tem Pest e o plugin Browser, mas
+      # está SEM `public/build/manifest.json` e SEM os browsers do Playwright em
+      # `~/.cache/ms-playwright` — logo não renderiza Inertia nem abre Chromium. O que FOI
+      # provado antes do PR: `php -l` no CT 100 e um bite-test em jsdom que extrai os probes
+      # DO PRÓPRIO arquivo PHP (não uma cópia) e mostra 10/10 — libera no caso bom e MORDE
+      # nas 3 regressões (botão removido · `router.visit` · linha ausente).
+      #
+      # PROMOVIDO A ENFORCING em 2026-09-05 — flip [W] explícito ("2 promovo"), que é a
+      # única autoridade que remove um `continue-on-error` (ADR 0336). Não é efeito
+      # colateral do PR: o autor pediu, [W] decidiu.
+      #
+      # OS 3 VERDES QUE EXECUTARAM, todos em 2026-09-05 e todos com o MESMO contador —
+      # `PASS Tests\Browser\Purchase\IndexEtiquetaTest` · 3 passed (7 assertions):
+      #   run 33941339625 (8,14s) · run do commit seguinte (04:35) · run 33967603785 (pós-merge)
+      # A ADR 0336 pede 2; houve 3. O contador de ASSERTIONS é o que prova execução —
+      # pulado sairia `0 assertions` sem falhar (LC-13), e `skipped` lido como verde é o
+      # presence-gate de sempre.
+      #
+      # ⚠️ O QUE MUDA AO FICAR ENFORCING, dito na frente: este step passa a REPROVAR o job
+      # inteiro. Ele depende de 3 coisas fora do próprio teste — o tenant do
+      # `VisregTenantSeeder` (biz=1), o seed da compra `VISREG-COM-001` e o `?v=2` do
+      # dual-path. Se qualquer uma sumir, o sintoma é vermelho aqui, e o probe nomeia qual:
+      # `SEM-BUSCA-REACT` (caiu no Blade) · `SEM-LINHA` (seed não chegou) · `ACAO-AUSENTE`
+      # (o botão sumiu — a regressão de 2026-06-17 voltando). Voltar a advisory é
+      # recolocar o `continue-on-error`, e é decisão [W] como esta foi.
+      - name: E2E de comportamento · Purchase/Index · Etiquetas (ENFORCING)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        id: e2e-purchase-etiqueta
+        run: ./vendor/bin/pest tests/Browser/Purchase/IndexEtiquetaTest.php
+
+      # ── E2E DE RENDER POR TELA — Repair/ProducaoOficina (NASCE ADVISORY) ────────────
+      # O PRIMEIRO E2E do modulo Repair. Medido em origin/main e0f2b79c86 (2026-09-05) por
+      # `node scripts/qa/screen-coverage-map.mjs`: Repair = 14 telas · 14 charter · 0 E2E ·
+      # 0 VRT · 0 a11y — o unico modulo grande zerado nos tres eixos, e nao por falta de tela.
+      # O contrato de servidor ja tem 44 casos em `Modules/Repair/Tests/Feature/`; o que nao
+      # existia era alguem RENDERIZAR a tela num browser.
+      #
+      # Cobre: as 5 colunas na ordem do charter (1280 e 1440) · o UX Target de caber em 1280
+      # sem scroll horizontal · o filtro client-side de slot/area (contador comparativo +
+      # "Limpar filtros") · o Non-Goal de modal/form · axe CRITICAL · e a CAPTURA do defeito
+      # de teclado do card (article draggable com onClick, sem role/tabIndex/onKeyDown e sem
+      # aria-keyshortcuts — WCAG 2.1.1 e 2.5.7).
+      #
+      # NAO semeia nada no banco e NAO captura screenshot (nao gera baseline de pixel — a tela
+      # nao esta em visreg-screens.json de proposito: um `source` sem o `.snap` versionado faz
+      # o VisregThreshold reprovar com "baseline contratada ausente", ou seja nasceria VERMELHO).
+      #
+      # ADVISORY no nascimento (ADR 0261/0275): nao pode ser executado antes do PR — Pest
+      # Browser e CI-only (medido: o container do CT 100 nao tem node/npx/chromium). Promocao
+      # a ENFORCING = REMOVER o `continue-on-error`, apos 2 verdes que EXECUTARAM, e e flip [W].
+      - name: E2E de render · Repair/ProducaoOficina (ADVISORY)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        id: e2e-repair-producao
+        continue-on-error: true
+        run: ./vendor/bin/pest tests/Browser/Repair/ProducaoOficinaIndexTest.php
+
+      # ── VEREDITO DOS ADVISORY DE BROWSER (visibilidade, NÃO enforcement) ─────────
+      # NÃO lista o step de Purchase/Index · Etiquetas, e isso é deliberado: ele foi
+      # promovido a ENFORCING em 2026-09-05 (flip [W]), logo NÃO tem `continue-on-error`
+      # e o vermelho dele já aparece em `gh pr checks` e na UI — que é justamente o que
+      # este veredito existe pra compensar nos que TÊM. Incluí-lo aqui sugeriria que ele
+      # é advisory. Quem promover outro step: tire-o desta lista junto.
       # O PROBLEMA, medido em 2026-09-03: `continue-on-error: true` faz o GitHub publicar
       # `conclusion=success` NO STEP; o veredito real fica só no campo `outcome`, que nem a
       # UI de checks nem `gh pr checks` mostram. Nos runs 33747138995 e 33762382505 o step do
@@ -860,7 +1180,7 @@ jobs:
       #   2. imprime o DENOMINADOR (quantos executaram de quantos), pelo mesmo motivo.
       #
       # NÃO MUDA ENFORCEMENT: nenhum `continue-on-error` saiu, e este step termina em
-      # `exit 0` (última linha do `run`) — ele relata, não decide. Promover um destes cinco
+      # `exit 0` (última linha do `run`) — ele relata, não decide. Promover um destes advisory
       # é remover o `continue-on-error` DELE, e isso é flip [W] (ADR 0336, mordida provada);
       # quem é required vive em `governance/required-checks-baseline.json`.
       - name: Veredito dos advisory de Browser (visível no resumo do run)
@@ -871,6 +1191,11 @@ jobs:
           A_CAIXA: ${{ steps.e2e-caixa.outcome }}
           A_COBRANCA: ${{ steps.e2e-cobranca.outcome }}
           A_RECIPES: ${{ steps.e2e-recipes.outcome }}
+          A_VISAO_GERAL: ${{ steps.e2e-visao-geral.outcome }}
+          A_REPAIR_PRODUCAO: ${{ steps.e2e-repair-producao.outcome }}
+          A_PATR_ALOCACOES: ${{ steps.e2e-patrimonio-alocacoes.outcome }}
+          A_PATR_CONFIGURACOES: ${{ steps.e2e-patrimonio-configuracoes.outcome }}
+          A_PATR_MANUTENCOES: ${{ steps.e2e-patrimonio-manutencoes.outcome }}
         run: |
           resumo="$(mktemp)"
           {
@@ -905,6 +1230,11 @@ jobs:
           registrar "E2E de render · Financeiro/Caixa" "$A_CAIXA"
           registrar "E2E de render · Financeiro/Cobranca" "$A_COBRANCA"
           registrar "E2E de render · Manufacturing/Recipes" "$A_RECIPES"
+          registrar "E2E de render · Home/Visao geral" "$A_VISAO_GERAL"
+          registrar "E2E de render · Repair/ProducaoOficina" "$A_REPAIR_PRODUCAO"
+          registrar "E2E de render · Patrimonio/Alocacoes" "$A_PATR_ALOCACOES"
+          registrar "E2E de render · Patrimonio/Configuracoes" "$A_PATR_CONFIGURACOES"
+          registrar "E2E de render · Patrimonio/Manutencoes" "$A_PATR_MANUTENCOES"
 
           {
             echo ""
@@ -933,7 +1263,7 @@ jobs:
             cat "$resumo" >> "$GITHUB_STEP_SUMMARY"
           fi
 
-          # `exit 0` SEMPRE, e é o ponto: fazer este step reprovar promoveria os cinco
+          # `exit 0` SEMPRE, e é o ponto: fazer este step reprovar promoveria todos os
           # advisory a enforcing de uma vez — flip [W] (ADR 0336), nunca efeito colateral
           # de um step de relatório.
           exit 0
@@ -975,13 +1305,20 @@ jobs:
           VISREG_SCREENS: ${{ inputs.screens }}
         run: |
           npm run visreg:update
+          # L2 (estados isolados) roda TAMBEM no escopo targeted: desde 2026-09-03 a suite
+          # honra o mesmo par VISREG_SCOPE/VISREG_SCREENS (filtra por `source`), entao com
+          # screens=["Jana"] ela regrava so `jana · estado=default` e nada das outras 18.
+          # Antes era pulada aqui — e o run 33782104647 (PR #6665) provou o buraco: o L1 da
+          # Jana saiu regenerado, o L2 nao, e o proprio PR de baselines reprovou em zona cinza
+          # no estado isolado da tela que acabara de mudar. Flows continuam so no global:
+          # as suites de fluxo nao filtram por tela.
+          npm run visreg:states:update
           if [ -z "${{ inputs.screens }}" ]; then
-            npm run visreg:states:update
             npm run visreg:flows:update
             npm run visreg:sells:update
             npm run visreg:flows:compras:update
           else
-            echo "escopo=${{ inputs.screens }} — estados/flows pulados (cobrem outras telas)."
+            echo "escopo=${{ inputs.screens }} — flows pulados (cobrem outras telas); estados filtrados por source."
           fi
 
       # COWORK_BOT_PAT, NÃO GITHUB_TOKEN (anti-recursão do Actions): o GitHub NÃO dispara
@@ -1126,12 +1463,18 @@ jobs:
           if-no-files-found: ignore
 
       - name: Veredito advisory do pixel-diff (visível no log · double-threshold L7)
-        if: steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        # `always() &&` porque o step do pixel-diff é ENFORCING (não tem continue-on-error):
+        # quando ele falha, o job aborta e ESTE veredito saía `skipped` — justamente no caso
+        # que ele existe pra explicar. Medido 2026-09-04 no run 33886331185: step 25
+        # `Pixel-diff … (ENFORCING)` = failure, step 46 `Veredito advisory` = skipped. Os 16
+        # steps de relatório vizinhos (641, 669, 696, 755, 761, 792, 830, 862, 902, 932, 1121,
+        # 1135, 1145, 1159, 1180, 1194) já usam always()/!cancelled(); este era o único fora.
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         run: |
           if [ "${{ steps.pixel-diff.outcome }}" = "failure" ]; then
             echo "🔴 PIXEL-DIFF ADVISORY FALHOU — ao menos 1 tela com diff > τ_alto (regressão clara) contra baseline."
             echo "   Intencional? npm run visreg:update + aprovação [W]. Regressão? conserte antes do enforcing (L1)."
-            echo "   Telas em ZONA CINZA bloqueiam sem o label visreg-gray-approved — ver resumo + artifact pixel-diff-views."
+            echo "   Telas em ZONA CINZA saem no resumo + artifact pixel-diff-views (o enforcement da banda do meio é o env VISREG_GRAY_APPROVED, no topo deste workflow)."
           else
             echo "✅ pixel-diff afetadas/núcleo-6 OK — nenhuma tela acima de τ_alto."
             echo "   Se houve ZONA CINZA, ela está no step summary (resumo 'Pixel-diff — Zona Cinza') + artifact pixel-diff-views pro [W] revisar."
@@ -1237,7 +1580,8 @@ jobs:
              {"nome":"Fluxos visuais Financeiro (ENFORCING · L2.5)","outcome":"${{ steps.financeiro-flows.outcome }}"},
              {"nome":"Fluxos visuais Compras (ENFORCING · L2.5)","outcome":"${{ steps.compras-flows.outcome }}"},
              {"nome":"Fluxos visuais Sells/Create (ENFORCING · L2.5)","outcome":"${{ steps.sells-flows.outcome }}"},
-             {"nome":"Canário anti-verde-vazio","outcome":"${{ steps.canario.outcome }}"}]
+             {"nome":"Canário anti-verde-vazio","outcome":"${{ steps.canario.outcome }}"},
+             {"nome":"E2E de render · Patrimonio/Bens (ENFORCING)","outcome":"${{ steps.e2e-patrimonio-bens.outcome }}"}]
         run: |
           node scripts/governance/ui-impact.mjs --explain-failure \
             --scope="$SCOPE" --uncovered-screens="${UNCOVERED:-[]}" \

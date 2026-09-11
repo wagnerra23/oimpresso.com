@@ -1,0 +1,89 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Repair/Dashboard/Index (/repair/dashboard)",
+  "gap_fonte": "memory/requisitos/Repair/repair-dashboard-gap.md",
+  "prototipo_sha": "sha256:548d060ec551",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "header-do-modulo",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "693-706"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/Dashboard/Index.tsx",
+        "linhas": "41-45",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade. O header do mockup (repair-page.jsx:693-706) é o shell do módulo, camada Shell da UI-0013 (`AppShellV2`, 1× pro app); \"Adicionar folha\" é CRUD de OS, Non-Goal do charter (Index.charter.md:43).",
+      "_acionavel": false
+    },
+    {
+      "id": "alerta-de-entrega-vencida",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "54-58"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/Dashboard/Index.tsx",
+        "linhas": "n/a — ausente (0 ocorrências)",
+        "ancora": false
+      },
+      "status": "gap",
+      "acao": "Decidir. O banner \"N folha(s) com entrega vencida\" (repair-page.jsx:54-58) é adição do designer — não existe no Blade de origem (dashboard/index.blade.php:19-99 só tem status／equipe／tendências). Construir exige o Controller contar `delivery_date` vencida entre não-concluídas; o CTA \"Ver as atrasadas\" é drilldown, Non-Goal (Index.charter.md:47), então entraria só o aviso, sem clique. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "kpis",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "59-67"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/Dashboard/Index.tsx",
+        "linhas": "47-55",
+        "ancora": false
+      },
+      "status": "gap-parcial",
+      "acao": "Decidir. Conjuntos disjuntos: nenhum dos 4 KPIs do mockup (Folhas pendentes com sparkline e \"sem técnico\", Concluídas, Entrega vencida, Ticket médio — repair-page.jsx:59-67) existe no vivo, e os 2 do vivo não existem no mockup. \"Ticket médio\" é média de `estimated_cost` ⚠️ toca valor (Regra Mestre: só exibir agregado do backend, com dupla prova). Trocar KPIs = mudar o charter (Goals l.30-31) e UC-RDSH-02 no mesmo PR; UC-RDSH-02 já deixa registrada para [W] a pergunta sobre o nome da chave. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "folhas-por-status-por-tecnico",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "68-91"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/Dashboard/Index.tsx",
+        "linhas": "58-79",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade. As barras de status do mockup são clicáveis (`onIr`, repair-page.jsx:72-77; as de técnico são `div plain`, l.83-86); clique é drilldown, Non-Goal explícito (Index.charter.md:47). O conteúdo está coberto.",
+      "_acionavel": false
+    },
+    {
+      "id": "tendencias",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "92-99"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/Dashboard/Index.tsx",
+        "linhas": "81-122",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade estrutural com os 3 `Chart` do mockup (repair-page.jsx:92-99). O 3º painel recebe `[]` literal do Controller (DashboardController.php:86) e fica vazio para sempre — isso já é decisão [W] em aberto, medida e pinada em UC-RDSH-03 (Index.casos.md:54-75); não se duplica aqui.",
+      "_acionavel": false
+    }
+  ],
+  "mapping": {
+    "source": "repair-page.jsx",
+    "target": "resources/js/Pages/Repair/Dashboard/Index.tsx"
+  }
+}

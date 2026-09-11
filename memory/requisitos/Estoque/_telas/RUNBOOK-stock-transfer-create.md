@@ -9,7 +9,11 @@ generated_at: 2026-05-15
 generated_by: Agent W2-D
 status: ativo
 adr_refs: [0104, 0093, 0114, 0149]
-blueprint_cowork: prototipo-ui/cowork/inventario-migracao/index.html
+# corrigido em 2026-09-09: apontava prototipo-ui/prototipos/inventario-migracao/,
+# que e o relatorio "Migracao Blade -> React" (medido: Blade=67 React=36 · estoque=0 SKU=0
+# saldo=0 ajuste=0), nao o desenho desta tela -- casou por homonimo. Alinhado ao main:
+# o PR #7079 fez a mesma correcao nos 4 charters. Regiao que desenha esta tela: FormTransferencia (estoque-forms.jsx:253).
+blueprint_cowork: prototipo-ui/cowork/estoque-forms.jsx
 ---
 
 # RUNBOOK — `stock_transfers/create` (FORM CREATE)

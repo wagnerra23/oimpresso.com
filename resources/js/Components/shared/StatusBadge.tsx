@@ -62,6 +62,54 @@ const mappings: Record<string, Record<string, StatusEntry>> = {
     alta:    { variant: 'destructive', label: 'Alta' },
     urgente: { variant: 'destructive', label: 'Urgente', className: 'animate-pulse' },
   },
+  /**
+   * `documento` — `transactions.status` de pedido de venda, ordem de compra e requisição.
+   *
+   * POR QUE ESTE KIND EXISTE (medido 2026-09-03): a Visão geral chama
+   * `colunaSituacao('documento')` em 3 abas (GradesPainel.tsx:163,170,177) e
+   * `colunaSituacao('os')` numa quarta (:184). Nenhum dos dois existia aqui, então o
+   * fallback abaixo pintava badge cinza com `toTitle(valor_cru)` — a tela mostrava
+   * **"Ordered", "Received", "Packed", "Shipped"** em inglês, num ERP PT-BR.
+   *
+   * Os rótulos NÃO são escolha minha: vêm do dicionário que o projeto já usa nos
+   * Blades — `lang/pt/lang_v1.php` (`received`/`pending`/`ordered`/`partial`/`final`)
+   * e `lang/pt/sale.php` (`draft`). As chaves são os valores que o service devolve
+   * cru de `transactions.status` (GradesDoPainelService.php:502), filtrados em
+   * `:415` (`partial`,`ordered`) e `:433` (tudo menos `completed`).
+   */
+  documento: {
+    draft:      { variant: 'outline',   label: 'Rascunho' },
+    pending:    { variant: 'secondary', label: 'Pendente' },
+    ordered:    { variant: 'secondary', label: 'Solicitado' },
+    partial:    { variant: 'default',   label: 'Parcial',   className: 'bg-warning text-warning-foreground hover:bg-warning/90' },
+    received:   { variant: 'default',   label: 'Recebido',  className: 'bg-success text-success-foreground hover:bg-success/90' },
+    final:      { variant: 'default',   label: 'Final',     className: 'bg-success text-success-foreground hover:bg-success/90' },
+    completed:  { variant: 'default',   label: 'Concluído', className: 'bg-success text-success-foreground hover:bg-success/90' },
+    cancelled:  { variant: 'outline',   label: 'Cancelado' },
+  },
+  /**
+   * `os` — `transactions.shipping_status` (expedição).
+   *
+   * As 5 chaves são exatamente as de `Util::shipping_statuses()` (app/Utils/Util.php:1342),
+   * a lista que os Blades de venda/compra já oferecem no `<select>`; os rótulos são os
+   * mesmos `lang/pt/lang_v1.php` que aquele método resolve. Uma fonte só, não duas.
+   */
+  // Manufacturing — situação da ordem de produção (US-MANU-004, handoff §4.5).
+  // `mfg_is_final` é booleano no banco; o domínio nomeia os dois estados que a tela mostra.
+  producao: {
+    finalizada: { variant: 'default',   label: 'Finalizada', className: 'bg-success text-success-foreground hover:bg-success/90' },
+    // Âmbar, não cinza: o protótipo pinta o rascunho com `.mfg-pill.warn` (o `.ok` é a
+    // finalizada). UI-0029 — o protótipo é soberano na FORMA. Só ficou legível depois da
+    // UI-0033: com o par `warning` quebrado o texto dava 1,25:1; agora dá 7,72:1.
+    rascunho:   { variant: 'default',   label: 'Rascunho',  className: 'bg-warning text-warning-foreground hover:bg-warning/90' },
+  },
+  os: {
+    ordered:    { variant: 'secondary', label: 'Solicitado' },
+    packed:     { variant: 'default',   label: 'Embalado',  className: 'bg-info text-info-foreground hover:bg-info/90' },
+    shipped:    { variant: 'default',   label: 'Enviado',   className: 'bg-info text-info-foreground hover:bg-info/90' },
+    delivered:  { variant: 'default',   label: 'Entregue',  className: 'bg-success text-success-foreground hover:bg-success/90' },
+    cancelled:  { variant: 'outline',   label: 'Cancelado' },
+  },
   payment: {
     pending:        { variant: 'secondary',   label: 'Pendente' },
     partial:        { variant: 'default',     label: 'Parcial',    className: 'bg-warning text-warning-foreground hover:bg-warning/90' },
@@ -180,6 +228,43 @@ const mappings: Record<string, Record<string, StatusEntry>> = {
     no_prazo:  { variant: 'success', label: 'No prazo' },
     vencendo:  { variant: 'warning', label: 'Vencendo' },
     vencido:   { variant: 'danger',  label: 'Vencido' },
+  },
+  /**
+   * `ajuste_estoque` — `stock_adjustments.adjustment_type` (R-ADJ-002 do
+   * `StockAdjustment/Index.charter.md`: o domínio é fechado em {normal, abnormal}).
+   *
+   * Antes vivia como `TYPE_PILL` à mão dentro da própria tela, com `bg-fill` no ramo
+   * `normal` (`bg-stone-50`) — que é o AP7 do PRE-MERGE-UI violado. O ramo `abnormal` já
+   * usava o par soft à mão (`bg-destructive-soft` + `text-destructive-fg` +
+   * `border-destructive/20`), que é exatamente o que a variante `danger` rende: migrar
+   * preserva o pixel dele e para de duplicar o DS na tela.
+   */
+  ajuste_estoque: {
+    normal:   { variant: 'neutral', label: 'Normal' },
+    abnormal: { variant: 'danger',  label: 'Anormal (perda)' },
+  },
+  /**
+   * `transferencia_estoque` — status de `sell_transfer` COMO A TELA O RECEBE.
+   *
+   * Cuidado com o vocabulário: o payload Inertia NÃO espelha o banco. O
+   * `StockTransferController@indexInertia` normaliza `final` → `completed` na
+   * montagem da linha, e os DOIS caminhos de escrita fazem o inverso
+   * (`store()` e `updateStatus()`: `completed` → `final`). Ou seja, `completed`
+   * aqui é o alias de UI do terminal `final` do banco — medido nos 3 sites.
+   *
+   * As variantes preservam a leitura de cor que a tela já tinha à mão
+   * (pending=vermelho, in_transit=âmbar, completed=verde); o que muda é sair da
+   * paleta crua (`bg-rose-50`/`bg-amber-50`/`bg-emerald-50`) para o par SOFT
+   * tokenizado, que é o AP7 do PRE-MERGE-UI.
+   *
+   * `final` fica mapeado por completude do tipo `TransferStatus`, embora hoje
+   * seja INALCANÇÁVEL pela tela por causa da normalização acima.
+   */
+  transferencia_estoque: {
+    pending:    { variant: 'danger',  label: 'Pendente' },
+    in_transit: { variant: 'warning', label: 'Em trânsito' },
+    completed:  { variant: 'success', label: 'Concluída' },
+    final:      { variant: 'success', label: 'Concluída' },
   },
 };
 

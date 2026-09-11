@@ -195,8 +195,8 @@ function ValidacaoMobile({ pendentes, onDecidir }) {
               <td className="num">
                 {m.estado === "PENDENTE"
                   ? <span style={{ display: "inline-flex", gap: 6 }}>
-                      <button className="pt-btn primary" onClick={() => onDecidir(m.id, "VALIDADA")}>Validar</button>
-                      <button className="pt-btn danger" onClick={() => onDecidir(m.id, "RECUSADA")}>Recusar</button>
+                      <window.PtBtn primary onClick={() => onDecidir(m.id, "VALIDADA")}>Validar</window.PtBtn>
+                      <window.PtBtn danger onClick={() => onDecidir(m.id, "RECUSADA")}>Recusar</window.PtBtn>
                     </span>
                   : <span className="pt-dim">—</span>}
               </td>
@@ -263,9 +263,7 @@ function Mobile({ avisar, rows, setRows }) {
 
       <div className="ptm-wrap">
         <div className="ptm-device-col">
-          <div className="ptm-seg">
-            {TELAS.map((t) => <button key={t.id} className={tela === t.id ? "on" : ""} onClick={() => setTela(t.id)}>{t.label}</button>)}
-          </div>
+          <window.CliSeg ariaLabel="Tela do app" value={tela} onChange={setTela} options={TELAS.map((t) => ({ key: t.id, label: t.label }))} />
           {window.AndroidDevice
             ? <window.AndroidDevice dark>
                 <div className="ptm-top">
@@ -280,10 +278,10 @@ function Mobile({ avisar, rows, setRows }) {
           <div className="ptm-sim">
             <span className="ptm-sim-h">Simular condição de campo</span>
             <div className="ptm-sim-row">
-              <button className="pt-btn" onClick={() => setGps({ local: "Matriz — Rua Osvaldo Cruz, 812", accuracy: 12, drift: 2, dentroGeofence: true })}>Na matriz</button>
-              <button className="pt-btn" onClick={() => setGps({ local: "Obra Mercado União — Palhoça/SC", accuracy: 38, drift: 4, dentroGeofence: false })}>Em obra</button>
-              <button className="pt-btn" onClick={() => setGps({ local: "Galpão sem sinal", accuracy: 780, drift: 6, dentroGeofence: false })}>GPS ruim</button>
-              <button className="pt-btn" onClick={() => setGps((g) => ({ ...g, drift: 96 }))}>Relógio errado</button>
+              <window.PtBtn  onClick={() => setGps({ local: "Matriz — Rua Osvaldo Cruz, 812", accuracy: 12, drift: 2, dentroGeofence: true })}>Na matriz</window.PtBtn>
+              <window.PtBtn  onClick={() => setGps({ local: "Obra Mercado União — Palhoça/SC", accuracy: 38, drift: 4, dentroGeofence: false })}>Em obra</window.PtBtn>
+              <window.PtBtn  onClick={() => setGps({ local: "Galpão sem sinal", accuracy: 780, drift: 6, dentroGeofence: false })}>GPS ruim</window.PtBtn>
+              <window.PtBtn  onClick={() => setGps((g) => ({ ...g, drift: 96 }))}>Relógio errado</window.PtBtn>
             </div>
           </div>
         </div>

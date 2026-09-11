@@ -27,11 +27,17 @@ import {
   liveOnly,
   liveOnlyDetalhado,
   liveOnlyEntry,
+  destinoDoBundle,
+  rowsDoBundle,
+  rawHash,
   liveOnlyVerdict,
   desqualificacaoLiveOnly,
   lerBundlePromovido,
   LIVE_ONLY_SLA_DAYS,
   exportPlan,
+  devolutivaDeRecusados,
+  renderDevolutiva,
+  lerRetratoDevolutiva,
   decodeDesignSyncPayload,
   artifactHash,
   dsRuntimeRelPath,
@@ -1096,6 +1102,94 @@ check('mesmo número → mesmo veredito (independe de --check)',
     liveOnlyDetalhado(vivos, [], {}).faltando.length === 2);
 }
 
+// ── O ENVELOPE DO BUNDLE NÃO É CARGA (2026-09-10) ────────────────────────────────
+// `payload.partNN.json` / `bundle.manifest.json` são o TRANSPORTE que o
+// `gerar-payload-partes.mjs` emite do lado do design — carregam a fonte, não são fonte.
+// MEDIDO na lista live-only de 2026-09-09: 44 dos 74 acusados (59%) eram o próprio
+// mecanismo acusando o próprio envelope, enquanto o `--compare` do mesmo dia media
+// 273/273 EM SYNC. O custo do ruído não é teórico — o [W] reimportou o bundle 7× por
+// causa desse número.
+//
+// A âncora é o NOME que o produtor emite, não o diretório: `--out` é parâmetro, então
+// casar `sync/` deixaria passar o mesmo envelope emitido noutro lugar. Os 3 controles
+// negativos abaixo são o que impede a isenção de virar peneira.
+{
+  const envelope = ['sync/payload.part01.json', 'sync/bundle.manifest.json', 'outro-lugar/payload.part07.json'];
+  const det = liveOnlyDetalhado(envelope, []);
+  check('live-only: envelope do bundle (payload.partNN / bundle.manifest) => ignorado com motivo',
+    det.faltando.length === 0 && det.ignorados.every((i) => /transporte: envelope/.test(i.motivo)),
+    JSON.stringify(det));
+
+  // CONTROLE NEGATIVO — sem estes, a regra viraria peneira e esconderia fonte de verdade.
+  const naoEnvelope = [
+    'sync/patrimonio-page.jsx',      // DENTRO de sync/, mas é protótipo de tela
+    'payload.json',                  // nome parecido, não é o formato do produtor
+    'payload.partABC.json',          // sem dígitos
+    'meu-bundle.manifest.json.bak',  // sufixo: não casa a âncora de fim
+  ];
+  check('live-only: protótipo de tela e nomes parecidos seguem ACUSADOS (isenção não é peneira)',
+    liveOnlyDetalhado(naoEnvelope, []).faltando.length === 4,
+    JSON.stringify(liveOnlyDetalhado(naoEnvelope, []).faltando));
+}
+
+// Modo de documentos aposentado: o espelho agora é estritamente build-only.
+if (false) {
+  const tmp = mkdtempSync(join(tmpdir(), 'freshness-docs-'));
+  mkdirSync(join(tmp, 'prototipo-ui', 'design-docs', 'cowork-inbox'), { recursive: true });
+  mkdirSync(join(tmp, 'scripts', 'governance'), { recursive: true });
+  mkdirSync(join(tmp, 'insumo'), { recursive: true });
+  const cli = join(dirname(fileURLToPath(import.meta.url)), 'cowork-mirror-freshness.mjs');
+  const roda = (args) => {
+    try { return { code: 0, out: execFileSync(process.execPath, [cli, ...args], { cwd: tmp, encoding: 'utf8' }) }; }
+    catch (e) { return { code: e.status ?? -1, out: String(e.stdout || '') + String(e.stderr || '') }; }
+  };
+
+  // sandbox: github.md pousado IGUAL ao vivo · PEDIDO-X.md pousado DIFERENTE do vivo
+  writeFileSync(join(tmp, 'prototipo-ui', 'design-docs', 'github.md'), '# diario v2\n');
+  writeFileSync(join(tmp, 'prototipo-ui', 'design-docs', 'cowork-inbox', 'PEDIDO-X.md'), '# pedido v1\n');
+  writeFileSync(join(tmp, 'insumo', 'a.json'), JSON.stringify({ path: 'github.md', content: '# diario v2\n' }));
+  writeFileSync(join(tmp, 'insumo', 'b.json'), JSON.stringify({ path: 'cowork-inbox/PEDIDO-X.md', content: '# pedido v2 MUDOU\n' }));
+  writeFileSync(join(tmp, 'insumo', 'c.json'), JSON.stringify({ path: 'nunca-desceu.md', content: 'x\n' }));
+  writeFileSync(join(tmp, 'insumo', 'd.json'), JSON.stringify({ path: 'page.jsx', content: 'x\n' }));
+
+  const m = roda(['--docs-compare', join(tmp, 'insumo'), '--ledger']);
+  check('CLI --docs-compare: classifica sync/STALE/sem-copia e ignora nao-.md',
+    m.code === 0 && /sync\s+design-docs\/github\.md/.test(m.out)
+      && /STALE\s+design-docs\/cowork-inbox\/PEDIDO-X\.md/.test(m.out)
+      && /1 STALE/.test(m.out) && /1 sem cópia/.test(m.out) && /de 3 \.md/.test(m.out),
+    `code=${m.code}\n${m.out}`);
+  const ledger = JSON.parse(readFileSync(join(tmp, 'scripts', 'governance', '.cowork-freshness-ledger.json'), 'utf8'));
+  check('CLI --docs-compare --ledger: registra entrada kind=docs',
+    ledger.length === 1 && ledger[0].kind === 'docs' && ledger[0].stale === 1
+      && ledger[0].staleList[0] === 'cowork-inbox/PEDIDO-X.md', JSON.stringify(ledger));
+
+  // --sla-docs sobre o registro: 1ª medição = BASELINE (rc 0) — herdado não reprova.
+  const s1 = roda(['--sla-docs']);
+  check('CLI --sla-docs: primeira medicao => BASELINE, rc 0', s1.code === 0 && /BASELINE/.test(s1.out), `code=${s1.code}`);
+
+  // 2ª medição com stale NOVO (github.md mudou no vivo) => GREW, rc 1 — o bite.
+  writeFileSync(join(tmp, 'insumo', 'a.json'), JSON.stringify({ path: 'github.md', content: '# diario v3 MUDOU\n' }));
+  roda(['--docs-compare', join(tmp, 'insumo'), '--ledger']);
+  const s2cli = roda(['--sla-docs']);
+  check('CLI --sla-docs: stale NOVO desde a medicao anterior => rc 1 e nomeia o path',
+    s2cli.code === 1 && /STALE NOVO/.test(s2cli.out) && /design-docs\/github\.md/.test(s2cli.out),
+    `code=${s2cli.code}\n${s2cli.out}`);
+
+  // 3ª medição idêntica (mesmo staleList) => OK, rc 0 — herdado nunca vira vermelho.
+  roda(['--docs-compare', join(tmp, 'insumo'), '--ledger']);
+  const s3 = roda(['--sla-docs']);
+  check('CLI --sla-docs: staleList herdado estavel => rc 0 (delta, nao absoluto)',
+    s3.code === 0 && /nenhum stale novo/.test(s3.out), `code=${s3.code}\n${s3.out}`);
+
+  // ledger VAZIO => NUNCA MEDIDO, rc 1 — nunca verde mudo (§5 2026-07-29).
+  rmSync(join(tmp, 'scripts', 'governance', '.cowork-freshness-ledger.json'));
+  const s0 = roda(['--sla-docs']);
+  check('CLI --sla-docs: sem medicao registrada => rc 1 NUNCA MEDIDO (nunca verde mudo)',
+    s0.code === 1 && /NUNCA MEDIDO/.test(s0.out), `code=${s0.code}`);
+
+  rmSync(tmp, { recursive: true, force: true });
+}
+
 // ── DESQUALIFICAÇÃO DO EIXO MODIFICADO PELO EIXO NOVO (2026-08-27) ───────────────
 // Contrato: proposal 2026-08-27 §2. Medido no dia: `0 sync · 1 stale · 247 unchecked ·
 // mediu 1/248` — 247 de 248 arquivos do espelho NUNCA foram comparados com o vivo, porque o
@@ -1196,6 +1290,164 @@ check('mesmo número → mesmo veredito (independe de --check)',
 
   check('lerBundlePromovido: caminho inexistente → null (não objeto vazio)',
     lerBundlePromovido(tmpdir(), 'nao-existe-jamais.json') === null);
+}
+
+// ── 12. DEVOLUTIVA DA RECUSA (D3/D4 · 2026-09-07) ──────────────────────────────────
+// O `exportPlan` recusa canon de tela desde sempre e IMPRIMIA a lista. Imprimir informa
+// quem olha o terminal; não informa o DESIGN, que produziu o arquivo e o produz de novo
+// no ciclo seguinte. Estes asserts pinam o que a devolutiva precisa dizer.
+{
+  const raiz = mkdtempSync(join(tmpdir(), 'devolutiva-'));
+  const escrever = (rel, txt) => { mkdirSync(dirname(join(raiz, rel)), { recursive: true }); writeFileSync(join(raiz, rel), txt); };
+
+  // canon vivo MADURO — o caso real de 2026-09-07 (Ponto: 20 de 20 divergiam, vivo 3-7× maior)
+  escrever('resources/js/Pages/Ponto/Espelho/Show.casos.md',
+    '---\nlast_run: "2026-09-04"\n---\n' + 'x'.repeat(9000));
+  // tela existe, canon NÃO — a lacuna que vale mandar adiante
+  escrever('resources/js/Pages/Novo/Tela.tsx', 'export default function T(){}');
+
+  const linhas = devolutivaDeRecusados([
+    { path: 'resources/js/Pages/Ponto/Espelho/Show.casos.md', content: '---\nlast_run: "—"\n---\ncurto' },
+    { path: 'inbox/nova.charter.md', content: '---\ncomponent: resources/js/Pages/Novo/Tela.tsx\n---\nrascunho' },
+    { path: 'inbox/orfa.charter.md', content: '# sem frontmatter nenhum' },
+    { path: 'inbox/x.contract.json', content: '{}' },
+  ], { root: raiz });
+
+  const porPath = Object.fromEntries(linhas.map((l) => [l.path, l]));
+
+  check('BITE: rascunho pobre contra canon maduro ⇒ COLIDE-COM-CANON-MAIS-RICO',
+    porPath['resources/js/Pages/Ponto/Espelho/Show.casos.md'].classe === 'COLIDE-COM-CANON-MAIS-RICO',
+    JSON.stringify(porPath['resources/js/Pages/Ponto/Espelho/Show.casos.md']));
+
+  check('BITE: a devolutiva CITA a data de execução do canon vivo (é o que muda a decisão de lá)',
+    /2026-09-04/.test(porPath['resources/js/Pages/Ponto/Espelho/Show.casos.md'].acao));
+
+  // O defeito que o 1º controle positivo pegou: comparar charter (4 KB) com .tsx (69 KB).
+  check('IRMÃO, não componente: `component: X.tsx` resolve o alvo para X.charter.md',
+    porPath['inbox/nova.charter.md'].alvo === 'resources/js/Pages/Novo/Tela.charter.md',
+    porPath['inbox/nova.charter.md'].alvo);
+
+  check('BITE: tela existe e canon NÃO ⇒ LACUNA-TELA-SEM-CANON (rascunho vira insumo, não lixo)',
+    porPath['inbox/nova.charter.md'].classe === 'LACUNA-TELA-SEM-CANON',
+    porPath['inbox/nova.charter.md'].classe);
+
+  check('CONTROLE NEGATIVO: sem `component:` e fora de Pages/ ⇒ SEM-ALVO-DECLARADO (não inventa alvo)',
+    porPath['inbox/orfa.charter.md'].classe === 'SEM-ALVO-DECLARADO' && porPath['inbox/orfa.charter.md'].alvo === null);
+
+  check('contrato roteia para prototipo-ui/contrato/ pelo nome do arquivo',
+    porPath['inbox/x.contract.json'].alvo === 'prototipo-ui/contrato/x.contract.json');
+
+  const md = renderDevolutiva(linhas, { quando: new Date('2026-09-07T00:00:00Z') });
+  check('render: declara-se DERIVADO (não editar à mão) e datado', /Derivado/.test(md) && /2026-09-07/.test(md));
+  check('render: NÃO se declara gate (a recusa informa, não reprova)', /NÃO é gate/.test(md));
+  check('render: uma linha por recusado, todas na tabela', linhas.every((l) => md.includes(l.path)));
+
+  rmSync(raiz, { recursive: true, force: true });
+}
+
+// ── 13. QUANDO A DEVOLUTIVA PODE SER APAGADA (bite pelo CLI · 2026-09-08) ──────────
+// A seção 12 prova o CONTEÚDO da devolutiva. Esta prova a decisão de APAGÁ-LA, que vive
+// no CLI e não numa função exportada — então o bite roda o comando de FORA (§5 2026-07-30:
+// assert sobre helper exportado não prova contrato de pipeline).
+//
+// O defeito (medido 2026-09-08, PR #6990): o bloco removia a devolutiva em toda rodada sem
+// recusa. Um pouso de UM `.md` avulso — a rota que o painel chama de "caso pontual" — apagou
+// o retrato de 54 recusados de 07/09 imprimindo "nenhuma recusa nesta rodada". Universo da
+// RODADA lido como universo GLOBAL.
+if (false) {
+  const tmp = mkdtempSync(join(tmpdir(), 'devolutiva-cli-'));
+  mkdirSync(join(tmp, 'prototipo-ui', 'cowork'), { recursive: true });
+  const dirCompleta = join(tmp, 'r-com-recusa'); mkdirSync(dirCompleta);
+  const dirPontual = join(tmp, 'r-pontual'); mkdirSync(dirPontual);
+  writeFileSync(join(dirCompleta, 'a.json'), JSON.stringify({ path: 'telaA.charter.md', content: '---\ncomponent: resources/js/Pages/X/A.tsx\n---\nrascunho' }));
+  writeFileSync(join(dirCompleta, 'b.json'), JSON.stringify({ path: 'comum.jsx', content: 'const x=1\n' }));
+  // rodada PONTUAL: 1 JSON, e um `.md` que NÃO é canon de tela ⇒ zero recusa
+  writeFileSync(join(dirPontual, 'z.json'), JSON.stringify({ path: 'github.md', content: '# nota avulsa\n' }));
+
+  const cliPath = fileURLToPath(new URL('./cowork-mirror-freshness.mjs', import.meta.url));
+  const rodar = (args) => {
+    try { return { out: execFileSync(process.execPath, [cliPath, ...args], { cwd: tmp, encoding: 'utf8' }), code: 0 }; }
+    catch (e) { return { out: (e.stdout || '') + (e.stderr || ''), code: e.status }; }
+  };
+  const devAbs = join(tmp, 'prototipo-ui', 'CODE_NOTES.recusados-canon.md');
+
+  // SETUP + CONTROLE: rodada COM recusa escreve o retrato (o comportamento que não mudou)
+  rodar(['--export-from', dirCompleta]);
+  check('CLI 1/4: rodada COM recusa escreve a devolutiva', existsSync(devAbs));
+
+  // ⚠️ O BITE: é este assert que fica vermelho se alguém voltar o `rmSync` incondicional.
+  const pontual = rodar(['--export-from', dirPontual]);
+  check('BITE: rodada PONTUAL sem recusa NÃO apaga retrato de outra rodada (o defeito de 2026-09-08)',
+    existsSync(devAbs) && /PRESERVADO/.test(pontual.out), pontual.out);
+
+  // "Preservado" sem dizer de quando é não informa nada: o operador não consegue decidir.
+  check('CLI 2/4: a mensagem DIZ de quando é o retrato preservado (data + contagem)',
+    /retrato de \d{4}-\d{2}-\d{2} · \d+ arquivo\(s\)/.test(pontual.out), pontual.out);
+
+  // ESCAPE ANUNCIADO TEM DE FUNCIONAR (§5 2026-07-30 · LC-15): a mensagem acima ensina
+  // `--limpar-devolutiva`. Se a flag fosse decorativa, isto ficaria vermelho.
+  const limpo = rodar(['--export-from', dirPontual, '--limpar-devolutiva']);
+  check('BITE: --limpar-devolutiva (o escape que a mensagem anuncia) DE FATO remove',
+    !existsSync(devAbs) && /removido por --limpar-devolutiva/.test(limpo.out), limpo.out);
+
+  // CONTROLE NEGATIVO: sem retrato no disco, a rodada pontual não cria nada nem quebra
+  const vazio = rodar(['--export-from', dirPontual]);
+  check('CONTROLE NEGATIVO: sem devolutiva no disco, rodada pontual não a inventa nem falha',
+    vazio.code === 0 && !existsSync(devAbs) && !/PRESERVADO|removido/.test(vazio.out), vazio.out);
+
+  // ── a função pura que alimenta a mensagem ──────────────────────────────────────
+  const md = renderDevolutiva(
+    [{ path: 'x.charter.md', classe: 'TELA-A-CRIAR', alvo: 'a/x.charter.md', bytesRascunho: 10, bytesCanon: null, acao: 'crie' }],
+    { quando: new Date('2026-09-07T00:00:00Z') });
+  const lido = lerRetratoDevolutiva(md);
+  check('CLI 3/4: lerRetratoDevolutiva lê data e total do render REAL (não de um formato inventado)',
+    lido && lido.data === '2026-09-07' && lido.total === 1, JSON.stringify(lido));
+  check('CLI 4/4: cabeçalho ilegível ⇒ null (o CLI diz que não leu, não inventa data)',
+    lerRetratoDevolutiva('# arquivo qualquer sem cabeçalho') === null
+    && lerRetratoDevolutiva(null) === null);
+
+  rmSync(tmp, { recursive: true, force: true });
+}
+
+// ── COMPARE-BUNDLE (2026-09-08) — veredito a partir do bundle v2 promovido ────────────
+// POR QUE ESTES CASOS EXISTEM: o ledger só aceitava snapshot de `get_file` por path, então
+// aplicar o bundle com fidelidade provada não movia o `unchecked` — medido no dia: bundle
+// promovido, espelho idêntico (0 mudança), `--sla` ainda dizendo "271 sem veredito".
+{
+  const H = (s) => rawHash(Buffer.from(s));
+
+  // roteamento — a regra que o applier passou a IMPORTAR daqui (fonte única)
+  check('bundle 1/8: `.md` roteia pra design-docs (R1 do ssot-guard reprova .md em cowork/)',
+    destinoDoBundle('PEDIDO.md').destinoBase === 'prototipo-ui/design-docs');
+  check('bundle 2/8: `_ds/**` roteia pro mirror-snapshot (build de preview, não versionamento)',
+    destinoDoBundle('_ds/slug-qualquer/colors_and_type.css').destinoBase === 'scripts/design-sync/mirror-snapshot');
+  check('bundle 3/8: o resto pousa no espelho',
+    destinoDoBundle('app.jsx').destinoBase === 'prototipo-ui/cowork'
+    && destinoDoBundle('app.jsx').destinoPath === 'app.jsx');
+
+  const manifestFake = [{ cowork: 'app.jsx', repoHash: 'x' }, { cowork: 'orfao.jsx', repoHash: 'y' }];
+  const bundleFake = { files: [{ path: 'app.jsx', sha256: H('conteudo') }] };
+
+  // SYNC: o hash do disco bate com o que o gerador calculou DO VIVO
+  const rSync = rowsDoBundle(bundleFake, manifestFake, (p) => p === 'prototipo-ui/cowork/app.jsx' ? Buffer.from('conteudo') : null);
+  check('bundle 4/8: hash do disco == hash do manifesto ⇒ SYNC',
+    rSync.find((r) => r.cowork === 'app.jsx').veredito === 'SYNC');
+
+  // BITE — é o caso que motiva o modo: espelho remendado À MÃO depois da aplicação
+  const rStale = rowsDoBundle(bundleFake, manifestFake, (p) => p === 'prototipo-ui/cowork/app.jsx' ? Buffer.from('remendado a mao') : null);
+  check('bundle 5/8: BITE — espelho editado à mão depois de aplicar ⇒ STALE',
+    rStale.find((r) => r.cowork === 'app.jsx').veredito === 'STALE');
+  check('bundle 6/8: e o --check morde nesse caso',
+    shouldFail(rStale.map((r) => r.veredito)) === true);
+
+  // FAIL-CLOSED: sumiu do espelho não é SYNC nem silêncio
+  const rSumiu = rowsDoBundle(bundleFake, manifestFake, () => null);
+  check('bundle 7/8: arquivo do bundle ausente no espelho ⇒ STALE (nunca verde por ausência)',
+    rSumiu.find((r) => r.cowork === 'app.jsx').veredito === 'STALE');
+
+  // O que o bundle não cobre segue SEM VEREDITO — a suíte não mente por omissão (LC-13)
+  check('bundle 8/8: arquivo do espelho fora do bundle ⇒ UNCHECKED, nunca SYNC por omissão',
+    rSync.find((r) => r.cowork === 'orfao.jsx').veredito === 'UNCHECKED');
 }
 
 console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ contrato v3 do comparador de frescor preservado (path completo + hash normalizado + ledger/SLA + live-only + export fiel + absent-local que MORDE + refs-da-poda + fluxo e2e)');

@@ -69,13 +69,8 @@ function ProdutoAnalises({ onIr, avisar }) {
       </div>
 
       <Widget flush titulo={<><Ic name="chart" size={13} /> Análises do catálogo</>} nota={PRODUCTS.length + " produtos"}>
-        <nav className="cli-moduletopnav" aria-label="Análises do catálogo" style={{ padding: "0 12px" }}>
-          {abas.map((a) => (
-            <button key={a.k} className={"cli-moduletopnav-tab " + (aba === a.k ? "active" : "")} onClick={() => setAba(a.k)}>
-              {a.l}{a.n != null && <span className="cli-moduletopnav-n">{a.n}</span>}
-            </button>
-          ))}
-        </nav>
+        <window.CliTabs ariaLabel="Análises do catálogo" pad={12} active={aba} onChange={setAba}
+          tabs={abas.map((a) => ({ key: a.k, label: a.l, n: a.n }))} />
 
         {aba === "reposicao" &&
           <div className="pb-tblwrap">

@@ -1,0 +1,89 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Repair/DeviceModels/Index (/repair/device-models)",
+  "gap_fonte": "memory/requisitos/Repair/repair-device-models-gap.md",
+  "prototipo_sha": "sha256:548d060ec551",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "header",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "356-360"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/DeviceModels/Index.tsx",
+        "linhas": "138-150",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade com a dica + \"Adicionar modelo\" gated por `repair.create` (repair-page.jsx:356-360).",
+      "_acionavel": false
+    },
+    {
+      "id": "kpis",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "336-366 (aba sem KPI)"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/DeviceModels/Index.tsx",
+        "linhas": "152-158",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente. A aba do mockup não tem KPI (repair-page.jsx:336-366).",
+      "_acionavel": false
+    },
+    {
+      "id": "filtros",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "336-366 (aba sem filtro)"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/DeviceModels/Index.tsx",
+        "linhas": "160-214",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente. A aba do mockup não tem filtro (só a busca do shell, que filtra `folhas`, repair-page.jsx:161-165).",
+      "_acionavel": false
+    },
+    {
+      "id": "tabela",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "342-353"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/DeviceModels/Index.tsx",
+        "linhas": "228-275",
+        "ancora": false
+      },
+      "status": "gap-parcial",
+      "acao": "Decidir. (a) O mockup mostra o checklist como chips por item (`split(\"",
+      "_acionavel": true
+    },
+    {
+      "id": "estado-vazio",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "336-366 (aba sem estado vazio)"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/DeviceModels/Index.tsx",
+        "linhas": "217-226",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente. O mockup não tem estado vazio nesta aba (`D.MODELOS` fixo).",
+      "_acionavel": false
+    }
+  ],
+  "mapping": {
+    "source": "repair-page.jsx",
+    "target": "resources/js/Pages/Repair/DeviceModels/Index.tsx"
+  }
+}

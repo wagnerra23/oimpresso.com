@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Forja\Services\ForjaAprovacoesService;
 use Modules\Jana\Services\TaskRegistry\TaskCrudService;
 
 /**
@@ -162,6 +163,10 @@ class RoadmapGanttController extends Controller
             ->pluck('module');
 
         return Inertia::render('Forja/Roadmap/Gantt', [
+            // Badge de pendências do topnav (§3.1 do export): no protótipo ele vive no
+            // destino Aprovações em TODA view — é o que avisa que há algo esperando
+            // decisão enquanto você está em OUTRA tela. COUNT indexado, deferido.
+            'pendencias' => Inertia::defer(fn () => app(ForjaAprovacoesService::class)->contagem()),
             'cycles' => $cycles->map(function ($c) {
                 return [
                     'id'         => (int) $c->id,

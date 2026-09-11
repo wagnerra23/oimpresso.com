@@ -347,11 +347,14 @@ indistinguível de leitura real — e a persona-alvo é a **contadora**. É a me
 [proibicoes §5](../../proibicoes.md) 2026-07-17 (*"número que outro sistema sabe melhor"*), aqui na
 forma mais aguda: o número **não vem de sistema nenhum**.
 
-> ⚖️ **Decisão [W], não do agente.** As saídas legítimas são pelo menos três — (a) marcar visualmente
-> a procedência ("dados de demonstração"), (b) esconder a superfície atrás de flag até o serviço real
-> existir, (c) declarar Non-Goal explícito no charter. Escolher é produto. Registrado como
-> **`CU-FISC-16` `⬜`** (§6) e como `[BACKLOG]` nos `casos.md` de `Cockpit`, `Dfe` e `Config` —
-> **não** virou UC com id porque não há contrato em 2 fontes que diga qual saída é a certa.
+> ⚖️ **Decisão [W] — TOMADA em 2026-09-04: a saída é (a), selo de procedência em todas.** As saídas
+> legítimas eram três — (a) marcar visualmente a procedência, (b) esconder atrás de flag até o serviço
+> real existir, (c) declarar Non-Goal no charter. [W] escolheu **(a)**, textual: *"eu preciso saber se
+> esta em produção ou não. mais o status não preciso de flag"* — o requisito é de leitura, e esconder
+> não informa. **(b) não vigora para superfície nenhuma**, inclusive `sefazStatus` e `writeOffSummary`,
+> que um relato intermediário chegou a colocar sob flag. Registro completo + a história da revisão em
+> **`CU-FISC-16`** (§6.5). Segue como `[BACKLOG]` nos `casos.md` de `Cockpit`, `Dfe` e `Config`, sem UC
+> com id — o id nasce com o teste, no PR da implementação.
 
 #### 5.4.2 · O charter do `Sped` proíbe o que o código já faz
 
@@ -498,17 +501,45 @@ operação interna (5102) de interestadual (6102)**.
 3. `[V0]` a flag `fiscal.sped_simples_only_lock` bloqueia o download com **503** para não-superadmin
 4. `[T0]` gerar SPED de outro business lança `RuntimeException` antes de qualquer query
 5. `[must]` competência inválida (ano <2020, ano futuro, mês fora de 1–12) é recusada
-6. ⬜ **sem teste** — validação do TXT no PVA-EFD oficial (nenhum golden file existe)
+6. ⬜ **sem teste** — importação do TXT no **PVA-EFD oficial** (ferramenta externa da Receita; nenhuma
+   lane a executa). ⚠️ A redação anterior dizia *"nenhum golden file existe"* — **caducou em
+   2026-09-03**: a Onda 9 ([PR #6708](https://github.com/wagnerra23/oimpresso.com/pull/6708)) criou
+   `Modules/Fiscal/Tests/Fixtures/sped-icms-ipi-golden.txt` (47 linhas), conferido por `UC-FSF1-05`
+   quanto a estrutura, blocos e contadores. O que segue sem prova é só o PVA real — e o próprio
+   golden já expõe dois motivos de recusa: CNPJ/IE vazios e UF fixa.
 
 ### 6.5 Procedência do dado
 
-#### CU-FISC-16 — Distinguir dado real de dado de demonstração `[must]` ⬜
+#### CU-FISC-16 — Distinguir dado real de dado de demonstração `[must]` 🖐 **decidido**
 *Dado* que 4 props Inertia e 4 superfícies extras do cockpit servem dado inventado (§5.4.1);
 *quando* a contadora lê a tela; *então* ela precisa conseguir dizer o que é leitura real e o que é
 demonstração.
-> ⛔ **Sem contrato em 2 fontes** → **não** virou UC com id (viraria órfão e bloquearia o merge de
-> quem for atendê-lo, [proibicoes §5](../../proibicoes.md) 2026-07-16). Está como `[BACKLOG]` nos
-> `casos.md` de `Cockpit`, `Dfe` e `Config` e **precisa de decisão [W]** (§5.4.1).
+
+> 🖐 **Decisão [W] — 2026-09-04, confirmada na fonte.** Textual: *"pode confirmar, eu preciso saber
+> se esta em produção ou não. mais o status não preciso de flag"*.
+>
+> **A saída é SELO em todas as superfícies. Nenhuma flag, nada escondido da tela.** O requisito que
+> [W] enunciou é de **leitura** — *saber se está em produção ou não* —, e esconder uma superfície
+> não a informa: remove o dado sem responder a pergunta. O `status` da SEFAZ fica **mostrando**,
+> com selo, e o mesmo vale para o resumo de baixas.
+>
+> ⚠️ **A história desta decisão, porque registro que conta história errada envelhece mal.** Antes
+> desta confirmação circulou entre sessões um relato de decisão [W] **diferente** — *flag* (esconder)
+> para `sefazStatus` e `writeOffSummary`, selo para as outras quatro —, com o argumento de que rótulo
+> só mitiga se for lido. Esse recorte **não vigora**; foi revisto pelo próprio [W] ao ver a
+> implementação selada. Fica registrado por ser fato datado, e para que ninguém o reintroduza lendo
+> um handoff intermediário como se fosse o desfecho.
+>
+> ⛔ **Continua sem UC com id, e isso é deliberado:** o id nasce **junto** com o teste que o exercita,
+> no PR da implementação — UC órfão bloqueia o merge de quem for atendê-lo ([proibicoes §5](../../proibicoes.md)
+> 2026-07-16). Os `[BACKLOG]` nos `casos.md` de `Cockpit`, `Dfe` e `Config` seguem sendo o lugar da
+> prosa até lá; o que muda é que **a saída deixou de ser indefinida**.
+>
+> **Superfícies cobertas — 6 em 3 telas** (censo medido em `origin/main`, não herdado de prosa:
+> `git grep -o -E '\bmock[A-Za-z]+' -- 'Modules/Fiscal/**'`): `mockEventos`, `mockSefazStatus`,
+> `mockContabilData`, `mockWriteOffSummary` (Cockpit) · `mockHistorico` (Dfe) · `mockSeriesFiscais`
+> (Config). O `notasMock` **não** entra: é `=> $notas`, dado real sob nome antigo (shim do #6559,
+> com condição de remoção escrita no próprio comentário).
 
 ### 6.6 Non-Goals — **só [W] preenche** 🖐
 
@@ -523,8 +554,8 @@ demonstração.
 - `Config`: sem histórico de certificados · sem renovação automática — ⚠️ e o Non-Goal *"sem edição inline"* **está em conflito com o código** (§5.4.3)
 - `Sped`: sem EFD-Contribuições (PIS/COFINS) · sem livros fiscais · sem workflow contador→SEFIN — ⚠️ e o Non-Goal *"sem gerador real"* **está em conflito com o código** (§5.4.2)
 
-**Pendente de [W]:** os dois ⚠️ acima + a saída do `CU-FISC-16` + se `ANTI-REGRESSAO-fiscal-legacy.md`
-deve existir (§0.1).
+**Pendente de [W]:** os dois ⚠️ acima + se `ANTI-REGRESSAO-fiscal-legacy.md` deve existir (§0.1).
+_(A saída do `CU-FISC-16` saiu desta lista: **decidida em 2026-09-04** — selo em todas, nenhuma flag, §6.5.)_
 
 ---
 
@@ -588,7 +619,7 @@ briefing da Larissa, canary 7d e smoke salvo. **Enquanto isso, `biz=4` não vê 
 
 | # | Risco | Severidade | Estado |
 |---|---|---|---|
-| R1 | **Dado de demonstração indistinguível de dado real** numa tela fiscal (§5.4.1) | alta (confiança) | ⬜ decisão [W] |
+| R1 | **Dado de demonstração indistinguível de dado real** numa tela fiscal (§5.4.1) | alta (confiança) | 🖐 **decidido 2026-09-04** — selo em todas, nenhuma flag (§6.5). Implementação em curso ([#6733](https://github.com/wagnerra23/oimpresso.com/pull/6733)); o risco só fecha quando ela mergear |
 | R2 | **6 hardcodes Tier-0 do SPED** — mitigados na Fase 1 (fallback + CFOP por UF); **Fase 2 (Strategy por regime) não existe** | alta (multa) | 🟡 contida pela flag |
 | R3 | **Charter × código divergem** em `Sped` (§5.4.2) e `Config` (§5.4.3) — charter é lei e pode estar errado | média | ⬜ decisão [W] |
 | R4 | **Janela de cancelamento decidida em 2 relógios** (servidor × browser) | média | ⬜ aberto (R3 do charter) |
@@ -605,7 +636,8 @@ briefing da Larissa, canary 7d e smoke salvo. **Enquanto isso, `biz=4` não vê 
 
 🖐 **curado — [W] prioriza.** Derivado das US `todo` do SPEC + das lacunas acima. Não é plano paralelo.
 
-1. **Decidir o `CU-FISC-16`** (procedência do dado mockado) — destrava R1 e é pré-requisito honesto do canary da Larissa.
+1. ~~**Decidir o `CU-FISC-16`**~~ — **decidido em 2026-09-04** (selo em todas, nenhuma flag · §6.5). O que resta
+   não é decisão, é entrega: o selo chegar às 6 superfícies em 3 telas. Segue pré-requisito honesto do canary da Larissa.
 2. **Reconciliar os 2 charters divergentes** (`Sped`, `Config`) — R3. Só [W].
 3. **`US-FISCAL-021` IBS/CBS** — prazo regulatório **03/08/2026**, único P0 zerado da ficha.
 4. **`US-FISCAL-018`** pernas humano-limitadas → cockpit chega em biz=4.

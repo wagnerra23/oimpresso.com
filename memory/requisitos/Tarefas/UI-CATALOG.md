@@ -1,8 +1,12 @@
 # Tarefas — UI Catalog (auto-gerado bulk W31-10)
 
+> ⚰️ **FÓSSIL — não é estado vigente.** A tela que este catálogo descreve foi **removida em 2026-09-09**, executando a lápide de 2026-06-15 ([`BRIEFING.md`](BRIEFING.md)). `resources/js/Pages/Tarefas/` **não existe mais**; os números abaixo são o retrato de 2026-05-17 e ficam como história.
+>
+> Estado vigente: tarefas de cliente → `Pages/Essentials/Todo/*` · tarefas do time → `/team-mcp/tasks`.
+
 > **Ultima atualizacao:** 2026-05-17 (W31-10)
 > **Auto-regeneravel.** Manter versao; reescrever via gerador (nao editar manual em campos de auto-status).
-> Pages dir: `resources/js/Pages/Tarefas/`
+> Pages dir: `resources/js/Pages/Tarefas/` _(removido em 2026-09-09 — path histórico)_
 
 ## Resumo
 

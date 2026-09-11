@@ -1,0 +1,31 @@
+<!doctype html>
+<!-- @dsCard group="Components" name="Progress" subtitle="Barra + anel — progresso determinístico, tom semântico" viewport="640x300" -->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Progress</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<style> body { margin: 0; } </style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+</head>
+<body>
+<div class="cockpit dark" data-theme="dark" style="min-height:300px; background:var(--bg); padding:26px; display:flex; align-items:center;">
+  <div id="root" style="width:100%;"></div>
+</div>
+<script type="text/javascript">
+  const { Progress } = window.OfficeImpressoPontoWR2DesignSystem_019dd0;
+  const h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    h('div', { style: { display: 'flex', alignItems: 'center', gap: 36 } },
+      h('div', { style: { flex: 1, display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 320 } },
+        h(Progress, { value: 72, label: 'Fechamento de junho', showValue: true }),
+        h(Progress, { value: 40, tone: 'warn', label: 'Banco de horas', showValue: true }),
+        h(Progress, { value: 96, tone: 'success', label: 'Espelhos validados', showValue: true })),
+      h('div', { style: { display: 'flex', gap: 20 } },
+        h(Progress, { variant: 'ring', value: 72, size: 76, showValue: true, label: 'meta' }),
+        h(Progress, { variant: 'ring', value: 33, tone: 'danger', size: 76, showValue: true, label: 'SLA' }))));
+</script>
+</body>
+</html>

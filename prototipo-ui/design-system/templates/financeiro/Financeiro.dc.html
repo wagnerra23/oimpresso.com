@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- @template name="Financeiro — Títulos" description="Financeiro nível Norte: KPI-filtros (a receber/pagar/saldo/vencidos) + tabela de títulos com tipo entrada/saída, vencimento, status de pagamento e valor sinalizado. Dark premium." -->
+<helmet>
+<script src="./ds-base.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  .nav-item:hover { background: var(--accent-soft) !important; }
+  .grp { display:flex; align-items:center; gap:8px; padding:13px 9px 5px; font:600 9.5px/1 var(--font-sans); letter-spacing:.08em; text-transform:uppercase; color:var(--text-mute); }
+  .grp .n { margin-left:auto; font:600 10px/1 var(--font-mono); color:var(--text-mute); opacity:.8; }
+  .rowbtn:hover { background:color-mix(in oklch, var(--text) 8%, transparent) !important; }
+</style>
+</helmet>
+<div class="cockpit dark" data-theme="dark" ref="{{ cockpitRef }}" style="display:flex; min-height:100vh; background:radial-gradient(1100px 620px at 84% -10%, oklch(0.30 0.07 295 / .16), transparent 60%), radial-gradient(900px 520px at 6% 110%, oklch(0.26 0.05 250 / .12), transparent 62%), var(--bg); color:var(--text); font-family:var(--font-sans); font-size:13px; line-height:1.4; -webkit-font-smoothing:antialiased;">
+
+  <!-- ░░ SIDEBAR ░░ -->
+  <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.AppSidebar" active="financeiro" hint-size="222px,100%"></x-import>
+
+  <!-- ░░ MAIN ░░ -->
+  <main style="flex:1; min-width:0; display:flex; flex-direction:column;">
+    <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.PageHeader" title="Financeiro" subtitle="{{ subtitleNode }}" actions="{{ headerActions }}" hint-size="100%,72px"></x-import>
+    <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.TabBar" inset="26px" tabs="{{ tabs }}" active="{{ activeTab }}" onChange="{{ setTab }}" hint-size="100%,44px"></x-import>
+
+    <div class="nxc" style="flex:1; overflow:auto; padding:16px 26px 24px;">
+      <div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:9px;">
+        <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.KpiFilterCard" label="A receber" value="R$ 28,4k" sub="14 títulos" tone="emerald" icon="{{ icRec }}" selected="{{ kRec }}" onClick="{{ kcRec }}" hint-size="100%,62px"></x-import>
+        <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.KpiFilterCard" label="A pagar" value="R$ 16,2k" sub="9 títulos" tone="amber" icon="{{ icPag }}" selected="{{ kPag }}" onClick="{{ kcPag }}" hint-size="100%,62px"></x-import>
+        <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.KpiFilterCard" label="Saldo previsto" value="R$ 12,2k" sub="fim do mês" tone="primary" icon="{{ icSaldo }}" selected="{{ kSaldo }}" onClick="{{ kcSaldo }}" hint-size="100%,62px"></x-import>
+        <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.KpiFilterCard" label="Vencidos" value="R$ 387" sub="2 títulos" tone="rose" icon="{{ icVenc }}" selected="{{ kVenc }}" onClick="{{ kcVenc }}" hint-size="100%,62px"></x-import>
+        <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.KpiFilterCard" label="Recebido (mês)" value="R$ 142,8k" sub="+18% vs set" tone="violet" icon="{{ icMes }}" selected="{{ kMes }}" onClick="{{ kcMes }}" hint-size="100%,62px"></x-import>
+      </div>
+
+      <div style="margin-top:14px; border:1px solid var(--border); border-radius:12px; overflow:hidden; background:var(--surface); box-shadow:0 1px 2px rgba(0,0,0,.18);">
+        <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Toolbar" left="{{ tbLeft }}" right="{{ tbRight }}" hint-size="100%,48px"></x-import>
+        <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.DataGrid" columns="{{ columns }}" rows="{{ rows }}" pageSize="{{ pageSize }}" maxHeight="{{ tableH }}" totalLabel="títulos" hint-size="100%,420px"></x-import>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: &quot;100%&quot;, &quot;height&quot;: 760}, &quot;theme&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;dark&quot;, &quot;light&quot;], &quot;default&quot;: &quot;dark&quot;, &quot;tsType&quot;: &quot;'dark' | 'light'&quot;}, &quot;accentHue&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 295, &quot;min&quot;: 0, &quot;max&quot;: 360, &quot;step&quot;: 5, &quot;tsType&quot;: &quot;number&quot;}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { activeTab: 'receber', kpi: null, sortKey: null, sortDir: 'asc', q: '', fluxo: 'todos' };
+    this._poll = null;
+  }
+  componentDidMount() {
+    if (!window.OfficeImpressoPontoWR2DesignSystem_019dd0) {
+      this._poll = setInterval(() => { if (window.OfficeImpressoPontoWR2DesignSystem_019dd0) { clearInterval(this._poll); this._poll = null; this.forceUpdate(); } }, 60);
+    }
+    this.applyTheme();
+  }
+  componentDidUpdate() { this.applyTheme(); }
+  componentWillUnmount() { if (this._poll) clearInterval(this._poll); }
+
+  applyTheme() {
+    const el = this._cockpit; if (!el) return;
+    const dark = (this.props.theme || 'dark') !== 'light';
+    if (dark) { el.setAttribute('data-theme', 'dark'); el.classList.add('dark'); }
+    else { el.removeAttribute('data-theme'); el.classList.remove('dark'); }
+    const hue = this.props.accentHue != null ? this.props.accentHue : 295;
+    const aL = dark ? '0.72' : '0.55';
+    el.style.setProperty('--accent', 'oklch(' + aL + ' 0.15 ' + hue + ')');
+    el.style.setProperty('--accent-2', 'oklch(' + (dark ? '0.78' : '0.62') + ' 0.15 ' + hue + ')');
+    el.style.setProperty('--accent-soft', dark ? 'oklch(0.32 0.07 ' + hue + ')' : 'oklch(0.95 0.04 ' + hue + ')');
+    el.style.setProperty('--color-primary', 'oklch(' + aL + ' 0.15 ' + hue + ')');
+  }
+
+  setTab = (k) => this.setState({ activeTab: k });
+  toggleKpi = (k) => this.setState(s => ({ kpi: s.kpi === k ? null : k }));
+  onSort = (key) => this.setState(s => ({ sortKey: key, sortDir: s.sortKey === key && s.sortDir === 'asc' ? 'desc' : 'asc' }));
+
+  icon(name) {
+    const h = React.createElement;
+    const svg = (kids, fill) => h('svg', { width: 17, height: 17, viewBox: '0 0 24 24', fill: fill || 'none', stroke: fill ? 'none' : 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round' }, kids);
+    if (name === 'rec') return svg(h('path', { d: 'M12 19V5M5 12l7 7 7-7' }));
+    if (name === 'pag') return svg(h('path', { d: 'M12 5v14M5 12l7-7 7 7' }));
+    if (name === 'venc') return svg([h('path', { key: 'a', d: 'M12 4l9 15H3z' }), h('path', { key: 'b', d: 'M12 10v4M12 17h.01' })]);
+    if (name === 'mes') return svg([h('circle', { key: 'a', cx: 12, cy: 12, r: 8 }), h('path', { key: 'b', d: 'M12 8v4l3 2' })]);
+    return svg([h('rect', { key: 'a', x: 4, y: 10, width: 3.5, height: 10, rx: 1 }), h('rect', { key: 'b', x: 10.25, y: 5, width: 3.5, height: 15, rx: 1 }), h('rect', { key: 'c', x: 16.5, y: 13, width: 3.5, height: 7, rx: 1 })], 'currentColor');
+  }
+
+  data() {
+    return [
+      { id: '1', doc: 'NF 1042', parte: 'Acme Comércio', cat: 'Venda', venc: '18/10', tipo: 'in', pay: 'pending', valor: 1240 },
+      { id: '2', doc: 'NF 1041', parte: 'TechPro Sistemas', cat: 'Venda', venc: '12/10', tipo: 'in', pay: 'overdue', valor: 680 },
+      { id: '3', doc: 'BOL 882', parte: 'Tintas SP Ltda', cat: 'Insumos', venc: '20/10', tipo: 'out', pay: 'pending', valor: 2150 },
+      { id: '4', doc: 'NF 1039', parte: 'Padaria Estrela', cat: 'Venda', venc: '08/10', tipo: 'in', pay: 'paid', valor: 320 },
+      { id: '5', doc: 'ENEL', parte: 'Enel Distribuição', cat: 'Utilidades', venc: '15/10', tipo: 'out', pay: 'due', valor: 890 },
+      { id: '6', doc: 'NF 1038', parte: 'Studio Vega', cat: 'Venda', venc: '22/10', tipo: 'in', pay: 'partial', valor: 2150 },
+      { id: '7', doc: 'ALUG', parte: 'Imobiliária Centro', cat: 'Ocupação', venc: '05/10', tipo: 'out', pay: 'paid', valor: 4200 },
+      { id: '8', doc: 'NF 1036', parte: 'Ótica Lumière', cat: 'Venda', venc: '25/10', tipo: 'in', pay: 'pending', valor: 5400 },
+      { id: '9', doc: 'FOLHA', parte: 'Folha de pagamento', cat: 'Pessoal', venc: '05/10', tipo: 'out', pay: 'paid', valor: 12480 },
+    ];
+  }
+
+  brl(n) { return 'R$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 2 }); }
+
+  renderVals() {
+    const NS = window.OfficeImpressoPontoWR2DesignSystem_019dd0;
+    const cockpitRef = (el) => { this._cockpit = el; if (el) this.applyTheme(); };
+    const k = this.state.kpi;
+    const base = {
+      cockpitRef, activeTab: this.state.activeTab, setTab: this.setTab,
+      sortKey: this.state.sortKey, sortDir: this.state.sortDir, onSort: this.onSort, tableH: 440,
+      tabs: [
+        { key: 'receber', label: 'A receber', count: 14 },
+        { key: 'pagar', label: 'A pagar', count: 9 },
+        { key: 'fluxo', label: 'Fluxo de caixa' },
+        { key: 'conciliacao', label: 'Conciliação' },
+      ],
+      kRec: k === 'rec', kPag: k === 'pag', kSaldo: k === 'saldo', kVenc: k === 'venc', kMes: k === 'mes',
+      kcRec: () => this.toggleKpi('rec'), kcPag: () => this.toggleKpi('pag'), kcSaldo: () => this.toggleKpi('saldo'), kcVenc: () => this.toggleKpi('venc'), kcMes: () => this.toggleKpi('mes'),
+      icRec: this.icon('rec'), icPag: this.icon('pag'), icSaldo: this.icon('saldo'), icVenc: this.icon('venc'), icMes: this.icon('mes'),
+    };
+    if (!NS) return base;
+    const h = React.createElement;
+
+    base.subtitleNode = h('span', null, h('strong', { style: { color: 'var(--text)', fontWeight: 600 } }, '23'), ' títulos abertos');
+    base.headerActions = h(React.Fragment, null,
+      h(NS.Button, { variant: 'ghost', size: 'sm' }, 'Exportar'),
+      h(NS.Button, { variant: 'primary', size: 'sm' }, 'Novo lançamento'),
+    );
+
+    const columns = [
+      { key: 'doc', label: 'Documento', width: '92px', mono: true, sortable: true },
+      { key: 'parte', label: 'Parte', sortable: true },
+      { key: 'cat', label: 'Categoria', width: '110px' },
+      { key: 'tipo', label: 'Tipo', width: '92px' },
+      { key: 'venc', label: 'Vencimento', width: '104px', mono: true, sortable: true },
+      { key: 'status', label: 'Status', width: '110px' },
+      { key: 'valor', label: 'Valor', align: 'right', width: '116px', sortable: true },
+    ];
+    const tipoBadge = (t) => h('span', {
+      style: { display: 'inline-flex', alignItems: 'center', gap: 5, padding: '2px 8px', borderRadius: 99, fontSize: 11, fontWeight: 600,
+        background: t === 'in' ? 'color-mix(in oklch, var(--pos) 16%, transparent)' : 'color-mix(in oklch, var(--neg) 16%, transparent)',
+        color: t === 'in' ? 'var(--pos)' : 'var(--neg)' },
+    }, t === 'in' ? '↑ entrada' : '↓ saída');
+
+    const sk = this.state.sortKey;
+    let rows = this.data();
+    if (sk) {
+      const val = (r) => sk === 'valor' ? r.valor : String(r[sk] || '').toLowerCase();
+      const dir = this.state.sortDir === 'desc' ? -1 : 1;
+      rows = rows.slice().sort((a, b) => { const x = val(a), y = val(b); return (x < y ? -1 : x > y ? 1 : 0) * dir; });
+    }
+    base.rows = rows.map(r => ({
+      id: r.id,
+      cells: {
+        doc: r.doc,
+        parte: r.parte,
+        cat: h('span', { style: { color: 'var(--text-dim)', fontSize: 12 } }, r.cat),
+        tipo: tipoBadge(r.tipo),
+        venc: r.venc,
+        status: h(NS.StatusBadge, { kind: 'payment', value: r.pay }),
+        valor: h('span', { style: { fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 12.5, color: r.tipo === 'in' ? 'var(--pos)' : 'var(--text)' } }, (r.tipo === 'in' ? '+' : '−') + this.brl(r.valor).slice(3)),
+      },
+    }));
+    base.columns = columns;
+    base.pageSize = 10;
+    const ic = (d) => h('svg', { width: 14, height: 14, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }, h('path', { d }));
+    base.tbLeft = h(React.Fragment, null,
+      h(NS.ToolbarSearch, { value: this.state.q || '', onChange: (v) => this.setState({ q: v }), placeholder: 'Buscar título, parte, NF…', width: 260, kbd: '/' }),
+      h(NS.ToolbarDivider),
+      h(NS.Segmented, { size: 'sm', value: this.state.fluxo || 'todos', onChange: (v) => this.setState({ fluxo: v }),
+        options: [{ value: 'todos', label: 'Todos' }, { value: 'in', label: 'Entradas' }, { value: 'out', label: 'Saídas' }] }),
+    );
+    base.tbRight = h(React.Fragment, null,
+      h('span', { style: { font: '11.5px/1 var(--font-mono)', color: 'var(--text-mute)' } }, '23 títulos · saldo R$ 12,2k'),
+      h(NS.ToolbarDivider),
+      h(NS.ToolbarButton, { icon: ic('M12 3v12m0 0 4-4m-4 4-4-4M4 19h16') }, 'Exportar'),
+      h(NS.Kebab, { items: [
+        { id: 'conc', label: 'Conciliar extrato' },
+        { id: 'rem', label: 'Gerar remessa CNAB' },
+        { separator: true },
+        { id: 'col', label: 'Colunas…' },
+      ] }),
+    );
+    return base;
+  }
+}
+</script>
+</body>
+</html>

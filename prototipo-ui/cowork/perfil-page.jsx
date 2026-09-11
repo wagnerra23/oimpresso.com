@@ -51,10 +51,10 @@ const MARITAL = [
 
 function Field({ label, req, hint, span, children }) {
   return (
-    <div className={"pf-field" + (span ? " span-2" : "")}>
-      <label className="pf-label">{label}{req && <span className="req">*</span>}</label>
+    <div className={"upf-field" + (span ? " span-2" : "")}>
+      <label className="upf-label">{label}{req && <span className="req">*</span>}</label>
       {children}
-      {hint && <span className="pf-hint">{hint}</span>}
+      {hint && <span className="upf-hint">{hint}</span>}
     </div>
   );
 }
@@ -97,16 +97,16 @@ function PerfilPage() {
     : <span>{initials}</span>;
 
   return (
-    <div className="pf" data-screen-label="Perfil · Meu perfil">
+    <div className="upf" data-screen-label="Perfil · Meu perfil">
       {/* Header de identidade */}
-      <header className="pf-head">
-        <div className="pf-avatar"><AvatarVisual /></div>
-        <div className="pf-id">
-          <div className="pf-id-name">
+      <header className="upf-head">
+        <div className="upf-avatar"><AvatarVisual /></div>
+        <div className="upf-id">
+          <div className="upf-id-name">
             {fullName || "Meu perfil"}
-            <span className="pf-chip">Administrador</span>
+            <span className="upf-chip">Administrador</span>
           </div>
-          <div className="pf-id-sub">
+          <div className="upf-id-sub">
             <span>{f.email || "—"}</span>
             <span className="sep">·</span>
             <span>WR2 Sistemas</span>
@@ -114,60 +114,50 @@ function PerfilPage() {
             <span>Conta do usuário</span>
           </div>
         </div>
-        <div className="pf-head-actions">
-          <button className="pf-btn primary" onClick={onSave} disabled={!dirty}>
+        <div className="upf-head-actions">
+          <button className="upf-btn primary" onClick={onSave} disabled={!dirty}>
             {saved ? <><PfI.check s={14}/>Salvo</> : "Salvar alterações"}
           </button>
         </div>
       </header>
 
       {/* Tabs */}
-      <nav className="pf-tabs" aria-label="Seções do perfil">
-        {TABS.map((t) => {
-          const Ic = t.ic;
-          return (
-            <button key={t.id}
-              className={"pf-tab" + (tab === t.id ? " active" : "")}
-              onClick={() => setTab(t.id)}>
-              <Ic s={14}/><span>{t.label}</span>
-            </button>
-          );
-        })}
-      </nav>
+      <window.CliTabs className="upf-tabs" ariaLabel="Seções do perfil" pad={24} active={tab} onChange={setTab}
+        tabs={TABS.map((t) => { const Ic = t.ic; return { key: t.id, label: t.label, icon: <Ic s={14} /> }; })} />
 
-      <div className="pf-body">
+      <div className="upf-body">
         {tab === "conta" && (
-          <div className="pf-grid">
-            <div className="pf-col">
-              <section className="pf-card">
-                <div className="pf-card-head">
+          <div className="upf-grid">
+            <div className="upf-col">
+              <section className="upf-card">
+                <div className="upf-card-head">
                   <PfI.user s={15}/>
                   <div>
                     <h3>Editar perfil</h3>
                     <p className="desc">Nome de exibição e dados de acesso</p>
                   </div>
                 </div>
-                <div className="pf-card-body">
-                  <div className="pf-field-grid cols-3">
+                <div className="upf-card-body">
+                  <div className="upf-field-grid cols-name">
                     <Field label="Prefixo">
-                      <input className="pf-input" value={f.surname} onChange={set("surname")} placeholder="Sr / Sra" />
+                      <input className="upf-input" value={f.surname} onChange={set("surname")} placeholder="Sr / Sra" />
                     </Field>
                     <Field label="Primeiro nome" req>
-                      <input className="pf-input" value={f.first_name} onChange={set("first_name")} placeholder="Primeiro nome" />
+                      <input className="upf-input" value={f.first_name} onChange={set("first_name")} placeholder="Primeiro nome" />
                     </Field>
                     <Field label="Sobrenome">
-                      <input className="pf-input" value={f.last_name} onChange={set("last_name")} placeholder="Sobrenome" />
+                      <input className="upf-input" value={f.last_name} onChange={set("last_name")} placeholder="Sobrenome" />
                     </Field>
                   </div>
-                  <div className="pf-field-grid cols-2" style={{ marginTop: 14 }}>
+                  <div className="upf-field-grid cols-2">
                     <Field label="E-mail">
-                      <div className="pf-input-wrap">
+                      <div className="upf-input-wrap">
                         <PfI.mail s={14}/>
-                        <input className="pf-input" type="email" value={f.email} onChange={set("email")} placeholder="email@empresa.com.br" />
+                        <input className="upf-input" type="email" value={f.email} onChange={set("email")} placeholder="email@empresa.com.br" />
                       </div>
                     </Field>
                     <Field label="Idioma">
-                      <select className="pf-select" value={f.language} onChange={set("language")}>
+                      <select className="upf-select" value={f.language} onChange={set("language")}>
                         {LANGS.map((o) => <option key={o.v} value={o.v}>{o.l}</option>)}
                       </select>
                     </Field>
@@ -176,23 +166,23 @@ function PerfilPage() {
               </section>
             </div>
 
-            <div className="pf-col">
-              <section className="pf-card">
-                <div className="pf-card-head">
+            <div className="upf-col">
+              <section className="upf-card">
+                <div className="upf-card-head">
                   <PfI.cam s={15}/>
                   <div><h3>Foto de perfil</h3></div>
                 </div>
-                <div className="pf-card-body">
-                  <div className="pf-photo">
-                    <div className="pf-photo-preview"><AvatarVisual /></div>
-                    <div className="pf-photo-actions">
-                      <button className="pf-btn sm" onClick={() => fileRef.current?.click()}>
+                <div className="upf-card-body">
+                  <div className="upf-photo">
+                    <div className="upf-photo-preview"><AvatarVisual /></div>
+                    <div className="upf-photo-actions">
+                      <button className="upf-btn sm" onClick={() => fileRef.current?.click()}>
                         <PfI.cam s={13}/>Escolher imagem
                       </button>
-                      {photo && <button className="pf-btn sm ghost" onClick={() => { setPhoto(null); setDirty(true); }}>Remover</button>}
+                      {photo && <button className="upf-btn sm ghost" onClick={() => { setPhoto(null); setDirty(true); }}>Remover</button>}
                     </div>
                     <input ref={fileRef} type="file" accept="image/*" hidden onChange={onPhoto} />
-                    <p className="pf-photo-hint">JPG ou PNG · tamanho máximo 5 MB</p>
+                    <p className="upf-photo-hint">JPG ou PNG · tamanho máximo 5 MB</p>
                   </div>
                 </div>
               </section>
@@ -201,32 +191,32 @@ function PerfilPage() {
         )}
 
         {tab === "info" && (
-          <div className="pf-col" style={{ maxWidth: 820 }}>
-            <section className="pf-card">
-              <div className="pf-card-head">
+          <div className="upf-col upf-col-solo">
+            <section className="upf-card">
+              <div className="upf-card-head">
                 <PfI.info s={15}/>
                 <div><h3>Dados pessoais</h3></div>
               </div>
-              <div className="pf-card-body">
-                <div className="pf-field-grid cols-2">
+              <div className="upf-card-body">
+                <div className="upf-field-grid cols-2">
                   <Field label="Data de nascimento">
-                    <input className="pf-input" type="date" value={f.dob} onChange={set("dob")} />
+                    <input className="upf-input" type="date" value={f.dob} onChange={set("dob")} />
                   </Field>
                   <Field label="Gênero">
-                    <select className="pf-select" value={f.gender} onChange={set("gender")}>
+                    <select className="upf-select" value={f.gender} onChange={set("gender")}>
                       {GENDERS.map((o) => <option key={o.v} value={o.v}>{o.l}</option>)}
                     </select>
                   </Field>
                   <Field label="Estado civil">
-                    <select className="pf-select" value={f.marital_status} onChange={set("marital_status")}>
+                    <select className="upf-select" value={f.marital_status} onChange={set("marital_status")}>
                       {MARITAL.map((o) => <option key={o.v} value={o.v}>{o.l}</option>)}
                     </select>
                   </Field>
                   <Field label="Grupo sanguíneo">
-                    <input className="pf-input" value={f.blood_group} onChange={set("blood_group")} placeholder="ex: O+" />
+                    <input className="upf-input" value={f.blood_group} onChange={set("blood_group")} placeholder="ex: O+" />
                   </Field>
                   <Field label="Nome do responsável">
-                    <input className="pf-input" value={f.guardian_name} onChange={set("guardian_name")} placeholder="Nome do responsável" />
+                    <input className="upf-input" value={f.guardian_name} onChange={set("guardian_name")} placeholder="Nome do responsável" />
                   </Field>
                   <Field label="">
                     <span />
@@ -235,58 +225,58 @@ function PerfilPage() {
               </div>
             </section>
 
-            <section className="pf-card">
-              <div className="pf-card-head">
+            <section className="upf-card">
+              <div className="upf-card-head">
                 <PfI.phone s={15}/>
                 <div><h3>Contatos</h3></div>
               </div>
-              <div className="pf-card-body">
-                <div className="pf-field-grid cols-3">
+              <div className="upf-card-body">
+                <div className="upf-field-grid cols-3">
                   <Field label="Celular">
-                    <div className="pf-input-wrap"><PfI.phone s={14}/><input className="pf-input" value={f.contact_number} onChange={set("contact_number")} placeholder="(00) 0 0000-0000" /></div>
+                    <div className="upf-input-wrap"><PfI.phone s={14}/><input className="upf-input" value={f.contact_number} onChange={set("contact_number")} placeholder="(00) 0 0000-0000" /></div>
                   </Field>
                   <Field label="Telefone alternativo">
-                    <input className="pf-input" value={f.alt_number} onChange={set("alt_number")} placeholder="(00) 0000-0000" />
+                    <input className="upf-input" value={f.alt_number} onChange={set("alt_number")} placeholder="(00) 0000-0000" />
                   </Field>
                   <Field label="Contato da família">
-                    <input className="pf-input" value={f.family_number} onChange={set("family_number")} placeholder="(00) 0 0000-0000" />
+                    <input className="upf-input" value={f.family_number} onChange={set("family_number")} placeholder="(00) 0 0000-0000" />
                   </Field>
                 </div>
-                <div className="pf-field-grid cols-2" style={{ marginTop: 14 }}>
+                <div className="upf-field-grid cols-2">
                   <Field label="Facebook">
-                    <div className="pf-input-wrap"><PfI.link s={14}/><input className="pf-input" value={f.fb_link} onChange={set("fb_link")} placeholder="facebook.com/usuario" /></div>
+                    <div className="upf-input-wrap"><PfI.link s={14}/><input className="upf-input" value={f.fb_link} onChange={set("fb_link")} placeholder="facebook.com/usuario" /></div>
                   </Field>
                   <Field label="Twitter / X">
-                    <div className="pf-input-wrap"><PfI.link s={14}/><input className="pf-input" value={f.twitter_link} onChange={set("twitter_link")} placeholder="x.com/usuario" /></div>
+                    <div className="upf-input-wrap"><PfI.link s={14}/><input className="upf-input" value={f.twitter_link} onChange={set("twitter_link")} placeholder="x.com/usuario" /></div>
                   </Field>
                   <Field label="Rede social 1">
-                    <input className="pf-input" value={f.social_media_1} onChange={set("social_media_1")} placeholder="Link" />
+                    <input className="upf-input" value={f.social_media_1} onChange={set("social_media_1")} placeholder="Link" />
                   </Field>
                   <Field label="Rede social 2">
-                    <input className="pf-input" value={f.social_media_2} onChange={set("social_media_2")} placeholder="Link" />
+                    <input className="upf-input" value={f.social_media_2} onChange={set("social_media_2")} placeholder="Link" />
                   </Field>
                 </div>
               </div>
             </section>
 
-            <section className="pf-card">
-              <div className="pf-card-head">
+            <section className="upf-card">
+              <div className="upf-card-head">
                 <PfI.info s={15}/>
                 <div><h3>Documento &amp; endereços</h3></div>
               </div>
-              <div className="pf-card-body">
-                <div className="pf-field-grid cols-2">
+              <div className="upf-card-body">
+                <div className="upf-field-grid cols-2">
                   <Field label="Tipo de documento">
-                    <input className="pf-input" value={f.id_proof_name} onChange={set("id_proof_name")} placeholder="ex: RG, CPF, CNH" />
+                    <input className="upf-input" value={f.id_proof_name} onChange={set("id_proof_name")} placeholder="ex: RG, CPF, CNH" />
                   </Field>
                   <Field label="Número do documento">
-                    <input className="pf-input" value={f.id_proof_number} onChange={set("id_proof_number")} placeholder="Número" />
+                    <input className="upf-input" value={f.id_proof_number} onChange={set("id_proof_number")} placeholder="Número" />
                   </Field>
                   <Field label="Endereço permanente" span>
-                    <input className="pf-input" value={f.permanent_address} onChange={set("permanent_address")} placeholder="Rua, número, bairro, cidade" />
+                    <input className="upf-input" value={f.permanent_address} onChange={set("permanent_address")} placeholder="Rua, número, bairro, cidade" />
                   </Field>
                   <Field label="Endereço atual" span>
-                    <input className="pf-input" value={f.current_address} onChange={set("current_address")} placeholder="Rua, número, bairro, cidade" />
+                    <input className="upf-input" value={f.current_address} onChange={set("current_address")} placeholder="Rua, número, bairro, cidade" />
                   </Field>
                 </div>
               </div>
@@ -295,37 +285,37 @@ function PerfilPage() {
         )}
 
         {tab === "banco" && (
-          <div className="pf-col" style={{ maxWidth: 820 }}>
-            <section className="pf-card">
-              <div className="pf-card-head">
+          <div className="upf-col upf-col-solo">
+            <section className="upf-card">
+              <div className="upf-card-head">
                 <PfI.bank s={15}/>
                 <div>
                   <h3>Dados bancários</h3>
                   <p className="desc">Usados para folha de pagamento e reembolsos</p>
                 </div>
               </div>
-              <div className="pf-card-body">
-                <div className="pf-field-grid cols-2">
+              <div className="upf-card-body">
+                <div className="upf-field-grid cols-2">
                   <Field label="Titular da conta">
-                    <input className="pf-input" value={f.bank_account_holder} onChange={set("bank_account_holder")} placeholder="Nome do titular" />
+                    <input className="upf-input" value={f.bank_account_holder} onChange={set("bank_account_holder")} placeholder="Nome do titular" />
                   </Field>
                   <Field label="Número da conta">
-                    <input className="pf-input" value={f.bank_account_number} onChange={set("bank_account_number")} placeholder="00000-0" />
+                    <input className="upf-input" value={f.bank_account_number} onChange={set("bank_account_number")} placeholder="00000-0" />
                   </Field>
                   <Field label="Banco">
-                    <input className="pf-input" value={f.bank_name} onChange={set("bank_name")} placeholder="Nome do banco" />
+                    <input className="upf-input" value={f.bank_name} onChange={set("bank_name")} placeholder="Nome do banco" />
                   </Field>
                   <Field label="Código do banco">
-                    <input className="pf-input" value={f.bank_code} onChange={set("bank_code")} placeholder="ex: 341" />
+                    <input className="upf-input" value={f.bank_code} onChange={set("bank_code")} placeholder="ex: 341" />
                   </Field>
                   <Field label="Agência">
-                    <input className="pf-input" value={f.bank_branch} onChange={set("bank_branch")} placeholder="0000" />
+                    <input className="upf-input" value={f.bank_branch} onChange={set("bank_branch")} placeholder="0000" />
                   </Field>
                   <Field label="CPF/CNPJ do titular">
-                    <input className="pf-input" value={f.tax_payer_id} onChange={set("tax_payer_id")} placeholder="000.000.000-00" />
+                    <input className="upf-input" value={f.tax_payer_id} onChange={set("tax_payer_id")} placeholder="000.000.000-00" />
                   </Field>
                 </div>
-                <div className="pf-note" style={{ marginTop: 16 }}>
+                <div className="upf-note" style={{ marginTop: 16 }}>
                   <PfI.info s={14}/>
                   <span>Estes dados são sensíveis (LGPD). Visíveis apenas para você e o setor financeiro.</span>
                 </div>
@@ -335,30 +325,30 @@ function PerfilPage() {
         )}
 
         {tab === "seguranca" && (
-          <div className="pf-col" style={{ maxWidth: 560 }}>
-            <section className="pf-card">
-              <div className="pf-card-head">
+          <div className="upf-col" style={{ maxWidth: 560 }}>
+            <section className="upf-card">
+              <div className="upf-card-head">
                 <PfI.lock s={15}/>
                 <div>
                   <h3>Alterar senha</h3>
                   <p className="desc">Recomendamos ao menos 8 caracteres</p>
                 </div>
               </div>
-              <div className="pf-card-body">
-                <div className="pf-field-grid">
+              <div className="upf-card-body">
+                <div className="upf-field-grid">
                   <Field label="Senha atual" req>
-                    <div className="pf-input-wrap"><PfI.lock s={14}/><input className="pf-input" type="password" value={pw.current} onChange={(e) => setPw((s) => ({ ...s, current: e.target.value }))} placeholder="Senha atual" /></div>
+                    <div className="upf-input-wrap"><PfI.lock s={14}/><input className="upf-input" type="password" value={pw.current} onChange={(e) => setPw((s) => ({ ...s, current: e.target.value }))} placeholder="Senha atual" /></div>
                   </Field>
                   <Field label="Nova senha" req>
-                    <div className="pf-input-wrap"><PfI.lock s={14}/><input className="pf-input" type="password" value={pw.next} onChange={(e) => setPw((s) => ({ ...s, next: e.target.value }))} placeholder="Nova senha" /></div>
+                    <div className="upf-input-wrap"><PfI.lock s={14}/><input className="upf-input" type="password" value={pw.next} onChange={(e) => setPw((s) => ({ ...s, next: e.target.value }))} placeholder="Nova senha" /></div>
                   </Field>
                   <Field label="Confirmar nova senha" req hint={pwMismatch ? null : undefined}>
-                    <div className="pf-input-wrap"><PfI.lock s={14}/><input className="pf-input" type="password" value={pw.confirm} onChange={(e) => setPw((s) => ({ ...s, confirm: e.target.value }))} placeholder="Confirmar nova senha" style={pwMismatch ? { borderColor: "oklch(0.58 0.18 25)" } : null} /></div>
-                    {pwMismatch && <span className="pf-hint" style={{ color: "oklch(0.58 0.18 25)" }}>As senhas não coincidem.</span>}
+                    <div className="upf-input-wrap"><PfI.lock s={14}/><input className="upf-input" type="password" value={pw.confirm} onChange={(e) => setPw((s) => ({ ...s, confirm: e.target.value }))} placeholder="Confirmar nova senha" style={pwMismatch ? { borderColor: "oklch(0.58 0.18 25)" } : null} /></div>
+                    {pwMismatch && <span className="upf-hint" style={{ color: "oklch(0.58 0.18 25)" }}>As senhas não coincidem.</span>}
                   </Field>
                 </div>
                 <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 16 }}>
-                  <button className="pf-btn primary" disabled={!pw.current || !pw.next || pwMismatch}>Atualizar senha</button>
+                  <button className="upf-btn primary" disabled={!pw.current || !pw.next || pwMismatch}>Atualizar senha</button>
                 </div>
               </div>
             </section>
@@ -367,10 +357,10 @@ function PerfilPage() {
 
         {/* Barra de salvar — aparece quando há alterações não salvas (abas de dados) */}
         {dirty && tab !== "seguranca" && (
-          <div className="pf-savebar">
+          <div className="upf-savebar">
             <span className="msg"><b>Alterações não salvas.</b> Revise antes de sair.</span>
-            <button className="pf-btn ghost" onClick={() => { setF(INIT); setPhoto(null); setDirty(false); }}>Descartar</button>
-            <button className="pf-btn primary" onClick={onSave}>Salvar alterações</button>
+            <button className="upf-btn ghost" onClick={() => { setF(INIT); setPhoto(null); setDirty(false); }}>Descartar</button>
+            <button className="upf-btn primary" onClick={onSave}>Salvar alterações</button>
           </div>
         )}
       </div>

@@ -1,0 +1,83 @@
+name: DataTable Nome Acessível Gate — a tabela do DS não volta a ser anônima
+
+# POR QUE ESTE GATE EXISTE, e não é redundante com o a11y-axe-gate:
+#
+# 1) O axe NÃO PEGA esta classe. Medido em 2026-09-04 (axe-core 4.12.1, jsdom) nos 5
+#    arranjos — sem nada · só `scope` · só `caption` · os dois · só `aria-label`:
+#    0 violações em TODOS, em qualquer impacto. axe não tem regra que exija nome
+#    acessível em tabela. Logo NENHUM piso de axe (nem `level: 3`) defende isto — a
+#    defesa tem de medir o nome COMPUTADO, e é o que os dois specs abaixo fazem.
+#
+# 2) O `a11y-axe-gate` NÃO É ACIONADO por este código. O filtro dele casa
+#    `resources/js/Components/ui/` + `tests/a11y-primitives.test.tsx` — e o primitivo
+#    mora em `Components/shared/`. Medido no mesmo dia: apagar o `<caption>` de
+#    `shared/DataTable.tsx` não dispara aquele gate, e o PR passaria verde.
+#
+# 3) `tests/js/backup-index.test.tsx` NÃO ESTAVA EM LANE NENHUMA (varredura repo
+#    inteiro com `rg --hidden`, controle positivo em `a11y-primitives` funcionando).
+#    O UC-BKP-11 nasceria mudo: coberto pelo G-2 por string-match, nunca executado.
+#    É a lição §5 2026-08-02 — "registro não é execução; a prova é o CONTADOR".
+#
+# Os DOIS specs juntos de propósito: um prova o primitivo isolado, o outro prova a
+# TELA renderizada. Só o primeiro deixaria a regressão de consumidor passar (uma tela
+# que troque `caption` por string vazia); só o segundo não pegaria o primitivo.
+#
+# `synchronize` está no `types:` DE PROPÓSITO — diferente dos gates vizinhos, que só
+# rodam em opened/reopened/ready_for_review. Gate que não re-roda a cada push carimba
+# um estado que já mudou; o custo (um `npm ci`) é menor que o de um verde velho.
+#
+# Comando manual local:
+#   npx vitest run tests/a11y-primitives.test.tsx tests/js/backup-index.test.tsx
+#
+# Nasce ADVISORY (ADR 0275 — gate novo nasce advisory e forward-only). Promoção a
+# required é flip [W] com mordida provada (ADR 0336). Ver gates-registry.json.
+# Refs: WCAG H39 (caption) · H63 (scope) · ADR UI-0013 (Fundações) · ADR 0264 (G-2/G-7).
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, reopened, ready_for_review, synchronize]
+    paths:
+      - 'resources/js/Components/shared/DataTable.tsx'
+      - 'resources/js/Pages/Arquivos/Index.tsx'
+      - 'resources/js/Pages/Backup/Index.tsx'
+      - 'resources/js/Pages/Home/_components/GradesPainel.tsx'
+      - 'resources/js/Pages/Jana/Alertas.tsx'
+      - 'resources/js/Pages/Jana/Plataforma.tsx'
+      - 'resources/js/Pages/Nfse/Index.tsx'
+      - 'tests/a11y-primitives.test.tsx'
+      - 'tests/js/backup-index.test.tsx'
+      - '.github/workflows/datatable-nome-acessivel-gate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'resources/js/Components/shared/DataTable.tsx'
+      - 'resources/js/Pages/Arquivos/Index.tsx'
+      - 'resources/js/Pages/Backup/Index.tsx'
+      - 'resources/js/Pages/Home/_components/GradesPainel.tsx'
+      - 'resources/js/Pages/Jana/Alertas.tsx'
+      - 'resources/js/Pages/Jana/Plataforma.tsx'
+      - 'resources/js/Pages/Nfse/Index.tsx'
+      - 'tests/a11y-primitives.test.tsx'
+      - 'tests/js/backup-index.test.tsx'
+
+concurrency:
+  group: datatable-nome-acessivel-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  datatable-nome-acessivel:
+    name: DataTable · tabela do DS tem nome acessível (caption sr-only + scope col)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install deps
+        run: npm ci
+      - name: nome acessível — primitivo + tela (vitest/jsdom)
+        run: npx vitest run tests/a11y-primitives.test.tsx tests/js/backup-index.test.tsx

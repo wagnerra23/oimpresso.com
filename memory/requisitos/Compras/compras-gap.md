@@ -1,4 +1,7 @@
 ---
+tela: Compras/Index (/purchases)
+prototipo: prototipo-ui/cowork/compras-page.jsx
+tela_viva: resources/js/Pages/Compras/Index.tsx
 id: requisitos-compras-compras-gap
 ---
 
@@ -75,3 +78,16 @@ O mockup NÃO está stale — é a referência mais completa, e o vivo é delibe
 - `_pendente_` confirmar payload backend: `kpis` tem variação/meta? `Row` tem `items_count`/`has_xml`?
 - Tudo que toca valor/estoque (KPIs numéricos, tab Itens margem, Pagamentos, footer "Pagar agora") = Regra Mestre Tier 0 (dupla confirmação + antes→depois) + FSM gateway.
 - `business_id` Tier 0 intocável em qualquer extensão de backend.
+
+## Tabela de partes (derivada 2026-09-06, r6)
+
+> Escrita à mão por [C] em 2026-09-06 (r6 — a derivação mecânica r1 deste arquivo copiava a linha "Gap real" cortada em ~200 caracteres e perdia a restrição Tier 0 e o `_pendente_` que a prosa põe em bullet separado; refutação GT-G5 r5). Cada Ação cita a Parte e o item do §Veredito "Adotar (ordem sugerida)" #1–#6. A fonte segue sendo a prosa; em conflito, a prosa vence.
+
+| Parte | Estado no vivo | Ação |
+|---|---|---|
+| Header | Gap: mockup usa header.os-page-h (PageHeader canon); vivo usa header.hd legado com crumbs + contador · Vivo à frente: gate permissions.create no botão, title do Wave 6 no Importar XML, busca ligada ao router | **Decidir.** Migrar `hd` → `os-page-h` preservando crumbs/count/permissão/gate Wave 6 — §Veredito adotar #2 (Parte 1, P, sem valor). Conferir antes se `cowork-compras-bundle.css` tem `os-page-h*`. |
+| KPIs (4 cards) | Gap: mesmos 4 KPIs; mockup tem sub-linhas mais ricas (variação MoM, meta, próximo vencimento, recorrência) · Vivo à frente: KPIs reais via Deferred + skeleton; mockup calcula de MOCK | **Decidir.** Só o texto/label visual das sub-linhas — §Veredito adotar #4 (Parte 2, M, ⚠️ valor). Qualquer número novo exibido (% MoM, meta) exige backend + Regra Mestre (dupla confirmação) ANTES de exibir; `_pendente_` confirmar se o payload `kpis` traz esses campos (Parte 2 POR QUÊ). |
+| Filtros / Tabs | Gap: tab Cancelados a mais, contadores em todas as tabs, pills de filtro nomeados "em breve" · Vivo à frente: tabs são filtros client-side reais sobre rows.data | **Decidir.** Tab Cancelados + contadores por tab + pills nomeados — §Veredito adotar #1 (Parte 3, P, sem valor; contadores são `.length` de array já em memória). |
+| Tabela / Lista | Gap: 2 colunas a mais (Itens = contagem, NF-e = badge XML) · Vivo à frente: AcoesDropdown real, sort server-side, coluna payment_status | **Decidir.** Colunas Itens + NF-e — §Veredito adotar #3 (Parte 4, M, sem valor: contagem e booleano). `_pendente_` confirmar se o `Row` do backend traz `items_count` e flag de XML (Parte 4 POR QUÊ). |
+| Ações por linha (dropdown) | Gap: mockup declara dropdown com 9 ações (paridade com Blade /purchases); vivo usa AcoesDropdown em component separado, possivelmente subset · Vivo à frente: condiciona por status/paymentStatus | Nada — o `_pendente_` da Parte 5/§Veredito #5 foi resolvido lendo o código: `Pages/Compras/components/AcoesDropdown.tsx` já tem as 9 ações (labels em l.100–170: Ver · Impressão · Editar · Excluir · Rótulos · Ver pagamentos · Reembolso de compra · Atualizar status · Elementos pendentes). A prosa de 2026-06-30 não tinha lido o componente; o gap 5 estava coberto. ⚠️ Fluxo novo em Reembolso/Ver pagamentos segue Tier 0 (Regra Mestre + permissões). |
+| Drawer / Sheet — maior gap | Gap: mockup tem drawer 5 tabs (Resumo · Itens · Documentos · Pagamentos · Histórico) com trilho FSM e footer de ações; vivo tem 2 tabs (Waves 6+ abertas) · Vivo à frente: compra_detalhe real via Deferred | **Decidir.** Parcialmente coberto — lido no código: `Pages/Compras/components/Drawer.tsx` já tem as 5 abas (l.22–26) e `initialTab` (l.96/154), então a prosa de 2026-06-30 ("2 tabs") estava atrás; mas NÃO tem footer de ações por estágio nem Registrar pagamento/Pagar agora (0 ocorrências), e XML/DANFE/manifestação ficam na tela Fiscal (l.501, l.520: "Wave 6 traz atalhos integrados aqui"). O trilho FSM também já existe (`STAGES` l.12–19 e `.fsm-track` l.197–209). Resta do §Veredito #6: footer de ações por estágio + atalhos fiscais — G, ⚠️ Tier 0 (`ExecuteStageActionService` + Regra Mestre), sessão limpa por tab. |

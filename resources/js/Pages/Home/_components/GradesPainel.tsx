@@ -27,6 +27,7 @@ import { Button } from '@/Components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import { Skeleton } from '@/Components/ui/skeleton';
 import { Deferred } from '@inertiajs/react';
+import { hrefDaAba, type Filtros } from './abaHref';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useState } from 'react';
 
@@ -59,7 +60,7 @@ interface Props {
   aba: string | null;
   grade: PaginatorShape<LinhaDaGrade> | null;
   /** Params que a troca de aba precisa preservar (período + loja). */
-  filtros: Record<string, string | number | null | undefined>;
+  filtros: Filtros;
 }
 
 const brl = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -222,24 +223,27 @@ export default function GradesPainel({ abas, aba, grade, filtros }: Props) {
   const rotuloAtivo = abas.find((a) => a.key === aba)?.label ?? '';
   const colunas = COLUNAS[aba] ?? [];
 
-  // A troca de aba preserva período e loja — o estado da tela inteira mora na
-  // query string (anti-hook do charter: "estado do período e da loja em QUERY
-  // STRING, nunca em session"). A aba entra na mesma regra.
-  const href = (key: string) => {
-    const params = new URLSearchParams();
-    Object.entries(filtros).forEach(([k, v]) => {
-      if (v !== null && v !== undefined && v !== '') params.set(k, String(v));
-    });
-    params.set('aba', key);
-    return `${window.location.pathname}?${params.toString()}`;
-  };
+  const href = (key: string) => hrefDaAba(filtros, key);
 
   return (
     <Stack gap={3} asChild>
       <section aria-label="Grades do painel" data-contract="grades">
+        {/*
+          `maxVisible` default do componente e 5 (PageHeaderTabs.tsx:119) — com as 8 abas do
+          catalogo, 3 sumiam atras de um gatilho que renderiza SO o icone `...`, sem rotulo:
+          Ordens de compra, Requisicoes e Expedicoes pendentes. A ancora mostra TODAS
+          (TabBar com overflowX:auto).
+
+          O `className` chega ao wrapper externo, e `md:flex-wrap` vence o `md:flex-nowrap`
+          do componente por ordem no `cn()` — sem isso, 8 rotulos longos (~1100px de texto)
+          nao caberiam nos ~972px disponiveis a 1280 e estourariam, ja que acima de 768 o
+          tablist tambem nao rola.
+        */}
         <PageHeaderTabs
           ghosts={abas.map((a) => ({ key: a.key, label: a.label, href: href(a.key) }))}
           activeGhostKey={aba}
+          maxVisible={abas.length}
+          className="md:flex-wrap"
         />
 
         <Deferred data="grade" fallback={<Skeleton className="h-64 w-full rounded-lg" />}>
@@ -250,6 +254,10 @@ export default function GradesPainel({ abas, aba, grade, filtros }: Props) {
                 data={grade.data}
                 pagination={grade}
                 endpoint={window.location.pathname}
+                // O nome SEGUE a aba: a tabela troca de conteúdo sem trocar de DOM, e um
+                // nome fixo mentiria depois do 1º clique. `rotuloAtivo` é o label da aba
+                // ativa (L222) — a mesma copy que o `emptyMessage` abaixo ja usa.
+                caption={rotuloAtivo ? `Grade — ${rotuloAtivo}` : 'Grade'}
                 filters={{ ...filtros, aba }}
                 showSearch={false}
                 rowKey={(row) => row.id}

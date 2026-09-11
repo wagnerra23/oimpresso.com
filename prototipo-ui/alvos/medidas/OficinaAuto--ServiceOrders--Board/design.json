@@ -1,0 +1,196 @@
+{
+  "url": "http://127.0.0.1:56599/oimpresso.com.html",
+  "theme": "dark",
+  "assinatura": "OI Oimpresso Matriz IA 3 Visão geral G D Atendimento 6 Cadastro 3 Clientes G C Produtos 12 G P Fabricação 3 Comercial 4 CRM 14 G R Vendas 19 G V Oficina Auto 1 Nova OS Vestuário 1 Finanças 4 Caixa G X Financeiro 11 G F Cobrança 1 Cobrança Recorrente 3 Fiscal 1 Fiscal 6 Produção 3 Ordens de Serviço Comunicação Visual Assistência técnica 7 Estoque 3 Compras 4 Movimentações 6 G E Patrimônio 4 RH 3 Ponto HRM 7 Essenciais 6 Sistema 10 Auditoria Voz do Cliente Suporte 1 Usuários 3 Preferências Configurações 11 Relatórios 4 Arquivos 3 Base de Conhecimento Planilhas 1 Plataforma 4 WR Wagner Rocha Administrador Oficina Auto Recepção, diagnóstico, peças, execução e entrega de veículos Imprimir fila Nova OS Recepção 2 veículos aguardando triagem Em diagnóstico 2 5 boxes/elevadores Aguardando peças 3 1 aguardam OK do cliente Em execução 3 boxes ocupados agora Urgentes 3 prazo crítico Valor em curso R$ 10.550 faturamento previsto Todos os boxes 12 Box 1 1 Box 2 1 Box 3 0 Elevador 1 2 Elevador 2 1 Kanban Lista Grade Fila Visão Recepção 2 OS # 8821 chegou 08:14 BR · MERCOSUL RBA-2H78 Honda Civic 2019 84.220 km · Marcos Aleixo Barulho nas rodas dianteiras em curva Hoje 17h Triagem → frente últ. Cliente entregou chave às 08:14 2 / 5 OS # 8822 chegou 09:02 BR · MERCOSUL FZJ-4F12 VW Saveiro 2021 62.140 km · Frota Boa Esperança Revisão 60.000 km + troca de óleo Amanhã Triagem → painel últ. Aguarda primeira triagem 2 / 5 Diagnóstico 2 OS # 8819 Elevador 1 BR · MERCOSUL QXM-1B33 Fiat Strada 2022 31.580 km · Construtora Lince Luz de injeção acendendo intermitente 45 % PS Pedro Souza ETA diag. 30 min prazo Hoje 18h OBD últ. OBD-II conectado · scan rodando 1 / 4 OS # 8815 Box 2 BR · MERCOSUL GHS-8E22 Ford Ka 2018 108.900 km · Larissa Nunes Embreagem patinando em rampa 70 % DA Diego Alves ETA diag. 20 min prazo Hoje 15h emb. últ. Test drive: rampa do Quartel 1 / 4 Aguardando peças 3 OS # 8810 R$ 1.840,00 BR · MERCOSUL OWD-5R09 Toyota Hilux 2020 Agropecuária Vale Troca de pastilhas + disco dianteiro Encomendado · Disco BR-2188 chega 09/05 manhã JL João Lima prazo Amanhã 14h disco últ. Disco BR-2188 chega 09/05 manhã 2 / 4 OS # 8807 R$ 2.250,00 BR · MERCOSUL MNT-3T55 Renault Sandero 2017 Eduardo Pessoa Suspensão dianteira completa Aguardando aprovação · Aguardando OK do cliente no orçamento CR Carlos Rocha prazo Sex 17h Cobrar OK susp. últ. WhatsApp enviado 11:30 1 / 4 OS # 8804 R$ 540,00 BR · MERCOSUL KKQ-7H44 Chevrolet Onix 2023 Marina Tavares Filtro de combustível + velas Peças OK · Peças no balcão · pronto p/ executar PS Pedro Souza prazo Hoje 16h Iniciar → velas últ. Peças no balcão · pronto 3 / 4 Em execução 3 3/5 boxes OS # 8801 Elevador 2 BR · MERCOSUL PLT-2C18 Hyundai HB20 2019 76.400 km · Roberto Coelho Substituição de correia dentada 35 % JL João Lima resta 2h 40min prazo Hoje 19h correia últ. Polia da bomba d'água removida 0 / 4 OS # 8799 Box 1 BR · MERCOSUL BCY-9G07 Jeep Renegade 2021 42.110 km · Patrícia Lemos Alinhamento + balanceamento + pneus 60 % CR Carlos Rocha resta 1h 10min prazo Hoje 18h pneus últ. 3º pneu sendo balanceado 0 / 4 OS # 8795 Elevador 1 BR · MERCOSUL ZTH-6L91 VW Gol 2016 162.800 km · Auto Escola Norte Junta do cabeçote 18 % DA Diego Alves resta 8h prazo Sex 12h cab. últ. Cabeçote no banco · medindo plano 0 / 4 Pronto p/ retirar 2 OS # 8788 finalizado BR · MERCOSUL VRP-5K27 Nissan Versa 2020 Helena Bastos concluído Ontem 17:42 R$ 780,00 Aguarda pagamento · Aguarda 1d Entregar → OS # 8786 finalizado BR · MERCOSUL WBL-3D88 Fiat Mobi 2019 Tiago Ramires concluído 07/05 16:10 R$ 1.020,00 Pago Entregar →",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.965 0.004 240)"
+    },
+    "primary": {
+      "bg": "oklch(0.7 0.15 295)",
+      "color": "rgb(255, 255, 255)",
+      "border": "oklch(0.7 0.15 295)"
+    },
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 3,
+          "css": {
+            "height": "34px",
+            "minHeight": "0px",
+            "padding": "0px 10px",
+            "margin": "0px",
+            "gap": "10px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13px",
+            "fontWeight": "400",
+            "lineHeight": "18.85px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "6px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "243px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 243,
+            "h": 34
+          },
+          "icone": {
+            "w": 16,
+            "h": 16,
+            "strokeWidth": "1.6px"
+          }
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 32,
+          "css": {
+            "height": "34px",
+            "minHeight": "0px",
+            "padding": "0px 10px 0px 18px",
+            "margin": "0px",
+            "gap": "10px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13px",
+            "fontWeight": "400",
+            "lineHeight": "18.85px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "6px",
+            "borderWidth": "0px 0px 0px 2px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "243px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 243,
+            "h": 34
+          },
+          "icone": {
+            "w": 16,
+            "h": 16,
+            "strokeWidth": "1.6px"
+          }
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 9,
+          "css": {
+            "height": "25px",
+            "minHeight": "0px",
+            "padding": "6px 10px",
+            "margin": "0px",
+            "gap": "8px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "10px",
+            "fontWeight": "600",
+            "lineHeight": "normal",
+            "letterSpacing": "0.6px",
+            "textTransform": "uppercase",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "4px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "243px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 243,
+            "h": 25
+          },
+          "icone": {
+            "w": 10,
+            "h": 10,
+            "strokeWidth": "1.6px"
+          }
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "1487px",
+            "minHeight": "0px",
+            "padding": "8px",
+            "margin": "0px",
+            "gap": "normal",
+            "display": "block",
+            "alignItems": "normal",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "259px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 259,
+            "h": 1487
+          },
+          "icone": {
+            "w": 16,
+            "h": 16,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": [
+        {
+          "i": 0,
+          "rotulo": "IA3",
+          "atual": null
+        },
+        {
+          "i": 1,
+          "rotulo": "Visão geralG D",
+          "atual": null
+        },
+        {
+          "i": 2,
+          "rotulo": "Atendimento6",
+          "atual": null
+        }
+      ]
+    }
+  }
+}

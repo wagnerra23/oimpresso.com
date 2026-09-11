@@ -1,14 +1,17 @@
 ---
 id: resources-js-pages-manufacturing-index-charter
-page: /manufacturing/v2/production
+page: /manufacturing/production
 component: resources/js/Pages/Manufacturing/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
-bundle_source: manufacturing-page.jsx
+bundle_source: manufacturing-page.jsx  # 2026-09-09 [C]: porte REVERSO — `manufacturing-page.jsx:2` declara "Espelho de Modules/Manufacturing"; o gap-spec de 06/09 mede o prototipo ATRAS do vivo nos KPIs. Fonte de bundle, NAO design aprovado (§5 2026-08-28).
 page_id: manufacturing-index
 status: draft
 owner: wagner
 created: 2026-05-16
 wave: J
+runbook: memory/requisitos/Manufacturing/RUNBOOK-producao.md
+casos: resources/js/Pages/Manufacturing/Index.casos.md
+related_us: [US-MANU-004]
 ---
 
 # Charter — Manufacturing/Index.tsx
@@ -18,20 +21,63 @@ Listar ordens de produção (production_purchase) do business ativo em UX Inerti
 
 ## Goals
 - G1: PageHeader + summary cards (total / final / pendente / valor)
-- G2: Tabela enxuta com 5 colunas (ref, data, local, total, status)
+- ~~G2: Tabela enxuta com 5 colunas (ref, data, local, total, status)~~ → **G2 (US-MANU-004,
+  2026-09-04): 8 colunas do §4.5** — Data · Referência · Local · Produto (com
+  `N ingredientes · quem lançou`) · Qtd · Custo total (sufixo `fix` na finalizada) ·
+  Custo unit. · Situação
 - G3: EmptyState honesto quando sem dados
 - G4: Multi-tenant Tier 0 — todas queries via ProductionService scoped por business_id
+- G5 (US-MANU-004): filtros de **leitura** — local, intervalo de data e o checkbox
+  "Só finalizadas", que governa o mesmo filtro do KPI clicável. São controles que only
+  **filtram a listagem**; nenhum deles escreve. O Non-Goal de CRUD abaixo segue intacto:
+  create/edit/destroy continuam no Blade legado.
+- G6 (US-MANU-004): situação vem do `StatusBadge` compartilhado (domínio `producao`) — o
+  `StatusPill` local foi removido
 
 ## Non-Goals (Wave J)
 - Não migrar CRUD completo (create/edit/destroy) — Blade legacy mantém
 - Não fazer Kanban de produção — fica pra Wave futura
 - Não migrar Recipes nem BOM (RecipeBomService) — escopo separado
-- Não tocar rota legacy `/manufacturing/production` — coexistência
+- ~~Não tocar rota legacy `/manufacturing/production` — coexistência~~ — **SUPERADO pelo
+  cutover de 2026-09-04.** O andaime de coexistência era da Wave J; o pedido [F] ("módulo
+  inteiro em produção, com os links e vínculos reais, sem rotas alternativas"), sobre a
+  aprovação [W] da família em produção, torna o endereço canônico a tela React. A rota
+  **NÃO foi removida nem renomeada** e `?legacy=1` devolve o Blade no mesmo endereço.
+  ⚠️ Non-Goal é território [W]: se ele discordar, o lugar de barrar é este PR.
+  ⚠️ **"sem rotas alternativas" = sem ENDEREÇO paralelo (`/v2/*`), não "sem navegação".**
+  O `pr-critic` leu a citação acima como se proibisse a barra de abas (PR #6771) — ela
+  aponta pros endereços CANÔNICOS, que é exatamente o que a frase pede. Nota aqui porque
+  a ambiguidade é da redação, não do leitor.
+
+## Navegação
+- A tela carrega a **barra de abas do módulo** (Receitas · Ordens de produção · Insumos ·
+  Relatório · Configurações), igual às 4 irmãs. Nasceu SEM ela na Wave J — era a única tela
+  React do módulo — e virou beco sem saída quando o cutover pôs o menu lateral apontando pra
+  cá ([M] reportou 2026-09-04). Defendido por `CutoverRotasCanonicasTest`.
 
 ## UX targets
 - Responsivo 1280px+ (cliente piloto ROTA LIVRE biz=4 monitor pequeno)
 - PT-BR em todos labels
-- Empty state com link pra rota legacy enquanto migração não termina
+- Empty state com link pra rota legacy (`?legacy=1`) enquanto a migração não termina
+
+## Forma (alinhamento ao protótipo — 2026-09-08)
+
+Três divergências de FORMA foram medidas contra o protótipo (`manufacturing-producao.jsx` ·
+`manufacturing-page.jsx`) e corrigidas. A cadeia aqui é a do eixo FORMA — protótipo soberano
+([UI-0029](../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)):
+
+- **Rótulos LOCAL / DE / ATÉ** sobre os filtros. O protótipo põe cada controle num `<Campo label=…>`
+  (`.mfg-fld > span`: 10px, caixa alta, tracking .07em, `--text-mute`); a tela só tinha `aria-label`.
+  Cada `<label>` agora associa por `htmlFor`/`id` — o `aria-label` saiu, porque dois nomes fariam o
+  leitor de tela anunciar coisa diferente do que está escrito.
+- **Subtítulo conta receitas e ordens**, como o protótipo. ⚠️ A 3ª parte da copy dele
+  (*"custo recalculado pelo preço atual dos ingredientes"*) fica **de fora de propósito**: aqui o
+  custo é o `final_total` GRAVADO, nunca recalculado (US-MANU-004 · RUNBOOK-producao.md §1).
+  Copiar a copy literal poria afirmação FALSA na tela. **Não "corrigir" isso de volta.**
+- **"Rascunho" é âmbar, não cinza** — o protótipo usa `.mfg-pill.warn` (o `.ok` é a finalizada).
+  Só ficou legível depois da [UI-0033](../../../../memory/requisitos/_DesignSystem/adr/ui/0033-foreground-de-success-e-warning-vira-cor-de-contraste.md):
+  com o par `warning` quebrado o texto dava **1,25:1**; agora dá **7,72:1**. O domínio `producao`
+  do `StatusBadge` é usado **só por esta tela** (medido: 1 de 1 sítio).
 
 ## Anti-hooks
 - Não usar `withoutGlobalScopes` no Service
@@ -41,16 +87,28 @@ Listar ordens de produção (production_purchase) do business ativo em UX Inerti
 
 ## Data flow
 ```
-Controller@indexV2  →  ProductionService::listProductions(biz, filters)
-                    →  ProductionService::summary(biz)
+Controller@indexV2  →  ProductionService::listProductions(biz, filters)   # + eager purchase_lines/location
+                    →  ProductionService::enrichProductionRows(ordens, biz)  # produto · nº ingredientes ·
+                    →  ProductionService::summary(biz)                       # quem lançou · qtd · custo unit.
                     →  Inertia::render('Manufacturing/Index', {productions, summary})
 ```
+
+> **Custo (US-MANU-004):** as colunas de dinheiro mostram `transactions.final_total` — o valor
+> GRAVADO na criação da ordem —, nunca um recálculo. Recalcular aqui criaria uma segunda
+> fórmula de custo na base (a primeira é `RecipeBomService`, usada pelo Relatório). O sufixo
+> `fix` marca a ordem finalizada. Detalhe e a razão em `RUNBOOK-producao.md §1`.
 
 ## Rota
 - `GET /manufacturing/v2/production` — nova (Inertia)
 - `GET /manufacturing/production` — legacy Blade preservada (ProductionController@index)
 
-## Próximos passos (não Wave J)
-- Wire-up filtros (location, date range) com Inertia partial reload
-- Migrar para `Inertia::defer` quando queries crescerem (ADR runbook-inertia-defer-pattern)
-- Charter MWART completo com RUNBOOK em `memory/requisitos/Manufacturing/RUNBOOK-production-index.md`
+## Próximos passos
+- ~~Wire-up filtros (location, date range) com Inertia partial reload~~ — **feito** (o
+  `applyFilter` faz partial reload com `only:[productions,summary,filters]`)
+- ~~Charter MWART completo com RUNBOOK~~ — **feito em 2026-09-04**:
+  `memory/requisitos/Manufacturing/RUNBOOK-producao.md` (o nome citado antes,
+  `RUNBOOK-production-index.md`, nunca existiu)
+- `Inertia::defer` segue **não aplicado de propósito** — `indexV2` documenta o rollback do
+  Wave L/W7 (PR #963), em que defer quebrava o initial render desta tela
+- US-MANU-007 introduz o `custoSnap` gravado; quando existir, a coluna de custo desta tela
+  pode passar a distinguir congelado de vivo (hoje não dá — o campo não existe)

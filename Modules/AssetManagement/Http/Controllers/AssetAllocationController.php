@@ -9,6 +9,7 @@ use DB;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Inertia\Inertia;
 use Modules\AssetManagement\Entities\Asset;
 use Modules\AssetManagement\Entities\AssetTransaction;
 use Modules\AssetManagement\Services\AssetAllocationService;
@@ -50,7 +51,12 @@ class AssetAllocationController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return Response
+     * O `@return` deixou de ser `Response` em 2026-09-08: o metodo passou a ter DOIS retornos
+     * reais e o docblock antigo nao descrevia nenhum dos dois. O ramo `$request->ajax()`
+     * devolve o JSON do DataTables e o caminho da tela devolve `Inertia\Response`. Nao e
+     * detalhe de estilo — foi o que o PHPStan pegou na tela irma (Bens) apos a mesma migracao.
+     *
+     * @return \Inertia\Response|\Illuminate\Http\JsonResponse
      */
     public function index(Request $request)
     {
@@ -60,28 +66,18 @@ class AssetAllocationController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if ($request->ajax()) {
-            $asset_allocated = AssetTransaction::join('assets',
-                                'asset_transactions.asset_id', '=', 'assets.id')
-                                ->join('users as receiver', 'asset_transactions.receiver', '=', 'receiver.id')
-                                ->join('users as provider', 'asset_transactions.created_by', '=', 'provider.id')
-                                ->leftJoin('categories as CAT', 'assets.category_id',
-                                    '=', 'CAT.id')
-                                ->leftJoin('asset_transactions as PT',
-                                'asset_transactions.id', '=', 'PT.parent_id')
-                                ->where('asset_transactions.business_id', $business_id)
-                                ->where('asset_transactions.transaction_type', 'allocate')
-                                ->select('asset_transactions.ref_no as ref_no',
-                                'asset_transactions.quantity as quantity',
-                                'asset_transactions.transaction_datetime as allocated_at', 'asset_transactions.id as id',
-                                'assets.name as asset', 'assets.model as model',
-                                'CAT.name as category', DB::raw("CONCAT(COALESCE(receiver.surname, ''),' ',COALESCE(receiver.first_name, ''),' ',COALESCE(receiver.last_name,'')) as receiver_name"),
-                                DB::raw("CONCAT(COALESCE(provider.surname, ''),' ',COALESCE(provider.first_name, ''),' ',COALESCE(provider.last_name,'')) as provider_name"),
-                                DB::raw('SUM(COALESCE(PT.quantity, 0)) as revoked_quantity'),
-                                'asset_transactions.reason as reason',
-                                'asset_transactions.allocated_upto'
-                                )
-                                ->groupBy('asset_transactions.id');
+        // `! inertia()` NAO e zelo: sem ele a tela Inertia NUNCA recebe a tabela.
+        // `Request::ajax()` le `X-Requested-With`, e o cliente Inertia manda esse header
+        // INCONDICIONALMENTE junto com `X-Inertia` (@inertiajs/core, `getHeaders()`). Como a
+        // prop `alocacoes` e DEFERIDA (:159), ela so chega por partial reload — e todo
+        // partial caia aqui, no ramo do DataTables, devolvendo JSON nao-Inertia que o
+        // cliente descarta. Efeito: header e filtros pintam, o skeleton fica pra sempre.
+        //
+        // Mesmo defeito que a tela de Bens teve, medido e corrigido no PR #7047. Aqui ele
+        // chegou porque este `index()` foi migrado em paralelo, antes daquele hotfix
+        // existir. Padrao da casa, ja em producao: `EssentialsLeaveController:95`.
+        if ($request->ajax() && ! $request->inertia()) {
+            $asset_allocated = $this->baseAllocationsQuery($business_id);
 
             return Datatables::of($asset_allocated)
                 ->addColumn('action', function ($row) {
@@ -151,7 +147,156 @@ class AssetAllocationController extends Controller
                 ->make(true);
         }
 
-        return view('assetmanagement::asset_allocation.index');
+        return Inertia::render('Patrimonio/Alocacoes', [
+            'filtros' => [
+                'q' => $request->input('q'),
+                'situacao' => $this->situacaoFiltro($request),
+            ],
+            'permissoes' => [
+                // Este controller NAO tem guarda `asset.*` em metodo nenhum — so o gate de
+                // assinatura acima. A assimetria com o `AssetController::index()` (que ganhou
+                // `asset.view` na thread 03) esta declarada no §9 do RUNBOOK: consertar aqui
+                // mudaria QUEM enxerga a tela, e isso e decisao [W], nao conserto silencioso.
+                // Enquanto isso, o que a tela desenha segue o mesmo criterio do Blade legado.
+                'alocar' => true,
+                'editar' => true,
+                'excluir' => true,
+                'devolver' => true,
+            ],
+            // Inertia::defer — a prop cara da tela (4 join + agregacao + groupBy + paginate).
+            // Regra default do projeto pra prop com paginate/subquery:
+            // RUNBOOK-inertia-defer-pattern.md
+            'alocacoes' => Inertia::defer(fn () => $this->buildAlocacoesPayload($request, $business_id)),
+        ]);
+    }
+
+    /**
+     * Query base da listagem de alocacoes — UM dono so, lido pelos DOIS ramos do index()
+     * (DataTables legado e Inertia). Antes deste PR a expressao existia uma vez, inline no
+     * ramo ajax; extrai-la evita que a proxima correcao pouse em so um dos caminhos.
+     *
+     * ⚠️ RESIDUO Tier 0 PRESERVADO BYTE-A-BYTE: o leftJoin de `asset_transactions as PT`
+     * NAO filtra `PT.business_id`, entao `revoked_quantity` agrega devolucao de qualquer
+     * empresa quando a pre-condicao existe (linha filha com parent de outro tenant). E o
+     * gemeo catalogado em `_saida-01.md §9(a)`, com thread dona. Nao e corrigido aqui por
+     * duas leis que caem juntas: mexer em quantidade e REGRA MESTRE (prova por dois caminhos
+     * + antes→depois pro [W]) e 1 PR = 1 intent. Ver §9 do RUNBOOK-alocacoes.md.
+     */
+    private function baseAllocationsQuery($business_id)
+    {
+        return AssetTransaction::join('assets',
+                            'asset_transactions.asset_id', '=', 'assets.id')
+                            ->join('users as receiver', 'asset_transactions.receiver', '=', 'receiver.id')
+                            ->join('users as provider', 'asset_transactions.created_by', '=', 'provider.id')
+                            ->leftJoin('categories as CAT', 'assets.category_id',
+                                '=', 'CAT.id')
+                            ->leftJoin('asset_transactions as PT',
+                            'asset_transactions.id', '=', 'PT.parent_id')
+                            ->where('asset_transactions.business_id', $business_id)
+                            ->where('asset_transactions.transaction_type', 'allocate')
+                            ->select('asset_transactions.ref_no as ref_no',
+                            'asset_transactions.quantity as quantity',
+                            'asset_transactions.transaction_datetime as allocated_at', 'asset_transactions.id as id',
+                            'assets.name as asset', 'assets.model as model',
+                            'CAT.name as category', DB::raw("CONCAT(COALESCE(receiver.surname, ''),' ',COALESCE(receiver.first_name, ''),' ',COALESCE(receiver.last_name,'')) as receiver_name"),
+                            DB::raw("CONCAT(COALESCE(provider.surname, ''),' ',COALESCE(provider.first_name, ''),' ',COALESCE(provider.last_name,'')) as provider_name"),
+                            DB::raw('SUM(COALESCE(PT.quantity, 0)) as revoked_quantity'),
+                            'asset_transactions.reason as reason',
+                            'asset_transactions.allocated_upto'
+                            )
+                            ->groupBy('asset_transactions.id');
+    }
+
+    /**
+     * Normaliza o recorte de situacao. Whitelist: valor fora dela vira o default, entao a
+     * query string nao escolhe SQL.
+     */
+    private function situacaoFiltro(Request $request): string
+    {
+        $situacao = (string) $request->input('situacao', 'ativas');
+
+        return in_array($situacao, ['ativas', 'devolvidas', 'todas'], true) ? $situacao : 'ativas';
+    }
+
+    /**
+     * Payload da listagem — o que a tela recebe no partial reload.
+     */
+    private function buildAlocacoesPayload(Request $request, $business_id)
+    {
+        $alocacoes = $this->baseAllocationsQuery($business_id);
+
+        // Busca — os campos que identificam a LINHA: o codigo da alocacao, o bem (nome e
+        // modelo) e quem recebeu. Server-side de proposito: busca no cliente so enxerga as
+        // 25 linhas que ja chegaram, entao parece funcionar com pouco dado e mente com muito.
+        $q = trim((string) $request->input('q', ''));
+        if ($q !== '') {
+            $alocacoes->where(function ($query) use ($q) {
+                $termo = '%'.$q.'%';
+                $query->where('asset_transactions.ref_no', 'like', $termo)
+                    ->orWhere('assets.name', 'like', $termo)
+                    ->orWhere('assets.model', 'like', $termo)
+                    ->orWhere('receiver.first_name', 'like', $termo)
+                    ->orWhere('receiver.last_name', 'like', $termo)
+                    ->orWhere('receiver.surname', 'like', $termo);
+            });
+        }
+
+        // Recorte por situacao no SERVIDOR. Sobre a agregacao (`HAVING`, nao `WHERE`),
+        // porque `revoked_quantity` e SUM de linhas filhas. Recortar no cliente faria a
+        // aba mentir: ela julgaria 25 linhas de N.
+        $situacao = $this->situacaoFiltro($request);
+        if ($situacao === 'ativas') {
+            $alocacoes->havingRaw('SUM(COALESCE(PT.quantity, 0)) < asset_transactions.quantity');
+        } elseif ($situacao === 'devolvidas') {
+            $alocacoes->havingRaw('SUM(COALESCE(PT.quantity, 0)) >= asset_transactions.quantity');
+        }
+
+        // Mesmo default do Blade legado (`aaSorting:[[7,'desc']]` = allocated_at desc): a
+        // alocacao mais recente e a que se procura.
+        $alocacoes->orderBy('asset_transactions.transaction_datetime', 'desc');
+
+        $hoje = \Carbon::now()->startOfDay();
+
+        return $alocacoes->paginate(25)->withQueryString()->through(function ($row) use ($hoje) {
+            $quantidade = (float) $row->quantity;
+            // Herda o residuo Tier 0 do §9 do RUNBOOK — NAO e numero auditado.
+            $devolvido = (float) $row->revoked_quantity;
+
+            $prazo = $row->allocated_upto ? \Carbon::parse($row->allocated_upto)->startOfDay() : null;
+
+            // "vencido" e decidido AQUI, com o relogio do servidor. Derivar no browser faria
+            // o veredito depender do fuso da maquina de quem olha.
+            $vencido = $prazo !== null && $devolvido < $quantidade && $prazo->lt($hoje);
+
+            if ($devolvido >= $quantidade) {
+                $situacaoLinha = 'devolvida';
+            } elseif ($devolvido > 0) {
+                $situacaoLinha = 'parcial';
+            } else {
+                $situacaoLinha = 'em_uso';
+            }
+
+            return [
+                'id' => $row->id,
+                'ref_no' => $row->ref_no,
+                'bem' => $row->asset,
+                'modelo' => $row->model,
+                'categoria' => $row->category,
+                'recebido_por' => trim((string) $row->receiver_name),
+                'alocado_por' => trim((string) $row->provider_name),
+                'quantidade' => $quantidade,
+                'devolvido' => $devolvido,
+                'alocado_em' => $row->allocated_at
+                    ? $this->commonUtil->format_date($row->allocated_at, true)
+                    : null,
+                'prazo' => $row->allocated_upto
+                    ? $this->commonUtil->format_date($row->allocated_upto)
+                    : null,
+                'motivo' => $row->reason,
+                'situacao' => $situacaoLinha,
+                'vencido' => $vencido,
+            ];
+        });
     }
 
     /**

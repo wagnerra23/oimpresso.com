@@ -369,15 +369,10 @@ function NotificacoesPage() {
               <h2>{t.name}</h2>
               <p>{t.quando}</p>
             </div>
-            <div className="fnc-seg nt-canais">
-              {["email", "sms", "wa"].map((c) => (
-                <button key={c} className={canalAtivo === c ? "on" : ""} disabled={!t.canais.includes(c)}
-                  onClick={() => setCanal(c)}>
-                  {CANAL_LABEL[c]}
-                  {t.canais.includes(c) && vazio(v[CAMPO_CANAL[c]]) && <i className="nt-seg-vazio" title="vazio">·</i>}
-                </button>
-              ))}
-            </div>
+            <window.CliSeg className="nt-canais" ariaLabel="Canal" value={canalAtivo} onChange={setCanal}
+              options={["email", "sms", "wa"].map((c) => ({
+                key: c, disabled: !t.canais.includes(c),
+                label: <>{CANAL_LABEL[c]}{t.canais.includes(c) && vazio(v[CAMPO_CANAL[c]]) && <i className="nt-seg-vazio" title="vazio">·</i>}</> }))} />
           </div>
 
           {fornecedorAviso && (ADS().Nota
@@ -419,10 +414,8 @@ function NotificacoesPage() {
                         <button title="Lista" disabled={modo !== "visual"} onClick={() => rte.current.cmd("insertUnorderedList")}>≡</button>
                         <button title="Link" disabled={modo !== "visual"} onClick={() => rte.current.cmd("createLink")}>↗</button>
                       </div>
-                      <div className="fnc-seg nt-modo">
-                        <button className={modo === "visual" ? "on" : ""} onClick={() => setModo("visual")}>Visual</button>
-                        <button className={modo === "codigo" ? "on" : ""} onClick={() => setModo("codigo")}>HTML</button>
-                      </div>
+                      <window.CliSeg className="nt-modo" ariaLabel="Modo do corpo" value={modo} onChange={setModo}
+                        options={[{ key: "visual", label: "Visual" }, { key: "codigo", label: "HTML" }]} />
                     </div>
                   )}
                 </div>

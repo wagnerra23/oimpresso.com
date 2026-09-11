@@ -12,6 +12,8 @@ import GovernancaSubNav from '@/Pages/governance/_shared/GovernancaSubNav'
 import KpiGrid from '@/Components/shared/KpiGrid'
 import KpiCard from '@/Components/shared/KpiCard'
 import EmptyState from '@/Components/shared/EmptyState'
+import { Inline } from '@/Components/layout'
+import { Button } from '@/Components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select'
 
 interface Entry {
@@ -66,6 +68,20 @@ const Audit: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
     // D-14: partial reload — só re-busca o que muda com filtro.
     // available_endpoints/available_actors são por business (closures no controller).
     router.get('/governance/audit', { ...filters, [key]: value || undefined }, {
+      preserveState: true,
+      preserveScroll: true,
+      replace: true,
+      only: ['entries', 'kpis', 'filters'],
+    })
+  }
+
+  // '24h' é o default do AuditController (`$request->input('period', '24h')`) — limpar
+  // volta a ele, não a "sem período": consulta sem janela é o que o teto de 30d evita.
+  const hasFilter =
+    filters.period !== '24h' || !!filters.actor || !!filters.endpoint || !!filters.status
+
+  const clearFilters = () => {
+    router.get('/governance/audit', {}, {
       preserveState: true,
       preserveScroll: true,
       replace: true,
@@ -152,6 +168,14 @@ const Audit: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
               </Select>
             </div>
           </div>
+
+          {hasFilter && (
+            <Inline justify="end" className="mt-3">
+              <Button variant="ghost" size="sm" onClick={clearFilters}>
+                Limpar filtros
+              </Button>
+            </Inline>
+          )}
         </CardContent>
       </Card>
 
@@ -160,7 +184,17 @@ const Audit: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
         <CardContent className="p-0">
           {entries.length === 0 ? (
             <div className="p-6">
-              <EmptyState icon="info" title="Sem entries" description="Sem registros no período selecionado com os filtros aplicados." />
+              <EmptyState
+                icon={hasFilter ? 'search-x' : 'info'}
+                variant={hasFilter ? 'search' : 'default'}
+                title={hasFilter ? 'Essa combinação de filtros não devolve nada' : 'Sem entries'}
+                description={
+                  hasFilter
+                    ? `Período ${filters.period}${filters.actor ? ` · actor ${filters.actor}` : ''}${filters.endpoint ? ` · endpoint ${filters.endpoint}` : ''}${filters.status ? ` · status ${filters.status}` : ''}. Volte ao padrão de 24h para ver o movimento recente.`
+                    : 'Sem registros no período selecionado com os filtros aplicados.'
+                }
+                action={hasFilter ? <Button size="sm" onClick={clearFilters}>Limpar filtros</Button> : undefined}
+              />
             </div>
           ) : (
             <div className="overflow-x-auto">

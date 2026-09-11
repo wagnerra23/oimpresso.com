@@ -7,6 +7,7 @@ owner: wagner
 status: draft
 last_validated: "2026-05-17"
 parent_module: Repair
+related_us: [US-REPA-005]
 related_adrs: [93, 104]
 tier: A
 charter_version: 1

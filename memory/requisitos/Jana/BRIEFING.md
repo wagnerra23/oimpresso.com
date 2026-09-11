@@ -1,132 +1,78 @@
 ---
 id: requisitos-jana-briefing
-distilled_at: "2026-08-13"
-distilled_by: "manual [W/C] — consolidação de donos: intenção e decisões abertas ficam aqui; topologia/inventário ficam nos artefatos gerados; execução de observabilidade fica em OBSERVABILITY.md"
 module: Jana
 status: producao
-updated_at: "2026-08-27"
+updated_at: "2026-09-06"
+distilled_at: "2026-09-06"
+distilled_by: jana:distill-module-truth
 ---
 
 # BRIEFING — Jana (verdade destilada)
 
 ## Estado atual
-
-> **2026-09-02/03 — `/ia/superadmin/metas` deixou de ser Blade: virou `Jana/Plataforma` (Inertia), 6ª aba da faixa.** Entregue pelo #6609 (stacked em Alertas → Ações), com F1 própria em [`RUNBOOK-plataforma.md`](RUNBOOK-plataforma.md). O #6627 tinha construído a mesma tela em paralelo (duas sessões, um alvo) e virou **delta** sobre o trio do #6609: o bug de produção das filhas + a errata do gate + o teste órfão do #6421 na lane. Fecha *"retorno Blade e não JSON"* do parágrafo de 27/08 **só para esta tela** — as outras 8 views Blade do módulo seguem.
->
-> **Bug de produção fechado no delta (UC-PLAT-03):** `MetaPeriodo`/`MetaApuracao` carregam `ScopeByBusinessViaParent`; o eager load das filhas filtrava pela sessão e a tela diria "—" / "nunca apurada" para **todos** os clientes. Achado na lane MySQL, não por leitura — o UC-PLAT-01 não pegava porque a meta alheia dele não tem filhas. Conserto: duas queries explícitas sem escopo, sem N+1 (RUNBOOK §4).
->
-> **O que NÃO mudou, e é o ponto:** *"a agregação cross-business do superadmin que de fato não existe"* **continua não existindo, agora por decisão declarada** — zero `sum`/`count`/`groupBy` no controller (re-medido 31/08); a tela lista cru e escreve a razão na interface. Non-Goal no charter + `UC-PLAT-04`. O que a plataforma quer medir segue **decisão [W]**.
->
-> **Gate:** menu e rota perguntam o mesmo (`hasPermissionTo('jana.superadmin')` real — `can()` é burlado pelo `Gate::before`), inclusive o item do dropdown legado (#6609). ⚠️ **Errata medida:** a 2ª porta (`user_type` superadmin) é **inalcançável** no grupo `/ia` — o `CheckUserLogin` dá 403 antes do controller (RUNBOOK §3). Em produção (31/08): 0 usuários com esse `user_type`; os 5 que alcançam a tela entram pela permissão real, via `Operacional#1`. Removê-la é decisão [W]. E `jana_metas`/`jana_meta_periodos`/`jana_meta_apuracoes` têm **0 linhas** nos 88 businesses — a tela abre vazia.
->
-> **2026-08-27 — o Painel `/ia` tem 5 botões clicáveis que não fazem nada, e agora eles são dívida DECLARADA.** Medido nesta data com parse estrutural sobre `Index.tsx` + `_components/JanaCockpit.tsx` (o mesmo que o `PainelContratoTest::painelBotoesMudos()` roda; recontar é rodar o teste, não reler este parágrafo). Dois já eram conhecidos — `Exportar` e `Ouvir áudio`, ambos com `title="(em breve)"` e ambos catalogados no `jana-painel.contract.json` como **decisão [W] aberta** (*"Some, vira `disabled` com o motivo, ou entrega?"*). Os outros três são os chips do rodapé do brief — `Disparar régua WhatsApp pros {n} atrasados`, `Ver top devedores`, `Investigar queda ticket médio` — e são **piores**: não prometem nada, o usuário clica e nada acontece, sem explicação. O `Index-visual-comparison.md` já os registrava como "🟡 botão morto", mas apontando `JanaCockpit.tsx:479-500`, onde hoje está o parágrafo do brief; a ref apodreceu e foi trocada por âncora de símbolo no mesmo PR. **O destino dos 5 continua sendo decisão [W]** — a barreira nova (`UC-JPAIN-16`) não escolhe por ele: ela trava o conjunto conhecido e derruba o **sexto** (forward-only, [ADR 0275](../../decisions/0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes.md)). Consertar um é apagar a linha dele na lista, no mesmo PR.
->
-> **Por que uma barreira nova, e não o conserto um-a-um:** os três chips cresceram no MESMO arquivo onde o `UC-JPAIN-12` acabara de consertar os CTAs vizinhos. O conserto foi por instância; a classe reincidiu ao lado. É o sinal de two-strikes ([ADR 0344](../../decisions/0344-two-strikes-cobre-processo.md)).
->
-> ⚠️ **A lane onde essa barreira roda é ADVISORY.** Dono do fato: [`governance/required-checks-baseline.json`](../../../governance/required-checks-baseline.json) — consultado em 2026-08-27, `PHP / Pest (Jana · MySQL)` não está entre os 45 contexts required, enquanto as lanes irmãs de Compras, Estoque, Financeiro, KB, NfeBrasil, Ponto e Sells estão. Não estou propondo promover: isso é flip [W] com mordida provada ([ADR 0336](../../decisions/0336-gates-design-promocao-por-mordida-provada-emenda-0314.md)), e o dado de mordida ainda não existe. Registro porque um leitor pode supor que "tem teste na lane" significa "não passa sem".
->
-> **O que a medição REFUTOU no mesmo turno, pra ninguém repetir:** a hipótese de estender o `JanaViewsSemAndaimeTest` (dono de "andaime não chega ao cliente" nas views Blade) para varrer `*.php` do módulo. Medido ANTES de ligar: **60 hits, ~58 falso-positivos** — 14 em `Tests/` (incluindo a fixture do próprio dono), 36 em linha de comentário (fato datado que o canon manda preservar), 12 são placeholders de TEMPLATE no `ScaffoldSkillFromMissionService`, 1 é a regex do `SpecAnchorClassifier` que *procura* `TODO`, e um é português (`"Invalidar TODO cache de biz=?"`). O guard não olha PHP **por desenho**: o predicado dele é *"chega ao cliente"*, e docblock não chega. É a família de guard sintático que o §5 já enterrou 5×.
->
-> **O defeito real que havia nos docblocks era outro, e foi corrigido:** cinco classes carregavam `STUB spec-ready` em tempo PRESENTE sobre si mesmas — `MetasController`, `PeriodosController`, `SuperadminController`, `SuggestionEngine`, `ContextSnapshotService` — e o rótulo era falso em todas. O `MetasController` tem CRUD completo com FormRequests (D8.c Wave 14); o `PeriodosController` carrega o gate Tier 0 que fechou um IDOR cross-tenant (#4474); o `SuggestionEngine` já tinha sido medido e desmentido pelo próprio `SPEC.md` (US-COPI-003, 2026-08-10) sem que ninguém corrigisse o docblock. É LC-10 puro (§5 2026-08-17: comentário não afirma o próprio estado em presente, porque apodrece). As **pendências** que os docblocks listavam foram re-verificadas uma a uma e ficam — `index()` sem filtro, sem permissão por ação, retorno Blade e não JSON, e a agregação cross-business do superadmin que de fato não existe.
-
-> **2026-08-13 — o item 4 FOI autorizado, e a onda 1 saiu: as 61 migrations `mcp_*` estão no Modules/Forja.** [W] em 2026-08-13: *"mcp foi para forja, isso já decidi"* — a decisão de destino já era canon desde a [ADR 0366](../../decisions/0366-fronteira-jana-forja-governance-kb.md) (aceita 2026-08-03); o que faltava era executar o item 4 do §D-C, que ela própria deixou pendente de "ADR própria + janela". As entradas de 2026-08-05 abaixo dizem *"o item 4 não está autorizado"* — **isso valia naquela data e não vale mais**; ficam como registro, não como estado. Nome de arquivo preservado em todas as 61, então a tabela `migrations` casa e nada re-roda em prod. Muda o dono DERIVADO do schema (quem faz `Schema::create`), não o código: **ainda AQUI**, nas próximas ondas — 30 `Entities/Mcp`, o servidor JSON-RPC + 40 tools em `Mcp/`, 5 `Services/Mcp`, 10 comandos `Console/Commands/Mcp*`, o `McpAuthMiddleware` e 44 testes. Efeito medido na fronteira: a dívida de acoplamento por tabela caiu de 20 para 18 pares (curados `Forja>Jana`, `Governance>Jana`, `Superadmin>Jana`), e `Jana>Forja` subiu de 4 pra 54 queries — **transitório por construção**, some quando o código seguir o schema.
->
-> ⚠️ **Duas consequências da onda 1 que NÃO podem viver só em mensagem de commit** (achado do refutador adversarial GT-G5, rodada 2 — a errata tocou 7 arquivos e nenhum em `memory/`, então quem lesse este BRIEFING não saberia):
->
-> 1. **`module:migrate Jana` deixou de provisionar as 61 tabelas.** O `InstallController` deste módulo estende `BaseModuleInstallController` ([:128](../../../app/Http/Controllers/BaseModuleInstallController.php)), que chama `module:migrate` com o nome do módulo, e a rota `/ia/install` está viva. Com as migrations na Forja e o código MCP ainda aqui, uma instalação POR MÓDULO da Jana não cria o schema que as 30 `Entities/Mcp`, 40 tools, 5 `Services/Mcp` e 10 comandos daqui consomem. **Em produção isso é mascarado** pelo `migrate --force` global do deploy ([deploy.yml:520](../../../.github/workflows/deploy.yml)) — some de vez quando o código seguir o schema, mas até lá é real. O PR que moveu afirmava o contrário (*"não há `module:migrate` por módulo"*) — era falso fora do escopo do deploy, e é essa frase que escondia esta superfície.
-> 2. **A ADR própria do item 4 NÃO existe.** A [ADR 0366](../../decisions/0366-fronteira-jana-forja-governance-kb.md) §D-C diz que mover as `Mcp*` *"exige ADR própria + janela"*; a autorização que destravou a onda 1 foi a frase de [W] no chat, registrada em prosa. Não há canary nem janela declarados. Escrever essa ADR é ato de [W] — enquanto ela não existir, este parágrafo é o único lugar onde a pendência está registrada.
-> **2026-08-05 — Custos de IA e Qualidade IA sairam pra Modules/Governance** (ADR 0366 §D-B, ratificada por [W] em 2026-08-03: cada modulo responde UMA pergunta, e a da Jana e "como esta meu negocio e o que eu faco?"). Muda o dono da TELA, nao o do DADO: CustosService e MemoriaMetrica continuam aqui, e as permissions jana.admin.custos.view / jana.mcp.usage.all foram PRESERVADAS — renomear revogaria acesso em silencio (ADR 0087). URLs antigas seguem vivas por 301 preservando a query. O item 4 do plano (mover as Mcp*) NAO esta autorizado.
-> **2026-08-05 — a tela de Governanca MCP saiu da Jana** (ADR 0366 §D-C item 1). Ela nao foi movida: foi FUNDIDA no painel do Modules/Governance, porque era a mesma tela que o dashboard de la (sobreposicao #4 da ADR). Fecha um drift que o SCOPE.md da Governanca declarava desde 2026-05-17 com eta_migracao Fase 5. O GovernancaService FICA aqui — mudou o dono da TELA, nao o do DADO; a permission jana.mcp.usage.all foi PRESERVADA e continua gateando a secao MCP dentro do painel novo. A URL antiga /ia/admin/governanca redireciona 301.
-> **2026-08-05 — a Jana está devolvendo as telas admin que não são dela** (ADR 0366 §D-B, ratificada por [W] em 2026-08-03: cada módulo responde UMA pergunta, e a da Jana é *"como está meu negócio e o que eu faço?"*). O Roadmap Gantt (`/ia/admin/roadmap`) foi pra **Forja** — usa `TaskCrudService`/`McpTask`, e tasks é Forja; mandar pro Governance criaria a 3ª tela de roadmap. Em PRs irmãos: Custos, Qualidade IA e a Governança MCP vão pra **Governance**. Em todos os casos **muda o dono da TELA, não o do DADO** — `CustosService`, `MemoriaMetrica`, `GovernancaService` e `TaskCrudService` continuam aqui; o item 4 do plano (mover as `Mcp*`) **não está autorizado**. URLs antigas sobrevivem por 301. Permissions `jana.*` **preservadas**: renomear revogaria acesso em silêncio ([ADR 0087](../../decisions/0087-drift-resolution-sem-mover-url.md)).
-
-Camada de IA do oimpresso: chat com memória persistente, brief diário, sugestões de metas e evals, sobre a stack canônica `laravel/ai` + Agents próprios ([ADR 0035](../../decisions/0035-stack-ai-canonica-wagner-2026-04-26.md)). Em produção.
-
-**Module grade: 73/100 (Bom · rubrica v3).** Dono do número: [`governance/module-grades-baseline.json`](../../../governance/module-grades-baseline.json) (v3.6.0, lock 2026-07-16, medição do **CI**) — recomputar com `php artisan module:grade Jana`. Travada em 73 desde o [#4194](https://github.com/wagnerra23/oimpresso.com/pull/4194); o CT 100 mede 74, e o próprio baseline usa o Jana como **controle limpo** desse delta (é instrumento, não qualidade). O gate `module-grades` é **advisory** desde 2026-06-30 ([ADR 0314](../../decisions/0314-poda-gates-onda-2-lei-fusoes.md) D-1) — a nota não bloqueia merge.
-
-> ⛔ **Errata do destilado de 2026-07-10 — não re-alegar.** Ele dizia *"85% das funcionalidades operacionais"*. **Esse número era META, não estado**: sai dos audits de maio ([`AUDITORIA-KNOWLEDGE-ARCHITECTURE-2026-05-13.md:198`](AUDITORIA-KNOWLEDGE-ARCHITECTURE-2026-05-13.md) *"Payoff: 73% → ~85% maturidade"* · [`AUDIT-SENIOR-2026-05-25.md:24`](AUDIT-SENIOR-2026-05-25.md) *"73→85%+ maturidade global"*). O destilador leu um **alvo** e carimbou como retrato. O único número de estado com dono é a nota **73** acima. Mesma família da lápide *"claims REFUTADAS"* ([proibicoes.md](../../proibicoes.md) §5, 2026-07-09): claim sem data+fonte é tom inflado.
-
-## Doutrina do produto e decisões abertas
-
-Esta é a casa curada da intenção da Jana. Topologia e inventário não são repetidos aqui: vivem em [`ARCHITECTURE.md`](ARCHITECTURE.md) e [`PAINEL-SISTEMA.md`](../../reference/PAINEL-SISTEMA.md), ambos gerados por `system-map.mjs`. O plano operacional de observabilidade vive em [`OBSERVABILITY.md`](OBSERVABILITY.md). A proveniência dos deltas atual→alvo permanece na [proposta de 2026-07-28](../../decisions/proposals/2026-07-28-camada-ia-atual-x-alvo-e-doutrina-resgatada.md).
-
-### Posicionamento
-
-- **Não é BI tradicional.** Não há OLAP, cubo nem data warehouse como centro do produto.
-- **Não é dashboard genérico.** A tela sustenta a conversa; não substitui a decisão.
-- **É agente de IA orientado a decisão.** O valor está na proposta aceita e acompanhada, não no gráfico isolado.
-
-### Decisões ainda abertas
-
-| Tema | Estado da decisão |
-|---|---|
-| Trajetória projetada | linear é a omissão atual; sazonalidade pode ser obrigatória no varejo; enums `sazonal`, `exponencial` e `manual` ainda não constituem decisão de produto |
-| Alertas por WhatsApp | adiados pelo custo da API |
-| Multi-idioma | português permanece o único idioma definido |
-| Cache do retrato do negócio | cache curto ainda não foi avaliado |
-| Guardrails | restrição contra meta ilegal ou tributariamente inadequada continua em prompt, sem trava determinística |
-
-Quando [W] decidir um desses temas, ele sai desta lista e ganha ADR. Decisão aberta não é copiada para `ARCHITECTURE.md` nem para o plano de observabilidade.
+Camada de IA do oimpresso: chat com memória persistente, brief diário, sugestões de metas e evals, sobre `laravel/ai` + Agents próprios (ADR 0035; Vizra rejeitada, ADR 0048). Em produção desde o CYCLE-01 (goal validado em prod, canon `why-oimpresso.md`); o estado corrente da qualidade das respostas é medido por `jana:ragas-real-eval` e vive em `governance/jana-ragas-real-baseline.json`. Não é BI nem dashboard genérico: é agente orientado a decisão. A área `/ia` tem as abas Painel, Conversa, Alertas, Ações, Memória e Plataforma (topologia em `ARCHITECTURE.md`, observabilidade em `OBSERVABILITY.md`, a tela nova em `RUNBOOK-plataforma.md`); a última (`/ia/superadmin/metas`; gate por `hasPermissionTo('jana.superadmin')`, porque `can()` é burlado pelo `Gate::before`) substituiu o Blade do superadmin em 2026-09-03 (#6609, delta #6627 que consertou as filhas `MetaPeriodo`/`MetaApuracao` fora do escopo — `UC-PLAT-03`); as outras views Blade do módulo seguem. Fronteiras da ADR 0366: Custos, Qualidade IA e Governança MCP foram para Governance; Roadmap e as migrations `mcp_*` para Forja — o código MCP (`Entities/Mcp`, servidor JSON-RPC, tools, `Services/Mcp`, comandos e `McpAuthMiddleware`) continua aqui, por isso `module:migrate Jana` não provisiona mais o schema que o código consome (mascarado em prod pelo `migrate --force` global do deploy). Permissões `jana.*` preservadas ao mudar dono de tela (ADR 0087). A lane `PHP / Pest (Jana · MySQL)` não está entre os contexts required — dono do fato: `governance/required-checks-baseline.json`. O item 4 da 0366 §D-C foi autorizado pela ADR 0378 (aceita, [W] 2026-08-13), que desenha a execução em ondas — a onda do schema já landou (migrations `mcp_*` em `Modules/Forja`, nenhuma na Jana); as Entities/Mcp e as tools seguem na Jana. As URLs antigas das telas devolvidas sobrevivem por 301. Module-grade (`governance/module-grades-baseline.json`) tem dono em git e não se restateia aqui; o gate foi demovido a advisory em 2026-06-30 (ADR 0314 D-1, #3466) — o que é required hoje é dito por `governance/required-checks-baseline.json`; errata que não volta: "85% das funcionalidades operacionais" era META dos audits de maio, não estado. Resultado negativo medido em 2026-08-27: estender `JanaViewsSemAndaimeTest` a `*.php` deu ~58 falsos-positivos em 60 hits — rejeitado.
 
 ## Capacidades
+- Chat com memória persistente (`MemoriaContrato` + `MeilisearchDriver` com time-decay; `NullMemoriaDriver` em dev).
+- Agents em `Modules/Jana/Ai/Agents/` (`ChatCopilotoAgent`, `ClarificadorAgent`, `SugestoesMetasAgent`, `BriefDiarioAgent`, entre outros) e comandos artisan de operação, incluindo `jana:health-check` e o próprio `jana:distill-module-truth`.
+- Brief diário (ADR 0091) e sugestões de metas por business; `HitlEscalationService` (`Services/TaskRegistry/`) transporta sentinela em decisão via task idempotente em `mcp_tasks`.
+- Evals: RAGAS gate e canary em CI, recall-eval, telemetria Langfuse/OTel.
+- Telas Inertia (Index, Chat, Memoria, Alertas, Acoes, Pro, Plataforma); a paridade contra a âncora tem dono em `<Tela>-visual-comparison.md` e nas ondas #6655/#6662/#6664; a Plataforma diz o que não existe (tabelas de meta vazias em produção — medido em 2026-08-09; a tela abre sem linhas).
+- Servidor MCP `mcp.oimpresso.com` alimentado pelo corpus `memory/` (ADR 0053).
 
-Contagens varridas em 2026-07-17 (`git ls-files` — arquivos, não testes verdes; rodar Pest é CT 100, [ADR 0062](../../decisions/0062-separacao-runtime-hostinger-ct100.md)):
-
-- **Agentes, provedores, memória e rerankers:** consultar [`ARCHITECTURE.md`](ARCHITECTURE.md) ou regenerar com `node scripts/governance/system-map.mjs`; este briefing não mantém uma segunda contagem.
-- **45 comandos artisan** (incl. `jana:health-check`, `jana:distill-module-truth`, `jana:recall-eval`, `jana:ragas-real-eval`, `jana:retention-purge`) · **16 controllers** · **138 arquivos de teste**.
-- **Memória**: `MeilisearchDriver` — desde o [#4207](https://github.com/wagnerra23/oimpresso.com/pull/4207) o time-decay **reordena** o recall (antes só pontuava, não reordenava).
-- **Telemetria**: mecanismo Langfuse, listener global e heartbeat foram construídos; estado de runtime e lacunas atuais são medidos pelo `jana:health-check` e catalogados em [`OBSERVABILITY.md`](OBSERVABILITY.md), nunca inferidos deste briefing.
-- **Porta de memória**: o distiller que escreve os `BRIEFING.md` do projeto é deste módulo (`jana:distill-module-truth`, [ADR 0291](../../decisions/0291-distiller-modulo-verdade-contrato-emenda-0270-f3.md) D-D) — desde o [#4268](https://github.com/wagnerra23/oimpresso.com/pull/4268) emite `status`/`updated_at` no frontmatter.
+- Gate Tier 0 explícito no `PeriodosController` (`assertMetaDoTenant`): a meta pai é validada no tenant antes de tocar o filho — fechou um IDOR cross-tenant em 2026-07-17 (#4474, ADR 0093), porque o backstop `ScopeByBusinessViaParent` só cobre SELECT.
 
 ## Gaps
-
-Cada linha **aponta pro dono do número** em vez de repeti-lo ([proibicoes.md](../../proibicoes.md) §5 2026-07-17, *"fato derivado não se restateia"*) — pra ver o valor de hoje, rode o dono:
-
-| Gap | Onde se vê / evidência | Dono |
-|---|---|---|
-| ~~**Mock em rota LIVE**~~ — **RESOLVIDO 2026-08-07** por remoção, não por conserto: `/ia/cockpit` deixou de existir (301 → `/ia`) e as duas metades do mock saíram junto com a tela | `Cockpit.tsx` apagado · `ChatController@cockpit` + `mockJanaPayload()` removidos | US-COPI-123 `done` · onda 4 da US-COPI-148 · [RUNBOOK-cockpit.md](RUNBOOK-cockpit.md) (lápide) |
-| `context_recall` **baixo** — o piso já não deixa degradar calado (landou 2026-07-17), mas o valor segue baixo | rodar `jana:ragas-real-eval`; piso vive em `thresholds_regressao` | [`governance/jana-ragas-real-baseline.json`](../../../governance/jana-ragas-real-baseline.json) · US-COPI-136 **`done`** ([#4412](https://github.com/wagnerra23/oimpresso.com/pull/4412)) |
-| Eval online em ativação controlada | flag canônica autorizada por [W] em 2026-07-29; cobertura e ausência de score são advisory no `jana:health-check` | [`OBSERVABILITY.md`](OBSERVABILITY.md) Etapa 3 · US-COPI-137 |
-| Fluxo Langfuse | heartbeat do destino já foi construído; recibo atual vem de `jana:health-check --json`, não de texto estático | [`OBSERVABILITY.md`](OBSERVABILITY.md) Etapa 0 · US-COPI-138 |
-| Sem cadeia de fallback de provider (*"se o provider cai, a Jana cai"*) | — | US-COPI-135 `todo` |
-| Ratio negócio/governança **em alarme** — o cron que dispara landou 2026-07-17 ([#4410](https://github.com/wagnerra23/oimpresso.com/pull/4410)); falta o **badalo no `brief-fetch`** | rodar `node scripts/governance/negocio-vs-governanca-ratio.mjs` pro valor do dia | [`scripts/governance/negocio-vs-governanca-ratio.mjs`](../../../scripts/governance/negocio-vs-governanca-ratio.mjs) · US-COPI-139 `todo` · [ADR 0334](../../decisions/0334-modelo-3-camadas-invariante-anti-atrofia-inteligencia-negocio.md) |
-| **6 flags OFF por default** | `JANA_RETENTION_ENABLED` · `JANA_CLARIFY_ENABLED` · `COPILOTO_HYDE_ENABLED` · `COPILOTO_NEGATIVE_CACHE_ENABLED` | `Config/retention.php:58` · `config.php:527/234/462/631/673` |
-| Hybrid **medido e rejeitado** pra prod — não re-propor sem número novo | [#4198](https://github.com/wagnerra23/oimpresso.com/pull/4198) | US-COPI-133 |
-
-⚠️ **LGPD purge não é "só ligar".** O evidence pack de 2026-07-12 provou o path `anonymize` em staging, mas o **§3.1 dele** registra que flipar hoje violaria a própria regra: o schedule (`Kernel.php:770`) roda `jana:retention-purge` **sem `--business`** → itera todos, **incluindo biz=4 ROTA LIVRE (Larissa)**. Falta PR de allowlist + 3 sign-offs [W]. Ver [EVIDENCE-retention-purge-dry-run-2026-07-12.md](EVIDENCE-retention-purge-dry-run-2026-07-12.md).
-
-✅ **Segundo BRIEFING concorrente — RESOLVIDO em 2026-07-30.** O `Modules/Jana/BRIEFING.md` afirmava *"Governance score v3 96/100"* + *"Operacional PME 95%"* contra os **73** do baseline canônico (último toque real 2026-05-16). Virou lápide-ponteiro em 21/07 ([taxonomia §5](../../decisions/proposals/2026-07-21-taxonomia-arquivos-modulo.md)) e foi **deletado** em 30/07, decisão [W] (*"quero mover tudo para memory, apagar os outros e revisar os vínculos"*). Este arquivo é a **casa única** do BRIEFING da Jana. Mesma cura aplicada aos 10 módulos que tinham o par.
+- `context_recall` abaixo do alvo (US-COPI-133, p0 `_pendente_`); a janela centrada no match subiu o recall medido no run de 2026-09-05 (#6801, CT 100), com o piso de 0,36 armado (US-COPI-136, done); o estado corrente da série do gate vive em `governance/jana-ragas-real-baseline.json` (re-cura de 2026-09-06 registra fail/skipped em agosto e mantém os pisos).
+- Eval online em traces reais (US-COPI-137, `doing`) e heartbeat Langfuse no `HealthCheckCommand` (US-COPI-138) em aberto; sem cadeia de fallback de provider (US-COPI-135); ratio negócio÷governança do fluxo de trabalho com `alarme: true` medido à mão — o alarme existe e nunca dispara sozinho (US-COPI-139); hybrid medido no spike de 2026-07-12 e rejeitado.
+- Painel com botões mudos — `Ouvir áudio` (o único que ainda promete data: "em breve — TTS V2") e outros quatro, `Exportar` e os 3 chips do rodapé do brief (`Disparar régua WhatsApp pros {n} atrasados`, `Ver top devedores`, `Investigar queda ticket médio`), que apenas não fazem nada ao clicar — registrados como dívida forward-only (`UC-JPAIN-16`); decisão [W] aberta.
+- Metas (`MetasController::index()`, grupo `can:jana.access`): sem filtro, sem permissão por ação e retorno Blade nas telas de metas — verificado em 2026-08-27; o Blade→JSON foi fechado só na tela de metas do superadmin.
+- Agregar metas de clientes é Non-Goal declarado (`UC-PLAT-04`); o que a plataforma quer medir é decisão de [W]. Resíduo: a 2ª porta do gate (`user_type` superadmin) é inalcançável no grupo `/ia` — medido em 2026-08-31: nenhum usuário com esse `user_type`, e quem alcança a tela entra pela permissão real; removê-la é decisão [W].
+- Flags que nascem `false` em `Config/config.php`: `COPILOTO_HYDE_ENABLED`, `COPILOTO_NEGATIVE_CACHE_ENABLED`, `JANA_CLARIFY_ENABLED` (ADR 0245) e `JANA_RETENTION_ENABLED`. `jana:retention-purge` segue agendado, porém inerte com a última em `false`. Ligá-lo iteraria biz=4 (roda sem `--business`), e a política [W] de 2026-07-27 é não apagar PII — desligar o agendamento de vez é decisão [W].
+- Decisões abertas de [W]: trajetória projetada, alertas por WhatsApp, multi-idioma, cache do retrato, guardrails.
 
 ## Última mudança
-
-Recibo: `git log --since=2026-07-10 -- Modules/Jana memory/requisitos/Jana`, rodado em 2026-07-17 → **21 commits** (janela 07-12→07-17), dos quais **11 tocam algum `.php` de `Modules/Jana`** (entrega real); o resto é higiene/docs.
-
-Entregas: **piso de `context_recall`** ([#4412](https://github.com/wagnerra23/oimpresso.com/pull/4412) — o recall era medido e jogado fora; agora tem bite-test que derruba o gate); Langfuse ganhou tag `business_id` ([#4145](https://github.com/wagnerra23/oimpresso.com/pull/4145)) e 4 call-sites instrumentados ([#4208](https://github.com/wagnerra23/oimpresso.com/pull/4208)); time-decay passou a reordenar o recall ([#4207](https://github.com/wagnerra23/oimpresso.com/pull/4207)); `McpTask::openBlockers()` destravou **12 tasks** que o backlog dizia bloqueadas por bloqueador **já done**, 1 delas P0 ([#4401](https://github.com/wagnerra23/oimpresso.com/pull/4401)); forward-close de card por âncora verificada ([#4262](https://github.com/wagnerra23/oimpresso.com/pull/4262), [ADR 0337](../../decisions/0337-emenda-0144-forward-close-por-ancora-verificada.md)); drag-drop de prazo no Roadmap ([#4159](https://github.com/wagnerra23/oimpresso.com/pull/4159)).
-
-Reconciliações que corrigiram o próprio registro: [#4144](https://github.com/wagnerra23/oimpresso.com/pull/4144) mediu as Ondas 4-5 por máquina — **real ~97%, o doc dizia 91%** (subestimava); [#4206](https://github.com/wagnerra23/oimpresso.com/pull/4206) desquarentenou o `RetentionPurgeCommandTest` em MySQL.
-
-O SPEC foi tocado **hoje** ([#4402](https://github.com/wagnerra23/oimpresso.com/pull/4402)): 5 US novas (US-COPI-135..139), todas de produto/cliente, nascidas da **grade de réguas 2026-07-17** — cujo diagnóstico foi que a régua vinha ganhando do cliente. Dessas, a **136 já fechou no mesmo dia** ([#4412](https://github.com/wagnerra23/oimpresso.com/pull/4412)) e o cron do alarme da 0334 foi ligado ([#4410](https://github.com/wagnerra23/oimpresso.com/pull/4410)) — as notas e o ratio dessa grade **não são repetidos aqui**: donos são o session log da grade e `negocio-vs-governanca-ratio.mjs`.
+Ondas de paridade de design das telas da Jana + abas Alertas e Ações (2026-09-03, #6607/#6608/#6655/#6660/#6662/#6664), a aba Plataforma em Inertia (#6609, com o delta #6627) e a janela centrada no match do recall (#6801, 2026-09-05).
 
 ## Proveniência (destilado de)
 
-Releitura direta em 2026-07-17 — não de sessions/handoffs (o destilado anterior citava 40 fontes, **nenhuma posterior a 2026-07-05**, e por isso não enxergava a janela que importava):
-
-- código: `Modules/Jana/Ai/Agents/` · `Console/Commands/` · `Http/Controllers/` · `Config/config.php` · `Config/retention.php` · `resources/js/Pages/Jana/Cockpit.tsx`
-- contrato: [SPEC.md](SPEC.md) (84 US únicas; 28 done + 28 todo declaradas, 28 sem status declarado) · [RUNBOOK-cockpit.md](RUNBOOK-cockpit.md) · [EVIDENCE-retention-purge-dry-run-2026-07-12.md](EVIDENCE-retention-purge-dry-run-2026-07-12.md)
-- números: [`governance/module-grades-baseline.json`](../../../governance/module-grades-baseline.json) v3.6.0
-- janela: `git log --since=2026-07-10 -- Modules/Jana memory/requisitos/Jana` (21 commits)
-</content>
-</invoke>
-
----
-
-## Delta 2026-07-27 (não-redistilação — só o que mudou)
-
-**O que entrou no módulo:** `Services/TaskRegistry/HitlEscalationService.php` — o elo **detectar→decidir**. Transporte idempotente que materializa uma pendência já detectada por um sentinela como **1 task `blocked`/`wagner`** em `mcp_tasks`, que é o canal que o `brief-fetch` imprime como *HITL pending Wagner* (procedure `2026_05_06_172445`). Mora aqui porque o Jana é o dono de `mcp_tasks` (ADR 0070) — não em módulo paralelo.
-
-**Por que existia o buraco (medido, não suposto):** varredura dos 12 sentinelas agendados (`handoff:stale-alert`, os 9 `*:health-check`, `governance:detect-drift`, `ads:learn-patterns`) → **12 de 12 criam ZERO task**. Todos notificam ou logam e param. O `handoff-stale` repetiu o mesmo alerta por **38 dias** sem virar decisão de ninguém.
-
-**Regra que impede a máquina de brigar com o humano:** `task_id` determinístico (`HITL-<CHAVE>`) → re-escalar atualiza a MESMA task. `done`/`cancelled` **não reabre**; `todo`/`doing`/`review` **não rebaixa**. Fail-open se `mcp_tasks` não existir — o transporte nunca derruba o sentinela.
-
-**Teste:** `Tests/Feature/TaskRegistry/HitlEscalationServiceTest.php`, 7 casos / 17 assertions, rodados no CT 100 com MySQL real. A 1ª versão dele era **corruptora** (`dropIfExists('mcp_tasks')` + DDL em `activity_log`) e o `sqlite-test-corruptors` reprovou com razão — corrigido para mock de facade + `disableLogging()`.
-
-**O que este delta NÃO fez:** releitura de agents/commands/controllers/config. A leitura de fundo continua sendo a de 2026-07-17 acima.
+- audit `requisitos/Jana/AUDIT-GAPS-2026-08-10.md` — AUDIT-GAPS-2026-08-10.md
+- audit `requisitos/Jana/AUDIT-SENIOR-2026-05-25.md` — AUDIT-SENIOR-2026-05-25.md
+- audit `requisitos/Jana/AUDITORIA-IA-OS-2026-06-06.md` — AUDITORIA-IA-OS-2026-06-06.md
+- audit `requisitos/Jana/AUDITORIA-KNOWLEDGE-ARCHITECTURE-2026-05-13.md` — AUDITORIA-KNOWLEDGE-ARCHITECTURE-2026-05-13.md
+- audit `requisitos/Jana/AUDITORIA-MODO-C-2026-05-09.md` — AUDITORIA-MODO-C-2026-05-09.md
+- audit `requisitos/Jana/AUDITORIA-SESSION-HANDOFF-2026-05-13.md` — AUDITORIA-SESSION-HANDOFF-2026-05-13.md
+- audit `requisitos/Jana/AUDITORIA-design-as-code-token-driven-2026-06-22.md` — AUDITORIA-design-as-code-token-driven-2026-06-22.md
+- audit `requisitos/Jana/AUDITORIA-fidelidade-anti-drift-codegen-2026-06-22.md` — AUDITORIA-fidelidade-anti-drift-codegen-2026-06-22.md
+- audit `requisitos/Jana/AUDITORIA-reconciliacao-tripla-analise-por-setor-2026-06-22.md` — AUDITORIA-reconciliacao-tripla-analise-por-setor-2026-06-22.md
+- session `sessions/2026-09-04-ragas-agosto-lead-refutado-juiz-mudo.md` (2026-09-04) — 2026-09-04-ragas-agosto-lead-refutado-juiz-mudo.md
+- session `sessions/2026-09-03-ct100-breaker-sync-memory-e-veredito-unico.md` (2026-09-03) — 2026-09-03-ct100-breaker-sync-memory-e-veredito-unico.md
+- session `sessions/2026-09-03-watchdog-g6-tres-achados-ragas.md` (2026-09-03) — 2026-09-03-watchdog-g6-tres-achados-ragas.md
+- handoff `handoffs/2026-09-03-0920-ct100-fora-breaker-e-veredito-unico.md` (2026-09-03) — 2026-09-03-0920-ct100-fora-breaker-e-veredito-unico.md
+- handoff `handoffs/2026-09-03-1054-jana-plataforma-duas-sessoes-um-alvo-delta-6627.md` (2026-09-03) — 2026-09-03-1054-jana-plataforma-duas-sessoes-um-alvo-delta-6627.md
+- session `sessions/2026-09-02-jana-abas-paridade-3-prs.md` (2026-09-02) — 2026-09-02-jana-abas-paridade-3-prs.md
+- session `sessions/2026-09-02-ragas-real-colapso-diagnostico-bloqueado-ct100.md` (2026-09-02) — 2026-09-02-ragas-real-colapso-diagnostico-bloqueado-ct100.md
+- handoff `handoffs/2026-09-02-2140-jana-abas-alertas-acoes-plataforma.md` (2026-09-02) — 2026-09-02-2140-jana-abas-alertas-acoes-plataforma.md
+- session `sessions/2026-08-31-jana-p0-vazamento-e-d0-identidade-view.md` (2026-08-31) — 2026-08-31-jana-p0-vazamento-e-d0-identidade-view.md
+- handoff `handoffs/2026-08-31-1054-jana-p0-tier0-faxina-e-d0-identidade.md` (2026-08-31) — 2026-08-31-1054-jana-p0-tier0-faxina-e-d0-identidade.md
+- session `sessions/2026-08-18-visreg-manifesto-cobertura-vs-escalonamento.md` (2026-08-18) — 2026-08-18-visreg-manifesto-cobertura-vs-escalonamento.md
+- session `sessions/2026-08-17-jana-chat-gaps-do-card-tres-ja-existiam.md` (2026-08-17) — 2026-08-17-jana-chat-gaps-do-card-tres-ja-existiam.md
+- handoff `handoffs/2026-08-17-1810-jana-instrumentos-que-calam-e-o-outage.md` (2026-08-17) — 2026-08-17-1810-jana-instrumentos-que-calam-e-o-outage.md
+- session `sessions/2026-08-15-espelho-jana-baixar-nao-e-converter.md` (2026-08-15) — 2026-08-15-espelho-jana-baixar-nao-e-converter.md
+- handoff `handoffs/2026-08-15-2035-jana-espelho-defasado-ciclo-e-9-prs.md` (2026-08-15) — 2026-08-15-2035-jana-espelho-defasado-ciclo-e-9-prs.md
+- session `sessions/2026-08-14-censo-redacao-brl-em-codigo.md` (2026-08-14) — 2026-08-14-censo-redacao-brl-em-codigo.md
+- session `sessions/2026-08-13-ancora-jana-consertada-e-o-p2-que-nao-era.md` (2026-08-13) — 2026-08-13-ancora-jana-consertada-e-o-p2-que-nao-era.md
+- session `sessions/2026-08-13-jana-dark-ancora-defeituosa.md` (2026-08-13) — 2026-08-13-jana-dark-ancora-defeituosa.md
+- handoff `handoffs/2026-08-13-1330-jana-dark-e-a-ancora-que-mentia.md` (2026-08-13) — 2026-08-13-1330-jana-dark-e-a-ancora-que-mentia.md
+- handoff `handoffs/2026-08-13-1520-ancora-jana-consertada-p2-revertido.md` (2026-08-13) — 2026-08-13-1520-ancora-jana-consertada-p2-revertido.md
+- session `sessions/2026-08-12-arte-shared-kernel-laravel.md` (2026-08-12) — 2026-08-12-arte-shared-kernel-laravel.md
+- session `sessions/2026-08-12-refutacao-lote-pr5675.md` (2026-08-12) — 2026-08-12-refutacao-lote-pr5675.md
+- session `sessions/2026-08-11-prototipo-jana-no-git-e-a-defesa-que-era-a-causa.md` (2026-08-11) — 2026-08-11-prototipo-jana-no-git-e-a-defesa-que-era-a-causa.md
+- handoff `handoffs/2026-08-11-1245-prototipo-jana-no-git-e-espelho-com-live-only.md` (2026-08-11) — 2026-08-11-1245-prototipo-jana-no-git-e-espelho-com-live-only.md
+- session `sessions/2026-08-10-jana-modulo-inteiro-e-o-comentario-que-virou-lei.md` (2026-08-10) — 2026-08-10-jana-modulo-inteiro-e-o-comentario-que-virou-lei.md
+- handoff `handoffs/2026-08-10-1330-jana-lida-inteira-56-gaps-e-o-eixo-que-faltava.md` (2026-08-10) — 2026-08-10-1330-jana-lida-inteira-56-gaps-e-o-eixo-que-faltava.md
+- handoff `handoffs/2026-08-09-2300-jana-o-retrato-ja-existia-e-zero-metas.md` (2026-08-09) — 2026-08-09-2300-jana-o-retrato-ja-existia-e-zero-metas.md
+- session `sessions/2026-08-08-fatia-d-jana-memoria-metodo.md` (2026-08-08) — 2026-08-08-fatia-d-jana-memoria-metodo.md
+- handoff `handoffs/2026-08-08-1721-jana-fatia-a-barra-unica-pageheader.md` (2026-08-08) — 2026-08-08-1721-jana-fatia-a-barra-unica-pageheader.md
+- handoff `handoffs/2026-08-08-1936-jana-memoria-fatia-d-lgpd-motivo.md` (2026-08-08) — 2026-08-08-1936-jana-memoria-fatia-d-lgpd-motivo.md
+- session `sessions/2026-08-07-jana-fusao-onda1.md` (2026-08-07) — 2026-08-07-jana-fusao-onda1.md

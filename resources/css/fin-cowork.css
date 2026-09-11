@@ -122,6 +122,11 @@
   width: 100%;
 }
 .fin-cowork .fin-curadoria .fin-stat {
+  /* Onda 7 paridade (2026-09-08): o KPI e <button> (KPI-click seta a lente, charter v14),
+     e <button> herda text-align:center do UA stylesheet. O design (financeiro-page.jsx)
+     mede `start` nos 5 KPIs; a prod media `center`. Medido pelo design-diff --probe.
+     No-op para as outras 7 telas que usam .fin-stat: todas renderizam <div> (ja start). */
+  text-align: start;
   background: white;
   border: 1px solid var(--fin-line);
   border-radius: 8px;

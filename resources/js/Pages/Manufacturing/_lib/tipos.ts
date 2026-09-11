@@ -70,3 +70,26 @@ export interface ContadoresProducao {
   mes_final: number;
   mes_rascunho: number;
 }
+
+/** Espelho 1:1 de `ProductionService::reportByProduct()` (Manufacturing/Report). */
+export interface LinhaRelatorio {
+  recipe_id: number;
+  nome: string;
+  unidade: string;
+  ordens: number;
+  quantidade: number;
+  custo_total: number;
+  custo_medio: number;
+  percentual: number;
+}
+
+export interface Relatorio {
+  linhas: LinhaRelatorio[];
+  total: number;
+}
+
+export interface FiltrosRelatorio {
+  start_date: string | null;
+  end_date: string | null;
+  is_final: boolean;
+}

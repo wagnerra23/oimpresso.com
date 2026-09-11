@@ -244,6 +244,11 @@ const MENU = [
   ]},
 ];
 
+// ── Certificado A1 NF-e — espelha shell.nfe_cert_status do vivo (HandleInertiaRequests) ──
+// Estados: sem_cert | ok | vencendo | vencido. O badge só aparece nos dois críticos.
+// Troque aqui pra ver os 4 estados no protótipo (o vivo recebe isso do backend).
+const NFE_CERT = { status: "vencendo", dias_restantes: 12 };
+
 // ── Contadores do sidebar — no vivo são 3 e vêm de shell.sidebar_counts ──
 // (HandleInertiaRequests::sidebarCounts). Nada de badge inventado por item.
 const SIDEBAR_COUNTS = { chat: 3, atendimento: 6, tarefas: 6 };
@@ -605,4 +610,4 @@ const GROUP_META = {
   "PLATAFORMA":{ icon:"folder",  label:"Plataforma", hue: null, key:"plataforma", desc:"Tarefas, equipe, governança e Forja" },
 };
 
-window.MOCK = { COMPANIES, MENU, MENU_FLAT, USER_MENU, MENU_SHORTCUTS, SHORTCUT_TO_ROUTE, SUPERADMIN_MENU, FOOTER_LINKS, SIDEBAR_COUNTS, SIDEBAR_PAPEIS, ROUTE_STATE, ROUTE_STATE_LABEL, CONV, ROUTINES, TASKS, ORIGIN_COLORS, GROUP_META, FIN_SUBNAV, FIN_SUBNAV_OVERFLOW };
+window.MOCK = { COMPANIES, NFE_CERT, MENU, MENU_FLAT, USER_MENU, MENU_SHORTCUTS, SHORTCUT_TO_ROUTE, SUPERADMIN_MENU, FOOTER_LINKS, SIDEBAR_COUNTS, SIDEBAR_PAPEIS, ROUTE_STATE, ROUTE_STATE_LABEL, CONV, ROUTINES, TASKS, ORIGIN_COLORS, GROUP_META, FIN_SUBNAV, FIN_SUBNAV_OVERFLOW };

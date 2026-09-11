@@ -10,12 +10,17 @@
 // localStorage['oimpresso.route']), (3) captura o fingerprint do PROTO em matriz dual-theme ×
 // viewports com a âncora ASSADA na captura (trava do --compare, ADR 0326), (4) salva
 // memory/requisitos/<Mod>/<tela>.proto-baseline.json versionado, carimbado com o git-sha do
-// protótipo (padrão do <tela>.map.json — sha muda = baseline STALE, regenerar).
+// protótipo e com render_sha256 do grafo local (shell, CSS, JS e runtime DS).
+// Extração exige identidade atual do grafo; baseline histórico precisa ser regenerado.
 //
 // FRONTEIRA ADR 0290 (render-diff EM CI foi REJEITADO — passa verde quando os DOIS lados quebram):
 //   · --gerar   = render LOCAL/dispatch logado, SÓ local. RECUSA sob CI (exit 4).
 //   · --check   = HERMÉTICO (schema + âncora re-resolvida + freshness por sha) — é O QUE roda em
-//                 CI (design-memory-gate, advisory). Zero browser, zero rede: só o JSON commitado.
+//                 CI (design-memory-gate, advisory). Zero browser, zero rede. NÃO é read-only:
+//                 pra conferir o `render_sha256` ele repõe o cache `_ds/` (GITIGNORED, logo
+//                 ausente no checkout do CI) a partir do mirror-snapshot VERSIONADO — mesma
+//                 escrita que o hook de SessionStart já faz, em dir que o git ignora. Se nem
+//                 assim der pra medir, o veredito é NÃO MEDIDO (aviso), NUNCA "baseline STALE".
 //   · --extract = tira 1 célula do baseline como proto.json → o --compare EXISTENTE
 //                 (style-fingerprint.mjs --compare proto.json prod.json --tela <Mod/Tela>) roda
 //                 prod×proto-baseline com a trava fail-closed de sempre.
@@ -40,12 +45,16 @@
 //
 // Reusa (1 fato = 1 lugar): resolveAncora (ancora.mjs) · SNIPPET (style-fingerprint.mjs, a MESMA
 // string do --snippet) · computeGitSha (gerar-map.mjs) · acharBundleRoot (importar-bundle.mjs) ·
-// STAGING_DIR (protocolo.config.mjs) · chaveCelula (fingerprint-harness.mjs).
+// MIRROR_DIR (protocolo.config.mjs) · chaveCelula (fingerprint-harness.mjs).
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, statSync, mkdtempSync, unlinkSync, rmdirSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { createServer } from 'node:http';
 import { join, resolve, dirname, extname, relative, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { createHash } from 'node:crypto';
+import { payloadDependencyGraph } from '../scripts/design-sync/payload-dependency-graph.mjs';
+import { previewDsPlan, materializePreviewDs } from '../scripts/governance/cowork-mirror-freshness.mjs';
 
 import { resolveAncora } from './ancora.mjs';
 import { SNIPPET, rotulosDistintivos, overlapConteudo } from './style-fingerprint.mjs';
@@ -55,12 +64,66 @@ import { SNIPPET, rotulosDistintivos, overlapConteudo } from './style-fingerprin
 // mudou. `shaBate` aceita o abreviado como prefixo (contrato de abreviação do próprio git).
 import { computeGitSha, shaBate } from './gerar-map.mjs';
 import { acharBundleRoot } from './importar-bundle.mjs';
-import { STAGING_DIR, normalize, contentHash } from './protocolo.config.mjs';
+import { MIRROR_DIR, DS_ARQUIVOS_ESPELHADOS, normalize, contentHash } from './protocolo.config.mjs';
 import { chaveCelula } from './fingerprint-harness.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)); // prototipo-ui/
 const REPO = resolve(HERE, '..');
 export const VERSION = 1;
+
+// Identidade do render local inteiro, incluindo CSS, shell e runtime do DS.
+// Git-sha de um único JSX não muda quando só uma dependência ou o working tree muda.
+export function superficieRender(root, repoRoot = REPO) {
+  const html = readFileSync(join(root, 'oimpresso.com.html'), 'utf8');
+  if (html.includes('_ds/')) {
+    const plano = previewDsPlan(html, repoRoot);
+    if (plano.erro) throw Error(plano.erro);
+    for (const a of plano.arquivos) {
+      const cache = join(root, '_ds', plano.id, a.nome);
+      const fonte = join(repoRoot, 'prototipo-ui', 'design-system', a.nome);
+      if (!a.temNoRepo || !existsSync(cache) || !readFileSync(cache).equals(readFileSync(a.de)))
+        throw Error(`cache DS ausente ou antigo: ${a.nome}; rode --preview-ds antes de comparar`);
+      if (DS_ARQUIVOS_ESPELHADOS.includes(a.nome) && existsSync(fonte) && !readFileSync(fonte).equals(readFileSync(a.de)))
+        throw Error(`DS importado diverge do runtime: ${a.nome}; derive o runtime da fonte importada antes de comparar`);
+    }
+  }
+  const files = [];
+  function visitar(dir, prefix = '') {
+    for (const d of readdirSync(dir, { withFileTypes: true })) {
+      if (d.name.startsWith('.')) continue;
+      const path = prefix + d.name, abs = join(dir, d.name);
+      if (d.isDirectory()) visitar(abs, path + '/');
+      else if (d.isFile()) {
+        const bytes = readFileSync(abs);
+        files.push({ path, content: /\.(html|jsx?|tsx?|mjs|css|json)$/i.test(path) ? bytes.toString('utf8') : null,
+          hash: createHash('sha256').update(bytes).digest('hex') });
+      }
+    }
+  }
+  visitar(root);
+  const graph = payloadDependencyGraph(files);
+  if (!graph.complete) throw Error(`grafo do preview incompleto: ${graph.missing.join(', ')}; referências inseguras: ${graph.unsafe.length}`);
+  const byPath = new Map(files.map(f => [f.path, f.hash]));
+  return createHash('sha256').update(graph.reachable.map(p => `${p}:${byPath.get(p)}`).join('\n')).digest('hex');
+}
+
+export function conferirSuperficie(b, hashAtual) {
+  if (!b.render_sha256) throw Error('baseline histórico sem identidade do render completo; regenere --gerar antes de comparar');
+  if (b.render_sha256 !== hashAtual) throw Error('baseline STALE: protótipo, shell ou DS mudaram; regenere --gerar antes de comparar');
+}
+
+// "Não consegui MEDIR" não é um estado do objeto medido (proibicoes.md §5, 2026-07-29). O grafo
+// do render depende do cache `_ds/`, que é GITIGNORED — em checkout fresco (o do CI) ele NÃO
+// existe: medido 2026-09-10, `superficieRender(MIRROR_DIR)` lança "cache DS ausente" ali. Se o
+// --check colapsasse isso em "baseline STALE", acusaria o JSON commitado de um defeito que é do
+// AMBIENTE. Este veredito separa os dois: sem medição → aviso (o --check segue reportando âncora
+// e sha, que ele mediu de fato); com medição → confere de verdade.
+export function vereditoSuperficie(b, hashAtual, erroMedicao) {
+  if (!b.render_sha256) return { warn: 'baseline histórico: sem identidade do render completo; --extract exige regeneração' };
+  if (hashAtual == null) return { warn: `render NÃO MEDIDO neste ambiente (${erroMedicao || 'cache _ds indisponível'}) — o grafo do protótipo não foi conferido` };
+  try { conferirSuperficie(b, hashAtual); return {}; }
+  catch (e) { return { drift: e.message }; }
+}
 
 // ── puras (testáveis herméticas) ────────────────────────────────────────────────
 
@@ -364,7 +427,7 @@ async function cmdGerar(args) {
   if (!tela) { console.error('uso: --gerar <Mod/Tela> [--staging <dir>] [--porta 8799] [--viewports 1280,1440] [--themes light,dark] [--route <id>] [--out <path>]'); process.exit(2); }
   const { ancora, charter, telaViva } = await resolverFatos(tela);
   console.error(`# âncora (via ancora.mjs): ${ancora}`);
-  const staging = args.staging || STAGING_DIR;
+  const staging = args.staging || MIRROR_DIR;
   if (!existsSync(staging)) {
     console.error(`⛔ staging do bundle Cowork ausente: ${staging}\n   O render precisa do shell completo (oimpresso.com.html + app.jsx + deps). Rode a Fase −1 (DesignSync pull / importar-bundle.mjs) antes — ver protocolo.config.mjs.`);
     process.exit(2);
@@ -374,6 +437,10 @@ async function cmdGerar(args) {
     console.error(`⛔ shell oimpresso.com.html não achado sob ${staging} (raiz detectada: ${root}) — bundle incompleto?`);
     process.exit(2);
   }
+  if (resolve(root) === resolve(MIRROR_DIR)) {
+    materializePreviewDs(previewDsPlan(readFileSync(join(root, 'oimpresso.com.html'), 'utf8'), REPO));
+  }
+  const renderHashAntes = superficieRender(root);
   // identidade staging×repo da âncora (fail-closed): o sha declara o proto do REPO; o render
   // serve o STAGING — driftou = baseline mentiroso. Procura o arquivo da âncora no bundle.
   const nomeAnc = ancora.split('/').pop();
@@ -416,6 +483,8 @@ async function cmdGerar(args) {
   const prototipo_sha = computeGitSha([ancora], REPO);
   celulas = redigirSensiveis(celulas); // Tier 0 + LGPD: zero R$ / CPF / CNPJ em memory/, mesmo mock
   const baseline = montarBaseline({ tela, charter, ancora, prototipo_sha, shell: relative(staging, root).replace(/\\/g, '/') || '.', celulas });
+  baseline.render_sha256 = superficieRender(root);
+  if (baseline.render_sha256 !== renderHashAntes) throw Error('fontes mudaram durante a captura; descarte e repita --gerar');
   const v = verificarBaseline(baseline, {}); // auto-verifica ANTES de gravar — baseline vazio não pousa
   if (!v.ok) { console.error('⛔ baseline recém-gerado NÃO passa no --check — não vou gravar:\n - ' + v.drift.join('\n - ')); process.exit(1); }
 
@@ -444,6 +513,15 @@ async function cmdCheck(args) {
   const files = args._.length ? args._.map((f) => resolve(f)) : acharBaselines(join(REPO, 'memory', 'requisitos'));
   if (!files.length) { console.log('✓ nenhum *.proto-baseline.json no repo — nada a verificar (0 baselines não é drift).'); process.exit(0); }
   let totalDrift = 0, totalWarn = 0;
+  // Mede o grafo UMA vez. Materializa o `_ds/` a partir do mirror-snapshot VERSIONADO — o
+  // produtor é offline (não usa DesignSync nem rede) e escreve só nesse cache gitignored, que é
+  // o mesmo que o hook de SessionStart repõe. Medido 2026-09-10 em worktree fresco: 10 artefatos
+  // repostos, preview completo. Falhou? o veredito por baseline vira NÃO MEDIDO, nunca STALE.
+  let superficieAtual = null, erroSuperficie = null;
+  try {
+    materializePreviewDs(previewDsPlan(readFileSync(join(MIRROR_DIR, 'oimpresso.com.html'), 'utf8'), REPO));
+    superficieAtual = superficieRender(MIRROR_DIR);
+  } catch (e) { erroSuperficie = e.message; }
   for (const f of files) {
     let b;
     const rel = relative(REPO, f).replace(/\\/g, '/');
@@ -452,9 +530,15 @@ async function cmdCheck(args) {
     try { ancoraAtual = (await resolverFatos(b.tela)).ancora; } catch (e) { console.error(`✗ ${rel}: âncora não re-resolvível — ${e.message}`); totalDrift++; }
     const shaAtual = b.ancora ? computeGitSha([b.ancora], REPO) : null;
     const v = verificarBaseline(b, { ancoraAtual, shaAtual });
+    const vs = vereditoSuperficie(b, superficieAtual, erroSuperficie);
+    if (vs.drift) { v.drift.push(vs.drift); v.ok = false; }
+    if (vs.warn) v.warn.push(vs.warn);
     for (const d of v.drift) { console.error(`✗ ${rel}: ${d}`); totalDrift++; }
     for (const w of v.warn) { console.error(`⚠ ${rel}: ${w}`); totalWarn++; }
-    if (v.ok && ancoraAtual != null) console.log(`✓ ${rel} — íntegro (âncora ✓ · sha ✓ · ${Object.keys(b.celulas).length} células)`);
+    // a linha do veredito só pode falar do que ele MEDIU (§5 2026-07-29): se o grafo não foi
+    // conferido, o ✓ diz isso na cara, em vez de deixar o ⚠ acima passar batido na rolagem.
+    const semRender = b.render_sha256 && vs.warn ? ' · render NÃO MEDIDO' : '';
+    if (v.ok && ancoraAtual != null) console.log(`✓ ${rel} — íntegro (âncora ✓ · sha ✓ · ${Object.keys(b.celulas).length} células${semRender})`);
   }
   if (totalDrift) { console.error(`\n✗ ${totalDrift} drift(s) em ${files.length} baseline(s).`); process.exit(1); }
   console.log(`\n✓ ${files.length} baseline(s) íntegro(s)${totalWarn ? ` (${totalWarn} aviso(s))` : ''}.`);
@@ -473,6 +557,7 @@ function cmdNudge(args) {
     let tela = '<Mod/Tela>';
     try { tela = JSON.parse(readFileSync(join(REPO, b), 'utf8')).tela || tela; } catch {}
     console.log(`\n  · **${tela}** — baseline \`${b}\``);
+    console.log(`      node prototipo-ui/render-proto-baseline.mjs --gerar ${tela}   # fonte importada atual + preview DS atualizado`);
     console.log(`      node prototipo-ui/render-proto-baseline.mjs --extract "${b}" "1280|dark" --out proto.json`);
     console.log(`      node prototipo-ui/style-fingerprint.mjs --snippet ${tela}   # colar na tela viva (MESMO tema) → prod.json`);
     console.log(`      node prototipo-ui/style-fingerprint.mjs --compare proto.json prod.json --tela ${tela}`);
@@ -480,11 +565,18 @@ function cmdNudge(args) {
   console.log('\n  ⚠ direção NÃO é uniforme: o compare REPORTA, humano DECIDE (PROD_A_FRENTE nunca regride).');
 }
 
-function cmdExtract(args) {
+async function cmdExtract(args) {
   const [file, cell] = args._;
   if (!file || !cell) { console.error('uso: --extract <baseline.json> <viewport|tema> [--out proto.json]'); process.exit(2); }
   let fp;
-  try { fp = extrairCelula(JSON.parse(readFileSync(resolve(file), 'utf8')), cell); }
+  try {
+    const b = JSON.parse(readFileSync(resolve(file), 'utf8'));
+    const { ancora: ancoraAtual } = await resolverFatos(b.tela);
+    const v = verificarBaseline(b, { ancoraAtual });
+    if (!v.ok) throw Error(v.drift.join('; '));
+    conferirSuperficie(b, superficieRender(MIRROR_DIR));
+    fp = extrairCelula(b, cell);
+  }
   catch (e) { console.error(`⛔ ${e.message}`); process.exit(1); }
   const out = args.out ? resolve(args.out) : null;
   if (out) {
@@ -497,6 +589,49 @@ function cmdExtract(args) {
 function selftest() {
   let fails = 0;
   const t = (label, cond) => { const ok = !!cond; if (!ok) fails++; console.log(`  [${ok ? 'PASS' : 'FAIL'}] ${label}`); };
+
+  const fx = mkdtempSync(join(tmpdir(), 'baseline-frescor-'));
+  const dados = {
+    'oimpresso.com.html': '<script src="app.jsx"></script><link href="style.css" rel="stylesheet">',
+    'app.jsx': 'window.App = "atual";',
+    'style.css': '@font-face{src:url("font.woff2")}',
+    'font.woff2': 'bytes-fonte',
+  };
+  try {
+    for (const [p, bytes] of Object.entries(dados)) writeFileSync(join(fx, p), bytes);
+    const atual = superficieRender(fx);
+    let liberou = true;
+    try { conferirSuperficie({ render_sha256: atual }, superficieRender(fx)); } catch { liberou = false; }
+    t('controle: render com mesmas fontes libera extração', liberou);
+    for (const p of Object.keys(dados)) {
+      writeFileSync(join(fx, p), dados[p] + '\n/* mudou sem commit */');
+      let recusou = false;
+      try { conferirSuperficie({ render_sha256: atual }, superficieRender(fx)); } catch { recusou = true; }
+      t(`BITE: ${p} alterado sem commit invalida baseline`, recusou);
+      writeFileSync(join(fx, p), dados[p]);
+    }
+    let antigo = false;
+    try { conferirSuperficie({}, atual); } catch { antigo = true; }
+    t('BITE: baseline histórico sem identidade não vira referência atual', antigo);
+    unlinkSync(join(fx, 'font.woff2'));
+    let incompleto = false;
+    try { superficieRender(fx); } catch { incompleto = true; }
+    t('BITE: dependência removida impede comparar', incompleto);
+
+    // O veredito do --check: ambiente cego (cache `_ds` ausente, o caso do CI) NÃO pode virar
+    // acusação de STALE contra o JSON commitado — só o hash medido e DIFERENTE é drift.
+    const vHist = vereditoSuperficie({}, 'qualquer', null);
+    t('veredito: baseline histórico → aviso, nunca drift', !!vHist.warn && !vHist.drift);
+    const vCego = vereditoSuperficie({ render_sha256: 'aaa' }, null, 'cache DS ausente: colors_and_type.css');
+    t('BITE: sem medição → NÃO MEDIDO (aviso), NUNCA STALE', !!vCego.warn && !vCego.drift && /NÃO MEDIDO/.test(vCego.warn));
+    const vIgual = vereditoSuperficie({ render_sha256: 'aaa' }, 'aaa', null);
+    t('veredito: hash medido e igual → libera (sem aviso, sem drift)', !vIgual.warn && !vIgual.drift);
+    const vDif = vereditoSuperficie({ render_sha256: 'aaa' }, 'bbb', null);
+    t('BITE: hash medido e DIFERENTE → drift STALE', !!vDif.drift && /STALE/.test(vDif.drift) && !vDif.warn);
+  } finally {
+    for (const p of Object.keys(dados)) if (existsSync(join(fx, p))) unlinkSync(join(fx, p));
+    rmdirSync(fx);
+  }
 
   const ANC = 'prototipo-ui/cowork/financeiro-page.jsx';
   const fpOk = { tema: 'dark', ancora: ANC, elementos: [{ tag: 'button', texto: 'Salvar' }], divisorias: [], containers: [], compostos: [], sombras: [] };
@@ -642,7 +777,7 @@ if (ehEntrypoint) {
   if (args.modo === 'selftest') selftest();
   else if (args.modo === 'gerar') await cmdGerar(args);
   else if (args.modo === 'check') await cmdCheck(args);
-  else if (args.modo === 'extract') cmdExtract(args);
+  else if (args.modo === 'extract') await cmdExtract(args);
   else if (args.modo === 'nudge') cmdNudge(args);
   else {
     console.log('uso: --gerar <Mod/Tela> [--staging <dir>] [--porta N] [--viewports 1280,1440] [--themes light,dark] [--route <id>] [--out <path>]');

@@ -45,7 +45,7 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join, dirname, normalize, sep } from 'node:path';
 import { payloadDependencyGraph, normalizePayloadPath } from './payload-dependency-graph.mjs';
-import { dsRuntimeRelPath } from '../governance/cowork-mirror-freshness.mjs';
+import { destinoDoBundle } from '../governance/cowork-mirror-freshness.mjs';
 import { BUNDLE_SCHEMA, sha256 } from './bundle-contract.mjs';
 import { applyBundleTransaction, applyLegacySnapshotTransaction } from './bundle-transaction.mjs';
 
@@ -183,15 +183,16 @@ for (const f of files) {
   // ⚠️ normalize() devolve o separador da PLATAFORMA (`\` no Windows, `/` no POSIX). Comparar
   // com a constante escrita com `/` reprovava 118/118 no Windows e 0/118 no CI — o mesmo teste
   // com dois vereditos conforme o SO (§5 2026-08-07). Normaliza os DOIS lados antes de comparar.
-  let destinoBase = DESTINO, destinoPath = rel;
-  if (rel.startsWith('_ds/')) {
-    try { destinoPath = dsRuntimeRelPath(rel); }
-    catch (e) { forade.push(`${rel} (${e.message})`); continue; }
-    destinoBase = 'scripts/design-sync/mirror-snapshot';
-  } else if (!BUILD_SOURCE_RE.test(rel)) {
+  // Roteamento: fonte UNICA em cowork-mirror-freshness::destinoDoBundle — o --compare-bundle
+  // precisa da MESMA regra pra saber onde conferir cada arquivo (§5 2026-08-02: duas copias
+  // da mesma regra = consertar uma e a outra seguir errada).
+  let destinoBase, destinoPath;
+  if (!rel.startsWith('_ds/') && !BUILD_SOURCE_RE.test(rel)) {
     forade.push(`${rel} (fora do contrato build-only; documento/canon deve ser reconciliado na fonte única)`);
     continue;
   }
+  try { ({ destinoBase, destinoPath } = destinoDoBundle(rel)); }
+  catch (e) { forade.push(`${rel} (${e.message})`); continue; }
   const alvoRel = normalize(join(destinoBase, destinoPath));
   const baseRel = normalize(destinoBase);
   if (!alvoRel.startsWith(baseRel + sep) && alvoRel !== baseRel) { forade.push(rel + ' (fora do destino)'); continue; }

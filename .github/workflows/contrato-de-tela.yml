@@ -94,9 +94,14 @@ jobs:
         with:
           node-version: '24'
 
-      - name: Preflight de base (branch ancestral de origin/main)
+      # Em `pull_request` o checkout@v4 usa o MERGE REF (o HEAD ja contem a base), enquanto o
+      # fetch do mesmo step traz o `origin/main` de AGORA — comparar os dois mede a FILA DO CI,
+      # nao a base. Por isso `--merge-ref` aqui: pula SO a perna de ancestralidade e diz que
+      # pulou. Em push/schedule o HEAD e o commit real e a perna roda inteira.
+      - name: Preflight de base (higiene de base)
         if: steps.detect.outputs.relevant == 'true'
-        run: node scripts/contrato-de-tela.mjs --preflight origin/main
+        run: |
+          node scripts/contrato-de-tela.mjs --preflight origin/main             ${{ github.event_name == 'pull_request' && '--merge-ref' || '' }}
 
       - name: Contratos de tela ativos (ignora EXEMPLO/template)
         if: steps.detect.outputs.relevant == 'true'
@@ -121,6 +126,15 @@ jobs:
           node scripts/contrato-de-tela.mjs --map || true
           echo "::endgroup::"
           node scripts/contrato-de-tela.mjs --map --check
+
+      # O contrato tem de derivar da ÂNCORA (protótipo), nunca da TELA. Contrato extraído
+      # do .tsx nasce VERDE POR CONSTRUÇÃO — compara a tela com ela mesma e nunca acusa a
+      # divergência que é a razão dele existir. Bloqueia só o caso sem ambiguidade
+      # (`fonte` apontando pra `resources/js/Pages/**`, FP zero por construção, 4 legados
+      # grandfathered no script); copy-só-no-alvo AVISA, porque o FP medido é 15/31.
+      - name: Anti-tautologia (contrato deriva da âncora, não da tela)
+        if: steps.detect.outputs.relevant == 'true'
+        run: node scripts/contrato-de-tela.mjs --anti-tautologia
 
       - name: Intenção de fluxo (bloqueante — rota legada = vermelho)
         if: steps.detect.outputs.relevant == 'true'

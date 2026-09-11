@@ -4,6 +4,64 @@
 
 ---
 
+## [ACHADO 2026-09-05] Protótipo › dois defeitos que a medição de alvo de toque encontrou de passagem
+
+**Origem:** censo de alvo de toque para a [ADR UI-0032](memory/requisitos/_DesignSystem/adr/ui/0032-alvo-de-toque-erp-denso-1280.md)
+(emenda §10/§10.7, [#6860](https://github.com/wagnerra23/oimpresso.com/pull/6860)). Os dois achados
+**não são de tamanho de alvo** — apareceram enquanto se media, e não têm dono no Code.
+
+**Por que não consertei:** os dois vivem do lado design. `prototipo-ui/cowork/` é **espelho read-only**
+([ADR 0374](memory/decisions/0374-emenda-0315-espelho-cowork-e-rota-prevista.md); §5 2026-08-13 e
+2026-08-14 proíbem remendo à mão) e `prototipo-ui/cowork/_ds/` é **gitignored**
+(`prototipo-ui/cowork/.gitignore:26`), cache derivado de `scripts/design-sync/mirror-snapshot/`.
+Conserto no espelho evapora no próximo `--export-from`. Vai daqui como pedido, não como patch.
+
+---
+
+### 1 · `inbox-page.jsx` — a tela de Atendimento não renderiza (TDZ), e não é lentidão
+
+A rota `inbox` serve **só o error boundary**: *"Cannot access 'filteredConvs' before initialization"*.
+
+**Causa, confirmada no fonte:** `prototipo-ui/cowork/inbox-page.jsx:365` passa `filteredConvs` num
+array `deps` — que é avaliado na hora — enquanto o `const filteredConvs = useMemo(...)` só é declarado
+na **linha 370**. *Temporal dead zone*.
+
+```
+:365    deps: [filteredConvs, selId, mobileView, isFav]     ← usa
+:370    const filteredConvs = useMemo(() => {               ← declara (5 linhas depois)
+```
+
+**Peso:** `Atendimento` é um dos atalhos de topo e leva badge `6`. O censo a marcou `NÃO MEDIDA` —
+foi a única das 38 rotas que não renderizou, e a causa não era o harness.
+
+**Correção sugerida (do lado Cowork):** mover a declaração do `useMemo` para antes do bloco que a
+referencia, ou tirar `filteredConvs` do `deps` se a dependência não for real.
+
+---
+
+### 2 · `_ds_bundle.js` (DataTablePro) — resizer de coluna com `width: 7` hardcoded
+
+O componente `DataTablePro` do DS emite, por coluna, um `span` de redimensionamento com
+`width: 7` fixo (`position:absolute; right:-3; cursor:col-resize`). Medido no bundle: **2 ocorrências**
+de `width: 7` + `col-resize`. Consumidores no protótipo: **13 arquivos**.
+
+Se a §6 da UI-0032 fechar na adoção do piso de 24, este é o item de **melhor razão custo/alcance** do
+corpus inteiro: um valor, num arquivo, fecha 13 telas.
+
+**Achado adjacente do mesmo componente — e ele NÃO é de tamanho:** o header sortável é um `span` com
+`onClick`, **sem `role` e sem `tabindex`** (~15px de altura). Ele ficou fora do meu denominador porque
+React delega eventos na raiz e `[onclick]` não casa nada de React — eram **330** elementos assim nas 38
+rotas, 64 deles abaixo de 24.
+
+⚠️ **Mas teste de mutação provou que não é resíduo de tamanho:** dando `role="button" tabindex="0"` aos
+18 de `essenciais` e re-rodando o axe, o conjunto avaliado subiu de **93 → 111** nós e as violações de
+`target-size` **continuaram 7** — passam pela exceção de espaçamento. O defeito deles é
+**SC 2.1.1 (Teclado)** e **4.1.2 (Nome/Papel/Valor)**, nível **A** — eixo diferente e mais severo, já
+contabilizado em `config/a11y-baseline.json` (`click-events-have-key-events: 79`). Registrado aqui para
+não ser corrigido dentro de uma decisão sobre tamanho.
+
+---
+
 ## [PROCESSADO 2026-06-17] Forja › aba MCP — superfície do handoff (Fase 1 · ADR 0283)
 
 **Handoff:** `prototipo-ui-patch/PROMPT_PARA_CODE_FORJA-HANDOFF-SURFACE.md`
@@ -71,3 +129,84 @@ Não recriado nada da Fase 0.
 - `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaMcp.tsx` (seção Handoffs + props + PR-C)
 - `Modules/Forja/Resources/js/Pages/team-mcp/Forja/Cockpit.tsx` (props deferidas + repasse)
 - `Modules/TeamMcp/Tests/Feature/ForjaMcpServiceTest.php` (novo)
+
+---
+
+## [PROCESSADO 2026-09-04] Crm › pacote de export — pedido de 24/08 RETIRADO + as 3 verificações do passo-a-passo
+
+**Ponte:** `prototipo-ui/design-docs/handoff-crm/PEDIDO-CODE.md` (reescrito pelo Cowork em 2026-09-04; [W] colou 1× — rota sancionada pela ADR 0389).
+**Branch:** `claude/crm-pedido-retirado-0301` (worktree repontada pra `origin/main` fresco — a base anterior estava 104 commits atrás, guard `git-base-freshness-guard`).
+**Veredito do Cowork:** 0 de 16 telas exportáveis. **Concordo, e a razão dele confere no `main`.**
+
+O pacote não pede código: pede 3 verificações. Todas rodadas contra `origin/main`, com o comando ao lado.
+
+### 1 · ADR 0301 segue `aceito`? — **SIM**
+
+```
+git show origin/main:memory/decisions/0301-separar-cliente-deprecar-crm-pipeline.md | sed -n '1,17p'
+→ status: aceito · authority: canonical · lifecycle: ativo · decided_by: [W] · decided_at: "2026-06-22"
+```
+
+Logo o pedido de 2026-08-24 (criar `resources/js/Pages/Crm/{Painel,Leads,Acompanhamentos,Portal}` com trio)
+era mesmo contra a decisão. **Retirado** — o próprio `PEDIDO-CODE.md` é o registro, e nenhum charter foi criado.
+
+### 2 · As premissas do pacote, medidas — **todas conferem**
+
+| afirmação do Cowork | medido no `main` | ✓ |
+|---|---|---|
+| `resources/js/Pages/Crm/` não existe | `git ls-tree -r origin/main --full-tree` → 0 entradas | ✅ |
+| `routes/` (raiz) não tem `Crm` | `git grep -c -i crm origin/main -- 'routes/*.php'` → rc=1 (sem match) | ✅ |
+| o React vivo do módulo é o cadastro (A) | `Pages/Cliente/` = **53** arquivos = 7 telas × trio (21) + `_drawer/` 10 + `_show/` 13 + `_form/` 5 + `_components/` 4 (32) | ✅ |
+| o dono real das rotas é o módulo | `Modules/Crm/Routes/web.php` — grupo `prefix('crm')` | ✅ |
+
+### 3 · Alguma etapa E1–E6 avançou desde 22/06? — **NENHUMA**
+
+O plano segue `status: planejado`. Não respondi por título de commit (isso mede a citação, não a entrega —
+§5 2026-08-08): medi a **consequência** que cada etapa produziria.
+
+| etapa | o que ela mudaria | estado medido no `main` | avançou? |
+|---|---|---|---|
+| **E1** | ADR aceita + row count por business + confirmar `BrLookupService`=A | ADR feita **em** 22/06 (não *desde*); SQL nunca rodado (o plano diz "não rodei SQL") | ❌ |
+| **E2** | `/crm/*` → 404 + nav sem pipeline | **41 rotas ativas** no grupo `prefix('crm')`, nenhuma comentada; `nav.blade.php` com **11** itens de pipeline | ❌ |
+| **E3** | dump ARCHIVE por business + PiiRedactor | sem script de archive; `PiiRedactor` só mudou de namespace (#5675) | ❌ |
+| **E4** | remover commands + tirar do schedule + Connector 410 | `registerScheduleCommands()` chamado (`CrmServiceProvider:44`); `pos:sendScheduleNotification` **everyMinute** + `pos:createRecursiveFollowup` daily (`:217-218`); `connector/api/crm/*` exposta (`Connector/Routes/api.php:112-117`) | ❌ |
+| **E5** | DROP das tabelas `crm_*` (30d após E4) | depende de E4 | ❌ |
+| **E6** | SPEC→`descontinuado`, BRIEFING→deprecado, SCOPE limpo | SPEC `status: rascunho`; BRIEFING `status: producao` | ❌ |
+
+**Os 15 commits que tocaram `Modules/Crm/` desde 22/06 são sweeps de docs/infra, não execução** — e um deles
+anda na direção **oposta**: `#6302` (26/08) *"declara `crm_module` no catálogo do pacote — salvar a tela apagava
+o CRM em silêncio"*, ou seja, conserto para **manter** o módulo instalável.
+
+### Bônus — BLOQUEIO 3 do plano fechado por medição (era read-only, então fiz)
+
+O plano lista 3 bloqueios antes de qualquer DROP; o 3º é *"confirmar que `BrLookupService` pertence a A"*
+(Risco 8: removê-lo por engano quebra CEP/CNPJ do cadastro da Larissa). **Varredura contada, repo inteiro:**
+
+```
+git grep -n "BrLookupService" origin/main   → 26 arquivos
+```
+
+Desses, **código** (não doc/teste) são 3: o próprio `Modules/Crm/Services/BrLookupService.php`,
+`Modules/Crm/Http/Controllers/ClienteLookupController.php` (injeção no construtor, `:48`) e
+`tests/Feature/Cliente/ClienteLookupCnpjCepTest.php` (instancia direto, `:337`/`:349`).
+**Zero consumidor no pipeline B.** `ClienteLookupController` é classe **A** pela própria tabela do plano.
+
+→ **`BrLookupService` pertence a A. Confirmado.** Restam abertos os bloqueios 1 (row count por business,
+exige SQL em réplica) e 2 (auditar o consumidor Delphi da API Connector).
+
+### O que NÃO fiz, e por quê
+
+- **Não criei `resources/js/Pages/Crm/`** — é o pedido retirado.
+- **Não executei E1–E6.** Cada etapa tem gate [W] explícito no plano; medir é meu, decidir não é.
+- **Não regenerei o bundle** — `gerar-payload-partes.mjs` roda do lado que tem os arquivos em disco (Cowork).
+- **Não toquei `prototipo-ui/cowork/`** (espelho read-only) nem os `.jsx` do build (são do lado design).
+
+### Fila de decisão que volta para [W] (o RESÍDUO do pacote, sem tradução minha)
+
+1. O pipeline CRM continua em depreciação? Se sim, `crm-blade*` é referência de legado, não alvo de export.
+2. Portal do contato (`/contact/*`) fica ou sai? Se fica, sai da zona cinza e há onda de 3 telas.
+3. Alvo de toque em 1280 denso: mínimo WCAG 24×24 ou exceção declarada? (mesma pergunta aberta da Forja.)
+
+### Arquivos
+- `prototipo-ui/design-docs/handoff-crm/PEDIDO-CODE.md` (reescrito — era o pedido de 24/08)
+- `CODE_NOTES.md` (esta entrada)

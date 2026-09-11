@@ -5,10 +5,22 @@ irmaos: Nfe.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-09-02"
+last_run: "2026-09-04"
 ---
 
 # Casos de Uso & Aceite — Notas NF-e / NFC-e
+
+> **Revalidação `last_run` 2026-09-03 — o que foi conferido (Onda 2 Fiscal, teclado na lista):**
+> a `<tr>` da lista ganhou `tabIndex`, `aria-label`, `onFocus` e `onKeyDown` (Enter/Space), e o
+> `fiscal-cockpit.css` ganhou o anel `:focus-visible` no mesmo token `--fis` que o `.fx-row-focus`
+> já usava. **Um UC novo: `UC-FNFE-10`** — e ele é o primeiro desta tela a provar comportamento de
+> **UI**, não de backend. Os 8 anteriores seguem intactos: conferi que nenhum deles toca a tabela,
+> o foco ou o teclado, logo nenhum aceite mudou. O que **mudou de fato** é o §Backlog: o item
+> "atalhos J/K + Enter … sem cobertura Feature nem E2E", aberto desde 2026-07-03, deixa de ser
+> integralmente descoberto — a metade de teclado agora tem teste que morde, e o restante dele
+> (mapa "Jana sugere", pílula temporal) segue declarado.
+> **O que esta revalidação NÃO cobre:** os 8 UC de backend não foram re-executados (Pest = CT 100),
+> e o `UC-FNFE-01` continua skipando por falta de `nfe_emissoes` na lane — inalterado por esta onda.
 
 > **Revalidação `last_run` 2026-09-02 — o que foi conferido (conflito semântico do merge):**
 > o `update-branch` do #6530 trouxe do `main` a versão do `.tsx` que declarava `chipProps`/
@@ -97,13 +109,17 @@ não tem as migrations do NfeBrasil. É lacuna de ambiente, não defeito do test
 |---|---|---|---|---|---|
 | UC-FNFE-01 | a contagem não vaza outro business | `[must]` `[T0]` | CU-FISC-12 | `NfeCockpitMultiTenantTest` | 🧪 |
 | UC-FNFE-02 | janela legal 24h NFC-e / 168h NF-e | `[must]` `[reg]` | CU-FISC-03 | `AcoesContratoTest` | 🧪 |
-| UC-FNFE-03 | o código SEFAZ vira status legível | `[must]` | CU-FISC-02 | `NfeCockpitMultiTenantTest` | 🧪 |
+| UC-FNFE-03 | o código SEFAZ vira status legível — e nunca "Status" nu | `[must]` | CU-FISC-02 | `NfeCockpitMultiTenantTest` (4) · `fiscal-nfe-sefaz-pilula.test.tsx` (7) | 🧪 |
 | UC-FNFE-04 | cancelar exige motivo de 15 a 255 chars | `[must]` | CU-FISC-08 | `AcoesContratoTest` | 🧪 |
 | UC-FNFE-05 | CC-e: texto 15–1000, sequência 1–20 | `[must]` | CU-FISC-09 | `AcoesContratoTest` | 🧪 |
 | UC-FNFE-06 | inutilização valida modelo, faixa e justificativa | `[must]` | CU-FISC-10 | `AcoesContratoTest` | 🧪 |
 | UC-FNFE-07 | manifestação: 4 ações, justificativa condicional | `[must]` | CU-FISC-07 | `AcoesContratoTest` | 🧪 |
 | UC-FNFE-08 | ⚠️ **id sobrecarregado** — (a) a superfície das ações existe · (b) o gate `fiscal.nfe.view` devolve 403 | `[must]` `[T0]` | CU-FISC-13 (só o gate) · ver nota | `AcoesControllerTest` (5) · `GatesPermissaoFiscalTest` (2) | 🧪 |
 | UC-FNFE-09 | retransmitir preserva a nota antiga (nunca deleta) | `[must]` `[reg]` | CU-FISC-11 | `AcoesContratoTest` | 🧪 |
+| UC-FNFE-10 | a lista é operável só pelo teclado (linha focável, não botão) | `[must]` | **—** (ver nota) | `fiscal-nfe-teclado.test.tsx` | 🧪 |
+| UC-FNFE-11 | nenhum ícone decorativo chega ao leitor de tela | `[must]` | **—** (mesma nota) | `fiscal-nfe-teclado.test.tsx` | 🧪 |
+| UC-FNFE-12 | a lista não promete o que não tem (separador solto · tecla sem handler) | `[should]` | **—** (mesma nota) | `fiscal-nfe-teclado.test.tsx` (5) | 🧪 |
+| UC-FNFE-14 | a densidade escolhida acompanha a navegação entre as telas de notas | `[should]` | **—** (mesma nota) | `fiscal-densidade.test.tsx` | 🧪 |
 
 > **Por que esta tabela nasceu em 2026-09-01 (e o que ela NÃO fez):** os 8 UC desta tela já eram
 > provados por teste desde 2026-07-27 — nenhum deles declarava, porém, **qual CU do SDD §6 atende**.
@@ -112,6 +128,15 @@ não tem as migrations do NfeBrasil. É lacuna de ambiente, não defeito do test
 > saíam atribuídos a `Eventos`/`Dfe` — as telas irmãs os citam em prosa (corretamente, dizendo que o
 > contrato mora aqui) e o gerador cai no fallback alfabético quando a tela **dona** não os declara em
 > tabela. **Nenhuma asserção de teste mudou:** isto é rastreabilidade, não comportamento.
+
+> **Por que o `UC-FNFE-10` tem `—` na coluna CU (e não um CU plausível):** os 16 CU do SDD §6
+> cobrem *o que a pessoa fiscal faz* (conferir status, cancelar, manifestar, inutilizar,
+> retransmitir, isolar tenant) — **nenhum** trata de acessibilidade ou de operação por teclado. O
+> mais próximo, `CU-FISC-02`, é sobre o status SEFAZ ser **legível**, não sobre a lista ser
+> **navegável**. Ancorar ali fecharia a lacuna do painel derivado sem lastro — a classe LC-11 que
+> este projeto persegue. Abrir um CU de acessibilidade no SDD é decisão do dono daquele documento,
+> não desta onda; até lá o travessão é a resposta honesta. A âncora de contrato do UC existe e está
+> declarada na seção dele: o **Goal 5 + §UX targets do charter**.
 
 > **⚠️ `UC-FNFE-08` ancora DOIS contratos diferentes (achado de 2026-09-01).** O mesmo id nomeia
 > 5 casos em `AcoesControllerTest` (a superfície das ações) **e** 2 casos em
@@ -149,11 +174,47 @@ cancelável só até 24h e NF-e (modelo 55) até 168h da emissão; nota não-aut
 pelo método **do Controller** (não por uma cópia da fórmula dentro do teste).
 
 ## UC-FNFE-03 — O código SEFAZ vira status legível com o tom certo
-Status: 🧪 (`NfeCockpitMultiTenantTest::UC-FNFE-03 · sefazCodes retorna mapa…` — **passa**)
-Dado a pílula SEFAZ · Quando lê o mapa de códigos · Então contém ao menos 100/110/220/539/691/778/999,
-com 100 = `ok`, 220 = `bad` e 691 = `warn`. Âncora: charter Goal 2 + UX targets (verde autorizada ·
-âmbar atenção · vermelho rejeição).
-**Pronto quando:** o mapa do Controller traz os 7 códigos e os tons não invertem.
+Status: 🧪 (`NfeCockpitMultiTenantTest::UC-FNFE-03 · …` 4 casos — **passam** · CT 100, 20 assertions ·
+`fiscal-nfe-sefaz-pilula.test.tsx` 7 casos — **passam** · lane `Fiscal Teclado Gate`)
+
+Dado a lista de notas · Quando renderiza a pílula SEFAZ · Então **nenhuma** linha mostra rótulo
+genérico: o cStat conhecido vira o **texto oficial da SEFAZ**, o desconhecido vira o status de
+domínio com o número preservado, e a nota sem cStat vira só o status de domínio.
+O tooltip traz o `motivo` que a SEFAZ gravou naquela nota.
+
+**Pronto quando:** o rótulo (`.fx-sefaz .lbl`) nunca é `"Status"` nem vazio, e o texto de cada
+código vem da tabela oficial — não de um apelido escrito à mão.
+
+**Âncora de contrato (externa ao código):** Manual de Orientação do Contribuinte / tabela cStat da
+SEFAZ, distribuída em `vendor/nfephp-org/sped-nfe/storage/cstat.json` (528 códigos) com o SDK que o
+projeto usa pra transmitir. É de lá que o `SefazCstatService` deriva rótulo e tom (`status: "1"` =
+aceito), e é contra os textos do MOC — transcritos no teste — que o caso asserta.
+
+### Reescrito em 2026-09-04 — a redação anterior descrevia o defeito, não o contrato
+
+A versão de cima dizia *"contém ao menos 100/110/220/539/691/778/999, com 691 = `warn`"*. Duas
+coisas estavam erradas ali, e o teste que a implementava passava verde sobre as duas:
+
+| O que o caso pedia | O que era verdade | Como se soube |
+|---|---|---|
+| presença de 7 chaves | presença **não** é legibilidade — o mapa tinha 778 e a tela dizia "CST/CFOP inválido" quando o texto oficial é "Informado NCM inexistente" | tabela cStat oficial; e a própria SEFAZ gravou `motivo="Rejeicao: Informado NCM inexistente [nItem:1]"` na nota id=8 de biz=1 |
+| `691 = warn` | 691 é **rejeição** (`status: "0"` na tabela oficial) — o âmbar vinha de acreditar que o código era "NCM divergente"; ele é "Chave de Acesso da NF-e diverge da Chave de Acesso do EPEC" | idem |
+
+O tom deixou de ser digitado e passa a ser **derivado** do campo `status` da tabela, com âmbar só
+para transitório/indisponibilidade (103/105/108/109) — decisão de UI declarada no serviço. Isso
+**cumpre** o UX target do charter (*"vermelho = rejeição"*) melhor que a lista literal cumpria: o
+691 estava no âmbar por erro de classificação, não por escolha. Precedência aplicada — *teste verde
+> casos > charter > SPEC* — com o charter reconciliado no mesmo PR.
+
+**Mordida provada (contrafactual, os dois lados):** reintroduzir os apelidos à mão no
+`SefazCstatService` deixa `UC-FNFE-03` **vermelho no Pest** (`Failed asserting that two strings are
+identical`, 1 failed / 4 passed); reintroduzir o `?? { label: 'Status' }` no `Nfe.tsx:287` deixa
+**4 dos 7 casos vitest vermelhos** (`expected 'Status' not to be 'Status'`). Restaurar devolve
+5/5 e 7/7 — controle positivo rodado nos dois sentidos.
+
+**Limite honesto:** o Pest prova a ORIGEM (o backend traduz pela tabela oficial) e o vitest prova o
+CONSUMO (a tela nunca mostra rótulo genérico). Nenhum dos dois sozinho fecha o UC, e o vitest monta
+o mapa à mão — se o backend parar de servi-lo, quem cai é o Pest.
 
 ## UC-FNFE-04 — Cancelar exige motivo de 15 a 255 caracteres
 Status: 🧪 (`AcoesContratoTest::UC-FNFE-04 · REJEITA <15` / `REJEITA >255` / `ACEITA válido` — **passam**)
@@ -215,12 +276,134 @@ trocar o `update` por um delete, ou mexer na whitelist, **derruba o caso**. A di
 teste, então ele continuaria verde se o Service mudasse; é a lápide §5 2026-06-05. O caso de runtime
 permanece declarado no backlog abaixo.
 
+## UC-FNFE-10 — A lista é operável só pelo teclado: a linha é focável, e não virou botão
+Status: 🧪 (`tests/js/fiscal-nfe-teclado.test.tsx` — 6 casos, **passam**; lane `Fiscal Teclado Gate`)
+Dado a lista de notas · Quando o operador percorre as linhas com Tab e pressiona **Enter** ou
+**Space** · Então a linha focada abre o drawer **daquela** nota (não a primeira da lista), o Space
+**não rola a página**, e o anel de foco do Tab é o **mesmo** cursor do J/K — um anel, não dois.
+A `<tr>` permanece com o papel implícito `row`: o alvo é linha **focável**, nunca `role="button"`,
+que destruiria a semântica de tabela para leitor de tela.
+Âncora: `Nfe.charter.md` **Goal 5** ("atalhos J/K + Enter pra navegar lista e abrir drawer") +
+§UX targets ("linha cursor com `outline: 2px solid var(--fis)`") + o item de §Backlog abaixo.
+**Pronto quando:** as 4 mutações abaixo derrubam o caso e o restore devolve 6/6.
+
+**Mordida provada (contrafactual medido 2026-09-03 — restore byte-idêntico ao backup = 6/6):**
+
+| Mutação no `Nfe.tsx` | Efeito |
+|---|---|
+| remover `tabIndex={0}` | o foco cai no `<body>` → *"linha 0 não recebeu foco"*, 1 failed |
+| remover `e.preventDefault()` | *"Space NÃO teve o default cancelado — a página rolaria"*, 1 failed |
+| remover o `onKeyDown` inteiro | 1 failed (só o Space — ver limite abaixo) |
+| remover `onFocus={() => setCursor(idx)}` | o anel para na 2ª linha em vez da 3ª, 1 failed |
+
+**Limite honesto — o que este UC NÃO prova.** A mutação 3 mostrou que o **Enter é servido por dois
+caminhos**: o `onKeyDown` da linha e o handler global de `window` (o J/K, que já existia). Com o
+cursor sincronizado pelo `onFocus`, remover o handler da linha **não** derruba o caso do Enter — o
+global abre a mesma nota. O que o caso prova do Enter é o que o operador **observa** (abre a nota da
+linha focada), e isso vale por qualquer um dos dois caminhos; o valor próprio do handler da linha é
+não depender do listener de `window`, e o `stopPropagation` é o que evita a abertura dupla quando os
+dois veem a tecla. Segundo limite: o jsdom não implementa a travessia por Tab do browser, então
+"Tab alcança todas" é medido como "toda linha é de fato focável, na ordem do DOM" — a condição que
+a torna possível. A travessia física, o anel pintado e o leitor de tela são olho humano no smoke (R1).
+
+## UC-FNFE-11 — Nenhum ícone decorativo chega ao leitor de tela
+Status: 🧪 (`tests/js/fiscal-nfe-teclado.test.tsx` — **passa**; lane `Fiscal Teclado Gate`)
+Dado a tela renderizada · Quando um leitor de tela percorre a `.fx-page` · Então **nenhum**
+`<svg>` decorativo é anunciado: cada um declara `aria-hidden` (nele ou num ancestral).
+Âncora: `fiscal-page.jsx` do Cowork vivo, que em 2026-09-03 passou a envolver o ícone em
+`<span className="fx-i" aria-hidden="true">` com a nota *"A3 · ícone decorativo nunca entra na
+árvore de acessibilidade (medido: 4 de 4 svg sem aria-hidden)"*.
+
+**Por que o caso mede o DOM e não o `.tsx`:** sonda de 2026-09-03 renderizou `<RefreshCw/>` e leu
+os atributos do `<svg>` — `aria-hidden=null`, `role=null`, `focusable=null`. **O lucide não declara
+nada sozinho**, então a ausência no fonte não bastaria como prova e a presença também não: só o
+DOM renderizado responde.
+
+**Escopo declarado:** a asserção varre a `.fx-page` — o que ESTA tela desenha, incluindo o shell e
+a paleta ⌘K que ela monta. Ficaram fora as outras 6 telas do Fiscal, que renderizam os seus
+próprios ícones e são de outra onda.
+
+**Mordida provada (contrafactual 2026-09-03):** remover o `aria-hidden` de **um** ícone da subnav
+(`<Receipt>` em `_lib/paginas-fiscais.tsx`) derruba o caso apontando exatamente aquele
+(`['lucide lucide-receipt']`); restaurado, volta a 7/7.
+
+**Cuidado que o caso NÃO dispensa:** `aria-hidden` em ícone que é o ÚNICO conteúdo de um controle
+**remove o nome acessível** dele. Cada um dos 13 foi conferido antes: os 5 da tela e os 7 da subnav
+vêm com texto ao lado; o `<X>` da paleta está num botão que já declara `aria-label="Fechar (ESC)"`.
+
+## UC-FNFE-12 — A lista não promete o que não tem
+Status: 🧪 (`tests/js/fiscal-nfe-teclado.test.tsx` — 5 casos, **passam**; lane `Fiscal Teclado Gate`)
+
+Dois defeitos da mesma família, achados por [W] no screenshot de `/fiscal/nfe` em produção
+(biz=1, 2026-09-04): a tela ocupando espaço com informação que não existe.
+
+**(a) Separador entre dois nadas.** Dado nota sem destinatário e sem documento · Quando renderiza a
+célula · Então mostra `—`, nunca `— · —`. O Controller manda `dest: '—'` (fallback declarado no
+charter, R2) e o `formatDoc` devolve `'—'` — dois fallbacks individualmente CORRETOS que somavam um
+terceiro errado. Em biz=1 é o caso das notas rejeitadas, que não chegaram a ter destinatário gravado.
+
+**(b) Tecla anunciada sem handler.** Dado o rodapé de atalhos · Quando o operador lê as teclas ·
+Então toda tecla listada tem handler. `R` ("reconsultar SEFAZ") e `X` ("cancelar") estavam lá
+rotuladas `(em breve)` e o `keydown` desta tela trata só `j`/`k`/setas/`Enter` — varredura contada
+no `Nfe.tsx`: 0 handlers para as duas.
+
+**Pronto quando:** nenhuma célula de informação começa/termina com `·` nem contém `— ·`, e o
+`.fx-cheatsheet` não anuncia tecla que a tela ignora.
+
+**Por que (b) é defeito, se o rótulo era honesto:** a barra de atalhos é **onde o operador aprende
+as teclas**. Duas mortas ali ensinam errado — ele aperta, nada acontece, e conclui que a tela
+travou. As duas AÇÕES existem e seguem intactas no drawer (US-FISCAL-012/014); o que não existe é a
+tecla. Reatalhar é decisão de produto, não conserto: o `X` abre um fluxo que exige motivo de 15–255
+chars, então não é uma tecla, é uma porta.
+
+**Mordida provada (contrafactual, os dois lados):** reintroduzir `{n.dest} · {formatDoc(…)}` derruba
+2 casos com `expected '— · —' to be '—'` e `expected 'Gráfica Ribeirão · —' to be 'Gráfica Ribeirão'`;
+devolver `R`/`X` à barra derruba o terceiro (`not to contain 'em breve'`). Restaurados, 12/12.
+
+**Controle negativo incluído:** um caso dispara `r`/`R`/`x`/`X` na window e assere que o DOM não
+muda — prova que remover da barra descreve a realidade, em vez de esconder um atalho vivo. E um
+caso de não-regressão: com destinatário E documento, a célula segue mostrando os dois.
+## UC-FNFE-14 — A densidade escolhida acompanha a navegação entre as telas de notas
+Status: 🧪 (`tests/js/fiscal-densidade.test.tsx` — **passa**, 6/6; lane `Fiscal Densidade Gate`)
+Dado o operador na lista de NF-e · Quando escolhe **Compacto** e navega para o Cockpit ou para a
+NFS-e · Então a tabela de lá já abre compacta — a preferência é dele, não da tela.
+
+Âncora: a fonte de design faz as três telas serem a **mesma função** — `FxNotasPage`, chamada com
+`preset` diferente ([`fiscal-page.jsx:346,541-543`](../../../../prototipo-ui/cowork/fiscal-page.jsx)) — e
+persiste a escolha em `fxLS("oimpresso.fiscal.densidade")` (`:358,363`). Lá o compartilhamento é
+grátis; aqui a produção separou em três arquivos, então a propriedade precisa ser defendida.
+
+**O estado que este caso corrige (medido em `origin/main` d23bc3df34):** o controle existia **só no
+Cockpit**, e com `useState<Density>('comfort')` — estado efêmero. A escolha morria ao trocar de tela,
+e NF-e/NFS-e não tinham controle nenhum (`fx-density` = 0 nas duas).
+
+**Por que o caso é de RENDER, e não um assert sobre o texto do `.tsx`:** procurar o nome do
+componente nas telas provaria que o import foi **escrito** — presença, não comportamento (LC-11),
+e ficaria verde no instante em que alguém digitasse a linha. Aqui a NFS-e é montada **depois** de
+a NF-e ser desmontada, e a asserção lê a classe que o CSS de fato consome — o que torna o caso
+uma prova de travessia, e não de estado compartilhado em memória.
+
+**Mordida provada (contrafactual 2026-09-04):** devolver `useState('comfort')` à NFS-e — o defeito
+exato que o Cockpit tinha em `origin/main` — derruba **2** casos, com a mensagem nomeando o
+sintoma (*"a NFS-e ignorou a escolha feita na NF-e: expected 'comfort' to be 'compact'"*); divergir
+a chave da fonte de design derruba **1**, nomeando as duas chaves. Restaurado, 6/6 verde.
+
+**O que este caso NÃO cobre:** a navegação HTTP real entre as rotas — o jsdom não a faz. O que os
+casos provam é a parte que **carrega** a preferência (mesma origem, mesmo storage, a tela nova
+lendo o que a anterior gravou); a troca de página com o Inertia no meio é olho humano no smoke (R1).
+O Cockpit não é renderizado (recebe ~15 props de payload) e entra por um caso estático de fonte
+única — perde-se a prova do repinte dele, não a condição da travessia.
+
+**Por que `—` na coluna CU:** vale aqui a mesma nota do `UC-FNFE-10` — os 16 CU do SDD §6 tratam do
+que a pessoa fiscal **faz** (conferir, cancelar, manifestar, inutilizar); nenhum trata de
+preferência de exibição. Ancorar num CU plausível fecharia a lacuna do painel sem lastro (LC-11).
+
 ## Backlog de casos (sem id — entram quando um teste de COMPORTAMENTO os cobrir)
 
 - **[~~BACKLOG~~ · 🧪 tem teste, NÃO executa · Tier 0] Gate de permissão `fiscal.nfe.view` bloqueia a leitura da lista** — Dado usuário sem `fiscal.nfe.view` nem `superadmin` · Quando faz `GET /fiscal/nfe` · Então 403. **Corrigido em 2026-09-01:** a redação anterior dizia *"nenhum teste o exercita"* e isso era **falso** — o caso existe em [`GatesPermissaoFiscalTest.php:72`](../../../../Modules/Fiscal/Tests/Feature/GatesPermissaoFiscalTest.php), **com controle negativo** em `:79` (superadmin não recebe 403), e ancora `UC-FNFE-08`. O que é verdade é outra coisa, e a distinção importa: o arquivo inteiro **pula** (`:49-55`) em SQLite e sem `nfe_emissoes`, então o caso **não executa** em nenhuma lane de hoje. *Teste ausente* e *teste que não roda* pedem trabalhos diferentes — o primeiro é escrever, o segundo é dar lane ao módulo (o item de maior alavancagem do plano: 15 de 21 arquivos de teste do Fiscal chamam `markTestSkipped`).
 - **[BACKLOG · ⬜ sem teste] Lista deferida filtra por tab/status/busca com paginação 50** — `rows` é `Inertia::defer`; sem teste do payload filtrado (`buildRowsPayload`, ordem `emitido_em DESC`).
 - **[BACKLOG · ⬜ sem teste] Retransmitir só aceita nota `rejeitada`/`denegada`/`erro_envio`** — Dado nota em outro status · Quando pede retransmissão · Então volta com erro sem chamar o Service. **Não é testável sem banco**: no `AcoesController::retransmitir` a whitelist é checada **depois** do `firstOrFail()`, logo exige `nfe_emissoes` — indisponível nas duas lanes de hoje (ver §recibo). O caso que existia aqui assertava um array literal escrito no próprio teste e foi removido em 2026-07-28 (não defendia nada). _Parcialmente coberto desde 2026-09-01 pelo `UC-FNFE-09`, que prova **estaticamente** que a whitelist do Service é exatamente essa e que ela rejeita — o que falta aqui é o caminho de **runtime**, e ele segue esperando lane com as migrations do NfeBrasil._
-- **[BACKLOG · ⬜ sem teste] Drawer: mapa "Jana sugere" por cstat rejeitado, atalhos J/K + Enter, pílula temporal na linha** — comportamento de UI; sem cobertura Feature nem E2E (a tela não aparece em `tests/Browser`).
+- **[BACKLOG · 🟡 parcialmente coberto] Drawer: mapa "Jana sugere" por cstat rejeitado, pílula temporal na linha** — comportamento de UI, sem cobertura Feature nem E2E (a tela não aparece em `tests/Browser`). **Reduzido em 2026-09-03:** a metade "atalhos J/K + Enter" saiu deste item e virou `UC-FNFE-10`, com teste de render que morde (4 mutações provadas). O que fica aqui é o que segue descoberto: o mapa guiado por `cstat` e a pílula temporal.
 
 ## Como rodar a suíte
 1. **Pest:** lane Fiscal no CT 100 (ADR 0062) — comando no §recibo acima. `AcoesContratoTest` roda em
@@ -228,6 +411,19 @@ permanece declarado no backlog abaixo.
 2. **Cadência:** rodar ao fim de toda mexida na tela. UC ❌ = regressão fiscal.
 
 ## Trilha do tempo
+- 2026-09-04 · [C] `UC-FNFE-14` — a densidade vira preferência compartilhada. **O id saltou pro
+  14, e o 13 fica vago de propósito — vale registrar o mecanismo, porque ele custou 3 rodadas.**
+  Este UC e o do [#6731](https://github.com/wagnerra23/oimpresso.com/pull/6731) nasceram ambos
+  `UC-FNFE-12`, no mesmo dia, na mesma tela: duas sessões paralelas, contratos diferentes. Daí:
+  **(1)** eu cedi por *ordem de criação* e fui pro `13`; **(2)** a outra sessão cedeu por *custo
+  medido* e foi pro `13` também — a colisão mudou de casa; **(3)** os dois voltamos pro `12` ao
+  mesmo tempo — a colisão voltou pra casa. Cortesia simétrica não resolve disputa de nome: cada
+  passo do outro era invisível até chegar, e os dois calculavam **o mesmo próximo livre**.
+  Saída: escolher unilateralmente um valor que não colida com **nenhum** estado possível do outro
+  (ele estava no `12`, podia ir pro `13` — logo, `14`), aplicar, e comunicar como fato consumado
+  em vez de proposta. O `13` fica vago porque já está queimado nos dois históricos.
+  **Regra pra próxima:** em renomeação negociada entre sessões, quem cede **anuncia o destino
+  antes de escrever**, e quem recebe o anúncio **não cede de volta**.
 - 2026-07-03 · [CC] criado no Passo 3 do programa de ondas. 17 testes mapeados, 0 citavam UC-id.
 - 2026-07-27 · [CC] fecha a G-2 com 8 UC (`UC-FNFE-01..08`). Criado `AcoesContratoTest` (contrato REAL
   das regras do Controller, mordida provada); guard de banco movido pros casos que precisam dele
@@ -243,6 +439,18 @@ permanece declarado no backlog abaixo.
   tela `Fiscal/Dfe` (anotados por outra sessão enquanto este trabalho corria) — removê-los
   orfanaria UC de tela alheia. O comportamento real deles já é provado por `UC-FNFE-07`;
   re-apontar o DF-e pra lá é decisão do dono daquela tela. Nenhum UC perdeu lastro.
+- 2026-09-04 · [C] `UC-FNFE-11` criado — acessibilidade de ícone. 13 ícones ganham
+  `aria-hidden`: 5 na tela, 7 na fonte única da subnav (`_lib/paginas-fiscais.tsx`, que serve as 7
+  telas do Fiscal), 1 no `FxShell`, mais 10 no `CmdKPalette`. Medido antes: o lucide não declara
+  `aria-hidden` sozinho (sonda no DOM). Nenhum era o único conteúdo de um controle — conferidos um
+  a um. Os 22 `color: white` e os ícones das outras 6 telas ficam fora, declarados.
+- 2026-09-03 · [C] Onda 2 Fiscal (teclado na lista). **`UC-FNFE-10` criado** — o primeiro UC desta
+  tela que prova comportamento de **UI** em vez de backend, e o primeiro a rodar em lane `vitest`
+  (`fiscal-teclado-gate.yml`, criada no mesmo PR porque NENHUMA lane roda `vitest run` sem
+  argumento e spec sem lane nunca executa). Metade do item de §Backlog de teclado saiu de
+  "⬜ sem teste" para UC com mordida provada. Coluna CU fica `—` de propósito: não existe CU de
+  acessibilidade no SDD §6 e inventar um seria LC-11. Os 8 UC de backend: intactos, não
+  re-executados.
 - 2026-09-01 · [CC] Onda 1 Fiscal (saneamento `fx-*` → DS). `last_run` bumpado para 09-01 em duas
   revalidações — a do flip do token `--fis` e a da troca de primitivas —, cada uma no MESMO commit
   do `.tsx` que a motivou, para pegar a isenção por SHA do G-6 (a via por data reabre o staleness

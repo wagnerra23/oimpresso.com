@@ -315,10 +315,7 @@ function FinanceiroLegadoPage({ view = "fin-receber" }) {
         ]} />
         <Widget flush titulo={<><Ic name="cash" size={13} /> Contas</>} nota={rows.length + " conta(s) " + contaSit.toLowerCase()}>
           <Toolbar busca={busca} setBusca={setBusca} buscaRef={buscaRef} ph="Buscar conta…" densa={densa} setDensa={setDensa}>
-            <div className="pb-seg" role="group" aria-label="Situação da conta">
-              <button className={contaSit === "Ativa" ? "on" : ""} onClick={() => setContaSit("Ativa")}>Ativa</button>
-              <button className={contaSit === "Fechada" ? "on" : ""} onClick={() => setContaSit("Fechada")}>Fechada</button>
-            </div>
+            <window.CliSeg ariaLabel="Situação da conta" value={contaSit} onChange={setContaSit} options={[{ key: "Ativa", label: "Ativa" }, { key: "Fechada", label: "Fechada" }]} />
             <button className="os-btn sm primary" onClick={() => avisar("Nova conta — nome, tipo e subtipo obrigatórios.", "ok")}><Ic name="plus" size={12} /> Adicionar</button>
           </Toolbar>
           <Grade columns={cols} rows={linhas} densa={densa} altura={240} onRowClick={(r) => setSel({ k: "conta", d: (r.cells || r)._c })} />
@@ -443,11 +440,7 @@ function FinanceiroLegadoPage({ view = "fin-receber" }) {
           glyph={<Ic name="cash" />}
           acoes={<button className="os-btn" onClick={() => ir("financeiro")}>Visão unificada</button>} />}
       <div className="pb-body">
-        <nav className="cli-moduletopnav vb-nav" aria-label="Telas do Financeiro">
-          {Object.keys(TITULOS).map((k) => (
-            <button key={k} className={"cli-moduletopnav-tab " + (view === k ? "active" : "")} onClick={() => ir(k)}>{TITULOS[k]}</button>
-          ))}
-        </nav>
+        {window.CliTabs && <window.CliTabs ariaLabel="Telas do Financeiro" className="vb-nav" tabs={Object.keys(TITULOS).map((k) => ({ key: k, label: TITULOS[k] }))} active={view} onChange={ir} />}
         {!Grade ? <p className="pb-help">A base do catch-up (catchup-shared.jsx) não carregou.</p> :
           view === "fin-receber" ? telaTitulos("receber") : view === "fin-pagar" ? telaTitulos("pagar") :
           view === "fin-despesas" ? telaDespesas() : view === "fin-categorias" ? telaCategorias() :

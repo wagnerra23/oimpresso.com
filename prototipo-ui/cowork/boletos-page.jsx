@@ -305,17 +305,11 @@ function TelaBoletos({ onOpen }) {
       </div>
 
       <div className="px-6 pb-3 flex items-center gap-2">
-        <div className="inline-flex bg-stone-100/80 rounded-md p-0.5 border border-stone-200">
-          {tabs.map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)} className={cn(
-              "h-7 px-3 rounded text-[12px] flex items-center gap-1.5 tab",
-              tab === t.id ? "bg-white shadow-sm font-medium text-stone-900" : "text-stone-600"
-            )}>
-              <span>{t.label}</span>
-              <span className={cn("text-[10px] tabular-nums px-1 rounded", tab === t.id ? "bg-stone-200 text-stone-700" : "text-stone-400")}>{t.count}</span>
-            </button>
-          ))}
-        </div>
+        {/* Segmented do DS via CliSeg (25º call site). Era bespoke em utilitárias
+            Tailwind stone cruas — paleta fora dos tokens, ilha light dentro do shell
+            dark, e zero a11y (nenhum role, nenhum aria-selected nos 5 botões). */}
+        <window.CliSeg ariaLabel="Situação do boleto" size="sm" value={tab} onChange={setTab}
+          options={tabs.map((t) => ({ key: t.id, label: t.label, n: t.count }))} />
         <select value={contaFilter} onChange={(e) => setContaFilter(e.target.value)}
           className="h-7 text-[12px] bg-white border border-stone-300 rounded-md px-2 text-stone-700">
           <option value="all">todas as contas</option>
@@ -915,7 +909,14 @@ function BoletosPage() {
   ];
   const labelAtiva = sub.find(s => s.id === tela)?.label;
   return (
-    <div className="os-page bol-root" data-screen-label="01 Boletos">
+    /* pg-shell-scope: SEM esta classe a tela renderiza a paleta Tailwind stone/white
+       CRUA dentro do shell dark. Toda a tradução utilitária→token do pg-styles.css é
+       escopada em `.pg-shell-scope` (bg-white→--surface, text-stone-600→--text-dim,
+       border-stone-200→--border); a raiz aqui era só `os-page bol-root`, então o remap
+       nunca casava. Medido 2026-09-01: 9 elementos `.bg-white` com fundo branco literal
+       e cor herdada do `--text` do cockpit dark = contraste 1,14:1 — os três valores de
+       KPI ficavam invisíveis. Não é ajuste de cor, é a camada de tradução desligada. */
+    <div className="pg-shell-scope os-page bol-root" data-screen-label="01 Boletos">
       <div className="os-page-h">
         <div className="os-page-h-l">
           <h1>Financeiro · Boletos</h1>
@@ -926,14 +927,8 @@ function BoletosPage() {
           <button className="os-btn primary">{I.plus}Emitir boleto</button>
         </div>
       </div>
-      <nav className="fin-subnav">
-        {sub.map(s => (
-          <button key={s.id} onClick={() => setTela(s.id)}
-            className={"fin-subnav-tab" + (tela === s.id ? " active" : "")}>
-            {s.label}
-          </button>
-        ))}
-      </nav>
+      <window.CliTabs className="fin-subnav" ariaLabel="Sub-telas" pad={24} active={tela} onChange={setTela}
+        tabs={sub.map((s) => ({ key: s.id, label: s.label }))} />
       <div className="fin-body">
         {tela === 'boletos' && <TelaBoletos />}
         {tela === 'contas' && <TelaContas />}

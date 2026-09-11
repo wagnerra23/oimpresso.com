@@ -52,10 +52,23 @@ beforeEach(function () {
 
     $this->biz = $this->seededTenant();                 // biz=98 ficticio (ADR 0358)
 
-    $this->comPermissao = User::factory()->create(['business_id' => $this->biz->id]);
+    // ->fresh() NAO e enfeite: `users.user_type` e `users.allow_login` sao NOT NULL com DEFAULT
+    // no banco ('user' e 1), e o UserFactory nao os declara — entao a instancia que o factory
+    // devolve traz os dois como NULL, porque o Eloquent nao rele a linha depois do INSERT. O
+    // `actingAs` autentica ESSA instancia, e o middleware CheckUserLogin (grupo da rota, web.php:473)
+    // faz `user_type != 'user' || allow_login != 1` -> abort(403) ANTES de qualquer permissao.
+    //
+    // Medido no CI (run 33912397069), desenho B/A/B pra separar variavel de ordem:
+    //   recarregando -> GET /backup 200 · sem recarregar -> 403 · recarregando de novo -> 200,
+    //   com can('backup')=true nos TRES. Ou seja: o 403 nunca foi de permissao.
+    //
+    // O `semPermissao` recarrega pelo mesmo motivo, e este e o ponto que mais importa: sem o
+    // fresh() ele tomava 403 do CheckUserLogin, e o caso "as quatro rotas devolvem 403 sem a
+    // permissao backup" passava PELO MOTIVO ERRADO — verde tautologico, que e pior que vermelho.
+    $this->comPermissao = User::factory()->create(['business_id' => $this->biz->id])->fresh();
     $this->comPermissao->givePermissionTo('backup');
 
-    $this->semPermissao = User::factory()->create(['business_id' => $this->biz->id]);
+    $this->semPermissao = User::factory()->create(['business_id' => $this->biz->id])->fresh();
 
     // Disco de backup falso. `vizinho.png` fica na RAIZ do disco — e o arquivo de outro
     // tenant que a travessia alcancaria (public/uploads/...), e o nosso canario.

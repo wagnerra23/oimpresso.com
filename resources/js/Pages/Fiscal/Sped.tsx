@@ -4,13 +4,14 @@
 //   stories: US-FISCAL-010 (SPED placeholder), US-FISCAL-016 (gerador EFD-ICMS/IPI MVP — PR #8)
 //   adrs: 0093, 0094, 0101, 0104
 
-import { Inline } from '@/Components/layout';
+import { Grid, Inline, Stack } from '@/Components/layout';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import { Button } from '@/Components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { Head } from '@inertiajs/react';
-import { Archive, CheckCircle2, Download, Eye, FileSearch, X } from 'lucide-react';
+import { Head, router } from '@inertiajs/react';
+import { Archive, CheckCircle2, Download, Eye, FileSearch, X, XCircle } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import FxShell from './_components/FxShell';
@@ -19,6 +20,13 @@ import { brl } from './_lib/fiscal-helpers';
 
 import '../../../css/fiscal-cockpit.css';
 
+interface Checagem {
+  id: 'ano-minimo' | 'nao-futura' | 'fechada' | 'trava';
+  ok: boolean;
+  rotulo: string;
+  motivo: string;
+}
+
 interface Periodo {
   mes: string;       // 05/2026
   mesIso: string;    // 2026-05
@@ -26,12 +34,88 @@ interface Periodo {
   valorAutorizado: number;
   status: 'aberto' | 'pronto' | 'entregue';
   prazoEntrega: string | null;
+  /** As 4 checagens da régua, avaliadas no SERVIDOR (SpedController::checagens). */
+  checagens: Checagem[];
+}
+
+/** Um bloco do arquivo, MEDIDO no golden — nunca uma lista escrita à mão. */
+interface BlocoArquivo {
+  id: string;
+  nome: string;
+  linhas: number;
+  registros: string[];
+}
+
+/**
+ * Estrutura do arquivo de REFERÊNCIA (o golden), medida a cada request pelo
+ * `SpedReferenciaArquivoService`. Não é o arquivo do usuário: o `0000` do golden
+ * declara `CI TENANT 98 (FICTICIO)` como emitente, e a tela diz isso onde o expõe.
+ */
+interface ReferenciaArquivo {
+  disponivel: boolean;
+  origem: string;
+  bytes: number | null;
+  linhas: number | null;
+  sha256: string | null;
+  /** Nome no registro `0000` do arquivo de referência — o que prova de quem ele é. */
+  emitente: string | null;
+  blocos: BlocoArquivo[];
+  /** Uma linha por registro distinto, na ordem do arquivo. */
+  amostra: Array<{ reg: string; linha: string }>;
+}
+
+/** O que foi provado FORA daqui — cada item derivado do disco, não afirmado. */
+interface ValidacaoExterna {
+  golden: {
+    presente: boolean;
+    bytes: number | null;
+    linhas: number | null;
+    sha256: string | null;
+    origem: string;
+  };
+  pvaSmoke: { executado: boolean; origem: string };
+  apuracaoIcms: { noArquivo: boolean };
+  backlog: string[];
+}
+
+/**
+ * Bypass de superadmin (Onda 10 · Goal 2).
+ *
+ * `disponivel` é falso pra todo mundo que não é superadmin — e aí a tela não
+ * mostra ação nenhuma: liberar a trava global é decisão de [W], não de tela.
+ */
+interface BypassSuperadmin {
+  disponivel: boolean;
+  travaGlobalLigada: boolean;
+  reativadaNaSessao: boolean;
 }
 
 interface SpedProps {
   periodos: Periodo[];
   notice: string;
+  /**
+   * Prévia do conteúdo do TXT. Hoje é sempre `null` — ausência DECLARADA, não
+   * amostra fabricada: gerar o arquivo só pra pré-visualizar exigiria rodar o
+   * gerador inteiro em request síncrono, o que contornaria a trava fail-secure
+   * `fiscal.sped_simples_only_lock`. Ver Sped.charter.md §Contrato destilado.
+   */
+  previaTxt: string | null;
+  referenciaArquivo: ReferenciaArquivo;
+  validacaoExterna: ValidacaoExterna;
+  bypassSuperadmin: BypassSuperadmin;
 }
+
+/**
+ * O gate único do download: notas no período E as 4 checagens aprovadas.
+ * O motivo devolvido é o que vai pro `title` do controle desabilitado — foi o
+ * padrão que a tela já usava com "Sem notas autorizadas no período", agora
+ * estendido em vez de duplicado.
+ */
+const motivoBloqueio = (p: Periodo): string | null => {
+  if (p.notasAutorizadas === 0) return 'Sem notas autorizadas no período';
+  const reprovada = (p.checagens ?? []).find((c) => !c.ok);
+  return reprovada ? reprovada.motivo : null;
+};
 
 const STATUS_META: Record<Periodo['status'], { label: string; tone: 'ok' | 'warn' | 'bad' }> = {
   aberto:   { label: 'Em curso',  tone: 'warn' },
@@ -48,10 +132,81 @@ const efdHref = (mesIso: string): string => {
   return `/fiscal/sped/icms-ipi/${ano}/${parseInt(mes ?? '1', 10)}`;
 };
 
-export default function Sped({ periodos, notice }: SpedProps) {
+/**
+ * Itens da régua de geração de UMA competência.
+ *
+ * As 4 checagens vêm avaliadas do servidor (`SpedController::checagens`); a
+ * contagem de notas é a quinta condição que `motivoBloqueio` já somava. Aqui só
+ * se renderiza — mover qualquer critério para cá faria a tela e o Service
+ * divergirem sobre quando um arquivo fiscal pode sair (anti-hook do charter).
+ */
+function ItensDaRegua({ periodo }: { periodo: Periodo }) {
+  const itens = [
+    ...(periodo.checagens ?? []).map((c) => ({
+      chave: c.id,
+      ok: c.ok,
+      rotulo: c.rotulo,
+      motivo: c.motivo,
+    })),
+    {
+      chave: 'notas',
+      ok: periodo.notasAutorizadas > 0,
+      rotulo: 'Notas autorizadas no período',
+      motivo:
+        periodo.notasAutorizadas > 0
+          ? `${periodo.notasAutorizadas} nota(s) autorizada(s) entram no arquivo`
+          : 'Sem notas autorizadas no período',
+    },
+  ];
+
+  return (
+    <Stack asChild gap={1}>
+      <ul className="mt-1">
+        {itens.map((item) => (
+          <Inline key={item.chave} asChild align="start" gap={2}>
+            <li data-checagem={item.chave} data-ok={item.ok ? 'true' : 'false'}>
+              {item.ok ? (
+                <CheckCircle2 size={13} aria-hidden className="mt-0.5 shrink-0" />
+              ) : (
+                <XCircle size={13} aria-hidden className="mt-0.5 shrink-0" />
+              )}
+              <span>
+                <b>{item.rotulo}</b> — <span>{item.ok ? 'aprovado' : 'reprovado'}</span>
+                <br />
+                <small>{item.motivo}</small>
+              </span>
+            </li>
+          </Inline>
+        ))}
+      </ul>
+    </Stack>
+  );
+}
+
+export default function Sped({
+  periodos,
+  notice,
+  previaTxt,
+  referenciaArquivo,
+  validacaoExterna,
+  bypassSuperadmin,
+}: SpedProps) {
   const [status, setStatus] = useState<StatusFilter>('todos');
   const [search, setSearch] = useState('');
   const [preview, setPreview] = useState<Periodo | null>(null);
+  const [selecionadaIso, setSelecionadaIso] = useState<string | null>(null);
+
+  /**
+   * Competência da barra de validação. Sem escolha do operador, abre na primeira
+   * competência PRONTA — a que ele de fato vai gerar. Abrir no mês corrente
+   * mostraria sempre a régua reprovando por "em aberto", que é o caso menos útil.
+   */
+  const selecionada = useMemo(() => {
+    const escolhida = selecionadaIso
+      ? periodos.find((p) => p.mesIso === selecionadaIso)
+      : undefined;
+    return escolhida ?? periodos.find((p) => p.status === 'pronto') ?? periodos[0] ?? null;
+  }, [periodos, selecionadaIso]);
 
   const counts = useMemo(() => ({
     todos:    periodos.length,
@@ -71,11 +226,11 @@ export default function Sped({ periodos, notice }: SpedProps) {
 
   return (
     <AppShellV2>
-      <Head title="Fiscal · SPED & Livros" />
+      <Head title="Fiscal · SPED e livros" />
 
       <FxShell
         route="sped"
-        title="SPED & Livros"
+        title="SPED e livros"
         crumb="Apuração mensal · EFD ICMS-IPI · PIS/COFINS"
         env="em desenvolvimento"
         envTone="warn"
@@ -155,6 +310,64 @@ export default function Sped({ periodos, notice }: SpedProps) {
           </Button>
         </Inline>
 
+        {/* Barra de validação da competência — Goal 1 do charter do Cowork.
+            Ficava DENTRO do drawer (Onda 9) e por isso só existia pra quem
+            clicasse na lupa; o protótipo a tem como barra NA PÁGINA, sempre
+            visível. Foi MOVIDA, não duplicada: régua em dois lugares diverge no
+            primeiro ajuste. Quem decide continua sendo o servidor. */}
+        {selecionada && (
+          <Alert
+            className="mb-3"
+            data-contract="validacao-competencia"
+            data-ok={motivoBloqueio(selecionada) === null ? 'true' : 'false'}
+            variant={motivoBloqueio(selecionada) === null ? 'default' : 'destructive'}
+            role="region"
+            aria-label={`Régua de geração da competência ${selecionada.mes}`}
+          >
+            {motivoBloqueio(selecionada) === null ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
+            <AlertTitle>
+              Competência {selecionada.mes} —{' '}
+              {motivoBloqueio(selecionada) === null
+                ? 'liberada para geração'
+                : 'geração bloqueada'}
+            </AlertTitle>
+            <AlertDescription>
+              <ItensDaRegua periodo={selecionada} />
+
+              {/* Goal 2 — o bypass de superadmin deixa de ser silencioso.
+                  Só aparece pra quem TEM o bypass: liberar a trava global é
+                  decisão de [W], e oferecer o botão a quem não pode usá-lo
+                  seria afordância falsa. A ação vai ao servidor (a sessão é
+                  quem decide), nunca troca só o visual. */}
+              {bypassSuperadmin.disponivel && bypassSuperadmin.travaGlobalLigada && (
+                <Inline gap={2} align="center" wrap className="mt-3">
+                  <Button
+                    type="button"
+                    variant={bypassSuperadmin.reativadaNaSessao ? 'cowork-primary' : 'secondary'}
+                    size="cowork"
+                    onClick={() =>
+                      router.post(
+                        '/fiscal/sped/trava',
+                        { reativar: !bypassSuperadmin.reativadaNaSessao },
+                        { preserveScroll: true },
+                      )
+                    }
+                  >
+                    {bypassSuperadmin.reativadaNaSessao
+                      ? 'Liberar como superadmin'
+                      : 'Reativar trava nesta sessão'}
+                  </Button>
+                  <small className="text-muted-foreground">
+                    {bypassSuperadmin.reativadaNaSessao
+                      ? 'Você reativou a trava para si — o download está bloqueado nesta sessão.'
+                      : 'Seu perfil dispensa a trava fail-secure. A trava global segue ligada para os demais.'}
+                  </small>
+                </Inline>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
+
         {filtered.length === 0 ? (
           <div className="fx-empty">
             <Archive size={20} />
@@ -178,8 +391,28 @@ export default function Sped({ periodos, notice }: SpedProps) {
                 {filtered.map((p) => {
                   const stMeta = STATUS_META[p.status];
                   return (
-                    <tr key={p.mesIso}>
-                      <td className="fx-mono fx-strong">{p.mes}</td>
+                    <tr
+                      key={p.mesIso}
+                      data-selecionada={selecionada?.mesIso === p.mesIso ? 'true' : undefined}
+                      className={selecionada?.mesIso === p.mesIso ? 'bg-accent/40' : undefined}
+                    >
+                      <td className="fx-mono fx-strong">
+                        {/* Trocar a competência da barra. É um botão, não a linha
+                            inteira clicável: `<tr onClick>` exige handler de teclado
+                            e um role que a tabela não tem, e o alvo real do operador
+                            é a competência. */}
+                        <Button
+                          type="button"
+                          variant="link"
+                          size="xs"
+                          className="h-auto px-0 font-mono text-xs font-semibold text-foreground"
+                          aria-pressed={selecionada?.mesIso === p.mesIso}
+                          title={`Ver a régua de geração de ${p.mes}`}
+                          onClick={() => setSelecionadaIso(p.mesIso)}
+                        >
+                          {p.mes}
+                        </Button>
+                      </td>
                       <td>
                         <span className={`fx-sefaz ${stMeta.tone}`}>
                           <span className="lbl">{stMeta.label}</span>
@@ -198,7 +431,7 @@ export default function Sped({ periodos, notice }: SpedProps) {
                           >
                             <Eye size={11} />
                           </button>
-                          {p.notasAutorizadas > 0 ? (
+                          {motivoBloqueio(p) === null ? (
                             <a
                               href={efdHref(p.mesIso)}
                               className="fx-dfe-act ok"
@@ -208,7 +441,7 @@ export default function Sped({ periodos, notice }: SpedProps) {
                               <Download size={11} /> .txt
                             </a>
                           ) : (
-                            <button type="button" className="fx-dfe-act" disabled title="Sem notas autorizadas no período">
+                            <button type="button" className="fx-dfe-act" disabled title={motivoBloqueio(p) ?? undefined}>
                               <Download size={11} /> .txt
                             </button>
                           )}
@@ -221,6 +454,161 @@ export default function Sped({ periodos, notice }: SpedProps) {
             </table>
           </div>
         )}
+
+        {/* Goals 4 e 5 do charter do Cowork. As duas superfícies são MEDIDAS no
+            arquivo de referência pelo servidor — a tela não escreve estrutura nem
+            estado de validação. Foi por isso que o cartão de validação não pôde
+            copiar a copy do protótipo: ele diz "golden file: não existe", e o
+            golden nasceu em 2026-09-03 (PR #6708), depois do charter. */}
+        {/* Goal 3 do charter do Cowork — decisão [W] 2026-09-04.
+            O protótipo encena a prévia com linhas fixas, e o charter dele declara
+            Non-Goal "não gerar o arquivo de verdade". Em produção, encenar seria
+            FABRICAR. A saída honesta é mostrar linhas de um arquivo REAL que
+            comprovadamente não é do operador: o `0000` do golden se identifica
+            como fictício no próprio conteúdo, e a tela repete isso com o nome
+            que leu de lá — não com um rótulo escrito à mão. */}
+        {referenciaArquivo.disponivel && referenciaArquivo.amostra.length > 0 && (
+          <Card className="mt-4" data-contract="previa-txt">
+            <CardHeader>
+              <CardTitle>Prévia do layout — arquivo de referência</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Stack gap={3}>
+                <Alert role="region" aria-label="Procedência da prévia">
+                  <XCircle size={16} />
+                  <AlertTitle>Não é a sua competência</AlertTitle>
+                  <AlertDescription>
+                    Estas linhas vêm de <code className="fx-mono">{referenciaArquivo.origem}</code>
+                    {referenciaArquivo.emitente ? (
+                      <>
+                        , cujo registro <span className="fx-mono">0000</span> declara o emitente{' '}
+                        <b>{referenciaArquivo.emitente}</b>
+                      </>
+                    ) : null}
+                    . Servem para conferir o <b>formato</b> de cada registro antes de gerar — o
+                    arquivo da sua competência só existe depois de gerado, e nunca é exibido aqui.
+                  </AlertDescription>
+                </Alert>
+
+                <pre className="fx-mono overflow-x-auto whitespace-pre text-[11px] leading-relaxed">
+                  {referenciaArquivo.amostra.map((a) => a.linha).join('\n')}
+                </pre>
+
+                <small className="text-muted-foreground">
+                  Uma linha por registro distinto — {referenciaArquivo.amostra.length} registros das{' '}
+                  {referenciaArquivo.linhas} linhas do arquivo de referência. Não é o arquivo
+                  encurtado: é a primeira ocorrência de cada registro, na ordem em que o layout as
+                  emite.
+                </small>
+              </Stack>
+            </CardContent>
+          </Card>
+        )}
+
+        <Grid fit="md" gap={3} className="mt-4">
+          <Card data-contract="blocos-arquivo">
+            <CardHeader>
+              <CardTitle>Blocos do arquivo — registros que cada um contém</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {referenciaArquivo.disponivel ? (
+                <Stack gap={3}>
+                  <Stack asChild gap={2}>
+                    <ul>
+                      {referenciaArquivo.blocos.map((bloco) => (
+                        <li key={bloco.id} data-bloco={bloco.id}>
+                          <Inline align="baseline" gap={2}>
+                            <b className="fx-mono">{bloco.id}</b>
+                            <span>{bloco.nome}</span>
+                            <small className="ml-auto text-muted-foreground">
+                              {bloco.linhas} linha{bloco.linhas === 1 ? '' : 's'}
+                            </small>
+                          </Inline>
+                          <code className="fx-mono block text-[11px] text-muted-foreground">
+                            {bloco.registros.join(' · ')}
+                          </code>
+                        </li>
+                      ))}
+                    </ul>
+                  </Stack>
+                  <small className="text-muted-foreground">
+                    Medido no arquivo de referência EFD-ICMS/IPI (CONFAZ v3.1.1, perfil A) —
+                    não na sua competência, que só é conhecida depois de gerada.
+                  </small>
+                </Stack>
+              ) : (
+                <small className="text-muted-foreground">
+                  Arquivo de referência indisponível ({referenciaArquivo.origem}). A estrutura
+                  não é exibida em vez de ser presumida.
+                </small>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card data-contract="validacao-externa">
+            <CardHeader>
+              <CardTitle>Validação externa</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Stack asChild gap={2}>
+                <dl>
+                  <Inline align="baseline" gap={2} asChild>
+                    <div>
+                      <dt className="flex-1">Smoke no PVA-EFD (validador CONFAZ)</dt>
+                      <dd
+                        className="fx-mono"
+                        data-tone={validacaoExterna.pvaSmoke.executado ? 'ok' : 'warn'}
+                      >
+                        {validacaoExterna.pvaSmoke.executado ? 'recibo registrado' : 'nunca executado'}
+                      </dd>
+                    </div>
+                  </Inline>
+                  <Inline align="baseline" gap={2} asChild>
+                    <div>
+                      <dt className="flex-1">Arquivo de referência (golden)</dt>
+                      <dd className="fx-mono" data-tone={validacaoExterna.golden.presente ? 'ok' : 'warn'}>
+                        {validacaoExterna.golden.presente
+                          ? `existe · ${new Intl.NumberFormat('pt-BR').format(validacaoExterna.golden.bytes ?? 0)} bytes · ${validacaoExterna.golden.linhas} linhas`
+                          : 'não existe'}
+                      </dd>
+                    </div>
+                  </Inline>
+                  {validacaoExterna.golden.presente && validacaoExterna.golden.sha256 && (
+                    <Inline align="baseline" gap={2} asChild>
+                      <div>
+                        <dt className="flex-1">SHA-256 da referência</dt>
+                        <dd className="fx-mono text-[11px]">
+                          {validacaoExterna.golden.sha256.slice(0, 16)}…
+                        </dd>
+                      </div>
+                    </Inline>
+                  )}
+                  <Inline align="baseline" gap={2} asChild>
+                    <div>
+                      <dt className="flex-1">Apuração do ICMS</dt>
+                      <dd className="fx-mono" data-tone={validacaoExterna.apuracaoIcms.noArquivo ? 'ok' : 'warn'}>
+                        {validacaoExterna.apuracaoIcms.noArquivo
+                          ? 'no arquivo (Bloco E)'
+                          : 'ausente do arquivo'}
+                      </dd>
+                    </div>
+                  </Inline>
+                  <Inline align="baseline" gap={2} asChild>
+                    <div>
+                      <dt className="flex-1">{validacaoExterna.backlog.join(' · ')}</dt>
+                      <dd className="fx-mono">backlog</dd>
+                    </div>
+                  </Inline>
+                </dl>
+              </Stack>
+              <small className="mt-3 block text-muted-foreground">
+                O arquivo de referência prova estrutura, blocos e contadores. O PVA-EFD é
+                ferramenta externa: enquanto não houver recibo do smoke, nada aqui autoriza
+                chamar o gerador de validado.
+              </small>
+            </CardContent>
+          </Card>
+        </Grid>
 
         <div className="fx-empty" style={{ marginTop: 18 }}>
           <Archive size={20} />
@@ -282,6 +670,52 @@ export default function Sped({ periodos, notice }: SpedProps) {
                   </dl>
                 </div>
 
+                {/* Régua de geração — mesma régua da barra da página, servida pelo
+                    mesmo `ItensDaRegua` e pelo mesmo payload do servidor. Ela vive
+                    na página desde a Onda 10; fica repetida aqui porque o drawer é
+                    o passo imediatamente anterior ao download, e mandar o operador
+                    fechar o drawer pra ler POR QUE o botão ao lado está cinza seria
+                    esconder a resposta na hora em que ela é pedida. Não há segunda
+                    fonte: um componente, um payload. */}
+                <div className="fx-drawer-sec">
+                  <h4>Régua de geração</h4>
+                  <Alert variant={motivoBloqueio(preview) === null ? 'default' : 'destructive'}>
+                    {motivoBloqueio(preview) === null ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
+                    <AlertTitle>
+                      {motivoBloqueio(preview) === null
+                        ? 'Competência liberada para geração'
+                        : 'Geração bloqueada'}
+                    </AlertTitle>
+                    <AlertDescription>
+                      <ItensDaRegua periodo={preview} />
+                    </AlertDescription>
+                  </Alert>
+                </div>
+
+                {/* Prévia do TXT — ausência DECLARADA. Ver Sped.charter.md
+                    §Contrato destilado: gerar o arquivo só pra pré-visualizar
+                    exigiria rodar o gerador inteiro em request síncrono, o que
+                    contornaria a trava fail-secure. Decisão pendente. */}
+                <div className="fx-drawer-sec">
+                  <h4>Prévia do arquivo</h4>
+                  {previaTxt === null ? (
+                    <p className="fx-drawer-hint">
+                      Prévia do conteúdo indisponível nesta versão — o conteúdo do arquivo só é
+                      conhecido depois de gerado. O que já está definido pelo layout:
+                      EFD-ICMS/IPI CONFAZ v3.1.1, perfil A, registro de abertura 0000 com
+                      COD_VER 018 e COD_FIN 0 (original). Para conferir o <b>formato</b> de cada
+                      registro, a página tem a prévia do arquivo de referência.
+                    </p>
+                  ) : (
+                    <>
+                      <p className="fx-drawer-hint">
+                        <b>Amostra</b> — trecho inicial do arquivo, não o arquivo completo.
+                      </p>
+                      <pre className="fx-mono overflow-x-auto whitespace-pre text-xs">{previaTxt}</pre>
+                    </>
+                  )}
+                </div>
+
                 <p className="fx-drawer-hint">
                   Arquivo gerado no layout CONFAZ v3.1.1. Validar no PVA antes da transmissão à SEFAZ.
                 </p>
@@ -290,7 +724,7 @@ export default function Sped({ periodos, notice }: SpedProps) {
               <div className="fx-drawer-f">
                 <div className="fx-drawer-f-r">
                   <Button type="button" variant="cowork-ghost" onClick={() => setPreview(null)}>Fechar</Button>
-                  {preview.notasAutorizadas > 0 ? (
+                  {motivoBloqueio(preview) === null ? (
                     <Button asChild variant="cowork-primary">
                       <a
                         href={efdHref(preview.mesIso)}
@@ -301,7 +735,7 @@ export default function Sped({ periodos, notice }: SpedProps) {
                       </a>
                     </Button>
                   ) : (
-                    <Button type="button" variant="cowork-primary" disabled title="Sem notas autorizadas no período">
+                    <Button type="button" variant="cowork-primary" disabled title={motivoBloqueio(preview) ?? undefined}>
                       <Download size={13} /> Baixar .txt
                     </Button>
                   )}

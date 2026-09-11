@@ -9,10 +9,10 @@
 > - O dono de "o que é required no merge" é `governance/required-checks-baseline.json` (vigiado por `protection-drift.mjs`) — a seção de gates abaixo é CÓPIA GERADA dele, re-derivada a cada `--write` e conferida pelo `--check`.
 
 ## Resumo
-- **56** wirings em `settings.json` (5 eventos) · **51** arquivos de hook distintos wired
+- **57** wirings em `settings.json` (5 eventos) · **51** arquivos de hook distintos wired
 - **51** arquivos de hook no disco (+43 `*.test.*` — testes, fora da conta de órfãos)
 - Órfãos (arquivo sem wiring): **0** · Fantasmas (wiring sem arquivo): **0**
-- Gates CI no baseline: **44** classic + **1** ruleset → ponto-de-corte merge
+- Gates CI no baseline: **45** classic + **1** ruleset → ponto-de-corte merge
 
 ## Hooks wired (evento × matcher × arquivo)
 | Evento | Matcher | Hook | Runtime | Ponto-de-corte | Sinal de bloqueio (heurística) |
@@ -21,6 +21,7 @@
 | SessionStart | `*` | handoff-inline.mjs | node | sessão (início — injeção de contexto) | — |
 | SessionStart | `*` | check-skills-fresh.mjs | node | sessão (início — injeção de contexto) | — |
 | SessionStart | `*` | tier-a-banner.mjs | node | sessão (início — injeção de contexto) | — |
+| SessionStart | `*` | loop-fechar-check.mjs | node | sessão (início — injeção de contexto) | — |
 | SessionStart | `*` | loop-fechar-check.mjs | node | sessão (início — injeção de contexto) | — |
 | SessionStart | `*` | licoes-code-two-strikes.mjs | node | sessão (início — injeção de contexto) | — |
 | SessionStart | `*` | git-base-freshness-guard.mjs | node | sessão (início — injeção de contexto) | — |
@@ -81,7 +82,7 @@ Nenhum.
 Nenhum.
 
 ## Gates CI (`required-checks-baseline.json` → ponto-de-corte merge)
-Contexts `classic_protection` (44):
+Contexts `classic_protection` (45):
 - ADR (memory/decisions/*.md)
 - ADR 0216 PR scan (governance:audit --diff-only)
 - ADR frontmatter
@@ -105,6 +106,7 @@ Contexts `classic_protection` (44):
 - No hardcode business_id (Tier 0)
 - No-mock-in-prod · ratchet
 - Nota de tela não desce vs origin/main
+- PageHeader · ratchet (header antigo só decresce)
 - PHP / Pest (Compras · MySQL)
 - PHP / Pest (Estoque · MySQL)
 - PHP / Pest (Financeiro · MySQL)

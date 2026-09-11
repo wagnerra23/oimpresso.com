@@ -91,6 +91,13 @@ on:
       # (§5 2026-08-02: "gate mudo com cara de cobertura")
       - 'scripts/qa/cowork-pele-paralela.mjs'
       - 'scripts/qa/cowork-pele-paralela.baseline.json'
+      # idem pro comparador de frescor: o bite da devolutiva (secao 13 do .test.mjs) so
+      # defende se a lane VIR o arquivo mudar. Medido em 2026-09-08 no PR do fix: tocando
+      # so estes 2 arquivos, esta lane NAO disparava e o bite ficava mudo.
+      - 'scripts/governance/cowork-mirror-freshness.mjs'
+      - 'scripts/governance/cowork-mirror-freshness.test.mjs'
+      - 'scripts/design-sync/alvo.mjs'
+      - 'scripts/design-sync/recibos-ci.mjs'
   workflow_dispatch:
 
 concurrency:
@@ -176,6 +183,21 @@ jobs:
       - name: design-diff selftest (mede o que o olho perdeu · LC-06)
         run: node prototipo-ui/design-diff.mjs --selftest
 
+      # alvo selftest (PR-A1): o ALVO de uma seção é MEDIDA executável, não número ditado no chat.
+      # AQUI roda só a parte PURA (serialização estável + o contrato público `design-diff --probe`),
+      # que é hermética e não precisa de browser — esta lane não instala chromium. O bite-test REAL
+      # (2 runs byte-idênticos + `--injetar-falha` mudando o JSON) é `--selftest --browser` e roda
+      # onde há chromium; medido verde 6/6 em 2026-09-03, fora de CI. Declarar isso é o que separa
+      # "não medi aqui" de "está são" (§5 2026-07-29 · fail-open).
+      - name: alvo selftest (parte pura · sem browser nesta lane)
+        run: node scripts/design-sync/alvo.mjs --selftest
+
+      # recibos-ci selftest: partes puras do gravador em massa de recibos de teste (ADR 0384 D-5) —
+      # parse de lane `*-pest.yml`, módulo do alvo, seleção de tela e escolha de run (run de PR com
+      # Pest `skipped` é recusado: skip-as-pass não prova, LC-13). Hermético: sem gh, sem git.
+      - name: recibos-ci selftest (parte pura · sem gh nesta lane)
+        run: node scripts/design-sync/recibos-ci.mjs --selftest
+
       # style-fingerprint selftest: o VETOR de estilo completo (bbox, nº de linhas, overflow,
       # cor computada, radius, borda) por tema — regras 4/5/7 do inventário da Fase 1. Fixtures
       # com divergências plantadas (2-linhas, cor, radius, só-de-um-lado · L-31, provado dos dois
@@ -206,6 +228,32 @@ jobs:
       # checa .css/.html; .tsx e ignorado por ele (log '. ... ignorado'), entao
       # alimentamos so o que ele entende. Sem arquivos tocados -> ds-guard imprime
       # uso e sai 0 (nao derruba o job). continue-on-error abaixo.
+      #
+      # POR QUE O GLOB PARA AQUI E NAO COBRE `resources/css/**` (a pergunta ja voltou 1x;
+      # RESPONDIDA POR MEDICAO em 2026-09-04, nao por opiniao — se ela voltar, leia isto antes):
+      #   - O §8 do prototipo-ui/PROCESSO_MEMORIA_CC.md declara a PROPRIA entrada como os
+      #     `*-page.css` TOCADOS, e o walkProto() do `--all` varre so `prototipo-ui/` com esse
+      #     sufixo. O §8 e a lei da build de PROTOTIPO (L-02/L-21/L-23 — erros de quem CRIA
+      #     design), nao do bundle PORTADO pro app.
+      #   - Os 33 bundles de `resources/css/` sao port do Cowork, e a §"Design System / Pacote
+      #     Cowork novo" de memory/proibicoes.md (decisao [W] 2026-05-18) MANDA copiar o bundle
+      #     INTEIRO — cherry-pick incremental e banido. Um bundle Cowork traz por construcao 4+
+      #     tokens de cor com prefixo bespoke, que e exatamente o predicado de "paleta inventada".
+      #   - Medido: o guard acusaria 20 dos 39 CSS de `resources/css/`; desses 20, quinze
+      #     declaram proveniencia Cowork/prototipo no proprio cabecalho e os outros cinco sao
+      #     `cockpit.css` + os 4 `tokens/_generated-*` (fundacao e saida de gerador, com donos
+      #     proprios: ds-token-diff / ds-mirror-drift / ds-tokens-build-sync). Nenhum e "paleta
+      #     inventada aqui". Num predicado DELTA (so o que o PR introduz) a taxa de disparo em
+      #     180d foi 17,5%, e caiu so pra 14,8% com as isencoes candidatas — a agulha nao se move.
+      #   Rejeitado COM OS NUMEROS na lapide §5 de 2026-09-04 (memory/licoes-rejeitadas.md),
+      #   que traz a reproducao. Residuo declarado la e ainda ABERTO: bundle de modulo que
+      #   redefine token com VALOR divergente do tema nao tem dono (ds-token-diff cobre so
+      #   `resources/css/tokens/`) — estender o dono, nunca este guard, que mede outra coisa.
+      #
+      # A 2a perna (`resources/js/Pages/**`) estava decorativa em 2026-09-04: 0 .css e 0 .html
+      # sob ela (controle positivo: 401 .tsx casam o mesmo pathspec, logo nao e a sonda que
+      # falha). Mantida de proposito — se um dia nascer CSS/HTML ao lado da tela, ja entra sem
+      # mexer neste step.
       - name: DS-GUARD (arquivos tocados · §8)
         if: always()  # advisory roda mesmo se o ssot-guard (hard-fail) falhar antes — senao skipa
         continue-on-error: true
@@ -466,7 +514,9 @@ jobs:
       # versionado (<tela>.proto-baseline.json) e a prod é comparada contra a INTENÇÃO, não só
       # contra o próprio passado. FRONTEIRA ADR 0290: o RENDER roda LOCAL (--gerar recusa sob CI,
       # exit 4 — render pareado em CI passa verde quando os 2 lados quebram); AQUI só roda o
-      # --check HERMÉTICO sobre o JSON commitado: schema + âncora re-resolvida do charter
+      # --check HERMÉTICO sobre o JSON commitado (hermético = zero render/rede; ele REPÕE o
+      # cache gitignored `_ds/` do mirror-snapshot versionado pra conferir o render_sha256):
+      # schema + âncora re-resolvida do charter
       # (ancora.mjs, ADR 0326) + freshness por prototipo_sha (padrão do map.json — proto
       # re-exportou = STALE). Selftest hard (a suite que valida o gate não pode mentir);
       # check advisory de nascença (ADR 0271/0275/0314 — nunca required sem reabrir a 0314).
@@ -507,6 +557,8 @@ jobs:
       # modo --schema sai 2 (NAO MEDIDO) em vez de verde calado, e o self-test cobra isso.
       - name: Install deps do validador de schema (ajv)
         run: npm install --no-save ajv@^8.17.1 ajv-formats@^3.0.1
+      - name: Placar de playbook — dependências e recibos de execução
+        run: node --test prototipo-ui/design-docs/cowork-inbox/_scripts/placar-indice.test.mjs
 
       - name: Self-test (fixture boa passa + fixture ruim falha)
         run: node scripts/governance/dtcg-equivalence.test.mjs

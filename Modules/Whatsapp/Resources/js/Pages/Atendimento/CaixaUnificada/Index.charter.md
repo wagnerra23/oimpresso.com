@@ -2,6 +2,7 @@
 id: resources-js-pages-atendimento-caixa-unificada-index-charter
 page: /atendimento/caixa-unificada
 component: Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx
+related_visual_comparison: memory/requisitos/Whatsapp/CaixaUnificadaV4-visual-comparison.md
 owner: wagner
 status: live
 last_validated: "2026-08-24"
@@ -10,6 +11,7 @@ supersedes: resources/js/Pages/Atendimento/Inbox/Index.charter.md
 parent_module: Whatsapp
 parent_adr: memory/decisions/0135-omnichannel-inbox-arquitetura.md
 visual_source: prototipo-ui/cowork/inbox-page.jsx
+related_us: [US-WA-012, US-WA-055, US-WA-066, US-WA-095]
 related_adrs:
   - 0093-multi-tenant-isolation-tier-0
   - 0094-constituicao-v2-7-camadas-8-principios

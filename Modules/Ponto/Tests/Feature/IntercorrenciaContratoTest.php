@@ -32,7 +32,7 @@ uses(PontoTestCase::class);
  *                  Registrar intercorrência pela tela NÃO grava.
  *
  * Não duplica as telas irmãs: a DECISÃO (aprovar/rejeitar/lote cross-tenant) é
- * UC-APROV-* em Aprovacoes/Index; o DETALHE é UC-INTSHOW-* em Intercorrencias/Show.
+ * UC-PAPR-* em Aprovacoes/Index; o DETALHE é UC-INTSHOW-* em Intercorrencias/Show.
  *
  * PII: os asserts comparam ids, nunca o texto da justificativa; a fixture usa texto
  * neutro (LGPD Art. 7º II · SDD §3.1).
@@ -102,6 +102,7 @@ function intcCriarColaborador(int $businessId, int $userBusinessId): Colaborador
     $user = User::factory()->create([
         'business_id' => $userBusinessId,
         'user_type'   => 'user',
+        'username'    => strtolower(INTC_MARCADOR) . '-' . uniqid(),
     ]);
 
     $colab = new Colaborador();

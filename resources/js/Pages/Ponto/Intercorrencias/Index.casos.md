@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · SDD-espelho-e-jornada-v1.0.md §5.3 F4 + §6.2
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é onde o RH acompanha o que ainda não foi decidido — e o que ficou pendente vira falta na folha.
 owner: wagner
-last_run: "2026-08-08"
-last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Ponto · MySQL)"
+last_run: "2026-09-08"
+last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-test-results.json (fonte: test-results/pest-ponto-junit.xml). Lane PHP / Pest (Ponto - MySQL) run 34215745965 em main (sha dced5fd3d8, 2026-09-08T10:32Z): 302 passed - 1 skipped - 1009 assertions, coherent=true, provou_algo=true. Li ASSERTIONS, nao a conclusion: 1009 > 0 prova que a suite rodou e nao caiu no skip-as-pass da lane (LC-13). O unico skipped da run nao e UC (o coletor trata skip como nao-pass, e os 69 vieram pass). A lane e ADVISORY: reprova e visivel, nao bloqueia merge."
 ---
 
 # Casos de Uso & Aceite — Fila de intercorrências
@@ -28,9 +28,9 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 | UC | Caso de uso | Prio | Âncora | Teste | Status |
 |----|-------------|------|--------|-------|--------|
-| UC-INTIDX-01 | A fila traz as intercorrências do meu empregador | must | `CU-PONTO-05` + US-PONTO-003 | `IntercorrenciaContratoTest` | 🧪 sem veredito |
-| UC-INTIDX-02 | Intercorrência de outro empregador não aparece na fila | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `IntercorrenciaContratoTest` | 🧪 sem veredito |
-| UC-INTIDX-03 | Filtrar por estado devolve só aquele estado | should | `CU-PONTO-05` (estados canon) | `IntercorrenciaContratoTest` | 🧪 sem veredito |
+| UC-INTIDX-01 | A fila traz as intercorrências do meu empregador | must | `CU-PONTO-05` + US-PONTO-003 | `IntercorrenciaContratoTest` | ✅ verde na lane |
+| UC-INTIDX-02 | Intercorrência de outro empregador não aparece na fila | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `IntercorrenciaContratoTest` | ✅ verde na lane |
+| UC-INTIDX-03 | Filtrar por estado devolve só aquele estado | should | `CU-PONTO-05` (estados canon) | `IntercorrenciaContratoTest` | ✅ verde na lane |
 
 **[BACKLOG]:**
 
@@ -72,7 +72,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Regressão que defende:** aqui a defesa é **dupla** — `where('business_id', …)` explícito **e**
   o global scope. Justamente por ser dupla, remover uma não quebra nada visível. O UC fixa o
   **comportamento**, para que a remoção da última defesa apareça. Complementa o
-  `UC-APROV-02` (lote cross-tenant) pelo lado da leitura.
+  `UC-PAPR-02` (lote cross-tenant) pelo lado da leitura.
 - **Nota `[V0]` de PII:** o teste compara **ids**, nunca o texto da justificativa — a fixture usa
   texto neutro e o assert não imprime conteúdo de intercorrência.
 - **Nota de teste:** biz=1 vs stub biz=99 — **nunca biz=4** ([ADR 0101]).

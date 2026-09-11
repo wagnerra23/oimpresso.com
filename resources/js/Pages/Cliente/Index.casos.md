@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — os KPIs reais, paginação/ordenação server-side e a aba "Outros" não mudam no refactor.
 owner: wagner
-last_run: "2026-08-27"
+last_run: "2026-09-06"
 ---
 
 # Casos de Uso & Aceite — Lista de clientes
@@ -27,6 +27,14 @@ last_run: "2026-08-27"
 > data*), não afirmação de re-run.
 ---
 
+> ℹ️ **`last_run` 2026-08-27 → 2026-09-06 (G-6), e o que mudou na tela NÃO foi comportamento.**
+> O único toque em `Index.tsx` (+ `_components/KpiStripClickable.tsx`) foi o atributo **`data-contract="<id>"`** no elemento raiz de
+> região (header-identidade · kpis · filtros-busca · tabela-linhas · drawer-de-detalhe · perspectivas-fornecedor-funcionario-representante) — a âncora estável que o `<tela>.map.json` declara em `vivo.ancora`
+> (`scripts/governance/design-code-map-check.mjs`). Atributo inerte: nenhum CSS o seleciona
+> nestas telas (`grep -rn 'data-contract' resources/css/` → só `.arq-page [data-contract=abas|cabecalho]`)
+> e nenhum JS de runtime o lê. Zero JSX estrutural, zero handler, zero prop, zero copy alterada.
+> **Nenhum UC desta tela foi reexecutado nem revalidado**; o bump é o que o campo significa na
+> prática (*trio reconciliado com a tela nesta data*), não afirmação de re-run.
 ## UC-CIDX-01 · A aba "Outros" abre sem cair em Clientes
 - **Persona:** Larissa — clica na aba **Outros** (contatos que não são cliente/fornecedor/equipe/repr., ADR 0246) e vê a lista certa.
 - **Aceite:** Dado a listagem · Quando faço `GET /cliente?type=other` · Então renderiza Inertia com `activeType=other` (não `customer`) — as 3 camadas (rota whitelist + `$types` + `$inertiaTypes`) aceitam `other`.

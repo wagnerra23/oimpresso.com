@@ -80,7 +80,14 @@ Peso 1× = baseline. Peso 2× = importante. Peso 3× = crítico.
 | 13. Information hierarchy | 1 | 3 | 3 | 3 |
 | 14. Microcopy | 3 | 2 | 1 | 2 |
 | 15. Internal consistency | 1 | 2 | 2 | 2 |
-| **Total ponderado max** | **34** | **30** | **25** | **29** |
+| **Total ponderado max** | **34** | **30** | **25** | **30** |
+
+> **Errata 2026-09-05 — a coluna da Kamila imprimia 29.** Somando célula a célula:
+> `3+2+2+3+2+1+2+1+1+2+3+1+3+2+2 = 30`. As outras três colunas conferem (Larissa 34,
+> Daniela 30, Jair 25) — o erro era isolado, e é justamente a persona dona do módulo Ponto
+> (`personas-por-modulo.yml`). Denominador 29 **infla ~3%** toda nota ponderada por Kamila,
+> porque a fórmula do [SCREEN-GRADE-METODO §1](SCREEN-GRADE-METODO.md) divide por este total.
+> Achado ao gradear `Ponto/Intercorrencias/Edit` (o cálculo de lá já usou 30).
 
 ### Como ler a tabela
 

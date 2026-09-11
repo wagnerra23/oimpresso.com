@@ -1,0 +1,5 @@
+{
+  "_medido_em": "2026-09-08",
+  "_por_que": "O token do shell era derivado do BASENAME da ancora, e as 7 telas do Fiscal compartilham `fiscal-page.jsx` -> todas recebiam `route=fiscal`. Mas o `app.jsx` roteia por token especifico (`if (route === \"fiscal-dfe\") content = <FiscalPage view=\"dfe\" />`), e `fiscal` cai no default `view=\"notas\"` = o COCKPIT. Resultado medido em 2026-09-08: o lado design renderizou o cockpit em 7 de 7 telas (marcador de corpo \"Emitidas\"+\"Faturado fiscal\", exclusivo do cockpit, presente nas 7). Isso produzia veredito FALSO onde as copies coincidiam (Nfse \"IGUAL\" e Nfe \"DIVERGE\" comparavam cockpit x outra tela) e NAO MEDI correto onde o D0 pegou (Config/Dfe/Eventos/Sped). O token abaixo e o que o proprio app.jsx declara para esta view.",
+  "token": "fiscal-config"
+}

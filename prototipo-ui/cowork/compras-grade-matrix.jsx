@@ -136,9 +136,9 @@ function ComprasGradeMatrixPage() {
             <table className="gmi-grid">
               <thead>
                 <tr>
-                  <th className="gmi-corner"><small>{selected.template}</small><span>tam ↓ · cor →</span></th>
+                  <th scope="col" className="gmi-corner"><small>{selected.template}</small><span>tam ↓ · cor →</span></th>
                   {selected.colors.map(co => (
-                    <th key={co.id} className="gmi-colhead" onDoubleClick={() => setFillCol(co.id)} title="duplo-clique preenche a coluna">
+                    <th scope="col" key={co.id} className="gmi-colhead" onDoubleClick={() => setFillCol(co.id)} title="duplo-clique preenche a coluna">
                       <span className="gmi-swatch" style={{ background: co.hex }}></span>
                       <span>{co.l}</span>
                       {fillCol === co.id
@@ -146,13 +146,13 @@ function ComprasGradeMatrixPage() {
                         : <small>Σ {totals.byCol[co.id] || 0}</small>}
                     </th>
                   ))}
-                  <th className="gmi-rowtotal-head">Σ linha</th>
+                  <th scope="col" className="gmi-rowtotal-head">Σ linha</th>
                 </tr>
               </thead>
               <tbody>
                 {selected.sizes.map((sz, ri) => (
                   <tr key={sz.id}>
-                    <th className="gmi-rowhead">{sz.l}</th>
+                    <th scope="col" className="gmi-rowhead">{sz.l}</th>
                     {selected.colors.map((co, ci) => {
                       const v = qty[cellKey(sz.id, co.id)] || 0;
                       return (
@@ -169,7 +169,7 @@ function ComprasGradeMatrixPage() {
                   </tr>
                 ))}
                 <tr className="gmi-totals-row">
-                  <th className="gmi-rowhead">Σ col</th>
+                  <th scope="col" className="gmi-rowhead">Σ col</th>
                   {selected.colors.map(co => <td key={co.id} className="gmi-coltotal">{totals.byCol[co.id] || 0}</td>)}
                   <td className="gmi-grand"><b>{totals.grand}</b><small>{fmt(totalValue)}</small></td>
                 </tr>
@@ -200,7 +200,7 @@ function ComprasGradeMatrixPage() {
           <details className="gmi-lines" open>
             <summary>Linhas adicionadas à compra ({savedLines.length})</summary>
             <table>
-              <thead><tr><th>SKU</th><th>Modelo</th><th>Tam</th><th>Cor</th><th style={{ textAlign: "right" }}>Qtd</th><th style={{ textAlign: "right" }}>Unit.</th><th style={{ textAlign: "right" }}>Total</th></tr></thead>
+              <thead><tr><th scope="col">SKU</th><th scope="col">Modelo</th><th scope="col">Tam</th><th scope="col">Cor</th><th scope="col" style={{ textAlign: "right" }}>Qtd</th><th scope="col" style={{ textAlign: "right" }}>Unit.</th><th scope="col" style={{ textAlign: "right" }}>Total</th></tr></thead>
               <tbody>
                 {savedLines.slice(-14).map((l, i) => (
                   <tr key={i}><td>{l.sku}</td><td>{l.model}</td><td>{l.size}</td><td>{l.color}</td><td className="num">{l.qty}</td><td className="num">{fmt(l.unit)}</td><td className="num">{fmt(l.total)}</td></tr>

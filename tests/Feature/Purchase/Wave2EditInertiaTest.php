@@ -4,13 +4,30 @@ declare(strict_types=1);
 
 /**
  * F4 QA — Inertia path purchase/edit (MWART Wave2 B5).
+ *
+ * ── Rastreabilidade (casos-gate G-2 · ADR 0264) ────────────────────────────
+ * Contrato: resources/js/Pages/Purchase/Edit.casos.md
+ *   @covers-uc UC-PUREDT-01  dual path — SPA recebe React, Blade legacy preservado
+ *   @covers-uc UC-PUREDT-06  formulario pre-populado com a compra, tipado (sem any leak)
+ *   @covers-uc UC-PUREDT-07  Tier 0 — a Page nao hardcoda business_id
+ *
+ * ⚠️ NATUREZA DA COBERTURA — ESTRUTURAL: 15 asserts de casamento de texto no fonte,
+ * ZERO requests HTTP. Classe LC-11 (presence-gate).
+ *
+ * PONTEIRO CONSERTADO EM 2026-09-05: as consts de RUNBOOK e visual-comparison apontavam
+ * pra `memory/requisitos/Inventory/`, de onde os dois arquivos SAÍRAM quando o material de
+ * Compra foi consolidado em `memory/requisitos/Compras/_telas/`. O diretório `Inventory/`
+ * continua existindo (tem BRIEFING.md e SPEC.md), o que deixou o ponteiro plausível o
+ * bastante pra atravessar revisão — e o vermelho nunca apareceu porque, até esta data,
+ * arquivo nenhum de `tests/Feature/Purchase/` rodava em lane. Medido no CT 100 antes do
+ * conserto: `1 failed, 10 passed (18 assertions)`; depois: `11 passed (19 assertions)`.
  */
 
 const EDIT_INERTIA_PATH = 'resources/js/Pages/Purchase/Edit.tsx';
 const PURCHASE_EDIT_CHARTER_PATH = 'resources/js/Pages/Purchase/Edit.charter.md';
 const PURCHASE_EDIT_CONTROLLER_PATH = 'app/Http/Controllers/PurchaseController.php';
-const EDIT_RUNBOOK_PATH = 'memory/requisitos/Inventory/RUNBOOK-purchase-edit.md';
-const EDIT_VISUAL_PATH = 'memory/requisitos/Inventory/purchase-edit-visual-comparison.md';
+const EDIT_RUNBOOK_PATH = 'memory/requisitos/Compras/_telas/RUNBOOK-purchase-edit.md';
+const EDIT_VISUAL_PATH = 'memory/requisitos/Compras/_telas/purchase-edit-visual-comparison.md';
 
 function readEditInertia(): string
 {

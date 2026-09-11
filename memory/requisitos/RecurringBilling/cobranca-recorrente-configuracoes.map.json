@@ -1,0 +1,135 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "RecurringBilling/Configuracoes/Index (/recurring-billing/configuracoes)",
+  "gap_fonte": "memory/requisitos/RecurringBilling/cobranca-recorrente-configuracoes-gap.md",
+  "prototipo_sha": "sha256:40e51d3a1e6a",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "header-sub-nav",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/cobranca-recorrente-page.jsx",
+        "linhas": "344-348,367"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/RecurringBilling/Configuracoes/Index.tsx",
+        "linhas": "184-186",
+        "ancora": false
+      },
+      "status": "artefato",
+      "acao": "Nada — mock/harness do protótipo (`TABS` :344-348 + `window.PageHeaderNav` :367 são do harness Cowork; as abas já são a linha \"Abas Planos/Faturas/Config\" da tela-mãe, veredito `— · —`)",
+      "_acionavel": false
+    },
+    {
+      "id": "a-gateways-de-boleto-pix",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/cobranca-recorrente-page.jsx",
+        "linhas": "332-342,372"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/RecurringBilling/Configuracoes/Index.tsx",
+        "linhas": "208-216",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade (desc :372 \"gateways de pagamento\" existe como listagem); cadastrar/editar aqui é Non-Goal do charter (\"❌ Cadastrar/editar/remover BoletoCredential (CRUD fica em `/financeiro/contas-bancarias` …)\", Index.charter.md:49)",
+      "_acionavel": false
+    },
+    {
+      "id": "b-regua-de-dunning",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/cobranca-recorrente-page.jsx",
+        "linhas": "332-342,372"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/RecurringBilling/Configuracoes/Index.tsx",
+        "linhas": "219-257",
+        "ancora": false
+      },
+      "status": "nao-adotar",
+      "acao": "Nada — Non-Goal do charter (\"❌ Editar régua de dunning (hardcoded v1 — Onda futura cria `rb_dunning_rules` …)\", Index.charter.md:50); a exibição da régua é paridade com o desc :372",
+      "_acionavel": false
+    },
+    {
+      "id": "c-nfe-de-boleto-pago-automatica",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/cobranca-recorrente-page.jsx",
+        "linhas": "332-342,372"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/RecurringBilling/Configuracoes/Index.tsx",
+        "linhas": "260-297",
+        "ancora": false
+      },
+      "status": "nao-adotar",
+      "acao": "Nada — Non-Goal do charter (\"❌ Toggle real do NFe auto (Onda futura wire ao listener NfeBrasil — US-RB-044)\", Index.charter.md:51); a parte \"NFS-e\" do desc :372 é decisão já registrada (SPEC US-RECURRINGBILLING-004 `_parcial_`, `SPEC.md:766-771`) — capacidade de backend, não item de tela",
+      "_acionavel": false
+    },
+    {
+      "id": "d-webhooks",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/cobranca-recorrente-page.jsx",
+        "linhas": "332-342,372"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/RecurringBilling/Configuracoes/Index.tsx",
+        "linhas": "300-310",
+        "ancora": false
+      },
+      "status": "nao-adotar",
+      "acao": "Nada — Non-Goal do charter (\"❌ Test webhook\", :52 · \"❌ Histórico de eventos webhook (timeline)\", :53 · \"❌ Métricas/saúde gateway\", :54); listagem + copy é paridade com o desc :372",
+      "_acionavel": false
+    },
+    {
+      "id": "estados-vazio-skeleton",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/cobranca-recorrente-page.jsx",
+        "linhas": "332-342,372"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/RecurringBilling/Configuracoes/Index.tsx",
+        "linhas": "622-637",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente (placeholder :332-342 não tem estado nenhum)",
+      "_acionavel": false
+    },
+    {
+      "id": "overlays-atalhos",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/cobranca-recorrente-page.jsx",
+        "linhas": "332-342,372"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/RecurringBilling/Configuracoes/Index.tsx",
+        "linhas": "327-441",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente (o placeholder só tem \"← Voltar pras assinaturas\" via `window.__selectRoute`, harness)",
+      "_acionavel": false
+    },
+    {
+      "id": "linguagem-visual",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/cobranca-recorrente-page.jsx",
+        "linhas": "332-342,372"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/RecurringBilling/Configuracoes/Index.tsx",
+        "linhas": "97-122",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade de família (stone/warm nos dois lados); charter :43 e comentário :4 são texto caduco, registrados aqui (Fase 1 read-only) — equivalência exata de token acento×`bg-primary` é escopo do `design-diff`, não deste gap",
+      "_acionavel": false
+    }
+  ],
+  "mapping": {
+    "source": "cobranca-recorrente-page.jsx",
+    "target": "resources/js/Pages/RecurringBilling/Configuracoes/Index.tsx"
+  },
+  "_nota_mapeamento": "No protótipo esta aba é só o <Placeholder> (cobranca-recorrente-page.jsx:332-342, tab em :372) que se declara atrás do vivo; todas as partes ancoram nesse bloco (não há desenho por parte). vivo.ancora:false EXPLÍCITO = opt-out consciente: o .tsx não tem nenhum data-contract (grep -c data-contract → 0), ancorar exige mudança de UI com gate próprio. Ranges do vivo = 1º range citado na célula 'Estado no vivo' do gap.md (grep -n real)."
+}

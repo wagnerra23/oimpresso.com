@@ -13,7 +13,7 @@ import { Input } from '@/Components/ui/input';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import type { PageProps } from '@inertiajs/core';
-import { Archive, CheckCircle2, FileText, KeyRound, Loader2, Lock, PlugZap, Shield, Upload, XCircle } from 'lucide-react';
+import { AlertTriangle, Archive, CheckCircle2, FileText, KeyRound, Loader2, Lock, Mail, PlugZap, Shield, Upload, XCircle } from 'lucide-react';
 import { type FormEvent, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -86,6 +86,25 @@ interface ConfigProps {
   painel: Painel;
   // Onda 2 I — séries fiscais (modelo 55 NF-e + 65 NFC-e)
   seriesMock?: SerieFiscal[];
+  /** Card "Envio de documentos" — leitura real das flags de deploy (ver ConfigController). */
+  envioDocumentos?: EnvioDocumentos;
+  /**
+   * Espelho do gate `fiscal.config.ambiente`. Serve pra tela DIZER o motivo do
+   * campo travado — quem recusa de verdade é o servidor
+   * (`CertificadoController::garantirGateAmbiente`). Ausente = travado, porque o
+   * default seguro de um gate é negar.
+   */
+  podeTrocarAmbiente?: boolean;
+}
+
+/**
+ * Estado do envio automático do DANFE. As duas flags governam os listeners
+ * `EnviarDanfePorEmail` (55) e `EnviarDanfeNFCePorEmail` (65) e vivem em
+ * `Modules/NfeBrasil/Config/config.php` — logo valem por DEPLOY, não por empresa.
+ */
+interface EnvioDocumentos {
+  nfeAtivo: boolean;
+  nfceAtivo: boolean;
 }
 
 interface FlashProps extends PageProps {
@@ -117,9 +136,15 @@ function formatCnpj(raw: string | null): string {
   return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`;
 }
 
-export default function Config({ activeTab, certificado, config, painel, seriesMock = [] }: ConfigProps) {
+export default function Config({
+  activeTab, certificado, config, painel, seriesMock = [], envioDocumentos, podeTrocarAmbiente = false,
+}: ConfigProps) {
   // Aba ativa dirigida pela rota (?tab=) — barra canônica navega por href (DS Onda 3).
   const tab = activeTab ?? 'cert';
+
+  // Motivo ÚNICO do travamento — mesma frase do 403 do servidor, pra quem levar o
+  // erro ao suporte encontrar o mesmo texto dos dois lados.
+  const motivoGate = 'Exige fiscal.config.ambiente';
 
   const { props: pageProps } = usePage<FlashProps>();
   const flashSuccess = pageProps.flash?.success;
@@ -153,16 +178,36 @@ export default function Config({ activeTab, certificado, config, painel, seriesM
   };
 
   // Ambiente form (Inertia) → POST /nfe-brasil/configuracao/certificado/ambiente
-  const ambienteForm = useForm<{ ambiente: 1 | 2 }>({ ambiente: painel.ambiente });
+  const ambienteForm = useForm<{ ambiente: 1 | 2; motivo: string; confirmacao: string }>({
+    ambiente: painel.ambiente,
+    motivo: '',
+    confirmacao: '',
+  });
+
+  const destinoLabel = ambienteForm.data.ambiente === 1 ? 'PRODUÇÃO' : 'HOMOLOGAÇÃO';
+  const trocaPedida = ambienteForm.data.ambiente !== painel.ambiente;
+
+  // ESPELHO da normalização do servidor — `sensitivity: 'base'` ignora caixa E
+  // acento. A fricção que importa é ter de ESCREVER a palavra (contra a troca por
+  // reflexo), não acertar o cedilha; exigir o acento puniria teclado, não
+  // desatenção. Quem decide de verdade é o servidor: isto só habilita o botão.
+  const confirmacaoBate =
+    ambienteForm.data.confirmacao.trim().localeCompare(destinoLabel, 'pt-BR', { sensitivity: 'base' }) === 0;
+  const motivoBate = ambienteForm.data.motivo.trim().length >= 15;
+  const cerimoniaOk = trocaPedida && confirmacaoBate && motivoBate;
+
   const submitAmbiente = (e: FormEvent) => {
     e.preventDefault();
-    if (ambienteForm.data.ambiente === painel.ambiente) return;
+    if (!cerimoniaOk) return;
     ambienteForm.post('/nfe-brasil/configuracao/certificado/ambiente', {
       preserveScroll: true,
-      onSuccess: () => toast.success(
-        `Ambiente alterado para ${ambienteForm.data.ambiente === 1 ? 'PRODUÇÃO' : 'HOMOLOGAÇÃO'}.`,
-      ),
-      onError: () => toast.error('Falha ao salvar ambiente.'),
+      onSuccess: () => {
+        toast.success(`Ambiente alterado para ${destinoLabel}.`);
+        ambienteForm.reset('motivo', 'confirmacao');
+      },
+      // Copy deliberada: a troca que não passou na confirmação NÃO alterou nada.
+      // Dizer "falha ao salvar" deixaria dúvida sobre o estado do ambiente.
+      onError: () => toast.error('Ambiente NÃO alterado — confira a confirmação e o motivo.'),
     });
   };
 
@@ -306,22 +351,26 @@ export default function Config({ activeTab, certificado, config, painel, seriesM
 
         {/* DS Onda 3 — barra de abas CANÔNICA (PageHeaderTabs) em faixa própria,
             navegando por rota (?tab=). Padroniza o visual com Clientes/Financeiro/Ponto. */}
-        <div className="mb-4">
+        <div className="mb-4" data-contract="fiscal-config-abas">
           <PageHeaderTabs
             ghosts={[
-              { key: 'cert',     label: 'Certificado A1', href: '/fiscal/config?tab=cert',     icon: 'shield' },
-              { key: 'series',   label: 'Séries',         href: '/fiscal/config?tab=series',   icon: 'file-text', badge: seriesMock.filter((s) => s.ativo).length || undefined },
-              { key: 'ambiente', label: 'Ambiente',       href: '/fiscal/config?tab=ambiente', icon: 'settings' },
-              { key: 'sped',     label: 'SPED & Livros',  href: '/fiscal/config?tab=sped',     icon: 'archive' },
+              // Rótulos vindos do protótipo (fiscal-subpages.jsx §abas, data-contract="abas-config").
+              // As CHAVES não mudam — `?tab=cert|series|ambiente|sped` são URL pública com
+              // whitelist no ConfigController, e renomeá-las quebraria link salvo.
+              { key: 'cert',     label: 'Certificado e regime',    href: '/fiscal/config?tab=cert',     icon: 'shield' },
+              { key: 'series',   label: 'Séries',                  href: '/fiscal/config?tab=series',   icon: 'file-text', badge: seriesMock.filter((s) => s.ativo).length || undefined },
+              { key: 'ambiente', label: 'Ambiente e certificado',  href: '/fiscal/config?tab=ambiente', icon: 'settings' },
+              { key: 'sped',     label: 'SPED',                    href: '/fiscal/config?tab=sped',     icon: 'archive' },
             ]}
             activeGhostKey={tab}
             maxVisible={6}
           />
         </div>
 
-        {tab === 'cert' && (<>
+        {tab === 'cert' && (
+        <div data-contract="fiscal-config-cert-regime">
         {/* Cert + Help (2-col grid — port fiscal-page.jsx §12 CertificadoTab) */}
-        <div className="fx-cert-grid" data-contract="fiscal-config-cert-regime">
+        <div className="fx-cert-grid">
           <section className="fx-cert-card">
             <h3>Certificado digital A1</h3>
             <p className="lead">Instalado em MemCofre · SEFAZ exige renovação anual.</p>
@@ -385,10 +434,199 @@ export default function Config({ activeTab, certificado, config, painel, seriesM
             </ul>
           </section>
         </div>
-        </>)}
+        {/* Upload .pfx — Inertia useForm → POST /nfe-brasil/configuracao/certificado */}
+        <section className="fx-cert-card" style={{ marginBottom: 14 }}>
+          <h3>
+            <Upload size={14} style={{ verticalAlign: 'text-bottom', marginRight: 6 }} />
+            {certificado ? 'Substituir certificado' : 'Upload do certificado A1'}
+          </h3>
+          <p className="lead">
+            {certificado
+              ? 'Subir um certificado novo desativa o atual automaticamente (rotação cega).'
+              : 'Sobe o .pfx ou .p12 + senha. Valida CNPJ, criptografa em disco e habilita emissão NF-e/NFC-e.'}
+          </p>
+          {/* Mesmo gate da troca de ambiente: substituir o certificado para a emissão
+              da empresa inteira. O motivo é dito aqui porque o campo abaixo está travado. */}
+          {!podeTrocarAmbiente && (
+            <p style={{ fontSize: 13, marginTop: 8, color: 'var(--bad)' }}>
+              <Lock className="h-3.5 w-3.5 mr-1 inline align-text-bottom" />
+              Travado — {motivoGate}. A mesma permissão que governa a troca de ambiente,
+              porque substituir o certificado também para a emissão da empresa inteira.
+            </p>
+          )}
+          <form onSubmit={submitUpload} style={{ marginTop: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+              <div>
+                <label htmlFor="certificado-file" style={{ display: 'block', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--fx-text-mute)', marginBottom: 6 }}>
+                  Arquivo .pfx / .p12 *
+                </label>
+                <Input
+                  id="certificado-file"
+                  ref={fileRef}
+                  type="file"
+                  accept=".pfx,.p12"
+                  disabled={!podeTrocarAmbiente}
+                  title={podeTrocarAmbiente ? undefined : motivoGate}
+                  onChange={(e) => uploadForm.setData('certificado', e.target.files?.[0] ?? null)}
+                />
+                <small style={{ color: 'var(--fx-text-mute)', fontSize: 11 }}>Máximo 100 KB. A3 (token) não é suportado.</small>
+                {uploadForm.errors.certificado && (
+                  <small style={{ color: 'var(--bad)', display: 'block', fontSize: 11 }}>{uploadForm.errors.certificado}</small>
+                )}
+              </div>
+              <div>
+                <label htmlFor="certificado-senha" style={{ display: 'block', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--fx-text-mute)', marginBottom: 6 }}>
+                  <KeyRound size={11} style={{ verticalAlign: 'text-bottom', marginRight: 4 }} />
+                  Senha do certificado *
+                </label>
+                <Input
+                  id="certificado-senha"
+                  type="password"
+                  disabled={!podeTrocarAmbiente}
+                  title={podeTrocarAmbiente ? undefined : motivoGate}
+                  value={uploadForm.data.senha}
+                  onChange={(e) => uploadForm.setData('senha', e.target.value)}
+                  autoComplete="off"
+                  maxLength={80}
+                />
+                <small style={{ color: 'var(--fx-text-mute)', fontSize: 11 }}>Encrypted-at-rest (Laravel encrypt) · nunca em log.</small>
+                {uploadForm.errors.senha && (
+                  <small style={{ color: 'var(--bad)', display: 'block', fontSize: 11 }}>{uploadForm.errors.senha}</small>
+                )}
+              </div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <Button
+                type="submit"
+                variant="cowork-primary"
+                title={podeTrocarAmbiente ? undefined : motivoGate}
+                disabled={!podeTrocarAmbiente || uploadForm.processing || !uploadForm.data.certificado || !uploadForm.data.senha}
+              >
+                {uploadForm.processing
+                  ? 'Enviando…'
+                  : certificado
+                    ? 'Substituir certificado'
+                    : 'Enviar certificado'}
+              </Button>
+            </div>
+          </form>
+        </section>
+
+        {/* Identificação + Numeração (info read-only consolidada do painel fiscal) */}
+        <section className="fx-cert-card" style={{ marginBottom: 14 }}>
+          <h3>Identificação fiscal &amp; numeração</h3>
+          <dl className="fx-kv" style={{ gridTemplateColumns: '140px 1fr 140px 1fr' }}>
+            <dt>CNPJ business</dt>
+            <dd className="fx-mono">{formatCnpj(painel.cnpjBusiness)}</dd>
+            <dt>Razão social</dt>
+            <dd>{painel.razaoSocial ?? '—'}</dd>
+            <dt>Regime</dt>
+            <dd>{painel.regime ? (REGIME_LABEL[painel.regime] ?? painel.regime) : (config ? (REGIME_LABEL[config.regime] ?? config.regime) : '—')}</dd>
+            <dt>Localização</dt>
+            <dd>{painel.cidade && painel.uf ? `${painel.cidade} / ${painel.uf}` : (painel.uf ?? '—')}</dd>
+            <dt>NCM padrão</dt>
+            <dd className="fx-mono">{painel.ncmPadrao ?? '—'}</dd>
+            <dt>CFOP / CSOSN</dt>
+            <dd className="fx-mono">{painel.cfopDefault ?? '—'} / {painel.csosnDefault ?? painel.cstDefault ?? '—'}</dd>
+            <dt>Série NFe</dt>
+            <dd className="fx-mono">{painel.serieNfe}</dd>
+            <dt>Próximo número</dt>
+            <dd className="fx-mono">{painel.proximoNumero}</dd>
+            <dt>Emissão auto</dt>
+            <dd>{config?.autoEmissionEnabled ? '✅ Habilitada' : <><Lock className="h-3.5 w-3.5 mr-1 inline align-text-bottom" />Manual</>}</dd>
+            <dt>Tributação default</dt>
+            <dd>
+              {config && Object.keys(config.tributacaoDefault).length > 0
+                ? <code className="fx-mono" style={{ fontSize: 11 }}>{JSON.stringify(config.tributacaoDefault).slice(0, 120)}</code>
+                : <small>nenhum default</small>}
+            </dd>
+          </dl>
+          <small style={{ display: 'block', marginTop: 12, color: 'var(--fx-text-mute)' }}>
+            Cascade NCM/CFOP/CSOSN avançado vive em{' '}
+            <a href="/nfe-brasil/tributacao" className="fx-link">/nfe-brasil/tributacao</a>.
+          </small>
+        </section>
+        {/* Envio de documentos — 4º card da região `cert-regime` do protótipo
+            (fiscal-subpages.jsx §"Envio de documentos"). Read-only, como lá.
+            PROCEDÊNCIA: as duas chaves abaixo são LEITURA REAL das flags que
+            governam os listeners do DANFE. O protótipo serve `contador@example.com.br`
+            de mock; aqui NÃO existe campo pra isso no schema, então a linha declara
+            a ausência em vez de servir um substituto plausível. */}
+        <section className="fx-cert-card" style={{ marginBottom: 14 }}>
+          <h3>
+            <Mail size={14} style={{ verticalAlign: 'text-bottom', marginRight: 6 }} />
+            Envio de documentos
+          </h3>
+          <p className="lead">Quem recebe o DANFE e o XML quando a nota é autorizada.</p>
+          <dl className="fx-kv" style={{ gridTemplateColumns: '220px 1fr' }}>
+            <dt>Contador</dt>
+            <dd>
+              <small style={{ color: 'var(--fx-text-mute)' }}>
+                não cadastrado — ainda não existe campo de e-mail do contador nesta configuração
+              </small>
+            </dd>
+            <dt>Envio automático ao autorizar</dt>
+            <dd>
+              {envioDocumentos ? (
+                <>
+                  NF-e (55):{' '}
+                  <b style={{ color: envioDocumentos.nfeAtivo ? 'var(--ok)' : 'var(--fx-text-mute)' }}>
+                    {envioDocumentos.nfeAtivo ? 'Ativo' : 'Desligado'}
+                  </b>
+                  {' · '}
+                  NFC-e (65):{' '}
+                  <b style={{ color: envioDocumentos.nfceAtivo ? 'var(--ok)' : 'var(--fx-text-mute)' }}>
+                    {envioDocumentos.nfceAtivo ? 'Ativo' : 'Desligado'}
+                  </b>
+                </>
+              ) : '—'}
+            </dd>
+            <dt>Cópia pro cliente</dt>
+            <dd>
+              O destinatário é o e-mail do cliente da própria nota — NF-e pela fatura,
+              NFC-e pela venda. Cliente sem e-mail no cadastro: o envio é registrado no
+              log e pulado, sem afetar a nota, que já está autorizada.
+            </dd>
+          </dl>
+          <small style={{ display: 'block', marginTop: 12, color: 'var(--fx-text-mute)' }}>
+            Estas duas chaves valem pra <b>toda a instalação</b>, não por empresa — moram em{' '}
+            <code className="fx-mono">Modules/NfeBrasil/Config/config.php</code> e mudam por
+            variável de ambiente. Ligar/desligar por empresa exigiria coluna própria, que ainda não existe.
+          </small>
+        </section>
+        </div>
+        )}
 
         {tab === 'ambiente' && (
         <>
+        {/* Estado da permissão DITO EM TEXTO — nunca um botão cinza sem motivo.
+            Espelha `data-contract="gate-ambiente"` do protótipo. */}
+        <div
+          className="fx-callout"
+          role="status"
+          data-contract="fiscal-config-gate-ambiente"
+          data-ok={podeTrocarAmbiente ? 'true' : 'false'}
+          style={{
+            marginBottom: 14,
+            background: podeTrocarAmbiente ? 'var(--ok-soft)' : 'var(--bad-soft)',
+            borderColor: podeTrocarAmbiente ? 'var(--ok)' : 'var(--bad)',
+          }}
+        >
+          {podeTrocarAmbiente ? <CheckCircle2 size={16} /> : <Lock className="h-4 w-4" />}
+          <div>
+            <b style={{ color: podeTrocarAmbiente ? 'var(--ok)' : 'var(--bad)' }}>
+              {podeTrocarAmbiente
+                ? 'Permissão concedida — você pode trocar o ambiente e substituir o certificado'
+                : 'Permissão ausente — os dois campos desta aba estão travados'}
+            </b>
+            <small>
+              {podeTrocarAmbiente
+                ? 'Toda troca vira evento de auditoria com autor e horário.'
+                : `${motivoGate}. É um gate próprio, separado de fiscal.config.edit: quem edita configuração não troca o ambiente de emissão. Peça a concessão a quem administra os papéis.`}
+            </small>
+          </div>
+        </div>
+
         {/* Ambiente SEFAZ — radio + submit */}
         <section className="fx-cert-card" style={{ marginBottom: 14 }}>
           <h3>Ambiente SEFAZ</h3>
@@ -400,6 +638,8 @@ export default function Config({ activeTab, certificado, config, painel, seriesM
             <RadioGroup
               value={String(ambienteForm.data.ambiente)}
               onValueChange={(v) => ambienteForm.setData('ambiente', Number(v) as 1 | 2)}
+              disabled={!podeTrocarAmbiente}
+              title={podeTrocarAmbiente ? undefined : motivoGate}
               style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 12 }}
             >
               {/* htmlFor → clicar no label inteiro ativa o RadioGroupItem (botão labelable) */}
@@ -414,6 +654,65 @@ export default function Config({ activeTab, certificado, config, painel, seriesM
                 <small style={{ color: 'var(--warn)' }}>(valor fiscal real)</small>
               </label>
             </RadioGroup>
+
+            {/* Cerimônia da troca — só aparece quando há TROCA de verdade.
+                Duas provas independentes, porque confirmação de uma palavra
+                genérica ("sim", "ok") não segura uma ação que muda o valor fiscal
+                de toda nota emitida depois dela. */}
+            {podeTrocarAmbiente && trocaPedida && (
+              <div data-contract="fiscal-config-troca-ambiente" style={{ marginBottom: 12 }}>
+                <div
+                  className="fx-callout"
+                  role="alert"
+                  style={{ marginBottom: 12, background: 'var(--warn-soft, var(--bad-soft))', borderColor: 'var(--warn)' }}
+                >
+                  <AlertTriangle size={16} />
+                  <div>
+                    <b style={{ color: 'var(--warn)' }}>
+                      Você está trocando o ambiente para {destinoLabel}
+                    </b>
+                    <small>
+                      {ambienteForm.data.ambiente === 1
+                        ? 'A partir daqui as notas passam a ter valor fiscal real e vão pra contabilidade.'
+                        : 'A partir daqui as notas emitidas NÃO têm valor fiscal. Emitir dias em homologação sem perceber é o acidente que esta confirmação existe pra evitar.'}
+                    </small>
+                  </div>
+                </div>
+
+                <label htmlFor="ambiente-confirmacao" style={{ display: 'block', fontSize: 13, marginBottom: 6 }}>
+                  Digite <code className="fx-mono">{destinoLabel}</code> para confirmar
+                </label>
+                <Input
+                  id="ambiente-confirmacao"
+                  value={ambienteForm.data.confirmacao}
+                  onChange={(e) => ambienteForm.setData('confirmacao', e.target.value)}
+                  placeholder={destinoLabel}
+                  autoComplete="off"
+                  maxLength={40}
+                />
+                {ambienteForm.errors.confirmacao && (
+                  <small style={{ color: 'var(--bad)', display: 'block' }}>{ambienteForm.errors.confirmacao}</small>
+                )}
+
+                <label htmlFor="ambiente-motivo" style={{ display: 'block', fontSize: 13, marginTop: 10, marginBottom: 6 }}>
+                  Motivo <span style={{ color: 'var(--fx-text-mute)' }}>(fica na auditoria, com seu nome e o horário)</span>
+                </label>
+                <Input
+                  id="ambiente-motivo"
+                  value={ambienteForm.data.motivo}
+                  onChange={(e) => ambienteForm.setData('motivo', e.target.value)}
+                  placeholder="ex: fim dos testes de homologação — liberado pelo contador em 04/09"
+                  maxLength={255}
+                />
+                <small style={{ color: motivoBate ? 'var(--fx-text-mute)' : 'var(--warn)' }}>
+                  Mínimo 15 caracteres — {ambienteForm.data.motivo.trim().length} até agora.
+                </small>
+                {ambienteForm.errors.motivo && (
+                  <small style={{ color: 'var(--bad)', display: 'block' }}>{ambienteForm.errors.motivo}</small>
+                )}
+              </div>
+            )}
+
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
               <small style={{ color: 'var(--fx-text-mute)' }}>
                 Atual: <code className="fx-mono">{painel.ambiente === 1 ? 'PRODUÇÃO' : 'HOMOLOGAÇÃO'}</code>
@@ -421,7 +720,14 @@ export default function Config({ activeTab, certificado, config, painel, seriesM
               <Button
                 type="submit"
                 variant="cowork-ghost"
-                disabled={ambienteForm.processing || ambienteForm.data.ambiente === painel.ambiente}
+                title={
+                  !podeTrocarAmbiente ? motivoGate
+                    : !trocaPedida ? 'Selecione um ambiente diferente do atual'
+                      : !confirmacaoBate ? `Digite ${destinoLabel} no campo de confirmação`
+                        : !motivoBate ? 'Escreva um motivo de 15+ caracteres'
+                          : undefined
+                }
+                disabled={!podeTrocarAmbiente || ambienteForm.processing || !cerimoniaOk}
               >
                 {ambienteForm.processing ? 'Salvando…' : 'Salvar ambiente'}
               </Button>
@@ -510,107 +816,6 @@ export default function Config({ activeTab, certificado, config, painel, seriesM
         </section>
         </>
         )}
-
-        {tab === 'cert' && (<>
-        {/* Upload .pfx — Inertia useForm → POST /nfe-brasil/configuracao/certificado */}
-        <section className="fx-cert-card" style={{ marginBottom: 14 }}>
-          <h3>
-            <Upload size={14} style={{ verticalAlign: 'text-bottom', marginRight: 6 }} />
-            {certificado ? 'Substituir certificado' : 'Upload do certificado A1'}
-          </h3>
-          <p className="lead">
-            {certificado
-              ? 'Subir um certificado novo desativa o atual automaticamente (rotação cega).'
-              : 'Sobe o .pfx ou .p12 + senha. Valida CNPJ, criptografa em disco e habilita emissão NF-e/NFC-e.'}
-          </p>
-          <form onSubmit={submitUpload} style={{ marginTop: 12 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
-              <div>
-                <label htmlFor="certificado-file" style={{ display: 'block', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--fx-text-mute)', marginBottom: 6 }}>
-                  Arquivo .pfx / .p12 *
-                </label>
-                <Input
-                  id="certificado-file"
-                  ref={fileRef}
-                  type="file"
-                  accept=".pfx,.p12"
-                  onChange={(e) => uploadForm.setData('certificado', e.target.files?.[0] ?? null)}
-                />
-                <small style={{ color: 'var(--fx-text-mute)', fontSize: 11 }}>Máximo 100 KB. A3 (token) não é suportado.</small>
-                {uploadForm.errors.certificado && (
-                  <small style={{ color: 'var(--bad)', display: 'block', fontSize: 11 }}>{uploadForm.errors.certificado}</small>
-                )}
-              </div>
-              <div>
-                <label htmlFor="certificado-senha" style={{ display: 'block', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--fx-text-mute)', marginBottom: 6 }}>
-                  <KeyRound size={11} style={{ verticalAlign: 'text-bottom', marginRight: 4 }} />
-                  Senha do certificado *
-                </label>
-                <Input
-                  id="certificado-senha"
-                  type="password"
-                  value={uploadForm.data.senha}
-                  onChange={(e) => uploadForm.setData('senha', e.target.value)}
-                  autoComplete="off"
-                  maxLength={80}
-                />
-                <small style={{ color: 'var(--fx-text-mute)', fontSize: 11 }}>Encrypted-at-rest (Laravel encrypt) · nunca em log.</small>
-                {uploadForm.errors.senha && (
-                  <small style={{ color: 'var(--bad)', display: 'block', fontSize: 11 }}>{uploadForm.errors.senha}</small>
-                )}
-              </div>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <Button
-                type="submit"
-                variant="cowork-primary"
-                disabled={uploadForm.processing || !uploadForm.data.certificado || !uploadForm.data.senha}
-              >
-                {uploadForm.processing
-                  ? 'Enviando…'
-                  : certificado
-                    ? 'Substituir certificado'
-                    : 'Enviar certificado'}
-              </Button>
-            </div>
-          </form>
-        </section>
-
-        {/* Identificação + Numeração (info read-only consolidada do painel fiscal) */}
-        <section className="fx-cert-card" style={{ marginBottom: 14 }}>
-          <h3>Identificação fiscal &amp; numeração</h3>
-          <dl className="fx-kv" style={{ gridTemplateColumns: '140px 1fr 140px 1fr' }}>
-            <dt>CNPJ business</dt>
-            <dd className="fx-mono">{formatCnpj(painel.cnpjBusiness)}</dd>
-            <dt>Razão social</dt>
-            <dd>{painel.razaoSocial ?? '—'}</dd>
-            <dt>Regime</dt>
-            <dd>{painel.regime ? (REGIME_LABEL[painel.regime] ?? painel.regime) : (config ? (REGIME_LABEL[config.regime] ?? config.regime) : '—')}</dd>
-            <dt>Localização</dt>
-            <dd>{painel.cidade && painel.uf ? `${painel.cidade} / ${painel.uf}` : (painel.uf ?? '—')}</dd>
-            <dt>NCM padrão</dt>
-            <dd className="fx-mono">{painel.ncmPadrao ?? '—'}</dd>
-            <dt>CFOP / CSOSN</dt>
-            <dd className="fx-mono">{painel.cfopDefault ?? '—'} / {painel.csosnDefault ?? painel.cstDefault ?? '—'}</dd>
-            <dt>Série NFe</dt>
-            <dd className="fx-mono">{painel.serieNfe}</dd>
-            <dt>Próximo número</dt>
-            <dd className="fx-mono">{painel.proximoNumero}</dd>
-            <dt>Emissão auto</dt>
-            <dd>{config?.autoEmissionEnabled ? '✅ Habilitada' : <><Lock className="h-3.5 w-3.5 mr-1 inline align-text-bottom" />Manual</>}</dd>
-            <dt>Tributação default</dt>
-            <dd>
-              {config && Object.keys(config.tributacaoDefault).length > 0
-                ? <code className="fx-mono" style={{ fontSize: 11 }}>{JSON.stringify(config.tributacaoDefault).slice(0, 120)}</code>
-                : <small>nenhum default</small>}
-            </dd>
-          </dl>
-          <small style={{ display: 'block', marginTop: 12, color: 'var(--fx-text-mute)' }}>
-            Cascade NCM/CFOP/CSOSN avançado vive em{' '}
-            <a href="/nfe-brasil/tributacao" className="fx-link">/nfe-brasil/tributacao</a>.
-          </small>
-        </section>
-        </>)}
 
         {tab === 'series' && (
           seriesMock.length === 0 ? (

@@ -16,7 +16,13 @@ const DS = () => window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
 const UI = () => window.PBUI || {};
 const D = () => window.CBD || {};
 const U = () => window.CBUI || {};
-const Ic = ({ name, size = 14 }) => { const F = (window.I || {})[name]; return F ? <F size={size} /> : null; };
+const Ic = ({ name, size = 14, rotulo = null }) => {
+  const F = (window.I || {})[name];
+  if (!F) return null;
+  return rotulo
+    ? <span role="img" aria-label={rotulo} style={{ display: "inline-flex" }}><F size={size} /></span>
+    : <span aria-hidden="true" style={{ display: "inline-flex" }}><F size={size} /></span>;
+};
 
 const CONTATOS = [
   { id: 1, nome: "Rota Livre Transportes", user: "rotalivre", pessoa: "Daniela Prado", email: "daniela@rotalivre.com.br", tel: "(14) 99812-4410", tipo: "both", doc: "17.221.884/0001-02", end: "Rod. Mal. Rondon, km 302 — Jaú/SP",
@@ -264,7 +270,7 @@ function CrmPortalPage({ view = "painel" }) {
         </Widget>
         <Widget contrato="portal-pedido-itens" titulo="Itens do pedido" nota={itens.length + " linha(s)"}>
           <table className="pb-tbl" style={{ width: "100%" }}>
-            <thead><tr><th>Produto</th><th style={{ width: 120 }}>Unidade</th><th style={{ width: 120 }}>Quantidade</th><th style={{ width: 130, textAlign: "right" }}>Preço</th><th style={{ width: 140, textAlign: "right" }}>Subtotal</th><th style={{ width: 70 }}></th></tr></thead>
+            <thead><tr><th scope="col">Produto</th><th scope="col" style={{ width: 120 }}>Unidade</th><th scope="col" style={{ width: 120 }}>Quantidade</th><th scope="col" style={{ width: 130, textAlign: "right" }}>Preço</th><th scope="col" style={{ width: 140, textAlign: "right" }}>Subtotal</th><th scope="col" style={{ width: 70 }}></th></tr></thead>
             <tbody>
               {itens.map((i, ix) => {
                 const p = CATALOGO.find((c) => c.nome === i.prod);
@@ -321,9 +327,7 @@ function CrmPortalPage({ view = "painel" }) {
             <button className="os-btn primary" onClick={() => setTela("novo")}><Ic name="plus" size={13} /> Novo pedido</button>
           </>} />}
       <div className="pb-body">
-        <nav className="cli-moduletopnav cb-nav" aria-label="Telas do portal do contato">
-          {abas.map((k) => <button key={k} className={"cli-moduletopnav-tab " + (tela === k || (k === "pedidos" && tela === "novo") ? "active" : "")} onClick={() => setTela(k)}>{TITULOS[k]}</button>)}
-        </nav>
+        {window.CliTabs && <window.CliTabs ariaLabel="Telas do portal do contato" className="cb-nav" tabs={abas.map((k) => ({ key: k, label: TITULOS[k] }))} active={tela === "novo" ? "pedidos" : tela} onChange={setTela} />}
         {corpo}
       </div>
       {avisoNode}

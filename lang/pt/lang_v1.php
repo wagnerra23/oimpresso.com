@@ -35,6 +35,7 @@ return [
     'stock_transfer_added_successfully' => 'Transferência de estoque adicionado com sucesso',
     'stock_transfer_delete_success' => 'Transferência de estoque excluída com sucesso',
     'stock_transfer_cannot_be_deleted' => 'Esta transferência de ações não pode ser eliminada, pois algumas das ações já estão vendidas',
+    'stock_transfer_already_completed' => 'Esta transferência já está concluída. O estoque já foi movimentado e o status não pode mais ser alterado.',
     'total_transfer_shipping_charges' => 'Total de despesas de envio de transferência',
     'enable_inline_tax' => 'Ativar impostos on-line sobre compra e venda',
     'save_n_add_opening_stock' => 'Salvar e adicionar estoque de abertura',

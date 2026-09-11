@@ -20,14 +20,21 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+import AlertasFiscais, { type AlertaFiscal } from './_components/AlertasFiscais';
+import DensidadeToggle from './_components/DensidadeToggle';
 import EventosDrawer, { type EventoFiscal } from './_components/EventosDrawer';
 import FxShell from './_components/FxShell';
 import NFSeDrawer, { type NFSeDrawerData } from './_components/NFSeDrawer';
 import NotaDrawerV2, { type NotaDrawerData } from './_components/NotaDrawerV2';
+import RibbonSpark from './_components/RibbonSpark';
 import SavedViewsChips from './_components/SavedViewsChips';
+import { SeloProcedencia } from './_components/SeloProcedencia';
 import SendToContabilDrawer, { type SendToContabilData } from './_components/SendToContabilDrawer';
 import WriteOffAuditoriaCard, { type WriteOffSummary } from './_components/WriteOffAuditoriaCard';
 import { brl, truncKey } from './_lib/fiscal-helpers';
+import { useDensidadeFiscal } from './_lib/densidade-fiscal';
+import { type MapaProcedencia } from './_lib/procedencia';
+import { Inline } from '@/Components/layout';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 
@@ -48,16 +55,6 @@ interface Sparklines {
   autorizadas: number[];
   rejeitadas: number[];
   faturamento: number[];
-}
-
-interface Alert {
-  level: 'crit' | 'warn' | 'info';
-  icon: string;
-  title: string;
-  sub: string;
-  action: string;
-  goto: string;
-  focus?: string;
 }
 
 type Tipo = 'NF-e' | 'NFC-e' | 'NFS-e';
@@ -126,7 +123,7 @@ interface SefazStatus {
 interface CockpitProps {
   kpis: Kpis;
   sparklines: Sparklines;
-  alerts: Alert[];
+  alerts: AlertaFiscal[];
   notas: NotaRow[];
   savedViewCounts: SavedViewCounts;
   sefazStatus: SefazStatus;
@@ -135,12 +132,13 @@ interface CockpitProps {
   contabilData?: SendToContabilData | null;
   // Onda 3 — auditoria mensal (write-off candidatos)
   writeOffSummary?: WriteOffSummary | null;
+  // CU-FISC-16 — procedência por superfície, declarada em CockpitController::procedencia().
+  procedencia?: MapaProcedencia;
 }
 
 type ViewId = 'todas' | 'resolver' | 'janela24' | 'processando' | 'nfse' | 'nfce' | 'custom';
 type TipoFilter = 'todos' | Tipo;
 type StatusFilter = 'todos' | 'autorizadas' | 'rejeitadas' | 'processando' | 'cancelaveis';
-type Density = 'compact' | 'comfort' | 'relax';
 
 const REJECTED_NFE_CODES = [110, 204, 220, 539, 691, 778];
 
@@ -227,8 +225,9 @@ function mapToNFSeDrawerData(n: NotaRow): NFSeDrawerData {
 }
 
 export default function Cockpit({
-  kpis, alerts, notas, savedViewCounts, sefazStatus,
+  kpis, sparklines, alerts, notas, savedViewCounts, sefazStatus,
   eventosMock = [], contabilData = null, writeOffSummary = null,
+  procedencia,
 }: CockpitProps) {
   const goto = (path: string) => router.visit(path);
 
@@ -237,7 +236,10 @@ export default function Cockpit({
   const [tipo, setTipo] = useState<TipoFilter>('todos');
   const [status, setStatus] = useState<StatusFilter>('todos');
   const [view, setView] = useState<ViewId>('todas');
-  const [density, setDensity] = useState<Density>('comfort');
+  const [density, setDensity] = useDensidadeFiscal();
+  // Onda 3 · o default 8 e as opções 8/25/50 vêm do protótipo (fiscal-page.jsx), não de palpite.
+  const [pagina, setPagina] = useState(1);
+  const [porPagina, setPorPagina] = useState(8);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [clienteFilter, setClienteFilter] = useState<string | null>(null);
 
@@ -271,7 +273,7 @@ export default function Cockpit({
     if (view !== 'custom') setView('custom');
   };
 
-  const rows = useMemo<NotaRow[]>(() => {
+  const filtrados = useMemo<NotaRow[]>(() => {
     let r = notas;
     if (tipo !== 'todos') r = r.filter((n) => n.tipo === tipo);
     if (status === 'autorizadas') r = r.filter(isAuthorized);
@@ -291,8 +293,27 @@ export default function Cockpit({
     return r;
   }, [notas, tipo, status, clienteFilter, search]);
 
-  // Limpa seleção quando filtra
-  useEffect(() => { setSelected(new Set()); }, [tipo, status, search, clienteFilter]);
+  // Onda 3 · paginação CLIENT-SIDE, espelhando `FxNotasPage` de fiscal-page.jsx.
+  //
+  // O universo paginado é `filtrados` — a lista JÁ carregada e filtrada —, NUNCA um total
+  // de banco. `NotasUnifiedService::LIMITE` corta a fonte em 50 antes de ela chegar aqui
+  // (o docblock de lá declara: "é resumo; a lista completa vive em /fiscal/nfe"), e não
+  // existe contagem total escopada por business para servir de denominador honesto:
+  // `contadores()['todas']` conta a MESMA lista truncada. Por isso o rodapé fala de
+  // "resultados carregados" e não promete um total do negócio — ver UC-FCKP-09.
+  const paginas = Math.max(1, Math.ceil(filtrados.length / porPagina));
+  const rows = useMemo<NotaRow[]>(
+    () => filtrados.slice((pagina - 1) * porPagina, pagina * porPagina),
+    [filtrados, pagina, porPagina],
+  );
+
+  // Limpa seleção e volta pra página 1 quando filtra ou troca o tamanho da página: sem
+  // isso o operador fica numa página que não existe mais, com seleção de linhas que ele
+  // não vê. `porPagina` entra nas deps de propósito (vem do protótipo).
+  useEffect(() => {
+    setSelected(new Set());
+    setPagina(1);
+  }, [tipo, status, search, clienteFilter, porPagina]);
 
   const toggleSel = (id: string) => {
     const next = new Set(selected);
@@ -319,6 +340,21 @@ export default function Cockpit({
   const totalRej = kpis.rejeitadas + (alerts.filter((a) => a.level === 'crit').length);
   const crumb = `Maio 2026 · ${kpis.emitidas} notas · ${totalRej} requerem ação`;
 
+  // KPI "Certif. A1" — `certificadoValidadeDias` é NEGATIVO quando o cert já venceu.
+  // Até 2026-09-04 o valor era interpolado cru (`${dias}d`), e um cert vencido há 28
+  // dias renderizava o literal "-28d" com o rótulo "renovar". Mesma origem do vão
+  // que existia em CockpitController::computeAlerts() — ver UC-FCKP-10.
+  const certDias = kpis.certificadoValidadeDias;
+  const certVencido = certDias != null && certDias < 0;
+  const certValor = certDias == null ? '—' : certVencido ? 'vencido' : `${certDias}d`;
+  const certNota = certDias == null
+    ? 'sem certificado'
+    : certVencido
+      ? `há ${Math.abs(certDias)}d`
+      : certDias <= 30
+        ? 'renovar'
+        : 'vigente';
+
   return (
     <AppShellV2>
       <Head title="Fiscal · Notas Fiscais" />
@@ -329,6 +365,8 @@ export default function Cockpit({
         crumb={crumb}
         env={sefazStatus.label}
         envTone={sefazStatus.operacional ? 'ok' : 'bad'}
+        envSelo={<SeloProcedencia mapa={procedencia} chave="sefaz" />}
+        procedencia={procedencia}
         cheats={[
           { keys: ['⌘', 'K'], label: 'buscar' },
           { keys: ['N'], label: 'emitir' },
@@ -339,6 +377,7 @@ export default function Cockpit({
           <>
             <Button type="button" variant="cowork-ghost" onClick={() => setEventosOpen(true)}>
               <RefreshCw size={12} /> Eventos
+              <SeloProcedencia mapa={procedencia} chave="eventos" />
               {eventosMock.length > 0 && (
                 <span className="ml-1 text-[10px] font-bold text-muted-foreground">{eventosMock.length}</span>
               )}
@@ -351,6 +390,7 @@ export default function Cockpit({
               title={contabilData ? 'Abrir fluxo de envio mensal' : 'Backend stub — TODO[CL]'}
             >
               <Archive size={12} /> Enviar p/ contabilidade
+              <SeloProcedencia mapa={procedencia} chave="contabil" />
             </Button>
             <div ref={emitirRef} className="fx-popmenu-wrap">
               <Button
@@ -382,19 +422,22 @@ export default function Cockpit({
         {/* KPI ribbon estreito (substitui fx-kpis-cockpit 6-card grid) */}
         <div className="fx-ribbon" data-contract="fiscal-cockpit-kpis" role="region" aria-label="KPIs fiscais">
           <span className="fx-ribbon-item">
-            <small>Emitidas</small>
+            <small>Emitidas<SeloProcedencia mapa={procedencia} chave="kpis" /><SeloProcedencia mapa={procedencia} chave="spark" /></small>
             <b>{kpis.emitidas}</b>
             <em className="up">↑ 12 vs abr</em>
+            <RibbonSpark data={sparklines.emitidas} />
           </span>
           <span className="fx-ribbon-item">
             <small>Autorizadas</small>
             <b className="ok-text">{kpis.autorizadas}</b>
             <em>{kpis.autorizadasPct}%</em>
+            <RibbonSpark data={sparklines.autorizadas} />
           </span>
           <span className="fx-ribbon-item">
             <small>Rejeitadas</small>
             <b className={kpis.rejeitadas > 0 ? 'emph' : ''}>{kpis.rejeitadas}</b>
             {kpis.rejeitadas > 0 && <em className="down">requer ação</em>}
+            <RibbonSpark data={sparklines.rejeitadas} />
           </span>
           <span className="fx-ribbon-item">
             <small>DF-e p/ manifestar</small>
@@ -403,8 +446,8 @@ export default function Cockpit({
           </span>
           <span className="fx-ribbon-item">
             <small>Certif. A1</small>
-            <b>{kpis.certificadoValidadeDias != null ? `${kpis.certificadoValidadeDias}d` : '—'}</b>
-            <em>{kpis.certificadoValidadeDias != null && kpis.certificadoValidadeDias <= 30 ? 'renovar' : 'vigente'}</em>
+            <b className={certVencido ? 'emph' : ''}>{certValor}</b>
+            <em className={certVencido ? 'down' : ''}>{certNota}</em>
           </span>
           <span className="fx-ribbon-item">
             <small>Faturado fiscal</small>
@@ -415,7 +458,21 @@ export default function Cockpit({
           </Button>
         </div>
 
+        {/* Fila de alertas — o que o ribbon conta em "requerem ação", item a item.
+            Só renderiza quando há alerta; zero alertas = nó ausente. */}
+        {alerts.length > 0 && (
+          <Inline justify="end">
+            <SeloProcedencia mapa={procedencia} chave="alerts" />
+          </Inline>
+        )}
+        <AlertasFiscais alerts={alerts} />
+
         {/* Onda 3 L — Write-off auditoria mensal (só renderiza se houver candidatos) */}
+        {writeOffSummary && (
+          <Inline justify="end">
+            <SeloProcedencia mapa={procedencia} chave="writeoff" />
+          </Inline>
+        )}
         <WriteOffAuditoriaCard summary={writeOffSummary} />
 
         {/* Toolbar minimalista — search + 3 selects + density */}
@@ -439,6 +496,9 @@ export default function Cockpit({
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
+
+          <SeloProcedencia mapa={procedencia} chave="notas" />
+          <SeloProcedencia mapa={procedencia} chave="viewCounts" />
 
           {/* Onda 3 C — SavedViewsChips (substitui o <select> por chips horizontais Linear-style) */}
           <SavedViewsChips
@@ -479,17 +539,7 @@ export default function Cockpit({
             </SelectContent>
           </Select>
 
-          <div className="fx-density" role="radiogroup" aria-label="Densidade da tabela">
-            <button type="button" className={density === 'compact' ? 'active' : ''} onClick={() => setDensity('compact')} title="Compacto" aria-pressed={density === 'compact'}>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="6" width="18" height="2" /><rect x="3" y="11" width="18" height="2" /><rect x="3" y="16" width="18" height="2" /></svg>
-            </button>
-            <button type="button" className={density === 'comfort' ? 'active' : ''} onClick={() => setDensity('comfort')} title="Confortável" aria-pressed={density === 'comfort'}>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="4" width="18" height="3" /><rect x="3" y="10" width="18" height="3" /><rect x="3" y="16" width="18" height="3" /></svg>
-            </button>
-            <button type="button" className={density === 'relax' ? 'active' : ''} onClick={() => setDensity('relax')} title="Relaxado" aria-pressed={density === 'relax'}>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="18" height="5" /><rect x="3" y="11" width="18" height="5" /></svg>
-            </button>
-          </div>
+          <DensidadeToggle value={density} onChange={setDensity} />
         </div>
 
         {/* Chip de cliente filtrado */}
@@ -550,6 +600,23 @@ export default function Cockpit({
                         className={openedId === n.id ? 'fx-row-focus' : ''}
                         style={{ cursor: 'pointer' }}
                         title="Click pra abrir detalhes (drawer)"
+                        tabIndex={0}
+                        aria-label={`Abrir ${n.tipo} ${n.num} · ${n.cliente || '—'}`}
+                        onKeyDown={(e) => {
+                          if (e.key !== 'Enter' && e.key !== ' ') return;
+                          // preventDefault: sem ele o Space ROLA a página (default do browser em
+                          // elemento focável) e o operador perde de vista a linha que abriu.
+                          // stopPropagation: MEDIDO em 2026-09-04 — hoje nenhum listener de
+                          // `window` desta tela vê Enter/Space (o do `FxShell` só reage aos
+                          // dígitos 1-7 de `FX_PAGES.short`; o do `CmdKPalette`, a ⌘K e Escape),
+                          // então ele não é o que faz o caso passar. Fica porque o charter prevê
+                          // J/K nesta tela numa onda seguinte, e é ele que evita a abertura dupla
+                          // quando os dois caminhos virem a mesma tecla — como já acontece no
+                          // `Nfe.tsx`, onde o handler global existe.
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setOpenedId(n.id);
+                        }}
                       >
                         <td onClick={(e) => e.stopPropagation()}>
                           <Checkbox
@@ -639,6 +706,52 @@ export default function Cockpit({
                 </tbody>
               </table>
             </div>
+          </div>
+        )}
+
+        {/* Onda 3 · rodapé de paginação. Ordem e copy vêm de fiscal-page.jsx §FxNotasPage.
+            O hint "J/K navega · ↵ abre · N emite" do protótipo NÃO entra: no protótipo o
+            cockpit e a lista de NF-e são o MESMO componente, então o atalho valia para os
+            dois; em produção são telas separadas e a Onda 2 (PR 6707) entregou o teclado só
+            (o número vai sem cerquilha de propósito: seus dígitos são todos hex válidos e
+            esta linha é CONTINUAÇÃO de comentário JSX, que o skip do `ui:lint` declaradamente
+            não cobre — o falso-positivo R1 catalogado no docblock de `UiLintCommand`)
+            no Nfe.tsx. Anunciar aqui um atalho que esta tela não tem seria copy mentindo. */}
+        {filtrados.length > 0 && (
+          <div className="fx-pager" data-contract="paginacao-notas">
+            <span>
+              {(pagina - 1) * porPagina + 1}–{Math.min(pagina * porPagina, filtrados.length)}
+              {' de '}{filtrados.length} carregadas
+            </span>
+
+            <Select value={String(porPagina)} onValueChange={(v) => setPorPagina(Number(v))}>
+              <SelectTrigger size="sm" className="w-auto" aria-label="Notas por página">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="8">8 por página</SelectItem>
+                <SelectItem value="25">25 por página</SelectItem>
+                <SelectItem value="50">50 por página</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Button
+              type="button"
+              variant="cowork-ghost"
+              disabled={pagina <= 1}
+              onClick={() => setPagina((p) => Math.max(1, p - 1))}
+            >
+              Anterior
+            </Button>
+            <span className="fx-pager-n">{pagina} / {paginas}</span>
+            <Button
+              type="button"
+              variant="cowork-ghost"
+              disabled={pagina >= paginas}
+              onClick={() => setPagina((p) => Math.min(paginas, p + 1))}
+            >
+              Próxima
+            </Button>
           </div>
         )}
       </FxShell>

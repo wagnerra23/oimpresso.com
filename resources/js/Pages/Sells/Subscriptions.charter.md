@@ -2,6 +2,8 @@
 id: resources-js-pages-sells-subscriptions-charter
 page: /sells/subscriptions
 component: resources/js/Pages/Sells/Subscriptions.tsx
+related_us: [US-SELL-062]
+related_visual_comparison: memory/requisitos/Sells/subscriptions-visual-comparison.md
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
 owner: wagner
 status: draft

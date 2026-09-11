@@ -133,6 +133,7 @@ export function FinAnexosPanel({ tituloId }: Props) {
     // por teclado é o botão "Anexar" logo abaixo — o container não precisa ser focável.
     // eslint-disable-next-line jsx-a11y/no-static-element-interactions
     <div
+      data-contract="anexos-no-drawer"
       className={`border-t border-stone-200 pt-4 rounded-b transition-colors ${dragOver ? 'bg-primary/5 outline-dashed outline-1 outline-primary/50' : ''}`}
       onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
       onDragLeave={() => setDragOver(false)}

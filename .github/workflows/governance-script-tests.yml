@@ -109,6 +109,14 @@ jobs:
       - name: §5 derive bite-test (corta arqueologia, NUNCA come limite · lapide de 2 eixos)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/sec5-derive.mjs --selftest
+      # O auto-aperto de baseline ESCREVE em arquivo de catraca — se o medidor de direcao
+      # errar, ele grandfathera divida em vez de travar ganho, que e o Gap-2 do tamper-guard.
+      # Por isso o bite-test dele roda em PR (aqui), nao so no cron semanal que o invoca:
+      # gate que so se testa quando ja rodou sozinho e gate que se testa tarde demais.
+      # Zero deps (node:fs/child_process/path/os), entao cabe nesta lane que nao instala nada.
+      - name: baseline-folga bite-test (aperta MORDE · afrouxa/misto REVERTE · quebrado = NAO_MEDIDO)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/baseline-folga.mjs --selftest
       # O contrato de completude da ADR 0277 ("migrado = route Blade morto") foi decidido em
       # 2026-06-13 e NUNCA ganhou maquina — medido: 0 scripts, 0 workflows contavam route Blade
       # vivo, e o censo A-L do roadmap era digitado a mao. Este selftest defende o MEDIDOR;
@@ -204,6 +212,9 @@ jobs:
       - name: Agent PR outcomes (DORA do agente · CFR morde/libera · card #0 grade-das-reguas)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/agent-pr-outcomes.test.mjs
+      - name: Fluxo do sistema (DORA + Flow do repo inteiro · CFR/recuperacao/WIP/adocao mordem por fixture · nao-medido nunca vira 0)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/fluxo-sistema.test.mjs
       - name: Agent cost per PR (custo USD por PR · join 2-sinais morde/libera · item #7 grade-das-reguas)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/agent-cost-per-pr.test.mjs
@@ -525,6 +536,14 @@ jobs:
       - name: Porta-viva morde (LC-08 · fixtures boa/ruim + INVOCAÇÃO real por stdin)
         if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/block-instrumento-sem-porta-viva.mjs --selftest
+      # O hook está wirado no settings.json desde 2026-08-21 e o selftest dele nunca
+      # teve invocador — "selftest sem invocador é a máquina órfã" (mesma razão do
+      # step do design-agente-ativa acima). Quebrar os 4 padrões não acusaria ninguém.
+      # O P5 é injetado com jqExiste:false no selftest DE PROPÓSITO: aqui o runner é
+      # ubuntu e o jq EXISTE, então sem a injeção a fixture mediria o runner, não o hook.
+      - name: Sonda-que-mente morde (P2/P3/P4/P5 · fixtures + controles negativos)
+        if: always() && steps.setup.outcome == 'success'
+        run: node .claude/hooks/block-sonda-que-mente.mjs --selftest
       - name: Registro porta-viva em settings.json (LC-08 · matcher Glob E Grep)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/settings-porta-viva-registration.test.mjs
@@ -598,6 +617,15 @@ jobs:
       - name: bundle transacional morde (sequência/SHA/staging/rollback/módulos/evidências)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/bundle-transaction.test.mjs
+      # Recepção do handoff .zip (decisão [W] 2026-09-10). O teste MONTA os zips em memória, então
+      # é também o controle positivo do leitor: se o formato que ele escreve e o que o `zip-reader`
+      # lê divergissem, os casos "solta" cairiam. Trava CRC-32 conferido, ZIP64 recusado, zip-slip
+      # barrado, pacote velho detectado por sha256 (não por `generatedAt`) e o `classificar` que
+      # se recusa a nomear direção — o rótulo `ZIP-NOVO` da 1a versão caiu num caso em que o zip
+      # era mais VELHO, e afirmar novidade que não se mede é o LC-08 de sempre.
+      - name: receber-handoff morde (zip/CRC/zip-slip/pacote velho/3 pontos · hermético)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/design-sync/receber-handoff.test.mjs
       - name: ds-push orquestrador morde (dry-run VALOR:0 + determinismo · loop diff-first)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/ds-push.test.mjs
@@ -977,6 +1005,17 @@ jobs:
       - name: Réguas workflow (persistência incremental · checkpoint antes da prosa · retrato parcial declarado)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/reguas-workflow.test.mjs
+      # Refutador GT-G5 como workflow (.claude/workflows/refutador-gt-g5.js) — caminho executável
+      # do §2 do PROTOCOLO-REFUTADOR-BACKFILL (§7). Mesmo idiom do teste acima: embrulha o
+      # arquivo VIVO com um dublê de agent() (zero agentes/rede/git). Trava as partes puras
+      # (parse do JSON do refutador · entry no formato da do PR #6897 · error_rate · veredito da
+      # MÁQUINA, não do adjetivo do agente) e o controle de fluxo (reprovado PARA sem tocar o
+      # ledger · aprovado grava + ledger-check --enforce · resume lê as caudas · teto). Bite
+      # conferido por mutação em 2026-09-06 (aceite `>` em vez de `>=` → 1 falha; escrivão em
+      # lote reprovado → 5 falhas). Advisory por desenho (ADR 0314/0275).
+      - name: Refutador GT-G5 workflow (reprovado para · aprovado registra · resume · entry 6897)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/refutador-gt-g5-workflow.test.mjs
       - name: Migração visual em ondas (duplo aceite · uma onda · Tier 0)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/migracao-layout-workflow.test.mjs

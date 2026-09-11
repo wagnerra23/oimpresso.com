@@ -5,8 +5,8 @@ irmaos: Show.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-07-27"
-last_run_ci: "0 UC executado — UC-OSH-05..11 nascem neste PR; veredito pendente da lane PHP / Pest (OficinaAuto · MySQL)"
+last_run: "2026-09-09"
+last_run_ci: "2026-09-09 CT100 (oimpresso-staging, main 755f6de79, MySQL oimpresso_staging): 49 passed / 10 failed (146 assertions) nos 12 arquivos citados pelos UCs. As 10 falhas sao PRE-EXISTENTES e nao vem desta tela — o container roda o main SEM a mudanca do PR. Causa medida: 3 do ServiceOrderStagePipelineTest esperam os stages disponivel/locada/recolhida, dominio LOCACAO erradicado (proibicoes.md 2026-06-09 + RUNBOOK-erradicacao-locacao.md, que nomeia este teste entre os 7 pendentes); as demais sao comparacao estrita int x float (145 vs 145.0). Status dos UC segue 🧪 — nenhum sobe a ✅ com este run."
 related_us: [US-OFICINA-001, US-OFICINA-003, US-OFICINA-035, US-OFICINA-038, US-OFICINA-039, US-OFICINA-040, US-OFICINA-041]
 related_cu: [CU-OFI-04, CU-OFI-05, CU-OFI-07, CU-OFI-08, CU-OFI-09, CU-OFI-10, CU-OFI-11, CU-OFI-13, CU-OFI-15, CU-OFI-16]
 ---

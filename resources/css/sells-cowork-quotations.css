@@ -69,3 +69,24 @@
   color: var(--text-dim, oklch(0.50 0.01 80));
   border: 1px solid var(--border, oklch(0.90 0.004 90));
 }
+
+/* ────────────────────── TEMA ESCURO (paleta --vd-quote-*) ──────────────────────
+ * Só-light: `-soft` L≈0.96, `-text` L≈0.42, `-border` L≈0.86. Valores dark pelo
+ * padrão do DS transcrito no #6712; hues 75/145/25/60 preservados, e os do trio
+ * convert/expired/expiring reusam os valores ok/warn/bad daquele PR.
+ *
+ * `--vd-quote-convert-fg` (#ffffff) fica FORA: foreground sobre accent.
+ * ───────────────────────────────────────────────────────────────────────────── */
+.cockpit[data-theme="dark"] .sells-cowork-quotations,
+.dark .sells-cowork-quotations {
+  --vd-quote-amber:         oklch(0.80 0.13 75);
+  --vd-quote-amber-soft:    oklch(0.27 0.06 75);
+  --vd-quote-amber-border:  oklch(0.38 0.07 75);
+  --vd-quote-amber-text:    oklch(0.85 0.11 70);
+  --vd-quote-convert:       oklch(0.74 0.14 145);
+  --vd-quote-convert-hover: oklch(0.80 0.14 145);
+  --vd-quote-expired:       oklch(0.72 0.16 25);
+  --vd-quote-expired-soft:  oklch(0.26 0.07 25);
+  --vd-quote-expiring:      oklch(0.80 0.13 60);
+  --vd-quote-expiring-soft: oklch(0.27 0.06 60);
+}

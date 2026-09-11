@@ -1,8 +1,14 @@
 // Icon set — outline 1.6px stroke, 16/14px, lucide-flavored but hand-rolled.
-const Icon = ({ d, size = 16, stroke = 1.6, className = "ic", style }) => (
+// A3 (2026-09-10): `...rest` + `aria-hidden` default. Antes o componente descartava toda prop
+// não-listada, então `aria-hidden` passado por chamada sumia e nenhuma tela conseguia corrigir
+// o glyph anônimo item a item. Todo ícone daqui é decorativo por padrão (as linhas têm rótulo
+// de texto ao lado); quem precisar de ícone COM nome passa `aria-hidden={false}` + `role="img"`
+// + `aria-label`, e a prop agora chega.
+const Icon = ({ d, size = 16, stroke = 1.6, className = "ic", style, ...rest }) => (
   <svg className={className} width={size} height={size} viewBox="0 0 24 24"
        fill="none" stroke="currentColor" strokeWidth={stroke}
-       strokeLinecap="round" strokeLinejoin="round" style={style}>
+       strokeLinecap="round" strokeLinejoin="round" style={style}
+       aria-hidden="true" focusable="false" {...rest}>
     {d}
   </svg>
 );
@@ -44,6 +50,7 @@ const I = {
   chevDown:(p) => <Icon {...p} d={<polyline points="6 9 12 15 18 9"/>}/>,
   bell:    (p) => <Icon {...p} d={<><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a2 2 0 0 0 3.4 0"/></>}/>,
   moon:    (p) => <Icon {...p} d={<><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></>}/>,
+  palette: (p) => <Icon {...p} d={<><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2a10 10 0 0 0 0 20 2 2 0 0 0 2-2v-1a2 2 0 0 1 2-2h1a4 4 0 0 0 4-4 10 10 0 0 0-9-11Z"/></>}/>,
   user:    (p) => <Icon {...p} d={<><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></>}/>,
   keyboard:(p) => <Icon {...p} d={<><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M6 14h12"/></>}/>,
   help:    (p) => <Icon {...p} d={<><circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/></>}/>,

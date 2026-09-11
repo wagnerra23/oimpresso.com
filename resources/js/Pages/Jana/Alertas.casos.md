@@ -4,7 +4,7 @@ casos: Jana Alertas · desvios de meta · conta server-side · aba da área · /
 irmaos: Alertas.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-alertas.md (runbook) · prototipo-ui/contrato/jana-alertas.contract.json (contrato visual)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-09-02"
+last_run: "2026-09-04"
 ---
 
 # Casos de uso — /ia/alertas (aba Alertas da Jana)
@@ -75,3 +75,13 @@ Status: 🧪 (`AlertasContratoTest` — unidade sobre `AlertaService::calcular`,
 
 ## Trilha do tempo
 - 2026-09-02 · trio nascido junto (charter + casos + Pest + e2e stub + contrato). Refs: UI-0013 · ADR 0264 G-1/G-2.
+
+## Revalidação — 2026-09-04 (PR #6767)
+
+A tela mudou (`Alertas.tsx` ganhou a prop `caption` do `shared/DataTable`), acordando o G-6.
+**Revalidado pelo CI:** lane `PHP / Pest (Jana · MySQL)`, run
+[33907005258](https://github.com/wagnerra23/oimpresso.com/actions/runs/33907005258) —
+`PASS Modules\Jana\Tests\Feature\AlertasContratoTest`. Conferido que executou de fato: o
+teste está na allowlist da lane (`jana-pest.yml:194`) e o filtro dela casa
+`resources/js/Pages/Jana/**`, então não houve skip-as-pass. O `UC-ALRT-*` de copy/ordem é o
+que poderia quebrar — a mudança **acrescenta** texto ao `.tsx` que o contrato lê — e passou.

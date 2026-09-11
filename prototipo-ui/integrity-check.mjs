@@ -153,8 +153,15 @@ const spine = {
 
 // ---- IT6 — DS-GUARD limpo nos arquivos canonicos do DS (ADVISORY) ---------
 {
-  const dsFiles = ['tokens.css', 'design-system.css'].map((f) => join(PROTO, f)).filter((p) => existsSync(p));
-  if (!dsFiles.length) add('IT6', false, true, 'arquivos canonicos do DS nao encontrados no protótipo (advisory)');
+  // DS canonico = o ESPELHO do projeto Cowork "Office Impresso — Design System" (019dd02f).
+  // As copias soltas da raiz (tokens.css/design-system.css) estavam congeladas em 2026-06-08 e foram
+  // apagadas na faxina de 2026-09-11 — o proprio COMPARISON-bundle-full deste repo ja registrava o
+  // espelho como "superset componentizado" delas, e 26/26 dos tokens consumidos sobrevivem la.
+  // Ausencia do canon deixa de ser PASS: antes o 3o argumento era 'true' e o IT6 carimbava verde
+  // exatamente quando nao achava o DS — verde que nao podia ficar vermelho.
+  const dsFiles = ['colors_and_type.css', 'styles.css', 'cockpit_domains.css']
+    .map((f) => join(PROTO, 'design-system', f)).filter((p) => existsSync(p));
+  if (!dsFiles.length) add('IT6', false, false, 'DS canonico AUSENTE: prototipo-ui/design-system/ (espelho 019dd02f) sem CSS de token');
   else {
     let unreadable = 0;
     for (const f of dsFiles) { if ((await read(f)) === null) unreadable++; }

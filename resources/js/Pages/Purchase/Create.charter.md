@@ -4,6 +4,8 @@ page: /purchases/create
 component: resources/js/Pages/Purchase/Create.tsx
 related_prototype: prototipo-ui/cowork/compras-grade-matrix.jsx
 bundle_source: compras-grade-matrix.jsx
+related_runbook: memory/requisitos/Compras/_telas/RUNBOOK-purchase-create.md
+related_visual_comparison: memory/requisitos/Compras/_telas/purchase-create-visual-comparison.md
 tela: purchase/create
 tipo: FORM (CREATE)
 modulo: Purchase

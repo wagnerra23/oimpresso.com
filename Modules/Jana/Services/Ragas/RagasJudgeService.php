@@ -7,6 +7,7 @@ namespace Modules\Jana\Services\Ragas;
 use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Modules\Jana\Console\Commands\HealthCheckCommand;
 use Modules\Jana\Services\Telemetry\LangfuseClient;
 
 /**
@@ -48,6 +49,19 @@ class RagasJudgeService
         'context_precision' => 0.82,
         'context_recall' => 0.71,
     ];
+
+    /**
+     * Codigo do erro de CONTA-SEM-CREDITO que ja apareceu neste run, ou null.
+     *
+     * Nao e cache de erro generico: so a familia SEM-CREDITO
+     * (`HealthCheckCommand::QUOTA_CODIGOS_SEM_CREDITO`) arma isto, porque so ela e
+     * MONOTONICA dentro de um run — credito nao volta no meio da avaliacao. Um
+     * `rate_limit_exceeded` e transitorio e NAO arma, senao uma rajada de 1s
+     * derrubaria as 50 perguntas seguintes que teriam medido bem.
+     *
+     * @see self::callJudge() — onde arma e onde curto-circuita
+     */
+    protected ?string $semCreditoCodigo = null;
 
     public function enableMock(array $scores = []): void
     {
@@ -237,6 +251,19 @@ PROMPT;
      */
     protected function callJudge(string $prompt, string $metric): float
     {
+        // CURTO-CIRCUITO: a conta ja se declarou sem credito neste run.
+        //
+        // Medido no canary de 2026-09-03 (run 33744191426): as 51 perguntas x 2 metricas
+        // = 102 chamadas sairam TODAS com `HTTP 429 erro=credit_balance_exhausted`, e as
+        // 102 viraram 102 linhas identicas de WARNING. A 1a ja tinha respondido a pergunta;
+        // as outras 101 gastaram ~40s de runner e enterraram a causa em ruido.
+        //
+        // O veredito NAO muda: 0.0 aqui e 0.0 la, o runner segue dizendo "MEDICAO FALHOU"
+        // com rc=2 e NAO toca o baseline. O que muda e o custo e a legibilidade.
+        if ($this->semCreditoCodigo !== null) {
+            return 0.0;
+        }
+
         $apiKey = config('openai.api_key') ?: env('OPENAI_API_KEY');
 
         if (empty($apiKey)) {
@@ -289,6 +316,21 @@ PROMPT;
                     ($codigo === null || $codigo === '') ? '(sem corpo)' : $codigo,
                     $retryAfter ? " retry_after={$retryAfter}" : ''
                 ));
+
+                // Arma o curto-circuito SO pra familia sem-credito. A lista e a canonica
+                // (`HealthCheckCommand::QUOTA_CODIGOS_SEM_CREDITO`) — nao se copia aqui,
+                // senao vira a 3a copia parcial e drifta, que foi o defeito que a tabela
+                // do canary teve ate o #6636.
+                if (in_array((string) $codigo, HealthCheckCommand::QUOTA_CODIGOS_SEM_CREDITO, true)) {
+                    $this->semCreditoCodigo = (string) $codigo;
+
+                    Log::warning(sprintf(
+                        '[RAGAS] Judge SEM CREDITO (erro=%s) — as chamadas restantes deste run '
+                        . 'sao puladas: seriam recusadas igual. Causa e da CONTA (billing), fora '
+                        . 'do repo. NAO regravar baseline neste estado (scores 0.0).',
+                        $codigo
+                    ));
+                }
 
                 return 0.0;
             }

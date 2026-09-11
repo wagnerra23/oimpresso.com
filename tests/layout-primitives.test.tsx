@@ -113,12 +113,36 @@ describe("primitivos — refino v2 (ADR 0253): cobertura ERP real, ainda só-tok
     expect(container.querySelector('[data-slot="inline"]')!.className).toContain("divide-x")
   })
 
-  it("Grid: min vira auto-fit responsivo (e vence cols quando ambos vierem)", () => {
+  it("Grid: min vira auto-FILL responsivo (e vence cols quando ambos vierem)", () => {
     const { container } = render(<Grid min="md" cols={3} gap={4} />)
     const el = container.querySelector('[data-slot="grid"]')!
     expect(el.className).toContain("auto-fill")
     expect(el.className).toContain("minmax")
     expect(el.className).not.toContain("grid-cols-3")
+  })
+
+  // Regressao 2026-09-03 (#6698): `fit` foi declarado no cva e NAO destruturado na
+  // funcao -- caia no `...props`, virava atributo DOM (`<div fit="sm">`), o cva nunca
+  // o recebia e `resolvedCols` caia no default 1 => `grid-cols-1`. A Home renderizou
+  // os 4 KPIs empilhados em producao por 1 dia. Estes asserts olham a CLASSE EMITIDA
+  // (comportamento), nunca a prop aceita (isso seria presence-gate).
+  it("Grid: fit vira auto-FIT e NAO vaza como atributo DOM", () => {
+    const { container } = render(<Grid fit="sm" gap={2} />)
+    const el = container.querySelector('[data-slot="grid"]')!
+    expect(el.className).toContain("auto-fit")
+    expect(el.className).toContain("minmax(14rem,1fr)")
+    // o bug: `grid-cols-1` emitido junto colapsava a grade em 1 coluna
+    expect(el.className).not.toContain("grid-cols-1")
+    // o sintoma observado no DOM de producao
+    expect(el.hasAttribute("fit")).toBe(false)
+  })
+
+  it("Grid: fit vence cols quando ambos vierem (mesma regra de min)", () => {
+    const { container } = render(<Grid fit="xs" cols={3} />)
+    const el = container.querySelector('[data-slot="grid"]')!
+    expect(el.className).toContain("auto-fit")
+    expect(el.className).not.toContain("grid-cols-3")
+    expect(el.className).not.toContain("grid-cols-1")
   })
 
   it("Text: family=mono + numeric=tabular alinham números (money/placa/km/NF-e)", () => {

@@ -679,11 +679,8 @@ function ConfiguracoesPage({ view = "cfg-empresa" }) {
         </div>
       </header>
 
-      <nav className="hrm-tabs" role="tablist">
-        {TELAS.map((t) => (
-          <button key={t.id} role="tab" aria-selected={t.id === view} className={`${t.id === view ? "on" : ""} ${pode(t.perm) ? "" : "cfg-tab-off"}`}
-            onClick={() => go(t.id)}>{t.label}</button>))}
-      </nav>
+      <window.CliTabs className="hrm-tabs" ariaLabel="Telas de configurações" active={view} onChange={go}
+        tabs={TELAS.map((t) => ({ key: t.id, label: t.label, off: !pode(t.perm) }))} />
 
       <div className="hrm-body" key={papel + plano}>{body}</div>
     </div>

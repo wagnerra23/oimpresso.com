@@ -86,11 +86,31 @@ include_once 'install_r.php';
 // (rota inexistente dá 404, controle), e `GET /_visreg-state/financeiro-unificado/default`
 // → 302 pro `route` do manifesto — destino só alcançável DEPOIS do `loginUsingId`.
 //
-// A allowlist abaixo cobre os dois consumidores reais e fecha `live`, `production` e
-// `staging`: `.github/workflows/visual-regression.yml` e `e2e-gate.yml` setam
-// `APP_ENV=testing`, e `phpunit.xml` idem. Ambiente novo entra aqui de propósito — se
-// esquecerem, o bloco some (fail-closed) em vez de vazar.
-if (app()->environment(['local', 'testing'])) {
+// A allowlist abaixo cobre os consumidores reais e fecha `live` e `production`:
+// `.github/workflows/visual-regression.yml` e `e2e-gate.yml` setam `APP_ENV=testing`, e
+// `phpunit.xml` idem. Ambiente novo entra aqui de propósito — se esquecerem, o bloco some
+// (fail-closed) em vez de vazar.
+//
+// ⚠️ `staging` ENTROU em 2026-09-08 por decisão [W], para destravar a medição de paridade
+// da Onda 7 (o `design-diff-lote` precisa autenticar no alvo). MAS a redação anterior tinha
+// razão em fechá-lo, e o motivo é medido: `staging.oimpresso.com` é PÚBLICO na internet
+// (HTTP 200 sem VPN), enquanto `local`/`testing` não são. Bypass de login sem senha exposto
+// na internet aberta seria o mesmo incidente de 2026-08-26, só que em outro host.
+// Por isso as DUAS rotas que chamam `loginUsingId()` exigem, EM STAGING, o segredo
+// `VISREG_LOGIN_TOKEN` (`?t=…`), comparado com `hash_equals` e respondendo 404 — não 403 —
+// para não confirmar que a rota existe. Sem o segredo no `.env`, elas seguem fechadas lá.
+// `local`/`testing` NÃO pedem o token: o CI usa `APP_ENV=testing` e não pode quebrar.
+// `_smoke-probe` fica livre nos três (é uma view estática, não autentica ninguém).
+if (app()->environment(['local', 'testing', 'staging'])) {
+    /** Em staging (público) o bypass exige segredo; em local/testing é livre. 404 = não confirma a rota. */
+    $exigeSegredoDoVisreg = static function (\Illuminate\Http\Request $request): void {
+        if (! app()->environment('staging')) {
+            return;
+        }
+        $esperado = (string) config('app.visreg_login_token', '');
+        $recebido = (string) $request->query('t', '');
+        abort_if($esperado === '' || ! hash_equals($esperado, $recebido), 404);
+    };
     Route::get('/_smoke-probe', fn () => view('_smoke-probe'))->name('smoke.probe');
 
     $seedFinanceiroVisregFlow = static function (int $businessId, int $userId, string $to): void {
@@ -312,7 +332,8 @@ if (app()->environment(['local', 'testing'])) {
     // sessão no browser → as visits seguintes ficam autenticadas. Persistência exige
     // SESSION_DRIVER não-array (file/database) no .env do gate. NUNCA em produção
     // (isProduction guard) — destrava o smoke das telas autenticadas que vinha bloqueado.
-    Route::get('/_visreg-login/{id}', function (int $id, \Illuminate\Http\Request $request) use ($seedFinanceiroVisregFlow) {
+    Route::get('/_visreg-login/{id}', function (int $id, \Illuminate\Http\Request $request) use ($seedFinanceiroVisregFlow, $exigeSegredoDoVisreg) {
+        $exigeSegredoDoVisreg($request);
         $request->session()->forget(['user', 'business', 'business_timezone', 'currency', 'financial_year']);
         \Illuminate\Support\Facades\Auth::loginUsingId($id);
         $request->session()->forget(\App\Http\Middleware\VisregStateMiddleware::SESSION_KEY);
@@ -357,7 +378,8 @@ if (app()->environment(['local', 'testing'])) {
     //   - error      → admin do biz=1 + redirect()->with('error') → toast.error (app.tsx 8s)
     //   - long-data  → admin do biz=1 (reservado; nenhuma tela declara no v1)
     // NUNCA em producao (isProduction guard acima). `to` so path relativo (anti open-redirect).
-    Route::get('/_visreg-state/{tela}/{estado}', function (string $tela, string $estado, \Illuminate\Http\Request $request) use ($seedJanaVisregFlow, $seedPontoVisregFlow) {
+    Route::get('/_visreg-state/{tela}/{estado}', function (string $tela, string $estado, \Illuminate\Http\Request $request) use ($seedJanaVisregFlow, $seedPontoVisregFlow, $exigeSegredoDoVisreg) {
+        $exigeSegredoDoVisreg($request);
         $manifestPath = base_path('tests/Browser/visreg-states.json');
         if (! is_file($manifestPath)) {
             abort(404); // manifesto ausente (ex: tests/ nao deployado) — rota inerte.
@@ -488,11 +510,6 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
         ->middleware('superadmin')
         ->name('showcase.components');
 
-    // Tarefas — inbox unificada cross-módulo (UI-0011, 2026-05-05).
-    // Stub que renderiza Page placeholder até Fase 4 do plano de migração ADR 0039
-    // (TaskProvider interface + TaskRegistry agregando providers de cada módulo).
-    Route::get('/tarefas', fn () => inertia('Tarefas/Index'))->name('tarefas.index');
-
     // Wagner 2026-05-22: /home redireciona pra hub IA/Jana — sidebar v3 ADR 0180.
     // Wagner 2026-05-25: alvo passou de /ia (chat) pra /ia/dashboard (Dashboard
     // Jana = primeira aba canon, com farol das metas + KPIs do business). Chat
@@ -518,12 +535,29 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     // dashboard legado UltimatePOS, que não tem `can:` nenhum — some o 403, e
     // ninguém ganha acesso que não tinha.
     // Onda 3 da fusão (US-COPI-148, 2026-08-07): o destino passou de
-    // `/ia/dashboard` pra `/ia` — a MESMA tela, que mudou de endereço. Apontar
-    // direto evita a cadeia 302→301 em TODO login de quem tem `jana.access`.
-    Route::get('/home', fn () => auth()->user()?->can('jana.access')
-        ? redirect('/ia', 302)
-        : redirect('/dashboard-legacy', 302)
-    )->name('home');
+    // `/ia/dashboard` pra `/ia` — a MESMA tela, que mudou de endereço.
+    //
+    // ── 2026-09-08 [W]: o destino é a VISÃO GERAL, pra TODO MUNDO ─────────────
+    // Reportado por [W] a partir da ROTA LIVRE: "o login da Larissa está
+    // bloqueado (...) acho que deveria ser o dashboard Visão geral".
+    //
+    // Medido em produção ANTES de mexer — não era permissão: a usuária da
+    // biz=4 tem o papel `Admin#4`, então `Gate::before` devolve `true` pra
+    // `jana.access`, ela caía em `/ia`, e o Painel da Jana RESOLVE 200 pra ela
+    // (exercitado no host, `IndexController@index` + `toResponse`). O que ela
+    // via era uma tela VAZIA: metas ativas visíveis pra biz=4 = 0, e o farol
+    // das metas é o conteúdo primário do Painel.
+    //
+    // O ramo condicional também contradizia o canon do próprio shell: o
+    // `LANDING_GROUP` do `Sidebar.tsx` ([W] 2026-08-28) declara que a Visão
+    // geral "é o destino pós-login (/dashboard-legacy)" — e a rota mandava todo
+    // admin pra outro lugar. Dois artefatos, uma pergunta, respostas opostas.
+    //
+    // Bônus estrutural: some o ÚLTIMO ramo em que a porta de entrada depende de
+    // uma permissão de feature — que é o que o bloco acima já pedia desde o
+    // incidente da Maiara. A Jana não perde nada: `/ia` segue de pé, com o gate
+    // `can:jana.access` intacto, e é o PRIMEIRO item do sidebar.
+    Route::get('/home', fn () => redirect('/dashboard-legacy', 302))->name('home');
     Route::get('/dashboard-legacy', [HomeController::class, 'index'])->name('home.legacy');
     Route::get('/home/get-totals', [HomeController::class, 'getTotals']);
     Route::get('/home/product-stock-alert', [HomeController::class, 'getProductStockAlert']);

@@ -3,7 +3,7 @@
 // Ondas 1–5: procedência por superfície · abas que faltavam · lote/export · SPED com prévia · débitos declarados.
 const { useState: useStateFs, useMemo: useMemoFs } = React;
 const fsU = () => window.FxUI;
-const FsI = ({ name, size = 13 }) => { const F = (window.I || {})[name]; return F ? <F size={size} /> : null; };
+const FsI = ({ name, size = 13 }) => { const F = (window.I || {})[name]; return F ? <span className="fx-i" aria-hidden="true" style={{ display: "inline-flex" }}><F size={size} /></span> : null; };
 const FsProc = ({ k }) => <window.FxProc k={k} />;
 
 // Onda 5 · débitos declarados no vivo, por tela
@@ -118,10 +118,9 @@ window.FxDfePage = function FxDfePage() {
     <div className="fx-page">
       <U.Header title="Manifesto DF-e" crumb={`NF-e emitidas contra o CNPJ · ${conta("pendente")} aguardando manifestação · prazo legal 90 dias`} />
       <U.Subnav current="fiscal-dfe" />
-      <div className="fx-chips" data-contract="abas-dfe" role="tablist" aria-label="Abas do manifesto">
-        <button className="fx-chip" aria-pressed={aba === "pendencias"} onClick={() => setAba("pendencias")}>Pendências <b>{conta("pendente")}</b></button>
-        <button className="fx-chip" aria-pressed={aba === "historico"} onClick={() => setAba("historico")}>Histórico <b>{st.hist.length}</b></button>
-      </div>
+      <window.CliTabs dataContract="abas-dfe" ariaLabel="Abas do manifesto" pad={0} active={aba} onChange={setAba}
+        tabs={[{ key: "pendencias", label: "Pendências", n: conta("pendente") },
+          { key: "historico", label: "Histórico", n: st.hist.length }]} />
       {aba === "pendencias" ? (
         <>
           <div className="fx-toolbar" data-contract="filtros-dfe">
@@ -392,7 +391,8 @@ window.FxSpedPage = function FxSpedPage() {
           <thead><tr><th>Competência <FsProc k="sped" /></th><th style={{ width: 110 }}>Notas</th><th style={{ width: 160 }}>Situação</th><th style={{ width: 150 }}>Prazo (heurística)</th><th style={{ width: 200, textAlign: "right" }}>Valor autorizado</th></tr></thead>
           <tbody>
             {U.D().SPED.map(p => (
-              <tr key={p.comp} className={comp === p.comp ? "sel" : ""} onClick={() => setComp(p.comp)}>
+              <tr key={p.comp} className={comp === p.comp ? "sel" : ""} tabIndex={0} aria-label={"Selecionar competência " + p.comp} onClick={() => setComp(p.comp)}
+                onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setComp(p.comp); } }}>
                 <td className="cli"><b>{p.label}</b><div>competência {p.comp}</div></td>
                 <td className="num"><b>{p.notas}</b></td>
                 <td><span className={"fx-sefaz " + (p.status === "entregue" ? "ok" : p.status === "pronto" ? "warn" : "")}>{LBL[p.status]}</span></td>

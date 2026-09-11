@@ -1122,40 +1122,36 @@ class Kernel extends ConsoleKernel
                 );
             });
 
-        // Self-healing Camada 2 — probe + auto-recovery canais Baileys.
-        // Itera Channels Baileys ativos, pinga /status no daemon CT 100, e
-        // tenta /connect (3 retries com backoff 1s/5s/30s) se algum não
-        // estiver connected. Cobre falhas do bootstrap auto-reconnect
-        // Camada 1 daemon-side (Agent A paralelo). Daily 03:30 BRT — antes
-        // do horário comercial pra deixar canais frescos. withoutOverlapping(30)
-        // protege contra job lento (~3 canais × 3 retries × 30s = ~5min worst).
-        $schedule->command('whatsapp:health-probe-channels')
-            ->dailyAt('03:30')
-            ->timezone('America/Sao_Paulo')
-            ->withoutOverlapping(30)
-            ->environments(['live'])
-            ->onFailure(function () {
-                \Illuminate\Support\Facades\Log::channel('single')->error(
-                    'Schedule whatsapp:health-probe-channels FALHOU — canais Baileys podem estar sem auto-recovery'
-                );
-            });
-
-        // Reconciler channels Baileys (5 em 5 min) — sincroniza DB.status vs daemon.state
-        // e auto-corrige drift (banned/disconnected sem aviso, instance órfã, etc).
-        // Wagner pediu 2026-05-13: "como resolve isso vai sempre você? automatize" —
-        // este cron remove necessidade de intervenção manual no caso comum.
-        // withoutOverlapping(5) protege contra round lento (20 canais * 500ms = ~10s).
-        // Diferente de `whatsapp:health-probe-channels` (daily, full check com retry connect)
-        // — reconcile é leve, só GET status no daemon + UPDATE drift detectado.
-        $schedule->command('whatsapp:channels-reconcile')
-            ->everyFiveMinutes()
-            ->withoutOverlapping(5)
-            ->environments(['live'])
-            ->onFailure(function () {
-                \Illuminate\Support\Facades\Log::channel('single')->error(
-                    'Schedule whatsapp:channels-reconcile FALHOU — drift DB↔daemon pode acumular'
-                );
-            });
+        // ┌─ REMOVIDOS 2026-09-08 — dois agendamentos da era Baileys ────────────┐
+        //
+        // `whatsapp:channels-reconcile` (era */5) e `whatsapp:health-probe-channels`
+        // (era daily 03:30) saíram do schedule. Medido em prod (SHA 3e9f463e54) no
+        // dia da remoção — os dois só produziam falha, por causas DIFERENTES:
+        //
+        // 1) channels-reconcile — a ADR 0202 (2026-05-27) descomissionou o Baileys e
+        //    removeu a seção `baileys` de Modules/Whatsapp/Config/config.php (ver o
+        //    comentário na linha 53 de lá). O comando abre com
+        //    `config('whatsapp.baileys.daemon_url')`, que passou a cair no default
+        //    '' — então ele retornava FAILURE na primeira guarda, antes de qualquer
+        //    trabalho. E não teria trabalho: filtra `type = whatsapp_baileys`, e em
+        //    prod havia 0 canais desse tipo (os 2 vivos são whatsmeow). Rastro:
+        //    14.454 linhas 'Schedule ... FALHOU' no laravel.log da janela observável.
+        //
+        // 2) health-probe-channels — causa OUTRA, e não é descomissionamento: a
+        //    classe HealthProbeChannelsCommand existe e é dual-driver (Baileys
+        //    auto-recovery + whatsmeow detect-only via WhatsmeowReconciler, ADR 0206),
+        //    mas NÃO estava no `commands([...])` do WhatsappServiceProvider nem
+        //    importada lá — então o schedule morria em CommandNotFoundException
+        //    (226 linhas no log). Tirar do schedule não perde cobertura real, porque
+        //    ela já não acontecia; perde a cobertura PRETENDIDA. Re-registrar o
+        //    comando (e reagendá-lo) ou aposentá-lo de vez é decisão [W] — a perna
+        //    whatsmeow dele hoje tem um vizinho vivo em `whatsmeow:health-probe`
+        //    (US-WA-308, cron 3min, logo abaixo), que pode ou não torná-la redundante.
+        //
+        // Os dois comandos seguem REGISTRADOS e invocáveis à mão — só não são mais
+        // agendados. Reviver Baileys exigiria antes reverter a ADR 0202, que hoje
+        // lista 'baileys' em `forbidden_drivers` (Tier 0).
+        // └──────────────────────────────────────────────────────────────────────┘
 
         // whatsmeow:health-probe (3 em 3 min) — fecha a lacuna que o reconciler
         // Baileys-only NÃO cobre (incidente 2026-06-18, US-WA-308): canal whatsmeow
@@ -1290,6 +1286,32 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // Worker da fila `attendance-import` (HRM-O6 / PR-6, achado A7): drena o
+        // ImportarPresencaJob despachado pela tela /hrm/attendance.
+        //
+        // POR QUE FILA PROPRIA, e NAO `default` — mesma razao do worker de `backups`
+        // logo acima: quem drena `default` esta atras de `queue.backlog_worker_enabled`
+        // (default FALSE), e `default` ainda esta na lista de filas que o
+        // `jobs:purge-represados` apaga. Import de presenca despachado pra `default`
+        // nao aconteceria, em silencio — e o dado aqui e jornada de colaborador, onde
+        // sumico silencioso e o pior desfecho possivel.
+        //
+        // NAO gated, porque esta fila so recebe job recem-despachado por acao humana na
+        // tela: nao existe o backlog stale de ~48k jobs que justifica o gate da `default`.
+        //
+        // withoutOverlapping(15) casa com o $timeout=900 do job. Hostinger e shared
+        // hosting sem supervisor — cron everyMinute e o workaround padrao.
+        $schedule->command('queue:work database --queue=attendance-import --max-time=55 --tries=1')
+            ->everyMinute()
+            ->withoutOverlapping(15)
+            ->environments(['live'])
+            ->runInBackground()
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule queue:work attendance-import FALHOU — import de presenca pode ficar parado na jobs table'
+                );
+            });
+
         // US-WA-082 — Cleanup nonces antigos (>24h) da tabela webhook_nonces.
         // Replay window é 5min, mas mantemos 24h por margem segurança vs time
         // skew + audit forense. Após 24h é seguro deletar (replay já seria
@@ -1312,20 +1334,14 @@ class Kernel extends ConsoleKernel
                 );
             });
 
-        // Drift sentinel daemon CT 100 (semanal segunda 09:00 BRT) — alerta se
-        // source do daemon prod ficou desatualizado vs main local. Catalogado
-        // 2026-05-13: ~15 commits drift descoberto na unha durante incidente.
-        // Cron weekly + log warning permite catch antes de drift virar bug
-        // (rebuild falha por compatibility de versions).
-        $schedule->command('whatsapp:daemon-source-drift-check')
-            ->weeklyOn(1, '09:00') // segunda-feira 09:00
-            ->timezone('America/Sao_Paulo')
-            ->environments(['live'])
-            ->onFailure(function () {
-                \Illuminate\Support\Facades\Log::channel('single')->error(
-                    'Schedule whatsapp:daemon-source-drift-check FALHOU — daemon CT 100 pode estar offline'
-                );
-            });
+        // REMOVIDO 2026-09-08 — `whatsapp:daemon-source-drift-check` (era weekly
+        // segunda 09:00 BRT) vigiava o drift do source do daemon Baileys no CT 100.
+        // Mesma causa do (1) acima: a ADR 0202 (2026-05-27) descomissionou aquele
+        // daemon e removeu a config que o comando lê, então ele saía com exit 1 em
+        // toda execução (medido em prod no dia da remoção; 128 linhas no log).
+        // O comando segue registrado e invocável à mão. O sentinela irmão que NÃO
+        // depende do daemon Baileys — `whatsapp:auth-state-drift-check`, logo abaixo
+        // — continua agendado e não foi tocado.
 
         // whatsapp:auth-state-drift-check — daily 03h BRT
         // Detecta orphans (instance_id sem channel), banned/inactive rows

@@ -54,9 +54,21 @@
 /* Sidebar rail (56px) — Wagner 2026-05-16, espelha prototipo Cowork. */
 .cockpit[data-sidebar="rail"] { grid-template-columns: 56px 1fr 320px; }
 .cockpit[data-sidebar="rail"][data-linked="off"] { grid-template-columns: 56px 1fr 0; }
+/* Sidebar hidden (3º modo, 2026-09-11) — a `<aside>` sai do DOM, então a coluna
+   dela sai do GRID: a lista passa de três faixas para duas, e `.main` é o 1º item.
+   NÃO zere a 1ª faixa (`0 1fr 320px`): sem a `<aside>`, o auto-placement bota o
+   `.main` justamente nela e ele fica com 0px. Isso não é hipótese — é o que o
+   PROTÓTIPO faz hoje (`.app.app--sb-hidden{--sb-w:0px}`) e o que medi nele em
+   2026-09-11 a 1440px: `grid-template-columns: 0px 1440px`, `.main` com **largura 0**
+   e 2636 caracteres de conteúdo invisíveis — tela em branco. O próprio protótipo
+   já usa a forma certa no drawer mobile (`.app--mobile{grid-template-columns:1fr}`);
+   o modo `hidden` é que ficou com a forma errada. Ver `_saida-04.md`. */
+.cockpit[data-sidebar="hidden"] { grid-template-columns: 1fr 320px; }
+.cockpit[data-sidebar="hidden"][data-linked="off"] { grid-template-columns: 1fr 0; }
 @media (max-width: 1280px) {
   .cockpit { grid-template-columns: 260px 1fr 0; }
   .cockpit[data-sidebar="rail"] { grid-template-columns: 56px 1fr 0; }
+  .cockpit[data-sidebar="hidden"] { grid-template-columns: 1fr 0; }
 }.cockpit .main {
   display: grid;
   /* 3 rows: topbar (44px) + topnav-module opcional (auto, ~40px quando presente) + main-body (1fr).
@@ -266,6 +278,24 @@
   font-size: var(--fs-3);
   cursor: default;
 }.cockpit .sb-dd-foot:hover { background: var(--sb-hover); color: var(--sb-text-hi); }
+
+/* Reset de cascata — os itens do dropdown viraram <button> pra que
+   role="menuitemradio"/"menuitem" seja verdadeiro (focável por teclado). O UA
+   declara font-size/font-family/background/border/text-align/width em <button>,
+   e declaração do UA vence HERANÇA: sem este reset, `.sb-dd-i` (que herda os
+   12.5px de `.sb-dd`) ia a 13.33px e encolhia pro conteúdo — 18 divergências
+   de computed style, medidas. `:where()` custa 0, então a regra pesa (0,1,1) e
+   perde pra `.cockpit .sb-dd-i` (0,2,0): só o que a classe NÃO declara cai
+   aqui. Especificidade MAIOR inverteria o erro — `_saida-01.md` §Especificidade. */
+.cockpit button:where(.sb-dd-i, .sb-dd-foot) {
+  appearance: none;
+  font: inherit;
+  background: none;
+  border: 0;
+  text-align: start;
+  width: 100%;
+  display: block;
+}
 
 /* Tabs Chat/Menu */.cockpit .sb-tabs {
   display: flex;
@@ -547,14 +577,23 @@
   padding: 4px 6px;
   position: relative;
 }
+/* Wrap do rodapé — só existia regra pro rail (`.sb--rail .sb-user-wrap`), e sem
+   a base o rodapé ficava sem padding e sem a borda que o separa do corpo.
+   Espelha `.sb-user` do protótipo (styles.css:414). Medido 2026-09-11:
+   protótipo 259x74 · vivo 259x35. */
+.cockpit .sb-user-wrap {
+  border-top: 1px solid var(--sb-border);
+  padding: 10px;
+  position: relative;
+}
 .cockpit .sb-user-btn {
   appearance: none;
   border: 0;
   background: transparent;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 4px 8px;
+  gap: 10px;
+  padding: 9px 10px;
   border-radius: 5px;
   cursor: pointer;
   width: 100%;
@@ -564,7 +603,7 @@
 }
 .cockpit .sb-user-btn:hover { background: var(--sb-hover); }
 .cockpit .sb-user-btn .avatar {
-  width: 18px; height: 18px;
+  width: 32px; height: 32px;
   border-radius: 50%;
   background: linear-gradient(135deg, oklch(0.65 0.12 30), oklch(0.55 0.15 10));
   color: #fff;
@@ -583,13 +622,13 @@
   border: 1.5px solid var(--sb-bg);
   border-radius: 50%;
 }
+/* Nome em cima, cargo embaixo — como o protótipo (`styles.css:455`). Era
+   flex-row com gap 5px, que punha "Wagner · Admin" na mesma linha e espremia
+   o rodapé em 35px contra os 74px do protótipo. Medido 2026-09-11. */
 .cockpit .sb-user-btn .who {
   flex: 1 1 auto;
   min-width: 0;
   text-align: left;
-  display: flex;
-  align-items: baseline;
-  gap: 5px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1528,7 +1567,10 @@
 .cockpit .copiloto-chat-layout {
   position: relative; /* âncora da sobreposição + scrim em telas estreitas */
   display: grid;
-  grid-template-columns: 280px 1fr;
+  /* Âncora `.jm-conv`: faixa elástica + gap real entre o card do histórico e a
+     thread. Era `280px 1fr` com gap 0, que colava os dois painéis. */
+  grid-template-columns: minmax(230px, 280px) minmax(0, 1fr);
+  gap: 10px;
   flex: 1;
   min-height: 0;
   overflow: hidden;
@@ -1555,14 +1597,22 @@
   background: oklch(0.15 0 0 / 0.35);
   cursor: pointer;
 }
+/* Histórico é CARD, não coluna colada — âncora `.jm-hist` (surface + borda
+   completa + raio 12 + padding 8). Era `border-right` + `bg-2` + raio 0, que
+   lia como continuação da sidebar em vez de painel próprio. */
 .cockpit .copiloto-chat-convs {
-  border-right: 1px solid var(--border);
-  background: var(--bg-2);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
   overflow-y: auto;
-  padding: 12px 8px;
+  padding: 8px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  /* 5px é o gap da LISTA na âncora (`.jm-hist-list`), e aqui os cards são
+     filhos diretos do aside — não existe wrapper de lista. Header, busca e
+     abas carregam `margin-bottom` próprio, então respiram os 8px de `.jm-hist`
+     sem precisar de um nível de DOM só pra isso. */
+  gap: 5px;
 }
 .cockpit .copiloto-chat-thread {
   display: flex;
@@ -1586,13 +1636,17 @@
   border-bottom: 1px solid var(--border);
   margin-bottom: 8px;
 }
+/* Rótulo do painel — âncora `.jm-hist-t`: 11px/600 uppercase, tracking .06em,
+   cor apagada. Era `--fs-4` com tracking negativo (título de página), que
+   competia com o título da thread ao lado. */
 .cockpit .copiloto-chat-convs .cs-head h2 {
   flex: 1 1 auto;
   margin: 0;
-  font-size: var(--fs-4);
+  font-size: var(--fs-2); /* 11.5px — snap do 11px da âncora no type ramp */
   font-weight: 600;
-  color: var(--text);
-  letter-spacing: -0.01em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dim);
 }
 .cockpit .copiloto-chat-convs .cs-iconbtn {
   display: inline-flex;
@@ -1667,7 +1721,8 @@
   pointer-events: none;
 }
 
-/* 4 tabs filtro (Todas/Minhas/Compartilhadas/Arquivadas — Charter §Goals) */
+/* Abas de filtro — hoje DUAS (Todas | Arquivadas), charter v3 2026-08-07.
+   Eram quatro: `Minhas` era tautológica e `Compartilhadas` sempre vazia. */
 .cockpit .copiloto-chat-convs .cs-tabs {
   display: flex;
   gap: 4px;
@@ -1695,10 +1750,13 @@
   background: var(--sb-hover);
   color: var(--text);
 }
+/* AP7 (PRE-MERGE-UI): a aba ativa era SOLIDA (`bg: --text`), invertendo o
+   contraste e roubando a atenção do conteúdo. A âncora `.jm-cat.active` usa
+   realce SOFT — accent a 12% no fundo, borda a 45%, texto no próprio accent. */
 .cockpit .copiloto-chat-convs .cs-tab.active {
-  background: var(--text);
-  color: var(--bg);
-  border-color: var(--text);
+  background: color-mix(in oklch, var(--accent) 12%, transparent);
+  border-color: color-mix(in oklch, var(--accent) 45%, transparent);
+  color: var(--accent);
 }
 
 /* `.cs-empty` (empty state "Em breve" das 3 abas decorativas) foi removido em
@@ -1770,7 +1828,85 @@
 }
 .cockpit .copiloto-chat-convs .cs-keys-sep { opacity: 0.5; }
 
-/* Badge unread minúscula ao lado direito do sb-conv-t (backend já expõe `unread`) */
+/* ── Card da conversa — âncora `.jm-thread` (Onda 3a) ──────────────────────
+   Era `.sb-conv`: uma linha de 30px com bullet + título. A âncora desenha um
+   card de ~66px com título + hora, resumo de uma linha e rodapé de metadados.
+   `.sb-conv`/`.sb-bullet`/`.sb-conv-t` seguem definidos na seção "Aba CHAT"
+   deste arquivo e ficaram sem consumidor — medido: eram usados SÓ aqui
+   (7 hits, 1 arquivo, em resources/js + resources/views). Removê-los é faxina
+   de CSS morto, que é PR próprio: não mistura com paridade visual. */
+.cockpit .copiloto-chat-convs .cs-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+  text-align: left;
+  padding: 9px 10px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+}
+.cockpit .copiloto-chat-convs .cs-thread:hover {
+  background: color-mix(in oklch, var(--border) 35%, transparent);
+}
+.cockpit .copiloto-chat-convs .cs-thread.active {
+  background: color-mix(in oklch, var(--accent) 10%, transparent);
+  border-color: color-mix(in oklch, var(--accent) 35%, transparent);
+}
+.cockpit .copiloto-chat-convs .cs-thread-h {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.cockpit .copiloto-chat-convs .cs-thread-h b {
+  /* `min-width: 0` não é enfeite: sem ele o flex não encolhe abaixo do
+     min-content e o título longo vaza pra fora do card. */
+  flex: 1;
+  min-width: 0;
+  font-size: var(--fs-3); /* 12.5px — bate exato com o ramp */
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cockpit .copiloto-chat-convs .cs-thread-q {
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: var(--fs-1); /* 10.5px — bate exato com o ramp */
+  color: var(--text-dim);
+}
+.cockpit .copiloto-chat-convs .cs-thread-p {
+  font-size: var(--fs-2); /* 11.5px — snap do 11px da âncora */
+  color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cockpit .copiloto-chat-convs .cs-thread-f {
+  display: flex;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-1); /* 10.5px — bate exato com o ramp */
+  color: var(--text-dim);
+}
+.cockpit .copiloto-chat-convs .cs-thread-fix { color: var(--accent); }
+
+/* Seção "Fixadas"/"Recentes" dentro do card — âncora `.jm-hist-sec`
+   (10px/600 uppercase, tracking .08em). Escopado no painel de proposito: o
+   `.cockpit .sb-section-h` global serve outros lugares e não é mexido. */
+.cockpit .copiloto-chat-convs .sb-section-h {
+  padding: 8px 4px 2px;
+  font-size: var(--fs-1); /* 10.5px — snap do 10px da âncora */
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+}
+
+/* Badge unread minúscula — vive na linha de título do card (`.cs-thread-h`)
+   desde a Onda 3a; era ao lado do `.sb-conv-t` da linha única. */
 .cockpit .copiloto-chat-convs .sb-conv-badge {
   flex: 0 0 auto;
   min-width: 16px;
@@ -1840,6 +1976,16 @@
 .cockpit .sb-menu-grouped { display: flex; flex-direction: column; padding: 8px; gap: 0; }
 .cockpit .sb-group { position: relative; }
 .cockpit .sb-group-noheader { padding: 0; }
+/* Faltava no accordion (só existia pro flyout) — o span herdava o sans 600 do
+   `.sb-group-l`. 9.5px literal: o ramp começa em 10.5px e os irmãos da faixa
+   (`.sb-kbd`, `.sb-ghost-count`) já são literais. Medido em 2026-09-10, PR #7198. */
+.cockpit .sb-group-n {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: normal;
+  color: var(--sb-text-dim);
+}
 .cockpit .sb-group-h {
   display: flex;
   align-items: center;
@@ -2108,7 +2254,7 @@
    (linhas 5039-5350). 5 capacidades portadas:
      1. Modo rail (56px ícone-only) + flyout grupo
      2. Alça .sb-collapse-handle borda direita on-hover
-     3. (placeholder modo hidden — Fase 2)
+     3. Modo hidden (sidebar fora do DOM) + alça .sb-reopen-handle — 2026-09-11
      4. Cor por grupo (hue OKLCH) via CSS var --gh
      5. Persistência LS oimpresso.sb.mode (gerenciado em AppShellV2)
    ════════════════════════════════════════════════════════════════════════ */
@@ -2141,6 +2287,42 @@
   opacity: 1;
 }
 .cockpit .sb-collapse-handle:hover {
+  background: var(--sb-active);
+  color: var(--sb-text-hi);
+}
+
+/* ── Alça de REABRIR (modo hidden) ───────────────────────────────────
+   Geometria portada 1:1 de `prototipo-ui/cowork/styles.css` (`.sb-reopen-handle`):
+   fixed à esquerda, 18×64 crescendo pra 26 no hover, cantos só do lado de fora.
+   Ela vive FORA da `<aside>` (que nem existe neste modo), por isso `fixed` e não
+   `absolute` como a irmã de colapsar.
+
+   Cor em `--sb-*`, não nos tokens de tema: o protótipo pinta com `--bg-elev`/
+   `--border`/`--text-mute`, mas `--bg-elev` não existe neste shell e a alça é o
+   toco da sidebar — preta nos dois modos por UI-0023, preta também recolhida.
+   O hover do protótipo já declara `var(--accent-soft, var(--sb-active))`: o
+   fallback dele é exatamente o token usado aqui. */
+.cockpit .sb-reopen-handle {
+  position: fixed;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 64px;
+  border-radius: 0 6px 6px 0;
+  border: 1px solid var(--sb-border);
+  border-left: 0;
+  background: var(--sb-bg);
+  color: var(--sb-text-dim);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  z-index: 40;
+  padding: 0;
+  box-shadow: 2px 0 8px oklch(0 0 0 / .06);
+}
+.cockpit .sb-reopen-handle:hover {
+  width: 26px;
   background: var(--sb-active);
   color: var(--sb-text-hi);
 }
@@ -2322,10 +2504,11 @@
 .cockpit[data-theme="dark"] .sb-rail-flyout-l {
   color: oklch(0.78 0.08 var(--gh, 220));
 }
+/* `var(--mono)` não existe — caía no fallback, em silêncio. O token é `--font-mono`. */
 .cockpit .sb-rail-flyout .sb-group-n {
-  font-size: var(--fs-1);
-  font-family: var(--mono, ui-monospace, monospace);
-  color: var(--text-mute, var(--sb-text-dim));
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 9.5px;
+  color: var(--sb-text-dim);
   font-weight: 500;
 }
 
@@ -2364,11 +2547,18 @@
 .sb-mobile-backdrop { display: none; }
 
 @media (max-width: 768px) {
-  /* conteúdo full-width — a sidebar sai do grid via position:fixed */
+  /* conteúdo full-width — a sidebar sai do grid via position:fixed.
+     `hidden` entra nesta lista porque no mobile ele NÃO se aplica: o `AppShellV2`
+     monta a `<aside>` de qualquer jeito (drawer) e renderiza em `expanded`, mas o
+     atributo `data-sidebar` continua refletindo a escolha do usuário — sem esta
+     linha, a regra de desktop (especificidade 0,2,0) venceria a `.cockpit` nua
+     daqui e roubaria 320px pra uma coluna de apps que este bloco esconde. */
   .cockpit,
   .cockpit[data-linked="off"],
   .cockpit[data-sidebar="rail"],
-  .cockpit[data-sidebar="rail"][data-linked="off"] { grid-template-columns: 1fr; }
+  .cockpit[data-sidebar="rail"][data-linked="off"],
+  .cockpit[data-sidebar="hidden"],
+  .cockpit[data-sidebar="hidden"][data-linked="off"] { grid-template-columns: 1fr; }
 
   /* coluna direita (apps vinculados) não cabe no celular */
   .cockpit > .apps,
@@ -2390,7 +2580,8 @@
      Sem !important (ratchet declaration-no-important): empata em especificidade
      (0,2,0) com a regra-base e vence por ordem de fonte; só a base define
      `display` no handle (o hover mexe só em opacity). */
-  .cockpit .sb-collapse-handle { display: none; }
+  .cockpit .sb-collapse-handle,
+  .cockpit .sb-reopen-handle { display: none; }
 
   /* banda no topo pro hambúrguer flutuante. Só nas telas SEM topbar (default
      hideTopbar) — telas que mantêm topbar já têm faixa própria e só precisam

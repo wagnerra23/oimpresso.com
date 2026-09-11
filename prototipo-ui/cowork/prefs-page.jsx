@@ -43,11 +43,7 @@ function Liga({ label, sub, on, onToggle }) {
   return <div className="pf-liga pf-liga-ds"><Sw on={on} onToggle={onToggle} label={label} sub={sub} /></div>;
 }
 function Seg({ valor, opcoes, onChange }) {
-  return (
-    <div className="fnc-seg">
-      {opcoes.map((o) => <button key={o.v} className={valor === o.v ? "on" : ""} onClick={() => onChange(o.v)}>{o.label}</button>)}
-    </div>
-  );
+  return <window.CliSeg value={valor} onChange={onChange} options={opcoes.map((o) => ({ key: o.v, label: o.label }))} />;
 }
 
 function PrefsPage() {

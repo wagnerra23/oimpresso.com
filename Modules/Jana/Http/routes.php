@@ -67,6 +67,12 @@ Route::group(
         // Era a raiz `/ia`. O comentário antigo dizia "entry-point do módulo,
         // adr/arq/0002" — isso deixou de valer em 2026-05-25, quando [W] promoveu
         // o Dashboard a destino pós-login; só a URL não tinha acompanhado.
+        //
+        // ⚠️ E isso DEIXOU DE VALER em 2026-09-08: [W] mandou o pós-login pra
+        // Visão geral (`/dashboard-legacy`) pra TODO MUNDO, então `/home` não
+        // aponta mais pra cá. `/ia` segue de pé, com o gate abaixo intacto, e
+        // é o primeiro item do sidebar — só não é mais a porta de entrada.
+        // O parágrafo acima fica como está: era verdade entre 05-25 e 09-08.
         // `jana.chat.index` PRESERVADO como nome: é o que DataController:192 usa,
         // e renomear route name quebra `route()` de terceiros em silêncio.
         Route::get('/conversa', [\Modules\Jana\Http\Controllers\ChatController::class, 'index'])

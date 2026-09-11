@@ -5,6 +5,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import {
+  DEFAULT_PATHS, avaliarBaseParaRecibo,
   recordApplicationEvidence, recordComparisonEvidence, recordSmokeEvidence,
   recordTestEvidence, refreshApplicationReport,
 } from './bundle-transaction.mjs';
@@ -12,6 +13,50 @@ import {
 const args = process.argv.slice(2);
 const rootArg = args.indexOf('--root');
 const ROOT = resolve(rootArg >= 0 && args[rootArg + 1] ? args[rootArg + 1] : process.cwd());
+
+/* ─── D2: o mapa não pode dizer "?" quando o PEDIDO já respondeu ───────────────────────
+ *
+ * POR QUE EXISTE (erro meu, 2026-09-07, e é a razão de a máquina mudar): eu li este
+ * relatório, vi `módulo ?` nas 23 telas a criar e afirmei a [W] que faltava DECISÃO dele
+ * sobre onde cada tela mora. Estava errado. O `cowork-inbox/modulos-faltantes/PEDIDO-CODE.md`
+ * já estava no repo desde 2026-09-04 com módulo, rota e arquivo-alvo de 6 delas; varrendo
+ * as 23 contra os documentos de pedido, 21 já eram citadas em pelo menos um. A informação
+ * existia, o dono era outro, e eu tratei o silêncio deste mapa como ausência no mundo.
+ * Classe LC-08 (afirmar a partir da fonte errada) — e o painel do protocolo AVISA sobre
+ * isto em prosa ("a sessão trouxe o .jsx e deixou o pedido pra trás"), aviso que eu li no
+ * mesmo turno em que cometi.
+ *
+ * NÃO É GATE, e não pode ser: exigir "leu o pedido?" é presence-gate (LC-11), a família
+ * com 11 ocorrências no ledger. O conserto é o mapa PARAR DE OMITIR — ele passa a apontar
+ * quem declara o alvo, e a próxima sessão vê o ponteiro sem depender de lembrar.
+ *
+ * DERIVADO na hora da leitura, não persistido no relatório: o conjunto de pedidos muda
+ * sem que o bundle mude, e gravar isto no `application-report.json` criaria retrato que
+ * apodrece entre um export e outro.
+ *
+ * LIMITE HONESTO: é busca por NOME do arquivo-fonte no corpus de pedidos. Acha o ponteiro,
+ * não a decisão — quem lê ainda precisa abrir o pedido. É um `grep` bom, não um oráculo.
+ */
+const DIRS_DE_PEDIDO = ['prototipo-ui/design-docs', 'prototipo-ui'];
+function pedidosQueDeclaram(source) {
+  if (!source) return [];
+  const base = String(source).split('/').pop().replace(/\.(jsx|tsx|css|js)$/i, '');
+  if (base.length < 4) return [];
+  const achados = new Set();
+  for (const dir of DIRS_DE_PEDIDO) {
+    const abs = join(ROOT, dir);
+    if (!existsSync(abs)) continue;
+    const r = spawnSync('git', ['grep', '-l', '--fixed-strings', base, '--', dir], { cwd: ROOT, encoding: 'utf8' });
+    // rc 0 = achou · 1 = não achou · outro = falha de execução, que NÃO é ausência
+    // (§5 2026-07-31: vazio de comando que pode falhar não é evidência negativa).
+    if (r.status !== 0 && r.status !== 1) continue;
+    for (const linha of String(r.stdout || '').split('\n')) {
+      const p = linha.trim();
+      if (p && /(PEDIDO|COLAR-NO-CODE|PONTE|HANDOFF|cowork-inbox)/i.test(p)) achados.add(p);
+    }
+  }
+  return [...achados];
+}
 const reportPath = join(ROOT, 'scripts/design-sync/state/application-report.json');
 const json = args.includes('--json');
 const checkMapping = args.includes('--check-mapping');
@@ -20,6 +65,16 @@ const valueOf = (name) => {
   return index >= 0 && args[index + 1] && !args[index + 1].startsWith('--') ? args[index + 1] : null;
 };
 
+// LC-20 — mede a base NO INSTANTE do recibo (advisory: avisa e segue; o hash é quem manda).
+function avisarBaseEnvelhecida({ source, target, extras = [] }) {
+  const arquivos = [source ? `${DEFAULT_PATHS.cowork}/${String(source).replace(/\\/g, '/')}` : null, target, ...extras];
+  const base = avaliarBaseParaRecibo({ root: ROOT, arquivos });
+  if (!base.medido) { console.error(`  ⚠ base não medida (${base.motivo}) — recibo gravado sem prova de frescor da base.`); return; }
+  for (const a of base.atrasados) {
+    console.error(`  ⚠ BASE ENVELHECIDA (LC-20): origin/main tem ${a.commits} commit(s) em ${a.arquivo} que HEAD não tem (${a.ultimo}). O recibo vai nascer com hash que o main já superou — rebase e grave de novo.`);
+  }
+}
+
 let report;
 try {
   if (valueOf('--mark-compared')) {
@@ -27,12 +82,14 @@ try {
     const target = valueOf('--target');
     const map = valueOf('--map');
     if (!target || !map) throw new Error('--target e --map são obrigatórios com --mark-compared');
+    avisarBaseEnvelhecida({ source, target, extras: [map] });
     ({ report } = await recordComparisonEvidence({ root: ROOT, source, target, map }));
   } else if (valueOf('--mark-applied')) {
     const source = valueOf('--mark-applied');
     const target = valueOf('--target');
     const evidence = valueOf('--evidence');
     if (!target) throw new Error('--target é obrigatório com --mark-applied');
+    avisarBaseEnvelhecida({ source, target, extras: [evidence] });
     ({ report } = await recordApplicationEvidence({ root: ROOT, source, target, evidence }));
   } else if (valueOf('--run-test')) {
     const source = valueOf('--run-test');
@@ -43,6 +100,7 @@ try {
     let command;
     try { command = JSON.parse(commandJson); } catch { throw new Error('--command-json deve ser um array JSON'); }
     if (!Array.isArray(command) || !command.length) throw new Error('--command-json deve ser um array JSON não vazio');
+    avisarBaseEnvelhecida({ source, target });
     const run = spawnSync(String(command[0]), command.slice(1).map(String), {
       cwd: ROOT, encoding: 'utf8', shell: false, maxBuffer: 64 * 1024 * 1024,
     });
@@ -58,10 +116,12 @@ try {
     const deploySha = valueOf('--deploy-sha');
     const screenshot = valueOf('--screenshot');
     const tenant = valueOf('--tenant');
+    const host = valueOf('--host') || 'producao'; // producao | staging-ct100 | ci (ADR 0390)
     if (!target || !route || !deploySha || !screenshot || !tenant) {
-      throw new Error('--target, --route, --deploy-sha, --screenshot e --tenant são obrigatórios com --record-smoke');
+      throw new Error('--target, --route, --deploy-sha, --screenshot e --tenant são obrigatórios com --record-smoke (--host é opcional; default producao)');
     }
-    ({ report } = await recordSmokeEvidence({ root: ROOT, source, target, route, deploySha, screenshot, tenant }));
+    avisarBaseEnvelhecida({ source, target, extras: [screenshot] });
+    ({ report } = await recordSmokeEvidence({ root: ROOT, source, target, route, deploySha, screenshot, tenant, host }));
   } else if (args.includes('--refresh')) report = await refreshApplicationReport({ root: ROOT });
   else {
     if (!existsSync(reportPath)) throw new Error('relatório ausente; aplique um bundle ou rode com --refresh');
@@ -91,10 +151,16 @@ else {
   for (const screen of actionable) {
     console.log(`  [${String(screen.lifecycleState || screen.applicationState).toUpperCase().padEnd(10)}] ${screen.source}`);
     console.log(`      → ${screen.target} · módulo ${screen.module || '?'} · ${screen.bundleChange}/${screen.comparison}`);
+    // Quando o mapa não sabe o módulo, ele não pode PARECER que ninguém sabe — ver
+    // `pedidosQueDeclaram`.
+    if (!screen.module) {
+      const pedidos = pedidosQueDeclaram(screen.source);
+      if (pedidos.length) console.log(`      pedido: ${pedidos.slice(0, 2).join(' · ')}${pedidos.length > 2 ? ` (+${pedidos.length - 2})` : ''}`);
+    }
     if (screen.applicationEvidence?.comparison) console.log(`      mapa: ${screen.applicationEvidence.comparison.map}`);
     if (screen.applicationEvidence?.application) console.log(`      aplicação: ${screen.applicationEvidence.application.evidence}`);
     if (screen.applicationEvidence?.tests?.length) console.log(`      testes: ${screen.applicationEvidence.tests.length} recibo(s) verde(s)`);
-    if (screen.applicationEvidence?.smokes?.length) console.log(`      smoke: ${screen.applicationEvidence.smokes.length} recibo(s) de produção`);
+    if (screen.applicationEvidence?.smokes?.length) console.log(`      smoke: ${screen.applicationEvidence.smokes.length} recibo(s) · host ${[...new Set(screen.applicationEvidence.smokes.map((smoke) => smoke.host || 'producao'))].join('/')}`);
     console.log(`      ${screen.nextAction}`);
   }
   console.log(`\n  relatório canônico: ${reportPath}\n`);

@@ -23,11 +23,11 @@ import { Grid, Inline, Stack } from '@/Components/layout';
 import Chart from '@/Components/shared/Chart';
 import EmptyState from '@/Components/shared/EmptyState';
 import KpiCard from '@/Components/shared/KpiCard';
-import KpiGrid from '@/Components/shared/KpiGrid';
 import { PageHeader } from '@/Components/PageHeader';
 import { PeriodBar, type Period } from '@/Components/shared/PeriodBar';
 import type { PaginatorShape } from '@/Components/shared/DataTable';
 import GradesPainel, { type Aba, type LinhaDaGrade } from './_components/GradesPainel';
+import { hrefDaAba, type Filtros } from './_components/abaHref';
 import { Deferred, router } from '@inertiajs/react';
 import { ReactNode } from 'react';
 
@@ -59,6 +59,12 @@ interface Props {
   aba: string | null;
   /** Linhas da aba aberta. Prop DEFERIDA: chega no segundo round-trip. */
   grade: PaginatorShape<LinhaDaGrade> | null;
+  /**
+   * Atalhos do painel de Pendências: as abas que têm algo esperando, já filtradas
+   * por permissão e sem as de total zero. Prop DEFERIDA — são 5 contagens, e o alvo
+   * de first-paint <= 800ms do charter não paga por atalho.
+   */
+  pendencias?: Array<{ aba: string; label: string; total: number }>;
   endpoints: {
     totals: string;
     stock_alert: string;
@@ -80,34 +86,101 @@ const brlCurto = (v: number) => {
 /** % com sinal explícito, pro caso em que subir é ruim e a cor do DS mentiria. */
 const sinal = (v: number | null | undefined) => (v === null || v === undefined ? '' : `${v >= 0 ? '+' : ''}${v}% vs anterior · `);
 
-const CARTAO = 'rounded-lg border border-border bg-card p-5 shadow-sm';
-const ROTULO = 'text-[10px] font-semibold uppercase tracking-wider text-muted-foreground';
+const CARTAO = 'rounded-lg border border-border bg-card p-[14px] shadow-sm';
+const ROTULO = 'text-[10.5px] font-semibold uppercase tracking-[0.06em] text-muted-foreground';
 
-/** KPI em destaque — o número que responde "como foi o período". */
+/**
+ * KPI hero — o "Líquido no período".
+ *
+ * ── POR QUE ESTE COMPONENTE USA TOKEN PRÓPRIO (medido 2026-09-03) ────────────
+ * A âncora (`prototipo-ui/cowork/dash-legacy-page.jsx:251`) renderiza o hero como
+ * `<KpiCard hero … spark={SERIE_30.slice(-12)} />` — variante do DS, com fundo
+ * `--kpi-feature-bg` e sparkline. O `KpiCard` DESTE repo não tem `hero` nem
+ * `spark`, então a tela reimplementou o card aqui — e, ao reimplementar, herdou
+ * `bg-card` (o card genérico) em vez do token do hero. Medido nos dois renders,
+ * mesmo viewport 1280:
+ *
+ *     âncora    fundo oklch(.238 .02 264) · padding 16 · 1 svg (sparkline)
+ *     produção  fundo oklch(.30  .008 240) · padding 20 · 0 svg
+ *
+ * O efeito era inverter a figura-fundo: o fundo da página é `L .26`, então o hero
+ * da âncora AFUNDA (`.238`) e destaca, enquanto o de produção ELEVAVA (`.30`)
+ * igual aos outros três — o número mais importante da tela não se distinguia.
+ *
+ * ⚠️ Os tokens `--kpi-feature-*` JÁ EXISTIAM em produção (ADR 0310, gerados em
+ * `resources/css/tokens/_generated-cockpit-dark.css`), escopados em `.cockpit`.
+ * Nada de token novo aqui — só passar a USAR o que a fundação já entrega. Foi a
+ * medição no `:root` (onde eles não vivem) que fez parecer ausência.
+ *
+ * O `spark` chega por `Inertia::defer` junto com `charts`; até resolver, o espaço
+ * é RESERVADO com a mesma altura, para o card não pular no first paint.
+ */
 function KpiHero({
   label,
   value,
   delta,
   description,
+  spark,
 }: {
   label: string;
   value: number;
   delta?: number | null;
   description?: string;
+  spark?: Array<{ label: string; value: number }>;
 }) {
   return (
-    <Stack gap={1} className={`${CARTAO} ring-1 ring-primary/15`}>
-      <span className={ROTULO}>{label}</span>
+    <Stack
+      gap={1}
+      className="rounded-lg border p-4 shadow-sm"
+      style={{
+        background: 'var(--kpi-feature-bg)',
+        borderColor: 'var(--kpi-feature-line)',
+      }}
+    >
+      <span className={ROTULO} style={{ color: 'var(--kpi-feature-fg-2)' }}>
+        {label}
+      </span>
       <Inline gap={2} align="baseline" wrap>
-        <span className="font-mono text-3xl font-semibold tracking-tight text-foreground">{brl(value)}</span>
+        <span
+          className="text-[28px] font-bold tracking-tight"
+          style={{ color: 'var(--kpi-feature-fg)' }}
+        >
+          {brl(value)}
+        </span>
         {delta != null && (
-          <span className={`font-mono text-[12px] font-semibold ${delta >= 0 ? 'text-success' : 'text-destructive'}`}>
-            {delta >= 0 ? '+' : ''}
-            {delta}% vs anterior
-          </span>
+          <Inline gap={1} align="baseline">
+            {/* Seta + numero: so o NUMERO carrega a cor do sinal, como na ancora. */}
+            <span className={`text-[11.5px] font-semibold ${delta >= 0 ? 'text-success' : 'text-destructive'}`}>
+              {delta >= 0 ? '↗' : '↘'} {delta >= 0 ? '+' : ''}
+              {delta}
+            </span>
+            {/* O rotulo e acessorio: peso 400 e tom secundario do proprio hero. Antes ele
+                vinha DENTRO do span colorido e gritava junto com o numero. */}
+            <span className="text-[11.5px] font-normal" style={{ color: 'var(--kpi-feature-fg-2)' }}>
+              % vs anterior
+            </span>
+          </Inline>
         )}
       </Inline>
-      {description && <span className="text-[12px] text-muted-foreground">{description}</span>}
+      {description && (
+        <span className="text-[12px]" style={{ color: 'var(--kpi-feature-fg-2)' }}>
+          {description}
+        </span>
+      )}
+      {/*
+        Sparkline: a âncora usa os últimos 12 pontos da série de 30 dias.
+
+        `aria-hidden` de propósito — este SVG é DECORATIVO e redundante: o valor do
+        período e o delta já estão em TEXTO logo acima, no mesmo card. Sem isto o
+        gráfico entraria como conteúdo sem alternativa textual, que é exatamente o
+        defeito que `UC-DASH-18` existe pra impedir (o `SerieAcessivel` cobre os 2
+        gráficos do painel, onde o dado NÃO está escrito em lugar nenhum).
+      */}
+      <div className="mt-auto h-[44px]" aria-hidden="true">
+        {spark && spark.length > 0 ? (
+          <Chart type="area" data={spark.slice(-12)} height={44} formatValue={brlCurto} />
+        ) : null}
+      </div>
     </Stack>
   );
 }
@@ -140,6 +213,7 @@ function HomeIndex({
   abas,
   aba,
   grade,
+  pendencias,
 }: Props) {
   const lojas = Object.entries(all_locations);
   const mostraLoja = is_admin && lojas.length > 1;
@@ -172,7 +246,7 @@ function HomeIndex({
   };
 
   return (
-    <Stack gap={5} className="mx-auto max-w-7xl p-6">
+    <Stack className="gap-[10px] px-[14px] pb-5">
       <div data-contract="cabecalho">
       <PageHeader
         leading={
@@ -185,7 +259,7 @@ function HomeIndex({
           totals ? (
             <>
               <strong>{brlCurto(totals.total_sell)}</strong> vendas ·{' '}
-              <strong>{brlCurto(totals.invoice_due)}</strong> a receber ·{' '}
+              <strong className="text-warning">{brlCurto(totals.invoice_due)}</strong> a receber ·{' '}
               <strong>{brlCurto(totals.total_expense)}</strong> despesas
             </>
           ) : undefined
@@ -223,26 +297,24 @@ function HomeIndex({
       </Inline>
 
       {can_dashboard_data && totals ? (
-        <Stack gap={4}>
-          <KpiGrid cols={4} data-contract="kpis">
+        <Stack className="gap-[10px]">
+          <Grid fit="sm" gap={2} data-contract="kpis">
             <KpiHero
               label="Líquido no período"
               value={totals.net}
               delta={deltas?.net}
-              description="Vendas − A receber − Despesas"
+              spark={charts?.dia}
             />
             <KpiCard
               label="Vendas"
               tone="success"
               value={brl(totals.total_sell)}
-              icon="trending-up"
               description="incluindo impostos"
               delta={deltas?.total_sell != null ? { value: deltas.total_sell, label: '% vs anterior' } : undefined}
             />
             <KpiCard
               label="A receber"
               value={brl(totals.invoice_due)}
-              icon="hourglass"
               tone="warning"
               description={`${sinal(deltas?.invoice_due)}líquido de descontos de razão`}
             />
@@ -250,16 +322,28 @@ function HomeIndex({
               label="Despesas"
               tone="info"
               value={brl(totals.total_expense)}
-              icon="receipt"
               description={`${sinal(deltas?.total_expense)}lançadas no período`}
             />
-          </KpiGrid>
-          <Contrapartidas totals={totals} />
+          </Grid>
+          {/*
+            Contrapartidas à esquerda, Pendências à direita — a linha de 2 colunas da
+            âncora (`minmax(0, 1.4fr)` / `minmax(240px, 1fr)`, `dash-legacy-page.jsx`
+            linha 257). As proporções e o piso de 240px são os dela, não escolha daqui.
+          */}
+          <Grid className="grid-cols-[minmax(0,1.4fr)_minmax(240px,1fr)] gap-[10px]">
+            <Contrapartidas totals={totals} />
+            <Deferred
+              data="pendencias"
+              fallback={<div className={`${CARTAO} h-[150px] animate-pulse`} />}
+            >
+              <PendenciasPainel pendencias={pendencias} filtros={filtrosDaTela} />
+            </Deferred>
+          </Grid>
 
           <Deferred
             data='charts'
             fallback={
-              <Grid cols={1} gap={4} className="lg:grid-cols-2">
+              <Grid className="grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] gap-[10px]">
                 <div className={`${CARTAO} h-[190px] animate-pulse`} />
                 <div className={`${CARTAO} h-[190px] animate-pulse`} />
               </Grid>
@@ -305,7 +389,7 @@ function Contrapartidas({ totals }: { totals: Totals }) {
           <h2 className="text-[13.5px] font-semibold text-foreground">Contrapartidas</h2>
           <span className="font-mono text-[10.5px] text-muted-foreground">mesmo período</span>
         </Inline>
-        <Grid cols={2} gap={4} className="lg:grid-cols-4">
+        <Grid fit="xs" className="gap-x-[14px] gap-y-3">
           {itens.map(([label, valor, sub]) => (
             <Stack gap={1} key={label} className="min-w-0">
               <span className="text-[9.5px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -318,6 +402,59 @@ function Contrapartidas({ totals }: { totals: Totals }) {
             </Stack>
           ))}
         </Grid>
+      </section>
+    </Stack>
+  );
+}
+
+/**
+ * Pendências — atalho pras abas que têm algo esperando agora.
+ *
+ * ⚠️ O que este painel NÃO copia da âncora, e por quê: lá (`dash-legacy-page.jsx`,
+ * const `PENDENCIAS`) cada linha tem texto próprio e um selo de severidade —
+ * "1 título de venda vencido" + `payment/overdue`. Esses rótulos descrevem um
+ * predicado MAIS ESTRITO do que o que a aba consulta: `titulosVencendo` traz tudo
+ * que vence em até 7 dias, vencido ou não. Carimbar "vencido" num conjunto que
+ * inclui o que ainda vai vencer é rotular errado — o usuário clica e não encontra
+ * o que o selo prometeu. Severidade honesta seria um SEGUNDO predicado: decisão de
+ * [W], não wiring.
+ *
+ * Então a linha mostra o rótulo CANÔNICO da aba — o mesmo do catálogo do serviço e
+ * o mesmo que a aba exibe — e o total que a aba vai mostrar. O número vem do mesmo
+ * `linhas()` que serve a grade, então clicar nunca contradiz o que estava escrito.
+ */
+function PendenciasPainel({ pendencias, filtros }: { pendencias: Props['pendencias']; filtros: Filtros }) {
+  return (
+    <Stack gap={3} asChild>
+      <section aria-label="Pendências" data-contract="pendencias" className={CARTAO}>
+        <Inline gap={3} align="baseline" justify="between">
+          <h2 className="text-[13.5px] font-semibold text-foreground">Pendências</h2>
+          {/* Não é "mesmo período" como nas Contrapartidas: nenhuma das 5 consultas
+              é recortada pela PeriodBar — elas olham o estado de agora. */}
+          <span className="font-mono text-[10.5px] text-muted-foreground">agora</span>
+        </Inline>
+        {pendencias && pendencias.length > 0 ? (
+          <Stack gap={0} asChild>
+            <ul>
+              {pendencias.map(({ aba, label, total }) => (
+                <li key={aba} className="border-b border-border last:border-b-0">
+                  {/* Link, não botão: a aba mora na query string, então o atalho tem
+                      de ser um endereço de verdade — com voltar, abrir em nova aba e
+                      o mesmo construtor de URL que a barra de abas usa. */}
+                  <a
+                    href={hrefDaAba(filtros, aba)}
+                    className="flex items-center justify-between gap-3 py-[7px] text-[12.5px] text-foreground hover:text-primary"
+                  >
+                    <span className="min-w-0">{label}</span>
+                    <span className="font-mono font-semibold tabular-nums">{total}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </Stack>
+        ) : (
+          <span className="text-[12.5px] text-muted-foreground">Nada pendente.</span>
+        )}
       </section>
     </Stack>
   );
@@ -381,7 +518,7 @@ function GraficosVendas({ charts }: { charts: Props['charts'] }) {
   if (!charts) return null;
 
   return (
-    <Grid cols={1} gap={4} className="lg:grid-cols-2" data-contract="graficos">
+    <Grid className="grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] gap-[10px]" data-contract="graficos">
       <PainelGrafico titulo="Vendas por dia" meta="últimos 30 dias">
         <Chart type="area" data={charts.dia} height={132} formatValue={brlCurto} />
         <SerieAcessivel titulo="Vendas por dia, últimos 30 dias" dados={charts.dia} />

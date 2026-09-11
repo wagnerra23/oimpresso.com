@@ -4,23 +4,24 @@
 > Fonte única: o plano é a verdade, este índice é derivado ([ADR 0256](../../decisions/0256-knowledge-survival-meia-vida-catraca-sentinela.md)). Execução mora no MCP via `parent_plan` ([ADR 0070](../../decisions/0070-jira-style-task-management-current-md-removed.md)). Frescor/órfão = sentinela `plan-health` (memory-health Check J).
 
 ## Saúde (derivada)
-- **7** planos registrados (com `## Status vivo`) · **24** pendentes de backfill (arquivo *plan* sem bloco)
-- reviewed_at preenchido: **4/7** · vinculados a MCP (`parent_plan`): **4/7**
-- Por status: ativo 3 · proposto 3 · (vazio) 1
+- **8** planos registrados (com `## Status vivo`) · **25** pendentes de backfill (arquivo *plan* sem bloco)
+- reviewed_at preenchido: **5/8** · vinculados a MCP (`parent_plan`): **5/8**
+- Por status: proposto 4 · ativo 3 · (vazio) 1
 - Inconsistências de schema: 4 — ver final
 
-## Registrados (7)
+## Registrados (8)
 | Plano | Módulo | Status | Owner | reviewed_at | parent_plan | gate-de-saída |
 |---|---|---|---|---|---|---|
 | [Plano de aprofundamento das avaliações](../_Governanca/PLANO-APROFUNDAMENTO-AVALIACOES.md) | _Governanca | — | — | — | — | — |
 | [PLANO MESTRE — Programa de Ondas com Adversário por Módulo](../_Governanca/programa-ondas/PLANO-MESTRE.md) | _Governanca | ativo | W | 2026-08-05 | `programa-ondas` | ✅ **BATIDO 2026-07-03** — dente de cálculo red/green no CT10 |
+| [Ondas MWART — os 23 mockups `A_CRIAR` (bundle 5023b274)](ONDAS-MWART-A-CRIAR.md) | _processo | proposto | W | 2026-09-06 | `ondas-mwart-a-criar` | as 4 ondas viraram tasks MCP aprovadas por [W] (ou foram rec |
 | [Plan — {{título curto da feature}}](../_TEMPLATE_FEATURE/plan.md) | _TEMPLATE_FEATURE | proposto | — | — | — | {{quando todos os ACs estarão provados e a US ancorada}} |
 | [Plan — OpenAPI 3.0 seguro para o Connector](../Connector/features/openapi-connector/plan.md) | Connector | ativo | W/F | 2026-08-03 | `connector-openapi` | AC-1..7 provados, smoke de suporte concluído e US-CONN-013 a |
 | [Plan — arquitetura do recebimento parcial de parcela](../Financeiro/features/recebimento-parcial-parcela/plan.md) | Financeiro | proposto | W | — | `financeiro-recebimento-parcial-parcela` | — |
 | [OBSERVABILITY — Jana](../Jana/OBSERVABILITY.md) | Jana | proposto | W/C | 2026-07-28 | — | um caso real observado percorre trace → avaliação → revisão  |
 | [Plano — Atendimento Automático (WhatsApp / Caixa Unificada)](../Whatsapp/PLANO-ATENDIMENTO-AUTOMATICO.md) | Whatsapp | ativo | W | 2026-06-20 | `plano-atendimento-automatico` | E1+E3 com ≥5 clientes pagando JANA Pro (espelha gates da ADR |
 
-## Pendentes de `## Status vivo` (24) — backfill dirigido pela sentinela
+## Pendentes de `## Status vivo` (25) — backfill dirigido pela sentinela
 | Plano | Módulo |
 |---|---|
 | [DEPRECATION-PLAN — ADS](../ADS/DEPRECATION-PLAN.md) | ADS |
@@ -43,6 +44,7 @@
 | [Onda 1 — Vendas, PDV & Caixa · PLANO (MWART Fase 1)](../Mwart/ONDA-1-VENDAS-PDV-CAIXA-PLANO.md) | Mwart |
 | [Plano de paralelização — OficinaAuto Fase 1 (pós-Martinho)](../OficinaAuto/demo-martinho-2026-05-13/plano-paralelizacao.md) | OficinaAuto |
 | [PaymentGateway Onda 5 SIMPLIFICADA — Dogfooding SaaS via gateway adici](../PaymentGateway/PLANO-ONDA5-SIMPLIFICADA.md) | PaymentGateway |
+| [GAP-SPEC — RecurringBilling/Planos/Index](../RecurringBilling/cobranca-recorrente-planos-gap.md) | RecurringBilling |
 | [Plan — Ativar gateway nas assinaturas dormentes](../RecurringBilling/features/gateway-ativacao/plan.md) | RecurringBilling |
 | [DEPRECATION-PLAN — SRS](../SRS/DEPRECATION-PLAN.md) | SRS |
 | [ADR ARQ-0001 (TaskRegistry) · Sistema de tasks MCP-native, não Plane s](../TaskRegistry/adr/arq/0001-mcp-native-vs-plane.md) | TaskRegistry |

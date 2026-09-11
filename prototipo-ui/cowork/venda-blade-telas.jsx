@@ -170,11 +170,7 @@ function VendaDetalhe({ venda, onClose, avisar, onAcao }) {
       </DrawerSection>
 
       <DrawerSection title="Mensagem para o cliente">
-        <div className="vt-msg-abas">
-          {[["confirmacao", "Confirmação"], ["retirada", "Retirada"], ["cobranca", "Cobrança"]].map(([k, l]) => (
-            <button key={k} className={aba === k ? "on" : ""} onClick={() => setAba(k)} disabled={k === "cobranca" && !venda.saldo}>{l}</button>
-          ))}
-        </div>
+        <window.CliSeg ariaLabel="Mensagem para o cliente" value={aba} onChange={setAba} options={[{ key: "confirmacao", label: "Confirmação" }, { key: "retirada", label: "Retirada" }, { key: "cobranca", label: "Cobrança", disabled: !venda.saldo }]} />
         <p className="vt-msg">{MSG[aba](venda)}</p>
         <div className="vt-msg-f">
           <button className="os-btn sm" onClick={() => avisar("Mensagem copiada.", "ok")}>Copiar</button>

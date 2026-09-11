@@ -64,13 +64,15 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { id: 'cockpit', label: 'Cockpit fiscal',  url: '/fiscal',         icon: <ShieldAlert size={14}/> },
-  { id: 'nfe',     label: 'NF-e · NFC-e',    url: '/fiscal/nfe',     icon: <Receipt size={14}/> },
-  { id: 'nfse',    label: 'NFS-e',           url: '/fiscal/nfse',    icon: <FileText size={14}/> },
-  { id: 'dfe',     label: 'Manifesto DF-e',  url: '/fiscal/dfe',     icon: <ShieldAlert size={14}/> },
-  { id: 'eventos', label: 'Eventos timeline',url: '/fiscal/eventos', icon: <RefreshCw size={14}/> },
-  { id: 'config',  label: 'Certif. & Cfg.',  url: '/fiscal/config',  icon: <Shield size={14}/> },
-  { id: 'sped',    label: 'SPED & Livros',   url: '/fiscal/sped',    icon: <Archive size={14}/> },
+  // Mesmos rótulos e mesma ordem do `FX_PAGES` (que segue o protótipo — ADR UI-0029).
+  // A paleta é outra porta pras mesmas telas: divergir aqui daria dois nomes pra uma coisa só.
+  { id: 'cockpit', label: 'Notas fiscais',   url: '/fiscal',         icon: <ShieldAlert size={14} aria-hidden="true"/> },
+  { id: 'nfe',     label: 'NF-e · NFC-e',    url: '/fiscal/nfe',     icon: <Receipt size={14} aria-hidden="true"/> },
+  { id: 'nfse',    label: 'NFS-e',           url: '/fiscal/nfse',    icon: <FileText size={14} aria-hidden="true"/> },
+  { id: 'eventos', label: 'Eventos',         url: '/fiscal/eventos', icon: <RefreshCw size={14} aria-hidden="true"/> },
+  { id: 'dfe',     label: 'Manifesto DF-e',  url: '/fiscal/dfe',     icon: <ShieldAlert size={14} aria-hidden="true"/> },
+  { id: 'config',  label: 'Certificado',     url: '/fiscal/config',  icon: <Shield size={14} aria-hidden="true"/> },
+  { id: 'sped',    label: 'SPED e livros',   url: '/fiscal/sped',    icon: <Archive size={14} aria-hidden="true"/> },
 ];
 
 function brl(v: number): string {
@@ -172,7 +174,7 @@ export default function CmdKPalette() {
         label: `${n.tipo} ${n.numero} · série ${n.serie}`,
         subtitle: [n.chave_short, n.motivo].filter(Boolean).join(' · '),
         trailing: `${brl(n.valor)} · ${n.status}${n.cstat ? ` (${n.cstat})` : ''}`,
-        icon: <Receipt size={14}/>,
+        icon: <Receipt size={14} aria-hidden="true"/>,
         url: n.url,
       });
     });
@@ -183,7 +185,7 @@ export default function CmdKPalette() {
         label: d.emitente ?? `DF-e ${d.nsu}`,
         subtitle: [d.cnpj, d.chave_short].filter(Boolean).join(' · '),
         trailing: `${brl(d.valor)} · ${d.status}`,
-        icon: <ShieldAlert size={14}/>,
+        icon: <ShieldAlert size={14} aria-hidden="true"/>,
         url: d.url,
       });
     });
@@ -278,7 +280,7 @@ export default function CmdKPalette() {
             aria-label="Fechar (ESC)"
             style={{ background: 'transparent', border: 0, cursor: 'pointer', padding: 4 }}
           >
-            <X size={16}/>
+            <X size={16} aria-hidden="true"/>
             <kbd style={{ marginLeft: 4, fontSize: 10 }}>esc</kbd>
           </button>
         </header>

@@ -35,7 +35,7 @@ export default function TroubleshooterOverlay({ troubleId, onClose }: Props) {
   const step = trouble.steps[stepIdx];
   const Icon = ICONS[trouble.icon as TroubleshooterIcon] ?? User;
   const barCls = HUE_BAR[trouble.hue] ?? 'bg-stone-300';
-  const tagCls = HUE_TAG[trouble.hue] ?? 'bg-stone-100 text-stone-700';
+  const tagCls = HUE_TAG[trouble.hue] ?? 'bg-muted text-foreground';
 
   function pick(opt: { label: string; next: number }) {
     if (!step) return;
@@ -57,40 +57,40 @@ export default function TroubleshooterOverlay({ troubleId, onClose }: Props) {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-md max-h-[85vh] overflow-hidden rounded-lg bg-white shadow-xl ring-1 ring-stone-200 flex flex-col"
+        className="relative w-full max-w-md max-h-[85vh] overflow-hidden rounded-lg bg-card shadow-xl ring-1 ring-border flex flex-col"
       >
-        <header className="flex items-center gap-3 border-b border-stone-100 px-4 py-3">
-          <Icon size={18} className="text-stone-700" />
-          <h2 className="flex-1 text-sm font-semibold text-stone-900">{trouble.title}</h2>
-          <button type="button" onClick={onClose} aria-label="Fechar" className="rounded p-1 hover:bg-stone-100">
-            <X size={16} className="text-stone-500" />
+        <header className="flex items-center gap-3 border-b border-border px-4 py-3">
+          <Icon size={18} className="text-foreground" />
+          <h2 className="flex-1 text-sm font-semibold text-foreground">{trouble.title}</h2>
+          <button type="button" onClick={onClose} aria-label="Fechar" className="rounded p-1 hover:bg-muted">
+            <X size={16} className="text-muted-foreground" />
           </button>
         </header>
         <div className={`h-1 w-full ${barCls}`} aria-hidden="true" />
         <div className="flex-1 overflow-y-auto px-4 py-4">
           {path.length > 0 && (
-            <ol className="mb-4 space-y-1.5 text-xs text-stone-500">
+            <ol className="mb-4 space-y-1.5 text-xs text-muted-foreground">
               {path.map((p, i) => (
                 <li key={i} className="flex gap-2">
-                  <span className="text-stone-400">{i + 1}.</span>
-                  <span><b className="text-stone-700">{p.q}</b> → {p.answer}</span>
+                  <span className="text-muted-foreground">{i + 1}.</span>
+                  <span><b className="text-foreground">{p.q}</b> → {p.answer}</span>
                 </li>
               ))}
             </ol>
           )}
           {step && step.opts && (
             <>
-              <div className="mb-3 text-sm font-medium text-stone-900">{step.q}</div>
+              <div className="mb-3 text-sm font-medium text-foreground">{step.q}</div>
               <ul className="space-y-2">
                 {step.opts.map((opt) => (
                   <li key={opt.label}>
                     <button
                       type="button"
                       onClick={() => pick(opt)}
-                      className="flex w-full items-center justify-between gap-2 rounded-lg border border-stone-200 px-3 py-2 text-left text-sm text-stone-700 hover:bg-primary/10 hover:border-primary/40"
+                      className="flex w-full items-center justify-between gap-2 rounded-lg border border-border px-3 py-2 text-left text-sm text-foreground hover:bg-primary/10 hover:border-primary/40"
                     >
                       {opt.label}
-                      <ChevronRight size={14} className="text-stone-400" />
+                      <ChevronRight size={14} className="text-muted-foreground" />
                     </button>
                   </li>
                 ))}
@@ -102,12 +102,12 @@ export default function TroubleshooterOverlay({ troubleId, onClose }: Props) {
               <div className={`mb-2 inline-block rounded-md px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${tagCls}`}>
                 Ação recomendada
               </div>
-              <p className="text-sm leading-relaxed text-stone-800">{step.final}</p>
+              <p className="text-sm leading-relaxed text-foreground">{step.final}</p>
               <div className="mt-4 flex gap-2">
                 <button
                   type="button"
                   onClick={restart}
-                  className="inline-flex items-center gap-1 rounded-lg border border-stone-200 px-3 py-1.5 text-xs text-stone-700 hover:bg-stone-50"
+                  className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-xs text-foreground hover:bg-muted"
                 >
                   <RefreshCcw size={12} /> Recomeçar
                 </button>
@@ -122,7 +122,7 @@ export default function TroubleshooterOverlay({ troubleId, onClose }: Props) {
             </div>
           )}
         </div>
-        <footer className="border-t border-stone-100 px-4 py-2 text-[10px] text-stone-400">
+        <footer className="border-t border-border px-4 py-2 text-[10px] text-muted-foreground">
           Esc fecha
         </footer>
       </div>

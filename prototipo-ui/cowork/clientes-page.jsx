@@ -429,18 +429,7 @@ function CliListPage() {
         </div>
       </header>
 
-      <nav className="cli-moduletopnav" aria-label="Tipo de pessoa">
-        {ROLE_TABS.map((t) => (
-          <button key={t.id}
-            className={`cli-moduletopnav-tab ${role === t.id ? "active" : ""}`}
-            onClick={() => setRole(t.id)}
-            aria-current={role === t.id ? "page" : undefined}>
-            <t.icon size={14}/>
-            <span>{t.label}</span>
-            <span className="cli-moduletopnav-n">{t.n}</span>
-          </button>
-        ))}
-      </nav>
+      {window.CliTabs && <window.CliTabs ariaLabel="Tipo de pessoa" pad={24} tabs={ROLE_TABS.map((t) => ({ key: t.id, label: t.label, n: t.n, icon: t.icon }))} active={role} onChange={setRole} />}
 
       {role === "customer"       && <CustomerView onResumo={setResumo} papeisOutros={papeisOutros}/>}
       {role === "supplier"       && <SupplierView papeisOutros={papeisOutros}/>}

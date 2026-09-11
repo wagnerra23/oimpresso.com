@@ -71,7 +71,13 @@ class RecipeController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
+        // ⚠️ `! request()->header('X-Inertia')` é OBRIGATÓRIO aqui (bug em prod 2026-09-04).
+        // O cliente do Inertia manda `X-Requested-With: XMLHttpRequest`, então
+        // `request()->ajax()` é TRUE numa navegação SPA — sem este guarda o controller
+        // devolvia o JSON do DataTables e o Inertia estourava "All Inertia requests must
+        // receive a valid Inertia response". Quebrou ao clicar nas abas depois do cutover.
+        // Mesmo idioma do middleware AdminSidebarMenu (ver CoworkSidebarController §PEGADINHA).
+        if (request()->ajax() && ! request()->header('X-Inertia')) {
             $recipes = MfgRecipe::join('variations as v', 'mfg_recipes.variation_id', '=', 'v.id')
                                 ->join('product_variations as pv', 'v.product_variation_id', '=', 'pv.id')
                                 ->join('products as p', 'v.product_id', '=', 'p.id')
@@ -185,6 +191,46 @@ class RecipeController extends Controller
                 // §16 — chave real do JSON `business.manufacturing_settings`.
                 'enable_updating_product_price' => ! empty($settings['enable_updating_product_price']),
             ],
+        ]);
+    }
+
+    /**
+     * MWART US-MANU-005 (SPEC.md) — Insumos: impacto reverso + simulador de preço.
+     * Rota ADITIVA `/manufacturing/v2/insumos`. 100% leitura.
+     *
+     * O `variacao_pct` do slider vem por query string e é CLAMPADO aqui (-30..60, passo 5 é
+     * do front) — nunca confio no range que o cliente manda ({@see RUNBOOK-insumos.md}).
+     */
+    public function insumos(\Modules\Manufacturing\Services\ProductionService $productionService)
+    {
+        $business_id = request()->session()->get('user.business_id');
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.access_recipe')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $variationId = request()->integer('insumo') ?: null;
+
+        // Clamp do intervalo do §4.4 (-30%..+60%). Valor fora da faixa é recortado, não aceito.
+        $pct = (float) request()->input('variacao_pct', 10);
+        $pct = max(-30.0, min(60.0, $pct));
+
+        $ordens = $productionService->summary($business_id);
+
+        return Inertia::render('Manufacturing/Insumos', [
+            'insumos' => $this->recipeBomService->listInsumosComUso($business_id),
+            'selecionado' => $variationId,
+            'usos' => $variationId
+                ? $this->recipeBomService->usosDoInsumo($variationId, $business_id, $pct)
+                : [],
+            'variacao_pct' => $pct,
+            'permissions' => [
+                'prod' => auth()->user()->can('manufacturing.access_production'),
+            ],
+            'producao' => [
+                'total' => (int) $ordens['total_count'],
+                'rascunhos' => (int) $ordens['pending_count'],
+            ],
+            'recipes_count' => $this->recipeBomService->countRecipes($business_id),
         ]);
     }
 

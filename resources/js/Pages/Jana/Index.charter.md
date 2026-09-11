@@ -2,11 +2,12 @@
 id: resources-js-pages-jana-index-charter
 page: /ia
 component: resources/js/Pages/Jana/Index.tsx
+related_visual_comparison: memory/requisitos/Jana/Index-visual-comparison.md
 related_prototype: prototipo-ui/cowork/jana-merge.jsx
-states: [default]  # gate L2 — o `default` desta tela é semeado com UMA venda VENCIDA (routes/web.php `$seedJanaVisregFlow`), pra que o KpiCard `tone="danger"` do "A receber vencido" entre em baseline; sync com tests/Browser/visreg-states.json
+states: [default]  # gate L2 — o `default` desta tela é semeado com UMA venda VENCIDA (routes/web.php `$seedJanaVisregFlow`), pra que o `JanaKpiCard` em `emphasis` do "A receber vencido" entre em baseline; sync com tests/Browser/visreg-states.json
 owner: wagner
 status: live
-last_validated: "2026-09-03"
+last_validated: "2026-09-07"
 parent_module: Jana
 parent_adr: memory/decisions/0052-memoria-jana-3-angulos-faturamento.md
 related_adrs: [26, 31, 35, 36, 52, 93, 94, 107, 114]
@@ -17,7 +18,7 @@ related_specs:
   - memory/requisitos/Jana/SPEC.md (US-COPI-010, US-COPI-011, US-COPI-012)
 runbook: memory/requisitos/Jana/RUNBOOK-index.md
 tier: A
-charter_version: 13
+charter_version: 16
 permissao: jana.access
 ---
 
@@ -101,7 +102,9 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 - Mobile responsivo — stack vertical cards, swipe horizontal não-essencial
 - Dark mode obrigatório (`@/Layouts/AppShellV2` default)
 - Toast `sonner` em mutations (arquivar meta)
-- `KpiCard` shared component pra cada meta (consistência cross-module)
+- `KpiCard` shared component pra cada **meta** (consistência cross-module). ⚠️ Isto **não**
+  vale pros **3 KPIs do topo**: desde a v14 eles são o `JanaKpiCard`, réplica do `.jc-kpi` da
+  âncora (ADR 0388 §D-1). O shared serve 37 telas na anatomia PT-04 e **não** foi tocado.
 - `EmptyState` shared component se 0 metas — CTA "Pergunte algo a Jana"
 - **Demo polish (v2 — CYCLE-06 G3):** badge `JANA V2` no header, KPI strip 3 colunas (Memória ativa / Última conversa / Brain B hoje — placeholders pra Brain B preencher futuro via `Inertia::defer`), card "Próxima ação sugerida" (mock didático), empty state com ícone `Sparkles` + CTA `Pergunte algo a Jana` em vez de texto plano.
   _A **prescrição de COR** deste bullet foi **revogada por [W] em 2026-08-12** (ver v5). Ela dizia
@@ -192,6 +195,83 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 `brief-first` (Tier A) · `multi-tenant-patterns` (Tier A) · `inertia-defer-default` (Tier B) · `mwart-process` (Tier A)
 
 ## Charter version log
+
+- **v16 (2026-09-08)** — **o drawer da meta absorve `metas/show` e `fontes/show`** (PR-3 do
+  [`RUNBOOK-metas`](../../../../memory/requisitos/Jana/RUNBOOK-metas.md) §9.4, *"Fonte e apurações
+  como seções"*). Três seções novas em `_components/JanaMetaDrawer.tsx`: **Identificação**
+  (identificador · agregação · origem · escopo), **Apurações gravadas** (tabela `Data ref.` ×
+  `Realizado`, com a contagem no título) e **Fonte do número** (driver · cadência · `config_json`
+  + o aviso de só-leitura). Âncora: `prototipo-ui/cowork/jana-metas.jsx` §`JmApuracoesSecao` e
+  §`JmFonteDrawer` — que se declara, no próprio cabeçalho, a absorção daquelas Blades
+  *"para dentro da tela única da Jana"*.
+
+  **O payload de `/ia` ganhou três campos** (`origem`, `business_id`, `fonte`) porque nenhum
+  existia — e sem eles o **PR-4 (cutover)** não pode remover as views, já que o §9.4 exige que o
+  drawer entregue antes o que a Blade entregava.
+
+  **Uma armadilha multi-tenant foi afirmada e REFUTADA dentro do próprio PR.** A primeira versão
+  punha um `withoutGlobalScope` no eager-load da fonte, supondo que meta de **plataforma**
+  entrava no Painel e perderia a fonte pelo escopo do parent. O **UC-JPAIN-22 derrubou isso**:
+  reprovou porque a **META** de plataforma não aparece — o escopo direto (`ScopeByBusiness`)
+  filtra `business_id = <sessão>` estrito para usuário comum, e abre `= X OR IS NULL` para
+  superadmin, exatamente como o escopo do parent. Os dois concordam nos dois papéis; a dispensa
+  saiu. Registro em vez de apagamento, porque dispensar defesa Tier 0 sem necessidade é o oposto
+  do que a ADR 0093 pede. Contrato em **UC-JPAIN-22** (runtime, lê o payload) e **UC-JPAIN-23**
+  (forma, lê o arquivo), os dois no `PainelContratoTest`.
+
+  **Não** foi criada variante nova no `Alert` do Design System: a âncora pede tom de aviso e o
+  componente só tem `default`/`destructive` — token ou variante nova é decisão do dono do DS,
+  então a copy carrega o sentido. Nenhuma Blade foi removida aqui; remoção é o PR-4.
+
+- **v15 (2026-09-07)** — **card de meta lê `<valor> de <alvo>` e `<pct>% do alvo`** (Onda 2.1 do
+  pacote de paridade do Cowork, `design-docs/COLAR-NO-CODE-jana-tabs-cor-e-icone.md` §1-ter).
+  Âncora `jana-merge.jsx` §`JmMetaCard`: `jm-meta-v` = `<b>{atual}</b><small>de {alvo}</small>`,
+  `jm-meta-f` = `{pct}% do alvo` + projeção à direita. Produção escrevia `Alvo: X` no rodapé com o
+  `%` solto — o alvo não estava ao lado do número. Sem apuração, o rodapé cai pra `alvo X` (como o
+  `jm-meta-apurando` da âncora); copies pinadas e farol intactos; flex/grid do arquivo **11 → 11**.
+  Contrato em **UC-JPAIN-21** (`PainelContratoTest`). A **Onda 1.1** do mesmo pacote (pill do
+  contador inativo → `var(--bg-2)`) **já estava no `main`** desde 2026-09-04
+  (`Components/shared/PageHeaderTabs.tsx`, comentário do próprio ramo) — o pacote foi escrito contra
+  árvore anterior; nada a fazer.
+- **v14 (2026-09-03)** — **os 3 KPIs do topo viram RÉPLICA do `.jc-kpi` da âncora** (Onda 2 da
+  paridade; pedido [W]: *"KPIs feios"*). Medição em
+  [`Index-visual-comparison.md` §Rodada MEDIDA de 2026-09-03](../../../../memory/requisitos/Jana/Index-visual-comparison.md),
+  tabela **KPIs** — 4 linhas `❌` e 3 `🟡`. O que mudou, e cada item sai de lá:
+
+  | linha da medição | antes (`KpiCard` PT-04) | agora (`JanaKpiCard`) |
+  |---|---|---|
+  | grid | `cols={3}` · gap 12 · 3 cards ocupam tudo | `cols={4}` · `gap-2.5` (10px) · 3 de 4, como a `jc-kpis` |
+  | card | r12 · `p-4` · gap 8 | r8 (`rounded-[var(--radius,8px)]`) · `pt-3 px-3.5 pb-3.5` · gap 3px |
+  | label | sans 11px/600 · **ícone em caixa 36×36** `bg-muted` | mono 10px/700 `.06em` · **ícone 15px inline** |
+  | card em alarme | `bg-destructive/5` (5% translúcido) | `bg-destructive-soft` (tinta sólida) + valor em `--fs-8` |
+  | delta | `+3 hoje vs ontem` (sem unidade) | `+3% hoje vs ontem` — o `%` que a âncora escreve |
+
+  **Componente novo, shared INTOCADO** ([ADR 0388](../../../../memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md)
+  §D-1; precedência de FORMA pela [ADR UI-0029](../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)):
+  `_components/JanaKpiCard.tsx`. Mudar o `KpiCard` shared imporia a forma da Jana às outras
+  **36** telas que o usam — a 0385 já dizia que *"diferente não é erro"*.
+
+  **Dois EIXOS, separados como na âncora.** `emphasis` (← `emphasize`) mexe em fundo/borda/tamanho;
+  `valueTone` (← `deltaCls === "red big"`) pinta só o valor. É o conserto da errata que o próprio
+  `KpiCard.tsx` registrou em 2026-08-27 (*"pendurou-se no eixo do FUNDO um efeito que a âncora
+  pendura no eixo do DELTA"*) — sem tocar o shared, porque lá o N=1 do dataset deixa os dois
+  indistinguíveis e desfazer a fusão é decisão de quem tem os outros consumidores.
+
+  **O que NÃO mudou, de propósito:** os 3 rótulos e a ordem (UC-JPAIN-18), `Receita 30 dias`
+  contra `Receita mês` da âncora (UC-JPAIN-14 — aqui é o protótipo que está atrás), o drill dos
+  2 KPIs que têm análise do mesmo dado, e o conjunto de botões mudos (UC-JPAIN-16 — o card só
+  vira clicável quando recebe `onClick`).
+
+  **Contrato novo:** **UC-JPAIN-20** no `Index.casos.md`, com o render-test
+  [`tests/janaKpiReplica.spec.tsx`](../../../../tests/janaKpiReplica.spec.tsx) (13 asserções,
+  bite-test provado: reintroduzir `rounded-xl` + `bg-destructive/5` derruba 3 delas). O
+  `PainelContratoTest` foi **reescrito** onde fixava a forma antiga — é o "perdedor se corrige no
+  MESMO PR" da UI-0029, nunca desabilitar.
+
+  **Dívida de conformidade declarada** (ADR 0388 §D-2):
+  [`INCONSISTENCIAS-replica.md`](../../../../memory/requisitos/Jana/INCONSISTENCIAS-replica.md)
+  — **33** itens abertos no módulo, **zero** deles do componente novo (medido depois do rebase
+  sobre a Onda 1: o 33º é do `JanaSubNav.tsx`, que veio com ela).
 
 - **v13 (2026-09-03)** — **Onda 1 da paridade com o protótipo: a barra de abas sai da linha do título e vira FAIXA PRÓPRIA abaixo do header** (UC-JPAIN-19; UI-0029 "protótipo soberano sobre ADR UI"). Medido com a MESMA sonda nos dois lados (design-diff, dark × dark, viewport 2560; render do `jana-merge.jsx` pelo shell do espelho × `/ia` em prod): (a) abas — âncora `nav` filho de `.jc-page`, `left=284 w=2237 h=36`, 14px abaixo do header, itens 13px/500 (ativa 600, underline accent, pill accent-soft), ícone 14px por aba; prod tablist INLINE na Zona C do `PageHeader`, `left=1654 w=451`, no `top` do h1. (b) header — âncora `.jc-header-r` = `Atualizado HH:MM` (dot verde) → selo → Configurar → Exportar, **sem** primary; prod tinha "Atualizado" no subtítulo e um primary "Conversar" que duplicava a aba. (c) subtítulo — âncora mono 11.5px; prod sans 12px. Conserto: `PageHeader` canon ganha o slot `below` (faixa própria dentro do `<header>`, posição que `Cliente/Index.tsx` já usava hand-rolado — [W] 2026-07-14 "mesma posição do Clientes/protótipo em todas"); `JanaSubNav` mapeia ícone por key (`JANA_TAB_ICON`, FORMA → cliente, o `SidebarGhost` PHP não tem `icon`); `PageHeaderPrimary` sai; Conversa ganha "Nova conversa" + Configurar só-ícone no header (âncora `isChat`). §Goals reescrito no mesmo PR. **Divergência que FICA declarada, decisão [W]:** título 22px (canon `PageHeader`, ADR 0189) × 19px da âncora — é Fundação/Shell compartilhada (37 telas), não desta tela. Teste: `tests/janaAreaHeaderParidade.spec.tsx` (vitest, jsdom — mede o DOM renderizado, não o texto do arquivo).
 - **v12 (2026-09-02)** — **dois ponteiros podres do frontmatter, gap #23 do [AUDIT-GAPS](../../../../memory/requisitos/Jana/AUDIT-GAPS-2026-08-10.md).** (a) `related_charters` apontava pra `Cockpit.charter.md`, **apagado** — removido; medido no repo inteiro: **280 charters, 3 usam `related_charters`, 1 entrada morta** (esta). (b) `permissao: copiloto.access` — a key não existe; a real é **`jana.access`**, aplicada no grupo `/ia` ([`routes.php:50`](../../../../Modules/Jana/Http/routes.php)). (c) o título do corpo dizia `/copiloto/dashboard`, rota que hoje é 301 — a lista de ponteiros podres da [emenda do Cowork](../../../../prototipo-ui/design-docs/cowork-inbox/JANA-CASOS-EMENDA-PERMISSAO-2026-08-27.md) registra que foi de cabeçalho assim que saiu o `/jana` errado da rodada 1: comentário podre não é inerte, ensina errado ao próximo executor.

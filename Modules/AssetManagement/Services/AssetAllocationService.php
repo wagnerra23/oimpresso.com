@@ -8,6 +8,7 @@ use DB;
 use Illuminate\Http\Request;
 use Modules\AssetManagement\Entities\Asset;
 use Modules\AssetManagement\Entities\AssetTransaction;
+use Modules\AssetManagement\Exceptions\SaldoInsuficienteException;
 use Modules\AssetManagement\Utils\AssetUtil;
 
 /**
@@ -41,14 +42,25 @@ class AssetAllocationService
 
             DB::beginTransaction();
 
+            // A normalizacao subiu para ANTES da trava (thread 02): a quantidade so pode ser
+            // comparada com o saldo depois de passar por `num_uf`, senao a comparacao seria
+            // com a string crua. Nada aqui depende do `ref_no`, entao a ordem e segura — e o
+            // `ref_no` passou a ser gerado DEPOIS da trava, para que uma alocacao recusada
+            // nao queime um numero de referencia.
+            $input = $this->normalizarCampos($input);
+
+            $this->garantirSaldo(
+                (int) ($input['asset_id'] ?? 0),
+                $businessId,
+                (float) ($input['quantity'] ?? 0)
+            );
+
             if (empty($input['ref_no'])) {
                 $ref_count = $this->commonUtil->setAndGetReferenceCount('allocation_code', $businessId);
                 $asset_settings = $this->assetUtil->getAssetSettings($businessId);
                 $prefix = $asset_settings['allocation_code_prefix'] ?? null;
                 $input['ref_no'] = $this->commonUtil->generateReferenceNumber('allocation_code', $ref_count, null, $prefix);
             }
-
-            $input = $this->normalizarCampos($input);
 
             $trans = AssetTransaction::create($input);
 
@@ -96,24 +108,110 @@ class AssetAllocationService
     }
 
     /**
-     * Calcula qty disponivel de um asset alocado (used by edit form).
+     * Quantidade do asset que esta NA MAO das pessoas (alocado menos devolvido).
+     *
+     * ⚠️ O NOME ENGANA e fica como esta de proposito: ele e consumido pelo
+     * `AssetAllocationController::edit()` e pelo `asset_allocation/edit.blade.php`, e
+     * renomea-lo seria outro intent. MEDIDO no CT 100 em 2026-09-08 com bem de 10
+     * unidades, 10 alocadas, 0 devolvidas: o retorno e **10** (o alocado), nao **0** (o
+     * que sobra). Quem precisa do que SOBRA usa `saldoLivre()`.
+     *
+     * O `(int)` tambem fica: `asset_transactions.quantity` e DECIMAL(22,4), entao este
+     * cast TRUNCA fracao — mexer nele muda o `max` do formulario legado, que e quantidade,
+     * e quantidade e REGRA MESTRE. Declarado, nao consertado. A trava usa float.
      */
     public function quantidadeDisponivel(AssetTransaction $allocated): int
     {
+        return (int) $this->alocadoLiquido((int) $allocated->asset_id, (int) $allocated->business_id);
+    }
+
+    /**
+     * UM dono para a contagem. A expressao SQL e a mesma que vivia em
+     * `quantidadeDisponivel()` — preservada byte-a-byte, so parametrizada por
+     * (asset, business) em vez de ler de uma transacao existente, porque `criar()`
+     * precisa do numero ANTES de existir transacao. Duas contagens para o mesmo numero
+     * e como o bug renasce (thread 02 §B).
+     */
+    private function alocadoLiquido(int $assetId, int $businessId): float
+    {
         $asset = Asset::leftJoin('asset_transactions as AT', function ($join) {
             $join->on('assets.id', '=', 'AT.asset_id')
+                // O GEMEO que a thread 01 nao pegou. Ela pos o predicado de tenant na
+                // subconsulta de `revoke` (`AR.business_id=assets.business_id`, logo abaixo)
+                // e o lado `allocate` ficou sem — entao o alocado somava transacao de
+                // QUALQUER empresa, e o saldo do dono caia. Achado pelo teste Tier 0 desta
+                // thread, que era o unico vermelho dos 5.
+                //
+                // Nao e cosmetico: a trava LE este numero. Sem o predicado ela recusaria
+                // alocacao legitima por causa de dado de outro tenant — que e exatamente o
+                // que a thread 02 avisa ao exigir a 01 primeiro ("a trava usaria um numero
+                // contaminado"). A 01 corrigiu metade do calculo; esta fecha a outra.
+                //
+                // ANTES->DEPOIS medido no CT 100 (2026-09-08): 308 bens varridos,
+                // **0** mudam de valor, **0** transacoes `allocate` cross-tenant existem
+                // nesta base. A correcao nao altera nenhum registro — so fecha a porta.
+                ->on('AT.business_id', '=', 'assets.business_id')
                 ->where('transaction_type', 'allocate');
         })
-            ->where('assets.business_id', $allocated->business_id)
-            ->where('assets.id', $allocated->asset_id)
+            ->where('assets.business_id', $businessId)
+            ->where('assets.id', $assetId)
             ->select(
                 'assets.id as id',
                 DB::raw('SUM(COALESCE(AT.quantity, 0)) as allocated_qty'),
-                DB::raw('(SELECT SUM(COALESCE(AR.quantity, 0)) FROM asset_transactions AS AR WHERE(AR.asset_id=assets.id AND AR.transaction_type=\'revoke\')) as revoked_qty')
+                DB::raw('(SELECT SUM(COALESCE(AR.quantity, 0)) FROM asset_transactions AS AR WHERE(AR.asset_id=assets.id AND AR.business_id=assets.business_id AND AR.transaction_type=\'revoke\')) as revoked_qty')
             )
             ->first();
 
-        return (int) ($asset->allocated_qty - $asset->revoked_qty);
+        // `first()` sobre agregacao sem GROUP BY sempre devolve UMA linha; quando o asset
+        // nao e do business (ou nao existe), ela vem com os dois campos nulos — e o saldo
+        // resultante e 0, que e o que `saldoLivre()` precisa para recusar.
+        if (! $asset) {
+            return 0.0;
+        }
+
+        return (float) $asset->allocated_qty - (float) $asset->revoked_qty;
+    }
+
+    /**
+     * Quanto do bem AINDA PODE ser alocado: o que a empresa tem menos o que ja saiu.
+     *
+     * O predicado de business esta nos DOIS lados (aqui e em `alocadoLiquido`), entao
+     * asset de outro tenant devolve saldo 0 e qualquer pedido e recusado — o que fecha,
+     * de lado, o buraco de `criar()` nunca ter verificado o dono do asset.
+     */
+    private function saldoLivre(int $assetId, int $businessId): float
+    {
+        $asset = Asset::where('id', $assetId)
+            ->where('business_id', $businessId)
+            ->first();
+
+        if (! $asset) {
+            return 0.0;
+        }
+
+        return (float) $asset->quantity - $this->alocadoLiquido($assetId, $businessId);
+    }
+
+    /**
+     * A TRAVA (thread 02). Recusa antes de gravar — se a linha nascesse e so depois fosse
+     * rejeitada, o saldo ja teria mentido.
+     *
+     * Mora aqui, e nao no `StoreAssetAllocationRequest`, porque aquele Request e ORFAO: o
+     * controller recebe `Illuminate\Http\Request` cru e tem 0 chamadas de validacao, entao
+     * regra escrita la passa no CI e e inerte em producao (`_saida-04.md §5`).
+     */
+    private function garantirSaldo(int $assetId, int $businessId, float $pedido): void
+    {
+        $disponivel = $this->saldoLivre($assetId, $businessId);
+
+        if ($pedido > $disponivel) {
+            // Rollback explicito: nao delegar ao `catch` do controller. A transacao foi
+            // aberta por `criar()`, entao e `criar()` que a fecha — deixar aberta para
+            // alguem la em cima resolver e como a conexao vaza.
+            DB::rollBack();
+
+            throw new SaldoInsuficienteException($assetId, $pedido, $disponivel);
+        }
     }
 
     /**

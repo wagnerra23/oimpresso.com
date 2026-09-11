@@ -1,0 +1,53 @@
+{
+  "_nota": "Contrato de tela de Essentials/Tipos (PT-01 Lista). Gerado por criar-tela.mjs em 2026-09-05 e preenchido no MESMO PR (HRM-O7 PR-9). A copy vem LITERAL do protótipo Cowork `prototipo-ui/cowork/hrm-page.jsx`, subview \"tipos\" — não foi reescrita aqui.",
+  "tela": "Essentials/Tipos",
+  "fonte": "prototipo-ui/cowork/hrm-page.jsx",
+  "_nota_fonte": "A âncora é a subview `tipos` do app HRM do Cowork (o bloco `subview === \"tipos\"`). A estrutura da tela vem do arquétipo PT-01; a COPY e a ordem das colunas vêm do protótipo. O que NÃO desceu do protótipo: a `Nota` \"EssentialsLeaveTypeController::destroy está vazio — o cadastro só cresce\", que CADUCOU com o PR #6789 (o método existe e devolve 422 com blocked_by). Protótipo atrasado, não bug de produção.",
+  "alvo": [
+    "resources/js/Pages/Essentials/Tipos.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "cabecalho",
+      "copy": [
+        "Tipos de licença"
+      ]
+    },
+    {
+      "id": "toolbar",
+      "copy": [
+        "Novo tipo"
+      ]
+    },
+    {
+      "id": "lista",
+      "copy": [
+        "Tipo",
+        "Limite",
+        "Intervalo",
+        "Pedidos no ano",
+        "sem limite",
+        "por ano",
+        "por mês"
+      ]
+    }
+  ],
+  "ordem": [
+    "cabecalho",
+    "toolbar",
+    "lista"
+  ],
+  "estados": {
+    "vazio": [
+      "Nenhum tipo de licença cadastrado",
+      "Sem tipo não dá para pedir licença — comece por Férias (30 dias/ano) e Licença médica."
+    ],
+    "erro": [
+      "Não dá para excluir este tipo"
+    ]
+  },
+  "_pendente_w": [
+    "SEÇÃO `toolbar` — o protótipo grafa a contagem como \"N tipos\"; aqui ela é interpolada em runtime (`{N} tipo(s)`), então não entra como string literal do contrato. Se [W] quiser a forma exata travada, o caminho é um data-testid com a string montada.",
+    "O botão \"Cadastrar o primeiro tipo\" do estado vazio do protótipo NÃO desceu: `create` segue no Blade legado nesta onda (coexistência F5 do RUNBOOK-tipos.md). Entra quando o formulário virar Inertia."
+  ]
+}

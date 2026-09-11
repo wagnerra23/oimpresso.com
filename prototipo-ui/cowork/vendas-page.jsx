@@ -834,20 +834,17 @@ function VendasListPage() {
       <div className="vd-toolbar vd-filterbar">
         {/* status tabs + Foco/views + busca na MESMA linha, acima da lista
             ([W] 2026-06-12 "essa linha deve ficar ao lado da de baixo · falta a busca no canto direito") */}
-        <div className="os-tabs">
-          {["todas", "paga", "pendente", "faturada", "cancelada"].map((s) => (
-            <button key={s} className={"os-tab" + (statusF === s ? " active" : "")} onClick={() => setStatusF(s)}>
-              {s === "todas" ? "Todas" : VENDAS_STATUS[s]?.label || s.charAt(0).toUpperCase() + s.slice(1)}
-              <span className="os-tab-n">{countBy(s)}</span>
-            </button>
-          ))}
-        </div>
+        <window.CliTabs className="os-tabs" ariaLabel="Situação da venda" pad={24}
+          active={statusF} onChange={setStatusF}
+          tabs={["todas", "paga", "pendente", "faturada", "cancelada"].map((s) => ({
+            key: s,
+            label: s === "todas" ? "Todas" : VENDAS_STATUS[s]?.label || s.charAt(0).toUpperCase() + s.slice(1),
+            n: countBy(s) }))} />
         <div className="vd-toolbar-l">
-          <div className="vd-vista" role="group" aria-label="Foco">
+          <div className="vd-vista">
             <span className="vd-vista-lbl">Foco</span>
-            <button className={vista === "caixa" ? "on" : ""} onClick={() => setVista("caixa")}>Caixa</button>
-            <button className={vista === "faturamento" ? "on" : ""} onClick={() => setVista("faturamento")}>Faturamento</button>
-            <button className={vista === "comissao" ? "on" : ""} onClick={() => setVista("comissao")}>Comissão</button>
+            <window.CliSeg ariaLabel="Foco" size="sm" value={vista} onChange={setVista}
+              options={[{ key: "caixa", label: "Caixa" }, { key: "faturamento", label: "Faturamento" }, { key: "comissao", label: "Comissão" }]} />
           </div>
 
           <span className="vd-toolbar-sep" />
@@ -1311,25 +1308,19 @@ function VendaDetailDrawer({ venda, onClose, onEdit }) {
           </div>
         </header>
 
-        <nav className="vd-drawer-tabs">
-          {[
+        <window.CliTabs className="vd-drawer-tabs" ariaLabel="Abas da venda" pad={24} size="sm"
+          active={tab} onChange={setTab}
+          tabs={[
           { k: "itens", l: "Itens", ct: v.itemsList?.length || 0 },
           { k: "fiscal", l: "Fiscal", ct: (hasNFe ? 1 : 0) + (hasNFSe ? 1 : 0) },
           { k: "pagamento", l: "Pagamento", ct: null },
           { k: "timeline", l: "Timeline", ct: null },
           { k: "ia", l: "✦ IA", ct: null, ai: true }].
-          map((t) =>
-          <button key={t.k}
-          className={`vd-drawer-tab ${tab === t.k ? "on" : ""} ${t.ai ? "vd-tab-ai" : ""}`}
-          onClick={() => setTab(t.k)}>
-              {t.l}
-              {t.ct !== null && t.ct > 0 && <span className="vd-drawer-tab-ct">{t.ct}</span>}
-              {t.k === "itens" && comments?.countFor(v.id) > 0 &&
-            <span className="vd-drawer-tab-cmt" title={`${comments.countFor(v.id)} comentário(s) inline`}>💬{comments.countFor(v.id)}</span>
-            }
-            </button>
-          )}
-        </nav>
+          map((t) => ({
+            key: t.k,
+            label: <>{t.l}{t.k === "itens" && comments?.countFor(v.id) > 0 &&
+              <span className="vd-drawer-tab-cmt" title={`${comments.countFor(v.id)} comentário(s) inline`}>💬{comments.countFor(v.id)}</span>}</>,
+            n: t.ct !== null && t.ct > 0 ? t.ct : null }))} />
 
         <div className="os-drawer-body vd-drawer-body">
 

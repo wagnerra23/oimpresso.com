@@ -143,3 +143,121 @@ it('UC-FEVT-01 · NfeEvento HasBusinessScope esconde cross-tenant — listagem t
 it('UC-FEVT-02 · NfeEvento é append-only (UPDATED_AT = null) — eventos não devem ser editados', function () {
     expect(NfeEvento::UPDATED_AT)->toBeNull();
 });
+
+/**
+ * Onda 7 — export CSV da timeline.
+ *
+ * Os dois UC abaixo moram NESTE arquivo, e não num `EventosExportCsvTest.php`
+ * novo, por uma razão medida: a allowlist da lane required
+ * (`.github/workflows/nfebrasil-pest.yml:245-284`) lista os testes UM A UM. Um
+ * arquivo novo não seria executado, e o UC nasceria mudo — verde por
+ * NÃO-EXECUÇÃO. Este arquivo já está na allowlist e já é o dono do tema
+ * "Eventos + isolamento".
+ */
+
+/**
+ * biz=1 com `fiscal.access` — o `beforeEach` autentica um user SEM permissão.
+ *
+ * `findOrCreate` em vez de `givePermissionTo` direto: os testes fiscais vizinhos
+ * assumem que a permission já foi semeada, e aqui isso seria uma dependência
+ * silenciosa de ambiente — se `fiscal.access` não existisse na base da lane, o
+ * Spatie lançaria `PermissionDoesNotExist` e o UC morreria por erro de setup, não
+ * por regressão. É idempotente: reusa a permission quando ela já existe.
+ */
+function eventosUserComAcessoFiscal(): \App\User
+{
+    $u = \App\User::factory()->create(['business_id' => EVENTOS_BIZ_WAGNER]);
+    $u->givePermissionTo(
+        \Spatie\Permission\Models\Permission::findOrCreate('fiscal.access', 'web')
+    );
+
+    return $u;
+}
+
+/** Cria emissão + evento de um business, sem passar pelo global scope. */
+function eventosSemearEvento(int $businessId, string $tipo, string $marcador): int
+{
+    $emissaoId = DB::table('nfe_emissoes')->insertGetId([
+        'business_id' => $businessId,
+        'modelo'      => '55',
+        'serie'       => '9',
+        'numero'      => random_int(700000, 799999),
+        'status'      => 'autorizada',
+        'valor_total' => 30.00,
+        'metadata'    => json_encode(['tag' => EVENTOS_TAG_TEST]),
+        'created_at'  => now(),
+        'updated_at'  => now(),
+    ]);
+
+    return DB::table('nfe_eventos')->insertGetId([
+        'business_id'   => $businessId,
+        'emissao_id'    => $emissaoId,
+        'tipo'          => $tipo,
+        'justificativa' => $marcador . ' ' . EVENTOS_TAG_TEST,
+        'status'        => 'autorizado',
+        'cstat_evento'  => '135',
+        'created_at'    => now(),
+    ]);
+}
+
+it('UC-FEVT-05 · o CSV exportado nunca traz evento de outro business', function () {
+    eventosSemearEvento(EVENTOS_BIZ_FICTICIO, '110111', 'VAZAMENTO-CROSS-TENANT');
+    eventosSemearEvento(EVENTOS_BIZ_WAGNER, '110111', 'LINHA-DO-PROPRIO-TENANT');
+
+    $this->actingAs(eventosUserComAcessoFiscal());
+    session(['business.id' => EVENTOS_BIZ_WAGNER, 'user.business_id' => EVENTOS_BIZ_WAGNER]);
+
+    $response = $this->get('/fiscal/eventos/export?kind=todos&dias=30');
+    $response->assertOk();
+
+    $csv = $response->streamedContent();
+
+    // (1) O arquivo abre no Excel pt-BR: BOM UTF-8 + separador `;`.
+    expect(substr($csv, 0, 3))->toBe("\xEF\xBB\xBF");
+    expect((string) $response->headers->get('Content-Type'))->toContain('text/csv');
+    expect($csv)->toContain('Quando;Tipo;Sequência;Documento;Justificativa;Autor;cstat');
+
+    // (2) Controle positivo — a linha do PRÓPRIO tenant ESTÁ no arquivo. Sem ele,
+    //     o passo (3) passaria vácuo (ausência por CSV vazio, não por filtro).
+    expect($csv)->toContain('LINHA-DO-PROPRIO-TENANT');
+
+    // (3) Tier 0 — a linha do biz=99 NÃO está no arquivo.
+    expect($csv)->not->toContain('VAZAMENTO-CROSS-TENANT');
+});
+
+it('UC-FEVT-06 · o CSV respeita o filtro de tipo ativo — exporta o recorte, não a timeline inteira', function () {
+    eventosSemearEvento(EVENTOS_BIZ_WAGNER, '110111', 'EVENTO-DE-CANCELAMENTO');
+    eventosSemearEvento(EVENTOS_BIZ_WAGNER, '110110', 'EVENTO-DE-CARTA-CORRECAO');
+
+    $this->actingAs(eventosUserComAcessoFiscal());
+    session(['business.id' => EVENTOS_BIZ_WAGNER, 'user.business_id' => EVENTOS_BIZ_WAGNER]);
+
+    $csv = $this->get('/fiscal/eventos/export?kind=cancel&dias=30')->assertOk()->streamedContent();
+
+    // Filtrou cancelamento: leva cancelamento, não leva carta de correção.
+    expect($csv)->toContain('EVENTO-DE-CANCELAMENTO');
+    expect($csv)->not->toContain('EVENTO-DE-CARTA-CORRECAO');
+
+    // Controle do filtro oposto — prova que o recorte é POR TIPO e não
+    // "esconde tudo menos o primeiro".
+    $csvCce = $this->get('/fiscal/eventos/export?kind=cce&dias=30')->assertOk()->streamedContent();
+    expect($csvCce)->toContain('EVENTO-DE-CARTA-CORRECAO');
+    expect($csvCce)->not->toContain('EVENTO-DE-CANCELAMENTO');
+});
+
+it('UC-FEVT-07 · a janela do CSV é clampada nas opções da tela — `?dias` arbitrário não vira varredura', function () {
+    $controller = new \Modules\Fiscal\Http\Controllers\EventosController();
+    $parseDias = (new ReflectionClass($controller))->getMethod('parseDias');
+    $parseDias->setAccessible(true);
+
+    // As três janelas que a UI oferece passam intactas.
+    expect($parseDias->invoke($controller, '7'))->toBe(7)
+        ->and($parseDias->invoke($controller, '30'))->toBe(30)
+        ->and($parseDias->invoke($controller, '90'))->toBe(90);
+
+    // Qualquer outra coisa cai no default — `?dias=99999` não varre a tabela.
+    expect($parseDias->invoke($controller, '99999'))->toBe(30)
+        ->and($parseDias->invoke($controller, '-1'))->toBe(30)
+        ->and($parseDias->invoke($controller, 'abc'))->toBe(30)
+        ->and($parseDias->invoke($controller, null))->toBe(30);
+});

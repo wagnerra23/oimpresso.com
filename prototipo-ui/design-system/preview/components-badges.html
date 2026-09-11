@@ -1,0 +1,61 @@
+<!doctype html>
+<!-- @dsCard group="Components" name="Components — Status Badges" subtitle="Domain-mapped: intercorrência / pagamento / REP" viewport="700x240" -->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Status badges</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { padding: 18px; }
+  .group { margin-bottom: 12px; }
+  .label { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--fg-2); margin-bottom: 8px; }
+  .row { display:flex; gap: 6px; flex-wrap: wrap; }
+  .badge { display:inline-flex; align-items:center; gap: 4px; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 500; border: 1px solid transparent; }
+  .b-default { background: var(--primary); color: white; }
+  .b-secondary { background: var(--secondary); color: var(--secondary-fg); }
+  .b-outline { background: transparent; color: var(--fg); border-color: var(--border); }
+  .b-emerald { background: hsl(160 84% 39%); color: white; }
+  .b-amber { background: hsl(32 95% 44%); color: white; }
+  .b-rose { background: var(--destructive); color: white; }
+  .b-blue { background: oklch(0.58 0.13 244); color: white; }
+  @keyframes pulse { 50% { opacity: .55; } }
+  .pulse { animation: pulse 2s cubic-bezier(.4,0,.6,1) infinite; }
+</style>
+</head>
+<body>
+  <div class="group">
+    <div class="label">Intercorrência</div>
+    <div class="row">
+      <span class="badge b-outline">Rascunho</span>
+      <span class="badge b-secondary">Pendente</span>
+      <span class="badge b-emerald">Aprovada</span>
+      <span class="badge b-rose">Rejeitada</span>
+      <span class="badge b-blue">Aplicada</span>
+      <span class="badge b-outline">Cancelada</span>
+    </div>
+  </div>
+  <div class="group">
+    <div class="label">Pagamento / financeiro</div>
+    <div class="row">
+      <span class="badge b-secondary">Pendente</span>
+      <span class="badge b-amber">Parcial</span>
+      <span class="badge b-emerald">Pago</span>
+      <span class="badge b-rose">Vencido</span>
+      <span class="badge b-emerald">Quitado</span>
+      <span class="badge b-outline">Cancelado</span>
+    </div>
+  </div>
+  <div class="group">
+    <div class="label">Prioridade · REP</div>
+    <div class="row">
+      <span class="badge b-outline">Baixa</span>
+      <span class="badge b-secondary">Normal</span>
+      <span class="badge b-rose">Alta</span>
+      <span class="badge b-rose pulse">Urgente</span>
+      <span class="badge b-outline">REP-P</span>
+      <span class="badge b-outline">REP-C</span>
+      <span class="badge b-outline">REP-A</span>
+    </div>
+  </div>
+</body>
+</html>

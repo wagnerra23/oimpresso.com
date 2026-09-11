@@ -1,0 +1,90 @@
+/* contador-page.css — Contador parceiro (Financeiro / Configuracoes). Cockpit V2.
+   Token-driven (claro/escuro pelo host). Prefixo .ct- pra nao colidir.
+   So tokens do DS canon. Cor crua e proibida (conformance-gate = LEI). */
+
+.ct{ display:flex; flex-direction:column; min-height:100%; background:var(--bg); }
+
+.ct-head{ padding:16px 24px 12px; }
+.ct-crumb{ font-size:11.5px; color:var(--fg-3); }
+.ct-crumb b{ color:var(--fg-2); font-weight:500; }
+.ct-h1{ font-size:20px; font-weight:600; color:var(--fg); letter-spacing:-.01em; margin:6px 0 0; }
+.ct-sub{ font-size:12.5px; color:var(--fg-3); margin-top:3px; max-width:80ch; line-height:1.5; }
+
+.ct-body{ padding:4px 24px 22px; display:flex; flex-direction:column; gap:14px; }
+
+.ct-card{ border:1px solid var(--border); border-radius:var(--radius-lg);
+  background:var(--card); overflow:hidden; }
+.ct-card-h{ padding:11px 16px; border-bottom:1px solid var(--border); }
+.ct-card-t{ font-size:13px; font-weight:600; color:var(--fg); }
+.ct-card-s{ font-size:11.5px; color:var(--fg-3); margin-top:2px; }
+.ct-card-b{ padding:14px 16px; }
+
+/* alerta de flash (charter: Alert do DS, nao bg-* cru) */
+.ct-alert{ padding:10px 12px; border:1px solid var(--border);
+  border-left:2px solid var(--accent); border-radius:var(--radius-sm);
+  background:var(--accent-soft); font-size:12px; color:var(--fg); }
+
+/* lista de acessos */
+.ct-wrap{ overflow-x:auto; }
+.ct-tb{ width:100%; border-collapse:collapse; font-size:12.5px; min-width:700px; }
+.ct-tb th{ text-align:left; font-weight:500; font-size:11px; color:var(--fg-3);
+  letter-spacing:.04em; text-transform:uppercase; padding:9px 12px;
+  border-bottom:1px solid var(--border); white-space:nowrap; }
+.ct-tb td{ padding:10px 12px; border-bottom:1px solid var(--border); color:var(--fg-2); }
+.ct-tb tr:last-child td{ border-bottom:0; }
+.ct-nome{ color:var(--fg); font-weight:500; }
+.ct-mono{ font-variant-numeric:tabular-nums; }
+
+.ct-chip{ display:inline-flex; align-items:center; height:20px; padding:0 8px;
+  border:1px solid var(--border); border-radius:999px; background:var(--muted);
+  font-size:10.5px; font-weight:600; color:var(--fg-2); margin-right:4px; }
+.ct-chip-on{ background:var(--accent-soft); border-color:var(--accent); color:var(--accent); }
+
+/* form de concessao */
+.ct-fg{ display:grid; grid-template-columns:1fr 1fr; gap:12px 14px; }
+@media (max-width:700px){ .ct-fg{ grid-template-columns:1fr; } }
+.ct-f{ display:flex; flex-direction:column; gap:5px; min-width:0; }
+.ct-f-full{ grid-column:1 / -1; }
+.ct-lb{ font-size:11.5px; font-weight:500; color:var(--fg-2); }
+.ct-req{ color:var(--accent); margin-left:2px; }
+.ct-in{ height:32px; padding:0 10px; border:1px solid var(--border);
+  border-radius:var(--radius); background:var(--card); color:var(--fg);
+  font:inherit; font-size:12.5px; width:100%; }
+.ct-in:focus{ outline:2px solid var(--accent); outline-offset:-1px; }
+.ct-hint{ font-size:11px; color:var(--fg-3); }
+.ct-err{ font-size:11px; color:var(--accent); font-weight:500; }
+
+/* escopo do grant */
+.ct-escopo{ display:flex; flex-direction:column; gap:8px; padding:10px 12px;
+  border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--muted); }
+.ct-check{ display:flex; align-items:flex-start; gap:9px; }
+.ct-check input{ width:15px; height:15px; margin-top:1px; accent-color:var(--accent); }
+.ct-check-t{ font-size:12.5px; color:var(--fg); }
+.ct-check-s{ font-size:11px; color:var(--fg-3); display:block; margin-top:2px; line-height:1.45; }
+
+/* consentimento LGPD — opt-in obrigatorio (anti-hook do charter) */
+.ct-lgpd{ margin-top:12px; padding:12px; border:1px solid var(--accent);
+  border-radius:var(--radius-sm); background:var(--accent-soft); }
+.ct-lgpd-t{ font-size:11.5px; font-weight:600; color:var(--fg); margin-bottom:8px; }
+
+/* dialogo de revogacao (charter: AlertDialog, nunca window.confirm) */
+.ct-modal-bg{ position:fixed; inset:0; background:var(--fg); opacity:.28; }
+.ct-modal-w{ position:fixed; inset:0; display:grid; place-items:center; padding:20px; }
+.ct-modal{ position:relative; width:100%; max-width:420px; border:1px solid var(--border);
+  border-radius:var(--radius-lg); background:var(--card); overflow:hidden; }
+.ct-modal-b{ padding:16px; }
+.ct-modal-t{ font-size:14px; font-weight:600; color:var(--fg); }
+.ct-modal-s{ font-size:12.5px; color:var(--fg-2); margin-top:6px; line-height:1.55; }
+
+.ct-acts{ display:flex; justify-content:flex-end; gap:8px; padding:12px 16px;
+  border-top:1px solid var(--border); background:var(--muted); }
+.ct-btn{ display:inline-flex; align-items:center; gap:6px; height:30px; padding:0 12px;
+  border:1px solid var(--border); border-radius:var(--radius); background:var(--card);
+  font-size:12.5px; font-weight:500; color:var(--fg); cursor:pointer; }
+.ct-btn-p{ background:var(--accent); border-color:var(--accent); color:var(--accent-fg); }
+.ct-btn[disabled]{ opacity:.5; cursor:not-allowed; }
+
+.ct-vazio{ padding:28px 16px; text-align:center; }
+.ct-vazio-t{ font-size:13px; font-weight:600; color:var(--fg); }
+.ct-vazio-s{ font-size:12px; color:var(--fg-3); margin-top:4px; max-width:52ch;
+  margin-left:auto; margin-right:auto; line-height:1.5; }

@@ -1,0 +1,149 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Repair/JobSheet/Index (/repair/job-sheet)",
+  "gap_fonte": "memory/requisitos/Repair/repair-jobsheet-gap.md",
+  "prototipo_sha": "sha256:548d060ec551",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "header",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "705"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/JobSheet/Index.tsx",
+        "linhas": "99-108",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade com \"Adicionar folha\" do shell (repair-page.jsx:705); a permissão de criar é checada no Controller do `create`, não na lista.",
+      "_acionavel": false
+    },
+    {
+      "id": "abas-de-estado",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "211-222"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/JobSheet/Index.tsx",
+        "linhas": "113 (dropdown de status; sem abas)",
+        "ancora": false
+      },
+      "status": "gap",
+      "acao": "Decidir. O `TabBar` do mockup (repair-page.jsx:211-222) tem 4 abas com contagem. Pendentes／Concluídas são servíveis hoje sem tocar backend (`is_completed_status`); \"Entrega vencida\" precisa de parâmetro novo (o Controller não filtra por `delivery_date`, l.135-160); contagem por aba exige chamadas extras ou agregado novo. Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "filtros",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "224-231"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/JobSheet/Index.tsx",
+        "linhas": "111-133",
+        "ancora": false
+      },
+      "status": "gap-parcial",
+      "acao": "Decidir. (a) Técnico (repair-page.jsx:225-226): dado e filtro já existem nos dois lados, falta só o `FilterSelect` — pequeno. (b) Busca por nº／cliente／série／modelo (repair-page.jsx:698-703, 161-165): o Controller não lê busca livre (l.135-160), exige parâmetro novo no endpoint compartilhado com o Blade. Cliente é vivo à frente (o mockup não tem). Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "tabela",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "170-208"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/JobSheet/Index.tsx",
+        "linhas": "161-200",
+        "ancora": false
+      },
+      "status": "gap-parcial",
+      "acao": "Decidir. O mockup tem 11 colunas (repair-page.jsx:170-182) e o Blade de origem também traz serviço, prazo, série e custo (job_sheet/index.blade.php:75-98). Sem tocar backend: cor real do status e coluna Nº de série sob `flags.show_serial_no` — os dois dados já chegam. Prazo, tipo de serviço e custo estimado exigem o endpoint emitir campo escalar ao lado do HTML (o charter proíbe consumir o HTML, l.65) ou a onda do motor de dados (l.26-27); custo ⚠️ toca valor — só exibir. Pipeline FSM (`FsmStepper`): a FSM Repair existe (ADR 0143) mas o select do endpoint não traz `current_stage_id` (l.115). Construir ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "acoes-por-linha",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "196-204"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/JobSheet/Index.tsx",
+        "linhas": "178",
+        "ancora": false
+      },
+      "status": "gap-parcial",
+      "acao": "Decidir. O mockup tem status／editar／imprimir／excluir por permissão (repair-page.jsx:196-204) e o Blade tinha coluna Ação (job_sheet/index.blade.php:75). Links de navegação (Editar → `/repair/job-sheet/{id}/edit`; Imprimir → rota Blade `job-sheet/print/{id}`, Routes/web.php:32) são compatíveis com o charter — os Non-Goals l.51-52 vetam o inline e o print direto, não o link — e não existem no vivo. \"Status\" e \"excluir\" mudam estado a partir da lista, que o charter declara visualização-only (l.54, l.93): ficam fora. Construir só os links, ou rejeitar por escrito.",
+      "_acionavel": true
+    },
+    {
+      "id": "acoes-em-lote",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "246-255"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/JobSheet/Index.tsx",
+        "linhas": "n/a — ausente (sem seleção)",
+        "ancora": false
+      },
+      "status": "fechado",
+      "acao": "Nada — fora do charter. Alterar status／atribuir técnico／excluir em lote (repair-page.jsx:246-255 e o `LoteModal` l.578-602) são mutação a partir de uma lista que o charter fixa como visualização-only (Index.charter.md:54) e read-only (l.93). Reabrir é mudança de charter, não gap desta comparação.",
+      "_acionavel": false
+    },
+    {
+      "id": "paginacao-e-rodape",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "240-245"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/JobSheet/Index.tsx",
+        "linhas": "70, 204-206",
+        "ancora": false
+      },
+      "status": "fechado",
+      "acao": "Nada — já registrado. O charter declara a migração do motor de dados (paginator server-side) onda própria, decisão de [W] (Index.charter.md:26-27); o `Pagination` do mockup (repair-page.jsx:240-245) e o teto de 200 são o mesmo item.",
+      "_acionavel": false
+    },
+    {
+      "id": "drawer-da-folha",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "427-527"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/JobSheet/Index.tsx",
+        "linhas": "178 (link para JobSheet/Show.tsx)",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade em tela própria (PT-03 Detalhe). O `FolhaDrawer` do mockup (repair-page.jsx:427-527, abas Folha／Checklist／Peças／Atividades) é assunto do charter do Show, não desta lista.",
+      "_acionavel": false
+    },
+    {
+      "id": "estados",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "linhas": "237-238"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Repair/JobSheet/Index.tsx",
+        "linhas": "136-159",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade com o `EmptyState` da aba (repair-page.jsx:237-238) e com skeleton／erro do shell (repair-page.jsx:718-729).",
+      "_acionavel": false
+    }
+  ],
+  "mapping": {
+    "source": "repair-page.jsx",
+    "target": "resources/js/Pages/Repair/JobSheet/Index.tsx"
+  }
+}

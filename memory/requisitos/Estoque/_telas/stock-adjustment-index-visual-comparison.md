@@ -9,7 +9,11 @@ status: aguardando-screenshot-wagner
 runbook: memory/requisitos/Estoque/_telas/RUNBOOK-stock-adjustment-index.md
 draft_tsx: resources/js/Pages/StockAdjustment/Index.tsx
 controller_delta: app/Http/Controllers/StockAdjustmentController.php@indexInertia
-cowork_source: prototipo-ui/cowork/inventario-migracao/index.html
+# corrigido em 2026-09-09: apontava prototipo-ui/prototipos/inventario-migracao/,
+# que e o relatorio "Migracao Blade -> React" (medido: Blade=67 React=36 · estoque=0 SKU=0
+# saldo=0 ajuste=0), nao o desenho desta tela -- casou por homonimo. Alinhado ao main:
+# o PR #7079 fez a mesma correcao nos 4 charters. Regiao que desenha esta tela: AbaAjustes (estoque-page.jsx:208).
+cowork_source: prototipo-ui/cowork/estoque-page.jsx
 ---
 
 # Visual Comparison — `stock_adjustment/index` (LIST)

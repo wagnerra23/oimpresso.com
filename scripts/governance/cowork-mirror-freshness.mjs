@@ -263,6 +263,31 @@ export function liveOnlyDetalhado(livePaths, manifest, { exts = null, jaEmRuntim
     if (/\.(png|jpe?g|gif|webp|svg|ico)$/i.test(p)) { ignorados.push({ path: p, motivo: 'imagem (nao e fonte de construcao — block-ancora-no-olho)' }); continue; }
     if (p.startsWith('_arquivo/')) { ignorados.push({ path: p, motivo: 'proveniencia: _arquivo/ (morto declarado upstream)' }); continue; }
     if (p.startsWith('prototipo-ui/')) { ignorados.push({ path: p, motivo: 'proveniencia: prototipo-ui/ (copia do proprio espelho)' }); continue; }
+    // ── O ENVELOPE DO BUNDLE NAO E CARGA (2026-09-10) ──────────────────────────────
+    // `payload.partNN.json` e `bundle.manifest.json` sao o TRANSPORTE emitido pelo
+    // `scripts/design-sync/gerar-payload-partes.mjs` (`:204` e `:250`) do lado do design.
+    // Eles CARREGAM a fonte; nao SAO fonte. Descê-los pro espelho seria copiar o caminhão
+    // junto com a carga — e o `aplicar-payload.mjs` nem os quer lá: ele lê as partes e
+    // escreve o CONTEUDO nos destinos.
+    //
+    // MEDIDO no corpus real (lista live-only de 2026-09-09, 74 acusados de 876):
+    //   43  payload.partNN.json
+    //    1  bundle.manifest.json
+    //   ──  44 de 74 (59%) eram o proprio mecanismo acusando o proprio envelope.
+    // Mesmo FP de mecanismo proprio que o bloco dos `.md` matou em 08-28 e o dos `_ds/`
+    // em 09-01. Custo real do ruido, e ele nao e teorico: o [W] reimportou o bundle
+    // 7x em 2026-09-09 porque o aviso dizia "74 nunca desceram" enquanto o `--compare`
+    // do mesmo dia media 273/273 EM SYNC, 0 stale.
+    //
+    // ANCORADO NO NOME QUE O PRODUTOR EMITE, nao no diretorio: o `--out` e parametro
+    // (`--out sync` e so a convencao do painel), entao casar `sync/` deixaria passar o
+    // mesmo envelope emitido noutro lugar. Os 30 restantes seguem acusados — `cowork-inbox/`
+    // nao-`.md` (20) por decisao ja registrada acima, `_ds/` fora da classe runtime (3),
+    // dotfiles (2) e 5 avulsos. Nenhum deles e prototipo de tela.
+    if (/(^|\/)(bundle\.manifest\.json|payload\.part\d+\.json)$/.test(p)) {
+      ignorados.push({ path: p, motivo: 'transporte: envelope do bundle (gerar-payload-partes) — carrega a fonte, nao e fonte' });
+      continue;
+    }
     faltando.push(p);
   }
   return { faltando: faltando.sort(), ignorados: ignorados.sort((a, b) => a.path.localeCompare(b.path)) };
@@ -301,8 +326,12 @@ export function liveOnlyDetalhado(livePaths, manifest, { exts = null, jaEmRuntim
 const RE_CANON_DE_TELA = /\.(charter\.md|casos\.md|contract\.json)$/i;
 const RE_BUILD_SOURCE = /\.(?:jsx?|tsx?|mjs|cjs|css|html|svg|png|jpe?g|gif|webp|avif|ico|woff2?|ttf|otf|eot)$/i;
 
+/** Devolutiva da recusa — derivado, regenerado a cada export. Canal Code → design. */
+export const DEVOLUTIVA_REL = 'prototipo-ui/CODE_NOTES.recusados-canon.md';
+
 export function exportPlan(arquivosVivos, { prefixo = 'prototipo-ui/cowork/', buildOnly = prefixo === 'prototipo-ui/cowork/' } = {}) {
   const recusados = [];
+  const recusadosConteudo = [];
   const plano = [];
   const fontePorSha = new Map();
 
@@ -315,6 +344,9 @@ export function exportPlan(arquivosVivos, { prefixo = 'prototipo-ui/cowork/', bu
     // outro: o problema não é ONDE o charter cai, é que ele não desce por esta porta.
     if (RE_CANON_DE_TELA.test(p) || (buildOnly && !RE_BUILD_SOURCE.test(p))) {
       recusados.push(p);
+      // O conteúdo viaja junto: a devolutiva compara o rascunho com o canon vivo, e
+      // reler o arquivo depois seria reler de onde ele NÃO está (ele não desceu).
+      recusadosConteudo.push({ path: p, content });
       continue;
     }
 
@@ -345,7 +377,176 @@ export function exportPlan(arquivosVivos, { prefixo = 'prototipo-ui/cowork/', bu
   }
 
   plano.recusados = recusados;
+  plano.recusadosConteudo = recusadosConteudo;
   return plano;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════════════
+ * DEVOLUTIVA DA RECUSA — o que o lado design NÃO tem como saber sozinho
+ *
+ * POR QUE EXISTE (medido 2026-09-07, no import do ciclo de 07/09): o `exportPlan` acima
+ * recusa canon de tela e IMPRIME a lista. Imprimir resolve para quem está olhando o
+ * terminal naquele segundo; não resolve para o DESIGN, que é quem produziu o arquivo e
+ * quem vai produzi-lo de novo no ciclo seguinte. Naquele import foram 54 recusados, e a
+ * sessão (eu) fechou o ciclo sem devolver nada — exatamente o buraco D3/D4 que [W]
+ * mandou consertar no mesmo dia.
+ *
+ * O QUE SÓ ESTE LADO SABE, e é o conteúdo da devolutiva: como o rascunho recusado se
+ * compara com o canon VIVO. Medição daquele import, e é o motivo de isto não ser
+ * burocracia — 20 charters/casos do Ponto vieram para sobrescrever os do repo, TODOS
+ * divergentes e de 3 a 7× MENORES (ex.: `Espelho/Show.casos.md` 2.539 B contra 17.528 B),
+ * com `last_run: "—"` contra um canon que registra medição datada. Se a porta tivesse
+ * aceitado, teria trocado contrato maduro por esqueleto em silêncio.
+ *
+ * NÃO É GATE, e não vira: reprovar o design por mandar rascunho puniria o ato de propor.
+ * A saída é INFORMAR — e informar com o número do outro lado, que é o que muda a
+ * decisão de quem desenha.
+ *
+ * DERIVADO, não escrito à mão (ADR 0256): o arquivo é REGENERADO a cada export, nunca
+ * append. Um registro append de "o que foi recusado" viraria pilha de retratos velhos
+ * competindo entre si; o que serve é o retrato de AGORA, com a data da medição.
+ *
+ * ── HISTÓRICO DE TENTATIVAS (append-only — [W] 2026-09-07: "manter o histórico de
+ *    evolução dessas tentativas de todas as máquinas é muito importante") ──────────────
+ *
+ * 1ª versão (2026-09-07, mesma sessão, REVERTIDA antes do commit): resolvia o alvo pelo
+ *   `component:` do frontmatter e comparava BYTES contra ele. Como `component:` aponta o
+ *   `.tsx`, a saída comparou um charter de 4.097 B com um componente de 69.748 B e emitiu
+ *   veredito "canon mais rico" a partir de grandezas incomensuráveis. Pego no PRIMEIRO
+ *   controle positivo, não em revisão — o número saiu plausível, que é como esta classe
+ *   atravessa. Conserto: o irmão do `.charter.md` é o `.charter.md` ao lado do componente,
+ *   nunca o componente. Pinado pelo assert "IRMÃO, não componente" no teste irmão.
+ *
+ * 2ª versão (a atual): ao consertar o alvo, apareceu um estado que a 1ª não sabia
+ *   representar — tela existe e canon NÃO. Virou `LACUNA-TELA-SEM-CANON`, e é o único
+ *   veredito que manda o rascunho ADIANTE em vez de recusá-lo: ali ele não colide com
+ *   nada, preenche buraco. Não disparou no corpus de 07/09 (cobertura de charter é
+ *   218/218), então é ramo provado por FIXTURE, não por dado real — declarado aqui para
+ *   ninguém tratá-lo como medido em produção.
+ *
+ * 3ª versão (2026-09-08, defeito descoberto no PR #6990): o `exportPlan`/devolutiva não mudou — mudou QUANDO o
+ *   arquivo é APAGADO. A 2ª versão removia a devolutiva em toda rodada sem recusa, e um
+ *   pouso de UM `.md` avulso apagou o retrato de 54 recusados de 07/09. O erro não estava
+ *   no `rmSync`: estava em tratar o universo da RODADA como universo GLOBAL. Agora a
+ *   rodada que não pode provar que o retrato acabou o PRESERVA e diz de quando ele é; o
+ *   descarte é `--limpar-devolutiva`, declaração do operador. O teste de cobertura que
+ *   pareceria a saída certa foi medido e é insatisfazível (ver o bloco no call site).
+ *
+ * O QUE NÃO SE TENTOU, e por quê: transformar a recusa em GATE. Reprovar o design por
+ *   mandar rascunho puniria o ato de propor, e o §5 tem 4 lápides de guard sintático que
+ *   reprovava trabalho legítimo. A recusa já existia e funcionava; o que faltava era o
+ *   retorno.
+ * ═══════════════════════════════════════════════════════════════════════════════════════ */
+
+/** `last_run:`/`status:` do frontmatter — sinal de maturidade, não veredito. */
+function sinalDeMaturidade(texto) {
+  if (typeof texto !== 'string') return {};
+  const fm = /^---\r?\n([\s\S]*?)\r?\n---/.exec(texto);
+  if (!fm) return {};
+  const campo = (nome) => {
+    const m = new RegExp(`^${nome}:\\s*"?([^"\\n]*)"?\\s*$`, 'm').exec(fm[1]);
+    return m ? m[1].trim() : null;
+  };
+  return { last_run: campo('last_run'), status: campo('status'), component: campo('component'), page: campo('page') };
+}
+
+/**
+ * Cruza cada recusado com o canon vivo do repo. Devolve linhas prontas para a devolutiva.
+ * `recusadosConteudo`: [{ path, content }] — o conteúdo vem do próprio lote, não se relê nada.
+ */
+export function devolutivaDeRecusados(recusadosConteudo, { root = ROOT } = {}) {
+  const linhas = [];
+  for (const { path: p, content } of recusadosConteudo || []) {
+    const texto = Buffer.isBuffer(content) ? content.toString('utf8') : String(content || '');
+    const bytesRascunho = Buffer.byteLength(texto, 'utf8');
+    const meta = sinalDeMaturidade(texto);
+
+    // 3 formas de achar o receptor, nesta ordem: path que espelha o canon · alvo
+    // DECLARADO pelo próprio rascunho (`component:`) · contrato pelo nome do arquivo.
+    //
+    // ⚠️ IRMÃO, não componente (defeito meu, pego no 1º controle positivo 2026-09-07):
+    // o `component:` do frontmatter aponta o `.tsx`, e a 1ª versão disto comparou 4.097 B
+    // de um charter com 69.748 B de um `.tsx` — grandezas incomensuráveis, veredito sem
+    // sentido. O canon correspondente a um `.charter.md` é o `.charter.md` ao lado do
+    // componente, nunca o componente. Mesma família do §5 2026-07-17 (medir a coisa certa).
+    const sufixo = /\.charter\.md$/i.test(p) ? '.charter.md' : /\.casos\.md$/i.test(p) ? '.casos.md' : null;
+    let alvo = null; let telaExiste = null;
+    if (/^resources\/js\/Pages\//.test(p) || /^Modules\/[^/]+\/Resources\/js\/Pages\//.test(p)) alvo = p;
+    else if (meta.component && sufixo) {
+      const tsx = meta.component.replace(/\s*\(.*$/, '').trim();
+      telaExiste = existsSync(join(root, tsx));
+      alvo = tsx.replace(/\.tsx$/i, sufixo);
+    } else if (/\.contract\.json$/i.test(p)) alvo = 'prototipo-ui/contrato/' + p.split('/').pop();
+
+    const abs = alvo ? join(root, alvo) : null;
+    const existe = Boolean(abs && existsSync(abs));
+    const bytesCanon = existe ? statSync(abs).size : null;
+    const metaCanon = existe && alvo.endsWith('.md') ? sinalDeMaturidade(readFileSync(abs, 'utf8')) : {};
+
+    let classe; let acao;
+    if (!alvo) {
+      classe = 'SEM-ALVO-DECLARADO';
+      acao = 'declare o alvo no frontmatter (`component:`) ou mande como PEDIDO em cowork-inbox/';
+    } else if (!existe && telaExiste === true) {
+      // O caso que MAIS vale devolver: a tela existe e o canon dela não. Aqui o rascunho
+      // não colide com nada — ele preenche lacuna real, e o design deve ser mandado adiante.
+      classe = 'LACUNA-TELA-SEM-CANON';
+      acao = `a tela existe e o canon NÃO — vale virar canon: \`criar-tela.mjs\` cria \`${alvo}\`, e o seu rascunho é o insumo`;
+    } else if (!existe) {
+      classe = 'TELA-A-CRIAR';
+      acao = `o canon nasce no repo: \`criar-tela.mjs <Mod/Tela> <PT-0X>\` → ${alvo}`;
+    } else if (bytesCanon > bytesRascunho) {
+      classe = 'COLIDE-COM-CANON-MAIS-RICO';
+      acao = `NÃO reenvie: o vivo tem ${bytesCanon} B contra ${bytesRascunho} B do rascunho`
+        + (metaCanon.last_run && metaCanon.last_run !== '—' ? ` e registra execução em ${metaCanon.last_run}` : '')
+        + '. Leia o vivo antes de propor mudança nele.';
+    } else {
+      classe = 'COLIDE-RASCUNHO-MAIOR';
+      acao = 'pode conter conteúdo novo — abra como PEDIDO citando o que muda, não como arquivo inteiro';
+    }
+    linhas.push({ path: p, classe, alvo, bytesRascunho, bytesCanon, lastRunCanon: metaCanon.last_run || null, acao });
+  }
+  return linhas;
+}
+
+/** Renderiza a devolutiva. Retrato datado e derivado — regenerado, nunca append. */
+export function renderDevolutiva(linhas, { quando = new Date() } = {}) {
+  const porClasse = new Map();
+  for (const l of linhas) porClasse.set(l.classe, (porClasse.get(l.classe) || 0) + 1);
+  const cab = [...porClasse.entries()].map(([c, n]) => `${n} ${c}`).join(' · ') || 'nenhum';
+  const out = [];
+  out.push('# CODE_NOTES — canon de tela RECUSADO no transporte (devolutiva ao design)');
+  out.push('');
+  out.push('> **Derivado. Não edite à mão** — regenerado por `cowork-mirror-freshness --export-from`.');
+  out.push('> Retrato de ' + quando.toISOString().slice(0, 10) + ' · ' + linhas.length + ' arquivo(s) · ' + cab + '.');
+  out.push('>');
+  out.push('> **A recusa está certa e não vai mudar** (PROTOCOL §10.4): charter, casos e contract são');
+  out.push('> canon de tela e nascem no repo, reconciliados contra SPEC/ADR. O que faltava era o');
+  out.push('> retorno — sem ele o mesmo rascunho volta no ciclo seguinte, e os dois lados gastam.');
+  out.push('>');
+  out.push('> **Isto NÃO é gate:** ninguém reprova por mandar rascunho. É o número do lado de cá,');
+  out.push('> que é o que o lado de lá não tem como medir sozinho.');
+  out.push('');
+  out.push('| arquivo (design) | situação | canon vivo | o que fazer |');
+  out.push('|---|---|---|---|');
+  for (const l of linhas.sort((a, b) => a.classe.localeCompare(b.classe) || a.path.localeCompare(b.path))) {
+    const canon = l.bytesCanon == null ? '—' : `\`${l.alvo}\` (${l.bytesCanon} B)`;
+    out.push(`| \`${l.path}\` (${l.bytesRascunho} B) | ${l.classe} | ${canon} | ${l.acao} |`);
+  }
+  out.push('');
+  return out.join('\n') + '\n';
+}
+
+/**
+ * Lê o cabeçalho de um retrato JÁ ESCRITO. Existe porque a decisão "posso apagar isto?"
+ * precisa dizer O QUE seria apagado — data e contagem — em vez de sumir com o arquivo em
+ * silêncio. Devolve null quando o cabeçalho não é legível: aí o CLI diz que não conseguiu
+ * ler, nunca inventa a data (§5 2026-07-29 — instrumento não afirma o que não mediu).
+ */
+export function lerRetratoDevolutiva(texto) {
+  if (typeof texto !== 'string') return null;
+  const m = /^>\s*Retrato de\s*(\d{4}-\d{2}-\d{2})\s*·\s*(\d+)\s*arquivo/m.exec(texto);
+  return m ? { data: m[1], total: Number(m[2]) } : null;
 }
 
 /** Decodifica UMA resposta persistida do DesignSync.get_file sem permitir que o
@@ -394,6 +595,68 @@ export function dsRuntimeRelPath(path) {
     throw new Error(`ds-runtime: "${path}" não é bundle/CSS/asset de runtime; use --ds para fonte/template`);
   }
   return semSlug;
+}
+
+// ── ROTEAMENTO DO BUNDLE — fonte ÚNICA da regra "onde cada path do bundle pousa" ──────
+// Vivia SÓ dentro do `aplicar-payload.mjs`. Passou pra cá porque o `--compare-bundle`
+// (abaixo) precisa da MESMA regra pra saber ONDE conferir cada arquivo, e duas cópias da
+// mesma regra é o vetor do §5 2026-08-02 (corrigir uma implementação e a outra seguir
+// errada). O applier importa daqui — a direção do import já existia (`dsRuntimeRelPath`).
+// Retorna sempre com '/' — quem precisa de separador de plataforma usa join() no consumidor.
+export function destinoDoBundle(rel) {
+  const p = String(rel || '').split(String.fromCharCode(92)).join('/').replace(/^\.\//, '');
+  if (p.startsWith('_ds/')) return { destinoBase: 'scripts/design-sync/mirror-snapshot', destinoPath: dsRuntimeRelPath(p) };
+  if (p.toLowerCase().endsWith('.md')) return { destinoBase: 'prototipo-ui/design-docs', destinoPath: p };
+  return { destinoBase: 'prototipo-ui/cowork', destinoPath: p };
+}
+
+/** sha256 do buffer CRU — a mesma conta que o `gerar-payload-partes` faz do lado do vivo.
+ *  NÃO é o contentHash: aquele normaliza (BOM/CRLF/newline final) e serve à comparação com
+ *  o `get_file`. Misturar os dois daria STALE em 100% dos arquivos com CRLF, e o número
+ *  sairia plausível — o pior tipo de erro. Bruto compara com bruto, e só. */
+export function rawHash(buf) {
+  return createHash('sha256').update(buf).digest('hex');
+}
+
+/** Rows do `--compare-bundle` (PURA — recebe o leitor de arquivo, não toca fs direto).
+ *
+ *  ── POR QUE ISTO NÃO É TAUTOLOGIA (a pergunta que mata instrumentos, §5 2026-07-17) ──
+ *  O `liveHash` NÃO sai do espelho: sai do `bundle.manifest.json`, que o
+ *  `gerar-payload-partes` calculou do LADO DO VIVO, arquivo por arquivo, antes do transporte.
+ *  O `repoHash` sai do disco AGORA. São duas origens independentes, e é por isso que o
+ *  veredito significa algo: ele pega o espelho editado À MÃO depois da aplicação — que é
+ *  exatamente o remendo de 2026-08-13 que passou 4 dias sem ninguém ver.
+ *
+ *  ── O QUE ELE **NÃO** PROVA, e o instrumento diz isso em voz alta ────────────────────
+ *  Prova igualdade com o vivo **na data de emissão do bundle**, nunca "agora". Bundle de
+ *  ontem + tela mexida no Cowork hoje = SYNC honesto aqui e desatualizado no mundo. Por isso
+ *  a entrada de ledger é datada com o `generatedAt` do BUNDLE, não com `Date.now()`:
+ *  carimbar a hora da leitura faria o SLA acreditar num frescor que ninguém mediu.
+ */
+export function rowsDoBundle(bundle, manifest, lerArquivo) {
+  const rows = [];
+  const cobertos = new Set();
+  for (const f of (bundle?.files || [])) {
+    const { destinoBase, destinoPath } = destinoDoBundle(f.path);
+    // O universo do freshness é o espelho (`prototipo-ui/cowork/`). `_ds/**` e `.md` pousam
+    // em outros destinos e NÃO entram no denominador — contá-los inflaria a cobertura com
+    // arquivos que o --compare nunca mediu (§5 2026-07-27: denominador é o executável).
+    if (destinoBase !== 'prototipo-ui/cowork') continue;
+    cobertos.add(destinoPath);
+    const buf = lerArquivo(destinoBase + '/' + destinoPath);
+    rows.push({
+      cowork: destinoPath,
+      repoHash: buf == null ? null : rawHash(buf),
+      // FAIL-CLOSED: arquivo do bundle que sumiu do espelho não é SYNC nem silêncio.
+      veredito: buf == null ? 'STALE' : classifyMirror({ repoHash: rawHash(buf), liveHash: f.sha256 }),
+    });
+  }
+  // O que o espelho tem e o bundle NÃO cobriu segue UNCHECKED — nunca vira SYNC por omissão
+  // (LC-13: "0 failed" numa suíte que não rodou). É o mesmo contrato do --compare.
+  for (const m of manifest) {
+    if (!cobertos.has(m.cowork)) rows.push({ cowork: m.cowork, repoHash: m.repoHash, veredito: 'UNCHECKED' });
+  }
+  return rows;
 }
 
 // ── LEDGER + SLA (a metade que o CI headless PODE checar com honestidade) ─────
@@ -596,6 +859,9 @@ export function ledgerEntry(rows, dateIso, meta = {}) {
   // é o número que responde "o espelho drifta com que frequência?", que é o que a ADR 0324
   // precisa do ledger. Sem ele a série histórica só sabe dizer 0 e vira carimbo.
   if (meta.origin) e.origin = meta.origin;
+  // ADR 0389: escrita inline DECLARADA (--origem agente). Viaja pro ledger pra que a rodada
+  // não se passe por export de saída persistida — a mentira, se houver, fica datada aqui.
+  if (meta.origemDeclarada) e.origemDeclarada = meta.origemDeclarada;
   if (typeof meta.stalePreExport === 'number') e.stalePreExport = meta.stalePreExport;
   return e;
 }
@@ -1523,6 +1789,109 @@ function main() {
     return;
   }
 
+  // --compare-bundle [<manifest.json>] [--check] [--ledger]: veredito a partir do BUNDLE v2
+  // já promovido, em vez de N chamadas `DesignSync.get_file`.
+  //
+  // POR QUE EXISTE (2026-09-08, [W] "estende o freshness pro bundle"): a rota PRINCIPAL de
+  // conteúdo virou o bundle (`gerar-payload-partes` -> `aplicar-payload`), que confere bytes
+  // por arquivo antes de escrever. Mas o ledger só aceitava snapshot vindo de `get_file` por
+  // path — então aplicar o bundle com fidelidade provada NÃO movia o `unchecked`, e fechar
+  // 273 arquivos custava 273 chamadas. Medido nesse dia: bundle promovido, espelho idêntico
+  // (0 mudança), e o --sla continuava dizendo "271 sem veredito". As duas metades do mesmo
+  // sistema não se falavam.
+  //
+  // NÃO é atalho pra medir o vivo: o `liveHash` é o sha256 que o gerador calculou DO VIVO
+  // antes do transporte. O que este modo NÃO faz é ir ao Cowork agora — e por isso a entrada
+  // é datada com o `generatedAt` do bundle. Bundle velho => rodada velha => o --sla cobra.
+  if (argv.includes('--compare-bundle')) {
+    const bi = argv.indexOf('--compare-bundle');
+    const alt = argv[bi + 1] && !argv[bi + 1].startsWith('--') ? argv[bi + 1] : null;
+    const bundle = alt
+      ? (existsSync(alt) ? JSON.parse(readFileSync(alt, 'utf8')) : null)
+      : lerBundlePromovido();
+    // FAIL-CLOSED: sem bundle não há liveHash, logo não há veredito — nunca verde por ausência.
+    if (!bundle || !Array.isArray(bundle.files) || bundle.files.length === 0) {
+      console.error('✗ --compare-bundle: bundle promovido ausente ou ilegível (scripts/design-sync/state/active-bundle.json). Rode aplicar-payload antes.');
+      process.exit(2);
+    }
+    const manifestB = buildManifest(ROOT, { all: false, shellHtml: lerShellHtml() });
+    const ler = (relPath) => { const p = join(ROOT, relPath); return existsSync(p) ? readFileSync(p) : null; };
+    const rows = rowsDoBundle(bundle, manifestB, ler);
+    const conta = (v) => rows.filter((r) => r.veredito === v).length;
+    const nSync = conta('SYNC'), nStale = conta('STALE'), nUnch = conta('UNCHECKED');
+    const dataBundle = bundle.generatedAt || null;
+    console.log(`\n  COMPARE-BUNDLE — espelho × bundle ${String(bundle.bundleId || '').slice(0, 16)} (emitido ${dataBundle || '?'})\n`);
+    console.log(`  ✓ sync: ${nSync} · ⛔ stale: ${nStale} · ⬜ unchecked: ${nUnch}  (de ${rows.length})`);
+    for (const r of rows.filter((x) => x.veredito === 'STALE')) console.log(`     ⛔ STALE  ${r.cowork}`);
+    // O superlativo só fala do MEDIDO, e o denominador anda junto (LC-13 · §5 2026-08-13).
+    console.log(nUnch === 0
+      ? `\n  Cobertura TOTAL do espelho por este bundle.`
+      : `\n  ⚠️ COBERTURA PARCIAL — ${nUnch} arquivo(s) do espelho não estão no bundle: seguem SEM VEREDITO.`);
+    console.log(`  ⚠️ Isto prova igualdade com o vivo NA DATA DE EMISSÃO (${dataBundle || '?'}), não "agora".\n`);
+    if (argv.includes('--ledger')) {
+      if (!dataBundle) {
+        console.error('✗ --ledger recusado: bundle sem `generatedAt`. Datar a rodada com a hora da LEITURA faria o SLA acreditar num frescor que ninguém mediu.');
+        process.exit(2);
+      }
+      const lp = join(ROOT, LEDGER_REL);
+      let entries = [];
+      try { entries = existsSync(lp) ? JSON.parse(readFileSync(lp, 'utf8')) : []; } catch { entries = []; }
+      if (!Array.isArray(entries)) entries = entries.runs || [];
+      entries.push(ledgerEntry(rows, dataBundle, { origin: `bundle:${String(bundle.bundleId || '').slice(0, 16)}` }));
+      writeFileSync(lp, JSON.stringify(entries, null, 2) + '\n');
+      console.log(`  ledger: rodada registrada em ${LEDGER_REL} (origin=bundle, datada de ${dataBundle}). Commite o ledger.\n`);
+    }
+    if (argv.includes('--check') && shouldFail(rows.map((r) => r.veredito))) process.exit(1);
+    return;
+  }
+
+  // --docs-compare <dir> [--ledger]: frescor dos .md POUSADOS em design-docs/ (T1 · session
+  // 2026-09-01). Recebe o dir de JSONs do get_file (o MESMO insumo do --export-from) e
+  // responde, por .md: a cópia pousada em prototipo-ui/design-docs/ ainda bate com o vivo?
+  // Produzir o insumo exige auth (ADR 0315) — o CI não roda isto; audita via --sla-docs.
+  const dcIdx = argv.indexOf('--docs-compare');
+  if (dcIdx !== -1) {
+    console.error('✗ --docs-compare foi removido: documentos não fazem parte do espelho build-only. Reconcilie o conteúdo no canon proprietário.');
+    process.exit(2);
+  }
+  if (false) {
+    const dir = argv[dcIdx + 1];
+    if (!dir || !existsSync(dir)) {
+      console.error('✗ --docs-compare exige um diretório com os JSONs do get_file dos .md do vivo.');
+      process.exit(2);
+    }
+    let denom = 0, medidos = 0;
+    const staleList = []; const semCopia = [];
+    for (const j of readdirSync(dir).filter((f) => f.endsWith('.json') || f.endsWith('.txt'))) {
+      let vivo;
+      try { vivo = decodeDesignSyncPayload(JSON.parse(readFileSync(join(dir, j), 'utf8')), j); }
+      catch (e) { console.error(`✗ ${e.message}`); process.exit(2); }
+      if (!vivo.path.endsWith('.md')) continue; // este eixo é só dos .md roteados pra design-docs
+      denom++;
+      const abs = join(ROOT, 'prototipo-ui', 'design-docs', vivo.path);
+      if (!existsSync(abs)) { semCopia.push(vivo.path); continue; } // nunca desceu → dono é o --live-only
+      medidos++;
+      const local = artifactHash(readFileSync(abs, 'utf8'), false);
+      const remoto = artifactHash(vivo.content, vivo.binary);
+      const nota = local === remoto ? 'sync' : 'STALE';
+      if (nota === 'STALE') staleList.push(vivo.path);
+      console.log(`  ${nota.padEnd(6)} design-docs/${vivo.path}`);
+    }
+    console.log(`\n  DOCS — ${medidos} pousado(s) comparado(s) de ${denom} .md do insumo · ${staleList.length} STALE · ${semCopia.length} sem cópia (eixo do --live-only)`);
+    if (staleList.length) console.log(`  Pra atualizar: --export-from ${dir} (o roteamento pousa .md em design-docs/) — transcrição é proibida (ADR 0374).`);
+    if (argv.includes('--ledger')) {
+      const lpz = join(ROOT, LEDGER_REL);
+      let entries = [];
+      try { entries = existsSync(lpz) ? JSON.parse(readFileSync(lpz, 'utf8')) : []; } catch { entries = []; }
+      if (!Array.isArray(entries)) entries = entries.runs || [];
+      entries.push(docsEntry(staleList, medidos, denom, new Date().toISOString()));
+      writeFileSync(lpz, JSON.stringify(entries, null, 2) + '\n');
+      console.log(`  ledger: medição registrada em ${LEDGER_REL} (${staleList.length} stale de ${denom} .md). Commite o ledger.`);
+      console.log('  O CI headless não mede isto (auth ADR 0315) — ele audita ESTE registro via --sla-docs.\n');
+    }
+    return;
+  }
+
   // NOTA (2026-09-01): um modo `--conferir-descida` chegou a ser esboçado aqui e foi
   // DESCARTADO antes de nascer — duplicaria régua consolidada (§5 2026-07-09): a pergunta
   // "o que pousou confere?" já tem donos — a rota BUNDLE responde por construção
@@ -1847,6 +2216,59 @@ function main() {
 ✓ ${plano.length} arquivo(s) escritos do JSON — fiel por construção, sem transcrição.`);
     }
     console.log(`  ${tally.ATUALIZADO} atualizado(s) · ${tally.NOVO} novo(s) · ${tally.inalterado} inalterado(s)`);
+
+    // ── D3/D4: a recusa vira DEVOLUTIVA escrita, não só linha de terminal ────────────
+    // Sem `--dry` porque não há o que escolher: recusou, o design precisa saber.
+    //
+    // ⚠️ O QUE MUDOU E POR QUÊ (medido 2026-09-08, no pouso do ciclo 08/09 — PR #6990,
+    // onde o arquivo foi restaurado À MÃO; o mecanismo é este PR): este bloco removia a
+    // devolutiva sempre que a rodada não tivesse recusa, sob a premissa "estado limpo não
+    // deve deixar retrato velho no repo". A premissa é verdadeira para uma rodada COMPLETA
+    // (universo = o espelho todo) e FALSA para uma rodada PONTUAL (universo = 1 arquivo) —
+    // e o `--export-from` é, por desenho do painel, a rota do caso pontual
+    // (`protocolo.config.mjs`: "ARQUIVO AVULSO (1-3) -> --export-from [caso pontual]").
+    // Consequência real: um pouso de UM `.md` avulso apagou o retrato de 54 recusados de
+    // 07/09 (12.913 B) imprimindo "nenhuma recusa nesta rodada" — usar o universo DA RODADA
+    // como se fosse o universo GLOBAL, a classe do §5 2026-08-10 (catraca cujo universo vem
+    // do lado mutável) e 2026-08-04 (isenção que casa com a saída-padrão do produtor).
+    //
+    // A FORMA ÓBVIA FOI MEDIDA E É INSATISFAZÍVEL: "só remover quando a rodada cobre o
+    // universo do retrato". O retrato só contém paths que passaram por RE_CANON_DE_TELA
+    // (o `recusados.push` está DENTRO daquele `if`), e esse teste é determinístico no path
+    // — então incluir um path do retrato nesta rodada o recusa DE NOVO, e este ramo (zero
+    // recusa) nunca roda. "Cobriu o universo" e "zero recusa" são mutuamente exclusivos por
+    // construção; implementar aquilo seria um ramo de remoção que nunca dispara.
+    //
+    // Descartado também o limiar ("N arquivos = rodada completa"): denominador que decisão
+    // nenhuma estabeleceu (§5 2026-07-27) — é o mesmo erro com um número na frente.
+    //
+    // O QUE SOBROU: a rodada não consegue PROVAR que o retrato acabou, então ela não apaga.
+    // Preserva, diz de quando é o retrato, e oferece o descarte EXPLÍCITO. `--limpar-devolutiva`
+    // é declaração do operador — mesmo desenho do `--origem agente` acima, e nomeada pelo
+    // EFEITO (apaga) e não por uma propriedade que o script não checa (§5 2026-07-16 · LC-10).
+    {
+      const absDev = join(ROOT, DEVOLUTIVA_REL);
+      if (plano.recusadosConteudo && plano.recusadosConteudo.length) {
+        const linhas = devolutivaDeRecusados(plano.recusadosConteudo, { root: ROOT });
+        mkdirSync(dirname(absDev), { recursive: true });
+        writeFileSync(absDev, renderDevolutiva(linhas));
+        const ricos = linhas.filter((l) => l.classe === 'COLIDE-COM-CANON-MAIS-RICO').length;
+        console.log(`  devolutiva escrita em ${DEVOLUTIVA_REL} (${linhas.length} recusado(s)`
+          + (ricos ? `, ${ricos} colidiria(m) com canon mais rico` : '') + ') — leve ao design.');
+      } else if (existsSync(absDev)) {
+        const retrato = lerRetratoDevolutiva(readFileSync(absDev, 'utf8'));
+        const de = retrato ? `de ${retrato.data} · ${retrato.total} arquivo(s)` : 'de data ILEGÍVEL (cabeçalho não reconhecido)';
+        if (argv.includes('--limpar-devolutiva')) {
+          rmSync(absDev, { force: true });
+          console.log(`  ${DEVOLUTIVA_REL} removido por --limpar-devolutiva — retrato ${de} descartado por decisão do operador.`);
+        } else {
+          console.log(`  ${DEVOLUTIVA_REL} PRESERVADO — retrato ${de}, de OUTRA rodada.`);
+          console.log(`    Esta rodada trouxe ${plano.length} arquivo(s) e nenhum canon de tela. Isso NÃO prova que`);
+          console.log('    o universo do retrato esteja limpo: o insumo é o dir DESTA rodada, não o Cowork inteiro.');
+          console.log('    Se o retrato de fato acabou (rodada completa), descarte explicitamente: --limpar-devolutiva');
+        }
+      }
+    }
     if (snapOut) {
       // ⚠️ TAUTOLOGIA (achado do adversário 2026-08-13, provado em sandbox): este snapshot sai
       // do conteúdo que ACABOU de ser escrito, então o `--compare` seguinte SEMPRE dá SYNC —
@@ -1857,7 +2279,7 @@ function main() {
       // O número que faltava já existia aqui (`tally.ATUALIZADO`). Agora ele viaja no snapshot,
       // o --compare o repassa e o ledger o grava como `stale_pre_export` — a rodada passa a
       // distinguir "estava em dia" de "acabei de arrumar".
-      writeFileSync(snapOut, JSON.stringify({ _origin: 'export', _stalePreExport: tally.ATUALIZADO, ...snapshotEmitido }, null, 2) + '\n');
+      writeFileSync(snapOut, JSON.stringify({ _origin: 'export', _stalePreExport: tally.ATUALIZADO, ...(origemAgente ? { _origemDeclarada: 'agente' } : {}), ...snapshotEmitido }, null, 2) + '\n');
       console.log(`  snapshot emitido em ${snapOut} (${Object.keys(snapshotEmitido).length} entrada(s)) — sem re-baixar.`);
       if (tally.ATUALIZADO) {
         console.log(`  ⚠ ${tally.ATUALIZADO} arquivo(s) ESTAVAM stale e foram consertados por este export.`);
@@ -2054,6 +2476,7 @@ function main() {
     try { entries = existsSync(lp) ? JSON.parse(readFileSync(lp, 'utf8')) : []; } catch { entries = []; }
     entries.push(ledgerEntry(rows, new Date().toISOString(), {
       origin: snapshot._origin, stalePreExport: snapshot._stalePreExport,
+      origemDeclarada: snapshot._origemDeclarada,
     }));
     writeFileSync(lp, JSON.stringify(entries, null, 2) + '\n');
     console.log(`  ledger: rodada registrada em ${LEDGER_REL} (${entries.length} entrada(s)). Commite o ledger.`);

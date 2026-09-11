@@ -1,0 +1,100 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "kb/Index (/kb)",
+  "gap_fonte": "memory/requisitos/KB/kb-gap.md",
+  "prototipo_sha": "sha256:3f2c78b83b65",
+  "gerado_em": "2026-09-06",
+  "partes": [
+    {
+      "id": "header-pagina",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/kb-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/kb/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. só \"Perguntar ao KB\" (IA/RAG) + \"Saúde do KB\" adaptado — §Veredito adotar #4 (M/G). Trilhas, Troubleshooter e Composer/Novo artigo: NÃO adotar (§Veredito, Tier 0/ADR 0061).",
+      "_acionavel": true
+    },
+    {
+      "id": "navegacao-categorias",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/kb-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/kb/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. Recentes + Favoritos (localStorage) + nuvem de tags — §Veredito adotar #2 (P/M; tags exigem campo no schema, _pendente_). Categorias/níveis de gráfica: NÃO adotar (§Veredito).",
+      "_acionavel": true
+    },
+    {
+      "id": "busca",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/kb-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/kb/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. Command palette ⌘K mantendo a busca server-side por baixo — §Veredito adotar #3 (M). Substituir server-side por client-side = regressão proibida (§Veredito).",
+      "_acionavel": true
+    },
+    {
+      "id": "lista-de-artigos-docs",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/kb-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/kb/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. só sort por frescor (`updated_at`/`indexed_at`) — Parte 4 Esforço/risco: P, dado já existe. Não consta do §Veredito \"Adotar\" #1–#4 (é item menor da própria Parte 4). Métricas de leitura/utilidade e votação: NÃO adotar (§Veredito).",
+      "_acionavel": true
+    },
+    {
+      "id": "editor-detalhe",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/kb-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/kb/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. TOC \"nesta página\" + prev/próximo — §Veredito adotar #1 (P) — e histórico de versões funcional — §Veredito #3 (backend já tem history_count). Comentários inline e edição/Composer: NÃO adotar (§Veredito, ADR 0061).",
+      "_acionavel": true
+    },
+    {
+      "id": "drawer-modais-auxiliares",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/kb-page.jsx",
+        "linhas": "TODO"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/kb/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "Decidir. \"Saúde do KB\" adaptado (docs stale/sem-sync) — §Veredito adotar #4 (M). Troubleshooter, Apresentação, Imprimir SOP, anexar-a-OS: NÃO adotar (§Veredito).",
+      "_acionavel": true
+    }
+  ]
+}

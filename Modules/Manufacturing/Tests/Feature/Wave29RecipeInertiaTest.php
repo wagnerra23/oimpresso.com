@@ -202,10 +202,16 @@ describe('UC-RECIPE-01/02/06/07 — a rota (schema MySQL real)', function () {
     });
 
     // UC-RECIPE-07 — o ramo ajax (DataTables legado) continua ANTES do render Inertia.
+    //
+    // ⚠️ A agulha NÃO fecha o parêntese de propósito (ajustada 2026-09-04). Ela era
+    // `'if (request()->ajax())'` — literal exato — e quebrou quando a condição ganhou o guarda
+    // `&& ! request()->header('X-Inertia')` (bug em prod: a navegação SPA caía no ramo AJAX e
+    // recebia JSON). O que este UC defende é a ORDEM dos dois blocos, não o texto da condição;
+    // prender no literal fazia o teste reprovar um endurecimento legítimo da guarda.
     it('UC-RECIPE-07 o ramo ajax do DataTables vem antes do render Inertia', function () {
         $fonte = file_get_contents(base_path('Modules/Manufacturing/Http/Controllers/RecipeController.php'));
 
-        $posAjax = strpos($fonte, 'if (request()->ajax())');
+        $posAjax = strpos($fonte, 'if (request()->ajax()');
         $posInertia = strpos($fonte, "Inertia::render('Manufacturing/Recipes'");
 
         expect($posAjax)->not->toBeFalse();

@@ -1,0 +1,101 @@
+{
+  "url": "https://staging.oimpresso.com/fiscal/config",
+  "theme": "light",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C Certificado & configuração Sem certificado A1 ativo · ambiente HOMOLOGAÇÃO sem cert ativo Buscar Cockpit NF-e · NFC-e NFS-e Manifesto DF-e Eventos Certif. & Cfg. SPED & Livros Certificado e regime Séries 2 Ambiente e certificado SPED Certificado digital A1 Instalado em MemCofre · SEFAZ exige renovação anual. Nenhum certificado A1 ativo Faça upload abaixo pra começar a emitir. Como funciona o A1 Resumo pra contadora externa. A1 (arquivo): certificado em + senha. Fica no servidor (MemCofre). Renova a cada 12 meses. A3 (token/cartão): exige hardware presente no servidor. Mais seguro mas dificulta automação. Vence em < 30 dias? SEFAZ continua aceitando até a data final, mas a emissão deve ser pausada se renovação atrasar. Onde fica a senha? sempre em , nunca em variável de ambiente. Upload do certificado A1 Sobe o .pfx ou .p12 + senha. Valida CNPJ, criptografa em disco e habilita emissão NF-e/NFC-e. Arquivo .pfx / .p12 * Máximo 100 KB. A3 (token) não é suportado. Senha do certificado * Encrypted-at-rest (Laravel encrypt) · nunca em log. Enviar certificado Identificação fiscal & numeração CNPJ business 00.000.000/0000-00 Razão social CI Biz Regime Simples Nacional Localização — NCM padrão CFOP / CSOSN 5102 / — Série NFe 1 Próximo número 13 Emissão auto Manual Tributação default Cascade NCM/CFOP/CSOSN avançado vive em /nfe-brasil/tributacao . Envio de documentos Quem recebe o DANFE e o XML quando a nota é autorizada. Contador não cadastrado — ainda não existe campo de e-mail do contador nesta configuração Envio automático ao autorizar NF-e (55): Ativo · NFC-e (65): Desligado Cópia pro cliente O destinatário é o e-mail do cliente da própria nota — NF-e pela fatura, NFC-e pela venda. Cliente sem e-mail no cadastro: o envio é registrado no log e pulado, sem afetar a nota, que já está autorizada. Estas duas chaves valem pra toda a instalação , não por empresa — moram em e mudam por variável de ambiente. Ligar/desligar por empresa exigiria coluna própria, que ainda não existe. Decisão [W] pendente A aba de séries mostra séries reais hoje ela é servida por dado de demonstração com uma filial inventada (CU-FISC-16 do SDD §6.5 · §5.4.1). Precisa de decisão [W]. Cadastrar o e-mail do contador a linha existe no card (UC-FCFG-05) declarando a ausência. Dar valor a ela exige coluna nova em nfe_business_configs (migration em PR próprio, nunca junto de UI) e a decisão de se o envio ao contador é cópia automática de toda nota ou digest. Sem contrato até [W] decidir. Ligar/desligar o envio automático POR EMPRESA hoje as duas chaves são de deploy (Modules/NfeBrasil/Config/config.php), e o card diz isso. Tornar por-tenant é coluna nova + tela editável, não ajuste de leitura. Débitos conhecidos desta tela A validade do certificado aparece com três tons de urgência vencido, perto de vencer (até 30 dias) e tranquilo. O cálculo existe no Controller; sem teste dos limiares. sem teste O painel mostra regime, série, próximo número e tributação padrão leitura consolidada do que o NfeBrasil guarda. Sem teste; note que esses dados são lidos por consulta direta à tabela, fora do escopo automático de business — o escopo é aplicado à mão a partir da sessão (SDD §5.2). sem teste O bloqueio do download de SPED por feature flag tem contrato em Sped.casos.md (UC-FSPED-05) — a aba \"sped\" desta tela apenas aponta para lá. coberto em outra tela buscar tudo NF-e navegar lista todos os atalhos Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "700",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": {
+      "bg": "oklch(0.9 0.004 90)",
+      "color": "oklch(0.65 0.01 80)",
+      "border": "oklch(0.65 0.01 80)"
+    },
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "fiscal-config-abas",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "fiscal-config-cert-regime",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "decisao-pendente",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 1
+        },
+        "exemplos": {
+          "snakeCru": [
+            "nfe_business_configs"
+          ]
+        }
+      },
+      {
+        "nome": "debitos-conhecidos",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

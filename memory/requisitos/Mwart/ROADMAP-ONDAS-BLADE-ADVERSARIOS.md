@@ -187,5 +187,12 @@ Censo e contrato **conferidos contra o repo real** (`routes/web.php`, `resources
 3. Cada onda roda o ciclo **MWART** ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)): [CC] produz F1 no Cowork → [CD] roda F1.5 contra o **adversário da onda** → [CL] porta pro repo (5 fases) → [CX] (Onda 10) só assina quando o contador de routes Blade vivos chega a **zero**.
 4. A decisão de adotar o **contrato de completude** + ordenação + erradicação é canon em [ADR 0277](../../decisions/0277-rota-migracao-blade-ondas-completude.md) (aceita 2026-06-13).
 
+## §7 · Delta por mockup do bundle Cowork (2026-09-06)
+
+Os 23 mockups `A_CRIAR` do bundle `5023b274` foram medidos contra este roadmap, mockup a mockup, em
+[`_processo/ONDAS-MWART-A-CRIAR.md`](../_processo/ONDAS-MWART-A-CRIAR.md): 7 têm gêmeo vivo em Inertia
+(decisão de âncora, não onda), 3 já têm US/EPIC em voo, 13 são a-criar e viram 4 ondas (A–D) que apontam
+pras ondas 1/7/8 daqui ou pra módulo nWidart. Este roadmap segue o dono; aquele doc é o delta.
+
 ---
 *Oimpresso ERP · [CC] · migração do backbone Blade UltimatePOS em ondas governadas. Contagens ≈ por família de controller, lidas de `routes/web.php@main`. Estimates recalibradas — [ADR 0106](../../decisions/0106-recalibracao-velocidade-fator-10x-ia-pair.md).*

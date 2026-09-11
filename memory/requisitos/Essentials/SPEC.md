@@ -213,6 +213,65 @@ Então recebe `403 Unauthorized`
 
 **Aceitação:** Testes Pest biz=1 vs biz=99 ([ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md)) cobrem list/show/edit/delete/complete. Falha em qualquer cenário cross-tenant = incident. Suite: `MultiTenantTodoTest` + `MultiTenantLeaveTest`.
 
+### US-ESS-011 · Metas de venda por colaborador (tela Inertia)
+
+**Implementado em:** `Modules/Essentials/Http/Controllers/SalesTargetController.php` (`index`, `paginarColaboradores`) · `resources/js/Pages/Essentials/Metas.tsx` (+ `Metas.charter.md`, `Metas.casos.md`) · rota `/hrm/sales-target` em `Modules/Essentials/Routes/web.php` · `Modules/Essentials/Tests/Feature/HrmMetasTest.php` · verificado@16fec05f7d (2026-09-05)
+
+**Como** admin do business
+**Quero** ver numa tela só quem tem meta de venda cadastrada e qual faixa paga qual comissão, e editar essas faixas
+**Para** não precisar abrir um colaborador por vez no modal (a tela Blade mostrava só nome + botão)
+
+**Regras:**
+
+- A tela **não calcula** comissão. As faixas são exibidas como estão em `essentials_user_sales_targets`; ao salvar, voltam como texto pt-BR de 2 casas (`formatDecimalPtBR`) — a mesma forma do `@num_format` do Blade. `Util::num_uf` e `SalesTargetFaixaValidator` seguem sendo os únicos a interpretar e validar.
+- A **apuração do realizado** (vendido no mês, faixa atingida, comissão em dinheiro) fica **fora** desta US: o produtor é `DashboardController::getUserSalesTargets`, admin-only e DataTables. É caminho de valor e exige US própria com a dupla prova da regra mestre.
+- O ramo `request()->ajax()` do `index` permanece enquanto `sales_targets/index.blade.php` existir (sai na HRM-O8).
+
+**Testado em:** `Modules/Essentials/Tests/Feature/HrmMetasTest.php`
+
+**DoD:** os 7 UCs de `Metas.casos.md` verdes na lane `essentials-pest` (MySQL real, tenant 98) — render Inertia com as props, faixas exibidas como estão no banco, colaborador sem faixa como ausência (não zero fabricado), busca server-side sem vazar outro tenant, equivalência **medida** entre texto pt-BR e número cru na gravação, leitura do `num_uf` com controle negativo que pode ficar vermelho, e o ramo DataTables da Blade legada preservado. Nenhum valor gravado muda: `saveSalesTarget`, `montarFaixas`, `SalesTargetFaixaValidator` e `num_uf` ficam intactos.
+
+### US-ESS-012 · Mural de mensagens internas por localidade
+
+**Implementado em:** `Modules/Essentials/Http/Controllers/EssentialsMessageController.php` (`index`, `store`, `getNewMessages`) · `resources/js/Pages/Essentials/Messages/Index.tsx` (+ `Index.charter.md`) · rota `messages` em `Modules/Essentials/Routes/web.php` · smoke em `Modules/Essentials/Tests/Feature/SmokeRoutesEssentialsTest.php`
+
+**Como** colaborador com `essentials.view_message`
+**Quero** ler o mural do negocio e recortar por localidade
+**Para** achar o recado da MINHA loja sem rolar o mural inteiro
+
+**Regras:**
+
+- O mural chega INTEIRO (nao e paginado) e o polling repoe a lista completa — por isso o recorte por localidade e client-side. Ida ao banco aqui seria custo sem ganho.
+- Sao DOIS seletores de localidade com propositos opostos, e isso e proposital: o do cabecalho RECORTA o que se le; o do compositor define a localidade da mensagem a ENVIAR. Mexer num nao pode mexer no outro.
+- Quem nao tem `essentials.view_message` ve o bloqueio com o motivo escrito, nunca a tela vazia sem explicacao.
+
+**Fora desta US:** marcar mensagem como lida (individual ou em lote). Exige modelo de LEITURA POR DESTINATARIO, que `essentials_messages` nao tem — e enquanto nao tiver, contador de nao-lidas e legenda de "nova" sao decoracao. Escopo novo, decisao de [W].
+
+**Testado em:** `Modules/Essentials/Tests/Feature/MessagesIndexTest.php`
+
+**DoD:** a tela responde 200 com o component Inertia (`EssentialsBladeT1InertiaSmokeTest`), o recorte por localidade nao altera o que e enviado, e o vazio distingue "nao ha mensagens" de "nenhuma nesta localidade".
+
+### US-ESS-013 · Base de conhecimento interna com busca
+
+**Implementado em:** `Modules/Essentials/Http/Controllers/KnowledgeBaseController.php` (`index`) · `resources/js/Pages/Essentials/Knowledge/Index.tsx` (+ `Index.charter.md`) · resource `knowledge-base` em `Modules/Essentials/Routes/web.php` · `Modules/Essentials/Tests/Feature/KnowledgeIndexTest.php`
+
+**Testado em:** `Modules/Essentials/Tests/Feature/KnowledgeIndexTest.php`
+
+**Como** colaborador do business
+**Quero** achar um artigo pelo que ele DIZ, nao pelo lugar onde ele esta
+**Para** nao precisar abrir livro por livro procurando o procedimento
+
+**Regras:**
+
+- A arvore inteira (livro -> secao -> artigo) chega no payload, entao a busca e client-side. Ida ao banco aqui seria custo sem ganho.
+- O conteudo e HTML: a busca tira as tags antes de comparar, senao buscar "li" casaria com todo `<li>` do texto.
+- Com termo ativo as secoes abrem sozinhas — busca cujo resultado fica escondido atras de um collapse nao serve pra nada.
+- A guarda do controller (`authorizeAccess`) e de ACESSO AO MODULO (`essentials_module` no pacote), nao por acao. Nao existe permissao `gerir_kb` neste modulo — quem entra na tela edita.
+
+**Fora desta US:** leitura do artigo INLINE na propria tela. O protótipo desenha árvore lateral + painel de leitura; o vivo navega pra `/essentials/knowledge-base/{id}`, que e OUTRA tela com ancora propria. Fundir as duas e decisao de [W].
+
+**DoD:** a tela responde 200 com o component Inertia e a arvore aninhada (livro -> secao -> artigo) chega inteira no payload — que e a pre-condicao da busca client-side.
+
 ---
 
 ## Cobertura de testes Pest (2026-05-16 Wave Massive)

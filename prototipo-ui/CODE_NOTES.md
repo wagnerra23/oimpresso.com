@@ -1523,3 +1523,157 @@ O [#6488](https://github.com/wagnerra23/oimpresso.com/pull/6488) auditou o mesmo
 
 Como sempre: não editei `prototipo-ui/cowork/**` pra "consertar" nada — é espelho de leitura
 (ADR 0374) e edição minha some no próximo `--export-from`. O durável nasce no Cowork vivo e desce.
+
+---
+
+## 2026-09-03 [CL] → [W]/[CC] — Export da Forja chegou sem o pacote: 16 arquivos de fonte sem como descer
+
+**O pedido, e é a única coisa que este bloco pede:** regenerar o pacote deste ciclo. A regra em si já
+está no [passo 4 da ROTINA](COWORK-ESTRUTURA-E-TELAS.md) com o comando — não repito aqui.
+
+### O que medi (03/09, contra `origin/main` fresco + projeto Cowork por ID)
+
+O ciclo da Forja fechou e o `github.md` (Last sync `2026-09-03T17:10Z`) traz, no lugar do recibo, a
+frase **"Não afirmo que regenerei."** A linha `bundle regenerado (<data> · N arquivos)` que a
+[ADR 0387](../memory/decisions/0387-github-md-diario-cowork-aceito-e-tratado.md) usa como recibo não
+aparece no arquivo.
+
+Consequência medida, não estimada — `forja-*.jsx`: **22 no vivo · 6 no espelho**. Os 16 que nunca
+desceram: `forja-atomos` · `forja-lista` · `forja-quadro` · `forja-gantt` · `forja-saude` ·
+`forja-changelog` · `forja-issue-drawer` · `forja-cmdk` · `forja-triagem` · `forja-rag` · `forja-ia` ·
+`forja-novo-issue` · `forja-runbook` · `forja-handoff` · `forja-dossie` · `forja-notifs`.
+
+As duas rotas de transporte estão fechadas pra eles:
+
+- **PRINCIPAL (pacote):** o `sync/bundle.manifest.json` vivo ainda é a emissão de **24/08**, pré-split.
+  Conferido com controle positivo — `forja-page.jsx` e `forja-mcp.jsx` dão 2 hits cada no manifesto;
+  os 16 novos dão **0**.
+- **pontual (`get_file` → `--export-from`):** são 16, não "1-3 avulsos", e arquivo pequeno volta
+  inline — escrever de lá é transcrição (ADR 0374).
+
+### O que isso segura — e o que não segura
+
+O `COLAR-NO-CODE-EXPORT-FORJA-MODULO.md` pede 11 ondas de réplica. Medi o que dá pra executar sem o
+pacote: as **25 classes-chave do §3** estão nos 6 arquivos do espelho, e o `forja-page.css` é de
+03/09 — então as Ondas 1–11 têm alvo, ainda que medido no monolito de 01/09 e não na build split.
+
+Sem fonte no espelho estão 4 das 8 construções "sem receptor": `fj-cmdk`, `fj-notifs`, `fj-runbook` e
+`fj-composer` dão 0 no espelho **e** no CSS fresco. (Sondei por nome de classe adivinhado; se elas
+usam outro prefixo, o 0 é meu, não delas.)
+
+[W] optou por esperar a fonte fiel antes da Onda 1 — a fila da Forja está parada neste bloco.
+
+### 2 correções pro pacote de export (na fonte, não aqui)
+
+- **§8** afirma "17 arquivos `forja-*.jsx` + `forja-page.css` no `prototipo-ui/cowork/`". O espelho
+  tem 6 `.jsx` + 1 `.css`; o vivo tem 22 `.jsx`. Nenhum dos dois é 17.
+- **§1 Onda 1** aponta `team-mcp/Forja/ForjaHub.tsx`; o arquivo está em
+  `team-mcp/Forja/_components/ForjaHub.tsx`. As outras 15 âncoras conferem.
+
+### Por que este bloco está aqui, e não num `CODE_NOTES.prompt-*` novo
+
+Porque o de 01/09 já provou que ali não chega: a errata dele mediu que **nenhum** dos 6 documentos do
+read-order citava a regra, e por isso ela foi pro passo 4 da ROTINA. A regra está lá — conferi hoje,
+7 hits em `COWORK-ESTRUTURA-E-TELAS.md` — e o ciclo fechou sem cumprir. Logo o que falta não é texto
+novo, é a execução; abrir mais um arquivo de pedido repetiria o erro que a errata registrou.
+
+---
+
+## 2026-09-04 [CL] → [W] — export HRM pousou reconciliado; a busca anti-scatter do Cowork casou só a raiz
+
+**Branch:** `claude/hrm-export-ponte` (base `origin/main` `ac7e5e417c`). PR aberto — **não mergeei**.
+
+[W] colou o pacote de export do HRM. Ele abre declarando **"não havia `cowork-inbox/PEDIDO-*hrm*`
+(procurei). Este é o doc único do módulo — próximas ondas reescrevem este arquivo"**. Medido no `main`
+hoje: `cowork-inbox/hrm/` existe com **7 arquivos**, entre eles o `PEDIDO-CL-hrm.md` de 21/ago
+([#6132](https://github.com/wagnerra23/oimpresso.com/pull/6132)), que já decompôs o módulo em
+HRM-O0 (3 decisões [W]) + O5–O8 (PR-1..PR-10) e deixou charter, casos, contrato e teste prontos.
+
+**A busca não estava errada, estava rasa:** a convenção é `<modulo>/PEDIDO-CL-<modulo>.md`, uma pasta
+abaixo da raiz do `cowork-inbox/`. Um glob na raiz nunca acha. Vale pros próximos exports — o alvo
+é `cowork-inbox/<modulo>/`, não `cowork-inbox/`.
+
+**Mais duas claims refutadas**, ambas de leitura do espelho e não do `main`:
+
+- "**4 testes Feature**" no Essentials — são **14**. Dois deles, `MultiTenantLeaveTest` e
+  `SalesTargetShiftCrossTenantTest`, já provam o isolamento cross-tenant de licença, meta e turno.
+  O export lista essa guarda como trabalho a fazer; ela é trabalho a **não quebrar**.
+- Pages em `resources/js/Pages/Hrm/**` — o `PEDIDO-CL-hrm` já tinha escolhido
+  `Modules/Essentials/Resources/js/Pages/Hrm/**`, "como o módulo Cms faz", e o `app.tsx` documenta
+  que as duas convenções resolvem pro mesmo namespace. Prevalece a do pedido.
+
+**O que sobrevive e é bom:** a a11y do alvo com o método corrigido (a sonda por `cursor:pointer`
+**reprova** neste módulo — `button.os-btn` tem `cursor: default`, e isso produziu um falso negativo
+na 1ª rodada, pego pelo caso de sanidade), o aviso do skeleton (771 nós na 1ª leitura, 1007 estável,
+~23% de erro em quem não espera duas leituras iguais), o alvo por seção, e a leitura de que o
+`DataTablePro` do DS acumula `th` sem `scope` em **3 módulos** (CRM, Repair, HRM).
+
+**O que eu não fiz e por quê:** não landei o export como "doc único do módulo". A frase é uma
+instrução ativa pra próxima sessão sobrescrever o dono — o export virou anexo de um pouso que
+aponta pro `PEDIDO-CL-hrm`, com as 3 frases marcadas no lugar em vez de apagadas.
+
+**Achado que muda a ordem sugerida:** o pedido de 21/ago está com **execução zero** — sem
+`Pages/Hrm/`, teste e contrato nunca saíram do inbox, e o **PR-8 (lang PT)**, que o próprio pedido
+marcou como "pode ir sozinho e já", segue intacto: o menu do RH diz "Sair" para *licença* e "Folhas"
+para *licenças*. É o caminho mais curto pro primeiro valor, e não depende de nenhuma das 5 decisões.
+
+---
+
+## 2026-09-09 [CL] → [CC]/[W] — OficinaAuto/Vehicles: as 4 telas sem fonte de design, medidas e especificadas
+
+### Contexto
+`Modules/OficinaAuto` está em **piloto LIVE** (Martinho, `business_id=164`, ~91 veículos reais
+importados). O CRUD de Veículos é o cadastro que sustenta as OS dele, e é a única família do
+módulo **sem nenhuma fonte de design** — ausência **declarada pela própria fonte**
+(`oficina-forms.jsx:7`: *"FORA DE ESCOPO: Veículos CRUD"*).
+
+### Claim de ausência — fechada nos dois donos (2026-09-09)
+- **Repo:** `ancora.mjs` nas 4 telas → `n/a` classificado como *"declaração legítima — a tela nasce
+  do DS"*. Nenhuma âncora do repo aponta para fora de `prototipo-ui/cowork/` (medido: 88 `n/a` +
+  o resto no espelho + 1 histórica).
+- **Projeto Cowork (por ID):** `list_files` → 876 paths, zero `veiculos-*`/`vehicles-*`.
+  `--live-only --ledger` rodado no mesmo dia → **0 protótipos de tela** no vivo fora do espelho
+  (87 de 876 são shell/uploads/bundle/docs). O SLA de live-only estava vencido (8d) e foi remedido.
+
+### O que produzi (fonte de design, não pedido de fonte)
+Quatro GAP-SPEC no dono do tema (`memory/requisitos/<Mod>/*-gap.md`, 71 exemplares no repo),
+ancorados em **PT-01/02/03 + charter + componentes canon** — que é o que a ADR 0282 §0.1 manda
+fazer quando falta a fonte visual. Os quatro parseiam no `gerar-map.mjs` (8+8+6+8 = 30 partes,
+`prototipo_sha=sem-arquivo`, sem warning de âncora):
+
+- `vehicles-index-gap.md` · `vehicles-create-gap.md` · `vehicles-edit-gap.md` · `vehicles-show-gap.md`
+
+O `related_prototype: n/a` dos 4 charters **permanece** — não promovi nada a âncora falsa.
+
+### O achado que interessa ao design
+`MercosulPlate` é canon com **8 arquivos consumidores** (Sells/Create, Sells/Show,
+SellsTabelaUnificada, Board ×2, ServiceOrderKanbanCard, ServiceOrderRichSheet). As 4 telas de
+Vehicles têm **zero**. Ou seja: **a Venda mostra a placa Mercosul e o cadastro de veículos, não** —
+apesar de `Index.charter.md:34` exigir e `:56` proibir o contrário, e apesar de `:24` registrar o
+feedback do Martinho de 2026-05-26 (*"placa Mercosul ficou top"*) como diferencial vs concorrentes.
+Nenhum UC cobre a forma da placa, então não há teste disputando o charter.
+
+### Duas promessas de charter que o código não cumpre (medidas)
+1. **Create/Edit, "1 col stack em 360px"** — os 5 grids de cada tela são `grid-cols-2`/`grid-cols-3`
+   **sem prefixo de breakpoint**; não colapsam. O charter declara o alvo como *"low-end Android"*.
+2. **Index, `Inertia::defer` no count de OS** — Goal do charter, anti-pattern explícito contra o
+   eager; a tela não tem `<Deferred>`. O Show tem o mesmo débito com `service_orders` eager.
+
+### Placar contra os Padrões de Tela
+`Create`/`Edit` = **PT-02 3/10** (faixa que o próprio PT-02 marca como redesenho do corpo) ·
+`Show` = **PT-03 5/8** (a um round; o R6/FSM é `n/a` por Non-Goal declarado, não gap).
+
+### O que NÃO fiz, e por quê
+- **Não** criei protótipo `.jsx` em `prototipo-ui/prototipos/<novo>`: o `cowork-ssot-guard` R3
+  reprova (exit 1) fora do allowlist, cuja meta declarada é **zero**.
+- **Não** escrevi no espelho `prototipo-ui/cowork/`: é build-only do vivo (ADR 0374) — arquivo
+  nascido aqui vira `--unverified` e some no próximo bundle.
+- **Não** usei `DesignSync.write_files`: é **publicação externa** com opt-in [W] (ADR 0315 + R10),
+  e o §10.6 restringe a subida ao *"que já é canon"* — não é rota para design novo.
+
+### Pendências pra vocês
+- **[CC]** se/quando desenhar as 4, os GAP-SPEC acima são o briefing pronto (partes, ações e
+  componentes canon já resolvidos). O `PlacaVeiculo` do DS (`padrao`/`size`/`categoria`/`uf`) é mais
+  rico que o `MercosulPlate` vivo — convergir os dois é decisão de DS, fora do escopo da tela.
+- **[W]** as decisões marcadas "Construir ou rejeitar por escrito" nos 4 documentos; e a
+  aprovação de `Show.charter.md`, que segue `status: draft` aguardando Non-Goals + Anti-hooks.

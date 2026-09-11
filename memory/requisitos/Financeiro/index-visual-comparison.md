@@ -86,3 +86,28 @@ colunas de workflow aditivas na tabela do extrato.
 Validado em `staging.oimpresso.com/financeiro/conciliacao` (2026-05-31): tela
 renderiza as 2 origens lado a lado (chip Banco/OFX), sem erro 500, com a
 migration Fase 1 aplicada. Screenshot na sessão de origem.
+
+---
+
+## Onda 7 · paridade medida no runtime — 2026-09-08 [CC]
+
+Mesma sonda estrutural · **mesmo tema** (`dark`) · **mesma viewport** (`2560`) · ambos estabilizados.
+Âncora `financeiro-telas-extras.jsx` (TelaConciliacao) provada **SYNC** antes de comparar.
+Prod `/financeiro/conciliacao` × design rota `fin-concil`.
+
+| Elemento | PROD | DESIGN |
+|---|---|---|
+| h1 | "Conciliação · OFX bancário" | "Financeiro · Conciliação" |
+| KPIs | **4** `.fin-stat` | **0** (2 `.fin-card`) |
+| Tabela | **1** — `Data · Origem · Descrição · Valor · Tipo · Status · Ações` (7 col) | **0** |
+| `<svg>` | 72 | 65 |
+
+### Veredito: divergência **ESPERADA e já declarada** — não é trabalho
+
+O próprio charter da tela declara, no campo `related_prototype_nota`:
+*"(TelaConciliacao) — tela viva evoluiu além do protótipo (extrato via API, ADR 0236)"*.
+
+A coluna **Origem** (chip Banco/OFX) e as colunas de workflow que a Fase 1 da
+[ADR 0236](../../decisions/0236-extrato-conciliacao-modelo-unificado.md) trouxe são
+exatamente o que o protótipo **não** tem. A prod está à frente por decisão registrada;
+o protótipo é que está atrás. **Nada a corrigir na produção por conta desta divergência.**

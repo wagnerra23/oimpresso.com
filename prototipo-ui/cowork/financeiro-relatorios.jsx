@@ -391,14 +391,8 @@ const FinBalancete = () => {
 /* Pill segmented reusado pelas duas telas (pattern do vivo: Fluxo e DRE) */
 const FinTabPill = ({ tabs, value, onChange }) =>
 <div className="px-6 pt-4">
-  <div className="fin-seg" role="tablist">
-    {tabs.map((t) =>
-    <button key={t.id} role="tab" aria-selected={value === t.id} onClick={() => onChange(t.id)}
-      className={"fin-seg-btn" + (value === t.id ? " on" : "")}>
-      {t.label}{t.hint && <span className="text-[var(--text-3)] ml-1.5">{t.hint}</span>}
-    </button>
-    )}
-  </div>
+  <window.CliSeg role="tablist" value={value} onChange={onChange}
+    options={tabs.map((t) => ({ key: t.id, label: <>{t.label}{t.hint && <span className="text-[var(--text-3)] ml-1.5">{t.hint}</span>}</> }))} />
 </div>;
 
 Object.assign(window, { FinFluxoRealizado, FinBalanco, FinBalancete, FinTabPill });

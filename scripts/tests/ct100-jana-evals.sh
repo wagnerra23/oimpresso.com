@@ -43,6 +43,16 @@
 #   (⚠️ NÃO deduza isso lendo Kernel.php: o app registra 82 eventos e MÓDULOS
 #   registram os seus — Kernel.php tem só 65 statements. A autoridade é o runtime.)
 #
+#   ⚠️ MEDIDO 2026-09-04 — `schedule:list` NÃO SERVE como esse oráculo, e engana:
+#   ele LISTA o job mesmo quando ->environments() o filtraria, porque o filtro roda
+#   em RUN TIME, não no registro. No mesmo container, no mesmo instante:
+#     schedule:list        -> `*/5 * * * * php artisan mcp:sync-memory` Next Due: 49s
+#     runsInEnvironment()  -> mcp:sync-memory = FILTRADO (é ->environments(['live']))
+#   Contagem do dia: env=staging, 80 registrados, 6 rodariam (a errata de julho anotou
+#   82/5 — os dois números são fatos datados, o app mudou entre eles). Controle positivo
+#   da sonda: jana:ragas-real-eval = RODARIA, como tem que ser.
+#   Ou seja: "use o runtime em vez do código" não basta — tem que ser o runtime CERTO.
+#
 # CUSTO ACEITO DO CAMINHO A: a agenda passa a viver em DOIS lugares (o Kernel declara,
 # este cron invoca). O Kernel segue como documentação da intenção; a verdade operacional
 # é este arquivo. Os comentários dos 2 blocos no Kernel apontam pra cá.

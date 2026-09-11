@@ -1,0 +1,153 @@
+name: Manufacturing · Pest (MySQL)
+
+# Lane do MANUFACTURING: receita, BOM, ordem de produção e a autorização Spatie do módulo.
+#
+# POR QUE existe: varredura contada em 2026-09-03 sobre as 19 lanes `*-pest.yml` — NENHUMA
+# executa `Modules/Manufacturing/Tests/`. O módulo só aparece em `modules-pest.yml`, que roda
+# `DB_CONNECTION: sqlite` (`:135`), e 12 dos 19 arquivos abrem com uma guarda
+# `if (driver === 'sqlite') markTestSkipped(...)`. Resultado medido: eles rodam e PULAM —
+# `WARN … PermissionsTest`, 7 casos em traço amarelo, ZERO asserção. Skip sai exit 0, então a
+# lane fica verde sem ter provado nada (LC-13; §5 2026-08-02 "registro não é execução").
+#
+# O cabeçalho do `modules-pest.yml` registra que Manufacturing entrou na matrix em 2026-09-03
+# porque "os outros 18 eram falsa cobertura". Aquilo resolveu METADE: os testes saíram de
+# "não rodam" para "rodam e pulam" — visíveis, ainda mudos. Esta lane fecha a outra metade.
+#
+# MySQL e não a lista sqlite: as migrations do UltimatePOS são MySQL-only (MODIFY COLUMN,
+# ENUM), e os casos daqui autenticam usuário, montam papel Spatie e batem em rota HTTP com
+# sessão de negócio. A action `pest-mysql-setup` é a dona de QUAIS tenants existem e semeia
+# biz=1, biz=2 e biz=98 — sem isso o `MultiTenantIsolationTest` não tem como existir, e ele
+# defende a ÚNICA barreira de tenant do módulo: `mfg_recipes` NÃO tem `business_id` direto,
+# o isolamento vem do JOIN com `products.business_id` (ADR 0093).
+#
+# DESCOBERTA, não allowlist: nenhum destes 19 arquivos tem execução conhecida sob MySQL, então
+# escolher a dedo quais entram seria adivinhar. A lane roda o diretório inteiro e o que ficar
+# vermelho É o achado — foi para isso que ela nasceu. Ela nasce ADVISORY por isso mesmo.
+#
+# Medido antes de escrever (o seed sobrevive à suíte):
+#   - `RefreshDatabase` / `migrate:fresh` nos 19 arquivos: ZERO.
+#   - `DatabaseTransactions`: ZERO — os casos deixam dado para trás. Em CI o banco é
+#     descartável por run, então é inofensivo aqui; no CT 100, onde a base PERSISTE, não é
+#     (§Ambiente). Se algum dia esta suíte for para lá, isso vira pré-requisito, não detalhe.
+#
+# O CÓDIGO SOB TESTE está no gatilho, não só os testes. Sem isso, mexer no controller não
+# dispararia a lane dele — gate mudo com cara de cobertura, a pegadinha que o `sells-pest.yml`
+# e o `acessos-pest.yml` documentam no próprio `paths:`.
+#
+# Estrutura copiada de `acessos-pest.yml` (mesmo setup MySQL, mesmo skip-as-pass, mesmo sumário
+# JUnit por assertions). Não é lane paralela a nada: é área que não tinha dono.
+
+on:
+  workflow_dispatch: {}
+  # pull_request SEM paths (always-run) + skip-as-pass interno via dorny/paths-filter:
+  # se nada do módulo mudou, pula o pesado e conclui verde (mesmo padrão de
+  # acessos-pest/essentials-pest — required-ready sem deadlock).
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - 'Modules/Manufacturing/**'
+      - 'resources/js/Pages/Manufacturing/**'
+      - 'database/schema/mysql-schema.sql'
+      - '.github/workflows/manufacturing-pest.yml'
+      - '.github/actions/pest-mysql-setup/**'
+
+concurrency:
+  group: manufacturing-pest-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pest:
+    name: PHP / Pest (Manufacturing · MySQL)
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: oimpresso_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detectar mudanças do Manufacturing (skip-as-pass)
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            manufacturing:
+              - 'Modules/Manufacturing/**'
+              - 'resources/js/Pages/Manufacturing/**'
+              - 'database/schema/mysql-schema.sql'
+              - '.github/workflows/manufacturing-pest.yml'
+              - '.github/actions/pest-mysql-setup/**'
+
+      - name: Skip-as-pass (nada do Manufacturing mudou)
+        if: steps.changes.outputs.manufacturing == 'false'
+        run: echo "✅ Sem mudanças no Manufacturing — skip-as-pass."
+
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed mínimo multi-tenant)
+        if: steps.changes.outputs.manufacturing == 'true'
+        uses: ./.github/actions/pest-mysql-setup
+
+      - name: Stub Vite manifest (root view sem build do front)
+        if: steps.changes.outputs.manufacturing == 'true'
+        run: |
+          mkdir -p public/build-inertia
+          cat > public/build-inertia/manifest.json <<'EOF'
+          {
+            "resources/css/inertia.css": { "file": "assets/inertia.css", "src": "resources/css/inertia.css", "isEntry": true },
+            "resources/js/app.tsx": { "file": "assets/app.js", "src": "resources/js/app.tsx", "isEntry": true }
+          }
+          EOF
+
+      - name: Run Pest (Manufacturing · MySQL) — DESCOBERTA, não allowlist
+        if: steps.changes.outputs.manufacturing == 'true'
+        # phpunit.xml aponta DB_CONNECTION=sqlite :memory: (sem force="true"), então a env
+        # daqui vence e a suíte roda no MySQL real semeado pela action (ela é a dona dos tenants).
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: "3306"
+          DB_DATABASE: oimpresso_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        run: |
+          mkdir -p test-results
+          vendor/bin/pest --no-coverage --colors=always \
+            --log-junit test-results/pest-manufacturing-junit.xml \
+            Modules/Manufacturing/Tests/
+
+      # A régua honesta desta lane é `assertions`, NÃO "0 failed". Foi um verde por
+      # não-execução que criou esta lane: se o sumário mostrar casos com 0 assertions, a lane
+      # NÃO mediu — leia isso antes de comemorar verde (LC-13).
+      - name: Sumário JUnit por arquivo (assertions — a régua contra skip-as-pass)
+        if: always()
+        run: node scripts/tests/junit-summary.mjs test-results/pest-manufacturing-junit.xml --out test-results/pest-manufacturing-junit-summary.json || true
+
+      - name: Upload sumário JUnit (pest-manufacturing-junit-summary)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-manufacturing-junit-summary
+          path: test-results/pest-manufacturing-junit-summary.json
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Upload JUnit (Manufacturing · MySQL)
+        if: ${{ !cancelled() && steps.changes.outputs.manufacturing == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-manufacturing-junit
+          path: test-results/pest-manufacturing-junit.xml
+          retention-days: 14

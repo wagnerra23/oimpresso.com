@@ -138,11 +138,12 @@ window.FxActions.enviarCertificado = function (arquivo) {
 };
 
 // ─── Toasts ───
+// A10 · a região live existe SEMPRE (medido: com o container condicional, `[aria-live]` = 0 na carga
+// e o leitor de tela não anuncia o 1º toast — o nó nasce junto com a mensagem)
 window.FxToasts = function FxToasts() {
   const st = window.useFiscalStore();
-  if (!st.toasts.length) return null;
   return (
-    <div className="fx-toasts" role="status" aria-live="polite">
+    <div className="fx-toasts" role="status" aria-live="polite" aria-atomic="false">
       {st.toasts.map(t => <div className="fx-toast" data-tone={t.tone} key={t.id}>{t.msg}</div>)}
     </div>
   );

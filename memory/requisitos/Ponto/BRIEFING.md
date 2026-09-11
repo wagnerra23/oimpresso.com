@@ -2,9 +2,9 @@
 id: requisitos-ponto-briefing
 module: Ponto
 status: parcial
-updated_at: "2026-08-21"
-distilled_at: "2026-08-21"
-distilled_by: "manual [C] — redestilação PARCIAL: só a §Contratos de tela (nova, abaixo) foi escrita, a partir de medição direta do `contrato-de-tela.mjs` em 2026-08-21. O resto do corpo NÃO foi re-lido: a §Cobertura de teste segue no retrato de 2026-08-07 (com a ressalva presença≠execução) e as demais seções no de 2026-07-27 (PR #4865)."
+updated_at: "2026-09-05"
+distilled_at: "2026-09-05"
+distilled_by: "manual [C] — redestilação PARCIAL (PR #6802): DUAS seções re-lidas contra medição fresca em 2026-09-05. (1) §Cobertura de teste — os números de 2026-08-07 caducaram e foram REMEDIDOS (árvore 41 · allowlist 39 · fora 2, contra 38/11/27 do retrato antigo; lane no main 9 success / 1 failure nos últimos 10, contra 'failure nos 5 últimos'); o texto velho fica registrado como fato datado, não apagado. (2) §Atributos fantasma — nova, com o veredito por-UC do run 33942364334. O RESTO do corpo NÃO foi re-lido: §Contratos de tela segue no retrato de 2026-08-21 e as demais no de 2026-07-27 (PR #4865)."
 ---
 
 # BRIEFING — Modules/Ponto
@@ -126,7 +126,27 @@ Ponto eletronico CLT-compliance (Portaria MTP 671/2021) com **marcacao append-on
 >
 > Estar fora da lane de PR **nao** significa "nunca roda": a nightly do CT 100 (`ct100-fullsuite.sh` → `shards-plan --roots tests,Modules`) varre por diretorio. O que se pode afirmar com recibo e que **nenhum gate de merge os executa**. Qual deles hoje passa e **dado a medir**, um a um — nao presumir.
 >
-> A lane esta em `failure` nos 5 ultimos runs do `main` (step `Run Pest — ALLOWLIST VERDE`, falha de teste, nao de infra). Conserto rastreado em **US-PONTO-014**; a receita ja esta provada 2× no repo (`financeiro-pest.yml` e `estoque-pest.yml`, [#5387](https://github.com/wagnerra23/oimpresso.com/pull/5387)).
+> **⟵ O paragrafo acima e o retrato de 2026-08-07 e CADUCOU. Remedido em 2026-09-05:** a arvore tem **41** arquivos `Modules/Ponto/Tests/**Test.php`, **39 na allowlist**, **2 fora** — e os 2 sao `Tests/Unit/ApuracaoServiceTest` e `Tests/Unit/MarcacaoServiceTest`. Os **10** testes nomeados na tabela acima, inclusive os tres guardas Tier 0 (`MultiTenantIsolationTest`, `MultiTenantAppendOnlyTest`, `CrossTenantMarcacaoTest`), estao **todos DENTRO** da lane — os ratchets de 2026-08-23 e 2026-08-24 fecharam o buraco de 71%. O texto anterior segue registrado por ser fato datado, nao apagado.
+>
+> **Estado da lane, tambem remedido em 2026-09-05:** ultimos 10 runs no `main` = **9 `success` · 1 `failure`**. A afirmacao anterior (*"`failure` nos 5 ultimos runs"*) era verdadeira em 2026-08-07 e e **falsa hoje** — o ultimo flaky conhecido (`SpatiePermissionsTest`, era `Gate::before`) caiu no [#6788](https://github.com/wagnerra23/oimpresso.com/pull/6788). **US-PONTO-014** segue aberta pelo que resta: a lane ainda seleciona por allowlist inline, nao por arvore-menos-quarentena.
+>
+> ⚠️ Afirmacao de estado de CI em tempo presente apodrece — quem quiser o numero de hoje roda `gh run list --workflow=ponto-pest.yml --branch main`, e quem quiser saber se a lane bloqueia merge le `governance/required-checks-baseline.json`, nunca esta linha ([proibicoes §5](../../proibicoes.md) 2026-07-16).
+
+## Atributos fantasma — US-PONTO-012 FECHADA em 2026-09-05
+
+O modulo tinha **4 instancias** do mesmo defeito: o controller lia um atributo que **nao existe** (nem coluna, nem accessor), o `?? 0` ou o `&&` do JSX escondia a ausencia, e a tela mentia em silencio. Nomeado pelo SDD §9 (D-1/D-8). As quatro leem a coluna real hoje, e cada uma tem UC provando:
+
+| Instancia | Lia | Real | UC | Recibo |
+|---|---|---|---|---|
+| `EspelhoController` | `tem_divergencia` | `estado === DIVERGENCIA` | `UC-ESPSH-01` | pass · 6 assertions |
+| `EscalaController@edit` | `entrada`/`saida`/`almoco_*` | `hora_*` | `UC-ESCF-01` | pass · 6 |
+| `ImportacaoController@index` | `linhas_criadas` | `linhas_sucesso` | `UC-IMPIDX-03` | pass · 4 |
+| `ImportacaoController@show` | idem | idem | `UC-IMPSH-04` | pass · 6 |
+| `ImportacaoController@show` | `erro_mensagem` | `log` | `UC-IMPSH-05` | pass · 12 |
+
+Os 5 no **mesmo** run [33942364334](https://github.com/wagnerra23/oimpresso.com/actions/runs/33942364334) da lane, todos com `assertions > 0` — `0 failed` sozinho nao prova execucao (LC-13).
+
+O pior dos quatro nao era numero errado: era o `erro_mensagem`. Uma importacao AFD que **falhou** nao mostrava o motivo, entao ela **parecia bem-sucedida** — e a importacao e a origem rastreavel da marcacao (Portaria 671/2021 Anexo I). O conserto da leitura ja estava em prod; o que faltava era a prova, e ela nasceu no [#6802](https://github.com/wagnerra23/oimpresso.com/pull/6802).
 
 ## Nota auditoria (estado 2026-05-16)
 

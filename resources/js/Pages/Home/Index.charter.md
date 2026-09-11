@@ -3,7 +3,7 @@ page: /dashboard-legacy
 component: resources/js/Pages/Home/Index.tsx
 owner: wagner
 status: live
-last_validated: "2026-08-28"
+last_validated: "2026-09-04"
 parent_module: Dashboard
 parent_spec: memory/requisitos/Dashboard/SPEC.md
 related_runbook: memory/requisitos/Dashboard/RUNBOOK-home-index.md
@@ -16,11 +16,28 @@ related_adrs: [93, 94, 101, 104]
 related_us: [US-DASH-001, US-DASH-004, US-DASH-005, US-DASH-006]
 related_prototype: prototipo-ui/cowork/dash-legacy-page.jsx (Cockpit V2 · PT-04 Dashboard)
 tier: A
-charter_version: 5
+charter_version: 6
 ---
 
 # Page Charter — /home
 
+> **Status v6 (2026-09-04):** entra o painel **Pendências** — o atalho que estava em §Backlog
+> desde a v4 com a nota *"entra se [W] quiser"*. [W] pediu em 2026-09-04. São as **5 abas da
+> âncora** (`dash-legacy-page.jsx`, const `PENDENCIAS`), não as 8: pedido de venda, ordem de
+> compra e requisição são fluxo em andamento, não pendência.
+>
+> **Duas decisões de engenharia que o painel carrega, e o porquê de cada uma:** (a) o número vem
+> do MESMO `linhas()` que serve a grade — um segundo predicado de "pendente" drifta do primeiro e
+> o painel passaria a prometer um número que a aba clicada não mostra, risco que a própria nota
+> do backlog já nomeava; (b) a prop é `Inertia::defer`, então as 5 contagens ficam FORA do
+> first-paint, que é o alvo de ≤ 800ms deste charter.
+>
+> **O que NÃO veio da âncora, de propósito:** o selo de severidade das linhas
+> (`payment/overdue`, `os/atrasada`). Aqueles rótulos descrevem um predicado mais estrito do que
+> o que a aba consulta — `titulosVencendo` traz tudo que vence em até 7 dias, vencido ou não.
+> Carimbar "vencido" num conjunto que inclui o que ainda vai vencer é rotular errado. Severidade
+> honesta seria um segundo predicado: decisão [W], não wiring.
+>
 > **Status v5 (2026-08-28):** o **Blade legado saiu**. Foram removidos `views/home/index.blade.php`
 > (1.436 ln), os 8 partials de KPI (já órfãos — zero includes), `public/js/home.js` **e a cópia
 > byte-idêntica em `dist/js/home.js`**, o `HomeController::indexLegacy()`, o `__chartOptions()`
@@ -100,6 +117,10 @@ Responder **"como foi o período"** numa tela só: o usuário escolhe a janela, 
 - **Drawer de detalhe** (`ui/sheet`) ao clicar na linha, com os campos da linha selecionada.
   Nas duas abas de título ele oferece **navegação** pra `/payments/add_payment/{id}` — rota
   GET, tela dedicada: preserva o atalho que o Blade tinha sem mutação inline
+- **Pendências** (v6): painel ao lado das Contrapartidas com as abas que têm algo esperando
+  agora — rótulo canônico da aba + total, cada linha um link que troca a aba preservando período
+  e loja. Só as **5 da âncora**, só as permitidas, e só as com total > 0 (um zero em "Pendências"
+  não é pendência, é ruído). Prop `Inertia::defer`, fora do first-paint
 - Estado do período, da loja **e da aba** em QUERY STRING, nunca em session (anti-hook)
 - Totais derivados todos do mesmo `getTransactionTotals` + `getSellTotals` + `getPurchaseTotals` — sem AJAX extra
 
@@ -134,7 +155,10 @@ Responder **"como foi o período"** numa tela só: o usuário escolhe a janela, 
 - ❌ **NÃO renderiza a aba "Fluxo de caixa"** do protótipo — ela não tem fonte no Blade legado.
   Desenhar aba sem fonte é inventar capacidade
 - ❌ **NÃO mostra contagem por aba** (o `count` do protótipo) — seriam 8 queries de `COUNT` por
-  render só pra pintar um pill. O total real da aba aberta aparece no rodapé da tabela
+  render só pra pintar um pill. O total real da aba aberta aparece no rodapé da tabela.
+  ⚠️ **O painel de Pendências (v6) NÃO revogou este Non-Goal**, e a distinção não é retórica: o
+  pill seria **8** contagens no caminho do **render**; o painel são **5**, e por `Inertia::defer`,
+  fora do first-paint. Um `count` por aba continua proibido
 - ❌ **NÃO exporta CSV** no rodapé da grade (o protótipo tem o botão) — não existe no Blade legado
 
 ---
@@ -177,13 +201,14 @@ Responder **"como foi o período"** numa tela só: o usuário escolhe a janela, 
 
 Ordem das âncoras `data-contract`, de cima pra baixo:
 
-`cabecalho` → `kpis` → `contrapartidas` → `graficos` → `grades`
+`cabecalho` → `kpis` → `contrapartidas` → `pendencias` → `graficos` → `grades`
 
 | Seção | Copy que a tela precisa mostrar |
 |---|---|
 | `cabecalho` | `Visão geral` |
 | `kpis` | `Líquido no período` · `Vendas` · `A receber` · `Despesas` |
 | `contrapartidas` | `Contrapartidas` · `Compras` · `A pagar` · `Devolução de venda` · `Devolução de compra` |
+| `pendencias` | `Pendências` |
 | `graficos` | `Vendas por dia` · `Vendas por mês` |
 | `grades` | `clique para abrir o detalhe` |
 
@@ -214,7 +239,7 @@ Cobertos em `tests/Feature/Home/HomeIndexInertiaTest.php` (6 testes · UC-DASH-0
 5. ✅ `UC-DASH-05` · `Tier 0 multi-tenant — não vaza locations de outro business` — invariante ADR 0093
 6. ✅ `UC-DASH-06` · `totals expõe 8 campos canônicos` — guard charter v2 (total_sell, net, invoice_due, total_expense, total_purchase, purchase_due, total_sell_return, total_purchase_return)
 
-Cobertos em `tests/Feature/Home/GradesDoPainelTest.php` (12 testes · UC-DASH-07..16 — v4 US-DASH-005 + ordenação v5):
+Cobertos em `tests/Feature/Home/GradesDoPainelTest.php` (15 testes · UC-DASH-07..16 + UC-DASH-19 — v4 US-DASH-005, ordenação v5, Pendências v6):
 
 7. ✅ `UC-DASH-07` · `aba sem permissão NÃO aparece` — cada grade tem o seu próprio gate
 8. ✅ `UC-DASH-08` · `sem dashboard.data NÃO há aba nenhuma` — a camada externa do Blade (linhas 369→1013)
@@ -232,6 +257,12 @@ Cobertos em `tests/Feature/Home/GradesDoPainelTest.php` (12 testes · UC-DASH-07
     (fix 2026-08-28): um teste que só checasse a recusa teria ficado verde o tempo todo
 16. ✅ `UC-DASH-16` · `ordenaveis() espelha o sortable da ancora — situacao NAO ordena`. Impede a UI
     oferecer ordenação que o servidor recusa; `situacao` é derivada em PHP, não é coluna de banco
+17. `UC-DASH-19` · Pendências — **3 testes**: (a) concordância, `pendencias()` é idêntico nos
+    DOIS sentidos ao derivado de `linhas()` sobre as 5 abas da âncora, **e** as 3 abas de fluxo
+    não entram mesmo com permissão concedida; (b) gate, pendência de aba sem permissão não
+    aparece; (c) casca, sem `dashboard.data` a prop nem é registrada. O (a) **não faz skip** de
+    propósito — a primeira versão fazia, e pulou na run de 2026-09-04 deixando a invariante
+    central sem execução com a lane verde (ver a nota no `casos.md`)
 
 ---
 
@@ -245,9 +276,11 @@ Cobertos em `tests/Feature/Home/GradesDoPainelTest.php` (12 testes · UC-DASH-07
   (8 abas + drawer). Os endpoints AJAX do Blade seguem intactos, como o Non-Goal manda:
   o React lê por `app/Services/Dashboard/GradesDoPainelService.php`, que tem query própria
   porque os endpoints legados devolvem HTML dentro das células
-- **Pendências** (o painel lateral do protótipo que lista "1 título vencido" e leva pra aba) —
-  fora desta onda: cada linha dele é um `COUNT` a mais por render, e ele repete o que as
-  abas já dizem. Entra se [W] quiser o atalho
+- ~~**Pendências** (o painel lateral do protótipo que lista "1 título vencido" e leva pra aba)~~
+  — **entregue na v6 (2026-09-04)**, a pedido de [W]. As duas objeções da nota original foram
+  respondidas em vez de contornadas: o `COUNT` a mais por render virou `Inertia::defer` (sai do
+  first-paint), e o "repete o que as abas já dizem" virou a garantia — o número vem do mesmo
+  `linhas()` da grade, então repetir é exatamente o contrato (UC-DASH-19)
 
 ---
 

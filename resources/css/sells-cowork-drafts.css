@@ -108,3 +108,29 @@
   color: var(--vd-draft-age-stale);
   border: 1px solid color-mix(in oklch, var(--vd-draft-age-stale) 30%, transparent);
 }
+
+/* ────────────────────── TEMA ESCURO (paleta --vd-draft-*) ──────────────────────
+ * Só-light: os seis `-soft` em L≈0.96 e os `-text`/`-border` calibrados para
+ * fundo branco. Valores dark pelo padrão do DS transcrito no #6712.
+ *
+ * Os hues de idade (145 fresh · 60 aging · 25 stale) são os MESMOS do trio
+ * ok/warn/bad daquele PR, então os `-soft` reusam os valores dele verbatim.
+ *
+ * `--vd-draft-continue-fg` (#ffffff) fica FORA de propósito: é foreground sobre
+ * accent, branco nos dois temas — mesma razão dos 22 `color: white` do #6712.
+ * ───────────────────────────────────────────────────────────────────────────── */
+.cockpit[data-theme="dark"] .sells-cowork-drafts,
+.dark .sells-cowork-drafts {
+  --vd-draft-neutral:        oklch(0.70 0.02 80);
+  --vd-draft-neutral-soft:   oklch(0.26 0.008 80);
+  --vd-draft-neutral-border: oklch(0.36 0.01 80);
+  --vd-draft-neutral-text:   oklch(0.84 0.02 80);
+  --vd-draft-continue:       oklch(0.68 0.13 245);
+  --vd-draft-continue-hover: oklch(0.74 0.13 245);
+  --vd-draft-age-fresh:      oklch(0.74 0.14 145);
+  --vd-draft-age-fresh-soft: oklch(0.27 0.06 145);
+  --vd-draft-age-aging:      oklch(0.80 0.13 60);
+  --vd-draft-age-aging-soft: oklch(0.27 0.06 60);
+  --vd-draft-age-stale:      oklch(0.72 0.16 25);
+  --vd-draft-age-stale-soft: oklch(0.26 0.07 25);
+}

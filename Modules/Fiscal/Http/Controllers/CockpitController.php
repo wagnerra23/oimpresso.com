@@ -92,7 +92,79 @@ class CockpitController extends Controller
             'contabilData'   => $this->mockContabilData(),
             // Onda 3 L — auditoria mensal (write-off candidatos determinístico, sem IA)
             'writeOffSummary' => $this->mockWriteOffSummary(),
+            'procedencia'     => $this->procedencia(),
         ]);
+    }
+
+    /**
+     * CU-FISC-16 — a procedência de cada superfície desta tela.
+     *
+     * DECLARADA AQUI, e não adivinhada na Page, por um motivo medido: quando o #6541
+     * trocou a lista mockada pelo `NotasUnifiedService`, o protótipo e o SDD §5.4.1
+     * continuaram dizendo "demonstração" para `notas` e `savedViewCounts` — dois
+     * documentos afirmando algo que o código já tinha desmentido. Aqui a declaração
+     * fica a poucas linhas do `Inertia::render`, então quem troca um mock por serviço
+     * real troca a linha correspondente no MESMO diff.
+     *
+     * Medido em 2026-09-04 sobre o tip d23bc3df34: das 8 superfícies desta tela,
+     * 4 servem dado inventado, e são exatamente os 4 métodos `mock*` deste arquivo.
+     *
+     * `sparklines` ficou de fora ATÉ 2026-09-04, e o motivo era DATADO, não permanente:
+     * medido no tip `d23bc3df34`, a prop era servida e real (`computeSparklines` agrupa
+     * por dia em `nfe_emissoes`) mas a Page a recebia sem consumir — selo sem superfície
+     * visível não teria onde pousar.
+     *
+     * ✅ GATILHO CUMPRIDO no #6732, que desenhou as três séries: a chave `spark` está no
+     * array abaixo E o selo correspondente está na Page (`chave="spark"`, no `<small>` de
+     * "Emitidas", ao lado do `kpis`). Os dois JUNTOS de propósito — o `SeloProcedencia`
+     * faz `return null` sem invocação, e o assert 3 do `ProcedenciaCockpitTest` é one-way
+     * (tela → declaração), então chave sem selo ficaria muda e nenhum teste acusaria.
+     *
+     * O gatilho fica como fato datado, não como imperativo: mantê-lo em "acrescente aqui"
+     * depois de acrescentado seria instrução obsoleta com cara de pendência (LC-15).
+     *
+     * @return array<string, array{origem: string, explica: string}>
+     */
+    protected function procedencia(): array
+    {
+        return [
+            'kpis' => [
+                'origem'  => 'real',
+                'explica' => 'Contagem e soma em nfe_emissoes do mês corrente, com escopo do business e cache de 60s.',
+            ],
+            'spark' => [
+                'origem'  => 'real',
+                'explica' => 'Série de 14 dias agrupada por dia em nfe_emissoes numa consulta só, com escopo do business.',
+            ],
+            'alerts' => [
+                'origem'  => 'real',
+                'explica' => 'Receita determinística sobre o estado atual: rejeições, validade do certificado e DF-e pendente. Sem IA.',
+            ],
+            'notas' => [
+                'origem'  => 'real',
+                'explica' => 'Lista unificada NF-e/NFC-e/NFS-e servida pelo NotasUnifiedService desde 2026-09-02. Sem emissão no período, vem vazia.',
+            ],
+            'viewCounts' => [
+                'origem'  => 'real',
+                'explica' => 'Contadores derivados da mesma lista exibida — por construção, chip e tabela concordam.',
+            ],
+            'sefaz' => [
+                'origem'  => 'demonstracao',
+                'explica' => 'Situação fixa no código. Ser real depende de consumir o webservice de status da SEFAZ por UF.',
+            ],
+            'eventos' => [
+                'origem'  => 'demonstracao',
+                'explica' => 'Os 5 eventos do cabeçalho são inventados, autores inclusive. Ser real depende de consultar nfe_eventos.',
+            ],
+            'contabil' => [
+                'origem'  => 'demonstracao',
+                'explica' => 'Números do pacote e histórico de envios são fixos no código, e o envio por e-mail/SFTP ainda não existe.',
+            ],
+            'writeoff' => [
+                'origem'  => 'demonstracao',
+                'explica' => 'Candidatos e valores são fixos no código. Ser real depende de consultar fin_titulos vencidos há mais de 365 dias sem pagamento.',
+            ],
+        ];
     }
 
     /**
@@ -317,11 +389,42 @@ class CockpitController extends Controller
             ];
         }
 
-        // Warn: cert vencendo <60d (reusa $cert do contexto)
+        // Cert VENCIDO, vencendo hoje, ou vencendo em <=60d (reusa $cert do contexto).
+        //
+        // `$dias` é NEGATIVO quando o certificado já venceu. Até 2026-09-04 a guarda
+        // era `$dias <= 60 && $dias > 0`, que descartava justamente esse caso: no pior
+        // estado possível a fila do cockpit ficava MUDA, enquanto o badge da sidebar
+        // (GUARD US-NFE-001) já acusava "vencido há N dias" na MESMA tela.
+        //
+        // Medido em 2026-09-04: os 5 consumidores de `diasAteVencimento()` classificam
+        // por `$dias < 0` (vencido) e põem o `0` na banda de aviso, nunca num vão
+        // — CertHealthCheckCommand:187, ConfigController:61, NfeHealthCommand:213,
+        // HandleInertiaRequests:384 e PaymentGatewaysController:97 (`$dias >= 0`).
+        // O cockpit era o único fora do padrão, e era outlier nas DUAS pontas.
         $cert = $contexto['cert'];
         if ($cert?->valido_ate) {
             $dias = (int) now()->startOfDay()->diffInDays($cert->valido_ate, false);
-            if ($dias <= 60 && $dias > 0) {
+
+            if ($dias < 0) {
+                $ha = abs($dias);
+                $alerts[] = [
+                    'level'  => 'crit',
+                    'icon'   => 'shield',
+                    'title'  => "Certificado A1 vencido há {$ha} " . ($ha === 1 ? 'dia' : 'dias'),
+                    'sub'    => 'Renovar com o contador imediatamente',
+                    'action' => 'Abrir configuração',
+                    'goto'   => 'fiscal_config',
+                ];
+            } elseif ($dias === 0) {
+                $alerts[] = [
+                    'level'  => 'crit',
+                    'icon'   => 'shield',
+                    'title'  => 'Certificado A1 vence hoje',
+                    'sub'    => 'Renovar com o contador imediatamente',
+                    'action' => 'Abrir configuração',
+                    'goto'   => 'fiscal_config',
+                ];
+            } elseif ($dias <= 60) {
                 $alerts[] = [
                     'level'  => $dias <= 7 ? 'crit' : 'warn',
                     'icon'   => 'shield',

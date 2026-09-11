@@ -49,6 +49,20 @@ function csrf(): string {
   return (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '';
 }
 
+/**
+ * Rótulo do link do PR — `#2461`, como o protótipo desenha (`{h.pr} ↗`).
+ *
+ * O número NÃO é dado novo: ele já vem dentro do `pr_url` que o ForjaMcpService
+ * projeta. Derivar aqui é FORMATAR o que existe, não inventar — a alternativa
+ * (campo novo no serialize) faria o backend carregar uma segunda representação
+ * do mesmo dado. URL fora do padrão `/pull/<n>` cai no rótulo genérico: melhor
+ * um `PR` honesto que um `#` vazio.
+ */
+function rotuloPr(url: string): string {
+  const m = /\/pull\/(\d+)/.exec(url);
+  return m ? `#${m[1]}` : 'PR';
+}
+
 // ════════════════════════════════════════════════════════════════════════════
 // HANDOFFS (Cowork→Code, F1→F3) — seção REAL (Fase 1 · ADR 0283)
 // ════════════════════════════════════════════════════════════════════════════
@@ -243,7 +257,7 @@ function HandoffRow({
             data-testid="forja-handoff-pr"
             title="abre o PR no GitHub"
           >
-            PR ↗
+            {rotuloPr(h.pr_url)} ↗
           </a>
         ) : null}
 

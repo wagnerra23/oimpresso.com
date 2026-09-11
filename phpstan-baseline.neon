@@ -4863,12 +4863,6 @@ parameters:
 			path: Modules/Essentials/Http/Controllers/SalesTargetController.php
 
 		-
-			message: '#^Method Modules\\Essentials\\Http\\Controllers\\SalesTargetController\:\:saveSalesTarget\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
-			identifier: return.type
-			count: 1
-			path: Modules/Essentials/Http/Controllers/SalesTargetController.php
-
-		-
 			message: '#^Method Modules\\Essentials\\Http\\Controllers\\SalesTargetController\:\:setSalesTarget\(\) should return Illuminate\\Http\\Response but returns Illuminate\\View\\View\.$#'
 			identifier: return.type
 			count: 1
@@ -6334,7 +6328,7 @@ parameters:
 			path: Modules/Jana/Http/Controllers/IndexController.php
 
 		-
-			message: '#^Anonymous function should return array\{farol\: string, projecao\: array\{progresso\: float, projetado\: float, desvio_pct\: float\}\|null, id\: int, slug\: string, nome\: string, unidade\: ''%%''\|''dias''\|''qtd''\|''R\$'', tipo_agregacao\: ''contagem''\|''media''\|''soma''\|''ultimo'', periodo_atual\: array\{data_ini\: mixed, data_fim\: mixed, valor_alvo\: float, trajetoria\: mixed\}\|null, \.\.\.\} but returns array\{farol\: string, projecao\: array\{progresso\: float, projetado\: float, desvio_pct\: float\}\|null, id\: int, slug\: string, nome\: string, unidade\: ''%%''\|''dias''\|''qtd''\|''R\$'', tipo_agregacao\: ''contagem''\|''media''\|''soma''\|''ultimo'', periodo_atual\: array\{data_ini\: mixed, data_fim\: mixed, valor_alvo\: float, trajetoria\: mixed\}\|null, \.\.\.\}\.$#'
+			message: '#^Anonymous function should return array\{farol\: string, projecao\: array\{progresso\: float, projetado\: float, desvio_pct\: float\}\|null, id\: int, slug\: string, nome\: string, unidade\: ''%%''\|''dias''\|''qtd''\|''R\$'', tipo_agregacao\: ''contagem''\|''media''\|''soma''\|''ultimo'', origem\: ''chat_ia''\|''manual''\|''seed'', \.\.\.\} but returns array\{farol\: string, projecao\: array\{progresso\: float, projetado\: float, desvio_pct\: float\}\|null, id\: int, slug\: string, nome\: string, unidade\: ''%%''\|''dias''\|''qtd''\|''R\$'', tipo_agregacao\: ''contagem''\|''media''\|''soma''\|''ultimo'', origem\: ''chat_ia''\|''manual''\|''seed'', \.\.\.\}\.$#'
 			identifier: return.type
 			count: 1
 			path: Modules/Jana/Http/Controllers/IndexController.php
@@ -7737,16 +7731,51 @@ parameters:
 			count: 1
 			path: Modules/Manufacturing/Routes/web.php
 
+		# US-MANU-004: sobe de 1 → 2 porque `listProductions()` passou a fazer eager-load de
+		# `purchase_lines` (antes só o `reportByProduct` referenciava). A relação EXISTE —
+		# `App\Transaction::purchase_lines()` em app/Transaction.php:69 — o Larastan é que não
+		# a detecta. Conferido antes de crescer o baseline.
+		-
+			message: '#^Relation ''purchase_lines'' is not found in App\\Transaction model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: Modules/Manufacturing/Services/ProductionService.php
+
+		# US-MANU-004: eager-load de `location` que mata o N+1 do nome do local (uma query por
+		# linha, desde a Wave J). `App\Transaction::location()` existe em app/Transaction.php:99
+		# — mesma limitação de detecção do Larastan acima.
+		-
+			message: '#^Relation ''location'' is not found in App\\Transaction model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: Modules/Manufacturing/Services/ProductionService.php
+
+		-
+			message: '#^Access to an undefined property App\\Transaction\:\:\$purchase_lines\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Manufacturing/Services/ProductionService.php
+
+		-
+			message: '#^Relation ''ingredients'' is not found in Modules\\Manufacturing\\Entities\\MfgRecipe model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: Modules/Manufacturing/Services/ProductionService.php
+
 		-
 			message: '#^Access to an undefined property Modules\\Manufacturing\\Entities\\MfgRecipe\:\:\$ingredients\.$#'
 			identifier: property.notFound
 			count: 1
 			path: Modules/Manufacturing/Services/RecipeBomService.php
 
+		# US-MANU-005: sobe de 1 → 2 porque `recipesDoTenantComIngredientes()` (novo) faz o
+		# mesmo eager-load de `ingredients` que o `listRecipesWithCost` já fazia. A relação
+		# EXISTE — `MfgRecipe::ingredients()` — o Larastan é que não a detecta neste model.
+		# Conferido antes de crescer o baseline.
 		-
 			message: '#^Relation ''ingredients'' is not found in Modules\\Manufacturing\\Entities\\MfgRecipe model\.$#'
 			identifier: larastan.relationExistence
-			count: 1
+			count: 2
 			path: Modules/Manufacturing/Services/RecipeBomService.php
 
 		-
@@ -21774,13 +21803,13 @@ parameters:
 		-
 			message: '#^Method App\\Http\\Controllers\\StockTransferController\:\:update\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
 			identifier: return.type
-			count: 1
+			count: 2
 			path: app/Http/Controllers/StockTransferController.php
 
 		-
 			message: '#^Method App\\Http\\Controllers\\StockTransferController\:\:updateStatus\(\) should return Illuminate\\Http\\Response but returns array\<string, array\|int\|string\>\.$#'
 			identifier: return.type
-			count: 1
+			count: 2
 			path: app/Http/Controllers/StockTransferController.php
 
 		-

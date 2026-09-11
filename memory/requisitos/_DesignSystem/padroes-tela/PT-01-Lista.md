@@ -21,7 +21,6 @@ applied_in:
   - Pages/RecurringBilling/Index.tsx
   - Pages/Repair/Index.tsx
   - Pages/StockAdjustment/Index.tsx
-  - Pages/Tarefas/Index.tsx
 ---
 
 # PT-01 · Lista — padrão canônico de tela-lista
@@ -130,7 +129,6 @@ Lista das telas que **hoje** seguem PT-01 — usada como benchmark de adoção (
 | `RecurringBilling/Index.tsx` | ✓ | ✓ | ✓ | — | ✓ | parcial | — | — |
 | `ConsultaOs/Index.tsx` | ✓ | — | ✓ | — | ✓ | — | — | — |
 | `Manufacturing/Index.tsx` | ✓ | ✓ | ✓ | — | ✓ | — | — | — |
-| `Tarefas/Index.tsx` | ✓ | — | ✓ | — | ✓ | — | — | — |
 | `Nfse/Index.tsx` | ✓ | — | ✓ | — | ✓ | — | — | — |
 | `Produto/Index.tsx` | ✓ | — | ✓ | — | ✓ | — | — | — |
 | `ComunicacaoVisual/Index.tsx` | ✓ | — | ✓ | — | ✓ | — | — | — |

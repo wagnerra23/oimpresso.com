@@ -247,7 +247,7 @@ export default function DocumentsIndex({ documents, memos, initialTab, me }: Pro
           <div>
             <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
               {tab === 'memos' ? <Mail size={22} /> : <FileText size={22} />}
-              {tab === 'memos' ? 'Memos' : 'Documentos'}
+              {tab === 'memos' ? 'Todas as notas' : 'Todos os documentos'}
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
               {tab === 'memos'
@@ -258,11 +258,11 @@ export default function DocumentsIndex({ documents, memos, initialTab, me }: Pro
           <div className="flex gap-2">
             {tab === 'documents' ? (
               <Button onClick={() => setUploadOpen(true)}>
-                <FolderUp size={14} className="mr-1.5" /> Enviar arquivo
+                <FolderUp size={14} className="mr-1.5" /> Adicionar
               </Button>
             ) : (
               <Button onClick={() => setMemoOpen(true)}>
-                <Plus size={14} className="mr-1.5" /> Novo memo
+                <Plus size={14} className="mr-1.5" /> Adicionar
               </Button>
             )}
           </div>
@@ -271,10 +271,10 @@ export default function DocumentsIndex({ documents, memos, initialTab, me }: Pro
         {/* Tabs */}
         <div className="border-b border-border flex gap-1">
           <TabButton active={tab === 'documents'} onClick={() => setTab('documents')} icon={<FileText size={14} />}>
-            Arquivos <span className="ml-1 text-xs text-muted-foreground">({docs.length})</span>
+            Documentos <span className="ml-1 text-xs text-muted-foreground">({docs.length})</span>
           </TabButton>
           <TabButton active={tab === 'memos'} onClick={() => setTab('memos')} icon={<Mail size={14} />}>
-            Memos <span className="ml-1 text-xs text-muted-foreground">({memoList.length})</span>
+            Memorandos <span className="ml-1 text-xs text-muted-foreground">({memoList.length})</span>
           </TabButton>
         </div>
 
@@ -282,20 +282,39 @@ export default function DocumentsIndex({ documents, memos, initialTab, me }: Pro
         <Card>
           <CardContent className="p-0">
             {rows.length === 0 ? (
-              <div className="p-12 text-center text-sm text-muted-foreground">
-                {tab === 'memos'
-                  ? 'Nenhum memo criado ainda.'
-                  : 'Nenhum arquivo enviado ainda.'}
+              // O protótipo não usa o vazio pra repetir o óbvio: usa pra dizer PRA QUE
+              // serve o artefato, que é o que falta a quem abre a tela pela 1ª vez.
+              // Aqui só existe o estado "primeira vez": esta tela não tem filtro.
+              <div className="p-12 text-center" data-contract="vazio">
+                {tab === 'memos' ? <Mail size={32} aria-hidden="true" className="mx-auto mb-2 opacity-50" />
+                                 : <FileText size={32} aria-hidden="true" className="mx-auto mb-2 opacity-50" />}
+                <p className="text-sm font-medium">
+                  {tab === 'memos' ? 'Nenhum memorando' : 'Nenhum documento'}
+                </p>
+                <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
+                  {tab === 'memos'
+                    ? 'Memorando é o recado que fica: regra de balcão, plantão de feriado, prazo do mês. Publique o primeiro em Adicionar.'
+                    : 'Aqui ficam contrato, apólice, tabela de preços e perfil de cor — o que a equipe precisa achar sem pedir no WhatsApp.'}
+                </p>
+                <Button
+                  size="sm"
+                  className="mt-4"
+                  onClick={() => (tab === 'memos' ? setMemoOpen(true) : setUploadOpen(true))}
+                >
+                  <Plus size={14} className="mr-1.5" /> Adicionar
+                </Button>
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto" data-contract="tabela">
                 <table className="w-full text-sm">
                   <thead className="border-b border-border bg-muted/30 text-xs text-muted-foreground">
                     <tr>
-                      <th className="text-left p-3 font-medium">{tab === 'memos' ? 'Título' : 'Arquivo'}</th>
-                      <th className="text-left p-3 font-medium">Descrição</th>
-                      <th className="text-left p-3 font-medium">Enviado em</th>
-                      <th className="text-right p-3 font-medium">Ações</th>
+                      <th scope="col" className="text-left p-3 font-medium">{tab === 'memos' ? 'Título' : 'Nome'}</th>
+                      <th scope="col" className="text-left p-3 font-medium">Descrição</th>
+                      <th scope="col" className="text-left p-3 font-medium">
+                        {tab === 'memos' ? 'Data de criação' : 'Data do upload'}
+                      </th>
+                      <th scope="col" className="text-right p-3 font-medium">Ações</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">

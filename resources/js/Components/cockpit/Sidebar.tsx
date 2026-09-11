@@ -11,7 +11,7 @@ import { usePage } from '@inertiajs/react';
 import {
   ArrowRightLeft, Banknote, BarChart3, Bell, BookOpen, Bot, Box, Calculator, Calendar,
   Check, ChevronDown, ChevronRight, ChevronUp, ClipboardList, Clock, CreditCard,
-  Factory, FileSearch, FileSpreadsheet, FileText, FolderKanban, HandCoins, Hash, Home, Inbox, Keyboard, LifeBuoy, LogOut,
+  Factory, FileSearch, FileSpreadsheet, FileText, Folder, FolderKanban, HandCoins, Hash, Home, Inbox, Keyboard, LifeBuoy, LogOut,
   MessageCircle, Monitor, Moon, Package, PackageCheck, Palette, Plug, Receipt,
   RefreshCw, Rocket, Search, Settings, Sheet, ShieldAlert, ShieldCheck, ShoppingCart, Sun,
   TrendingUp, UserCog, Users, Utensils, User, Vault, Wallet, Wrench,
@@ -94,6 +94,10 @@ const MENU_ICON_MAP: Record<string, LucideIcon> = {
   'modelos de notificação': Bell,
   configurações: Settings,
   copiloto: Bot,
+  // [W] 2026-09-08: a Forja entra como ITEM do grupo PLATAFORMA (era só
+  // shortcut de topo). `data.jsx` do Cowork declara `icon: "bot"` pra entry
+  // `projects` — mesmo Bot do Copiloto. Sem esta linha o label cai em `Hash`.
+  forja: Bot,
   ads: ShieldCheck,
   conector: Plug,
   'office impresso': Plug,
@@ -136,6 +140,8 @@ const GROUP_ICON_MAP: Record<string, LucideIcon> = {
   estoque:   Package,       // caixas/inventory
   pessoas:   Users,         // RH
   sistema:   Settings,      // configurações
+  // `folder` do GROUP_META do design (prototipo-ui/cowork/data.jsx).
+  plataforma: Folder,
   mais:      Hash,          // fallback
 };
 
@@ -268,6 +274,29 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
             // pra futuros DataControllers que ainda declarem com esse label.
             'Superadmin'],
   },
+  {
+    key: 'plataforma',
+    label: 'PLATAFORMA',
+    // [W] 2026-09-08: "no sidebar pode colocar a Forja na PLATAFORMA, como está
+    // no protótipo". A fonte é `prototipo-ui/cowork/data.jsx` — grupo
+    // `PLATAFORMA` ("era MAIS"), ÚLTIMO, fechado por default, `hue: null`
+    // (neutro), ícone `folder`, com Tarefas · Equipe · Governança · Forja.
+    // Conferido contra o Cowork VIVO por ID em 2026-09-08 (DesignSync.get_file
+    // `data.jsx`, truncated:false) — espelho e vivo idênticos neste bloco.
+    //
+    // Por que NÃO renomeei o `mais` (que o design diz que "era" este grupo):
+    // no vivo `mais` é o FALLBACK de `findGroupKey` — todo item sem `group`
+    // declarado cai lá. Renomear faria módulo novo não-mapeado nascer dentro de
+    // "Plataforma" por acidente, o que o design não diz em lugar nenhum. Então
+    // `plataforma` é grupo EXPLÍCITO (último nomeado, logo antes do fallback) e
+    // `mais` segue sendo o balde — que já só aparece quando tem item visível.
+    //
+    // Neutro (sem hue), espelhando o `hue: null` do GROUP_META do design: o
+    // header só ganha cor quando `SIDEBAR_GROUP_HUE[key]` existe. Havia lá um
+    // `plataforma: 200` legado (alias v2 → sistema) que, com a key virando canon,
+    // passaria a pintar o grupo de ciano — removido no mesmo PR (shared.ts).
+    items: ['Forja'],
+  },
 ];
 
 /**
@@ -357,6 +386,13 @@ const LEGACY_GROUP_MAP: Record<string, string> = {
   conhecimento: 'sistema',
   rel:          HIDDEN_GROUP,
   governanca:   'sistema',
+  // ⚠️ INALCANÇÁVEL desde 2026-09-08: `plataforma` virou key CANON em
+  // SIDEBAR_GROUPS, e o passo 1 de `findGroupKey` (match por key) roda ANTES
+  // deste mapa. Medido no mesmo dia: nenhum DataController declara
+  // `group => 'plataforma'` hoje (`git grep "'group'" -- Modules/*/Http/
+  // Controllers/DataController.php` → producao·crm·financas·fiscal·equipe·
+  // sistema·ia·vender·atendimento), então a mudança de destino não move item
+  // nenhum. Fica como registro do que a linha significava, não como regra viva.
   plataforma:   'sistema',
   // Shortcuts topo — items com esses groups são ESCONDIDOS do sidebar
   ia:           HIDDEN_GROUP,
@@ -438,22 +474,28 @@ export function CompanyPicker({
         className="sb-cp-btn"
         type="button"
         onClick={() => setOpen((v) => !v)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label={`Empresa: ${nome}. Trocar de empresa`}
       >
-        <span className="avatar" style={{ background: grad }}>
+        <span className="avatar" style={{ background: grad }} aria-hidden="true">
           {iniciais}
         </span>
         <span className="name">{nome}</span>
         <ChevronDown size={14} />
       </button>
       {open && (
-        <div className="sb-dd">
+        <div className="sb-dd" role="menu">
           <div className="sb-dd-h">EMPRESAS</div>
           {businesses.length === 0 && (
             <div className="sb-dd-empty">Nenhuma empresa disponível</div>
           )}
           {businesses.map((b) => (
-            <div
+            <button
               key={b.id}
+              type="button"
+              role="menuitemradio"
+              aria-checked={b.ativa}
               className={`sb-dd-i ${b.ativa ? 'active' : ''}`}
               onClick={() => {
                 if (b.ativa) {
@@ -465,15 +507,21 @@ export function CompanyPicker({
                 setOpen(false);
               }}
             >
-              <span className="avatar-sm" style={{ background: gradientFor(b.id) }}>
+              <span
+                className="avatar-sm"
+                style={{ background: gradientFor(b.id) }}
+                aria-hidden="true"
+              >
                 {b.iniciais}
               </span>
               <span className="name">{b.nome}</span>
               {b.ativa && <Check size={14} className="check" />}
-            </div>
+            </button>
           ))}
           <div className="sb-dd-sep" />
-          <div className="sb-dd-foot">+ Adicionar empresa</div>
+          <button type="button" role="menuitem" className="sb-dd-foot">
+            + Adicionar empresa
+          </button>
         </div>
       )}
     </div>
@@ -662,9 +710,14 @@ function SidebarShortcuts({
   landing: LandingEntry[];
 }) {
   // Wagner 2026-05-22: Tarefas REMOVIDO (módulo ainda não definido).
-  // Sequência canon TOPO: IA → Equipe → Atendimento.
+  // Sequência canon TOPO: IA → Visão geral → Atendimento.
+  //
+  // [W] 2026-09-08: a Forja SAIU daqui e virou item do grupo PLATAFORMA. O
+  // design (`prototipo-ui/cowork/data.jsx`) declara três shortcuts de topo —
+  // `chat` (IA) · `dash-legacy` (Visão geral) · `inbox` (Atendimento) — e põe a
+  // Forja em PLATAFORMA. Manter os dois seria a mesma tela em duas portas do
+  // mesmo menu, que a Constituição UI v2 (ADR UI-0013) proíbe.
   const showIa = shortcuts?.ia ?? true;
-  const showEquipe = true; // TeamMcp interno do oimpresso, sempre visível
   const showAtendimento = shortcuts?.atendimento ?? true;
 
   return (
@@ -700,14 +753,11 @@ function SidebarShortcuts({
           </a>
         );
       })}
-      {showEquipe && (
-        // Fusão 2026-06-16: atalho topo é o hub ÚNICO "Forja" → /forja (cockpit
-        // do cowork loop que absorveu as telas do TeamMcp). Era "Equipe" → /team-mcp/team.
-        <a href="/forja" className="sb-shortcut">
-          <Users size={16} strokeWidth={1.6} />
-          <span className="label">Forja</span>
-        </a>
-      )}
+      {/* Fusão 2026-06-16 punha aqui o hub ÚNICO "Forja" → /forja (cockpit do
+          cowork loop que absorveu as telas do TeamMcp; antes era "Equipe" →
+          /team-mcp/team). [W] 2026-09-08 moveu essa entry pro grupo PLATAFORMA,
+          onde o design a declara — quem publica agora é o
+          `Modules/Forja/Http/Controllers/DataController@modifyAdminMenu`. */}
       {showAtendimento && (
         <a href="/atendimento" className="sb-shortcut">
           <MessageCircle size={16} strokeWidth={1.6} />
@@ -908,12 +958,17 @@ export function SidebarMenu({ items, mode = 'expanded' }: { items: ShellMenuItem
           groupKey={g.key}
           label={g.label}
           total={(groupedItems[g.key] ?? []).length}
-          // PR #1674 — defaultOpen=true UNIVERSAL pra paridade prototipo Cowork.
+          // PR #1674 — defaultOpen=true pra paridade prototipo Cowork.
           // Smoke real Wagner 2026-05-26 18h: grupos pareciam vazios porque user
           // tinha localStorage antigo persistido como collapsed. lsKey bump pra v2
           // (SidebarGroup) invalida prefs antigas + todos grupos abrem por default.
           // Items COM permissão renderizam dentro do body expandido.
-          defaultOpen={true}
+          //
+          // Exceção PLATAFORMA ([W] 2026-09-08): o design fecha ESTE grupo por
+          // default e só ele — `sidebar.jsx` do Cowork abre o accordion com
+          // `return entry.group !== "PLATAFORMA"`. Continua sendo preferência do
+          // usuário depois do 1º clique (o localStorage vence o default).
+          defaultOpen={g.key !== 'plataforma'}
         >
           {(groupedItems[g.key] ?? []).map((item, idx) => (
             <SidebarMenuItem key={`${item.label}-${idx}`} item={item} atalhosUsaveis={atalhosUsaveis} />
@@ -943,9 +998,14 @@ function SidebarMenuRail({
   landing: LandingEntry[];
   atalhosUsaveis?: Set<string>;
 }) {
-  // Wagner 2026-05-22: Tarefas REMOVIDO, sequência IA → Equipe → Atendimento
+  // Wagner 2026-05-22: Tarefas REMOVIDO, sequência IA → Visão geral → Atendimento
+  //
+  // [W] 2026-09-08: o 3º atalho saiu daqui junto com o do modo expandido (a
+  // Forja virou item do grupo PLATAFORMA). Ele apontava `/team-mcp/team` com o
+  // rótulo "Equipe" — divergente do expandido, que desde a fusão de 2026-06-16
+  // apontava `/forja` com o rótulo "Forja": o rail nunca acompanhou aquela
+  // mudança. Removendo os dois, os modos voltam a ser o mesmo menu.
   const showIa = shortcuts?.ia ?? true;
-  const showEquipe = true;
   const showAtendimento = shortcuts?.atendimento ?? true;
   const [flyout, setFlyout] = useState<string | null>(null);
   const [flyoutPos, setFlyoutPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
@@ -1007,17 +1067,6 @@ function SidebarMenuRail({
           </a>
         );
       })}
-      {showEquipe && (
-        <a
-          href="/team-mcp/team"
-          className="sb-rail-btn"
-          data-tip="Equipe"
-          aria-label="Equipe"
-          onClick={() => setFlyout(null)}
-        >
-          <Users size={18} className="ic" />
-        </a>
-      )}
       {showAtendimento && (
         <a
           href="/atendimento"
@@ -1428,7 +1477,6 @@ function ThemeSubpanel() {
 
 export function SidebarFooter({
   nome,
-  nomeCurto,
   email,
   cargo,
   iniciais,
@@ -1438,7 +1486,6 @@ export function SidebarFooter({
   onVibe,
 }: {
   nome: string;
-  nomeCurto: string;
   email: string;
   cargo: string;
   iniciais: string;
@@ -1456,7 +1503,7 @@ export function SidebarFooter({
   // 2026-05-07: Vibes (Modo de trabalho) também migrou pro user dropdown
   // (recomendação P2 #7 auditoria) — antes só ficava no Tweaks FAB.
   return (
-    <div className="sb-user-wrap">
+    <div className="sb-user-wrap" data-contract="sb-rodape">
       {/* User dropdown — agora inclui Superadmin entre Meu perfil e Disponível */}
       <div className="sb-user" style={{ position: 'relative' }}>
         <SidebarUserMenu
@@ -1474,15 +1521,50 @@ export function SidebarFooter({
           className="sb-user-btn"
           type="button"
           onClick={() => setOpenUser((v) => !v)}
+          aria-haspopup="menu"
+          aria-expanded={openUser}
         >
-          <span className="avatar">{iniciais}</span>
+          <span className="avatar" aria-hidden="true">
+            {iniciais}
+          </span>
           <div className="who">
-            <b>{nomeCurto}</b>
+            {/* nome por extenso — o protótipo mostra "Wagner Rocha" (2026-09-11).
+                `nomeCurto` existia pro rodapé de 26px, que empilhava nome e cargo
+                na mesma linha; com o `.who` em coluna o nome inteiro cabe. */}
+            <b>{nome}</b>
             <small>{cargo}</small>
           </div>
           <ChevronUp size={12} />
         </button>
       </div>
     </div>
+  );
+}
+/**
+ * Alça flutuante de reabrir — só existe no modo `hidden`, quando a `<aside>`
+ * inteira sai do DOM. Portada de `prototipo-ui/cowork/sidebar.jsx`
+ * (`SidebarReopenHandle`), não do bundle do Financeiro.
+ *
+ * É um `<button>` com nome acessível, e não um `<div>`: sem ela o único caminho
+ * de volta seria o atalho ⌘⇧\ — e quem escondeu a sidebar pelo mouse não
+ * necessariamente sabe o atalho. Ela é `position: fixed`, logo NÃO é grid item:
+ * quem tira a coluna do grid é `.cockpit[data-sidebar="hidden"]` no `cockpit.css`.
+ *
+ * O `title` sai daqui como expressão JS (`{'...'}`), não como atributo literal:
+ * em JSX um atributo `title="(⌘⇧\\)"` é texto HTML e chega ao DOM com as DUAS
+ * barras — foi o que medi no próprio protótipo em 2026-09-11 (`title` renderizado
+ * como `⌘⇧\\`). Aqui a barra é uma só, como no `.sb-collapse-handle` do shell.
+ */
+export function SidebarReopenHandle({ onOpen }: { onOpen: () => void }) {
+  return (
+    <button
+      type="button"
+      className="sb-reopen-handle"
+      onClick={onOpen}
+      title={'Mostrar sidebar (⌘⇧\\)'}
+      aria-label="Mostrar sidebar"
+    >
+      <ChevronRight size={12} strokeWidth={2.2} />
+    </button>
   );
 }

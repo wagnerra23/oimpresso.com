@@ -281,18 +281,22 @@ window.InboxCheatSheet = InboxCheatSheet;
 // MOBILE TABS — abaixo de 1100px
 // ─────────────────────────────────────────────────────────────────
 function InboxMobileTabs({ view, setView, counts, hasSelected }) {
+  // Barra EXCLUSIVA de mobile. Isso vinha de `.om-mobile-tabs{display:none}` +
+  // `@media (max-width:1100px){display:flex !important}` — e o inline do DS anulou a
+  // regra base, fazendo a barra aparecer no desktop. Regra de ocultar não sobrevive a
+  // um componente que escreve display inline: virou estado explícito.
+  const [mobile, setMobile] = React.useState(() => window.matchMedia("(max-width: 1100px)").matches);
+  React.useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1100px)");
+    const on = (e) => setMobile(e.matches);
+    mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, []);
   return (
-    <div className="om-mobile-tabs" role="tablist" aria-label="Navegação mobile">
-      <button className={"om-mobile-tab" + (view === "list" ? " active" : "")}
-              onClick={() => setView("list")} role="tab" aria-selected={view === "list"}>
-        Conversas <span className="om-mtab-n mono">{counts.list}</span>
-      </button>
-      <button className={"om-mobile-tab" + (view === "thread" ? " active" : "")}
-              onClick={() => setView("thread")} role="tab" aria-selected={view === "thread"}
-              disabled={!hasSelected}>
-        Thread
-      </button>
-    </div>
+    <window.CliTabs className="om-mobile-tabs" hidden={!mobile} itensFull ariaLabel="Navegação mobile" pad={0}
+      active={view} onChange={setView}
+      tabs={[{ key: "list", label: "Conversas", n: counts.list },
+        { key: "thread", label: "Thread", disabled: !hasSelected }]} />
   );
 }
 window.InboxMobileTabs = InboxMobileTabs;

@@ -62,7 +62,7 @@ o framework impõe. Ele roda na lane `financeiro-pest` (MySQL real).
 2. **F1.5** — Gate visual + protótipo `prototipo-ui/<modulo>/<tela>/` ([ADR 0107](../../memory/decisions/0107-emendation-0104-visual-comparison-gate-f3.md))
 3. **F2** — BACKEND BASELINE com Pest 5+ fixtures do `store()` ANTES de mexer
 4. **F3** — FRONTEND (este passo) — ler charter `<Tela>.charter.md` ao lado obrigatório
-5. **F4** — QA com smoke biz=1 ([ADR 0101](../../memory/decisions/0101-tests-business-id-1-nunca-cliente.md))
+5. **F4** — QA com smoke de tela em biz=1 — herança do MWART ([ADR 0104](../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)), **não** endosso da [ADR 0358](../../memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md): ela move o **teste automatizado** pro tenant 98 e não reexaminou o smoke de tela do F4. Mudar isso é decisão [W], não conserto silencioso ([proibicoes.md §MWART](../../memory/proibicoes.md)). biz=4 segue proibido sem exceção
 
 **RUNBOOK obrigatório:** Edit em `.tsx` SEM `memory/requisitos/<Modulo>/RUNBOOK-<tela-kebab>.md` existir é BLOQUEADO pelo hook [`block-mwart-violation.mjs`](../hooks/block-mwart-violation.mjs) (enforcement runtime — Node cross-plataforma; o `.ps1` que esta linha citava não existe mais). A cobertura de tela no CI é do `casos-gate` (required, ADR 0264) — o antigo `mwart-gate.yml` foi deletado na ADR 0271 onda 2 (era soft/teatro).
 

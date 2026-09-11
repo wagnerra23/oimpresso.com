@@ -463,9 +463,8 @@ function DetalheDrawer({ p, onClose, onIr }) {
   return (
     <Casca>
       <div className="pb-drawer-in">
-        <nav className="cli-moduletopnav" aria-label="Detalhe do produto" style={{ padding: "0 12px" }}>
-          {abas.map((a) => <button key={a.id} className={"cli-moduletopnav-tab " + (aba === a.id ? "active" : "")} onClick={() => setAba(a.id)}>{a.l}{a.n != null && <span className="cli-moduletopnav-n">{a.n}</span>}</button>)}
-        </nav>
+        <window.CliTabs ariaLabel="Detalhe do produto" pad={12} active={aba} onChange={setAba}
+          tabs={abas.map((a) => ({ key: a.id, label: a.l, n: a.n }))} />
         <div className="os-drawer-body">
           {aba === "dados" &&
             <div className="os-drawer-section">
@@ -864,10 +863,8 @@ function TelaLista({ aba, setAba, onIr, avisar }) {
       <Filtros f={f} setF={setF} />
 
       <Widget flush titulo={<><Ic name="product" size={13} /> {aba === "lista" ? "Todos os produtos" : "Relatório de estoque"}</>} nota={ordenados.length + " de " + PRODUCTS.length}>
-        <nav className="cli-moduletopnav" data-contract="produto-abas" aria-label="Abas do índice" style={{ padding: "0 12px" }}>
-          <button className={"cli-moduletopnav-tab " + (aba === "lista" ? "active" : "")} onClick={() => setAba("lista")}>Todos os produtos<span className="cli-moduletopnav-n">{PRODUCTS.length}</span></button>
-          <button className={"cli-moduletopnav-tab " + (aba === "estoque" ? "active" : "")} onClick={() => setAba("estoque")}>Relatório de estoque</button>
-        </nav>
+        <window.CliTabs dataContract="produto-abas" ariaLabel="Abas do índice" pad={12} active={aba} onChange={setAba}
+          tabs={[{ key: "lista", label: "Todos os produtos", n: PRODUCTS.length }, { key: "estoque", label: "Relatório de estoque" }]} />
 
         <div className="pb-toolbar" data-contract="produto-toolbar">
           <div className="pb-busca">

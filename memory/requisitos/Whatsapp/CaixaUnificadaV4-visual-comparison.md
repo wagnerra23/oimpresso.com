@@ -294,3 +294,32 @@ Todo em PT-BR. ✅
 | stripe de fila na lista | `border-left:3px` cor-da-fila | conferir | ⏳ |
 
 **Batch 1 (este PR — só visual, dark-safe):** bolha 78→68% · timestamp block-esquerda · fundo da thread verde-tint dark-aware. **Batch 2:** sistema `.os-btn` uniforme + SLA pill + tom-por-canal + stripe fila + "alternada". **Batch 3 (backend):** OS/Saldo/Histórico (Repair/Financeiro/Transactions). **Bloqueado:** sidebar escura (ADR).
+
+---
+
+## Medição de runtime — 2026-09-08 (1ª desta tela)
+
+> Feita com o dono do tema (`prototipo-ui/design-diff-lote.mjs`), **mesma sonda nos dois lados**,
+> tema pareado `dark`, app local em `APP_ENV=testing` (o `/_visreg-login` só existe em
+> `local`/`testing` — allowlist fail-closed). Artefatos: `prototipo-ui/alvos/medidas/Atendimento--CaixaUnificada--Index/`.
+
+| dim | prod | design | veredito |
+|---|---|---|---|
+| D4 título `font-size` | **14px** | **22px** | **DIVERGE (real)** |
+| D2 layout · D6 cor · D8 alinhamento · D9 texto | — | — | ok |
+| D4 linha da tabela | não medido | não medido | SEM-DADO (falta `tableRow` no mapa de papéis) |
+| SHELL (4 papéis) | `0 el` | 1–32 el | SEM-DADO — seletor não casou na prod; **não é divergência**, é mapa de papéis a corrigir |
+
+**A divergência foi VERIFICADA no runtime antes de virar trabalho** (§ protocolo, item "verificar
+cada divergência"): o `<h1>` é `Atendimento`, `font-semibold text-[14px]`, com
+`closest('[class*=cookie|lgpd|consent]') === null` — ou seja, **não** é o banner LGPD que a
+assinatura mostra por cima. É o título da tela mesmo.
+
+⚠️ Achado adjacente: `text-[14px]` é **valor arbitrário do Tailwind**, não token do DS.
+
+**Não aplicado.** Aplicar é decisão [W] — e por [UI-0029](../_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)
+o protótipo é soberano na FORMA, o que aponta para 22px; mas mexer no título de uma tela viva
+tem raio próprio.
+
+**O que a rodada NÃO prova:** o lado design vem do espelho, e a rodada de frescor é PARCIAL
+(271/273 · 2 sem veredito). O dono traduz isso em exit 2 nas telas afetadas.

@@ -1,12 +1,13 @@
 <!doctype html>
-<!-- @dsCard group="Components" name="PageHeader" subtitle="Clientes-style header + TabBar (slot 1 + 2)" viewport="820x220" -->
+<!-- @dsCard group="Components" name="PageHeader" subtitle="Header + TabBar (slot 1 + 2) — glyph, contexto, frescor" viewport="820x280" -->
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
 <title>PageHeader</title>
 <link rel="stylesheet" href="../../colors_and_type.css">
+<link rel="stylesheet" href="../../cockpit_domains.css">
 <style>
-  body { padding: 18px; }
+  body { margin: 0; }
   .btn { display:inline-flex; align-items:center; gap:7px; height:36px; padding:0 15px; border-radius:8px; font-size:13.5px; font-weight:500; border:1px solid transparent; cursor:pointer; }
   .btn.ghost { background: var(--surface); color: var(--text-dim); border-color: var(--border); }
   .btn.primary { background: var(--accent); color: #fff; }
@@ -17,7 +18,7 @@
 <script src="../../_ds_bundle.js"></script>
 </head>
 <body>
-<div id="root"></div>
+<div class="cockpit" style="padding:18px;background:var(--bg)"><div id="root"></div></div>
 <script type="text/javascript">
   const { PageHeader, TabBar } = window.OfficeImpressoPontoWR2DesignSystem_019dd0;
   const h = React.createElement;
@@ -27,7 +28,10 @@
     const [active, setActive] = React.useState('clientes');
     return h(React.Fragment, null,
       h(PageHeader, {
-        title: 'Clientes',
+        title: 'Acme Comércio Ltda',
+        leading: h('svg', { width: 16, height: 16, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }, h('path', { d: 'M3 21h18M5 21V7l7-4 7 4v14M9 21v-4h6v4' })),        context: 'CRM · Clientes',
+        freshness: 'recente',
+        freshnessRel: 'há 1sem',
         stats: [{ value: '15', label: 'cadastrados' }, { value: '5', label: 'VIPs' }, { value: '3', label: 'com saldo', tone: 'danger' }],
         actions: h(React.Fragment, null,
           h('button', { className: 'btn ghost' }, ic('M12 19V5M5 12l7-7 7 7'), 'Importar'),

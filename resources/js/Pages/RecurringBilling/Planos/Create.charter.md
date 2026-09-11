@@ -9,6 +9,8 @@ related_adrs: [93, 94, 101, 104, 107, 110]
 tier: A
 charter_version: 1
 sidebar_group: fin (FINANCEIRO)
+related_prototype: n/a (herda PT-02 Form/Drawer; segue o Padrao de Tela)  # 2026-09-09 [C]: declaração de PT herdado. A aba "planos" do `cobranca-recorrente-page.jsx:369` é um `<Placeholder>` de 3 elementos e o arquivo é porte REVERSO (`:2` "Reescreve a RecurringBilling do git") — mesmo veredito dos 3 charters irmãos anotados no #7099; e Create/Edit nem são abas daquele hub, então há menos ainda. Promover ancoraria a tela nela mesma (§5 2026-06-05). ⚠️ PT-02 sem template renderizado — decisão [W] em §5.7. medido 2026-09-09 pelas 3 pernas (repo inteiro com --hidden, projeto Cowork por ID via DesignSync.list_files, espelho). Ver memory/requisitos/_DesignSystem/INVENTARIO-ANCORAS-2026-09-09.md §5.3 + §5.7.
+related_us: [US-RB-001]
 ---
 
 # Page Charter — /recurring-billing/planos/novo (Criar Plano · v1)
