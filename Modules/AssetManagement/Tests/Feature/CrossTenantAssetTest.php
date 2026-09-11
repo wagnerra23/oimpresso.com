@@ -151,7 +151,7 @@ it('cross-tenant: Asset::forDropdown($biz) sanity — só retorna assets do busi
     $adversario = $this->seededSupportClientTenant();
 
     // Asset do adversário, alocável (não deve aparecer no dropdown do dono)
-    Asset::create([
+    $assetAdversario = Asset::create([
         'business_id'    => $adversario->id,
         'name'           => 'Dropdown adversario (não deve vazar)',
         'asset_code'     => 'AST-CRS-X99D',
@@ -176,12 +176,30 @@ it('cross-tenant: Asset::forDropdown($biz) sanity — só retorna assets do busi
     $dropdown = Asset::forDropdown($dono->id, false, false);
 
     expect($dropdown['assets'])->toBeArray();
-    // Não pode listar o asset do adversário
-    $nomes = collect($dropdown['assets'])->values()->all();
-    foreach ($nomes as $label) {
-        expect($label)->not->toContain('adversario');
-    }
-    // Deve listar o asset legítimo
+
+    // Uma expectativa sobre o CONJUNTO, nunca uma por linha: `forDropdown` devolve TODOS
+    // os bens alocáveis do business, então iterar aqui fazia o nº de assertions do caso
+    // variar com o conteúdo do banco, e não com o contrato sob teste. A régua honesta
+    // desta lane é `assertions`, não "0 failed" (cabeçalho de assetmanagement-pest.yml,
+    // LC-13) — com um caso de contagem flutuante, uma queda REAL de assertions em outro
+    // arquivo fica indistinguível de ruído. Medido: 13 assertions neste arquivo no run
+    // 34597014205 contra 11 no 34598373791, com os mesmos 105 testes passando e os outros
+    // 15 arquivos idênticos — a diferença inteira era este laço.
+    $vazados = collect($dropdown['assets'])
+        ->filter(fn ($label) => str_contains((string) $label, 'adversario'))
+        ->values()
+        ->all();
+
+    expect($vazados)->toBeEmpty(
+        'forDropdown vazou rótulo de bem de outro tenant: '.implode(' | ', $vazados)
+    );
+
+    // Ausência do adversário pelo ID — o dual exato do controle positivo abaixo, e o que
+    // um furo de escopo de fato produz: `assets.id` é PK GLOBAL, então o vazamento chega
+    // como chave, mesmo que o rótulo um dia deixe de conter a palavra do fixture.
+    expect($dropdown['assets'])->not->toHaveKey($assetAdversario->id);
+
+    // Controle positivo: sem ele o caso passaria por VACUIDADE se o dropdown viesse vazio.
     expect($dropdown['assets'])->toHaveKey($assetDono->id);
 })->afterEach(function () {
     foreach (['AST-CRS-X99D', 'AST-CRS-X1D'] as $code) {
