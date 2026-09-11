@@ -74,7 +74,7 @@ export function anchorRelPath(val) {
   if (/^n\/a\b/i.test(val) || /MIS-ANCHOR|removido/i.test(val)) return null;
   const m = val.match(/([\w.\-\/]+\.(?:jsx|html))/i); // caminho (com / de subdir) ou nome solto
   if (!m) return null;
-  return m[1].replace(/^.*?cowork\//i, ''); // corta o prefixo até cowork/ — resto é o rel path
+  return m[1].replace(/^.*?cowork\/(?:Wagner|Felipe)\//i, '');
 }
 
 /** Conta <link rel="stylesheet"> num HTML (assinatura de shell/índice do app). */
@@ -155,7 +155,8 @@ function main() {
     const rel = pageNamespacePath(relBruto).replace(/\.charter\.md$/, '');
     const modulo = rel.split('/')[0].toLowerCase();
     const frag = anchorFragment(rawAnchor); // seção declarada no parêntese, ou null
-    const abs = join(COWORK, file); // path completo dentro do espelho (subdir preservado)
+    const ownerQualified = /^(?:Wagner|Felipe)\//i.test(file);
+    const abs = join(COWORK, ownerQualified ? file : join('Wagner', file));
     const exists = existsSync(abs);
     let isHtml = /\.html$/i.test(file), stylesheetLinks = 0, moduleHits = 0, sectionResolves = false;
     if (exists) {

@@ -1,5 +1,10 @@
 # Sessão — protótipo mínimo por dono
 
+## TL;DR
+
+`prototipo-ui/` foi reduzido a `cowork/` e `design-system/`; as fontes e os handoffs do
+Cowork foram separados entre Wagner e Felipe, sem cópias físicas paralelas.
+
 ## Pedido
 
 [W] autorizou toda a limpeza e pediu que `prototipo-ui/` tivesse apenas Cowork e Design System;

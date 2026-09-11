@@ -26,12 +26,12 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 713,
-    "edges": 992,
+    "nodes": 714,
+    "edges": 995,
     "by_node_type": {
       "module": 39,
       "table": 102,
-      "adr": 113,
+      "adr": 114,
       "component": 385,
       "api": 74
     },
@@ -46,9 +46,9 @@
       "dependsOn": 116,
       "delegatesTo": 108,
       "migratesTo": 1,
-      "supersedes": 16,
+      "supersedes": 17,
       "supersedesPartially": 51,
-      "supersededBy": 19
+      "supersededBy": 21
     },
     "dangling": 0
   },
@@ -843,6 +843,13 @@
       "type": "adr",
       "num": "0396",
       "slug": "0396-prototipo-fonte-unica-build-sem-canon-sombra",
+      "exists": true
+    },
+    {
+      "id": "adr:0397",
+      "type": "adr",
+      "num": "0397",
+      "slug": "0397-prototipo-minimo-por-dono-e-ds-direto",
       "exists": true
     },
     {
@@ -6280,6 +6287,12 @@
       "source": "supersedes_partially"
     },
     {
+      "from": "adr:0387",
+      "to": "adr:0396",
+      "type": "supersededBy",
+      "source": "superseded_by"
+    },
+    {
       "from": "adr:0390",
       "to": "adr:0384",
       "type": "supersedesPartially",
@@ -6293,7 +6306,19 @@
     },
     {
       "from": "adr:0396",
+      "to": "adr:0397",
+      "type": "supersededBy",
+      "source": "superseded_by"
+    },
+    {
+      "from": "adr:0396",
       "to": "adr:0387",
+      "type": "supersedes",
+      "source": "supersedes"
+    },
+    {
+      "from": "adr:0397",
+      "to": "adr:0396",
       "type": "supersedes",
       "source": "supersedes"
     },

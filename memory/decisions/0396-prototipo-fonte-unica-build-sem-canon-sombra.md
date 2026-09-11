@@ -13,7 +13,7 @@ module: governance
 tags: [design, cowork, prototipo, ssot, duplicatas, ancoras, transporte]
 supersedes:
   - 0387-github-md-diario-cowork-aceito-e-tratado
-superseded_by: ['0397-prototipo-minimo-por-dono-e-ds-direto']
+superseded_by:
   - 0397-prototipo-minimo-por-dono-e-ds-direto
 related:
   - 0374-emenda-0315-espelho-cowork-e-rota-prevista

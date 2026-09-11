@@ -36,7 +36,7 @@
 import { readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
-export const REGISTRY_URL = new URL('./component-registry.json', import.meta.url);
+export const REGISTRY_URL = new URL('../../governance/design/component-registry.json', import.meta.url);
 
 /** Lê o registry (default: o canônico ao lado deste arquivo). */
 export function lerRegistry(url = REGISTRY_URL) {

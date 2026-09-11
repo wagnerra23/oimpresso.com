@@ -172,7 +172,7 @@ check('  NÃO cobra n/a que MENCIONA arquivo existente (isola a perna ehDeclarac
 check('  NÃO cobra âncora declarada que não existe no disco', !r.telas.some((t) => /\/Morta\//.test(t.tsx)));
 check('  NÃO cobra diff não-visual (o FP de 20,5% medido no corpus)', !r.telas.some((t) => /SoLogica/.test(t.tsx)));
 check('  NÃO cobra componente (sem charter irmão)', !r.telas.some((t) => /Components/.test(t.tsx)));
-check('telasComAncora usa a lib do repo, não do repoRoot da fixture', existsSync(join(REPO_REAL, 'prototipo-ui', 'ancora.mjs')));
+check('telasComAncora usa a lib do repo, não do repoRoot da fixture', existsSync(join(REPO_REAL, 'scripts', 'design', 'ancora.mjs')));
 
 // ── E2E: stdin JSON → exit code, flag hermética via OIMPRESSO_UI_SMOKE_FLAG ──────
 const dir = mkdtempSync(join(tmpdir(), 'ui-smoke-fixture-'));

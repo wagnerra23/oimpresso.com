@@ -975,6 +975,13 @@ check('mesmo número → mesmo veredito (independe de --check)',
     check('unverifiedSince: sem hash no ledger cai no conservador (acusa por data, nao inventa verde)',
       rVelhoHash.mexidoDepois.length === 1 && /sem hash/.test(rVelhoHash.mexidoDepois[0].motivo || ''), JSON.stringify(rVelhoHash.mexidoDepois));
 
+    const rInvalidado = unverifiedSince([
+      { date: '2026-08-17T12:00:00.000Z', verified: ['a.jsx'], verifiedHash: { 'a.jsx': 'HASH_A' } },
+      { date: '2026-09-11T18:00:00.000Z', invalidated: ['a.jsx'], kind: 'namespace-invalidation' },
+    ], [{ cowork: 'a.jsx', lastCommitIso: '2026-09-11T18:10:00.000Z', hashAtual: 'OUTRO' }]);
+    check('invalidação de namespace não fabrica prova: volta a NUNCA-VERIFICADO',
+      rInvalidado.nuncaVerificado.includes('a.jsx') && rInvalidado.mexidoDepois.length === 0, JSON.stringify(rInvalidado));
+
     // ── PROVA POR BUNDLE (v5 · 2026-08-24) ──────────────────────────────────────
     // O gate nasceu quando `--export-from` era a unica rota de escrita no espelho. O bundle v2
     // (`aplicar-payload --require-complete-shell`) e a ROTA PRINCIPAL da fase -1 e escreve com

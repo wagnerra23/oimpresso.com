@@ -18,7 +18,7 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import globals from 'globals';
-// Alvo canônico das mensagens ds/* — DERIVADO de prototipo-ui/component-registry.json.
+// Alvo canônico das mensagens ds/* — DERIVADO de governance/design/component-registry.json.
 // A âncora fica no COMPONENTE (estável, reusável entre telas); renomeou o componente ou
 // mudou o import_path no registry, a orientação da mensagem muda junto. Cobertura medida
 // e declarada em ds-lint-alvos.mjs (`node scripts/design/ds-lint-alvos.mjs`).
@@ -38,6 +38,8 @@ export default [
       'public/build-inertia/**',
       // Generated Wayfinder types (futuro ADR 0210)
       'resources/js/types/wayfinder/**',
+      'resources/js/actions/**',
+      'resources/js/routes/**',
       // Bundle entry compiled
       'resources/js/types/**/*.d.ts',
       // Vendor JS legacy UPOS

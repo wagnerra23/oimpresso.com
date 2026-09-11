@@ -72,6 +72,11 @@ encontra bytes idênticos em dois caminhos.
 os novos endereços completos. Heurística de basename não pode trocar dono, subdiretório ou
 âncora. Quando charter e alias discordam, o charter é a âncora e o alias concorrente é removido.
 
+**D7 — prova antiga não atravessa mudança de identidade.** A migração de namespace invalida,
+sem substituir, a última prova dos arquivos cujo conteúdo precisou ser adaptado à nova topologia.
+Eles voltam ao estado explícito `NUNCA VERIFICADO` até uma nova comparação com o Cowork vivo;
+autorização de organização não é registrada como prova de fidelidade visual.
+
 ## Consequências
 
 - abrir ou importar um protótipo não recria DS paralelo nem muda sua procedência;

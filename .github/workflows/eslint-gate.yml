@@ -70,7 +70,7 @@ jobs:
               # Alvo das mensagens ds/* é derivado destes dois (chip G4) — sem eles no
               # filtro, mexer no registry cairia em skip-as-pass e o selftest não rodaria.
               - 'scripts/design/ds-lint-alvos.mjs'
-              - 'prototipo-ui/component-registry.json'
+              - 'governance/design/component-registry.json'
               - 'package.json'
               - 'package-lock.json'
               - '.github/workflows/eslint-gate.yml'

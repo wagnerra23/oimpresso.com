@@ -930,6 +930,12 @@ export function ultimaVerificacaoDe(entries, cowork) {
   for (const r of runs) if (r.verified.includes(cowork) && (!melhor || r.date > melhor)) {
     melhor = r.date; hash = (r.verifiedHash || {})[cowork] || null;
   }
+  // Mudança de namespace invalida a prova anterior sem fabricar uma nova. O arquivo volta
+  // honestamente a NUNCA VERIFICADO até o próximo compare/bundle do novo endereço.
+  const invalidacoes = (Array.isArray(entries) ? entries : [])
+    .filter((e) => Array.isArray(e.invalidated) && e.invalidated.includes(cowork));
+  const ultimaInvalidacao = invalidacoes.reduce((d, e) => (!d || e.date > d ? e.date : d), null);
+  if (ultimaInvalidacao && (!melhor || ultimaInvalidacao > melhor)) return { data: null, hash: null };
   return { data: melhor, hash };
 }
 

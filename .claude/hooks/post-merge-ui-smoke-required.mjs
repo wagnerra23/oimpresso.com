@@ -313,7 +313,7 @@ Refs: memory/requisitos/_DesignSystem/PROTOCOLO-COMPARACAO-RUNTIME.md §Regra 0
 export async function telasComAncora(files, diffTexto, repoRoot = REPO) {
   let ancoraLib;
   try {
-    ancoraLib = await import(pathToFileURL(join(REPO, 'prototipo-ui', 'ancora.mjs')).href);
+    ancoraLib = await import(pathToFileURL(join(REPO, 'scripts', 'design', 'ancora.mjs')).href);
   } catch {
     return { telas: [], mediu: false, motivo: 'import de scripts/design/ancora.mjs falhou' };
   }

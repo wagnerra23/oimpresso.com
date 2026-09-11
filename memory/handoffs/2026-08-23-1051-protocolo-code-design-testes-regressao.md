@@ -26,7 +26,7 @@ forma que voltar a aceitar somente SYNC_LOG derruba a catraca consolidada.
 ## O que `_ds` realmente é
 
 O shell exportado pede arquivos na URL relativa `_ds/<project-id>/...`, mas a fonte versionada
-vive em `prototipo-ui/design-system/`. `_ds` é a materialização descartável dessa fonte no
+vive em `scripts/design-sync/mirror-snapshot/`. `_ds` é a materialização descartável dessa fonte no
 endereço que o navegador estático espera. Ele não é fonte de verdade e não deve ser versionado.
 
 O comando anterior copiava arquivo a arquivo e só depois descobria ausência ou JavaScript inválido.
