@@ -791,10 +791,53 @@ jobs:
       # (`php`/`vendor` não existem na worktree). Promoção a enforcing = REMOVER o
       # `continue-on-error`, após 2 verdes que EXECUTARAM — `skipped` lido como verde seria
       # o presence-gate de sempre, e é pra isso que serve o `always()`.
-      - name: E2E de render · Patrimonio/Bens (ADVISORY)
+      #
+      # PROMOVIDO A ENFORCING em 2026-09-11 — flip [W] explícito, que é a única autoridade
+      # que remove um `continue-on-error` (ADR 0336). O pedido veio com a condição escrita
+      # ("havendo 2 verdes que executaram") e ela está cumprida abaixo.
+      #
+      # OS VERDES QUE EXECUTARAM — a ADR 0336 pede 2; houve 3 PRs distintos, todos com o
+      # MESMO contador `PASS Tests\Browser\Patrimonio\BensRenderTest` · 3 passed (6 assertions),
+      # lidos NO LOG do job (não no `conclusion`, que `continue-on-error` falsifica):
+      #   1. run 34468474659 — 2026-09-10, `claude/bens-e2e-e-remove-baseline` (o PR #7179 que criou o step)
+      #   2. run 34521569364 — 2026-09-10, `claude/sidebar-tipografia-prototipo`
+      #   3. run 34594395036 — 2026-09-11, `fix/ds-remove-seletor-matiz`
+      # (houve um 4º, run 34520755204, no MESMO branch do nº 2 e com o step verde no log; não
+      # entra na contagem porque o run foi CANCELADO por concurrency — recibo frágil, e o PR
+      # já está representado.) Os 3 sortearam ordens diferentes (`Random Order Seed` distinto),
+      # o que também mostra que os casos não dependem de ordem. O contador de ASSERTIONS é o
+      # que prova execução: pulado sairia `0 assertions` SEM falhar (LC-13).
+      # Denominador medido: dos 49 runs do workflow desde 2026-09-10, 34 vieram `skipped`
+      # (o `ui-impact.mjs` pulou o pesado porque o PR não tocou UI) e 11 nem tinham o step
+      # (base anterior ao #7179). `skipped` NÃO foi contado como verde.
+      #
+      # ⚠️ O QUE MUDA AO FICAR ENFORCING, dito na frente: este step passa a REPROVAR o job
+      # inteiro — o job não tem `continue-on-error` próprio (conferido). O que ele NÃO faz é
+      # bloquear merge: o context `visual-regression` foi DEMOVIDO de required em 2026-08-26
+      # por decisão [W], e segue fora da união classic ∪ rulesets (medido aqui em 2026-09-11:
+      # 0 de 45+1). Quem é required vive em `governance/required-checks-baseline.json` — este
+      # comentário aponta pro dono em vez de restatear (LC-10).
+      # O vermelho aqui depende de 4 coisas fora do próprio teste: o auth-bridge
+      # `/_visreg-login/{id}` (a MESMA causa que manteve o step do Conciliacao vermelho 6/6
+      # entre #6476 e #6632 — telas renderizando com business 0; investigue o bridge ANTES de
+      # culpar o teste), a rota `/asset/assets`, as 4 âncoras `data-contract` que
+      # `prototipo-ui/contrato/patrimonio-bens.contract.json` declara (cabecalho, subnav,
+      # filtros, tabela) e a copy do contrato (`Bens`, `Categoria`, `Local`, `Tipo de compra`).
+      # Nenhum caso depende de DADO — foi o desenho do arquivo, e é o que permite promover.
+      #
+      # RESIDUAL DECLARADO, não consertado neste flip: `abrirBens()` faz `markTestSkipped`
+      # quando o `VisregTenantSeeder` não deixou business/user. Se o seeder sumir, este step
+      # sai `3 skipped (0 assertions)` e o job fica VERDE — o formato LC-13 que o próprio
+      # arquivo de teste cita (run 33675746851, `4 skipped` marcado SUCCESS). Enforcing fecha
+      # o vazamento do `conclusion`, não o do skip. Trocar skip→falha é mudar o contrato do
+      # teste (outro intent, outro PR) e é decisão [W].
+      #
+      # Voltar a advisory é recolocar o `continue-on-error`, e é decisão [W] como esta foi.
+      # Este step nunca entrou na lista do "Veredito dos advisory de Browser" mais abaixo
+      # (nasceu depois dela) — logo não há nada a remover lá; a lista segue com os 7 advisory.
+      - name: E2E de render · Patrimonio/Bens (ENFORCING)
         if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         id: e2e-patrimonio-bens
-        continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Patrimonio/BensRenderTest.php
 
       # ── E2E DE RENDER POR TELA — Financeiro/Caixa (NASCE ADVISORY) ───────────────────
