@@ -52,7 +52,7 @@
 //
 // CONTRAFACTUAL no caso que motivou (medido 2026-08-28, `git show 01bee7581e` × telasComAncora):
 // o #6385 tocou 12 arquivos, entre eles `resources/js/Pages/Home/Index.tsx`, cujo charter declara
-// `prototipo-ui/cowork/dash-legacy-page.jsx` (existe) e cujo diff mexeu em marcação → o predicado
+// `prototipo-ui/cowork/Wagner/dash-legacy-page.jsx` (existe) e cujo diff mexeu em marcação → o predicado
 // TERIA bloqueado o "pronto" até o `--compare` rodar. Controle negativo no mesmo dia: um PR de
 // governança (dbb4f740b1) não marca flag nem cobra nada. A prova hermética das duas pontas está
 // nos bite-tests do selftest; esta linha é o recibo do caso real, com o comando que a reproduz.

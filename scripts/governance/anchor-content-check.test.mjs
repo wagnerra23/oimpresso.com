@@ -15,11 +15,15 @@ check('MIS-ANCHOR → null', anchorFile('removido related_prototype: x.jsx — M
 check('prosa sem arquivo → null', anchorFile('prototipo Cowork "payment-gateway-ui" F1+F1.5') === null);
 
 // 1b. anchorRelPath — identidade por PATH COMPLETO (adversário 2026-07-06: basename colide;
-//     arte 2026-07-06: hash normalizado keyed por path completo, nunca basename).
-check('relpath raiz', anchorRelPath('prototipo-ui/cowork/Wagner/financeiro-page.jsx') === 'financeiro-page.jsx');
-check('relpath SUBDIR preservado (não colapsa pro basename)', anchorRelPath('prototipo-ui/cowork/Wagner/prototipos/payment-gateway-ui/index.html') === 'prototipos/payment-gateway-ui/index.html');
+//     arte 2026-07-06: hash normalizado keyed por path completo, nunca basename). O DONO
+//     (`Wagner/`|`Felipe/`) fica no rel path: cortá-lo fazia toda âncora de Felipe virar
+//     MISSING no --check required (2026-09-11, #7224 — 2 podres falsos).
+check('relpath raiz preserva o dono', anchorRelPath('prototipo-ui/cowork/Wagner/financeiro-page.jsx') === 'Wagner/financeiro-page.jsx');
+check('relpath dono Felipe preservado', anchorRelPath('prototipo-ui/cowork/Felipe/venda-v3/sells-create.jsx') === 'Felipe/venda-v3/sells-create.jsx');
+check('relpath SUBDIR preservado (não colapsa pro basename)', anchorRelPath('prototipo-ui/cowork/Wagner/prototipos/payment-gateway-ui/index.html') === 'Wagner/prototipos/payment-gateway-ui/index.html');
 check('relpath nome solto (sem dir) → como veio', anchorRelPath('financeiro-telas-extras.jsx (TelaFluxo)') === 'financeiro-telas-extras.jsx');
 check('relpath dois homônimos ≠ mesma identidade', anchorRelPath('prototipo-ui/cowork/Wagner/a/x.jsx') !== anchorRelPath('prototipo-ui/cowork/Wagner/b/x.jsx'));
+check('relpath mesmo basename em donos diferentes ≠ mesma identidade', anchorRelPath('prototipo-ui/cowork/Wagner/x.jsx') !== anchorRelPath('prototipo-ui/cowork/Felipe/x.jsx'));
 check('relpath n/a → null', anchorRelPath('n/a (sem protótipo Cowork)') === null);
 check('relpath prosa → null', anchorRelPath('prototipo Cowork "payment-gateway-ui" F1+F1.5') === null);
 

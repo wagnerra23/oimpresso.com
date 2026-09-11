@@ -3,7 +3,7 @@
 /**
  * component-registry-check.mjs — sentinela de DRIFT do registro de componentes (Onda O2).
  *
- * Valida prototipo-ui/component-registry.json contra o código React REAL: o handoff
+ * Valida governance/design/component-registry.json contra o código React REAL: o handoff
  * Cowork → Inertia consome o registry pra traduzir bloco-de-protótipo → componente; se
  * o registry aponta pra componente/import que não existe mais, a tradução regride. Esta
  * sentinela pega esse drift ANTES do handoff.
@@ -54,7 +54,7 @@ function argVal(flag, def) {
 }
 const STRICT = args.includes('--strict');
 const ROOT = resolve(argVal('--root', process.cwd()));
-const REGISTRY = resolve(argVal('--registry', join(ROOT, 'prototipo-ui/component-registry.json')));
+const REGISTRY = resolve(argVal('--registry', join(ROOT, 'governance/design/component-registry.json')));
 
 // alias @/ → resources/js/ (vite.config / tsconfig do projeto)
 function resolveImport(importPath) {

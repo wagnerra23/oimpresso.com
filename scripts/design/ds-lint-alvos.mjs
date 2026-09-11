@@ -63,7 +63,7 @@ export function criarAlvos(registry) {
     const e = mapeados.get(nome);
     if (!e) {
       throw new Error(
-        `[ds-lint-alvos] "${nome}" não está mapeado em prototipo-ui/component-registry.json ` +
+        `[ds-lint-alvos] "${nome}" não está mapeado em governance/design/component-registry.json ` +
         `(exige status "mapped" + import_path). A mensagem ds/* que aponta pra ele NÃO pode ser ` +
         `derivada. Conserte o registry (ou a chamada) — não troque por texto fixo: texto fixo ` +
         `apodrece e passa a mandar importar de um path que não existe.`,

@@ -3,7 +3,9 @@ slug: sells-runbook-quotations
 title: "Sells — Runbook da tela Cotações /sells/quotations (migração MWART)"
 type: runbook
 module: Sells
-status: active
+status: ativo
+owner: W
+last_validated: "2026-05-15"
 date: 2026-05-15
 wave: W1-A (Bucket B1 Sells)
 mwart_pattern_reuse:

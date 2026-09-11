@@ -58,6 +58,17 @@ A [ADR 0397](../decisions/0397-prototipo-minimo-por-dono-e-ds-direto.md) registr
 supersede a ADR 0396 e impede reintrodução de máquinas, documentação ou DS paralelo dentro do
 protótipo.
 
+## Estado MCP no momento do fechamento
+
+Snapshot do `brief-fetch` (Brief #632, gerado ~2h antes) na sessão que assumiu o PR pra fechar o CI (Claude, 2026-09-11 ~16h BRT):
+
+- Cycle ativo: nenhum · HITL pendente [W]: 5 (top: `agent-corpus-counterfactual`, 1 handoff de design Cowork→Code)
+- Em voo: 11 tasks (Forja Triage/Inbox ×5 · Infra Zod schemas · Documentacao Blade→Inertia · Produto G-06 e V0 · Repair ×2) — nenhuma toca `prototipo-ui/`
+- Últimas 24h: 31 commits · 0 ADRs no brief (a 0397 entra por este PR) · 0 incidentes
+- Flags: 🟠 683 US sem atribuição · 🟡 SDD composta 55,7 · 🟢 visual regression / PRs em review
+
+A sessão do Codex que produziu o lote não usou tool MCP; a validação foi pelos scripts versionados (lista em "Provas").
+
 ## Continuidade
 
 PR de entrega: [#7224](https://github.com/wagnerra23/oimpresso.com/pull/7224). O fechamento desta

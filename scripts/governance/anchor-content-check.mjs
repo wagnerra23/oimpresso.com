@@ -65,16 +65,19 @@ export function anchorFile(val) {
   return m ? m[1] : null;
 }
 
-/** Caminho RELATIVO dentro do espelho (`prototipo-ui/cowork/Wagner/`), preservando subdiretórios.
- *  Identidade de arquivo é por PATH COMPLETO, nunca basename — dois arquivos homônimos em
- *  subdirs diferentes são arquivos DIFERENTES (adversário 2026-07-06: colisão por basename
- *  fazia "byte-provado" mentir; arte 2026-07-06: hash normalizado keyed por path completo). */
+/** Caminho RELATIVO dentro do espelho (`prototipo-ui/cowork/`), preservando o DONO
+ *  (`Wagner/…` | `Felipe/…`) e os subdiretórios. Identidade de arquivo é por PATH COMPLETO,
+ *  nunca basename — dois arquivos homônimos em subdirs diferentes são arquivos DIFERENTES
+ *  (adversário 2026-07-06: colisão por basename fazia "byte-provado" mentir; arte 2026-07-06:
+ *  hash normalizado keyed por path completo). O dono FICA no path de propósito: quem resolve
+ *  o absoluto (main() aqui, `buildManifest` no cowork-mirror-freshness) decide por ele — cortá-lo
+ *  aqui fazia toda âncora de `Felipe/` cair em `Wagner/` e sair MISSING (2026-09-11, #7224). */
 export function anchorRelPath(val) {
   if (!val) return null;
   if (/^n\/a\b/i.test(val) || /MIS-ANCHOR|removido/i.test(val)) return null;
   const m = val.match(/([\w.\-\/]+\.(?:jsx|html))/i); // caminho (com / de subdir) ou nome solto
   if (!m) return null;
-  return m[1].replace(/^.*?cowork\/(?:Wagner|Felipe)\//i, '');
+  return m[1].replace(/^.*?cowork\//i, ''); // corta o prefixo até cowork/ — resto (dono incluso) é o rel path
 }
 
 /** Conta <link rel="stylesheet"> num HTML (assinatura de shell/índice do app). */

@@ -5,8 +5,14 @@ irmaos: Index.charter.md (lei) · Index.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o comportamento é durável — quem-pode, o que a linha afirma e o que a ação preserva não mudam quando a tela ganhar coluna nova.
 owner: wagner
-last_run: "2026-08-20"
+last_run: "2026-09-11"
 ---
+
+> ℹ️ **`last_run` 2026-08-20 → 2026-09-11 (G-6), e a tela NÃO mudou neste PR.**
+> `Index.tsx` não foi tocado pelo [#7224](https://github.com/wagnerra23/oimpresso.com/pull/7224) — o último commit dele é o squash do #6008 (2026-08-26), que
+> já revalidou estes casos no MESMO PR (last_run 08-19 → 08-20; o squash reescreveu a data do `.tsx`, caso catalogado no próprio `casos-coverage-guard.mjs`).
+> Isso ficava coberto pela isenção *mesmo-sha* do G-6; o #7224 tocou este `casos.md` (path do protótipo → `prototipo-ui/cowork/Wagner/…`, ADR 0397)
+> e a isenção caiu. **Nenhum UC desta tela foi reexecutado agora**; o bump é *trio reconciliado com a tela nesta data*, não afirmação de re-run.
 
 # Casos de Uso & Aceite — Gerenciador de Módulos (`/modulos`)
 

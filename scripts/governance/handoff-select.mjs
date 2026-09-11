@@ -4,7 +4,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-export const HANDOFF_RE = /^prototipo-ui\/handoffs\/[^/]+\.md$/;
+export const HANDOFF_RE = /^prototipo-ui\/cowork\/Wagner\/handoffs\/[^/]+\.md$/;
 export const isHandoffPath = (path) => HANDOFF_RE.test(String(path).replaceAll('\\', '/'));
 
 function valueAfter(args, flag) {

@@ -5,7 +5,7 @@
 // POR REGIÃO de tela (por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva, carregando o
 // sha do protótipo que o gerou) — parente do anchor-lint, NÃO o "Code Connect" do projeto. O
 // Code Connect (eixo componente, âncora estável, reusável entre telas) é o
-// prototipo-ui/component-registry.json; o roteamento de ARQUIVOS na ingestão é o cowork-map.json.
+// governance/design/component-registry.json; o roteamento de ARQUIVOS na ingestão é o cowork-map.json.
 // Este artefato ataca o gap canônico #1 do estado-da-arte (memory/sessions/
 // 2026-06-22-arte-design-to-code-sdd.md: mapeamento re-derivado em PROSA por tela a cada sessão)
 // tornando-o máquina-legível e versionado — saída documentada da FASE 1 do

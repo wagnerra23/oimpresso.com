@@ -43,7 +43,7 @@ Se em algum momento você perceber que está prestes a violar um desses 3 princ�
 
 ## As 7 fases do protocolo (ordem obrigatória, sem pular)
 
-Detalhe completo em [`prototipo-ui/PROTOCOL-F3-COWORK-CODE.md`](../../prototipo-ui/PROTOCOL-F3-COWORK-CODE.md). Resumo:
+Detalhe completo em [`memory/reference/prototipo-ui/PROTOCOL-F3-COWORK-CODE.md`](../../prototipo-ui/PROTOCOL-F3-COWORK-CODE.md). Resumo:
 
 ### F0 — RECEIVE
 
@@ -60,7 +60,7 @@ Auto-detect formato:
 
 - **IIFE .jsx exposing `window.XxxPage`** (padrão Cockpit V2) → fonte completa, vai pra F1.5
 - **HTML standalone com inline CSS** → fonte parcial, precisa extrair tokens
-- **Só screenshots** → STOP, pergunta Wagner se há .jsx ou se você deve inferir do padrão Cowork (`prototipo-ui/CLAUDE_DESIGN_BRIEFING.md`)
+- **Só screenshots** → STOP, pergunta Wagner se há .jsx ou se você deve inferir do padrão Cowork (`memory/reference/prototipo-ui/CLAUDE_DESIGN_BRIEFING.md`)
 - **Strategy doc tipo Diagnóstico KB-9.75** → NÃO é mockup pra copiar, é roadmap; você lê pra contexto + busca o .jsx real referenciado
 
 Copia fonte canônica pra `prototipo-ui/cowork/Wagner/legado/<tela>/` (padrão ADR 0114).

@@ -33,9 +33,9 @@ on:
       - 'Modules/*/resources/js/**'
       - 'Modules/*/resources/css/**'
       - 'prototipo-ui/cowork/Wagner/**'
-      - 'prototipo-ui/DS_ADOCAO_INDICE.md'
-      - 'prototipo-ui/SYNC_LOG.md'
-      - 'prototipo-ui/HANDOFF.md'
+      - 'memory/reference/prototipo-ui/DS_ADOCAO_INDICE.md'
+      - 'memory/reference/prototipo-ui/SYNC_LOG.md'
+      - 'memory/reference/prototipo-ui/HANDOFF.md'
 
 permissions:
   contents: read

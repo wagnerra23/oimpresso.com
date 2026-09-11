@@ -49,7 +49,7 @@ Workflow `Module Grades Gate (anti-regressão)` roda automaticamente. Se a nota 
 - [ ] `.charter.md` ao lado do `.tsx` existe + foi lido (skill `charter-first`)
 - [ ] F2 BACKEND BASELINE — Pest 5+ fixtures do `store()` rodaram verdes antes do Edit
 - [ ] F4 QA com smoke biz=1 (ADR 0101) — biz=4 só em F5 cutover canary 7d
-- [ ] Sem violação dos 6 meta-anti-padrões / 15 técnicos catalogados em `prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`
+- [ ] Sem violação dos 6 meta-anti-padrões / 15 técnicos catalogados em `memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`
 
 ## Performance (D6 do module-grade v3 — ADR 0155)
 

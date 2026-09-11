@@ -40,7 +40,7 @@ F0 SYNC LOOP (5min)
       staging fixo → detectar-telas.mjs. Orquestração multi-tela + transporte completo (pull vs
       ZIP fallback): skill `aplicar-prototipo` Fase −1.
    SSOT vivo hoje = prototipo-ui/cowork/Wagner/<tela>-page.jsx (o prototipos/<tela>/*.html é legado).
-   Read prototipo-ui/HANDOFF.md + identificar protótipo alvo
+   Read memory/reference/prototipo-ui/HANDOFF.md + identificar protótipo alvo
    Glob prototipo-ui/cowork/Wagner/<tela>-page.jsx  (fallback legado: prototipos/<tela>/{F1.html,visual-source.html,cowork-app.jsx})
 
 F1 MAPPING VOCABULÁRIO VERTICAL (10min) ⭐ CRÍTICO

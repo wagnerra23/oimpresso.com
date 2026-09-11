@@ -231,7 +231,7 @@ jobs:
       #
       # POR QUE O GLOB PARA AQUI E NAO COBRE `resources/css/**` (a pergunta ja voltou 1x;
       # RESPONDIDA POR MEDICAO em 2026-09-04, nao por opiniao — se ela voltar, leia isto antes):
-      #   - O §8 do prototipo-ui/PROCESSO_MEMORIA_CC.md declara a PROPRIA entrada como os
+      #   - O §8 do memory/reference/prototipo-ui/PROCESSO_MEMORIA_CC.md declara a PROPRIA entrada como os
       #     `*-page.css` TOCADOS, e o walkProto() do `--all` varre so `prototipo-ui/` com esse
       #     sufixo. O §8 e a lei da build de PROTOTIPO (L-02/L-21/L-23 — erros de quem CRIA
       #     design), nao do bundle PORTADO pro app.

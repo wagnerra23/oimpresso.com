@@ -18,7 +18,7 @@
 //
 // ── COBERTURA REGISTRY-BACKED (2026-08-14, chip G4) ────────────────────────────
 // As mensagens das regras COMPONENT-SUBSTITUTE passaram a DERIVAR o alvo (componente
-// + import_path) do `prototipo-ui/component-registry.json`, via `ds-lint-alvos.mjs`.
+// + import_path) do `governance/design/component-registry.json`, via `ds-lint-alvos.mjs`.
 // Os blocos 3-6 abaixo travam esse desenho por MEDIÇÃO, não por prosa:
 //   3. a tabela `ALVO_POR_REGRA` cobre exatamente as regras de `RULES` (1:1, sem drift);
 //   4. a cobertura (quantas regras derivam) fica PINADA — número em teste, não em doc;

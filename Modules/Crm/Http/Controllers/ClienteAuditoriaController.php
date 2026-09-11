@@ -355,8 +355,8 @@ class ClienteAuditoriaController extends Controller
             return '';
         }
 
-        // CPF: 999.999.999-99 ou 99999999999 -> ***.***.***-XX
-        // CNPJ: 99.999.999/9999-99 ou 99999999999999 -> **.***.***/****-XX
+        // CPF: 999.999.999-99 ou 99999999999 -> ***.***.***-XX  // pii-allowlist (placeholder de formato, não é dado real)
+        // CNPJ: 99.999.999/9999-99 ou 99999999999999 -> **.***.***/****-XX  // pii-allowlist (placeholder de formato, não é dado real)
         $val = (string) preg_replace_callback(
             '/(\d{3})\.?(\d{3})\.?(\d{3})-?(\d{2})/',
             fn ($m) => '***.***.***-' . $m[4],

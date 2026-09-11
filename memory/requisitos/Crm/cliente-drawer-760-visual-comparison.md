@@ -137,7 +137,7 @@ Migração de paradigma: a tela `/cliente` deixa de abrir `Show.tsx` em rota ded
 
 ## 8. Form fields + inputs BR (máscaras + ViaCEP/BrasilAPI) — 5/100 → 90
 
-**Cowork:** máscaras inline CPF `000.000.000-00`, CNPJ `00.000.000/0000-00`, tel `(00) 0 0000-0000`, CEP `00000-000`; validação mod 11 (CPF/CNPJ) inline error; ViaCEP no blur do CEP autopreenche logradouro/bairro/cidade/UF; BrasilAPI no blur do CNPJ autopreenche razão social; autosave on blur por field; radio canal (whatsapp/email/telefone/presencial); multi-select tags (9 valores).
+**Cowork:** máscaras inline CPF `000.000.000-00`, CNPJ `00.000.000/0000-00`, tel `(00) 0 0000-0000`, CEP `00000-000`; validação mod 11 (CPF/CNPJ) inline error; ViaCEP no blur do CEP autopreenche logradouro/bairro/cidade/UF; BrasilAPI no blur do CNPJ autopreenche razão social; autosave on blur por field; radio canal (whatsapp/email/telefone/presencial); multi-select tags (9 valores). <!-- pii-allowlist: placeholders de máscara/CNPJ-exemplo sintético, não é dado real -->
 **Atual:** ZERO no drawer; existe em `/contacts/{id}/edit` Blade legacy (não medido aqui).
 **Gap:** -85. Tudo novo. **Bloqueador crítico:** `Modules/Crm/Services/BrLookupService.php` + `ClienteLookupController` proxies precisam existir ANTES (Wave C) pra evitar rate limit ViaCEP/BrasilAPI quando Larissa biz=4 cadastra 30/dia.
 **Wave fix:** C (5 tabs cadastrais + Lib/br-mask.ts + Lib/br-validate.ts + BrLookupService + endpoints POST autosave 5 tabs).

@@ -9,7 +9,7 @@
 //
 // Algoritmo mod 11 conforme Receita Federal (CPF) + spec oficial (CNPJ pesos
 // canônicos [5,4,3,2,9,8,7,6,5,4,3,2] e [6,5,...,3,2]). Sequências repetidas
-// (111.111.111-11, 00.000.000/0000-00) são inválidas por convenção.
+// (111.111.111-11, 00.000.000/0000-00) são inválidas por convenção. // pii-allowlist (sequências repetidas = placeholder, não é dado real)
 
 import { unmaskDigits } from './format-br';
 
@@ -17,7 +17,7 @@ import { unmaskDigits } from './format-br';
  * Valida CPF (11 dígitos + mod 11).
  *
  *   - Aceita string com ou sem máscara
- *   - Sequência repetida (000.000.000-00, 111.111.111-11, etc) → false
+ *   - Sequência repetida (000.000.000-00, 111.111.111-11, etc) → false   // pii-allowlist (placeholder de formato)
  *   - Mod 11: cada dígito × peso decrescente, somatória × 10 mod 11
  *
  * @returns `true` se válido, `false` se inválido, `null` se incompleto (UX —

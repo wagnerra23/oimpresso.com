@@ -32,8 +32,8 @@ tier: B
 > **Linhagem:** Método Governance Scorecard ([ADR 0230](../../../memory/decisions/0230-metodo-governance-scorecard.md)) + especialista-por-área ([ADR 0231](../../../memory/decisions/0231-processo-trabalho-canonico-especialista-por-area.md)) + Peso Real ([ADR 0232](../../../memory/decisions/0232-modelo-peso-real-classificacao-por-meta.md)) + `framework-15-dimensoes.md` + DS v4 roxo ([ADR 0235](../../../memory/decisions/0235-ds-v4-accent-roxo-universal.md)). É o [`module-grade`](../avaliar-modulo/SKILL.md) aplicado **por tela**.
 >
 > **Docs canônicos que esta skill operacionaliza** (leia-os, não reinvente):
-> - [`prototipo-ui/GOLDEN-REFERENCE.md`](../../../prototipo-ui/GOLDEN-REFERENCE.md) — tela-ouro `Sells/Create` + 10 regras binárias
-> - [`prototipo-ui/PRE-FLIGHT-TELA.md`](../../../prototipo-ui/PRE-FLIGHT-TELA.md) — o resolvedor (4 blocos)
+> - [`memory/reference/prototipo-ui/GOLDEN-REFERENCE.md`](../../../prototipo-ui/GOLDEN-REFERENCE.md) — tela-ouro `Sells/Create` + 10 regras binárias
+> - [`memory/reference/prototipo-ui/PRE-FLIGHT-TELA.md`](../../../prototipo-ui/PRE-FLIGHT-TELA.md) — o resolvedor (4 blocos)
 > - [`memory/requisitos/_DesignSystem/SCREEN-GRADE-METODO.md`](../../../memory/requisitos/_DesignSystem/SCREEN-GRADE-METODO.md) — método 16-dim + níveis + fórmula
 
 ## Quando ativar

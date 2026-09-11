@@ -58,4 +58,4 @@ jobs:
           echo "  3. Se o achado for legítimo/intencional, absorva conscientemente:"
           echo "       npm run no-mock:baseline:write   # commit + justificativa no PR"
           echo ""
-          echo "Refs: prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md (T-AP-12/13, M-AP-2)"
+          echo "Refs: memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md (T-AP-12/13, M-AP-2)"

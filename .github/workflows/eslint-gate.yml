@@ -32,7 +32,7 @@ on:
       # que o lint ORIENTA, então a lane que prova isso tem que re-rodar. Sem o
       # arquivo-sob-teste no trigger, o gate fica mudo (proibicoes §5 2026-08-02).
       - 'scripts/design/ds-lint-alvos.mjs'
-      - 'prototipo-ui/component-registry.json'
+      - 'governance/design/component-registry.json'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/eslint-gate.yml'

@@ -23,7 +23,7 @@ import { join, relative } from 'node:path';
 import { isAuxiliaryPagePath, raizesDePages } from './page-path.mjs';
 
 const ROOT = process.cwd();
-const ANCORA = join(ROOT, 'prototipo-ui', 'ancora.mjs');
+const ANCORA = join(ROOT, 'scripts', 'design', 'ancora.mjs');
 const PAGES = join(ROOT, 'resources', 'js', 'Pages');
 const argi = process.argv.indexOf('--baseline');
 const BASELINE = argi >= 0 && process.argv[argi + 1]
