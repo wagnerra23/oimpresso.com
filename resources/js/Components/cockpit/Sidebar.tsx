@@ -474,22 +474,28 @@ export function CompanyPicker({
         className="sb-cp-btn"
         type="button"
         onClick={() => setOpen((v) => !v)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label={`Empresa: ${nome}. Trocar de empresa`}
       >
-        <span className="avatar" style={{ background: grad }}>
+        <span className="avatar" style={{ background: grad }} aria-hidden="true">
           {iniciais}
         </span>
         <span className="name">{nome}</span>
         <ChevronDown size={14} />
       </button>
       {open && (
-        <div className="sb-dd">
+        <div className="sb-dd" role="menu">
           <div className="sb-dd-h">EMPRESAS</div>
           {businesses.length === 0 && (
             <div className="sb-dd-empty">Nenhuma empresa disponível</div>
           )}
           {businesses.map((b) => (
-            <div
+            <button
               key={b.id}
+              type="button"
+              role="menuitemradio"
+              aria-checked={b.ativa}
               className={`sb-dd-i ${b.ativa ? 'active' : ''}`}
               onClick={() => {
                 if (b.ativa) {
@@ -501,15 +507,21 @@ export function CompanyPicker({
                 setOpen(false);
               }}
             >
-              <span className="avatar-sm" style={{ background: gradientFor(b.id) }}>
+              <span
+                className="avatar-sm"
+                style={{ background: gradientFor(b.id) }}
+                aria-hidden="true"
+              >
                 {b.iniciais}
               </span>
               <span className="name">{b.nome}</span>
               {b.ativa && <Check size={14} className="check" />}
-            </div>
+            </button>
           ))}
           <div className="sb-dd-sep" />
-          <div className="sb-dd-foot">+ Adicionar empresa</div>
+          <button type="button" role="menuitem" className="sb-dd-foot">
+            + Adicionar empresa
+          </button>
         </div>
       )}
     </div>
@@ -1509,8 +1521,12 @@ export function SidebarFooter({
           className="sb-user-btn"
           type="button"
           onClick={() => setOpenUser((v) => !v)}
+          aria-haspopup="menu"
+          aria-expanded={openUser}
         >
-          <span className="avatar">{iniciais}</span>
+          <span className="avatar" aria-hidden="true">
+            {iniciais}
+          </span>
           <div className="who">
             {/* nome por extenso — o protótipo mostra "Wagner Rocha" (2026-09-11).
                 `nomeCurto` existia pro rodapé de 26px, que empilhava nome e cargo
