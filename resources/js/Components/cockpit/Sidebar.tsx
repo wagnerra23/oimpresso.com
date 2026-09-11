@@ -1465,7 +1465,6 @@ function ThemeSubpanel() {
 
 export function SidebarFooter({
   nome,
-  nomeCurto,
   email,
   cargo,
   iniciais,
@@ -1475,7 +1474,6 @@ export function SidebarFooter({
   onVibe,
 }: {
   nome: string;
-  nomeCurto: string;
   email: string;
   cargo: string;
   iniciais: string;
@@ -1514,7 +1512,10 @@ export function SidebarFooter({
         >
           <span className="avatar">{iniciais}</span>
           <div className="who">
-            <b>{nomeCurto}</b>
+            {/* nome por extenso — o protótipo mostra "Wagner Rocha" (2026-09-11).
+                `nomeCurto` existia pro rodapé de 26px, que empilhava nome e cargo
+                na mesma linha; com o `.who` em coluna o nome inteiro cabe. */}
+            <b>{nome}</b>
             <small>{cargo}</small>
           </div>
           <ChevronUp size={12} />

@@ -290,14 +290,32 @@ body{
 .sb-cert-txt b{ font-size: 11px; font-weight: 600; }
 .sb-cert-txt span{ font-size: 10px; opacity: .85; }
 .sb-cert:hover{ filter: brightness(1.12); }
-/* No rail o texto não cabe (56px): só o ícone, mesmo nome acessível via aria-label. */
-.sb-cert-rail{ border: 1px solid; }
+/* No rail o texto não cabe (56px): só o ícone, mesmo nome acessível via aria-label.
+   Ele herdava a caixa larga do .sb-cert (flex + gap + padding + width calc), e por
+   isso saía fora do eixo de 40px dos .sb-rail-btn — daí o desalinhamento. Aqui a
+   caixa é redefinida pra MESMA métrica do botão do rail (40x40 centrado em 56px). */
+.sb-cert-rail{
+  border: 1px solid;
+  /* `height` sozinho não bastava: o pai é flex-column e comprimia o botão
+     (medido 29,7px de 40px) — o eixo travado é o flex, não a altura. */
+  flex: 0 0 40px;
+  width: 40px; height: 40px;
+  margin: 0 auto;
+  padding: 0; gap: 0;
+  display: grid; place-items: center;
+  border-radius: 8px;
+}
 .sb-cert-rail:hover{ filter: brightness(1.12); }
 .sb-cert:focus-visible, .sb-cert-rail:focus-visible{
   outline: 2px solid var(--accent-2, oklch(0.70 0.14 295)); outline-offset: 2px;
 }
 
-/* Body scrollable — chain de overflow (AP10). VIVO: é o wrapper .sb-body do Sidebar. */
+/* Body scrollable — chain de overflow (AP10). VIVO: é o wrapper .sb-body do Sidebar.
+   NÃO usar `scrollbar-gutter: stable` aqui: ele reserva 10px de calha e encolhe o
+   content box do body pra 45px, enquanto o cert e o botão do topo vivem FORA do
+   body e centram nos 56px do aside — dois eixos de centro, 5px de desvio visível
+   no rail. O eixo se conserta tirando a largura da barra do jogo (abaixo), não
+   compensando pixel. */
 .sb-body{
   flex: 1 1 auto;
   overflow-y: auto;
@@ -5381,7 +5399,7 @@ button:where(.sb-item, .um-item, .sb-dd-i, .sb-dd-foot){ font-size: inherit; }
   z-index: 60;
   box-shadow: 0 4px 14px oklch(0 0 0 / 0.22);
 }
-.sb--rail [data-tip]:hover::after{
+.sb--rail [data-tip]:hover.__legado::after{
   opacity: 1;
   transform: translateY(-50%) translateX(0);
 }
@@ -6567,3 +6585,51 @@ button:where(.sb-item, .um-item, .sb-dd-i, .sb-dd-foot){ font-size: inherit; }
 .rota-carregando{ display:flex; align-items:center; gap:10px; padding:48px 32px; color:var(--text-mute); font-size:var(--fs-3,12.5px) }
 .rota-carregando-b{ width:9px; height:9px; border-radius:50%; background:var(--accent); animation:rota-pulso 1s ease-in-out infinite }
 @keyframes rota-pulso{ 0%,100%{ opacity:.25; transform:scale(.8) } 50%{ opacity:1; transform:scale(1) } }
+
+/* Modo de trabalho (Vibes) — puxado do vivo 2026-09-10 (Sidebar.tsx:1348+) */
+.um-vibe-cur{margin-left:auto;font-family:var(--font-mono);font-size:10.5px;color:var(--text-mute)}
+.um-cascade.active .um-vibe-cur{color:var(--accent)}
+.um-vibe .label{display:flex;flex-direction:column;gap:1px;line-height:1.25}
+.um-vibe-d{font-style:normal;font-size:10.5px;color:var(--text-mute)}
+.um-vibe.active .label{color:var(--text)}
+.um-vibe-ck{margin-left:auto;color:var(--accent);flex:0 0 auto}
+
+/* Dica do rail — camada fixa, fora do contexto de scroll do .sb-body */
+.sb-rail-tip{
+  position: fixed;
+  transform: translateY(-50%);
+  z-index: 90;
+  pointer-events: none;
+  white-space: nowrap;
+  padding: 5px 9px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  line-height: 1.2;
+  color: var(--sb-text-hi, oklch(0.97 0 0));
+  background: oklch(0.22 0.01 280);
+  border: 1px solid var(--sb-border);
+  box-shadow: 0 6px 18px -6px rgba(0,0,0,.55);
+}
+
+/* As dicas em `::after` do rail foram DESLIGADAS: elas eram a causa do overflow
+   horizontal (pseudo absoluto conta como overflow rolável do .sb-body). Quem
+   desenha a dica agora é `.sb-rail-tip`, em camada fixa. Mantidas as regras
+   originais acima como registro do que existia — só o conteúdo sai. */
+.sb--rail [data-tip]::after,
+.sb--rail .sb-rail-group[data-tip]::after,
+.sb--rail .sb-rail-btn.open[data-tip]::after,
+.sb-rail-btn[data-tip]:focus-visible::after{ content: none; display: none; }
+
+/* Rail (56px): a barra vertical não participa da largura, então TODO filho —
+   dentro ou fora do .sb-body — centra no mesmo box de 56px. Scroll preservado
+   (overlay), só a calha sai da conta. */
+.sb--rail .sb-body{ scrollbar-width: none; }
+.sb--rail .sb-body::-webkit-scrollbar{ width: 0; height: 0; }
+
+/* Sair — confirmação inline (não há auth no protótipo: confirmar e recarregar
+   é o mais honesto; fingir logout seria pior que o botão morto) */
+.um-sair{padding:8px 10px 10px}
+.um-sair-q{margin:0 0 8px;font-size:12px;color:var(--text-dim)}
+.um-sair-acoes{display:flex;gap:6px}
+.um-sair-acoes .um-item{width:auto;flex:1 1 auto;justify-content:center;border:1px solid var(--border);border-radius:6px}
+.um-sair-ok{color:oklch(0.62 0.20 25)}
