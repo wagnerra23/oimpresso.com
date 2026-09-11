@@ -274,163 +274,182 @@ export default function Configuracoes({ settings, templates, usuarios, tags }: P
   return (
     <AppShellV2>
       <Stack gap={4}>
-        <PageHeader
-          title="Configurações"
-          subtitle="Prefixos de código e notificações de manutenção — valem para toda a empresa"
-        />
+        {/* As âncoras `data-contract` são a ponte Cowork-CSS ↔ Tailwind do gate
+            `contrato-de-tela.mjs` (ADR 0286) — mesmo padrão da irmã Bens (`Bens.tsx:532`).
+            Quem as consome: `prototipo-ui/contrato/patrimonio-configuracoes.contract.json`.
+            Cada uma envolve um elemento QUE JÁ EXISTIA: nenhum conteúdo mudou. */}
+        <div data-contract="cabecalho">
+          <PageHeader
+            title="Configurações"
+            subtitle="Prefixos de código e notificações de manutenção — valem para toda a empresa"
+          />
+        </div>
 
-        <PatrimonioSubNav active="settings" hidePrimary />
+        <div data-contract="subnav">
+          <PatrimonioSubNav active="settings" hidePrimary />
+        </div>
 
         <form onSubmit={salvar}>
           <Stack gap={4}>
             {/* ─── Prefixos ─────────────────────────────────────────────────── */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Prefixos de código</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Stack gap={3}>
-                  <p className="text-sm text-muted-foreground">
-                    Cada sequência é por empresa. Mudar o prefixo <strong>não renumera</strong> o
-                    que já existe — vale do próximo código em diante.
-                  </p>
-                  {/* `min` (auto-fill por token) em vez de `sm:grid-cols-2`: reflowa entre
-                      1280 (Larissa) e 1440 (Wagner) sem media-query na tela — ADR 0253. */}
-                  <Grid min="lg" gap={4}>
-                    <CampoPrefixo
-                      id="asset_code_prefix"
-                      rotulo="Prefixo do código do bem"
-                      ajuda="Usado ao cadastrar um bem novo."
-                      valor={form.data.asset_code_prefix}
-                      onChange={(v) => form.setData('asset_code_prefix', v)}
-                    />
-                    <CampoPrefixo
-                      id="allocation_code_prefix"
-                      rotulo="Prefixo do código de alocação"
-                      ajuda="Usado ao alocar um bem a um colaborador."
-                      valor={form.data.allocation_code_prefix}
-                      onChange={(v) => form.setData('allocation_code_prefix', v)}
-                    />
-                    <CampoPrefixo
-                      id="revoke_code_prefix"
-                      rotulo="Prefixo do código de devolução"
-                      ajuda="Usado ao registrar a devolução de um bem alocado."
-                      valor={form.data.revoke_code_prefix}
-                      onChange={(v) => form.setData('revoke_code_prefix', v)}
-                    />
-                    <CampoPrefixo
-                      id="asset_maintenance_prefix"
-                      rotulo="Prefixo do código de manutenção"
-                      ajuda="Usado ao abrir uma manutenção."
-                      valor={form.data.asset_maintenance_prefix}
-                      onChange={(v) => form.setData('asset_maintenance_prefix', v)}
-                    />
-                  </Grid>
-                </Stack>
-              </CardContent>
-            </Card>
+            <div data-contract="prefixos">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Prefixos de código</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Stack gap={3}>
+                    <p className="text-sm text-muted-foreground">
+                      Cada sequência é por empresa. Mudar o prefixo <strong>não renumera</strong> o
+                      que já existe — vale do próximo código em diante.
+                    </p>
+                    {/* `min` (auto-fill por token) em vez de `sm:grid-cols-2`: reflowa entre
+                        1280 (Larissa) e 1440 (Wagner) sem media-query na tela — ADR 0253. */}
+                    <Grid min="lg" gap={4}>
+                      <CampoPrefixo
+                        id="asset_code_prefix"
+                        rotulo="Prefixo do código do bem"
+                        ajuda="Usado ao cadastrar um bem novo."
+                        valor={form.data.asset_code_prefix}
+                        onChange={(v) => form.setData('asset_code_prefix', v)}
+                      />
+                      <CampoPrefixo
+                        id="allocation_code_prefix"
+                        rotulo="Prefixo do código de alocação"
+                        ajuda="Usado ao alocar um bem a um colaborador."
+                        valor={form.data.allocation_code_prefix}
+                        onChange={(v) => form.setData('allocation_code_prefix', v)}
+                      />
+                      <CampoPrefixo
+                        id="revoke_code_prefix"
+                        rotulo="Prefixo do código de devolução"
+                        ajuda="Usado ao registrar a devolução de um bem alocado."
+                        valor={form.data.revoke_code_prefix}
+                        onChange={(v) => form.setData('revoke_code_prefix', v)}
+                      />
+                      <CampoPrefixo
+                        id="asset_maintenance_prefix"
+                        rotulo="Prefixo do código de manutenção"
+                        ajuda="Usado ao abrir uma manutenção."
+                        valor={form.data.asset_maintenance_prefix}
+                        onChange={(v) => form.setData('asset_maintenance_prefix', v)}
+                      />
+                    </Grid>
+                  </Stack>
+                </CardContent>
+              </Card>
+
+            </div>
 
             {/* ─── Notificação 1: enviado para manutenção ───────────────────── */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Bem enviado para manutenção</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Stack gap={4}>
-                  <ListaDeTags tags={tags.send_for_maintenance} />
+            {/* `notificacoes` ancora a POSIÇÃO do bloco (ordem entre prefixos e ações);
+                a copy é vazia no contrato porque o protótipo tem UM título "Notificações"
+                e a tela tem dois Cards nomeados — não há literal compartilhado. */}
+            <div data-contract="notificacoes">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Bem enviado para manutenção</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Stack gap={4}>
+                    <ListaDeTags tags={tags.send_for_maintenance} />
 
-                  <Stack gap={2}>
-                    <Label>Destinatários</Label>
-                    {/* `usuarios` é DEFERIDA — é a única prop que cresce com o tenant. */}
-                    <Deferred data="usuarios" fallback={<EsqueletoDestinatarios />}>
-                      <ListaDeDestinatarios
-                        usuarios={usuarios ?? []}
-                        selecionados={form.data.send_for_maintenence_recipients}
-                        onToggle={alternarDestinatario}
+                    <Stack gap={2}>
+                      <Label>Destinatários</Label>
+                      {/* `usuarios` é DEFERIDA — é a única prop que cresce com o tenant. */}
+                      <Deferred data="usuarios" fallback={<EsqueletoDestinatarios />}>
+                        <ListaDeDestinatarios
+                          usuarios={usuarios ?? []}
+                          selecionados={form.data.send_for_maintenence_recipients}
+                          onToggle={alternarDestinatario}
+                        />
+                      </Deferred>
+                      <p className="text-xs text-muted-foreground">
+                        Sem nenhum destinatário, esta notificação não é enviada.
+                      </p>
+                    </Stack>
+
+                    <Inline gap={3} align="start">
+                      <Switch
+                        id="enable_send"
+                        checked={form.data.enable_asset_send_for_maintenance_email}
+                        onCheckedChange={(v) =>
+                          form.setData('enable_asset_send_for_maintenance_email', v)
+                        }
                       />
-                    </Deferred>
-                    <p className="text-xs text-muted-foreground">
-                      Sem nenhum destinatário, esta notificação não é enviada.
-                    </p>
+                      <Stack gap={0}>
+                        <Label htmlFor="enable_send" className="cursor-pointer">
+                          Enviar também por e-mail
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                          Desligado, a notificação continua chegando no sino do sistema.
+                        </p>
+                      </Stack>
+                    </Inline>
+
+                    {form.data.enable_asset_send_for_maintenance_email && (
+                      <CamposDoModelo
+                        prefixo="send"
+                        modelo={form.data.send_for_maintenance}
+                        onChange={(m) => form.setData('send_for_maintenance', m)}
+                      />
+                    )}
                   </Stack>
+                </CardContent>
+              </Card>
 
-                  <Inline gap={3} align="start">
-                    <Switch
-                      id="enable_send"
-                      checked={form.data.enable_asset_send_for_maintenance_email}
-                      onCheckedChange={(v) =>
-                        form.setData('enable_asset_send_for_maintenance_email', v)
-                      }
-                    />
-                    <Stack gap={0}>
-                      <Label htmlFor="enable_send" className="cursor-pointer">
-                        Enviar também por e-mail
-                      </Label>
-                      <p className="text-xs text-muted-foreground">
-                        Desligado, a notificação continua chegando no sino do sistema.
-                      </p>
-                    </Stack>
-                  </Inline>
+              {/* ─── Notificação 2: atribuído para manutenção ─────────────────── */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Manutenção atribuída a um responsável</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Stack gap={4}>
+                    <ListaDeTags tags={tags.assigned_for_maintenance} />
+                    <p className="text-sm text-muted-foreground">
+                      Vai para o colaborador designado na manutenção — não tem lista própria de
+                      destinatários.
+                    </p>
 
-                  {form.data.enable_asset_send_for_maintenance_email && (
-                    <CamposDoModelo
-                      prefixo="send"
-                      modelo={form.data.send_for_maintenance}
-                      onChange={(m) => form.setData('send_for_maintenance', m)}
-                    />
-                  )}
-                </Stack>
-              </CardContent>
-            </Card>
+                    <Inline gap={3} align="start">
+                      <Switch
+                        id="enable_assigned"
+                        checked={form.data.enable_asset_assigned_for_maintenance_email}
+                        onCheckedChange={(v) =>
+                          form.setData('enable_asset_assigned_for_maintenance_email', v)
+                        }
+                      />
+                      <Stack gap={0}>
+                        <Label htmlFor="enable_assigned" className="cursor-pointer">
+                          Enviar também por e-mail
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                          Desligado, a notificação continua chegando no sino do sistema.
+                        </p>
+                      </Stack>
+                    </Inline>
 
-            {/* ─── Notificação 2: atribuído para manutenção ─────────────────── */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Manutenção atribuída a um responsável</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Stack gap={4}>
-                  <ListaDeTags tags={tags.assigned_for_maintenance} />
-                  <p className="text-sm text-muted-foreground">
-                    Vai para o colaborador designado na manutenção — não tem lista própria de
-                    destinatários.
-                  </p>
+                    {form.data.enable_asset_assigned_for_maintenance_email && (
+                      <CamposDoModelo
+                        prefixo="assigned"
+                        modelo={form.data.assigned_for_maintenance}
+                        onChange={(m) => form.setData('assigned_for_maintenance', m)}
+                      />
+                    )}
+                  </Stack>
+                </CardContent>
+              </Card>
 
-                  <Inline gap={3} align="start">
-                    <Switch
-                      id="enable_assigned"
-                      checked={form.data.enable_asset_assigned_for_maintenance_email}
-                      onCheckedChange={(v) =>
-                        form.setData('enable_asset_assigned_for_maintenance_email', v)
-                      }
-                    />
-                    <Stack gap={0}>
-                      <Label htmlFor="enable_assigned" className="cursor-pointer">
-                        Enviar também por e-mail
-                      </Label>
-                      <p className="text-xs text-muted-foreground">
-                        Desligado, a notificação continua chegando no sino do sistema.
-                      </p>
-                    </Stack>
-                  </Inline>
+            </div>
 
-                  {form.data.enable_asset_assigned_for_maintenance_email && (
-                    <CamposDoModelo
-                      prefixo="assigned"
-                      modelo={form.data.assigned_for_maintenance}
-                      onChange={(m) => form.setData('assigned_for_maintenance', m)}
-                    />
-                  )}
-                </Stack>
-              </CardContent>
-            </Card>
-
-            <Inline gap={2} align="center">
-              <Button type="submit" disabled={form.processing}>
-                <Save size={14} />
-                {form.processing ? 'Salvando…' : 'Salvar configurações'}
-              </Button>
-            </Inline>
+            <div data-contract="acoes">
+              <Inline gap={2} align="center">
+                <Button type="submit" disabled={form.processing}>
+                  <Save size={14} />
+                  {form.processing ? 'Salvando…' : 'Salvar configurações'}
+                </Button>
+              </Inline>
+            </div>
           </Stack>
         </form>
       </Stack>

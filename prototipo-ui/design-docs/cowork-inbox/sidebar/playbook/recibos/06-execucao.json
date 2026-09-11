@@ -10,7 +10,7 @@
     "test",
     "--filter=AppShellUsageGate",
     "--log-junit",
-    "/tmp/sb06-junit.xml"
+    "/tmp/sb06b-junit.xml"
   ],
   "exitCode": 0,
   "summary": "prototipo-ui/design-docs/cowork-inbox/sidebar/playbook/recibos/06-execucao.summary.json",
@@ -18,10 +18,10 @@
     "tests/Feature/Architecture/AppShellUsageGateTest.php"
   ],
   "arquivos": {
-    "prototipo-ui/design-docs/cowork-inbox/sidebar/playbook/_saida-06.md": "916a0215326c3c46099eae553de5bfb44452c37cb414c67286d8c5e1c9250d3c",
-    "prototipo-ui/design-docs/cowork-inbox/sidebar/playbook/recibos/06-execucao.summary.json": "95f57f6b9744ba802ec3437d170af971b3a830a09d7c7d6c73fb3ee25503a0e7",
+    "prototipo-ui/design-docs/cowork-inbox/sidebar/playbook/_saida-06.md": "cdc3d4e928d935b4794ef194d51713569af2d4dea3c8088b27ebde2ebd271eb9",
+    "prototipo-ui/design-docs/cowork-inbox/sidebar/playbook/recibos/06-execucao.summary.json": "04ee4f2da1ac7bc386a85992c4a1f84bf65437a57f5e992e7f54e13c4517979b",
     "tests/Feature/Architecture/AppShellUsageGateTest.php": "3a1a46e1de4d793dfcf352aad68317319a29dce0a345318154c7b96e540ca814",
-    "prototipo-ui/contrato/cockpit-sidebar.contract.json": "ef9a65954c81d48f033b23111843bad2402bad90ccd18ef1b1a5b86b17f30994"
+    "prototipo-ui/contrato/cockpit-sidebar.contract.json": "05870f68a6fb2772f861afabd3752a9333ec3e7c482e5f167b27870d28538c73"
   },
-  "nota": "Rodado no CT 100 (docker oimpresso-staging) COM o patch das 5 ancoras aplicado por git apply, e revertido depois — o CT 100 voltou ao estado original (meus 2 paths limpos, 0 ancoras). O XML bruto fica ao lado em 06-junit.xml."
+  "nota": "Re-rodado em 2026-09-11 DEPOIS do rebase sobre a thread 04 (#7209). O checkout do CT 100 estava numa sha anterior a ela, entao os 4 paths do shell (AppShellV2, Sidebar, shared.ts, cockpit.css) foram atualizados CIRURGICAMENTE pra origin/main - os 4 medidos limpos antes (LC-23) -, o patch das 5 ancoras aplicado, o teste rodado, e tudo restaurado ao estado exato de antes (git checkout HEAD -- <4 paths>; 0 ancoras minhas; os 7 arquivos sujos de outras sessoes nao foram tocados). O XML bruto fica ao lado em 06-junit.xml."
 }

@@ -1,6 +1,6 @@
 {
   "schema": "junit-summary/v1",
-  "generated_at": "2026-09-11T12:33:21.293Z",
+  "generated_at": "2026-09-11T12:46:37.397Z",
   "source": "prototipo-ui/design-docs/cowork-inbox/sidebar/playbook/recibos/06-junit.xml",
   "n_testcases": 1,
   "n_testcases_declared": 1,
@@ -22,7 +22,7 @@
       "errors": 0,
       "skipped": 0,
       "assertions": 2,
-      "time": 0.798
+      "time": 0.833
     }
   ]
 }
