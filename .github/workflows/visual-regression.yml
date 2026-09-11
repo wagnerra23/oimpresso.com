@@ -895,6 +895,35 @@ jobs:
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Patrimonio/ConfiguracoesRenderTest.php
 
+      # ── E2E DE RENDER POR TELA — Patrimonio/Manutencoes (NASCE ADVISORY) ─────────────
+      # Diferente dos dois steps acima: esta tela JÁ contava como coberta no eixo `e2e` — mas
+      # por EMPRÉSTIMO. Ela está no `visreg-screens.json`, e o `screen-coverage-map` computa o
+      # eixo como a UNIÃO `e2e.length > 0 || hasVisregContract` (o mapa documenta, `:17-21`,
+      # que "14 dos 18 eram crédito de visreg lido como E2E"). Medido em 2026-09-11: o
+      # `--screen` dizia `e2e (Browser) ✗` enquanto a catraca a contava.
+      #
+      # Este step não muda o NÚMERO do eixo; muda a NATUREZA dele — e é isso que DESTRAVA a
+      # remoção da baseline de pixel (decisão [W] 2026-09-09) sem repetir o #7174, que foi
+      # fechado porque remover a foto sozinha derrubava o `screen-coverage-gate` (required).
+      # A remoção em si NÃO é feita aqui: ela também tornaria a tela `uncovered` no
+      # fail-closed deste mesmo workflow, trocando um verde por um vermelho — decisão [W].
+      #
+      # ⚠️ SÃO 3 ÂNCORAS, NÃO AS 4 DO CONTRATO, e isso foi medido: `alerta` vive dentro de
+      # `{!permissoes.vejo_todas ? ... : null}`, e no harness o usuário vê TUDO
+      # (`can('asset.view_all_maintenance')` cai no `else` do `Gate::before`, que concede a
+      # `Admin#<biz>`; o seeder cria `Admin#1`). Assertar 4 deixaria o step permanentemente
+      # vermelho. O teste ASSERTA a ausência como contrato, em vez de tolerá-la calado.
+      #
+      # Não semeia NADA no banco e não captura screenshot (não gera baseline). ADVISORY no
+      # nascimento (ADR 0261/0275): Pest Browser é CI/CT-100 only e não pôde ser executado
+      # antes do PR. Promoção a ENFORCING = REMOVER o `continue-on-error`, após 2 verdes que
+      # EXECUTARAM, lidos NO LOG do job.
+      - name: E2E de render · Patrimonio/Manutencoes (ADVISORY)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        id: e2e-patrimonio-manutencoes
+        continue-on-error: true
+        run: ./vendor/bin/pest tests/Browser/Patrimonio/ManutencoesRenderTest.php
+
       # ── E2E DE RENDER POR TELA — Financeiro/Caixa (NASCE ADVISORY) ───────────────────
       # Buraco medido em 2026-09-03 por `screen-coverage-map.mjs --screen Financeiro/Caixa/Index`:
       # trio ✓ · scorecard ✓ · 5/5 UC citados por teste — e `e2e (Browser) ✗`. O contrato vive
@@ -1166,6 +1195,7 @@ jobs:
           A_REPAIR_PRODUCAO: ${{ steps.e2e-repair-producao.outcome }}
           A_PATR_ALOCACOES: ${{ steps.e2e-patrimonio-alocacoes.outcome }}
           A_PATR_CONFIGURACOES: ${{ steps.e2e-patrimonio-configuracoes.outcome }}
+          A_PATR_MANUTENCOES: ${{ steps.e2e-patrimonio-manutencoes.outcome }}
         run: |
           resumo="$(mktemp)"
           {
@@ -1204,6 +1234,7 @@ jobs:
           registrar "E2E de render · Repair/ProducaoOficina" "$A_REPAIR_PRODUCAO"
           registrar "E2E de render · Patrimonio/Alocacoes" "$A_PATR_ALOCACOES"
           registrar "E2E de render · Patrimonio/Configuracoes" "$A_PATR_CONFIGURACOES"
+          registrar "E2E de render · Patrimonio/Manutencoes" "$A_PATR_MANUTENCOES"
 
           {
             echo ""
