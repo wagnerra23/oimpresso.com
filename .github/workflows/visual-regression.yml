@@ -1522,7 +1522,8 @@ jobs:
              {"nome":"Fluxos visuais Financeiro (ENFORCING · L2.5)","outcome":"${{ steps.financeiro-flows.outcome }}"},
              {"nome":"Fluxos visuais Compras (ENFORCING · L2.5)","outcome":"${{ steps.compras-flows.outcome }}"},
              {"nome":"Fluxos visuais Sells/Create (ENFORCING · L2.5)","outcome":"${{ steps.sells-flows.outcome }}"},
-             {"nome":"Canário anti-verde-vazio","outcome":"${{ steps.canario.outcome }}"}]
+             {"nome":"Canário anti-verde-vazio","outcome":"${{ steps.canario.outcome }}"},
+             {"nome":"E2E de render · Patrimonio/Bens (ENFORCING)","outcome":"${{ steps.e2e-patrimonio-bens.outcome }}"}]
         run: |
           node scripts/governance/ui-impact.mjs --explain-failure \
             --scope="$SCOPE" --uncovered-screens="${UNCOVERED:-[]}" \
