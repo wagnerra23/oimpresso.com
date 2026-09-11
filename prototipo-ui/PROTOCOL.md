@@ -346,7 +346,7 @@ mantêm o estado anterior. O inventário pós-recepção lista fonte, Page React
 O destino Cowork é **build-only** e preserva o path relativo literal. Documento, charter, casos,
 contrato, conteúdo duplicado ou extensão fora do contrato recusam o lote inteiro antes da
 promoção. A importação não edita âncoras; a antiga árvore `design-docs/` foi removida
-([ADR 0390](../memory/decisions/0390-prototipo-fonte-unica-build-sem-canon-sombra.md)).
+([ADR 0396](../memory/decisions/0396-prototipo-fonte-unica-build-sem-canon-sombra.md)).
 
 `_ds` permanece **cache derivado do preview**, não estado nem histórico. A base do próximo delta,
 o relatório do que mudou e as provas de aplicação ficam fora dele, em `scripts/design-sync/state/`.

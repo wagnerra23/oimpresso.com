@@ -25,7 +25,7 @@ Você (Cowork) tem que **adotar a estrutura nova + reconstruir** como exporta:
    ```
 
    Suba `sync/bundle.manifest.json` + as partes. O recibo do ciclo é o manifesto do bundle;
-   `.md` não viaja no pacote nem cria uma segunda árvore no protótipo ([ADR 0390](../memory/decisions/0390-prototipo-fonte-unica-build-sem-canon-sombra.md)).
+   `.md` não viaja no pacote nem cria uma segunda árvore no protótipo ([ADR 0396](../memory/decisions/0396-prototipo-fonte-unica-build-sem-canon-sombra.md)).
    > **Por que é você, e não uma máquina do repo:** o gerador só roda de onde os arquivos estão em disco — [`gerar-payload-partes.mjs`](../scripts/design-sync/gerar-payload-partes.mjs) declara no cabeçalho *"NÃO roda do lado do agente consumidor"*, porque lá o conteúdo chegaria pelo contexto do agente, e escrever de lá é transcrição (proibida — ADR 0374). Sem pacote fresco, a descida cai na rota arquivo-a-arquivo, que esquece css/js por natureza. A **forma** do pacote (tamanho de parte, digest, delta × snapshot) já está acordada em [`CODE_NOTES.prompt-cowork-payload-gerador-2026-08-22.md`](CODE_NOTES.prompt-cowork-payload-gerador-2026-08-22.md) — nada muda nela.
 5. Pendência sua → `COWORK_NOTES.md` "📥 Pendentes"; leia o retorno do Code em `CODE_NOTES.md` + `FRESCOR`.
 6. **Nunca**: memória própria · despejo de sessão · transporte (PNG/dupes) · duplicar charter/process-doc.

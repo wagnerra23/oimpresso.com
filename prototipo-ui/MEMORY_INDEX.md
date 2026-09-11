@@ -39,7 +39,6 @@
 | ~~CONSTITUICAO.md~~ | **RETIRADO** → lápide aponta `CARTA_DESIGN_CC.md` (`_PROPOSTA-ratificacao-design`) | cowork | superseded |
 | PROTOCOL.md · CLAUDE_DESIGN_BRIEFING.md | **Constituição real do design (lei suprema)** | git | canon |
 | STATUS.md | Espinha viva (estado atual, lido 1º) | cowork | canon |
-| **`_arquivo/INDEX.md`** | **Manifesto do arquivo de design (v1.0) — origem→destino de tudo que saiu da raiz** | cowork | canon |
 | PLANO_ORGANIZACAO_CASA.md | Reset estrutural Cowork↔Repo | cowork | **executado** (faxina 2026-05-30 → `_arquivo/`) |
 | MEMORIA_F3_ZEROTOUCH.md | Padrão zero-toque Wagner | cowork | promote→ADR |
 | COWORK_NOTES.md · CODE_NOTES.md · SYNC_LOG.md | Inbox/handoff/sync entre [CC]↔[CL] | cowork/bridge | canon |

@@ -72,7 +72,7 @@
 - **raiz (ponto de entrada do Handoff · L-18)** — `README.md` tem que SEMPRE manter no topo o bloco "🤖 Claude Code — COMECE AQUI" (marcador `<!-- HANDOFF-ENTRY -->`) apontando `COWORK_NOTES.md → 📥 Pendentes`. [W] entrega via Share→Handoff (lê o README + implementa o arquivo aberto); sem o bloco, o Code não acha a fila. Qualquer [CC] que regenerar o README PRESERVA o bloco. Fiscal automático proposto (`readme_handoff_block_missing`).
 - **raiz (ponte viva)** — COWORK_NOTES.md, CODE_NOTES.md, SYNC_LOG.md, CLAUDE_CODE_BRIEFING.md, CODE_DESIGN_CONTRACT.md + `prototipo-ui-patch/`
 - **memory/decisions/** — ADRs (append-only)
-- **`_arquivo/`** — histórico organizado + manifesto versionado (`_arquivo/INDEX.md`): `telas/`, `referencia/`, `sessao-2026-05-30/`, `ds/`, `ds-historico/`, `bridge-processados/`, `auditoria/`. **Append-only: movido, nunca apagado.**
+- **Histórico removido** — `_arquivo/` foi eliminado por autorização explícita de [W] em 2026-09-11; a recuperação é pelo Git.
 
 ## ⚙️ Loop agora é 0-humano (git 2026-05-31 00:45 · `AUTOMACAO-LOOP-AUTONOMO.md`)
 - Merge autônomo `gh --admin` quando CI verde. Gate visual [W2] → CI (PR UI Judge Sonnet 4.5 + visual-regression). [W] só entra em **Tier 0** (ADR novo · multi-tenant · segredo · tooling/lint · produto).
