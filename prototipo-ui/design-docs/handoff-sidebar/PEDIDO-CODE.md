@@ -1,5 +1,9 @@
 # Pedido pro Claude Code — handoff do **Sidebar** (F1 → F3)
 
+> ⛔ **SUPERADO em 2026-09-10 por `cowork-inbox/sidebar/playbook/` — não execute este arquivo.**
+> Relido contra o `main` (árvore `af09f7c3a0fd`), **3 dos 4 deltas do §2 caíram**: **A** a aba Chat não está órfã, foi removida de propósito (UI-0011 single-pane) — quem está atrasado é o protótipo; **B** o atalho `G X` já existe (`useSidebarShortcut` + `.sb-kbd`); **C** o conflito de ghosts mudou de lado — o vivo implementou `GHOST_TETO = 5` contra a ADR 0180. Só **D** (modo `hidden` + `SidebarReopenHandle`) segue de pé, e virou a thread 04 do playbook.
+> Mantido como registro do ciclo. O que vale hoje está em `cowork-inbox/sidebar/playbook/00-INDICE.md`.
+
 > Gerado pelo Cowork em **2026-08-28** a partir de leitura do `main` NESTE turno
 > (árvore `7d7c8fd14310`): `prototipo-ui/cowork/sidebar.jsx` @92df6bb4c7cc ·
 > `resources/js/Components/cockpit/Sidebar.tsx` @a0bbf58a5f67 · `resources/css/cockpit.css` @7bbd6b277c04 ·

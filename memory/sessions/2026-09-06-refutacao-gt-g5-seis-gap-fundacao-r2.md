@@ -11,6 +11,8 @@ outcomes:
 
 # Refutação GT-G5 · rodada 2 · lote `claude/gap-md-seis-fundacao-shell-6897`
 
+## Contexto
+
 - **HEAD** `588f19c2f2` · base `80bc4ef8b9` · `git diff 80bc4ef8b9..HEAD -- memory/requisitos prototipo-ui scripts` = 13 arquivos (10 docs + 3 scripts).
 - **Sessão fresca**, sem leitura de `memory/sessions/*refutacao*` (nem `-r1`, nem os do #6897). Modelo: Fable 5.1 (tier máximo; gerador desconhecido nesta sessão — se foi Opus/Sonnet, tier superior atendido).
 - Clone raso: nenhuma data de `git log` é citada como recibo. `git show <ref>:<path>` rodado com `MSYS_NO_PATHCONV=1`. Temporários em `C:/Users/wagne/AppData/Local/Temp/claude/refut-r2/`.

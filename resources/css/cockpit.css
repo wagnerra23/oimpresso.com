@@ -1937,6 +1937,16 @@
 .cockpit .sb-menu-grouped { display: flex; flex-direction: column; padding: 8px; gap: 0; }
 .cockpit .sb-group { position: relative; }
 .cockpit .sb-group-noheader { padding: 0; }
+/* Faltava no accordion (só existia pro flyout) — o span herdava o sans 600 do
+   `.sb-group-l`. 9.5px literal: o ramp começa em 10.5px e os irmãos da faixa
+   (`.sb-kbd`, `.sb-ghost-count`) já são literais. Medido em 2026-09-10, PR #7198. */
+.cockpit .sb-group-n {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: normal;
+  color: var(--sb-text-dim);
+}
 .cockpit .sb-group-h {
   display: flex;
   align-items: center;
@@ -2419,10 +2429,11 @@
 .cockpit[data-theme="dark"] .sb-rail-flyout-l {
   color: oklch(0.78 0.08 var(--gh, 220));
 }
+/* `var(--mono)` não existe — caía no fallback, em silêncio. O token é `--font-mono`. */
 .cockpit .sb-rail-flyout .sb-group-n {
-  font-size: var(--fs-1);
-  font-family: var(--mono, ui-monospace, monospace);
-  color: var(--text-mute, var(--sb-text-dim));
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 9.5px;
+  color: var(--sb-text-dim);
   font-weight: 500;
 }
 

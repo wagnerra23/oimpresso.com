@@ -5,8 +5,8 @@ irmaos: Show.charter.md (lei) · SDD-espelho-e-jornada-v1.0.md §5.3 F4 + §6.2 
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a prova documental de por que uma ausência foi (ou não) abonada.
 owner: wagner
-last_run: "2026-07-27"
-last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Ponto · MySQL)"
+last_run: "2026-09-08"
+last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-test-results.json (fonte: test-results/pest-ponto-junit.xml). Lane PHP / Pest (Ponto - MySQL) run 34215745965 em main (sha dced5fd3d8, 2026-09-08T10:32Z): 302 passed - 1 skipped - 1009 assertions, coherent=true, provou_algo=true. Li ASSERTIONS, nao a conclusion: 1009 > 0 prova que a suite rodou e nao caiu no skip-as-pass da lane (LC-13). O unico skipped da run nao e UC (o coletor trata skip como nao-pass, e os 69 vieram pass). A lane e ADVISORY: reprova e visivel, nao bloqueia merge."
 ---
 
 # Casos de Uso & Aceite — Detalhe da intercorrência
@@ -23,9 +23,9 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 | UC | Caso de uso | Prio | Âncora | Teste | Status |
 |----|-------------|------|--------|-------|--------|
-| UC-INTSH-01 | Só rascunho pode ser editado | must | `CU-PONTO-05` + US-PONTO-003 | `JornadaWorkflowContratoTest` | 🧪 sem veredito |
-| UC-INTSH-02 | Intercorrência de outro empregador → 404 | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `JornadaWorkflowContratoTest` | 🧪 sem veredito |
-| UC-INTSH-03 | O detalhe mostra quem decidiu e por quê | must | `CU-PONTO-06` + US-PONTO-003 | `JornadaWorkflowContratoTest` | 🧪 sem veredito |
+| UC-INTSH-01 | Só rascunho pode ser editado | must | `CU-PONTO-05` + US-PONTO-003 | `JornadaWorkflowContratoTest` | ✅ verde na lane |
+| UC-INTSH-02 | Intercorrência de outro empregador → 404 | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `JornadaWorkflowContratoTest` | ✅ verde na lane |
+| UC-INTSH-03 | O detalhe mostra quem decidiu e por quê | must | `CU-PONTO-06` + US-PONTO-003 | `JornadaWorkflowContratoTest` | ✅ verde na lane |
 
 **[BACKLOG]:**
 

@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Reps.casos.md (a tela irmã) · RUNBOOK-config
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é um painel de compliance — o que ele afirma sobre imutabilidade e hash é o que o RH vai repetir numa fiscalização; e é a única tela do módulo que despeja a configuração do servidor no browser.
 owner: wagner
-last_run: "2026-09-04"
-last_run_ci: "1 UC rodado por mim no CT 100 (container oimpresso-staging, MySQL real), NAO em CI. O achado que originou o UC-CFGIDX-01 foi MEDIDO com sonda antes de existir teste: definindo `pontowr2.rep.certificado_icp_pass` com uma sentinela e batendo em /ponto/configuracoes, a sentinela aparecia no corpo da resposta (status 200) — o controller passava `config('pontowr2')` INTEIRO como prop Inertia, 14 blocos, e prop Inertia viaja no HTML servido ao browser. O conserto entra no MESMO PR, entao o UC nasce verde em vez de avermelhar a lane (o dono de quem bloqueia merge e governance/required-checks-baseline.json, nao esta linha). CT100 != CI: la a base persiste entre runs; verde la e CANDIDATURA, nao veredito."
+last_run: "2026-09-08"
+last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-test-results.json (fonte: test-results/pest-ponto-junit.xml). Lane PHP / Pest (Ponto - MySQL) run 34215745965 em main (sha dced5fd3d8, 2026-09-08T10:32Z): 302 passed - 1 skipped - 1009 assertions, coherent=true, provou_algo=true. Li ASSERTIONS, nao a conclusion: 1009 > 0 prova que a suite rodou e nao caiu no skip-as-pass da lane (LC-13). O unico skipped da run nao e UC (o coletor trata skip como nao-pass, e os 69 vieram pass). A lane e ADVISORY: reprova e visivel, nao bloqueia merge."
 ---
 
 # Casos de Uso & Aceite — Painel de parâmetros do ponto
@@ -22,7 +22,7 @@ last_run_ci: "1 UC rodado por mim no CT 100 (container oimpresso-staging, MySQL 
 
 | UC | Caso de uso | Prio | Âncora | Teste | Status |
 |----|-------------|------|--------|-------|--------|
-| UC-CFGIDX-01 | O painel não entrega ao browser a senha do certificado ICP | must `[T0]` | proibicoes (segredo) + charter §Mission (painel de leitura de *parâmetros*) | `ConfiguracaoContratoTest` | 🧪 verde no CT 100, sem veredito de lane |
+| UC-CFGIDX-01 | O painel não entrega ao browser a senha do certificado ICP | must `[T0]` | proibicoes (segredo) + charter §Mission (painel de leitura de *parâmetros*) | `ConfiguracaoContratoTest` | ✅ verde na lane |
 
 **[BACKLOG]** — o painel está quase todo fantasma: **13 das 15 chaves que ele lê não existem**
 

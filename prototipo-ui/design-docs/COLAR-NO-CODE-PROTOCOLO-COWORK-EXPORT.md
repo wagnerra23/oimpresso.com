@@ -72,7 +72,7 @@ Antes de escrever pedido novo: procurar `COLAR-NO-CODE-*<modulo>*` e `cowork-inb
 2. **O pedido da onda** (este pacote, a seção dela) — alvo, comportamento, DoD, placar.
 3. **O charter + `casos.md`** da tela — inclusive o bloco de contrato destilado que as ondas anteriores deixaram.
 4. `PARIDADE-area-<Mod>-*.md` — ordem, veredito e os ausentes com motivo das ondas passadas.
-5. `memory/proibicoes.md` + `LICOES_CC.md` — o erro já catalogado.
+5. `memory/proibicoes.md` + `LICOES_CC.md` — o erro já catalogado. **E `COLAR-NO-CODE-ACERTOS-E-LICOES.md` — o acerto catalogado** (o que a produção já resolveu e não se refaz; pedido [W] 2026-09-09).
 6. **Os 2-4 arquivos da âncora** no `main` (§3-bis) — no momento da onda.
 
 **Teste do estranho (o que torna a regra checável):** entregue o pedido a quem não viu nenhuma conversa. Se ele precisar perguntar *qualquer coisa* sobre o alvo, a âncora, o dado ou o critério de aceite, **o pedido está incompleto** — a falha é do pedido, não dele. Concretamente, o pedido passa quando responde sem histórico: quais arquivos editar · o que reusar · o alvo em número e ordem · o dado real por slot · o que **não** tocar · quando **parar** · como se prova.
@@ -173,6 +173,8 @@ D · COMO VALIDAR (recibo do PR)
   6 PLACAR no corpo do PR
   7 bloco de contrato destilado (§6) no charter — MESMO PR
   8 github.md: linha do ciclo + "bundle regenerado (<data> · N arquivos)"
+  9 ACERTOS: bloco do ciclo em COLAR-NO-CODE-ACERTOS-E-LICOES.md (§15) —
+    ≥1 acerto com sha OU "nenhum medido"; erro do ciclo com a regra colada
 
 ESCOPO FECHADO: só esta seção. Não tocar <vizinhas nomeadas>. Não tocar no shell.
 ```
@@ -320,7 +322,7 @@ A 1ª sonda leu `getComputedStyle(...).color` = `oklch(0.94 0.005 90)` com um re
 
 ## 6 · O canal (o que sai, por qual rota)
 
-**4 saídas, e só 4:** ① **build** (`jsx/css/html`) → `prototipo-ui/cowork/` · ② **pedido** (ponte `.md`) → `prototipo-ui/` root · ③ **contrato destilado** → `<Tela>.charter.md`/`.casos.md` · ④ **recibo** → `github.md`.
+**4 saídas, e só 4:** ① **build** (`jsx/css/html`) → `prototipo-ui/cowork/` · ② **pedido** (ponte `.md`) → `prototipo-ui/` root · ③ **contrato destilado** → `<Tela>.charter.md`/`.casos.md` · ④ **recibo** → `github.md`. **⑤ acerto+lição** → `COLAR-NO-CODE-ACERTOS-E-LICOES.md` (§15, acumulativo) — são **5** desde 2026-09-09.
 **Nunca sai:** memória · process doc · charter duplicado · screenshot · dupe `?v=` · `.bak` · manifesto/mapa/inventário **derivado do build**.
 
 **Rota — com a consequência medida da divisão em 1 arquivo por tela.** Fronteira do `DesignSync.get_file` (`protocolo.config.mjs:214-217`): **> ~48 KB** volta persistido e desce pela rota avulsa; **< 48 KB** volta inline e **não desce** por ela. Medido em 2026-09-03: o `forja-page.jsx` era o único grande da área (90.365 B) e virou shell de ~41 KB ⇒ **os 17 arquivos da Forja estão todos abaixo do piso**, e a descida **exige o pacote**:
@@ -328,6 +330,27 @@ A 1ª sonda leu `getComputedStyle(...).color` = `oklch(0.94 0.005 90)` com um re
 node scripts/design-sync/gerar-payload-partes.mjs --root <dir> --out sync/ --previous sync/bundle.manifest.json
 ```
 Rodava só no repo até 2026-09-07, quando **[W] revogou a ADR 0374**; desde então o pacote PODE ser gerado do lado do agente — e foi (2026-09-07: 281 arquivos, 43 partes, bundleId 3fe98b64..., auditado remontando as partes: o sha de todos os pedaços confere). **Ressalva que viaja com o pacote:** a canonicalização de bundleId/manifestSha256/changesSha256 é do agente (sha256 sobre "path:sha" + JSON.stringify), não do gerador — se o validador do Code usar outra, ele recusa só esses 3 campos do cabeçalho; os sha por arquivo e por pedaço são independentes disso. Paridade do espelho é do `cowork-mirror-freshness.mjs` + `cowork-ssot-guard` — **não pedir script novo nem exceção do R1**.
+
+### 6-bis · O lote fecha por INCLUSÃO — a estrutura que não deixa errar (2026-09-09)
+**O que quebrou:** o handoff (3) e o bundle v2 foram recusados carregando `cowork-inbox/_schema/playbook.schema.json` e `_scripts/placar-indice.mjs` — **máquina do repo**, em cópia anterior a #7063/#7071. Descê-las apagaria `constituicao`/`nota_caminho`/`custo`/`afeta` do schema e o `descobrirIndices` do placar. Controle positivo do diagnóstico: o playbook `patrimonio`, **válido no `main`**, reprovava contra o schema do ZIP — playbook bom reprovando denuncia o schema, não o playbook.
+
+**A causa não é descuido: é lista de exclusão.** Toda proibição por enumeração (`nunca sai: memória · screenshot · .bak…`) fica atrás do próximo tipo de arquivo inventado. Inverte-se:
+
+> **NADA ENTRA NO LOTE POR ESTAR NA PASTA. Entra por pertencer a uma das 4 saídas do §6, e cada arquivo declara qual.** O que não casa **não é filtrado — invalida o lote inteiro**. Fail-closed: na dúvida o pacote não sai.
+
+| classe | forma | veredito no lote |
+|---|---|---|
+| **build** | `prototipo-ui/cowork/**` **declarado no host** `oimpresso.com.html` (`<link>`/`src`/`data-src`) | entra |
+| **ponte** | `cowork-inbox/<mod>/playbook/{00-INDICE,NN-*,_*}.md` · `COLAR-NO-CODE-*.md` | entra |
+| **máquina do repo** | `_schema/**` · `_scripts/**` · `scripts/**` · `.github/**` | **invalida o lote** — muda só por PR no eixo dela |
+| **derivado** | manifesto de export · mapa tela↔arquivo · inventário · retrato | **invalida o lote** (L-42 · ADR 0256 — é COMANDO, não arquivo) |
+
+**Três travas, em ordem de força:**
+1. **Não ter a cópia.** `_schema/` e `_scripts/` **removidos deste projeto** hoje. O schema se lê do `main` **no turno** — foi exatamente essa leitura que pegou o erro de hoje (meu `00-INDICE` da `ds-atomos` não validaria: `sha_base` por `sha`, `decisoes` como objeto, `dono:"[CL]"` fora do enum, `provas` como string). Sem cópia não há cache, sem cache não há regressão: é a única trava que não depende de disciplina.
+2. **Cabeçalho prova frescor.** `generatedAt` **igual ao do lote anterior ⇒ lote recusado sem abrir** — não foi regenerado, e o defeito viaja idêntico. O gerador roda **com `--previous`**, senão o manifesto não sabe o que mudou.
+3. **Máquina no repo, dono existente.** Proposta de **R4 no `cowork-ssot-guard.mjs`** (não script novo — R1/R2/R3 já moram lá): PR cujo autor é o eixo Cowork tocando `_schema/**` ou `_scripts/**` **falha**. Enquanto R4 não existir, a trava é 1 + 2 e ela é **minha**, não da máquina — e isso fica dito, não subentendido.
+
+**Emitir `00-INDICE.md` exige o `_schema` real no turno.** Mesma família do erro 2 do ciclo (`_ds/` não é evidência sobre o `main`): escrever contra o schema lembrado é escrever contra um espelho velho.
 
 ### Bloco de contrato destilado (colar no charter, 1 por seção, no PR da seção)
 ```md
@@ -442,15 +465,18 @@ Nada aprende sozinho. O aprendizado existe porque cada onda deixa **3 resíduos 
 
 ### Forma do playbook — `prototipo-ui/design-docs/cowork-inbox/<mod>/playbook/`
 ```
-playbook.json        FONTE (schema cowork-inbox/_schema/playbook.schema.json): sha · variáveis (${PAGES}…) · decisões [W]
-                     · threads[{id, dono, prefixo, nao_toca, depende_threads, depende_decisoes, bloqueio, provas[]}]
-                     · ESTADO NÃO EXISTE AQUI — é derivado (Lei 2 por construção)
+00-INDICE.md         FONTE = **primeiro bloco ```json embutido neste .md** (só `.md` roteia pelo DesignSync; `.json` solto não chega).
+                     Schema: `prototipo-ui/design-docs/cowork-inbox/_schema/playbook.schema.json` **no `main`, lido no turno** —
+                     `additionalProperties:false` em tudo: topo exige `modulo·sha·gerado·threads`; `decisoes` é ARRAY
+                     (`id·pergunta·respondida·resposta·custo·afeta·define·destrava`); thread exige `id·titulo·dono·arquivo·prefixo·provas`;
+                     `dono` ∈ CC|CL|W|W+CL|CC->CL (sem colchetes); `provas[]` são OBJETOS `{tipo,path,padrao|chaves|testes,guarda,nota}`.
+                     · variáveis (${PAGES}…) · decisões [W] · ESTADO NÃO EXISTE AQUI — é derivado (Lei 2 por construção)
 00-INDICE.md         render humano: LEVANTAR por estado · abertura de thread · placar (saída do script) · revisão 3× · resíduo
 NN-<view>.<secao>.md 1 thread. Cabeçalho: sessão · prefixo · NÃO toca · base sha
                      · read-order do main · A–D (§4) com ancoragem dupla · 4-ter · PROVA · PARAR SE
 _saida-NN.md         escrito pela própria thread — prova IMPLÍCITA de toda thread; sem ela nada é "feito"
 ```
-**Placar da lista = máquina, hoje:** `node cowork-inbox/_scripts/placar-indice.mjs --indice <playbook.json> --root . --proximo` (zero deps; ponte pro Code → `scripts/qa/placar-indice.mjs` ou `placar.mjs --indice`, PR-A8). Deriva `feito · em curso · proximo · pendente · bloqueada`, nomeia ausente por thread e arquivo, imprime `PRÓXIMO:`; `--todos 'cowork-inbox/*/playbook/playbook.json'` soma os módulos — **é o unificador**, não um doc. Testado 2026-09-05 com repo simulado: 7 casos incl. T5 (apagar 1 prova → X−1 nomeando) e contrato fora do schema (nomeia as chaves).
+**Placar da lista = máquina, hoje:** `node prototipo-ui/design-docs/cowork-inbox/_scripts/placar-indice.mjs --indice <00-INDICE.md> --root . --proximo` — **no `main`; não existe cópia deste lado** (§6-bis). Ponte pro Code → `scripts/qa/placar-indice.mjs` ou `placar.mjs --indice`, PR-A8). Deriva `feito · em curso · proximo · pendente · bloqueada`, nomeia ausente por thread e arquivo, imprime `PRÓXIMO:`; `--todos 'cowork-inbox/*/playbook/playbook.json'` soma os módulos — **é o unificador**, não um doc. Testado 2026-09-05 com repo simulado: 7 casos incl. T5 (apagar 1 prova → X−1 nomeando) e contrato fora do schema (nomeia as chaves).
 - **Anti-scatter:** se `cowork-inbox/<mod>/` já tem `PEDIDO-*`/`EXPORT-*` (HRM, CMS, Connector, Notificações…), o playbook **absorve** aquele pedido como threads — não nasce um terceiro doc sobre o mesmo módulo.
 - **Granularidade e unificação (decisão de forma, 2026-09-05):** **1 playbook por MÓDULO** (tela/seção = thread dentro dele), nunca por tela. Nasce **só quando o módulo entra em vaga** — playbook antecipado é cache que envelhece (L-42). Tela 🔵 não ganha playbook: é 1 thread PUXAR dentro do módulo dela. **O unificador já existe e não se recria:** `cowork-inbox/ponte/00-INDEX.md` (programa S1–S10) ganha **1 linha por módulo com playbook** (`módulo · caminho do 00-INDICE · feito/pendente/bloqueada · vaga`), escrita **só pelo S0**; a máquina que soma tudo é o `placar.mjs --indice` iterando `cowork-inbox/*/playbook/00-INDICE.md` (PR-A8). Limite: módulos em execução simultânea = vagas abertas (3–4), não "todos".
 - **Onde NÃO mora:** `prototipo-ui/cowork/` (guard R1). O índice é **pedido** (lista de threads a executar, com sha), não inventário — é o mesmo estatuto da `ponte/01-LISTA-COMPLETA.md`.
@@ -461,7 +487,7 @@ _saida-NN.md         escrito pela própria thread — prova IMPLÍCITA de toda t
 ### Verificador — dois níveis, e o que conta como "terminou"
 1. **Thread:** `_saida-NN.md` com os 5 itens (feito por caminho · não feito e por quê · pedido literal · descobertas · prefixo tocado). Sem `_saida`, a thread **não conta** — nem que o PR esteja mergeado.
 2. **Lista:** `PLACAR <Mod>` lê `00-INDICE.md` e, **lendo o `main` no turno**, confere cada `prova:` — arquivo existe · teste Feature existe · `contract.json` valida no schema · `design-spec.json` derivado · `_saida` presente. Devolve `entregue X de Y · ausentes <thread> por <motivo>`; reincidência de motivo = fila de [W] (`RESÍDUO`).
-3. **Máquina:** `cowork-inbox/_scripts/placar-indice.mjs` **já existe como ponte** (testado); PR-A8 o leva para `scripts/qa/` (ou `placar.mjs --indice`) — **não** script paralelo. Aceite T5 da lista: apagar uma `prova:` faz X cair para X−1 **nomeando a thread e o arquivo** (verificado).
+3. **Máquina:** `prototipo-ui/design-docs/cowork-inbox/_scripts/placar-indice.mjs` **já vive no `main`** (não há cópia aqui — §6-bis); PR-A8 o leva para `scripts/qa/` (ou `placar.mjs --indice`) — **não** script paralelo. Aceite T5 da lista: apagar uma `prova:` faz X cair para X−1 **nomeando a thread e o arquivo** (verificado).
 4. **Fim** = 100% das provas verdes **e** T7 por seção. Antes disso o estado é "em curso", nunca "pronto".
 
 ### O que o comando NÃO faz (e não deve)
@@ -606,13 +632,19 @@ E a ficha do pedido **que o doc de 04/09 emitia**, reprovada retroativamente: `l
 | origem (projeto Cowork) | destino no `main` | tipo | desce quando |
 |---|---|---|---|
 | `oimpresso.com.html` · `*-page.jsx` · `*.css` | `prototipo-ui/cowork/` | **build** | a cada ciclo de UI |
-| `CONSTITUICAO-COWORK.md` | `prototipo-ui/` (raiz) | **lei** | **1×**, primeiro de todos — depois só emenda |
-| `COLAR-NO-CODE-PROTOCOLO-COWORK-EXPORT.md` | `prototipo-ui/` (raiz) | **norma** | quando o método muda |
-| `DOSSIE-PROTOCOLO-COWORK.md` | `prototipo-ui/` (raiz) | **evidência** | junto com a norma |
-| `COLAR-NO-CODE-<mod>-*.md` (ponteiro) | `prototipo-ui/` (raiz) | **ponte** | junto com o playbook do módulo |
+| `CONSTITUICAO-COWORK.md` | `prototipo-ui/design-docs/` | **lei** | **1×**, primeiro de todos — depois só emenda |
+| `COLAR-NO-CODE-PROTOCOLO-COWORK-EXPORT.md` | `prototipo-ui/design-docs/` | **norma** | quando o método muda |
+| `DOSSIE-PROTOCOLO-COWORK.md` | `prototipo-ui/design-docs/` | **evidência** | junto com a norma |
+| `COLAR-NO-CODE-<mod>-*.md` (ponteiro) | `prototipo-ui/design-docs/` | **ponte** | junto com o playbook do módulo |
+| `COLAR-NO-CODE-ACERTOS-E-LICOES.md` | `prototipo-ui/design-docs/` | **ponte (acumulativa)** | **a cada ciclo** — bloco novo em cima; as lições descem como PROPOSTA pra `memory/LICOES_CC.md`, nunca commit direto |
 | `cowork-inbox/<mod>/playbook/**` | `prototipo-ui/design-docs/cowork-inbox/<mod>/playbook/` | **pedido** | **pasta inteira**, nunca arquivo solto |
-| `contrato/*.contract.json` | `prototipo-ui/contrato/` | **contrato** | com a onda que o cria |
+| `*.contract.json` **nascido no Cowork** | `prototipo-ui/design-docs/contrato-cowork/` | **contrato (estágio)** | ao emitir — nome minúsculo do módulo |
+| `*.contract.json` **promovido ao CI** | `prototipo-ui/contrato/` | **contrato (vigente)** | quando vira advisory/required no `contrato-de-tela.yml` |
 | `sync/bundle.manifest.json` + `sync/payload.part*.json` | `sync/` | **pacote** | ao fechar ciclo (ADR 0387) |
+
+**Correção de destino — 2026-09-08, medida na árvore `0ff7ff328e6d`.** Este bloco dizia `prototipo-ui/` (raiz) para norma, dossiê, constituição e ponteiros. **Estava errado:** eles vivem em **`prototipo-ui/design-docs/`** — é lá que estão hoje o `COLAR-NO-CODE-PROTOCOLO-COWORK-EXPORT.md` (53.386 B), o `DOSSIE-PROTOCOLO-COWORK.md` (79.195 B), o `github.md` e os 15 `COLAR-NO-CODE-*`. Colar na raiz teria criado pasta paralela com o mesmo nome de arquivo — o pior defeito possível num mapa de destinos.
+
+**E há DUAS pastas de contrato, com papéis diferentes** (também medido hoje): `prototipo-ui/design-docs/contrato-cowork/` é **estágio** — 3 arquivos, nome minúsculo do módulo (`patrimonio.contract.json`, `configuracoes.contract.json`, `venda-menu.contract.json`), origem Cowork; `prototipo-ui/contrato/` é **vigente** — 31 arquivos, nome de tela (`fiscal-cockpit`, `purchase-create`), é a que o `contrato-de-tela.yml` lê. Contrato novo **nasce no estágio e é promovido**, não desce direto no vigente.
 
 **Três invariantes de destino** (violar qualquer uma reprova no CI):
 1. **Zero `.md` em `prototipo-ui/cowork/`** — guard R1 (`cowork-ssot-guard.mjs`). Doc que "acompanha o build" vai pra raiz ou pro playbook, nunca junto.
@@ -626,3 +658,71 @@ MAPA EXPORT           ← comando; devolve destino + sha256(12) + bytes por arqu
 O Code confere o sha depois de colar. Se não bater, o arquivo mudou entre a geração e o commit — **recola, não "ajusta"**.
 
 **O que este mapa NÃO resolve:** ele diz *onde*, não *se já está lá*. Arquivo que eu emiti e você não colou continua listado aqui e ausente no `main` — a paridade espelho×git é do `cowork-mirror-freshness.mjs` (`--absent-local` e `--check-orfaos`), não deste bloco.
+
+---
+
+## 15 · ACERTOS — o acerto catalogado (pedido [W] 2026-09-09) · vale para TODO módulo
+
+> **A assimetria que isto conserta.** O sistema catalogava **erro** (`memory/LICOES_CC.md`), **ausência** (placar) e **proibição** (`memory/proibicoes.md`). Nada catalogava **o que a produção já acertou** — e é por isso que o mesmo diagnóstico errado nasceu duas vezes: Fiscal 2026-09-03 ("PR-A1 pendente", já entregue via `_lib/botao-fiscal.ts`) e Ponto 2026-09-09 ("não usa o DS", usa em 21 Pages). Placar diz o que falta; **ninguém dizia o que já está certo, e por isso se refazia**.
+> **Palavras de [W]:** *"deveria ir acrescentando e informando pro Code o que ele acertou do que você já escreveu, e as novas memórias — isso mantém o Code para não errar novamente."*
+
+**Arquivo único, cross-módulo, append-only:** `COLAR-NO-CODE-ACERTOS-E-LICOES.md` → destino `prototipo-ui/design-docs/` (§14). **Um bloco por ciclo, mais novo em cima; bloco antigo nunca se reescreve** — o erro registrado é o valor. Não é por módulo: o acerto do Fiscal é o que evita o erro do Ponto.
+
+### 15.1 · Quando é obrigatório
+**Todo ciclo que leu o `main`** — mesmo o que não emite pedido. Sem bloco, o ciclo não fechou (§4 bloco D item 9). Se nada foi medido, escreve-se **"nenhum acerto medido neste ciclo"**: ausência declarada é dado; silêncio é omissão grátis.
+
+### 15.2 · Forma do bloco (3 partes, nenhuma opcional)
+| parte | o que entra | o que **reprova** |
+|---|---|---|
+| ✅ **acerto** | tabela `A1..An`: o que está certo no `main` + **caminho + sha** + **consequência prática** ("não refazer X", "não re-perguntar Y") | acerto sem sha/caminho — é elogio, não evidência. Acerto que eu não medi **neste turno** |
+| ❌ **erro** | o que eu afirmei e era falso + **a regra colada** (o que muda no método, em imperativo verificável) | erro sem regra = desabafo. Erro de gosto ("ficou feio") não entra: só o que uma regra evita |
+| 🔁 **reincidência** | quando o erro é o **mesmo** de um ciclo anterior: citar o ciclo e o que a repetição prova sobre o método | inventar reincidência sem o ciclo anterior nomeado |
+
+**Numeração das lições é do [CL] no merge.** Eu emito `L-??` como **proposta** para `memory/LICOES_CC.md` — nunca invento número, nunca commito direto (o `01-LISTA-COMPLETA.md` 7.13 já dizia "proposta no PR").
+
+### 15.3 · As duas regras que nasceram aqui e valem para tudo
+1. **Controle positivo antes de afirmar ausência.** "Zero resultado" **não** é evidência de que não existe, até rodar uma busca que **tem** de casar. Causa-raiz medida em 09/09: procurei `from "@/Components/…"` com aspas **duplas**; o repo usa **simples** → "No matches" virou o fato "o Ponto não usa o DS", errado em 21 arquivos. A regra do §5-bis ("toda sonda nova roda um caso de sanidade de valor conhecido antes de qualquer veredito") **passa a valer para busca de código**, não só para sonda de DOM. Ordem: (1) controle positivo · (2) ler 1 arquivo real do módulo · (3) só então afirmar. **Custo: 3 chamadas.**
+2. **O espelho não é evidência sobre o `main`.** `_ds/…/_ds_bundle.js` é componente **compilado** do espelho. Toda frase "o DS não tem X" exige o `.tsx` real lido no turno — senão a frase honesta é **"o bundle do espelho não tem X"**, que é outra afirmação, com outro dono. (Em 09/09 afirmei lacuna de passthrough no `Input`; `ui/input.tsx` faz `{...props}`.)
+
+### 15.4 · Onde é lido
+Entra no read-order do §2-quater **junto** com `LICOES_CC.md`: o pre-flight injeta **erro** catalogado, este injeta **acerto** catalogado. Consequência direta na hora de escrever o pedido — o bloco `B · NÃO INVENTAR` passa a ter um irmão: **NÃO REFAZER**, com a lista de acertos que já cobrem aquele eixo.
+
+### 15.5 · O que isto NÃO é
+Não é changelog (isso é `github.md`) · não é elogio ao [CL] (acerto sem sha não entra) · não é memória (memória é `memory/**`, no git; aqui é **ponte**, e as lições descem como proposta) · não é máquina nova: **zero script, zero gate de CI** — é um arquivo que se acrescenta. Se algum dia precisar de máquina, ela deriva daqui, não o contrário.
+
+---
+
+## 16 · ADVERSÁRIO — o papel que produz as descobertas (pedido [W] 2026-09-09)
+
+> **A evidência que obriga isto.** Neste ciclo, **nenhum** achado veio de auto-revisão. Vieram todos de alguém atacando a afirmação: o Code **recusando** o handoff (3) e o bundle v2 · a leitura do `main` **derrubando o meu próprio** `00-INDICE` (schema lembrado ≠ schema real) · o `patrimonio` **reprovando** e com isso provando que o schema velho era o do ZIP · o caso de sanidade **13,62** validando a sonda de contraste. Revisão que concorda é ruído; o que mede é a tentativa de quebrar.
+
+**Não nasce papel novo:** o **[CD]** (crítica F1.5) já existe nas personas. O que muda é que ele deixa de "revisar" e passa a ter **arma, alvo e veto**.
+
+### 16.1 · A passada adversarial — 3 ataques, arma fixa
+Não é bloco novo no pacote (§4-quater segue com 10). É uma **passada sobre os 10**, atacando as únicas três coisas que um pacote afirma:
+
+| ataque | pergunta | arma obrigatória | se não rodar |
+|---|---|---|---|
+| **A · à medida** | esse número é reprodutível? | remedir **depois** da limpeza, largura declarada, **caso de sanidade de valor conhecido** antes do veredito (§5-bis) · T5: sabotar o insumo tem de **derrubar** o número | número vira "provisório", não alvo |
+| **B · à ausência** | isso realmente não existe? | **controle positivo** na busca (um termo que TEM de aparecer) + abrir **1 arquivo real** do módulo | a frase troca para "não encontrei", que é outra afirmação |
+| **C · à proveniência** | isso é fato sobre o `main`? | o arquivo real do `main` **no turno** — espelho `_ds/`, bundle compilado e cópia local **não valem** | a frase troca para "o espelho tem X" |
+
+### 16.2 · O que o adversário escreve (5 linhas, ou não conta)
+Caro demais é pulado; por isso a forma é curta e fixa:
+```
+ATAQUE A · <número atacado> · <arma rodada> · <sobreviveu | caiu: valor certo>
+ATAQUE B · <ausência atacada> · <controle positivo usado> · <sobreviveu | caiu>
+ATAQUE C · <fato sobre o main> · <arquivo + sha lidos no turno> · <sobreviveu | caiu>
+NÍVEL    · a frase mais forte do pacote é E<n> e o comando que a sustenta é <…>   (contrato de evidência)
+VEREDITO · aceito | recusado por <claim nomeada>   ("está bom" NÃO é veredito)
+```
+**Quem não quebrou nada declara o que tentou.** Adversário que só diz "ok" é carimbo — e carimbo é pior que ausência, porque produz confiança sem lastro.
+
+### 16.3 · As três regras que impedem o teatro
+1. **O adversário não pode compartilhar a hipótese do autor.** "Produção está atrás do protótipo" falhou **2 de 2** vezes em que foi testada (Fiscal 03/09 · Ponto 09/09) — quem ataca começa da hipótese oposta: *a produção está à frente e o meu alvo é que está errado*.
+2. **Auto-adversário é obrigatório, e vem antes.** Todo número que eu emito viaja com **o que o falsificaria**. Número sem falsificador não é medida, é lembrança — e §5-bis já mandou corrigir o alvo aqui quando ele falha (exportar 3,18 com selo é o anti-exemplo).
+3. **O veto nomeia a claim.** Recusa sem claim nomeada é gosto; com claim nomeada é medição — e vira linha no `COLAR-NO-CODE-ACERTOS-E-LICOES.md` (§15), do lado ❌ se caiu, do lado ✅ se resistiu.
+
+**Onde já roda por máquina (não duplicar):** `--selftest` com BITE+controle em cada sonda (`ds-anchor-check.mjs`, 15 casos) · T5 do placar (apagar prova derruba X→X−1 nomeando a thread) · o gate de recusa do lote (§6-bis). O adversário humano ataca o que **nenhuma dessas** cobre: a hipótese, a proveniência e a palavra escolhida.
+
+**O que isto NÃO faz:** não substitui [CA] (a11y F3.5) nem o T7 · não autoriza recusar por estilo · e não me deixa dizer "revisado" — só "atacado por A/B/C, sobreviveu ao que rodei".

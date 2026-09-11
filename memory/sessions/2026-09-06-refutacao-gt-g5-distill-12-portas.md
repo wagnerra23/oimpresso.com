@@ -8,6 +8,8 @@ related_adrs: ["0291-distiller-modulo-verdade-contrato-emenda-0270-f3", "0275-sc
 
 # Re-destilação das 12 portas stale + refutação GT-G5 (2026-09-06)
 
+## Contexto
+
 > Protocolo: `memory/requisitos/Governance/PROTOCOLO-REFUTADOR-BACKFILL.md` §2–§4. Gerador: `jana:distill-module-truth` (LLM `gpt-4o-mini` via `laravel/ai`, PiiRedactor no write) + correções entre rodadas pelo gerador (sessão principal, §2.6). Refutadores: Claude Opus 5 / Opus 4.5 em subagente com contexto próprio, uma instância nova por lote e por rodada, instruídos a não abrir os logs de rodadas anteriores. Tipo `prosa`, amostra 100% (12 de 12 arquivos, corpo integral).
 
 ## Como a destilação rodou (o que a nota_absorcao do baseline pedia)

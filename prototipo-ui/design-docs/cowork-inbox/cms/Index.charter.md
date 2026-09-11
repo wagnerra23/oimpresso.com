@@ -11,7 +11,7 @@ related_adrs: [93, 94, 149, 180, 190, 286, 300]
 tier: A
 charter_version: 1
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/cowork/cms/cms-page.jsx"
+  blueprint_cowork: "prototipo-ui/cowork/cms-page.jsx"
   blueprint_screenshot_approval: "pendente [W2]"
   derived_screens: [Index, Editor(drawer PT-02)]
   divergence_from_blueprint: "nenhuma — PT-01 lista + PT-02 drawer"
@@ -20,7 +20,7 @@ related_us: [US-CMS-001, US-CMS-002]
 
 # Page Charter — /cms/cms-page (DRAFT)
 
-> **Status:** draft — o F1 existe (`prototipo-ui/cowork/cms/cms-page.jsx`), a tela viva **não**: hoje `/cms/cms-page` ainda é Blade/AdminLTE (`cms::page.index|create|edit`) com TinyMCE, `fileinput`, `swal`, `toastr` e `$.ajax` no delete. Vira `live` quando [W2] aprovar o screenshot da tela Inertia em produção.
+> **Status:** draft — o F1 existe (`prototipo-ui/cowork/cms-page.jsx`), a tela viva **não**: hoje `/cms/cms-page` ainda é Blade/AdminLTE (`cms::page.index|create|edit`) com TinyMCE, `fileinput`, `swal`, `toastr` e `$.ajax` no delete. Vira `live` quando [W2] aprovar o screenshot da tela Inertia em produção.
 > Backend canon: `Modules\Cms\Http\Controllers\CmsPageController` (`index/create/store/edit/update/destroy`).
 > Middleware da rota: `web · SetSessionData · auth · language · timezone · AdminSidebarMenu · superadmin · throttle:60,1`.
 
@@ -94,7 +94,7 @@ Uma tela para **todo o conteúdo do site**: páginas, publicações do blog e de
 
 - Backend: `Modules/Cms/Http/Controllers/CmsPageController.php`
 - Blade que morre: `Modules/Cms/Resources/views/page/{index,create,edit}.blade.php`
-- F1: `prototipo-ui/cowork/cms/cms-page.jsx` (+ `cms-extras.jsx`, `cms-page.css`)
+- F1: `prototipo-ui/cowork/cms-page.jsx` (+ `cms-extras.jsx`, `cms-page.css`)
 - Precedente de onde a página mora: `Modules/Cms/Resources/js/Pages/Site/Page.tsx` + `Page.charter.md` (o módulo é dono das próprias páginas Inertia)
 - Contrato: `prototipo-ui/contrato/cms-content.contract.json` (ADR 0286)
 - Casos: `Index.casos.md`

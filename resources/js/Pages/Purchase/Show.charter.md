@@ -2,7 +2,7 @@
 id: resources-js-pages-purchase-show-charter
 page: /purchases/{id}
 component: resources/js/Pages/Purchase/Show.tsx
-related_prototype: n/a (tela de detalhe bespoke — não segue um dos 5 Padrões de Tela)
+related_prototype: prototipo-ui/cowork/compras-page.jsx (DrawerView)
 related_visual_comparison: memory/requisitos/Compras/_telas/show-visual-comparison.md
 related_us: [US-MWART-008]
 owner: wagner
@@ -19,6 +19,16 @@ charter_version: 1
 > **Status:** draft criado em 2026-07-11 no lote de cobertura de charters. Wagner aprova **Non-Goals + Anti-hooks** ANTES de virar `status: live`.
 >
 > Backend: `app/Http/Controllers/PurchaseController@show` (rota `GET /purchases/{id}`). Detalhe read-only de uma compra — substitui os Blade legacy `show.blade.php` + `show_details.blade.php` (430+ linhas) e mata o bug 500 do barcode. Classificação de PT: SILENCIOSO (detalhe bespoke — usa cards + tabela de itens, sem assinatura de PT-03 tipo FsmActionPanel/Timeline/`<dl`/StatCard).
+>
+> **Âncora de design promovida em 2026-09-09** (era `n/a (tela de detalhe bespoke)`): `prototipo-ui/cowork/compras-page.jsx` — o `DrawerView` (`:539`), com as abas Resumo · Itens · Documentos · Pagamentos · Histórico (`:543-547`). O hub é fonte de design e não porte reverso pelo mesmo recibo do [`Index.charter.md`](Index.charter.md): `compras-page.jsx:2` declara *“Migrado de Compras.html”*.
+>
+> ⚠️ **Divergência REGISTRADA, não corrigida — e ela é de duas ordens.**
+>
+> **1 · Forma:** o protótipo desenha um **drawer** lateral sobre a lista; a tela viva é uma **página** própria (`/purchases/{id}`). Pelo eixo FORMA o protótipo é soberano ([ADR UI-0029](../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)), então isto é **dívida conhecida** — nunca licença pra manter. Mudar a forma da tela é escopo de outro PR e decisão [W].
+>
+> **2 · Cobertura:** medido em 2026-09-09, das 5 abas do `DrawerView` **3** existem como seção na página — Resumo (`Show.tsx:233`), Itens (`:251`), Pagamentos (`:296`) — e **2 não existem**: **Documentos** (o protótipo mostra a chave da NF-e) e **Histórico** (timeline). A página tem ainda *Totais* (`:326`) e *Notas adicionais* (`:356`), que o drawer não desenha.
+>
+> ℹ️ **A tela não nasceu do protótipo** — o cabeçalho do `.tsx` declara que ela substitui `show.blade.php` + `show_details.blade.php`. A âncora aqui diz de onde o desenho **deve** vir daqui pra frente, não de onde a tela veio.
 
 ---
 

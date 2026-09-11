@@ -1,0 +1,61 @@
+name: Governance filtros gate — os 4 itens de front dos GAP-SPEC
+
+# Trava os 4 comportamentos que este PR construiu a partir dos GAP-SPEC de 2026-09-06
+# (`memory/requisitos/Governance/governance-*-gap.md`), onde estavam marcados
+# "**Decidir.** Construir ou rejeitar por escrito":
+#   - Audit         → "Limpar filtros" (reset dos 4 filtros num clique)
+#   - Policies      → busca local + aviso "Alternar não deixa rastro"
+#   - ModuleGrades  → "Limpar" no vazio do filtro
+#
+# Por que um gate e não só o spec no repo: o padrão do projeto é wirar cada spec vitest
+# (o gate irmão `cobranca-filtros-gate.yml` mediu 26 de 41 wirados em 2026-09-03; os outros
+# são dívida). Spec commitado que ninguém invoca é bug, não neutralidade.
+#
+# SINAL DE CUSTO (medido 2026-09-09, não suposto): o e2e `e2e/governance-policies.spec.ts`
+# EXISTE mas NÃO consegue exercitar estes comportamentos — o próprio spec declara que
+# nenhum seeder popula `mcp_governance_rules`, então a tela cai no `<EmptyState>` e os
+# casos que dependem de uma regra existir usam `test.skip`. As baselines de pixel
+# (`PixelBaselineTest`) fotografam, não clicam. E `tests/js/*governance*` era ZERO.
+# Sem esta lane, os 4 comportamentos ficam inertes — LC-30 no ledger, 2 ocorrências.
+#
+# `paths` inclui os ARQUIVOS SOB TESTE de propósito: sem eles, mexer no Policies.tsx não
+# dispararia o teste do Policies.tsx — gate mudo com cara de cobertura (§5 2026-08-02).
+#
+# Refs: ADR 0264 (trio) · ADR 0298 (teto: terminal + anchor + promote_by) ·
+#       ADR 0275 (nasce advisory; promoção a required é flip [W]).
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, reopened, ready_for_review, synchronize]
+    paths:
+      - 'resources/js/Pages/governance/Audit.tsx'
+      - 'resources/js/Pages/governance/Policies.tsx'
+      - 'resources/js/Pages/governance/ModuleGrades/Index.tsx'
+      - 'tests/js/governance-filtros.test.tsx'
+      - '.github/workflows/governance-filtros-gate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'resources/js/Pages/governance/Audit.tsx'
+      - 'resources/js/Pages/governance/Policies.tsx'
+      - 'resources/js/Pages/governance/ModuleGrades/Index.tsx'
+      - 'tests/js/governance-filtros.test.tsx'
+
+concurrency:
+  group: governance-filtros-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  governance-filtros:
+    name: Governance · filtros e busca das 3 telas (vitest/jsdom)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install deps
+        run: npm ci
+      - name: Comportamento dos filtros — Audit · Policies · ModuleGrades (vitest)
+        run: npm run test:governance-filtros

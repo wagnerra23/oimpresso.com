@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-08**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-10**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -72,7 +72,7 @@ lente: [construir]
 
 ## Programa SDD (governança)
 
-- Scorecard: **12/13** métricas medidas · floor full-suite = **292**.
+- Scorecard: **12/13** métricas medidas · floor full-suite = **295**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -80,7 +80,7 @@ lente: [construir]
 
 > Fontes versionadas (offline, sem `gh api`): censo [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o que **existe**) + [`required-checks-baseline.json`](../../governance/required-checks-baseline.json) (o que **bloqueia**, congelado). Anti-demoção invisível: `protection-drift.mjs` (GT-G4). As catracas mordem: `gate-selftest` (GT-G6). Censo cobrado por `memory-health` Check G/M.
 
-### Bloqueiam merge — 45 required (enforcement: everyone)
+### Bloqueiam merge — 46 required (enforcement: everyone)
 > Congelados no baseline (captura 2026-06-20). Divergência do vivo é sinalizada pelo `protection-drift`, não reconciliada aqui.
 
 - ADR (memory/decisions/*.md)
@@ -106,6 +106,7 @@ lente: [construir]
 - No hardcode business_id (Tier 0)
 - No-mock-in-prod · ratchet
 - Nota de tela não desce vs origin/main
+- PageHeader · ratchet (header antigo só decresce)
 - PHP / Pest (Compras · MySQL)
 - PHP / Pest (Estoque · MySQL)
 - PHP / Pest (Financeiro · MySQL)
@@ -129,28 +130,28 @@ lente: [construir]
 - espelho — mexeu depois de verificar
 - Governance Gate (índice + memory-health + meta-teste)
 
-### Censo — 139 workflows por classe
+### Censo — 142 workflows por classe
 
 > Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
 
 | Classe | Qtd | Exemplos |
 |---|---|---|
-| gate (bloqueia/valida PR) | 105 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
+| gate (bloqueia/valida PR) | 107 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
 | meta (testa os gates) | 7 | block-brl-values-selftest, devcontainer-firewall, gate-selftest, guards-meta-gate, … |
-| automacao (cron/dispatch) | 23 | agent-cost-per-pr, agent-pr-outcomes, briefing-code-staleness, casos-results-publish, … |
+| automacao (cron/dispatch) | 24 | agent-cost-per-pr, agent-pr-outcomes, baseline-folga, briefing-code-staleness, … |
 | deploy (entrega) | 2 | deploy, quick-sync |
 | governanca | 1 | required-always-run |
 | qualidade | 1 | brl-scan |
 
 ## Decisões (ADRs)
 
-- **398** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 357 · superseded: 16 · deprecated: 13 · proposto: 10 · rascunho: 1 · recusado: 1.
+- **400** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 358 · superseded: 16 · deprecated: 13 · proposto: 11 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 182 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 185 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -335,6 +336,9 @@ lente: [construir]
 - ~~2026-09-08 — Dispensar o escopo multi-tenant do parent no eager-load da fonte da meta (a "armadilha" NÃO existe — li um dos dois escopos irmãos)~~
 - ~~2026-09-07 — Rodei DOIS consumidores do charter e os dois deram verde — nenhum era um parser YAML (o dois-pontos+espaço no meio do escalar derrubou um required)~~
 - ~~2026-09-08 — EMENDA das duas lápides de 2026-09-05 (dono-é-sessão-viva): entrei no território alheio pelo ARTEFATO, não pelo módulo — e o recibo do enunciado provava a PREMISSA, não a CONCLUSÃO~~
+- ~~2026-09-08 — Teste de tela Inertia que monta uma requisicao que o BROWSER NUNCA ENVIA (verde no CI, skeleton eterno em prod) — e a mutacao nao pega, porque muta o CODIGO, nao a SONDA~~
+- ~~2026-09-08 — Absolver um artefato citando uma atribuição `[W] <data>` que estava na sentença VIZINHA (a frase nasceu falsa, e eu publiquei a absolvição EM CÓDIGO)~~
+- ~~2026-09-09 — Promover `blueprint_cowork` e `canon_reference` a ÂNCORA de design (as 2 chaves que a cadeia "ignora")~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -345,14 +349,14 @@ lente: [construir]
 
 ## Rastro
 
-- **510** handoffs · **713** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **516** handoffs · **718** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-09-09-evidencias-fluxos-prototipo`
+  - `2026-09-09-espelho-cowork-live-only-remedido`
+  - `2026-09-08-session-02`
+  - `2026-09-08-patrimonio-manutencoes-gate-e-conserto-403`
   - `2026-09-08-onda7-paridade-crm-jana-forja`
   - `2026-09-08-onda7-financeiro-recurring-paridade-medida`
-  - `2026-09-08-devolutiva-recusados-rodada-pontual`
-  - `2026-09-07-regime-evolucao-loops-blade-fora-fluxo-dora`
-  - `2026-09-06-seis-perguntas-design-sync-resolvidas`
-  - `2026-09-06-seis-gap-fundacao-shell-map-json`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-09-08 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-09-10 · deriva das fontes canônicas, não as substitui._

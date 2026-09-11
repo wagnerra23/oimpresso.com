@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- @template name="PT-01 — Lista" description="Tela de índice do balcão, densidade de ERP moderno: sidebar + PageHeader + TabBar + toolbar + DataTable + Pagination, com Drawer de detalhe (PT-02), BulkBar de seleção e tweak de densidade compacto/confortável." -->
+<helmet>
+<script src="./ds-base.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  .nav-item:hover { background: var(--accent-soft) !important; }
+  .grp { display:flex; align-items:center; gap:8px; padding:13px 9px 5px; font:600 9.5px/1 var(--font-sans); letter-spacing:.08em; text-transform:uppercase; color:var(--text-mute); }
+  .grp .n { margin-left:auto; font:600 10px/1 var(--font-mono); color:var(--text-mute); opacity:.8; }
+  .rowbtn:hover { background:color-mix(in oklch, var(--text) 8%, transparent) !important; }
+  .cockpit table td { padding-top: var(--d-td-y, 6px) !important; padding-bottom: var(--d-td-y, 6px) !important; }
+  .cockpit table th { padding-top: var(--d-th-y, 6px) !important; padding-bottom: var(--d-th-y, 6px) !important; }
+</style>
+</helmet>
+<div class="cockpit" ref="{{ cockpitRef }}" style="display:flex; min-height:100vh; background:radial-gradient(1100px 620px at 84% -10%, oklch(0.30 0.07 295 / .16), transparent 60%), radial-gradient(900px 520px at 6% 110%, oklch(0.26 0.05 250 / .12), transparent 62%), var(--bg); color:var(--text); font-family:var(--font-sans); font-size:var(--d-fontsz,13px); line-height:1.4; -webkit-font-smoothing:antialiased;">
+
+  <!-- ░░ SIDEBAR ░░ -->
+  <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.AppSidebar" active="os" hint-size="222px,100%"></x-import>
+
+  <!-- ░░ MAIN ░░ -->
+  <main style="flex:1; min-width:0; display:flex; flex-direction:column; background:var(--bg);">
+
+    <!-- topbar (App Shell) -->
+    <header style="display:flex; align-items:center; gap:12px; height:46px; padding:0 var(--d-cpad-x,14px); border-bottom:1px solid var(--border); background:var(--surface); flex:none;">
+      <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Breadcrumb" items="{{ crumbs }}" hint-size="auto,20px"></x-import>
+      <label style="display:flex; align-items:center; gap:8px; height:30px; padding:0 10px; margin-left:auto; background:var(--bg-2); border:1px solid var(--border); border-radius:var(--radius-md); width:300px; max-width:32vw; color:var(--text-mute);">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+        <input placeholder="Buscar em tudo…" style="border:0; outline:0; background:transparent; font:inherit; color:var(--text); width:100%;">
+        <kbd style="font:600 10px/1 var(--font-mono); color:var(--text-mute); background:var(--surface); border:1px solid var(--border); border-radius:4px; padding:2px 5px;">⌘K</kbd>
+      </label>
+      <button style="display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border:1px solid var(--border); border-radius:var(--radius-md); background:var(--surface); color:var(--text-dim); font:600 13px/1 var(--font-sans); cursor:pointer;">?</button>
+    </header>
+
+    <!-- slot 1 — PageHeader -->
+    <div style="padding:0 var(--d-cpad-x,14px);">
+      <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.PageHeader" title="Ordens de serviço" stats="{{ stats }}" actions="{{ headerActions }}" hint-size="100%,64px"></x-import>
+    </div>
+
+    <!-- slot 2 — TabBar -->
+    <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.TabBar" inset="var(--d-cpad-x,14px)" tabs="{{ tabs }}" active="{{ activeTab }}" onChange="{{ setTab }}" hint-size="100%,42px"></x-import>
+
+    <!-- KPI-filtros -->
+    <div style="padding:var(--d-cpad-y,12px) var(--d-cpad-x,14px) 0;">
+      <div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:9px;">
+        <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.KpiFilterCard" label="Abertas" value="16" sub="em produção" tone="primary" icon="{{ icAbertas }}" selected="{{ kAbertas }}" onClick="{{ kcAbertas }}" hint-size="100%,62px"></x-import>
+        <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.KpiFilterCard" label="Atrasadas" value="3" sub="SLA estourado" tone="rose" icon="{{ icAtrasadas }}" selected="{{ kAtrasadas }}" onClick="{{ kcAtrasadas }}" hint-size="100%,62px"></x-import>
+        <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.KpiFilterCard" label="A aprovar" value="2" sub="aguardando OK" tone="violet" icon="{{ icAprovar }}" selected="{{ kAprovar }}" onClick="{{ kcAprovar }}" hint-size="100%,62px"></x-import>
+        <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.KpiFilterCard" label="A faturar" value="R$ 12,4k" sub="5 OS prontas" tone="amber" icon="{{ icFaturar }}" selected="{{ kFaturar }}" onClick="{{ kcFaturar }}" hint-size="100%,62px"></x-import>
+        <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.KpiFilterCard" label="Faturado mês" value="R$ 142,8k" sub="+18% vs set" tone="emerald" icon="{{ icFaturado }}" selected="{{ kFaturado }}" onClick="{{ kcFaturado }}" hint-size="100%,62px"></x-import>
+      </div>
+    </div>
+
+    <!-- slot 3 — Toolbar (DS) -->
+    <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Toolbar" tone="transparent" left="{{ tbLeft }}" right="{{ tbRight }}" hint-size="100%,46px"></x-import>
+
+    <!-- slot 4 — DataGrid (grade densa + paginação embutida) -->
+    <div class="nxc" style="flex:1; overflow:auto; padding:var(--d-cpad-y,12px) var(--d-cpad-x,14px) var(--d-cpad-x,14px);">
+      <div style="border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; background:var(--surface); box-shadow:0 1px 2px rgba(0,0,0,.04);">
+        <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.DataGrid" columns="{{ columns }}" rows="{{ rows }}" onRowClick="{{ onRowClick }}" selectable="{{ yes }}" onSelectionChange="{{ setSelIds }}" pageSize="{{ pageSize }}" density="{{ gridDensity }}" maxHeight="{{ tableH }}" totalLabel="OS" hint-size="100%,420px"></x-import>
+      </div>
+    </div>
+  </main>
+
+  <!-- BulkBar (seleção) -->
+  <sc-if value="{{ showBulk }}" hint-placeholder-val="{{ false }}">
+    <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.BulkBar" count="{{ selectedCount }}" label="selecionadas" actions="{{ bulkActions }}" onClose="{{ clearSelect }}" hint-size="auto,auto"></x-import>
+  </sc-if>
+
+  <!-- Drawer de detalhe (PT-02) -->
+  <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Drawer" open="{{ drawerOpen }}" onClose="{{ closeDrawer }}" title="{{ drawerTitle }}" subtitle="{{ drawerSub }}" badge="{{ drawerBadge }}" footer="{{ drawerFooter }}" width="{{ drawerWidth }}" hint-size="460px,100%">
+    <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.DrawerSection" title="Cliente" hint-size="100%,auto">
+      <div style="font-weight:600; font-size:13.5px;">{{ drawerCliente }}</div>
+      <div style="font-size:12px; color:var(--text-dim); margin-top:2px;">{{ drawerItem }}</div>
+    </x-import>
+    <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.DrawerSection" title="Pipeline" hint-size="100%,auto">
+      <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.FsmStepper" variant="full" steps="{{ drawerSteps }}" hint-size="100%,56px"></x-import>
+    </x-import>
+    <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.DrawerSection" title="Valor" hint-size="100%,auto">
+      <div style="display:flex; justify-content:space-between; align-items:baseline;">
+        <span style="font-size:12px; color:var(--text-dim);">Total da OS</span>
+        <span style="font:700 20px/1 var(--font-mono); letter-spacing:-0.02em;">{{ drawerValor }}</span>
+      </div>
+    </x-import>
+  </x-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: &quot;100%&quot;, &quot;height&quot;: 780}, &quot;density&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;compacto&quot;, &quot;confortável&quot;], &quot;default&quot;: &quot;compacto&quot;, &quot;tsType&quot;: &quot;'compacto' | 'confortável'&quot;}, &quot;theme&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;dark&quot;, &quot;light&quot;], &quot;default&quot;: &quot;dark&quot;, &quot;tsType&quot;: &quot;'dark' | 'light'&quot;}, &quot;accentHue&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 295, &quot;min&quot;: 0, &quot;max&quot;: 360, &quot;step&quot;: 5, &quot;tsType&quot;: &quot;number&quot;}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { activeTab: 'abertas', page: 1, selectedIds: [], drawerId: null, sortKey: null, sortDir: 'asc', kpi: null, q: '', view: 'lista' };
+    this._poll = null;
+  }
+
+  componentDidMount() {
+    if (!window.OfficeImpressoPontoWR2DesignSystem_019dd0) {
+      this._poll = setInterval(() => {
+        if (window.OfficeImpressoPontoWR2DesignSystem_019dd0) { clearInterval(this._poll); this._poll = null; this.forceUpdate(); }
+      }, 60);
+    }
+    this.applyTheme();
+  }
+  componentDidUpdate() { this.applyTheme(); }
+  componentWillUnmount() { if (this._poll) clearInterval(this._poll); }
+
+  applyTheme() {
+    const el = this._cockpit; if (!el) return;
+    const S = el.style, set = (k, v) => S.setProperty(k, v);
+    const dark = (this.props.theme || 'dark') !== 'light';
+    if (dark) { el.setAttribute('data-theme', 'dark'); el.classList.add('dark'); }
+    else { el.removeAttribute('data-theme'); el.classList.remove('dark'); }
+    const hue = this.props.accentHue != null ? this.props.accentHue : 295;
+    const aL = dark ? '0.72' : '0.55';
+    set('--accent', 'oklch(' + aL + ' 0.15 ' + hue + ')');
+    set('--accent-2', 'oklch(' + (dark ? '0.78' : '0.62') + ' 0.15 ' + hue + ')');
+    set('--accent-soft', dark ? 'oklch(0.32 0.07 ' + hue + ')' : 'oklch(0.95 0.04 ' + hue + ')');
+    set('--color-primary', 'oklch(' + aL + ' 0.15 ' + hue + ')');
+
+    const compact = (this.props.density || 'compacto') !== 'confortável';
+    if (compact) {
+      set('--d-fontsz', '13px'); set('--d-sidebar', '208px'); set('--d-navpy', '5px');
+      set('--d-cpad-x', '14px'); set('--d-cpad-y', '12px'); set('--d-tb-y', '7px');
+      set('--d-td-y', '6px'); set('--d-th-y', '6px');
+      ['10px', '11px', '11.5px', '12.5px', '13.5px', '15.5px', '19px', '23px', '31px'].forEach((v, i) => set('--fs-' + (i + 1), v));
+    } else {
+      set('--d-fontsz', '13.5px'); set('--d-sidebar', '236px'); set('--d-navpy', '7px');
+      set('--d-cpad-x', '22px'); set('--d-cpad-y', '16px'); set('--d-tb-y', '11px');
+      set('--d-td-y', '10px'); set('--d-th-y', '9px');
+      ['10.5px', '11.5px', '12.5px', '13.5px', '15px', '18px', '22px', '28px', '38px'].forEach((v, i) => set('--fs-' + (i + 1), v));
+    }
+  }
+
+  data() {
+    return [
+      { id: '4821', os: '#4821', cli: 'Acme Comércio Ltda', sub: 'Banner Lona 3×2m', cur: 1, pay: 'overdue', prio: 'urgente', who: 'João Lima', valor: 'R$ 1.240', archived: false },
+      { id: '4820', os: '#4820', cli: 'TechPro Sistemas', sub: 'Adesivos 8×8cm — 200un', cur: 3, pay: 'partial', prio: 'alta', who: 'Fernanda Alves', valor: 'R$ 680', archived: false },
+      { id: '4819', os: '#4819', cli: 'Padaria Estrela', sub: 'Cardápios A4 — 50un', cur: 4, pay: 'paid', prio: 'normal', who: 'Marina Prado', valor: 'R$ 320', archived: false },
+      { id: '4818', os: '#4818', cli: 'Studio Vega', sub: 'Placas PS 2mm — 12un', cur: 2, pay: 'pending', prio: 'normal', who: 'Carlos Souza', valor: 'R$ 2.150', archived: false },
+      { id: '4817', os: '#4817', cli: 'Ótica Lumière', sub: 'Fachada ACM 6m', cur: 0, pay: 'pending', prio: 'alta', who: 'Rafael Brito', valor: 'R$ 5.400', archived: false },
+      { id: '4814', os: '#4814', cli: 'Mercado Bom Preço', sub: 'Wind banner — 2un', cur: 1, pay: 'overdue', prio: 'urgente', who: 'João Lima', valor: 'R$ 890', archived: false },
+      { id: '4812', os: '#4812', cli: 'Casa & Cia', sub: 'Cartões 4×4 — 1000un', cur: 5, pay: 'partial', prio: 'normal', who: 'Marina Prado', valor: 'R$ 430', archived: false },
+      { id: '4815', os: '#4815', cli: 'Escola Aurora', sub: 'Faixa 4×1m', cur: 6, pay: 'paid', prio: 'normal', who: 'Carlos Souza', valor: 'R$ 540', archived: true },
+    ];
+  }
+
+  steps(cur) {
+    const labels = ['orçam', 'aprov', 'produ', 'acab', 'exped', 'entreg'];
+    return labels.map((label, i) => ({ label, state: i < cur ? 'done' : i === cur ? 'current' : 'todo' }));
+  }
+
+  setTab = (k) => this.setState({ activeTab: k, page: 1 });
+  setPage = (p) => this.setState({ page: p });
+  clearSelect = () => this.setState({ selectedIds: [] });
+  closeDrawer = () => this.setState({ drawerId: null });
+  onRowClick = (row) => this.setState({ drawerId: String(row.id) });
+  toggleRow = (id) => this.setState(s => {
+    const k = String(id), has = s.selectedIds.includes(k);
+    return { selectedIds: has ? s.selectedIds.filter(x => x !== k) : s.selectedIds.concat(k) };
+  });
+  toggleAll = (checked) => this.setState({ selectedIds: checked ? (this._visibleIds || []).slice() : [] });
+  onSort = (key) => this.setState(s => ({ sortKey: key, sortDir: s.sortKey === key && s.sortDir === 'asc' ? 'desc' : 'asc' }));
+  toggleKpi = (k) => this.setState(s => ({ kpi: s.kpi === k ? null : k }));
+
+  icon(name) {
+    const h = React.createElement;
+    const svg = (kids, fill) => h('svg', { width: 17, height: 17, viewBox: '0 0 24 24', fill: fill || 'none', stroke: fill ? 'none' : 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round' }, kids);
+    if (name === 'doc') return svg([h('rect', { key: 'a', x: 5, y: 3, width: 14, height: 18, rx: 2 }), h('path', { key: 'b', d: 'M9 8h6M9 12h6M9 16h4' })]);
+    if (name === 'alert') return svg([h('path', { key: 'a', d: 'M12 4l9 15H3z' }), h('path', { key: 'b', d: 'M12 10v4M12 17h.01' })]);
+    if (name === 'churn') return svg([h('circle', { key: 'a', cx: 12, cy: 12, r: 8 }), h('path', { key: 'b', d: 'M12 8v4l3 2' })]);
+    if (name === 'saldo') return svg([h('rect', { key: 'a', x: 4, y: 10, width: 3.5, height: 10, rx: 1 }), h('rect', { key: 'b', x: 10.25, y: 5, width: 3.5, height: 15, rx: 1 }), h('rect', { key: 'c', x: 16.5, y: 13, width: 3.5, height: 7, rx: 1 })], 'currentColor');
+    return svg(h('path', { d: 'M5 19L19 5M19 5h-9M19 5v9' }));
+  }
+
+  renderVals() {
+    const NS = window.OfficeImpressoPontoWR2DesignSystem_019dd0;
+    const cockpitRef = (el) => { this._cockpit = el; if (el) this.applyTheme(); };
+    const all = this.data();
+    const open = all.filter(r => !r.archived);
+    const late = all.filter(r => r.pay === 'overdue');
+    const counts = { abertas: open.length, atrasadas: late.length, todas: all.length };
+    const tab = this.state.activeTab;
+    let visible = tab === 'abertas' ? open : tab === 'atrasadas' ? late : all;
+    const sk = this.state.sortKey;
+    if (sk) {
+      const num = (v) => parseFloat(String(v).replace(/[^\d]/g, '')) || 0;
+      const val = (r) => (sk === 'valor' || sk === 'os') ? num(r[sk]) : String(r[sk] || '').toLowerCase();
+      const dir = this.state.sortDir === 'desc' ? -1 : 1;
+      visible = visible.slice().sort((a, b) => { const x = val(a), y = val(b); return (x < y ? -1 : x > y ? 1 : 0) * dir; });
+    }
+    this._visibleIds = visible.map(r => r.id);
+
+    const tabs = [
+      { key: 'abertas', label: 'Abertas', count: counts.abertas },
+      { key: 'atrasadas', label: 'Atrasadas', count: counts.atrasadas },
+      { key: 'todas', label: 'Todas', count: counts.todas },
+    ];
+    const totalValor = 'R$ 48,2k';
+    const base = {
+      cockpitRef,
+      crumbs: [{ label: 'Início', href: '#' }, { label: 'Ordens de serviço' }],
+      activeTab: tab, tabs, setTab: this.setTab, yes: true,
+      tableH: 420, setSelIds: (ids) => this.setState({ selectedIds: ids.map(String) }),
+      kAbertas: this.state.kpi === 'abertas', kAtrasadas: this.state.kpi === 'atrasadas', kAprovar: this.state.kpi === 'aprovar', kFaturar: this.state.kpi === 'faturar', kFaturado: this.state.kpi === 'faturado',
+      kcAbertas: () => this.toggleKpi('abertas'), kcAtrasadas: () => this.toggleKpi('atrasadas'), kcAprovar: () => this.toggleKpi('aprovar'), kcFaturar: () => this.toggleKpi('faturar'), kcFaturado: () => this.toggleKpi('faturado'),
+      icAbertas: this.icon('doc'), icAtrasadas: this.icon('alert'), icAprovar: this.icon('churn'), icFaturar: this.icon('saldo'), icFaturado: this.icon('fat'),
+      setPage: this.setPage, page: this.state.page, pageCount: 1, total: visible.length, pageSize: 20,
+      gridDensity: (this.props.density || 'compacto') === 'confortável' ? 'relaxed' : 'compact',
+      countLabel: visible.length + ' OS · ' + totalValor,
+      noop: () => {}, clearSelect: this.clearSelect,
+      selectedIds: this.state.selectedIds, onToggleRow: this.toggleRow, onToggleAll: this.toggleAll,
+      sortKey: this.state.sortKey, sortDir: this.state.sortDir, onSort: this.onSort,
+      onRowClick: this.onRowClick, closeDrawer: this.closeDrawer,
+    };
+    if (!NS) return base;
+
+    const h = React.createElement;
+    const columns = [
+      { key: 'os', label: 'OS', mono: true, width: '62px', sortable: true },
+      { key: 'cli', label: 'Cliente', sortable: true },
+      { key: 'pipe', label: 'Pipeline', width: '150px' },
+      { key: 'pag', label: 'Pag.', width: '86px' },
+      { key: 'resp', label: 'Resp.', width: '46px' },
+      { key: 'valor', label: 'Valor', align: 'right', mono: true, width: '90px', sortable: true },
+    ];
+    const sel = this.state.selectedIds;
+    const rows = visible.map(r => ({
+      id: r.id,
+      state: sel.includes(r.id) ? 'selected' : r.archived ? 'archived' : (r.pay === 'overdue' ? 'urgent' : undefined),
+      cells: {
+        os: r.os,
+        cli: { primary: r.cli, sub: r.sub },
+        pipe: h(NS.FsmStepper, { variant: 'inline', steps: this.steps(r.cur) }),
+        pag: h(NS.StatusBadge, { kind: 'payment', value: r.pay }),
+        resp: h(NS.Avatar, { name: r.who }),
+        valor: r.valor,
+      },
+    }));
+
+    const stats = [
+      { value: String(counts.abertas), label: 'abertas' },
+      { value: String(counts.atrasadas), label: 'atrasadas', tone: 'danger' },
+      { value: totalValor, label: 'em aberto' },
+    ];
+    const headerActions = h(React.Fragment, null,
+      h(NS.Button, { variant: 'ghost', size: 'sm' }, 'Filtros'),
+      h(NS.Button, { variant: 'primary', size: 'sm' }, 'Nova OS'),
+    );
+
+    const ic = (d) => h('svg', { width: 14, height: 14, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }, h('path', { d }));
+    const tbLeft = h(React.Fragment, null,
+      h(NS.ToolbarSearch, { value: this.state.q, onChange: (v) => this.setState({ q: v }), placeholder: 'Buscar OS, cliente…', kbd: '/' }),
+      h(NS.ToolbarDivider),
+      h(NS.FilterChip, { label: 'Responsável', value: 'João Lima', onRemove: () => {} }),
+      h(NS.ToolbarButton, { icon: ic('M12 5v14M5 12h14') }, 'Filtro'),
+    );
+    const tbRight = h(React.Fragment, null,
+      h(NS.Segmented, {
+        size: 'sm', value: this.state.view, onChange: (v) => this.setState({ view: v }),
+        options: [{ value: 'lista', label: 'Lista' }, { value: 'board', label: 'Board' }],
+      }),
+      h(NS.ToolbarDivider),
+      h('span', { style: { font: '11px/1 var(--font-mono)', color: 'var(--text-dim)' } }, visible.length + ' OS · ' + totalValor),
+      h(NS.Kebab, { items: [
+        { id: 'col', label: 'Colunas…' },
+        { id: 'exp', label: 'Exportar CSV', kbd: '⌘E' },
+        { separator: true },
+        { id: 'sav', label: 'Salvar visão' },
+      ] }),
+    );
+
+    const bulkActions = [
+      { label: 'Exportar', onClick: () => {} },
+      { label: 'Arquivar', onClick: () => {} },
+      { label: 'Excluir', tone: 'danger', onClick: () => {} },
+    ];
+
+    const drawerRow = this.state.drawerId ? all.find(r => r.id === this.state.drawerId) : null;
+    const drawer = drawerRow ? {
+      drawerOpen: true,
+      drawerTitle: 'OS ' + drawerRow.os,
+      drawerSub: drawerRow.cli,
+      drawerCliente: drawerRow.cli,
+      drawerItem: drawerRow.sub,
+      drawerValor: drawerRow.valor,
+      drawerSteps: this.steps(drawerRow.cur),
+      drawerBadge: h(NS.StatusBadge, { kind: 'prioridade', value: drawerRow.prio }),
+      drawerWidth: 440,
+      drawerFooter: h(React.Fragment, null,
+        h(NS.Button, { variant: 'ghost', size: 'sm', onClick: this.closeDrawer }, 'Fechar'),
+        h(NS.Button, { variant: 'primary', size: 'sm' }, 'Editar OS'),
+      ),
+    } : { drawerOpen: false, drawerSteps: [], drawerWidth: 440 };
+
+    return Object.assign(base, {
+      columns, rows, stats, headerActions, bulkActions, tbLeft, tbRight,
+      showBulk: sel.length > 0,
+      selectedCount: sel.length,
+    }, drawer);
+  }
+}
+</script>
+</body>
+</html>

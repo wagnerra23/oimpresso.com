@@ -107,17 +107,26 @@ it('NÃO TRANCA O ERP: sem jana.access, /home leva ao dashboard legado — nunca
     $response->assertRedirect('/dashboard-legacy');
 });
 
-// Onda 3 da fusão (US-COPI-148, 2026-08-07): o destino continua sendo o Painel da
-// Jana — MESMA tela, endereço novo. Era `/ia/dashboard`, virou a raiz `/ia`, e o
-// `/home` passou a apontar direto (antes seria 302→301, um hop por login).
+// [W] 2026-09-08 — o destino pós-login DEIXOU de depender de `jana.access`.
 //
-// O contrato que este teste defende não mudou: "quem tem jana.access cai no Painel
-// da Jana, não no dashboard legado". Só o literal da URL acompanhou o rename.
-it('com jana.access, /home segue levando ao Painel da Jana (destino canon intacto)', function () {
+// Era: "quem tem jana.access cai no Painel da Jana" (contrato da onda 3,
+// US-COPI-148). Virou: TODO MUNDO cai na Visão geral (`/dashboard-legacy`).
+// A troca é decisão [W], reportada a partir da ROTA LIVRE — a usuária tem o
+// papel `Admin#4`, passava neste gate por `Gate::before` e caía num Painel da
+// Jana VAZIO (metas ativas visíveis pra aquele business = 0). A rota também
+// contradizia o `LANDING_GROUP` do `Sidebar.tsx`, que já declarava a Visão
+// geral como destino pós-login desde 2026-08-28.
+//
+// O gate de `/ia` NÃO mudou, e os dois casos acima seguem provando isso: sem a
+// permissão dá 403 lá, com a permissão entra. O que ESTE caso passa a defender
+// é o complemento: a porta de entrada é UMA só pros dois — nenhum ramo do
+// post-login depende de permissão de feature (é o limite que o incidente da
+// Maiara pediu, agora sem exceção).
+it('a porta de entrada é UMA só: com jana.access, /home também leva à Visão geral', function () {
     $this->user->givePermissionTo('jana.access');
     $this->user->forgetCachedPermissions();
 
-    $this->actingAs($this->user)->get('/home')->assertRedirect('/ia');
+    $this->actingAs($this->user)->get('/home')->assertRedirect('/dashboard-legacy');
 });
 
 it('LIMITE HONESTO: admin passa MESMO sem a permissão (Gate::before)', function () {

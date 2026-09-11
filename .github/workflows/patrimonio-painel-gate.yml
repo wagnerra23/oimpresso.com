@@ -1,0 +1,110 @@
+name: Patrimônio Painel Gate — header e números sem fonte (vitest · JUnit)
+
+# O QUE TRAVA: os contratos de tela do Painel do Patrimônio (`/asset/dashboard`) que vivem
+# no render, não no payload. Dois grupos, ambos em `resources/js/Pages/Patrimonio/Index.casos.md`:
+#   · UC-PAT-05 / UC-PAT-06 — os dois elementos do header que vêm do SHELL do protótipo
+#     (`MP.Header` → `CliPageHead`): o selo "Atualizado HH:MM" como PRIMEIRO item das ações,
+#     e a linha de contexto acima do título.
+#   · UC-PAT-02 / UC-PAT-03 / UC-PAT-04 — número sem fonte mostra `—` e nunca `R$ 0,00`, e
+#     `quantity` decimal não é arredondada.
+#
+# POR QUE A LANE EXISTE: nenhuma lane roda `vitest run` sem argumento — cada spec aponta pro
+# próprio arquivo, e por isso o projeto tem uma lane por contrato de tela (fiscal-teclado-gate,
+# fiscal-cockpit-sparklines-gate). Spec sem lane nunca executa, e verde-por-não-execução
+# (LC-13) é PIOR que teste ausente porque parece cobertura.
+#
+# ⚠️ E ERA EXATAMENTE ESSE O ESTADO: `tests/js/patrimonio-painel-sem-fonte.test.tsx` nasceu em
+# 2026-09-08 com 6 casos que mordem, e MEDIDO em 2026-09-09 não estava em lane nenhuma —
+# 0 ocorrências do nome do arquivo em `.github/workflows/**` e em `package.json`. Os 6 casos só
+# rodavam quando alguém os invocava à mão, e os UC-PAT-02/03/04 ficariam sem veredito no
+# manifesto por-UC para sempre. O mesmo defeito que o `datatable-nome-acessivel-gate` já
+# registrou pro `backup-index.test.tsx`. Ligar máquina órfã é regra canon (proibicoes.md
+# §"LIGUE A MÁQUINA" item 2: "máquina que existe e ninguém invoca é bug, não neutralidade").
+# `verticais-pest.yml` casa `Modules/AssetManagement`, mas é Pest/PHP — outro runtime, não
+# serve de dono pro contrato de render.
+#
+# ⚠️ OS ARQUIVOS SOB TESTE ENTRAM NO GATILHO junto com os specs — a Page, o `PageHeader` canon
+# (o teste do header roda o componente REAL, sem mock) e o `usePageProps` (canal do nome do
+# negócio). Sem eles no `paths`, mexer na tela não acorda o teste que a defende: gate mudo com
+# cara de cobertura.
+#
+# Comando local:
+#   npx vitest run tests/js/patrimonio-header-contexto.test.tsx tests/js/patrimonio-painel-sem-fonte.test.tsx
+#
+# Advisory (ADR 0271/0314): selo de frescor, linha de contexto e traço-em-vez-de-zero são
+# qualidade de leitura — nenhum caminho aqui move dinheiro, estoque ou tenant. O painel é
+# somente leitura. Promoção a required é flip [W] com mordida real coletada em main
+# (ADR 0336 DR-2); não se auto-promove.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, reopened, ready_for_review, synchronize]
+    paths:
+      - 'resources/js/Pages/Patrimonio/Index.tsx'
+      - 'resources/js/Components/PageHeader/PageHeader.tsx'
+      - 'resources/js/Hooks/usePageProps.ts'
+      - 'tests/js/patrimonio-header-contexto.test.tsx'
+      - 'tests/js/patrimonio-painel-sem-fonte.test.tsx'
+      - 'tests/js/patrimonio-painel-forma.test.tsx'
+      - 'tests/js/setup.ts'
+      - '.github/workflows/patrimonio-painel-gate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'resources/js/Pages/Patrimonio/Index.tsx'
+      - 'resources/js/Components/PageHeader/PageHeader.tsx'
+      - 'resources/js/Hooks/usePageProps.ts'
+      - 'tests/js/patrimonio-header-contexto.test.tsx'
+      - 'tests/js/patrimonio-painel-sem-fonte.test.tsx'
+      - 'tests/js/patrimonio-painel-forma.test.tsx'
+      - 'tests/js/setup.ts'
+      # o workflow entra no gatilho de push porque é o run de `main` que o publisher
+      # colhe: mexer na lane sem re-rodar deixaria o artifact envelhecer até expirar,
+      # e lane sem artifact é lane pulada no publisher.
+      - '.github/workflows/patrimonio-painel-gate.yml'
+
+concurrency:
+  group: patrimonio-painel-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  painel:
+    name: Patrimônio · header e números sem fonte (vitest/jsdom)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install deps
+        run: npm ci
+
+      # `--reporter=default` mantém a saída legível pra humano; `--reporter=junit`
+      # escreve o XML que vira veredito por-UC no manifesto que o G-7 do casos-gate
+      # (REQUIRED) lê. O artifact é colhido por derivação (`junit-lanes.mjs`), não por
+      # lista à mão — seguir a convenção do upload é o que põe esta lane no publisher.
+      - name: painel do patrimônio — header + números sem fonte (vitest/jsdom)
+        run: |
+          npx vitest run \
+            tests/js/patrimonio-header-contexto.test.tsx \
+            tests/js/patrimonio-painel-sem-fonte.test.tsx \
+            tests/js/patrimonio-painel-forma.test.tsx \
+            --reporter=default \
+            --reporter=junit \
+            --outputFile=test-results/vitest-patrimonio-painel-junit.xml
+
+      # `!cancelled()` (não `success()`): o veredito de um run VERMELHO é justamente o
+      # que o G-7 precisa registrar — `Status: ✅` com teste vermelho é a mentira que
+      # ele existe pra pegar.
+      - name: Upload JUnit (veredito por-UC — casos:results)
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-patrimonio-painel-junit
+          path: test-results/vitest-patrimonio-painel-junit.xml
+          retention-days: 14

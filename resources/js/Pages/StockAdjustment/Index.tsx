@@ -160,6 +160,12 @@ function StockAdjustmentIndex({ rows, filters, business_locations, permissions }
         </CardContent>
       </Card>
 
+      {/* Legenda do trilho — o `info` da Toolbar do protótipo, literal. Sem ela a faixa
+          vermelha é decoração; com ela é afordância. */}
+      <p className="mt-2 px-1 text-[11.5px] text-muted-foreground">
+        Trilho vermelho = ajuste anormal. Excluir devolve o saldo (UC-EST-05).
+      </p>
+
       <Card className="mt-3">
         <CardContent className="p-0">
           <table className="w-full border-collapse">
@@ -169,15 +175,28 @@ function StockAdjustmentIndex({ rows, filters, business_locations, permissions }
                 <th className="px-2 py-2 text-left font-medium">Ref. Nº</th>
                 <th className="px-2 py-2 text-left font-medium">Filial</th>
                 <th className="px-2 py-2 text-left font-medium">Tipo</th>
-                <th className="px-2 py-2 text-right font-medium">Total ajustado</th>
+                <th className="px-2 py-2 text-right font-medium">Valor ajustado</th>
                 <th className="px-2 py-2 text-right font-medium">Recuperado</th>
-                <th className="px-2 py-2 text-left font-medium">Autor</th>
+                <th className="px-2 py-2 text-left font-medium">Motivo do ajuste</th>
+                <th className="px-2 py-2 text-left font-medium">Lançado por</th>
                 <th className="pl-2 pr-4 py-2 w-[100px] text-right font-medium">Ações</th>
               </tr>
             </thead>
             <tbody>
               {rowsFiltradas.map(r => (
-                <tr key={r.id} className="h-11 text-[13px] border-b border-stone-100 hover:bg-stone-50/60">
+                <tr
+                  key={r.id}
+                  className={
+                    'h-11 text-[13px] border-b border-stone-100 hover:bg-stone-50/60' +
+                    // Trilho vermelho no ajuste anormal — `state: "urgent"` do protótipo
+                    // (`estoque-page.jsx`, AbaAjustes). A classe é a MESMA de
+                    // `CLASSE_ESTADO.urgent` em `Components/shared/DataTable.tsx`: esta tela
+                    // monta a `<table>` à mão, então reusa o token, não o componente.
+                    (r.adjustment_type === 'abnormal'
+                      ? ' [&>td:first-child]:shadow-[inset_3px_0_0_var(--color-destructive)]'
+                      : '')
+                  }
+                >
                   <td className="pl-4 pr-2 tabular-nums">{formatDateTime(r.transaction_date)}</td>
                   <td className="px-2 font-medium text-stone-900">{r.ref_no}</td>
                   <td className="px-2 text-stone-700">{r.location_name}</td>
@@ -190,6 +209,13 @@ function StockAdjustmentIndex({ rows, filters, business_locations, permissions }
                   <td className="px-2 text-right tabular-nums">
                     <span className={r.total_amount_recovered > 0 ? 'text-success-fg' : 'text-stone-400'}>
                       {permissions.view_purchase_price ? brl(r.total_amount_recovered) : '—'}
+                    </span>
+                  </td>
+                  {/* Coluna do protótipo (`COLS_AJ` → `{ key: 'motivo', label: 'Motivo do ajuste' }`).
+                      O dado já chegava e só alimentava a busca — não é prop nova. */}
+                  <td className="px-2 text-muted-foreground text-[12px] max-w-[300px]">
+                    <span className="block truncate" title={r.additional_notes ?? undefined}>
+                      {r.additional_notes || '—'}
                     </span>
                   </td>
                   <td className="px-2 text-stone-600 text-[12px]">{r.added_by || '—'}</td>
@@ -209,7 +235,7 @@ function StockAdjustmentIndex({ rows, filters, business_locations, permissions }
               ))}
               {rowsFiltradas.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="py-16">
+                  <td colSpan={9} className="py-16">
                     <div className="flex flex-col items-center gap-3 text-center">
                       {busca || filters.location_id ? (
                         <>

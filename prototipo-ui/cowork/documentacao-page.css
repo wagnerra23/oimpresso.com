@@ -56,9 +56,15 @@
 .doc-t td{padding:9px 12px;border-bottom:1px solid var(--border-2);vertical-align:top;color:var(--text-dim)}
 .doc-t tr:last-child td{border-bottom:0}
 .doc-t td b{color:var(--text)}
+/* caminho longo em <code> forçava a largura min-content da tabela e vazava a coluna de leitura */
+.doc-t{table-layout:auto;max-width:100%}
+.doc-t td,.doc-t th,.doc-kv>div{overflow-wrap:anywhere}
+.doc-body code,.doc-t code,.doc-kv code{overflow-wrap:anywhere;word-break:break-word}
 .doc-kv{display:grid;grid-template-columns:180px 1fr;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin:0 0 18px;font-size:12.5px}
 .doc-kv>div{background:var(--surface);padding:9px 12px}
 .doc-kv>div:nth-child(odd){background:var(--bg-2);font-family:var(--font-mono);font-size:11.5px;color:var(--text-mute)}
+/* a coluna-chave já é mono/muted — <code> aninhado ali não repete moldura */
+.doc-kv>div:nth-child(odd) code{background:none;border:0;padding:0;color:inherit;font-size:inherit}
 .doc-fsm{border:1px solid var(--border);border-radius:8px;background:var(--surface);padding:18px 16px;margin:0 0 18px;overflow-x:auto}
 .doc-fsm-h{font-family:var(--font-mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mute);margin-bottom:14px}
 .doc-note{margin:0 0 18px}

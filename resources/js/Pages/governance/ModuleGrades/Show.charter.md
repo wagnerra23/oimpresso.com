@@ -2,6 +2,7 @@
 page: /governance/module-grades/{name}
 component: resources/js/Pages/governance/ModuleGrades/Show.tsx
 route: /governance/module-grades/{name}
+related_prototype: n/a (herda PT-03 Detalhe; segue o Padrão de Tela)
 status: live
 owner: wagner
 adrs: [0153, 0154, 0155, 0167]

@@ -405,5 +405,125 @@ function makeGitRepo() {
   }
 }
 
+// 9. ESPELHO/DOC de design — contrato de OUTRO schema (sem `alvo`) e PULADO sob
+//    `prototipo-ui/design-docs/` e sob `prototipo-ui/cowork/` (espelho de leitura, ADR 0374),
+//    mas REPROVA fora dessas pastas. O par good/bad e o que impede o skip de virar carimbo:
+//    se alguem trocar o predicado por um `return 0` cego, o caso (c) fica vermelho.
+{
+  // schema do Cowork: tem `secoes`, NAO tem `alvo` — invalido como contrato do repo.
+  const COWORK_SCHEMA = { id: 'x', titulo: 'X', build: ['x-page.jsx'], raiz: '.x-root', secoes: [{ id: 'header' }] };
+  const casos = [
+    ['prototipo-ui/design-docs/contrato-cowork/x.contract.json', 0, 'design-docs/'],
+    ['prototipo-ui/cowork/contrato/x.contract.json', 0, 'prototipo-ui/cowork/'],
+    ['prototipo-ui/contrato/x.contract.json', 1, null],   // controle NEGATIVO: fora do espelho, morde
+  ];
+  for (const [rel, esperado, pasta] of casos) {
+    const root = mkdtempSync(join(tmpdir(), 'contrato-doc-'));
+    mkdirSync(join(root, dirname(rel)), { recursive: true });
+    writeFileSync(join(root, rel), JSON.stringify(COWORK_SCHEMA));
+    const r = node(root, ['--contract', rel]);
+    const okStatus = r.status === esperado;
+    const okMsg = esperado === 0
+      ? new RegExp(`pulado.*${pasta.replace('/', '\/')}`).test(out(r))
+      : /contrato sem `alvo`/.test(out(r));
+    check(`--contract ${rel} → exit ${esperado}${esperado === 0 ? ' (pulado)' : ' (REPROVA)'}`,
+      okStatus && okMsg, `status=${r.status} ${out(r)}`);
+    drop(root);
+  }
+}
+
+// 10. PREFLIGHT x --merge-ref — a perna de ancestralidade e PULADA quando o HEAD e o merge ref
+//     de um PR (checkout@v4 em pull_request), mas as demais seguem. O caso (c) e o que impede
+//     a flag de virar carimbo: com a flag ligada, worktree orfao AINDA reprova.
+{
+  // repo com uma branch genuinamente NAO-ancestral da base
+  const mk = () => {
+    const root = mkdtempSync(join(tmpdir(), 'preflight-'));
+    const g = (...a) => git(root, a);
+    g('init', '-q'); g('config', 'user.email', 't@t.t'); g('config', 'user.name', 't');
+    writeFileSync(join(root, 'a.txt'), '1'); g('add', '-A'); g('commit', '-q', '-m', 'base');
+    g('branch', 'base-ref');
+    g('checkout', '-q', '-b', 'feature');
+    writeFileSync(join(root, 'b.txt'), '2'); g('add', '-A'); g('commit', '-q', '-m', 'feature');
+    // base-ref anda DEPOIS: feature deixa de ser descendente dela
+    g('checkout', '-q', 'base-ref');
+    writeFileSync(join(root, 'c.txt'), '3'); g('add', '-A'); g('commit', '-q', '-m', 'base anda');
+    g('checkout', '-q', 'feature');
+    return root;
+  };
+  if (git(mkdtempSync(join(tmpdir(), 'probe-')), ['--version']).status !== 0) {
+    console.log('[SKIP] preflight (git indisponivel)');
+  } else {
+    // (a) SEM a flag, base nao-ancestral -> MORDE
+    let root = mk();
+    let r = node(root, ['--preflight', 'base-ref']);
+    check('preflight sem --merge-ref, base nao-ancestral -> exit 1',
+      r.status === 1 && /nao-ancestral|não-ancestral/.test(out(r)), `status=${r.status} ${out(r)}`);
+    drop(root);
+
+    // (b) COM a flag, MESMA base nao-ancestral -> PULA (e diz que pulou)
+    root = mk();
+    r = node(root, ['--preflight', 'base-ref', '--merge-ref']);
+    check('preflight com --merge-ref, base nao-ancestral -> exit 0 + diz PULADA',
+      r.status === 0 && /ancestralidade PULADA/.test(out(r)), `status=${r.status} ${out(r)}`);
+    drop(root);
+
+    // (c) CONTROLE NEGATIVO: com a flag ligada, worktree orfao AINDA reprova (nao virou carimbo)
+    root = mkdtempSync(join(tmpdir(), 'preflight-orfao-'));
+    git(root, ['init', '-q']);
+    r = node(root, ['--preflight', 'HEAD', '--merge-ref']);
+    check('preflight com --merge-ref, worktree orfao -> exit 1 (a flag NAO e carimbo)',
+      r.status === 1 && /worktree/.test(out(r)), `status=${r.status} ${out(r)}`);
+    drop(root);
+  }
+}
+
+// ── Catraca 4 (--anti-tautologia): o contrato deriva da ÂNCORA, não da TELA ────
+// Par good/bad + o terceiro controle que impede o modo de virar carimbo: copy só
+// no alvo AVISA, não bloqueia (o FP medido é 15/31 — reprovar ali seria guard
+// sintático). Origem: erro do [C] em 2026-09-09 (contrato de Patrimonio/Bens com a
+// copy extraída do .tsx), nomeado pelo [W]: "tá pegando baseline e não pego a
+// âncora certa".
+{
+  const mkAnti = ({ fonte, copy, tsx }) => {
+    const root = mkdtempSync(join(tmpdir(), 'anti-taut-'));
+    mkdirSync(join(root, 'prototipo-ui', 'contrato'), { recursive: true });
+    mkdirSync(join(root, 'prototipo-ui', 'cowork'), { recursive: true });
+    mkdirSync(join(root, 'resources', 'js', 'Pages', 'Foo'), { recursive: true });
+    writeFileSync(join(root, 'resources', 'js', 'Pages', 'Foo', 'Index.tsx'), tsx);
+    writeFileSync(join(root, 'prototipo-ui', 'cowork', 'foo-page.jsx'), `const P = () => <div>Titulo Foo</div>;`);
+    writeFileSync(join(root, 'prototipo-ui', 'contrato', 'foo.contract.json'), JSON.stringify({
+      tela: 'Foo/Index', fonte, alvo: ['resources/js/Pages/Foo/Index.tsx'],
+      secoes: [{ id: 'cab', copy }],
+    }));
+    return root;
+  };
+  const TSX_OK = `export default function X(){return <div data-contract="cab">Titulo Foo</div>}`;
+
+  // (a) RUIM: `fonte` é a própria tela → contrato tautológico → MORDE
+  let root = mkAnti({ fonte: 'resources/js/Pages/Foo/Index.tsx', copy: ['Titulo Foo'], tsx: TSX_OK });
+  let r = node(root, ['--anti-tautologia']);
+  check('anti-tautologia: fonte = a propria tela -> exit 1',
+    r.status === 1 && /PR[ÓO]PRIA TELA/i.test(out(r)), `status=${r.status} ${out(r)}`);
+  drop(root);
+
+  // (b) BOM: `fonte` é o protótipo → passa (controle negativo — não é carimbo ao contrário)
+  root = mkAnti({ fonte: 'prototipo-ui/cowork/foo-page.jsx', copy: ['Titulo Foo'], tsx: TSX_OK });
+  r = node(root, ['--anti-tautologia']);
+  check('anti-tautologia: fonte = prototipo -> exit 0',
+    r.status === 0, `status=${r.status} ${out(r)}`);
+  drop(root);
+
+  // (c) CONTROLE que impede virar bloqueio: copy só no alvo AVISA e NÃO reprova
+  root = mkAnti({
+    fonte: 'prototipo-ui/cowork/foo-page.jsx', copy: ['Titulo Foo', 'Botao Inventado'],
+    tsx: `export default function X(){return <div data-contract="cab">Titulo Foo Botao Inventado</div>}`,
+  });
+  r = node(root, ['--anti-tautologia']);
+  check('anti-tautologia: copy so no alvo -> AVISA, exit 0 (nao vira guard sintatico)',
+    r.status === 0 && /existe no ALVO e n[ãa]o na FONTE/i.test(out(r)), `status=${r.status} ${out(r)}`);
+  drop(root);
+}
+
 console.log(fails ? `\n❌ ${fails} regressão(ões).` : `\n✅ todos os controles passam (gate morde e libera certo).`);
 process.exit(fails ? 1 : 0);

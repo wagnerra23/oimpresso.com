@@ -21,8 +21,8 @@ export default defineConfig({
   // JUnit alimenta o coletor casos:results (Salto #2 / G-7 Status derivado): o UC-id no
   // título do teste vira o <testcase name> que o coletor lê → manifesto por-UC.
   reporter: process.env.CI
-    ? [['github'], ['list'], ['junit', { outputFile: 'test-results/playwright-junit.xml' }]]
-    : [['list'], ['junit', { outputFile: 'test-results/playwright-junit.xml' }]],
+    ? [['github'], ['list'], ['junit', { outputFile: 'test-results/playwright-junit.xml' }], ['json', { outputFile: 'test-results/playwright.json' }]]
+    : [['list'], ['junit', { outputFile: 'test-results/playwright-junit.xml' }], ['json', { outputFile: 'test-results/playwright.json' }]],
   // Login uma vez → storageState reusado pelos specs (rota é auth-gated).
   globalSetup: './e2e/global-setup.ts',
   use: {

@@ -558,7 +558,9 @@ jobs:
       # versionado (<tela>.proto-baseline.json) e a prod é comparada contra a INTENÇÃO, não só
       # contra o próprio passado. FRONTEIRA ADR 0290: o RENDER roda LOCAL (--gerar recusa sob CI,
       # exit 4 — render pareado em CI passa verde quando os 2 lados quebram); AQUI só roda o
-      # --check HERMÉTICO sobre o JSON commitado: schema + âncora re-resolvida do charter
+      # --check HERMÉTICO sobre o JSON commitado (hermético = zero render/rede; ele REPÕE o
+      # cache gitignored `_ds/` do mirror-snapshot versionado pra conferir o render_sha256):
+      # schema + âncora re-resolvida do charter
       # (ancora.mjs, ADR 0326) + freshness por prototipo_sha (padrão do map.json — proto
       # re-exportou = STALE). Selftest hard (a suite que valida o gate não pode mentir);
       # check advisory de nascença (ADR 0271/0275/0314 — nunca required sem reabrir a 0314).
@@ -599,6 +601,8 @@ jobs:
       # modo --schema sai 2 (NAO MEDIDO) em vez de verde calado, e o self-test cobra isso.
       - name: Install deps do validador de schema (ajv)
         run: npm install --no-save ajv@^8.17.1 ajv-formats@^3.0.1
+      - name: Placar de playbook — dependências e recibos de execução
+        run: node --test prototipo-ui/design-docs/cowork-inbox/_scripts/placar-indice.test.mjs
 
       - name: Self-test (fixture boa passa + fixture ruim falha)
         run: node scripts/governance/dtcg-equivalence.test.mjs

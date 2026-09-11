@@ -44,23 +44,19 @@ function Aprovacoes({ avisar, onVerIntercorrencia, rows, setRows }) {
 
   return (
     <>
-      <div className="pt-toolbar">
-        <div className="pt-fld"><label htmlFor="ap-estado">Estado</label>
-          <select id="ap-estado" value={estado} onChange={(e) => setEstado(e.target.value)}>
+      <window.PtBarra>
+        <window.PtEscolha label={"Estado"} value={estado} onChange={(e) => setEstado(e.target.value)}>
             <option value="">Todos</option>
             {Object.entries(D.ESTADOS_INTERC).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-          </select>
-        </div>
-        <div className="pt-fld"><label htmlFor="ap-tipo">Tipo</label>
-          <select id="ap-tipo" value={tipo} onChange={(e) => setTipo(e.target.value)}>
+          </window.PtEscolha>
+        <window.PtEscolha label={"Tipo"} value={tipo} onChange={(e) => setTipo(e.target.value)}>
             <option value="">Todos</option>
             {Object.entries(D.TIPOS_INTERC).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-          </select>
-        </div>
-        <button className="pt-btn" onClick={() => { setEstado(""); setTipo(""); }}>Limpar</button>
-        <span className="pt-sp" />
+          </window.PtEscolha>
+        <window.PtBtn  onClick={() => { setEstado(""); setTipo(""); }}>Limpar</window.PtBtn>
+        
         <span style={{ fontSize: 12, color: "var(--text-dim)" }}>{lista.filter((i) => i.estado === "PENDENTE").length} pendentes no filtro · selecione para decidir em lote</span>
-      </div>
+      </window.PtBarra>
 
       <Card icon="check" titulo="Fila de aprovações" sub={"(" + lista.length + (lista.length === 1 ? " item" : " itens") + ")"}>
         <Tabela cols={[{ l: <input type="checkbox" checked={todasMarcadas} disabled={selecionaveis.length === 0} title="Selecionar os pendentes desta página"
@@ -84,11 +80,11 @@ function Aprovacoes({ avisar, onVerIntercorrencia, rows, setRows }) {
                 <td className="num">
                   {a.estado === "PENDENTE" ? (
                     <span style={{ display: "inline-flex", gap: 6 }}>
-                      <button className="pt-btn primary" onClick={() => decidir(a.id, true)}>Aprovar</button>
-                      <button className="pt-btn danger" onClick={() => decidir(a.id, false)}>Rejeitar</button>
+                      <window.PtBtn primary onClick={() => decidir(a.id, true)}>Aprovar</window.PtBtn>
+                      <window.PtBtn danger onClick={() => decidir(a.id, false)}>Rejeitar</window.PtBtn>
                     </span>
                   ) : (
-                    <button className="pt-btn" onClick={() => onVerIntercorrencia(a.id)}>Ver</button>
+                    <window.PtBtn  onClick={() => onVerIntercorrencia(a.id)}>Ver</window.PtBtn>
                   )}
                 </td>
               </tr>
@@ -102,9 +98,9 @@ function Aprovacoes({ avisar, onVerIntercorrencia, rows, setRows }) {
           <b>{marcadas.length}</b><span className="lbl">{marcadas.length === 1 ? "intercorrência selecionada" : "intercorrências selecionadas"}</span>
           <input className="pt-bulk-motivo" value={motivoLote} onChange={(e) => setMotivoLote(e.target.value)}
             placeholder="Motivo único (obrigatório só para rejeitar)…" />
-          <button className="pt-btn primary" onClick={() => decidirLote(true)}><Ic name="check" />Aprovar {marcadas.length}</button>
-          <button className="pt-btn danger" onClick={() => decidirLote(false)}>Rejeitar {marcadas.length}</button>
-          <button className="pt-btn" onClick={() => { setMarcadas([]); setMotivoLote(""); }}>Limpar seleção</button>
+          <window.PtBtn primary onClick={() => decidirLote(true)}><Ic name="check" />Aprovar {marcadas.length}</window.PtBtn>
+          <window.PtBtn danger onClick={() => decidirLote(false)}>Rejeitar {marcadas.length}</window.PtBtn>
+          <window.PtBtn  onClick={() => { setMarcadas([]); setMotivoLote(""); }}>Limpar seleção</window.PtBtn>
         </div>}
       <Legal />
     </>
@@ -123,6 +119,7 @@ function FormIntercorrencia({ registro, onSalvar, onCancelar }) {
   const erro = !f.colaborador_config_id ? "Selecione o colaborador."
     : !f.tipo ? "Selecione o tipo da intercorrência."
     : !f.data ? "Informe a data."
+    : f.data > "2026-08-20" ? "A data não pode ser futura (hoje é 20/08/2026)."
     : (f.justificativa || "").trim().length < 10 ? "A justificativa precisa de no mínimo 10 caracteres."
     : null;
   const elegiveis = D.COLABORADORES.filter((c) => c.controla_ponto && !c.desligamento);
@@ -130,54 +127,39 @@ function FormIntercorrencia({ registro, onSalvar, onCancelar }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       <div className="pt-cols">
-        <div className="pt-fld"><label htmlFor="ic-colab">Colaborador <span className="pt-req">*</span></label>
-          <select id="ic-colab" value={f.colaborador_config_id} onChange={set("colaborador_config_id")}>
+        <window.PtEscolha label={"Colaborador"} req value={f.colaborador_config_id} onChange={set("colaborador_config_id")}>
             <option value="">Selecione…</option>
             {elegiveis.map((c) => <option key={c.id} value={c.id}>[{c.matricula}] {c.nome}</option>)}
-          </select>
-        </div>
-        <div className="pt-fld"><label htmlFor="ic-tipo">Tipo <span className="pt-req">*</span></label>
-          <select id="ic-tipo" value={f.tipo} onChange={set("tipo")}>
+          </window.PtEscolha>
+        <window.PtEscolha label={"Tipo"} req value={f.tipo} onChange={set("tipo")}>
             <option value="">Selecione…</option>
             {Object.entries(D.TIPOS_INTERC).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-          </select>
-        </div>
+          </window.PtEscolha>
       </div>
       <div className="pt-cols">
-        <div className="pt-fld"><label htmlFor="ic-data">Data <span className="pt-req">*</span></label>
-          <input id="ic-data" type="date" max="2026-08-20" value={f.data} onChange={set("data")} />
-        </div>
-        <label className="pt-check"><input type="checkbox" checked={!!f.dia_todo} onChange={set("dia_todo")} />Dia todo</label>
-        <div className="pt-fld"><label htmlFor="ic-ini">Início</label>
-          <input id="ic-ini" type="time" value={f.intervalo_inicio || ""} disabled={f.dia_todo} onChange={set("intervalo_inicio")} />
-        </div>
-        <div className="pt-fld"><label htmlFor="ic-fim">Fim</label>
-          <input id="ic-fim" type="time" value={f.intervalo_fim || ""} disabled={f.dia_todo} onChange={set("intervalo_fim")} />
-        </div>
+        <window.PtCampo label={"Data"} req type="date" value={f.data} onChange={set("data")} />
+        <window.PtCheck checked={!!f.dia_todo} onChange={set("dia_todo")} label={<>Dia todo</>} />
+        <window.PtCampo label={"Início"} type="time" value={f.intervalo_inicio || ""} disabled={f.dia_todo} onChange={set("intervalo_inicio")} />
+        <window.PtCampo label={"Fim"} type="time" value={f.intervalo_fim || ""} disabled={f.dia_todo} onChange={set("intervalo_fim")} />
       </div>
-      <div className="pt-fld wide"><label htmlFor="ic-just">Justificativa <span className="pt-req">*</span></label>
-        <textarea id="ic-just" maxLength={2000} value={f.justificativa} onChange={set("justificativa")}
+      <window.PtTexto label={"Justificativa"} req wide help={<>{(f.justificativa || "").length}/2000 — mínimo 10 caracteres.</>} maxLength={2000} value={f.justificativa} onChange={set("justificativa")}
           placeholder="Descreva o motivo da intercorrência (mín. 10 caracteres)…" />
-        <small>{(f.justificativa || "").length}/2000 — mínimo 10 caracteres.</small>
-      </div>
       <div className="pt-cols">
-        <div className="pt-fld"><label htmlFor="ic-prio">Prioridade</label>
-          <select id="ic-prio" value={f.prioridade} onChange={set("prioridade")}>
+        <window.PtEscolha label={"Prioridade"} value={f.prioridade} onChange={set("prioridade")}>
             <option value="NORMAL">Normal</option><option value="URGENTE">Urgente</option>
-          </select>
-        </div>
-        <label className="pt-check"><input type="checkbox" checked={!!f.impacta_apuracao} onChange={set("impacta_apuracao")} />Impacta apuração</label>
-        <label className="pt-check"><input type="checkbox" checked={!!f.descontar_banco_horas} onChange={set("descontar_banco_horas")} />Descontar do banco de horas</label>
+          </window.PtEscolha>
+        <window.PtCheck checked={!!f.impacta_apuracao} onChange={set("impacta_apuracao")} label={<>Impacta apuração</>} />
+        <window.PtCheck checked={!!f.descontar_banco_horas} onChange={set("descontar_banco_horas")} label={<>Descontar do banco de horas</>} />
         <div className="pt-fld"><label htmlFor="ic-anexo">Anexo (PDF, JPG, PNG — máx 5 MB)</label>
           <input id="ic-anexo" type="file" accept=".pdf,.jpg,.jpeg,.png" />
         </div>
       </div>
       <Nota tom="info">A intercorrência nasce como <b>rascunho</b>: nada é aplicado na apuração até você submeter e um aprovador decidir. A marcação original nunca é alterada — a correção entra como lançamento novo (append-only).</Nota>
       <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-        <button className="pt-btn" onClick={onCancelar}>Cancelar</button>
-        <button className="pt-btn primary" disabled={!!erro} title={erro || ""} onClick={() => onSalvar(f)}>
+        <window.PtBtn  onClick={onCancelar}>Cancelar</window.PtBtn>
+        <window.PtBtn primary disabled={!!erro} title={erro || ""} onClick={() => onSalvar(f)}>
           {registro ? "Atualizar" : "Salvar rascunho"}
-        </button>
+        </window.PtBtn>
       </div>
     </div>
   );
@@ -245,11 +227,11 @@ function Intercorrencias({ avisar, foco, onFoco, rows, setRows }) {
     const foot = (
       <>
         {sel.estado === "RASCUNHO" && <>
-          <button className="pt-btn" onClick={() => { setEditando(sel); onFoco(null); }}>Editar</button>
-          <button className="pt-btn primary" onClick={() => { mudarEstado(sel.id, "PENDENTE", "Submetida — está na fila de aprovações.", "ok"); onFoco(null); }}>Submeter para aprovação</button>
+          <window.PtBtn  onClick={() => { setEditando(sel); onFoco(null); }}>Editar</window.PtBtn>
+          <window.PtBtn primary onClick={() => { mudarEstado(sel.id, "PENDENTE", "Submetida — está na fila de aprovações.", "ok"); onFoco(null); }}>Submeter para aprovação</window.PtBtn>
         </>}
         {(sel.estado === "RASCUNHO" || sel.estado === "PENDENTE") &&
-          <button className="pt-btn danger" onClick={() => { mudarEstado(sel.id, "CANCELADA", "Intercorrência cancelada.", "warn"); onFoco(null); }}>Cancelar</button>}
+          <window.PtBtn danger onClick={() => { mudarEstado(sel.id, "CANCELADA", "Intercorrência cancelada.", "warn"); onFoco(null); }}>Cancelar</window.PtBtn>}
       </>
     );
     if (!Drawer) return null;
@@ -259,11 +241,11 @@ function Intercorrencias({ avisar, foco, onFoco, rows, setRows }) {
 
   return (
     <>
-      <div className="pt-toolbar">
+      <window.PtBarra>
         <span style={{ fontSize: 12, color: "var(--text-dim)" }}>{rows.length} registros no business · rascunho edita e submete; aprovada não volta atrás.</span>
-        <span className="pt-sp" />
-        <button className="pt-btn primary" onClick={() => setNova(true)}><Ic name="plus" />Nova intercorrência</button>
-      </div>
+        
+        <window.PtBtn primary onClick={() => setNova(true)}><Ic name="plus" />Nova intercorrência</window.PtBtn>
+      </window.PtBarra>
 
       {(nova || editando) &&
         <Card icon="plus" titulo={editando ? "Editar rascunho " + (editando.codigo || editando.id.slice(0, 8)) : "Nova intercorrência"}>
@@ -285,10 +267,10 @@ function Intercorrencias({ avisar, foco, onFoco, rows, setRows }) {
                 <td><PillPrioridade p={i.prioridade} /></td>
                 <td className="num" onClick={(e) => e.stopPropagation()}>
                   <span style={{ display: "inline-flex", gap: 6 }}>
-                    <button className="pt-btn" onClick={() => onFoco(i.id)}>Ver</button>
+                    <window.PtBtn  onClick={() => onFoco(i.id)}>Ver</window.PtBtn>
                     {i.estado === "RASCUNHO" && <>
-                      <button className="pt-btn" onClick={() => setEditando(i)}>Editar</button>
-                      <button className="pt-btn primary" onClick={() => mudarEstado(i.id, "PENDENTE", "Submetida para aprovação.", "ok")}>Submeter</button>
+                      <window.PtBtn  onClick={() => setEditando(i)}>Editar</window.PtBtn>
+                      <window.PtBtn primary onClick={() => mudarEstado(i.id, "PENDENTE", "Submetida para aprovação.", "ok")}>Submeter</window.PtBtn>
                     </>}
                   </span>
                 </td>
@@ -365,14 +347,9 @@ function BancoHoras({ avisar }) {
           </div>
           <Card icon="settings" titulo="Ajuste manual" sub="— registra lançamento no ledger (imutável)">
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <div className="pt-fld"><label htmlFor="bh-min">Minutos <span className="pt-req">*</span></label>
-                <input id="bh-min" type="number" value={minutos} onChange={(e) => setMinutos(e.target.value)} placeholder="Use negativo para débito" />
-                <small>Ex.: 60 (crédito 1h), −30 (débito 30 min).</small>
-              </div>
-              <div className="pt-fld"><label htmlFor="bh-obs">Observação <span className="pt-req">*</span></label>
-                <textarea id="bh-obs" maxLength={500} value={obs} onChange={(e) => setObs(e.target.value)} placeholder="Motivo do ajuste (obrigatório)…" />
-              </div>
-              <button className="pt-btn primary" onClick={registrar}><Ic name="check" />Registrar ajuste</button>
+              <window.PtCampo label={"Minutos"} req help={<>Ex.: 60 (crédito 1h), −30 (débito 30 min).</>} type="number" value={minutos} onChange={(e) => setMinutos(e.target.value)} placeholder="Use negativo para débito" />
+              <window.PtTexto label={"Observação"} req maxLength={500} value={obs} onChange={(e) => setObs(e.target.value)} placeholder="Motivo do ajuste (obrigatório)…" />
+              <window.PtBtn primary onClick={registrar}><Ic name="check" />Registrar ajuste</window.PtBtn>
               <Nota tom="warn">O ajuste não apaga nem edita movimento anterior: entra como lançamento novo com o seu nome. É assim que a auditoria reconstrói o saldo.</Nota>
             </div>
           </Card>
@@ -402,7 +379,7 @@ function BancoHoras({ avisar }) {
                 <td>{D.escala(c.escala_atual_id)?.nome || <span className="pt-dim">—</span>}</td>
                 <td className="num"><b><Min v={s.saldo_minutos} /></b></td>
                 <td className="mono">{s.updated_at}</td>
-                <td className="num" onClick={(e) => e.stopPropagation()}><button className="pt-btn" onClick={() => setSel(s.colaborador_config_id)}>Detalhes</button></td>
+                <td className="num" onClick={(e) => e.stopPropagation()}><window.PtBtn  onClick={() => setSel(s.colaborador_config_id)}>Detalhes</window.PtBtn></td>
               </tr>
             );
           })}
@@ -432,11 +409,11 @@ function Escalas({ avisar }) {
 
   return (
     <>
-      <div className="pt-toolbar">
+      <window.PtBarra>
         <span style={{ fontSize: 12, color: "var(--text-dim)" }}>Carga diária e semanal em minutos — 480 = 8h, 2.640 = 44h (CLT padrão).</span>
-        <span className="pt-sp" />
-        <button className="pt-btn primary" onClick={() => setForm({ escala: null })}><Ic name="plus" />Nova escala</button>
-      </div>
+        
+        <window.PtBtn primary onClick={() => setForm({ escala: null })}><Ic name="plus" />Nova escala</window.PtBtn>
+      </window.PtBarra>
       <Card icon="calendar" titulo="Escalas cadastradas" sub={"(" + rows.length + " no business)"}>
         <Tabela cols={[{ l: "Código", w: "110px" }, { l: "Nome" }, { l: "Tipo" }, { l: "Carga diária", num: true }, { l: "Carga semanal", num: true }, { l: "Turnos", num: true }, { l: "Banco de horas" }, { l: "Ação", num: true, w: "150px" }]}>
           {rows.length === 0 && <Vazio icon="calendar" colSpan={8}>Nenhuma escala cadastrada.</Vazio>}
@@ -451,8 +428,8 @@ function Escalas({ avisar }) {
               <td><PillSimNao v={e.permite_banco_horas} sim="Permite" /></td>
               <td className="num">
                 <span style={{ display: "inline-flex", gap: 6 }}>
-                  <button className="pt-btn" onClick={() => setForm({ escala: e })}>Editar</button>
-                  <button className="pt-btn danger" onClick={() => { if (window.confirm("Remover esta escala? Colaboradores vinculados perderão a referência.")) { setRows((rs) => rs.filter((r) => r.id !== e.id)); avisar("Escala removida.", "warn"); } }}>Remover</button>
+                  <window.PtBtn  onClick={() => setForm({ escala: e })}>Editar</window.PtBtn>
+                  <window.PtBtn danger onClick={() => { if (window.confirm("Remover esta escala? Colaboradores vinculados perderão a referência.")) { setRows((rs) => rs.filter((r) => r.id !== e.id)); avisar("Escala removida.", "warn"); } }}>Remover</window.PtBtn>
                 </span>
               </td>
             </tr>
@@ -480,23 +457,16 @@ function EscalaForm({ escala, onSalvar, onCancelar }) {
       <Card icon="calendar" titulo={escala ? escala.nome : "Dados da escala"}>
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <div className="pt-cols">
-            <div className="pt-fld wide"><label htmlFor="es-nome">Nome <span className="pt-req">*</span></label>
-              <input id="es-nome" maxLength={120} value={f.nome} onChange={set("nome")} /></div>
-            <div className="pt-fld"><label htmlFor="es-cod">Código</label>
-              <input id="es-cod" maxLength={30} value={f.codigo || ""} onChange={set("codigo")} /></div>
-            <div className="pt-fld"><label htmlFor="es-tipo">Tipo <span className="pt-req">*</span></label>
-              <select id="es-tipo" value={f.tipo} onChange={set("tipo")}>
+            <window.PtCampo label={"Nome"} req wide maxLength={120} value={f.nome} onChange={set("nome")} />
+            <window.PtCampo label={"Código"} maxLength={30} value={f.codigo || ""} onChange={set("codigo")} />
+            <window.PtEscolha label={"Tipo"} req value={f.tipo} onChange={set("tipo")}>
                 {Object.entries(D.TIPOS_ESCALA).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-              </select></div>
+              </window.PtEscolha>
           </div>
           <div className="pt-cols">
-            <div className="pt-fld"><label htmlFor="es-cd">Carga diária (minutos) <span className="pt-req">*</span></label>
-              <input id="es-cd" type="number" min={60} max={600} value={f.carga_diaria_minutos} onChange={set("carga_diaria_minutos")} />
-              <small>{D.fmtMin(f.carga_diaria_minutos)} por dia. Entre 60 e 600.</small></div>
-            <div className="pt-fld"><label htmlFor="es-cs">Carga semanal (minutos) <span className="pt-req">*</span></label>
-              <input id="es-cs" type="number" min={0} max={3600} value={f.carga_semanal_minutos} onChange={set("carga_semanal_minutos")} />
-              <small>{D.fmtMin(f.carga_semanal_minutos)} por semana. 2.640 = 44h (CLT padrão).</small></div>
-            <label className="pt-check"><input type="checkbox" checked={!!f.permite_banco_horas} onChange={set("permite_banco_horas")} />Permite acúmulo em banco de horas</label>
+            <window.PtCampo label={"Carga diária (minutos)"} req help={<>{D.fmtMin(f.carga_diaria_minutos)} por dia. Entre 60 e 600.</>} type="number" value={f.carga_diaria_minutos} onChange={set("carga_diaria_minutos")} />
+            <window.PtCampo label={"Carga semanal (minutos)"} req help={<>{D.fmtMin(f.carga_semanal_minutos)} por semana. 2.640 = 44h (CLT padrão).</>} type="number" value={f.carga_semanal_minutos} onChange={set("carga_semanal_minutos")} />
+            <window.PtCheck checked={!!f.permite_banco_horas} onChange={set("permite_banco_horas")} label={<>Permite acúmulo em banco de horas</>} />
           </div>
           {escala && escala.turnos.length > 0 &&
             <div>
@@ -509,8 +479,8 @@ function EscalaForm({ escala, onSalvar, onCancelar }) {
             </div>}
           <Nota tom="info">Interjornada mínima de {D.CONFIG.clt.interjornada_minima_horas}h (Art. 66 CLT) e intrajornada de {D.CONFIG.clt.intrajornada_minima_minutos} min (Art. 71) são validadas na apuração, não aqui.</Nota>
           <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-            <button className="pt-btn" onClick={onCancelar}>Cancelar</button>
-            <button className="pt-btn primary" disabled={!!erro} title={erro || ""} onClick={() => onSalvar(f)}>{escala ? "Atualizar" : "Criar escala"}</button>
+            <window.PtBtn  onClick={onCancelar}>Cancelar</window.PtBtn>
+            <window.PtBtn primary disabled={!!erro} title={erro || ""} onClick={() => onSalvar(f)}>{escala ? "Atualizar" : "Criar escala"}</window.PtBtn>
           </div>
         </div>
       </Card>
@@ -555,26 +525,23 @@ function Colaboradores({ avisar, onVerEspelho }) {
 
   return (
     <>
-      <div className="pt-toolbar">
-        <div className="pt-fld wide"><label htmlFor="cl-q">Buscar</label>
-          <input id="cl-q" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Nome, matrícula ou CPF" /></div>
-        {q && <button className="pt-btn" onClick={() => setQ("")}>Limpar</button>}
-        <div className="pt-fld"><label htmlFor="cl-esc">Escala</label>
-          <select id="cl-esc" value={escala} onChange={(e) => setEscala(e.target.value)}>
+      <window.PtBarra>
+        <window.PtCampo label={"Buscar"} wide value={q} onChange={(e) => setQ(e.target.value)} placeholder="Nome, matrícula ou CPF" />
+        {q && <window.PtBtn  onClick={() => setQ("")}>Limpar</window.PtBtn>}
+        <window.PtEscolha label={"Escala"} value={escala} onChange={(e) => setEscala(e.target.value)}>
             <option value="">Todas</option>
             {D.ESCALAS.map((e) => <option key={e.id} value={e.id}>{e.nome}</option>)}
-          </select></div>
-        <div className="pt-fld"><label htmlFor="cl-st">Situação</label>
-          <select id="cl-st" value={status} onChange={(e) => setStatus(e.target.value)}>
+          </window.PtEscolha>
+        <window.PtEscolha label={"Situação"} value={status} onChange={(e) => setStatus(e.target.value)}>
             <option value="ativos">Ativos</option>
             <option value="ponto">Só quem controla ponto</option>
             <option value="sem-pis">Sem PIS cadastrado</option>
             <option value="desligados">Desligados</option>
             <option value="todos">Todos</option>
-          </select></div>
-        <span className="pt-sp" />
+          </window.PtEscolha>
+        
         <span style={{ fontSize: 12, color: "var(--text-dim)" }}>{lista.length} de {rows.length} colaboradores</span>
-      </div>
+      </window.PtBarra>
       <Card icon="database" titulo="Colaboradores" sub={"(" + lista.length + " encontrados)"}>
         <Tabela cols={[{ l: "Matrícula", w: "92px" }, { l: "Nome" }, { l: "CPF / PIS" }, { l: "Escala" }, { l: "Último ponto" }, { l: "Saldo BH", num: true }, { l: "Controla ponto" }, { l: "Banco de horas" }, { l: "Ação", num: true, w: "180px" }]}>
           {lista.length === 0 && <Vazio icon="search" colSpan={9}>{busca ? <>Nenhum colaborador encontrado para “{q}”.</> : "Nenhum colaborador com esse filtro."}</Vazio>}
@@ -593,8 +560,8 @@ function Colaboradores({ avisar, onVerEspelho }) {
               <td><PillSimNao v={c.usa_banco_horas} /></td>
               <td className="num">
                 <span style={{ display: "inline-flex", gap: 6 }}>
-                  {c.controla_ponto && <button className="pt-btn" onClick={() => onVerEspelho(c.id)}>Espelho</button>}
-                  <button className="pt-btn" onClick={() => setEdit(c.id)}>Configurar</button>
+                  {c.controla_ponto && <window.PtBtn  onClick={() => onVerEspelho(c.id)}>Espelho</window.PtBtn>}
+                  <window.PtBtn  onClick={() => setEdit(c.id)}>Configurar</window.PtBtn>
                 </span>
               </td>
             </tr>
@@ -624,28 +591,25 @@ function ColaboradorForm({ colaborador, onSalvar, onCancelar }) {
         <Card icon="settings" titulo="Configuração de ponto">
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <div className="pt-cols">
-              <div className="pt-fld"><label htmlFor="cf-mat">Matrícula</label><input id="cf-mat" maxLength={30} value={f.matricula} onChange={set("matricula")} /></div>
-              <div className="pt-fld"><label htmlFor="cf-cpf">CPF</label><input id="cf-cpf" maxLength={14} placeholder="000.000.000-00" value={f.cpf} onChange={set("cpf")} /></div>
-              <div className="pt-fld"><label htmlFor="cf-pis">PIS</label><input id="cf-pis" maxLength={14} value={f.pis} onChange={set("pis")} />
-                <small>Sem PIS, a marcação do AFD é rejeitada na importação.</small></div>
+              <window.PtCampo label={"Matrícula"} maxLength={30} value={f.matricula} onChange={set("matricula")} />
+              <window.PtCampo label={"CPF"} maxLength={14} placeholder="000.000.000-00" value={f.cpf} onChange={set("cpf")} />
+              <window.PtCampo label={"PIS"} help={<>Sem PIS, a marcação do AFD é rejeitada na importação.</>} maxLength={14} value={f.pis} onChange={set("pis")} />
             </div>
-            <div className="pt-fld wide"><label htmlFor="cf-esc">Escala atual</label>
-              <select id="cf-esc" value={f.escala_atual_id} onChange={set("escala_atual_id")}>
+            <window.PtEscolha label={"Escala atual"} wide value={f.escala_atual_id} onChange={set("escala_atual_id")}>
                 <option value="">— Sem escala vinculada —</option>
                 {D.ESCALAS.map((e) => <option key={e.id} value={e.id}>{e.nome} ({D.TIPOS_ESCALA[e.tipo]})</option>)}
-              </select></div>
+              </window.PtEscolha>
             <div className="pt-cols">
-              <div className="pt-fld"><label htmlFor="cf-adm">Admissão <span className="pt-req">*</span></label><input id="cf-adm" value={f.admissao} onChange={set("admissao")} /></div>
-              <div className="pt-fld"><label htmlFor="cf-des">Desligamento</label><input id="cf-des" value={f.desligamento} onChange={set("desligamento")} placeholder="dd/mm/aaaa" />
-                <small>Deixar em branco se ativo.</small></div>
+              <window.PtCampo label={"Admissão"} req value={f.admissao} onChange={set("admissao")} />
+              <window.PtCampo label={"Desligamento"} help={<>Deixar em branco se ativo.</>} value={f.desligamento} onChange={set("desligamento")} placeholder="dd/mm/aaaa" />
             </div>
             <div className="pt-cols">
-              <label className="pt-check"><input type="checkbox" checked={!!f.controla_ponto} onChange={set("controla_ponto")} /><b>Controla ponto</b> — registra marcações</label>
-              <label className="pt-check"><input type="checkbox" checked={!!f.usa_banco_horas} onChange={set("usa_banco_horas")} /><b>Usa banco de horas</b></label>
+              <window.PtCheck checked={!!f.controla_ponto} onChange={set("controla_ponto")} label={<><b>Controla ponto</b> — registra marcações</>} />
+              <window.PtCheck checked={!!f.usa_banco_horas} onChange={set("usa_banco_horas")} label={<><b>Usa banco de horas</b></>} />
             </div>
             <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-              <button className="pt-btn" onClick={onCancelar}>Cancelar</button>
-              <button className="pt-btn primary" onClick={() => onSalvar(f)}>Salvar configuração</button>
+              <window.PtBtn  onClick={onCancelar}>Cancelar</window.PtBtn>
+              <window.PtBtn primary onClick={() => onSalvar(f)}>Salvar configuração</window.PtBtn>
             </div>
           </div>
         </Card>
@@ -687,7 +651,7 @@ function Importacoes({ avisar }) {
           <Voltar onClick={() => setSel(null)}>Voltar às importações</Voltar>
           <div><h2>Importação #{imp.id}</h2><span className="pt-sub-sub">{imp.nome_arquivo}</span></div>
           <span className="pt-sp" />
-          <button className="pt-btn" onClick={() => avisar("Download do arquivo original — fora deste protótipo.")}><Ic name="download" />Baixar original</button>
+          <window.PtBtn  onClick={() => avisar("Download do arquivo original — fora deste protótipo.")}><Ic name="download" />Baixar original</window.PtBtn>
         </div>
         <div className="pt-cols-2">
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -745,21 +709,20 @@ function Importacoes({ avisar }) {
 
   return (
     <>
-      <div className="pt-toolbar">
+      <window.PtBarra>
         <span style={{ fontSize: 12, color: "var(--text-dim)" }}>Arquivos duplicados (mesmo hash SHA-256) são rejeitados automaticamente.</span>
-        <span className="pt-sp" />
-        <button className="pt-btn primary" onClick={() => setNova((v) => !v)}><Ic name="download" />Nova importação AFD</button>
-      </div>
+        
+        <window.PtBtn primary onClick={() => setNova((v) => !v)}><Ic name="download" />Nova importação AFD</window.PtBtn>
+      </window.PtBarra>
 
       {nova &&
         <Card icon="download" titulo="Upload do arquivo" sub="— Portaria MTP 671/2021">
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <div className="pt-cols">
-              <div className="pt-fld"><label htmlFor="im-tipo">Tipo de arquivo <span className="pt-req">*</span></label>
-                <select id="im-tipo" value={tipo} onChange={(e) => setTipo(e.target.value)}>
+              <window.PtEscolha label={"Tipo de arquivo"} req value={tipo} onChange={(e) => setTipo(e.target.value)}>
                   <option value="AFD">AFD — Arquivo Fonte de Dados</option>
                   <option value="AFDT">AFDT — Arquivo Fonte de Dados Tratados</option>
-                </select></div>
+                </window.PtEscolha>
               <div className="pt-fld wide"><label htmlFor="im-arq">Arquivo <span className="pt-req">*</span></label>
                 <input id="im-arq" type="file" />
                 <small>Formato texto conforme layout Portaria 671/2021.</small></div>
@@ -768,12 +731,12 @@ function Importacoes({ avisar }) {
               O arquivo entra na fila em <b>ProcessarImportacaoAfdJob</b> e é processado em segundo plano — você acompanha o estado na tela de detalhes.
             </Nota>
             <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-              <button className="pt-btn" onClick={() => setNova(false)}>Cancelar</button>
-              <button className="pt-btn primary" onClick={() => {
+              <window.PtBtn  onClick={() => setNova(false)}>Cancelar</window.PtBtn>
+              <window.PtBtn primary onClick={() => {
                 const id = Math.max(...rows.map((r) => r.id)) + 1;
                 setRows((rs) => [{ id, nome_arquivo: "AFD_00000000000191_20260820.txt", tipo, tamanho_bytes: 1490233, estado: "PENDENTE", usuario: "Wagner Ramos", created_at: "20/08/2026 09:26", iniciado_em: null, concluido_em: null, hash_arquivo: "novo-hash-calculado-no-upload", linhas_total: 0, linhas_processadas: 0, linhas_sucesso: 0, linhas_erro: 0, log: "Enfileirado — aguardando worker.", erros_amostra: [] }, ...rs]);
                 setNova(false); avisar("Arquivo enfileirado para processamento.", "ok");
-              }}>Enviar para processamento</button>
+              }}>Enviar para processamento</window.PtBtn>
             </div>
           </div>
         </Card>}
@@ -791,7 +754,7 @@ function Importacoes({ avisar }) {
               <td className="num">{imp.linhas_processadas.toLocaleString("pt-BR")}<small>de {imp.linhas_total.toLocaleString("pt-BR")}</small></td>
               <td>{imp.usuario}</td>
               <td className="mono">{imp.created_at}</td>
-              <td className="num" onClick={(e) => e.stopPropagation()}><button className="pt-btn" onClick={() => setSel(imp.id)}>Ver</button></td>
+              <td className="num" onClick={(e) => e.stopPropagation()}><window.PtBtn  onClick={() => setSel(imp.id)}>Ver</window.PtBtn></td>
             </tr>
           ))}
         </Tabela>
@@ -831,30 +794,21 @@ function Relatorios({ avisar }) {
         <Card icon="settings" titulo={"Gerar: " + alvo.titulo} sub={alvo.descricao}>
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <div className="pt-cols">
-              <div className="pt-fld"><label htmlFor="rl-mes">Competência <span className="pt-req">*</span></label>
-                <select id="rl-mes" value={f.mes} onChange={set("mes")}>
+              <window.PtEscolha label={"Competência"} req value={f.mes} onChange={set("mes")}>
                   {D.MESES.map((m) => <option key={m.key} value={m.key}>{m.extenso}</option>)}
-                </select></div>
-              <div className="pt-fld wide"><label htmlFor="rl-colab">Colaborador</label>
-                <select id="rl-colab" value={f.colaborador} onChange={set("colaborador")}>
+                </window.PtEscolha>
+              <window.PtEscolha label={"Colaborador"} wide value={f.colaborador} onChange={set("colaborador")}>
                   <option value="">Todos que controlam ponto</option>
                   {D.COLABORADORES.filter((c) => c.controla_ponto).map((c) => <option key={c.id} value={c.id}>[{c.matricula}] {c.nome}</option>)}
-                </select></div>
-              <div className="pt-fld"><label htmlFor="rl-fmt">Formato</label>
-                {["afd", "afdt", "aej"].includes(alvo.chave)
-                  ? <><input id="rl-fmt" value="TXT (posicional)" readOnly />
-                      <small>Arquivo legal: texto {D.CONFIG.afd.encoding}, formato fixo do Anexo I.</small></>
-                  : <><select id="rl-fmt" value={f.formato} onChange={set("formato")}>
-                      <option value="pdf">PDF</option><option value="csv">CSV</option><option value="xlsx">XLSX</option>
-                    </select>
-                    <small>Gerenciais aceitam PDF, CSV ou XLSX.</small></>}</div>
+                </window.PtEscolha>
+              <window.PtCampo label={"Formato"} help={<>Arquivo legal: texto {D.CONFIG.afd.encoding}, formato fixo do Anexo I.</>} value="TXT (posicional)" readOnly />
             </div>
-            <label className="pt-check"><input type="checkbox" checked={f.incluir_anuladas} onChange={set("incluir_anuladas")} />Incluir marcações anuladas (exigido no AFD — a anulação também é registro)</label>
+            <window.PtCheck checked={f.incluir_anuladas} onChange={set("incluir_anuladas")} label={<>Incluir marcações anuladas (exigido no AFD — a anulação também é registro)</>} />
             {!alvo.disponivel &&
               <Nota tom="warn">Hoje só o <b>Espelho de Ponto</b> tem geração implementada em <span className="mono">ReportService</span>; os demais retornam HTTP 501 no vivo. O pedido entra na fila abaixo para não sumir.</Nota>}
             <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-              <button className="pt-btn" onClick={() => setAlvo(null)}>Cancelar</button>
-              <button className="pt-btn primary" onClick={gerar}><Ic name="download" />Gerar</button>
+              <window.PtBtn  onClick={() => setAlvo(null)}>Cancelar</window.PtBtn>
+              <window.PtBtn primary onClick={gerar}><Ic name="download" />Gerar</window.PtBtn>
             </div>
           </div>
         </Card>}
@@ -867,7 +821,7 @@ function Relatorios({ avisar }) {
               <b>{r.titulo}</b>
               <small>{r.descricao}</small>
               <span style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
-                <button className={"pt-btn" + (r.disponivel ? " primary" : "")} onClick={() => { setAlvo(r); setF((o) => ({ ...o, formato: ["afd", "afdt", "aej"].includes(r.chave) ? "txt" : "pdf" })); }}>Gerar</button>
+                <window.PtBtn primary={r.disponivel} onClick={() => { setAlvo(r); setF((o) => ({ ...o, formato: ["afd", "afdt", "aej"].includes(r.chave) ? "txt" : "pdf" })); }}>Gerar</window.PtBtn>
                 {!r.disponivel && <Pill tom="warn">em implementação</Pill>}
               </span>
             </div>
@@ -932,26 +886,20 @@ function Configuracoes({ avisar }) {
           </Card>
           <Card icon="plus" titulo="Cadastrar novo REP">
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <div className="pt-fld"><label htmlFor="rp-tipo">Tipo <span className="pt-req">*</span></label>
-                <select id="rp-tipo" value={f.tipo} onChange={set("tipo")}>
+              <window.PtEscolha label={"Tipo"} req value={f.tipo} onChange={set("tipo")}>
                   <option value="REP_P">REP-P (Programa/mobile)</option>
                   <option value="REP_C">REP-C (Convencional)</option>
                   <option value="REP_A">REP-A (Alternativo)</option>
-                </select></div>
-              <div className="pt-fld"><label htmlFor="rp-id">Identificador (17 caracteres) <span className="pt-req">*</span></label>
-                <input id="rp-id" maxLength={17} value={f.identificador} onChange={set("identificador")} placeholder="AAAAMMDDHHMMSSNNN" />
-                <small>Formato conforme Portaria 671/2021 Anexo I. {f.identificador.length}/17</small></div>
-              <div className="pt-fld"><label htmlFor="rp-desc">Descrição <span className="pt-req">*</span></label>
-                <input id="rp-desc" maxLength={120} value={f.descricao} onChange={set("descricao")} /></div>
-              <div className="pt-fld"><label htmlFor="rp-loc">Local</label>
-                <input id="rp-loc" maxLength={120} value={f.local} onChange={set("local")} placeholder="Ex.: Recepção matriz" /></div>
-              <div className="pt-fld"><label htmlFor="rp-cnpj">CNPJ</label>
-                <input id="rp-cnpj" maxLength={14} value={f.cnpj} onChange={set("cnpj")} placeholder="Somente números (14 dígitos)" /></div>
-              <button className="pt-btn primary" disabled={!!erro} title={erro || ""} onClick={() => {
+                </window.PtEscolha>
+              <window.PtCampo label={"Identificador (17 caracteres)"} req help={<>Formato conforme Portaria 671/2021 Anexo I. {f.identificador.length}/17</>} maxLength={17} value={f.identificador} onChange={set("identificador")} placeholder="AAAAMMDDHHMMSSNNN" />
+              <window.PtCampo label={"Descrição"} req maxLength={120} value={f.descricao} onChange={set("descricao")} />
+              <window.PtCampo label={"Local"} maxLength={120} value={f.local} onChange={set("local")} placeholder="Ex.: Recepção matriz" />
+              <window.PtCampo label={"CNPJ"} maxLength={14} value={f.cnpj} onChange={set("cnpj")} placeholder="Somente números (14 dígitos)" />
+              <window.PtBtn primary disabled={!!erro} title={erro || ""} onClick={() => {
                 setReps((rs) => [...rs, { ...f, id: Date.now() }]);
                 setF({ tipo: "REP_P", identificador: "", descricao: "", local: "", cnpj: "" });
                 avisar("REP cadastrado — as marcações passam a aceitar o identificador.", "ok");
-              }}><Ic name="check" />Cadastrar REP</button>
+              }}><Ic name="check" />Cadastrar REP</window.PtBtn>
             </div>
           </Card>
         </div>
@@ -962,7 +910,7 @@ function Configuracoes({ avisar }) {
   return (
     <>
       <Nota tom="warn" titulo="Somente leitura">
-        Estas configurações vêm de <b>Modules/Ponto/Config/config.php</b>. A edição pela UI não está implementada — para alterar, edite o arquivo e rode <span className="mono">php artisan config:clear</span>. Para os dispositivos, use o <button className="pt-btn" style={{ padding: "1px 7px", minHeight: 0 }} onClick={() => setTela("reps")}>cadastro de REPs</button>.
+        Estas configurações vêm de <b>Modules/Ponto/Config/config.php</b>. A edição pela UI não está implementada — para alterar, edite o arquivo e rode <span className="mono">php artisan config:clear</span>. Para os dispositivos, use o <window.PtBtn  style={{ padding: "1px 7px", minHeight: 0 }} onClick={() => setTela("reps")}>cadastro de REPs</window.PtBtn>.
       </Nota>
       <div className="pt-cols">
         <Card icon="shield" titulo="Regras CLT / Reforma Trabalhista">
@@ -1001,7 +949,7 @@ function Configuracoes({ avisar }) {
             <Li t="Hash"><span className="mono">{c.marcacao.hash_algoritmo}</span></Li>
           </Dl>
           <div style={{ marginTop: 12 }}>
-            <button className="pt-btn" onClick={() => setTela("reps")}><Ic name="list" />Gerenciar REPs cadastrados</button>
+            <window.PtBtn  onClick={() => setTela("reps")}><Ic name="list" />Gerenciar REPs cadastrados</window.PtBtn>
           </div>
         </Card>
         <Card icon="download" titulo="AFD / Importação · eSocial">

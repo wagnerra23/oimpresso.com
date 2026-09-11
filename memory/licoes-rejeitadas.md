@@ -1050,6 +1050,18 @@
 - **Sobre virar máquina (registrado, NÃO armado — [ADR 0344](decisions/0344-two-strikes-cobre-processo.md) two-strikes):** 1ª ocorrência da classe ⇒ **conserta, não codifica**; não chegou a prod (chegou ao CI de um PR próprio). O par candidato honesto é **comportamental**, não sintático: PostToolUse que, ao ver um arquivo de código recém-escrito por Bash, rode o **parser daquela linguagem** quando o binário existir (`php -l`, `node --check`, `python -m py_compile`) e reprove só no erro de sintaxe. Mede o **dano**, não a forma da escrita, então escapa da família de guard sintático que este §5 já matou 4 vezes. ⛔ **Não** propor lint de `\\` no texto do comando: é exatamente o critério sintático banido, e daria FP em todo regex legítimo. ⚠️ Limite medido nesta máquina: `php` não está no PATH e o CT 100 respondeu `502` a sessão inteira — o parser de PHP **não** estaria disponível localmente hoje, o que enfraquece o candidato justamente na linguagem onde o erro doeu.
 - **Quem pegou:** o CI — e **só porque eu tinha acabado de ligar aquele teste numa lane**, no mesmo PR. Antes do wiring o job passava verde com `23 passed` e **zero menções** ao arquivo; depois, o mesmo job falhou apontando arquivo e linha. Sem o wiring, um teste sintaticamente inválido teria entrado no repo se declarando cobertura. O gate mordeu o próprio autor no primeiro erro real, que é o comportamento que se quer dele.
 
+- **⚠️ EMENDA 2026-09-09 — a receita de verificação acima NÃO pega a pior variante.** *"Conte as
+  barras do arquivo e olhe cada uma"* pressupõe que sobrou uma barra pra contar. Nem sempre sobra:
+  escrevendo o marcador de fronteira-de-palavra (`\\b`) dentro de uma regex num `.mjs`, o par colapsou e o
+  JS gravou o **byte 0x08 (BACKSPACE literal)** no arquivo. O resultado é a forma mais traiçoeira da
+  classe: **regex sintaticamente válida, `node --check` verde, e `grep`/`sed` mostrando a linha como
+  se estivesse certa** (o byte é invisível no terminal) — só que ela exige um backspace no texto e
+  nunca casa. Aqui isso fez um ternário sair sempre pelo ramo errado, e o que pegou foi ler a SAÍDA
+  do consumidor, não o código. Mesma armadilha do `rec` de 08-25 no [LC-26](LICOES_CODE.md), agora
+  dentro de arquivo versionado em vez de sonda ad-hoc. **A verificação que fecha os dois casos** é
+  varrer o arquivo escrito por **bytes de controle** (`od -c`, ou um passe que rejeite `< 0x20`
+  fora de TAB/LF/CR) — barra sobrando a leitura pega, byte de controle só o dump pega.
+
 ### 2026-08-19 — Painel do protocolo anunciar "sem teto get_file" num caminho cujo INSUMO passa pelo get_file
 
 - **O que foi tentado:** baixar o protótipo da tela Backup pelo protocolo de design. A fase -1 do painel oferece `aplicar-payload.mjs <cowork.json> <ds.json> --require-complete-shell` com o comentário `# shell TODO + deps HTML/CSS/JS, sem teto get_file`.
@@ -1660,7 +1672,6 @@
 - **⚠️ Sobre virar máquina — MEDIDO, não armado:** o sub-caso é **mecanicamente decidível** (`str.count`/`.count(` num script de escrita cujo padrão começa por espaço e o arquivo-alvo é `.yml`), diferente do eixo semântico da lápide-mãe. Mas o dono já existe e é o `block-sonda-que-mente` **P2**, que cobre a sub-classe determinística da LC-16 pelo lado dos metacaracteres — seria **estender**, nunca abrir paralelo (LC-19). Não armado aqui por [ADR 0344](decisions/0344-two-strikes-cobre-processo.md): **1ª ocorrência conserta, não codifica**, e o dano foi contido antes do commit. Fica com o comando de medição para a 2ª: contar, no corpus de scripts de escrita, `count(` cujo argumento comece com espaço — separando os que editam arquivo indentado dos que não. A defesa barata e universal já é canon e é o que funcionou: **rode o parser do consumidor depois de escrever** (§5 2026-08-12, *"doc que a máquina LÊ é código com cara de doc"*).
 - **Evidência:** [#6962](https://github.com/wagnerra23/oimpresso.com/pull/6962) · 1ª tentativa: `assert n==2` verde + `yaml.parser.ParserError` na linha 88/106 · 2ª: `count==1` por bloco, teste de identidade `prova == antes` passou, `git diff` `+2 −0`.
 
-
 ### 2026-09-08 — Dispensar o escopo multi-tenant do parent no eager-load da fonte da meta (a "armadilha" NÃO existe — li um dos dois escopos irmãos)
 
 - **O que foi tentado:** no PR-3 das metas da Jana ([#6968](https://github.com/wagnerra23/oimpresso.com/pull/6968)), pôr `withoutGlobalScope(ScopeByBusinessViaParent::class)` no eager-load de `fonte` dentro do `buildMetasPayload`. A justificativa que escrevi — em **código, teste, `casos.md`, charter e corpo do PR** — era que meta de **plataforma** (`business_id` nulo) aparece no Painel pelo `orWhereNull('business_id')` da consulta, e que a fonte dela cairia fora do escopo do parent, fazendo a tela dizer *"sem fonte configurada"* para uma meta que tem fonte. Veio com o comentário `// SUPERADMIN:` que a regra exige, o que deu à afirmação **cara de recibo**.
@@ -1702,3 +1713,95 @@
   **O ponto cego é o INVERSO do que escrevi:** não é "só vê branch pushada, foi sorte a desta ter pushado" — é que **nenhuma consulta ao grafo do git vê trabalho que ainda não foi feito**, e era exatamente esse o caso. Portanto **não armar não foi cautela: era o veredito**. O candidato deixa de ser "par pronto para a próxima ocorrência" e passa a ser **registro do que NÃO serve** — informação melhor que um par prometendo pegar o que não pega.
   **⚠️ E o mais instrutivo:** apresentar *"o detector acha o commit **hoje**"* como prova de que *"**teria** pego"* é exatamente o **limite (2) desta mesma lápide** — recibo da PREMISSA passando por prova da CONCLUSÃO — cometido um parágrafo abaixo dele. Mesma família de §5 2026-08-14 (selftest que exercitava a cópia, não o chokepoint) e §5 2026-07-30 (mecanismo que anuncia capacidade que não tem). **Eu cometi, ao registrar a classe, a própria classe** — como já acontecera na lápide de 2026-07-30, e por isso fica aqui, não apagado.
   **O que o adversário confirmou e NÃO muda:** classe **LC-19** correta (LC-08 tem sabor na causa, mas somar infla os dois; LC-20 não serve — a base não estava velha) · **não é duplicata**, e a cronologia **fortalece** o argumento · contador **13→14** correto, sem double-count · o alarme two-strikes **segue tocando** (`Gate:` ainda começa com `none`) · zero LC-10, zero claim de superioridade. Controles dele: `is-shallow` false · `two-strikes --reconcile` rc=0 · `lapide-recheck` rc=0 · `gate-selftest` 82/82 · `sec5-derive --check` rc=0.
+
+### 2026-09-08 — Teste de tela Inertia que monta uma requisicao que o BROWSER NUNCA ENVIA (verde no CI, skeleton eterno em prod) — e a mutacao nao pega, porque muta o CODIGO, nao a SONDA
+
+- **O limite (variante tambem proibida):** teste que exercita rota servida a um **cliente**
+  (Inertia, HTMX, DataTables, fetch de SPA) reproduz **os headers que aquele cliente manda de
+  fato** — nao um subconjunto conveniente. Vale pra `X-Requested-With`, `Accept`,
+  `X-Inertia*`, `X-CSRF-Token`, `Content-Type`. A pergunta que separa: *"um browser real
+  emitiria exatamente esta requisicao?"* — se a resposta nao for um sim medido no cliente
+  (aqui: `@inertiajs/core`, `getHeaders()`, que manda `X-Requested-With`
+  **incondicionalmente** junto com `X-Inertia`), o verde nao diz nada sobre a tela.
+
+- **O corolario que esta lapide tem de proprio, e que custa caro:** **bite-test por MUTACAO
+  nao valida a sonda.** Eu rodei 3 variantes do controller x 3 cenarios e cada teste mordeu
+  na direcao certa — mas as **nove** celulas usavam o MESMO header errado. Mutacao prova que
+  o teste discrimina o codigo sob teste; **nao** prova que o teste fala a lingua do cliente
+  real. Sao dois eixos, e o segundo so se fecha reproduzindo o cliente ou medindo o runtime.
+
+- **Assinatura pra reconhecer sem saber a causa:** a tela tem prop **deferida** (`Inertia::defer`)
+  e o controller tem um ramo `if (request()->ajax())` legado do Blade. Toda a carga deferida
+  chega por partial reload, todo partial carrega `X-Requested-With`, e o ramo legado engole a
+  requisicao. O sintoma pro usuario e **skeleton que nunca vira tabela**; o sintoma no CI e
+  **verde**. Guarda correta, ja padrao da casa (`EssentialsLeaveController:95`):
+  `if (request()->ajax() && ! request()->inertia())`.
+
+- **⚠️ Nao virar gate por sintaxe:** acusar `if (request()->ajax())` em controller reprovaria
+  todo controller Blade legado que **nao** serve Inertia — a maioria do repo. O predicado real
+  e *"esta rota serve uma tela Inertia com prop deferida?"*, que cruza controller + render +
+  manifesto. Familia do guard sintatico ja enterrada 7x neste §5. O que fecha e a **Regra 0**
+  do [PROTOCOLO-COMPARACAO-RUNTIME](requisitos/_DesignSystem/PROTOCOLO-COMPARACAO-RUNTIME.md)
+  — medir a tela no runtime antes de dar por entregue — que eu **nao cumpri**.
+
+- **Terceira do modulo na mesma janela**, todas de telas migradas em paralelo antes de o
+  primeiro hotfix existir: Bens ([#7047](https://github.com/wagnerra23/oimpresso.com/pull/7047)),
+  Alocacoes e Manutencoes ([#7053](https://github.com/wagnerra23/oimpresso.com/pull/7053)).
+  A minha ([#7045](https://github.com/wagnerra23/oimpresso.com/pull/7045)) **chegou a prod**.
+  Corolario de paralelismo: quando N sessoes migram telas irmas ao mesmo tempo, o defeito
+  de UMA nasce nas N — e a que mergeia primeiro nao avisa as outras. `whats-active` antes de
+  abrir PR de tela irma (§5 2026-08-13) e o que teria encurtado isso.
+
+- **Consequencia operacional imediata, registrada porque quase virou dano:** eu ja tinha
+  disparado o `workflow_dispatch` do gate visual pra gerar a **baseline** desta tela quando o
+  defeito apareceu. O `PixelBaselineTest` roda Pest Browser — cliente Inertia real — logo a
+  baseline sairia sendo **foto do skeleton eterno**, e viraria o "estado correto" contra o qual
+  todo PR futuro seria comparado. **Cancelado antes de commitar** (`conclusion=cancelled`, 0
+  `.snap` na branch). Regra: **nao gerar baseline visual de tela cujo runtime nao foi medido.**
+
+### 2026-09-08 — Absolver um artefato citando uma atribuição `[W] <data>` que estava na sentença VIZINHA (a frase nasceu falsa, e eu publiquei a absolvição EM CÓDIGO)
+
+- **O limite (variante também proibida):** citar autoria, decisão ou aprovação — `[W] <data>`,
+  `Wagner 2026-XX-XX`, `decisão de <fulano>` — a partir de **proximidade textual**. O marcador
+  vale pra **sentença que o carrega**, nunca pro parágrafo, o bloco ou o docblock inteiro. Antes
+  de tratar uma frase como canon atribuído: ler onde a atribuição **fecha** e, se a frase afirma
+  comportamento, **datá-la contra o comportamento** (`git log -S`, em repo comprovadamente
+  não-raso — §5 2026-07-24). Uma frase escrita DEPOIS do mecanismo que ela descreve pode ter
+  **nascido falsa**, e foi o caso: em `Sidebar.tsx` o `([W] 2026-08-28)` prende-se à sentença da
+  ALOCAÇÃO da entry no topo (`:310`); a frase *"É o destino pós-login"* é a SEGUINTE (`:312`), sem
+  atribuição — e o condicional que ela contradiz existia desde o #4949, **um mês antes**. Ela era
+  verdadeira só pro subconjunto sem `jana.access`.
+
+- **O corolário que esta lápide tem de próprio: ABSOLVIÇÃO TAMBÉM É CLAIM.** Dizer *"este
+  artefato estava certo, quem errou foi o outro"* exige a mesma medição que a acusação — e é mais
+  perigosa que ela, por duas razões. Ela **inverte a culpa** (o artefato absolvido vira referência
+  pra próxima sessão), e ela sai como **justificativa em comentário de código e corpo de PR**, que
+  é onde a próxima sessão lê canon. Aqui a absolvição atravessou um commit, dois comentários de
+  código e um PR body antes de alguém medir a atribuição. A pergunta barata que teria pego:
+  *"a atribuição que estou citando cobre a frase que estou citando?"*
+
+- **⚠️ NÃO virar gate:** o predicado — *"até onde esta atribuição alcança?"* — é **semântico por
+  construção** ([ADR 0224](decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md): semântico =
+  advisory), e a forma sintática (casar `[W] <data>` e exigir que a sentença seguinte não afirme
+  comportamento) é a família de guard sintático que este §5 já enterrou 7× — allowlist-de-pasta
+  06-30 · `@scope` 07-09 · vocabulário **130 FP** 07-16 · `toHaveKey` **100% FP** 07-26 ·
+  `toContain` 07-28 · `jq` 08-11 · par usuário/senha 08-02. **O que pegou foi PROCESSO:** o agente
+  `ciclo-adversary`, rodado ANTES de escrever no ledger — exatamente o gatilho que o canon dele
+  declara. Ele derrubou 2 das 3 razões do meu fechamento, incluindo a que eu mais pesava.
+
+- Origem: sessão 2026-09-08 · [PR #7065](https://github.com/wagnerra23/oimpresso.com/pull/7065)
+  (a errata está no commit `55423fc2a1`, dentro do próprio código que carregava a atribuição
+  falsa). Ocorrência **LC-08 nº 151**.
+
+### 2026-09-09 — Promover `blueprint_cowork` e `canon_reference` a ÂNCORA de design (as 2 chaves que a cadeia "ignora")
+
+- **O que foi tentado:** um inventário mediu que uma tela declara sua fonte de design em **cinco** lugares e que o [`prototipo-ui/ancora.mjs`](../prototipo-ui/ancora.mjs) lê **três** (`related_prototype` · `bundle_source` · `visual_source`), registrando as outras duas — `mwart_pattern_reuse.blueprint_cowork` (38 charters) e `canon_reference` (31 `*-visual-comparison.md`) — como **defeito**: *"a âncora existe, foi aprovada por [W], e a máquina não a vê"*. A ação natural seria promovê-las a âncora, em leva.
+- **Por que caiu (medido em `origin/main` de 2026-09-09, e o dado inverte a premissa):**
+  - **`blueprint_cowork` não é fonte POR DEFINIÇÃO.** A [ADR 0149](decisions/0149-mwart-screen-pattern-reuse-cowork.md) (aceita [W] 2026-05-15) a cria pra dizer *"esta tela derivada REUSA o pattern visual do Index de OUTRA tela"*. Medido: **38/38** vivem sob `mwart_pattern_reuse` com `derived_screens` declarado, e **31/38** declaram `divergence_from_blueprint` REAL — o próprio charter dizendo que o blueprint **não** desenha esta tela (*"datatable multi-row edit — pattern distinto de Index Cockpit"*, *"reuso parcial header+stats apenas"*); só 6 dizem "none/nenhuma".
+  - **Promover não fecharia gap nenhum.** **37/38** já declaram `related_prototype`, e **0/38** estão sem alguma das 3 chaves de âncora. A promoção só **sobrescreveria** declaração existente.
+  - **Ela nunca foi órfã.** `charter-blueprint-pointers.mjs` e `reconcile-triplet.mjs` a leem como ponteiro-de-blueprint, e `detectar-telas.test.mjs` tem teste que asserta que ela **não** é alvo de âncora. A razão de o `ancora.mjs` não a enxergar é banal e mecânica: o `frontmatter()` compartilhado casa `^([a-z_]+):` (nível raiz) e ela vive **indentada** — não é esquecimento de política.
+  - **`canon_reference` é referência de PARIDADE, e como âncora seria pior.** Dos 31: **4** apontam Blade legacy (`resources/views/contact/*.blade.php`), **1** aponta `.tsx` do próprio repo, **1** aponta tool MCP, **1** se declara *"ref expirada"*; só **10** nomeiam arquivo que existe (7 apontam um `produto-cockpit-page.jsx` que não resolve). E o número que decide: nos **19** casos em que charter e inventário coexistem, apontam o mesmo arquivo **0 vezes** — e onde dá pra julgar, o `related_prototype` é o certo (`Forja/Cockpit` tem `forja-page.jsx` contra um `canon_reference: os-page.jsx`, que desenha Ordem de Serviço).
+  - E a forma já é lápide: §5 **2026-08-28** diz, sobre exatamente isto, que promover é *"decisão par-a-par, nunca carimbo"*, e que promover porte reverso a "design APROVADO" **ancora a tela nela mesma** (§5 2026-06-05).
+- **O limite (variante também proibida):** não promover `blueprint_cowork` nem `canon_reference` a âncora **em leva** — nem sob nome de "fechar o gap das 2 chaves", "reconciliar as 5 fontes" ou "o `ancora.mjs` está incompleto". Também proibido tratar **`n/a (herda PT-0X…)` como ausência de fonte**: é declaração consciente que a máquina reconhece (`ehDeclaracaoNa`) e que o `design-coverage` conta como `declared` — as duas telas citadas como *"aparecem sem fonte"* (`team-mcp/CcSessions/Index` e `team-mcp/Scorecard/Index`) **não apareciam**; elas declaram `n/a` e já linkam o inventário por `related_visual_comparison`. Promoção individual segue possível e é **decisão [W]**, par-a-par, com a fonte aberta e conferida. **Mesma família** da lápide §5 2026-08-28 (*não promover `bundle_source` a `related_prototype` em leva*) e da 2026-06-05 (*derivar do código*): muda a chave, a doença é a mesma — carimbar como "design aprovado" um ponteiro que aponta pattern de outra tela, porte reverso ou ref podre.
+- **O que foi feito no lugar (o defeito real era outro):** a cegueira não era de leitura, era de **rótulo** — quem lia a regra dura do docblock (*"âncora ∈ {…}"*) sem ver menção às outras duas concluía que a cadeia **esqueceu**. Então o `ancora.mjs` passa a **ler as duas e reportá-las rotuladas** (`ℹ️ declarações de fonte que NÃO são âncora`), com o motivo e a nota de porte reverso, e a regra dura do topo passa a dizer que os outros dois lugares existem e são não-âncora **por decisão**. `--list` e `design-coverage` ficaram intocados de propósito: catraca idêntica antes e depois (`declared` 221 · `totalCharters` 226 · `parityLinked` 66).
+- **Evidência:** [PR #7089](https://github.com/wagnerra23/oimpresso.com/pull/7089). Bites + controles negativos no `ancora.mjs --selftest` (76 asserções, 22 novas), com **mutação provando que mordem**: `casaPathInteiro`→`false` derruba 3; `declaracoesNaoAncora`→`[]` derruba 3; `ambiguidade`→`null` derruba 1.

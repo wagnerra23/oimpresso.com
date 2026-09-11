@@ -378,5 +378,53 @@
     "route": "/ponto/relatorios",
     "anchor": "Apuração Eletrônica de Jornada",
     "baseline": "it_Ponto_Relatorios_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Patrimonio/Manutencoes",
+    "source": "Patrimonio/Manutencoes",
+    "component": "Patrimonio/Manutencoes",
+    "route": "/asset/asset-maintenance",
+    "anchor": "Manutenções",
+    "baseline": "it_Patrimonio_Manutencoes_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Patrimonio/Index",
+    "source": "Patrimonio",
+    "component": "Patrimonio/Index",
+    "route": "/asset/dashboard",
+    "anchor": "Resumo de hoje",
+    "baseline": "it_Patrimonio_Index_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "StockAdjustment/Index",
+    "source": "StockAdjustment",
+    "component": "StockAdjustment/Index",
+    "route": "/stock-adjustments?v=2",
+    "anchor": "Ajustes de estoque",
+    "baseline": "it_StockAdjustment_Index_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "StockAdjustment/Create",
+    "source": "StockAdjustment/Create",
+    "component": "StockAdjustment/Create",
+    "route": "/stock-adjustments/create?v=2",
+    "anchor": "Novo ajuste de estoque",
+    "baseline": "it_StockAdjustment_Create_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "StockTransfer/Index",
+    "source": "StockTransfer",
+    "component": "StockTransfer/Index",
+    "route": "/stock-transfers?v=2",
+    "anchor": "Transferências de estoque",
+    "baseline": "it_StockTransfer_Index_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "StockTransfer/Create",
+    "source": "StockTransfer/Create",
+    "component": "StockTransfer/Create",
+    "route": "/stock-transfers/create?v=2",
+    "anchor": "Nova transferência de estoque",
+    "baseline": "it_StockTransfer_Create_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   }
 ]

@@ -20,7 +20,7 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, relative } from 'node:path';
-import { raizesDePages } from './page-path.mjs';
+import { isAuxiliaryPagePath, raizesDePages } from './page-path.mjs';
 
 const ROOT = process.cwd();
 const ANCORA = join(ROOT, 'prototipo-ui', 'ancora.mjs');
@@ -38,8 +38,36 @@ try {
   console.error(`design-coverage: falha ao rodar ancora.mjs --list --json: ${e.message}`);
   process.exit(2);
 }
-const totalCharters = rows.length;
-const declared = rows.filter((r) => r.hasSource).length;
+// ── charter de COMPONENTE nao entra na conta de TELA (2026-09-09) ────────────────
+// Este script ja respondia "o que e uma tela?" de DOIS jeitos, a 80 linhas de distancia: o
+// `walkTsx` (contexto `noCharter`, abaixo) pula `_components`/`_partials`, mas o denominador
+// da cobertura vinha do `--list` CRU, que enumera CHARTER. Resultado: os 3 charters de
+// `kb/_components/` caiam no denominador e apareciam como tela SILENCIOSA — e uma auditoria
+// (#7087) os leu assim, como gap de ancora a fechar.
+//
+// Nao sao gap, e nao e decisao nova: eles governam DRAWER (o proprio charter diz `drawer
+// concept - sem .tsx de pagina dedicada`), a fonte esta nomeada no codigo (`NodeReader.tsx:43`
+// -> `kb-page.jsx::ArticleReader`, porte Cowork) e a classificacao foi decidida em 2026-07-09,
+// quando o `integrity-check` IT2 os MOVEU pra `_components/` por nao terem `.tsx` irmao. O que
+// faltava era esta porta herdar aquela decisao.
+//
+// `isAuxiliaryPagePath` e o dono unico da distincao (`page-path.mjs`, ja importado aqui pelo
+// `raizesDePages`) — o mesmo criterio de `casos-coverage-guard`, `screen-coverage-map`,
+// `module-surface`, `ciclo-completo`, `exposicao-tier0` e outras 3 portas. Escrever o filtro
+// a mao aqui seria 2o dono (§5 2026-07-09 "duplica regua consolidada") e criterio por nome de
+// pasta (§5 2026-06-30). REPORTADO, nunca escondido: a contagem sai no relatorio abaixo.
+//
+// MEDIDO antes de aplicar (o numero e o recibo, nao a intencao):
+//   antes  totalCharters 226 · declared 222 · silent 4  · parityLinked 66
+//   depois totalCharters 223 · declared 222 · silent 1  · parityLinked 66
+// `declared` NAO se move (os 3 tinham `hasSource:false`) e nenhum deles declara
+// `related_visual_comparison` — logo as DUAS catracas ficam intactas. O que cai e so o
+// denominador e o balde silencioso, que era onde estava o erro de classificacao.
+const ehAuxiliar = (r) => !!r.charter && isAuxiliaryPagePath(r.charter);
+const auxiliares = rows.filter(ehAuxiliar);
+const telas = rows.filter((r) => !ehAuxiliar(r));
+const totalCharters = telas.length;
+const declared = telas.filter((r) => r.hasSource).length;
 const silent = totalCharters - declared;
 // ── 3o balde: `n/a` cuja PREMISSA CADUCOU (report-only, FORA da catraca) ───────────
 // Por que existe (2026-08-26): `related_prototype: n/a (herda PT-0X)` conta como ✅ pra
@@ -57,7 +85,7 @@ const silent = totalCharters - declared;
 // NÃO tem guard de entrypoint — medido: `import()` dispara o CLI e sai 1. Unificar exige o
 // guard, que reindenta ~160 linhas do bloco CLI e merece PR próprio.
 const modDoCharter = (rel) => { const m = /(?:^|\/)Pages\/([^/]+)\//.exec(rel); return m ? m[1] : null; };
-const naComFonteCandidata = rows.filter((r) => {
+const naComFonteCandidata = telas.filter((r) => {
   if (!r.isNa || !r.charter) return false;
   const mod = modDoCharter(r.charter);
   return !!mod && existsSync(join(ROOT, 'prototipo-ui', 'cowork', mod.toLowerCase() + '-page.jsx'));
@@ -101,7 +129,10 @@ try {
 const apontados = new Set();
 const parityBroken = [];
 let parityLinked = 0;
-for (const r of rows) {
+// `telas`, nao `rows`: a pergunta da paridade e "a TELA bate com seu design?". Medido —
+// nenhum dos 3 auxiliares declara `related_visual_comparison`, entao `parityLinked` fica em
+// 66 nos dois casos; a troca e por coerencia de denominador, e o numero confirma.
+for (const r of telas) {
   if (!r.charter) continue;
   const abs = join(ROOT, r.charter);
   if (!existsSync(abs)) continue;
@@ -193,6 +224,8 @@ console.log('═══ COBERTURA DE DESIGN (fonte declarada por tela · UI-0013)
 console.log(`charters de página : ${totalCharters}`);
 console.log(`  ✅ fonte declarada (protótipo ou "segue DS") : ${declared}  (${pct(declared, totalCharters)}%)`);
 console.log(`  ⚠️  silenciosa (sem fonte declarada)          : ${silent}  (${pct(silent, totalCharters)}%)`);
+console.log(`  ↪ fora da conta: charters de COMPONENTE       : ${auxiliares.length}  (dir auxiliar — governam drawer/partial, nao sao tela)`);
+for (const r of auxiliares) console.log('       ' + r.charter);
 console.log('  🕰️  n/a com fonte candidata JA no espelho    : ' + naComFonteCandidata.length + '  (report-only — a decisão n/a é datada; a fonte desceu depois)');
 if (naComFonteCandidata.length) {
   console.log('     (revisar a decisão — a escolha final é humana, nunca automática):');

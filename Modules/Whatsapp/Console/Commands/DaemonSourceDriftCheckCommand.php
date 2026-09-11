@@ -27,8 +27,11 @@ use Illuminate\Support\Facades\Log;
  * 3. Compara — se diff, alerta + log estruturado
  *
  * **Quando rodar:**
- * - Cron semanal (segundas 09:00 BRT — antes do horário comercial)
  * - Manual `php artisan whatsapp:daemon-source-drift-check`
+ * - **DESAGENDADO 2026-09-08** (era weekly segunda 09:00 BRT). Saiu do schedule
+ *   porque a ADR 0202 (2026-05-27) descomissionou o daemon Baileys do CT 100 que
+ *   ele vigia e removeu a config que ele lê — exit 1 em toda execução, 128 linhas
+ *   no log da janela observável. Quem roda de fato é `php artisan schedule:list`.
  *
  * **Fallback:** se daemon não expõe `daemon_source_sha` (versão velha que
  * não foi rebuilt depois deste PR), comando devolve warning suave e exit 0

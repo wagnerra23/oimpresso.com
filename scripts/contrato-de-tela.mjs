@@ -9,6 +9,9 @@
 // visual subjetivo (cor/ícone/densidade) fica com o humano (screenshot · ADR 0114) — NÃO automatizado.
 //
 // 3 modos (cada um fecha um buraco real catalogado na sessão):
+//   --merge-ref               Só com --preflight: HEAD é o merge ref de um PR (checkout@v4 em
+//                             pull_request), que JÁ contém a base — PULA a perna de ancestralidade,
+//                             que ali mede a fila do CI. As demais seguem. Ver preflight().
 //   --preflight [base]        Catraca 1 (higiene de base). Falha se <base> (default origin/main) NÃO
 //                             é ancestral de HEAD (branch atrás → rebase), ou se o worktree é órfão
 //                             (0 arquivos trackeados). Avisa se o diff remove > LIMIAR% dos arquivos
@@ -71,19 +74,45 @@ function collectTargets(alvo) {
 }
 
 // ── Catraca 1: preflight de base ──────────────────────────────────────────────
-function preflight(base = 'origin/main') {
+function preflight(base = 'origin/main', { mergeRef = false } = {}) {
   let fail = 0;
   const tracked = git('ls-files');
   const nTracked = tracked ? tracked.split('\n').filter(Boolean).length : 0;
   if (nTracked === 0) { err(`worktree órfão (0 arquivos trackeados) — base inválida pra trabalhar`); return 1; }
 
-  const isAncestor = git(`merge-base --is-ancestor ${base} HEAD`) !== null
-    && execAncestor(base);
-  if (!isAncestor) {
-    err(`branch atrás de ${base} (não-ancestral) — rebase antes de codar (\`git rebase ${base}\`)`);
-    fail++;
+  // ── perna 2: ancestralidade ────────────────────────────────────────
+  // Ela responde "minha base está velha?" — pergunta REAL no uso local, onde HEAD é a sua
+  // branch e `origin/main` é o alvo. Num CI de PULL REQUEST ela não é mensurável, e o log do
+  // runner mostra por quê: o `checkout@v4` sem `ref:` checa o MERGE REF, então o HEAD JÁ é o
+  // merge da branch com a base —
+  //     git checkout --force refs/remotes/pull/7155/merge
+  //     HEAD is now at 39339707 Merge 2a87c0e448 into 85260440cd
+  // — enquanto o `fetch +refs/heads/*` do mesmo step traz o `origin/main` de AGORA. Comparar
+  // os dois mede a FILA DO CI, não a saúde da branch. Medido em 2026-09-09: `main` a 28
+  // commits em 3h (~1/6min) e 16 min entre push e job (20:06 -> 20:22 UTC, 3 commits na
+  // janela); as últimas 20 runs em PR deram 4 failure, TODAS neste step por não-ancestral, em
+  // 4 branches distintas (uma automática, `vrt/baselines-*`). Vermelho que ninguém pode usar:
+  // o check não é required.
+  //
+  // O que NÃO fizemos, de propósito: trocar a base por `pull_request.base.sha`. O merge ref é
+  // descendente dela POR CONSTRUÇÃO, então a perna passaria a ser SEMPRE verde — trocar
+  // vermelho falso por verde falso é gate-de-teatro. Aqui ela é PULADA e o relatório DIZ que
+  // foi pulada; nunca afirma "base limpa" sem ter medido.
+  //
+  // Recorte honesto do que sobra no PR: `worktree órfão` MORDE (return 1) e `deleção em massa`
+  // AVISA (warn — nunca contou pra `fail`). É a perna 1 que cumpre o propósito declarado no
+  // cabeçalho: a assinatura de `worktree --no-checkout`.
+  if (mergeRef) {
+    warn(`ancestralidade PULADA — HEAD é o merge ref do PR (já contém a base); comparar com ${base} vivo mediria a fila do CI`);
   } else {
-    ok(`base limpa — ${base} é ancestral de HEAD`);
+    const isAncestor = git(`merge-base --is-ancestor ${base} HEAD`) !== null
+      && execAncestor(base);
+    if (!isAncestor) {
+      err(`branch atrás de ${base} (não-ancestral) — rebase antes de codar (\`git rebase ${base}\`)`);
+      fail++;
+    } else {
+      ok(`base limpa — ${base} é ancestral de HEAD`);
+    }
   }
 
   // diff de massa removida vs base (assinatura --no-checkout)
@@ -133,7 +162,20 @@ function loadContract(file) {
 // `design-docs/contrato-cowork/` e reprovaram por não terem `alvo`/`secoes`: são de OUTRO schema,
 // legítimos como proposta e inválidos como contrato do repo. Filtrar só o `cowork-inbox` deixaria
 // cada subpasta nova de design-docs reabrir o mesmo buraco.
-const ehDocDesign = (p) => String(p || '').split(String.fromCharCode(92)).join('/').includes('prototipo-ui/design-docs/');
+// Ampliado de novo em 2026-09-09: o mesmo buraco reabriu FORA de `design-docs/`. O
+// `prototipo-ui/cowork/` e o ESPELHO de leitura do projeto Cowork (ADR 0374) — retrato do lado
+// design, regenerado por `--export-from`, nunca contrato vigente do repo. O
+// `cowork/contrato/patrimonio.contract.json`, descido pelo #7133, e do schema do Cowork (`build`,
+// `raiz`, `screenLabel`, `ds`, sem `alvo`) e reprovou exatamente como os 3 de `contrato-cowork/`
+// haviam reprovado em 2026-08-24. O contrato VIGENTE da mesma tela existe e passa:
+// `prototipo-ui/contrato/patrimonio-index.contract.json` (mesmo #7133). Falso-negativo medido
+// ANTES de afrouxar (proibicoes §"Sempre fazer" 4): 0 — censo de `git ls-files '*.contract.json'`
+// deu 1 unico arquivo sob o espelho, e ele ja reprovava; nenhum contrato hoje VALIDO passa a ser
+// pulado. Bite-test em `contrato-de-tela.test.mjs` (pula sob o espelho, REPROVA fora dele).
+const PASTAS_DOC_DESIGN = ['prototipo-ui/design-docs/', 'prototipo-ui/cowork/'];
+const normalizaPath = (p) => String(p || '').split(String.fromCharCode(92)).join('/');
+const pastaDocDesign = (p) => PASTAS_DOC_DESIGN.find((d) => normalizaPath(p).includes(d)) || null;
+const ehDocDesign = (p) => pastaDocDesign(p) !== null;
 
 // ── Casamento de COPY: fronteira de identificador (endurecimento medido · 2026-08-25) ──
 //
@@ -171,7 +213,8 @@ function checkContract(file) {
   // monta a lista no bash e chama `--contract <path>` um a um, enquanto `--map` coleta por dentro.
   // Filtrar numa rota só deixa a outra reprovando (§5 2026-07-28 — validar UM dos modos que o CI
   // roda). Aqui embaixo passam AS DUAS.
-  if (ehDocDesign(file)) { console.log(`  (pulado: ${file} — documentação de design (design-docs/), não contrato vigente)`); return 0; }
+  const pastaDoc = pastaDocDesign(file);
+  if (pastaDoc) { console.log(`  (pulado: ${file} — documentação/espelho de design (${pastaDoc}), não contrato vigente)`); return 0; }
   const c = loadContract(file);
   const files = c.alvo.flatMap(collectTargets);
   if (!files.length) { err(`nenhum .tsx/.ts no alvo do contrato (${c.alvo.join(', ')})`); return 1; }
@@ -525,14 +568,123 @@ function buildMap(doCheck) {
 }
 
 function argVal(flag) { const i = process.argv.indexOf(flag); return i >= 0 ? process.argv[i + 1] : null; }
+// ── Catraca 4: ANTI-TAUTOLOGIA — o contrato deriva da ÂNCORA, nunca da TELA ────
+//
+// O erro que isto mata (cometido por mim, [C], em 2026-09-09, e nomeado pelo [W]:
+// *"tá pegando baseline e não pego a âncora certa"*): escrever o `.contract.json`
+// extraindo a copy do `.tsx` que já existe. O contrato nasce VERDE POR CONSTRUÇÃO —
+// ele compara a tela com ela mesma e nunca pode acusar a divergência que é a razão
+// dele existir. É o gate-de-teatro na forma mais cara: parece cobertura, prova nada.
+// Mesma família do §5 2026-06-05 (teste derivado do código) e 2026-08-10 (construir
+// tela derivando do código quando existe fonte de design).
+//
+// DOIS predicados, com FORÇA diferente porque o FP medido é diferente (medido no
+// corpus real em 2026-09-09: 31 contratos ativos):
+//
+//   DURO   — `fonte` aponta pra `resources/js/Pages/**`, isto é, pra PRÓPRIA TELA.
+//            FP ZERO POR CONSTRUÇÃO: se a fonte é o alvo, toda copy está nela e o
+//            gate não tem como reprovar. Prova viva: `purchase-create` mede
+//            "limpo (24 copy, todas na fonte)" — e só pode medir isso.
+//            Medido: 4 de 31 (essentials-licencas · essentials-metas · jana-painel ·
+//            purchase-create). Nascem GRANDFATHERED na lista abaixo, forward-only
+//            (§5 2026-07-12: backfill de legado em massa morre no CI).
+//
+//   AVISO  — copy que NÃO existe na `fonte` mas existe no `alvo`. Sinal de que
+//            aquela string foi lida da tela. Medido: 15 de 31 contratos, e NÃO é
+//            tudo defeito — copy legitimamente adaptada cai aqui (o protótipo diz
+//            "Todas", a tela diz "Todos"). Por isso AVISA e não reprova: virar
+//            bloqueio sem separar adaptação de extração seria o guard sintático que
+//            este §5 já enterrou 8× (allowlist-de-pasta · @scope · vocabulário 130 FP
+//            · toHaveKey 100% FP · toContain · jq · limiar 3→2 · par usuário/senha).
+//
+// A lista é de EXCEÇÃO DECLARADA, não allowlist que cresce: cada entrada diz por que
+// existe, e sai quando a dívida for paga (§5 2026-08-02).
+const FONTE_TELA_GRANDFATHERED = {
+  'prototipo-ui/contrato/essentials-licencas.contract.json': 'legado 2026-08: nasceu apontando pra própria tela; re-ancorar exige a fonte de design da Essentials',
+  'prototipo-ui/contrato/essentials-metas.contract.json': 'idem essentials-licencas',
+  'prototipo-ui/contrato/jana-painel.contract.json': 'legado: fonte = Pages/Jana/Index.tsx; a âncora da Jana é decisão [W] (proposal jana)',
+  'prototipo-ui/contrato/purchase-create.contract.json': 'legado: fonte = Pages/Purchase/Create.tsx',
+};
+
+function checkAncoraDaCopy() {
+  const dir = resolve(ROOT, 'prototipo-ui/contrato');
+  if (!existsSync(dir)) { ok('sem diretório de contratos — nada a checar'); return 0; }
+  const arquivos = readdirSync(dir)
+    .filter(f => f.endsWith('.contract.json') && !/EXEMPLO/i.test(f))
+    .sort()
+    .map(f => `prototipo-ui/contrato/${f}`);
+
+  let fail = 0, avisos = 0, limpos = 0;
+  for (const rel of arquivos) {
+    let c;
+    try { c = JSON.parse(readFileSync(resolve(ROOT, rel), 'utf8')); } catch { continue; }
+    if (!Array.isArray(c.secoes) || !Array.isArray(c.alvo)) continue;
+
+    const fonte = normalizaPath(c.fonte || '');
+
+    // DURO: a fonte é a própria tela?
+    if (/^resources\/js\/Pages\//.test(fonte)) {
+      const razao = FONTE_TELA_GRANDFATHERED[rel];
+      if (razao) {
+        warn(`${rel} — fonte é a própria tela (grandfathered): ${razao}`);
+      } else {
+        err(`${rel}: \`fonte\` aponta pra PRÓPRIA TELA (${fonte}) — contrato tautológico, nasce verde por construção.`);
+        err(`    A fonte tem de ser a ÂNCORA. Resolva com: node prototipo-ui/ancora.mjs <Mod>/<Tela>`);
+        fail++;
+      }
+      continue;
+    }
+
+    // AVISO: copy que só existe no alvo (lida da tela, não da âncora)
+    const abs = resolve(ROOT, fonte);
+    if (!fonte || !existsSync(abs)) continue; // `--map --check` já é dono de "fonte inexistente"
+    const blobFonte = readFileSync(abs, 'utf8');
+    const arqsAlvo = c.alvo.flatMap(collectTargets);
+    if (!arqsAlvo.length) continue;
+    const blobAlvo = arqsAlvo.map(f => readFileSync(f, 'utf8')).join('\n');
+
+    const todas = c.secoes.flatMap(s => s.copy ?? []);
+    if (!todas.length) continue;
+    const soNoAlvo = todas.filter(s => !copyPresente(blobFonte, s) && copyPresente(blobAlvo, s));
+    if (soNoAlvo.length) {
+      warn(`${rel} — ${soNoAlvo.length}/${todas.length} copy existe no ALVO e não na FONTE (pode ser copy adaptada, pode ser copy lida da tela):`);
+      for (const s of soNoAlvo.slice(0, 3)) log(`      ~ ${JSON.stringify(s)}`);
+      avisos++;
+    } else {
+      limpos++;
+    }
+  }
+  log(`\nanti-tautologia · ${arquivos.length} contrato(s) · ${limpos} com toda a copy ancorada na fonte · ${avisos} com aviso · ${fail} reprovado(s)`);
+  if (!fail) ok('nenhum contrato NOVO derivando da própria tela');
+  return fail;
+}
+
 function main() {
   const a = process.argv.slice(2);
   let fail = 0;
-  if (a.includes('--preflight')) {
+  if (a.includes('--anti-tautologia')) {
+    fail += checkAncoraDaCopy();
+  } else if (a.includes('--preflight')) {
     const base = argVal('--preflight') && !argVal('--preflight').startsWith('--') ? argVal('--preflight') : 'origin/main';
-    fail += preflight(base);
+    fail += preflight(base, { mergeRef: a.includes('--merge-ref') });
   } else if (a.includes('--contract')) {
-    fail += checkContract(argVal('--contract'));
+    // `--contract <f.json>` checa UM (é como o CI entra: um `for` no bash, um path por vez).
+    // `--contract` SEM path passou a checar TODOS em vez de crashar: era o que o
+    // `npm run contrato:check` fazia — `resolve(ROOT, undefined)` → ERR_INVALID_ARG_TYPE.
+    // Um atalho que só sabe estourar não é usado por ninguém, e o efeito prático é que a
+    // catraca de copy/ordem nunca era exercida fora do CI (medido 2026-09-09).
+    const alvo = argVal('--contract');
+    if (alvo && !alvo.startsWith('--')) {
+      fail += checkContract(alvo);
+    } else {
+      const dir = resolve(ROOT, 'prototipo-ui/contrato');
+      const todos = readdirSync(dir)
+        .filter(f => f.endsWith('.contract.json') && f !== 'EXEMPLO.contract.json')
+        .sort()
+        .map(f => `prototipo-ui/contrato/${f}`);
+      log(`contrato-de-tela · ${todos.length} contrato(s) ativo(s)\n`);
+      for (const c of todos) fail += checkContract(c);
+    }
   } else if (a.includes('--omission')) {
     const base = argVal('--omission') && !argVal('--omission').startsWith('--') ? argVal('--omission') : 'origin/main';
     const alvoFlag = argVal('--alvo');
@@ -546,7 +698,7 @@ function main() {
     fail += buildMap(a.includes('--check'));
     if (!a.includes('--check')) process.exit(0); // --map informativo: só a tabela, sem resumo
   } else {
-    log('uso: node scripts/contrato-de-tela.mjs [--preflight [base] | --contract <f.json> | --omission [base] (--alvo a,b | --contract-alvo f.json) [--notes f] | --map [--check] | --resolve <f.json> --ctx <cliente:biz=N,tela:X,…>]');
+    log('uso: node scripts/contrato-de-tela.mjs [--preflight [base] | --contract <f.json> | --omission [base] (--alvo a,b | --contract-alvo f.json) [--notes f] | --map [--check] | --anti-tautologia | --resolve <f.json> --ctx <cliente:biz=N,tela:X,…>]');
     process.exit(2);
   }
   if (fail) { log(`\n❌ ${fail} falha(s).`); process.exit(1); }

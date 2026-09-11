@@ -100,4 +100,29 @@ class AssetMaintenanceService
             $maintenance->media()->delete();
         }, ['business_id' => $businessId, 'maintenance_id' => $id]);
     }
+
+    /**
+     * Quantas manutencoes estao ABERTAS neste business -- o contador da aba "Manutencoes".
+     *
+     * ABERTA = `new` ou `in_progress`. Allowlist POSITIVA, e nao `status <> completed`:
+     * `AssetUtil::maintenanceStatuses()` declara QUATRO status (`new`, `in_progress`,
+     * `completed`, `cancelled`), entao a negacao contaria manutencao CANCELADA como
+     * pendente. O staging so tinha `completed` e `in_progress` -- o dado nao denunciaria
+     * o defeito, so o codigo denunciou. A allowlist tambem erra pro lado seguro se um
+     * status novo aparecer: ele fica de fora (contador menor, visivel) em vez de inflar
+     * calado. `status` e `string` NULL-avel (migration 2022_03_26) e NULL nao conta.
+     *
+     * NAO e o total da tabela: o contador do prototipo mede TRABALHO PENDENTE
+     * (`patrimonio-page.jsx:838` filtra `m.status !== "concluida"`), nao volume.
+     *
+     * Tier 0 (ADR 0093): `business_id` explicito, nunca de `session()` -- este metodo
+     * tambem e chamado de fila/console, onde sessao nao existe. Indice
+     * `asset_maintenances_business_id_index` cobre o filtro (medido: `type=ref`, 0,44 ms).
+     */
+    public function contarAbertas(int $businessId): int
+    {
+        return AssetMaintenance::where('business_id', $businessId)
+            ->whereIn('status', ['new', 'in_progress'])
+            ->count();
+    }
 }

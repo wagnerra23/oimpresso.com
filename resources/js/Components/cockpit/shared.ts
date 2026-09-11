@@ -240,7 +240,14 @@ export const SIDEBAR_GROUP_HUE: Record<string, number> = {
   conhecimento: 220,      // → ia
   rel: 220,               // → ia
   governanca: 200,        // → sistema (era 270, conflitava com equipe)
-  plataforma: 200,        // → sistema
+  // `plataforma: 200` REMOVIDO em 2026-09-08. Era alias v2 de um grupo que
+  // apontava pra `sistema`; desde que PLATAFORMA virou grupo CANON (Sidebar.tsx),
+  // esta linha deixaria de ser alias e passaria a COLORIR o cabeçalho de ciano —
+  // enquanto o design declara `hue: null` pra ele ("PLATAFORMA é neutro (sem
+  // hue)", GROUP_META em prototipo-ui/cowork/data.jsx). Ausência aqui é o que
+  // deixa `hue === undefined` e o grupo neutro, mesmo caminho do `mais`.
+  // Pego pelo render em `tests/js/sidebar-plataforma-forja.test.tsx`, não por
+  // leitura: o ícone saía com `color: oklch(0.65 0.15 200)`.
 };
 
 // ── helpers ─────────────────────────────────────────────────────────────

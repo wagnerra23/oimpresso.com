@@ -226,11 +226,11 @@ export default function Sped({
 
   return (
     <AppShellV2>
-      <Head title="Fiscal · SPED & Livros" />
+      <Head title="Fiscal · SPED e livros" />
 
       <FxShell
         route="sped"
-        title="SPED & Livros"
+        title="SPED e livros"
         crumb="Apuração mensal · EFD ICMS-IPI · PIS/COFINS"
         env="em desenvolvimento"
         envTone="warn"

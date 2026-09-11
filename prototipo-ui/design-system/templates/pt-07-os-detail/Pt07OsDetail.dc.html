@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- @template name="PT-07 — OS (folha de prova)" description="Tela-assinatura: detalhe de Ordem de Serviço como prova de impressão — marcas de corte, marca de registro, cotas com linha de medida, cálculo por m². Rigor Linear + alma de gráfica." -->
+<helmet>
+<script src="./ds-base.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  .nav-item:hover { background: var(--accent-soft) !important; }
+  .grp { display:flex; align-items:center; gap:8px; padding:13px 9px 5px; font:600 9.5px/1 var(--font-sans); letter-spacing:.08em; text-transform:uppercase; color:var(--text-mute); }
+  .grp .n { margin-left:auto; font:600 10px/1 var(--font-mono); color:var(--text-mute); opacity:.8; }
+  .rowbtn:hover { background:color-mix(in oklch, var(--text) 8%, transparent) !important; }
+</style>
+</helmet>
+<div class="cockpit" ref="{{ cockpitRef }}" style="display:flex; min-height:100vh; background:radial-gradient(1100px 620px at 84% -10%, oklch(0.30 0.07 295 / .16), transparent 60%), radial-gradient(900px 520px at 6% 110%, oklch(0.26 0.05 250 / .12), transparent 62%), var(--bg); color:var(--text); font-family:var(--font-sans); font-size:13px; line-height:1.4; -webkit-font-smoothing:antialiased;">
+
+  <!-- ░░ SIDEBAR ░░ -->
+  <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.AppSidebar" active="os" hint-size="222px,100%"></x-import>
+
+  <!-- ░░ MAIN ░░ -->
+  <main style="flex:1; min-width:0; display:flex; flex-direction:column; background:var(--bg);">
+
+    <!-- topbar -->
+    <header style="display:flex; align-items:center; gap:12px; height:46px; padding:0 18px; border-bottom:1px solid var(--border); background:var(--surface); flex:none;">
+      <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Breadcrumb" items="{{ crumbs }}" hint-size="auto,20px"></x-import>
+      <label style="display:flex; align-items:center; gap:8px; height:30px; padding:0 10px; margin-left:auto; background:var(--bg-2); border:1px solid var(--border); border-radius:var(--radius-md); width:280px; max-width:30vw; color:var(--text-mute);">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+        <input placeholder="Buscar em tudo…" style="border:0; outline:0; background:transparent; font:inherit; color:var(--text); width:100%;">
+        <kbd style="font:600 10px/1 var(--font-mono); color:var(--text-mute); background:var(--surface); border:1px solid var(--border); border-radius:4px; padding:2px 5px;">⌘K</kbd>
+      </label>
+    </header>
+
+    <div class="nxc" style="flex:1; overflow:auto; padding:20px 24px 28px;">
+
+      <!-- header zone -->
+      <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:16px;">
+        <div style="display:flex; align-items:center; gap:14px;">
+          <div>
+            <div style="font:600 10px/1 var(--font-sans); letter-spacing:.1em; text-transform:uppercase; color:var(--text-mute); margin-bottom:4px;">Ordem de serviço</div>
+            <div style="display:flex; align-items:baseline; gap:10px;">
+              <h1 style="margin:0; font:700 30px/1 var(--font-mono); letter-spacing:-0.02em; color:var(--text);">#4821</h1>
+              <span style="display:inline-flex; align-items:center; gap:6px; padding:3px 9px; border-radius:99px; background:var(--accent-soft); color:var(--accent); font:600 11px/1 var(--font-sans);"><span style="width:6px; height:6px; border-radius:50%; background:var(--accent);"></span>Em produção</span>
+            </div>
+            <div style="margin-top:5px; font-size:13px; color:var(--text-dim);">Acme Comércio Ltda · aberta em 14/10/2025</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center; flex:none;">
+          <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Button" variant="ghost" size="sm" onClick="{{ openPresenter }}" hint-size="auto,30px">Imprimir OP</x-import>
+          <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Button" variant="primary" size="sm" hint-size="auto,30px">Avançar etapa</x-import>
+          <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Kebab" items="{{ osActions }}" hint-size="28px,28px"></x-import>
+        </div>
+      </div>
+
+      <!-- pipeline -->
+      <div style="margin-top:18px; padding:16px 20px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:0 1px 2px rgba(0,0,0,.04);">
+        <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.FsmStepper" variant="full" steps="{{ fsmSteps }}" hue="{{ pipeHue }}" hint-size="100%,56px"></x-import>
+      </div>
+
+      <!-- body 2-col -->
+      <div style="display:grid; grid-template-columns:1.6fr 1fr; gap:16px; margin-top:16px; align-items:start;">
+
+        <!-- ░ PROVA (assinatura) — ProofFrame + Dimension + ProofStrip ░ -->
+        <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.ProofFrame" crop-marks="{{ showCrop }}" hint-size="100%,470px">
+            <div style="display:flex; align-items:center; gap:9px; margin-bottom:2px;">
+              <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.RegistrationMark" size="17" color="var(--accent)" hint-size="17px,17px"></x-import>
+              <span style="font:600 9.5px/1 var(--font-sans); letter-spacing:.1em; text-transform:uppercase; color:var(--text-mute); white-space:nowrap;">Prova de produção</span>
+              <span style="margin-left:auto; font:600 9px/1 var(--font-mono); letter-spacing:.08em; color:var(--text-mute);">ESC. 1:20</span>
+            </div>
+            <h2 style="margin:0 0 18px; font:600 18px/1.25 var(--font-sans); letter-spacing:-0.01em;">Banner em lona front-light 440g</h2>
+
+            <!-- cota + arte -->
+            <div style="display:flex; gap:6px;">
+              <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Dimension" value="2.000 mm" orientation="v" hint-size="26px,100%"></x-import>
+              <div style="flex:1; min-width:0;">
+                <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Dimension" value="3.000 mm" orientation="h" hint-size="100%,22px"></x-import>
+                <!-- placeholder de arte -->
+                <div style="position:relative; height:172px; border:1px solid var(--border); border-radius:4px; overflow:hidden; background-image:repeating-linear-gradient(45deg, color-mix(in oklch, var(--accent) 7%, transparent) 0, color-mix(in oklch, var(--accent) 7%, transparent) 9px, transparent 9px, transparent 18px);">
+                  <div style="position:absolute; inset:11px; border:1px dashed color-mix(in oklch, var(--accent) 50%, transparent); border-radius:2px;"></div>
+                  <span style="position:absolute; left:13px; top:13px; font:600 8px/1 var(--font-mono); letter-spacing:.06em; color:var(--accent);">SANGRIA 3 MM</span>
+                  <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center;">
+                    <span style="font:500 11px/1.5 var(--font-mono); color:var(--text-mute); text-align:center; background:var(--surface); padding:6px 10px; border-radius:4px; border:1px solid var(--border);">arte do cliente<br>banner-acme-v3.pdf · 3000×2000</span>
+                  </div>
+                  <div style="position:absolute; right:11px; bottom:11px;">
+                    <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.ProofStrip" kind="density" steps="5" hint-size="auto,11px"></x-import>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- specs -->
+            <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:0 28px; margin-top:22px; border-top:1px solid var(--border); padding-top:16px;">
+              <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--border-2);"><span style="font-size:12px; color:var(--text-dim);">Material</span><span style="font:500 12px/1 var(--font-mono);">Lona 440g</span></div>
+              <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--border-2);"><span style="font-size:12px; color:var(--text-dim);">Tinta</span><span style="font:500 12px/1 var(--font-mono);">Solvente · CMYK</span></div>
+              <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--border-2);"><span style="font-size:12px; color:var(--text-dim);">Acabamento</span><span style="font:500 12px/1 var(--font-mono);">Ilhós + bainha</span></div>
+              <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--border-2);"><span style="font-size:12px; color:var(--text-dim);">Resolução</span><span style="font:500 12px/1 var(--font-mono);">720 dpi</span></div>
+              <div style="display:flex; justify-content:space-between; padding:6px 0;"><span style="font-size:12px; color:var(--text-dim);">Faces</span><span style="font:500 12px/1 var(--font-mono);">1 (frente)</span></div>
+              <div style="display:flex; justify-content:space-between; align-items:baseline; padding:6px 0;"><span style="font-size:12px; color:var(--text-dim);">Área calculada</span><span style="font:700 16px/1 var(--font-mono); letter-spacing:-0.02em; color:var(--accent);">6,00 m²</span></div>
+            </div>
+        </x-import>
+
+        <!-- ░ METADADOS ░ -->
+        <div style="display:flex; flex-direction:column; gap:12px;">
+
+          <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Widget" title="Cliente" note="Cadastro conferido em 14/10" actions="{{ cliActions }}" hint-size="100%,110px">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Avatar" name="Acme Comércio" size="md" hint-size="32px,32px"></x-import>
+              <div style="min-width:0;">
+                <div style="display:flex; align-items:center; gap:7px;"><span style="font-weight:600; font-size:13px;">Acme Comércio Ltda</span><x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.StatusBadge" kind="tipo" value="pj" hint-size="auto,18px"></x-import></div>
+                <div style="font:500 11px/1.4 var(--font-mono); color:var(--text-mute); margin-top:2px;">CNPJ 12.345.678/0001-90</div>
+              </div>
+            </div>
+          </x-import>
+
+          <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Widget" title="Produção" note="Etapa atual: impressão" hint-size="100%,150px">
+            <div style="display:flex; flex-direction:column; gap:9px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;"><span style="font-size:12px; color:var(--text-dim);">Prazo</span><span style="font:600 12px/1 var(--font-mono);">18/10/2025</span></div>
+              <div style="display:flex; justify-content:space-between; align-items:center;"><span style="font-size:12px; color:var(--text-dim);">Responsável</span><span style="display:flex; align-items:center; gap:7px;"><x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Avatar" name="João Lima" size="sm" hint-size="24px,24px"></x-import><span style="font-size:12.5px;">João Lima</span></span></div>
+              <div style="display:flex; justify-content:space-between; align-items:center;"><span style="font-size:12px; color:var(--text-dim);">Máquina</span><span style="font:500 12px/1 var(--font-mono);">Roland RE-640</span></div>
+            </div>
+          </x-import>
+
+          <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Widget" tone="accent" title="Cálculo por m²" note="Tabela vigente desde 01/10" hint-size="100%,220px">
+            <div style="display:flex; flex-direction:column;">
+              <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--border-2);"><span style="font-size:12.5px; color:var(--text-dim);">Área</span><span style="font:500 12.5px/1 var(--font-mono); font-variant-numeric:tabular-nums;">6,00 m²</span></div>
+              <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--border-2);"><span style="font-size:12.5px; color:var(--text-dim);">Preço/m²</span><span style="font:500 12.5px/1 var(--font-mono); font-variant-numeric:tabular-nums;">R$ 95,00</span></div>
+              <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--border-2);"><span style="font-size:12.5px; color:var(--text-dim);">Subtotal</span><span style="font:500 12.5px/1 var(--font-mono); font-variant-numeric:tabular-nums;">R$ 570,00</span></div>
+              <div style="display:flex; justify-content:space-between; padding:6px 0;"><span style="font-size:12.5px; color:var(--text-dim);">Acabamento</span><span style="font:500 12.5px/1 var(--font-mono); font-variant-numeric:tabular-nums;">R$ 48,00</span></div>
+              <div style="display:flex; justify-content:space-between; align-items:baseline; padding:12px 0 0; margin-top:6px; border-top:1.5px solid var(--text);"><span style="font:600 12px/1 var(--font-sans);">Total</span><span style="font:700 19px/1 var(--font-mono); letter-spacing:-0.02em; font-variant-numeric:tabular-nums;">R$ 618,00</span></div>
+            </div>
+          </x-import>
+
+          <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Widget" title="Histórico" note="Trilha de auditoria da OS" scroll="{{ yes }}" height="{{ tlHeight }}" hint-size="100%,240px">
+            <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Timeline" entries="{{ tlEntries }}" dense="{{ yes }}" hint-size="100%,200px"></x-import>
+          </x-import>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modo apresentação / impressão da folha de prova -->
+  <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.PresenterMode" open="{{ presenterOpen }}" onClose="{{ closePresenter }}" title="OS #4821 — Acme Comércio Ltda" subtitle="Ordem de produção · folha A4" pages="{{ one }}" zoom="{{ presenterZoom }}" hint-size="100%,100%">
+    <div style="padding:18mm 16mm; font:400 11pt/1.5 var(--font-sans); color:#111;">
+      <header style="display:flex; justify-content:space-between; align-items:baseline; border-bottom:1.5pt solid #111; padding-bottom:8px;">
+        <b style="font:700 15pt/1 var(--font-sans);">Ordem de produção #4821</b>
+        <span style="font:400 9pt/1 var(--font-mono);">emitida em 14/10/2025</span>
+      </header>
+      <p style="margin:14px 0 0;">Cliente: <b>Acme Comércio Ltda</b> · CNPJ 12.345.678/0001-90 · prazo 18/10/2025 · responsável João Lima.</p>
+      <h2 style="margin:16px 0 6px; font:600 12pt/1.3 var(--font-sans);">Banner em lona front-light 440 g</h2>
+      <table style="width:100%; border-collapse:collapse; font:400 10pt/1.4 var(--font-sans);">
+        <tbody>
+          <tr><td style="border-bottom:0.5pt solid #bbb; padding:6px 0;">Medida acabada</td><td style="border-bottom:0.5pt solid #bbb; padding:6px 0; text-align:right; font-family:var(--font-mono);">3.000 × 2.000 mm · 6,00 m²</td></tr>
+          <tr><td style="border-bottom:0.5pt solid #bbb; padding:6px 0;">Tinta / resolução</td><td style="border-bottom:0.5pt solid #bbb; padding:6px 0; text-align:right; font-family:var(--font-mono);">Solvente CMYK · 720 dpi</td></tr>
+          <tr><td style="border-bottom:0.5pt solid #bbb; padding:6px 0;">Acabamento</td><td style="border-bottom:0.5pt solid #bbb; padding:6px 0; text-align:right; font-family:var(--font-mono);">Ilhós + bainha</td></tr>
+          <tr><td style="padding:10px 0 0; font-weight:600;">Total</td><td style="padding:10px 0 0; text-align:right; font:700 13pt/1 var(--font-mono);">R$ 618,00</td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top:26px; font:400 8.5pt/1.4 var(--font-mono); color:#555;">Conferido por ____________________ · data ____ / ____ / ______</p>
+    </div>
+  </x-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: &quot;100%&quot;, &quot;height&quot;: 860}, &quot;showCropMarks&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;}, &quot;theme&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;dark&quot;, &quot;light&quot;], &quot;default&quot;: &quot;dark&quot;, &quot;tsType&quot;: &quot;'dark' | 'light'&quot;}, &quot;accentHue&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 295, &quot;min&quot;: 0, &quot;max&quot;: 360, &quot;step&quot;: 5, &quot;tsType&quot;: &quot;number&quot;}}">
+class Component extends DCLogic {
+  componentDidMount() { this.applyTheme(); }
+  componentDidUpdate() { this.applyTheme(); }
+
+  applyTheme() {
+    const el = this._cockpit; if (!el) return;
+    const dark = (this.props.theme || 'dark') !== 'light';
+    if (dark) { el.setAttribute('data-theme', 'dark'); el.classList.add('dark'); }
+    else { el.removeAttribute('data-theme'); el.classList.remove('dark'); }
+    const hue = this.props.accentHue != null ? this.props.accentHue : 295;
+    const aL = dark ? '0.72' : '0.55';
+    el.style.setProperty('--accent', 'oklch(' + aL + ' 0.15 ' + hue + ')');
+    el.style.setProperty('--accent-2', 'oklch(' + (dark ? '0.78' : '0.62') + ' 0.15 ' + hue + ')');
+    el.style.setProperty('--accent-soft', dark ? 'oklch(0.32 0.07 ' + hue + ')' : 'oklch(0.95 0.04 ' + hue + ')');
+    el.style.setProperty('--color-primary', 'oklch(' + aL + ' 0.15 ' + hue + ')');
+  }
+
+  renderVals() {
+    const NS = window.OfficeImpressoPontoWR2DesignSystem_019dd0;
+    const h = React.createElement;
+    const cockpitRef = (el) => { this._cockpit = el; if (el) this.applyTheme(); };
+    const hue = this.props.accentHue != null ? this.props.accentHue : 295;
+    return {
+      cockpitRef,
+      showCrop: this.props.showCropMarks !== false,
+      pipeHue: hue,
+      yes: true, one: 1, tlHeight: 250, presenterZoom: 0.75,
+      presenterOpen: !!(this.state && this.state.presenter),
+      openPresenter: () => this.setState({ presenter: true }),
+      closePresenter: () => this.setState({ presenter: false }),
+      osActions: [
+        { id: 'dup', label: 'Duplicar OS' },
+        { id: 'pdf', label: 'Baixar PDF', kbd: '⌘P' },
+        { id: 'link', label: 'Copiar link do cliente' },
+        { separator: true },
+        { id: 'canc', label: 'Cancelar OS', tone: 'danger' },
+      ],
+      cliActions: NS ? h(NS.Kebab, { size: 'sm', items: [{ id: 'abrir', label: 'Abrir cadastro' }, { id: 'hist', label: 'Histórico de compras' }] }) : null,
+      tlEntries: [
+        { id: 1, time: '14:32', actor: 'Marina Prado', action: 'moveu para produção', tone: 'accent', changes: [{ field: 'etapa', from: 'aprovação', to: 'produção' }] },
+        { id: 2, time: '11:04', actor: 'Carlos Souza', action: 'anexou arte do cliente', meta: [{ label: 'arquivo', value: 'banner-acme-v3.pdf' }] },
+        { id: 3, time: '09:20', actor: 'João Lima', action: 'aprovou o orçamento', tone: 'success', changes: [{ field: 'valor', from: 'R$ 570', to: 'R$ 618' }] },
+        { id: 4, time: '08:47', actor: 'Sistema', action: 'reservou 6,5 m² de lona 440 g', detail: 'Saldo do estoque atualizado automaticamente.' },
+      ],
+      crumbs: [{ label: 'Ordens de serviço', href: '#' }, { label: '#4821' }],
+      fsmSteps: [
+        { label: 'orçamento', state: 'done' },
+        { label: 'aprovação', state: 'done' },
+        { label: 'produção', state: 'current' },
+        { label: 'acabamento', state: 'todo' },
+        { label: 'expedição', state: 'todo' },
+        { label: 'entrega', state: 'todo' },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

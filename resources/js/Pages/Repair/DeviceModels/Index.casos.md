@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + criterio de aceite verificavel (D
 por_que: comportamento e duravel — "o filtro corta no servidor" e "o KPI conta so o meu tenant" valem em qualquer refactor
 owner: wagner
 autor: "[C] 2026-09-05"
-last_run: "2026-09-05"
+last_run: "2026-09-09"
 ---
 
 # Casos de Uso & Aceite — Catálogo de modelos de aparelho
@@ -90,11 +90,41 @@ last_run: "2026-09-05"
 
 ---
 
+## UC-DMIDX-07 · Vejo o que o checklist pede, não só que ele existe
+- **Persona:** quem monta o catálogo e precisa conferir o que o balcão vai checar no aparelho.
+- **Aceite:** Dado um modelo com checklist `Tela trincada| Bateria ||Carcaca` · Quando abro a lista
+  · Então vejo três itens — `Tela trincada`, `Bateria`, `Carcaca` — e um modelo **sem** checklist
+  mostra o traço, não um item em branco.
+- **Por que existe:** o controller já lia `repair_checklist` e jogava o conteúdo fora, mandando só
+  um booleano; a tela dizia que existe checklist sem dizer qual. No legado a coluna é uma string
+  separada por `|`, e ela tolera item vazio e espaço em volta — quem renderizasse cru mostraria
+  um chip fantasma no meio.
+- **Controle negativo embutido:** o modelo sem checklist reprova a implementação ingênua
+  (`explode` puro devolve `['']`, que viraria um chip vazio na tela).
+- **Teste:** `DeviceModelsContratoTest` — *"UC-DMIDX-07: o checklist chega quebrado em itens, não como a string do legado"*.
+- **Status: 🧪**
+
+---
+
+## UC-DMIDX-08 · Sei quais modelos a oficina realmente usa
+- **Persona:** quem faz a limpeza do catálogo e não quer apagar o modelo que roda toda semana.
+- **Aceite:** Dado um modelo com 1 folha minha e outro sem nenhuma · Quando abro a lista · Então
+  a coluna "Folhas" mostra `1` e `0`, **ignorando** as folhas de outra empresa.
+- **Regressão que defende:** agregada sem `business_id` — a coluna passaria a contar a oficina do
+  vizinho, e a decisão de aposentar um modelo sairia de um número que não é meu
+  ([ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)).
+- **A armadilha, e ela está no teste:** o vizinho usa um modelo **de mesmo id**. Sem isso o teste
+  passaria mesmo com a agregada global, porque ids diferentes não colidem por acaso.
+- **Teste:** `DeviceModelsContratoTest` — *"UC-DMIDX-08: a contagem de folhas por modelo conta só as do próprio tenant (Tier 0 · ADR 0093)"*.
+- **Status: 🧪**
+
+---
+
 ## Rastreabilidade
 
 | UC | Defendido por |
 |---|---|
-| 01, 02, 03, 04, 05, 06 | `Modules/Repair/Tests/Feature/DeviceModelsContratoTest.php` |
+| 01, 02, 03, 04, 05, 06, 07, 08 | `Modules/Repair/Tests/Feature/DeviceModelsContratoTest.php` |
 
 Os testes rodam no CT 100, nunca local ([ADR 0062](../../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)),
 no tenant fictício 98 ([ADR 0358](../../../../../memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)).

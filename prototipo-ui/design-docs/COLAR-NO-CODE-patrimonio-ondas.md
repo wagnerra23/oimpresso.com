@@ -3,7 +3,7 @@
 > **Este arquivo virou ponteiro em 2026-09-08.** O conteúdo foi para `cowork-inbox/patrimonio/playbook/` — mesmo padrão de HRM e Ponto. Anti-scatter: **não abrir doc novo pro Patrimônio**; a pasta do playbook é a unidade que desce.
 
 - **Pedido:** `cowork-inbox/patrimonio/playbook/00-INDICE.md` (+ 6 threads `NN-*.md`)
-- **Leis:** `CONSTITUICAO-COWORK.md` (C1–C12), citadas — não copiadas
+- **Leis:** `CONSTITUICAO-COWORK.md` (C1–C13), citadas — não copiadas
 - **Como se gera:** `COLAR-NO-CODE-PROTOCOLO-COWORK-EXPORT.md` §13 · **por que se sabe:** `DOSSIE-PROTOCOLO-COWORK.md`
 
 ## O essencial, em 6 linhas (medido em `cb475c0ca2f4`, 2026-09-08)

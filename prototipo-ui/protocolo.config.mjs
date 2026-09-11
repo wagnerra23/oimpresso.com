@@ -80,14 +80,25 @@ export const PROJETOS = {
 // MIRROR_DIR: SSOT do design no repo, build-only (R1 do cowork-ssot-guard rejeita .md aqui).
 //
 // ⚠️ STAGING_DIR é LEGADO do caminho ZIP ([W] 2026-08-13: "não existe mais zip"). Continua
-// exportado porque `render-proto-baseline.mjs` ainda o usa como default (com `args.staging ||`
-// na frente, então quem passa o path explícito não depende dele) — remover a constante hoje
-// quebraria esse consumidor sem ganho. Mas NÃO é destino de nada novo:
+// exportado por compatibilidade com consumidores legados. Em 2026-09-10 o default de
+// `render-proto-baseline.mjs` foi corrigido para MIRROR_DIR; o Downloads antigo não deve
+// alimentar capturas novas implicitamente. NÃO é destino de nada novo:
 //   · a catraca `ancora-guard` já lista `_cowork-handoff-staging` e `Downloads/` como LUGAR
 //     PROIBIDO pra âncora ([W] 2026-07-01: "não pode trocar de lugar nunca");
 //   · o destino do design versionado é MIRROR_DIR, e o shell mora lá desde 2026-08-13.
 // Ler design de dentro do STAGING_DIR é reabrir a doença: o pacote de lá estava congelado em
 // 01/jul e conhecia 103 deps quando o vivo já tinha 120.
+//
+// 📌 EMENDA 2026-09-10 — o ZIP VOLTOU como insumo, e isto acima segue valendo INTEIRO.
+// [W] entregou 3 handoffs .zip neste dia e pediu a recepção automatizada ("exportar uma única
+// vez"). Decisão do dono, não proposta — e ela reverte só o "não existe mais zip" de 13/08,
+// nada mais. O que NÃO muda, e é o motivo do parágrafo acima existir:
+//   · `receber-handoff.mjs` extrai pra um tmpdir EFÊMERO, nunca pra cá — sem árvore persistente
+//     não há árvore velha alimentando captura nova, que era a doença de fato;
+//   · `Downloads/` e `_cowork-handoff-staging` seguem LUGAR PROIBIDO pra âncora no
+//     `ancora-guard::PROIBIDOS`. O ZIP é INSUMO DE IMPORTAÇÃO, nunca fonte de design;
+//   · o destino do design versionado continua sendo MIRROR_DIR.
+// Ou seja: o que foi banido era o STAGING PERSISTENTE, não o formato .zip.
 export const STAGING_DIR = join(homedir(), 'Downloads', '_cowork-handoff-staging');
 export const MIRROR_DIR  = join(REPO_ROOT, 'prototipo-ui', 'cowork');
 
@@ -101,17 +112,63 @@ export const MIRROR_DIR  = join(REPO_ROOT, 'prototipo-ui', 'cowork');
 // `git ls-files | grep -c pt-05-dashboard` = **0**. A fonte evaporou com a sessão, e
 // a próxima teria que re-baixar pra responder a mesma pergunta.
 //
-// O `mirror-snapshot/` NÃO servia: o README dele declara escopo de UM arquivo — o
-// `colors_and_type.css`, que existe pro sentinela `ds-mirror-drift` comparar TOKENS
-// sem login no CI. Template não é token; enfiar ali confundiria os dois papéis.
+// O `mirror-snapshot/` NÃO servia: ele guarda o RUNTIME compilado, não a fonte.
+// Template não é token nem bundle; enfiar ali confundiria os dois papéis.
+//   ⚠️ ERRATA 2026-09-10 (medida, não lida): esta linha dizia que o README do
+//   `mirror-snapshot/` "declara escopo de UM arquivo — o colors_and_type.css".
+//   FALSO hoje: `git ls-files scripts/design-sync/mirror-snapshot/` = **11**
+//   (`_ds_bundle.js` · `colors_and_type.css` · `cockpit_domains.css` · 7 `.woff2` ·
+//   README), e o próprio README se declara "o único destino versionado dos artefatos
+//   compilados". O escopo de 1 arquivo foi verdade na origem do sentinela
+//   `ds-mirror-drift`; o `--preview-ds` de 2026-08-24 repôs 10 deps e o snapshot
+//   cresceu junto. Fica o fato datado, não a frase em presente (LC-10).
 //
 // ⚠️ REGRA DE ESCRITA, e ela não é estilo — é a lápide de 2026-08-11: o conteúdo
 // SAI DO DADO, POR SCRIPT (`get_file` → JSON → `writeFile`). NUNCA transcrito pelo
 // contexto do agente. Foi transcrição que produziu o STALE daquele dia.
 export const DS_MIRROR_DIR = join(REPO_ROOT, 'prototipo-ui', 'design-system');
+
+// ── ONDE O DESIGN SYSTEM MORA — e por que é UM só ponto de entrada ─────────────
+//
+// [W] 2026-09-10: *"tem que fundamentar melhor a localização e a importação única
+// do design system"* · *"Importação em único lugar do design system"*.
+//
+// São TRÊS diretórios e UMA direção. Ler a direção é o que impede o erro: quem trata
+// derivado como fonte importa duas vezes, e as duas divergem em silêncio.
+//
+//   (1) IMPORTA-SE AQUI, e só aqui ── prototipo-ui/design-system/     [251 versionados]
+//       Espelho do projeto Cowork `ds` (ID em COWORK_DS_PROJECT_ID, NÃO o de telas).
+//       É a FONTE: 148 components · 31 templates · 18 ui_kits · 13 assets · 12 preview
+//       + Canvas.dc.html · HANDOFF.md · NOTAS_INTERNAS.md · SKILL.md · Norte/.
+//       ÚNICO destino de importação do DS. Qualquer `--export-from`/applier que traga
+//       DS aponta pra cá.
+//                                    ↓ deriva (subconjunto de RUNTIME)
+//   (2) DERIVADO ───────────────── scripts/design-sync/mirror-snapshot/  [11 versionados]
+//       Só o que o shell PRECISA pra renderizar: bundle + 2 CSS + 7 fontes.
+//       Escrito por `--ds-runtime`, lido por `--preview-ds`. O README dele é o dono
+//       da regra e diz o mesmo: "único destino versionado dos artefatos compilados".
+//                                    ↓ materializa (cache descartável)
+//   (3) CACHE ──────────────────── prototipo-ui/cowork/_ds/          [ZERO versionados]
+//       Gitignored, criado sob demanda pelo preview (e pelo hook SessionStart
+//       `ds-preview-materialize.mjs` quando falta). Medido: `git ls-files
+//       "prototipo-ui/cowork/_ds*"` = 0. O README do snapshot é categórico —
+//       "Nunca copie ou versione `_ds/` dentro do espelho Cowork".
+//
+// POR QUE ISTO PRECISA ESTAR ESCRITO (o risco é medido, não hipotético): 3 arquivos
+// existem nos DOIS destinos versionados — `_ds_bundle.js`, `colors_and_type.css` e
+// `cockpit_domains.css`. Medidos byte-a-byte em 2026-09-10: IDÊNTICOS (sha256
+// a3ac15c11030 · fbe2cf878e9a · 77046b89f2ba). Idênticos POR ORA — nada garantia isso
+// até o selftest abaixo. Atualizar (1) sem regerar (2) faz o preview renderizar com
+// tokens velhos, e a tela "diverge do design" por causa do cache, não do código:
+// conclusão errada com aparência de achado.
+//
 // Artefatos COMPILADOS que o preview consome. É um papel diferente de DS_MIRROR_DIR
 // (fonte/templates): `--ds-runtime` grava aqui e `--preview-ds` lê daqui, sem diretório órfão.
 export const DS_RUNTIME_SNAPSHOT_DIR = join(REPO_ROOT, 'scripts', 'design-sync', 'mirror-snapshot');
+
+/** Os 3 arquivos que existem nos DOIS destinos versionados do DS. Divergir = preview
+ *  com token velho. O selftest do painel compara e trava (não é doc, é catraca). */
+export const DS_ARQUIVOS_ESPELHADOS = ['_ds_bundle.js', 'colors_and_type.css', 'cockpit_domains.css'];
 
 // ── PRÉ-FLIGHT da Fase 4 — os gates que a tela nova zera ANTES do PR ────────────
 // ("funciona no staging ≠ passa no portão": incidente perfil 2026-06-24 tripou 6 gates no PR).
@@ -240,6 +297,19 @@ export const FASES = [
   // Quem seguisse o ponteiro concluiria "a rota nao tem dono" a partir de um 404 que era do
   // ponteiro, nao da rota. O README real desceu pelo transporte e vive no git desde entao.
   { fase: '-1', nome: 'Importar/baixar o design', comandos: [
+      '# [ROTA ZIP — 1 COMANDO] [W] entrega o handoff .zip e o Code faz o resto (decisao [W] 2026-09-10:',
+      '#   "o objetivo e eu exportar uma unica vez, sem depender de uma receita manual em cada importacao").',
+      '#   Orquestra o que JA existe, nao reimplementa nada: extrai (CRC-32 conferido) -> audita o sync/ que',
+      '#   veio -> classifica por 3 pontos (zip x espelho x bundle ativo) -> RECUSA se o zip estiver ATRAS',
+      '#   (conteudo que ja esteve versionado) -> MEDE o live-only pela arvore extraida -> reconcilia o _ds/',
+      '#   pelo dono (projeto DS, #7096) -> rege pelo gerador CANONICO -> valida no --dry.',
+      '#   Sem --apply nao promove NEM registra no ledger. Extracao vai pra tmpdir EFEMERO.',
+      '#   O live-only aqui MATA a rotina separada que so a sessao logada rodava (auth interativa, ADR 0315)',
+      '#   e por isso vencia: o ZIP tem o projeto inteiro, entao a lista sai da arvore de graca ([W] 2026-09-10',
+      '#   "ali esta o bundle inteiro"). O medidor continua sendo o `cowork-mirror-freshness`.',
+      'node scripts/design-sync/receber-handoff.mjs --zip <handoff.zip>            # mede + valida',
+      'node scripts/design-sync/receber-handoff.mjs --zip <handoff.zip> --apply    # + promove',
+      'selftest: node scripts/design-sync/receber-handoff.test.mjs',
       '# [ROTA PRINCIPAL] bundle v2 — snapshot inicial; depois delta por manifesto anterior',
       '# ⚠ A EMISSAO DESTE BUNDLE NAO TEM DONO NEM AUTOMACAO (medido 2026-08-31, contado):',
       '#   os UNICOS invocadores de `gerar-payload-partes` no repo sao o .test.mjs e o workflow que roda',
@@ -535,6 +605,29 @@ function conferirCoberturaRequired() {
   return { problemas, conferidos: REQUIRED_DO_DOMINIO.length, semBaseline: false };
 }
 
+/** Espelhamento DS: `design-system/` (fonte) × `mirror-snapshot/` (derivado).
+ *  Compara por hash de CONTEÚDO, não por mtime — mtime muda em todo checkout.
+ *  Ausente nos dois lados = nada a comparar (não inventa violação); ausente em UM
+ *  lado é violação, porque significa que um destino ficou pra trás. */
+function conferirEspelhamentoDS() {
+  const problemas = [];
+  for (const nome of DS_ARQUIVOS_ESPELHADOS) {
+    const naFonte = join(DS_MIRROR_DIR, nome);
+    const noRuntime = join(DS_RUNTIME_SNAPSHOT_DIR, nome);
+    const temFonte = existsSync(naFonte), temRuntime = existsSync(noRuntime);
+    if (!temFonte && !temRuntime) continue;
+    if (!temFonte)   { problemas.push(`DS espelhado só no runtime, ausente na FONTE: ${nome} (importe em design-system/, não no snapshot)`); continue; }
+    if (!temRuntime) { problemas.push(`DS espelhado só na fonte, ausente no runtime: ${nome} (regenere com --ds-runtime)`); continue; }
+    const a = contentHash(readFileSync(naFonte));
+    const b = contentHash(readFileSync(noRuntime));
+    if (a !== b) {
+      problemas.push(`DS DIVERGIU entre fonte e runtime: ${nome} — design-system/=${String(a).slice(0, 12)} × mirror-snapshot/=${String(b).slice(0, 12)}. `
+        + `O preview lê o snapshot: token velho faz a tela parecer divergente do design sem estar. Regenere o snapshot a partir da fonte.`);
+    }
+  }
+  return problemas;
+}
+
 function selftest() {
   const fails = [];
   if (!UUID.test(COWORK_PROJECT_ID)) fails.push('COWORK_PROJECT_ID não é UUID');
@@ -542,6 +635,12 @@ function selftest() {
   if (COWORK_PROJECT_ID === DESIGN_SYSTEM_PROJECT_ID) fails.push('os 2 IDs colidiram (anti-confusão dos projetos)');
   if (!existsSync(MIRROR_DIR)) fails.push(`MIRROR_DIR ausente no repo: ${MIRROR_DIR}`);
   if (!existsSync(DS_RUNTIME_SNAPSHOT_DIR)) fails.push(`DS_RUNTIME_SNAPSHOT_DIR ausente no repo: ${DS_RUNTIME_SNAPSHOT_DIR}`);
+  // IMPORTAÇÃO ÚNICA do DS: a fonte é `design-system/`; `mirror-snapshot/` é derivado.
+  // Os 3 arquivos que vivem nos dois têm de ser byte-idênticos — divergir faz o preview
+  // renderizar com token velho, e a tela "diverge do design" por causa do cache, não do
+  // código. Isto NÃO é doc: é a catraca que impede a duplicata de virar drift silencioso.
+  const dsDivergentes = conferirEspelhamentoDS();
+  fails.push(...dsDivergentes);
   const ids = conferirIdsNoRepo();
   fails.push(...ids.problemas);
   fails.push(...conferirFonteUnicaExecutavel());

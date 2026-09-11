@@ -1,0 +1,30 @@
+<!doctype html>
+<!-- @dsCard group="Components" name="Switch" subtitle="Boolean toggle with label + sublabel" viewport="520x180" -->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Switch</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<style> body { padding: 20px; display:flex; flex-direction: column; gap: 16px; align-items: flex-start; } </style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/javascript">
+  const { Switch } = window.OfficeImpressoPontoWR2DesignSystem_019dd0;
+  const h = React.createElement;
+  function App() {
+    const [a, setA] = React.useState(true);
+    const [b, setB] = React.useState(false);
+    return h(React.Fragment, null,
+      h(Switch, { checked: a, onChange: setA, label: 'Notificar gestor por e-mail', sublabel: 'Ao aprovar uma intercorrência' }),
+      h(Switch, { checked: b, onChange: setB, label: 'Modo escuro' }),
+      h(Switch, { checked: false, disabled: true, label: 'Recurso bloqueado', sublabel: 'Disponível no plano Profissional' }),
+    );
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(App));
+</script>
+</body>
+</html>

@@ -773,6 +773,30 @@ jobs:
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Financeiro/ConciliacaoIndexTest.php
 
+      # ── E2E DE RENDER POR TELA — Patrimonio/Bens (NASCE ADVISORY) ───────────────────
+      # Buraco medido em 2026-09-10: `git grep -l "Patrimonio/" tests/Browser/` devolvia SÓ
+      # o manifesto visreg — nenhum teste exercitava a tela. Todo o crédito de `e2e` que o
+      # `screen-coverage-map` dava a ela vinha do contrato visreg lido como E2E (o próprio
+      # mapa documenta: "14 dos 18 eram crédito de visreg lido como E2E"). Ao remover a
+      # baseline de pixel — decisão [W] 2026-09-09, registrada no cabeçalho do
+      # `screen-coverage-gate.yml` — o eixo caiu 61 → 60 e o gate required reprovou.
+      #
+      # O que este arquivo mede e o gate estático NÃO alcança: o `contrato-de-tela.mjs` casa
+      # `data-contract` no TEXTO do `.tsx`; aqui prova-se que as âncoras chegaram ao DOM, na
+      # ordem. É a fronteira que a própria `KpiGrid.tsx` do módulo registra — "presença na
+      # fonte ≠ presença no DOM".
+      #
+      # ADVISORY no nascimento (ADR 0261/0275), pelo mesmo motivo literal dos dois steps
+      # acima: Pest Browser é CI/CT-100 only e o autor não pôde executá-lo antes do PR
+      # (`php`/`vendor` não existem na worktree). Promoção a enforcing = REMOVER o
+      # `continue-on-error`, após 2 verdes que EXECUTARAM — `skipped` lido como verde seria
+      # o presence-gate de sempre, e é pra isso que serve o `always()`.
+      - name: E2E de render · Patrimonio/Bens (ADVISORY)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        id: e2e-patrimonio-bens
+        continue-on-error: true
+        run: ./vendor/bin/pest tests/Browser/Patrimonio/BensRenderTest.php
+
       # ── E2E DE RENDER POR TELA — Financeiro/Caixa (NASCE ADVISORY) ───────────────────
       # Buraco medido em 2026-09-03 por `screen-coverage-map.mjs --screen Financeiro/Caixa/Index`:
       # trio ✓ · scorecard ✓ · 5/5 UC citados por teste — e `e2e (Browser) ✗`. O contrato vive
@@ -845,7 +869,9 @@ jobs:
       # ── E2E DE RENDER POR TELA — Manufacturing/Recipes (NASCE ADVISORY) ─────────────
       # Buraco medido em 2026-09-03 no `memory/governance/screen-coverage-baseline.json`
       # (gravado 2026-08-31): `Manufacturing: {total:1, charter:1, scorecard:1, e2e:0,
-      # a11y:0}` — e o baseline nem conta a tela nova, que entrou em 2026-09-02 (#6546).
+      # a11y:0}` — e o baseline nem contava a tela nova, que entrou em 2026-09-02 (#6546).
+      # Esse baseline foi REMOVIDO em 2026-09-09 (era justamente o apodrecimento que ele
+      # exibe aqui); hoje o número sai de `node scripts/qa/screen-coverage-map.mjs`.
       # O contrato dela vive no `Wave29RecipeInertiaTest`; nada exercitava a tela
       # RENDERIZADA.
       #

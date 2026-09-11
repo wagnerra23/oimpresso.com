@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · SDD-espelho-e-jornada-v1.0.md §5.3 F6 + §6.3
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a porta de entrada do banco de horas — e o KPI agregado desta tela é o único lugar do módulo onde saldo de vários colaboradores é somado num número só.
 owner: wagner
-last_run: "2026-08-02"
-last_run_ci: "4 UC executados na lane (run 30778424885): UC-BHIDX-01 e -04 pass; -02 e -03 morreram no setup por FK biz=99 sem stub (defeito de fixture, corrigido no mesmo PR). Veredito oficial vem do manifesto, não desta linha."
+last_run: "2026-09-08"
+last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-test-results.json (fonte: test-results/pest-ponto-junit.xml). Lane PHP / Pest (Ponto - MySQL) run 34215745965 em main (sha dced5fd3d8, 2026-09-08T10:32Z): 302 passed - 1 skipped - 1009 assertions, coherent=true, provou_algo=true. Li ASSERTIONS, nao a conclusion: 1009 > 0 prova que a suite rodou e nao caiu no skip-as-pass da lane (LC-13). O unico skipped da run nao e UC (o coletor trata skip como nao-pass, e os 69 vieram pass). A lane e ADVISORY: reprova e visivel, nao bloqueia merge."
 ---
 
 # Casos de Uso & Aceite — Saldos de banco de horas
@@ -38,10 +38,10 @@ last_run_ci: "4 UC executados na lane (run 30778424885): UC-BHIDX-01 e -04 pass;
 
 | UC | Caso de uso | Prio | Âncora | Teste | Status |
 |----|-------------|------|--------|-------|--------|
-| UC-BHIDX-01 | A lista traz os colaboradores do meu empregador com o saldo deles | must | `CU-PONTO-08` + US-PONTO-004 | `BancoHorasIndexContratoTest` | 🧪 sem veredito |
-| UC-BHIDX-02 | Saldo de outro empregador não aparece na lista | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `BancoHorasIndexContratoTest` | 🧪 sem veredito |
-| UC-BHIDX-03 | Saldo de outro empregador não entra nos totais agregados | must `[T0]` `[V0]` | `CU-PONTO-12` + ADR 0093 | `BancoHorasIndexContratoTest` | 🧪 sem veredito |
-| UC-BHIDX-04 | Lista e totais são carregados sob demanda, não no primeiro response | should | charter §Automation hooks + RUNBOOK-inertia-defer | `BancoHorasIndexContratoTest` | 🧪 sem veredito |
+| UC-BHIDX-01 | A lista traz os colaboradores do meu empregador com o saldo deles | must | `CU-PONTO-08` + US-PONTO-004 | `BancoHorasIndexContratoTest` | ✅ verde na lane |
+| UC-BHIDX-02 | Saldo de outro empregador não aparece na lista | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `BancoHorasIndexContratoTest` | ✅ verde na lane |
+| UC-BHIDX-03 | Saldo de outro empregador não entra nos totais agregados | must `[T0]` `[V0]` | `CU-PONTO-12` + ADR 0093 | `BancoHorasIndexContratoTest` | ✅ verde na lane |
+| UC-BHIDX-04 | Lista e totais são carregados sob demanda, não no primeiro response | should | charter §Automation hooks + RUNBOOK-inertia-defer | `BancoHorasIndexContratoTest` | ✅ verde na lane |
 
 **[BACKLOG]:**
 

@@ -12,7 +12,7 @@ depende: D-ENDERECO
 ## O estado, medido hoje
 - `resources/js/Pages/`: busca `(?i)(patrimonio|asset)` = **0 de 794 arquivos**.
 - `Modules/AssetManagement`: **0 `Inertia::render`**. As 6 rotas são `Route::resource` Blade.
-- `memory/requisitos/AssetManagement/SCOPE.md`:4: **`migracao_ui: "bloqueado-escopo — aguarda decisao [W]"`** (ERRATA 08/09: o path citado era `requisitos/Patrimonio/SCOPE.md`, que nao existe).
+- `memory/requisitos/Patrimonio/SCOPE.md`: **`migracao_ui: bloqueado-escopo`**.
 
 Nenhuma tela React existe — e o `main` **diz por escrito** que não deve existir ainda.
 

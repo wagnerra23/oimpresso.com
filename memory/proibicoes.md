@@ -895,6 +895,18 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **O limite (variante também proibida):** não escrever **par de barra invertida** em conteúdo de arquivo transportado por heredoc, script ou tool de escrita — em nenhuma linguagem. A forma positiva é remover a barra do texto: `chr(92)` montado em variável (Python), `DIRECTORY_SEPARATOR` em vez de `str_replace` de separador (PHP), ou um placeholder substituído depois (`__BS__`). E a verificação que fecha, porque é barata e determinística: depois de escrever, **conte as barras do arquivo e olhe cada uma** — se aparecer um par onde você queria um par, ok; se aparecer uma solteira onde deveria haver duas, o conteúdo foi corrompido no caminho. Vale igual para conteúdo com `\n`, `\t` e `\u` literais.
 
+- **⚠️ EMENDA 2026-09-09 — a receita de verificação acima NÃO pega a pior variante.** *"Conte as
+  barras do arquivo e olhe cada uma"* pressupõe que sobrou uma barra pra contar. Nem sempre sobra:
+  escrevendo o marcador de fronteira-de-palavra (`\\b`) dentro de uma regex num `.mjs`, o par colapsou e o
+  JS gravou o **byte 0x08 (BACKSPACE literal)** no arquivo. O resultado é a forma mais traiçoeira da
+  classe: **regex sintaticamente válida, `node --check` verde, e `grep`/`sed` mostrando a linha como
+  se estivesse certa** (o byte é invisível no terminal) — só que ela exige um backspace no texto e
+  nunca casa. Aqui isso fez um ternário sair sempre pelo ramo errado, e o que pegou foi ler a SAÍDA
+  do consumidor, não o código. Mesma armadilha do `rec` de 08-25 no [LC-26](LICOES_CODE.md), agora
+  dentro de arquivo versionado em vez de sonda ad-hoc. **A verificação que fecha os dois casos** é
+  varrer o arquivo escrito por **bytes de controle** (`od -c`, ou um passe que rejeite `< 0x20`
+  fora de TAB/LF/CR) — barra sobrando a leitura pega, byte de controle só o dump pega.
+
 ### 2026-08-19 — Painel do protocolo anunciar "sem teto get_file" num caminho cujo INSUMO passa pelo get_file
 
 - **O limite (variante também proibida):** comando de painel/skill/doc não declara "sem teto X" sobre uma rota cujo INSUMO atravessa X. Antes de anunciar que um caminho contorna um limite, medir o insumo dele, não só a saída — vale pra teto de tamanho, rate-limit, timeout e permissão. Corolário: quando o consumidor já suporta a saída (aqui, `payloads.flatMap` junta lotes desde sempre), o defeito não é falta de capacidade, é a documentação não ensinar a usá-la.
@@ -1168,6 +1180,53 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 - **O limite (variante também proibida):** **(1)** o escopo de uma tarefa é o território dos **arquivos que você vai tocar**, nunca o do artefato que te levou até eles — entre `memory/requisitos/<X>/` e `Modules/<Y>/**` há um **salto de território que ninguém declara**, e conferi-lo custa ler o `component:`/`inertia_target` do próprio artefato antes de editar. **(2)** Recibo anexado a uma premissa **não valida a conclusão tirada dela**: *"`Modules/TeamMcp` não existe"* (verdadeiro, medido) e *"logo não há sessão irmã"* são proposições diferentes, e a segunda não herda a prova da primeira. Enunciado que chega com medição merece a mesma pergunta que qualquer outra afirmação — **o que exatamente foi medido?**. **(3)** Corolário barato, e é o que teria evitado tudo: antes do primeiro `Edit` em path sob `Modules/`, reler a lista de não-tocar do próprio enunciado **contra o path**, não contra o nome do módulo que você acha que está mexendo.
 
 - **⚠️ Sobre virar máquina — candidato MEDIDO nesta sessão, deliberadamente NÃO armado:** diferente das 7 formas sintáticas já enterradas (allowlist-de-pasta 06-30 · `@scope` 07-09 · vocabulário 130 FP 07-16 · `toHaveKey` 100% FP 07-26 · `toContain` 07-28 · `jq` 08-11 · limiar 3→2 08-12), este predicado é **determinístico** — consulta ao grafo do git, não texto: `git log --remotes="origin/claude/*" --not <sua-branch> --since=3.days -- <path>`. Medido aqui: **custo ~315ms**; nos **3** arquivos que eu editei legitimamente devolve **0**; nos **4** charters de território alheio devolve **1** — e o commit que ele encontra é exatamente o `2181863e8d`. ⚠️ Dois motivos para **não armar agora**, e nenhum é timidez: **(i)** isso é N=7 do meu próprio caso, **não é FP em corpus real** — a regra "LIGUE A MÁQUINA" item 4 exige a medição na população antes de instalar; **(ii)** o detector tem **ponto cego principiado**: só enxerga branch **pushada**, então sessão irmã que ainda não deu push continua invisível (foi sorte a desta ter pushado). Fica registrado com o comando exato para a próxima ocorrência nascer com o trabalho pronto — e, se armar, é **estendendo o dono** (o hook que já intercepta Edit), nunca máquina nova, que seria a própria LC-19 cometida dentro da correção dela.
+
+### 2026-09-08 — Teste de tela Inertia que monta uma requisicao que o BROWSER NUNCA ENVIA (verde no CI, skeleton eterno em prod) — e a mutacao nao pega, porque muta o CODIGO, nao a SONDA
+
+- **O limite (variante tambem proibida):** teste que exercita rota servida a um **cliente**
+  (Inertia, HTMX, DataTables, fetch de SPA) reproduz **os headers que aquele cliente manda de
+  fato** — nao um subconjunto conveniente. Vale pra `X-Requested-With`, `Accept`,
+  `X-Inertia*`, `X-CSRF-Token`, `Content-Type`. A pergunta que separa: *"um browser real
+  emitiria exatamente esta requisicao?"* — se a resposta nao for um sim medido no cliente
+  (aqui: `@inertiajs/core`, `getHeaders()`, que manda `X-Requested-With`
+  **incondicionalmente** junto com `X-Inertia`), o verde nao diz nada sobre a tela.
+
+- **⚠️ Nao virar gate por sintaxe:** acusar `if (request()->ajax())` em controller reprovaria
+  todo controller Blade legado que **nao** serve Inertia — a maioria do repo. O predicado real
+  e *"esta rota serve uma tela Inertia com prop deferida?"*, que cruza controller + render +
+  manifesto. Familia do guard sintatico ja enterrada 7x neste §5. O que fecha e a **Regra 0**
+  do [PROTOCOLO-COMPARACAO-RUNTIME](requisitos/_DesignSystem/PROTOCOLO-COMPARACAO-RUNTIME.md)
+  — medir a tela no runtime antes de dar por entregue — que eu **nao cumpri**.
+
+### 2026-09-08 — Absolver um artefato citando uma atribuição `[W] <data>` que estava na sentença VIZINHA (a frase nasceu falsa, e eu publiquei a absolvição EM CÓDIGO)
+
+- **O limite (variante também proibida):** citar autoria, decisão ou aprovação — `[W] <data>`,
+  `Wagner 2026-XX-XX`, `decisão de <fulano>` — a partir de **proximidade textual**. O marcador
+  vale pra **sentença que o carrega**, nunca pro parágrafo, o bloco ou o docblock inteiro. Antes
+  de tratar uma frase como canon atribuído: ler onde a atribuição **fecha** e, se a frase afirma
+  comportamento, **datá-la contra o comportamento** (`git log -S`, em repo comprovadamente
+  não-raso — §5 2026-07-24). Uma frase escrita DEPOIS do mecanismo que ela descreve pode ter
+  **nascido falsa**, e foi o caso: em `Sidebar.tsx` o `([W] 2026-08-28)` prende-se à sentença da
+  ALOCAÇÃO da entry no topo (`:310`); a frase *"É o destino pós-login"* é a SEGUINTE (`:312`), sem
+  atribuição — e o condicional que ela contradiz existia desde o #4949, **um mês antes**. Ela era
+  verdadeira só pro subconjunto sem `jana.access`.
+
+- **⚠️ NÃO virar gate:** o predicado — *"até onde esta atribuição alcança?"* — é **semântico por
+  construção** ([ADR 0224](decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md): semântico =
+  advisory), e a forma sintática (casar `[W] <data>` e exigir que a sentença seguinte não afirme
+  comportamento) é a família de guard sintático que este §5 já enterrou 7× — allowlist-de-pasta
+  06-30 · `@scope` 07-09 · vocabulário **130 FP** 07-16 · `toHaveKey` **100% FP** 07-26 ·
+  `toContain` 07-28 · `jq` 08-11 · par usuário/senha 08-02. **O que pegou foi PROCESSO:** o agente
+  `ciclo-adversary`, rodado ANTES de escrever no ledger — exatamente o gatilho que o canon dele
+  declara. Ele derrubou 2 das 3 razões do meu fechamento, incluindo a que eu mais pesava.
+
+- Origem: sessão 2026-09-08 · [PR #7065](https://github.com/wagnerra23/oimpresso.com/pull/7065)
+  (a errata está no commit `55423fc2a1`, dentro do próprio código que carregava a atribuição
+  falsa). Ocorrência **LC-08 nº 151**.
+
+### 2026-09-09 — Promover `blueprint_cowork` e `canon_reference` a ÂNCORA de design (as 2 chaves que a cadeia "ignora")
+
+- **O limite (variante também proibida):** não promover `blueprint_cowork` nem `canon_reference` a âncora **em leva** — nem sob nome de "fechar o gap das 2 chaves", "reconciliar as 5 fontes" ou "o `ancora.mjs` está incompleto". Também proibido tratar **`n/a (herda PT-0X…)` como ausência de fonte**: é declaração consciente que a máquina reconhece (`ehDeclaracaoNa`) e que o `design-coverage` conta como `declared` — as duas telas citadas como *"aparecem sem fonte"* (`team-mcp/CcSessions/Index` e `team-mcp/Scorecard/Index`) **não apareciam**; elas declaram `n/a` e já linkam o inventário por `related_visual_comparison`. Promoção individual segue possível e é **decisão [W]**, par-a-par, com a fonte aberta e conferida. **Mesma família** da lápide §5 2026-08-28 (*não promover `bundle_source` a `related_prototype` em leva*) e da 2026-06-05 (*derivar do código*): muda a chave, a doença é a mesma — carimbar como "design aprovado" um ponteiro que aponta pattern de outra tela, porte reverso ou ref podre.
 
 ## Sempre fazer
 

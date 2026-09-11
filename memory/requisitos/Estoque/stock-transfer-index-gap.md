@@ -12,6 +12,8 @@ gerado_em: 2026-09-06
 >
 > **Porte reverso** do vivo lido em 2026-08-22 (`estoque-page.jsx:1-3`) → expectativa-base é paridade. Frescor: **STALE** — `TabBar` no espelho x `window.CliTabs` no vivo (nota completa e errata no [gap do StockAdjustment/Index](stock-adjustment-index-gap.md)).
 >
+> ⚠️ **Errata datada (2026-09-09):** o `STALE` acima **caducou** — o espelho foi reimportado em 2026-09-07 (PR #6940) e a rodada de frescor de 2026-09-08 mediu `estoque-page.jsx` como **sync** (273/273, `staleList: []`, os 5 arquivos do Estoque em `verified`). Medição e recibos completos no [gap do StockAdjustment/Index](stock-adjustment-index-gap.md). O **porte reverso** e a expectativa de **paridade** seguem valendo.
+>
 > **Região do protótipo:** aba **Transferências** — `AbaTransferencias` (`estoque-page.jsx:318-416`) + `COLS_TR` (`:306-316`) + `DrawerTransferencia` e `FolhaTransferencia` (`estoque-forms.jsx:567-...` e `:403-484`).
 
 | Parte | Estado no vivo | Ação |

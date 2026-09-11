@@ -1,0 +1,877 @@
+---
+id: requisitos-design-system-inventario-ancoras-2026-09-09
+slug: inventario-ancoras-shell-2026-09-09
+title: "INVENTÁRIO — quais telas sem âncora declarada têm, de fato, protótipo no shell"
+type: inventario
+module: _DesignSystem
+status: ativo
+owner: wagner
+date: "2026-09-09"
+medido_em: "origin/main @ 043106f9c9"
+related_adrs: [0299, 0282, 0374, 0315]
+related: [INDEX-DESIGN-MEMORIAS.md, PROTOCOLO-COMPARACAO-RUNTIME.md]
+---
+
+# INVENTÁRIO — telas sem âncora declarada × protótipo real no shell
+
+> ⚠️ **Isto é um retrato DATADO (2026-09-09), não um mapa vivo.** Os números foram medidos
+> contra `origin/main` em `043106f9c9`. O main anda ~68 commits/dia — reler este arquivo daqui a
+> uma semana e tratar as contagens como estado atual é o erro que a
+> [lápide §5 2026-09-03](../../proibicoes.md) registra ("lápide que declara um GAP tem prazo de
+> validade implícito"). **Para o estado de hoje, rode as portas vivas** listadas em §6.
+>
+> **O que este documento acrescenta e nenhuma máquina produz:** o veredito por tela veio de
+> *abrir o protótipo e ler o que ele desenha*. Casar tela com protótipo por semelhança de nome é
+> guard sintático — a família com 7 lápides medidas no §5. Nome é pista; o cabeçalho e o corpo
+> do `.jsx` são a prova.
+
+---
+
+## 1 · A pergunta, e por que ela não é trivial
+
+A classificação automática dizia **110 telas sem âncora declarada**. Isso não significa "sem
+protótipo" — significa "o charter não aponta o arquivo". O classificador cai em "sem fonte"
+**por construção**, não por medição: se o charter é silencioso, ele não tem o que resolver.
+
+A pergunta deste inventário: **dessas telas, quais realmente têm fonte no shell, e quais não têm.**
+
+## 2 · Medição reproduzida
+
+O shell canônico é `prototipo-ui/cowork/oimpresso.com.html`. Refs que ele carrega:
+
+```bash
+grep -oE '(src|href)="[^"]+"' prototipo-ui/cowork/oimpresso.com.html \
+  | sed 's/^\(src\|href\)="//; s/"$//' | sed 's/?.*$//' | sort -u
+```
+
+**281 refs** — 199 `.jsx` (53 deles `-page.jsx`), 68 `.css`, 10 `.js`, 4 de fonte externa.
+Todos os 199 `.jsx` existem no disco. O `sed 's/?.*$//'` importa: o shell declara os arquivos
+como `data-src="venda-blade.jsx?v=vb2"`, e um padrão que não tire o `?v=` perde o arquivo.
+
+Contra **226 charters de tela**, classificando pelo **campo real do frontmatter** (não pela
+convenção de nome):
+
+| bucket | n | o que é |
+|---|---:|---|
+| A — `related_prototype` resolve no shell | 80 | ancorada |
+| B — `related_prototype` não resolve direto | 2 | um é indireção legítima, um é `.html` fora do shell |
+| C — `bundle_source` / `visual_source` no shell | 32 | fonte declarada em **outro** campo |
+| **E — `n/a` sem fonte alguma** | **107** | **o alvo deste inventário** |
+| **F — charter sem declaração nenhuma** | **5** | **o alvo deste inventário** |
+
+**Denominador real: 112**, não 110. A lista de 110 fora montada pela convenção
+`modulo.toLowerCase() + '-page.jsx'`, e ela erra em massa (§3).
+
+Reconciliação com a porta oficial (`npm run design:coverage`): ela reporta **5 silenciosas** —
+bate exatamente com o bucket F — e **36 "n/a com fonte candidata"**, que é o balde por convenção
+de nome, um corte diferente do meu C.
+
+## 3 · Por que a convenção de nome erra em massa
+
+O protótipo nomeia por **domínio, em português**; o charter, por **módulo, em inglês**:
+
+| charter | candidato pela convenção | arquivo que de fato desenha |
+|---|---|---|
+| `Produto/*` | `produto-page.jsx` ✗ | `produtos-page.jsx` (lista) · `produto-blade.jsx` + `produto-blade-forms.jsx` (o resto) |
+| `Sells/Drafts`·`Quotations`·`Subscriptions` | `sells-page.jsx` ✗ | **`venda-blade.jsx`** |
+| `Purchase/*` | `purchase-page.jsx` ✗ | `compras-page.jsx` |
+| `Essentials/*` | `essentials-page.jsx` ✗ | `essenciais-page.jsx` + `essenciais-extras.jsx` |
+| `StockAdjustment`·`StockTransfer` | `stockadjustment-page.jsx` ✗ | `estoque-page.jsx` + `estoque-forms.jsx` |
+
+Os nomes que resolvem as sub-telas **não têm parentesco algum** com o nome do módulo. Fosse por
+semelhança, o inventário acertaria o arquivo errado em quase todas.
+
+## 4 · Cinco lugares onde uma tela declara sua fonte — e a máquina lê dois
+
+Este é o achado estrutural. A resolução de âncora (`prototipo-ui/ancora.mjs`) declara no docblock
+que a regra dura é `âncora ∈ { related_prototype, -page.jsx do bundle via charter }`. Na prática
+existem **cinco** lugares onde a fonte está escrita:
+
+| # | onde | quantos | o `ancora.mjs` lê? |
+|---|---|---:|---|
+| 1 | `related_prototype:` (frontmatter do charter) | 226 | sim |
+| 2 | `bundle_source:` (frontmatter) | 40 | sim, **mas ver o defeito abaixo** |
+| 3 | `visual_source:` (frontmatter) | 9 | sim, mesma ressalva |
+| 4 | **`blueprint_cowork:`** (dentro de `mwart_pattern_reuse`) | **38** | **não — zero ocorrências no código** |
+| 5 | **`canon_reference:`** (nos `*-visual-comparison.md`) | **31 arquivos** | **não — zero ocorrências** |
+
+### 4.1 · Defeito 1 — precedência invertida (15 charters)
+
+[`ancora.mjs:486`](../../../prototipo-ui/ancora.mjs) faz:
+
+```js
+const source = fm.related_prototype || doBundle || mockupJsx(fm.component) || null;
+```
+
+`"n/a (herda PT-01 Lista…)"` é uma string **truthy**. Quando o charter tem `related_prototype: n/a`
+**e** `bundle_source`, o `||` nunca alcança o bundle. O `--list` reporta `isNa: true` e o
+`design-coverage`, que consome esse `--list`, herda a cegueira.
+
+A porta **per-tela** (`resolveAncora`, L266-271) prefere o campo estruturado e resolve certo — é
+por isso que o passo 2 do chip manda usar a porta per-tela, não a listagem geral. Contraste medido:
+
+```
+$ node prototipo-ui/ancora.mjs Produto/Index --staging prototipo-ui/cowork
+  âncora ✓: [-page.jsx (bundle · bundle_source)] produtos-page.jsx     ← resolve
+$ (o mesmo charter no --list)  →  isNa: true, via: related_prototype   ← esconde
+```
+
+**15 charters** afetados: os 7 de `Essentials`/`Produto`/`ComunicacaoVisual`, os 4 de Estoque,
+`Manufacturing/Index`, 3 de `Repair` e `Vestuario/Etiquetas/Index`.
+
+O fix de 2026-08-28 registrado no próprio arquivo (L476-482) tratou o caso `related_prototype`
+**ausente**; o caso `n/a` **presente** ficou.
+
+### 4.2 · Defeito 2 — a 4ª chave aponta um documento de outro assunto (4 charters)
+
+Os 4 charters de Estoque declaram, em `mwart_pattern_reuse.blueprint_cowork`:
+
+```
+prototipo-ui/prototipos/inventario-migracao/visual-source.html
+```
+
+Esse arquivo existe, tem 30 KB, e é **um relatório técnico de migração de código**:
+
+```
+<title>Inventário · Oimpresso ERP — Migração Blade → React</title>
+```
+
+Medido com controle positivo e negativo (`grep -oi … | wc -l`, todos `rc=0`):
+
+| termo | ocorrências |
+|---|---:|
+| `Blade` | 67 |
+| `React` | 36 |
+| `Inventário` | 8 |
+| **`estoque`** | **0** |
+| **`SKU`** · **`saldo`** · **`quantidade`** · **`ajuste`** | **0** |
+
+O casamento foi por **homônimo**: "inventário" de código × "inventário" de estoque. Um
+`existsSync` diria "está tudo certo" nos quatro. (`F1.html` e `visual-source.html` são o mesmo
+blob, md5 `a5b334ce1e48898ad0f3639e0df78311`.)
+
+Outros 3 dos 38 apontam caminho inexistente (`cowork/cms/cms-page.jsx`, `cowork/connector/connector-page.jsx`
+— subpasta que não existe; o arquivo real está na raiz).
+
+### 4.3 · Defeito 3 — heurística por nome dentro da máquina canônica
+
+[`ancora.mjs:276-277`](../../../prototipo-ui/ancora.mjs) tem, para quando não há campo:
+
+```js
+cand = stFiles.find((f) => /-page\.jsx$/i.test(f) && basename(f).toLowerCase().startsWith(wanted));
+if (cand) via = 'heurística startsWith(dir)';
+```
+
+É casamento por nome — o critério que a regra dura proíbe. **Três inventariantes independentes
+o pegaram errando**, em famílias diferentes.
+
+**Taxa de erro medida** (bloco Financeiro/Repair/governance, onde foi contada): a heurística
+resolveu âncora para 11 telas; abrindo os 11 arquivos, **8 são falsas** — 73%. Os 3 acertos
+foram coincidência de nomenclatura. Os erros:
+
+| tela | heurística deu | o que o arquivo realmente desenha |
+|---|---|---|
+| `Financeiro/Configuracoes/Contador` | `configuracoes-page.jsx` | *"Configuração da empresa (BusinessController) — 16 abas"*; `contador`/`advisor` → `rc=1` |
+| `Financeiro/Relatorios/Index` | `relatorios-page.jsx` | o módulo Relatórios do **core**, *"importado dos blades `resources/views/report/*`"* |
+| `governance/{Custos,DsRollout,QualidadeIa}` | `governance-page.jsx` | *"Cinco vistas: painel · politicas · auditoria · drift · notas"* — nenhuma delas |
+| `Ponto/Welcome` | `ponto-page.jsx` | 13 abas de área dentro da página; o padrão hub foi **substituído** |
+| `kb/Graph` | `kb-page.jsx` | tri-pane sem grafo; `reactflow`/`nodes`/`edges` = 0 |
+| `Financeiro/AssinaturaAtualizar` | `financeiro-page.jsx` | `FIN_SUB` não tem view de assinatura |
+
+Nas outras famílias, os mesmos falsos: `Produto/{Create,Edit,BulkEdit,Show,StockHistory}` →
+`produtos-page.jsx`, e `Cliente/Show` → `clientes-page.jsx`. Em todos, o arquivo apontado existe
+e é âncora legítima **de outra tela**.
+
+Verificação independente em `produtos-page.jsx` (controle positivo + negativo):
+`ProdListPage` = 3 · `BulkBar` = 4 · **`FormProduto` = 0** · **`stock_history` = 0**. Ele desenha
+só `/products/unificado`. Ironia útil: a heurística **não** dispara para `Produto/Unificado/Index`,
+que é a única tela que aquele arquivo de fato desenha.
+
+O rótulo `via: 'heurística startsWith(dir)'` está no output — quem lê o veredito sem ler o rótulo
+aceita um casamento por nome com aparência de resolução.
+
+### 4.4 · Defeito 4 — colisão de atalho (1 em 226)
+
+`ancora.mjs Nfse/Index` resolve o charter de **`Fiscal/Nfse`**, e devolve `âncora ✓` com selo de
+frescor — resposta confiante e errada. Só o caminho `.tsx` completo dá o charter certo.
+
+Medido nos 226 atalhos: **1 colisão**. É real, e é isolada — registrado sem inflar.
+
+### 4.5 · Defeito 5 — âncora que resolve para um `<Placeholder>` (3 charters)
+
+Pior que âncora ausente, porque **passa em qualquer gate de presença**. As 3 telas de
+`RecurringBilling/{Planos,Faturas,Configuracoes}/Index` declaram `visual_source:
+cobranca-recorrente-page.jsx` — e as tabs correspondentes ali são stubs de 3 elementos:
+
+```js
+// cobranca-recorrente-page.jsx:331
+// ── views placeholder (honestas — não fingir pronto) ──
+{tab === "planos" && <Placeholder title="Planos" desc="… Espelha /recurring-billing/planos do git." />}
+```
+
+O protótipo é honesto (`"não fingir pronto"`); quem não é honesto é a cadeia, que conta isso
+como fonte declarada.
+
+> **Tratado em 2026-09-09** ([PR #7099](https://github.com/wagnerra23/oimpresso.com/pull/7099)):
+> os 3 `visual_source` ganharam a ressalva **por anotação**, não foram removidos — remover
+> derrubaria a catraca `design-coverage` (`declared` só sobe) e promover ancoraria a tela nela
+> mesma (porte reverso). Trocar por "sem fonte" segue decisão [W]. A ausência de outra fonte foi
+> medida pelas 3 pernas (repo · projeto Cowork por ID · ledger do espelho, compare 2026-09-08 =
+> `sync`) — o `<Placeholder>` é o estado do design **vivo**, não um retrato velho. Efeito medido
+> junto: `detect-handoff.mjs:52` casa `visual_source` ancorado em fim de linha e `map[k]=v`
+> sobrescreve, então o arquivo roteava para `Planos/Index` (o stub); passou a rotear para
+> `RecurringBilling/Index` (Assinaturas), a tela que ele de fato desenha.
+
+### 4.6 · Defeito 6 — cosmético (37 charters)
+
+Para charter sob `Modules/<X>/Resources/js/Pages/`, o `ancora.mjs` imprime `tela viva: —` mesmo
+com o `.tsx` existindo. **A âncora resolve normalmente** — só o campo informativo fica vazio.
+Impacto real: baixo.
+
+## 5 · O veredito por tela
+
+Vereditos obtidos **abrindo os protótipos**, com `arquivo:linha` como recibo. **128 telas
+verificadas** (as 112 do denominador + 16 que já tinham fonte em outra chave, conferidas junto).
+
+| veredito | n | o que significa |
+|---|---:|---|
+| **TEM FONTE** limpa | 13 | candidata a promover — 4 delas já declaradas em `visual_source` |
+| **TEM FONTE (REVERSO)** | 30 | registrar, **não promover** — ancoraria a tela nela mesma |
+| **PARCIAL** | 22 | o protótipo cobre o domínio, não a sub-tela |
+| **SEM FONTE** | 39 | com recibo de varredura + controle positivo |
+| **FORA DO SHELL POR DESENHO** | 12 | telas públicas — ausência **não é dívida** |
+| **NÃO É TELA** | 3 | charters de componente |
+| **JÁ DECLARADA por outra chave** | 9 | a cadeia é que não enxerga (§4.1) |
+
+> O grosso do que "tem fonte" é **porte reverso**. Isso não é acidente: o espelho recebeu levas
+> de porte do vivo (`sync git 2026-08-17`, `leva 1 do espelho`) que trouxeram o código de volta
+> como desenho. Promover essas âncoras fabricaria um loop.
+
+### 5.1 · Candidatas limpas a promover âncora
+
+Fonte real no shell **e** sem porte reverso. São as únicas em que promover é ganho sem dívida:
+
+| tela | fonte | recibo |
+|---|---|---|
+| `Purchase/Index` | `compras-page.jsx:326` | *"Migrado de Compras.html"* — fonte de design, não do código |
+| `Purchase/Show` | `compras-page.jsx:539` | `DrawerView`, abas Resumo·Itens·Documentos·Pagamentos·Histórico |
+| `StockAdjustment/Index` | `estoque-page.jsx:208` | `AbaAjustes` |
+| `StockAdjustment/Create` | `estoque-forms.jsx:157` | `FormAjuste` |
+| `StockTransfer/Index` | `estoque-page.jsx:318` | `AbaTransferencias` |
+| `StockTransfer/Create` | `estoque-forms.jsx:253` | `FormTransferencia` |
+| `Tarefas/Index` | `tasks.jsx` | o `.tsx:5` já declara `layout: tasks.jsx canon Cowork 2026-04-27` |
+| `team-mcp/CcSessions/Index` | `forja-changelog.jsx:11` | `canon_reference` **aprovada por [W] em 2026-06-16** |
+| `team-mcp/Scorecard/Index` | `forja-saude.jsx:25` | idem; e *"a Page nunca existiu"* prova a direção Design→Code |
+| `OficinaAuto/ServiceOrders/Board` | `oficina-page.jsx` | o **código vivo** cita a fonte: `Board.tsx:3` *"Port do protótipo Cowork… confirmado por [W] 2026-06-02"* — já em `visual_source` |
+| `OficinaAuto/ServiceOrders/Show` | `oficina-os-page.jsx:101` | `blade_source: N/A (módulo novo)` — design-first — já em `visual_source` |
+| `Atendimento/CaixaUnificada/Index` | `inbox-page.jsx` | *"FONTE VISUAL CANÔNICA pro repo"* — já em `visual_source` |
+| `Financeiro/PlanoContas/Index` | `financeiro-telas-extras.jsx:595` | `TelaPContas`; ⚠️ ver ressalva de bidirecionalidade abaixo |
+
+⚠️ Duas ressalvas que acompanham a lista:
+
+- **Estoque:** `estoque-forms.jsx` cita o main no cabeçalho, mas o que veio de lá são **regras**
+  (`R-ADJ-003`, `INV-2`, `UC-EST-05`), não layout — e `estoque-contagem.jsx` se declara
+  *"ESCOPO NOVO… não existe no Blade nem no React vivo"*. Reconciliar regra com o vivo não é
+  portar desenho do vivo. Ao promover, **trocar** o `blueprint_cowork` errado (§4.2) pelo
+  `bundle_source`, que já está certo.
+
+  > **ERRATA 2026-09-09 (PR de correção do §4.2) — as 4 de Estoque NÃO foram promovidas.**
+  > A leitura acima sobre `estoque-forms.jsx` (regra ≠ layout) está correta, mas duas coisas
+  > foram medidas depois e mudam o veredito **destas quatro**:
+  >
+  > 1. **A promoção tem custo, não é "sem dívida".** [`pt-conformance.mjs:56`](../../../scripts/governance/pt-conformance.mjs)
+  >    lê o PT **de `related_prototype`** (`claimedPT(fmGet(fm,'related_prototype'))`). Trocar
+  >    `n/a (herda PT-0X)` pelo path tira as 4 da única checagem **falsificável** que elas têm —
+  >    o script existe declaradamente contra COUNT-PUMP. Medido aplicando a promoção e rodando:
+  >    **91 → 87** declarações de PT.
+  > 2. **O ganho na catraca é zero.** `design-coverage` ficou **idêntico** nos dois estados
+  >    (`declared 221` · `parityLinked 66`): `declared` conta `hasSource`, e o `n/a` já é `true`;
+  >    `parityLinked` lê `related_visual_comparison:`, não este campo. O único delta real é o
+  >    `--list` sair de `isNa:true` para `isNa:false` — que é o **Defeito 1 (§4.1)**, um bug de
+  >    precedência no resolvedor que atinge **15 charters**. Consertar 4 por edição de dado
+  >    deixa 11 e troca o conserto do `||` por backfill.
+  >
+  > Some-se que [§5 2026-08-28 (c)](../../proibicoes.md) é Tier 0 e diz que o `n/a` **coexiste**
+  > com a âncora de bundle por desenho.
+  >
+  > **Sobre "trocar pelo `bundle_source`, que já está certo":** o `bundle_source` diz
+  > `estoque-page.jsx` nas **quatro**, mas a tabela §5.1 acima nomeia `estoque-forms.jsx:157` /
+  > `:253` como a fonte das duas **Create**. As duas afirmações não podem estar certas ao mesmo
+  > tempo — a segunda é a correta, e é a que o [PR #7079](https://github.com/wagnerra23/oimpresso.com/pull/7079)
+  > adotou (ver abaixo). Logo a instrução vale para as 2 Index, não para as 4.
+  >
+  > **Estado do §4.2 — corrigido, e por outra mão.** Enquanto este PR corria, o #7079 mergeou e
+  > consertou o `blueprint_cowork` dos **4 charters** de um jeito melhor que o originalmente
+  > planejado aqui: em vez de **remover** a chave, **apontou o arquivo real**, e par a par —
+  > Index → `prototipo-ui/cowork/estoque-page.jsx`, Create → `prototipo-ui/cowork/estoque-forms.jsx`.
+  > Este PR aceitou esse lado no merge e **realinhou os 8 irmãos** que o #7079 não tocou e que
+  > carregavam o mesmo ponteiro morto (`RUNBOOK-stock-*.md` em `blueprint_cowork`;
+  > `stock-*-visual-comparison.md` em `cowork_source`), com o mesmo par-a-par.
+  >
+  > ⚠️ Por isso o **corpo do §4.2 acima descreve um estado que já não existe** — ele é retrato
+  > de 2026-09-09 e fica intacto como tal (é o que o cabeçalho deste documento já avisa). Para o
+  > estado de hoje: `grep -n blueprint_cowork resources/js/Pages/Stock*/*.charter.md`.
+  >
+  > Promover o `related_prototype` segue possível — mas como decisão [W] que aceite o custo
+  > em (1), não como "ganho sem dívida".
+- **team-mcp:** a `canon_reference` cita `forja-page.jsx`, que foi decomposto em `forja-*.jsx`
+  na Onda 2. A promoção precisa apontar o arquivo **atual**, não o citado.
+- **Financeiro/PlanoContas:** `financeiro-page.jsx` e `financeiro-telas-extras.jsx` **não**
+  declaram porte reverso (nasceram design-first — *"unified ledger app… Persona: Eliana [E]"*),
+  mas o corpo está cheio de reconciliação com o vivo (`:33` *"paridade @main"*, `:1971`
+  *"paridade vivo — Archive em Index.tsx"*, `financeiro-telas-extras.jsx:53` *"Sync git
+  2026-08-17"*). **Bidirecional**: não é reverso na origem, nem fonte pristina hoje. Decisão de [W].
+- **Quatro das nove já estão declaradas** por `visual_source` (as 3 últimas + CaixaUnificada) —
+  para elas não há o que promover, e sim conferir se a cadeia enxerga (§4.1).
+
+### 5.2 · Têm fonte, mas é PORTE REVERSO — registrar, não promover
+
+O protótipo declara, no próprio cabeçalho, que nasceu **do código vivo**. Ancorar a tela nele é
+ancorá-la em si mesma — [§5 2026-06-05](../../proibicoes.md) ("derivar do código") e a regra
+par-a-par de [§5 2026-08-28](../../proibicoes.md).
+
+| grupo | fonte | frase que prova |
+|---|---|---|
+| `Produto/{Index,Create,Edit,Show,BulkEdit,StockHistory}` | `produto-blade.jsx` · `produto-blade-forms.jsx` | *"importado dos blades `resources/views/product/*`… cada bloco aqui é a tradução 1:1 de um blade"* |
+| `Produto/Unificado/Index` | `produtos-page.jsx` | *"Porte do main lido em 2026-08-25: **Pages/Produto/Unificado/Index.tsx**"* — porte do React vivo |
+| `Essentials/*` (8 telas) | `essenciais-page.jsx` · `essenciais-extras.jsx` · `hrm-page.jsx` · `hrm-extras.jsx` | *"Importado do blade do main: Modules/Essentials/Resources/views/*"* |
+| `Sells/{Drafts,Edit,Quotations,Subscriptions}` | `venda-blade.jsx` · `venda-blade-caixa.jsx` | *"⚠️ Produção passou o blade: … renderizam `Sells/Drafts.tsx` e `Sells/Quotations.tsx`… Esta tela ESPELHA o vivo"* |
+| `ComunicacaoVisual/Index` | `comunicacao-visual-page.jsx` | *"Espelho do vivo `resources/js/Pages/ComunicacaoVisual/Index.tsx`"* — já auto-rotulado no `bundle_source` |
+| `User/Perfil` | `perfil-page.jsx` | *"Redesign fiel da tela legada `resources/views/user/profile.blade.php`"* |
+| `Suporte/Visao` | `suporte-page.jsx` | *"Espelho do vivo `resources/js/Pages/Suporte/{Empresas,Visao}.tsx`"* |
+| `Jana/Pro` | `jana-pro.jsx` | *"Espelho do vivo `resources/js/Pages/Jana/Pro.tsx`"*; a fonte original sumiu do Cowork |
+| `team-mcp/Tasks/Index` | `forja-tarefas.jsx` | *"cópia fiel do conceito de produção `Tasks/Index.tsx` @main"* — **direção invertida**: a `canon_reference` registra que a fonte original (jun/2026) era Design→Code |
+| `governance/ModuleGrades/Show` | `governance-telas.jsx` | *"Espelha as telas vivas de `resources/js/Pages/governance/`"*; e ele cobre `ModuleGrades/**Index**`, não o `Show` |
+
+**Caso especial — `Essentials/Settings/Index`:** além de reverso, o inventário de paridade
+(`EXPORT-HRM-2026-09-04.md:165`) classifica o protótipo como **à frente**: o vivo já superou o
+desenho. Ancorar seria apontar para trás.
+
+### 5.3 · SEM FONTE — e o recibo de por quê
+
+O protótipo **declara o próprio limite** em dois casos, o que é a melhor evidência possível de
+ausência (não é "não achei", é "a fonte diz que não desenha"):
+
+- `configuracoes-page.jsx:324` — *"Alíquota, CFOP, NCM e CST ficam em **NF-e Brasil** — aqui só
+  os números que aparecem impressos."*
+- `prefs-page.jsx:121` — *"Certificado A1 e regras de NCM ficam em **NF-e Brasil**."*
+- `compras-page.jsx:408` — *"Nova compra abre o formulário em modo foco — **fora deste protótipo**."*
+- `oficina-forms.jsx:7` — *"FORA DE ESCOPO: **Veículos CRUD**, Caçambas, **Aprovação pública UI**,
+  Show full-page."*
+
+Sem fonte no shell, por bloco:
+
+| tela | recibo |
+|---|---|
+| `NfeBrasil/Tributacao/{Index,ConfigDefault,RegraForm,ImportCsv}` | a própria fonte aponta para fora (acima); zero formulário de regra NCM no espelho |
+| `Nfse/Emitir` | o botão "Emitir" do cockpit só navega (`fiscal-page.jsx:96`); a emissão vive dentro da venda |
+| `Whatsapp/Settings` | `embedded signup`/`waba`/`business manager` → `rc=1` no `prototipo-ui/` inteiro; o inventário declara origem externa (Stripe/Linear) |
+| `Atendimento/Csat/Index` | `csat` → `rc=1` no espelho (controle positivo: 54 ocorrências em `CsatFlowTest.php`, a sonda funciona) |
+| `Atendimento/JanaTemplates` | falso-positivo por nome: `inbox-page.jsx:157 JANA_TEMPLATES` são **prompts de IA**, não o binding HSM↔evento da tela viva |
+| `Atendimento/Macros/Variants` | os 3 hits de `weight` são `fontWeight` |
+| `Atendimento/Metricas/Index` | `kpi`/`dashboard`/`chart` nos 5 `inbox-*.jsx` → `rc=1` |
+| `TransactionPayment/{Edit,Show}` | o drawer mais próximo detalha **título** (`fin_titulos`), não linha de pagamento |
+| `RecurringBilling/Planos/{Create,Edit}` | a aba "Planos" é um `<Placeholder>` de 3 elementos (`cobranca-recorrente-page.jsx:369`) |
+| `Settings/PaymentGateways/CnabRetorno` | o batch Cowork do módulo declara 3 telas, e essa não está |
+| `Purchase/Edit` | excluído explicitamente pela fonte |
+| `Essentials/Knowledge/{Create,Edit}` | `kb_type`/`share_with` → 0 hits |
+| `OficinaAuto/Vehicles/{Index,Create,Edit,Show}` | excluído explicitamente; o hero de veículo do `oficina-os-page.jsx` é contexto **dentro da OS** |
+| `ads/Admin/{Projects,ProjectShow}` · `KB ads/Admin/Graph` | a chave `projects` do mockup é **ProjectMgmt** (gantt/timesheet), outro domínio |
+| `Auditoria/Detail` | o mockup não tem drill-down/diff/revert |
+
+
+### 5.3.1 · TRIAGEM da cauda (9 telas) — medido 2026-09-09 @ `c0cc153228`
+
+> Chip *"fechar a cauda: 8 telas sem fonte que não formam família"*, com `Ponto/Welcome` somado na
+> entrada. A triagem veio **antes** de desenhar, e o resultado é: **nenhuma das 9 é dívida de
+> fonte de design**. O que segue é o recibo — inclusive das duas premissas do chip que a medição
+> derrubou.
+
+**A correção de premissa, e ela vale para o balde inteiro.** O §5.3 acima classifica *"SEM FONTE
+**no shell**"* — e o §7.1 já declara que essa claim *"vale para o shell, não para o Cowork vivo"*.
+Ausência no shell **não é** ausência de fonte de design: a porta viva responde, para as **9**, a
+mesma frase — `declaração legítima — a tela nasce do DS. NÃO entra no anchor-content-check`
+([`ancora.mjs::ehDeclaracaoNa`](../../../prototipo-ui/ancora.mjs), 5 asserts de bite-test com
+controle negativo). É o [§5 2026-08-28 (c)](../../proibicoes.md) aplicado: o `n/a` com razão
+escrita **coexiste** com a âncora de bundle por desenho.
+
+Medido no corpus (`git ls-files "*.charter.md"`, 288 arquivos — denominador **maior** que os 226
+"charters de página" do `design-coverage`, porque inclui componente): **115** declaram `n/a` com
+razão escrita — 86 `herda PT-0X`, 16 `bespoke`, 13 outras (`sem protótipo Cowork … segue DS`).
+A cauda não é exceção; é o padrão.
+
+| # | tela | rota viva? | US / sinal | veredito |
+|---|---|---|---|---|
+| 1 | `Purchase/Edit` | ✅ `purchases.edit` | US-MWART-008 `_parcial_` — **desligar Blade**, não design | **não desenhar** |
+| 2 | `Essentials/Knowledge/Create` | ✅ `knowledge-base.create` | — | **não desenhar** |
+| 3 | `Essentials/Knowledge/Edit` | ✅ `knowledge-base.edit` | — | **não desenhar** |
+| 4 | `Auditoria/Detail` | ✅ `auditoria.show` | — | **não desenhar** · 1 achado |
+| 5 | `ads/Admin/Projects` | ✅ `ads.admin.projects.index` | US-ADS-003 **`done`** | **não desenhar** |
+| 6 | `ads/Admin/ProjectShow` | ✅ `ads.admin.projects.show` | US-ADS-004 **`done`** | **não desenhar** · 1 conserto |
+| 7 | `KB ads/Admin/Graph` | ✅ `ads.admin.graph.index` | US-ADS-002 `todo` p3 — **tokens/a11y**, não fonte | **não desenhar** |
+| 8 | `Forja/Roadmap/Index` | ✅ `project-mgmt.roadmap.index` | US-TR-203 · **ADR 0367 D7** | **não desenhar** — morte contratada |
+| 9 | `Ponto/Welcome` | ✅ `ponto.react.welcome` | **nenhuma** (0 hits no SPEC do Ponto) | **perguntar ao [W]** |
+
+Rotas conferidas no **runtime**, não no grep: `route:list` no CT 100 (checkout `755f6de79`,
+2026-09-08), 1909 linhas, controle positivo `purchases`=15 · negativo=0. **As 9 estão vivas.**
+
+**1 · Purchase/Edit — a premissa "não forma família" está errada.** `Create` e `Edit` declaram a
+**mesma** string (`n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)`) — são um par, e a
+exclusão de `compras-page.jsx:408` cobre os dois. O Cowork vivo confirma a divisão de trabalho:
+`cowork-inbox/compras/playbook/04-ghost-create-bloqueada.md` declara `Purchase/Create` dono do
+formulário (`GradeMatrixInput` plugado) e `Pages/Compras/Create.tsx` como Non-Goal. O protótipo
+não desenha o form **por decisão**, e a fonte do form é o [PT-02](padroes-tela/PT-02-Form-Drawer.md).
+
+**2-3 · Knowledge/{Create,Edit} — mesmo padrão, medido no protótipo.** `essenciais-extras.jsx`
+`:124-183` desenha a leitura e os botões (`Adicionar categoria`, `Editar`, `Adicionar seção`,
+`Excluir`, todos `disabled={A.demo}`) e **nenhum campo** — sem título, sem conteúdo, sem
+`kb_type`. Idêntico a Compras: lista/leitura no protótipo, formulário no PT-02. Formam par entre
+si; só o `Index` tem âncora (`essenciais-extras.jsx#BaseConhecimento`).
+
+**4 · Auditoria/Detail** — herda PT-03, conforme. ⚠️ **Achado fora do eixo design:**
+[`Detail.tsx:183`](../../../resources/js/Pages/Auditoria/Detail.tsx) diz *"RevertService
+US-AUDIT-008 **pendente**"*, mas a US é **`status: done`** (`SPEC.md:119`, `verificado@dad0b11`
+2026-07-02), o `RevertService.php` existe e a rota `POST auditoria/{activityId}/revert` está viva
+no `route:list`. Texto em presente que apodreceu ([LC-10](../../LICOES_CODE.md)). **Não
+corrigido aqui**: o que a frase deve dizer depende de o revert ser exposto na tela (hoje não é —
+191 linhas, zero botão de revert), e isso é produto, decisão [W].
+
+**5-6 · ads/Admin/{Projects,ProjectShow} — não é ressurreição do ADS, e não é duplicata.** O
+módulo morreu ([ADR 0363](../../decisions/0363-governance-incorpora-ads-nucleo-sem-receptor.md));
+estas telas **migraram** e sobreviveram — controllers em `Modules/Forja`, rotas `/ads/*`
+preservadas. As US são `done` e o próprio SPEC declara: *"US escrita a posteriori (2026-07-30) pra
+ancorar duas telas que já rodavam… **Não é feature nova**"* — registro, não demanda
+([ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)). Duplicata **medida e
+descartada**: `mcp_projects` (19 arquivos) e `mcp_jira_projects` (22) são tabelas distintas.
+⚠️ `memory/requisitos/ADS/SPEC.md` segue descrevendo o núcleo removido (`Modules/ADS/ (a criar)`,
+Brain A/B, `DecisionRouter`, `mcp_dual_brain_decisions`) — `last_updated: 2026-06-13`, anterior à
+0363. As US-003/004 foram atualizadas; o cabeçalho não. Fora do escopo deste chip.
+
+**7 · KB ads/Admin/Graph** — `ReactFlow` bespoke, declaração legítima. Tem dívida declarada
+(**US-ADS-002 `todo` p3**: HEX inline → tokens + a11y do canvas), mas o eixo é conformidade de
+tokens, **não** fonte de design — e o DoD dela já é `nota ≥70 + ratchet verde`.
+
+**8 · Forja/Roadmap/Index — a única que o `design-coverage` acusa, e é falso-positivo.** Ela
+aparece no balde `n/a com fonte candidata JÁ no espelho`, que usa
+[`design-coverage.mjs:60-64`](../../../scripts/qa/design-coverage.mjs) →
+`mod.toLowerCase() + '-page.jsx'` — exatamente a convenção que o **§3 deste documento** mediu como
+errada em massa. Medido em `forja-page.jsx` (o candidato): `quarter`=0 · `trimestre`=0 ·
+`roadmap`=0, com controle positivo `triagem`=14 e `backlog`=26. Ele é o **shell que roteia as 6
+views**, não o quarter view. Varredura no espelho inteiro: `quarter` → **0 arquivos**,
+`target_quarter` → **0** (positivo `triagem`=16, negativo=0). Os `Q1`/`Q2` de `forja-data.jsx` são
+ids de onda/sprint (`janela: "jun 09–18"`), não trimestres. E `forja-gantt.jsx:4` se declara
+*"cópia do conceito Forja/Roadmap/**Gantt**.tsx @main"* — porte reverso da tela **irmã**.
+**Por que não desenhar mesmo assim:** [ADR 0367 **D7**](../../decisions/0367-cockpit-unico-forja-project-mgmt-morre.md)
+preservou o quarter view por decisão explícita **com condição de saída declarada** — *"só sai
+quando o Gantt provar que substitui"*. Desenhar fonte para uma tela cuja morte está contratada é
+investir contra a própria decisão. ⚠️ Nota para [W]: a **D1** manda `/project-mgmt/*` morrer e a
+**D4** põe *"roadmap (Gantt + quarter) no `/forja`"*, mas a rota segue em `project-mgmt/roadmap`
+enquanto **7 irmãs viraram `RedirectController`** — resíduo de execução da ADR, não deste chip.
+
+**9 · Ponto/Welcome — o único "perguntar ao [W]".** Zero menções no `SPEC.md` do Ponto (rc=0).
+O próprio charter declara: *"Nasceu como piloto React/Inertia pra validar o pipeline TW4+shadcn"*
+e Non-Goal *"Não é o dashboard real do ponto (a rota `/ponto` → `DashboardController` é a home)"*.
+O padrão hub foi **substituído por canon [W] datado**: `ponto-page.jsx:3` — *"Abas de ÁREA dentro
+da página (canon [W] 2026-06-22)"*; sonda nos 6 `ponto-*.jsx`: `boas-vindas`/`bem-vindo`/`welcome`
+→ **0 de 6** (positivo `Aprova`=6/6, `Banco de horas`=4/6). Os 4 destinos que ela linka têm tela
+própria (`Pages/Ponto/{Aprovacoes,BancoHoras,Espelho,Importacoes}`). **A rota está viva** — logo
+aposentar é decisão [W], não conserto meu.
+
+#### O conserto que a triagem produziu (1 linha)
+
+`ProjectShow.charter.md` dizia `…assinatura PT-03 ausente`, e
+[`claimedPT`](../../../scripts/governance/lib/pt-signatures.mjs) é `match(/PT-0[1-57]/i)` —
+substring pura, cega à negação. O `pt-conformance` lia a tela como **declarando PT-03** e a
+carimbava `CONFORME` — o oposto do que o charter diz. Trocado por *"logo sem a assinatura do
+padrão de Detalhe"*: mesmo sentido, sem o token.
+
+| máquina | antes | depois |
+|---|---|---|
+| `pt-conformance` | 89 declaram PT · 89 conforme · 0 mismatch | **88** · 88 conforme · 0 mismatch · `--selftest` OK |
+| `design-coverage --check` | `declared 222 ≥ 194` | `declared 222 ≥ 194` (inalterado) |
+| `ancora.mjs` (per-tela) | declaração legítima | declaração legítima |
+
+**Não virou gate, e o motivo está medido:** varri os 288 charters procurando `PT-0X` + palavra de
+negação — **6 casos, e 5 são falso-positivo do próprio filtro** (dizem "herda PT-0X" e negam
+outra coisa: *"fora do AppShellV2"*, *"Veículos CRUD fora do escopo"*). 83% de FP no ato de
+medir. Detectar negação por vocabulário é o guard sintático que este §5 já enterrou 7×; e por
+[ADR 0344](../../decisions/0344-two-strikes-cobre-processo.md) a 1ª ocorrência conserta, não
+codifica. **1 caso em 95** — consertado no dado, par-a-par.
+
+#### Limites desta triagem
+
+1. **Não toquei as telas das 6 sessões irmãs** deste lote (`whats-active` conferido: Atendimento,
+   dinheiro, governance+Superadmin, Veículos, fiscais, kb/_components — zero colisão de path).
+   A correção de premissa acima é **medida no corpus inteiro** e provavelmente vale para elas,
+   mas quem mede cada tela é a sessão dona.
+2. **A claim de ausência fecha nas 3 pernas** ([§5 2026-08-07](../../proibicoes.md)): repo
+   (varredura contada com controle ±) · projeto Cowork **por ID** (`list_files` rodado agora —
+   nenhum `roadmap-*`/`graph*`/`ads-*`/`projects-*`/`auditoria-*`/`welcome*`) · ledger do espelho
+   (`--sla-live-only`: medido **2026-09-08, há 1d** — o aviso de sessão citava a medição anterior
+   de 09-01).
+3. **`grep -iF` aborta com core dump (exit 134) neste MSYS.** Uma sonda minha voltou vazia por
+   isso e, sob pipe, com `rc=0` — a mesma armadilha da
+   [§5 2026-07-31](../../proibicoes.md) (`git grep -F` com `\E`). Pego por controle positivo;
+   todas as sondas acima usam `grep -i` sem `-F`. Registrado por ser near-miss, não incidente.
+### 5.3.2 · ERRATA — as 6 telas internas (governança + superadmin): 5 não eram dívida, 1 era
+
+> **Medido em 2026-09-09**, `origin/main @ 4d284d5e29`, no mesmo dia deste inventário e depois dele.
+> A §5.3.1 acima chegou à MESMA conclusão pelo lado da cauda de 9 telas, em sessão paralela e
+> independente — e mediu a correção de premissa no corpus inteiro (**115** charters declaram `n/a`
+> com razão escrita). Esta seção **não repete** aquela medição: cobre outras 6 telas, com escopo
+> disjunto (ela mesma registra *"governance+Superadmin"* como sessão dona separada, zero colisão
+> de path). Duas medições independentes convergindo é corroboração, não duplicata.
+> Um chip pediu "gerar a fonte de design das 6 telas internas que não têm nenhuma". A medição
+> **encolheu o escopo de 6 para 1** — e o conserto da 1 não é um protótipo.
+
+**O que o `ancora.mjs <path .tsx> --staging prototipo-ui/cowork` respondeu, uma por uma:**
+
+| tela | veredito da porta viva | é dívida? |
+|---|---|---|
+| `governance/Custos` | `n/a (herda PT-04 Dashboard; segue o Padrão de Tela)` | **não** |
+| `governance/DsRollout` | `n/a (herda PT-04 Dashboard; …)` | **não** |
+| `governance/QualidadeIa` | `n/a (herda PT-04 Dashboard; …)` | **não** |
+| `superadmin/Usuario360/Index` | `n/a (herda PT-01 Lista; …)` | **não** |
+| `superadmin/Usuario360/Show` | `n/a (herda PT-03 Detalhe; …)` | **não** |
+| `governance/ModuleGrades/Show` | ⚠️ *"charter sem related_prototype nem -page.jsx"* | **sim** |
+
+As cinco primeiras declaram `n/a` — a **declaração legítima** que a própria porta rotula como
+*"a tela nasce do DS; NÃO entra no anchor-content-check"*, e que
+[§5 2026-08-28 (c)](../../proibicoes.md) fixa como coexistindo com a âncora de bundle **por desenho**.
+Ausência de `related_prototype` **não é** ausência de fonte.
+
+**O custo de "promover" foi medido, não citado** (a errata do §5.1 afirmava isto para Estoque; aqui
+foi reproduzido de fora, aplicando e rodando — [LC-22](../../LICOES_CODE.md)). Trocando o `n/a` de
+`Custos` por um path e rodando `pt-conformance`:
+
+```
+(base 4d284d5e29 — os absolutos são daquele commit; o que importa é o sinal do delta)
+baseline                                        → 89 declaram · 89 conforme
+com related_prototype: …/governance-page.jsx    → 88 declaram · 88 conforme   ← a tela SAI do gate
+revertido                                       → 89 declaram · 89 conforme
+```
+
+A causa está em [`pt-conformance.mjs:56-57`](../../../scripts/governance/pt-conformance.mjs): o PT vem de
+`claimedPT(related_prototype)`, e `if (!pt) return null` — *"não declara PT → fora do escopo deste gate"*.
+Promover as 5 custaria **−5** na única checagem falsificável que elas têm, em troca de âncoras que
+seriam **porte reverso**: as 6 telas já existem, vivas e no DS canon (AppShellV2 em todas), então um
+`.jsx` gerado hoje retrataria o código — [§5 2026-06-05](../../proibicoes.md) e o §5.2 acima.
+
+**A 1 que era dívida foi consertada, e o conserto não é um `.jsx`:** `ModuleGrades/Show` não declarava
+PT nenhum. Declarar o que ela **já segue** (`n/a (herda PT-03 Detalhe; segue o Padrão de Tela)`) a põe
+no gate — **delta medido `+1`**, com `detectSignals` dando `detail:true` (PT-03 exige `detail || kpi`).
+O `ancora.mjs` saiu do ⚠️ para "declaração legítima".
+
+> ⚠️ **O delta é o número, não o absoluto** ([§5 2026-08-24](../../proibicoes.md)). Este PR mediu
+> `89 → 90` na sua primeira base e `88 → 89` depois de incorporar o `origin/main` (o #7152 e o #7154
+> mexeram no `ancora.mjs` e o denominador do gate mudou). Os dois são o mesmo `+1`. Quem reler isto
+> deve **rodar** `node scripts/governance/pt-conformance.mjs`, não citar o absoluto daqui — é o que
+> o cabeçalho deste documento já avisa sobre contagens.
+
+> 🏁 **Marco, e o crédito não é deste PR sozinho:** com este conserto, com o
+> [#7144](https://github.com/wagnerra23/oimpresso.com/pull/7144) (que tirou charter de **componente**
+> da conta de tela) e com as demais sessões do dia, o `design:coverage` passou a reportar **zero
+> telas silenciosas**. Não congelo o número aqui — rode `npm run design:coverage`, que é o dono
+> ([§5 2026-07-17](../../proibicoes.md)). O que fica registrado é qual peça foi desta sessão: o
+> `ModuleGrades/Show` era uma das silenciosas, e deixou de ser por **declarar o PT que já seguia**,
+> não por ganhar um protótipo.
+
+**Claim de ausência, as duas pernas** ([§5 2026-07-28](../../proibicoes.md) + [§5 2026-08-07](../../proibicoes.md)):
+repo — `rg -l -i --hidden -g '!.git/**'` por `usuario360` dá **46 arquivos** (0 protótipo; `--hidden` e
+sem mudam nada aqui, conferido); Cowork vivo — `DesignSync.list_files` = **771 paths**, sem nenhum
+`*rollout*`, `*qualidade*`, `*custos*` ou `*usuario360*`. O `--live-only` **não é medido aqui, e o
+número não se repete aqui** — o dono desse eixo é o [#7150](https://github.com/wagnerra23/oimpresso.com/pull/7150),
+que remediu no mesmo dia com a lista **completa** e registrou no ledger. Consulte-o para o valor
+vigente ([§5 2026-07-17](../../proibicoes.md) — doc canônico não restateia número que outro sistema
+sabe melhor).
+
+> ⚠️ **Por que este PR cedeu o eixo, e é um recibo contra mim.** Eu remedi o `--live-only` por conta
+> própria e cheguei a `87` (depois `74`, ao incorporar o [#7141](https://github.com/wagnerra23/oimpresso.com/pull/7141)),
+> com denominador **771**. O #7150 mediu **876**. A diferença não é a base: é que
+> `DesignSync.list_files` devolve **arquivos e entradas de diretório**, e ao transcrever a saída
+> para o JSON do `--live-only` eu **omiti as 105 entradas de diretório** — medido: a minha lista
+> tem **zero** paths sem extensão, e `876 − 771 = 105`. O numerador coincidiu (87 nos dois), porque
+> o script descarta essas entradas de qualquer modo; **o denominador que eu teria publicado estaria
+> errado**, e o `--sla-live-only` compara denominadores. É a §5 2026-08-11 na veia — transcrever
+> perde dado — e a razão de a entrada do ledger deste PR ter sido **revertida** para a do main.
+>
+> **A causa de raiz é anterior:** três PRs abertos hoje tocam este mesmo arquivo e o mesmo ledger
+> (#7147, #7150 e este). Quem detectou foi o `dup-detector`, não eu — **não rodei checagem de
+> sessão paralela** antes de abrir, e o gatilho do meu trabalho foi um hook de **máquina
+> compartilhada** (`live-only vencido`), que a [emenda §5 2026-08-13](../../proibicoes.md) nomeia
+> como *o caso de maior probabilidade de colisão que existe*. A ocorrência dessa classe já está
+> registrada no ledger pelo próprio #7150 (n+13, mesmo gatilho, mesmo dia) — não a duplico aqui.
+
+⚠️ **`usuarios-page.jsx` existe no vivo e NÃO serve** — verificado abrindo, não herdado: `:1-2` diz
+*"Lista de usuários (gerenciar acessos do ERP)… Redesign do datatable legado UltimatePOS
+(ManageUserController index)"*. É a tela **por-tenant** de acessos; o Usuario360 é **cross-tenant**
+(roles, permissions efetivas, scopes MCP, tokens, quotas, sessions, lockouts). Casar as duas por
+semelhança de nome seria o guard sintático que este documento já reprova em §4.3.
+
+**O que o próprio Cowork diz sobre o Usuario360** — `cowork-inbox/SUPERADMIN-F3-ONDAS-PARA-CODE.md:153`,
+sob o título *"Fora destas 6 ondas (de propósito)"*: *"existe no `main` com 5 rotas … e **não tem tela
+no meu protótipo**. É uma tela nova de F1, não tradução; peço briefing antes de desenhar. Provável
+SA-O7."* Ou seja: a ausência do lado do design é **deliberada e declarada**, com uma pergunta em aberto
+para [W] — não é lacuna a tapar por conta própria.
+
+⚠️ **E o `design-coverage` sugere a âncora ERRADA para as duas `Usuario360`.** Ele as lista sob
+*"n/a com fonte candidata JÁ no espelho"* (32 telas, report-only, *"revisar a decisão"*). A regra que
+elege a candidata é [`design-coverage.mjs:60-64`](../../../scripts/qa/design-coverage.mjs): extrai o
+módulo de `Pages/<Mod>/` e testa `existsSync(prototipo-ui/cowork/<mod>-page.jsx)` — **casamento por
+nome de pasta**, a mesma heurística que o §4.3 acima mede com **73% de erro**. Aqui ela erra: a
+candidata é `superadmin-page.jsx`, cujo cabeçalho (`:2-8`) traduz seis views do Blade legado
+(`superadmin/index`, `business/index`, `subscription`, `packages`, `communicator`, `settings`) e
+**nenhuma de usuários**. Sonda com controle: `360` = 0 · `lockout` = 0 · `scope` = 0 · `permission` = 0;
+controle positivo `business` = 3 · `package` = 3. Os 12 hits de `usuario` são **cota de licenciamento**
+(`pkg.usuarios`, `<Uso rotulo="Usuários" teto={pkg.usuarios}/>`), não uma tela de usuários.
+**Quem for "fechar" essas duas decisões `n/a` apontando `superadmin-page.jsx` cria âncora falsa.**
+A decisão `n/a` delas está certa e deve permanecer.
+
+**Uso real (sinal fraco, declarado como tal):** no `governance/route-hits.json` (janela 30d) só
+`governance/ModuleGrades/Show` aparece — 3 hits, última data 2026-08-22. As outras 5 não constam.
+Isso **não** prova abandono: o ledger tem 104 rotas e 41 pages para 226+ charters, e sua data mais
+recente é 2026-08-22 (18d), então ausência ali é ausência de *coleta*, não de uso. O próprio `_meta`
+avisa: *"NAO e lista de telas existentes"*. Todas as 6 têm rota, controller e teste no `main`.
+
+### 5.4 · Não deveriam ter âncora no shell
+
+Telas públicas, fora do `AppShellV2`. Ausência aqui **não é dívida** — e classificá-las como
+"sem fonte" inflaria o gap com trabalho que não existe:
+
+`Cms Site/{Home,Blogs,BlogPost,Page}` · `Superadmin Site/Pricing` · `Site/{Login,Register}` ·
+`ConsultaOs/Index` · `OficinaAuto/AprovacaoPublica` · `Whatsapp/FeedbackPublico`.
+
+Recibo do último: `Modules/Whatsapp/Routes/web.php:54` usa middleware `signed`, sem `auth`.
+
+### 5.5 · Não são telas
+
+`kb/_components/{NodeReader,PathsDialog,TroubleshooterDialog}` são **charters de componente** —
+os próprios charters dizem `drawer concept — sem .tsx de página dedicada`. A fonte existe, é limpa
+e já está nomeada **dentro do código** (`NodeReader.tsx:43`: *"Port consolidado de
+`kb-page.jsx::ArticleReader` (Cowork)"*). Não falta âncora: falta a declaração estar num campo
+que alguma máquina leia.
+
+> **Desfecho — 2026-09-09 (mesmo dia).** O campo passou a existir e a máquina o lê. O
+> `ancora.mjs --list` agora **rotula** a linha (`auxiliar: true`), de forma **aditiva**: nenhum
+> charter some do inventário — eles *têm* âncora, só não são tela. O `design-coverage` deixou de
+> contá-los no denominador de tela e passou a listá-los à parte. Medido antes→depois:
+> `charters de página 226 → 223` · `silenciosa 4 → 1` · `declared` **intacto em 222** (os 3 tinham
+> `hasSource:false`, então nenhuma catraca se moveu; `parityLinked` segue 66).
+>
+> A classificação **não era nova**: o `integrity-check` IT2 já os havia MOVIDO para
+> `_components/` em 2026-07-09, justamente por não terem `.tsx` de página irmão. O que faltava
+> era esta porta herdar aquela decisão — e o critério saiu do dono único já existente
+> (`isAuxiliaryPagePath`, `scripts/qa/page-path.mjs`), nunca de um filtro escrito à mão aqui.
+>
+> Sobra **1** silencioso, e esse é gap de verdade: `governance/ModuleGrades/Show.charter.md`.
+
+### 5.6 · O inventário que já existe em código e ninguém lê
+
+O melhor mapa de "o que o protótipo NÃO desenha" **já está escrito**, dos dois lados, e nenhuma
+máquina o consome:
+
+- **No protótipo:** `data.jsx:581` `FIN_SUBNAV_OVERFLOW` lista 9 destinos, e
+  `financeiro-legado.jsx:2` os nomeia como *"destino sem rota"*.
+- **No código vivo:** `financeiroMenu.ts:67` — `// — abaixo NÃO estão no protótipo: overflow ⋯ —`.
+- **Mapa reverso completo do Repair:** `repair-page.jsx` tem 12 marcadores de seção
+  `// ══ X (blade.php) ══`, cada um nomeando o blade de origem.
+- **O código declara a própria proveniência:** `Board.tsx:3` *"Port do protótipo Cowork
+  'oficina-page.jsx'… confirmado por [W] 2026-06-02"*; `NodeReader.tsx:43` *"Port consolidado de
+  `kb-page.jsx::ArticleReader`"*.
+
+Isso é mais confiável que qualquer heurística — e é o material natural para fechar §4.
+
+### 5.7 · Errata dos recibos + a causa-raiz das 7 telas de dinheiro (2026-09-09, sessão seguinte)
+
+> **Append, não reescrita.** Os recibos de §5.3 ficam como estavam — eram o que se mediu no dia.
+> Esta seção corrige DOIS deles e nomeia a causa-raiz comum. Escopo: as 7 telas que tocam valor
+> (`TransactionPayment/{Edit,Show}` · `RecurringBilling/Planos/{Create,Edit}` ·
+> `Settings/PaymentGateways/CnabRetorno` · `Financeiro/AssinaturaAtualizar` ·
+> `Financeiro/Configuracoes/Contador`).
+
+**Nenhuma das 7 estava sem declaração.** As 7 declaram `related_prototype: n/a (...)`, e a máquina
+classifica isso como *declaração legítima* (`ehDeclaracaoNa`). Para 5 delas a declaração nasceu na
+wave [#4109](https://github.com/wagnerra23/oimpresso.com/pull/4109), que classificou 75 telas **por
+conteúdo** (assinatura do `.tsx`), passou a rede `pt-conformance` e **reverteu 9 mismatches** — logo
+não é default silencioso (§5 2026-08-10), é declaração conferida. O que falta não é a declaração:
+é o **artefato que ela aponta**.
+
+#### Errata — 2 recibos de §5.3 usaram grep de string literal (§5 2026-08-18)
+
+| tela | recibo de §5.3 | o que a medição de 09-09 (3 pernas) mostrou |
+|---|---|---|
+| `Financeiro/AssinaturaAtualizar` | *"`FIN-004`/`atualizar cobran` → 0"* | **`prototipo-ui/cowork/AssinaturaAtualizar.tsx` EXISTE.** É porte REVERSO do vivo (310 vs 309 linhas; difere só na API do PageHeader). Conclusão "sem fonte" **mantida**; o recibo é que era o instrumento errado. |
+| `Settings/PaymentGateways/CnabRetorno` | *"o batch Cowork declara 3 telas, e essa não está"* | Verdadeiro, mas incompleto: o termo de domínio `cnab` dá **15 hits em 5 arquivos** do espelho, e há **dois** `SheetRemessaRetorno` (`boletos-page.jsx:509` e `pg-cobranca-page.jsx:863`). Vocabulário visual PARCIAL existe; a tela (dropzone + validação + contadores) não. |
+
+Os outros 3 recibos foram re-medidos com sonda própria e **conferem** — incl. controle positivo
+(`contador|advisor` nos `configuracoes-*.jsx` → rc=1, enquanto `configura` → 15 hits na mesma sonda).
+
+#### A causa-raiz: a camada que as 7 apontam não tem artefato
+
+Existem **6 Padrões de Tela canônicos** em `padroes-tela/` (PT-01, PT-02, PT-03, PT-04, PT-05, PT-07)
+e **3 templates renderizados** em `design-system/templates/` (`pt-01-lista`, `pt-05-dashboard`,
+`pt-07-os-detail` — este último é a tela-assinatura de OS, não o Detalhe genérico).
+
+**PT-02 Form-Drawer e PT-03 Detalhe — declarados por 5 das 7 — não têm template.** E para o PT-02 a
+razão é mecânica, não esquecimento: as regras R3/R4/R6/R8 do PT-02 exigem `FormSection`, `FormGrid`,
+`Field`, `FieldError` e `InputGroup`, e **nenhum dos cinco existe no DS** (manifesto = 0, refs no
+`_ds_bundle.js` = 0), com controle positivo na mesma sonda (`Input`/`Select`/`Segmented` = 1 cada).
+Eles existem **só no código** (`resources/js/Components/ui/{field-state,form-section}.tsx`). Ou seja:
+**o PT-02 não é renderizável pelo DS de hoje.** O PT-03, ao contrário, usa só componentes que o DS
+tem (KpiCard · Timeline · EmptyState · DropdownMenu · Skeleton · StatusBadge) — é construível.
+
+#### ~~Por que o protótipo não nasce neste repo~~ — ERRADO, corrigido no mesmo dia
+
+> ⚠️ **Esta subseção nasceu falsa e fica registrada, não apagada.** Eu medi os 4 destinos e conclui
+> que *"o protótipo não nasce neste repo"*. Era verdade **quando medi** e falso **quando publiquei**:
+> horas antes, no mesmo 2026-09-09, o [#7145](https://github.com/wagnerra23/oimpresso.com/pull/7145)
+> **abriu a rota** — e eu não vi porque minha base estava atrás. Foi o merge de `origin/main` que me
+> denunciou: ele trouxe `prototipos/nfe-tributacao/` e o guard passou **verde** num diretório que meu
+> próprio bite-test dizia que reprovaria. É a lápide [§5 2026-09-03](../../proibicoes.md) em ato —
+> *"lápide que declara um GAP tem prazo de validade implícito; antes de citar um gap como estado do
+> mundo, re-medir"* — cometida no dia seguinte a ela existir.
+
+**A rota existe e tem nome.** O `cowork-ssot-guard` ganhou uma **terceira lista**,
+`PROTOTIPOS_GERADOS`, cuja razão de ser é exatamente este caso — e a **direção** é o que a distingue
+das outras duas. O allowlist transitório é design que **veio** do Cowork e ainda não voltou (meta = 0);
+`PROTOTIPOS_GERADOS` é design que **nasceu aqui**, gerado pelo agente Code como designer-agente
+([ADR 0282](../../decisions/0282-protocolo-v2-colapso-ratificacao.md) §0.1), para tela sem fonte
+visual em nenhum dos dois donos. Não tem de onde ser exportado — precisa **subir**.
+
+O que sobrevive da medição original, re-conferido pós-merge:
+
+| destino | veredito |
+|---|---|
+| `prototipo-ui/prototipos/<slug>` **+ entrada em `PROTOTIPOS_GERADOS`** | ✅ **é a rota** — precedente `nfe-tributacao` (#7145), com `SOURCE.md` declarando proveniência, âncora de domínio e status |
+| `prototipo-ui/prototipos/<slug>` **sem** declarar na lista | ❌ R3 morde (bite-test do #7145: bom→0 · não-declarado→1 · volta→0) |
+| `prototipo-ui/cowork/` | ❌ espelho read-only ([ADR 0374](../../decisions/0374-emenda-0315-espelho-cowork-e-rota-prevista.md)) |
+| `prototipo-ui/design-system/` | ❌ **também espelho** — README: *"Espelho, não fonte"* |
+| `DesignSync.write_files` | ⚠️ publicação externa ([ADR 0315](../../decisions/0315-design-sync-claude-design-vs-cowork-charter.md) + R10) — necessária só para **subir** o desenho depois, não para gerá-lo |
+
+**Consequência para as 7 telas de dinheiro:** o desenho **pode e deve ser gerado agora**, na forma do
+#7145 — `SOURCE.md` + `-page.jsx` + `-page.css`, entrada em `PROTOTIPOS_GERADOS`, charters **intactos**
+(o `n/a` permanece), status **proposta de forma, não lei**. Promover a `related_prototype` é que segue
+sendo decisão [W], porque tornaria um desenho novo soberano sobre tela viva pela cadeia FORMA da
+[UI-0029](adr/ui/0029-prototipo-soberano-sobre-adr-ui.md).
+
+#### Decisões que são do [W]
+
+1. **Primitivas de form no DS** (`FormSection` · `FormGrid` · `Field` · `FieldError` · `InputGroup`) —
+   sem elas o PT-02 não renderiza, e 4 das 7 telas seguem sem a fonte que declaram. Componente novo
+   do DS é soberania [W] (ADR 0282 "o ouro").
+2. ~~**Opt-in de publicação** para o artefato ter destino durável~~ — **caducou** com a correção
+   acima: o destino é `prototipos/<slug>` + `PROTOTIPOS_GERADOS`. O opt-in volta a importar só no
+   passo seguinte, quando o desenho **subir** pro Cowork.
+3. **PT-03 primeiro?** É construível hoje sem (1), e destrava `TransactionPayment/Show` + o gate de
+   screenshot que segura o PT-03 em `status: draft`. Depende só de (2).
+
+#### Por que só 4 dos 7 charters foram anotados (e o achado que isso revelou)
+
+A anotação foi aplicada nos 7 e **revertida em 3**: `Settings/PaymentGateways/CnabRetorno`,
+`TransactionPayment/Edit` e `TransactionPayment/Show`. Motivo medido no CI do PR: tocar um charter
+acorda o `charter-us-lint --check` (regra *no-new-lie* — charter novo/tocado declara a US que atende),
+e **esses 3 não têm `related_us`**. É a lápide [§5 2026-07-27](../../proibicoes.md) (*"tocar legado
+acorda gate diff-aware"*) em ato.
+
+Procurei a US real e **não existe** — declarar uma seria inventar (a ordem de fonte manda PERGUNTAR):
+
+- **`CnabRetorno`** — a US mais próxima é `US-FIN-018 · Boletos — Sheet Remessa/Retorno CNAB`, mas o
+  `**Implementado em:**` dela aponta `resources/js/Pages/Financeiro/Cobranca/_components/SheetRemessaRetorno.tsx`,
+  **outra superfície**, com dados MOCK. A tela do PaymentGateway é uma página por credencial
+  (`/settings/payment-gateways/{id}/cnab-retorno`) com processor REAL. Declarar `US-FIN-018` aqui
+  seria uma âncora falsa. _(De quebra: isso explica o `SheetRemessaRetorno` do espelho — ele é o
+  design da US-FIN-018, não desta tela; e há hoje **quatro** artefatos distintos com esse nome — contados 2026-09-09 com `rg -l --hidden` no repo inteiro: `prototipo-ui/cowork/boletos-page.jsx` · `prototipo-ui/cowork/pg-cobranca-page.jsx` (998 ln) · `prototipo-ui/cowork/prototipos/payment-gateway-ui/cobranca-page.jsx` (830 ln — **não** é cópia do anterior: 206 linhas de diff, md5 distinto) · e o vivo `resources/js/Pages/Financeiro/Cobranca/_components/SheetRemessaRetorno.tsx` (US-FIN-018).)_
+- **`TransactionPayment/{Edit,Show}`** — `payments/v2` e `TransactionPayment` não aparecem em SPEC
+  nenhum como US de tela; os hits são o `TransactionPaymentController` do core UPOS e traits de
+  auditoria. **Duas telas que mexem em pagamento, sem US.**
+
+**Decisão [W]:** declarar a US dessas 3 (criando-a se for o caso) ou aceitar a dívida explicitamente.
+Enquanto isso, elas ficam **sem a anotação** — o registro da ausência de fonte vive aqui, nesta seção,
+que é o dono do tema.
+
+#### Achado Tier 0 — registrado, NÃO consertado
+
+O `CnabRetornoProcessor` incrementa **6** contadores (`paga`, `cancelada`, `vencida`, `registrada`,
+`sem_match`, `ignorada` — contados por `rg -o`), mas a migration
+`2026_05_26_120100_create_cnab_retorno_uploads_table` tem **4** colunas e o `update()` do
+`finalizarUpload` persiste **4**. `sem_match` (pagamento sem cobrança correspondente) e `ignorada`
+(ocorrências de protesto/alteração/erro) são calculados e **descartados** — exatamente as linhas que
+exigem follow-up humano numa tela de dinheiro. Mudar isso é comportamento sobre VALOR: decisão [W]
+(regra-mestre de [proibicoes.md](../../proibicoes.md)), nunca conserto silencioso desta sessão.
+
+## 6 · Portas vivas (o estado de hoje, não o deste arquivo)
+
+```bash
+node prototipo-ui/ancora.mjs <Mod/Tela> --staging prototipo-ui/cowork   # âncora de UMA tela
+npm run design:coverage                                                  # cobertura + baldes
+node scripts/governance/cowork-mirror-freshness.mjs --compare --check    # o espelho está fresco?
+```
+
+⚠️ Use **sempre o caminho `.tsx` completo** no `ancora.mjs`, nunca o atalho `Mod/Tela` — §4.4.
+
+## 7 · Limites declarados deste inventário
+
+1. **A claim de ausência vale para o shell, não para o Cowork vivo.** O
+   `cowork-mirror-freshness --sla` reporta o espelho completo e fresco (273/273, 0 stale), **mas**
+   sinaliza 98 arquivos que existem no Cowork e não no espelho. Os nomeados na saída não incluem
+   nenhum `-page.jsx`, e a lista completa não é versionada. Logo: firme sobre o shell,
+   **inconclusiva sobre o vivo**.
+
+   > **EMENDA 2026-09-09 — o limite 1 foi MEDIDO e, para o eixo protótipo, ele CAIU.**
+   > A lista completa do vivo foi puxada (`DesignSync.list_files`, **876 paths**) e passada ao
+   > `--live-only`, que classifica o resultado em duas famílias por construção: *protótipo de
+   > tela* (`.jsx`/`.css` na raiz) e *outros*. Veredito: **87 live-only, dos quais 0 protótipos
+   > de tela**. O item 1 dizia que os *nomeados na saída* não incluíam `-page.jsx` — agora a
+   > **lista inteira** foi medida e a família está vazia, não só a amostra. Logo a claim de
+   > ausência de protótipo deste inventário é **firme sobre o vivo também**, e não só sobre o shell.
+   >
+   > O que os 87 eram, contado (nenhum é âncora de design, e por isso nenhum move `ancora.mjs`):
+   > **44** `sync/**` (as 43 partes do bundle + o manifesto — é o *transporte*, nunca desce) ·
+   > **13** `.md` de playbook/pedido · **12** `cowork-inbox/*/repo/**` (cópia do nosso próprio
+   > código, feita pelo design) · **6** fixtures `.php` · **3** `_ds/**` (dono é o `--preview-ds`) ·
+   > **9** avulsos (`.gitignore`, `.thumbnail`, `AssinaturaAtualizar.tsx`, 4 `.mjs`/`.json` de
+   > ferramenta, 1 `.napkin`).
+   >
+   > Os **13 `.md`** desceram para `prototipo-ui/design-docs/cowork-inbox/` — pelo
+   > [#7141](https://github.com/wagnerra23/oimpresso.com/pull/7141), de uma sessão paralela do
+   > mesmo dia, e **em paralelo** por esta rodada. As duas transcrições independentes saíram
+   > **byte a byte idênticas nos 13** (sha256 conferido arquivo a arquivo), o que corrobora a
+   > fidelidade que a ADR 0389 só permite *declarar*. Live-only depois deles: **74**.
+   >
+   > O `--sla` segue **INCONCLUSIVO** por causa dos 74 — desenho do instrumento, não pendência de
+   > design: ele não distingue transporte de fonte, e *o que merece descer é decisão [W]*. Recibo,
+   > a anatomia dos 74 e as ressalvas: [session
+   > 2026-09-09](../../sessions/2026-09-09-espelho-cowork-live-only-remedido.md).
+2. **"Porte reverso" não é mecanizável por regex.** Um detector de marcadores marcou 62 dos 199
+   arquivos; ao separar marcador forte de fraco, 40 exigiram leitura humana — e a separação
+   automática ela mesma errou nos dois sentidos (`forja-page.jsx` diz *"Tela = projeção do git"*,
+   que significa que a Forja **lê** o git como dado, direção oposta). **Os vereditos de §5 vêm de
+   leitura, não do regex.** Nenhum número de "quantos são reversos" deve ser citado deste arquivo.
+3. **Contagens envelhecem.** 341 commits nos 5 dias que antecederam esta medição. A divergência
+   entre a classificação de 2026-09-05 (110) e esta (112) é esperada e não indica erro de nenhuma
+   das duas.
+4. **A camada `mockup-bodies.js`** (16 telas em HTML cru, fora do DS v6) foi tratada como
+   candidato fraco, não como fonte. Onde ela era o único candidato (`Auditoria/Index`), o veredito
+   ficou PARCIAL, não TEM FONTE.
+
+## 8 · Continuação por módulo (chips)
+
+[W] 2026-09-09: *"pode corrigir por modulos e chips em sessões frescas"*. A correção sai
+**par-a-par, por módulo**, em sessões próprias — nunca em leva. Este documento é a entrada delas.
+
+| chip | escopo | por quê separado |
+|---|---|---|
+| Estoque | trocar o `blueprint_cowork` errado (§4.2) + promover as 4 âncoras | tem bug de dado **e** promoção |
+| Purchase | promover `compras-page.jsx` em Index/Show | fonte limpa, 2 telas |
+| Forja/team-mcp | promover CcSessions + Scorecard apontando `forja-*.jsx` **atual** | a `canon_reference` cita arquivo decomposto |
+| `ancora.mjs` — precedência | o `n/a` truthy que esconde 15 `bundle_source` (§4.1) | conserto de máquina, não de charter |
+| `ancora.mjs` — chaves 4 e 5 | `blueprint_cowork` (38) + `canon_reference` (31) + colisão `Nfse/Index` | idem |
+| heurística `startsWith` | 73% de erro medido (§4.3) — decidir entre remover ou rotular como não-âncora | **decisão de [W]**: mexer na regra dura |
+| ~~governança + superadmin (6 telas)~~ | **FECHADO em 2026-09-09 — ver §5.3.2** | 5 de 6 não eram dívida (`n/a` legítimo); a 6ª (`ModuleGrades/Show`) foi consertada declarando o PT-03 que já segue: `pt-conformance` **+1** (rode o gate; o absoluto muda com o main) |
+
+## 9 · O que este inventário NÃO faz
+
+Não promove âncora nenhuma. Promoção é **par-a-par, com o cabeçalho do protótipo como evidência**,
+e carimbo em leva é proibido ([§5 2026-08-28](../../proibicoes.md)). As 9 telas de §5.1 são
+candidatas; a decisão é de [W]. As de §5.2 ficam registradas justamente para que ninguém as promova
+sem ver que são porte reverso.

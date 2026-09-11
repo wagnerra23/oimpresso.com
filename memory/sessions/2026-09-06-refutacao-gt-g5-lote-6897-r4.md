@@ -13,6 +13,8 @@ related_adrs: ["0324-identidade-prototipo-por-conteudo", "0344-two-strikes-cobre
 
 # Refutação GT-G5 — lote PR #6897 (rodada 4)
 
+## Contexto
+
 > Protocolo: [`memory/requisitos/Governance/PROTOCOLO-REFUTADOR-BACKFILL.md`](../requisitos/Governance/PROTOCOLO-REFUTADOR-BACKFILL.md) §2–§4.
 > Refs medidas: `origin/main` = `26ac293f46` · `HEAD` (branch `claude/q6-gap-md-tabela-e-11-mapas`) = `dffc0cd374`.
 > Sessão fresca — nenhum arquivo `memory/sessions/*refutacao*` foi aberto; veredito derivado do zero.

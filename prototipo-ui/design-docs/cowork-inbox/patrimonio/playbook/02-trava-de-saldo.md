@@ -31,24 +31,15 @@ Resultado: dá pra alocar 10 unidades de um bem que tem 3. Não há erro; o rast
 
 ## B · Não inventar
 - **Reusar** `quantidadeDisponivel()`. Não escrever segunda contagem: duas fontes pro mesmo número é como o bug renasce.
-- ⚠️ **ERRATA [CL] 2026-09-08 — leia antes de escrever uma linha.** A instrução original desta linha era: *"Mensagem de validação em PT-BR (C2), no `StoreAssetAllocationRequest` — é onde as outras regras do módulo já moram"*. **A justificativa é falsa e a instrução produz trabalho inerte.** Medido no `main`: `AssetAllocationController@store` (`:186`) recebe `Illuminate\Http\Request` **cru**, o controller tem **0** `validate()`, e `StoreAssetAllocationRequest` não é referenciado por consumidor nenhum — o `rules()` dele **nunca executa**. As regras não "moram" lá: elas não rodam. Uma trava escrita nesse Request passa no CI e **deixa o saldo sem trava em produção**.
-  **O caminho vivo é `AssetAllocationService::criar()` (`:34–:53`)**, que faz `$request->only(… 'asset_id' …)` e `AssetTransaction::create()` sem verificar dono do asset. Ou a trava vai no Service, ou o Request precisa primeiro ser ligado ao controller — e ligá-lo é mudança de assinatura, portanto outro PR.
-  Recibo: `_saida-04.md` §5 (thread 04, medição) — [PR #7009](https://github.com/wagnerra23/oimpresso.com/pull/7009). Confirmado independentemente pela thread 01.
+- Mensagem de validação em **PT-BR** (C2), no `StoreAssetAllocationRequest` — é onde as outras regras do módulo já moram —, não `abort()` cru no Service.
 - `Wave27AssetManagementPolishTest.php` (4.594 B) já hospeda casos de polimento do módulo: estender, não criar arquivo de teste novo.
 
 ## Execução
 ```
-PASSO   0) LER `_saida-04.md` §5 (thread 04) — ele invalida o passo 4 original
-           e o §B desta thread. Sem isso você escreve num Request que não roda.
-        1) confirmar a 01 mergeada (git log no arquivo) — senão PARE
+PASSO   1) confirmar a 01 mergeada (git log no arquivo) — senão PARE
         2) caso de teste: bem com saldo 3 → alocar 4 recusa; alocar 3 passa
         3) trava em criar(), reusando quantidadeDisponivel()
-        4) [ERRATA] mensagem PT-BR NO SERVICE, não no Request órfão (ver §B).
-           Se optar por ligar o Request ao controller, isso é PR separado —
-           muda a assinatura de store().
-        4b) PROVE que a trava roda: teste que exercita o caminho REAL
-           (Service::criar), não o rules() do FormRequest. Verde no CI sobre
-           um Request órfão não é evidência de nada.
+        4) mensagem PT-BR no Request (C2)
         5) atualizar() (:65–:83) tem o MESMO buraco — se o total couber em
            ≤300 linhas, entra junto; se não, vira thread 02b. Não empurrar
            com a barriga.

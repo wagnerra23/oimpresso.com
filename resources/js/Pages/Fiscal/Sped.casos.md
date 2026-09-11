@@ -1,6 +1,6 @@
 ---
 id: resources-js-pages-fiscal-sped-casos
-casos: SPED & Livros · /fiscal/sped
+casos: SPED e livros · /fiscal/sped
 irmaos: Sped.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
@@ -8,7 +8,7 @@ owner: wagner
 last_run: "2026-09-04"
 ---
 
-# Casos de Uso & Aceite — SPED & Livros
+# Casos de Uso & Aceite — SPED e livros
 
 > **Revalidação `last_run` 2026-09-04 — Onda 10 Fiscal (os Goals do charter do Cowork que a
 > Onda 9 não entregou):** entram **UC-FSF1-01** (o bloqueio diz QUANDO deixa de bloquear),

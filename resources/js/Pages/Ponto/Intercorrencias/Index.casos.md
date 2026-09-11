@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · SDD-espelho-e-jornada-v1.0.md §5.3 F4 + §6.2
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é onde o RH acompanha o que ainda não foi decidido — e o que ficou pendente vira falta na folha.
 owner: wagner
-last_run: "2026-09-05"
-last_run_ci: "O bump e REVALIDACAO DE LEITURA disparada pelo G-6 (o .tsx mudou depois do last_run anterior), NAO veredito: 0 UC executado por mim, e o numero e esse mesmo -- Pest roda no CT100/CI (ADR 0062). MOTIVO do diff: o A11yAxeBrowserTest passou a auditar esta tela (entrou em tests/Browser/visreg-screens.json neste mesmo PR) e ela reprovou com axe CRITICAL no run 33939809556. A regra foi `button-name` (Buttons must have discernible text): os 2 SelectTrigger do bloco de filtros (Estado, Tipo) sao <button role='combobox'> e o axe nao conta o texto interno deles como nome acessivel. O diff e ATRIBUTO PURO -- htmlFor no <label> ja visivel + id no SelectTrigger. Zero pixel: so atributo, sem classe nem markup novo. POR QUE nenhum UC muda de sentido, MEDIDO no arquivo de teste vigente e nao herdado: varredura contada em Modules/Ponto/Tests/Feature/IntercorrenciaContratoTest.php (335 linhas) da 5 asserts sobre o payload Inertia (json('props / ->props / assertInertia) e ZERO sobre DOM/HTML (assertSee/assertDontSee/querySelector/getContent/assertViewHas), mais ZERO ocorrencia de aria-/htmlFor/label=/accessible. Os 3 ids UC-INTIDX-01..03 estao todos la. Atributo `id`/`htmlFor` nao aparece em prop nenhuma, logo nenhum aceite pode mudar POR CONSTRUCAO -- nao por conveniencia. O veredito dos UC segue com a lane PHP / Pest (Ponto - MySQL), que e advisory."
+last_run: "2026-09-08"
+last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-test-results.json (fonte: test-results/pest-ponto-junit.xml). Lane PHP / Pest (Ponto - MySQL) run 34215745965 em main (sha dced5fd3d8, 2026-09-08T10:32Z): 302 passed - 1 skipped - 1009 assertions, coherent=true, provou_algo=true. Li ASSERTIONS, nao a conclusion: 1009 > 0 prova que a suite rodou e nao caiu no skip-as-pass da lane (LC-13). O unico skipped da run nao e UC (o coletor trata skip como nao-pass, e os 69 vieram pass). A lane e ADVISORY: reprova e visivel, nao bloqueia merge."
 ---
 
 # Casos de Uso & Aceite — Fila de intercorrências
@@ -28,9 +28,9 @@ last_run_ci: "O bump e REVALIDACAO DE LEITURA disparada pelo G-6 (o .tsx mudou d
 
 | UC | Caso de uso | Prio | Âncora | Teste | Status |
 |----|-------------|------|--------|-------|--------|
-| UC-INTIDX-01 | A fila traz as intercorrências do meu empregador | must | `CU-PONTO-05` + US-PONTO-003 | `IntercorrenciaContratoTest` | 🧪 sem veredito |
-| UC-INTIDX-02 | Intercorrência de outro empregador não aparece na fila | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `IntercorrenciaContratoTest` | 🧪 sem veredito |
-| UC-INTIDX-03 | Filtrar por estado devolve só aquele estado | should | `CU-PONTO-05` (estados canon) | `IntercorrenciaContratoTest` | 🧪 sem veredito |
+| UC-INTIDX-01 | A fila traz as intercorrências do meu empregador | must | `CU-PONTO-05` + US-PONTO-003 | `IntercorrenciaContratoTest` | ✅ verde na lane |
+| UC-INTIDX-02 | Intercorrência de outro empregador não aparece na fila | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `IntercorrenciaContratoTest` | ✅ verde na lane |
+| UC-INTIDX-03 | Filtrar por estado devolve só aquele estado | should | `CU-PONTO-05` (estados canon) | `IntercorrenciaContratoTest` | ✅ verde na lane |
 
 **[BACKLOG]:**
 

@@ -7,6 +7,8 @@ prs: [6916]
 
 # Refutação GT-G5 — lote #6916 (`claude/design-code-map-lote2`)
 
+## Contexto
+
 Refutador em sessão fresca (Fable 5.1), sem contexto do gerador. Tipo `anchors`, amostra 100%. Prompt canônico: *"Prove que este item está ERRADO. Busque evidência no código real (disco = origin/main + o lote), não no texto do PR."*
 
 Base medida: `HEAD = 65e86705c0` (lote) · `origin/main = 4fbab283a7`. Zero git ops de estado.

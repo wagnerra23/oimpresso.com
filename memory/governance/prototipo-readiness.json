@@ -50,6 +50,8 @@
     "Ponto/Intercorrencias/Show",
     "Ponto/Relatorios/Index",
     "Produto/SellingPrices",
+    "Purchase/Index",
+    "Purchase/Show",
     "RecurringBilling/Index",
     "Sells/Create",
     "Sells/Index",
@@ -77,6 +79,36 @@
       ]
     },
     {
+      "tela": "Essentials/Documents/Index",
+      "arquivo": "resources/js/Pages/Essentials/Documents/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/essenciais-page.jsx#Arquivos (:338-400)",
+      "falta": [
+        "casos.md-com-UC"
+      ]
+    },
+    {
+      "tela": "Essentials/Knowledge/Index",
+      "arquivo": "resources/js/Pages/Essentials/Knowledge/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/essenciais-extras.jsx#BaseConhecimento (:127-188)",
+      "falta": [
+        "casos.md-com-UC"
+      ]
+    },
+    {
+      "tela": "Essentials/Messages/Index",
+      "arquivo": "resources/js/Pages/Essentials/Messages/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/essenciais-page.jsx#Mensagens (:565-622) — mural bespoke, NÃO segue um dos 5 Padrões de Tela",
+      "falta": [
+        "casos.md-com-UC"
+      ]
+    },
+    {
       "tela": "Essentials/Metas",
       "arquivo": "resources/js/Pages/Essentials/Metas.tsx",
       "modulo": "core",
@@ -87,6 +119,16 @@
       ]
     },
     {
+      "tela": "Essentials/Reminders/Index",
+      "arquivo": "resources/js/Pages/Essentials/Reminders/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/essenciais-page.jsx#Lembretes (:444-537)",
+      "falta": [
+        "casos.md-com-UC"
+      ]
+    },
+    {
       "tela": "Essentials/Tipos",
       "arquivo": "resources/js/Pages/Essentials/Tipos.tsx",
       "modulo": "core",
@@ -94,6 +136,16 @@
       "prototipo": "prototipo-ui/cowork/hrm-page.jsx (subview \"tipos\" · copy literal)",
       "falta": [
         "scorecard"
+      ]
+    },
+    {
+      "tela": "Essentials/Todo/Index",
+      "arquivo": "resources/js/Pages/Essentials/Todo/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/essenciais-page.jsx#Tarefas (:33-231)",
+      "falta": [
+        "casos.md-com-UC"
       ]
     },
     {
@@ -172,6 +224,56 @@
       "modulo": "core",
       "status": "1-ciclo",
       "prototipo": "prototipo-ui/cowork/manufacturing-producao.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Patrimonio/Alocacoes",
+      "arquivo": "resources/js/Pages/Patrimonio/Alocacoes.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/patrimonio-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Patrimonio/Bens",
+      "arquivo": "resources/js/Pages/Patrimonio/Bens.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/patrimonio-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Patrimonio/Configuracoes",
+      "arquivo": "resources/js/Pages/Patrimonio/Configuracoes.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/patrimonio-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Patrimonio/Index",
+      "arquivo": "resources/js/Pages/Patrimonio/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/patrimonio-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Patrimonio/Manutencoes",
+      "arquivo": "resources/js/Pages/Patrimonio/Manutencoes.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/patrimonio-page.jsx",
       "falta": [
         "scorecard"
       ]
@@ -297,5 +399,5 @@
       ]
     }
   ],
-  "total": 78
+  "total": 90
 }
