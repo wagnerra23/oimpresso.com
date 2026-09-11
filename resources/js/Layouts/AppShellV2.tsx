@@ -578,7 +578,6 @@ export default function AppShellV2({
           </nav>
           <SidebarFooter
             nome={user.nome}
-            nomeCurto={user.nomeCurto}
             email={user.email}
             cargo={user.cargo}
             iniciais={user.iniciais}

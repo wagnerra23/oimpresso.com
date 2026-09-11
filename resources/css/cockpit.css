@@ -547,14 +547,23 @@
   padding: 4px 6px;
   position: relative;
 }
+/* Wrap do rodapé — só existia regra pro rail (`.sb--rail .sb-user-wrap`), e sem
+   a base o rodapé ficava sem padding e sem a borda que o separa do corpo.
+   Espelha `.sb-user` do protótipo (styles.css:414). Medido 2026-09-11:
+   protótipo 259x74 · vivo 259x35. */
+.cockpit .sb-user-wrap {
+  border-top: 1px solid var(--sb-border);
+  padding: 10px;
+  position: relative;
+}
 .cockpit .sb-user-btn {
   appearance: none;
   border: 0;
   background: transparent;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 4px 8px;
+  gap: 10px;
+  padding: 9px 10px;
   border-radius: 5px;
   cursor: pointer;
   width: 100%;
@@ -564,7 +573,7 @@
 }
 .cockpit .sb-user-btn:hover { background: var(--sb-hover); }
 .cockpit .sb-user-btn .avatar {
-  width: 18px; height: 18px;
+  width: 32px; height: 32px;
   border-radius: 50%;
   background: linear-gradient(135deg, oklch(0.65 0.12 30), oklch(0.55 0.15 10));
   color: #fff;
@@ -583,13 +592,13 @@
   border: 1.5px solid var(--sb-bg);
   border-radius: 50%;
 }
+/* Nome em cima, cargo embaixo — como o protótipo (`styles.css:455`). Era
+   flex-row com gap 5px, que punha "Wagner · Admin" na mesma linha e espremia
+   o rodapé em 35px contra os 74px do protótipo. Medido 2026-09-11. */
 .cockpit .sb-user-btn .who {
   flex: 1 1 auto;
   min-width: 0;
   text-align: left;
-  display: flex;
-  align-items: baseline;
-  gap: 5px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
