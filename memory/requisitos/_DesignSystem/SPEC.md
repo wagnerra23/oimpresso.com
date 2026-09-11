@@ -219,7 +219,7 @@ E nunca chaves sem prefixo (colide com outras libs)
 
 ### US-_DESIGNSYSTEM-001 · DESIGN.md root TOC executivo apontando pros docs canon
 
-> owner: wagner · priority: p1 · estimate: 0.5h · status: done · type: story
+> owner: wagner · priority: p1 · estimate: 0.5h · status: duplicate · type: story
 > blocked_by: —
 > closed_at: 2026-05-25
 > closed_reason: REDUNDANTE — `/Design.md` (336 linhas) já existe desde 2026-05-08 e cumpre exatamente o papel proposto (TOC executivo §1 "O que você quer fazer?" + 16 seções de regras canon). Investigação durante PR #1563 expôs que a US foi criada sem inventariar `ls D:/oimpresso.com/*.md` adequadamente (falha de exploração inicial). Fix concreto entregue neste mesmo PR: 4 patches incrementais no Design.md atualizando §2 (workflow → prototipo-ui/PROTOCOL.md ADR 0114) + §7 (hierarquia → ADR UI-0013 Constituição UI v2 mãe atual) + §9 (tokens → ADR 0190 primary roxo 295) + §15 (checklist → link PRE-MERGE-UI + gates CI). Aprendizado canon: SEMPRE `ls root` antes de "criar TOC executivo".
@@ -677,3 +677,62 @@ Alvos (canon = `<Badge variant="success|warning|danger|info|neutral">` de @/Comp
 Fora de escopo: FiscalStatusBadge/NfceStatusBadge = canon fiscal próprio (R-DS-002/ADR 0235), NÃO migrar.
 
 Pronto quando: detector `--roles` reporta 0 independentes no papel status-badge. Advisory (DS ≠ Tier-0, ADR 0271/0314) — sem pressa, puxar por tela quando conveniente.
+
+### US-_DESIGNSYSTEM-039 · Desambiguar a palavra "handoff" — hoje ela tem 5 sentidos no repo
+
+> owner: — · priority: p2 · estimate: 4h · status: todo · type: chore
+> blocked_by: —
+
+Origem: faxina do `prototipo-ui/` em 2026-09-11 ([W]: *"acho que assim eu me entenderia melhor pois hoje parece uma bagunça"*). O pedido "1 handoff do protótipo do Felipe e 1 do meu" foi ambíguo — porque a palavra já significa **cinco** coisas. Contado nesta data:
+
+| # | Onde | O que significa |
+|---|---|---|
+| 1 | `prototipo-ui/handoffs/` (3 arq) | pipeline da Forja — `handoff:ingest` + `handoff-scope-guard.yml` + `handoff-sign-submit.yml` consomem |
+| 2 | `prototipo-ui/HANDOFF.md` | estado vivo do loop, sobrescrito a cada sync |
+| 3 | `memory/handoffs/` (518 arq) | handoff de SESSÃO, append-only ([ADR 0130](../../decisions/0130-handoff-append-only-mcp-first.md)) |
+| 4 | "handoff" = o `.zip` do Cowork | `scripts/design-sync/receber-handoff.mjs --zip` |
+| 5 | `design-docs/handoff*/` (12 arq) | 4 pastas: `handoff`, `handoff-crm`, `handoff-ds-notas`, `handoff-sidebar` |
+
+Pronto quando: cada sentido tem nome próprio no `prototipo-ui/GLOSSARY.md` (só o #3 deveria seguir "handoff", que é o do ADR 0130) e o `deadlink-gate` está verde.
+
+⚠️ O #1 é lido por 3 consumidores de CI — renome ali é mudança de contrato. Ver §5 2026-08-12 (codemod de rename tem 4 formas de referência, não 1): `use`, FQCN, string literal e nome curto.
+
+### US-_DESIGNSYSTEM-040 · Consolidar os 21 `CODE_NOTES.*` soltos na raiz do prototipo-ui
+
+> owner: — · priority: p3 · estimate: 3h · status: todo · type: chore
+> blocked_by: —
+
+Origem: faxina de 2026-09-11. A raiz do `prototipo-ui/` tem 101 arquivos (eram 108 antes da faxina). Por família:
+
+- **21×** `CODE_NOTES.*` — o `CODE_NOTES.md` + 20 variantes (`.errata-*`, `.amendment-*`, `.prompt-cowork-*`, `.resposta-*`, `.devolutiva-*`, `.md.append`)
+- **5×** `PROMPT_PARA_CODE_*` · **5×** `COWORK_NOTES.*` · **3×** `CHARTER_*` · **3×** `CLAUDE_*`
+
+O canal é legítimo — o NÚCLEO 11 do `PROCESSO_MEMORIA_CC` manda usar `CODE_NOTES` justamente pra **não** abrir arquivo novo. O que apodreceu foi a **granularidade**: cada errata virou arquivo na raiz em vez de entrada no dono.
+
+Pronto quando: a raiz não cresce por errata; o processado desceu pro `_arquivo/` **com lápide** (NÚCLEO 12 — nunca hard-delete de doc); `npm run handoff:check` (IT8) não piorou; `deadlink-gate` verde.
+
+⚠️ NÃO regravar o `config/handoff-integrity-baseline.json` pra devolver o job ao verde — é a entrada 2026-08-08 do §5 do `PROCESSO_MEMORIA_CC`.
+
+### US-_DESIGNSYSTEM-041 · Ativar a conta de design do Felipe — falta só o `projectId`
+
+> owner: wagner · priority: p2 · estimate: 2h · status: todo · type: chore
+> blocked_by: —
+
+Origem: faxina de 2026-09-11. [W] confirmou que existe uma **2ª conta de design, titular Felipe**, usada por [F]/[M]/[L]. Ela já está registrada em `prototipo-ui/protocolo.config.mjs` → `CONTAS.felipe`, com `projetos: []`, e o `--procedencia` já carimba **9 telas** como vindas dela (Produto ×8 + `Sells/CreateV3`), via a declaração `FORA_DESTA_CONTA` que [W] fez em 2026-08-13.
+
+O que trava, e por que nenhum agente resolve sozinho: o `DesignSync` autentica **como [W]**. A conta do Felipe é invisível deste lado **por construção** — `list_projects` vazio sobre ela não é evidência de nada (§5 2026-08-11).
+
+Pronto quando: `CONTAS.felipe.projetos` e `PROJETOS` têm o ID + a chave `espelho`; `node prototipo-ui/protocolo.config.mjs --procedencia` carimba as telas dela sozinho (sem mudança de código); e o conteúdo desceu por `receber-handoff.mjs --zip`, exportado **do login do [F]**.
+
+### US-_DESIGNSYSTEM-042 · Triar `design-docs/prototipo-ui-patch/` (61 arq) — não existe mais no projeto vivo
+
+> owner: — · priority: p3 · estimate: 3h · status: todo · type: chore
+> blocked_by: —
+
+Origem: faxina de 2026-09-11. Regra [W] da mesma data: *"se existe lá existe aqui, se apagar lá apaga aqui"*.
+
+Medido contra o `DesignSync.list_files` do projeto `019dcfd3`: a pasta `prototipo-ui-patch/` **não existe** no projeto vivo. São 61 arquivos pousados historicamente que ninguém mantém do lado do design.
+
+Um deles já foi selado na própria faxina: o `APLICAR_DS_NO_REPO.md` era receita executável que **recriava por `curl` os 3 arquivos de DS apagados** — regressão esperando um `bash`. As URLs dele venceram há 105 dias (`claudeusercontent` é efêmera ~1h, L-09).
+
+Pronto quando: os 61 foram varridos atrás de outras receitas executáveis (`curl`/`git`/`npm`) que reintroduzam o que já saiu; o histórico desceu pro `design-docs/_arquivo/` com lápide; `cowork-ssot-guard` e `deadlink-gate` verdes.
