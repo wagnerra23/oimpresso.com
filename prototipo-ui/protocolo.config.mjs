@@ -24,7 +24,7 @@
 // Refs: ADR 0325 (pull direto) · ADR 0324 (identidade normalizada) · INDEX-DESIGN-MEMORIAS §0.2 ·
 //       prototipo-ui/PROTOCOL.md (política; este arquivo é dono da execução).
 
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -341,6 +341,14 @@ export const FASES = [
   // Quem seguisse o ponteiro concluiria "a rota nao tem dono" a partir de um 404 que era do
   // ponteiro, nao da rota. O README real desceu pelo transporte e vive no git desde entao.
   { fase: '-1', nome: 'Importar/baixar o design', comandos: [
+      '# [PASSO 0 — DE QUEM E? roda ANTES de qualquer importacao] ([W] 2026-09-11: "antes de',
+      '#   importar, ver de quem e e fazer o processo se ainda nao foi vinculado").',
+      '#   Material importado sem saber a conta de origem e como o espelho ganha arquivo orfao — e,',
+      '#   se a conta nem esta em CONTAS, o --procedencia carimba as telas dela como local-sem-dono',
+      '#   pra sempre e ninguem descobre que faltou VINCULAR. Fail-closed: so `vinculada` libera.',
+      '#   3 vereditos: vinculada (exit 0) · indeterminado (exit 4, o material so embute o cache do',
+      '#   DS — diz o que ele consome, nao de quem e) · nao-vinculada (exit 3, nenhum id conhecido).',
+      'node prototipo-ui/protocolo.config.mjs --de-quem <dir-extraido-ou-espelho>',
       '# [ROTA ZIP — 1 COMANDO] [W] entrega o handoff .zip e o Code faz o resto (decisao [W] 2026-09-10:',
       '#   "o objetivo e eu exportar uma unica vez, sem depender de uma receita manual em cada importacao").',
       '#   Orquestra o que JA existe, nao reimplementa nada: extrai (CRC-32 conferido) -> audita o sync/ que',
@@ -717,6 +725,23 @@ function selftest() {
     if (na.classe !== 'sem-prototipo') fails.push('procedencia: isNa nao virou sem-prototipo');
   }
 
+  // DE-QUEM — trava os 3 vereditos. O do meio e o que ja errou ao vivo (2026-09-11): um export
+  // do projeto de TELAS carrega o cache `_ds/<uuid-do-DS>/`, e a 1a versao respondia
+  // "designSystem" so por causa disso. Chutar o dono a partir do cache e o bug que isto pina.
+  {
+    const projs = { cowork: { id: "ID-TELAS", conta: "w", espelho: "prototipo-ui/cowork/" },
+                    designSystem: { id: "ID-DS", conta: "w", espelho: "prototipo-ui/design-system/" } };
+    const contas = { w: { id: "w", espelhada: true }, x: { id: "x", espelhada: false } };
+    const A = deQuemEhOHandoff(["prototipo-ui/cowork/a.jsx", "prototipo-ui/cowork/b.css"], projs, contas);
+    const B = deQuemEhOHandoff(["_ds/ds-ID-DS/styles.css", "vendas-page.jsx"], projs, contas);
+    const C = deQuemEhOHandoff(["paginas/tela.jsx", "estilo.css"], projs, contas);
+    const D = deQuemEhOHandoff(["ID-TELAS/app.jsx", "_ds/ds-ID-DS/styles.css"], projs, contas);
+    if (A.veredito !== "vinculada" || A.projeto !== "cowork") fails.push("de-quem: espelho registrado nao deu vinculada");
+    if (B.veredito !== "indeterminado") fails.push("de-quem: CONTROLE NEGATIVO falhou — id so no cache _ds/ virou veredito de dono");
+    if (C.veredito !== "nao-vinculada") fails.push("de-quem: material sem id conhecido nao deu nao-vinculada");
+    if (D.veredito !== "vinculada" || D.projeto !== "cowork") fails.push("de-quem: id FORA do cache devia vencer o cache");
+  }
+
   const scripts = scriptsReferenciados();
   for (const s of scripts) {
     if (!existsSync(join(REPO_ROOT, s))) fails.push(`script referenciado no mapa FASES não existe: ${s}`);
@@ -831,6 +856,132 @@ function procedencia() {
   for (const l of suspeitas) { console.log('  [' + l.classe + '] ' + l.page); console.log('        ' + l.nota); }
 }
 
+/** DE QUEM E ESTE HANDOFF — passo obrigatorio ANTES de importar ([W] 2026-09-11:
+ *  "antes de importar, ver de quem e e fazer o processo se ainda nao foi vinculado").
+ *
+ *  POR QUE existe: importar material sem saber a conta de origem e como o espelho ganha arquivo
+ *  orfao. Pior: se a conta nem esta registrada em CONTAS, o --procedencia carimba as telas dela
+ *  como "local-sem-dono" pra sempre, e ninguem descobre que faltou VINCULAR. Este passo torna o
+ *  desconhecido VISIVEL antes de qualquer escrita, em vez de depois.
+ *
+ *  DUAS CAMADAS, nesta ordem — a 1a e decisiva, a 2a e indicio:
+ *   1. ID NO PROPRIO MATERIAL. Um export do Cowork carrega `_ds/<slug>-<uuid>/` (o cache do DS)
+ *      e/ou um manifesto; o UUID ali E o projeto. Achou id conhecido = resposta, nao palpite.
+ *   2. SOBREPOSICAO com os espelhos. Fraca por construcao — export DELTA traz so arquivo novo e
+ *      da sobreposicao ~0 sendo legitimo. Por isso ela NUNCA sozinha declara "desconhecido":
+ *      so reforca a camada 1 ou pede olho humano.
+ *
+ *  FAIL-CLOSED: sem id reconhecido o veredito e `nao-vinculada` e o comando sai != 0. A direcao
+ *  segura aqui e barrar a importacao, nao deixa-la passar carimbando a conta errada.
+ *
+ *  Pura (recebe os paths e o registro) pra o --selftest exercitar sem tocar disco.
+ */
+export function deQuemEhOHandoff(paths, projetos = PROJETOS, contas = CONTAS) {
+  const BARRA = String.fromCharCode(92);
+  const rel = (paths || []).map((p) => String(p).split(BARRA).join("/").replace(/^[.][/]/, ""));
+
+  // camada 0 — o material JA E um espelho registrado? (apontar o comando pro proprio espelho)
+  for (const [chave, p] of Object.entries(projetos)) {
+    if (!p.espelho) continue;
+    const alvoEspelho = p.espelho.replace(/[/]$/, "");
+    if (rel.length && rel.every((x) => x.startsWith(alvoEspelho))) {
+      return { veredito: "vinculada", conta: p.conta, projeto: chave,
+               porque: "o material E o espelho registrado " + p.espelho, placar: [] };
+    }
+  }
+
+  // camada 1 — o uuid aparece em algum path?
+  const achados = [];
+  for (const [chave, p] of Object.entries(projetos)) {
+    if (rel.some((x) => x.includes(p.id))) achados.push({ projeto: chave, id: p.id, conta: p.conta });
+  }
+
+  // camada 2 — sobreposicao com cada espelho (indicio, nunca veredito sozinho)
+  const placar = [];
+  for (const [chave, p] of Object.entries(projetos)) {
+    if (!p.espelho) continue;
+    const pref = p.espelho.replace(/^prototipo-ui[/]/, "");
+    placar.push({ projeto: chave, casam: rel.filter((x) => x.startsWith(pref) || x.startsWith(p.espelho)).length });
+  }
+  placar.sort((a, b) => b.casam - a.casam);
+
+  if (achados.length) {
+    // O cache `_ds/<slug>-<uuid>/` do projeto de TELAS carrega o id do projeto de DS. Entao
+    // "achei o id do DS" NAO quer dizer "este material E o DS" — quer dizer "este material
+    // CONSOME o DS". Dono = o id que aparece FORA do cache.
+    const forasDoCache = achados.filter((a) => rel.some((x) => x.includes(a.id) && !x.includes("_ds/")));
+    if (forasDoCache.length) {
+      const e = forasDoCache[0];
+      return { veredito: "vinculada", conta: e.conta, projeto: e.projeto,
+               porque: "id " + e.id + " encontrado no material (fora do cache _ds/)", placar };
+    }
+    // 3o VEREDITO, e ele e o honesto: o unico id presente esta DENTRO do cache. Isso identifica
+    // o DS embutido, nunca o dono do material. Chutar aqui foi o bug de 2026-09-11 (o fixture de
+    // um export de TELAS respondeu "designSystem" so porque carregava o cache do DS).
+    // Fail-closed com a razao certa — "indeterminado" nao e "conta desconhecida".
+    return { veredito: "indeterminado", conta: null, projeto: null,
+             porque: "o unico id presente (" + achados[0].id + ") aparece SO dentro do cache _ds/"
+               + " — isso diz qual DS o material consome, nao de quem ele e", placar };
+  }
+
+  const semEspelho = Object.values(contas).filter((c) => !c.espelhada).map((c) => c.id);
+  return { veredito: "nao-vinculada", conta: null, projeto: null,
+           porque: "nenhum id de projeto registrado aparece no material"
+             + (semEspelho.length ? " — contas sem espelho hoje: " + semEspelho.join(", ") : ""),
+           placar };
+}
+
+function deQuem(alvo) {
+  if (!alvo) { console.error("uso: --de-quem <dir>"); process.exit(2); }
+  let paths;
+  try {
+    // DISCO, nunca `git ls-files`. Medido 2026-09-11: o `_ds/<slug>-<uuid>/` — que carrega o
+    // identificador — e GITIGNORED no espelho, e material que chega e untracked por definicao.
+    // Listar pelo git devolvia lista sem o unico sinal decisivo, e os dois espelhos REAIS davam
+    // "nao-vinculada": falso-negativo no caso principal, que barraria toda importacao legitima.
+    paths = readdirSync(alvo, { recursive: true, withFileTypes: true })
+      .filter((d) => d.isFile())
+      .map((d) => join(String(d.parentPath || d.path), d.name));
+  } catch (e) {
+    // NAO colapsar "nao consegui listar" em "material vazio": vazio viraria "nao-vinculada" e
+    // isso afirmaria sobre um objeto que nao foi medido (§5 2026-07-29).
+    console.error("DE-QUEM: nao consegui listar " + alvo);
+    process.exit(2);
+  }
+  if (!paths.length) { console.error("DE-QUEM: " + alvo + " nao tem arquivo algum — nada a classificar"); process.exit(2); }
+  const r = deQuemEhOHandoff(paths);
+  console.log("DE QUEM E ESTE HANDOFF — passo anterior a importacao");
+  console.log("");
+  console.log("  material : " + alvo + "  (" + paths.length + " arquivo(s))");
+  console.log("  veredito : " + r.veredito);
+  console.log("  porque   : " + r.porque);
+  if (r.conta) {
+    const c = CONTAS[r.conta] || {};
+    console.log("  conta    : " + r.conta + "  (" + (c.dono || "?") + ")");
+    console.log("  projeto  : " + r.projeto + "  " + (PROJETOS[r.projeto] || {}).id);
+    console.log("");
+    console.log("  OK VINCULADA — pode importar. Siga a Fase -1.");
+    process.exit(0);
+  }
+  console.log("");
+  if (r.veredito === "indeterminado") {
+    console.log("");
+    console.log("  INDETERMINADO — NAO importe ainda, mas o problema NAO e conta nao-vinculada.");
+    console.log("  O material embute o cache de um DS conhecido, o que diz o que ele CONSOME,");
+    console.log("  nao de quem ele e. Resolva perguntando a quem exportou, ou aponte o comando");
+    console.log("  pro espelho registrado se o material ja pousou.");
+    process.exit(4);
+  }
+  console.log("  NAO VINCULADA — NAO importe ainda. Vincule a conta primeiro:");
+  console.log("    1. descubra o projectId (so quem tem o login daquela conta consegue);");
+  console.log("    2. registre em CONTAS[<conta>].projetos + PROJETOS (com a chave espelho);");
+  console.log("    3. rode este comando de novo — tem que dar vinculada antes de importar.");
+  console.log("");
+  console.log("  Sem isso o --procedencia carimba as telas como local-sem-dono e ninguem");
+  console.log("  descobre que faltou vincular. US-_DESIGNSYSTEM-041 trata da conta do Felipe.");
+  process.exit(3);
+}
+
 function painel() {
   console.log('  De qual CONTA vem cada tela?  node prototipo-ui/protocolo.config.mjs --procedencia [--json]');
   console.log('');
@@ -852,6 +1003,7 @@ if (invokedDirectly) {
   const argv = process.argv.slice(2);
   if (argv.includes('--selftest')) selftest();
   else if (argv.includes('--procedencia')) procedencia();
+  else if (argv.includes('--de-quem')) deQuem(argv[argv.indexOf('--de-quem') + 1]);
   else if (argv.includes('--json')) {
     console.log(JSON.stringify({ projetos: PROJETOS, stagingDir: STAGING_DIR, mirrorDir: MIRROR_DIR, fases: FASES, preflightGates: PREFLIGHT_GATES }, null, 2));
   } else painel();
