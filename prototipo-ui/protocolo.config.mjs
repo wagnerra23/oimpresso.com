@@ -67,8 +67,8 @@ export const DESIGN_SYSTEM_PROJECT_ID = '019dd02f-d2d0-7ba6-a57f-24b3ddd073ac'; 
 // FP permanente — e a resposta certa a "cadê a fonte de design da Venda?" é "outra conta",
 // não "gerar do DS canon". Consulte esta constante em vez de reinferir pelo nome do arquivo.
 export const FORA_DESTA_CONTA = [
-  { tela: 'Sells (Venda)',   arquivos: ['resources/css/venda-v3.css', 'resources/js/Pages/Sells/CreateV3.tsx'], quem: '[L]/[M]', conta: 'equipe', declaradoPor: '[W]', em: '2026-08-13' },
-  { tela: 'Produto',         arquivos: ['resources/js/Pages/Produto/'],                                          quem: '[L]/[M]', conta: 'equipe', declaradoPor: '[W]', em: '2026-08-13' },
+  { tela: 'Sells (Venda)',   arquivos: ['resources/css/venda-v3.css', 'resources/js/Pages/Sells/CreateV3.tsx'], quem: '[L]/[M]', conta: 'felipe', declaradoPor: '[W]', em: '2026-08-13' },
+  { tela: 'Produto',         arquivos: ['resources/js/Pages/Produto/'],                                          quem: '[L]/[M]', conta: 'felipe', declaradoPor: '[W]', em: '2026-08-13' },
 ];
 
 // ── CONTAS DE DESIGN ([W] 2026-09-11) ──────────────────────────────────────────
@@ -89,16 +89,29 @@ export const CONTAS = {
     espelhada: true,           // desce pro repo por bundle/--export-from
     projetos: ['cowork', 'designSystem'],
   },
-  equipe: {
-    id: 'equipe',
-    dono: '[F] Felipe · [M] Maiara · [L] Luiz',
-    papel: 'conta da equipe — telas desenhadas fora da conta do dono',
+  felipe: {
+    id: 'felipe',
+    dono: '[F] Felipe (titular da conta)',
+    usadaPor: ['[F] Felipe', '[M] Maiara', '[L] Luiz'],
+    papel: 'conta da equipe — telas desenhadas fora da conta do dono ([W] 2026-09-11)',
     alcancavel: false,         // ⚠ invisível deste lado: outra conta, outro login
     espelhada: false,          // não há espelho no repo, e isso está CORRETO
-    projetos: [],              // nenhum ID conhecido aqui — [W] informa quando houver
-    // O que se sabe dela hoje é só o que FORA_DESTA_CONTA declara. Não confunda "sem ID aqui"
-    // com "não existe": a lista de projetos é vazia porque nunca foi informada, não porque
-    // foi medida — medir exigiria o login dela, que esta sessão não tem.
+    projetos: [],              // nenhum ID conhecido aqui — ver "PRA ATIVAR" abaixo
+    // Titular x usuários é distinção OPERACIONAL, não burocracia: quem exporta o handoff é
+    // quem tem o login, e só o titular consegue. [W] 2026-09-11: "conta do Felipe (usada pelo
+    // Felipe, Maiara e o Luiz)".
+    //
+    // PRA ATIVAR (o que falta, exatamente):
+    //   1. o projectId do projeto de telas dessa conta — NINGUÉM deste lado consegue descobrir:
+    //      o DesignSync autentica como [W], então a conta do [F] é invisível POR CONSTRUÇÃO.
+    //      list_projects vazio sobre ela não é evidência de nada.
+    //   2. com o ID: acrescentar aqui + em PROJETOS (com 'espelho'), e o --procedencia passa a
+    //      carimbar as telas dela sozinho, sem mais nenhuma mudança de código.
+    //   3. o conteúdo desce pela rota que já existe — receber-handoff.mjs --zip, exportado do
+    //      login do [F]. Nada de rota nova.
+    //
+    // Não confunda "sem ID aqui" com "não existe": a lista é vazia porque nunca foi informada,
+    // não porque foi medida.
   },
 };
 
@@ -688,13 +701,13 @@ function selftest() {
   //  (b) e NÃO pode capturar a tela vizinha cujo nome é prefixo (Create vs CreateV3) — sem o
   //      controle negativo, um guard que casa tudo passaria por "funcionando".
   {
-    const fixture = [{ tela: 'X', arquivos: ['resources/js/Pages/Sells/CreateV3.tsx'], quem: '[L]/[M]', conta: 'equipe', declaradoPor: '[W]', em: '2026-08-13' }];
+    const fixture = [{ tela: 'X', arquivos: ['resources/js/Pages/Sells/CreateV3.tsx'], quem: '[L]/[M]', conta: 'felipe', declaradoPor: '[W]', em: '2026-08-13' }];
     const bom  = procedenciaDaTela({ charter: 'resources/js/Pages/Sells/CreateV3.charter.md', caminho: '' }, fixture);
     // ⚠ O controle negativo tem que ir no sentido DECLARAÇÃO-CURTA → CHARTER-LONGO. A 1ª versão
     // deste assert usava fixture 'CreateV3.tsx' vs charter 'Create.charter.md' e NÃO mordia:
     // provado por mutação (removi a trava do ponto e o selftest seguiu verde). 'Create.charter.md'
     // nunca começa com 'CreateV3' — o par estava invertido. É neste sentido que a trava trabalha.
-    const curto = [{ tela: 'Y', arquivos: ['resources/js/Pages/Sells/Create.tsx'], quem: '[L]/[M]', conta: 'equipe', declaradoPor: '[W]', em: '2026-08-13' }];
+    const curto = [{ tela: 'Y', arquivos: ['resources/js/Pages/Sells/Create.tsx'], quem: '[L]/[M]', conta: 'felipe', declaradoPor: '[W]', em: '2026-08-13' }];
     const viz  = procedenciaDaTela({ charter: 'resources/js/Pages/Sells/CreateV3.charter.md', caminho: 'prototipo-ui/cowork/vendas-page.jsx' }, curto);
     const esp  = procedenciaDaTela({ charter: 'resources/js/Pages/Kb/Index.charter.md', caminho: 'prototipo-ui/cowork/kb-page.jsx' }, fixture);
     const na   = procedenciaDaTela({ charter: 'resources/js/Pages/Z/Index.charter.md', caminho: '', isNa: true, declaracaoNa: 'herda PT-01' }, fixture);
