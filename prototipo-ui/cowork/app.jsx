@@ -752,6 +752,11 @@ function App() {
   };
   window.__go = handleSelectRoute;
   window.__selectRoute = handleSelectRoute;
+  // Ponte pro rodapé da sidebar: tema e atmosfera JÁ moram nos tweaks (Vibe →
+  // Tema/Atmosfera), que escrevem data-theme/data-vibe no <html>. O menu do
+  // usuário dirige ESSE estado — não um paralelo (senão dois donos, um eixo).
+  window.__setTweak = setTweak;
+  window.__tweaks = tweaks;
 
   // Permite componentes filhos (ex: telas PG) navegarem cross-tela via
   // window.PgGotoRoute('payment-gateways'). Ver pg-shell-adapters.jsx.

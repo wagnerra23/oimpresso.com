@@ -2,6 +2,32 @@
 // de shell.sidebar_counts, papel simulado, cascata Superadmin no rodapé.
 const { useState, useEffect, useRef } = React;
 
+// Presença — conceito de UI sem receptor no backend (não existe tabela de
+// status no main lido). Estado local declarado: muda o ponto e o rótulo, nada
+// mais. Se ganhar receptor, vira prop.
+const PRESENCAS = [
+{ id: "disponivel", label: "Disponível", cor: "oklch(0.72 0.18 145)" },
+{ id: "ocupado", label: "Ocupado", cor: "oklch(0.62 0.20 25)" },
+{ id: "ausente", label: "Ausente", cor: "oklch(0.75 0.15 75)" },
+{ id: "invisivel", label: "Invisível", cor: "oklch(0.55 0.01 280)" }];
+// Tema — dark é o padrão do projeto ([W] 2026-06-03); claro segue disponível.
+const TEMAS = [
+{ id: "dark", label: "Escuro", desc: "Padrão do balcão" },
+{ id: "light", label: "Claro", desc: "Escritório, luz alta" }];
+// Modo de trabalho (Vibes) — PUXADO do vivo em 2026-09-10, árvore 6fc8b8fac31d.
+// Fonte: Components/cockpit/Sidebar.tsx (trigger :1257-1275 · VibesSubpanel
+// :1348-1420) + shared.ts (:153-158 os 3 ids · :177 a chave de localStorage).
+// Copy e cores são literais do vivo; ver COWORK_NOTES do ciclo pro que NÃO veio.
+const VIBES = [
+{ id: "workspace", label: "workspace", desc: "Denso e formal — padrão", dot: "oklch(0.55 0.15 295)" },
+{ id: "daylight", label: "daylight", desc: "Tons quentes, mais ar", dot: "oklch(0.72 0.13 60)" },
+{ id: "focus", label: "focus", desc: "Alto contraste, monocromático", dot: "oklch(0.45 0.02 240)" }];
+// O dono do estado é o tweak do shell (app.jsx → root.dataset.vibe/theme),
+// que já persiste. Aqui só leio e mando.
+const lerShell = (k, padrao) => {
+  try {return document.documentElement.dataset[k] || padrao;} catch (e) {return padrao;}
+};
+
 // Marcador de frescor do destino: link válido mas tela não desenhada (mock) ou inexistente (stub).
 // A2: `aria-label` em `<span>` mudo é ignorado pela AT — precisa de `role="img"` pra virar nome acessível.
 function WipMark({ routeId }) {
@@ -71,7 +97,7 @@ function CompanyPicker({ company, onChange }) {
             </button>
         )}
           <div className="sb-dd-sep" />
-          <button type="button" className="sb-dd-foot" role="menuitem">+ Adicionar empresa</button>
+          <button type="button" className="sb-dd-foot" role="menuitem" onClick={() => {setOpen(false);window.__selectRoute?.("sa-negocios");}}>+ Adicionar empresa</button>
         </div>
       }
     </div>);
@@ -284,6 +310,17 @@ function UserMenu({ onClose }) {
   const [sub, setSub] = useState(null);
   const go = (id) => {window.__selectRoute?.(id);onClose?.();};
   const superItems = MOCK.SUPERADMIN_MENU || [];
+  const [vibe, setVibe] = useState(() => lerShell("vibe", "workspace"));
+  const [tema, setTema] = useState(() => lerShell("theme", "dark"));
+  const [presenca, setPresenca] = useState("disponivel");
+  const [confSair, setConfSair] = useState(false);
+  const pres = PRESENCAS.find((p) => p.id === presenca) || PRESENCAS[0];
+  // Manda no tweak do shell (dono único). Sem __setTweak não finjo que mudou.
+  const mandarShell = (chave, valor, refletir) => {
+    if (typeof window.__setTweak === "function") {window.__setTweak(chave, valor);refletir(valor);}
+  };
+  const escolherVibe = (id) => mandarShell("vibe", id, setVibe);
+  const escolherTema = (id) => mandarShell("theme", id, setTema);
   return (
     <div className="user-menu" onClick={(e) => e.stopPropagation()}>
       <div className="user-menu-head">
@@ -325,8 +362,63 @@ function UserMenu({ onClose }) {
         </div>
       }
       <div className="um-sep" />
-      <button type="button" className="um-item"><span className="um-status" aria-hidden="true" style={{ background: "oklch(0.72 0.18 145)" }} /> <span className="label">Disponível</span> <span className="arrow" aria-hidden="true">›</span></button>
-      <button type="button" className="um-item"><I.moon className="ic" /> <span className="label">Aparência</span> <span className="arrow" aria-hidden="true">›</span></button>
+      <button type="button" className={"um-item um-cascade" + (sub === "pres" ? " active" : "")}
+      aria-expanded={sub === "pres"}
+      onClick={() => setSub(sub === "pres" ? null : "pres")}>
+        <span className="um-status" aria-hidden="true" style={{ background: pres.cor }} /> <span className="label">{pres.label}</span> <span className="arrow" aria-hidden="true">›</span>
+      </button>
+      {sub === "pres" &&
+      <div className="um-sub">
+          {PRESENCAS.map((p) =>
+        <button type="button" key={p.id} className={"um-item" + (presenca === p.id ? " active" : "")}
+        aria-pressed={presenca === p.id}
+        onClick={() => setPresenca(p.id)}>
+              <span className="um-status" aria-hidden="true" style={{ background: p.cor }} />
+              <span className="label">{p.label}</span>
+              {presenca === p.id && <I.check className="ic um-vibe-ck" />}
+            </button>
+        )}
+        </div>
+      }
+      <button type="button" className={"um-item um-cascade" + (sub === "tema" ? " active" : "")}
+      aria-expanded={sub === "tema"}
+      onClick={() => setSub(sub === "tema" ? null : "tema")}>
+        <I.moon className="ic" /> <span className="label">Aparência</span> <span className="um-vibe-cur">{tema === "dark" ? "escuro" : "claro"}</span> <span className="arrow" aria-hidden="true">›</span>
+      </button>
+      {sub === "tema" &&
+      <div className="um-sub">
+          {TEMAS.map((t) =>
+        <button type="button" key={t.id} className={"um-item um-vibe" + (tema === t.id ? " active" : "")}
+        aria-pressed={tema === t.id}
+        onClick={() => escolherTema(t.id)}>
+              <I.moon className="ic" style={t.id === "light" ? { opacity: 0.45 } : null} />
+              <span className="label">{t.label}<em className="um-vibe-d">{t.desc}</em></span>
+              {tema === t.id && <I.check className="ic um-vibe-ck" />}
+            </button>
+        )}
+        </div>
+      }
+      {/* 4ª cascata — Modo de trabalho. O vivo mostra um kbd "⌘/" aqui
+          (Sidebar.tsx:1273) que NENHUM listener liga (o AppShellV2 liga só ⌘K
+          e ⌘\); não porto atalho morto — virou resíduo pra [W]. */}
+      <button type="button" className={"um-item um-cascade" + (sub === "vibes" ? " active" : "")}
+      aria-expanded={sub === "vibes"}
+      onClick={() => setSub(sub === "vibes" ? null : "vibes")}>
+        <I.palette className="ic" /> <span className="label">Modo de trabalho</span> <span className="um-vibe-cur">{vibe}</span> <span className="arrow" aria-hidden="true">›</span>
+      </button>
+      {sub === "vibes" &&
+      <div className="um-sub">
+          {VIBES.map((v) =>
+        <button type="button" key={v.id} className={"um-item um-vibe" + (vibe === v.id ? " active" : "")}
+        aria-pressed={vibe === v.id}
+        onClick={() => escolherVibe(v.id)}>
+              <span className="um-status" aria-hidden="true" style={{ background: v.dot }} />
+              <span className="label">{v.label}<em className="um-vibe-d">{v.desc}</em></span>
+              {vibe === v.id && <I.check className="ic um-vibe-ck" />}
+            </button>
+        )}
+        </div>
+      }
       <div className="um-sep" />
       <button type="button" className="um-item" onClick={() => {onClose?.();window.__openCmdK?.();}}><I.keyboard className="ic" /> <span className="label">Buscar tela</span> <span className="kbd" aria-hidden="true">⌘K</span></button>
       {(MOCK.FOOTER_LINKS || []).map((it) => {
@@ -337,9 +429,22 @@ function UserMenu({ onClose }) {
           </button>);
 
       })}
-      <button type="button" className="um-item"><I.help className="ic" /> <span className="label">Central de ajuda</span></button>
       <div className="um-sep" />
-      <button type="button" className="um-item"><I.exit className="ic" /> <span className="label">Sair</span></button>
+      {confSair ?
+      <div className="um-sub um-sair">
+          <p className="um-sair-q">Encerrar a sessão?</p>
+          <div className="um-sair-acoes">
+            <button type="button" className="um-item um-sair-ok" onClick={() => window.location.reload()}>
+              <I.exit className="ic" /> <span className="label">Encerrar</span>
+            </button>
+            <button type="button" className="um-item" onClick={() => setConfSair(false)}>
+              <span className="label">Cancelar</span>
+            </button>
+          </div>
+        </div> :
+
+      <button type="button" className="um-item" onClick={() => setConfSair(true)}><I.exit className="ic" /> <span className="label">Sair</span></button>
+      }
     </div>);
 
 }
@@ -396,7 +501,7 @@ function CompanyPickerRail({ company, onChange }) {
             </button>
         )}
           <div className="sb-dd-sep" />
-          <button type="button" className="sb-dd-foot" role="menuitem">+ Adicionar empresa</button>
+          <button type="button" className="sb-dd-foot" role="menuitem" onClick={() => {setOpen(false);window.__selectRoute?.("sa-negocios");}}>+ Adicionar empresa</button>
         </div>
       }
     </div>);
@@ -539,9 +644,40 @@ function Sidebar({ company, onCompany, activeRoute, onSelectRoute, mode = "expan
   const rail = mode === "rail";
   const nextMode = rail ? "expanded" : "rail";
   const toggleTitle = rail ? "Expandir sidebar (⌘\\)" : "Recolher sidebar (⌘\\)";
+  const asideRef = useRef(null);
+  // Dica do rail em camada FIXA (não é `::after` dentro do .sb-body).
+  // Por que: pseudo absoluto conta como overflow rolável do ancestral, então a
+  // dica projetada ~124px além de uma coluna de 45px pedia barra horizontal —
+  // e matar isso com `overflow-x:hidden` clipava a própria dica (o ancestral
+  // com overflow em UM eixo clipa nos dois). Mesmo padrão do `.sb-rail-flyout`.
+  const [tip, setTip] = useState(null);
+  useEffect(() => {
+    if (!rail) {setTip(null);return;}
+    const raiz = asideRef.current;
+    if (!raiz) return;
+    const mostrar = (e) => {
+      const alvo = e.target.closest?.("[data-tip]");
+      if (!alvo || !raiz.contains(alvo)) {setTip(null);return;}
+      const r = alvo.getBoundingClientRect();
+      setTip({ texto: alvo.getAttribute("data-tip"), top: r.top + r.height / 2, left: r.right + 8 });
+    };
+    const esconder = (e) => {
+      if (e.target.closest?.("[data-tip]")) setTip(null);
+    };
+    raiz.addEventListener("mouseover", mostrar);
+    raiz.addEventListener("mouseout", esconder);
+    raiz.addEventListener("focusin", mostrar);
+    raiz.addEventListener("focusout", esconder);
+    return () => {
+      raiz.removeEventListener("mouseover", mostrar);
+      raiz.removeEventListener("mouseout", esconder);
+      raiz.removeEventListener("focusin", mostrar);
+      raiz.removeEventListener("focusout", esconder);
+    };
+  }, [rail]);
 
   return (
-    <aside className={"sb" + (rail ? " sb--rail" : "")}>
+    <aside className={"sb" + (rail ? " sb--rail" : "")} ref={asideRef}>
       <div className="sb-top">
         {rail ?
         <CompanyPickerRail company={company} onChange={onCompany} /> :
@@ -556,6 +692,8 @@ function Sidebar({ company, onCompany, activeRoute, onSelectRoute, mode = "expan
         <SidebarMenu activeRoute={activeRoute} onSelectRoute={onSelectRoute} papel={papel} showGhosts={showGhosts} />}
       </div>
       {rail ? <SidebarUserRail /> : <SidebarUser />}
+      {tip &&
+      <div className="sb-rail-tip" role="presentation" style={{ top: tip.top, left: tip.left }}>{tip.texto}</div>}
 
       {/* Alça de colapsar/expandir na borda direita */}
       <button
