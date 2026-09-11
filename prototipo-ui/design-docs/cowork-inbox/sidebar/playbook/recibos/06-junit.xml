@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="/var/www/html/phpunit.xml" tests="1" assertions="2" errors="0" failures="0" skipped="0" time="0.798429">
+    <testsuite name="Feature" tests="1" assertions="2" errors="0" failures="0" skipped="0" time="0.798429">
+      <testsuite name="Tests\Feature\Architecture\AppShellUsageGateTest" file="tests/Feature/Architecture/AppShellUsageGateTest.php" tests="1" assertions="2" errors="0" failures="0" skipped="0" time="0.798429">
+        <testcase name="it toda tela Inertia renderiza dentro do AppShellV2 (exceto allowlist pública/auth)" file="tests/Feature/Architecture/AppShellUsageGateTest.php::it toda tela Inertia renderiza dentro do AppShellV2 (exceto allowlist pública/auth)" class="Tests\Feature\Architecture\AppShellUsageGateTest" classname="Tests.Feature.Architecture.AppShellUsageGateTest" assertions="2" time="0.798429"/>
+      </testsuite>
+    </testsuite>
+  </testsuite>
+</testsuites>
