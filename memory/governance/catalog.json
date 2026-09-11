@@ -27,7 +27,7 @@
   "stats": {
     "modules": 35,
     "nodes": 713,
-    "edges": 993,
+    "edges": 992,
     "by_node_type": {
       "module": 39,
       "table": 102,
@@ -48,7 +48,7 @@
       "migratesTo": 1,
       "supersedes": 16,
       "supersedesPartially": 51,
-      "supersededBy": 20
+      "supersededBy": 19
     },
     "dangling": 0
   },
@@ -825,17 +825,10 @@
       "exists": true
     },
     {
-      "id": "adr:0390-emenda-0384-smoke-em-ambiente-controlado",
+      "id": "adr:0390",
       "type": "adr",
       "num": "0390",
-      "slug": "",
-      "exists": true
-    },
-    {
-      "id": "adr:0390-prototipo-fonte-unica-build-sem-canon-sombra",
-      "type": "adr",
-      "num": "0390",
-      "slug": "",
+      "slug": "0390-emenda-0384-smoke-em-ambiente-controlado",
       "exists": true
     },
     {
@@ -843,6 +836,13 @@
       "type": "adr",
       "num": "0392",
       "slug": "0392-fronteira-governance-audiencia-enforcement-na-concessao",
+      "exists": true
+    },
+    {
+      "id": "adr:0396",
+      "type": "adr",
+      "num": "0396",
+      "slug": "0396-prototipo-fonte-unica-build-sem-canon-sombra",
       "exists": true
     },
     {
@@ -6280,28 +6280,22 @@
       "source": "supersedes_partially"
     },
     {
-      "from": "adr:0387",
-      "to": "adr:0390-prototipo-fonte-unica-build-sem-canon-sombra",
-      "type": "supersededBy",
-      "source": "superseded_by"
-    },
-    {
-      "from": "adr:0390-emenda-0384-smoke-em-ambiente-controlado",
+      "from": "adr:0390",
       "to": "adr:0384",
       "type": "supersedesPartially",
       "source": "supersedes_partially"
-    },
-    {
-      "from": "adr:0390-prototipo-fonte-unica-build-sem-canon-sombra",
-      "to": "adr:0387",
-      "type": "supersedes",
-      "source": "supersedes"
     },
     {
       "from": "adr:0392",
       "to": "adr:0366",
       "type": "supersedesPartially",
       "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0396",
+      "to": "adr:0387",
+      "type": "supersedes",
+      "source": "supersedes"
     },
     {
       "from": "module:Arquivos",
