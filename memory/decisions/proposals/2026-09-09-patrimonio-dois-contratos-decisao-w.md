@@ -28,14 +28,14 @@ decisoes_abertas: [2, 3, 4, 5]
 O commit `d4f7652743` (#7143, commit date 19:21) fez exatamente a opção 1, e **mais amplo** do que eu proporia:
 
 ```js
-const PASTAS_DOC_DESIGN = ['prototipo-ui/design-docs/', 'prototipo-ui/cowork/'];
+const PASTAS_DOC_DESIGN = ['prototipo-ui/design-docs/', 'prototipo-ui/cowork/Wagner/'];
 ```
 
 — a pasta inteira do espelho, não só `cowork/contrato/`. E trouxe o bite-test junto, com controle negativo, que é a parte que impede o filtro de virar carimbo:
 
 ```
-[OK] --contract prototipo-ui/cowork/contrato/x.contract.json → exit 0 (pulado)
-[OK] --contract prototipo-ui/contrato/x.contract.json        → exit 1 (REPROVA)
+[OK] --contract prototipo-ui/cowork/Wagner/contrato/x.contract.json → exit 0 (pulado)
+[OK] --contract governance/design/contracts/x.contract.json        → exit 1 (REPROVA)
 ```
 
 Rodei `node scripts/contrato-de-tela.test.mjs`: **todos os controles passam**. Nenhum PR meu foi
@@ -52,14 +52,14 @@ que motivou a decisão. Ele descreve o que era verdade naquela janela, não o es
 O job `Preflight + contratos ativos` do workflow `Contrato de Tela` **falhou** no push do #7133:
 
 ```
-== prototipo-ui/cowork/contrato/patrimonio.contract.json ==
+== prototipo-ui/cowork/Wagner/contrato/patrimonio.contract.json ==
 X contrato sem `alvo` (array) ou `secoes` (array)
 ##[error]Process completed with exit code 1.
 ```
 
 — run [34390410727](https://github.com/wagnerra23/oimpresso.com/actions/runs/34390410727), step `Contratos de tela ativos`.
 
-**Por que atinge todo mundo, e não só o Patrimônio.** O job descobre contratos com `git ls-files '*.contract.json'` — repo inteiro — e o gatilho `detect` casa qualquer `.contract.json` **e** qualquer `resources/js/Pages/**.tsx`. Ou seja: **todo PR que toque qualquer tela** roda esse step e o encontra vermelho. O filtro de exclusão existente (`ehDocDesign`) cobre só `prototipo-ui/design-docs/` — e o arquivo desceu em `prototipo-ui/cowork/contrato/`, fora dele.
+**Por que atinge todo mundo, e não só o Patrimônio.** O job descobre contratos com `git ls-files '*.contract.json'` — repo inteiro — e o gatilho `detect` casa qualquer `.contract.json` **e** qualquer `resources/js/Pages/**.tsx`. Ou seja: **todo PR que toque qualquer tela** roda esse step e o encontra vermelho. O filtro de exclusão existente (`ehDocDesign`) cobre só `prototipo-ui/design-docs/` — e o arquivo desceu em `prototipo-ui/cowork/Wagner/contrato/`, fora dele.
 
 ⚠️ **As duas runs verdes que vieram depois não desmentem isto.** Medi os steps: elas estão `skipped` (skip-as-pass, porque eram `docs`/`chore`). Verde por não ter rodado, não por passar.
 
@@ -136,7 +136,7 @@ E: só a `Index.tsx` tem âncoras `data-contract`. **Bens, Alocacoes, Manutencoe
 
 | | O que é | Custo | Efeito no CI |
 |---|---|---|---|
-| **1. Convivem, com B fora da varredura** ✅ **FEITA** no [#7143](https://github.com/wagnerra23/oimpresso.com/pull/7143) | B vira fonte de design declarada (como `design-docs/`); A segue sendo o gate. Estendeu `ehDocDesign` para cobrir `prototipo-ui/cowork/` — o mesmo remédio de 2026-08-24 | 1 linha mais bite-test | 🟢 fechou às 19:21 |
+| **1. Convivem, com B fora da varredura** ✅ **FEITA** no [#7143](https://github.com/wagnerra23/oimpresso.com/pull/7143) | B vira fonte de design declarada (como `design-docs/`); A segue sendo o gate. Estendeu `ehDocDesign` para cobrir `prototipo-ui/cowork/Wagner/` — o mesmo remédio de 2026-08-24 | 1 linha mais bite-test | 🟢 fechou às 19:21 |
 | **2. Convivem, e B ganha os 4 contratos irmãos** | Opção 1 **e** derivar `Bens` / `Alocacoes` / `Manutencoes` / `Configuracoes.contract.json` de B, seguindo o padrão de 5 precedentes | 1 linha, 4 contratos, e **instrumentar 4 telas com `data-contract`** | 🟢 fecha, e a cobertura sobe de 1 para 5 telas |
 | **3. Viram um só (B convertido ao schema de A)** | Reescrever B em N contratos no formato estreito | descarta seletor, regras R1-R10, a11y, permissões — **perde o que B tem de melhor** | 🟢 fecha, ❌ perde conteúdo |
 | **4. Ampliar o schema de A para aceitar B** | Trocar `additionalProperties: false` por permissivo e ensinar o gate a ler `seletor` / `colunas` | gate novo sobre 30 contratos vivos; FP não medido | ⚠️ risco alto, sem sinal que justifique |
@@ -171,8 +171,8 @@ E: só a `Index.tsx` tem âncoras `data-contract`. **Bens, Alocacoes, Manutencoe
 ### Como reproduzir cada número
 
 ```bash
-node scripts/contrato-de-tela.mjs --contract prototipo-ui/contrato/patrimonio-index.contract.json
-node scripts/contrato-de-tela.mjs --contract prototipo-ui/cowork/contrato/patrimonio.contract.json
+node scripts/contrato-de-tela.mjs --contract governance/design/contracts/patrimonio-index.contract.json
+node scripts/contrato-de-tela.mjs --contract prototipo-ui/cowork/Wagner/contrato/patrimonio.contract.json
 node scripts/contrato-de-tela.mjs --map --check
 gh run view 34390410727 --log-failed
 ```

@@ -159,7 +159,7 @@ check('mesmo número → mesmo veredito (independe de --check)',
   const dir = mkdtempSync(join(tmpdir(), 'mirror-fresh-'));
   try {
     const pages = join(dir, 'resources', 'js', 'Pages');
-    const cowork = join(dir, 'prototipo-ui', 'cowork');
+    const cowork = join(dir, 'prototipo-ui', 'cowork', 'Wagner');
     mkdirSync(join(cowork, 'a'), { recursive: true });
     mkdirSync(join(cowork, 'b'), { recursive: true });
     // COLISÃO: mesmo basename, subdirs diferentes, CONTEÚDO diferente — v1 colapsava, v2 não pode.
@@ -170,8 +170,8 @@ check('mesmo número → mesmo veredito (independe de --check)',
       mkdirSync(join(pages, mod), { recursive: true });
       writeFileSync(join(pages, mod, 'Tela.charter.md'), `related_prototype: ${anchor}\n`);
     };
-    mk('ModA', 'prototipo-ui/cowork/a/x-page.jsx');
-    mk('ModB', 'prototipo-ui/cowork/b/x-page.jsx');
+    mk('ModA', 'prototipo-ui/cowork/Wagner/a/x-page.jsx');
+    mk('ModB', 'prototipo-ui/cowork/Wagner/b/x-page.jsx');
     mk('ModR', 'raiz-page.jsx'); // nome solto resolve na raiz (compat v1)
     mk('ModProsa', 'prototipo Cowork "payment-gateway-ui" F1+F1.5'); // prosa → pulada
     mk('ModMiss', 'sumiu.jsx'); // MISSING → fora do manifesto (território do anchor-content)
@@ -225,7 +225,7 @@ check('mesmo número → mesmo veredito (independe de --check)',
   const dir = mkdtempSync(join(tmpdir(), 'mirror-deps-'));
   try {
     const pages = join(dir, 'resources', 'js', 'Pages');
-    const cowork = join(dir, 'prototipo-ui', 'cowork');
+    const cowork = join(dir, 'prototipo-ui', 'cowork', 'Wagner');
     mkdirSync(join(cowork, 'ds-v6'), { recursive: true });
     writeFileSync(join(cowork, 'financeiro-page.jsx'), 'tela');
     writeFileSync(join(cowork, 'app.jsx'), 'const onColor = "var(--accent)";'); // o drift real de 2026-07-07
@@ -352,7 +352,7 @@ check('mesmo número → mesmo veredito (independe de --check)',
   check('CONTROLE liveOnly: _arquivo/ (morto upstream) não acusa',
     liveOnly(['_arquivo/velho.jsx'], man).length === 0);
   check('CONTROLE liveOnly: prototipo-ui/ (cópia do espelho dentro do vivo) não acusa',
-    liveOnly(['prototipo-ui/cowork/chat-jana.jsx'], man).length === 0);
+    liveOnly(['prototipo-ui/cowork/Wagner/chat-jana.jsx'], man).length === 0);
   // INVERTIDO em 2026-08-20. Este caso afirmava "CONTROLE: .md não é protótipo" e
   // congelava uma premissa MEDIDA COMO FALSA: o `list_files` do projeto vivo traz 174 `.md`
   // fora de `_arquivo/`, entre eles os F1 das ondas (`SUPERADMIN-F1-2026-08-18.md`), 30+
@@ -390,7 +390,7 @@ check('mesmo número → mesmo veredito (independe de --check)',
   // exportPlan: a transcrição manual causou STALE em 2026-08-11 (923 ln à mão vs 943 reais)
   // e ainda me levou a "corrigir" um charter que estava CERTO. A escrita sai do JSON.
   check('exportPlan: prefixa com o path do espelho',
-    exportPlan([{ path: 'jana-merge.jsx', content: 'x\n' }])[0].relPath === 'prototipo-ui/cowork/jana-merge.jsx');
+    exportPlan([{ path: 'jana-merge.jsx', content: 'x\n' }])[0].relPath === 'prototipo-ui/cowork/Wagner/jana-merge.jsx');
   check('exportPlan: conteúdo passa INTACTO (sem transcrição)',
     exportPlan([{ path: 'a.jsx', content: 'l1\nl2\n' }])[0].content === 'l1\nl2\n');
   let duplicataRecusada = '';
@@ -488,7 +488,7 @@ check('mesmo número → mesmo veredito (independe de --check)',
 // com o prefixo errado daria "UNCHECKED" em tudo — verde-por-não-medir, o LC-13 na veia.
 {
   const plano = exportPlan([{ path: 'app.jsx', content: 'x\n' }, { path: 'venda-v3/sells-ui.jsx', content: 'y\n' }]);
-  const chaves = plano.map((p) => p.relPath.replace(/^prototipo-ui\/cowork\//, ''));
+  const chaves = plano.map((p) => p.relPath.replace(/^prototipo-ui\/cowork\/Wagner\//, ''));
   check('snapshot emitido usa a MESMA chave do manifesto (relativa, não prefixada)',
     JSON.stringify(chaves) === '["app.jsx","venda-v3/sells-ui.jsx"]');
   // o hash emitido tem que ser o do conteúdo NORMALIZADO — senão CRLF daria STALE falso
@@ -515,7 +515,7 @@ check('mesmo número → mesmo veredito (independe de --check)',
   check('previewDs: enumera os arquivos que o shell realmente pede',
     ['colors_and_type.css', '_ds_bundle.js'].every((n) => p.arquivos.some((a) => a.nome === n)));
   check('previewDs: destino é o path do shell, e segue gitignored',
-    p.destino === 'prototipo-ui/cowork/_ds/ds-abc123');
+    p.destino === 'prototipo-ui/cowork/Wagner/_ds/ds-abc123');
   // O runtime compilado completo passou a viver no snapshot canônico. A 2ª camada
   // hermética abaixo preserva o BITE que declara qualquer dependência ausente.
   check('previewDs: encontra o bundle compilado no snapshot canônico',
@@ -540,7 +540,7 @@ check('mesmo número → mesmo veredito (independe de --check)',
 {
   const raiz = mkdtempSync(join(tmpdir(), 'previewds-css-'));
   try {
-    const snap = join(raiz, 'scripts', 'design-sync', 'mirror-snapshot');
+    const snap = join(raiz, 'prototipo-ui', 'design-system');
     mkdirSync(snap, { recursive: true });
     writeFileSync(join(snap, 'colors_and_type.css'), [
       "@font-face{font-family:'X';src:url('assets/fonts/x-400.woff2') format('woff2')}",
@@ -582,27 +582,27 @@ check('mesmo número → mesmo veredito (independe de --check)',
   const man = [{ cowork: 'app.jsx' }, { cowork: 'styles.css' }];
   const vivos = ['app.jsx', 'styles.css', 'forja-tarefas.jsx']; // norte-app.jsx NÃO está: sumiu do vivo
 
-  const r = nasceSemMedicao(['prototipo-ui/cowork/forja-tarefas.jsx'], man, vivos);
+  const r = nasceSemMedicao(['prototipo-ui/cowork/Wagner/forja-tarefas.jsx'], man, vivos);
   check('BITE: arquivo novo na raiz, no vivo e fora do manifesto → ACUSA',
     JSON.stringify(r.acusados) === '["forja-tarefas.jsx"]');
 
   check('CONTROLE: arquivo novo que JÁ está no manifesto não acusa',
-    nasceSemMedicao(['prototipo-ui/cowork/app.jsx'], man, vivos).acusados.length === 0);
+    nasceSemMedicao(['prototipo-ui/cowork/Wagner/app.jsx'], man, vivos).acusados.length === 0);
   // filtro 1 — subdir tem shell próprio (venda-v3/, prototipo-ui-patch/): 38%→15% do FP saiu daqui
   check('CONTROLE: subdir não acusa (tem shell próprio por desenho)',
-    nasceSemMedicao(['prototipo-ui/cowork/venda-v3/sells-ui.jsx'], man, vivos).acusados.length === 0);
+    nasceSemMedicao(['prototipo-ui/cowork/Felipe/venda-v3/sells-ui.jsx'], man, vivos).acusados.length === 0);
   // filtro 2 — .html no espelho é relatório/auditoria, não protótipo: 51%→38% saiu daqui
   check('CONTROLE: .html não acusa (é relatório, não protótipo de tela)',
-    nasceSemMedicao(['prototipo-ui/cowork/Auditoria Financeiro.html'], man, vivos).acusados.length === 0);
+    nasceSemMedicao(['prototipo-ui/cowork/Wagner/Auditoria Financeiro.html'], man, vivos).acusados.length === 0);
   // filtro 3 — o que sumiu do vivo é resíduo a limpar, não "novo sem medição": 15%→1%
   {
-    const res = nasceSemMedicao(['prototipo-ui/cowork/norte-app.jsx'], man, vivos);
+    const res = nasceSemMedicao(['prototipo-ui/cowork/Wagner/norte-app.jsx'], man, vivos);
     check('CONTROLE: sumiu do vivo → vai pra `residuo`, não pra `acusados`',
       res.acusados.length === 0 && JSON.stringify(res.residuo) === '["norte-app.jsx"]');
   }
   // honestidade: sem a lista do vivo o filtro forte não roda — e isso é DECLARADO, não escondido
   {
-    const sv = nasceSemMedicao(['prototipo-ui/cowork/norte-app.jsx'], man, null);
+    const sv = nasceSemMedicao(['prototipo-ui/cowork/Wagner/norte-app.jsx'], man, null);
     check('sem --vivos: marca semVivo e NÃO finge que filtrou',
       sv.semVivo === true && sv.acusados.length === 1);
   }
@@ -617,7 +617,7 @@ check('mesmo número → mesmo veredito (independe de --check)',
 // Roda em sandbox por cwd: não toca o espelho real.
 {
   const tmp = mkdtempSync(join(tmpdir(), 'cowork-fluxo-'));
-  const mirror = join(tmp, 'prototipo-ui', 'cowork');
+  const mirror = join(tmp, 'prototipo-ui', 'cowork', 'Wagner');
   mkdirSync(mirror, { recursive: true });
   // espelho de partida: 1 arquivo DESATUALIZADO + o shell que o carrega
   writeFileSync(join(mirror, 'x.jsx'), 'versao ANTIGA\n');
@@ -707,7 +707,7 @@ check('mesmo número → mesmo veredito (independe de --check)',
     path: '_ds/ds-teste/assets/fonts/x.woff2', content: fontBytes.toString('base64'), isBase64: true,
   }));
   const expBin = run(['--export-from', dirBin, '--ds-runtime']);
-  const fontOut = join(tmp, 'scripts', 'design-sync', 'mirror-snapshot', 'assets', 'fonts', 'x.woff2');
+  const fontOut = join(tmp, 'prototipo-ui', 'design-system', 'assets', 'fonts', 'x.woff2');
   check('FLUXO ds-runtime: base64 pousa no snapshot consumido pelo preview, byte-idêntico',
     expBin.code === 0 && existsSync(fontOut) && readFileSync(fontOut).equals(fontBytes), expBin.out);
 
@@ -719,8 +719,8 @@ check('mesmo número → mesmo veredito (independe de --check)',
 // idempotente; qualquer falha preserva integralmente o último cache bom.
 {
   const tmp = mkdtempSync(join(tmpdir(), 'preview-ds-atomic-'));
-  const mirror = join(tmp, 'prototipo-ui', 'cowork');
-  const snap = join(tmp, 'scripts', 'design-sync', 'mirror-snapshot');
+  const mirror = join(tmp, 'prototipo-ui', 'cowork', 'Wagner');
+  const snap = join(tmp, 'prototipo-ui', 'design-system');
   const dest = join(mirror, '_ds', 'ds-atomic');
   mkdirSync(snap, { recursive: true });
   mkdirSync(dest, { recursive: true });
@@ -753,10 +753,11 @@ check('mesmo número → mesmo veredito (independe de --check)',
   };
 
   const first = run();
-  check('preview-ds sucesso materializa o grafo completo',
-    first.code === 0 && /PREVIEW COMPLETO/.test(first.out)
-      && readFileSync(join(dest, 'colors.css'), 'utf8').includes('--ok:1')
-      && readFileSync(join(dest, 'assets', 'font.woff2')).equals(fontV1), first.out);
+  check('preview-ds aposentado não cria cópia física do DS',
+    first.code === 0 && /aposentado/.test(first.out)
+      && !existsSync(join(dest, 'colors.css'))
+      && existsSync(join(dest, 'orfao-antigo.js')), first.out);
+  if (false) { // contrato histórico de materialização: deliberadamente desativado pela ADR 0397
   check('fonte WOFF2 preserva magic e bytes do snapshot',
     readFileSync(join(dest, 'assets', 'font.woff2')).subarray(0, 4).toString() === 'wOF2');
   check('troca de diretório remove órfão do cache anterior', !existsSync(join(dest, 'orfao-antigo.js')));
@@ -781,6 +782,7 @@ check('mesmo número → mesmo veredito (independe de --check)',
   const invalid = run();
   check('bundle inválido sai 1 sem substituir o bundle/cache bons',
     invalid.code === 1 && tree(dest) === goodCache && /INVÁLIDO/.test(invalid.out), invalid.out);
+  }
 
   writeFileSync(join(snap, 'colors.css'), "@import '../../../canario.css';\n");
   check('BITE CSS: traversal via @import é recusado antes de I/O',
@@ -806,8 +808,8 @@ check('mesmo número → mesmo veredito (independe de --check)',
 // e drawers/eventos sumiam porque o protótipo faz `if (!Drawer || !meta) return null`.
 {
   const tmp = mkdtempSync(join(tmpdir(), 'preview-ds-failclosed-'));
-  const mirror = join(tmp, 'prototipo-ui', 'cowork');
-  const snap = join(tmp, 'scripts', 'design-sync', 'mirror-snapshot');
+  const mirror = join(tmp, 'prototipo-ui', 'cowork', 'Wagner');
+  const snap = join(tmp, 'prototipo-ui', 'design-system');
   mkdirSync(mirror, { recursive: true });
   mkdirSync(snap, { recursive: true });
   writeFileSync(join(mirror, 'oimpresso.com.html'),
@@ -817,15 +819,15 @@ check('mesmo número → mesmo veredito (independe de --check)',
   let out = '', code = 0;
   try { out = execFileSync(process.execPath, [cli, '--preview-ds'], { cwd: tmp, encoding: 'utf8' }); }
   catch (e) { code = e.status; out = (e.stdout || '') + (e.stderr || ''); }
-  check('BITE preview-ds: bundle sem fonte bloqueia com exit 1 antes de editar produto',
-    code === 1 && /PREVIEW INCOMPLETO.*PARE/s.test(out), out);
+  check('BITE preview-ds: comando aposentado não materializa cache mesmo com fonte ausente',
+    code === 0 && /aposentado/.test(out) && !existsSync(join(mirror, '_ds')), out);
 
   writeFileSync(join(snap, '_ds_bundle.js'), 'const MENU = [{');
   let invalidoOut = '', invalidoCode = 0;
   try { invalidoOut = execFileSync(process.execPath, [cli, '--preview-ds'], { cwd: tmp, encoding: 'utf8' }); }
   catch (e) { invalidoCode = e.status; invalidoOut = (e.stdout || '') + (e.stderr || ''); }
-  check('BITE preview-ds: bundle truncado no disco falha no parser e mantém o portão fechado',
-    invalidoCode === 1 && /INVÁLIDO.*_ds_bundle\.js.*PREVIEW INCOMPLETO/s.test(invalidoOut), invalidoOut);
+  check('BITE preview-ds: bundle legado inválido também não recria cache',
+    invalidoCode === 0 && /aposentado/.test(invalidoOut) && !existsSync(join(mirror, '_ds')), invalidoOut);
   rmSync(tmp, { recursive: true, force: true });
 }
 
@@ -835,7 +837,7 @@ check('mesmo número → mesmo veredito (independe de --check)',
 // lados — o que DEVE acusar (senão o gate é cego) e o que NÃO PODE acusar (senão é FP, a
 // doença das 4 lápides de guard sintático do §5).
 {
-  const M = 'prototipo-ui/cowork';
+  const M = 'prototipo-ui/cowork/Wagner';
   const del = (...p) => new Set(p.map((x) => `${M}/${x}`));
 
   // ACUSA — o que quebra render de verdade
@@ -886,7 +888,7 @@ check('mesmo número → mesmo veredito (independe de --check)',
 // nunca desceu — LC-19) vira regra DELTA no dono. FP do absoluto remedido antes: 26/29
 // órfãos herdados legítimos por proveniência (~90%) — por isso só a adição do PR entra.
 {
-  const M = 'prototipo-ui/cowork';
+  const M = 'prototipo-ui/cowork/Wagner';
   const decl = new Set([`${M}/oimpresso.com.html`, `${M}/app.jsx`, `${M}/styles.css`]);
 
   check('adição não-declarada é órfã',
@@ -1334,8 +1336,8 @@ if (false) {
   check('CONTROLE NEGATIVO: sem `component:` e fora de Pages/ ⇒ SEM-ALVO-DECLARADO (não inventa alvo)',
     porPath['inbox/orfa.charter.md'].classe === 'SEM-ALVO-DECLARADO' && porPath['inbox/orfa.charter.md'].alvo === null);
 
-  check('contrato roteia para prototipo-ui/contrato/ pelo nome do arquivo',
-    porPath['inbox/x.contract.json'].alvo === 'prototipo-ui/contrato/x.contract.json');
+  check('contrato roteia para governance/design/contracts/ pelo nome do arquivo',
+    porPath['inbox/x.contract.json'].alvo === 'governance/design/contracts/x.contract.json');
 
   const md = renderDevolutiva(linhas, { quando: new Date('2026-09-07T00:00:00Z') });
   check('render: declara-se DERIVADO (não editar à mão) e datado', /Derivado/.test(md) && /2026-09-07/.test(md));
@@ -1356,7 +1358,7 @@ if (false) {
 // RODADA lido como universo GLOBAL.
 if (false) {
   const tmp = mkdtempSync(join(tmpdir(), 'devolutiva-cli-'));
-  mkdirSync(join(tmp, 'prototipo-ui', 'cowork'), { recursive: true });
+  mkdirSync(join(tmp, 'prototipo-ui', 'cowork', 'Wagner'), { recursive: true });
   const dirCompleta = join(tmp, 'r-com-recusa'); mkdirSync(dirCompleta);
   const dirPontual = join(tmp, 'r-pontual'); mkdirSync(dirPontual);
   writeFileSync(join(dirCompleta, 'a.json'), JSON.stringify({ path: 'telaA.charter.md', content: '---\ncomponent: resources/js/Pages/X/A.tsx\n---\nrascunho' }));
@@ -1417,24 +1419,24 @@ if (false) {
   const H = (s) => rawHash(Buffer.from(s));
 
   // roteamento — a regra que o applier passou a IMPORTAR daqui (fonte única)
-  check('bundle 1/8: `.md` roteia pra design-docs (R1 do ssot-guard reprova .md em cowork/)',
-    destinoDoBundle('PEDIDO.md').destinoBase === 'prototipo-ui/design-docs');
-  check('bundle 2/8: `_ds/**` roteia pro mirror-snapshot (build de preview, não versionamento)',
-    destinoDoBundle('_ds/slug-qualquer/colors_and_type.css').destinoBase === 'scripts/design-sync/mirror-snapshot');
+  check('bundle 1/8: `.md` roteia pro canal de handoff do dono',
+    destinoDoBundle('PEDIDO.md').destinoBase === 'prototipo-ui/cowork/Wagner/handoffs');
+  check('bundle 2/8: `_ds/**` roteia pro Design System canônico',
+    destinoDoBundle('_ds/slug-qualquer/colors_and_type.css').destinoBase === 'prototipo-ui/design-system');
   check('bundle 3/8: o resto pousa no espelho',
-    destinoDoBundle('app.jsx').destinoBase === 'prototipo-ui/cowork'
+    destinoDoBundle('app.jsx').destinoBase === 'prototipo-ui/cowork/Wagner'
     && destinoDoBundle('app.jsx').destinoPath === 'app.jsx');
 
   const manifestFake = [{ cowork: 'app.jsx', repoHash: 'x' }, { cowork: 'orfao.jsx', repoHash: 'y' }];
   const bundleFake = { files: [{ path: 'app.jsx', sha256: H('conteudo') }] };
 
   // SYNC: o hash do disco bate com o que o gerador calculou DO VIVO
-  const rSync = rowsDoBundle(bundleFake, manifestFake, (p) => p === 'prototipo-ui/cowork/app.jsx' ? Buffer.from('conteudo') : null);
+  const rSync = rowsDoBundle(bundleFake, manifestFake, (p) => p === 'prototipo-ui/cowork/Wagner/app.jsx' ? Buffer.from('conteudo') : null);
   check('bundle 4/8: hash do disco == hash do manifesto ⇒ SYNC',
     rSync.find((r) => r.cowork === 'app.jsx').veredito === 'SYNC');
 
   // BITE — é o caso que motiva o modo: espelho remendado À MÃO depois da aplicação
-  const rStale = rowsDoBundle(bundleFake, manifestFake, (p) => p === 'prototipo-ui/cowork/app.jsx' ? Buffer.from('remendado a mao') : null);
+  const rStale = rowsDoBundle(bundleFake, manifestFake, (p) => p === 'prototipo-ui/cowork/Wagner/app.jsx' ? Buffer.from('remendado a mao') : null);
   check('bundle 5/8: BITE — espelho editado à mão depois de aplicar ⇒ STALE',
     rStale.find((r) => r.cowork === 'app.jsx').veredito === 'STALE');
   check('bundle 6/8: e o --check morde nesse caso',

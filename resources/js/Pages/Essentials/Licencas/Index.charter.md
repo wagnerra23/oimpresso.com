@@ -36,7 +36,7 @@ charter_version: 2
 > e o item de menu também — esta tela não nasce órfã, ela **substitui** o Blade na mesma URL.
 >
 > **Sobre `related_prototype`:** o build F1 do Cowork existe versionado em
-> [`prototipo-ui/cowork/hrm-page.jsx`](../../../../../prototipo-ui/cowork/hrm-page.jsx)
+> [`prototipo-ui/cowork/Wagner/hrm-page.jsx`](../../../../../prototipo-ui/cowork/Wagner/hrm-page.jsx)
 > (`Licencas`) + `hrm-forms.jsx` (`FormLicenca`), mas o cabeçalho dele se declara *"Espelha o
 > topnav de nav_hrm.blade"* — é um dos hubs de **porte reverso do código vivo** que a lápide
 > §5 2026-08-28 proíbe promover a âncora de design em leva. Fica citado como build F1 (é o que
@@ -126,7 +126,7 @@ JUnit, não desta lista (G-7). Se algum voltar a falhar, é aqui que a redação
 - Trio de tela: este charter + [`Index.casos.md`](Index.casos.md) +
   [`HrmLicencaTest.php`](../../../../../Modules/Essentials/Tests/Feature/HrmLicencaTest.php)
   (ADR 0264 G-1/G-2).
-- Contrato visual: [`essentials-licencas.contract.json`](../../../../../prototipo-ui/contrato/essentials-licencas.contract.json)
+- Contrato visual: [`essentials-licencas.contract.json`](../../../../../governance/design/contracts/essentials-licencas.contract.json)
   — agora **vigente**, porque a tela existe (`scripts/contrato-de-tela.mjs` §125-135: contrato só
   vale quando aplicado a uma tela real). As âncoras `data-contract` estão no `.tsx`.
 - F1 PLAN do MWART: [`RUNBOOK-licencas.md`](../../../../../memory/requisitos/Essentials/RUNBOOK-licencas.md).

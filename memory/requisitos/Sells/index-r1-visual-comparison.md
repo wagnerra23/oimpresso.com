@@ -6,11 +6,11 @@ type: visual-comparison
 module: Sells
 status: approved
 date: 2026-05-17
-canon_reference: prototipo-ui/prototipos/sells-index/vendas-page.jsx
+canon_reference: prototipo-ui/cowork/Wagner/legado/sells-index/vendas-page.jsx
 canon_method: KB-9.75 (chat10 — 2026-05-16)
 canon_score: 9.75/10 (cópia integral em 1 PR — substitui slice em 4 refinos)
 inertia_target: resources/js/Pages/Sells/Index.tsx
-visual_source_html: prototipo-ui/prototipos/sells-index/Oimpresso ERP - Chat.html
+visual_source_html: prototipo-ui/cowork/Wagner/legado/sells-index/Oimpresso ERP - Chat.html
 related_adrs: [0104, 0107, 0109, 0110, 0114, 0141, 0143, 0093]
 approved_by: wagner
 approved_at: 2026-05-17
@@ -54,12 +54,12 @@ approval_artifact: "Screenshot Brave colado pelo Wagner — 'resultado esperado'
 > **Tipo de tela:** list+detail (Cockpit V2 ADR 0110) — refino de página live, NÃO migração nova.
 > **Persona alvo:** Larissa (ROTA LIVRE biz=4, vestuário Termas do Gravatal/SC, monitor 1280px, ~5-15 vendas/dia) + Wagner (WR2 biz=1, dev+admin).
 > **Refs:**
-> - Visual-source canônico: [`prototipo-ui/prototipos/sells-index/`](../../../prototipo-ui/prototipos/sells-index/) (handoff Claude Design `Kf6GHQu6fkwlh0vnL30Oog`, sessão chat10 2026-05-16)
+> - Visual-source canônico: [`prototipo-ui/cowork/Wagner/legado/sells-index/`](../../../prototipo-ui/cowork/Wagner/legado/sells-index/) (handoff Claude Design `Kf6GHQu6fkwlh0vnL30Oog`, sessão chat10 2026-05-16)
 > - Page atual: [`resources/js/Pages/Sells/Index.tsx`](../../../resources/js/Pages/Sells/Index.tsx) (1326 LOC, status `live` desde 2026-05-08, PR #261)
 > - Charter atual: [`Index.charter.md`](../../../resources/js/Pages/Sells/Index.charter.md)
 > - Endpoint: `GET /sells-list-json` ([`SellController::inertiaList`](../../../app/Http/Controllers/SellController.php:892))
 > - SPEC: [`SPEC.md`](SPEC.md) US-SELL-008..028
-> - Cowork PROTOCOL: [`prototipo-ui/PROTOCOL.md`](../../../prototipo-ui/PROTOCOL.md)
+> - Cowork PROTOCOL: [`memory/reference/prototipo-ui/PROTOCOL.md`](../../../memory/reference/prototipo-ui/PROTOCOL.md)
 > - ADR 0141 migracao-blade-react (skill orquestradora)
 
 ## Escopo deste documento
@@ -360,7 +360,7 @@ Total estimado: **6-7h** (recalibrado fator 10x [ADR 0106](../../decisions/0106-
 
 | Data | Quem | Fase | Notas |
 |---|---|---|---|
-| 2026-05-17 | [CL] Claude Code | F0 | Bundle copiado em `prototipo-ui/prototipos/sells-index/` (2.8MB, 96 arquivos) |
+| 2026-05-17 | [CL] Claude Code | F0 | Bundle copiado em `prototipo-ui/cowork/Wagner/legado/sells-index/` (2.8MB, 96 arquivos) |
 | 2026-05-17 | [CL] Claude Code | F1 draft | Este documento — 15 dimensões + plug-points |
 | 2026-05-17 | [W2] Wagner | F1 approval | **APROVADO** via screenshot Brave colado no chat — "resultado esperado". Pivote pra cópia integral (não slice). |
 | 2026-05-17 | [CL] Claude Code | F2-F5 | Cópia integral implementada — backend (10 fields) + Index.tsx rewrite (~1100 LOC) + CSS scoped (7331 LOC) + 11 Pest novos + 9 legacy skipped com razão canon. |
@@ -370,7 +370,7 @@ Total estimado: **6-7h** (recalibrado fator 10x [ADR 0106](../../decisions/0106-
 
 ## Como aprovar
 
-1. Abra [`prototipo-ui/prototipos/sells-index/Oimpresso ERP - Chat.html`](../../../prototipo-ui/prototipos/sells-index/Oimpresso ERP - Chat.html) em Chrome/Edge local
+1. Abra [`prototipo-ui/cowork/Wagner/legado/sells-index/Oimpresso ERP - Chat.html`](../../../prototipo-ui/cowork/Wagner/legado/sells-index/Oimpresso ERP - Chat.html) em Chrome/Edge local
 2. Clique na sidebar esquerda em **$ Vendas**
 3. Observe na tabela: coluna Pagamento tem pílulas coloridas (alguns rosa `-12d`, alguns âmbar `4d`, alguns verde `8d`)
 4. KPI "A receber" mostra breakdown abaixo (ex: `1 estourado · 2 atrasando`)

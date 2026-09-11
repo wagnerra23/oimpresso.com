@@ -201,7 +201,7 @@ O módulo **não é greenfield**: o backend é o `ContactController` do núcleo 
 
 - **Shell:** `AppShellV2` + `PageHeader`; a barra de abas de tipo usa o componente canônico `PageHeaderTabs` (migrada do inline hand-rolled em 2026-07-14).
 - **Padrão de tela:** cockpit **lista + detalhe em drawer** — família [PT-01 Lista](../_DesignSystem/padroes-tela/PT-01-Lista.md) com o pattern list-detail da [ADR 0110](../../decisions/0110-cockpit-pattern-v2-canon-list-detail.md).
-- **Protótipo âncora:** `bundle_source: clientes-page.jsx` (declarado no `Index.charter.md`); handoff em `prototipo-ui/prototipos/clientes/HANDOFF_CLIENTES.md`.
+- **Protótipo âncora:** `bundle_source: clientes-page.jsx` (declarado no `Index.charter.md`); handoff em `prototipo-ui/cowork/Wagner/legado/clientes/HANDOFF_CLIENTES.md`.
 - **Estados VRT:** `[default, empty, loading, dark]` — `error` foi **removido de propósito** (toast sonner não dá estado determinístico no VRT). Sincronizado com `tests/Browser/visreg-states.json`.
 - **`ux_targets` (dos charters):** first-paint Index p95 <600ms · drawer abre p95 <200ms · autosave round-trip p95 <400ms · lookup CEP/CNPJ p95 <800ms (cache hit) / <2,5s (miss) · card de IA p95 <6s · Ledger first-paint p95 <1000ms para 100 lançamentos · PDF <3s para 100 linhas · **1280×1024 sem scroll horizontal** com drawer 760 + sidebar 240.
 

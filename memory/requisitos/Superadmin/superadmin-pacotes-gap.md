@@ -1,7 +1,7 @@
 ---
 id: requisitos-superadmin-pacotes-gap
 tela: superadmin/Pacotes/Index (/superadmin/packages)
-prototipo: prototipo-ui/cowork/superadmin-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/superadmin-page.jsx
 tela_viva: Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.tsx
 gerado_em: 2026-09-06
 ---
@@ -15,7 +15,7 @@ gerado_em: 2026-09-06
 | Parte | Estado no vivo | Ação |
 |---|---|---|
 | PageHeader — título | `PageHeader title="Pacotes de assinatura"` (Pacotes/Index.tsx:98); mockup mesmo título (superadmin-page.jsx:1186) | Nada — paridade |
-| PageHeader — subtítulo com contagens | `description="A grade comercial da plataforma"` fixa (Pacotes/Index.tsx:98); nenhuma contagem de total/ativos no header — o contrato (`prototipo-ui/contrato/superadmin-pacotes.contract.json`) só trava a seção `superadmin.pacotes.grid`, não a copy do header | **Decidir.** O mockup (superadmin-page.jsx:1186) escreve no subtítulo `N pacotes · N ativos` computados da lista (o `· 1 privado` ali é literal fixo = mock); o vivo (Pacotes/Index.tsx:98) tem descrição estática. Construir ou rejeitar por escrito. |
+| PageHeader — subtítulo com contagens | `description="A grade comercial da plataforma"` fixa (Pacotes/Index.tsx:98); nenhuma contagem de total/ativos no header — o contrato (`governance/design/contracts/superadmin-pacotes.contract.json`) só trava a seção `superadmin.pacotes.grid`, não a copy do header | **Decidir.** O mockup (superadmin-page.jsx:1186) escreve no subtítulo `N pacotes · N ativos` computados da lista (o `· 1 privado` ali é literal fixo = mock); o vivo (Pacotes/Index.tsx:98) tem descrição estática. Construir ou rejeitar por escrito. |
 | PageHeader — ação "Novo pacote" | Sem botão nem drawer de criação (Pacotes/Index.tsx:95-107); comentário :20-21 declara a onda como LEITURA | Nada — decisão já registrada (charter §Divergências declaradas contra o F1 "FormDrawer novo/editar/duplicar → SA-O4d"; RUNBOOK-pacotes §8; contrato `_nota_recorte`) |
 | Grid de cards (`superadmin.pacotes.grid`) | `data-contract="superadmin.pacotes.grid"` + `<Deferred>` (Pacotes/Index.tsx:100-104); grid 1/2/3 colunas (:138); mockup `sa-pkgs` (superadmin-page.jsx:1192-1193) | Nada — paridade |
 | Card — header (nome + tags privado/avulso/ativo/inativo + inativo recuado) | Nome `truncate` + 3 badges (Pacotes/Index.tsx:150-158); inativo `opacity-60` (:148); mockup :1195-1203 e classe `off` (:1194) | Nada — paridade |
@@ -39,4 +39,4 @@ gerado_em: 2026-09-06
 - `grep -nE 'migre|antes de excluir' Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.tsx` → 0   (sem aviso de exclusão)
 - `grep -nE 'toast|Toast|sonner' Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.tsx` → 0   (sem toast)
 - `grep -nE 'Confirm|AlertDialog' Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.tsx` → 0   (sem confirmação — não há ação que a exija)
-- `sed -n '1176,1249p' prototipo-ui/cowork/superadmin-page.jsx | grep -cE 'SkelTable|Vazio|Skeleton|EmptyState'` → 0   (mockup sem skeleton/vazio nesta view)
+- `sed -n '1176,1249p' prototipo-ui/cowork/Wagner/superadmin-page.jsx | grep -cE 'SkelTable|Vazio|Skeleton|EmptyState'` → 0   (mockup sem skeleton/vazio nesta view)

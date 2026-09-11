@@ -1,6 +1,6 @@
 # Painel da Jana (`/ia`) — protótipo × tela viva, por região e componente
 
-- **Data da medição:** 2026-08-17 (**re-medido** — ver §Correções abaixo) · **âncora:** `prototipo-ui/cowork/jana-merge.jsx` (resolvida por `node prototipo-ui/ancora.mjs Jana/Index`)
+- **Data da medição:** 2026-08-17 (**re-medido** — ver §Correções abaixo) · **âncora:** `prototipo-ui/cowork/Wagner/jana-merge.jsx` (resolvida por `node scripts/design/ancora.mjs Jana/Index`)
 - **Tela viva:** `resources/js/Pages/Jana/Index.tsx` + `_components/JanaCockpit.tsx` + `_components/JanaDrillDrawer.tsx` + `_components/JanaMetaDrawer.tsx` + `_components/JanaConfigDrawer.tsx`
 - **Charter:** `resources/js/Pages/Jana/Index.charter.md` **v10**
 - **Gate F1.5:** esta tela está no manifesto `tests/Browser/visreg-screens.json` como `Jana`; toda mudança aqui gera diff de pixel e precisa de aprovação [W]
@@ -352,7 +352,7 @@ aqui. Para o número virar veredito seria preciso medir um tenant com dado equiv
 
 ### O que ficou fora da rodada
 
-`Jana/Pro` **não tem âncora** (`node prototipo-ui/ancora.mjs Jana/Pro` → *"charter sem
+`Jana/Pro` **não tem âncora** (`node scripts/design/ancora.mjs Jana/Pro` → *"charter sem
 related_prototype nem -page.jsx"*): o `jana-pro.jsx` é um dos **21 de 116** arquivos que o shell do
 espelho referencia e que nunca desceram. Sem a fonte, a tela não é comparável — e o bloqueio é o
 mesmo das partes do payload.
@@ -397,7 +397,7 @@ em vez da tela.
 #### ⛔ Achado que precede o veredito: o espelho do protótipo está DEFASADO
 
 Antes de medir, a fonte foi provada. O servido é byte-idêntico ao
-`prototipo-ui/cowork/jana-merge.jsx` de `origin/main` (md5 `32262939ad3c`) — o espelho **é** canon.
+`prototipo-ui/cowork/Wagner/jana-merge.jsx` de `origin/main` (md5 `32262939ad3c`) — o espelho **é** canon.
 Mas o canon **não é o design vivo**:
 
 | | linhas | bytes |
@@ -649,7 +649,7 @@ fonte (ver `Index.casos.md` §Pendência do UC-JPAIN-18); decisão [W] sobre mig
 
 | passo | o que foi feito |
 |---|---|
-| âncora | `ancora.mjs Jana/Index` → `prototipo-ui/cowork/jana-merge.jsx` (frescor verificado 2026-09-07) |
+| âncora | `ancora.mjs Jana/Index` → `prototipo-ui/cowork/Wagner/jana-merge.jsx` (frescor verificado 2026-09-07) |
 | lado design | espelho local servido em :5621, rota `chat` + tema dark, esperando `__oiLazyDone` **e** `.jm-sk` sumir **e** 1,5 s de janela quieta (1039 nós) |
 | lado produção | `/ia` autenticado, biz=1, dark, 1440px, duas leituras iguais (1061 nós) |
 | sonda por papel | `design-diff.mjs --probe` **byte-idêntica** nos dois lados (CSP da prod barra script externo → injetada inline) |

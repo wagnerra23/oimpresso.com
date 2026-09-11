@@ -61,7 +61,7 @@ function dossieCtx(array $over = []): array
         'sources' => [
             'charter' => ['path' => 'resources/js/Pages/Sells/Index.charter.md', 'content' => charterFixture()],
             'casos' => ['path' => 'resources/js/Pages/Sells/Index.casos.md', 'content' => null], // greenfield
-            'decisoes' => ['path' => 'prototipo-ui/prototipos/vendas/decisoes.md', 'content' => null],
+            'decisoes' => ['path' => 'prototipo-ui/cowork/Wagner/legado/vendas/decisoes.md', 'content' => null],
             'runbook' => ['path' => 'memory/requisitos/Sells/RUNBOOK-index.md', 'content' => '# RUNBOOK'],
             'visual_comparison' => ['path' => 'memory/requisitos/Sells/Sells-visual-comparison.md', 'content' => '# VC'],
             'briefing' => ['path' => 'memory/requisitos/Sells/BRIEFING.md', 'content' => '# BRIEFING'],

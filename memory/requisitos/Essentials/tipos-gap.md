@@ -1,7 +1,7 @@
 ---
 id: requisitos-essentials-tipos-gap
 tela: Essentials/Tipos (/hrm/leave-type)
-prototipo: prototipo-ui/cowork/hrm-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/hrm-page.jsx
 tela_viva: resources/js/Pages/Essentials/Tipos.tsx
 gerado_em: 2026-09-06
 ---
@@ -11,9 +11,9 @@ gerado_em: 2026-09-06
 > **Única das 11 telas com `related_prototype` DIRETO no charter** — nas outras 7 do Essentials o vínculo
 > é o `bundle_source`, e o `related_prototype` **4 declaram `n/a` explícito** (Documents · Messages ·
 > Todo · Settings) enquanto **3 não declaram campo nenhum** (Knowledge · Reminders · Holidays). Aqui o charter aponta
-> `prototipo-ui/cowork/hrm-page.jsx (subview "tipos" · copy literal)`.
+> `prototipo-ui/cowork/Wagner/hrm-page.jsx (subview "tipos" · copy literal)`.
 > **Fase 1 = PARIDADE:** `hrm-page.jsx:2` declara o porte reverso de `nav_hrm.blade`.
-> Dono da copy: [`essentials-tipos.contract.json`](../../../prototipo-ui/contrato/essentials-tipos.contract.json),
+> Dono da copy: [`essentials-tipos.contract.json`](../../../governance/design/contracts/essentials-tipos.contract.json),
 > gerado e preenchido no MESMO PR da tela (HRM-O7 PR-9), com a copy **literal do protótipo**.
 > O playbook histórico foi removido com a árvore duplicada.
 > Esta tela **já tem `data-contract`** nas 3 seções — âncora estável, não range de linha.

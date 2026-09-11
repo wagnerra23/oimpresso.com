@@ -2,7 +2,7 @@
 id: requisitos-crm-clientes-gap
 map_json: n/a (a tela Cliente/Index já tem dono com map — memory/requisitos/Cliente/clientes-gap.md + clientes.map.json, ancorado no clientes-page.jsx que o charter declara; um 2º map da mesma tela é régua duplicada — ver bloco 2026-09-06)
 tela: Clientes (Index + Drawer 760px)
-prototipo: prototipo-ui/prototipos/clientes/ # ⚠️ PATH APAGADO em 2026-06-23 (e8b49f4b63, consolidação SSOT em prototipo-ui/cowork/) — é o artefato de 2026-05-22 que ESTA análise leu, preservado aqui como registro do que foi medido. NÃO trocar pelo espelho de hoje sem reler: ver "Por que ainda não há .map.json" abaixo
+prototipo: prototipo-ui/cowork/Wagner/legado/clientes/ # ⚠️ PATH APAGADO em 2026-06-23 (e8b49f4b63, consolidação SSOT em prototipo-ui/cowork/Wagner/) — é o artefato de 2026-05-22 que ESTA análise leu, preservado aqui como registro do que foi medido. NÃO trocar pelo espelho de hoje sem reler: ver "Por que ainda não há .map.json" abaixo
 tela_viva: resources/js/Pages/Cliente/ (Index.tsx 114KB + Show.tsx + _drawer/* + _show/* + _components/*)
 paridade_atual: 100% (tela viva À FRENTE do protótipo) # MEDIDO EM 2026-06-23 contra o protótipo daquela data — ver ressalva abaixo
 veredito: "À FRENTE em 2026-06-23 no escopo DRAWER (o protótipo do drawer foi derivado DA produção). NÃO vale pra listagem/Import/Map — superseded por memory/requisitos/Cliente/PARIDADE-area-cliente-diagnostico-e-ondas.md (2026-08-18), que lista 5 itens a adotar."
@@ -20,7 +20,7 @@ governanca:
 
 > ## ⚠️ 2026-08-24 — por que ainda NÃO há `clientes.map.json` (e por que gerar um hoje seria pior que não ter)
 >
-> Este gap **parseia** no `prototipo-ui/gerar-map.mjs` (11 partes, coluna `Ação` presente), então
+> Este gap **parseia** no `scripts/design/gerar-map.mjs` (11 partes, coluna `Ação` presente), então
 > ele aparece na fila de "candidatos a map" do `design-code-map-check`. Ficou de fora de propósito:
 > o protótipo que esta análise leu **não é** o protótipo que está no espelho hoje, e um map ancora
 > os dois lados por arquivo+linha — ancorar o veredito de junho no artefato de agosto seria afirmar
@@ -28,11 +28,11 @@ governanca:
 >
 > Medido hoje, com commit e número:
 >
-> - `prototipo-ui/prototipos/clientes/` (a chave `prototipo:` acima) tem **0 arquivos versionados**.
+> - `prototipo-ui/cowork/Wagner/legado/clientes/` (a chave `prototipo:` acima) tem **0 arquivos versionados**.
 >   Foi apagado em **2026-06-23** por `e8b49f4b63` — *"protótipo Cowork = 1 SSOT com histórico
->   (prototipo-ui/cowork/) + apaga recortes"*, no MESMO dia em que este gap foi escrito.
-> - O sucessor no espelho, `prototipo-ui/cowork/clientes-page.jsx` (o que a charter declara em
->   `related_prototype`, confirmado por `node prototipo-ui/ancora.mjs Cliente/Index`), **dobrou
+>   (prototipo-ui/cowork/Wagner/) + apaga recortes"*, no MESMO dia em que este gap foi escrito.
+> - O sucessor no espelho, `prototipo-ui/cowork/Wagner/clientes-page.jsx` (o que a charter declara em
+>   `related_prototype`, confirmado por `node scripts/design/ancora.mjs Cliente/Index`), **dobrou
 >   de tamanho depois**: `+1075/−133` em **2026-08-13** ([#5743](https://github.com/wagnerra23/oimpresso.com/pull/5743)), cujo próprio corpo diz que
 >   o espelho tinha *"METADE do arquivo vivo (58.331 vs 112.096 bytes)"*.
 > - No mesmo commit desceram **8 arquivos de Cliente que nunca tinham existido no espelho**, entre
@@ -53,7 +53,7 @@ governanca:
 > ## 2026-09-06 — por que continua sem map (não é "falta análise", é DONO)
 >
 > A releitura que o bloco acima pede **já tem dono**: [`memory/requisitos/Cliente/clientes-gap.md`](../Cliente/clientes-gap.md)
-> (2026-06-30) — mesma tela `Cliente/Index`, mesmo espelho `prototipo-ui/cowork/clientes-page.jsx`, que é o que
+> (2026-06-30) — mesma tela `Cliente/Index`, mesmo espelho `prototipo-ui/cowork/Wagner/clientes-page.jsx`, que é o que
 > `resources/js/Pages/Cliente/Index.charter.md:5-6` declara em `related_prototype`/`bundle_source` — e
 > [`Cliente/clientes.map.json`](../Cliente/clientes.map.json) (7 partes, `prototipo_sha` por conteúdo; em 2026-09-06 o
 > `design-code-map-check` o acusa STALE porque o [#6893](https://github.com/wagnerra23/oimpresso.com/pull/6893) desceu o

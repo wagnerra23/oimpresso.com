@@ -1,7 +1,7 @@
 ---
 id: requisitos-backup-backup-index-gap
 tela: Backup/Index (/backup)
-prototipo: prototipo-ui/cowork/backup-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/backup-page.jsx
 tela_viva: resources/js/Pages/Backup/Index.tsx
 gerado_em: 2026-09-06
 ---

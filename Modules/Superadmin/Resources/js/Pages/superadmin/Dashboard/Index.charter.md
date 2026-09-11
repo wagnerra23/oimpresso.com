@@ -2,7 +2,7 @@
 id: modules-superadmin-pages-superadmin-dashboard-index-charter
 page: /superadmin
 component: Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx
-related_prototype: prototipo-ui/cowork/superadmin-page.jsx
+related_prototype: prototipo-ui/cowork/Wagner/superadmin-page.jsx
 owner: wagner
 status: live
 last_validated: "2026-08-19"
@@ -28,7 +28,7 @@ charter_version: 1
 > `config('constants.administrator_usernames')`; só depois o controller checa a permissão
 > Spatie `superadmin`. F1 registrada em
 > [`RUNBOOK-dashboard.md`](../../../../../../../memory/requisitos/Superadmin/RUNBOOK-dashboard.md).
-> Âncora de design: `ViewVisao()` em `prototipo-ui/cowork/superadmin-page.jsx` (L599-757).
+> Âncora de design: `ViewVisao()` em `prototipo-ui/cowork/Wagner/superadmin-page.jsx` (L599-757).
 
 ---
 
@@ -93,10 +93,10 @@ Alvo do F1 ainda **não** entregue — está aqui pra não se perder, não como 
 
 ## Contrato visual
 
-Travado por [`prototipo-ui/contrato/superadmin-dashboard.contract.json`](../../../../../../../prototipo-ui/contrato/superadmin-dashboard.contract.json)
+Travado por [`governance/design/contracts/superadmin-dashboard.contract.json`](../../../../../../../governance/design/contracts/superadmin-dashboard.contract.json)
 (ADR 0286), verificado no CI por `contrato-de-tela.mjs` — âncora `data-contract` + **copy literal** +
 ordem. Fonte da copy: o §3 do F1 [CC] (`cowork-inbox/SUPERADMIN-F1-2026-08-18.md`), ancorado em
-`prototipo-ui/cowork/superadmin-page.jsx` — a mesma âncora do `related_prototype`.
+`prototipo-ui/cowork/Wagner/superadmin-page.jsx` — a mesma âncora do `related_prototype`.
 
 | Seção | Copy travada |
 |---|---|

@@ -37,7 +37,7 @@ externas e zero referência insegura**. As únicas ausências foram `_ds_bundle.
 - `aplicar-payload.mjs` aceita vários lotes e o modo `--require-complete-shell`;
 - payloads precisam trazer o entry, `missing:[]`, bytes válidos e zero path duplicado/inseguro;
 - CDN/URL externa, pacote npm e rota de API são classificados fora do grafo local;
-- `_ds/<slug>/**` pousa em `scripts/design-sync/mirror-snapshot/`; base64 vira bytes reais;
+- `_ds/<slug>/**` pousa em `prototipo-ui/design-system/`; base64 vira bytes reais;
 - preflight é atômico: um erro significa zero writes;
 - protocolo, F3, runbook, skill, hook e painel executável passaram a ensinar os dois payloads.
 

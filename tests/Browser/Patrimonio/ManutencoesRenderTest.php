@@ -75,7 +75,7 @@ beforeEach(function () {
 
 /**
  * As âncoras do contrato que renderizam para QUEM VÊ TUDO — 3 das 4 declaradas em
- * `prototipo-ui/contrato/patrimonio-manutencoes.contract.json`. A quarta (`alerta`) é
+ * `governance/design/contracts/patrimonio-manutencoes.contract.json`. A quarta (`alerta`) é
  * condicional; ver o docblock do topo e o terceiro caso.
  */
 const ANCORAS_MANUTENCOES_ADMIN = ['cabecalho', 'subnav', 'tabela'];

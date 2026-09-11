@@ -5,7 +5,7 @@
 //         0180 (sidebar v3 · ghosts), 0253 (primitivos de layout)
 //   runbook: memory/requisitos/AssetManagement/RUNBOOK-manutencoes.md
 //   charter: ./Manutencoes.charter.md · casos: ./Manutencoes.casos.md
-//   fonte visual: prototipo-ui/cowork/patrimonio-page.jsx (`AbaManutencoes`, :475) — ALVO,
+//   fonte visual: prototipo-ui/cowork/Wagner/patrimonio-page.jsx (`AbaManutencoes`, :475) — ALVO,
 //                 não decisão de produto (`06-ui-bloqueada.md`)
 //
 // SEGUNDA tela Inertia do módulo. Não funda nada: herda o `_shared/` de Bens (#7035).
@@ -436,7 +436,7 @@ export default function Manutencoes({ manutencoes, filtros, opcoes, permissoes }
       <Stack gap={4}>
         {/* As âncoras `data-contract` são a ponte Cowork-CSS ↔ Tailwind do gate
             `contrato-de-tela.mjs` (ADR 0286) — mesmo padrão da irmã Bens (`Bens.tsx:532`).
-            Quem as consome: `prototipo-ui/contrato/patrimonio-manutencoes.contract.json`.
+            Quem as consome: `governance/design/contracts/patrimonio-manutencoes.contract.json`.
             Cada uma envolve elemento QUE JÁ EXISTIA; nenhum conteúdo mudou. */}
         <div data-contract="cabecalho">
           <PageHeader

@@ -58,7 +58,7 @@ for (const nome of [
 
 // ── LIBERA: os controles negativos. Sem eles, um hook que bloqueia TUDO passaria ──
 for (const [tool, fp, porque] of [
-  ['Read', 'prototipo-ui/prototipos/financeiro/F1.html', 'design legítimo (.html) — a dor do [W]: zero backfire'],
+  ['Read', 'prototipo-ui/cowork/Wagner/legado/financeiro/F1.html', 'design legítimo (.html) — a dor do [W]: zero backfire'],
   ['Read', 'Financeiro.png', 'imagem SEM termo de auditoria passa'],
   ['Read', 'ph-financeiro.png', 'prefixo de protótipo passa'],
   ['Read', 'memory/decisions/0369-audit-algo.md', 'NÃO é imagem — "audit" no nome de .md não conta'],

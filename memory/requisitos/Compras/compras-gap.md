@@ -1,6 +1,6 @@
 ---
 tela: Compras/Index (/purchases)
-prototipo: prototipo-ui/cowork/compras-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/compras-page.jsx
 tela_viva: resources/js/Pages/Compras/Index.tsx
 id: requisitos-compras-compras-gap
 ---

@@ -1,6 +1,6 @@
 // Wave 2 B4 Produto · F3 FRONTEND — Pages/Produto/Index.tsx
 // Migração MWART (ADR 0104) — Blade product.index → Inertia/React Cowork blueprint
-// Pattern reuse blueprint: prototipo-ui/prototipos/produto-cockpit/ (ADR 0149)
+// Pattern reuse blueprint: prototipo-ui/cowork/Wagner/legado/produto-cockpit/ (ADR 0149)
 // Refs: RUNBOOK-produto-index.md · Index.charter.md · produto-index-visual-comparison.md
 // Agent W2-C paralelo · 2026-05-15
 //

@@ -1,7 +1,7 @@
 ---
 id: requisitos-financeiro-cobranca-index-gap
 tela: Financeiro/Cobranca/Index (/financeiro/cobranca)
-prototipo: prototipo-ui/cowork/pg-cobranca-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/pg-cobranca-page.jsx
 tela_viva: resources/js/Pages/Financeiro/Cobranca/Index.tsx
 gerado_em: 2026-09-06
 ---
@@ -16,7 +16,7 @@ gerado_em: 2026-09-06
 
 ## ⚠️ A âncora que o charter declara está DESATUALIZADA — e este gap NÃO usa ela
 
-O charter aponta `related_prototype: prototipo-ui/cowork/prototipos/payment-gateway-ui/cobranca-page.jsx`.
+O charter aponta `related_prototype: prototipo-ui/cowork/Wagner/legado/payment-gateway-ui/cobranca-page.jsx`.
 Existem **duas cópias** do mesmo protótipo no espelho, e essa é a antiga. Medido:
 
 | | `prototipos/payment-gateway-ui/cobranca-page.jsx` (charter) | `pg-cobranca-page.jsx` (bundle ativo) |

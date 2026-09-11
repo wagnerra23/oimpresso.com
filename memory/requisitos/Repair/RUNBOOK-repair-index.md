@@ -15,7 +15,7 @@
 ## F1 PLAN
 
 1. **JÁ MIGRADO**: Wave anterior (Sprint 2/MWART-0001 PR #100) entregou `Repair/Index.tsx`. Esta wave **VALIDA** + adiciona FSM hooks futuros + assegura pattern compliance.
-2. Pattern reuse: blueprint `prototipo-ui/prototipos/os/cowork-app.jsx` (listagem OS-tipo).
+2. Pattern reuse: blueprint `prototipo-ui/cowork/Wagner/legado/os/cowork-app.jsx` (listagem OS-tipo).
 3. Listagem `transactions` filtrada por `sub_type='repair'` (NÃO confundir com JobSheet — Repair Index é a VENDA-de-reparo, JobSheet é a ORDEM-DE-SERVIÇO).
 
 ## F2 BASELINE

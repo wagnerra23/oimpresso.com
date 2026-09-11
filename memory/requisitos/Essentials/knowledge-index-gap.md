@@ -1,7 +1,7 @@
 ---
 id: requisitos-essentials-knowledge-index-gap
 tela: Essentials/Knowledge/Index (/essentials/knowledge-base)
-prototipo: prototipo-ui/cowork/essenciais-extras.jsx
+prototipo: prototipo-ui/cowork/Wagner/essenciais-extras.jsx
 tela_viva: resources/js/Pages/Essentials/Knowledge/Index.tsx
 gerado_em: 2026-09-06
 ---

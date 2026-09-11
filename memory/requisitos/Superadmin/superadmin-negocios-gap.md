@@ -1,7 +1,7 @@
 ---
 id: requisitos-superadmin-negocios-gap
 tela: superadmin/Negocios/Index (/superadmin/business)
-prototipo: prototipo-ui/cowork/superadmin-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/superadmin-page.jsx
 tela_viva: Modules/Superadmin/Resources/js/Pages/superadmin/Negocios/Index.tsx
 gerado_em: 2026-09-06
 ---
@@ -15,7 +15,7 @@ gerado_em: 2026-09-06
 | Parte | Estado no vivo | Ação |
 |---|---|---|
 | PageHeader — título | `PageHeader title="Negócios" moduleNav` (Negocios/Index.tsx:217); mockup `PageHead titulo="Negócios"` (superadmin-page.jsx:919) | Nada — paridade |
-| PageHeader — subtítulo com contagens (cadastrados · com assinatura ativa · inativos) | `description="Todos os clientes da plataforma"` fixa (Negocios/Index.tsx:217); o total vive no rodapé da tabela (:370-372); o contrato (`prototipo-ui/contrato/superadmin-negocios.contract.json`) trava 4 seções e não o header | **Decidir.** O mockup (superadmin-page.jsx:919) escreve no subtítulo 3 contagens computadas da lista; o vivo (Negocios/Index.tsx:217) tem descrição estática. Construir ou rejeitar por escrito. |
+| PageHeader — subtítulo com contagens (cadastrados · com assinatura ativa · inativos) | `description="Todos os clientes da plataforma"` fixa (Negocios/Index.tsx:217); o total vive no rodapé da tabela (:370-372); o contrato (`governance/design/contracts/superadmin-negocios.contract.json`) trava 4 seções e não o header | **Decidir.** O mockup (superadmin-page.jsx:919) escreve no subtítulo 3 contagens computadas da lista; o vivo (Negocios/Index.tsx:217) tem descrição estática. Construir ou rejeitar por escrito. |
 | PageHeader — botão "Exportar" (CSV da lista filtrada) | Nenhuma exportação na tela; o contrato só registra "exportar" como ação da BulkBar (`_nota_recorte`), não do header | **Decidir.** O mockup (superadmin-page.jsx:921) tem botão "Exportar" no header (no mock o clique só dispara toast); o vivo (Negocios/Index.tsx:215-263) não tem exportação nenhuma, e nenhum charter/RUNBOOK/SPEC decide sobre ela. Construir ou rejeitar por escrito. |
 | PageHeader — "Novo negócio" (+ atalho `n`) e `NegocioForm` (3 seções: Identificação · Dono da conta · Assinatura inicial) | Sem botão, sem atalho `n`, sem form (Negocios/Index.tsx:135-146 só registra `/`); `create()/store()` seguem em Blade (`BusinessController.php:362, :401`) | Nada — decisão já registrada (RUNBOOK-negocios §7 item 1 "create/store — migração de verdade" na SA-O3; item 2 "edit/update — decisão [W], não migração"; charter §Contrato visual "FormDrawer novo/editar ficou de fora"; contrato `_nota_recorte`) |
 | Busca (nome · dono · e-mail · número) + atalho `/` | `Input` com debounce 300 ms (Negocios/Index.tsx:148-159, :220-226); `/` foca (:134-146); mockup :929-933 | Nada — paridade (a dica visual `<kbd>/</kbd>` do mockup :932 é decoração; o atalho existe :139-141) |

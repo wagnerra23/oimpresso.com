@@ -279,7 +279,7 @@ este RUNBOOK era escrito**. Re-medido aqui por mordida depois do rebase:
 
 > _Estado anterior, preservado porque explica o desenho das ondas:_ o hook devolvia `deny`; os
 > **3** charters da área (`Index`, `Chat`, `Memoria`) declaram `related_prototype:
-> prototipo-ui/cowork/jana-merge.jsx`, e o ledger tinha `staleList: ["jana-merge.jsx"]` na
+> prototipo-ui/cowork/Wagner/jana-merge.jsx`, e o ledger tinha `staleList: ["jana-merge.jsx"]` na
 > rodada `--compare` de 2026-08-26T22:07Z. Não há env de bypass, e isso é deliberado.
 
 ⇒ **A correção que a queda do B2 obriga:** eles **não** tinham "a mesma raiz e o mesmo
@@ -329,7 +329,7 @@ Cada PR: charter + `casos.md` + teste citando o UC (`casos-gate` é required). �
 da área são **154,5 KiB de UC numerado**, citados de fora (contrato de tela, scorecards):
 **emendar, nunca reescrever** — reescrever zera referência cruzada.
 
-⚠️ **Contrato de tela: estender, não criar.** `prototipo-ui/contrato/jana-painel.contract.json`
+⚠️ **Contrato de tela: estender, não criar.** `governance/design/contracts/jana-painel.contract.json`
 já existe e está **ativo no CI** com copy pinada por [W]. O drawer entra como seção nova nele.
 
 ### 9.5 · Definição de pronto (nova)
@@ -380,7 +380,7 @@ trabalho dirigido por [W] ([ADR 0382](../../decisions/0382-remove-trava-de-sinal
 | | Estado | PR | Prova |
 |---|---|---|---|
 | **B2** âncora STALE | ✅ caiu | [#6378](https://github.com/wagnerra23/oimpresso.com/pull/6378) | `charter-validate` → `allow`; `ancora.mjs Jana/Index` → `frescor: verificado` |
-| **B1** sem fonte de design | ✅ caiu | [#6379](https://github.com/wagnerra23/oimpresso.com/pull/6379) | `jana-metas.jsx` **24.187 B** e `jana-metas.css` **3.087 B** em `prototipo-ui/cowork/` (medido no disco, em `origin/main`) |
+| **B1** sem fonte de design | ✅ caiu | [#6379](https://github.com/wagnerra23/oimpresso.com/pull/6379) | `jana-metas.jsx` **24.187 B** e `jana-metas.css` **3.087 B** em `prototipo-ui/cowork/Wagner/` (medido no disco, em `origin/main`) |
 
 O #6379 trouxe junto `jana-telas-novas.{jsx,css}` (35.454 B / 4.004 B) e os 3 pedidos de
 27/08 para `prototipo-ui/design-docs/cowork-inbox/` — inclusive o `JANA-ERRATA-CAMADA-ESQUECIDA`,
@@ -391,7 +391,7 @@ não por mim, e não pela rota que eu previa. Não refazer.
 
 ### 10.2 · O escopo, agora lido da fonte (não inferido)
 
-Cabeçalho de `prototipo-ui/cowork/jana-metas.jsx`, literal: absorve `metas/{index,create,edit,show}`
+Cabeçalho de `prototipo-ui/cowork/Wagner/jana-metas.jsx`, literal: absorve `metas/{index,create,edit,show}`
 **+** `fontes/show` *"para dentro da tela única da Jana — sem rota nova, sem .html novo"*. E o
 mapeamento tela→padrão vem declarado nele:
 

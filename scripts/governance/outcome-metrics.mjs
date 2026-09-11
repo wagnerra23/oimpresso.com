@@ -12,7 +12,7 @@
  * Objetivo: substituir a "%" estimada do Wagner por NÚMERO REAL de maturidade do
  * loop de design. Mede retrabalho/revert/first-pass cruzando DUAS fontes honestas:
  *
- *   FONTE A (proxy fraco — texto livre): prototipo-ui/SYNC_LOG.md
+ *   FONTE A (proxy fraco — texto livre): memory/reference/prototipo-ui/SYNC_LOG.md
  *     Timeline append-only `YYYY-MM-DD HH:MM [SIGLA] <evento>`. NÃO tem campo
  *     machine-readable "tela X entregue em T". Tem menções soltas a telas + PRs +
  *     palavras de entrega (MERGED/approved/PR draft) e de retrabalho (revert/fix/
@@ -68,7 +68,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(__dirname, '..', '..');
 
 // ── constantes (exportadas pra teste) ─────────────────────────────────────────
-export const SYNC_LOG_PATH = 'prototipo-ui/SYNC_LOG.md';
+export const SYNC_LOG_PATH = 'memory/reference/prototipo-ui/SYNC_LOG.md';
 export const PAGES_GLOB = 'resources/js/Pages';
 /** >N commits após o 1º (= entrega) conta como retrabalho via git (proxy fraco). */
 export const REWORK_COMMIT_THRESHOLD = 1;

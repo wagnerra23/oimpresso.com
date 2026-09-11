@@ -1,8 +1,8 @@
 // Jana/Alertas — a aba Alertas da área Jana (`/ia/alertas`).
 //
-// Âncora de design: `prototipo-ui/cowork/jana-telas-novas.jsx` §`JmAlertas` — âncora de
-// SÍMBOLO, nunca de linha (`grep -n "function JmAlertas" prototipo-ui/cowork/jana-telas-novas.jsx`;
-// resolva com `node prototipo-ui/ancora.mjs Jana/Alertas`). A ABA vive no `JmTabs` de
+// Âncora de design: `prototipo-ui/cowork/Wagner/jana-telas-novas.jsx` §`JmAlertas` — âncora de
+// SÍMBOLO, nunca de linha (`grep -n "function JmAlertas" prototipo-ui/cowork/Wagner/jana-telas-novas.jsx`;
+// resolva com `node scripts/design/ancora.mjs Jana/Alertas`). A ABA vive no `JmTabs` de
 // `jana-merge.jsx` (Painel · Conversa · Alertas · Ações · Memória · Plataforma) e aqui
 // nasce do ghost `alertas` do `DataController`, lido pelo `JanaSubNav` compartilhado.
 //

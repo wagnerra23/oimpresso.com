@@ -1,7 +1,7 @@
 // Wave C-FE — validadores BR (mod 11 CPF/CNPJ + email + CEP) pro drawer 760.
 //
 // Refs: ADR 0179 (drawer 760) · Charter Index.charter.md v3 · HANDOFF_CLIENTES.md §2
-// Cowork blueprint: prototipo-ui/prototipos/clientes/clientes-icons.jsx (BRValidate)
+// Cowork blueprint: prototipo-ui/cowork/Wagner/legado/clientes/clientes-icons.jsx (BRValidate)
 //
 // Validação CLIENT-SIDE é UX-only: vermelho borda + erro inline antes do save.
 // Backend (Rule\BR\CpfCnpj + FormRequest) é a verdade canônica — ADR 0093 Tier 0

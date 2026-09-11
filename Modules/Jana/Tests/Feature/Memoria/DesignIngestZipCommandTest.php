@@ -54,11 +54,11 @@ function ingestSeedMap(): void
     ingestSeed('prototipo-ui/cowork-map.json', json_encode([
         'screens' => [
             'caixa-unificada' => ['module' => 'Atendimento', 'page_id' => 'atendimento-caixa-unificada', 'routes' => [
-                ['glob' => 'inbox-*.jsx', 'to' => 'prototipo-ui/prototipos/caixa-unificada/'],
-                ['glob' => 'inbox-*.css', 'to' => 'prototipo-ui/prototipos/caixa-unificada/'],
+                ['glob' => 'inbox-*.jsx', 'to' => 'prototipo-ui/cowork/Wagner/legado/caixa-unificada/'],
+                ['glob' => 'inbox-*.css', 'to' => 'prototipo-ui/cowork/Wagner/legado/caixa-unificada/'],
             ]],
             'vendas' => ['module' => 'Sells', 'page_id' => 'sells-index', 'routes' => [
-                ['glob' => 'vendas-*.jsx', 'to' => 'prototipo-ui/prototipos/vendas/'],
+                ['glob' => 'vendas-*.jsx', 'to' => 'prototipo-ui/cowork/Wagner/legado/vendas/'],
             ]],
         ],
     ]));
@@ -71,8 +71,8 @@ function ingestPlano(string $tela): string
 
 test('diff é sobre os ROTEADOS: add/mod/del corretos; extra desconhecido listado', function () {
     ingestSeedMap();
-    ingestSeed('prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx', 'v1'); // será modificado
-    ingestSeed('prototipo-ui/prototipos/caixa-unificada/inbox-old.css', 'x');   // será removido
+    ingestSeed('prototipo-ui/cowork/Wagner/legado/caixa-unificada/inbox-page.jsx', 'v1'); // será modificado
+    ingestSeed('prototipo-ui/cowork/Wagner/legado/caixa-unificada/inbox-old.css', 'x');   // será removido
     $zip = test()->root . '/export.zip';
     ingestZipFile($zip, [
         'inbox-page.jsx' => 'v2',   // roteado → mod
@@ -92,7 +92,7 @@ test('diff é sobre os ROTEADOS: add/mod/del corretos; extra desconhecido listad
 
 test('handoff ANINHADO idêntico → "sem mudanças"; arquivo de outra tela é agregado', function () {
     ingestSeedMap();
-    ingestSeed('prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx', 'CONTEUDO_A');
+    ingestSeed('prototipo-ui/cowork/Wagner/legado/caixa-unificada/inbox-page.jsx', 'CONTEUDO_A');
     // zip no formato handoff: tudo sob oimpresso-x/project/, todas as telas juntas
     $zip = test()->root . '/handoff.zip';
     ingestZipFile($zip, [
@@ -111,7 +111,7 @@ test('handoff ANINHADO idêntico → "sem mudanças"; arquivo de outra tela é a
 
 test('handoff ANINHADO modificado → o diff PEGA o arquivo modificado', function () {
     ingestSeedMap();
-    ingestSeed('prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx', 'CONTEUDO_A');
+    ingestSeed('prototipo-ui/cowork/Wagner/legado/caixa-unificada/inbox-page.jsx', 'CONTEUDO_A');
     $zip = test()->root . '/handoff.zip';
     ingestZipFile($zip, ['oimpresso-x/project/inbox-page.jsx' => 'CONTEUDO_B_MUDOU']);
 
@@ -122,14 +122,14 @@ test('handoff ANINHADO modificado → o diff PEGA o arquivo modificado', functio
 
 test('prepare-only: NÃO aplica no protótipo commitado', function () {
     ingestSeedMap();
-    ingestSeed('prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx', 'v1');
+    ingestSeed('prototipo-ui/cowork/Wagner/legado/caixa-unificada/inbox-page.jsx', 'v1');
     $zip = test()->root . '/handoff.zip';
     ingestZipFile($zip, ['oimpresso-x/project/inbox-page.jsx' => 'v2-NOVO']);
 
     Artisan::call('design:ingest-zip', ['--zip' => $zip, '--tela' => 'caixa-unificada']);
 
     // commitado intocado (aplicação é gate Wagner/CT100)
-    expect(File::get(test()->root . '/prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx'))->toBe('v1');
+    expect(File::get(test()->root . '/prototipo-ui/cowork/Wagner/legado/caixa-unificada/inbox-page.jsx'))->toBe('v1');
     expect(File::exists(test()->root . '/prototipo-ui/_incoming/caixa-unificada/_prepared/PLANO-MUDANCAS-caixa-unificada.md'))->toBeTrue();
     expect(File::exists(test()->root . '/prototipo-ui/_incoming/caixa-unificada/_prepared/SESSION-design-ingest-caixa-unificada.md'))->toBeTrue();
 });

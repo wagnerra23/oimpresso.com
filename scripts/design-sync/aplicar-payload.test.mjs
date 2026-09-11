@@ -51,12 +51,12 @@ if (fnvRef('foobar') !== '85944171f73967e8') {
   process.exit(1);
 }
 
-/** sandbox: cwd próprio com `prototipo-ui/cowork/`, pra nunca tocar o repo real */
+/** sandbox: cwd próprio com `prototipo-ui/cowork/Wagner/`, pra nunca tocar o repo real */
 function sandbox(arquivosIniciais = {}) {
   const dir = mkdtempSync(join(tmpdir(), 'aplicar-payload-'));
-  mkdirSync(join(dir, 'prototipo-ui', 'cowork'), { recursive: true });
+  mkdirSync(join(dir, 'prototipo-ui', 'cowork', 'Wagner'), { recursive: true });
   for (const [rel, txt] of Object.entries(arquivosIniciais)) {
-    writeFileSync(join(dir, 'prototipo-ui', 'cowork', rel), txt, 'utf8');
+    writeFileSync(join(dir, 'prototipo-ui', 'cowork', 'Wagner', rel), txt, 'utf8');
   }
   return dir;
 }
@@ -97,13 +97,13 @@ function rodar(dir, pay, args = []) {
   const dir = sandbox({ 'a.jsx': 'velho\n' });
   const pay = payload(dir, [{ path: 'a.jsx', content: 'novo\n' }, { path: 'b.css', content: 'x\n' }]);
   const seco = rodar(dir, pay, ['--dry']);
-  check('--dry NÃO escreve', readFileSync(join(dir, 'prototipo-ui/cowork/a.jsx'), 'utf8') === 'velho\n', seco.out);
+  check('--dry NÃO escreve', readFileSync(join(dir, 'prototipo-ui/cowork/Wagner/a.jsx'), 'utf8') === 'velho\n', seco.out);
   check('--dry conta 1 atualizado + 1 novo', /1 atualizado\(s\) · 1 novo\(s\)/.test(seco.out), seco.out);
 
   const r = rodar(dir, pay);
   check('aplica: conteúdo fica BYTE-idêntico ao payload',
-    readFileSync(join(dir, 'prototipo-ui/cowork/a.jsx'), 'utf8') === 'novo\n' &&
-    readFileSync(join(dir, 'prototipo-ui/cowork/b.css'), 'utf8') === 'x\n', r.out);
+    readFileSync(join(dir, 'prototipo-ui/cowork/Wagner/a.jsx'), 'utf8') === 'novo\n' &&
+    readFileSync(join(dir, 'prototipo-ui/cowork/Wagner/b.css'), 'utf8') === 'x\n', r.out);
   check('aplica: rc=0 quando nada é recusado', r.code === 0, 'rc=' + r.code);
 
   const r2 = rodar(dir, pay);
@@ -130,9 +130,9 @@ function rodar(dir, pay, args = []) {
   check('BITE build-only: .md é recusado com explicação',
     r.code !== 0 && /fora do contrato build-only/.test(r.out), r.out);
   check('BITE build-only: .md não cria canon-sombra',
-    !existsSync(join(dir, 'prototipo-ui/cowork/cowork-inbox/LEIAME.md')), r.out);
+    !existsSync(join(dir, 'prototipo-ui/cowork/Wagner/handoffs/payloads/LEIAME.md')), r.out);
   check('BITE atomicidade: arquivo válido do mesmo lote também não é escrito',
-    !existsSync(join(dir, 'prototipo-ui/cowork/nao-pode-vazar.jsx')), r.out);
+    !existsSync(join(dir, 'prototipo-ui/cowork/Wagner/nao-pode-vazar.jsx')), r.out);
   check('BITE build-only: nada pousa em design-docs/',
     !existsSync(join(dir, 'prototipo-ui/design-docs/cowork-inbox/LEIAME.md')), r.out);
 }
@@ -148,8 +148,8 @@ function rodar(dir, pay, args = []) {
   check('BITE duplicata: mesmos bytes em paths distintos recusam o lote',
     r.code !== 0 && /conteúdo duplicado/.test(r.out), r.out);
   check('BITE duplicata: nenhuma das duas fontes é escrita',
-    !existsSync(join(dir, 'prototipo-ui/cowork/a/origem.jsx')) &&
-    !existsSync(join(dir, 'prototipo-ui/cowork/b/copia.jsx')), r.out);
+    !existsSync(join(dir, 'prototipo-ui/cowork/Wagner/a/origem.jsx')) &&
+    !existsSync(join(dir, 'prototipo-ui/cowork/Wagner/b/copia.jsx')), r.out);
 }
 
 // ── 5: bytes divergente = corrupção de transporte ────────────────────────────
@@ -159,7 +159,7 @@ function rodar(dir, pay, args = []) {
   writeFileSync(pay, JSON.stringify({ files: [{ path: 'c.jsx', content: 'abc\n', bytes: 999 }] }), 'utf8');
   const r = rodar(dir, pay);
   check('BITE bytes: recusa quando declarado != real', /DIVERGENTE/.test(r.out) && r.code !== 0, r.out);
-  check('BITE bytes: arquivo corrompido NÃO é escrito', !existsSync(join(dir, 'prototipo-ui/cowork/c.jsx')));
+  check('BITE bytes: arquivo corrompido NÃO é escrito', !existsSync(join(dir, 'prototipo-ui/cowork/Wagner/c.jsx')));
 }
 
 // ── 6 + 7: alerta de PERDA LÍQUIDA (o caso qa-conformance.js) ────────────────
@@ -214,13 +214,13 @@ function rodar(dir, pay, args = []) {
   check('SHELL COMPLETO: fecha HTML→CSS/JS→imports/assets e ignora CDN externa',
     r.code === 0 && /GRAFO COMPLETO/.test(r.out), r.out);
   check('SHELL COMPLETO: fonte/CSS/bundle `_ds` pousam no snapshot canônico',
-    readFileSync(join(dir, 'scripts/design-sync/mirror-snapshot/_ds_bundle.js'), 'utf8').includes('Drawer') &&
-    readFileSync(join(dir, 'scripts/design-sync/mirror-snapshot/colors_and_type.css'), 'utf8').includes('@font-face') &&
-    readFileSync(join(dir, 'scripts/design-sync/mirror-snapshot/assets/fonts/mono.woff2')).equals(fontBytes), r.out);
+    readFileSync(join(dir, 'prototipo-ui/design-system/_ds_bundle.js'), 'utf8').includes('Drawer') &&
+    readFileSync(join(dir, 'prototipo-ui/design-system/colors_and_type.css'), 'utf8').includes('@font-face') &&
+    readFileSync(join(dir, 'prototipo-ui/design-system/assets/fonts/mono.woff2')).equals(fontBytes), r.out);
   check('SHELL COMPLETO: `_ds` não vira segunda cópia dentro do espelho',
-    !existsSync(join(dir, 'prototipo-ui/cowork/_ds/ds-teste/_ds_bundle.js')));
+    !existsSync(join(dir, 'prototipo-ui/cowork/Wagner/_ds/ds-teste/_ds_bundle.js')));
   check('SHELL COMPLETO: arquivos Cowork seguem no espelho',
-    existsSync(join(dir, 'prototipo-ui/cowork/lib/util.js')) && existsSync(join(dir, 'prototipo-ui/cowork/assets/bg.svg')));
+    existsSync(join(dir, 'prototipo-ui/cowork/Wagner/lib/util.js')) && existsSync(join(dir, 'prototipo-ui/cowork/Wagner/assets/bg.svg')));
 }
 
 // ── 10: grafo incompleto é atômico — nenhum arquivo do lote é escrito ─────────
@@ -236,8 +236,8 @@ function rodar(dir, pay, args = []) {
   check('BITE grafo: dependência JS transitiva ausente reprova nominalmente',
     r.code === 1 && /grafo local incompleto: ausente\.js/.test(r.out), r.out);
   check('BITE grafo: falha é atômica, nem o primeiro arquivo é escrito',
-    !existsSync(join(dir, 'prototipo-ui/cowork/oimpresso.com.html')) &&
-    !existsSync(join(dir, 'prototipo-ui/cowork/styles.css')), r.out);
+    !existsSync(join(dir, 'prototipo-ui/cowork/Wagner/oimpresso.com.html')) &&
+    !existsSync(join(dir, 'prototipo-ui/cowork/Wagner/styles.css')), r.out);
 }
 
 // O gerador remoto também declara o que não conseguiu incluir; a máquina não aceita a palavra
@@ -249,7 +249,7 @@ function rodar(dir, pay, args = []) {
   const r = rodar(dir, pay, ['--require-complete-shell']);
   check('BITE missing declarado: payload autodeclarado incompleto reprova sem escrever',
     r.code === 1 && /payload declarou 1 ausente/.test(r.out) &&
-    !existsSync(join(dir, 'prototipo-ui/cowork/oimpresso.com.html')), r.out);
+    !existsSync(join(dir, 'prototipo-ui/cowork/Wagner/oimpresso.com.html')), r.out);
 }
 
 // -- ENVELOPE do get_file: o 3o caso, medido 2026-08-20 no artefato real -----
@@ -280,7 +280,7 @@ function rodar(dir, pay, args = []) {
   const r = rodar(dir, pay, ['--require-complete-shell']);
   check('CONTROLE: payload legitimo NAO e confundido com envelope',
     r.code === 0 && !/ENVELOPE/.test(r.out) &&
-    existsSync(join(dir, 'prototipo-ui/cowork/oimpresso.com.html')), r.out);
+    existsSync(join(dir, 'prototipo-ui/cowork/Wagner/oimpresso.com.html')), r.out);
 }
 
 console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ applier: fiel/atômico · shell transitivo completo · _ds persistente · recusa escopo/bytes/documentos/duplicatas · preserva paths · avisa regressão');
@@ -302,11 +302,11 @@ console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ applier: fiel/atômico ·
   check('BITE truncagem: a mensagem ENSINA o remedio (aplicar em partes)',
     r.out.includes('em PARTES') && r.out.includes('p1.json p2.json'), r.out);
   check('BITE truncagem: nada e escrito quando o payload nao parseia',
-    !existsSync(join(dir, 'prototipo-ui/cowork/a.jsx')), r.out);
+    !existsSync(join(dir, 'prototipo-ui/cowork/Wagner/a.jsx')), r.out);
 
   const ok = rodar(dir, pay);
   check('CONTROLE POSITIVO: payload inteiro continua aplicando',
-    ok.code === 0 && existsSync(join(dir, 'prototipo-ui/cowork/a.jsx')), ok.out);
+    ok.code === 0 && existsSync(join(dir, 'prototipo-ui/cowork/Wagner/a.jsx')), ok.out);
 }
 
 // ── 12: payload que PARSEIA mas veio incompleto ─────────────────────────────
@@ -323,7 +323,7 @@ console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ applier: fiel/atômico ·
   check('BITE incompleto: fileCount declarado > arquivos trazidos reprova',
     r.code === 2 && r.out.includes('payload incompleto') && r.out.includes('faltam 3'), r.out);
   check('BITE incompleto: nao escreve espelho pela metade',
-    !existsSync(join(dir, 'prototipo-ui/cowork/a.jsx')), r.out);
+    !existsSync(join(dir, 'prototipo-ui/cowork/Wagner/a.jsx')), r.out);
 }
 
 // ── C1: digest declarado × calculado — contradição REPORTADA, nunca veredito ──
@@ -342,7 +342,7 @@ console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ applier: fiel/atômico ·
   check('BITE digest: contradição sai no rodapé com 2/3',
     /digest N[ÃA]O bate em 2\/3/.test(r.out), r.out);
   check('BITE digest: NÃO bloqueia — rc=0 e os 3 arquivos escritos',
-    r.code === 0 && ['a.jsx', 'b.jsx', 'c.jsx'].every((f) => existsSync(join(dir, 'prototipo-ui/cowork', f))), 'rc=' + r.code + r.out);
+    r.code === 0 && ['a.jsx', 'b.jsx', 'c.jsx'].every((f) => existsSync(join(dir, 'prototipo-ui/cowork/Wagner', f))), 'rc=' + r.code + r.out);
   check('BITE digest: diz que segue como REFERÊNCIA, não veredito',
     /REFER[ÊE]NCIA, n[ãa]o veredito/.test(r.out), r.out);
 }
@@ -362,7 +362,7 @@ console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ applier: fiel/atômico ·
   check('BITE sem-bytes: lote parcial escreve e AVISA 1 sem prova',
     r.code === 0 && /1 arquivo\(s\) escrito\(s\) SEM prova de bytes/.test(r.out), r.out);
   check('BITE sem-bytes: o arquivo sem prova foi mesmo escrito',
-    existsSync(join(dir, 'prototipo-ui/cowork/a.jsx')), r.out);
+    existsSync(join(dir, 'prototipo-ui/cowork/Wagner/a.jsx')), r.out);
 }
 {
   const dir = sandbox();
@@ -374,7 +374,7 @@ console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ applier: fiel/atômico ·
   check('BITE sem-bytes: --require-complete-shell RECUSA o lote',
     r.code === 1 && /sem `bytes`/.test(r.out), 'rc=' + r.code + r.out);
   check('BITE sem-bytes: nada escrito quando recusa',
-    !existsSync(join(dir, 'prototipo-ui/cowork/solto.jsx')), r.out);
+    !existsSync(join(dir, 'prototipo-ui/cowork/Wagner/solto.jsx')), r.out);
 }
 
 // ── C3: `missing` declarado é lido nos DOIS modos ────────────────────────────
@@ -388,7 +388,7 @@ console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ applier: fiel/atômico ·
   const r = rodar(dir, pay);
   check('BITE missing: lote parcial RELATA os ausentes e aplica (rc=0)',
     r.code === 0 && /declarou 2 ausente\(s\): x\.jsx, y\.css/.test(r.out), 'rc=' + r.code + r.out);
-  check('BITE missing: aplicou mesmo relatando', existsSync(join(dir, 'prototipo-ui/cowork/a.jsx')), r.out);
+  check('BITE missing: aplicou mesmo relatando', existsSync(join(dir, 'prototipo-ui/cowork/Wagner/a.jsx')), r.out);
 }
 {
   const dir = sandbox();
@@ -417,14 +417,14 @@ console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ applier: fiel/atômico ·
 
   const consumer = sandbox();
   const dry = rodar(consumer, parts, ['--dry', '--require-complete-shell']);
-  check('v2 E2E: dry-run valida o lote sem escrever', dry.code === 0 && !existsSync(join(consumer, 'prototipo-ui/cowork/grande.css')), dry.out);
+  check('v2 E2E: dry-run valida o lote sem escrever', dry.code === 0 && !existsSync(join(consumer, 'prototipo-ui/cowork/Wagner/grande.css')), dry.out);
   const applied = rodar(consumer, parts, ['--require-complete-shell']);
-  check('v2 E2E: applier promove bytes idênticos', applied.code === 0 && readFileSync(join(consumer, 'prototipo-ui/cowork/grande.css')).equals(readFileSync(join(producer, 'grande.css'))), applied.out);
+  check('v2 E2E: applier promove bytes idênticos', applied.code === 0 && readFileSync(join(consumer, 'prototipo-ui/cowork/Wagner/grande.css')).equals(readFileSync(join(producer, 'grande.css'))), applied.out);
   check('v2 E2E: estado ativo foi persistido fora de _ds', existsSync(join(consumer, 'scripts/design-sync/state/active-bundle.json')), applied.out);
 
   const incomplete = sandbox();
   const missingPart01 = rodar(incomplete, parts.slice(1), ['--require-complete-shell']);
-  check('v2 E2E: ausência da part01 reprova antes de escrever', missingPart01.code !== 0 && !existsSync(join(incomplete, 'prototipo-ui/cowork/grande.css')), missingPart01.out);
+  check('v2 E2E: ausência da part01 reprova antes de escrever', missingPart01.code !== 0 && !existsSync(join(incomplete, 'prototipo-ui/cowork/Wagner/grande.css')), missingPart01.out);
 }
 
 process.exit(fails ? 1 : 0);

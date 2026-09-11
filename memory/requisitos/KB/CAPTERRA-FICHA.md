@@ -5,8 +5,8 @@ versao_ficha: 2.1
 formato: capterra-ficha-canonica (ADR 0089)
 gerado_em: 2026-05-15
 fonte:
-  - prototipo-ui/prototipos/kb/Bench KB.html (v1, 15 dimensões, score 8,27)
-  - prototipo-ui/prototipos/kb/Bench KB v2.html (v2, 16 dimensões, score 9,40 — +1,13 após 3 refinos)
+  - prototipo-ui/cowork/Wagner/legado/kb/Bench KB.html (v1, 15 dimensões, score 8,27)
+  - prototipo-ui/cowork/Wagner/legado/kb/Bench KB v2.html (v2, 16 dimensões, score 9,40 — +1,13 após 3 refinos)
   - handoff Cowork (5) 2026-05-15 19:55 — features v5 sobem estimativa pra ~9,55-9,70
 proximo_review: Bench v3 quando Cowork [CC] re-medir após sync (5)
 ---
@@ -33,7 +33,7 @@ ERP-com-KB-IA-integrado pra PME brasileira (foco gráfica/comunicação visual).
 | Intercom Articles | Help center | 7,85 | Fin AI, integração Inbox | Caro, foco em externo |
 | Linear Docs (beta) | Eng | — | Keyboard-first, performance | Não é KB-purpose-built |
 
-Bench fonte: `prototipo-ui/prototipos/kb/Bench KB v2.html` (Cowork [CC] self-assessment crítico).
+Bench fonte: `prototipo-ui/cowork/Wagner/legado/kb/Bench KB v2.html` (Cowork [CC] self-assessment crítico).
 
 ## 3. Matriz de 16 dimensões × 7 concorrentes
 

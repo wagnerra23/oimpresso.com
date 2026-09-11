@@ -37,7 +37,12 @@ const ROOT = resolve(rootArg >= 0 && args[rootArg + 1] ? args[rootArg + 1] : pro
  * LIMITE HONESTO: é busca por NOME do arquivo-fonte no corpus de pedidos. Acha o ponteiro,
  * não a decisão — quem lê ainda precisa abrir o pedido. É um `grep` bom, não um oráculo.
  */
-const DIRS_DE_PEDIDO = ['prototipo-ui/design-docs', 'prototipo-ui'];
+const DIRS_DE_PEDIDO = [
+  'prototipo-ui/cowork/Wagner/handoffs',
+  'prototipo-ui/cowork/Wagner/handoffs/payloads',
+  'governance/design-requests',
+  'memory/reference/prototipo-ui',
+];
 function pedidosQueDeclaram(source) {
   if (!source) return [];
   const base = String(source).split('/').pop().replace(/\.(jsx|tsx|css|js)$/i, '');

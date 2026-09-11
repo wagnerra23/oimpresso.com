@@ -37,7 +37,7 @@
  * NO-SECTION são warn (nomenclatura / drift latente). Job dedicado hard-fail em
  * anchor-content-required.yml; o design-memory-gate.yml segue advisory pros outros steps.
  *
- * `prototipo-ui/fixtures/**` fica FORA por desenho: são fixtures sintéticas do selftest do
+ * `tests/Design/fixtures/**` fica FORA por desenho: são fixtures sintéticas do selftest do
  * `detectar-telas`, com âncora deliberadamente inválida. Cobrá-las seria medir o dado de teste.
  *
  * Uso:
@@ -65,7 +65,7 @@ export function anchorFile(val) {
   return m ? m[1] : null;
 }
 
-/** Caminho RELATIVO dentro do espelho (`prototipo-ui/cowork/`), preservando subdiretórios.
+/** Caminho RELATIVO dentro do espelho (`prototipo-ui/cowork/Wagner/`), preservando subdiretórios.
  *  Identidade de arquivo é por PATH COMPLETO, nunca basename — dois arquivos homônimos em
  *  subdirs diferentes são arquivos DIFERENTES (adversário 2026-07-06: colisão por basename
  *  fazia "byte-provado" mentir; arte 2026-07-06: hash normalizado keyed por path completo). */

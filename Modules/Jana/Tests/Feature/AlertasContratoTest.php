@@ -25,7 +25,7 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  * rodou — ⚠️ skip sai exit 0: leia ASSERTIONS, não "0 failed" (LC-13).
  */
 const ALERTAS_TSX      = 'resources/js/Pages/Jana/Alertas.tsx';
-const ALERTAS_CONTRATO = 'prototipo-ui/contrato/jana-alertas.contract.json';
+const ALERTAS_CONTRATO = 'governance/design/contracts/jana-alertas.contract.json';
 
 function alertasBootstrap(): array
 {

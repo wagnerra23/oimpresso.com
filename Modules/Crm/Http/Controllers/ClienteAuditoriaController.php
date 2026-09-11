@@ -52,7 +52,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  *   - memory/decisions/0179-cliente-drawer-760px-substitui-show-fullpage.md §Wave F
  *   - memory/decisions/0093-multi-tenant-isolation-tier-0.md
  *   - memory/decisions/0127-modules-auditoria-ui-undo.md
- *   - prototipo-ui/prototipos/clientes/HANDOFF_CLIENTES.md §6
+ *   - prototipo-ui/cowork/Wagner/legado/clientes/HANDOFF_CLIENTES.md §6
  *   - resources/js/Pages/Cliente/Index.charter.md v3 (Goals Tab Auditoria)
  */
 class ClienteAuditoriaController extends Controller

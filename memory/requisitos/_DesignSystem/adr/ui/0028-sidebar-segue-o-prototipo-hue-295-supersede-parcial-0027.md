@@ -32,7 +32,7 @@ O que a medição desta sessão trouxe de novo — e que não existia quando aqu
 | `colors_and_type.css` — projeto **Design System** | `.cockpit` | `oklch(0.18 0.006 240)` | `oklch(0.78 0.005 90)` |
 | `styles.css` — protótipo **de tela** | `:root` | `oklch(0.21 0.025 295)` | `oklch(0.80 0.008 295)` |
 
-**2. A divergência tem causa nomeável.** `prototipo-ui/cowork/styles.css:3`, literal:
+**2. A divergência tem causa nomeável.** `prototipo-ui/cowork/Wagner/styles.css:3`, literal:
 
 ```
 /* Sidebar dark — espelho AppShell · tingido p/ a marca
@@ -60,7 +60,7 @@ no header de grupo, 14 no item de grupo. **6 delas são de cor.**
 --sb-text      oklch(0.80 0.008 295)     --sb-active    oklch(0.34 0.05  295)
 ```
 
-Fonte: `prototipo-ui/cowork/styles.css`. Copiados **exatamente**, sem arredondar nem reinterpretar.
+Fonte: `prototipo-ui/cowork/Wagner/styles.css`. Copiados **exatamente**, sem arredondar nem reinterpretar.
 
 **D-2 — A fronteira da supersessão é o prefixo `--sb-`.** A UI-0027 continua sendo a lei do dark do
 APP. Só o shell muda de regime. Isso evita reabrir a UI-0022 e a UI-0020, que a UI-0027 superseded —
@@ -73,7 +73,7 @@ quando o protótipo declarar os dois.
 
 **D-4 — Quando as duas fontes de design divergirem, o protótipo de tela vence no que ele declara.**
 É a regra que faltava e que produziu meses de "nunca fica igual": não havia precedência escrita
-entre `prototipo-ui/cowork/styles.css` e o projeto Design System, então cada alinhamento escolhia um
+entre `prototipo-ui/cowork/Wagner/styles.css` e o projeto Design System, então cada alinhamento escolhia um
 lado e parecia errado contra o outro. Escopo desta regra: **tokens de shell**. Ela não decide nada
 sobre o dark do app nem sobre cores funcionais.
 
@@ -104,5 +104,5 @@ sobre o dark do app nem sobre cores funcionais.
 - [ADR 0235](../../../../decisions/0235-ds-v4-accent-roxo-universal.md) — accent roxo; é a ADR que o
   protótipo citou fora do escopo dela
 - [ADR 0374](../../../../decisions/0374-emenda-0315-espelho-cowork-e-rota-prevista.md) — o espelho
-  `prototipo-ui/cowork/` é read-only; a raiz é o Cowork vivo
+  `prototipo-ui/cowork/Wagner/` é read-only; a raiz é o Cowork vivo
 - [UI-0013](0013-constituicao-ui-v2-camadas.md) — Fundações mudam por ADR; é o motivo desta existir

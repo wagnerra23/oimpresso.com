@@ -67,7 +67,7 @@ visibilidade por computed style; **duas leituras** com intervalo, aceitando só 
 de 20×20 tem de passar pela exceção de espaçamento, par de 16×16 colados tem de reprovar — passou
 nos dois sentidos, nomeando o vizinho da colisão).
 
-**Onde**: espelho do protótipo em `prototipo-ui/cowork/` no estado de `origin/main`, servido local,
+**Onde**: espelho do protótipo em `prototipo-ui/cowork/Wagner/` no estado de `origin/main`, servido local,
 em iframe com viewport **exatamente 1280×900**, depois do sinal `__oiLazyDone`.
 
 **A exceção de ESPAÇAMENTO da 2.5.8 está implementada** — círculo de diâmetro 24 centrado no alvo
@@ -282,7 +282,7 @@ nível traz junto tudo que hoje está filtrado.
 
 ## 8 · Como re-derivar os números (não confie nesta tabela, rode)
 
-- **Lado design**: servir `prototipo-ui/cowork/` e medir em iframe de 1280×900 após `__oiLazyDone`,
+- **Lado design**: servir `prototipo-ui/cowork/Wagner/` e medir em iframe de 1280×900 após `__oiLazyDone`,
   com a sonda de `getBoundingClientRect` + exceção de espaçamento e o controle positivo.
 - **Lado produção**: a sonda é [`e2e/alvo-de-toque-medicao.probe.ts`](../../../../../e2e/alvo-de-toque-medicao.probe.ts)
   (report-only, nunca falha, nunca assere limiar). Ela **não roda sozinha**, de propósito: o

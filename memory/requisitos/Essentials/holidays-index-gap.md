@@ -1,7 +1,7 @@
 ---
 id: requisitos-essentials-holidays-index-gap
 tela: Essentials/Holidays/Index (/hrm/holiday)
-prototipo: prototipo-ui/cowork/hrm-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/hrm-page.jsx
 tela_viva: resources/js/Pages/Essentials/Holidays/Index.tsx
 gerado_em: 2026-09-06
 ---

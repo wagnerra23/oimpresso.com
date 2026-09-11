@@ -1,6 +1,6 @@
 // Manufacturing/Report — o relatório de produção do período, em `/manufacturing/report`.
 //
-// FONTE DE DESIGN: `prototipo-ui/cowork/manufacturing-producao.jsx::MfgRelatorio` — mesmo
+// FONTE DE DESIGN: `prototipo-ui/cowork/Wagner/manufacturing-producao.jsx::MfgRelatorio` — mesmo
 // bundle já aplicado inteiro pela Onda 1 (Recipes.tsx); nenhuma classe CSS nova aqui.
 // F1 PLAN: memory/requisitos/Manufacturing/RUNBOOK-report.md (inclui a prova algébrica do
 // cálculo de custo — REGRA MESTRE de VALOR, proibicoes.md).

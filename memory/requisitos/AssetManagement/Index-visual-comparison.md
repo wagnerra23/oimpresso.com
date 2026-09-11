@@ -17,8 +17,8 @@ last_validated: "2026-09-08"
 
 # Comparacao design x producao — `Patrimonio/Index` (Painel)
 
-> **Ancora computada, nao escolhida no olho** (`node prototipo-ui/ancora.mjs Patrimonio/Index --staging prototipo-ui/cowork`):
-> `prototipo-ui/cowork/patrimonio-page.jsx`, aba `painel` (`:149` `painelData` · `:199` `PatPainel`),
+> **Ancora computada, nao escolhida no olho** (`node scripts/design/ancora.mjs Patrimonio/Index --staging prototipo-ui/cowork`):
+> `prototipo-ui/cowork/Wagner/patrimonio-page.jsx`, aba `painel` (`:149` `painelData` · `:199` `PatPainel`),
 > declarada em `related_prototype` do [`Index.charter.md`](../../../resources/js/Pages/Patrimonio/Index.charter.md).
 >
 > **Frescor da fonte, medido — nao suposto:** `✓ verificado contra o Cowork vivo em
@@ -42,7 +42,7 @@ producao nao ha onde injetar a sonda `design-diff.mjs --probe`, e **medir um lad
 comparar**.
 
 **O que FOI feito, e e mais forte que ler os dois fontes:** o lado do design foi **renderizado de
-verdade** — servidor local sobre `prototipo-ui/cowork/`, `oimpresso.com.html`, aba Patrimonio →
+verdade** — servidor local sobre `prototipo-ui/cowork/Wagner/`, `oimpresso.com.html`, aba Patrimonio →
 Painel, com o portao `cowork-mirror-freshness --preview-ds` passando (`PREVIEW COMPLETO`, rc=0)
 antes. Entao o que segue e **design renderizado x codigo de producao**, com os rotulos extraidos
 de cada lado — nao impressao, e nao dois greps.
@@ -230,7 +230,7 @@ componente: *"renderizar aba que nao navega e afordancia falsa"*.
 - Charter: [`Index.charter.md`](../../../resources/js/Pages/Patrimonio/Index.charter.md) ·
   Casos: [`Index.casos.md`](../../../resources/js/Pages/Patrimonio/Index.casos.md)
 - RUNBOOK: [`RUNBOOK-patrimonio-index.md`](RUNBOOK-patrimonio-index.md)
-- Fonte visual: `prototipo-ui/cowork/patrimonio-page.jsx` (aba `painel`) — **alvo**, nao decisao
+- Fonte visual: `prototipo-ui/cowork/Wagner/patrimonio-page.jsx` (aba `painel`) — **alvo**, nao decisao
   de produto
 - Evidências do playbook legado foram removidas com a árvore duplicada; a especificação vigente é este comparativo.
 - [PROTOCOLO-COMPARACAO-RUNTIME](../_DesignSystem/PROTOCOLO-COMPARACAO-RUNTIME.md) ·

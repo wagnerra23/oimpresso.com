@@ -18,7 +18,7 @@ last_run: "2026-08-20"
 > **[CL] 2026-08-19** ajustou para o gate: `last_run` com data real, `Status:` por UC (G-5), e os quatro
 > casos que só o contrato de tela cobriria (filtros, busca, vazio, drawer) desceram para `[BACKLOG]`
 > — sem id, porque UC sem teste que o cite é órfão e reprova o G-2. Eles voltam a ser UC quando a
-> MOD-O5 landar `prototipo-ui/contrato/modulos.contract.json` com check no CI.
+> MOD-O5 landar `governance/design/contracts/modulos.contract.json` com check no CI.
 >
 > ⚠️ Rota **cross-tenant intencional** (ADR 0093 §exceções superadmin): `/modulos` gerencia estado
 > app-wide. UC-MOD-15 existe justamente para travar essa exceção contra "consertos" bem-intencionados.
@@ -285,7 +285,7 @@ last_run: "2026-08-20"
 - ⚠️ **Sem smoke visual possível:** medido 2026-08-19, **32 de 32** módulos têm DataController, então o
   marcador nasce escuro em produção. Não há linha real para fotografar; o caso só existe em fixture.
   Isso é dado, não desculpa — quando algum módulo quebrar, a tela passa a dizer.
-- ⚠️ **Divergência deliberada do protótipo:** `prototipo-ui/cowork/modulos-page.jsx` **não** tem este
+- ⚠️ **Divergência deliberada do protótipo:** `prototipo-ui/cowork/Wagner/modulos-page.jsx` **não** tem este
   marcador. Produção fica à frente do desenho aqui. O espelho é build-only (não se edita deste lado —
   ADR 0374), então incorporar isso ao protótipo é ação no Cowork vivo, decisão [W].
 - **Testes:** `tests/Feature/Modules/ModuleManagerServiceTest.php` (campo computado) ·

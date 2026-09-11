@@ -46,7 +46,7 @@ use Modules\Whatsapp\Services\Centrifugo\CentrifugoTokenIssuer;
  *
  * @see memory/decisions/0135-omnichannel-inbox-arquitetura.md (omnichannel)
  * @see memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md (loop Cowork)
- * @see prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx (fonte visual canônica)
+ * @see prototipo-ui/cowork/Wagner/legado/caixa-unificada/inbox-page.jsx (fonte visual canônica)
  * @see memory/requisitos/Whatsapp/CaixaUnificadaV4-visual-comparison.md (gate F3)
  */
 class CaixaUnificadaController extends Controller

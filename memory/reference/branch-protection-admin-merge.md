@@ -23,7 +23,7 @@ type: reference
 - **Caminho único:** `gh pr merge <N> --squash` com todos os required verdes. Nada mais é necessário (`reviews:0`).
 - ❌ **`gh pr merge --admin` está MORTO** — `enforce_admins:true` torna o flag inoperante. (Este doc já ensinou o contrário na era pré-0271; se você leu `--admin` em handoff/session antigo, está defasado.)
 - ❌ **Auto-merge (bot `grokwr2`) BLOQUEADO** ([ADR 0283](../decisions/0283-handoff-loop-zero-paste.md)) — pra `.tsx` em ERP multi-tenant, humano-no-merge é **estrutural**; Fase 0 (1-clique de [W]) é o ótimo atual.
-- Casa declarada do estado de merge/enforcement no loop de design: [`prototipo-ui/AUTOMACAO-LOOP-AUTONOMO.md`](../../prototipo-ui/AUTOMACAO-LOOP-AUTONOMO.md) §2–§3.
+- Casa declarada do estado de merge/enforcement no loop de design: [`memory/reference/prototipo-ui/AUTOMACAO-LOOP-AUTONOMO.md`](../../memory/reference/prototipo-ui/AUTOMACAO-LOOP-AUTONOMO.md) §2–§3.
 
 ## Pegadinhas que seguem valendo
 

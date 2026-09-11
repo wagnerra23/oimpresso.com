@@ -8,7 +8,7 @@ last_validated: "2026-08-27"
 parent_module: Sells
 related_us: [US-SELL-058]
 related_adrs: [253, 104, 93, 62]
-related_prototype: prototipo-ui/cowork/venda-v3/sells-create.jsx
+related_prototype: prototipo-ui/cowork/Felipe/venda-v3/sells-create.jsx
 tier: C
 charter_version: 2
 ---
@@ -140,7 +140,7 @@ ligação. **Escrever** em outro módulo, não.
 
 > _pendente [W]/[L]_ — copy literal e ordem dos blocos. Enquanto vazio, a âncora de design abaixo é a referência.
 
-**Âncora de design:** [`prototipo-ui/cowork/venda-v3/sells-create.jsx`](../../../../prototipo-ui/cowork/venda-v3/sells-create.jsx) — cockpit "Venda — Guia de Produção", do handoff `design_handoff_cadastro_venda` (projeto de design Oimpresso `019e2365`, 2026-08-06). Declarada em `related_prototype`, então `node prototipo-ui/ancora.mjs Sells/CreateV3` a resolve. Contexto do bundle: [`prototipo-ui/FONTE-DESIGN-venda-v3.md`](../../../../prototipo-ui/FONTE-DESIGN-venda-v3.md) — o doc mora no root porque `cowork/` é **build-only** e não aceita `.md` (regra R1 do `cowork-ssot-guard`).
+**Âncora de design:** [`prototipo-ui/cowork/Felipe/venda-v3/sells-create.jsx`](../../../../prototipo-ui/cowork/Felipe/venda-v3/sells-create.jsx) — cockpit "Venda — Guia de Produção", do handoff `design_handoff_cadastro_venda` (projeto de design Oimpresso `019e2365`, 2026-08-06). Declarada em `related_prototype`, então `node scripts/design/ancora.mjs Sells/CreateV3` a resolve. Contexto do bundle: [`memory/reference/prototipo-ui/FONTE-DESIGN-venda-v3.md`](../../../../memory/reference/prototipo-ui/FONTE-DESIGN-venda-v3.md) — o doc mora no root porque `cowork/` é **build-only** e não aceita `.md` (regra R1 do `cowork-ssot-guard`).
 
 > ⚠️ **Errata 2026-08-10 — esta linha apontava pro vazio, e o registro fica.**
 > A redação anterior declarava a âncora em `prototipo-ui/design-oimpresso/04-modulos/vendas/sells-create.jsx`
@@ -151,9 +151,9 @@ ligação. **Escrever** em outro módulo, não.
 > não achava entrada. Não era gitignore (`git check-ignore` limpo). As fontes viviam só dentro
 > do zip do handoff, fora do repo — nenhum gate conseguia conferir fidelidade das ondas.
 >
-> Corrigido versionando as 12 fontes + 8 CSS em `prototipo-ui/cowork/venda-v3/`, que é onde o
+> Corrigido versionando as 12 fontes + 8 CSS em `prototipo-ui/cowork/Felipe/venda-v3/`, que é onde o
 > gate **required** `Ancora de design nao-shell` resolve (`anchor-content-check.mjs` monta o path
-> dentro de `prototipo-ui/cowork/`; uma âncora fora daí vira `MISSING` e derruba o gate).
+> dentro de `prototipo-ui/cowork/Wagner/`; uma âncora fora daí vira `MISSING` e derruba o gate).
 >
 > **O `launch.json` segue sem entrada, de propósito:** a camada 0 do Design System não veio no
 > handoff (`_ds/colors_and_type.css`, `styles.css`, `_ds_bundle.js` — ausentes, medido). Servido
@@ -161,7 +161,7 @@ ligação. **Escrever** em outro módulo, não.
 > com 0 caracteres, `window.I` undefined, `TypeError: … reading 'Button'` e `reading 'Provider'`
 > no `<App>`. Config que promete preview que não renderiza é afordância anunciada e não
 > implementada. O estado está declarado em
-> [`prototipo-ui/FONTE-DESIGN-venda-v3.md`](../../../../prototipo-ui/FONTE-DESIGN-venda-v3.md).
+> [`memory/reference/prototipo-ui/FONTE-DESIGN-venda-v3.md`](../../../../memory/reference/prototipo-ui/FONTE-DESIGN-venda-v3.md).
 
 ---
 

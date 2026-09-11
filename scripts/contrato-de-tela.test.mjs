@@ -406,7 +406,7 @@ function makeGitRepo() {
 }
 
 // 9. ESPELHO/DOC de design — contrato de OUTRO schema (sem `alvo`) e PULADO sob
-//    `prototipo-ui/design-docs/` e sob `prototipo-ui/cowork/` (espelho de leitura, ADR 0374),
+//    `prototipo-ui/design-docs/` e sob `prototipo-ui/cowork/Wagner/` (espelho de leitura, ADR 0374),
 //    mas REPROVA fora dessas pastas. O par good/bad e o que impede o skip de virar carimbo:
 //    se alguem trocar o predicado por um `return 0` cego, o caso (c) fica vermelho.
 {
@@ -414,8 +414,8 @@ function makeGitRepo() {
   const COWORK_SCHEMA = { id: 'x', titulo: 'X', build: ['x-page.jsx'], raiz: '.x-root', secoes: [{ id: 'header' }] };
   const casos = [
     ['prototipo-ui/design-docs/contrato-cowork/x.contract.json', 0, 'design-docs/'],
-    ['prototipo-ui/cowork/contrato/x.contract.json', 0, 'prototipo-ui/cowork/'],
-    ['prototipo-ui/contrato/x.contract.json', 1, null],   // controle NEGATIVO: fora do espelho, morde
+    ['prototipo-ui/cowork/Wagner/contrato/x.contract.json', 0, 'prototipo-ui/cowork/Wagner/'],
+    ['governance/design/contracts/x.contract.json', 1, null],   // controle NEGATIVO: fora do espelho, morde
   ];
   for (const [rel, esperado, pasta] of casos) {
     const root = mkdtempSync(join(tmpdir(), 'contrato-doc-'));
@@ -487,12 +487,12 @@ function makeGitRepo() {
 {
   const mkAnti = ({ fonte, copy, tsx }) => {
     const root = mkdtempSync(join(tmpdir(), 'anti-taut-'));
-    mkdirSync(join(root, 'prototipo-ui', 'contrato'), { recursive: true });
-    mkdirSync(join(root, 'prototipo-ui', 'cowork'), { recursive: true });
+    mkdirSync(join(root, 'governance', 'design', 'contracts'), { recursive: true });
+    mkdirSync(join(root, 'prototipo-ui', 'cowork', 'Wagner'), { recursive: true });
     mkdirSync(join(root, 'resources', 'js', 'Pages', 'Foo'), { recursive: true });
     writeFileSync(join(root, 'resources', 'js', 'Pages', 'Foo', 'Index.tsx'), tsx);
-    writeFileSync(join(root, 'prototipo-ui', 'cowork', 'foo-page.jsx'), `const P = () => <div>Titulo Foo</div>;`);
-    writeFileSync(join(root, 'prototipo-ui', 'contrato', 'foo.contract.json'), JSON.stringify({
+    writeFileSync(join(root, 'prototipo-ui', 'cowork', 'Wagner', 'foo-page.jsx'), `const P = () => <div>Titulo Foo</div>;`);
+    writeFileSync(join(root, 'governance', 'design', 'contracts', 'foo.contract.json'), JSON.stringify({
       tela: 'Foo/Index', fonte, alvo: ['resources/js/Pages/Foo/Index.tsx'],
       secoes: [{ id: 'cab', copy }],
     }));
@@ -508,7 +508,7 @@ function makeGitRepo() {
   drop(root);
 
   // (b) BOM: `fonte` é o protótipo → passa (controle negativo — não é carimbo ao contrário)
-  root = mkAnti({ fonte: 'prototipo-ui/cowork/foo-page.jsx', copy: ['Titulo Foo'], tsx: TSX_OK });
+  root = mkAnti({ fonte: 'prototipo-ui/cowork/Wagner/foo-page.jsx', copy: ['Titulo Foo'], tsx: TSX_OK });
   r = node(root, ['--anti-tautologia']);
   check('anti-tautologia: fonte = prototipo -> exit 0',
     r.status === 0, `status=${r.status} ${out(r)}`);
@@ -516,7 +516,7 @@ function makeGitRepo() {
 
   // (c) CONTROLE que impede virar bloqueio: copy só no alvo AVISA e NÃO reprova
   root = mkAnti({
-    fonte: 'prototipo-ui/cowork/foo-page.jsx', copy: ['Titulo Foo', 'Botao Inventado'],
+    fonte: 'prototipo-ui/cowork/Wagner/foo-page.jsx', copy: ['Titulo Foo', 'Botao Inventado'],
     tsx: `export default function X(){return <div data-contract="cab">Titulo Foo Botao Inventado</div>}`,
   });
   r = node(root, ['--anti-tautologia']);

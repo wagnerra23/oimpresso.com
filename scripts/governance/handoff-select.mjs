@@ -27,11 +27,11 @@ export function selectHandoffs(args, cwd = process.cwd()) {
 
   let raw;
   if (/^0+$/.test(base)) {
-    raw = execFileSync('git', ['diff-tree', '--root', '--no-commit-id', '--name-only', '-r', '-z', '--diff-filter=AM', head, '--', 'prototipo-ui/handoffs/*.md'], { cwd });
+    raw = execFileSync('git', ['diff-tree', '--root', '--no-commit-id', '--name-only', '-r', '-z', '--diff-filter=AM', head, '--', 'prototipo-ui/cowork/Wagner/handoffs/*.md'], { cwd });
   } else {
     try { execFileSync('git', ['cat-file', '-e', `${base}^{commit}`], { cwd, stdio: 'ignore' }); }
     catch { throw new Error(`base ${base} não existe; sem universo, sem seleção`); }
-    raw = execFileSync('git', ['diff', '--name-only', '--diff-filter=AM', '-z', base, head, '--', 'prototipo-ui/handoffs/*.md'], { cwd });
+    raw = execFileSync('git', ['diff', '--name-only', '--diff-filter=AM', '-z', base, head, '--', 'prototipo-ui/cowork/Wagner/handoffs/*.md'], { cwd });
   }
   return [...new Set(raw.toString('utf8').split('\0').filter(isHandoffPath))].sort();
 }

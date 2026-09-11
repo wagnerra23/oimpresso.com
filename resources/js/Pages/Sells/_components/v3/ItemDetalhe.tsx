@@ -1,7 +1,7 @@
 /**
  * ItemDetalhe — onda 4 do preview `/sells/create-v3`.
  *
- * Porte de `prototipo-ui/cowork/venda-v3/sells-item-detail.jsx` — o drawer de detalhe
+ * Porte de `prototipo-ui/cowork/Felipe/venda-v3/sells-item-detail.jsx` — o drawer de detalhe
  * do item, com 7 abas. As regras fiscais moram em `item-fiscal-dominio.ts` e estão
  * provadas em `tests/js/item-fiscal-dominio.test.ts` (18/18).
  *

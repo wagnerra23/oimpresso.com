@@ -49,7 +49,7 @@
 @import "./sells-cowork-subscriptions.css";
 
 /* Cowork fields — port fiel `.cl-input`/`.cl-field`/`.cl-radio` do protótipo
- * (prototipo-ui/prototipos/clientes/clientes.css). Aplicado via
+ * (prototipo-ui/cowork/Wagner/legado/clientes/clientes.css). Aplicado via
  * `<Input variant="cowork">` no drawer Cliente após pedido Wagner 2026-05-26
  * "copie do cowork seja fiel". Classes `.cw-*` (não-escopadas — usam tokens
  * globais já definidos em cockpit.css). */
@@ -95,7 +95,7 @@
 
 /* Onda 12.3 (2026-05-19) — Bundle canon REAL CSS inteiro (9054 LOC originais,
    8630 pós escopo .fin-cowork via scripts/scope-fin-cowork-css.py).
-   Copiado de prototipo-ui/cowork/styles.css conforme regra Tier 0
+   Copiado de prototipo-ui/cowork/Wagner/styles.css conforme regra Tier 0
    feedback-cowork-bundle-aplicar-inteiro.md — Wagner autorizou após 3 falhas
    de cherry-pick de classes Cowork sharedas (vd-toolbar*, os-btn*).
    PRIMEIRO no import order pra ter base canon + overrides locais por cima. */

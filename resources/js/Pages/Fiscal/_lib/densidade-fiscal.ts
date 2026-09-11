@@ -11,7 +11,7 @@
 //
 // A preferência é do OPERADOR, não da tela: quem escolhe "compacto" na lista de NF-e espera
 // o mesmo ao abrir NFS-e. Por isso a chave de storage é UMA e mora aqui — a mesma que a
-// fonte de design declara em prototipo-ui/cowork/fiscal-page.jsx:358,363. Se ela divergir,
+// fonte de design declara em prototipo-ui/cowork/Wagner/fiscal-page.jsx:358,363. Se ela divergir,
 // a preferência para de acompanhar a navegação e o `fiscal-densidade.test.tsx` quebra.
 
 import { useEffect, useState } from 'react';

@@ -29,7 +29,7 @@ authors: [wagner, claude-code]
 # ADR 0243 — Processo de memória/evolução de design do Cowork (método canônico)
 
 > **Status:** ✅ Decidida por Wagner 2026-06-02 ("pode fazer" — OK explícito pra [CL] numerar/versionar sob soberania ADR 0238). Numerada (0243) e portada pro git pelo [CL].
-> **Pendente:** merge em `main` por [W] = ratificação. O método em si vive em [`prototipo-ui/PROCESSO_MEMORIA_CC.md`](../../prototipo-ui/PROCESSO_MEMORIA_CC.md) (PR #2106); esta ADR é a camada de **lei** que o eleva a canon. A defesa CI (R5) é wiring de follow-up — o Cowork não roda CI, então hoje os checks disparam quando o [CC]/[CL] os chama.
+> **Pendente:** merge em `main` por [W] = ratificação. O método em si vive em [`memory/reference/prototipo-ui/PROCESSO_MEMORIA_CC.md`](../../memory/reference/prototipo-ui/PROCESSO_MEMORIA_CC.md) (PR #2106); esta ADR é a camada de **lei** que o eleva a canon. A defesa CI (R5) é wiring de follow-up — o Cowork não roda CI, então hoje os checks disparam quando o [CC]/[CL] os chama.
 
 ## Contexto
 
@@ -49,7 +49,7 @@ Define COMO a memória de design do [CC] evolui sem regredir. É a raiz: Charter
 `🔍 Avaliar → 🧪 Testar → ✅ Adotar → ⛔ Descartar` (Technology Radar). **Adotar** → texto canônico migra pro Charter (vira lei da tela) + ponte git. **Descartar** → vira anti-pattern no Charter + lição L-NN (nunca re-proposto sem citar por que caiu). Um item existe em **UM lugar autoritativo por vez** (Register em debate; Charter quando gradua; o outro vira espelho/lápide). Proibido descrever a mesma decisão por extenso nos dois — é como se cria contradição.
 
 ### R4 · Charter + Register por tela, **irmãos obrigatórios**
-Convenção pasta-por-tela: `prototipo-ui/prototipos/<tela>/charter.md` (lei travada) + `decisoes.md` (debate vivo). Todo charter tem decisoes irmão e vice-versa (Teste de Integridade IT2). Charter guarda só o que fechou; Register guarda o que está em movimento.
+Convenção pasta-por-tela: `prototipo-ui/cowork/Wagner/legado/<tela>/charter.md` (lei travada) + `decisoes.md` (debate vivo). Todo charter tem decisoes irmão e vice-versa (Teste de Integridade IT2). Charter guarda só o que fechou; Register guarda o que está em movimento.
 
 ### R5 · **Defesa que dispara > regra que se lê** (catraca de tipo-forte)
 Regra que depende de lembrar de ler é fraca. Mecanismos que disparam sozinhos, sobre os arquivos tocados:

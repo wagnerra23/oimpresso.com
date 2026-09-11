@@ -15,7 +15,7 @@
 
 ## Decisões F1 PLAN
 
-1. **Pattern reuse**: blueprint `prototipo-ui/prototipos/os/cowork-app.jsx` — listagem OS com tabs stage, KPIs (Abertas / Atrasadas / Valor) e filtros. Adaptado pra contexto JobSheet (status legacy via `RepairStatus` + futuro FSM `current_stage_id`).
+1. **Pattern reuse**: blueprint `prototipo-ui/cowork/Wagner/legado/os/cowork-app.jsx` — listagem OS com tabs stage, KPIs (Abertas / Atrasadas / Valor) e filtros. Adaptado pra contexto JobSheet (status legacy via `RepairStatus` + futuro FSM `current_stage_id`).
 2. **Coexistência FSM + legacy**: tela funciona em ambos cenários: (a) OS sem `current_stage_id` (legacy) mostra `status.name` via RepairStatus; (b) OS com pipeline FSM mostra stage canônico. Toggling via accessor.
 3. **DataTables → Inertia paginator**: substitui pipeline AJAX legacy por `paginate()` server-side com `Inertia::defer` na lista (carga inicial leve).
 4. **Filtros**: q (texto), status_id (multiselect), service_staff_id, location_id, due_start/due_end.

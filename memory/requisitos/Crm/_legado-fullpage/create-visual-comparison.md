@@ -18,7 +18,7 @@ related_adrs: [0093, 0094, 0104, 0107, 0110, 0149]
 
 > **Tipo de tela:** formulário single-page de cadastro (Identificação · Contato · Endereço · Financeiro + Bloco Fiscal BR)
 > **Persona:** Larissa @ ROTA LIVRE (biz=4 vestuário, monitor 1280×1024, não-técnica). Pressa balcão.
-> **Referência:** `prototipo-ui/prototipos/clientes/cowork-app.jsx` + HANDOFF Claude Design
+> **Referência:** `prototipo-ui/cowork/Wagner/legado/clientes/cowork-app.jsx` + HANDOFF Claude Design
 
 ## Contexto
 
@@ -139,7 +139,7 @@ Larissa monitor 1280×1024 — bloco BR cabe sem scroll horizontal. 4 seções c
 
 ## Refs
 
-- HANDOFF: `prototipo-ui/prototipos/clientes/HANDOFF_CLIENTES.md`
+- HANDOFF: `prototipo-ui/cowork/Wagner/legado/clientes/HANDOFF_CLIENTES.md`
 - ADR 0107 (gate F1.5 visual-comparison)
 - ADR 0110 (Cockpit V2)
 - ADR 0149 (pattern reuse Crm)

@@ -24,7 +24,7 @@ related:
 
 ## Contexto — o incidente que a expôs
 
-Rodando o `style-fingerprint` proto×prod do Financeiro/Unificado (2026-07-08), o agente comparou a prod contra o **shell `oimpresso.com.html`** — a **âncora podre** que o Wagner **já tinha pego em 2026-07-06** (o charter foi corrigido pra `related_prototype: prototipo-ui/cowork/financeiro-page.jsx`). O agente **repetiu o erro** e gastou ~1h servindo/bootando o shell errado. **Nenhum mecanismo mecânico barrou** até o Wagner dizer "a âncora incorreta".
+Rodando o `style-fingerprint` proto×prod do Financeiro/Unificado (2026-07-08), o agente comparou a prod contra o **shell `oimpresso.com.html`** — a **âncora podre** que o Wagner **já tinha pego em 2026-07-06** (o charter foi corrigido pra `related_prototype: prototipo-ui/cowork/Wagner/financeiro-page.jsx`). O agente **repetiu o erro** e gastou ~1h servindo/bootando o shell errado. **Nenhum mecanismo mecânico barrou** até o Wagner dizer "a âncora incorreta".
 
 Wagner, palavras textuais: *"isso mostra que as máquinas não estão funcionando em conjunto com os hooks"*.
 
@@ -40,7 +40,7 @@ O erro aconteceu numa superfície que **nenhum hook vigia**, com a máquina cert
 
 ## Decisão
 
-**A cola vive na MÁQUINA, não no hook** (hooks vigiam tools; o desvio foi no browser). No `prototipo-ui/style-fingerprint.mjs`:
+**A cola vive na MÁQUINA, não no hook** (hooks vigiam tools; o desvio foi no browser). No `scripts/design/style-fingerprint.mjs`:
 
 1. **`--snippet <Mod/Tela>`** — resolve a âncora via `ancora.mjs` (subprocesso) e **assa** `window.__ANCORA__=<related_prototype>` num preâmbulo ANTES do snippet. A captura passa a **declarar** contra o que ela é comparável. Sem `<Mod/Tela>` → captura fica com `ancora:null`.
 2. **`--compare proto.json prod.json`** agora é **fail-closed**: exige `--tela <Mod/Tela>` (verifica a captura contra o charter via `ancora.mjs`) **OU** `--sem-ancora <razão>` (opt-out **explícito e logado**). Sem nenhum dos dois → **RECUSA (exit 3)**.
@@ -70,4 +70,4 @@ Selftest hermético cobre os vereditos (sem-declaração/podre/bate + conteúdo 
 
 ## Implementação
 
-PRs #3967 (trava) · #3971 (F5 conteúdo) · #3973 (F5 fix extração, pego pelo teste-do-processo). RUNBOOK do fluxo ponta-a-ponta: [`prototipo-ui/RUNBOOK-fidelidade-fingerprint.md`](../../prototipo-ui/RUNBOOK-fidelidade-fingerprint.md).
+PRs #3967 (trava) · #3971 (F5 conteúdo) · #3973 (F5 fix extração, pego pelo teste-do-processo). RUNBOOK do fluxo ponta-a-ponta: [`memory/reference/prototipo-ui/RUNBOOK-fidelidade-fingerprint.md`](../../memory/reference/prototipo-ui/RUNBOOK-fidelidade-fingerprint.md).

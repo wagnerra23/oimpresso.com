@@ -103,7 +103,7 @@ export default function KpiCard({
   const iconSize = size === 'compact' ? 14 : size === 'large' ? 22 : 18;
   // ADR 0110 §Tipografia canon: KPI value = font-semibold (NÃO font-bold).
   // size=default = o degrau "KPI médio" da type ramp → --fs-7 (22px). A ramp se declara "the
-  // single source of font sizes" (prototipo-ui/cowork/ds-v6/tokens.css), é gerada em :root por
+  // referência histórica de font sizes" (prototipo-ui/cowork/Wagner/legado/ds-v6/tokens.css), é gerada em :root por
   // resources/css/tokens/_generated-foundations-*.css e chega via foundations.css (AppShellV2).
   // `leading-none` anda JUNTO por obrigação, não por gosto: text-2xl trazia line-height 2rem
   // embutido no utilitário e o arbitrary value NÃO traz — sem ele o line-height viraria herdado.

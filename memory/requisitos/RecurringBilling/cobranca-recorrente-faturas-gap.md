@@ -1,7 +1,7 @@
 ---
 id: requisitos-recurring-billing-cobranca-recorrente-faturas-gap
 tela: RecurringBilling/Faturas/Index (/recurring-billing/faturas)
-prototipo: prototipo-ui/cowork/cobranca-recorrente-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx
 tela_viva: resources/js/Pages/RecurringBilling/Faturas/Index.tsx
 gerado_em: 2026-09-06
 ---
@@ -10,7 +10,7 @@ gerado_em: 2026-09-06
 
 > No protótipo esta aba é um placeholder honesto (cobranca-recorrente-page.jsx:332-342, :371) que se declara atrás do vivo ("Espelha /recurring-billing/faturas do git"). Tela-mãe: `cobranca-recorrente-gap.md` (veredito MOCKUP-STALE). Charter: `resources/js/Pages/RecurringBilling/Faturas/Index.charter.md` (Non-Goals respeitados, nunca reabertos).
 >
-> Base medida: `origin/main` 80bc4ef8b9 · âncora resolvida por `node prototipo-ui/ancora.mjs RecurringBilling/Faturas/Index --staging prototipo-ui/cowork` → `âncora ✓ [-page.jsx (bundle · bundle_source)] cobranca-recorrente-page.jsx`. O `desc` do placeholder (:371) cita: lista de faturas por status (paga / pendente / atrasada / cancelada) · por gateway (Inter · C6 · Asaas) · KPI de pago no mês · cancelamento · e a afirmação de FORMA "a tela que hoje está em zinc/violet vai entrar neste mesmo molde warm". Cada item foi conferido no `.tsx` abaixo.
+> Base medida: `origin/main` 80bc4ef8b9 · âncora resolvida por `node scripts/design/ancora.mjs RecurringBilling/Faturas/Index --staging prototipo-ui/cowork` → `âncora ✓ [-page.jsx (bundle · bundle_source)] cobranca-recorrente-page.jsx`. O `desc` do placeholder (:371) cita: lista de faturas por status (paga / pendente / atrasada / cancelada) · por gateway (Inter · C6 · Asaas) · KPI de pago no mês · cancelamento · e a afirmação de FORMA "a tela que hoje está em zinc/violet vai entrar neste mesmo molde warm". Cada item foi conferido no `.tsx` abaixo.
 
 **Veredito:** VIVO-À-FRENTE — 0 itens a decidir; as 4 capacidades citadas no placeholder existem no vivo e a afirmação de FORMA caducou (o vivo já está em stone/warm: `zinc-`/`violet-` → 0, `stone-` → 65).
 
@@ -40,4 +40,4 @@ gerado_em: 2026-09-06
 - `grep -nEc 'SubNav|PageHeaderNav|href="/recurring-billing"' resources/js/Pages/RecurringBilling/Faturas/Index.tsx` → 0   (sem tab-strip nem Voltar; o "Voltar" de :341 é o botão do dialog)
 - `grep -nEc '<CmdPalette' resources/js/Pages/RecurringBilling/Faturas/Index.tsx` → 0   (sem palette nesta Page)
 - `grep -nE 'function cancelar|BadMethodCallException' Modules/RecurringBilling/Services/Boleto/Drivers/C6Driver.php` → :80, :85   (stub C6 continua como a SPEC :554 descreve)
-- `grep -nEc 'zinc|violet' prototipo-ui/cowork/cobranca-recorrente-page.css` → 0 · `grep -nc 'var(--accent)' …page.css` → 10   (linguagem do protótipo)
+- `grep -nEc 'zinc|violet' prototipo-ui/cowork/Wagner/cobranca-recorrente-page.css` → 0 · `grep -nc 'var(--accent)' …page.css` → 10   (linguagem do protótipo)

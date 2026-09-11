@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "Essentials/Reminders/Index (/essentials/reminder)",
   "gap_fonte": "memory/requisitos/Essentials/reminders-index-gap.md",
   "prototipo_sha": "sha256:3e0b0aa398f8",
@@ -9,7 +9,7 @@
     {
       "id": "forma-da-tela-grade-do-mes-lista",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/essenciais-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/essenciais-page.jsx",
         "linhas": "499-513"
       },
       "vivo": {
@@ -24,7 +24,7 @@
     {
       "id": "navegacao-de-mes",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/essenciais-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/essenciais-page.jsx",
         "linhas": "485-490"
       },
       "vivo": {
@@ -39,7 +39,7 @@
     {
       "id": "filtro-por-origem",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/essenciais-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/essenciais-page.jsx",
         "linhas": "449"
       },
       "vivo": {
@@ -54,7 +54,7 @@
     {
       "id": "legenda-de-origem",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/essenciais-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/essenciais-page.jsx",
         "linhas": "515-516"
       },
       "vivo": {
@@ -69,7 +69,7 @@
     {
       "id": "dica-de-teclado-navegacao-por-setas",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/essenciais-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/essenciais-page.jsx",
         "linhas": "466-480"
       },
       "vivo": {
@@ -84,7 +84,7 @@
     {
       "id": "criar-editar-excluir-lembrete",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/essenciais-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/essenciais-page.jsx",
         "linhas": "538-564"
       },
       "vivo": {
@@ -99,7 +99,7 @@
     {
       "id": "copy-do-botao-de-criacao",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/essenciais-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/essenciais-page.jsx",
         "linhas": "495"
       },
       "vivo": {
@@ -114,7 +114,7 @@
     {
       "id": "drawer-de-detalhe-com-abrir-no-modulo",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/essenciais-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/essenciais-page.jsx",
         "linhas": "519-526"
       },
       "vivo": {

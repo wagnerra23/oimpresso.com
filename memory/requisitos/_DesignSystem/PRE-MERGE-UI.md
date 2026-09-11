@@ -148,7 +148,7 @@ Sem ele, qualquer agente (Claude DS, Claude Code, agente externo) pode regredir 
 Inspirado em:
 - Constituição UI v2 (handoff Claude Design 2026-05-24)
 - KB-9.75 rubric (5 categorias + 8 anti-padrões)
-- Loop Design↔Code [PROTOCOL.md](../../../prototipo-ui/PROTOCOL.md) 7 fases
+- Loop Design↔Code [PROTOCOL.md](../../../memory/reference/prototipo-ui/PROTOCOL.md) 7 fases
 
 ## Refs
 

@@ -43,7 +43,7 @@ class DesignIngestZipCommand extends Command
 
         $root = rtrim((string) config('jana.dossie_root', base_path()), '/\\');
         $incomingDir = "{$root}/prototipo-ui/_incoming/{$tela}";
-        $committedDir = "{$root}/prototipo-ui/prototipos/{$tela}";
+        $committedDir = "{$root}/prototipo-ui/cowork/Wagner/legado/{$tela}";
         $preparedDir = "{$incomingDir}/_prepared";
 
         $files = $this->extractZip($zip, $incomingDir);

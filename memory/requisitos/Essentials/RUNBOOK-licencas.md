@@ -51,7 +51,7 @@ resources/js/Pages/Essentials/Licencas/
 ├── Index.charter.md                                 # a lei
 └── Index.casos.md                                   # o contrato de UC
 
-prototipo-ui/contrato/essentials-licencas.contract.json   # copy literal + ordem das seções
+governance/design/contracts/essentials-licencas.contract.json   # copy literal + ordem das seções
 e2e/essentials-licencas.spec.ts                           # stub Playwright
 ```
 

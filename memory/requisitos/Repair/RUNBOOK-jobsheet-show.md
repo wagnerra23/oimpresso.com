@@ -15,7 +15,7 @@
 
 ## Decisões F1 PLAN
 
-1. **Pattern reuse**: blueprint `prototipo-ui/prototipos/os/cowork-app.jsx` painel detalhe OS (drawer-like main view).
+1. **Pattern reuse**: blueprint `prototipo-ui/cowork/Wagner/legado/os/cowork-app.jsx` painel detalhe OS (drawer-like main view).
 2. **FSM Panel integrado**: importa `resources/js/Pages/Sells/_components/FsmActionPanel.tsx` (componente shared) — mas REPAIR usa endpoint próprio `/api/repair/job-sheets/{id}/fsm-actions` (ver `RepairFsmActionController`). Por isso o componente é **adaptado** num wrapper local `JobSheetFsmPanel` que aceita `endpoints` prop.
 3. **Estado FSM dual**: se `current_stage_id IS NULL` mostra "Iniciar pipeline FSM" empty state. Se preenchido mostra stage badge + actions.
 4. **Sections**: Header (OS#, status, cliente) · Aparelho (brand/device/model/serial) · Defects · Checklist (read) · Parts usadas · Anexos · Timeline (activities) · **FSM Panel**.

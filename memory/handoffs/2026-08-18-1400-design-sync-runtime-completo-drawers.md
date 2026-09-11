@@ -31,7 +31,7 @@ As fontes vieram de `DesignSync.get_file` com `truncated:false` e `isBase64:true
 exigiu assinatura `wOF2` antes de aceitar os bytes. O payload passou em `--dry` e depois foi
 aplicado por `aplicar-payload.mjs`, portanto nenhum conteúdo foi transcrito para o snapshot.
 
-`scripts/design-sync/mirror-snapshot/` segue como única fonte versionada. O comando
+`prototipo-ui/design-system/` segue como única fonte versionada. O comando
 `--preview-ds` materializou 10 arquivos no cache gitignored `prototipo-ui/cowork/_ds/` e fechou com
 zero ausentes e zero inválidos.
 

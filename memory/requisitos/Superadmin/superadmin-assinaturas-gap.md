@@ -1,7 +1,7 @@
 ---
 id: requisitos-superadmin-assinaturas-gap
 tela: superadmin/Assinaturas/Index (/superadmin/superadmin-subscription)
-prototipo: prototipo-ui/cowork/superadmin-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/superadmin-page.jsx
 tela_viva: Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx
 gerado_em: 2026-09-06
 ---
@@ -45,4 +45,4 @@ gerado_em: 2026-09-06
 - `grep -nE 'Cancelar assinatura|Confirm|AlertDialog' Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx` → 0   (sem item/confirmação separados — cancelar vive na gaveta :533)
 - `grep -nE 'toast|Toast|sonner' Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx` → 0   (a tela não tem toast próprio — o toast é global: `grep -n 'showFlashToast' resources/js/app.tsx` → :55, :74)
 - `grep -nE '__selectRoute' Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx` → 0   (navegação real, não harness)
-- `sed -n '1044,1175p' prototipo-ui/cowork/superadmin-page.jsx | grep -cE 'Vazio titulo="Nenhuma assinatura cadastrada|Skeleton|KpiEsqueleto'` → 0   (mockup sem vazio "cadastrada" nem skeleton de KPI)
+- `sed -n '1044,1175p' prototipo-ui/cowork/Wagner/superadmin-page.jsx | grep -cE 'Vazio titulo="Nenhuma assinatura cadastrada|Skeleton|KpiEsqueleto'` → 0   (mockup sem vazio "cadastrada" nem skeleton de KPI)

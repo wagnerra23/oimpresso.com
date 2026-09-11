@@ -20,7 +20,7 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  *
  * Tenant: `seededTenant()`. ⚠️ skip sai exit 0: leia ASSERTIONS, não "0 failed" (LC-13).
  */
-const ACOES_CONTRATO = 'prototipo-ui/contrato/jana-acoes.contract.json';
+const ACOES_CONTRATO = 'governance/design/contracts/jana-acoes.contract.json';
 
 function acoesBootstrap(): array
 {

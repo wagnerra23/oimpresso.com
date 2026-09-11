@@ -140,7 +140,7 @@ const GROUP_ICON_MAP: Record<string, LucideIcon> = {
   estoque:   Package,       // caixas/inventory
   pessoas:   Users,         // RH
   sistema:   Settings,      // configurações
-  // `folder` do GROUP_META do design (prototipo-ui/cowork/data.jsx).
+  // `folder` do GROUP_META do design (prototipo-ui/cowork/Wagner/data.jsx).
   plataforma: Folder,
   mais:      Hash,          // fallback
 };
@@ -278,7 +278,7 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
     key: 'plataforma',
     label: 'PLATAFORMA',
     // [W] 2026-09-08: "no sidebar pode colocar a Forja na PLATAFORMA, como está
-    // no protótipo". A fonte é `prototipo-ui/cowork/data.jsx` — grupo
+    // no protótipo". A fonte é `prototipo-ui/cowork/Wagner/data.jsx` — grupo
     // `PLATAFORMA` ("era MAIS"), ÚLTIMO, fechado por default, `hue: null`
     // (neutro), ícone `folder`, com Tarefas · Equipe · Governança · Forja.
     // Conferido contra o Cowork VIVO por ID em 2026-09-08 (DesignSync.get_file
@@ -536,7 +536,7 @@ export function CompanyPicker({
 // ── SidebarMenuItem (recursivo p/ children) ─────────────────────────────
 
 // Slot da direita do item: dica do atalho `G X`, visível só no hover/foco da
-// linha. Espelha `ItemEnd` do protótipo (`prototipo-ui/cowork/sidebar.jsx:31`),
+// linha. Espelha `ItemEnd` do protótipo (`prototipo-ui/cowork/Wagner/sidebar.jsx:31`),
 // que reserva UMA célula de grid pro slot — assim nada empurra o label.
 // O contador de telas do protótipo (`.sb-ghost-count`) NÃO vem junto: ghost no
 // sidebar contraria a ADR 0180 (ghosts vivem no PageHeader), então por ora o
@@ -552,7 +552,7 @@ function ItemEnd({ atalho, telas }: { atalho?: string; telas?: number }) {
 }
 
 /** Teto de ghosts exibidos sob o item ativo — espelha `GHOST_TETO` do
- *  protótipo (`prototipo-ui/cowork/sidebar.jsx`). O excedente vira "⋯ mais N". */
+ *  protótipo (`prototipo-ui/cowork/Wagner/sidebar.jsx`). O excedente vira "⋯ mais N". */
 const GHOST_TETO = 5;
 
 /** Rota ativa: o backend não propaga `active` pro React (o `LegacyMenuAdapter`
@@ -713,7 +713,7 @@ function SidebarShortcuts({
   // Sequência canon TOPO: IA → Visão geral → Atendimento.
   //
   // [W] 2026-09-08: a Forja SAIU daqui e virou item do grupo PLATAFORMA. O
-  // design (`prototipo-ui/cowork/data.jsx`) declara três shortcuts de topo —
+  // design (`prototipo-ui/cowork/Wagner/data.jsx`) declara três shortcuts de topo —
   // `chat` (IA) · `dash-legacy` (Visão geral) · `inbox` (Atendimento) — e põe a
   // Forja em PLATAFORMA. Manter os dois seria a mesma tela em duas portas do
   // mesmo menu, que a Constituição UI v2 (ADR UI-0013) proíbe.
@@ -733,7 +733,7 @@ function SidebarShortcuts({
         </a>
       )}
       {/* Visão geral — SEGUNDA, entre IA e os demais. Não é gosto: o design
-          (`prototipo-ui/cowork/data.jsx`, bloco "Shortcuts de topo") declara a
+          (`prototipo-ui/cowork/Wagner/data.jsx`, bloco "Shortcuts de topo") declara a
           ordem `chat` (IA) → `dash-legacy` (Visão geral) → `inbox`
           (Atendimento). A 1ª versão desta entry ficou ACIMA de tudo, o que
           diverge do contrato medido. `aria-current="page"` espelha o
@@ -1542,7 +1542,7 @@ export function SidebarFooter({
 }
 /**
  * Alça flutuante de reabrir — só existe no modo `hidden`, quando a `<aside>`
- * inteira sai do DOM. Portada de `prototipo-ui/cowork/sidebar.jsx`
+ * inteira sai do DOM. Portada de `prototipo-ui/cowork/Wagner/sidebar.jsx`
  * (`SidebarReopenHandle`), não do bundle do Financeiro.
  *
  * É um `<button>` com nome acessível, e não um `<div>`: sem ela o único caminho

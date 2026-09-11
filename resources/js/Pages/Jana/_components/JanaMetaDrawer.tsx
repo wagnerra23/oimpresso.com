@@ -1,8 +1,8 @@
 // JanaMetaDrawer — a meta abre NA PRÓPRIA TELA.
 //
-// Âncora: `prototipo-ui/cowork/jana-merge.jsx` §`JmMetaDrawer` — âncora de
+// Âncora: `prototipo-ui/cowork/Wagner/jana-merge.jsx` §`JmMetaDrawer` — âncora de
 // SÍMBOLO (ref de linha apodrece no 1º refactor, §5 2026-07-26; re-localize com
-// `grep -n "JmMetaDrawer" prototipo-ui/cowork/jana-merge.jsx`).
+// `grep -n "JmMetaDrawer" prototipo-ui/cowork/Wagner/jana-merge.jsx`).
 //
 // Por que existe: até 2026-08-17 o clique numa meta era um `<Link>` que TIRAVA o
 // usuário do Painel rumo a uma tela Blade. O `Index-visual-comparison.md` marcava

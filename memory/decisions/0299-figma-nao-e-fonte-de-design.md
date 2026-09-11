@@ -41,7 +41,7 @@ Esta decisão foi endurecida por um red-team adversarial (9 céticos + 3 alterna
 
 ### 1. Regra Tier 0 — fonte e NÃO-fonte de design
 
-**Fonte** = protótipo Cowork (`prototipo-ui/prototipos/<tela>/`, read-only no repo) + Design System (tokens/componentes/primitivos) + charter da tela.
+**Fonte** = protótipo Cowork (`prototipo-ui/cowork/Wagner/legado/<tela>/`, read-only no repo) + Design System (tokens/componentes/primitivos) + charter da tela.
 **NÃO-fonte** (exige Wagner dizer explícito "figma"/"usa o X") = **Figma · Notion · screenshot solto · link externo · qualquer MCP de design novo**. São atratores, não canon.
 A **diff design→code** = `memory/requisitos/<Mod>/<tela>-visual-comparison.md` via skill `mwart-comparative` (existe). O `/design-diff` determinístico (render protótipo vs Page) fica **previsto** aqui, não implementado neste PR.
 
@@ -63,7 +63,7 @@ A fonte única é o `INDEX-DESIGN-MEMORIAS.md §0` (governado por `owner`+`next_
 
 **Cobertura do Figma:** denylist por capability figma-única (sobrevive à troca de UUID Felipe≠Wagner) + por nome-de-servidor "figma" (sabor plugin) + **fingerprint** (capability STRONG aprende o prefixo do servidor e gateia capabilities futuras dele na sessão). `.mjs` cross-platform (cobre funcionário em Mac/Linux; os hooks `.ps1` não).
 
-**Superfície Cowork:** como `.claude/hooks` não roda no lado Cowork ([CC]/[CD], outro produto), a regra NÃO-fontes foi replicada nos briefings versionados que ele lê (`prototipo-ui/CODE_DESIGN_CONTRACT.md` + `CLAUDE_DESIGN_BRIEFING.md`) — lá é disciplina, não block.
+**Superfície Cowork:** como `.claude/hooks` não roda no lado Cowork ([CC]/[CD], outro produto), a regra NÃO-fontes foi replicada nos briefings versionados que ele lê (`memory/reference/prototipo-ui/CODE_DESIGN_CONTRACT.md` + `CLAUDE_DESIGN_BRIEFING.md`) — lá é disciplina, não block.
 
 ## Não-goals
 

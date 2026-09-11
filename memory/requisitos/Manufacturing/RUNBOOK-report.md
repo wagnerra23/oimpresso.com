@@ -17,7 +17,7 @@ owner: F
 > **F1 PLAN do MWART** ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)).
 > US-MANU-002 (SPEC.md) — segunda das 7 telas do handoff **"PROTÓTIPO OFICIAL - FABRICAÇÃO V1"**,
 > a mais barata da fila (decisão [M] 2026-09-02: ordem de custo crescente). Fonte visual:
-> `prototipo-ui/cowork/manufacturing-producao.jsx::MfgRelatorio` — o mesmo bundle já aplicado
+> `prototipo-ui/cowork/Wagner/manufacturing-producao.jsx::MfgRelatorio` — o mesmo bundle já aplicado
 > inteiro pela Onda 1 (Recipes), então **nenhuma classe CSS nova**: `.mfg-filters`, `.mfg-table.rep`,
 > `.mfg-bar-mini`, `.mfg-check` já existem em `cowork-manufacturing-bundle.css`.
 >
@@ -62,7 +62,7 @@ campo `custoSnap` não existe hoje em `transactions` (confirmado: só `mfg_produ
 | Controller | `Modules/Manufacturing/Http/Controllers/ProductionController@reportV2` |
 | Service (agregação) | `Modules/Manufacturing/Services/ProductionService::reportByProduct` |
 | Service (custo, reusado) | `Modules/Manufacturing/Services/RecipeBomService::calculateUnitCost` |
-| Fonte de design | `prototipo-ui/cowork/manufacturing-producao.jsx::MfgRelatorio` |
+| Fonte de design | `prototipo-ui/cowork/Wagner/manufacturing-producao.jsx::MfgRelatorio` |
 | Teste | `Modules/Manufacturing/Tests/Feature/Wave30ReportInertiaTest.php` |
 
 ## 3. Smoke prod (R1)

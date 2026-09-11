@@ -153,7 +153,7 @@ Larissa monitor 1280×1024 — header + 4 stats + tab + sidebar tudo visível se
 
 ## Refs
 
-- HANDOFF: `prototipo-ui/prototipos/clientes/HANDOFF_CLIENTES.md`
+- HANDOFF: `prototipo-ui/cowork/Wagner/legado/clientes/HANDOFF_CLIENTES.md`
 - ADR 0107 (gate F1.5 visual-comparison)
 - ADR 0110 (Cockpit V2)
 - ADR 0149 (pattern reuse Crm)

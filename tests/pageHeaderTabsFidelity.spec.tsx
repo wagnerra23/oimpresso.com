@@ -5,7 +5,7 @@
 // `rounded-md` na aba e o underline/pill deixou de bater com o protótipo. Nenhum gate
 // pegava: conformance-gate.mjs + stylelint só olham .css; o estilo da aba ativa é
 // inline (style={{}}) + className no TSX. Este render-test trava as 4 propriedades-chave
-// extraídas de prototipo-ui/cowork/clientes-page.css `.cli-moduletopnav-tab.active`:
+// extraídas de prototipo-ui/cowork/Wagner/clientes-page.css `.cli-moduletopnav-tab.active`:
 //
 //   border-radius     : 0                                        → RETO (o bug foi rounded-md)
 //   border-bottom-color: var(--accent)                           → underline roxo 295 (ADR 0190)

@@ -2,7 +2,7 @@
 id: modules-superadmin-pages-superadmin-negocios-index-charter
 page: /superadmin/business
 component: Modules/Superadmin/Resources/js/Pages/superadmin/Negocios/Index.tsx
-related_prototype: prototipo-ui/cowork/superadmin-page.jsx
+related_prototype: prototipo-ui/cowork/Wagner/superadmin-page.jsx
 owner: wagner
 status: draft
 last_validated: "2026-08-19"
@@ -77,7 +77,7 @@ O que a tela entrega **hoje**:
 
 ## Contrato visual
 
-Travado por [`prototipo-ui/contrato/superadmin-negocios.contract.json`](../../../../../../../prototipo-ui/contrato/superadmin-negocios.contract.json)
+Travado por [`governance/design/contracts/superadmin-negocios.contract.json`](../../../../../../../governance/design/contracts/superadmin-negocios.contract.json)
 (ADR 0286), verificado no CI por `contrato-de-tela.mjs` — âncora `data-contract` + **copy literal** +
 ordem. Fonte da copy: o §3 do F1 [CC] (`cowork-inbox/SUPERADMIN-F1-2026-08-18.md`).
 

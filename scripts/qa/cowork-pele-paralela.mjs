@@ -102,12 +102,12 @@ const rel = (f, dir) => (f.startsWith(dir + '/') ? f.slice(dir.length + 1) : f);
 // Nomes canonicos do DS, derivados do registro (nunca redigitados aqui — §5 2026-07-17:
 // doc canonico nao restateia lista que outro sistema sabe melhor).
 function componentesDoDs() {
-  const reg = join(AQUI, '..', '..', 'prototipo-ui', 'REGISTRY_DS_COMPONENTES.md');
+  const reg = join(AQUI, '..', '..', 'memory', 'reference', 'prototipo-ui', 'REGISTRY_DS_COMPONENTES.md');
   if (!existsSync(reg)) return { nomes: new Set(), fonte: null };
   const nomes = new Set();
   const texto = readFileSync(reg, 'utf8');
   for (const m of texto.matchAll(/^\| \*\*([A-Za-z][A-Za-z0-9]*)\*\*/gm)) nomes.add(m[1]);
-  return { nomes, fonte: 'prototipo-ui/REGISTRY_DS_COMPONENTES.md' };
+  return { nomes, fonte: 'memory/reference/prototipo-ui/REGISTRY_DS_COMPONENTES.md' };
 }
 
 // ----------------------------------------------------------------- o scan (R1..R5)
@@ -290,7 +290,7 @@ function selftest() {
     casos.push(['--aviso-so -> exit 0 mesmo com novos', r.status === 0, `exit=${r.status}`]);
 
     // CONTRATO DO WAIVER — waiver anunciado tem de existir de fato.
-    const comWaiver = varrer('prototipo-ui/cowork').waivers.map((w) => w.chave);
+    const comWaiver = varrer('prototipo-ui/cowork/Wagner').waivers.map((w) => w.chave);
     casos.push([
       'waiver declarado e reconhecido pelo scan',
       WAIVERS.size === 0 || comWaiver.length > 0,
@@ -325,7 +325,7 @@ function main() {
 
   if (tem('--selftest')) process.exit(selftest());
 
-  const dir = arg('--dir', 'prototipo-ui/cowork');
+  const dir = arg('--dir', 'prototipo-ui/cowork/Wagner');
   const caminhoBaseline = arg('--baseline', join(AQUI, 'cowork-pele-paralela.baseline.json'));
   const r = varrer(dir);
 

@@ -17,7 +17,7 @@ owner: W
 > **F1 PLAN do MWART** ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)).
 > Porte Inertia da consulta de receitas (ficha técnica / BOM) a partir do handoff
 > **"PROTÓTIPO OFICIAL - FABRICAÇÃO V1"** (2026-09-01), cuja fonte visual já está no
-> espelho: `prototipo-ui/cowork/manufacturing-page.jsx` — conferido contra o ZIP e
+> espelho: `prototipo-ui/cowork/Wagner/manufacturing-page.jsx` — conferido contra o ZIP e
 > **idêntico** (6 arquivos `.jsx` + o `.css`, 0 linhas de diferença).
 >
 > **Decisão [W] 2026-09-02:** a tela nova é servida **neste endereço**, não numa rota `/v2`.
@@ -50,13 +50,13 @@ owner: W
 | Controller | `Modules/Manufacturing/Http/Controllers/RecipeController@index` |
 | Service (payload + custo) | `Modules/Manufacturing/Services/RecipeBomService::listRecipesWithCost` |
 | Contadores de produção | `Modules/Manufacturing/Services/ProductionService::{summary,monthSummary}` |
-| Fonte de design | `prototipo-ui/cowork/manufacturing-page.jsx` + `manufacturing-page.css` |
+| Fonte de design | `prototipo-ui/cowork/Wagner/manufacturing-page.jsx` + `manufacturing-page.css` |
 | Teste de contrato | `Modules/Manufacturing/Tests/Feature/Wave29RecipeInertiaTest.php` |
 
 ## 3. Comandos úteis
 
 ```bash
-node prototipo-ui/ancora.mjs Manufacturing/Recipes --staging prototipo-ui/cowork
+node scripts/design/ancora.mjs Manufacturing/Recipes --staging prototipo-ui/cowork
 ```
 
 ```bash
@@ -64,7 +64,7 @@ npm run casos:report -- --tela Manufacturing/Recipes
 ```
 
 ```bash
-npm run contrato:check -- prototipo-ui/contrato/manufacturing-recipes.contract.json
+npm run contrato:check -- governance/design/contracts/manufacturing-recipes.contract.json
 ```
 
 ## 4. Smoke local

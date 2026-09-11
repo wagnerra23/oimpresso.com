@@ -156,7 +156,7 @@ Tenant de teste = **98** ([ADR 0358](../../decisions/0358-doutrina-de-teste-tena
 | prova por aba (UC-02/06) | ✅ as duas direções | os dois UCs passam |
 | não-apagamento / contrato destrutivo (UC-03) | ✅ | UC passa |
 | smoke 1280px com screenshot | ❌ **não executado** | staging sem `public/build/manifest.json`; container sem `node`; checkout 432 commits atrás com trabalho de terceiros — ver charter §Pendências |
-| comparação com protótipo | **n/a por decisão declarada** | `node prototipo-ui/ancora.mjs Repair/Settings` → *"sem âncora … declaração legítima — a tela nasce do DS"*. Não há lado "design" para o `design-diff --compare`. |
+| comparação com protótipo | **n/a por decisão declarada** | `node scripts/design/ancora.mjs Repair/Settings` → *"sem âncora … declaração legítima — a tela nasce do DS"*. Não há lado "design" para o `design-diff --compare`. |
 
 **Três defeitos do F2 que só o runtime revelou** — todos corrigidos no PR do F4:
 

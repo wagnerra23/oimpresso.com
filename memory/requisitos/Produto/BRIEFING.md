@@ -131,7 +131,7 @@ O backlog completo e seus critérios estão em [SPEC.md](SPEC.md). As frentes re
 
 ### G · Design e protótipos
 
-- [PROTOTIPO-preco-especial.md](PROTOTIPO-preco-especial.md) · [produto-preco-especial](../../../prototipo-ui/cowork/produto-preco-especial/) · [produtos-page.jsx](../../../prototipo-ui/cowork/produtos-page.jsx) · [protótipo Produto Unificado](../../../prototipo-ui/cowork/prototipo-ui-patch/prototipos/produto/) · [produtos-gap.md](produtos-gap.md).
+- [PROTOTIPO-preco-especial.md](PROTOTIPO-preco-especial.md) · [produto-preco-especial](../../../prototipo-ui/cowork/Wagner/produto-preco-especial/) · [produtos-page.jsx](../../../prototipo-ui/cowork/Wagner/produtos-page.jsx) · [protótipo Produto Unificado](../../../prototipo-ui/cowork/Wagner/prototipo-ui-patch/prototipos/produto/) · [produtos-gap.md](produtos-gap.md).
 
 ### H · Decisões e histórico
 

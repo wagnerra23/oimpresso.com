@@ -31,7 +31,7 @@ export interface FxPage {
 // 7 sub-páginas do Fiscal — PR #1 só implementa "nfe" (segunda).
 // Restantes apontam pra "#" e ficam disabled visualmente até serem entregues.
 // RÓTULOS E ORDEM SEGUEM O PROTÓTIPO (eixo FORMA · ADR UI-0029: protótipo soberano).
-// Fonte: `prototipo-ui/cowork/fiscal-page.jsx` → `FX_TABS` — conferido em 2026-09-09
+// Fonte: `prototipo-ui/cowork/Wagner/fiscal-page.jsx` → `FX_TABS` — conferido em 2026-09-09
 // contra o projeto Cowork VIVO por ID (não só contra o espelho): os dois são idênticos.
 // Quatro divergiam — dois rótulos, um "&" no lugar de "e", e a ordem de duas abas — e
 // todas eram da tela, não do protótipo. O par antes/depois de cada uma está no PR, e NÃO

@@ -1,7 +1,7 @@
 ---
 id: requisitos-ponto-dashboard-index-gap
 tela: Ponto/Dashboard/Index (/ponto)
-prototipo: prototipo-ui/cowork/ponto-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/ponto-page.jsx
 tela_viva: resources/js/Pages/Ponto/Dashboard/Index.tsx
 gerado_em: 2026-09-06
 comparacao: memory/requisitos/Ponto/Dashboard-visual-comparison.md
@@ -14,7 +14,7 @@ comparacao: memory/requisitos/Ponto/Dashboard-visual-comparison.md
 > o protótipo é retrato do vivo, e "só no protótipo" não implica "falta no vivo".
 > Régua de triagem herdada do playbook do módulo (`cowork-inbox/hrm/playbook/08-feriados-puxar.md`
 > §3): *o que o protótipo tem que a Page não tem só vira pedido se for **comportamento**, nunca
-> layout*. Contrato de copy: [`prototipo-ui/contrato/ponto-painel.contract.json`](../../../prototipo-ui/contrato/ponto-painel.contract.json).
+> layout*. Contrato de copy: [`governance/design/contracts/ponto-painel.contract.json`](../../../governance/design/contracts/ponto-painel.contract.json).
 > Medição de forma (escala, header, sub-nav) **já tem dono**: o
 > [`Dashboard-visual-comparison.md`](Dashboard-visual-comparison.md) de 2026-08-28 — este gap não
 > a refaz, aponta.

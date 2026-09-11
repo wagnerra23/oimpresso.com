@@ -23,7 +23,7 @@ acredito que deveria ser no charter page?"* (após confirmar Jana Pro F3 feito, 
 
 A máquina de auditoria de tela **já existe meio-construída** (anti L-11 — estender, não recriar):
 
-- `prototipo-ui/audit/score-mechanized.mjs` — **Fase 1** (regex R1-R10 mecanizáveis + `ds/*`),
+- `scripts/design/audit/score-mechanized.mjs` — **Fase 1** (regex R1-R10 mecanizáveis + `ds/*`),
   1 `design-report.json`/tela, com `measured_against_sha`.
 - `consolidate.mjs` → `CONSOLIDADO.md` (placar worst-first, média 86/100).
 - `design-report.schema.json` (já com `top_gaps{dim,best_of_class,fix,esforco}`).
@@ -58,7 +58,7 @@ lado a lado. O rollup CROSS-tela continua no `CONSOLIDADO.md`/Governança, não 
 
 | Peça | Papel | Natureza |
 |---|---|---|
-| `prototipo-ui/audit/review-gen.mjs` | `design:review <tela>` — renderiza o `design-report.json` (Fase 1) num `<Tela>.review.md` append-only, ancorado por `measured_against_sha`; puxa guardrails Tier 0 do charter (Non-Goals/Anti-hooks) | aditivo |
+| `scripts/design/audit/review-gen.mjs` | `design:review <tela>` — renderiza o `design-report.json` (Fase 1) num `<Tela>.review.md` append-only, ancorado por `measured_against_sha`; puxa guardrails Tier 0 do charter (Non-Goals/Anti-hooks) | aditivo |
 | `review-freshness.mjs` | gate node (missing/stale/fresh) + ratchet `--write-baseline` | aditivo |
 | `review-freshness-baseline.json` | dívida herdada (21 telas live sem review em 2026-06-01); só encolhe | aditivo |
 | `tests/Feature/Design/DesignReviewFreshnessTest.php` | espelha o gate em PHP (roda no CT 100) | aditivo |
@@ -89,7 +89,7 @@ SonarQube gate" do oimpresso, versionado em git e auditado por Pest.
 
 ## Refs
 
-- `prototipo-ui/audit/{review-gen,review-freshness,score-mechanized,consolidate}.mjs` · `GOLDEN-REFERENCE.md`
-- `prototipo-ui/PROTOCOL.md §6` (checks) · §10.2 (retorno) — emendados neste PR
+- `scripts/design/audit/{review-gen,review-freshness,score-mechanized,consolidate}.mjs` · `GOLDEN-REFERENCE.md`
+- `memory/reference/prototipo-ui/PROTOCOL.md §6` (checks) · §10.2 (retorno) — emendados neste PR
 - ADR 0114 (loop Cowork↔Code) · 0236 (ratchet nota-só-sobe) · 0239 (SSOT do DS) · 0209 (eslint-baseline ratchet) · 0238 (soberania [W])
 - COWORK_NOTES → "Gerador `design:review`" (handoff 2026-06-01)

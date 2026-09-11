@@ -2,7 +2,7 @@
 id: resources-js-pages-purchase-show-charter
 page: /purchases/{id}
 component: resources/js/Pages/Purchase/Show.tsx
-related_prototype: prototipo-ui/cowork/compras-page.jsx (DrawerView)
+related_prototype: prototipo-ui/cowork/Wagner/compras-page.jsx (DrawerView)
 related_visual_comparison: memory/requisitos/Compras/_telas/show-visual-comparison.md
 related_us: [US-MWART-008]
 owner: wagner
@@ -20,7 +20,7 @@ charter_version: 1
 >
 > Backend: `app/Http/Controllers/PurchaseController@show` (rota `GET /purchases/{id}`). Detalhe read-only de uma compra — substitui os Blade legacy `show.blade.php` + `show_details.blade.php` (430+ linhas) e mata o bug 500 do barcode. Classificação de PT: SILENCIOSO (detalhe bespoke — usa cards + tabela de itens, sem assinatura de PT-03 tipo FsmActionPanel/Timeline/`<dl`/StatCard).
 >
-> **Âncora de design promovida em 2026-09-09** (era `n/a (tela de detalhe bespoke)`): `prototipo-ui/cowork/compras-page.jsx` — o `DrawerView` (`:539`), com as abas Resumo · Itens · Documentos · Pagamentos · Histórico (`:543-547`). O hub é fonte de design e não porte reverso pelo mesmo recibo do [`Index.charter.md`](Index.charter.md): `compras-page.jsx:2` declara *“Migrado de Compras.html”*.
+> **Âncora de design promovida em 2026-09-09** (era `n/a (tela de detalhe bespoke)`): `prototipo-ui/cowork/Wagner/compras-page.jsx` — o `DrawerView` (`:539`), com as abas Resumo · Itens · Documentos · Pagamentos · Histórico (`:543-547`). O hub é fonte de design e não porte reverso pelo mesmo recibo do [`Index.charter.md`](Index.charter.md): `compras-page.jsx:2` declara *“Migrado de Compras.html”*.
 >
 > ⚠️ **Divergência REGISTRADA, não corrigida — e ela é de duas ordens.**
 >

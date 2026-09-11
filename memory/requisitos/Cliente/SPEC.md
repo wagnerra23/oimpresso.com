@@ -292,7 +292,7 @@ Obrigação LGPD Art. 18 §VI + lane de mercado vazia (erasure fiscal-aware — 
 > status: todo · **Prioridade:** P2 · **Estimate:** 3h
 
 **Implementado em:** _pendente_ — destrava a Onda 3 da paridade, a criar
-**DoD:** `Cliente/Map.tsx` renderiza o mapa **sem URL de provedor hardcoded** no `.tsx`; a fonte é o protótipo `prototipo-ui/cowork/cliente-mapa.jsx`, que usa **OpenStreetMap embed sem chave de API** (hoje é `maps.google.com/maps?q=…&output=embed` cravado na linha 146). Não muda o dado: a coordenada segue vindo do campo `position` (`"lat,lng"`). Fecha o gap nomeado no scorecard e destrava o `related_prototype` do charter.
+**DoD:** `Cliente/Map.tsx` renderiza o mapa **sem URL de provedor hardcoded** no `.tsx`; a fonte é o protótipo `prototipo-ui/cowork/Wagner/cliente-mapa.jsx`, que usa **OpenStreetMap embed sem chave de API** (hoje é `maps.google.com/maps?q=…&output=embed` cravado na linha 146). Não muda o dado: a coordenada segue vindo do campo `position` (`"lat,lng"`). Fecha o gap nomeado no scorecard e destrava o `related_prototype` do charter.
 
 > **Sinal (ADR 0105), declarado:** não é pedido de cliente — é **métrica**. O scorecard [`cliente-map.yaml`](../../governance/scorecards/screens/cliente-map.yaml) (medido 2026-07-05) dá ao Map a **menor nota das 7 telas** (72), o menor `a11y_wcag` do módulo (64) e `preflight_conformance` 66 (empatado com Create/Edit no piso), com o gap escrito: *"Trocar iframe maps.google.com hardcoded (e gradiente stone cru do fundo) por componente de mapa tokenizado"*.
 >
@@ -354,5 +354,5 @@ Obrigação LGPD Art. 18 §VI + lane de mercado vazia (erasure fiscal-aware — 
 - [ADR 0273 — Anchor spec↔código (formato canônico `Implementado em`)](../../decisions/0273-anchor-spec-codigo-formato-canonico-fluxo-novo.md)
 - Investigação base: [`memory/sessions/2026-05-21-investigar-campos-br-cliente.md`](../../sessions/2026-05-21-investigar-campos-br-cliente.md)
 - Coord paralela: [`memory/sessions/2026-05-21-coord-cliente-show-paridade-5waves.md`](../../sessions/2026-05-21-coord-cliente-show-paridade-5waves.md)
-- HANDOFF Claude Design: `prototipo-ui/prototipos/clientes/HANDOFF_CLIENTES.md`
+- HANDOFF Claude Design: `prototipo-ui/cowork/Wagner/legado/clientes/HANDOFF_CLIENTES.md`
 - SPEC canônico do módulo: [`memory/requisitos/Crm/SPEC.md`](../Crm/SPEC.md)

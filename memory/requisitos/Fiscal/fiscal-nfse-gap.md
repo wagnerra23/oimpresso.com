@@ -1,7 +1,7 @@
 ---
 id: requisitos-fiscal-nfse-gap
 tela: Fiscal/Nfse (/fiscal/nfse)
-prototipo: prototipo-ui/cowork/fiscal-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/fiscal-page.jsx
 tela_viva: resources/js/Pages/Fiscal/Nfse.tsx
 gerado_em: 2026-08-28
 comparacao: memory/requisitos/Fiscal/fiscal-nfse-visual-comparison.md

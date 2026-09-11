@@ -8,7 +8,7 @@ status: draft
 lifecycle: ativo
 module: Whatsapp
 tela: caixa-unificada
-visual_source: prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx
+visual_source: prototipo-ui/cowork/Wagner/legado/caixa-unificada/inbox-page.jsx
 target_component: Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx
 related_adrs: [0093, 0104, 0107, 0110, 0114, 0135]
 session_date: '2026-05-15'
@@ -238,9 +238,9 @@ Todo em PT-BR. ✅
 - [ADR 0110 — Cockpit Pattern V2](../../decisions/0110-cockpit-pattern-v2-ativacao.md)
 - [ADR 0114 — Loop Cowork formalizado](../../decisions/0114-prototipo-ui-cowork-loop-formalizado.md)
 - [ADR 0135 — Omnichannel inbox arquitetura](../../decisions/0135-omnichannel-inbox-arquitetura.md)
-- [LICOES_F3_FINANCEIRO_REJEITADO.md](../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md)
-- [PROTOCOL.md](../../../prototipo-ui/PROTOCOL.md)
-- [prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx](../../../prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx) — fonte visual canônica (802 LOC)
+- [LICOES_F3_FINANCEIRO_REJEITADO.md](../../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md)
+- [PROTOCOL.md](../../../memory/reference/prototipo-ui/PROTOCOL.md)
+- [prototipo-ui/cowork/Wagner/legado/caixa-unificada/inbox-page.jsx](../../../prototipo-ui/cowork/Wagner/legado/caixa-unificada/inbox-page.jsx) — fonte visual canônica (802 LOC)
 - [RUNBOOK-inertia-defer-pattern.md](../_DesignSystem/RUNBOOK-inertia-defer-pattern.md)
 
 ---
@@ -299,9 +299,9 @@ Todo em PT-BR. ✅
 
 ## Medição de runtime — 2026-09-08 (1ª desta tela)
 
-> Feita com o dono do tema (`prototipo-ui/design-diff-lote.mjs`), **mesma sonda nos dois lados**,
+> Feita com o dono do tema (`scripts/design/design-diff-lote.mjs`), **mesma sonda nos dois lados**,
 > tema pareado `dark`, app local em `APP_ENV=testing` (o `/_visreg-login` só existe em
-> `local`/`testing` — allowlist fail-closed). Artefatos: `prototipo-ui/alvos/medidas/Atendimento--CaixaUnificada--Index/`.
+> `local`/`testing` — allowlist fail-closed). Artefatos: `governance/design/targets/medidas/Atendimento--CaixaUnificada--Index/`.
 
 | dim | prod | design | veredito |
 |---|---|---|---|

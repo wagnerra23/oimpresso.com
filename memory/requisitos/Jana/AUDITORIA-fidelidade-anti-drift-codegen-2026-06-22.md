@@ -152,4 +152,4 @@ O oimpresso **não precisa de troca de paradigma** — precisa **ligar o que já
 - [SonarQube Agentic Analysis](https://www.sonarsource.com/products/sonarqube/agentic-analysis/) · [Playwright MCP + Claude Code — Builder.io](https://www.builder.io/blog/playwright-mcp-server-claude-code)
 - [LLM-as-a-Judge 2026 — DeepEval](https://deepeval.com/blog/llm-as-a-judge) · [WebDevJudge arxiv](https://arxiv.org/html/2510.18560)
 
-**Refs internos:** `tests/Browser/CoreScreens/PixelBaselineTest.php` · `scripts/design-identity-grade.mjs` (ADR 0254) · `prototipo-ui/evals/EVAL_PROTOCOL.md` · `prototipo-ui/PROTOCOL.md` · `.github/workflows/visual-regression.yml` · `.github/workflows/design-identity-gate.yml`
+**Refs internos:** `tests/Browser/CoreScreens/PixelBaselineTest.php` · `scripts/design-identity-grade.mjs` (ADR 0254) · `tests/Design/evals/EVAL_PROTOCOL.md` · `memory/reference/prototipo-ui/PROTOCOL.md` · `.github/workflows/visual-regression.yml` · `.github/workflows/design-identity-gate.yml`

@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "Financeiro/Unificado (/financeiro/unificado)",
   "gap_fonte": "memory/requisitos/Financeiro/unificado-gap.md",
   "prototipo_sha": "sha256:340b86857eb6",
@@ -9,7 +9,7 @@
     {
       "id": "header-acoes",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/financeiro-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/financeiro-page.jsx",
         "linhas": "243-275"
       },
       "vivo": {
@@ -25,7 +25,7 @@
     {
       "id": "kpis",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/financeiro-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/financeiro-page.jsx",
         "linhas": "422-581"
       },
       "vivo": {
@@ -41,7 +41,7 @@
     {
       "id": "periodbar-personalizado",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/financeiro-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/financeiro-page.jsx",
         "linhas": "46-95,754-791,1948"
       },
       "vivo": {
@@ -57,7 +57,7 @@
     {
       "id": "filter-pills-toolbar",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/financeiro-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/financeiro-page.jsx",
         "linhas": "580-751"
       },
       "vivo": {
@@ -73,7 +73,7 @@
     {
       "id": "tabela-linhas",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/financeiro-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/financeiro-page.jsx",
         "linhas": "108-132,804-823,874-986"
       },
       "vivo": {
@@ -89,7 +89,7 @@
     {
       "id": "dialogo-de-baixa",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/financeiro-ops.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/financeiro-ops.jsx",
         "linhas": "64-181"
       },
       "vivo": {
@@ -105,7 +105,7 @@
     {
       "id": "anexos-no-drawer",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/financeiro-ops.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/financeiro-ops.jsx",
         "linhas": "188-276"
       },
       "vivo": {
@@ -121,7 +121,7 @@
     {
       "id": "aprovacao-de-pagamento",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/financeiro-ops.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/financeiro-ops.jsx",
         "linhas": "282-349"
       },
       "vivo": {
@@ -137,7 +137,7 @@
     {
       "id": "ocr-boleto",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/financeiro-ops.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/financeiro-ops.jsx",
         "linhas": "355-435"
       },
       "vivo": {
@@ -153,7 +153,7 @@
     {
       "id": "combobox-contraparte-no-novo-titulo",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/financeiro-ops.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/financeiro-ops.jsx",
         "linhas": "441-492"
       },
       "vivo": {
@@ -169,7 +169,7 @@
     {
       "id": "drawer-detalhe",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/financeiro-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/financeiro-page.jsx",
         "linhas": "1508-1819"
       },
       "vivo": {
@@ -185,7 +185,7 @@
     {
       "id": "artefatos-do-prototipo",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/financeiro-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/financeiro-page.jsx",
         "linhas": "598-615,682,755,2029"
       },
       "vivo": {

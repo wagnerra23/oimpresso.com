@@ -226,7 +226,7 @@ class GradesDoPainelService
      * Contagem por aba pro painel "Pendências" — o atalho que o charter mantinha em
      * §Backlog ("entra se [W] quiser") e que [W] liberou em 2026-09-04.
      *
-     * As 5 abas vêm da ÂNCORA (`prototipo-ui/cowork/dash-legacy-page.jsx`, const
+     * As 5 abas vêm da ÂNCORA (`prototipo-ui/cowork/Wagner/dash-legacy-page.jsx`, const
      * `PENDENCIAS`), não das 8 do catálogo: o protótipo escolhe deliberadamente as
      * acionáveis. Pedido de venda, ordem de compra e requisição são fluxo em
      * andamento, não pendência — e por isso ficam de fora aqui e seguem só como aba.

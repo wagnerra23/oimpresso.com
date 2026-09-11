@@ -293,7 +293,7 @@ unidades:
     best_of_class: [v0_figma_mcp]
     evidence:
       - 'skill mwart-process (5 fases) + cowork-prototype-replication (7 fases prototipo-ui→Inertia)'
-      - 'prototipo-ui/PROTOCOL.md (loop Cowork ↔ Claude Code)'
+      - 'memory/reference/prototipo-ui/PROTOCOL.md (loop Cowork ↔ Claude Code)'
     forte: 'Cowork faz o papel do Figma Make + Claude Code gera; o loop é formalizado em 5-7 fases.'
     gaps:
       - 'Sem Figma MCP / feed section-by-section automático — o handoff Cowork→Inertia é processual/manual.'

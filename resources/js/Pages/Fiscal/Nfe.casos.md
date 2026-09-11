@@ -369,7 +369,7 @@ Dado o operador na lista de NF-e · Quando escolhe **Compacto** e navega para o 
 NFS-e · Então a tabela de lá já abre compacta — a preferência é dele, não da tela.
 
 Âncora: a fonte de design faz as três telas serem a **mesma função** — `FxNotasPage`, chamada com
-`preset` diferente ([`fiscal-page.jsx:346,541-543`](../../../../prototipo-ui/cowork/fiscal-page.jsx)) — e
+`preset` diferente ([`fiscal-page.jsx:346,541-543`](../../../../prototipo-ui/cowork/Wagner/fiscal-page.jsx)) — e
 persiste a escolha em `fxLS("oimpresso.fiscal.densidade")` (`:358,363`). Lá o compartilhamento é
 grátis; aqui a produção separou em três arquivos, então a propriedade precisa ser defendida.
 

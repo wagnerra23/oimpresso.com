@@ -3,7 +3,7 @@ id: resources-js-pages-jana-index-charter
 page: /ia
 component: resources/js/Pages/Jana/Index.tsx
 related_visual_comparison: memory/requisitos/Jana/Index-visual-comparison.md
-related_prototype: prototipo-ui/cowork/jana-merge.jsx
+related_prototype: prototipo-ui/cowork/Wagner/jana-merge.jsx
 states: [default]  # gate L2 — o `default` desta tela é semeado com UMA venda VENCIDA (routes/web.php `$seedJanaVisregFlow`), pra que o `JanaKpiCard` em `emphasis` do "A receber vencido" entre em baseline; sync com tests/Browser/visreg-states.json
 owner: wagner
 status: live
@@ -57,9 +57,9 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   do **MESMO dado** — "ticket médio não abre faturamento". Hoje 2 dos **3** KPIs abrem
   (Receita 30 dias → Faturamento; A receber vencido → Inadimplência); Ticket médio
   não tem análise do mesmo dado e permanece estático. Âncora:
-  `prototipo-ui/cowork/jana-merge.jsx` §`JmDrillDrawer` + §`JM_KPI_DRILL` — âncora de SÍMBOLO
+  `prototipo-ui/cowork/Wagner/jana-merge.jsx` §`JmDrillDrawer` + §`JM_KPI_DRILL` — âncora de SÍMBOLO
   (ref de linha apodrece no 1º refactor, §5 2026-07-26; re-localize com
-  `grep -n "JmDrillDrawer\|JM_KPI_DRILL" prototipo-ui/cowork/jana-merge.jsx`).
+  `grep -n "JmDrillDrawer\|JM_KPI_DRILL" prototipo-ui/cowork/Wagner/jana-merge.jsx`).
   _Recibo 2026-08-11: no arquivo versionado (`SYNC` com o vivo, sha256 normalizado
   `057bd8ae081bfd1c…`) os símbolos caem em `:640` e `:887` — as duas refs que a v3 citava
   **conferem**. Ficam como símbolo, não linha, porque o número é que é frágil, não a citação._
@@ -68,7 +68,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   `_components/JanaConfigDrawer.tsx` — quais das 5 análises aparecem no painel, persistido em
   `localStorage['oimpresso.jana.cfg']` (prefixo `oimpresso.jana.*`, canon do `Chat.charter.md`).
   Âncora: `jana-merge.jsx` §`JmConfigDrawer` — âncora de SÍMBOLO
-  (`grep -n "JmConfigDrawer" prototipo-ui/cowork/jana-merge.jsx`).
+  (`grep -n "JmConfigDrawer" prototipo-ui/cowork/Wagner/jana-merge.jsx`).
   O drawer é **deliberadamente menor que a âncora**: ver §Anti-hooks abaixo.
 
 - **A meta abre NA PRÓPRIA TELA (v9 — 2026-08-17):** o clique num card de meta abre
@@ -76,7 +76,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   anterior), Série de até 12 janelas em barras, e "De onde vem esse número". O caminho pra tela
   própria **não se perdeu**: virou "Abrir a meta" (`/ia/metas/{id}`) no rodapé do drawer.
   Âncora: `jana-merge.jsx` §`JmMetaDrawer` — âncora de SÍMBOLO
-  (`grep -n "JmMetaDrawer" prototipo-ui/cowork/jana-merge.jsx`).
+  (`grep -n "JmMetaDrawer" prototipo-ui/cowork/Wagner/jana-merge.jsx`).
   O drawer **não projeta o fechamento**: ver §Anti-hooks abaixo.
 
 - **Ação sugerida vira decisão REGISTRADA (v10 — 2026-08-18):** o CTA de cada linha
@@ -88,7 +88,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   **Este passo NÃO envia nada** — o disparo (WhatsApp/e-mail) e a fila `/ia/acoes` são
   PR próprio, e é por isso que os rótulos viraram "Revisar …": ver §Anti-hooks.
   Âncora: `jana-merge.jsx` §`JmAcaoModal` — âncora de SÍMBOLO
-  (`grep -n "JmAcaoModal" prototipo-ui/cowork/jana-merge.jsx`).
+  (`grep -n "JmAcaoModal" prototipo-ui/cowork/Wagner/jana-merge.jsx`).
 
 ## Non-Goals
 
@@ -133,7 +133,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   tiver método, declara-se isso em texto, e o render só veste de `<code>` o que contém `::` — hoje
   nenhuma fonte está nesse caso (o `churn`, que estava, ganhou método no UC-13).
   Mexeu no aggregator, mexe no `JANA_DRILL_FONTES` no mesmo PR.
-  _Guard: `prototipo-ui/ancora.mjs` acusa símbolo de backend citado na âncora que não exista no
+  _Guard: `scripts/design/ancora.mjs` acusa símbolo de backend citado na âncora que não exista no
   repo — e desde 2026-08-13 enxerga também o formato `Classe::metodo` (antes ficava cego nele)._
 - ⛔ **Oferecer no drawer de configuração um controle que o servidor não honra.** É a mesma família
   do anti-hook acima, no eixo da CONFIGURAÇÃO em vez do da FONTE. Medido em 2026-08-17: o
@@ -201,7 +201,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   como seções"*). Três seções novas em `_components/JanaMetaDrawer.tsx`: **Identificação**
   (identificador · agregação · origem · escopo), **Apurações gravadas** (tabela `Data ref.` ×
   `Realizado`, com a contagem no título) e **Fonte do número** (driver · cadência · `config_json`
-  + o aviso de só-leitura). Âncora: `prototipo-ui/cowork/jana-metas.jsx` §`JmApuracoesSecao` e
+  + o aviso de só-leitura). Âncora: `prototipo-ui/cowork/Wagner/jana-metas.jsx` §`JmApuracoesSecao` e
   §`JmFonteDrawer` — que se declara, no próprio cabeçalho, a absorção daquelas Blades
   *"para dentro da tela única da Jana"*.
 

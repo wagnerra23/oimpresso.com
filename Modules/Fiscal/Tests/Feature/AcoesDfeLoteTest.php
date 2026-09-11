@@ -59,7 +59,7 @@ uses(Tests\TestCase::class);
  * Tenant fictício (ADR 0358) — nunca `biz=4`, que é cliente real.
  *
  * @see resources/js/Pages/Fiscal/Dfe.casos.md — UC-FDFE-09/10
- * @see prototipo-ui/cowork/fiscal-subpages.jsx — `data-contract="lote-dfe"` (a fonte)
+ * @see prototipo-ui/cowork/Wagner/fiscal-subpages.jsx — `data-contract="lote-dfe"` (a fonte)
  */
 const LOTE_BIZ_PROPRIO = 98;
 

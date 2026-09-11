@@ -1,7 +1,7 @@
 ---
 id: requisitos-essentials-todo-index-gap
 tela: Essentials/Todo/Index (/essentials/todo)
-prototipo: prototipo-ui/cowork/essenciais-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/essenciais-page.jsx
 tela_viva: resources/js/Pages/Essentials/Todo/Index.tsx
 gerado_em: 2026-09-06
 ---
@@ -17,7 +17,7 @@ gerado_em: 2026-09-06
 
 > ⚠️ **O contrato citado ainda NÃO é gate ativo.** Ele vive em
 > A árvore de contratos legada não é mais fonte canônica.
-> (medido com o critério do próprio gate — `git ls-files "prototipo-ui/contrato/*.contract.json"` sem o EXEMPLO, como `scripts/contrato-de-tela.mjs` faz: **28** contratos ativos, que incluem `essentials-tipos`, `essentials-licencas` e
+> (medido com o critério do próprio gate — `git ls-files "governance/design/contracts/*.contract.json"` sem o EXEMPLO, como `scripts/contrato-de-tela.mjs` faz: **28** contratos ativos, que incluem `essentials-tipos`, `essentials-licencas` e
 > `essentials-metas` — nenhum dos 5 dos essenciais). Ele é **proposta de contrato**: descreve a
 > copy literal pretendida e serve de âncora para esta comparação, mas **não trava merge hoje**.
 > Por isso as divergências de copy abaixo saem como `Decidir.`, nunca como "quebra de gate".

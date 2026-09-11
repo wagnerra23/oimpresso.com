@@ -1,30 +1,30 @@
 #!/usr/bin/env node
 // alvo.mjs — PR-A1 do protocolo de export: o ALVO de uma seção vira MEDIDA executável.
 //
-// Doc: prototipo-ui/PROTOCOL.md · COLAR-NO-CODE-PROTOCOLO-COWORK-EXPORT.md
+// Doc: memory/reference/prototipo-ui/PROTOCOL.md · COLAR-NO-CODE-PROTOCOLO-COWORK-EXPORT.md
 // Origem: pedido [W] 2026-09-03 — "automatizar o ciclo MAPA → ALVO → EXPORT → PR → PLACAR".
 // Aposenta: eu medindo à mão e ditando números no chat (LC-06 — comparação é MEDIDA, nunca no olho).
 //
 // ── O QUE ESTE ARQUIVO **NÃO** É (LC-19: máquina paralela a dono existente) ──────────────
-// Ele NÃO tem sonda própria de tela. A sonda canônica é `prototipo-ui/design-diff.mjs`
+// Ele NÃO tem sonda própria de tela. A sonda canônica é `scripts/design/design-diff.mjs`
 // (dimensões D1–D9, por PAPEL) e ela é consumida aqui pelo **contrato público** dela —
-// `node prototipo-ui/design-diff.mjs --probe`, subprocesso, medido rc=0/17318 bytes em
+// `node scripts/design/design-diff.mjs --probe`, subprocesso, medido rc=0/17318 bytes em
 // 2026-09-03. Não importamos o módulo: ele é CLI-only (importar dispara o CLI e sai 2).
 // O que ESTE arquivo acrescenta é a camada que o dono não cobre: medida **por SELETOR**
 // (nós · filhos · ordem das classes · computed style · truncamento · retângulo), que é o
 // que o protocolo de export chama de ALVO de uma seção.
 //
-// ── ONDE GRAVA, E POR QUE NÃO EM prototipo-ui/contrato/ ─────────────────────────────────
-// `prototipo-ui/contrato/` já tem dono: `contract.schema.json` + `scripts/contrato-de-tela.mjs`
+// ── ONDE GRAVA, E POR QUE NÃO EM governance/design/contracts/ ─────────────────────────────────
+// `governance/design/contracts/` já tem dono: `contract.schema.json` + `scripts/contrato-de-tela.mjs`
 // (gate estático, sem render) — e lá a chave `alvo` **já significa outra coisa**: "dirs/arquivos
 // de produção checados". Gravar `<tela>.alvo.json` naquela pasta colidiria de vocabulário e de
-// dono (LC-22: mudar artefato que a máquina lê sem rodar a máquina). Destino: `prototipo-ui/alvos/`.
+// dono (LC-22: mudar artefato que a máquina lê sem rodar a máquina). Destino: `governance/design/targets/`.
 //
 // ── MODOS ────────────────────────────────────────────────────────────────────────────────
 //   --mapa <url> [--raiz <sel>]        Colhe filhos diretos da raiz + classes repetidas.
 //                                      **stdout only, NUNCA grava** (mapa é comando, ADR 0256).
 //   --alvo <url> --tela <slug> --secoes <arq.json>
-//                                      Mede e grava prototipo-ui/alvos/<slug>.alvo.json.
+//                                      Mede e grava governance/design/targets/<slug>.alvo.json.
 //   --injetar-falha <seletor>          (com --alvo) remove o último filho direto antes de medir.
 //                                      É o aceite falsificável T5: o JSON TEM de mudar.
 //   --aguardar-sumir <seletor>         (com --mapa ou --alvo) só mede DEPOIS que o seletor sair do

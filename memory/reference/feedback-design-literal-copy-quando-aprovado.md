@@ -8,8 +8,8 @@ date: 2026-05-17
 session: stupefied-noether-89f83d
 related_adrs: [0104, 0107, 0109, 0114, 0141]
 related_docs:
-  - prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md
-  - prototipo-ui/PROTOCOL.md
+  - memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md
+  - memory/reference/prototipo-ui/PROTOCOL.md
 ---
 
 # Feedback canônico — design literal copy quando aprovado
@@ -24,11 +24,11 @@ related_docs:
 
 ## Regra
 
-Quando Wagner apresenta screenshot do prototype Cowork (geralmente `prototipo-ui/prototipos/<modulo>/`) ou aprova visual em F1.5 da [`PROTOCOL.md`](../../prototipo-ui/PROTOCOL.md), o caminho é **cópia integral em 1 PR** — não slicing por refinos, não adaptar peça-a-peça.
+Quando Wagner apresenta screenshot do prototype Cowork (geralmente `prototipo-ui/cowork/Wagner/legado/<modulo>/`) ou aprova visual em F1.5 da [`PROTOCOL.md`](../../memory/reference/prototipo-ui/PROTOCOL.md), o caminho é **cópia integral em 1 PR** — não slicing por refinos, não adaptar peça-a-peça.
 
 ## Why
 
-1. **Try anterior catalogado** — Wagner já tentou adaptar peça-a-peça uma tela MWART e perdeu coesão visual do design (caso citado em [`prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md): 6 meta-anti-padrões + 15 técnicos).
+1. **Try anterior catalogado** — Wagner já tentou adaptar peça-a-peça uma tela MWART e perdeu coesão visual do design (caso citado em [`memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md): 6 meta-anti-padrões + 15 técnicos).
 2. **Coesão do design é sistêmica** — KPIs + tabela + drawer + atalhos são feitos pra trabalhar juntos. Slicing em "só R1 SLA pill" deixa metade dos elementos com paleta inconsistente, espaços errados, sem affordance.
 3. **Token cost overall menor** — 1 PR cópia = 1 round Wagner-approve. 4 PRs slicing = 4 rounds + retrabalho de coesão a cada slice.
 4. **Wagner valoriza economia de crédito** ([proibições.md](../proibicoes.md)) — mas "economia" não é "tente menos primeiro"; é "decida escopo de uma vez e execute reto".
@@ -59,5 +59,5 @@ Se Claude está editando `Pages/<Mod>/<Tela>.tsx` e percebe que está PULANDO el
 - [ADR 0114](../decisions/0114-prototipo-ui-cowork-loop-formalizado.md) — Cowork loop formaliza F1.5 critique + F2 screenshot approval
 - [ADR 0107](../decisions/0107-emendation-0104-visual-comparison-gate-f3.md) — visual-comparison.md como gate
 - [ADR 0141](../decisions/0141-skill-migracao-blade-react.md) — migração massiva Blade→React
-- [`prototipo-ui/PROTOCOL.md`](../../prototipo-ui/PROTOCOL.md) — 6 papéis + 7 fases
-- [`prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) — anti-padrões da era pré-cópia-integral
+- [`memory/reference/prototipo-ui/PROTOCOL.md`](../../memory/reference/prototipo-ui/PROTOCOL.md) — 6 papéis + 7 fases
+- [`memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) — anti-padrões da era pré-cópia-integral

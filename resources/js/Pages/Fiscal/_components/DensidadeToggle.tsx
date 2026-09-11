@@ -4,7 +4,7 @@
 // POR QUE É UM COMPONENTE, E NÃO TRÊS CÓPIAS
 // ==========================================
 // Na fonte de design as três telas são a MESMA função — `FxNotasPage`, chamada com
-// `preset` diferente (prototipo-ui/cowork/fiscal-page.jsx:346,541-543). Densidade,
+// `preset` diferente (prototipo-ui/cowork/Wagner/fiscal-page.jsx:346,541-543). Densidade,
 // busca e pager são compartilhados por construção. A produção separou em três
 // arquivos, e o controle ficou só no Cockpit; extrair aqui recupera o dono único.
 //

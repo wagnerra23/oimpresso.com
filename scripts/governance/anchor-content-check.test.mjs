@@ -8,7 +8,7 @@ let fails = 0;
 const check = (n, c, extra = '') => { console.log(`${c ? '[OK]' : '[FAIL]'} ${n}${c ? '' : '  → ' + extra}`); if (!c) fails++; };
 
 // 1. anchorFile extrai caminho de arquivo; prosa/n-a → null.
-check('extrai .jsx', anchorFile('prototipo-ui/cowork/financeiro-page.jsx') === 'financeiro-page.jsx');
+check('extrai .jsx', anchorFile('prototipo-ui/cowork/Wagner/financeiro-page.jsx') === 'financeiro-page.jsx');
 check('extrai .html com sufixo prosa', anchorFile('oimpresso.com.html (canon REAL — lugar fixo)') === 'oimpresso.com.html');
 check('n/a → null', anchorFile('n/a (sem protótipo Cowork)') === null);
 check('MIS-ANCHOR → null', anchorFile('removido related_prototype: x.jsx — MIS-ANCHOR') === null);
@@ -16,10 +16,10 @@ check('prosa sem arquivo → null', anchorFile('prototipo Cowork "payment-gatewa
 
 // 1b. anchorRelPath — identidade por PATH COMPLETO (adversário 2026-07-06: basename colide;
 //     arte 2026-07-06: hash normalizado keyed por path completo, nunca basename).
-check('relpath raiz', anchorRelPath('prototipo-ui/cowork/financeiro-page.jsx') === 'financeiro-page.jsx');
-check('relpath SUBDIR preservado (não colapsa pro basename)', anchorRelPath('prototipo-ui/cowork/prototipos/payment-gateway-ui/index.html') === 'prototipos/payment-gateway-ui/index.html');
+check('relpath raiz', anchorRelPath('prototipo-ui/cowork/Wagner/financeiro-page.jsx') === 'financeiro-page.jsx');
+check('relpath SUBDIR preservado (não colapsa pro basename)', anchorRelPath('prototipo-ui/cowork/Wagner/prototipos/payment-gateway-ui/index.html') === 'prototipos/payment-gateway-ui/index.html');
 check('relpath nome solto (sem dir) → como veio', anchorRelPath('financeiro-telas-extras.jsx (TelaFluxo)') === 'financeiro-telas-extras.jsx');
-check('relpath dois homônimos ≠ mesma identidade', anchorRelPath('prototipo-ui/cowork/a/x.jsx') !== anchorRelPath('prototipo-ui/cowork/b/x.jsx'));
+check('relpath dois homônimos ≠ mesma identidade', anchorRelPath('prototipo-ui/cowork/Wagner/a/x.jsx') !== anchorRelPath('prototipo-ui/cowork/Wagner/b/x.jsx'));
 check('relpath n/a → null', anchorRelPath('n/a (sem protótipo Cowork)') === null);
 check('relpath prosa → null', anchorRelPath('prototipo Cowork "payment-gateway-ui" F1+F1.5') === null);
 
@@ -40,13 +40,13 @@ check('shell com módulo presente AINDA é SHELL (não passa)', classifyAnchor({
 
 // 6. anchorFragment — seção DECLARADA no parêntese colado ao path (os 4 charters que
 //    compartilham financeiro-telas-extras.jsx). LÊ o que o charter escreveu, nunca deriva.
-check('fragmento (TelaConciliacao) simples', anchorFragment('prototipo-ui/cowork/financeiro-telas-extras.jsx (TelaConciliacao) — tela viva evoluiu') === 'TelaConciliacao');
-check('fragmento (TelaFluxo; prosa) — corta no ;', anchorFragment('prototipo-ui/cowork/financeiro-telas-extras.jsx (TelaFluxo; corrigido 2026-07-06 — antes apontava)') === 'TelaFluxo');
-check('fragmento (TelaImpostos), prosa depois', anchorFragment('prototipo-ui/cowork/financeiro-telas-extras.jsx (TelaImpostos), aprovado [W] 2026-06-10') === 'TelaImpostos');
-check('prosa capitalizada multi-palavra NÃO é fragmento', anchorFragment('prototipo-ui/cowork/financeiro-page.jsx (design real da Visão Unificada; corrigido)') === null);
-check('parêntese só-prosa lowercase → null', anchorFragment('prototipo-ui/cowork/vendas-page.jsx (formalizado 2026-07-09 — o visual_source já)') === null);
-check('sem parêntese → null', anchorFragment('prototipo-ui/cowork/compras-page.jsx') === null);
-check('parêntese NÃO-colado ao path (· função … (linhas)) → null', anchorFragment('prototipo-ui/cowork/vendas-extras.jsx · função VendasCaixaPage (linhas 123-354)') === null);
+check('fragmento (TelaConciliacao) simples', anchorFragment('prototipo-ui/cowork/Wagner/financeiro-telas-extras.jsx (TelaConciliacao) — tela viva evoluiu') === 'TelaConciliacao');
+check('fragmento (TelaFluxo; prosa) — corta no ;', anchorFragment('prototipo-ui/cowork/Wagner/financeiro-telas-extras.jsx (TelaFluxo; corrigido 2026-07-06 — antes apontava)') === 'TelaFluxo');
+check('fragmento (TelaImpostos), prosa depois', anchorFragment('prototipo-ui/cowork/Wagner/financeiro-telas-extras.jsx (TelaImpostos), aprovado [W] 2026-06-10') === 'TelaImpostos');
+check('prosa capitalizada multi-palavra NÃO é fragmento', anchorFragment('prototipo-ui/cowork/Wagner/financeiro-page.jsx (design real da Visão Unificada; corrigido)') === null);
+check('parêntese só-prosa lowercase → null', anchorFragment('prototipo-ui/cowork/Wagner/vendas-page.jsx (formalizado 2026-07-09 — o visual_source já)') === null);
+check('sem parêntese → null', anchorFragment('prototipo-ui/cowork/Wagner/compras-page.jsx') === null);
+check('parêntese NÃO-colado ao path (· função … (linhas)) → null', anchorFragment('prototipo-ui/cowork/Wagner/vendas-extras.jsx · função VendasCaixaPage (linhas 123-354)') === null);
 check('n/a → null', anchorFragment('n/a (herda PT-01 Lista)') === null);
 
 // 7. fragmentResolves — o export existe no corpo? (dead-anchor de fragmento se não)

@@ -55,7 +55,7 @@ A âncora da `Jana/Index`, resolvida por `ancora.mjs`, é **`chat-jana.jsx`** (n
 
 **"Caçamba" tem lápide própria** no §5 (2026-06-09), [W] textual: *"pode apagar aluguel de caçamba e fundamentar para não voltar mais, eu não uso é alucinação"* — e ali está registrado que "Caçambas" é **nome comercial do cliente Martinho**, nunca conceito de domínio. Somado a Frota, morta por [W] em 2026-08-07.
 
-⛔ **Não consertado, de propósito.** `prototipo-ui/cowork/` é **espelho** do Cowork vivo, e o cabeçalho do próprio [`cowork-mirror-freshness.mjs`](../../../scripts/governance/cowork-mirror-freshness.mjs) declara: *"o espelho não apodrece SOZINHO — ninguém o edita à toa"*. Editá-lo à mão criaria exatamente o drift que a ferramenta existe pra medir. O conserto pertence à **fonte**, e escrita lá é gated ([ADR 0315](../0315-design-sync-claude-design-vs-cowork-charter.md)) — o projeto vivo do Cowork nem aparece na lista gravável do `DesignSync`. **Decisão [W].**
+⛔ **Não consertado, de propósito.** `prototipo-ui/cowork/Wagner/` é **espelho** do Cowork vivo, e o cabeçalho do próprio [`cowork-mirror-freshness.mjs`](../../../scripts/governance/cowork-mirror-freshness.mjs) declara: *"o espelho não apodrece SOZINHO — ninguém o edita à toa"*. Editá-lo à mão criaria exatamente o drift que a ferramenta existe pra medir. O conserto pertence à **fonte**, e escrita lá é gated ([ADR 0315](../0315-design-sync-claude-design-vs-cowork-charter.md)) — o projeto vivo do Cowork nem aparece na lista gravável do `DesignSync`. **Decisão [W].**
 
 ### §2 do pedido — a cadeia de alcance ✅ **confirmada**
 
@@ -71,13 +71,13 @@ A rev2 diz que o parser *"só conhece `--write`/`--check`/`--all` → `alvos` va
 
 Os serviços **são** fictícios (zero em PHP — varrido). Mas as únicas menções no repo são **comentários que já documentam isso**: [`JanaDrillDrawer.tsx:6`](../../../resources/js/Pages/Jana/_components/JanaDrillDrawer.tsx) — *"o protótipo lista fontes FICTÍCIAS … Medido em 2026-08-07: nenhuma dessas classes"* — e `Index.charter.md:84`. **A correção foi aplicada em 2026-08-07**, ao código e ao charter.
 
-E o arquivo citado como "build F1 de referência", `prototipo-ui/cowork/jana-merge.jsx`, **não existe em nenhum dos dois donos** do inventário de design: nem no git, nem no projeto `DesignSync` (listei os dois).
+E o arquivo citado como "build F1 de referência", `prototipo-ui/cowork/Wagner/jana-merge.jsx`, **não existe em nenhum dos dois donos** do inventário de design: nem no git, nem no projeto `DesignSync` (listei os dois).
 
 > ## ⚠️ ERRATA — 2026-08-11: o parágrafo acima é FALSO, e custou caro
 >
 > **O `jana-merge.jsx` existia.** Vivia no projeto Cowork `019dcfd3-6ef2-7ee6-8512-b1b0e5544e58`
 > ("Oimpresso ERP Conunicação Visual.") e hoje está versionado em
-> [`prototipo-ui/cowork/jana-merge.jsx`](../../../prototipo-ui/cowork/jana-merge.jsx) (943 ln, `SYNC` com o vivo).
+> [`prototipo-ui/cowork/Wagner/jana-merge.jsx`](../../../prototipo-ui/cowork/Wagner/jana-merge.jsx) (943 ln, `SYNC` com o vivo).
 >
 > **Por que o "listei os dois" não valeu:** o `DesignSync{list_projects}` enumera **só projetos
 > do tipo design-system**. O protótipo do ERP vive num projeto **REGULAR**

@@ -23,7 +23,7 @@
 // do dado já os apaga lá — renderizar um valor fixo seria dado fantasma. Ver
 // o charter §"Diferenças declaradas".
 
-/* ─── Vocabulário da FONTE DE DESIGN (`prototipo-ui/cowork/forja-data.jsx`) ───
+/* ─── Vocabulário da FONTE DE DESIGN (`prototipo-ui/cowork/Wagner/forja-data.jsx`) ───
  *
  * Estes mapas são espelho consciente do protótipo, não declaração nova. Cada um
  * tem um caso que cruza os dois lados (`UC-TRAB-11`/`12`/`13`) pelo mesmo motivo

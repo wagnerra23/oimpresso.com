@@ -1,7 +1,7 @@
 ---
 id: requisitos-recurring-billing-cobranca-recorrente-configuracoes-gap
 tela: RecurringBilling/Configuracoes/Index (/recurring-billing/configuracoes)
-prototipo: prototipo-ui/cowork/cobranca-recorrente-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx
 tela_viva: resources/js/Pages/RecurringBilling/Configuracoes/Index.tsx
 gerado_em: 2026-09-06
 ---
@@ -10,7 +10,7 @@ gerado_em: 2026-09-06
 
 > No protótipo esta aba é um placeholder honesto (cobranca-recorrente-page.jsx:332-342, :372) que se declara atrás do vivo ("Espelha /recurring-billing/configuracoes do git"). Tela-mãe: `cobranca-recorrente-gap.md` (veredito MOCKUP-STALE). Charter: `resources/js/Pages/RecurringBilling/Configuracoes/Index.charter.md` (Non-Goals respeitados, nunca reabertos).
 >
-> Base medida: `origin/main` 80bc4ef8b9 · âncora resolvida por `node prototipo-ui/ancora.mjs RecurringBilling/Configuracoes/Index --staging prototipo-ui/cowork` → `âncora ✓ [-page.jsx (bundle · bundle_source)] cobranca-recorrente-page.jsx`. O `desc` do placeholder (:372) cita: gateways de pagamento · régua de cobrança (dunning) · emissão automática de NF-e/NFS-e · webhooks. Cada capacidade foi conferida no `.tsx` e no `ConfiguracoesController.php` abaixo. A tela é read-only v1 por charter — nenhuma seção edita nada (grep `<input／<form／<select／<textarea` → 0).
+> Base medida: `origin/main` 80bc4ef8b9 · âncora resolvida por `node scripts/design/ancora.mjs RecurringBilling/Configuracoes/Index --staging prototipo-ui/cowork` → `âncora ✓ [-page.jsx (bundle · bundle_source)] cobranca-recorrente-page.jsx`. O `desc` do placeholder (:372) cita: gateways de pagamento · régua de cobrança (dunning) · emissão automática de NF-e/NFS-e · webhooks. Cada capacidade foi conferida no `.tsx` e no `ConfiguracoesController.php` abaixo. A tela é read-only v1 por charter — nenhuma seção edita nada (grep `<input／<form／<select／<textarea` → 0).
 
 **Veredito:** VIVO-À-FRENTE — 0 itens a decidir; as 4 seções citadas no placeholder existem no vivo como leitura (a única capacidade citada que o vivo não mostra na tela — NFS-e automática — tem decisão registrada na SPEC como US `_parcial_` de backend, não é item de protótipo).
 
@@ -23,7 +23,7 @@ gerado_em: 2026-09-06
 | d. Webhooks | Seção (:300-310) com um `WebhookCard` por gateway (:553-616): método + gateway (:572-578), link docs (:579-587), rótulo (:590), URL em `<code>` + botão Copiar com feedback "Copiado!" por 1,5s via `navigator.clipboard` (:592-609, handler :556-568), bloco de autenticação (:611-613). URLs por `business_id` montadas no Controller — Asaas e Inter PIX (`ConfiguracoesController.php:96-114`). Sem testar conexão / histórico / métricas de saúde (grep → 0 nos três). | Nada — Non-Goal do charter ("❌ Test webhook", :52 · "❌ Histórico de eventos webhook (timeline)", :53 · "❌ Métricas/saúde gateway", :54); listagem + copy é paridade com o desc :372 |
 | Estados vazio / skeleton | `GatewaysSkeleton` (:622-637) como fallback do único `<Deferred>` (:213); empty state de gateways (:475-494). As outras 3 seções são props eager por desenho (`ConfiguracoesController.php:36-38`), sem skeleton. | Nada — vivo à frente (placeholder :332-342 não tem estado nenhum) |
 | Overlays / atalhos | `TourConfiguracoes` local com 4 steps (:327-441, um por seção) + `CheatSheet` (:316); atalhos `?` e Esc (:154-169), ←/→ dentro do tour (:360-369). Sem `CmdPalette`/`Sparkline` (grep → 0 — Planos tem; diferença entre irmãs sem âncora no protótipo). | Nada — vivo à frente (o placeholder só tem "← Voltar pras assinaturas" via `window.__selectRoute`, harness) |
-| Linguagem visual | `stone-` 54 ocorrências, `zinc-`/`violet-` 0; tokens semânticos `bg-info-soft`/`bg-warning-soft`/`bg-destructive-soft` (:97-122) e `bg-primary` (:180, :383, :422). Protótipo declara stone + `var(--accent)` (:1-6; `.css` → `var(--accent)` 10, zinc/violet 0). Dois ponteiros caducos: o charter :43 escreve "tokens Tailwind diretos (zinc/violet/…)" e o comentário `Index.tsx:4` aponta `prototipo-ui/prototipos/recurring/recurring-page.jsx`, path que não existe no disco (`ls` → No such file); a âncora real resolve pelo `visual_source` do charter (bundle_source ✓). | Nada — paridade de família (stone/warm nos dois lados); charter :43 e comentário :4 são texto caduco, registrados aqui (Fase 1 read-only) — equivalência exata de token acento×`bg-primary` é escopo do `design-diff`, não deste gap |
+| Linguagem visual | `stone-` 54 ocorrências, `zinc-`/`violet-` 0; tokens semânticos `bg-info-soft`/`bg-warning-soft`/`bg-destructive-soft` (:97-122) e `bg-primary` (:180, :383, :422). Protótipo declara stone + `var(--accent)` (:1-6; `.css` → `var(--accent)` 10, zinc/violet 0). Dois ponteiros caducos: o charter :43 escreve "tokens Tailwind diretos (zinc/violet/…)" e o comentário `Index.tsx:4` aponta `prototipo-ui/cowork/Wagner/legado/recurring/recurring-page.jsx`, path que não existe no disco (`ls` → No such file); a âncora real resolve pelo `visual_source` do charter (bundle_source ✓). | Nada — paridade de família (stone/warm nos dois lados); charter :43 e comentário :4 são texto caduco, registrados aqui (Fase 1 read-only) — equivalência exata de token acento×`bg-primary` é escopo do `design-diff`, não deste gap |
 
 ## Recibos de ausência
 - `grep -nEc 'zinc-|violet-' resources/js/Pages/RecurringBilling/Configuracoes/Index.tsx` → 0   (linguagem visual: sem zinc/violet)
@@ -38,5 +38,5 @@ gerado_em: 2026-09-06
 - `grep -nc 'config_json' resources/js/Pages/RecurringBilling/Configuracoes/Index.tsx` → 0   (anti-pattern :72 respeitado)
 - `grep -nEc 'SubNav|PageHeaderNav|href="/recurring-billing"' resources/js/Pages/RecurringBilling/Configuracoes/Index.tsx` → 0   (sem tab-strip nem Voltar)
 - `grep -nEc '<CmdPalette|Sparkline' resources/js/Pages/RecurringBilling/Configuracoes/Index.tsx` → 0   (sem palette/sparkline nesta Page)
-- `ls prototipo-ui/prototipos/recurring/` → No such file or directory   (path do comentário `Index.tsx:4` não existe)
-- `grep -nEc 'zinc|violet' prototipo-ui/cowork/cobranca-recorrente-page.css` → 0 · `grep -nc 'var(--accent)' …page.css` → 10   (linguagem do protótipo)
+- `ls prototipo-ui/cowork/Wagner/legado/recurring/` → No such file or directory   (path do comentário `Index.tsx:4` não existe)
+- `grep -nEc 'zinc|violet' prototipo-ui/cowork/Wagner/cobranca-recorrente-page.css` → 0 · `grep -nc 'var(--accent)' …page.css` → 10   (linguagem do protótipo)

@@ -20,7 +20,7 @@ use Modules\Jana\Entities\Mcp\McpMemoryDocument;
  * mesma disciplina da Triagem em ForjaController).
  *
  * ── Shape (PARIDADE §11 Onda 9 · ADR 0388 "réplica primeiro") ─────────────────
- * O `ChangelogFeed` de `prototipo-ui/cowork/forja-page.jsx` desenha, por linha:
+ * O `ChangelogFeed` de `prototipo-ui/cowork/Wagner/forja-page.jsx` desenha, por linha:
  * dot + corpo(ref · flags · data | resumo | ator + módulos). Este service serve
  * exatamente esses campos, e cada um vem de COLUNA REAL:
  *

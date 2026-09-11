@@ -22,7 +22,7 @@
 
 import { readFileSync } from 'node:fs';
 
-const MJS_PATH = 'prototipo-ui/audit/score-mechanized.mjs';
+const MJS_PATH = 'scripts/design/audit/score-mechanized.mjs';
 const PHP_PATH = 'Modules/Jana/Ai/UiDeterministicScorer.php';
 
 // Assinaturas que DEVEM existir verbatim nos dois fontes (substrings dos regex, escolhidas

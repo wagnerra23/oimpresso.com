@@ -2,7 +2,7 @@
 id: resources-js-pages-purchase-create-charter
 page: /purchases/create
 component: resources/js/Pages/Purchase/Create.tsx
-related_prototype: prototipo-ui/cowork/compras-grade-matrix.jsx
+related_prototype: prototipo-ui/cowork/Wagner/compras-grade-matrix.jsx
 bundle_source: compras-grade-matrix.jsx
 related_runbook: memory/requisitos/Compras/_telas/RUNBOOK-purchase-create.md
 related_visual_comparison: memory/requisitos/Compras/_telas/purchase-create-visual-comparison.md
@@ -16,8 +16,8 @@ charter_version: 2
 last_validated: "2026-09-11"
 adr_refs: [0104, 0093, 0114, 0149, 0105]
 mwart_pattern_reuse:
-  blueprint_cowork: prototipo-ui/cowork/compras-page.jsx
-  blueprint_grade: prototipo-ui/cowork/compras-grade-matrix.jsx
+  blueprint_cowork: prototipo-ui/cowork/Wagner/compras-page.jsx
+  blueprint_grade: prototipo-ui/cowork/Wagner/compras-grade-matrix.jsx
   blueprint_screenshot_approval: "SYNC_LOG (pendente — inclui modo grade)"
   derived_screens: [Create]
   divergence_from_blueprint: "Layout linear top-to-bottom (não drawer-based como Index). Modo grade tam×cor (US-COM-005) usa GradeMatrixInput; entrada manual segue repeater simples."

@@ -17,12 +17,12 @@ import {
   changesDigest, createManifest, manifestDigest, roleForPath, sha256,
   validateBundleParts, validateManifest,
 } from './bundle-contract.mjs';
-import { buildManifest as detectarTelas } from '../../prototipo-ui/detectar-telas.mjs';
+import { buildManifest as detectarTelas } from '../../scripts/design/detectar-telas.mjs';
 import { verificarMapa } from '../governance/design-code-map-check.mjs';
 
 export const DEFAULT_PATHS = {
-  cowork: 'prototipo-ui/cowork',
-  runtime: 'scripts/design-sync/mirror-snapshot',
+  cowork: 'prototipo-ui/cowork/Wagner',
+  runtime: 'prototipo-ui/design-system',
   state: 'scripts/design-sync/state',
 };
 

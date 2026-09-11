@@ -1,6 +1,6 @@
 // AlertasFiscais.tsx — fila de alertas do cockpit fiscal
 //
-// Port do design `prototipo-ui/cowork/fiscal-page.jsx:125-137` (FxAlerts).
+// Port do design `prototipo-ui/cowork/Wagner/fiscal-page.jsx:125-137` (FxAlerts).
 //
 // POR QUE EXISTE
 // --------------

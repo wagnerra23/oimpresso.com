@@ -1,7 +1,7 @@
 ---
 id: requisitos-essentials-settings-index-gap
 tela: Essentials/Settings/Index (/hrm/settings)
-prototipo: prototipo-ui/cowork/hrm-extras.jsx
+prototipo: prototipo-ui/cowork/Wagner/hrm-extras.jsx
 tela_viva: resources/js/Pages/Essentials/Settings/Index.tsx
 gerado_em: 2026-09-06
 ---

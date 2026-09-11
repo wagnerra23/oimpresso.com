@@ -1,7 +1,7 @@
 ---
 tela: Foundation / PageHeader
 prototipo: TODO
-prototipo_nota: "2026-09-06 [C]: o campo era `prototipo-ui/prototipos/pageheader-canon-v3/ (index.html · 3-familias.html · b-v2-roxo-kpis.html · clientes-filtros-amostra.html · SPEC.md · README.md)` — a pasta prototipo-ui/prototipos/ foi expurgada em 2026-06-23 (commit 9da73296d3, consolidação SSOT em prototipo-ui/cowork/; os 7 arquivos desta pasta — os 6 listados + diagram.svg — saíram nele, junto com o visual-source.html da sidebar). Não há sucessor no espelho: fonte viva é o DS em git (prototipo-ui/design-system). Âncora do lado protótipo fica TODO por desenho; o lado vivo é ancorado por grep real."
+prototipo_nota: "2026-09-06 [C]: o campo era `prototipo-ui/cowork/Wagner/legado/pageheader-canon-v3/ (index.html · 3-familias.html · b-v2-roxo-kpis.html · clientes-filtros-amostra.html · SPEC.md · README.md)` — a pasta prototipo-ui/cowork/Wagner/legado/ foi expurgada em 2026-06-23 (commit 9da73296d3, consolidação SSOT em prototipo-ui/cowork/Wagner/; os 7 arquivos desta pasta — os 6 listados + diagram.svg — saíram nele, junto com o visual-source.html da sidebar). Não há sucessor no espelho: fonte viva é o DS em git (prototipo-ui/design-system). Âncora do lado protótipo fica TODO por desenho; o lado vivo é ancorado por grep real."
 tela_viva: resources/js/Components/PageHeader/PageHeader.tsx + PageHeaderPrimary.tsx + index.ts (consumo de referência: resources/js/Pages/Cliente/Index.tsx)
 paridade_atual: ~85% (código vivo já está ADIANTE do protótipo index.html; protótipo é internamente inconsistente)
 gerado_em: 2026-06-23
@@ -127,7 +127,7 @@ trabalho de "aplicar protótipo", é evolução de fundação governada.
 
 ## Tabela de partes (derivada 2026-09-06 — veredito da prosa × código medido)
 
-> Escrita por [C] em 2026-09-06. Regra: cada Ação cita o veredito da prosa acima (§1 Risco/Governança · §2 Ordem · §3) **e** o estado do código medido hoje com `arquivo:linha`. "**Decidir.**" só onde a prosa registra gap aberto que exige decisão; "Nada — <veredito>" onde a prosa fecha (já é canon · não aplicar · backlog) ou onde o código fechou o gap DEPOIS da prosa (2026-06-23). Em conflito prosa × código, o código medido vence e a linha diz isso. Lado protótipo = `TODO` (expurgado — ver `prototipo_nota`). Consumida por `prototipo-ui/gerar-map.mjs` → `pageheader-canon-v3.map.json`.
+> Escrita por [C] em 2026-09-06. Regra: cada Ação cita o veredito da prosa acima (§1 Risco/Governança · §2 Ordem · §3) **e** o estado do código medido hoje com `arquivo:linha`. "**Decidir.**" só onde a prosa registra gap aberto que exige decisão; "Nada — <veredito>" onde a prosa fecha (já é canon · não aplicar · backlog) ou onde o código fechou o gap DEPOIS da prosa (2026-06-23). Em conflito prosa × código, o código medido vence e a linha diz isso. Lado protótipo = `TODO` (expurgado — ver `prototipo_nota`). Consumida por `scripts/design/gerar-map.mjs` → `pageheader-canon-v3.map.json`.
 
 | Parte | Estado no vivo (medido 2026-09-06) | Ação |
 |---|---|---|

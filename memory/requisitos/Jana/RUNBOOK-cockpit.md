@@ -60,7 +60,7 @@ Tela do **Analista IA (Jana)** — brief diário + KPIs + análises + ações HI
 
 ## 1. Objetivo
 
-Cockpit do **Analista IA** — a Jana entrega brief diário do negócio, monitora KPIs, detecta anomalias e sugere ações **HITL** (humano aprova antes de disparar). Audiência primária: dono/gerente (Wagner / Larissa), não operador de atendimento. Fonte de design da era do pivot: protótipo Cowork `chat-jana.jsx` — hoje vivo em [`prototipo-ui/cowork/chat-jana.jsx`](../../../prototipo-ui/cowork/chat-jana.jsx) (+ `.css`), que é o mesmo path que o charter aponta em `visual_source`.
+Cockpit do **Analista IA** — a Jana entrega brief diário do negócio, monitora KPIs, detecta anomalias e sugere ações **HITL** (humano aprova antes de disparar). Audiência primária: dono/gerente (Wagner / Larissa), não operador de atendimento. Fonte de design da era do pivot: protótipo Cowork `chat-jana.jsx` — hoje vivo em [`prototipo-ui/cowork/Wagner/chat-jana.jsx`](../../../prototipo-ui/cowork/Wagner/chat-jana.jsx) (+ `.css`), que é o mesmo path que o charter aponta em `visual_source`.
 
 Multi-tenant: Controller filtra `session('user.business_id')`; superadmin/`user_oimpresso` enxerga até 50 businesses no CompanyPicker (Tier 0 [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) — filtro explícito pra não-super).
 
@@ -158,7 +158,7 @@ grep -i "Pages/Jana/Cockpit" public/build-inertia/manifest.json
 
 ## 4. Tokens CSS
 
-Tokens shadcn semânticos (`text-primary`, `text-muted-foreground`, `border-border`, `bg-card`) + utilities Tailwind — conferidos no trecho de render (nav de tabs usa `border-primary text-primary` no ativo). Container central `max-w-[1280px] mx-auto` (cabe no monitor 1280px da Larissa). ⚠️ Auditoria token-a-token das 1022 linhas **não refeita em 2026-07** — em caso de dúvida, rodar `node prototipo-ui/ds-guard.mjs resources/js/Pages/Jana/Cockpit.tsx`.
+Tokens shadcn semânticos (`text-primary`, `text-muted-foreground`, `border-border`, `bg-card`) + utilities Tailwind — conferidos no trecho de render (nav de tabs usa `border-primary text-primary` no ativo). Container central `max-w-[1280px] mx-auto` (cabe no monitor 1280px da Larissa). ⚠️ Auditoria token-a-token das 1022 linhas **não refeita em 2026-07** — em caso de dúvida, rodar `node scripts/design/ds-guard.mjs resources/js/Pages/Jana/Cockpit.tsx`.
 
 ## 5. Estados visuais
 
@@ -257,11 +257,11 @@ Pegadinhas genéricas em [`.claude/skills/cockpit-runbook/GOTCHAS.md`](../../../
 - **O que era:** `Cockpit.tsx` de 138 lin — clone WhatsApp com sidebar de conversas mock (3 grupos), `ChatTabs` Todos/OS/Equipe/Clientes, `ThreadContext`, resposta simulada `setTimeout(600/2400ms)` com texto literal *"Recebido, vou verificar e te respondo já já 👍"*, `localStorage` escrito em todo render (fora de `useEffect`), prop `conversaAtivaRealId` injetada e nunca consumida.
 - **Por que morreu:** identificado como anti-pattern no amendment `COWORK_NOTES.amendment-jana-chat-block-renderer.md` (Cowork 2026-05-14/15) — a Jana não é um contato de WhatsApp, é analista. Pivot Cowork (dashboard cockpit) aceito → V2 substituiu in-place, como o charter (`supersedes_in_place`) previa.
 - **Lápides das refs da era V1** (as 4 refs quebradas que o radar de frescor apontou):
-  - `prototipo-ui/_cowork-export-2026-05-15/chat-jana.{jsx,css}` — dir quarentenado em `_BACKUP-NAO-USAR/snapshots-cowork/` (PR #1218, 2026-05-20, ordem Wagner "remover interpretações erradas") e depois **apagado do git** (PR #2977, 2026-06-18, "esteira ≠ armazém"; superseded por DS v6 + primitivos UI-0018). **Conteúdo sobrevive em [`prototipo-ui/cowork/chat-jana.jsx`](../../../prototipo-ui/cowork/chat-jana.jsx) + [`chat-jana.css`](../../../prototipo-ui/cowork/chat-jana.css)** (path canônico atual, o mesmo do charter `visual_source`).
+  - `prototipo-ui/_cowork-export-2026-05-15/chat-jana.{jsx,css}` — dir quarentenado em `_BACKUP-NAO-USAR/snapshots-cowork/` (PR #1218, 2026-05-20, ordem Wagner "remover interpretações erradas") e depois **apagado do git** (PR #2977, 2026-06-18, "esteira ≠ armazém"; superseded por DS v6 + primitivos UI-0018). **Conteúdo sobrevive em [`prototipo-ui/cowork/Wagner/chat-jana.jsx`](../../../prototipo-ui/cowork/Wagner/chat-jana.jsx) + [`chat-jana.css`](../../../prototipo-ui/cowork/Wagner/chat-jana.css)** (path canônico atual, o mesmo do charter `visual_source`).
   - `CRITIQUE-chat-jana-vs-amendment.md` (score F1.5 interim 78/100) — sem cópia viva; recuperável via git history: `git show 1070e3759b^:prototipo-ui/_cowork-export-2026-05-15/CRITIQUE-chat-jana-vs-amendment.md`.
 
 ---
 
-**Última atualização:** 2026-07-09 — re-validação de frescor (radar doc-freshness-score #4031, score 40 → alvo saudável). Supersede V1→V2 **consumado e registrado**: §1-§11 reescritas pro Cockpit V2 Analista IA live em `/ia/cockpit` (verificação estática contra `origin/main`: routes.php:40, ChatController@cockpit :505, mockJanaPayload :555, Cockpit.tsx 1022 lin, LS_TAB :133, tabs :936-:1020); V1 WhatsApp-mock condensado na seção HISTÓRICO com lápides das 4 refs purgadas (`_cowork-export-2026-05-15/` → quarentena PR #1218 → deleção PR #2977; protótipo sobrevive em `prototipo-ui/cowork/`). Fluxo vivo não exercitado em 2026-07.
+**Última atualização:** 2026-07-09 — re-validação de frescor (radar doc-freshness-score #4031, score 40 → alvo saudável). Supersede V1→V2 **consumado e registrado**: §1-§11 reescritas pro Cockpit V2 Analista IA live em `/ia/cockpit` (verificação estática contra `origin/main`: routes.php:40, ChatController@cockpit :505, mockJanaPayload :555, Cockpit.tsx 1022 lin, LS_TAB :133, tabs :936-:1020); V1 WhatsApp-mock condensado na seção HISTÓRICO com lápides das 4 refs purgadas (`_cowork-export-2026-05-15/` → quarentena PR #1218 → deleção PR #2977; protótipo sobrevive em `prototipo-ui/cowork/Wagner/`). Fluxo vivo não exercitado em 2026-07.
 
 **2026-05-15** — adicionado §AVISO supersede em curso V2 + refs charter/CRITIQUE/protótipo. §1-§11 (impl V1 da época) inalteradas. Original 2026-05-09 preservado (hoje condensado no HISTÓRICO acima).

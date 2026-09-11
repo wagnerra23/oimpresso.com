@@ -13,7 +13,7 @@ id: requisitos-design-system-adr-ui-0012-zip-cowork-2026-05-09-canon-visual
 - **Data**: 2026-05-09
 - **Decisores**: Wagner, Claude
 - **Categoria**: ui · estruturante
-- **Refs**: [UI Kit Cowork 2026-05-09](../../ui_kits/cowork-2026-05-09/README.md), [_DS UI-0010 — precedente](0010-zip-cowork-2026-04-27-canon-visual.md), [_DS UI-0008](0008-cockpit-layout-mae-do-erp.md), [_DS UI-0009](0009-cockpit-sidebar-light-padrao.md), [`prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md)
+- **Refs**: [UI Kit Cowork 2026-05-09](../../ui_kits/cowork-2026-05-09/README.md), [_DS UI-0010 — precedente](0010-zip-cowork-2026-04-27-canon-visual.md), [_DS UI-0008](0008-cockpit-layout-mae-do-erp.md), [_DS UI-0009](0009-cockpit-sidebar-light-padrao.md), [`memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../../../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md)
 - **Substitui parcialmente**: [_DS UI-0010 — Zip Cowork 2026-04-27](0010-zip-cowork-2026-04-27-canon-visual.md) onde overlap (mesmo arquivo, versão nova vence)
 - **Convive com**: [_DS UI-0009](0009-cockpit-sidebar-light-padrao.md), [_DS UI-0011](0011-sidebar-single-pane-cascata-user-menu.md) — decisões posteriores ao snapshot sobrevivem (ver §3)
 
@@ -33,9 +33,9 @@ Em 2026-05-09 Wagner exportou novo zip do projeto Anthropic Cowork "Oimpresso ER
 - **HTMLs standalone novos**: `Inventario - Migracao Blade React.html` (29KB), `Produção Oficina - Tela.html` (46KB)
 - **6 screenshots PNG** (~640KB total) — F2 evidence material
 
-A mesma sessão Cowork também produziu o batch F3 Financeiro (`prototipo-ui-patch/Modules/Financeiro/Http/Controllers/*.php` + `.tsx`) que foi **rejeitado pré-merge** ([`LICOES_F3_FINANCEIRO_REJEITADO.md`](../../../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md), [PR #365](https://github.com/wagnerra23/oimpresso.com/pull/365)) por 21 anti-padrões (Models inventados, tenant scope ausente, middleware fantasma, etc).
+A mesma sessão Cowork também produziu o batch F3 Financeiro (`prototipo-ui-patch/Modules/Financeiro/Http/Controllers/*.php` + `.tsx`) que foi **rejeitado pré-merge** ([`LICOES_F3_FINANCEIRO_REJEITADO.md`](../../../../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md), [PR #365](https://github.com/wagnerra23/oimpresso.com/pull/365)) por 21 anti-padrões (Models inventados, tenant scope ausente, middleware fantasma, etc).
 
-**Esta ADR só formaliza os assets visuais** (.jsx referência + HTML + CSS + screenshots). Os controllers e .tsx do batch F3 ficam fora — pinos visuais já estão em [`prototipo-ui/prototipos/financeiro-*/`](../../../../../prototipo-ui/prototipos/) ([PR #366](https://github.com/wagnerra23/oimpresso.com/pull/366)).
+**Esta ADR só formaliza os assets visuais** (.jsx referência + HTML + CSS + screenshots). Os controllers e .tsx do batch F3 ficam fora — pinos visuais já estão em [`prototipo-ui/cowork/Wagner/legado/financeiro-*/`](../../../../../prototipo-ui/cowork/Wagner/legado/) ([PR #366](https://github.com/wagnerra23/oimpresso.com/pull/366)).
 
 ## Decisão
 
@@ -58,12 +58,12 @@ Lista UI-0010 §2 evolui pra cobrir telas novas:
 | `sidebar.jsx` | **Sidebar dual Chat/Menu** | já portado |
 | `linked-apps.jsx` | **Coluna direita Apps Vinculados** | já portado |
 | `tweaks-panel.jsx` | **Vibe/Densidade/Accent** | já portado |
-| **`vendas-page.jsx` + `vendas-extras.jsx`** ⭐ NOVO | **Sells/Create + Sells/Index** | P0 — pino F1 em [`sells-create/`](../../../../../prototipo-ui/prototipos/sells-create/) |
+| **`vendas-page.jsx` + `vendas-extras.jsx`** ⭐ NOVO | **Sells/Create + Sells/Index** | P0 — pino F1 em [`sells-create/`](../../../../../prototipo-ui/cowork/Felipe/legado/sells-create/) |
 | **`clientes-page.jsx`** ⭐ NOVO | **Cliente/Index** | P2 — sem charter ainda |
 | **`producao-page.jsx`** ⭐ NOVO | **Repair/ProducaoOficina** | já em prod (referência refator visual) |
 | **`produto-app.jsx` + `produto-data.jsx`** ⭐ NOVO | **Produto/Unificado** (Catálogo) | P2 — controller candidato existe (não copiar literal) |
 | **`financeiro-app.jsx` + `financeiro-telas-extras.jsx`** ⭐ NOVO | **Financeiro/{Unificado,Fluxo,Conciliacao,DRE,PlanoContas}** | Unificado em prod; resto pinos F1 |
-| **`Inventario - Migracao Blade React.html`** ⭐ NOVO (standalone 29KB) | **Inventário** (migração Blade→React) | sem charter — pino F1 em [`inventario-migracao/`](../../../../../prototipo-ui/prototipos/inventario-migracao/) |
+| **`Inventario - Migracao Blade React.html`** ⭐ NOVO (standalone 29KB) | **Inventário** (migração Blade→React) | sem charter — pino F1 em [`inventario-migracao/`](../../../../../prototipo-ui/cowork/Wagner/legado/inventario-migracao/) |
 
 ### 3. Conflitos resolvidos (herda UI-0010 §3 + adições)
 
@@ -75,27 +75,27 @@ Decisões POSTERIORES ao snapshot 2026-05-09 sobrevivem (zip NÃO sobrescreve):
 | **CSS escopado em `.cockpit{}`** | repo escopa | evita vazamento Site/Cms |
 | **AppShell legado removido** | repo removeu | Cockpit é shell único |
 | **Stack IA Vizra ADK** ([ADR 0048](../../../../decisions/0048-vizra-adk-rejected.md)) | rejeitado | decisão técnica |
-| **F3 batch Financeiro** | rejeitado pré-merge ([LICOES](../../../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md)) | 21 anti-padrões |
+| **F3 batch Financeiro** | rejeitado pré-merge ([LICOES](../../../../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md)) | 21 anti-padrões |
 | **`/financeiro/unificado`** ([#355](https://github.com/wagnerra23/oimpresso.com/pull/355), [#358](https://github.com/wagnerra23/oimpresso.com/pull/358)) | em prod com fixes | T-AP-4 — não sobrescrever |
 | **`Modules\Produto` namespace** | UPOS canon (`App\Product` direto) | herdado UPOS v6 |
 | **`Pages/Copiloto`** | renomeado pra `Pages/Jana` | sessão renomeação prévia |
 
 ### 4. Plano de portagem (atualiza UI-0010 §4)
 
-Telas-alvo ranqueadas por prioridade da fila ([`TELAS_REVIEW_QUEUE.md`](../../../../../prototipo-ui/TELAS_REVIEW_QUEUE.md)):
+Telas-alvo ranqueadas por prioridade da fila ([`TELAS_REVIEW_QUEUE.md`](../../../../../memory/reference/prototipo-ui/TELAS_REVIEW_QUEUE.md)):
 
 **P0:**
-1. **Sells/Create** + **Sells/Index** — `vendas-page.jsx` + `vendas-extras.jsx` referência. Pino F1 em [`sells-create/`](../../../../../prototipo-ui/prototipos/sells-create/) (deste PR). Wagner abre F0 em `COWORK_NOTES.md`.
+1. **Sells/Create** + **Sells/Index** — `vendas-page.jsx` + `vendas-extras.jsx` referência. Pino F1 em [`sells-create/`](../../../../../prototipo-ui/cowork/Felipe/legado/sells-create/) (deste PR). Wagner abre F0 em `COWORK_NOTES.md`.
 
 **P1 (charter existente):**
 2. **Repair/{Dashboard,JobSheet,Status}** — `producao-page.jsx` referência (`Repair/ProducaoOficina` já mergeado por loop)
 3. **Financeiro/{ContasBancarias,Extrato}** — charters existem
-4. **Financeiro/{Fluxo,PlanoContas,DRE,Conciliacao}** — pinos F1 em `prototipo-ui/prototipos/financeiro-*/`. Bloqueados em backend (ver READMEs).
+4. **Financeiro/{Fluxo,PlanoContas,DRE,Conciliacao}** — pinos F1 em `prototipo-ui/cowork/Wagner/legado/financeiro-*/`. Bloqueados em backend (ver READMEs).
 
 **P2:**
 5. **Cliente/Index** — `clientes-page.jsx` referência. Sem charter — criar antes.
 6. **Produto/Unificado** — `produto-app.jsx` referência. Controller candidato em `prototipo-ui-patch/app/Http/Controllers/ProdutoUnificadoController.php` (NÃO copiar literal — usar como inspiração, ver T-AP-1).
-7. **Inventário** — `Inventario - Migracao Blade React.html` (standalone). Sem charter. Pino F1 em [`inventario-migracao/`](../../../../../prototipo-ui/prototipos/inventario-migracao/).
+7. **Inventário** — `Inventario - Migracao Blade React.html` (standalone). Sem charter. Pino F1 em [`inventario-migracao/`](../../../../../prototipo-ui/cowork/Wagner/legado/inventario-migracao/).
 8. **Orçamento** — `orc-page.jsx`.
 
 Cada portagem em PR separado obedecendo loop F0→F4 ([ADR 0114](../../../../decisions/0114-prototipo-ui-cowork-loop-formalizado.md)) com gate visual ([ADR 0107](../../../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md)).
@@ -104,7 +104,7 @@ Cada portagem em PR separado obedecendo loop F0→F4 ([ADR 0114](../../../../dec
 
 **Antes de qualquer F3 que cite este UI Kit como referência:**
 
-Ler [`prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) — 6 meta-anti-padrões + 15 técnicos catalogados. Pré-flight checklist obrigatório (Models reais, tenant scope, middleware UPOS canon, shape mapping, services existentes).
+Ler [`memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../../../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) — 6 meta-anti-padrões + 15 técnicos catalogados. Pré-flight checklist obrigatório (Models reais, tenant scope, middleware UPOS canon, shape mapping, services existentes).
 
 Skill `multi-tenant-patterns` (Tier A) e `mwart-comparative` (Tier A) já cobrem boa parte. Doc adiciona convenções pt-BR herdadas (Titulo, ContaBancaria, baixar() vs nomes inventados).
 
@@ -129,7 +129,7 @@ Skill `multi-tenant-patterns` (Tier A) e `mwart-comparative` (Tier A) já cobrem
 
 - **Substituir UI-0010 inteiramente** — rejeitada: UI-0010 cita arquivos `cowork-2026-04-27/` que ainda valem como histórico; substituição parcial preserva ambos
 - **Não importar telas novas** (vendas/clientes/etc) — rejeitada: perde valor de calibração visual; charter sem referência canônica vira chute
-- **Importar só os controllers do `prototipo-ui-patch/`** — rejeitada categoricamente: 21 anti-padrões catalogados em [`LICOES_F3_FINANCEIRO_REJEITADO.md`](../../../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md)
+- **Importar só os controllers do `prototipo-ui-patch/`** — rejeitada categoricamente: 21 anti-padrões catalogados em [`LICOES_F3_FINANCEIRO_REJEITADO.md`](../../../../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md)
 - **Importar `uploads/Design System/` (versão Cowork dos components/CSS)** — rejeitada: repo está MUITO à frente (17 components vs 13 do zip, AppShellV2 já portado, etc)
 
 ## Validação pendente

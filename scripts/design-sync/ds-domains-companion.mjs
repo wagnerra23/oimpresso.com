@@ -20,7 +20,7 @@
 //
 // Uso:
 //   node scripts/design-sync/ds-domains-companion.mjs [tokensDir] > cockpit_domains.css
-//   node scripts/design-sync/ds-domains-companion.mjs --write   # grava no mirror-snapshot
+//   node scripts/design-sync/ds-domains-companion.mjs --write   # grava no design-system canônico
 //   node scripts/design-sync/ds-domains-companion.mjs --check    # falha se o arquivo gravado difere (CI)
 //   tokensDir default = resources/css/tokens
 
@@ -30,7 +30,7 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, '..', '..');
-const OUT = join(HERE, 'mirror-snapshot', 'cockpit_domains.css');
+const OUT = join(REPO, 'prototipo-ui', 'design-system', 'cockpit_domains.css');
 
 // Grupos de DOMÍNIO (o que o colors_and_type.css OMITE de propósito). Prefixo-match.
 // Inclui `kind-` inteiro (base + -soft): a base repete o valor canon do colors_and_type (dup inócua),

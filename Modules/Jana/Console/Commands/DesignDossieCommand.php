@@ -86,10 +86,10 @@ class DesignDossieCommand extends Command
         // da tela (Index ≠ vendas). Fallback ao slug + ao módulo se o map não casar.
         $decisoes = [];
         foreach ($this->prototypeDirsForModule($module) as $dir) {
-            $decisoes[] = "prototipo-ui/prototipos/{$dir}/decisoes.md";
+            $decisoes[] = "prototipo-ui/cowork/Wagner/legado/{$dir}/decisoes.md";
         }
-        $decisoes[] = "prototipo-ui/prototipos/{$telaSlug}/decisoes.md";
-        $decisoes[] = 'prototipo-ui/prototipos/' . mb_strtolower($module) . '/decisoes.md';
+        $decisoes[] = "prototipo-ui/cowork/Wagner/legado/{$telaSlug}/decisoes.md";
+        $decisoes[] = 'prototipo-ui/cowork/Wagner/legado/' . mb_strtolower($module) . '/decisoes.md';
         $sources['decisoes'] = $this->firstGlob($decisoes);
 
         $sources['visual_comparison'] = $this->firstGlob([

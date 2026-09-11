@@ -118,7 +118,7 @@ Esforço total estimado P0 + P1: ~30-40h codáveis com IA-pair (~3-4 dias úteis
 1. Wagner abre `prototipo-ui/cowork-2026-05-26-comunicacao-visual/project/Oimpresso ERP - Chat.html` em browser local (Tailwind CDN + UMD React + Babel — funciona standalone)
 2. Aprovar SCREENSHOT da feature alvo do próximo PR (P0 #6 Faturar≠Pagar OR #5 Validações OR #1 NextActionPanel)
 3. Decidir gap #13 (Topbar tabs Insights Jana) — sim/não pra deixar parking lot
-4. SYNC_LOG em `prototipo-ui/SYNC_LOG.md` registra a aprovação (ADR 0114)
+4. SYNC_LOG em `memory/reference/prototipo-ui/SYNC_LOG.md` registra a aprovação (ADR 0114)
 5. Worker para F3 spawnado com escopo isolado (1 PR = 1 gap)
 
 Sem screenshot live nesta worktree (sem servidor rodando). Gate visual depende de smoke pós-merge biz=1 (canary Wagner WR2) + biz=4 (Larissa ROTA LIVRE — monitor 1280px crítico).

@@ -6,7 +6,7 @@ type: visual-comparison
 module: Financeiro
 status: pending_wagner_decisions
 date: 2026-05-14
-canon_reference: prototipo-ui/prototipos/financeiro-fluxo/page.tsx (Cowork F1 aprovado [W] 2026-05-09)
+canon_reference: prototipo-ui/cowork/Wagner/legado/financeiro-fluxo/page.tsx (Cowork F1 aprovado [W] 2026-05-09)
 blade_source: n/a (greenfield — não existe tela equivalente em legacy)
 inertia_target: resources/js/Pages/Financeiro/Fluxo/Index.tsx
 service_new: Modules/Financeiro/Services/FluxoCaixaService::projetar(businessId, dias=35)
@@ -21,7 +21,7 @@ related_adrs: [ui/0114, 0093]
 > **Persona alvo:** Eliana [E] — financeiro escritório / Wagner [W] — dono. Desktop ≥1024px. Decisão de caixa em <30s.
 > **Refs:**
 > - Blade legacy: ❌ **n/a** — greenfield (não existe equivalente)
-> - Canon Cockpit: [`prototipo-ui/prototipos/financeiro-fluxo/page.tsx`](../../../prototipo-ui/prototipos/financeiro-fluxo/page.tsx) — F1 aprovado [W] Cowork 2026-05-09
+> - Canon Cockpit: [`prototipo-ui/cowork/Wagner/legado/financeiro-fluxo/page.tsx`](../../../prototipo-ui/cowork/Wagner/legado/financeiro-fluxo/page.tsx) — F1 aprovado [W] Cowork 2026-05-09
 > - Charter: a criar em `resources/js/Pages/Financeiro/Fluxo/Index.charter.md` (F3)
 > - ADRs: [ui/0114](../../decisions/0114-prototipo-ui-cowork-loop-formalizado.md), [0093 multi-tenant Tier 0](../../decisions/0093-multi-tenant-isolation-tier-0.md)
 

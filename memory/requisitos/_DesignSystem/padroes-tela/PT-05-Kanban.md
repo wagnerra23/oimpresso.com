@@ -122,7 +122,7 @@ Resolvidos na reeleição (o golden anterior tinha; `Board.tsx` **não**): board
 - **Gate visual:** [ADR 0107](../../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md) (Wagner aprova screenshot, não tabela)
 - **FSM canon:** [ADR 0143](../../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) (LIVE prod) · [ADR 0129](../../../decisions/0129-state-machine-canonica-fsm-rbac.md)
 - **Domínio Martinho:** [ADR 0194](../../../decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) · [ADR 0265](../../../decisions/0265-oficina-reparo-erradica-locacao.md) (reparo, não locação)
-- **Golden form/lista:** [GOLDEN-REFERENCE.md](../../../../prototipo-ui/GOLDEN-REFERENCE.md) · [PT-01 Lista](PT-01-Lista.md)
+- **Golden form/lista:** [GOLDEN-REFERENCE.md](../../../../memory/reference/prototipo-ui/GOLDEN-REFERENCE.md) · [PT-01 Lista](PT-01-Lista.md)
 - **Índice de design:** [INDEX-DESIGN-MEMORIAS.md](../INDEX-DESIGN-MEMORIAS.md) (regra de ouro + negativo)
 
 ## Versão

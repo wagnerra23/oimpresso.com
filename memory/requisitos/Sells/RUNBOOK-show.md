@@ -14,11 +14,11 @@ last_validated: "2026-07-28"
 date: 2026-05-15
 wave: W1-A (Bucket B1 Sells)
 mwart_pattern_reuse:
-  # Corrigido 2026-07-28: `prototipo-ui/prototipos/vendas-cockpit/` NÃO EXISTE no repo
+  # Corrigido 2026-07-28: `prototipo-ui/cowork/Wagner/legado/vendas-cockpit/` NÃO EXISTE no repo
   # (path fantasma herdado da ADR 0149). O blueprint real é o que o charter sempre
   # declarou — verificado no disco, 92 KB. Agora travado pelo Pest `Wave1ShowInertiaTest`
   # ("Charter declara blueprint Cowork que EXISTE no disco").
-  blueprint_cowork: "prototipo-ui/cowork/vendas-page.jsx"
+  blueprint_cowork: "prototipo-ui/cowork/Wagner/vendas-page.jsx"
   blueprint_screenshot_approval: "SYNC_LOG pendente verificar Wagner (ADR 0149 aceita 2026-05-15)"
   derived_from: "Sells/Index (mesma entidade transactions)"
   divergence_from_blueprint: "Show é detail full-page (não drawer SaleSheet) — pattern derivado mas seções espelham o drawer"

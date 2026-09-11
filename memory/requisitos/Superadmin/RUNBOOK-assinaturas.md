@@ -21,7 +21,7 @@ onda **SA-O4a**. A tela servia DataTables por AJAX (`superadmin::superadmin_subs
 - **Fonte de design:** projeto Cowork `019dcfd3-…`, arquivo
   `cowork-inbox/SUPERADMIN-F1-2026-08-18.md` §1 view `assinaturas` (charter) e §2 UC-SA-008/009
   (casos). O desenho renderizado é
-  [`prototipo-ui/cowork/superadmin-page.jsx`](../../../prototipo-ui/cowork/superadmin-page.jsx)
+  [`prototipo-ui/cowork/Wagner/superadmin-page.jsx`](../../../prototipo-ui/cowork/Wagner/superadmin-page.jsx)
   → `ViewAssinaturas()` (L1044) e `AssinaturaForm()` (L557).
 - **Page:** `Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx`.
 - **Rota:** `Route::resource('/superadmin-subscription', SuperadminSubscriptionsController::class)`
@@ -184,8 +184,8 @@ dele. Migrar as três de uma vez, com aprovação visual, é onda própria.
 
 ## 8. Refs
 
-- Protótipo: [`prototipo-ui/cowork/superadmin-page.jsx`](../../../prototipo-ui/cowork/superadmin-page.jsx) `ViewAssinaturas()` L1044
+- Protótipo: [`prototipo-ui/cowork/Wagner/superadmin-page.jsx`](../../../prototipo-ui/cowork/Wagner/superadmin-page.jsx) `ViewAssinaturas()` L1044
 - Charter/casos: ao lado do `.tsx`
-- Contrato: `prototipo-ui/contrato/superadmin-assinaturas.contract.json`
+- Contrato: `governance/design/contracts/superadmin-assinaturas.contract.json`
 - Irmãos: [RUNBOOK-negocios.md](RUNBOOK-negocios.md) · [RUNBOOK-dashboard.md](RUNBOOK-dashboard.md)
 - [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) · [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)

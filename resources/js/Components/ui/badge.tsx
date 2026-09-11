@@ -48,7 +48,7 @@ const badgeVariants = cva(
  * `dot` tinha ZERO ocorrências neste arquivo e no `StatusBadge`. Quem o achou foi a primeira
  * medição D6 da `Arquivos/Index` (`design-diff --compare --check`), comparando com o
  * `StatusBadge kind="sla"` do espelho DS, que sai com dot — e nenhum gate pega isso, porque
- * AP7 é checklist manual (o único script que o cita, `prototipo-ui/audit/backlog.mjs`, não é
+ * AP7 é checklist manual (o único script que o cita, `scripts/design/audit/backlog.mjs`, não é
  * invocado por workflow nenhum).
  *
  * `bg-current` de propósito, NÃO token novo: a cor vem do `text-*-fg` que a variante já

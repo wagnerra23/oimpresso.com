@@ -3,16 +3,16 @@ slug: 0387-github-md-diario-cowork-aceito-e-tratado
 number: 387
 title: "github.md (diário de sync do Cowork) é artefato aceito e tratado pelo protocolo — e a redação 'nunca o inverso' da 0315 deixa de valer como absoluto"
 type: adr
-status: aceito
+status: superseded
 authority: canonical
-lifecycle: ativo
+lifecycle: substituido
 kind: decision
 decided_by: [W]
 decided_at: "2026-09-01"
 module: governance
 tags: [design, cowork, protocolo, github-md, design-docs, handoff, designsync]
 supersedes: []
-superseded_by: []
+superseded_by: ['0396-prototipo-fonte-unica-build-sem-canon-sombra']
 related:
   - 0315-design-sync-claude-design-vs-cowork-charter
   - 0374-emenda-0315-espelho-cowork-e-rota-prevista
@@ -44,8 +44,8 @@ pii: false
   [`cowork-mirror-freshness.mjs`](../../scripts/governance/cowork-mirror-freshness.mjs), sem ADR
   própria. Esta ADR a formaliza.
 - Mas o protocolo **nunca o tratou**: nenhuma fase do
-  [`protocolo.config.mjs`](../../prototipo-ui/protocolo.config.mjs) lia o diário, o
-  [`PROTOCOL.md`](../../prototipo-ui/PROTOCOL.md) não o citava, e as medições de frescor o
+  [`protocolo.config.mjs`](../../scripts/design/protocolo.config.mjs) lia o diário, o
+  [`PROTOCOL.md`](../../memory/reference/prototipo-ui/PROTOCOL.md) não o citava, e as medições de frescor o
   classificavam como não-candidato (*"nem podem pousar em `cowork/` — zero candidatos reais"* —
   recibos: [LICOES_CODE rec 08-27](../LICOES_CODE.md) e a
   [proposal de frescor 2026-08-27](proposals/2026-08-27-frescor-do-espelho-eixo-live-only-no-sla.md)).
@@ -62,9 +62,9 @@ pii: false
 design↔code: o **handoff do lado design** — contraparte do `memory/handoffs/` do lado code.
 
 **D2 — Tratado.** A fase −1 do protocolo ganha o bloco `[DIARIO]` no
-[`protocolo.config.mjs`](../../prototipo-ui/protocolo.config.mjs) (fonte única de comandos):
+[`protocolo.config.mjs`](../../scripts/design/protocolo.config.mjs) (fonte única de comandos):
 ler o diário — `Last sync` + decisões pendentes `[W]` — **antes** de decidir o ciclo.
-O [`PROTOCOL.md`](../../prototipo-ui/PROTOCOL.md) ganha a subseção §10.7 correspondente.
+O [`PROTOCOL.md`](../../memory/reference/prototipo-ui/PROTOCOL.md) ganha a subseção §10.7 correspondente.
 
 **D3 — Cópia tratada e transporte.** A cópia tratada é a da **raiz** de `design-docs/`
 (a que o export atualiza). `prototipo-ui/design-docs/_projeto-cowork/**` é retrato interno do
@@ -91,7 +91,7 @@ conflito restante era **ausência de tratamento**, não lei contrária.
 
 - O DS em git segue a fonte (0239/0299); claude.ai/design segue **não** sendo armazém canônico;
   escrita pro lado design segue gated (0315 Eixo A).
-- R1 do `cowork-ssot-guard` segue: `.md` não pousa em `prototipo-ui/cowork/` — pousa em
+- R1 do `cowork-ssot-guard` segue: `.md` não pousa em `prototipo-ui/cowork/Wagner/` — pousa em
   `design-docs/` (o roteamento que o exportador já faz).
 - `github.md` é **registro** do lado design, não fonte de design nem de decisão: achado 🔴 do
   diário vira trabalho **depois** de verificado contra o `main` (a regra do próprio [CC]: *"fato

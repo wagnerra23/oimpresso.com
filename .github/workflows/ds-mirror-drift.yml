@@ -1,6 +1,6 @@
 # Sentinela de drift git ↔ espelho vivo do Design System (P3 · ADR 0328).
-# ADVISORY — não é required. Compara os tokens do git (_generated-*.css) contra o SNAPSHOT
-# commitado do espelho (scripts/design-sync/mirror-snapshot/colors_and_type.css). Não bloqueia:
+# ADVISORY — não é required. Compara os tokens do git (_generated-*.css) contra o DS
+# canônico em prototipo-ui/design-system/colors_and_type.css. Não bloqueia:
 # o script roda em modo advisory (exit 0 + ::warning::). Promover a --enforce/required só depois
 # de o loop estabilizar (política ADR 0314: required = só Tier-0).
 name: ds-mirror-drift (advisory)

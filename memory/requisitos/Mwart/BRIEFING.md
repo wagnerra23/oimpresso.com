@@ -26,7 +26,7 @@ nota_esperada_v3: "~75-80/100 pós-PR3 na_justified declarado"
 - **Camada 1 enforcement (ativa):** skill Tier A always-on bloqueia agent que pula fase
 - **Camada 2 enforcement (US-MWART-001 p0, todo):** hook PreToolUse `.claude/hooks/block-mwart-violation.ps1` bloqueia Edit/Write em `resources/js/Pages/<Mod>/<Tela>.tsx` sem RUNBOOK correspondente
 - **Camada 3 enforcement (US-MWART-001 p0, todo):** CI workflow `.github/workflows/mwart-gate.yml` falha PR sem RUNBOOK + score audit ≥70
-- **Gate visual F1.5 + F3 estado-da-arte** ([ADR 0107](../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md) + [ADR 0114](../../decisions/0114-prototipo-ui-cowork-loop-formalizado.md)) — Cowork ↔ Claude Code loop formalizado em `prototipo-ui/PROTOCOL.md`
+- **Gate visual F1.5 + F3 estado-da-arte** ([ADR 0107](../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md) + [ADR 0114](../../decisions/0114-prototipo-ui-cowork-loop-formalizado.md)) — Cowork ↔ Claude Code loop formalizado em `memory/reference/prototipo-ui/PROTOCOL.md`
 - **Claude Design plugin Anthropic integrado** ([ADR 0109](../../decisions/0109-claude-design-plugin-integrado-processo-mwart.md)) — design-critique + design-system + design-handoff + ux-copy + accessibility-review + research-synthesis
 
 ## Cliente piloto
@@ -50,7 +50,7 @@ nota_esperada_v3: "~75-80/100 pós-PR3 na_justified declarado"
 - 🔴 **US-MWART-001 p0** Camadas 2+3 enforcement (hook + CI) — único bloqueio real do "único caminho" canônico
 - 🟡 **US-MWART-002 p1** Backfill audit ~78 telas Inertia existentes (migradas antes do processo formalizar)
 - 🟡 **F2 BACKEND BASELINE Pest 5+** sem ele = regressão silenciosa garantida
-- 🟢 **Loop Cowork ↔ Claude Code** formalizado em `prototipo-ui/PROTOCOL.md` (ADR 0114)
+- 🟢 **Loop Cowork ↔ Claude Code** formalizado em `memory/reference/prototipo-ui/PROTOCOL.md` (ADR 0114)
 
 ## Roadmap de migração do backbone Blade (UltimatePOS)
 

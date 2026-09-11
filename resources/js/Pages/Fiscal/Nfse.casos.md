@@ -102,7 +102,7 @@ related_us: [US-FISCAL-005]
 **Então** a tabela de lá já abre compacta — a preferência é do operador, não da tela.
 
 - **Âncora:** na fonte de design as três telas de notas são a **mesma função** (`FxNotasPage`,
-  chamada com `preset` diferente — [`fiscal-page.jsx:346,541-543`](../../../../prototipo-ui/cowork/fiscal-page.jsx)),
+  chamada com `preset` diferente — [`fiscal-page.jsx:346,541-543`](../../../../prototipo-ui/cowork/Wagner/fiscal-page.jsx)),
   e a escolha persiste em `fxLS("oimpresso.fiscal.densidade")` (`:358,363`). O compartilhamento
   é grátis lá porque há um dono só; aqui a produção separou em três arquivos.
 - **Estado que corrige (medido em `origin/main` d23bc3df34):** esta tela não tinha o controle

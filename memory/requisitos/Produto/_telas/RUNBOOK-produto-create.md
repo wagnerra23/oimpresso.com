@@ -16,7 +16,7 @@ date: 2026-05-15
 > **Estado origem:** Blade legacy `view('product.create')` via [ProductController@create](../../../app/Http/Controllers/ProductController.php#L358)
 > **Estado alvo:** `Pages/Produto/Create.tsx` (Inertia v3 + React 19 + AppShellV2)
 > **Persona alvo:** Larissa (ROTA LIVRE biz=4) — cadastra ~3-8 produtos/semana
-> **Blueprint Cowork:** [`prototipo-ui/prototipos/produto-cockpit/`](../../../prototipo-ui/prototipos/produto-cockpit/) — pattern visual canon. Create deriva do Index (mesma família visual AppShellV2).
+> **Blueprint Cowork:** [`prototipo-ui/cowork/Wagner/legado/produto-cockpit/`](../../../prototipo-ui/cowork/Wagner/legado/produto-cockpit/) — pattern visual canon. Create deriva do Index (mesma família visual AppShellV2).
 
 ## 1. Estado final esperado
 
@@ -100,7 +100,7 @@ Remover header `X-Inertia` no client — controller cai pra Blade legacy.
 
 ## 6. Refs
 
-- Blueprint Cowork: [`produto-cockpit/`](../../../prototipo-ui/prototipos/produto-cockpit/)
+- Blueprint Cowork: [`produto-cockpit/`](../../../prototipo-ui/cowork/Wagner/legado/produto-cockpit/)
 - Visual comparison: [`produto-create-visual-comparison.md`](produto-create-visual-comparison.md)
 - ADR 0149 screen-pattern reuse
 

@@ -1,5 +1,5 @@
 // Forja — aba Changelog. Porte 1:1 do `ChangelogFeed` de
-// `prototipo-ui/cowork/forja-page.jsx` (PARIDADE §11 Onda 9 · ADR 0388 "réplica
+// `prototipo-ui/cowork/Wagner/forja-page.jsx` (PARIDADE §11 Onda 9 · ADR 0388 "réplica
 // primeiro"): o protótipo é o contrato de LAYOUT, e a conformidade do DS que a
 // cópia fiel viola vira linha em memory/requisitos/Forja/INCONSISTENCIAS-replica.md.
 //

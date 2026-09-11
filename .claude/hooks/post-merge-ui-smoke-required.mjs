@@ -281,11 +281,11 @@ pedir. Comparacao e MEDIDA, nunca no olho (LC-06).
 Comando bloqueado: ${cmd}
 
 A FAZER (o fluxo do design-diff):
-  1. node prototipo-ui/ancora.mjs <Mod/Tela>          # confirma QUAL e a ancora
-  2. node prototipo-ui/design-diff.mjs --probe        # imprime a sonda canonica
+  1. node scripts/design/ancora.mjs <Mod/Tela>          # confirma QUAL e a ancora
+  2. node scripts/design/design-diff.mjs --probe        # imprime a sonda canonica
   3. injete a MESMA sonda nas DUAS abas (prod + render da ancora) via
      mcp__claude-in-chrome__javascript_tool, salve prod.json e design.json
-  4. node prototipo-ui/design-diff.mjs --compare prod.json design.json --check
+  4. node scripts/design/design-diff.mjs --compare prod.json design.json --check
   5. relatar o veredito por dimensao — AI sim declarar 'pronto'
 
 Escape valve: PR body com '<!-- no-ancora-compare: <razao> -->'
@@ -293,7 +293,7 @@ ou env OIMPRESSO_ANCORA_COMPARE_OVERRIDE=1 (dispensa SO esta perna; o screenshot
 ou OIMPRESSO_UI_SMOKE_OVERRIDE=1 (dispensa o hook inteiro).
 
 Refs: memory/requisitos/_DesignSystem/PROTOCOLO-COMPARACAO-RUNTIME.md §Regra 0
-      memory/LICOES_CODE.md LC-06 · prototipo-ui/design-diff.mjs`;
+      memory/LICOES_CODE.md LC-06 · scripts/design/design-diff.mjs`;
 }
 
 // ── resolução das telas com âncora (o predicado novo) ────────────────────────────
@@ -304,7 +304,7 @@ Refs: memory/requisitos/_DesignSystem/PROTOCOLO-COMPARACAO-RUNTIME.md §Regra 0
  *   (a) o path é Page .tsx e tem charter irmão;
  *   (b) o charter declara `related_prototype` que NÃO é `n/a` e o arquivo dela EXISTE;
  *   (c) o diff daquele .tsx tocou marcação/estilo.
- * `caminhoDaAncora`/`ehDeclaracaoNa` vêm de `prototipo-ui/ancora.mjs` — o DONO da
+ * `caminhoDaAncora`/`ehDeclaracaoNa` vêm de `scripts/design/ancora.mjs` — o DONO da
  * resolução de âncora (§5: estender o dono, nunca reimplementar ao lado). Import
  * dinâmico: se ele quebrar, esta perna degrada e o hook segue cobrando o screenshot.
  * `repoRoot` é só a raiz de LEITURA dos arquivos (o selftest aponta pra fixture); a lib
@@ -315,7 +315,7 @@ export async function telasComAncora(files, diffTexto, repoRoot = REPO) {
   try {
     ancoraLib = await import(pathToFileURL(join(REPO, 'prototipo-ui', 'ancora.mjs')).href);
   } catch {
-    return { telas: [], mediu: false, motivo: 'import de prototipo-ui/ancora.mjs falhou' };
+    return { telas: [], mediu: false, motivo: 'import de scripts/design/ancora.mjs falhou' };
   }
   const { caminhoDaAncora, ehDeclaracaoNa } = ancoraLib;
   if (typeof caminhoDaAncora !== 'function' || typeof ehDeclaracaoNa !== 'function') {

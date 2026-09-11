@@ -23,7 +23,7 @@ históricos: os paths antigos viraram ponteiros de compatibilidade.
 
 - `prototipo-ui/PROTOCOL.md`: política, papéis, autoridade e invariantes v2;
 - `prototipo-ui/protocolo.config.mjs`: únicos IDs, destinos, fases e comandos executáveis;
-- `scripts/design-sync/mirror-snapshot/`: único destino versionado do runtime `_ds`;
+- `prototipo-ui/design-system/`: único destino versionado do runtime `_ds`;
 - `prototipo-ui/cowork/_ds/`: somente cache gitignored, materializado pelo preview.
 
 O selftest do painel agora lê cinco ponteiros e reprova se algum voltar a copiar os comandos ou os

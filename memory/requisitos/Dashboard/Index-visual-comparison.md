@@ -2,7 +2,7 @@
 tela: Home/Index
 rota: /dashboard-legacy
 modulo: Dashboard
-ancora: prototipo-ui/cowork/dash-legacy-page.jsx
+ancora: prototipo-ui/cowork/Wagner/dash-legacy-page.jsx
 ancora_frescor: "verificado 2026-08-27T21:56:54Z — MAS fidelidade da origem NAO PROVADA (ver §0)"
 comparado_em: "2026-09-03"
 metodo: sonda-DOM-identica-nos-dois-lados
@@ -15,7 +15,7 @@ status: divergente
 
 A **mesma sonda JS** foi injetada nos **dois renders**, e o veredito sai da medição, não do olho:
 
-- **Âncora**: `prototipo-ui/cowork/` servido em `127.0.0.1:5599`, tela `dash-legacy`
+- **Âncora**: `prototipo-ui/cowork/Wagner/` servido em `127.0.0.1:5599`, tela `dash-legacy`
   (o portão `cowork-mirror-freshness --preview-ds` passou: 10 dependências repostas, bundle OK).
 - **Produção**: `oimpresso.com/dashboard-legacy?aba=venc-venda`, sessão real, commit `01bee7581e`.
 
@@ -32,7 +32,7 @@ O arquivo-âncora entrou no espelho por **transcrição**, não por download fie
 | Fonte | projeto Cowork `019dcfd3-…`, via `DesignSync.get_file` | — |
 | Transporte | **TRANSCRIÇÃO** (nenhum arquivo persistiu no `get_file`) | commit `77f9a28ce7`, 2026-08-21, PR #6123 |
 | Fidelidade | **"NAO PROVADA"** | `scripts/design-sync/transcribed-provenance.json` → `sha256 dcf4d23c…`, `parse_esbuild: OK`, `fidelidade: "NAO PROVADA"` |
-| Frescor | verificado 2026-08-27T21:56Z | `node prototipo-ui/ancora.mjs Home/Index` |
+| Frescor | verificado 2026-08-27T21:56Z | `node scripts/design/ancora.mjs Home/Index` |
 
 **Frescor ≠ fidelidade.** Frescor diz "não mudou desde então"; fidelidade diz "é igual à fonte".
 Toda divergência abaixo é contra um espelho cuja fidelidade a origem nunca provou.
@@ -95,7 +95,7 @@ depende de sessão autenticada em produção. É o buraco estrutural que este in
 > Logo **D2/D4/D6/D8 seguem NÃO MEDIDOS aqui** — nada abaixo vale como veredito de pixel, cor ou
 > contraste. O que está medido é o que o design **declara** contra o que o código **faz**.
 
-**Fonte:** `prototipo-ui/cowork/data.jsx` (bloco `MENU`, atalhos de topo) + `sidebar.jsx` (L270-285).
+**Fonte:** `prototipo-ui/cowork/Wagner/data.jsx` (bloco `MENU`, atalhos de topo) + `sidebar.jsx` (L270-285).
 ⚠️ Frescor **não** re-provado nesta rodada (`--compare --check` não rodado) — vale contra o
 espelho como está no git hoje, e a ressalva de fidelidade do §0 continua valendo.
 

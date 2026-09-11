@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **401** arquivos · **386** números únicos · máx **0396**
-- **ADRs ATIVOS (lifecycle ativo): 362** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 359 · superseded 16 · deprecated 13 · proposto 11 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 362 · arquivado 23 · substituido 16
+- **402** arquivos · **387** números únicos · máx **0397**
+- **ADRs ATIVOS (lifecycle ativo): 361** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 358 · superseded 18 · deprecated 13 · proposto 11 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 361 · arquivado 23 · substituido 18
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -26,8 +26,8 @@
 - **0246** ×2: 0246-sessao-2026-05-30-ds-harmonizacao · 0246-tipo-outros-default-migracoes-legacy
 - **0294** ×2: 0294-mcp-audit-log-hash-chain-tamper-evident · 0294-metodo-dual-track-shapeup-catraca
 
-## Integridade de supersessão (1 alertas)
-- ⚠️ 0396 supersedes 0387 → 0387 NÃO está marcada substituido/superseded ⚠️
+## Integridade de supersessão (0 alertas)
+_(íntegra)_
 
 ## Supersessão declarada em prosa sem o campo (0) — 🟡 EVENTO-prosa (ADR 0317, warn não-bloqueia)
 _(nenhuma)_
@@ -35,7 +35,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (401)
+## Todas as ADRs (402)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -416,7 +416,7 @@ _(nenhuma)_
 | 0371 | aceito | ativo | decision | Deploy Hostinger — o `git reset` no servidor não é atômico com o build: sob raja |
 | 0372 | aceito | ativo | decision | Emenda à 0094 — princípio 9 (Audit Card): decisão automatizada que afeta titular |
 | 0373 | aceito | ativo | decision | Emenda à 0314 — screen-grades-ratchet a required: exceção soberana [W] com a DR- |
-| 0374 | aceito | ativo | decision | Emenda à 0315 — espelhar o projeto Cowork para `prototipo-ui/cowork/` é a rota P |
+| 0374 | aceito | ativo | decision | Emenda à 0315 — espelhar o projeto Cowork para `prototipo-ui/cowork/Wagner/` é a |
 | 0375 | aceito | ativo | decision | SCOPE.md e LICOES-OPERACAO.md saem de Modules/ para memory/requisitos/ |
 | 0376 | aceito | ativo | decision | §5 vira DERIVADO — o limite fica no contexto, a arqueologia sai para memory/lico |
 | 0377 | aceito | ativo | decision | Emenda à 0094 — append-only de ADR canon admite exceção por label `adr-body-edit |
@@ -429,7 +429,7 @@ _(nenhuma)_
 | 0384 | aceito | ativo | decision | Design Sync deriva o estado da tela de recibos executáveis |
 | 0385 | proposto | ativo | decision | Sidebar alinhado ao protótipo — e a diferença classificada em três categorias |
 | 0386 | aceito | ativo | decision | Âmbar da Oficina revogado — o roxo canon é a única identidade de chrome; superse |
-| 0387 | aceito | ativo | decision | github.md (diário de sync do Cowork) é artefato aceito e tratado pelo protocolo  |
+| 0387 | superseded | substituido | decision | github.md (diário de sync do Cowork) é artefato aceito e tratado pelo protocolo  |
 | 0388 | aceito | ativo | decision | Réplica primeiro: o protótipo é o contrato de layout e a conformidade do DS vira |
 | 0389 | aceito | ativo | decision | Emenda à 0374 — quando o `get_file` devolve INLINE, o agente escreve o arquivo ( |
 | 0390 | proposto | ativo | decision | Emenda à 0384 — o smoke que leva a `validated` aceita ambiente controlado (host  |
@@ -438,4 +438,5 @@ _(nenhuma)_
 | 0393 | aceito | ativo | decision | Governança da empresa aparece no fluxo de trabalho, não em tela própria — emenda |
 | 0394 | aceito | ativo | decision | Endereço de UI do Patrimônio é `Pages/Patrimonio/**` — módulo próprio, não seção |
 | 0395 | proposto | ativo | decision | Emenda à 0314 — `PageHeader · ratchet` vira required: 2 telas novas adotaram o h |
-| 0396 | aceito | ativo | decision | Protótipo tem uma fonte ativa, transporte build-only e caminhos literais |
+| 0396 | superseded | substituido | decision | Protótipo tem uma fonte ativa, transporte build-only e caminhos literais |
+| 0397 | aceito | ativo | decision | Protótipo mínimo por dono, máquinas fora do artefato e Design System direto |

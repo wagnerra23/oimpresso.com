@@ -1,14 +1,14 @@
 ---
 id: requisitos-repair-repair-producao-oficina-gap
 tela: Repair/ProducaoOficina/Index (/repair/producao-oficina)
-prototipo: prototipo-ui/cowork/repair-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/repair-page.jsx
 tela_viva: resources/js/Pages/Repair/ProducaoOficina/Index.tsx
 gerado_em: 2026-09-06
 ---
 
 # GAP-SPEC — Repair/ProducaoOficina/Index
 
-> Fase 1 do protocolo (`prototipo-ui/PROTOCOL.md`) em modo **PARIDADE**. `repair-page.jsx` é porte REVERSO dos blades (cabeçalho l.1-2; §5 2026-08-28); a aba comparada é `Produção` (repair-page.jsx:103-142, que o próprio mockup liga ao `KanbanProductionService`) — esta tela é greenfield (sem Blade), então aqui o mockup mede uma tela já viva. Estado no vivo medido em 2026-09-06 sobre `origin/main` `80bc4ef8b9`, com `grep -n`. Lidos antes: `Index.charter.md` (Goals l.37-38, Non-Goals l.60-66, UX anti-pattern l.93) e `Index.casos.md` (UC-RPOE-01..06). Dado mock do protótipo não é gap; o `data_source='mock'` do vivo (fallback sem `repair_statuses`) também não.
+> Fase 1 do protocolo (`memory/reference/prototipo-ui/PROTOCOL.md`) em modo **PARIDADE**. `repair-page.jsx` é porte REVERSO dos blades (cabeçalho l.1-2; §5 2026-08-28); a aba comparada é `Produção` (repair-page.jsx:103-142, que o próprio mockup liga ao `KanbanProductionService`) — esta tela é greenfield (sem Blade), então aqui o mockup mede uma tela já viva. Estado no vivo medido em 2026-09-06 sobre `origin/main` `80bc4ef8b9`, com `grep -n`. Lidos antes: `Index.charter.md` (Goals l.37-38, Non-Goals l.60-66, UX anti-pattern l.93) e `Index.casos.md` (UC-RPOE-01..06). Dado mock do protótipo não é gap; o `data_source='mock'` do vivo (fallback sem `repair_statuses`) também não.
 
 | Parte | Estado no vivo | Ação |
 |---|---|---|

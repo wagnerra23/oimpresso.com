@@ -21,7 +21,7 @@ onda **SA-O4c**. A tela era `superadmin::packages.index` (Blade/AdminLTE, tabela
 - **Fonte de design:** projeto Cowork `019dcfd3-…`, arquivo
   `cowork-inbox/SUPERADMIN-F1-2026-08-18.md` §1 view `pacotes` (charter) e §2 UC-SA-010/011
   (casos). O desenho renderizado é
-  [`prototipo-ui/cowork/superadmin-page.jsx`](../../../prototipo-ui/cowork/superadmin-page.jsx)
+  [`prototipo-ui/cowork/Wagner/superadmin-page.jsx`](../../../prototipo-ui/cowork/Wagner/superadmin-page.jsx)
   → `ViewPacotes()` (L1176) e `PacoteForm()` (L484).
 - **Page:** `Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.tsx`.
 - **Rota:** `Route::resource('/packages', PackagesController::class)` → `index()`. A rota **não
@@ -150,8 +150,8 @@ curl -sv https://oimpresso.com/pricing 2>&1 | grep '^< HTTP'
 
 ## 9. Refs
 
-- Protótipo: [`prototipo-ui/cowork/superadmin-page.jsx`](../../../prototipo-ui/cowork/superadmin-page.jsx) `ViewPacotes()` L1176
+- Protótipo: [`prototipo-ui/cowork/Wagner/superadmin-page.jsx`](../../../prototipo-ui/cowork/Wagner/superadmin-page.jsx) `ViewPacotes()` L1176
 - Charter/casos: ao lado do `.tsx`
-- Contrato: `prototipo-ui/contrato/superadmin-pacotes.contract.json`
+- Contrato: `governance/design/contracts/superadmin-pacotes.contract.json`
 - Irmãos: [RUNBOOK-assinaturas.md](RUNBOOK-assinaturas.md) · [RUNBOOK-negocios.md](RUNBOOK-negocios.md) · [RUNBOOK-dashboard.md](RUNBOOK-dashboard.md)
 - [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) · [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)

@@ -86,7 +86,7 @@ if (process.argv.includes('--selftest')) {
   t(claimedPT('n/a (herda PT-05 Kanban; segue o DS)') === 'PT-05', 'extrai PT-05 do related_prototype');
   t(claimedPT('n/a (herda PT-07 Feed/Timeline; segue o DS)') === 'PT-07', 'extrai PT-07 do related_prototype');
   t(claimedPT('n/a — ferramenta bespoke (calculadora); segue o DS') === null, 'bespoke sem token PT → fora do escopo');
-  t(claimedPT('prototipo-ui/cowork/vendas-page.jsx') === null, 'protótipo bespoke → sem PT declarado (fora do escopo)');
+  t(claimedPT('prototipo-ui/cowork/Wagner/vendas-page.jsx') === null, 'protótipo bespoke → sem PT declarado (fora do escopo)');
   console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — declaração de PT é falsificável.');
   process.exit(fails ? 1 : 0);
 }

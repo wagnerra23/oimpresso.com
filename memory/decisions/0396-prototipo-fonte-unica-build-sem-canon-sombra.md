@@ -3,9 +3,9 @@ slug: 0396-prototipo-fonte-unica-build-sem-canon-sombra
 number: 396
 title: "Protótipo tem uma fonte ativa, transporte build-only e caminhos literais"
 type: adr
-status: aceito
+status: superseded
 authority: canonical
-lifecycle: ativo
+lifecycle: substituido
 kind: decision
 decided_by: [W]
 decided_at: "2026-09-11"
@@ -13,7 +13,8 @@ module: governance
 tags: [design, cowork, prototipo, ssot, duplicatas, ancoras, transporte]
 supersedes:
   - 0387-github-md-diario-cowork-aceito-e-tratado
-superseded_by: []
+superseded_by: ['0397-prototipo-minimo-por-dono-e-ds-direto']
+  - 0397-prototipo-minimo-por-dono-e-ds-direto
 related:
   - 0374-emenda-0315-espelho-cowork-e-rota-prevista
   - 0379-bundle-design-transacao-manifesto-delta-staging
@@ -41,8 +42,8 @@ um ponteiro e deixar difícil descobrir qual arquivo aplicar.
 ## Decisão
 
 **D1 — uma fonte ativa.** O build de design ativo vive somente em
-`prototipo-ui/cowork/`. O histórico vive no Git; não se mantém segunda cópia física para
-“segurança”. `prototipo-ui/prototipos/` aceita somente âncora histórica explicitamente
+`prototipo-ui/cowork/Wagner/`. O histórico vive no Git; não se mantém segunda cópia física para
+“segurança”. `prototipo-ui/cowork/Wagner/legado/` aceita somente âncora histórica explicitamente
 declarada enquanto um charter ainda depender dela.
 
 **D2 — transporte build-only e atômico.** Bundle, payload legado e `--export-from` do destino

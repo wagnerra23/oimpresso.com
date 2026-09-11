@@ -4,8 +4,8 @@ id: requisitos-repair-6telas-index-visual-comparison
 
 # Visual Comparison — as 6 telas Index do Repair × `repair-page.jsx`
 
-> **Fonte (âncora):** `prototipo-ui/cowork/repair-page.jsx` (46,5 KB), carregado pelo shell
-> `prototipo-ui/cowork/oimpresso.com.html` junto de `repair-page.css`, `repair-data.jsx`,
+> **Fonte (âncora):** `prototipo-ui/cowork/Wagner/repair-page.jsx` (46,5 KB), carregado pelo shell
+> `prototipo-ui/cowork/Wagner/oimpresso.com.html` junto de `repair-page.css`, `repair-data.jsx`,
 > `repair-forms.jsx`, `repair-portal.jsx`, `repair-print.{css,js}`.
 > **Autoridade:** no eixo FORMA o protótipo é soberano — [ADR UI-0029](../_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md).
 > **Medido em:** 2026-09-09, contra `origin/main` @ `fd6afa2dc0`.
@@ -13,9 +13,9 @@ id: requisitos-repair-6telas-index-visual-comparison
 ## 0. Como reproduzir esta medição
 
 ```bash
-grep -oE '(src|href)="[^"]+"' prototipo-ui/cowork/oimpresso.com.html \
+grep -oE '(src|href)="[^"]+"' prototipo-ui/cowork/Wagner/oimpresso.com.html \
   | sed 's/^\(src\|href\)="//; s/"$//' | sed 's/?.*$//' | sort -u | grep repair
-node prototipo-ui/ancora.mjs Repair/<Tela> --staging prototipo-ui/cowork
+node scripts/design/ancora.mjs Repair/<Tela> --staging prototipo-ui/cowork
 ```
 
 ## 1. Mapa região → tela (derivado do dispatcher `RepairPage`, L633-745)

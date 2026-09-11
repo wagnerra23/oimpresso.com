@@ -22,7 +22,7 @@ uses(PontoTestCase::class);
  * ── De onde os UC derivam (ordem de fonte, how-trabalhar.md) ────────────────
  * Não há SDD do Painel (o SDD do módulo cobre espelho e jornada). A âncora de
  * contrato aqui é, nesta ordem:
- *   1. `prototipo-ui/contrato/ponto-painel.contract.json` — copy + ordem literais.
+ *   1. `governance/design/contracts/ponto-painel.contract.json` — copy + ordem literais.
  *      É a fonte de VERDADE dos casos 01, 03 e 06: o teste LÊ o JSON e afirma
  *      contra ele, em vez de repetir as strings aqui. Assim o assert deriva do
  *      contrato, nunca do `.tsx` (teste tautológico — proibicoes.md §5 2026-06-05).
@@ -65,7 +65,7 @@ uses(PontoTestCase::class);
 
 const PAINEL_MARCADOR = 'SDD-PAINEL-CONTRATO';
 const PAINEL_PAGE = 'resources/js/Pages/Ponto/Dashboard/Index.tsx';
-const PAINEL_CONTRATO = 'prototipo-ui/contrato/ponto-painel.contract.json';
+const PAINEL_CONTRATO = 'governance/design/contracts/ponto-painel.contract.json';
 
 /** Guard de ambiente — schema do Ponto presente. Skip gracioso e VISÍVEL. */
 function painelPrecisaDe(array $tabelas): void
@@ -322,7 +322,7 @@ it('UC-PAINEL-01 · os seis KPIs aparecem com a copy e na ordem que o contrato m
         );
         expect($pos)->toBeGreaterThan($anterior,
             "O KPI \"{$label}\" aparece fora da ordem contratada. A ordem é lei [W] "
-            . '(prototipo-ui/contrato/ponto-painel.contract.json).'
+            . '(governance/design/contracts/ponto-painel.contract.json).'
         );
 
         $anterior = $pos;

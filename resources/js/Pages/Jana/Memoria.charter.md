@@ -7,7 +7,7 @@ status: draft
 last_validated: "2026-09-03"
 parent_module: Jana
 parent_adr: memory/decisions/0052-memoria-jana-3-angulos-faturamento.md
-related_prototype: prototipo-ui/cowork/jana-merge.jsx
+related_prototype: prototipo-ui/cowork/Wagner/jana-merge.jsx
 related_adrs: [31, 33, 35, 36, 37, 52, 61, 93, 94, 131]
 related_charters:
   - resources/js/Pages/Jana/Chat.charter.md

@@ -7,7 +7,7 @@ status: active
 date: 2026-05-15
 wave: W1-A (Bucket B1 Sells)
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/prototipos/vendas-cockpit/"
+  blueprint_cowork: "prototipo-ui/cowork/Wagner/legado/vendas-cockpit/"
   blueprint_screenshot_approval: "SYNC_LOG pendente verificar Wagner (ADR 0149)"
   derived_from: "Sells/Create (mesma entidade + mesmo form layout)"
   divergence_from_blueprint: "Edit pre-fill com transaction existente; bloqueia campos se já tem return/edit_days expirou"

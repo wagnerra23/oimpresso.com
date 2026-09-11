@@ -32,7 +32,7 @@ related_adrs:
 |---|---|---|
 | rota | `Modules/AssetManagement/Routes/web.php:21` | `Route::get('dashboard', …)` — **sem `->name()`** |
 | controller | `AssetController::dashboard()` | `:617` (+ os 5 privados que ele chama, até `:788`) · arquivo 35.378 B · sha `ef1ac93dddd6` — pós-merge do #7035, que converteu o arquivo de CRLF para LF |
-| fonte visual | `prototipo-ui/cowork/patrimonio-page.jsx` | aba "Painel": `painelData()` `:149`–`:194` · `PatPainel()` `:195`–`:245` |
+| fonte visual | `prototipo-ui/cowork/Wagner/patrimonio-page.jsx` | aba "Painel": `painelData()` `:149`–`:194` · `PatPainel()` `:195`–`:245` |
 | padrão | `PT-04 Dashboard` (golden `governance/Dashboard.tsx`) | `status: draft` — ver §7 |
 
 > ⚠️ **A âncora do `07-painel.md` dizia `:467-:520` e sha `3eba5a4faae5`.** Remedida: o
@@ -220,7 +220,7 @@ node scripts/governance/anchor-lint.mjs --check
 # Contrato de RENDER (a lane `patrimonio-painel-gate.yml` roda estes dois):
 npx vitest run tests/js/patrimonio-header-contexto.test.tsx \
                tests/js/patrimonio-painel-sem-fonte.test.tsx
-node scripts/contrato-de-tela.mjs --contract prototipo-ui/contrato/patrimonio-index.contract.json
+node scripts/contrato-de-tela.mjs --contract governance/design/contracts/patrimonio-index.contract.json
 ```
 
 Ler **assertions**, nunca "0 failed" — teste que pula sai com exit 0. Tenant de teste é o

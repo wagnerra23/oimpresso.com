@@ -1,7 +1,7 @@
 ---
 id: requisitos-ponto-espelho-show-gap
 tela: Ponto/Espelho/Show (/ponto/espelho/{colaborador})
-prototipo: prototipo-ui/cowork/ponto-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/ponto-page.jsx
 tela_viva: resources/js/Pages/Ponto/Espelho/Show.tsx
 gerado_em: 2026-09-06
 ---
@@ -11,7 +11,7 @@ gerado_em: 2026-09-06
 > **Fase 1 = PARIDADE.** `ponto-page.jsx:1-4` declara o porte reverso. Regiões do protótipo:
 > `EspelhoShow` (`:329-446`) · `GradeMes` (`:160-207`) · `DiaDrawer` (`:209-270`) ·
 > `FolhaEspelho` (`:272-327`). Esta é a tela que o contrato
-> [`ponto-espelho.contract.json`](../../../prototipo-ui/contrato/ponto-espelho.contract.json)
+> [`ponto-espelho.contract.json`](../../../governance/design/contracts/ponto-espelho.contract.json)
 > de fato descreve: as 5 seções da `ordem` são todas daqui, e as **5 estão ancoradas por
 > `data-contract` no vivo** — âncora estável, não range de linha.
 > Lei do módulo que enquadra a última linha desta tabela: correção de marcação é **anulação +

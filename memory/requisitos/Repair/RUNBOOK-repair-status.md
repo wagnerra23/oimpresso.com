@@ -11,7 +11,7 @@ related_adrs: [0104-processo-mwart-canonico-unico-caminho, 0143-fsm-pipeline-liv
 # RUNBOOK MWART — Repair/Status/Index
 
 > **Tela:** `/repair/status` · **Componente:** `resources/js/Pages/Repair/Status/Index.tsx`
-> **Fonte de design:** `prototipo-ui/cowork/repair-page.jsx` região `Status` (L304-337) + `repair-page.css` (`.rep-status-row`, `.rep-st`)
+> **Fonte de design:** `prototipo-ui/cowork/Wagner/repair-page.jsx` região `Status` (L304-337) + `repair-page.css` (`.rep-status-row`, `.rep-st`)
 > **Diff medido:** [6telas-index-visual-comparison.md §3.4](6telas-index-visual-comparison.md)
 > **Refs:** [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) · [ADR UI-0029](../_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md) · [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)
 

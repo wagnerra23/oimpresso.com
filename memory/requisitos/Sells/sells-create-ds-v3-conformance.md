@@ -114,7 +114,7 @@ Isso reforça que a decisão é **global, não Sells-específica** (ver §4.2).
 ## 4. As duas decisões upstream (bloqueiam o reskin)
 
 ### 4.1 — F1 Cowork do Sells inexistente 🔴
-`prototipo-ui/prototipos/` tem `clientes` mas **não tem `vendas`/`sells`**. O
+`prototipo-ui/cowork/Wagner/legado/` tem `clientes` mas **não tem `vendas`/`sells`**. O
 `mwart-comparative` F1.5 e o contrato exigem referência visual aprovada antes de tocar a
 tela. **Caminho:** pedir o F1 à Cowork no formato do contrato (§"Como Wagner deve pedir"):
 ```

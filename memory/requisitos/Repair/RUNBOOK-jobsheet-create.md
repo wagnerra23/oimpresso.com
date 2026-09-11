@@ -13,7 +13,7 @@
 
 ## F1 PLAN
 
-1. Pattern reuse: blueprint `prototipo-ui/prototipos/os/cowork-app.jsx` (NewOsModal pattern adaptado).
+1. Pattern reuse: blueprint `prototipo-ui/cowork/Wagner/legado/os/cowork-app.jsx` (NewOsModal pattern adaptado).
 2. Wizard step-by-step: (1) Cliente · (2) Aparelho · (3) Defeitos+Checklist · (4) Anexos.
 3. **FSM**: na criação, OS nasce SEM `current_stage_id` (legacy `status_id` apenas). Pipeline FSM iniciado opcionalmente em `Show.tsx`.
 4. Submit type pode ser: `save`, `save_and_add_parts`, `save_and_upload_docs` (preservado do Blade).

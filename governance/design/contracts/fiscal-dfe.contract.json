@@ -1,0 +1,37 @@
+{
+  "_nota": "A copy deste contrato foi extraída da TELA VIVA quando ele nasceu — então ele NÃO prova conformidade com o protótipo: comparar a tela com uma cópia dela mesma é tautológico. Medido em 2026-09-09: o espelho bate 271/271 com o manifesto do bundle e o `fiscal-page.jsx` do Cowork vivo é idêntico ao do repo, ou seja o protótipo NÃO estava atrás — a redação anterior dizia que estava e isso induziu um diagnóstico errado. Quem for usar este contrato pra julgar FORMA precisa re-derivar a copy do protótipo primeiro (ADR UI-0029: no eixo forma o protótipo é soberano).",
+  "tela": "Fiscal/Dfe",
+  "fonte": "prototipo-ui/cowork/Wagner/fiscal-subpages.jsx",
+  "_nota_fonte": "A copy deste contrato foi extraída da TELA VIVA quando ele nasceu — então ele NÃO prova conformidade com o protótipo: comparar a tela com uma cópia dela mesma é tautológico. Medido em 2026-09-09: o espelho bate 271/271 com o manifesto do bundle e o `fiscal-page.jsx` do Cowork vivo é idêntico ao do repo, ou seja o protótipo NÃO estava atrás — a redação anterior dizia que estava e isso induziu um diagnóstico errado. Quem for usar este contrato pra julgar FORMA precisa re-derivar a copy do protótipo primeiro (ADR UI-0029: no eixo forma o protótipo é soberano).",
+  "alvo": [
+    "resources/js/Pages/Fiscal/Dfe.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "fiscal-dfe-filters",
+      "copy": [
+        "Pendentes",
+        "Confirmadas",
+        "Desconhecidas",
+        "Não realizadas"
+      ]
+    },
+    {
+      "id": "lote-dfe",
+      "_nota": "Barra de manifestação em lote. Copy do PROTÓTIPO (fiscal-subpages.jsx), não da tela viva — aqui o protótipo é que estava à frente. Aparece só com seleção; `nao_realizada` fica fora do lote por decisão da fonte.",
+      "copy": [
+        "Dar ciência",
+        "Confirmar operação",
+        "Desconhecer",
+        "Limpar seleção"
+      ]
+    }
+  ],
+  "ordem": [
+    "fiscal-dfe-filters",
+    "lote-dfe"
+  ],
+  "_resolvido_w": [
+    "2026-09-04 — a pendência 'Manifestação em LOTE (fx-bulk, 4 botões) existe no protótipo; o vivo tem por linha. Decisão [W] #3 (PR-C4): vira rota POST /fiscal/acoes/dfe/lote?' foi fechada: [W] autorizou construir, e a rota é exatamente essa. O `<Button disabled>` do header que prometia 'Bulk manifestar (PR seguinte)' saiu — a capacidade vive na barra da fonte."
+  ]
+}

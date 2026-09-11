@@ -270,7 +270,7 @@ A EMISSÃO NFS-e já resolve ambiente per-business (`$payload->ambiente` ← `Nf
 - `NfseEmissaoService::cancelar(NfseEmissao $emissao)` passa o ambiente correto.
 - Teste Pest cobrindo cancelar em prod vs homolog (Http::fake, igual `AmbientePorBusinessTest`).
 
-Refs: PR #2147, `Modules/NFSe/Adapters/SnNfseAdapter.php`, `prototipo-ui/CODE_NOTES.md` (2026-06-03). Escopo "PR separado" conforme prompt do cutover.
+Refs: PR #2147, `Modules/NFSe/Adapters/SnNfseAdapter.php`, `memory/reference/prototipo-ui/CODE_NOTES.md` (2026-06-03). Escopo "PR separado" conforme prompt do cutover.
 
 ---
 

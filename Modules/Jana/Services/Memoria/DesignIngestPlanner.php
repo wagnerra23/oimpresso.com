@@ -191,7 +191,7 @@ final class DesignIngestPlanner
         }
 
         return "# PLANO-MUDANCAS — {$tela}\n\n"
-            . "> **STATUS: PROPOSTA — nada aplicado.** Aplicar = mover os arquivos roteados pra `prototipo-ui/prototipos/{$tela}/` via PR (gate Wagner/CT100).\n\n"
+            . "> **STATUS: PROPOSTA — nada aplicado.** Aplicar = mover os arquivos roteados pra `prototipo-ui/cowork/Wagner/legado/{$tela}/` via PR (gate Wagner/CT100).\n\n"
             . "## Mudanças por arquivo (vs tela commitada)\n\n{$tabela}\n\n"
             . "## Arquivos extras (não-autorizados no map)\n\n{$extrasBloco}\n\n"
             . "## Roteamento (map → destino)\n\n"

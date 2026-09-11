@@ -31,7 +31,7 @@ on:
       # Alvo das mensagens ds/* é derivado destes dois (chip G4): mexer neles muda o
       # que o lint ORIENTA, então a lane que prova isso tem que re-rodar. Sem o
       # arquivo-sob-teste no trigger, o gate fica mudo (proibicoes §5 2026-08-02).
-      - 'prototipo-ui/ds-lint-alvos.mjs'
+      - 'scripts/design/ds-lint-alvos.mjs'
       - 'prototipo-ui/component-registry.json'
       - 'package.json'
       - 'package-lock.json'
@@ -69,7 +69,7 @@ jobs:
               - 'scripts/governance/ds-lint-selftest.mjs'
               # Alvo das mensagens ds/* é derivado destes dois (chip G4) — sem eles no
               # filtro, mexer no registry cairia em skip-as-pass e o selftest não rodaria.
-              - 'prototipo-ui/ds-lint-alvos.mjs'
+              - 'scripts/design/ds-lint-alvos.mjs'
               - 'prototipo-ui/component-registry.json'
               - 'package.json'
               - 'package-lock.json'

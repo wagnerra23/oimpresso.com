@@ -4,7 +4,7 @@ component: resources/js/Pages/Essentials/Tipos.tsx
 owner: wagner
 status: draft
 parent_module: Essentials
-related_prototype: prototipo-ui/cowork/hrm-page.jsx (subview "tipos" · copy literal)
+related_prototype: prototipo-ui/cowork/Wagner/hrm-page.jsx (subview "tipos" · copy literal)
 related_runbook: memory/requisitos/Essentials/RUNBOOK-tipos.md
 related_us: [US-ESS-005, US-ESS-010]
 related_adrs: [104, 93, 264]

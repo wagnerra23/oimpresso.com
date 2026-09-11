@@ -6,7 +6,7 @@ module: Crm
 visual_comparison: cliente-drawer-760px
 adr: 0179
 charter: resources/js/Pages/Cliente/Index.charter.md v3 (draft → publish nesta Wave A)
-prototype_source: prototipo-ui/prototipos/clientes/ (KB-9.75 9,4/10 — Refinos #1 + #2 + #3)
+prototype_source: prototipo-ui/cowork/Wagner/legado/clientes/ (KB-9.75 9,4/10 — Refinos #1 + #2 + #3)
 inertia_target: resources/js/Pages/Cliente/Index.tsx (ClienteSheet expandido 480→760)
 controller: app/Http/Controllers/ContactController.php::index/show + Modules/Crm/Http/Controllers/{ClienteLookup,ClienteIa,ClienteAuditoria}Controller (NOVO)
 stories: [US-CRM-068, US-CRM-069, US-CRM-070, US-CRM-071, US-CRM-072]
@@ -49,7 +49,7 @@ session_ref: memory/sessions/2026-05-21-understand-cliente-drawer-760px-opcao-A.
 
 ## 0. Resumo executivo
 
-Migração de paradigma: a tela `/cliente` deixa de abrir `Show.tsx` em rota dedicada (`/cliente/{id}` full-page com 8 tabs operacionais) e passa a abrir um **drawer lateral 760px** sobre `Index.tsx` com **8 tabs cadastrais** (Identificação · Contato · Endereço · Comercial · Classificação · OSs · IA · Auditoria). Origem: protótipo Cowork `prototipo-ui/prototipos/clientes/` aprovado por Wagner com score KB-9.75 9,4/10.
+Migração de paradigma: a tela `/cliente` deixa de abrir `Show.tsx` em rota dedicada (`/cliente/{id}` full-page com 8 tabs operacionais) e passa a abrir um **drawer lateral 760px** sobre `Index.tsx` com **8 tabs cadastrais** (Identificação · Contato · Endereço · Comercial · Classificação · OSs · IA · Auditoria). Origem: protótipo Cowork `prototipo-ui/cowork/Wagner/legado/clientes/` aprovado por Wagner com score KB-9.75 9,4/10.
 
 | # | Dimensão (15 V4 + 3 extras) | Atual | Target | Gap | Wave fix |
 |---|---|:-:|:-:|:-:|:-:|
@@ -92,7 +92,7 @@ Migração de paradigma: a tela `/cliente` deixa de abrir `Show.tsx` em rota ded
 **Atual:** Avatar único gradient stone monocromático (`Avatar initial` na linha 457 do Index.tsx); zero tag chips; nenhum FrescorPill (apenas status pill `late/active/idle`); saldo `valor_aberto` em `text-foreground` neutro sem semântica.
 **Gap dominante:** -80. Avatar = 0/95, Tag = 0/95, Frescor = 30/95 (proxy via status), Saldo = 35/95 (formatBRL ok mas sem cor).
 **Wave fix:** G — criar `Lib/avatar.ts::avatarFor(id)` + `Components/clientes/TagChip.tsx` + `Components/clientes/FrescorPill.tsx` + condicional `text-red-700` no saldo.
-**Evidência:** `prototipo-ui/prototipos/clientes/clientes-icons.jsx::avatarFor`, `clientes-listagem.jsx::TagChip`, `clientes-975.jsx::FrescorPill`.
+**Evidência:** `prototipo-ui/cowork/Wagner/legado/clientes/clientes-icons.jsx::avatarFor`, `clientes-listagem.jsx::TagChip`, `clientes-975.jsx::FrescorPill`.
 
 ## 3. Tipografia + microcopy — 70/100 → 90
 
@@ -239,11 +239,11 @@ Sobreposto com dim 6; reforça que mudança não é só layout — é semântica
 
 ## Próximo passo gate F1.5 (humano-limitado)
 
-- [ ] Wagner roda `design:design-critique` no protótipo `prototipo-ui/prototipos/clientes/Oimpresso ERP - Clientes.html`
+- [ ] Wagner roda `design:design-critique` no protótipo `prototipo-ui/cowork/Wagner/legado/clientes/Oimpresso ERP - Clientes.html`
 - [ ] Wagner roda `design:accessibility-review` no atual `resources/js/Pages/Cliente/Index.tsx` (pós-Wave B skeleton drawer 760)
 - [ ] Wagner roda `design:ux-copy` nos microcopy do drawer (8 tabs + 2 CTAs header + 4 IA cards + Auditoria LGPD banner)
 - [ ] Wagner aprova **SCREENSHOT** do drawer 760px aberto em prod biz=1 com as 8 tabs renderizando (gate ADR 0107 — NÃO tabela markdown)
-- [ ] Brave smoke prod biz=1 — `oimpresso.com/cliente` clica linha → drawer abre → troca cada uma das 8 tabs → screenshot salvo em `prototipo-ui/SYNC_LOG.md` (R1 do PROTOCOLO)
+- [ ] Brave smoke prod biz=1 — `oimpresso.com/cliente` clica linha → drawer abre → troca cada uma das 8 tabs → screenshot salvo em `memory/reference/prototipo-ui/SYNC_LOG.md` (R1 do PROTOCOLO)
 - [ ] Atualizar este arquivo trocando `status: draft` → `status: approved` + `approved_by: wagner` + notas REAIS pós-merge Wave G+Z (substituir estimativas calibradas por medições)
 
 ## Telas derivadas que herdam aprovação
@@ -270,9 +270,9 @@ Sobreposto com dim 6; reforça que mudança não é só layout — é semântica
 - Charter `Pages/Cliente/Index.charter.md` v3 (draft → publish Wave A com `drawer_pattern: 760px-lateral`)
 - Charter `Pages/Cliente/Show.charter.md` v2 (Wave A marca `status: superseded` + `superseded_by: Index.charter.md v3`)
 - RUNBOOK `memory/requisitos/Crm/RUNBOOK-cliente-drawer-760px.md` (Wave A cria)
-- HANDOFF `prototipo-ui/prototipos/clientes/HANDOFF_CLIENTES.md` (spec protótipo 9,4/10 KB-9.75 — schema BR completo)
-- PROTOCOL `prototipo-ui/PROTOCOL.md` (Cowork loop)
-- LICOES `prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md` (6 meta-anti-padrões + 15 técnicos — PRÉ-FLIGHT Wave C-F)
+- HANDOFF `prototipo-ui/cowork/Wagner/legado/clientes/HANDOFF_CLIENTES.md` (spec protótipo 9,4/10 KB-9.75 — schema BR completo)
+- PROTOCOL `memory/reference/prototipo-ui/PROTOCOL.md` (Cowork loop)
+- LICOES `memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md` (6 meta-anti-padrões + 15 técnicos — PRÉ-FLIGHT Wave C-F)
 - Dossiê `memory/sessions/2026-05-21-understand-cliente-drawer-760px-opcao-A.md` (decodificação completa wagner-understand)
 - Sessão coord `memory/sessions/2026-05-21-coord-cliente-show-paridade-5waves.md` (contexto 5 PRs Wave 5/Final mergeadas)
 - Pointer-redirect `memory/requisitos/Cliente/show-visual-comparison.md` (apontará pra este após sunset Show)

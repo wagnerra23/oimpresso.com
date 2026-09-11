@@ -1,6 +1,6 @@
 // Manufacturing/Settings — Configurações do módulo, em `/manufacturing/settings`.
 //
-// FONTE DE DESIGN: `prototipo-ui/cowork/manufacturing-producao.jsx::MfgConfig` — mesmo
+// FONTE DE DESIGN: `prototipo-ui/cowork/Wagner/manufacturing-producao.jsx::MfgConfig` — mesmo
 // bundle já aplicado inteiro pela Onda 1 (Recipes.tsx); nenhuma classe CSS nova aqui.
 // F1 PLAN: memory/requisitos/Manufacturing/RUNBOOK-settings.md.
 //

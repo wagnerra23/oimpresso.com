@@ -163,7 +163,7 @@ Route::group([
         ->name('atendimento.employee.scorecard');
 
     // Caixa Unificada V4 — substituiu /atendimento/inbox no cutover 2026-05-15.
-    // Fonte visual canônica: prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx
+    // Fonte visual canônica: prototipo-ui/cowork/Wagner/legado/caixa-unificada/inbox-page.jsx
     Route::get('/caixa-unificada', [CaixaUnificadaController::class, 'index'])
         ->middleware('can:whatsapp.access')
         ->name('atendimento.caixa-unificada.index');

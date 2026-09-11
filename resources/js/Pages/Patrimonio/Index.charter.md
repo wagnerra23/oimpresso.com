@@ -4,7 +4,7 @@ component: resources/js/Pages/Patrimonio/Index.tsx
 owner: wagner
 status: draft
 parent_module: AssetManagement
-related_prototype: prototipo-ui/cowork/patrimonio-page.jsx
+related_prototype: prototipo-ui/cowork/Wagner/patrimonio-page.jsx
 related_runbook: memory/requisitos/AssetManagement/RUNBOOK-patrimonio-index.md
 related_adrs:
   - 0394-endereco-de-ui-do-patrimonio-pages-patrimonio

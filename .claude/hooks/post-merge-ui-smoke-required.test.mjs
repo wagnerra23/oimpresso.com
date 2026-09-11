@@ -57,9 +57,9 @@ check('não-smoke: tabs_close não é olhar a tela', !isBrowserSmokeTool('mcp__c
 check('não-smoke: tool comum', !isBrowserSmokeTool('Bash'));
 
 // ── caso 3: comparação MEDIDA (campo `command`, não prosa — §5 2026-07-26) ───────
-check('compare: design-diff --compare', ehComparacaoMedida('node prototipo-ui/design-diff.mjs --compare prod.json design.json --check'));
-check('compare: caminho absoluto', ehComparacaoMedida('node D:/repo/prototipo-ui/design-diff.mjs --compare a.json b.json'));
-check('NÃO-compare: --probe sozinho só imprime a sonda', !ehComparacaoMedida('node prototipo-ui/design-diff.mjs --probe'));
+check('compare: design-diff --compare', ehComparacaoMedida('node scripts/design/design-diff.mjs --compare prod.json design.json --check'));
+check('compare: caminho absoluto', ehComparacaoMedida('node D:/repo/scripts/design/design-diff.mjs --compare a.json b.json'));
+check('NÃO-compare: --probe sozinho só imprime a sonda', !ehComparacaoMedida('node scripts/design/design-diff.mjs --probe'));
 check('NÃO-compare: falar de comparação no echo não conta', !ehComparacaoMedida('echo "comparei o design com a prod"'));
 check('NÃO-compare: outro comparador', !ehComparacaoMedida('git diff --compare'));
 
@@ -213,7 +213,7 @@ check('E2E BITE (ruim): screenshot feito, comparação NÃO → exit 2', (() => 
 })());
 // BOM: rodou design-diff --compare → LIBERA
 check('E2E: PostToolUse design-diff --compare carimba comp=1', (() => {
-  const rr = runHook(postBash('node prototipo-ui/design-diff.mjs --compare prod.json design.json --check'));
+  const rr = runHook(postBash('node scripts/design/design-diff.mjs --compare prod.json design.json --check'));
   return rr.status === 0 && parseFlag(readFileSync(FLAG, 'utf8')).comp === true;
 })());
 check('E2E BITE (bom): screenshot + comparação medida → exit 0 e flag LIMPA', (() => {
@@ -228,7 +228,7 @@ check('E2E: comparou mas NÃO olhou → exit 2 (o screenshot segue obrigatório)
 })());
 // --probe sozinho NÃO libera (controle negativo do sinal)
 writeFileSync(FLAG, serializeFlag({ ts: Date.now(), pr: '6385', telas: TELA, viu: true }));
-runHook(postBash('node prototipo-ui/design-diff.mjs --probe'));
+runHook(postBash('node scripts/design/design-diff.mjs --probe'));
 check('E2E: --probe sozinho não conta como comparação → exit 2', runHook(preBash('echo "pronto"')).status === 2);
 
 // ── ESCAPE VALVES (anunciadas na mensagem ⇒ testadas — LC-15) ────────────────────
@@ -256,7 +256,7 @@ check('E2E: PostToolUse não-merge → exit 0 e sem flag', (() => {
   return rr.status === 0 && !existsSync(FLAG);
 })());
 check('E2E: design-diff --compare SEM flag → exit 0 e não cria flag', (() => {
-  const rr = runHook(postBash('node prototipo-ui/design-diff.mjs --compare a.json b.json'));
+  const rr = runHook(postBash('node scripts/design/design-diff.mjs --compare a.json b.json'));
   return rr.status === 0 && !existsSync(FLAG);
 })());
 check('E2E: stdin vazio → exit 0 (fail-open)', runHook('').status === 0);

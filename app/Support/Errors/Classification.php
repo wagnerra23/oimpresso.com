@@ -10,7 +10,7 @@ namespace App\Support\Errors;
  * Imutável. NUNCA carrega trace nem PII — o `operatorMessage` é texto humano
  * genérico de recuperação, o `dedupKey` é um hash (Fase 2 agrupa por ele).
  *
- * @see prototipo-ui/handoffs/erros-fase1-classificacao.md
+ * @see prototipo-ui/cowork/Wagner/handoffs/erros-fase1-classificacao.md
  */
 final readonly class Classification
 {

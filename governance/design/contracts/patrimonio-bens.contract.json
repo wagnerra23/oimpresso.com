@@ -1,0 +1,63 @@
+{
+  "_nota": "Contrato de tela da lista de Bens. REESCRITO em 2026-09-10 derivando da ANCORA — `prototipo-ui/cowork/Wagner/patrimonio-page.jsx`, componente `AbaBens` (:247-400) — e nao mais da tela. A versao anterior extraia a copy do proprio `.tsx`: contrato tautologico, verde por construcao, que nunca poderia acusar a divergencia que e a razao dele existir. A catraca `contrato-de-tela.mjs --anti-tautologia` acusava 4/21 strings so-no-alvo. Cada string abaixo foi verificada presente NO PROTOTIPO e, na tela, FORA de comentario (3 candidatas — `Garantia critica`, `Em manutencao`, `Colunas` — casavam so em comentario e por isso NAO entraram: declara-las deixaria o gate verde por casar prosa).",
+  "tela": "Patrimonio/Bens",
+  "fonte": "prototipo-ui/cowork/Wagner/patrimonio-page.jsx",
+  "alvo": [
+    "resources/js/Pages/Patrimonio/Bens.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "cabecalho",
+      "copy": [
+        "Bens"
+      ]
+    },
+    {
+      "id": "subnav",
+      "copy": []
+    },
+    {
+      "id": "filtros",
+      "copy": [
+        "Categoria",
+        "Local",
+        "Tipo de compra"
+      ]
+    },
+    {
+      "id": "tabela",
+      "copy": [
+        "Ações",
+        "Código",
+        "Imagem",
+        "Bem",
+        "Categoria",
+        "Local",
+        "Qtd",
+        "Alocado",
+        "Valor",
+        "Garantia",
+        "Situação",
+        "Alocar recurso",
+        "Enviar pra manutenção"
+      ]
+    }
+  ],
+  "ordem": [
+    "cabecalho",
+    "subnav",
+    "filtros",
+    "tabela"
+  ],
+  "_gap_vs_ancora": [
+    "As 12 strings abaixo existem NA ANCORA e NAO na tela. Ficam AQUI, declaradas com a razao, em vez de dentro de `secoes` — pinar todas hoje deixaria o gate VERMELHO PERMANENTE, e a doutrina [W] de 2026-08-21 (proposal ponto-contratos-retidos §7) diz que contrato vermelho permanente treina o time a ignorar gate. Cada uma migra pra `secoes` quando a tela passar a atende-la — e ai o gate defende, em vez de so reclamar.",
+    "SUB-RECORTES `Todos` · `Alocáveis` · `Garantia crítica` · `Em manutenção` — o prototipo (:352-357) desenha 4 sub-abas com contador. Non-Goal DECLARADO no charter: pedem predicado SQL novo, e recorte que filtra so a pagina corrente mente na contagem da pilula.",
+    "ACAO DE LINHA `Editar bem` · `Excluir bem` — o prototipo (:308-311) usa o substantivo; a tela diz `Editar — {nome}` e `Excluir — {nome}`, com o nome do bem interpolado pra impedir que o operador perceba tarde que clicou na linha errada. As outras duas acoes batem literalmente e por isso ENTRARAM no contrato. Escolher entre as duas formas e decisao de copy = [W].",
+    "TOOLBAR `CSV` · `Imprimir` · `Colunas` — o prototipo (:369-378) tem exportacao, impressao e gerenciador de colunas. A tela nao tem nenhum: Non-Goal declarado no charter.",
+    "CHIPS DE FILTRO + `limpar tudo` — o prototipo (:342-348, :380-384) mostra todo filtro ativo como `FilterChip` removivel. A tela usa selects sem chip. ⚠️ E NAO E SO COPY: `FilterChip` e um dos componentes do Design System que NAO tem equivalente em `resources/js/Components/` (medido 2026-09-10) — adotar exige criar o componente, nao so mudar texto.",
+    "LOTE `Exportar seleção` — o prototipo (:392-396) tem `BulkBar` com 2 acoes. Non-Goal declarado: sem endpoint hoje.",
+    "BUSCA `Buscar bem, código, série...` — o prototipo poe a busca no HEADER DO MODULO (:827), fora da aba; a tela poe no `DataTable` com outro texto (`Buscar bem, código, modelo, série...`). Sao lugares diferentes, nao so palavras diferentes.",
+    "COLUNA DE VALOR — declarei `Valor` (o rotulo da ancora, :287), e ele casa na tela porque `Valor unitário` o contem. ⚠️ MAS O DADO DIVERGE: o prototipo soma `valor × qtd` (valor total da linha); a tela mostra o valor UNITARIO. O charter poe o total sob a REGRA MESTRE de valor (prova por 2 caminhos + antes→depois pro [W]), entao a tela ficou no unitario de proposito. O gate NAO pega essa divergencia — ela e de dado, nao de string. Registrado aqui pra nao passar por acordo.",
+    "seção `subnav` — copy VAZIA de proposito. A sub-navegacao DERIVA de `shell.menu`; o charter proibe declarar a lista aqui, e o prototipo desenha 7 abas das quais 2 (`Garantias`, `Auditoria`) nao tem rota (`D-GARANTIAS`/`D-AUDITORIA`). Pinar rotulo aqui criaria uma segunda fonte pra mesma lista."
+  ]
+}

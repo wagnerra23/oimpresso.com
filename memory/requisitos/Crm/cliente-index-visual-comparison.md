@@ -7,7 +7,7 @@ date: 2026-05-15
 # Visual Comparison — Cliente/Index (W1-B3)
 
 ## Blueprint Cowork
-`prototipo-ui/prototipos/clientes/cowork-app.jsx`
+`prototipo-ui/cowork/Wagner/legado/clientes/cowork-app.jsx`
 
 ## Approval status (ADR 0114)
 - ✅ Pattern reuse aprovado via ADR 0149 (Index = canon do blueprint)

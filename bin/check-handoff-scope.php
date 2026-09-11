@@ -4,7 +4,7 @@
  * GUARDA de escopo do handoff (files_json) — PR-5 Loop Zero-Paste (Fase 0 · ADR 0283).
  *
  * Garante que um PR que APLICA um handoff de design só toca arquivos declarados
- * em `prototipo-ui/handoffs/<slug>.md` frontmatter `files:`. Qualquer arquivo do
+ * em `prototipo-ui/cowork/Wagner/handoffs/<slug>.md` frontmatter `files:`. Qualquer arquivo do
  * diff fora do escopo BLOQUEIA o PR. É o **A1 (escopo duro)** do adversário [AH]
  * e a "scope-guard files_json" do ADR 0283 (um dos 5 controles do "norte" do
  * auto-merge) — defesa-em-profundidade mesmo com o 1-clique humano da Fase 0.
@@ -146,7 +146,7 @@ if ($slug === null || $slug === '') {
     exit(0);
 }
 
-$mdPath = "prototipo-ui/handoffs/{$slug}.md";
+$mdPath = "prototipo-ui/cowork/Wagner/handoffs/{$slug}.md";
 $allowed = handoffAllowedFiles($mdPath);
 if ($allowed === null) {
     fwrite(STDERR, "✗ Handoff não encontrado: {$mdPath} — o slug do branch `handoff/{$slug}` não casa um handoff ingerido.\n");

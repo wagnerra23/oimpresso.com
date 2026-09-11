@@ -21,8 +21,8 @@ import globals from 'globals';
 // Alvo canônico das mensagens ds/* — DERIVADO de prototipo-ui/component-registry.json.
 // A âncora fica no COMPONENTE (estável, reusável entre telas); renomeou o componente ou
 // mudou o import_path no registry, a orientação da mensagem muda junto. Cobertura medida
-// e declarada em ds-lint-alvos.mjs (`node prototipo-ui/ds-lint-alvos.mjs`).
-import { alvo, variantes } from './prototipo-ui/ds-lint-alvos.mjs';
+// e declarada em ds-lint-alvos.mjs (`node scripts/design/ds-lint-alvos.mjs`).
+import { alvo, variantes } from './scripts/design/ds-lint-alvos.mjs';
 
 export default [
   // Ignore patterns globais — evita análise em dist/, vendor/, etc
@@ -152,8 +152,8 @@ export default [
   // aqui. Regra de EIXO DE VALOR (cor/radius/jargão) não tem componente alvo e mantém
   // mensagem própria; quem não tem entrada no registry (SafeSelectItem, PageHeaderTabs,
   // StatusBadge) fica declarado como ausente em `ALVO_POR_REGRA`, nunca fabricado.
-  // Cobertura medida: `node prototipo-ui/ds-lint-alvos.mjs`.
-  // Ref: prototipo-ui/REGRAS_DS_LINT.md §1 · REGISTRY_DS_COMPONENTES.md · PR-A 9d28f56a0
+  // Cobertura medida: `node scripts/design/ds-lint-alvos.mjs`.
+  // Ref: memory/reference/prototipo-ui/REGRAS_DS_LINT.md §1 · REGISTRY_DS_COMPONENTES.md · PR-A 9d28f56a0
   {
     files: [
       'resources/js/Pages/**/*.{ts,tsx}',

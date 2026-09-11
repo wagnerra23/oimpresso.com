@@ -23,7 +23,7 @@ related_adrs: [0239-governanca-design-system-git-ssot-regressao-ia, 0300-tokens-
 Cada prompt custou **validação manual** contra git + DesignSync. E há **4 armazéns autorais que driftam**:
 
 ```
-git SSOT            prototipo-ui/cowork/      DS vivo (019dd02f)     ERP vivo (019dcfd3)
+git SSOT            prototipo-ui/cowork/Wagner/      DS vivo (019dd02f)     ERP vivo (019dcfd3)
 semantic.tokens.json   (mirror)               claude.ai/design         claude.ai/design
    │  gera                  ↑ pull manual?         ↑ push manual?          ↑ linka _ds/
    └── _generated-*.css ────┘ (drifta)             (companion ausente)     (reorg não no git)
@@ -40,7 +40,7 @@ semantic.tokens.json   (mirror)               claude.ai/design         claude.ai
 | # | Passo | Direção | Mecanismo | Mata |
 |---|---|---|---|---|
 | 1 | **git → DS vivo** (deploy) | uma via (o sentido que o guard 0315 abençoa: "vitrine A PARTIR do git aprovado") | job gera `colors_and_type.css` + `cockpit_domains.css` do SSOT e PUSHA pro `019dd02f` via DesignSync (opt-in `design-sync` uma vez). DS vivo = espelho, nunca autoral | companion/token ausente do DS vivo |
-| 2 | **Cowork → git mirror** (ingestão) | uma via | cron `DesignSync get_file` → atualiza `prototipo-ui/cowork/` + `memory/LICOES_CC.md`, gate `cowork-mirror-freshness` (ADR 0324) | mirror stale (ds-v6/mapas/L-43 não chegando) |
+| 2 | **Cowork → git mirror** (ingestão) | uma via | cron `DesignSync get_file` → atualiza `prototipo-ui/cowork/Wagner/` + `memory/LICOES_CC.md`, gate `cowork-mirror-freshness` (ADR 0324) | mirror stale (ds-v6/mapas/L-43 não chegando) |
 | 3 | **diff-first = ENTRADA de toda tarefa** | bidirecional | `ds-token-diff.mjs --companion` (motor canônico; git canon × espelho vivo) roda ANTES de qualquer prompt virar trabalho; só REAL delta vira ação | **PROMPT STALE (L-42) na raiz** — o prompt é auto-refutado |
 | 4 | **handoff git-native** | — | o retorno é o diff + git (PROTOCOL §10.2), não `PROMPT_PARA_CODE` com URL que expira | relay frágil fora do perímetro |
 

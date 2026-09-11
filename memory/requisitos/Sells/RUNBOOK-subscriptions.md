@@ -7,7 +7,7 @@ status: active
 date: 2026-05-15
 wave: W1-A (Bucket B1 Sells)
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/prototipos/vendas-cockpit/"
+  blueprint_cowork: "prototipo-ui/cowork/Wagner/legado/vendas-cockpit/"
   blueprint_screenshot_approval: "SYNC_LOG pendente verificar Wagner (ADR 0149)"
   derived_from: "Sells/Index (mesma entidade transactions + filtro is_recurring=1)"
   divergence_from_blueprint: "Colunas específicas: intervalo, próxima fatura, repetições. Toggle start/stop por linha."

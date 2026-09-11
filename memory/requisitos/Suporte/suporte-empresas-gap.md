@@ -1,7 +1,7 @@
 ---
 id: requisitos-suporte-suporte-empresas-gap
 tela: Suporte/Empresas (/suporte/empresas)
-prototipo: prototipo-ui/cowork/suporte-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/suporte-page.jsx
 tela_viva: resources/js/Pages/Suporte/Empresas.tsx
 gerado_em: 2026-09-06
 ---

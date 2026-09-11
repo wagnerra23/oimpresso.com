@@ -38,7 +38,7 @@ Projeto Inertia v3 + React 19 em `resources/js/` com **~14.270 arquivos**, dos q
 Resultado direto na sessão Larissa 2026-05-28:
 
 - **R7 race scanner**: `useEffect` com fetch sem AbortController, sem `signal` no fetch, sem cleanup. Regra `react-hooks/exhaustive-deps` teria flaggado deps incompleta. Regra custom `no-uncancelled-fetch-in-effect` (a criar) teria flaggado o pattern.
-- Mais bugs JS-side em todas as MWART migrations sem detection automática — depende de humano/IA ler [`prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) ou catálogo de design.
+- Mais bugs JS-side em todas as MWART migrations sem detection automática — depende de humano/IA ler [`memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) ou catálogo de design.
 
 Alternativas avaliadas:
 

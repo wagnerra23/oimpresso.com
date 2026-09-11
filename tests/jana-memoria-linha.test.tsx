@@ -1,6 +1,6 @@
 // Memória da Jana — a LINHA do fato (`/ia/memoria`).
 //
-// Fonte: âncora `prototipo-ui/cowork/jana-merge.jsx` §`JmMemoria` + CSS `.jm-fato`
+// Fonte: âncora `prototipo-ui/cowork/Wagner/jana-merge.jsx` §`JmMemoria` + CSS `.jm-fato`
 // (`jana-merge.css`), e o `Memoria.charter.md`. NÃO derivado do `.tsx` — derivar do
 // código é tautológico e passaria verde com o comportamento errado (§5 2026-06-05).
 //

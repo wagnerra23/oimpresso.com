@@ -1,7 +1,7 @@
 // JanaMetaNovaDrawer — CRIAR meta sem sair do Painel (PR-2b · RUNBOOK-metas §9.4).
 //
-// Âncora: `prototipo-ui/cowork/jana-metas.jsx` §`JmMetaFormDrawer` — âncora de SÍMBOLO
-// (re-localize com `grep -n "JmMetaFormDrawer" prototipo-ui/cowork/jana-metas.jsx`).
+// Âncora: `prototipo-ui/cowork/Wagner/jana-metas.jsx` §`JmMetaFormDrawer` — âncora de SÍMBOLO
+// (re-localize com `grep -n "JmMetaFormDrawer" prototipo-ui/cowork/Wagner/jana-metas.jsx`).
 //
 // Por que é um componente SEPARADO do `JanaMetaDrawer`: aquele recebe uma `Meta` e mostra
 // apuração, série e origem do número — criar não tem nada disso, e enfiar os dois modos no

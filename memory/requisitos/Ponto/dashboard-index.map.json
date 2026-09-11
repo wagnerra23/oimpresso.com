@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "Ponto/Dashboard/Index (/ponto)",
   "gap_fonte": "memory/requisitos/Ponto/dashboard-index-gap.md",
   "prototipo_sha": "sha256:587a1e3f2479",
@@ -9,7 +9,7 @@
     {
       "id": "nota-o-que-trava-o-fechamento",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-page.jsx",
         "linhas": "38-44"
       },
       "vivo": {
@@ -24,7 +24,7 @@
     {
       "id": "kpis-do-painel",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-page.jsx",
         "linhas": "46-53"
       },
       "vivo": {
@@ -39,7 +39,7 @@
     {
       "id": "fila-de-aprovacoes",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-page.jsx",
         "linhas": "56-73"
       },
       "vivo": {
@@ -54,7 +54,7 @@
     {
       "id": "atividade-recente",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-page.jsx",
         "linhas": "75-85"
       },
       "vivo": {
@@ -69,7 +69,7 @@
     {
       "id": "rodape-legal",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-page.jsx",
         "linhas": "87"
       },
       "vivo": {
@@ -114,7 +114,7 @@
     {
       "id": "escala-tipografica",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-page.jsx",
         "linhas": "27-90"
       },
       "vivo": {
@@ -129,7 +129,7 @@
     {
       "id": "header-titulo-subtitulo-e-acoes",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-page.jsx",
         "linhas": "495-505"
       },
       "vivo": {
@@ -144,7 +144,7 @@
     {
       "id": "sub-navegacao",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/ponto-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-page.jsx",
         "linhas": "10-24"
       },
       "vivo": {

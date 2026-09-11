@@ -34,20 +34,20 @@ use Throwable;
  *
  * @see Modules/Governance/Console/Commands/GovernancaScorecardCommand.php
  * @see Modules/Jana/Console/Commands/HealthCheckCommand.php  (graduation_ratio)
- * @see prototipo-ui/COWORK_NOTES.md  (inbox [W]→[CC]/[CD])
+ * @see memory/reference/prototipo-ui/COWORK_NOTES.md  (inbox [W]→[CC]/[CD])
  */
 class CicloDiarioGovernancaCommand extends Command
 {
     protected $signature = 'governanca:ciclo-diario
                             {--json : imprime o ciclo como JSON em vez de tabela}
-                            {--code-notes : anexa o digest do dia ao prototipo-ui/CODE_NOTES.md (idempotente por data)}';
+                            {--code-notes : anexa o digest do dia ao memory/reference/prototipo-ui/CODE_NOTES.md (idempotente por data)}';
 
     protected $description = 'Ciclo diário de governança: regenera estado + frescor + gradua inbox [W] + emite 1 digest/dia (advisory).';
 
     private const STATE_PATH = 'reports/governanca-state.json';
     private const DIGEST_PATH = 'reports/governanca-digest.md';
-    private const INBOX_PATH = 'prototipo-ui/COWORK_NOTES.md';
-    private const CODE_NOTES_PATH = 'prototipo-ui/CODE_NOTES.md';
+    private const INBOX_PATH = 'memory/reference/prototipo-ui/COWORK_NOTES.md';
+    private const CODE_NOTES_PATH = 'memory/reference/prototipo-ui/CODE_NOTES.md';
 
     public function handle(): int
     {
@@ -159,7 +159,7 @@ class CicloDiarioGovernancaCommand extends Command
 
     private function reviewFreshnessMissing(): int
     {
-        $path = base_path('prototipo-ui/audit/review-freshness-baseline.json');
+        $path = base_path('scripts/design/audit/review-freshness-baseline.json');
         if (! is_file($path)) {
             return 0;
         }
@@ -182,7 +182,7 @@ class CicloDiarioGovernancaCommand extends Command
             return $n > 0 ? "protocol_freshness: {$n} acende(m)" : null;
         }
 
-        $script = base_path('prototipo-ui/audit/protocol-freshness.mjs');
+        $script = base_path('scripts/design/audit/protocol-freshness.mjs');
 
         return is_file($script) ? null : 'protocol_freshness: ponte pendente (lote UC-guards)';
     }

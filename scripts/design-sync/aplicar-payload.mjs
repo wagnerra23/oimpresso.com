@@ -50,7 +50,7 @@ import { BUNDLE_SCHEMA, sha256 } from './bundle-contract.mjs';
 import { applyBundleTransaction, applyLegacySnapshotTransaction } from './bundle-transaction.mjs';
 
 const ROOT = process.cwd();
-const DESTINO = 'prototipo-ui/cowork';
+const DESTINO = 'prototipo-ui/cowork/Wagner';
 const BUILD_SOURCE_RE = /\.(?:jsx?|tsx?|mjs|cjs|css|html|svg|png|jpe?g|gif|webp|avif|ico|woff2?|ttf|otf|eot)$/i;
 const args = process.argv.slice(2);
 const arquivos = args.filter((a) => !a.startsWith('--'));
@@ -167,7 +167,7 @@ const totalDeclarado = payloads.reduce((n, p) => n + (Number(p.totalBytes) || 0)
 console.log(`\n  APLICAR PAYLOAD — ${payloads.length} lote(s) · ${files.length} arquivo(s) · ${totalDeclarado.toLocaleString('pt-BR')} bytes`);
 for (const p of payloads) console.log(`  origem: ${typeof p.source==='string'?p.source:JSON.stringify(p.source)} · gerado: ${p.generatedAt || '?'} · ${p.arquivo}`);
 console.log(`  modo: ${requireCompleteShell ? 'SHELL COMPLETO (fechamento transitivo obrigatório)' : 'lote parcial'}${dry ? ' · DRY — nada será escrito' : ''}`);
-console.log(`  destinos: ${DESTINO}/ + scripts/design-sync/mirror-snapshot/ para _ds/** (somente fontes de build)\n`);
+console.log(`  destinos: ${DESTINO}/ + prototipo-ui/design-system/ para _ds/** (somente fontes de build)\n`);
 
 const tally = { NOVO: 0, ATUALIZADO: 0, inalterado: 0 };
 const corrompidos = [], forade = [], preparados = [];

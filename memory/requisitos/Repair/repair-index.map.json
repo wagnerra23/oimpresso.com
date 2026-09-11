@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "Repair/Index (/repair/repair)",
   "gap_fonte": "memory/requisitos/Repair/repair-index-gap.md",
   "prototipo_sha": "sha256:548d060ec551",
@@ -9,7 +9,7 @@
     {
       "id": "header",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/repair-page.jsx",
         "linhas": "705"
       },
       "vivo": {
@@ -24,7 +24,7 @@
     {
       "id": "kpis",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/repair-page.jsx",
         "linhas": "286-292"
       },
       "vivo": {
@@ -39,7 +39,7 @@
     {
       "id": "filtros",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/repair-page.jsx",
         "linhas": "258-300 (aba sem filtro)"
       },
       "vivo": {
@@ -54,7 +54,7 @@
     {
       "id": "tabela",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/repair-page.jsx",
         "linhas": "266-284"
       },
       "vivo": {
@@ -69,7 +69,7 @@
     {
       "id": "acoes-por-linha-detalhe",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/repair-page.jsx",
         "linhas": "295"
       },
       "vivo": {
@@ -84,7 +84,7 @@
     {
       "id": "paginacao",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/repair-page.jsx",
         "linhas": "293-296"
       },
       "vivo": {
@@ -99,7 +99,7 @@
     {
       "id": "estados",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/repair-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/repair-page.jsx",
         "linhas": "258-300 (aba sem estado vazio)"
       },
       "vivo": {

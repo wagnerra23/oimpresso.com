@@ -26,7 +26,7 @@ use Throwable;
  *   4. Exceções esperadas/tratadas → S3 (ruído conhecido, sem alerta)
  *   5. default                     → S3
  *
- * @see prototipo-ui/handoffs/erros-fase1-classificacao.md
+ * @see prototipo-ui/cowork/Wagner/handoffs/erros-fase1-classificacao.md
  */
 class ErrorClassifier
 {

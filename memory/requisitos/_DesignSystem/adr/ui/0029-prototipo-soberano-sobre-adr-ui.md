@@ -25,7 +25,7 @@ id: requisitos-design-system-adr-ui-0029-prototipo-soberano-sobre-adr-ui
 
 ## Contexto
 
-Sessão 2026-08-28. Ao auditar paridade da sidebar contra `prototipo-ui/cowork/sidebar.jsx`, cada divergência
+Sessão 2026-08-28. Ao auditar paridade da sidebar contra `prototipo-ui/cowork/Wagner/sidebar.jsx`, cada divergência
 encontrada virou uma discussão sobre **qual artefato manda** — a ADR UI que decidiu aquilo, ou o protótipo.
 O agente chegou a recomendar preservar uma decisão de ADR contra o que o protótipo mostrava.
 
@@ -105,9 +105,9 @@ Medido em 2026-08-28:
 
 | perna | estado | por quê |
 |---|---|---|
-| protótipo renderiza fiel | ✅ (ver errata) | ~~faltam os `_ds/`~~ — **ERRATA 2026-08-28, mesma sessão:** os 3 arquivos + 7 fontes são repostos por `node scripts/governance/cowork-mirror-freshness.mjs --preview-ds` (portão fail-closed do protocolo), e já existem **versionados** em `scripts/design-sync/mirror-snapshot/` (11 arquivos no git). O `_ds/` do espelho é cópia de build, ignorada por `prototipo-ui/cowork/.gitignore:26` — por isso `git ls-files` devolve 0 e o `--sla` não os conta. Nunca faltaram: faltava rodar o painel. O resíduo REAL é outro: em clone limpo/CI é preciso rodar o `--preview-ds` antes de medir. |
+| protótipo renderiza fiel | ✅ (ver errata) | ~~faltam os `_ds/`~~ — **ERRATA 2026-08-28, mesma sessão:** os 3 arquivos + 7 fontes são repostos por `node scripts/governance/cowork-mirror-freshness.mjs --preview-ds` (portão fail-closed do protocolo), e já existem **versionados** em `prototipo-ui/design-system/` (11 arquivos no git). O `_ds/` do espelho é cópia de build, ignorada por `prototipo-ui/cowork/Wagner/.gitignore:26` — por isso `git ls-files` devolve 0 e o `--sla` não os conta. Nunca faltaram: faltava rodar o painel. O resíduo REAL é outro: em clone limpo/CI é preciso rodar o `--preview-ds` antes de medir. |
 | lado vivo renderizável sem humano | ❌ | a sidebar só existe logado; `staging.oimpresso.com` não respondeu, `oimpresso.com` exige sessão. |
-| régua | ✅ | [`design-diff.mjs`](../../../../../prototipo-ui/design-diff.mjs) (`--probe`/`--compare --check`, D2/D4/D6/D8/D9) já existe e é o instrumento certo. |
+| régua | ✅ | [`design-diff.mjs`](../../../../../scripts/design/design-diff.mjs) (`--probe`/`--compare --check`, D2/D4/D6/D8/D9) já existe e é o instrumento certo. |
 | gatilho "protótipo mudou ⇒ confere a tela" | ❌ | `cowork-mirror-freshness` mede **frescor do espelho**, nunca **divergência da tela**. Ninguém deriva a segunda da primeira. |
 
 Enquanto as 3 pernas ❌ não fecharem, esta regra vale **culturalmente** (o agente aplica; ver Consequências) e a

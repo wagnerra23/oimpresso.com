@@ -49,7 +49,7 @@ Mapeia EM PARALELO os arquivos canônicos do protótipo e código atual. Tabela 
 **Comando útil:**
 ```bash
 # Inventário arquivos protótipo
-ls prototipo-ui/prototipos/<X>/
+ls prototipo-ui/cowork/Wagner/legado/<X>/
 
 # Inventário arquivos atuais
 ls resources/js/Pages/<Mod>/ \
@@ -59,7 +59,7 @@ ls resources/js/Pages/<Mod>/ \
    Modules/<Mod>/Services/ 2>/dev/null
 
 # LOC comparativo
-wc -l prototipo-ui/prototipos/<X>/*.jsx \
+wc -l prototipo-ui/cowork/Wagner/legado/<X>/*.jsx \
       resources/js/Pages/<Mod>/*.tsx \
       resources/js/Pages/<Mod>/_drawer/*.tsx
 ```
@@ -117,7 +117,7 @@ Pra cada **BAIXO ou AUSENTE**, entrada padrão:
 ```markdown
 ### Gap N — <peça> [<nível>]
 
-- **Protótipo:** `prototipo-ui/prototipos/<X>/<arq>.jsx:linha` — quote curta
+- **Protótipo:** `prototipo-ui/cowork/Wagner/legado/<X>/<arq>.jsx:linha` — quote curta
 - **Atual:** `resources/js/.../arq.tsx:linha` — quote curta
 - **Divergência:** <1 frase exata do que difere>
 - **Fix proposto:** `Edit em <arq>:linha` <operação concreta>
@@ -211,7 +211,7 @@ User diz: "compare com o protótipo", "ficou idêntico?", "avalie precisão", "q
 ### Workflow Claude
 
 1. **Confirma escopo** com Wagner (qual componente — listagem? drawer? módulo inteiro?)
-2. **Fase 1:** lê em paralelo `prototipo-ui/prototipos/<X>/*.{jsx,html}` + `resources/js/Pages/<Mod>/**/*.tsx` + backend novo
+2. **Fase 1:** lê em paralelo `prototipo-ui/cowork/Wagner/legado/<X>/*.{jsx,html}` + `resources/js/Pages/<Mod>/**/*.tsx` + backend novo
 3. **Fase 2:** decide quantas peças (14-21 dependendo do escopo)
 4. **Fase 3:** classifica cada peça em 5 níveis com evidência file:line
 5. **Fase 4:** cataloga BAIXO+AUSENTE com fixes propostos + estimates
@@ -246,7 +246,7 @@ User diz: "compare com o protótipo", "ficou idêntico?", "avalie precisão", "q
 ```markdown
 ### Gap 3 — FrescorPill thresholds [BAIXO]
 
-- **Protótipo:** `prototipo-ui/prototipos/clientes/clientes-975.jsx:33-39`
+- **Protótipo:** `prototipo-ui/cowork/Wagner/legado/clientes/clientes-975.jsx:33-39`
   ```jsx
   if (days < 30)  { kind = 'fresh';   label = 'fresco'; }
   if (days < 90)  { kind = 'recent';  label = 'recente'; }

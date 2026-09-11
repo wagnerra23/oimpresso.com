@@ -14,7 +14,7 @@ declare(strict_types=1);
  * Sem MySQL: as tabelas de plataforma (error_groups, mcp_audit_log) são criadas sob
  * demanda no beforeEach (mesmo pattern do ErrorGrouperTest).
  *
- * @see prototipo-ui/handoffs/erros-autoresolucao.md
+ * @see prototipo-ui/cowork/Wagner/handoffs/erros-autoresolucao.md
  */
 
 use App\Jobs\ReprocessJob;

@@ -27,8 +27,8 @@ steps:
 # RUNBOOK — Plataforma da Jana (`/ia/superadmin/metas`)
 
 > **Tipo:** runbook reproduzível
-> **Irmãos:** [`Plataforma.charter.md`](../../../resources/js/Pages/Jana/Plataforma.charter.md) (lei) · [`Plataforma.casos.md`](../../../resources/js/Pages/Jana/Plataforma.casos.md) (contrato UC) · [`jana-plataforma.contract.json`](../../../prototipo-ui/contrato/jana-plataforma.contract.json)
-> **Âncora de design:** `prototipo-ui/cowork/jana-telas-novas.jsx` §`JmPlataforma` (a aba vive no `JmTabs` de `jana-merge.jsx`, só com `jana.superadmin`). Resolva por `node prototipo-ui/ancora.mjs Jana/Plataforma`.
+> **Irmãos:** [`Plataforma.charter.md`](../../../resources/js/Pages/Jana/Plataforma.charter.md) (lei) · [`Plataforma.casos.md`](../../../resources/js/Pages/Jana/Plataforma.casos.md) (contrato UC) · [`jana-plataforma.contract.json`](../../../governance/design/contracts/jana-plataforma.contract.json)
+> **Âncora de design:** `prototipo-ui/cowork/Wagner/jana-telas-novas.jsx` §`JmPlataforma` (a aba vive no `JmTabs` de `jana-merge.jsx`, só com `jana.superadmin`). Resolva por `node scripts/design/ancora.mjs Jana/Plataforma`.
 > **Validado:** **estático** contra `origin/main` em 2026-09-02. ⚠️ Fluxo vivo NÃO exercitado nesta data — smoke real com screenshot é o passo 6 (R1).
 
 A visão de **plataforma** da Jana: metas com `business_id NULL` e as metas de todos os clientes, listadas **cruas** — a agregação cross-business que o docblock antigo prometia **não existe** (medido 2026-08-27; a tela diz isso em letra). Mais o bloco de instalação do módulo (nWidart), que hoje é disparado pelo `/manage-modules`.

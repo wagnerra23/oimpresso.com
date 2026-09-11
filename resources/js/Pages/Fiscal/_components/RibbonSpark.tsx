@@ -1,7 +1,7 @@
 /**
  * RibbonSpark — a mini-série de 14 dias que acompanha um KPI do ribbon do cockpit fiscal.
  *
- * PORTE 1:1 do `FxSpark` do protótipo Cowork (`prototipo-ui/cowork/fiscal-page.jsx:80-84`),
+ * PORTE 1:1 do `FxSpark` do protótipo Cowork (`prototipo-ui/cowork/Wagner/fiscal-page.jsx:80-84`),
  * que é a âncora declarada no `Cockpit.charter.md` (`related_prototype`). A geometria abaixo
  * não é escolha de estilo — é o contrato de FORMA, e nele o protótipo é soberano
  * (ADR UI-0029): viewBox 56×15, base em y=14, amplitude 12, `strokeWidth` 1.2.

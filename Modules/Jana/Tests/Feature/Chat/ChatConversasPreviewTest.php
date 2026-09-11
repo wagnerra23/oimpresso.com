@@ -17,7 +17,7 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  * UC-JCHAT-12 — o card da conversa recebe `preview` e `ultima_em`.
  *
  * ── DE ONDE VEM O CONTRATO ──────────────────────────────────────────────────
- * Do protótipo `prototipo-ui/cowork/jana-merge.jsx` §`JmConversa`, que desenha o
+ * Do protótipo `prototipo-ui/cowork/Wagner/jana-merge.jsx` §`JmConversa`, que desenha o
  * card com resumo de uma linha (`t.preview`) e um tempo (`t.quando` → "última em
  * X" / "criada agora"), e do `Chat.casos.md`. NÃO foi lido do Controller — o
  * Controller é o que este teste mede, e derivar dele seria tautológico

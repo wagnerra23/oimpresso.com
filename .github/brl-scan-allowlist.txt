@@ -88,7 +88,7 @@ virou "ajuste por eixo" (`G: +R$5`)
 # cliente: são (a) a constante de gamificação do mock e (b) um exemplo de
 # FORMATAÇÃO numa doc de UI que ensina "sinal pelo tipo, nunca por cor sozinha".
 #
-# POR QUE ALLOWLIST E NÃO REDIGIR (decisão [W] 2026-08-13): `prototipo-ui/cowork/`
+# POR QUE ALLOWLIST E NÃO REDIGIR (decisão [W] 2026-08-13): `prototipo-ui/cowork/Wagner/`
 # é ESPELHO — sua correção é ser byte-idêntico ao vivo. Redigir aqui criaria STALE
 # PERMANENTE nos dois arquivos e todo import futuro re-divergiria: recriaria
 # exatamente a doença que o PR conserta. A dívida some quando o valor sair do
@@ -130,7 +130,7 @@ virou "ajuste por eixo" (`G: +R$5`)
 custoHoje:"R$
 custoEst:"R$
 
-# 2026-08-19 — prosa MOCK do protótipo de design do Superadmin (prototipo-ui/cowork/).
+# 2026-08-19 — prosa MOCK do protótipo de design do Superadmin (prototipo-ui/cowork/Wagner/).
 # Não é valor de negócio: é preço fictício num card de exemplo ("Legado 2024"), e o arquivo
 # é ESPELHO build-only do Cowork (ADR 0374) — redigir aqui à mão some no próximo --export-from,
 # e o espelho tem que continuar idêntico ao vivo pra `--compare` significar alguma coisa.
@@ -159,7 +159,7 @@ nome: "Recuperar R$
 Ticket médio de volta em R$
 
 # 2026-08-21 — módulo ESSENCIAIS do espelho Cowork (`essenciais-data.jsx`), leva nova.
-# Mesma decisão [W] 2026-08-13 registrada acima: em `prototipo-ui/cowork/` é allowlist,
+# Mesma decisão [W] 2026-08-13 registrada acima: em `prototipo-ui/cowork/Wagner/` é allowlist,
 # nunca redação — o espelho é comparado por hash contra o vivo (`--compare`), então
 # trocar pelo sentinela deixaria o arquivo STALE PERMANENTE e todo `--export-from`
 # futuro re-divergiria. O valor some quando sair do Cowork upstream, não por edição aqui.

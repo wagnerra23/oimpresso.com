@@ -5,7 +5,7 @@
 //         0180 (sidebar v3 · ghosts), 0253 (primitivos de layout)
 //   runbook: memory/requisitos/AssetManagement/RUNBOOK-configuracoes.md
 //   charter: ./Configuracoes.charter.md · casos: ./Configuracoes.casos.md
-//   fonte visual: prototipo-ui/cowork/patrimonio-page.jsx (aba `config`, :589) — ALVO, não
+//   fonte visual: prototipo-ui/cowork/Wagner/patrimonio-page.jsx (aba `config`, :589) — ALVO, não
 //                 decisão de produto (`06-ui-bloqueada.md`)
 //
 // Sexta tela da frente, e a menor. Herda o `_shared/` fundado por Bens (PR #7035).
@@ -276,7 +276,7 @@ export default function Configuracoes({ settings, templates, usuarios, tags }: P
       <Stack gap={4}>
         {/* As âncoras `data-contract` são a ponte Cowork-CSS ↔ Tailwind do gate
             `contrato-de-tela.mjs` (ADR 0286) — mesmo padrão da irmã Bens (`Bens.tsx:532`).
-            Quem as consome: `prototipo-ui/contrato/patrimonio-configuracoes.contract.json`.
+            Quem as consome: `governance/design/contracts/patrimonio-configuracoes.contract.json`.
             Cada uma envolve um elemento QUE JÁ EXISTIA: nenhum conteúdo mudou. */}
         <div data-contract="cabecalho">
           <PageHeader

@@ -12,7 +12,7 @@ last_validated: "2026-08-27"
 
 > **Ancora computada, nao escolhida no olho** — `related_prototype` do
 > [`CreateV3.charter.md`](../../../resources/js/Pages/Sells/CreateV3.charter.md) declara
-> `prototipo-ui/cowork/venda-v3/sells-create.jsx`, e o drawer de item mora em
+> `prototipo-ui/cowork/Wagner/venda-v3/sells-create.jsx`, e o drawer de item mora em
 > `sells-item-detail.jsx` (464 linhas) do mesmo bundle.
 >
 > Primeiro registro desta tela. Medido em **2026-08-27**, depois de o [W] comparar a tela

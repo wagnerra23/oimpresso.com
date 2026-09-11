@@ -776,7 +776,7 @@ produz sinal nenhum: o instrumento **passa**, e passa porque ele e o artefato qu
 envelheceram juntos.
 
 O caso canônico é o eixo de design. O `consumir-map.mjs` valida cada `.map.json` contra um
-`prototipo_sha`, e esse hash é calculado sobre o **espelho local** `prototipo-ui/cowork/`. Quando
+`prototipo_sha`, e esse hash é calculado sobre o **espelho local** `prototipo-ui/cowork/Wagner/`. Quando
 o espelho para de ser atualizado, o hash segue batendo: o verde quer dizer *"o map está em dia com
 a cópia velha"*, jamais *"o gap reflete o protótipo vivo"*. Os `*-gap.md` derivados herdam isso, e
 ainda citam **ranges de linha** do lado vivo — que qualquer merge desloca em silêncio.

@@ -2,7 +2,7 @@
 id: resources-js-pages-fiscal-eventos-charter
 page: /fiscal/eventos
 component: resources/js/Pages/Fiscal/Eventos.tsx
-related_prototype: prototipo-ui/cowork/fiscal-subpages.jsx
+related_prototype: prototipo-ui/cowork/Wagner/fiscal-subpages.jsx
 related_visual_comparison: memory/requisitos/Fiscal/fiscal-eventos-visual-comparison.md
 bundle_source: fiscal-page.jsx
 page_id: fiscal-eventos
@@ -13,7 +13,7 @@ created: 2026-05-20
 owner: wagner
 related_us: [US-FISCAL-007]
 related_adrs: [0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0358-doutrina-de-teste-tenant-98-supersede-0101, 0104-processo-mwart-canonico-unico-caminho]
-prototypes: [prototipo-ui/cowork/fiscal-subpages.jsx]
+prototypes: [prototipo-ui/cowork/Wagner/fiscal-subpages.jsx]
 ---
 
 # Charter — `Fiscal/Eventos`

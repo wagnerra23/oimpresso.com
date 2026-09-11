@@ -22,8 +22,8 @@ declare(strict_types=1);
  * no DOM"*. Uma âncora pode estar no `.tsx` e não chegar ao browser (ramo condicional,
  * componente que retorna null, erro de render). Aqui mede-se o DOM RENDERIZADO.
  *
- * As 4 âncoras vêm de `prototipo-ui/contrato/patrimonio-alocacoes.contract.json` (#7204),
- * que deriva de `prototipo-ui/cowork/patrimonio-page.jsx` :: `AbaAlocacoes` (:409-474).
+ * As 4 âncoras vêm de `governance/design/contracts/patrimonio-alocacoes.contract.json` (#7204),
+ * que deriva de `prototipo-ui/cowork/Wagner/patrimonio-page.jsx` :: `AbaAlocacoes` (:409-474).
  * Este arquivo é o OUTRO LADO do mesmo contrato.
  *
  * ── POR QUE NENHUM CASO AQUI DEPENDE DE DADO ──────────────────────────────────
@@ -65,7 +65,7 @@ beforeEach(function () {
     \Illuminate\Support\Facades\DB::purge('mysql');
 });
 
-/** As 4 âncoras que `prototipo-ui/contrato/patrimonio-alocacoes.contract.json` declara, na ordem. */
+/** As 4 âncoras que `governance/design/contracts/patrimonio-alocacoes.contract.json` declara, na ordem. */
 const ANCORAS_ALOCACOES = ['cabecalho', 'subnav', 'filtros', 'tabela'];
 
 /**

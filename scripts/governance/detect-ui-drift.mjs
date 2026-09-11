@@ -20,7 +20,7 @@
  *                            sinalizada por REUSO do vocabulário existente:
  *                            (a) `related_prototype` do charter mudou pra um protótipo
  *                                REAL neste PR, OU
- *                            (b) entrada NOVA em `prototipo-ui/SYNC_LOG.md` citando a
+ *                            (b) entrada NOVA em `memory/reference/prototipo-ui/SYNC_LOG.md` citando a
  *                                tela (o registro que o loop Cowork↔Code já usa).
  * Qualquer outra mudança da `.tsx` (bugfix de layout, refactor, "customização") sem
  * um desses sinais → drift não-declarado → 🚩 FLAG.
@@ -178,7 +178,7 @@ function run(argv) {
   const files = changedFiles(base);
   const pagesTsx = selecionarPagesTsx(files);
 
-  const syncLogDiff = fileDiff(base, 'prototipo-ui/SYNC_LOG.md');
+  const syncLogDiff = fileDiff(base, 'memory/reference/prototipo-ui/SYNC_LOG.md');
   const syncLogAdded = syncLogDiff.split(/\r?\n/).filter((l) => l.startsWith('+') && !l.startsWith('+++'));
 
   const flags = [];

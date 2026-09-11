@@ -11,8 +11,8 @@
  * coluna do meio → o protótipo some e o conflito charter×produção fica invisível.
  *
  * Caso real provado: Produto tem 3 ponteiros órfãos —
- *   prototipo-ui/prototipos/produto-cockpit/  (frontmatter blueprint_cowork)
- *   prototipo-ui/prototipos/produto/          (cowork-map / charter)
+ *   prototipo-ui/cowork/Wagner/legado/produto-cockpit/  (frontmatter blueprint_cowork)
+ *   prototipo-ui/cowork/Felipe/legado/produto/          (cowork-map / charter)
  *   ui_kits/cowork-2026-05-09/prod-page.jsx   (Refs)
  *
  * Determinístico, sem deps, sem LLM. case-SENSITIVE (espelha CI Linux/Hostinger).

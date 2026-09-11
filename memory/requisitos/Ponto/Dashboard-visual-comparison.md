@@ -4,7 +4,7 @@ tela: Ponto/Dashboard/Index
 url: /ponto
 status: pending_approval
 approver: _pendente_
-prototype_source: "prototipo-ui/cowork/ponto-page.jsx (âncora computada por ancora.mjs)"
+prototype_source: "prototipo-ui/cowork/Wagner/ponto-page.jsx (âncora computada por ancora.mjs)"
 implementation: resources/js/Pages/Ponto/Dashboard/Index.tsx
 adr: 0107
 ---
@@ -22,8 +22,8 @@ adr: 0107
 Computada, não escolhida no olho:
 
 ```
-node prototipo-ui/ancora.mjs Ponto/Dashboard/Index
-  → [related_prototype (charter)] prototipo-ui/cowork/ponto-page.jsx
+node scripts/design/ancora.mjs Ponto/Dashboard/Index
+  → [related_prototype (charter)] prototipo-ui/cowork/Wagner/ponto-page.jsx
     ✓ frescor: verificado contra o Cowork vivo em 2026-08-27T21:56:54.006Z
 ```
 

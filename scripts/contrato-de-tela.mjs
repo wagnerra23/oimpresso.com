@@ -154,7 +154,7 @@ function loadContract(file) {
 // O espelho Cowork pode trazer contratos do schema do design, que não são contratos
 // vigentes do app. O canon vigente permanece fora do espelho de build.
 const normalizaPath = (p) => String(p || '').split(String.fromCharCode(92)).join('/');
-const ehEspelhoCowork = (p) => normalizaPath(p).includes('prototipo-ui/cowork/');
+const ehEspelhoCowork = (p) => normalizaPath(p).includes('prototipo-ui/cowork/Wagner/');
 const ehDocumentoAposentado = (p) => normalizaPath(p).includes('prototipo-ui/design-docs/');
 // ── Casamento de COPY: fronteira de identificador (endurecimento medido · 2026-08-25) ──
 //
@@ -451,11 +451,11 @@ function listContracts() {
   return out ? out.split('\n').filter(ativo) : [];
 }
 function listIntentContracts() {
-  const dir = resolve(ROOT, 'prototipo-ui/contrato');
+  const dir = resolve(ROOT, 'governance/design/contracts');
   if (!existsSync(dir)) return [];
   return readdirSync(dir)
     .filter(name => name.endsWith('.intent.json') && !/EXEMPLO/i.test(name))
-    .map(name => `prototipo-ui/contrato/${name}`)
+    .map(name => `governance/design/contracts/${name}`)
     .sort();
 }
 function checkIntentMap(file) {
@@ -570,19 +570,19 @@ function argVal(flag) { const i = process.argv.indexOf(flag); return i >= 0 ? pr
 // A lista é de EXCEÇÃO DECLARADA, não allowlist que cresce: cada entrada diz por que
 // existe, e sai quando a dívida for paga (§5 2026-08-02).
 const FONTE_TELA_GRANDFATHERED = {
-  'prototipo-ui/contrato/essentials-licencas.contract.json': 'legado 2026-08: nasceu apontando pra própria tela; re-ancorar exige a fonte de design da Essentials',
-  'prototipo-ui/contrato/essentials-metas.contract.json': 'idem essentials-licencas',
-  'prototipo-ui/contrato/jana-painel.contract.json': 'legado: fonte = Pages/Jana/Index.tsx; a âncora da Jana é decisão [W] (proposal jana)',
-  'prototipo-ui/contrato/purchase-create.contract.json': 'legado: fonte = Pages/Purchase/Create.tsx',
+  'governance/design/contracts/essentials-licencas.contract.json': 'legado 2026-08: nasceu apontando pra própria tela; re-ancorar exige a fonte de design da Essentials',
+  'governance/design/contracts/essentials-metas.contract.json': 'idem essentials-licencas',
+  'governance/design/contracts/jana-painel.contract.json': 'legado: fonte = Pages/Jana/Index.tsx; a âncora da Jana é decisão [W] (proposal jana)',
+  'governance/design/contracts/purchase-create.contract.json': 'legado: fonte = Pages/Purchase/Create.tsx',
 };
 
 function checkAncoraDaCopy() {
-  const dir = resolve(ROOT, 'prototipo-ui/contrato');
+  const dir = resolve(ROOT, 'governance/design/contracts');
   if (!existsSync(dir)) { ok('sem diretório de contratos — nada a checar'); return 0; }
   const arquivos = readdirSync(dir)
     .filter(f => f.endsWith('.contract.json') && !/EXEMPLO/i.test(f))
     .sort()
-    .map(f => `prototipo-ui/contrato/${f}`);
+    .map(f => `governance/design/contracts/${f}`);
 
   let fail = 0, avisos = 0, limpos = 0;
   for (const rel of arquivos) {
@@ -599,7 +599,7 @@ function checkAncoraDaCopy() {
         warn(`${rel} — fonte é a própria tela (grandfathered): ${razao}`);
       } else {
         err(`${rel}: \`fonte\` aponta pra PRÓPRIA TELA (${fonte}) — contrato tautológico, nasce verde por construção.`);
-        err(`    A fonte tem de ser a ÂNCORA. Resolva com: node prototipo-ui/ancora.mjs <Mod>/<Tela>`);
+        err(`    A fonte tem de ser a ÂNCORA. Resolva com: node scripts/design/ancora.mjs <Mod>/<Tela>`);
         fail++;
       }
       continue;
@@ -647,11 +647,11 @@ function main() {
     if (alvo && !alvo.startsWith('--')) {
       fail += checkContract(alvo);
     } else {
-      const dir = resolve(ROOT, 'prototipo-ui/contrato');
+      const dir = resolve(ROOT, 'governance/design/contracts');
       const todos = readdirSync(dir)
         .filter(f => f.endsWith('.contract.json') && f !== 'EXEMPLO.contract.json')
         .sort()
-        .map(f => `prototipo-ui/contrato/${f}`);
+        .map(f => `governance/design/contracts/${f}`);
       log(`contrato-de-tela · ${todos.length} contrato(s) ativo(s)\n`);
       for (const c of todos) fail += checkContract(c);
     }

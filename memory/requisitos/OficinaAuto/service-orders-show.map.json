@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "OficinaAuto/ServiceOrders/Show (/oficina-auto/service-orders/{id})",
   "gap_fonte": "memory/requisitos/OficinaAuto/service-orders-show-gap.md",
   "prototipo_sha": "sha256:804dcad4a7fa",
@@ -9,7 +9,7 @@
     {
       "id": "cabecalho-da-os",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/oficina-os-page.jsx",
         "linhas": "147-150"
       },
       "vivo": {
@@ -24,7 +24,7 @@
     {
       "id": "stepper-de-etapas-no-topo",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/oficina-os-page.jsx",
         "linhas": "49-63"
       },
       "vivo": {
@@ -39,7 +39,7 @@
     {
       "id": "painel-de-acoes-fsm",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/oficina-os-page.jsx",
         "linhas": "341-343"
       },
       "vivo": {
@@ -54,7 +54,7 @@
     {
       "id": "timeline-de-transicoes",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/oficina-os-page.jsx",
         "linhas": "TODO"
       },
       "vivo": {
@@ -69,7 +69,7 @@
     {
       "id": "hero-do-veiculo",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/oficina-os-page.jsx",
         "linhas": "165-189"
       },
       "vivo": {
@@ -84,7 +84,7 @@
     {
       "id": "check-in-de-entrada",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/oficina-os-page.jsx",
         "linhas": "205-229"
       },
       "vivo": {
@@ -99,7 +99,7 @@
     {
       "id": "inspecao-dvi",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/oficina-os-page.jsx",
         "linhas": "65-83"
       },
       "vivo": {
@@ -114,7 +114,7 @@
     {
       "id": "itens-da-os",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/oficina-os-page.jsx",
         "linhas": "248-256"
       },
       "vivo": {
@@ -129,7 +129,7 @@
     {
       "id": "abas-servicos-pecas-busca-com",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/oficina-os-page.jsx",
         "linhas": "249-257"
       },
       "vivo": {
@@ -144,7 +144,7 @@
     {
       "id": "ciclo-de-peca-e-estoque",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/oficina-os-page.jsx",
         "linhas": "278"
       },
       "vivo": {
@@ -159,7 +159,7 @@
     {
       "id": "gate-de-aprovacao-do-cliente",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/oficina-os-page.jsx",
         "linhas": "296-317"
       },
       "vivo": {
@@ -174,7 +174,7 @@
     {
       "id": "estado-orcamento-enviado-envio-com-registro",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/oficina-os-page.jsx",
         "linhas": "TODO"
       },
       "vivo": {
@@ -189,7 +189,7 @@
     {
       "id": "resumo-de-valores",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/oficina-os-page.jsx",
         "linhas": "287-294"
       },
       "vivo": {
@@ -204,7 +204,7 @@
     {
       "id": "split-fiscal-nf-e-nfs-e",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/oficina-os-page.jsx",
         "linhas": "319-326"
       },
       "vivo": {
@@ -219,7 +219,7 @@
     {
       "id": "garantia-de-90-dias",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/oficina-os-page.jsx",
         "linhas": "324"
       },
       "vivo": {
@@ -234,7 +234,7 @@
     {
       "id": "fotos-e-laudo",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/oficina-os-page.jsx",
         "linhas": "220-230"
       },
       "vivo": {
@@ -249,7 +249,7 @@
     {
       "id": "rodape-fixo-com-acoes",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/oficina-os-page.jsx",
         "linhas": "332-344"
       },
       "vivo": {
@@ -264,7 +264,7 @@
     {
       "id": "seletor-de-vertical",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/oficina-os-page.jsx",
         "linhas": "152-158"
       },
       "vivo": {
@@ -279,7 +279,7 @@
     {
       "id": "apontamento-de-tempo-qualidade-historico-do-veiculo",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/oficina-os-page.jsx",
         "linhas": "28"
       },
       "vivo": {
@@ -294,7 +294,7 @@
     {
       "id": "multi-tenant",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/oficina-os-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/oficina-os-page.jsx",
         "linhas": "TODO"
       },
       "vivo": {

@@ -61,7 +61,7 @@ Vale a regra-mestre de [proibicoes.md](../../proibicoes.md):
 | 3 | `Aprovacoes/Index.charter.md` — **`status: draft`** | intenção-lei, ainda não ratificada |
 | 4 | [`SPEC.md`](SPEC.md) US-PONTO-003 (estados canon) · US-PONTO-007 (isolamento) | escopo |
 
-O charter aponta `related_prototype: prototipo-ui/cowork/ponto-telas.jsx` (existe na árvore).
+O charter aponta `related_prototype: prototipo-ui/cowork/Wagner/ponto-telas.jsx` (existe na árvore).
 
 ---
 

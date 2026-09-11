@@ -14,7 +14,7 @@ related_us: [US-SELL-059]
 tier: A
 charter_version: 1
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/cowork/vendas-page.jsx"
+  blueprint_cowork: "prototipo-ui/cowork/Wagner/vendas-page.jsx"
   blueprint_screenshot_approval: "SYNC_LOG pendente verificar Wagner (ADR 0149)"
   derived_screens: [Edit]
   divergence_from_blueprint: "Pre-fill via form deferred; submit PUT; guards canBeEdited/isReturnExist preservados como 422 JSON."

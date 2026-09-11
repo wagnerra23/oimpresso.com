@@ -47,12 +47,12 @@ import { spawnSync } from 'node:child_process';
 // ancora.mjs. Reimplementar a regex aqui recriaria as DUAS definições divergindo que o
 // próprio ancora.mjs catalogou (auditoria 2026-06-30, duas denylists). O módulo guarda o
 // main atrás de `invokedDirectly`, então importar não executa CLI nem toca disco.
-import { mockupJsx } from '../../prototipo-ui/ancora.mjs';
+import { mockupJsx } from '../../scripts/design/ancora.mjs';
 
 const ROOT = process.cwd();
 const PAGES = join(ROOT, 'resources/js/Pages');
-const COWORK_MAP = join(ROOT, 'prototipo-ui/cowork-map.json');
-const COWORK_MIRROR = join(ROOT, 'prototipo-ui/cowork');
+const COWORK_MAP = join(ROOT, 'governance/design/cowork-map.json');
+const COWORK_MIRROR = join(ROOT, 'prototipo-ui/cowork/Wagner');
 
 // ── existsExact: case-SENSITIVE (espelha CI Linux / Hostinger). Sem isto, Windows/macOS
 //    mente (case-insensitive) e o veredito diverge entre dev e CI. ─────────────────────
@@ -111,7 +111,7 @@ function pathsForCharter(charterRel) {
 // O alvo do bundle é casado por BASENAME, não por path flat: o `ancora.mjs` faz
 // `walk(stagingDir)` + `basename(f).toLowerCase() === declarado.toLowerCase()`, e medido
 // 2026-09-09 um dos 54 `-page.jsx` do espelho vive em subpasta
-// (prototipo-ui/cowork/prototipos/payment-gateway-ui). Assumir `cowork/<valor>` acertaria
+// (prototipo-ui/cowork/Wagner/prototipos/payment-gateway-ui). Assumir `cowork/<valor>` acertaria
 // 53/54 e resolveria o 54º pro arquivo ERRADO (inexistente) em silêncio.
 let _mirrorIdx = null;
 function coworkMirrorIndex() {
@@ -148,7 +148,7 @@ function resolvePrototype(charterAbs, fm, body, coworkMap) {
 
   // 2. frontmatter bundle_source/visual_source → `-page.jsx` do espelho Cowork.
   //    Por que esta perna existe (2026-09-09): o `bundle_source` é o campo que o
-  //    `prototipo-ui/ancora.mjs` PREFERE (determinístico) e que o inventário de âncoras
+  //    `scripts/design/ancora.mjs` PREFERE (determinístico) e que o inventário de âncoras
   //    aponta como dono do ponteiro de desenho — e este gate não o conhecia. Medido:
   //    36 charters declaram bundle/visual e NÃO declaram `blueprint_cowork`, e o
   //    cowork-map (22 chaves) não casa nenhum deles. Sem esta perna, todos caíam no ramo
@@ -160,7 +160,7 @@ function resolvePrototype(charterAbs, fm, body, coworkMap) {
   if (bundleDecl) {
     // sem hit no espelho, declara o alvo canônico assim mesmo: vira ponteiro ÓRFÃO
     // visível (`missing`), que é o sinal honesto — nunca silêncio.
-    const alvo = coworkMirrorIndex().get(bundleDecl.toLowerCase()) || 'prototipo-ui/cowork/' + bundleDecl;
+    const alvo = coworkMirrorIndex().get(bundleDecl.toLowerCase()) || 'prototipo-ui/cowork/Wagner/' + bundleDecl;
     if (!declared.some((d) => d.path === alvo)) declared.push({ path: alvo, src: 'frontmatter:bundle_source' });
   }
 

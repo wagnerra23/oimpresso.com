@@ -1,14 +1,14 @@
 ---
 id: requisitos-officeimpresso-logs-timeline-gap
 tela: Officeimpresso/Logs/Timeline (/officeimpresso/licenca_log/timeline/{licenca_id})
-prototipo: prototipo-ui/cowork/officeimpresso-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/officeimpresso-page.jsx
 tela_viva: Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Timeline.tsx
 gerado_em: 2026-09-06
 ---
 
 # GAP-SPEC — Officeimpresso/Logs/Timeline
 
-> **Âncora declarada no charter** (`related_prototype: prototipo-ui/cowork/officeimpresso-page.jsx`) e confirmada pela porta. A tela viva mora dentro do módulo — ver a nota sobre as duas raízes de `Pages` no [gap da tela irmã](logs-index-gap.md).
+> **Âncora declarada no charter** (`related_prototype: prototipo-ui/cowork/Wagner/officeimpresso-page.jsx`) e confirmada pela porta. A tela viva mora dentro do módulo — ver a nota sobre as duas raízes de `Pages` no [gap da tela irmã](logs-index-gap.md).
 >
 > ⚠️ **No protótipo esta tela NÃO EXISTE como página.** O charter é explícito: *"No protótipo esta tela **não é uma página própria**: a timeline vive no drawer da licença dentro da view `oi-licencas` ('Timeline no log')"* — e a decisão é a mesma da irmã: **[W] 2026-08-19, "paridade agora, realinhar depois"**. A região de comparação, portanto, é o bloco `<h3>Timeline no log</h3>` dentro do `LicencaDrawer` (`officeimpresso-page.jsx:737-750`), não uma tela.
 >

@@ -2,7 +2,7 @@
 id: resources-js-pages-fiscal-cockpit-charter
 page: /fiscal
 component: resources/js/Pages/Fiscal/Cockpit.tsx
-related_prototype: prototipo-ui/cowork/fiscal-page.jsx
+related_prototype: prototipo-ui/cowork/Wagner/fiscal-page.jsx
 related_visual_comparison: memory/requisitos/Fiscal/fiscal-cockpit-visual-comparison.md
 bundle_source: fiscal-page.jsx
 page_id: fiscal-cockpit
@@ -13,7 +13,7 @@ created: 2026-05-20
 owner: wagner
 related_us: [US-FISCAL-002]
 related_adrs: [0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0358-doutrina-de-teste-tenant-98-supersede-0101, 0104-processo-mwart-canonico-unico-caminho, 0114-prototipo-ui-cowork-loop-formalizado]
-prototypes: [prototipo-ui/cowork/fiscal-page.jsx]
+prototypes: [prototipo-ui/cowork/Wagner/fiscal-page.jsx]
 ---
 
 # Charter — `Fiscal/Cockpit`
@@ -43,7 +43,7 @@ Dar à pessoa fiscal (Eliana contadora + Wagner operador) **visão consolidada d
 
 ## Contrato da fila de alertas (Onda 1 Cowork · 2026-09-03)
 
-Destilado do alvo `prototipo-ui/cowork/fiscal-page.jsx:125-137` (`FxAlerts`) e do que a
+Destilado do alvo `prototipo-ui/cowork/Wagner/fiscal-page.jsx:125-137` (`FxAlerts`) e do que a
 Onda 1 entregou. Descreve o que a seção **é**; a regra de negócio segue sendo do
 `computeAlerts()` (determinístico, anti-hook abaixo).
 
@@ -69,7 +69,7 @@ não levanta erro: o botão ou o ícone apenas não são desenhados. Quem defend
 ## Contrato do rodapé de paginação (Onda 3 Cowork · 2026-09-03)
 
 Destilado do alvo `fiscal-page.jsx` §`FxNotasPage` — baixado do **vivo** por `DesignSync`
-(`truncated: false`), não do espelho `prototipo-ui/cowork/`, que mediu 1 de 258 arquivos e
+(`truncated: false`), não do espelho `prototipo-ui/cowork/Wagner/`, que mediu 1 de 258 arquivos e
 cuja própria máquina declara qualquer comparação contra ele INCONCLUSIVA.
 
 | Item | Contrato |
@@ -134,7 +134,7 @@ Quem defende este contrato é o `UC-FCKP-11` do [`Cockpit.casos.md`](./Cockpit.c
 casos de render e 4 mutações provadas.
 ## Contrato das séries do ribbon (item A2 · 2026-09-04)
 
-Destilado do alvo `prototipo-ui/cowork/fiscal-page.jsx:80-84` (`FxSpark`) e `:114-116` (onde ele
+Destilado do alvo `prototipo-ui/cowork/Wagner/fiscal-page.jsx:80-84` (`FxSpark`) e `:114-116` (onde ele
 aparece). Descreve o que a peça **é**; o dado segue sendo do `computeSparklines()`, que já existia
 e não foi tocado. Contrato executável em `Cockpit.casos.md` (**UC-FCKP-12**), lane
 `fiscal-cockpit-sparklines-gate.yml`.
@@ -160,7 +160,7 @@ dois consumidores vivos.
 
 ## Contrato do selo de procedência (CU-FISC-16 · decisão [W] 2026-09-04)
 
-Destilado do alvo `prototipo-ui/cowork/fiscal-page.jsx` (o botão do cabeçalho, `:60`, e as 7
+Destilado do alvo `prototipo-ui/cowork/Wagner/fiscal-page.jsx` (o botão do cabeçalho, `:60`, e as 7
 chamadas de `window.FxProc`) + `fiscal-actions.jsx:93-99` (o componente) e `fiscal-data.jsx:194`
 (o vocabulário `kind`/`label`/`explica`).
 

@@ -44,4 +44,4 @@ Reuso completo do form pattern `Sells/Create.tsx`:
 
 - [ADR 0149](../../decisions/0149-mwart-screen-pattern-reuse-cowork.md)
 - [Create.charter.md](../../../../resources/js/Pages/Sells/Create.charter.md)
-- Blueprint: `prototipo-ui/prototipos/vendas-cockpit/`
+- Blueprint: `prototipo-ui/cowork/Wagner/legado/vendas-cockpit/`

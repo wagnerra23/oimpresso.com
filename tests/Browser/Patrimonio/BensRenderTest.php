@@ -61,7 +61,7 @@ beforeEach(function () {
     \Illuminate\Support\Facades\DB::purge('mysql');
 });
 
-/** As 4 âncoras que `prototipo-ui/contrato/patrimonio-bens.contract.json` declara, na ordem. */
+/** As 4 âncoras que `governance/design/contracts/patrimonio-bens.contract.json` declara, na ordem. */
 const ANCORAS_BENS = ['cabecalho', 'subnav', 'filtros', 'tabela'];
 
 /**
@@ -158,7 +158,7 @@ it('RENDER · as 4 âncoras do contrato de Patrimonio/Bens chegam ao DOM, na ord
 
 it('RENDER · o cabeçalho e os filtros do contrato aparecem renderizados', function () {
     // Copy declarada em `patrimonio-bens.contract.json`, derivada da âncora
-    // `prototipo-ui/cowork/patrimonio-page.jsx`. Independente de dado: header e barra de
+    // `prototipo-ui/cowork/Wagner/patrimonio-page.jsx`. Independente de dado: header e barra de
     // filtros montam com a lista vazia.
     $page = abrirBens()->resize(1280, 800);
     $esperado = implode(',', ANCORAS_BENS);

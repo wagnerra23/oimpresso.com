@@ -46,7 +46,7 @@ Linha do tempo verificada em git+código:
 
 ## Consequências
 
-- **9 sites de lei viva corrigidos no mesmo PR** (não são ADRs — ADR não se edita): `CLAUDE.md` §Constituição UI v2 · `.claude/skills/constituicao-ui-aware/SKILL.md` (§"Sidebar permanece light · NÃO mudar pra dark" — **era instrução ativa pra regressão**, dispara em toda edição de UI) · `.claude/skills/cockpit-runbook/{SKILL,TEMPLATE}.md` · `.claude/skills/mwart-quality/SKILL.md` · `prototipo-ui/CLAUDE_COWORK_PRIMER.md` (×2) · `_DesignSystem/README.md` · `Jana/RUNBOOK-chat.md` · errata em `Sells/sells-index-dsv6-visual-comparison.md`.
+- **9 sites de lei viva corrigidos no mesmo PR** (não são ADRs — ADR não se edita): `CLAUDE.md` §Constituição UI v2 · `.claude/skills/constituicao-ui-aware/SKILL.md` (§"Sidebar permanece light · NÃO mudar pra dark" — **era instrução ativa pra regressão**, dispara em toda edição de UI) · `.claude/skills/cockpit-runbook/{SKILL,TEMPLATE}.md` · `.claude/skills/mwart-quality/SKILL.md` · `memory/reference/prototipo-ui/CLAUDE_COWORK_PRIMER.md` (×2) · `_DesignSystem/README.md` · `Jana/RUNBOOK-chat.md` · errata em `Sells/sells-index-dsv6-visual-comparison.md`.
 
 - 🔴 **RESÍDUO HONESTO — 5 arquivos LEGADOS seguem dizendo "sidebar light (UI-0009)"**. Eu tentei corrigir os 5, os gates diff-aware ficaram vermelhos, e **revertei**:
 

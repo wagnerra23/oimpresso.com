@@ -20,7 +20,7 @@ class Kernel extends ConsoleKernel
 
         // Erros (Fase 2 · E-2) — janela de decaimento: arquiva grupos de erro abertos
         // sem ocorrência há N dias (config errors.group_decay_days). Plataforma, não
-        // business-scoped. @see prototipo-ui/handoffs/erros-dedup.md
+        // business-scoped. @see prototipo-ui/cowork/Wagner/handoffs/erros-dedup.md
         $schedule->command('errors:archive-stale-groups')
             ->dailyAt('04:00')
             ->withoutOverlapping();
