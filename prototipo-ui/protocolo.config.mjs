@@ -67,13 +67,57 @@ export const DESIGN_SYSTEM_PROJECT_ID = '019dd02f-d2d0-7ba6-a57f-24b3ddd073ac'; 
 // FP permanente — e a resposta certa a "cadê a fonte de design da Venda?" é "outra conta",
 // não "gerar do DS canon". Consulte esta constante em vez de reinferir pelo nome do arquivo.
 export const FORA_DESTA_CONTA = [
-  { tela: 'Sells (Venda)',   arquivos: ['resources/css/venda-v3.css', 'resources/js/Pages/Sells/CreateV3.tsx'], quem: '[L]/[M]', declaradoPor: '[W]', em: '2026-08-13' },
-  { tela: 'Produto',         arquivos: ['resources/js/Pages/Produto/'],                                          quem: '[L]/[M]', declaradoPor: '[W]', em: '2026-08-13' },
+  { tela: 'Sells (Venda)',   arquivos: ['resources/css/venda-v3.css', 'resources/js/Pages/Sells/CreateV3.tsx'], quem: '[L]/[M]', conta: 'felipe', declaradoPor: '[W]', em: '2026-08-13' },
+  { tela: 'Produto',         arquivos: ['resources/js/Pages/Produto/'],                                          quem: '[L]/[M]', conta: 'felipe', declaradoPor: '[W]', em: '2026-08-13' },
 ];
 
+// ── CONTAS DE DESIGN ([W] 2026-09-11) ──────────────────────────────────────────
+// Por que a conta é dimensão de primeira classe, e não detalhe: o DesignSync autentica como UM
+// usuário. Tudo que ele lista, lê ou mede é da conta logada. Logo "não achei no DesignSync" só
+// significa "não existe" DENTRO da conta corrente — pra qualquer outra conta a ferramenta é cega
+// POR CONSTRUÇÃO, não por ausência. Sem esta tabela, a próxima sessão relê a cegueira como drift.
+//
+// Isto não inventa fato novo: a FORA_DESTA_CONTA abaixo já registrava, desde 2026-08-13, que
+// Venda e Produto vêm de outra conta ([L]/[M]). O que faltava era o eixo explícito, pra cada
+// tela saber dizer de QUAL conta ela veio. Quem responde isso por tela: `--procedencia`.
+export const CONTAS = {
+  w: {
+    id: 'w',
+    dono: '[W] Wagner',
+    papel: 'conta do dono — origem das telas do ERP e do DS',
+    alcancavel: true,          // o DesignSync desta sessão enxerga
+    espelhada: true,           // desce pro repo por bundle/--export-from
+    projetos: ['cowork', 'designSystem'],
+  },
+  felipe: {
+    id: 'felipe',
+    dono: '[F] Felipe (titular da conta)',
+    usadaPor: ['[F] Felipe', '[M] Maiara', '[L] Luiz'],
+    papel: 'conta da equipe — telas desenhadas fora da conta do dono ([W] 2026-09-11)',
+    alcancavel: false,         // ⚠ invisível deste lado: outra conta, outro login
+    espelhada: false,          // não há espelho no repo, e isso está CORRETO
+    projetos: [],              // nenhum ID conhecido aqui — ver "PRA ATIVAR" abaixo
+    // Titular x usuários é distinção OPERACIONAL, não burocracia: quem exporta o handoff é
+    // quem tem o login, e só o titular consegue. [W] 2026-09-11: "conta do Felipe (usada pelo
+    // Felipe, Maiara e o Luiz)".
+    //
+    // PRA ATIVAR (o que falta, exatamente):
+    //   1. o projectId do projeto de telas dessa conta — NINGUÉM deste lado consegue descobrir:
+    //      o DesignSync autentica como [W], então a conta do [F] é invisível POR CONSTRUÇÃO.
+    //      list_projects vazio sobre ela não é evidência de nada.
+    //   2. com o ID: acrescentar aqui + em PROJETOS (com 'espelho'), e o --procedencia passa a
+    //      carimbar as telas dela sozinho, sem mais nenhuma mudança de código.
+    //   3. o conteúdo desce pela rota que já existe — receber-handoff.mjs --zip, exportado do
+    //      login do [F]. Nada de rota nova.
+    //
+    // Não confunda "sem ID aqui" com "não existe": a lista é vazia porque nunca foi informada,
+    // não porque foi medida.
+  },
+};
+
 export const PROJETOS = {
-  cowork:       { id: COWORK_PROJECT_ID,        nome: 'Oimpresso ERP Comunicação Visual', papel: 'telas',  listado: false },
-  designSystem: { id: DESIGN_SYSTEM_PROJECT_ID, nome: 'Office Impresso — Design System',   papel: 'ds',     listado: true  },
+  cowork:       { id: COWORK_PROJECT_ID,        nome: 'Oimpresso ERP Comunicação Visual', papel: 'telas',  listado: false, conta: 'w', espelho: 'prototipo-ui/cowork/' },
+  designSystem: { id: DESIGN_SYSTEM_PROJECT_ID, nome: 'Office Impresso — Design System',   papel: 'ds',     listado: true,  conta: 'w', espelho: 'prototipo-ui/design-system/' },
 };
 
 // ── PATHS FIXOS (as âncoras do protocolo dependem destes — RUNBOOK Fase −1) ─────
@@ -652,6 +696,27 @@ function selftest() {
   if (typeof contentHash === 'function' && contentHash('abc') !== contentHash('abc')) {
     fails.push('contentHash não-determinístico');
   }
+  // PROCEDÊNCIA — trava as 2 pernas que já falharam ao vivo nesta sessão:
+  //  (a) declaração de [W] que aponta pro .tsx tem que casar o .charter.md do MESMO stem;
+  //  (b) e NÃO pode capturar a tela vizinha cujo nome é prefixo (Create vs CreateV3) — sem o
+  //      controle negativo, um guard que casa tudo passaria por "funcionando".
+  {
+    const fixture = [{ tela: 'X', arquivos: ['resources/js/Pages/Sells/CreateV3.tsx'], quem: '[L]/[M]', conta: 'felipe', declaradoPor: '[W]', em: '2026-08-13' }];
+    const bom  = procedenciaDaTela({ charter: 'resources/js/Pages/Sells/CreateV3.charter.md', caminho: '' }, fixture);
+    // ⚠ O controle negativo tem que ir no sentido DECLARAÇÃO-CURTA → CHARTER-LONGO. A 1ª versão
+    // deste assert usava fixture 'CreateV3.tsx' vs charter 'Create.charter.md' e NÃO mordia:
+    // provado por mutação (removi a trava do ponto e o selftest seguiu verde). 'Create.charter.md'
+    // nunca começa com 'CreateV3' — o par estava invertido. É neste sentido que a trava trabalha.
+    const curto = [{ tela: 'Y', arquivos: ['resources/js/Pages/Sells/Create.tsx'], quem: '[L]/[M]', conta: 'felipe', declaradoPor: '[W]', em: '2026-08-13' }];
+    const viz  = procedenciaDaTela({ charter: 'resources/js/Pages/Sells/CreateV3.charter.md', caminho: 'prototipo-ui/cowork/vendas-page.jsx' }, curto);
+    const esp  = procedenciaDaTela({ charter: 'resources/js/Pages/Kb/Index.charter.md', caminho: 'prototipo-ui/cowork/kb-page.jsx' }, fixture);
+    const na   = procedenciaDaTela({ charter: 'resources/js/Pages/Z/Index.charter.md', caminho: '', isNa: true, declaracaoNa: 'herda PT-01' }, fixture);
+    if (bom.classe !== 'outra-conta')  fails.push('procedencia: stem .tsx -> .charter.md NAO casou (CreateV3)');
+    if (viz.classe === 'outra-conta')  fails.push('procedencia: CONTROLE NEGATIVO falhou — declaracao Create.tsx capturou a tela CreateV3');
+    if (esp.classe !== 'espelhada' || esp.conta !== 'w') fails.push('procedencia: âncora no espelho cowork/ nao virou conta w');
+    if (na.classe !== 'sem-prototipo') fails.push('procedencia: isNa nao virou sem-prototipo');
+  }
+
   const scripts = scriptsReferenciados();
   for (const s of scripts) {
     if (!existsSync(join(REPO_ROOT, s))) fails.push(`script referenciado no mapa FASES não existe: ${s}`);
@@ -667,7 +732,108 @@ function selftest() {
   process.exit(0);
 }
 
+/** PROCEDÊNCIA — de qual CONTA e de qual PROJETO vem a fonte de design de uma tela.
+ *
+ *  DERIVADA, nunca escrita à mão (ADR 0256: derivado sobrevive, escrito apodrece). A entrada é o
+ *  `ancora.mjs --list --json` (dono de "qual é a âncora desta tela"); esta função só carimba a
+ *  ORIGEM em cima, usando PROJETOS/CONTAS. Não decide âncora e não contradiz o dono.
+ *
+ *  Pura: recebe as entradas e devolve o carimbo, pra o --selftest exercitar sem tocar disco.
+ */
+export function procedenciaDaTela(entrada, foraDestaConta = FORA_DESTA_CONTA) {
+  const caminho = entrada.caminho || entrada.source || '';
+  const charter = entrada.charter || '';
+
+  // 1º: a declaração de [W] vence qualquer inferência por path — é fato de dono, não heurística.
+  // O casamento tem DUAS formas porque a declaração aponta pro artefato (Pages/X/Y.tsx ou uma
+  // pasta), enquanto a entrada aqui traz o CHARTER (Pages/X/Y.charter.md). Prefixo cru só resolve
+  // a pasta; pro arquivo é preciso comparar o STEM — e exigir que o próximo caractere seja '.',
+  // senão 'Create' capturaria 'CreateV3', que é outra tela. Medido: sem o stem, a Venda (CreateV3)
+  // não casava com a própria declaração de [W] e saía carimbada como se fosse da conta do dono.
+  const casa = (a) => {
+    if (a.endsWith('/')) return charter.startsWith(a) || caminho.startsWith(a);
+    if (charter.startsWith(a) || caminho.startsWith(a)) return true;
+    const stem = a.replace(/.[A-Za-z0-9]+$/, '');
+    if (stem === a) return false;
+    return (charter.startsWith(stem) && charter.charAt(stem.length) === '.')
+        || (caminho.startsWith(stem) && caminho.charAt(stem.length) === '.');
+  };
+  for (const f of foraDestaConta) {
+    if (f.arquivos.some(casa)) {
+      return { conta: f.conta, projeto: null, espelho: null, classe: 'outra-conta',
+               nota: 'origem externa declarada por ' + f.declaradoPor + ' em ' + f.em + ' (' + f.quem + ') — ausência aqui NÃO é drift' };
+    }
+  }
+
+  // 2º: âncora dentro de um espelho conhecido → a conta é a dona daquele projeto.
+  for (const [chave, p] of Object.entries(PROJETOS)) {
+    if (caminho.startsWith(p.espelho)) {
+      return { conta: p.conta, projeto: chave, espelho: p.espelho, classe: 'espelhada',
+               nota: 'projeto ' + p.id + ' (' + p.nome + ')' };
+    }
+  }
+
+  // 3º: sem protótipo POR DECISÃO — herda Padrão de Tela. Não é buraco.
+  if (entrada.isNa) {
+    return { conta: null, projeto: null, espelho: null, classe: 'sem-prototipo',
+             nota: entrada.declaracaoNa || 'herda o Padrão de Tela (decisão declarada no charter)' };
+  }
+
+  // 4º: tem âncora, mas fora de qualquer espelho → arquivo local sem dono remoto.
+  if (caminho) {
+    return { conta: null, projeto: null, espelho: null, classe: 'local-sem-dono',
+             nota: 'âncora fora dos espelhos: ' + caminho + ' — não vem de projeto Cowork nenhum' };
+  }
+
+  return { conta: null, projeto: null, espelho: null, classe: 'indefinida',
+           nota: 'charter sem fonte declarada' };
+}
+
+function procedencia() {
+  let entradas;
+  try {
+    const raw = execFileSync(process.execPath, [join(HERE, 'ancora.mjs'), '--list', '--json'],
+      { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+    entradas = JSON.parse(raw);
+  } catch (e) {
+    // Falha de leitura NÃO vira "0 telas": isso afirmaria saúde sobre o que não foi medido.
+    console.error('PROCEDENCIA: não consegui ler ancora.mjs --list --json — ' + (e && e.message));
+    process.exit(2);
+  }
+
+  const porClasse = new Map();
+  const linhas = [];
+  for (const e of entradas) {
+    const p = procedenciaDaTela(e);
+    porClasse.set(p.classe, (porClasse.get(p.classe) || 0) + 1);
+    linhas.push({ page: e.page, charter: e.charter, ancora: e.caminho || null, ...p });
+  }
+
+  if (process.argv.includes('--json')) { console.log(JSON.stringify({ contas: CONTAS, projetos: PROJETOS, telas: linhas }, null, 2)); return; }
+
+  console.log('PROCEDÊNCIA POR TELA — de qual conta/projeto vem a fonte de design');
+  console.log('(derivado de ancora.mjs --list --json + PROJETOS/CONTAS · não editar à mão)');
+  console.log('');
+  console.log('CONTAS:');
+  for (const c of Object.values(CONTAS)) {
+    console.log('  ' + c.id.padEnd(7) + c.dono.padEnd(34)
+      + (c.alcancavel ? 'alcançável daqui' : '⚠ INVISÍVEL daqui (outra conta)')
+      + (c.espelhada ? ' · espelhada' : ' · sem espelho'));
+    for (const k of c.projetos) console.log('          └─ ' + PROJETOS[k].espelho.padEnd(30) + PROJETOS[k].id + '  "' + PROJETOS[k].nome + '"');
+  }
+  console.log(''); console.log('RESUMO (' + entradas.length + ' telas com charter):');
+  for (const [k, v] of [...porClasse.entries()].sort((a, b) => b[1] - a[1])) {
+    console.log('  ' + String(v).padStart(4) + '  ' + k);
+  }
+  console.log(''); console.log('TELAS QUE NÃO VÊM DE ESPELHO (as que merecem olho):');
+  const suspeitas = linhas.filter((l) => l.classe === 'outra-conta' || l.classe === 'local-sem-dono' || l.classe === 'indefinida');
+  if (!suspeitas.length) console.log('  (nenhuma)');
+  for (const l of suspeitas) { console.log('  [' + l.classe + '] ' + l.page); console.log('        ' + l.nota); }
+}
+
 function painel() {
+  console.log('  De qual CONTA vem cada tela?  node prototipo-ui/protocolo.config.mjs --procedencia [--json]');
+  console.log('');
   console.log('PROTOCOLO DE APLICAÇÃO DE PROTÓTIPO — fonte única (protocolo.config.mjs)\n');
   console.log('PROJETOS Cowork (ADR 0325 · só por ID — NÃO confundir):');
   console.log(`  telas   ${COWORK_PROJECT_ID}  "${PROJETOS.cowork.nome}"  [não-listado, por ID]`);
@@ -685,6 +851,7 @@ const invokedDirectly = process.argv[1] && resolve(process.argv[1]) === fileURLT
 if (invokedDirectly) {
   const argv = process.argv.slice(2);
   if (argv.includes('--selftest')) selftest();
+  else if (argv.includes('--procedencia')) procedencia();
   else if (argv.includes('--json')) {
     console.log(JSON.stringify({ projetos: PROJETOS, stagingDir: STAGING_DIR, mirrorDir: MIRROR_DIR, fases: FASES, preflightGates: PREFLIGHT_GATES }, null, 2));
   } else painel();
