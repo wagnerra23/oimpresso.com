@@ -125,7 +125,7 @@ describe('a densidade acompanha o operador entre as telas de notas', () => {
     render(<Nfe {...cenaNfe} />);
     fireEvent.click(screen.getByRole('button', { name: 'Densidade compacta' }));
 
-    const prototipo = ler('prototipo-ui/cowork/fiscal-page.jsx');
+    const prototipo = ler('prototipo-ui/cowork/Wagner/fiscal-page.jsx');
     const chaveDoDesign = prototipo.match(/fxLS\(\s*"([^"]*densidade[^"]*)"/)?.[1];
 
     expect(chaveDoDesign, 'a fonte de design não declara mais chave de densidade').toBeTruthy();

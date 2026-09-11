@@ -39,7 +39,7 @@
 //   - Nada sobre COR ou posição do selo — isso é a baseline visual, não este arquivo.
 //
 // @see resources/js/Pages/Patrimonio/Index.casos.md (UC-PAT-07, UC-PAT-08)
-// @see prototipo-ui/cowork/patrimonio-page.jsx:176 (o `pill`) e modulo-padrao.jsx:52 (o ícone)
+// @see prototipo-ui/cowork/Wagner/patrimonio-page.jsx:176 (o `pill`) e modulo-padrao.jsx:52 (o ícone)
 
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';

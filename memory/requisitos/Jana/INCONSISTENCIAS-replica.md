@@ -41,8 +41,8 @@
 | 🔴 aberta | `R3` | `resources/js/Pages/Jana/_components/JanaMetaDrawer.tsx` | 2 | ⛔ ⚠ | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `R3` | `resources/js/Pages/Jana/_components/JanaPlanoBadge.tsx` | 6 | → ⚠ | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `R3` | `resources/js/Pages/Jana/_shared/JanaSubNav.tsx` | 7 | → | UiLintCommand.php R3 | aplicado |
-| 🔴 aberta | `R3` | `prototipo-ui/cowork/jana-merge.jsx` | 10 | → • ⇧ | UiLintCommand.php R3 | prototipo |
-| 🔴 aberta | `FLEX-CRU` | `prototipo-ui/cowork/jana-merge.jsx` | 4 |  | layout-primitives-guard.mjs | prototipo |
+| 🔴 aberta | `R3` | `prototipo-ui/cowork/Wagner/jana-merge.jsx` | 10 | → • ⇧ | UiLintCommand.php R3 | prototipo |
+| 🔴 aberta | `FLEX-CRU` | `prototipo-ui/cowork/Wagner/jana-merge.jsx` | 4 |  | layout-primitives-guard.mjs | prototipo |
 | 🔴 aberta | `ds/no-inline-tablist` | `resources/js/Pages/Jana/Chat.tsx` | 1 | não hand-role `role="tablist"` na tela. Barra de abas de topo (navega por URL) = <PageHeaderTabs> (@/Component | eslint.config.js no-restricted-syntax (ds/*) · ratchet config/eslint-baseline.json · placar scripts/ds-report.mjs | aplicado |
 
 ## Soluções por regra (a receita que [W] pediu)

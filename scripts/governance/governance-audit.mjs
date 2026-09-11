@@ -85,9 +85,9 @@ process.stderr.write(
 const BATTERY = [
   { id: 'memory-health',       runtime: 'node', kind: 'required', cmd: ['scripts/governance/memory-health.mjs', '--json'] },
   { id: 'gate-selftest',       runtime: 'node', kind: 'required', cmd: ['scripts/governance/gate-selftest.mjs', '--json'] },
-  { id: 'integrity-check',     runtime: 'node', kind: 'advisory', cmd: ['prototipo-ui/integrity-check.mjs'] },
+  { id: 'integrity-check',     runtime: 'node', kind: 'advisory', cmd: ['scripts/design/integrity-check.mjs'] },
   { id: 'knowledge-drift',     runtime: 'node', kind: 'advisory', cmd: ['scripts/governance/knowledge-drift.mjs', '--check'] },
-  { id: 'ds-guard',            runtime: 'node', kind: 'advisory', cmd: ['prototipo-ui/ds-guard.mjs', '--all'] },
+  { id: 'ds-guard',            runtime: 'node', kind: 'advisory', cmd: ['scripts/design/ds-guard.mjs', '--all'] },
   { id: 'plan-health',         runtime: 'node', kind: 'advisory', cmd: ['scripts/governance/plan-health.mjs', '--json'] },
   // Scorecards de cobertura (Onda C audit 2026-06-24): trazem a foto da SPEC-viva pro mesmo painel.
   // anchor-lint SEM --check = modo report full-tree (exit 0, não morde legado) → só a cobertura.

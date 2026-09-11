@@ -395,11 +395,11 @@
       "aberta_em": "2026-09-03"
     },
     {
-      "id": "R3:prototipo-ui/cowork/jana-merge.jsx",
+      "id": "R3:prototipo-ui/cowork/Wagner/jana-merge.jsx",
       "regra": "R3",
       "nome": "glifo/emoji em UI de produto",
       "dono": "UiLintCommand.php R3",
-      "arquivo": "prototipo-ui/cowork/jana-merge.jsx",
+      "arquivo": "prototipo-ui/cowork/Wagner/jana-merge.jsx",
       "contagem": 10,
       "exemplo": "→ • ⇧",
       "origem": "prototipo",
@@ -408,11 +408,11 @@
       "aberta_em": "2026-09-03"
     },
     {
-      "id": "FLEX-CRU:prototipo-ui/cowork/jana-merge.jsx",
+      "id": "FLEX-CRU:prototipo-ui/cowork/Wagner/jana-merge.jsx",
       "regra": "FLEX-CRU",
       "nome": "flex/grid cru em className (sem Stack/Inline/Grid)",
       "dono": "layout-primitives-guard.mjs",
-      "arquivo": "prototipo-ui/cowork/jana-merge.jsx",
+      "arquivo": "prototipo-ui/cowork/Wagner/jana-merge.jsx",
       "contagem": 4,
       "exemplo": "",
       "origem": "prototipo",

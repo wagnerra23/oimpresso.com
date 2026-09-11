@@ -15,8 +15,8 @@ pii: false
 
 - **Data:** 2026-05-30
 - **Status:** aceito
-- **Tipo:** subordinado — NÃO é lei suprema. A lei é `prototipo-ui/PROTOCOL.md` +
-  `prototipo-ui/CLAUDE_DESIGN_BRIEFING.md` + ADRs (0114, 0110, 0107, 0104, 0010, 0028).
+- **Tipo:** subordinado — NÃO é lei suprema. A lei é `memory/reference/prototipo-ui/PROTOCOL.md` +
+  `memory/reference/prototipo-ui/CLAUDE_DESIGN_BRIEFING.md` + ADRs (0114, 0110, 0107, 0104, 0010, 0028).
 - **Renumeração:** proposto como `0201` no Cowork → renumerado p/ `0237` → **renumerado p/ 0247** (próximo nº livre em 2026-06-03) por nova colisão: a `main` já tinha `0237-jana-reconcile-loop-unico`. Regra ADR 0028. Par: ADR 0246 (era `0200`/`0236`).
 
 ## Contexto

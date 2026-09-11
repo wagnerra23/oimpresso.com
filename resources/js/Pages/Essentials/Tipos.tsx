@@ -129,7 +129,7 @@ export default function TiposIndex({ tipos, can_manage }: Props) {
   return (
     <>
       <div className="mx-auto max-w-6xl p-6 space-y-4">
-        {/* `data-contract` = âncora do contrato de tela (prototipo-ui/contrato/). NÃO remova o
+        {/* `data-contract` = âncora do contrato de tela (governance/design/contracts/). NÃO remova o
             atributo sem tirar a seção do .contract.json — o gate contrato-de-tela cobra os dois. */}
         <Inline asChild align="start" justify="between" gap={3}>
         <header data-contract="cabecalho">

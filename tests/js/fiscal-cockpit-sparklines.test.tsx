@@ -14,7 +14,7 @@
  * FONTE DO CONTRATO: `FxSpark` de `fiscal-page.jsx:80-84` (protótipo Cowork), que é a
  * âncora declarada no `Cockpit.charter.md` e foi lida nos DOIS donos do inventário em
  * 2026-09-04 — do vivo por `DesignSync` (`truncated: false`) e do espelho
- * `prototipo-ui/cowork/`, que concordam neste trecho. De lá vêm, e não de palpite: o
+ * `prototipo-ui/cowork/Wagner/`, que concordam neste trecho. De lá vêm, e não de palpite: o
  * viewBox 56×15, a base em y=14, a amplitude 12, `strokeWidth` 1.2, `currentColor`,
  * `aria-hidden` — e QUAIS KPIs recebem a série (`:114-116`: emitidas, autorizadas,
  * rejeitadas; os outros três não têm `FxSpark`).

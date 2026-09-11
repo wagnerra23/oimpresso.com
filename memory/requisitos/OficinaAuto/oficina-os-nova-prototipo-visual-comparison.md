@@ -88,7 +88,7 @@ Sem decisão, o caminho seguro é **Opção A, P1 primeiro** (check-in + combust
 
 > `design-diff-lote.mjs`, mesma sonda nos dois lados, tema pareado `dark`, app local
 > `APP_ENV=testing`, rota concreta `--url /oficina-auto/service-orders/1`.
-> Artefatos: `prototipo-ui/alvos/medidas/OficinaAuto--ServiceOrders--Show/`.
+> Artefatos: `governance/design/targets/medidas/OficinaAuto--ServiceOrders--Show/`.
 
 **Veredito bruto: `DIVERGE (bug)` — D4 título `24px` (prod) × `16px` (design).**
 

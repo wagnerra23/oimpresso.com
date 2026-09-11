@@ -10,7 +10,7 @@ controller: app/Http/Controllers/PurchaseController.php
 controller_action: index
 route_legacy: GET /purchases (name=purchases.index)
 route_resource: Route::resource('purchases', PurchaseController::class)->except(['show'])
-mockup_cowork: prototipo-ui/prototipos/compras/visual-source.html (37,9 KB)
+mockup_cowork: prototipo-ui/cowork/Wagner/legado/compras/visual-source.html (37,9 KB)
 status: snapshot-complete (STEP 1 da skill migracao-blade-react)
 ---
 
@@ -27,7 +27,7 @@ status: snapshot-complete (STEP 1 da skill migracao-blade-react)
 - **Partial tabela:** [resources/views/purchase/partials/purchase_table.blade.php](../../../resources/views/purchase/partials/purchase_table.blade.php)
 - **Controller:** `app/Http/Controllers/PurchaseController.php` linha 60–223 (`index()`)
 - **Rota canônica:** `Route::resource('purchases', PurchaseController::class)->except(['show'])` ([routes/web.php:239](../../../routes/web.php#L239))
-- **Mockup Cowork:** [prototipo-ui/prototipos/compras/visual-source.html](../../../prototipo-ui/prototipos/compras/visual-source.html) (37,9 KB)
+- **Mockup Cowork:** [prototipo-ui/cowork/Wagner/legado/compras/visual-source.html](../../../prototipo-ui/cowork/Wagner/legado/compras/visual-source.html) (37,9 KB)
 
 ## 2. Rotas + middleware
 

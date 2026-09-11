@@ -1,8 +1,8 @@
 // Jana/Acoes — a aba Ações da área Jana (`/ia/acoes`): a fila HITL.
 //
-// Âncora de design: `prototipo-ui/cowork/jana-telas-novas.jsx` §`JmAcoesFila` — âncora de
-// SÍMBOLO (`grep -n "function JmAcoesFila" prototipo-ui/cowork/jana-telas-novas.jsx`;
-// resolva com `node prototipo-ui/ancora.mjs Jana/Acoes`). A ABA vem do `JmTabs` de
+// Âncora de design: `prototipo-ui/cowork/Wagner/jana-telas-novas.jsx` §`JmAcoesFila` — âncora de
+// SÍMBOLO (`grep -n "function JmAcoesFila" prototipo-ui/cowork/Wagner/jana-telas-novas.jsx`;
+// resolva com `node scripts/design/ancora.mjs Jana/Acoes`). A ABA vem do `JmTabs` de
 // `jana-merge.jsx` e aqui nasce do ghost `acoes` do `DataController`.
 //
 // TUDO QUE AFIRMA NÚMERO É DO SERVIDOR: título/CTA (`AcaoHitlService::TITULOS`/`::ACOES`),

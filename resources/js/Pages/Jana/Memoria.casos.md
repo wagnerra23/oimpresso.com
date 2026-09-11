@@ -12,7 +12,7 @@ last_run: "2026-09-03"
 > **Status:** ✅ passa (provado por teste) · 🧪 em teste (Pest escrito, aguarda run verde) · ⬜ não verificado · ❌ quebrou.
 
 > Derivados do `Memoria.charter.md` (Goals/Non-Goals/Anti-hooks) + do protótipo `JmMemoria`
-> (`prototipo-ui/cowork/jana-merge.jsx`, lido no DesignSync 2026-08-07) — **não** do `.tsx`.
+> (`prototipo-ui/cowork/Wagner/jana-merge.jsx`, lido no DesignSync 2026-08-07) — **não** do `.tsx`.
 > Derivar do código seria tautológico (§5 2026-06-05): passaria verde mesmo com o comportamento
 > errado, que é exatamente o que estava acontecendo aqui.
 >
@@ -186,7 +186,7 @@ gate**, e o `last_run` só sobe acompanhado da razão.
 Status: 🧪 (`JanaPlanoTierTest` — 3 `it()`, um comportamental e dois de fonte; o teste diz
 por que cada um é o que é. Aguarda run verde na lane e o screenshot F1.5.)
 
-Derivado da âncora (`prototipo-ui/cowork/jana-merge.jsx:970` + `chat-jana.jsx:217`) e da decisão
+Derivado da âncora (`prototipo-ui/cowork/Wagner/jana-merge.jsx:970` + `chat-jana.jsx:217`) e da decisão
 [W] de 2026-08-27 — **não** do `.tsx`. Derivar do código seria tautológico (§5 2026-06-05).
 
 Até 2026-08-27 este selo era o item **BLOQUEADO** da onda 4 (`PARIDADE` §8.1), e o motivo não era
@@ -293,7 +293,7 @@ UC-MEM-07/08 são permissão e Tier 0. O diff não toca controller, validação,
 ## UC-MEM-09 — as ações da linha do fato se anunciam por TEXTO
 Status: 🧪 (`tests/jana-memoria-linha.test.tsx`, 2 `it()` · lane `jana-conversas-gate.yml`, jsdom)
 
-Derivado da âncora `JmMemoria` (`prototipo-ui/cowork/jana-merge.jsx`) — `.jm-fato-acts` são
+Derivado da âncora `JmMemoria` (`prototipo-ui/cowork/Wagner/jana-merge.jsx`) — `.jm-fato-acts` são
 `<button class="jm-btn ghost">Editar</button>` e `<button class="jm-btn ghost danger">Apagar</button>`,
 rótulo visível — e do charter, cuja Mission é o titular **exercer** o Art. 18. **Não** do `.tsx`
 (§5 2026-06-05). Até 2026-09-03 a produção usava botão-ícone (`Pencil`/`Trash2`) com `title`: numa

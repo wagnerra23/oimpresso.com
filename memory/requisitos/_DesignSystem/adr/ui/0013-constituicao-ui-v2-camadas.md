@@ -18,7 +18,7 @@ id: requisitos-design-system-adr-ui-0013-constituicao-ui-v2-camadas
   - [ADR UI-0011](0011-sidebar-single-pane-cascata-user-menu.md) — Shell sidebar
   - [ADR 0114](../../../decisions/0114-prototipo-ui-cowork-loop-formalizado.md) — loop Design↔Code
   - [ADR 0149](../../../decisions/0149-mwart-screen-pattern-reuse-cowork.md) — pattern reuse
-  - [prototipo-ui/PROTOCOL.md](../../../../prototipo-ui/PROTOCOL.md)
+  - [memory/reference/prototipo-ui/PROTOCOL.md](../../../../memory/reference/prototipo-ui/PROTOCOL.md)
 
 ## Contexto
 
@@ -34,7 +34,7 @@ A v2 trouxe também:
 - **CHANGELOG raiz append-only**
 - **ADRs retroativas curtas** (estilo Nygard de 4 seções)
 
-O oimpresso JÁ tem peças mais maduras em algumas dimensões (loop Design↔Code formalizado em [PROTOCOL.md](../../../../prototipo-ui/PROTOCOL.md), CI Module Grades v4, MCP tools), mas **falta a hierarquia formal das 4 camadas** que torna pedido determinístico sem leitura de 12 ADRs.
+O oimpresso JÁ tem peças mais maduras em algumas dimensões (loop Design↔Code formalizado em [PROTOCOL.md](../../../../memory/reference/prototipo-ui/PROTOCOL.md), CI Module Grades v4, MCP tools), mas **falta a hierarquia formal das 4 camadas** que torna pedido determinístico sem leitura de 12 ADRs.
 
 Não há conflito com nenhuma ADR aceita exceto **sidebar dark vs light** ([ADR UI-0009](0009-cockpit-sidebar-light-padrao.md) light vs v2 dark) — registrado em [proposta separada](../../../../memory/decisions/proposals/2026-05-24-sidebar-dark-vs-light.md), Wagner desempata.
 

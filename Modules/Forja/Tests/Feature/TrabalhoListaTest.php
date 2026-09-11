@@ -326,7 +326,7 @@ it('UC-TRAB-12 — o slug `claude` está no Mesh como AGENTE (o selo lê dado, n
  *       clicar "P0" zeraria "Fazendo" e "Bloqueadas", e o cartão deixaria de
  *       dizer o tamanho do problema justamente quando se investiga um.
  *
- * Todos leem o protótipo do ESPELHO em `prototipo-ui/cowork/` — a mesma fonte
+ * Todos leem o protótipo do ESPELHO em `prototipo-ui/cowork/Wagner/` — a mesma fonte
  * que o `PipelineParidadeTest` já usa (ADR 0299/0282: a fonte de design é o
  * protótipo Cowork, não o código).
  * ══════════════════════════════════════════════════════════════════════════ */
@@ -334,7 +334,7 @@ it('UC-TRAB-12 — o slug `claude` está no Mesh como AGENTE (o selo lê dado, n
 /** Lê um bloco `const NOME = [...]` (ou `{...}`) do protótipo Cowork. */
 function forjaBlocoDoPrototipo(string $arquivo, string $nome, string $abre, string $fecha): string
 {
-    $src = file_get_contents(base_path('prototipo-ui/cowork/'.$arquivo));
+    $src = file_get_contents(base_path('prototipo-ui/cowork/Wagner/'.$arquivo));
     expect($src)->not->toBeFalse($arquivo.' sumiu — é a âncora de design do hub Forja.');
 
     $re = '/const '.preg_quote($nome, '/').'\s*=\s*'.preg_quote($abre, '/').'(.*?)'.preg_quote($fecha, '/').';/s';

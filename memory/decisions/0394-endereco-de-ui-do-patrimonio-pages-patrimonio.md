@@ -67,7 +67,7 @@ independentes, e esta ADR só decide o primeiro.
 
 **Destrava** a frente de UI do módulo, que se reescreve como **5–7 threads, uma por tela** —
 sete telas não cabem numa thread só. As 7 telas estão confirmadas na fonte visual
-(`prototipo-ui/cowork/patrimonio-page.jsx:835`): **Painel · Bens · Alocações · Manutenções ·
+(`prototipo-ui/cowork/Wagner/patrimonio-page.jsx:835`): **Painel · Bens · Alocações · Manutenções ·
 Garantias · Auditoria · Configurações**.
 
 **Obriga**, no mesmo PR desta ADR: `SCOPE.md:4` sai de `bloqueado-escopo` para o endereço

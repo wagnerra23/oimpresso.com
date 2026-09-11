@@ -5,9 +5,16 @@ irmaos: Index.charter.md (lei) · Index.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o dual-path Blade×React e o escopo por tenant são duráveis — não mudam quando a lista ganhar coluna ou filtro novo.
 owner: wagner
-last_run: "2026-09-05"
+last_run: "2026-09-11"
 last_run_ci: "✅ 2026-09-05, três frentes do mesmo dia. (a) A lane purchase-pest.yml nasceu e os 2 UC [T0] (02/03) têm contrato de COMPORTAMENTO em PurchaseIndexTenantContratoTest — 4 passed, 11 assertions, verde no CI, mordida verificada por mutação. (b) Os UC 04/05 têm E2E de COMPORTAMENTO em IndexEtiquetaTest (Pest 4 Browser) na lane visual-regression, ENFORCING desde 2026-09-05 (flip [W]) apos 3 verdes que EXECUTARAM, 3 passed / 7 assertions cada. (c) Os 10 arquivos de tests/Feature/Purchase/ entraram na allowlist do purchase-pest.yml (#6824/#6827/#6841) — medido em origin/main b863647741: 0 orfaos no diretorio e uc-lane-coverage --check EXIT=0. ⚠️ A frase anterior \"restam 🔴 sem lane os UC 01 e 06\" ficou FALSA com (c): o IndexPageTest que eles citam esta na allowlist. Eles passam a 🧪 estrutural · na lane — presence-gate segue sendo presence-gate; ganhar lane muda \"ninguem o acorda\" para \"alguem o acorda\", nao a natureza da prova. Nenhum ✅ nos 04/05: o visual-regression não emite JUnit, então nada dele chega ao manifesto do G-7. Não restatear estes numeros a mao: rode node scripts/qa/uc-lane-coverage.mjs. Ver §Dívida de prova."
 ---
+
+> ℹ️ **`last_run` 2026-09-05 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
+> O único toque em `Index.tsx` no [#7224](https://github.com/wagnerra23/oimpresso.com/pull/7224) foi **1 linha(s) de COMENTÁRIO** —
+> o path do protótipo (`prototipo-ui/cowork/…` → `prototipo-ui/cowork/Wagner/…`, topologia por dono da ADR 0397).
+> Zero JSX estrutural, zero handler, zero prop, zero copy alterada (verificado: `git diff origin/main...HEAD -- resources/js/Pages/Purchase/Index.tsx`
+> só tem linhas iniciadas por `//`, `*` ou `{/*`). **Nenhum UC desta tela foi reexecutado nem revalidado**; o bump é o que o campo
+> significa na prática (*trio reconciliado com a tela nesta data*), não afirmação de re-run — mesmo tratamento do #6913.
 
 # Casos de Uso & Aceite — Listagem de Compras (`/purchases`)
 

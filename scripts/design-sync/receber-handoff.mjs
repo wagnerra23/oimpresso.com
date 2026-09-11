@@ -57,7 +57,7 @@ import { dsRuntimeRelPath } from '../governance/cowork-mirror-freshness.mjs';
 const AQUI = dirname(fileURLToPath(import.meta.url));
 const REPO = resolve(AQUI, '..', '..');
 const ATIVO = join(REPO, 'scripts/design-sync/state/active-bundle.json');
-const SNAPSHOT_DS = join(REPO, 'scripts/design-sync/mirror-snapshot');
+const SNAPSHOT_DS = join(REPO, 'prototipo-ui/design-system');
 const ENTRY = 'oimpresso.com.html';
 
 const sha = (buf) => createHash('sha256').update(buf).digest('hex');
@@ -231,7 +231,7 @@ function principal() {
     const papel = roleForPath(rel);
     const alvo = papel === 'preview-cache'
       ? join(SNAPSHOT_DS, ...dsRuntimeRelPath(rel).split('/'))
-      : join(REPO, papel === 'design-doc' ? 'prototipo-ui/design-docs' : 'prototipo-ui/cowork', ...rel.split('/'));
+      : join(REPO, papel === 'design-doc' ? 'prototipo-ui/cowork/Wagner/handoffs' : 'prototipo-ui/cowork/Wagner', ...rel.split('/'));
     return existsSync(alvo) ? readFileSync(alvo) : null;
   };
   const contagem = {};
@@ -256,7 +256,7 @@ function principal() {
   for (const rel of novos) {
     const papel = roleForPath(rel);
     if (papel === 'preview-cache') continue; // dono e o projeto DS; resolvido por regra no passo [4]
-    const pathRepo = `${papel === 'design-doc' ? 'prototipo-ui/design-docs' : 'prototipo-ui/cowork'}/${rel}`;
+    const pathRepo = `${papel === 'design-doc' ? 'prototipo-ui/cowork/Wagner/handoffs' : 'prototipo-ui/cowork/Wagner'}/${rel}`;
     const z = naArvore(rel);
     const commit = z && jaEsteveNoEspelho(pathRepo, sha(z));
     if (commit) regressoes.push({ rel, commit });

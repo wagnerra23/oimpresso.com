@@ -1,7 +1,7 @@
 /**
  * ComissaoDrawer — onda 5 do preview `/sells/create-v3`.
  *
- * Porte de `prototipo-ui/cowork/venda-v3/sells-comissao.jsx`. O cálculo mora em
+ * Porte de `prototipo-ui/cowork/Felipe/venda-v3/sells-comissao.jsx`. O cálculo mora em
  * `comissao-dominio.ts`, provado em `tests/js/comissao-dominio.test.ts` (16/16).
  *
  * POR QUE ISTO NÃO É UM CAMPO "COMISSIONISTA"

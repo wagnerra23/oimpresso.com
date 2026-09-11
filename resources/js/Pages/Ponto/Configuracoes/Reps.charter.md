@@ -2,7 +2,7 @@
 id: resources-js-pages-ponto-configuracoes-reps-charter
 page: /ponto/configuracoes/reps
 component: resources/js/Pages/Ponto/Configuracoes/Reps.tsx
-related_prototype: prototipo-ui/cowork/ponto-telas.jsx
+related_prototype: prototipo-ui/cowork/Wagner/ponto-telas.jsx
 owner: wagner
 status: draft
 last_validated: "2026-07-11"

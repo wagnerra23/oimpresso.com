@@ -117,7 +117,7 @@ class DataController extends Controller
         // de topo foi REMOVIDO no mesmo PR — manter os dois seria a mesma tela
         // em duas portas do mesmo menu (Constituicao UI v2, ADR UI-0013).
         //
-        // Fonte: `prototipo-ui/cowork/data.jsx`, grupo `PLATAFORMA`, entry
+        // Fonte: `prototipo-ui/cowork/Wagner/data.jsx`, grupo `PLATAFORMA`, entry
         // `projects` com `icon: "bot"` e label "Forja". Conferido contra o
         // Cowork VIVO por ID em 2026-09-08 (DesignSync.get_file de `data.jsx`,
         // `truncated: false`) — espelho e vivo identicos nesse bloco.

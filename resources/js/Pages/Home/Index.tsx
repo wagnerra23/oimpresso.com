@@ -1,6 +1,6 @@
 // @memcofre tela=/dashboard-legacy module=Dashboard
 // Visão geral — Rewrite Cockpit V2 (US-DASH-004).
-// Âncora de design: prototipo-ui/cowork/dash-legacy-page.jsx (rota `dash-legacy`, atalho
+// Âncora de design: prototipo-ui/cowork/Wagner/dash-legacy-page.jsx (rota `dash-legacy`, atalho
 // "Visão geral" em data.jsx:19). Substitui o F6 Soft wrapper de 2026-05-22, que o [W]
 // declarou tentativa descartada em 2026-08-27.
 //
@@ -93,7 +93,7 @@ const ROTULO = 'text-[10.5px] font-semibold uppercase tracking-[0.06em] text-mut
  * KPI hero — o "Líquido no período".
  *
  * ── POR QUE ESTE COMPONENTE USA TOKEN PRÓPRIO (medido 2026-09-03) ────────────
- * A âncora (`prototipo-ui/cowork/dash-legacy-page.jsx:251`) renderiza o hero como
+ * A âncora (`prototipo-ui/cowork/Wagner/dash-legacy-page.jsx:251`) renderiza o hero como
  * `<KpiCard hero … spark={SERIE_30.slice(-12)} />` — variante do DS, com fundo
  * `--kpi-feature-bg` e sparkline. O `KpiCard` DESTE repo não tem `hero` nem
  * `spark`, então a tela reimplementou o card aqui — e, ao reimplementar, herdou

@@ -22,8 +22,8 @@ function ingestMap(): array
             'vendas' => [
                 'module' => 'Sells',
                 'routes' => [
-                    ['glob' => '*-page.jsx', 'to' => 'prototipo-ui/prototipos/vendas/vendas-page.jsx'],
-                    ['glob' => '*.css', 'to' => 'prototipo-ui/prototipos/vendas/'], // destino-dir → preserva nome
+                    ['glob' => '*-page.jsx', 'to' => 'prototipo-ui/cowork/Wagner/legado/vendas/vendas-page.jsx'],
+                    ['glob' => '*.css', 'to' => 'prototipo-ui/cowork/Wagner/legado/vendas/'], // destino-dir → preserva nome
                 ],
             ],
         ],
@@ -34,8 +34,8 @@ test('route() roteia pelo glob e separa extras', function () {
     $r = DesignIngestPlanner::route(ingestMap(), ['vendas-page.jsx', 'app.css', 'lixo.txt'], 'vendas');
 
     expect($r['routed'])->toHaveCount(2);
-    expect($r['routed'][0])->toBe(['from' => 'vendas-page.jsx', 'to' => 'prototipo-ui/prototipos/vendas/vendas-page.jsx']);
-    expect($r['routed'][1])->toBe(['from' => 'app.css', 'to' => 'prototipo-ui/prototipos/vendas/app.css']);
+    expect($r['routed'][0])->toBe(['from' => 'vendas-page.jsx', 'to' => 'prototipo-ui/cowork/Wagner/legado/vendas/vendas-page.jsx']);
+    expect($r['routed'][1])->toBe(['from' => 'app.css', 'to' => 'prototipo-ui/cowork/Wagner/legado/vendas/app.css']);
     expect($r['extras'])->toBe(['lixo.txt']);
 });
 
@@ -46,11 +46,11 @@ test('route() de tela sem entrada no map → tudo extra', function () {
 });
 
 test('parseDiff() classifica add/mod/del', function () {
-    $out = "A\tprototipo-ui/prototipos/vendas/novo.jsx\nM\tprototipo-ui/prototipos/vendas/vendas-page.jsx\nD\tprototipo-ui/prototipos/vendas/velho.css\n";
+    $out = "A\tprototipo-ui/cowork/Wagner/legado/vendas/novo.jsx\nM\tprototipo-ui/cowork/Wagner/legado/vendas/vendas-page.jsx\nD\tprototipo-ui/cowork/Wagner/legado/vendas/velho.css\n";
     $d = DesignIngestPlanner::parseDiff($out);
-    expect($d['added'])->toBe(['prototipo-ui/prototipos/vendas/novo.jsx']);
-    expect($d['modified'])->toBe(['prototipo-ui/prototipos/vendas/vendas-page.jsx']);
-    expect($d['removed'])->toBe(['prototipo-ui/prototipos/vendas/velho.css']);
+    expect($d['added'])->toBe(['prototipo-ui/cowork/Wagner/legado/vendas/novo.jsx']);
+    expect($d['modified'])->toBe(['prototipo-ui/cowork/Wagner/legado/vendas/vendas-page.jsx']);
+    expect($d['removed'])->toBe(['prototipo-ui/cowork/Wagner/legado/vendas/velho.css']);
 });
 
 test('parseDiff() vazio → listas vazias', function () {
@@ -60,15 +60,15 @@ test('parseDiff() vazio → listas vazias', function () {
 
 test('renderPlano() destaca PROPOSTA + tabela + extras + roteamento', function () {
     $routing = DesignIngestPlanner::route(ingestMap(), ['vendas-page.jsx', 'lixo.txt'], 'vendas');
-    $diff = DesignIngestPlanner::parseDiff("M\tprototipo-ui/prototipos/vendas/vendas-page.jsx\n");
+    $diff = DesignIngestPlanner::parseDiff("M\tprototipo-ui/cowork/Wagner/legado/vendas/vendas-page.jsx\n");
     $plano = DesignIngestPlanner::renderPlano('vendas', $routing, $diff);
 
     expect($plano)
         ->toContain('# PLANO-MUDANCAS — vendas')
         ->toContain('STATUS: PROPOSTA — nada aplicado')
-        ->toContain('| `prototipo-ui/prototipos/vendas/vendas-page.jsx` | mod |')
+        ->toContain('| `prototipo-ui/cowork/Wagner/legado/vendas/vendas-page.jsx` | mod |')
         ->toContain('⚠️ `lixo.txt` — **fora do cowork-map**')
-        ->toContain('`vendas-page.jsx` → `prototipo-ui/prototipos/vendas/vendas-page.jsx`');
+        ->toContain('`vendas-page.jsx` → `prototipo-ui/cowork/Wagner/legado/vendas/vendas-page.jsx`');
 });
 
 test('renderSession() tem frontmatter de sessão + contagens', function () {
@@ -86,8 +86,8 @@ test('renderSession() tem frontmatter de sessão + contagens', function () {
 
 test('classifyExtras() separa "de outra tela conhecida" de "desconhecido"', function () {
     $map = ['screens' => [
-        'caixa-unificada' => ['routes' => [['glob' => 'inbox-*.jsx', 'to' => 'prototipo-ui/prototipos/caixa-unificada/']]],
-        'vendas' => ['routes' => [['glob' => 'vendas-*.jsx', 'to' => 'prototipo-ui/prototipos/vendas/']]],
+        'caixa-unificada' => ['routes' => [['glob' => 'inbox-*.jsx', 'to' => 'prototipo-ui/cowork/Wagner/legado/caixa-unificada/']]],
+        'vendas' => ['routes' => [['glob' => 'vendas-*.jsx', 'to' => 'prototipo-ui/cowork/Wagner/legado/vendas/']]],
     ]];
     // extras de --tela=caixa-unificada: vendas-page.jsx casa OUTRA tela (vendas); lixo.txt não casa nada
     $r = DesignIngestPlanner::classifyExtras($map, ['oimpresso-x/project/vendas-page.jsx', 'lixo.txt'], 'caixa-unificada');

@@ -7,7 +7,7 @@ status: draft
 last_validated: "2026-09-02"
 parent_module: Jana
 parent_adr: memory/decisions/0093-multi-tenant-isolation-tier-0.md
-related_prototype: prototipo-ui/cowork/jana-telas-novas.jsx
+related_prototype: prototipo-ui/cowork/Wagner/jana-telas-novas.jsx
 related_adrs: [52, 93, 94, 104, 180, 182]
 related_charters:
   - resources/js/Pages/Jana/Index.charter.md
@@ -56,7 +56,7 @@ não existe (a agregação) e o gate do menu passou a concordar com o da rota.
   situação por `System::getProperty('jana_version')`, e os botões *Rodar atualização* /
   *Desinstalar módulo* (confirmação antes) **só** com `can('superadmin')` real, que é o gate de
   `BaseModuleInstallController` — mais estreito que `jana.superadmin`.
-- Copy literal da âncora pinada em `prototipo-ui/contrato/jana-plataforma.contract.json`.
+- Copy literal da âncora pinada em `governance/design/contracts/jana-plataforma.contract.json`.
 
 ## Non-Goals
 

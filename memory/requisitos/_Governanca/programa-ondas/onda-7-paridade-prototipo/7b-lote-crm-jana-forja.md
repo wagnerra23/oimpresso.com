@@ -126,8 +126,8 @@ de paridade foi emitido** neste lote, e o passo 7 (verificar divergência antes 
 não produziu itens — não porque não haja divergência, mas porque a medição não rodou.
 
 O que **foi** verificado, e vale: âncora resolvida pela porta **per-tela** para as 3 telas da Jana —
-`node prototipo-ui/ancora.mjs Jana/{Index,Memoria,Chat} --staging prototipo-ui/cowork` → todas em
-`prototipo-ui/cowork/jana-merge.jsx`, frescor `2026-09-07T20:57:48.072Z`. **Não** é o
+`node scripts/design/ancora.mjs Jana/{Index,Memoria,Chat} --staging prototipo-ui/cowork` → todas em
+`prototipo-ui/cowork/Wagner/jana-merge.jsx`, frescor `2026-09-07T20:57:48.072Z`. **Não** é o
 `chat-jana.jsx` proibido pela lápide §5 2026-08-10/08-11.
 
 ## Próximo passo desta onda (não executado aqui)

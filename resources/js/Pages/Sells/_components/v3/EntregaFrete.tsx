@@ -1,7 +1,7 @@
 /**
  * EntregaFrete — onda 2 do preview `/sells/create-v3` (CU-SELL-11).
  *
- * Porte de `prototipo-ui/cowork/venda-v3/sells-entrega.jsx` (âncora declarada em
+ * Porte de `prototipo-ui/cowork/Felipe/venda-v3/sells-entrega.jsx` (âncora declarada em
  * `CreateV3.charter.md::related_prototype`). O domínio mora em `entrega-dominio.ts`.
  *
  * ⚠️ POR QUE ESTA ONDA MERECE LEITURA ANTES DE MEXER

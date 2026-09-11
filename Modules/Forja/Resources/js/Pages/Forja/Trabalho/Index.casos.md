@@ -97,7 +97,7 @@ A migration `2026_08_10_120000` registra o fato (ator sem token, zero capability
 > Os quatro UC abaixo cobrem o que a réplica **acrescentou de risco**: espelho de vocabulário sem trava (13/14) e KPI que virou filtro (15/16). O que a réplica deixou de fora está no charter §"Diferenças declaradas" — e é ausência **declarada**, não caso pendente.
 
 ## UC-TRAB-13 — Os papéis da barra de filtro são os da fonte de design
-Status: 🧪 (1 teste cita este UC — extrai `FORJA_ACTORS` de `prototipo-ui/cowork/forja-data.jsx` e compara com `TrabalhoService::PAPEIS`, com guarda anti-falso-verde.)
+Status: 🧪 (1 teste cita este UC — extrai `FORJA_ACTORS` de `prototipo-ui/cowork/Wagner/forja-data.jsx` e compara com `TrabalhoService::PAPEIS`, com guarda anti-falso-verde.)
 O papel diz **quem responde** por cada fase, e é o vocabulário do loop Cowork↔Code. Se o backend inventar uma sigla que o Cowork não conhece, a barra desenha um botão que nunca casa nada — filtro que devolve vazio sempre, sem erro. É a mesma doença que o `PipelineParidadeTest` já trava nas fases: espelho contra espelho fica verde enquanto os dois divergem da fonte.
 **Pronto quando:** `TrabalhoService::PAPEIS` é exatamente a lista do protótipo, na mesma ordem, e o extrator prova que achou papel (não compara dois vazios).
 

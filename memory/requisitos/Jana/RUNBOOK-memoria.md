@@ -32,7 +32,7 @@ steps:
 
 > **Tipo:** runbook reproduzível
 > **Irmãos:** [`Memoria.charter.md`](../../../resources/js/Pages/Jana/Memoria.charter.md) (lei) · [`Memoria.casos.md`](../../../resources/js/Pages/Jana/Memoria.casos.md) (contrato UC)
-> **Validado:** **estático** contra `origin/main` em 2026-08-07 — rotas, controller, contrato do driver, entity e componente conferidos arquivo a arquivo, mais o protótipo lido no DesignSync (`prototipo-ui/cowork/jana-merge.jsx`, função `JmMemoria`).
+> **Validado:** **estático** contra `origin/main` em 2026-08-07 — rotas, controller, contrato do driver, entity e componente conferidos arquivo a arquivo, mais o protótipo lido no DesignSync (`prototipo-ui/cowork/Wagner/jana-merge.jsx`, função `JmMemoria`).
 > ⚠️ **Fluxo vivo (editar/esquecer contra prod) NÃO exercitado nesta data.** O smoke real com screenshot é o passo 6 abaixo e é a evidência que fecha a R1 — sem ele, este RUNBOOK descreve o desenho, não o comportamento observado.
 
 Tela LGPD-first onde o dono/gestor **vê, corrige e apaga** os fatos que a Jana aprendeu sobre o negócio. Cumpre acesso + retificação + esquecimento (LGPD Art. 18). Persona: Larissa (ROTA LIVRE, biz=4, monitor 1280px) e Wagner. Sem essa tela a memória vira caixa-preta — quebra confiança e compliance.

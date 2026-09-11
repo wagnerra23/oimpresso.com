@@ -25,7 +25,7 @@ templates que não pertencem exclusivamente ao seu domínio.
 - **Componentes compartilhados:** [`topicos/componentes-compartilhados.md`](topicos/componentes-compartilhados.md)
 - **Layouts e templates herdados:** [`topicos/templates-herdados.md`](topicos/templates-herdados.md)
 - **Busca “reusar ou criar”:** `node scripts/reuse-index.mjs "<símbolo ou intenção>"`
-- **Registry humano do Design System:** [`prototipo-ui/REGISTRY_DS_COMPONENTES.md`](../../../prototipo-ui/REGISTRY_DS_COMPONENTES.md)
+- **Registry humano do Design System:** [`memory/reference/prototipo-ui/REGISTRY_DS_COMPONENTES.md`](../../../memory/reference/prototipo-ui/REGISTRY_DS_COMPONENTES.md)
 
 ## Regra de manutenção
 

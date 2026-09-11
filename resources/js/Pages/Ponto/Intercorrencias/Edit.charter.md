@@ -2,7 +2,7 @@
 id: resources-js-pages-ponto-intercorrencias-edit-charter
 page: /ponto/intercorrencias/{id}/edit
 component: resources/js/Pages/Ponto/Intercorrencias/Edit.tsx
-related_prototype: prototipo-ui/cowork/ponto-telas.jsx
+related_prototype: prototipo-ui/cowork/Wagner/ponto-telas.jsx
 owner: wagner
 status: draft
 last_validated: "2026-08-28"

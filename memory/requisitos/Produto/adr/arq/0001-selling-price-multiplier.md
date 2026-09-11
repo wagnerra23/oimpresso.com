@@ -171,7 +171,7 @@ Mas é **decisão de produto**, não técnica. Wagner decide considerando:
 - [Charter draft Produto/Unificado/Index](../../../../../resources/js/Pages/Produto/Unificado/Index.charter.md) — esse ADR destrava
 - [Pino F1 produto-unificado](../../../../../prototipo-ui/prototipos/produto-unificado/) — material visual original
 - [`ui_kits/cowork-2026-05-09/produto-app.jsx`](../../../_DesignSystem/ui_kits/cowork-2026-05-09/produto-app.jsx) — código que motivou a pergunta
-- [LICOES_F3_FINANCEIRO_REJEITADO.md M-AP-4](../../../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) — esquema novo precisa ADR antes de Controller usar (esse ADR resolve esse anti-padrão)
+- [LICOES_F3_FINANCEIRO_REJEITADO.md M-AP-4](../../../../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) — esquema novo precisa ADR antes de Controller usar (esse ADR resolve esse anti-padrão)
 - [PR #352](https://github.com/wagnerra23/oimpresso.com/pull/352) — batch Cowork original que foi bloqueado em parte por essa decisão pendente
 - UPOS canon: `App\SellingPriceGroup`, `App\VariationGroupPrice` (tabela `variation_group_prices`)
 - Documentação UPOS upstream: https://ultimatefosters.com/docs/ (referência tabelas de preço)

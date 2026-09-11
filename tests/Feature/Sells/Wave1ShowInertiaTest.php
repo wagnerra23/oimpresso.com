@@ -132,8 +132,8 @@ it('Controller show() expõe current_stage_key MAS NÃO seta (FSM safety ADR 014
  * Este caso já reprovou por 2 meses sem ninguém ver — nenhuma lane rodava
  * `tests/Feature/Sells/**` (medido 2026-07-27: 0 dos 214 alvos sqlite, 0 das 9 lanes
  * MySQL). A versão anterior casava a string literal `vendas-cockpit`, um diretório que
- * NÃO EXISTE no repo: `prototipo-ui/prototipos/vendas-cockpit/` nunca foi criado; o que
- * existe é `prototipo-ui/cowork/vendas-page.jsx` (92 KB), exatamente o que o charter
+ * NÃO EXISTE no repo: `prototipo-ui/cowork/Wagner/legado/vendas-cockpit/` nunca foi criado; o que
+ * existe é `prototipo-ui/cowork/Wagner/vendas-page.jsx` (92 KB), exatamente o que o charter
  * declara. O charter estava certo e o assert é que apontava pro fantasma — o RUNBOOK-show
  * carregava o mesmo path morto e foi corrigido junto.
  *

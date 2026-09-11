@@ -33,7 +33,7 @@ pii: false
 
 A esteira de ingestão de design ficou pronta e provada: `design:ingest-zip` (diff por conteúdo
 sobre os roteados — [#3041]) + `cowork-map` v2 (rota por prefixo de tela — [#3042]) levam um
-**handoff completo do Cowork → `prototipo-ui/prototipos/<tela>/`** com gates (`ds-guard`,
+**handoff completo do Cowork → `prototipo-ui/cowork/Wagner/legado/<tela>/`** com gates (`ds-guard`,
 `integrity-check`). Isso cobre **design → fonte**.
 
 O que **faltava** era a governança do resto do ciclo (etapas 4–6 do [ADR 0270]): para **cada
@@ -65,7 +65,7 @@ princípio 7 + invariante #10 do método). [CC] propõe e executa o mecânico; n
 ### D-B — Registro por tela: Decision Register (`<tela>.decisoes.md`)
 
 Cada decisão de design de uma tela é registrada no **Decision Register irmão** do charter
-(padrão `D-NN` já em uso — ex. `prototipo-ui/prototipos/producao-oficina/OficinaProducao.decisoes.md`;
+(padrão `D-NN` já em uso — ex. `prototipo-ui/cowork/Wagner/legado/producao-oficina/OficinaProducao.decisoes.md`;
 o `integrity-check` IT2 exige o par charter↔decisoes). Schema mínimo por entrada:
 
 ```

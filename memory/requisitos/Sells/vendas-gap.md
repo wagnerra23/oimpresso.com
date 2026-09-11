@@ -1,7 +1,7 @@
 ---
 id: requisitos-sells-vendas-gap
 tela: Sells/Index
-prototipo: prototipo-ui/cowork/vendas-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/vendas-page.jsx
 tela_viva: resources/js/Pages/Sells/Index.tsx
 paridade_atual: ~70%
 gerado_em: 2026-06-22

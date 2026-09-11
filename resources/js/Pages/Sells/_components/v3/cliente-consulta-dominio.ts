@@ -1,7 +1,7 @@
 /**
  * Domínio da consulta de clientes — extra do preview `/sells/create-v3`.
  *
- * Porte de `prototipo-ui/cowork/venda-v3/sells-create.jsx:515` (o modal de 880px).
+ * Porte de `prototipo-ui/cowork/Felipe/venda-v3/sells-create.jsx:515` (o modal de 880px).
  * A âncora de design está declarada em `CreateV3.charter.md::related_prototype`.
  *
  * Arquivo separado do componente **de propósito**: `react-refresh/only-export-components`

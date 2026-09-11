@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Modules\Jana\Ai;
 
 /**
- * UiDeterministicScorer — porte PHP do regex de `prototipo-ui/audit/score-mechanized.mjs`.
+ * UiDeterministicScorer — porte PHP do regex de `scripts/design/audit/score-mechanized.mjs`.
  *
  * Onda 1 da auditoria LLM-judge → determinístico (dossiê
  * memory/sessions/2026-06-06-arte-llm-judge-para-deterministico.md · ADR 0255).
@@ -36,12 +36,12 @@ namespace Modules\Jana\Ai;
  *
  * Os regex abaixo são CÓPIA FIEL do objeto `RX` em score-mechanized.mjs (âncora por SÍMBOLO,
  * não por linha: o range "58-70" que estava escrito aqui apodreceu no primeiro comentário que
- * cresceu naquele arquivo — `grep -n "const RX" prototipo-ui/audit/score-mechanized.mjs`).
+ * cresceu naquele arquivo — `grep -n "const RX" scripts/design/audit/score-mechanized.mjs`).
  * Qualquer drift entre os dois é regressão — e quem vigia isso é `scripts/scorer-sync-check.mjs`,
  * rodado pelo ds-gate. Ele cobre R1-R4, R6 e R7.
  *
- * @see prototipo-ui/audit/score-mechanized.mjs (fonte canônica dos regex)
- * @see prototipo-ui/audit/GOLDEN-REFERENCE.md (as 10 regras R1-R10)
+ * @see scripts/design/audit/score-mechanized.mjs (fonte canônica dos regex)
+ * @see scripts/design/audit/GOLDEN-REFERENCE.md (as 10 regras R1-R10)
  * @see memory/sessions/2026-06-06-arte-llm-judge-para-deterministico.md (Onda 1)
  */
 final class UiDeterministicScorer

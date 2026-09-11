@@ -44,7 +44,7 @@ NOTA_TELA (0-100) = Σ(dim_i × peso_persona_i) / Σ(peso_persona_max) × 100 ×
 
 1-15 = `framework-15-dimensoes.md` (Density · Discoverability · Speed-to-task · Error recovery · Cognitive load · Aesthetic-usability · Affordance · Brand confidence · Mobile fit · A11y WCAG · i18n PT-BR · Performance perceived · Information hierarchy · Microcopy · Internal consistency).
 
-**16. Pré-Flight conformance** (nova, [PRE-FLIGHT-TELA.md](../../../prototipo-ui/PRE-FLIGHT-TELA.md)): tem charter live? usa só `@/Components/ui`? tokens v4 (`primary`, zero `blue-*`)? zero anti-padrão repetido (LICOES_F3)? — mede objetivamente **"não inventou / não repetiu erro"**.
+**16. Pré-Flight conformance** (nova, [PRE-FLIGHT-TELA.md](../../../memory/reference/prototipo-ui/PRE-FLIGHT-TELA.md)): tem charter live? usa só `@/Components/ui`? tokens v4 (`primary`, zero `blue-*`)? zero anti-padrão repetido (LICOES_F3)? — mede objetivamente **"não inventou / não repetiu erro"**.
 
 ---
 

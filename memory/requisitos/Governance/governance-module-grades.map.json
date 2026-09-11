@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "governance/ModuleGrades/Index (/governance/module-grades)",
   "gap_fonte": "memory/requisitos/Governance/governance-module-grades-gap.md",
   "prototipo_sha": "sha256:5ee328e84ed4",
@@ -9,7 +9,7 @@
     {
       "id": "header-pageheader",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/governance-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
         "linhas": "403-418"
       },
       "vivo": {
@@ -24,7 +24,7 @@
     {
       "id": "abas-do-shell",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/governance-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
         "linhas": "24-30"
       },
       "vivo": {
@@ -39,7 +39,7 @@
     {
       "id": "toggle-de-visao-notas-catalogo-sinais",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/governance-telas.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/governance-telas.jsx",
         "linhas": "224-320"
       },
       "vivo": {
@@ -54,7 +54,7 @@
     {
       "id": "kpis-agregados",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/governance-telas.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/governance-telas.jsx",
         "linhas": "252-255"
       },
       "vivo": {
@@ -69,7 +69,7 @@
     {
       "id": "filtros",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/governance-telas.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/governance-telas.jsx",
         "linhas": "259-268"
       },
       "vivo": {
@@ -84,7 +84,7 @@
     {
       "id": "skeleton-carga-diferida",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/governance-telas.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/governance-telas.jsx",
         "linhas": "230"
       },
       "vivo": {
@@ -99,7 +99,7 @@
     {
       "id": "tabela-rank",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/governance-telas.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/governance-telas.jsx",
         "linhas": "279-306"
       },
       "vivo": {
@@ -114,7 +114,7 @@
     {
       "id": "estado-vazio-do-filtro",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/governance-telas.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/governance-telas.jsx",
         "linhas": "275-278"
       },
       "vivo": {
@@ -129,7 +129,7 @@
     {
       "id": "nota-explicativa-do-em-d6-d9",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/governance-telas.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/governance-telas.jsx",
         "linhas": "307"
       },
       "vivo": {
@@ -144,7 +144,7 @@
     {
       "id": "banner-gate-ci-anti-regressao",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/governance-telas.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/governance-telas.jsx",
         "linhas": "310-315"
       },
       "vivo": {
@@ -159,7 +159,7 @@
     {
       "id": "rodape-da-rubrica",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/governance-telas.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/governance-telas.jsx",
         "linhas": "224-320"
       },
       "vivo": {
@@ -174,7 +174,7 @@
     {
       "id": "acoes-proibidas",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/governance-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
         "linhas": "389-442"
       },
       "vivo": {

@@ -21,10 +21,10 @@ preconditions_short: permission essentials.access_sales_target, business_id na s
 >
 > Trio da tela: [`Metas.charter.md`](../../../resources/js/Pages/Essentials/Metas.charter.md) (lei) ·
 > [`Metas.casos.md`](../../../resources/js/Pages/Essentials/Metas.casos.md) (contrato de teste) ·
-> `prototipo-ui/contrato/essentials-metas.contract.json` (fidelidade visual).
+> `governance/design/contracts/essentials-metas.contract.json` (fidelidade visual).
 >
-> Onda 9 do [`EXPORT-HRM-2026-09-04`](../../../prototipo-ui/design-docs/cowork-inbox/hrm/EXPORT-HRM-2026-09-04.md) ·
-> PR-9 do [`PEDIDO-CL-hrm`](../../../prototipo-ui/design-docs/cowork-inbox/hrm/PEDIDO-CL-hrm.md).
+> Onda 9 do `EXPORT-HRM-2026-09-04` (`prototipo-ui/design-docs/cowork-inbox/hrm/EXPORT-HRM-2026-09-04.md`, removido do git em 2026-09-11 · #7224 · ADR 0397) ·
+> PR-9 do `PEDIDO-CL-hrm` (`prototipo-ui/design-docs/cowork-inbox/hrm/PEDIDO-CL-hrm.md`, removido do git em 2026-09-11 · #7224 · ADR 0397).
 
 ## 1. Objetivo
 

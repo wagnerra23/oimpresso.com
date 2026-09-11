@@ -2,7 +2,7 @@
 id: resources-js-pages-cliente-create-charter
 page: /contacts/create
 component: resources/js/Pages/Cliente/Create.tsx
-related_prototype: prototipo-ui/cowork/cliente-form.jsx
+related_prototype: prototipo-ui/cowork/Wagner/cliente-form.jsx
 owner: wagner
 status: live
 last_validated: "2026-06-24"
@@ -12,7 +12,7 @@ related_adrs: [110, 107, 93, 94, 104, 149, 235]
 tier: A
 charter_version: 2
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/cowork/clientes-page.jsx"
+  blueprint_cowork: "prototipo-ui/cowork/Wagner/clientes-page.jsx"
   blueprint_screenshot_approval: "Wagner 2026-05-29 — PR-A Onda F (componentes aprovados; Create elevado pendente)"
   derived_screens: [Create]
   divergence_from_blueprint: "none"
@@ -63,6 +63,6 @@ Formulário de cadastro de novo cliente/fornecedor — substitui Blade `contact.
 
 ## Refs
 
-- Blueprint: `prototipo-ui/cowork/clientes-page.jsx`
+- Blueprint: `prototipo-ui/cowork/Wagner/clientes-page.jsx`
 - Backend: `ContactController::create()` linha 536
 - Pattern reuse: ADR 0149

@@ -14,7 +14,7 @@ related_us: [US-REPA-004]
 tier: A
 charter_version: 3
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/cowork/os-page.jsx"
+  blueprint_cowork: "prototipo-ui/cowork/Wagner/os-page.jsx"
   blueprint_screenshot_approval: "SYNC_LOG (pendente)"
   derived_screens: [Index]
   divergence_from_blueprint: "tabela ainda busca no endpoint DataTables AJAX legacy (sprint 2.5) — Wave W3-B6 documenta path canônico mas preserva implementação atual"

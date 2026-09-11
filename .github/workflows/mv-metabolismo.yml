@@ -173,7 +173,7 @@ jobs:
           Conteúdo: `vital-signs.json` + `vital-signs-history.jsonl` (append-only) +
           `prototipo-readiness.json` + `service-scorecard.json` + adoção do DS
           (`governance/ds-ledger.json` censo por tela, que alimenta
-          `/governance/ds-rollout`; e `prototipo-ui/DS_ADOCAO_INDICE.md` placar `ds/*`
+          `/governance/ds-rollout`; e `memory/reference/prototipo-ui/DS_ADOCAO_INDICE.md` placar `ds/*`
           por módulo). **Nenhuma proposta de trabalho, nenhuma decisão sua embutida** —
           é retrato, não pedido.
 
@@ -213,7 +213,7 @@ jobs:
 
       # ── ADOÇÃO DO DS: os dois medidores que existiam sem NENHUM invocador ────────
       # `scripts/ds-ledger.mjs --write`  → governance/ds-ledger.json        (censo POR TELA)
-      # `scripts/ds-report.mjs  --write` → prototipo-ui/DS_ADOCAO_INDICE.md (placar ds/* POR MÓDULO)
+      # `scripts/ds-report.mjs  --write` → memory/reference/prototipo-ui/DS_ADOCAO_INDICE.md (placar ds/* POR MÓDULO)
       #
       # Medido em 2026-08-14 (`git grep -n -E "ds-report|ds-ledger" -- .github/`): as duas
       # únicas ocorrências em .github/ eram TEXTO (um comentário e um `echo` de mensagem de
@@ -288,7 +288,7 @@ jobs:
             memory/governance/design-gate-bites.jsonl
             memory/governance/mv-batches/*.md
             governance/ds-ledger.json
-            prototipo-ui/DS_ADOCAO_INDICE.md
+            memory/reference/prototipo-ui/DS_ADOCAO_INDICE.md
           commit-message: |
             ${{ steps.batch.outputs.gerado == 'true' && 'chore(governance): batch MV do metabolismo nightly + snapshot dos sinais vitais [CC]' || 'chore(governance): snapshot dos sinais vitais do metabolismo nightly [CC]' }}
 

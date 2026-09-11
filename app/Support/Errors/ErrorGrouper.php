@@ -22,7 +22,7 @@ use Throwable;
  *
  * NÃO toca a régua da E-1 (ErrorClassifier) — só absorve o que ela carimbou.
  *
- * @see prototipo-ui/handoffs/erros-dedup.md
+ * @see prototipo-ui/cowork/Wagner/handoffs/erros-dedup.md
  */
 class ErrorGrouper
 {

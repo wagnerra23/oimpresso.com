@@ -129,7 +129,7 @@ Não aplicar pra:
 
 - **ADR-mãe**: [UI-0013 Constituição UI v2](../adr/ui/0013-constituicao-ui-v2-camadas.md)
 - **Rede de verificação**: [`scripts/governance/pt-conformance.mjs`](../../../../scripts/governance/pt-conformance.mjs) (sinal `feed` + `REQUIRED['PT-07']`)
-- **Âncora por charter**: [`prototipo-ui/ancora.mjs`](../../../../prototipo-ui/ancora.mjs) (`related_prototype`)
+- **Âncora por charter**: [`scripts/design/ancora.mjs`](../../../../scripts/design/ancora.mjs) (`related_prototype`)
 - **Tipografia KPI/tempo canon**: [ADR 0110 Cockpit Pattern V2](../../../decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
 - **Lista irmã**: [PT-01 Lista](PT-01-Lista.md) · **Dashboard irmão**: [PT-04 Dashboard](PT-04-Dashboard.md)
 - **Índice de design**: [INDEX-DESIGN-MEMORIAS.md](../INDEX-DESIGN-MEMORIAS.md)

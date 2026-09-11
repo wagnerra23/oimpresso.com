@@ -24,7 +24,7 @@ related_adrs: [0114, 0107, 0239, 0240, 0094, 0238]
 amends_adrs: [0114, 0107]
 supersedes: []
 authors: [wagner, claude-code]
-dossier: prototipo-ui/AUTOMACAO-LOOP-AUTONOMO.md
+dossier: memory/reference/prototipo-ui/AUTOMACAO-LOOP-AUTONOMO.md
 pii: false
 ---
 
@@ -32,7 +32,7 @@ pii: false
 
 > **Status: aceito** (Wagner, decisão de fato 2026-05-31 00:45 — registrada por [CL]; ratificada no merge).
 > **Emenda:** ADR 0114 (gates **F2 screenshot** + **F4 merge** [W2]) + ADR 0107 (gate visual **F1.5**).
-> **Playbook vivo:** [AUTOMACAO-LOOP-AUTONOMO.md](../../prototipo-ui/AUTOMACAO-LOOP-AUTONOMO.md) · reconciliação na lei: [PROTOCOL.md §2/§10.1](../../prototipo-ui/PROTOCOL.md) (PR #2030).
+> **Playbook vivo:** [AUTOMACAO-LOOP-AUTONOMO.md](../../memory/reference/prototipo-ui/AUTOMACAO-LOOP-AUTONOMO.md) · reconciliação na lei: [PROTOCOL.md §2/§10.1](../../memory/reference/prototipo-ui/PROTOCOL.md) (PR #2030).
 
 ## Contexto
 
@@ -102,8 +102,8 @@ F0 [W] brief
 4. Apêndice de custo-benefício **por Onda** em `AUTOMACAO-LOOP-AUTONOMO.md` §5 (doc vivo, evolui até zero intervenção).
 
 ## Refs
-- [AUTOMACAO-LOOP-AUTONOMO.md](../../prototipo-ui/AUTOMACAO-LOOP-AUTONOMO.md) — playbook vivo + log custo-benefício
-- [PROTOCOL.md §2 (overlay autônomo) + §10](../../prototipo-ui/PROTOCOL.md) — reconciliação (PR #2030)
+- [AUTOMACAO-LOOP-AUTONOMO.md](../../memory/reference/prototipo-ui/AUTOMACAO-LOOP-AUTONOMO.md) — playbook vivo + log custo-benefício
+- [PROTOCOL.md §2 (overlay autônomo) + §10](../../memory/reference/prototipo-ui/PROTOCOL.md) — reconciliação (PR #2030)
 - [ADR 0114](0114-prototipo-ui-cowork-loop-formalizado.md) — loop formalizado (**emendado:** gates F2/F4)
 - [ADR 0107](0107-emendation-0104-visual-comparison-gate-f3.md) — gate visual F1.5 (**emendado:** vira auto-check + PR UI Judge)
 - [ADR 0239](0239-governanca-design-system-git-ssot-regressao-ia.md) — git SSOT + §10.4 (tirou [W] da validação)

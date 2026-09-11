@@ -35,8 +35,8 @@ it('Wave Z-2 docs canon existem', function () {
         'memory/requisitos/Repair/BRIEFING.md',
         'memory/requisitos/Sells/BRIEFING.md',
         'memory/decisions/0192-auto-faturar-os-venda-jobsheet-observer.md',
-        'prototipo-ui/SYNC_LOG.md',
-        'prototipo-ui/TELAS_REVIEW_QUEUE.md',
+        'memory/reference/prototipo-ui/SYNC_LOG.md',
+        'memory/reference/prototipo-ui/TELAS_REVIEW_QUEUE.md',
     ];
 
     $missing = [];

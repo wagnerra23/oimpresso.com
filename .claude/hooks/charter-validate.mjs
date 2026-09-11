@@ -114,8 +114,8 @@ export function buildOutput({ tool, pathFwd, charterRelative, charterStatus, str
       `\`${stale.proto}\` como âncora, e a última rodada de \`--compare\` (${stale.medidoEm}) mediu esse ` +
       `arquivo e o reprovou: o espelho DIVERGE do Cowork vivo. Derivar design daí é decidir sobre um ` +
       `retrato velho — foi assim que um ajuste de DS saiu do eixo errado em 2026-08-27.\n` +
-      `Antes de editar: \`node prototipo-ui/ancora.mjs <Mod/Tela>\` pra ver o veredito, e ressincronize ` +
-      `pela ROTA PRINCIPAL (bundle emitido do lado Cowork) — \`node prototipo-ui/protocolo.config.mjs\` fase -1.\n` +
+      `Antes de editar: \`node scripts/design/ancora.mjs <Mod/Tela>\` pra ver o veredito, e ressincronize ` +
+      `pela ROTA PRINCIPAL (bundle emitido do lado Cowork) — \`node scripts/design/protocolo.config.mjs\` fase -1.\n` +
       `Isto NÃO é "nunca verificado" (esse passa): é medido e REPROVADO.`;
     // ⛔ DENY SEMPRE — promovido por [W] em 2026-08-27 ("aprovados pode fazer todos"), depois
     // de a versão advisory ser apresentada com a ressalva de que NÃO teria evitado o erro:

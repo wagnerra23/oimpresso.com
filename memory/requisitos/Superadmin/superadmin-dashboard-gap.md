@@ -1,7 +1,7 @@
 ---
 id: requisitos-superadmin-dashboard-gap
 tela: superadmin/Dashboard/Index (/superadmin)
-prototipo: prototipo-ui/cowork/superadmin-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/superadmin-page.jsx
 tela_viva: Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx
 gerado_em: 2026-09-06
 ---
@@ -15,7 +15,7 @@ gerado_em: 2026-09-06
 | Parte | Estado no vivo | Ação |
 |---|---|---|
 | PageHeader — título | `PageHeader title="Superadmin" moduleNav` (Dashboard/Index.tsx:119); mockup `PageHead titulo="Superadmin"` (superadmin-page.jsx:609) | Nada — paridade |
-| PageHeader — subtítulo com contagens (negócios · pacotes ativos · MRR) | `description="Visão geral da plataforma"` fixa (Dashboard/Index.tsx:119); nenhuma contagem no header; o contrato (`prototipo-ui/contrato/superadmin-dashboard.contract.json`) trava só as 4 seções `periodo/kpis/tendencia/recentes`, não o header | **Decidir.** O mockup (superadmin-page.jsx:609) escreve no subtítulo total de negócios, pacotes ativos e MRR computados das listas; o vivo (Dashboard/Index.tsx:119) tem descrição estática, embora o MRR já chegue nas props (:152-154). Construir ou rejeitar por escrito. |
+| PageHeader — subtítulo com contagens (negócios · pacotes ativos · MRR) | `description="Visão geral da plataforma"` fixa (Dashboard/Index.tsx:119); nenhuma contagem no header; o contrato (`governance/design/contracts/superadmin-dashboard.contract.json`) trava só as 4 seções `periodo/kpis/tendencia/recentes`, não o header | **Decidir.** O mockup (superadmin-page.jsx:609) escreve no subtítulo total de negócios, pacotes ativos e MRR computados das listas; o vivo (Dashboard/Index.tsx:119) tem descrição estática, embora o MRR já chegue nas props (:152-154). Construir ou rejeitar por escrito. |
 | PageHeader — ações "Comunicador" / "Ver negócios" | Sem botões de ação no header (Dashboard/Index.tsx:119); a navegação entre telas do módulo é o `moduleNav` do PageHeader (`resources/js/Components/shared/PageHeader.tsx:46-50`) | Nada — mock/harness do protótipo (os 2 botões trocam a view do mock via `window.__selectRoute`, superadmin-page.jsx:611-612 — a "view comunicador" nem é destas telas) |
 | Segmented de período + nota da janela (`superadmin.dashboard.periodo`) | 4 botões Hoje/Semana/Mês/Ano com `aria-pressed` (Dashboard/Index.tsx:121-141); troca por partial reload `router.reload({ only: [...] })` (:112-115); `janela.rotulo` vem do servidor (:140) | Nada — vivo à frente (recalcula KPIs sem full reload :112-115 e a janela é real :140; no mockup a nota "encerra em 18/08/2026" é literal fixo, superadmin-page.jsx:621) |
 | KPI "Novas assinaturas" | `KpisDoPeriodo` → `brl(new_subscriptions)` + nota "soma do valor contratado na janela" (Dashboard/Index.tsx:179-185), fonte `SuperadminDashboardService::statsForPeriod` (:106); mockup :625 | Nada — paridade (a dívida de FONTE deste card — soma o licenciamento legado zerado — já está registrada no charter §Pendências como mudança de VALOR sob REGRA MESTRE, decisão [W]) |
@@ -45,4 +45,4 @@ gerado_em: 2026-09-06
 - `grep -nE 'fazer primeiro|sa-pend' Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx` → 0   (sem bloco "O que fazer primeiro")
 - `grep -nE 'Dono|dono|cidade|>Pacote<|n\.pacote|n\.mrr' Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx` → 0   (recentes sem Dono/Pacote/MRR/cidade)
 - `grep -nE 'Ver todos|href=|<Link' Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx` → 0   (sem link "Ver todos" no card)
-- `sed -n '599,759p' prototipo-ui/cowork/superadmin-page.jsx | grep -cE 'SkelTable|Vazio|Skeleton|EmptyState'` → 0   (mockup sem skeleton/vazio nesta view)
+- `sed -n '599,759p' prototipo-ui/cowork/Wagner/superadmin-page.jsx | grep -cE 'SkelTable|Vazio|Skeleton|EmptyState'` → 0   (mockup sem skeleton/vazio nesta view)

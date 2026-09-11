@@ -402,7 +402,7 @@ export default function AppShellV2({
         return;
       }
       // Cmd/Ctrl+\ alterna rail↔expanded; com Shift, alterna hidden↔expanded
-      // (espelha `prototipo-ui/cowork/app.jsx`, único lugar onde os dois convivem).
+      // (espelha `prototipo-ui/cowork/Wagner/app.jsx`, único lugar onde os dois convivem).
       //
       // A guarda de campo de texto vale só DESTE ramo, e não do ⌘K acima: `\` é um
       // caractere digitável, então em `input`/`textarea`/`contenteditable` o atalho

@@ -28,7 +28,7 @@ pii: false
 
 ## Contexto
 
-O espelho `prototipo-ui/cowork/` é a cópia local do design vivo (Cowork, projeto `019dcfd3…` — [INDEX §0.2](../../requisitos/_DesignSystem/INDEX-DESIGN-MEMORIAS.md)). O §0.2 manda **"diffar antes de concluir"**; a ferramenta que automatiza o diff existe e usa identidade canônica (`cowork-mirror-freshness.mjs` v2, `sha256(normalizado)` por path completo — #3882). Faltava decidir **como essa rotina OPERA** sem virar teatro:
+O espelho `prototipo-ui/cowork/Wagner/` é a cópia local do design vivo (Cowork, projeto `019dcfd3…` — [INDEX §0.2](../../requisitos/_DesignSystem/INDEX-DESIGN-MEMORIAS.md)). O §0.2 manda **"diffar antes de concluir"**; a ferramenta que automatiza o diff existe e usa identidade canônica (`cowork-mirror-freshness.mjs` v2, `sha256(normalizado)` por path completo — #3882). Faltava decidir **como essa rotina OPERA** sem virar teatro:
 
 - A v1 morreu no adversário também por isto: um selftest advisory no CI **não mede frescor** ("a suite mente" — prova a forma, não a correção viva). A [ADR 0298](0298-teto-de-governanca-anti-proliferacao-gates.md) bane "advisory-eterno" que finge proteger.
 - O estado-da-arte 2026 detecta drift por **webhook push** (Figma) ou **bot-PR** (Tokens Studio/DTCG) — nunca por polling manual. Nenhum dos dois é possível hoje aqui (ver D3).

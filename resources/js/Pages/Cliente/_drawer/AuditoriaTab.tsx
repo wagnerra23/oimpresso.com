@@ -6,8 +6,8 @@
 // Refs:
 //   - ADR 0179 §Wave F (memory/decisions/0179-cliente-drawer-760px-substitui-show-fullpage.md)
 //   - Charter resources/js/Pages/Cliente/Index.charter.md v3 (Goals Tab Auditoria)
-//   - prototipo-ui/prototipos/clientes/HANDOFF_CLIENTES.md (MORTO 2026-08-13 — sem fonte no repo) §6
-//   - Cowork blueprint: prototipo-ui/prototipos/clientes/clientes-tabs.jsx::AuditTab
+//   - prototipo-ui/cowork/Wagner/legado/clientes/HANDOFF_CLIENTES.md (MORTO 2026-08-13 — sem fonte no repo) §6
+//   - Cowork blueprint: prototipo-ui/cowork/Wagner/legado/clientes/clientes-tabs.jsx::AuditTab
 //
 // Contrato (combinado com ClienteAuditoriaController Wave F-BE):
 //   GET /cliente/{id}/auditoria?page=N&per_page=20

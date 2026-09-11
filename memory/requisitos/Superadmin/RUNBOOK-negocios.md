@@ -18,7 +18,7 @@ F1 do MWART (ADR 0104) para a onda **SA-O2**. A tela servia DataTables por AJAX
 (`superadmin::business.index` + `Datatables::of(...)`) e passa a `Inertia::render` com
 paginação **server-side**.
 
-- **Fonte de design:** `prototipo-ui/cowork/superadmin-page.jsx` → `ViewNegocios()` (L860+).
+- **Fonte de design:** `prototipo-ui/cowork/Wagner/superadmin-page.jsx` → `ViewNegocios()` (L860+).
 - **Page:** `Modules/Superadmin/Resources/js/Pages/superadmin/Negocios/Index.tsx` — dentro do
   módulo, como decidido em 19/08. Namespace `superadmin/Negocios/Index`.
 - **Rota:** `Route::resource('/business', BusinessController::class)` → `index()`.
@@ -144,7 +144,7 @@ origin/main --name-only Modules/Superadmin/` traz **4** `edit.blade.php`, todos 
 
 ## 8. Refs
 
-- Protótipo: [`prototipo-ui/cowork/superadmin-page.jsx`](../../../prototipo-ui/cowork/superadmin-page.jsx) `ViewNegocios()`
+- Protótipo: [`prototipo-ui/cowork/Wagner/superadmin-page.jsx`](../../../prototipo-ui/cowork/Wagner/superadmin-page.jsx) `ViewNegocios()`
 - Charter/casos: ao lado do `.tsx`
 - Irmão: [RUNBOOK-dashboard.md](RUNBOOK-dashboard.md) — inclusive §6, o atrito conhecido do `visual-regression`
 - [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) · [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)

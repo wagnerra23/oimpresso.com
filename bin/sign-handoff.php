@@ -6,7 +6,7 @@
  *
  * O "transporte" do loop zero-paste: a GitHub Action on-push
  * ({@see .github/workflows/handoff-sign-submit.yml}) roda este script pra CADA
- * handoff novo/alterado em `prototipo-ui/handoffs/*.md`, computando
+ * handoff novo/alterado em `prototipo-ui/cowork/Wagner/handoffs/*.md`, computando
  * `sig = HMAC-SHA256(body, HANDOFF_SECRET)` e emitindo o envelope JSON-RPC do
  * `tools/call` handoff-submit. A Action faz POST no endpoint MCP → pending. O [W]
  * nunca computa HMAC; o segredo vive só no repo secret/servidor (NÃO versionado).
@@ -20,7 +20,7 @@
  * frontmatter é parseado com regex nativo, não Symfony\Yaml.
  *
  * Uso:
- *   HANDOFF_SECRET=… php bin/sign-handoff.php --file=prototipo-ui/handoffs/<slug>.md
+ *   HANDOFF_SECRET=… php bin/sign-handoff.php --file=prototipo-ui/cowork/Wagner/handoffs/<slug>.md
  *       → imprime no stdout o JSON-RPC do tools/call handoff-submit (pronto pro POST)
  *   php bin/sign-handoff.php --self-test   # controle-negativo, sem segredo/rede/DB
  *
@@ -235,7 +235,7 @@ if (in_array('--self-test', $args, true)) {
 // ── modo real: assina UM arquivo e emite o envelope JSON-RPC ──
 $file = optValue($args, 'file');
 if ($file === null || $file === '') {
-    fwrite(STDERR, "✗ Uso: HANDOFF_SECRET=… php bin/sign-handoff.php --file=prototipo-ui/handoffs/<slug>.md\n");
+    fwrite(STDERR, "✗ Uso: HANDOFF_SECRET=… php bin/sign-handoff.php --file=prototipo-ui/cowork/Wagner/handoffs/<slug>.md\n");
     exit(1);
 }
 

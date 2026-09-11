@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "Suporte/Empresas (/suporte/empresas)",
   "gap_fonte": "memory/requisitos/Suporte/suporte-empresas-gap.md",
   "prototipo_sha": "sha256:2219383cf92c",
@@ -9,7 +9,7 @@
     {
       "id": "cabecalho-da-pagina",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/suporte-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/suporte-page.jsx",
         "linhas": "96-101"
       },
       "vivo": {
@@ -24,7 +24,7 @@
     {
       "id": "busca-local-por-nome-id",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/suporte-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/suporte-page.jsx",
         "linhas": "61-65"
       },
       "vivo": {
@@ -39,7 +39,7 @@
     {
       "id": "aviso-somente-leitura",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/suporte-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/suporte-page.jsx",
         "linhas": "109-114"
       },
       "vivo": {
@@ -54,7 +54,7 @@
     {
       "id": "tabela-de-empresas",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/suporte-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/suporte-page.jsx",
         "linhas": "75-91"
       },
       "vivo": {
@@ -69,7 +69,7 @@
     {
       "id": "estados-vazio-sem-resultado",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/suporte-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/suporte-page.jsx",
         "linhas": "115-121"
       },
       "vivo": {
@@ -84,7 +84,7 @@
     {
       "id": "estados-erro-carregando",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/suporte-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/suporte-page.jsx",
         "linhas": "103-107"
       },
       "vivo": {
@@ -99,7 +99,7 @@
     {
       "id": "navegacao-para-a-visao-do-cliente",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/suporte-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/suporte-page.jsx",
         "linhas": "89-89"
       },
       "vivo": {

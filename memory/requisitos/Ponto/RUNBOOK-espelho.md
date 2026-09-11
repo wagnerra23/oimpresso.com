@@ -37,8 +37,8 @@ Audiência: **DP / RH** e, na impressão, o **fiscal**.
 | Ordem | Fonte | Papel |
 |---|---|---|
 | 1 | `memory/requisitos/Ponto/SDD-espelho-e-jornada-v1.0.md` · `SPEC.md` | CU e regra de apuração |
-| 2 | `prototipo-ui/contrato/ponto-espelho.contract.json` | **contrato visual** — âncoras + copy literal |
-| 3 | `prototipo-ui/cowork/ponto-page.jsx` | protótipo Cowork (fonte de design, [ADR 0299](../../decisions/0299-figma-nao-e-fonte-de-design.md)) |
+| 2 | `governance/design/contracts/ponto-espelho.contract.json` | **contrato visual** — âncoras + copy literal |
+| 3 | `prototipo-ui/cowork/Wagner/ponto-page.jsx` | protótipo Cowork (fonte de design, [ADR 0299](../../decisions/0299-figma-nao-e-fonte-de-design.md)) |
 | 4 | `Modules/Ponto/Resources/views/espelho/show.blade.php` + `reports/espelho-pdf.blade.php` | Blade legado — **contrato de paridade** |
 
 O contrato declara a proveniência e ela importa aqui mais que em qualquer outra tela:
@@ -76,7 +76,7 @@ reprova no CI. Mesma família da lápide do `·` U+00B7 (§5 2026-07-02).
 
 ## 4. Estado MEDIDO em 2026-08-21 (o F3 pendente)
 
-`node scripts/contrato-de-tela.mjs --contract prototipo-ui/contrato/ponto-espelho.contract.json`
+`node scripts/contrato-de-tela.mjs --contract governance/design/contracts/ponto-espelho.contract.json`
 → **26 falhas**: as 5 âncoras + **21 de 29 copies**.
 
 Medido por string, uma a uma, nos dois arquivos do alvo: **as 21 estão ausentes em ambos**. Ou seja,
@@ -102,7 +102,7 @@ tabela de apuração diária · **folha de impressão**.
 ## 6. Verificação
 
 ```bash
-node scripts/contrato-de-tela.mjs --contract prototipo-ui/contrato/ponto-espelho.contract.json
+node scripts/contrato-de-tela.mjs --contract governance/design/contracts/ponto-espelho.contract.json
 ```
 
 Pest e PHPStan rodam no **CT 100** ([proibicoes §Ambiente](../../proibicoes.md)). Em teste/fixture o

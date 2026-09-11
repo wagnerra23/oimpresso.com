@@ -10,7 +10,7 @@ related_adrs:
   - 0258-processo-adr-estado-arte-indice-gerado-supersede-atomico
 related_proposals:
   - 2026-06-23-prototipo-ssot-unico-com-historico
-origem: "Chip C-F1 da grade de réguas design→código (2026-07-17, nota ~7,7). GAP auto-nomeado pelo próprio código: `prototipo-ui/style-fingerprint.mjs:53` e `fingerprint-harness.mjs:11` confessam FORA do vetor — 'backstop perceptual sem âncora (dep SSIM) → exige ADR'. Esta é a ADR que os dois comentários pedem."
+origem: "Chip C-F1 da grade de réguas design→código (2026-07-17, nota ~7,7). GAP auto-nomeado pelo próprio código: `scripts/design/style-fingerprint.mjs:53` e `fingerprint-harness.mjs:11` confessam FORA do vetor — 'backstop perceptual sem âncora (dep SSIM) → exige ADR'. Esta é a ADR que os dois comentários pedem."
 prs: ["este (proposta; a dep + o código vêm SÓ após aceite [W])"]
 ---
 
@@ -103,4 +103,4 @@ Pra que a proposta **permaneça** dentro da 0290/C9 mesmo com sessões futuras:
 
 ## Anchor
 
-**Documentado em:** este arquivo (proposta). Ao aceitar, [W] numera e o mecanismo entra em `prototipo-ui/fingerprint-harness.mjs` (+ SNIPPET em `style-fingerprint.mjs`), com RUNBOOK em `memory/requisitos/_DesignSystem/` e nota no `PROTOCOLO-COMPARACAO-RUNTIME.md`. Fonte do gap: `prototipo-ui/style-fingerprint.mjs:52-53` + `prototipo-ui/fingerprint-harness.mjs:9-11`. Lápides que cerca: [ADR 0290](../0290-fidelity-lock-v0-recusado.md) + C9 (`memory/proibicoes.md §5`, 2026-07-17).
+**Documentado em:** este arquivo (proposta). Ao aceitar, [W] numera e o mecanismo entra em `scripts/design/fingerprint-harness.mjs` (+ SNIPPET em `style-fingerprint.mjs`), com RUNBOOK em `memory/requisitos/_DesignSystem/` e nota no `PROTOCOLO-COMPARACAO-RUNTIME.md`. Fonte do gap: `scripts/design/style-fingerprint.mjs:52-53` + `scripts/design/fingerprint-harness.mjs:9-11`. Lápides que cerca: [ADR 0290](../0290-fidelity-lock-v0-recusado.md) + C9 (`memory/proibicoes.md §5`, 2026-07-17).

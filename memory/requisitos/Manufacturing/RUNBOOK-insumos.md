@@ -17,7 +17,7 @@ owner: F
 > **F1 PLAN do MWART** ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)).
 > US-MANU-005 — impacto reverso: quais receitas usam um insumo, e o que acontece com o custo
 > delas se o preço de compra mudar. Fonte visual:
-> `prototipo-ui/cowork/manufacturing-insumos.jsx::MfgInsumosView`.
+> `prototipo-ui/cowork/Wagner/manufacturing-insumos.jsx::MfgInsumosView`.
 >
 > **É a única onda da família que nasce com backend NOVO.** O §18.3 do handoff era explícito:
 > *"`usosDoInsumo()` é cálculo novo; precisa de um método no `RecipeBomService` com o JOIN de
@@ -70,7 +70,7 @@ consulta e outra decisão de escopo — não é ajuste de código.
 | Casos | `resources/js/Pages/Manufacturing/Insumos.casos.md` |
 | Controller | `Modules/Manufacturing/Http/Controllers/RecipeController@insumos` |
 | Service (novo) | `RecipeBomService::{usosDoInsumo,listInsumosComUso}` |
-| Fonte de design | `prototipo-ui/cowork/manufacturing-insumos.jsx` |
+| Fonte de design | `prototipo-ui/cowork/Wagner/manufacturing-insumos.jsx` |
 | Teste | `Modules/Manufacturing/Tests/Feature/Wave33InsumosTest.php` |
 
 ## 4. Quando esta tela quebra (sintomas)

@@ -73,7 +73,7 @@ class DesignMineRawCommand extends Command
         $docs = [];
         $needle = mb_strtolower($tela);
 
-        foreach (glob("{$root}/prototipo-ui/prototipos/{$tela}/*.md") ?: [] as $f) {
+        foreach (glob("{$root}/prototipo-ui/cowork/Wagner/legado/{$tela}/*.md") ?: [] as $f) {
             $name = mb_strtolower(basename($f));
             if (str_contains($name, 'chat') || str_contains($name, 'transcript')) {
                 $docs[] = $this->doc($root, $f);

@@ -2527,7 +2527,7 @@ class HealthCheckCommand extends Command
     /**
      * Check protocol_freshness (ADVISORY · frescor do protocolo UC→charter→GUARD).
      *
-     * Espelha em PHP o `prototipo-ui/audit/protocol-freshness.mjs` (que espelha o
+     * Espelha em PHP o `scripts/design/audit/protocol-freshness.mjs` (que espelha o
      * molde `review-freshness.mjs` #2078). Acende amarelo quando:
      *   (a) UC com `guard:true` no registro sem GUARD linkado nos testes (regressão);
      *   (b) tela canon sem charter;
@@ -2538,12 +2538,12 @@ class HealthCheckCommand extends Command
      * a reconciliação (§10.4). Emite storage/reports/protocol-freshness.json pro
      * ciclo diário (governanca:ciclo-diario) ler. Advisory: não derruba cron.
      *
-     * @see prototipo-ui/audit/uc-registry.json  (fonte única UC→tela→GUARD)
+     * @see scripts/design/audit/uc-registry.json  (fonte única UC→tela→GUARD)
      */
     protected function checkProtocolFreshness(): array
     {
         $name = 'protocol_freshness';
-        $registryPath = base_path('prototipo-ui/audit/uc-registry.json');
+        $registryPath = base_path('scripts/design/audit/uc-registry.json');
 
         if (! is_file($registryPath)) {
             return [
@@ -2553,7 +2553,7 @@ class HealthCheckCommand extends Command
         }
 
         $registry = json_decode((string) file_get_contents($registryPath), true);
-        $baseline = is_file($b = base_path('prototipo-ui/audit/protocol-freshness-baseline.json'))
+        $baseline = is_file($b = base_path('scripts/design/audit/protocol-freshness-baseline.json'))
             ? (json_decode((string) file_get_contents($b), true)['sem_cobertura'] ?? [])
             : [];
         $baseSem = array_flip(is_array($baseline) ? $baseline : []);
@@ -2575,7 +2575,7 @@ class HealthCheckCommand extends Command
                 $charterAusente[] = "{$s['id']}:{$s['charter']}";
             } else {
                 // Formato do UC-id = fonte única scripts/lib/uc-regex.mjs (UC_CORE · ADR 0264).
-                // Duplicação CONSCIENTE: PHP não roda Node. Espelha prototipo-ui/audit/
+                // Duplicação CONSCIENTE: PHP não roda Node. Espelha scripts/design/audit/
                 // protocol-freshness.mjs::ucsCitadosNoCharter — mude os DOIS juntos.
                 // Era '/UC-[A-Z0-9]+/', que truncava no hífen (UC-VSHOW-01 -> UC-VSHOW) e
                 // reportava UC morto com id inexistente. Ver 2026-07-27.

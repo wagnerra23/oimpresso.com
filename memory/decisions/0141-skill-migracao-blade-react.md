@@ -55,7 +55,7 @@ real, perda de produtividade ROTA LIVRE (biz=4, 99% volume).
   muito certo"* — escala não-linear, perda de paridade, inconsistência
   visual entre telas migradas em momentos diferentes
 - **Batch automatizado 2026-05-09:** `PROMPT_PARA_CLAUDE_CODE — F3
-  Financeiro completo (5 telas)` rejeitado pré-merge ([LICOES_F3](../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md)).
+  Financeiro completo (5 telas)` rejeitado pré-merge ([LICOES_F3](../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md)).
   4/5 controllers violaram Tier 0 ([ADR 0093](0093-multi-tenant-isolation-tier-0.md)).
   Mas frontend `.tsx` aprovado como pinos F1 visuais.
 - **Claude Design plugin (Cowork):** Wagner observou *"o design refez a
@@ -160,7 +160,7 @@ Tira o atrito de aplicar 7 skills manualmente por tela × 800+ telas.
 - ❌ **Não toca `vendor/`** (133 views externas — pacotes npm/composer).
 - ❌ **Não gera código backend novo** — só adapta Inertia render.
 - ❌ **Não substitui `mwart-process`** — orquestra ele.
-- ❌ **Não cria Cowork output** — depende dele já existir em `prototipo-ui/prototipos/<modulo>/`.
+- ❌ **Não cria Cowork output** — depende dele já existir em `prototipo-ui/cowork/Wagner/legado/<modulo>/`.
 - ❌ **Não paraleliza em worktree filha** ([handoff 2026-05-11 18:30](../handoffs/2026-05-11-1830-paralelizacao-omnichannel-frustrada.md)) — sequencial.
 
 ## Consequências
@@ -205,4 +205,4 @@ aprova screenshots → skill libera escala (Vendas, Produto, Repair, etc).
 - [ADR 0107 — Visual comparison gate F3](0107-emendation-0104-visual-comparison-gate-f3.md)
 - [ADR 0109 — Claude Design plugin integrado processo MWART](0109-claude-design-plugin-integrado-processo-mwart.md)
 - [ADR 0114 — Cowork loop formalizado](0114-prototipo-ui-cowork-loop-formalizado.md)
-- [LICOES_F3_FINANCEIRO_REJEITADO.md](../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) — anti-padrões catalogados
+- [LICOES_F3_FINANCEIRO_REJEITADO.md](../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) — anti-padrões catalogados

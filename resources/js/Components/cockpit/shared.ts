@@ -183,7 +183,7 @@ export const LS = {
 } as const;
 
 // O 3º modo (`hidden`, sidebar fora do grid + alça de reabrir) vem do protótipo
-// Cowork (`prototipo-ui/cowork/app.jsx:574` filtra a mesma lista de 3). Ao contrário
+// Cowork (`prototipo-ui/cowork/Wagner/app.jsx:574` filtra a mesma lista de 3). Ao contrário
 // de `rail`, ele NUNCA é automático: o auto-rail da ADR UI-0030 só decide entre
 // `rail` e `expanded` — `hidden` é escolha manual (⌘⇧\ ou a alça), e só por isso
 // pode desaparecer com o menu sem prender ninguém fora de uma janela estreita.
@@ -191,7 +191,7 @@ export type SidebarMode = 'expanded' | 'rail' | 'hidden';
 
 // ── Auto-rail responsivo (ADR UI-0030) ─────────────────────────────────────
 // Até esta largura o shell NASCE em rail (56px) em vez de expandido (260px),
-// como o shell do protótipo Cowork (`prototipo-ui/cowork/app.jsx`).
+// como o shell do protótipo Cowork (`prototipo-ui/cowork/Wagner/app.jsx`).
 //
 // Por que 1280 INCLUSIVE, se o protótipo usa `innerWidth < 1280` (rail só a
 // partir de 1279)? Medido no espelho em 2026-09-02 (tabela na ADR UI-0030):
@@ -250,7 +250,7 @@ export const SIDEBAR_GROUP_HUE: Record<string, number> = {
   // apontava pra `sistema`; desde que PLATAFORMA virou grupo CANON (Sidebar.tsx),
   // esta linha deixaria de ser alias e passaria a COLORIR o cabeçalho de ciano —
   // enquanto o design declara `hue: null` pra ele ("PLATAFORMA é neutro (sem
-  // hue)", GROUP_META em prototipo-ui/cowork/data.jsx). Ausência aqui é o que
+  // hue)", GROUP_META em prototipo-ui/cowork/Wagner/data.jsx). Ausência aqui é o que
   // deixa `hue === undefined` e o grupo neutro, mesmo caminho do `mais`.
   // Pego pelo render em `tests/js/sidebar-plataforma-forja.test.tsx`, não por
   // leitura: o ícone saía com `color: oklch(0.65 0.15 200)`.

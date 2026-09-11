@@ -20,7 +20,7 @@ governanca:
 
 > ## ⚠️ 2026-08-24 — por que ainda NÃO há `clientes.map.json` (e por que gerar um hoje seria pior que não ter)
 >
-> Este gap **parseia** no `prototipo-ui/gerar-map.mjs` (11 partes, coluna `Ação` presente), então
+> Este gap **parseia** no `scripts/design/gerar-map.mjs` (11 partes, coluna `Ação` presente), então
 > ele aparece na fila de "candidatos a map" do `design-code-map-check`. Ficou de fora de propósito:
 > o protótipo que esta análise leu **não é** o protótipo que está no espelho hoje, e um map ancora
 > os dois lados por arquivo+linha — ancorar o veredito de junho no artefato de agosto seria afirmar
@@ -30,9 +30,9 @@ governanca:
 >
 > - `prototipo-ui/prototipos/clientes/` (a chave `prototipo:` acima) tem **0 arquivos versionados**.
 >   Foi apagado em **2026-06-23** por `e8b49f4b63` — *"protótipo Cowork = 1 SSOT com histórico
->   (prototipo-ui/cowork/) + apaga recortes"*, no MESMO dia em que este gap foi escrito.
-> - O sucessor no espelho, `prototipo-ui/cowork/clientes-page.jsx` (o que a charter declara em
->   `related_prototype`, confirmado por `node prototipo-ui/ancora.mjs Cliente/Index`), **dobrou
+>   (prototipo-ui/cowork/Wagner/) + apaga recortes"*, no MESMO dia em que este gap foi escrito.
+> - O sucessor no espelho, `prototipo-ui/cowork/Wagner/clientes-page.jsx` (o que a charter declara em
+>   `related_prototype`, confirmado por `node scripts/design/ancora.mjs Cliente/Index`), **dobrou
 >   de tamanho depois**: `+1075/−133` em **2026-08-13** ([#5743](https://github.com/wagnerra23/oimpresso.com/pull/5743)), cujo próprio corpo diz que
 >   o espelho tinha *"METADE do arquivo vivo (58.331 vs 112.096 bytes)"*.
 > - No mesmo commit desceram **8 arquivos de Cliente que nunca tinham existido no espelho**, entre
@@ -53,7 +53,7 @@ governanca:
 > ## 2026-09-06 — por que continua sem map (não é "falta análise", é DONO)
 >
 > A releitura que o bloco acima pede **já tem dono**: [`memory/requisitos/Cliente/clientes-gap.md`](../Cliente/clientes-gap.md)
-> (2026-06-30) — mesma tela `Cliente/Index`, mesmo espelho `prototipo-ui/cowork/clientes-page.jsx`, que é o que
+> (2026-06-30) — mesma tela `Cliente/Index`, mesmo espelho `prototipo-ui/cowork/Wagner/clientes-page.jsx`, que é o que
 > `resources/js/Pages/Cliente/Index.charter.md:5-6` declara em `related_prototype`/`bundle_source` — e
 > [`Cliente/clientes.map.json`](../Cliente/clientes.map.json) (7 partes, `prototipo_sha` por conteúdo; em 2026-09-06 o
 > `design-code-map-check` o acusa STALE porque o [#6893](https://github.com/wagnerra23/oimpresso.com/pull/6893) desceu o

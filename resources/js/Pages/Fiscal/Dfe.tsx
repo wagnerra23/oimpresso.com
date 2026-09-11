@@ -240,7 +240,7 @@ export default function Dfe({ activeTab, filters: initialFilters, counts, rows, 
            "Manifestar selecionadas" e o title "Bulk manifestar (PR seguinte)" — afordância
            falsa: prometia uma capacidade que não existia e um PR que nunca veio. O lote agora
            existe, e mora onde a fonte o desenha: a barra `fx-bulk` que só aparece quando há
-           seleção (`data-contract="lote-dfe"` em `prototipo-ui/cowork/fiscal-subpages.jsx`). */
+           seleção (`data-contract="lote-dfe"` em `prototipo-ui/cowork/Wagner/fiscal-subpages.jsx`). */
       >
         {/* DS Onda 3 — barra de abas CANÔNICA (PageHeaderTabs) em faixa própria,
             navegando por rota (?tab=). Padroniza o visual com Clientes/Financeiro/Ponto. */}

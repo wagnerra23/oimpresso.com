@@ -3,7 +3,7 @@ name: Design return gate (§10.2 pós-merge)
 # Hook POS-merge do loop Cowork<->Code (G4 / fila COWORK_NOTES Pendentes #1).
 #
 # Quando um merge na main toca TELA/DS (resources/js/Pages/**/*.tsx ou
-# prototipo-ui/cowork/**) mas NAO atualiza os 3 canais de §10.2, o retorno
+# prototipo-ui/cowork/Wagner/**) mas NAO atualiza os 3 canais de §10.2, o retorno
 # §10.2 ([CL]->[CC]) foi pulado -> o [CC] nao ve via MCP o que mudou e pode regerar
 # o ja-feito (origem do incidente "HANDOFF 15d stale / SYNC_LOG parado").
 #
@@ -32,10 +32,10 @@ on:
       - 'Modules/*/Resources/css/**'
       - 'Modules/*/resources/js/**'
       - 'Modules/*/resources/css/**'
-      - 'prototipo-ui/cowork/**'
-      - 'prototipo-ui/DS_ADOCAO_INDICE.md'
-      - 'prototipo-ui/SYNC_LOG.md'
-      - 'prototipo-ui/HANDOFF.md'
+      - 'prototipo-ui/cowork/Wagner/**'
+      - 'memory/reference/prototipo-ui/DS_ADOCAO_INDICE.md'
+      - 'memory/reference/prototipo-ui/SYNC_LOG.md'
+      - 'memory/reference/prototipo-ui/HANDOFF.md'
 
 permissions:
   contents: read

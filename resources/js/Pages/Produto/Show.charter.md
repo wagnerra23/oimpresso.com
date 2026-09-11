@@ -14,7 +14,7 @@ related_visual_comparison: memory/requisitos/Produto/_telas/produto-show-visual-
 tier: A
 charter_version: 1
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/cowork/produtos-page.jsx"
+  blueprint_cowork: "prototipo-ui/cowork/Wagner/produtos-page.jsx"
   blueprint_screenshot_approval: "SYNC_LOG (pendente)"
   derived_screens: [Show]
   divergence_from_blueprint: "Page full (não drawer 320px lateral) — mesma família AppShellV2 + tokens + Hero KPIs + tabs do blueprint Cockpit, mas renderizado como Page completa em vez de drawer overlay. ADR 0149 admite (mesma entidade, mesma família visual, mesmos tokens)"

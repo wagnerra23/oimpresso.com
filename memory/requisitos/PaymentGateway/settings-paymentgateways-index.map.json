@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "Settings/PaymentGateways/Index (/settings/payment-gateways)",
   "gap_fonte": "memory/requisitos/PaymentGateway/settings-paymentgateways-index-gap.md",
   "prototipo_sha": "sha256:4ceb25e0b886",
@@ -9,7 +9,7 @@
     {
       "id": "cabecalho",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/pg-payment-gateways-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/pg-payment-gateways-page.jsx",
         "linhas": "101-109"
       },
       "vivo": {
@@ -24,7 +24,7 @@
     {
       "id": "cartoes-de-indicador",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/pg-payment-gateways-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/pg-payment-gateways-page.jsx",
         "linhas": "112-118"
       },
       "vivo": {
@@ -39,7 +39,7 @@
     {
       "id": "aviso-de-credencial-com-atencao",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/pg-payment-gateways-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/pg-payment-gateways-page.jsx",
         "linhas": "121-131"
       },
       "vivo": {
@@ -54,7 +54,7 @@
     {
       "id": "tabela-de-gateways",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/pg-payment-gateways-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/pg-payment-gateways-page.jsx",
         "linhas": "134-201"
       },
       "vivo": {
@@ -69,7 +69,7 @@
     {
       "id": "drivers-disponiveis",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/pg-payment-gateways-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/pg-payment-gateways-page.jsx",
         "linhas": "202-239"
       },
       "vivo": {
@@ -84,7 +84,7 @@
     {
       "id": "drawer-do-gateway",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/pg-payment-gateways-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/pg-payment-gateways-page.jsx",
         "linhas": "360-588"
       },
       "vivo": {
@@ -99,7 +99,7 @@
     {
       "id": "assistente-de-novo-gateway",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/pg-payment-gateways-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/pg-payment-gateways-page.jsx",
         "linhas": "669-826"
       },
       "vivo": {

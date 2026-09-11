@@ -1,7 +1,7 @@
 ---
 id: requisitos-kb-kb-index-v2-gap
 tela: kb/Index.v2 (/kb/v2)
-prototipo: prototipo-ui/cowork/kb-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/kb-page.jsx
 tela_viva: resources/js/Pages/kb/Index.v2.tsx
 gerado_em: 2026-09-06
 ---

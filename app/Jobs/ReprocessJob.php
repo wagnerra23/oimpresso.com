@@ -37,7 +37,7 @@ use Throwable;
  * (retry_after alto · @see config/queue.php) — senão o worker pode reclamar um job
  * em backoff e re-executá-lo antes do tempo, furando a idempotência.
  *
- * @see prototipo-ui/handoffs/erros-autoresolucao.md
+ * @see prototipo-ui/cowork/Wagner/handoffs/erros-autoresolucao.md
  */
 class ReprocessJob implements ShouldQueue
 {

@@ -14,7 +14,7 @@ declare(strict_types=1);
  * Sem MySQL: a tabela de plataforma é criada sob demanda no beforeEach (mesmo
  * pattern do tests/Pest.php · RecurringBilling).
  *
- * @see prototipo-ui/handoffs/erros-dedup.md
+ * @see prototipo-ui/cowork/Wagner/handoffs/erros-dedup.md
  */
 
 use App\Models\ErrorGroup;

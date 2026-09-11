@@ -49,7 +49,7 @@ function writeMap(overrides = {}) {
   const base = {
     version: '1', tela: 'Fixture/Index', prototipo_sha: shaV1, gerado_em: '2026-01-01',
     partes: [
-      { id: 'header', prototipo: { arquivo: 'prototipo-ui/cowork/fixture-page.jsx', linhas: '1-10' }, vivo: { arquivo: 'resources/js/Pages/Fixture/Index.tsx', linhas: '1-5' }, status: 'paridade', acao: 'no-op' },
+      { id: 'header', prototipo: { arquivo: 'prototipo-ui/cowork/Wagner/fixture-page.jsx', linhas: '1-10' }, vivo: { arquivo: 'resources/js/Pages/Fixture/Index.tsx', linhas: '1-5' }, status: 'paridade', acao: 'no-op' },
     ],
   };
   writeFileSync(join(reqDir, 'index.map.json'), JSON.stringify({ ...base, ...overrides }, null, 2));
@@ -63,7 +63,7 @@ check('reporta 1 map.json encontrado', /1 map\.json encontrado/.test(okStrict.st
 check('cobertura sai no relatório', /cobertura:/.test(okStrict.stdout));
 
 // 2. DRIFT — âncora vivo.arquivo quebrada (path que não existe)
-writeMap({ partes: [{ id: 'header', prototipo: { arquivo: 'prototipo-ui/cowork/fixture-page.jsx', linhas: '1-10' }, vivo: { arquivo: 'resources/js/Pages/Fixture/FANTASMA.tsx', linhas: '1-5' }, status: 'paridade', acao: 'no-op' }] });
+writeMap({ partes: [{ id: 'header', prototipo: { arquivo: 'prototipo-ui/cowork/Wagner/fixture-page.jsx', linhas: '1-10' }, vivo: { arquivo: 'resources/js/Pages/Fixture/FANTASMA.tsx', linhas: '1-5' }, status: 'paridade', acao: 'no-op' }] });
 const badAnchor = runCheck(['--check', '--strict']);
 check('vivo.arquivo inexistente → strict exit 1', badAnchor.status === 1);
 check('motivo aponta FANTASMA', /FANTASMA/.test(badAnchor.stdout));
@@ -104,7 +104,7 @@ check('mapping.target inexistente → strict exit 1', badMapping.status === 1 &&
 const shaAtual = sha(root);
 const parteBase = (extraVivo = {}) => ({
   id: 'header',
-  prototipo: { arquivo: 'prototipo-ui/cowork/fixture-page.jsx', linhas: '1-10' },
+  prototipo: { arquivo: 'prototipo-ui/cowork/Wagner/fixture-page.jsx', linhas: '1-10' },
   vivo: { arquivo: 'resources/js/Pages/Fixture/Index.tsx', linhas: '1-5', ...extraVivo },
   status: 'paridade', acao: 'no-op',
 });
@@ -131,15 +131,15 @@ const nudge = runCheck(['--check', '--strict']);
 check('âncora presente mas não-declarada → WARN nudge (declare e trave), exit 0', nudge.status === 0 && /não declara vivo\.ancora/.test(nudge.stdout));
 
 // ── SHA POR CONTEÚDO (PR-C, ADR 0324): formato sha256: roteado pro contentHash ────
-const { computeProtoHash } = await import('../../prototipo-ui/gerar-map.mjs');
+const { computeProtoHash } = await import('../../scripts/design/gerar-map.mjs');
 // sha FRESCO por conteúdo — a partir daqui o conteúdo do protótipo muda dentro do próprio teste,
 // então reusar o git-sha antigo faria os casos seguintes falharem por STALE (staleness é outro
 // eixo; os casos abaixo testam ÂNCORA). Recalcular por chamada isola um eixo do outro.
-const shaProtoFresco = () => computeProtoHash(['prototipo-ui/cowork/fixture-page.jsx'], root);
+const shaProtoFresco = () => computeProtoHash(['prototipo-ui/cowork/Wagner/fixture-page.jsx'], root);
 
 // 10. sha256: fresco → strict exit 0 (release no formato canônico)
 writeFileSync(join(vivoDir, 'Index.tsx'), 'export default function Index() { return null }\n');
-writeMap({ prototipo_sha: computeProtoHash(['prototipo-ui/cowork/fixture-page.jsx'], root), partes: [parteBase()] });
+writeMap({ prototipo_sha: computeProtoHash(['prototipo-ui/cowork/Wagner/fixture-page.jsx'], root), partes: [parteBase()] });
 const contentFresh = runCheck(['--check', '--strict']);
 check('prototipo_sha sha256: (contentHash) fresco → strict exit 0', contentFresh.status === 0);
 
@@ -151,7 +151,7 @@ check('mensagem manda regenerar com --atualizar (preserva preenchido)', /--atual
 
 // 12. commit que toca o path SEM mudar conteúdo NÃO invalida sha256 (o falso-STALE do
 // git-sha — caso real unificado.map.json 4e3aacfc0f×6cb6566311, blobs idênticos)
-writeMap({ prototipo_sha: computeProtoHash(['prototipo-ui/cowork/fixture-page.jsx'], root), partes: [parteBase()] });
+writeMap({ prototipo_sha: computeProtoHash(['prototipo-ui/cowork/Wagner/fixture-page.jsx'], root), partes: [parteBase()] });
 git(root, ['add', '-A']); git(root, ['commit', '-q', '-m', 'commit toca o repo, conteúdo do proto intacto']);
 const contentImune = runCheck(['--check', '--strict']);
 check('commit sem mudança de conteúdo do proto → sha256 segue fresco (imune ao falso-STALE do git-sha)', contentImune.status === 0);

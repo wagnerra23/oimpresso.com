@@ -104,7 +104,7 @@ Backend expõe hoje por task: `task_id, title, module, owner, sprint, priority(p
 
 ## Gates antes do F3 (implementação)
 - [x] Wagner aprova **screenshot** (protótipo Forja) — AskUserQuestion 2026-06-16.
-- [x] Ler `prototipo-ui/PROCESSO_MEMORIA_CC.md` §5 + NÚCLEO 13 invariantes + `memory/LICOES_CC.md` (CLAUDE.md passo 4b).
+- [x] Ler `memory/reference/prototipo-ui/PROCESSO_MEMORIA_CC.md` §5 + NÚCLEO 13 invariantes + `memory/LICOES_CC.md` (CLAUDE.md passo 4b).
 - [x] Criar `Index.charter.md` ao lado (PT-01 exige charter).
 - [ ] CI verde: `typecheck` + `eslint`/`ui:lint` + `conformance-gate` + `foundation-guard` + UI-Judge (advisory → 2 verdes → required).
 

@@ -1,7 +1,7 @@
 ---
 id: requisitos-oficina-auto-service-orders-show-gap
 tela: OficinaAuto/ServiceOrders/Show (/oficina-auto/service-orders/{id})
-prototipo: prototipo-ui/cowork/oficina-os-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/oficina-os-page.jsx
 tela_viva: resources/js/Pages/OficinaAuto/ServiceOrders/Show.tsx
 gerado_em: 2026-09-06
 ---

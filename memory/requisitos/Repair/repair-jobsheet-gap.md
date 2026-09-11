@@ -1,7 +1,7 @@
 ---
 id: requisitos-repair-repair-jobsheet-gap
 tela: Repair/JobSheet/Index (/repair/job-sheet)
-prototipo: prototipo-ui/cowork/repair-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/repair-page.jsx
 tela_viva: resources/js/Pages/Repair/JobSheet/Index.tsx
 gerado_em: 2026-09-06
 comparacao: memory/requisitos/Repair/jobsheet-visual-comparison.md
@@ -9,7 +9,7 @@ comparacao: memory/requisitos/Repair/jobsheet-visual-comparison.md
 
 # GAP-SPEC — Repair/JobSheet/Index
 
-> Fase 1 do protocolo (`prototipo-ui/PROTOCOL.md`) em modo **PARIDADE**. `repair-page.jsx` é porte REVERSO dos blades (cabeçalho l.1-2; §5 2026-08-28); a aba comparada é `Folhas de OS` (repair-page.jsx:144-256, origem `job_sheet/index.blade.php`). Estado no vivo medido em 2026-09-06 sobre `origin/main` `80bc4ef8b9`, com `grep -n`. Lidos antes: `Index.charter.md` v3 (Non-Goals l.51-55, UX Target l.65, anti-hook l.93, nota l.26-27); a tela **não tem** `Index.casos.md` (trio incompleto, já declarado no charter). O vivo busca a lista no endpoint DataTables AJAX compartilhado com o Blade (`datatable_url`, JobSheetController.php:79-288) e só pode consumir campos escalares desse payload (UX Target l.65). Dado mock do protótipo não é gap.
+> Fase 1 do protocolo (`memory/reference/prototipo-ui/PROTOCOL.md`) em modo **PARIDADE**. `repair-page.jsx` é porte REVERSO dos blades (cabeçalho l.1-2; §5 2026-08-28); a aba comparada é `Folhas de OS` (repair-page.jsx:144-256, origem `job_sheet/index.blade.php`). Estado no vivo medido em 2026-09-06 sobre `origin/main` `80bc4ef8b9`, com `grep -n`. Lidos antes: `Index.charter.md` v3 (Non-Goals l.51-55, UX Target l.65, anti-hook l.93, nota l.26-27); a tela **não tem** `Index.casos.md` (trio incompleto, já declarado no charter). O vivo busca a lista no endpoint DataTables AJAX compartilhado com o Blade (`datatable_url`, JobSheetController.php:79-288) e só pode consumir campos escalares desse payload (UX Target l.65). Dado mock do protótipo não é gap.
 
 | Parte | Estado no vivo | Ação |
 |---|---|---|

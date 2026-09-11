@@ -8,9 +8,9 @@ id: requisitos-design-system-adr-ui-0032-alvo-de-toque-erp-denso-1280
 - **Data**: 2026-09-05
 - **Decisores**: [W] (decide — é postura de conformidade e história de toque do produto), Claude Code (medição)
 - **Categoria**: ui · fundações · acessibilidade
-- **Fecha a pergunta aberta em**: [REPAIR-ONDAS-2026-09-04](../../../../../prototipo-ui/design-docs/cowork-inbox/REPAIR-ONDAS-2026-09-04.md)
-  (linha A7 e item 6 do resíduo) · [handoff-crm/PEDIDO-CODE](../../../../../prototipo-ui/design-docs/handoff-crm/PEDIDO-CODE.md)
-  (linha A7 e item 6) · [COLAR-NO-CODE-AUTOMACAO-DO-PROTOCOLO](../../../../../prototipo-ui/design-docs/cowork-inbox/COLAR-NO-CODE-AUTOMACAO-DO-PROTOCOLO.md)
+- **Fecha a pergunta aberta em**: `REPAIR-ONDAS-2026-09-04` (`prototipo-ui/design-docs/cowork-inbox/REPAIR-ONDAS-2026-09-04.md`, removido do git em 2026-09-11 · #7224 · ADR 0397)
+  (linha A7 e item 6 do resíduo) · `handoff-crm/PEDIDO-CODE` (`prototipo-ui/design-docs/handoff-crm/PEDIDO-CODE.md`, removido do git em 2026-09-11 · #7224 · ADR 0397)
+  (linha A7 e item 6) · `COLAR-NO-CODE-AUTOMACAO-DO-PROTOCOLO` (`prototipo-ui/design-docs/cowork-inbox/COLAR-NO-CODE-AUTOMACAO-DO-PROTOCOLO.md`, removido do git em 2026-09-11 · #7224 · ADR 0397)
   (lista de decisões [W])
 - **Refs**: [UI-0013](0013-constituicao-ui-v2-camadas.md) (Constituição UI v2 — camada Fundações) ·
   [PRE-MERGE-UI](../../PRE-MERGE-UI.md) · [ADR 0109](../../../../decisions/0109-claude-design-plugin-integrado-processo-mwart.md) e
@@ -69,7 +69,7 @@ visibilidade por computed style; **duas leituras** com intervalo, aceitando só 
 de 20×20 tem de passar pela exceção de espaçamento, par de 16×16 colados tem de reprovar — passou
 nos dois sentidos, nomeando o vizinho da colisão).
 
-**Onde**: espelho do protótipo em `prototipo-ui/cowork/` no estado de `origin/main`, servido local,
+**Onde**: espelho do protótipo em `prototipo-ui/cowork/Wagner/` no estado de `origin/main`, servido local,
 em iframe com viewport **exatamente 1280×900**, depois do sinal `__oiLazyDone`.
 
 **A exceção de ESPAÇAMENTO da 2.5.8 está implementada** — círculo de diâmetro 24 centrado no alvo
@@ -137,9 +137,9 @@ produção foi medida com dado ralo e o protótipo com mock cheio**; nenhum dos 
 Larissa. O que os dois concordam, e é o que sustenta a decisão, é a **estrutura**: a exceção de
 espaçamento absorve 96–97% dos "abaixo de 24", e o resíduo é um punhado de componentes nomeáveis.
 - **Forja**: **não existe medição**, nem aqui nem em lugar nenhum. Três documentos afirmam que a
-  pergunta está *"aberta também na Forja"* — [handoff-crm/PEDIDO-CODE](../../../../../prototipo-ui/design-docs/handoff-crm/PEDIDO-CODE.md) (linha 213),
+  pergunta está *"aberta também na Forja"* — `handoff-crm/PEDIDO-CODE` (`prototipo-ui/design-docs/handoff-crm/PEDIDO-CODE.md`, removido do git em 2026-09-11 · #7224 · ADR 0397) (linha 213),
   [CODE_NOTES.md](../../../../../CODE_NOTES.md) (linha 150) e
-  [REPAIR-ONDAS](../../../../../prototipo-ui/design-docs/cowork-inbox/REPAIR-ONDAS-2026-09-04.md) (linha 283) —
+  `REPAIR-ONDAS` (`prototipo-ui/design-docs/cowork-inbox/REPAIR-ONDAS-2026-09-04.md`, removido do git em 2026-09-11 · #7224 · ADR 0397) (linha 283) —
   e **nenhum deles mede a Forja**. Varredura contada de `alvo de toque` no repo inteiro (`git grep`,
   todos os tipos de arquivo): **18 arquivos**; destes, 5 citam "forja", e ao abrir os 5 nenhum traz
   medição — 3 são a mesma frase propagada de um para o outro, e 2 são o rótulo do Tweak *"Alvo de
@@ -284,7 +284,7 @@ nível traz junto tudo que hoje está filtrado.
 
 ## 8 · Como re-derivar os números (não confie nesta tabela, rode)
 
-- **Lado design**: servir `prototipo-ui/cowork/` e medir em iframe de 1280×900 após `__oiLazyDone`,
+- **Lado design**: servir `prototipo-ui/cowork/Wagner/` e medir em iframe de 1280×900 após `__oiLazyDone`,
   com a sonda de `getBoundingClientRect` + exceção de espaçamento e o controle positivo.
 - **Lado produção**: a sonda é [`e2e/alvo-de-toque-medicao.probe.ts`](../../../../../e2e/alvo-de-toque-medicao.probe.ts)
   (report-only, nunca falha, nunca assere limiar). Ela **não roda sozinha**, de propósito: o
@@ -375,7 +375,7 @@ sub-24** — 14 de 14 regras de `height`/`padding` no CSS do protótipo, menor a
 O `.pb-kebab` é só o wrapper (`produto-blade.css:160` → `position:relative`).
 
 Ele **é** reincidente e **é** compartilhado, mas no eixo **nome acessível** — item **8** do bloco 7 do
-[PEDIDO-CODE](../../../../../prototipo-ui/design-docs/handoff-crm/PEDIDO-CODE.md) (`:179`: svg do
+`PEDIDO-CODE` (`prototipo-ui/design-docs/handoff-crm/PEDIDO-CODE.md`, removido do git em 2026-09-11 · #7224 · ADR 0397) (`:179`: svg do
 gatilho sem `aria-hidden` + rótulo fixo *"Ações do produto"* aparecendo na grade de leads). O item de
 tamanho é o **6** (`:177`), e o alvo dele é o `.jc-updated-b`. São dívidas distintas, com donos
 distintos.

@@ -47,8 +47,8 @@ ok(/prototipo-ui\/\*\*/.test(yml) && /resources\/js\/Pages\/\*\*/.test(yml),
   'T3 paths-filter cobre prototipo-ui/** + resources/js/Pages/**');
 
 // ---- T4 — invoca os dois scripts ------------------------------------------
-ok(/prototipo-ui\/ds-guard\.mjs/.test(yml), 'T4 invoca prototipo-ui/ds-guard.mjs (§8)');
-ok(/prototipo-ui\/integrity-check\.mjs/.test(yml), 'T4 invoca prototipo-ui/integrity-check.mjs (§15)');
+ok(/prototipo-ui\/ds-guard\.mjs/.test(yml), 'T4 invoca scripts/design/ds-guard.mjs (§8)');
+ok(/prototipo-ui\/integrity-check\.mjs/.test(yml), 'T4 invoca scripts/design/integrity-check.mjs (§15)');
 
 // ---- T5 — alimenta ds-guard com arquivos tocados via git diff -------------
 ok(/git diff --name-only/.test(yml), 'T5 usa git diff --name-only pra arquivos tocados');

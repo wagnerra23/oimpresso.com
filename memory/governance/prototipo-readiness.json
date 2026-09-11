@@ -63,7 +63,7 @@
       "arquivo": "resources/js/Pages/Arquivos/Index.tsx",
       "modulo": "core",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/arquivos-page.jsx",
+      "prototipo": "prototipo-ui/cowork/Wagner/arquivos-page.jsx",
       "falta": [
         "scorecard"
       ]
@@ -73,7 +73,7 @@
       "arquivo": "resources/js/Pages/Backup/Index.tsx",
       "modulo": "core",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/backup-page.jsx",
+      "prototipo": "prototipo-ui/cowork/Wagner/backup-page.jsx",
       "falta": [
         "scorecard"
       ]
@@ -83,7 +83,7 @@
       "arquivo": "resources/js/Pages/Essentials/Documents/Index.tsx",
       "modulo": "core",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/essenciais-page.jsx#Arquivos (:338-400)",
+      "prototipo": "prototipo-ui/cowork/Wagner/essenciais-page.jsx#Arquivos (:338-400)",
       "falta": [
         "casos.md-com-UC"
       ]
@@ -93,7 +93,7 @@
       "arquivo": "resources/js/Pages/Essentials/Knowledge/Index.tsx",
       "modulo": "core",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/essenciais-extras.jsx#BaseConhecimento (:127-188)",
+      "prototipo": "prototipo-ui/cowork/Wagner/essenciais-extras.jsx#BaseConhecimento (:127-188)",
       "falta": [
         "casos.md-com-UC"
       ]
@@ -103,7 +103,7 @@
       "arquivo": "resources/js/Pages/Essentials/Messages/Index.tsx",
       "modulo": "core",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/essenciais-page.jsx#Mensagens (:565-622) — mural bespoke, NÃO segue um dos 5 Padrões de Tela",
+      "prototipo": "prototipo-ui/cowork/Wagner/essenciais-page.jsx#Mensagens (:565-622) — mural bespoke, NÃO segue um dos 5 Padrões de Tela",
       "falta": [
         "casos.md-com-UC"
       ]
@@ -113,7 +113,7 @@
       "arquivo": "resources/js/Pages/Essentials/Metas.tsx",
       "modulo": "core",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/hrm-extras.jsx (Metas) · herda PT-01 Lista",
+      "prototipo": "prototipo-ui/cowork/Wagner/hrm-extras.jsx (Metas) · herda PT-01 Lista",
       "falta": [
         "scorecard"
       ]
@@ -123,7 +123,7 @@
       "arquivo": "resources/js/Pages/Essentials/Reminders/Index.tsx",
       "modulo": "core",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/essenciais-page.jsx#Lembretes (:444-537)",
+      "prototipo": "prototipo-ui/cowork/Wagner/essenciais-page.jsx#Lembretes (:444-537)",
       "falta": [
         "casos.md-com-UC"
       ]
@@ -133,7 +133,7 @@
       "arquivo": "resources/js/Pages/Essentials/Tipos.tsx",
       "modulo": "core",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/hrm-page.jsx (subview \"tipos\" · copy literal)",
+      "prototipo": "prototipo-ui/cowork/Wagner/hrm-page.jsx (subview \"tipos\" · copy literal)",
       "falta": [
         "scorecard"
       ]
@@ -143,7 +143,7 @@
       "arquivo": "resources/js/Pages/Essentials/Todo/Index.tsx",
       "modulo": "core",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/essenciais-page.jsx#Tarefas (:33-231)",
+      "prototipo": "prototipo-ui/cowork/Wagner/essenciais-page.jsx#Tarefas (:33-231)",
       "falta": [
         "casos.md-com-UC"
       ]
@@ -153,7 +153,7 @@
       "arquivo": "resources/js/Pages/Jana/Acoes.tsx",
       "modulo": "core",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/jana-telas-novas.jsx",
+      "prototipo": "prototipo-ui/cowork/Wagner/jana-telas-novas.jsx",
       "falta": [
         "scorecard"
       ]
@@ -163,7 +163,7 @@
       "arquivo": "resources/js/Pages/Jana/Alertas.tsx",
       "modulo": "core",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/jana-telas-novas.jsx",
+      "prototipo": "prototipo-ui/cowork/Wagner/jana-telas-novas.jsx",
       "falta": [
         "scorecard"
       ]
@@ -173,7 +173,7 @@
       "arquivo": "resources/js/Pages/Jana/Plataforma.tsx",
       "modulo": "core",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/jana-telas-novas.jsx",
+      "prototipo": "prototipo-ui/cowork/Wagner/jana-telas-novas.jsx",
       "falta": [
         "scorecard"
       ]
@@ -183,7 +183,7 @@
       "arquivo": "resources/js/Pages/kb/Index.v2.tsx",
       "modulo": "core",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/kb-page.jsx",
+      "prototipo": "prototipo-ui/cowork/Wagner/kb-page.jsx",
       "falta": [
         "scorecard"
       ]
@@ -193,7 +193,7 @@
       "arquivo": "resources/js/Pages/Manufacturing/Insumos.tsx",
       "modulo": "core",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/manufacturing-insumos.jsx",
+      "prototipo": "prototipo-ui/cowork/Wagner/manufacturing-insumos.jsx",
       "falta": [
         "scorecard"
       ]
@@ -203,7 +203,7 @@
       "arquivo": "resources/js/Pages/Manufacturing/Recipes.tsx",
       "modulo": "core",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/manufacturing-page.jsx",
+      "prototipo": "prototipo-ui/cowork/Wagner/manufacturing-page.jsx",
       "falta": [
         "scorecard"
       ]
@@ -213,7 +213,7 @@
       "arquivo": "resources/js/Pages/Manufacturing/Report.tsx",
       "modulo": "core",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/manufacturing-producao.jsx",
+      "prototipo": "prototipo-ui/cowork/Wagner/manufacturing-producao.jsx",
       "falta": [
         "scorecard"
       ]
@@ -223,7 +223,7 @@
       "arquivo": "resources/js/Pages/Manufacturing/Settings.tsx",
       "modulo": "core",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/manufacturing-producao.jsx",
+      "prototipo": "prototipo-ui/cowork/Wagner/manufacturing-producao.jsx",
       "falta": [
         "scorecard"
       ]
@@ -233,7 +233,7 @@
       "arquivo": "resources/js/Pages/Patrimonio/Alocacoes.tsx",
       "modulo": "core",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/patrimonio-page.jsx",
+      "prototipo": "prototipo-ui/cowork/Wagner/patrimonio-page.jsx",
       "falta": [
         "scorecard"
       ]
@@ -243,7 +243,7 @@
       "arquivo": "resources/js/Pages/Patrimonio/Bens.tsx",
       "modulo": "core",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/patrimonio-page.jsx",
+      "prototipo": "prototipo-ui/cowork/Wagner/patrimonio-page.jsx",
       "falta": [
         "scorecard"
       ]
@@ -253,7 +253,7 @@
       "arquivo": "resources/js/Pages/Patrimonio/Configuracoes.tsx",
       "modulo": "core",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/patrimonio-page.jsx",
+      "prototipo": "prototipo-ui/cowork/Wagner/patrimonio-page.jsx",
       "falta": [
         "scorecard"
       ]
@@ -263,7 +263,7 @@
       "arquivo": "resources/js/Pages/Patrimonio/Index.tsx",
       "modulo": "core",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/patrimonio-page.jsx",
+      "prototipo": "prototipo-ui/cowork/Wagner/patrimonio-page.jsx",
       "falta": [
         "scorecard"
       ]
@@ -273,7 +273,7 @@
       "arquivo": "resources/js/Pages/Patrimonio/Manutencoes.tsx",
       "modulo": "core",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/patrimonio-page.jsx",
+      "prototipo": "prototipo-ui/cowork/Wagner/patrimonio-page.jsx",
       "falta": [
         "scorecard"
       ]
@@ -283,7 +283,7 @@
       "arquivo": "resources/js/Pages/Sells/Caixa/Index.tsx",
       "modulo": "core",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/vendas-extras.jsx · função VendasCaixaPage (linhas 123-354)",
+      "prototipo": "prototipo-ui/cowork/Wagner/vendas-extras.jsx · função VendasCaixaPage (linhas 123-354)",
       "falta": [
         "casos.md-com-UC"
       ]
@@ -293,7 +293,7 @@
       "arquivo": "resources/js/Pages/Sells/CreateV3.tsx",
       "modulo": "core",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/venda-v3/sells-create.jsx",
+      "prototipo": "prototipo-ui/cowork/Wagner/venda-v3/sells-create.jsx",
       "falta": [
         "scorecard"
       ]
@@ -303,7 +303,7 @@
       "arquivo": "Modules/Forja/Resources/js/Pages/Forja/Aprovacoes/Index.tsx",
       "modulo": "Forja",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/forja-aprova.jsx",
+      "prototipo": "prototipo-ui/cowork/Wagner/forja-aprova.jsx",
       "falta": [
         "scorecard"
       ]
@@ -313,7 +313,7 @@
       "arquivo": "Modules/Forja/Resources/js/Pages/Forja/Trabalho/Index.tsx",
       "modulo": "Forja",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/forja-page.jsx",
+      "prototipo": "prototipo-ui/cowork/Wagner/forja-page.jsx",
       "falta": [
         "scorecard"
       ]
@@ -323,7 +323,7 @@
       "arquivo": "Modules/Forja/Resources/js/Pages/team-mcp/Forja/Cockpit.tsx",
       "modulo": "Forja",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/forja-page.jsx",
+      "prototipo": "prototipo-ui/cowork/Wagner/forja-page.jsx",
       "falta": [
         "scorecard"
       ]
@@ -333,7 +333,7 @@
       "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Index.tsx",
       "modulo": "Officeimpresso",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/officeimpresso-page.jsx",
+      "prototipo": "prototipo-ui/cowork/Wagner/officeimpresso-page.jsx",
       "falta": [
         "scorecard"
       ]
@@ -343,7 +343,7 @@
       "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Timeline.tsx",
       "modulo": "Officeimpresso",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/officeimpresso-page.jsx",
+      "prototipo": "prototipo-ui/cowork/Wagner/officeimpresso-page.jsx",
       "falta": [
         "scorecard"
       ]
@@ -353,7 +353,7 @@
       "arquivo": "Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/Index.tsx",
       "modulo": "PaymentGateway",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/pg-payment-gateways-page.jsx (Cowork \"payment-gateway-ui\" F1+F1.5, aprovado [W] 2026-05-19)",
+      "prototipo": "prototipo-ui/cowork/Wagner/pg-payment-gateways-page.jsx (Cowork \"payment-gateway-ui\" F1+F1.5, aprovado [W] 2026-05-19)",
       "falta": [
         "casos.md-com-UC"
       ]
@@ -363,7 +363,7 @@
       "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx",
       "modulo": "Superadmin",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/superadmin-page.jsx",
+      "prototipo": "prototipo-ui/cowork/Wagner/superadmin-page.jsx",
       "falta": [
         "scorecard"
       ]
@@ -373,7 +373,7 @@
       "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx",
       "modulo": "Superadmin",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/superadmin-page.jsx",
+      "prototipo": "prototipo-ui/cowork/Wagner/superadmin-page.jsx",
       "falta": [
         "scorecard"
       ]
@@ -383,7 +383,7 @@
       "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Negocios/Index.tsx",
       "modulo": "Superadmin",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/superadmin-page.jsx",
+      "prototipo": "prototipo-ui/cowork/Wagner/superadmin-page.jsx",
       "falta": [
         "scorecard"
       ]
@@ -393,7 +393,7 @@
       "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.tsx",
       "modulo": "Superadmin",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/superadmin-page.jsx",
+      "prototipo": "prototipo-ui/cowork/Wagner/superadmin-page.jsx",
       "falta": [
         "scorecard"
       ]

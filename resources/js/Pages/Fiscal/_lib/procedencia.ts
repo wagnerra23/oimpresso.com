@@ -8,7 +8,7 @@
 //    selos moram na Page — dois pontos da árvore que precisam do mesmo booleano. Um store
 //    externo evita envolver as 7 telas do módulo num Provider só para carregar um bit, e
 //    de quebra faz a preferência sobreviver à navegação SPA entre elas. A chave e os
-//    valores ("1"/"0") são os do protótipo (`prototipo-ui/cowork/fiscal-actions.jsx:17,88`).
+//    valores ("1"/"0") são os do protótipo (`prototipo-ui/cowork/Wagner/fiscal-actions.jsx:17,88`).
 //
 // 2. Este arquivo é `.ts` e os componentes moram em `_components/SeloProcedencia.tsx`.
 //    `react-refresh/only-export-components` reprova arquivo que exporta componentes E

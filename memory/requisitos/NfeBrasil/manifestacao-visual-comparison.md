@@ -20,9 +20,9 @@ approved_at: 2026-05-09
 > **Persona secundária:** Contador terceiro (relatório mensal manifestações)
 > **Refs:**
 > - Blade legacy: ❌ **n/a** — tela nasce greenfield (não há legado pra portar)
-> - Canon Cockpit principal: [`os-page.jsx`](../../../prototipo-ui/cowork/os-page.jsx) — list+detail com bulk
-> - Canon Cockpit secundário: [`tasks.jsx`](../../../prototipo-ui/cowork/tasks.jsx) — inbox padrão (atalhos J/K + prazo countdown)
->   <br>⚠️ _Ponteiro atualizado em 2026-09-08 (o fato de 2026-05-09 fica): os dois arquivos seguem sendo o canon citado, mas o diretório `_DesignSystem/ui_kits/cowork-2026-04-27/` **não existe mais** no repo (0 arquivos sob `ui_kits`). Eles vivem hoje em `prototipo-ui/cowork/`. Isto é conserto de **caminho**, não revisão do veredito — e nenhum dos dois é âncora desta tela: `os-page.jsx` desenha Ordens de Serviço e `tasks.jsx` desenha Tarefas, então entram aqui como **referência de padrão**, papel que hoje é do PT-01 (§5 2026-08-11)._
+> - Canon Cockpit principal: [`os-page.jsx`](../../../prototipo-ui/cowork/Wagner/os-page.jsx) — list+detail com bulk
+> - Canon Cockpit secundário: [`tasks.jsx`](../../../prototipo-ui/cowork/Wagner/tasks.jsx) — inbox padrão (atalhos J/K + prazo countdown)
+>   <br>⚠️ _Ponteiro atualizado em 2026-09-08 (o fato de 2026-05-09 fica): os dois arquivos seguem sendo o canon citado, mas o diretório `_DesignSystem/ui_kits/cowork-2026-04-27/` **não existe mais** no repo (0 arquivos sob `ui_kits`). Eles vivem hoje em `prototipo-ui/cowork/Wagner/`. Isto é conserto de **caminho**, não revisão do veredito — e nenhum dos dois é âncora desta tela: `os-page.jsx` desenha Ordens de Serviço e `tasks.jsx` desenha Tarefas, então entram aqui como **referência de padrão**, papel que hoje é do PT-01 (§5 2026-08-11)._
 > - RUNBOOK: [`RUNBOOK-manifestacao.md`](RUNBOOK-manifestacao.md)
 > - SPEC: [`SPEC.md` US-NFE-052](SPEC.md)
 > - Backend: [PR #313](https://github.com/wagnerra23/oimpresso.com/pull/313) (US-NFE-049/050/051)
@@ -233,7 +233,7 @@ Skill mwart-comparative V4 orquestra 6 sub-skills do Claude Design plugin. Pra e
 > Wagner aprova / ajusta / rejeita. Após aprovação:
 > 1. Mudar `status: draft → approved` no frontmatter
 > 2. Assinar `approved_by: wagner` + `approved_at: <data>`
-> 3. Apender linha em [`prototipo-ui/SYNC_LOG.md`](../../../prototipo-ui/SYNC_LOG.md): `2026-MM-DD HH:MM [W] approved manifestacao-visual-comparison`
+> 3. Apender linha em [`memory/reference/prototipo-ui/SYNC_LOG.md`](../../../memory/reference/prototipo-ui/SYNC_LOG.md): `2026-MM-DD HH:MM [W] approved manifestacao-visual-comparison`
 > 4. Eu prossigo pra F3 IMPL (`Pages/NfeBrasil/Manifestacao/Index.tsx`)
 
 ### Opções de aprovação

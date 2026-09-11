@@ -2,7 +2,7 @@
 id: resources-js-pages-cliente-edit-charter
 page: /contacts/{id}/edit
 component: resources/js/Pages/Cliente/Edit.tsx
-related_prototype: prototipo-ui/cowork/cliente-form.jsx
+related_prototype: prototipo-ui/cowork/Wagner/cliente-form.jsx
 owner: wagner
 status: live
 last_validated: "2026-06-24"
@@ -12,7 +12,7 @@ related_adrs: [110, 107, 93, 94, 104, 149, 235]
 tier: A
 charter_version: 2
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/cowork/clientes-page.jsx"
+  blueprint_cowork: "prototipo-ui/cowork/Wagner/clientes-page.jsx"
   blueprint_screenshot_approval: "Wagner 2026-05-29 — PR-A Onda F (espelho do Create via ClienteForm)"
   derived_screens: [Edit]
   divergence_from_blueprint: "none"

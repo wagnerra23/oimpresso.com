@@ -14,7 +14,7 @@
 - **Blade legacy:** `{{BLADE_PATH}}`
 - **Controller:** `{{CONTROLLER_PATH}}@show`
 - **Rota legada:** `GET {{ROUTE_URI}}/{id}` (name: `{{ROUTE_NAME}}`)
-- **Mockup Cowork:** `prototipo-ui/prototipos/{{MODULE_KEBAB}}/visual-source.html`
+- **Mockup Cowork:** `prototipo-ui/cowork/Wagner/legado/{{MODULE_KEBAB}}/visual-source.html`
 - **Pages destino:** `resources/js/Pages/{{MODULE}}/{{TELA}}/Show.tsx`
 
 ## 2. Snapshot paridade

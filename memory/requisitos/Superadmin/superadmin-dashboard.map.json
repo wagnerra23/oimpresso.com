@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "superadmin/Dashboard/Index (/superadmin)",
   "gap_fonte": "memory/requisitos/Superadmin/superadmin-dashboard-gap.md",
   "prototipo_sha": "sha256:c3ba0e10c548",
@@ -9,7 +9,7 @@
     {
       "id": "pageheader-titulo",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/superadmin-page.jsx",
         "linhas": "609"
       },
       "vivo": {
@@ -24,7 +24,7 @@
     {
       "id": "pageheader-subtitulo-com-contagens",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/superadmin-page.jsx",
         "linhas": "599-759"
       },
       "vivo": {
@@ -39,7 +39,7 @@
     {
       "id": "pageheader-acoes-comunicador-ver-negocios",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/superadmin-page.jsx",
         "linhas": "599-759"
       },
       "vivo": {
@@ -54,7 +54,7 @@
     {
       "id": "segmented-de-periodo-nota-da-janela",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/superadmin-page.jsx",
         "linhas": "599-759"
       },
       "vivo": {
@@ -69,7 +69,7 @@
     {
       "id": "kpi-novas-assinaturas",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/superadmin-page.jsx",
         "linhas": "625"
       },
       "vivo": {
@@ -84,7 +84,7 @@
     {
       "id": "kpi-novos-cadastros",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/superadmin-page.jsx",
         "linhas": "626"
       },
       "vivo": {
@@ -99,7 +99,7 @@
     {
       "id": "kpi-sem-assinatura",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/superadmin-page.jsx",
         "linhas": "627"
       },
       "vivo": {
@@ -114,7 +114,7 @@
     {
       "id": "kpi-receita-recorrente",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/superadmin-page.jsx",
         "linhas": "599-759"
       },
       "vivo": {
@@ -129,7 +129,7 @@
     {
       "id": "bloco-trial-vira-assinatura",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/superadmin-page.jsx",
         "linhas": "599-759"
       },
       "vivo": {
@@ -144,7 +144,7 @@
     {
       "id": "bloco-churn",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/superadmin-page.jsx",
         "linhas": "599-759"
       },
       "vivo": {
@@ -159,7 +159,7 @@
     {
       "id": "bloco-receita-por-pacote",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/superadmin-page.jsx",
         "linhas": "599-759"
       },
       "vivo": {
@@ -174,7 +174,7 @@
     {
       "id": "fila-vencendo-ou-vencido",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/superadmin-page.jsx",
         "linhas": "599-759"
       },
       "vivo": {
@@ -189,7 +189,7 @@
     {
       "id": "tendencia-mensal",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/superadmin-page.jsx",
         "linhas": "599-759"
       },
       "vivo": {
@@ -204,7 +204,7 @@
     {
       "id": "bloco-o-que-fazer-primeiro",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/superadmin-page.jsx",
         "linhas": "599-759"
       },
       "vivo": {
@@ -219,7 +219,7 @@
     {
       "id": "cadastros-recentes-tabela",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/superadmin-page.jsx",
         "linhas": "739-748"
       },
       "vivo": {
@@ -234,7 +234,7 @@
     {
       "id": "cadastros-recentes-colunas-dono-pacote-mrr-cidade",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/superadmin-page.jsx",
         "linhas": "599-759"
       },
       "vivo": {
@@ -249,7 +249,7 @@
     {
       "id": "cadastros-recentes-header",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/superadmin-page.jsx",
         "linhas": "599-759"
       },
       "vivo": {
@@ -264,7 +264,7 @@
     {
       "id": "estado-carregando",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/superadmin-page.jsx",
         "linhas": "599-759"
       },
       "vivo": {
@@ -279,7 +279,7 @@
     {
       "id": "estado-vazio",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/superadmin-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/superadmin-page.jsx",
         "linhas": "599-759"
       },
       "vivo": {

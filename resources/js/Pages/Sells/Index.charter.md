@@ -5,7 +5,7 @@ page_id: sells-index
 component: resources/js/Pages/Sells/Index.tsx
 related_visual_comparison: memory/requisitos/Sells/sells-index-dsv6-visual-comparison.md
 bundle_source: vendas-page.jsx
-related_prototype: prototipo-ui/cowork/vendas-page.jsx (formalizado 2026-07-09 — o visual_source já declarava vendas-page.jsx; campo canônico registrado pra âncora via ancora.mjs + proto-baseline)
+related_prototype: prototipo-ui/cowork/Wagner/vendas-page.jsx (formalizado 2026-07-09 — o visual_source já declarava vendas-page.jsx; campo canônico registrado pra âncora via ancora.mjs + proto-baseline)
 owner: wagner
 status: live
 last_validated: "2026-07-01"
@@ -25,7 +25,7 @@ related_adrs:
   - 0189-pageheader-canon-v3-1-cadastro-roxo
   - 0190-primary-button-roxo-universal-295
   - 0192-auto-faturar-os-venda-jobsheet-observer
-visual_source: prototipo-ui/cowork/vendas-page.jsx + KB-9.75 batch Cowork (2026-05-25 → 2026-05-26)
+visual_source: prototipo-ui/cowork/Wagner/vendas-page.jsx + KB-9.75 batch Cowork (2026-05-25 → 2026-05-26)
 canon_method: Cowork KB-9.75 + Unificação tabs Visão (ADR 0178) + Integração Vendas × Oficina (ADR 0192) + Emit modais + BulkActionBar + saved view Aguardando faturamento (PRs #1641 / #1644 / #1648 / #1649)
 ---
 

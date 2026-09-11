@@ -1,7 +1,7 @@
 /**
  * ColunasModal — onda 6 do preview `/sells/create-v3`.
  *
- * Porte de `prototipo-ui/cowork/venda-v3/sells-colunas.jsx`: escolher e reordenar as
+ * Porte de `prototipo-ui/cowork/Felipe/venda-v3/sells-colunas.jsx`: escolher e reordenar as
  * colunas do grid de itens, incluindo as fiscais. O domínio (catálogo, saneamento,
  * mover, alternar) mora em `colunas-dominio.ts`, provado em
  * `tests/js/colunas-dominio.test.ts` — 21/21.

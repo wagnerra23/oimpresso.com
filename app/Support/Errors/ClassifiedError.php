@@ -16,7 +16,7 @@ use Throwable;
  * As exceções de domínio do Mapa de Severidade (fiscal, cobrança, OS, ...)
  * graduam pra cá conforme [W] for preenchendo o Mapa.
  *
- * @see prototipo-ui/handoffs/erros-fase1-classificacao.md
+ * @see prototipo-ui/cowork/Wagner/handoffs/erros-fase1-classificacao.md
  */
 interface ClassifiedError extends Throwable
 {

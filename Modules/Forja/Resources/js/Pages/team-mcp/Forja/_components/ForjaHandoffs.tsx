@@ -6,7 +6,7 @@
 //   adrs: 0283 (loop de handoff zero-paste) · 0388 (réplica primeiro) · 0093 (Tier 0) · UI-0013
 //   permissao: jana.mcp.usage.all
 //   paridade: `cowork_handoffs` via ForjaMcpService::handoffs()/heartbeat()
-//   fonte visual: prototipo-ui/cowork/forja-mcp.jsx `function HandoffPanel`
+//   fonte visual: prototipo-ui/cowork/Wagner/forja-mcp.jsx `function HandoffPanel`
 //
 // VOLTOU PRA DENTRO DA ABA MCP (PARIDADE §11 Onda 8, 2026-09-02)
 // Em 2026-08-08 esta seção virou tela própria, com um argumento correto na época:

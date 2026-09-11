@@ -18,7 +18,7 @@ last_run: "2026-09-04"
 > **Retenção** — a onda 1 fecha com as 4 vistas do charter. Declarar os 14 cenários do protótipo F1 como UC de uma vez criaria órfãos e quebraria
 > o G-2, porque o teste que os defende ainda não existe. Eles ficam abaixo como `[BACKLOG]` —
 > prosa honesta, sem id — e **viram UC na onda que traz o teste que os defende**.
-> Fonte: `prototipo-ui/cowork/arquivos-page.jsx`.
+> Fonte: `prototipo-ui/cowork/Wagner/arquivos-page.jsx`.
 
 ---
 

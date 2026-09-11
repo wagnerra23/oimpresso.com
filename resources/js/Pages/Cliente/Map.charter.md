@@ -2,7 +2,7 @@
 id: resources-js-pages-cliente-map-charter
 page: /contacts/map
 component: resources/js/Pages/Cliente/Map.tsx
-related_prototype: prototipo-ui/cowork/cliente-mapa.jsx
+related_prototype: prototipo-ui/cowork/Wagner/cliente-mapa.jsx
 related_us: [US-CRM-091]
 owner: wagner
 status: live
@@ -12,7 +12,7 @@ related_adrs: [110, 107, 93, 94, 104, 149]
 tier: A
 charter_version: 1
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/cowork/clientes-page.jsx"
+  blueprint_cowork: "prototipo-ui/cowork/Wagner/clientes-page.jsx"
   blueprint_screenshot_approval: "N/A (divergente)"
   derived_screens: [Map]
   divergence_from_blueprint: "split-screen com mapa lateral, divergente do Index lista"
@@ -26,7 +26,7 @@ related_visual_comparison: memory/requisitos/Crm/cliente-map-visual-comparison.m
 
 ## Mission
 
-Visualização geográfica dos clientes com lista lateral pesquisável + mapa embed **OpenStreetMap** (sem chave de API — trocado de Google Maps em 2026-08-26 pela Onda 3 da paridade, ancorado em `prototipo-ui/cowork/cliente-mapa.jsx`). Substitui Blade `contact.contact_map.blade.php` mantendo `$contact->position` (campo legacy "lat,lng" string).
+Visualização geográfica dos clientes com lista lateral pesquisável + mapa embed **OpenStreetMap** (sem chave de API — trocado de Google Maps em 2026-08-26 pela Onda 3 da paridade, ancorado em `prototipo-ui/cowork/Wagner/cliente-mapa.jsx`). Substitui Blade `contact.contact_map.blade.php` mantendo `$contact->position` (campo legacy "lat,lng" string).
 
 ## Goals
 

@@ -1,6 +1,6 @@
 ---
 tela: RecurringBilling/Index (/recurring-billing)
-prototipo: prototipo-ui/cowork/cobranca-recorrente-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx
 tela_viva: resources/js/Pages/RecurringBilling/Index.tsx
 id: requisitos-recurring-billing-cobranca-recorrente-gap
 ---

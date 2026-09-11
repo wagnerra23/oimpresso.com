@@ -21,7 +21,7 @@
 //                        o worktree do agente raramente tem PHP; no CI o dono é quem vale
 //   R3 glifo/emoji     → UiLintCommand.php (R3)                        — idem
 //   R4 PT-01 canon     → UiLintCommand.php (R4)                        — idem
-//   PALETA             → prototipo-ui/ds-guard.mjs (delegado, --report)
+//   PALETA             → scripts/design/ds-guard.mjs (delegado, --report)
 //   FONTRAMP           → scripts/conformance-gate.mjs (.fontramp-baseline.json) — contagem espelhada
 //   IMPORTANT          → stylelint declaration-no-important (config/stylelint-baseline.json)
 //   HEX-CSS            → stylelint color-no-hex — contagem espelhada
@@ -43,7 +43,7 @@
 //
 // USO
 //   node scripts/governance/replica-inconsistencias.mjs --modulo Forja
-//   node scripts/governance/replica-inconsistencias.mjs --modulo Forja --prototipo prototipo-ui/cowork/forja-*.jsx
+//   node scripts/governance/replica-inconsistencias.mjs --modulo Forja --prototipo prototipo-ui/cowork/Wagner/forja-*.jsx
 //        ^ mede TAMBÉM o que vai entrar (o JSX do protótipo) e marca como "entrada prevista"
 //   node scripts/governance/replica-inconsistencias.mjs --files a.tsx b.css --modulo X
 //        ^ escopo dado à mão: o eixo ESLINT-DS (que é por MÓDULO) NÃO roda neste modo
@@ -92,7 +92,7 @@ const DET = [
   { id: 'SINTAXE', nome: 'parênteses/chaves desbalanceados (o navegador tolera, o Tailwind v4 do Vite NÃO — "Missing opening (")', dono: 'build do Vite (@tailwindcss/vite)', ext: /\.css$/,
     conta: (t) => { const c = t.replace(/\/\*[\s\S]*?\*\//g, ''); const n = (ch) => c.split(ch).length - 1; return (n('(') !== n(')') ? 1 : 0) + (n('{') !== n('}') ? 1 : 0); },
     exemplo: (t) => { const c = t.replace(/\/\*[\s\S]*?\*\//g, ''); const bad = c.split(/\r?\n/).map((l, i) => [i + 1, (l.match(/\(/g) || []).length - (l.match(/\)/g) || []).length]).filter(([, d]) => d !== 0).slice(0, 3); return bad.map(([ln, d]) => `linha ${ln} (${d > 0 ? '+' : ''}${d})`).join(' · '); } },
-  { id: 'PALETA', nome: 'família de tokens de cor com prefixo próprio (>=4)', dono: 'prototipo-ui/ds-guard.mjs', ext: /\.css$/,
+  { id: 'PALETA', nome: 'família de tokens de cor com prefixo próprio (>=4)', dono: 'scripts/design/ds-guard.mjs', ext: /\.css$/,
     conta: (t, f) => {
       try {
         const out = execSync(`node "${join(ROOT, 'prototipo-ui', 'ds-guard.mjs')}" --report "${f}"`, { encoding: 'utf8', cwd: ROOT });

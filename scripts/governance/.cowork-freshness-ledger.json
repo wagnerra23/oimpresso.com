@@ -1309,10 +1309,10 @@
       "prototipo-ui-patch/app/Http/Controllers/ProdutoUnificadoController.php",
       "prototipo-ui-patch/ds-behavior.js",
       "prototipo-ui-patch/pageheader-canon-v4/index.html",
-      "prototipo-ui-patch/prototipo-ui/evals/AUTONOMY_LADDER.md",
-      "prototipo-ui-patch/prototipo-ui/evals/EVAL_PROTOCOL.md",
-      "prototipo-ui-patch/prototipo-ui/evals/GOLDEN_SET.md",
-      "prototipo-ui-patch/prototipo-ui/evals/REPLAY_CASES.md",
+      "prototipo-ui-patch/tests/Design/evals/AUTONOMY_LADDER.md",
+      "prototipo-ui-patch/tests/Design/evals/EVAL_PROTOCOL.md",
+      "prototipo-ui-patch/tests/Design/evals/GOLDEN_SET.md",
+      "prototipo-ui-patch/tests/Design/evals/REPLAY_CASES.md",
       "prototipo-ui-patch/prototipos/_dark-tier1/mockup-pages.css",
       "prototipo-ui-patch/prototipos/_dark-tier1/oficina-os-page.css",
       "prototipo-ui-patch/prototipos/_dark-tier1/oficina-page.css",
@@ -4785,5 +4785,19 @@
       "voz-do-cliente-page.jsx": "cc69e438ed3dda67401383654ddf2225cdbebbd1f31f1fc5b9e6ba4b38d8e2a1"
     },
     "origin": "medicao"
+  },
+  {
+    "date": "2026-09-11T18:57:42.952Z",
+    "kind": "namespace-invalidation",
+    "origin": "ADR-0397",
+    "reason": "Mudança autorizada de topologia e referências; invalida a prova antiga sem afirmar fidelidade nova.",
+    "invalidated": [
+      "compras-grade-matrix.css",
+      "compras-grade-matrix.jsx",
+      "documentacao-page.jsx",
+      "inbox-page.jsx",
+      "oimpresso.com.html",
+      "venda-v3.jsx"
+    ]
   }
 ]

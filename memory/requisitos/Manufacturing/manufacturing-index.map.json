@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "Manufacturing/Index (/manufacturing/production)",
   "gap_fonte": "memory/requisitos/Manufacturing/manufacturing-index-gap.md",
   "prototipo_sha": "sha256:34e4ea8ca840",
@@ -9,7 +9,7 @@
     {
       "id": "header-do-modulo",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/manufacturing-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/manufacturing-page.jsx",
         "linhas": "148-157"
       },
       "vivo": {
@@ -24,7 +24,7 @@
     {
       "id": "abas-do-modulo",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/manufacturing-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/manufacturing-page.jsx",
         "linhas": "159-167"
       },
       "vivo": {
@@ -39,7 +39,7 @@
     {
       "id": "kpis",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/manufacturing-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/manufacturing-page.jsx",
         "linhas": "171-193"
       },
       "vivo": {
@@ -54,7 +54,7 @@
     {
       "id": "filtros",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/manufacturing-producao.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/manufacturing-producao.jsx",
         "linhas": "41-51"
       },
       "vivo": {
@@ -69,7 +69,7 @@
     {
       "id": "tabela-colunas",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/manufacturing-producao.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/manufacturing-producao.jsx",
         "linhas": "21"
       },
       "vivo": {
@@ -84,7 +84,7 @@
     {
       "id": "ordenacao-por-coluna",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/manufacturing-producao.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/manufacturing-producao.jsx",
         "linhas": "18"
       },
       "vivo": {
@@ -99,7 +99,7 @@
     {
       "id": "paginacao",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/manufacturing-producao.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/manufacturing-producao.jsx",
         "linhas": "77-85"
       },
       "vivo": {
@@ -114,7 +114,7 @@
     {
       "id": "rodape-do-periodo",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/manufacturing-producao.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/manufacturing-producao.jsx",
         "linhas": "87"
       },
       "vivo": {
@@ -129,7 +129,7 @@
     {
       "id": "estado-vazio",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/manufacturing-producao.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/manufacturing-producao.jsx",
         "linhas": "75"
       },
       "vivo": {
@@ -144,7 +144,7 @@
     {
       "id": "criar-editar-ordem-de-producao",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/manufacturing-producao.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/manufacturing-producao.jsx",
         "linhas": "94-189"
       },
       "vivo": {
@@ -159,7 +159,7 @@
     {
       "id": "drawer-de-detalhe-da-ordem",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/manufacturing-producao.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/manufacturing-producao.jsx",
         "linhas": "191-239"
       },
       "vivo": {
@@ -174,7 +174,7 @@
     {
       "id": "multi-tenant",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/manufacturing-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/manufacturing-page.jsx",
         "linhas": "TODO"
       },
       "vivo": {

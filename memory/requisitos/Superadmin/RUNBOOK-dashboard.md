@@ -18,7 +18,7 @@ spec_ref: memory/requisitos/Superadmin/SPEC.md
 F1 do MWART (ADR 0104) para a onda **SA-O1**. A tela hoje é Blade/AdminLTE
 (`superadmin::superadmin.index`) e passa a `Inertia::render`.
 
-- **Fonte de design:** `prototipo-ui/cowork/superadmin-page.jsx` → `ViewVisao()` (L599-757).
+- **Fonte de design:** `prototipo-ui/cowork/Wagner/superadmin-page.jsx` → `ViewVisao()` (L599-757).
   Desceu ao espelho em 19/08 por `--export-from` (fiel por construção); antes disso era
   LIVE-ONLY, existia no Cowork e **não** no git.
 - **Contrato + casos de origem:** `cowork-inbox/SUPERADMIN-F1-2026-08-18.md` no projeto Cowork.
@@ -261,7 +261,7 @@ passa por ali, e o próprio arquivo avisa para não desligar o cancel cegamente.
 
 ## 7. Refs
 
-- Protótipo: [`prototipo-ui/cowork/superadmin-page.jsx`](../../../prototipo-ui/cowork/superadmin-page.jsx) `ViewVisao()`
+- Protótipo: [`prototipo-ui/cowork/Wagner/superadmin-page.jsx`](../../../prototipo-ui/cowork/Wagner/superadmin-page.jsx) `ViewVisao()`
 - Charter: `Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.charter.md`
 - Casos: `Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.casos.md`
 - Service: [`SuperadminDashboardService`](../../../Modules/Superadmin/Services/SuperadminDashboardService.php)

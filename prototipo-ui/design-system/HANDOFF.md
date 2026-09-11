@@ -30,7 +30,7 @@ A versão anterior tinha virado catálogo da própria bagunça: uma seção "Err
 
 1. **Entrega repo-nativa** — Tailwind 4 + tokens existentes. Proibido `.om-*`, CSS cru do espelho, `#hex`/`oklch()` literal em arquivo de módulo.
 2. **Leu o `main` antes de afirmar.** Toda afirmação sobre o código cita **arquivo + linha medido por ferramenta**. Linha citada de memória é defeito — se não dá pra medir, cite arquivo e símbolo, sem número.
-3. **Canal é o repo.** Bloco de handoff em `prototipo-ui/COWORK_NOTES.md`. Sem URL efêmera como canal.
+3. **Canal é o repo.** Bloco de handoff em `memory/reference/prototipo-ui/COWORK_NOTES.md`. Sem URL efêmera como canal.
 4. **Contrato mora no elemento, não num wrapper.** `data-contract`, `aria-label` e recuo lateral vão na própria `<nav>`/`<table>`/`<section>`. `<div>` só pra pendurar atributo é regressão: o atributo deixa de descrever o elemento que nomeia, e o nó extra entra na chain de overflow (§2.11).
 5. **Sidebar é PRETA (dark-fixo) nos dois modos.** Fonte: bloco `Sidebar — DARK FIXO` em `resources/css/cockpit.css`.
 6. **Primary é roxo** `oklch(0.55 0.15 295)`.
@@ -99,7 +99,7 @@ Nascem em `resources/css/tokens/*.tokens.json` (DTCG) → Style Dictionary → `
 ```bash
 npm run tokens:build
 node scripts/design-sync/ds-push.mjs            # monta e valida (sai !=0 se VALOR>0)
-node scripts/design-sync/ds-push.mjs --write    # + refresca o mirror-snapshot
+node scripts/design-sync/ds-push.mjs --write    # atualiza o design-system canônico
 node scripts/governance/ds-mirror-drift.mjs     # sentinela de divergência
 ```
 
@@ -108,7 +108,7 @@ node scripts/governance/ds-mirror-drift.mjs     # sentinela de divergência
 ## 7. DoD por máquina
 
 ```bash
-node prototipo-ui/ds-guard.mjs <arquivos tocados>
+node scripts/design/ds-guard.mjs <arquivos tocados>
 npm run typecheck && npm run lint:baseline:check && npm run stylelint:baseline:check
 npm run ds:canon:check && npm run foundation:check && npm run conformance:check
 npm run pt:conformance:check && npm run design:coverage:check
@@ -120,7 +120,7 @@ Checklist humano: `memory/requisitos/_DesignSystem/PRE-MERGE-UI.md`. **Item que 
 
 ---
 
-## 8. Bloco a colar em `prototipo-ui/COWORK_NOTES.md`
+## 8. Bloco a colar em `memory/reference/prototipo-ui/COWORK_NOTES.md`
 
 ```md
 ## HANDOFF <data> · <tela> · espelho DS v6

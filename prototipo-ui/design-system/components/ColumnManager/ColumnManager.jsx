@@ -1,7 +1,7 @@
 /**
  * ColumnManager — escolher e reordenar as colunas de uma grade (DS).
  *
- * Origem: `prototipo-ui/cowork/venda-v3/sells-colunas.jsx` (layout de duas listas,
+ * Origem: `prototipo-ui/cowork/Felipe/venda-v3/sells-colunas.jsx` (layout de duas listas,
  * arrastar + ↑↓, grupos, coluna fixa) fundido com o porte de produção
  * `resources/js/Pages/Sells/_components/v3/colunas-dominio.ts` (saneamento defensivo
  * do localStorage, regra de coluna fixa no mover/alternar).

@@ -20,9 +20,9 @@ A tradução **Cowork (design) → Inertia/React (produção)** vem divergindo d
 
 1. **Importação que nunca completa.** O conector do Claude Design não autentica na sessão do agente (`CLAUDE_CODE_OAUTH_TOKEN` não expande design scopes). O passo 1 — trazer o design — trava na largada e se repete sem mudar.
 2. **Base errada.** A sessão abriu num worktree **vazio** (0 arquivos) numa branch **769 deleções atrás** de `origin/main`; o repo tem **20+ worktrees**. Trabalho cai em código velho, em worktree desconectado, ou colide com sessão paralela.
-3. **Fonte-da-verdade fantasma.** `prototipo-ui/SYNC_LOG.md` **vazio** apesar de meses de Cowork; o protótipo canônico da Caixa foi movido pra `_BACKUP-NAO-USAR/`; **3 versões** do protótipo sem fonte única.
+3. **Fonte-da-verdade fantasma.** `memory/reference/prototipo-ui/SYNC_LOG.md` **vazio** apesar de meses de Cowork; o protótipo canônico da Caixa foi movido pra `_BACKUP-NAO-USAR/`; **3 versões** do protótipo sem fonte única.
 4. **Handoff com premissa stale.** O próprio charter admite: _"o handoff chegou com premissa stale ('a tela não avisa')"_ — o design descreve trabalho já feito ou assume código que mudou.
-5. **Paridade auto-certificada.** Um comparativo anterior se deu _"12/15 paridade"_ que o [W] contesta. **Não existe diff automático protótipo↔prod.** Pior: o "score de design" que existe (`prototipo-ui/audit/score-mechanized.mjs` → `design-report.json`, **nota 99**) mede **higiene de token** (sem hex cru, sem `<select>` nativo) — **não fidelidade ao design**. Verde ≠ "bate com o protótipo".
+5. **Paridade auto-certificada.** Um comparativo anterior se deu _"12/15 paridade"_ que o [W] contesta. **Não existe diff automático protótipo↔prod.** Pior: o "score de design" que existe (`scripts/design/audit/score-mechanized.mjs` → `design-report.json`, **nota 99**) mede **higiene de token** (sem hex cru, sem `<select>` nativo) — **não fidelidade ao design**. Verde ≠ "bate com o protótipo".
 
 ### Diagnóstico preciso (a perna que falta)
 
@@ -72,7 +72,7 @@ Pra cada seção do contrato, contra os arquivos-alvo da tela (`.tsx`/`_componen
 2. **Copy literal presente** — cada string `copy` existe no alvo → senão **FALHA** (`copy ausente: "<str>"`). _(divergência de copy = o caso mais barato e mais valioso de pegar.)_
 3. **Ordem** — a sequência das âncoras no fonte = a `ordem` do contrato → senão **FALHA** (`ordem divergente`).
 
-Cor: **não** automatiza match OKLCH↔Tailwind (tautológico). Reaproveita `prototipo-ui/ds-guard.mjs` / `ds:canon:check` (sem hex cru + token semântico).
+Cor: **não** automatiza match OKLCH↔Tailwind (tautológico). Reaproveita `scripts/design/ds-guard.mjs` / `ds:canon:check` (sem hex cru + token semântico).
 
 ### 2.3b Catraca semântica: acordo de `state` backend↔frontend ([ADR 0286](../../decisions/0286-channel-health-corroborado-por-mensagem-real.md) §5)
 
@@ -173,6 +173,6 @@ Piloto: **Caixa Unificada** (`Modules/Whatsapp/Resources/js/Pages/Atendimento/Ca
 - [ADR 0110 — Cockpit Pattern V2 (origem dos desvios lucide/Tailwind)](../../decisions/0110-cockpit-pattern-v2-ativacao.md)
 - [`INFRA-CONTRACT.md`](../../templates/INFRA-CONTRACT.md) + `infra-contract-required.yml` — padrão claim-evidence (Default-FAIL + Evidence Opening)
 - `.claude/hooks/nudge-test-contract-anchor.ps1` — ancorar no contrato, não no código (anti-tautológico)
-- `prototipo-ui/ds-guard.mjs` / `ds:canon:check` — higiene de cor/token (reaproveitado, não duplicado)
-- `prototipo-ui/audit/score-mechanized.mjs` — **prova de que a métrica atual mede higiene, não fidelidade** (nota 99 sem olhar o protótipo)
+- `scripts/design/ds-guard.mjs` / `ds:canon:check` — higiene de cor/token (reaproveitado, não duplicado)
+- `scripts/design/audit/score-mechanized.mjs` — **prova de que a métrica atual mede higiene, não fidelidade** (nota 99 sem olhar o protótipo)
 - `scripts/contrato-de-tela.mjs` + `.test.mjs` — o gate (este RUNBOOK)

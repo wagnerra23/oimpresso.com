@@ -7,7 +7,7 @@ last_validated: '2026-08-18'
 preconditions:
   - "Preview do protótipo no ar e portão fail-closed verde (--preview-ds exit 0)"
   - "Onda 0 fechada antes de qualquer onda de tela (as 7 âncoras do módulo hoje NÃO são mensuráveis)"
-  - "Leitura obrigatória de prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md — este módulo já teve um batch F3 rejeitado inteiro"
+  - "Leitura obrigatória de memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md — este módulo já teve um batch F3 rejeitado inteiro"
 steps:
   - "Onda 0 — destravar âncora, map e frescor (bloqueante, não toca .tsx)"
   - "Por tela: medir os 2 lados, classificar direção, decidir, aplicar região, travar, registrar"
@@ -33,11 +33,11 @@ related_adrs:
 
 | Camada | Dono | Como se lê |
 |---|---|---|
-| política, autoridade, invariantes | [`prototipo-ui/PROTOCOL.md`](../../../prototipo-ui/PROTOCOL.md) | ler |
-| fases, IDs de projeto, comandos vigentes | `node prototipo-ui/protocolo.config.mjs` | **rodar** (é o painel; nunca copiar comando pra outro doc) |
+| política, autoridade, invariantes | [`memory/reference/prototipo-ui/PROTOCOL.md`](../../../memory/reference/prototipo-ui/PROTOCOL.md) | ler |
+| fases, IDs de projeto, comandos vigentes | `node scripts/design/protocolo.config.mjs` | **rodar** (é o painel; nunca copiar comando pra outro doc) |
 | execução guiada | skill `aplicar-prototipo` | invocar |
-| método anti-regressão | [`prototipo-ui/PROCESSO_MEMORIA_CC.md`](../../../prototipo-ui/PROCESSO_MEMORIA_CC.md) §5 + [`memory/LICOES_CC.md`](../../LICOES_CC.md) | ler antes de tocar design-memory |
-| anti-padrões deste módulo | [`prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) | **obrigatório** — 6 meta + 15 técnicos |
+| método anti-regressão | [`memory/reference/prototipo-ui/PROCESSO_MEMORIA_CC.md`](../../../memory/reference/prototipo-ui/PROCESSO_MEMORIA_CC.md) §5 + [`memory/LICOES_CC.md`](../../LICOES_CC.md) | ler antes de tocar design-memory |
+| anti-padrões deste módulo | [`memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) | **obrigatório** — 6 meta + 15 técnicos |
 
 **É** o plano de sequenciamento das 21 telas do Financeiro dentro desse protocolo: qual tela em qual onda, com que fonte, com que direção de paridade, e a ficha que cada onda tem de preencher.
 
@@ -57,12 +57,12 @@ Nenhum número aqui é estimado. Cada linha traz a porta viva que o reproduz —
 | `.casos.md` | **21/21** | `git ls-files` sobre `Pages/Financeiro/**` filtrando `.casos.md` |
 | UC declarados nos casos.md | **90** | `grep -cE '^## UC-'` somado nos 21 |
 | UC **citados por teste** (⛓) | **33** | `npm run casos:report` — régua do gate; ≠ dos 90 acima |
-| Telas com âncora Cowork declarada | **7/21** | `node prototipo-ui/ancora.mjs <Mod/Tela>` |
+| Telas com âncora Cowork declarada | **7/21** | `node scripts/design/ancora.mjs <Mod/Tela>` |
 | …dessas, âncoras **mensuráveis** | **0/7** | idem — todas saem `⚠️ NÃO MEDIDO` (ver §4.1) |
 | `*-visual-comparison.md` no módulo | **8** | `ls memory/requisitos/Financeiro/*visual-comparison.md` |
 | …stale medidos | **4** (Dre 80d · Fluxo 53d · Caixa 46d · Unificado 32d) | `node scripts/governance/visual-comparison-staleness.mjs` |
 | `unificado.map.json` | **STALE** (protótipo re-exportou) | `node scripts/governance/design-code-map-check.mjs --check` |
-| Linha do Financeiro no quadro de frescor | **ausente** | [`prototipo-ui/FRESCOR-PRODUCAO-vs-PROTOTIPO.md`](../../../prototipo-ui/FRESCOR-PRODUCAO-vs-PROTOTIPO.md) |
+| Linha do Financeiro no quadro de frescor | **ausente** | [`memory/reference/prototipo-ui/FRESCOR-PRODUCAO-vs-PROTOTIPO.md`](../../../memory/reference/prototipo-ui/FRESCOR-PRODUCAO-vs-PROTOTIPO.md) |
 
 > **Sobre "90 UC" × "33 ⛓":** medem coisas diferentes. 90 é quanto está **escrito** nos casos.md; 33 é quanto está **citado por teste** — e é este que o `casos-gate` cobra. Não somar, não trocar um pelo outro.
 
@@ -135,7 +135,7 @@ Nenhuma onda de tela abre antes desta fechar. São quatro itens, todos medidos h
 Provado com controle dos dois lados, rodando a regex do `style-fingerprint` contra a saída real do CLI:
 
 - `Financeiro/Unificado` (charter **com** prosa) → não casa → lançaria *"ancora.mjs não devolveu related_prototype"*
-- `Compras/Index` (charter **limpo**) → casa → `prototipo-ui/cowork/compras-page.jsx`
+- `Compras/Index` (charter **limpo**) → casa → `prototipo-ui/cowork/Wagner/compras-page.jsx`
 
 **Alcance no repo:** dos 20 charters com `related_prototype` não-`n/a`, **12 carregam parênteses** — as 7 do Financeiro entre eles. Os arquivos-alvo existem todos. Não falta fonte; falta forma.
 
@@ -156,7 +156,7 @@ Isto **não é** automaticamente um erro do charter — pode ser decisão declar
 
 ### 4.4 Gerar os 3 proto-baseline que faltam
 
-`node prototipo-ui/render-proto-baseline.mjs --check` mostra o que já está pronto e o que não está. Medido em 2026-08-18:
+`node scripts/design/render-proto-baseline.mjs --check` mostra o que já está pronto e o que não está. Medido em 2026-08-18:
 
 | Tela | Baseline do protótipo | Onda |
 |---|---|---|
@@ -175,16 +175,16 @@ As ondas 1–5 já começam com metade do passo 2 pronto. As 6–8 precisam de `
 
 Oito passos. O que muda entre ondas é a tela, nunca a receita.
 
-**1. Abrir o portão.** `node scripts/governance/cowork-mirror-freshness.mjs --preview-ds` — é *fail-closed*: exit ≠ 0 **proíbe** editar produto. Depois `node prototipo-ui/protocolo.config.mjs` para os comandos vigentes.
+**1. Abrir o portão.** `node scripts/governance/cowork-mirror-freshness.mjs --preview-ds` — é *fail-closed*: exit ≠ 0 **proíbe** editar produto. Depois `node scripts/design/protocolo.config.mjs` para os comandos vigentes.
 
 **2. Medir os dois lados — nunca no olho.** Este é o passo que decide a direção da §2, e ele é **medido**:
-- `node prototipo-ui/ancora.mjs <Mod/Tela>` → tem de sair `âncora ✓`. Saiu `⚠️ NÃO MEDIDO`? **pare** — você está prestes a comparar contra nada.
-- `node prototipo-ui/style-fingerprint.mjs --compare proto.json prod.json --tela <Mod/Tela>`
-- `node prototipo-ui/design-diff.mjs --compare prod.json design.json --check` — mesma sonda nos dois lados, computed style, nunca screenshot no olho (skill `comparar-design-prod`).
+- `node scripts/design/ancora.mjs <Mod/Tela>` → tem de sair `âncora ✓`. Saiu `⚠️ NÃO MEDIDO`? **pare** — você está prestes a comparar contra nada.
+- `node scripts/design/style-fingerprint.mjs --compare proto.json prod.json --tela <Mod/Tela>`
+- `node scripts/design/design-diff.mjs --compare prod.json design.json --check` — mesma sonda nos dois lados, computed style, nunca screenshot no olho (skill `comparar-design-prod`).
 
 **3. Classificar a direção** (🟠/🔵/⚪/✅) e **escrever a linha no `FRESCOR`**. Se der 🔵, a onda **termina aqui**: o entregável é a linha do canal reverso, e o `.tsx` não é tocado.
 
-**4. Registrar o gap.** `<tela>-gap.md` → `node prototipo-ui/gerar-map.mjs <gap.md>` → `<tela>.map.json`. O map é a ponte persistente design↔código; `consumir-map.mjs` depois abre **só** os ranges mapeados (é o que impede reler 3090 linhas).
+**4. Registrar o gap.** `<tela>-gap.md` → `node scripts/design/gerar-map.mjs <gap.md>` → `<tela>.map.json`. O map é a ponte persistente design↔código; `consumir-map.mjs` depois abre **só** os ranges mapeados (é o que impede reler 3090 linhas).
 
 **5. Contratar a região.** `gerar-contrato.mjs` → `scripts/contrato-de-tela.mjs --contract ... --contract-alvo Pages/Financeiro/<Tela>.tsx` → `recortar-regiao.mjs`. **Região**, não tela inteira: o batch F3 rejeitado deste módulo tentou 5 telas de uma vez.
 
@@ -273,7 +273,7 @@ ONDA <n> · <Mod/Tela>
 4. **Não inventar Model/Service.** Os reais são `Titulo`, `TituloBaixa`, `ContaBancaria`, `Categoria`. O batch rejeitado inventou `FinancialEntry`, `BankAccount`, `ChartOfAccount`, `BaixaService`.
 5. **Middleware é o canon UPOS** — `['web','SetSessionData','auth','language','timezone','AdminSidebarMenu','CheckUserLogin']`. O batch rejeitado usou um `tenant` que não existe.
 6. **Zero mock em Controller.** `rand()` em KPI quebra cache e comparativo.
-7. **Espelho é leitura.** `prototipo-ui/cowork/**` é retrato do Cowork: edição local some no próximo `--export-from`. Conteúdo remoto entra **pela máquina**, nunca transcrito à mão.
+7. **Espelho é leitura.** `prototipo-ui/cowork/Wagner/**` é retrato do Cowork: edição local some no próximo `--export-from`. Conteúdo remoto entra **pela máquina**, nunca transcrito à mão.
 8. **Fonte de design ≠ Figma.** Fonte = protótipo Cowork + Design System + charter.
 
 ---
@@ -305,14 +305,14 @@ ONDA <n> · <Mod/Tela>
 ## 11. Como reproduzir este retrato
 
 ```bash
-node prototipo-ui/protocolo.config.mjs
+node scripts/design/protocolo.config.mjs
 node scripts/governance/cowork-mirror-freshness.mjs --preview-ds
 npm run screen-coverage:report
 npm run casos:report
 node scripts/governance/visual-comparison-staleness.mjs
 node scripts/governance/design-code-map-check.mjs --check
-node prototipo-ui/render-proto-baseline.mjs --check
-node prototipo-ui/ancora.mjs Financeiro/Unificado
+node scripts/design/render-proto-baseline.mjs --check
+node scripts/design/ancora.mjs Financeiro/Unificado
 ```
 
 O protótipo abre em `http://localhost:5577/oimpresso.com.html` (preview `cowork-jana-2`). Em 2026-08-18 os 10 arquivos do Financeiro servidos nessa porta foram conferidos **byte-a-byte idênticos** aos deste worktree — o que o [W] vê é o que este manual mediu.

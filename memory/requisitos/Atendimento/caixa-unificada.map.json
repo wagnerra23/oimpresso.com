@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "/atendimento/caixa-unificada",
   "gap_fonte": "memory/requisitos/Atendimento/caixa-unificada-gap.md",
   "prototipo_sha": "sha256:0547626fb07e",
@@ -9,7 +9,7 @@
     {
       "id": "header-da-pagina",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/inbox-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/inbox-page.jsx",
         "linhas": "531-562"
       },
       "vivo": {
@@ -24,7 +24,7 @@
     {
       "id": "faixa-de-chips-de-canais",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/inbox-page.css",
+        "arquivo": "prototipo-ui/cowork/Wagner/inbox-page.css",
         "linhas": "8-20"
       },
       "vivo": {
@@ -39,7 +39,7 @@
     {
       "id": "lista-de-conversas",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/inbox-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/inbox-page.jsx",
         "linhas": "576-836"
       },
       "vivo": {
@@ -54,7 +54,7 @@
     {
       "id": "thread",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/inbox-cur.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/inbox-cur.jsx",
         "linhas": "9-126"
       },
       "vivo": {
@@ -69,7 +69,7 @@
     {
       "id": "composer",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/inbox-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/inbox-page.jsx",
         "linhas": "988-1072"
       },
       "vivo": {
@@ -84,7 +84,7 @@
     {
       "id": "sidebar-de-contexto",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/inbox-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/inbox-page.jsx",
         "linhas": "1073-1242"
       },
       "vivo": {
@@ -99,7 +99,7 @@
     {
       "id": "drawer-canais-e-contas",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/inbox-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/inbox-page.jsx",
         "linhas": "1288-1389"
       },
       "vivo": {
@@ -114,7 +114,7 @@
     {
       "id": "drawer-filas",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/inbox-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/inbox-page.jsx",
         "linhas": "1390-1439"
       },
       "vivo": {
@@ -129,7 +129,7 @@
     {
       "id": "broadcast",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/inbox-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/inbox-page.jsx",
         "linhas": "1440-1475"
       },
       "vivo": {
@@ -144,7 +144,7 @@
     {
       "id": "nova-conversa",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/inbox-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/inbox-page.jsx",
         "linhas": "558-560"
       },
       "vivo": {
@@ -159,7 +159,7 @@
     {
       "id": "ia-na-thread",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/inbox-ai.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/inbox-ai.jsx",
         "linhas": "57-342"
       },
       "vivo": {
@@ -174,7 +174,7 @@
     {
       "id": "atalhos-cheat-sheet-mobile-favoritos-palette",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/inbox-extras.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/inbox-extras.jsx",
         "linhas": "1-343"
       },
       "vivo": {
@@ -189,7 +189,7 @@
     {
       "id": "real-time-perf-tier-0",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/inbox-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/inbox-page.jsx",
         "linhas": "164-224"
       },
       "vivo": {

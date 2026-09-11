@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Model;
  * propósito: o `dedup_key` já carrega o business afetado e a leitura é
  * cross-tenant — mesma natureza de `mcp_audit_log`. @see ErrorGrouper.
  *
- * @see prototipo-ui/handoffs/erros-dedup.md
+ * @see prototipo-ui/cowork/Wagner/handoffs/erros-dedup.md
  *
  * @property int $count
  * @property string $status

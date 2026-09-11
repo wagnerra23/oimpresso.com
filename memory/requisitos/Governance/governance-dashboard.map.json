@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "governance/Dashboard (/governance/dashboard)",
   "gap_fonte": "memory/requisitos/Governance/governance-dashboard-gap.md",
   "prototipo_sha": "sha256:58c7fc89b9ba",
@@ -9,7 +9,7 @@
     {
       "id": "header-pageheader",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/governance-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
         "linhas": "403-418"
       },
       "vivo": {
@@ -24,7 +24,7 @@
     {
       "id": "abas-do-shell",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/governance-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
         "linhas": "24-30"
       },
       "vivo": {
@@ -39,7 +39,7 @@
     {
       "id": "seletor-de-cenario",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/governance-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
         "linhas": "383-387"
       },
       "vivo": {
@@ -54,7 +54,7 @@
     {
       "id": "kpis-constituicao",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/governance-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
         "linhas": "273-275"
       },
       "vivo": {
@@ -69,7 +69,7 @@
     {
       "id": "regua-conformidade-com-a-constituicao-por-artigo-selo-auto-declarado",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/governance-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
         "linhas": "74-102"
       },
       "vivo": {
@@ -84,7 +84,7 @@
     {
       "id": "card-scorecard-sdd",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/governance-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
         "linhas": "104-122"
       },
       "vivo": {
@@ -99,7 +99,7 @@
     {
       "id": "kpis-saude-do-ecossistema",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/governance-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
         "linhas": "129-134"
       },
       "vivo": {
@@ -114,7 +114,7 @@
     {
       "id": "lista-narrativas-brain-a-24h",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/governance-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
         "linhas": "139-146"
       },
       "vivo": {
@@ -129,7 +129,7 @@
     {
       "id": "lista-adrs-aguardando-decisao",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/governance-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
         "linhas": "157-167"
       },
       "vivo": {
@@ -144,7 +144,7 @@
     {
       "id": "lista-ocorrencias-em-24-h-audit-highlights",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/governance-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
         "linhas": "168-180"
       },
       "vivo": {
@@ -159,7 +159,7 @@
     {
       "id": "secao-mcp-cabecalho-filtro-de-periodo",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/governance-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
         "linhas": "196-204"
       },
       "vivo": {
@@ -174,7 +174,7 @@
     {
       "id": "secao-mcp-kpis",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/governance-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
         "linhas": "210-215"
       },
       "vivo": {
@@ -189,7 +189,7 @@
     {
       "id": "secao-mcp-abas-in-page",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/governance-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
         "linhas": "216-220"
       },
       "vivo": {
@@ -204,7 +204,7 @@
     {
       "id": "secao-mcp-conteudo-das-abas",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/governance-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
         "linhas": "221-259"
       },
       "vivo": {
@@ -219,7 +219,7 @@
     {
       "id": "secao-mcp-fonte-ausente",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/governance-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
         "linhas": "206-207"
       },
       "vivo": {
@@ -234,7 +234,7 @@
     {
       "id": "secao-mcp-sem-permissao-jana-mcp-usage-all",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/governance-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
         "linhas": "284-289"
       },
       "vivo": {
@@ -249,7 +249,7 @@
     {
       "id": "atalhos-de-governanca-documentos-canonicos",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/governance-page.jsx",
+        "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
         "linhas": "389-442"
       },
       "vivo": {

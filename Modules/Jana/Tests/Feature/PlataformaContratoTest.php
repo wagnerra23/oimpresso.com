@@ -19,7 +19,7 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  * `jana.superadmin` DE VERDADE no Spatie — `can()` não serve (Gate::before, P0 #6421).
  * Tenant: `seededTenant()`. ⚠️ skip sai exit 0: leia ASSERTIONS (LC-13).
  */
-const PLAT_CONTRATO = 'prototipo-ui/contrato/jana-plataforma.contract.json';
+const PLAT_CONTRATO = 'governance/design/contracts/jana-plataforma.contract.json';
 const PLAT_ALVO     = 'resources/js/Pages/Jana/Plataforma.tsx';
 
 function plataformaBootstrap(): array

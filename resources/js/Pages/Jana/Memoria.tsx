@@ -1,4 +1,4 @@
-﻿// @memcofre
+// @memcofre
 //   tela: /copiloto/memoria
 //   stories: US-COPI-MEM-005, US-COPI-MEM-008, US-COPI-MEM-012
 //   rules: R-COPI-MEM-LGPD-001, R-COPI-MEM-MULTITENANT-001
@@ -384,7 +384,7 @@ function Memoria({ memorias, janaContext }: Props) {
             O ícone `Brain` continua em uso no empty state abaixo — agora pelo nome
             (`<EmptyState icon="brain">`), não pelo import direto do lucide. */}
 
-        {/* Copy literal do protótipo (JmMemoria, prototipo-ui/cowork/jana-merge.jsx) —
+        {/* Copy literal do protótipo (JmMemoria, prototipo-ui/cowork/Wagner/jana-merge.jsx) —
             §1.5 do pacote exige copy literal, não paráfrase. */}
         <Alert>
           <AlertTitle>Memória da Jana — LGPD Art. 18</AlertTitle>

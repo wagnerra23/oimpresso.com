@@ -1,7 +1,7 @@
 ---
 id: resources-js-pages-jana-alertas-casos
 casos: Jana Alertas · desvios de meta · conta server-side · aba da área · /ia/alertas
-irmaos: Alertas.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-alertas.md (runbook) · prototipo-ui/contrato/jana-alertas.contract.json (contrato visual)
+irmaos: Alertas.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-alertas.md (runbook) · governance/design/contracts/jana-alertas.contract.json (contrato visual)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
 last_run: "2026-09-04"
@@ -12,7 +12,7 @@ last_run: "2026-09-04"
 > **Status:** ✅ passa (provado por teste) · 🧪 em teste (Pest escrito, aguarda run verde) · ⬜ não verificado · ❌ quebrou.
 
 > Derivados do `Alertas.charter.md` (§Goals/§Anti-hooks), do `jana-alertas.contract.json` e da
-> âncora (`node prototipo-ui/ancora.mjs Jana/Alertas` → `jana-telas-novas.jsx` §`JmAlertas`) —
+> âncora (`node scripts/design/ancora.mjs Jana/Alertas` → `jana-telas-novas.jsx` §`JmAlertas`) —
 > **não** do `Alertas.tsx`. Derivar do código seria tautológico (§5 2026-06-05).
 >
 > ⚠️ A âncora usa dados FIXOS (`JTN_ALERTAS`, 6 metas do Martinho) e guarda config/silêncio em

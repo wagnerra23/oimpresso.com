@@ -110,7 +110,7 @@ Remover o `<div>` de padding em volta da barra nas telas do padrão PT-01 e pass
 ## 7. Gates (§5 — rodar, não confiar na memória)
 
 ```bash
-node prototipo-ui/ds-guard.mjs resources/js/Components/shared/PageHeaderTabs.tsx resources/js/Components/PageHeader/PageHeader.tsx
+node scripts/design/ds-guard.mjs resources/js/Components/shared/PageHeaderTabs.tsx resources/js/Components/PageHeader/PageHeader.tsx
 npm run typecheck && npm run lint:baseline:check && npm run stylelint:baseline:check
 npm run conformance:check && npm run pt:conformance:check
 npm run a11y:check          # tablist: role, aria-selected, setas/Home/End, aria-disabled do `off`
@@ -122,7 +122,7 @@ npm run ds:canon:check      # roxo 295 não regrediu
 
 ---
 
-## 8. Bloco para `prototipo-ui/COWORK_NOTES.md`
+## 8. Bloco para `memory/reference/prototipo-ui/COWORK_NOTES.md`
 
 ```md
 ## HANDOFF 2026-08-31 · TabBar/PageHeader · espelho DS v6

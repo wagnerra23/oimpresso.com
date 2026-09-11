@@ -24,7 +24,7 @@ supersedes: []
 
 ## Contexto
 
-O Design System nasceu como **DS v6** — um snapshot **congelado** de tokens/componentes (`prototipo-ui/cowork/ds-v6`, jun/2026, [ADR 0249](0249-ds-v6-naming-amends-0235.md)). A [ADR 0239](0239-governanca-design-system-git-ssot-regressao-ia.md) fixou **git = SSOT**: tokens DTCG JSON (`resources/css/tokens/{base,semantic}.tokens.json`) compilados por Style Dictionary em `_generated-*.css`.
+O Design System nasceu como **DS v6** — um snapshot **congelado** de tokens/componentes (`prototipo-ui/cowork/Wagner/ds-v6`, jun/2026, [ADR 0249](0249-ds-v6-naming-amends-0235.md)). A [ADR 0239](0239-governanca-design-system-git-ssot-regressao-ia.md) fixou **git = SSOT**: tokens DTCG JSON (`resources/css/tokens/{base,semantic}.tokens.json`) compilados por Style Dictionary em `_generated-*.css`.
 
 Em paralelo, o projeto **"Office Impresso — Design System"** no claude.ai/design (`019dd02f-…`) deixou de ser export estático e virou a **superfície viva de autoria** — onde o Wagner desenha. A [ADR 0315](0315-design-sync-claude-design-vs-cowork-charter.md) o classificou como **espelho derivado** (não fonte); a [ADR 0325](0325-import-prototipo-designsync-pull-direto.md) abriu o import direto via `DesignSync`.
 
@@ -32,7 +32,7 @@ Em paralelo, o projeto **"Office Impresso — Design System"** no claude.ai/desi
 
 ## Decisão
 
-1. **O projeto no claude.ai/design é um ESPELHO VIVO, não um snapshot congelado nem fonte concorrente.** O DS v6 "congelado" (`prototipo-ui/cowork/ds-v6`) permanece como **referência histórica** (o retrato de jun/2026), não o sistema vigente. O sistema vigente é o par **git (SSOT) ↔ espelho vivo (vitrine/autoria)**.
+1. **O projeto no claude.ai/design é um ESPELHO VIVO, não um snapshot congelado nem fonte concorrente.** O DS v6 "congelado" (`prototipo-ui/cowork/Wagner/ds-v6`) permanece como **referência histórica** (o retrato de jun/2026), não o sistema vigente. O sistema vigente é o par **git (SSOT) ↔ espelho vivo (vitrine/autoria)**.
 
 2. **git permanece o SSOT** ([ADR 0239](0239-governanca-design-system-git-ssot-regressao-ia.md), reafirmada). O valor canônico de qualquer token **nasce no git** (`semantic.tokens.json` → `npm run tokens:build` → `_generated-*.css`), é validado pelo CI e usado no deploy. O espelho é atualizado **depois**.
 
@@ -56,7 +56,7 @@ Em paralelo, o projeto **"Office Impresso — Design System"** no claude.ai/desi
 - O sentinela no CI do GH Actions **não** chama `DesignSync` (sem login claude.ai lá); compara contra um **snapshot commitado** + baseline; o diff contra o espelho **vivo** roda local/cron.
 
 **Neutras**
-- O DS v6 congelado (`prototipo-ui/cowork/ds-v6`) segue no repo como referência histórica; não é apagado nem promovido.
+- O DS v6 congelado (`prototipo-ui/cowork/Wagner/ds-v6`) segue no repo como referência histórica; não é apagado nem promovido.
 
 ## Escopo — o que esta ADR NÃO decide
 

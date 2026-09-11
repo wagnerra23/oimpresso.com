@@ -1,7 +1,7 @@
 // Manufacturing/Recipes — a tela de Fabricação em `/manufacturing/recipe`.
 //
-// FONTE DE DESIGN (âncora declarada no charter): `prototipo-ui/cowork/manufacturing-page.jsx`,
-// resolvida por `node prototipo-ui/ancora.mjs Manufacturing/Recipes`. O espelho foi conferido
+// FONTE DE DESIGN (âncora declarada no charter): `prototipo-ui/cowork/Wagner/manufacturing-page.jsx`,
+// resolvida por `node scripts/design/ancora.mjs Manufacturing/Recipes`. O espelho foi conferido
 // contra o handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" e é IDÊNTICO (6 arquivos, 0 linhas de
 // diferença) — este porte segue o protótipo, não o inventa.
 //

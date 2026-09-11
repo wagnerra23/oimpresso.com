@@ -961,7 +961,7 @@ Refator completo da tela `/jana` aplicando amendment `COWORK_NOTES.amendment-jan
 
 **Refs:**
 - Charter `resources/js/Pages/Jana/Chat.charter.md` (canon)
-- `prototipo-ui/COWORK_NOTES.amendment-jana-chat-block-renderer.md` (19 divergências)
+- `memory/reference/prototipo-ui/COWORK_NOTES.amendment-jana-chat-block-renderer.md` (19 divergências)
 - PR #839 amendment + protótipo V2 navegável
 - ADR ui/0114 loop Cowork + ADR 0107 gate F1.5
 
@@ -1363,7 +1363,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 - [ ] Hardenizar `design_review_stale` (advisory→HARD) conforme reviews regenerados com sha.
 - [ ] 1ª execução piloto = `Jana/Pro` (já tem round 1 mecanizado nota 88).
 
-**Custo/infra = Tier 0 → espera decisão [W].** Refs: proposta `memory/decisions/proposals/design-review-por-tela-charter-page.md` · `prototipo-ui/audit/` · PROTOCOL §6.
+**Custo/infra = Tier 0 → espera decisão [W].** Refs: proposta `memory/decisions/proposals/design-review-por-tela-charter-page.md` · `scripts/design/audit/` · PROTOCOL §6.
 
 ---
 
@@ -1988,7 +1988,7 @@ A catraca já existe (ui:lint R7 · PR #4582 · `UiLintCommand::checkR7`): a dí
 Escopo:
 - ~~`JanaCockpitV2.tsx`: trocar as 52 classes `.vd-insights-*` pelos shared `@/Components/shared`~~ — **RESOLVIDO POR REMOÇÃO (2026-08-10)**, não por migração: o arquivo tinha **0 imports** no repo e foi deletado. Não há classe a migrar. _(⚠️ resíduo: `resources/css/sells-cowork-insights.css`, 776 ln importadas globalmente, ficou sem consumidor JS — remoção pendente de decisão [W], porque `SellsTabsViewModeTest` guarda sua existência. Ver lápide no [`RUNBOOK-components.md`](RUNBOOK-components.md).)_
 - Remover o wrapper `.sells-cowork` de `Dashboard.tsx:281`.
-- Ancorar no protótipo canônico `prototipo-ui/cowork/chat-jana.jsx` (`.jc-*`, `related_prototype` do charter — re-adicionar a linha ao charter, descartada na sessão 2026-07-20).
+- Ancorar no protótipo canônico `prototipo-ui/cowork/Wagner/chat-jana.jsx` (`.jc-*`, `related_prototype` do charter — re-adicionar a linha ao charter, descartada na sessão 2026-07-20).
 - Preservar o dark herdando via token (princípio já validado no harness `cockpit-dark-harness` da sessão 2026-07-20).
 - Ao final: remover a entrada R7 do `config/ui-lint-baseline.json` (ratchet aperta pra 0) + smoke real dark em `/ia/dashboard` E `/sells` (tab Insights).
 - ATENÇÃO: o mesmo `sells-cowork-insights.css` alimenta a tab Insights do Sells (tela-DONA, legítima) — não quebrar essa; a migração é só do lado Jana.

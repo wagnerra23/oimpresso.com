@@ -2,7 +2,7 @@
 id: modules-superadmin-pages-superadmin-assinaturas-index-charter
 page: /superadmin/superadmin-subscription
 component: Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx
-related_prototype: prototipo-ui/cowork/superadmin-page.jsx
+related_prototype: prototipo-ui/cowork/Wagner/superadmin-page.jsx
 owner: wagner
 status: draft
 last_validated: "2026-08-20"
@@ -104,7 +104,7 @@ O que a tela entrega **hoje**:
 
 ## Contrato visual
 
-Travado por `prototipo-ui/contrato/superadmin-assinaturas.contract.json` (gate
+Travado por `governance/design/contracts/superadmin-assinaturas.contract.json` (gate
 `contrato-de-tela`), com âncoras `data-contract` no `.tsx`. A copy literal e a ordem das seções
 são de lá — esta seção **aponta**, não repete.
 
@@ -128,5 +128,5 @@ Ficam aqui porque escondê-las é como o retrato do sistema apodrece:
 
 - Casos: [Index.casos.md](Index.casos.md)
 - RUNBOOK: [RUNBOOK-assinaturas.md](../../../../../../../memory/requisitos/Superadmin/RUNBOOK-assinaturas.md)
-- Protótipo: `prototipo-ui/cowork/superadmin-page.jsx` → `ViewAssinaturas()` (L1044)
+- Protótipo: `prototipo-ui/cowork/Wagner/superadmin-page.jsx` → `ViewAssinaturas()` (L1044)
 - Irmãos: [Negócios](../Negocios/Index.charter.md) · [Visão geral](../Dashboard/Index.charter.md)

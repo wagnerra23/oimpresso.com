@@ -9,7 +9,7 @@ namespace App\Support\Errors;
  *
  * Separa o canal do operador (recuperação, NUNCA trace) do construtor (trace/diagnóstico).
  *
- * @see prototipo-ui/handoffs/erros-fase1-classificacao.md
+ * @see prototipo-ui/cowork/Wagner/handoffs/erros-fase1-classificacao.md
  */
 enum Audience: string
 {

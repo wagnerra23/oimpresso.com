@@ -11,6 +11,7 @@ import { normalizePayloadPath } from './payload-dependency-graph.mjs';
 
 export const MANIFEST_SCHEMA = 'oimpresso-design-manifest/2';
 export const BUNDLE_SCHEMA = 'oimpresso-design-bundle/2';
+const BUILD_SOURCE_RE = /\.(?:jsx?|tsx?|mjs|cjs|css|html|svg|png|jpe?g|gif|webp|avif|ico|woff2?|ttf|otf|eot)$/i;
 
 export function sha256(value) {
   return createHash('sha256').update(value).digest('hex');
@@ -27,12 +28,15 @@ export function stableJson(value) {
 export function roleForPath(path) {
   const rel = normalizePayloadPath(path);
   if (rel.startsWith('_ds/')) return 'preview-cache';
-  if (rel.toLowerCase().endsWith('.md')) return 'design-doc';
+  if (!BUILD_SOURCE_RE.test(rel)) {
+    throw new Error(`arquivo fora do contrato build-only: ${rel} (documentos e artefatos de canon não são importados)`);
+  }
   return 'cowork-source';
 }
 
 function normalizedFiles(files) {
   const seen = new Set();
+  const sourceBySha = new Map();
   const out = files.map((file) => {
     const path = normalizePayloadPath(file.path);
     if (seen.has(path)) throw new Error(`path duplicado no manifesto: ${path}`);
@@ -40,7 +44,14 @@ function normalizedFiles(files) {
     const bytes = Number(file.bytes);
     if (!Number.isInteger(bytes) || bytes < 0) throw new Error(`bytes inválidos no manifesto: ${path}`);
     if (!/^[a-f0-9]{64}$/.test(String(file.sha256 || ''))) throw new Error(`sha256 inválido no manifesto: ${path}`);
-    return { path, bytes, sha256: String(file.sha256), role: roleForPath(path) };
+    const sha = String(file.sha256);
+    const role = roleForPath(path);
+    if (role === 'cowork-source') {
+      const original = sourceBySha.get(sha);
+      if (original) throw new Error(`conteúdo duplicado no bundle: ${original} == ${path}`);
+      sourceBySha.set(sha, path);
+    }
+    return { path, bytes, sha256: sha, role };
   });
   return out.sort((a, b) => a.path.localeCompare(b.path));
 }

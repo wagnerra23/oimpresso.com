@@ -1,14 +1,14 @@
 ---
 id: requisitos-repair-repair-dashboard-gap
 tela: Repair/Dashboard/Index (/repair/dashboard)
-prototipo: prototipo-ui/cowork/repair-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/repair-page.jsx
 tela_viva: resources/js/Pages/Repair/Dashboard/Index.tsx
 gerado_em: 2026-09-06
 ---
 
 # GAP-SPEC — Repair/Dashboard/Index
 
-> Fase 1 do protocolo (`prototipo-ui/PROTOCOL.md`) em modo **PARIDADE**. `repair-page.jsx` declara no cabeçalho (l.1-2) que foi *importado dos blades* `Modules/Repair/Resources/views/*` — é porte REVERSO do Blade que esta tela substitui (§5 2026-08-28); a aba comparada é `Painel` (repair-page.jsx:44-101, origem `dashboard/index.blade.php`). A pergunta por parte é "o vivo cobre o que o mockup mostra?", não "o que falta do protótipo". Estado no vivo medido em 2026-09-06 sobre `origin/main` `80bc4ef8b9`, com `grep -n` (linha real). Lidos antes: `Index.charter.md` (Non-Goals l.41-50) e `Index.casos.md` (UC-RDSH-01..04). Dado mock do protótipo (contagens, nomes, valores) não é gap.
+> Fase 1 do protocolo (`memory/reference/prototipo-ui/PROTOCOL.md`) em modo **PARIDADE**. `repair-page.jsx` declara no cabeçalho (l.1-2) que foi *importado dos blades* `Modules/Repair/Resources/views/*` — é porte REVERSO do Blade que esta tela substitui (§5 2026-08-28); a aba comparada é `Painel` (repair-page.jsx:44-101, origem `dashboard/index.blade.php`). A pergunta por parte é "o vivo cobre o que o mockup mostra?", não "o que falta do protótipo". Estado no vivo medido em 2026-09-06 sobre `origin/main` `80bc4ef8b9`, com `grep -n` (linha real). Lidos antes: `Index.charter.md` (Non-Goals l.41-50) e `Index.casos.md` (UC-RDSH-01..04). Dado mock do protótipo (contagens, nomes, valores) não é gap.
 
 | Parte | Estado no vivo | Ação |
 |---|---|---|

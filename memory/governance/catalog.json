@@ -26,12 +26,12 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 711,
-    "edges": 991,
+    "nodes": 714,
+    "edges": 995,
     "by_node_type": {
       "module": 39,
       "table": 102,
-      "adr": 111,
+      "adr": 114,
       "component": 385,
       "api": 74
     },
@@ -46,9 +46,9 @@
       "dependsOn": 116,
       "delegatesTo": 108,
       "migratesTo": 1,
-      "supersedes": 15,
+      "supersedes": 17,
       "supersedesPartially": 51,
-      "supersededBy": 19
+      "supersededBy": 21
     },
     "dangling": 0
   },
@@ -818,6 +818,13 @@
       "exists": true
     },
     {
+      "id": "adr:0387",
+      "type": "adr",
+      "num": "0387",
+      "slug": "0387-github-md-diario-cowork-aceito-e-tratado",
+      "exists": true
+    },
+    {
       "id": "adr:0390",
       "type": "adr",
       "num": "0390",
@@ -829,6 +836,20 @@
       "type": "adr",
       "num": "0392",
       "slug": "0392-fronteira-governance-audiencia-enforcement-na-concessao",
+      "exists": true
+    },
+    {
+      "id": "adr:0396",
+      "type": "adr",
+      "num": "0396",
+      "slug": "0396-prototipo-fonte-unica-build-sem-canon-sombra",
+      "exists": true
+    },
+    {
+      "id": "adr:0397",
+      "type": "adr",
+      "num": "0397",
+      "slug": "0397-prototipo-minimo-por-dono-e-ds-direto",
       "exists": true
     },
     {
@@ -6266,6 +6287,12 @@
       "source": "supersedes_partially"
     },
     {
+      "from": "adr:0387",
+      "to": "adr:0396",
+      "type": "supersededBy",
+      "source": "superseded_by"
+    },
+    {
       "from": "adr:0390",
       "to": "adr:0384",
       "type": "supersedesPartially",
@@ -6276,6 +6303,24 @@
       "to": "adr:0366",
       "type": "supersedesPartially",
       "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0396",
+      "to": "adr:0397",
+      "type": "supersededBy",
+      "source": "superseded_by"
+    },
+    {
+      "from": "adr:0396",
+      "to": "adr:0387",
+      "type": "supersedes",
+      "source": "supersedes"
+    },
+    {
+      "from": "adr:0397",
+      "to": "adr:0396",
+      "type": "supersedes",
+      "source": "supersedes"
     },
     {
       "from": "module:Arquivos",

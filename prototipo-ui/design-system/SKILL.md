@@ -6,7 +6,7 @@ user-invocable: true
 
 Read the README.md file within this skill, and explore the other available files.
 
-**Se o trabalho vai virar código no repo `wagnerra23/oimpresso.com`, leia [`HANDOFF.md`](HANDOFF.md) antes de qualquer coisa** — é o contrato zero-touch: entrega repo-nativa (Tailwind + tokens reais, nunca CSS cru `.om-*`), leitura do `main` com citação arquivo+linha, mapa componente DS→arquivo real (reusar/estender/criar), gates a rodar, e o bloco a commitar em `prototipo-ui/COWORK_NOTES.md`. **git é SSOT** (ADR 0239); este projeto claude.ai/design é espelho derivado e **NÃO-fonte** (ADR 0315/0299) — escrita espelho→git só com opt-in explícito do Wagner; merge é ato do Wagner (ADR 0283).
+**Se o trabalho vai virar código no repo `wagnerra23/oimpresso.com`, leia [`HANDOFF.md`](HANDOFF.md) antes de qualquer coisa** — é o contrato zero-touch: entrega repo-nativa (Tailwind + tokens reais, nunca CSS cru `.om-*`), leitura do `main` com citação arquivo+linha, mapa componente DS→arquivo real (reusar/estender/criar), gates a rodar, e o bloco a commitar em `memory/reference/prototipo-ui/COWORK_NOTES.md`. **git é SSOT** (ADR 0239); este projeto claude.ai/design é espelho derivado e **NÃO-fonte** (ADR 0315/0299) — escrita espelho→git só com opt-in explícito do Wagner; merge é ato do Wagner (ADR 0283).
 
 Regras duras que não se negociam: **sidebar PRETA (dark-fixo) nos dois modos** (UI-0023) · primary **roxo** `oklch(0.55 0.15 295)` (o blue do shadcn legado é superseded) · PT-BR em toda copy · zero cor crua em arquivo de módulo · componente vem do `shared`/`ui`, não se reinventa · `localStorage` prefixado `oimpresso.*` · ícone só lucide · sem emoji em UI de produto · status badge = dot + tinta ≤10%, nunca fill sólido · um `<main>` por documento.
 

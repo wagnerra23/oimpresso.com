@@ -4,7 +4,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-export const HANDOFF_RE = /^prototipo-ui\/handoffs\/[^/]+\.md$/;
+export const HANDOFF_RE = /^prototipo-ui\/cowork\/Wagner\/handoffs\/[^/]+\.md$/;
 export const isHandoffPath = (path) => HANDOFF_RE.test(String(path).replaceAll('\\', '/'));
 
 function valueAfter(args, flag) {
@@ -27,11 +27,11 @@ export function selectHandoffs(args, cwd = process.cwd()) {
 
   let raw;
   if (/^0+$/.test(base)) {
-    raw = execFileSync('git', ['diff-tree', '--root', '--no-commit-id', '--name-only', '-r', '-z', '--diff-filter=AM', head, '--', 'prototipo-ui/handoffs/*.md'], { cwd });
+    raw = execFileSync('git', ['diff-tree', '--root', '--no-commit-id', '--name-only', '-r', '-z', '--diff-filter=AM', head, '--', 'prototipo-ui/cowork/Wagner/handoffs/*.md'], { cwd });
   } else {
     try { execFileSync('git', ['cat-file', '-e', `${base}^{commit}`], { cwd, stdio: 'ignore' }); }
     catch { throw new Error(`base ${base} não existe; sem universo, sem seleção`); }
-    raw = execFileSync('git', ['diff', '--name-only', '--diff-filter=AM', '-z', base, head, '--', 'prototipo-ui/handoffs/*.md'], { cwd });
+    raw = execFileSync('git', ['diff', '--name-only', '--diff-filter=AM', '-z', base, head, '--', 'prototipo-ui/cowork/Wagner/handoffs/*.md'], { cwd });
   }
   return [...new Set(raw.toString('utf8').split('\0').filter(isHandoffPath))].sort();
 }

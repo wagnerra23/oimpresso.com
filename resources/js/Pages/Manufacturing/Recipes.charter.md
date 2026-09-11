@@ -4,7 +4,7 @@ component: resources/js/Pages/Manufacturing/Recipes.tsx
 owner: wagner
 status: draft
 parent_module: Manufacturing
-related_prototype: prototipo-ui/cowork/manufacturing-page.jsx
+related_prototype: prototipo-ui/cowork/Wagner/manufacturing-page.jsx
 related_us: [US-MANU-001]
 runbook: memory/requisitos/Manufacturing/RUNBOOK-recipes.md
 casos: resources/js/Pages/Manufacturing/Recipes.casos.md
@@ -23,7 +23,7 @@ smoke: "2026-09-03 — render prod OK (Chrome MCP, sessão WR2 Sistemas): /manuf
 
 > Porte Inertia da consulta de receitas a partir do handoff **"PROTÓTIPO OFICIAL - FABRICAÇÃO V1"**
 > (2026-09-01), que é o documento **normativo** desta tela. A fonte visual está no espelho
-> (`prototipo-ui/cowork/manufacturing-page.jsx`) e é **idêntica** ao ZIP — conferido arquivo a
+> (`prototipo-ui/cowork/Wagner/manufacturing-page.jsx`) e é **idêntica** ao ZIP — conferido arquivo a
 > arquivo, 0 linhas de diferença nos 6 `.jsx` + o `.css`.
 >
 > **A rota é decisão [W] 2026-09-02**, textual: *"coloque a tela de Fabricação em produção no

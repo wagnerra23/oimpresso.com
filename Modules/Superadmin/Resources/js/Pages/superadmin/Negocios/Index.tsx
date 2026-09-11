@@ -6,7 +6,7 @@
 //
 // Lista de negócios da plataforma. Responde: "quem é este cliente e o que ele tem contratado?".
 // Charter: ./Index.charter.md · Casos: ./Index.casos.md
-// Âncora de design: prototipo-ui/cowork/superadmin-page.jsx → ViewNegocios() (L860+)
+// Âncora de design: prototipo-ui/cowork/Wagner/superadmin-page.jsx → ViewNegocios() (L860+)
 // RUNBOOK: memory/requisitos/Superadmin/RUNBOOK-negocios.md
 //
 // Paginação é SERVER-SIDE (o backend devolve uma página por vez). O protótipo pagina no

@@ -110,7 +110,7 @@ check('tabelasAfirmadasNo52 devolve a base sem a coluna',
 // Fixtures da classe medida na Fase 0 (2026-08-03). O controle negativo mais
 // importante é o PLACEHOLDER: 18 dos 41 paths do corpus são padrão de nome, não
 // afirmação de existência — cobrá-los seria FP por construção.
-const arvore = new Set(['scripts/governance/memory-health.mjs', 'memory/proibicoes.md', 'prototipo-ui/ancora.mjs']);
+const arvore = new Set(['scripts/governance/memory-health.mjs', 'memory/proibicoes.md', 'scripts/design/ancora.mjs']);
 const scripts = new Set(['casos:report', 'screen:files']);
 const scanP = (txt) => factAnchorPaths({ docs: [{ rel: 'd.md', txt }], existe: (p) => arvore.has(p), npmScripts: scripts });
 
@@ -121,7 +121,7 @@ check('`node <script>` inexistente FLAGRA', scanP('rode `node scripts/governance
 // controles negativos
 check('path existente NÃO flagra', scanP('abra `scripts/governance/memory-health.mjs`').length === 0);
 check('`npm run` existente NÃO flagra', scanP('rode `npm run casos:report` sempre').length === 0);
-check('`node` existente NÃO flagra', scanP('rode `node prototipo-ui/ancora.mjs`').length === 0);
+check('`node` existente NÃO flagra', scanP('rode `node scripts/design/ancora.mjs`').length === 0);
 check('PLACEHOLDER <Mod> NÃO flagra', scanP('edite `Modules/<Mod>/Http/Controllers/X.php`').length === 0);
 check('PLACEHOLDER YYYY-MM-DD NÃO flagra', scanP('crie `memory/sessions/YYYY-MM-DD-slug.md`').length === 0);
 check('PLACEHOLDER glob * NÃO flagra', scanP('veja `memory/decisions/*.md` todos').length === 0);

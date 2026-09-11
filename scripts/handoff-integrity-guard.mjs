@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // scripts/handoff-integrity-guard.mjs — catraca de Integridade do Handoff (PROCESSO_MEMORIA_CC.md §16 · IT8).
 //
-// A fila de handoff (prototipo-ui/COWORK_NOTES.md, ACIMA da linha d'água) e os prompts duráveis
+// A fila de handoff (memory/reference/prototipo-ui/COWORK_NOTES.md, ACIMA da linha d'água) e os prompts duráveis
 // (prototipo-ui/PROMPT_PARA_CODE_*.md) têm que casar. Dois apodrecimentos invisíveis que ninguém
 // vê na hora — e que hoje nada trava:
 //   • ÓRFÃO     — PROMPT_PARA_CODE_*.md existe no dir mas NÃO é citado acima da linha → tarefa invisível.
@@ -33,7 +33,7 @@ const val = (f, d) => { const i = argv.indexOf(f); return i >= 0 && argv[i + 1] 
 const ROOT = resolve(val('--root', process.cwd()));
 const abs = (flag, def) => { const v = val(flag, def); return isAbsolute(v) ? v : resolve(ROOT, v); };
 
-const QUEUE = abs('--queue', 'prototipo-ui/COWORK_NOTES.md');
+const QUEUE = abs('--queue', 'memory/reference/prototipo-ui/COWORK_NOTES.md');
 const HANDOFF_DIR = abs('--handoff-dir', 'prototipo-ui');
 const BASELINE = abs('--baseline', 'config/handoff-integrity-baseline.json');
 

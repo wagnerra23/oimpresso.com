@@ -77,7 +77,7 @@ return [
         | NUNCA reclamar um job em backoff exponencial e re-executá-lo — duplicar
         | NF-e/cobrança é proibido (idempotência). after_commit: o efeito externo
         | só roda depois do commit do dado de origem.
-        | @see config/errors.php ('auto_resolve') · prototipo-ui/handoffs/erros-autoresolucao.md
+        | @see config/errors.php ('auto_resolve') · prototipo-ui/cowork/Wagner/handoffs/erros-autoresolucao.md
         */
         'reprocess' => [
             'driver' => 'database',

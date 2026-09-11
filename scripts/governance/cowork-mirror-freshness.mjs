@@ -4,7 +4,7 @@
  * cowork-mirror-freshness.mjs — comparador de FRESCOR do espelho Cowork (v2, identidade canônica).
  *
  * O QUE É: ferramenta de DISPATCH (agente logado) que compara cada arquivo-âncora do espelho
- * `prototipo-ui/cowork/` com o design VIVO no Cowork (projeto 019dcfd3, lido via
+ * `prototipo-ui/cowork/Wagner/` com o design VIVO no Cowork (projeto 019dcfd3, lido via
  * `DesignSync.get_file` — método de LEITURA, livre por ADR 0315 Eixo B). Divergiu = o espelho
  * DIVERGE do vivo → investigar. ⚠️ NÃO diz a DIREÇÃO: hash diferente não revela quem avançou.
  * Automatiza o "diffar antes de concluir" que o
@@ -59,8 +59,6 @@
  *   node scripts/governance/cowork-mirror-freshness.mjs --sla               # headless: rotina rodou ≤14d? última limpa? + eixo NOVO desqualifica a leitura?
  *   node scripts/governance/cowork-mirror-freshness.mjs --live-only <lista.json> --ledger  # + registra a medição
  *   node scripts/governance/cowork-mirror-freshness.mjs --sla-live-only     # headless: live-only foi MEDIDO ≤7d? cresceu?
- *   node scripts/governance/cowork-mirror-freshness.mjs --docs-compare <dir-jsons> --ledger  # .md pousado em design-docs ainda bate com o vivo? (T1)
- *   node scripts/governance/cowork-mirror-freshness.mjs --sla-docs         # headless: docs foi MEDIDO ≤7d? apareceu stale novo?
  *   node scripts/governance/cowork-mirror-freshness.mjs --check-refs        # a poda deste PR quebrou o grafo do espelho? (exit 1 = sim)
  *   node scripts/governance/cowork-mirror-freshness.mjs --check-refs --range <a>..<b>
  *   node scripts/governance/cowork-mirror-freshness.mjs --check-refs --deleted-from <lista.txt>   # fixture/manual
@@ -164,7 +162,7 @@ export function veredictoFinal(nStale, cobertura = null) {
 }
 
 // ── LIVE-ONLY: o ponto cego que deixou `jana-merge.jsx` fora do git por dias ──────
-// O manifesto monta o universo do lado do ESPELHO (readdir de prototipo-ui/cowork/).
+// O manifesto monta o universo do lado do ESPELHO (readdir de prototipo-ui/cowork/Wagner/).
 // Consequência estrutural: arquivo que existe no VIVO e nunca foi exportado é invisível
 // POR CONSTRUÇÃO — o LIVE-ABSENT cobre o inverso (está no espelho, sumiu do vivo).
 // É a mesma forma do §5 2026-08-10 (catraca que itera o lado mutável).
@@ -194,7 +192,7 @@ export function veredictoFinal(nStale, cobertura = null) {
  *  `.png` segue FORA: imagem não é fonte de construção e o `block-ancora-no-olho` já trata
  *  o eixo dela. E os filtros de `_arquivo/` (morto declarado upstream) e `prototipo-ui/`
  *  (cópia do próprio espelho) continuam — são de PROVENIÊNCIA, não de extensão. */
-export function liveOnly(livePaths, manifest, { exts = null, jaEmDocs = null, jaEmRuntime = null } = {}) {
+export function liveOnly(livePaths, manifest, { exts = null, jaEmRuntime = null } = {}) {
   const noEspelho = new Set(manifest.map((f) => f.cowork));
   // [W] 2026-08-24: "remova os filtros isso esta gerando muito problemas". MEDIDO no dia:
   // de 428 arquivos do vivo ausentes do espelho, o filtro de EXTENSAO escondia 76 — entre
@@ -203,35 +201,13 @@ export function liveOnly(livePaths, manifest, { exts = null, jaEmDocs = null, ja
   // Os dois de PROVENIENCIA continuam, mas agora RETORNAM em `ignorados` — reportado, nunca
   // escondido (mesmo contrato do absentLocal). `liveOnly()` segue devolvendo ARRAY pra nao
   // quebrar chamador; use liveOnlyDetalhado() pra ver o que foi ignorado e por que.
-  return liveOnlyDetalhado(livePaths, manifest, { exts, jaEmDocs, jaEmRuntime }).faltando;
+  return liveOnlyDetalhado(livePaths, manifest, { exts, jaEmRuntime }).faltando;
 }
 
-/** Paths presentes em `prototipo-ui/design-docs/` — o 4º destino do `--export-from`.
- *  Sem filtro de extensão: quem consulta decide (o `liveOnlyDetalhado` só pergunta por
- *  `.md`, que é o que a regra de roteamento manda pra lá). Diretório ausente → Set vazio,
- *  e aí o detector volta ao comportamento de antes — nunca a "tudo isento".
- *  ⚠️ NÃO reusa `walkRel`: aquele filtra `.jsx|html|css|js` (é o walker do ESPELHO, onde
- *  `.md` é proibido pelo R1). Usá-lo aqui devolveria Set vazio de `.md` e a isenção seria
- *  decorativa — a forma mais silenciosa de um conserto não consertar. */
-export function buildDocsSet(root = ROOT, rel = 'prototipo-ui/design-docs') {
-  const base = join(root, rel);
-  const out = new Set();
-  const walk = (dir) => {
-    if (!existsSync(dir)) return;
-    for (const e of readdirSync(dir)) {
-      const f = join(dir, e);
-      if (statSync(f).isDirectory()) walk(f);
-      else out.add(f.slice(base.length + 1).split('\\').join('/'));
-    }
-  };
-  walk(base);
-  return out;
-}
-
-/** Paths presentes no snapshot de RUNTIME do DS (`scripts/design-sync/mirror-snapshot/`) —
+/** Paths presentes no snapshot de RUNTIME do DS (`prototipo-ui/design-system/`) —
  *  o destino do `--ds-runtime`, relativos ao dir (ex.: `_ds_bundle.js`, `assets/fonts/x.woff2`).
  *  Dir ausente → Set vazio (o detector volta ao comportamento de antes — nunca "tudo isento"). */
-export function buildRuntimeSet(root = ROOT, rel = 'scripts/design-sync/mirror-snapshot') {
+export function buildRuntimeSet(root = ROOT, rel = 'prototipo-ui/design-system') {
   const base = join(root, rel);
   const out = new Set();
   const walk = (dir) => {
@@ -248,49 +224,28 @@ export function buildRuntimeSet(root = ROOT, rel = 'scripts/design-sync/mirror-s
 
 /** Igual ao liveOnly, mas devolve tambem o que foi ignorado por PROVENIENCIA e o motivo.
  *  `exts = null` (default) = nenhum filtro de extensao: conta .json, .php, .tsx, .png, tudo. */
-export function liveOnlyDetalhado(livePaths, manifest, { exts = null, jaEmDocs = null, jaEmRuntime = null } = {}) {
+export function liveOnlyDetalhado(livePaths, manifest, { exts = null, jaEmRuntime = null } = {}) {
   const noEspelho = new Set(manifest.map((f) => f.cowork));
   const temExtensao = (p) => /\.[a-z0-9]+$/i.test(p);   // diretorio nao e arquivo faltando
   const faltando = [];
   const ignorados = [];
   for (const p of livePaths) {
     if (!temExtensao(p) || noEspelho.has(p)) continue;
-    // ── O DETECTOR PASSA A CONHECER O ROTEAMENTO DO EXPORTADOR (2026-08-28) ──────────
-    // Ele comparava só contra `cowork/`, enquanto o `--export-from` tem TRÊS desfechos
-    // pro arquivo do vivo (ver `exportPlan`): RECUSA o canon de tela, roteia `.md` pra
-    // `design-docs/`, e só o resto pousa em `cowork/`. Conhecendo um desfecho de três,
-    // ele acusava como "nunca desceu" arquivo que ou desceu noutro destino, ou que uma
-    // regra deliberada PROÍBE de descer.
-    //
-    // MEDIDO no corpus real (935 paths do `list_files`, 2026-08-27): dos 412 acusados,
-    //   152  canon de tela — o `exportPlan` RECUSA (PROTOCOL 10.4)
-    //   146  `.md` que JA ESTA em `design-docs/<path>`
-    //    23  nao-`.md` em `design-docs/` — FORA da regra declarada, seguem acusados
-    //    91  resto
-    // Ou seja 298 de 412 (72%) eram falso-positivo de mecanismo próprio. Um detector que
-    // acusa 72% de ruído não é conservador: é ignorado, e aí não acusa nada.
-    //
-    // NÃO é regra nova nem allowlist: as duas isenções saem das MESMAS fontes que o
-    // exportador usa — `RE_CANON_DE_TELA` (a constante, não uma cópia) e o destino
-    // `prefixoDocs`. Se a regra do exportador mudar, esta muda junto. E ambas vão pra
-    // `ignorados` (VISÍVEL com motivo), nunca some calado — mesmo contrato do resto.
+    // O detector segue o contrato build-only do exportador: canon de tela e documentos
+    // ficam visíveis em `ignorados`, mas nunca são cobrados como fonte executável ausente.
     if (RE_CANON_DE_TELA.test(p)) {
       ignorados.push({ path: p, motivo: 'canon de tela: o exportPlan RECUSA (PROTOCOL 10.4 — nasce em Pages/, nao desce por esta porta)' });
       continue;
     }
-    // `jaEmDocs` = paths presentes em `prototipo-ui/design-docs/`. Só isenta `.md`, que é
-    // o que a regra de roteamento manda pra lá; nao-`.md` que esteja lá está FORA da regra
-    // e segue acusado (23 no corpus — .php de teste dentro de cowork-inbox/). Absorvê-los
-    // seria codificar um acidente como se fosse regra.
-    if (jaEmDocs && p.toLowerCase().endsWith('.md') && jaEmDocs.has(p)) {
-      ignorados.push({ path: p, motivo: 'ja desceu: existe em prototipo-ui/design-docs/ (roteamento por extensao do --export-from)' });
+    if (/\.md$/i.test(p)) {
+      ignorados.push({ path: p, motivo: 'documento: leitura na origem; o exportPlan build-only RECUSA' });
       continue;
     }
-    // `jaEmRuntime` = paths presentes em scripts/design-sync/mirror-snapshot/ (o destino do
+    // `jaEmRuntime` = paths presentes em prototipo-ui/design-system/ (o destino do
     // `--ds-runtime`). So isenta o que a regua do PROPRIO destino aceita — `dsRuntimeRelPath`
     // (bundle/CSS/asset), a MESMA fonte do exportador, nao copia. MEDIDO 2026-09-01: a rodada
     // live-only acusou os `_ds/**` como "nunca desceu" com bundle + 2 CSS + fontes JA pousados
-    // no runtime — o mesmo FP de mecanismo proprio que o bloco dos `.md` acima matou em 08-28.
+    // no runtime — o mesmo tipo de falso positivo de mecanismo próprio.
     // `_ds` fora da classe runtime (styles.css, manifest, oxlintrc) segue acusado: e honesto,
     // esses nunca desceram pra lugar nenhum.
     if (jaEmRuntime && p.startsWith('_ds/')) {
@@ -344,7 +299,7 @@ export function liveOnlyDetalhado(livePaths, manifest, { exts = null, jaEmDocs =
 // CERTO. A escrita tem que sair do JSON do get_file, nunca do olho do agente.
 /** Plano de export a partir dos JSONs que o agente salvou do DesignSync.get_file.
  *  Puro: recebe [{path, content}] e devolve [{relPath, content, bytes}].
- *  `path` é o path NO VIVO; o espelho grava em prototipo-ui/cowork/<path>. */
+ *  `path` é o path NO VIVO; o espelho grava em prototipo-ui/cowork/Wagner/<path>. */
 /**
  * Artefato de CANON DE TELA — charter, casos e contrato visual.
  *
@@ -369,14 +324,16 @@ export function liveOnlyDetalhado(livePaths, manifest, { exts = null, jaEmDocs =
  * gerou um destino, e o destino engoliu artefato que não era dele.
  */
 const RE_CANON_DE_TELA = /\.(charter\.md|casos\.md|contract\.json)$/i;
+const RE_BUILD_SOURCE = /\.(?:jsx?|tsx?|mjs|cjs|css|html|svg|png|jpe?g|gif|webp|avif|ico|woff2?|ttf|otf|eot)$/i;
 
 /** Devolutiva da recusa — derivado, regenerado a cada export. Canal Code → design. */
-export const DEVOLUTIVA_REL = 'prototipo-ui/CODE_NOTES.recusados-canon.md';
+export const DEVOLUTIVA_REL = 'memory/reference/prototipo-ui/CODE_NOTES.recusados-canon.md';
 
-export function exportPlan(arquivosVivos, { prefixo = 'prototipo-ui/cowork/', prefixoDocs = null } = {}) {
+export function exportPlan(arquivosVivos, { prefixo = 'prototipo-ui/cowork/Wagner/', buildOnly = prefixo === 'prototipo-ui/cowork/Wagner/' } = {}) {
   const recusados = [];
   const recusadosConteudo = [];
   const plano = [];
+  const fontePorSha = new Map();
 
   for (const { path: p, content, binary = false } of arquivosVivos) {
     if (typeof content !== 'string' && !Buffer.isBuffer(content)) {
@@ -385,7 +342,7 @@ export function exportPlan(arquivosVivos, { prefixo = 'prototipo-ui/cowork/', pr
 
     // RECUSA, não roteamento. Pousar em outro lugar seria trocar um destino errado por
     // outro: o problema não é ONDE o charter cai, é que ele não desce por esta porta.
-    if (RE_CANON_DE_TELA.test(p)) {
+    if (RE_CANON_DE_TELA.test(p) || (buildOnly && !RE_BUILD_SOURCE.test(p))) {
       recusados.push(p);
       // O conteúdo viaja junto: a devolutiva compara o rascunho com o canon vivo, e
       // reler o arquivo depois seria reler de onde ele NÃO está (ele não desceu).
@@ -393,27 +350,30 @@ export function exportPlan(arquivosVivos, { prefixo = 'prototipo-ui/cowork/', pr
       continue;
     }
 
-    // `.md` NUNCA pode cair no espelho (R1 do cowork-ssot-guard: cowork/ é build-only).
-    // Roteia por EXTENSÃO, não por flag, porque a regra é do arquivo — quem chama não
-    // deveria poder errar isso. Sem `prefixoDocs` o comportamento antigo é preservado.
-    const ehDoc = prefixoDocs && p.toLowerCase().endsWith('.md');
+    if (buildOnly) {
+      const bytesFonte = Buffer.isBuffer(content) ? content : Buffer.from(content, 'utf8');
+      const digest = createHash('sha256').update(bytesFonte).digest('hex');
+      const original = fontePorSha.get(digest);
+      if (original) {
+        recusados.push(`${p} (conteúdo duplicado de ${original})`);
+        continue;
+      }
+      fontePorSha.set(digest, p);
+    }
+
     plano.push({
-      relPath: (ehDoc ? prefixoDocs : prefixo) + p,
+      relPath: prefixo + p,
       content,
       binary: binary || Buffer.isBuffer(content),
       bytes: Buffer.isBuffer(content) ? content.length : Buffer.byteLength(content, 'utf8'),
     });
   }
 
-  // Recusar em silêncio seria trocar o canon-sombra por perda silenciosa. Quem exportou
-  // precisa saber o que NÃO desceu e por onde aquilo entra.
   if (recusados.length) {
-    console.log(`\n  ⛔ ${recusados.length} artefato(s) de CANON DE TELA recusado(s) — não descem por esta porta (PROTOCOL 10.4):`);
-    for (const r of recusados) console.log(`     · ${r}`);
-    console.log('     O canon nasce em resources/js/Pages/<Mod>/ via criar-tela.mjs, reconciliado');
-    console.log('     contra SPEC/ADR. Rascunho vindo do design entra como PEDIDO em cowork-inbox/,');
-    console.log('     não como charter. Ver o canon-sombra de 30 arquivos que isto passou a impedir.');
-    console.log(`     A devolutiva com o canon vivo ao lado sai em ${DEVOLUTIVA_REL}.`);
+    throw new Error(
+      `export build-only recusado; nada foi escrito. Fora do contrato: ${recusados.join(', ')}. ` +
+      'Documentos/canon devem ser reconciliados na fonte única, não espelhados.'
+    );
   }
 
   plano.recusados = recusados;
@@ -516,7 +476,7 @@ export function devolutivaDeRecusados(recusadosConteudo, { root = ROOT } = {}) {
       const tsx = meta.component.replace(/\s*\(.*$/, '').trim();
       telaExiste = existsSync(join(root, tsx));
       alvo = tsx.replace(/\.tsx$/i, sufixo);
-    } else if (/\.contract\.json$/i.test(p)) alvo = 'prototipo-ui/contrato/' + p.split('/').pop();
+    } else if (/\.contract\.json$/i.test(p)) alvo = 'governance/design/contracts/' + p.split('/').pop();
 
     const abs = alvo ? join(root, alvo) : null;
     const existe = Boolean(abs && existsSync(abs));
@@ -645,9 +605,9 @@ export function dsRuntimeRelPath(path) {
 // Retorna sempre com '/' — quem precisa de separador de plataforma usa join() no consumidor.
 export function destinoDoBundle(rel) {
   const p = String(rel || '').split(String.fromCharCode(92)).join('/').replace(/^\.\//, '');
-  if (p.startsWith('_ds/')) return { destinoBase: 'scripts/design-sync/mirror-snapshot', destinoPath: dsRuntimeRelPath(p) };
-  if (p.toLowerCase().endsWith('.md')) return { destinoBase: 'prototipo-ui/design-docs', destinoPath: p };
-  return { destinoBase: 'prototipo-ui/cowork', destinoPath: p };
+  if (p.startsWith('_ds/')) return { destinoBase: 'prototipo-ui/design-system', destinoPath: dsRuntimeRelPath(p) };
+  if (p.toLowerCase().endsWith('.md')) return { destinoBase: 'prototipo-ui/cowork/Wagner/handoffs', destinoPath: p };
+  return { destinoBase: 'prototipo-ui/cowork/Wagner', destinoPath: p };
 }
 
 /** sha256 do buffer CRU — a mesma conta que o `gerar-payload-partes` faz do lado do vivo.
@@ -678,10 +638,10 @@ export function rowsDoBundle(bundle, manifest, lerArquivo) {
   const cobertos = new Set();
   for (const f of (bundle?.files || [])) {
     const { destinoBase, destinoPath } = destinoDoBundle(f.path);
-    // O universo do freshness é o espelho (`prototipo-ui/cowork/`). `_ds/**` e `.md` pousam
+    // O universo do freshness é o espelho (`prototipo-ui/cowork/Wagner/`). `_ds/**` e `.md` pousam
     // em outros destinos e NÃO entram no denominador — contá-los inflaria a cobertura com
     // arquivos que o --compare nunca mediu (§5 2026-07-27: denominador é o executável).
-    if (destinoBase !== 'prototipo-ui/cowork') continue;
+    if (destinoBase !== 'prototipo-ui/cowork/Wagner') continue;
     cobertos.add(destinoPath);
     const buf = lerArquivo(destinoBase + '/' + destinoPath);
     rows.push({
@@ -770,36 +730,6 @@ function deltaVerdict(meds, nowIso, days, listKey) {
   const novos = (last[listKey] || []).filter((p) => !antes.has(p));
   if (novos.length > 0) return { veredito: 'GREW', last, prev, ageDays, novos };
   return { veredito: 'OK', last, prev, ageDays, novos: [] };
-}
-
-// ── FRESCOR DOS .md POUSADOS EM design-docs/ (T1 · session 2026-09-01) ───────────
-// O --compare cobre as âncoras+deps do espelho cowork/; os .md que o roteamento manda pra
-// prototipo-ui/design-docs/ (github.md — ADR 0387 —, PEDIDOs da cowork-inbox) não tinham
-// medidor NENHUM de "a cópia pousada ficou atrás do vivo?" — a classe do incidente
-// "HANDOFF 15d stale". Mesma divisão do live-only: o agente logado mede (--docs-compare,
-// auth ADR 0315) e REGISTRA; o CI audita o REGISTRO via --sla-docs. Herdado nunca é
-// vermelho: o predicado é DELTA (stale que ENTROU desde a medição anterior — §5 2026-08-24).
-export const KIND_DOCS = 'docs';
-export const DOCS_SLA_DAYS = 7;
-
-/** Entrada de ledger pra uma medição de frescor dos .md pousados (pura, testável).
- *  `denom` = quantos .md do vivo alimentaram a medição; `medidos` = quantos tinham cópia
- *  pousada pra comparar (sem cópia = eixo do --live-only, não deste). */
-export function docsEntry(staleList, medidos, denom, dateIso) {
-  return {
-    date: dateIso,
-    kind: KIND_DOCS,
-    stale: staleList.length,
-    medidos,
-    denom,
-    staleList: [...staleList].sort(),
-  };
-}
-
-/** Veredito do eixo docs — mesmos estados do liveOnlyVerdict (deltaVerdict é o dono). */
-export function docsVerdict(entries, nowIso, days = DOCS_SLA_DAYS) {
-  const meds = (Array.isArray(entries) ? entries : []).filter((e) => e && e.kind === KIND_DOCS);
-  return deltaVerdict(meds, nowIso, days, 'staleList');
 }
 
 // ── DESQUALIFICAÇÃO: o eixo NOVO invalida a leitura do eixo MODIFICADO ───────────
@@ -1000,6 +930,12 @@ export function ultimaVerificacaoDe(entries, cowork) {
   for (const r of runs) if (r.verified.includes(cowork) && (!melhor || r.date > melhor)) {
     melhor = r.date; hash = (r.verifiedHash || {})[cowork] || null;
   }
+  // Mudança de namespace invalida a prova anterior sem fabricar uma nova. O arquivo volta
+  // honestamente a NUNCA VERIFICADO até o próximo compare/bundle do novo endereço.
+  const invalidacoes = (Array.isArray(entries) ? entries : [])
+    .filter((e) => Array.isArray(e.invalidated) && e.invalidated.includes(cowork));
+  const ultimaInvalidacao = invalidacoes.reduce((d, e) => (!d || e.date > d ? e.date : d), null);
+  if (ultimaInvalidacao && (!melhor || ultimaInvalidacao > melhor)) return { data: null, hash: null };
   return { data: melhor, hash };
 }
 
@@ -1100,7 +1036,7 @@ export function parseShellDeps(html) {
  *  Devolve { faltando, ignorados } — `ignorados` é reportado, nunca escondido. */
 export function absentLocal(shellHtml, root = ROOT) {
   if (!shellHtml) return { faltando: [], ignorados: [] };
-  const rel = (d) => `prototipo-ui/cowork/${d}`;
+  const rel = (d) => `prototipo-ui/cowork/Wagner/${d}`;
   const ausentes = parseShellDeps(shellHtml).filter((d) => !existsSync(join(root, rel(d))));
   const ignorados = ausentes.filter((d) => {
     try {
@@ -1125,7 +1061,7 @@ export function absentLocal(shellHtml, root = ROOT) {
  *  Mesmo conjunto de âncoras que o anchor-content-check enxerga (reusa anchorRelPath). */
 export function buildManifest(root = ROOT, { all = false, shellHtml = null } = {}) {
   const PAGES = join(root, 'resources', 'js', 'Pages');
-  const COWORK = join(root, 'prototipo-ui', 'cowork');
+  const COWORK = join(root, 'prototipo-ui', 'cowork', 'Wagner');
   const seen = new Map(); // relPath → { cowork, repoPath, repoHash, telas }
 
   const add = (relPath, telas) => {
@@ -1140,7 +1076,7 @@ export function buildManifest(root = ROOT, { all = false, shellHtml = null } = {
     if (!seen.has(relPath)) {
       seen.set(relPath, {
         cowork: relPath,
-        repoPath: `prototipo-ui/cowork/${relPath}`,
+        repoPath: `prototipo-ui/cowork/Wagner/${relPath}`,
         repoHash: contentHash(readFileSync(abs)),
         telas: [],
       });
@@ -1155,8 +1091,10 @@ export function buildManifest(root = ROOT, { all = false, shellHtml = null } = {
     const t = readFileSync(charter, 'utf8');
     const m = t.match(/^related_prototype:\s*(.+)$/m);
     if (!m) continue;
-    const rel = anchorRelPath(m[1].trim());
+    let rel = anchorRelPath(m[1].trim());
     if (!rel) continue; // prosa não-resolvível — mesmo escopo que o anchor-content pula
+    if (rel.startsWith('Felipe/')) continue; // outro dono/conta, fora do projeto Cowork Wagner
+    if (rel.startsWith('Wagner/')) rel = rel.slice('Wagner/'.length);
     const tela = charter.slice(PAGES.length + 1).split('\\').join('/').replace(/\.charter\.md$/, '');
     add(rel.split('\\').join('/'), [tela]);
   }
@@ -1193,7 +1131,7 @@ export function lerShellHtml(root = ROOT) {
 }
 
 export function defaultShellPath(root = ROOT) {
-  const noRepo = join(root, 'prototipo-ui', 'cowork', 'oimpresso.com.html');
+  const noRepo = join(root, 'prototipo-ui', 'cowork', 'Wagner', 'oimpresso.com.html');
   if (existsSync(noRepo)) return noRepo;
   // Sem fallback pro `~/Downloads/_cowork-handoff-staging` ([W] 2026-08-13: "não existe mais
   // zip, é direto o protocolo"). O staging era o caminho do BUNDLE, e ele morreu duas vezes:
@@ -1267,7 +1205,7 @@ export function nasceSemMedicao(adicionados, manifest, vivos = null) {
   const medidos = new Set(manifest.map((f) => f.cowork));
   const noVivo = vivos ? new Set(vivos) : null;
   const base = (adicionados || [])
-    .map((p) => p.replace(/^prototipo-ui\/cowork\//, ''))
+    .map((p) => p.startsWith(`${MIRROR_REL}/`) ? p.slice(MIRROR_REL.length + 1) : p)
     .filter((p) => !p.includes('/'))                   // raiz: subdir tem shell próprio
     .filter((p) => /\.(jsx|css|js)$/i.test(p))         // .html no espelho é relatório
     .filter((p) => !medidos.has(p));
@@ -1288,7 +1226,7 @@ export function nasceSemMedicao(adicionados, manifest, vivos = null) {
 // ("vai ter computadores que não vão ter acesso ao design dessa máquina e vão trabalhar
 // só com o git"): o time recebe o protótipo, mas não o vê como ele é.
 //
-// O conteúdo JÁ ESTÁ versionado em `scripts/design-sync/mirror-snapshot/` (dono:
+// O conteúdo JÁ ESTÁ versionado em `prototipo-ui/design-system/` (dono:
 // ds-mirror-build.mjs + gate ds-mirror-drift) — só não no path que o shell procura.
 // Este modo REPÕE, derivando o id do DS do PRÓPRIO SHELL (nunca hardcode: o shell é
 // versionado, então o id acompanha quando [W] trocar de design system).
@@ -1324,7 +1262,7 @@ export function previewDsPlan(shellHtml, root = ROOT) {
   const querUsar = refsShell.map((ref) => seguro(ref));
   const inseguraShell = refsShell.find((_, index) => !querUsar[index]);
   if (inseguraShell) return { erro: `referência insegura no shell do preview: "${inseguraShell}"`, arquivos: [] };
-  const origem = join(root, 'scripts', 'design-sync', 'mirror-snapshot');
+  const origem = join(root, 'prototipo-ui', 'design-system');
   // ── 2ª CAMADA: o que os CSS repostos pedem POR DENTRO (2026-08-14) ───────────
   // Derivar o plano só do SHELL deixa de fora tudo que está a uma indireção: o
   // shell não menciona fonte alguma — quem as pede é o `colors_and_type.css`, com
@@ -1363,12 +1301,12 @@ export function previewDsPlan(shellHtml, root = ROOT) {
   const todos = [...new Set([...querUsar, ...deCss])];
   return {
     id,
-    destino: `prototipo-ui/cowork/_ds/${id}`,
-    destinoAbs: join(root, 'prototipo-ui', 'cowork', '_ds', id),
+    destino: `prototipo-ui/cowork/Wagner/_ds/${id}`,
+    destinoAbs: join(root, 'prototipo-ui', 'cowork', 'Wagner', '_ds', id),
     arquivos: todos.map((f) => ({
       nome: f,
       de: join(origem, f),
-      para: join(root, 'prototipo-ui', 'cowork', '_ds', id, f),
+      para: join(root, 'prototipo-ui', 'cowork', 'Wagner', '_ds', id, f),
       temNoRepo: existsSync(join(origem, f)),
     })),
   };
@@ -1439,7 +1377,7 @@ function reportAbsentLocal(shellHtml, stream = process.stdout) {
   w(
     `\n  ⛔ ausentes: ${faltando.length} · ⬜ ignorados por design: ${ignorados.length}\n` +
     (faltando.length
-      ? `  Pra versionar — DUAS rotas, e elas NÃO são equivalentes (hierarquia em prototipo-ui/protocolo.config.mjs, fase -1):\n` +
+      ? `  Pra versionar — DUAS rotas, e elas NÃO são equivalentes (hierarquia em scripts/design/protocolo.config.mjs, fase -1):\n` +
         `  [PRINCIPAL] muitos arquivos → peça o payload em PARTES <=256 KiB, DesignSync.get_file de cada\n` +
         `              (parte >48 KB volta PERSISTIDA em disco, não no contexto) → aplicar-payload.mjs.\n` +
         `              O conteúdo vira DADO e o applier confere bytes por arquivo ANTES de escrever.\n` +
@@ -1447,7 +1385,7 @@ function reportAbsentLocal(shellHtml, stream = process.stdout) {
         `              ⚠️ get_file de arquivo PEQUENO volta INLINE no contexto: aí não há JSON em disco\n` +
         `              pra alimentar o --export-from, e escrever de lá é TRANSCRIÇÃO (fidelidade não provada).\n` +
         `              Isso é limite do TRANSPORTE, não do problema — a rota [PRINCIPAL] não tem esse teto.\n` +
-        `  ⚠️ .md desce em OUTRO destino: o --export-from roteia .md pra prototipo-ui/design-docs/\n  (R1 do cowork-ssot-guard reprova .md em cowork/ — build-only).\n  (não muda o exit code: o --check morde só em STALE)\n`
+        `  ℹ️ .md do vivo não entra no transporte build-only; destile o conteúdo útil no canon.\n  (não muda o exit code: o --check morde só em STALE)\n`
       : `  ✓ toda dep do shell existe no espelho.\n`),
   );
 }
@@ -1532,7 +1470,7 @@ function posixJoin(base, rel) {
   }
   return pilha.join('/');
 }
-export const MIRROR_REL = 'prototipo-ui/cowork';
+export const MIRROR_REL = 'prototipo-ui/cowork/Wagner';
 
 // ── ÓRFÃO NA ADIÇÃO (--check-orfaos) ─────────────────────────────────────────
 // O QUE DEFENDE: a direção que faltava da paridade host↔espelho. O lado Cowork autorou um
@@ -1794,7 +1732,7 @@ function main() {
     // e usá-lo aqui acusaria como "novo no vivo" todo arquivo do espelho fora do shell.
     // Medido: com o manifesto do shell dava dezenas de FP (`prototipo-ui-patch/**`); com o
     // completo dá 10, o mesmo número do `--live-only`, que é o dono desta pergunta.
-    const novos = liveOnly([...vivos], buildManifest(ROOT, { all: true, shellHtml: lerShellHtml() }), { jaEmDocs: buildDocsSet(ROOT) });
+    const novos = liveOnly([...vivos], buildManifest(ROOT, { all: true, shellHtml: lerShellHtml() }));
     const telaNova = novos.filter((p) => /-page\.(jsx|css)$/.test(p) || /^[^/]+-(page|merge)\.jsx$/.test(p));
 
     console.log(`\n  LISTA DE DOWNLOAD — manifesto do shell × vivo × ledger\n`);
@@ -1831,7 +1769,7 @@ function main() {
     const raw = JSON.parse(readFileSync(lp, 'utf8'));
     const paths = Array.isArray(raw) ? raw : (raw.paths || []);
     const manifest = buildManifest(ROOT, { all: true, shellHtml: lerShellHtml() });
-    const faltando = liveOnly(paths, manifest, { jaEmDocs: buildDocsSet(ROOT), jaEmRuntime: buildRuntimeSet(ROOT) });
+    const faltando = liveOnly(paths, manifest, { jaEmRuntime: buildRuntimeSet(ROOT) });
     // Classifica pra o humano decidir sem ler 25 linhas iguais. NÃO é filtro — tudo é
     // listado; filtro escondido aqui recriaria o ponto cego que este modo existe pra abrir.
     const ehTela = (p) => !p.includes('/') && /\.(jsx|css)$/.test(p);
@@ -1842,11 +1780,9 @@ function main() {
     for (const p of telas) console.log(`     + ${p}`);
     console.log(`\n  ── outros (${outros.length}) — shell, uploads, bundle de DS, docs:`);
     for (const p of outros) console.log(`     · ${p}`);
-    console.log('\n  Para versionar: DesignSync.get_file de cada → salve os JSON num dir → --export-from <dir>.');
-    console.log('  ⚠️ .md DESCE — só não pousa em cowork/: R1 do cowork-ssot-guard reprova .md lá (build-only).');
-    console.log('     O --export-from (destino padrão cowork) roteia .md por EXTENSÃO pra');
-    console.log('     prototipo-ui/design-docs/ — decisão [W] 2026-08-21; é roteamento, não flag.');
-    console.log('     Com --ds/--ds-runtime o .md pousa no próprio prefixo (fora do alcance do R1).');
+    console.log('\n  Para versionar BUILD: DesignSync.get_file de cada fonte/dependência → salve os JSON num dir → --export-from <dir>.');
+    console.log('  ℹ️ .md/canon NÃO desce no destino Cowork; destile o conhecimento no dono canônico.');
+    console.log('     O lote misto é recusado inteiro antes da primeira escrita (ADR 0390).');
     console.log('  ⚠️ lista, não veredito: o que merece descer é decisão [W], não da máquina.\n');
     if (argv.includes('--ledger')) {
       const lp = join(ROOT, LEDGER_REL);
@@ -1923,6 +1859,10 @@ function main() {
   // Produzir o insumo exige auth (ADR 0315) — o CI não roda isto; audita via --sla-docs.
   const dcIdx = argv.indexOf('--docs-compare');
   if (dcIdx !== -1) {
+    console.error('✗ --docs-compare foi removido: documentos não fazem parte do espelho build-only. Reconcilie o conteúdo no canon proprietário.');
+    process.exit(2);
+  }
+  if (false) {
     const dir = argv[dcIdx + 1];
     if (!dir || !existsSync(dir)) {
       console.error('✗ --docs-compare exige um diretório com os JSONs do get_file dos .md do vivo.');
@@ -2074,6 +2014,8 @@ function main() {
   // --preview-ds: repõe o `_ds/` do espelho a partir do mirror-snapshot versionado.
   // Sem isso o protótipo abre COM os tokens de status vazios (medido 2026-08-13).
   if (argv.includes('--preview-ds')) {
+    console.log('PREVIEW-DS aposentado: o shell lê prototipo-ui/design-system/ diretamente; nenhum cache _ds/ será criado.');
+    return;
     const shellIdx0 = argv.indexOf('--shell');
     const sp = shellIdx0 !== -1 ? argv[shellIdx0 + 1] : defaultShellPath();
     const html = sp && existsSync(sp) ? readFileSync(sp, 'utf8') : null;
@@ -2085,7 +2027,7 @@ function main() {
     // Fase 1: valida o lote INTEIRO antes da primeira escrita. Assim uma fonte ausente,
     // traversal ou bundle truncado não deixa um cache híbrido (parte nova + parte velha).
     for (const a of plano.arquivos) {
-      if (!a.temNoRepo) { faltando.push(a.nome); console.log(`  ⚠ SEM FONTE   ${a.nome}  (não existe em scripts/design-sync/mirror-snapshot/)`); continue; }
+      if (!a.temNoRepo) { faltando.push(a.nome); console.log(`  ⚠ SEM FONTE   ${a.nome}  (não existe em prototipo-ui/design-system/)`); continue; }
       if (a.nome === '_ds_bundle.js') {
         try {
           execFileSync(process.execPath, ['--check', a.de], { stdio: 'ignore' });
@@ -2158,7 +2100,7 @@ function main() {
       snap[vivo.path] = h;
       n++;
       // pré-visão honesta: compara com o disco SEM escrever, só pra o log não mentir
-      const abs = join(ROOT, 'prototipo-ui', 'cowork', vivo.path);
+      const abs = join(ROOT, 'prototipo-ui', 'cowork', 'Wagner', vivo.path);
       const local = existsSync(abs) ? artifactHash(readFileSync(abs), vivo.binary) : null;
       const nota = local === null ? 'AUSENTE' : local === h ? 'igual' : 'DIVERGE';
       if (nota !== 'igual') tocaria++;
@@ -2204,13 +2146,9 @@ function main() {
     //
     // O `exportPlan` já aceitava `prefixo` desde sempre; só o chamador hardcodava.
     const PREFIXOS = {
-      cowork: 'prototipo-ui/cowork/',
+      cowork: 'prototipo-ui/cowork/Wagner/',
       ds: 'prototipo-ui/design-system/',
-      dsRuntime: 'scripts/design-sync/mirror-snapshot/',
-      // 4º destino (2026-08-21, decisão [W]): knowledge do Cowork. NÃO é escolhido por
-      // flag — é roteado por extensão dentro do exportPlan, porque `.md` em cowork/ é
-      // reprovado pelo R1 e quem chama não deveria poder errar isso.
-      docs: 'prototipo-ui/design-docs/',
+      dsRuntime: 'prototipo-ui/design-system/',
     };
     const destinoNome = argv.includes('--ds-runtime') ? 'dsRuntime' : argv.includes('--ds') ? 'ds' : 'cowork';
     const prefixo = PREFIXOS[destinoNome];
@@ -2219,10 +2157,7 @@ function main() {
       try { paraExportar = vivos.map((v) => ({ ...v, path: dsRuntimeRelPath(v.path) })); }
       catch (e) { console.error(`✗ ${e.message}`); process.exit(2); }
     }
-    // `prefixoDocs` só no destino cowork: `ds`/`dsRuntime` já pousam FORA de cowork/, onde
-    // o R1 não alcança — lá um `.md` é legítimo e desviá-lo seria mudar o que já funciona.
-    const prefixoDocs = destinoNome === 'cowork' ? PREFIXOS.docs : null;
-    const plano = exportPlan(paraExportar, { prefixo, prefixoDocs });
+    const plano = exportPlan(paraExportar, { prefixo, buildOnly: destinoNome === 'cowork' });
     // O SNAPSHOT sai daqui de graça (2026-08-13). Antes o ciclo pedia DOIS downloads
     // por arquivo: um pro --export-from, outro pro snapshot do --compare — e o agente
     // é o único que fala MCP, então esse 2º download custava contexto dele. Mas o
@@ -2249,11 +2184,7 @@ function main() {
       // chave = path RELATIVO ao espelho (o mesmo que o manifesto usa)
       // chave RELATIVA ao destino escolhido — com `--ds` o prefixo é outro, e cortar
       // o do Cowork deixaria a chave com o caminho inteiro dentro.
-      // ⚠️ Com roteamento por extensão o lote tem DOIS prefixos, então testar só o do
-      // destino deixaria todo `.md` com a chave `prototipo-ui/design-docs/...` inteira —
-      // e o `--compare` seguinte não casaria com o manifesto. Corta o que de fato bate.
-      const prefixoDoArquivo = [prefixo, prefixoDocs].find((p) => p && relPath.startsWith(p));
-      const rel = prefixoDoArquivo ? relPath.slice(prefixoDoArquivo.length) : relPath;
+      const rel = relPath.startsWith(prefixo) ? relPath.slice(prefixo.length) : relPath;
       if (nota === 'NOVO') nascidos.push(rel);
       snapshotEmitido[rel] = depois;
       console.log(`  ${nota.padEnd(11)} ${relPath}  (${bytes} bytes · ${depois.slice(0, 12)})`);
@@ -2391,45 +2322,6 @@ function main() {
     return;
   }
 
-  // --sla-docs: headless-safe (lê SÓ o ledger). Audita o REGISTRO da medição de frescor dos
-  // .md pousados em design-docs/ (github.md — ADR 0387 —, PEDIDOs). Mesma divisão do
-  // --sla-live-only: o agente logado mede (--docs-compare --ledger), o CI cobra o registro.
-  // Predicado é DELTA (stale que ENTROU) — passivo herdado é contagem, nunca vermelho.
-  if (argv.includes('--sla-docs')) {
-    const lp = join(ROOT, LEDGER_REL);
-    let entries = [];
-    try { entries = existsSync(lp) ? JSON.parse(readFileSync(lp, 'utf8')) : []; } catch { entries = []; }
-    if (!Array.isArray(entries)) entries = entries.runs || [];
-    const r = docsVerdict(entries, new Date().toISOString());
-    const receita = 'get_file dos .md → salve os JSON num dir → --docs-compare <dir> --ledger';
-    console.log(`\n  DOCS SLA — os .md pousados em design-docs/ foram comparados com o vivo nos últimos ${DOCS_SLA_DAYS}d?\n`);
-    if (r.veredito === 'NEVER-RAN') {
-      console.error(`  ✗ NUNCA MEDIDO — nenhuma entrada de docs no ledger. Rode: ${receita}`);
-      process.exit(1);
-    }
-    const idade = `medido em ${r.last.date.slice(0, 10)} (há ${r.ageDays}d): ${r.last.stale} stale de ${r.last.medidos} pousado(s) comparado(s)`;
-    if (r.veredito === 'OVERDUE') {
-      console.error(`  ✗ VENCIDO — ${idade}. SLA é ${DOCS_SLA_DAYS}d. Rode: ${receita}`);
-      process.exit(1);
-    }
-    if (r.veredito === 'GREW') {
-      console.error(`  ✗ STALE NOVO — ${idade}; ${r.novos.length} .md ficou atrás do vivo desde ${r.prev.date.slice(0, 10)}:`);
-      for (const p of r.novos) console.error(`     + design-docs/${p}`);
-      console.error('  Advisory: atualizar é pelo transporte (--export-from), nunca transcrição (ADR 0374).');
-      process.exit(1);
-    }
-    if (r.veredito === 'SCOPE-CHANGED') {
-      console.log(`  ⬜ SEM COMPARAÇÃO — ${idade}, mas o denominador mudou (${r.prev.denom} → ${r.last.denom}).`);
-      console.log('     Delta não é comparável entre escopos diferentes; medição registrada, crescimento NÃO avaliado.');
-      return;
-    }
-    if (r.veredito === 'BASELINE') {
-      console.log(`  ⬜ BASELINE — ${idade}. Primeira medição registrada; não há anterior pra comparar.`);
-      return;
-    }
-    console.log(`  ✓ ${idade} — nenhum stale novo desde ${r.prev.date.slice(0, 10)}.`);
-    return;
-  }
 
   // --sla-live-only: headless-safe (lê SÓ o ledger). Audita o REGISTRO da medição de
   // live-only — nunca a medição, que exige auth (ADR 0315). Verdict SEPARADO do --sla de

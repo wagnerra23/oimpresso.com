@@ -1,5 +1,5 @@
 // Histórico de conversas da Jana — filtro real + teclado + a11y (fatia C da
-// fusão, pacote JANA-FUSAO-2026-08-06; fonte: prototipo-ui/cowork/jana-merge.jsx
+// fusão, pacote JANA-FUSAO-2026-08-06; fonte: prototipo-ui/cowork/Wagner/jana-merge.jsx
 // §JmConversa).
 //
 // Por que jsdom e não Pest: o que mudou aqui é COMPORTAMENTO de teclado e de

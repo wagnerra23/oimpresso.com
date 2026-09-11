@@ -2,7 +2,7 @@
 page_id: forja-roadmap-gantt
 page: /forja/roadmap-gantt
 component: Modules/Forja/Resources/js/Pages/Forja/Roadmap/Gantt.tsx
-related_prototype: prototipo-ui/cowork/forja-page.jsx
+related_prototype: prototipo-ui/cowork/Wagner/forja-page.jsx
 owner: wagner
 status: draft
 last_validated: "2026-08-05"

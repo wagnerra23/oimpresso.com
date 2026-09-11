@@ -182,8 +182,7 @@ const campoDedicadoRe = /\*\*\s*Testes?\s*[:：]|Status\s*[:：]/i;
  * `Status: 🧪 (FooTest …)`). É tão vivo quanto o primeiro e ficava INVISÍVEL: não virava
  * `órfão` nem `na-lane` — simplesmente não existia pra esta ferramenta, e silêncio aqui é
  * indistinguível de "está tudo bem". Medido em 2026-08-26 sobre os 143 `.casos.md` que o
- * script varre (o corpus bruto tem 189; 46 vivem em `design-docs/cowork-inbox/`, que
- * `foraDoInbox` exclui por design): 57 arquivos com 386 cabeçalhos `## UC-` não
+ * script varre: 57 arquivos com 386 cabeçalhos `## UC-` não
  * contribuíam UM par sequer.
  *
  * O caso que originou: `Jana/Pro.casos.md` declara nos 6 UCs `Status: 🧪 (ProContractTest
@@ -264,18 +263,11 @@ const listarWorkflows = () => {
   return readdirSync(d).filter((f) => /\.ya?ml$/.test(f)).map((f) => `.github/workflows/${f}`).sort();
 };
 
-// `design-docs/cowork-inbox/` é CAIXA DE ENTRADA do Cowork (pedido que o Code ainda NÃO adotou),
-// não artefato ativo do repo. Um `Test.php` que chega no inbox está fora de lane POR DEFINIÇÃO —
-// pôr em lane é trabalho de quem ADOTA o pedido, e cobrar isso do inbox reprova o mensageiro.
-// Medido 2026-08-24: o inbox era 93 arquivos 100% `.md` e passava; ao descer 87 novos do vivo veio
-// `FiscalOndasF1Test.php`, legítimo COMO PEDIDO e sem lane alguma que o rode.
-const foraDoInbox = (p) => !String(p).split(String.fromCharCode(92)).join('/').includes('design-docs/cowork-inbox/');
-
 function indiceDeTestes() {
   // git ls-files: o universo é o VERSIONADO (não uma travessia que pega worktree alheio).
   const raw = execFileSync('git', ['ls-files', '--', '*Test.php'], { cwd: ROOT, encoding: 'utf8' });
   const porNome = new Map();
-  for (const p of raw.split('\n').map((s) => s.trim()).filter(Boolean)) {
+  for (const p of raw.split('\n').map((s) => s.trim()).filter(Boolean).filter((p) => existsSync(join(ROOT, p)))) {
     const nome = p.split('/').pop().replace(/\.php$/, '');
     if (!porNome.has(nome)) porNome.set(nome, []);
     porNome.get(nome).push(p);
@@ -311,7 +303,7 @@ function main() {
   const testesPorNome = indiceDeTestes();
   const manifesto = manifestoG7();
   const arquivosCasos = execFileSync('git', ['ls-files', '--', '*.casos.md'], { cwd: ROOT, encoding: 'utf8' })
-    .split('\n').map((s) => s.trim()).filter(Boolean).filter(foraDoInbox).sort();
+    .split('\n').map((s) => s.trim()).filter(Boolean).filter((p) => existsSync(join(ROOT, p))).sort();
 
   const linhas = [];
   for (const f of arquivosCasos) {

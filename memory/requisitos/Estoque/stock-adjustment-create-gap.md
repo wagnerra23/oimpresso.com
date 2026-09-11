@@ -1,7 +1,7 @@
 ---
 id: requisitos-estoque-stock-adjustment-create-gap
 tela: StockAdjustment/Create (/stock-adjustments/create)
-prototipo: prototipo-ui/cowork/estoque-page.jsx + estoque-forms.jsx
+prototipo: prototipo-ui/cowork/Wagner/estoque-page.jsx + estoque-forms.jsx
 tela_viva: resources/js/Pages/StockAdjustment/Create.tsx
 gerado_em: 2026-09-06
 ---

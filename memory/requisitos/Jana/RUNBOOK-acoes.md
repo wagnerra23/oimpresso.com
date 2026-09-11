@@ -28,8 +28,8 @@ steps:
 # RUNBOOK — Ações da Jana (`/ia/acoes`)
 
 > **Tipo:** runbook reproduzível
-> **Irmãos:** [`Acoes.charter.md`](../../../resources/js/Pages/Jana/Acoes.charter.md) (lei) · [`Acoes.casos.md`](../../../resources/js/Pages/Jana/Acoes.casos.md) (contrato UC) · [`jana-acoes.contract.json`](../../../prototipo-ui/contrato/jana-acoes.contract.json) (copy pinada)
-> **Âncora de design:** `prototipo-ui/cowork/jana-telas-novas.jsx` §`JmAcoesFila` (a aba vive no `JmTabs` de `jana-merge.jsx`). Resolva por `node prototipo-ui/ancora.mjs Jana/Acoes`.
+> **Irmãos:** [`Acoes.charter.md`](../../../resources/js/Pages/Jana/Acoes.charter.md) (lei) · [`Acoes.casos.md`](../../../resources/js/Pages/Jana/Acoes.casos.md) (contrato UC) · [`jana-acoes.contract.json`](../../../governance/design/contracts/jana-acoes.contract.json) (copy pinada)
+> **Âncora de design:** `prototipo-ui/cowork/Wagner/jana-telas-novas.jsx` §`JmAcoesFila` (a aba vive no `JmTabs` de `jana-merge.jsx`). Resolva por `node scripts/design/ancora.mjs Jana/Acoes`.
 > **Validado:** **estático** contra `origin/main` em 2026-09-02 — rotas, `AcaoHitlController`, `AcaoHitlService`, `jana_acao_aprovacoes` e o protótipo conferidos arquivo a arquivo.
 > ⚠️ **Fluxo vivo contra prod NÃO exercitado nesta data.** O smoke real com screenshot é o passo 6 abaixo (R1).
 

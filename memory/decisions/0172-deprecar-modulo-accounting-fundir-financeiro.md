@@ -124,7 +124,7 @@ Plano operacional completo em [`memory/requisitos/Accounting/DEPRECATION-PLAN.md
 ### Alt C — Refatorar Accounting em Inertia (MWART) em vez de deprecar
 
 **Rejeitada porque:**
-- Lições F3 Financeiro rejeitado 2026-05-09 ([`prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md)) — 6 meta-antipadrões + 15 técnicos mostram que MWART custa caro
+- Lições F3 Financeiro rejeitado 2026-05-09 ([`memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md)) — 6 meta-antipadrões + 15 técnicos mostram que MWART custa caro
 - 91 Blade views × MWART 5 fases = ~50 ondas; ROI negativo (zero cliente pagante usa Accounting)
 - Financeiro já cobre 60-70%; gap 30% é SPED (mitigado Portal Advisor)
 
@@ -174,7 +174,7 @@ Plano operacional completo em [`memory/requisitos/Accounting/DEPRECATION-PLAN.md
 | **Confiabilidade com fallback** | ✅ | View bridge E4 (60d) + 90d wait E6 = duas janelas pra detectar regressão |
 | **Estimate fator 10x IA-pair** ([ADR 0106](../0106-recalibracao-velocidade-fator-10x-ia-pair.md)) | ✅ | ~18d úteis trabalho ativo distribuído; 26 semanas corridas dominado por waits (relógio real) |
 | **Skill mwart-process** ([ADR 0104](../0104-processo-mwart-canonico-unico-caminho.md)) | N/A | Não é migração Blade→Inertia, é deprecação |
-| **Lições F3 Financeiro** ([`prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md)) | ✅ | Citada na Alt C — não Inertia-rizar Accounting, deprecar |
+| **Lições F3 Financeiro** ([`memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md)) | ✅ | Citada na Alt C — não Inertia-rizar Accounting, deprecar |
 
 ## Próximas ADRs derivadas
 
@@ -199,4 +199,4 @@ Plano operacional completo em [`memory/requisitos/Accounting/DEPRECATION-PLAN.md
 - [ADR 0167 Append-only handoff](../0167-errata-0130-indice-handoff-historico-longo.md)
 - [ADR 0170 PaymentGateway Cobranca](../0170-paymentgateway-extracao-camada-cobranca.md)
 - [memory/reference/cliente-rotalivre.md](../../reference/cliente-rotalivre.md) — Larissa biz=4 Simples Nacional
-- [prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md](../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md)
+- [memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md](../../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md)

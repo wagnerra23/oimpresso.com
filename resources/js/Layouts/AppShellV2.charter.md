@@ -2,14 +2,14 @@
 id: resources-js-layouts-appshellv2-charter
 page: n/a — Layout, é a moldura de TODAS as rotas (não tem rota própria)
 component: resources/js/Layouts/AppShellV2.tsx
-related_prototype: prototipo-ui/cowork/app.jsx
+related_prototype: prototipo-ui/cowork/Wagner/app.jsx
 module: _Shell
 status: draft
 created: 2026-09-02
 owner: wagner
 related_adrs: [0094-constituicao-v2-7-camadas-8-principios, 0114-prototipo-ui-cowork-loop-formalizado]
 related_ui_adrs: [0013-constituicao-ui-v2-camadas, 0023-sidebar-dark-fixo-preto-definitivo-supersede-0019, 0029-prototipo-soberano-sobre-adr-ui, 0030-sidebar-auto-rail-responsivo]
-prototypes: [prototipo-ui/cowork/app.jsx]
+prototypes: [prototipo-ui/cowork/Wagner/app.jsx]
 ---
 
 # Charter — `AppShellV2` (camada Shell da Constituição UI v2)

@@ -6,7 +6,7 @@ owner: wagner
 status: draft
 last_validated: "2026-09-05"
 parent_module: Essentials
-related_prototype: prototipo-ui/cowork/hrm-extras.jsx (Metas) · herda PT-01 Lista
+related_prototype: prototipo-ui/cowork/Wagner/hrm-extras.jsx (Metas) · herda PT-01 Lista
 related_adrs: [104, 93, 358]
 related_us: [US-ESS-011]
 runbook: RUNBOOK-metas.md

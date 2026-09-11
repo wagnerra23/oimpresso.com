@@ -22,7 +22,7 @@
 // Anti-pattern: "compare" sozinho = false-positive (compara módulo, compara preço).
 // Exige o par (comparar/conferir/igual/diferença/mudou) × (design/protótipo/tela/prod/cowork).
 //
-// Refs: LICOES_CODE LC-06 · PROTOCOLO-COMPARACAO-RUNTIME.md · prototipo-ui/design-diff.mjs · ADR 0299
+// Refs: LICOES_CODE LC-06 · PROTOCOLO-COMPARACAO-RUNTIME.md · scripts/design/design-diff.mjs · ADR 0299
 
 import { stdin } from 'node:process';
 
@@ -56,7 +56,7 @@ const DESIGN = /\b(design|desing|dising|desgin|prot[oó]tipo|protipo|cowork|mock
 Antes de qualquer veredito "igual/aplicado/fiel", cumpra o fluxo da skill \`comparar-design-prod\`:
 1. **Fonte provada**: \`cowork-mirror-freshness --compare --check\` = SYNC (senão está comparando design velho).
 2. **Mesmo tema** nos dois lados (o tema do Wagner).
-3. **Mesma sonda medida**: \`node prototipo-ui/design-diff.mjs --probe\` nos DOIS renders → \`--compare a.json b.json --check\` (D2/D4/D6/D8 medidos).
+3. **Mesma sonda medida**: \`node scripts/design/design-diff.mjs --probe\` nos DOIS renders → \`--compare a.json b.json --check\` (D2/D4/D6/D8 medidos).
 4. **D1 rede sempre** (partial-reload) + D3/D5 pelo PROTOCOLO-COMPARACAO-RUNTIME.
 5. **Canário**: valide a sonda contra 1 diferença conhecida antes de concluir.
 ⛔ Screenshot é ilustração, NÃO prova — print não distingue center×left (o erro dos strikes 1 e 2).`);

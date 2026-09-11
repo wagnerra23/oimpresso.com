@@ -9,7 +9,7 @@ import { Skeleton } from '@/Components/ui/skeleton';
  * `IndexController` entrega `coworkAggregates` via `Inertia::defer()`. Até
  * resolver, o cockpit lia `?? 0` e pintava **R$ 0** / sparkline vazia — zero
  * como se fosse resultado. Isso contradiz a regra que a própria tela declara no
- * `prototipo-ui/contrato/jana-painel.contract.json`:
+ * `governance/design/contracts/jana-painel.contract.json`:
  *   `painel-meta-apurando`      "não pode mostrar zero como se fosse resultado"
  *   `painel-meta-sem-historico` "ausência de dado se declara, não se desenha como zero"
  * O contrato escreveu a regra para METAS; ela vale igual para o cockpit.
@@ -19,8 +19,8 @@ import { Skeleton } from '@/Components/ui/skeleton';
  * dois contratos diferentes — este arquivo é o dono do segundo.
  *
  * ── ÂNCORA ───────────────────────────────────────────────────────────────────
- * `prototipo-ui/cowork/jana-merge.jsx` §`JmPainelSkeleton` — âncora de SÍMBOLO
- * (`grep -n "JmPainelSkeleton" prototipo-ui/cowork/jana-merge.jsx`), nunca linha.
+ * `prototipo-ui/cowork/Wagner/jana-merge.jsx` §`JmPainelSkeleton` — âncora de SÍMBOLO
+ * (`grep -n "JmPainelSkeleton" prototipo-ui/cowork/Wagner/jana-merge.jsx`), nunca linha.
  * Lá o skeleton é `.jm-sk-card` (caption + title) para KPI e `.jm-sk-grid` para
  * os cards de análise. Aqui a mesma ESTRUTURA sai de tokens do DS, não das
  * classes `jm-*` do protótipo — o protótipo é a fonte do desenho, não do CSS.

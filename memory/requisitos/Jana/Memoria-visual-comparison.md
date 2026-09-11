@@ -1,13 +1,13 @@
 # Memória da Jana (`/ia/memoria`) — protótipo × tela viva, por região e componente
 
-- **Data da medição:** 2026-08-17 · **âncora:** `prototipo-ui/cowork/jana-merge.jsx` §`JmMemoria` (âncora de **símbolo** — re-localize com `grep -n "function JmMemoria"`, ref de linha apodrece)
+- **Data da medição:** 2026-08-17 · **âncora:** `prototipo-ui/cowork/Wagner/jana-merge.jsx` §`JmMemoria` (âncora de **símbolo** — re-localize com `grep -n "function JmMemoria"`, ref de linha apodrece)
 - **Tela viva:** `resources/js/Pages/Jana/Memoria.tsx` + `components/JanaAreaHeader.tsx` + `_shared/JanaSubNav.tsx`
 - **Backend:** `Modules\KB\Http\Controllers\MemoriaController` (⚠️ vive no **KB**, não no Jana) sobre `Modules\Jana\Contracts\MemoriaContrato`
 - **Charter:** `resources/js/Pages/Jana/Memoria.charter.md` **v2** — `status: draft` no frontmatter × `live` no corpo (divergência registrada lá, não resolvida aqui)
 - **Contrato:** `resources/js/Pages/Jana/Memoria.casos.md` — UC-MEM-01..05, lane `jana-pest.yml`
 - **Gate F1.5:** esta tela **está** no manifesto `tests/Browser/visreg-screens.json` (`screen: "Jana/Memoria"`, âncora `"Memória da Jana"`) — toda mudança aqui gera diff de pixel e precisa de aprovação [W]
 
-> **Fonte de design:** decisão [W] de 2026-08-17 (`Index.charter.md` v8) — a fonte da Jana é o **protótipo Cowork**, não o Design System. Âncora resolvida por `node prototipo-ui/ancora.mjs Jana/Memoria`, que hoje devolve **`⚠️ charter sem related_prototype`** — ver §Decisões [W] em aberto.
+> **Fonte de design:** decisão [W] de 2026-08-17 (`Index.charter.md` v8) — a fonte da Jana é o **protótipo Cowork**, não o Design System. Âncora resolvida por `node scripts/design/ancora.mjs Jana/Memoria`, que hoje devolve **`⚠️ charter sem related_prototype`** — ver §Decisões [W] em aberto.
 
 > **Como ler:** ✅ existe e equivale · 🟡 existe mas diverge · ❌ não existe na tela viva · 🟢 **só na viva** (o protótipo não tem — apagar seria regressão) · ⛔ existe e **não deve** ser copiado.
 
@@ -37,7 +37,7 @@ Isto é comparação **estrutural**, por leitura de código dos dois lados. Ela 
 **Ela não mede fidelidade visual.** Fidelidade exige, cumulativamente:
 
 1. `node scripts/governance/cowork-mirror-freshness.mjs --compare --check` = **SYNC** (prova que o espelho não é design velho);
-2. sonda `node prototipo-ui/design-diff.mjs --probe` nos **dois** renders + `--compare a.json b.json --check` (skill `comparar-design-prod`).
+2. sonda `node scripts/design/design-diff.mjs --probe` nos **dois** renders + `--compare a.json b.json --check` (skill `comparar-design-prod`).
 
 **Nenhum dos dois rodou nesta medição.** O `--compare` foi invocado e recusou: *"exige um snapshot.json existente (do DesignSync.get_file)"*. Logo, **nada neste documento afirma "fiel"** — só "existe/não existe/diverge estruturalmente". Cor, espaçamento, tipografia e tokens (`bg-page-cream`, `bg-card/80`) estão **fora** do que foi medido.
 

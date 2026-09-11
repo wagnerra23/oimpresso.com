@@ -6,7 +6,7 @@
 //
 // Lista de assinaturas da plataforma. Responde: "o dinheiro entrou?".
 // Charter: ./Index.charter.md · Casos: ./Index.casos.md
-// Âncora de design: prototipo-ui/cowork/superadmin-page.jsx → ViewAssinaturas() (L1044)
+// Âncora de design: prototipo-ui/cowork/Wagner/superadmin-page.jsx → ViewAssinaturas() (L1044)
 // RUNBOOK: memory/requisitos/Superadmin/RUNBOOK-assinaturas.md
 //
 // Paginação e ordenação são SERVER-SIDE. O protótipo ordena no cliente porque trabalha com um

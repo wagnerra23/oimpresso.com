@@ -24,7 +24,7 @@
 // é a camada de "reusa ou cria, em qual arquivo" que faltava.
 //
 // Refs: memory/requisitos/_DesignSystem/MANUAL-CSS-JS.md (problema #5)
-//       · ADR 0239 (git=SSOT · derivado>escrito) · prototipo-ui/REGISTRY_DS_COMPONENTES.md.
+//       · ADR 0239 (git=SSOT · derivado>escrito) · memory/reference/prototipo-ui/REGISTRY_DS_COMPONENTES.md.
 
 import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, sep, basename } from 'node:path';

@@ -1,7 +1,7 @@
 ---
 id: requisitos-manufacturing-manufacturing-index-gap
 tela: Manufacturing/Index (/manufacturing/production)
-prototipo: prototipo-ui/cowork/manufacturing-page.jsx + manufacturing-producao.jsx
+prototipo: prototipo-ui/cowork/Wagner/manufacturing-page.jsx + manufacturing-producao.jsx
 tela_viva: resources/js/Pages/Manufacturing/Index.tsx
 gerado_em: 2026-09-06
 ---

@@ -35,7 +35,7 @@ O sistema de governança atual governa ARTEFATOS (gates de CI sobre PRs, tokens,
 5. Os gates nunca foram testados adversarialmente — só por acidentes reais.
 
 ## Decisão
-Adotar o protocolo de evals em 3 ondas (`prototipo-ui/evals/EVAL_PROTOCOL.md`):
+Adotar o protocolo de evals em 3 ondas (`tests/Design/evals/EVAL_PROTOCOL.md`):
 - **EVAL-001 (este PR):** GOLDEN_SET.md congelado por [W] no merge (imutável; nunca atualizado a partir de saídas dos agentes) + REPLAY_CASES.md RC-01…06 (falhas reais viram regressão permanente; pass-rate alvo ~100%) + AUTONOMY_LADDER.md (degrau por classe, catraca reversa em escape) + manifesto de leituras @main por sessão [CC].
 - **EVAL-002:** KPIs de resultado a partir do SYNC_LOG + rubrica semanal [W] + delta judge-vs-[W] como KPI primário + pr-ui-judge ON advisory.
 - **EVAL-003:** red-team mensal injetando falhas conhecidas + US-GOV-013 (gate visual real) + mecanização do Portão 1.

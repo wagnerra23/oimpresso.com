@@ -4,7 +4,7 @@
 // ── Por que este arquivo existe ──────────────────────────────────────────────
 //
 // A thread 01 do playbook SINCRONIZAR Sidebar deu ao protótipo Cowork
-// (`prototipo-ui/cowork/sidebar.jsx`) a semântica de menu nos três papéis abaixo.
+// (`prototipo-ui/cowork/Wagner/sidebar.jsx`) a semântica de menu nos três papéis abaixo.
 // Medido no vivo logado em 2026-09-11 (dark, 2560px), o shell do ERP não tinha
 // NENHUM deles — os seis atributos voltavam `null`, e o dropdown de empresa
 // renderizava `<div>` com `onClick`, que leitor de tela não alcança e teclado

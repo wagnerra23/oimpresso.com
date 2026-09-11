@@ -21,7 +21,7 @@ em qualquer largura. O shell do protótipo Cowork não faz assim.
 
 ## Medição (2026-09-02) — a fonte, com o localStorage limpo a cada largura
 
-Espelho `prototipo-ui/cowork/` servido em `http://localhost:5623`, sonda lendo
+Espelho `prototipo-ui/cowork/Wagner/` servido em `http://localhost:5623`, sonda lendo
 `getComputedStyle(.app).gridTemplateColumns` e `.os-page-h → getBoundingClientRect().left`,
 esperando `__oiLazyDone` + 2 leituras iguais de `querySelectorAll('*').length`:
 
@@ -35,7 +35,7 @@ esperando `__oiLazyDone` + 2 leituras iguais de `querySelectorAll('*').length`:
 | 1728 | herdado `"rail"` | rail | `56px 1672px` | — |
 | 1279 → 1728 **ao vivo** | — | **continua rail** | `56px 1672px` | — |
 
-Regra do protótipo, lida na fonte (`prototipo-ui/cowork/app.jsx:624-634`): **JS no mount**,
+Regra do protótipo, lida na fonte (`prototipo-ui/cowork/Wagner/app.jsx:624-634`): **JS no mount**,
 `window.innerWidth < 1280 ? "rail" : "expanded"`, com o `localStorage` vencendo — e um
 `useEffect` que grava **todo** valor, inclusive o automático. Não há `matchMedia` de resize
 (o CSS diz isso explicitamente em `styles.css:5540`).

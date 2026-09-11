@@ -1,7 +1,7 @@
 ---
 id: requisitos-ponto-espelho-index-gap
 tela: Ponto/Espelho/Index (/ponto/espelho)
-prototipo: prototipo-ui/cowork/ponto-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/ponto-page.jsx
 tela_viva: resources/js/Pages/Ponto/Espelho/Index.tsx
 gerado_em: 2026-09-06
 ---
@@ -12,7 +12,7 @@ gerado_em: 2026-09-06
 > Região do protótipo: `EspelhoLista` (`ponto-page.jsx:93-158`), importada de
 > `espelho/index.blade.php`. Régua de triagem (playbook `08-feriados-puxar.md` §3): só vira pedido
 > o que for **comportamento** (ordenar, filtrar), nunca layout.
-> ⚠️ O contrato [`ponto-espelho.contract.json`](../../../prototipo-ui/contrato/ponto-espelho.contract.json)
+> ⚠️ O contrato [`ponto-espelho.contract.json`](../../../governance/design/contracts/ponto-espelho.contract.json)
 > lista esta tela em `alvo[]`, mas **as suas 5 seções são todas do `Show`**
 > (`espelho-dados-colaborador` · `espelho-totais` · `espelho-modo-visao` · `espelho-apuracao-diaria`
 > · `espelho-folha-impressao`). **Nenhuma seção do contrato descreve a lista** — logo a copy da

@@ -8,30 +8,30 @@ import { isHandoffPath, selectHandoffs } from './handoff-select.mjs';
 
 let fails = 0;
 const check = (name, ok, detail = '') => { console.log(`${ok ? '[OK]' : '[FAIL]'} ${name}${ok ? '' : ` — ${detail}`}`); if (!ok) fails++; };
-check('aceita somente .md direto em prototipo-ui/handoffs',
-  isHandoffPath('prototipo-ui/handoffs/a b.md')
-    && !isHandoffPath('prototipo-ui/handoffs/sub/a.md')
-    && !isHandoffPath('prototipo-ui/handoffs/a.txt'));
+check('aceita somente .md direto em prototipo-ui/cowork/Wagner/handoffs',
+  isHandoffPath('prototipo-ui/cowork/Wagner/handoffs/a b.md')
+    && !isHandoffPath('prototipo-ui/cowork/Wagner/handoffs/sub/a.md')
+    && !isHandoffPath('prototipo-ui/cowork/Wagner/handoffs/a.txt'));
 
 const tmp = mkdtempSync(join(tmpdir(), 'handoff-select-'));
 const g = (args) => execFileSync('git', args, { cwd: tmp, encoding: 'utf8' }).trim();
 try {
   g(['init', '-q']); g(['config', 'user.email', 'fixture@example.invalid']); g(['config', 'user.name', 'Fixture']);
-  mkdirSync(join(tmp, 'prototipo-ui', 'handoffs'), { recursive: true });
+  mkdirSync(join(tmp, 'prototipo-ui', 'cowork', 'Wagner', 'handoffs'), { recursive: true });
   writeFileSync(join(tmp, 'README.md'), 'base\n'); g(['add', '.']); g(['commit', '-qm', 'base']);
   const base = g(['rev-parse', 'HEAD']);
 
-  writeFileSync(join(tmp, 'prototipo-ui', 'handoffs', 'b com espaço.md'), 'b1\n');
-  writeFileSync(join(tmp, 'prototipo-ui', 'handoffs', 'a.md'), 'a1\n');
+  writeFileSync(join(tmp, 'prototipo-ui', 'cowork', 'Wagner', 'handoffs', 'b com espaço.md'), 'b1\n');
+  writeFileSync(join(tmp, 'prototipo-ui', 'cowork', 'Wagner', 'handoffs', 'a.md'), 'a1\n');
   g(['add', '.']); g(['commit', '-qm', 'adiciona dois']);
-  writeFileSync(join(tmp, 'prototipo-ui', 'handoffs', 'a.md'), 'a2\n');
+  writeFileSync(join(tmp, 'prototipo-ui', 'cowork', 'Wagner', 'handoffs', 'a.md'), 'a2\n');
   g(['add', '.']); g(['commit', '-qm', 'modifica no segundo commit']);
   const head = g(['rev-parse', 'HEAD']);
   const multi = selectHandoffs(['--base', base, '--head', head], tmp);
   check('push multi-commit seleciona added+modified, ordena, deduplica e preserva espaços',
-    JSON.stringify(multi) === '["prototipo-ui/handoffs/a.md","prototipo-ui/handoffs/b com espaço.md"]', JSON.stringify(multi));
+    JSON.stringify(multi) === '["prototipo-ui/cowork/Wagner/handoffs/a.md","prototipo-ui/cowork/Wagner/handoffs/b com espaço.md"]', JSON.stringify(multi));
 
-  g(['rm', '-q', 'prototipo-ui/handoffs/a.md']); g(['commit', '-qm', 'deleta']);
+  g(['rm', '-q', 'prototipo-ui/cowork/Wagner/handoffs/a.md']); g(['commit', '-qm', 'deleta']);
   const deletedHead = g(['rev-parse', 'HEAD']);
   check('deletado é ignorado', selectHandoffs(['--base', head, '--head', deletedHead], tmp).length === 0);
 
@@ -44,9 +44,9 @@ try {
   check('base inexistente falha inconclusiva, nunca cai silenciosamente no pai', /sem universo/.test(invalidBase));
 
   check('dispatch válido existente seleciona exatamente um',
-    JSON.stringify(selectHandoffs(['--dispatch', 'prototipo-ui/handoffs/b com espaço.md'], tmp))
-      === '["prototipo-ui/handoffs/b com espaço.md"]');
-  for (const bad of ['', '../segredo.md', 'prototipo-ui/handoffs/sub/a.md', 'prototipo-ui/handoffs/inexistente.md']) {
+    JSON.stringify(selectHandoffs(['--dispatch', 'prototipo-ui/cowork/Wagner/handoffs/b com espaço.md'], tmp))
+      === '["prototipo-ui/cowork/Wagner/handoffs/b com espaço.md"]');
+  for (const bad of ['', '../segredo.md', 'prototipo-ui/cowork/Wagner/handoffs/sub/a.md', 'prototipo-ui/cowork/Wagner/handoffs/inexistente.md']) {
     let erro = '';
     try { selectHandoffs(['--dispatch', bad], tmp); } catch (error) { erro = error.message; }
     check(`dispatch inválido/inexistente é recusado (${bad || 'vazio'})`, erro !== '');

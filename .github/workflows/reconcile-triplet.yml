@@ -18,7 +18,7 @@ on:
       - 'resources/js/Pages/**/*.tsx'
       - 'resources/js/Pages/**/*.charter.md'
       - 'prototipo-ui/**'
-      - 'prototipo-ui/cowork-map.json'
+      - 'governance/design/cowork-map.json'
       - 'scripts/governance/reconcile-triplet.mjs'
       # o self-test é o 1º step do job: sem ele no trigger, mudar SÓ o teste não re-roda a
       # lane que o executa — gate mudo com cara de cobertura (§5 2026-08-02). Ele cobre os

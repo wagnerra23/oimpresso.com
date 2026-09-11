@@ -5,14 +5,14 @@ component: resources/js/Pages/Financeiro/Unificado/Index.tsx
 owner: wagner
 status: live
 last_validated: "2026-07-13"
-intent_contract: prototipo-ui/contrato/financeiro-unificado.intent.json
+intent_contract: governance/design/contracts/financeiro-unificado.intent.json
 intent_auditor: scripts/auditar-intencao-fluxo.mjs
 parent_module: Financeiro
 states: [default, empty, loading, dark, error]  # gate L2 — cada estado é forçado pelo harness não-produtivo e recebe baseline próprio; sync com tests/Browser/visreg-states.json
 parent_capterra: memory/requisitos/Financeiro/CAPTERRA-INVENTARIO.md
 related_adrs: [93, 94]
 related_us: [US-FIN-013, US-FIN-020, US-FIN-021, US-FIN-027, US-FIN-029, US-FIN-031, US-FIN-038, US-FIN-050-anexos, US-FIN-055-aprovacao]
-related_prototype: prototipo-ui/cowork/financeiro-page.jsx
+related_prototype: prototipo-ui/cowork/Wagner/financeiro-page.jsx
 related_prototype_nota: '(design real da Visão Unificada; corrigido 2026-07-06 — antes apontava pro shell oimpresso.com.html, âncora podre pega pelo Wagner)'
 bundle_source: financeiro-page.jsx
 canon_method: Bundle copy CSS 9054 LOC inteiro (regra Tier 0 feedback-cowork-bundle-aplicar-inteiro) — Ondas 12-21

@@ -149,7 +149,7 @@ título **Forja**, subtítulo _"Cockpit do cowork loop — backlog, quadro F0→
 
 ## 2026-09-02 (tarde) — Onda 2 em produção: header/topnav medido com a MESMA sonda nos dois lados
 
-> **Recibo.** Produção = `https://oimpresso.com/forja/aprovacoes` autenticado, deploy do merge `e1412acef3` ([#6553](https://github.com/wagnerra23/oimpresso.com/pull/6553), run 33651538620 `success`, 16:00Z). Protótipo = espelho `prototipo-ui/cowork/oimpresso.com.html` servido por HTTP estático, `localStorage["oimpresso.route"]="teammcp"`, esperado `__oiLazyDone` + 2 leituras iguais (817/817). Mesmo Chrome, mesma viewport (2560), tema **dark nos dois**. Sonda: `getComputedStyle` + `getBoundingClientRect` — o que o browser resolveu, nunca a classe declarada. JSONs dos dois lados no PR da Onda 2.1. Smoke Infra Contract pós-deploy (sem sessão): `/forja/integrador` **404 → 302 → /login**; as 5 rotas irmãs seguem `302 → /login`.
+> **Recibo.** Produção = `https://oimpresso.com/forja/aprovacoes` autenticado, deploy do merge `e1412acef3` ([#6553](https://github.com/wagnerra23/oimpresso.com/pull/6553), run 33651538620 `success`, 16:00Z). Protótipo = espelho `prototipo-ui/cowork/Wagner/oimpresso.com.html` servido por HTTP estático, `localStorage["oimpresso.route"]="teammcp"`, esperado `__oiLazyDone` + 2 leituras iguais (817/817). Mesmo Chrome, mesma viewport (2560), tema **dark nos dois**. Sonda: `getComputedStyle` + `getBoundingClientRect` — o que o browser resolveu, nunca a classe declarada. JSONs dos dois lados no PR da Onda 2.1. Smoke Infra Contract pós-deploy (sem sessão): `/forja/integrador` **404 → 302 → /login**; as 5 rotas irmãs seguem `302 → /login`.
 
 | campo | protótipo | produção (Onda 2) | veredito |
 |---|---|---|---|
@@ -197,7 +197,7 @@ Mesma sonda, mesma viewport (2560), dark nos dois lados. Smoke pós-deploy: `/fo
 **O que aquele parágrafo afirma:** *"a 1280 o shell do protótipo vira rail de 56px"* e
 *"a 1728 o shell **segue** em rail"*.
 
-**O que a re-medição mostra** (espelho `prototipo-ui/cowork/oimpresso.com.html` em
+**O que a re-medição mostra** (espelho `prototipo-ui/cowork/Wagner/oimpresso.com.html` em
 `http://localhost:5623`, sonda = `getComputedStyle(.app).gridTemplateColumns` +
 `.os-page-h → getBoundingClientRect().left`, esperando `__oiLazyDone` + 2 leituras iguais de
 `querySelectorAll('*').length`, **com `localStorage.removeItem("oimpresso.sidebar.mode")` antes
@@ -213,7 +213,7 @@ de cada largura**):
 | 1728 | herdado `"rail"` | rail | `56px 1672px` | — |
 | 1279 → 1728 **ao vivo** | — | continua rail (sem listener) | `56px 1672px` | — |
 
-**A regra real** (`prototipo-ui/cowork/app.jsx:624-634`): `innerWidth < 1280 ? "rail" : "expanded"`,
+**A regra real** (`prototipo-ui/cowork/Wagner/app.jsx:624-634`): `innerWidth < 1280 ? "rail" : "expanded"`,
 **só no mount**, e o `localStorage` vence sempre. Como o `useEffect` ao lado grava **todo** valor —
 inclusive o automático —, a regra dispara **uma vez por navegador** e a chave nunca mais solta.
 
@@ -245,9 +245,9 @@ Decisão que saiu daqui: [ADR UI-0030](../_DesignSystem/adr/ui/0030-sidebar-auto
 
 ### A âncora estava no arquivo errado (achado desta onda)
 
-O charter apontava `related_prototype: prototipo-ui/cowork/forja-page.jsx`. **O markup da view
+O charter apontava `related_prototype: prototipo-ui/cowork/Wagner/forja-page.jsx`. **O markup da view
 `hoje` não está lá**: o `forja-page.jsx` só a MONTA (linha 1229, `<window.ForjaAprovacoes …/>`);
-o componente inteiro mora em [`forja-aprova.jsx`](../../../prototipo-ui/cowork/forja-aprova.jsx).
+o componente inteiro mora em [`forja-aprova.jsx`](../../../prototipo-ui/cowork/Wagner/forja-aprova.jsx).
 Quem fosse copiar do arquivo declarado não acharia a tela. Corrigido no frontmatter
 (`charter_version: 2`) e re-resolvido por `ancora.mjs`.
 
@@ -459,7 +459,7 @@ A tabela acima comparou a `fj-row`. Faltava o resto, e a medição por `children
 | os 6 pontos `.mono` | `fj-token-id` · `fj-audit-ts|tool|args` · `fj-ho-slug` · `fj-ho-pr` — **todos monoespaçados** | nenhum deles | **D4** |
 | painel Handoffs | **DENTRO** de `.fj-mcp` (medido: `.fj-mcp` contém `.fj-ho`) | rota separada `/forja/handoffs` | estrutura |
 
-**A causa-raiz do D4, medida (não deduzida):** `.mono` é uma utilitária do **shell** do protótipo — `prototipo-ui/cowork/styles.css:1740` — e **não existe em produção**: `grep` por `.mono` global em `resources/css/*.css` = **0 ocorrências**; o bundle da Onda 1 só a traz escopada em 3 pontos (`.fj-dr-meta`, `.fj-team-tbl`, `.ap-files`). Copiar o markup 1:1 sem isso deixaria o **DOM igual e o render diferente** — o formato de erro que o §5 chama de LC-08. Desceu escopada (`.fj-mcp .mono, .fj-ho .mono`), com os dois roots porque o painel renderiza em dois lugares.
+**A causa-raiz do D4, medida (não deduzida):** `.mono` é uma utilitária do **shell** do protótipo — `prototipo-ui/cowork/Wagner/styles.css:1740` — e **não existe em produção**: `grep` por `.mono` global em `resources/css/*.css` = **0 ocorrências**; o bundle da Onda 1 só a traz escopada em 3 pontos (`.fj-dr-meta`, `.fj-team-tbl`, `.ap-files`). Copiar o markup 1:1 sem isso deixaria o **DOM igual e o render diferente** — o formato de erro que o §5 chama de LC-08. Desceu escopada (`.fj-mcp .mono, .fj-ho .mono`), com os dois roots porque o painel renderiza em dois lugares.
 
 **Desvios declarados, todos por DADO** (o mock tem campo que `cowork_handoffs` não tem): sem `~onda`; 5 abas de filtro em vez de 6 (o mock tem `merged`, que o dado real não produz; o real tem `superseded`, que o mock não previu e ganhou pílula neutra); selo de gate omitido quando `gate = 'na'`, como no protótipo faz.
 
@@ -831,7 +831,7 @@ As 3 divergências são **a mesma**, e não mudam um pixel:
 | `.fj-feed-when` | `font-size:var(--fs-1)` | `font-size:10.5px` | idêntico |
 
 O bundle **inlinou o token**. Os dois lados definem os mesmos valores — protótipo em
-`prototipo-ui/cowork/styles.css:6407-6409`, repo em
+`prototipo-ui/cowork/Wagner/styles.css:6407-6409`, repo em
 `resources/css/tokens/_generated-foundations-light.css:7-9`: `--fs-1: 10.5px` · `--fs-2: 11.5px` ·
 `--fs-3: 12.5px`. Logo o px computado é o mesmo e **não há bug de tamanho**. O que há é perda de
 aderência ao DS (literal onde existe token), e ela é do **bundle**, cuja dona é a Onda 1 — esta onda
@@ -898,9 +898,9 @@ O docblock do `ForjaIntegrador.tsx` já declarava que `.fj-int-tabs` é *"regra 
 já que o TabBar do DS ignora `className`"*. Essa é uma afirmação sobre comportamento de terceiro, do
 tipo que a §5 2026-09-01 manda **re-executar em vez de herdar**. Re-executada, em duas camadas:
 
-1. `prototipo-ui/cowork/cli-tabs.jsx:123` — o adaptador **passa** `className` adiante
+1. `prototipo-ui/cowork/Wagner/cli-tabs.jsx:123` — o adaptador **passa** `className` adiante
    (`className={className || undefined}`). Sozinho, isso sugeriria que a regra vive.
-2. `scripts/design-sync/mirror-snapshot/_ds_bundle.js` — o `TabBar` do DS desestrutura
+2. `prototipo-ui/design-system/_ds_bundle.js` — o `TabBar` do DS desestrutura
    **`{ tabs, active, onChange }`** e nada mais. `className`, `ariaLabel` e `inset` são
    **descartados**; o `<nav>` nasce sem classe e com `aria-label="Sub-navegação"` fixo.
 
@@ -1048,7 +1048,7 @@ renderiza placeholder no lugar.
 O export §3.3 pede `.fj-totalbar` com **gap 14px**; as duas folhas dizem **20px**. Não é divergência:
 
 - `grep -n "fj-totalbar"` devolve as **mesmas 4 regras** nos dois arquivos, com os **mesmos valores** —
-  base `gap:20px` (`cowork-forja-bundle.css:133` · `prototipo-ui/cowork/forja-page.css:114`) e
+  base `gap:20px` (`cowork-forja-bundle.css:133` · `prototipo-ui/cowork/Wagner/forja-page.css:114`) e
   `gap:14px` dentro de `@media (max-width:1100px)` (`:296` · `:277`). O `diff` do bloco `.fj-totalbar`
   volta **vazio**.
 - O **§7 do próprio export declara** que a medição rodou a **924px** de viewport. 924 < 1100 ⇒ o media
@@ -1203,7 +1203,7 @@ mas a proximidade convida à leitura errada.
 > ninguém concluir que são ondas diferentes.
 >
 > Âncora: [`TrabalhoQuadro.tsx`](../../../Modules/Forja/Resources/js/Pages/Forja/Trabalho/_components/TrabalhoQuadro.tsx) (279 ln) · alvo: `KanbanView` do
-> [`forja-page.jsx`](../../../prototipo-ui/cowork/forja-page.jsx) `:467-503`. Medido em `origin/main` `da03d82c93`, rebase 0/0.
+> [`forja-page.jsx`](../../../prototipo-ui/cowork/Wagner/forja-page.jsx) `:467-503`. Medido em `origin/main` `da03d82c93`, rebase 0/0.
 
 ### A armadilha do §3.4, e por que ela NÃO se conserta
 
@@ -1241,7 +1241,7 @@ As duas últimas linhas do cabeçalho são condicionais ao eixo Pipeline nos **d
 ### Tipografia/gap — o diff de VALOR, folha × folha
 
 20 seletores da seção comparados corpo-a-corpo entre `cowork-forja-bundle.css` e
-`prototipo-ui/cowork/forja-page.css`:
+`prototipo-ui/cowork/Wagner/forja-page.css`:
 
 - **15 idênticos byte-a-byte** — incluindo os que o alvo nomeia: `.fj-kcol` (`flex:0 0 248px` +
   `width:248px`), `.fj-kanban` (`overflow:auto` — o alvo reportou o eixo x porque foi lido por
@@ -1252,7 +1252,7 @@ As duas últimas linhas do cabeçalho são condicionais ao eixo Pipeline nos **d
   `.fj-onda-chip`, `.fj-kcol-count` (`10.5`/`11.5px` literais × `var(--fs-1)`/`var(--fs-2)`) e
   `.fj-kc-title` (`12.5px` × `var(--fs-3)`). **Os tokens valem o mesmo nos dois lados** e isso foi
   medido, não suposto: `--fs-1: 10.5px` · `--fs-2: 11.5px` · `--fs-3: 12.5px`, idênticos em
-  `prototipo-ui/cowork/ds-v6/tokens.css` `:105-107` e em
+  `prototipo-ui/cowork/Wagner/legado/ds-v6/tokens.css` `:105-107` e em
   `resources/css/tokens/_generated-foundations-light.css` `:7-9`. Zero divergência de pixel. É a
   **mesma classe** que a Onda 10 catalogou ("6 font-size literais… MESMO px; dona é a Onda 1") —
   não é achado novo, e a dona continua sendo a Onda 1.
@@ -1337,7 +1337,7 @@ o **[#6582](https://github.com/wagnerra23/oimpresso.com/pull/6582)** (merge `ae7
 
 ### O alvo §3.2 × o `main`, bloco a bloco
 
-Medição por leitura do `origin/main` (`Trabalho/Index.tsx`, 414 ln) contra `prototipo-ui/cowork/forja-page.jsx`.
+Medição por leitura do `origin/main` (`Trabalho/Index.tsx`, 414 ln) contra `prototipo-ui/cowork/Wagner/forja-page.jsx`.
 
 | bloco do alvo | alvo §3.2 | medido no `main` | veredito |
 |---|---|---|---|

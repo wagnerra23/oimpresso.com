@@ -49,7 +49,7 @@ on:
       - 'resources/js/Pages/Fiscal/_components/DensidadeToggle.tsx'
       - 'resources/js/Pages/Fiscal/_lib/densidade-fiscal.ts'
       - 'resources/css/fiscal-cockpit.css'
-      - 'prototipo-ui/cowork/fiscal-page.jsx'
+      - 'prototipo-ui/cowork/Wagner/fiscal-page.jsx'
       - 'tests/js/fiscal-densidade.test.tsx'
       - 'tests/js/setup.ts'
       - '.github/workflows/fiscal-densidade-gate.yml'
@@ -62,7 +62,7 @@ on:
       - 'resources/js/Pages/Fiscal/_components/DensidadeToggle.tsx'
       - 'resources/js/Pages/Fiscal/_lib/densidade-fiscal.ts'
       - 'resources/css/fiscal-cockpit.css'
-      - 'prototipo-ui/cowork/fiscal-page.jsx'
+      - 'prototipo-ui/cowork/Wagner/fiscal-page.jsx'
       - 'tests/js/fiscal-densidade.test.tsx'
       - 'tests/js/setup.ts'
       # o workflow entra no gatilho de push porque é o run de `main` que o publisher

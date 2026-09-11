@@ -114,10 +114,10 @@ Não aplicar pra: lista paginável de entidades → [PT-01 Lista](PT-01-Lista.md
 
 - **ADR-mãe**: [UI-0013 Constituição UI v2](../adr/ui/0013-constituicao-ui-v2-camadas.md)
 - **Tipografia KPI canon**: [ADR 0110 Cockpit Pattern V2](../../../decisions/0110-cockpit-pattern-v2-canon-list-detail.md) (`KpiCard.tsx:104-117`)
-- **Golden form irmão**: [GOLDEN-REFERENCE.md](../../../../prototipo-ui/GOLDEN-REFERENCE.md) (`Sells/Create`)
+- **Golden form irmão**: [GOLDEN-REFERENCE.md](../../../../memory/reference/prototipo-ui/GOLDEN-REFERENCE.md) (`Sells/Create`)
 - **Índice de design**: [INDEX-DESIGN-MEMORIAS.md](../INDEX-DESIGN-MEMORIAS.md) (regra de ouro + negativo)
 - **Defer**: [RUNBOOK-inertia-defer-pattern.md](../RUNBOOK-inertia-defer-pattern.md)
-- **Anti-golden catalogado**: Financeiro/Unificado (ilha CSS bundle paralelo) · [LICOES_F3_FINANCEIRO_REJEITADO.md](../../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md)
+- **Anti-golden catalogado**: Financeiro/Unificado (ilha CSS bundle paralelo) · [LICOES_F3_FINANCEIRO_REJEITADO.md](../../../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md)
 
 ## Versão
 

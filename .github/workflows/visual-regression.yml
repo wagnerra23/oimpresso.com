@@ -821,7 +821,7 @@ jobs:
       # `/_visreg-login/{id}` (a MESMA causa que manteve o step do Conciliacao vermelho 6/6
       # entre #6476 e #6632 — telas renderizando com business 0; investigue o bridge ANTES de
       # culpar o teste), a rota `/asset/assets`, as 4 âncoras `data-contract` que
-      # `prototipo-ui/contrato/patrimonio-bens.contract.json` declara (cabecalho, subnav,
+      # `governance/design/contracts/patrimonio-bens.contract.json` declara (cabecalho, subnav,
       # filtros, tabela) e a copy do contrato (`Bens`, `Categoria`, `Local`, `Tipo de compra`).
       # Nenhum caso depende de DADO — foi o desenho do arquivo, e é o que permite promover.
       #

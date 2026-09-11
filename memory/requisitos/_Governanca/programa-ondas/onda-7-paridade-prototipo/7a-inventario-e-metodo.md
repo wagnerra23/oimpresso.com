@@ -69,9 +69,9 @@ medidor paralelo (LC-19 · §5 2026-07-09 "duplica régua consolidada").
 
 ## Método por tela (o que já é canon, não se reinventa)
 
-1. `node prototipo-ui/ancora.mjs <Mod/Tela> --staging prototipo-ui/cowork` — resolve a âncora.
+1. `node scripts/design/ancora.mjs <Mod/Tela> --staging prototipo-ui/cowork` — resolve a âncora.
    A porta **per-tela**, nunca o `--list`, que lê metade da regra (§5 2026-08-28).
-2. `node prototipo-ui/design-diff.mjs --probe` nos DOIS lados, **mesma sonda, mesmo tema, mesmo
+2. `node scripts/design/design-diff.mjs --probe` nos DOIS lados, **mesma sonda, mesmo tema, mesmo
    navegador** → `--compare prod.json design.json --check`. Medida, nunca olho (PROTOCOLO-COMPARACAO-RUNTIME).
 3. Registrar em `memory/requisitos/<Mod>/<Tela>-visual-comparison.md` com veredito **por item**.
 4. Verificar cada divergência acusada **antes** de virar trabalho. No piloto (`Compras/Index`,

@@ -11,7 +11,7 @@ return [
     | Slack-compatible, ou WhatsApp de 1 pessoa. [W] seta UMA vez no .env.
     | Sem env → degrada pra log (skip, sem crash). Payload sem PII (LGPD).
     |
-    | @see prototipo-ui/handoffs/erros-fase1-classificacao.md
+    | @see prototipo-ui/cowork/Wagner/handoffs/erros-fase1-classificacao.md
     */
     's0_channel' => env('ERROR_S0_WEBHOOK'),
 
@@ -38,7 +38,7 @@ return [
     | S0 NUNCA auto-resolve (dinheiro/dado/segurança = humano · ADR 0284 §4).
     | Sem retry infinito: esgotou → promove pra S1 e para.
     |
-    | @see prototipo-ui/handoffs/erros-autoresolucao.md
+    | @see prototipo-ui/cowork/Wagner/handoffs/erros-autoresolucao.md
     */
     'auto_resolve' => [
         'enabled' => (bool) env('ERROR_AUTO_RESOLVE_ENABLED', true),

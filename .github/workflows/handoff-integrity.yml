@@ -1,7 +1,7 @@
 name: Handoff Integrity (advisory · fila ↔ prompts)
 
 # Catraca de Integridade do Handoff — PROCESSO_MEMORIA_CC.md §16 · IT8.
-# A fila (prototipo-ui/COWORK_NOTES.md, ACIMA da linha d'água) e os prompts duráveis
+# A fila (memory/reference/prototipo-ui/COWORK_NOTES.md, ACIMA da linha d'água) e os prompts duráveis
 # (prototipo-ui/PROMPT_PARA_CODE_*.md) têm que casar. Falha em NOVO órfão (prompt criado sem
 # citação → tarefa invisível) ou NOVA ref morta (citação pra prompt inexistente → [CL] erra o PR).
 # Baseline (config/handoff-integrity-baseline.json) congela a dívida atual; abaixo da linha = ignorado.
@@ -14,7 +14,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'prototipo-ui/COWORK_NOTES.md'
+      - 'memory/reference/prototipo-ui/COWORK_NOTES.md'
       - 'prototipo-ui/PROMPT_PARA_CODE_*.md'
       - 'config/handoff-integrity-baseline.json'
       - 'scripts/handoff-integrity-guard.mjs'
@@ -24,7 +24,7 @@ on:
   pull_request:
     types: [opened, reopened, ready_for_review]
     paths:
-      - 'prototipo-ui/COWORK_NOTES.md'
+      - 'memory/reference/prototipo-ui/COWORK_NOTES.md'
       - 'prototipo-ui/PROMPT_PARA_CODE_*.md'
       - 'config/handoff-integrity-baseline.json'
       - 'scripts/handoff-integrity-guard.mjs'

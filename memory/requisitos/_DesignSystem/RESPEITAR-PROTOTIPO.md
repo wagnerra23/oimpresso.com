@@ -33,7 +33,7 @@ Há **duas** formas legítimas de o `.tsx` de uma tela mudar. Cada uma **declara
 | Você quer... | Como declarar (o que a M1 aceita) |
 |---|---|
 | **Desviar do protótipo** (um ajuste pontual autorizado) | Adicione/atualize `divergence_from_blueprint: "<razão real>"` no charter irmão da tela, **neste PR**. Ex: `"cliente pediu densidade maior na lista"`. |
-| **Aplicar/seguir o design** (mudar o protótipo, ou fazer o código convergir pro protótipo aprovado) | (a) mude o `related_prototype` do charter pra apontar pro protótipo real, **OU** (b) registre a aplicação no `prototipo-ui/SYNC_LOG.md` citando a tela (o registro que o loop Cowork↔Code já usa). |
+| **Aplicar/seguir o design** (mudar o protótipo, ou fazer o código convergir pro protótipo aprovado) | (a) mude o `related_prototype` do charter pra apontar pro protótipo real, **OU** (b) registre a aplicação no `memory/reference/prototipo-ui/SYNC_LOG.md` citando a tela (o registro que o loop Cowork↔Code já usa). |
 
 > ⚠️ **Editar o código direto, sem declarar, é o drift** — a M1 pega. Não é "a máquina te barrando": é a máquina **sabendo que você alterou** e pedindo o porquê. Advisory (não bloqueia) — é aviso, não muro.
 
@@ -46,7 +46,7 @@ Há **duas** formas legítimas de o `.tsx` de uma tela mudar. Cada uma **declara
 | Máquina | Pergunta que responde | Arquivo | Estado |
 |---|---|---|---|
 | **M1 — autorização** | "essa `.tsx` mudou **sem declaração**?" | `scripts/governance/detect-ui-drift.mjs` + `.github/workflows/detect-ui-drift.yml` | advisory, visível (`::warning::` + job summary) |
-| **M2 — verdade visual** | "a tela viva **bate** com o `.jsx` aprovado?" (medido, não no olho) | `prototipo-ui/design-diff.mjs` ([ADR 0299](../../decisions/0299-figma-nao-e-fonte-de-design.md)) + skill `comparar-design-prod` | existente; teu olho é o juiz |
+| **M2 — verdade visual** | "a tela viva **bate** com o `.jsx` aprovado?" (medido, não no olho) | `scripts/design/design-diff.mjs` ([ADR 0299](../../decisions/0299-figma-nao-e-fonte-de-design.md)) + skill `comparar-design-prod` | existente; teu olho é o juiz |
 | design-spec-gate | "o **QUE** mudou estruturalmente?" (ortogonal à M1) | `scripts/design-spec-gen.mjs` ([ADR 0255](../../decisions/0255-contrato-view-deterministico-charter-design-spec.md)) | por-tela |
 
 **Como aplicar um protótipo** (o *como*, não a norma): [`RUNBOOK-replicar-prototipo-cowork.md`](RUNBOOK-replicar-prototipo-cowork.md) + skill `aplicar-prototipo`.

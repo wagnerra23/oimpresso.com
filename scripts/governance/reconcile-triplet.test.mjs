@@ -52,7 +52,7 @@ const charterGrid = [
   'page: /demo',
   'tier: A',
   'mwart_pattern_reuse:',
-  '  blueprint_cowork: "prototipo-ui/prototipos/demo-cockpit/"',
+  '  blueprint_cowork: "prototipo-ui/cowork/Wagner/legado/demo-cockpit/"',
   '  divergence_from_blueprint: "none"',
   '---',
   '',
@@ -149,7 +149,7 @@ const tsxTabela = [
   const charterMinimo = [
     '---', 'page: /demo', 'tier: A',
     'mwart_pattern_reuse:',
-    '  blueprint_cowork: "prototipo-ui/prototipos/demo/"',
+    '  blueprint_cowork: "prototipo-ui/cowork/Wagner/legado/demo/"',
     '  divergence_from_blueprint: "none"',
     '---', '',
     '# Charter', '', '## Goals', '', '- Grid view de cards', '',
@@ -158,7 +158,7 @@ const tsxTabela = [
   const root = makeRepo({
     charter: charterMinimo,
     tsx: tsxGrid,
-    prototypeFiles: { 'prototipo-ui/prototipos/demo/visual-source.html': protoGrid },
+    prototypeFiles: { 'prototipo-ui/cowork/Wagner/legado/demo/visual-source.html': protoGrid },
   });
   const strict = run(root, ['--strict', '--json']);
   let parsed = null;
@@ -177,15 +177,15 @@ const tsxTabela = [
   const charterPtrs = [
     '---', 'tier: A',
     'mwart_pattern_reuse:',
-    '  blueprint_cowork: "prototipo-ui/prototipos/fantasma/"',
+    '  blueprint_cowork: "prototipo-ui/cowork/Wagner/legado/fantasma/"',
     '---', '',
     '# Charter', '',
-    'Ref viva: `prototipo-ui/prototipos/real/visual-source.html`', '',
+    'Ref viva: `prototipo-ui/cowork/Wagner/legado/real/visual-source.html`', '',
   ].join('\n');
   const root = makeRepo({
     charter: charterPtrs,
     tsx: tsxGrid,
-    prototypeFiles: { 'prototipo-ui/prototipos/real/visual-source.html': '<div/>' },
+    prototypeFiles: { 'prototipo-ui/cowork/Wagner/legado/real/visual-source.html': '<div/>' },
   });
   const txt = spawnSync('node', [POINTERS, '--json'], { cwd: root, encoding: 'utf8' });
   let parsed = null;
@@ -200,11 +200,11 @@ const tsxTabela = [
     charter: [
       '---', 'tier: A',
       'mwart_pattern_reuse:',
-      '  blueprint_cowork: "prototipo-ui/prototipos/real/"',
+      '  blueprint_cowork: "prototipo-ui/cowork/Wagner/legado/real/"',
       '---', '', '# Charter', '',
     ].join('\n'),
     tsx: tsxGrid,
-    prototypeFiles: { 'prototipo-ui/prototipos/real/x.jsx': '<div/>' },
+    prototypeFiles: { 'prototipo-ui/cowork/Wagner/legado/real/x.jsx': '<div/>' },
   });
   const ok = spawnSync('node', [POINTERS, '--strict', '--json'], { cwd: root2, encoding: 'utf8' });
   let parsed2 = null;
@@ -216,7 +216,7 @@ const tsxTabela = [
 // ── (f) bundle_source/visual_source como perna da cadeia de protótipo ─────────
 // Por que este grupo existe (2026-09-09): o gate resolvia o protótipo por
 // blueprint_cowork → cowork-map → Refs, e NÃO conhecia `bundle_source` — o campo que o
-// `prototipo-ui/ancora.mjs` PREFERE. Medido: 36 charters declaram bundle/visual sem
+// `scripts/design/ancora.mjs` PREFERE. Medido: 36 charters declaram bundle/visual sem
 // blueprint, e o cowork-map (22 chaves) não casa nenhum deles → todos caíam em vácuo.
 // Cada caso abaixo pina UMA decisão do fix; sem elas o fix regride em silêncio.
 {
@@ -240,7 +240,7 @@ const tsxTabela = [
     const root = makeRepo({
       charter: charterBundle(['bundle_source: demo-page.jsx']),
       tsx: tsxGrid,
-      prototypeFiles: { 'prototipo-ui/cowork/demo-page.jsx': bundleGrid },
+      prototypeFiles: { 'prototipo-ui/cowork/Wagner/demo-page.jsx': bundleGrid },
     });
     const { res, proto } = protoDe(root);
     const slot5 = res && res.cells.find((c) => c.slot === 5);
@@ -256,7 +256,7 @@ const tsxTabela = [
     const root = makeRepo({
       charter: charterBundle(['bundle_source: demo-page.jsx']),
       tsx: tsxGrid,
-      prototypeFiles: { 'prototipo-ui/cowork/prototipos/demo-ui/demo-page.jsx': bundleGrid },
+      prototypeFiles: { 'prototipo-ui/cowork/Wagner/prototipos/demo-ui/demo-page.jsx': bundleGrid },
     });
     const { proto } = protoDe(root);
     check('(f2) resolve em SUBPASTA do espelho (basename, não path flat)',
@@ -273,7 +273,7 @@ const tsxTabela = [
     const { proto } = protoDe(root);
     check('(f3) bundle ausente → não fica presente', proto && proto.presente === false, JSON.stringify(proto));
     check('(f3) bundle ausente → órfão listado com o alvo canônico',
-      proto && proto.orfaos.some((o) => o.includes('prototipo-ui/cowork/fantasma-page.jsx')),
+      proto && proto.orfaos.some((o) => o.includes('prototipo-ui/cowork/Wagner/fantasma-page.jsx')),
       JSON.stringify(proto && proto.orfaos));
   }
 
@@ -282,7 +282,7 @@ const tsxTabela = [
     const root = makeRepo({
       charter: charterBundle(['bundle_source: demo-page.jsx  # [C]: nota longa citando outro-page.tsx']),
       tsx: tsxGrid,
-      prototypeFiles: { 'prototipo-ui/cowork/demo-page.jsx': bundleGrid },
+      prototypeFiles: { 'prototipo-ui/cowork/Wagner/demo-page.jsx': bundleGrid },
     });
     const { proto } = protoDe(root);
     check('(f4) comentário inline não quebra a extração', proto && proto.presente === true, JSON.stringify(proto));
@@ -293,7 +293,7 @@ const tsxTabela = [
     const root = makeRepo({
       charter: charterBundle(['visual_source: demo-page.jsx']),
       tsx: tsxGrid,
-      prototypeFiles: { 'prototipo-ui/cowork/demo-page.jsx': bundleGrid },
+      prototypeFiles: { 'prototipo-ui/cowork/Wagner/demo-page.jsx': bundleGrid },
     });
     const { proto } = protoDe(root);
     check('(f5) visual_source resolve igual a bundle_source', proto && proto.presente === true, JSON.stringify(proto));
@@ -305,7 +305,7 @@ const tsxTabela = [
     const root = makeRepo({
       charter: charterBundle(['bundle_source: demo-forms.jsx']),
       tsx: tsxGrid,
-      prototypeFiles: { 'prototipo-ui/cowork/demo-forms.jsx': bundleGrid },
+      prototypeFiles: { 'prototipo-ui/cowork/Wagner/demo-forms.jsx': bundleGrid },
     });
     const { proto } = protoDe(root);
     check('(f6) valor não-`-page.jsx` NÃO vira âncora de bundle',
@@ -315,11 +315,11 @@ const tsxTabela = [
   // (f7) NÃO-REGRESSÃO — com os dois campos, `blueprint_cowork` continua sendo a 1ª perna.
   {
     const root = makeRepo({
-      charter: charterBundle(['bundle_source: demo-page.jsx', 'blueprint_cowork: "prototipo-ui/cowork/outro-page.jsx"']),
+      charter: charterBundle(['bundle_source: demo-page.jsx', 'blueprint_cowork: "prototipo-ui/cowork/Wagner/outro-page.jsx"']),
       tsx: tsxGrid,
       prototypeFiles: {
-        'prototipo-ui/cowork/demo-page.jsx': bundleGrid,
-        'prototipo-ui/cowork/outro-page.jsx': bundleGrid,
+        'prototipo-ui/cowork/Wagner/demo-page.jsx': bundleGrid,
+        'prototipo-ui/cowork/Wagner/outro-page.jsx': bundleGrid,
       },
     });
     const { proto } = protoDe(root);

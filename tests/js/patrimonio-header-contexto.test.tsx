@@ -52,7 +52,7 @@
 //     `permitted_locations`, então nomeá-los mentiria sobre o escopo dos números).
 //
 // @see resources/js/Pages/Patrimonio/Index.casos.md (UC-PAT-05, UC-PAT-06)
-// @see prototipo-ui/cowork/cli-pagehead.jsx (o desenho que estes casos defendem)
+// @see prototipo-ui/cowork/Wagner/cli-pagehead.jsx (o desenho que estes casos defendem)
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, cleanup, fireEvent } from '@testing-library/react';

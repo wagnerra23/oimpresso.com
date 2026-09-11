@@ -48,7 +48,7 @@ class Handler extends ExceptionHandler
         // Fase 1 · Plano Sustentável de Erros (E-1): carimba todo erro na origem
         // (severidade/público/dono/dedupKey) → audita → só o S0 alerta 1 humano.
         // Estende o Handler do projeto (não substitui). ErrorReporter é resiliente.
-        // @see prototipo-ui/handoffs/erros-fase1-classificacao.md
+        // @see prototipo-ui/cowork/Wagner/handoffs/erros-fase1-classificacao.md
         $reporter = app(ErrorReporter::class);
 
         $this->reportable(function (Throwable $e) use ($reporter) {

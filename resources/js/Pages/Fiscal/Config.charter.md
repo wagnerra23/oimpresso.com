@@ -2,7 +2,7 @@
 id: resources-js-pages-fiscal-config-charter
 page: /fiscal/config
 component: resources/js/Pages/Fiscal/Config.tsx
-related_prototype: prototipo-ui/cowork/fiscal-subpages.jsx
+related_prototype: prototipo-ui/cowork/Wagner/fiscal-subpages.jsx
 related_visual_comparison: memory/requisitos/Fiscal/fiscal-config-visual-comparison.md
 bundle_source: fiscal-page.jsx
 page_id: fiscal-config
@@ -13,7 +13,7 @@ created: 2026-05-20
 owner: wagner
 related_us: [US-FISCAL-009, US-NFE-041]
 related_adrs: [0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0358-doutrina-de-teste-tenant-98-supersede-0101, 0104-processo-mwart-canonico-unico-caminho]
-prototypes: [prototipo-ui/cowork/fiscal-subpages.jsx]
+prototypes: [prototipo-ui/cowork/Wagner/fiscal-subpages.jsx]
 ---
 
 # Charter — `Fiscal/Config`

@@ -11,8 +11,8 @@
 // Refs:
 //   - ADR 0179 §dim 2 paleta cor semântica (avatar/tag/frescor/saldo)
 //   - HANDOFF_CLIENTES.md §2.5 classificacao tags + §3 schema (saldo, last_purchase_at)
-//   - prototipo-ui/prototipos/clientes/clientes-listagem.jsx (MORTO 2026-08-13 — sem fonte no repo) (TipoPill, TagChip)
-//   - prototipo-ui/prototipos/clientes/clientes-975.jsx (FrescorPill)
+//   - prototipo-ui/cowork/Wagner/legado/clientes/clientes-listagem.jsx (MORTO 2026-08-13 — sem fonte no repo) (TipoPill, TagChip)
+//   - prototipo-ui/cowork/Wagner/legado/clientes/clientes-975.jsx (FrescorPill)
 //
 // Pegadinhas:
 //   - SaldoCell positivo = devedor (cliente nos deve), negativo = adiantado.

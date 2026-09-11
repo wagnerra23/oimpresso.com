@@ -7,7 +7,7 @@
  * quantas, de quanto e pra quando sem reabrir o drawer — e reabrir para conferir
  * é o oposto de um fechamento que se lê de relance.
  *
- * Espelha `prototipo-ui/cowork/venda-v3/sells-create.jsx:429-445` (a âncora
+ * Espelha `prototipo-ui/cowork/Felipe/venda-v3/sells-create.jsx:429-445` (a âncora
  * declarada em `related_prototype`): pill com a quantidade, o tipo, atalho de
  * edição, e as primeiras parcelas com número, vencimento e valor.
  *

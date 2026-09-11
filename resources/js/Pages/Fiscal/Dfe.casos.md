@@ -185,7 +185,7 @@ related_us: [US-FISCAL-008, US-FISCAL-012]
 **e** as que deram certo seguem manifestadas,
 **e** as que o envio não alcançou por tempo voltam como *não tentadas*, separadas das que falharam.
 
-- **Âncora de contrato:** `CU-FISC-07` do SDD §6 + o protótipo (`prototipo-ui/cowork/fiscal-subpages.jsx`, `data-contract="lote-dfe"`), que fixa três ações em massa e o aviso *"manifestação é definitiva por nota — não há desfazer em lote"*.
+- **Âncora de contrato:** `CU-FISC-07` do SDD §6 + o protótipo (`prototipo-ui/cowork/Wagner/fiscal-subpages.jsx`, `data-contract="lote-dfe"`), que fixa três ações em massa e o aviso *"manifestação é definitiva por nota — não há desfazer em lote"*.
 - **Regressão que defende:** o lote silencioso. Manifestação vai ao ambiente nacional da SEFAZ e é definitiva **por nota** — um relatório agregado ("3 de 10 falharam") não diz quais 3 refazer, e refazer as 10 devolve duplicidade nas 7 que passaram. É o mesmo vício do `ManifestacaoController::bulkConfirmar` do NfeBrasil, que conta sucessos e falhas sem identificar nenhuma.
 - **Por que "não tentadas" é um estado próprio:** cada nota é uma ida à SEFAZ. Sem um teto de tempo, um lote grande estoura o `max_execution_time` do shared hosting e o relatório morre junto com o request — parte das notas já manifestada, e nenhum registro disso. O laço para dentro do orçamento e devolve o resto explicitamente.
 - **Também defende:** o teto de notas por lote, a justificativa obrigatória em *desconhecer* (e a ausência dela em ciência/confirmação), e o fato de *não realizada* **não** existir em lote — é a decisão mais individual das quatro, e a fonte a mantém só na linha.

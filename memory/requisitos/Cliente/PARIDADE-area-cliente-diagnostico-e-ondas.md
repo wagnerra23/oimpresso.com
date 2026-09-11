@@ -32,7 +32,7 @@ Cada número traz a porta viva que o reproduz. Nada estimado.
 | Telas · charter · casos.md · scorecard | **7 · 7 · 7 · 7** | `npm run screen-coverage:report` |
 | E2E · VRT · L2 | **1 · 1 · 1** | idem |
 | UC declarados | **22** (Index 4 · Show 3 · Create 3 · Edit 4 · Import 1 · Ledger 5 · Map 2) | `grep -cE "^\s*###? *UC-" <Tela>.casos.md` |
-| Âncora Cowork **antes** desta sessão | **1/7** (só `Show`, e como `n/a`) | `node prototipo-ui/ancora.mjs Cliente/<Tela>` |
+| Âncora Cowork **antes** desta sessão | **1/7** (só `Show`, e como `n/a`) | `node scripts/design/ancora.mjs Cliente/<Tela>` |
 | Âncora Cowork **depois** (Onda 0) | **6/7** — 5 `✓` + 1 `n/a` legítimo · **`Map` bloqueado** (§3.1) | idem |
 | `.map.json` versionado | **0** | `node scripts/governance/design-code-map-check.mjs --check` |
 | Frescor do espelho | **⚠️ NÃO MEDIDO** | `--compare` aborta sem snapshot `DesignSync` |
@@ -71,11 +71,11 @@ Pareamento feito por **estrutura** (`<h1>` + conteúdo renderizado), nunca por s
 Aplicado (+1 linha / −0 por arquivo, com teste de identidade — remover a linha inserida devolve o original byte-a-byte):
 
 ```
-Index  → prototipo-ui/cowork/clientes-page.jsx
-Create → prototipo-ui/cowork/cliente-form.jsx
-Edit   → prototipo-ui/cowork/cliente-form.jsx
-Import → prototipo-ui/cowork/cliente-import.jsx
-Ledger → prototipo-ui/cowork/cliente-extrato.jsx
+Index  → prototipo-ui/cowork/Wagner/clientes-page.jsx
+Create → prototipo-ui/cowork/Wagner/cliente-form.jsx
+Edit   → prototipo-ui/cowork/Wagner/cliente-form.jsx
+Import → prototipo-ui/cowork/Wagner/cliente-import.jsx
+Ledger → prototipo-ui/cowork/Wagner/cliente-extrato.jsx
 ```
 
 **Recibo (o consumidor rodado com a mudança aplicada, não a leitura do texto):**
@@ -89,7 +89,7 @@ Ledger → prototipo-ui/cowork/cliente-extrato.jsx
 
 ### 3.1 · O `Map` ficou de fora — e a razão é uma decisão registrada, não esquecimento
 
-A âncora do `Map` **existe e é conhecida**: `prototipo-ui/cowork/cliente-mapa.jsx` (`<h1>Mapa de clientes`). Ela foi declarada e **revertida** no mesmo PR, por este motivo:
+A âncora do `Map` **existe e é conhecida**: `prototipo-ui/cowork/Wagner/cliente-mapa.jsx` (`<h1>Mapa de clientes`). Ela foi declarada e **revertida** no mesmo PR, por este motivo:
 
 O gate `charter-us-lint` é **no-new-lie**: morde charter *tocado* que não tenha `related_us` válido. Dos 7 charters, o `Map` é o único sem — e **não é lacuna a preencher**. O [SPEC do Cliente](SPEC.md) (linha 331, 2026-07-03) registra:
 
@@ -105,7 +105,7 @@ O lint exige slug `US-…` real — não aceita `n/a` nem `_pendente_`. Logo as 
 
 ## 4 · O veredito 🔵 "À FRENTE" é um fóssil de 23/jun
 
-`prototipo-ui/FRESCOR-PRODUCAO-vs-PROTOTIPO.md:14` declara o Cliente **🔵 produção À FRENTE**, com o aviso *"Não propor split/layout antigo"*. O `Cliente/clientes-gap.md` (30/jun) concorda: veredito **MOCKUP-STALE**, tela viva à frente em header, KPIs, filtros e busca.
+`memory/reference/prototipo-ui/FRESCOR-PRODUCAO-vs-PROTOTIPO.md:14` declara o Cliente **🔵 produção À FRENTE**, com o aviso *"Não propor split/layout antigo"*. O `Cliente/clientes-gap.md` (30/jun) concorda: veredito **MOCKUP-STALE**, tela viva à frente em header, KPIs, filtros e busca.
 
 **Os dois são honestos e os dois estão datados.** O quadro se identifica como *"Fase 1 · 2026-06-23"* e cita um bundle — `clientes-975.jsx` — que **não existe mais no espelho**. Nenhum dos dois viu os protótipos que chegaram em **13/ago**.
 
@@ -204,12 +204,12 @@ A **Onda 3 está bloqueada pela mesma decisão do §3.1**: o Map não tem US por
 
 ## 7 · Achado alheio a este escopo (reportado, não consertado)
 
-`node prototipo-ui/ancora.mjs --selftest` **falha 1 asserção** neste worktree:
+`node scripts/design/ancora.mjs --selftest` **falha 1 asserção** neste worktree:
 
 ```
 [FAIL] BITE real: zero fantasma na âncora da Jana (P-1 consertado em 2026-08-13)
 ```
 
-Os 6 fantasmas são `AnaliseChequesService`, `AnaliseChurnService`, `AnaliseConcentracaoService`, `AnaliseFaturamentoService`, `AnaliseFrotaService`, `AnaliseInadimplenciaService` — símbolos citados por `prototipo-ui/cowork/jana-merge.jsx` que **não existem no repo**.
+Os 6 fantasmas são `AnaliseChequesService`, `AnaliseChurnService`, `AnaliseConcentracaoService`, `AnaliseFaturamentoService`, `AnaliseFrotaService`, `AnaliseInadimplenciaService` — símbolos citados por `prototipo-ui/cowork/Wagner/jana-merge.jsx` que **não existem no repo**.
 
-**Não foi causado por esta sessão:** `grep Cliente prototipo-ui/ancora.mjs` → 0 ocorrências; a asserção lê `jana-merge.jsx` e não passa por charter de Cliente. O arquivo foi tocado por #5738 e #5761 em 13/ago — o #5738 declara ter consertado o P-1, e a asserção que afirma isso está vermelha. A sessão da Jana estava ativa no momento desta medição; **não toquei** para não colidir.
+**Não foi causado por esta sessão:** `grep Cliente scripts/design/ancora.mjs` → 0 ocorrências; a asserção lê `jana-merge.jsx` e não passa por charter de Cliente. O arquivo foi tocado por #5738 e #5761 em 13/ago — o #5738 declara ter consertado o P-1, e a asserção que afirma isso está vermelha. A sessão da Jana estava ativa no momento desta medição; **não toquei** para não colidir.

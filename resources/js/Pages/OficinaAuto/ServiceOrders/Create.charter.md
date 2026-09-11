@@ -1,7 +1,7 @@
 ---
 page: /oficina-auto/service-orders/create
 component: resources/js/Pages/OficinaAuto/ServiceOrders/Create.tsx
-related_prototype: prototipo-ui/cowork/oficina-forms.jsx (OsCreateDrawer — create/store)
+related_prototype: prototipo-ui/cowork/Wagner/oficina-forms.jsx (OsCreateDrawer — create/store)
 related_us: [US-OFICINA-001]
 owner: wagner
 status: live
@@ -74,7 +74,7 @@ Permitir abertura rápida de OS pelo atendente em ≤ 30s — escolher vehicle (
 
 ## UCs cobertos (PRECISA TER · rastreável · §10.4 [CC])
 
-> Casos de Uso ("A tela precisa:") amarrados a GUARD Pest `uc-<id>` via [`prototipo-ui/audit/uc-registry.json`](../../../../../prototipo-ui/audit/uc-registry.json).
+> Casos de Uso ("A tela precisa:") amarrados a GUARD Pest `uc-<id>` via [`scripts/design/audit/uc-registry.json`](../../../../../scripts/design/audit/uc-registry.json).
 > ✅ presente+travado (some o elemento = build vermelho) · 🟡 gap (acende no `protocol_freshness`).
 
 - ✅ **UC-01** (`uc-01`) — check-in do veículo: busca por placa, chassi/renavam/hodômetro/combustível, fotos de entrada + relato do diagnóstico (`EntryCheckinFields`).
@@ -84,4 +84,4 @@ Permitir abertura rápida de OS pelo atendente em ≤ 30s — escolher vehicle (
 > Append-only (L-22 — não reescrever histórico).
 
 - **2026-05-26** (v2) — refator Page fullscreen → Sheet 720px; toggle locação mantido "por compat".
-- **2026-06-09** (v3) — sweep ADR 0265 no front ([sessão](../../../../../memory/sessions/2026-06-09-sweep-os-front-adr0265.md) · [avaliação CC](../../../../../prototipo-ui/AVALIACAO_OS_GIT_2026-06-09.md)): opção **Locação removida** do select (backend rejeita `in:manutencao,mecanica`); **select de Status removido** (FSM manda, nasce `aberta`); **combobox Cliente** via prop `contacts` + submete `contact_id` escopado. Goal "toggle locação" aposentado.
+- **2026-06-09** (v3) — sweep ADR 0265 no front ([sessão](../../../../../memory/sessions/2026-06-09-sweep-os-front-adr0265.md) · [avaliação CC](../../../../../memory/reference/prototipo-ui/AVALIACAO_OS_GIT_2026-06-09.md)): opção **Locação removida** do select (backend rejeita `in:manutencao,mecanica`); **select de Status removido** (FSM manda, nasce `aberta`); **combobox Cliente** via prop `contacts` + submete `contact_id` escopado. Goal "toggle locação" aposentado.

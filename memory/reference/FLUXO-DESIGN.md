@@ -16,9 +16,9 @@ related_adrs: [0282-protocolo-v2-colapso-ratificacao, 0299-figma-nao-e-fonte-de-
 # Fluxo — Design, do Cowork à tela
 
 > **Os comandos não moram aqui.** O caminho executável é o painel
-> [`prototipo-ui/protocolo.config.mjs`](https://github.com/wagnerra23/oimpresso.com/blob/main/prototipo-ui/protocolo.config.mjs)
+> [`scripts/design/protocolo.config.mjs`](https://github.com/wagnerra23/oimpresso.com/blob/main/scripts/design/protocolo.config.mjs)
 > — rode-o e ele imprime as fases, os IDs de projeto e a linha exata de cada passo. A política e
-> os invariantes são de [`prototipo-ui/PROTOCOL.md`](https://github.com/wagnerra23/oimpresso.com/blob/main/prototipo-ui/PROTOCOL.md).
+> os invariantes são de [`memory/reference/prototipo-ui/PROTOCOL.md`](https://github.com/wagnerra23/oimpresso.com/blob/main/memory/reference/prototipo-ui/PROTOCOL.md).
 > Aqui fica o **modelo mental** e os **subprocessos**: o que cada etapa grava, como conferir que
 > ela aconteceu, e qual prova existe. Este documento nomeia máquinas e modos; a linha de comando
 > canônica sai sempre do painel, porque ela muda mais rápido que qualquer texto.
@@ -44,7 +44,7 @@ aplicando; devolver um menu de opções entrega zero e deixa o defeito em produ�
 | Lugar | O que é | Quem escreve |
 |---|---|---|
 | **Cowork vivo** (`claude.ai/design`, acessado por ID) | onde o design nasce e muda | designer no Cowork |
-| **Espelho** `prototipo-ui/cowork/` | **retrato read-only** do vivo, versionado em git | só a máquina de transporte |
+| **Espelho** `prototipo-ui/cowork/Wagner/` | **retrato read-only** do vivo, versionado em git | só a máquina de transporte |
 | **Produção** `resources/js/Pages/` | a tela React que o cliente usa | o Code, via PR |
 
 A regra que mais custa quando esquecida: **edição feita à mão no espelho some no próximo
@@ -59,7 +59,7 @@ suspeito**, porque ali não existe autor local legítimo.
          |
          |  E1  DesignSync -> payload em partes -> staging -> promocao atomica
          v
-   prototipo-ui/cowork/        <- espelho (retrato)   + design-docs/ (o PEDIDO)
+   prototipo-ui/cowork/Wagner/        <- fonte executável local do protótipo
          |
          |  E2  detecta telas, resolve a ancora a partir do charter
          v
@@ -252,10 +252,10 @@ O que mora aqui é o modelo: **quem**, **quando**, e o que segue sem dono.
 | E1.0 | **fechar o ciclo de design** | ciclo encerrado no Cowork → obrigação de emitir | nada no repo — é o passo de processo; sem ele E1.1 nunca começa e o espelho envelhece em silêncio |
 | E1.1 | **gerar o payload** | diretório do design vivo → partes numeradas + manifesto | do lado de quem tem os arquivos em disco — nunca do lado do agente, senão é transcrição |
 | E1.2 | **validar em staging** (dry-run) | partes → veredito | nada: monta tudo e joga fora |
-| E1.3 | **promover atomicamente** | staging → quatro destinos de uma vez | espelho · design-docs · cache de preview · estado |
+| E1.3 | **promover atomicamente** | staging → destinos de build de uma vez | cowork · cache de preview · estado |
 | E1.4 | **inventariar** | estado → tela por tela: pendente / bloqueada / a criar | relatório de aplicação |
-| E1.5 | **rota pontual** (1–3 arquivos) | JSON do arquivo → escrita pela máquina | espelho ou design-docs, roteado **por extensão** |
-| E1.6 | **o pedido** (intake) | `cowork-inbox/` → o que fazer com o design | design-docs |
+| E1.5 | **rota pontual** (1–3 arquivos) | JSON do arquivo → escrita pela máquina | somente fonte executável aceita pelo contrato build-only |
+| E1.6 | **o pedido** (intake) | `cowork-inbox/` → o que fazer com o design | lido na origem e destilado no dono canônico |
 
 ### Fluxo interno e pontos de decisão
 
@@ -439,7 +439,7 @@ Medido: **217 charters**, âncoras no lugar fixo e vivas.
 ÂNCORA da tela: Arquivos/Index
   charter:    resources/js/Pages/Arquivos/Index.charter.md
   tela viva:  resources/js/Pages/Arquivos/Index.tsx
-  âncora ✓:   [related_prototype (charter)] prototipo-ui/cowork/arquivos-page.jsx
+  âncora ✓:   [related_prototype (charter)] prototipo-ui/cowork/Wagner/arquivos-page.jsx
 ```
 
 E o caso que **não mede**, que é o mais instrutivo — o campo tem prosa entre parênteses, o
@@ -1261,7 +1261,7 @@ entrypoint real    -> testa a CLI/hook usado, não uma cópia    (fidelidade)
 
 ### T8 · Integridade com árvore temporária quebrada — E9 · prioridade P1
 
-- **Alvo:** `prototipo-ui/integrity-check.mjs`.
+- **Alvo:** `scripts/design/integrity-check.mjs`.
 - **Pré-requisito técnico:** aceitar `--root` ou separar as funções puras; o teste não deve editar a
   árvore real.
 - **Fixtures ruins independentes:** IT1 sem uma peça da espinha; IT2 charter sem `.tsx`; IT4 L-NN
@@ -1302,7 +1302,7 @@ a required, mudança de branch protection ou ação de merge está implícita ne
 # Onde este documento não é dono
 
 - **Comandos e IDs** — painel `protocolo.config.mjs`.
-- **Política, papéis e invariantes do loop** — `prototipo-ui/PROTOCOL.md`.
+- **Política, papéis e invariantes do loop** — `memory/reference/prototipo-ui/PROTOCOL.md`.
 - **O que é required** — `governance/required-checks-baseline.json`.
 - **Inventário completo de máquinas** — [`MAQUINAS-INVENTARIO.md`](MAQUINAS-INVENTARIO.md).
 - **Artefatos de uma tela específica** — os relatórios de cobertura de tela e de casos, que

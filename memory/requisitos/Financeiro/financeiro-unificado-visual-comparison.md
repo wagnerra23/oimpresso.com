@@ -229,7 +229,7 @@ Extractor JSON dos dois lados + probes de cascata + zoom do botão — na transc
 ## Round 2026-07-07 — INVENTÁRIO POR REGIÃO (protótipo × produção, ancorado linha a linha)
 
 > **Gatilho [W]:** *"divida a página em etapas — header, page header, meio, canto, footer — e descreva cada componente modificado e sua diferença total entre protótipo e produção. coloque isso no meu protocolo."*
-> **Método (formalizado na Fase 1 do [RUNBOOK-aplicar-prototipo](../../../prototipo-ui/RUNBOOK-aplicar-prototipo-orquestracao.md)):** 6 regiões × **199 comparações** componente-a-componente. Toda linha com **âncora dupla** (`arquivo:linha` do protótipo E da produção, lidas de `origin/main` @ `386dce0638` — SHA confirmado RODANDO em produção via SSH Hostinger 2026-07-07 16:28 UTC) + **medição DOM computada ao vivo** (Chrome MCP em `oimpresso.com/financeiro/unificado`, logado biz=1) pros valores de cor/raio/fonte. Workflow 6 agentes-região + spot-check manual dos achados fortes.
+> **Método (formalizado na Fase 1 do [RUNBOOK-aplicar-prototipo](../../../memory/reference/prototipo-ui/RUNBOOK-aplicar-prototipo-orquestracao.md)):** 6 regiões × **199 comparações** componente-a-componente. Toda linha com **âncora dupla** (`arquivo:linha` do protótipo E da produção, lidas de `origin/main` @ `386dce0638` — SHA confirmado RODANDO em produção via SSH Hostinger 2026-07-07 16:28 UTC) + **medição DOM computada ao vivo** (Chrome MCP em `oimpresso.com/financeiro/unificado`, logado biz=1) pros valores de cor/raio/fonte. Workflow 6 agentes-região + spot-check manual dos achados fortes.
 
 ### Placar geral (199 comparações)
 
@@ -381,7 +381,7 @@ Medição por sonda DOM ao vivo (browser MCP) + sentinela por-var. **Correção 
 Medição por sonda **canônica** (`design-diff.mjs --probe`), mesma sonda nos dois lados,
 **mesmo tema** (`data-theme=dark` nos dois, medido) e **mesma viewport** (`innerWidth=1440`
 nos dois, medido). Prod = `https://oimpresso.com/financeiro/unificado` (sessão WR2 Sistemas);
-design = espelho `prototipo-ui/cowork/` servido local, rota `financeiro`.
+design = espelho `prototipo-ui/cowork/Wagner/` servido local, rota `financeiro`.
 
 **Frescor da âncora provado ANTES de comparar** (senão a comparação é inconclusiva sobre o
 vivo): `financeiro-page.jsx` e `financeiro-telas-extras.jsx` = **SYNC** contra o Cowork vivo

@@ -11,7 +11,7 @@ id: requisitos-design-system-adr-ui-0019-sidebar-light-definitivo-supersede-0009
 - **Decisores**: Wagner (decisão final), Claude Code (executor)
 - **Categoria**: ui · shell · governança
 - **Supersede (consolida)**: [UI-0009](0009-cockpit-sidebar-light-padrao.md) — sidebar light padrão · [UI-0014](0014-sidebar-light-mantida-v2-parcial.md) — light mantida (v2 parcial)
-- **Rejeita permanentemente**: sidebar dark de QUALQUER protótipo Cowork (incl. o handoff vigente `prototipo-ui/cowork/financeiro-page.jsx`, que renderiza shell dark com sidebar escura)
+- **Rejeita permanentemente**: sidebar dark de QUALQUER protótipo Cowork (incl. o handoff vigente `prototipo-ui/cowork/Wagner/financeiro-page.jsx`, que renderiza shell dark com sidebar escura)
 - **Refs**:
   - [UI-0013](0013-constituicao-ui-v2-camadas.md) — Constituição UI v2 (permanece; só o item sidebar-dark segue não-adotado)
   - [financeiro-unificado-visual-comparison.md §Round 2026-07-07](../../../Financeiro/financeiro-unificado-visual-comparison.md) — inventário por região que disparou a re-decisão (Região 7 Tema/Shell)

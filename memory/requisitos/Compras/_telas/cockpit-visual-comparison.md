@@ -6,9 +6,9 @@ generated_at: 2026-09-07
 generated_by: "[C] design-diff medido no runtime (PROTOCOLO-COMPARACAO-RUNTIME D1-D9)"
 status: medido
 prod_url: https://oimpresso.com/compras
-design_ancora: prototipo-ui/cowork/compras-page.jsx
-roles_override: prototipo-ui/alvos/roles/Compras--Index.json
-contrato: prototipo-ui/contrato/compras-cockpit.contract.json
+design_ancora: prototipo-ui/cowork/Wagner/compras-page.jsx
+roles_override: governance/design/targets/roles/Compras--Index.json
+contrato: governance/design/contracts/compras-cockpit.contract.json
 ---
 
 # Visual Comparison — cockpit `Compras/Index`
@@ -24,7 +24,7 @@ contrato: prototipo-ui/contrato/compras-cockpit.contract.json
 | lado design | espelho `prototipo-ui/cowork` servido em `http://127.0.0.1:5599/oimpresso.com.html`, `localStorage['oimpresso.route']='compras'` |
 | lado produção | `https://oimpresso.com/compras`, sessão logada |
 | estabilidade | esperado `__oiLazyDone` + 3 leituras iguais de `querySelectorAll('*').length` (design 1199 nós; prod 779) |
-| papéis | `prototipo-ui/alvos/roles/Compras--Index.json` — medidos no DOM dos dois lados |
+| papéis | `governance/design/targets/roles/Compras--Index.json` — medidos no DOM dos dois lados |
 
 **Por que o override de papéis existe:** os defaults heurísticos do `design-diff-lote`
 produziram **dois falsos positivos** nesta tela. Ambos foram verificados e refutados **antes**

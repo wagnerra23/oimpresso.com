@@ -86,7 +86,7 @@ Hoje a emissão de cobrança (`Modules/PaymentGateway`, tabela `cobrancas`) é u
 ## 5. Sequência sugerida
 1. **C primeiro** (destrava o "Conta destino" → wizard da Onda A passa a emitir de fato).
 2. **B em seguida** (AR correto + baixa automática vinculada ao título, todos tenants).
-3. Cada onda = 1 ADR aceita + migrations em PRs separados (regra M-AP-4 das [Lições F3](../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md): schema novo → ADR → migration própria → só então código).
+3. Cada onda = 1 ADR aceita + migrations em PRs separados (regra M-AP-4 das [Lições F3](../../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md): schema novo → ADR → migration própria → só então código).
 
 ## 6. Não-objetivos
 - Reescrever `cobrancas` ou `fin_titulos` do zero.

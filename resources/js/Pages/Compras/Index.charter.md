@@ -11,7 +11,7 @@ states: [loading]  # gate L2 — dark/empty podados antes (flaky); `default` pod
 parent_spec: memory/requisitos/Compras/SPEC.md
 related_adrs: [93, 94, 101, 104, 107, 114, 141, 149]
 related_us: [US-COM-001]
-related_prototype: prototipo-ui/cowork/compras-page.jsx
+related_prototype: prototipo-ui/cowork/Wagner/compras-page.jsx
 related_visual_comparison: memory/requisitos/Compras/_telas/cockpit-visual-comparison.md
 tier: A
 charter_version: 2
@@ -155,6 +155,6 @@ Ambos eram remanescentes v1 que o pivô v2 (C1, 2026-05-25) não atualizou. O se
 - [ADR 0141 skill migracao-blade-react](../../../../memory/decisions/0141-skill-migracao-blade-react.md) — piloto Wave 2 B5 do trilho A Purchase
 - [Pages/Purchase/Create.charter.md](../Purchase/Create.charter.md) — Tier A ★ intocado por C1
 - Pattern Soft wrapper precedente: PR [#1288 Caixa](https://github.com/wagnerra23/oimpresso.com/pull/1288) + PR [#1297 Home](https://github.com/wagnerra23/oimpresso.com/pull/1297)
-- Protótipo canon: `prototipo-ui/cowork/compras-page.{jsx,css}`
+- Protótipo canon: `prototipo-ui/cowork/Wagner/compras-page.{jsx,css}`
 - `Modules/Compras/Http/Controllers/ComprasController.php` — Controller Wave 3
 - `Modules/Compras/Services/ComprasService.php` — Service Wave 3

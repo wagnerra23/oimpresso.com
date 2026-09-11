@@ -214,9 +214,9 @@ ADR vai em `06-decisoes/` (ou ADR UI no oimpresso) e justifica desvio com bench.
 - **Substituído parcialmente**: [UI-0006 padrão tela operacional](../adr/ui/0006-padrao-tela-operacional.md) (UI-0006 = PT-01 antes de ser formalizado)
 - **Drawer canon**: [ADR 0185](../../../decisions/0185-drawer-760-canon-entidades-cadastrais.md), [ADR 0179](../../../decisions/0179-cliente-drawer-760px-substitui-show-fullpage.md)
 - **Pattern reuse**: [ADR 0149](../../../decisions/0149-mwart-screen-pattern-reuse-cowork.md)
-- **Loop Design↔Code**: [PROTOCOL.md](../../../../prototipo-ui/PROTOCOL.md)
+- **Loop Design↔Code**: [PROTOCOL.md](../../../../memory/reference/prototipo-ui/PROTOCOL.md)
 - **Skill correlata**: [`mwart-process`](../../../../.claude/skills/mwart-process/SKILL.md), [`charter-first`](../../../../.claude/skills/charter-first/SKILL.md)
-- **Protótipo de origem**: [`prototipo-ui/cowork/clientes-page.jsx`](../../../../prototipo-ui/cowork/clientes-page.jsx) (KB-9.75 9,4/10)
+- **Protótipo de origem**: [`prototipo-ui/cowork/Wagner/clientes-page.jsx`](../../../../prototipo-ui/cowork/Wagner/clientes-page.jsx) (KB-9.75 9,4/10)
 - **Handoff Claude Design v2**: 2026-05-24 (Constituição UI v2, ponteiro em [UI-0013](../adr/ui/0013-constituicao-ui-v2-camadas.md))
 
 ## Versão

@@ -1,6 +1,6 @@
 ---
 tela: kb/Index (/kb)
-prototipo: prototipo-ui/cowork/kb-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/kb-page.jsx
 tela_viva: resources/js/Pages/kb/Index.tsx
 id: requisitos-kb-kb-gap
 ---

@@ -13,14 +13,14 @@ A proposta-pai descreve a Onda A como *"parar de tratar a espinha como autoridad
 | # | Achado | Evidência | Implicação |
 |---|---|---|---|
 | **A1** | `memory-health` **não é "anti-órfão"** — é gate Tier-0 multiuso, incl. **segurança** | `scripts/governance/memory-health.mjs:11-22` — 🔴 fail = **Check A** (colisão de ADR) + **Check C** (segredo em `memory/`). Não existe fail-class "anti-órfão". | "Aposentar memory-health" = perder varredura de segredo + colisão de ADR. **Regressão de segurança, não alívio.** |
-| **A2** | **"Regra 6" não mapeia** pra nenhum andaime de R1 | Todo "Regra 6"/"R6" concreto é proteção: NÚCLEO inv. 6 = piso de DS (`prototipo-ui/PROCESSO_MEMORIA_CC.md:18`); UI-Lint R6 = emoji; **RC-01 "afirmar sem ler"** (`prototipo-ui/evals/REPLAY_CASES.md:7`, reincidiu 3× em 2026-06-08). | Não dá pra "aposentar Regra 6" — nenhuma das que existem deve sair. Precisa de desambiguação de [W]/[CC]. |
-| **A3** | O direcional **git = SSOT já é canon** — falta só o resíduo | [ADR 0238](../0238-soberania-constituicao-wagner.md) (soberania-[W]), [ADR 0239](../0239-governanca-design-system-git-ssot-regressao-ia.md) (git=SSOT), [ADR 0236](../0236-governanca-evolucao-doc-design.md) (governança-doc). `prototipo-ui/MEMORY_INDEX.md` **já** se declara "derivado / NUNCA autoridade". | A Onda A **completa e ratifica** algo já começado; o resíduo é `STATUS.md`, que ainda se auto-declara *"single source of truth"* (`prototipo-ui/STATUS.md:1`). |
+| **A2** | **"Regra 6" não mapeia** pra nenhum andaime de R1 | Todo "Regra 6"/"R6" concreto é proteção: NÚCLEO inv. 6 = piso de DS (`memory/reference/prototipo-ui/PROCESSO_MEMORIA_CC.md:18`); UI-Lint R6 = emoji; **RC-01 "afirmar sem ler"** (`tests/Design/evals/REPLAY_CASES.md:7`, reincidiu 3× em 2026-06-08). | Não dá pra "aposentar Regra 6" — nenhuma das que existem deve sair. Precisa de desambiguação de [W]/[CC]. |
+| **A3** | O direcional **git = SSOT já é canon** — falta só o resíduo | [ADR 0238](../0238-soberania-constituicao-wagner.md) (soberania-[W]), [ADR 0239](../0239-governanca-design-system-git-ssot-regressao-ia.md) (git=SSOT), [ADR 0236](../0236-governanca-evolucao-doc-design.md) (governança-doc). `memory/reference/prototipo-ui/MEMORY_INDEX.md` **já** se declara "derivado / NUNCA autoridade". | A Onda A **completa e ratifica** algo já começado; o resíduo é `STATUS.md`, que ainda se auto-declara *"single source of truth"* (`memory/reference/prototipo-ui/STATUS.md:1`). |
 
 **Trava mecânica relevante:** `STATUS.md` e o NÚCLEO de `PROCESSO_MEMORIA_CC.md` são guardados pelo check **required** `Append-only canon (ADRs, handoffs, Constituição)` (1 dos 16 contexts required do `main`). Logo o próprio repo **bloqueia** a Onda A como edit silencioso — ela precisa de ADR aceito por [W] que autorize o supersede. (`memory-health` é enforce-no-job mas **não** está entre os 16 required.)
 
 ## 2. O piso que a Onda A toca (e por isso depende de [W])
 
-NÚCLEO invariante 3 — `prototipo-ui/PROCESSO_MEMORIA_CC.md:246`:
+NÚCLEO invariante 3 — `memory/reference/prototipo-ui/PROCESSO_MEMORIA_CC.md:246`:
 
 > *"Piso intocável: posso reescrever o processo, **nunca abaixo do piso** — espinha always-read (STATUS→PROCESSO) + soberania de [W] (constituição/ADR/token = só [W])."*
 
@@ -55,7 +55,7 @@ A Onda A muda a **metade "espinha always-read STATUS→PROCESSO"** desse piso (S
 ## 7. Plano de execução (PRs pequenos, **após [W] numerar este ADR** — sem auto-merge)
 
 1. **PR-A1** — este doc (proposta). *(atual)*
-2. **PR-A2** *(só após aceite)* — editar header do `prototipo-ui/STATUS.md` ("cache derivado, não autoridade; git é SSOT") + emendar NÚCLEO inv. 3 com nota de supersede append-only. Toca o `Append-only canon` required → revisado peça por peça.
+2. **PR-A2** *(só após aceite)* — editar header do `memory/reference/prototipo-ui/STATUS.md` ("cache derivado, não autoridade; git é SSOT") + emendar NÚCLEO inv. 3 com nota de supersede append-only. Toca o `Append-only canon` required → revisado peça por peça.
 3. **PR-A3** *(opcional)* — confirmar/cablear `cowork-inbox` cobrindo o write-path de memória pra [W] parar de colar.
 
 ---

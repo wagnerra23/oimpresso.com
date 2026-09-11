@@ -1,2 +1,2 @@
-prototipo-ui/cowork/app.jsx
-prototipo-ui/cowork/solto.jsx
+prototipo-ui/cowork/Wagner/app.jsx
+prototipo-ui/cowork/Wagner/solto.jsx

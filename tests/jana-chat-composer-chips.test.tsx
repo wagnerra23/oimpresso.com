@@ -1,4 +1,4 @@
-// Onda 3b da paridade Jana × `prototipo-ui/cowork/jana-merge.jsx` §JmConversa:
+// Onda 3b da paridade Jana × `prototipo-ui/cowork/Wagner/jana-merge.jsx` §JmConversa:
 // cabeçalho da thread + composer (placeholder que anuncia `/`) + os 3 chips.
 //
 // Por que jsdom e não Pest: o que mudou é COMPORTAMENTO de teclado e o que

@@ -22,7 +22,7 @@
 
 1. **Entrega repo-nativa.** Diff na língua do repo: **Tailwind 4 + tokens existentes**. Proibido mandar `.om-*`, CSS cru do espelho, `#hex`/`oklch()` literal em arquivo de módulo (ADR 0283 R1 · PRE-MERGE-UI AP1).
 2. **Leu o `main` antes de afirmar.** Toda afirmação sobre o código cita **arquivo + linha**. "Existe / não existe / diverge" é auditado, não lembrado.
-3. **Canal é o repo, não o clipboard.** Bloco de handoff em `prototipo-ui/COWORK_NOTES.md` (ADR 0283 R2). Sem URL efêmera como canal.
+3. **Canal é o repo, não o clipboard.** Bloco de handoff em `memory/reference/prototipo-ui/COWORK_NOTES.md` (ADR 0283 R2). Sem URL efêmera como canal.
 4. **Sidebar é PRETA (dark-fixo) nos dois modos** — DEFINITIVO (UI-0023; supersede UI-0019/0014/0009, que diziam "light" e estavam erradas). Fonte: bloco `Sidebar — DARK FIXO` em `resources/css/cockpit.css`.
 5. **Primary é roxo** `oklch(0.55 0.15 295)`. O `blue` do shadcn-slate legado em `inertia.css` é **superseded** (DS v6 · ADR 0190/0300).
 6. **PT-BR** em label, copy, erro, commit, PR (AP8). Código em inglês; domínio em PT.
@@ -45,7 +45,7 @@ Pares marcados “confirmar” se resolvem por máquina: `node scripts/qa/screen
 | Template daqui | Alvo provável no repo | Estado |
 |---|---|---|
 | `templates/clientes-crm/ClientesCrm.dc.html` | `resources/js/Pages/Cliente/Index.tsx` (+ `Index.charter.md`, `_drawer/`, `_show/`) | existe — diff, não criar |
-| `templates/financeiro/Financeiro.dc.html` | `resources/js/Pages/Financeiro/Unificado/` (+ `ProvaViva.tsx`) | existe — diff; ler `prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md` **antes** |
+| `templates/financeiro/Financeiro.dc.html` | `resources/js/Pages/Financeiro/Unificado/` (+ `ProvaViva.tsx`) | existe — diff; ler `memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md` **antes** |
 | `templates/oficina-auto/OficinaAuto.dc.html` | `resources/js/Pages/OficinaAuto/ServiceOrders/` + `Vehicles/` | existe — diff |
 | `templates/pt-07-os-detail/Pt07OsDetail.dc.html` | detalhe de OS em `OficinaAuto/ServiceOrders/` | existe — PT-07 aplicado |
 | `templates/pt-01-lista/Pt01Lista.dc.html` | padrão, não tela: aplicado em `Cliente/Index`, `Produto/Index`, `Sells/Index` | canon PT-01 |
@@ -117,8 +117,8 @@ node scripts/governance/ds-mirror-drift.mjs    # sentinela de divergência espel
 npm run ds:canon:check          # cor canon (roxo 295) não regrediu
 npm run foundation:check
 npm run conformance:check
-node prototipo-ui/ds-guard.mjs <arquivos tocados>     # §8 do PROCESSO_MEMORIA_CC
-node prototipo-ui/integrity-check.mjs                 # §15, ao formalizar
+node scripts/design/ds-guard.mjs <arquivos tocados>     # §8 do PROCESSO_MEMORIA_CC
+node scripts/design/integrity-check.mjs                 # §15, ao formalizar
 # tela / padrão
 npm run pt:conformance:check
 npm run design:coverage:check
@@ -134,7 +134,7 @@ Checklist humano de 3 min: `memory/requisitos/_DesignSystem/PRE-MERGE-UI.md` (ca
 
 ---
 
-## 6. Bloco de handoff a colar em `prototipo-ui/COWORK_NOTES.md`
+## 6. Bloco de handoff a colar em `memory/reference/prototipo-ui/COWORK_NOTES.md`
 
 ```md
 ## HANDOFF <data> · <tela> · espelho DS v6

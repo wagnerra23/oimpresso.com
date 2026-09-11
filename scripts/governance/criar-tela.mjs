@@ -16,7 +16,7 @@
 //   (b) <Tela>.charter.md   component + related_prototype "herda PT-0X" + Mission/Goals/Non-Goals
 //   (c) <Tela>.casos.md     stub de UC (o contrato de teste · ADR 0264 G-1/G-2)
 //   (d) stub de teste E2E   e2e/<mod>-<tela>.spec.ts citando o UC (satisfaz G-2 rastreabilidade)
-//   (e) .contract.json      contrato de tela em prototipo-ui/contrato/ — a perna de FIDELIDADE
+//   (e) .contract.json      contrato de tela em governance/design/contracts/ — a perna de FIDELIDADE
 //                           VISUAL do trio (contract.schema.json). Nasce com as seções do
 //                           arquétipo + as âncoras `data-contract` correspondentes já no .tsx,
 //                           e `copy` VAZIA (a copy literal é decisão [W] — ver contratoTemplate).
@@ -210,7 +210,7 @@ export default function ${tela}({ paginator }: Props) {
   ];
   return (
     <AppShellV2>
-      {/* \`data-contract\` = âncora do contrato de tela (prototipo-ui/contrato/). NÃO remova o
+      {/* \`data-contract\` = âncora do contrato de tela (governance/design/contracts/). NÃO remova o
           atributo sem tirar a seção do .contract.json — o gate contrato-de-tela cobra os dois. */}
       <div data-contract="cabecalho">
         <PageHeader title="${tela}" subtitle="TODO: descrição da lista" />
@@ -247,7 +247,7 @@ export default function ${tela}(_props: Props) {
     <AppShellV2>
       <form onSubmit={handleSubmit} className="cw-form-layout">
         <div>
-          {/* \`data-contract\` = âncora do contrato de tela (prototipo-ui/contrato/). NÃO remova o
+          {/* \`data-contract\` = âncora do contrato de tela (governance/design/contracts/). NÃO remova o
               atributo sem tirar a seção do .contract.json — o gate contrato-de-tela cobra os dois. */}
           <div data-contract="formulario">
             <FormSection title="Identificação">
@@ -281,7 +281,7 @@ interface Props { registro: Record<string, unknown> /* TODO: entidade em detalhe
 export default function ${tela}({ registro }: Props) {
   return (
     <AppShellV2>
-      {/* \`data-contract\` = âncora do contrato de tela (prototipo-ui/contrato/). NÃO remova o
+      {/* \`data-contract\` = âncora do contrato de tela (governance/design/contracts/). NÃO remova o
           atributo sem tirar a seção do .contract.json — o gate contrato-de-tela cobra os dois. */}
       <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
         <div data-contract="detalhe">
@@ -310,7 +310,7 @@ interface Props { kpis?: Record<string, number> /* TODO: agregados do dashboard 
 export default function ${tela}({ kpis }: Props) {
   return (
     <AppShellV2>
-      {/* \`data-contract\` = âncora do contrato de tela (prototipo-ui/contrato/). NÃO remova o
+      {/* \`data-contract\` = âncora do contrato de tela (governance/design/contracts/). NÃO remova o
           atributo sem tirar a seção do .contract.json — o gate contrato-de-tela cobra os dois. */}
       <div data-contract="cabecalho">
         <PageHeader title="${tela}" subtitle="TODO: descrição do painel" />
@@ -337,7 +337,7 @@ export default function ${tela}({ colunas }: Props) {
   return (
     <AppShellV2>
       {/* Kanban com drag-and-drop (dnd-kit) — o que distingue o PT-05 */}
-      {/* \`data-contract\` = âncora do contrato de tela (prototipo-ui/contrato/). NÃO remova o
+      {/* \`data-contract\` = âncora do contrato de tela (governance/design/contracts/). NÃO remova o
           atributo sem tirar a seção do .contract.json — o gate contrato-de-tela cobra os dois. */}
       <KanbanDndProvider /* TODO: onDragEnd que persiste a transição via FSM */>
         <div data-contract="quadro" className="flex gap-4 overflow-x-auto">
@@ -374,7 +374,7 @@ export default function ${tela}({ colunas }: Props) {
 //
 // Duas fontes, na ordem em que o `ancora.mjs` também olha:
 //   (a) outro charter do mesmo módulo que já declara um protótipo resolvível
-//   (b) a convenção de nome `prototipo-ui/cowork/<modulo>-page.jsx`
+//   (b) a convenção de nome `prototipo-ui/cowork/Wagner/<modulo>-page.jsx`
 // ─────────────────────────────────────────────────────────────────────────────
 function detectarPrototipoDoModulo(mod, root = ROOT) {
   const achados = [];
@@ -401,7 +401,7 @@ function detectarPrototipoDoModulo(mod, root = ROOT) {
   varrer(dirMod);
 
   // (b) convenção de nome do Cowork.
-  const porConvencao = `prototipo-ui/cowork/${mod.toLowerCase()}-page.jsx`;
+  const porConvencao = `prototipo-ui/cowork/Wagner/${mod.toLowerCase()}-page.jsx`;
   if (existsSync(join(root, porConvencao))) achados.push(porConvencao);
 
   return [...new Set(achados)];
@@ -610,9 +610,9 @@ test.fixme('${uc}: TODO caminho feliz de ${mod}/${tela}', async ({ page }) => {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// CONTRATO DE TELA — o 5º artefato (prototipo-ui/contrato/<mod>-<tela>.contract.json).
+// CONTRATO DE TELA — o 5º artefato (governance/design/contracts/<mod>-<tela>.contract.json).
 //
-// O buraco que fecha: `prototipo-ui/contrato/` tem contrato de tela e NENHUM do módulo
+// O buraco que fecha: `governance/design/contracts/` tem contrato de tela e NENHUM do módulo
 // Arquivos — porque o gerador carimbava 4 artefatos e o contrato ficava pra "depois", que
 // nunca chega. Agora nasce junto, já consumido pelo `contrato:check` que existe (nenhum
 // gate novo — o job "Preflight + contratos ativos" roda `git ls-files '*.contract.json'`
@@ -903,7 +903,7 @@ last_validated: "2026-01-01"
 
   // CN-2/CN-3: as DUAS saídas explícitas funcionam e escrevem o que prometem.
   const cn2 = tmp();
-  rodar(['Forja/FixturaAncora', 'PT-01', '--out', cn2, '--prototipo', 'prototipo-ui/cowork/forja-page.jsx', '--rota', 'fixtura-ancora']);
+  rodar(['Forja/FixturaAncora', 'PT-01', '--out', cn2, '--prototipo', 'prototipo-ui/cowork/Wagner/forja-page.jsx', '--rota', 'fixtura-ancora']);
   t(/related_prototype:\s*prototipo-ui\/cowork\/forja-page\.jsx/.test(
       readFileSync(join(cn2, 'resources/js/Pages/Forja/FixturaAncora.charter.md'), 'utf8')),
     'CN-2: --prototipo escreve o path declarado');
@@ -979,11 +979,11 @@ last_validated: "2026-01-01"
   mkdirSync(join(c1, 'prototipo-ui', 'cowork'), { recursive: true });
   writeFileSync(join(c1, 'prototipo-ui', 'cowork', 'fixtura-page.jsx'), '// protótipo de fixtura\n');
   const g1 = rodar(['Fixtura/MinhaTela', 'PT-01', '--out', c1,
-    '--prototipo', 'prototipo-ui/cowork/fixtura-page.jsx', '--rota', 'fixtura']);
+    '--prototipo', 'prototipo-ui/cowork/Wagner/fixtura-page.jsx', '--rota', 'fixtura']);
   t(g1.status === 0, 'CONTRATO CN-1: geração com protótipo sai limpa (exit 0)');
-  const p1 = 'prototipo-ui/contrato/fixtura-minha-tela.contract.json';
+  const p1 = 'governance/design/contracts/fixtura-minha-tela.contract.json';
   t(existsSync(join(c1, p1)), 'CONTRATO CN-1: o 5º artefato foi escrito no lugar que o gate varre');
-  t(JSON.parse(readFileSync(join(c1, p1), 'utf8')).fonte === 'prototipo-ui/cowork/fixtura-page.jsx',
+  t(JSON.parse(readFileSync(join(c1, p1), 'utf8')).fonte === 'prototipo-ui/cowork/Wagner/fixtura-page.jsx',
     'CONTRATO CN-1: `fonte` é o protótipo declarado (a mesma âncora que o charter registra)');
   indexar(c1);
   const chk1 = gate(['--contract', p1], c1);
@@ -994,7 +994,7 @@ last_validated: "2026-01-01"
   // Ramo 2 — tela SEM protótipo: `fonte` cai no .tsx (precedente jana-painel), e ainda passa.
   const c2 = tmp();
   rodar(['SemProtoXyz/Painel', 'PT-04', '--out', c2, '--sem-prototipo', 'fixtura', '--rota', 'sem-proto']);
-  const p2 = 'prototipo-ui/contrato/sem-proto-xyz-painel.contract.json';
+  const p2 = 'governance/design/contracts/sem-proto-xyz-painel.contract.json';
   t(JSON.parse(readFileSync(join(c2, p2), 'utf8')).fonte === 'resources/js/Pages/SemProtoXyz/Painel.tsx',
     'CONTRATO CN-2: sem protótipo, `fonte` cai no .tsx (nunca aponta pra arquivo inexistente)');
   indexar(c2);
@@ -1022,7 +1022,7 @@ last_validated: "2026-01-01"
   // CONTROLE POSITIVO 3 — fonte quebrada: é o modo que só o `--map --check` pega.
   const mau3 = JSON.parse(readFileSync(join(c2, p2), 'utf8'));
   mau3.secoes[0].copy = [];
-  mau3.fonte = 'prototipo-ui/cowork/nao-existe.jsx';
+  mau3.fonte = 'prototipo-ui/cowork/Wagner/nao-existe.jsx';
   writeFileSync(join(c2, p2), JSON.stringify(mau3, null, 2));
   const bad3 = gate(['--map', '--check'], c2);
   t(bad3.status !== 0 && /fonte aponta arquivo inexistente/.test(bad3.stdout || ''),

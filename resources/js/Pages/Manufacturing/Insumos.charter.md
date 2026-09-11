@@ -4,7 +4,7 @@ component: resources/js/Pages/Manufacturing/Insumos.tsx
 owner: wagner
 status: draft
 parent_module: Manufacturing
-related_prototype: prototipo-ui/cowork/manufacturing-insumos.jsx
+related_prototype: prototipo-ui/cowork/Wagner/manufacturing-insumos.jsx
 related_us: [US-MANU-005]
 runbook: memory/requisitos/Manufacturing/RUNBOOK-insumos.md
 casos: resources/js/Pages/Manufacturing/Insumos.casos.md
@@ -22,7 +22,7 @@ charter_version: 1
 
 > Quinta onda da família Fabricação e a **única que nasce com backend novo** — o §18.3 do
 > handoff declarava que sem `usosDoInsumo()` a aba não saía. Fonte visual:
-> `prototipo-ui/cowork/manufacturing-insumos.jsx::MfgInsumosView`.
+> `prototipo-ui/cowork/Wagner/manufacturing-insumos.jsx::MfgInsumosView`.
 
 ## Mission
 

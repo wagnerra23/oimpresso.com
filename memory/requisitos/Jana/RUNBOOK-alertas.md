@@ -29,8 +29,8 @@ steps:
 # RUNBOOK — Alertas da Jana (`/ia/alertas`)
 
 > **Tipo:** runbook reproduzível
-> **Irmãos:** [`Alertas.charter.md`](../../../resources/js/Pages/Jana/Alertas.charter.md) (lei) · [`Alertas.casos.md`](../../../resources/js/Pages/Jana/Alertas.casos.md) (contrato UC) · [`jana-alertas.contract.json`](../../../prototipo-ui/contrato/jana-alertas.contract.json) (copy pinada)
-> **Âncora de design:** `prototipo-ui/cowork/jana-telas-novas.jsx` §`JmAlertas` (a aba vive no `JmTabs` de `jana-merge.jsx`). Resolva sempre por `node prototipo-ui/ancora.mjs Jana/Alertas`, nunca no olho.
+> **Irmãos:** [`Alertas.charter.md`](../../../resources/js/Pages/Jana/Alertas.charter.md) (lei) · [`Alertas.casos.md`](../../../resources/js/Pages/Jana/Alertas.casos.md) (contrato UC) · [`jana-alertas.contract.json`](../../../governance/design/contracts/jana-alertas.contract.json) (copy pinada)
+> **Âncora de design:** `prototipo-ui/cowork/Wagner/jana-telas-novas.jsx` §`JmAlertas` (a aba vive no `JmTabs` de `jana-merge.jsx`). Resolva sempre por `node scripts/design/ancora.mjs Jana/Alertas`, nunca no olho.
 > **Validado:** **estático** contra `origin/main` em 2026-09-02 — rotas, controller, `AlertaService`, `MetaDesvioNotification` e o protótipo (`DesignSync.get_file`, path do manifesto) conferidos arquivo a arquivo.
 > ⚠️ **Fluxo vivo contra prod NÃO exercitado nesta data.** O smoke real com screenshot é o passo 6 abaixo e é a evidência que fecha a R1.
 

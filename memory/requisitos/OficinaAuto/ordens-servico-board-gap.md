@@ -1,7 +1,7 @@
 ---
 id: requisitos-oficina-auto-ordens-servico-board-gap
 tela: OficinaAuto/ServiceOrders/Board (/oficina-auto/ordens-servico)
-prototipo: prototipo-ui/cowork/oficina-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/oficina-page.jsx
 tela_viva: resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx
 paridade_atual: PARIDADE — vivo à frente em arquitetura (FSM real, dado real, 4 views in-page)
 gerado_em: "2026-09-06"
@@ -12,12 +12,12 @@ gerado_por: "[C] — Fase 1 read-only (aplicar-prototipo), por grep real nos doi
 
 > **Read-only.** Fase 1 da skill `aplicar-prototipo`. Este é o **par correto** para `oficina-page.jsx`:
 > a âncora é computada do charter (`resources/js/Pages/OficinaAuto/ServiceOrders/Board.charter.md:5`
-> `visual_source: oficina-page.jsx`; `node prototipo-ui/ancora.mjs OficinaAuto/ServiceOrders/Board --staging prototipo-ui/cowork`
+> `visual_source: oficina-page.jsx`; `node scripts/design/ancora.mjs OficinaAuto/ServiceOrders/Board --staging prototipo-ui/cowork`
 > → `[-page.jsx (bundle · bundle_source)] oficina-page.jsx`). O gap anterior
 > ([`kanban-producao-gap.md`](kanban-producao-gap.md), 2026-06-30) comparava o mesmo mockup com
 > `Repair/ProducaoOficina` — par revogado como MIS-ANCHOR no charter do Repair em 2026-06-30 (`Index.charter.md:14-17`).
 >
-> - **Mockup:** `prototipo-ui/cowork/oficina-page.jsx` (1296 ln; cabeçalho `:1-9`: "Oficina Auto (vertical) embedada no shell unificado … Sprint paridade CRUD (2026-05-26 m0193): Nova OS + drawer, itens inline, DVI inline, StageGate").
+> - **Mockup:** `prototipo-ui/cowork/Wagner/oficina-page.jsx` (1296 ln; cabeçalho `:1-9`: "Oficina Auto (vertical) embedada no shell unificado … Sprint paridade CRUD (2026-05-26 m0193): Nova OS + drawer, itens inline, DVI inline, StageGate").
 > - **Vivo:** `resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx` (1300 ln) — tela ÚNICA em `/oficina-auto/ordens-servico` e `/board` (charter v6, `status: live`, biz=164 Martinho).
 > - **Método:** cada parte abaixo tem `arquivo:linha` medido em 2026-09-06 nos DOIS lados (`grep -n`); a coluna Ação deriva do charter (Goals / Non-Goals / Anti-hooks) e do código, nunca da descrição do mockup.
 
@@ -39,7 +39,7 @@ gerado_por: "[C] — Fase 1 read-only (aplicar-prototipo), por grep real nos doi
 | Toggles de view | `:1036-1048` toggle Kanban/Lista/Grade/Fila · menu "Visão" (`:1051-1070`: Foco + Densidade) · Fila via `window.OficinaFila.FilaView` (`:1094-1095`) · Grade `:1111` (heurística sintoma→serviço) · Lista `:1191`. | `:175-181` `BoardView`/`BOARD_VIEWS` (quadro · lista · grade · fila) · `:759` barra `.ofc-view-toolbar` · `:836-874` menu Visão (Foco `:322-331` + Densidade `:326-336`, persistidos) · `:900-909` render por view · `:905` `<BoardFila>` · Grade "sempre por etapa" (`:880`). | Nada — paridade (tela unificada [W] 2026-06-11; charter §Goals "Toggle de 4 views — TODAS in-page"). A Grade **não** adota a heurística sintoma→serviço — Non-Goal do charter (`no-mock-in-prod`): a marca espelha só a etapa FSM real. |
 | Colunas + cards de OS | `:63` `STAGES` (5 etapas fixas) · `:194-340` `CardRecepcao`/`CardDiagnostico`/`CardPecas`/`CardExecucao`/`CardPronto` · `:176` `StageGateMini` (gate por etapa, localStorage) · ETA/Encomendado/Pago nos cards. | Colunas data-driven do payload `columns` (`:133`, `:524`); `:909-931` `KanbanDndProvider` + `:946` `DragConfirmDialog` (drag → confirmação → FSM); card via `ServiceOrderKanbanCard` (`:97`) com `MercosulPlate` (`:89`), contador DVI x/y, barra de progresso, linha "últ." (cabeçalho `:19,56`); botão de ação por etapa (charter §Goals "duas portas"). ETA-diag / "Encomendado" / "Pago": omitidos. | Nada — paridade nas partes com lastro (Onda 1.5) + Non-Goal do charter para as sem coluna real ("NÃO inventa campo sem lastro … reentram quando houver schema"). Avanço nunca por `UPDATE current_stage_id` (Anti-hook). |
 | Drawer (detalhe da OS) | `:394-730` `Drawer` — venda vinculada, veículo, DVI editável com semáforo e valor, Fotos & Laudo, Peças & MO editável, StageGate, timeline, "Imprimir OS" (`:705`). | `:938` `<ServiceOrderRichSheet>` (drawer rico) · `:1239` `<ServiceOrderRichBody>` inline na Fila (mesmo corpo, 2 chromes — charter §Goals Onda 2 v5); corpo = DVI semáforo / Fotos & Laudo / Peças & MO / Checklist de etapa / Pipeline FSM / Timeline. | Nada — paridade (Onda 2). ⚠️ valor: edição de peças/MO/DVI toca valor e já vive atrás do FSM + Regra Mestre no vivo; nada a adotar do mock (que edita estado React local). |
-| Impressão | `:970` `window.OficinaPrint.printFila` · `:705` `printOS` — helper `oficina-print.js` referenciado; em 2026-06-30 estava **ausente** no bundle lido (o `_pendente_` do gap antigo, parte 8), hoje está no espelho (`prototipo-ui/cowork/oficina-print.js`, versionado). | `:88` `import { printOficinaFila } from '@/Lib/printOficinaFila'` · `:638-665` folha A4 da fila com os filtros aplicados · OS individual: `resources/js/Pages/OficinaAuto/ProducaoOficina/_components/ServiceOrderRichSheet.tsx:589-592` "Imprimir OS · A4". | Nada — fechado no código: o vivo tem helper próprio (`printOficinaFila.ts`) e o `_pendente_` da fonte do `OficinaPrint` também caducou (o arquivo desceu pro espelho); fila e OS individual existem. |
+| Impressão | `:970` `window.OficinaPrint.printFila` · `:705` `printOS` — helper `oficina-print.js` referenciado; em 2026-06-30 estava **ausente** no bundle lido (o `_pendente_` do gap antigo, parte 8), hoje está no espelho (`prototipo-ui/cowork/Wagner/oficina-print.js`, versionado). | `:88` `import { printOficinaFila } from '@/Lib/printOficinaFila'` · `:638-665` folha A4 da fila com os filtros aplicados · OS individual: `resources/js/Pages/OficinaAuto/ProducaoOficina/_components/ServiceOrderRichSheet.tsx:589-592` "Imprimir OS · A4". | Nada — fechado no código: o vivo tem helper próprio (`printOficinaFila.ts`) e o `_pendente_` da fonte do `OficinaPrint` também caducou (o arquivo desceu pro espelho); fila e OS individual existem. |
 
 ## Veredito: **PARIDADE — vivo à frente em arquitetura**
 

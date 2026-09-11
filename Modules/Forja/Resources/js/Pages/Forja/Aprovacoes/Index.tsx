@@ -11,7 +11,7 @@
 // ── 2026-09-02 · PARIDADE §11 Onda 3 — esta tela É a view `hoje` do protótipo ──
 // Decisão [W] (ADR 0388, "réplica primeiro"): onde existe âncora, a aparência a
 // entregar é a do protótipo, e regra de conformidade do DS vira item de lista, não
-// veto. A fonte é `prototipo-ui/cowork/forja-aprova.jsx` — NÃO o `forja-page.jsx`
+// veto. A fonte é `prototipo-ui/cowork/Wagner/forja-aprova.jsx` — NÃO o `forja-page.jsx`
 // que o charter apontava (ele só monta a view; o markup mora no `forja-aprova`).
 // Provado SYNC contra o Cowork vivo em 2026-09-02T11:17Z, sha cc4cde3692da.
 //

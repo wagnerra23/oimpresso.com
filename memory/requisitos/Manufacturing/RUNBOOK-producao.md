@@ -19,7 +19,7 @@ owner: F
 > **emenda**, não tela nova: as 8 colunas do §4.5 do handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1"
 > (hoje são 5), o sufixo `fix`, o rodapé e o "Só finalizadas" como checkbox.
 >
-> Fonte visual: `prototipo-ui/cowork/manufacturing-producao.jsx::MfgProducaoView`.
+> Fonte visual: `prototipo-ui/cowork/Wagner/manufacturing-producao.jsx::MfgProducaoView`.
 
 ## 1. Custo "congelado" — o que ele é HOJE, com o dado que existe
 
@@ -57,7 +57,7 @@ zero** (quantidade 0 ⇒ 0.0, nunca `INF`/`NaN`). Nenhuma outra conta entra.
 | Controller | `Modules/Manufacturing/Http/Controllers/ProductionController@indexV2` |
 | Service (payload) | `Modules/Manufacturing/Services/ProductionService::listProductions` |
 | Badge de situação | `resources/js/Components/shared/StatusBadge.tsx` (domínio `producao`) |
-| Fonte de design | `prototipo-ui/cowork/manufacturing-producao.jsx::MfgProducaoView` |
+| Fonte de design | `prototipo-ui/cowork/Wagner/manufacturing-producao.jsx::MfgProducaoView` |
 | Teste | `Modules/Manufacturing/Tests/Feature/Wave32ProducaoColunasTest.php` |
 
 ## 4. Quando esta tela quebra (sintomas)

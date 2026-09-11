@@ -87,7 +87,7 @@ const GATES = [
   // SellsCockpitAggregator 0 · JANA_DRILL_FONTES 0 · Analise*Service 6).
   // É exatamente o caso que a DR-2 da ADR 0336 quer contar — violação que MERGEOU porque
   // o advisory não segura. Sem esta linha, a mordida acontece e o log não registra.
-  { name: 'ancora-selftest', cmd: ['prototipo-ui/ancora.mjs', '--selftest'] },
+  { name: 'ancora-selftest', cmd: ['scripts/design/ancora.mjs', '--selftest'] },
 ];
 
 // ── util ────────────────────────────────────────────────────────────────────

@@ -1,4 +1,4 @@
-// Saúde — view `saude` do protótipo (`prototipo-ui/cowork/forja-page.jsx`, SaudeView).
+// Saúde — view `saude` do protótipo (`prototipo-ui/cowork/Wagner/forja-page.jsx`, SaudeView).
 //
 // ADR 0388 "réplica primeiro": o markup e as classes são os do protótipo (`fj-saude`,
 // `fj-metric`, `fj-spark`, `fj-wip`, `fj-flux-*`, `fj-age`, `fj-gate-health`) — o CSS já

@@ -880,7 +880,7 @@ O outro dos 2 (`charter-promote-signal`) **já tem decisão registrada** em 2026
 
 Medido 2026-07-27: o check **`handoff integrity` está `failure` no `main` desde 2026-07-22** — 5 runs consecutivos (`43bf8e59`, `71b6c7f1`, `e2572aae`, `600fbc6d`, `67eba4ec`). É advisory, então não bloqueia — **e por isso ninguém agiu**.
 
-Dívida: 3 `PROMPT_PARA_CODE_*.md` existem no dir e não são citados acima da linha d'água do `COWORK_NOTES.md` (= tarefa invisível, [`PROCESSO_MEMORIA_CC.md §16`](../../../prototipo-ui/PROCESSO_MEMORIA_CC.md) regra 1 — *"Criou → cita na fila no mesmo passo"*):
+Dívida: 3 `PROMPT_PARA_CODE_*.md` existem no dir e não são citados acima da linha d'água do `COWORK_NOTES.md` (= tarefa invisível, [`PROCESSO_MEMORIA_CC.md §16`](../../../memory/reference/prototipo-ui/PROCESSO_MEMORIA_CC.md) regra 1 — *"Criou → cita na fila no mesmo passo"*):
 
 - `PROMPT_PARA_CODE_DS-DOMINIO-RETIRAR-DSV6.md`
 - `PROMPT_PARA_CODE_DS-ESPELHAR-DOMINIO.md`
@@ -892,7 +892,7 @@ Duas saídas que o próprio gate oferece: **(a)** citar na fila ativa do `COWORK
 
 Dono do ato = quem opera o loop Cowork. Escalado a [W] porque **17 dias de vermelho sem dono é o sintoma**, não a causa.
 
-**Levantado em 2026-07-27 — evidência PARCIAL, não fecha a decisão:** dos 3, **2 já pousaram no essencial** — `cockpit_domains.css` existe (`scripts/design-sync/mirror-snapshot/`) e os tokens de domínio estão no SSOT (`resources/css/tokens/semantic.tokens.json`, ex. `kind-*-soft`). **Mas o objetivo final não se cumpriu:** `prototipo-ui/cowork/ds-v6/tokens.css` **ainda está no git**, e deletá-lo era justamente o ponto dos dois prompts. Por isso não foi arquivado como "pousado" — seria afirmar conclusão sem prova completa. O 3º (`ESTRUTURA-COWORK-ATUALIZADA`, toca `CLAUDE.md`) não foi verificado. Complicador: a fila do `COWORK_NOTES.md` está **🧊 congelada pra novos itens** (Onda B, [W] 2026-06-16), então "citar na fila ativa" contraria o congelamento — a saída provavelmente é GitHub Issue ou `_arquivo/`, e essa escolha é do dono do loop Cowork.
+**Levantado em 2026-07-27 — evidência PARCIAL, não fecha a decisão:** dos 3, **2 já pousaram no essencial** — `cockpit_domains.css` existe (`prototipo-ui/design-system/`) e os tokens de domínio estão no SSOT (`resources/css/tokens/semantic.tokens.json`, ex. `kind-*-soft`). **Mas o objetivo final não se cumpriu:** `prototipo-ui/cowork/Wagner/legado/ds-v6/tokens.css` **ainda está no git**, e deletá-lo era justamente o ponto dos dois prompts. Por isso não foi arquivado como "pousado" — seria afirmar conclusão sem prova completa. O 3º (`ESTRUTURA-COWORK-ATUALIZADA`, toca `CLAUDE.md`) não foi verificado. Complicador: a fila do `COWORK_NOTES.md` está **🧊 congelada pra novos itens** (Onda B, [W] 2026-06-16), então "citar na fila ativa" contraria o congelamento — a saída provavelmente é GitHub Issue ou `_arquivo/`, e essa escolha é do dono do loop Cowork.
 
 **Aceite:** `npm run handoff:report` volta a `órfãos 0/0` (ou o baseline reflete a dívida decidida), e o check fica verde no `main`.
 

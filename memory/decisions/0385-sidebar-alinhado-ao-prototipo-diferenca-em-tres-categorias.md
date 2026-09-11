@@ -50,7 +50,7 @@ desfazimento vai parecer conserto, porque é exatamente assim que a deriva se ap
 ## O fato medido
 
 Sonda idêntica injetada nos dois lados, mesmo tema (**dark**), design servido do espelho fresco
-`prototipo-ui/cowork/` — espelho de leitura, na forma prevista pela
+`prototipo-ui/cowork/Wagner/` — espelho de leitura, na forma prevista pela
 [ADR 0374](0374-emenda-0315-espelho-cowork-e-rota-prevista.md) —, reimportado do Cowork em
 27–28/ago. Rodada de frescor de 2026-08-27: **251 sync · 0 stale · 3 unchecked**; o único arquivo
 só-no-vivo é um `.thumbnail`. **19 divergências** enumeradas entre design e produção:
@@ -122,7 +122,7 @@ Tokens do design (todos em hue 295):
 > ### A CAUSA, achada depois: uma ADR aplicada fora do escopo dela
 >
 > A divergencia entre as duas fontes **nao e acidente** — esta escrita no proprio arquivo.
-> `prototipo-ui/cowork/styles.css:3`, comentario literal:
+> `prototipo-ui/cowork/Wagner/styles.css:3`, comentario literal:
 >
 > ```
 > /* Sidebar dark — espelho AppShell · tingido p/ a marca
@@ -205,7 +205,7 @@ lado.** Se o vizinho e a fonte discordam, isso é um achado a classificar por D-
 ### D-4 — A defesa vira derivada e enforçada, e nasce advisory
 
 A medição do shell passa a ser **produzida por máquina**, como extensão do dono que já mede
-design × produção (`prototipo-ui/design-diff.mjs`, mesma sonda injetada nos dois lados), em vez de
+design × produção (`scripts/design/design-diff.mjs`, mesma sonda injetada nos dois lados), em vez de
 depender de alguém lembrar de olhar — é a doutrina da
 [ADR 0256](0256-knowledge-survival-meia-vida-catraca-sentinela.md): *derivado+enforçado sobrevive;
 escrito+lembrado apodrece*. **Estender o dono, não abrir um segundo medidor.**

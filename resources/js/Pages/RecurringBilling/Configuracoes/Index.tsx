@@ -1,7 +1,7 @@
 // Configurações Cobrança Recorrente — Page Inertia v9,75 Onda 8 (read-only stub).
 // Onda 23 v9,75 — refinos Cowork: Tour onboarding (13) + CheatSheet `?` (18) + atalhos teclado.
 // Charter: ./Index.charter.md
-// Visual canon: prototipo-ui/prototipos/recurring/recurring-page.jsx (tab Configurações).
+// Visual canon: prototipo-ui/cowork/Wagner/legado/recurring/recurring-page.jsx (tab Configurações).
 // Refs: ADR 0104 MWART · 0107 visual gate · 0093 multi-tenant Tier 0 · skill inertia-defer-default
 
 import AppShellV2 from '@/Layouts/AppShellV2';

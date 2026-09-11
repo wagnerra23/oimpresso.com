@@ -7,7 +7,7 @@ status: pendente
 ---
 # Caixa Unificada — dark mode com paleta bespoke `--omd-*`
 
-- **detecção:** ao aplicar o handoff "n" em `prototipo-ui/prototipos/caixa-unificada/`, o `ds-guard`
+- **detecção:** ao aplicar o handoff "n" em `prototipo-ui/cowork/Wagner/legado/caixa-unificada/`, o `ds-guard`
   barrou `inbox-page.css` por **paleta inventada `--omd-*` (13 tokens)**. A baseline em `origin/main`
   tinha **0** ocorrências — regressão **nova** trazida pelo handoff, não dívida pré-existente.
 - **motivo:** viola **L-02** (cor só por `.<tela>-scope{--accent}`, nunca paleta `--x-*` paralela ao DS)

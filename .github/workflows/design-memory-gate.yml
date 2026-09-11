@@ -78,12 +78,12 @@ on:
       - 'scripts/governance/dtcg-equivalence.test.mjs'
       - 'scripts/governance/design-code-map-check.mjs'
       - 'scripts/governance/design-code-map-check.test.mjs'
-      - 'prototipo-ui/gerar-map.mjs'
-      - 'prototipo-ui/consumir-map.mjs'
+      - 'scripts/design/gerar-map.mjs'
+      - 'scripts/design/consumir-map.mjs'
       - 'memory/requisitos/**/*.map.json'
       - 'memory/requisitos/**/*.proto-baseline.json'
       - 'memory/requisitos/**/*-gap.md'
-      - 'prototipo-ui/render-proto-baseline.mjs'
+      - 'scripts/design/render-proto-baseline.mjs'
       - '.github/workflows/design-memory-gate.yml'
       - 'scripts/governance/design-gate-bites.mjs'
       - 'memory/governance/design-gate-bites.jsonl'
@@ -181,7 +181,7 @@ jobs:
       # (center×left + button×div + overflow + roxo escuro×roxinho + texto dark invisível).
       # Se o comparador parar de morder, quebra VERMELHO (é a defesa do strike 2 · LICOES LC-06).
       - name: design-diff selftest (mede o que o olho perdeu · LC-06)
-        run: node prototipo-ui/design-diff.mjs --selftest
+        run: node scripts/design/design-diff.mjs --selftest
 
       # alvo selftest (PR-A1): o ALVO de uma seção é MEDIDA executável, não número ditado no chat.
       # AQUI roda só a parte PURA (serialização estável + o contrato público `design-diff --probe`),
@@ -206,7 +206,7 @@ jobs:
       # (os 2 comparadores da Fase 1). Puro node, sem browser/deps — o --snippet/--compare é que
       # dependem de página renderizada; o --selftest é hermético.
       - name: style-fingerprint selftest (vetor de estilo · regras 4/5/7 · Fase 1)
-        run: node prototipo-ui/style-fingerprint.mjs --selftest
+        run: node scripts/design/style-fingerprint.mjs --selftest
 
       # fingerprint-harness selftest: a ORQUESTRAÇÃO da matriz viewport×tema×estado (Onda 3a/3a.2).
       # Hermético (sem browser — a cola Playwright é a captura, não a orquestração): prova pareamento
@@ -214,7 +214,7 @@ jobs:
       # ESTADOS hover/focus/active pro comparador. Se a orquestração parar de morder, quebra VERMELHO
       # junto dos 2 comparadores da Fase 1. A captura live proto×prod segue LOCAL/dispatch (ADR 0290).
       - name: fingerprint-harness selftest (orquestração matriz + estados + mobile · Onda 3a)
-        run: node prototipo-ui/fingerprint-harness.mjs --selftest
+        run: node scripts/design/fingerprint-harness.mjs --selftest
 
       # protocolo.config selftest: a FONTE ÚNICA executável do protocolo (IDs dos 2 projetos
       # Cowork, staging fixo, mapa fase→comando). Trava drift — 2 IDs válidos+distintos (a confusão
@@ -222,7 +222,7 @@ jobs:
       # existe. Se alguém renomear/mover um script do protocolo ou colidir os IDs, quebra VERMELHO.
       # "O protocolo sabe" deixa de depender do agente ter lido o INDEX §0.2 (Wagner 2026-07-09).
       - name: protocolo.config selftest (fonte única · IDs + paths + mapa de fases)
-        run: node prototipo-ui/protocolo.config.mjs --selftest
+        run: node scripts/design/protocolo.config.mjs --selftest
 
       # DS-GUARD nos arquivos TOCADOS (css/html de design-memory). O ds-guard so
       # checa .css/.html; .tsx e ignorado por ele (log '. ... ignorado'), entao
@@ -231,7 +231,7 @@ jobs:
       #
       # POR QUE O GLOB PARA AQUI E NAO COBRE `resources/css/**` (a pergunta ja voltou 1x;
       # RESPONDIDA POR MEDICAO em 2026-09-04, nao por opiniao — se ela voltar, leia isto antes):
-      #   - O §8 do prototipo-ui/PROCESSO_MEMORIA_CC.md declara a PROPRIA entrada como os
+      #   - O §8 do memory/reference/prototipo-ui/PROCESSO_MEMORIA_CC.md declara a PROPRIA entrada como os
       #     `*-page.css` TOCADOS, e o walkProto() do `--all` varre so `prototipo-ui/` com esse
       #     sufixo. O §8 e a lei da build de PROTOTIPO (L-02/L-21/L-23 — erros de quem CRIA
       #     design), nao do bundle PORTADO pro app.
@@ -268,24 +268,24 @@ jobs:
           echo "Arquivos tocados (css/html) que o ds-guard vai checar:"
           echo "$CHANGED"
           echo "---"
-          node prototipo-ui/ds-guard.mjs $CHANGED
+          node scripts/design/ds-guard.mjs $CHANGED
 
       # DS-GUARD --all: relatorio de divida da arvore (NAO derruba o job por design · §8).
       # Sempre roda, da visibilidade da divida acumulada (paleta inventada / tela na raiz).
       - name: DS-GUARD relatorio de divida (--all · §8)
         if: always()
         continue-on-error: true
-        run: node prototipo-ui/ds-guard.mjs --all
+        run: node scripts/design/ds-guard.mjs --all
 
       # integrity-check: a propria memoria nao corrompeu (espinha · charter tem tela viva .tsx ·
       # LICOES contiguas · benchmark). Sai 1 se algum IT duro falhar; advisory aqui.
       - name: Integrity check (espinha da memoria · §15)
         if: always()
         continue-on-error: true
-        run: node prototipo-ui/integrity-check.mjs
+        run: node scripts/design/integrity-check.mjs
 
       # detectar-telas --selftest: trava de regressao do gate de import (Fase 0/0.5 do
-      # protocolo aplicar-prototipo). O fixture hermetico (prototipo-ui/fixtures/detectar-telas/)
+      # protocolo aplicar-prototipo). O fixture hermetico (tests/Design/fixtures/detectar-telas/)
       # prova: mockup sem charter resolvido por ALIAS (P0 lock) · orfao detectado · diff
       # diffavel correto. O modo --staging (bundle->repo) so roda local (bundle vive fora do
       # repo). Advisory de nascenca (ADR 0271/0275). Já integrado ao gate-selftest.mjs (id
@@ -298,7 +298,7 @@ jobs:
         # independente do ssot-guard; o continue-on-error abaixo mantem ESTE step nao-fatal.
         if: always()
         continue-on-error: true
-        run: node prototipo-ui/detectar-telas.mjs --selftest
+        run: node scripts/design/detectar-telas.mjs --selftest
       # detectar-telas.test.mjs: a sentinela ALIAS↔charter (fonte única) JÁ existia e provava
       # que morde (anti-drift A/B + meta-tests c1/c2), mas NUNCA rodava em CI (defesa construída
       # e DESARMADA). Armada aqui. Check C endurece B: charter que COBRE um mockup do ALIAS
@@ -306,14 +306,14 @@ jobs:
       - name: detectar-telas anti-drift ALIAS↔charter (fonte única · A+B+C)
         if: always()
         continue-on-error: true
-        run: node prototipo-ui/detectar-telas.test.mjs
+        run: node scripts/design/detectar-telas.test.mjs
       # ancora.mjs (#7 2026-06-30): a âncora de uma tela é computada do charter, nunca um png
       # de auditoria no olho. importar-bundle: só troca o staging quando extraídos==entries
       # (delete-before-verify fechado). Ambos selftest puro (rodam em Linux/CI).
       - name: ancora selftest (âncora = charter, não print de auditoria)
         if: always()
         continue-on-error: true
-        run: node prototipo-ui/ancora.mjs --selftest
+        run: node scripts/design/ancora.mjs --selftest
       # Conteúdo da âncora (Wagner 2026-07-06): o ancora.mjs prova PROVENIÊNCIA (declarada no
       # charter), não CORREÇÃO (o arquivo bate com a tela). 2/9 âncoras estavam podres
       # (shell/fantasma) e nenhum gate viu — Wagner pegou no instinto. Este abre a âncora.
@@ -325,16 +325,6 @@ jobs:
         if: always()
         continue-on-error: true
         run: node scripts/governance/anchor-content-check.mjs --check
-      # STAGING — o universo que o job REQUIRED não varre, e não pode varrer: medido em
-      # 2026-08-24, o vivo tem 0 âncoras podres e `prototipo-ui/design-docs/` tem 15. Ampliar
-      # o required levaria de 0 → 15 num job que roda em TODO PR, travando o merge do repo por
-      # dívida herdada (§5 2026-08-24, duas vezes: predicado absoluto onde cabia delta, e gate
-      # reprovando fora do raio do PR). Aqui é advisory de propósito — mede o passivo e avisa
-      # se a normalização do `aplicar-payload.mjs` (conserto de raiz, forward-only) regredir.
-      - name: anchor-content-check --check-staging (âncora do Cowork em design-docs · advisory)
-        if: always()
-        continue-on-error: true
-        run: node scripts/governance/anchor-content-check.mjs --check-staging
       # Frescor do espelho (INDEX §0.2 "diffar antes de concluir" · session 2026-07-06-arte):
       # o CI headless NÃO lê o Cowork vivo (auth interativa, sem webhook/service-token na
       # plataforma) — então AQUI não se mede frescor. Mede-se (a) que o comparador classifica
@@ -425,43 +415,9 @@ jobs:
             echo "_O CI não mede live-only (exige auth do DesignSync — ADR 0315); ele audita o registro no ledger._"
           } >> "$GITHUB_STEP_SUMMARY"
           exit $rc
-      # T1 do programa de testes persistentes design↔code (session 2026-09-01): frescor dos
-      # .md POUSADOS em prototipo-ui/design-docs/ (github.md — ADR 0387 —, PEDIDOs da
-      # cowork-inbox). O --compare cobre o espelho cowork/; este eixo cobre a cópia pousada
-      # dos .md, que não tinha medidor nenhum — a classe do incidente "HANDOFF 15d stale".
-      # Mesma divisão do vizinho de cima: o agente logado mede (--docs-compare --ledger) e o
-      # CI audita o REGISTRO. Predicado é DELTA (stale que ENTROU desde a medição anterior);
-      # passivo herdado é contagem, nunca vermelho (§5 2026-08-24). Bites no
-      # cowork-mirror-freshness.test.mjs (6 asserts de CLI, incl. "nunca verde mudo").
-      # Advisory, como os vizinhos; dono de `required` é governance/required-checks-baseline.json.
-      - name: cowork docs SLA (os .md pousados foram comparados com o vivo? · ledger · advisory)
-        if: always()
-        continue-on-error: true
-        run: |
-          set +e
-          OUT="${RUNNER_TEMP:-.}/cowork-docs-sla.txt"
-          node scripts/governance/cowork-mirror-freshness.mjs --sla-docs > "$OUT" 2>&1
-          rc=$?
-          cat "$OUT"
-          {
-            echo "### Espelho Cowork — frescor dos .md pousados (advisory)"
-            echo ""
-            if [ "$rc" -eq 0 ]; then
-              echo "✅ medição de docs registrada e sem stale novo."
-            else
-              echo "⚠️ **docs sem medição recente, ou stale novo** — \`rc=$rc\`"
-            fi
-            echo ""
-            echo '```'
-            sed -n '1,20p' "$OUT"
-            echo '```'
-            echo ""
-            echo "_O CI não mede docs (exige auth do DesignSync — ADR 0315); ele audita o registro no ledger._"
-          } >> "$GITHUB_STEP_SUMMARY"
-          exit $rc
       # Poda do espelho (PR #5763, 96 arquivos): ao contrário do --compare acima, ESTE é 100%
       # local — não precisa da auth interativa do DesignSync, então roda headless no CI. Só
-      # olha o que o PR APAGA sob prototipo-ui/cowork/ e pergunta se sobrou alguém apontando
+      # olha o que o PR APAGA sob prototipo-ui/cowork/Wagner/ e pergunta se sobrou alguém apontando
       # pra lá. PR que não deleta nada do espelho passa sem ter o que medir (diff-aware).
       # FP medido nos 4 commits que já podaram o espelho: 0. Mordida provada em gate-selftest
       # (fixture cowork-refs boa/ruim) — sem o par, "nunca disparou" seria indistinguível de cego.
@@ -470,7 +426,7 @@ jobs:
         continue-on-error: true
         run: node scripts/governance/cowork-mirror-freshness.mjs --check-refs
       # Adição ao espelho (T2, session 2026-09-01): o INVERSO do cowork-refs — aquele vigia o
-      # que o PR APAGA, este o que o PR ADICIONA sob prototipo-ui/cowork/. É a metade C2 do
+      # que o PR APAGA, este o que o PR ADICIONA sob prototipo-ui/cowork/Wagner/. É a metade C2 do
       # `cowork-paridade.mjs` do Cowork (o script existe no projeto vivo e nunca desceu —
       # LC-19: a regra entra no dono, não como script paralelo; avaliação check-a-check na
       # session 2026-09-01). DELTA e não absoluto: FP do absoluto remedido em 2026-09-01 =
@@ -506,7 +462,7 @@ jobs:
       - name: importar-bundle selftest (import atômico · verifica antes de trocar)
         if: always()
         continue-on-error: true
-        run: node prototipo-ui/importar-bundle.mjs --selftest
+        run: node scripts/design/importar-bundle.mjs --selftest
       # adversário permanente: ATAQUE 1 (hook auto-contido, não falha-aberto) é GATE DURO —
       # se o hook voltar a importar ancora.mjs (regride pra fail-open), este step FALHA. Gaps
       # conhecidos (rename/tool-bypass) ficam documentados com fix; mudar de comportamento avisa.
@@ -518,20 +474,20 @@ jobs:
       - name: gerar-contrato selftest (W1 região-a-região)
         if: always()
         continue-on-error: true
-        run: node prototipo-ui/gerar-contrato.mjs --selftest
+        run: node scripts/design/gerar-contrato.mjs --selftest
       # W2: recorte do screenshot pela âncora da região (aprova a PARTE, não a tela). O PLANO
       # de recorte é puro (testável no CI); o crop (PowerShell) e a coleta de bbox (browser) só
       # rodam local. Selftest = região sem bbox → AUSENTE explícito, nunca tela-inteira em silêncio.
       - name: recortar-regiao selftest (W2 região-a-região)
         if: always()
         continue-on-error: true
-        run: node prototipo-ui/recortar-regiao.mjs --selftest
+        run: node scripts/design/recortar-regiao.mjs --selftest
       # W3: roteia cada região ao crítico especializado (design-critique/ux-copy/a11y/screen-grade)
       # ESCOPADO ao recorte do W2, não à tela. Selftest = roteamento determinístico (a crítica é o agente).
       - name: analise-regiao selftest (W3 região-a-região)
         if: always()
         continue-on-error: true
-        run: node prototipo-ui/analise-regiao.mjs --selftest
+        run: node scripts/design/analise-regiao.mjs --selftest
       # Fase 1 do RUNBOOK: <tela>.map.json — ponte design↔código persistente (Code-Connect-like).
       # gerar-map deriva o esqueleto do gap.md (nunca fabrica linha); design-code-map-check valida
       # âncoras no disco + detecta STALE via sha (protótipo re-exportou) + calcula a % de telas
@@ -539,14 +495,14 @@ jobs:
       - name: gerar-map selftest (Fase 1 — esqueleto do map.json)
         if: always()
         continue-on-error: true
-        run: node prototipo-ui/gerar-map.mjs --selftest
+        run: node scripts/design/gerar-map.mjs --selftest
       # Fase 4: consumir-map é o CONSUMO do map.json (PR-C 2026-07-09) — portão de frescor por
       # CONTEÚDO (ADR 0324, sha256:contentHash — pega re-export sem commit, imune a commit que
       # toca path sem mudar conteúdo) + plano de leitura (a sessão abre SÓ os ranges).
       - name: consumir-map selftest (Fase 4 — portão de frescor morde exit 3 / solta plano)
         if: always()
         continue-on-error: true
-        run: node prototipo-ui/consumir-map.mjs --selftest
+        run: node scripts/design/consumir-map.mjs --selftest
       - name: design-code-map-check selftest (morde âncora quebrada + sha stale · libera íntegro/TODO)
         if: always()
         run: node scripts/governance/design-code-map-check.test.mjs
@@ -566,11 +522,11 @@ jobs:
       # check advisory de nascença (ADR 0271/0275/0314 — nunca required sem reabrir a 0314).
       - name: render-proto-baseline selftest (morde stale/âncora/vazio · libera íntegro · fronteira 0290)
         if: always()
-        run: node prototipo-ui/render-proto-baseline.mjs --selftest
+        run: node scripts/design/render-proto-baseline.mjs --selftest
       - name: proto-baseline check (advisory · hermético — âncora + freshness dos baselines commitados)
         if: always()
         continue-on-error: true
-        run: node prototipo-ui/render-proto-baseline.mjs --check
+        run: node scripts/design/render-proto-baseline.mjs --check
       # O COMPARE possível em CI (fronteira ADR 0290 — o compare REAL proto×prod exige render
       # dos DOIS lados = LOCAL por lei): mapear os arquivos da PR pros baselines commitados do
       # mesmo módulo e apontar o comando local exato (--nudge, exit 0 sempre). Zero render,
@@ -584,7 +540,7 @@ jobs:
           BASE="origin/${{ github.base_ref }}"
           if [ -z "${{ github.base_ref }}" ]; then BASE="origin/main"; fi
           git diff --name-only "$BASE"...HEAD -- 'resources/js/Pages/**' \
-            | node prototipo-ui/render-proto-baseline.mjs --nudge | tee -a "$GITHUB_STEP_SUMMARY"
+            | node scripts/design/render-proto-baseline.mjs --nudge | tee -a "$GITHUB_STEP_SUMMARY"
 
   # ── ex-dtcg-equivalence.yml (Onda DTCG ATIVADA) ──────────────────────────────
   prove:
@@ -601,9 +557,6 @@ jobs:
       # modo --schema sai 2 (NAO MEDIDO) em vez de verde calado, e o self-test cobra isso.
       - name: Install deps do validador de schema (ajv)
         run: npm install --no-save ajv@^8.17.1 ajv-formats@^3.0.1
-      - name: Placar de playbook — dependências e recibos de execução
-        run: node --test prototipo-ui/design-docs/cowork-inbox/_scripts/placar-indice.test.mjs
-
       - name: Self-test (fixture boa passa + fixture ruim falha)
         run: node scripts/governance/dtcg-equivalence.test.mjs
 

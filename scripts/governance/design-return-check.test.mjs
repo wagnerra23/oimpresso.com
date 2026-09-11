@@ -69,7 +69,7 @@ check('normaliza CRLF, barras Windows, ./ e duplicatas',
     === '["resources/js/Pages/A.tsx"]');
 check('Page .tsx torna o retorno aplicável', evaluateDesignReturn(complete).applicable);
 check('arquivo do espelho Cowork torna o retorno aplicável',
-  evaluateDesignReturn(['prototipo-ui/cowork/app.jsx', ...RETURN_CHANNELS]).applicable);
+  evaluateDesignReturn(['prototipo-ui/cowork/Wagner/app.jsx', ...RETURN_CHANNELS]).applicable);
 check('componentes/layouts compartilhados também exigem retorno',
   evaluateDesignReturn(['resources/js/Components/Button.tsx']).applicable
     && evaluateDesignReturn(['resources/js/Layouts/AppLayout.tsx']).applicable);
@@ -95,22 +95,22 @@ check('os três canais fecham o protocolo', evaluateDesignReturn(complete).compl
 
 const onlySyncLog = evaluateDesignReturn([
   'resources/js/Pages/Financeiro/Index.tsx',
-  'prototipo-ui/SYNC_LOG.md',
+  'memory/reference/prototipo-ui/SYNC_LOG.md',
 ]);
 check('só SYNC_LOG não mascara retorno incompleto',
   !onlySyncLog.complete && onlySyncLog.missing.length === 2,
   JSON.stringify(onlySyncLog));
 check('nomes semelhantes não satisfazem canal exato',
   evaluateDesignReturn([
-    'prototipo-ui/cowork/app.jsx',
-    'prototipo-ui/SYNC_LOG.md.bak',
+    'prototipo-ui/cowork/Wagner/app.jsx',
+    'memory/reference/prototipo-ui/SYNC_LOG.md.bak',
     'prototipo-ui/HANDOFF-old.md',
-    'prototipo-ui/DS_ADOCAO_INDICE.md.tmp',
+    'memory/reference/prototipo-ui/DS_ADOCAO_INDICE.md.tmp',
   ]).missing.length === 3);
 
 const docsOk = {
   index: '<!-- ds:worklist:start -->\n> Gerado por `npm run ds:report -- --write`\n**Próximo da fila:** Financeiro\n<!-- ds:worklist:end -->',
-  syncDiff: '+++ b/prototipo-ui/SYNC_LOG.md\n+2026-08-23 12:00 [CL] F3 Financeiro merged · ds/*: 10→9 · PR #6000\n',
+  syncDiff: '+++ b/memory/reference/prototipo-ui/SYNC_LOG.md\n+2026-08-23 12:00 [CL] F3 Financeiro merged · ds/*: 10→9 · PR #6000\n',
   handoff: 'Agora: Financeiro\nPróximo: Cliente\nTotal restante: 9\n',
 };
 check('conteúdo canônico dos três canais passa', validateReturnDocuments(docsOk).length === 0);
@@ -142,7 +142,7 @@ try {
   const bad = join(tmp, 'bad.txt');
   const summary = join(tmp, 'summary.md');
   writeFileSync(good, complete.join('\n') + '\n');
-  writeFileSync(bad, 'resources/js/Pages/Financeiro/Index.tsx\nprototipo-ui/SYNC_LOG.md\n');
+  writeFileSync(bad, 'resources/js/Pages/Financeiro/Index.tsx\nmemory/reference/prototipo-ui/SYNC_LOG.md\n');
   writeFileSync(summary, '');
 
   const goodRun = run(['--changed-from', good, '--check']);

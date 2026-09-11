@@ -37,10 +37,10 @@ A pergunta deste inventário: **dessas telas, quais realmente têm fonte no shel
 
 ## 2 · Medição reproduzida
 
-O shell canônico é `prototipo-ui/cowork/oimpresso.com.html`. Refs que ele carrega:
+O shell canônico é `prototipo-ui/cowork/Wagner/oimpresso.com.html`. Refs que ele carrega:
 
 ```bash
-grep -oE '(src|href)="[^"]+"' prototipo-ui/cowork/oimpresso.com.html \
+grep -oE '(src|href)="[^"]+"' prototipo-ui/cowork/Wagner/oimpresso.com.html \
   | sed 's/^\(src\|href\)="//; s/"$//' | sed 's/?.*$//' | sort -u
 ```
 
@@ -83,7 +83,7 @@ semelhança, o inventário acertaria o arquivo errado em quase todas.
 
 ## 4 · Cinco lugares onde uma tela declara sua fonte — e a máquina lê dois
 
-Este é o achado estrutural. A resolução de âncora (`prototipo-ui/ancora.mjs`) declara no docblock
+Este é o achado estrutural. A resolução de âncora (`scripts/design/ancora.mjs`) declara no docblock
 que a regra dura é `âncora ∈ { related_prototype, -page.jsx do bundle via charter }`. Na prática
 existem **cinco** lugares onde a fonte está escrita:
 
@@ -97,7 +97,7 @@ existem **cinco** lugares onde a fonte está escrita:
 
 ### 4.1 · Defeito 1 — precedência invertida (15 charters)
 
-[`ancora.mjs:486`](../../../prototipo-ui/ancora.mjs) faz:
+[`ancora.mjs:486`](../../../scripts/design/ancora.mjs) faz:
 
 ```js
 const source = fm.related_prototype || doBundle || mockupJsx(fm.component) || null;
@@ -111,7 +111,7 @@ A porta **per-tela** (`resolveAncora`, L266-271) prefere o campo estruturado e r
 por isso que o passo 2 do chip manda usar a porta per-tela, não a listagem geral. Contraste medido:
 
 ```
-$ node prototipo-ui/ancora.mjs Produto/Index --staging prototipo-ui/cowork
+$ node scripts/design/ancora.mjs Produto/Index --staging prototipo-ui/cowork
   âncora ✓: [-page.jsx (bundle · bundle_source)] produtos-page.jsx     ← resolve
 $ (o mesmo charter no --list)  →  isNa: true, via: related_prototype   ← esconde
 ```
@@ -155,7 +155,7 @@ Outros 3 dos 38 apontam caminho inexistente (`cowork/cms/cms-page.jsx`, `cowork/
 
 ### 4.3 · Defeito 3 — heurística por nome dentro da máquina canônica
 
-[`ancora.mjs:276-277`](../../../prototipo-ui/ancora.mjs) tem, para quando não há campo:
+[`ancora.mjs:276-277`](../../../scripts/design/ancora.mjs) tem, para quando não há campo:
 
 ```js
 cand = stFiles.find((f) => /-page\.jsx$/i.test(f) && basename(f).toLowerCase().startsWith(wanted));
@@ -303,7 +303,7 @@ Fonte real no shell **e** sem porte reverso. São as únicas em que promover é 
   > **Estado do §4.2 — corrigido, e por outra mão.** Enquanto este PR corria, o #7079 mergeou e
   > consertou o `blueprint_cowork` dos **4 charters** de um jeito melhor que o originalmente
   > planejado aqui: em vez de **remover** a chave, **apontou o arquivo real**, e par a par —
-  > Index → `prototipo-ui/cowork/estoque-page.jsx`, Create → `prototipo-ui/cowork/estoque-forms.jsx`.
+  > Index → `prototipo-ui/cowork/Wagner/estoque-page.jsx`, Create → `prototipo-ui/cowork/Wagner/estoque-forms.jsx`.
   > Este PR aceitou esse lado no merge e **realinhou os 8 irmãos** que o #7079 não tocou e que
   > carregavam o mesmo ponteiro morto (`RUNBOOK-stock-*.md` em `blueprint_cowork`;
   > `stock-*-visual-comparison.md` em `cowork_source`), com o mesmo par-a-par.
@@ -391,7 +391,7 @@ Sem fonte no shell, por bloco:
 **no shell**"* — e o §7.1 já declara que essa claim *"vale para o shell, não para o Cowork vivo"*.
 Ausência no shell **não é** ausência de fonte de design: a porta viva responde, para as **9**, a
 mesma frase — `declaração legítima — a tela nasce do DS. NÃO entra no anchor-content-check`
-([`ancora.mjs::ehDeclaracaoNa`](../../../prototipo-ui/ancora.mjs), 5 asserts de bite-test com
+([`ancora.mjs::ehDeclaracaoNa`](../../../scripts/design/ancora.mjs), 5 asserts de bite-test com
 controle negativo). É o [§5 2026-08-28 (c)](../../proibicoes.md) aplicado: o `n/a` com razão
 escrita **coexiste** com a âncora de bundle por desenho.
 
@@ -617,7 +617,7 @@ para [W] — não é lacuna a tapar por conta própria.
 ⚠️ **E o `design-coverage` sugere a âncora ERRADA para as duas `Usuario360`.** Ele as lista sob
 *"n/a com fonte candidata JÁ no espelho"* (32 telas, report-only, *"revisar a decisão"*). A regra que
 elege a candidata é [`design-coverage.mjs:60-64`](../../../scripts/qa/design-coverage.mjs): extrai o
-módulo de `Pages/<Mod>/` e testa `existsSync(prototipo-ui/cowork/<mod>-page.jsx)` — **casamento por
+módulo de `Pages/<Mod>/` e testa `existsSync(prototipo-ui/cowork/Wagner/<mod>-page.jsx)` — **casamento por
 nome de pasta**, a mesma heurística que o §4.3 acima mede com **73% de erro**. Aqui ela erra: a
 candidata é `superadmin-page.jsx`, cujo cabeçalho (`:2-8`) traduz seis views do Blade legado
 (`superadmin/index`, `business/index`, `subscription`, `packages`, `communicator`, `settings`) e
@@ -700,7 +700,7 @@ não é default silencioso (§5 2026-08-10), é declaração conferida. O que fa
 
 | tela | recibo de §5.3 | o que a medição de 09-09 (3 pernas) mostrou |
 |---|---|---|
-| `Financeiro/AssinaturaAtualizar` | *"`FIN-004`/`atualizar cobran` → 0"* | **`prototipo-ui/cowork/AssinaturaAtualizar.tsx` EXISTE.** É porte REVERSO do vivo (310 vs 309 linhas; difere só na API do PageHeader). Conclusão "sem fonte" **mantida**; o recibo é que era o instrumento errado. |
+| `Financeiro/AssinaturaAtualizar` | *"`FIN-004`/`atualizar cobran` → 0"* | **`prototipo-ui/cowork/Wagner/AssinaturaAtualizar.tsx` EXISTE.** É porte REVERSO do vivo (310 vs 309 linhas; difere só na API do PageHeader). Conclusão "sem fonte" **mantida**; o recibo é que era o instrumento errado. |
 | `Settings/PaymentGateways/CnabRetorno` | *"o batch Cowork declara 3 telas, e essa não está"* | Verdadeiro, mas incompleto: o termo de domínio `cnab` dá **15 hits em 5 arquivos** do espelho, e há **dois** `SheetRemessaRetorno` (`boletos-page.jsx:509` e `pg-cobranca-page.jsx:863`). Vocabulário visual PARCIAL existe; a tela (dropzone + validação + contadores) não. |
 
 Os outros 3 recibos foram re-medidos com sonda própria e **conferem** — incl. controle positivo
@@ -742,9 +742,9 @@ O que sobrevive da medição original, re-conferido pós-merge:
 
 | destino | veredito |
 |---|---|
-| `prototipo-ui/prototipos/<slug>` **+ entrada em `PROTOTIPOS_GERADOS`** | ✅ **é a rota** — precedente `nfe-tributacao` (#7145), com `SOURCE.md` declarando proveniência, âncora de domínio e status |
-| `prototipo-ui/prototipos/<slug>` **sem** declarar na lista | ❌ R3 morde (bite-test do #7145: bom→0 · não-declarado→1 · volta→0) |
-| `prototipo-ui/cowork/` | ❌ espelho read-only ([ADR 0374](../../decisions/0374-emenda-0315-espelho-cowork-e-rota-prevista.md)) |
+| `prototipo-ui/cowork/Wagner/legado/<slug>` **+ entrada em `PROTOTIPOS_GERADOS`** | ✅ **é a rota** — precedente `nfe-tributacao` (#7145), com `SOURCE.md` declarando proveniência, âncora de domínio e status |
+| `prototipo-ui/cowork/Wagner/legado/<slug>` **sem** declarar na lista | ❌ R3 morde (bite-test do #7145: bom→0 · não-declarado→1 · volta→0) |
+| `prototipo-ui/cowork/Wagner/` | ❌ espelho read-only ([ADR 0374](../../decisions/0374-emenda-0315-espelho-cowork-e-rota-prevista.md)) |
 | `prototipo-ui/design-system/` | ❌ **também espelho** — README: *"Espelho, não fonte"* |
 | `DesignSync.write_files` | ⚠️ publicação externa ([ADR 0315](../../decisions/0315-design-sync-claude-design-vs-cowork-charter.md) + R10) — necessária só para **subir** o desenho depois, não para gerá-lo |
 
@@ -780,7 +780,7 @@ Procurei a US real e **não existe** — declarar uma seria inventar (a ordem de
   **outra superfície**, com dados MOCK. A tela do PaymentGateway é uma página por credencial
   (`/settings/payment-gateways/{id}/cnab-retorno`) com processor REAL. Declarar `US-FIN-018` aqui
   seria uma âncora falsa. _(De quebra: isso explica o `SheetRemessaRetorno` do espelho — ele é o
-  design da US-FIN-018, não desta tela; e há hoje **quatro** artefatos distintos com esse nome — contados 2026-09-09 com `rg -l --hidden` no repo inteiro: `prototipo-ui/cowork/boletos-page.jsx` · `prototipo-ui/cowork/pg-cobranca-page.jsx` (998 ln) · `prototipo-ui/cowork/prototipos/payment-gateway-ui/cobranca-page.jsx` (830 ln — **não** é cópia do anterior: 206 linhas de diff, md5 distinto) · e o vivo `resources/js/Pages/Financeiro/Cobranca/_components/SheetRemessaRetorno.tsx` (US-FIN-018).)_
+  design da US-FIN-018, não desta tela; e há hoje **quatro** artefatos distintos com esse nome — contados 2026-09-09 com `rg -l --hidden` no repo inteiro: `prototipo-ui/cowork/Wagner/boletos-page.jsx` · `prototipo-ui/cowork/Wagner/pg-cobranca-page.jsx` (998 ln) · `prototipo-ui/cowork/Wagner/legado/payment-gateway-ui/cobranca-page.jsx` (830 ln — **não** é cópia do anterior: 206 linhas de diff, md5 distinto) · e o vivo `resources/js/Pages/Financeiro/Cobranca/_components/SheetRemessaRetorno.tsx` (US-FIN-018).)_
 - **`TransactionPayment/{Edit,Show}`** — `payments/v2` e `TransactionPayment` não aparecem em SPEC
   nenhum como US de tela; os hits são o `TransactionPaymentController` do core UPOS e traits de
   auditoria. **Duas telas que mexem em pagamento, sem US.**
@@ -802,7 +802,7 @@ exigem follow-up humano numa tela de dinheiro. Mudar isso é comportamento sobre
 ## 6 · Portas vivas (o estado de hoje, não o deste arquivo)
 
 ```bash
-node prototipo-ui/ancora.mjs <Mod/Tela> --staging prototipo-ui/cowork   # âncora de UMA tela
+node scripts/design/ancora.mjs <Mod/Tela> --staging prototipo-ui/cowork   # âncora de UMA tela
 npm run design:coverage                                                  # cobertura + baldes
 node scripts/governance/cowork-mirror-freshness.mjs --compare --check    # o espelho está fresco?
 ```

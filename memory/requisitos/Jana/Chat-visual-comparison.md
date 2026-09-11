@@ -138,7 +138,7 @@ Demais testes (`first-paint`, `streaming token`, `auto-scroll pause`, `PII sanit
 
 ## Anti-padrões F3 Financeiro evitados explicitamente
 
-Conferindo contra [`prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md):
+Conferindo contra [`memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md):
 
 | Anti-padrão | Aplicabilidade aqui | Como evitado |
 |---|---|---|
@@ -167,14 +167,14 @@ Conferindo contra [`prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../../pr
 - [ADR 0114 — loop Cowork formalizado](../../decisions/0114-prototipo-ui-cowork-loop-formalizado.md)
 - [ADR 0110 — Cockpit Pattern V2](../../decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
 - [ADR 0094 — Constituição v2](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md)
-- [LICOES_F3_FINANCEIRO_REJEITADO.md (anti-padrões)](../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md)
+- [LICOES_F3_FINANCEIRO_REJEITADO.md (anti-padrões)](../../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md)
 
 ---
 
 ## Rodada MEDIDA de 2026-09-03 — Conversa × `jana-merge.jsx` §`JmConversa` (mesma sonda, dark × dark, viewport 2560)
 
 > ⚠️ Este doc nasceu em 2026-05-15 contra `chat.jsx` (ui_kit); a âncora vigente é
-> `prototipo-ui/cowork/jana-merge.jsx` (charter v3, `ancora.mjs Jana/Chat`). Fonte provada
+> `prototipo-ui/cowork/Wagner/jana-merge.jsx` (charter v3, `ancora.mjs Jana/Chat`). Fonte provada
 > (#6600, `--preview-ds` completo); render pelo shell do espelho com `oimpresso.jana.tab=conversa`
 > × `/ia/conversa` em prod. D0: `data-screen-label="Jana — Conversa"` × `AppShellV2 title="Jana — Chat"`.
 

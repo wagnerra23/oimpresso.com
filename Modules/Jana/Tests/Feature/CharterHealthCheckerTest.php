@@ -174,8 +174,8 @@ it('charter_refs_broken zero quando todas as refs existem', function () {
 });
 
 it('readme_handoff_block_missing: ok com marcador, alerta sem', function () {
-    $com = charterHcTmp(['prototipo-ui/README.md' => "# x\n<!-- HANDOFF-ENTRY -->\nfila aqui\n"]);
-    $sem = charterHcTmp(['prototipo-ui/README.md' => "# x\nsem marcador\n"]);
+    $com = charterHcTmp(['memory/reference/prototipo-ui/README.md' => "# x\n<!-- HANDOFF-ENTRY -->\nfila aqui\n"]);
+    $sem = charterHcTmp(['memory/reference/prototipo-ui/README.md' => "# x\nsem marcador\n"]);
 
     $rowCom = charterHcRow((new CharterHealthChecker($com))->checks(), 'readme_handoff_block_missing');
     $rowSem = charterHcRow((new CharterHealthChecker($sem))->checks(), 'readme_handoff_block_missing');
@@ -224,8 +224,8 @@ it('repo real (fromApp): roda os 5 checks advisory sem quebrar', function () {
 
 it('design_return_skipped OK quando HANDOFF >= ultimo SYNC_LOG', function () {
     $tmp = charterHcTmp([
-        'prototipo-ui/HANDOFF.md' => "# HANDOFF\n\n## Estado atual: 2026-06-01 — x\n",
-        'prototipo-ui/SYNC_LOG.md' => "2026-05-30 ~10:00 [CL] a merged PR #1\n2026-06-01 ~01:00 [CL] b merged PR #2\n",
+        'memory/reference/prototipo-ui/HANDOFF.md' => "# HANDOFF\n\n## Estado atual: 2026-06-01 — x\n",
+        'memory/reference/prototipo-ui/SYNC_LOG.md' => "2026-05-30 ~10:00 [CL] a merged PR #1\n2026-06-01 ~01:00 [CL] b merged PR #2\n",
     ]);
 
     $row = charterHcRow((new CharterHealthChecker($tmp))->checks(), 'design_return_skipped');
@@ -237,8 +237,8 @@ it('design_return_skipped OK quando HANDOFF >= ultimo SYNC_LOG', function () {
 
 it('design_return_skipped FLAG quando HANDOFF atras do ultimo SYNC_LOG', function () {
     $tmp = charterHcTmp([
-        'prototipo-ui/HANDOFF.md' => "## Estado atual: 2026-05-29 — x\n",
-        'prototipo-ui/SYNC_LOG.md' => "2026-05-20 ~10:00 [CL] a merged PR #1\n2026-06-01 ~01:00 [CL] b merged PR #2\n",
+        'memory/reference/prototipo-ui/HANDOFF.md' => "## Estado atual: 2026-05-29 — x\n",
+        'memory/reference/prototipo-ui/SYNC_LOG.md' => "2026-05-20 ~10:00 [CL] a merged PR #1\n2026-06-01 ~01:00 [CL] b merged PR #2\n",
     ]);
 
     $row = charterHcRow((new CharterHealthChecker($tmp))->checks(), 'design_return_skipped');

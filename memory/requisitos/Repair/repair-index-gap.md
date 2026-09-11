@@ -1,14 +1,14 @@
 ---
 id: requisitos-repair-repair-index-gap
 tela: Repair/Index (/repair/repair)
-prototipo: prototipo-ui/cowork/repair-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/repair-page.jsx
 tela_viva: resources/js/Pages/Repair/Index.tsx
 gerado_em: 2026-09-06
 ---
 
 # GAP-SPEC — Repair/Index
 
-> Fase 1 do protocolo (`prototipo-ui/PROTOCOL.md`) em modo **PARIDADE**. `repair-page.jsx` é porte REVERSO dos blades (cabeçalho l.1-2; §5 2026-08-28); a aba comparada é `Reparos` (repair-page.jsx:258-300, origem `repair/index.blade.php`) — a lista da **venda-de-reparo** (`transactions` com `sub_type='repair'`), não da folha de OS (UC-RIDX-01). Estado no vivo medido em 2026-09-06 sobre `origin/main` `80bc4ef8b9`, com `grep -n`. Lidos antes: `Index.charter.md` (Non-Goals l.42-45, pendência l.74) e `Index.casos.md` (UC-RIDX-01..04 + BACKLOG dos KPIs). Dado mock do protótipo não é gap.
+> Fase 1 do protocolo (`memory/reference/prototipo-ui/PROTOCOL.md`) em modo **PARIDADE**. `repair-page.jsx` é porte REVERSO dos blades (cabeçalho l.1-2; §5 2026-08-28); a aba comparada é `Reparos` (repair-page.jsx:258-300, origem `repair/index.blade.php`) — a lista da **venda-de-reparo** (`transactions` com `sub_type='repair'`), não da folha de OS (UC-RIDX-01). Estado no vivo medido em 2026-09-06 sobre `origin/main` `80bc4ef8b9`, com `grep -n`. Lidos antes: `Index.charter.md` (Non-Goals l.42-45, pendência l.74) e `Index.casos.md` (UC-RIDX-01..04 + BACKLOG dos KPIs). Dado mock do protótipo não é gap.
 
 | Parte | Estado no vivo | Ação |
 |---|---|---|

@@ -1,6 +1,6 @@
 /* cowork-forja-bundle.css — Forja · cockpit do cowork loop (US-FORJA-006 · PARIDADE §11 Onda 1)
  *
- * PROVENIENCIA: copia INTEIRA e VERBATIM de `prototipo-ui/cowork/forja-page.css` (espelho
+ * PROVENIENCIA: copia INTEIRA e VERBATIM de `prototipo-ui/cowork/Wagner/forja-page.css` (espelho
  * provado SYNC contra o Cowork vivo em 2026-09-02, sha 9c180a5d92ae). Nada foi escrito a mao;
  * so este cabecalho foi acrescentado. Decisao [W] 2026-09-02: "igual ao prototipo" — o
  * bundle entra inteiro primeiro (proibicoes §Design System / Pacote Cowork novo), a
@@ -1143,7 +1143,7 @@ a.fj-ho-pr:hover{ color:var(--accent); }
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * DEPS DE RENDER DO SHELL (PARIDADE §11 Onda 2) — copiadas VERBATIM de
- * prototipo-ui/cowork/styles.css (o shell do protótipo), com UMA mudança: cada
+ * prototipo-ui/cowork/Wagner/styles.css (o shell do protótipo), com UMA mudança: cada
  * seletor recebe o prefixo `.fj-hub`, o root do <ForjaHub>. O header do protótipo
  * (`.os-page-h*`, `.os-btn*`, `.icon-btn`) mora no styles.css, não no forja-page.css —
  * sem estas regras o bundle desenha o topnav mas não o header que o segura. Mesmo

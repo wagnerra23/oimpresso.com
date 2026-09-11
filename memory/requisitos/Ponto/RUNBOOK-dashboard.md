@@ -32,8 +32,8 @@ Audiência: **gestor de RH / DP** do business. Acesso escopado por `business_id`
 | Ordem | Fonte | Papel |
 |---|---|---|
 | 1 | `memory/requisitos/Ponto/SPEC.md` · `SDD-espelho-e-jornada-v1.0.md` | US e casos de uso |
-| 2 | `prototipo-ui/contrato/ponto-painel.contract.json` | **contrato visual** — âncoras + copy literal |
-| 3 | `prototipo-ui/cowork/ponto-page.jsx` | protótipo Cowork (fonte de design, [ADR 0299](../../decisions/0299-figma-nao-e-fonte-de-design.md)) |
+| 2 | `governance/design/contracts/ponto-painel.contract.json` | **contrato visual** — âncoras + copy literal |
+| 3 | `prototipo-ui/cowork/Wagner/ponto-page.jsx` | protótipo Cowork (fonte de design, [ADR 0299](../../decisions/0299-figma-nao-e-fonte-de-design.md)) |
 | 4 | `Modules/Ponto/Resources/views/dashboard/index.blade.php` | Blade legado — contrato de paridade |
 
 O contrato declara a própria proveniência: *"Protótipo F1 [CC] importado das telas Blade do módulo
@@ -47,7 +47,7 @@ O contrato declara a própria proveniência: *"Protótipo F1 [CC] importado das 
 > vem da [ADR 0286 §5](../../decisions/0286-channel-health-corroborado-por-mensagem-real.md)
 > — ⚠️ ADR cujo TÍTULO é sobre outro assunto (channel health), então cite sempre com o §5.
 
-`prototipo-ui/contrato/ponto-painel.contract.json` exige `data-contract="<id>"` no elemento que
+`governance/design/contracts/ponto-painel.contract.json` exige `data-contract="<id>"` no elemento que
 envolve cada seção, **na ordem do contrato**, e cada string de `copy` presente **literalmente** no
 alvo `resources/js/Pages/Ponto/Dashboard/Index.tsx`.
 
@@ -60,7 +60,7 @@ alvo `resources/js/Pages/Ponto/Dashboard/Index.tsx`.
 
 ## 4. Estado MEDIDO em 2026-08-21 (o F3 pendente)
 
-Rodado `node scripts/contrato-de-tela.mjs --contract prototipo-ui/contrato/ponto-painel.contract.json`
+Rodado `node scripts/contrato-de-tela.mjs --contract governance/design/contracts/ponto-painel.contract.json`
 → **12 falhas**: as 4 âncoras ausentes (`grep -c data-contract` = 0) + 8 copies.
 
 O que a medição mostrou — e **corrige a leitura fácil de que faltam seções**: as seções **existem**
@@ -112,7 +112,7 @@ até o F3 fechar. Ele **não** está entre os required (medido 2026-08-21 na uni
 ## 7. Verificação
 
 ```bash
-node scripts/contrato-de-tela.mjs --contract prototipo-ui/contrato/ponto-painel.contract.json
+node scripts/contrato-de-tela.mjs --contract governance/design/contracts/ponto-painel.contract.json
 ```
 
 Verde = `✅ limpo.` · Vermelho lista seção/copy faltando, uma por linha.

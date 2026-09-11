@@ -1,0 +1,227 @@
+{
+  "version": "2",
+  "_doc": "Mapa de roteamento da ingestão Cowork. Arquivos de tela pousam em prototipo-ui/cowork/Wagner/; materiais auxiliares do pacote pousam em prototipo-ui/cowork/Wagner/handoffs/payloads/. A conta Felipe mantém sua procedência separada e não recebe export da conta Wagner. O arquivo vive em governance/design/cowork-map.json; component-registry.json mapeia componentes e memory/requisitos/**/<tela>.map.json ancora regiões.",
+  "screens": {
+    "caixa-unificada": {
+      "module": "Atendimento",
+      "page_id": "atendimento-caixa-unificada",
+      "routes": [
+        { "glob": "inbox-*.jsx", "to": "prototipo-ui/cowork/Wagner/" },
+        { "glob": "inbox-*.css", "to": "prototipo-ui/cowork/Wagner/" }
+      ]
+    },
+    "vendas": {
+      "module": "Sells",
+      "page_id": "sells-index",
+      "routes": [
+        { "glob": "vendas-*.jsx", "to": "prototipo-ui/cowork/Wagner/" },
+        { "glob": "vendas-*.css", "to": "prototipo-ui/cowork/Wagner/" },
+        { "glob": "vendas.css", "to": "prototipo-ui/cowork/Wagner/" },
+        { "glob": "data-vendas.jsx", "to": "prototipo-ui/cowork/Wagner/" }
+      ]
+    },
+    "clientes": {
+      "module": "Crm",
+      "page_id": "crm-clientes",
+      "routes": [
+        { "glob": "clientes-*.jsx", "to": "prototipo-ui/cowork/Wagner/" },
+        { "glob": "clientes-*.css", "to": "prototipo-ui/cowork/Wagner/" },
+        { "glob": "data-clientes.jsx", "to": "prototipo-ui/cowork/Wagner/" }
+      ]
+    },
+    "crm": {
+      "module": "Crm",
+      "page_id": "crm-index",
+      "routes": [
+        { "glob": "crm-*.jsx", "to": "prototipo-ui/cowork/Wagner/" },
+        { "glob": "crm-*.css", "to": "prototipo-ui/cowork/Wagner/" }
+      ]
+    },
+    "compras": {
+      "module": "Compras",
+      "page_id": "compras-index",
+      "routes": [
+        { "glob": "compras-*.jsx", "to": "prototipo-ui/cowork/Wagner/" },
+        { "glob": "compras-*.css", "to": "prototipo-ui/cowork/Wagner/" }
+      ]
+    },
+    "producao-oficina": {
+      "module": "OficinaAuto",
+      "page_id": "oficinaauto-producao-oficina",
+      "routes": [
+        { "glob": "oficina-page.*", "to": "prototipo-ui/cowork/Wagner/" },
+        { "glob": "oficina-fila.*", "to": "prototipo-ui/cowork/Wagner/" },
+        { "glob": "oficina-forms.jsx", "to": "prototipo-ui/cowork/Wagner/" },
+        { "glob": "oficina-print.*", "to": "prototipo-ui/cowork/Wagner/" },
+        { "glob": "oficina-norte.*", "to": "prototipo-ui/cowork/Wagner/" }
+      ]
+    },
+    "oficina-os": {
+      "module": "OficinaAuto",
+      "page_id": "oficinaauto-serviceorders",
+      "routes": [
+        { "glob": "oficina-os-page.*", "to": "prototipo-ui/cowork/Wagner/" }
+      ]
+    },
+    "comunicacao-visual": {
+      "module": "ComunicacaoVisual",
+      "page_id": "comunicacao-visual-index",
+      "_nota": "aspiracional — OS/Orçamento/Produção da gráfica ainda não têm Page Inertia (schema órfão por BRIEFING). os/orc/producao agregados aqui pois compartilham OS_DATA/ORC_DATA.",
+      "routes": [
+        { "glob": "os-page.jsx", "to": "prototipo-ui/cowork/Wagner/" },
+        { "glob": "orc-page.jsx", "to": "prototipo-ui/cowork/Wagner/" },
+        { "glob": "producao-page.jsx", "to": "prototipo-ui/cowork/Wagner/" },
+        { "glob": "data-os.jsx", "to": "prototipo-ui/cowork/Wagner/" },
+        { "glob": "data-orc-prod.jsx", "to": "prototipo-ui/cowork/Wagner/" }
+      ]
+    },
+    "norte": {
+      "module": "_Showcase",
+      "page_id": "norte-northstar-demo",
+      "_nota": "app-demo North-Star do ERP inteiro (shell+board+7 cenas) — NÃO é tela de módulo; transversal/vision.",
+      "routes": [
+        { "glob": "norte-*.jsx", "to": "prototipo-ui/cowork/Wagner/" },
+        { "glob": "norte-*.css", "to": "prototipo-ui/cowork/Wagner/" }
+      ]
+    },
+    "financeiro": {
+      "module": "Financeiro",
+      "page_id": "financeiro-index",
+      "routes": [
+        { "glob": "financeiro-*.jsx", "to": "prototipo-ui/cowork/Wagner/" },
+        { "glob": "financeiro-*.css", "to": "prototipo-ui/cowork/Wagner/" },
+        { "glob": "financeiro.css", "to": "prototipo-ui/cowork/Wagner/" },
+        { "glob": "fin-*.css", "to": "prototipo-ui/cowork/Wagner/" }
+      ]
+    },
+    "cobranca": {
+      "module": "RecurringBilling",
+      "page_id": "recurring-index",
+      "routes": [
+        { "glob": "cobranca-*.jsx", "to": "prototipo-ui/cowork/Wagner/" },
+        { "glob": "cobranca-*.css", "to": "prototipo-ui/cowork/Wagner/" }
+      ]
+    },
+    "boletos": {
+      "module": "Financeiro",
+      "page_id": "financeiro-boletos",
+      "routes": [
+        { "glob": "boletos-*.jsx", "to": "prototipo-ui/cowork/Wagner/" },
+        { "glob": "boletos-*.css", "to": "prototipo-ui/cowork/Wagner/" }
+      ]
+    },
+    "kb": {
+      "module": "KB",
+      "page_id": "kb-index",
+      "routes": [
+        { "glob": "kb-*.jsx", "to": "prototipo-ui/cowork/Wagner/" },
+        { "glob": "kb-*.css", "to": "prototipo-ui/cowork/Wagner/" }
+      ]
+    },
+    "payment-gateway": {
+      "module": "PaymentGateway",
+      "page_id": "payment-gateway-index",
+      "routes": [
+        { "glob": "pg-*.jsx", "to": "prototipo-ui/cowork/Wagner/" },
+        { "glob": "pg-*.css", "to": "prototipo-ui/cowork/Wagner/" }
+      ]
+    },
+    "cockpit": {
+      "module": "Jana",
+      "page_id": "jana-cockpit",
+      "routes": [
+        { "glob": "chat-*.jsx", "to": "prototipo-ui/cowork/Wagner/" },
+        { "glob": "chat-*.css", "to": "prototipo-ui/cowork/Wagner/" }
+      ]
+    },
+    "forja": {
+      "module": "Forja",
+      "page_id": "forja-index",
+      "_nota": "aspiracional — Forja é o módulo de desenvolvimento/governança (sem Page Inertia consolidada).",
+      "routes": [
+        { "glob": "forja-*.jsx", "to": "prototipo-ui/cowork/Wagner/" },
+        { "glob": "forja-*.css", "to": "prototipo-ui/cowork/Wagner/" }
+      ]
+    },
+    "equipe": {
+      "module": "Ponto",
+      "page_id": "ponto-equipe",
+      "routes": [
+        { "glob": "equipe-*.jsx", "to": "prototipo-ui/cowork/Wagner/" },
+        { "glob": "equipe-*.css", "to": "prototipo-ui/cowork/Wagner/" },
+        { "glob": "data-people.jsx", "to": "prototipo-ui/cowork/Wagner/" }
+      ]
+    },
+    "produto": {
+      "module": "ProductCatalogue",
+      "page_id": "produto-index",
+      "routes": [
+        { "glob": "produtos-*.jsx", "to": "prototipo-ui/cowork/Wagner/" },
+        { "glob": "produtos-*.css", "to": "prototipo-ui/cowork/Wagner/" },
+        { "glob": "prod-*.css", "to": "prototipo-ui/cowork/Wagner/" }
+      ]
+    },
+    "_handoff-docs": {
+      "module": "_Handoff",
+      "page_id": "handoff-docs",
+      "_nota": "NÃO é tela: documentos/chats de processo do Cowork (.html + .md: Adversário/Tribunal/Auditoria/Estado-da-Arte). Preservados num lugar só; agregados (não listados como desconhecidos) no ingest de telas.",
+      "routes": [
+        { "glob": "*.html", "to": "prototipo-ui/cowork/Wagner/handoffs/payloads/docs/" },
+        { "glob": "*.md", "to": "prototipo-ui/cowork/Wagner/handoffs/" }
+      ]
+    },
+    "_handoff-assets": {
+      "module": "_Handoff",
+      "page_id": "handoff-assets",
+      "_nota": "NÃO é tela: screenshots e binários do handoff (~530 .png). Preservados pra evidência visual.",
+      "routes": [
+        { "glob": "*.png", "to": "prototipo-ui/cowork/Wagner/handoffs/payloads/assets/" },
+        { "glob": "*.jpg", "to": "prototipo-ui/cowork/Wagner/handoffs/payloads/assets/" },
+        { "glob": "*.jpeg", "to": "prototipo-ui/cowork/Wagner/handoffs/payloads/assets/" },
+        { "glob": "*.gif", "to": "prototipo-ui/cowork/Wagner/handoffs/payloads/assets/" },
+        { "glob": "*.svg", "to": "prototipo-ui/cowork/Wagner/handoffs/payloads/assets/" },
+        { "glob": "*.webp", "to": "prototipo-ui/cowork/Wagner/handoffs/payloads/assets/" },
+        { "glob": "*.ico", "to": "prototipo-ui/cowork/Wagner/handoffs/payloads/assets/" },
+        { "glob": "*.thumbnail", "to": "prototipo-ui/cowork/Wagner/handoffs/payloads/assets/" }
+      ]
+    },
+    "_handoff-telas-tsx": {
+      "module": "_Handoff",
+      "page_id": "handoff-telas-tsx",
+      "_nota": "PENDENTE: 2ª geração de telas (.tsx em subpastas — financeiro novo: Unificado/, Dre/, Fluxo/, ContasPagar/, Advisor/…). O roteador casa por BASENAME, não por subpasta, então estas ainda não viram telas próprias. Agregadas aqui pra não virar ruído; mapear por path é trabalho futuro (estender route() ou globs por subpasta).",
+      "routes": [
+        { "glob": "*.tsx", "to": "prototipo-ui/cowork/Wagner/handoffs/payloads/telas-tsx-a-mapear/" }
+      ]
+    },
+    "_handoff-shared": {
+      "module": "_Handoff",
+      "page_id": "handoff-shared",
+      "_nota": "NÃO é tela: shell/shared/dev do projeto Cowork (app, data, sidebar, icons, painéis de dev) + CSS globais + scripts/config (.json/.js/.mjs/.ts/.php/.sql/.py/.sh) + jsx avulsos sem prefixo de tela.",
+      "routes": [
+        { "glob": "app.jsx", "to": "prototipo-ui/cowork/Wagner/handoffs/payloads/shared/" },
+        { "glob": "data.jsx", "to": "prototipo-ui/cowork/Wagner/handoffs/payloads/shared/" },
+        { "glob": "sidebar.jsx", "to": "prototipo-ui/cowork/Wagner/handoffs/payloads/shared/" },
+        { "glob": "icons.jsx", "to": "prototipo-ui/cowork/Wagner/handoffs/payloads/shared/" },
+        { "glob": "fsm-stepper.jsx", "to": "prototipo-ui/cowork/Wagner/handoffs/payloads/shared/" },
+        { "glob": "viewers.jsx", "to": "prototipo-ui/cowork/Wagner/handoffs/payloads/shared/" },
+        { "glob": "linked-apps.jsx", "to": "prototipo-ui/cowork/Wagner/handoffs/payloads/shared/" },
+        { "glob": "tasks.jsx", "to": "prototipo-ui/cowork/Wagner/handoffs/payloads/shared/" },
+        { "glob": "chat.jsx", "to": "prototipo-ui/cowork/Wagner/handoffs/payloads/shared/" },
+        { "glob": "laravel-panel.jsx", "to": "prototipo-ui/cowork/Wagner/handoffs/payloads/shared/" },
+        { "glob": "tweaks-panel.jsx", "to": "prototipo-ui/cowork/Wagner/handoffs/payloads/shared/" },
+        { "glob": "mockup-pages.*", "to": "prototipo-ui/cowork/Wagner/handoffs/payloads/shared/" },
+        { "glob": "styles.css", "to": "prototipo-ui/cowork/Wagner/handoffs/payloads/shared/" },
+        { "glob": "mobile-*.css", "to": "prototipo-ui/cowork/Wagner/handoffs/payloads/shared/" },
+        { "glob": "web-*.css", "to": "prototipo-ui/cowork/Wagner/handoffs/payloads/shared/" },
+        { "glob": "*.json", "to": "prototipo-ui/cowork/Wagner/handoffs/payloads/shared/" },
+        { "glob": "*.js", "to": "prototipo-ui/cowork/Wagner/handoffs/payloads/shared/" },
+        { "glob": "*.mjs", "to": "prototipo-ui/cowork/Wagner/handoffs/payloads/shared/" },
+        { "glob": "*.ts", "to": "prototipo-ui/cowork/Wagner/handoffs/payloads/shared/" },
+        { "glob": "*.php", "to": "prototipo-ui/cowork/Wagner/handoffs/payloads/shared/" },
+        { "glob": "*.sql", "to": "prototipo-ui/cowork/Wagner/handoffs/payloads/shared/" },
+        { "glob": "*.py", "to": "prototipo-ui/cowork/Wagner/handoffs/payloads/shared/" },
+        { "glob": "*.sh", "to": "prototipo-ui/cowork/Wagner/handoffs/payloads/shared/" }
+      ]
+    }
+  }
+}

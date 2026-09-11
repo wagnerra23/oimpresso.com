@@ -151,32 +151,11 @@ function loadContract(file) {
   return c;
 }
 
-// `design-docs/cowork-inbox/` e CAIXA DE ENTRADA do Cowork (pedidos/propostas pro Code), nao
-// contrato VIGENTE: ele so passa a valer quando alguem o APLICA a uma tela real. Os que
-// chegaram em 2026-08-24 apontam pra `Pages/NotificationTemplate` e `Pages/Documentacao/
-// Programa` — telas que ainda nao existem, e cria-las E o pedido. Medido: 15 no inbox x 10
-// ativos. Normaliza `\` do Windows antes de comparar.
-// Ampliado de `cowork-inbox/` para `design-docs/` inteiro (2026-08-24, mesma sessão): a pasta
-// TODA é documentação vinda do lado do design — pedido, proposta, patch, contrato em formato do
-// Cowork. Ao descer os 103 arquivos que faltavam, 3 `.contract.json` do vivo pousaram em
-// `design-docs/contrato-cowork/` e reprovaram por não terem `alvo`/`secoes`: são de OUTRO schema,
-// legítimos como proposta e inválidos como contrato do repo. Filtrar só o `cowork-inbox` deixaria
-// cada subpasta nova de design-docs reabrir o mesmo buraco.
-// Ampliado de novo em 2026-09-09: o mesmo buraco reabriu FORA de `design-docs/`. O
-// `prototipo-ui/cowork/` e o ESPELHO de leitura do projeto Cowork (ADR 0374) — retrato do lado
-// design, regenerado por `--export-from`, nunca contrato vigente do repo. O
-// `cowork/contrato/patrimonio.contract.json`, descido pelo #7133, e do schema do Cowork (`build`,
-// `raiz`, `screenLabel`, `ds`, sem `alvo`) e reprovou exatamente como os 3 de `contrato-cowork/`
-// haviam reprovado em 2026-08-24. O contrato VIGENTE da mesma tela existe e passa:
-// `prototipo-ui/contrato/patrimonio-index.contract.json` (mesmo #7133). Falso-negativo medido
-// ANTES de afrouxar (proibicoes §"Sempre fazer" 4): 0 — censo de `git ls-files '*.contract.json'`
-// deu 1 unico arquivo sob o espelho, e ele ja reprovava; nenhum contrato hoje VALIDO passa a ser
-// pulado. Bite-test em `contrato-de-tela.test.mjs` (pula sob o espelho, REPROVA fora dele).
-const PASTAS_DOC_DESIGN = ['prototipo-ui/design-docs/', 'prototipo-ui/cowork/'];
+// O espelho Cowork pode trazer contratos do schema do design, que não são contratos
+// vigentes do app. O canon vigente permanece fora do espelho de build.
 const normalizaPath = (p) => String(p || '').split(String.fromCharCode(92)).join('/');
-const pastaDocDesign = (p) => PASTAS_DOC_DESIGN.find((d) => normalizaPath(p).includes(d)) || null;
-const ehDocDesign = (p) => pastaDocDesign(p) !== null;
-
+const ehEspelhoCowork = (p) => normalizaPath(p).includes('prototipo-ui/cowork/Wagner/');
+const ehDocumentoAposentado = (p) => normalizaPath(p).includes('prototipo-ui/design-docs/');
 // ── Casamento de COPY: fronteira de identificador (endurecimento medido · 2026-08-25) ──
 //
 // ANTES: `blob.includes(str)` — substring cru. Pega a copy, mas também pega qualquer
@@ -213,8 +192,7 @@ function checkContract(file) {
   // monta a lista no bash e chama `--contract <path>` um a um, enquanto `--map` coleta por dentro.
   // Filtrar numa rota só deixa a outra reprovando (§5 2026-07-28 — validar UM dos modos que o CI
   // roda). Aqui embaixo passam AS DUAS.
-  const pastaDoc = pastaDocDesign(file);
-  if (pastaDoc) { console.log(`  (pulado: ${file} — documentação/espelho de design (${pastaDoc}), não contrato vigente)`); return 0; }
+  if (ehEspelhoCowork(file) || ehDocumentoAposentado(file)) { console.log(`  (pulado: ${file} — espelho/documentação de design, não contrato vigente)`); return 0; }
   const c = loadContract(file);
   const files = c.alvo.flatMap(collectTargets);
   if (!files.length) { err(`nenhum .tsx/.ts no alvo do contrato (${c.alvo.join(', ')})`); return 1; }
@@ -469,23 +447,15 @@ function checkOmission(base = 'origin/main', alvos, notesFile) {
 //                   sem `<!-- design-deviation -->` no alvo.
 function listContracts() {
   const out = git('ls-files "*.contract.json"');
-  // `design-docs/cowork-inbox/` é CAIXA DE ENTRADA do Cowork (pedidos/propostas pro Code), não
-  // contrato VIGENTE: o contrato só passa a valer quando alguém o aplica a uma tela real. Varrer
-  // o inbox como ativo reprova POR CONSTRUÇÃO — os que chegaram em 2026-08-24 apontam pra
-  // `Pages/NotificationTemplate` e `Pages/Documentacao/Programa`, telas que ainda não existem
-  // (criá-las É o pedido). Medido no dia: 15 no inbox × 10 ativos de verdade.
-  // Filtro mora AQUI, não no workflow: `--map`/`--map --check` varrem por este mesmo coletor,
-  // então filtrar só no step de "contratos ativos" deixaria os outros modos reprovando (§5
-  // 2026-07-28 — validar um gate rodando UM dos modos que o CI roda).
-  const ativo = (p) => p && !/EXEMPLO/i.test(p) && !ehDocDesign(p);
+  const ativo = (p) => p && !/EXEMPLO/i.test(p) && !ehEspelhoCowork(p) && existsSync(resolve(ROOT, p));
   return out ? out.split('\n').filter(ativo) : [];
 }
 function listIntentContracts() {
-  const dir = resolve(ROOT, 'prototipo-ui/contrato');
+  const dir = resolve(ROOT, 'governance/design/contracts');
   if (!existsSync(dir)) return [];
   return readdirSync(dir)
     .filter(name => name.endsWith('.intent.json') && !/EXEMPLO/i.test(name))
-    .map(name => `prototipo-ui/contrato/${name}`)
+    .map(name => `governance/design/contracts/${name}`)
     .sort();
 }
 function checkIntentMap(file) {
@@ -600,19 +570,19 @@ function argVal(flag) { const i = process.argv.indexOf(flag); return i >= 0 ? pr
 // A lista é de EXCEÇÃO DECLARADA, não allowlist que cresce: cada entrada diz por que
 // existe, e sai quando a dívida for paga (§5 2026-08-02).
 const FONTE_TELA_GRANDFATHERED = {
-  'prototipo-ui/contrato/essentials-licencas.contract.json': 'legado 2026-08: nasceu apontando pra própria tela; re-ancorar exige a fonte de design da Essentials',
-  'prototipo-ui/contrato/essentials-metas.contract.json': 'idem essentials-licencas',
-  'prototipo-ui/contrato/jana-painel.contract.json': 'legado: fonte = Pages/Jana/Index.tsx; a âncora da Jana é decisão [W] (proposal jana)',
-  'prototipo-ui/contrato/purchase-create.contract.json': 'legado: fonte = Pages/Purchase/Create.tsx',
+  'governance/design/contracts/essentials-licencas.contract.json': 'legado 2026-08: nasceu apontando pra própria tela; re-ancorar exige a fonte de design da Essentials',
+  'governance/design/contracts/essentials-metas.contract.json': 'idem essentials-licencas',
+  'governance/design/contracts/jana-painel.contract.json': 'legado: fonte = Pages/Jana/Index.tsx; a âncora da Jana é decisão [W] (proposal jana)',
+  'governance/design/contracts/purchase-create.contract.json': 'legado: fonte = Pages/Purchase/Create.tsx',
 };
 
 function checkAncoraDaCopy() {
-  const dir = resolve(ROOT, 'prototipo-ui/contrato');
+  const dir = resolve(ROOT, 'governance/design/contracts');
   if (!existsSync(dir)) { ok('sem diretório de contratos — nada a checar'); return 0; }
   const arquivos = readdirSync(dir)
     .filter(f => f.endsWith('.contract.json') && !/EXEMPLO/i.test(f))
     .sort()
-    .map(f => `prototipo-ui/contrato/${f}`);
+    .map(f => `governance/design/contracts/${f}`);
 
   let fail = 0, avisos = 0, limpos = 0;
   for (const rel of arquivos) {
@@ -629,7 +599,7 @@ function checkAncoraDaCopy() {
         warn(`${rel} — fonte é a própria tela (grandfathered): ${razao}`);
       } else {
         err(`${rel}: \`fonte\` aponta pra PRÓPRIA TELA (${fonte}) — contrato tautológico, nasce verde por construção.`);
-        err(`    A fonte tem de ser a ÂNCORA. Resolva com: node prototipo-ui/ancora.mjs <Mod>/<Tela>`);
+        err(`    A fonte tem de ser a ÂNCORA. Resolva com: node scripts/design/ancora.mjs <Mod>/<Tela>`);
         fail++;
       }
       continue;
@@ -677,11 +647,11 @@ function main() {
     if (alvo && !alvo.startsWith('--')) {
       fail += checkContract(alvo);
     } else {
-      const dir = resolve(ROOT, 'prototipo-ui/contrato');
+      const dir = resolve(ROOT, 'governance/design/contracts');
       const todos = readdirSync(dir)
         .filter(f => f.endsWith('.contract.json') && f !== 'EXEMPLO.contract.json')
         .sort()
-        .map(f => `prototipo-ui/contrato/${f}`);
+        .map(f => `governance/design/contracts/${f}`);
       log(`contrato-de-tela · ${todos.length} contrato(s) ativo(s)\n`);
       for (const c of todos) fail += checkContract(c);
     }

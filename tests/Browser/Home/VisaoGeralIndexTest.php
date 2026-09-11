@@ -100,7 +100,7 @@ declare(strict_types=1);
  * @see resources/js/Pages/Home/Index.tsx (tela sob teste)
  * @see resources/js/Pages/Home/Index.charter.md (Goals · Non-Goals · anti-hooks)
  * @see resources/js/Pages/Home/Index.casos.md (UC-DASH-01..18)
- * @see prototipo-ui/contrato/dashboard-visao-geral.contract.json (ordem canônica das âncoras)
+ * @see governance/design/contracts/dashboard-visao-geral.contract.json (ordem canônica das âncoras)
  * @see tests/Browser/Financeiro/CaixaIndexTest.php (padrão espelhado)
  * @see tests/Browser/CoreScreens/A11yAxeBrowserTest.php (harness do axe)
  * @see .github/workflows/visual-regression.yml (step que invoca)
@@ -114,7 +114,7 @@ const VISAO_ROTA = '/dashboard-legacy';
 
 /**
  * Ordem canônica das âncoras, na ordem do fonte — a MESMA que
- * `prototipo-ui/contrato/dashboard-visao-geral.contract.json` declara e que o
+ * `governance/design/contracts/dashboard-visao-geral.contract.json` declara e que o
  * gate `contrato-de-tela` lê no `.tsx`. Aqui ela é conferida contra o DOM.
  */
 const VISAO_ANCORAS_CANON = ['cabecalho', 'kpis', 'contrapartidas', 'graficos', 'grades'];

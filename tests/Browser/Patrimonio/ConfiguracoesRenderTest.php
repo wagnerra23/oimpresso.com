@@ -37,8 +37,8 @@ declare(strict_types=1);
  * O `contrato-de-tela.mjs` casa `data-contract` no TEXTO do `.tsx`; aqui mede-se o DOM
  * RENDERIZADO — a fronteira que a `KpiGrid.tsx` do módulo registra ("presença na fonte ≠
  * presença no DOM"). As 5 âncoras vêm de
- * `prototipo-ui/contrato/patrimonio-configuracoes.contract.json` (#7207), que deriva de
- * `prototipo-ui/cowork/patrimonio-page.jsx` :: `AbaConfig` (:589-626).
+ * `governance/design/contracts/patrimonio-configuracoes.contract.json` (#7207), que deriva de
+ * `prototipo-ui/cowork/Wagner/patrimonio-page.jsx` :: `AbaConfig` (:589-626).
  *
  * Esta tela é a que mais ganha com o teste: a âncora `notificacoes` tem copy VAZIA no
  * contrato (o protótipo tem um `h3` "Notificações", a tela tem dois Cards nomeados), então
@@ -75,7 +75,7 @@ beforeEach(function () {
     \Illuminate\Support\Facades\DB::purge('mysql');
 });
 
-/** As 5 âncoras que `prototipo-ui/contrato/patrimonio-configuracoes.contract.json` declara, na ordem. */
+/** As 5 âncoras que `governance/design/contracts/patrimonio-configuracoes.contract.json` declara, na ordem. */
 const ANCORAS_CONFIGURACOES = ['cabecalho', 'subnav', 'prefixos', 'notificacoes', 'acoes'];
 
 /**
