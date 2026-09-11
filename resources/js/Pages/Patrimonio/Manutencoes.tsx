@@ -434,64 +434,79 @@ export default function Manutencoes({ manutencoes, filtros, opcoes, permissoes }
   return (
     <AppShellV2>
       <Stack gap={4}>
-        <PageHeader
-          title="Manutenções"
-          subtitle="O que está fora de operação, com quem e desde quando"
-        />
+        {/* As âncoras `data-contract` são a ponte Cowork-CSS ↔ Tailwind do gate
+            `contrato-de-tela.mjs` (ADR 0286) — mesmo padrão da irmã Bens (`Bens.tsx:532`).
+            Quem as consome: `prototipo-ui/contrato/patrimonio-manutencoes.contract.json`.
+            Cada uma envolve elemento QUE JÁ EXISTIA; nenhum conteúdo mudou. */}
+        <div data-contract="cabecalho">
+          <PageHeader
+            title="Manutenções"
+            subtitle="O que está fora de operação, com quem e desde quando"
+          />
+        </div>
 
         {/* `hidePrimary`: o primary do menu já aparece no header do módulo — repeti-lo aqui
             daria dois botões idênticos lado a lado. */}
-        <PatrimonioSubNav active="asset-maintenance" hidePrimary />
+        <div data-contract="subnav">
+          <PatrimonioSubNav active="asset-maintenance" hidePrimary />
+        </div>
 
         {/* O aviso de escopo é GANHO sobre o Blade, que recortava calado. Fica ACIMA da tabela
             e continua visível no vazio, porque "não há manutenção" e "não há manutenção SUA"
             são respostas diferentes. */}
         {!permissoes.vejo_todas ? (
-          <Alert>
-            <AlertTitle>Você vê apenas as suas manutenções</AlertTitle>
-            <AlertDescription>
-              Seu perfil tem <code>asset.view_own_maintenance</code> — a lista mostra só onde
-              você é o responsável ou quem registrou.
-            </AlertDescription>
-          </Alert>
+          // A âncora fica DENTRO do condicional de propósito: esta tela tem baseline de
+          // pixel (`tests/Browser/visreg-screens.json`), e uma `div` vazia como filha
+          // direta do `Stack` somaria um slot de `gap` quando o alerta não renderiza.
+          <div data-contract="alerta">
+            <Alert>
+              <AlertTitle>Você vê apenas as suas manutenções</AlertTitle>
+              <AlertDescription>
+                Seu perfil tem <code>asset.view_own_maintenance</code> — a lista mostra só onde
+                você é o responsável ou quem registrou.
+              </AlertDescription>
+            </Alert>
+          </div>
         ) : null}
 
         <BarraDeFiltros filtros={filtros} opcoes={opcoes} />
 
-        <Deferred data="manutencoes" fallback={<EsqueletoTabela />}>
-          {manutencoes && manutencoes.data.length === 0 && !temFiltroAtivo ? (
-            <EmptyState
-              icon="wrench"
-              title={
-                permissoes.vejo_todas
-                  ? 'Nenhuma manutenção registrada'
-                  : 'Nenhuma manutenção sua no momento'
-              }
-              description={
-                permissoes.vejo_todas
-                  ? 'Quando um bem for enviado para manutenção, ele aparece aqui com situação, prioridade e responsável. O envio começa na tela de Bens.'
-                  : 'Quando você for o responsável por uma manutenção, ela aparece aqui.'
-              }
-            />
-          ) : manutencoes ? (
-            <DataTable<Manutencao>
-              columns={colunas()}
-              data={manutencoes.data}
-              pagination={manutencoes}
-              endpoint="/asset/asset-maintenance"
-              caption="Manutenções do patrimônio"
-              filters={limpar(filtros)}
-              initialSearch={filtros.q ?? ''}
-              searchPlaceholder="Buscar por código, bem ou detalhes..."
-              emptyMessage="Nenhuma manutenção para esses filtros — tente limpar a busca ou trocar o recorte."
-              rowKey={(m) => m.id}
-              rowState={(m): EstadoDaLinha | undefined =>
-                m.status === 'in_progress' ? 'urgent' : undefined
-              }
-              minTableWidth={1280}
-            />
-          ) : null}
-        </Deferred>
+        <div data-contract="tabela">
+          <Deferred data="manutencoes" fallback={<EsqueletoTabela />}>
+            {manutencoes && manutencoes.data.length === 0 && !temFiltroAtivo ? (
+              <EmptyState
+                icon="wrench"
+                title={
+                  permissoes.vejo_todas
+                    ? 'Nenhuma manutenção registrada'
+                    : 'Nenhuma manutenção sua no momento'
+                }
+                description={
+                  permissoes.vejo_todas
+                    ? 'Quando um bem for enviado para manutenção, ele aparece aqui com situação, prioridade e responsável. O envio começa na tela de Bens.'
+                    : 'Quando você for o responsável por uma manutenção, ela aparece aqui.'
+                }
+              />
+            ) : manutencoes ? (
+              <DataTable<Manutencao>
+                columns={colunas()}
+                data={manutencoes.data}
+                pagination={manutencoes}
+                endpoint="/asset/asset-maintenance"
+                caption="Manutenções do patrimônio"
+                filters={limpar(filtros)}
+                initialSearch={filtros.q ?? ''}
+                searchPlaceholder="Buscar por código, bem ou detalhes..."
+                emptyMessage="Nenhuma manutenção para esses filtros — tente limpar a busca ou trocar o recorte."
+                rowKey={(m) => m.id}
+                rowState={(m): EstadoDaLinha | undefined =>
+                  m.status === 'in_progress' ? 'urgent' : undefined
+                }
+                minTableWidth={1280}
+              />
+            ) : null}
+          </Deferred>
+        </div>
       </Stack>
     </AppShellV2>
   );
