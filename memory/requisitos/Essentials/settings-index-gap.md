@@ -21,7 +21,7 @@ gerado_em: 2026-09-06
 > Configurações` — o controller é o mesmo"*. Ancorar esta tela naquele charter seria usar protótipo
 > que desenha OUTRA tela (§5 2026-08-10). A fonte aqui é o `hrm-extras.jsx::Config`.
 >
-> Este gap executa a thread [`07-configuracoes-puxar.md`](../../../prototipo-ui/design-docs/cowork-inbox/hrm/playbook/07-configuracoes-puxar.md),
+> A thread histórica de configurações foi removida com a árvore duplicada,
 > cujo §Estado marcava frescor 🔵 e mandava **não repintar**.
 
 > ⚠️ **Fonte declarada = `hrm-extras.jsx`**, onde a tela de fato vive; o `hrm-page.jsx:505` apenas

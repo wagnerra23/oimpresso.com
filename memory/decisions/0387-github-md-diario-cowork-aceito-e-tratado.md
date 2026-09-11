@@ -3,16 +3,16 @@ slug: 0387-github-md-diario-cowork-aceito-e-tratado
 number: 387
 title: "github.md (diário de sync do Cowork) é artefato aceito e tratado pelo protocolo — e a redação 'nunca o inverso' da 0315 deixa de valer como absoluto"
 type: adr
-status: superseded
+status: aceito
 authority: canonical
-lifecycle: substituido
+lifecycle: ativo
 kind: decision
 decided_by: [W]
 decided_at: "2026-09-01"
 module: governance
 tags: [design, cowork, protocolo, github-md, design-docs, handoff, designsync]
 supersedes: []
-superseded_by: ['0390-prototipo-fonte-unica-build-sem-canon-sombra']
+superseded_by: []
 related:
   - 0315-design-sync-claude-design-vs-cowork-charter
   - 0374-emenda-0315-espelho-cowork-e-rota-prevista

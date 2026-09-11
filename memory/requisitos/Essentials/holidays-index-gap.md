@@ -10,7 +10,7 @@ gerado_em: 2026-09-06
 
 > **Fase 1 = PARIDADE.** `hrm-page.jsx:2` declara: *"Espelha o topnav de nav_hrm.blade"* — **porte
 > reverso**. Região: `Feriados` (`hrm-page.jsx:385-466`).
-> Este gap executa a thread [`08-feriados-puxar.md`](../../../prototipo-ui/design-docs/cowork-inbox/hrm/playbook/08-feriados-puxar.md)
+> A thread histórica de feriados foi removida com a árvore duplicada.
 > do playbook, cujo §Estado admite que em 04/09 Feriados foi tratada como 🔵 *"pela existência, não
 > por paridade medida — o conteúdo **não foi lido**"*. **Aqui foi lido.**
 > A régua de triagem é a §3 daquela thread, literal: *"o que o protótipo tem que a Page não tem →

@@ -22,7 +22,7 @@ charter_version: 2
 # Page Charter — /hrm/leave · Licenças (HRM) (DRAFT)
 
 > **Status:** draft. A `.tsx` **existe** desde o PR-9 da onda HRM-O7
-> ([`PEDIDO-CL-hrm.md`](../../../../../prototipo-ui/design-docs/cowork-inbox/hrm/PEDIDO-CL-hrm.md));
+> (pedido histórico de HRM);
 > [W] aprova o screenshot antes de virar `status: live`.
 >
 > **Origem do texto:** este charter foi escrito e revisado no commit `dbfc75fbcf`
@@ -41,7 +41,7 @@ charter_version: 2
 > topnav de nav_hrm.blade"* — é um dos hubs de **porte reverso do código vivo** que a lápide
 > §5 2026-08-28 proíbe promover a âncora de design em leva. Fica citado como build F1 (é o que
 > é), e a âncora declarada é o Padrão de Tela. O alvo por seção usado na implementação está
-> medido em [`EXPORT-HRM-2026-09-04.md`](../../../../../prototipo-ui/design-docs/cowork-inbox/hrm/EXPORT-HRM-2026-09-04.md) §3.
+> medido em evidência histórica de HRM §3.
 
 ---
 
@@ -152,7 +152,7 @@ JUnit, não desta lista (G-7). Se algum voltar a falhar, é aqui que a redação
 2. Lane `PHP / Pest (Essentials · MySQL)` verde com os UC de tela.
 
 **D3 do HRM-O0 saiu do caminho desta tela:** pela
-[emenda de 2026-09-05](../../../../../prototipo-ui/design-docs/cowork-inbox/hrm/PEDIDO-CL-hrm.md),
+emenda histórica de 2026-09-05,
 licença aprovada **sinaliza divergência na marcação, não bloqueia** — [W] emendou a própria
 resposta no mesmo dia, depois de medir que recusar batida vinda de `REP_P`/`AFD` apagaria do
 sistema um registro que existe no equipamento e no arquivo fiscal. E como D1 passou a jornada

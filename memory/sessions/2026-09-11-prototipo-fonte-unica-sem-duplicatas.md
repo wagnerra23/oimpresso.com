@@ -1,5 +1,9 @@
 # Sessão — limpeza estrutural do protótipo
 
+## TL;DR
+
+Consolidação concluída: uma fonte ativa em `prototipo-ui/cowork/`, sem duplicatas versionáveis.
+
 ## Resultado
 
 A limpeza deixou de ser apenas uma poda manual e virou contrato executável. A fonte ativa do
@@ -24,7 +28,7 @@ duplicado bloqueia a operação inteira.
 4. Transporte build-only, SHA-256 único e atomicidade em bundle, payload e export direto.
 5. Remoção da normalização de âncoras e do destino transacional `design-docs/`.
 6. Guard de SSOT ampliado para conteúdo versionável tracked + novo.
-7. ADR 0390 e documentação operacional atualizada.
+7. ADR 0396 e documentação operacional atualizada.
 8. Exclusão integral dos 306 arquivos de `prototipo-ui/design-docs/` após autorização de [W].
 9. Remoção dos consumidores mortos: reconciliação/colisão do espelho, staging de âncoras,
    SLA de docs, passos de CI e filtros especiais dos gates.

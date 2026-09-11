@@ -23,8 +23,7 @@ preconditions_short: permission essentials.access_sales_target, business_id na s
 > [`Metas.casos.md`](../../../resources/js/Pages/Essentials/Metas.casos.md) (contrato de teste) ·
 > `prototipo-ui/contrato/essentials-metas.contract.json` (fidelidade visual).
 >
-> Onda 9 do [`EXPORT-HRM-2026-09-04`](../../../prototipo-ui/design-docs/cowork-inbox/hrm/EXPORT-HRM-2026-09-04.md) ·
-> PR-9 do [`PEDIDO-CL-hrm`](../../../prototipo-ui/design-docs/cowork-inbox/hrm/PEDIDO-CL-hrm.md).
+> Evidências de onda do inbox legado foram removidas com a árvore duplicada.
 
 ## 1. Objetivo
 

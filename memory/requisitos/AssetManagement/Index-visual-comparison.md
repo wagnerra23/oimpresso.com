@@ -232,8 +232,6 @@ componente: *"renderizar aba que nao navega e afordancia falsa"*.
 - RUNBOOK: [`RUNBOOK-patrimonio-index.md`](RUNBOOK-patrimonio-index.md)
 - Fonte visual: `prototipo-ui/cowork/patrimonio-page.jsx` (aba `painel`) — **alvo**, nao decisao
   de produto
-- Playbook: `prototipo-ui/design-docs/cowork-inbox/patrimonio/playbook/07-painel.md` ·
-  saidas [`_saida-07.md`](../../../prototipo-ui/design-docs/cowork-inbox/patrimonio/playbook/_saida-07.md)
-  e [`_saida-06-painel.md`](../../../prototipo-ui/design-docs/cowork-inbox/patrimonio/playbook/_saida-06-painel.md)
+- Evidências do playbook legado foram removidas com a árvore duplicada; a especificação vigente é este comparativo.
 - [PROTOCOLO-COMPARACAO-RUNTIME](../_DesignSystem/PROTOCOLO-COMPARACAO-RUNTIME.md) ·
   [PT-04 Dashboard](../_DesignSystem/padroes-tela/PT-04-Dashboard.md)

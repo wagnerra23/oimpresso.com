@@ -118,4 +118,4 @@ manutenção"), não aqui.
 - Blade de origem: `Modules/AssetManagement/Resources/views/asset_maintenance/index.blade.php`
 - Fonte visual: `prototipo-ui/cowork/patrimonio-page.jsx`, `AbaManutencoes` (`:475`)
 - Guarda de permissão: [#7034](https://github.com/wagnerra23/oimpresso.com/pull/7034)
-- Playbook: [`_saida-06-manutencoes.md`](../../../../prototipo-ui/design-docs/cowork-inbox/patrimonio/playbook/_saida-06-manutencoes.md)
+- A saída do playbook legado foi removida com a árvore duplicada.

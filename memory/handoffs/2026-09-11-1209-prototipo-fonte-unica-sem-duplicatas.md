@@ -2,7 +2,15 @@
 
 **Data:** 2026-09-11 12:09 BRT  
 **Branch:** `codex/prototipo-fonte-unica-sem-duplicatas`  
-**Decisão:** [ADR 0390](../decisions/0390-prototipo-fonte-unica-build-sem-canon-sombra.md)
+**Decisão:** [ADR 0396](../decisions/0396-prototipo-fonte-unica-build-sem-canon-sombra.md)
+
+## TL;DR
+
+A árvore duplicada `design-docs/` foi removida; o protótipo agora tem fonte ativa única em `cowork/`.
+
+## Estado MCP no momento do fechamento
+
+Não houve operação MCP externa; a validação usou os scripts versionados do repositório.
 
 ## Pedido e causa
 

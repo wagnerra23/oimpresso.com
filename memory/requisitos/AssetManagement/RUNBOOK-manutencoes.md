@@ -168,4 +168,4 @@ Com sessão, a tela deve renderizar a tabela e, para papel restrito, o aviso de 
 - Blade de origem: `Modules/AssetManagement/Resources/views/asset_maintenance/index.blade.php`
 - Fonte visual: `prototipo-ui/cowork/patrimonio-page.jsx`, `AbaManutencoes` (`:475`) — **ALVO,
   não decisão de produto** (`06-ui-bloqueada.md`)
-- Playbook: [`_saida-06-manutencoes.md`](../../../prototipo-ui/design-docs/cowork-inbox/patrimonio/playbook/_saida-06-manutencoes.md)
+- A saída do playbook legado foi retirada junto da árvore duplicada.

@@ -22,7 +22,7 @@ charter_version: 1
 
 > Cadastro de **tipos de licença** do HRM. Nascida do **PT-01 Lista** via `criar-tela.mjs`
 > (UI-0013 — herança de padrão, não bespoke). É o **PR-9 (HRM-O7)** do pedido
-> [`PEDIDO-CL-hrm.md`](../../../../prototipo-ui/design-docs/cowork-inbox/hrm/PEDIDO-CL-hrm.md).
+> pedido histórico de HRM.
 > Processo MWART em [`RUNBOOK-tipos.md`](../../../../memory/requisitos/Essentials/RUNBOOK-tipos.md).
 
 ## Mission

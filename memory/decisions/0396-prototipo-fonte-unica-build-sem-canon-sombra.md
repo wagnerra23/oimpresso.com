@@ -1,6 +1,6 @@
 ---
-slug: 0390-prototipo-fonte-unica-build-sem-canon-sombra
-number: 390
+slug: 0396-prototipo-fonte-unica-build-sem-canon-sombra
+number: 396
 title: "Protótipo tem uma fonte ativa, transporte build-only e caminhos literais"
 type: adr
 status: aceito
@@ -21,7 +21,7 @@ related:
 pii: false
 ---
 
-# ADR 0390 — uma fonte ativa e importação sem interferência
+# ADR 0396 — uma fonte ativa e importação sem interferência
 
 ## Contexto
 

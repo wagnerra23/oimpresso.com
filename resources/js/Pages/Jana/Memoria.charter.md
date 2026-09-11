@@ -78,7 +78,7 @@ Até a v2 isto era um Anti-hook: *"⛔ Permitir edit por user sem permissão `co
 | que "editar sem ela" seria barrado | o `MemoriaController` (que mora em `Modules/KB`) **não checa permissão nenhuma** — a única defesa é o `can:jana.access` do grupo `/ia` ([`routes.php:50`](../../../../Modules/Jana/Http/routes.php)) |
 
 **Por que `jana.mcp.memory.manage` NÃO serve como substituta** — é a candidata óbvia (única key
-com "memory" no nome) e a que a [emenda do Cowork de 2026-08-27](../../../../prototipo-ui/design-docs/cowork-inbox/JANA-CASOS-EMENDA-PERMISSAO-2026-08-27.md)
+com "memory" no nome) e a que a emenda histórica do Cowork de 2026-08-27
 assumiu. Ela é de **outro acervo**:
 
 | eixo | `jana.mcp.memory.manage` | esta tela |
