@@ -284,7 +284,7 @@ O processo sobrevive só enquanto for **lido, medido e auto-corrigido**. Invaria
 | Register de tela | `<Tela>.decisoes.md` | `prototipo-ui/prototipos/<tela>/decisoes.md` | 2 (snapshot) | tocar a tela |
 | Sessão | `memory/sessions/AAAA-MM-DD-*.md` | idem | 2 | fim de sessão |
 | ADR (lei) | `memory/decisions/NNNN-*.md` | idem | 2·[W] | decisão estrutural |
-| DS | `ds-v5/*` · `tokens.css` · `REGISTRY_DS_COMPONENTES.md` | repo DS | DS·[W] | build visual |
+| DS | projeto Cowork **"Office Impresso — Design System"** (`019dd02f`, dono do DS) | `prototipo-ui/design-system/` (espelho) · `REGISTRY_DS_COMPONENTES.md` | DS·[W] | build visual |
 | Tela (código) | `<modulo>-page.{jsx,css}` no host `oimpresso.com.html` | `resources/js/Pages/<Mod>/` | 2 | build |
 | Ponte/canal | `prototipo-ui-patch/*` · `COWORK_NOTES.md` | `prototipo-ui/*` | transporte | virar canon |
 
@@ -305,7 +305,7 @@ O processo sobrevive só enquanto for **lido, medido e auto-corrigido**. Invaria
 | IT3 | `STATUS` aponta pra `PROCESSO_MEMORIA_CC` (ponteiro vivo) | always-read quebrado |
 | IT4 | `LICOES_CC`: L-NN contíguo, sem buraco/duplicata | lição perdida |
 | IT5 | Benchmark (§11) tem linha **recente** — não só presente (janela no script, tunável por `OIMPRESSO_BENCHMARK_STALE_DIAS`) | sem medição (Sobrevivência #1) |
-| IT6 | Os arquivos canônicos do DS (`tokens.css` · `design-system.css`) estão **legíveis** — a paleta quem mede é `ds-guard.mjs --all` | DS ilegível |
+| IT6 | O DS canônico (`prototipo-ui/design-system/`, espelho do projeto `019dd02f`) tem os CSS de token **legíveis** — a paleta quem mede é `ds-guard.mjs --all` | DS ilegível/ausente |
 | IT7 | Os **alvos-git do espinha** (§14, coluna "alvo no git") existem — refs Cowork-only não contam | rastro quebrado |
 | IT8 | Fila ativa ↔ prompts de handoff consistentes (§16 · gate `handoff:check`) | tarefa invisível / PR errado |
 

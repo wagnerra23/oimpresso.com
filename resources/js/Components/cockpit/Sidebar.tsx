@@ -474,22 +474,28 @@ export function CompanyPicker({
         className="sb-cp-btn"
         type="button"
         onClick={() => setOpen((v) => !v)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label={`Empresa: ${nome}. Trocar de empresa`}
       >
-        <span className="avatar" style={{ background: grad }}>
+        <span className="avatar" style={{ background: grad }} aria-hidden="true">
           {iniciais}
         </span>
         <span className="name">{nome}</span>
         <ChevronDown size={14} />
       </button>
       {open && (
-        <div className="sb-dd">
+        <div className="sb-dd" role="menu">
           <div className="sb-dd-h">EMPRESAS</div>
           {businesses.length === 0 && (
             <div className="sb-dd-empty">Nenhuma empresa disponível</div>
           )}
           {businesses.map((b) => (
-            <div
+            <button
               key={b.id}
+              type="button"
+              role="menuitemradio"
+              aria-checked={b.ativa}
               className={`sb-dd-i ${b.ativa ? 'active' : ''}`}
               onClick={() => {
                 if (b.ativa) {
@@ -501,15 +507,21 @@ export function CompanyPicker({
                 setOpen(false);
               }}
             >
-              <span className="avatar-sm" style={{ background: gradientFor(b.id) }}>
+              <span
+                className="avatar-sm"
+                style={{ background: gradientFor(b.id) }}
+                aria-hidden="true"
+              >
                 {b.iniciais}
               </span>
               <span className="name">{b.nome}</span>
               {b.ativa && <Check size={14} className="check" />}
-            </div>
+            </button>
           ))}
           <div className="sb-dd-sep" />
-          <div className="sb-dd-foot">+ Adicionar empresa</div>
+          <button type="button" role="menuitem" className="sb-dd-foot">
+            + Adicionar empresa
+          </button>
         </div>
       )}
     </div>
@@ -1465,7 +1477,6 @@ function ThemeSubpanel() {
 
 export function SidebarFooter({
   nome,
-  nomeCurto,
   email,
   cargo,
   iniciais,
@@ -1475,7 +1486,6 @@ export function SidebarFooter({
   onVibe,
 }: {
   nome: string;
-  nomeCurto: string;
   email: string;
   cargo: string;
   iniciais: string;
@@ -1493,7 +1503,7 @@ export function SidebarFooter({
   // 2026-05-07: Vibes (Modo de trabalho) também migrou pro user dropdown
   // (recomendação P2 #7 auditoria) — antes só ficava no Tweaks FAB.
   return (
-    <div className="sb-user-wrap">
+    <div className="sb-user-wrap" data-contract="sb-rodape">
       {/* User dropdown — agora inclui Superadmin entre Meu perfil e Disponível */}
       <div className="sb-user" style={{ position: 'relative' }}>
         <SidebarUserMenu
@@ -1511,15 +1521,50 @@ export function SidebarFooter({
           className="sb-user-btn"
           type="button"
           onClick={() => setOpenUser((v) => !v)}
+          aria-haspopup="menu"
+          aria-expanded={openUser}
         >
-          <span className="avatar">{iniciais}</span>
+          <span className="avatar" aria-hidden="true">
+            {iniciais}
+          </span>
           <div className="who">
-            <b>{nomeCurto}</b>
+            {/* nome por extenso — o protótipo mostra "Wagner Rocha" (2026-09-11).
+                `nomeCurto` existia pro rodapé de 26px, que empilhava nome e cargo
+                na mesma linha; com o `.who` em coluna o nome inteiro cabe. */}
+            <b>{nome}</b>
             <small>{cargo}</small>
           </div>
           <ChevronUp size={12} />
         </button>
       </div>
     </div>
+  );
+}
+/**
+ * Alça flutuante de reabrir — só existe no modo `hidden`, quando a `<aside>`
+ * inteira sai do DOM. Portada de `prototipo-ui/cowork/sidebar.jsx`
+ * (`SidebarReopenHandle`), não do bundle do Financeiro.
+ *
+ * É um `<button>` com nome acessível, e não um `<div>`: sem ela o único caminho
+ * de volta seria o atalho ⌘⇧\ — e quem escondeu a sidebar pelo mouse não
+ * necessariamente sabe o atalho. Ela é `position: fixed`, logo NÃO é grid item:
+ * quem tira a coluna do grid é `.cockpit[data-sidebar="hidden"]` no `cockpit.css`.
+ *
+ * O `title` sai daqui como expressão JS (`{'...'}`), não como atributo literal:
+ * em JSX um atributo `title="(⌘⇧\\)"` é texto HTML e chega ao DOM com as DUAS
+ * barras — foi o que medi no próprio protótipo em 2026-09-11 (`title` renderizado
+ * como `⌘⇧\\`). Aqui a barra é uma só, como no `.sb-collapse-handle` do shell.
+ */
+export function SidebarReopenHandle({ onOpen }: { onOpen: () => void }) {
+  return (
+    <button
+      type="button"
+      className="sb-reopen-handle"
+      onClick={onOpen}
+      title={'Mostrar sidebar (⌘⇧\\)'}
+      aria-label="Mostrar sidebar"
+    >
+      <ChevronRight size={12} strokeWidth={2.2} />
+    </button>
   );
 }

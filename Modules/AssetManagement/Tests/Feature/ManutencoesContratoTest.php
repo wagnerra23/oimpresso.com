@@ -296,13 +296,28 @@ it('UC-MANU-03: o payload NÃO traz campo de valor — a tela não inventa dinhe
 
         // O assert é sobre o PAYLOAD SERVIDO, não sobre o texto do .tsx: grep em fonte mediria
         // a escrita, não o contrato (LC-11 — presença não é comportamento).
+        // Uma expectativa sobre o CONJUNTO, nunca uma por linha x campo: `$linhas` vem do
+        // banco, então iterar fazia o nº de assertions do caso variar com quantas linhas
+        // voltaram. O filtro `q` e o `manutContratoLimpar()` do `finally` seguram a
+        // contagem em 1 na prática — mas isso é sorte de fixture, não contrato, e no CT 100
+        // a base PERSISTE entre runs. Mesmo defeito do laço de `CrossTenantAssetTest`, que
+        // este PR corrige junto; este aqui NÃO chegou a flapar (medido: idêntico nos runs
+        // 34597014205 e 34598373791).
         $proibidos = ['custo', 'cost', 'valor', 'amount', 'preco', 'price', 'total'];
-        foreach ($linhas as $linha) {
-            foreach (array_keys($linha) as $campo) {
-                expect(in_array(strtolower((string) $campo), $proibidos, true))
-                    ->toBeFalse("O payload de Manutencoes trouxe o campo de valor '{$campo}'. A tabela asset_maintenances NAO tem coluna de custo e o Blade nao mostra nenhuma — decisao [W] 2026-09-08. Ver Non-Goals do charter.");
-            }
-        }
+
+        $camposDeValor = collect($linhas)
+            ->flatMap(fn ($linha) => array_keys((array) $linha))
+            ->map(fn ($campo) => strtolower((string) $campo))
+            ->intersect($proibidos)
+            ->unique()
+            ->values()
+            ->all();
+
+        expect($camposDeValor)->toBeEmpty(
+            'O payload de Manutencoes trouxe campo(s) de valor: '.implode(', ', $camposDeValor)
+            .'. A tabela asset_maintenances NAO tem coluna de custo e o Blade nao mostra'
+            .' nenhuma — decisao [W] 2026-09-08. Ver Non-Goals do charter.'
+        );
     } finally {
         manutContratoLimpar();
     }

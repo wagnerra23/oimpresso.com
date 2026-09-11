@@ -1,15 +1,15 @@
 {
   "schema": "oimpresso-design-application-report/3",
-  "generatedAt": "2026-09-10T18:46:42.866Z",
+  "generatedAt": "2026-09-10T19:55:24.195Z",
   "bundle": {
-    "id": "545cc4696ab84735b412438dc8a492472d7a3876fe35eea2e37678ff50b0a757",
-    "baseId": "f99cbe0b5c32a054223b93610be82ef4c77408e722bde916079b90b4f6ed096c",
+    "id": "5c0ebe0985d95176f4662041bb717d98f8ef152b9542a3697bff469677611e9d",
+    "baseId": "545cc4696ab84735b412438dc8a492472d7a3876fe35eea2e37678ff50b0a757",
     "mode": "delta",
     "source": "cowork:oimpresso.com.html",
     "transportComplete": true
   },
   "summary": {
-    "transportChanges": 15,
+    "transportChanges": 2,
     "screens": 153,
     "tested": 0,
     "smoked": 0,
@@ -23,108 +23,17 @@
   },
   "transportChanges": [
     {
-      "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/_ds_bundle.js",
-      "change": "modified",
-      "bytes": 348172,
-      "sha256": "a3ac15c110308f9bda133c1b210ad37cb962af30232a0dad6a35df51421950b0",
-      "role": "preview-cache"
-    },
-    {
-      "path": "app.jsx",
-      "change": "modified",
-      "bytes": 74738,
-      "sha256": "b98c332790aa275c4acd883c29c00f1ebf6dfc0baee2b5b22e07718dd13a5000",
-      "role": "cowork-source"
-    },
-    {
-      "path": "data.jsx",
-      "change": "modified",
-      "bytes": 35228,
-      "sha256": "5183db6e7e336cb0be45d52cba24257b77a5190aeac350ce8cbb557006be5de6",
-      "role": "cowork-source"
-    },
-    {
-      "path": "documentacao-page.css",
-      "change": "modified",
-      "bytes": 11177,
-      "sha256": "caca5c1f89264780f6ad86e5e324539019d18fe9d376fbb8db4b4575ae2513f1",
-      "role": "cowork-source"
-    },
-    {
       "path": "documentacao-page.jsx",
       "change": "modified",
-      "bytes": 50948,
-      "sha256": "53deac04d76edd3c5234857ed7143b67fa876b789e5952b623defee67ff7b460",
-      "role": "cowork-source"
-    },
-    {
-      "path": "icons.jsx",
-      "change": "modified",
-      "bytes": 12255,
-      "sha256": "9c7999c4d8ac2db8f70474ebf787b531a2c4ae13534e56a142e690b43628cb1c",
+      "bytes": 54038,
+      "sha256": "434b9907319d47c0b8dc4b6ae4b840b3908734299317f4f7128737a81b1d4475",
       "role": "cowork-source"
     },
     {
       "path": "oimpresso.com.html",
       "change": "modified",
-      "bytes": 34752,
-      "sha256": "11314efec42f22cea1c0bece671a6afd8e838189480bc1a232737c7b6dfa4478",
-      "role": "cowork-source"
-    },
-    {
-      "path": "ponto-fechamento.jsx",
-      "change": "modified",
-      "bytes": 17729,
-      "sha256": "b3d329595f3555232a1cc3531b90fe9f26d1c6df6fba9e5f178fcc6fa0385eb0",
-      "role": "cowork-source"
-    },
-    {
-      "path": "ponto-mobile.jsx",
-      "change": "modified",
-      "bytes": 17717,
-      "sha256": "82a0ae302e18410e79d4d653a5dcb156d047628a8a710b6333799baebce31724",
-      "role": "cowork-source"
-    },
-    {
-      "path": "ponto-page.css",
-      "change": "modified",
-      "bytes": 26024,
-      "sha256": "62852fdbf4ae007b87ff8663ec1120eb4633a353020344e8bc19cd549c64650a",
-      "role": "cowork-source"
-    },
-    {
-      "path": "ponto-page.jsx",
-      "change": "modified",
-      "bytes": 33942,
-      "sha256": "ff7ab70558cb1e8f2dbc70f3fd991fe4f88921c74b792af22b0e74e0314a0a43",
-      "role": "cowork-source"
-    },
-    {
-      "path": "ponto-telas.jsx",
-      "change": "modified",
-      "bytes": 62342,
-      "sha256": "49a7706184413d4be6a9745a45cf8138282ad988e95133cb08f1a7a5920a25db",
-      "role": "cowork-source"
-    },
-    {
-      "path": "ponto-ui.jsx",
-      "change": "modified",
-      "bytes": 17003,
-      "sha256": "aa66bdc92a4d276eecf296998c5327815c4a5d7c0d4f2f5cb88fce6a29ef473e",
-      "role": "cowork-source"
-    },
-    {
-      "path": "sidebar.jsx",
-      "change": "modified",
-      "bytes": 27712,
-      "sha256": "3ff806aa4f0456009842c81b4de1b37dd484729a01563c8d473eace7e1487349",
-      "role": "cowork-source"
-    },
-    {
-      "path": "styles.css",
-      "change": "modified",
-      "bytes": 219505,
-      "sha256": "4b648aa50d7304651f212a296d46da7361655328347625519a2e4c1f199599dd",
+      "bytes": 34753,
+      "sha256": "3c4e3249e8d759300cef3224182cf4ca2500f68e3f5bae67a4ab5e5e9c94c11d",
       "role": "cowork-source"
     }
   ],
@@ -1772,7 +1681,7 @@
     },
     {
       "source": "ponto-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Ponto/Dashboard/Index.tsx",
       "module": "Ponto",
       "mapping": "charter.component",
@@ -1787,7 +1696,7 @@
     },
     {
       "source": "ponto-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Ponto/Espelho/Index.tsx",
       "module": "Ponto",
       "mapping": "charter.component",
@@ -1802,7 +1711,7 @@
     },
     {
       "source": "ponto-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Ponto/Espelho/Show.tsx",
       "module": "Ponto",
       "mapping": "charter.component",
@@ -1817,7 +1726,7 @@
     },
     {
       "source": "ponto-telas.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Ponto/Aprovacoes/Index.tsx",
       "module": "Ponto",
       "mapping": "charter.component",
@@ -1832,7 +1741,7 @@
     },
     {
       "source": "ponto-telas.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Ponto/BancoHoras/Index.tsx",
       "module": "Ponto",
       "mapping": "charter.component",
@@ -1847,7 +1756,7 @@
     },
     {
       "source": "ponto-telas.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Ponto/BancoHoras/Show.tsx",
       "module": "Ponto",
       "mapping": "charter.component",
@@ -1862,7 +1771,7 @@
     },
     {
       "source": "ponto-telas.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Ponto/Colaboradores/Edit.tsx",
       "module": "Ponto",
       "mapping": "charter.component",
@@ -1877,7 +1786,7 @@
     },
     {
       "source": "ponto-telas.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Ponto/Colaboradores/Index.tsx",
       "module": "Ponto",
       "mapping": "charter.component",
@@ -1892,7 +1801,7 @@
     },
     {
       "source": "ponto-telas.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Ponto/Configuracoes/Index.tsx",
       "module": "Ponto",
       "mapping": "charter.component",
@@ -1907,7 +1816,7 @@
     },
     {
       "source": "ponto-telas.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Ponto/Configuracoes/Reps.tsx",
       "module": "Ponto",
       "mapping": "charter.component",
@@ -1922,7 +1831,7 @@
     },
     {
       "source": "ponto-telas.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Ponto/Escalas/Form.tsx",
       "module": "Ponto",
       "mapping": "charter.component",
@@ -1937,7 +1846,7 @@
     },
     {
       "source": "ponto-telas.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Ponto/Escalas/Index.tsx",
       "module": "Ponto",
       "mapping": "charter.component",
@@ -1952,7 +1861,7 @@
     },
     {
       "source": "ponto-telas.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Ponto/Importacoes/Create.tsx",
       "module": "Ponto",
       "mapping": "charter.component",
@@ -1967,7 +1876,7 @@
     },
     {
       "source": "ponto-telas.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Ponto/Importacoes/Index.tsx",
       "module": "Ponto",
       "mapping": "charter.component",
@@ -1982,7 +1891,7 @@
     },
     {
       "source": "ponto-telas.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Ponto/Importacoes/Show.tsx",
       "module": "Ponto",
       "mapping": "charter.component",
@@ -1997,7 +1906,7 @@
     },
     {
       "source": "ponto-telas.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Ponto/Intercorrencias/Create.tsx",
       "module": "Ponto",
       "mapping": "charter.component",
@@ -2012,7 +1921,7 @@
     },
     {
       "source": "ponto-telas.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Ponto/Intercorrencias/Edit.tsx",
       "module": "Ponto",
       "mapping": "charter.component",
@@ -2027,7 +1936,7 @@
     },
     {
       "source": "ponto-telas.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Ponto/Intercorrencias/Index.tsx",
       "module": "Ponto",
       "mapping": "charter.component",
@@ -2042,7 +1951,7 @@
     },
     {
       "source": "ponto-telas.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Ponto/Intercorrencias/Show.tsx",
       "module": "Ponto",
       "mapping": "charter.component",
@@ -2057,7 +1966,7 @@
     },
     {
       "source": "ponto-telas.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Ponto/Relatorios/Index.tsx",
       "module": "Ponto",
       "mapping": "charter.component",
@@ -2914,8 +2823,8 @@
     },
     {
       "path": "documentacao-page.jsx",
-      "bytes": 50948,
-      "sha256": "53deac04d76edd3c5234857ed7143b67fa876b789e5952b623defee67ff7b460",
+      "bytes": 54038,
+      "sha256": "434b9907319d47c0b8dc4b6ae4b840b3908734299317f4f7128737a81b1d4475",
       "role": "cowork-source"
     },
     {
@@ -3634,8 +3543,8 @@
     },
     {
       "path": "oimpresso.com.html",
-      "bytes": 34752,
-      "sha256": "11314efec42f22cea1c0bece671a6afd8e838189480bc1a232737c7b6dfa4478",
+      "bytes": 34753,
+      "sha256": "3c4e3249e8d759300cef3224182cf4ca2500f68e3f5bae67a4ab5e5e9c94c11d",
       "role": "cowork-source"
     },
     {

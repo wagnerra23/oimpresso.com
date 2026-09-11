@@ -4,7 +4,7 @@ irmaos: Bens.charter.md (lei) · memory/requisitos/AssetManagement/RUNBOOK-bens.
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-09-09"
+last_run: "2026-09-11"
 ---
 
 # Casos de Uso & Aceite — Patrimonio/Bens
@@ -20,10 +20,25 @@ last_run: "2026-09-09"
 > MESTRE de valor, e as ações em lote não têm endpoint. Eles ficam no `[BACKLOG]` abaixo —
 > prosa honesta, sem id — e **viram UC na onda que traz o teste**.
 
-> **Onde os testes rodaram:** CT 100 (`oimpresso-staging`, MySQL real), 2026-09-08 —
-> nunca local ([`proibicoes.md §Ambiente`](../../../../memory/proibicoes.md)).
-> Veredito da suíte do arquivo: **4 passed · 23 assertions**.
-> Regressão do módulo inteiro no mesmo estado: **76 passed · 254 assertions**, 0 falhas.
+> **Onde os testes rodaram.** Duas execuções independentes, e a segunda é a que se
+> re-verifica sozinha:
+>
+> · **CI — lane `assetmanagement-pest.yml` (MySQL), run 34597014205, 2026-09-11.**
+>   Suíte do módulo: **105 passed · 348 assertions · 0 skipped**. Este arquivo:
+>   **4 passed · 23 assertions** — o mesmo número da execução manual abaixo, reproduzido
+>   por outra máquina, o que é o ponto de ter as duas.
+>
+> · **CT 100** (`oimpresso-staging`, MySQL real), 2026-09-08 — nunca local
+>   ([`proibicoes.md §Ambiente`](../../../../memory/proibicoes.md)). Suíte do arquivo:
+>   **4 passed · 23 assertions**; módulo inteiro: **76 passed · 254 assertions**, 0 falhas.
+>
+> **Por que a linha do CI foi acrescentada.** Até 2026-09-11 estes três UC tinham por único
+> lastro o run MANUAL de CT 100 — e a lane que os cobria no CI, `Pest AssetManagement`
+> (`modules-pest.yml`), ficava **verde pulando exatamente eles**: ela roda
+> `DB_CONNECTION=sqlite` sem `migrate`, e os quatro casos saíam como `WARN … SQLite-incompatível`
+> num rodapé `40 skipped, 58 passed`. Skip sai exit 0, então o verde não provava nada
+> (LC-13). Recibo de execução à mão não se re-verifica sozinho; agora há quem o re-verifique
+> a cada PR que toque o módulo ou a tela.
 
 ---
 
@@ -46,7 +61,7 @@ last_run: "2026-09-09"
   para o resultado. Sem esse recorte o teste era não-determinista: o CT 100 é base persistente
   e já tinha 82 assets no tenant 98, então com `paginate(25)` o fixture caía fora da primeira
   página e o teste falhava por paginação, não por regra. Medido, não suposto.
-- **Status: 🧪** — os dois cenários passam no CT 100 (run 2026-09-08, seed 1788886934).
+- **Status: 🧪** — os dois cenários passam no CI (lane `assetmanagement-pest`, run 34597014205, 2026-09-11) e no CT 100 (run 2026-09-08, seed 1788886934).
 
 ---
 
@@ -64,7 +79,7 @@ last_run: "2026-09-09"
   estava na árvore do CT 100 (`Inertia page component file [Patrimonio/Bens] does not exist`).
   Defende também o endereço da [ADR 0394](../../../../memory/decisions/0394-endereco-de-ui-do-patrimonio-pages-patrimonio.md):
   mover a tela pra outra pasta quebra este teste.
-- **Status: 🧪** — passa no CT 100 (run 2026-09-08).
+- **Status: 🧪** — passa no CI (lane `assetmanagement-pest`, run 34597014205, 2026-09-11) e no CT 100 (run 2026-09-08).
 
 ---
 
@@ -79,7 +94,7 @@ last_run: "2026-09-09"
   parece funcionar com poucos registros e mente com muitos, porque só enxerga as 25 linhas
   que já chegaram. O `toContain` vem junto do `not->toContain` pelo mesmo motivo: uma busca
   que devolvesse ZERO linha satisfaria a negativa sozinha e passaria pelo motivo errado.
-- **Status: 🧪** — passa no CT 100 (run 2026-09-08).
+- **Status: 🧪** — passa no CI (lane `assetmanagement-pest`, run 34597014205, 2026-09-11) e no CT 100 (run 2026-09-08).
 
 ---
 

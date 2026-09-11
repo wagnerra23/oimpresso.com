@@ -97,6 +97,7 @@ import {
   CompanyPicker,
   SidebarFooter,
   SidebarMenu,
+  SidebarReopenHandle,
 } from '@/Components/cockpit/Sidebar';
 import { useSidebarShortcut } from '@/Components/cockpit/useSidebarShortcut';
 import { LinkedAppsPanel } from '@/Components/cockpit/LinkedApps';
@@ -309,7 +310,9 @@ export default function AppShellV2({
   const [sidebarMode, setSidebarMode] = useState<SidebarMode>(() => {
     if (typeof window === 'undefined') return 'expanded';
     const v = localStorage.getItem(LS.SB_MODE);
-    if (v === 'rail' || v === 'expanded') return v;
+    // A lista filtra valores antigos/inválidos do `localStorage`; `hidden` entra
+    // NELA, sem trocar o parse. Mesmo filtro do protótipo (`app.jsx`, `modoSalvo`).
+    if (v === 'rail' || v === 'expanded' || v === 'hidden') return v;
     return window.matchMedia(AUTO_RAIL_MQ).matches ? 'rail' : 'expanded';
   });
   const sidebarModeRef = useRef(sidebarMode);
@@ -330,6 +333,13 @@ export default function AppShellV2({
   }, []);
   const toggleSidebarMode = useCallback(
     () => chooseSidebarMode(sidebarModeRef.current === 'rail' ? 'expanded' : 'rail'),
+    [chooseSidebarMode],
+  );
+  // ⌘⇧\ some com a sidebar inteira (3º modo). Passa por `chooseSidebarMode`, ou
+  // seja PERSISTE — e por isso `hidden` é só manual: o auto-rail abaixo nunca o
+  // escolhe, senão uma janela estreita esconderia o menu sozinha e sem aviso.
+  const toggleSidebarHidden = useCallback(
+    () => chooseSidebarMode(sidebarModeRef.current === 'hidden' ? 'expanded' : 'hidden'),
     [chooseSidebarMode],
   );
 
@@ -391,15 +401,27 @@ export default function AppShellV2({
         setPaletteOpen((v) => !v);
         return;
       }
-      // Cmd+\ (Mac) ou Ctrl+\ (Windows/Linux) — toggle sidebar rail/expanded
+      // Cmd/Ctrl+\ alterna rail↔expanded; com Shift, alterna hidden↔expanded
+      // (espelha `prototipo-ui/cowork/app.jsx`, único lugar onde os dois convivem).
+      //
+      // A guarda de campo de texto vale só DESTE ramo, e não do ⌘K acima: `\` é um
+      // caractere digitável, então em `input`/`textarea`/`contenteditable` o atalho
+      // competiria com a digitação; o ⌘K é palette global e deve funcionar em
+      // qualquer foco — por isso ele retorna ANTES e nunca chega aqui.
       if ((e.metaKey || e.ctrlKey) && e.key === '\\') {
+        const alvo = e.target as HTMLElement | null;
+        const digitando =
+          !!alvo &&
+          (alvo.tagName === 'INPUT' || alvo.tagName === 'TEXTAREA' || alvo.isContentEditable);
+        if (digitando) return;
         e.preventDefault();
-        toggleSidebarMode();
+        if (e.shiftKey) toggleSidebarHidden();
+        else toggleSidebarMode();
       }
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [toggleSidebarMode]);
+  }, [toggleSidebarMode, toggleSidebarHidden]);
 
   // Activeconv-id fallback se a página não fornecer (controlado externamente)
   const [internalActiveConv, setInternalActiveConv] = useState<string>(() => {
@@ -564,41 +586,52 @@ export default function AppShellV2({
         style={cockpitStyle}
       >
         {/* SIDEBAR — single-pane (UI-0011, 2026-05-05). Toggle Chat/Menu removido.
-            Modos expanded/rail (Wagner 2026-05-16) — protótipo Cowork sidebar.jsx. */}
-        <aside className={`sb${renderSidebarMode === 'rail' ? ' sb--rail' : ''}`}>
-          <div className="sb-top">
-            <CompanyPicker businesses={business.opcoes} fallbackNome={business.nome} />
-          </div>
-          {/* Alerta cert NFe vencendo/vencido (US-NFE-001 último item) — só renderiza
-              em estados críticos via shared prop shell.nfe_cert_status. Silencioso
-              quando OK ou business não emite NFe. */}
-          <NfeCertBadge />
-          <nav className="sb-body" aria-label="Navegação principal">
-            <SidebarMenu items={shellMenu} mode={renderSidebarMode} />
-          </nav>
-          <SidebarFooter
-            nome={user.nome}
-            nomeCurto={user.nomeCurto}
-            email={user.email}
-            cargo={user.cargo}
-            iniciais={user.iniciais}
-            superadminItems={superadminItems}
-            userMenuItems={userMenuItems}
-            vibe={vibe}
-            onVibe={setVibe}
-          />
-          {/* Alça collapse/expand na borda direita — espelha .sb-collapse-handle
-              do protótipo Cowork. Aparece on-hover, atalho ⌘\ duplicado no useEffect. */}
-          <button
-            type="button"
-            className="sb-collapse-handle"
-            onClick={toggleSidebarMode}
-            title={sidebarMode === 'rail' ? 'Expandir sidebar (⌘\\)' : 'Recolher sidebar (⌘\\)'}
-            aria-label={sidebarMode === 'rail' ? 'Expandir sidebar' : 'Recolher sidebar'}
-          >
-            {sidebarMode === 'rail' ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
-          </button>
-        </aside>
+            Modos expanded/rail (Wagner 2026-05-16) e hidden (2026-09-11) — protótipo
+            Cowork sidebar.jsx. Em `hidden` a `<aside>` inteira sai do DOM: quem volta a
+            abrir é a `SidebarReopenHandle` logo abaixo (ou ⌘⇧ barra invertida).
+            No MOBILE ela monta sempre — lá o menu é drawer off-canvas e `hidden` não
+            se aplica (mesma condição do protótipo, `app.jsx`). */}
+        {(isMobile || sidebarMode !== 'hidden') && (
+          <aside className={`sb${renderSidebarMode === 'rail' ? ' sb--rail' : ''}`} data-contract="sb-modos">
+            <div className="sb-top" data-contract="sb-topo">
+              <CompanyPicker businesses={business.opcoes} fallbackNome={business.nome} />
+            </div>
+            {/* Alerta cert NFe vencendo/vencido (US-NFE-001 último item) — só renderiza
+                em estados críticos via shared prop shell.nfe_cert_status. Silencioso
+                quando OK ou business não emite NFe. */}
+            <NfeCertBadge />
+            <nav className="sb-body" aria-label="Navegação principal" data-contract="sb-corpo">
+              <SidebarMenu items={shellMenu} mode={renderSidebarMode} />
+            </nav>
+            <SidebarFooter
+              nome={user.nome}
+              email={user.email}
+              cargo={user.cargo}
+              iniciais={user.iniciais}
+              superadminItems={superadminItems}
+              userMenuItems={userMenuItems}
+              vibe={vibe}
+              onVibe={setVibe}
+            />
+            {/* Alça collapse/expand na borda direita — espelha .sb-collapse-handle
+                do protótipo Cowork. Aparece on-hover, atalho ⌘\ duplicado no useEffect. */}
+            <button
+              type="button"
+              className="sb-collapse-handle"
+              data-contract="sb-alcas"
+              onClick={toggleSidebarMode}
+              title={sidebarMode === 'rail' ? 'Expandir sidebar (⌘\\)' : 'Recolher sidebar (⌘\\)'}
+              aria-label={sidebarMode === 'rail' ? 'Expandir sidebar' : 'Recolher sidebar'}
+            >
+              {sidebarMode === 'rail' ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+            </button>
+          </aside>
+        )}
+        {/* Alça de reabrir — só no desktop em `hidden`. É `position: fixed`, logo NÃO
+            entra no grid; quem tira a coluna é `.cockpit[data-sidebar="hidden"]`. */}
+        {!isMobile && sidebarMode === 'hidden' && (
+          <SidebarReopenHandle onOpen={() => chooseSidebarMode('expanded')} />
+        )}
 
         {/* Mobile (≤768px): hambúrguer flutuante + backdrop — Wagner 2026-06-17
             (handoff Cowork). Só monta no mobile; no desktop não existe no DOM. */}

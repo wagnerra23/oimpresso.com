@@ -1,3 +1,18 @@
+> ⛔ **RECEITA JÁ EXECUTADA — NÃO RODAR (selado em 2026-09-11).**
+>
+> Este guia baixa por `curl` e recria `prototipo-ui/tokens.css`, `prototipo-ui/design-system.css`
+> e `prototipo-ui/Design System v4.html`. **Os três foram apagados na faxina de 2026-09-11**, por
+> autorização [W], depois de medido que o DS canônico é o espelho do projeto Cowork `019dd02f`
+> (`prototipo-ui/design-system/`) e que **26/26** dos tokens consumidos já viviam lá. Rodar isto
+> hoje **ressuscita o 3º DS** que a faxina removeu — é regressão, não conserto.
+>
+> Some-se: as URLs `claudeusercontent.com` do bloco abaixo são **efêmeras (~1h, L-09/§10.1)** e
+> venceram em 2026-05-29. Elas não baixam mais nada — o `curl` falha ou traz lixo.
+>
+> Fica como **registro histórico** do que foi feito naquela data (a virada roxo v4 pousou e está
+> em produção). Lápide da remoção: [`prototipo-ui/_arquivo/ds/README.md`](../../_arquivo/ds/README.md).
+
+---
 # APLICAR O DESIGN SYSTEM v4 (ROXO) NO REPO + AUDITORIA
 
 > **Para:** Wagner · **Origem:** Cowork [CC] · 2026-05-29
