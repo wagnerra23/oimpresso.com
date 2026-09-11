@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-10**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-11**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -72,7 +72,7 @@ lente: [construir]
 
 ## Programa SDD (governança)
 
-- Scorecard: **12/13** métricas medidas · floor full-suite = **295**.
+- Scorecard: **11/13** métricas medidas · floor full-suite = **290**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -130,13 +130,13 @@ lente: [construir]
 - espelho — mexeu depois de verificar
 - Governance Gate (índice + memory-health + meta-teste)
 
-### Censo — 142 workflows por classe
+### Censo — 143 workflows por classe
 
 > Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
 
 | Classe | Qtd | Exemplos |
 |---|---|---|
-| gate (bloqueia/valida PR) | 107 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
+| gate (bloqueia/valida PR) | 108 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
 | meta (testa os gates) | 7 | block-brl-values-selftest, devcontainer-firewall, gate-selftest, guards-meta-gate, … |
 | automacao (cron/dispatch) | 24 | agent-cost-per-pr, agent-pr-outcomes, baseline-folga, briefing-code-staleness, … |
 | deploy (entrega) | 2 | deploy, quick-sync |
@@ -349,14 +349,14 @@ lente: [construir]
 
 ## Rastro
 
-- **516** handoffs · **718** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **518** handoffs · **722** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-09-10-reanalise-processo-prototipo`
+  - `2026-09-10-memory-schema-gate-mudo`
+  - `2026-09-10-handoff-14-versoes-divergentes`
+  - `2026-09-10-bundle-baseline-frescor`
   - `2026-09-09-evidencias-fluxos-prototipo`
   - `2026-09-09-espelho-cowork-live-only-remedido`
-  - `2026-09-08-session-02`
-  - `2026-09-08-patrimonio-manutencoes-gate-e-conserto-403`
-  - `2026-09-08-onda7-paridade-crm-jana-forja`
-  - `2026-09-08-onda7-financeiro-recurring-paridade-medida`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-09-10 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-09-11 · deriva das fontes canônicas, não as substitui._
