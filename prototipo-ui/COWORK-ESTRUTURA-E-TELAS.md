@@ -10,7 +10,8 @@ Você (Cowork) tem que **adotar a estrutura nova + reconstruir** como exporta:
    - Apague resíduo de processo: `_arquivo/`, `benchmark/`, `uploads/`, screenshots-as-source, prompts `GAPS_*`/`FORCE_*`, e os docs `Adversário`/`Tribunal`/`Avaliação`/`Estado-da-Arte` (a conclusão deles vira `memory/`; o cru sai).
    - Apague charters/casos do seu export — são canon vivo (`resources/js/Pages/`).
 2. **Reconstrua o export = só BUILD** (jsx/tsx/css/html). Seu zip daqui pra frente leva só isso.
-3. **Re-exporte as 2 telas órfãs** que faltam no `cowork/`: **`compras-grade-matrix`** e **`inventario-migracao`** (a máquina trava nelas até você exportar — allowlist zera).
+3. **Não recrie cópias das telas migradas.** `compras-grade-matrix` e
+   `inventario-migracao` já foram consolidadas em `cowork/`; o allowlist transitório foi zerado.
 4. **Adote o read-order**: no início de cada sessão leia (no `main`/MCP) → **este doc** + **`FRESCOR-PRODUCAO-vs-PROTOTIPO.md`** + o **charter** da tela que vai mexer.
 
 ## 🔁 ROTINA (cada handoff)
@@ -23,11 +24,13 @@ Você (Cowork) tem que **adotar a estrutura nova + reconstruir** como exporta:
    node scripts/design-sync/gerar-payload-partes.mjs --root <dir-do-projeto> --out sync/ --previous sync/bundle.manifest.json
    ```
 
-   Suba `sync/bundle.manifest.json` + as partes, e escreva no `github.md`, junto do bloco do ciclo, a linha `bundle regenerado (<data> · N arquivos)` — é o **recibo** que o Code audita ao abrir ciclo ([ADR 0387](../memory/decisions/0387-github-md-diario-cowork-aceito-e-tratado.md)).
+   Suba `sync/bundle.manifest.json` + as partes. O recibo do ciclo é o manifesto do bundle;
+   `.md` não viaja no pacote nem cria uma segunda árvore no protótipo ([ADR 0390](../memory/decisions/0390-prototipo-fonte-unica-build-sem-canon-sombra.md)).
    > **Por que é você, e não uma máquina do repo:** o gerador só roda de onde os arquivos estão em disco — [`gerar-payload-partes.mjs`](../scripts/design-sync/gerar-payload-partes.mjs) declara no cabeçalho *"NÃO roda do lado do agente consumidor"*, porque lá o conteúdo chegaria pelo contexto do agente, e escrever de lá é transcrição (proibida — ADR 0374). Sem pacote fresco, a descida cai na rota arquivo-a-arquivo, que esquece css/js por natureza. A **forma** do pacote (tamanho de parte, digest, delta × snapshot) já está acordada em [`CODE_NOTES.prompt-cowork-payload-gerador-2026-08-22.md`](CODE_NOTES.prompt-cowork-payload-gerador-2026-08-22.md) — nada muda nela.
 5. Pendência sua → `COWORK_NOTES.md` "📥 Pendentes"; leia o retorno do Code em `CODE_NOTES.md` + `FRESCOR`.
 6. **Nunca**: memória própria · despejo de sessão · transporte (PNG/dupes) · duplicar charter/process-doc.
-> A máquina `cowork-ssot-guard` **dá erro** se quebrar isso (`.md` no `cowork/` · bundle datado · protótipo fora do lugar).
+> As máquinas **dão erro antes de escrever** se houver `.md`/canon no lote, conteúdo
+> byte-idêntico em dois paths, bundle datado ou protótipo ativo fora do lugar.
 
 ## Por que mudou
 Antes: cada handoff era um zip flat despejado em pastas espalhadas (`prototipos/<tela>/`) + cópia da memória → **bagunça, sem diff, fonte stale, duplicação**. Agora: **1 fonte da verdade com histórico**, memória única canônica, e um canal que te diz onde a produção já te passou.
@@ -35,7 +38,7 @@ Antes: cada handoff era um zip flat despejado em pastas espalhadas (`prototipos/
 ## A estrutura (o que é o quê)
 | Camada | Onde | Quem manda | Você (design) |
 |---|---|---|---|
-| **Seu export visual** | `prototipo-ui/cowork/` (sobrescrito a cada handoff) | **Cowork** | exporta aqui (só fonte: jsx/tsx/css/html) |
+| **Seu export visual** | `prototipo-ui/cowork/` (atualizado atomicamente) | **Cowork** | exporta build e dependências, preservando o path relativo |
 | **Memória** (decisões, sessões, regras) | `memory/**` → **MCP** | **repo/canon** | **só LÊ** (nunca mantenha memória paralela) |
 | **Charters & casos** (contrato por tela) | `resources/js/Pages/**/*.charter.md` · `*.casos.md` | **repo/canon** | **só LÊ** (NÃO re-crie/duplique no seu export) |
 | **Tela viva** (produção) | `resources/js/Pages/**/*.tsx` no `main` | **repo/canon** | **só LÊ** (é o estado real, não sua fotocópia) |
@@ -75,7 +78,7 @@ Antes: cada handoff era um zip flat despejado em pastas espalhadas (`prototipos/
 | `*-page.jsx`/`.tsx`/`.css`/`.html` (build da tela) | `prototipo-ui/cowork/` | design SSOT (build) |
 | `*.charter.md` | canon `resources/js/Pages/<Mod>/<Tela>.charter.md` | contrato vivo — você lê/atualiza, não duplica |
 | `*.casos.md` | canon (ao lado do charter) | casos de uso |
-| sessão/análise `.md` (raciocínio) | **destilar** resumo no charter/SPEC; raw fica no zip | conhecimento = canon, não dump |
+| sessão/análise `.md` (raciocínio) | **destilar** resumo no charter/SPEC; raw fica no workspace de origem | conhecimento = canon, não dump |
 | process docs (STATUS/CODE_NOTES/PROTOCOL…) | já são canon em `prototipo-ui/` root | não re-exportar |
 | `memory/**` do export | **ignorar** (canon é o repo/MCP) | fonte única de memória |
 | ADRs | canon `memory/decisions/` | não duplicar |
@@ -103,7 +106,7 @@ Cada tela tem um **charter** (`<Tela>.charter.md`) = o contrato: missão, goals/
 > Já existem — **use, não crie doc novo** (anti-scatter).
 
 ## A máquina que protege isso (nunca mais acontece)
-[`scripts/governance/cowork-ssot-guard.mjs`](../scripts/governance/cowork-ssot-guard.mjs) (roda no `design-memory-gate.yml`) **dá erro** se: `.md` no `cowork/` · bundle datado `cowork-*` · protótipo fora do `cowork/`. Allowlist transitório (`compras-grade-matrix`, `inventario-migracao`) = telas que VOCÊ deve exportar pro `cowork/` pra zerar.
+[`scripts/governance/cowork-ssot-guard.mjs`](../scripts/governance/cowork-ssot-guard.mjs) (roda no `design-memory-gate.yml`) **dá erro** se: `.md` no `cowork/` · bundle datado `cowork-*` · protótipo ativo fora do `cowork/` · dois arquivos rastreados com os mesmos bytes. O allowlist transitório está zerado.
 
 ---
 _O passo 4 da ROTINA (regenerar o pacote) entrou em **2026-09-01**. O pedido já existia desde 2026-08-22 em `CODE_NOTES.prompt-*`, mas a medição daquele dia mostrou que **nenhum** dos 6 documentos do read-order do Cowork o mencionava — a instrução estava fora do caminho que a sessão de design percorre. Sintoma que a denunciou: `sync/bundle.manifest.json` congelado em 2026-08-24T22:49Z, com 3 ciclos de design fechados fora dele._

@@ -73,7 +73,7 @@
 | `[ ]` | `NfeBrasil/Tributacao/Index` | charter ausente; sem material canon |
 | `[ ]` | `NfeBrasil/Transactions/NfceStatus` | charter ausente; sem material canon |
 | `[ ]` | `Whatsapp/Conversations/Index` | charter ausente; sem material canon |
-| `[ ]` | `Inventario/Index` | HTML do canon 2026-05-09 é meta-doc de migração, não protótipo de tela operacional. Pino F1 [aqui](prototipos/inventario-migracao/) é placeholder. Charter precisa nascer com escopo claro (lista vs entradas/saídas vs ajuste). |
+| `[ ]` | `Inventario/Index` | A referência consolidada está em [`cowork/inventario-migracao/index.html`](cowork/inventario-migracao/index.html). Charter precisa nascer com escopo claro (lista vs entradas/saídas vs ajuste). |
 
 ## P3 — Site público (vitrine de vendas)
 

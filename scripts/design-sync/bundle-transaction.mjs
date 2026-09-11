@@ -21,7 +21,6 @@ import { verificarMapa } from '../governance/design-code-map-check.mjs';
 
 export const DEFAULT_PATHS = {
   cowork: 'prototipo-ui/cowork',
-  docs: 'prototipo-ui/design-docs',
   runtime: 'scripts/design-sync/mirror-snapshot',
   state: 'scripts/design-sync/state',
 };
@@ -38,7 +37,6 @@ function resolveInside(root, path) {
 function targetForLogical(path, roots) {
   const rel = normalizePayloadPath(path);
   if (roleForPath(rel) === 'preview-cache') return { key: 'runtime', rel: dsRuntimeRelPath(rel), root: roots.runtime };
-  if (roleForPath(rel) === 'design-doc') return { key: 'docs', rel, root: roots.docs };
   return { key: 'cowork', rel, root: roots.cowork };
 }
 

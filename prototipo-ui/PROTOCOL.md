@@ -337,35 +337,38 @@ SHA-256, bundle-base e sequência exata de partes. A primeira recepção é `sna
 são `delta`: somente `added/modified` carregam bytes, enquanto `deleted` e `unchanged` são
 decisões do manifesto. Arquivo grande é remontado por chunks verificados.
 
-Receber o bundle não equivale a aplicar o produto. O consumidor primeiro monta quatro destinos
-em staging (espelho Cowork, design-docs, runtime `_ds` e estado), valida o grafo e todos os hashes,
+Receber o bundle não equivale a aplicar o produto. O consumidor primeiro monta três destinos
+em staging (espelho Cowork, runtime `_ds` e estado), valida o grafo e todos os hashes,
 e só então promove os diretórios. Falta de parte, base divergente, corrupção ou falha de swap
 mantêm o estado anterior. O inventário pós-recepção lista fonte, Page React, módulo, mapeamento
 1:N e ação. Evidência de aplicação/teste é ligada aos hashes atuais; mudança posterior a invalida.
+
+O destino Cowork é **build-only** e preserva o path relativo literal. Documento, charter, casos,
+contrato, conteúdo duplicado ou extensão fora do contrato recusam o lote inteiro antes da
+promoção. A importação não edita âncoras; a antiga árvore `design-docs/` foi removida
+([ADR 0390](../memory/decisions/0390-prototipo-fonte-unica-build-sem-canon-sombra.md)).
 
 `_ds` permanece **cache derivado do preview**, não estado nem histórico. A base do próximo delta,
 o relatório do que mudou e as provas de aplicação ficam fora dele, em `scripts/design-sync/state/`.
 Comandos e destinos executáveis continuam tendo [`protocolo.config.mjs`](protocolo.config.mjs)
 como fonte única.
 
-### 10.7 `github.md` — o diário de sync do lado design (aceito e tratado — ADR 0387)
+### 10.7 `github.md` — diário lido na origem, sem cópia-sombra (ADR 0390)
 
 O projeto Cowork mantém um diário de bordo, `github.md`: `## Last sync` (data + hash de árvore),
 um bloco `### Updated in this project` por ciclo (o que mudou no protótipo, achados 🔴 lidos do
 código vivo, erratas do próprio `[CC]`, decisões pendentes `[W]`) e o `## Screen map`
-(protótipo ↔ arquivos do repo). É o **handoff do lado design** — contraparte do
-`memory/handoffs/` do lado code ([ADR 0387](../memory/decisions/0387-github-md-diario-cowork-aceito-e-tratado.md)).
+(protótipo ↔ arquivos do repo). É insumo do handoff do lado design, não uma segunda fonte.
 
-- **Cópia tratada:** `prototipo-ui/design-docs/github.md` (a **raiz** — a que o export atualiza).
-  `design-docs/_projeto-cowork/**` é retrato interno do próprio projeto, não a cópia tratada.
+- **Leitura:** `github.md` é lido na origem via DesignSync. Não é importado; o conteúdo útil é
+  destilado no dono canônico.
 - **Quando ler:** na fase −1, **antes** de decidir o ciclo — o bloco `[DIARIO]` do
   [`protocolo.config.mjs`](protocolo.config.mjs) tem os comandos (fonte única; não os copie pra cá).
 - **O que é / não é:** **registro, não fonte** — achado 🔴 do diário vira trabalho **depois** de
   verificado contra o `main` (regra do próprio `[CC]`: fato sobre o repo exige leitura do `main`
   no turno); decisão pendente `[W]` listada nele entra na fila de decisão, não se resolve sozinha.
-- **Frescor:** a cópia tratada vale o seu `Last sync` — citou pra decidir, date a citação; em
-  dúvida, refresque pelo transporte (bundle/`--export-from`; transcrição à mão proibida —
-  [ADR 0374](../memory/decisions/0374-emenda-0315-espelho-cowork-e-rota-prevista.md)).
+- **Frescor:** vale o `Last sync` lido na origem. O bundle transporta o build; `.md` não entra no
+  bundle nem no `--export-from` do destino Cowork.
 
 ## 11. Links
 

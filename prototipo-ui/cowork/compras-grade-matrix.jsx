@@ -1,5 +1,5 @@
 // compras-grade-matrix.jsx — Grade Matrix (tam × cor) para entrada de compra vestuário.
-// Portado de prototipo-ui/prototipos/compras-grade-matrix/page.jsx @main (lido neste turno).
+// Fonte consolidada no espelho ativo; a origem anterior permanece recuperável no histórico git.
 // Persona: Larissa @ ROTA LIVRE (1280px, balcão, densidade + atalhos).
 // Backend vivo: Purchase/_components/GradeMatrixInput.tsx + app/Services/Purchase/GradeLayoutBuilder.php.
 // Mudanças vs original: paleta bespoke → tokens .cockpit; prompt() → preenchimento inline;

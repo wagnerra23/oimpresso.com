@@ -27,7 +27,9 @@
 //       pra prototipos/ no mesmo PR que criou a regra, então dívida herdada = 0 por medição)
 //
 // Uso: node scripts/governance/cowork-ssot-guard.mjs [--json]
-import { readdirSync, existsSync } from 'node:fs';
+import { readdirSync, existsSync, readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 
 const ROOT = process.cwd();
@@ -37,7 +39,7 @@ const COWORK = 'prototipo-ui/cowork';
 // O DESIGN deve exportá-las pro cowork/ (ver FRESCOR). Migrou → REMOVER daqui (meta: allowlist = 0).
 // 'perfil' = baseline da Fase 0 do protocolo aplicar-prototipo (2026-06-24, handoff ComVis);
 // transitório como os outros — sai daqui quando o design exportar pro cowork/.
-const PROTOTIPOS_ALLOWLIST = new Set(['compras-grade-matrix', 'inventario-migracao', 'perfil']);
+const PROTOTIPOS_ALLOWLIST = new Set([]);
 
 // NATUREZA DIFERENTE do allowlist acima (que é transitório, meta = 0): estes são ÂNCORAS
 // HISTÓRICAS — protótipo cuja cópia upstream foi APOSENTADA por decisão [W], mas que um
@@ -98,6 +100,31 @@ if (existsSync(coworkAbs)) {
       errors.push(`R4 segundo .html na raiz do espelho (host único é oimpresso.com.html; protótipo standalone aposentado vai pra prototipos/ com decisão [W]): ${COWORK}/${e.name}`);
     }
   }
+}
+
+// R5 — zero conteúdo duplicado nos arquivos VERSIONÁVEIS de prototipo-ui/ (tracked + novos).
+// O Git já preserva o histórico. Uma segunda cópia física no working tree cria dois donos,
+// âncoras ambíguas e importações que parecem mover arquivos. A comparação é pelos bytes,
+// não pelo nome; fixtures também precisam representar entradas realmente distintas.
+try {
+  const tracked = execFileSync('git', [
+    '-c', `safe.directory=${ROOT.replace(/\\/g, '/')}`,
+    'ls-files', '-z', '--cached', '--others', '--exclude-standard', '--', 'prototipo-ui',
+  ], { cwd: ROOT, encoding: 'utf8' }).split('\0').filter(Boolean);
+  const byHash = new Map();
+  for (const rel of tracked) {
+    const abs = join(ROOT, rel);
+    if (!existsSync(abs)) continue;
+    const hash = createHash('sha256').update(readFileSync(abs)).digest('hex');
+    const paths = byHash.get(hash) || [];
+    paths.push(rel.replace(/\\/g, '/'));
+    byHash.set(hash, paths);
+  }
+  for (const paths of byHash.values()) {
+    if (paths.length > 1) errors.push(`R5 conteúdo duplicado (mantenha um único dono): ${paths.join(' = ')}`);
+  }
+} catch (error) {
+  errors.push(`R5 não conseguiu inventariar os arquivos rastreados: ${error.message}`);
 }
 
 if (process.argv.includes('--json')) {

@@ -62,8 +62,8 @@ function sourceSnapshot(label = 'v1') {
     ['financeiro-page.jsx', Buffer.from(`export const Financeiro='${label}';\n`)],
     ['superadmin-page.jsx', Buffer.from(`export const Superadmin='${label}';\n`)],
     ['officeimpresso-page.jsx', Buffer.from(`export const Officeimpresso='${label}';\n`)],
+    ['removido.js', Buffer.from(`export const Removido='${label}';\n`)],
     ['_ds/ds-live/colors_and_type.css', Buffer.from(`:root{--ds:${label}}\n`)],
-    ['cowork-inbox/LEIAME.md', Buffer.from(`# ${label}\n`)],
   ]);
 }
 
@@ -135,7 +135,6 @@ console.log('\n=== snapshot completo + roteamento + plano modular ===');
   check('_ds pousa apenas no runtime derivado',
     existsSync(join(root, 'scripts/design-sync/mirror-snapshot/colors_and_type.css')) &&
     !existsSync(join(root, 'prototipo-ui/cowork/_ds')));
-  check('documento pousa fora do espelho build-only', existsSync(join(root, 'prototipo-ui/design-docs/cowork-inbox/LEIAME.md')));
   check('estado ativo registra o bundle exato', JSON.parse(readFileSync(join(root, 'scripts/design-sync/state/active-bundle.json'), 'utf8')).bundleId === manifest.bundleId);
   const report = result.report;
   const superadmin = report.screens.filter((screen) => screen.source === 'superadmin-page.jsx');
@@ -147,6 +146,19 @@ console.log('\n=== snapshot completo + roteamento + plano modular ===');
   check('CLI lista arquivos + módulos sem abrir JSON na mão', /ARQUIVOS MODIFICADOS/.test(status) && /Officeimpresso/.test(status) && /Superadmin/.test(status));
   check('CLI --check-mapping libera mapeamento completo',
     execFileSync(process.execPath, [STATUS, '--root', root, '--check-mapping'], { encoding: 'utf8' }).includes('DESIGN-SYNC'));
+}
+
+console.log('\n=== contrato build-only recusa canon e duplicata antes da transação ===');
+{
+  const comDocumento = sourceSnapshot();
+  comDocumento.set('cowork-inbox/LEIAME.md', Buffer.from('# doc\n'));
+  await rejects('documento não entra no bundle nem cria canon-sombra',
+    async () => manifestFor(comDocumento), /fora do contrato build-only/);
+
+  const comDuplicata = sourceSnapshot();
+  comDuplicata.set('copia/styles.css', comDuplicata.get('styles.css'));
+  await rejects('mesmos bytes em dois paths ativos são recusados',
+    async () => manifestFor(comDuplicata), /conteúdo duplicado/);
 }
 
 console.log('\n=== transporte completo pode pousar, aplicação órfã continua bloqueada ===');
@@ -320,17 +332,17 @@ console.log('\n=== delta baixa só mudanças, remove owned e preserva unchanged 
 
   const after = sourceSnapshot('v2');
   after.set('nao-referenciado.js', Buffer.from('export const novo=true;\n'));
-  after.delete('cowork-inbox/LEIAME.md');
+  after.delete('removido.js');
   // Mantém o Officeimpresso byte-idêntico para provar que não viaja no delta.
   after.set('officeimpresso-page.jsx', before.get('officeimpresso-page.jsx'));
   const m2 = manifestFor(after, m1);
   const parts = partsFor(m2, after);
   const transported = parts.flatMap((part) => part.chunks.map((chunk) => chunk.path));
   check('unchanged não viaja', !transported.includes('officeimpresso-page.jsx'));
-  check('deleted não viaja como conteúdo', !transported.includes('cowork-inbox/LEIAME.md'));
+  check('deleted não viaja como conteúdo', !transported.includes('removido.js'));
   await applyBundleTransaction({ root, parts });
   check('modified foi promovido', readFileSync(join(root, 'prototipo-ui/cowork/styles.css'), 'utf8').includes('v2'));
-  check('deleted owned foi removido', !existsSync(join(root, 'prototipo-ui/design-docs/cowork-inbox/LEIAME.md')));
+  check('deleted owned foi removido', !existsSync(join(root, 'prototipo-ui/cowork/removido.js')));
   check('arquivo fora do manifesto é preservado', readFileSync(join(root, 'prototipo-ui/cowork/unmanaged-local.txt'), 'utf8') === 'preservar\n');
 }
 

@@ -9,7 +9,7 @@ status: aguardando-screenshot-wagner
 runbook: memory/requisitos/Estoque/_telas/RUNBOOK-stock-transfer-create.md
 draft_tsx: resources/js/Pages/StockTransfer/Create.tsx
 controller_delta: app/Http/Controllers/StockTransferController.php@createInertia
-cowork_source: prototipo-ui/prototipos/inventario-migracao/visual-source.html
+cowork_source: prototipo-ui/cowork/inventario-migracao/index.html
 ---
 
 # Visual Comparison — `stock_transfers/create` (FORM CREATE)

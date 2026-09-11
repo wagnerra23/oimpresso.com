@@ -233,7 +233,8 @@ export const FASES = [
   // COROLARIO que abre a rota: partes de payload <=256 KiB ficam ACIMA da fronteira, entao
   // persistem — da pra baixar as ~14 partes por get_file e aplicar, SEM URL curta.
   //
-  // Dono da rota completa: `prototipo-ui/design-docs/sync/README.md` (esta no git, leitura direta).
+  // Dono da rota completa: `scripts/design-sync/gerar-payload-partes.mjs` +
+  // `scripts/design-sync/aplicar-payload.mjs` (implementação executável no git).
   // ⚠️ PONTEIRO CORRIGIDO (medido 2026-08-27): esta linha mandava ler `sync/README.md` NO PROJETO
   // Cowork via `DesignSync.get_file` — e la ele NAO EXISTE (HTTP 404 not_found). O `list_files`
   // do projeto mostra `sync/` com o `bundle.manifest.json` e as `payload.partNN.json`, nada mais.
@@ -290,20 +291,19 @@ export const FASES = [
       '#  cita arquivos-page.jsx, arquivos-data.jsx e modulos-faltantes.css. Shell velho = detector cego,',
       '#  e o cego responde 0 com confianca. Refresque o shell ANTES de confiar no ABSENT-LOCAL.',
       '# [PONTE / INTAKE] o PEDIDO vive em cowork-inbox/<modulo>/ — nao e o design, e o QUE fazer com ele.',
-      '#   Medido 2026-08-24: este painel nao citava cowork-inbox nem design-docs em lugar nenhum, entao a',
+      '#   Medido 2026-08-24: este painel nao citava cowork-inbox em lugar nenhum, entao a',
       '#   intake so existia em prosa (PROTOCOL 87-88) e a sessao trouxe o .jsx e deixou o pedido pra tras.',
       'DesignSync.list_files(projectId=COWORK_PROJECT_ID)                              # ache cowork-inbox/<mod>/ e modulos-faltantes/<mod>.*',
       'DesignSync.get_file(projectId=COWORK_PROJECT_ID, path=cowork-inbox/<mod>/<PEDIDO|PROMPT>.md)',
-      'node scripts/governance/cowork-mirror-freshness.mjs --export-from <dir-jsons>   # .md ROTEIA pra prototipo-ui/design-docs/ (R1 do ssot-guard proibe .md em cowork/)',
-      '  ^ TRAGA o pedido/handoff (PEDIDO-*, PROMPT-*): sem ele a proveniencia do charter fica so no corpo do PR.',
+      '# .md/canon NAO entra no --export-from: leia o pedido e destile o que for valido no dono canonico (ADR 0390).',
+      '  ^ NAO misture pedido/handoff no lote build-only: a transacao recusa o lote inteiro antes de escrever.',
       '  ^ NAO traga rascunho de charter/casos/contract: PROTOCOL 10.4 = nao trazer rascunho pro canon.',
       '    O canon nasce em resources/js/Pages/<Mod>/ via criar-tela.mjs, reconciliado contra SPEC/ADR.',
-      '# [DIARIO / HANDOFF DO DESIGN] github.md = diario de sync do [CC] (ADR 0387, PROTOCOL 10.7):',
-      '#   Last sync, achados, erratas e decisoes pendentes [W]. TRATE-O: leia ANTES de decidir o ciclo —',
-      '#   e o indice do que o design fez e do que espera de voce. Copia tratada =',
-      '#   prototipo-ui/design-docs/github.md (raiz; _projeto-cowork/** e retrato interno do projeto).',
+      '# [DIARIO / HANDOFF DO DESIGN] github.md e insumo do ciclo, nao copia versionada (ADR 0390):',
+      '#   leia Last sync, achados, erratas e decisoes pendentes [W] antes de decidir o ciclo;',
+      '#   valide contra main e destile apenas o que tiver dono canonico.',
       '#   Registro, NAO fonte: achado do diario vira trabalho DEPOIS de verificado contra o main.',
-      'DesignSync.get_file(projectId=COWORK_PROJECT_ID, path=github.md)                # LER e livre (0315 Eixo B); pouso fiel = bundle/--export-from (transcricao proibida, 0374)',
+      'DesignSync.get_file(projectId=COWORK_PROJECT_ID, path=github.md)                # leitura livre; destile no dono canonico',
     ], selftest: 'node prototipo-ui/handoff-changed.mjs --selftest' },
   { fase: '0/0.5', nome: 'Detectar + manifesto', comandos: [
       'node prototipo-ui/detectar-telas.mjs --staging <dir> --json --strict',

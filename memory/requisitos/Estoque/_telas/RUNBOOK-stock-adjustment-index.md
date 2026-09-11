@@ -9,7 +9,7 @@ generated_at: 2026-05-15
 generated_by: Agent W2-D
 status: ativo
 adr_refs: [0104, 0093, 0114, 0149]
-blueprint_cowork: prototipo-ui/prototipos/inventario-migracao/visual-source.html
+blueprint_cowork: prototipo-ui/cowork/inventario-migracao/index.html
 ---
 
 # RUNBOOK — `stock_adjustment/index` (LIST)

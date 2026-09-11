@@ -1,4 +1,4 @@
-// Financeiro/Conciliacao — format-2 (idêntico ao vivo → IDENTICO/no-op)
+// Financeiro/Conciliacao — staging format-2 (difere do vivo → ALTERADO)
 export default function Conciliacao() {
   return <div className="text-destructive">conciliacao</div>;
 }

@@ -2,10 +2,11 @@
 id: resources-js-pages-user-perfil-charter
 page: /perfil (canon Inertia) · /user/profile (legacy Blade · intacto)
 component: resources/js/Pages/User/Perfil.tsx
-related_prototype: n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)
+related_prototype: prototipo-ui/cowork/perfil-page.jsx
+bundle_source: perfil-page.jsx
 owner: wagner
 status: draft
-last_validated: '2026-06-24'
+last_validated: '2026-09-11'
 charter_version: 1
 parent_module: User / Conta
 related_adrs:
@@ -23,7 +24,7 @@ tier: B
 
 Redesign Inertia da tela "Meu perfil" (conta do usuário logado), migrando o legado
 `resources/views/user/profile.blade.php` (UltimatePOS HRM) pro canon UI v2. Origem:
-handoff Cowork ComVis (`prototipo-ui/prototipos/perfil/`). **Tela de teste do protocolo
+handoff Cowork ComVis (fonte consolidada em `prototipo-ui/cowork/perfil-page.jsx`). **Tela de teste do protocolo
 `aplicar-prototipo`** — sem sinal de cliente pagante (ADR 0105); justificativa = trabalho
 de processo. PageHeader v3 canônico forçado (decisão Wagner 2026-06-24).
 
@@ -66,7 +67,7 @@ de processo. PageHeader v3 canônico forçado (decisão Wagner 2026-06-24).
 
 ## Refs
 
-- Protótipo Cowork: `prototipo-ui/prototipos/perfil/` (perfil-page.jsx/css + perfil.png + SOURCE.md)
+- Protótipo Cowork: `prototipo-ui/cowork/perfil-page.jsx` + `perfil-page.css` — fonte única; a cópia de baseline foi removida em 2026-09-11.
 - Legado: `resources/views/user/profile.blade.php` + `user/form.blade.php` (chaves `bank_details.*`)
 - ADR 0104 (MWART) · ADR 0189/0190 (PageHeader canon + primary roxo) · ADR 0093 (Tier 0) · ADR 0105 (cliente-sinal)
 - Teste: `tests/Feature/Perfil/PerfilSmokeTest.php`

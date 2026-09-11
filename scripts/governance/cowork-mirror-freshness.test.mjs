@@ -26,12 +26,8 @@ import {
   slaVerdict,
   liveOnly,
   liveOnlyDetalhado,
-  buildDocsSet,
   liveOnlyEntry,
   liveOnlyVerdict,
-  docsEntry,
-  docsVerdict,
-  DOCS_SLA_DAYS,
   desqualificacaoLiveOnly,
   lerBundlePromovido,
   LIVE_ONLY_SLA_DAYS,
@@ -357,19 +353,15 @@ check('mesmo número → mesmo veredito (independe de --check)',
   // `PROMPT_PARA_CODE_*.md` e charters/casos escritos do lado do design. Eles dizem COMO
   // CONSTRUIR A TELA. Fica o BITE (detecta) + o controle do `.png`, que segue fora de
   // propósito — imagem não é fonte de construção e tem guard próprio (block-ancora-no-olho).
-  check('BITE liveOnly: .md do vivo fora do espelho APARECE (F1/PROMPT_PARA_CODE)',
-    JSON.stringify(liveOnly(['cowork-inbox/SUPERADMIN-F1-2026-08-18.md'], man)) === '["cowork-inbox/SUPERADMIN-F1-2026-08-18.md"]');
+  check('BITE liveOnly: .md do vivo fica visível como ignorado, não como build ausente',
+    liveOnlyDetalhado(['cowork-inbox/SUPERADMIN-F1-2026-08-18.md'], man).ignorados
+      .some((item) => item.path.endsWith('.md') && /build-only/.test(item.motivo)));
   check('CONTROLE liveOnly: .png segue fora (não é fonte de construção)',
     liveOnly(['screenshots/tela.png'], man).length === 0);
   check('CONTROLE liveOnly: .md em _arquivo/ (morto upstream) NAO acusa',
     liveOnly(['_arquivo/docs-legado/velho.md'], man).length === 0);
 
-  // ── O DETECTOR CONHECE OS 3 DESFECHOS DO EXPORTADOR (2026-08-28) ────────────────
-  // Ele só conhecia um (`cowork/`) e acusava como "nunca desceu" o que o `exportPlan`
-  // RECUSA por regra, e o `.md` que ele mesmo roteia pra `design-docs/`.
-  // MEDIDO no corpus real (935 paths do list_files): 412 acusados, dos quais
-  //   152 canon de tela (recusado) + 146 `.md` já em design-docs = 298 = 72% de FP.
-  // Detector com 72% de ruído não é conservador — é ignorado.
+  // O detector conhece o contrato build-only e não cobra canon de tela como fonte ausente.
   {
     // 1) CANON DE TELA — o exportPlan RECUSA (PROTOCOL 10.4). Não é allowlist: usa a MESMA
     //    regra do exportador, provada aqui pelo par com o exportPlan.
@@ -381,33 +373,12 @@ check('mesmo número → mesmo veredito (independe de --check)',
       d.ignorados.every((i) => /RECUSA/.test(i.motivo)), JSON.stringify(d.ignorados[0]));
     // PAR COM O EXPORTADOR: a isenção só é legítima porque o exportador de fato recusa.
     // Se um dia ele passar a exportar charter, este assert cai junto e a isenção some.
-    check('PAR: o exportPlan de fato RECUSA os mesmos 3 (a isencao espelha a regra, nao a inventa)',
-      exportPlan(canon.map((p) => ({ path: p, content: 'x\n' })), { prefixoDocs: 'prototipo-ui/design-docs/' }).length === 0);
+    let canonRecusado = '';
+    try { exportPlan(canon.map((p) => ({ path: p, content: 'x\n' }))); }
+    catch (e) { canonRecusado = String(e.message); }
+    check('PAR: o exportPlan recusa o lote inteiro quando encontra canon de tela',
+      /nada foi escrito/.test(canonRecusado) && canon.every((p) => canonRecusado.includes(p)), canonRecusado);
 
-    // 2) `.md` que JA ESTA em design-docs/ — desceu pelo roteamento por extensão.
-    const jaEmDocs = new Set(['cowork-inbox/SUPERADMIN-F1-2026-08-18.md']);
-    check('BITE: .md ja presente em design-docs/ NAO e acusado (desceu, so noutro destino)',
-      liveOnly(['cowork-inbox/SUPERADMIN-F1-2026-08-18.md'], man, { jaEmDocs }).length === 0);
-    // CONTROLE NEGATIVO — sem o Set, o MESMO path volta a ser acusado. Sem este assert um
-    // `return []` fixo passaria no bite acima e o detector viraria carimbo.
-    check('CONTROLE: sem jaEmDocs o mesmo .md VOLTA a ser acusado (isencao nao e cega)',
-      liveOnly(['cowork-inbox/SUPERADMIN-F1-2026-08-18.md'], man).length === 1);
-    // CONTROLE DE ESCOPO — a isenção é só pra `.md`. Não-`.md` em design-docs está FORA da
-    // regra declarada (23 no corpus: .php de teste) e SEGUE acusado. Absorvê-lo seria
-    // codificar um acidente como regra.
-    check('CONTROLE: nao-.md presente em design-docs/ SEGUE acusado (fora da regra de roteamento)',
-      liveOnly(['cowork-inbox/cms/CmsPainelAdminTest.php'], man,
-        { jaEmDocs: new Set(['cowork-inbox/cms/CmsPainelAdminTest.php']) }).length === 1);
-
-    // 3) buildDocsSet — o walker tem que enxergar `.md`. Se alguém o trocar pelo `walkRel`
-    //    (que filtra jsx|html|css|js), o Set nasce sem `.md` e a isenção fica DECORATIVA:
-    //    verde, sem efeito. Este assert prende isso no diretório real do repo.
-    const docs = buildDocsSet();
-    const mdsNoSet = [...docs].filter((p) => p.toLowerCase().endsWith('.md')).length;
-    check('buildDocsSet enxerga .md (walker proprio, nao o walkRel do espelho)',
-      mdsNoSet > 0, `mds no set: ${mdsNoSet} de ${docs.size}`);
-    check('CONTROLE buildDocsSet: diretorio inexistente → Set vazio (nao "tudo isento")',
-      buildDocsSet(process.cwd(), 'nao-existe-jamais').size === 0);
   }
 
   // exportPlan: a transcrição manual causou STALE em 2026-08-11 (923 ln à mão vs 943 reais)
@@ -416,30 +387,28 @@ check('mesmo número → mesmo veredito (independe de --check)',
     exportPlan([{ path: 'jana-merge.jsx', content: 'x\n' }])[0].relPath === 'prototipo-ui/cowork/jana-merge.jsx');
   check('exportPlan: conteúdo passa INTACTO (sem transcrição)',
     exportPlan([{ path: 'a.jsx', content: 'l1\nl2\n' }])[0].content === 'l1\nl2\n');
+  let duplicataRecusada = '';
+  try {
+    exportPlan([
+      { path: 'a/origem.jsx', content: 'export const Igual=1;\n' },
+      { path: 'b/copia.jsx', content: 'export const Igual=1;\n' },
+    ]);
+  } catch (e) { duplicataRecusada = String(e.message); }
+  check('exportPlan: conteúdo duplicado recusa a exportação direta inteira',
+    /conteúdo duplicado de a\/origem\.jsx/.test(duplicataRecusada), duplicataRecusada);
 
-  // ── .md fora do espelho (2026-08-21, decisão [W]) ──────────────────────────
-  // R1 do cowork-ssot-guard reprova `.md` em cowork/ (build-only). Antes o `.md` era
-  // descartado e o preço foi 204 vivos no Cowork contra 0 no repo. Agora roteia — mas o
-  // roteamento é por EXTENSÃO, não por flag, pra quem chama não conseguir errar.
+  // ── .md recusado no destino Cowork (2026-09-11, decisão [W]) ───────────────
   {
-    const docs = 'prototipo-ui/design-docs/';
     const lote = [
       { path: 'cowork-inbox/SUPERADMIN-F1.md', content: '# f1\n' },
       { path: 'superadmin-page.jsx', content: 'const x=1;\n' },
     ];
-    const plano = exportPlan(lote, { prefixoDocs: docs });
-    const md = plano.find((p) => p.relPath.endsWith('.md'));
-    const jsx = plano.find((p) => p.relPath.endsWith('.jsx'));
-    check('BITE R1: .md NUNCA cai em prototipo-ui/cowork/',
-      !md.relPath.startsWith('prototipo-ui/cowork/'), md.relPath);
-    check('exportPlan: .md vai pra design-docs/ PRESERVANDO a árvore do vivo',
-      md.relPath === docs + 'cowork-inbox/SUPERADMIN-F1.md', md.relPath);
-    check('CONTROLE NEGATIVO: o não-.md do MESMO lote segue no espelho',
-      jsx.relPath === 'prototipo-ui/cowork/superadmin-page.jsx', jsx.relPath);
-    check('exportPlan: .md roteado passa INTACTO', md.content === '# f1\n');
-    // Sem `prefixoDocs` o comportamento antigo é preservado — `--ds`/`--ds-runtime`
-    // pousam FORA de cowork/, onde o R1 não alcança e um `.md` é legítimo.
-    check('CONTROLE: sem prefixoDocs, .md segue o prefixo do destino (ds/dsRuntime)',
+    let recusado = '';
+    try { exportPlan(lote); } catch (e) { recusado = String(e.message); }
+    check('BITE build-only: .md recusa o lote Cowork inteiro',
+      /nada foi escrito/.test(recusado) && /SUPERADMIN-F1\.md/.test(recusado), recusado);
+    // Design System usa outra raiz e preserva seu contrato próprio.
+    check('CONTROLE: .md legítimo do Design System segue no prefixo DS',
       exportPlan([{ path: 'x.md', content: 'a\n' }], { prefixo: 'prototipo-ui/design-system/' })[0]
         .relPath === 'prototipo-ui/design-system/x.md');
   }
@@ -1108,48 +1077,6 @@ check('mesmo número → mesmo veredito (independe de --check)',
       && l2.liveOnlyList.join(',') === 'a.jsx,b.css,c.jsx', JSON.stringify(l2));
 }
 
-// ── FRESCOR DOS .md POUSADOS EM design-docs/ (T1 · session 2026-09-01) ──────────
-// Espelho do bloco live-only acima, no eixo DOCS: o agente mede (--docs-compare --ledger),
-// o CI audita o registro (--sla-docs). Mesmos estados (deltaVerdict é o dono único da
-// lógica); herdado nunca vermelho — só stale que ENTROU desde a medição anterior.
-{
-  const d1 = docsEntry(['github.md'], 200, 270, '2026-08-30T00:00:00.000Z');
-  const d2 = docsEntry(['github.md', 'cowork-inbox/PEDIDO-X.md'], 200, 270, '2026-09-01T00:00:00.000Z');
-
-  // BITE de vizinhança (o mesmo perigo do live-only): entrada de docs no MESMO array não
-  // pode virar veredito do compare nem do live-only.
-  const parcialC = { date: '2026-08-29T00:00:00.000Z', files: 137, sync: 1, stale: 0, unchecked: 136 };
-  check('slaVerdict: entrada docs NAO vira veredito do compare',
-    slaVerdict([parcialC, d1], '2026-08-30T00:00:00.000Z').veredito
-      === slaVerdict([parcialC], '2026-08-30T00:00:00.000Z').veredito, 'divergiu');
-  check('liveOnlyVerdict: entrada docs NAO conta como medicao de live-only',
-    liveOnlyVerdict([d1], '2026-08-30T00:00:00.000Z').veredito === 'NEVER-RAN');
-  check('docsVerdict: ledger sem entrada docs => NEVER-RAN (nunca verde mudo — §5 2026-07-29)',
-    docsVerdict([parcialC], '2026-08-30T00:00:00.000Z').veredito === 'NEVER-RAN');
-
-  check('docsVerdict: primeira medicao => BASELINE',
-    docsVerdict([d1], '2026-08-30T00:00:00.000Z').veredito === 'BASELINE');
-  check(`docsVerdict: medicao com mais de ${DOCS_SLA_DAYS}d => OVERDUE`,
-    docsVerdict([d1], '2026-09-10T00:00:00.000Z').veredito === 'OVERDUE');
-
-  const g = docsVerdict([d1, d2], '2026-09-01T00:00:00.000Z');
-  check('docsVerdict: stale NOVO com mesmo denominador => GREW + nomeia o path',
-    g.veredito === 'GREW' && g.novos.length === 1 && g.novos[0] === 'cowork-inbox/PEDIDO-X.md',
-    JSON.stringify(g.novos));
-
-  // CONTROLE NEGATIVO — o passivo herdado (mesmo staleList) NAO reprova (delta, nao absoluto).
-  const h2 = docsEntry(['github.md'], 200, 270, '2026-09-01T00:00:00.000Z');
-  check('docsVerdict: mesmo staleList herdado => OK, nao GREW',
-    docsVerdict([d1, h2], '2026-09-01T00:00:00.000Z').veredito === 'OK');
-  const s2 = docsEntry(['github.md', 'cowork-inbox/PEDIDO-X.md'], 240, 310, '2026-09-01T00:00:00.000Z');
-  check('docsVerdict: denominador diferente => SCOPE-CHANGED (nao acusa GREW)',
-    docsVerdict([d1, s2], '2026-09-01T00:00:00.000Z').veredito === 'SCOPE-CHANGED');
-
-  check('docsEntry: grava kind/contagens/lista ordenada',
-    d2.kind === 'docs' && d2.stale === 2 && d2.medidos === 200 && d2.denom === 270
-      && d2.staleList.join(',') === 'cowork-inbox/PEDIDO-X.md,github.md', JSON.stringify(d2));
-}
-
 // ── ISENÇÃO DO 3º DESTINO (2026-09-01): _ds JÁ pousado no runtime não é live-only ─
 // Medido na rodada real de 2026-09-01: o detector acusou os `_ds/**` como "nunca desceu"
 // com bundle + 2 CSS + fontes JÁ em mirror-snapshot/ (o pouso do --ds-runtime) — o mesmo
@@ -1167,64 +1094,6 @@ check('mesmo número → mesmo veredito (independe de --check)',
     det.faltando.includes('_ds/slug-x/styles.css'), JSON.stringify(det.faltando));
   check('live-only: sem jaEmRuntime => comportamento antigo (acusa ambos)',
     liveOnlyDetalhado(vivos, [], {}).faltando.length === 2);
-}
-
-// ── CLI --docs-compare + --sla-docs: bites pelo CLI de fora (sandbox por cwd) ───
-{
-  const tmp = mkdtempSync(join(tmpdir(), 'freshness-docs-'));
-  mkdirSync(join(tmp, 'prototipo-ui', 'design-docs', 'cowork-inbox'), { recursive: true });
-  mkdirSync(join(tmp, 'scripts', 'governance'), { recursive: true });
-  mkdirSync(join(tmp, 'insumo'), { recursive: true });
-  const cli = join(dirname(fileURLToPath(import.meta.url)), 'cowork-mirror-freshness.mjs');
-  const roda = (args) => {
-    try { return { code: 0, out: execFileSync(process.execPath, [cli, ...args], { cwd: tmp, encoding: 'utf8' }) }; }
-    catch (e) { return { code: e.status ?? -1, out: String(e.stdout || '') + String(e.stderr || '') }; }
-  };
-
-  // sandbox: github.md pousado IGUAL ao vivo · PEDIDO-X.md pousado DIFERENTE do vivo
-  writeFileSync(join(tmp, 'prototipo-ui', 'design-docs', 'github.md'), '# diario v2\n');
-  writeFileSync(join(tmp, 'prototipo-ui', 'design-docs', 'cowork-inbox', 'PEDIDO-X.md'), '# pedido v1\n');
-  writeFileSync(join(tmp, 'insumo', 'a.json'), JSON.stringify({ path: 'github.md', content: '# diario v2\n' }));
-  writeFileSync(join(tmp, 'insumo', 'b.json'), JSON.stringify({ path: 'cowork-inbox/PEDIDO-X.md', content: '# pedido v2 MUDOU\n' }));
-  writeFileSync(join(tmp, 'insumo', 'c.json'), JSON.stringify({ path: 'nunca-desceu.md', content: 'x\n' }));
-  writeFileSync(join(tmp, 'insumo', 'd.json'), JSON.stringify({ path: 'page.jsx', content: 'x\n' }));
-
-  const m = roda(['--docs-compare', join(tmp, 'insumo'), '--ledger']);
-  check('CLI --docs-compare: classifica sync/STALE/sem-copia e ignora nao-.md',
-    m.code === 0 && /sync\s+design-docs\/github\.md/.test(m.out)
-      && /STALE\s+design-docs\/cowork-inbox\/PEDIDO-X\.md/.test(m.out)
-      && /1 STALE/.test(m.out) && /1 sem cópia/.test(m.out) && /de 3 \.md/.test(m.out),
-    `code=${m.code}\n${m.out}`);
-  const ledger = JSON.parse(readFileSync(join(tmp, 'scripts', 'governance', '.cowork-freshness-ledger.json'), 'utf8'));
-  check('CLI --docs-compare --ledger: registra entrada kind=docs',
-    ledger.length === 1 && ledger[0].kind === 'docs' && ledger[0].stale === 1
-      && ledger[0].staleList[0] === 'cowork-inbox/PEDIDO-X.md', JSON.stringify(ledger));
-
-  // --sla-docs sobre o registro: 1ª medição = BASELINE (rc 0) — herdado não reprova.
-  const s1 = roda(['--sla-docs']);
-  check('CLI --sla-docs: primeira medicao => BASELINE, rc 0', s1.code === 0 && /BASELINE/.test(s1.out), `code=${s1.code}`);
-
-  // 2ª medição com stale NOVO (github.md mudou no vivo) => GREW, rc 1 — o bite.
-  writeFileSync(join(tmp, 'insumo', 'a.json'), JSON.stringify({ path: 'github.md', content: '# diario v3 MUDOU\n' }));
-  roda(['--docs-compare', join(tmp, 'insumo'), '--ledger']);
-  const s2cli = roda(['--sla-docs']);
-  check('CLI --sla-docs: stale NOVO desde a medicao anterior => rc 1 e nomeia o path',
-    s2cli.code === 1 && /STALE NOVO/.test(s2cli.out) && /design-docs\/github\.md/.test(s2cli.out),
-    `code=${s2cli.code}\n${s2cli.out}`);
-
-  // 3ª medição idêntica (mesmo staleList) => OK, rc 0 — herdado nunca vira vermelho.
-  roda(['--docs-compare', join(tmp, 'insumo'), '--ledger']);
-  const s3 = roda(['--sla-docs']);
-  check('CLI --sla-docs: staleList herdado estavel => rc 0 (delta, nao absoluto)',
-    s3.code === 0 && /nenhum stale novo/.test(s3.out), `code=${s3.code}\n${s3.out}`);
-
-  // ledger VAZIO => NUNCA MEDIDO, rc 1 — nunca verde mudo (§5 2026-07-29).
-  rmSync(join(tmp, 'scripts', 'governance', '.cowork-freshness-ledger.json'));
-  const s0 = roda(['--sla-docs']);
-  check('CLI --sla-docs: sem medicao registrada => rc 1 NUNCA MEDIDO (nunca verde mudo)',
-    s0.code === 1 && /NUNCA MEDIDO/.test(s0.out), `code=${s0.code}`);
-
-  rmSync(tmp, { recursive: true, force: true });
 }
 
 // ── DESQUALIFICAÇÃO DO EIXO MODIFICADO PELO EIXO NOVO (2026-08-27) ───────────────

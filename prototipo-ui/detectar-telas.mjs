@@ -197,9 +197,12 @@ export async function buildManifest({ staging, repoRoot }) {
   const rows = [];
   for (const f of stagingFiles) {
     const relStaging = relative(staging, f).replace(/\\/g, '/');
-    const kind = isScreenSource(relStaging);
-    if (!kind) continue;
     const b = basename(f);
+    // Um build dividido nem sempre termina em `-page.jsx` (grade, drawer, subview). Se um
+    // charter o declara explicitamente em bundle_source/visual_source/related_prototype,
+    // ele é screen-source por contrato e precisa entrar no plano de aplicação.
+    const kind = isScreenSource(relStaging) || (byMockup.has(b) ? 'mockup' : null);
+    if (!kind) continue;
     let alvo = null, alvos = null, via = null, ambiguo = false;
 
     // (1) path-espelhado (núcleo OU Modules/<X>/Resources/js/Pages/...)
@@ -345,9 +348,10 @@ async function selftest() {
     ['vendas-create (charter-less → ALIAS, P0 LOCK)', by(/vendas-create-page\.jsx$/), 'SEMANTICO'],
     ['vendas-page (via charter.component)',            by(/(^|\/)vendas-page\.jsx$/),  'SEMANTICO'],
     ['financeiro-page (via charter bundle_source, SEM alias)', by(/financeiro-page\.jsx$/), 'SEMANTICO'],
+    ['grade-matrix (fonte dividida declarada no charter)', by(/grade-matrix\.jsx$/), 'SEMANTICO'],
     ['superadmin-page (charter em Modules/**/Pages)', by(/superadmin-page\.jsx$/), 'SEMANTICO'],
     ['mistero (sem charter nem alias → não some)',     by(/mistero-page\.jsx$/),       'ORFAO'],
-    ['Conciliacao format-2 idêntico',                  by(/Conciliacao\/Index\.tsx$/), 'IDENTICO'],
+    ['Conciliacao format-2 distinto',                  by(/Conciliacao\/Index\.tsx$/), 'ALTERADO'],
     ['Caixa format-2 alterado',                        by(/Caixa\/Index\.tsx$/),       'ALTERADO'],
   ];
   const superadminTargets = rows.filter((r) => /superadmin-page\.jsx$/.test(r.arquivo)).map((r) => r.alvo).sort();

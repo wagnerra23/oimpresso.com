@@ -1,5 +1,5 @@
 /* compras-grade-matrix.css — Grade Matrix (tam × cor) para entrada de compra vestuário.
-   Portado de prototipo-ui/prototipos/compras-grade-matrix/page.css @main.
+   Fonte consolidada no espelho ativo; a origem anterior permanece no histórico git.
    Paleta bespoke (--gmi-*) do original TROCADA por tokens .cockpit do DS vivo (sem cor crua). */
 .gmi-root{display:flex;flex-direction:column;gap:14px;padding:20px 24px 28px}
 .gmi-card{background:var(--surface);border:1px solid var(--border);border-radius:12px}

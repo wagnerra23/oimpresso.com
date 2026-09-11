@@ -9,7 +9,7 @@ status: aguardando-screenshot-wagner
 runbook: memory/requisitos/Estoque/_telas/RUNBOOK-stock-adjustment-index.md
 draft_tsx: resources/js/Pages/StockAdjustment/Index.tsx
 controller_delta: app/Http/Controllers/StockAdjustmentController.php@indexInertia
-cowork_source: prototipo-ui/prototipos/inventario-migracao/visual-source.html
+cowork_source: prototipo-ui/cowork/inventario-migracao/index.html
 ---
 
 # Visual Comparison — `stock_adjustment/index` (LIST)

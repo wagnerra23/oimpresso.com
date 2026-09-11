@@ -59,7 +59,7 @@ suspeito**, porque ali não existe autor local legítimo.
          |
          |  E1  DesignSync -> payload em partes -> staging -> promocao atomica
          v
-   prototipo-ui/cowork/        <- espelho (retrato)   + design-docs/ (o PEDIDO)
+   prototipo-ui/cowork/        <- fonte executável local do protótipo
          |
          |  E2  detecta telas, resolve a ancora a partir do charter
          v
@@ -252,10 +252,10 @@ O que mora aqui é o modelo: **quem**, **quando**, e o que segue sem dono.
 | E1.0 | **fechar o ciclo de design** | ciclo encerrado no Cowork → obrigação de emitir | nada no repo — é o passo de processo; sem ele E1.1 nunca começa e o espelho envelhece em silêncio |
 | E1.1 | **gerar o payload** | diretório do design vivo → partes numeradas + manifesto | do lado de quem tem os arquivos em disco — nunca do lado do agente, senão é transcrição |
 | E1.2 | **validar em staging** (dry-run) | partes → veredito | nada: monta tudo e joga fora |
-| E1.3 | **promover atomicamente** | staging → quatro destinos de uma vez | espelho · design-docs · cache de preview · estado |
+| E1.3 | **promover atomicamente** | staging → destinos de build de uma vez | cowork · cache de preview · estado |
 | E1.4 | **inventariar** | estado → tela por tela: pendente / bloqueada / a criar | relatório de aplicação |
-| E1.5 | **rota pontual** (1–3 arquivos) | JSON do arquivo → escrita pela máquina | espelho ou design-docs, roteado **por extensão** |
-| E1.6 | **o pedido** (intake) | `cowork-inbox/` → o que fazer com o design | design-docs |
+| E1.5 | **rota pontual** (1–3 arquivos) | JSON do arquivo → escrita pela máquina | somente fonte executável aceita pelo contrato build-only |
+| E1.6 | **o pedido** (intake) | `cowork-inbox/` → o que fazer com o design | lido na origem e destilado no dono canônico |
 
 ### Fluxo interno e pontos de decisão
 

@@ -32,8 +32,8 @@ Diretório que orquestra o loop entre **Claude Design** (no Cowork, faz protóti
 | Papel | Onde escrever | Onde ler primeiro |
 |---|---|---|
 | **Wagner** ([W]) | `COWORK_NOTES.md` (pedidos), `HANDOFF.md` (estado) | [PROTOCOL.md](PROTOCOL.md) |
-| **Claude Cowork** ([CC]) | `prototipos/<tela>/page.tsx` (export zip) | [CLAUDE_DESIGN_BRIEFING.md](CLAUDE_DESIGN_BRIEFING.md) |
-| **Claude Design** ([CD]) | `prototipos/<tela>/critique-score.json` | [CLAUDE_DESIGN_BRIEFING.md](CLAUDE_DESIGN_BRIEFING.md) |
+| **Claude Cowork** ([CC]) | `cowork/<path-original>` (somente build) | [CLAUDE_DESIGN_BRIEFING.md](CLAUDE_DESIGN_BRIEFING.md) |
+| **Claude Design** ([CD]) | parecer no canal canônico do ciclo | [CLAUDE_DESIGN_BRIEFING.md](CLAUDE_DESIGN_BRIEFING.md) |
 | **Claude Code** ([CL] — eu) | `CODE_NOTES.md`, `SYNC_LOG.md` | [CLAUDE_CODE_BRIEFING.md](CLAUDE_CODE_BRIEFING.md) |
 
 ## Mapa do diretório
@@ -54,24 +54,23 @@ prototipo-ui/
 │   ├── critique.md.template         ← formato design:design-critique
 │   ├── handoff-spec.md.template     ← formato design:design-handoff
 │   └── charter-from-design.md.template
-└── prototipos/<tela-kebab>/
-    ├── page.tsx                     ← export Cowork (commitado)
-    ├── COMPARISON.md                ← 15 dimensões mwart-comparative
-    ├── critique-score.json          ← score 0-100
-    └── a11y-report.md               ← WCAG 2.1 AA report (F3.5)
+├── cowork/                          ← ÚNICA fonte ativa de design; build apenas
+└── prototipos/                      ← somente âncoras históricas declaradas
 ```
 
 ## Regra de ouro
 
-**Nada em `prototipos/<tela>/` é editado direto no repo.** É export do Cowork. Se precisa mudar, refaz no Cowork e re-exporta. Single source of truth.
+**O build ativo existe uma vez, em `cowork/`, no path relativo original.** O importador não
+move, achata nem corrige caminhos. Documentos e contratos não entram no bundle; são
+reconciliados diretamente no respectivo canon. Conteúdo duplicado reprova o lote inteiro.
 
 A tradução pra Inertia (`resources/js/Pages/<Mod>/<Tela>.tsx`) é onde código produtivo vive — esse é editado normalmente.
 
 ## Fluxo curto (TL;DR)
 
 1. Wagner escreve pedido em `COWORK_NOTES.md`
-2. Claude Cowork gera protótipo → export zip → vira `prototipos/<tela>/`
-3. Claude Design roda `design:design-critique` → score em JSON
+2. Claude Cowork gera protótipo → bundle build-only → atualiza `cowork/`
+3. Claude Design revisa o resultado contra o charter canônico
 4. Wagner aprova SCREENSHOT (não tabela)
 5. Claude Code traduz pra Inertia + abre PR
 6. Claude Design roda `design:accessibility-review` (WCAG)

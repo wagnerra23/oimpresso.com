@@ -11,7 +11,7 @@ status: draft
 status_note: "F3 implementado"
 adr_refs: [0104, 0093, 0114, 0149]
 mwart_pattern_reuse:
-  blueprint_cowork: prototipo-ui/prototipos/inventario-migracao/F1.html
+  blueprint_cowork: prototipo-ui/cowork/inventario-migracao/index.html
   blueprint_screenshot_approval: "SYNC_LOG (pendente)"
   derived_screens: [Create]
   divergence_from_blueprint: "Tipo Normal/Abnormal destacado com cor (abnormal=rose perda)."

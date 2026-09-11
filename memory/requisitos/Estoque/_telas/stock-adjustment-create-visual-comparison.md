@@ -9,7 +9,7 @@ status: aguardando-screenshot-wagner
 runbook: memory/requisitos/Estoque/_telas/RUNBOOK-stock-adjustment-create.md
 draft_tsx: resources/js/Pages/StockAdjustment/Create.tsx
 controller_delta: app/Http/Controllers/StockAdjustmentController.php@createInertia
-cowork_source: prototipo-ui/prototipos/inventario-migracao/F1.html
+cowork_source: prototipo-ui/cowork/inventario-migracao/index.html
 ---
 
 # Visual Comparison — `stock_adjustment/create` (FORM CREATE)

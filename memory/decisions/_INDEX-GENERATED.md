@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **394** arquivos · **379** números únicos · máx **0389**
+- **395** arquivos · **380** números únicos · máx **0390**
 - **ADRs ATIVOS (lifecycle ativo): 355** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 354 · superseded 16 · deprecated 13 · proposto 9 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 355 · arquivado 23 · substituido 16
+- Por status: aceito 354 · superseded 17 · deprecated 13 · proposto 9 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 355 · arquivado 23 · substituido 17
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -35,7 +35,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (394)
+## Todas as ADRs (395)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -429,6 +429,7 @@ _(nenhuma)_
 | 0384 | aceito | ativo | decision | Design Sync deriva o estado da tela de recibos executáveis |
 | 0385 | proposto | ativo | decision | Sidebar alinhado ao protótipo — e a diferença classificada em três categorias |
 | 0386 | aceito | ativo | decision | Âmbar da Oficina revogado — o roxo canon é a única identidade de chrome; superse |
-| 0387 | aceito | ativo | decision | github.md (diário de sync do Cowork) é artefato aceito e tratado pelo protocolo  |
+| 0387 | superseded | substituido | decision | github.md (diário de sync do Cowork) é artefato aceito e tratado pelo protocolo  |
 | 0388 | aceito | ativo | decision | Réplica primeiro: o protótipo é o contrato de layout e a conformidade do DS vira |
 | 0389 | proposto | ativo | decision | Emenda à 0374 — quando o `get_file` devolve INLINE, o agente escreve o arquivo ( |
+| 0390 | aceito | ativo | decision | Protótipo tem uma fonte ativa, transporte build-only e caminhos literais |

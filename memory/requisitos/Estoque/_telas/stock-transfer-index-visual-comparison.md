@@ -9,7 +9,7 @@ status: aguardando-screenshot-wagner
 runbook: memory/requisitos/Estoque/_telas/RUNBOOK-stock-transfer-index.md
 draft_tsx: resources/js/Pages/StockTransfer/Index.tsx
 controller_delta: app/Http/Controllers/StockTransferController.php@indexInertia
-cowork_source: prototipo-ui/prototipos/inventario-migracao/visual-source.html
+cowork_source: prototipo-ui/cowork/inventario-migracao/index.html
 ---
 
 # Visual Comparison — `stock_transfers/index` (LIST)
