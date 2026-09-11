@@ -1540,3 +1540,31 @@ export function SidebarFooter({
     </div>
   );
 }
+/**
+ * Alça flutuante de reabrir — só existe no modo `hidden`, quando a `<aside>`
+ * inteira sai do DOM. Portada de `prototipo-ui/cowork/sidebar.jsx`
+ * (`SidebarReopenHandle`), não do bundle do Financeiro.
+ *
+ * É um `<button>` com nome acessível, e não um `<div>`: sem ela o único caminho
+ * de volta seria o atalho ⌘⇧\ — e quem escondeu a sidebar pelo mouse não
+ * necessariamente sabe o atalho. Ela é `position: fixed`, logo NÃO é grid item:
+ * quem tira a coluna do grid é `.cockpit[data-sidebar="hidden"]` no `cockpit.css`.
+ *
+ * O `title` sai daqui como expressão JS (`{'...'}`), não como atributo literal:
+ * em JSX um atributo `title="(⌘⇧\\)"` é texto HTML e chega ao DOM com as DUAS
+ * barras — foi o que medi no próprio protótipo em 2026-09-11 (`title` renderizado
+ * como `⌘⇧\\`). Aqui a barra é uma só, como no `.sb-collapse-handle` do shell.
+ */
+export function SidebarReopenHandle({ onOpen }: { onOpen: () => void }) {
+  return (
+    <button
+      type="button"
+      className="sb-reopen-handle"
+      onClick={onOpen}
+      title={'Mostrar sidebar (⌘⇧\\)'}
+      aria-label="Mostrar sidebar"
+    >
+      <ChevronRight size={12} strokeWidth={2.2} />
+    </button>
+  );
+}

@@ -318,53 +318,64 @@ export default function Alocacoes({ alocacoes, filtros, permissoes }: Props) {
   return (
     <AppShellV2>
       <Stack gap={4}>
-        <PageHeader
-          title="Alocações"
-          subtitle="O que está na mão de quem — desde quando, até quando, e o que já voltou"
-          actions={
-            permissoes.devolver ? (
-              // Navegação para a aba PRÓPRIA de Devoluções. É o único caminho de escrita que
-              // sobrevive fora do modal jQuery — medido (`RevokeAllocatedAssetController:108`
-              // devolve view sem gate de ajax, ao contrário de `create`/`edit` daqui).
-              <Button size="sm" variant="outline" asChild>
-                <a href="/asset/revocation">Devoluções</a>
-              </Button>
-            ) : undefined
-          }
-        />
+        {/* As âncoras `data-contract` são a ponte Cowork-CSS ↔ Tailwind do gate
+            `contrato-de-tela.mjs` (ADR 0286) — mesmo padrão da irmã Bens (`Bens.tsx:532`).
+            Quem as consome: `prototipo-ui/contrato/patrimonio-alocacoes.contract.json`. */}
+        <div data-contract="cabecalho">
+          <PageHeader
+            title="Alocações"
+            subtitle="O que está na mão de quem — desde quando, até quando, e o que já voltou"
+            actions={
+              permissoes.devolver ? (
+                // Navegação para a aba PRÓPRIA de Devoluções. É o único caminho de escrita que
+                // sobrevive fora do modal jQuery — medido (`RevokeAllocatedAssetController:108`
+                // devolve view sem gate de ajax, ao contrário de `create`/`edit` daqui).
+                <Button size="sm" variant="outline" asChild>
+                  <a href="/asset/revocation">Devoluções</a>
+                </Button>
+              ) : undefined
+            }
+          />
+        </div>
 
         {/* `hidePrimary`: o primary do menu do módulo já aparece no header das telas irmãs —
             repeti-lo aqui daria dois botões concorrentes na mesma faixa. */}
-        <PatrimonioSubNav active="allocation" hidePrimary />
+        <div data-contract="subnav">
+          <PatrimonioSubNav active="allocation" hidePrimary />
+        </div>
 
-        <BarraDeFiltros filtros={filtros} />
+        <div data-contract="filtros">
+          <BarraDeFiltros filtros={filtros} />
+        </div>
 
-        <Deferred data="alocacoes" fallback={<EsqueletoTabela />}>
-          {alocacoes && alocacoes.data.length === 0 && !temFiltroAtivo ? (
-            <EmptyState
-              icon="boxes"
-              title="Nenhuma alocação registrada"
-              description="Quando um bem do patrimônio for entregue a alguém, a entrega aparece aqui — com prazo, quantidade e o que já voltou."
-            />
-          ) : alocacoes ? (
-            <DataTable<Alocacao>
-              columns={colunas()}
-              data={alocacoes.data}
-              pagination={alocacoes}
-              endpoint="/asset/allocation"
-              caption="Alocações do patrimônio"
-              filters={limpar(filtros)}
-              initialSearch={filtros.q ?? ''}
-              searchPlaceholder="Buscar por código, bem, modelo ou pessoa..."
-              emptyMessage="Nenhuma alocação para esses filtros — tente outro recorte ou limpe a busca."
-              rowKey={(a) => a.id}
-              rowState={(a): EstadoDaLinha | undefined =>
-                a.situacao === 'devolvida' ? 'archived' : a.vencido ? 'urgent' : undefined
-              }
-              minTableWidth={1500}
-            />
-          ) : null}
-        </Deferred>
+        <div data-contract="tabela">
+          <Deferred data="alocacoes" fallback={<EsqueletoTabela />}>
+            {alocacoes && alocacoes.data.length === 0 && !temFiltroAtivo ? (
+              <EmptyState
+                icon="boxes"
+                title="Nenhuma alocação registrada"
+                description="Quando um bem do patrimônio for entregue a alguém, a entrega aparece aqui — com prazo, quantidade e o que já voltou."
+              />
+            ) : alocacoes ? (
+              <DataTable<Alocacao>
+                columns={colunas()}
+                data={alocacoes.data}
+                pagination={alocacoes}
+                endpoint="/asset/allocation"
+                caption="Alocações do patrimônio"
+                filters={limpar(filtros)}
+                initialSearch={filtros.q ?? ''}
+                searchPlaceholder="Buscar por código, bem, modelo ou pessoa..."
+                emptyMessage="Nenhuma alocação para esses filtros — tente outro recorte ou limpe a busca."
+                rowKey={(a) => a.id}
+                rowState={(a): EstadoDaLinha | undefined =>
+                  a.situacao === 'devolvida' ? 'archived' : a.vencido ? 'urgent' : undefined
+                }
+                minTableWidth={1500}
+              />
+            ) : null}
+          </Deferred>
+        </div>
       </Stack>
     </AppShellV2>
   );

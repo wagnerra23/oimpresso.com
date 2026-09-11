@@ -54,9 +54,21 @@
 /* Sidebar rail (56px) — Wagner 2026-05-16, espelha prototipo Cowork. */
 .cockpit[data-sidebar="rail"] { grid-template-columns: 56px 1fr 320px; }
 .cockpit[data-sidebar="rail"][data-linked="off"] { grid-template-columns: 56px 1fr 0; }
+/* Sidebar hidden (3º modo, 2026-09-11) — a `<aside>` sai do DOM, então a coluna
+   dela sai do GRID: a lista passa de três faixas para duas, e `.main` é o 1º item.
+   NÃO zere a 1ª faixa (`0 1fr 320px`): sem a `<aside>`, o auto-placement bota o
+   `.main` justamente nela e ele fica com 0px. Isso não é hipótese — é o que o
+   PROTÓTIPO faz hoje (`.app.app--sb-hidden{--sb-w:0px}`) e o que medi nele em
+   2026-09-11 a 1440px: `grid-template-columns: 0px 1440px`, `.main` com **largura 0**
+   e 2636 caracteres de conteúdo invisíveis — tela em branco. O próprio protótipo
+   já usa a forma certa no drawer mobile (`.app--mobile{grid-template-columns:1fr}`);
+   o modo `hidden` é que ficou com a forma errada. Ver `_saida-04.md`. */
+.cockpit[data-sidebar="hidden"] { grid-template-columns: 1fr 320px; }
+.cockpit[data-sidebar="hidden"][data-linked="off"] { grid-template-columns: 1fr 0; }
 @media (max-width: 1280px) {
   .cockpit { grid-template-columns: 260px 1fr 0; }
   .cockpit[data-sidebar="rail"] { grid-template-columns: 56px 1fr 0; }
+  .cockpit[data-sidebar="hidden"] { grid-template-columns: 1fr 0; }
 }.cockpit .main {
   display: grid;
   /* 3 rows: topbar (44px) + topnav-module opcional (auto, ~40px quando presente) + main-body (1fr).
@@ -2242,7 +2254,7 @@
    (linhas 5039-5350). 5 capacidades portadas:
      1. Modo rail (56px ícone-only) + flyout grupo
      2. Alça .sb-collapse-handle borda direita on-hover
-     3. (placeholder modo hidden — Fase 2)
+     3. Modo hidden (sidebar fora do DOM) + alça .sb-reopen-handle — 2026-09-11
      4. Cor por grupo (hue OKLCH) via CSS var --gh
      5. Persistência LS oimpresso.sb.mode (gerenciado em AppShellV2)
    ════════════════════════════════════════════════════════════════════════ */
@@ -2275,6 +2287,42 @@
   opacity: 1;
 }
 .cockpit .sb-collapse-handle:hover {
+  background: var(--sb-active);
+  color: var(--sb-text-hi);
+}
+
+/* ── Alça de REABRIR (modo hidden) ───────────────────────────────────
+   Geometria portada 1:1 de `prototipo-ui/cowork/styles.css` (`.sb-reopen-handle`):
+   fixed à esquerda, 18×64 crescendo pra 26 no hover, cantos só do lado de fora.
+   Ela vive FORA da `<aside>` (que nem existe neste modo), por isso `fixed` e não
+   `absolute` como a irmã de colapsar.
+
+   Cor em `--sb-*`, não nos tokens de tema: o protótipo pinta com `--bg-elev`/
+   `--border`/`--text-mute`, mas `--bg-elev` não existe neste shell e a alça é o
+   toco da sidebar — preta nos dois modos por UI-0023, preta também recolhida.
+   O hover do protótipo já declara `var(--accent-soft, var(--sb-active))`: o
+   fallback dele é exatamente o token usado aqui. */
+.cockpit .sb-reopen-handle {
+  position: fixed;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 64px;
+  border-radius: 0 6px 6px 0;
+  border: 1px solid var(--sb-border);
+  border-left: 0;
+  background: var(--sb-bg);
+  color: var(--sb-text-dim);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  z-index: 40;
+  padding: 0;
+  box-shadow: 2px 0 8px oklch(0 0 0 / .06);
+}
+.cockpit .sb-reopen-handle:hover {
+  width: 26px;
   background: var(--sb-active);
   color: var(--sb-text-hi);
 }
@@ -2499,11 +2547,18 @@
 .sb-mobile-backdrop { display: none; }
 
 @media (max-width: 768px) {
-  /* conteúdo full-width — a sidebar sai do grid via position:fixed */
+  /* conteúdo full-width — a sidebar sai do grid via position:fixed.
+     `hidden` entra nesta lista porque no mobile ele NÃO se aplica: o `AppShellV2`
+     monta a `<aside>` de qualquer jeito (drawer) e renderiza em `expanded`, mas o
+     atributo `data-sidebar` continua refletindo a escolha do usuário — sem esta
+     linha, a regra de desktop (especificidade 0,2,0) venceria a `.cockpit` nua
+     daqui e roubaria 320px pra uma coluna de apps que este bloco esconde. */
   .cockpit,
   .cockpit[data-linked="off"],
   .cockpit[data-sidebar="rail"],
-  .cockpit[data-sidebar="rail"][data-linked="off"] { grid-template-columns: 1fr; }
+  .cockpit[data-sidebar="rail"][data-linked="off"],
+  .cockpit[data-sidebar="hidden"],
+  .cockpit[data-sidebar="hidden"][data-linked="off"] { grid-template-columns: 1fr; }
 
   /* coluna direita (apps vinculados) não cabe no celular */
   .cockpit > .apps,
@@ -2525,7 +2580,8 @@
      Sem !important (ratchet declaration-no-important): empata em especificidade
      (0,2,0) com a regra-base e vence por ordem de fonte; só a base define
      `display` no handle (o hover mexe só em opacity). */
-  .cockpit .sb-collapse-handle { display: none; }
+  .cockpit .sb-collapse-handle,
+  .cockpit .sb-reopen-handle { display: none; }
 
   /* banda no topo pro hambúrguer flutuante. Só nas telas SEM topbar (default
      hideTopbar) — telas que mantêm topbar já têm faixa própria e só precisam

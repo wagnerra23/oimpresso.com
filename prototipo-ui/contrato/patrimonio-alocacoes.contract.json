@@ -1,0 +1,60 @@
+{
+  "_nota": "Contrato de tela da lista de Alocacoes. Derivado da ANCORA resolvida pela porta canonica (`node prototipo-ui/ancora.mjs Patrimonio/Alocacoes`) — `prototipo-ui/cowork/patrimonio-page.jsx`, componente `AbaAlocacoes` (:409-474), mais o rotulo da aba no shell (:838) — e NUNCA da tela. Contrato extraido do alvo e tautologico: nasce verde por construcao e jamais acusa a divergencia que e a razao dele existir. Segue o modelo de `patrimonio-bens.contract.json` (PR #7176). Cada string abaixo foi verificada nos DOIS lados com o matcher REAL do gate (`copyPresente`, extraido verbatim de `scripts/contrato-de-tela.mjs`) e, na tela, FORA de comentario. Isso importa porque a Catraca 2 casa a copy contra o blob CRU do alvo — `stripComments` so e usado na catraca 2b (acordos_estado) — entao string que so existe em comentario deixa o gate verde por casar PROSA. Uma candidata caiu exatamente nisso e NAO entrou: `unidades alocadas` casa so na linha :16 do `.tsx`, que e o comentario dizendo que a tela NAO tem esse rodape.",
+  "tela": "Patrimonio/Alocacoes",
+  "fonte": "prototipo-ui/cowork/patrimonio-page.jsx",
+  "alvo": [
+    "resources/js/Pages/Patrimonio/Alocacoes.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "cabecalho",
+      "copy": [
+        "Alocações"
+      ]
+    },
+    {
+      "id": "subnav",
+      "copy": []
+    },
+    {
+      "id": "filtros",
+      "copy": [
+        "Situação das alocações",
+        "Ativas",
+        "Todas"
+      ]
+    },
+    {
+      "id": "tabela",
+      "copy": [
+        "Código",
+        "Bem",
+        "Alocado a",
+        "Alocado em",
+        "Qtd",
+        "Situação",
+        "indeterminado"
+      ]
+    }
+  ],
+  "ordem": [
+    "cabecalho",
+    "subnav",
+    "filtros",
+    "tabela"
+  ],
+  "_gap_vs_ancora": [
+    "As entradas abaixo existem NA ANCORA e NAO na tela (ou divergem em copy). Ficam AQUI, declaradas com a razao de cada uma, em vez de dentro de `secoes` — pinar tudo hoje deixaria o gate VERMELHO PERMANENTE, e a decisao [W] de 2026-08-21 (proposal `2026-08-21-ponto-contratos-retidos-decisao-w.md` §7) diz que contrato vermelho permanente treina o time a ignorar gate. Cada uma migra pra `secoes` quando a tela passar a atende-la — e ai o gate DEFENDE, em vez de so reclamar.",
+    "COLUNA DE ACAO `Ação` + `Revogar` — o prototipo (:422, :445-447) poe a acao na PRIMEIRA coluna, com um botao `Revogar` por linha. A tela nao tem coluna de acao. Non-Goal DECLARADO no charter (`NÃO aloca, edita nem devolve dentro da tela`), e a razao e MEDIDA, nao presumida: `AssetAllocationController::{create,edit}` so respondem sob `request()->ajax()` (:170, :243) e as views sao fragmentos de modal jQuery — um link direto levaria a pagina em branco, que e afordancia falsa. Trazer o formulario pra ca e ESCRITA DE QUANTIDADE: REGRA MESTRE Tier 0.",
+    "ACAO `Alocar recurso` — o prototipo a oferece na barra de sub-abas (:459) e no header do modulo (:830). A tela nao tem: mesmo Non-Goal de escrita de quantidade acima. ⚠️ Observar que a string EXISTE em `Bens.tsx` (contrato da irma, secao `tabela`) — aqui ela e gap, la e copy atendida; sao telas diferentes e o veredito e por tela.",
+    "COLUNA `Alocado até` — o prototipo (:426) usa o rotulo completo; a tela (:192) diz so `Até`. Divergencia de copy pura, sem impedimento tecnico. Escolher entre as duas formas e decisao de copy = [W].",
+    "SUB-RECORTE `Revogadas` — o prototipo (:456) diz `Revogadas`; a tela (:257) diz `Devolvidas`. NAO e so palavra: e VOCABULARIO DE BACKEND, medido — o `AssetAllocationController` aceita `['ativas','devolvidas','todas']` como query param (:218) e emite `situacao: 'devolvida'` por linha (:272). Mudar o rotulo pra `Revogadas` sem mudar o contrato do parametro deixaria rotulo e URL discordando. Decisao de vocabulario = [W].",
+    "RODAPE `N unidades alocadas` · `N alocações ativas` · `Revogar devolve a unidade ao saldo e registra o código REV- na auditoria.` — o prototipo (:462-466) soma quantidades no rodape. Non-Goal DECLARADO: e AGREGACAO DE QUANTIDADE, sob a REGRA MESTRE Tier 0 (prova por dois caminhos + antes→depois pro [W]); o numero POR LINHA entra. ⚠️ ARMADILHA VERIFICADA: `unidades alocadas` CASA no `.tsx`, mas so na linha :16 — que e justamente o comentario declarando que a tela NAO tem o rodape. Declara-la deixaria o gate verde por casar prosa, e pior: verde apontando pro texto que diz o contrario.",
+    "SELOS DE SITUACAO `em uso` · `prazo vencido` · `revogada` — o prototipo (`SeloAlocacao`, :139-146) usa minuscula e o verbo `revogar`; a tela (:126-140) usa `Em uso`, `Prazo vencido`, `Devolvida` e ainda um quarto estado que o prototipo nao tem (`Devolvida em parte`, do `situacao: 'parcial'` do backend). O matcher do gate e CASE-SENSITIVE, entao as tres formas do prototipo nao casam. Divergencia de caixa + vocabulario; mesma decisao [W] do item anterior.",
+    "CONTAGEM NAS PILULAS — o prototipo (:455-457) poe `n` em cada sub-aba. Non-Goal declarado: contar sobre o CONJUNTO pede agregacao extra, e contar so a pagina corrente faria a pilula dizer `4` olhando 25 de N linhas.",
+    "AVATAR + PAPEL de quem recebeu — o prototipo (:435-438) desenha `Avatar` + `TagChip` com o papel. Non-Goal declarado: `users` nao tem papel na alocacao — o prototipo desenha um campo que o modelo nao tem.",
+    "BUSCA `Buscar bem, código, série...` — o prototipo poe a busca no HEADER DO MODULO (:827), fora da aba; a tela poe no `DataTable` com outro texto (`Buscar por código, bem, modelo ou pessoa...`). Sao lugares diferentes, nao so palavras diferentes.",
+    "seção `subnav` — copy VAZIA de proposito, igual a irma Bens. O charter (:51) e explicito: `Sub-navegação do módulo derivada de shell.menu, nunca declarada aqui`. O prototipo desenha 7 abas, das quais 2 (`Garantias`, `Auditoria`) NAO tem rota (`D-GARANTIAS`/`D-AUDITORIA`). Pinar rotulo aqui criaria uma segunda fonte pra mesma lista.",
+    "NAO-DECLARADO DE PROPOSITO (copy que existe na TELA e nao no componente-fonte): `Categoria`, `Devolvido`, `Entregue por`, `Motivo`, `Devoluções`, `Até`. ⚠️ `Categoria` merece nota: ela CASA no arquivo-fonte (o `--anti-tautologia` teria passado) porque existe em `AbaBens` (:283) — mas NAO existe em `AbaAlocacoes`. Declara-la seria derivar da tela por uma porta lateral, com o gate dando verde. Medido com o componente ISOLADO (:409-474) como fonte: as 6 dao FONTE:NAO."
+  ]
+}
