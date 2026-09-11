@@ -10,6 +10,14 @@ declare(strict_types=1);
  * cascade sobre `cockpit.css .cockpit{ --accent: oklch(0.55 0.15 295) }` (ADR 0190).
  * Resultado: o shell re-azulava o roxo canon pra todo usuário sem tweak salvo.
  *
+ * 2026-09-08 (ADR UI-0034): o gate MUDOU DE FORMA, não de objetivo. Até aqui ele vigiava
+ * se o inline usava os L/C certos; agora vigia que o inline NÃO EXISTE. O seletor de matiz
+ * (accentHue + slider "Tom do accent") foi removido — ele deixava a preferência de UM
+ * navegador mandar na cor do DS, e o default dele ERA 220 até 2026-06-08, sem migração
+ * (quem abriu antes via azul até hoje). Sem mecanismo não há como re-azular: é a MESMA
+ * proteção, por um caminho que não depende de alguém acertar valor. Os testes abaixo foram
+ * REESCRITOS, nunca desabilitados.
+ *
  * Estrutural (lê o source, sem browser) — protege contra reintrodução do 220.
  *
  * @see resources/js/Layouts/AppShellV2.tsx
@@ -22,29 +30,53 @@ function accentRepoRoot(): string
     return dirname(__DIR__, 3);
 }
 
-it('AppShellV2 usa hue default 295 (roxo canon), não 220 (azul)', function () {
+it('AppShellV2 nao tem seletor de matiz - nada reescreve o accent em runtime (UI-0034)', function () {
     $src = file_get_contents(accentRepoRoot().'/resources/js/Layouts/AppShellV2.tsx');
 
-    // Default do accentHue (SSR + fallback localStorage) deve ser 295, nunca 220.
-    expect($src)->toContain('return 295;')
+    // O state, a persistencia e a interpolacao do hue sairam. O nome pode sobreviver em
+    // COMENTARIO (a nota historica que explica a remocao); o que morde e o CODIGO.
+    expect($src)->not->toContain('setAccentHue')
+        ->and($src)->not->toContain('LS.TW_HUE')
         ->and($src)->not->toContain('return 220;');
 });
 
-it('AppShellV2 escreve --accent inline com os L/C do canon nos DOIS temas', function () {
+it('TweaksPanel nao oferece controle de cor - so vibe e densidade (UI-0034)', function () {
+    $src = file_get_contents(accentRepoRoot().'/resources/js/Components/cockpit/TweaksPanel.tsx');
+
+    // ALVO DELIMITADO, de proposito: o cabecalho do arquivo carrega a NOTA HISTORICA da
+    // UI-0034, e ela CITA o rotulo removido pra explicar por que ele saiu. Medir o arquivo
+    // inteiro casaria o proprio comentario - o presence-gate que este repo ja catalogou
+    // ("o ratchet pegou o COMENTARIO que citava o anti-padrao, porque o guard casa texto",
+    // Manufacturing/Index.tsx). O JSX vive do `export function` pra baixo; e la que se mede.
+    $corpo = substr($src, (int) strpos($src, 'export function TweaksPanel'));
+    expect(strpos($src, 'export function TweaksPanel'))->not->toBeFalse();
+
+    // Densidade CONTINUA: e layout do usuario. Cor nao: e token do DS.
+    expect($corpo)->not->toContain('onHue')
+        ->and($corpo)->not->toContain('Tom do accent')
+        ->and($corpo)->toContain('onDensity');
+});
+
+it('o cockpitStyle nao escreve NENHUM token de cor - so densidade (UI-0034)', function () {
     $src = file_get_contents(accentRepoRoot().'/resources/js/Layouts/AppShellV2.tsx');
 
-    // Até 2026-09-02 este teste casava a string inteira `oklch(0.55 0.15 ${accentHue})`, porque
-    // --accent e --accent-2 eram `dark_absent` e tinham UM valor só. A ADR UI-0031 deu par escuro
-    // aos dois (protótipo Cowork: 0.70 / 0.76), então o L/C passou a sair de uma variável e a
-    // string inteira deixou de existir. O que o gate protege é o mesmo: os L/C canônicos estão
-    // ancorados no source, e os valores off-canon não voltam. Agora cobre claro E escuro — o
-    // par escuro ausente era justamente o bug que a UI-0031 fechou.
-    expect($src)->toContain('0.55 0.15')  // --accent claro (ADR 0190) + --bubble-me
-        ->and($src)->toContain('0.62 0.15')  // --accent-2 claro
-        ->and($src)->toContain('0.70 0.15')  // --accent escuro (UI-0031)
-        ->and($src)->toContain('0.76 0.15')  // --accent-2 escuro (= --accent-hi do protótipo)
-        ->and($src)->toContain('${accentHue}') // o hue continua vindo do tweak, não hardcoded
-        ->and($src)->not->toContain('oklch(0.58 0.12 ${accentHue})'); // valor antigo off-canon
+    // Antes da UI-0034 este teste conferia se o inline usava os L/C certos. Agora confere que
+    // o inline de COR nao existe - protecao mais forte, porque nao depende de ninguem acertar
+    // valor. Estilo inline vence .cockpit[data-theme=dark] (e o MESMO div), entao qualquer
+    // token de cor aqui volta a matar o par de tema que o Style Dictionary gerou.
+    $ini = strpos($src, 'const cockpitStyle');
+    expect($ini)->not->toBeFalse();
+    $fim = strpos($src, '};', $ini);
+    expect($fim)->not->toBeFalse();
+    $bloco = substr($src, $ini, $fim - $ini);
+
+    foreach (['--accent', '--accent-2', '--accent-soft', '--bubble-me'] as $proibido) {
+        expect($bloco)->not->toContain($proibido);
+    }
+
+    // e a densidade, que E legitima aqui, continua.
+    expect($bloco)->toContain('--row-h')
+        ->and($bloco)->toContain('--card-pad');
 });
 
 it('Sidebar vibeAccent(workspace) é roxo 295, não azul 220', function () {
@@ -144,12 +176,29 @@ it('todo token inline do cockpitStyle com par de tema no DTCG segue o tema', fun
     expect($faltando)->toBe([]);
 });
 
-it('--accent-soft inline carrega os DOIS pares, e a escolha depende do tema', function () {
+it('--accent-soft tem os DOIS pares no DTCG - e ninguem os sobrescreve inline (UI-0034)', function () {
+    // Instancia concreta do gate A3 - o token que motivou o guard. Antes o par vivia no
+    // inline; agora vive so no DTCG, que e onde deveria estar desde sempre.
+    $json = file_get_contents(accentRepoRoot().'/resources/css/tokens/semantic.tokens.json');
     $src = file_get_contents(accentRepoRoot().'/resources/js/Layouts/AppShellV2.tsx');
 
-    // Instancia concreta do gate A3 - o token que motivou o guard.
-    // O par escuro saiu de 0.32 0.06 para 0.33 0.09 na ADR UI-0031 (valor do protótipo Cowork).
-    expect($src)->toContain('0.95 0.04')    // par claro, canon DTCG
-        ->and($src)->toContain('0.33 0.09')  // par escuro, canon DTCG (UI-0031)
-        ->and($src)->toContain('userTheme'); // a escolha do par depende do tema
+    expect($json)->toContain('oklch(0.95 0.04 295)')
+        ->and($json)->toContain('oklch(0.33 0.09 295)')
+        ->and($src)->not->toContain('accentSoftLC');
+});
+
+it('--bubble-me tem par de tema PROPRIO - o inline nao o segura mais (UI-0034)', function () {
+    // Sem o inline, o alias var(--accent) levaria a bolha a 0.70 no escuro e o texto branco
+    // FIXO (--bubble-me-fg: #ffffff) cairia de 5,17:1 para 2,81:1 - reprova AA em 4
+    // consumidores, incl. as bolhas do Whatsapp. O prototipo declara 0.55 literal e nao
+    // redeclara no escuro; o token passou a ter par proprio com esse valor.
+    $json = json_decode(
+        file_get_contents(accentRepoRoot().'/resources/css/tokens/semantic.tokens.json'),
+        true
+    );
+    $bubble = $json['cockpit']['bubble']['bubble-me'] ?? null;
+    expect($bubble)->toBeArray();
+
+    $dark = $bubble['$extensions']['com.oimpresso.dark'] ?? null;
+    expect($dark)->toBe('oklch(0.55 0.15 295)');
 });
