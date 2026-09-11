@@ -1503,7 +1503,7 @@ export function SidebarFooter({
   // 2026-05-07: Vibes (Modo de trabalho) também migrou pro user dropdown
   // (recomendação P2 #7 auditoria) — antes só ficava no Tweaks FAB.
   return (
-    <div className="sb-user-wrap">
+    <div className="sb-user-wrap" data-contract="sb-rodape">
       {/* User dropdown — agora inclui Superadmin entre Meu perfil e Disponível */}
       <div className="sb-user" style={{ position: 'relative' }}>
         <SidebarUserMenu
