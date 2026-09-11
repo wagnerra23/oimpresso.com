@@ -870,6 +870,31 @@ jobs:
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Patrimonio/AlocacoesRenderTest.php
 
+      # ── E2E DE RENDER POR TELA — Patrimonio/Configuracoes (NASCE ADVISORY) ───────────
+      # Mesma forma dos dois steps acima. Buraco medido em 2026-09-11 por
+      # `node scripts/qa/screen-coverage-map.mjs --screen Patrimonio/Configuracoes`:
+      # trio ✓ · RUNBOOK ✓ · 4/4 UC citados por teste — e `e2e (Browser) ✗`. Sem empréstimo
+      # de visreg: a tela nunca esteve no `visreg-screens.json`.
+      #
+      # ⚠️ ESTA TELA TEM UMA GUARDA QUE AS IRMÃS NÃO TÊM, e ela foi MEDIDA antes de o step
+      # existir — 403 aqui deixaria o step permanentemente vermelho, que é o anti-padrão que
+      # o `ConciliacaoIndexTest` já custou. O `AssetSettingsController:47` acrescenta
+      # `&& ! $is_admin` ao guard que Bens/Painel usam. Medido: `Util::is_admin()` é
+      # `hasRole('Admin#'.$business_id)` (`app/Utils/Util.php:486`), e o
+      # `VisregTenantSeeder::ensureAdminRole()` CRIA e vincula `Admin#1` ao admin do tenant —
+      # logo a guarda passa. A primeira metade do guard é literalmente a mesma de
+      # `AssetController:97`, que já renderiza verde nesta lane.
+      #
+      # Não semeia NADA no banco e não captura screenshot (não gera baseline). ADVISORY no
+      # nascimento (ADR 0261/0275): Pest Browser é CI/CT-100 only e não pôde ser executado
+      # antes do PR. Promoção a ENFORCING = REMOVER o `continue-on-error`, após 2 verdes que
+      # EXECUTARAM, lidos NO LOG do job.
+      - name: E2E de render · Patrimonio/Configuracoes (ADVISORY)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        id: e2e-patrimonio-configuracoes
+        continue-on-error: true
+        run: ./vendor/bin/pest tests/Browser/Patrimonio/ConfiguracoesRenderTest.php
+
       # ── E2E DE RENDER POR TELA — Financeiro/Caixa (NASCE ADVISORY) ───────────────────
       # Buraco medido em 2026-09-03 por `screen-coverage-map.mjs --screen Financeiro/Caixa/Index`:
       # trio ✓ · scorecard ✓ · 5/5 UC citados por teste — e `e2e (Browser) ✗`. O contrato vive
@@ -1140,6 +1165,7 @@ jobs:
           A_VISAO_GERAL: ${{ steps.e2e-visao-geral.outcome }}
           A_REPAIR_PRODUCAO: ${{ steps.e2e-repair-producao.outcome }}
           A_PATR_ALOCACOES: ${{ steps.e2e-patrimonio-alocacoes.outcome }}
+          A_PATR_CONFIGURACOES: ${{ steps.e2e-patrimonio-configuracoes.outcome }}
         run: |
           resumo="$(mktemp)"
           {
@@ -1177,6 +1203,7 @@ jobs:
           registrar "E2E de render · Home/Visao geral" "$A_VISAO_GERAL"
           registrar "E2E de render · Repair/ProducaoOficina" "$A_REPAIR_PRODUCAO"
           registrar "E2E de render · Patrimonio/Alocacoes" "$A_PATR_ALOCACOES"
+          registrar "E2E de render · Patrimonio/Configuracoes" "$A_PATR_CONFIGURACOES"
 
           {
             echo ""
