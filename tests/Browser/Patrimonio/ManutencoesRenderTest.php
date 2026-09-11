@@ -80,12 +80,34 @@ beforeEach(function () {
  */
 const ANCORAS_MANUTENCOES_ADMIN = ['cabecalho', 'subnav', 'tabela'];
 
-/** Sequência de `data-contract` COMO O BROWSER PINTOU (ordem de documento). */
-const ANCORAS_MAN_NO_DOM_JS = <<<'JS'
-(() => Array.from(document.querySelectorAll('[data-contract]'))
-  .map((el) => el.getAttribute('data-contract'))
-  .join(','))()
-JS;
+/**
+ * Âncoras que o contrato (#7208) DECLARA — as 4, incluindo a condicional `alerta`. O filtro
+ * abaixo usa esta lista, e não a das 3 esperadas, de propósito: se um dia o `alerta` passar a
+ * renderizar pra quem vê tudo, ele ENTRA na sequência medida e o primeiro caso reprova — que
+ * é o comportamento correto, porque o terceiro caso afirma que ele não deve estar lá.
+ */
+const ANCORAS_MANUTENCOES_CONTRATO = ['cabecalho', 'subnav', 'alerta', 'tabela'];
+
+/**
+ * Sequência de `data-contract` DA TELA, como o browser pintou (ordem de documento).
+ *
+ * ⚠️ FILTRA pelas âncoras que o contrato DESTA tela declara. Sem o filtro, o teste lê também
+ * as âncoras do SHELL — em 2026-09-11 o #7212 deu cinco a ele (`sb-modos`, `sb-topo`,
+ * `sb-corpo`, `sb-rodape`, `sb-alcas`, em `AppShellV2.tsx:595-621`) e o irmão
+ * `BensRenderTest`, que é ENFORCING, reprovou sem que a tela dele tivesse mudado.
+ *
+ * Filtrar pelo conjunto DECLARADO (em vez de excluir o prefixo `sb-`) é o corte certo: um
+ * denylist de prefixo quebraria na primeira âncora de shell fora desse padrão.
+ */
+function ancorasDaTelaManJs(array $declaradas): string
+{
+    $querido = json_encode(array_values($declaradas));
+
+    return '(() => { const querido = ' . $querido . ';'
+        . ' return Array.from(document.querySelectorAll("[data-contract]"))'
+        . ' .map((el) => el.getAttribute("data-contract"))'
+        . ' .filter((a) => querido.includes(a)).join(","); })()';
+}
 
 /** Há scroll horizontal no documento? Mede o que o browser RESOLVEU, não a classe. */
 const SCROLL_X_MAN_JS = <<<'JS'
@@ -119,9 +141,10 @@ function abrirManutencoes(): object
  */
 function ancorasManEstaveis($page, string $esperado): string
 {
+    $js = ancorasDaTelaManJs(ANCORAS_MANUTENCOES_CONTRATO);
     $visto = '';
     for ($i = 0; $i < 20; $i++) {
-        $visto = (string) $page->script(ANCORAS_MAN_NO_DOM_JS);
+        $visto = (string) $page->script($js);
         if ($visto === $esperado) {
             return $visto;
         }
