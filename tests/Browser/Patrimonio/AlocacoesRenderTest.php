@@ -68,12 +68,27 @@ beforeEach(function () {
 /** As 4 âncoras que `prototipo-ui/contrato/patrimonio-alocacoes.contract.json` declara, na ordem. */
 const ANCORAS_ALOCACOES = ['cabecalho', 'subnav', 'filtros', 'tabela'];
 
-/** Sequência de `data-contract` COMO O BROWSER PINTOU (ordem de documento). */
-const ANCORAS_ALOC_NO_DOM_JS = <<<'JS'
-(() => Array.from(document.querySelectorAll('[data-contract]'))
-  .map((el) => el.getAttribute('data-contract'))
-  .join(','))()
-JS;
+/**
+ * Sequência de `data-contract` DA TELA, como o browser pintou (ordem de documento).
+ *
+ * ⚠️ FILTRA pelas âncoras que o contrato DESTA tela declara. Sem o filtro, o teste lê também
+ * as âncoras do SHELL — em 2026-09-11 o #7212 deu cinco a ele (`sb-modos`, `sb-topo`,
+ * `sb-corpo`, `sb-rodape`, `sb-alcas`, em `AppShellV2.tsx:595-621`) e o irmão
+ * `BensRenderTest`, que é ENFORCING, reprovou sem que a tela dele tivesse mudado.
+ *
+ * Filtrar pelo conjunto DECLARADO (em vez de excluir o prefixo `sb-`) é o corte certo: um
+ * denylist de prefixo quebraria na primeira âncora de shell fora desse padrão. O teste segue
+ * pegando âncora FALTANDO e FORA DE ORDEM, e para de depender de quem mais pinta âncora.
+ */
+function ancorasDaTelaAlocJs(array $declaradas): string
+{
+    $querido = json_encode(array_values($declaradas));
+
+    return '(() => { const querido = ' . $querido . ';'
+        . ' return Array.from(document.querySelectorAll("[data-contract]"))'
+        . ' .map((el) => el.getAttribute("data-contract"))'
+        . ' .filter((a) => querido.includes(a)).join(","); })()';
+}
 
 /**
  * Há scroll horizontal no documento? Mede o que o browser RESOLVEU, não a classe —
@@ -117,9 +132,10 @@ function abrirAlocacoes(): object
  */
 function ancorasAlocEstaveis($page, string $esperado): string
 {
+    $js = ancorasDaTelaAlocJs(ANCORAS_ALOCACOES);
     $visto = '';
     for ($i = 0; $i < 20; $i++) {
-        $visto = (string) $page->script(ANCORAS_ALOC_NO_DOM_JS);
+        $visto = (string) $page->script($js);
         if ($visto === $esperado) {
             return $visto;
         }
