@@ -1,45 +1,47 @@
 /* perfil-page.css — Meu Perfil (conta do usuário logado). Cockpit V2.
-   Token-driven (claro/escuro pelo toggle do host). Prefixo .pf- pra não colidir. */
+   Token-driven (claro/escuro pelo toggle do host). Prefixo .upf- pra não colidir. */
 
-.pf{ display:flex; flex-direction:column; min-height:100%; background:var(--bg); }
+.upf{ display:flex; flex-direction:column; min-height:100%; background:var(--bg); }
 
 /* ── Page header de identidade ── */
-.pf-head{
-  display:flex; align-items:center; gap:16px;
-  padding:18px 24px 16px;
+.upf-head{
+  display:flex; align-items:center; gap:14px;
+  padding:16px 24px;
   border-bottom:1px solid var(--border);
   background:var(--surface);
 }
-.pf-avatar{
-  width:56px; height:56px; flex:0 0 auto;
+.upf-avatar{
+  width:48px; height:48px; flex:0 0 auto;
   border-radius:var(--radius-lg);
   background:var(--accent); color:var(--accent-fg);
   display:grid; place-items:center;
-  font-size:20px; font-weight:600; letter-spacing:.02em;
+  font-size:17px; font-weight:600; letter-spacing:.02em;
   overflow:hidden; position:relative;
 }
-.pf-avatar img{ width:100%; height:100%; object-fit:cover; }
-.pf-id{ min-width:0; flex:1 1 auto; }
-.pf-id-name{
+.upf-avatar img{ width:100%; height:100%; object-fit:cover; }
+.upf-id{ min-width:0; flex:1 1 auto; }
+.upf-id-name{
   display:flex; align-items:center; gap:10px; flex-wrap:wrap;
   font-size:19px; font-weight:600; color:var(--text); line-height:1.2;
 }
-.pf-chip{
+.upf-chip{
   font-size:11px; font-weight:600; letter-spacing:.02em;
   padding:2px 9px; border-radius:999px;
   background:var(--accent-soft); color:var(--accent);
   border:1px solid color-mix(in oklch, var(--accent) 30%, transparent);
 }
-.pf-id-sub{
+.upf-id-sub{
   margin-top:3px; font-size:12.5px; color:var(--text-dim);
   display:flex; align-items:center; gap:7px; flex-wrap:wrap;
 }
-.pf-id-sub .sep{ color:var(--text-mute); opacity:.5; }
-.pf-head-actions{ display:flex; align-items:center; gap:8px; flex:0 0 auto; }
+.upf-id-sub .sep{ color:var(--text-mute); opacity:.5; }
+.upf-head-actions{ display:flex; align-items:center; gap:8px; flex:0 0 auto; }
 
 /* ── Botões ── */
-.pf-btn{
+.upf-btn{
   display:inline-flex; align-items:center; gap:7px;
+  /* Uma só altura de controle na tela: 34px pra botão, input e select.
+     Antes: botão 34 · input/select 36 · aba 42 — três réguas na mesma página. */
   height:34px; padding:0 14px;
   border-radius:var(--radius-sm);
   border:1px solid var(--border);
@@ -47,173 +49,197 @@
   font:inherit; font-size:13px; font-weight:500;
   cursor:pointer; transition:background .15s, border-color .15s, color .15s;
 }
-.pf-btn:hover{ background:var(--bg-2); }
-.pf-btn:focus-visible{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
-.pf-btn.primary{ background:var(--accent); border-color:var(--accent); color:var(--accent-fg); }
-.pf-btn.primary:hover{ filter:brightness(1.05); background:var(--accent); }
-.pf-btn.ghost{ background:transparent; border-color:transparent; color:var(--text-dim); }
-.pf-btn.ghost:hover{ background:var(--bg-2); color:var(--text); }
-.pf-btn.sm{ height:30px; padding:0 11px; font-size:12.5px; }
-.pf-btn:disabled{ opacity:.5; cursor:not-allowed; }
+.upf-btn:hover{ background:var(--bg-2); }
+.upf-btn:focus-visible{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+.upf-btn.primary{ background:var(--accent); border-color:var(--accent); color:var(--accent-fg); }
+.upf-btn.primary:hover{ filter:brightness(1.05); background:var(--accent); }
+.upf-btn.ghost{ background:transparent; border-color:transparent; color:var(--text-dim); }
+.upf-btn.ghost:hover{ background:var(--bg-2); color:var(--text); }
+.upf-btn.sm{ height:30px; padding:0 11px; font-size:12.5px; }
+.upf-btn:disabled{ opacity:.5; cursor:not-allowed; }
 
 /* ── Tabs ── */
-.pf-tabs{
+.upf-tabs{
   display:flex; gap:2px; padding:0 24px;
   border-bottom:1px solid var(--border);
   background:var(--surface);
 }
-.pf-tab{
+.upf-tab{
   position:relative;
   display:inline-flex; align-items:center; gap:7px;
-  height:42px; padding:0 4px; margin-right:18px;
+  height:40px; padding:0 4px; margin-right:18px;
   border:0; background:transparent; cursor:pointer;
   font:inherit; font-size:13px; font-weight:500;
   color:var(--text-mute);
   border-bottom:2px solid transparent;
   transition:color .15s;
 }
-.pf-tab:hover{ color:var(--text-dim); }
-.pf-tab.active{ color:var(--accent); border-bottom-color:var(--accent); }
-.pf-tab:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--accent-soft); border-radius:4px; }
+.upf-tab:hover{ color:var(--text-dim); }
+.upf-tab.active{ color:var(--accent); border-bottom-color:var(--accent); }
+.upf-tab:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--accent-soft); border-radius:4px; }
 
 /* ── Body grid ── */
-.pf-body{ padding:24px; max-width:1180px; width:100%; margin:0 auto; }
-.pf-grid{ display:grid; grid-template-columns:1fr 340px; gap:20px; align-items:start; }
-.pf-col{ display:flex; flex-direction:column; gap:20px; min-width:0; }
+/* Largura: a tela OCUPA a coluna. A caixa centrada de 1180px com `margin:0 auto`
+   estrangulava o conteúdo (campos truncando "Selecio…", "dd/mm…") e deixava
+   duas calhas mortas — numa tela de formulário o ar tem que ir pro campo. */
+.upf-body{ padding:20px 24px 24px; width:100%; }
+/* Coluna lateral de 320px = 2 campos de 148 + gap; a de 340 não casava com
+   nenhuma medida da tela e sobrava ar em volta do avatar. */
+.upf-grid{ display:grid; grid-template-columns:minmax(0,1fr) minmax(280px,320px); gap:16px; align-items:start; }
+.upf-col{ display:flex; flex-direction:column; gap:16px; min-width:0; }
+/* Aba de coluna única: acompanha a coluna, com teto só pra linha de leitura
+   não virar faixa de 2000px em monitor largo. */
+.upf-col-solo{ max-width:1240px; }
 
-@media (max-width:980px){ .pf-grid{ grid-template-columns:1fr; } }
+@media (max-width:980px){ .upf-grid{ grid-template-columns:minmax(0,1fr); } }
 
 /* ── Card ── */
-.pf-card{
+.upf-card{
   background:var(--surface);
   border:1px solid var(--border);
   border-radius:var(--radius);
   overflow:hidden;
 }
-.pf-card-head{
+.upf-card-head{
   display:flex; align-items:center; gap:10px;
-  padding:14px 18px;
+  padding:12px 16px;
   border-bottom:1px solid var(--border);
 }
-.pf-card-head .ic{ color:var(--text-mute); flex:0 0 auto; }
-.pf-card-head h3{
+.upf-card-head .ic{ color:var(--text-mute); flex:0 0 auto; }
+.upf-card-head h3{
   margin:0; font-size:13.5px; font-weight:600; color:var(--text);
 }
-.pf-card-head .desc{
+.upf-card-head .desc{
   margin:1px 0 0; font-size:11.5px; color:var(--text-dim); font-weight:400;
 }
-.pf-card-head .spacer{ flex:1 1 auto; }
-.pf-card-body{ padding:18px; }
+.upf-card-head .spacer{ flex:1 1 auto; }
+/* O corpo do card É a grade: blocos consecutivos ganham respiro por `gap`,
+   não por `style={{marginTop:14}}` repetido no JSX. */
+.upf-card-body{ padding:16px; display:grid; gap:16px; align-content:start; }
 
 /* ── Form ── */
-.pf-field-grid{ display:grid; gap:14px 16px; }
-.pf-field-grid.cols-2{ grid-template-columns:1fr 1fr; }
-.pf-field-grid.cols-3{ grid-template-columns:1fr 1fr 1fr; }
-@media (max-width:620px){ .pf-field-grid.cols-2,.pf-field-grid.cols-3{ grid-template-columns:1fr; } }
-.pf-field.span-2{ grid-column:span 2; }
-@media (max-width:620px){ .pf-field.span-2{ grid-column:auto; } }
+.upf-field-grid{ display:grid; gap:14px 16px; }
+.upf-field-grid.cols-2{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+.upf-field-grid.cols-3{ grid-template-columns:repeat(3,minmax(0,1fr)); }
+/* Linha do nome: "Sr" não precisa de um terço da largura. Campo curto tem
+   medida de campo curto — era o que fazia a linha parecer mal cortada. */
+.upf-field-grid.cols-name{ grid-template-columns:96px minmax(0,1fr) minmax(0,1fr); }
+@media (max-width:620px){
+  .upf-field-grid.cols-2,.upf-field-grid.cols-3,.upf-field-grid.cols-name{ grid-template-columns:minmax(0,1fr); }
+}
+.upf-field.span-2{ grid-column:span 2; }
+@media (max-width:620px){ .upf-field.span-2{ grid-column:auto; } }
 
-.pf-field{ display:flex; flex-direction:column; gap:5px; min-width:0; }
-.pf-label{
+.upf-field{ display:flex; flex-direction:column; gap:5px; min-width:0; }
+/* Piso de 132px: abaixo disso o select corta o rótulo da opção e o input de
+   data vira "dd/mm…". Se não couber, a grade quebra a linha (auto-fit abaixo). */
+.upf-field-grid{ grid-auto-rows:min-content; }
+@media (max-width:1100px){
+  .upf-field-grid.cols-3{ grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); }
+  .upf-field-grid.cols-name{ grid-template-columns:96px repeat(auto-fit,minmax(160px,1fr)); }
+}
+.upf-label{
   font-size:11.5px; font-weight:600; color:var(--text-dim);
   display:flex; align-items:center; gap:6px;
 }
-.pf-label .req{ color:oklch(0.58 0.18 25); }
-.pf-input, .pf-select{
-  width:100%; height:36px; padding:0 11px;
+.upf-label .req{ color:oklch(0.58 0.18 25); }
+.upf-input, .upf-select{
+  width:100%; height:34px; padding:0 11px;
   border:1px solid var(--border);
   border-radius:var(--radius-sm);
   background:var(--bg); color:var(--text);
   font:inherit; font-size:13px;
   transition:border-color .15s, box-shadow .15s;
 }
-.pf-select{ appearance:none; cursor:pointer;
+.upf-select{ appearance:none; cursor:pointer;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat:no-repeat; background-position:right 10px center; padding-right:32px;
 }
-.pf-input:focus, .pf-select:focus{
+.upf-input:focus, .upf-select:focus{
   outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft);
 }
-.pf-input::placeholder{ color:var(--text-mute); }
-.pf-hint{ font-size:11px; color:var(--text-mute); }
+.upf-input::placeholder{ color:var(--text-mute); }
+.upf-hint{ font-size:11px; color:var(--text-mute); }
 
 /* input com prefixo (ex: telefone, link) */
-.pf-input-wrap{ position:relative; display:flex; align-items:center; }
-.pf-input-wrap .ic{ position:absolute; left:11px; color:var(--text-mute); pointer-events:none; }
-.pf-input-wrap .pf-input{ padding-left:34px; }
+.upf-input-wrap{ position:relative; display:flex; align-items:center; }
+.upf-input-wrap .ic{ position:absolute; left:11px; color:var(--text-mute); pointer-events:none; }
+.upf-input-wrap .upf-input{ padding-left:34px; }
 
 /* ── Foto de perfil card ── */
-.pf-photo{ display:flex; flex-direction:column; align-items:center; gap:14px; text-align:center; }
-.pf-photo-preview{
-  width:120px; height:120px; border-radius:50%;
+.upf-photo{ display:flex; flex-direction:column; align-items:center; gap:12px; text-align:center; }
+/* 96px: cabe na coluna de 320 com os dois botões na mesma linha. Em 120 o
+   círculo empurrava as ações pra baixo e abria um vão morto no card. */
+.upf-photo-preview{
+  width:96px; height:96px; border-radius:50%;
   background:var(--accent); color:var(--accent-fg);
   display:grid; place-items:center;
-  font-size:42px; font-weight:600;
+  font-size:34px; font-weight:600;
   overflow:hidden; position:relative;
   border:3px solid var(--surface);
   box-shadow:0 0 0 1px var(--border);
 }
-.pf-photo-preview img{ width:100%; height:100%; object-fit:cover; }
-.pf-photo-actions{ display:flex; gap:8px; }
-.pf-photo-hint{ font-size:11px; color:var(--text-mute); line-height:1.5; }
+.upf-photo-preview img{ width:100%; height:100%; object-fit:cover; }
+.upf-photo-actions{ display:flex; gap:8px; }
+.upf-photo-hint{ font-size:11px; color:var(--text-mute); line-height:1.5; }
 
 /* ── Segurança / lista ── */
-.pf-rows{ display:flex; flex-direction:column; }
-.pf-row{
+.upf-rows{ display:flex; flex-direction:column; }
+.upf-row{
   display:flex; align-items:center; gap:12px;
   padding:12px 0;
   border-bottom:1px solid var(--border);
 }
-.pf-row:last-child{ border-bottom:0; padding-bottom:0; }
-.pf-row:first-child{ padding-top:0; }
-.pf-row-ic{
+.upf-row:last-child{ border-bottom:0; padding-bottom:0; }
+.upf-row:first-child{ padding-top:0; }
+.upf-row-ic{
   width:34px; height:34px; flex:0 0 auto;
   border-radius:var(--radius-sm);
   background:var(--bg-2); color:var(--text-dim);
   display:grid; place-items:center;
 }
-.pf-row-meta{ flex:1 1 auto; min-width:0; }
-.pf-row-meta b{ display:block; font-size:13px; font-weight:500; color:var(--text); }
-.pf-row-meta small{ display:block; font-size:11.5px; color:var(--text-dim); margin-top:1px; }
-.pf-dot{ width:7px; height:7px; border-radius:50%; flex:0 0 auto; }
-.pf-dot.on{ background:oklch(0.70 0.16 145); }
-.pf-dot.off{ background:var(--text-mute); }
+.upf-row-meta{ flex:1 1 auto; min-width:0; }
+.upf-row-meta b{ display:block; font-size:13px; font-weight:500; color:var(--text); }
+.upf-row-meta small{ display:block; font-size:11.5px; color:var(--text-dim); margin-top:1px; }
+.upf-dot{ width:7px; height:7px; border-radius:50%; flex:0 0 auto; }
+.upf-dot.on{ background:oklch(0.70 0.16 145); }
+.upf-dot.off{ background:var(--text-mute); }
 
 /* sessões */
-.pf-sess-tag{
+.upf-sess-tag{
   font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:999px;
   background:oklch(0.95 0.05 145); color:oklch(0.40 0.12 145);
   border:1px solid oklch(0.80 0.08 145);
 }
-[data-theme="dark"] .pf-sess-tag{ background:oklch(0.30 0.06 145); color:oklch(0.82 0.10 145); border-color:oklch(0.40 0.07 145); }
+[data-theme="dark"] .upf-sess-tag{ background:oklch(0.30 0.06 145); color:oklch(0.82 0.10 145); border-color:oklch(0.40 0.07 145); }
 
 /* ── Notificações toggles ── */
-.pf-toggle-row{
+.upf-toggle-row{
   display:flex; align-items:center; gap:12px;
   padding:11px 0; border-bottom:1px solid var(--border);
 }
-.pf-toggle-row:last-child{ border-bottom:0; }
-.pf-toggle-meta{ flex:1 1 auto; }
-.pf-toggle-meta b{ display:block; font-size:13px; font-weight:500; color:var(--text); }
-.pf-toggle-meta small{ display:block; font-size:11.5px; color:var(--text-dim); margin-top:1px; }
-.pf-switch{
+.upf-toggle-row:last-child{ border-bottom:0; }
+.upf-toggle-meta{ flex:1 1 auto; }
+.upf-toggle-meta b{ display:block; font-size:13px; font-weight:500; color:var(--text); }
+.upf-toggle-meta small{ display:block; font-size:11.5px; color:var(--text-dim); margin-top:1px; }
+.upf-switch{
   width:38px; height:22px; flex:0 0 auto;
   border-radius:999px; border:0; cursor:pointer; padding:0;
   background:var(--border); position:relative;
   transition:background .18s ease;
 }
-.pf-switch::after{
+.upf-switch::after{
   content:""; position:absolute; top:2px; left:2px;
   width:18px; height:18px; border-radius:50%; background:#fff;
   box-shadow:0 1px 2px rgba(0,0,0,.25);
   transition:transform .18s ease;
 }
-.pf-switch.on{ background:var(--accent); }
-.pf-switch.on::after{ transform:translateX(16px); }
-.pf-switch:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--accent-soft); }
+.upf-switch.on{ background:var(--accent); }
+.upf-switch.on::after{ transform:translateX(16px); }
+.upf-switch:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--accent-soft); }
 
 /* save bar */
-.pf-savebar{
+.upf-savebar{
   position:sticky; bottom:0; z-index:5;
   display:flex; align-items:center; gap:12px;
   margin-top:20px; padding:13px 16px;
@@ -222,14 +248,14 @@
   border-radius:var(--radius);
   box-shadow:var(--shadow-pop);
 }
-.pf-savebar .msg{ font-size:12.5px; color:var(--text-dim); flex:1 1 auto; }
-.pf-savebar .msg b{ color:var(--text); font-weight:500; }
+.upf-savebar .msg{ font-size:12.5px; color:var(--text-dim); flex:1 1 auto; }
+.upf-savebar .msg b{ color:var(--text); font-weight:500; }
 
 /* dica/aviso PII */
-.pf-note{
+.upf-note{
   display:flex; gap:9px; align-items:flex-start;
   padding:10px 12px; border-radius:var(--radius-sm);
   background:var(--bg-2); border:1px solid var(--border);
   font-size:12px; color:var(--text-dim); line-height:1.5;
 }
-.pf-note .ic{ color:var(--text-mute); flex:0 0 auto; margin-top:1px; }
+.upf-note .ic{ color:var(--text-mute); flex:0 0 auto; margin-top:1px; }
