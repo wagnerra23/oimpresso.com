@@ -185,43 +185,66 @@ it('UC-RDSH-01 · abrir o painel não escreve nada e não enfileira nada', funct
     Queue::assertNothingPushed();
 });
 
-it('UC-RDSH-02 · o primeiro KPI conta STATUS distintos, não ordens de serviço', function () {
+it('UC-RDSH-02 · o KPI de pendentes conta ORDENS DE SERVIÇO, e se mexe quando entra folha', function () {
     $biz = $this->seededTenant();
     $user = rdshUser((int) $biz->id);
 
-    // invariante que vale em qualquer estado de base: o KPI É o tamanho da lista de status
-    $props = rdshAbrirPainel($this, $user);
-    expect((int) $props['kpis']['total_repairs'])
-        ->toBe(count($props['job_sheets_by_status'] ?? []));
+    // ⚠️ Este UC AFIRMAVA o contrário até 2026-09-09: cravava que o KPI era o TAMANHO da
+    // lista de status (`count($job_sheets_by_status)`) e que +3 OS não o moviam. Aquilo era
+    // contrato honesto do defeito, não do produto: com 6 status configurados o número ficava
+    // preso em ~6 com 3 ou 3.000 OS. O protótipo (`repair-page.jsx` região `Painel`) manda
+    // "Folhas pendentes" no topo, e no eixo FORMA ele é soberano (ADR UI-0029) — então o
+    // perdedor a corrigir no MESMO PR era ESTE teste, reescrito, nunca desabilitado
+    // (proibicoes.md §Precedência). Ver RUNBOOK-repair-dashboard.md.
+    $antes = rdshAbrirPainel($this, $user);
 
-    // prova direta: +3 OS no MESMO status não pode mexer no KPI
-    $statusId = DB::table('repair_statuses')->where('business_id', $biz->id)->value('id');
-    if (! $statusId || rdshCriarOs((int) $biz->id, 'KPI-1', (int) $statusId) === null) {
-        test()->markTestSkipped('Tenant 98 sem contact/status/location/user — sem como criar OS de fixture.');
+    $statusPendente = DB::table('repair_statuses')
+        ->where('business_id', $biz->id)
+        ->where(function ($q) {
+            $q->where('is_completed_status', 0)->orWhereNull('is_completed_status');
+        })
+        ->value('id');
+
+    if (! $statusPendente || rdshCriarOs((int) $biz->id, 'KPI-1', (int) $statusPendente) === null) {
+        test()->markTestSkipped('Tenant 98 sem contact/status pendente/location/user — sem como criar OS de fixture.');
     }
-    rdshCriarOs((int) $biz->id, 'KPI-2', (int) $statusId);
-    rdshCriarOs((int) $biz->id, 'KPI-3', (int) $statusId);
+    rdshCriarOs((int) $biz->id, 'KPI-2', (int) $statusPendente);
+    rdshCriarOs((int) $biz->id, 'KPI-3', (int) $statusPendente);
 
     $depois = rdshAbrirPainel($this, $user);
 
-    expect((int) $depois['kpis']['total_repairs'])
-        ->toBe((int) $props['kpis']['total_repairs']);
+    // A prova: 3 folhas pendentes a mais movem o KPI em 3. `>=` porque outra sessão pode
+    // escrever no mesmo tenant entre as duas leituras (o banco do CT 100 persiste).
+    expect((int) $depois['kpis']['pending'] - (int) $antes['kpis']['pending'])
+        ->toBeGreaterThanOrEqual(3);
 
-    // controle positivo: as 3 OS entraram — senão o "não mudou" seria vácuo. `>=` porque
-    // outra sessão pode ter escrito no mesmo tenant entre as duas leituras.
-    $somaAntes = collect($props['job_sheets_by_status'] ?? [])->sum('count');
-    $somaDepois = collect($depois['job_sheets_by_status'] ?? [])->sum('count');
-    expect($somaDepois - $somaAntes)->toBeGreaterThanOrEqual(3);
+    // CONTROLE NEGATIVO do defeito antigo: o número de status distintos NÃO mudou (criei
+    // as 3 no MESMO status). Se o KPI ainda fosse `count($job_sheets_by_status)`, o delta
+    // acima seria 0 e este teste reprovaria — é o que o torna capaz de ficar vermelho.
+    expect(count($depois['job_sheets_by_status'] ?? []))
+        ->toBe(count($antes['job_sheets_by_status'] ?? []));
+
+    // As 4 chaves do contrato novo existem e são inteiros — sem isso a tela renderiza
+    // `undefined` e ninguém vê erro.
+    foreach (['pending', 'pending_unassigned', 'completed', 'overdue'] as $chave) {
+        expect($depois['kpis'])->toHaveKey($chave);
+        expect($depois['kpis'][$chave])->toBeInt();
+    }
+
+    // Coerência interna: quem está sem técnico é subconjunto de quem está pendente, e quem
+    // venceu também. Um agregado que violasse isso estaria contando universo errado.
+    expect((int) $depois['kpis']['pending_unassigned'])->toBeLessThanOrEqual((int) $depois['kpis']['pending']);
+    expect((int) $depois['kpis']['overdue'])->toBeLessThanOrEqual((int) $depois['kpis']['pending']);
 });
 
-it('UC-RDSH-03 · o painel Top aparelhos nunca enche — o Controller descarta a consulta que já rodou', function () {
+it('UC-RDSH-03 · Top aparelhos entrega a consulta que o Controller já roda', function () {
     $biz = $this->seededTenant();
     $user = rdshUser((int) $biz->id);
 
-    // O aparelho da OS é uma linha de `categories`. Medido no CT 100 em 2026-09-05: a
-    // tabela está VAZIA no staging (0 linhas no banco inteiro, não só no tenant 98) — a
-    // taxonomia de device não é semeada. Quem semeia ambiente é o seed, não o teste
-    // (§5 2026-08-24), então a perna forte fica condicional em vez de fabricada.
+    // ⚠️ Este UC AFIRMAVA `toBe([])` até 2026-09-09 — o Controller chamava
+    // `RepairUtil::getTrendingDevices()` na linha 42 e mandava um `[]` LITERAL pra tela.
+    // O card, o Deferred, o skeleton e o emptyMsg existiam: tudo funcionava, e nunca
+    // mostrava nada. Corrigido no mesmo PR que reescreve este teste.
     $deviceId = DB::table('categories')->where('business_id', $biz->id)->value('id');
 
     if (rdshCriarOs((int) $biz->id, 'DEVICE', null, $deviceId === null ? null : (int) $deviceId) === null) {
@@ -230,20 +253,59 @@ it('UC-RDSH-03 · o painel Top aparelhos nunca enche — o Controller descarta a
 
     $props = rdshAbrirPainel($this, $user);
 
-    // O contrato vigente do servidor, e ele vale com ou sem taxonomia: o Controller manda
-    // um `[]` LITERAL, não o resultado da consulta que ele mesmo roda uma linha acima.
-    expect($props['trending_devices_chart'] ?? null)->toBe([]);
+    // O contrato agora é de FORMA, e vale com ou sem taxonomia: um array de linhas
+    // {device, count}, nunca mais um literal vazio plantado no Controller.
+    expect($props)->toHaveKey('trending_devices_chart');
+    expect($props['trending_devices_chart'])->toBeArray();
 
-    // ANTI-VÁCUO parcial: a OS existe e os OUTROS agregados a enxergam — o painel está
-    // servindo dado do tenant, e ainda assim "Top aparelhos" volta vazio.
+    // ANTI-VÁCUO: a OS existe e os outros agregados a enxergam.
     expect(collect($props['job_sheets_by_status'] ?? [])->sum('count'))->toBeGreaterThan(0);
 
-    // Perna FORTE — só onde a taxonomia existir: com `device_id` preenchido, o ramo Blade
-    // encheria o gráfico via `RepairUtil::getTrendingDevices`, e o Inertia continua vazio.
-    // Sem ela, o `[]` acima é o contrato pinado, não a prova do descarte.
+    // Perna FORTE — só onde a taxonomia existir. Medido no CT 100 em 2026-09-05:
+    // `categories` está VAZIA no staging (0 linhas no banco inteiro), e quem semeia
+    // ambiente é o seed, não o teste (§5 2026-08-24). Com device_id preenchido, a OS
+    // criada acima TEM de aparecer — é exatamente o que o `[]` literal impedia.
     if ($deviceId !== null) {
-        expect(collect($props['trending_devices_chart'] ?? [])->count())->toBe(0);
+        expect(collect($props['trending_devices_chart'])->sum('count'))->toBeGreaterThan(0);
+        expect(collect($props['trending_devices_chart'])->first())->toHaveKeys(['label', 'count']);
     }
+});
+
+it('UC-RDSH-05 · toda série de gráfico chega com a chave que a tela lê', function () {
+    $biz = $this->seededTenant();
+    $user = rdshUser((int) $biz->id);
+
+    if (rdshCriarOs((int) $biz->id, 'LABEL') === null) {
+        test()->markTestSkipped('Tenant 98 sem contact/status/location/user — sem como criar OS de fixture.');
+    }
+
+    $props = rdshAbrirPainel($this, $user);
+
+    // O consumidor é o `BarChartCard` do Index.tsx, e ele lê `r.label`. Até 2026-09-09 o
+    // Controller mandava `status`/`staff`/`brand`/`model`: os 4 gráficos renderizavam o
+    // rótulo VAZIO em produção, e o `.tsx:17` afirmava que "toda série é normalizada pelo
+    // Controller pra {label,count}" — comentario certo sobre a intenção, errado sobre o
+    // fato. Nenhum teste pegava porque todos somavam `count`, que era a metade que batia.
+    // Este UC trava a OUTRA metade.
+    foreach ([
+        'job_sheets_by_status',
+        'job_sheets_by_service_staff',
+        'trending_brand_chart',
+        'trending_dm_chart',
+        'trending_devices_chart',
+    ] as $serie) {
+        expect($props)->toHaveKey($serie);
+        foreach ($props[$serie] ?? [] as $linha) {
+            expect($linha)->toHaveKeys(['label', 'count']);
+            // `label` é o que aparece na barra: vazio ali é o defeito, não o dado.
+            expect($linha['label'])->not->toBeNull();
+            expect((string) $linha['label'])->not->toBe('');
+        }
+    }
+
+    // ANTI-VÁCUO: pelo menos uma série tem linha — senão o foreach acima passa por
+    // vacuidade e o UC vira carimbo.
+    expect(collect($props['job_sheets_by_status'] ?? [])->count())->toBeGreaterThan(0);
 });
 
 it('UC-RDSH-04 · nenhum dos agregados enxerga OS de outro tenant', function () {
@@ -271,11 +333,19 @@ it('UC-RDSH-04 · nenhum dos agregados enxerga OS de outro tenant', function () 
 
     expect(collect($props['job_sheets_by_status'] ?? [])->sum('count'))->toBe($verdadeDoTenant);
 
-    // e o KPI de status também: nenhum status que só existe no vizinho entra na conta
-    $statusDoTenant = (int) DB::table('repair_job_sheets')
-        ->join('repair_statuses as rs', 'repair_job_sheets.status_id', '=', 'rs.id')
-        ->where('repair_job_sheets.business_id', $biz->id)
-        ->distinct()->count('rs.id');
+    // E os KPIs tambem. Ate 2026-09-09 esta perna comparava o KPI contra os STATUS
+    // distintos do tenant, porque era isso que o Controller mandava; com o KPI passando a
+    // contar ORDENS (ver UC-RDSH-02), a mesma pergunta se faz melhor: pendentes +
+    // concluidas TEM de fechar com a contagem escopada por business_id. Se a agregada
+    // perdesse o escopo, as 2 OS do vizinho apareceriam aqui.
+    //
+    // ⚠️ `leftJoin`, nao `join`: o Controller conta a folha mesmo com status apagado no
+    // legado (ela cai em pendente, o lado seguro). Um `join` interno aqui mediria um
+    // universo menor que o da tela e fabricaria vermelho onde nao ha defeito.
+    $osDoTenant = (int) DB::table('repair_job_sheets')
+        ->where('business_id', $biz->id)
+        ->count();
 
-    expect((int) $props['kpis']['total_repairs'])->toBe($statusDoTenant);
+    expect((int) $props['kpis']['pending'] + (int) $props['kpis']['completed'])
+        ->toBe($osDoTenant);
 });

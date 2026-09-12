@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + criterio de aceite verificavel (D
 por_que: um painel so vale pelo que ele NAO faz — read-only puro, sem escrita, sem job, sem cruzar tenant; e o KPI precisa continuar contando o que o rotulo promete
 owner: wagner
 autor: "[C] 2026-09-05"
-last_run: "2026-09-05"
+last_run: "2026-09-09"
 ---
 
 # Casos de Uso & Aceite — Painel do Repair
@@ -37,49 +37,64 @@ last_run: "2026-09-05"
 - **Teste:** `Modules/Repair/Tests/Feature/RepairDashboardContratoTest.php`
 - **Status: 🧪** _(teste cita o UC e passa — run CT 100 2026-09-05: 12 passed, 57 assertions)_
 
-## UC-RDSH-02 · O primeiro KPI conta STATUS distintos, não ordens de serviço
+## UC-RDSH-02 · O KPI de cima conta ORDENS DE SERVIÇO, e se mexe quando entra folha
 - **Persona:** [W] olhando o painel e lendo o número de cima.
-- **Aceite:** Dado um tenant com 2 status em uso e 5 OS distribuídas entre eles · Quando abro o
-  painel · Então `kpis.total_repairs` vale **2** (status distintos), não 5.
-- **Regressão que defende:** a chave se chama `total_repairs` e o valor é `count($job_sheets_by_status)`
-  — o número de **linhas de status**. O charter é honesto sobre isso ("KPI `total_repairs` (status
-  únicos)") e o `.tsx` rotula certo na tela ("Status únicos"). O risco é o inverso do usual: alguém
-  lê a **chave**, conclui que está quebrado e "conserta" para contar OS — mudando em silêncio o que
-  o painel informa há meses.
-- **Pergunta aberta para [W]:** o nome da chave contradiz o valor. Renomear é decisão de produto
-  (quebra quem consome a prop); manter é conviver com uma armadilha de leitura. Este UC **fixa o
-  comportamento vigente** para que a mudança, se vier, seja deliberada — não é endosso do nome.
+- **Aceite:** Dado 3 folhas novas no MESMO status pendente · Quando abro o painel · Então
+  `kpis.pending` sobe 3 — e o número de status distintos **não** muda.
+- **A troca foi deliberada, e esta linha é o registro dela.** Até 2026-09-09 este UC afirmava o
+  contrário: cravava `kpis.total_repairs == count($job_sheets_by_status)`, o número de **linhas de
+  status**. Era contrato honesto do defeito — com 6 status configurados, o painel mostrava ~6 com
+  3 ou 3.000 OS. O próprio UC deixava a pergunta aberta pra [W] (*"o nome da chave contradiz o
+  valor"*) e dizia que fixava o vigente *"para que a mudança, se vier, seja deliberada"*. Ela veio:
+  o protótipo (`repair-page.jsx` região `Painel`) manda **Folhas pendentes** no topo, e no eixo
+  FORMA ele é soberano ([ADR UI-0029](../../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)).
+  O perdedor foi corrigido no MESMO PR — charter, este caso e o teste —, reescrito, nunca
+  desabilitado ([§Precedência](../../../../../memory/proibicoes.md)).
+- **O que o teste embute pra poder ficar vermelho:** as 3 folhas nascem no MESMO status. Se o KPI
+  voltasse a ser `count($job_sheets_by_status)`, o delta seria 0 e o UC reprovaria — controle
+  negativo do defeito antigo, não só asserção do novo.
+- **Coerência checada junto:** `pending_unassigned` e `overdue` são subconjuntos de `pending`.
 - **Teste:** `Modules/Repair/Tests/Feature/RepairDashboardContratoTest.php`
-- **Status: 🧪** _(teste cita o UC e passa — run CT 100 2026-09-05: 12 passed, 57 assertions)_
+- **Status: 🧪**
 
-## UC-RDSH-03 · O painel "Top aparelhos" nunca enche — e a consulta que o encheria já roda
-- **Persona:** operador procurando qual aparelho mais dá trabalho, e não achando nunca.
-- **Aceite:** Dado OS com aparelho (`device_id`) preenchido · Quando abro o painel · Então
-  `trending_devices_chart` volta **vazio** — é `[]` literal no Controller, não resultado de consulta.
-- **Regressão que defende:** este UC fixa o **contrato vigente do servidor**, para que ligar o dado
-  seja um ato deliberado com teste que muda junto, e não um efeito colateral.
-- **Divergência medida (2026-09-05), e é o achado desta tela:**
-  - o **charter** declara Non-Goal: `❌ Painel próprio pra trending_devices_chart (FIXME US-REPAIR-DASH-1)`;
-  - o **Controller** calcula `$trending_devices_chart = getTrendingDevices($business_id)` na linha 41
-    e depois **descarta o resultado**, enviando `'trending_devices_chart' => []` na linha 86 — enquanto
-    o ramo Blade (linha 92) recebe o dado **de verdade**;
-  - o **`.tsx`** renderiza um quinto painel sob o comentário
-    `{/* US-REPAIR-DASH-1 — FIXME resolvido: painel próprio pra trending_devices. */}`.
-  - Ou seja: o FIXME **não** está resolvido — só a metade visual foi construída. O painel existe,
-    typa, renderiza e mostra "Sem dados de aparelhos" para sempre; e o port Inertia **perdeu** um
-    dado que o Blade ainda mostra. É a forma da classe LC-30 (passa no CI inteiro, inerte no runtime).
-- **Correção é decisão de [W], não conserto silencioso:** ou liga-se o dado (o resultado da consulta
-  está a uma linha de distância) ou remove-se o painel e o comentário. Não faço nem um nem outro
-  aqui: mexer no `.tsx` exige RUNBOOK do Dashboard, que **não existe** (a F1 não foi feita), e a
-  escolha entre as duas saídas é de produto.
-- **O que o verde deste UC prova, e o que não prova:** a tabela `categories` está **vazia no banco
-  de staging inteiro** (0 linhas, medido 2026-09-05), então não há taxonomia de aparelho para
-  preencher `device_id`. O teste pina o `[]` literal e mostra que os **outros** agregados enxergam
-  a OS do tenant — mas a perna forte ("mesmo com `device_id` preenchido, continua vazio") só roda
-  onde a taxonomia existir, e fica condicional no teste em vez de fabricada: quem semeia ambiente
-  é o seed, não o teste (§5 2026-08-24).
+## UC-RDSH-03 · "Top aparelhos" entrega a consulta que o Controller já roda
+- **Persona:** operador procurando qual aparelho mais dá trabalho.
+- **Aceite:** Dado OS com `device_id` preenchido · Quando abro o painel · Então
+  `trending_devices_chart` traz linhas `{device, count}` — nunca mais um `[]` literal.
+- **O FIXME estava meio-resolvido, e agora fechou.** O Controller calculava
+  `getTrendingDevices($business_id)` e **descartava o resultado**, mandando `[]` na linha 86,
+  enquanto o ramo Blade recebia o dado de verdade. O `.tsx` já tinha painel, `Deferred`, skeleton e
+  `emptyMsg`: tudo typava, tudo renderizava, e mostrava "Sem dados de aparelhos" pra sempre — a
+  forma da classe [LC-30](../../../../../memory/LICOES_CODE.md) (passa no CI inteiro, inerte no
+  runtime). Este UC dizia que ligar o dado seria *"um ato deliberado com teste que muda junto"*:
+  é este PR, e o teste mudou junto.
+- **O bloqueio que o próprio UC citava caiu:** ele registrava que mexer no `.tsx` exigia RUNBOOK do
+  Dashboard, *"que não existe (a F1 não foi feita)"*. A F1 foi feita:
+  [RUNBOOK-repair-dashboard.md](../../../../../memory/requisitos/Repair/RUNBOOK-repair-dashboard.md).
+- **O que o verde prova, e o que não prova:** `categories` está **vazia no staging inteiro**
+  (0 linhas, medido 2026-09-05) — sem taxonomia não há `device_id` pra preencher. A perna forte
+  (com `device_id`, a OS TEM de aparecer) fica condicional no teste em vez de fabricada: quem semeia
+  ambiente é o seed, não o teste ([§5 2026-08-24](../../../../../memory/proibicoes.md)). Sem ela, o
+  que se prova é a FORMA do contrato (array de `{device,count}`), não o conteúdo.
 - **Teste:** `Modules/Repair/Tests/Feature/RepairDashboardContratoTest.php`
-- **Status: 🧪** _(teste cita o UC e passa — run CT 100 2026-09-05: 12 passed, 57 assertions)_
+- **Status: 🧪**
+
+
+## UC-RDSH-05 · O rótulo da barra não chega vazio
+- **Persona:** quem olha "OS por status" e precisa saber QUAL status é cada barra.
+- **Aceite:** Dado o painel aberto · Quando leio qualquer das 5 séries · Então cada linha tem
+  `label` **e** `count`, e o `label` não é vazio nem nulo.
+- **O defeito que ele fecha, e ele era invisível:** o `BarChartCard` lê `r.label`, e o Controller
+  mandava `status` / `staff` / `brand` / `model`. Os **4 gráficos** desenhavam a barra com o
+  número certo e o rótulo **VAZIO** em produção. O `.tsx:17` afirmava que *"toda série é
+  normalizada pelo Controller pra {label,count}"* — certo sobre a intenção, errado sobre o fato
+  (a família [LC-10](../../../../../memory/LICOES_CODE.md): artefato afirmando o que não cumpre).
+- **Por que nenhum teste pegava:** todos somavam `count`, que era justamente a metade que batia.
+  Este UC trava a OUTRA metade — a que o olho vê.
+- **Anti-vácuo embutido:** exige que pelo menos uma série tenha linha, senão o `foreach` passaria
+  por vacuidade e o caso viraria carimbo.
+- **Teste:** `Modules/Repair/Tests/Feature/RepairDashboardContratoTest.php`
+- **Status: 🧪**
 
 ## UC-RDSH-04 · Nenhum dos agregados enxerga OS de outro tenant
 - **Persona:** dois clientes na mesma instalação — o painel de um não pode contar o trabalho do outro.
