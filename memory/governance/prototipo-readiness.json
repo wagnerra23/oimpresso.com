@@ -50,6 +50,7 @@
     "Ponto/Intercorrencias/Show",
     "Ponto/Relatorios/Index",
     "Produto/SellingPrices",
+    "Purchase/Create",
     "Purchase/Index",
     "Purchase/Show",
     "RecurringBilling/Index",
@@ -293,7 +294,17 @@
       "arquivo": "resources/js/Pages/Sells/CreateV3.tsx",
       "modulo": "core",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/Wagner/venda-v3/sells-create.jsx",
+      "prototipo": "prototipo-ui/cowork/Felipe/venda-v3/sells-create.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "User/Perfil",
+      "arquivo": "resources/js/Pages/User/Perfil.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/perfil-page.jsx",
       "falta": [
         "scorecard"
       ]
@@ -399,5 +410,5 @@
       ]
     }
   ],
-  "total": 90
+  "total": 92
 }
