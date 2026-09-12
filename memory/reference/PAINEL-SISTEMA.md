@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-11**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-12**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -24,7 +24,7 @@ lente: [construir]
 |---|---|---|
 | Arquivos | [BRIEFING](../requisitos/Arquivos/BRIEFING.md) | 2026-08-25 |
 | AssetManagement | [BRIEFING](../requisitos/AssetManagement/BRIEFING.md) | 2026-07-23 |
-| Auditoria | [BRIEFING](../requisitos/Auditoria/BRIEFING.md) | 2026-07-23 |
+| Auditoria | [BRIEFING](../requisitos/Auditoria/BRIEFING.md) | 2026-09-11 |
 | Cms | [BRIEFING](../requisitos/Cms/BRIEFING.md) | 2026-07-23 |
 | Compras | [BRIEFING](../requisitos/Compras/BRIEFING.md) | 2026-08-16 |
 | ComunicacaoVisual | [BRIEFING](../requisitos/ComunicacaoVisual/BRIEFING.md) | 2026-08-12 |
@@ -145,8 +145,8 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **400** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 358 · superseded: 16 · deprecated: 13 · proposto: 11 · rascunho: 1 · recusado: 1.
+- **402** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 358 · superseded: 18 · deprecated: 13 · proposto: 11 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
@@ -349,14 +349,14 @@ lente: [construir]
 
 ## Rastro
 
-- **518** handoffs · **722** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **520** handoffs · **725** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-09-11-refutacao-gt-g5-lote-7224-r1`
+  - `2026-09-11-prototipo-minimo-por-dono`
+  - `2026-09-11-prototipo-fonte-unica-sem-duplicatas`
   - `2026-09-10-reanalise-processo-prototipo`
   - `2026-09-10-memory-schema-gate-mudo`
   - `2026-09-10-handoff-14-versoes-divergentes`
-  - `2026-09-10-bundle-baseline-frescor`
-  - `2026-09-09-evidencias-fluxos-prototipo`
-  - `2026-09-09-espelho-cowork-live-only-remedido`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-09-11 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-09-12 · deriva das fontes canônicas, não as substitui._
