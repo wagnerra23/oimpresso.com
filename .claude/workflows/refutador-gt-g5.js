@@ -13,6 +13,11 @@ export const meta = {
 // (memory/requisitos/Governance/PROTOCOLO-REFUTADOR-BACKFILL.md, §7 aponta pra cá).
 //
 // O QUE FAZ, por invocação (= UMA rodada):
+//   ⚠️ 2026-09-13: em resume, a cauda de cada evidência vem do extrator
+//                 scripts/governance/refutacao-recibo.mjs (último bloco json SEM o array
+//                 refutados), não de `tail -n 40` — a r1 do #7224 tinha ~700 linhas de
+//                 refutados e o tail não alcançava itens_verificados: parse null, r1 fora
+//                 da trajetória e a rodada seguinte renumerada como r1.
 //   1. Escopo   — agente mecânico lista o lote (`git diff --name-only <base>...HEAD --
 //                 memory/requisitos`), mede shas/raso/data. Em `args.resume`, lê a CAUDA
 //                 das evidências já gravadas (`...-r<N>.md`) — o JSON final de cada uma
@@ -307,7 +312,7 @@ const promptEscopo = (n, arquivosEvid) => `Você é um agente MECÂNICO do workf
 1. \`git fetch origin main --quiet\`; \`git rev-parse --is-shallow-repository\`; \`git rev-parse HEAD\`; \`git rev-parse ${n.base}\`; \`git merge-base ${n.base} HEAD\`.
 2. \`git diff --name-status ${n.base}...HEAD -- memory/requisitos\` → lista COMPLETA (sem head, sem paginação) de {status, path}. Também \`git diff --name-only ${n.base}...HEAD\` fora de memory/requisitos → só a contagem + até 30 paths.
 3. \`date +%F\` → data de hoje (YYYY-MM-DD).
-4. ${arquivosEvid ? `RESUME: liste \`memory/sessions/*-refutacao-gt-g5-lote-${n.pr}-r*.md\` (git ls-files + ls). Para CADA arquivo devolva {arquivo, rodada (o N do sufixo -rN), cauda: ÚLTIMAS 40 LINHAS literais (\`tail -n 40\`)}. NÃO interprete o conteúdo, NÃO resuma — a cauda crua é o que o workflow parseia.` : `Confira se JÁ existe alguma evidência \`memory/sessions/*-refutacao-gt-g5-lote-${n.pr}-r*.md\` (ls). Se existir, devolva a lista em evidencias_existentes com rodada e cauda (tail -n 40) — o workflow vai PARAR e pedir resume.`}
+4. ${arquivosEvid ? `RESUME: liste \`memory/sessions/*-refutacao-gt-g5-lote-${n.pr}-r*.md\` (git ls-files + ls). Para CADA arquivo devolva {arquivo, rodada (o N do sufixo -rN), cauda: o RECIBO extraído por máquina — rode EXATAMENTE \`node scripts/governance/refutacao-recibo.mjs <arquivo>\` e devolva o stdout literal (é o último bloco \`\`\`json da evidência com o array \`refutados\` removido — ele pode ter centenas de linhas e um \`tail -n 40\` não alcança \`itens_verificados\`, que é o que o parse precisa)}. NÃO interprete o conteúdo, NÃO resuma — o recibo cru é o que o workflow parseia.` : `Confira se JÁ existe alguma evidência \`memory/sessions/*-refutacao-gt-g5-lote-${n.pr}-r*.md\` (ls). Se existir, devolva a lista em evidencias_existentes com rodada e cauda (tail -n 40) — o workflow vai PARAR e pedir resume.`}
 5. Não edite nada. Não commite. Não abra o conteúdo dos arquivos do lote.`
 
 const ESCOPO_SCHEMA = {

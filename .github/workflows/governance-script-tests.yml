@@ -1016,6 +1016,13 @@ jobs:
       - name: Refutador GT-G5 workflow (reprovado para · aprovado registra · resume · entry 6897)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/refutador-gt-g5-workflow.test.mjs
+      # Extrator do recibo que o resume do refutador lê (último bloco json SEM o array
+      # refutados). Nasceu em 2026-09-13: a r1 do #7224 tinha ~700 linhas de refutados e o
+      # `tail -n 40` não alcançava itens_verificados — parse null, r1 fora da trajetória, a
+      # rodada seguinte renumerada r1. Bite por mutação (sem `delete refutados` → 1 falha).
+      - name: Refutação GT-G5 recibo (bloco longo · fallback tail)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/refutacao-recibo.test.mjs
       - name: Migração visual em ondas (duplo aceite · uma onda · Tier 0)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/migracao-layout-workflow.test.mjs
