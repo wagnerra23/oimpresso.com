@@ -107,6 +107,14 @@ on:
       # que estao listados): 0 de 2 cobertos.
       - 'scripts/design/ds-guard.mjs'
       - 'scripts/design/ds-guard.test.mjs'
+      # integrity-check: mesma causa e mesmo remedio do ds-guard acima — ele roda nesta lane
+      # mas saiu do gatilho quando a migracao do #7224 o tirou de 'prototipo-ui/**'.
+      - 'scripts/design/integrity-check.mjs'
+      - 'scripts/design/integrity-check.test.mjs'
+      # o bite-test do integrity-check COPIA este arquivo pro repo-fixture (o script deriva
+      # ROOT de import.meta.url e nao aceita cwd/argv). Import novo aqui quebra a copia, entao
+      # mexer nele precisa disparar a lane que roda o teste.
+      - 'scripts/qa/page-path.mjs'
   workflow_dispatch:
 
 concurrency:
@@ -297,6 +305,19 @@ jobs:
         if: always()
         continue-on-error: true
         run: node scripts/design/ds-guard.mjs --all
+
+      # integrity-check bite-test: prova que os 8 ITs do §15 mordem, com arvore SA (controle
+      # positivo) + 1 mutacao cirurgica por IT. Roda ANTES do step que usa o integrity-check.
+      # O teste monta um repo-fixture em tmp e COPIA o script real pra dentro dele, na mesma
+      # profundidade relativa, porque o integrity-check deriva ROOT de import.meta.url e nao
+      # aceita cwd/argv — a copia e' byte-identica e feita em runtime (nao e' reimplementacao,
+      # o anti-padrao do §5 2026-08-14), e o T0 falha explicitamente se surgir import que a
+      # copia nao leve. Mordida provada por mutacao: IT2->advisory derruba 2 provas ·
+      # IT6->duro derruba T9 · IT5 sem staleness derruba T8 · IT2 so na 1a raiz derruba T4.
+      - name: integrity-check bite-test (os 8 ITs do §15 mordem?)
+        if: always()
+        continue-on-error: true
+        run: node scripts/design/integrity-check.test.mjs
 
       # integrity-check: a propria memoria nao corrompeu (espinha · charter tem tela viva .tsx ·
       # LICOES contiguas · benchmark). Sai 1 se algum IT duro falhar; advisory aqui.
