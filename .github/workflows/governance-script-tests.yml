@@ -658,6 +658,19 @@ jobs:
       - name: ds-push orquestrador morde (dry-run VALOR:0 + determinismo · loop diff-first)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/ds-push.test.mjs
+      # PASSO 2 do ds-push (`node('ds-domains-companion.mjs', [tokensDir])`, ds-push.mjs:78) — o
+      # stdout dele VIRA o companion que o `ds-token-diff --companion` parseia. Sem teste nem
+      # `--selftest` até 2026-09-13: o `ds-push.test.mjs` exercita o orquestrador, não o filtro
+      # de domínio. Testa o CLI DE FORA porque o script não exporta nada (LC-15).
+      # Mutantes mortos antes de wirar (2026-09-13, 8/8): prefixo `stage-`→`stage` → T4 · regex
+      # perde o `/i` → T2+T6 (os 10 `--origin-*` do canon têm MAIÚSCULA e sumiriam calados) ·
+      # dedup pelo último → T7b · sem `sort` → T7a · `--check` fail-open no companion ausente →
+      # T12a · filtro de domínio desligado → 10 FAIL · bloco dark emitindo o light → T8b+T9b ·
+      # cabeçalho com contagem fixa → T9b. O T12c caiu na 1a versão por eu ler só o stdout no
+      # ramo de SUCESSO do `execFileSync` (§5 2026-08-14: leia os DOIS streams) — daí o spawnSync.
+      - name: ds-domains-companion morde (filtro de domínio/verbatim/--check · CLI de fora, hermético)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/design-sync/ds-domains-companion.test.mjs
       - name: ds-token-version morde (seed + bumps MINOR/MAJOR + gate --check · loop diff-first)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/ds-token-version.test.mjs
