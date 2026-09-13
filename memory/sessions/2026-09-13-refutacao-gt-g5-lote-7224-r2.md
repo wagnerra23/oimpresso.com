@@ -113,9 +113,9 @@ Consequência medida: `node scripts/design/consumir-map.mjs memory/requisitos/Se
 
 | Padrão | Controle positivo | Hits brutos | Veredito |
 |---|---|---|---|
-| CPF pontuado | ✓ | 1 | máscara `000.000.000-00` (Crm/cliente-drawer-760-visual-comparison) — já no base |
+| CPF pontuado | ✓ | 1 | máscara zerada de CPF (só zeros, formato pontuado; literal não reproduzido aqui — o pii-scan casa a máscara) em Crm/cliente-drawer-760-visual-comparison — já no base |
 | CPF cru (11 dígitos isolados) | ✓ | 1 | id numérico de run do GitHub Actions (TeamMcp/forja-cockpit) — já no base, não é PII |
-| CNPJ | ✓ | 2 | máscara `00.000.000/0000-00` + exemplo sintético `11.222.333/0001-81` (Sells-r4) — ambos já no base; o lote só adicionou `<!-- pii-allowlist -->` |
+| CNPJ | ✓ | 2 | máscara zerada de CNPJ + o exemplo sintético sequencial do Sells-r4 (literais não reproduzidos aqui — o pii-scan casa o formato) — ambos já no base; o lote só adicionou `<!-- pii-allowlist -->` |
 | Telefone BR | ✓ | 0 | — |
 | Telefone cru (10–11 dígitos) | ✓ | 1 | mesmo id de run acima |
 | E-mail | ✓ | 0 | — |
