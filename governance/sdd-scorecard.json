@@ -68,22 +68,14 @@
     },
     "full_suite_pass_rate": {
       "status": "measured",
-      "value": 292,
+      "value": 291,
       "unit": "arquivos-que-falham (interseção ≥2 runs · ADR 0279)",
       "direction": "down",
       "target": 0,
       "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
       "detail": {
-        "floor_files_hash": "259e743276da215e",
+        "floor_files_hash": "a50d6f101e582f14",
         "runs": [
-          {
-            "sha": "24401d74",
-            "ts": "20260910-020001",
-            "failed": 475,
-            "errors": 384,
-            "skipped": 2225,
-            "all_shards_measured": true
-          },
           {
             "sha": "10b57ca0",
             "ts": "20260911-020001",
@@ -93,15 +85,23 @@
             "all_shards_measured": true
           },
           {
-            "sha": null,
+            "sha": "d86c977a",
             "ts": "20260912-020001",
             "failed": 453,
             "errors": 378,
             "skipped": 2253,
             "all_shards_measured": true
+          },
+          {
+            "sha": null,
+            "ts": "20260913-020001",
+            "failed": 463,
+            "errors": 369,
+            "skipped": 2257,
+            "all_shards_measured": true
           }
         ],
-        "computed_at": "20260912-020001",
+        "computed_at": "20260913-020001",
         "intersection_of": 3
       },
       "stream": "FV"
@@ -182,22 +182,22 @@
     },
     "ragas_real_uptime": {
       "status": "measured",
-      "value": 60,
+      "value": 63.6,
       "unit": "%",
       "direction": "up",
       "target": 95,
       "source": "governance/ragas-real-trend.json (transporte CT100→scorecard · órfã governance/ragas-real-trend · ADR 0318 + pattern ADR 0279)",
       "detail": {
-        "weeks_expected": 10,
-        "weeks_valid": 6,
+        "weeks_expected": 11,
+        "weeks_valid": 7,
         "first_scheduled": "2026-07-05",
-        "last_week": "2026-09-06",
+        "last_week": "2026-09-13",
         "latest": {
-          "gate_status": "fail",
+          "gate_status": "pass",
           "n_evaluated": 51,
-          "faithfulness_avg": 0.6086,
-          "relevancy_avg": 0.7157,
-          "context_recall_avg": 0.2993
+          "faithfulness_avg": 0.8845,
+          "relevancy_avg": 0.9529,
+          "context_recall_avg": 0.5729
         }
       },
       "stream": "MEM"
