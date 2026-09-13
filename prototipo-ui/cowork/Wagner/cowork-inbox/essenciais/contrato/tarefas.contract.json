@@ -1,0 +1,39 @@
+{
+  "schema": "contrato-de-tela/1",
+  "modulo": "Essentials",
+  "tela": "Tarefas",
+  "rota": "essenciais",
+  "secoes": [
+    "toolbar",
+    "filtros-periodo",
+    "tabela",
+    "bulkbar",
+    "drawer-detalhe",
+    "modal-situacao"
+  ],
+  "copy": {
+    "botao_novo": "Adicionar",
+    "bulk_rotulo": "tarefas selecionadas",
+    "vazio_primeira": "Nenhuma tarefa por aqui",
+    "atrasada": "Atrasada"
+  },
+  "colunas": [
+    "Criado em",
+    "ID da tarefa",
+    "Tarefa",
+    "Situação",
+    "Início",
+    "Fim",
+    "Horas est.",
+    "Atribuído por",
+    "Atribuído a"
+  ],
+  "estados": [
+    "normal",
+    "primeira",
+    "demo",
+    "sem-permissao-atribuir",
+    "filtro-vazio",
+    "atrasada"
+  ]
+}

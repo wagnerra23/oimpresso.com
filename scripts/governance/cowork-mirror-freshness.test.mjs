@@ -1426,8 +1426,17 @@ if (false) {
   const H = (s) => rawHash(Buffer.from(s));
 
   // roteamento — a regra que o applier passou a IMPORTAR daqui (fonte única)
-  check('bundle 1/8: `.md` roteia pro canal de handoff do dono',
-    destinoDoBundle('PEDIDO.md').destinoBase === 'prototipo-ui/cowork/Wagner/handoffs');
+  // 2026-09-13 (decisão [W]): o `.md` perdeu o destino próprio. Antes ia pra `…/handoffs/`
+  // enquanto o irmão `.jsx` da MESMA pasta ia pra `…/Wagner/` — a pasta do Cowork chegava
+  // partida por extensão. Agora os dois pousam juntos, preservando a árvore da conta.
+  check('bundle 1/8: `.md` pousa no espelho do dono, junto do irmão de build',
+    destinoDoBundle('PEDIDO.md').destinoBase === 'prototipo-ui/cowork/Wagner');
+  check('bundle 1-bis/8: `.md` e `.jsx` da MESMA pasta têm o MESMO destinoBase (árvore não parte)',
+    destinoDoBundle('cowork-inbox/ancora/playbook/00-INDICE.md').destinoBase
+      === destinoDoBundle('cowork-inbox/ancora/ds-anchor-check.mjs').destinoBase);
+  check('bundle 1-ter/8: o caminho relativo é PRESERVADO (forma do Cowork, não a nossa)',
+    destinoDoBundle('cowork-inbox/ancora/playbook/00-INDICE.md').destinoPath
+      === 'cowork-inbox/ancora/playbook/00-INDICE.md');
   check('bundle 2/8: `_ds/**` roteia pro Design System canônico',
     destinoDoBundle('_ds/slug-qualquer/colors_and_type.css').destinoBase === 'prototipo-ui/design-system');
   check('bundle 3/8: o resto pousa no espelho',

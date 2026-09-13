@@ -9,18 +9,28 @@
 //   2) VERIFICA extraídos == entries do zip (conta independente, não circular)
 //   3) só então TROCA atômica pro dir fixo (o velho só morre quando o novo está provado)
 //   4) chama detectar-telas no fim (manifesto)
-//   5) SINCRONIZA o bundle (…/project/) → prototipo-ui/cowork/Wagner/ (SSOT no repo, BUILD-ONLY, git=rede)
+//   5) SINCRONIZA o bundle (…/project/) → prototipo-ui/cowork/Wagner/ (SSOT no repo, git=rede)
 //
 // Dois destinos FIXOS, sobrescritos sempre (RUNBOOK §−1):
 //   • staging FORA do repo — `~/Downloads/_cowork-handoff-staging` (verificação + detectar-telas)
-//   • SSOT NO repo — `prototipo-ui/cowork/Wagner/`: só a CAMADA DE DESIGN pousa (BUILD-ONLY: jsx/tsx/ts/
-//     js/mjs/css/html/json/php) — `.md` (charters/memory/ADRs) é CANON e NÃO entra aqui. Isso É LEI:
-//     `cowork-ssot-guard.mjs` **R3** (design-memory-gate.yml) reprova `.md` em cowork/, e a
-//     ADR-proposta 2026-06-23 §77 manda "o filtro de landing exclui .md".
-//     ⚠ Dois ajustes de PRECISÃO neste ponteiro (lido em origin/main, 2026-09-13): a regra é a R3,
-//     não a R1 (a R1 governa a RAIZ de prototipo-ui/); e a R3 tem EXCEÇÃO — ela permite `.md` em
-//     `cowork/<dono>/handoffs/`. O sweep de junk daqui NÃO honra essa exceção e apagaria os 3
-//     `.md` reais de `cowork/Wagner/handoffs/`. REPORTADO, não consertado (ver classificarParaSync).
+//   • SSOT NO repo — `prototipo-ui/cowork/Wagner/`: o pacote pousa com a ÁRVORE DO COWORK,
+//     `.md` incluído (ver ESPELHO_EXTS).
+//
+//     ── o que mudou em 2026-09-13, e por quê (decisão [W]) ──────────────────────────────────
+//     Até aqui o landing era BUILD-ONLY e o `.md` era varrido como junk. O efeito, medido no
+//     pacote de 2026-09-11: **816 arquivos no `project/` → 400 pousavam, 416 descartados, 337
+//     deles `.md`**. Descartar 41% do pacote não é filtrar ruído — é receber outra coisa. O
+//     `cowork-inbox/` (canal por onde o Cowork manda ordem de serviço) chegava pela metade.
+//     [W] 2026-09-13, textual: *"deve ser igual ao cowork, não poderia mudar assim facilita
+//     muito mais. na importação ou leitura lá"*. Espelho que muda a forma não é espelho.
+//     O `cowork-ssot-guard.mjs` **R3** foi emendado junto (emenda à ADR 0397 D3): `.md` passa a
+//     ser aceito em qualquer lugar sob `cowork/<dono>/` — a forma interna é a do Cowork.
+//     Isto CONSERTA o defeito nº 2 que este arquivo reportava: o sweep apagava os `.md` de
+//     `cowork/Wagner/handoffs/` que a própria R3 permitia (ver classificarParaSync).
+//     ⚠ A R4 (zero duplicata de bytes) NÃO foi afrouxada, e ela morde o pacote: medido em
+//     2026-09-13, `cowork-inbox/sidebar/playbook/` e `entrega-sidebar-code/playbook/` trazem
+//     **10 pares byte-idênticos**. Duplicata na FONTE não vira duplicata no espelho — quem
+//     desduplica é o lado Cowork; aqui o import falha e diz qual par.
 //     O sync usa `/PURGE` (tira órfão de
 //     rename — o SSOT é ESPELHO do último handoff, não união). git é a rede (diff/deleção visível).
 //     Decisão Opção A (Wagner 2026-07-01) supersede o espelho per-tela. Desligar: `--no-sync-cowork`.
@@ -77,14 +87,16 @@ Write-Output ("ENTRIES=" + $ent); Write-Output ("EXTRACTED=" + $ok)`;
   return { entries, extraidos };
 }
 
-// ── cowork/ é BUILD-ONLY (cowork-ssot-guard.mjs R3 + ADR-proposta 2026-06-23 §77).
-//    Só estas extensões pousam no SSOT; .md (charters/memory/ADRs) é canon e fica no lugar dele.
+// ── o que o ESPELHO aceita (cowork-ssot-guard.mjs R1/R2/R3/R4).
+//    O nome era `BUILD_EXTS` até 2026-09-13: com `.md` na lista, um const chamado "BUILD"
+//    descreveria o oposto do que faz, e comentário/nome que mente é a classe LC-10 do ledger.
+//    `.md` entra porque `cowork/<dono>/` é espelho da conta, não recorte dela (ver cabeçalho).
 //
-//    FONTE ÚNICA das três listas que o sync usa. Antes elas viviam DUPLICADAS: `BUILD_PATS` aqui
+//    FONTE ÚNICA das três listas que o sync usa. Antes elas viviam DUPLICADAS: os patterns aqui
 //    e `$keep` hardcoded dentro do heredoc PowerShell — duas verdades pra uma regra, que é como
 //    drift nasce. Agora o heredoc INTERPOLA daqui (§"não duplicar a regra em JS e em PS").
-export const BUILD_EXTS = ['.jsx', '.tsx', '.ts', '.js', '.mjs', '.css', '.html', '.json', '.php'];
-const BUILD_PATS = BUILD_EXTS.map((e) => `*${e}`);
+export const ESPELHO_EXTS = ['.jsx', '.tsx', '.ts', '.js', '.mjs', '.css', '.html', '.json', '.php', '.md'];
+const ESPELHO_PATS = ESPELHO_EXTS.map((e) => `*${e}`);
 
 //    Dirs de arquivo/scratch que NÃO são design-source (mesmo SKIP_DIRS do _lib-charter + os que
 //    o Wagner mandou apagar). robocopy os exclui via /XD e o sweep seguinte os apaga do destino.
@@ -107,7 +119,7 @@ export const NOISE_DIRS = ['_arquivo', '_BACKUP-NAO-USAR', 'scraps', 'screenshot
 //    vermelho — ele é o tripwire do conserto, não o endosso do defeito.
 export const RESIDUO_PATTERN = '_arquivo|benchmark|uploads|.thumbnail$|GAPS_vd|FORCE_|Advers.rio|Tribunal|Avaliac';
 
-//    O único arquivo não-build que SOBREVIVE ao sweep. Não entra em BUILD_EXTS de propósito: ele
+//    O único arquivo não-build que SOBREVIVE ao sweep. Não entra em ESPELHO_EXTS de propósito: ele
 //    não vem do bundle (robocopy nunca o copia, o filespec não o pega) — ele mora no repo e o
 //    sweep o POUPA. Medido em 2026-09-13: `[IO.Path]::GetExtension('.gitignore')` devolve
 //    `.gitignore`, não `''` — por isso a guarda é pelo NOME, e ela é load-bearing.
@@ -148,7 +160,7 @@ export function classificarParaSync(caminhoRelativo) {
   //    NOME, inclusive, mesmo quando o ponto é o 1º char; '' quando não há ponto.
   const i = nome.lastIndexOf('.');
   const ext = i >= 0 ? nome.slice(i).toLowerCase() : '';
-  if (!PRESERVADOS.includes(nome) && !BUILD_EXTS.includes(ext)) {
+  if (!PRESERVADOS.includes(nome) && !ESPELHO_EXTS.includes(ext)) {
     return { acao: 'junk', motivo: ext ? `extensão fora do build: ${ext}` : 'arquivo sem extensão' };
   }
 
@@ -197,7 +209,7 @@ function sincronizarCowork(destino) {
 $ErrorActionPreference='Continue'
 $src=[string]$env:OI_SRC; $dst=[string]$env:OI_DST
 if(-not (Test-Path $dst)){ New-Item -ItemType Directory $dst -Force | Out-Null }
-$pats = '${BUILD_PATS.join("','")}'.Split(',') | ForEach-Object { $_.Trim("'") }
+$pats = '${ESPELHO_PATS.join("','")}'.Split(',') | ForEach-Object { $_.Trim("'") }
 # /XD: dirs de ruído — lista vem de NOISE_DIRS (fonte única no JS; ver classificarParaSync)
 $noise = @(${psLista(NOISE_DIRS)})
 robocopy $src $dst @pats /S /PURGE /XD @noise /NFL /NDL /NJH /NJS /R:1 /W:1 | Out-Null
@@ -206,8 +218,8 @@ $rc=$LASTEXITCODE
 foreach($nd in $noise){ Get-ChildItem $dst -Recurse -Directory -Filter $nd -ErrorAction SilentlyContinue | ForEach-Object { Remove-Item $_.FullName -Recurse -Force -ErrorAction SilentlyContinue } }
 # BUILD-ONLY estrito (allowlist): varre TUDO que não é build-ext nem .gitignore — mata .md,
 # .proposto, dupes ?v=hash (ext quebrada) e qualquer canonical-shadow. /PURGE só pega build-ext órfão.
-# $keep vem de BUILD_EXTS e $pats (robocopy) do MESMO array — não podem mais drifar entre si.
-$keep=@(${psLista(BUILD_EXTS)})
+# $keep vem de ESPELHO_EXTS e $pats (robocopy) do MESMO array — não podem mais drifar entre si.
+$keep=@(${psLista(ESPELHO_EXTS)})
 $junk=@(Get-ChildItem $dst -Recurse -File | Where-Object { $_.Name -ne '${PRESERVADOS[0]}' -and ($keep -notcontains $_.Extension.ToLower()) })
 foreach($f in $junk){ Remove-Item $f.FullName -Force -ErrorAction SilentlyContinue }
 Write-Output ("JUNK_SWEPT=" + $junk.Count)

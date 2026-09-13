@@ -603,10 +603,18 @@ export function dsRuntimeRelPath(path) {
 // mesma regra é o vetor do §5 2026-08-02 (corrigir uma implementação e a outra seguir
 // errada). O applier importa daqui — a direção do import já existia (`dsRuntimeRelPath`).
 // Retorna sempre com '/' — quem precisa de separador de plataforma usa join() no consumidor.
+// ── 2026-09-13 · o `.md` deixou de ter destino PRÓPRIO (decisão [W]) ────────────────────
+// Havia aqui uma perna que mandava todo `.md` pra `…/Wagner/handoffs/<p>` enquanto o irmão
+// `.jsx` da MESMA pasta ia pra `…/Wagner/<p>`. Efeito: uma pasta do Cowork chegava partida em
+// duas, por extensão — `cowork-inbox/ancora/playbook/00-INDICE.md` num lugar e o payload
+// `.mjs` ao lado dele noutro. Isso é a desorganização que [W] nomeou ("deve ser igual ao
+// cowork … facilita muito mais na importação ou leitura lá").
+// A perna também era CÓDIGO MORTO: o `aplicar-payload` recusava `.md` antes de chegar aqui, e
+// a R3 do `cowork-ssot-guard` reprovava `.md` aninhado em `handoffs/` — ou seja, ela roteava
+// pra um destino que o guard proibia. Tirar a perna unifica a árvore e mata a contradição.
 export function destinoDoBundle(rel) {
   const p = String(rel || '').split(String.fromCharCode(92)).join('/').replace(/^\.\//, '');
   if (p.startsWith('_ds/')) return { destinoBase: 'prototipo-ui/design-system', destinoPath: dsRuntimeRelPath(p) };
-  if (p.toLowerCase().endsWith('.md')) return { destinoBase: 'prototipo-ui/cowork/Wagner/handoffs', destinoPath: p };
   return { destinoBase: 'prototipo-ui/cowork/Wagner', destinoPath: p };
 }
 

@@ -1,0 +1,107 @@
+{
+  "_nota": "Contrato de Tela (ADR 0286) da Voz do Cliente. A tela nasce como caixa read-mostly: a triagem é a única escrita.",
+  "tela": "VozDoCliente/Caixa",
+  "fonte": "prototipo-ui/cowork/modulos-faltantes/voz-do-cliente-page.jsx",
+  "alvo": [
+    "resources/js/Pages/VozDoCliente/Caixa.tsx (hoje Modules/VozDoCliente/Resources/views/caixa.blade.php)"
+  ],
+  "secoes": [
+    {
+      "id": "cabecalho",
+      "copy": [
+        "Voz do Cliente",
+        "relatos",
+        "pendentes",
+        "o que as pessoas relataram — de dentro do sistema, com a tela em que aconteceu"
+      ]
+    },
+    {
+      "id": "kpis",
+      "copy": [
+        "Pendentes de triagem",
+        "ninguém olhou ainda",
+        "Triados",
+        "já viraram US no backlog",
+        "Fechados",
+        "resolvidos ou descartados",
+        "Gravidade alta",
+        "dor que trava o trabalho"
+      ]
+    },
+    {
+      "id": "filtros",
+      "copy": [
+        "Todos",
+        "Pendentes",
+        "Triados",
+        "Fechados"
+      ],
+      "estados": [
+        "todos",
+        "filtrado"
+      ]
+    },
+    {
+      "id": "lista",
+      "copy": [
+        "Quando",
+        "Quem",
+        "O que disse",
+        "Onde",
+        "Grav.",
+        "Situação",
+        "Pendente",
+        "Triado",
+        "Fechado",
+        "Alta",
+        "Média",
+        "Baixa",
+        "Triar"
+      ],
+      "estados": [
+        "normal",
+        "vazio",
+        "filtrado-vazio"
+      ]
+    },
+    {
+      "id": "triagem",
+      "copy": [
+        "Triar relato",
+        "O que fazer",
+        "Virar US do backlog",
+        "Fechar sem ação",
+        "Código da US",
+        "Motivo do fechamento",
+        "Sem código, entra como US-NOVA-001 pra alguém nomear depois.",
+        "Quem relatou não é notificado — o motivo é pra você."
+      ],
+      "estados": [
+        "us",
+        "fechar"
+      ]
+    },
+    {
+      "id": "rodape",
+      "copy": [
+        "não abre chamado nem notifica ninguém",
+        "a triagem é manual"
+      ]
+    }
+  ],
+  "estados_tela": [
+    "dados",
+    "vazio",
+    "carregando",
+    "erro",
+    "sem-permissao"
+  ],
+  "proibicoes": [
+    "Notificar quem relatou ao triar ou fechar — o relato não é ticket (não existe SLA prometido).",
+    "Abrir US automaticamente por severidade ou volume — priorizar é decisão de produto.",
+    "Expor a caixa a papel sem gestão de produto: texto + autor + tela é dado de pessoa identificada (LGPD Art. 7º).",
+    "Editar ou apagar o texto do relato — a caixa é registro do que a pessoa disse.",
+    "Copy do vazio diferente do blade vivo (\"Nenhum relato ainda…\")."
+  ],
+  "casos_ligados": "cowork-inbox/modulos-faltantes/voz-do-cliente.casos.md"
+}

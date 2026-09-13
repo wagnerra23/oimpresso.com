@@ -1,0 +1,77 @@
+{
+  "_nota": "Contrato de Tela (ADR 0286) do Catálogo QR. No vivo a entry é GHOST do hub Vendas (ADR 0180) e o DataController do ProductCatalogue é NO-OP.",
+  "tela": "ProductCatalogue/CatalogueQr",
+  "fonte": "prototipo-ui/cowork/modulos-faltantes/catalogo-qr-page.jsx",
+  "alvo": [
+    "resources/js/Pages/ProductCatalogue/CatalogueQr.tsx (hoje Modules/ProductCatalogue/Resources/views/catalogue/generate_qr.blade.php)"
+  ],
+  "secoes": [
+    {
+      "id": "cabecalho",
+      "copy": [
+        "Catálogo QR",
+        "O QR que o cliente aponta no balcão e abre o seu catálogo no celular — um por local comercial.",
+        "Produtos"
+      ]
+    },
+    {
+      "id": "formulario",
+      "copy": [
+        "Como o QR vai sair",
+        "Local comercial",
+        "Selecione…",
+        "Cor do QR code",
+        "Título",
+        "Subtítulo",
+        "Mostrar o logo do negócio no QR code",
+        "Gerar QR code",
+        "Escolha o local comercial primeiro."
+      ],
+      "estados": [
+        "normal",
+        "sem-local-escolhido",
+        "sem-logo-cadastrado"
+      ]
+    },
+    {
+      "id": "instrucoes",
+      "copy": [
+        "Instruções",
+        "Escolha o local comercial e a cor do QR code",
+        "Defina título, subtítulo e se o logo do negócio aparece",
+        "Clique em gerar QR code"
+      ]
+    },
+    {
+      "id": "saida",
+      "copy": [
+        "Nenhum QR gerado ainda.",
+        "Baixar imagem",
+        "Copiar link",
+        "Link copiado",
+        "256 × 256 px · PNG",
+        "O catálogo é público",
+        "Quem tiver o link vê os produtos e os preços daquele local, sem login."
+      ],
+      "estados": [
+        "vazio",
+        "gerado"
+      ]
+    }
+  ],
+  "estados_tela": [
+    "dados",
+    "vazio (nenhum local comercial)",
+    "carregando",
+    "erro",
+    "sem-permissao"
+  ],
+  "proibicoes": [
+    "Gerar QR sem local comercial — o link /catalogue/{business}/{location} precisa dos dois.",
+    "Esconder que o catálogo é público (sem login).",
+    "Oferecer o logo quando o negócio não tem logo cadastrado.",
+    "Renderizar business_id como número solto na UI cliente-facing além do link.",
+    "Reintroduzir a entry no sidebar do módulo — a entry é ghost do hub Vendas (ADR 0180)."
+  ],
+  "casos_ligados": "cowork-inbox/modulos-faltantes/catalogo-qr.casos.md"
+}

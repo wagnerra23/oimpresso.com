@@ -148,12 +148,20 @@ console.log('\n=== snapshot completo + roteamento + plano modular ===');
     execFileSync(process.execPath, [STATUS, '--root', root, '--check-mapping'], { encoding: 'utf8' }).includes('DESIGN-SYNC'));
 }
 
-console.log('\n=== contrato build-only recusa canon e duplicata antes da transação ===');
+console.log('\n=== o contrato aceita o .md do Cowork e segue recusando extensão fora e duplicata ===');
 {
+  // O `.md` era recusado aqui e o caso de exemplo era `cowork-inbox/LEIAME.md` — ou seja, a
+  // própria ordem de serviço do Cowork não cabia no bundle. Decisão [W] 2026-09-13: o espelho
+  // recebe a conta como ela é. A recusa de extensão fora do espelho e a de duplicata FICAM.
   const comDocumento = sourceSnapshot();
   comDocumento.set('cowork-inbox/LEIAME.md', Buffer.from('# doc\n'));
-  await rejects('documento não entra no bundle nem cria canon-sombra',
-    async () => manifestFor(comDocumento), /fora do contrato build-only/);
+  const mDoc = await manifestFor(comDocumento);
+  check('BITE: o .md do Cowork entra no bundle', JSON.stringify(mDoc).includes('cowork-inbox/LEIAME.md'));
+
+  const comBinario = sourceSnapshot();
+  comBinario.set('relatorio.pdf', Buffer.from('%PDF\n'));
+  await rejects('CONTROLE: extensão fora do espelho segue recusada',
+    async () => manifestFor(comBinario), /fora do contrato build-only/);
 
   const comDuplicata = sourceSnapshot();
   comDuplicata.set('copia/styles.css', comDuplicata.get('styles.css'));

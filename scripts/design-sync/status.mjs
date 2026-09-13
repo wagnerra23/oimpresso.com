@@ -37,9 +37,12 @@ const ROOT = resolve(rootArg >= 0 && args[rootArg + 1] ? args[rootArg + 1] : pro
  * LIMITE HONESTO: é busca por NOME do arquivo-fonte no corpus de pedidos. Acha o ponteiro,
  * não a decisão — quem lê ainda precisa abrir o pedido. É um `grep` bom, não um oráculo.
  */
+// `handoffs/payloads` virou `cowork-inbox` em 2026-09-13: era o `cowork-inbox/` do Cowork
+// renomeado, e a metade `.md` dele tinha sido apagada — o pedido chegava sem a ordem de serviço.
+// Voltou ao nome e à forma da origem (decisão [W]); `handoffs/` segue como canal do dono.
 const DIRS_DE_PEDIDO = [
   'prototipo-ui/cowork/Wagner/handoffs',
-  'prototipo-ui/cowork/Wagner/handoffs/payloads',
+  'prototipo-ui/cowork/Wagner/cowork-inbox',
   'governance/design-requests',
   'memory/reference/prototipo-ui',
 ];

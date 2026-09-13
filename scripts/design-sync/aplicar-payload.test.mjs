@@ -119,22 +119,42 @@ function rodar(dir, pay, args = []) {
   check('BITE escopo: nada foi escrito fora', !existsSync(join(dir, 'fora.txt')), 'escreveu fora do espelho!');
 }
 
-// ── 4: build-only — documento recusa o lote inteiro ─────────────────────────
+// ── 4: o `.md` do pacote pousa com a árvore do Cowork ───────────────────────
+// Este bloco era o inverso: `.md` recusava o LOTE INTEIRO ("fora do contrato build-only"), e o
+// caso de exemplo era justamente `cowork-inbox/LEIAME.md`. Com aquela trava, a rota do bundle
+// nunca conseguiu entregar o `cowork-inbox/` — o canal por onde o Cowork manda ordem de serviço.
+// Decisão [W] 2026-09-13: o espelho recebe a conta como ela é. Os asserts viraram o BITE disso.
+// O que NÃO mudou e segue provado abaixo: atomicidade e a recusa de `design-docs/` (ADR 0397 D5).
 {
   const dir = sandbox();
   const pay = payload(dir, [
     { path: 'cowork-inbox/LEIAME.md', content: '# doc\n' },
+    { path: 'cowork-inbox/app.jsx', content: 'export const X=1\n' },
+  ]);
+  const r = rodar(dir, pay);
+  check('BITE espelho: lote com .md é ACEITO (o pacote chega inteiro)', r.code === 0, r.out);
+  check('BITE espelho: o .md pousa no caminho do Cowork, não num balde nosso',
+    existsSync(join(dir, 'prototipo-ui/cowork/Wagner/cowork-inbox/LEIAME.md')), r.out);
+  check('BITE espelho: o irmão de build pousa na MESMA pasta (a árvore não parte por extensão)',
+    existsSync(join(dir, 'prototipo-ui/cowork/Wagner/cowork-inbox/app.jsx')), r.out);
+  check('CONTROLE: nada pousa no balde antigo de handoff',
+    !existsSync(join(dir, 'prototipo-ui/cowork/Wagner/handoffs/cowork-inbox/LEIAME.md')), r.out);
+  check('CONTROLE: nada pousa em design-docs/ (ADR 0397 D5 segue valendo)',
+    !existsSync(join(dir, 'prototipo-ui/design-docs/cowork-inbox/LEIAME.md')), r.out);
+}
+
+// ── 4-bis: a atomicidade continua provada, agora com um path de fato inválido ──
+{
+  const dir = sandbox();
+  const pay = payload(dir, [
+    { path: 'relatorio.pdf', content: '%PDF\n' },
     { path: 'nao-pode-vazar.jsx', content: 'export const X=1\n' },
   ]);
   const r = rodar(dir, pay);
-  check('BITE build-only: .md é recusado com explicação',
+  check('BITE build-only: extensão fora do espelho é recusada com explicação',
     r.code !== 0 && /fora do contrato build-only/.test(r.out), r.out);
-  check('BITE build-only: .md não cria canon-sombra',
-    !existsSync(join(dir, 'prototipo-ui/cowork/Wagner/handoffs/payloads/LEIAME.md')), r.out);
   check('BITE atomicidade: arquivo válido do mesmo lote também não é escrito',
     !existsSync(join(dir, 'prototipo-ui/cowork/Wagner/nao-pode-vazar.jsx')), r.out);
-  check('BITE build-only: nada pousa em design-docs/',
-    !existsSync(join(dir, 'prototipo-ui/design-docs/cowork-inbox/LEIAME.md')), r.out);
 }
 
 // ── 4b: mesma fonte em dois paths é ambiguidade, não organização ────────────

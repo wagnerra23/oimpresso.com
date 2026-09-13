@@ -11,7 +11,8 @@ import { normalizePayloadPath } from './payload-dependency-graph.mjs';
 
 export const MANIFEST_SCHEMA = 'oimpresso-design-manifest/2';
 export const BUNDLE_SCHEMA = 'oimpresso-design-bundle/2';
-const BUILD_SOURCE_RE = /\.(?:jsx?|tsx?|mjs|cjs|css|html|svg|png|jpe?g|gif|webp|avif|ico|woff2?|ttf|otf|eot)$/i;
+// `md` entra em 2026-09-13 (decisão [W]) — par do mesmo padrão em aplicar-payload.mjs:54.
+const BUILD_SOURCE_RE = /\.(?:jsx?|tsx?|mjs|cjs|css|html|svg|png|jpe?g|gif|webp|avif|ico|woff2?|ttf|otf|eot|md)$/i;
 
 export function sha256(value) {
   return createHash('sha256').update(value).digest('hex');

@@ -1,0 +1,66 @@
+{
+  "$schema": "../../prototipo-ui/contrato/schema.json",
+  "id": "funcoes",
+  "rota": "/funcoes",
+  "legado": "/roles",
+  "adr": "0286",
+  "origem": "prototipo-ui/cowork/acessos/funcoes-page.jsx",
+  "secoes": [
+    {
+      "id": "header",
+      "titulo": "Funções e permissões",
+      "obrigatoria": true
+    },
+    {
+      "id": "kpis",
+      "itens": [
+        "Funções",
+        "Controles na tela",
+        "Permissões no banco",
+        "Sem usuário"
+      ],
+      "obrigatoria": true
+    },
+    {
+      "id": "cards",
+      "descricao": "um card por função, com barras por domínio e rodapé de usuários/controles",
+      "obrigatoria": true
+    },
+    {
+      "id": "editor",
+      "descricao": "tela cheia: rail de domínios + linhas por forma de controle + rodapé de diferenças",
+      "obrigatoria": true
+    }
+  ],
+  "copy_literal": [
+    "Funções e permissões",
+    "Igual ao padrão da função",
+    "de risco ativas",
+    "usuários afetados",
+    "grava invertido",
+    "sem tradução no main",
+    "permissões legadas",
+    "Nenhuma função encontrada."
+  ],
+  "estados": [
+    "lista",
+    "editor-editavel",
+    "editor-travado",
+    "busca-global",
+    "busca-sem-resultado",
+    "grupo-sem-traducao"
+  ],
+  "proibicoes": [
+    "enum cru na tela",
+    "sufixo #business_id no nome da função",
+    "modal full-screen para detalhe",
+    "inglês em rótulo de UI",
+    "emoji",
+    "cor fora de token",
+    "scroll horizontal em 1280px com sidebar aberta"
+  ],
+  "densidade": {
+    "linha_max_px": 62,
+    "rail_px": 252
+  }
+}

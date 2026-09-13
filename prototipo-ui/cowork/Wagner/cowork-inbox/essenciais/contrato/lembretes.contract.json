@@ -1,0 +1,29 @@
+{
+  "schema": "contrato-de-tela/1",
+  "modulo": "Essentials",
+  "tela": "Lembretes",
+  "rota": "ess-lembretes",
+  "secoes": [
+    "toolbar-mes",
+    "grade-mes",
+    "legenda",
+    "drawer",
+    "form"
+  ],
+  "copy": {
+    "botao_novo": "Adicionar lembrete",
+    "legenda": [
+      "Lembrete",
+      "Financeiro",
+      "Ponto"
+    ],
+    "dica_teclado": "Setas percorrem os dias · Enter abre o primeiro lembrete do dia"
+  },
+  "estados": [
+    "normal",
+    "primeira",
+    "filtro-origem",
+    "origem-externa",
+    "demo"
+  ]
+}

@@ -1,0 +1,186 @@
+{
+  "_nota": "Contrato de Tela (ADR 0286) de Arquivos · DMS backbone. A tela NÃO existe no vivo: DataController::modifyAdminMenu() é NO-OP e a UI nasce em Pages/Arquivos no Admin Center (US-ARQ-013, Sprint 2). Este contrato é a proposta F1.",
+  "tela": "Arquivos/Index (4 vistas)",
+  "fonte": "prototipo-ui/cowork/modulos-faltantes/arquivos-page.jsx",
+  "alvo": [
+    "resources/js/Pages/Arquivos/Index.tsx (Admin Center)"
+  ],
+  "secoes": [
+    {
+      "id": "cabecalho",
+      "copy": [
+        "Arquivos",
+        "arquivos",
+        "no cofre cifrado",
+        "Auditoria"
+      ]
+    },
+    {
+      "id": "abas",
+      "copy": [
+        "Acervo",
+        "Retenção",
+        "Cofre",
+        "Trilha"
+      ]
+    },
+    {
+      "id": "acervo-filtros",
+      "copy": [
+        "Todos",
+        "sensitive",
+        "common",
+        "public",
+        "Buscar por nome, dono ou contexto…"
+      ],
+      "estados": [
+        "todos",
+        "filtrado"
+      ]
+    },
+    {
+      "id": "acervo",
+      "copy": [
+        "Arquivo",
+        "Onde está preso",
+        "Bucket",
+        "Disco",
+        "Tamanho",
+        "Vence em",
+        "Baixar",
+        "Excluir",
+        "órfão",
+        "vault",
+        "prazo vencido"
+      ],
+      "estados": [
+        "normal",
+        "vazio",
+        "filtrado-vazio",
+        "orfao",
+        "vence-em-30d"
+      ]
+    },
+    {
+      "id": "retencao-kpis",
+      "copy": [
+        "Vence em 30 dias",
+        "Vence em 90 dias",
+        "No grace period",
+        "Passou do prazo",
+        "e não foi deletado"
+      ]
+    },
+    {
+      "id": "retencao-politica",
+      "copy": [
+        "Contexto",
+        "Prazo",
+        "Base legal",
+        "Arquivos",
+        "XML de NF-e",
+        "XML de NFS-e",
+        "Documentos fiscais",
+        "Contratos",
+        "Foto de reparo",
+        "Anexo de OS",
+        "Anexo de ticket",
+        "Lei 8.846/94 Art. 23 + SINIEF 07/2005 Art. 8",
+        "CTN Art. 173 — prescrição tributária",
+        "CDC Art. 27 (cíveis decenais por override)",
+        "LGPD Art. 15-16 — eliminação tempestiva"
+      ]
+    },
+    {
+      "id": "retencao-regras",
+      "copy": [
+        "Grace period",
+        "30 dias",
+        "Aviso ao titular",
+        "LGPD Art. 18 §VI",
+        "Estratégia",
+        "hard_delete",
+        "Escopo do job",
+        "business_id",
+        "nunca cross-tenant"
+      ]
+    },
+    {
+      "id": "cofre-discos",
+      "copy": [
+        "Cofre (cifrado)",
+        "AES-256 via Crypt::encryptString",
+        "Disco comum",
+        "servido por Storage::url"
+      ]
+    },
+    {
+      "id": "cofre-achados",
+      "copy": [
+        "Achados",
+        "arquivo acima do cap de 50 MB",
+        "VaultEncryptionService",
+        "OOM",
+        "recusada",
+        "Chunked encryption é Sprint 2 (ADR 0126)",
+        "órfão (sem arquivable)",
+        "grupo com MD5 repetido"
+      ],
+      "estados": [
+        "com-achado",
+        "limpo"
+      ]
+    },
+    {
+      "id": "trilha",
+      "copy": [
+        "Quando",
+        "Ação",
+        "Arquivo",
+        "Quem",
+        "Payload",
+        "upload",
+        "download",
+        "signed_url",
+        "soft_delete",
+        "restore",
+        "hard_delete",
+        "append-only",
+        "nunca purgado",
+        "sem PII (LGPD Art. 37)"
+      ]
+    },
+    {
+      "id": "confirmar-exclusao",
+      "copy": [
+        "grace de 30 dias",
+        "retention-cleanup",
+        "não tem volta",
+        "guarda legal",
+        "Apagar antes do prazo é problema fiscal, não faxina."
+      ],
+      "estados": [
+        "contexto-comum",
+        "contexto-com-guarda-legal"
+      ]
+    }
+  ],
+  "estados_tela": [
+    "dados",
+    "vazio",
+    "carregando",
+    "erro",
+    "sem-permissao (arquivos.access default off)"
+  ],
+  "proibicoes": [
+    "Upload por esta tela — arquivo entra pelos módulos via trait HasArquivos (cap 50 MB).",
+    "Servir arquivo do vault por Storage::url — sempre DownloadController; signed URL expira em 60 min (ADR 0123 §6).",
+    "Renderizar filename/storage_path/MD5 em vista de governança que espelhe activity_log (PII fica só em arquivos_audit_log, LGPD Art. 37).",
+    "Qualquer purge ou listagem cross-tenant — global scope business_id (ADR 0093, Tier 0).",
+    "Editar, apagar ou corrigir linha de arquivos_audit_log — append-only e nunca purgado, mesmo quando o arquivo é.",
+    "Hard-delete direto pela UI: a tela faz soft-delete e o grace de 30 dias é do job, não do operador.",
+    "Divergir os prazos entre Config/config.php e Config/retention.php (os dois são espelho declarado).",
+    "Cifrar acima de vault_max_file_size_mb — recusar é o comportamento correto (OOM), não tentar."
+  ],
+  "casos_ligados": "cowork-inbox/modulos-faltantes/arquivos.casos.md"
+}

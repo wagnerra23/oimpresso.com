@@ -51,7 +51,9 @@ import { applyBundleTransaction, applyLegacySnapshotTransaction } from './bundle
 
 const ROOT = process.cwd();
 const DESTINO = 'prototipo-ui/cowork/Wagner';
-const BUILD_SOURCE_RE = /\.(?:jsx?|tsx?|mjs|cjs|css|html|svg|png|jpe?g|gif|webp|avif|ico|woff2?|ttf|otf|eot)$/i;
+// `md` entra em 2026-09-13 (decisão [W]): o pacote Cowork pousa com a árvore dele, `.md` incluído.
+// Ver o cabeçalho do importar-bundle.mjs pra medição (337 de 816 arquivos eram descartados).
+const BUILD_SOURCE_RE = /\.(?:jsx?|tsx?|mjs|cjs|css|html|svg|png|jpe?g|gif|webp|avif|ico|woff2?|ttf|otf|eot|md)$/i;
 const args = process.argv.slice(2);
 const arquivos = args.filter((a) => !a.startsWith('--'));
 const dry = args.includes('--dry');
