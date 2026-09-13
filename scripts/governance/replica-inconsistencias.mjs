@@ -95,12 +95,12 @@ const DET = [
   { id: 'PALETA', nome: 'família de tokens de cor com prefixo próprio (>=4)', dono: 'scripts/design/ds-guard.mjs', ext: /\.css$/,
     conta: (t, f) => {
       try {
-        const out = execSync(`node "${join(ROOT, 'prototipo-ui', 'ds-guard.mjs')}" --report "${f}"`, { encoding: 'utf8', cwd: ROOT });
+        const out = execSync(`node "${join(ROOT, 'scripts', 'design', 'ds-guard.mjs')}" --report "${f}"`, { encoding: 'utf8', cwd: ROOT });
         const m = out.match(/paleta (.+)/); return m ? (m[1].match(/\(\d+\)/g) || []).length : 0;
       } catch { return -1; }
     },
     exemplo: (t, f) => {
-      try { const out = execSync(`node "${join(ROOT, 'prototipo-ui', 'ds-guard.mjs')}" --report "${f}"`, { encoding: 'utf8', cwd: ROOT }); const m = out.match(/paleta (.+)/); return m ? m[1].trim() : ''; }
+      try { const out = execSync(`node "${join(ROOT, 'scripts', 'design', 'ds-guard.mjs')}" --report "${f}"`, { encoding: 'utf8', cwd: ROOT }); const m = out.match(/paleta (.+)/); return m ? m[1].trim() : ''; }
       catch { return 'ds-guard não rodou'; }
     } },
 ];
@@ -270,6 +270,21 @@ function selftest() {
     ['SINTAXE acusa o ) sobrando', get('SINTAXE', css) === 1],
     ['arquivo limpo não gera item', !it.some((i) => i.arquivo === rel(bom))],
   ];
+  // PALETA — delega ao ds-guard (--report). O assert é DISCRIMINANTE de propósito: se o path
+  // do ds-guard apodrecer de novo (foi o que houve entre a migração do #7224 e 2026-09-13),
+  // conta() cai no catch e devolve -1 — e aí os dois primeiros asserts caem. Um assert que
+  // só exigisse "não é -1" passaria no dia em que o catch trocasse de valor de retorno.
+  const pal = join(dir, 'pal.css');
+  writeFileSync(pal, ':root{--zz-a:#111;--zz-b:#222;--zz-c:#333;--zz-d:#444}');
+  const semPal = join(dir, 'sempal.css');
+  writeFileSync(semPal, ':root{--zz-a:#111;--zz-b:#222;--zz-c:#333}');
+  const itPal = medir([pal, semPal]);
+  const palGet = (f) => itPal.find((i) => i.regra === 'PALETA' && i.arquivo === rel(f));
+  checks.push(
+    ['PALETA: 4 tokens --zz-* viram 1 família (se vier -1, o ds-guard NÃO rodou)', palGet(pal)?.contagem === 1],
+    ['PALETA: exemplo traz a família — prova que o --report foi PARSEADO, não só que não crashou', (palGet(pal)?.exemplo || '').includes('--zz-*(4)')],
+    ['PALETA: 3 tokens ficam sob o limiar ⇒ 0 item (mediu e não achou ≠ NÃO MEDIDO)', palGet(semPal) === undefined],
+  );
   // ESLINT-DS — fixture ruim/boa no formato do cartão do dono (`--json --by-file`). O filtro
   // `ds/*` em si tem bite-test no dono: `node scripts/ds-report.mjs --selftest`.
   const card = { module: 'Zz', total: 3, by_file_rule: {
