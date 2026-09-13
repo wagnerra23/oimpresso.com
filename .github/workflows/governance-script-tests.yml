@@ -631,6 +631,19 @@ jobs:
       - name: bundle transacional morde (sequência/SHA/staging/rollback/módulos/evidências)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/bundle-transaction.test.mjs
+      # O PAINEL que fica em cima do bundle-transaction. `recibos-ci.mjs` o invoca 2× como
+      # código real (`--refresh` L129, `--run-test` L121) tratando rc != 0 como erro, e o painel
+      # do protocolo o publica em 5 das 6 fases — mas as catracas `--check-mapping` e
+      # `--check-lifecycle` nunca tinham sido exercitadas. Cobre só o que é DELE (leitura, exit
+      # codes, as 2 catracas, o ponteiro D2); os caminhos de escrita são do step acima (LC-19).
+      # Mutantes mortos antes de wirar (2026-09-13, 11/11): `--check-mapping` lendo
+      # `lifecycleState` → L3a+L3b · seleção vazia virando anistia → L7 (typo no `--source`
+      # sairia verde: catraca verde por não-execução) · exit 2 de uso colapsado em 1 → 3 FAIL ·
+      # ordem do lifecycle alfabética → L6a · report ausente virando `{screens:[]}` → L1a ·
+      # os 3 limites do D2 → L10b/c/d · `--root` ignorado → 12 FAIL (o hermetismo é medido).
+      - name: design-sync status morde (exit 2 de uso · check-mapping · check-lifecycle · ponteiro D2)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/design-sync/status.test.mjs
       # Recepção do handoff .zip (decisão [W] 2026-09-10). O teste MONTA os zips em memória, então
       # é também o controle positivo do leitor: se o formato que ele escreve e o que o `zip-reader`
       # lê divergissem, os casos "solta" cairiam. Trava CRC-32 conferido, ZIP64 recusado, zip-slip
@@ -670,9 +683,46 @@ jobs:
       - name: importar-bundle morde (acharBundleRoot + delete-before-verify + classificarParaSync · CLI de fora, hermetico)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design/importar-bundle.test.mjs
+      # Espinha de leitura de charter: `_lib-charter.mjs` e a fonte unica de read/frontmatter/walk/
+      # SKIP_DIRS pros 3 scripts que a importam (ancora, detectar-telas, design-diff-lote — contado
+      # em 2026-09-13 com `git grep -lF "_lib-charter" origin/main` filtrado por import de fato; o
+      # `importar-bundle.mjs` aparece no grep mas so MENCIONA num comentario, §5 2026-08-10). Era a
+      # lib de maior alcance da cadeia sem prova nenhuma: sem .test.mjs e sem --selftest.
+      # Trava o que os call-sites exigem, nao o que as funcoes parecem fazer: `read` distinguindo
+      # AUSENTE (null) de VAZIO ('') — o fail-open que o ancora.mjs:647 documenta; `frontmatter(null)`
+      # virando {} em vez de lancar (os call-sites sao `frontmatter(await read(cf))`, sem guarda no
+      # meio); o parser NAO desaspando (ancora.mjs:68 — quem desaspa e o consumidor, e se a lib
+      # passasse a fazer isso a dupla desasparia 2x calada); e `walk` nao vazando entre chamadas
+      # CONCORRENTES, que e o padrao real `Promise.all(raizes.map(walk))` dos dois consumidores.
+      # Mutantes mortos antes de wirar (2026-09-13, 8 de 8 · controle restaurado volta exit 0):
+      # catch do `read` devolvendo '' -> 2 FAIL · frontmatter desaspando -> 1 · regex com flag `m`
+      # -> 1 · lendo chave indentada -> 1 · default `out=[]` virando array de modulo -> 4 ·
+      # SKIP_DIRS perdendo `_BACKUP-NAO-USAR` (a divergencia que criou a lib) -> 3 · skip so em
+      # diretorio -> 1 · e 1 prova retirada do proprio teste -> PISO morde (35 < 36).
+      # Esta lane e NAO o design-memory-gate porque la `_lib-charter.mjs` nem esta no `paths:`
+      # (medido: nenhum dos 3 consumidores esta) e o gatilho e `types: [opened, reopened,
+      # ready_for_review]` — mexer na lib nao dispararia o teste dela, e correcao em commit
+      # posterior nunca mostraria verde (§5 2026-08-02, gate mudo com cara de cobertura).
+      # Hermetico: fixtures no tmpdir do Node, sem deps/rede/DB.
+      - name: _lib-charter morde (read/frontmatter/walk/SKIP_DIRS · espinha dos 3 consumidores)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/design/_lib-charter.test.mjs
       - name: ds-push orquestrador morde (dry-run VALOR:0 + determinismo · loop diff-first)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/ds-push.test.mjs
+      # PASSO 2 do ds-push (`node('ds-domains-companion.mjs', [tokensDir])`, ds-push.mjs:78) — o
+      # stdout dele VIRA o companion que o `ds-token-diff --companion` parseia. Sem teste nem
+      # `--selftest` até 2026-09-13: o `ds-push.test.mjs` exercita o orquestrador, não o filtro
+      # de domínio. Testa o CLI DE FORA porque o script não exporta nada (LC-15).
+      # Mutantes mortos antes de wirar (2026-09-13, 8/8): prefixo `stage-`→`stage` → T4 · regex
+      # perde o `/i` → T2+T6 (os 10 `--origin-*` do canon têm MAIÚSCULA e sumiriam calados) ·
+      # dedup pelo último → T7b · sem `sort` → T7a · `--check` fail-open no companion ausente →
+      # T12a · filtro de domínio desligado → 10 FAIL · bloco dark emitindo o light → T8b+T9b ·
+      # cabeçalho com contagem fixa → T9b. O T12c caiu na 1a versão por eu ler só o stdout no
+      # ramo de SUCESSO do `execFileSync` (§5 2026-08-14: leia os DOIS streams) — daí o spawnSync.
+      - name: ds-domains-companion morde (filtro de domínio/verbatim/--check · CLI de fora, hermético)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/design-sync/ds-domains-companion.test.mjs
       - name: ds-token-version morde (seed + bumps MINOR/MAJOR + gate --check · loop diff-first)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/ds-token-version.test.mjs
