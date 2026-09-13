@@ -631,6 +631,19 @@ jobs:
       - name: bundle transacional morde (sequência/SHA/staging/rollback/módulos/evidências)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/bundle-transaction.test.mjs
+      # O PAINEL que fica em cima do bundle-transaction. `recibos-ci.mjs` o invoca 2× como
+      # código real (`--refresh` L129, `--run-test` L121) tratando rc != 0 como erro, e o painel
+      # do protocolo o publica em 5 das 6 fases — mas as catracas `--check-mapping` e
+      # `--check-lifecycle` nunca tinham sido exercitadas. Cobre só o que é DELE (leitura, exit
+      # codes, as 2 catracas, o ponteiro D2); os caminhos de escrita são do step acima (LC-19).
+      # Mutantes mortos antes de wirar (2026-09-13, 11/11): `--check-mapping` lendo
+      # `lifecycleState` → L3a+L3b · seleção vazia virando anistia → L7 (typo no `--source`
+      # sairia verde: catraca verde por não-execução) · exit 2 de uso colapsado em 1 → 3 FAIL ·
+      # ordem do lifecycle alfabética → L6a · report ausente virando `{screens:[]}` → L1a ·
+      # os 3 limites do D2 → L10b/c/d · `--root` ignorado → 12 FAIL (o hermetismo é medido).
+      - name: design-sync status morde (exit 2 de uso · check-mapping · check-lifecycle · ponteiro D2)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/design-sync/status.test.mjs
       # Recepção do handoff .zip (decisão [W] 2026-09-10). O teste MONTA os zips em memória, então
       # é também o controle positivo do leitor: se o formato que ele escreve e o que o `zip-reader`
       # lê divergissem, os casos "solta" cairiam. Trava CRC-32 conferido, ZIP64 recusado, zip-slip
