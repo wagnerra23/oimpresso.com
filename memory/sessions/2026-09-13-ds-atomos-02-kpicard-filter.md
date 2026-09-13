@@ -7,6 +7,26 @@ prs: [7251]
 
 # ds-atomos · thread 02 — `KpiCard` `variant="filter"`
 
+## TL;DR
+
+`shared/KpiCard` ganhou `variant="filter"` + `filterTone` — a **forma** do tile clicável do
+protótipo — de modo estritamente aditivo, com 24 casos de teste e bite-test por mutação. PR
+[#7251](https://github.com/wagnerra23/oimpresso.com/pull/7251).
+
+Três números do playbook **não sobreviveram à remedição**: o raio de explosão é **40
+consumidores, não 3**; o conflito `D-KPI-LABEL` **não existe** (nenhuma fonte do repo produz o
+"13.3px/400 accent" que ele descrevia — a âncora concorda com a ADR 0110); e o alvo citado
+**delega** ao DS em vez de descrever forma.
+
+Duas coisas que eu tinha escrito errado e o bite-test corrigiu: a guarda do default é a
+**conjunção** de `variant` fora de `defaultVariants` **com** `default: ''` (cada metade sozinha é
+inerte), e o caso do label caía por `TypeError` em vez de assert.
+
+Fica **fora de escopo, declarado**: `aria-pressed` ausente quando `selected` não é passado —
+gap de a11y herdado do `main`, cujo conserto mudaria o markup de consumidor que não pediu nada.
+
+Pendência para o [W]: o `_saida-02.md` do playbook **não tem endereço canônico** desde a #7224.
+
 Execução da thread **02** do playbook `ds-atomos`, recuperado de `4f51a9ec78^` (a pasta
 `prototipo-ui/design-docs/**` foi apagada do `main` pela #7224 / ADR 0397 D5).
 
