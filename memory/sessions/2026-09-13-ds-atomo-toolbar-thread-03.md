@@ -11,6 +11,10 @@ outcomes:
 
 # DS-átomos · thread 03 — `shared/Toolbar.tsx`
 
+## TL;DR
+
+Criei `resources/js/Components/shared/Toolbar.tsx` (`Toolbar` + `ToolbarSpacer`) — a barra de 3 zonas que o protótipo do Ponto **já chamava** e que não existia no receptor. A anatomia não foi inventada: foi portada de `prototipo-ui/design-system/components/Toolbar/Toolbar.jsx`, a peça canônica do DS. Compõe com `Inline` (ADR 0253) em vez de reimplementar flex. 13 testes no CT 100, 2 bite-tests provando que mordem. Nenhuma tela muda de pixel — a adoção nas 21 Pages do Ponto é outra onda. PR #7252.
+
 ## O pedido
 
 Executar a thread 03 do playbook `ds-atomos` (apagado do `main` pela PR #7224, commit `4f51a9ec78`, ADR 0397 D5; recuperado por `git show 4f51a9ec78^:<path>`). É a única das três threads do pacote que **cria** arquivo.
