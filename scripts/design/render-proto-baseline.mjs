@@ -64,7 +64,7 @@ import { SNIPPET, rotulosDistintivos, overlapConteudo } from './style-fingerprin
 // mudou. `shaBate` aceita o abreviado como prefixo (contrato de abreviação do próprio git).
 import { computeGitSha, shaBate } from './gerar-map.mjs';
 import { acharBundleRoot } from './importar-bundle.mjs';
-import { MIRROR_DIR, DS_ARQUIVOS_ESPELHADOS, normalize, contentHash } from './protocolo.config.mjs';
+import { MIRROR_DIR, normalize, contentHash } from './protocolo.config.mjs';
 import { chaveCelula } from './fingerprint-harness.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)); // prototipo-ui/
@@ -78,13 +78,17 @@ export function superficieRender(root, repoRoot = REPO) {
   if (html.includes('_ds/')) {
     const plano = previewDsPlan(html, repoRoot);
     if (plano.erro) throw Error(plano.erro);
+    // 2026-09-13: a 2ª checagem que existia aqui ("DS importado diverge do runtime",
+    // sobre DS_ARQUIVOS_ESPELHADOS) comparava `prototipo-ui/design-system/<nome>` com
+    // `a.de` — que o previewDsPlan monta a partir da MESMA pasta. Desde o #7224 fonte e
+    // runtime do DS são um só diretório (DS_RUNTIME_SNAPSHOT_DIR = DS_MIRROR_DIR), a
+    // constante saiu do protocolo.config e este import derrubava o módulo inteiro
+    // (--selftest, --check e --nudge) com SyntaxError. A divergência fonte×runtime
+    // deixou de ser um estado possível; o que segue vivo é a checagem do CACHE do preview.
     for (const a of plano.arquivos) {
       const cache = join(root, '_ds', plano.id, a.nome);
-      const fonte = join(repoRoot, 'prototipo-ui', 'design-system', a.nome);
       if (!a.temNoRepo || !existsSync(cache) || !readFileSync(cache).equals(readFileSync(a.de)))
         throw Error(`cache DS ausente ou antigo: ${a.nome}; rode --preview-ds antes de comparar`);
-      if (DS_ARQUIVOS_ESPELHADOS.includes(a.nome) && existsSync(fonte) && !readFileSync(fonte).equals(readFileSync(a.de)))
-        throw Error(`DS importado diverge do runtime: ${a.nome}; derive o runtime da fonte importada antes de comparar`);
     }
   }
   const files = [];
