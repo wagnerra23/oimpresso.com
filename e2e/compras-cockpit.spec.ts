@@ -49,10 +49,12 @@ test('UC-CMP-05 · /compras entrega a Page Inertia com a copy e a ordem do contr
   // o admin da lane tem todas as abilities via Gate::before, então aqui ele aparece.
   await expect(cabecalho.getByText('Nova compra')).toBeVisible();
 
-  // §compras-abas — as 4 abas de FILTRO da tela viva.
+  // §compras-abas — as 4 abas de FILTRO da tela viva. Match por `hasText` e não por texto
+  // exato porque a aba `Todas` carrega o contador dentro do próprio `<a>` (`Todas <span>0</span>`):
+  // o número é DADO, não copy, e pinar "Todas 0" travaria o assert num estado de seed.
   const abas = page.locator('[data-contract="compras-abas"]');
   for (const rotulo of ['Todas', 'A pagar', 'Rascunhos', 'Em trânsito']) {
-    await expect(abas.getByText(rotulo, { exact: true })).toBeVisible();
+    await expect(abas.locator('a').filter({ hasText: rotulo })).toHaveCount(1);
   }
 
   // §compras-kpis — os 4 KPIs chegam por `Inertia::defer`; o skeleton NÃO carrega a âncora,

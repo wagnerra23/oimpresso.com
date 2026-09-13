@@ -71,7 +71,14 @@ test('UC-PURCRE-01 · o caminho React entrega as 5 seções do contrato, na orde
   await expect(totais.getByText('Totais', { exact: true })).toBeVisible();
   // Os rótulos de Totais são contrato de COPY, nunca de número: o contrato declara, na própria
   // `_pendente_w`, que pinar o valor aqui não substitui a REGRA MESTRE de valor/estoque.
-  for (const rotulo of ['Subtotal itens', 'Desconto', 'Impostos', 'Frete', 'Total final']) {
+  //
+  // `Frete` fica FORA desta lista, e o motivo é um achado: o contrato o declara junto dos
+  // outros quatro, mas a linha dele é CONDICIONAL (`totais.frete > 0` — Create.tsx:645). Com o
+  // formulário vazio ela não renderiza, e o gate de contrato não acusa porque casa a copy no
+  // fonte, onde a string existe. Assertá-lo como incondicional foi o que reprovou este teste no
+  // primeiro run — a tela está certa; o contrato é que declara um rótulo de estado sem dizer
+  // que é de estado.
+  for (const rotulo of ['Subtotal itens', 'Desconto', 'Impostos', 'Total final']) {
     await expect(totais.getByText(rotulo, { exact: true })).toBeVisible();
   }
 
@@ -85,16 +92,22 @@ test('UC-PURCRE-01 · o caminho React entrega as 5 seções do contrato, na orde
   expect(indices).toEqual([...indices].sort((a, b) => a - b));
 });
 
-test('UC-PURCRE-01 · o formulário é um POST único para /purchases — a tela não fatia o lançamento', async ({ page }) => {
-  // O `useForm` envia `form.post('/purchases')` uma vez (Create.tsx:301), com as linhas dentro
-  // do payload. Este assert é pelo eixo de REDE e independe de haver item: prova que o botão
-  // de salvar não abriu um caminho de N requisições (o que quebraria a atomicidade que o
-  // UC-PURCRE-05 exige — 1 célula = 1 variation_id, num POST só).
-  const posts: string[] = [];
+test('UC-PURCRE-01 · lançamento incompleto não chega à rede — a tela barra antes do POST', async ({ page }) => {
+  // ERRATA MEDIDA: a 1ª versão deste teste esperava um POST ao clicar em "Salvar compra" com o
+  // formulário vazio, e reprovou com `posts = []`. A causa não é a tela estar errada — são os
+  // 4 campos `required` de §purchase-dados-gerais (Create.tsx:339/362/386/396: Filial,
+  // Fornecedor, Data, Status). A validação do browser barra o submit ANTES da rede, e o
+  // `PageHeader` não usa portal (o `type="submit"` está mesmo dentro do `<form>`). Eu havia
+  // afirmado "sem filial o servidor recusa" sem medir quem recusa primeiro.
+  //
+  // O que ficou é o comportamento REAL e verde: compra incompleta não sai da tela. A forma do
+  // envio (1 POST com N linhas, UC-PURCRE-05) exige preencher os obrigatórios e ter item —
+  // fica no `test.fixme` abaixo, junto com a grade, porque depende do mesmo seed.
+  const requisicoes: string[] = [];
   page.on('request', (req) => {
     const url = new URL(req.url());
-    if (req.method() === 'POST' && url.pathname.startsWith('/purchases')) {
-      posts.push(url.pathname);
+    if (req.method() !== 'GET' && url.pathname.startsWith('/purchases')) {
+      requisicoes.push(`${req.method()} ${url.pathname}`);
     }
   });
 
@@ -105,9 +118,9 @@ test('UC-PURCRE-01 · o formulário é um POST único para /purchases — a tela
   await page.getByRole('button', { name: /Salvar compra/ }).click();
   await page.waitForLoadState('networkidle');
 
-  // Sem filial/fornecedor o servidor recusa — e é isso que se quer aqui: o veredito da
-  // validação é do Pest; o que este teste prova é a FORMA do envio, exatamente um POST.
-  expect(posts).toEqual(['/purchases']);
+  expect(requisicoes).toEqual([]);
+  // E a tela continua ali — não navegou nem limpou o formulário.
+  await expect(page.locator('[data-contract="purchase-totais"]')).toBeVisible();
 });
 
 test.fixme('UC-PURCRE-01 · controle negativo: GET sem Inertia e sem ?v=2 devolve o Blade legacy', async ({ page }) => {
@@ -125,9 +138,10 @@ test.fixme('UC-PURCRE-05 · a grade tam×cor expande N células em N linhas num 
   // PENDENTE POR SEED: exige produto VARIÁVEL (`type=variable` com dois eixos) e fornecedor,
   // e o VisregTenantSeeder só cria um `single`. Criar a fixture aqui seria fixture paralela ao
   // Pest — PurchaseGradeMatrixTest é o dono do dado da grade (UC-PURCRE-02/03/04).
-  // Quando o seed ganhar o produto variável: abrir "Adicionar por grade (tam × cor)",
-  // preencher K células, salvar, interceptar o POST /purchases e contar `linhas` === K,
-  // com `variation_id` distinto por célula.
+  // Quando o seed ganhar o produto variável: preencher os 4 campos `required` (sem eles o
+  // browser barra o submit — ver a errata no teste acima), abrir "Adicionar por grade
+  // (tam × cor)", preencher K células, salvar, interceptar o POST /purchases e contar
+  // `linhas` === K, com `variation_id` distinto por célula.
   await page.goto('/purchases/create?v=2');
   await expect(page.getByText('Adicionar por grade (tam × cor)')).toBeVisible();
 });
