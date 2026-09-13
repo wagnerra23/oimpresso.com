@@ -1921,6 +1921,25 @@
       "evidencia": "memory/sessions/2026-09-06-refutacao-gt-g5-distill-12-portas.md (§Lote E — Governance, r3 = rodada aprovada; r1/r2 em §Rodada r9)",
       "trajetoria": "TRÊS rodadas: 59,1% (r1, 13/22 — saída bruta da LLM com 3 eventos de proveniência) → 18,4% (r2, 9/49 — erros do gerador: PRs #5443/#5444 trocados, #5308 vs #5311, #6928 atribuído sem tocar o módulo, recibo de grep citado em forma diferente da rodada) → 1,8% (r3, 1/55, aprovado; o refutado era o nome da rota do dashboard legado, herdado da porta anterior). Porta incluída porque o #6907 a deixou stale enquanto a sessão rodava (main 12→13).",
       "marcador_absorcao": "n/a — mesmo PR do lote acima; aperta o floor."
+    },
+    {
+      "pr": 7224,
+      "lote_id": "gt-g5-lote-7224",
+      "data": "2026-09-13",
+      "tipo": "anchors",
+      "gerador": "Codex (OpenAI, externo) — autorou o lote do PR #7224 direto no repo principal (codex/prototipo-ssot-cleanup); após a r1 reprovar, o lote foi consertado por máquina de linha por claude-opus-5 (Anthropic) no commit 8d11ad661b (sessão pr-7224-review)",
+      "refutador": "claude-opus-5 (Anthropic) — subagente do workflow .claude/workflows/refutador-gt-g5.js em contexto próprio, zero contexto do gerador e das rodadas anteriores (instruído a não abrir as evidências prévias); uma instância NOVA por rodada, r1–r2",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 1112,
+      "erros_confirmados": 22,
+      "error_rate_pct": 1.98,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "veredito": "aprovado",
+      "evidencia": "memory/sessions/2026-09-13-refutacao-gt-g5-lote-7224-r2.md (rodada aprovada); anteriores: memory/sessions/2026-09-11-refutacao-gt-g5-lote-7224-r1.md",
+      "trajetoria": "2 rodadas: 13,63% (r1, 189/1387) → 1,98% (r2, 22/1112)",
+      "marcador_absorcao": "n/a — lote não afrouxa baseline nenhum"
     }
   ]
 }
