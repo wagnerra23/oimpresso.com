@@ -519,7 +519,27 @@ export function CompanyPicker({
             </button>
           ))}
           <div className="sb-dd-sep" />
-          <button type="button" role="menuitem" className="sb-dd-foot">
+          {/* Sem handler este item MENTIA: `role="menuitem"` anuncia algo
+              acionável e o clique não fazia nada (medido no main em 2026-09-13).
+              O destino existe — Superadmin › Negócios (`/superadmin/business`,
+              com `create`) — mas QUEM pode abri-lo é decidido pelo middleware
+              `superadmin`, que compara o `username` contra
+              `config('constants.administrator_usernames')`. Essa regra não chega
+              ao front: `props.auth.can` traz só as 5 chaves do Ponto, e
+              `superadminItems` filtra LABELS de outros módulos (Módulos, Backup,
+              CMS, …), cada um com permissão própria — nenhum é esta. Sem sinal
+              confiável, navegar daria 403 pra maioria; o item então declara-se
+              desabilitado COM o motivo, em vez de prometer.
+              `aria-disabled` e não `disabled` nativo: menuitem desabilitado segue
+              focável no padrão ARIA, e o `disabled` do HTML suprimiria o `title`
+              — que é justamente o motivo. */}
+          <button
+            type="button"
+            role="menuitem"
+            className="sb-dd-foot"
+            aria-disabled="true"
+            title="Criar empresa é ação de superadmin, em Superadmin › Negócios"
+          >
             + Adicionar empresa
           </button>
         </div>
