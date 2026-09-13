@@ -603,6 +603,20 @@ jobs:
       - name: Registro design-sync-não-é-fonte em settings.json (camada L4 · DesignSync + Skill)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/settings-design-sync-registration.test.mjs
+      # MOTOR compartilhado dos 5 abaixo (aplicar-payload, bundle-contract, bundle-transaction,
+      # gerar-payload-partes e scripts/design/render-proto-baseline) — era o único sem teste
+      # próprio, exercitado só de lado pelos testes dos consumidores. Roda ANTES deles porque
+      # uma regressão aqui aparece longe da causa. Mutantes mortos antes de wirar (2026-09-13):
+      # normalização de barra invertida do Windows removida → 1 FAIL · guard `fromJs` removido
+      # (nome nu em JS viraria arquivo, e `react` entraria como missing do bundle) → 2 FAIL ·
+      # strip de `?query`/`#frag` removido → 1 FAIL · `binary` deixa de ser folha → 1 FAIL ·
+      # `duplicates` some de `complete` → 1 FAIL · `reachable` para de filtrar pelo que existe
+      # (entry ausente sairia como alcançado) → 1 FAIL · ref insegura vira aresta → 2 FAIL.
+      # O harness aborta quando o padrão não casa: mutação no-op daria recibo falso, e a 1a
+      # versão do M5 casou zero — o receita saiu só depois de corrigir o padrão.
+      - name: payload-dependency-graph MOTOR morde (path POSIX/pacote npm x arquivo/binário folha/ciclo · em memória)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/design-sync/payload-dependency-graph.test.mjs
       - name: aplicar-payload morde (escopo/R1/bytes/regressão · CLI de fora, sandbox por cwd)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/aplicar-payload.test.mjs
