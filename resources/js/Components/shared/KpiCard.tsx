@@ -2,6 +2,7 @@ import * as React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { ArrowDownRight, ArrowUpRight, Minus } from 'lucide-react';
 import { Icon } from '@/Components/Icon';
+import { Inline } from '@/Components/layout';
 import { cn } from '@/Lib/utils';
 
 /**
@@ -293,7 +294,12 @@ export default function KpiCard({
         <span className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-widest leading-none min-w-0 break-words">
           {label}
         </span>
-        <span className="mt-1 flex items-baseline gap-2 min-w-0">
+        {/* `Inline` + `asChild` em vez de `flex items-baseline gap-2` solto: o ratchet do
+            `layout-primitives-guard` (ADR 0253) proíbe AUMENTAR flex/grid solto por arquivo, e
+            regravar o baseline pra passar seria editar a régua. `asChild` preserva o `<span>` —
+            o card clicável é um `<button>`, que só aceita phrasing content. */}
+        <Inline asChild gap={2} align="baseline" className="mt-1 min-w-0">
+          <span>
           {/* `--fs-6` (18px) = o degrau da ramp que a âncora usa no tile de filtro, um abaixo do
               `--fs-7` (22px) do card default. `leading-tight` anda junto pelo mesmo motivo do
               default: o arbitrary value não traz line-height embutido. A regra do `danger`
@@ -306,8 +312,9 @@ export default function KpiCard({
           >
             {value}
           </span>
-          {delta && <Delta {...delta} isGood={deltaIsGood} />}
-        </span>
+            {delta && <Delta {...delta} isGood={deltaIsGood} />}
+          </span>
+        </Inline>
         {description && (
           <span className="block mt-0.5 text-[length:var(--fs-1)] leading-none text-muted-foreground break-words">
             {description}
