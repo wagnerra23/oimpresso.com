@@ -130,7 +130,7 @@ const ucPrefix = (tela) => (tela.replace(/[^A-Za-z]/g, '').toUpperCase().slice(0
 // #6210 mapeou o PageHeader canon: o gerador passou a produzir .tsx que não compila.
 // Por isso o template usa a forma que o registry declara em `exports`, e o selftest
 // confere isso em todos os arquétipos (`conferirFormaDosImports`).
-const REGISTRY = join(ROOT, 'prototipo-ui', 'component-registry.json');
+const REGISTRY = join(ROOT, 'governance', 'design', 'component-registry.json');
 let _regCache = null;
 /** Entradas `mapped` do registry — uma leitura só, dois índices (por componente e por path). */
 function registryMapped() {
@@ -726,7 +726,7 @@ function planPaths(mod, tela, outRoot) {
     // Nome = `<kebab(mod)>-<kebab(tela)>.contract.json`, o padrão dos contratos que já existem
     // (`superadmin-dashboard`, `ponto-painel`). O diretório é fixo: é o que `listContracts()`
     // e o step "Contratos ativos" varrem.
-    contrato: join(outRoot, 'prototipo-ui', 'contrato', `${kebab(mod)}-${kebab(tela)}.contract.json`),
+    contrato: join(outRoot, 'governance', 'design', 'contracts', `${kebab(mod)}-${kebab(tela)}.contract.json`),
   };
 }
 
@@ -904,7 +904,7 @@ last_validated: "2026-01-01"
   // CN-2/CN-3: as DUAS saídas explícitas funcionam e escrevem o que prometem.
   const cn2 = tmp();
   rodar(['Forja/FixturaAncora', 'PT-01', '--out', cn2, '--prototipo', 'prototipo-ui/cowork/Wagner/forja-page.jsx', '--rota', 'fixtura-ancora']);
-  t(/related_prototype:\s*prototipo-ui\/cowork\/forja-page\.jsx/.test(
+  t(/related_prototype:\s*prototipo-ui\/cowork\/Wagner\/forja-page\.jsx/.test(
       readFileSync(join(cn2, 'resources/js/Pages/Forja/FixturaAncora.charter.md'), 'utf8')),
     'CN-2: --prototipo escreve o path declarado');
 
@@ -976,8 +976,8 @@ last_validated: "2026-01-01"
 
   // Ramo 1 — tela COM protótipo: `fonte` aponta pro protótipo declarado.
   const c1 = tmp();
-  mkdirSync(join(c1, 'prototipo-ui', 'cowork'), { recursive: true });
-  writeFileSync(join(c1, 'prototipo-ui', 'cowork', 'fixtura-page.jsx'), '// protótipo de fixtura\n');
+  mkdirSync(join(c1, 'prototipo-ui', 'cowork', 'Wagner'), { recursive: true });
+  writeFileSync(join(c1, 'prototipo-ui', 'cowork', 'Wagner', 'fixtura-page.jsx'), '// protótipo de fixtura\n');
   const g1 = rodar(['Fixtura/MinhaTela', 'PT-01', '--out', c1,
     '--prototipo', 'prototipo-ui/cowork/Wagner/fixtura-page.jsx', '--rota', 'fixtura']);
   t(g1.status === 0, 'CONTRATO CN-1: geração com protótipo sai limpa (exit 0)');
