@@ -11,7 +11,7 @@ related_adrs: [0383-ponto-interno-nao-coleta-biometria]
 
 # Thread 03 (ponto · a11y não-cor) — parada por medição, não por bloqueio
 
-## Veredito
+## TL;DR
 
 **A thread 03 já estava feita quando o playbook foi escrito.** O trabalho saiu em
 [#6407](https://github.com/wagnerra23/oimpresso.com/pull/6407) (2026-08-28) — cujo título é
