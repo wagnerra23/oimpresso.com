@@ -15,8 +15,13 @@
 //   • staging FORA do repo — `~/Downloads/_cowork-handoff-staging` (verificação + detectar-telas)
 //   • SSOT NO repo — `prototipo-ui/cowork/Wagner/`: só a CAMADA DE DESIGN pousa (BUILD-ONLY: jsx/tsx/ts/
 //     js/mjs/css/html/json/php) — `.md` (charters/memory/ADRs) é CANON e NÃO entra aqui. Isso É LEI:
-//     `cowork-ssot-guard.mjs` R1 (design-memory-gate.yml) reprova `.md` em cowork/, e a ADR-proposta
-//     2026-06-23 §77 manda "o filtro de landing exclui .md". O sync usa `/PURGE` (tira órfão de
+//     `cowork-ssot-guard.mjs` **R3** (design-memory-gate.yml) reprova `.md` em cowork/, e a
+//     ADR-proposta 2026-06-23 §77 manda "o filtro de landing exclui .md".
+//     ⚠ Dois ajustes de PRECISÃO neste ponteiro (lido em origin/main, 2026-09-13): a regra é a R3,
+//     não a R1 (a R1 governa a RAIZ de prototipo-ui/); e a R3 tem EXCEÇÃO — ela permite `.md` em
+//     `cowork/<dono>/handoffs/`. O sweep de junk daqui NÃO honra essa exceção e apagaria os 3
+//     `.md` reais de `cowork/Wagner/handoffs/`. REPORTADO, não consertado (ver classificarParaSync).
+//     O sync usa `/PURGE` (tira órfão de
 //     rename — o SSOT é ESPELHO do último handoff, não união). git é a rede (diff/deleção visível).
 //     Decisão Opção A (Wagner 2026-07-01) supersede o espelho per-tela. Desligar: `--no-sync-cowork`.
 //
@@ -72,9 +77,94 @@ Write-Output ("ENTRIES=" + $ent); Write-Output ("EXTRACTED=" + $ok)`;
   return { entries, extraidos };
 }
 
-// ── cowork/ é BUILD-ONLY, ZERO .md (cowork-ssot-guard.mjs R1 + ADR-proposta 2026-06-23 §77).
+// ── cowork/ é BUILD-ONLY (cowork-ssot-guard.mjs R3 + ADR-proposta 2026-06-23 §77).
 //    Só estas extensões pousam no SSOT; .md (charters/memory/ADRs) é canon e fica no lugar dele.
-const BUILD_PATS = ['*.jsx', '*.tsx', '*.ts', '*.js', '*.mjs', '*.css', '*.html', '*.json', '*.php'];
+//
+//    FONTE ÚNICA das três listas que o sync usa. Antes elas viviam DUPLICADAS: `BUILD_PATS` aqui
+//    e `$keep` hardcoded dentro do heredoc PowerShell — duas verdades pra uma regra, que é como
+//    drift nasce. Agora o heredoc INTERPOLA daqui (§"não duplicar a regra em JS e em PS").
+export const BUILD_EXTS = ['.jsx', '.tsx', '.ts', '.js', '.mjs', '.css', '.html', '.json', '.php'];
+const BUILD_PATS = BUILD_EXTS.map((e) => `*${e}`);
+
+//    Dirs de arquivo/scratch que NÃO são design-source (mesmo SKIP_DIRS do _lib-charter + os que
+//    o Wagner mandou apagar). robocopy os exclui via /XD e o sweep seguinte os apaga do destino.
+export const NOISE_DIRS = ['_arquivo', '_BACKUP-NAO-USAR', 'scraps', 'screenshots', 'uploads', 'assets', 'benchmark', '_ds'];
+
+//    Resíduo de PROCESSO (espelha scripts/bundle-lint.mjs RESIDUO): audit/tribunal/adversário/
+//    GAPS/FORCE — são .html de esteira, NÃO design-source.
+//
+//    ⚠⚠ ESTE É O PADRÃO EFETIVO, e ele NÃO é o que o fonte antigo parecia dizer. O heredoc é um
+//    TEMPLATE LITERAL de JS, então as barras do literal `\.thumbnail$|GAPS_v\d` COLAPSARAM antes
+//    de a PS ver qualquer coisa (LC-26 · §5 2026-08-19): o que chegava em `$resPat` era
+//    `.thumbnail$|GAPS_vd`. Medido em 2026-09-13 reproduzindo a linha exata de origin/main:
+//      $resPat='_arquivo|benchmark|uploads|.thumbnail$|GAPS_vd|FORCE_|Advers.rio|Tribunal|Avaliac'
+//      GAPS_v2.html -> false   ·   GAPS_vd.html -> true   ·   FORCE_a.html -> true
+//    Consequência: `GAPS_v2.html` NUNCA foi varrido como resíduo; `GAPS_vd` (letra d literal) é
+//    que seria, e ninguém nomeia arquivo assim. Está REPORTADO, não consertado — consertar muda o
+//    que o sync APAGA, e é outro intent (o PR que introduz o conserto já nasce com este teste).
+//    Por isso a constante é backslash-FREE: ela transporta o padrão efetivo, e a ausência de barra
+//    é a própria evidência do colapso. Se um dia o `\d` voltar, o caso GAPS_v2 deste teste vira
+//    vermelho — ele é o tripwire do conserto, não o endosso do defeito.
+export const RESIDUO_PATTERN = '_arquivo|benchmark|uploads|.thumbnail$|GAPS_vd|FORCE_|Advers.rio|Tribunal|Avaliac';
+
+//    O único arquivo não-build que SOBREVIVE ao sweep. Não entra em BUILD_EXTS de propósito: ele
+//    não vem do bundle (robocopy nunca o copia, o filespec não o pega) — ele mora no repo e o
+//    sweep o POUPA. Medido em 2026-09-13: `[IO.Path]::GetExtension('.gitignore')` devolve
+//    `.gitignore`, não `''` — por isso a guarda é pelo NOME, e ela é load-bearing.
+const PRESERVADOS = ['.gitignore'];
+
+// ── DECISÃO de sync (lógica PURA, testável sem robocopy nem PowerShell) ───────
+//    A EXECUÇÃO (robocopy /PURGE + Remove-Item) segue no PowerShell; o que sai de lá é só o
+//    JULGAMENTO de cada caminho. Existe porque a parte que DESTRÓI era intestável por construção:
+//    a regra vivia dentro de uma string heredoc, e `git grep -lF robocopy` devolvia 1 arquivo — o
+//    próprio script (medido 2026-09-13). Não há runner Windows no CI (`runs-on:.*windows` → 0),
+//    então nem havia onde rodá-la. Mesmo movimento de `decidirSwap` e `acharBundleRoot`: tirar a
+//    decisão do caminho imperativo é o que as tornou testáveis.
+//
+//    Ordem de precedência = ordem de EXECUÇÃO da PS (quem morre primeiro nunca chega no sweep
+//    seguinte): dir de ruído → junk (não-build) → resíduo de processo → sobrevive.
+//
+//    @param {string} caminhoRelativo — path relativo à raiz do SSOT (`prototipo-ui/cowork/Wagner`),
+//      com `/` ou `\`. A PS casa o resíduo contra o FullName ABSOLUTO; aqui é o relativo, que é a
+//      intenção da regra (o resíduo é do caminho do arquivo DENTRO do SSOT). Divergência conhecida
+//      e reportada, não consertada aqui: com o SSOT sob um diretório cujo nome casa o padrão
+//      (ex. um worktree chamado `benchmark-x`), a PS varreria o SSOT inteiro.
+//    @returns {{acao:'copia'|'junk'|'residuo'|'ruido-dir'|'invalido', motivo:string}}
+export function classificarParaSync(caminhoRelativo) {
+  if (typeof caminhoRelativo !== 'string' || caminhoRelativo.trim() === '') {
+    return { acao: 'invalido', motivo: 'não é caminho de arquivo (a PS itera arquivos reais, nunca vê isto)' };
+  }
+  const segs = caminhoRelativo.split(/[\\/]+/).filter(Boolean);
+  if (segs.length === 0) return { acao: 'invalido', motivo: 'caminho sem segmentos' };
+  const nome = segs[segs.length - 1];
+  const dirs = segs.slice(0, -1);
+
+  // 1) /XD do robocopy + o loop que apaga os dirs de ruído do destino. Case-insensitive porque é
+  //    o que robocopy e o FS do Windows fazem — não é escolha, é paridade.
+  const ruido = dirs.find((d) => NOISE_DIRS.some((n) => n.toLowerCase() === d.toLowerCase()));
+  if (ruido) return { acao: 'ruido-dir', motivo: `dir de ruído no caminho: ${ruido}` };
+
+  // 2) sweep BUILD-ONLY (allowlist). `ext` replica [IO.Path]::GetExtension: do ÚLTIMO ponto do
+  //    NOME, inclusive, mesmo quando o ponto é o 1º char; '' quando não há ponto.
+  const i = nome.lastIndexOf('.');
+  const ext = i >= 0 ? nome.slice(i).toLowerCase() : '';
+  if (!PRESERVADOS.includes(nome) && !BUILD_EXTS.includes(ext)) {
+    return { acao: 'junk', motivo: ext ? `extensão fora do build: ${ext}` : 'arquivo sem extensão' };
+  }
+
+  // 3) sweep de resíduo de processo. Roda DEPOIS do junk e NÃO poupa o .gitignore — a PS também
+  //    não poupa (a guarda de nome é só do sweep anterior).
+  if (new RegExp(RESIDUO_PATTERN, 'i').test(caminhoRelativo)) {
+    return { acao: 'residuo', motivo: 'resíduo de processo (bundle-lint RESIDUO)' };
+  }
+
+  return PRESERVADOS.includes(nome)
+    ? { acao: 'copia', motivo: `${nome} — preservado pelo nome (não vem do bundle; o sweep o poupa)` }
+    : { acao: 'copia', motivo: `design-source (${ext})` };
+}
+
+// ── serializa uma lista JS como array literal PowerShell ('a','b') ────────────
+const psLista = (xs) => xs.map((x) => `'${x}'`).join(',');
 
 // ── acha a RAIZ real do bundle — o zip abre em `<slug>/project/`, NÃO em `project/` no topo;
 //    assumir `destino/project` aninha o slug inteiro (bug 2026-07-01). Marca FORTE = host+app juntos;
@@ -108,21 +198,23 @@ $ErrorActionPreference='Continue'
 $src=[string]$env:OI_SRC; $dst=[string]$env:OI_DST
 if(-not (Test-Path $dst)){ New-Item -ItemType Directory $dst -Force | Out-Null }
 $pats = '${BUILD_PATS.join("','")}'.Split(',') | ForEach-Object { $_.Trim("'") }
-# /XD: dirs de arquivo/scratch NÃO são design-source (mesmo SKIP_DIRS do _lib-charter + os que o Wagner mandou apagar)
-$noise = @('_arquivo','_BACKUP-NAO-USAR','scraps','screenshots','uploads','assets','benchmark','_ds')
+# /XD: dirs de ruído — lista vem de NOISE_DIRS (fonte única no JS; ver classificarParaSync)
+$noise = @(${psLista(NOISE_DIRS)})
 robocopy $src $dst @pats /S /PURGE /XD @noise /NFL /NDL /NJH /NJS /R:1 /W:1 | Out-Null
 $rc=$LASTEXITCODE
 # apaga do DEST os dirs de ruído já presentes (de runs anteriores; /XD só evita copiar, não purga)
 foreach($nd in $noise){ Get-ChildItem $dst -Recurse -Directory -Filter $nd -ErrorAction SilentlyContinue | ForEach-Object { Remove-Item $_.FullName -Recurse -Force -ErrorAction SilentlyContinue } }
 # BUILD-ONLY estrito (allowlist): varre TUDO que não é build-ext nem .gitignore — mata .md,
 # .proposto, dupes ?v=hash (ext quebrada) e qualquer canonical-shadow. /PURGE só pega build-ext órfão.
-$keep=@('.jsx','.tsx','.ts','.js','.mjs','.css','.html','.json','.php')
-$junk=@(Get-ChildItem $dst -Recurse -File | Where-Object { $_.Name -ne '.gitignore' -and ($keep -notcontains $_.Extension.ToLower()) })
+# $keep vem de BUILD_EXTS e $pats (robocopy) do MESMO array — não podem mais drifar entre si.
+$keep=@(${psLista(BUILD_EXTS)})
+$junk=@(Get-ChildItem $dst -Recurse -File | Where-Object { $_.Name -ne '${PRESERVADOS[0]}' -and ($keep -notcontains $_.Extension.ToLower()) })
 foreach($f in $junk){ Remove-Item $f.FullName -Force -ErrorAction SilentlyContinue }
 Write-Output ("JUNK_SWEPT=" + $junk.Count)
-# resíduo de PROCESSO (espelha scripts/bundle-lint.mjs RESIDUO): audit/tribunal/adversário/GAPS/FORCE
-# — são .html/.md de esteira, NÃO design-source. bundle-lint (advisory) os flagra; o sync tira na origem.
-$resPat='_arquivo|benchmark|uploads|\.thumbnail$|GAPS_v\d|FORCE_|Advers.rio|Tribunal|Avaliac'
+# resíduo de PROCESSO — padrão vem de RESIDUO_PATTERN (fonte única no JS). Os MESMOS bytes que
+# esta linha já mandava: o literal antigo tinha \. e \d, mas o heredoc é template literal e eles
+# colapsavam antes de chegar aqui (medido 2026-09-13; ver o comentário de RESIDUO_PATTERN).
+$resPat='${RESIDUO_PATTERN}'
 $res=@(Get-ChildItem $dst -Recurse -File | Where-Object { $_.FullName -match $resPat })
 foreach($f in $res){ Remove-Item $f.FullName -Force -ErrorAction SilentlyContinue }
 Write-Output ("RESIDUE_SWEPT=" + $res.Count)
