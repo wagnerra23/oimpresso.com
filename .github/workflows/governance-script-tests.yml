@@ -603,6 +603,20 @@ jobs:
       - name: Registro design-sync-não-é-fonte em settings.json (camada L4 · DesignSync + Skill)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/settings-design-sync-registration.test.mjs
+      # MOTOR compartilhado dos 5 abaixo (aplicar-payload, bundle-contract, bundle-transaction,
+      # gerar-payload-partes e scripts/design/render-proto-baseline) — era o único sem teste
+      # próprio, exercitado só de lado pelos testes dos consumidores. Roda ANTES deles porque
+      # uma regressão aqui aparece longe da causa. Mutantes mortos antes de wirar (2026-09-13):
+      # normalização de barra invertida do Windows removida → 1 FAIL · guard `fromJs` removido
+      # (nome nu em JS viraria arquivo, e `react` entraria como missing do bundle) → 2 FAIL ·
+      # strip de `?query`/`#frag` removido → 1 FAIL · `binary` deixa de ser folha → 1 FAIL ·
+      # `duplicates` some de `complete` → 1 FAIL · `reachable` para de filtrar pelo que existe
+      # (entry ausente sairia como alcançado) → 1 FAIL · ref insegura vira aresta → 2 FAIL.
+      # O harness aborta quando o padrão não casa: mutação no-op daria recibo falso, e a 1a
+      # versão do M5 casou zero — o receita saiu só depois de corrigir o padrão.
+      - name: payload-dependency-graph MOTOR morde (path POSIX/pacote npm x arquivo/binário folha/ciclo · em memória)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/design-sync/payload-dependency-graph.test.mjs
       - name: aplicar-payload morde (escopo/R1/bytes/regressão · CLI de fora, sandbox por cwd)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/aplicar-payload.test.mjs
@@ -626,6 +640,21 @@ jobs:
       - name: receber-handoff morde (zip/CRC/zip-slip/pacote velho/3 pontos · hermético)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/receber-handoff.test.mjs
+      # Import do bundle Cowork (Fase -1). O `--selftest` do script roda no design-memory-gate e
+      # cobre SO `decidirSwap` — funcao pura. Aqui entra o que ele nao alcanca: `acharBundleRoot`
+      # (o bug 2026-07-01, que aninhava o slug inteiro, estava sem UM teste) e o contrato de
+      # processo exercitado pelo CLI DE FORA — exit 2 de uso != exit 1 de integridade, e o destino
+      # PRESERVADO quando a extracao falha, que e a razao de existir do script (LC-15: assert sobre
+      # helper puro nao prova contrato de pipeline).
+      # Esta lane e NAO o design-memory-gate porque la o `paths:` nao inclui `importar-bundle.mjs`:
+      # mexer no script nao dispara o teste dele (§5 2026-08-02, gate mudo com cara de cobertura).
+      # Mutantes mortos antes de wirar (2026-09-13): bug literal de 2026-07-01 (`return
+      # join(destino,'project')` no topo) -> 8 FAIL · catch da extracao apagando o destino antes de
+      # abortar -> 1 FAIL · ambiguidade escolhendo calada -> 1 FAIL. Hermetico: nenhum caso extrai
+      # zip, entao nao pede PowerShell (o script e Windows-only na extracao; esta lane e ubuntu).
+      - name: importar-bundle morde (acharBundleRoot + delete-before-verify · CLI de fora, hermetico)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/design/importar-bundle.test.mjs
       - name: ds-push orquestrador morde (dry-run VALOR:0 + determinismo · loop diff-first)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/ds-push.test.mjs

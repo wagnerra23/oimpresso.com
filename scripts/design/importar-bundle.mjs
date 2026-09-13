@@ -84,7 +84,11 @@ export function acharBundleRoot(destino) {
   const fraco = (d) => existsSync(join(d, 'oimpresso.com.html')) || existsSync(join(d, 'app.jsx'));
   let subs = [];
   try { subs = readdirSync(destino, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name).sort(); } catch {}
-  const cands = [join(destino, 'project'), ...subs.map((s) => join(destino, s, 'project')), ...subs.map((s) => join(destino, s)), destino];
+  // `new Set`: com o bundle abrindo em `project/` no topo, `join(destino,'project')` e o `project`
+  // vindo de `subs` sao o MESMO path — sem dedupe, `fortes` vinha com 2 entradas IGUAIS e o
+  // aviso de ambiguidade disparava no caso mais simples que existe (achado pelo bite-test,
+  // 2026-09-13). Set preserva a ordem de insercao, entao a precedencia dos candidatos nao muda.
+  const cands = [...new Set([join(destino, 'project'), ...subs.map((s) => join(destino, s, 'project')), ...subs.map((s) => join(destino, s)), destino])];
   const fortes = cands.filter((c) => existsSync(c) && forte(c));
   if (fortes.length === 1) return fortes[0];
   if (fortes.length > 1) { console.error(`⚠ raiz ambígua (${fortes.length} dirs com host+app): ${fortes.join(' | ')} — usando o 1º ordenado`); return fortes[0]; }
