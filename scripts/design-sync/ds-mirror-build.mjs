@@ -6,6 +6,40 @@
 // também define pelo valor do git (resources/css/tokens/_generated-*.css). Preserva tudo o mais
 // (comentários, tokens só-do-espelho/aliases, estrutura). É a perna 2 do runbook design-sync-push.md.
 //
+// ── POR QUE não tem workflow nem `.test.mjs` com o nome dela (medido 2026-09-13) ──
+// Ela NÃO é órfã. É um transformador puro — lê o scaffold + os `_generated-*.css` e escreve
+// só em stdout (zero `writeFileSync`) — e é o PASSO 1 do `ds-push.mjs`, que a invoca em
+// `ds-push.mjs:76` via `node('ds-mirror-build.mjs', [scaffold, tokensDir])`. Quem a roda:
+//   · CI   — `scripts/design-sync/ds-push.test.mjs`, step em `governance-script-tests.yml:631`
+//            (medido 2026-09-13: a lane declara `pull_request: branches:[main]` SEM `paths:`,
+//             logo o step nasce em todo PR. Se ela é required, quem responde é
+//             `governance/required-checks-baseline.json` — não esta linha).
+//   · à mão — `npm run ds:push` / `ds:push:write` (package.json:79-80) e o runbook
+//            `.claude/runbooks/design-sync-push.md` (passos 1-3).
+// O bite-test dela é o do INVOCADOR, e isso é de propósito: §5 2026-07-30 manda exercitar o
+// CLI de fora, não uma função-satélite. Provado por mutação em 2026-09-13 — inserir `return line`
+// logo após o `changed++` faz `ds-push.test.mjs` sair rc=1 com 2 asserts vermelhos ("dry-run
+// sai 0" e "VALOR:0"); restaurado, rc=0. Um `.test.mjs` próprio seria régua paralela (LC-19).
+//
+// ⚠️ AS DUAS SONDAS ÓBVIAS DE ORFANDADE ERRAM NELA — não conclua "morta" a partir delas:
+//   · `git grep "design-sync/ds-mirror-build"` erra porque o `ds-push` a chama por BASENAME
+//     (o helper `node()` resolve contra `__dirname`) — o prefixo de diretório nunca aparece.
+//   · `git grep -E "(from|require|node) .*ds-mirror-build\.mjs"` erra porque é `node(` —
+//     chamada de helper, não `node` seguido de espaço.
+//   A sonda que acha é o basename cru: `git grep -F "ds-mirror-build" origin/main`.
+//   (Família já catalogada: em 10/09/2026 o `documentacao-page.jsx` retratou ter declarado que
+//    o próprio `ds-push.mjs` "não existia", pela mesma doença — §5 2026-07-28, LC-08.)
+//
+// ── O que ela conserta, e por que o sentinela sozinho não basta (fato datado) ──
+// `ds-mirror-drift` MEDE o drift git↔espelho; ela é o único caminho de BAIXAR esse drift.
+// Em 2026-09-13, em `origin/main@4129c5e970`, o sentinela media 8 divergências contra baseline 0
+// (`--color-success/warning-foreground` em light+dark, de #7043→8224b49850; `--accent-soft`,
+// `--pos`, `--neg`, `--warn` em cockpit-dark, de bf28a6f0ad) e este script reconciliava
+// exatamente as 8, com `ds-push` fechando VALOR:0. O número de HOJE não se lê aqui:
+// `node scripts/governance/ds-mirror-drift.mjs`.
+// Baixar o drift de fato é ato de [W]: `ds-push --write` reescreve o DS canônico e o passo 4
+// (upload DesignSync) exige login claude.ai e opt-in explícito (ADR 0315/0328).
+//
 // NÃO acrescenta tokens git-only (mudança estrutural = decisão humana) — só reconcilia valores.
 // Uso:
 //   node scripts/design-sync/ds-mirror-build.mjs <mirror-atual.css> [tokensDir] > <reconciliado.css>
