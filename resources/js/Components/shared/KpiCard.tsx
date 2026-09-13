@@ -25,6 +25,38 @@ import { cn } from '@/Lib/utils';
  *     tone="success"
  *     delta={{ value: 3, label: 'vs ontem' }}
  *   />
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * `variant="filter"` — o tile CLICÁVEL usado como filtro (2026-09-13)
+ *
+ * FORMA, não semântica: a caixa vira linha (ícone à esquerda, texto à direita),
+ * `rounded-lg`/`p-3` em vez de `rounded-xl`/`p-4`, e o valor cai um degrau da ramp
+ * (`--fs-6` 18px, contra `--fs-7` 22px do default).
+ *
+ * A ÂNCORA é `prototipo-ui/design-system/components/KpiCard/KpiCard.jsx :: KpiFilterTile`
+ * (o `KpiFilterCard` é alias dela — "fusão 2026-08"). O consumo real está em
+ * `prototipo-ui/cowork/Wagner/ponto-ui.jsx :: Kpi`, que DELEGA a este contrato:
+ *   <KpiCard variant="filter" label value sub icon tone={TOM_KPI_FILTRO[...]} selected onClick />
+ *
+ * `filterTone` é EIXO PRÓPRIO — não remapeia nem amplia `tone`. A âncora reusa o mesmo
+ * prop `tone` para os dois vocabulários (e o `.d.ts` do DS declara os dois enums contra o
+ * MESMO campo: `KpiCard.d.ts` = default|success|warning|danger|info ×
+ * `KpiFilterCard.d.ts` = primary|amber|rose|emerald|violet). Aqui eles ficam separados:
+ * ampliar `tone` mudaria o tipo público para os 40 consumidores medidos.
+ *
+ * ⚠️ `violet` e `primary` renderizam IGUAIS — não é descuido. A âncora define os dois em
+ * hue 295 (`--color-primary` = oklch(0.55 0.15 295), ADR 0190; violet = oklch(0.60 0.18 295)),
+ * e o repo não tem token de roxo secundário no `@theme`. `--stage-violet` (288) existe, mas
+ * vive escopado em `.cockpit` (`_generated-cockpit-*.css`) e sumiria em portal Radix —
+ * a lápide de 2026-07-10 é exatamente sobre isso. Separá-los exige token novo = decisão [W].
+ *
+ * ⚠️ O LABEL sob `filter` NÃO muda: segue o canon da ADR 0110 (11px/600 uppercase muted)
+ * documentado abaixo. O playbook que pediu esta variante descrevia o alvo como "13.3px/400
+ * em accent" e abria um conflito `D-KPI-LABEL` contra a ADR — medido em 2026-09-13, NENHUMA
+ * das duas fontes no repo produz isso: a âncora usa `--fs-1`/600/uppercase/muted (= a ADR), e o
+ * fallback CSS legado (`ponto-page.css:50 .pt-kpi small`) usa 9.5px uppercase `--text-dim`.
+ * O "accent" também colidiria com `cockpit.css:42-45`, que registra que `--accent` é
+ * REESCRITO pelo `AppShellV2` e não é fonte confiável de roxo. O conflito não existe.
  */
 const kpiCardVariants = cva(
   'flex flex-col gap-2 rounded-xl border bg-card p-4 shadow-sm transition-colors',
@@ -42,10 +74,24 @@ const kpiCardVariants = cva(
         compact: 'p-3 gap-1',
         large: 'p-6 gap-3',
       },
+      // Declarado POR ÚLTIMO de propósito: o `cva` concatena as variants na ordem das chaves
+      // e o `cn` deste arquivo é `twMerge` — então `variant` vence `size`/base nos eixos em
+      // conflito (flex-col→flex-row, rounded-xl→rounded-lg, p-4→p-3), sem precisar remover
+      // nada do base. `gap-3` = 12px, o gap da âncora.
+      variant: {
+        default: '',
+        filter: 'flex-row items-center gap-3 rounded-lg p-3 text-left',
+      },
     },
     defaultVariants: {
       tone: 'default',
       size: 'default',
+      // `variant` FICA DE FORA — é metade da guarda, não esquecimento: sem entrada aqui o
+      // valor ausente resolve `undefined` e o `cva` não aplica classe nenhuma. A outra metade
+      // é `default: ''` acima. Medido por mutação (2026-09-13): quebrar UMA das duas é inerte
+      // (pôr `variant: 'default'` aqui não muda nada enquanto a string for vazia; encher a
+      // string não muda nada enquanto ninguém a selecionar) — quebrar AS DUAS derruba 7 casos
+      // de `tests/js/kpicard-variant-filter.test.tsx`. Quem mexer numa, olhe a outra.
     },
   },
 );
@@ -71,7 +117,39 @@ const iconContainerVariants = cva(
   },
 );
 
-interface Props extends VariantProps<typeof kpiCardVariants> {
+/**
+ * Placa do ícone sob `variant="filter"` — 36×36 (`h-9 w-9`), igual à âncora.
+ *
+ * Os 5 tons são o vocabulário do bundle, mapeados nos tokens do `@theme` por HUE medido
+ * (2026-09-13), sem cor crua e sem token novo:
+ *   primary → `--color-primary`     295  ·  âncora `var(--color-primary)`      295  (Δ0)
+ *   amber   → `--color-warning`      75  ·  âncora oklch(0.72 0.15 70)          70  (Δ5)
+ *   rose    → `--color-destructive`  18  ·  âncora oklch(0.65 0.20 20)          20  (Δ2)
+ *   emerald → `--color-success`     162  ·  âncora oklch(0.65 0.14 155)        155  (Δ7)
+ *   violet  → `--color-primary`     295  ·  âncora oklch(0.60 0.18 295)        295  (Δ0 — colapsa, ver docblock)
+ *
+ * A âncora pinta a placa com 16–18% de fundo; `/15` é o degrau de opacidade que o resto
+ * deste arquivo já usa (`bg-success/10`… ), então fica na mesma família em vez de inventar um.
+ */
+const filterIconVariants = cva(
+  'grid place-items-center rounded-lg shrink-0 h-9 w-9',
+  {
+    variants: {
+      filterTone: {
+        primary: 'bg-primary/15 text-primary',
+        amber: 'bg-warning/15 text-warning',
+        rose: 'bg-destructive/15 text-destructive',
+        emerald: 'bg-success/15 text-success',
+        violet: 'bg-primary/15 text-primary',
+      },
+    },
+    defaultVariants: { filterTone: 'primary' },
+  },
+);
+
+interface Props
+  extends VariantProps<typeof kpiCardVariants>,
+    VariantProps<typeof filterIconVariants> {
   label: string;
   value: string | number;
   icon?: string;
@@ -96,10 +174,13 @@ export default function KpiCard({
   action,
   tone,
   size,
+  variant,
+  filterTone,
   className,
   onClick,
   selected,
 }: Props) {
+  const isFilter = variant === 'filter';
   const iconSize = size === 'compact' ? 14 : size === 'large' ? 22 : 18;
   // ADR 0110 §Tipografia canon: KPI value = font-semibold (NÃO font-bold).
   // size=default = o degrau "KPI médio" da type ramp → --fs-7 (22px). A ramp se declara "the
@@ -117,7 +198,7 @@ export default function KpiCard({
         ? 'text-4xl font-semibold'
         : 'text-[length:var(--fs-7)] leading-none font-semibold';
 
-  const content = (
+  const defaultContent = (
     <>
       <div className="flex items-center justify-between gap-2">
         {/* ADR 0110 §Tipografia canon: KPI label = text-[11px] font-semibold uppercase tracking-widest.
@@ -195,12 +276,61 @@ export default function KpiCard({
     </>
   );
 
+  // Sob `filter` a ORDEM muda (ícone ANTES do texto) e o texto vira uma coluna própria — por
+  // isso é outro corpo, não outras classes no mesmo. O `min-w-0` no wrapper é o mesmo da âncora
+  // (`style={{ minWidth: 0 }}`) e obrigatório pelo mesmo motivo do bloco default: sem ele o flex
+  // não encolhe abaixo do min-content e o rótulo longo vaza pra fora do card.
+  const filterContent = (
+    <>
+      {icon && (
+        <span className={cn(filterIconVariants({ filterTone }))}>
+          <Icon name={icon} size={18} />
+        </span>
+      )}
+      <span className="min-w-0 flex-1">
+        {/* Mesmas classes do label default — ADR 0110 §Tipografia canon. `break-words` (e NÃO
+            `truncate`) porque o rótulo é copy de contrato; vale igual aqui. */}
+        <span className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-widest leading-none min-w-0 break-words">
+          {label}
+        </span>
+        <span className="mt-1 flex items-baseline gap-2 min-w-0">
+          {/* `--fs-6` (18px) = o degrau da ramp que a âncora usa no tile de filtro, um abaixo do
+              `--fs-7` (22px) do card default. `leading-tight` anda junto pelo mesmo motivo do
+              default: o arbitrary value não traz line-height embutido. A regra do `danger`
+              carregar o tom no VALOR é preservada — é contrato do componente, não do default. */}
+          <span
+            className={cn(
+              'text-[length:var(--fs-6)] leading-tight font-semibold tabular-nums truncate',
+              tone === 'danger' ? 'text-destructive' : 'text-foreground',
+            )}
+          >
+            {value}
+          </span>
+          {delta && <Delta {...delta} isGood={deltaIsGood} />}
+        </span>
+        {description && (
+          <span className="block mt-0.5 text-[length:var(--fs-1)] leading-none text-muted-foreground break-words">
+            {description}
+          </span>
+        )}
+        {action && <span className="mt-1 block">{action}</span>}
+      </span>
+    </>
+  );
+
+  const content = isFilter ? filterContent : defaultContent;
+
   const classes = cn(
-    kpiCardVariants({ tone, size }),
+    kpiCardVariants({ tone, size, variant }),
     onClick && 'text-left hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer',
     selected && 'border-primary ring-1 ring-primary/40',
     className,
   );
+
+  // `data-variant` só existe sob `filter`. Carimbá-lo sempre (`variant ?? 'default'`, como o
+  // `data-tone` ao lado faz) somaria um atributo ao markup dos 40 consumidores atuais — e a lei
+  // desta mudança é que quem não pedir a variante não muda de byte.
+  const variantAttr = isFilter ? { 'data-variant': 'filter' } : {};
 
   if (onClick) {
     return (
@@ -210,6 +340,7 @@ export default function KpiCard({
         aria-pressed={selected}
         data-slot="kpi-card"
         data-tone={tone ?? 'default'}
+        {...variantAttr}
         className={classes}
       >
         {content}
@@ -218,7 +349,7 @@ export default function KpiCard({
   }
 
   return (
-    <div data-slot="kpi-card" data-tone={tone ?? 'default'} className={classes}>
+    <div data-slot="kpi-card" data-tone={tone ?? 'default'} {...variantAttr} className={classes}>
       {content}
     </div>
   );
