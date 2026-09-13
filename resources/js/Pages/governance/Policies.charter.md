@@ -66,8 +66,20 @@ Permitir a Wagner editar policies de governança (rules do `ActionGate`) pelo pa
 
 ## Tests anti-regressão
 
-- tests/Feature/Governance/PoliciesToggleTest.php — toggle atualiza `enabled` + `updated_at`
-- tests/Feature/Governance/ActionGateTest.php — gate respeita `enabled=0`
+> ⚠️ **Revogado em 2026-09-13.** Este bloco prometia `tests/Feature/Governance/PoliciesToggleTest.php` e
+> `tests/Feature/Governance/ActionGateTest.php`. **Nenhum dos dois existe** — varredura por nome no repo
+> inteiro devolveu zero, e o único hit de "ActionGate" é o middleware `Modules/Governance/Http/Middleware/ActionGate.php`.
+> Promessa de teste inexistente em charter é instrução ativa para regressão: quem lê acredita que a tela está
+> defendida onde ela não está. Abaixo, o que de fato morde hoje.
+
+- `tests/js/governance-filtros.test.tsx` — busca local, aviso sem-rastro, vazio-de-busca × vazio-de-catálogo e
+  desligada-continua-na-lista (mordida provada por mutação em 2026-09-09, registrada no docblock do arquivo)
+- `e2e/governance-policies.spec.ts` — os 4 KPIs abrem; alternar não abre modal (este em `test.skip` enquanto
+  nenhum seeder popular `mcp_governance_rules`)
+- `Modules/Governance/Tests/Feature/GovernanceRotasCanGateTest.php` — o `can:` das duas rotas, lido do registry vivo
+
+Os casos vivem em [`Policies.casos.md`](Policies.casos.md) (UC-GPOL-01…09): cada UC cita o teste que o prova, ou
+declara que ainda não tem.
 
 ---
 
