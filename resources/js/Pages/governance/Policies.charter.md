@@ -6,6 +6,7 @@ owner: wagner
 status: live
 last_validated: "2026-05-16"
 parent_module: Governance
+related_us: [US-GOV-002]
 related_adrs: [79, 86, 94, 147]
 tier: A
 charter_version: 1

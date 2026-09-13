@@ -8,6 +8,17 @@ related_adrs: [0264-governanca-executavel-trio-dominio-e2e]
 
 # Governança · thread 03a — `Policies.casos.md`
 
+## TL;DR
+
+`governance/Policies` ganhou `casos.md` com **9 UCs** derivados do GAP-SPEC canon e do protótipo — o
+módulo sai de 1 para 2 `casos.md` em 9 telas. O contrato JSON que a âncora da thread mandava usar
+**não existe** (a errata do Code de 08/09 já previa; a pasta saiu na #7224), então a copy veio do
+protótipo, que é o dono da forma. Nenhum UC nasceu `✅`: a lane que roda os testes não emite JUnit,
+então o manifesto do G-7 não os carimba — o teto honesto é `🧪`, declarado no cabeçalho. Dois
+perdedores foram corrigidos no mesmo PR (charter prometendo dois Pest inexistentes; um `test.fixme`
+com motivo caducado), e quatro achados ficaram **declarados e não consertados**, com o motivo de cada
+um. casos-gate verde nos 4 modos, débito −9.
+
 Execução da thread **03a** do playbook `governance` (Cowork→Code). Objetivo declarado: abrir a frente
 do trio pela menor tela do módulo, provando o **formato** que as outras 7 seguem, uma por PR.
 
