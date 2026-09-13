@@ -652,7 +652,22 @@ jobs:
       # join(destino,'project')` no topo) -> 8 FAIL · catch da extracao apagando o destino antes de
       # abortar -> 1 FAIL · ambiguidade escolhendo calada -> 1 FAIL. Hermetico: nenhum caso extrai
       # zip, entao nao pede PowerShell (o script e Windows-only na extracao; esta lane e ubuntu).
-      - name: importar-bundle morde (acharBundleRoot + delete-before-verify · CLI de fora, hermetico)
+      #
+      # 2026-09-13 (2a leva): entra `classificarParaSync` — a DECISAO do sync, que APAGA arquivo do
+      # SSOT (`robocopy /PURGE` + 2 sweeps) e nao tinha cobertura nem TINHA COMO ter: a regra vivia
+      # dentro de uma string heredoc PowerShell. Medido: `git grep -lF robocopy` -> 1 arquivo (o
+      # proprio script); `runs-on:.*windows` -> 0 runners. Os casos sao puros (string -> veredito),
+      # entao seguem hermeticos no ubuntu. Paridade com a PS REAL medida a parte no Windows (3
+      # sweeps de verdade num mkdtemp, sobrevivente x veredito): 40/40. Mutantes mortos, 11/11:
+      # `.md` em BUILD_EXTS -> 4 FAIL · guarda do .gitignore removida -> 2 FAIL · NOISE_DIRS perde
+      # `uploads` -> 5 FAIL · ruido-dir case-sensitive -> 1 FAIL · ruido-dir so na raiz -> 1 FAIL ·
+      # residuo sem flag `i` -> 1 FAIL · extensao sem ToLower -> 1 FAIL · extensao do PRIMEIRO ponto
+      # -> 1 FAIL · precedencia residuo-antes-de-junk -> 1 FAIL · guard de entrada invalida removido
+      # -> 6 FAIL · `\d` RESTAURADO no padrao de residuo -> 3 FAIL (o tripwire do defeito reportado).
+      # O harness ABORTA quando o padrao nao casa 1x: o 1o M8 SOBREVIVEU (faltava caso com 2 pontos,
+      # `tela.mobile.css`) e o 1o M11 era no-op de runtime — a barra colapsava DE NOVO no alvo, o
+      # que e o proprio LC-26 se demonstrando. Recibo so saiu depois de corrigir os dois.
+      - name: importar-bundle morde (acharBundleRoot + delete-before-verify + classificarParaSync · CLI de fora, hermetico)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design/importar-bundle.test.mjs
       - name: ds-push orquestrador morde (dry-run VALOR:0 + determinismo · loop diff-first)
