@@ -141,6 +141,31 @@ try {
   // B.2 · CONTROLE NEGATIVO DO PIPELINE — sem isto, tudo o mais é decorativo.
   check('CLI: --check MORDE com UC órfão', rodar('--check').status === 1);
 
+  // B.2-bis · o ESPELHO de design não é corpus de contrato (ADR 0398). Um `.casos.md` sob
+  //   `prototipo-ui/` é PROPOSTA da conta Cowork: cobrar lane de CI pro teste que ele cita
+  //   conta dívida de terceiro como nossa, e o dono do arquivo não pode consertá-la daqui.
+  //   Mesma doutrina do filtro `foraDoInbox` (2026-08-24), no endereço novo do inbox.
+  //   O par CONTROLE está logo abaixo: o MESMO conteúdo em `Pages/` volta a ser contado.
+  put('prototipo-ui/cowork/Wagner/cowork-inbox/financeiro/Espelho.casos.md', tabela('UC-ESP-01', 'SoNoEspelhoTest'));
+  git('add', '-A');
+  git('commit', '-qm', 'espelho');
+  const comEspelho = rodar();
+  check('espelho: UC de dentro do espelho NÃO entra no relatório',
+    !/UC-ESP-01/.test(comEspelho.stdout), comEspelho.stdout.slice(-300));
+  check('espelho: e o arquivo do espelho não é listado',
+    !/prototipo-ui/.test(comEspelho.stdout), comEspelho.stdout.slice(-300));
+
+  // CONTROLE: o MESMO conteúdo fora do espelho É contado — o filtro é por LUGAR, não por id.
+  put('resources/js/Pages/M/Espelho.casos.md', tabela('UC-ESP-01', 'SoNoEspelhoTest'));
+  git('add', '-A');
+  git('commit', '-qm', 'mesmo caso fora do espelho');
+  check('CONTROLE: o MESMO UC fora do espelho aparece como órfão',
+    /UC-ESP-01/.test(rodar().stdout), rodar().stdout.slice(-300));
+  rmSync(join(raiz, 'resources/js/Pages/M/Espelho.casos.md'));
+  rmSync(join(raiz, 'prototipo-ui'), { recursive: true, force: true });
+  git('add', '-A');
+  git('commit', '-qm', 'limpa fixture do espelho');
+
   // B.3 · controle POSITIVO — o teste entra na lane e o --check libera.
   put('.github/workflows/lane.yml', [
     'jobs:', '  pest:', '    steps:', '      - run: |',
