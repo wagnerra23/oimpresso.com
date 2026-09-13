@@ -140,7 +140,51 @@ de playbooks passa a viver**.
 
 ## Não verificável daqui
 
-Verde no CI · `design-diff --compare --check` (T7) · screenshot de prod. **Nenhum teste rodou
-local** ([ADR 0062](../decisions/0062-separacao-runtime-hostinger-ct100.md)): o
-`npx playwright test --list` parseia os arquivos e confirma que a lane os enxerga (12 testes em 2
-arquivos), mas não os executa.
+`design-diff --compare --check` (T7) · screenshot de prod. **Nenhum teste rodou local**
+([ADR 0062](../decisions/0062-separacao-runtime-hostinger-ct100.md)) — o veredito do E2E veio da
+lane, e está na seção seguinte.
+
+---
+
+# Errata — o E2E reprovou 3 asserts meus, e 2 viraram achado
+
+O 1º run da lane (`pull_request`, run `34789364739`) deu **22 passed · 41 skipped · 3 failed** —
+as 3 minhas, **nenhuma de terceiros**. Cada uma foi medida no código antes de eu mexer, nunca
+explicada por dedução ([§5 2026-08-15](../proibicoes.md)).
+
+| # | o que reprovou | causa medida | defeito de |
+|---|---|---|---|
+| 1 | aba `Todas` não encontrada | o `<a>` carrega o contador dentro dele (`Todas <span>0</span>`), então `getByText(exact)` não casa | **meu assert** — o número é dado, não copy |
+| 2 | `Frete` ausente em Totais | a linha é **condicional** (`totais.frete > 0`, [`Create.tsx:645`](../../resources/js/Pages/Purchase/Create.tsx)) | **do contrato** — achado 4 |
+| 3 | nenhum POST ao salvar | os 4 campos `required` fazem o **browser** barrar o submit antes da rede; o `PageHeader` não usa portal (medido) | **minha afirmação sem medir** |
+
+## A terceira, sem suavizar
+
+Escrevi no comentário do teste *"sem filial/fornecedor o servidor recusa"* — e não medi **quem**
+recusa primeiro. O assert dependia dessa afirmação. É a mesma família de [LC-08](../LICOES_CODE.md)
+que o ledger já alarma: afirmar comportamento a partir de leitura, num ponto onde medir custava um
+`grep required`. O teste virou o comportamento real e verde (*lançamento incompleto não chega à
+rede*); a forma do envio foi para o `fixme` da grade, que depende do mesmo seed.
+
+## Achado 4 — o contrato declara um rótulo de ESTADO como se fosse fixo
+
+`purchase-totais.copy` lista `Frete` junto dos incondicionais, sem `estados`. O gate
+`contrato-de-tela` não acusa porque casa a copy no **fonte**, onde a string existe — o DOM é que
+não a tem com o formulário vazio. A tela está certa. Ficou escrito dentro do spec, no ponto onde
+alguém tropeça.
+
+## Veredito depois da correção
+
+A lane só roda em `opened`, então o push **não** a re-dispara. Disparada pelo `workflow_dispatch`
+que ela mesma declara (run `34789744374`): **25 passed · 41 skipped · 0 failed** (58,8 s) — 19 de
+terceiros + os meus 6 executáveis. Os ~69 advisory que só rodam em `opened` **sumiram** da lista do
+head novo; o veredito deles vale para o SHA `921b4f85c2`, onde deram **107 pass · 0 fail**.
+
+## Terceira nota de método: encoding
+
+Ao escrever esta errata no corpo do PR pela primeira vez usei `unicode_escape` sobre um texto que
+já tinha acentos literais — o corpo saiu em **mojibake**. Reescrito em UTF-8 direto, com um guard
+que barra a publicação se sobrar mojibake. E o guard **também errou na primeira versão**: o regex
+`/Ã/` acusava `NÃO`, palavra legítima. Foram três tropeços de **transporte de escrita** na mesma
+sessão — heredoc, `grep -P`, encoding — todos da família [LC-26](../LICOES_CODE.md), e nenhum deles
+apareceu no código entregue, só no caminho até ele.
