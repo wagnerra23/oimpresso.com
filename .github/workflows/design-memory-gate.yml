@@ -296,7 +296,6 @@ jobs:
       # script (0 alvos) em vez do espelho (123) e imprimia "-- limpo" (§5 2026-07-29).
       - name: ds-guard bite-test (o §8 morde e libera certo · par bom/ruim)
         if: always()
-        continue-on-error: true
         run: node scripts/design/ds-guard.test.mjs
 
       # DS-GUARD --all: relatorio de divida da arvore (NAO derruba o job por design · §8).
@@ -316,7 +315,6 @@ jobs:
       # IT6->duro derruba T9 · IT5 sem staleness derruba T8 · IT2 so na 1a raiz derruba T4.
       - name: integrity-check bite-test (os 8 ITs do §15 mordem?)
         if: always()
-        continue-on-error: true
         run: node scripts/design/integrity-check.test.mjs
 
       # integrity-check: a propria memoria nao corrompeu (espinha · charter tem tela viva .tsx ·
