@@ -11,6 +11,12 @@
  * §5 do projeto cataloga como tautológico (2026-06-05). O que se asserta aqui é CONTRATO
  * observável — o que os 40 consumidores de fato dependem: o eixo da caixa, o degrau da ramp
  * no valor, e a ausência de qualquer marca da variante.
+ *
+ * ⚠️ Os valores de fixture NÃO levam `R$` — não é descuido, e restaurar o prefixo faz o
+ * `brl-scan` acender (medido 2026-09-13: 3 linhas acusadas). O scanner varre `.tsx` também, e
+ * nenhum assert daqui depende do conteúdo do `value` — o que se mede é classe e estrutura.
+ * A saída de allowlist que o próprio scanner oferece foi recusada de propósito: lista de
+ * exceção que só cresce vira allowlist (§5 2026-08-02), e aqui não havia o que excetuar.
  */
 import { describe, expect, it, vi } from 'vitest';
 import { render } from '@testing-library/react';
@@ -58,7 +64,7 @@ describe('KpiCard — guarda do default (os 40 consumidores)', () => {
   it.each(['default', 'success', 'warning', 'danger', 'info'] as const)(
     'tone=%s sobrevive sem `variant` — o eixo semântico não foi remapeado',
     (tone) => {
-      const { container } = render(<KpiCard label="Saldo previsto" value="R$ 0,00" tone={tone} />);
+      const { container } = render(<KpiCard label="Saldo previsto" value="0,00" tone={tone} />);
       const el = card(container);
       expect(el.getAttribute('data-tone')).toBe(tone);
       expect(el.getAttribute('data-variant')).toBeNull();
@@ -80,7 +86,7 @@ describe('KpiCard — guarda do default (os 40 consumidores)', () => {
         icon="wallet"
         tone="success"
         label="Saldo previsto"
-        value="R$ 1.234,00"
+        value="1.234,00"
         description="Final do período"
         onClick={() => {}}
       />,
@@ -206,7 +212,7 @@ describe('KpiCard — variant="filter" (o tile do protótipo)', () => {
       <KpiCard
         variant="filter"
         label="Recebido"
-        value="R$ 900"
+        value="900,00"
         description="12 baixas"
         delta={{ value: 3, label: 'vs ontem' }}
       />,
@@ -218,7 +224,7 @@ describe('KpiCard — variant="filter" (o tile do protótipo)', () => {
 
   it('a regra do danger (valor carrega o tom) vale sob filter também', () => {
     const { container } = render(
-      <KpiCard variant="filter" tone="danger" label="Vencido" value="R$ 50" />,
+      <KpiCard variant="filter" tone="danger" label="Vencido" value="50,00" />,
     );
     const valor = container.querySelector('.tabular-nums') as HTMLElement;
     expect(valor.className.split(/\s+/)).toContain('text-destructive');
