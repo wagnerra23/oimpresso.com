@@ -655,6 +655,30 @@ jobs:
       - name: importar-bundle morde (acharBundleRoot + delete-before-verify · CLI de fora, hermetico)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design/importar-bundle.test.mjs
+      # Espinha de leitura de charter: `_lib-charter.mjs` e a fonte unica de read/frontmatter/walk/
+      # SKIP_DIRS pros 3 scripts que a importam (ancora, detectar-telas, design-diff-lote — contado
+      # em 2026-09-13 com `git grep -lF "_lib-charter" origin/main` filtrado por import de fato; o
+      # `importar-bundle.mjs` aparece no grep mas so MENCIONA num comentario, §5 2026-08-10). Era a
+      # lib de maior alcance da cadeia sem prova nenhuma: sem .test.mjs e sem --selftest.
+      # Trava o que os call-sites exigem, nao o que as funcoes parecem fazer: `read` distinguindo
+      # AUSENTE (null) de VAZIO ('') — o fail-open que o ancora.mjs:647 documenta; `frontmatter(null)`
+      # virando {} em vez de lancar (os call-sites sao `frontmatter(await read(cf))`, sem guarda no
+      # meio); o parser NAO desaspando (ancora.mjs:68 — quem desaspa e o consumidor, e se a lib
+      # passasse a fazer isso a dupla desasparia 2x calada); e `walk` nao vazando entre chamadas
+      # CONCORRENTES, que e o padrao real `Promise.all(raizes.map(walk))` dos dois consumidores.
+      # Mutantes mortos antes de wirar (2026-09-13, 8 de 8 · controle restaurado volta exit 0):
+      # catch do `read` devolvendo '' -> 2 FAIL · frontmatter desaspando -> 1 · regex com flag `m`
+      # -> 1 · lendo chave indentada -> 1 · default `out=[]` virando array de modulo -> 4 ·
+      # SKIP_DIRS perdendo `_BACKUP-NAO-USAR` (a divergencia que criou a lib) -> 3 · skip so em
+      # diretorio -> 1 · e 1 prova retirada do proprio teste -> PISO morde (35 < 36).
+      # Esta lane e NAO o design-memory-gate porque la `_lib-charter.mjs` nem esta no `paths:`
+      # (medido: nenhum dos 3 consumidores esta) e o gatilho e `types: [opened, reopened,
+      # ready_for_review]` — mexer na lib nao dispararia o teste dela, e correcao em commit
+      # posterior nunca mostraria verde (§5 2026-08-02, gate mudo com cara de cobertura).
+      # Hermetico: fixtures no tmpdir do Node, sem deps/rede/DB.
+      - name: _lib-charter morde (read/frontmatter/walk/SKIP_DIRS · espinha dos 3 consumidores)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/design/_lib-charter.test.mjs
       - name: ds-push orquestrador morde (dry-run VALOR:0 + determinismo · loop diff-first)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/ds-push.test.mjs
