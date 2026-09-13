@@ -30,8 +30,16 @@ import { basename, join, resolve, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
 
-const HERE = dirname(fileURLToPath(import.meta.url)); // prototipo-ui/
+const HERE = dirname(fileURLToPath(import.meta.url)); // scripts/design/ (onde ESTE script mora)
 const ROOT = resolve(HERE, '../..');                     // repo root
+// O ALVO do --all e' o espelho do prototipo, NAO a pasta do script. Ate 2026-09-13 o walk
+// usava HERE: quando a maquina morava em prototipo-ui/ as duas coisas coincidiam, e a
+// migracao pra scripts/design/ (#7224) separou-as em silencio — o relatorio passou a varrer
+// 0 arquivo e a imprimir "-- limpo", que e' verde no vacuo (§5 2026-07-29). Medido no dia:
+// scripts/design/ = 0 alvos · prototipo-ui/ = 123. Provado pelo T7 do ds-guard.test.mjs.
+// NAO apontar para resources/css/** — medido e reprovado (§5 2026-09-04: 17,5% de FP, e o
+// gate reprovaria a copia de bundle que o Tier 0 MANDA fazer).
+const PROTO_UI = join(ROOT, 'prototipo-ui');
 const HOST_HTML = 'oimpresso.com.html';               // o unico .html com React permitido (§8)
 
 const log = (...a) => console.log(...a);
@@ -68,7 +76,7 @@ async function gate(cssFiles, htmlFiles) {
   return fail;
 }
 
-// varre prototipo-ui/ (sem _arquivo / _BACKUP) por *-page.css e *.html (relatorio --all)
+// varre PROTO_UI (sem _arquivo / _BACKUP) por *-page.css e *.html (relatorio --all)
 function walkProto() {
   const css = [], html = [];
   const skip = new Set(['_arquivo', '_BACKUP-NAO-USAR', 'node_modules', '.git']);
@@ -81,7 +89,7 @@ function walkProto() {
       else if (/-page\.css$/.test(name)) css.push(full);
       else if (/\.html$/.test(name)) html.push(full);
     }
-  })(HERE);
+  })(PROTO_UI);
   return { css, html };
 }
 
@@ -90,7 +98,7 @@ const argv = process.argv.slice(2).filter((a) => a !== '--report');
 if (argv[0] === '--all') {
   // RELATORIO de divida (nao bloqueia) — §8: arvore-inteira = relatorio, nao gate
   const { css, html } = walkProto();
-  log('# DS-GUARD --all (relatorio de divida · NAO bloqueia) · ' + relative(ROOT, HERE) + '/');
+  log('# DS-GUARD --all (relatorio de divida · NAO bloqueia) · ' + relative(ROOT, PROTO_UI) + '/');
   const fail = await gate(css, html);
   log(fail ? ('-- divida: ' + fail + ' arquivo(s) com anti-padrao (migracao DS pendente)') : '-- limpo');
   process.exit(0);

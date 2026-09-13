@@ -98,6 +98,15 @@ on:
       - 'scripts/governance/cowork-mirror-freshness.test.mjs'
       - 'scripts/design-sync/alvo.mjs'
       - 'scripts/design-sync/recibos-ci.mjs'
+      # ds-guard: o arquivo SOB TESTE precisa estar no gatilho, senao mexer no guard nao
+      # dispara o guard (§5 2026-08-02 · "gate mudo com cara de cobertura"). Ele JA rodava
+      # nesta lane em 2 steps, mas saiu do gatilho sem ninguem ver: antes do #7224 ele
+      # morava em prototipo-ui/ e era coberto por 'prototipo-ui/**'; a migracao pra
+      # scripts/design/ tirou-o de la e nenhuma linha o repos. Medido em 2026-09-13 com
+      # controle positivo (a mesma sonda acha render-proto-baseline e cowork-pele-paralela,
+      # que estao listados): 0 de 2 cobertos.
+      - 'scripts/design/ds-guard.mjs'
+      - 'scripts/design/ds-guard.test.mjs'
   workflow_dispatch:
 
 concurrency:
@@ -269,6 +278,18 @@ jobs:
           echo "$CHANGED"
           echo "---"
           node scripts/design/ds-guard.mjs $CHANGED
+
+      # ds-guard bite-test: prova que o §8 MORDE e LIBERA certo, com par bom/ruim por regra
+      # (paleta >=4 · limiar 3x4 · tela na raiz L-21 · excecao do host · ilegivel · --report
+      # ADR 0388 · denominador do --all). Roda ANTES dos 2 steps que usam o ds-guard, pelo
+      # mesmo motivo do pele-paralela acima: gate cujo selftest roda depois nao protege a
+      # rodada em que ele quebrou. Ate 2026-09-13 o ds-guard NAO tinha teste nem --selftest,
+      # e o T7 pegou na 1a execucao um defeito real — o --all varria a pasta do proprio
+      # script (0 alvos) em vez do espelho (123) e imprimia "-- limpo" (§5 2026-07-29).
+      - name: ds-guard bite-test (o §8 morde e libera certo · par bom/ruim)
+        if: always()
+        continue-on-error: true
+        run: node scripts/design/ds-guard.test.mjs
 
       # DS-GUARD --all: relatorio de divida da arvore (NAO derruba o job por design · §8).
       # Sempre roda, da visibilidade da divida acumulada (paleta inventada / tela na raiz).
