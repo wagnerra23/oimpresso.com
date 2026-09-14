@@ -19,7 +19,7 @@
       },
       "status": "fechado",
       "acao": "FECHADO em 2026-09-04 (item A5, PR 1/3). Dos 4 cards do protótipo: \"Envio de documentos\" foi CONSTRUÍDO com leitura real das flags de deploy (UC-FCFG-05, com controle negativo) e a linha \"Contador\" DECLARA a ausência de campo em vez de repetir o mock `contador@example.com.br`; regime e tributação continuam no card \"Identificação fiscal & numeração\", que passou a viver DENTRO da região ancorada — a aba `cert` virou um único `data-contract=\"fiscal-config-cert-regime\"`. Faltava só reancorar: nenhum card foi movido de aba.",
-      "_acionavel": true
+      "_acionavel": false
     }
   ],
   "mapping": {
