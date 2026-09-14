@@ -6,7 +6,7 @@ type: governance-spec
 authority: canonical
 lifecycle: ativo
 maintained_by: wagner
-last_updated: 2026-08-14
+last_updated: 2026-09-14
 related: [automation-registry-mcp, 0076, 0079, 0080]
 pii: false
 ---
@@ -26,7 +26,7 @@ Disparados a cada início de sessão Claude Code. Tipo ADR 0234: `hook_sessionst
 | 1 | `brief-fetch-curl` | Força chamada ao MCP `brief-fetch` via HTTP JSON-RPC autenticado (fetch nativo do node — nome `curl` é histórico; timeout 10s + redação de token). Garante estado consolidado (~3k tokens) no contexto mesmo em worktrees filhos onde o MCP não conecta diretamente. Fallback gracioso para handoff index em 3 cenários de falha. Portado .ps1→.mjs cross-platform (US-GOV-052). | `.claude/hooks/brief-fetch-curl.mjs` |
 | 2 | `handoff-inline` | Imprime últimas 40 linhas de `memory/08-handoff.md` (se existir) + lembrete sobre tools MCP para estado de tasks/cycles (CURRENT.md/TASKS.md removidos — ADR 0070). Portado de comando PowerShell inline→.mjs cross-platform (US-GOV-052). | `.claude/hooks/handoff-inline.mjs` |
 | 3 | `check-skills-fresh` | Detecta skills novas ou modificadas em `.claude/skills/` desde o último start deste dev. Avisa para rodar `/sync-skills` se houver drift. Estado salvo em `.claude/.last-skills-sync` (gitignored). | `.claude/hooks/check-skills-fresh.mjs` |
-| 9 | `ds-preview-materialize` | Se o cache de preview do DS (`prototipo-ui/cowork/Wagner/_ds/`, gitignored) estiver ausente/incompleto vs os `<link>/<script>` do shell do espelho, invoca o dono `cowork-mirror-freshness.mjs --preview-ds` (local, ~0,35s, fonte = `prototipo-ui/design-system/`). Silêncio quando completo; nunca bloqueia. Escape `OIMPRESSO_DS_PREVIEW_OFF=1`. Origem [W] 2026-09-02 ("`_ds/` vazio não pode ser assim"). Ordem real no `settings.json` = 9º; a tabela acima lista só os 4 primeiros históricos — o censo vivo é `.claude/hooks/_HOOKS-INDEX.md` | `.claude/hooks/ds-preview-materialize.mjs` |
+| 9 | `ds-preview-materialize` | Avisa quando um shell legado ainda referencia `_ds/`, pedindo que a referência seja corrigida para `../../design-system/`. **Não escreve**: até o #7224 (2026-09-11) ele repunha o cache de preview invocando `cowork-mirror-freshness.mjs --preview-ds`; naquele PR o shell passou a ler `prototipo-ui/design-system/` direto, o `--preview-ds` foi aposentado e materializar voltaria a criar a duplicata física que o #7224 removeu. Shell sem `_ds/` = saída silenciosa; nunca bloqueia. Escape `OIMPRESSO_DS_PREVIEW_OFF=1`. Origem [W] 2026-09-02 ("`_ds/` vazio não pode ser assim"). Ordem real no `settings.json` = 9º; a tabela acima lista só os 4 primeiros históricos — o censo vivo é `.claude/hooks/_HOOKS-INDEX.md` | `.claude/hooks/ds-preview-materialize.mjs` |
 | 4 | `tier-a-banner` | Exibe banner lembrando as Skills Tier A (nucleo) + auto-trigger (ADR 0225) — de-numerado no porte (o contador vive no frontmatter/CLAUDE.md, §5 2026-07-17). O gerador `skills-index-generate.mjs` asserta a presença de cada slug de núcleo neste arquivo. Portado .ps1→.mjs cross-platform (US-GOV-052). | `.claude/hooks/tier-a-banner.mjs` |
 
 ---
