@@ -68,22 +68,14 @@
     },
     "full_suite_pass_rate": {
       "status": "measured",
-      "value": 291,
+      "value": 290,
       "unit": "arquivos-que-falham (interseção ≥2 runs · ADR 0279)",
       "direction": "down",
       "target": 0,
       "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
       "detail": {
-        "floor_files_hash": "a50d6f101e582f14",
+        "floor_files_hash": "1c784053e1548bf9",
         "runs": [
-          {
-            "sha": "10b57ca0",
-            "ts": "20260911-020001",
-            "failed": 465,
-            "errors": 397,
-            "skipped": 2250,
-            "all_shards_measured": true
-          },
           {
             "sha": "d86c977a",
             "ts": "20260912-020001",
@@ -93,15 +85,23 @@
             "all_shards_measured": true
           },
           {
-            "sha": null,
+            "sha": "26e372a8",
             "ts": "20260913-020001",
             "failed": 463,
             "errors": 369,
             "skipped": 2257,
             "all_shards_measured": true
+          },
+          {
+            "sha": null,
+            "ts": "20260914-020001",
+            "failed": 473,
+            "errors": 368,
+            "skipped": 2251,
+            "all_shards_measured": true
           }
         ],
-        "computed_at": "20260913-020001",
+        "computed_at": "20260914-020001",
         "intersection_of": 3
       },
       "stream": "FV"
@@ -249,16 +249,16 @@
     },
     "backfill_error_rate": {
       "status": "measured",
-      "value": 1.82,
+      "value": 1.98,
       "unit": "% (MAX error_rate das entries aprovadas — conservador: 1 lote ruim estoura <2%)",
       "direction": "down",
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 67,
-        "max_error_rate_pct": 1.82,
-        "last_pr": 6932,
-        "last_lote": "distill-governance-briefing-2026-09-06"
+        "entries_aprovadas": 68,
+        "max_error_rate_pct": 1.98,
+        "last_pr": 7224,
+        "last_lote": "gt-g5-lote-7224"
       },
       "stream": "GT"
     }
