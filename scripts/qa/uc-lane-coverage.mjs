@@ -302,8 +302,16 @@ function main() {
 
   const testesPorNome = indiceDeTestes();
   const manifesto = manifestoG7();
+  // `prototipo-ui/cowork/<dono>/` é ESPELHO da conta de design: um `.casos.md` ali é PROPOSTA
+  // daquela conta, não contrato de tela DESTE repo. Cobrar lane de CI pro teste que ele cita
+  // conta dívida de terceiro como nossa — e o dono do arquivo não pode consertá-la daqui.
+  // É a mesma doutrina do filtro `foraDoInbox` (2026-08-24, citado no §salto_legitimo abaixo),
+  // que valia enquanto o inbox morava em `design-docs/cowork-inbox/`. A ADR 0398 devolveu o
+  // inbox ao endereço do Cowork (`cowork/Wagner/cowork-inbox/`) e o filtro seguiu o endereço.
   const arquivosCasos = execFileSync('git', ['ls-files', '--', '*.casos.md'], { cwd: ROOT, encoding: 'utf8' })
-    .split('\n').map((s) => s.trim()).filter(Boolean).filter((p) => existsSync(join(ROOT, p))).sort();
+    .split('\n').map((s) => s.trim()).filter(Boolean)
+    .filter((p) => !p.split('\\').join('/').startsWith('prototipo-ui/'))
+    .filter((p) => existsSync(join(ROOT, p))).sort();
 
   const linhas = [];
   for (const f of arquivosCasos) {

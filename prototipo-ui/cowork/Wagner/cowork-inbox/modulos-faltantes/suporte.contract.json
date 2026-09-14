@@ -1,0 +1,131 @@
+{
+  "_nota": "Contrato de Tela (ADR 0286) do Modo Suporte (ADR 0305/0308/0309). Três vistas: empresas · visão · log.",
+  "tela": "Suporte/{Empresas,Visao,Log}",
+  "fonte": "prototipo-ui/cowork/modulos-faltantes/suporte-page.jsx",
+  "alvo": [
+    "resources/js/Pages/Suporte/Empresas.tsx",
+    "resources/js/Pages/Suporte/Visao.tsx",
+    "resources/js/Pages/Suporte/Log.tsx (novo)"
+  ],
+  "secoes": [
+    {
+      "id": "cabecalho",
+      "copy": [
+        "Suporte · empresas",
+        "Empresas-cliente que você pode atender — a empresa operadora não aparece.",
+        "Buscar empresa…",
+        "Log de acessos"
+      ]
+    },
+    {
+      "id": "aviso-escopo",
+      "copy": [
+        "Somente leitura",
+        "escolher quem atender",
+        "EnsureSupportAccess",
+        "biz=1",
+        "bloqueada por desenho"
+      ],
+      "estados": [
+        "sempre"
+      ]
+    },
+    {
+      "id": "lista",
+      "copy": [
+        "Empresa",
+        "Plano",
+        "Cliente desde",
+        "ID",
+        "Entrar (suporte)"
+      ],
+      "estados": [
+        "normal",
+        "busca-sem-resultado",
+        "vazio"
+      ]
+    },
+    {
+      "id": "faixa-modo-suporte",
+      "copy": [
+        "Modo Suporte.",
+        "A empresa operadora não aparece.",
+        "Acessar como",
+        "Voltar para mim",
+        "Cada acesso é auditado."
+      ],
+      "estados": [
+        "sempre"
+      ]
+    },
+    {
+      "id": "contagens",
+      "copy": [
+        "Usuários",
+        "Contatos",
+        "Produtos",
+        "Vendas",
+        "Compras"
+      ]
+    },
+    {
+      "id": "usuarios",
+      "copy": [
+        "Todos os usuários",
+        "Username",
+        "Nome",
+        "Papel",
+        "E-mail",
+        "Acessar como",
+        "indisponível",
+        "Buscar usuário…"
+      ],
+      "estados": [
+        "normal",
+        "busca-sem-resultado"
+      ]
+    },
+    {
+      "id": "voltar-para-mim",
+      "copy": [
+        "Você está operando como",
+        "Tudo o que fizer sai no nome dele.",
+        "Voltar para mim"
+      ],
+      "estados": [
+        "impersonando",
+        "normal"
+      ]
+    },
+    {
+      "id": "log",
+      "copy": [
+        "Log de acessos de suporte",
+        "support_access_logs · append-only",
+        "Quando",
+        "Agente",
+        "Acessou como",
+        "Empresa",
+        "Motivo declarado",
+        "Duração",
+        "só leitura",
+        "incidente P0"
+      ]
+    }
+  ],
+  "estados_tela": [
+    "dados",
+    "vazio (sem concessão)",
+    "carregando",
+    "erro",
+    "sem-permissao (não é agente)"
+  ],
+  "proibicoes": [
+    "Mostrar a empresa operadora (biz=1) em qualquer vista.",
+    "Qualquer escrita fora da porta acessar-como (a tela é read-only; ADR 0305).",
+    "Escopar leitura por sessão — sempre business_id explícito (o switch de sessão foi descartado por risco de vazamento).",
+    "Tratar agente de suporte como superadmin (os global scopes confinam ele à empresa; ADR 0309).",
+    "Editar, apagar ou corrigir linha de support_access_logs — append-only, incidente P0 (ADR 0084)."
+  ],
+  "casos_ligados": "resources/js/Pages/Suporte/{Empresas,Visao}.casos.md"
+}

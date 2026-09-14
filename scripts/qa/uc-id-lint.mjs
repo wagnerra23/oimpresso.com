@@ -162,7 +162,18 @@ function arquivosDoRepo() {
   // git ls-files (não walk do fs): o universo é o que está VERSIONADO, e quem responde isso
   // é o git — não uma travessia de diretório que pode pegar arquivo ignorado ou de worktree.
   const raw = execFileSync('git', ['ls-files', '--', '*.casos.md'], { encoding: 'utf8' });
-  return raw.split('\n').map((s) => s.trim()).filter(Boolean).filter(existsSync);
+  return raw.split('\n').map((s) => s.trim()).filter(Boolean).filter(existsSync).filter(foraDoEspelho);
+}
+
+// `prototipo-ui/cowork/<dono>/` é ESPELHO da conta de design — um `.casos.md` ali é PROPOSTA
+// daquela conta, não contrato de tela DESTE repo. Medir formato de UC-id nele conta dívida de
+// terceiro como nossa, e o autor do arquivo não pode consertá-la daqui.
+// A doutrina não é nova: existiu como filtro `foraDoInbox` (2026-08-24) enquanto o inbox morava
+// em `design-docs/cowork-inbox/` — está registrada na prosa do `uc-lane-coverage.mjs`. A ADR 0398
+// trouxe o inbox de volta pro endereço do Cowork e o filtro precisava do endereço novo.
+// Corpus REAL de contrato: `resources/js/Pages/**` e `Modules/**/Resources/js/Pages/**`.
+export function foraDoEspelho(p) {
+  return !String(p).split('\\').join('/').startsWith('prototipo-ui/');
 }
 
 function carregaBaseline(p) {

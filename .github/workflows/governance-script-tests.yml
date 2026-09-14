@@ -673,6 +673,13 @@ jobs:
       # entao seguem hermeticos no ubuntu. Paridade com a PS REAL medida a parte no Windows (3
       # sweeps de verdade num mkdtemp, sobrevivente x veredito): 40/40. Mutantes mortos, 11/11:
       # `.md` em BUILD_EXTS -> 4 FAIL · guarda do .gitignore removida -> 2 FAIL · NOISE_DIRS perde
+      #
+      # ⚠ ERRATA 2026-09-13, no MESMO dia: o mutante `.md` em BUILD_EXTS virou o COMPORTAMENTO.
+      # Decisao [W] — o espelho recebe o pacote Cowork com a arvore dele, `.md` incluido (medido:
+      # 337 de 816 arquivos do pacote eram descartados). A const virou ESPELHO_EXTS e os 4 asserts
+      # que mordiam com o veredito oposto foram invertidos: agora sao o BITE do conserto, e
+      # restaurar o BUILD-ONLY os deixa vermelhos (provado por mutacao no PR). O registro acima
+      # fica como fato datado do que se mediu naquela leva — nao como politica vigente.
       # `uploads` -> 5 FAIL · ruido-dir case-sensitive -> 1 FAIL · ruido-dir so na raiz -> 1 FAIL ·
       # residuo sem flag `i` -> 1 FAIL · extensao sem ToLower -> 1 FAIL · extensao do PRIMEIRO ponto
       # -> 1 FAIL · precedencia residuo-antes-de-junk -> 1 FAIL · guard de entrada invalida removido
@@ -683,6 +690,16 @@ jobs:
       - name: importar-bundle morde (acharBundleRoot + delete-before-verify + classificarParaSync · CLI de fora, hermetico)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design/importar-bundle.test.mjs
+      # Topologia do espelho (cowork-ssot-guard): a R3 mudou de significado em 2026-09-13 por
+      # decisao [W] — `.md` passou a ser aceito sob `cowork/<dono>/` com a arvore do Cowork.
+      # O guard e required via design-memory-gate.yml e nao tinha teste nenhum. Roda pelo CLI num
+      # tmpdir (o script EXECUTA no import e chama process.exit — importar a funcao mataria o
+      # processo do teste, LC-15). Mutante morto antes de wirar: R3 antiga restaurada -> 3 FAIL;
+      # controle restaurado volta exit 0. Os CONTROLES cobrem o que NAO afrouxou: `.md` sem dono
+      # segue violando, dono nao declarado segue R2, e a R4 segue mordendo duplicata de bytes.
+      - name: cowork-ssot-guard morde (R3 pos-decisao + controles R2/R4 · CLI de fora, hermetico)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/cowork-ssot-guard.test.mjs
       # Espinha de leitura de charter: `_lib-charter.mjs` e a fonte unica de read/frontmatter/walk/
       # SKIP_DIRS pros 3 scripts que a importam (ancora, detectar-telas, design-diff-lote — contado
       # em 2026-09-13 com `git grep -lF "_lib-charter" origin/main` filtrado por import de fato; o

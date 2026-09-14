@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **402** arquivos · **387** números únicos · máx **0397**
-- **ADRs ATIVOS (lifecycle ativo): 361** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 358 · superseded 18 · deprecated 13 · proposto 11 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 361 · arquivado 23 · substituido 18
+- **403** arquivos · **388** números únicos · máx **0398**
+- **ADRs ATIVOS (lifecycle ativo): 362** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 359 · superseded 18 · deprecated 13 · proposto 11 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 362 · arquivado 23 · substituido 18
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -35,7 +35,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (402)
+## Todas as ADRs (403)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -440,3 +440,4 @@ _(nenhuma)_
 | 0395 | proposto | ativo | decision | Emenda à 0314 — `PageHeader · ratchet` vira required: 2 telas novas adotaram o h |
 | 0396 | superseded | substituido | decision | Protótipo tem uma fonte ativa, transporte build-only e caminhos literais |
 | 0397 | aceito | ativo | decision | Protótipo mínimo por dono, máquinas fora do artefato e Design System direto |
+| 0398 | aceito | ativo | decision | O espelho Cowork recebe a árvore da conta, documentação incluída (emenda à 0397  |

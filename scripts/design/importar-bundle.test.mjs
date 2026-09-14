@@ -48,7 +48,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, existsSync, readFileSync } from 
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { acharBundleRoot, classificarParaSync, BUILD_EXTS, NOISE_DIRS, RESIDUO_PATTERN } from './importar-bundle.mjs';
+import { acharBundleRoot, classificarParaSync, ESPELHO_EXTS, NOISE_DIRS, RESIDUO_PATTERN } from './importar-bundle.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const SCRIPT = join(HERE, 'importar-bundle.mjs');
@@ -201,25 +201,29 @@ const cls = (p) => classificarParaSync(p).acao;
 // C1 — BUILD-ONLY. As 9 extensões sobrevivem; qualquer outra é junk. Varre a lista inteira em vez
 // de amostrar uma: allowlist testada por amostra é allowlist meio testada.
 {
-  const vivas = BUILD_EXTS.filter((e) => cls(`tela/Comp${e}`) === 'copia');
-  ok(vivas.length === BUILD_EXTS.length, `SOLTA: as ${BUILD_EXTS.length} extensões de build sobrevivem (${vivas.length}/${BUILD_EXTS.length})`);
+  const vivas = ESPELHO_EXTS.filter((e) => cls(`tela/Comp${e}`) === 'copia');
+  ok(vivas.length === ESPELHO_EXTS.length, `SOLTA: as ${ESPELHO_EXTS.length} extensões de build sobrevivem (${vivas.length}/${ESPELHO_EXTS.length})`);
 }
 // Extensão é comparada em minúsculas — a PS faz `.Extension.ToLower()`, então `Comp.JSX` sobrevive.
 // Sem isso o sync apagaria arquivo de design legítimo só por causa do caixa do nome.
 ok(cls('tela/Comp.JSX') === 'copia', 'MORDE: extensão MAIÚSCULA sobrevive — paridade com .Extension.ToLower() da PS');
 
-// C2 — `.md` é junk, e isso É LEI: o `cowork-ssot-guard.mjs` reprova documentação em cowork/ fora
-// do canal de handoff, e o filtro de landing exclui `.md` (ADR-proposta 2026-06-23 §77).
-ok(cls('README.md') === 'junk', 'MORDE: .md é junk — cowork/ é BUILD-ONLY (guard reprova doc em cowork/)');
-ok(cls('tela/notas.md') === 'junk', 'MORDE: .md aninhado também é junk (o sweep é recursivo)');
+// C2 — `.md` SOBREVIVE (decisão [W] 2026-09-13; emenda à ADR 0397 D3). Era o inverso até aqui, e
+// o inverso descartava 337 dos 816 arquivos do pacote de 2026-09-11 — a camada inteira de
+// documentação, incluindo o `cowork-inbox/` por onde o Cowork manda ordem de serviço. `cowork/
+// <dono>/` é ESPELHO da conta: espelho que muda a forma do original não é espelho.
+// Estes dois asserts eram MORDE com o veredito oposto; viraram o BITE do conserto. Se alguém
+// restaurar o BUILD-ONLY, eles ficam vermelhos e o retrocesso se anuncia em vez de passar calado.
+ok(cls('README.md') === 'copia', 'MORDE: .md sobrevive — cowork/<dono>/ espelha a conta, não um recorte dela');
+ok(cls('tela/notas.md') === 'copia', 'MORDE: .md aninhado sobrevive (a forma interna é a do Cowork)');
 
 // C3 — `.gitignore` sobrevive. É o ÚNICO não-build poupado, e a guarda é pelo NOME porque
 // `[IO.Path]::GetExtension('.gitignore')` devolve `.gitignore`, não `''` (medido 2026-09-13) —
-// uma guarda por extensão o mataria. Se alguém "simplificar" jogando-o em BUILD_EXTS, o robocopy
+// uma guarda por extensão o mataria. Se alguém "simplificar" jogando-o em ESPELHO_EXTS, o robocopy
 // passaria a COPIÁ-LO do bundle, o que é outro comportamento.
 ok(cls('.gitignore') === 'copia', 'MORDE: .gitignore sobrevive ao sweep (guarda pelo NOME, não por extensão)');
 ok(cls('sub/dir/.gitignore') === 'copia', 'SOLTA: .gitignore aninhado também sobrevive');
-ok(!BUILD_EXTS.includes('.gitignore'), 'MORDE: .gitignore NÃO está em BUILD_EXTS (não vem do bundle; é só poupado)');
+ok(!ESPELHO_EXTS.includes('.gitignore'), 'MORDE: .gitignore NÃO está em ESPELHO_EXTS (não vem do bundle; é só poupado)');
 
 // C4 — dupe `?v=hash`. A extração sanitiza `?` → `_`, então `app.jsx?v=abc` chega como
 // `app.jsx_v=abc` e a extensão fica QUEBRADA (`.jsx_v=abc`), caindo no junk. É o mecanismo que
@@ -265,11 +269,12 @@ ok(cls('GAPS_v2.html') === 'copia', 'PINA (defeito reportado): GAPS_v2.html NÃO
 ok(cls('GAPS_vd.html') === 'residuo', 'PINA: o que o padrão efetivo pega é GAPS_vd (letra d), que ninguém nomeia assim');
 ok(!RESIDUO_PATTERN.includes('\\'), 'MORDE: RESIDUO_PATTERN é backslash-free — a ausência de barra É a evidência do colapso');
 
-// C7 — ⚠ DEFEITO REPORTADO nº 2. O guard PERMITE `.md` em `cowork/<dono>/handoffs/` (regra R3 tem
-// essa exceção), mas o sweep de junk NÃO poupa: os 3 `.md` reais em `cowork/Wagner/handoffs/` de
-// origin/main seriam apagados se o sync rodasse. Pinado, não consertado — poupá-los muda o que o
-// sync apaga, e mexer nisso sem teste antes é o risco que este PR existe pra reduzir.
-ok(cls('handoffs/erros-dedup.md') === 'junk', 'PINA (defeito reportado): handoffs/*.md é apagado, embora o guard R3 o PERMITA');
+// C7 — ✅ DEFEITO REPORTADO nº 2, CONSERTADO em 2026-09-13. O sweep apagava os `.md` que a própria
+// R3 permitia em `cowork/<dono>/handoffs/` — os 3 `erros-*.md` de origin/main morreriam no
+// primeiro sync. O assert era `=== 'junk'` e PINAVA o defeito; agora é o BITE do conserto.
+ok(cls('handoffs/erros-dedup.md') === 'copia', 'MORDE: handoffs/*.md sobrevive ao sweep (defeito nº 2 consertado)');
+// e o caso que motivou tudo: a ordem de serviço do Cowork chega inteira, com a árvore dela.
+ok(cls('cowork-inbox/ancora/playbook/00-INDICE.md') === 'copia', 'MORDE: o cowork-inbox/ desembarca com a forma do Cowork');
 
 // C8 — CONTROLE NEGATIVO. Sem ele, uma função que devolvesse 'junk' pra tudo passaria em C2/C4.
 ok(cls('tela/Index.jsx') === 'copia', 'CONTROLE NEGATIVO: .jsx comum de design NÃO é tocado');
@@ -281,7 +286,11 @@ ok(classificarParaSync('tela/Index.jsx').motivo.includes('.jsx'), 'SOLTA: o moti
 // trocar a ordem troca o DIAGNÓSTICO de quem apagou o arquivo.
 ok(cls('uploads/README.md') === 'ruido-dir', 'MORDE: ruído-dir vence junk (o dir morre antes do sweep de extensão)');
 ok(cls('uploads/FORCE_x.html') === 'ruido-dir', 'MORDE: ruído-dir vence resíduo');
-ok(cls('Tribunal/notas.md') === 'junk', 'MORDE: junk vence resíduo (o sweep de extensão roda primeiro)');
+// O caso deste assert era `Tribunal/notas.md`; com `.md` aceito (C2) ele deixou de ser junk e
+// passou a cair no sweep de resíduo — o que testaria a precedência ao contrário. Trocado por uma
+// extensão que SEGUE fora do espelho, pra a precedência continuar sendo o que se mede aqui.
+ok(cls('Tribunal/notas.txt') === 'junk', 'MORDE: junk vence resíduo (o sweep de extensão roda primeiro)');
+ok(cls('Tribunal/notas.md') === 'residuo', 'MORDE: `.md` aceito não escapa do resíduo — só troca de sweep');
 
 // C10 — entrada inválida não vira veredito de arquivo. A PS itera arquivos reais e nunca passa
 // por aqui; o guard existe pra não devolver 'copia' silencioso pra lixo de chamada.
@@ -294,7 +303,7 @@ for (const ruim of ['', '   ', null, undefined, 42, {}]) {
 // heredoc (é local à função), mas dá pra provar que o fonte NÃO tem mais as listas literais.
 {
   const src = readFileSync(join(HERE, 'importar-bundle.mjs'), 'utf8');
-  ok(!/\$keep=@\('\.jsx'/.test(src), 'MORDE: $keep não é mais hardcodado no heredoc — vem de BUILD_EXTS');
+  ok(!/\$keep=@\('\.jsx'/.test(src), 'MORDE: $keep não é mais hardcodado no heredoc — vem de ESPELHO_EXTS');
   ok(!/\$noise = @\('_arquivo'/.test(src), 'MORDE: $noise não é mais hardcodado no heredoc — vem de NOISE_DIRS');
   ok(/\$resPat='\$\{RESIDUO_PATTERN\}'/.test(src), 'MORDE: $resPat vem de RESIDUO_PATTERN (uma verdade só, JS e PS)');
 }

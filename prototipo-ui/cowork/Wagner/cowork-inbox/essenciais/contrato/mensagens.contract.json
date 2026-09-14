@@ -1,0 +1,24 @@
+{
+  "schema": "contrato-de-tela/1",
+  "modulo": "Essentials",
+  "tela": "Mensagens",
+  "rota": "ess-mensagens",
+  "secoes": [
+    "cabecalho-filtro",
+    "mural",
+    "compositor"
+  ],
+  "copy": {
+    "titulo": "Mensagens",
+    "botao_lido": "Marcar tudo como lido",
+    "enviar": "Enviar",
+    "placeholder": "Escreva uma mensagem"
+  },
+  "estados": [
+    "normal",
+    "nao-lidas",
+    "filtrado",
+    "sem-permissao",
+    "demo"
+  ]
+}

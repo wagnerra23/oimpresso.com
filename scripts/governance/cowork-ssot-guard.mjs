@@ -7,9 +7,25 @@
 //     design-system/            espelho canônico do DS
 //
 // Máquinas ficam em scripts/design/, contratos/alvos em governance/design/, testes em
-// tests/Design/ e documentação em memory/reference/prototipo-ui/. O Git guarda histórico;
-// nenhuma segunda cópia física é aceita. Handoffs são a única documentação admitida dentro
-// do build e vivem exclusivamente em cowork/<dono>/handoffs/.
+// tests/Design/ e documentação CANON em memory/reference/prototipo-ui/. O Git guarda histórico;
+// nenhuma segunda cópia física é aceita.
+//
+// ── R3 · por que o `.md` deixou de ser proibido aqui (decisão [W] 2026-09-13) ──────────────
+// `cowork/<dono>/` é ESPELHO da conta Cowork daquele dono — e espelho que muda a forma do
+// original não é espelho. A redação anterior admitia `.md` só em `handoffs/<nome>.md` (flat),
+// e o efeito medido foi: dos 816 arquivos do pacote Cowork de 2026-09-11, **400 pousavam e 416
+// eram descartados — 337 deles `.md`**, ou seja a camada inteira de documentação do pacote.
+// Pior: o projeto Cowork NÃO TEM `handoffs/` (medido: raiz tem `cowork-inbox/`, `contrato/`,
+// `sync/`, `prototipos/`…), então o destino flat era um formato que só existia deste lado.
+// Consequência prática: o `cowork-inbox/` — o canal por onde o Cowork manda ordem de serviço —
+// chegava pela metade, e o programa de playbooks ficou sem endereço no repo.
+//
+// A regra que sobra é a que protege algo real: `.md` vive DENTRO de um dono (`cowork/<dono>/`),
+// nunca solto em `cowork/`. Forma interna é a do Cowork, não a nossa. O que impede o espelho de
+// virar depósito continua sendo R1 (raiz), R2 (donos) e R4 (zero duplicata de bytes) — e a R4
+// é justamente quem recusa a duplicata que o próprio pacote traz (medido 2026-09-13: 10 pares
+// idênticos entre `cowork-inbox/sidebar/playbook/` e `entrega-sidebar-code/playbook/`).
+// Emenda à ADR 0397 D3 registrada em memory/decisions/.
 //
 // Uso: node scripts/governance/cowork-ssot-guard.mjs [--json]
 import { readdirSync, existsSync, readFileSync } from 'node:fs';
@@ -54,11 +70,18 @@ if (existsSync(coworkAbs)) {
   }
 }
 
-// R3 — build-only, exceto o canal explícito de handoff de cada dono.
+// R3 — `.md` vive DENTRO de um dono; a forma interna é a do Cowork (ver cabeçalho).
+// Não é exportada de propósito: este arquivo EXECUTA no import (walk + process.exit no fim),
+// então `import { violaR3 }` rodaria o guard inteiro e mataria o processo do teste. O bite-test
+// exercita o CLI de fora, com fixture por cwd — é o que prova o pipeline, não o satélite.
+function violaR3(caminhoRelativo) {
+  if (typeof caminhoRelativo !== 'string') return false;
+  const f = caminhoRelativo.split('\\').join('/');
+  if (!f.toLowerCase().endsWith('.md')) return false;
+  return !/^prototipo-ui\/cowork\/(Wagner|Felipe)\/.+\.md$/i.test(f);
+}
 for (const f of walk(COWORK)) {
-  if (f.toLowerCase().endsWith('.md') && !/^prototipo-ui\/cowork\/(Wagner|Felipe)\/handoffs\/[^/]+\.md$/i.test(f)) {
-    errors.push(`R3 documentação fora de cowork/<dono>/handoffs/: ${f}`);
-  }
+  if (violaR3(f)) errors.push(`R3 documentação fora de cowork/<dono>/: ${f}`);
 }
 
 // R4 — zero conteúdo duplicado em disco dentro de prototipo-ui/, inclusive caches ignorados.

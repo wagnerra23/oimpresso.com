@@ -1,0 +1,106 @@
+{
+  "_nota": "Contrato de Tela (ADR 0286) da Comunicação Visual. Trava seções, copy literal e estados. Rodar advisory no contrato-de-tela.yml antes de promover a required.",
+  "tela": "ComunicacaoVisual/Index",
+  "fonte": "prototipo-ui/cowork/modulos-faltantes/comunicacao-visual-page.jsx",
+  "alvo": [
+    "resources/js/Pages/ComunicacaoVisual/Index.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "cabecalho",
+      "copy": [
+        "Comunicação Visual",
+        "Orçamento por m² — calcule na hora, sem abrir o Excel.",
+        "Orçamentos",
+        "Adicionar peça"
+      ]
+    },
+    {
+      "id": "calculadora",
+      "copy": [
+        "Calculadora de m²",
+        "largura × altura × qtd × preço/m² — a mesma conta do servidor",
+        "Material",
+        "Descrição",
+        "Larg. (m)",
+        "Alt. (m)",
+        "Qtd",
+        "R$/m²",
+        "Subtotal",
+        "Preço avulso",
+        "Sem catálogo"
+      ],
+      "estados": [
+        "normal",
+        "sem-catalogo"
+      ]
+    },
+    {
+      "id": "ajustes",
+      "copy": [
+        "Acabamento / instalação / entrega (R$)",
+        "Desconto (R$)"
+      ]
+    },
+    {
+      "id": "total",
+      "copy": [
+        "m² no orçamento",
+        "Subtotal",
+        "Total estimado",
+        "Conferir no servidor",
+        "Conferindo…",
+        "Conferido no servidor",
+        "Salvar orçamento",
+        "Enviar PDF no WhatsApp"
+      ],
+      "estados": [
+        "nao-conferido",
+        "conferido",
+        "salvo"
+      ]
+    },
+    {
+      "id": "pcp",
+      "copy": [
+        "Na fábrica agora",
+        "OrdemProducao · etapa",
+        "Arte",
+        "Impressão",
+        "Acabamento",
+        "Instalação",
+        "vazio"
+      ],
+      "estados": [
+        "normal",
+        "coluna-vazia",
+        "desligado"
+      ]
+    },
+    {
+      "id": "em-breve",
+      "copy": [
+        "Em breve nesta tela",
+        "Materiais",
+        "Apontamentos",
+        "em breve"
+      ]
+    }
+  ],
+  "estados_tela": [
+    "dados",
+    "vazio (sem catálogo de materiais)",
+    "carregando",
+    "erro",
+    "sem-permissao"
+  ],
+  "proibicoes": [
+    "Salvar orçamento sem conferir no servidor — o valor da tela é prévia, não fonte de verdade (OrcamentoCalculator é canônico).",
+    "Auto-refresh por polling no PCP — quando ativar tempo real, é subscription Centrifugo (charter, Tier 0).",
+    "Renderizar business_id no HTML — usar slug/contexto de sessão (ADR 0093).",
+    "Carregar lista grande sem Inertia::defer() (skill inertia-defer-default).",
+    "Cor crua (zinc/amber/hex) — só tokens DS v6; primary roxo.",
+    "Prometer salvar/enviar PDF quando podeCriar é falso."
+  ],
+  "casos_ligados": "resources/js/Pages/ComunicacaoVisual/Index.casos.md"
+}
