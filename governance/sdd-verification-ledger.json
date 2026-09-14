@@ -1940,6 +1940,25 @@
       "evidencia": "memory/sessions/2026-09-13-refutacao-gt-g5-lote-7224-r2.md (rodada aprovada); anteriores: memory/sessions/2026-09-11-refutacao-gt-g5-lote-7224-r1.md",
       "trajetoria": "2 rodadas: 13,63% (r1, 189/1387) → 1,98% (r2, 22/1112)",
       "marcador_absorcao": "n/a — lote não afrouxa baseline nenhum"
+    },
+    {
+      "pr": 7262,
+      "lote_id": "gt-g5-lote-7262",
+      "data": "2026-09-14",
+      "tipo": "anchors",
+      "gerador": "claude-opus-5 (Anthropic) — sessão que autorou o lote (refresh mecânico via gerar-map.mjs --atualizar); após a r2 refutar 1 item, o gap stale do fiscal-config foi corrigido na raiz no commit 3566909fa8",
+      "refutador": "claude-opus-5 (Anthropic) — subagente do workflow .claude/workflows/refutador-gt-g5.js em contexto próprio, zero contexto do gerador e das rodadas anteriores (instruído a não abrir as evidências prévias); uma instância NOVA por rodada, r1–r2",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 329,
+      "erros_confirmados": 1,
+      "error_rate_pct": 0.3,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "veredito": "aprovado",
+      "evidencia": "memory/sessions/2026-09-14-refutacao-gt-g5-lote-7262-r2.md (rodada aprovada); anteriores: memory/sessions/2026-09-14-refutacao-gt-g5-lote-7262-r1.md",
+      "trajetoria": "2 rodadas: 0,00% (r1, 0/7375) → 0,30% (r2, 1/329)",
+      "marcador_absorcao": "n/a — lote não afrouxa baseline nenhum"
     }
   ]
 }
