@@ -115,6 +115,24 @@ on:
       # ROOT de import.meta.url e nao aceita cwd/argv). Import novo aqui quebra a copia, entao
       # mexer nele precisa disparar a lane que roda o teste.
       - 'scripts/qa/page-path.mjs'
+      # DOCS DO PROCESSO que dois steps DESTA lane leem — mesma causa do ds-guard e do
+      # integrity-check acima (§5 2026-08-02 · "gate mudo com cara de cobertura"), agora no
+      # eixo DADO em vez de SCRIPT: a migracao do #7224 levou a documentacao canon pra
+      # memory/reference/prototipo-ui/ e nenhuma linha a repos aqui — a pasta so aparecia num
+      # comentario (L251). Medido em 2026-09-14 durante a leitura cruzada de ancoras do Ponto:
+      # 8 de 8 fora do gatilho. Nao entra glob da pasta (83 arquivos): entram os que, se
+      # sumirem/mudarem, derrubam um teste desta lane — o resto seria cobertura de mentira.
+      #   integrity-check IT1/IT3/IT5 -> PROCESSO_MEMORIA_CC · STATUS · MEMORY_INDEX
+      #   integrity-check IT7 (§14)   -> PROTOCOL · REGISTRY_DS_COMPONENTES · ARQUITETURA · LICOES_CC
+      #   detect-handoff.mjs:62       -> FRESCOR-PRODUCAO-vs-PROTOTIPO
+      - 'memory/reference/prototipo-ui/PROCESSO_MEMORIA_CC.md'
+      - 'memory/reference/prototipo-ui/STATUS.md'
+      - 'memory/reference/prototipo-ui/MEMORY_INDEX.md'
+      - 'memory/reference/prototipo-ui/PROTOCOL.md'
+      - 'memory/reference/prototipo-ui/REGISTRY_DS_COMPONENTES.md'
+      - 'memory/reference/prototipo-ui/ARQUITETURA.md'
+      - 'memory/reference/prototipo-ui/FRESCOR-PRODUCAO-vs-PROTOTIPO.md'
+      - 'memory/LICOES_CC.md'
   workflow_dispatch:
 
 concurrency:
