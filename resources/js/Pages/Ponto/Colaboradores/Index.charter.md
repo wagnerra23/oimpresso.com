@@ -63,4 +63,15 @@ O gestor localiza colaboradores para configurar seus parâmetros de ponto. A tel
 ## Pendências antes de `status: live`
 - [ ] Wagner aprova Non-Goals + Anti-hooks
 - [ ] Smoke visual 1280/1440 (screenshot)
-- [ ] Confirmar mascaramento de CPF na coluna (LGPD)
+- [x] Confirmar mascaramento de CPF na coluna (LGPD) — **[W] 2026-09-14 respondeu: mascarar, "é
+      liberado ser igual ao protótipo"**. A forma vem do `D-COLAB-CPF` em
+      [`ponto-telas.jsx`](../../../../../prototipo-ui/cowork/Wagner/ponto-telas.jsx): a lista mostra
+      só os **3 últimos dígitos** de CPF e de PIS; inteiros **apenas no form de edição**, porque
+      lista é tela de varredura e minimização de dado é o default. Supersede a posição de
+      **2026-08-21** (*"pode deixar os dados sim é um ERP"*), que segue verdadeira como fato daquela
+      data e sobre o **espelho** — não sobre esta coluna. Cadeia FORMA: protótipo soberano
+      ([ADR UI-0029](../../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)).
+      ⚠️ Ainda **não aplicado** no `.tsx` (hoje `Index.tsx` renderiza o CPF inteiro): o produto só
+      muda pelo fluxo de aplicação com `map.json` por tela, e `maskCPF` de
+      [`Lib/br-mask.ts`](../../../../../resources/js/Lib/br-mask.ts) **formata, não redige** — medido,
+      o front não tem helper de redação hoje.
