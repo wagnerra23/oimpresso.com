@@ -195,9 +195,11 @@ export const DS_MIRROR_DIR = join(REPO_ROOT, 'prototipo-ui', 'design-system');
 //       da regra e diz o mesmo: "único destino versionado dos artefatos compilados".
 //                                    ↓ materializa (cache descartável)
 //   (3) CACHE ──────────────────── prototipo-ui/cowork/Wagner/_ds/          [ZERO versionados]
-//       Gitignored, criado sob demanda pelo preview (e pelo hook SessionStart
-//       `ds-preview-materialize.mjs` quando falta). Medido: `git ls-files
-//       "prototipo-ui/cowork/Wagner/_ds*"` = 0. O README do snapshot é categórico —
+//       Gitignored. Medido: `git ls-files "prototipo-ui/cowork/Wagner/_ds*"` = 0.
+//       Até o #7224 (2026-09-11) era reposto sob demanda pelo `--preview-ds` e pelo hook
+//       SessionStart `ds-preview-materialize.mjs`; naquele PR o shell passou a referenciar
+//       `../../design-system/` direto, o `--preview-ds` foi aposentado e o hook deixou de
+//       escrever. O README do snapshot é categórico —
 //       "Nunca copie ou versione `_ds/` dentro do espelho Cowork".
 //
 // POR QUE ISTO PRECISA ESTAR ESCRITO (o risco é medido, não hipotético): 3 arquivos

@@ -17,10 +17,12 @@
 //   · --gerar   = render LOCAL/dispatch logado, SÓ local. RECUSA sob CI (exit 4).
 //   · --check   = HERMÉTICO (schema + âncora re-resolvida + freshness por sha) — é O QUE roda em
 //                 CI (design-memory-gate, advisory). Zero browser, zero rede. NÃO é read-only:
-//                 pra conferir o `render_sha256` ele repõe o cache `_ds/` (GITIGNORED, logo
-//                 ausente no checkout do CI) a partir do mirror-snapshot VERSIONADO — mesma
-//                 escrita que o hook de SessionStart já faz, em dir que o git ignora. Se nem
-//                 assim der pra medir, o veredito é NÃO MEDIDO (aviso), NUNCA "baseline STALE".
+//                 pra conferir o `render_sha256` ele tenta repor o cache `_ds/` (GITIGNORED,
+//                 logo ausente no checkout do CI). Até o #7224 (2026-09-11) a fonte era o
+//                 mirror-snapshot versionado e o hook de SessionStart fazia a mesma escrita;
+//                 desde então o shell referencia `../../design-system/` direto, não tem `_ds/`,
+//                 e nenhum dos dois repõe. Não dando pra medir — e hoje não dá — o veredito é
+//                 NÃO MEDIDO (aviso), NUNCA "baseline STALE".
 //   · --extract = tira 1 célula do baseline como proto.json → o --compare EXISTENTE
 //                 (style-fingerprint.mjs --compare proto.json prod.json --tela <Mod/Tela>) roda
 //                 prod×proto-baseline com a trava fail-closed de sempre.
@@ -517,10 +519,15 @@ async function cmdCheck(args) {
   const files = args._.length ? args._.map((f) => resolve(f)) : acharBaselines(join(REPO, 'memory', 'requisitos'));
   if (!files.length) { console.log('✓ nenhum *.proto-baseline.json no repo — nada a verificar (0 baselines não é drift).'); process.exit(0); }
   let totalDrift = 0, totalWarn = 0;
-  // Mede o grafo UMA vez. Materializa o `_ds/` a partir do mirror-snapshot VERSIONADO — o
-  // produtor é offline (não usa DesignSync nem rede) e escreve só nesse cache gitignored, que é
-  // o mesmo que o hook de SessionStart repõe. Medido 2026-09-10 em worktree fresco: 10 artefatos
-  // repostos, preview completo. Falhou? o veredito por baseline vira NÃO MEDIDO, nunca STALE.
+  // Mede o grafo UMA vez, chamando o materializador do `_ds/` (produtor offline — não usa
+  // DesignSync nem rede — que escreve só nesse cache gitignored).
+  // Fato datado: em 2026-09-10, worktree fresco repunha 10 artefatos a partir do então
+  // mirror-snapshot versionado e o preview saía completo. Desde o #7224 (2026-09-11) o shell
+  // referencia `../../design-system/` direto e não contém `_ds/`; medido 2026-09-14,
+  // `previewDsPlan` devolve erro ("esperava 1 design system no shell, achei 0") e esta chamada
+  // LANÇA — o catch abaixo degrada pra `erroSuperficie`, o caminho previsto na linha seguinte.
+  // O hook de SessionStart `ds-preview-materialize` também deixou de repor no mesmo PR.
+  // Falhou? o veredito por baseline vira NÃO MEDIDO, nunca STALE.
   let superficieAtual = null, erroSuperficie = null;
   try {
     materializePreviewDs(previewDsPlan(readFileSync(join(MIRROR_DIR, 'oimpresso.com.html'), 'utf8'), REPO));
