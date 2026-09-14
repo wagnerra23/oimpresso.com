@@ -57,7 +57,10 @@ test('UC-FNFE-12: o rodapé de atalhos não anuncia tecla que a tela ignora', as
   // que torna o caso discriminante: devolver qualquer tecla morta derruba aqui nomeando a
   // intrusa, enquanto um "não contém R" casaria com qualquer palavra que tenha a letra. As
   // duas mortas saíram em 2026-09-04 — a barra é onde o operador APRENDE as teclas.
-  const teclas = (await atalhos.locator('kbd').allInnerTexts()).map((t) => t.trim());
+  // `allTextContents`, não `allInnerTexts`: asserção de copy lê o DOM, nunca o que o CSS
+  // pintou. Medido — `kbd` do cheatsheet não tem `text-transform` hoje, mas o ribbon do
+  // Cockpit tem, e foi assim que a 1ª versão do spec irmão reprovou.
+  const teclas = (await atalhos.locator('kbd').allTextContents()).map((t) => t.trim());
   expect(teclas, 'a barra de atalhos anuncia um conjunto de teclas diferente do que a tela trata').toEqual([
     'J',
     'K',

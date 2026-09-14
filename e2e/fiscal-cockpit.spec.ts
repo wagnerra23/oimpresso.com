@@ -41,7 +41,13 @@ test('UC-FCKP-03: o ribbon carrega as medidas do contrato, na ordem declarada', 
   // Presença E ordem numa medida só: o texto do ribbon traz os 6 rótulos em índices
   // crescentes. Asserir apenas presença deixaria passar um refactor que reordena a régua
   // que a contadora lê da esquerda para a direita — e a ordem é o que o contrato fixa.
-  const texto = (await ribbon.innerText()).replace(/\s+/g, ' ');
+  //
+  // `textContent`, NUNCA `innerText`: o `.fx-ribbon-item small` tem `text-transform:
+  // uppercase` (`fiscal-cockpit.css:814`), então o `innerText` devolve "EMITIDAS" — o que o
+  // browser PINTOU — e a primeira versão deste caso reprovou por isso (run 34789862293). A
+  // copy do contrato é o texto do DOM; a caixa é FORMA, e prendê-la aqui faria o caso quebrar
+  // numa mudança de CSS que não mexeu em copy nenhuma.
+  const texto = ((await ribbon.textContent()) ?? '').replace(/\s+/g, ' ');
   let anterior = -1;
   for (const rotulo of RIBBON_CONTRATO) {
     const pos = texto.indexOf(rotulo);
@@ -67,7 +73,7 @@ test('UC-FCKP-07: o chip da visão salva e a tabela contam a MESMA lista', async
   // Discrimina nos DOIS sentidos — chip com N>0 e empty na tela reprova, chip com 0 e linhas
   // na tabela também. É a divergência que o #6541 consertou (header "0 notas" × 10 linhas
   // mockadas × chip "Todas 18").
-  const contador = Number((await todas.innerText()).replace(/[^0-9]+/g, '') || '0');
+  const contador = Number(((await todas.textContent()) ?? '').replace(/[^0-9]+/g, '') || '0');
   if (contador === 0) {
     await expect(page.getByText('Nenhuma nota pra esses filtros')).toBeVisible();
     await expect(page.getByRole('table')).toHaveCount(0);

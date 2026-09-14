@@ -10,6 +10,14 @@ outcomes:
 
 # Thread 01 · Rede E2E do Fiscal
 
+## TL;DR
+
+- **Entregue:** `e2e/fiscal-cockpit.spec.ts` + `e2e/fiscal-nfe.spec.ts` — 9 casos, **6 executáveis + 3 `fixme`** com o motivo medido. O valor não é "mais um teste": é o eixo que os 4 suítes jsdom do módulo declaram **fora do próprio alcance** (travessia física por Tab, navegação HTTP real entre rotas).
+- **Premissa do playbook corrigida:** a thread 02 (paginação) está **FEITA** — a prova dela buscava a string `Pagination` e a implementação usa PT-BR (`pagina`/`porPagina`). `D-LANE` respondida: `e2e-gate.yml` cobre `e2e/**`.
+- **`PARAR SE (b)` acionado:** nenhum seeder cria `nfe_emissoes`, então os 3 casos de teclado/paginação ficaram declarados, não inventados.
+- **Achado medido, NÃO consertado** (fora do prefixo): o `Cockpit.tsx` anuncia 4 atalhos e tem **1 de 1** handler de tecla — 3 das 4 não respondem. Mesma classe do `UC-FNFE-12(b)`, que a tela irmã já fixou como defeito. Precisa de dono.
+- **Erro próprio, corrigido no mesmo PR:** a 1ª versão do `UC-FCKP-03` usou `innerText` e reprovou no CI — o `.fx-ribbon-item small` tem `text-transform: uppercase`, então eu media o que o browser **pintou** em vez da copy do DOM (§5 2026-07-16).
+
 Execução da thread **01** do playbook `fiscal` (recuperado do git — a pasta
 `prototipo-ui/design-docs/cowork-inbox/` foi removida pela [#7224](https://github.com/wagnerra23/oimpresso.com/pull/7224),
 ADR 0397 D5; lido via `git show 4f51a9ec78^:<path>`).
@@ -96,11 +104,32 @@ decisão de produto — `X`/`N` abrem fluxo com formulário, então não são te
 | sintaxe + tipos dos 2 specs | `tsc` (repo principal) com tsconfig espelhando o do projeto, **canário reprovando primeiro** | canário exit 2 · specs **exit 0** |
 | bytes de controle / CRLF | sonda em node com canário (`\b` + `\r`) | canário morde · specs `ctrl=0 crlf=0` |
 | guardas da thread | `onKeyDown` em `Cockpit.tsx` (1 hit) · os 2 contratos com diff vazio vs `origin/main` | intactos |
-| **execução dos specs** | **não feita** — exige app servindo + MySQL; testes não rodam local (ADR 0062) e o CT 100 não serve Playwright contra o app | veredito é da lane no PR |
+| **execução dos specs** | pela lane `e2e-gate` no PR ([#7257](https://github.com/wagnerra23/oimpresso.com/pull/7257)) — não é possível local (ADR 0062) | **5 de 6 passaram no 1º run**; 1 reprovou e foi consertado |
 
-A primeira sonda de bytes que escrevi **mentiu**: `grep -P` falhou por locale (`LC_ALL=C`) e o
-`if` leu o erro como "nada encontrado", imprimindo OK. Refeita em node, com canário — é a
-família §5 2026-07-31 (vazio que era falha de execução) apanhada dentro da própria sessão.
+### O veredito do CI, e os 3 vermelhos do 1º run
+
+| check | dono | causa |
+|---|---|---|
+| `E2E Playwright · UCs críticos` | **meu** | `UC-FCKP-03` reprovou: usei `innerText` e o `.fx-ribbon-item small` tem `text-transform: uppercase` (`fiscal-cockpit.css:814`) → vinha `"EMITIDAS"`. Trocado por `textContent` nos 3 pontos de asserção de copy |
+| `Schema session log` | **meu** | faltava `## TL;DR` (ou `## Resumo executivo`/`## Contexto`) — adicionado |
+| `UI architecture gate` | **infra** | `composer install` levou **HTTP 503** clonando `dev.azure.com/myfatoorahsc` (dep externa fora do ar). Nada do diff: não toco PHP nem `composer.lock`. No `main` o gate está `success` |
+
+O erro do `UC-FCKP-03` é a lápide **§5 2026-07-16** (medir a propriedade errada) num eixo novo:
+ali o caso era afirmar UI pelo que *se mandou* em vez do que o browser resolveu; aqui foi o
+inverso simétrico — medi o que o browser **pintou** quando o contrato fala do texto do **DOM**.
+A prova de que eu já tinha a resposta dentro do próprio arquivo: o `UC-FCKP-13` passou usando
+`toContainText`, que lê `textContent` por padrão. Regra que fica: **asserção de copy lê
+`textContent`; `innerText` é renderização, e prendê-la acopla o caso ao CSS.**
+
+### Duas sondas minhas mentiram nesta sessão — as duas por dependência ausente
+
+1. **`grep -P`** (bytes de controle) falhou por locale (`LC_ALL=C`) e o `if` leu o erro como
+   "nada encontrado", imprimindo OK. Refeita em node, com canário.
+2. **`jq` não existe neste Windows** — e o monitor de CI que escrevi usava `jq` em toda linha.
+   Resultado: **30 minutos de silêncio** que seriam lidos como "nada reprovou", quando havia 3
+   vermelhos. Remedido em node. É a lápide §5 2026-08-11 (`jq` ausente) somada à §5 2026-07-29
+   (instrumento que afirma verde sem ter conseguido medir) — as duas apanhadas dentro da sessão,
+   e nenhuma conclusão foi tirada do silêncio.
 
 ## Endereço canônico do recibo — em aberto para [W]
 
