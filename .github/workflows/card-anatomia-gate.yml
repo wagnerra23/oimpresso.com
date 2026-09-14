@@ -1,0 +1,58 @@
+name: Card Anatomia Gate — o Widget ganhou slots, os 139 consumidores não mudaram de pixel
+
+# `ui/card.tsx` é o primitivo de moldura do DS. Medido em 2026-09-13 (varredura contada,
+# `git grep -l "ui/card"` = 139 de 139): Ponto 21 · Financeiro 16 · Essentials 15 ·
+# Whatsapp 17 · governance 9 · Forja 7 · Superadmin 6 · NfeBrasil 5 · Jana 5 · +19 áreas.
+#
+# A thread 01 do playbook ds-atomos somou três slots opcionais (`badge`/`note`/`flush`)
+# sob a lei ADITIVO OU NADA: prop ausente ⇒ markup idêntico a 733033864088. Nenhum gate de
+# className pega "alguém mexeu num default do Card" — o efeito é 139 telas repintarem em
+# silêncio, o mesmo vetor do bug de cor-crua que o status-badge-fidelity-gate trava.
+# Este render-test (vitest/jsdom) congela os 7 defaults e tem CONTROLE NEGATIVO do próprio
+# comparador (uma classe a mais já reprova — senão o ✅ passaria vacuamente, ADR 0258).
+#
+# Mordida PROVADA no CT 100 em 2026-09-13, duas mutações + restauro:
+#   py-6 → py-4 no default do Card ....... 1 failed | 12 passed
+#   `note` sempre renderizando (não-aditivo) 3 failed | 10 passed
+#   restaurado ........................... 13 passed
+#
+# Path-scoped (faz npm ci): roda só quando o primitivo, o spec ou este workflow mudam.
+# Comando manual: npm run test:card-anatomia
+#
+# Advisory (ADR 0271/0314 — DS é higiene/qualidade, não Tier-0). Ver gates-registry.json.
+# Refs: playbook ds-atomos thread 01 · ADR 0258 (todo ✅ tem que ter sido visto falhar).
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+    paths:
+      - 'resources/js/Components/ui/card.tsx'
+      - 'tests/js/card-anatomia.test.tsx'
+      - '.github/workflows/card-anatomia-gate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'resources/js/Components/ui/card.tsx'
+      - 'tests/js/card-anatomia.test.tsx'
+
+concurrency:
+  group: card-anatomia-gate-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  card-anatomia:
+    name: Card · slots aditivos (badge/note/flush) sem mexer no default de 733033864088
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install deps
+        run: npm ci
+      - name: Guarda de anatomia do Card (vitest/jsdom)
+        run: npm run test:card-anatomia

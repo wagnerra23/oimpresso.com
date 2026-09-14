@@ -181,6 +181,13 @@
       "nome": "ADR frontmatter lint",
       "classe": "gate"
     },
+    "card-anatomia-gate.yml": {
+      "nome": "Card Anatomia — slots aditivos (badge/note/flush) sem mexer no default de 733033864088",
+      "classe": "gate",
+      "terminal": "advisory",
+      "anchor": "Playbook ds-atomos thread 01 (Cowork->Code, 2026-09-09): ui/card.tsx ganhou tres slots opcionais (badge/note/flush) sob a lei ADITIVO OU NADA do playbook — prop ausente => markup identico a 733033864088. || SINAL DE CUSTO (medido 2026-09-13, varredura CONTADA `git grep -l \"ui/card\"` = 139 de 139 arquivos): Ponto 21 · Financeiro 16 · Essentials 15 · Whatsapp 17 · governance 9 · Forja 7 · Superadmin 6 · NfeBrasil 5 · Jana 5 · +19 areas. Mudar um default do Card repinta 139 telas EM SILENCIO — nenhum gate de className pega isso, e o ratchet de lint nao ve troca de utilitaria por utilitaria. || POR QUE LANE NOVA e nao estender um dono (medido, nao herdado): NENHUMA lane roda `vitest run` sem argumento — 63 specs vitest no repo, 46 citados em algum workflow, 17 ORFAOS. Spec sem lane nunca executa (LC-13: verde-por-nao-execucao parece cobertura). O unico workflow cujo paths ja casa `resources/js/Components/ui/**` e o a11y-axe-gate, cujo tema e axe/ARIA — outro tema. A lane nasce como nasceram status-badge-fidelity-gate e pageheader-tabs-fidelity-gate: guarda de fidelidade POR PRIMITIVO do DS. || MORDIDA PROVADA no CT 100 antes do merge (2 mutacoes + restauro, controle rodado nos dois sentidos): py-6 -> py-4 no default do Card = 1 failed | 12 passed; `note` sempre renderizando (nao-aditivo) = 3 failed | 10 passed; restaurado = 13 passed. O spec carrega CONTROLE NEGATIVO do proprio comparador (uma classe a mais ja reprova), pra o verde nao passar vacuamente (ADR 0258). || LIMITE DECLARADO: jsdom nao calcula layout. `nao trunca`, `quebra em 2 linhas` e `sangra ate a borda` sao assertados ESTRUTURALMENTE (a classe que produz o efeito esta la, a que o impediria nao esta) — nunca como pixel medido. O pixel e o T7 do PROTOCOLO-COMPARACAO-RUNTIME e nao roda daqui. || DS e higiene/qualidade, nao Tier-0 (nenhum caminho aqui move dinheiro, estoque ou tenant) -> advisory (ADR 0271/0314). Promocao a required e flip [W] com mordida real coletada em main (ADR 0336 DR-2).",
+      "promote_by": "2026-09-27"
+    },
     "casos-gate.yml": {
       "nome": "Casos-coverage ratchet (trio-de-tela + caso↔teste)",
       "classe": "gate"
