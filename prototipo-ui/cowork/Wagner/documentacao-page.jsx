@@ -174,23 +174,23 @@ const D = [
   {k:"p",t:"Três endereços, três papéis. Lido no <code>main</code> em 10/09/2026 (árvore <code>ed4398d77437</code>) — se divergir, a árvore manda."},
   {k:"table",head:["Camada","Caminho no repo","Papel"],rows:[
     ["DS compilado","<code>prototipo-ui/design-system/_ds_bundle.js</code> · <code>colors_and_type.css</code> · <code>cockpit_domains.css</code> · <code>styles.css</code> · <code>support.js</code>","o que a página carrega; manifesto em <code>_ds_manifest.json</code>"],
-    ["Snapshot de paridade","<code>prototipo-ui/design-system/</code>","cópia byte-idêntica do compilado — sentinela de drift, <b>não</b> fonte"],
+    ["Snapshot de paridade","<code>scripts/design-sync/mirror-snapshot/</code>","cópia byte-idêntica do compilado — sentinela de drift, <b>não</b> fonte"],
     ["DS fonte — tokens","<code>resources/css/tokens/base.tokens.json</code> + <code>semantic.tokens.json</code> → <code>_generated-{cockpit,foundations,inertia}-*.css</code>","DTCG → Style Dictionary → CSS vars"],
     ["DS fonte — shell &amp; ramp","<code>resources/css/cockpit.css</code> (bloco <i>Sidebar — DARK FIXO</i>) · <code>foundations.css</code>","paleta do cockpit e Type RAMP"],
     ["DS fonte — componentes","<code>resources/js/Components/ui/*.tsx</code> · <code>shared/*.tsx</code> · <code>Components/PageHeader/</code> · <code>Layouts/AppShellV2.tsx</code>","o componente real que a tela importa"]]},
   {k:"h2",t:"Âncoras de tela"},
   {k:"p",t:"O protótipo responde <i>como</i>; o <code>main</code> responde <i>onde</i> e <i>com que dado</i>. Toda tela tem os dois lados amarrados:"},
   {k:"kv",rows:[
-    ["contrato","<code>governance/design/contracts/&lt;Tela&gt;.contract.json</code> — seções + copy literal + estados (ADR 0286)"],
+    ["contrato","<code>governance/design/contracts/&lt;slug&gt;.contract.json</code> — seções + copy literal + estados (ADR 0286). <b>Caminho corrigido em 13/09</b>: <code>prototipo-ui/contrato/</code> não existe"],
     ["charter · casos","<code>resources/js/Pages/&lt;Mod&gt;/&lt;Tela&gt;.charter.md</code> + <code>.casos.md</code>"],
     ["alvo real","clientes-crm → <code>Pages/Cliente/Index.tsx</code> · financeiro → <code>Pages/Financeiro/Unificado/</code> · oficina-auto e OS → <code>Pages/OficinaAuto/ServiceOrders/</code>"],
     ["canon de padrão","PT-01 → Cliente/Produto/Sells <code>Index</code> · PT-05 → <code>Pages/Home/Index.tsx</code>, <code>Pages/governance/Dashboard.tsx</code>"],
     ["sem par 1:1","atendimento — tela nova (adjacentes <code>Pages/Jana/</code>, <code>Pages/Whatsapp/_components/</code>) → exige charter antes"],
-    ["resolvedor","<code>memory/reference/prototipo-ui/PRE-FLIGHT-TELA.md</code> + <code>FRESCOR-PRODUCAO-vs-PROTOTIPO.md</code> · mapa componente→arquivo em <code>design-system/HANDOFF.md</code> §3–§4"]]},
+    ["resolvedor","<code>prototipo-ui/PRE-FLIGHT-TELA.md</code> + <code>FRESCOR-PRODUCAO-vs-PROTOTIPO.md</code> · mapa componente→arquivo em <code>design-system/HANDOFF.md</code> §3–§4"]]},
   {k:"h2",t:"Os dois sentidos do sync (não são o mesmo)"},
   {k:"kv",rows:[
     ["git → Design","<code>scripts/design-sync/ds-push.mjs</code> monta e valida o bundle do espelho (<code>VALOR:0</code>); o envio em si depende de <b>login interativo</b>. Sentinela: <code>scripts/governance/ds-mirror-drift.mjs</code>"],
-    ["Design → Code","o protocolo de export do protótipo — 3 comandos (<code>MAPA</code> · <code>ALVO</code> · <code>EXPORT</code>), pacote em <code>prototipo-ui/cowork/Wagner/</code> + <code>sync/</code>. Outro caminho, outro dono: um não cobre o outro"]]},
+    ["Design → Code","o protocolo de export do protótipo — 3 comandos (<code>MAPA</code> · <code>ALVO</code> · <code>EXPORT</code>), pacote em <code>prototipo-ui/cowork/</code> + <code>sync/</code>. Outro caminho, outro dono: um não cobre o outro"]]},
   {k:"h2",t:"Design → Code, passo a passo"},
   {k:"table",head:["Passo","Porta","Dono"],rows:[
     ["<b>MAPA</b> · denominador","o host <code>oimpresso.com.html</code> É o manifesto (todo <code>&lt;link&gt;</code>/<code>src</code>/<code>data-src</code>) e o <code>app.jsx</code> É a tabela de rotas — lido na hora, respondido no chat","[CC] · nunca vira arquivo (ADR 0256)"],
@@ -206,7 +206,7 @@ const D = [
 
 { id:"tec-tela", grp:"tec", nav:"Contrato de tela", title:"Contrato de tela — o trio que trava o comportamento",
   sub:"Uma tela só está pronta pra aplicação quando existe o trio: componente + charter + casos. O contrato declara seções, copy literal e estados — e o CI cobra.",
-  type:"spec", auth:"canonical", upd:"2026-07-22", git:"memory/reference/prototipo-ui/PRE-FLIGHT-TELA.md",
+  type:"spec", auth:"canonical", upd:"2026-07-22", git:"prototipo-ui/PRE-FLIGHT-TELA.md",
   rel:["ADR 0286 — Contrato de Tela","ADR 0114 — loop Cowork formalizado"],
   blocks:[
   {k:"h2",t:"O trio"},
@@ -217,10 +217,10 @@ const D = [
 
 { id:"tec-ancoras", grp:"tec", nav:"Âncoras de tela", title:"Âncoras de tela — o que o repo declara, e onde ele se contradiz",
   sub:"Cada charter declara de onde a tela veio: related_prototype · bundle_source · visual_source. Esta página é o retrato dessas declarações e dos conflitos entre elas.",
-  type:"reference", auth:"derivado", upd:"2026-09-10", git:"scripts/design/ancora.mjs",
+  type:"reference", auth:"derivado", upd:"2026-09-13", git:"prototipo-ui/ancora.mjs",
   rel:["ADR 0286 — Contrato de Tela","ADR 0256 — derivado e enforçado sobrevive"],
   blocks:[
-  {k:"alert",tone:"info",title:"Retrato datado, não fonte",body:"Lido do <code>main</code> em <b>10/09/2026</b>, árvore <code>ed4398d77437</code>. A fonte é o campo no charter — se divergir, o charter manda. Regenerar: <code>node scripts/design/ancora.mjs --list</code> (ou busca por <code>^(related_prototype|bundle_source|visual_source):</code> em <code>resources/js/Pages/</code>)."},
+  {k:"alert",tone:"info",title:"Retrato datado, não fonte",body:"Lido do <code>main</code> em <b>10/09/2026</b>, árvore <code>ed4398d77437</code>. A fonte é o campo no charter — se divergir, o charter manda. Regenerar: <code>node prototipo-ui/ancora.mjs --list</code> (ou busca por <code>^(related_prototype|bundle_source|visual_source):</code> em <code>resources/js/Pages/</code>)."},
   {k:"h2",t:"Os três campos"},
   {k:"kv",rows:[
     ["<code>related_prototype</code>","campo canônico — caminho do protótipo que serviu de alvo de layout"],
@@ -238,6 +238,8 @@ const D = [
     ["<code>Jana/{Index,Chat,Memoria}</code> · <code>{Acoes,Alertas,Plataforma}</code>","jana-merge.jsx · jana-telas-novas.jsx"],
     ["<code>Sells/Create</code> · <code>CreateV3</code>","vendas-create-page.jsx · venda-v3/sells-create.jsx"],
     ["<code>Sells/Caixa/Index</code>","vendas-extras.jsx :: <code>VendasCaixaPage</code> (123-354) — <b>o padrão bom</b>: âncora por símbolo e faixa"],
+    ["<code>Purchase/Index</code> · <code>Purchase/Show</code>","compras-page.jsx <code>(ComprasPage)</code> · <code>(DrawerView)</code> — <b>2º caso do padrão bom</b>: uma tela cada, por símbolo, mesmo arquivo"],
+    ["<code>User/Perfil</code>","perfil-page.jsx — related <i>e</i> bundle, mesmo arquivo"],
     ["<code>Arquivos</code> · <code>Backup</code> · <code>Compras</code> · <code>Modules</code>","arquivos-page · backup-page · compras-page · modulos-page"]]},
   {k:"h2",t:"Conflitos medidos"},
   {k:"table",head:["#","Conflito","Evidência"],rows:[
@@ -247,11 +249,45 @@ const D = [
     ["4","<b>Porte reverso</b> — o protótipo é retrato do vivo","ComunicacaoVisual/Index · Manufacturing/Index · Produto/Unificado · Repair/Settings · Financeiro/AssinaturaAtualizar · Jana/Pro"],
     ["5","<b><code>visual_source</code> órfão</b>","só OficinaAuto Board/Show e Sells/Index — e é a perna que o D1 do <code>ancora.mjs</code> não resolve sem <code>--staging</code> (14 telas saem “sem protótipo” com o arquivo no git)"],
     ["6","<b>Formato sujo que passa por sorte</b>","<code>hrm-extras.jsx (Metas)</code> · <code>oficina-forms.jsx (OsCreateDrawer — create/store)</code> · <code>essenciais-page.jsx#Arquivos (:338-400)</code>"],
-    ["7","<b>Contratos ≠ telas</b>","32 contratos vigentes para 189 charters; <code>financeiro-unificado.<b>intent</b>.json</code> não casa o glob <code>*.contract.json</code> — não é cobrado pelo CI como os outros"]]},
-  {k:"h2",t:"Cobertura — o que esta página NÃO cobre"},
-  {k:"p",t:"O sistema tem <b>189</b> charters em <code>resources/js/Pages/**</code> (medido em 09/09). Esta leitura viu <b>~150</b> declarações. <b>Não está tudo coberto</b>, e o motivo é mecânico, não editorial:"},
-  {k:"ul",items:["A varredura ampla é <b>bounded</b> por budget de 10 s — parou em 343 de 400 de 808 candidatos. Baixa contagem ali <b>não</b> é prova de ausência.","Completei por prefixo só Ponto (21) · Repair (17) · Sells (11) · Produto (10) · OficinaAuto (9) · Patrimônio (5).","<b>Não varridos ⇒ não verificados:</b> Nfse, Purchase, RecurringBilling, Site, Stock*, Suporte, Tarefas, User, Vestuario, Whatsapp, governance, Copiloto, superadmin.","A tabela “1:1” acima é <b>amostra</b> das que resolvem sozinhas — as ~60 telas com <code>n/a (herda PT-0x)</code> não estão listadas uma a uma."]},
-  {k:"alert",tone:"warn",title:"Quem fecha esse número é a máquina, não esta página",body:"O denominador honesto sai de <code>node scripts/design/ancora.mjs --list --json</code> com um resumo <code>{total, com_ancora, na_declarado, sem_campo}</code> que <b>tem</b> que somar. Isso hoje não existe — virou pedido ao Code."},
+    ["7","<b>Contratos ≠ telas</b>","<b>35</b> contratos (+ <code>EXEMPLO</code>) em <code>governance/design/contracts/</code> para <b>188</b> charters — 19% do corpus travado no CI. E a tela de maior charter do sistema, <code>Financeiro/Unificado</code> (31 KB), <b>não tem contrato</b>: o mais próximo é <code>caixa-unificada.contract.json</code> (2 KB), que é outra tela"],
+    ["8","<b>“Não tenho protótipo” e “vim deste arquivo” no mesmo charter</b>","<code>related_prototype: n/a</code> convivendo com <code>bundle_source</code> apontando arquivo: <code>Vestuario/Etiquetas</code> (<code>vestuario-page.jsx</code>) · <code>StockAdjustment</code>×2 e <code>StockTransfer</code>×2 (<code>estoque-page.jsx</code>). Declara ausência e procedência de uma vez — a máquina responde ✓ ou <code>n/a</code> conforme o campo que ler primeiro"],
+    ["9","<b>Âncora que se anula no próprio campo</b>","<code>RecurringBilling</code>: 3 charters com <code>visual_source</code> cujo comentário diz <i>“RASTRO, NÃO DESIGN APROVADO”</i> — a aba é um placeholder de 3 elementos e o arquivo é porte reverso. Máquina lê “tem âncora”; humano lê “não vale”"]]},
+  {k:"h2",t:"Denominador — fechado em 13/09/2026"},
+  {k:"p",t:"O sistema tem <b>188</b> charters em <code>resources/js/Pages/**</code>, distribuídos em <b>34</b> áreas. Número <b>contado pela máquina</b> (filtro <code>\\.charter\\.md$</code> na árvore <code>ffe69844cb71</code>: 188 de 808 arquivos), não somado à mão."},
+  {k:"kv",rows:[
+    ["188","charters no total — o denominador, contado pela máquina"],
+    ["62","charters com classificação <b>fechada</b> (13/09): as 14 áreas antes cegas (41) + Financeiro inteiro (21). Nenhuma dessas buscas saiu <i>bounded</i>"],
+    ["26 · 36","dos 62: <b>26 com âncora</b> (campo aponta arquivo) · <b>36 <code>n/a</code> declarado</b> (herda um dos 5 PT, ou tela bespoke/pública). 26+36=62 — soma fecha"],
+    ["126","charters do corpo central (Cliente · Fiscal · Ponto · Sells · Produto · Repair · OficinaAuto · Jana · kb · …) ainda classificados por <b>amostra</b>: a varredura de 10/09 saiu <i>bounded</i>. Vão fechando módulo a módulo, na fila abaixo"],
+    ["3","prefixos <b>fantasma</b> que eu listei como “não varridos” e que <b>não existem</b>: <code>Tarefas</code>, <code>Copiloto</code>, <code>superadmin</code>. Ausência inventada também é erro — mesma família do <code>ds-push.mjs</code>"]]},
+  {k:"h2",t:"Financeiro — módulo da vez, varrido inteiro"},
+  {k:"p",t:"21 charters, 22 declarações (o <code>Unificado/Index</code> traz duas). <b>7 com âncora · 14 <code>n/a</code></b> — soma fecha com o denominador do módulo."},
+  {k:"table",head:["Tela","Âncora","Leitura"],rows:[
+    ["<code>Unificado/Index</code>","<code>financeiro-page.jsx</code> (related <i>e</i> bundle)","dois campos, <b>mesmo</b> arquivo — sem conflito"],
+    ["<code>Cobranca/Index</code>","<code>pg-cobranca-page.jsx</code>","1:1"],
+    ["<code>Conciliacao</code> · <code>Dre</code> · <code>Fluxo</code> · <code>Impostos</code>","<code>financeiro-telas-extras.jsx</code>","<b>4 telas, 1 arquivo</b> — muitos-para-um confirmado por varredura completa, não por amostra"],
+    ["<code>ProvaViva</code>","<code>legado/financeiro-prova-viva/…html</code>","única âncora em HTML legado do corpus"],
+    ["<code>AssinaturaAtualizar</code>","<code>n/a</code> + errata no próprio campo","o <code>.tsx</code> existe no espelho, mas é <b>porte reverso</b> (310 vs 309 linhas, difere só na API do PageHeader) — ancorar seria a tela nela mesma"],
+    ["14 telas","<code>n/a</code> declarado","Advisor×2 · Caixa · Categorias · Contador · ContasBancarias · ContasPagar · ContasReceber · Dashboard · Extrato · PlanoContas · Relatorios · Unificado/Novo"]]},
+  {k:"alert",tone:"warn",title:"O denominador fecha; a classificação não",body:"Saber que são 188 não diz quantas têm âncora boa. Isso exige <code>node prototipo-ui/ancora.mjs --list --json</code> com um resumo <code>{total, com_ancora, na_declarado, sem_campo}</code> que <b>tem</b> que somar — thread 04, pedida ao Code. A tabela “1:1” acima segue sendo <b>amostra</b>."},
+  {k:"h2",t:"Módulos — a fila de export (1 pacote por módulo)"},
+  {k:"p",t:"<b>Módulo não é pasta.</b> HRM mora em <code>Essentials</code>, Oficina se parte em <code>Repair</code> + <code>OficinaAuto</code>, Fiscal em três. Partição por domínio, cobrindo as 34 áreas sem sobra nem repetição — os 188 somam:"},
+  {k:"table",head:["Módulo","Áreas em Pages/","Charters"],rows:[
+    ["RH &amp; Ponto","<code>Ponto</code> · <code>Essentials</code>","37"],
+    ["Financeiro","<code>Financeiro</code> · <code>RecurringBilling</code>","27"],
+    ["Oficina","<code>Repair</code> · <code>OficinaAuto</code> · <code>ConsultaOs</code>","24"],
+    ["Fiscal","<code>Fiscal</code> · <code>NfeBrasil</code> · <code>Nfse</code>","16"],
+    ["Governança &amp; BI","<code>governance</code> · <code>Auditoria</code> · <code>Home</code> · <code>Modules</code>","13"],
+    ["Jana &amp; KB","<code>Jana</code> · <code>kb</code>","13"],
+    ["Vendas &amp; PDV","<code>Sells</code> · <code>TransactionPayment</code>","12"],
+    ["Estoque &amp; Compras","<code>Purchase</code> · <code>Compras</code> · <code>StockAdjustment</code> · <code>StockTransfer</code>","9"],
+    ["Catálogo/Produtos","<code>Produto</code>","8"],
+    ["CRM/Clientes","<code>Cliente</code>","7"],
+    ["Produção &amp; Com. Visual","<code>Manufacturing</code> · <code>ComunicacaoVisual</code> · <code>Vestuario</code>","7"],
+    ["Plataforma &amp; Conta","<code>User</code> · <code>Site</code> · <code>Backup</code> · <code>Arquivos</code> · <code>Suporte</code>","7"],
+    ["Patrimônio","<code>Patrimonio</code>","5"],
+    ["Atendimento","<code>Whatsapp</code>","3"]]},
+  {k:"alert",tone:"info",title:"Um pacote por módulo é 14 pacotes — e cada um exige medição própria",body:"O protocolo pede, por módulo: 4 denominadores (rota · nav legado · <code>app.jsx</code> · <code>Inertia::render</code> nos controllers) + charter da tela + ALVO medido no protótipo. Emitir os 14 de uma vez seria escrever 14 pedidos sem medir nenhum — dívida com selo de pacote. A fila desce <b>um por ciclo</b>, e o estado de cada um aparece aqui."},
   {k:"h2",t:"O que já foi mandado pro Code"},
   {k:"table",head:["Thread","O que resolve","Estado"],rows:[
     ["<b>04</b> · denominador","<code>--list --json</code> imprime <code>{total, com_ancora, na_declarado, sem_campo, por_via}</code> e falha se não somar","pedido emitido"],
@@ -259,6 +295,7 @@ const D = [
     ["<b>06</b> · contrato fora do glob","<code>financeiro-unificado.intent.json</code> — renomear ou declarar, e o gate passa a contar quantos carregou","pedido emitido"],
     ["<code>Produto/Index</code>","reancorar exige matar a heurística <code>startsWith(dir)</code> junto","<b>bloqueada</b> — decisão de [W]"],
     ["formato por símbolo","<code>arquivo :: símbolo :: faixa</code> como <code>Sells/Caixa</code> já faz — é o que resolve o muitos-para-um","<b>bloqueada</b> — decisão de [W]"]]},
+  {k:"alert",tone:"danger",title:"Retratação dupla — 13/09/2026",body:"Este doc afirmou, por vários ciclos, que os contratos moram em <code>prototipo-ui/contrato/</code> e que um <code>financeiro-unificado.<b>intent</b>.json</code> estava fora do glob do CI. Medido em <code>ffe69844cb71</code>: <b>o diretório não existe</b> (os contratos estão em <code>governance/design/contracts/</code>) e <b>o tal <code>.intent.json</code> não existe em nenhum lugar da árvore</b> (filtro <code>contract\\.json$|contrato/</code> em 16.569 arquivos: 39 hits, nenhum deles). Eu não li um arquivo errado — eu <b>citei de memória</b> e depois usei a citação como prova. A thread 06 do playbook nasceu dessa premissa falsa e foi reescrita."},
   {k:"alert",tone:"info",title:"Onde o pedido mora",body:"<code>cowork-inbox/ancora/playbook/</code> — <code>_PATCH-INDICE-2026-09-10.md</code> (delta do índice, porque a pasta local é cache) + <code>04-denominador-cobertura.md</code> · <code>05-campo-duplo-divergente.md</code> · <code>06-contrato-fora-do-glob.md</code>. Cada thread fecha por <b>execução com recibo</b>, não por \"o arquivo contém a string\"."}]},
 
 { id:"tec-qa", grp:"tec", nav:"Qualidade & CI", title:"Qualidade — o que o CI cobra de verdade",
@@ -330,6 +367,9 @@ const D = [
   type:"reference", auth:"derivado", upd:"agora", git:"app/Http/Controllers/DocumentacaoController.php", corpus:true, rel:[]}
 ];
 
+// Fonte ÚNICA da linha de autoridade do cabeçalho. Estava literal no subhead
+// ("02/08/2026") e envelheceu 6 semanas — data escrita à mão sempre envelhece.
+const SYNC={data:"13/09/2026",arvore:"ffe69844cb71"};
 const GRPS=[["start","Comece aqui"],["dominio","Domínio — as entidades"],["fluxo","Fluxos de operação"],["tec","Técnico — construir"],["gov","Governança"],["corpus","Corpus"]];
 // Ordem de leitura = ordem do array; a numeração é derivada (nunca escrita à mão).
 const ORDER=["start","dominio","fluxo","tec","gov","corpus"];
@@ -465,7 +505,7 @@ function DocumentacaoPage(){
   <header className="os-page-h">
    <div className="os-page-h-l">
     <h1>Documentação</h1>
-    <p>Uma documentação, duas lentes — a espinha do domínio serve as duas. {D.length - 1} páginas · {CORPUS.length} documentos no corpus · última sync do git 02/08/2026</p>
+    <p>Uma documentação, duas lentes — a espinha do domínio serve as duas. {D.length} páginas · {CORPUS.length} documentos no corpus (amostra local — o vivo vem do webhook) · leitura do git em {SYNC.data}, árvore <code>{SYNC.arvore}</code></p>
    </div>
    <div className="os-page-h-r">
     <button className="os-btn ghost" onClick={()=>setPalette(true)}>⌘K Buscar</button>

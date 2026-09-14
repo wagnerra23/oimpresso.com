@@ -4,7 +4,7 @@
 // Este arquivo é a SOURCE-OF-TRUTH visual de `/atendimento/caixa-unificada`
 // (wagnerra23/oimpresso.com) — citada explicitamente no charter do repo:
 //   resources/js/Pages/Atendimento/CaixaUnificada/Index.charter.md →
-//   visual_source: prototipo-ui/cowork/Wagner/legado/caixa-unificada/inbox-page.jsx
+//   visual_source: prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx
 //
 // SINCRONIZAÇÃO (2026-05-15):
 //
