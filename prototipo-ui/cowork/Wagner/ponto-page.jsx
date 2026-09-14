@@ -445,17 +445,32 @@ function PontoPage({ view }) {
   const T = window.PontoTelas || {};
   const F = window.PontoFechamento || {};
   const M = window.PontoMobile || {};
-  const [aba, setAba] = (MP.useAba || ((k, i) => useState(i)))("oimpresso.ponto.aba", view || "painel");
+  // D-PONTO-DETALHE ([W] 2026-09-14): a rota é a fonte. `pt-<aba>` seleciona a aba e
+  // `pt-espelho-<id>` abre o detalhe — deep link em vez de estado interno invisível.
+  const daRota = (v) => {
+    if (!v || v === "ponto") return { aba: "painel", id: null };
+    const s = String(v).replace(/^pt-/, "");
+    const m = s.match(/^(espelho)-(\d+)$/);
+    if (m) return { aba: m[1], id: Number(m[2]) };
+    return { aba: s, id: null };
+  };
+  const rota0 = daRota(view);
+  const [aba, setAba] = (MP.useAba || ((k, i) => useState(i)))("oimpresso.ponto.aba", rota0.aba);
   const [avisoNode, avisar] = (MP.useAviso || (() => [null, () => {}]))();
   const [mes, setMes] = useState(D.MES);
-  const [espelhoDe, setEspelhoDe] = useState(null);
+  const [espelhoDe, setEspelhoDe] = useState(rota0.id);
   const [intercFoco, setIntercFoco] = useState(null);
   // Estado das intercorrências vive no SHELL: aprovar em Aprovações tem que apagar o bloqueio
   // no Fechamento e o badge da aba — antes cada aba tinha a sua cópia local.
   const [intercs, setIntercs] = useState(D.INTERCORRENCIAS);
   const [hora, setHora] = useState("09:18");
 
-  useEffect(() => { if (view) setAba(view); }, [view]);
+  useEffect(() => {
+    if (!view) return;
+    const r = daRota(view);
+    setAba(r.aba);
+    setEspelhoDe(r.id);
+  }, [view]);
 
   const pendentes = intercs.filter((i) => i.estado === "PENDENTE").length;
   const nConf = F.achados ? Object.values(F.achados(mes)).reduce((n, l) => n + l.length, 0) : null;
@@ -464,8 +479,9 @@ function PontoPage({ view }) {
     : a.key === "intercorrencias" ? { ...a, n: intercs.length }
     : a.key === "colaboradores" ? { ...a, n: D.COLABORADORES.length } : a);
 
-  const irPara = (k) => { setAba(k); setEspelhoDe(null); };
-  const abrirEspelho = (id) => { setEspelhoDe(id); setAba("espelho"); };
+  const irRota = (r) => { if (window.__go) { window.__go(r); return true; } return false; };
+  const irPara = (k) => { setEspelhoDe(null); if (!irRota("pt-" + k)) setAba(k); };
+  const abrirEspelho = (id) => { if (!irRota("pt-espelho-" + id)) { setEspelhoDe(id); setAba("espelho"); } };
 
   let corpo = null;
   if (aba === "painel") corpo = <Painel onIr={irPara} intercorrencias={intercs} />;
