@@ -55,9 +55,13 @@
 //     `git ls-tree -r origin/main --name-only | grep ds-notas`.
 //   · a raiz `ds-notas` acha um site a mais que o nome completo perde
 //     (`memory/requisitos/_DesignSystem/SPEC.md`, sobre a pasta `handoff-ds-notas`).
-//   · o `memory/reference/MAQUINAS-INVENTARIO.md` não a lista — e isso NÃO prova ausência:
-//     medido em 2026-09-13 ele tem 0 ocorrência de `scripts/design/` (cobre `scripts/governance/`,
-//     `scripts/tests/` e `scripts/design-sync/`). A cegueira é do inventário, não do script.
+//   · o `memory/reference/MAQUINAS-INVENTARIO.md` NÃO a listava — e isso não provava ausência:
+//     medido em 2026-09-13, tinha 0 ocorrência de `scripts/design/`, porque a lista de diretórios
+//     da seção 5 era escrita à mão — 3 chamadas fixas (`scripts/governance/`, `scripts/tests/` e a
+//     raiz; `scripts/design-sync/` também ficava de fora, apesar de ser citado na prosa).
+//     FECHADO no mesmo dia pelo #7247, que passou a derivá-la da árvore: o inventário cobre
+//     `scripts/design/` e lista este arquivo. A sonda segue valendo como método — inventário
+//     cego nunca é prova de ausência; o que mudou é que ESTE inventário deixou de ser cego aqui.
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
