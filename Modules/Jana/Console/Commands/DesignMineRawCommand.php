@@ -19,7 +19,7 @@ class DesignMineRawCommand extends Command
 {
     protected $signature = 'design:mine-raw
                             {--tela= : Tela alvo (ex: vendas)}
-                            {--out= : Caminho de saída (default: _incoming/<tela>/_prepared/)}
+                            {--out= : Caminho de saída (default: storage/app/design-incoming/<tela>/_prepared/)}
                             {--dry-run : Mostra os candidatos e NÃO escreve}';
 
     protected $description = 'Minera o raw (chats Cowork) em candidatos 🔍 de design (proposta human-gated, nunca lei)';
@@ -46,7 +46,7 @@ class DesignMineRawCommand extends Command
 
         $out = (string) $this->option('out');
         if ($out === '') {
-            $out = "{$root}/prototipo-ui/_incoming/{$tela}/_prepared/CANDIDATOS-{$tela}.md";
+            $out = "{$root}/storage/app/design-incoming/{$tela}/_prepared/CANDIDATOS-{$tela}.md";
         }
 
         $r = $miner->mine($tela, $raw, $out, (bool) $this->option('dry-run'));

@@ -66,7 +66,7 @@ function ingestSeedMap(): void
 
 function ingestPlano(string $tela): string
 {
-    return File::get(test()->root . "/prototipo-ui/_incoming/{$tela}/_prepared/PLANO-MUDANCAS-{$tela}.md");
+    return File::get(test()->root . "/storage/app/design-incoming/{$tela}/_prepared/PLANO-MUDANCAS-{$tela}.md");
 }
 
 test('diff é sobre os ROTEADOS: add/mod/del corretos; extra desconhecido listado', function () {
@@ -130,6 +130,6 @@ test('prepare-only: NÃO aplica no protótipo commitado', function () {
 
     // commitado intocado (aplicação é gate Wagner/CT100)
     expect(File::get(test()->root . '/prototipo-ui/cowork/Wagner/legado/caixa-unificada/inbox-page.jsx'))->toBe('v1');
-    expect(File::exists(test()->root . '/prototipo-ui/_incoming/caixa-unificada/_prepared/PLANO-MUDANCAS-caixa-unificada.md'))->toBeTrue();
-    expect(File::exists(test()->root . '/prototipo-ui/_incoming/caixa-unificada/_prepared/SESSION-design-ingest-caixa-unificada.md'))->toBeTrue();
+    expect(File::exists(test()->root . '/storage/app/design-incoming/caixa-unificada/_prepared/PLANO-MUDANCAS-caixa-unificada.md'))->toBeTrue();
+    expect(File::exists(test()->root . '/storage/app/design-incoming/caixa-unificada/_prepared/SESSION-design-ingest-caixa-unificada.md'))->toBeTrue();
 });

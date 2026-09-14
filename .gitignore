@@ -5,7 +5,11 @@
 # Estação de ingestão de design (plano vectorized-badger PR-2): staging volátil
 # do unzip + artefatos preparados (PLANO-MUDANCAS, SESSION). Read-view efêmera,
 # nunca canon — o que vira verdade entra via prototipos/<tela>/ sob gate Wagner.
-/prototipo-ui/_incoming/
+# Em 2026-09-14 ela saiu de `prototipo-ui/_incoming/` para `storage/app/design-incoming/`:
+# a raiz de `prototipo-ui/` é contrato (R1 do cowork-ssot-guard aceita só `cowork/` e
+# `design-system/`, e lê o DISCO), então a pasta de trabalho fazia o guard reprovar na
+# máquina de quem rodava `design:ingest-zip`. Regra própria não é mais necessária — o
+# `/storage/` logo abaixo já cobre o destino novo.
 /storage/*.key
 /storage/
 /vendor
