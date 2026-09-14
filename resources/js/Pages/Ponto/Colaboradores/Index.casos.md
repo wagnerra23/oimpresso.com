@@ -58,8 +58,9 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
   e sobre o espelho**, e está superseded para esta coluna. Não virou UC ainda porque o `.tsx` não foi
   tocado: o produto só muda pelo fluxo de aplicação com `map.json` por tela, e aí o caso nasce com o
   teste que o cite. Pegadinha medida pra quem for aplicar: `maskCPF` de
-  [`Lib/br-mask.ts`](../../../../../resources/js/Lib/br-mask.ts) **formata** (`000.000.000-00`), não
-  redige — não existe helper de redação no front hoje, então ele nasce junto.
+  [`Lib/br-mask.ts`](../../../../../resources/js/Lib/br-mask.ts) **formata** (insere os pontos e o
+  hífen conforme a digitação), não redige — não existe helper de redação no front hoje, então ele
+  nasce junto.
 - `[BACKLOG]` A busca por nome usa só `first_name`; sobrenome (`last_name`) não entra. Quem procura
   "Silva" não acha ninguém. Não virou UC porque o charter diz "busca por matrícula, nome ou CPF" sem
   definir o que é "nome" — é ambiguidade de contrato, e inventar a resposta seria pior que registrar.
