@@ -49,10 +49,18 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
   isso é o anti-padrão LC-28 de
   [proibicoes §Comportamento Claude](../../../../../memory/proibicoes.md). O que segue sendo de [W]
   é **o que** a busca deve encontrar — não como ela agrupa.
-- `[BACKLOG]` A coluna de CPF aparece inteira na lista. O charter pergunta em §Pendências se deve ser
-  mascarada; a decisão de [W] para o espelho foi **não mascarar** (*"pode deixar os dados sim é um
-  ERP"*, 2026-08-21 — o controle é por permissão de acesso, não por ocultação). Fica registrado que a
-  mesma razão se aplica aqui, mas a pergunta do charter é de [W], não minha.
+- `[BACKLOG]` A coluna de CPF aparece inteira na lista, e **agora isso é divergência, não pendência**:
+  em **2026-09-14** [W] respondeu a pergunta do charter — *"é liberado ser igual ao protótipo"* — e o
+  protótipo `D-COLAB-CPF` ([`ponto-telas.jsx`](../../../../../prototipo-ui/cowork/Wagner/ponto-telas.jsx))
+  mascara CPF **e** PIS nos 3 últimos dígitos na lista, deixando os inteiros só no form de edição.
+  A posição anterior — **não mascarar** (*"pode deixar os dados sim é um ERP"*, **2026-08-21**, o
+  controle é por permissão de acesso, não por ocultação) — **segue verdadeira como fato daquela data
+  e sobre o espelho**, e está superseded para esta coluna. Não virou UC ainda porque o `.tsx` não foi
+  tocado: o produto só muda pelo fluxo de aplicação com `map.json` por tela, e aí o caso nasce com o
+  teste que o cite. Pegadinha medida pra quem for aplicar: `maskCPF` de
+  [`Lib/br-mask.ts`](../../../../../resources/js/Lib/br-mask.ts) **formata** (insere os pontos e o
+  hífen conforme a digitação), não redige — não existe helper de redação no front hoje, então ele
+  nasce junto.
 - `[BACKLOG]` A busca por nome usa só `first_name`; sobrenome (`last_name`) não entra. Quem procura
   "Silva" não acha ninguém. Não virou UC porque o charter diz "busca por matrícula, nome ou CPF" sem
   definir o que é "nome" — é ambiguidade de contrato, e inventar a resposta seria pior que registrar.

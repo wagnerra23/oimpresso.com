@@ -832,7 +832,8 @@ function App() {
   if (route === "estoque" || (typeof route === "string" && route.indexOf("est-") === 0)) content = <window.EstoquePage view={route} papel={tweaks.estPapel} dense={tweaks.estDensidade === "compacto"} lote={tweaks.estLote} />;else
   if (route === "assets" || (typeof route === "string" && route.indexOf("pat-") === 0)) content = <window.PatrimonioPage view={route} dense={tweaks.patDensidade === "compacto"} estado={tweaks.patEstado} toque={tweaks.patToque} papel={tweaks.patPapel} />;else
   if (route === "repair" || (typeof route === "string" && route.indexOf("rep-") === 0)) content = <window.RepairPage view={route} dense={tweaks.repDensidade === "compacto"} estado={tweaks.repEstado} papel={tweaks.repPapel} />;else
-  if (route === "ponto") content = <window.PontoPage />;else
+  // D-PONTO-DETALHE ([W] 2026-09-14): rota própria. Prefixo `pt-` no shell, como pat-/rep-/hrm- já fazem.
+  if (route === "ponto" || (typeof route === "string" && route.indexOf("pt-") === 0)) content = <window.PontoPage view={route} />;else
   if (route === "hrm" || (typeof route === "string" && route.indexOf("hrm-") === 0)) content = <window.HrmPage view={route} />;else
   if (route === "essenciais" || (typeof route === "string" && route.indexOf("ess-") === 0)) content = <window.EssenciaisPage view={route} />;else
   if (typeof route === "string" && route.indexOf("cfg-") === 0) content = <window.ConfiguracoesPage view={route} />;else
@@ -927,7 +928,7 @@ function App() {
         onClick={() => setMobileMenuOpen((v) => !v)}
         aria-label={mobileMenuOpen ? "Fechar menu" : "Abrir menu"}
         aria-expanded={mobileMenuOpen}>
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
             {mobileMenuOpen ?
           <path d="M18 6 6 18M6 6l12 12" /> :
           <path d="M3 12h18M3 6h18M3 18h18" />}
@@ -937,12 +938,12 @@ function App() {
       {isMobile && mobileMenuOpen &&
       <div className="sb-mobile-backdrop" onClick={() => setMobileMenuOpen(false)} />
       }
-      <div className="main">
+      <main className="main">
         <Header company={company} route={route} onSelectRoute={handleSelectRoute}
         prodType={prodType} onProdType={setProdType}
         chatTab={janaTab} onChatTab={setChatTab} />
         <div className="main-body"><RouteErrorBoundary key={route + ":" + tick}><RouteSlot>{content}</RouteSlot></RouteErrorBoundary></div>
-      </div>
+      </main>
       {showLaravel && <LaravelPanel onClose={() => setShowLaravel(false)} />}
       {window.CommandPalette &&
       <window.CommandPalette open={cmdOpen} onClose={() => setCmdOpen(false)}
