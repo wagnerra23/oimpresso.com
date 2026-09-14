@@ -161,32 +161,32 @@ function montarPolicies(grupos?: any) {
 }
 
 describe('governance/Policies — busca local e aviso de rastro', () => {
-  it('CONTROLE POSITIVO: as duas regras aparecem sem busca', () => {
+  it('UC-GPOL-01 · CONTROLE POSITIVO: o catálogo inteiro aparece sem busca', () => {
     montarPolicies();
     expect(screen.getByText('block_delete')).toBeTruthy();
     expect(screen.getByText('nfe_guard')).toBeTruthy();
   });
 
-  it('avisa que alternar não deixa rastro — mcp_governance_rule_history não existe', () => {
+  it('UC-GPOL-04 · avisa que alternar não deixa rastro — mcp_governance_rule_history não existe', () => {
     montarPolicies();
     expect(screen.getByText(/Alternar não deixa rastro/i)).toBeTruthy();
   });
 
-  it('busca por chave filtra e mantém só a que bate', () => {
+  it('UC-GPOL-08 · busca por chave filtra e mantém só a que bate', () => {
     montarPolicies();
     fireEvent.change(screen.getByLabelText(/buscar política/i), { target: { value: 'nfe' } });
     expect(screen.queryByText('block_delete')).toBeNull();
     expect(screen.getByText('nfe_guard')).toBeTruthy();
   });
 
-  it('busca casa por CATEGORIA também, não só por chave', () => {
+  it('UC-GPOL-08 · busca casa por CATEGORIA também, não só por chave', () => {
     montarPolicies();
     fireEvent.change(screen.getByLabelText(/buscar política/i), { target: { value: 'seguranca' } });
     expect(screen.getByText('block_delete')).toBeTruthy();
     expect(screen.queryByText('nfe_guard')).toBeNull();
   });
 
-  it('busca sem resultado mostra o vazio e devolve o catálogo ao limpar', () => {
+  it('UC-GPOL-08 · busca sem resultado mostra o vazio e devolve o catálogo ao limpar', () => {
     montarPolicies();
     const campo = screen.getByLabelText(/buscar política/i);
     fireEvent.change(campo, { target: { value: 'zzzz-nao-existe' } });
@@ -197,13 +197,13 @@ describe('governance/Policies — busca local e aviso de rastro', () => {
     expect(screen.getByText('nfe_guard')).toBeTruthy();
   });
 
-  it('catálogo vazio NÃO é o vazio de busca — a mensagem é a do catálogo', () => {
+  it('UC-GPOL-09 · catálogo vazio NÃO é o vazio de busca — a mensagem é a do catálogo', () => {
     montarPolicies([]);
     expect(screen.getByText(/Sem rules ainda/i)).toBeTruthy();
     expect(screen.queryByLabelText(/buscar política/i)).toBeNull();
   });
 
-  it('anti-hook do charter: desligada continua na lista quando não há busca', () => {
+  it('UC-GPOL-01 · anti-hook do charter: desligada continua na lista quando não há busca', () => {
     montarPolicies([
       { category: 'seguranca', rules: [{ ...REGRA(1, 'off_rule', 'Desligada', 'seguranca'), enabled: false }] },
     ]);

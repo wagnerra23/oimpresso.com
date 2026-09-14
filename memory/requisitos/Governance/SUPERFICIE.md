@@ -14,7 +14,7 @@ module: Governance
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Governance/**` + `resources/js/Pages/governance/**` (namespace Inertia `governance`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `Governance` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 170 arquivos em 15 papéis.
+**Total mapeado:** 171 arquivos em 15 papéis.
 
 ## Controllers — 10
 
@@ -151,9 +151,10 @@ module: Governance
 - [Policies.charter.md](../../../resources/js/Pages/governance/Policies.charter.md)
 - [QualidadeIa.charter.md](../../../resources/js/Pages/governance/QualidadeIa.charter.md)
 
-## Casos (contrato UC) — 1
+## Casos (contrato UC) — 2
 
 - [DsRollout.casos.md](../../../resources/js/Pages/governance/DsRollout.casos.md)
+- [Policies.casos.md](../../../resources/js/Pages/governance/Policies.casos.md)
 
 ## Testes (Pest) — 60
 

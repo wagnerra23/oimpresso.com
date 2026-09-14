@@ -18,7 +18,7 @@ import { test, expect } from '@playwright/test';
 //
 // Locators RESILIENTES (role/text), nunca classe CSS (L-24).
 
-test('a tela de políticas abre com os 4 KPIs do MVP', async ({ page }) => {
+test('UC-GPOL-02 · a tela de políticas abre com os 4 KPIs do MVP', async ({ page }) => {
   // A rota exige `can:governance.dashboard.view` desde a ADR 0392 §D-D passo 2.
   await page.goto('/governance/policies');
   await page.waitForLoadState('networkidle');
@@ -32,7 +32,7 @@ test('a tela de políticas abre com os 4 KPIs do MVP', async ({ page }) => {
   }
 });
 
-test('alternar uma política não abre modal de confirmação', async ({ page }) => {
+test('UC-GPOL-03 · alternar uma política não abre modal de confirmação', async ({ page }) => {
   // O charter lista modal de confirmação como ANTI-PADRÃO explícito: o toggle é
   // reversível, e o modal só atrita. Canon = ação direta + flash.
   await page.goto('/governance/policies');
@@ -54,9 +54,12 @@ test('alternar uma política não abre modal de confirmação', async ({ page })
   await expect(page.getByRole('dialog')).toHaveCount(0);
 });
 
-test.fixme('a tela avisa que alternar não deixa rastro', async ({ page }) => {
-  // PENDENTE porque a copy NÃO EXISTE — medido, não suposto:
-  //   rg "rastro|históric" Policies.tsx + Policies.charter.md → 0 ocorrências.
+test.fixme('UC-GPOL-04 · a tela avisa que alternar não deixa rastro', async ({ page }) => {
+  // PENDENTE. ⚠️ O motivo MUDOU e o anterior caducou: em 2026-09-08 este caso era fixme porque a copy
+  // não existia (rg "rastro|históric" em Policies.tsx + charter → 0). Ela passou a existir em 2026-09-09
+  // (#7089), e hoje é UC-GPOL-04, travada por vitest. O que mantém o fixme agora é OUTRA coisa, e é a
+  // mesma desta lane inteira: o aviso só renderiza com `rules_by_category.length > 0`, e nenhum seeder
+  // popula `mcp_governance_rules` — a tela cai no EmptyState e o texto não chega ao DOM.
   // O playbook pede este aviso porque `mcp_governance_rule_history` não existe (§5
   // item 4 do 00-INDICE.md) — alternar uma política de enforcement de runtime hoje é
   // uma mudança SEM trilha. O charter até lista "toggle sem registrar histórico" como
@@ -66,7 +69,7 @@ test.fixme('a tela avisa que alternar não deixa rastro', async ({ page }) => {
   await expect(page.getByText(/não deixa rastro/i)).toBeVisible();
 });
 
-test.fixme('o toggle respeita o throttle de 10 por minuto', async ({ page }) => {
+test.fixme('UC-GPOL-07 · o toggle respeita o throttle de 10 por minuto', async ({ page }) => {
   // PENDENTE por ESCOLHA DE ORÁCULO, não por falta de seed. Provar `throttle:10,1` no
   // navegador exige disparar 11 POSTs reais de toggle — 11 escritas numa tabela de
   // enforcement, para medir uma propriedade que é do REGISTRY de rotas e que o
@@ -76,7 +79,14 @@ test.fixme('o toggle respeita o throttle de 10 por minuto', async ({ page }) => 
   await page.goto('/governance/policies');
 });
 
-test.fixme('usuário sem governance.policies.edit não consegue alternar', async ({ page }) => {
+// UC-GPOL-05 (não existe alternar em lote) — AUSÊNCIA REGISTRADA, não prova.
+// O Non-Goal do charter ("❌ Bulk toggle — 1 rule por vez") não tem teste nenhum hoje, em
+// nenhum runner. A frente 03a do playbook proíbe escrever teste novo aqui (seriam 2 assuntos
+// no mesmo PR), então o id fica citado para que a lacuna apareça na fila do casos-gate em vez
+// de sumir. Quem for fechá-la: o lugar barato é um assert de que a tela não renderiza controle
+// de seleção múltipla, junto do vitest que já monta a tela.
+
+test.fixme('UC-GPOL-06 · usuário sem governance.policies.edit não consegue alternar', async ({ page }) => {
   // PENDENTE por BLOQUEIO ESTRUTURAL conhecido — D-GATE, e não é defeito deste spec.
   // Duas razões independentes, cada uma suficiente:
   //  (1) `AuthServiceProvider` registra um `Gate::before` que devolve `true` para a role
