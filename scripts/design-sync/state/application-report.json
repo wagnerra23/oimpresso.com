@@ -1,39 +1,131 @@
 {
   "schema": "oimpresso-design-application-report/3",
-  "generatedAt": "2026-09-10T19:55:24.195Z",
+  "generatedAt": "2026-09-14T11:48:37.133Z",
   "bundle": {
-    "id": "5c0ebe0985d95176f4662041bb717d98f8ef152b9542a3697bff469677611e9d",
-    "baseId": "545cc4696ab84735b412438dc8a492472d7a3876fe35eea2e37678ff50b0a757",
+    "id": "71ed0cfdb7e1dfbf04692957d7660f53346a8293e92387616f8de45b7ab27ca3",
+    "baseId": "5c0ebe0985d95176f4662041bb717d98f8ef152b9542a3697bff469677611e9d",
     "mode": "delta",
     "source": "cowork:oimpresso.com.html",
     "transportComplete": true
   },
   "summary": {
-    "transportChanges": 2,
-    "screens": 153,
+    "transportChanges": 15,
+    "screens": 161,
     "tested": 0,
     "smoked": 0,
     "lifecycle": {
-      "anchored": 129,
-      "compared": 3,
-      "to-create": 21
+      "anchored": 134,
+      "to-create": 20,
+      "blocked": 7
     },
-    "pending": 132,
-    "to-create": 21
+    "pending": 134,
+    "to-create": 20,
+    "blocked": 7
   },
   "transportChanges": [
     {
+      "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/_ds_bundle.js",
+      "change": "modified",
+      "bytes": 348179,
+      "sha256": "c793dde365807e96fbf20b5f9b2f7a5d47977261c82809114b22504b5e991765",
+      "role": "preview-cache"
+    },
+    {
+      "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-sans-500.woff2",
+      "change": "deleted",
+      "bytes": 45712,
+      "sha256": "e2291e842cf5af167122a22881a740c7f2dda7716f1e8cd76680264f4a859470",
+      "role": "preview-cache"
+    },
+    {
+      "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-sans-600.woff2",
+      "change": "deleted",
+      "bytes": 45712,
+      "sha256": "e2291e842cf5af167122a22881a740c7f2dda7716f1e8cd76680264f4a859470",
+      "role": "preview-cache"
+    },
+    {
+      "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-sans-700.woff2",
+      "change": "deleted",
+      "bytes": 45712,
+      "sha256": "e2291e842cf5af167122a22881a740c7f2dda7716f1e8cd76680264f4a859470",
+      "role": "preview-cache"
+    },
+    {
+      "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/colors_and_type.css",
+      "change": "modified",
+      "bytes": 19917,
+      "sha256": "d7ca67bd692a92deb21461f5f5889e092e183791d051e1e0ffdb27a47cf7dfc0",
+      "role": "preview-cache"
+    },
+    {
+      "path": "app.jsx",
+      "change": "modified",
+      "bytes": 75042,
+      "sha256": "eeff9e8d1b219d9230ac629fd8f070f8e382653832cf824b9bc8dac8c4ceac46",
+      "role": "cowork-source"
+    },
+    {
       "path": "documentacao-page.jsx",
       "change": "modified",
-      "bytes": 54038,
-      "sha256": "434b9907319d47c0b8dc4b6ae4b840b3908734299317f4f7128737a81b1d4475",
+      "bytes": 60394,
+      "sha256": "e5b1e9fd81fd42088c35c5ca6fcdda5c43c7e875dd9685dd6411507cb028ddef",
+      "role": "cowork-source"
+    },
+    {
+      "path": "governance-page.css",
+      "change": "modified",
+      "bytes": 17753,
+      "sha256": "2a5e926a57a39b2ab4a9e40a71b7162275bb09b33dd6384cf44378546d200c9d",
+      "role": "cowork-source"
+    },
+    {
+      "path": "governance-page.jsx",
+      "change": "modified",
+      "bytes": 20663,
+      "sha256": "c7cf5c4040a674ec9b0415d4cee7e4e00a0e4d989cc44a152bda09d5fba5dec2",
+      "role": "cowork-source"
+    },
+    {
+      "path": "icons.jsx",
+      "change": "modified",
+      "bytes": 12538,
+      "sha256": "8f776669afa1cad0d1e7e65458e09ae7daa2c186232aaf6a53ae6deec32826ae",
       "role": "cowork-source"
     },
     {
       "path": "oimpresso.com.html",
       "change": "modified",
-      "bytes": 34753,
-      "sha256": "3c4e3249e8d759300cef3224182cf4ca2500f68e3f5bae67a4ab5e5e9c94c11d",
+      "bytes": 34758,
+      "sha256": "450f420df704f3a4fc9c8119048755d285adba8179a28c5b8770cdf2763a0019",
+      "role": "cowork-source"
+    },
+    {
+      "path": "perfil-page.css",
+      "change": "modified",
+      "bytes": 11259,
+      "sha256": "ebff7b51f32d928207a4b21709aae9ab732ef524d798754f999553ac5cb0eb16",
+      "role": "cowork-source"
+    },
+    {
+      "path": "perfil-page.jsx",
+      "change": "modified",
+      "bytes": 19850,
+      "sha256": "46a9f5f0dec9d45e5471ba85a378667340420310d866439e8a9417e567087cc2",
+      "role": "cowork-source"
+    },
+    {
+      "path": "sidebar.jsx",
+      "change": "modified",
+      "bytes": 34969,
+      "sha256": "ba800d6f7132e245e47c670680ef30c6ea12250cd8552d380eedb4fd6665189e",
+      "role": "cowork-source"
+    },
+    {
+      "path": "styles.css",
+      "change": "modified",
+      "bytes": 222644,
+      "sha256": "95ceae890e3b966312c3acf2e4944eabfc24b83c46a5ccfb2a1e7555a14163ea",
       "role": "cowork-source"
     }
   ],
@@ -60,23 +152,19 @@
       "module": "Backup",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "compared",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
-      "compared": true,
+      "compared": false,
       "tested": false,
       "smoked": false,
       "applicationEvidence": {
-        "comparison": {
-          "map": "memory/requisitos/Backup/backup-index.map.json",
-          "mapSha256": "1064b6327744f384fc05bf807fce000d9e0a0aabe308afd19ba2c60d63cb7790",
-          "recordedAt": "2026-09-06T19:13:58.487Z"
-        },
+        "comparison": null,
         "application": null,
         "tests": [],
         "smokes": [],
         "targetSha256": "03c0b54b4397a125c3c4b65d9224721d06d368bca710b30fa61bcb67c97445a4"
       },
-      "nextAction": "aplicar no alvo e registrar evidência durável"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "boletos-page.jsx",
@@ -96,10 +184,10 @@
     {
       "source": "catalogo-qr-page.jsx",
       "bundleChange": "unchanged",
-      "target": "—",
-      "module": null,
-      "mapping": "registro a-criar",
-      "comparison": "A-CRIAR",
+      "target": "resources/js/Pages/ProductCatalogue/CatalogueQr.tsx",
+      "module": "ProductCatalogue",
+      "mapping": "charter.component",
+      "comparison": "ALVO-PENDENTE",
       "lifecycleState": "to-create",
       "applicationState": "to-create",
       "compared": false,
@@ -317,6 +405,21 @@
       "smoked": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
+    },
+    {
+      "source": "compras-grade-matrix.jsx",
+      "bundleChange": "unchanged",
+      "target": "resources/js/Pages/Purchase/Create.tsx",
+      "module": "Purchase",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "compras-page.jsx",
@@ -694,6 +797,21 @@
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
+      "source": "fiscal-actions.jsx",
+      "bundleChange": "unchanged",
+      "target": "resources/js/Pages/Fiscal/Cockpit.tsx",
+      "module": "Fiscal",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+    },
+    {
       "source": "fiscal-page.jsx",
       "bundleChange": "unchanged",
       "target": "resources/js/Pages/Fiscal/Cockpit.tsx",
@@ -935,7 +1053,7 @@
     },
     {
       "source": "governance-page.jsx",
-      "bundleChange": "unchanged",
+      "bundleChange": "modified",
       "target": "resources/js/Pages/governance/Audit.tsx",
       "module": "governance",
       "mapping": "charter.component",
@@ -950,7 +1068,7 @@
     },
     {
       "source": "governance-page.jsx",
-      "bundleChange": "unchanged",
+      "bundleChange": "modified",
       "target": "resources/js/Pages/governance/Dashboard.tsx",
       "module": "governance",
       "mapping": "charter.component",
@@ -965,7 +1083,7 @@
     },
     {
       "source": "governance-page.jsx",
-      "bundleChange": "unchanged",
+      "bundleChange": "modified",
       "target": "resources/js/Pages/governance/DriftAlerts.tsx",
       "module": "governance",
       "mapping": "charter.component",
@@ -980,7 +1098,7 @@
     },
     {
       "source": "governance-page.jsx",
-      "bundleChange": "unchanged",
+      "bundleChange": "modified",
       "target": "resources/js/Pages/governance/ModuleGrades/Index.tsx",
       "module": "governance",
       "mapping": "charter.component",
@@ -995,7 +1113,7 @@
     },
     {
       "source": "governance-page.jsx",
-      "bundleChange": "unchanged",
+      "bundleChange": "modified",
       "target": "resources/js/Pages/governance/Policies.tsx",
       "module": "governance",
       "mapping": "charter.component",
@@ -1245,14 +1363,128 @@
       "compared": false,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": {
-        "comparison": null,
-        "application": null,
-        "tests": [],
-        "smokes": [],
-        "targetSha256": "46d7e8bb4b72ea14a75d8340d35729d0c5b165f6f6479882138a2c3914ec5174"
-      },
+      "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+    },
+    {
+      "source": "legado/financeiro-assinatura-atualizar/assinatura-atualizar-page.jsx",
+      "bundleChange": "unchanged",
+      "target": "—",
+      "module": null,
+      "mapping": "nenhum",
+      "comparison": "ORFAO",
+      "lifecycleState": "blocked",
+      "applicationState": "blocked",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "applicationEvidence": null,
+      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+    },
+    {
+      "source": "legado/financeiro-contador/contador-page.jsx",
+      "bundleChange": "unchanged",
+      "target": "—",
+      "module": null,
+      "mapping": "nenhum",
+      "comparison": "ORFAO",
+      "lifecycleState": "blocked",
+      "applicationState": "blocked",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "applicationEvidence": null,
+      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+    },
+    {
+      "source": "legado/nfe-tributacao/nfe-tributacao-page.jsx",
+      "bundleChange": "unchanged",
+      "target": "—",
+      "module": null,
+      "mapping": "nenhum",
+      "comparison": "ORFAO",
+      "lifecycleState": "blocked",
+      "applicationState": "blocked",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "applicationEvidence": null,
+      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+    },
+    {
+      "source": "legado/nfse-emitir/nfse-emitir-page.jsx",
+      "bundleChange": "unchanged",
+      "target": "—",
+      "module": null,
+      "mapping": "nenhum",
+      "comparison": "ORFAO",
+      "lifecycleState": "blocked",
+      "applicationState": "blocked",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "applicationEvidence": null,
+      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+    },
+    {
+      "source": "legado/payment-gateway-cnab/cnab-retorno-page.jsx",
+      "bundleChange": "unchanged",
+      "target": "—",
+      "module": null,
+      "mapping": "nenhum",
+      "comparison": "ORFAO",
+      "lifecycleState": "blocked",
+      "applicationState": "blocked",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "applicationEvidence": null,
+      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+    },
+    {
+      "source": "legado/payment-gateway-ui/cobranca-page.jsx",
+      "bundleChange": "unchanged",
+      "target": "—",
+      "module": null,
+      "mapping": "registro a-criar",
+      "comparison": "A-CRIAR",
+      "lifecycleState": "to-create",
+      "applicationState": "to-create",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "applicationEvidence": null,
+      "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
+    },
+    {
+      "source": "legado/recurring-billing-planos/planos-form-page.jsx",
+      "bundleChange": "unchanged",
+      "target": "—",
+      "module": null,
+      "mapping": "nenhum",
+      "comparison": "ORFAO",
+      "lifecycleState": "blocked",
+      "applicationState": "blocked",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "applicationEvidence": null,
+      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+    },
+    {
+      "source": "legado/transaction-payment/transaction-payment-page.jsx",
+      "bundleChange": "unchanged",
+      "target": "—",
+      "module": null,
+      "mapping": "nenhum",
+      "comparison": "ORFAO",
+      "lifecycleState": "blocked",
+      "applicationState": "blocked",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "applicationEvidence": null,
+      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
     },
     {
       "source": "manufacturing-insumos.jsx",
@@ -1601,18 +1833,18 @@
     },
     {
       "source": "perfil-page.jsx",
-      "bundleChange": "unchanged",
-      "target": "—",
-      "module": null,
-      "mapping": "registro a-criar",
-      "comparison": "A-CRIAR",
-      "lifecycleState": "to-create",
-      "applicationState": "to-create",
+      "bundleChange": "modified",
+      "target": "resources/js/Pages/User/Perfil.tsx",
+      "module": "User",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
       "compared": false,
       "tested": false,
       "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "pg-cobranca-page.jsx",
@@ -1621,23 +1853,13 @@
       "module": "Financeiro",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "compared",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
-      "compared": true,
+      "compared": false,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": {
-        "comparison": {
-          "map": "memory/requisitos/Financeiro/cobranca-index.map.json",
-          "mapSha256": "99a407b4818ecae1b0e02c2c072befbe4b463cc5586274473c97c655edd7dd0e",
-          "recordedAt": "2026-09-06T19:14:03.718Z"
-        },
-        "application": null,
-        "tests": [],
-        "smokes": [],
-        "targetSha256": "e5f51dea8a4313dfba7c7c0dc325355a765826f0a5cacf638d999e52cf9ad69c"
-      },
-      "nextAction": "aplicar no alvo e registrar evidência durável"
+      "applicationEvidence": null,
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "pg-payment-gateways-page.jsx",
@@ -1646,23 +1868,13 @@
       "module": "PaymentGateway",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "compared",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
-      "compared": true,
+      "compared": false,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": {
-        "comparison": {
-          "map": "memory/requisitos/PaymentGateway/settings-paymentgateways-index.map.json",
-          "mapSha256": "16ba2627f921b3dcaf568cbd4fd4b450f0bf38a854b5746d124997c0f465000d",
-          "recordedAt": "2026-09-06T19:14:02.036Z"
-        },
-        "application": null,
-        "tests": [],
-        "smokes": [],
-        "targetSha256": "363a0f298f9a024364772f7aea4d069e306dded78600bcb0bf570c4122749279"
-      },
-      "nextAction": "aplicar no alvo e registrar evidência durável"
+      "applicationEvidence": null,
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "planilhas-page.jsx",
@@ -2042,25 +2254,10 @@
     {
       "source": "programa-doc-page.jsx",
       "bundleChange": "unchanged",
-      "target": "—",
-      "module": null,
-      "mapping": "registro a-criar",
-      "comparison": "A-CRIAR",
-      "lifecycleState": "to-create",
-      "applicationState": "to-create",
-      "compared": false,
-      "tested": false,
-      "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
-    },
-    {
-      "source": "prototipos/payment-gateway-ui/cobranca-page.jsx",
-      "bundleChange": "unchanged",
-      "target": "—",
-      "module": null,
-      "mapping": "registro a-criar",
-      "comparison": "A-CRIAR",
+      "target": "resources/js/Pages/Documentacao/Programa.tsx",
+      "module": "Documentacao",
+      "mapping": "charter.component",
+      "comparison": "ALVO-PENDENTE",
       "lifecycleState": "to-create",
       "applicationState": "to-create",
       "compared": false,
@@ -2280,21 +2477,6 @@
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
     {
-      "source": "venda-v3/sells-create.jsx",
-      "bundleChange": "unchanged",
-      "target": "resources/js/Pages/Sells/CreateV3.tsx",
-      "module": "Sells",
-      "mapping": "charter.component",
-      "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
-      "applicationState": "pending",
-      "compared": false,
-      "tested": false,
-      "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
-    },
-    {
       "source": "vendas-create-page.jsx",
       "bundleChange": "unchanged",
       "target": "resources/js/Pages/Sells/Create.tsx",
@@ -2357,10 +2539,10 @@
     {
       "source": "voz-do-cliente-page.jsx",
       "bundleChange": "unchanged",
-      "target": "—",
-      "module": null,
-      "mapping": "registro a-criar",
-      "comparison": "A-CRIAR",
+      "target": "resources/js/Pages/VozDoCliente/Caixa.tsx",
+      "module": "VozDoCliente",
+      "mapping": "charter.component",
+      "comparison": "ALVO-PENDENTE",
       "lifecycleState": "to-create",
       "applicationState": "to-create",
       "compared": false,
@@ -2373,8 +2555,8 @@
   "manifestFiles": [
     {
       "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/_ds_bundle.js",
-      "bytes": 348172,
-      "sha256": "a3ac15c110308f9bda133c1b210ad37cb962af30232a0dad6a35df51421950b0",
+      "bytes": 348179,
+      "sha256": "c793dde365807e96fbf20b5f9b2f7a5d47977261c82809114b22504b5e991765",
       "role": "preview-cache"
     },
     {
@@ -2402,24 +2584,6 @@
       "role": "preview-cache"
     },
     {
-      "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-sans-500.woff2",
-      "bytes": 45712,
-      "sha256": "e2291e842cf5af167122a22881a740c7f2dda7716f1e8cd76680264f4a859470",
-      "role": "preview-cache"
-    },
-    {
-      "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-sans-600.woff2",
-      "bytes": 45712,
-      "sha256": "e2291e842cf5af167122a22881a740c7f2dda7716f1e8cd76680264f4a859470",
-      "role": "preview-cache"
-    },
-    {
-      "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-sans-700.woff2",
-      "bytes": 45712,
-      "sha256": "e2291e842cf5af167122a22881a740c7f2dda7716f1e8cd76680264f4a859470",
-      "role": "preview-cache"
-    },
-    {
       "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/cockpit_domains.css",
       "bytes": 5705,
       "sha256": "77046b89f2bad6c22acd8140357a76587d0bb9e84c403edc1423afcc374b4fa4",
@@ -2428,7 +2592,7 @@
     {
       "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/colors_and_type.css",
       "bytes": 19917,
-      "sha256": "fbe2cf878e9a9012c421d9f1f288f4feff2e900e6856dbe41f56749f1c22eb20",
+      "sha256": "d7ca67bd692a92deb21461f5f5889e092e183791d051e1e0ffdb27a47cf7dfc0",
       "role": "preview-cache"
     },
     {
@@ -2451,8 +2615,8 @@
     },
     {
       "path": "app.jsx",
-      "bytes": 74738,
-      "sha256": "b98c332790aa275c4acd883c29c00f1ebf6dfc0baee2b5b22e07718dd13a5000",
+      "bytes": 75042,
+      "sha256": "eeff9e8d1b219d9230ac629fd8f070f8e382653832cf824b9bc8dac8c4ceac46",
       "role": "cowork-source"
     },
     {
@@ -2823,8 +2987,8 @@
     },
     {
       "path": "documentacao-page.jsx",
-      "bytes": 54038,
-      "sha256": "434b9907319d47c0b8dc4b6ae4b840b3908734299317f4f7128737a81b1d4475",
+      "bytes": 60394,
+      "sha256": "e5b1e9fd81fd42088c35c5ca6fcdda5c43c7e875dd9685dd6411507cb028ddef",
       "role": "cowork-source"
     },
     {
@@ -3165,14 +3329,14 @@
     },
     {
       "path": "governance-page.css",
-      "bytes": 15757,
-      "sha256": "19c8d3317994350f5ae9cde36a1d4e6c3ecc3650fe6ffc173c4b25871fc1fc54",
+      "bytes": 17753,
+      "sha256": "2a5e926a57a39b2ab4a9e40a71b7162275bb09b33dd6384cf44378546d200c9d",
       "role": "cowork-source"
     },
     {
       "path": "governance-page.jsx",
-      "bytes": 20212,
-      "sha256": "13a73d59c16ca6f23454185f7730332c60c856d7f6b59bee0b7d349aa4387054",
+      "bytes": 20663,
+      "sha256": "c7cf5c4040a674ec9b0415d4cee7e4e00a0e4d989cc44a152bda09d5fba5dec2",
       "role": "cowork-source"
     },
     {
@@ -3219,8 +3383,8 @@
     },
     {
       "path": "icons.jsx",
-      "bytes": 12255,
-      "sha256": "9c7999c4d8ac2db8f70474ebf787b531a2c4ae13534e56a142e690b43628cb1c",
+      "bytes": 12538,
+      "sha256": "8f776669afa1cad0d1e7e65458e09ae7daa2c186232aaf6a53ae6deec32826ae",
       "role": "cowork-source"
     },
     {
@@ -3543,8 +3707,8 @@
     },
     {
       "path": "oimpresso.com.html",
-      "bytes": 34753,
-      "sha256": "3c4e3249e8d759300cef3224182cf4ca2500f68e3f5bae67a4ab5e5e9c94c11d",
+      "bytes": 34758,
+      "sha256": "450f420df704f3a4fc9c8119048755d285adba8179a28c5b8770cdf2763a0019",
       "role": "cowork-source"
     },
     {
@@ -3591,14 +3755,14 @@
     },
     {
       "path": "perfil-page.css",
-      "bytes": 9393,
-      "sha256": "1dd6091cccf21b3ca8d5410dc42a71838d1c75babb95a25ad25fc79a0901ebcb",
+      "bytes": 11259,
+      "sha256": "ebff7b51f32d928207a4b21709aae9ab732ef524d798754f999553ac5cb0eb16",
       "role": "cowork-source"
     },
     {
       "path": "perfil-page.jsx",
-      "bytes": 19827,
-      "sha256": "9143ae686aca09fe0c07b75d6b195a1f232f59e6fe4665c83f99243efd2c1d65",
+      "bytes": 19850,
+      "sha256": "46a9f5f0dec9d45e5471ba85a378667340420310d866439e8a9417e567087cc2",
       "role": "cowork-source"
     },
     {
@@ -3861,14 +4025,14 @@
     },
     {
       "path": "sidebar.jsx",
-      "bytes": 27712,
-      "sha256": "3ff806aa4f0456009842c81b4de1b37dd484729a01563c8d473eace7e1487349",
+      "bytes": 34969,
+      "sha256": "ba800d6f7132e245e47c670680ef30c6ea12250cd8552d380eedb4fd6665189e",
       "role": "cowork-source"
     },
     {
       "path": "styles.css",
-      "bytes": 219505,
-      "sha256": "4b648aa50d7304651f212a296d46da7361655328347625519a2e4c1f199599dd",
+      "bytes": 222644,
+      "sha256": "95ceae890e3b966312c3acf2e4944eabfc24b83c46a5ccfb2a1e7555a14163ea",
       "role": "cowork-source"
     },
     {

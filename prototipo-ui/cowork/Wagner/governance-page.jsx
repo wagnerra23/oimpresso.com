@@ -44,10 +44,18 @@ function useDefer(ms = 700, dep) {
   return pronto;
 }
 
-function Esqueleto({ variant = "row", count = 3 }) {
+// A11y: carga diferida (Inertia::defer) trocava o esqueleto por conteúdo em silêncio para leitor de
+// tela. O role="status" + aria-live="polite" anuncia a troca; o texto fica só no fluxo acessível.
+function Esqueleto({ variant = "row", count = 3, rotulo = "Carregando a seção" }) {
   const { Skeleton } = ds();
-  if (!Skeleton) return <div className="gov-skel" aria-hidden="true">{Array.from({ length: count }, (_, i) => <i key={i}></i>)}</div>;
-  return <Skeleton variant={variant} count={count} />;
+  return (
+    <div className="gov-carregando" role="status" aria-live="polite">
+      <span className="gov-sr">{rotulo}…</span>
+      {Skeleton
+        ? <Skeleton variant={variant} count={count} />
+        : <div className="gov-skel" aria-hidden="true">{Array.from({ length: count }, (_, i) => <i key={i}></i>)}</div>}
+    </div>
+  );
 }
 
 function Selo({ tone = "mute", children }) {
@@ -165,7 +173,7 @@ function Decisoes() {
           ))}
         </ul>
       </Secao>
-      <Secao titulo="Ocorrências em 24 horas" sub="Chamadas ao servidor MCP com resultado diferente de concluído. Detalhe completo na vista de auditoria." contrato="aguardando-decisao">
+      <Secao titulo="Ocorrências em 24 horas" sub="Chamadas ao servidor MCP com resultado diferente de concluído. Detalhe completo na vista de auditoria." contrato="ocorrencias-24h">
         <ul className="gov-ocor">
           {OCORRENCIAS.map((o, i) => (
             <li key={i}>
@@ -196,7 +204,7 @@ function SecaoMcp({ semPermissao, fonteAusente }) {
     <Secao titulo="Governança MCP" contrato="mcp-secao"
       sub="Consumo cross-team do servidor MCP. A seção herda a permissão da tela de origem — jana.mcp.usage.all —, não a do painel."
       direita={
-        <window.CliSeg ariaLabel="Período" value={preset} onChange={setPreset} options={PERIODOS.map((p) => ({ key: p.id, label: p.l }))} />
+        <span data-contract="mcp-periodo"><window.CliSeg ariaLabel="Período" value={preset} onChange={setPreset} options={PERIODOS.map((p) => ({ key: p.id, label: p.l }))} /></span>
       }>
       {fonteAusente ? (
         <A.Vazio variant="offline" title="mcp_audit_log não existe nesta base"
@@ -397,7 +405,7 @@ function GovernancePage({ view = "painel" }) {
       <header className="os-page-h" data-contract="page-header">
         <div className="os-page-h-l">
           <h1>{TITULOS[aba]}</h1>
-          <p className="tabular">A raiz /governance redireciona para /ia · o painel vive em /governance/dashboard</p>
+          <p className="tabular" data-contract="aviso-rota">A raiz /governance redireciona para /ia · o painel vive em /governance/dashboard</p>
         </div>
         <div className="os-page-h-r">
           {aba === "painel" && (

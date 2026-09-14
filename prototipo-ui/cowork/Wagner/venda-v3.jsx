@@ -1,5 +1,5 @@
 // venda-v3.jsx — VENDA V3 DE PRODUÇÃO (git SSOT · resources/js/Pages/Sells/CreateV3.tsx + _components/v3/*)
-// Build espelhado de prototipo-ui/cowork/Felipe/venda-v3/ no main. Concatenado num único IIFE:
+// Build espelhado de prototipo-ui/cowork/venda-v3/ no main. Concatenado num único IIFE:
 // os arquivos originais eram scripts irmãos que conversavam por globais — aqui o escopo é
 // compartilhado sem vazar nome nenhum pro host (evita colidir com Button/Sec/Grid/brl/Icon do shell).
 // Só `window.VendaV3Create` sai. Nada de .html novo (CLAUDE.md · app único).
