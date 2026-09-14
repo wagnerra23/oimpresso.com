@@ -94,5 +94,33 @@ console.log('\n=== R4 · duplicata de bytes NÃO foi afrouxada junto ===');
     soR3(r).length === 0, soR3(r).join(' | '));
 }
 
+console.log('\n=== R1 · a raiz do protótipo só aceita as duas áreas (e decide pelo DISCO) ===');
+{
+  // POR QUE ESTE CASO NASCEU EM 2026-09-14: a R1 não tinha bite-test NENHUM, e por isso um
+  // conflito real viveu invisível. `design:ingest-zip` criava `prototipo-ui/_incoming/<tela>/`;
+  // como a R1 decide por `readdirSync` (o disco, não o índice do git), o guard passava a
+  // reprovar na máquina de quem rodava o comando — inclusive pelo painel do protocolo, que o
+  // roda localmente. O CI nunca via: a pasta era gitignored e o checkout não a traz. O staging
+  // foi para `storage/app/design-incoming/`; a R1 continua dura, e agora com quem a prove.
+  const r = rodar({
+    'prototipo-ui/_incoming/vendas/handoff.jsx': 'export const x=1\n',
+    'prototipo-ui/cowork/Wagner/venda-page.jsx': 'export const y=1\n',
+    'prototipo-ui/design-system/tokens.css': ':root{--a:1}\n',
+  });
+  check('BITE: pasta de trabalho na raiz de prototipo-ui/ viola R1',
+    r.errors.some((e) => e.startsWith('R1') && e.includes('_incoming')), r.errors.join(' | '));
+  check('BITE: e o guard reprova', r.code !== 0);
+}
+{
+  // CONTROLE NEGATIVO — sem ele, uma R1 que aceitasse qualquer coisa passaria no bite acima.
+  const r = rodar({
+    'prototipo-ui/cowork/Wagner/venda-page.jsx': 'export const y=1\n',
+    'prototipo-ui/design-system/tokens.css': ':root{--a:1}\n',
+  });
+  check('CONTROLE: raiz só com cowork/ + design-system/ não gera R1',
+    r.errors.filter((e) => e.startsWith('R1')).length === 0, r.errors.join(' | '));
+  check('CONTROLE: e o guard sai 0', r.code === 0, r.errors.join(' | '));
+}
+
 console.log(falhas ? `\n✗ ${falhas} falha(s)` : '\n✓ OK');
 process.exit(falhas ? 1 : 0);
