@@ -1013,7 +1013,7 @@ jobs:
       - name: Git-base-freshness-guard PORTE .mjs (§10.4 · stale morde/solta · roda em Linux)
         if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/git-base-freshness-guard.test.mjs
-      - name: DS-preview-materialize (SessionStart · `_ds/` vazio em worktree fresco morde/solta · [W] 2026-09-02)
+      - name: DS-preview-materialize (SessionStart · shell legado com `_ds/` avisa e NAO recria · BITE por fixture)
         if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/ds-preview-materialize.test.mjs
       - name: Feature-lint (contrato do trio de feature · us-no-spec/dod/plan/covers)
