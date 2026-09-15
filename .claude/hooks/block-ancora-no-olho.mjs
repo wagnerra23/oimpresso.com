@@ -81,7 +81,7 @@ export function decidir(toolName, toolInput) {
     msg:
       `⛔ PRINT DE AUDITORIA NÃO É ÂNCORA: "${basename(fp)}" tem nome de estado-velho-sendo-criticado\n` +
       `   e NÃO é related_prototype de charter nenhum (li os charters em resources/js/Pages/**). Foi o erro #7.\n` +
-      `   A âncora é COMPUTADA do charter: node prototipo-ui/ancora.mjs <Mod/Tela>\n` +
+      `   A âncora é COMPUTADA do charter: node scripts/design/ancora.mjs <Mod/Tela>\n` +
       `   Se ESTE arquivo for mesmo o design aprovado: declare-o em related_prototype no charter da tela.\n` +
       `   Escape (investigar o próprio print, não usar como design): OIMPRESSO_ANCORA_OK=1`,
   };

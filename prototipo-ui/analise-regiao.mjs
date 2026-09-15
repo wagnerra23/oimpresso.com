@@ -10,8 +10,8 @@
 // o crítico escolhido sobre o recorte. Por isso só o roteador é máquina; a crítica é o plugin.
 //
 // Uso:
-//   node prototipo-ui/analise-regiao.mjs --contract <c.json>   # imprime o plano de análise por região
-//   node prototipo-ui/analise-regiao.mjs --selftest
+//   node scripts/design/analise-regiao.mjs --contract <c.json>   # imprime o plano de análise por região
+//   node scripts/design/analise-regiao.mjs --selftest
 //
 // Exit: 0 = ok | 1 = contrato sem seções | 2 = uso
 

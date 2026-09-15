@@ -1,6 +1,6 @@
 ---
 name: comparar-design-prod
-description: BLOQUEADOR de eyeball — ATIVAR SEMPRE que a tarefa envolver COMPARAR design/protótipo com tela em produção ou declarar que estão iguais. Gatilhos "compare o design com a tela", "confira a tela contra o protótipo", "o que mudou no protótipo", "iguale os dois", "está igual ao design?", "as diferenças que o design encontrou", "aplicou certo?", "ficou igual?", "veja se o protocolo funcionou", OU antes de EU declarar "igual/aplicado/fiel ao design" sobre qualquer tela. Carrega o PROTOCOLO-COMPARACAO-RUNTIME (D1–D8) + o mecanismo `prototipo-ui/design-diff.mjs` — comparação é MEDIDA (computed style, mesma sonda nos dois lados), NUNCA no olho. Origem strike 2 (LICOES_CODE LC-06, 2026-07-07)- o agente eyeballou 2x e o Wagner pegou com o canário do alinhamento.
+description: BLOQUEADOR de eyeball — ATIVAR SEMPRE que a tarefa envolver COMPARAR design/protótipo com tela em produção ou declarar que estão iguais. Gatilhos "compare o design com a tela", "confira a tela contra o protótipo", "o que mudou no protótipo", "iguale os dois", "está igual ao design?", "as diferenças que o design encontrou", "aplicou certo?", "ficou igual?", "veja se o protocolo funcionou", OU antes de EU declarar "igual/aplicado/fiel ao design" sobre qualquer tela. Carrega o PROTOCOLO-COMPARACAO-RUNTIME (D1–D8) + o mecanismo `scripts/design/design-diff.mjs` — comparação é MEDIDA (computed style, mesma sonda nos dois lados), NUNCA no olho. Origem strike 2 (LICOES_CODE LC-06, 2026-07-07)- o agente eyeballou 2x e o Wagner pegou com o canário do alinhamento.
 tier: B
 ---
 
@@ -20,7 +20,7 @@ tier: B
    pra infra (LC-07: o PageHeader roxo do [W] driftou no `app.jsx` e a rodada ficou verde).
 2. **Mesmo tema nos dois lados.** O tema é o que o Wagner usa (hoje: dark). Comparar light×dark
    invalida D6 inteira.
-3. **Mesma sonda, medida:** `node prototipo-ui/design-diff.mjs --probe` → injetar a sonda IGUAL
+3. **Mesma sonda, medida:** `node scripts/design/design-diff.mjs --probe` → injetar a sonda IGUAL
    nos dois renders via Chrome MCP (`window.__DD_ROLES` mapeia os seletores por papel: `.fin-stat`
    na prod × `.os-stat` no design) → salvar os 2 JSON → `--compare prod.json design.json --check`.
 4. **Dimensões não-mecanizadas** (D1 rede/partial-reload · D3 ícones · D5 footer/somatórios):
@@ -43,4 +43,4 @@ tier: B
 - Hook camada 2: `.claude/hooks/design-compare-protocol.mjs` (UserPromptSubmit — lembra este fluxo
   se a skill não disparar).
 - `LICOES_CODE.md` LC-06 (classe `visual-compare-eyeball`, two-strikes) · ADR 0299 (`/design-diff`
-  previsto → `prototipo-ui/design-diff.mjs`) · `PROTOCOLO-COMPARACAO-RUNTIME.md` (as 8 dimensões).
+  previsto → `scripts/design/design-diff.mjs`) · `PROTOCOLO-COMPARACAO-RUNTIME.md` (as 8 dimensões).

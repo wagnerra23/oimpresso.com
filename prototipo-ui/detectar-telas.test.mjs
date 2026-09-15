@@ -25,7 +25,7 @@
 //   e que a checagem A falha quando o alvo do ALIAS não existe. (Convenção do
 //   projeto: o self-test prova que a sentinela morde — cf. charter-refs.test.mjs.)
 //
-// Node puro, sem deps/DB/rede. Rodar: node prototipo-ui/detectar-telas.test.mjs
+// Node puro, sem deps/DB/rede. Rodar: node scripts/design/detectar-telas.test.mjs
 //   exit 0 = ALIAS e charters concordam · exit 1 = drift (ou meta-test quebrou).
 
 import { readFileSync, existsSync, mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';

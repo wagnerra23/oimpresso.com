@@ -1944,7 +1944,7 @@
   content: "\2713";
   color: white; font-size: var(--fs-1); font-weight: 700; line-height: 1;
 }
-.fin-toolbar .fin-filter-cb.on .fin-filter-ct{
+.fin-toolbar .fin-filter-cb.on .fin-filter-ct{} /* chave fechada 2026-07-10: rule vazia estava SEM } e engolia (CSS nesting) todo o resto do arquivo */
 /* [W] 2026-06-16: número do filtro SEMPRE na cor do estado, mesmo tratamento on/off
    (sem pílula branca que desalinhava on × off). */
 .fin-toolbar .fin-filter-ct{
@@ -1993,3 +1993,131 @@
 .fin-bcrumb-back:hover svg{ transform: translateX(-2px); }
 .fin-bcrumb-sep{ color: var(--text-mute); opacity: 0.5; font-size: var(--fs-4); }
 .fin-bcrumb-here{ font-weight: 500; color: var(--text); }
+
+/* ══════════════════════════════════════════════════════════════════
+   DS RETUNE 2026-07-10 — o proto CONSOME o DS vigente (mandato [W]:
+   "remova minhas decisões para não atrapalhar… igualar… zerar diferenças").
+   A paleta de neutros do shell (styles.css + ds-v6/tokens.css) está
+   HARDCODED em hue 282 (pré-retune) — o DS canon é neutros 240 + textos
+   warm hue 90 (decisões [W] #3932/#3981/#3982) + primary 0.55 0.15 295
+   (ADR 0190). Cada valor abaixo foi CONFERIDO na prod medida
+   (style-fingerprint prod-1440-dark / prod-1280-light) e nos tokens
+   canon (resources/css/cockpit.css .sb · fin-curadoria.css --fin-* ·
+   tokens/_generated-inertia-dark.css). Este arquivo carrega DEPOIS de
+   styles.css e ds-v6/tokens.css no shell → vence por ordem de cascata.
+   Quando o Cowork re-exportar tokens.css já retunado, este bloco sai.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* Sidebar — DARK FIXO nos 2 temas (espelha cockpit.css .sb, "Menu Fundo
+   Black como no cockpit" Wagner 2026-05-05; gabarito prod: "IA"/"Forja"
+   color 0.78 0.005 90 · bg 0.18 0.006 240; "WR2 Sistemas" 0.96 0.005 90
+   sobre 0.16 0.006 240). Era roxo-tingido hue 295 (styles.css --sb-*). */
+:root{
+  --sb-bg:        oklch(0.18 0.006 240);
+  --sb-bg-2:      oklch(0.16 0.006 240);
+  --sb-border:    oklch(0.28 0.008 240);
+  --sb-text:      oklch(0.78 0.005 90);
+  --sb-text-dim:  oklch(0.58 0.005 90);
+  --sb-text-hi:   oklch(0.96 0.005 90);
+  --sb-hover:     oklch(0.27 0.008 240);
+  --sb-active:    oklch(0.32 0.008 240);
+}
+
+/* Neutros LIGHT — canon medido (fin-curadoria.css: --fin-text 0.30 0.005 240
+   · --fin-text-mute 0.55 0.005 240 · --fin-line 0.92 0.005 240 ·
+   --fin-bg-soft 0.97 0.005 240; canvas cream 0.985 0.003 90 = gabarito
+   prod-1280-light do h1 "Financeiro · Visão unificada"). */
+:root{
+  --bg:        oklch(0.985 0.003 90);
+  --sunken:    oklch(0.97 0.005 240);
+  --border:    oklch(0.92 0.005 240);
+  --hairline:  oklch(0.92 0.005 240);
+  --text:      oklch(0.3 0.005 240);
+  --text-3:    oklch(0.55 0.005 240);
+  --text-4:    oklch(0.55 0.005 240);
+  /* número de KPI (papel "valor monetário forte") */
+  --fin-num:   oklch(0.3 0.005 240);
+}
+
+/* Neutros DARK — canon medido (gabaritos prod-1440-dark: h1 0.965 0.004 240
+   sobre canvas 0.26 0.006 240; KPI card 0.3 0.008 240; filtros "A pagar"
+   0.235 0.01 240; borda universal 0.34 0.008 240; eyebrow "Recebido"
+   0.58 0.005 90; número "R$ …" 0.94 0.005 90 = fin-curadoria dark). */
+[data-theme="dark"]{
+  --bg:        oklch(0.26 0.006 240);
+  --sunken:    oklch(0.235 0.01 240);
+  --surface:   oklch(0.3 0.008 240);
+  --raised:    oklch(0.3 0.008 240);
+  --hairline:  oklch(0.34 0.008 240);
+  --border:    oklch(0.34 0.008 240);
+  --border-2:  oklch(0.28 0.008 240);
+  --text:      oklch(0.965 0.004 240);
+  --text-2:    oklch(0.74 0.008 240);
+  --text-3:    oklch(0.58 0.005 90);
+  --text-4:    oklch(0.58 0.005 90);
+  /* primary canon ADR 0190 — proto estava 0.70 0.15 295 no dark */
+  --accent:      oklch(0.55 0.15 295);
+  --accent-line: oklch(0.45 0.15 295);
+  --accent-fg:   oklch(0.205 0.009 240); /* _generated-inertia-dark --color-primary-foreground */
+  --fin-num:   oklch(0.94 0.005 90);
+}
+
+/* Preflight de borda (paridade Tailwind da prod): a prod computa
+   border-color: var(--color-border) em TODO elemento (preflight);
+   sem isto o proto reporta currentColor (borderColor 66/67 DIVERGE). */
+*, ::before, ::after{ border-color: var(--border); }
+
+/* ── Papel-a-papel (elementos cujo PAPEL difere do token que consumiam) ── */
+
+/* Toolbar/segmentos assentam no CANVAS, não em card (gabarito prod:
+   "button|Ano"/"button|Caixa" bgProprio 0.26 0.006 240 = --bg dark). */
+.fin-root .fin-periodbar{ background: var(--bg); }
+.fin-hero .fin-lens-btn.on{ background: var(--bg); }
+.fin-root .fin-pb-segbtn.on, .cr-root .fin-pb-segbtn.on{
+  background-color: var(--bg) !important;
+  color: var(--text) !important; /* prod: segbtn ativo é texto pleno 0.965, não accent */
+}
+
+/* Radius de CONTROLE: 5px → 4px e wrapper 7px → 6px (token DS; gabarito
+   prod radius 4px em lens/segbtn, 6px nos seg-wrappers). */
+.fin-hero .fin-lens-btn{ border-radius: 4px; }
+.fin-hero .fin-lens-seg{ border-radius: 6px; }
+.fin-pb-segbtn{ border-radius: 4px; }
+.fin-pb-seg{ border-radius: 6px; }
+.fin-toolbar .fin-filter-toggle{ border-radius: 4px; }
+
+/* Sub-título do hero + captions da period bar: papel = texto secundário
+   (--text-2 0.74 0.008 240 na prod: "· Visão unificada", "Filtrar por",
+   "<N> lanç."), não terciário. */
+.fin-root .fin-hero-title-sub{ color: var(--text-2); }
+.fin-pb-cap{ color: var(--text-2); }
+.fin-pb-count{ color: var(--text-2); }
+
+/* Número de KPI: papel "valor monetário" warm (prod: "R$ …" 0.94 0.005 90
+   dark / 0.30 0.005 240 light = --fin-text da fin-curadoria). A prod pinta
+   TODOS os números de KPI neste tom (medido: "Recebido"/"Pago" também 0.94) —
+   .fin-num-pos/neg em stat b já perdia pra .os-stat b por especificidade. */
+.fin-stats .os-stat b{ color: var(--fin-num); }
+
+/* Primário do hero — ADR 0190: bg 0.55 0.15 295 (via --accent acima),
+   borda 0.45 0.15 295, texto branco (prod mede oklch(0.99 0 0)). */
+.fin-root .os-btn.primary{
+  color: oklch(0.99 0 0);
+  border-color: oklch(0.45 0.15 295);
+}
+.fin-root .os-btn.primary:hover{ border-color: oklch(0.45 0.15 295); }
+
+/* ── Retune, rodada 2 (após 1ª medição prod×proto) ── */
+/* fin-boletos.css carrega DEPOIS deste arquivo e re-declara
+   .fin-hero-title-sub / .fin-lens-btn — especificidade maior aqui. */
+.fin-root .fin-hero .fin-hero-title-sub{ color: var(--text-2); }
+/* presets da period bar assentam no canvas (prod: "Dia/Semana/Ano/Tudo" bg 0.26) */
+.fin-root .fin-pb-preset, .cr-root .fin-pb-preset{ background: var(--bg); }
+/* `border: 0/none` reseta border-color pra currentColor e fura o preflight —
+   prod computa var(--border) (0.34 0.008 240) nesses controles */
+.fin-hero .fin-lens-btn{ border-color: var(--border); }
+.fin-pb-segbtn{ border-color: var(--border); }
+/* número do ageing = papel "valor monetário" (mesmo token do KPI) */
+.fin-ageing-l b{ color: var(--fin-num); }
+/* toggle "Só atrasados": prod usa texto terciário (0.58 0.005 90) */
+.fin-toolbar .fin-filter-toggle{ color: var(--text-3); }

@@ -181,6 +181,6 @@ jobs:
         with:
           node-version: '20'
       - name: self-test da catraca (a catraca não pode apodrecer)
-        run: node prototipo-ui/ancora-guard.mjs --selftest
+        run: node scripts/design/ancora-guard.mjs --selftest
       - name: âncoras no lugar fixo prototipo-ui/cowork (full-tree · exit 1 se trocou de lugar)
-        run: node prototipo-ui/ancora-guard.mjs
+        run: node scripts/design/ancora-guard.mjs

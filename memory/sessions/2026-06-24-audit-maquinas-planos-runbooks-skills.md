@@ -6,7 +6,7 @@
 > ⚠️ O adversário catalogou os **furos da própria auditoria** (ver §6) — esta é a versão honesta, não a triunfante.
 
 ## 1. O que foi FEITO nesta sessão (o fio que originou a auditoria)
-1. **`prototipo-ui/detectar-telas.mjs`** criado — gate da Fase 0/0.5 do protocolo `aplicar-prototipo`: lê um bundle Cowork em staging e mapeia cada `arquivo→tela→alvo-no-repo` por 6 estratégias (path-espelhado → charter-irmão → repo-suffix → charter.component → ALIAS → órfão), classifica IDENTICO/ALTERADO/SEMANTICO/ALVO-PENDENTE/ORFAO/AMBIGUO, e **falha (exit 1) se sobrar mockup órfão** ("0 telas perdidas em silêncio"). Fixture hermético + `--selftest` travam o P0 (a tela Venda que duas versões em prosa perdiam).
+1. **`scripts/design/detectar-telas.mjs`** criado — gate da Fase 0/0.5 do protocolo `aplicar-prototipo`: lê um bundle Cowork em staging e mapeia cada `arquivo→tela→alvo-no-repo` por 6 estratégias (path-espelhado → charter-irmão → repo-suffix → charter.component → ALIAS → órfão), classifica IDENTICO/ALTERADO/SEMANTICO/ALVO-PENDENTE/ORFAO/AMBIGUO, e **falha (exit 1) se sobrar mockup órfão** ("0 telas perdidas em silêncio"). Fixture hermético + `--selftest` travam o P0 (a tela Venda que duas versões em prosa perdiam).
 2. **Armado no CI** — step advisory `detectar-telas --selftest` em [`design-memory-gates.yml`](../../.github/workflows/design-memory-gates.yml) + scripts `telas:detect`/`telas:selftest` no `package.json`. (Antes era gate-as-script fora de pipeline.)
 3. **Duplicata REAL deletada** — `scripts/governance/plans-index-generate.mjs` (órfão de CI, gravava `_PLANS-INDEX-GENERATED.md` com underscore) era 100% duplicata de `plans-index.mjs` (vivo, na umbrella). Ambos "GERADOR determinístico do Índice de Planos Vivos (ADR 0294+0256)". Nascidos no PR #3092 ("sessão duplicada"). Sobrevivente: `plans-index.mjs`.
 
@@ -56,5 +56,5 @@ Hoje "tela/ponteiro órfão" é detectado em **≥3 lugares com inputs diferente
 - **Follow-up honesto:** um 2º passo focado só no eixo **artisan (222 comandos PHP)** é o maior buraco em aberto desta auditoria.
 
 ## Refs
-- [`detectar-telas.mjs`](../../prototipo-ui/detectar-telas.mjs) · [`RUNBOOK-aplicar-prototipo-orquestracao.md`](../../prototipo-ui/RUNBOOK-aplicar-prototipo-orquestracao.md) · skill `aplicar-prototipo`
+- [`detectar-telas.mjs`](../../scripts/design/detectar-telas.mjs) · [`RUNBOOK-aplicar-prototipo-orquestracao.md`](../../prototipo-ui/RUNBOOK-aplicar-prototipo-orquestracao.md) · skill `aplicar-prototipo`
 - ADRs centrais: 0273 (âncora Implementado em) · 0297 (anchor-lint) · 0294 (planos vivos) · 0256 (knowledge survival) · 0264 (trio casos/dominio/e2e) · 0271/0275 (gates nascem advisory) · 0298 (anti-proliferação de workflow)

@@ -18,10 +18,10 @@
 //   4. AUDITÁVEL — baseline versionado em config/ds-handoff-baseline.json + self-test no CI.
 //
 // Uso:
-//   node prototipo-ui/handoff-changed.mjs --staging <dir>           # compara vs baseline → exit 0/1
-//   node prototipo-ui/handoff-changed.mjs --staging <dir> --update  # ACEITA: grava baseline novo
-//   node prototipo-ui/handoff-changed.mjs --staging <dir> --json    # saída JSON (data-only)
-//   node prototipo-ui/handoff-changed.mjs --selftest                # fixture hermético (CI)
+//   node scripts/design/handoff-changed.mjs --staging <dir>           # compara vs baseline → exit 0/1
+//   node scripts/design/handoff-changed.mjs --staging <dir> --update  # ACEITA: grava baseline novo
+//   node scripts/design/handoff-changed.mjs --staging <dir> --json    # saída JSON (data-only)
+//   node scripts/design/handoff-changed.mjs --selftest                # fixture hermético (CI)
 //   [--baseline <path>]                                             # override (default config/ds-handoff-baseline.json)
 //
 // Exit: 0 = idêntico ao baseline (ou --update/--selftest ok) · 1 = mudou (há delta) · 2 = erro de uso.

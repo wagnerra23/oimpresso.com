@@ -65,7 +65,7 @@ Pra cada seção do contrato, contra os arquivos-alvo da tela (`.tsx`/`_componen
 2. **Copy literal presente** — cada string `copy` existe no alvo → senão **FALHA** (`copy ausente: "<str>"`). _(divergência de copy = o caso mais barato e mais valioso de pegar.)_
 3. **Ordem** — a sequência das âncoras no fonte = a `ordem` do contrato → senão **FALHA** (`ordem divergente`).
 
-Cor: **não** automatiza match OKLCH↔Tailwind (tautológico). Reaproveita `prototipo-ui/ds-guard.mjs` / `ds:canon:check` (sem hex cru + token semântico).
+Cor: **não** automatiza match OKLCH↔Tailwind (tautológico). Reaproveita `scripts/design/ds-guard.mjs` / `ds:canon:check` (sem hex cru + token semântico).
 
 ### 2.3b Catraca semântica: acordo de `state` backend↔frontend ([ADR 0286](../../decisions/0286-channel-health-corroborado-por-mensagem-real.md) §5)
 
@@ -160,6 +160,6 @@ Piloto: **Caixa Unificada** (`resources/js/Pages/Atendimento/CaixaUnificada/`) �
 - [ADR 0110 — Cockpit Pattern V2 (origem dos desvios lucide/Tailwind)](../../decisions/0110-cockpit-pattern-v2-ativacao.md)
 - [`INFRA-CONTRACT.md`](../../templates/INFRA-CONTRACT.md) + `infra-contract-required.yml` — padrão claim-evidence (Default-FAIL + Evidence Opening)
 - `.claude/hooks/nudge-test-contract-anchor.ps1` — ancorar no contrato, não no código (anti-tautológico)
-- `prototipo-ui/ds-guard.mjs` / `ds:canon:check` — higiene de cor/token (reaproveitado, não duplicado)
+- `scripts/design/ds-guard.mjs` / `ds:canon:check` — higiene de cor/token (reaproveitado, não duplicado)
 - `prototipo-ui/audit/score-mechanized.mjs` — **prova de que a métrica atual mede higiene, não fidelidade** (nota 99 sem olhar o protótipo)
 - `scripts/contrato-de-tela.mjs` + `.test.mjs` — o gate (este RUNBOOK)

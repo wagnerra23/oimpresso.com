@@ -21,8 +21,8 @@
 // contrato-de-tela é o gate da região; o map só REFERENCIA as regiões pelo mesmo id).
 //
 // Uso:
-//   node prototipo-ui/consumir-map.mjs <Mod/Tela|caminho.map.json> [--todas] [--json] [--root <path>]
-//   node prototipo-ui/consumir-map.mjs --selftest        # hermético (bite/release, sem git)
+//   node scripts/design/consumir-map.mjs <Mod/Tela|caminho.map.json> [--todas] [--json] [--root <path>]
+//   node scripts/design/consumir-map.mjs --selftest        # hermético (bite/release, sem git)
 //
 // Exit: 0 = fresco (plano emitido) | 1 = map não encontrado/ilegível | 2 = uso | 3 = STALE (ABORTAR)
 
@@ -144,9 +144,9 @@ if (invokedDirectly) {
     const iRoot = argv.indexOf('--root');
     const root = iRoot >= 0 && argv[iRoot + 1] ? resolve(argv[iRoot + 1]) : REPO;
     const alvo = argv.find((a, i) => !a.startsWith('--') && argv[i - 1] !== '--root');
-    if (!alvo) { console.error('uso: node prototipo-ui/consumir-map.mjs <Mod/Tela|caminho.map.json> [--todas] [--json] [--root <path>] | --selftest'); process.exit(2); }
+    if (!alvo) { console.error('uso: node scripts/design/consumir-map.mjs <Mod/Tela|caminho.map.json> [--todas] [--json] [--root <path>] | --selftest'); process.exit(2); }
     const mapPath = resolveMap(alvo, { root });
-    if (!mapPath) { console.error(`✗ .map.json não encontrado pra: ${alvo} — a Fase 1 gera com: node prototipo-ui/gerar-map.mjs <gap.md>`); process.exit(1); }
+    if (!mapPath) { console.error(`✗ .map.json não encontrado pra: ${alvo} — a Fase 1 gera com: node scripts/design/gerar-map.mjs <gap.md>`); process.exit(1); }
     let mapa;
     try { mapa = JSON.parse(readFileSync(mapPath, 'utf8')); }
     catch (e) { console.error(`✗ ${mapPath}: JSON inválido (${e.message})`); process.exit(1); }
@@ -155,7 +155,7 @@ if (invokedDirectly) {
     if (!f.fresco) {
       console.error(`⛔ ABORTAR Fase 4 — ${mapa.tela}: prototipo_sha salvo='${f.salvo}' · atual='${f.atual}'.`);
       console.error(`   O protótipo re-exportou depois deste map. NÃO aplique sobre gap/ranges velhos.`);
-      console.error(`   Regenere preservando o preenchido: node prototipo-ui/gerar-map.mjs ${mapa.gap_fonte || '<gap.md>'} --atualizar`);
+      console.error(`   Regenere preservando o preenchido: node scripts/design/gerar-map.mjs ${mapa.gap_fonte || '<gap.md>'} --atualizar`);
       process.exit(3);
     }
     if (f.indeterminado) console.error(`⚠️ frescor indeterminado (sha='${f.salvo}') — seguindo; ancore o map com prototipo_sha real via gerar-map.mjs.`);

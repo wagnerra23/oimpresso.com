@@ -593,7 +593,7 @@
     { id: "rec", label: "A receber", hue: 145 },
     { id: "received", label: "Recebidas", hue: 145 },
     { id: "pay", label: "A pagar", hue: 25 },
-    { id: "paid", label: "Pagas", hue: 240 }].
+    { id: "paid", label: "Pagas", hue: 295 }].
     filter((s) =>
     lente === "caixa" ? true :
     lente === "receber" ? s.id === "rec" || s.id === "received" :
@@ -859,7 +859,7 @@
       <div className="fin-table-card mx-6 mt-2 bg-[var(--surface)] border border-[var(--border)] rounded-[12px] overflow-hidden">
       <table className="w-full border-collapse">
         <thead>
-          <tr className="text-[length:var(--fs-1)] uppercase tracking-widest text-[var(--text-2)] border-b border-[var(--border)] bg-[var(--sunken)]">
+          <tr className="text-[length:var(--fs-1)] uppercase tracking-widest text-[var(--text-2)] border-b border-[var(--border)] bg-transparent">
             <th className="pl-6 pr-2 py-2 w-8 text-left">
               <input
                   type="checkbox"

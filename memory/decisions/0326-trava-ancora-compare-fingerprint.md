@@ -41,7 +41,7 @@ O erro aconteceu numa superfície que **nenhum hook vigia**, com a máquina cert
 
 ## Decisão
 
-**A cola vive na MÁQUINA, não no hook** (hooks vigiam tools; o desvio foi no browser). No `prototipo-ui/style-fingerprint.mjs`:
+**A cola vive na MÁQUINA, não no hook** (hooks vigiam tools; o desvio foi no browser). No `scripts/design/style-fingerprint.mjs`:
 
 1. **`--snippet <Mod/Tela>`** — resolve a âncora via `ancora.mjs` (subprocesso) e **assa** `window.__ANCORA__=<related_prototype>` num preâmbulo ANTES do snippet. A captura passa a **declarar** contra o que ela é comparável. Sem `<Mod/Tela>` → captura fica com `ancora:null`.
 2. **`--compare proto.json prod.json`** agora é **fail-closed**: exige `--tela <Mod/Tela>` (verifica a captura contra o charter via `ancora.mjs`) **OU** `--sem-ancora <razão>` (opt-out **explícito e logado**). Sem nenhum dos dois → **RECUSA (exit 3)**.

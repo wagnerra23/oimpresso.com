@@ -12,12 +12,12 @@
 // audit-*.png / critique / screenshot solto NUNCA é âncora.
 //
 // Uso:
-//   node prototipo-ui/ancora.mjs <tela>            # tela = rota (/financeiro/unificado)
+//   node scripts/design/ancora.mjs <tela>            # tela = rota (/financeiro/unificado)
 //                                                  #   ou Mod/Tela (Financeiro/Unificado)
 //                                                  #   ou caminho .tsx
-//   node prototipo-ui/ancora.mjs <tela> --staging <dir>   # + resolve o -page.jsx do bundle
-//   node prototipo-ui/ancora.mjs --list            # todas as telas + suas âncoras
-//   node prototipo-ui/ancora.mjs --selftest        # fixture hermético
+//   node scripts/design/ancora.mjs <tela> --staging <dir>   # + resolve o -page.jsx do bundle
+//   node scripts/design/ancora.mjs --list            # todas as telas + suas âncoras
+//   node scripts/design/ancora.mjs --selftest        # fixture hermético
 //
 // Exit: 0 = âncora resolvida | 1 = sem charter (NÃO invente — registre/pergunte) | 2 = uso
 
@@ -169,7 +169,7 @@ if (invokedDirectly) {
   else if (has('--list')) { await listAll(REPO_DEFAULT); process.exit(0); }
   else {
     const tela = argv.find((a) => !a.startsWith('--') && argv[argv.indexOf(a) - 1] !== '--staging');
-    if (!tela) { console.error('uso: node prototipo-ui/ancora.mjs <tela> [--staging <dir>] | --list | --selftest'); process.exit(2); }
+    if (!tela) { console.error('uso: node scripts/design/ancora.mjs <tela> [--staging <dir>] | --list | --selftest'); process.exit(2); }
     const r = await resolveAncora(tela, { stagingDir: val('--staging') });
     process.exit(printResolve(r));
   }
