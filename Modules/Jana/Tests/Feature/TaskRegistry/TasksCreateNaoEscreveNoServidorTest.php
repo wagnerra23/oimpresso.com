@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+// @covers-us US-COPI-149 — a tool nao escreve mais no checkout do servidor e
+// nao afirma durabilidade. Os 2 casos abaixo medem o EFEITO (o SPEC nao muda;
+// o markdown e o id continuam vindo), nao a presenca de string no codigo.
+
 use Illuminate\Support\Facades\File;
 use Modules\Jana\Services\TaskRegistry\TaskCrudService;
 
