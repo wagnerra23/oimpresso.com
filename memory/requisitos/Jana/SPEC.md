@@ -2067,3 +2067,61 @@ Escopo:
 **Pendências [W]** (herdadas do pedido, não são do [CL]): dados por empresa no protótipo — o mock é do Martinho nas três empresas; arquivar/renomear/apagar conversa; inserir fato manual; paginação da memória; período custom nas metas.
 
 **DoD:** `/ia` serve as 3 abas · nenhuma rota órfã (`route:list` sem `Jana/*` apontando pra Page inexistente) · charters fundidos com `casos.md` por aba · smoke real pós-deploy colado no PR de cada onda.
+
+### US-COPI-149 · `tasks-create` afirma sucesso e o dado morre no próximo deploy (o ramo `$written=true` é volátil)
+
+> owner: — · priority: p1 · status: todo · type: story
+> blocked_by: —
+
+**Implementado em:** _pendente_ — bug aberto; ancora em código quando a tool parar de afirmar
+durabilidade que não tem, com teste citando esta US.
+
+**Origem:** sessão 2026-09-15. Ao avisar o time do passo do token ([PR #7369](https://github.com/wagnerra23/oimpresso.com/pull/7369)),
+usei `tasks-create` para abrir 4 tasks — uma por dev. A tool respondeu
+`✅ US-INFRA-049 criada e adicionada em memory/requisitos/Infra/SPEC.md` para cada uma.
+**Nenhuma das 4 sobreviveu.** As US acabaram escritas à mão no SPEC de Infra, pelo git.
+
+**O que foi medido** (3 leituras independentes + 1 controle negativo):
+
+| sonda | resultado |
+|---|---|
+| `tasks-detail US-INFRA-049` | "não encontrada" |
+| controle negativo: `tasks-detail US-INFRA-9999` (id inventado) | "não encontrada" — **resposta idêntica**, logo a criada não existe |
+| `memory/requisitos/Infra/SPEC.md` no git | **0 de 4** |
+| checkout do servidor (`/var/www/html`, container `oimpresso-mcp`) | **tinha as 5** (049–053, a última uma sonda), em `M memory/requisitos/Infra/SPEC.md` **não-commitado** |
+
+Entre a 1ª e a 2ª leitura do servidor o checkout puxou o main — o `HEAD` dele virou `84af54af3` —
+e o SPEC caiu de **89.531 para 82.068 bytes**, idêntico ao `HEAD`. **O pull apagou as 5.**
+
+**O mecanismo** (`Modules/Jana/Mcp/Tools/TasksCreateTool.php:99-107`). O código tem dois ramos, e
+o ramo `$written === false` é **honesto**: diz `⚠️ gerada, mas não foi possível escrever (permissão)`
+e manda colar manualmente. O defeito está no ramo **feliz**, `$written === true`:
+
+- `:100` — `✅ {$taskId} criada e adicionada em {$specPath}`
+- `:101` — `Faça git add {$specPath} && git commit -m 'feat: {$taskId}'`
+
+O `$specPath` é do **servidor**. Quem chamou a tool está em outra máquina e não tem como rodar
+aquele `git add`. E rodá-lo no servidor é proibição Tier 0 deste projeto — [`memory/proibicoes.md`](../../proibicoes.md)
+§"Mexeu, REGISTRA": *"Arquivo no servidor (SSH Hostinger, CT 100, daemon source) → **PROIBIDO** — via
+git pull do canônico apenas"*. Ou seja: **o caminho feliz escreve num lugar onde ninguém pode salvar,**
+**e o deploy seguinte apaga.** Não é falha de permissão — a permissão existe e a escrita acontece.
+
+**Por que não é só este caso.** Vale para toda chamada de `tasks-create` cuja janela até o próximo
+pull do CT 100 não tenha um commit manual no servidor. O `McpTasksOrphansCommand:17` já registra o
+sintoma pelo ângulo oposto (*"a US existe no DB mas não no SPEC"*), o que sugere dessincronia já
+conhecida — esta US documenta a outra ponta: **nem no DB, nem no SPEC, e mesmo assim `✅`**.
+
+**Caminhos possíveis** (não decididos — quem pegar escolhe):
+
+1. a tool não escrever em arquivo: gravar em `mcp_tasks` e devolver o markdown pro chamador commitar;
+2. a tool escrever **e** commitar+pushar sozinha, via branch + PR automático (git segue canônico, sem drift no servidor);
+3. manter como está, mas a mensagem **parar de afirmar durabilidade** — falar como o ramo `$written=false` já fala.
+
+A **(3)** é a mais barata e remove o dano principal (a afirmação falsa). A (1) e a (2) devolvem a capacidade.
+
+**DoD:** uma chamada de `tasks-create` seguida de `tasks-detail` do id devolvido ou **(a)** encontra a
+task, ou **(b)** a mensagem nunca afirmou que ela foi criada · teste que exercita o ramo `$written=true`
+e prova a afirmação escolhida · nenhum `git commit` executado dentro do container.
+
+**Refs:** [PR #7366](https://github.com/wagnerra23/oimpresso.com/pull/7366) · [PR #7369](https://github.com/wagnerra23/oimpresso.com/pull/7369) ·
+[ADR 0070](../../decisions/0070-jira-style-task-management-current-md-removed.md) · classe **LC-15** (mecanismo anuncia saída que não implementa).
