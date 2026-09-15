@@ -108,7 +108,8 @@ it('McpTokenIssuer::rotate retorna null quando token pertence a outro user (Tier
 
     // Token de A continua ativo (não foi revogado por engano)
     $tokenA->refresh();
-    expect($tokenA->expires_at)->toBeNull();
+    expect($tokenA->isAtivo())->toBeTrue("A segue ativo — o rotate de outro user nao pode toca-lo");
+    expect($tokenA->revoked_at)->toBeNull("A nao pode ter sido revogado por engano");
 
     $tokenA->forceDelete();
 });
@@ -324,7 +325,7 @@ it('McpTokenIssuer::rotate em sequência (A→B→C) revoga A+B, mantém C ativo
 
     $c = McpToken::find($cId);
     expect($c)->not->toBeNull();
-    expect($c->expires_at)->toBeNull('C deve continuar ativo após chain rotate');
+    expect($c->isAtivo())->toBeTrue('C deve continuar ativo após chain rotate');
 
     // Cleanup
     McpToken::withTrashed()->whereIn('id', [(int) $a->id, $bId, $cId])->forceDelete();
@@ -410,7 +411,8 @@ it('McpTokenIssuer::rotate cross-user (B tenta rotacionar token A→C) retorna n
 
     // Token A continua intacto (não foi revogado por engano)
     $tokenA->refresh();
-    expect($tokenA->expires_at)->toBeNull();
+    expect($tokenA->isAtivo())->toBeTrue("A segue ativo — o rotate de outro user nao pode toca-lo");
+    expect($tokenA->revoked_at)->toBeNull("A nao pode ter sido revogado por engano");
 
     // userB não ganhou token novo (rotate falhou sem efeito colateral)
     $countDepois = McpToken::where('user_id', $userB->id)->count();

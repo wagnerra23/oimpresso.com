@@ -20,9 +20,10 @@ class McpTokenGerarCommand extends Command
     protected $signature = 'mcp:token:gerar
                             {--user= : ID do usuário (UltimatePOS)}
                             {--name= : Identificador human-readable (ex: "Wagner laptop")}
-                            {--expires= : Data de expiração YYYY-MM-DD (opcional)}';
+                            {--expires= : Data de expiração YYYY-MM-DD. Omitido = ciclo semestral (McpToken::VALIDADE_PADRAO_DIAS)}
+                            {--sem-validade : Token PERPÉTUO. Só pra integração sem dono humano — o default é expirar}';
 
-    protected $description = 'Gera novo token MCP. Raw exibido uma vez — copie agora.';
+    protected $description = 'Gera novo token MCP (validade semestral por padrão — ADR 0057). Raw exibido uma vez — copie agora.';
 
     public function handle(): int
     {
@@ -47,15 +48,27 @@ class McpTokenGerarCommand extends Command
         }
 
         $expiresAt = $expires ? \Carbon\Carbon::parse($expires) : null;
+        $semValidade = (bool) $this->option('sem-validade');
 
-        [$token, $raw] = McpToken::gerar($userId, $name, $expiresAt);
+        if ($semValidade && $expiresAt !== null) {
+            $this->error('--sem-validade e --expires são mutuamente exclusivos: escolha um.');
+            return self::FAILURE;
+        }
+
+        [$token, $raw] = McpToken::gerar($userId, $name, $expiresAt, $semValidade);
 
         $this->info("Token gerado com sucesso!");
         $this->newLine();
         $this->line("ID interno:  {$token->id}");
         $this->line("Nome:        {$token->name}");
         $this->line("User ID:     {$token->user_id}");
-        $this->line("Expira em:   " . ($expiresAt ? $expiresAt->toDateString() : 'nunca (revogue manual)'));
+        // Lê do MODEL, não da variável local: quando `--expires` é omitido o valor
+        // vem do default do `gerar()` (ciclo semestral, ADR 0057) e `$expiresAt`
+        // ainda é null aqui — imprimir a variável diria "nunca" pra um token que
+        // expira em 180 dias. Mensagem que mente sobre o próprio efeito é LC-15.
+        $this->line("Expira em:   " . ($token->expires_at
+            ? $token->expires_at->toDateString() . ' (' . (int) now()->diffInDays($token->expires_at) . ' dias)'
+            : 'NUNCA — token perpétuo, revogue manual'));
         $this->newLine();
         $this->warn("=================================================================");
         $this->warn(" RAW TOKEN (copie agora — não será exibido de novo):");

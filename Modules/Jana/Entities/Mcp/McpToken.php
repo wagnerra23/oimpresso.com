@@ -55,11 +55,41 @@ class McpToken extends Model
     protected $hidden = ['sha256_token'];
 
     /**
+     * Validade padrão de token novo, em dias.
+     *
+     * 180 = o **ciclo de troca semestral** que a [ADR 0057] já decidiu no
+     * "Trade-off aceito" (*"se `.dxt` vazar, vaza junto com o token. Mitigado
+     * por revogação rápida + canal de entrega seguro + ciclo de troca
+     * semestral"*). Até 2026-09-15 esse ciclo dependia de alguém LEMBRAR — e
+     * medido no dia, ninguém lembrou: dos 14 tokens em `mcp_tokens`, **zero**
+     * tinham sido revogados e 4 de 30/04 seguiam ativos sem nunca terem sido
+     * usados. Aqui o ciclo deixa de ser lembrança e vira default.
+     *
+     * Prazo confirmado por [W] em 2026-09-15. Mudar o número é decisão dele.
+     */
+    public const VALIDADE_PADRAO_DIAS = 180;
+
+    /**
      * Gera token raw + cria registro com hash. Retorna [Model, raw_token].
      * Raw token tem formato: `mcp_<32-bytes-hex>` (compatível com Bearer header).
+     *
+     * Token novo NASCE COM VALIDADE (ver `VALIDADE_PADRAO_DIAS`). Quem precisa de
+     * token perpétuo pede EXPLICITAMENTE com `semValidade: true` — o default
+     * seguro é o que expira, e o perpétuo é que tem de se justificar.
+     *
+     * ⚠️ `expires_at = null` continua significando "não expira" (ADR 0057 §Schema:
+     * *"null = vivo"*) — o que mudou é só quem o produz por omissão. E o rotate
+     * segue usando `expires_at = now()` para invalidar o antigo: são usos
+     * distintos do mesmo campo, e nenhum foi alterado.
+     *
+     * @param bool $semValidade token perpétuo (system token, integração sem dono humano)
      */
-    public static function gerar(int $userId, string $name, ?\DateTimeInterface $expiresAt = null): array
+    public static function gerar(int $userId, string $name, ?\DateTimeInterface $expiresAt = null, bool $semValidade = false): array
     {
+        if ($expiresAt === null && ! $semValidade) {
+            $expiresAt = now()->addDays(self::VALIDADE_PADRAO_DIAS);
+        }
+
         $raw = 'mcp_' . bin2hex(random_bytes(32));
         $hash = hash('sha256', $raw);
 
