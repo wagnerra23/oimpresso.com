@@ -11,20 +11,22 @@
  *
  * ⚠️ AGREGADOR ADVISORY ≠ RÉGUA NOVA (declaração obrigatória — a mesma disciplina do
  * doc-freshness-score.mjs "AGREGADOR ≠ DENTE" e do catalog-graph.mjs "advisory de nascença"):
- *   - NÃO inventa uma nota de qualidade. O dono da nota é `module:grade` (rubrica ADR 0155,
- *     baseline governance/module-grades-baseline.json) — este script REUSA o número, nunca o recalcula.
+ *   - NÃO inventa uma nota de qualidade. O sinal QUALIDADE foi APOSENTADO em 2026-09-15
+ *     (ADR 0399 encerra a rubrica ADR 0155 e deleta o baseline): `graded` sai do DENOMINADOR
+ *     (applicable:false) e `grade` fica null com `aposentada`. Nunca 0 inventado — ausência de
+ *     medição não é nota do módulo (§5 2026-07-29).
  *   - NÃO é catraca. É sinal navegável (aponta pros donos). Required = só Tier-0 (ADR 0314/0275);
  *     este é conveniência de catálogo → `--check` pode ficar VERMELHO (drift) sem bloquear merge.
  *   - Os "checks" de maturidade medem PRESENÇA/CONEXÃO de artefato (estilo Backstage/Cortex
  *     maturity: tem SCOPE? tem charter? grafo conectado? tela sem drift?) — NÃO afirmam correção.
- *     Presença ≠ correção (L-24). A correção continua com os DONOS: module-grade (qualidade),
+ *     Presença ≠ correção (L-24). A correção continua com os DONOS:
  *     casos-gate (contrato), briefing-code-staleness (frescor do BRIEFING), screen-coverage (tela).
  *
  * FONTES (todas DERIVADAS e commitadas — nada à mão, ADR 0256):
  *   1. memory/governance/catalog.json          → ESPINHA (36 serviços) + sinais de grafo
  *      (delegatesTo/providesApi/ownsTable/governedByAdr/hasComponent) — gerado dos SCOPE.md.
- *   2. governance/module-grades-baseline.json   → sinal QUALIDADE (nota 0-100, key = nome do módulo,
- *      match exato com o catálogo). Dono = module:grade / ADR 0155.
+ *   2. (VAGA) o sinal QUALIDADE vinha de governance/module-grades-baseline.json e foi APOSENTADO
+ *      em 2026-09-15 (ADR 0399). A numeração fica como está para não renumerar as fontes vivas.
  *   3. memory/governance/vital-signs.json       → sinal TELA (nota_media/charter_pct/casos_pct/stale…),
  *      keyed pelo namespace Inertia (PAGES_NS ≠ nome do módulo em 5 casos) — reusa o mapa de
  *      module-surface.mjs. Dono = mv-metabolismo / screen-coverage.
@@ -72,7 +74,6 @@ const args = process.argv.slice(2);
 const MODE = args.includes('--write') ? 'write' : args.includes('--check') ? 'check' : args.includes('--json') ? 'json' : 'dry';
 
 const CATALOG_PATH = join(ROOT, 'memory', 'governance', 'catalog.json');
-const GRADES_PATH = join(ROOT, 'governance', 'module-grades-baseline.json');
 const VITAL_PATH = join(ROOT, 'memory', 'governance', 'vital-signs.json');
 const OUT_PATH = join(ROOT, 'memory', 'governance', 'service-scorecard.json');
 
@@ -256,7 +257,7 @@ export function buildDoc(src, deps) {
     const checks = [
       { key: 'has_scope', applicable: true, ok: !!node.path && scopeExists(node.path), rot: 'SCOPE.md presente' },
       { key: 'has_charter_adr', applicable: true, ok: !!node.charter_adr, rot: 'charter/ADR declarado' },
-      { key: 'graded', applicable: true, ok: gradeVal !== null, rot: 'nota module-grade presente' },
+      { key: 'graded', applicable: !gradesDoc.aposentada, ok: gradeVal !== null, rot: 'nota module-grade presente (rubrica aposentada — ADR 0399)' },
       { key: 'briefing_present', applicable: true, ok: briefing.present, rot: 'BRIEFING.md presente' },
       { key: 'graph_connected', applicable: true, ok: graph.connected, rot: 'conectado no grafo (≥1 aresta)' },
       { key: 'no_dangling_edges', applicable: true, ok: graph.dangling_edges === 0, rot: 'sem aresta pendurada' },
@@ -299,11 +300,11 @@ export function buildDoc(src, deps) {
 
   return {
     $generator: 'scripts/governance/service-scorecard.mjs',
-    $doc: 'Scorecard de sinais-vivos por serviço, AGREGADO das fontes derivadas (catalog.json + module-grades-baseline.json + vital-signs.json + BRIEFING git-mtime). NÃO editar à mão — a próxima geração sobrescreve. Regenerar: node scripts/governance/service-scorecard.mjs --write',
-    $advisory: 'Advisory de nascença (ADR 0314/0275) — NÃO é gate required. AGREGADOR, não régua: a nota é do module-grade (ADR 0155); os checks de maturidade medem presença/conexão de catálogo (Backstage/Cortex), não correção.',
+    $doc: 'Scorecard de sinais-vivos por serviço, AGREGADO das fontes derivadas (catalog.json + vital-signs.json + BRIEFING git-mtime). NÃO editar à mão — a próxima geração sobrescreve. Regenerar: node scripts/governance/service-scorecard.mjs --write',
+    $advisory: 'Advisory de nascença (ADR 0314/0275) — NÃO é gate required. AGREGADOR, não régua: a nota do module-grade foi APOSENTADA (ADR 0399 — rubrica ADR 0155 encerrada), logo o sinal `graded` sai do denominador; os checks de maturidade medem presença/conexão de catálogo (Backstage/Cortex), não correção.',
     generated_from: {
       catalog: { path: 'memory/governance/catalog.json', stats: catalog.stats?.modules ?? null },
-      grades: { path: 'governance/module-grades-baseline.json', baseline: gradesDoc.baseline_version || null, rubric: gradesDoc.rubric_adr || null },
+      grades: { path: null, aposentada: gradesDoc.aposentada || null, baseline: gradesDoc.baseline_version || null, rubric: gradesDoc.rubric_adr || null },
       vital_signs: { path: 'memory/governance/vital-signs.json', generated_at: vitalDoc.generated_at || null },
     },
     stats: {
@@ -320,7 +321,12 @@ export function buildDoc(src, deps) {
 // ── wiring real (fs + git) ─────────────────────────────────────────────────────
 function buildFromDisk() {
   const catalog = readJson(CATALOG_PATH);
-  const gradesDoc = readJson(GRADES_PATH);
+  // Rubrica module-grade APOSENTADA em 2026-09-15 (ADR 0399): o baseline foi deletado e
+  // ninguem o regera. O stub declara a aposentadoria em vez de sumir com o campo — assim
+  // o sinal sai do DENOMINADOR (applicable:false) em vez de virar um check que nunca fica
+  // verde, e quem ler o JSON ve POR QUE a nota e null. Nao inventar 0: ausencia de medicao
+  // nao e estado do modulo (§5 2026-07-29).
+  const gradesDoc = { aposentada: 'ADR 0399', modules: {}, baseline_version: null, rubric_adr: null };
   const vitalDoc = readJson(VITAL_PATH);
   // As Pages moram em DUAS raízes desde o PR #5686 (núcleo + `Modules/<X>/Resources/js/Pages`).
   // `raizesDePages` é o dono dessa lista — não reimplementar a segunda raiz aqui.

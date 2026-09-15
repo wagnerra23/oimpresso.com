@@ -33,16 +33,6 @@
 - [ ] biz=4 (ROTA LIVRE cliente prod) **NUNCA** usado em fixture — usa biz=1 (ADR 0101)
 - [ ] `php artisan test` local passou antes de abrir PR
 
-## Module Grades Gate (ADR 0155)
-
-Workflow `Module Grades Gate (anti-regressão)` roda automaticamente. Se a nota de qualquer módulo cair vs `governance/module-grades-baseline.json`, opções:
-
-1. **Corrigir código** — fazer a nota subir/manter (preferível)
-2. **Justificar regressão temporária** — aplicar label `module-grades-allowed-regression` no PR + comentário com razão + ADR/Issue linkada (Wagner ciente)
-3. **Módulo novo entrando no baseline** — aplicar label `module-grades-new-module-allowed` + PR separado aprovado por Wagner atualizando `governance/module-grades-baseline.json`
-
-> Baseline é atualizado **manualmente via PR aprovado por Wagner** — nunca auto. Override deixa rastro em comentário automático no PR linkando ADR justificativa.
-
 ## MWART (ADR 0104) — preencher se PR toca `resources/js/Pages/<Mod>/<Tela>.tsx`
 
 - [ ] RUNBOOK `memory/requisitos/<Mod>/RUNBOOK-<tela-kebab>.md` existe + foi consultado

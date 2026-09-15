@@ -26,12 +26,12 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 714,
-    "edges": 995,
+    "nodes": 715,
+    "edges": 1009,
     "by_node_type": {
       "module": 39,
       "table": 102,
-      "adr": 114,
+      "adr": 115,
       "component": 385,
       "api": 74
     },
@@ -46,9 +46,9 @@
       "dependsOn": 116,
       "delegatesTo": 108,
       "migratesTo": 1,
-      "supersedes": 17,
+      "supersedes": 24,
       "supersedesPartially": 51,
-      "supersededBy": 21
+      "supersededBy": 28
     },
     "dangling": 0
   },
@@ -850,6 +850,13 @@
       "type": "adr",
       "num": "0397",
       "slug": "0397-prototipo-minimo-por-dono-e-ds-direto",
+      "exists": true
+    },
+    {
+      "id": "adr:0399",
+      "type": "adr",
+      "num": "0399",
+      "slug": "0399-aposentar-rubrica-module-grade-gate-e-baseline",
       "exists": true
     },
     {
@@ -6011,10 +6018,28 @@
       "source": "superseded_by"
     },
     {
+      "from": "adr:0153",
+      "to": "adr:0399",
+      "type": "supersededBy",
+      "source": "superseded_by"
+    },
+    {
+      "from": "adr:0154",
+      "to": "adr:0399",
+      "type": "supersededBy",
+      "source": "superseded_by"
+    },
+    {
       "from": "adr:0154",
       "to": "adr:0153",
       "type": "supersedesPartially",
       "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0155",
+      "to": "adr:0399",
+      "type": "supersededBy",
+      "source": "superseded_by"
     },
     {
       "from": "adr:0155",
@@ -6030,9 +6055,21 @@
     },
     {
       "from": "adr:0156",
+      "to": "adr:0399",
+      "type": "supersededBy",
+      "source": "superseded_by"
+    },
+    {
+      "from": "adr:0156",
       "to": "adr:0155",
       "type": "supersedesPartially",
       "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0157",
+      "to": "adr:0399",
+      "type": "supersededBy",
+      "source": "superseded_by"
     },
     {
       "from": "adr:0157",
@@ -6042,9 +6079,21 @@
     },
     {
       "from": "adr:0158",
+      "to": "adr:0399",
+      "type": "supersededBy",
+      "source": "superseded_by"
+    },
+    {
+      "from": "adr:0158",
       "to": "adr:0155",
       "type": "supersedesPartially",
       "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0159",
+      "to": "adr:0399",
+      "type": "supersededBy",
+      "source": "superseded_by"
     },
     {
       "from": "adr:0159",
@@ -6319,6 +6368,48 @@
     {
       "from": "adr:0397",
       "to": "adr:0396",
+      "type": "supersedes",
+      "source": "supersedes"
+    },
+    {
+      "from": "adr:0399",
+      "to": "adr:0153",
+      "type": "supersedes",
+      "source": "supersedes"
+    },
+    {
+      "from": "adr:0399",
+      "to": "adr:0154",
+      "type": "supersedes",
+      "source": "supersedes"
+    },
+    {
+      "from": "adr:0399",
+      "to": "adr:0155",
+      "type": "supersedes",
+      "source": "supersedes"
+    },
+    {
+      "from": "adr:0399",
+      "to": "adr:0156",
+      "type": "supersedes",
+      "source": "supersedes"
+    },
+    {
+      "from": "adr:0399",
+      "to": "adr:0157",
+      "type": "supersedes",
+      "source": "supersedes"
+    },
+    {
+      "from": "adr:0399",
+      "to": "adr:0158",
+      "type": "supersedes",
+      "source": "supersedes"
+    },
+    {
+      "from": "adr:0399",
+      "to": "adr:0159",
       "type": "supersedes",
       "source": "supersedes"
     },
