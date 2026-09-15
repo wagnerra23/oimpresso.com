@@ -32,7 +32,7 @@ declare(strict_types=1);
 const CHARTER_VSOURCE_ALLOWLIST = [
     // VAZIA — débito quitado. Os 4 charters RecurringBilling (Index/Planos/Faturas/
     // Configuracoes) foram re-apontados pro SSOT vivo
-    // `prototipo-ui/cowork/cobranca-recorrente-page.jsx` (migração prototipo-SSOT, PR
+    // `prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx` (migração prototipo-SSOT, PR
     // #3259) e saíram da allowlist. Allowlist só ENCOLHE (ratchet): re-adicionar exige
     // motivo explícito em PR.
 ];

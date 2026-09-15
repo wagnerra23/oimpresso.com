@@ -3,7 +3,7 @@ id: resources-js-pages-jana-index-charter
 page: /ia
 component: resources/js/Pages/Jana/Index.tsx
 related_visual_comparison: memory/requisitos/Jana/Index-visual-comparison.md
-related_prototype: prototipo-ui/cowork/jana-merge.jsx
+related_prototype: prototipo-ui/cowork/Wagner/jana-merge.jsx
 states: [default]  # gate L2 — o `default` desta tela é semeado com UMA venda VENCIDA (routes/web.php `$seedJanaVisregFlow`), pra que o `JanaKpiCard` em `emphasis` do "A receber vencido" entre em baseline; sync com tests/Browser/visreg-states.json
 owner: wagner
 status: live
@@ -57,9 +57,9 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   do **MESMO dado** — "ticket médio não abre faturamento". Hoje 2 dos **3** KPIs abrem
   (Receita 30 dias → Faturamento; A receber vencido → Inadimplência); Ticket médio
   não tem análise do mesmo dado e permanece estático. Âncora:
-  `prototipo-ui/cowork/jana-merge.jsx` §`JmDrillDrawer` + §`JM_KPI_DRILL` — âncora de SÍMBOLO
+  `prototipo-ui/cowork/Wagner/jana-merge.jsx` §`JmDrillDrawer` + §`JM_KPI_DRILL` — âncora de SÍMBOLO
   (ref de linha apodrece no 1º refactor, §5 2026-07-26; re-localize com
-  `grep -n "JmDrillDrawer\|JM_KPI_DRILL" prototipo-ui/cowork/jana-merge.jsx`).
+  `grep -n "JmDrillDrawer\|JM_KPI_DRILL" prototipo-ui/cowork/Wagner/jana-merge.jsx`).
   _Recibo 2026-08-11: no arquivo versionado (`SYNC` com o vivo, sha256 normalizado
   `057bd8ae081bfd1c…`) os símbolos caem em `:640` e `:887` — as duas refs que a v3 citava
   **conferem**. Ficam como símbolo, não linha, porque o número é que é frágil, não a citação._
@@ -68,7 +68,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   `_components/JanaConfigDrawer.tsx` — quais das 5 análises aparecem no painel, persistido em
   `localStorage['oimpresso.jana.cfg']` (prefixo `oimpresso.jana.*`, canon do `Chat.charter.md`).
   Âncora: `jana-merge.jsx` §`JmConfigDrawer` — âncora de SÍMBOLO
-  (`grep -n "JmConfigDrawer" prototipo-ui/cowork/jana-merge.jsx`).
+  (`grep -n "JmConfigDrawer" prototipo-ui/cowork/Wagner/jana-merge.jsx`).
   O drawer é **deliberadamente menor que a âncora**: ver §Anti-hooks abaixo.
 
 - **A meta abre NA PRÓPRIA TELA (v9 — 2026-08-17):** o clique num card de meta abre
@@ -76,7 +76,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   anterior), Série de até 12 janelas em barras, e "De onde vem esse número". O caminho pra tela
   própria **não se perdeu**: virou "Abrir a meta" (`/ia/metas/{id}`) no rodapé do drawer.
   Âncora: `jana-merge.jsx` §`JmMetaDrawer` — âncora de SÍMBOLO
-  (`grep -n "JmMetaDrawer" prototipo-ui/cowork/jana-merge.jsx`).
+  (`grep -n "JmMetaDrawer" prototipo-ui/cowork/Wagner/jana-merge.jsx`).
   O drawer **não projeta o fechamento**: ver §Anti-hooks abaixo.
 
 - **Ação sugerida vira decisão REGISTRADA (v10 — 2026-08-18):** o CTA de cada linha
@@ -88,7 +88,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   **Este passo NÃO envia nada** — o disparo (WhatsApp/e-mail) e a fila `/ia/acoes` são
   PR próprio, e é por isso que os rótulos viraram "Revisar …": ver §Anti-hooks.
   Âncora: `jana-merge.jsx` §`JmAcaoModal` — âncora de SÍMBOLO
-  (`grep -n "JmAcaoModal" prototipo-ui/cowork/jana-merge.jsx`).
+  (`grep -n "JmAcaoModal" prototipo-ui/cowork/Wagner/jana-merge.jsx`).
 
 ## Non-Goals
 
@@ -133,7 +133,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   tiver método, declara-se isso em texto, e o render só veste de `<code>` o que contém `::` — hoje
   nenhuma fonte está nesse caso (o `churn`, que estava, ganhou método no UC-13).
   Mexeu no aggregator, mexe no `JANA_DRILL_FONTES` no mesmo PR.
-  _Guard: `prototipo-ui/ancora.mjs` acusa símbolo de backend citado na âncora que não exista no
+  _Guard: `scripts/design/ancora.mjs` acusa símbolo de backend citado na âncora que não exista no
   repo — e desde 2026-08-13 enxerga também o formato `Classe::metodo` (antes ficava cego nele)._
 - ⛔ **Oferecer no drawer de configuração um controle que o servidor não honra.** É a mesma família
   do anti-hook acima, no eixo da CONFIGURAÇÃO em vez do da FONTE. Medido em 2026-08-17: o
@@ -201,7 +201,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   como seções"*). Três seções novas em `_components/JanaMetaDrawer.tsx`: **Identificação**
   (identificador · agregação · origem · escopo), **Apurações gravadas** (tabela `Data ref.` ×
   `Realizado`, com a contagem no título) e **Fonte do número** (driver · cadência · `config_json`
-  + o aviso de só-leitura). Âncora: `prototipo-ui/cowork/jana-metas.jsx` §`JmApuracoesSecao` e
+  + o aviso de só-leitura). Âncora: `prototipo-ui/cowork/Wagner/jana-metas.jsx` §`JmApuracoesSecao` e
   §`JmFonteDrawer` — que se declara, no próprio cabeçalho, a absorção daquelas Blades
   *"para dentro da tela única da Jana"*.
 
@@ -224,7 +224,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   então a copy carrega o sentido. Nenhuma Blade foi removida aqui; remoção é o PR-4.
 
 - **v15 (2026-09-07)** — **card de meta lê `<valor> de <alvo>` e `<pct>% do alvo`** (Onda 2.1 do
-  pacote de paridade do Cowork, `design-docs/COLAR-NO-CODE-jana-tabs-cor-e-icone.md` §1-ter).
+  pacote de paridade histórico do Cowork).
   Âncora `jana-merge.jsx` §`JmMetaCard`: `jm-meta-v` = `<b>{atual}</b><small>de {alvo}</small>`,
   `jm-meta-f` = `{pct}% do alvo` + projeção à direita. Produção escrevia `Alvo: X` no rodapé com o
   `%` solto — o alvo não estava ao lado do número. Sem apuração, o rodapé cai pra `alvo X` (como o
@@ -274,7 +274,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   sobre a Onda 1: o 33º é do `JanaSubNav.tsx`, que veio com ela).
 
 - **v13 (2026-09-03)** — **Onda 1 da paridade com o protótipo: a barra de abas sai da linha do título e vira FAIXA PRÓPRIA abaixo do header** (UC-JPAIN-19; UI-0029 "protótipo soberano sobre ADR UI"). Medido com a MESMA sonda nos dois lados (design-diff, dark × dark, viewport 2560; render do `jana-merge.jsx` pelo shell do espelho × `/ia` em prod): (a) abas — âncora `nav` filho de `.jc-page`, `left=284 w=2237 h=36`, 14px abaixo do header, itens 13px/500 (ativa 600, underline accent, pill accent-soft), ícone 14px por aba; prod tablist INLINE na Zona C do `PageHeader`, `left=1654 w=451`, no `top` do h1. (b) header — âncora `.jc-header-r` = `Atualizado HH:MM` (dot verde) → selo → Configurar → Exportar, **sem** primary; prod tinha "Atualizado" no subtítulo e um primary "Conversar" que duplicava a aba. (c) subtítulo — âncora mono 11.5px; prod sans 12px. Conserto: `PageHeader` canon ganha o slot `below` (faixa própria dentro do `<header>`, posição que `Cliente/Index.tsx` já usava hand-rolado — [W] 2026-07-14 "mesma posição do Clientes/protótipo em todas"); `JanaSubNav` mapeia ícone por key (`JANA_TAB_ICON`, FORMA → cliente, o `SidebarGhost` PHP não tem `icon`); `PageHeaderPrimary` sai; Conversa ganha "Nova conversa" + Configurar só-ícone no header (âncora `isChat`). §Goals reescrito no mesmo PR. **Divergência que FICA declarada, decisão [W]:** título 22px (canon `PageHeader`, ADR 0189) × 19px da âncora — é Fundação/Shell compartilhada (37 telas), não desta tela. Teste: `tests/janaAreaHeaderParidade.spec.tsx` (vitest, jsdom — mede o DOM renderizado, não o texto do arquivo).
-- **v12 (2026-09-02)** — **dois ponteiros podres do frontmatter, gap #23 do [AUDIT-GAPS](../../../../memory/requisitos/Jana/AUDIT-GAPS-2026-08-10.md).** (a) `related_charters` apontava pra `Cockpit.charter.md`, **apagado** — removido; medido no repo inteiro: **280 charters, 3 usam `related_charters`, 1 entrada morta** (esta). (b) `permissao: copiloto.access` — a key não existe; a real é **`jana.access`**, aplicada no grupo `/ia` ([`routes.php:50`](../../../../Modules/Jana/Http/routes.php)). (c) o título do corpo dizia `/copiloto/dashboard`, rota que hoje é 301 — a lista de ponteiros podres da [emenda do Cowork](../../../../prototipo-ui/design-docs/cowork-inbox/JANA-CASOS-EMENDA-PERMISSAO-2026-08-27.md) registra que foi de cabeçalho assim que saiu o `/jana` errado da rodada 1: comentário podre não é inerte, ensina errado ao próximo executor.
+- **v12 (2026-09-02)** — **dois ponteiros podres do frontmatter, gap #23 do [AUDIT-GAPS](../../../../memory/requisitos/Jana/AUDIT-GAPS-2026-08-10.md).** (a) `related_charters` apontava pra `Cockpit.charter.md`, **apagado** — removido; medido no repo inteiro: **280 charters, 3 usam `related_charters`, 1 entrada morta** (esta). (b) `permissao: copiloto.access` — a key não existe; a real é **`jana.access`**, aplicada no grupo `/ia` ([`routes.php:50`](../../../../Modules/Jana/Http/routes.php)). (c) o título do corpo dizia `/copiloto/dashboard`, rota que hoje é 301; a emenda histórica do Cowork registra que foi de cabeçalho assim que saiu o `/jana` errado da rodada 1.
   ⚠️ **Nenhum script valida `related_charters`, e isso segue assim de propósito:** o `deadlink-gate` **já varre** `Pages/**/*.charter.md` (desde 2026-08-10, FP medido) mas só o CORPO markdown — e o próprio `deadlink-gate.test.mjs` usa **este caso** como fixture do limite (*"charter LIMITE: frontmatter related_charters NAO e validado por este gate"*). Com adoção de 3/280 e 1 entrada morta, ampliar seria catraca sobre campo quase não usado; two-strikes ([ADR 0344](../../../../memory/decisions/0344-two-strikes-cobre-processo.md)): 1ª ocorrência conserta, não codifica.
 
 - v11 (2026-08-31) — **O conjunto de KPIs cai pra 3, na paridade com a âncora** (item 4

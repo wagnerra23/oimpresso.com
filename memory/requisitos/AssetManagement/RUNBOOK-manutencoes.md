@@ -166,6 +166,6 @@ Com sessão, a tela deve renderizar a tabela e, para papel restrito, o aviso de 
   · charter e casos ao lado
 - Controller: `Modules/AssetManagement/Http/Controllers/AssetMaitenanceController.php`
 - Blade de origem: `Modules/AssetManagement/Resources/views/asset_maintenance/index.blade.php`
-- Fonte visual: `prototipo-ui/cowork/patrimonio-page.jsx`, `AbaManutencoes` (`:475`) — **ALVO,
+- Fonte visual: `prototipo-ui/cowork/Wagner/patrimonio-page.jsx`, `AbaManutencoes` (`:475`) — **ALVO,
   não decisão de produto** (`06-ui-bloqueada.md`)
-- Playbook: [`_saida-06-manutencoes.md`](../../../prototipo-ui/design-docs/cowork-inbox/patrimonio/playbook/_saida-06-manutencoes.md)
+- Playbook: `_saida-06-manutencoes.md` (`prototipo-ui/design-docs/cowork-inbox/patrimonio/playbook/_saida-06-manutencoes.md`, removido do git em 2026-09-11 · #7224 · ADR 0397)

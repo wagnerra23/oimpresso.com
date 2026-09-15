@@ -22,7 +22,7 @@ uses(Tests\TestCase::class);
  * (isso seria "o artefato foi tocado", família já morta no §5). Ele lê os DOIS
  * arquivos e compara os VALORES.
  *
- * @see prototipo-ui/cowork/forja-data.jsx        (FONTE de design — ADR 0299/0282)
+ * @see prototipo-ui/cowork/Wagner/forja-data.jsx        (FONTE de design — ADR 0299/0282)
  * @see Modules/Forja/Services/ForjaQuadroService.php
  * @see Modules/Forja/Resources/js/Pages/Forja/Trabalho/_components/TrabalhoQuadro.tsx
  */
@@ -51,7 +51,7 @@ const DIVERGENCIA_DECLARADA = [];   // fechada por [W] em 2026-08-11
 /** Extrai as fases do protótipo Cowork (a FONTE de design). */
 function fasesDoPrototipo(): array
 {
-    $src = file_get_contents(base_path('prototipo-ui/cowork/forja-data.jsx'));
+    $src = file_get_contents(base_path('prototipo-ui/cowork/Wagner/forja-data.jsx'));
     expect($src)->not->toBeFalse('forja-data.jsx sumiu — a âncora de design do hub Forja.');
 
     preg_match('/const FORJA_PHASES\s*=\s*\[(.*?)\];/s', $src, $m);
@@ -144,7 +144,7 @@ it('UC-PIPE-04 — a fonte de design carrega hue e owner por fase (o que o backe
     // O caso NÃO exige que o backend passe a servir — exige que a PERDA seja
     // visível. Enquanto ele passar, quem ler o teste sabe que o payload é mais
     // pobre que a fonte, e por quê.
-    $src = file_get_contents(base_path('prototipo-ui/cowork/forja-data.jsx'));
+    $src = file_get_contents(base_path('prototipo-ui/cowork/Wagner/forja-data.jsx'));
     preg_match('/const FORJA_PHASES\s*=\s*\[(.*?)\];/s', $src, $m);
 
     expect(substr_count($m[1], 'hue:'))->toBeGreaterThan(3, 'O protótipo perdeu `hue` por fase.');
@@ -190,7 +190,7 @@ function papeisDoFront(): array
 /** Extrai `id => [owner, faz, sai]` da FONTE de design (`forja-data.jsx`). */
 function papeisDoPrototipo(): array
 {
-    $src = file_get_contents(base_path('prototipo-ui/cowork/forja-data.jsx'));
+    $src = file_get_contents(base_path('prototipo-ui/cowork/Wagner/forja-data.jsx'));
     preg_match('/const FORJA_PHASES\s*=\s*\[(.*?)\];/s', $src, $m);
     expect($m[1] ?? null)->not->toBeNull('FORJA_PHASES mudou de forma no protótipo.');
 

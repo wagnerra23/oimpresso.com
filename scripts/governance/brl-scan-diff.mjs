@@ -88,11 +88,9 @@ const ARQUIVOS_DA_FERRAMENTA = [
  * pode acusar a própria documentação), esta é de PRODUTO — o dono da regra
  * decidiu onde ela vale.
  *
- * POR QUE a linha cai aqui: `prototipo-ui/` é artefato de DESIGN — protótipo,
- * espelho do Cowork e o knowledge descido em `design-docs/`. Número em protótipo
- * é ilustração de layout ("como a coluna de valor se comporta"), e nas cópias de
- * `design-docs/` mexer no texto quebraria a fidelidade, que é o contrato daquela
- * pasta. O que a regra Tier 0 protege é valor de NEGÓCIO em `memory/`, PR body e
+ * POR QUE a linha cai aqui: `prototipo-ui/` é artefato de DESIGN. Número em protótipo
+ * é ilustração de layout ("como a coluna de valor se comporta"). O que a regra Tier 0
+ * protege é valor de NEGÓCIO em `memory/`, PR body e
  * commit message — isso segue varrido e mordendo.
  *
  * ⚠️ RESIDUAL HONESTO, porque exceção de pasta tem custo: protótipo às vezes

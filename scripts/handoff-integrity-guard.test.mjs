@@ -20,16 +20,16 @@ const run = (root, extra = [], env = {}) =>
   spawnSync('node', [SCRIPT, '--root', root, ...extra], { encoding: 'utf8', env: { ...process.env, GITHUB_STEP_SUMMARY: '', ...env } });
 const out = (r) => (r.stdout || '') + (r.stderr || '');
 
-// Monta um root falso: prototipo-ui/{PROMPT_PARA_CODE_*.md, COWORK_NOTES.md} + config/baseline.json
+// Monta um root falso: memory/reference/prototipo-ui/{PROMPT_PARA_CODE_*.md, COWORK_NOTES.md} + config/baseline.json
 function makeRoot({ files = [], aboveCites = [], belowCites = [], aboveRaw = '', belowRaw = '', baseline = { orphans: [], dead_refs: [] }, marker = true }) {
   const root = mkdtempSync(join(tmpdir(), 'hig-'));
-  mkdirSync(join(root, 'prototipo-ui'), { recursive: true });
+  mkdirSync(join(root, 'memory', 'reference', 'prototipo-ui'), { recursive: true });
   mkdirSync(join(root, 'config'), { recursive: true });
-  for (const f of files) writeFileSync(join(root, 'prototipo-ui', f), `# ${f}\n`);
+  for (const f of files) writeFileSync(join(root, 'memory', 'reference', 'prototipo-ui', f), `# ${f}\n`);
   const above = aboveCites.map((c) => `- ativo: [${c}](${c})`).join('\n');
   const below = belowCites.map((c) => `- PROCESSED ${c} → main`).join('\n');
   const queue = `# COWORK_NOTES (fixture)\n\n## ATIVOS\n${above}\n${aboveRaw}\n\n${marker ? MARKER : ''}\n\n## HISTÓRICO\n${below}\n${belowRaw}\n`;
-  writeFileSync(join(root, 'prototipo-ui', 'COWORK_NOTES.md'), queue);
+  writeFileSync(join(root, 'memory', 'reference', 'prototipo-ui', 'COWORK_NOTES.md'), queue);
   writeFileSync(join(root, 'config', 'handoff-integrity-baseline.json'), JSON.stringify(baseline));
   return root;
 }

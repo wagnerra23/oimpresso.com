@@ -273,7 +273,7 @@ it('UC-RSTIDX-06: sem a permissão de status a tela responde 403, mesmo com o m�
 
 // ─────────────────────────────────────────────────────────────────────────────
 // UC-RSTIDX-07 / 08 — o que a FORMA do protótipo passou a exigir do payload.
-// Origem: prototipo-ui/cowork/repair-page.jsx região `Status` (L304-337), que mostra
+// Origem: prototipo-ui/cowork/Wagner/repair-page.jsx região `Status` (L304-337), que mostra
 // o modelo de SMS e "N folha(s)" em cada linha. Ver §3.4 do
 // memory/requisitos/Repair/6telas-index-visual-comparison.md.
 // ─────────────────────────────────────────────────────────────────────────────

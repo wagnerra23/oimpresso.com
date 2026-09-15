@@ -17,7 +17,7 @@ applied_in:
 
 # PT-02 · Form/Drawer — padrão canônico de tela-cadastro
 
-> **Camada 3 · Padrão de Tela.** Herda das [Fundações](../README.md) + [Shell](../README.md) + segue o golden de form do [GOLDEN-REFERENCE.md](../../../../prototipo-ui/GOLDEN-REFERENCE.md). Módulo configura os campos/seções, **não** muda a estrutura.
+> **Camada 3 · Padrão de Tela.** Herda das [Fundações](../README.md) + [Shell](../README.md) + segue o golden de form do [GOLDEN-REFERENCE.md](../../../../memory/reference/prototipo-ui/GOLDEN-REFERENCE.md). Módulo configura os campos/seções, **não** muda a estrutura.
 
 ## Quando aplicar
 
@@ -106,7 +106,7 @@ A `Cliente/Create` é ouro em **SoC/DS/máscaras BR/a11y**, mas tem débitos cat
 ## Referências
 
 - **ADR-mãe:** [UI-0013 Constituição UI v2](../adr/ui/0013-constituicao-ui-v2-camadas.md)
-- **Golden de form (código):** [GOLDEN-REFERENCE.md](../../../../prototipo-ui/GOLDEN-REFERENCE.md) (`Sells/Create` — 10 regras R1-R10 visuais; PT-02 estende pra cadastro BR)
+- **Golden de form (código):** [GOLDEN-REFERENCE.md](../../../../memory/reference/prototipo-ui/GOLDEN-REFERENCE.md) (`Sells/Create` — 10 regras R1-R10 visuais; PT-02 estende pra cadastro BR)
 - **Drawer canon:** [ADR 0179](../../../decisions/0179-cliente-drawer-760px-substitui-show-fullpage.md) + [ADR 0185](../../../decisions/0185-drawer-760-canon-entidades-cadastrais.md)
 - **Tokens v4 roxo:** [ADR 0235](../../../decisions/0235-ds-v4-roxo-primary.md)
 - **Pattern reuse / pares:** [PT-01 Lista](PT-01-Lista.md) (Slot 6 dispara este drawer) · [ADR 0149](../../../decisions/0149-mwart-screen-pattern-reuse-cowork.md)

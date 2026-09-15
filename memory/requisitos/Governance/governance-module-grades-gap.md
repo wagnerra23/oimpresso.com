@@ -1,7 +1,7 @@
 ---
 id: requisitos-governance-module-grades-gap
 tela: governance/ModuleGrades/Index (/governance/module-grades)
-prototipo: prototipo-ui/cowork/governance-page.jsx + governance-telas.jsx
+prototipo: prototipo-ui/cowork/Wagner/governance-page.jsx + governance-telas.jsx
 tela_viva: resources/js/Pages/governance/ModuleGrades/Index.tsx
 gerado_em: 2026-09-06
 ---
@@ -33,6 +33,6 @@ gerado_em: 2026-09-06
 - `grep -nEi 'Limpar|limpar|reset' resources/js/Pages/governance/ModuleGrades/Index.tsx` → 0
 - `grep -nEi 'avaliad|sem D6|abaixo' resources/js/Pages/governance/ModuleGrades/Index.tsx` → 0
 - `grep -nEi 'não avaliad|travess' resources/js/Pages/governance/ModuleGrades/Index.tsx` → 0
-- `sed -n 224,320p prototipo-ui/cowork/governance-telas.jsx ／ grep -cEi 'Catálogo|catalogo|Catalog'` → 0 (ausência no mockup, sustenta "vivo à frente" da aba Catálogo)
-- `sed -n 224,320p prototipo-ui/cowork/governance-telas.jsx ／ grep -cEi 'ADR 0153|pesos|0154'` → 0 (ausência no mockup — rodapé da rubrica)
-- `sed -n 279,306p prototipo-ui/cowork/governance-telas.jsx ／ grep -cEi 'href|Link|onClick'` → 0 (ausência no mockup — drill-down por linha)
+- `sed -n 224,320p prototipo-ui/cowork/Wagner/governance-telas.jsx ／ grep -cEi 'Catálogo|catalogo|Catalog'` → 0 (ausência no mockup, sustenta "vivo à frente" da aba Catálogo)
+- `sed -n 224,320p prototipo-ui/cowork/Wagner/governance-telas.jsx ／ grep -cEi 'ADR 0153|pesos|0154'` → 0 (ausência no mockup — rodapé da rubrica)
+- `sed -n 279,306p prototipo-ui/cowork/Wagner/governance-telas.jsx ／ grep -cEi 'href|Link|onClick'` → 0 (ausência no mockup — drill-down por linha)

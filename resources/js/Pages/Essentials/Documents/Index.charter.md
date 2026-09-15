@@ -2,7 +2,7 @@
 id: resources-js-pages-essentials-documents-index-charter
 page: /essentials/document
 component: resources/js/Pages/Essentials/Documents/Index.tsx
-related_prototype: prototipo-ui/cowork/essenciais-page.jsx#Arquivos (:338-400)
+related_prototype: prototipo-ui/cowork/Wagner/essenciais-page.jsx#Arquivos (:338-400)
 related_us: [US-ESS-007]
 bundle_source: essenciais-page.jsx
 owner: wagner
@@ -22,7 +22,7 @@ charter_version: 1
 >
 > **Correção de `related_prototype` (2026-09-09).** Dizia `n/a (herda PT-01 Lista)` — decisão
 > **vencida**: o `essenciais-page.jsx` desceu para o espelho e é carregado pelo shell canônico
-> `prototipo-ui/cowork/oimpresso.com.html`, e o `bundle_source` do MESMO frontmatter já apontava
+> `prototipo-ui/cowork/Wagner/oimpresso.com.html`, e o `bundle_source` do MESMO frontmatter já apontava
 > para ele. Um componente serve as duas abas (`Arquivos({ modo })`, `:338-400`), como aqui.
 > Inventário: [`documents-index-gap.md`](../../../../../memory/requisitos/Essentials/documents-index-gap.md).
 

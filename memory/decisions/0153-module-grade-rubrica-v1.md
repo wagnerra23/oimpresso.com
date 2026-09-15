@@ -3,9 +3,9 @@ slug: 0153-module-grade-rubrica-v1
 number: 153
 title: "Rubrica oficial `module-grade-v1` — nota 0-100 ponderada pra cada Module"
 type: adr
-status: deprecated
+status: superseded
 authority: canonical
-lifecycle: arquivado
+lifecycle: substituido
 decided_by: [W]
 decided_at: "2026-05-16"
 module: Governance
@@ -13,7 +13,7 @@ quarter: 2026-Q2
 tags: [governance, qualidade, audit, dashboard, dim-5-pesos-100]
 supersedes: []
 supersedes_partially: []
-superseded_by: []
+superseded_by: ['0399-aposentar-rubrica-module-grade-gate-e-baseline']
 related: [0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0105-cliente-como-sinal-guiar-sem-mandar, 0143-fsm-pipeline-live-prod-marco-2026-05-12]
 pii: false
 review_triggers:

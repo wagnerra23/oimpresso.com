@@ -603,6 +603,20 @@ jobs:
       - name: Registro design-sync-não-é-fonte em settings.json (camada L4 · DesignSync + Skill)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/settings-design-sync-registration.test.mjs
+      # MOTOR compartilhado dos 5 abaixo (aplicar-payload, bundle-contract, bundle-transaction,
+      # gerar-payload-partes e scripts/design/render-proto-baseline) — era o único sem teste
+      # próprio, exercitado só de lado pelos testes dos consumidores. Roda ANTES deles porque
+      # uma regressão aqui aparece longe da causa. Mutantes mortos antes de wirar (2026-09-13):
+      # normalização de barra invertida do Windows removida → 1 FAIL · guard `fromJs` removido
+      # (nome nu em JS viraria arquivo, e `react` entraria como missing do bundle) → 2 FAIL ·
+      # strip de `?query`/`#frag` removido → 1 FAIL · `binary` deixa de ser folha → 1 FAIL ·
+      # `duplicates` some de `complete` → 1 FAIL · `reachable` para de filtrar pelo que existe
+      # (entry ausente sairia como alcançado) → 1 FAIL · ref insegura vira aresta → 2 FAIL.
+      # O harness aborta quando o padrão não casa: mutação no-op daria recibo falso, e a 1a
+      # versão do M5 casou zero — o receita saiu só depois de corrigir o padrão.
+      - name: payload-dependency-graph MOTOR morde (path POSIX/pacote npm x arquivo/binário folha/ciclo · em memória)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/design-sync/payload-dependency-graph.test.mjs
       - name: aplicar-payload morde (escopo/R1/bytes/regressão · CLI de fora, sandbox por cwd)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/aplicar-payload.test.mjs
@@ -617,6 +631,19 @@ jobs:
       - name: bundle transacional morde (sequência/SHA/staging/rollback/módulos/evidências)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/bundle-transaction.test.mjs
+      # O PAINEL que fica em cima do bundle-transaction. `recibos-ci.mjs` o invoca 2× como
+      # código real (`--refresh` L129, `--run-test` L121) tratando rc != 0 como erro, e o painel
+      # do protocolo o publica em 5 das 6 fases — mas as catracas `--check-mapping` e
+      # `--check-lifecycle` nunca tinham sido exercitadas. Cobre só o que é DELE (leitura, exit
+      # codes, as 2 catracas, o ponteiro D2); os caminhos de escrita são do step acima (LC-19).
+      # Mutantes mortos antes de wirar (2026-09-13, 11/11): `--check-mapping` lendo
+      # `lifecycleState` → L3a+L3b · seleção vazia virando anistia → L7 (typo no `--source`
+      # sairia verde: catraca verde por não-execução) · exit 2 de uso colapsado em 1 → 3 FAIL ·
+      # ordem do lifecycle alfabética → L6a · report ausente virando `{screens:[]}` → L1a ·
+      # os 3 limites do D2 → L10b/c/d · `--root` ignorado → 12 FAIL (o hermetismo é medido).
+      - name: design-sync status morde (exit 2 de uso · check-mapping · check-lifecycle · ponteiro D2)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/design-sync/status.test.mjs
       # Recepção do handoff .zip (decisão [W] 2026-09-10). O teste MONTA os zips em memória, então
       # é também o controle positivo do leitor: se o formato que ele escreve e o que o `zip-reader`
       # lê divergissem, os casos "solta" cairiam. Trava CRC-32 conferido, ZIP64 recusado, zip-slip
@@ -626,9 +653,93 @@ jobs:
       - name: receber-handoff morde (zip/CRC/zip-slip/pacote velho/3 pontos · hermético)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/receber-handoff.test.mjs
+      # Import do bundle Cowork (Fase -1). O `--selftest` do script roda no design-memory-gate e
+      # cobre SO `decidirSwap` — funcao pura. Aqui entra o que ele nao alcanca: `acharBundleRoot`
+      # (o bug 2026-07-01, que aninhava o slug inteiro, estava sem UM teste) e o contrato de
+      # processo exercitado pelo CLI DE FORA — exit 2 de uso != exit 1 de integridade, e o destino
+      # PRESERVADO quando a extracao falha, que e a razao de existir do script (LC-15: assert sobre
+      # helper puro nao prova contrato de pipeline).
+      # Esta lane e NAO o design-memory-gate porque la o `paths:` nao inclui `importar-bundle.mjs`:
+      # mexer no script nao dispara o teste dele (§5 2026-08-02, gate mudo com cara de cobertura).
+      # Mutantes mortos antes de wirar (2026-09-13): bug literal de 2026-07-01 (`return
+      # join(destino,'project')` no topo) -> 8 FAIL · catch da extracao apagando o destino antes de
+      # abortar -> 1 FAIL · ambiguidade escolhendo calada -> 1 FAIL. Hermetico: nenhum caso extrai
+      # zip, entao nao pede PowerShell (o script e Windows-only na extracao; esta lane e ubuntu).
+      #
+      # 2026-09-13 (2a leva): entra `classificarParaSync` — a DECISAO do sync, que APAGA arquivo do
+      # SSOT (`robocopy /PURGE` + 2 sweeps) e nao tinha cobertura nem TINHA COMO ter: a regra vivia
+      # dentro de uma string heredoc PowerShell. Medido: `git grep -lF robocopy` -> 1 arquivo (o
+      # proprio script); `runs-on:.*windows` -> 0 runners. Os casos sao puros (string -> veredito),
+      # entao seguem hermeticos no ubuntu. Paridade com a PS REAL medida a parte no Windows (3
+      # sweeps de verdade num mkdtemp, sobrevivente x veredito): 40/40. Mutantes mortos, 11/11:
+      # `.md` em BUILD_EXTS -> 4 FAIL · guarda do .gitignore removida -> 2 FAIL · NOISE_DIRS perde
+      #
+      # ⚠ ERRATA 2026-09-13, no MESMO dia: o mutante `.md` em BUILD_EXTS virou o COMPORTAMENTO.
+      # Decisao [W] — o espelho recebe o pacote Cowork com a arvore dele, `.md` incluido (medido:
+      # 337 de 816 arquivos do pacote eram descartados). A const virou ESPELHO_EXTS e os 4 asserts
+      # que mordiam com o veredito oposto foram invertidos: agora sao o BITE do conserto, e
+      # restaurar o BUILD-ONLY os deixa vermelhos (provado por mutacao no PR). O registro acima
+      # fica como fato datado do que se mediu naquela leva — nao como politica vigente.
+      # `uploads` -> 5 FAIL · ruido-dir case-sensitive -> 1 FAIL · ruido-dir so na raiz -> 1 FAIL ·
+      # residuo sem flag `i` -> 1 FAIL · extensao sem ToLower -> 1 FAIL · extensao do PRIMEIRO ponto
+      # -> 1 FAIL · precedencia residuo-antes-de-junk -> 1 FAIL · guard de entrada invalida removido
+      # -> 6 FAIL · `\d` RESTAURADO no padrao de residuo -> 3 FAIL (o tripwire do defeito reportado).
+      # O harness ABORTA quando o padrao nao casa 1x: o 1o M8 SOBREVIVEU (faltava caso com 2 pontos,
+      # `tela.mobile.css`) e o 1o M11 era no-op de runtime — a barra colapsava DE NOVO no alvo, o
+      # que e o proprio LC-26 se demonstrando. Recibo so saiu depois de corrigir os dois.
+      - name: importar-bundle morde (acharBundleRoot + delete-before-verify + classificarParaSync · CLI de fora, hermetico)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/design/importar-bundle.test.mjs
+      # Topologia do espelho (cowork-ssot-guard): a R3 mudou de significado em 2026-09-13 por
+      # decisao [W] — `.md` passou a ser aceito sob `cowork/<dono>/` com a arvore do Cowork.
+      # O guard e required via design-memory-gate.yml e nao tinha teste nenhum. Roda pelo CLI num
+      # tmpdir (o script EXECUTA no import e chama process.exit — importar a funcao mataria o
+      # processo do teste, LC-15). Mutante morto antes de wirar: R3 antiga restaurada -> 3 FAIL;
+      # controle restaurado volta exit 0. Os CONTROLES cobrem o que NAO afrouxou: `.md` sem dono
+      # segue violando, dono nao declarado segue R2, e a R4 segue mordendo duplicata de bytes.
+      - name: cowork-ssot-guard morde (R3 pos-decisao + controles R2/R4 · CLI de fora, hermetico)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/cowork-ssot-guard.test.mjs
+      # Espinha de leitura de charter: `_lib-charter.mjs` e a fonte unica de read/frontmatter/walk/
+      # SKIP_DIRS pros 3 scripts que a importam (ancora, detectar-telas, design-diff-lote — contado
+      # em 2026-09-13 com `git grep -lF "_lib-charter" origin/main` filtrado por import de fato; o
+      # `importar-bundle.mjs` aparece no grep mas so MENCIONA num comentario, §5 2026-08-10). Era a
+      # lib de maior alcance da cadeia sem prova nenhuma: sem .test.mjs e sem --selftest.
+      # Trava o que os call-sites exigem, nao o que as funcoes parecem fazer: `read` distinguindo
+      # AUSENTE (null) de VAZIO ('') — o fail-open que o ancora.mjs:647 documenta; `frontmatter(null)`
+      # virando {} em vez de lancar (os call-sites sao `frontmatter(await read(cf))`, sem guarda no
+      # meio); o parser NAO desaspando (ancora.mjs:68 — quem desaspa e o consumidor, e se a lib
+      # passasse a fazer isso a dupla desasparia 2x calada); e `walk` nao vazando entre chamadas
+      # CONCORRENTES, que e o padrao real `Promise.all(raizes.map(walk))` dos dois consumidores.
+      # Mutantes mortos antes de wirar (2026-09-13, 8 de 8 · controle restaurado volta exit 0):
+      # catch do `read` devolvendo '' -> 2 FAIL · frontmatter desaspando -> 1 · regex com flag `m`
+      # -> 1 · lendo chave indentada -> 1 · default `out=[]` virando array de modulo -> 4 ·
+      # SKIP_DIRS perdendo `_BACKUP-NAO-USAR` (a divergencia que criou a lib) -> 3 · skip so em
+      # diretorio -> 1 · e 1 prova retirada do proprio teste -> PISO morde (35 < 36).
+      # Esta lane e NAO o design-memory-gate porque la `_lib-charter.mjs` nem esta no `paths:`
+      # (medido: nenhum dos 3 consumidores esta) e o gatilho e `types: [opened, reopened,
+      # ready_for_review]` — mexer na lib nao dispararia o teste dela, e correcao em commit
+      # posterior nunca mostraria verde (§5 2026-08-02, gate mudo com cara de cobertura).
+      # Hermetico: fixtures no tmpdir do Node, sem deps/rede/DB.
+      - name: _lib-charter morde (read/frontmatter/walk/SKIP_DIRS · espinha dos 3 consumidores)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/design/_lib-charter.test.mjs
       - name: ds-push orquestrador morde (dry-run VALOR:0 + determinismo · loop diff-first)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/ds-push.test.mjs
+      # PASSO 2 do ds-push (`node('ds-domains-companion.mjs', [tokensDir])`, ds-push.mjs:78) — o
+      # stdout dele VIRA o companion que o `ds-token-diff --companion` parseia. Sem teste nem
+      # `--selftest` até 2026-09-13: o `ds-push.test.mjs` exercita o orquestrador, não o filtro
+      # de domínio. Testa o CLI DE FORA porque o script não exporta nada (LC-15).
+      # Mutantes mortos antes de wirar (2026-09-13, 8/8): prefixo `stage-`→`stage` → T4 · regex
+      # perde o `/i` → T2+T6 (os 10 `--origin-*` do canon têm MAIÚSCULA e sumiriam calados) ·
+      # dedup pelo último → T7b · sem `sort` → T7a · `--check` fail-open no companion ausente →
+      # T12a · filtro de domínio desligado → 10 FAIL · bloco dark emitindo o light → T8b+T9b ·
+      # cabeçalho com contagem fixa → T9b. O T12c caiu na 1a versão por eu ler só o stdout no
+      # ramo de SUCESSO do `execFileSync` (§5 2026-08-14: leia os DOIS streams) — daí o spawnSync.
+      - name: ds-domains-companion morde (filtro de domínio/verbatim/--check · CLI de fora, hermético)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/design-sync/ds-domains-companion.test.mjs
       - name: ds-token-version morde (seed + bumps MINOR/MAJOR + gate --check · loop diff-first)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/ds-token-version.test.mjs
@@ -902,7 +1013,7 @@ jobs:
       - name: Git-base-freshness-guard PORTE .mjs (§10.4 · stale morde/solta · roda em Linux)
         if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/git-base-freshness-guard.test.mjs
-      - name: DS-preview-materialize (SessionStart · `_ds/` vazio em worktree fresco morde/solta · [W] 2026-09-02)
+      - name: DS-preview-materialize (SessionStart · shell legado com `_ds/` avisa e NAO recria · BITE por fixture)
         if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/ds-preview-materialize.test.mjs
       - name: Feature-lint (contrato do trio de feature · us-no-spec/dod/plan/covers)
@@ -1016,6 +1127,13 @@ jobs:
       - name: Refutador GT-G5 workflow (reprovado para · aprovado registra · resume · entry 6897)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/refutador-gt-g5-workflow.test.mjs
+      # Extrator do recibo que o resume do refutador lê (último bloco json SEM o array
+      # refutados). Nasceu em 2026-09-13: a r1 do #7224 tinha ~700 linhas de refutados e o
+      # `tail -n 40` não alcançava itens_verificados — parse null, r1 fora da trajetória, a
+      # rodada seguinte renumerada r1. Bite por mutação (sem `delete refutados` → 1 falha).
+      - name: Refutação GT-G5 recibo (bloco longo · fallback tail)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/refutacao-recibo.test.mjs
       - name: Migração visual em ondas (duplo aceite · uma onda · Tier 0)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/migracao-layout-workflow.test.mjs

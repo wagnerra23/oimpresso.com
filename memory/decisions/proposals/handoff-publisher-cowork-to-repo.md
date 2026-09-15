@@ -24,9 +24,9 @@ origem: "Follow-up do PR-6 (#2921). [W]: 'caramba escolha a melhor e faça termi
 # Publisher Cowork→repo — discovery + design (PR-7, follow-up do PR-6)
 
 ## 0. O gap (o "primeiro hop")
-Pós-PR-6: `.md` em `prototipo-ui/handoffs/*.md` no push → `handoff-sign-submit.yml` assina + POST
+Pós-PR-6: `.md` em `prototipo-ui/cowork/Wagner/handoffs/*.md` no push → `handoff-sign-submit.yml` assina + POST
 `handoff-submit` → `pending`. **O que faltava:** alguém pôr o artefato do Cowork em
-`prototipo-ui/handoffs/<slug>.md` e commitar. Hoje = [W] à mão.
+`prototipo-ui/cowork/Wagner/handoffs/<slug>.md` e commitar. Hoje = [W] à mão.
 
 ## 1. Discovery — o que JÁ EXISTE (o achado central)
 **O publisher é WIRING de coisa que já existe, não greenfield.** A premissa "Cowork é read-only no
@@ -45,7 +45,7 @@ GitHub" é parcialmente falsa:
 Encadear `cowork-inbox → handoff-sign-submit` **quebra**: o auto-merge da `cowork-inbox.yml` usa
 `GITHUB_TOKEN`, e **eventos do `GITHUB_TOKEN` não disparam outros workflows** → o `on: push` do signer
 não acende. Verificado: signer só tem `push`/`pull_request`/`workflow_dispatch` (sem `workflow_run`); não
-há PAT/App de bot (o `grokwr2` é bootstrap planejado); `prototipo-ui/handoffs/` nunca existiu (loop nunca
+há PAT/App de bot (o `grokwr2` é bootstrap planejado); `prototipo-ui/cowork/Wagner/handoffs/` nunca existiu (loop nunca
 rodou ponta-a-ponta).
 
 ## 3. As 3 opções do chip → realidade
@@ -64,7 +64,7 @@ o handoff que acabou de pousar, no mesmo job). Alternativas de fiação avaliada
 
 ## 5. Entregue no PR-7
 1. `bin/submit-handoff.sh` — fonte única do sign+POST + self-test (controle-negativo, sem rede).
-2. `.github/scripts/cowork-inbox.py` — emite `handoffs=` dos `.md` pousados em `prototipo-ui/handoffs/`.
+2. `.github/scripts/cowork-inbox.py` — emite `handoffs=` dos `.md` pousados em `prototipo-ui/cowork/Wagner/handoffs/`.
 3. `.github/workflows/cowork-inbox.yml` — setup-php + passo inline de sign+submit.
 4. `.github/workflows/handoff-sign-submit.yml` — refatorado pra reusar `submit-handoff.sh` (DRY) + self-test.
 5. `cowork-inbox/README.md` — seção "Publisher de handoff (ADR 0285)" com a convenção.

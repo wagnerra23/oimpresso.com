@@ -38,7 +38,7 @@ use Throwable;
  * de deploy, fora do escopo do PR-1.
  *
  * Uso:
- *   php artisan handoff:ingest                    # ingere prototipo-ui/handoffs/*.md
+ *   php artisan handoff:ingest                    # ingere prototipo-ui/cowork/Wagner/handoffs/*.md
  *   php artisan handoff:ingest --path=outro/dir   # caminho alternativo (abs ou relativo)
  *   php artisan handoff:ingest --dry-run          # valida + mostra plano, não persiste
  *   php artisan handoff:ingest --detail           # motivo de cada rejeição/skip

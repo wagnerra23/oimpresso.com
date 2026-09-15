@@ -58,12 +58,12 @@ it('doc citando só ADR vigente → sem finding', function () use ($lifecycleMap
 it('doc citando ADR superseded como vigente → finding medium (caso central)', function () use ($lifecycleMap, $hoje) {
     // Cenário real: briefing cita "ADR 0190" mas 0190 foi superseded por 0235.
     $content = "# Primer\n\nO primary segue ADR 0190 (roxo 295).\n";
-    $f = (new DesignDocsFreshnessChecker())->analisarDoc('prototipo-ui/CLAUDE_COWORK_PRIMER.md', $content, $lifecycleMap, $hoje);
+    $f = (new DesignDocsFreshnessChecker())->analisarDoc('memory/reference/prototipo-ui/CLAUDE_COWORK_PRIMER.md', $content, $lifecycleMap, $hoje);
 
     expect($f)->toHaveCount(1)
         ->and($f[0])->toBeInstanceOf(DriftFinding::class)
         ->and($f[0]->severity)->toBe('medium')
-        ->and($f[0]->target)->toBe('prototipo-ui/CLAUDE_COWORK_PRIMER.md')
+        ->and($f[0]->target)->toBe('memory/reference/prototipo-ui/CLAUDE_COWORK_PRIMER.md')
         ->and($f[0]->target_type)->toBe('design_doc')
         ->and($f[0]->message)->toContain('ADR 0190')
         ->and($f[0]->evidence['category'])->toBe('dead_adr_ref')
@@ -144,7 +144,7 @@ it('next_review == hoje → sem finding (não vencido)', function () use ($lifec
 
 it('doc sem frontmatter e sem ADR morto → sem finding', function () use ($lifecycleMap, $hoje) {
     $content = "# PROTOCOL\n\n> Última revisão: 2026-05-09\n\nTexto livre, ADR 0094 vigente.\n";
-    $f = (new DesignDocsFreshnessChecker())->analisarDoc('prototipo-ui/PROTOCOL.md', $content, $lifecycleMap, $hoje);
+    $f = (new DesignDocsFreshnessChecker())->analisarDoc('memory/reference/prototipo-ui/PROTOCOL.md', $content, $lifecycleMap, $hoje);
     expect($f)->toBeEmpty();
 });
 

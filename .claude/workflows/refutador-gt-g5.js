@@ -13,6 +13,11 @@ export const meta = {
 // (memory/requisitos/Governance/PROTOCOLO-REFUTADOR-BACKFILL.md, §7 aponta pra cá).
 //
 // O QUE FAZ, por invocação (= UMA rodada):
+//   ⚠️ 2026-09-13: em resume, a cauda de cada evidência vem do extrator
+//                 scripts/governance/refutacao-recibo.mjs (último bloco json SEM o array
+//                 refutados), não de `tail -n 40` — a r1 do #7224 tinha ~700 linhas de
+//                 refutados e o tail não alcançava itens_verificados: parse null, r1 fora
+//                 da trajetória e a rodada seguinte renumerada como r1.
 //   1. Escopo   — agente mecânico lista o lote (`git diff --name-only <base>...HEAD --
 //                 memory/requisitos`), mede shas/raso/data. Em `args.resume`, lê a CAUDA
 //                 das evidências já gravadas (`...-r<N>.md`) — o JSON final de cada uma
@@ -305,16 +310,17 @@ function selftest() {
 const promptEscopo = (n, arquivosEvid) => `Você é um agente MECÂNICO do workflow refutador-gt-g5 (só mede, não julga). Working dir = raiz do repo oimpresso. Rode na ordem e devolva o JSON no schema.
 
 1. \`git fetch origin main --quiet\`; \`git rev-parse --is-shallow-repository\`; \`git rev-parse HEAD\`; \`git rev-parse ${n.base}\`; \`git merge-base ${n.base} HEAD\`.
+1b. \`gh pr view ${n.pr} --json headRefOid --jq .headRefOid\` → pr_head_sha (o head que o PR REALMENTE aponta). Se o comando falhar, devolva string vazia — o workflow decide.
 2. \`git diff --name-status ${n.base}...HEAD -- memory/requisitos\` → lista COMPLETA (sem head, sem paginação) de {status, path}. Também \`git diff --name-only ${n.base}...HEAD\` fora de memory/requisitos → só a contagem + até 30 paths.
 3. \`date +%F\` → data de hoje (YYYY-MM-DD).
-4. ${arquivosEvid ? `RESUME: liste \`memory/sessions/*-refutacao-gt-g5-lote-${n.pr}-r*.md\` (git ls-files + ls). Para CADA arquivo devolva {arquivo, rodada (o N do sufixo -rN), cauda: ÚLTIMAS 40 LINHAS literais (\`tail -n 40\`)}. NÃO interprete o conteúdo, NÃO resuma — a cauda crua é o que o workflow parseia.` : `Confira se JÁ existe alguma evidência \`memory/sessions/*-refutacao-gt-g5-lote-${n.pr}-r*.md\` (ls). Se existir, devolva a lista em evidencias_existentes com rodada e cauda (tail -n 40) — o workflow vai PARAR e pedir resume.`}
+4. ${arquivosEvid ? `RESUME: liste \`memory/sessions/*-refutacao-gt-g5-lote-${n.pr}-r*.md\` (git ls-files + ls). Para CADA arquivo devolva {arquivo, rodada (o N do sufixo -rN), cauda: o RECIBO extraído por máquina — rode EXATAMENTE \`node scripts/governance/refutacao-recibo.mjs <arquivo>\` e devolva o stdout literal (é o último bloco \`\`\`json da evidência com o array \`refutados\` removido — ele pode ter centenas de linhas e um \`tail -n 40\` não alcança \`itens_verificados\`, que é o que o parse precisa)}. NÃO interprete o conteúdo, NÃO resuma — o recibo cru é o que o workflow parseia.` : `Confira se JÁ existe alguma evidência \`memory/sessions/*-refutacao-gt-g5-lote-${n.pr}-r*.md\` (ls). Se existir, devolva a lista em evidencias_existentes com rodada e cauda (tail -n 40) — o workflow vai PARAR e pedir resume.`}
 5. Não edite nada. Não commite. Não abra o conteúdo dos arquivos do lote.`
 
 const ESCOPO_SCHEMA = {
   type: 'object', additionalProperties: false,
-  required: ['data', 'head_sha', 'base_sha', 'merge_base', 'raso', 'arquivos', 'fora_requisitos_count', 'evidencias_existentes'],
+  required: ['data', 'head_sha', 'pr_head_sha', 'base_sha', 'merge_base', 'raso', 'arquivos', 'fora_requisitos_count', 'evidencias_existentes'],
   properties: {
-    data: { type: 'string' }, head_sha: { type: 'string' }, base_sha: { type: 'string' }, merge_base: { type: 'string' }, raso: { type: 'boolean' },
+    data: { type: 'string' }, head_sha: { type: 'string' }, pr_head_sha: { type: 'string' }, base_sha: { type: 'string' }, merge_base: { type: 'string' }, raso: { type: 'boolean' },
     arquivos: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['status', 'path'], properties: { status: { type: 'string' }, path: { type: 'string' } } } },
     fora_requisitos_count: { type: 'integer' },
     fora_requisitos_paths: { type: 'array', items: { type: 'string' } },
@@ -346,7 +352,7 @@ Tipo: ${n.tipo}. ${n.tipo === 'anchors'
 
 O QUE VERIFICAR — para CADA item: CONFIRMADO ou REFUTADO + evidência (path + linha/commit + porquê). Conte os itens por grupo e declare o número:
 1. ÂNCORA EXISTE EM ${n.base}: todo path citado pelo lote (map.json \`prototipo.arquivo\`/\`vivo.arquivo\`, frontmatter \`tela_viva\`/\`prototipo\`, \`**Implementado em:**\`, US-ids no SPEC, links relativos) — \`git ls-tree ${n.base} -- <path>\` devolve blob; controle negativo com um path inexistente. Path sob \`resources/js/Pages/**\` vs \`Components/**\`: âncora de fundação apontada pra consumidor de tela é REFUTADA.
-2. ÂNCORA NÃO REVOGADA E LIDA PELO LEITOR REAL: o charter dono da tela não marca o protótipo como REVOGADA/MIS-ANCHOR (\`node prototipo-ui/ancora.mjs <Mod/Tela> --staging prototipo-ui/cowork\` resolve \`âncora ✓\`); o frontmatter é lido pelo consumidor de verdade (\`fmVal\` em prototipo-ui/gerar-contrato.mjs, \`gerar-map.mjs\`, o schema do gate) — regenerar o derivado a partir da fonte e comparar chave a chave.
+2. ÂNCORA NÃO REVOGADA E LIDA PELO LEITOR REAL: o charter dono da tela não marca o protótipo como REVOGADA/MIS-ANCHOR (\`node scripts/design/ancora.mjs <Mod/Tela> --staging prototipo-ui/cowork/Wagner\` resolve \`âncora ✓\`); o frontmatter é lido pelo consumidor de verdade (\`fmVal\` em scripts/design/gerar-contrato.mjs, \`gerar-map.mjs\`, o schema do gate) — regenerar o derivado a partir da fonte e comparar chave a chave.
 3. AÇÃO × VEREDITO DA PROSA, E AFIRMAÇÃO SOBRE CÓDIGO: a célula/linha derivada é REFUTADA se INVERTE, INVENTA, OMITE, TRUNCA item relevante (item enumerado como gap real, restrição Tier 0 / regra mestre, \`_pendente_\` que condiciona a existência do gap), REABRE um veredito (inclusive banner de invalidade do próprio arquivo, decisão [W] registrada, "NÃO fazer", "já é canon", "— · —"), CITA LINHA ERRADA (a linha citada tem que conter o que se afirma — abra e confira), ou AFIRMA ALGO SOBRE O CÓDIGO QUE O CÓDIGO EM ${n.base} CONTRADIZ (abra o componente/controller e conte — "vivo tem 2 tabs" com 5 declaradas é erro; comentário de cabeçalho não é o código). "Decidir." só vale nos termos da prosa. Em conflito, a prosa vence — mas a prosa também pode estar stale contra canon mais novo (ADR/charter em ${n.base}): aí o canon vence e é erro do lote carimbar a data de hoje.
 4. CÉLULA ÍNTEGRA: pipe não escapado cortando célula, code-span truncado, conteúdo do MOCKUP rotulado como "vivo", reticência que engole o veredito; \`acao\` do map.json == célula da tabela (regenere com o gerador do repo e faça diff chave a chave).
 5. MÁQUINA DERIVADA: rode os \`--check\` que o lote afirma satisfazer (ex.: \`node scripts/governance/requisitos-status.mjs <Mod> --check\`, \`plans-index.mjs --check\`, \`design-code-map-check.mjs --check --strict\`, \`doc-id-index.mjs --check-collisions\`) e cole o rc literal de cada um; arquivo que o PR diz ter regenerado mas não está no diff é achado.
@@ -405,6 +411,19 @@ async function fluxo() {
   const esc = await agent(promptEscopo(n, n.resume), { label: `escopo:pr${n.pr}`, phase: 'Escopo', schema: ESCOPO_SCHEMA, model: 'sonnet', effort: 'low', agentType: 'general-purpose' })
   if (!esc) { log('agente de escopo não devolveu nada — abortando sem gastar refutador'); return { ok: false, erros: ['escopo nulo'] } }
   log(`lote PR #${n.pr}: ${esc.arquivos.length} arquivo(s) em memory/requisitos · HEAD ${esc.head_sha.slice(0, 10)} · ${n.base} ${esc.base_sha.slice(0, 10)} · raso=${esc.raso} · data ${esc.data}`)
+  // FAIL-CLOSED: o checkout precisa SER o do PR. O escopo mede `<base>...HEAD` e o refutador lê os
+  // arquivos do working tree — se o cwd está noutro branch (sessão em worktree, o padrão aqui), os
+  // DOIS leem a árvore errada e o lote some. Medido em 2026-09-14 no PR #7262: rodando de um worktree
+  // cujo HEAD era outro branch, o escopo devolveu 1 arquivo de 64 e o workflow retornou ok:true
+  // ("não é lote") sem que um refutador sequer subisse — aprovação em falso, silenciosa.
+  // `gh` ausente NÃO vira veredito: declara que não mediu (§5 2026-07-29), nunca "está tudo bem".
+  const prHead = String(esc.pr_head_sha || '').trim()
+  if (!prHead) {
+    log(`⚠️ NÃO MEDIDO: o head real do PR #${n.pr} não pôde ser lido (gh indisponível?). A checagem de checkout NÃO foi feita — se o cwd não for o branch do PR, este run mede a árvore errada.`)
+  } else if (prHead !== esc.head_sha) {
+    log(`checkout ERRADO: o PR #${n.pr} aponta para ${prHead.slice(0, 10)} mas o working tree está em ${esc.head_sha.slice(0, 10)}. O escopo e o refutador leriam a árvore errada — ABORTANDO antes de gastar refutador. Rode o workflow de um checkout do branch do PR.`)
+    return { ok: false, erros: ['checkout não é o branch do PR'], pr_head_sha: prHead, head_sha: esc.head_sha }
+  }
   if (esc.fora_requisitos_count) log(`fora de memory/requisitos: ${esc.fora_requisitos_count} arquivo(s) (o gate só conta memory/requisitos)`)
   if (!ehLote(esc.arquivos.length) && !n.forcar) {
     log(`não é PR-de-lote (${esc.arquivos.length} ≤ ${THRESHOLD_LOTE}) — o ledger-check nem dispara; o loop (~330–400k tokens/rodada) não compensa. args.forcar=true pra rodar mesmo assim.`)

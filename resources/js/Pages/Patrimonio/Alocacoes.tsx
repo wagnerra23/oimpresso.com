@@ -5,7 +5,7 @@
 //         0180 (sidebar v3 · ghosts), 0253 (primitivos de layout)
 //   runbook: memory/requisitos/AssetManagement/RUNBOOK-alocacoes.md
 //   charter: ./Alocacoes.charter.md · casos: ./Alocacoes.casos.md
-//   fonte visual: prototipo-ui/cowork/patrimonio-page.jsx (aba `alocacoes`, :409) — ALVO,
+//   fonte visual: prototipo-ui/cowork/Wagner/patrimonio-page.jsx (aba `alocacoes`, :409) — ALVO,
 //                 não decisão de produto (`06-ui-bloqueada.md`)
 //
 // TERCEIRA tela Inertia do módulo. Ela REUSA o `_shared/PatrimonioSubNav` que a Bens fundou.
@@ -320,7 +320,7 @@ export default function Alocacoes({ alocacoes, filtros, permissoes }: Props) {
       <Stack gap={4}>
         {/* As âncoras `data-contract` são a ponte Cowork-CSS ↔ Tailwind do gate
             `contrato-de-tela.mjs` (ADR 0286) — mesmo padrão da irmã Bens (`Bens.tsx:532`).
-            Quem as consome: `prototipo-ui/contrato/patrimonio-alocacoes.contract.json`. */}
+            Quem as consome: `governance/design/contracts/patrimonio-alocacoes.contract.json`. */}
         <div data-contract="cabecalho">
           <PageHeader
             title="Alocações"

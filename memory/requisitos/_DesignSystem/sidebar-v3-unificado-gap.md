@@ -61,7 +61,7 @@ exige Wagner desempatar explicitamente** (matriz governance UI-0013: Wagner é
 
 > ⚠️ **Errata datada 2026-09-08 — as linhas #6/#7/#11 falam de um protótipo que já não é a fonte.**
 > Elas medem contra `prototipo-ui/prototipos/sidebar-v3-unificado/visual-source.html`, apagado em
-> 2026-06-23 (ver `prototipo_nota` no frontmatter). A fonte de hoje é `prototipo-ui/cowork/data.jsx`
+> 2026-06-23 (ver `prototipo_nota` no frontmatter). A fonte de hoje é `prototipo-ui/cowork/Wagner/data.jsx`
 > — e ele **não** "congelou nos 5 originais": tem os **mesmos 8 grupos do vivo, na mesma ordem**, mais
 > um 9º (`PLATAFORMA`). O veredito "NÃO regredir 8→5" continua certo pelo motivo certo, mas a
 > premissa "protótipo desatualizado" caducou. Medição e o que mudou: §"Paridade do MENU" no fim.
@@ -135,7 +135,7 @@ mandatório — nada disso entra num lote de telas.
 
 ## Tabela de partes (derivada 2026-09-06 — veredito da prosa × código medido)
 
-> Escrita por [C] em 2026-09-06. Regra: cada Ação cita o veredito da prosa (tabela de gaps · §Ordem sugerida · §Veredito) **e** o estado do código medido hoje com `arquivo:linha`. "**Decidir.**" só onde a prosa registra gap aberto; "Nada — <veredito>" onde a prosa fecha ("NÃO fazer", "preservar", paridade) ou onde o código/uma decisão posterior fechou. Em conflito prosa × decisão datada posterior, a decisão vence e a linha diz qual. Lado protótipo = `TODO` (expurgado — ver `prototipo_nota`). Consumida por `prototipo-ui/gerar-map.mjs` → `sidebar-v3-unificado.map.json`.
+> Escrita por [C] em 2026-09-06. Regra: cada Ação cita o veredito da prosa (tabela de gaps · §Ordem sugerida · §Veredito) **e** o estado do código medido hoje com `arquivo:linha`. "**Decidir.**" só onde a prosa registra gap aberto; "Nada — <veredito>" onde a prosa fecha ("NÃO fazer", "preservar", paridade) ou onde o código/uma decisão posterior fechou. Em conflito prosa × decisão datada posterior, a decisão vence e a linha diz qual. Lado protótipo = `TODO` (expurgado — ver `prototipo_nota`). Consumida por `scripts/design/gerar-map.mjs` → `sidebar-v3-unificado.map.json`.
 
 | Parte | Estado no vivo (medido 2026-09-06) | Ação |
 |---|---|---|
@@ -144,7 +144,7 @@ mandatório — nada disso entra num lote de telas.
 | Logo/topo (CompanyPicker) | `resources/js/Components/cockpit/Sidebar.tsx:412` `CompanyPicker`; montado em `resources/js/Layouts/AppShellV2.tsx:570`. | Nada — paridade (#3). |
 | Busca / Cmd+K na sidebar | `AppShellV2.tsx:89,731` `CommandPalette` global; `Sidebar.tsx`: 0 ocorrências de caixa de busca ("Buscar"/`search`). | **Decidir.** Entry visual "Buscar tudo… ⌘K" na `sb-top` plugando no `CommandPalette` existente — §Ordem sugerida 2 (P-M, sem valor). |
 | Seção FIXADOS / Pinned | `Sidebar.tsx`: 0 ocorrências de `pinned`/`Fixados` no menu (o `.sb-pin-empty` de `cockpit.css:344` é da aba Chat, não do menu). | **Decidir.** Seção Pinned — §Ordem sugerida 3 (G · Fase 7 da ADR 0180 · LocalStorage scopado `b<bizId>` = Tier 0 multi-tenant). |
-| Grupos de navegação | `Sidebar.tsx` `SIDEBAR_GROUPS` = **9 keys** desde 2026-09-08 (as 8 da direção [W] 2026-05-22 + `plataforma`) + `mais` (fallback). Mesma lista e mesma ordem do `GROUP_META`/`MENU` de `prototipo-ui/cowork/data.jsx`. | Nada — fechado em 2026-09-08 ([W]: "no sidebar pode colocar a Forja na PLATAFORMA, como está no protótipo"). O "NÃO regredir 8→5" do #6 segue valendo; o que mudou é que o 9º grupo veio DO design, não contra ele. Ver §"Paridade do MENU". |
+| Grupos de navegação | `Sidebar.tsx` `SIDEBAR_GROUPS` = **9 keys** desde 2026-09-08 (as 8 da direção [W] 2026-05-22 + `plataforma`) + `mais` (fallback). Mesma lista e mesma ordem do `GROUP_META`/`MENU` de `prototipo-ui/cowork/Wagner/data.jsx`. | Nada — fechado em 2026-09-08 ([W]: "no sidebar pode colocar a Forja na PLATAFORMA, como está no protótipo"). O "NÃO regredir 8→5" do #6 segue valendo; o que mudou é que o 9º grupo veio DO design, não contra ele. Ver §"Paridade do MENU". |
 | Labels dos grupos | `Sidebar.tsx:175` (mesmo array). | Nada — NÃO fazer (#7, vivo vence). |
 | Atalhos kbd (`G I`, `G V`…) | A prosa media "NÃO renderizado". Hoje: `Sidebar.tsx:490-501` `ItemEnd` renderiza `.sb-kbd` com o atalho; `:523-527` só pra atalho que o listener realmente liga (`atalhosUsaveis` — "não prometemos atalho que não funciona"); a sequência `G X` é ligada por `useSidebarShortcut` (`AppShellV2.tsx:355` → `resources/js/Components/cockpit/useSidebarShortcut.ts:178` `keydown`). | Nada — fechado no código depois da prosa (§Ordem 4 era "hints kbd (M)"): hint existe e só aparece pra atalho ligado. Quantos itens têm sequência `G X` ligada não foi medido aqui. |
 | Ícones dos itens | `Sidebar.tsx:60` `MENU_ICON_MAP` · `:130` `GROUP_ICON_MAP` (Lucide). | Nada — preservar Lucide (#9 "NÃO trocar por glyph"). |
@@ -163,7 +163,7 @@ mandatório — nada disso entra num lote de telas.
 
 - **Pedido:** [W] em 2026-09-08 — *"no sidebar pode colocar a Forja na PLATAFORMA, como está no protótipo?. e fazer um relatório paridade com prototipo?"*.
 - **Base:** `origin/main` em `0ff7ff328e`; repo **não** raso (`git rev-parse --is-shallow-repository` = `false`).
-- **Fonte do lado design:** `prototipo-ui/cowork/data.jsx` (`MENU` + `GROUP_META`) e `prototipo-ui/cowork/sidebar.jsx` (o accordion). **Conferido contra o Cowork VIVO por ID**, não só contra o espelho: `DesignSync.get_file(projectId=019dcfd3-…, path=data.jsx)` devolveu `truncated: false` e o bloco `PLATAFORMA` **idêntico** ao do espelho — o espelho está em 2026-08-25 e, neste arquivo, não drifou.
+- **Fonte do lado design:** `prototipo-ui/cowork/Wagner/data.jsx` (`MENU` + `GROUP_META`) e `prototipo-ui/cowork/Wagner/sidebar.jsx` (o accordion). **Conferido contra o Cowork VIVO por ID**, não só contra o espelho: `DesignSync.get_file(projectId=019dcfd3-…, path=data.jsx)` devolveu `truncated: false` e o bloco `PLATAFORMA` **idêntico** ao do espelho — o espelho está em 2026-08-25 e, neste arquivo, não drifou.
 - **Fonte do lado vivo:** `SIDEBAR_GROUPS` + `SidebarShortcuts` + `SidebarMenuRail` (`resources/js/Components/cockpit/Sidebar.tsx`), `SIDEBAR_GROUP_HUE` (`cockpit/shared.ts`) e o `group` que cada `DataController@modifyAdminMenu` declara.
 
 > **Limite — leia antes de usar.** Isto mede a **estrutura do menu** (que grupos existem, em que ordem, o que cai em cada um, que atalhos ficam no topo, que hue cada grupo recebe). **Não** mede fidelidade de pixel: para isso é `design-diff.mjs --probe` nos dois renders, e ele **não rodou** — o lado vivo exige a app autenticada. Nenhuma linha daqui autoriza dizer "está igual ao design".
@@ -227,7 +227,7 @@ Uma terceira duplicata, `plataforma: 200` (alias v2 → sistema), **foi** removi
 
 `#pergunta-1` — *quais grupos o design declara, em que ordem?*
 
-    node -e "const j=require('fs').readFileSync('prototipo-ui/cowork/data.jsx','utf8'); console.log([...j.matchAll(/group: \"([A-ZÇÃÕÁÉÍÓÚ]+)\", items:/g)].map(m=>m[1]).join(' > '))"
+    node -e "const j=require('fs').readFileSync('prototipo-ui/cowork/Wagner/data.jsx','utf8'); console.log([...j.matchAll(/group: \"([A-ZÇÃÕÁÉÍÓÚ]+)\", items:/g)].map(m=>m[1]).join(' > '))"
 
 `#pergunta-2` — *o hue efetivo de cada grupo bate com o que o design declara?* (salve como `.mjs` e rode com `node`; o `eval` é sobre dois literais de objeto simples, dentro do repo)
 
@@ -235,7 +235,7 @@ Uma terceira duplicata, `plataforma: 200` (alias v2 → sistema), **foi** removi
     const ts = fs.readFileSync('resources/js/Components/cockpit/shared.ts', 'utf8');
     const corpo = ts.match(/SIDEBAR_GROUP_HUE:[^{]*\{([\s\S]*?)\n\};/)[1].replace(/\/\/[^\n]*/g, '');
     const hue = eval('({' + corpo + '})');            // chave posterior VENCE — é o efetivo
-    const jsx = fs.readFileSync('prototipo-ui/cowork/data.jsx', 'utf8');
+    const jsx = fs.readFileSync('prototipo-ui/cowork/Wagner/data.jsx', 'utf8');
     const meta = jsx.match(/const GROUP_META = \{([\s\S]*?)\n\};/)[1].replace(/\/\/[^\n]*/g, '');
     for (const m of Object.values(eval('({' + meta + '})'))) {
       const v = hue[m.key];

@@ -34,7 +34,7 @@ Workflow({ scriptPath: ".claude/workflows/migracao-layout-em-ondas.js", args: { 
 - Tela já tem `resources/js/Pages/<Mod>/<Tela>.tsx` (já migrada) — usar `mwart-process` direto
 - View Blade interna (partials, components, emails, PDF) — não migrar
 - `vendor/` views — pacotes externos
-- Tela sem mockup Cowork em `prototipo-ui/prototipos/<modulo>/` E sem rota ativa — pode ser morta, perguntar antes
+- Tela sem mockup Cowork em `prototipo-ui/cowork/Wagner/legado/<modulo>/` E sem rota ativa — pode ser morta, perguntar antes
 
 ## Pipeline 6-step (sequencial obrigatório)
 
@@ -68,8 +68,8 @@ Workflow({ scriptPath: ".claude/workflows/migracao-layout-em-ondas.js", args: { 
 ╠══════════════════════════════════════════════════════════════════════╣
 ║ STEP 2 — TRADUÇÃO VISUAL (Cowork → Inertia/TSX draft)                ║
 ║                                                                      ║
-║ Input:  prototipo-ui/prototipos/<modulo>/visual-source.html          ║
-║         prototipo-ui/prototipos/<modulo>/cowork-*.jsx                ║
+║ Input:  prototipo-ui/cowork/Wagner/legado/<modulo>/visual-source.html          ║
+║         prototipo-ui/cowork/Wagner/legado/<modulo>/cowork-*.jsx                ║
 ║         memory/mwart-inventory/<modulo>/<tela>.snapshot.md           ║
 ║         runbook-{tipo}.template.md (este diretório)                  ║
 ║                                                                      ║
@@ -187,7 +187,7 @@ Cada template tem checklist específico do tipo + shared components obrigatório
 
 **Módulo:** Crm/Compras
 **Views Blade legacy:** 16
-**Mockup Cowork disponível:** `prototipo-ui/prototipos/compras/visual-source.html` (37,9 KB)
+**Mockup Cowork disponível:** `prototipo-ui/cowork/Wagner/legado/compras/visual-source.html` (37,9 KB)
 **Cadência piloto:** 1 tela por dia (sequencial). 16 telas ≈ 16 dias úteis com fator 10x IA-pair.
 **Critério liberação geral:** ≥4/5 primeiras telas aprovadas pelo gate visual vigente + zero regressão funcional em smoke manual biz=1. **Nunca usar biz=4.**
 

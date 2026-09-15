@@ -190,7 +190,7 @@ Hierarquia segue **in-screen, não in-sidebar**. Cada destino abre tela com **Pa
 
 | Fase | PR | Conteúdo | Esforço | Bloqueia? |
 |---|---|---|---|---|
-| **0** | Este ADR + protótipo Cowork (`prototipo-ui/prototipos/sidebar-v3-unificado/`) — DOCS only | 1h | — |
+| **0** | Este ADR + protótipo Cowork (`prototipo-ui/cowork/Wagner/legado/sidebar-v3-unificado/`) — DOCS only | 1h | — |
 | **1** | `app/Sidebar/MenuItemContract.php` — schema novo (`group`/`shortcut`/`primary`/`ghosts`) + validação + Pest | 0.5d | F0 |
 | **2** | `Sidebar.tsx` substituir `SIDEBAR_GROUPS` 11→5 keys + `SIDEBAR_GROUP_HUE` 5 keys + `LEGACY_GROUP_MAP` fallback | 0.5d | F1 |
 | **3** | `PageHeader.tsx` componente novo + responsive scroll-x + ARIA tablist + overflow "Mais" | 1d | F2 |
@@ -335,7 +335,7 @@ Módulos não-migrados ainda funcionam — caem no grupo certo via map. Migraç�
 - [ADR 0179](0179-cliente-drawer-760px-substitui-show-fullpage.md) — Drawer 760px (pattern visual)
 - [Dossiê comparativo Linear/Stripe/Shopify/Notion/Vercel](../sessions/2026-05-21-arte-sidebar-navegacao-comparativo.md)
 - [Skill `sidebar-menu-arch`](../../.claude/skills/sidebar-menu-arch.md) — arquitetura DataController
-- [Protótipo Cowork v3](../../prototipo-ui/prototipos/sidebar-v3-unificado/visual-source.html)
+- [Protótipo Cowork v3](../../prototipo-ui/cowork/Wagner/legado/sidebar-v3-unificado/visual-source.html)
 
 ---
 
@@ -371,7 +371,7 @@ A Zona C do PageHeader **não é revogada** — passa a ser complemento, não su
 
 ### O estado que passa a ser canon (medido nos dois lados em 2026-09-10)
 
-| o que | protótipo (`prototipo-ui/cowork/sidebar.jsx`) | vivo (`Components/cockpit/Sidebar.tsx`) |
+| o que | protótipo (`prototipo-ui/cowork/Wagner/sidebar.jsx`) | vivo (`Components/cockpit/Sidebar.tsx`) |
 |---|---|---|
 | ghosts sob o item ativo | `GhostList` `:180` | `:569` fatia por `GHOST_TETO` |
 | teto 5 + "⋯ mais N" | `GHOST_TETO = 5` `:179` | `GHOST_TETO = 5` `:544` |

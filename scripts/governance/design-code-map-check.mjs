@@ -3,7 +3,7 @@
 /**
  * design-code-map-check.mjs — sentinela da ponte design↔código PERSISTENTE (<tela>.map.json).
  *
- * Contraparte de verificação do gerador `prototipo-ui/gerar-map.mjs` (mesma separação
+ * Contraparte de verificação do gerador `scripts/design/gerar-map.mjs` (mesma separação
  * gerar-contrato.mjs × contrato-de-tela.mjs --contract: um DERIVA o esqueleto, o outro VALIDA
  * o artefato preenchido). Sem esta sentinela o `<tela>.map.json` é só um JSON solto que ninguém
  * garante que continua batendo com o disco (RUNBOOK-aplicar-prototipo-orquestracao.md, Fase 1 —
@@ -93,8 +93,8 @@ import { readdir } from 'node:fs/promises';
 import { join, resolve, relative, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { raizesDePages } from '../qa/page-path.mjs';
-import { shaAtualPara, shaIndeterminado, shaBate } from '../../prototipo-ui/gerar-map.mjs';
-import { frontmatterBlock, fmVal } from '../../prototipo-ui/gerar-contrato.mjs';
+import { shaAtualPara, shaIndeterminado, shaBate, resolverArquivosPrototipo } from '../../scripts/design/gerar-map.mjs';
+import { frontmatterBlock, fmVal } from '../../scripts/design/gerar-contrato.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
@@ -185,7 +185,7 @@ export function verificarMapa(mapa, { root = ROOT } = {}) {
   if (mapa.mapping?.source) {
     const sourcePath = String(mapa.mapping.source).includes('/')
       ? mapa.mapping.source
-      : join('prototipo-ui', 'cowork', mapa.mapping.source);
+      : join('prototipo-ui', 'cowork', 'Wagner', mapa.mapping.source);
     if (!existsSync(join(root, sourcePath))) drift.push(`mapping.source não existe: ${mapa.mapping.source}`);
   }
   const arquivosPrototipoReais = new Set();
@@ -232,6 +232,27 @@ export function verificarMapa(mapa, { root = ROOT } = {}) {
   // canônico — pega re-export sem commit, imune a commit que toca path sem mudar conteúdo);
   // legado = git-sha (maps antigos seguem verificados no formato em que nasceram, sem punição
   // retroativa). shaAtualPara roteia (fonte única em gerar-map.mjs).
+  // PONTO CEGO FECHADO (2026-09-14): quando TODAS as partes declaram `prototipo.arquivo: n/a`,
+  // `arquivosPrototipoReais` fica vazio e o bloco abaixo NÃO rodava — um map com `prototipo_sha`
+  // salvo ficava stale PARA SEMPRE sem gate nenhum perceber, bastando declarar n/a do lado
+  // protótipo. Medido no corpus: 65 maps com sha real, 64 medidos, 1 CEGO
+  // (Essentials/tipos.map.json, 7 partes, salvo sha256:1b1cc5c4264f) — e o gap dele DECLARA a
+  // fonte no frontmatter (`prototipo: prototipo-ui/cowork/Wagner/hrm-page.jsx`). Então a fonte
+  // existe: o que faltava era o checker cair nela. Mesmo resolvedor do gerador
+  // (resolverArquivosPrototipo), pra não abrir 2ª convenção de path.
+  if (!arquivosPrototipoReais.size && !shaIndeterminado(mapa.prototipo_sha) && mapa.gap_fonte) {
+    try {
+      const fmProto = fmVal(frontmatterBlock(readFileSync(join(root, mapa.gap_fonte), 'utf8')), 'prototipo');
+      for (const rel of resolverArquivosPrototipo(fmProto)) {
+        if (existsSync(join(root, rel))) arquivosPrototipoReais.add(rel);
+      }
+    } catch { /* gap ilegível — cai no warn abaixo, nunca em silêncio */ }
+  }
+  // "não consegui medir" NÃO é "está tudo bem" (§5 2026-07-29): sha salvo e nenhuma fonte
+  // resolvível vira WARN explícito, em vez de pular calado.
+  if (!shaIndeterminado(mapa.prototipo_sha) && !arquivosPrototipoReais.size) {
+    warn.push(`prototipo_sha='${mapa.prototipo_sha}' salvo, mas NENHUMA fonte de protótipo é resolvível (todas as partes com placeholder e o frontmatter 'prototipo:' do gap não resolveu) — staleness NÃO MEDIDA para este map`);
+  }
   if (!shaIndeterminado(mapa.prototipo_sha) && arquivosPrototipoReais.size) {
     const atual = shaAtualPara(mapa.prototipo_sha, [...arquivosPrototipoReais], root);
     if (shaIndeterminado(atual)) {
@@ -323,7 +344,7 @@ async function main() {
     if (totalOptOut) console.log(`    - ${totalOptOut} com 'vivo.ancora: false' explícito (opt-out consciente — registrado no map, sem nudge)`);
   }
   if (cov.semMap.length) {
-    console.log(`\ngap.md SEM map.json correspondente (candidatos a 'node prototipo-ui/gerar-map.mjs <gap.md>'):`);
+    console.log(`\ngap.md SEM map.json correspondente (candidatos a 'node scripts/design/gerar-map.mjs <gap.md>'):`);
     for (const g of cov.semMap) console.log(`  - ${g}`);
   }
   if (cov.semMapPorDesenho.length) {

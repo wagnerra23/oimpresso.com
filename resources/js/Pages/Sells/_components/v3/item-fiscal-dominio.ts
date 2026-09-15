@@ -1,7 +1,7 @@
 /**
  * Domínio fiscal do item — onda 4 do preview `/sells/create-v3`.
  *
- * Porte de `prototipo-ui/cowork/venda-v3/sells-item-detail.jsx`. São as regras que
+ * Porte de `prototipo-ui/cowork/Felipe/venda-v3/sells-item-detail.jsx`. São as regras que
  * decidem se a NF-e vai ser ACEITA ou REJEITADA pela SEFAZ — e rejeição não é um
  * detalhe de UI: é retrabalho de quem emite, com a venda parada no meio.
  *
@@ -253,7 +253,7 @@ export function fiscalValido(c: CamposFiscais): boolean {
 }
 
 /* ─── qual aba cada ação da linha abre ──────────────────────────────────────
-   A âncora (`prototipo-ui/cowork/venda-v3/sells-create.jsx:65`) passa a aba no
+   A âncora (`prototipo-ui/cowork/Felipe/venda-v3/sells-create.jsx:65`) passa a aba no
    próprio `abrirItem(i, aba)`: são DOIS caminhos de entrada no mesmo drawer, e
    é a aba que os distingue. Antes disso morava hardcoded no render da Page —
    os dois botões caíam em Tributação e o de detalhe não tinha o que fazer de

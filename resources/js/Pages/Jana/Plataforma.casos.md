@@ -1,7 +1,7 @@
 ---
 id: resources-js-pages-jana-plataforma-casos
 casos: Jana Plataforma · metas cross-business cruas · gate real jana.superadmin · aba da área · /ia/superadmin/metas
-irmaos: Plataforma.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-plataforma.md (runbook) · prototipo-ui/contrato/jana-plataforma.contract.json (contrato visual)
+irmaos: Plataforma.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-plataforma.md (runbook) · governance/design/contracts/jana-plataforma.contract.json (contrato visual)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
 last_run: "2026-09-04"
@@ -12,7 +12,7 @@ last_run: "2026-09-04"
 > **Status:** ✅ passa (provado por teste) · 🧪 em teste (Pest escrito, aguarda run verde) · ⬜ não verificado · ❌ quebrou.
 
 > Derivados do `Plataforma.charter.md`, do `jana-plataforma.contract.json` e da âncora
-> (`node prototipo-ui/ancora.mjs Jana/Plataforma` → `jana-telas-novas.jsx` §`JmPlataforma`) — **não**
+> (`node scripts/design/ancora.mjs Jana/Plataforma` → `jana-telas-novas.jsx` §`JmPlataforma`) — **não**
 > do `Plataforma.tsx`. Os dados da âncora (Martinho, ROTA LIVRE, Gráfica Sul) são mock; a forma vale.
 
 ## UC-PLAT-00 — A aba e a rota só existem para quem tem `jana.superadmin` DE VERDADE

@@ -1,6 +1,6 @@
 // W1-B3 Cliente/Map — split-screen mapa de clientes Inertia/React (MWART F3).
 // Divergence ADR 0149: split-screen com mapa lateral — layout divergente do Index lista.
-// Mapa = iframe OpenStreetMap embed (sem chave de API), ancorado em prototipo-ui/cowork/cliente-mapa.jsx.
+// Mapa = iframe OpenStreetMap embed (sem chave de API), ancorado em prototipo-ui/cowork/Wagner/cliente-mapa.jsx.
 // Backend: ContactController::contactMap() — Inertia::render dual via config('mwart.cliente_map.enabled')
 
 import AppShellV2 from '@/Layouts/AppShellV2';
@@ -42,7 +42,7 @@ function coordsDe(position: string | null): { lat: number; lon: number } | null 
 }
 
 // OSM embed nao pede chave de API — e o que a ancora de design usa
-// (`prototipo-ui/cowork/cliente-mapa.jsx:42,88`) e o que o anti-hook do charter pede
+// (`prototipo-ui/cowork/Wagner/cliente-mapa.jsx:42,88`) e o que o anti-hook do charter pede
 // ("nao envia lat,lng pra Google Maps"). `bbox` = janela pequena em volta do ponto;
 // `marker` finca o pin. O DELTA equivale a ~1km de lado, perto do zoom 16 do link.
 const BBOX_DELTA = 0.0045;

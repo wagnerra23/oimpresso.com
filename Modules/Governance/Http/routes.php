@@ -7,7 +7,6 @@ use Modules\Governance\Http\Controllers\DataController;
 use Modules\Governance\Http\Controllers\PoliciesController;
 use Modules\Governance\Http\Controllers\AuditController;
 use Modules\Governance\Http\Controllers\DriftAlertsController;
-use Modules\Governance\Http\Controllers\ModuleGradeController;
 use Modules\Governance\Http\Controllers\DsRolloutController;
 use Modules\Governance\Http\Controllers\CustosController;
 use Modules\Governance\Http\Controllers\QualidadeIaController;
@@ -67,16 +66,6 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::get('/drift', [DriftAlertsController::class, 'index'])
             ->middleware(['throttle:20,1', 'can:governance.dashboard.view'])
             ->name('drift.index');
-
-        // Module Grades — rubrica module-grade-v3 (ADR 0155)
-        // index/show throttle 30/min — cache 5min mitiga repeat hits
-        Route::get('/module-grades', [ModuleGradeController::class, 'index'])
-            ->middleware(['throttle:30,1', 'can:governance.dashboard.view'])
-            ->name('module-grades.index');
-        Route::get('/module-grades/{name}', [ModuleGradeController::class, 'show'])
-            ->middleware(['throttle:30,1', 'can:governance.dashboard.view'])
-            ->name('module-grades.show')
-            ->where('name', '[A-Za-z0-9_-]+');
 
         // DS Rollout — plano de portar o DS em ondas + Ledger de Conformidade
         // (tradução F3 do protótipo Cowork · handoff claude.ai/design 2026-06-12).

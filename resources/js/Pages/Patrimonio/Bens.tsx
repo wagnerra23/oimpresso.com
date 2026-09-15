@@ -5,7 +5,7 @@
 //         0180 (sidebar v3 · ghosts), 0253 (primitivos de layout)
 //   runbook: memory/requisitos/AssetManagement/RUNBOOK-bens.md
 //   charter: ./Bens.charter.md · casos: ./Bens.casos.md
-//   fonte visual: prototipo-ui/cowork/patrimonio-page.jsx (aba `bens`, :355) — ALVO, não
+//   fonte visual: prototipo-ui/cowork/Wagner/patrimonio-page.jsx (aba `bens`, :355) — ALVO, não
 //                 decisão de produto (`06-ui-bloqueada.md`)
 //
 // PRIMEIRA tela Inertia do módulo. Ela funda `_shared/` — as outras 6 herdam.
@@ -528,7 +528,7 @@ export default function Bens({ abas_contadores, bens, filtros, opcoes, permissoe
       <Stack gap={4}>
         {/* As âncoras `data-contract` são a ponte Cowork-CSS ↔ Tailwind do gate
             `contrato-de-tela.mjs` (ADR 0286) — mesmo padrão do Painel (`Index.tsx:168`).
-            Quem as consome: `prototipo-ui/contrato/patrimonio-bens.contract.json`. */}
+            Quem as consome: `governance/design/contracts/patrimonio-bens.contract.json`. */}
         <div data-contract="cabecalho">
           <PageHeader
             title="Bens"

@@ -1,5 +1,5 @@
 // Formatação da tela de Fabricação. Espelha `MFG.fmt` / `MFG.num` do protótipo
-// (prototipo-ui/cowork/manufacturing-data.jsx), mas construída SOBRE o formatador
+// (prototipo-ui/cowork/Wagner/manufacturing-data.jsx), mas construída SOBRE o formatador
 // canônico do repo — `formatDecimalPtBR` (resources/js/Lib/numberPtBR.ts:96), achado
 // por `npm run reuse:check "formatar moeda BRL pt-BR"`. Não há `brl` canônico em Lib/
 // (só cópias por módulo em Financeiro/Fiscal/Produto), então aqui só o prefixo é local.

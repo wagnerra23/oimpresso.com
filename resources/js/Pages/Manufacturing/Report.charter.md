@@ -4,7 +4,7 @@ component: resources/js/Pages/Manufacturing/Report.tsx
 owner: wagner
 status: draft
 parent_module: Manufacturing
-related_prototype: prototipo-ui/cowork/manufacturing-producao.jsx
+related_prototype: prototipo-ui/cowork/Wagner/manufacturing-producao.jsx
 related_us: [US-MANU-002]
 runbook: memory/requisitos/Manufacturing/RUNBOOK-report.md
 casos: resources/js/Pages/Manufacturing/Report.casos.md
@@ -22,7 +22,7 @@ charter_version: 1
 
 > Segunda das 7 telas do handoff **"PROTÓTIPO OFICIAL - FABRICAÇÃO V1"** — decisão [M]
 > 2026-09-02 de fazer as ondas em ordem de custo crescente, começando pela mais barata.
-> Fonte visual: `prototipo-ui/cowork/manufacturing-producao.jsx::MfgRelatorio`, dentro do
+> Fonte visual: `prototipo-ui/cowork/Wagner/manufacturing-producao.jsx::MfgRelatorio`, dentro do
 > mesmo bundle já aplicado inteiro pela Onda 1 (Recipes) — **nenhuma classe CSS nova**.
 >
 > **Rota aditiva, sem decisão [W] sobre o endereço** — segue o padrão da Onda 1 de Ordens de

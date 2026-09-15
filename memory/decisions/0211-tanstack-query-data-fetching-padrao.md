@@ -147,7 +147,7 @@ Alternativas avaliadas:
 - ADR 0104 — Processo MWART canônico
 - ADR 0106 — Recalibração velocidade fator 10x IA-pair
 - ADR 0209 — ESLint 9 flat config (habilita custom rule no-uncancelled-fetch)
-- [`prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) — AP-16 a catalogar
+- [`memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) — AP-16 a catalogar
 - [PR #1824 R7 fix scanner race](https://github.com/wagnerra23/oimpresso.com/pull/1824) — sintoma originário
 - [Refine — React Query vs TanStack vs SWR 2025](https://refine.dev/blog/react-query-vs-tanstack-query-vs-swr-2025/)
 - [Leapcell — Pitfalls of manual useEffect data fetching](https://leapcell.io/blog/the-pitfalls-of-manual-data-fetching-with-useeffect-and-why-tanstack-query-is-your-best-bet)

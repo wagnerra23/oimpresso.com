@@ -211,7 +211,7 @@ class AcoesController extends Controller
      * Manifestação em lote — a MESMA ação para as N DF-e selecionadas.
      *
      * ── Por que UMA requisição HTTP, e não N do navegador ────────────────────────────────
-     * O protótipo (`prototipo-ui/cowork/fiscal-subpages.jsx`, `data-contract="lote-dfe"`) diz
+     * O protótipo (`prototipo-ui/cowork/Wagner/fiscal-subpages.jsx`, `data-contract="lote-dfe"`) diz
      * *"uma requisição por nota"*, e é assim que roda: uma chamada ao motor **por nota**, em
      * laço sequencial — nunca paralelo, porque cada evento precisa do seu `nSeqEvento` isolado
      * (paralelo gera duplicidade, cStat 573). O que NÃO se multiplica é a requisição do

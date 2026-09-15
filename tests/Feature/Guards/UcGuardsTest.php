@@ -5,7 +5,7 @@ declare(strict_types=1);
 /**
  * GUARDs de Caso de Uso — telas canon (Vendas + Oficina).
  *
- * Cada UC com `guard: true` no registro (`prototipo-ui/audit/uc-registry.json`)
+ * Cada UC com `guard: true` no registro (`scripts/design/audit/uc-registry.json`)
  * tem aqui um teste tagueado `uc-<id>` que afirma a presença do **marker** (o
  * elemento que materializa o "A tela precisa:") no(s) arquivo(s) da tela. Some o
  * elemento = build VERMELHO ([W]: "põe o botão e que nunca mais saia aquela
@@ -18,12 +18,12 @@ declare(strict_types=1);
  *
  * Convenção de marker: nome de componente estável > texto visível (i18n).
  *
- * @see prototipo-ui/audit/uc-registry.json   (fonte única)
- * @see prototipo-ui/audit/protocol-freshness.mjs   (acende os gaps)
+ * @see scripts/design/audit/uc-registry.json   (fonte única)
+ * @see scripts/design/audit/protocol-freshness.mjs   (acende os gaps)
  * @see Modules/Jana/Console/Commands/HealthCheckCommand.php  (check espelho)
  */
 $repoRoot = dirname(__DIR__, 3);
-$registry = json_decode((string) file_get_contents($repoRoot . '/prototipo-ui/audit/uc-registry.json'), true);
+$registry = json_decode((string) file_get_contents($repoRoot . '/scripts/design/audit/uc-registry.json'), true);
 
 foreach (($registry['screens'] ?? []) as $screen) {
     foreach (($screen['ucs'] ?? []) as $uc) {

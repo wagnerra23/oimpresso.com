@@ -2,7 +2,7 @@
 id: resources-js-pages-ponto-aprovacoes-index-charter
 page: /ponto/aprovacoes
 component: resources/js/Pages/Ponto/Aprovacoes/Index.tsx
-related_prototype: prototipo-ui/cowork/ponto-telas.jsx
+related_prototype: prototipo-ui/cowork/Wagner/ponto-telas.jsx
 owner: wagner
 status: draft
 last_validated: "2026-07-11"

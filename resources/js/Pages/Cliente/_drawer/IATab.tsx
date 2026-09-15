@@ -9,8 +9,8 @@
 // Refs:
 //   - ADR 0179 §Wave E + Q4 Default ON (memory/decisions/0179-...md)
 //   - Charter resources/js/Pages/Cliente/Index.charter.md v3 (Goals Tab IA)
-//   - prototipo-ui/prototipos/clientes/HANDOFF_CLIENTES.md (MORTO 2026-08-13 — sem fonte no repo) §5 (specs IA)
-//   - prototipo-ui/prototipos/clientes/clientes-tabs.jsx::IATab (Cowork blueprint)
+//   - prototipo-ui/cowork/Wagner/legado/clientes/HANDOFF_CLIENTES.md (MORTO 2026-08-13 — sem fonte no repo) §5 (specs IA)
+//   - prototipo-ui/cowork/Wagner/legado/clientes/clientes-tabs.jsx::IATab (Cowork blueprint)
 //   - resources/js/Pages/Cliente/_show/RiscoClienteCard.tsx (REUSA componente)
 //
 // Contrato (combinado com ClienteIaController Wave E-BE):

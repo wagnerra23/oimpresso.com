@@ -108,5 +108,5 @@ O loop Cowork↔Code (ADR 0114, formalizado no `PROTOCOL.md` §10) precisa de um
 
 ## Refs
 - Dossier SOTA: `memory/sessions/2026-05-30-arte-task-system-cowork-code.md`
-- ADR 0070 · 0114 · 0130 · 0209 · 0084 · 0236 (freshness) · 0239 · `prototipo-ui/PROTOCOL.md` §10
+- ADR 0070 · 0114 · 0130 · 0209 · 0084 · 0236 (freshness) · 0239 · `memory/reference/prototipo-ui/PROTOCOL.md` §10
 - SOTA: Magentic-One (arXiv 2411.04468) · Reflexion (2303.11366) · Gaming the Judge (2601.14691) · OpenAI Swarm/A2A · Temporal/LangGraph

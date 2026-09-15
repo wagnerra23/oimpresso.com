@@ -15,8 +15,8 @@
 //
 // Golden de referência: resources/js/Pages/governance/Dashboard.tsx
 //
-// ÂNCORA DE DESIGN — resolva com `node prototipo-ui/ancora.mjs Jana/Index`, nunca
-// no olho. Ela é `prototipo-ui/cowork/jana-merge.jsx` (declarada em
+// ÂNCORA DE DESIGN — resolva com `node scripts/design/ancora.mjs Jana/Index`, nunca
+// no olho. Ela é `prototipo-ui/cowork/Wagner/jana-merge.jsx` (declarada em
 // Index.charter.md `related_prototype`). O `chat-jana` NÃO é a âncora — o §5 de
 // 2026-08-10 o declarou não-âncora da Jana. Mas a âncora DEPENDE dele em runtime, e
 // isso é fato medido, não opinião: `jana-merge.jsx:891` desestrutura
@@ -54,7 +54,7 @@
 //
 // ⛔ NÃO reescreva isto como "a âncora está limpa" nem como "está defeituosa": as duas
 // são afirmação em presente sobre um arquivo que muda no Cowork sem avisar (LC-10).
-// O estado de HOJE se pergunta à porta viva: `node prototipo-ui/ancora.mjs Jana/Index`.
+// O estado de HOJE se pergunta à porta viva: `node scripts/design/ancora.mjs Jana/Index`.
 //
 // ⚠️ VOCABULÁRIO DE COR NESTA ÁREA — `accent` significa DUAS coisas na mesma
 // página, e a armadilha é silenciosa:
@@ -398,7 +398,7 @@ export default function JanaCockpit({
   }, [overdueCount, overdueValue, deltaTicket, faturadoHoje, pixHoje, totalPendentes, topDevedor]);
 
   // ── Drill-down "de onde vem esse número" ─────────────────────────────────
-  // Âncora: prototipo-ui/cowork/jana-merge.jsx :887 (`JM_KPI_DRILL`).
+  // Âncora: prototipo-ui/cowork/Wagner/jana-merge.jsx :887 (`JM_KPI_DRILL`).
   //
   // A regra fina do protótipo: o KPI só vira clicável quando existe uma análise
   // do MESMO dado — "ticket médio não abre faturamento". Aqui isso deixa 2 dos 3
@@ -454,7 +454,7 @@ export default function JanaCockpit({
           mais ESCURO que um card (0.30) —, então o bloco mais importante da tela
           afundava em vez de subir. A âncora faz o oposto (seletor `.jc-brief` em
           chat-jana.css, consumido via `BriefDiario` no jana-merge.jsx — âncora de
-          SÍMBOLO, não de linha: `grep -n "\.jc-brief{" prototipo-ui/cowork/chat-jana.css`):
+          SÍMBOLO, não de linha: `grep -n "\.jc-brief{" prototipo-ui/cowork/Wagner/chat-jana.css`):
           `color-mix(in oklch, var(--accent) 9%, var(--surface))`. */}
       <Card className="border-primary/25 bg-[color:color-mix(in_oklch,var(--color-primary)_9%,var(--color-card))]">
         <CardContent className="flex flex-col gap-3.5 p-5">
@@ -602,7 +602,7 @@ export default function JanaCockpit({
 
       {/* KPIs (3 cards) ────────────────────────────────────────────────────── */}
       {/* RÓTULOS — alinhados à âncora (`jana-merge.jsx` → `getJanaData().kpis` no
-          `chat-jana.jsx`; re-localize com `grep -n "kpis: \[" prototipo-ui/cowork/chat-jana.jsx`).
+          `chat-jana.jsx`; re-localize com `grep -n "kpis: \[" prototipo-ui/cowork/Wagner/chat-jana.jsx`).
           Copiar RÓTULO é decisão de copy; copiar DADO seria erro — os números da
           âncora são mock do Martinho (biz=164), e nenhum deles entra aqui.
 
@@ -692,7 +692,7 @@ export default function JanaCockpit({
             array de 3 KPIs. A REGRA visual não mudou; só o número apodrecera.
             Seletor `.jc-kpi.emph` no
             chat-jana.css — âncora de SÍMBOLO, re-localize com
-            `grep -n "jc-kpi.emph" prototipo-ui/cowork/chat-jana.css`). */}
+            `grep -n "jc-kpi.emph" prototipo-ui/cowork/Wagner/chat-jana.css`). */}
         <JanaKpiCard
           label="A receber vencido"
           value={fmtShort(overdueValue)}
@@ -737,7 +737,7 @@ export default function JanaCockpit({
             R$ 0,00 aparece em vermelho afirmando alerta sobre ausência de dado.
             Âncora: `.jc-kpi-v` é `--text`, e só `.jc-kpi-v.red` é `--neg` — âncora de
             SÍMBOLO no chat-jana.css, re-localize com
-            `grep -n "jc-kpi-v" prototipo-ui/cowork/chat-jana.css`. */}
+            `grep -n "jc-kpi-v" prototipo-ui/cowork/Wagner/chat-jana.css`. */}
         {mostra('inad') && (
         <AnalysisCard
           icon={<AlertTriangle size={16} />}

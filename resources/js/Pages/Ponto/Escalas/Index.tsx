@@ -14,6 +14,7 @@ import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { formatMinutes } from '@/Lib/utils';
+import { Inline } from '@/Components/layout/inline';
 
 import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
 import { PageHeaderPrimary } from '@/Components/PageHeader';
@@ -28,6 +29,8 @@ interface Escala {
   carga_semanal_minutos: number;
   permite_banco_horas: boolean;
   turnos_count: number;
+  /** D-ESC-DESTROY: quantos colaboradores usam esta escala. 0 = remover liberado. */
+  colaboradores_count: number;
 }
 
 interface Paginated {
@@ -41,6 +44,13 @@ interface Paginated {
 interface Props { escalas: Paginated; }
 
 export default function EscalasIndex({ escalas }: Props) {
+  // Remover escala é irreversível e mexe na jornada esperada de quem estiver vinculado, então pede
+  // confirmação. O guard de vínculo real vive no servidor — aqui só evito o clique acidental.
+  const removerEscala = (e: Escala) => {
+    if (!window.confirm(`Remover a escala "${e.nome}"? Esta ação não pode ser desfeita.`)) return;
+    router.delete(`/ponto/escalas/${e.id}`, { preserveScroll: true });
+  };
+
   return (
     <>
       <div className="mx-auto max-w-7xl p-6 space-y-4">
@@ -105,9 +115,31 @@ export default function EscalasIndex({ escalas }: Props) {
                         </td>
                         <td className="p-3 text-center text-xs tabular-nums">{e.turnos_count}</td>
                         <td className="p-3 text-right">
-                          <Button size="sm" variant="outline" asChild>
-                            <Link href={`/ponto/escalas/${e.id}/edit`} className="text-xs">Editar</Link>
-                          </Button>
+                          <Inline gap={1} justify="end">
+                            <Button size="sm" variant="outline" asChild>
+                              <Link href={`/ponto/escalas/${e.id}/edit`} className="text-xs">Editar</Link>
+                            </Button>
+                            {/* D-ESC-DESTROY ([W] 2026-09-14): entra na UI, mas INDISPONÍVEL com vínculo
+                                — "com o motivo escrito", porque botão desabilitado não recebe foco e o
+                                Tooltip do DS seria inalcançável por teclado. Por isso o motivo vira texto
+                                ao lado, não tooltip. A trava de verdade é no servidor
+                                (EscalaController@destroy): o botão é conveniência, a rota é pública. */}
+                            {e.colaboradores_count > 0 ? (
+                              <span className="text-[10px] text-muted-foreground px-2" data-testid={`escala-${e.id}-remover-bloqueado`}>
+                                Em uso por {e.colaboradores_count}{' '}
+                                {e.colaboradores_count === 1 ? 'colaborador' : 'colaboradores'}
+                              </span>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="text-xs text-destructive hover:text-destructive"
+                                onClick={() => removerEscala(e)}
+                              >
+                                Remover
+                              </Button>
+                            )}
+                          </Inline>
                         </td>
                       </tr>
                     ))}

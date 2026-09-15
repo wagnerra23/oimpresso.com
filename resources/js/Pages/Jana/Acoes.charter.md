@@ -7,7 +7,7 @@ status: draft
 last_validated: "2026-09-02"
 parent_module: Jana
 parent_adr: memory/decisions/0052-memoria-jana-3-angulos-faturamento.md
-related_prototype: prototipo-ui/cowork/jana-telas-novas.jsx
+related_prototype: prototipo-ui/cowork/Wagner/jana-telas-novas.jsx
 related_adrs: [52, 93, 94, 104, 180, 182]
 related_charters:
   - resources/js/Pages/Jana/Index.charter.md
@@ -50,7 +50,7 @@ v10). O Painel mostra a ação quando o número pede; a fila mostra **as cinco**
 - **Chips sugeridas · aprovadas** (com contagem), card por ação com chip `envio`/`leitura`
   (`alcance` `null` = leitura), "Ver o recibo" abre a prévia **gravada** + contexto + alcance.
 - Aviso de topo, empty states e nota de rodapé com **copy literal** da âncora, pinados em
-  `prototipo-ui/contrato/jana-acoes.contract.json`.
+  `governance/design/contracts/jana-acoes.contract.json`.
 
 ## Non-Goals
 

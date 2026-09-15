@@ -1,14 +1,14 @@
 ---
 id: requisitos-repair-repair-status-gap
 tela: Repair/Status/Index (/repair/status)
-prototipo: prototipo-ui/cowork/repair-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/repair-page.jsx
 tela_viva: resources/js/Pages/Repair/Status/Index.tsx
 gerado_em: 2026-09-06
 ---
 
 # GAP-SPEC — Repair/Status/Index
 
-> Fase 1 do protocolo (`prototipo-ui/PROTOCOL.md`) em modo **PARIDADE**. `repair-page.jsx` é porte REVERSO dos blades (cabeçalho l.1-2; §5 2026-08-28); a aba comparada é `Status` (repair-page.jsx:302-334, origem `status/index.blade.php`). Estado no vivo medido em 2026-09-06 sobre `origin/main` `80bc4ef8b9`, com `grep -n`. Lidos antes: `Index.charter.md` (Goals l.30-33, Non-Goals l.40-44, UX anti-pattern l.61) e `Index.casos.md` (UC-RSTIDX-01..06, 6 passed no CT 100 em 2026-09-05). Dado mock do protótipo não é gap.
+> Fase 1 do protocolo (`memory/reference/prototipo-ui/PROTOCOL.md`) em modo **PARIDADE**. `repair-page.jsx` é porte REVERSO dos blades (cabeçalho l.1-2; §5 2026-08-28); a aba comparada é `Status` (repair-page.jsx:302-334, origem `status/index.blade.php`). Estado no vivo medido em 2026-09-06 sobre `origin/main` `80bc4ef8b9`, com `grep -n`. Lidos antes: `Index.charter.md` (Goals l.30-33, Non-Goals l.40-44, UX anti-pattern l.61) e `Index.casos.md` (UC-RSTIDX-01..06, 6 passed no CT 100 em 2026-09-05). Dado mock do protótipo não é gap.
 
 | Parte | Estado no vivo | Ação |
 |---|---|---|

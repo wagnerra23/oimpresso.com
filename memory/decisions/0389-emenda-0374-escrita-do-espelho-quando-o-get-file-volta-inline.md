@@ -83,7 +83,7 @@ prova de fidelidade byte-a-byte; ele prova que o resultado é **utilizável pelo
 tem **290 KB** — ele não desce nem com esta emenda, e nenhuma permissão muda isso. A única rota é
 o bundle emitido do lado Cowork (`gerar-payload-partes.mjs`), cuja emissão **segue sem dono nem
 automação** (medido 2026-08-31; pedido formal em 2026-09-01,
-`prototipo-ui/CODE_NOTES.prompt-cowork-regenerar-bundle-por-ciclo-2026-09-01.md`).
+`memory/reference/prototipo-ui/CODE_NOTES.prompt-cowork-regenerar-bundle-por-ciclo-2026-09-01.md`).
 
 **Não muda o sentido do fluxo do Design System.** `colors_and_type.css` e `cockpit_domains.css`
 são **gerados do nosso repo** — os próprios headers dizem (*"GERADO por

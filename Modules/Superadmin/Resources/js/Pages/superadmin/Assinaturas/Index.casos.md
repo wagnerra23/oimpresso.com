@@ -5,10 +5,17 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a tela onde o vocabulário do banco e o vocabulário do negócio NÃO coincidem — `trial` não é status, `approved` significa duas coisas conforme a data, e `declined` não é cancelamento. Sem casos travando a tradução, a próxima sessão "simplifica" o mapa e a tela passa a reportar cobrança errada sem quebrar nada visivelmente.
 owner: wagner
-last_run: "2026-08-21"
+last_run: "2026-09-11"
 revalidacao_2026_08_21: "O `.tsx` mudou de verdade nesta onda (SA-O4b): a tabela ganhou coluna de ações com kebab, e entrou a gaveta de dois modos. Não é toque cosmético — é comportamento novo, e por isso os UCs novos (UC-SAASS-11 a 16) nascem junto, cada um com fixture própria. Os UCs 01-10 não mudam de veredito: a leitura da lista continua idêntica."
 last_run_ci: "_pendente_ — o trio nasce nesta onda (SA-O4a). O veredito por UC entra no manifesto quando a lane rodar; até lá o Status é 🧪, nunca ✅."
 ---
+
+> ℹ️ **`last_run` 2026-08-21 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
+> O único toque em `Index.tsx` no [#7224](https://github.com/wagnerra23/oimpresso.com/pull/7224) foi **1 linha(s) de COMENTÁRIO** —
+> o path do protótipo (`prototipo-ui/cowork/…` → `prototipo-ui/cowork/Wagner/…`, topologia por dono da ADR 0397).
+> Zero JSX estrutural, zero handler, zero prop, zero copy alterada (verificado: `git diff origin/main...HEAD -- Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx`
+> só tem linhas iniciadas por `//`, `*` ou `{/*`). **Nenhum UC desta tela foi reexecutado nem revalidado**; o bump é o que o campo
+> significa na prática (*trio reconciliado com a tela nesta data*), não afirmação de re-run — mesmo tratamento do #6913.
 
 # Casos de Uso & Aceite — Superadmin · Assinaturas (`/superadmin/superadmin-subscription`)
 

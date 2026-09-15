@@ -1,7 +1,7 @@
 ---
 id: requisitos-recurring-billing-cobranca-recorrente-configuracoes-gap
 tela: RecurringBilling/Configuracoes/Index (/recurring-billing/configuracoes)
-prototipo: prototipo-ui/cowork/cobranca-recorrente-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx
 tela_viva: resources/js/Pages/RecurringBilling/Configuracoes/Index.tsx
 gerado_em: 2026-09-06
 ---
@@ -10,7 +10,7 @@ gerado_em: 2026-09-06
 
 > No protótipo esta aba é um placeholder honesto (cobranca-recorrente-page.jsx:332-342, :372) que se declara atrás do vivo ("Espelha /recurring-billing/configuracoes do git"). Tela-mãe: `cobranca-recorrente-gap.md` (veredito MOCKUP-STALE). Charter: `resources/js/Pages/RecurringBilling/Configuracoes/Index.charter.md` (Non-Goals respeitados, nunca reabertos).
 >
-> Base medida: `origin/main` 80bc4ef8b9 · âncora resolvida por `node prototipo-ui/ancora.mjs RecurringBilling/Configuracoes/Index --staging prototipo-ui/cowork` → `âncora ✓ [-page.jsx (bundle · bundle_source)] cobranca-recorrente-page.jsx`. O `desc` do placeholder (:372) cita: gateways de pagamento · régua de cobrança (dunning) · emissão automática de NF-e/NFS-e · webhooks. Cada capacidade foi conferida no `.tsx` e no `ConfiguracoesController.php` abaixo. A tela é read-only v1 por charter — nenhuma seção edita nada (grep `<input／<form／<select／<textarea` → 0).
+> Base medida: `origin/main` 80bc4ef8b9 · âncora resolvida por `node scripts/design/ancora.mjs RecurringBilling/Configuracoes/Index --staging prototipo-ui/cowork` → `âncora ✓ [-page.jsx (bundle · bundle_source)] cobranca-recorrente-page.jsx`. O `desc` do placeholder (:372) cita: gateways de pagamento · régua de cobrança (dunning) · emissão automática de NF-e/NFS-e · webhooks. Cada capacidade foi conferida no `.tsx` e no `ConfiguracoesController.php` abaixo. A tela é read-only v1 por charter — nenhuma seção edita nada (grep `<input／<form／<select／<textarea` → 0).
 
 **Veredito:** VIVO-À-FRENTE — 0 itens a decidir; as 4 seções citadas no placeholder existem no vivo como leitura (a única capacidade citada que o vivo não mostra na tela — NFS-e automática — tem decisão registrada na SPEC como US `_parcial_` de backend, não é item de protótipo).
 
@@ -39,4 +39,4 @@ gerado_em: 2026-09-06
 - `grep -nEc 'SubNav|PageHeaderNav|href="/recurring-billing"' resources/js/Pages/RecurringBilling/Configuracoes/Index.tsx` → 0   (sem tab-strip nem Voltar)
 - `grep -nEc '<CmdPalette|Sparkline' resources/js/Pages/RecurringBilling/Configuracoes/Index.tsx` → 0   (sem palette/sparkline nesta Page)
 - `ls prototipo-ui/prototipos/recurring/` → No such file or directory   (path do comentário `Index.tsx:4` não existe)
-- `grep -nEc 'zinc|violet' prototipo-ui/cowork/cobranca-recorrente-page.css` → 0 · `grep -nc 'var(--accent)' …page.css` → 10   (linguagem do protótipo)
+- `grep -nEc 'zinc|violet' prototipo-ui/cowork/Wagner/cobranca-recorrente-page.css` → 0 · `grep -nc 'var(--accent)' …page.css` → 10   (linguagem do protótipo)

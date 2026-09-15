@@ -40,14 +40,14 @@ Regra de ouro: **doc git (BRIEFING/SPEC) é cache que atrasa; MCP (brief + task-
 
 ## Como prevenir DE VERDADE (não só este doc)
 
-[Lição F3 M-AP-1](../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md): *"documentação interna do agente não é gate — só registros externos (hook/CI/skill) impedem regressão."* As skills `brief-first`/`mcp-first` (Tier A) **existem e eu ignorei** — adesão falhou. Proposta de gate mais forte (follow-up): o hook/skill deve **bloquear** ação de design/auditoria/roadmap até que `brief-fetch` E `tasks-list` do módulo-alvo tenham sido chamados na sessão — não só avisar no SessionStart. Enquanto o gate forte não existe, este doc + a vergonha de 2026-05-31 são o lembrete.
+[Lição F3 M-AP-1](../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md): *"documentação interna do agente não é gate — só registros externos (hook/CI/skill) impedem regressão."* As skills `brief-first`/`mcp-first` (Tier A) **existem e eu ignorei** — adesão falhou. Proposta de gate mais forte (follow-up): o hook/skill deve **bloquear** ação de design/auditoria/roadmap até que `brief-fetch` E `tasks-list` do módulo-alvo tenham sido chamados na sessão — não só avisar no SessionStart. Enquanto o gate forte não existe, este doc + a vergonha de 2026-05-31 são o lembrete.
 
 ## Refs
 
 - Skills [`brief-first`](../../.claude/skills/brief-first/SKILL.md) + [`mcp-first`](../../.claude/skills/mcp-first/SKILL.md) (Tier A always-on — honrar, não ignorar)
 - [`feedback-brave-mcp-primeiro-sempre.md`](feedback-brave-mcp-primeiro-sempre.md) (princípio MCP-first irmão)
 - [ADR 0091](../decisions/0091-daily-brief.md) (brief-fetch) · [ADR 0070](../decisions/0070-jira-style-task-management-current-md-removed.md) (task ledger) · [ADR 0053](../decisions/0053-mcp-server-governanca-como-produto.md) (MCP server)
-- [LICOES_F3_FINANCEIRO_REJEITADO.md](../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) M-AP-1 (gates externos)
+- [LICOES_F3_FINANCEIRO_REJEITADO.md](../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) M-AP-1 (gates externos)
 
 ---
 **Gravado:** 2026-05-31 — a pedido do Wagner, após eu projetar o Método 9.75 Financeiro sem consultar o MCP (duplicando US-FIN-026/030/033/035 + ignorando que CYCLE-08 é Receita, não Financeiro).

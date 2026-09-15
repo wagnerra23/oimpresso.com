@@ -1,0 +1,27 @@
+{
+  "id": "Fiscal/Eventos",
+  "source": "fiscal-page.jsx",
+  "target": "resources/js/Pages/Fiscal/Eventos.tsx",
+  "token": "fiscal-eventos",
+  "frescor": "verificado 2026-09-08",
+  "contrato": "governance/design/contracts/fiscal-eventos.contract.json",
+  "compare": {
+    "rc": 2,
+    "veredito": "NÃO MEDI",
+    "motivo": "⛔ NÃO MEDI — identidade da view não provada: um dos lados nao casou NENHUMA copy do contrato Nenhuma copy pinada do contrato apareceu no render, ou a sonda é anterior ao D0. Isto NÃO é divergência de fidelidade: é sinal ",
+    "bugs": null,
+    "shell": null,
+    "sameTheme": null,
+    "porDim": {},
+    "rows": null
+  },
+  "veredito": null,
+  "motivo": "",
+  "meta": {
+    "urlFinal": "https://staging.oimpresso.com/fiscal/eventos",
+    "componenteInertia": null
+  },
+  "medidoEm": "2026-09-08T13:13:33.965Z",
+  "baseUrl": "https://staging.oimpresso.com",
+  "bundle": "f99cbe0b5c32a054223b93610be82ef4c77408e722bde916079b90b4f6ed096c"
+}

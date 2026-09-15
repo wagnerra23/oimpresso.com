@@ -5,7 +5,7 @@
 //   module: Forja
 //   adrs: 0070 (Jira-style) · 0093 (Tier 0) · 0253 (primitivos) · 0388 (réplica primeiro) · UI-0013
 //   permissao: jana.mcp.usage.all
-//   paridade: prototipo-ui/cowork/forja-page.jsx — view `trabalho`, sub-visão `lista`
+//   paridade: prototipo-ui/cowork/Wagner/forja-page.jsx — view `trabalho`, sub-visão `lista`
 //
 // ── PARIDADE §11 ONDA 4 (2026-09-02) — a tela é a do protótipo ──────────────
 // Decisão [W]: *"pode fazer igual ao protótipo e revogar todo o resto"*. A lei é a

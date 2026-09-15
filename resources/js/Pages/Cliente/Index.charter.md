@@ -2,7 +2,7 @@
 id: resources-js-pages-cliente-index-charter
 page: /cliente (canon) · /contacts (legacy dual-render via config('mwart.cliente_index.enabled'))
 component: resources/js/Pages/Cliente/Index.tsx
-related_prototype: prototipo-ui/cowork/clientes-page.jsx
+related_prototype: prototipo-ui/cowork/Wagner/clientes-page.jsx
 bundle_source: clientes-page.jsx
 owner: wagner
 status: live
@@ -45,7 +45,7 @@ metrica_sucesso:
 # ── /ADR UI-0016 ────────────────────────────────────────────────────────
 
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/cowork/clientes-page.jsx"
+  blueprint_cowork: "prototipo-ui/cowork/Wagner/clientes-page.jsx"
   blueprint_screenshot_approval: "Wagner 2026-05-21 aprovou opção A (drawer 760px)"
   derived_screens: [Index, Drawer]
   prototype_score: "KB-9.75 9,4/10 (Refinos #1+#2+#3 aplicados)"
@@ -138,7 +138,7 @@ Listagem densa de clientes com drawer lateral 760px abrindo ao clicar em qualque
 - Dossiê wagner-understand: `memory/sessions/2026-05-21-understand-cliente-drawer-760px-opcao-A.md`
 - ADR 0179 paradigma drawer 760
 - Charter superseded: `Pages/Cliente/Show.charter.md` v2
-- Protótipo Cowork: `prototipo-ui/cowork/clientes-page.jsx`
+- Protótipo Cowork: `prototipo-ui/cowork/Wagner/clientes-page.jsx`
 - Backend: `app/Http/Controllers/ContactController.php` + `Modules/Crm/Http/Controllers/ClienteLookupController.php` (NOVO) + `ClienteIaController.php` (NOVO) + `ClienteAuditoriaController.php` (NOVO)
 - Wave Final 2026-05-21: PRs #1298-1307 (paridade Blade — preservados via OssTab wrapper)
 - KB-9.75 Slice A: PR #1309 (⌘K + cheat-sheet + J/K nav — preservado)

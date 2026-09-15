@@ -1,5 +1,5 @@
 // UC-JPAIN-19 — a barra de abas da área Jana é FAIXA PRÓPRIA abaixo do header, e o
-// header não tem primary "Conversar" (paridade com `prototipo-ui/cowork/jana-merge.jsx`
+// header não tem primary "Conversar" (paridade com `prototipo-ui/cowork/Wagner/jana-merge.jsx`
 // §JanaPage: `<JanaHeader/>` → `{tabs}`; UI-0029 "protótipo soberano").
 //
 // Mede o DOM que o componente RENDERIZA (posição relativa, zona, ícone), não o texto do

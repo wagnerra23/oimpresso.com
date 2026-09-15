@@ -80,7 +80,7 @@ jobs:
           echo "Arquivos mudados:"; echo "${changed:-<nenhum>}"
           # Filtro IDÊNTICO ao antigo workflow-level `paths:` (+ os scripts de intenção, que
           # antes não disparavam o gate — blind-spot corrigido nesta conversão).
-          if echo "${changed}" | grep -Eq '(^scripts/contrato-de-tela\.mjs$|^scripts/contrato-de-tela\.test\.mjs$|^scripts/auditar-intencao-fluxo\.mjs$|^scripts/adversario-intencao-fluxo\.mjs$|^prototipo-ui/contrato/|^resources/js/Pages/.+\.tsx?$|\.contract\.json$|^Modules/Whatsapp/Http/Controllers/Admin/ChannelsController\.php$|^\.github/workflows/contrato-de-tela\.yml$)'; then
+          if echo "${changed}" | grep -Eq '(^scripts/contrato-de-tela\.mjs$|^scripts/contrato-de-tela\.test\.mjs$|^scripts/auditar-intencao-fluxo\.mjs$|^scripts/adversario-intencao-fluxo\.mjs$|^governance/design/contracts/|^resources/js/Pages/.+\.tsx?$|\.contract\.json$|^Modules/Whatsapp/Http/Controllers/Admin/ChannelsController\.php$|^\.github/workflows/contrato-de-tela\.yml$)'; then
             echo "relevant=true" >> "${GITHUB_OUTPUT}"
             echo "→ arquivo de contrato/tela mudou: RODA os verificadores."
           else
@@ -140,7 +140,7 @@ jobs:
         if: steps.detect.outputs.relevant == 'true'
         run: |
           set -euo pipefail
-          mapfile -t contratos < <(git ls-files 'prototipo-ui/contrato/*.intent.json' || true)
+          mapfile -t contratos < <(git ls-files 'governance/design/contracts/*.intent.json' || true)
           if [ "${#contratos[@]}" -eq 0 ]; then
             echo "Nenhum contrato de intenção ativo ainda."
             exit 0

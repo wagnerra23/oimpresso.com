@@ -117,9 +117,9 @@ interface Props {
 /**
  * Nota "o que trava o fechamento" — seção `painel-nota-fechamento` do contrato.
  *
- * Âncora de design: `prototipo-ui/cowork/ponto-page.jsx` §`Nota contrato="painel-nota-fechamento"`
+ * Âncora de design: `prototipo-ui/cowork/Wagner/ponto-page.jsx` §`Nota contrato="painel-nota-fechamento"`
  * (âncora de SÍMBOLO, nunca linha — re-localize com
- * `grep -n "painel-nota-fechamento" prototipo-ui/cowork/ponto-page.jsx`).
+ * `grep -n "painel-nota-fechamento" prototipo-ui/cowork/Wagner/ponto-page.jsx`).
  *
  * Existe porque dia em DIVERGENCIA não é detalhe de relatório: ele impede a
  * apuração de consolidar E faz o AFD gerado sair com a jornada errada. Quem abre
@@ -379,7 +379,7 @@ export default function DashboardIndex({
           </div>
         </div>
 
-        {/* Rodapé legal — `<Legal />` do protótipo (`prototipo-ui/cowork/ponto-ui.jsx`).
+        {/* Rodapé legal — `<Legal />` do protótipo (`prototipo-ui/cowork/Wagner/ponto-ui.jsx`).
             Não é decoração: o painel é a home de um módulo cujo dado é regido pela
             Portaria MTP 671/2021, e a imutabilidade append-only é a razão de várias
             coisas da tela não serem editáveis. Dizer isso onde o gestor olha evita a

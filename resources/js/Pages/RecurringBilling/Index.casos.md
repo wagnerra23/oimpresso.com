@@ -5,9 +5,16 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o comportamento de cobrar é durável — a assinatura que fatura hoje tem que faturar depois do refactor.
 owner: wagner
-last_run: "2026-09-08"
+last_run: "2026-09-11"
 last_run_ci: "2026-09-08 (PR tokenizacao da superficie) — REVALIDACAO ANALITICA, suite NAO executada. Por que: Pest so roda no CT 100 (proibicao Tier 0) e o checkout de la nao contem esta mudanca, entao rodar ali produziria recibo de OUTRO codigo. O que a mudanca E: 518 trocas de `className` (cor crua -> token do DS: bg-white->bg-card, text-stone-*->text-foreground/muted-foreground, ring/border-stone-*->ring/border-border). Zero linha de logica, controller, service ou query. MEDIDO, nao lido: (a) grep por `className|bg-white|text-stone|oklch|css|tailwind|style=` nos 14 arquivos de teste citados por estes casos.md devolveu 0 hits em TODOS, com controle positivo (8 a 33 asserts casam por arquivo, logo o grep funciona); (b) as cores de STATUS ficaram INTACTAS — o diff toca emerald/amber/rose em 2 pontos e ambos sao vizinhanca neutra (`border-stone-300`->`border-border` ao lado de um `focus:ring-rose-100` preservado, e o cinza do icone NAO-pinado ao lado de um `fill-amber-500` preservado), o que mantem o UC-RBSUB-07 ("Larissa/Wagner leem a lista por cor") valido; (c) contraste medido no runtime antes/depois: identico (425 passam AA / 27 reprovam / pior 1.00 nos dois estados). Isto NAO substitui execucao: o Status continua vindo do manifesto G-7, que a lane do PR alimenta. ---- REGISTRO ANTERIOR: 2026-08-28 (PR desta sessão) — REVALIDAÇÃO ANALÍTICA, suíte NÃO executada. Por quê: Pest só roda no CT 100 (proibição Ti..."
 ---
+
+> ℹ️ **`last_run` 2026-09-08 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
+> O único toque em `Index.tsx` no [#7224](https://github.com/wagnerra23/oimpresso.com/pull/7224) foi **1 linha(s) de COMENTÁRIO** —
+> o path do protótipo (`prototipo-ui/cowork/…` → `prototipo-ui/cowork/Wagner/…`, topologia por dono da ADR 0397).
+> Zero JSX estrutural, zero handler, zero prop, zero copy alterada (verificado: `git diff origin/main...HEAD -- resources/js/Pages/RecurringBilling/Index.tsx`
+> só tem linhas iniciadas por `//`, `*` ou `{/*`). **Nenhum UC desta tela foi reexecutado nem revalidado**; o bump é o que o campo
+> significa na prática (*trio reconciliado com a tela nesta data*), não afirmação de re-run — mesmo tratamento do #6913.
 
 # Casos de Uso & Aceite — Carteira de assinaturas (`/recurring-billing`)
 

@@ -7,7 +7,7 @@
 // ── Por que um SNAPSHOT commitado, e não o espelho vivo? ──
 // O CI do GitHub Actions NÃO tem login claude.ai → NÃO pode chamar `DesignSync get_file`.
 // Então a checagem no CI compara o git (_generated-*.css) contra um SNAPSHOT do espelho
-// versionado em scripts/design-sync/mirror-snapshot/colors_and_type.css. Esse snapshot é
+// versionado em prototipo-ui/design-system/colors_and_type.css. Esse snapshot é
 // "o último estado conhecido do espelho", refrescado pelo runbook design-sync-push.md (passo 5).
 // O diff contra o espelho VIVO (via DesignSync) roda local/cron — este script aceita qualquer
 // arquivo via --snapshot, então serve pros dois usos (CI com snapshot; local com get_file salvo).
@@ -19,7 +19,7 @@
 // Uso:
 //   node scripts/governance/ds-mirror-drift.mjs [--enforce] [--update-baseline]
 //        [--snapshot <css>] [--tokens <dir>] [--baseline <json>]
-//   default snapshot = scripts/design-sync/mirror-snapshot/colors_and_type.css
+//   default snapshot = prototipo-ui/design-system/colors_and_type.css
 //   default tokens   = resources/css/tokens
 //   default baseline = scripts/design-sync/ds-mirror-drift-baseline.json
 //
@@ -44,7 +44,7 @@ const argv = process.argv.slice(2);
 const flag = (name) => argv.includes(name);
 const opt = (name, def) => { const i = argv.indexOf(name); return i >= 0 && argv[i + 1] ? argv[i + 1] : def; };
 
-const SNAPSHOT = resolve(REPO, opt('--snapshot', 'scripts/design-sync/mirror-snapshot/colors_and_type.css'));
+const SNAPSHOT = resolve(REPO, opt('--snapshot', 'prototipo-ui/design-system/colors_and_type.css'));
 const TOKENS = resolve(REPO, opt('--tokens', 'resources/css/tokens'));
 const BASELINE = resolve(REPO, opt('--baseline', 'scripts/design-sync/ds-mirror-drift-baseline.json'));
 const DIFF_ENGINE = resolve(REPO, 'scripts/design-sync/ds-token-diff.mjs');

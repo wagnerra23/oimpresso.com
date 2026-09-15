@@ -219,16 +219,16 @@ E nunca chaves sem prefixo (colide com outras libs)
 
 ### US-_DESIGNSYSTEM-001 · DESIGN.md root TOC executivo apontando pros docs canon
 
-> owner: wagner · priority: p1 · estimate: 0.5h · status: done · type: story
+> owner: wagner · priority: p1 · estimate: 0.5h · status: duplicate · type: story
 > blocked_by: —
 > closed_at: 2026-05-25
-> closed_reason: REDUNDANTE — `/Design.md` (336 linhas) já existe desde 2026-05-08 e cumpre exatamente o papel proposto (TOC executivo §1 "O que você quer fazer?" + 16 seções de regras canon). Investigação durante PR #1563 expôs que a US foi criada sem inventariar `ls D:/oimpresso.com/*.md` adequadamente (falha de exploração inicial). Fix concreto entregue neste mesmo PR: 4 patches incrementais no Design.md atualizando §2 (workflow → prototipo-ui/PROTOCOL.md ADR 0114) + §7 (hierarquia → ADR UI-0013 Constituição UI v2 mãe atual) + §9 (tokens → ADR 0190 primary roxo 295) + §15 (checklist → link PRE-MERGE-UI + gates CI). Aprendizado canon: SEMPRE `ls root` antes de "criar TOC executivo".
+> closed_reason: REDUNDANTE — `/Design.md` (336 linhas) já existe desde 2026-05-08 e cumpre exatamente o papel proposto (TOC executivo §1 "O que você quer fazer?" + 16 seções de regras canon). Investigação durante PR #1563 expôs que a US foi criada sem inventariar `ls D:/oimpresso.com/*.md` adequadamente (falha de exploração inicial). Fix concreto entregue neste mesmo PR: 4 patches incrementais no Design.md atualizando §2 (workflow → memory/reference/prototipo-ui/PROTOCOL.md ADR 0114) + §7 (hierarquia → ADR UI-0013 Constituição UI v2 mãe atual) + §9 (tokens → ADR 0190 primary roxo 295) + §15 (checklist → link PRE-MERGE-UI + gates CI). Aprendizado canon: SEMPRE `ls root` antes de "criar TOC executivo".
 
 ## Contexto
 
 Dev humano novo (Felipe/Maiara/Eliana/Luiz) e agente Claude novo caem no repo e não acham o design system fragmentado em `memory/requisitos/_DesignSystem/` + ADRs UI. Falta 1 página executiva no root pra bater o olho em 60s.
 
-Origem: conversa Wagner 2026-05-25 — Claude do chat (claude.ai) propôs "DESIGN.md canônico" sem saber que oimpresso já tem Constituição UI v2 + PRE-MERGE-UI + prototipo-ui/PROTOCOL.md. Validamos que gap real é só o TOC root.
+Origem: conversa Wagner 2026-05-25 — Claude do chat (claude.ai) propôs "DESIGN.md canônico" sem saber que oimpresso já tem Constituição UI v2 + PRE-MERGE-UI + memory/reference/prototipo-ui/PROTOCOL.md. Validamos que gap real é só o TOC root.
 
 ## Acceptance Criteria
 
@@ -237,7 +237,7 @@ Origem: conversa Wagner 2026-05-25 — Claude do chat (claude.ai) propôs "DESIG
   - Constituição UI v2 (ADR UI-0013) — 4 camadas Fundações→Shell→PT→Módulo
   - PT-01 Lista (`memory/requisitos/_DesignSystem/padroes-tela/PT-01-Lista.md`)
   - PRE-MERGE-UI (`memory/requisitos/_DesignSystem/PRE-MERGE-UI.md`) — checklist 6 camadas + AP1-AP8
-  - `prototipo-ui/PROTOCOL.md` — loop Cowork ↔ Claude Code 7 fases
+  - `memory/reference/prototipo-ui/PROTOCOL.md` — loop Cowork ↔ Claude Code 7 fases
   - Tokens (`resources/css/cockpit.css`, `inertia.css`, primary roxo 295 ADR 0190)
   - Componentes shared (`resources/js/Components/shared/` + `Components/ui/` shadcn)
   - PageHeader canon (ADR 0180/0182/0189/0190)
@@ -470,8 +470,8 @@ Refs: ADR 0211 Fase 4
 - **R9** `<main>` aninhado → `<div role="region">` em ~13 telas (AppShellV2 já provê o `<main>`; Page não deve aninhar — AP9). ⚠️ conferir públicas: `Site/*` fora do AppShell podem ter `<main>` legítimo — não tocar.
 - **R3** localStorage sem prefixo → `oimpresso.<mod>.*` (1 tela).
 
-**Fecha por evidência:** `node prototipo-ui/audit/score-mechanized.mjs` mostra R9=0 e R3=0. Sem screenshot (invisível).
-Ref: `prototipo-ui/audit/BACKLOG-FIXES.md` · parent: worklist-auditoria-paralela.
+**Fecha por evidência:** `node scripts/design/audit/score-mechanized.mjs` mostra R9=0 e R3=0. Sem screenshot (invisível).
+Ref: `scripts/design/audit/BACKLOG-FIXES.md` · parent: worklist-auditoria-paralela.
 
 ### US-_DESIGNSYSTEM-015 · Lote ícones: R6 emoji + R4 svg/lib → lucide-react
 
@@ -481,7 +481,7 @@ Ref: `prototipo-ui/audit/BACKLOG-FIXES.md` · parent: worklist-auditoria-paralel
 Trocar emoji (R6, ~21 telas) e svg-inline / lib-não-lucide (R4, ~18 telas) por ícone `lucide-react` (UI-0003 · AP4 · AP6). Visual leve.
 
 **Fecha por evidência:** scorer R6=0 e R4=0 + screenshot que não regrediu.
-Ref: `prototipo-ui/audit/BACKLOG-FIXES.md` (lotes R6, R4) — telas exatas em `reports/`. parent: worklist-auditoria-paralela.
+Ref: `scripts/design/audit/BACKLOG-FIXES.md` (lotes R6, R4) — telas exatas em `reports/`. parent: worklist-auditoria-paralela.
 
 ### US-_DESIGNSYSTEM-016 · Lote R1 cor crua → token roxo (codemod, 17 piores primeiro)
 
@@ -491,7 +491,7 @@ Ref: `prototipo-ui/audit/BACKLOG-FIXES.md` (lotes R6, R4) — telas exatas em `r
 Codemod cor crua → token DS (roxo 295) em 40 telas (R1 = hex/oklch/rgb literal). **17 piores primeiro** (Financeiro/RecurringBilling/Cliente/Sells — todas R1+R2, módulos que mais faturam). Execução medida do P1 do PLANO-DESIGN-TELAS (≈ US-TR-310 Onda 1).
 
 **Fecha por evidência:** scorer R1=0 nas telas do lote **+** screenshot golden aprovado (gate visual Wagner, ADR 0114). Cor é visível — NÃO fecha sem o print.
-Ref: `prototipo-ui/audit/BACKLOG-FIXES.md` (lote R1). parent: worklist-auditoria-paralela.
+Ref: `scripts/design/audit/BACKLOG-FIXES.md` (lote R1). parent: worklist-auditoria-paralela.
 
 ### US-_DESIGNSYSTEM-017 · Lote R2 nativo → DS (prioriza ds/* pela worklist, faseado)
 
@@ -625,7 +625,7 @@ MANUAL §5 F7. Ligar visual-regression como gate (screen-grade/`design:review` j
 
 **Última atualização (US-_DESIGNSYSTEM-027..034):** 2026-06-06 — roadmap F0–F7 do [MANUAL-CSS-JS](MANUAL-CSS-JS.md) §5 seedado como tasks (de doc → MCP, conforme o próprio manual manda). IDs 027–034 (gap 019–026 = drift do contador do servidor MCP que sugeriu 027 vs SPEC.md max 018 — a reconciliar no servidor). F0/F4 marcados PARCIAL (já têm gates ativos).
 
-**Última atualização (US-_DESIGNSYSTEM-014..018):** 2026-05-31 — backlog de fixes da worklist de auditoria paralela (5 lotes por regra mecanizada: R9+R3 · R6+R4 · R1 · R2 · R7). Fecha por evidência (scorer = regra zerada). Ref `prototipo-ui/audit/BACKLOG-FIXES.md`.
+**Última atualização (US-_DESIGNSYSTEM-014..018):** 2026-05-31 — backlog de fixes da worklist de auditoria paralela (5 lotes por regra mecanizada: R9+R3 · R6+R4 · R1 · R2 · R7). Fecha por evidência (scorer = regra zerada). Ref `scripts/design/audit/BACKLOG-FIXES.md`.
 
 **Última atualização (US-_DESIGNSYSTEM-004..013):** 2026-05-28 — adicionadas 10 tasks Onda prevenção bugs MWART frontend (ADRs 0209-0211 propostos no PR #1837). Atacam R7/R8-class via ESLint baseline, Wayfinder type-gen, TanStack Query data-fetching, MSW Vitest scanner-race tests.
 
@@ -677,3 +677,62 @@ Alvos (canon = `<Badge variant="success|warning|danger|info|neutral">` de @/Comp
 Fora de escopo: FiscalStatusBadge/NfceStatusBadge = canon fiscal próprio (R-DS-002/ADR 0235), NÃO migrar.
 
 Pronto quando: detector `--roles` reporta 0 independentes no papel status-badge. Advisory (DS ≠ Tier-0, ADR 0271/0314) — sem pressa, puxar por tela quando conveniente.
+
+### US-_DESIGNSYSTEM-039 · Desambiguar a palavra "handoff" — hoje ela tem 5 sentidos no repo
+
+> owner: — · priority: p2 · estimate: 4h · status: todo · type: chore
+> blocked_by: —
+
+Origem: faxina do `prototipo-ui/` em 2026-09-11 ([W]: *"acho que assim eu me entenderia melhor pois hoje parece uma bagunça"*). O pedido "1 handoff do protótipo do Felipe e 1 do meu" foi ambíguo — porque a palavra já significa **cinco** coisas. Contado nesta data:
+
+| # | Onde | O que significa |
+|---|---|---|
+| 1 | `prototipo-ui/cowork/Wagner/handoffs/` (3 arq) | pipeline da Forja — `handoff:ingest` + `handoff-scope-guard.yml` + `handoff-sign-submit.yml` consomem |
+| 2 | `memory/reference/prototipo-ui/HANDOFF.md` | estado vivo do loop, sobrescrito a cada sync |
+| 3 | `memory/handoffs/` (518 arq) | handoff de SESSÃO, append-only ([ADR 0130](../../decisions/0130-handoff-append-only-mcp-first.md)) |
+| 4 | "handoff" = o `.zip` do Cowork | `scripts/design-sync/receber-handoff.mjs --zip` |
+| 5 | `design-docs/handoff*/` (12 arq) | 4 pastas: `handoff`, `handoff-crm`, `handoff-ds-notas`, `handoff-sidebar` |
+
+Pronto quando: cada sentido tem nome próprio no `memory/reference/prototipo-ui/GLOSSARY.md` (só o #3 deveria seguir "handoff", que é o do ADR 0130) e o `deadlink-gate` está verde.
+
+⚠️ O #1 é lido por 3 consumidores de CI — renome ali é mudança de contrato. Ver §5 2026-08-12 (codemod de rename tem 4 formas de referência, não 1): `use`, FQCN, string literal e nome curto.
+
+### US-_DESIGNSYSTEM-040 · Consolidar os 21 `CODE_NOTES.*` soltos na raiz do prototipo-ui
+
+> owner: — · priority: p3 · estimate: 3h · status: todo · type: chore
+> blocked_by: —
+
+Origem: faxina de 2026-09-11. A raiz do `prototipo-ui/` tem 101 arquivos (eram 108 antes da faxina). Por família:
+
+- **21×** `CODE_NOTES.*` — o `CODE_NOTES.md` + 20 variantes (`.errata-*`, `.amendment-*`, `.prompt-cowork-*`, `.resposta-*`, `.devolutiva-*`, `.md.append`)
+- **5×** `PROMPT_PARA_CODE_*` · **5×** `COWORK_NOTES.*` · **3×** `CHARTER_*` · **3×** `CLAUDE_*`
+
+O canal é legítimo — o NÚCLEO 11 do `PROCESSO_MEMORIA_CC` manda usar `CODE_NOTES` justamente pra **não** abrir arquivo novo. O que apodreceu foi a **granularidade**: cada errata virou arquivo na raiz em vez de entrada no dono.
+
+Pronto quando: a raiz não cresce por errata; o processado desceu pro `_arquivo/` **com lápide** (NÚCLEO 12 — nunca hard-delete de doc); `npm run handoff:check` (IT8) não piorou; `deadlink-gate` verde.
+
+⚠️ NÃO regravar o `config/handoff-integrity-baseline.json` pra devolver o job ao verde — é a entrada 2026-08-08 do §5 do `PROCESSO_MEMORIA_CC`.
+
+### US-_DESIGNSYSTEM-041 · Ativar a conta de design do Felipe — falta só o `projectId`
+
+> owner: wagner · priority: p2 · estimate: 2h · status: todo · type: chore
+> blocked_by: —
+
+Origem: faxina de 2026-09-11. [W] confirmou que existe uma **2ª conta de design, titular Felipe**, usada por [F]/[M]/[L]. Ela já está registrada em `scripts/design/protocolo.config.mjs` → `CONTAS.felipe`, com `projetos: []`, e o `--procedencia` já carimba **9 telas** como vindas dela (Produto ×8 + `Sells/CreateV3`), via a declaração `FORA_DESTA_CONTA` que [W] fez em 2026-08-13.
+
+O que trava, e por que nenhum agente resolve sozinho: o `DesignSync` autentica **como [W]**. A conta do Felipe é invisível deste lado **por construção** — `list_projects` vazio sobre ela não é evidência de nada (§5 2026-08-11).
+
+Pronto quando: `CONTAS.felipe.projetos` e `PROJETOS` têm o ID + a chave `espelho`; `node scripts/design/protocolo.config.mjs --procedencia` carimba as telas dela sozinho (sem mudança de código); e o conteúdo desceu por `receber-handoff.mjs --zip`, exportado **do login do [F]**.
+
+### US-_DESIGNSYSTEM-042 · Triar `design-docs/prototipo-ui-patch/` (61 arq) — não existe mais no projeto vivo
+
+> owner: — · priority: p3 · estimate: 3h · status: todo · type: chore
+> blocked_by: —
+
+Origem: faxina de 2026-09-11. Regra [W] da mesma data: *"se existe lá existe aqui, se apagar lá apaga aqui"*.
+
+Medido contra o `DesignSync.list_files` do projeto `019dcfd3`: a pasta `prototipo-ui-patch/` **não existe** no projeto vivo. São 61 arquivos pousados historicamente que ninguém mantém do lado do design.
+
+Um deles já foi selado na própria faxina: o `APLICAR_DS_NO_REPO.md` era receita executável que **recriava por `curl` os 3 arquivos de DS apagados** — regressão esperando um `bash`. As URLs dele venceram há 105 dias (`claudeusercontent` é efêmera ~1h, L-09).
+
+Pronto quando: os 61 foram varridos atrás de outras receitas executáveis (`curl`/`git`/`npm`) que reintroduzam o que já saiu; o histórico desceu pro `design-docs/_arquivo/` com lápide; `cowork-ssot-guard` e `deadlink-gate` verdes.

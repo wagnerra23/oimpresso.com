@@ -6,7 +6,7 @@ status: draft
 parent_module: AssetManagement
 related_us: [US-ASSET-W05]
 related_adrs: [0394-endereco-de-ui-do-patrimonio-pages-patrimonio, 0104-processo-mwart-canonico-unico-caminho, 0093-multi-tenant-isolation-tier-0, 0180-sidebar-v3-5-grupos-ghosts-header]
-related_prototype: prototipo-ui/cowork/patrimonio-page.jsx
+related_prototype: prototipo-ui/cowork/Wagner/patrimonio-page.jsx
 related_runbook: memory/requisitos/AssetManagement/RUNBOOK-configuracoes.md
 tier: B
 charter_version: 1
@@ -140,7 +140,7 @@ O que muda é só quem desenha o formulário.
 
 - RUNBOOK: [`memory/requisitos/AssetManagement/RUNBOOK-configuracoes.md`](../../../../memory/requisitos/AssetManagement/RUNBOOK-configuracoes.md)
 - Casos: [`./Configuracoes.casos.md`](./Configuracoes.casos.md)
-- Fonte visual: `prototipo-ui/cowork/patrimonio-page.jsx` (aba `config`, `:589`) — **alvo**, não
+- Fonte visual: `prototipo-ui/cowork/Wagner/patrimonio-page.jsx` (aba `config`, `:589`) — **alvo**, não
   decisão de produto
 - Playbook: `prototipo-ui/design-docs/cowork-inbox/patrimonio/playbook/11-configuracoes.md`
 - Tela irmã que fundou o padrão: [`./Bens.charter.md`](./Bens.charter.md)

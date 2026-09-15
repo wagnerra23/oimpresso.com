@@ -23,7 +23,7 @@ class SellsCockpitAggregator
     /**
      * Recorte do "Churn ouro" — clientes de maior LTV que pararam de comprar.
      *
-     * DIVERGÊNCIA DELIBERADA vs o protótipo (`prototipo-ui/cowork/jana-merge.jsx`
+     * DIVERGÊNCIA DELIBERADA vs o protótipo (`prototipo-ui/cowork/Wagner/jana-merge.jsx`
      * :648), e ela é o ponto: lá o recorte é um PISO ABSOLUTO em reais (valor
      * literal na linha citada do protótipo — BRL não entra no git, Tier 0),
      * herdado do tenant onde o protótipo foi desenhado (mecânica pesada, ticket

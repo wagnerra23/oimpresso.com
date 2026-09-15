@@ -2,7 +2,7 @@
 id: resources-js-pages-cliente-import-charter
 page: /contacts/import
 component: resources/js/Pages/Cliente/Import.tsx
-related_prototype: prototipo-ui/cowork/cliente-import.jsx
+related_prototype: prototipo-ui/cowork/Wagner/cliente-import.jsx
 owner: wagner
 status: live
 last_validated: "2026-06-24"
@@ -11,7 +11,7 @@ related_adrs: [110, 107, 93, 94, 104, 149]
 tier: A
 charter_version: 1
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/cowork/clientes-page.jsx"
+  blueprint_cowork: "prototipo-ui/cowork/Wagner/clientes-page.jsx"
   blueprint_screenshot_approval: "N/A (divergente)"
   derived_screens: [Import]
   divergence_from_blueprint: "wizard upload XLSX com preview, divergente do Index lista"

@@ -16,7 +16,7 @@ Um caminho de tela `<Mod>/<Tela>` (ex: `Sells/Create`). Se vier vago, resolva vi
 ## Ciclo agentic (Planner → Automator → Maintainer), ordem fixa
 
 ### 0 · PRÉ-FLIGHT (read-only) — não inventar, não repetir erro
-Rode o resolvedor da skill [`screen-grade`](../skills/screen-grade/SKILL.md) (4 blocos do `prototipo-ui/PRE-FLIGHT-TELA.md`): arquétipo + persona (de `personas-por-modulo.yml`) + charter + golden + tokens DS v4 + injeção dos anti-padrões (`LICOES_F3_FINANCEIRO_REJEITADO.md`, `PRE-MERGE-UI.md`, `proibicoes.md §UI`).
+Rode o resolvedor da skill [`screen-grade`](../skills/screen-grade/SKILL.md) (4 blocos do `memory/reference/prototipo-ui/PRE-FLIGHT-TELA.md`): arquétipo + persona (de `personas-por-modulo.yml`) + charter + golden + tokens DS v4 + injeção dos anti-padrões (`LICOES_F3_FINANCEIRO_REJEITADO.md`, `PRE-MERGE-UI.md`, `proibicoes.md §UI`).
 - **Sem charter → PARE** e chame `charter-write`. Charter é o oráculo: sem ele, o teste não sabe o que é "correto".
 
 ### 1 · NOTA (screen-grade 16-dim) — onde estamos

@@ -2,7 +2,7 @@ name: Handoff Scope Guard (files_json)
 
 # PR-5 Loop de Handoff Zero-Paste (Fase 0 · ADR 0283) — bloqueia um PR que APLICA
 # um handoff de design cujo diff toque arquivo fora do `files:` declarado em
-# prototipo-ui/handoffs/<slug>.md. Slug derivado do branch `handoff/<slug>`.
+# prototipo-ui/cowork/Wagner/handoffs/<slug>.md. Slug derivado do branch `handoff/<slug>`.
 # PR comum (branch não-handoff) → skip. DISTINTO de scope-guard.yml (que é
 # controller-vs-SCOPE.md, Art. 7).
 #

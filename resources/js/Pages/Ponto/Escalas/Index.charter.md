@@ -2,7 +2,7 @@
 id: resources-js-pages-ponto-escalas-index-charter
 page: /ponto/escalas
 component: resources/js/Pages/Ponto/Escalas/Index.tsx
-related_prototype: prototipo-ui/cowork/ponto-telas.jsx
+related_prototype: prototipo-ui/cowork/Wagner/ponto-telas.jsx
 owner: wagner
 status: draft
 last_validated: "2026-07-11"
@@ -30,6 +30,7 @@ O gestor vê todas as escalas (padrões de jornada) cadastradas — nome, códig
 - Lista paginada (20/pág) de escalas com contagem de turnos.
 - Colunas: nome, código, tipo (badge), carga/dia, carga/semana, BH, turnos.
 - Atalho "Nova escala" (`/ponto/escalas/create`) e "Editar" por linha (`/ponto/escalas/{id}/edit`).
+- Ação "Remover" por linha, **só sem vínculo**; com vínculo, o lugar dela diz "Em uso por N colaborador(es)".
 - Empty state com CTA de criar a primeira escala.
 
 ---
@@ -38,7 +39,11 @@ O gestor vê todas as escalas (padrões de jornada) cadastradas — nome, códig
 - ❌ Não edita inline — edição é na tela Form.
 - ❌ Não gerencia turnos aqui — só mostra a contagem.
 - ❌ Não lista escala de outro business — escopado por `business_id` (Tier 0 multi-tenant).
-- ❌ Não exclui escala nesta lista (rota destroy existe no resource, mas a UI não expõe — confirmar com Wagner).
+- ❌ Não exclui escala **em uso** — `D-ESC-DESTROY` ([W] 2026-09-14): remover entra na UI, mas
+  **indisponível com vínculo**, com o motivo escrito ao lado. Supersede a redação anterior deste
+  item (*"a UI não expõe — confirmar com Wagner"*), que era **pergunta aberta** e foi respondida.
+  A trava vive no servidor (`EscalaController@destroy` → `Escala::podeSerRemovida`); o botão é
+  conveniência. Defendido por `UC-ESCIDX-03` (UI) e `UC-ESCIDX-04` (servidor).
 
 ---
 

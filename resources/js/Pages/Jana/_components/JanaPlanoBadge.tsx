@@ -14,8 +14,8 @@
 // SEM billing. O selo passa a ler um fato — `shell`/`jana.pro`, derivado da assinatura
 // — em vez de um literal. Billing real segue Sprint JANA-B (ADR 0140, US-COPI-211/212).
 //
-// ÂNCORA (medida, não presumida — `node prototipo-ui/ancora.mjs Jana/Index`):
-//   `prototipo-ui/cowork/jana-merge.jsx:970` →
+// ÂNCORA (medida, não presumida — `node scripts/design/ancora.mjs Jana/Index`):
+//   `prototipo-ui/cowork/Wagner/jana-merge.jsx:970` →
 //     <button className={"jm-plano" + (pro ? " pro" : "")} onClick={abre Configurar}
 //             title="Plano atual · abre Configurar">plano {pro ? "Pro" : "Grátis"}</button>
 //   `jana-merge.css:57` (base) → radius 99px, mono 10.5px, cor/borda/bg em `--accent`

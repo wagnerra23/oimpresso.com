@@ -22,7 +22,7 @@ use Throwable;
  * Resiliente por contrato: NUNCA deve lançar — um reporter que quebra derruba
  * o próprio tratamento de erro. Todo caminho de falha cai em log.
  *
- * @see prototipo-ui/handoffs/erros-fase1-classificacao.md
+ * @see prototipo-ui/cowork/Wagner/handoffs/erros-fase1-classificacao.md
  */
 class ErrorReporter
 {

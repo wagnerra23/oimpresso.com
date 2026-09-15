@@ -2,7 +2,7 @@ name: Handoff Sign & Submit (on-push · loop zero-paste)
 
 # PR-6b Loop de Handoff Zero-Paste (Fase 0 · ADR 0283) — o TRANSPORTE.
 #
-# Fecha o "primeiro hop": um .md commitado em prototipo-ui/handoffs/ vira `pending`
+# Fecha o "primeiro hop": um .md commitado em prototipo-ui/cowork/Wagner/handoffs/ vira `pending`
 # SEM o [W] computar HMAC nem colar nada. Pra cada handoff novo/alterado no push,
 # a Action assina (sig = HMAC-SHA256(body, HANDOFF_SECRET), segredo SÓ no repo
 # secret) e chama o tool MCP handoff-submit (PR-6a) → pending → aparece na Forja.
@@ -27,7 +27,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'prototipo-ui/handoffs/*.md'
+      - 'prototipo-ui/cowork/Wagner/handoffs/*.md'
   pull_request:
     paths:
       - 'bin/sign-handoff.php'
@@ -40,7 +40,7 @@ on:
   workflow_dispatch:
     inputs:
       handoff:
-        description: '(Re)submeter UM handoff já pousado → pending na Forja (ex: prototipo-ui/handoffs/foo.md). Pra handoffs que aterrissaram sem o submit rodar — ADR 0283/0285.'
+        description: '(Re)submeter UM handoff já pousado → pending na Forja (ex: prototipo-ui/cowork/Wagner/handoffs/foo.md). Pra handoffs que aterrissaram sem o submit rodar — ADR 0283/0285.'
         required: true
         type: string
 

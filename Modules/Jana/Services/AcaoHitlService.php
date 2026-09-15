@@ -18,7 +18,7 @@ use Modules\Jana\Entities\AcaoAprovacao;
  * afirma número é veredito, e veredito é do servidor. A tela que consome isto (o
  * modal de confirmação) só EXIBE o que recebe daqui — nunca calcula.
  *
- * ⛔ NÃO derivar da âncora. O `JmAcaoModal` do `prototipo-ui/cowork/jana-merge.jsx`
+ * ⛔ NÃO derivar da âncora. O `JmAcaoModal` do `prototipo-ui/cowork/Wagner/jana-merge.jsx`
  * traz 4 prévias em texto FIXO, com dados do Martinho (biz=164), e cita
  * `Analise*Service` que não existem no repo (medido 2026-08-17 no espelho e no
  * Cowork vivo). A fonte real é `SellsCockpitAggregator::buildInsightsAggregates` —

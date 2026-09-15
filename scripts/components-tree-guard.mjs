@@ -42,7 +42,7 @@
 // Comando local: npm run components:check
 //
 // Refs: ADR UI-0013 (4 camadas) · ADR 0240 (derivado+enforcado) · ADR 0253 (layout/) ·
-//       MANUAL-CSS-JS.md §5 · prototipo-ui/REGISTRY_DS_COMPONENTES.md · PR #2539
+//       MANUAL-CSS-JS.md §5 · memory/reference/prototipo-ui/REGISTRY_DS_COMPONENTES.md · PR #2539
 
 import { readdirSync, existsSync } from 'node:fs';
 import { resolve, relative, join } from 'node:path';

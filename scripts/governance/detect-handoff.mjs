@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // detect-handoff.mjs — DETECTOR-EM-LOTE do G4 ("paste zip → 1 tarefa por tela").
-// Dado o diff do `prototipo-ui/cowork/` (o sync do export), mapeia CADA tela mudada
+// Dado o diff do `prototipo-ui/cowork/Wagner/` (o sync do export), mapeia CADA tela mudada
 // → seed (via seed-tela.mjs) e emite os CHIP-SPECS. O assistente lê o --json e cria
 // 1 `spawn_task` por chip não-skip (o clique do Wagner = aceitar a tarefa → sessão
 // limpa + worktree isolada). Fecha o G4 (o passo "detectar + montar a tarefa" deixa
@@ -44,7 +44,7 @@ function charterFiles(dir, out = []) {
   return out;
 }
 
-// reverse map: prototipo-ui/cowork/<file> -> { charterRel, telaArg }
+// reverse map: prototipo-ui/cowork/Wagner/<file> -> { charterRel, telaArg }
 function buildMap() {
   const map = {};
   for (const abs of charterFiles(join(ROOT, PAGES))) {
@@ -59,7 +59,7 @@ function buildMap() {
 }
 
 function frescorTag(telaArg) {
-  const f = join(ROOT, 'prototipo-ui/FRESCOR-PRODUCAO-vs-PROTOTIPO.md');
+  const f = join(ROOT, 'memory/reference/prototipo-ui/FRESCOR-PRODUCAO-vs-PROTOTIPO.md');
   if (!existsSync(f)) return '?';
   const txt = readFileSync(f, 'utf8');
   const last = telaArg.split('/').pop();

@@ -2,7 +2,7 @@
 // CacambaProducaoSheet pré-ADR 0194 — renomeado 2026-05-26 Wave 2.2 US-OFICINA-027).
 //
 // Espelha 1:1 protótipo Cowork canon — locação caçamba CNAE 4581 hipotético
-// (`prototipo-ui/prototipos/producao-oficina/visual-source.html`) E protótipo OS
+// (`prototipo-ui/cowork/Wagner/legado/producao-oficina/visual-source.html`) E protótipo OS
 // mecânica CNAE 4520 Martinho (screenshot Wagner 2026-05-26 · sub-vertical 4 ADR 0194).
 //
 // UNIFICAÇÃO 2026-06-11 (Onda 2 · [W] "drawer são os mesmos"): o CORPO rico foi

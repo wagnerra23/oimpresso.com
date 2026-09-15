@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Schema;
  *
  * Idempotente (Schema::hasTable guard) + down() reversível.
  *
- * @see prototipo-ui/handoffs/erros-dedup.md
+ * @see prototipo-ui/cowork/Wagner/handoffs/erros-dedup.md
  * @see ADR 0093 (multi-tenant — exceção repo-wide documentada)
  */
 return new class extends Migration

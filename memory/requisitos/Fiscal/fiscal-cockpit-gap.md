@@ -1,7 +1,7 @@
 ---
 id: requisitos-fiscal-cockpit-gap
 tela: Fiscal/Cockpit (/fiscal)
-prototipo: prototipo-ui/cowork/fiscal-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/fiscal-page.jsx
 tela_viva: resources/js/Pages/Fiscal/Cockpit.tsx
 gerado_em: 2026-08-28
 comparacao: memory/requisitos/Fiscal/fiscal-cockpit-visual-comparison.md

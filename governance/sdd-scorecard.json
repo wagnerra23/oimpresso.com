@@ -15,28 +15,28 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 86.2,
+      "value": 85.8,
       "unit": "%",
       "direction": "up",
       "target": 100,
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
-        "coverage_pct": 86.2,
+        "coverage_pct": 85.8,
         "specs_total": 53,
-        "us_total": 1033,
-        "anchor_coverage_pct": 86.2,
+        "us_total": 1038,
+        "anchor_coverage_pct": 85.8,
         "by_state": {
-          "sem_campo": 142,
+          "sem_campo": 146,
           "placeholder": 1,
-          "pendente": 433,
+          "pendente": 434,
           "parcial": 118,
           "anchored_ok": 339,
           "anchored_dead": 0,
           "anchored_zombie": 0
         },
-        "fields_total": 897,
+        "fields_total": 898,
         "fields_placeholder": 1,
-        "fields_grammar_ok": 813,
+        "fields_grammar_ok": 814,
         "orphan_fields": 6,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
@@ -68,40 +68,40 @@
     },
     "full_suite_pass_rate": {
       "status": "measured",
-      "value": 290,
+      "value": 291,
       "unit": "arquivos-que-falham (interseção ≥2 runs · ADR 0279)",
       "direction": "down",
       "target": 0,
       "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
       "detail": {
-        "floor_files_hash": "f96a66bb3cc6a9c8",
+        "floor_files_hash": "9bddd90ce4ce66a2",
         "runs": [
           {
-            "sha": "a976ddac",
-            "ts": "20260908-020001",
-            "failed": 444,
-            "errors": 405,
-            "skipped": 2298,
-            "all_shards_measured": true
-          },
-          {
-            "sha": "233d1199",
-            "ts": "20260909-020001",
-            "failed": 447,
-            "errors": 397,
+            "sha": "26e372a8",
+            "ts": "20260913-020001",
+            "failed": 463,
+            "errors": 369,
             "skipped": 2257,
             "all_shards_measured": true
           },
           {
+            "sha": "c17cf41a",
+            "ts": "20260914-020001",
+            "failed": 473,
+            "errors": 368,
+            "skipped": 2251,
+            "all_shards_measured": true
+          },
+          {
             "sha": null,
-            "ts": "20260910-020001",
-            "failed": 475,
-            "errors": 384,
-            "skipped": 2225,
+            "ts": "20260915-020001",
+            "failed": 473,
+            "errors": 370,
+            "skipped": 2226,
             "all_shards_measured": true
           }
         ],
-        "computed_at": "20260910-020001",
+        "computed_at": "20260915-020001",
         "intersection_of": 3
       },
       "stream": "FV"
@@ -182,29 +182,29 @@
     },
     "ragas_real_uptime": {
       "status": "measured",
-      "value": 60,
+      "value": 63.6,
       "unit": "%",
       "direction": "up",
       "target": 95,
       "source": "governance/ragas-real-trend.json (transporte CT100→scorecard · órfã governance/ragas-real-trend · ADR 0318 + pattern ADR 0279)",
       "detail": {
-        "weeks_expected": 10,
-        "weeks_valid": 6,
+        "weeks_expected": 11,
+        "weeks_valid": 7,
         "first_scheduled": "2026-07-05",
-        "last_week": "2026-09-06",
+        "last_week": "2026-09-13",
         "latest": {
-          "gate_status": "fail",
+          "gate_status": "pass",
           "n_evaluated": 51,
-          "faithfulness_avg": 0.6086,
-          "relevancy_avg": 0.7157,
-          "context_recall_avg": 0.2993
+          "faithfulness_avg": 0.8845,
+          "relevancy_avg": 0.9529,
+          "context_recall_avg": 0.5729
         }
       },
       "stream": "MEM"
     },
     "distiller_freshness": {
       "status": "measured",
-      "value": 0,
+      "value": 1,
       "unit": "portas atrás dos eventos (>7d vs doc mais novo · ADR 0291 D-D)",
       "direction": "down",
       "target": 0,
@@ -213,8 +213,8 @@
         "portas": 80,
         "carimbadas": 14,
         "sem_carimbo": 66,
-        "stale": 0,
-        "oldest_distilled_at": "2026-09-05"
+        "stale": 1,
+        "oldest_distilled_at": "2026-09-06"
       },
       "stream": "MEM"
     },
@@ -233,14 +233,15 @@
     },
     "drift_alarms": {
       "status": "measured",
-      "value": 1,
+      "value": 2,
       "unit": "alarmes duros (reds do protection-drift · GT-G4)",
       "direction": "down",
       "target": "advisory perene (0 alarmes duros)",
       "source": "scripts/governance/protection-drift.mjs --json .reds.length (drift de branch protection + watchdog staleness · GT-G4 · P08)",
       "detail": {
         "reds": [
-          "required SUMIU do vivo: \"PageHeader · ratchet (header antigo só decresce)\" — demoção exige PR editando governance/required-checks-baseline.json + ADR (ADR 0275 §5)"
+          "required SUMIU do vivo: \"PageHeader · ratchet (header antigo só decresce)\" — demoção exige PR editando governance/required-checks-baseline.json + ADR (ADR 0275 §5)",
+          "required SUMIU do vivo: \"handoff integrity (órfão/ref-morta só sobe = vermelho)\" — demoção exige PR editando governance/required-checks-baseline.json + ADR (ADR 0275 §5)"
         ],
         "warns": 0,
         "verdict": "red"
@@ -249,16 +250,16 @@
     },
     "backfill_error_rate": {
       "status": "measured",
-      "value": 1.82,
+      "value": 1.98,
       "unit": "% (MAX error_rate das entries aprovadas — conservador: 1 lote ruim estoura <2%)",
       "direction": "down",
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 67,
-        "max_error_rate_pct": 1.82,
-        "last_pr": 6932,
-        "last_lote": "distill-governance-briefing-2026-09-06"
+        "entries_aprovadas": 69,
+        "max_error_rate_pct": 1.98,
+        "last_pr": 7262,
+        "last_lote": "gt-g5-lote-7262"
       },
       "stream": "GT"
     }

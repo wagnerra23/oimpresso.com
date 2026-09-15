@@ -2,9 +2,9 @@
 id: requisitos-ponto-briefing
 module: Ponto
 status: parcial
-updated_at: "2026-09-05"
-distilled_at: "2026-09-05"
-distilled_by: "manual [C] — redestilação PARCIAL (PR #6802): DUAS seções re-lidas contra medição fresca em 2026-09-05. (1) §Cobertura de teste — os números de 2026-08-07 caducaram e foram REMEDIDOS (árvore 41 · allowlist 39 · fora 2, contra 38/11/27 do retrato antigo; lane no main 9 success / 1 failure nos últimos 10, contra 'failure nos 5 últimos'); o texto velho fica registrado como fato datado, não apagado. (2) §Atributos fantasma — nova, com o veredito por-UC do run 33942364334. O RESTO do corpo NÃO foi re-lido: §Contratos de tela segue no retrato de 2026-08-21 e as demais no de 2026-07-27 (PR #4865)."
+updated_at: "2026-09-15"
+distilled_at: "2026-09-15"
+distilled_by: "manual [C] — redestilação PARCIAL (2026-09-15): UMA seção re-lida contra conhecimento novo — §Capacidades canon/Backlog ganhou o **Fechamento de competência** a partir da US-PONTO-015, com as 3 restrições [W] de 2026-09-14 e o estado medido (domínio inexistente em `origin/main`). O RESTO do corpo NÃO foi re-lido: §Cobertura de teste e §Atributos fantasma seguem no retrato de 2026-09-05 (PR #6802), §Contratos de tela no de 2026-08-21, e as demais no de 2026-07-27 (PR #4865). Gatilho: o `distiller_freshness` do sdd-scorecard acusou a porta 10d atrás dos eventos do módulo — eu adicionei a US e não refleti aqui; re-carimbar sem re-ler seria gaming."
 ---
 
 # BRIEFING — Modules/Ponto
@@ -98,6 +98,13 @@ Ponto eletronico CLT-compliance (Portaria MTP 671/2021) com **marcacao append-on
 - Espelho ponto colaborador self-service (visualizacao + correcao via intercorrencia)
 - Integracao eSocial S-1200 (events trabalhista)
 - Dashboard RH com cards (faltas dia, HE acumulada, intercorrencias PENDENTES)
+- **Fechamento de competencia** (US-PONTO-015, 2026-09-15) — tela e dominio **NAO existem**: zero
+  tabela/entity/service/rota (medido em `origin/main`). O que existe sao **3 restricoes [W] de
+  2026-09-14**, vindas do `ponto-fechamento.jsx` do handoff 19: **D1** sem "Reabrir" na v1 · **D2**
+  consolidar registra nome+data **sem assinatura digital** · **D4** o fechamento **nao** gera arquivo
+  fiscal (sai por Relatorios). Restricao nao e especificacao: a US nasceu `blocked_by` decisao [W]
+  sobre o que "fechar" faz com as marcacoes, granularidade (colaborador x empregador), permissao e
+  intercorrencia pos-fechamento.
 
 ## Compliance / leis aplicadas
 
@@ -167,6 +174,7 @@ O pior dos quatro nao era numero errado: era o `erro_mensagem`. Uma importacao A
 
 ## Atualizado
 
+- **2026-09-15** — US-PONTO-015 registra as 3 restrições [W] do Fechamento de competência (D1/D2/D4 do handoff 19). Sem código: a US nasce `todo` + `blocked_by` decisão [W]. A 4ª decisão do mesmo ciclo (**D3**, recusar grava anulação `ORIGEM_ANULACAO` sem alterar a marcação) **já estava implementada** — 14 arquivos, e os serviços de apuração excluem os registros de anulação.
 - **2026-05-16** — Wave Massive: criado SPEC.md + BRIEFING.md + Pest multi-tenant append-only/cross-tenant (US-PONTO-007 + US-PONTO-008 status `done`)
 
 ## Fusões absorvidas (KL-E2)

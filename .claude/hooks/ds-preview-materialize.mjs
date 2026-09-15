@@ -1,47 +1,23 @@
 #!/usr/bin/env node
-// Hook SessionStart — materializa o cache de preview do Design System (`prototipo-ui/cowork/_ds/`).
+// Hook SessionStart — compatibilidade para detectar shells antigos que ainda referenciam `_ds/`.
 //
 // **Cross-platform** (Node.js — Windows desktop / Linux CI / macOS).
 //
 // ─────────────────────────────────────────────────
-// POR QUE EXISTE ([W] 2026-09-02: "`_ds/` existe mas está vazio (é cache derivado, gitignored).
-// tem que resolver isso pois não pode ser assim."):
-//   O shell do espelho (`prototipo-ui/cowork/oimpresso.com.html`) linka `_ds/<id>/colors_and_type.css`,
-//   `cockpit_domains.css`, `_ds_bundle.js` e 7 fontes. O `.gitignore` do espelho exclui `_ds/`
-//   DE PROPÓSITO (é build de preview; a FONTE versionada é `scripts/design-sync/mirror-snapshot/`,
-//   README lá). O único produtor é `cowork-mirror-freshness.mjs --preview-ds` — e NINGUÉM o
-//   invocava sozinho (medido 2026-09-02: zero ocorrências em .claude/, .github/, package.json).
-//   Resultado: todo worktree novo abria o espelho SEM tokens/fontes/bundle — o "falta css"
-//   silencioso de 2026-08-13 de novo, agora por construção em cada sessão fresca.
-//
-//   Regra "LIGUE A MÁQUINA" (proibicoes.md §Sempre fazer): máquina que existe e ninguém invoca
-//   é bug. Este hook é só o INVOCADOR do dono; não duplica lógica de materialização.
+// O shell ativo de Wagner referencia `../../design-system/` diretamente. Materializar `_ds/`
+// recriaria a duplicata física removida em 2026-09-11; por isso este hook não escreve mais.
 // ─────────────────────────────────────────────────
 //
-// O QUE FAZ (SessionStart, exit 0 sempre — nunca bloqueia a sessão):
-//   1. Lê o shell do espelho e deriva os arquivos `_ds/<id>/…` que ele referencia (mesma fonte
-//      de verdade que o `--preview-ds` usa: o <link>/<script> do html, não uma lista à mão).
-//   2. Se o grafo inteiro tem bytes iguais ao runtime versionado → SILÊNCIO.
-//   3. Se falta algum ou mudou de conteúdo → roda `node scripts/governance/cowork-mirror-freshness.mjs --preview-ds`
-//      (local, ~0,35s, lê só o mirror-snapshot versionado — sem DesignSync, sem rede) e imprime
-//      uma linha com o resultado. Fontes `.woff2` referenciadas por `url()` dentro do CSS não
-//      aparecem no html; o `--preview-ds` as repõe junto (seu plano é o grafo recursivo).
-//   4. Se o shell não existe (worktree sem espelho) → silêncio.
+// Se um shell antigo ainda contiver `_ds/`, o hook avisa para corrigir a referência na origem.
 //
 //   Escape valve: env `OIMPRESSO_DS_PREVIEW_OFF=1` → exit 0 imediato e silencioso.
 //
-// Refs: prototipo-ui/protocolo.config.mjs (dono dos comandos; DS_RUNTIME_SNAPSHOT_DIR) ·
-//       scripts/design-sync/mirror-snapshot/README.md · ADR 0374 (espelho read-only).
+// Refs: scripts/design/protocolo.config.mjs · ADR 0374 (espelho read-only).
 
-import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { previewDsPlan } from '../../scripts/governance/cowork-mirror-freshness.mjs';
-
-export const SHELL_REL = join('prototipo-ui', 'cowork', 'oimpresso.com.html');
-export const DS_DIR_REL = join('prototipo-ui', 'cowork', '_ds');
-export const PRODUTOR = ['scripts/governance/cowork-mirror-freshness.mjs', '--preview-ds'];
+export const SHELL_REL = join('prototipo-ui', 'cowork', 'Wagner', 'oimpresso.com.html');
 
 /**
  * Deriva do html do shell os paths `_ds/<id>/<arquivo>` referenciados (href/src).
@@ -69,15 +45,6 @@ export function precisaMaterializar(refs, existe) {
   return { precisa: faltam.length > 0, faltam };
 }
 
-// O plano canônico inclui CSS importado e fontes; existir não prova que o cache é atual.
-export function cacheAtual(plano) {
-  if (plano.erro) return false;
-  return plano.arquivos.every(a => {
-    try { return a.temNoRepo && readFileSync(a.de).equals(readFileSync(a.para)); }
-    catch { return false; }
-  });
-}
-
 export function main(cwd = process.cwd()) {
   if (process.env.OIMPRESSO_DS_PREVIEW_OFF === '1') return 0;
   const shell = join(cwd, SHELL_REL);
@@ -86,17 +53,7 @@ export function main(cwd = process.cwd()) {
   try { html = readFileSync(shell, 'utf8'); } catch { return 0; }
   const refs = refsDoShell(html);
   if (refs.length === 0) return 0;
-  const { precisa, faltam } = precisaMaterializar(refs, (p) => existsSync(join(cwd, 'prototipo-ui', 'cowork', p)));
-  if (!precisa && cacheAtual(previewDsPlan(html, cwd))) return 0;
-
-  const r = spawnSync(process.execPath, PRODUTOR, { cwd, encoding: 'utf8', timeout: 30_000 });
-  const resumo = (r.stdout || '').split('\n').find((l) => /reposto\(s\)/.test(l))?.trim();
-  if (r.status === 0) {
-    console.log(`[ds-preview-materialize] _ds/ incompleto ou desatualizado (${faltam.length} de ${refs.length} refs do shell ausentes) → ${resumo || 'materializado'} (cache gitignored, fonte = scripts/design-sync/mirror-snapshot/).`);
-  } else {
-    const erro = ((r.stderr || '') + (r.stdout || '')).trim().split('\n').slice(-3).join(' | ');
-    console.log(`[ds-preview-materialize] _ds/ incompleto (${faltam.length} refs) e o produtor FALHOU (exit ${r.status}): ${erro}. Rode: node ${PRODUTOR.join(' ')}`);
-  }
+  console.log(`[ds-preview-materialize] shell legado referencia ${refs.length} arquivo(s) em _ds/. Corrija para ../../design-system/; cache paralelo não será criado.`);
   return 0; // SessionStart nunca bloqueia
 }
 

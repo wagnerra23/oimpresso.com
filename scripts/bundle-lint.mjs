@@ -13,7 +13,7 @@
 // Node puro, sem deps. Exit 1 se achar resíduo (MORDE); o workflow é advisory (não-required,
 // veredito do adversário). Self-test: node scripts/bundle-lint.test.mjs
 //
-// Doc: memory/requisitos/_DesignSystem/RUNBOOK-contrato-de-tela.md + prototipo-ui/PROTOCOL.md
+// Doc: memory/requisitos/_DesignSystem/RUNBOOK-contrato-de-tela.md + memory/reference/prototipo-ui/PROTOCOL.md
 
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -37,14 +37,14 @@ function git(args) {
 function lint() {
   const all = (git('ls-files') || '').split('\n').filter(Boolean);
   const bundle = all.filter(p => /^prototipo-ui\/cowork[-/]/.test(p));
-  if (!bundle.length) { log('bundle-lint: nenhum bundle versionado (prototipo-ui/cowork/ ou cowork-*) — nada a checar.'); return 0; }
+  if (!bundle.length) { log('bundle-lint: nenhum bundle versionado (prototipo-ui/cowork/Wagner/ ou cowork-*) — nada a checar.'); return 0; }
   const hits = bundle.filter(f => RESIDUO.some(re => re.test(f)));
   log(`bundle-lint · ${bundle.length} arquivo(s) no bundle · ${hits.length} resíduo(s)`);
   for (const h of hits) log('X resíduo: ' + h);
   if (hits.length) {
     log(`\n❌ ${hits.length} resíduo(s) de processo no bundle. Esteira ≠ armazém:`);
     log('   - conclusão durável → memory/ (padrão do projeto); o cru sai do git.');
-    log('   - ver RUNBOOK-contrato-de-tela.md §"esteira ≠ armazém" + prototipo-ui/PROTOCOL.md.');
+    log('   - ver RUNBOOK-contrato-de-tela.md §"esteira ≠ armazém" + memory/reference/prototipo-ui/PROTOCOL.md.');
     return hits.length;
   }
   log('✅ bundle limpo (só app-vivo + screenshots + handoff-ativo + orientação).');

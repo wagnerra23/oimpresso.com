@@ -2,7 +2,7 @@
 id: resources-js-pages-ponto-espelho-show-charter
 page: /ponto/espelho/{colaborador}
 component: resources/js/Pages/Ponto/Espelho/Show.tsx
-related_prototype: prototipo-ui/cowork/ponto-page.jsx
+related_prototype: prototipo-ui/cowork/Wagner/ponto-page.jsx
 owner: wagner
 status: draft
 last_validated: "2026-07-11"

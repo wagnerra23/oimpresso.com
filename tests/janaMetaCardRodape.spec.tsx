@@ -1,7 +1,7 @@
 // UC-JPAIN-21 — o card de meta lê "<valor> de <alvo>" e "<pct>% do alvo".
 //
-// Âncora: `prototipo-ui/cowork/jana-merge.jsx` §`JmMetaCard` (re-localize com
-// `grep -n "function JmMetaCard" prototipo-ui/cowork/jana-merge.jsx`): `jm-meta-v` é
+// Âncora: `prototipo-ui/cowork/Wagner/jana-merge.jsx` §`JmMetaCard` (re-localize com
+// `grep -n "function JmMetaCard" prototipo-ui/cowork/Wagner/jana-merge.jsx`): `jm-meta-v` é
 // `<b>{atual}</b><small>de {alvo}</small>` e `jm-meta-f` abre com `{pct}% do alvo`, com a
 // projeção empurrada pra direita por `margin-left:auto`. Precedência de FORMA:
 // protótipo > teste > casos > charter > SPEC (ADR UI-0029).

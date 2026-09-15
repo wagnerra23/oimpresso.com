@@ -83,7 +83,7 @@
     "degrau": "Indexar o gerador como 4o consumidor no _doc do component-registry.json e no REGISTRY_DS_COMPONENTES.md. NAO propor gate novo. Degrau de cobertura exige entrada mapped nova no registry — decisão de desenho.",
     "data": "2026-08-23",
     "existia_invisivel": true,
-    "onde_indexar": "indexar o gerador como 4o ponto de contato no _doc de prototipo-ui/component-registry.json e em prototipo-ui/REGISTRY_DS_COMPONENTES.md. Nao propor gate novo: dono e component-registry-check (advisory por decisao medida)."
+    "onde_indexar": "indexar o gerador como 4o ponto de contato no _doc de prototipo-ui/component-registry.json e em memory/reference/prototipo-ui/REGISTRY_DS_COMPONENTES.md. Nao propor gate novo: dono e component-registry-check (advisory por decisao medida)."
   },
   {
     "id": "dtc-visreg-pixel-only",
@@ -95,7 +95,7 @@
     "degrau": "gates-registry.json — entrada do workflow continua stub de 2 campos; adicionar ponteiro das camadas não-pixel. Corrigir flag indexado:true — só metade do degrau foi paga.",
     "data": "2026-08-23",
     "existia_invisivel": true,
-    "onde_indexar": "estender gates-registry.json entrada visual-regression.yml com campo descrevendo as camadas (ponteiro, nunca copia) + registrar em prototipo-ui/RUNBOOK-fidelidade-fingerprint.md a fronteira CI x manual (ADR 0290).",
+    "onde_indexar": "estender gates-registry.json entrada visual-regression.yml com campo descrevendo as camadas (ponteiro, nunca copia) + registrar em memory/reference/prototipo-ui/RUNBOOK-fidelidade-fingerprint.md a fronteira CI x manual (ADR 0290).",
     "indexado": true
   },
   {

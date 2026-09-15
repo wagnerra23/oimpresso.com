@@ -11,7 +11,7 @@
  *
  * FONTE DO CONTRATO: `fiscal-page.jsx` §FxNotasPage do protótipo Cowork, baixado do
  * vivo por DesignSync em 2026-09-03 (projeto das telas, `truncated: false`) — não do
- * espelho `prototipo-ui/cowork/`, que mediu 1 de 258 arquivos e cuja própria máquina
+ * espelho `prototipo-ui/cowork/Wagner/`, que mediu 1 de 258 arquivos e cuja própria máquina
  * declara "qualquer comparação contra este espelho é INCONCLUSIVA". De lá vêm, e não
  * de palpite: o default 8, as opções 8/25/50, a copy `Anterior`/`Próxima`, o contador
  * `{pagina} / {paginas}` e o reset ao filtrar.

@@ -1,5 +1,5 @@
 // FichaPrint — folha de prova PT-07 do handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §8.
-// Porte de prototipo-ui/cowork/manufacturing-print.jsx (espelho == ZIP, conferido byte a byte).
+// Porte de prototipo-ui/cowork/Wagner/manufacturing-print.jsx (espelho == ZIP, conferido byte a byte).
 //
 // Duas variantes da MESMA folha, cada uma uma decisão de negócio:
 //   · "Ficha com custo"  → orçamento/conferência: custo unitário, subtotais, quadro de total

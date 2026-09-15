@@ -3,9 +3,9 @@ slug: 0156-module-grade-v3-errata-otel-helper-na-justified
 number: 156
 title: "module-grade-v3 errata — D9.a regex inclui OtelHelper canônico + ratifica na_justified D6-D9 backward-compat"
 type: adr
-status: aceito
+status: superseded
 authority: canonical
-lifecycle: ativo
+lifecycle: substituido
 decided_by: [W]
 decided_at: "2026-05-16"
 accepted_at: 2026-05-16
@@ -15,7 +15,7 @@ quarter: 2026-Q2
 tags: [governance, errata, observability, na-justified, backward-compat]
 supersedes: []
 supersedes_partially: [0155-module-grade-v3-sub-dimensoes-gate-ci]
-superseded_by: []
+superseded_by: ['0399-aposentar-rubrica-module-grade-gate-e-baseline']
 related: [0155-module-grade-v3-sub-dimensoes-gate-ci, 0154-module-grade-v2-na-justificado, 0153-module-grade-rubrica-v1, 0094-constituicao-v2-7-camadas-8-principios]
 pii: false
 review_triggers:
@@ -36,7 +36,7 @@ ADR 0155 §"D9 Observability" linha tabela D9.a especifica:
 
 > `grep "OpenTelemetry" Modules/<X>/Services/**/*.php` OU `grep "otel_span" Modules/<X>/**/*.php` OU `grep "Tracer::" Modules/<X>/**/*.php` — pelo menos 1 span manual instrumentado
 
-Implementação atual em [`Modules/Governance/Services/ModuleGradeService.php`](../../Modules/Governance/Services/ModuleGradeService.php) linha 902:
+Implementação atual em `Modules/Governance/Services/ModuleGradeService.php` linha 902 — arquivo deletado em 2026-09-15, ADR 0399:
 
 ```php
 if (preg_match('/\b(OpenTelemetry|otel_span|Tracer|StartSpan|tracer\(\))/i', $content)) {
@@ -181,7 +181,7 @@ Casos detalhados:
 
 **Smoke test manual:**
 
-> Flags reais do command (ver [`ModuleGradeCommand.php`](../../Modules/Governance/Console/Commands/ModuleGradeCommand.php) linhas 28-33): `--all`, `--json`, `--detail`, `--evolve`. NÃO existe `--version` — Service v3 é o engine atual unificado (back-compat absorvida via `na_justified` + `na_justified_v3`).
+> Flags reais do command (ver `ModuleGradeCommand.php` linhas 28-33 — arquivo deletado em 2026-09-15, ADR 0399): `--all`, `--json`, `--detail`, `--evolve`. NÃO existe `--version` — Service v3 é o engine atual unificado (back-compat absorvida via `na_justified` + `na_justified_v3`).
 
 1. Rodar `php artisan module:grade Sells --detail` — confirmar D9.a detecta `OtelHelper::spanBiz` em `Modules/Sells/Services/ExecuteStageActionService.php` (FSM canon)
 2. Rodar `php artisan module:grade Governance --detail` — confirmar `na_justified` legacy continua funcionando se ainda existir
@@ -199,7 +199,7 @@ Casos detalhados:
 
 **Código canônico:**
 - [`app/Util/OtelHelper.php`](../../app/Util/OtelHelper.php) — facade zero-cost (linhas 17-81)
-- [`Modules/Governance/Services/ModuleGradeService.php`](../../Modules/Governance/Services/ModuleGradeService.php) — método `dim9Observability` (linha 892+) + `loadNaJustified` (linha 1247+)
+- `Modules/Governance/Services/ModuleGradeService.php` — arquivo deletado em 2026-09-15, ADR 0399 — método `dim9Observability` (linha 892+) + `loadNaJustified` (linha 1247+)
 
 **Proibições relevantes:**
 - [memory/proibicoes.md](../proibicoes.md) §"Memória/governança" — ADRs CANON append-only (motivo desta errata existir como ADR nova, não edit de 0155)

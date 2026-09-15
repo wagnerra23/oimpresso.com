@@ -6,7 +6,7 @@ status: draft
 parent_module: AssetManagement
 related_us: [US-ASSET-001, US-ASSET-W05]
 related_adrs: [0394-endereco-de-ui-do-patrimonio-pages-patrimonio, 0104-processo-mwart-canonico-unico-caminho, 0093-multi-tenant-isolation-tier-0, 0180-sidebar-v3-5-grupos-ghosts-header]
-related_prototype: prototipo-ui/cowork/patrimonio-page.jsx
+related_prototype: prototipo-ui/cowork/Wagner/patrimonio-page.jsx
 related_runbook: memory/requisitos/AssetManagement/RUNBOOK-alocacoes.md
 tier: B
 charter_version: 1
@@ -139,7 +139,7 @@ não consertado: mudaria quem enxerga a tela, é decisão [W], e 1 PR = 1 intent
 - RUNBOOK: [`memory/requisitos/AssetManagement/RUNBOOK-alocacoes.md`](../../../../memory/requisitos/AssetManagement/RUNBOOK-alocacoes.md)
 - Casos: [`./Alocacoes.casos.md`](./Alocacoes.casos.md)
 - Irmã que fundou o `_shared`: [`./Bens.charter.md`](./Bens.charter.md)
-- Fonte visual: `prototipo-ui/cowork/patrimonio-page.jsx` (aba `alocacoes`, `:409`) — **alvo**,
+- Fonte visual: `prototipo-ui/cowork/Wagner/patrimonio-page.jsx` (aba `alocacoes`, `:409`) — **alvo**,
   não decisão de produto
 - Playbook: `prototipo-ui/design-docs/cowork-inbox/patrimonio/playbook/06-ui-bloqueada.md`
 - [PT-01 Lista](../../../../memory/requisitos/_DesignSystem/padroes-tela/PT-01-Lista.md)

@@ -3,9 +3,9 @@ slug: 0158-module-grade-v3-d1-heuristica-hardening
 number: 158
 title: "module-grade-v3 — endurecimento heurística D1 (recursive + scope singular + Job $entityId pattern)"
 type: adr
-status: aceito
+status: superseded
 authority: canonical
-lifecycle: ativo
+lifecycle: substituido
 decided_by: [W]
 decided_at: "2026-05-16"
 accepted_at: 2026-05-16
@@ -15,7 +15,7 @@ quarter: 2026-Q2
 tags: [governance, rubrica, d1-multitenancy, hardening, falso-positivo, falso-negativo]
 supersedes: []
 supersedes_partially: [0155-module-grade-v3-sub-dimensoes-gate-ci]
-superseded_by: []
+superseded_by: ['0399-aposentar-rubrica-module-grade-gate-e-baseline']
 related: [0155-module-grade-v3-sub-dimensoes-gate-ci, 0156-module-grade-v3-errata-otel-helper-na-justified, 0157-module-grade-v3-d2-detection-hardening, 0154-module-grade-v2-na-justificado, 0153-module-grade-rubrica-v1, 0094-constituicao-v2-7-camadas-8-principios, 0093-multi-tenant-isolation-tier-0]
 pii: false
 review_triggers:

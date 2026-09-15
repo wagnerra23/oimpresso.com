@@ -2,7 +2,7 @@
 page_id: forja-aprovacoes
 page: /forja/aprovacoes
 component: Modules/Forja/Resources/js/Pages/Forja/Aprovacoes/Index.tsx
-related_prototype: prototipo-ui/cowork/forja-aprova.jsx
+related_prototype: prototipo-ui/cowork/Wagner/forja-aprova.jsx
 owner: wagner
 status: draft
 last_validated: "2026-09-02"
@@ -70,7 +70,7 @@ coisa ("a capacidade existe no sistema"), e dois sentidos lado a lado é ambigui
 
 A [ADR 0388](../../../../../../../memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md)
 ("réplica primeiro") pôs o protótipo como **contrato de layout**. Esta tela é a view `hoje`
-de [`forja-aprova.jsx`](../../../../../../../prototipo-ui/cowork/forja-aprova.jsx) — e **não** do
+de [`forja-aprova.jsx`](../../../../../../../prototipo-ui/cowork/Wagner/forja-aprova.jsx) — e **não** do
 `forja-page.jsx`, que o charter apontava até aqui: aquele arquivo só **monta** a view (linha 1229),
 o markup mora no `forja-aprova`. A âncora foi corrigida no frontmatter; o espelho estava **SYNC**
 contra o Cowork vivo em 2026-09-02T11:17Z (sha `cc4cde3692da`, ledger de frescor).

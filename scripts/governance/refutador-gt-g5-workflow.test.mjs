@@ -44,8 +44,8 @@ const ok = (cond, msg) => { console.log(`${cond ? '  ok  ' : '  FALHOU  '}${msg}
 
 const EV = (n) => `memory/sessions/2026-09-06-refutacao-gt-g5-lote-6897-r${n}.md`
 const cauda = (itens, erros) => `## Veredito\n\n\`\`\`json\n{"itens_verificados": ${itens}, "erros_confirmados": ${erros}, "error_rate_pct": 0, "pii_hits": 0, "veredito": "x"}\n\`\`\`\n`
-const escopo = ({ nArq = 16, evid = [] } = {}) => ({
-  data: '2026-09-06', head_sha: 'bd57cd8334aaaaaaaaaa', base_sha: '26ac293f46bbbbbbbbbb', merge_base: '26ac293f46bbbbbbbbbb', raso: false,
+const escopo = ({ nArq = 16, evid = [], prHead = 'bd57cd8334aaaaaaaaaa' } = {}) => ({
+  data: '2026-09-06', head_sha: 'bd57cd8334aaaaaaaaaa', pr_head_sha: prHead, base_sha: '26ac293f46bbbbbbbbbb', merge_base: '26ac293f46bbbbbbbbbb', raso: false,
   arquivos: Array.from({ length: nArq }, (_, i) => ({ status: 'M', path: `memory/requisitos/Mod/arq-${i}.md` })),
   fora_requisitos_count: 0, evidencias_existentes: evid,
 })
@@ -144,6 +144,19 @@ console.log('\n[4] guardas')
   ok(i.out.ok === false && !i.labels.some((l) => l.startsWith('escrivao:')), 'refutador nulo (abortado) → rodada inválida, sem escrivão')
   const j = await rodar({}, {})
   ok(j.out.ok === false && j.chamadas.length === 0, 'sem args.pr → nada roda')
+
+  // BITE — checkout que não é o do PR (regressão medida no #7262, 2026-09-14: rodando de um
+  // worktree em outro branch o escopo viu 1 arquivo de 64 e o workflow devolveu ok:true
+  // "não é lote", aprovando sem que um refutador subisse).
+  const k = await rodar({ pr: 6897, gerador: 'opus' }, { esc: escopo({ prHead: 'ffffffff00000000cafe' }), ref: refutacao(1, 74, 0) })
+  ok(k.out.ok === false && /checkout/.test(String(k.out.erros)), 'BITE: head do PR ≠ HEAD do working tree → ABORTA')
+  ok(!k.labels.some((l) => l.startsWith('refutador:')), 'BITE: aborta ANTES de gastar refutador')
+  // controle negativo — com o checkout certo o fluxo segue normalmente
+  const l = await rodar({ pr: 6897, gerador: 'opus' }, { esc: escopo(), ref: refutacao(1, 74, 0) })
+  ok(l.labels.some((x) => x.startsWith('refutador:')), 'controle negativo: checkout certo NÃO aborta')
+  // gh indisponível: declara que não mediu, mas não inventa veredito nem bloqueia
+  const m = await rodar({ pr: 6897, gerador: 'opus' }, { esc: escopo({ prHead: '' }), ref: refutacao(1, 74, 0) })
+  ok(m.labels.some((x) => x.startsWith('refutador:')) && m.logs.some((s) => /NÃO MEDIDO/.test(s)), 'pr_head_sha vazio → segue, mas declara que não mediu')
 }
 
 fs.rmSync(TMP, { recursive: true, force: true })

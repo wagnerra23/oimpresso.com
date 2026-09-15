@@ -1,2 +1,2 @@
 resources/js/Pages/Financeiro/Index.tsx
-prototipo-ui/SYNC_LOG.md
+memory/reference/prototipo-ui/SYNC_LOG.md

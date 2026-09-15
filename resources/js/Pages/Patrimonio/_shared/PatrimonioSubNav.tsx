@@ -14,7 +14,7 @@
 //
 // ─── O que isso significa na prática: são 6 abas, não 7 ──────────────────────────
 //
-// O protótipo (`prototipo-ui/cowork/patrimonio-page.jsx:835`) declara SETE abas; o menu
+// O protótipo (`prototipo-ui/cowork/Wagner/patrimonio-page.jsx:835`) declara SETE abas; o menu
 // vivo declara SEIS ghosts, e as listas não coincidem:
 //
 //   menu vivo  · Painel · Bens · Alocações · Devoluções · Manutenções · Configurações

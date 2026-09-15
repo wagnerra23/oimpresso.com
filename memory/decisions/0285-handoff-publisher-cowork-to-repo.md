@@ -44,7 +44,7 @@ supersedes: []
 
 ## Contexto
 
-Pós-PR-6 o **transporte** do handoff já é mecânico: um `.md` commitado em `prototipo-ui/handoffs/*.md`
+Pós-PR-6 o **transporte** do handoff já é mecânico: um `.md` commitado em `prototipo-ui/cowork/Wagner/handoffs/*.md`
 no push pra `main` → a Action `handoff-sign-submit.yml` assina (HMAC) e chama o tool MCP `handoff-submit`
 → `pending`. **Mas o "primeiro hop" (artefato do Cowork → o `.md` no repo) ainda exigia [W] commitar
 à mão**, porque "o Cowork é read-only no GitHub e não expõe endpoint estável de pendentes" (cabeçalho da
@@ -68,10 +68,10 @@ ainda é bootstrap planejado.)
 fechando a fiação **inline**:
 
 1. **Convenção:** o Cowork dropa `cowork-inbox/handoff-<slug>.md` com `<!-- cowork: target:
-   prototipo-ui/handoffs/<slug>.md -->` + o frontmatter canônico (`handoff_id`/`tela`/`files`/`created_by`/
+   prototipo-ui/cowork/Wagner/handoffs/<slug>.md -->` + o frontmatter canônico (`handoff_id`/`tela`/`files`/`created_by`/
    `audited_against`) que o assinador e o `handoff-submit` esperam.
 2. **Detecção:** `cowork-inbox.py` emite `handoffs=<...>` (`$GITHUB_OUTPUT`) com os `.md` pousados em
-   `prototipo-ui/handoffs/`.
+   `prototipo-ui/cowork/Wagner/handoffs/`.
 3. **Transporte inline:** a `cowork-inbox.yml` ganha um passo que **assina+submete** esses handoffs ali
    mesmo (mesmo job, working tree quente) — **não** espera um `on: push` que o `GITHUB_TOKEN` não dispara.
 4. **DRY:** o sign+POST vira `bin/submit-handoff.sh` (fonte única), reusado pela `cowork-inbox.yml` **e**

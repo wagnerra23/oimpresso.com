@@ -2,7 +2,7 @@
 id: resources-js-pages-fiscal-nfe-charter
 page: /fiscal/nfe
 component: resources/js/Pages/Fiscal/Nfe.tsx
-related_prototype: prototipo-ui/cowork/fiscal-page.jsx
+related_prototype: prototipo-ui/cowork/Wagner/fiscal-page.jsx
 related_visual_comparison: memory/requisitos/Fiscal/nfe-visual-comparison.md
 bundle_source: fiscal-page.jsx
 page_id: fiscal-nfe
@@ -13,7 +13,7 @@ created: 2026-05-20
 owner: wagner
 related_us: [US-FISCAL-001, US-FISCAL-012, US-FISCAL-013, US-FISCAL-014]
 related_adrs: [0093-multi-tenant-isolation-tier-0, 0104-processo-mwart-canonico-unico-caminho, 0114-prototipo-ui-cowork-loop-formalizado, 0143-fsm-pipeline-live-prod-marco-2026-05-12]
-prototypes: [prototipo-ui/cowork/fiscal-page.jsx]
+prototypes: [prototipo-ui/cowork/Wagner/fiscal-page.jsx]
 ---
 
 # Charter — `Fiscal/Nfe`
@@ -127,7 +127,7 @@ Contexto completo: [`memory/requisitos/Fiscal/SDD-cockpit-fiscal-v1.0.md`](../..
 ### Nova fonte recebida — 2026-08-28
 
 O diagnóstico acima permanece como fato de 2026-07-27. Depois dele, o bundle transacional
-versionou `prototipo-ui/cowork/fiscal-page.jsx`; o frontmatter passou a apontar para essa fonte.
+versionou `prototipo-ui/cowork/Wagner/fiscal-page.jsx`; o frontmatter passou a apontar para essa fonte.
 Receber a fonte não altera o veredito de aplicação: ele é derivado pelo Design Sync.
 
 ---
@@ -180,7 +180,7 @@ acreditar que o código era um erro de cadastro corrigível. Derivar o tom do ca
 **cumpre** a regra que [W] escreveu (*"vermelho = rejeição"*) melhor do que a lista literal cumpria.
 
 Também deixou de ser verdade que o Goal 2 se satisfaz "espelhando SEFAZ_CODES do design": o
-`prototipo-ui/cowork/fiscal-data.jsx` tem 8 códigos e declara-se derivado do `Cockpit.tsx` — é porte
+`prototipo-ui/cowork/Wagner/fiscal-data.jsx` tem 8 códigos e declara-se derivado do `Cockpit.tsx` — é porte
 reverso do código, não fonte fiscal. A fonte é a tabela da SEFAZ.
 
 **O que a tela garante agora** (contrato por UC em [`Nfe.casos.md`](Nfe.casos.md) → `UC-FNFE-03`):

@@ -1,7 +1,7 @@
 /**
  * UC-V320 — cada ação da linha do item abre o drawer numa aba PRÓPRIA.
  *
- * A âncora de design (`prototipo-ui/cowork/venda-v3/sells-create.jsx:63-65`) tem
+ * A âncora de design (`prototipo-ui/cowork/Felipe/venda-v3/sells-create.jsx:63-65`) tem
  * DOIS botões que abrem o MESMO drawer e passa a aba na chamada:
  * `abrirItem = (i, aba) => { setAbaItem(aba || 'geral'); … }`. O que os distingue
  * é exatamente isso — sem a aba, um "ver detalhes" ao lado de um "Impostos" que

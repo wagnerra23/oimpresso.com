@@ -12,7 +12,7 @@ last_run: "2026-09-03"
 > **Status:** ✅ passa (provado por teste) · 🧪 em teste (escrito, aguarda run verde) · ⬜ não verificado · ❌ quebrou.
 
 > Derivados do `Chat.charter.md` (§Goals/§Automation Anti-hooks) e do protótipo
-> `prototipo-ui/cowork/jana-merge.jsx` §`JmConversa` (âncora de símbolo) — **não** do `Chat.tsx`.
+> `prototipo-ui/cowork/Wagner/jana-merge.jsx` §`JmConversa` (âncora de símbolo) — **não** do `Chat.tsx`.
 > Derivar do código seria tautológico (§5 2026-06-05).
 >
 > **Por que este arquivo nasceu em 2026-08-17:** ele não existia. O Chat é `tier: A`, `status: live`
@@ -316,7 +316,7 @@ Status: 🧪 (`tests/jana-chat-conversas.test.tsx` — 10 casos sob os dois desc
 card: título com a hora da última mensagem ao lado, o resumo de uma linha do que foi dito por último,
 e um rodapé dizendo `última em 09:38`. A que está fixada carrega o selo `fixada`.
 
-**De onde vem o contrato.** Da âncora `prototipo-ui/cowork/jana-merge.jsx` §`JmThreadItem` —
+**De onde vem o contrato.** Da âncora `prototipo-ui/cowork/Wagner/jana-merge.jsx` §`JmThreadItem` —
 lida do Cowork **vivo** em 2026-09-03 via `DesignSync.get_file` e **byte-idêntica** ao espelho
 (hash do arquivo inteiro, `truncated:false`). Não foi derivado do `.tsx` (§5 2026-06-05).
 
@@ -844,7 +844,7 @@ tocado aqui pra não colidir com ele.
 Status: 🧪 (`JanaPlanoTierTest` — 3 `it()`, um comportamental e dois de fonte; o teste diz
 por que cada um é o que é. Aguarda run verde na lane e o screenshot F1.5.)
 
-Derivado da âncora (`prototipo-ui/cowork/jana-merge.jsx:970` + `chat-jana.jsx:217`) e da decisão
+Derivado da âncora (`prototipo-ui/cowork/Wagner/jana-merge.jsx:970` + `chat-jana.jsx:217`) e da decisão
 [W] de 2026-08-27 — **não** do `.tsx`. Derivar do código seria tautológico (§5 2026-06-05).
 
 Até 2026-08-27 este selo era o item **BLOQUEADO** da onda 4 (`PARIDADE` §8.1), e o motivo não era
@@ -939,7 +939,7 @@ leitor percebe a diferença.
 ## UC-JCHAT-15 — o cabeçalho da thread é o da âncora, não o de mensageiro
 Status: 🧪 (`tests/jana-chat-composer-chips.test.tsx` — 2 casos sob o describe que cita este UC) — ✅ volta quando o manifesto G-7 capturar o veredito da lane
 
-Derivado de `prototipo-ui/cowork/jana-merge.jsx` §`JmConversa` (`.jm-conv-h`) e do
+Derivado de `prototipo-ui/cowork/Wagner/jana-merge.jsx` §`JmConversa` (`.jm-conv-h`) e do
 `Chat.charter.md` §UX Anti-patterns — **não** do `.tsx` (§5 2026-06-05).
 
 O cabeçalho da conversa mostra **o título** (13px/600) e o rótulo **`só sua`** em mono, mais a

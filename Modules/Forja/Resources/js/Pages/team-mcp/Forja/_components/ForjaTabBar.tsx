@@ -1,8 +1,8 @@
 // ForjaTabBar — porte do `TabBar` do Design System do Cowork
 // (`components/TabBar/TabBar.jsx`, bundle de 2026-08-24 em
-// `scripts/design-sync/mirror-snapshot/_ds_bundle.js`). É o que o protótipo
+// `prototipo-ui/design-system/_ds_bundle.js`). É o que o protótipo
 // renderiza nas abas do Integrador, através do adaptador `window.CliTabs`
-// (`prototipo-ui/cowork/cli-tabs.jsx`).
+// (`prototipo-ui/cowork/Wagner/cli-tabs.jsx`).
 //
 // POR QUE UM PORTE, e não `PageHeaderTabs`: a régua é a sonda, não o nome do
 // componente (PARIDADE §11, Onda 10). Medido, o `PageHeaderTabs` não tem como

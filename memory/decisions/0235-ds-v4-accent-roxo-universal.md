@@ -37,7 +37,7 @@ review_triggers:
 
 [ADR 0190](0190-primary-button-roxo-universal-295.md) (2026-05-25) estabeleceu o **primary button** roxo `oklch(0.55 0.15 295)`, mantendo *hue-per-grupo* na sidebar. Em 2026-05-29 o Wagner decidiu **trocar o design system inteiro** pro DS v4 (roxo universal) e **aposentar a 0190** — não apenas estendê-la.
 
-Nota de implementação (auditoria [`prototipo-ui/AUDITORIA_DS_V4.md`](../../prototipo-ui/AUDITORIA_DS_V4.md)): o app já vinha aplicando o roxo no shell (`resources/css/cockpit.css:32` já tinha `--accent: oklch(0.55 0.15 295)`). O DS v4 formaliza isso como regime e sincroniza a fundação de referência (`prototipo-ui/tokens.css`, que estava em azul 220).
+Nota de implementação (auditoria [`memory/reference/prototipo-ui/AUDITORIA_DS_V4.md`](../../memory/reference/prototipo-ui/AUDITORIA_DS_V4.md)): o app já vinha aplicando o roxo no shell (`resources/css/cockpit.css:32` já tinha `--accent: oklch(0.55 0.15 295)`). O DS v4 formaliza isso como regime e sincroniza a fundação de referência (`prototipo-ui/tokens.css`, que estava em azul 220).
 
 ## Decisão
 

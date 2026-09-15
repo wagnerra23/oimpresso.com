@@ -1,14 +1,14 @@
 ---
 id: requisitos-officeimpresso-logs-index-gap
 tela: Officeimpresso/Logs/Index (/officeimpresso/licenca_log)
-prototipo: prototipo-ui/cowork/officeimpresso-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/officeimpresso-page.jsx
 tela_viva: Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Index.tsx
 gerado_em: 2026-09-06
 ---
 
 # GAP-SPEC — Officeimpresso/Logs/Index
 
-> **Âncora declarada no charter** (`related_prototype: prototipo-ui/cowork/officeimpresso-page.jsx`) e confirmada pela porta.
+> **Âncora declarada no charter** (`related_prototype: prototipo-ui/cowork/Wagner/officeimpresso-page.jsx`) e confirmada pela porta.
 >
 > ⚠️ **A tela viva mora DENTRO do módulo** (`Modules/Officeimpresso/Resources/js/Pages/...`), não em `resources/js/Pages/`. As duas raízes são igualmente canônicas desde 2026-08-12 (`scripts/qa/page-path.mjs` §RAIZ_PAGES), e por isso `ancora.mjs` imprime `tela viva: —` para esta tela: o resolvedor dele olha só a raiz do núcleo. Não é âncora quebrada — é limite conhecido da porta.
 >

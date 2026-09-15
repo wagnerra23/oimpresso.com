@@ -9,7 +9,7 @@
 // Carimbada do PT-01 Lista por criar-tela.mjs (UI-0013) e preenchida contra o alvo
 // medido em prototipo-ui/design-docs/cowork-inbox/hrm/EXPORT-HRM-2026-09-04.md §3.
 //
-// As âncoras `data-contract` casam 1:1 com prototipo-ui/contrato/essentials-licencas
+// As âncoras `data-contract` casam 1:1 com governance/design/contracts/essentials-licencas
 // .contract.json — não remova o atributo sem tirar a seção do contrato.
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { PageHeader } from '@/Components/PageHeader';

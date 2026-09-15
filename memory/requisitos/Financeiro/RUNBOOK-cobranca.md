@@ -4,12 +4,20 @@ title: "RUNBOOK — /financeiro/cobranca (Tela 1 PaymentGateway UI F3)"
 type: runbook
 authority: canonical
 lifecycle: ativo
-related_adrs: [0093, 0094, 0104, 0114, 0144, 0170]
+related_adrs:
+  - 0093-multi-tenant-isolation-tier-0
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0104-processo-mwart-canonico-unico-caminho
+  - 0114-prototipo-ui-cowork-loop-formalizado
+  - 0144-tasks-db-canonico-spec-template
+  - 0170-paymentgateway-extracao-camada-cobranca
 related_us: [US-PG-F3-COBRANCA]
 parent_module: Financeiro
 sister_module: PaymentGateway
 persona: Eliana[E] (financeiro escritório) + Larissa[Cliente Piloto]
 session_date: '2026-05-19'
+owner: W
+last_validated: "2026-05-19"
 ---
 
 # RUNBOOK · `/financeiro/cobranca` — F3 PaymentGateway UI Tela 1
@@ -125,4 +133,4 @@ Mantém ADR 0094 Constituição v2 §5 SoC visual:
 - ADR 0170 PaymentGateway Onda 4 ([decisions/0170](../../decisions/0170-paymentgateway-module-extraction.md))
 - Handoff F2 Cowork ([COWORK_HANDOFF.paymentgateway-ui.md](../../../COWORK_HANDOFF.paymentgateway-ui.md))
 - F1.5 critique REPORT.md ([critiques/REPORT.md](../../../prototipo-ui/prototipos/payment-gateway-ui/critiques/REPORT.md))
-- LICOES F3 Financeiro rejeitado ([LICOES_F3_FINANCEIRO_REJEITADO.md](../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md))
+- LICOES F3 Financeiro rejeitado ([LICOES_F3_FINANCEIRO_REJEITADO.md](../../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md))

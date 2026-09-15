@@ -69,4 +69,4 @@ enquanto houver lição pendente/malformada  (loop fechado por métrica · Const
 2. **Numerar ADR** se quiser elevar de proposal a decisão (soberania [W] — não cunhei número).
 3. Confirmar que o check certo é **advisory** (não derruba cron) — minha recomendação é sim.
 
-— [CL], 2026-06-02. Não mergeei (Tier 0 · publication-policy). Retorno em `prototipo-ui/CODE_NOTES.md`.
+— [CL], 2026-06-02. Não mergeei (Tier 0 · publication-policy). Retorno em `memory/reference/prototipo-ui/CODE_NOTES.md`.

@@ -144,7 +144,7 @@ Quando user marca ≥2 checkboxes na table, aparece sticky panel:
 
 ## Anti-padrões catalogados
 
-[`prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md):
+[`memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md):
 - ❌ Filter bar full-width que empurra table — usar Cards laterais (160-200px)
 - ❌ Action button "Reverter" sem confirm modal (precisa double-confirm + reason)
 - ❌ Sem `<Deferred>` wrap = página carrega lenta mesmo com defer no controller

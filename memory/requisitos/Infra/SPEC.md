@@ -567,12 +567,12 @@ Refs: ADR 0212 Camada 3
 
 ### US-INFRA-021 · Catalogar AP-18 "Fallback default sem Log::warning" no LICOES_F3
 
-**Implementado em:** `prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md` · verificado@8af585a (2026-07-02) — AP-18 catalogado (seção "AP-18 — Fallback default sem `Log::warning` (R9 raiz, 2026-05-28)")
+**Implementado em:** `memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md` · verificado@8af585a (2026-07-02) — AP-18 catalogado (seção "AP-18 — Fallback default sem `Log::warning` (R9 raiz, 2026-05-28)")
 
 > owner: — · priority: p2 · estimate: 1h · status: done · type: story
 > blocked_by: —
 
-**Onda 2 · doc.** Adicionar AP-18 em `prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md` Parte 3. Exemplo R9 (PR #1830). Cross-ref ADR 0212.
+**Onda 2 · doc.** Adicionar AP-18 em `memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md` Parte 3. Exemplo R9 (PR #1830). Cross-ref ADR 0212.
 
 **Acceptance:** PR `docs/` adiciona AP-18 com 15-25 linhas.
 
@@ -624,7 +624,7 @@ Refs: ADR 0210 Fase 4
 
 ### US-INFRA-025 · Catalogar AP-17 "Inertia props não tipadas" no LICOES_F3
 
-**Implementado em:** _pendente_ — AP-17 não catalogado em `prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md` (grep zero por "AP-17"; só AP-18 landou)
+**Implementado em:** _pendente_ — AP-17 não catalogado em `memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md` (grep zero por "AP-17"; só AP-18 landou)
 
 > owner: — · priority: p2 · estimate: 1h · status: todo · type: story
 > blocked_by: —

@@ -55,7 +55,7 @@ Canal de entrada REAL do [W] = **chat** (linguagem natural; o agente materializa
 |---|---|---|
 | `(Mod/Tela, PT-0X)` | `node scripts/governance/criar-tela.mjs` | carimba trio + stub e2e citando UC; passa `pt-conformance` por construção |
 | **Non-Goals + Automation Anti-hooks** | `<Tela>.charter.md` | cada item vira Pest GUARD (CI); `charter-write` é proibida de inferir — só [W] preenche |
-| `## Contrato visual` (copy literal + ordem) | charter + `prototipo-ui/contrato/` | gate `contrato-de-tela` (always-run; required = passo 4 pendente, [W] admin-only) |
+| `## Contrato visual` (copy literal + ordem) | charter + `governance/design/contracts/` | gate `contrato-de-tela` (always-run; required = passo 4 pendente, [W] admin-only) |
 | `[BACKLOG] <frase>` sem id | `<Tela>.casos.md` | prosa visível sem gate — vira UC quando ganhar teste que o cite |
 
 ### Quando [W] pede explícito "o contrato da tela X" (verificado 2026-07-17)

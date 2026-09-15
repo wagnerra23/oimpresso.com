@@ -16,7 +16,7 @@ use Illuminate\Console\Command;
  *
  * Agendado daily 04:00 (app/Console/Kernel.php).
  *
- * @see prototipo-ui/handoffs/erros-dedup.md
+ * @see prototipo-ui/cowork/Wagner/handoffs/erros-dedup.md
  */
 class ArchiveStaleErrorGroupsCommand extends Command
 {

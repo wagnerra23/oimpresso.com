@@ -5,7 +5,7 @@
 // A Onda 1 tira a classe hand-rolled `fx-chip` (fiscal-cockpit.css) das 7 telas do
 // Fiscal. O papel dela é "pill de filtro SINGLE-SELECT" — clicar troca o status da
 // lista, só um ativo por vez. Antes de compor, os donos do tema foram consultados
-// (`prototipo-ui/REGISTRY_DS_COMPONENTES.md`), e nenhum cobre este papel:
+// (`memory/reference/prototipo-ui/REGISTRY_DS_COMPONENTES.md`), e nenhum cobre este papel:
 //
 //   · `PageFilters` / `FilterChip` (@/Components/shared) — chip de filtro JÁ APLICADO,
 //     com botão X pra remover, dentro de um container colapsável de campos. Papel

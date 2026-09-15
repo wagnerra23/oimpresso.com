@@ -1,4 +1,4 @@
-﻿// @memcofre
+// @memcofre
 //   tela: /copiloto/dashboard
 //   stories: US-COPI-010, US-COPI-011, US-COPI-012
 //   rules: R-COPI-002, R-COPI-FAROL-001
@@ -58,7 +58,7 @@ interface Props {
 // `metaFormat.ts`) só lê o campo que chega no payload.
 
 // Rótulo do período no card de meta (âncora: `jm-meta-p` no header do
-// `JmMetaCard` — `grep -n "jm-meta-p" prototipo-ui/cowork/jana-merge.css`).
+// `JmMetaCard` — `grep -n "jm-meta-p" prototipo-ui/cowork/Wagner/jana-merge.css`).
 //
 // ⚠️ NÃO usar `new Date('2026-05-01')`: a string date-only é parseada como UTC
 // meia-noite pelo JS, e em BRT (UTC-3) isso volta 30/abr — o card mostraria o mês
@@ -313,7 +313,7 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
 
       {/* Aviso de viewport — só abaixo de 768px (`md:hidden`, que é exatamente o
           breakpoint do `@media (max-width:768px)` da âncora em jana-merge.css).
-          Âncora de SÍMBOLO: `grep -n "jm-nota-mob" prototipo-ui/cowork/jana-merge.css`.
+          Âncora de SÍMBOLO: `grep -n "jm-nota-mob" prototipo-ui/cowork/Wagner/jana-merge.css`.
           Copy literal do protótipo (`jana-merge.jsx`, símbolo `jm-nota-mob`).
 
           Por que existe: o charter fixa "1 viewport scroll desktop 1280px" como
@@ -380,7 +380,7 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
                   ficou órfã (o cutover dela é o PR-4 do RUNBOOK-metas §9.4). O texto
                   original fica abaixo como registro do que era verdade até aquela data.
                   (`jana-merge.jsx`, símbolo `JmMetasSecao`; re-localize com
-                  `grep -n "Nova meta" prototipo-ui/cowork/jana-merge.jsx`).
+                  `grep -n "Nova meta" prototipo-ui/cowork/Wagner/jana-merge.jsx`).
 
                   ⚠️ `<a href>` NATIVO, nunca `<Link>` do Inertia — e isto não é
                   estilo, é a diferença entre funcionar e não funcionar.

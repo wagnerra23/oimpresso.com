@@ -1,7 +1,7 @@
 ---
 id: requisitos-governance-audit-gap
 tela: governance/Audit (/governance/audit)
-prototipo: prototipo-ui/cowork/governance-page.jsx + governance-telas.jsx
+prototipo: prototipo-ui/cowork/Wagner/governance-page.jsx + governance-telas.jsx
 tela_viva: resources/js/Pages/governance/Audit.tsx
 gerado_em: 2026-09-06
 ---

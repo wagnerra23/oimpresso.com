@@ -1,8 +1,8 @@
 /**
  * Sidebar — o grupo PLATAFORMA e a Forja dentro dele.
  *
- * Âncora: `prototipo-ui/cowork/data.jsx` (grupo `PLATAFORMA`, entry `projects`
- * label "Forja") + `prototipo-ui/cowork/sidebar.jsx` (o accordion abre com
+ * Âncora: `prototipo-ui/cowork/Wagner/data.jsx` (grupo `PLATAFORMA`, entry `projects`
+ * label "Forja") + `prototipo-ui/cowork/Wagner/sidebar.jsx` (o accordion abre com
  * `return entry.group !== "PLATAFORMA"`). Conferidos contra o Cowork VIVO por
  * ID em 2026-09-08 (`DesignSync.get_file` de `data.jsx`, `truncated: false`).
  * Contrato do shell: `resources/js/Layouts/AppShellV2.charter.md`.

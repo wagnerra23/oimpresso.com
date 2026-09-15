@@ -59,12 +59,12 @@ Esta declaração re-escala o `Modules/KB/` atual de duas formas:
 - `Modules/KB/Http/Controllers/Admin/GraphController.php` já é knowledge graph — **MAS** é de ADS (Skills × Meta-skills × Tools × Policy × Memory MCP), NÃO de ADRs/sessions/charters. Renderiza `ads/Admin/Graph`, não `kb/Graph`. Há precedente arquitetural (formato nodes/edges Cytoscape/ReactFlow) reaproveitável.
 - `resources/js/Pages/kb/Index.tsx` (721 linhas, V3) já tem markdown render + keyboard nav + filtros + soft-delete LGPD + history. Skeleton ~50% do que Wagner-governança precisa.
 - 352 docs sincronizados via webhook GitHub em `mcp_memory_documents` (ADRs 143 + sessions ~500 + charters ~30 + runbooks ~50 + briefings ~10 + outros).
-- Cowork (handoff 5) entregou protótipo F1 completo em `prototipo-ui/prototipos/kb/` (9 arquivos, 280KB total). Auto-score Bench v2 = 9,40/10 vs Notion 7,75 / Confluence 7,40 / Guru 7,95 / Slab 7,30 / Stonly 7,15 / Intercom 7,85.
+- Cowork (handoff 5) entregou protótipo F1 completo em `prototipo-ui/cowork/Wagner/legado/kb/` (9 arquivos, 280KB total). Auto-score Bench v2 = 9,40/10 vs Notion 7,75 / Confluence 7,40 / Guru 7,95 / Slab 7,30 / Stonly 7,15 / Intercom 7,85.
 - Não existe schema editável pra artigos operacionais (campo `body_blocks` JSON, votes, status, comments, versões locais, favoritos, anexos imagem) — `mcp_memory_documents` é read-only fotografia git.
 
 ### Decisão Wagner sessão 2026-05-15 (3 perguntas P1/P2/P3)
 
-- **P1** — Commit imediato do sync Cowork v5 em `prototipo-ui/prototipos/kb/`: **APROVADO** (commit `e601471f1`)
+- **P1** — Commit imediato do sync Cowork v5 em `prototipo-ui/cowork/Wagner/legado/kb/`: **APROVADO** (commit `e601471f1`)
 - **P2** — Schema: estender `mcp_memory_documents` OU criar `kb_nodes` novo: **`kb_nodes` NOVO** com bridge read-only (preserva imutabilidade da fotografia git)
 - **P3** — Persona-piloto pra ONDAS 1-3: **Wagner governança PRIMEIRO** (ADRs/sessions/charters/runbooks/briefings com visualização-grafo + RAG IA), Larissa operacional vem em ONDA 6 ou paralela
 
@@ -103,7 +103,7 @@ ONDA 6 não bloqueia ONDA 1-5: schema e UI suportam ambos desde o dia 1; apenas 
 
 ### 4. Posicionamento competitivo
 
-O Bench KB v2 do Cowork (`prototipo-ui/prototipos/kb/Bench KB v2.html`) já cobre o caso operacional gráfica vs 7 concorrentes. Esta ADR amplia o posicionamento pra **categoria de produto distinta**: KB-como-cérebro-consultável-da-empresa, onde o diferencial não é o KB em si (Glean/Mem cobrem isso), mas **a integração nativa do KB com o ERP** (dados de OS, vendas, NFe), com a **governança canônica** (143 ADRs + sessions navegáveis como grafo), e com a **IA generativa do Copiloto** ([ADR 0035](../0035-stack-ai-canonica-wagner-2026-04-26.md), Jana) que já consome o mesmo corpus.
+O Bench KB v2 do Cowork (`prototipo-ui/cowork/Wagner/legado/kb/Bench KB v2.html`) já cobre o caso operacional gráfica vs 7 concorrentes. Esta ADR amplia o posicionamento pra **categoria de produto distinta**: KB-como-cérebro-consultável-da-empresa, onde o diferencial não é o KB em si (Glean/Mem cobrem isso), mas **a integração nativa do KB com o ERP** (dados de OS, vendas, NFe), com a **governança canônica** (143 ADRs + sessions navegáveis como grafo), e com a **IA generativa do Copiloto** ([ADR 0035](../0035-stack-ai-canonica-wagner-2026-04-26.md), Jana) que já consome o mesmo corpus.
 
 ### 5. Inviolabilidades (Tier 0 IRREVOGÁVEL)
 

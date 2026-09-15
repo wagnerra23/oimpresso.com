@@ -54,7 +54,7 @@ Estado-da-arte 2026 (DTCG 2025.10, Figma Code Connect, Storybook MCP, spec-ancho
 
 **Teste:** gate por-tela re-deriva o spec + compara com o baseline commitado (drift estrutural → falha; ratchet só-desce nas violações). Espelha `foundation-guard`/`reuse-gate`.
 
-**Relação com o bundle Claude Design** ([PROTOCOL.md §10.5](../../prototipo-ui/PROTOCOL.md)): o bundle, quando chegar (F-C reativo, formato não publicado), vira o **ALVO** que o design-spec é testado contra — não o spec agora.
+**Relação com o bundle Claude Design** ([PROTOCOL.md §10.5](../../memory/reference/prototipo-ui/PROTOCOL.md)): o bundle, quando chegar (F-C reativo, formato não publicado), vira o **ALVO** que o design-spec é testado contra — não o spec agora.
 
 ## Consequências
 

@@ -252,7 +252,7 @@ it('UC-RECIPE-01 · render — a tela monta autenticada com os 4 KPIs e a grade'
     $page = mfgAbrirTela($w, $h);
 
     // §4.2 do handoff — os 4 KPIs. Os rótulos são copy do contrato de tela
-    // (`prototipo-ui/contrato/manufacturing-recipes.contract.json`), não invenção do teste.
+    // (`governance/design/contracts/manufacturing-recipes.contract.json`), não invenção do teste.
     $page->assertSee('Custo médio / unidade')
         ->assertSee('Margem abaixo de 45%')
         ->assertSee('Desperdício ≥ 8%')

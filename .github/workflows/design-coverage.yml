@@ -14,11 +14,11 @@ on:
     paths:
       - 'resources/js/Pages/**/*.charter.md'
       - 'resources/js/Pages/**/*.tsx'
-      - 'prototipo-ui/ancora.mjs'
+      - 'scripts/design/ancora.mjs'
       # O sync do espelho e que CRIA a podridao: bundle novo desce, a fonte que
       # justificava um `n/a` passa a existir, e ninguem re-pergunta a decisao. Sem este
       # path o reporter so roda quando alguem toca charter/tsx — tarde demais.
-      - 'prototipo-ui/cowork/**'
+      - 'prototipo-ui/cowork/Wagner/**'
       - 'memory/governance/design-coverage-baseline.json'
       - 'scripts/qa/design-coverage.mjs'
       - '.github/workflows/design-coverage.yml'

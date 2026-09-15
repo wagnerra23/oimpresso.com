@@ -8,7 +8,7 @@ status: approved
 approved_by: wagner
 approved_at: "2026-06-03"
 date: 2026-06-03
-canon_reference: prototipo-ui/ds-v6/gabarito-vendas.html
+canon_reference: prototipo-ui/cowork/Wagner/legado/ds-v6/gabarito-vendas.html
 blade_source: resources/views/sell/index.blade.php (legacy fallback)
 inertia_target: resources/js/Pages/Sells/Index.tsx
 related_adrs:
@@ -42,7 +42,7 @@ refs_prs:
 > **tokens canônicos DS v6** (`--stage-*`, `--pos/neg/warn(+soft)`, `--origin-*`, `--accent`,
 > superfícies `bg→sunken→surface→raised`) com flip claro/escuro de fábrica.
 >
-> **Referência aprovada:** `prototipo-ui/ds-v6/gabarito-vendas.html` (DS v6 aprovado por [W]
+> **Referência aprovada:** `prototipo-ui/cowork/Wagner/legado/ds-v6/gabarito-vendas.html` (DS v6 aprovado por [W]
 > 2026-06-03 — "já está aprovado, adorei"). **Toggle claro/escuro no próprio arquivo.**
 >
 > **Tokens já em main:** `--stage-*` (PR #2170) · roxo 295 (ADR 0235). **Reuse-map:** 8/11
@@ -50,7 +50,7 @@ refs_prs:
 
 ## Referência visual (o "screenshot" pra aprovar)
 
-- **Abrir:** `prototipo-ui/ds-v6/gabarito-vendas.html` no browser → botão **◐ Escuro / ◑ Claro** alterna os 2 temas.
+- **Abrir:** `prototipo-ui/cowork/Wagner/legado/ds-v6/gabarito-vendas.html` no browser → botão **◐ Escuro / ◑ Claro** alterna os 2 temas.
 - É o alvo pixel. A tela atual `/sells` (prod biz=1) é o "antes".
 
 ---
@@ -100,7 +100,7 @@ refs_prs:
 
 **Status `draft`.** Por ADR 0107/0114, **nenhum Edit em `Index.tsx`/CSS antes de você aprovar o SCREENSHOT.**
 
-**Pra aprovar:** abra `prototipo-ui/ds-v6/gabarito-vendas.html` (toggle claro/escuro) e confirme:
+**Pra aprovar:** abra `prototipo-ui/cowork/Wagner/legado/ds-v6/gabarito-vendas.html` (toggle claro/escuro) e confirme:
 1. É esse o alvo visual pro `/sells`? (sim → vira `status: approved`)
 2. Confirma o escopo "re-skin por token, sem rebuild, sem tocar comportamento"?
 3. Algum ajuste nas decisões acima (ex: manter alguma cor específica, ou incluir os `-soft` chroma)?

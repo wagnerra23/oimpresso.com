@@ -1,0 +1,101 @@
+{
+  "_nota": "Contrato de Tela (ADR 0286) de Vestuário · Etiquetas TAG (US-VEST-020). Duas divergências ABERTAS do charter viram estado no contrato, não escolha do agente.",
+  "tela": "Vestuario/Etiquetas/Index",
+  "fonte": "prototipo-ui/cowork/modulos-faltantes/vestuario-page.jsx",
+  "alvo": [
+    "resources/js/Pages/Vestuario/Etiquetas/Index.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "cabecalho",
+      "copy": [
+        "Etiquetas TAG vestuário",
+        "ZPL Argox/Zebra + PDF",
+        "Baixar ZPL",
+        "Baixar PDF",
+        "Gerando…"
+      ]
+    },
+    {
+      "id": "config",
+      "copy": [
+        "Configuração atual",
+        "vestuario_settings",
+        "dots",
+        "dpi",
+        "margem",
+        "QR ativo",
+        "QR desligado",
+        "o modelo e o driver da impressora se configuram fora desta tela"
+      ]
+    },
+    {
+      "id": "lote",
+      "copy": [
+        "Lote",
+        "item",
+        "itens",
+        "cópias ×",
+        "Item",
+        "Produto ID",
+        "Nome",
+        "Tam.",
+        "Cor",
+        "Coleção",
+        "Preço",
+        "SKU",
+        "EAN-13"
+      ],
+      "estados": [
+        "normal",
+        "vazio",
+        "item-sem-nome"
+      ]
+    },
+    {
+      "id": "previa",
+      "copy": [
+        "Prévia da etiqueta",
+        "proposta F1 · pendente [W]",
+        "A prévia é desenho da tela.",
+        "O que sai na térmica é o ZPL gerado no servidor"
+      ],
+      "estados": [
+        "com-previa",
+        "sem-previa (comportamento atual do vivo)"
+      ]
+    },
+    {
+      "id": "aviso-permissao",
+      "copy": [
+        "Sem permissão — e o servidor deixa passar",
+        "vestuario.etiqueta.create",
+        "permission_check_missing",
+        "o hard-block é decisão de [W]"
+      ],
+      "estados": [
+        "warning (hoje)",
+        "hard-block (SDD §9 D-1)"
+      ]
+    }
+  ],
+  "estados_tela": [
+    "dados",
+    "vazio (lote sem item)",
+    "carregando",
+    "erro (POST recusado)",
+    "sem-permissao"
+  ],
+  "divergencias_abertas": [
+    "D-1 (SDD §9): authorizeAccess() só loga warning; ligar hard-block é decisão de [W].",
+    "D-2 (SDD §9): charter promete preview antes de imprimir; o vivo baixa .zpl/.pdf direto. Podar a promessa OU construir a prévia — o agente é proibido de escolher."
+  ],
+  "proibicoes": [
+    "Imprimir sem ação explícita do operador.",
+    "Alterar preço ou estoque do produto ao gerar etiqueta (etiqueta é saída).",
+    "Gravar qualquer coisa em GET.",
+    "Cruzar tenants — business_id scope (Tier 0, ADR 0093).",
+    "Configurar modelo/driver da impressora nesta tela."
+  ],
+  "casos_ligados": "resources/js/Pages/Vestuario/Etiquetas/Index.casos.md (UC-VET-01…09)"
+}

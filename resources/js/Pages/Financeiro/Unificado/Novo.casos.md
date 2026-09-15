@@ -16,7 +16,7 @@ last_run: "2026-08-17"
 
 **Stub** (tier C): hub de 2 cards que linkam pra `/contas-receber/novo` e `/contas-pagar/novo`. Não tem formulário.
 
-> ⚠️ Conflito de rumo registrado: o **contrato de intenção** da Visão Unificada (`prototipo-ui/contrato/financeiro-unificado.intent.json`, `nao_pode_conter: router.visit('/financeiro/unificado/novo')`) e o charter v21 mandam TODO ponto de entrada abrir o `TituloCreateSheet` — ou seja, **esta tela é rota legada em processo de morte**. Investir contrato aqui é dívida.
+> ⚠️ Conflito de rumo registrado: o **contrato de intenção** da Visão Unificada (`governance/design/contracts/financeiro-unificado.intent.json`, `nao_pode_conter: router.visit('/financeiro/unificado/novo')`) e o charter v21 mandam TODO ponto de entrada abrir o `TituloCreateSheet` — ou seja, **esta tela é rota legada em processo de morte**. Investir contrato aqui é dívida.
 
 ## [BACKLOG] A rota legada não é o caminho da criação
 Status: ⬜ sem prova — a prova vive do outro lado (auditor de intenção da Unificada), não em teste que cite este UC. Vira `UC-NOV-01` quando existir teste citando o id (G-2).

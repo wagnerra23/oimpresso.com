@@ -1,7 +1,7 @@
 ---
 id: requisitos-governance-drift-alerts-gap
 tela: governance/DriftAlerts (/governance/drift)
-prototipo: prototipo-ui/cowork/governance-page.jsx + governance-telas.jsx
+prototipo: prototipo-ui/cowork/Wagner/governance-page.jsx + governance-telas.jsx
 tela_viva: resources/js/Pages/governance/DriftAlerts.tsx
 gerado_em: 2026-09-06
 ---
@@ -31,4 +31,4 @@ gerado_em: 2026-09-06
 - `grep -nEi 'Deferred|defer' resources/js/Pages/governance/DriftAlerts.tsx` → 0
 - `grep -nEi 'yaml|ilegível|parse' resources/js/Pages/governance/DriftAlerts.tsx` → 0
 - `grep -nEi 'Suprimir|ignorar|snooze' resources/js/Pages/governance/DriftAlerts.tsx` → 0
-- `sed -n 159,223p prototipo-ui/cowork/governance-telas.jsx ／ grep -cEi 'Abrir|github|href'` → 0 (ausência no mockup, sustenta o "vivo à frente" dos links)
+- `sed -n 159,223p prototipo-ui/cowork/Wagner/governance-telas.jsx ／ grep -cEi 'Abrir|github|href'` → 0 (ausência no mockup, sustenta o "vivo à frente" dos links)

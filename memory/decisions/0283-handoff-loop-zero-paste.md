@@ -16,7 +16,7 @@ supersedes: []
 
 # ADR 0283 — Loop de handoff zero-paste (repo-nativo · gate de conteúdo · sem auto-merge até a rede existir)
 
-> **Status:** aceito por [W] em 2026-06-17. Endurece F1/F3 do `prototipo-ui/PROTOCOL.md` (ADR 0114).
+> **Status:** aceito por [W] em 2026-06-17. Endurece F1/F3 do `memory/reference/prototipo-ui/PROTOCOL.md` (ADR 0114).
 > Proposta + dossiês adversariais (fonte única do detalhe): `memory/decisions/proposals/handoff-loop-zero-paste.md`,
 > `memory/sessions/2026-06-17-adversario-handoff-loop.md` (r1) e `-r2.md` (r2).
 
@@ -36,7 +36,7 @@ Dois adversários ([AH]) atacaram a solução proposta e **verificaram contra os
 [CC] lê os arquivos reais do `main` antes da ponte e audita (existe / não existe / diverge). Entrega o diff **na língua do repo** (Tailwind + tokens existentes); proibido `.om-*` cru. **Pronto quando:** cita arquivo+linha do arquivo sobre o qual afirma.
 
 ### R2 — Barramento é o repo, não o clipboard de [W]
-Canal canônico **único**: `prototipo-ui/COWORK_NOTES.md` (decisão de canal: COWORK_NOTES agora; sync/MCP como norte). Sem URLs efêmeras como canal.
+Canal canônico **único**: `memory/reference/prototipo-ui/COWORK_NOTES.md` (decisão de canal: COWORK_NOTES agora; sync/MCP como norte). Sem URLs efêmeras como canal.
 
 ### R3 — DoD por máquina, honesto sobre o que os gates NÃO checam
 Gates required precisam passar — mas os atuais validam **canal** (lint/build/conformance), não **conteúdo**.

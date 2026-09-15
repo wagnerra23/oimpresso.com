@@ -14,7 +14,7 @@ uses(Tests\TestCase::class);
  * (gaps ⊆ baseline), nunca derrubando o exit code do cron.
  *
  * @see Modules/Jana/Console/Commands/HealthCheckCommand.php::checkProtocolFreshness
- * @see prototipo-ui/audit/uc-registry.json
+ * @see scripts/design/audit/uc-registry.json
  */
 function protocolFreshnessCheck(): ?array
 {

@@ -71,7 +71,7 @@ oimpresso atual:
 
 **Camada 2 — Convenção `Log::warning` antes de fallback** (Fase 2, doc S 1h):
 
-- Catalogar como **AP-18 "Fallback default sem `Log::warning`"** em [`LICOES_F3_FINANCEIRO_REJEITADO.md`](../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md)
+- Catalogar como **AP-18 "Fallback default sem `Log::warning`"** em [`LICOES_F3_FINANCEIRO_REJEITADO.md`](../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md)
 - Pattern canon documentado:
 
 ```php
@@ -168,7 +168,7 @@ Laravel 12 já merge `context()` automaticamente no log report. Reduz boilerplat
 - ADR 0094 — Constituição v2 §princípio 7 (transparência)
 - ADR 0094 — §princípio 8 (confiabilidade com fallback — agora rastreável)
 - ADR 0208 — Larastan PHPStan baseline ratchet (habilita rule custom)
-- [`prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) — AP-18 a catalogar
+- [`memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) — AP-18 a catalogar
 - [PR #1830 R9 fix transaction_date drift](https://github.com/wagnerra23/oimpresso.com/pull/1830)
 - [Laravel 12 docs — Logging + withContext](https://laravel.com/docs/12.x/logging)
 - [iConcept — 8 Laravel logging best practices 2025](https://iconcept.lv/en/blog/logging-best-practices)

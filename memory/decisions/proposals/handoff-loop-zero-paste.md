@@ -6,7 +6,7 @@ created: 2026-06-17
 proposed_by: claude-code
 decided_by: wagner
 decided_at: "2026-06-17"
-parent_adr: "ADR 0114 (prototipo-ui/PROTOCOL.md)"
+parent_adr: "ADR 0114 (memory/reference/prototipo-ui/PROTOCOL.md)"
 related_adrs: [0114-prototipo-ui-cowork-loop-formalizado, 0107-emendation-0104-visual-comparison-gate-f3, 0094-constituicao-v2-7-camadas-8-principios, 0093-multi-tenant-isolation-tier-0]
 resulting_adr: "0283-handoff-loop-zero-paste"
 title: "Loop de handoff zero-paste — repo fonte única, sem auto-merge até a rede existir"
@@ -59,7 +59,7 @@ substituiriam [W] **não cobrem** o que o auto-merge miraria.
   que a auditoria errou `ContextSidebarV4` vs `Index.tsx:437`) e marca o que não muda.
 
 ### R2 — O barramento é o repo, não o clipboard de [W] (vale JÁ, risco baixo)
-- Handoff commitado; canal canônico **único** = `prototipo-ui/COWORK_NOTES.md` (as ~9 cópias em
+- Handoff commitado; canal canônico **único** = `memory/reference/prototipo-ui/COWORK_NOTES.md` (as ~9 cópias em
   `_BACKUP-NAO-USAR/`/exports/worktree `epic-hermann` = arquivo morto, declarar). Sem URLs efêmeras.
 
 ### R3 — DoD por máquina, com a honestidade do que os gates NÃO checam

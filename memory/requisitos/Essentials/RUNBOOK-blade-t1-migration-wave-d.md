@@ -110,4 +110,4 @@ Skip SQLite condicional (compatível com `Modules/Essentials/Tests/Feature/Smoke
 - [Wave 18 SATURATION test](../../../Modules/Essentials/Tests/Feature/Wave18SaturationTest.php) — multi-tenant `EssentialsHoliday`
 - [HasBusinessScopeAdoptionTest](../../../Modules/Essentials/Tests/Feature/HasBusinessScopeAdoptionTest.php) — Reminder + KnowledgeBase
 - [RUNBOOK-inertia-defer-pattern.md](../_DesignSystem/RUNBOOK-inertia-defer-pattern.md)
-- [LICOES_F3_FINANCEIRO_REJEITADO.md](../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) — 21 anti-padrões evitados
+- [LICOES_F3_FINANCEIRO_REJEITADO.md](../../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) — 21 anti-padrões evitados

@@ -6,7 +6,7 @@
 // cima (dot JANA + abas + Conversar) e um `<header>` próprio dentro do
 // `JanaCockpit` embaixo (Jana · Analista IA + biz + Atualizado + ações).
 // As duas fontes concordam e discordavam da produção:
-//   - protótipo  `prototipo-ui/cowork/jana-merge.jsx` → `<JanaHeader/>` e SÓ
+//   - protótipo  `prototipo-ui/cowork/Wagner/jana-merge.jsx` → `<JanaHeader/>` e SÓ
 //     DEPOIS `{tabs}`: header em cima, abas abaixo (produção tinha invertido);
 //   - canon repo `Pages/Financeiro/Caixa/Index.tsx:95-112` → o SubNav vive
 //     DENTRO do `<PageHeader>`, numa barra só;

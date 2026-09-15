@@ -20,7 +20,7 @@ uses(Tests\TestCase::class);
  * ── POR QUE NÃO É TAUTOLÓGICO (§5 2026-06-05) ───────────────────────────────
  * As asserções vêm de TRÊS fontes externas ao `.tsx`, nesta ordem:
  *   1. `resources/js/Pages/Jana/Index.charter.md` (lei) — §Goals/§Anti-hooks
- *   2. `prototipo-ui/contrato/jana-painel.contract.json` — copy LITERAL + ordem
+ *   2. `governance/design/contracts/jana-painel.contract.json` — copy LITERAL + ordem
  *   3. `memory/requisitos/Jana/SPEC.md` — US-COPI-010/011/148 + ADR 0093
  * Nenhum valor foi lido do Controller/Page pra depois ser "confirmado" nele.
  *
@@ -38,7 +38,7 @@ uses(Tests\TestCase::class);
  * MySQL no CI/CT 100). ⚠️ skip sai exit 0 — leia ASSERTIONS, não "0 failed" (LC-13).
  */
 const PAINEL_TSX = 'resources/js/Pages/Jana/Index.tsx';
-const PAINEL_CONTRATO = 'prototipo-ui/contrato/jana-painel.contract.json';
+const PAINEL_CONTRATO = 'governance/design/contracts/jana-painel.contract.json';
 
 function painelBootstrap(): User
 {
@@ -921,7 +921,7 @@ it('UC-JPAIN-16: nenhum botão novo do Painel nasce clicável sem fazer nada', f
     // no MESMO PR. Acrescentar linha aqui exige a razão escrita ao lado.
     $conhecidos = [
         // Catalogados no contrato de tela e no inventário — decisão [W] ABERTA
-        // (`prototipo-ui/contrato/jana-painel.contract.json` · `Index-visual-comparison.md`).
+        // (`governance/design/contracts/jana-painel.contract.json` · `Index-visual-comparison.md`).
         'Exportar',                               // Index.tsx — mudo: sem rota e sem handler.
         //                                          O "(em breve)" saiu do title em 2026-08-31
         //                                          (a âncora não promete); o botão NÃO mudou.
@@ -975,8 +975,8 @@ function painelKpisDoGrid(string $src): array
 /**
  * UC-JPAIN-18 — o Painel mostra os 3 KPIs do protótipo, e o 4º saiu sem levar o dado.
  *
- * Medido em 2026-08-31 na âncora (`node prototipo-ui/ancora.mjs Jana/Index` →
- * `prototipo-ui/cowork/jana-merge.jsx`): a `jc-kpis` dela renderiza `data.kpis.map`,
+ * Medido em 2026-08-31 na âncora (`node scripts/design/ancora.mjs Jana/Index` →
+ * `prototipo-ui/cowork/Wagner/jana-merge.jsx`): a `jc-kpis` dela renderiza `data.kpis.map`,
  * e esse array publica 3 entradas — `Receita mês` · `A receber vencido` ·
  * `Ticket médio`. A tela viva tinha 4 (o extra era `PIX hoje`). Decisão [W]: o 4º sai.
  *
@@ -1046,7 +1046,7 @@ it('UC-JPAIN-18: o grid tem os 3 KPIs da âncora e o PIX saiu como CARD, não co
 /**
  * UC-JPAIN-21 — o card de meta lê "<valor> de <alvo>" e "<pct>% do alvo" (Onda 2.1 da paridade).
  *
- * Âncora: `prototipo-ui/cowork/jana-merge.jsx` §`JmMetaCard` — `jm-meta-v` é
+ * Âncora: `prototipo-ui/cowork/Wagner/jana-merge.jsx` §`JmMetaCard` — `jm-meta-v` é
  * `<b>{atual}</b><small>de {alvo}</small>` e `jm-meta-f` abre com `{pct}% do alvo`, com a
  * projeção empurrada pra direita. A produção escrevia `Alvo: <valor>` no rodapé com a porcentagem
  * solto depois: o alvo aparecia como rótulo embaixo e em lugar nenhum ao lado do número, e o
@@ -1166,8 +1166,8 @@ it('UC-JPAIN-22: o payload traz origem, escopo e fonte da meta', function () {
  *
  * Asserção de ARQUIVO, pela mesma razão do UC-04/05/06: a copy e a estrutura vivem no
  * `.tsx`, não no payload. A copy do vazio é LITERAL da âncora
- * (`prototipo-ui/cowork/jana-metas.jsx` §`JmApuracoesSecao` e §`JmFonteDrawer` —
- * re-localize com `grep -n "function JmApuracoesSecao" prototipo-ui/cowork/jana-metas.jsx`).
+ * (`prototipo-ui/cowork/Wagner/jana-metas.jsx` §`JmApuracoesSecao` e §`JmFonteDrawer` —
+ * re-localize com `grep -n "function JmApuracoesSecao" prototipo-ui/cowork/Wagner/jana-metas.jsx`).
  * Precedência de FORMA: protótipo > teste > casos > charter (ADR UI-0029).
  *
  * ⚠️ Este caso NÃO prova runtime — asserção de arquivo passa mesmo com a mudança inerte

@@ -15,7 +15,7 @@
 - **Controller:** `{{CONTROLLER_PATH}}@create|store|edit|update`
 - **FormRequest:** `{{FORM_REQUEST_PATH}}`
 - **Rotas:** `GET {{ROUTE_URI}}/create`, `POST {{ROUTE_URI}}`, `GET {{ROUTE_URI}}/{id}/edit`, `PUT {{ROUTE_URI}}/{id}`
-- **Mockup Cowork:** `prototipo-ui/prototipos/{{MODULE_KEBAB}}/visual-source.html`
+- **Mockup Cowork:** `prototipo-ui/cowork/Wagner/legado/{{MODULE_KEBAB}}/visual-source.html`
 - **Pages destino:** `resources/js/Pages/{{MODULE}}/{{TELA}}/Form.tsx`
 
 ## 2. Snapshot paridade

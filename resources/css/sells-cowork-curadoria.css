@@ -1,6 +1,6 @@
 /* ───────────────────────────────────────────────────────────────────
  * Sells Cowork — Onda 3 R3 Curadoria (KB-9.75 chat10 2026-05-16 score +1.0)
- * Extraído verbatim de prototipo-ui/prototipos/sells-index/styles.css
+ * Extraído verbatim de prototipo-ui/cowork/Wagner/legado/sells-index/styles.css
  * linhas 6677-6940 (refino #3 Curadoria + Guia).
  *
  * Tokens: azul (240) pra comentários · cinza (250) pra audit · pills coloridas
@@ -9,7 +9,7 @@
  * Scoped sob .sells-cowork-curadoria (uso dentro do SaleSheet drawer).
  * Refs:
  *  - memory/requisitos/_DesignSystem/RUNBOOK-onda-cowork.md F3
- *  - prototipo-ui/cowork/vendas-curation.jsx
+ *  - prototipo-ui/cowork/Wagner/vendas-curation.jsx
  *  - SaleItemComments.tsx · SaleAuditTrail.tsx · SaleLinkifier.tsx
  * ─────────────────────────────────────────────────────────────────── */
 

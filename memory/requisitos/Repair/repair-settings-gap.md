@@ -1,14 +1,14 @@
 ---
 id: requisitos-repair-repair-settings-gap
 tela: Repair/Settings/Index (/repair/repair-settings)
-prototipo: prototipo-ui/cowork/repair-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/repair-page.jsx
 tela_viva: resources/js/Pages/Repair/Settings/Index.tsx
 gerado_em: 2026-09-06
 ---
 
 # GAP-SPEC — Repair/Settings/Index
 
-> Fase 1 do protocolo (`prototipo-ui/PROTOCOL.md`) em modo **PARIDADE**. `repair-page.jsx` é porte REVERSO dos blades (cabeçalho l.1-2; §5 2026-08-28); a aba comparada é `Configurações` (repair-page.jsx:368-425, origem `settings/`). ⚠️ O charter desta tela declara `related_prototype: n/a` **e** explica que `repair-page.jsx` é porte reverso do Blade que ela substitui ("ancorar aqui seria ancorar a tela nela mesma"); diferente das 6 irmãs, não declara `bundle_source`. Este gap **não ancora o design** da tela no mockup — mede só paridade de cobertura, o único uso legítimo de um porte reverso; o `.map.json` correspondente carrega a mesma nota. Estado no vivo medido em 2026-09-06 sobre `origin/main` `80bc4ef8b9`, com `grep -n`. Lidos antes: `Index.charter.md` (Goals l.31-34, Non-Goals l.40-45, Anti-hooks l.51-56) e `Index.casos.md` (UC-RSET-01..08, 8 pass). Dado mock do protótipo não é gap.
+> Fase 1 do protocolo (`memory/reference/prototipo-ui/PROTOCOL.md`) em modo **PARIDADE**. `repair-page.jsx` é porte REVERSO dos blades (cabeçalho l.1-2; §5 2026-08-28); a aba comparada é `Configurações` (repair-page.jsx:368-425, origem `settings/`). ⚠️ O charter desta tela declara `related_prototype: n/a` **e** explica que `repair-page.jsx` é porte reverso do Blade que ela substitui ("ancorar aqui seria ancorar a tela nela mesma"); diferente das 6 irmãs, não declara `bundle_source`. Este gap **não ancora o design** da tela no mockup — mede só paridade de cobertura, o único uso legítimo de um porte reverso; o `.map.json` correspondente carrega a mesma nota. Estado no vivo medido em 2026-09-06 sobre `origin/main` `80bc4ef8b9`, com `grep -n`. Lidos antes: `Index.charter.md` (Goals l.31-34, Non-Goals l.40-45, Anti-hooks l.51-56) e `Index.casos.md` (UC-RSET-01..08, 8 pass). Dado mock do protótipo não é gap.
 
 | Parte | Estado no vivo | Ação |
 |---|---|---|

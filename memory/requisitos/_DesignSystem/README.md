@@ -91,7 +91,7 @@ Decisões de UI que atravessam todos os módulos — tokens Tailwind 4, componen
 - **KB-9.75** método de avaliação → [`memory/requisitos/_DesignSystem/audits/`](audits/) + skill [`module-completeness-audit`](../../../.claude/skills/module-completeness-audit/SKILL.md)
 - **Module Grade v4** (CI gate) → `governance/module-grades-baseline.json` + skill [`module-grades-gate`](../../../.claude/skills/module-grades-gate/SKILL.md)
 - **PRE-MERGE-UI checklist** → [`PRE-MERGE-UI.md`](PRE-MERGE-UI.md) ← anti-regressão por camada
-- **Loop Design↔Code formal** → [`prototipo-ui/PROTOCOL.md`](../../../prototipo-ui/PROTOCOL.md) (7 fases)
+- **Loop Design↔Code formal** → [`memory/reference/prototipo-ui/PROTOCOL.md`](../../../memory/reference/prototipo-ui/PROTOCOL.md) (7 fases)
 
 ### Camada 6 · Decisões (ADRs)
 

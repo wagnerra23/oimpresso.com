@@ -16,7 +16,7 @@
 > | `Jana/Pro` → **0 ocorrências** no `visreg-screens.json` | **entrou** — hoje tem baseline própria. A frase *"mudança visual aqui passa sem diff"* **não vale mais** |
 > | charter **v1** | **v3** — ganhou `related_prototype` declarado nesta data |
 >
-> **Por que a âncora virou `n/a` e não `jana-pro.jsx`:** o `prototipo-ui/cowork/jana-pro.jsx` existe e
+> **Por que a âncora virou `n/a` e não `jana-pro.jsx`:** o `prototipo-ui/cowork/Wagner/jana-pro.jsx` existe e
 > desenha esta tela — mas o cabeçalho dele declara ser *espelho do vivo `Pro.tsx`, lido no `main`*. É
 > **retrato do código**, não fonte. Ancorar nele faria a comparação bater sempre, por construção: um
 > instrumento que não pode ficar vermelho (a doutrina do §5 sobre o drift-sentinel tautológico). A
@@ -69,7 +69,7 @@ Nesta tela a ressalva pesa mais que na Memória, por dois motivos independentes:
 
 | ponteiro | onde | estado real |
 |---|---|---|
-| `prototipos/jana-pro/critique-score.json` | `ProController.php:17` (docblock) | **não existe no repo** — `prototipo-ui/prototipos/` tem só `compras-grade-matrix`, `inventario-migracao`, `perfil` |
+| `prototipos/jana-pro/critique-score.json` | `ProController.php:17` (docblock) | **não existe no repo** — `prototipo-ui/cowork/Wagner/legado/` tem só `compras-grade-matrix`, `inventario-migracao`, `perfil` |
 | `prototipos/jana-pro/` + `COMPARISON.md` | `Pro.charter.md` §Refs e §Status | idem — existem **só** no Cowork, sob `_arquivo/repo-mirror/prototipos/jana-pro/` (3 arquivos: `COMPARISON.md`, `F2-aprovado.png`, `critique-score.json`) |
 | `Jana Pro - Paywall CC.html` | `Pro.tsx:4` (`design:`) e charter | existe **só** no Cowork, em `_arquivo/exploracoes-2026-06-04/` — pasta `_arquivo`, isto é, **arquivado** |
 | `related_prototype` | frontmatter do charter | **ausente** — `ancora.mjs Jana/Pro` devolve `⚠️ charter sem related_prototype nem -page.jsx` |

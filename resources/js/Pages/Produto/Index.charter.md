@@ -3,7 +3,7 @@ id: resources-js-pages-produto-index-charter
 page: /products
 component: resources/js/Pages/Produto/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
-bundle_source: produtos-page.jsx  # 2026-09-09 [C]: ⚠️ PENDURADO NA TELA ERRADA, mantido de proposito. `produtos-page.jsx:1-2` declara "Consulta de Produtos (/products/unificado) — Porte do main: Pages/Produto/Unificado/Index.tsx" — retrata o UNIFICADO, nao esta (/products). NAO remover o campo: `ancora.mjs:266-278` so cai na heuristica startsWith(dir) quando o campo falta, e ela reancora esta tela no MESMO mockup, so que em silencio (medido 2026-09-09). Resolver exige decisao [W]. O charter do Unificado ganhou o campo correto. Esta tela citava `prototipo-ui/prototipos/produto-cockpit/`, diretorio que NAO existe mais.
+bundle_source: produtos-page.jsx  # 2026-09-09 [C]: ⚠️ PENDURADO NA TELA ERRADA, mantido de proposito. `produtos-page.jsx:1-2` declara "Consulta de Produtos (/products/unificado) — Porte do main: Pages/Produto/Unificado/Index.tsx" — retrata o UNIFICADO, nao esta (/products). NAO remover o campo: `ancora.mjs:266-278` so cai na heuristica startsWith(dir) quando o campo falta, e ela reancora esta tela no MESMO mockup, so que em silencio (medido 2026-09-09). Resolver exige decisao [W]. O charter do Unificado ganhou o campo correto. Esta tela citava `prototipo-ui/cowork/Wagner/legado/produto-cockpit/`, diretorio que NAO existe mais.
 owner: wagner
 status: live
 last_validated: "2026-07-12"
@@ -15,7 +15,7 @@ related_visual_comparison: memory/requisitos/Produto/_telas/produto-index-visual
 tier: A
 charter_version: 2
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/cowork/produtos-page.jsx"
+  blueprint_cowork: "prototipo-ui/cowork/Wagner/produtos-page.jsx"
   blueprint_screenshot_approval: "SYNC_LOG (pendente — Wave 2 B4 Produto 2026-05-15)"
   derived_screens: [Create, Show, Edit, SellingPrices, BulkEdit, StockHistory]
   divergence_from_blueprint: "none — Index é o blueprint canon B4 Produto"
@@ -23,7 +23,7 @@ mwart_pattern_reuse:
 
 # Page Charter — /products (DRAFT — Wave 2 B4 Produto pattern reuse)
 
-> **Status:** draft v2 atualizado 2026-05-15 (Wave 2 B4 Produto Agent W2-C). Blueprint visual definido: `prototipo-ui/cowork/produtos-page.jsx` (cockpit-page.jsx + Produtos Cockpit.html + visual-source.html). Pattern serve de blueprint pras 6 telas derivadas (Create/Show/Edit/SellingPrices/BulkEdit/StockHistory) — ADR 0149.
+> **Status:** draft v2 atualizado 2026-05-15 (Wave 2 B4 Produto Agent W2-C). Blueprint visual definido: `prototipo-ui/cowork/Wagner/produtos-page.jsx` (cockpit-page.jsx + Produtos Cockpit.html + visual-source.html). Pattern serve de blueprint pras 6 telas derivadas (Create/Show/Edit/SellingPrices/BulkEdit/StockHistory) — ADR 0149.
 >
 > Versão v1 (2026-05-09) referenciava `prod-page.jsx` (6.5 KB grid-first). v2 promove para blueprint cockpit completo. Wagner aprova **Non-Goals + Automation Anti-hooks** ANTES de virar `status: live`.
 >
@@ -175,14 +175,14 @@ it('uses localStorage prefix oimpresso.produto.* if any state persisted')
 
 ## Refs
 
-- Material visual: [`prototipo-ui/cowork/produtos-page.jsx`](../../../../prototipo-ui/cowork/produtos-page.jsx) — o mesmo que o frontmatter declara em `bundle_source`
+- Material visual: [`prototipo-ui/cowork/Wagner/produtos-page.jsx`](../../../../prototipo-ui/cowork/Wagner/produtos-page.jsx) — o mesmo que o frontmatter declara em `bundle_source`
   _(a linha anterior apontava `ui_kits/cowork-2026-05-09/prod-page.jsx`; caminho **inexistente** — `ls` → No such file. Corrigido 2026-07-26.)_
 - Contrato de casos: [`Index.casos.md`](Index.casos.md) — `UC-PIDX-01..06` (`CU-PROD-15` do SDD)
 - Canon visual: [ADR ui/0012](../../../../memory/requisitos/_DesignSystem/adr/ui/0012-zip-cowork-2026-05-09-canon-visual.md)
 - Charter relacionado: [`/products/unificado`](Unificado/Index.charter.md) — versão densa
 - [ADR 0110 — Cockpit Pattern V2](../../../../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
 - [ADR 0093 — Multi-tenant Tier 0](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
-- [LICOES_F3_FINANCEIRO_REJEITADO.md](../../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) — pré-flight obrigatório
+- [LICOES_F3_FINANCEIRO_REJEITADO.md](../../../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) — pré-flight obrigatório
 - Backend: `app/Http/Controllers/ProductController.php` (UPOS canon)
 
 ---

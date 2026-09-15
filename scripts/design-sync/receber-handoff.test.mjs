@@ -26,7 +26,7 @@ import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { lerZip, extrairZip, crc32, nomeSeguro } from './zip-reader.mjs';
 import { createManifest } from './bundle-contract.mjs';
-import { acharRaiz, auditarPacote, classificar, listarRelativos } from './receber-handoff.mjs';
+import { acharRaiz, auditarPacote, classificar, listarRelativos, decidirDono } from './receber-handoff.mjs';
 
 let falhas = 0;
 const ok = (cond, nome) => {
@@ -158,6 +158,29 @@ export function selftest() {
   ok(classificar({ zipHash: 'b', repoHash: 'c', manifestoHash: 'a' }) === 'AMBOS-DIVERGEM', 'MORDE: indecidivel fica indecidido');
   ok(classificar({ zipHash: null, repoHash: 'a', manifestoHash: 'a' }) === 'AUSENTE-NO-ZIP', 'SOLTA: ausente no zip');
   ok(classificar({ zipHash: 'a', repoHash: null, manifestoHash: 'a' }) === 'AUSENTE-NO-ESPELHO', 'SOLTA: ausente no espelho');
+
+  // -- decidirDono (PASSO 0 na rota ZIP) ---------------------------------------
+  // Registro de mentira de proposito: acoplar ao CONTAS/PROJETOS real faria o caso mudar de
+  // veredito quando alguem registrasse uma conta nova — quebraria por DADO, nao por bug.
+  const contasT = { w: { id: 'w', dono: '[W] Wagner', espelhada: true }, outra: { id: 'outra', dono: '[X] Outra', espelhada: false } };
+  const projsT  = { telas: { conta: 'w', espelho: 'prototipo-ui/cowork/Wagner/' }, semEspelho: { conta: 'outra' } };
+  const vinc   = { veredito: 'vinculada', conta: 'w', projeto: 'telas', porque: 'id fora do cache', placar: [] };
+  const indet  = { veredito: 'indeterminado', conta: null, projeto: null, porque: 'so o cache _ds/', placar: [] };
+  const naoVin = { veredito: 'nao-vinculada', conta: null, projeto: null, porque: 'nenhum id conhecido', placar: [] };
+
+  ok(decidirDono(vinc, null, contasT, projsT).ok === true, 'SOLTA: vinculada passa sem declarar conta');
+  ok(decidirDono(indet, null, contasT, projsT).ok === false, 'MORDE: indeterminado SEM --conta nao importa');
+  ok(decidirDono(indet, null, contasT, projsT).exigeDeclaracao === true, 'MORDE: e diz que a saida e declarar a conta');
+  ok(decidirDono(indet, 'w', contasT, projsT).ok === true, 'SOLTA: indeterminado + --conta w (a conta COM espelho) passa');
+  ok(decidirDono(indet, 'w', contasT, projsT).conta === 'w', 'SOLTA: registra a conta declarada');
+  // O caso que motivou o passo: conta sem espelho escreveria no espelho de OUTRO dono.
+  ok(decidirDono(indet, 'outra', contasT, projsT).ok === false, 'MORDE: --conta sem espelho no repo nao importa (arquivo orfao)');
+  ok(decidirDono(indet, 'naoexiste', contasT, projsT).ok === false, 'MORDE: --conta fora de CONTAS nao importa');
+  // nao-vinculada NAO tem escape: declarar carimbaria origem desconhecida com conta conhecida.
+  ok(decidirDono(naoVin, 'w', contasT, projsT).ok === false, 'MORDE: nao-vinculada nao cede nem com --conta w');
+  ok(decidirDono(naoVin, 'w', contasT, projsT).motivo.includes('--conta NAO vale aqui'), 'MORDE: e diz por que nao cede');
+  // CONTROLE NEGATIVO do par: se decidirDono virasse "nao pra tudo", os 5 SOLTA caem juntos.
+  ok(decidirDono(vinc, 'outra', contasT, projsT).ok === true, 'SOLTA: vinculada ignora --conta irrelevante (nao virou nao-pra-tudo)');
 
   console.log(`\n  ${falhas === 0 ? 'OK' : 'FALHAS: ' + falhas}\n`);
   if (falhas) process.exit(1);

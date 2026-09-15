@@ -1,7 +1,7 @@
 ---
 id: resources-js-pages-jana-index-casos
 casos: Jana Painel · metas ativas · farol server-side · cockpit deferido · /ia
-irmaos: Index.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-index.md (runbook) · prototipo-ui/contrato/jana-painel.contract.json (contrato visual)
+irmaos: Index.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-index.md (runbook) · governance/design/contracts/jana-painel.contract.json (contrato visual)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
 last_run: "2026-09-08"
@@ -26,7 +26,7 @@ last_run: "2026-09-08"
 > comportamento errado.
 >
 > ⚠️ **O que a âncora diz sobre FONTE de dado continua não valendo.** O `related_prototype` é
-> `prototipo-ui/cowork/jana-merge.jsx` (resolva sempre por `node prototipo-ui/ancora.mjs Jana/Index`,
+> `prototipo-ui/cowork/Wagner/jana-merge.jsx` (resolva sempre por `node scripts/design/ancora.mjs Jana/Index`,
 > nunca no olho). Ele cita 6 `Analise*Service` que **não existem** no repo — a fonte real é
 > `app/Services/Sells/SellsCockpitAggregator.php`. Isso é o §Anti-hooks do charter *"não citar no
 > drawer fonte/serviço que não existe"*, e segue valendo: nome fictício num drawer chamado "de onde
@@ -200,7 +200,7 @@ texto o cita._
 
 Âncora: o próprio contrato de tela ([ADR 0286](../../../../memory/decisions/0286-contrato-de-tela.md)).
 
-**Pronto quando:** `npm run contrato:check -- prototipo-ui/contrato/jana-painel.contract.json` sai 0.
+**Pronto quando:** `npm run contrato:check -- governance/design/contracts/jana-painel.contract.json` sai 0.
 
 
 ## UC-JPAIN-10 — "Configurar" abre drawer, e o drawer não promete o que o servidor não cumpre
@@ -210,8 +210,8 @@ O botão **Configurar** do `JanaAreaHeader` era clicável, sem rota e sem `disab
 promessas que o contrato manteve deliberadamente **fora** dele (*"pinar uma promessa é congelá-la"*).
 Agora abre `_components/JanaConfigDrawer.tsx`.
 
-Âncora: `prototipo-ui/cowork/jana-merge.jsx` §`JmConfigDrawer` — âncora de SÍMBOLO
-(`grep -n "JmConfigDrawer" prototipo-ui/cowork/jana-merge.jsx`).
+Âncora: `prototipo-ui/cowork/Wagner/jana-merge.jsx` §`JmConfigDrawer` — âncora de SÍMBOLO
+(`grep -n "JmConfigDrawer" prototipo-ui/cowork/Wagner/jana-merge.jsx`).
 
 **A divergência vs a âncora é o ponto do caso.** Medido em 2026-08-17, o protótipo oferece quatro
 coisas que o servidor não honra — e portá-las reintroduziria a classe que este contrato já barrou:
@@ -253,8 +253,8 @@ a uma tela Blade. O `Index-visual-comparison.md` marcava isso como o maior burac
 % do alvo · delta vs a janela anterior), Série de até 12 janelas em barras, e "De onde vem esse
 número". O caminho pra tela própria **não se perdeu** — virou "Abrir a meta" no rodapé do drawer.
 
-Âncora: `prototipo-ui/cowork/jana-merge.jsx` §`JmMetaDrawer` — âncora de SÍMBOLO
-(`grep -n "JmMetaDrawer" prototipo-ui/cowork/jana-merge.jsx`).
+Âncora: `prototipo-ui/cowork/Wagner/jana-merge.jsx` §`JmMetaDrawer` — âncora de SÍMBOLO
+(`grep -n "JmMetaDrawer" prototipo-ui/cowork/Wagner/jana-merge.jsx`).
 
 **A divergência vs a âncora é o ponto do caso, de novo.** O protótipo mostra uma **projeção de
 fechamento** na Situação, calculada **no cliente**: `jmMeta()` faz `atual × 1.3` quando a meta
@@ -304,8 +304,8 @@ dizia, em letra, *"backend — sem ele, todo CTA da seção é decorativo"*. Ago
 `_components/JanaAcaoModal.tsx`: prévia do que a ação faria + **Aprovar**, que grava em
 `jana_acao_aprovacoes`.
 
-Âncora: `prototipo-ui/cowork/jana-merge.jsx` §`JmAcaoModal` — âncora de SÍMBOLO
-(`grep -n "JmAcaoModal" prototipo-ui/cowork/jana-merge.jsx`).
+Âncora: `prototipo-ui/cowork/Wagner/jana-merge.jsx` §`JmAcaoModal` — âncora de SÍMBOLO
+(`grep -n "JmAcaoModal" prototipo-ui/cowork/Wagner/jana-merge.jsx`).
 
 **A divergência vs a âncora é o ponto do caso, pela terceira vez — e agora no eixo da PRÉVIA.** O
 `JmAcaoModal` traz as 4 prévias em **texto fixo**, com números do Martinho (`biz=164`), citando
@@ -355,7 +355,7 @@ Quinta análise do Painel, e a primeira depois das quatro que nasceram juntas. M
 clientes de maior valor acumulado entre os que não compram há mais de 90 dias** — a lista pra
 quem alguém deveria ligar hoje.
 
-Âncora: `prototipo-ui/cowork/jana-merge.jsx` §`JmDrillDrawer` (`grep -n "churn:" prototipo-ui/cowork/jana-merge.jsx`
+Âncora: `prototipo-ui/cowork/Wagner/jana-merge.jsx` §`JmDrillDrawer` (`grep -n "churn:" prototipo-ui/cowork/Wagner/jana-merge.jsx`
 → :559 o toggle, :648 a fonte).
 
 **A divergência vs a âncora é o ponto do caso, pela quarta vez — e agora no eixo do RECORTE.** O
@@ -403,7 +403,7 @@ O card dizia **"Receita mês"** e mostrava `sparkSum` — a soma da **sparkline*
 corrente. No dia 21, isso cobre 23/jul a 21/ago. Os dois só coincidem no dia 30 ou 31.
 
 **De onde veio a palavra errada — medido em 2026-08-21.** A âncora oficial desta tela
-(`prototipo-ui/cowork/jana-merge.jsx`, o `related_prototype` do charter) **não tem este KPI**. O
+(`prototipo-ui/cowork/Wagner/jana-merge.jsx`, o `related_prototype` do charter) **não tem este KPI**. O
 rótulo veio de `chat-jana.jsx` :87 — o protótipo que o §5 de 2026-08-10 declarou **NÃO-âncora**
 ("desenha o cockpit de cobrança, não este Painel"). E lá o rótulo é **coerente**, porque o delta ao
 lado é `"-68% vs mai/25"`: mês contra mês. Aqui herdou-se a palavra sem a semântica — o dado é de
@@ -639,7 +639,7 @@ aceita a data e só o leitor percebe a diferença.
 Status: 🧪 (`JanaPlanoTierTest` — 3 `it()`, um comportamental e dois de fonte; o teste diz
 por que cada um é o que é. Aguarda run verde na lane e o screenshot F1.5.)
 
-Derivado da âncora (`prototipo-ui/cowork/jana-merge.jsx:970` + `chat-jana.jsx:217`) e da decisão
+Derivado da âncora (`prototipo-ui/cowork/Wagner/jana-merge.jsx:970` + `chat-jana.jsx:217`) e da decisão
 [W] de 2026-08-27 — **não** do `.tsx`. Derivar do código seria tautológico (§5 2026-06-05).
 
 Até 2026-08-27 este selo era o item **BLOQUEADO** da onda 4 (`PARIDADE` §8.1), e o motivo não era
@@ -666,8 +666,8 @@ O caso defende três coisas, e a terceira é a que dói se quebrar:
 Status: 🧪 (`PainelContratoTest` — 1 `it()` com bite-test do extrator em 4 fixtures + 4
 asserções sobre o arquivo real; aguarda run verde na lane MySQL)
 
-Derivado da **âncora** (`node prototipo-ui/ancora.mjs Jana/Index` →
-`prototipo-ui/cowork/jana-merge.jsx`, frescor verificado contra o Cowork vivo em 2026-08-27) e da
+Derivado da **âncora** (`node scripts/design/ancora.mjs Jana/Index` →
+`prototipo-ui/cowork/Wagner/jana-merge.jsx`, frescor verificado contra o Cowork vivo em 2026-08-27) e da
 decisão [W] de 2026-08-31 — **não** do `.tsx`.
 
 **A medição.** A âncora renderiza `data.kpis.map(…)` dentro da `jc-kpis`, e esse array publica
@@ -743,8 +743,8 @@ do ar nesta sessão (`tailscale ssh` devolveu 502), então o veredito é o das l
 não é run do manifesto, e escrever `✅` aqui seria exatamente o "o Status pode mentir" que o
 casos-gate existe pra impedir.)
 
-Derivado da **âncora** (`node prototipo-ui/ancora.mjs Jana/Index` →
-`prototipo-ui/cowork/jana-merge.jsx` §`data.kpis.map` → `KPICard`; markup em `chat-jana.jsx`,
+Derivado da **âncora** (`node scripts/design/ancora.mjs Jana/Index` →
+`prototipo-ui/cowork/Wagner/jana-merge.jsx` §`data.kpis.map` → `KPICard`; markup em `chat-jana.jsx`,
 estilo em `chat-jana.css` §`── KPIs ──`) e da medição registrada em
 [`Index-visual-comparison.md` §Rodada MEDIDA de 2026-09-03](../../../../memory/requisitos/Jana/Index-visual-comparison.md),
 tabela **KPIs** — **não** do `.tsx`. Pedido [W] de 2026-09-03, textual: *"KPIs feios"*.
@@ -956,7 +956,7 @@ Rodados aqui: `casos-coverage-guard` nos 4 modos, `module-surface --all --check`
 
 **Status:** 🧪 — `npx vitest run tests/janaAreaHeaderParidade.spec.tsx` → 4 passed (jsdom local, 2026-09-03); vira ✅ quando o manifesto `casos-results` aterrissar (G-7 lê o manifesto commitado, não esta linha)
 
-**Fonte:** âncora `prototipo-ui/cowork/jana-merge.jsx` §`JanaPage` — todo `tab` renderiza
+**Fonte:** âncora `prototipo-ui/cowork/Wagner/jana-merge.jsx` §`JanaPage` — todo `tab` renderiza
 `<JanaHeader/>` e SÓ DEPOIS `{tabs}` (`JmTabs`, via `CliTabs`/TabBar do DS); `JanaHeader` tem na
 zona direita `Atualizado HH:MM` (botão, dot verde) → `{plano}` → `Nova conversa` (só `isChat`) →
 `Configurar` → `Exportar`, e **nenhum** primary. Charter v13 §Goals. UI-0029 (protótipo soberano
@@ -996,9 +996,9 @@ decisão [W]), e o título 22×19px (acima).
 Status: 🧪 (**duas** defesas, as duas com mordida provada por mutação; aguardam o verde vir do
 MANIFESTO — G-7 — e o screenshot pós-deploy. Sem `✅` por leitura.)
 
-Derivado da **âncora** (`node prototipo-ui/ancora.mjs Jana/Index` →
-`prototipo-ui/cowork/jana-merge.jsx` §`JmMetaCard`, âncora de SÍMBOLO —
-`grep -n "function JmMetaCard" prototipo-ui/cowork/jana-merge.jsx`) e do pacote de paridade do
+Derivado da **âncora** (`node scripts/design/ancora.mjs Jana/Index` →
+`prototipo-ui/cowork/Wagner/jana-merge.jsx` §`JmMetaCard`, âncora de SÍMBOLO —
+`grep -n "function JmMetaCard" prototipo-ui/cowork/Wagner/jana-merge.jsx`) e do pacote de paridade do
 Cowork de 2026-09-07 (`prototipo-ui/design-docs/COLAR-NO-CODE-jana-tabs-cor-e-icone.md` §1-ter,
 ONDA 2.1) — **não** do `.tsx`. Precedência de FORMA: protótipo > teste > casos > charter
 ([ADR UI-0029](../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)).
@@ -1113,9 +1113,9 @@ Status: 🧪 (mesma regra do UC acima: veredito vem do manifesto.)
 
 **Onda:** PR-3, a metade de FORMA.
 
-Derivado da **âncora** `prototipo-ui/cowork/jana-metas.jsx` — §`JmApuracoesSecao` e
+Derivado da **âncora** `prototipo-ui/cowork/Wagner/jana-metas.jsx` — §`JmApuracoesSecao` e
 §`JmFonteDrawer`, âncoras de SÍMBOLO
-(`grep -n "function JmApuracoesSecao" prototipo-ui/cowork/jana-metas.jsx`) — e do cabeçalho da
+(`grep -n "function JmApuracoesSecao" prototipo-ui/cowork/Wagner/jana-metas.jsx`) — e do cabeçalho da
 própria fonte, que declara absorver `metas/{index,create,edit,show}` **+** `fontes/show`
 *"para dentro da tela única da Jana — sem rota nova"*. Precedência de FORMA: protótipo > teste >
 casos > charter ([ADR UI-0029](../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)).

@@ -1,7 +1,7 @@
 ---
 id: resources-js-pages-ponto-dashboard-index-casos
 casos: Painel do Ponto · /ponto
-irmaos: Index.charter.md (lei) · prototipo-ui/contrato/ponto-painel.contract.json (contrato visual) · memory/requisitos/Ponto/RUNBOOK-dashboard.md (F1 PLAN)
+irmaos: Index.charter.md (lei) · governance/design/contracts/ponto-painel.contract.json (contrato visual) · memory/requisitos/Ponto/RUNBOOK-dashboard.md (F1 PLAN)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a home do módulo e o único lugar onde o gestor vê, antes de tentar fechar a competência, o que a impede de consolidar.
 owner: wagner
@@ -14,7 +14,7 @@ smoke_prod: "2026-08-24, apos o deploy de 8e7583e05b (PR #6160), Chrome MCP em h
 
 > **Âncora.** Não há SDD do Painel (o SDD do módulo cobre espelho e jornada), então a âncora
 > destes UC é, nesta ordem:
-> **(1)** [`prototipo-ui/contrato/ponto-painel.contract.json`](../../../../../prototipo-ui/contrato/ponto-painel.contract.json)
+> **(1)** [`governance/design/contracts/ponto-painel.contract.json`](../../../../../governance/design/contracts/ponto-painel.contract.json)
 > — copy e ordem literais, descido por decisão [W] em 2026-08-21;
 > **(2)** [`Index.charter.md`](Index.charter.md) §Non-Goals / §Anti-hooks / §Automation hooks;
 > **(3)** [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) (multi-tenant Tier 0).
@@ -181,7 +181,7 @@ urgentes e `max(momento)` do dia, ambas em `buildKpis`). Segue sem teto declarad
   dentro da seção `painel-kpis`, com a copy **literal** do contrato e na **ordem** que ele declara:
   Colaboradores ativos → Presentes agora → Atrasos hoje → Faltas hoje → HE do mês → Aprovações pendentes.
 - **Teste:** `Modules/Ponto/Tests/Feature/PontoDashboardContratoTest.php` — `UC-PAINEL-01`.
-- **Contrato:** `prototipo-ui/contrato/ponto-painel.contract.json` §`secoes[painel-kpis].copy`.
+- **Contrato:** `governance/design/contracts/ponto-painel.contract.json` §`secoes[painel-kpis].copy`.
   O teste **lê o JSON** e afirma contra ele: se o contrato mudar, o caso acompanha sem edição —
   e se a tela divergir, o vermelho é o sinal honesto.
 - **Status: ✅ verde na lane** (run 32726930428, 2026-08-24 — o arquivo está na allowlist do ponto-pest.yml; ver a correção datada no cabeçalho).

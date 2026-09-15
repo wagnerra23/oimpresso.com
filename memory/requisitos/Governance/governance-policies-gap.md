@@ -1,7 +1,7 @@
 ---
 id: requisitos-governance-policies-gap
 tela: governance/Policies (/governance/policies)
-prototipo: prototipo-ui/cowork/governance-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/governance-page.jsx
 tela_viva: resources/js/Pages/governance/Policies.tsx
 gerado_em: 2026-09-06
 ---

@@ -6,7 +6,7 @@ status: draft
 parent_module: AssetManagement
 related_us: [US-ASSET-004]
 related_adrs: [0394-endereco-de-ui-do-patrimonio-pages-patrimonio, 0104-processo-mwart-canonico-unico-caminho, 0093-multi-tenant-isolation-tier-0, 0180-sidebar-v3-5-grupos-ghosts-header, 0253-primitivos-layout]
-related_prototype: prototipo-ui/cowork/patrimonio-page.jsx
+related_prototype: prototipo-ui/cowork/Wagner/patrimonio-page.jsx
 related_runbook: memory/requisitos/AssetManagement/RUNBOOK-manutencoes.md
 tier: B
 charter_version: 1
@@ -116,6 +116,6 @@ manutenção"), não aqui.
 - RUNBOOK: [`RUNBOOK-manutencoes.md`](../../../../memory/requisitos/AssetManagement/RUNBOOK-manutencoes.md)
 - Casos: [`Manutencoes.casos.md`](./Manutencoes.casos.md)
 - Blade de origem: `Modules/AssetManagement/Resources/views/asset_maintenance/index.blade.php`
-- Fonte visual: `prototipo-ui/cowork/patrimonio-page.jsx`, `AbaManutencoes` (`:475`)
+- Fonte visual: `prototipo-ui/cowork/Wagner/patrimonio-page.jsx`, `AbaManutencoes` (`:475`)
 - Guarda de permissão: [#7034](https://github.com/wagnerra23/oimpresso.com/pull/7034)
-- Playbook: [`_saida-06-manutencoes.md`](../../../../prototipo-ui/design-docs/cowork-inbox/patrimonio/playbook/_saida-06-manutencoes.md)
+- A saída do playbook legado foi removida com a árvore duplicada.

@@ -246,7 +246,7 @@ jobs:
   #  fragmento de comentário órfão limpo na higiene 2026-07-16.)
   # CATRACA "1 lugar fixo" (Wagner 2026-07-01 "não pode trocar de lugar nunca. deve ser isso que fica
   # errando"): a âncora de charter (related_prototype/canon_source) NÃO pode citar lugar velho/volátil
-  # (public/cowork-preview, erp-shell, _cowork-handoff-staging, Downloads) e todo path prototipo-ui/cowork/
+  # (public/cowork-preview, erp-shell, _cowork-handoff-staging, Downloads) e todo path prototipo-ui/cowork/Wagner/
   # citado tem que EXISTIR. FULL-TREE (não diff-aware, sem baseline): a regra é absoluta e o legado já
   # nasceu limpo (0 violações no reaponte 2026-07-01) → morde QUALQUER regressão de lugar, nova ou velha.
   prototipo-lugar-fixo:
@@ -258,6 +258,6 @@ jobs:
         with:
           node-version: '20'
       - name: self-test da catraca (a catraca não pode apodrecer)
-        run: node prototipo-ui/ancora-guard.mjs --selftest
-      - name: âncoras no lugar fixo prototipo-ui/cowork (full-tree · exit 1 se trocou de lugar)
-        run: node prototipo-ui/ancora-guard.mjs
+        run: node scripts/design/ancora-guard.mjs --selftest
+      - name: âncoras no lugar fixo prototipo-ui/cowork/Wagner (full-tree · exit 1 se trocou de lugar)
+        run: node scripts/design/ancora-guard.mjs

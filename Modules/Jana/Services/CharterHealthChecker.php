@@ -25,7 +25,7 @@ namespace Modules\Jana\Services;
  *   - charter_stale            — `last_validated` > 90 dias
  *   - charter_refs_broken      — refs (component/runbook/parent_capterra + links) inexistentes
  *   - charter_method_missing   — charter tier A sem referência a método/bench (leve)
- *   - readme_handoff_block_missing — prototipo-ui/README.md sem `<!-- HANDOFF-ENTRY -->` (L-18)
+ *   - readme_handoff_block_missing — memory/reference/prototipo-ui/README.md sem `<!-- HANDOFF-ENTRY -->` (L-18)
  *   - design_return_skipped    — HANDOFF.md atrás do último merge no SYNC_LOG (retorno §10.2 pulou o canal HANDOFF · G4 / COWORK_NOTES #1)
  */
 class CharterHealthChecker
@@ -197,14 +197,14 @@ class CharterHealthChecker
 
     private function readmeHandoffBlockMissing(): array
     {
-        $readme = $this->basePath . '/prototipo-ui/README.md';
+        $readme = $this->basePath . '/memory/reference/prototipo-ui/README.md';
 
         if (! is_file($readme)) {
             return $this->row(
                 'readme_handoff_block_missing',
                 true,
                 'n/a',
-                'prototipo-ui/README.md ausente — handoff entry n/a',
+                'memory/reference/prototipo-ui/README.md ausente — handoff entry n/a',
                 'present',
             );
         }
@@ -217,7 +217,7 @@ class CharterHealthChecker
             $has ? 'present' : 'MISSING',
             $has
                 ? 'Bloco <!-- HANDOFF-ENTRY --> presente no README do Handoff'
-                : 'ALERTA: prototipo-ui/README.md sem <!-- HANDOFF-ENTRY --> (L-18) — Handoff entrega mas Code não acha a fila',
+                : 'ALERTA: memory/reference/prototipo-ui/README.md sem <!-- HANDOFF-ENTRY --> (L-18) — Handoff entrega mas Code não acha a fila',
             'present',
         );
     }
@@ -234,8 +234,8 @@ class CharterHealthChecker
      */
     private function designReturnSkipped(): array
     {
-        $handoff = $this->basePath . '/prototipo-ui/HANDOFF.md';
-        $syncLog = $this->basePath . '/prototipo-ui/SYNC_LOG.md';
+        $handoff = $this->basePath . '/memory/reference/prototipo-ui/HANDOFF.md';
+        $syncLog = $this->basePath . '/memory/reference/prototipo-ui/SYNC_LOG.md';
 
         if (! is_file($handoff) || ! is_file($syncLog)) {
             return $this->row('design_return_skipped', true, 'n/a',

@@ -23,9 +23,9 @@ LEIS DO REPO (violar = achado inválido):
 - ADR 0290 (render-diff pareado em CI = RECUSADO): fidelidade prod×proto roda LOCAL/dispatch. Em CI só o --check HERMÉTICO (schema+âncora+sha). NUNCA proponha comparar render em CI.
 
 DESCUBRA o estado ATUAL (números de doc envelhecem):
-- Charters: resources/js/Pages/${MOD}/**/*.charter.md (Glob). Âncora de CADA: node prototipo-ui/ancora.mjs "${MOD}/<Tela>" (resolve related_prototype; NUNCA no olho).
+- Charters: resources/js/Pages/${MOD}/**/*.charter.md (Glob). Âncora de CADA: node scripts/design/ancora.mjs "${MOD}/<Tela>" (resolve related_prototype; NUNCA no olho).
 - casos.md por tela + manifesto scripts/casos-test-results.json (o G-7 do casos-coverage-guard morde status:unverified/lies/stale).
-- proto-baselines: memory/requisitos/${MOD}/*.proto-baseline.json (node prototipo-ui/render-proto-baseline.mjs --check é hermético — pode rodar).
+- proto-baselines: memory/requisitos/${MOD}/*.proto-baseline.json (node scripts/design/render-proto-baseline.mjs --check é hermético — pode rodar).
 - Donos scopados: node scripts/governance/anchor-content-check.mjs (âncora podre/NO-SECTION); node scripts/casos-coverage-guard.mjs (trio+G-2+G-7); pest-lane do módulo em .github/workflows/<mod>-pest.yml (allowlist curada).`
 
 // GUARD anti-stale (mesma disciplina do sdd-avaliador — base-freshness): medir contra origin/main.
@@ -93,7 +93,7 @@ ${CONTEXTO}
 
 TAREFA: monte o inventário COMPLETO e VERIFICADO do módulo ${MOD}:
 1. Glob resources/js/Pages/${MOD}/**/*.charter.md — TODAS as telas.
-2. Pra cada charter: rode \`node prototipo-ui/ancora.mjs "${MOD}/<Tela>"\` e classifique a âncora (OK/NO-SECTION/n/a-segue-DS/não-resolvível/compartilhado). Copie os Automation Anti-hooks + Non-Goals LITERAIS (não parafraseie — o passe de coerência vai confrontá-los com código).
+2. Pra cada charter: rode \`node scripts/design/ancora.mjs "${MOD}/<Tela>"\` e classifique a âncora (OK/NO-SECTION/n/a-segue-DS/não-resolvível/compartilhado). Copie os Automation Anti-hooks + Non-Goals LITERAIS (não parafraseie — o passe de coerência vai confrontá-los com código).
 3. Marque tem_casos (<Tela>.casos.md existe ao lado) e tem_baseline (memory/requisitos/${MOD}/<tela>.proto-baseline.json existe).
 4. Rode os DONOS scopados e capture veredito: anchor-content-check.mjs, casos-coverage-guard.mjs, e o pest-lane .github/workflows/${MOD.toLowerCase()}-pest.yml (allowlist).
 5. telas_ancoraveis = as com âncora .jsx bespoke que RESOLVE (candidatas ao loop de fidelidade).
@@ -140,8 +140,8 @@ ${CONTEXTO}
 TELAS ANCORÁVEIS (âncora .jsx bespoke que resolve): ${JSON.stringify(inv.telas_ancoraveis || [])}
 
 TAREFA:
-1. Rode \`node prototipo-ui/render-proto-baseline.mjs --check\` (HERMÉTICO — schema+âncora+sha, pode rodar) e reporte o estado dos baselines de ${MOD}.
-2. Pra CADA tela ancorável, dê o comando LOCAL exato pra rodar o loop: \`node prototipo-ui/render-proto-baseline.mjs --gerar ${MOD}/<Tela> [--route <id>]\` (quando várias telas compartilham 1 .jsx, a rota mira a seção) + o \`style-fingerprint.mjs --compare proto.json prod.json --tela ${MOD}/<Tela>\`. Se a âncora NÃO resolve (prosa, sub-view sem rota de topo), marque bloqueio (gap honesto) — NÃO invente.
+1. Rode \`node scripts/design/render-proto-baseline.mjs --check\` (HERMÉTICO — schema+âncora+sha, pode rodar) e reporte o estado dos baselines de ${MOD}.
+2. Pra CADA tela ancorável, dê o comando LOCAL exato pra rodar o loop: \`node scripts/design/render-proto-baseline.mjs --gerar ${MOD}/<Tela> [--route <id>]\` (quando várias telas compartilham 1 .jsx, a rota mira a seção) + o \`style-fingerprint.mjs --compare proto.json prod.json --tela ${MOD}/<Tela>\`. Se a âncora NÃO resolve (prosa, sub-view sem rota de topo), marque bloqueio (gap honesto) — NÃO invente.
 3. fronteira_0290: confirme que o compare é LOCAL e que NADA disso vira gate de CI (render pareado foi RECUSADO).
 
 Retorne JSON no schema. NÃO rode --gerar (precisa staging/browser — é dispatch local do humano); só o --check e a emissão dos comandos.`, { label: `fidelidade:${MOD}`, phase: 'Fidelidade', schema: FIDELIDADE_SCHEMA, model: 'opus' })

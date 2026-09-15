@@ -54,7 +54,7 @@ function fixture(tamanhos) {
   writeFileSync(join(dir, 'oimpresso.com.html'), `<!doctype html>\n<html><head>\n${links}\n</head><body></body></html>\n`);
   for (const [nome, bytes] of Object.entries(tamanhos)) {
     // conteúdo com acento de propósito: exercita o caminho UTF-8 (bytes != chars)
-    const recheio = '/* ç—á */\n' + 'x'.repeat(Math.max(0, bytes));
+    const recheio = `/* ${nome} · ç—á */\n` + 'x'.repeat(Math.max(0, bytes));
     writeFileSync(join(dir, nome), recheio);
   }
   return dir;

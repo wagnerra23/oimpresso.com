@@ -1,6 +1,6 @@
 // Patrimonio/Index — Painel do Patrimônio (PT-04 Dashboard · UI-0013).
 //   rota:    GET /asset/dashboard  →  AssetController::dashboard()
-//   fonte:   prototipo-ui/cowork/patrimonio-page.jsx  aba "Painel" (painelData :149)
+//   fonte:   prototipo-ui/cowork/Wagner/patrimonio-page.jsx  aba "Painel" (painelData :149)
 //   runbook: memory/requisitos/AssetManagement/RUNBOOK-patrimonio-index.md
 //   adrs:    0394 (endereço Pages/Patrimonio/**) · 0104 (MWART) · 0093 (multi-tenant)
 //

@@ -1,0 +1,26 @@
+{
+  "_nota": "A copy deste contrato foi extraída da TELA VIVA quando ele nasceu — então ele NÃO prova conformidade com o protótipo: comparar a tela com uma cópia dela mesma é tautológico. Medido em 2026-09-09: o espelho bate 271/271 com o manifesto do bundle e o `fiscal-page.jsx` do Cowork vivo é idêntico ao do repo, ou seja o protótipo NÃO estava atrás — a redação anterior dizia que estava e isso induziu um diagnóstico errado. Quem for usar este contrato pra julgar FORMA precisa re-derivar a copy do protótipo primeiro (ADR UI-0029: no eixo forma o protótipo é soberano).",
+  "tela": "Fiscal/Nfe",
+  "fonte": "prototipo-ui/cowork/Wagner/fiscal-page.jsx",
+  "_nota_fonte": "A copy deste contrato foi extraída da TELA VIVA quando ele nasceu — então ele NÃO prova conformidade com o protótipo: comparar a tela com uma cópia dela mesma é tautológico. Medido em 2026-09-09: o espelho bate 271/271 com o manifesto do bundle e o `fiscal-page.jsx` do Cowork vivo é idêntico ao do repo, ou seja o protótipo NÃO estava atrás — a redação anterior dizia que estava e isso induziu um diagnóstico errado. Quem for usar este contrato pra julgar FORMA precisa re-derivar a copy do protótipo primeiro (ADR UI-0029: no eixo forma o protótipo é soberano).",
+  "alvo": [
+    "resources/js/Pages/Fiscal/Nfe.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "fiscal-nfe-filters",
+      "copy": [
+        "Todas",
+        "Autorizadas",
+        "Rejeitadas",
+        "Processando"
+      ]
+    }
+  ],
+  "ordem": [
+    "fiscal-nfe-filters"
+  ],
+  "_pendente_w": [
+    "Select \"Filtrar por tipo\" + radiogroup de densidade existem no protótipo e não na tela. Decisão [W] #1 (PR-C1): construir ou rejeitar por escrito (vira Non-Goal)."
+  ]
+}

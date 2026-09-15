@@ -1,6 +1,6 @@
 // Manufacturing/Insumos — impacto reverso do insumo, em `/manufacturing/insumos`.
 //
-// FONTE DE DESIGN: `prototipo-ui/cowork/manufacturing-insumos.jsx::MfgInsumosView` — mesmo
+// FONTE DE DESIGN: `prototipo-ui/cowork/Wagner/manufacturing-insumos.jsx::MfgInsumosView` — mesmo
 // bundle das ondas anteriores; nenhuma classe CSS nova.
 // F1 PLAN: memory/requisitos/Manufacturing/RUNBOOK-insumos.md.
 //

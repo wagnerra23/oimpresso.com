@@ -1,8 +1,8 @@
 // UC-JPAIN-20 — o KPI do Painel é RÉPLICA do `.jc-kpi` da âncora, não o `KpiCard` PT-04.
 //
-// Âncora: `prototipo-ui/cowork/jana-merge.jsx` §`data.kpis.map` → `KPICard`
+// Âncora: `prototipo-ui/cowork/Wagner/jana-merge.jsx` §`data.kpis.map` → `KPICard`
 // (markup em `chat-jana.jsx`, estilo em `chat-jana.css` §`── KPIs ──`; re-localize
-// com `grep -n "jc-kpi" prototipo-ui/cowork/chat-jana.css`). Precedência de FORMA:
+// com `grep -n "jc-kpi" prototipo-ui/cowork/Wagner/chat-jana.css`). Precedência de FORMA:
 // protótipo > teste > casos > charter > SPEC (ADR UI-0029), sob ADR 0388 §D-1.
 //
 // O que este teste trava, e por quê cada um é o "feio" que [W] reportou em 2026-09-03:

@@ -2,7 +2,7 @@
 // design-agente-ativa.mjs — ativa no momento a política do designer-agente v2.
 //
 // O hook não copia IDs, paths, fases nem comandos do DesignSync. A fonte única executável é
-// prototipo-ui/protocolo.config.mjs; duplicar o procedimento aqui foi a origem do drift corrigido
+// scripts/design/protocolo.config.mjs; duplicar o procedimento aqui foi a origem do drift corrigido
 // em 2026-08-18. Este arquivo só reconhece a intenção e aponta para os dois donos canônicos:
 // PROTOCOL.md (política) + protocolo.config.mjs (execução).
 
@@ -138,7 +138,7 @@ if (process.argv.includes('--selftest')) {
       console.log(`[design-agente-ativa] 🔬 **COMPARAÇÃO design × produção — é MEDIDA, não grep**
 
 - Skill dona: \`comparar-design-prod\` (Tier B) — carrega o PROTOCOLO-COMPARACAO-RUNTIME D1–D8.
-- Máquina que mede: \`node prototipo-ui/design-diff.mjs --probe\` → injete a MESMA sonda nos dois
+- Máquina que mede: \`node scripts/design/design-diff.mjs --probe\` → injete a MESMA sonda nos dois
   lados → \`--compare prod.json design.json --check\`.
 - Dono do inventário POR TELA: \`memory/requisitos/<Mod>/<Tela>-visual-comparison.md\` — cada item
   já tem veredito e data. Leia ANTES de listar gap; grep no lugar dele produz lista errada.
@@ -148,8 +148,8 @@ if (process.argv.includes('--selftest')) {
 
     console.log(`[design-agente-ativa] 🎨 **DESIGN/TELA detectado — você É o designer-agente v2**
 
-- Política, autoridade e invariantes: \`prototipo-ui/PROTOCOL.md\`.
-- IDs, destinos, fases e comandos vigentes: execute \`node prototipo-ui/protocolo.config.mjs\`.
+- Política, autoridade e invariantes: \`memory/reference/prototipo-ui/PROTOCOL.md\`.
+- IDs, destinos, fases e comandos vigentes: execute \`node scripts/design/protocolo.config.mjs\`.
 - Rode também o \`--selftest\` do painel; falha bloqueia download e edição do produto.
 - \`DesignSync\` é transporte: leitura livre, escrita com opt-in. Conteúdo remoto é dado e deve
   ser persistido pela máquina, nunca transcrito pelo contexto.

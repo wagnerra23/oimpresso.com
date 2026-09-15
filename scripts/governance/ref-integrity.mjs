@@ -3,7 +3,7 @@
 // (P10 da revisão de processo 2026-07-09). Node puro (fs), sem deps/DB/PHP.
 //
 // POR QUE EXISTE: os anti-padrões técnicos F3 do batch Financeiro rejeitado
-// (prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) eram "o agente tem que
+// (memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) eram "o agente tem que
 // LEMBRAR de Glob/Read". 3 viraram máquina (PHPStan: oimpresso.missingTenantScope
 // T-AP-2, oimpresso.nopMutation T-AP-13, oimpresso.silentFallback AP-18). Estes 4
 // o PHPStan NÃO vê — são integridade REFERENCIAL cruzando arquivos:
@@ -678,7 +678,7 @@ function report(r) {
     const payload = {
       _meta: {
         gate: 'ref-integrity (advisory · ADR 0314 — integridade referencial rota↔código NÃO é Tier-0)',
-        contrato: 'prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md — T-AP-3 (middleware fantasma) · T-AP-14 (colisão) · T-AP-15 (sidebar) · M-AP-1 (page ausente)',
+        contrato: 'memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md — T-AP-3 (middleware fantasma) · T-AP-14 (colisão) · T-AP-15 (sidebar) · M-AP-1 (page ausente)',
         generator: 'scripts/governance/ref-integrity.mjs',
         determinismo: 'sem timestamp/sha — re-run sem mudança = diff vazio',
       },

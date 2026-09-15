@@ -1,7 +1,7 @@
 ---
 id: requisitos-produto-produtos-gap
 tela: Produto/Index (/products)
-prototipo: prototipo-ui/cowork/produtos-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/produtos-page.jsx
 tela_viva: resources/js/Pages/Produto/Index.tsx
 ---
 

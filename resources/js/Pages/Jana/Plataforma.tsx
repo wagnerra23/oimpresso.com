@@ -1,8 +1,8 @@
 // Jana/Plataforma — a aba Plataforma da área Jana (`/ia/superadmin/metas`), só superadmin.
 //
-// Âncora de design: `prototipo-ui/cowork/jana-telas-novas.jsx` §`JmPlataforma` — âncora de
-// SÍMBOLO (`grep -n "function JmPlataforma" prototipo-ui/cowork/jana-telas-novas.jsx`; resolva
-// com `node prototipo-ui/ancora.mjs Jana/Plataforma`). A ABA vem do `JmTabs` de `jana-merge.jsx`
+// Âncora de design: `prototipo-ui/cowork/Wagner/jana-telas-novas.jsx` §`JmPlataforma` — âncora de
+// SÍMBOLO (`grep -n "function JmPlataforma" prototipo-ui/cowork/Wagner/jana-telas-novas.jsx`; resolva
+// com `node scripts/design/ancora.mjs Jana/Plataforma`). A ABA vem do `JmTabs` de `jana-merge.jsx`
 // (6ª, `can(papel, "jana.superadmin")`) e aqui nasce do ghost `plataforma` do `DataController`,
 // que usa o MESMO gate real da rota (P0 #6421) — menu e rota concordam.
 //

@@ -30,6 +30,7 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 |----|-------------|------|--------|-------|--------|
 | UC-COLIDX-01 | Buscar por matrícula ou CPF não alcança colaborador de outro empregador | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `ColaboradorContratoTest` | ✅ verde na lane |
 | UC-COLIDX-02 | Busca que não casa ninguém devolve lista vazia, não a lista inteira | must | charter §Goals (busca + empty state de "busca sem resultado") | `ColaboradorContratoTest` | ✅ verde na lane |
+| UC-COLIDX-03 | Lista redige CPF e PIS (3 últimos dígitos) — documento inteiro só no form de edição | must | charter §Pendências resolvida por [W] 2026-09-14 + `D-COLAB-CPF` do protótipo | `ponto-colaboradores-redacao.test.tsx` | 🧪 teste cita o UC, sem veredito |
 
 **[BACKLOG]** (medido nesta sessão, sem teste que o defenda — vira UC quando ganhar um):
 
@@ -49,10 +50,19 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
   isso é o anti-padrão LC-28 de
   [proibicoes §Comportamento Claude](../../../../../memory/proibicoes.md). O que segue sendo de [W]
   é **o que** a busca deve encontrar — não como ela agrupa.
-- `[BACKLOG]` A coluna de CPF aparece inteira na lista. O charter pergunta em §Pendências se deve ser
-  mascarada; a decisão de [W] para o espelho foi **não mascarar** (*"pode deixar os dados sim é um
-  ERP"*, 2026-08-21 — o controle é por permissão de acesso, não por ocultação). Fica registrado que a
-  mesma razão se aplica aqui, mas a pergunta do charter é de [W], não minha.
+- ~~`[BACKLOG]` A coluna de CPF aparece inteira na lista~~ — **RESOLVIDO 2026-09-14**, virou `UC-COLIDX-03`:
+  em **2026-09-14** [W] respondeu a pergunta do charter — *"é liberado ser igual ao protótipo"* — e o
+  protótipo `D-COLAB-CPF` ([`ponto-telas.jsx`](../../../../../prototipo-ui/cowork/Wagner/ponto-telas.jsx))
+  mascara CPF **e** PIS nos 3 últimos dígitos na lista, deixando os inteiros só no form de edição.
+  A posição anterior — **não mascarar** (*"pode deixar os dados sim é um ERP"*, **2026-08-21**, o
+  controle é por permissão de acesso, não por ocultação) — **segue verdadeira como fato daquela data
+  e sobre o espelho**, e está superseded para esta coluna. O `.tsx` foi aplicado no mesmo ciclo e o caso
+  virou `UC-COLIDX-03`, com teste. A pegadinha que este bullet registrava — `maskCPF` de
+  [`Lib/br-mask.ts`](../../../../../resources/js/Lib/br-mask.ts) **formata** (insere pontos e
+  hífen), não redige, e redação de exibição não existia no front — foi paga criando
+  `redigirDigitos` em [`Lib/format-br.ts`](../../../../../resources/js/Lib/format-br.ts). Ela segue
+  valendo como aviso: trocar um pelo outro entrega o documento inteiro, formatado, e o assert do
+  `UC-COLIDX-03` existe justamente pra distinguir os dois.
 - `[BACKLOG]` A busca por nome usa só `first_name`; sobrenome (`last_name`) não entra. Quem procura
   "Silva" não acha ninguém. Não virou UC porque o charter diz "busca por matrícula, nome ou CPF" sem
   definir o que é "nome" — é ambiguidade de contrato, e inventar a resposta seria pior que registrar.
@@ -83,6 +93,39 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
   buscado na prop `search`, então procurar o termo que você mesmo buscou casa por **eco** e não prova
   nada. Foi exatamente o falso-positivo que a primeira sonda desta sessão produziu.
 - **Status: 🧪 verde no CT 100, sem veredito de lane** — CT 100 é candidatura; quem decide é a lane.
+
+---
+
+## UC-COLIDX-03 · Lista redige CPF e PIS (3 últimos dígitos) — documento inteiro só no form de edição · `must`
+
+- **Persona:** gestor de RH varrendo a lista pra achar quem configurar. Ele precisa **reconhecer** o
+  colaborador, não ler o documento dele — e faz isso de pé, com gente atrás, às vezes em
+  screenshare. Os 3 últimos dígitos bastam pra desempatar dois homônimos; os 8 primeiros só
+  aumentam a superfície de exposição de uma tela que ninguém veio ali pra ler.
+- **Aceite:** Dado um colaborador com CPF e PIS cadastrados · Quando abro a lista · Então vejo os
+  **3 últimos dígitos** de cada um, o resto substituído por `•` — e o documento **inteiro** não
+  aparece em lugar nenhum da lista. Dado um colaborador **sem** PIS · Então leio
+  **"PIS não cadastrado"** em vez de um campo vazio.
+- **Teste:** [`tests/js/ponto-colaboradores-redacao.test.tsx`](../../../../../tests/js/ponto-colaboradores-redacao.test.tsx) — `UC-COLIDX-03`.
+- **Contrato:** `D-COLAB-CPF` em
+  [`prototipo-ui/cowork/Wagner/ponto-telas.jsx`](../../../../../prototipo-ui/cowork/Wagner/ponto-telas.jsx)
+  (*"lista é tela de varredura — minimização de dado é o default (LGPD). CPF/PIS inteiros só no form
+  de edição"*), ratificado por [W] em **2026-09-14** (*"é liberado ser igual ao protótipo"*) ao
+  responder a §Pendências do charter. Eixo FORMA ⇒ protótipo soberano
+  ([ADR UI-0029](../../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)).
+  ⚠️ A posição anterior — **não** mascarar (*"pode deixar os dados sim é um ERP"*, **2026-08-21**) —
+  segue verdadeira como fato daquela data e sobre o **espelho**; está superseded para esta coluna.
+- **Regressão que defende:** duas, e a segunda é a que dói. (1) Alguém "simplifica" a célula de
+  volta pra `{c.cpf}` — o caso morre na hora. (2) Alguém troca `redigirDigitos` por `maskCPF`
+  achando que máscara esconde: **não esconde** — `maskCPF` insere pontos e hífen e entrega o
+  documento inteiro, formatado. O assert exige o `•` e proíbe a sequência completa de dígitos, então
+  distingue os dois. O caso também cobre o colaborador **sem** PIS, porque PIS ausente é acionável
+  (o AFD da Portaria 671/2021 é chaveado por PIS — sem ele não se importa marcação) e um `—` mudo
+  esconderia isso do gestor.
+- **O que este caso NÃO é:** controle de acesso. Quem não pode ver o dado não deve **receber** o
+  dado do backend; isto reduz exposição acidental de tela, nada mais. O controle real é permissão,
+  como [W] fixou em 2026-08-21 — e essa parte não mudou.
+- **Status: 🧪 teste cita o UC, sem veredito de lane.**
 
 ---
 

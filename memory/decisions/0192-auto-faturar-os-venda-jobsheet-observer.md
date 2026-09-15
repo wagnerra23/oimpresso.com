@@ -217,7 +217,7 @@ Ondas 3-5 podem rodar paralelo (Worker A Sells/Index sequencial · Worker B Repa
 - [PR #1493 — protótipo Cowork F1 mergeado · `b2fcabbf2`](https://github.com/wagnerra23/oimpresso.com/pull/1493)
 - [PR #1495 — docs SYNC_LOG + TELAS_REVIEW_QUEUE · `11484114d`](https://github.com/wagnerra23/oimpresso.com/pull/1495)
 - [PR #1497 — plano F3 (este ADR é Onda 0)](https://github.com/wagnerra23/oimpresso.com/pull/1497)
-- [`prototipo-ui/INTEGRACAO_VENDAS_OFICINA.md`](../../prototipo-ui/INTEGRACAO_VENDAS_OFICINA.md) — README Cowork F1
+- [`memory/reference/prototipo-ui/INTEGRACAO_VENDAS_OFICINA.md`](../../memory/reference/prototipo-ui/INTEGRACAO_VENDAS_OFICINA.md) — README Cowork F1
 - [`memory/sessions/2026-05-25-plano-f3-integracao-vendas-oficina.md`](../sessions/2026-05-25-plano-f3-integracao-vendas-oficina.md) — plano F3 6 ondas
 - [ADR 0143 FSM Pipeline LIVE](0143-fsm-pipeline-live-prod-marco-2026-05-12.md) — `entregue_completo` stage canon
 - [ADR 0121 Vertical especializado](0121-oimpresso-modular-especializado-por-vertical.md) — vocabulário shared Repair

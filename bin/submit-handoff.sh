@@ -3,9 +3,9 @@
 #
 # Fonte ÚNICA do "assina (HMAC via bin/sign-handoff.php) → POST no tool MCP
 # handoff-submit → pending". Reusada por DOIS caminhos de transporte:
-#   1) handoff-sign-submit.yml — commit MANUAL de [W] em prototipo-ui/handoffs/ (o push dispara).
+#   1) handoff-sign-submit.yml — commit MANUAL de [W] em prototipo-ui/cowork/Wagner/handoffs/ (o push dispara).
 #   2) cowork-inbox.yml         — PUBLISHER Cowork→repo (PR-7 · ADR 0285): o Cowork dropa em
-#      cowork-inbox/, a Action pousa em prototipo-ui/handoffs/ e chama ISTO inline —
+#      cowork-inbox/, a Action pousa em prototipo-ui/cowork/Wagner/handoffs/ e chama ISTO inline —
 #      porque o auto-merge feito com GITHUB_TOKEN NÃO dispara o on-push do (1)
 #      (regra do GitHub: eventos do GITHUB_TOKEN não disparam outros workflows).
 #

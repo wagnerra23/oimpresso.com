@@ -2,7 +2,7 @@
 // Refs:
 //   - ADR 0104 (MWART canônico) · ADR 0107 (visual gate) · ADR 0149 (pattern reuse)
 //   - ADR 0093 (multi-tenant Tier 0) · ADR 0110 (Cockpit V2)
-//   - Blueprint Cowork: prototipo-ui/prototipos/clientes/cowork-app.jsx (MORTO 2026-08-25 — sem fonte no repo)
+//   - Blueprint Cowork: prototipo-ui/cowork/Wagner/legado/clientes/cowork-app.jsx (MORTO 2026-08-25 — sem fonte no repo)
 //   - Reuse pattern de Pages/Sells/Index.tsx (gold-standard W1-A)
 // Backend: ContactController::index() — Inertia::render dual via config('mwart.cliente_index.enabled')
 
@@ -2354,7 +2354,7 @@ function PageBtn({
 }
 
 // ─── KB-9.75 Slice A subcomponents ──────────────────────────────────────────
-// Ref: prototipo-ui/prototipos/clientes/clientes-975.jsx (MORTO 2026-08-25 — sem fonte no repo) (CommandPalette · CheatSheet)
+// Ref: prototipo-ui/cowork/Wagner/legado/clientes/clientes-975.jsx (MORTO 2026-08-25 — sem fonte no repo) (CommandPalette · CheatSheet)
 // Charter: Pages/Cliente/Index.charter.md (Slice A não introduz Non-Goal nem Anti-hook).
 
 type PaletteAction = {

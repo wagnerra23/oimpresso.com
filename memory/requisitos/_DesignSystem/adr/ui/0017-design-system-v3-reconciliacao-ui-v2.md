@@ -16,7 +16,7 @@ id: requisitos-design-system-adr-ui-0017-design-system-v3-reconciliacao-ui-v2
   - [ADR 0110](../../../decisions/0110-cockpit-pattern-v2-canon-list-detail.md) — Cockpit Pattern V2 (Padrão de Tela)
   - [ADR 0190](../../../decisions/0190-primary-button-roxo-universal-295.md) — primary roxo 295 (citado pelos tokens DS)
   - [ADR 0114](../../../decisions/0114-prototipo-ui-cowork-loop-formalizado.md) — loop Cowork ↔ Code
-  - [prototipo-ui/CODE_DESIGN_CONTRACT.md](../../../../prototipo-ui/CODE_DESIGN_CONTRACT.md) — contrato visual CC↔CL (DS v3)
+  - [memory/reference/prototipo-ui/CODE_DESIGN_CONTRACT.md](../../../../memory/reference/prototipo-ui/CODE_DESIGN_CONTRACT.md) — contrato visual CC↔CL (DS v3)
   - [prototipo-ui/tokens.css](../../../../prototipo-ui/tokens.css) · [design-system.css](../../../../prototipo-ui/design-system.css)
   - [Auditoria conformidade Sells](../../Sells/sells-create-ds-v3-conformance.md) — caso concreto que expôs a lacuna
   - PR #1893 — landing do DS v3 (mergeado **sem ADR** — esta ADR cobre retroativamente)
@@ -106,7 +106,7 @@ DS, **padrão de tela** que não bate com PT-01..PT-08, **token** redeclarado �
 
 Vale **igual** pra humano, esposa, Felipe, Maiara e qualquer agente — mesmo caminho, sem atalho.
 "Só faz funcionar" não é override. Override real exige a extensão aprovada do DS. Isto é a
-"regra única" do [CODE_DESIGN_CONTRACT.md](../../../../prototipo-ui/CODE_DESIGN_CONTRACT.md)
+"regra única" do [CODE_DESIGN_CONTRACT.md](../../../../memory/reference/prototipo-ui/CODE_DESIGN_CONTRACT.md)
 elevada a decisão canônica. **Enforcement já existe e bloqueia** (errata 2026-05-28, ver topo):
 o comando `php artisan ui:lint` (regras R1 cor crua · R2 FontAwesome · R3 emoji · R4 PT-01 ·
 R5 origens · R6 blade) roda em CI via [`.github/workflows/ui-lint.yml`](../../../../../.github/workflows/ui-lint.yml)

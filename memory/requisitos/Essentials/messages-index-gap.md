@@ -1,7 +1,7 @@
 ---
 id: requisitos-essentials-messages-index-gap
 tela: Essentials/Messages/Index (/essentials/messages)
-prototipo: prototipo-ui/cowork/essenciais-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/essenciais-page.jsx
 tela_viva: resources/js/Pages/Essentials/Messages/Index.tsx
 gerado_em: 2026-09-06
 ---
@@ -10,7 +10,7 @@ gerado_em: 2026-09-06
 
 > **Fase 1 = PARIDADE.** `essenciais-page.jsx:1-3` declara o porte reverso do blade
 > (`messages/{index,message_div,recent_messages}.blade.php`). Região: `Mensagens` (`:565-622`).
-> Contrato: [`mensagens.contract.json`](../../../prototipo-ui/design-docs/cowork-inbox/essenciais/contrato/mensagens.contract.json)
+> Contrato: `mensagens.contract.json` (`prototipo-ui/design-docs/cowork-inbox/essenciais/contrato/mensagens.contract.json`, removido do git em 2026-09-11 · #7224 · ADR 0397)
 > (3 seções: `cabecalho-filtro` · `mural` · `compositor`).
 > O charter do vivo declara `related_prototype: n/a (mural de chat bespoke … não segue um dos 5
 > Padrões de Tela)` — a âncora desta tela vem do `bundle_source: essenciais-page.jsx`, e as duas coisas
@@ -19,8 +19,8 @@ gerado_em: 2026-09-06
 > de bundle — e proíbe promover `bundle_source` a `related_prototype` em leva.
 
 > ⚠️ **O contrato citado ainda NÃO é gate ativo.** Ele vive em
-> `prototipo-ui/design-docs/cowork-inbox/essenciais/contrato/`, **não** em `prototipo-ui/contrato/`
-> (medido com o critério do próprio gate — `git ls-files "prototipo-ui/contrato/*.contract.json"` sem o EXEMPLO, como `scripts/contrato-de-tela.mjs` faz: **28** contratos ativos, que incluem `essentials-tipos`, `essentials-licencas` e
+> `prototipo-ui/design-docs/cowork-inbox/essenciais/contrato/`, **não** em `governance/design/contracts/`
+> (medido com o critério do próprio gate — `git ls-files "governance/design/contracts/*.contract.json"` sem o EXEMPLO, como `scripts/contrato-de-tela.mjs` faz: **28** contratos ativos, que incluem `essentials-tipos`, `essentials-licencas` e
 > `essentials-metas` — nenhum dos 5 dos essenciais). Ele é **proposta de contrato**: descreve a
 > copy literal pretendida e serve de âncora para esta comparação, mas **não trava merge hoje**.
 > Por isso as divergências de copy abaixo saem como `Decidir.`, nunca como "quebra de gate".

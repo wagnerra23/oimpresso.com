@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **400** arquivos · **385** números únicos · máx **0395**
-- **ADRs ATIVOS (lifecycle ativo): 361** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 358 · superseded 16 · deprecated 13 · proposto 11 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 361 · arquivado 23 · substituido 16
+- **405** arquivos · **390** números únicos · máx **0400**
+- **ADRs ATIVOS (lifecycle ativo): 359** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 356 · superseded 25 · deprecated 11 · proposto 11 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 359 · substituido 25 · arquivado 21
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -35,7 +35,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (400)
+## Todas as ADRs (405)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -189,13 +189,13 @@ _(nenhuma)_
 | 0150 | aceito | ativo | decision | KB Unificado como Grafo de Conhecimento — módulo IA central do oimpresso |
 | 0151 | proposto | ativo | feature-wish # era lifecycle feature_wish (fora do enum); kind e o eixo certo (adr 0257/0105) | Modules/Comissao como feature-wish — aguarda cliente que reporta dor real |
 | 0152 | proposto | ativo | feature-wish # era lifecycle feature_wish (fora do enum); kind e o eixo certo (adr 0257/0105) | Modules/Pcp como feature-wish — aguarda Vargas ou ComVis 1º piloto |
-| 0153 | deprecated | arquivado | decision | Rubrica oficial `module-grade-v1` — nota 0-100 ponderada pra cada Module |
-| 0154 | aceito | ativo | decision | Rubrica `module-grade-v2` — regra N/A justificado pra dimensões inaplicáveis por |
-| 0155 | aceito | ativo | decision | module-grade-v3 — 4 sub-dimensões novas (Performance/LGPD/Security/Observability |
-| 0156 | aceito | ativo | decision | module-grade-v3 errata — D9.a regex inclui OtelHelper canônico + ratifica na_jus |
-| 0157 | aceito | ativo | decision | module-grade-v3 — endurecimento D2 detection (parser XML + verificação subpastas |
-| 0158 | aceito | ativo | decision | module-grade-v3 — endurecimento heurística D1 (recursive + scope singular + Job  |
-| 0159 | deprecated | arquivado | decision | module-grade-v3 errata — realismo meta 97.75 (D5 cross-cutting / D9.b ready / D4 |
+| 0153 | superseded | substituido | decision | Rubrica oficial `module-grade-v1` — nota 0-100 ponderada pra cada Module |
+| 0154 | superseded | substituido | decision | Rubrica `module-grade-v2` — regra N/A justificado pra dimensões inaplicáveis por |
+| 0155 | superseded | substituido | decision | module-grade-v3 — 4 sub-dimensões novas (Performance/LGPD/Security/Observability |
+| 0156 | superseded | substituido | decision | module-grade-v3 errata — D9.a regex inclui OtelHelper canônico + ratifica na_jus |
+| 0157 | superseded | substituido | decision | module-grade-v3 — endurecimento D2 detection (parser XML + verificação subpastas |
+| 0158 | superseded | substituido | decision | module-grade-v3 — endurecimento heurística D1 (recursive + scope singular + Job  |
+| 0159 | superseded | substituido | decision | module-grade-v3 errata — realismo meta 97.75 (D5 cross-cutting / D9.b ready / D4 |
 | 0160 | aceito | ativo | decision | module-grade-v4 — Scoped Scorecards (Lens per Module Kind) com 4 buckets + meta  |
 | 0161 | aceito | ativo | decision | Governance v4 — aposentar 3 dos 4 hacks ADR 0159 redundantes com Scoped Scorecar |
 | 0162 | aceito | ativo | decision | OpenTelemetry Collector ativo em prod (CT 100) — destrava D6.b + D9.b governance |
@@ -416,7 +416,7 @@ _(nenhuma)_
 | 0371 | aceito | ativo | decision | Deploy Hostinger — o `git reset` no servidor não é atômico com o build: sob raja |
 | 0372 | aceito | ativo | decision | Emenda à 0094 — princípio 9 (Audit Card): decisão automatizada que afeta titular |
 | 0373 | aceito | ativo | decision | Emenda à 0314 — screen-grades-ratchet a required: exceção soberana [W] com a DR- |
-| 0374 | aceito | ativo | decision | Emenda à 0315 — espelhar o projeto Cowork para `prototipo-ui/cowork/` é a rota P |
+| 0374 | aceito | ativo | decision | Emenda à 0315 — espelhar o projeto Cowork para `prototipo-ui/cowork/Wagner/` é a |
 | 0375 | aceito | ativo | decision | SCOPE.md e LICOES-OPERACAO.md saem de Modules/ para memory/requisitos/ |
 | 0376 | aceito | ativo | decision | §5 vira DERIVADO — o limite fica no contexto, a arqueologia sai para memory/lico |
 | 0377 | aceito | ativo | decision | Emenda à 0094 — append-only de ADR canon admite exceção por label `adr-body-edit |
@@ -429,7 +429,7 @@ _(nenhuma)_
 | 0384 | aceito | ativo | decision | Design Sync deriva o estado da tela de recibos executáveis |
 | 0385 | proposto | ativo | decision | Sidebar alinhado ao protótipo — e a diferença classificada em três categorias |
 | 0386 | aceito | ativo | decision | Âmbar da Oficina revogado — o roxo canon é a única identidade de chrome; superse |
-| 0387 | aceito | ativo | decision | github.md (diário de sync do Cowork) é artefato aceito e tratado pelo protocolo  |
+| 0387 | superseded | substituido | decision | github.md (diário de sync do Cowork) é artefato aceito e tratado pelo protocolo  |
 | 0388 | aceito | ativo | decision | Réplica primeiro: o protótipo é o contrato de layout e a conformidade do DS vira |
 | 0389 | aceito | ativo | decision | Emenda à 0374 — quando o `get_file` devolve INLINE, o agente escreve o arquivo ( |
 | 0390 | proposto | ativo | decision | Emenda à 0384 — o smoke que leva a `validated` aceita ambiente controlado (host  |
@@ -438,3 +438,8 @@ _(nenhuma)_
 | 0393 | aceito | ativo | decision | Governança da empresa aparece no fluxo de trabalho, não em tela própria — emenda |
 | 0394 | aceito | ativo | decision | Endereço de UI do Patrimônio é `Pages/Patrimonio/**` — módulo próprio, não seção |
 | 0395 | proposto | ativo | decision | Emenda à 0314 — `PageHeader · ratchet` vira required: 2 telas novas adotaram o h |
+| 0396 | superseded | substituido | decision | Protótipo tem uma fonte ativa, transporte build-only e caminhos literais |
+| 0397 | aceito | ativo | decision | Protótipo mínimo por dono, máquinas fora do artefato e Design System direto |
+| 0398 | aceito | ativo | decision | O espelho Cowork recebe a árvore da conta, documentação incluída (emenda à 0397  |
+| 0399 | aceito | ativo | decision | Aposentar a rubrica module-grade, seu gate de CI e seu baseline |
+| 0400 | aceito | ativo | decision | Emenda à 0314 — `handoff integrity` vira required por decisão soberana [W], com  |

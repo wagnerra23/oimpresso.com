@@ -9,7 +9,7 @@ declare(strict_types=1);
 // Cada `it()` cita um UC-id (UC-NOT-NN). O `Index.casos.md` que os DECLARA ainda não está
 // no repo: ele é artefato da Page Inertia, e esta tela ainda é Blade
 // (resources/views/notification_template/). Charter sem `.tsx` irmão quebra o invariante
-// duro IT2 do prototipo-ui/integrity-check.mjs — medido: dos 171 charters do repo, zero
+// duro IT2 do scripts/design/integrity-check.mjs — medido: dos 171 charters do repo, zero
 // estão sem `.tsx`. Charter + casos + contrato entram juntos, na onda da migração; os ids
 // aqui já ficam certos pra quando o casos.md chegar e reivindicá-los (ADR 0264 G-2 lê o
 // heading `## UC-`, e o casos-results-collect colhe o id do título do teste no JUnit).

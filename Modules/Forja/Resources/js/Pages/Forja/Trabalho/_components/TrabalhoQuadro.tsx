@@ -1,6 +1,6 @@
 // Quadro do Trabalho — a RÉPLICA do `KanbanView` do protótipo (PARIDADE §11 Onda 5).
 //
-// Árvore do protótipo (`prototipo-ui/cowork/forja-page.jsx` :467-503), 1:1:
+// Árvore do protótipo (`prototipo-ui/cowork/Wagner/forja-page.jsx` :467-503), 1:1:
 //
 //   .fj-quadro-wrap
 //     ├ .fj-quadro-ancora        →  o parágrafo que explica o eixo E o recorte
@@ -33,7 +33,7 @@
 // ⚠️ CORREÇÃO (decisão [W] 2026-08-11). A versão anterior deste comentário
 // afirmava "F4/`done` NÃO é coluna do pipeline: quando a tela conclui, ela sai do
 // board e vira changelog". Eu inventei isso derivando do CÓDIGO em vez de abrir a
-// fonte de design — `prototipo-ui/cowork/forja-data.jsx` sempre teve `F4 Merge`
+// fonte de design — `prototipo-ui/cowork/Wagner/forja-data.jsx` sempre teve `F4 Merge`
 // com `owner: "W2"`, e os charters de Trabalho/Aprovações já diziam "F0→F4 é
 // constituição". Ver proibicoes §5 2026-08-10.
 //

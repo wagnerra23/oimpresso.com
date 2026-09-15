@@ -5,8 +5,15 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — os KPIs reais, paginação/ordenação server-side e a aba "Outros" não mudam no refactor.
 owner: wagner
-last_run: "2026-09-06"
+last_run: "2026-09-11"
 ---
+
+> ℹ️ **`last_run` 2026-09-06 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
+> O único toque em `Index.tsx` no [#7224](https://github.com/wagnerra23/oimpresso.com/pull/7224) foi **2 linha(s) de COMENTÁRIO** —
+> o path do protótipo (`prototipo-ui/cowork/…` → `prototipo-ui/cowork/Wagner/…`, topologia por dono da ADR 0397).
+> Zero JSX estrutural, zero handler, zero prop, zero copy alterada (verificado: `git diff origin/main...HEAD -- resources/js/Pages/Cliente/Index.tsx`
+> só tem linhas iniciadas por `//`, `*` ou `{/*`). **Nenhum UC desta tela foi reexecutado nem revalidado**; o bump é o que o campo
+> significa na prática (*trio reconciliado com a tela nesta data*), não afirmação de re-run — mesmo tratamento do #6913.
 
 # Casos de Uso & Aceite — Lista de clientes
 

@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-11**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-14**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -24,7 +24,7 @@ lente: [construir]
 |---|---|---|
 | Arquivos | [BRIEFING](../requisitos/Arquivos/BRIEFING.md) | 2026-08-25 |
 | AssetManagement | [BRIEFING](../requisitos/AssetManagement/BRIEFING.md) | 2026-07-23 |
-| Auditoria | [BRIEFING](../requisitos/Auditoria/BRIEFING.md) | 2026-07-23 |
+| Auditoria | [BRIEFING](../requisitos/Auditoria/BRIEFING.md) | 2026-09-11 |
 | Cms | [BRIEFING](../requisitos/Cms/BRIEFING.md) | 2026-07-23 |
 | Compras | [BRIEFING](../requisitos/Compras/BRIEFING.md) | 2026-08-16 |
 | ComunicacaoVisual | [BRIEFING](../requisitos/ComunicacaoVisual/BRIEFING.md) | 2026-08-12 |
@@ -72,7 +72,7 @@ lente: [construir]
 
 ## Programa SDD (governança)
 
-- Scorecard: **11/13** métricas medidas · floor full-suite = **290**.
+- Scorecard: **11/13** métricas medidas · floor full-suite = **291**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -130,13 +130,13 @@ lente: [construir]
 - espelho — mexeu depois de verificar
 - Governance Gate (índice + memory-health + meta-teste)
 
-### Censo — 143 workflows por classe
+### Censo — 144 workflows por classe
 
 > Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
 
 | Classe | Qtd | Exemplos |
 |---|---|---|
-| gate (bloqueia/valida PR) | 108 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
+| gate (bloqueia/valida PR) | 109 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
 | meta (testa os gates) | 7 | block-brl-values-selftest, devcontainer-firewall, gate-selftest, guards-meta-gate, … |
 | automacao (cron/dispatch) | 24 | agent-cost-per-pr, agent-pr-outcomes, baseline-folga, briefing-code-staleness, … |
 | deploy (entrega) | 2 | deploy, quick-sync |
@@ -145,8 +145,8 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **400** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 358 · superseded: 16 · deprecated: 13 · proposto: 11 · rascunho: 1 · recusado: 1.
+- **403** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 359 · superseded: 18 · deprecated: 13 · proposto: 11 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
@@ -349,14 +349,14 @@ lente: [construir]
 
 ## Rastro
 
-- **518** handoffs · **722** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **520** handoffs · **734** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
-  - `2026-09-10-reanalise-processo-prototipo`
-  - `2026-09-10-memory-schema-gate-mudo`
-  - `2026-09-10-handoff-14-versoes-divergentes`
-  - `2026-09-10-bundle-baseline-frescor`
-  - `2026-09-09-evidencias-fluxos-prototipo`
-  - `2026-09-09-espelho-cowork-live-only-remedido`
+  - `2026-09-13-sidebar-adicionar-empresa-thread03`
+  - `2026-09-13-refutacao-gt-g5-lote-7224-r2`
+  - `2026-09-13-ponto-thread03-a11y-ja-feita`
+  - `2026-09-13-governanca-03a-casos-policies`
+  - `2026-09-13-fiscal-e2e-rede-thread01`
+  - `2026-09-13-ds-atomos-02-kpicard-filter`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-09-11 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-09-14 · deriva das fontes canônicas, não as substitui._

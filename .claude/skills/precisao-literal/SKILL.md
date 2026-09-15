@@ -1,6 +1,6 @@
 ---
 name: precisao-literal
-description: ATIVAR quando user pedir "compare com o protótipo", "avalie precisão", "que % literal", "ficou idêntico?", "compare lado a lado", "nota da paridade", "/precisao-literal <componente>", OU quando já existe `prototipo-ui/prototipos/<X>/` mergeado e Wagner quer saber distância visual/funcional do código atual ao protótipo. Diferente de `mwart-comparative` (PRÉ-implementação, gera draft 15 dim pra aprovar SCREENSHOT) — `precisao-literal` é PÓS-implementação rigorosa: lê código do protótipo + atual em paralelo, classifica peça-a-peça em 5 níveis (EXATO/ALTO/MÉDIO/BAIXO/AUSENTE) com evidência file:line literal, calcula nota ponderada, lista gaps priorizados por esforço×impacto, propõe Wave de fixes opcional. Anti-pattern: NÃO usar pra avaliar gap PROTÓTIPO vs CONCORRENTES (use `capterra-senior`) nem MÓDULO vs ESTADO-DA-ARTE (use `comparativo`). Use SÓ pra atual-em-prod vs protótipo-aprovado.
+description: ATIVAR quando user pedir "compare com o protótipo", "avalie precisão", "que % literal", "ficou idêntico?", "compare lado a lado", "nota da paridade", "/precisao-literal <componente>", OU quando já existe `prototipo-ui/cowork/Wagner/legado/<X>/` mergeado e Wagner quer saber distância visual/funcional do código atual ao protótipo. Diferente de `mwart-comparative` (PRÉ-implementação, gera draft 15 dim pra aprovar SCREENSHOT) — `precisao-literal` é PÓS-implementação rigorosa: lê código do protótipo + atual em paralelo, classifica peça-a-peça em 5 níveis (EXATO/ALTO/MÉDIO/BAIXO/AUSENTE) com evidência file:line literal, calcula nota ponderada, lista gaps priorizados por esforço×impacto, propõe Wave de fixes opcional. Anti-pattern: NÃO usar pra avaliar gap PROTÓTIPO vs CONCORRENTES (use `capterra-senior`) nem MÓDULO vs ESTADO-DA-ARTE (use `comparativo`). Use SÓ pra atual-em-prod vs protótipo-aprovado.
 tier: B
 status: active
 version: 1.0
@@ -41,7 +41,7 @@ Esta skill formaliza o método rigoroso pra reuso em qualquer migração MWART p
 
 - User pergunta nota de paridade pós-merge: "compare com o protótipo", "ficou idêntico?", "que % literal", "avalie precisão", "tá perto do protótipo?"
 - Slash: `/precisao-literal <componente>`
-- Wave de implementação MWART acabou de mergear e existe `prototipo-ui/prototipos/<X>/` aprovado por Wagner
+- Wave de implementação MWART acabou de mergear e existe `prototipo-ui/cowork/Wagner/legado/<X>/` aprovado por Wagner
 
 ## Quando NÃO usar
 
@@ -58,7 +58,7 @@ Mapeia EM PARALELO os arquivos canônicos do protótipo e do código atual:
 
 **Protótipo (referência canônica):**
 ```
-prototipo-ui/prototipos/<X>/
+prototipo-ui/cowork/Wagner/legado/<X>/
   ├── *.html           (entry visual)
   ├── *-data.jsx       (mock dados schema)
   ├── *-icons.jsx      (helpers: masks BR, validators, avatarFor, relDate)
@@ -180,7 +180,7 @@ title: "Precisão literal — <componente> vs protótipo Cowork"
 type: precisao-literal
 date: YYYY-MM-DD
 related_prs: [N, N+1, N+2]
-prototype: prototipo-ui/prototipos/<X>/
+prototype: prototipo-ui/cowork/Wagner/legado/<X>/
 final_score_percent: NN
 status: snapshot
 ---

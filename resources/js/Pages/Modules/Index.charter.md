@@ -2,7 +2,7 @@
 id: resources-js-pages-modules-index-charter
 page: /modulos
 component: resources/js/Pages/Modules/Index.tsx
-related_prototype: prototipo-ui/cowork/modulos-page.jsx
+related_prototype: prototipo-ui/cowork/Wagner/modulos-page.jsx
 related_prototype_nota: '(herda PT-01 Lista + PT-02 Drawer — baixado do Cowork 2026-08-19)'
 owner: wagner
 status: draft
@@ -73,9 +73,9 @@ desativar preservando dados — sem CLI e sem AdminLTE. Escopo global, para supe
 
 ## Contrato visual
 
-Travado por [`prototipo-ui/contrato/modulos.contract.json`](../../../../prototipo-ui/contrato/modulos.contract.json)
+Travado por [`governance/design/contracts/modulos.contract.json`](../../../../governance/design/contracts/modulos.contract.json)
 (ADR 0286), verificado no CI por `contrato-de-tela.mjs` — âncora `data-contract` + **copy literal** +
-ordem. Fonte da copy: `prototipo-ui/cowork/modulos-page.jsx`, a mesma âncora do `related_prototype`.
+ordem. Fonte da copy: `prototipo-ui/cowork/Wagner/modulos-page.jsx`, a mesma âncora do `related_prototype`.
 
 | Seção | Copy travada |
 |---|---|
@@ -149,7 +149,7 @@ R10 toggle/install limpam cache · R11 toast via `->with('status')` → prop `fl
 
 ## Irmãos
 
-`Index.casos.md` (15 UC + 4 `[BACKLOG]`) · `prototipo-ui/contrato/modulos.contract.json` (ADR 0286, MOD-O5) ·
+`Index.casos.md` (15 UC + 4 `[BACKLOG]`) · `governance/design/contracts/modulos.contract.json` (ADR 0286, MOD-O5) ·
 `tests/Feature/Modules/ModuleManagementTest.php` · `tests/Feature/Modules/ModuleManagerServiceTest.php`
 
 > O rascunho [CC] destinava o teste de serviço a `tests/Unit/Services/`. Fica em `tests/Feature/`

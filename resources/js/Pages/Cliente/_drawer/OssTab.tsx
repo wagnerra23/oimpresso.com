@@ -3,7 +3,7 @@
 // Missao: empacotar as 8 sub-tabs operacionais Wave Final 2026-05-21 (PRs #1298-1307) dentro
 // do drawer 760px. Layout: vertical nav 120px + content 640px scrollable (decisao Wave D
 // final — alternativa A do RUNBOOK §4 Wave D, pattern Linear/Notion + protótipo Cowork
-// `prototipo-ui/prototipos/clientes/clientes-tabs.jsx`).
+// `prototipo-ui/cowork/Wagner/legado/clientes/clientes-tabs.jsx`).
 //
 // Restrições Tier 0 (ADR 0093): este wrapper é puramente client-side; multi-tenant
 // continua garantido nos controllers backend que cada sub-tab consome

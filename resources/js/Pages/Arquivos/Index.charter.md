@@ -6,7 +6,7 @@ status: draft
 parent_module: Arquivos
 related_us: [US-ARQ-013]
 related_adrs: [0123-modules-arquivos-backbone, 0093-multi-tenant-isolation-tier-0, 0360-deprecacao-admin-center-supersede-0122]
-related_prototype: prototipo-ui/cowork/arquivos-page.jsx
+related_prototype: prototipo-ui/cowork/Wagner/arquivos-page.jsx
 related_visual_comparison: memory/requisitos/Arquivos/Index-visual-comparison.md
 tier: B
 charter_version: 2
@@ -61,7 +61,7 @@ charter_version: 2
 > _Fato datado — por que o PR-0 não trouxe um stub:_ em 2026-08-24 o stub de 23 linhas foi
 > removido (`c85bfa7`) porque forçaria uma baseline de pixel de placeholder, e baseline é a
 > referência contra a qual todo PR futuro é comparado — uma falsa é pior que nenhuma. A tela
-> nasceu depois, no PR-1, derivada do protótipo `prototipo-ui/cowork/arquivos-page.jsx`
+> nasceu depois, no PR-1, derivada do protótipo `prototipo-ui/cowork/Wagner/arquivos-page.jsx`
 > (4 vistas completas, já no `main`).
 
 ## Mission
@@ -186,7 +186,7 @@ disco. **Não é tela de balcão:** Larissa continua alcançando o anexo pela te
 - ADRs: [0123](../../../../memory/decisions/0123-modules-arquivos-backbone.md) (módulo mãe) ·
   [0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) (multi-tenant Tier 0) ·
   [0360](../../../../memory/decisions/0360-deprecacao-admin-center-supersede-0122.md) (Admin Center deprecado)
-- Contrato de tela: [`prototipo-ui/contrato/arquivos-index.contract.json`](../../../../prototipo-ui/contrato/arquivos-index.contract.json)
+- Contrato de tela: [`governance/design/contracts/arquivos-index.contract.json`](../../../../governance/design/contracts/arquivos-index.contract.json)
   — copy DERIVADA da tela por script (nunca transcrita) e provada presente no alvo.
   O veredito de hoje é do gate, não desta linha: `npm run contrato:check -- <o arquivo>` e
   `npm run contrato:map:check`. _Fatos datados, preservados:_ ele saiu do PR-0 (`d738bdc`)

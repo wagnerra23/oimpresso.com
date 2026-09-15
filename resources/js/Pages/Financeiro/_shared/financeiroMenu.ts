@@ -53,7 +53,7 @@ export function pickFinanceiroEntry(
  * Receber, Categorias, Caixa, Extrato, etc).
  */
 // Ícones por aba (fidelidade proto [W] 2026-07-10 — mandato "zerar diferenças"):
-// espelham o MENU do protótipo (prototipo-ui/cowork/data.jsx:40-55 — cash/receipt/
+// espelham o MENU do protótipo (prototipo-ui/cowork/Wagner/data.jsx:40-55 — cash/receipt/
 // refresh/chart/doc/folder) traduzidos pro nome lucide (opt-in via PageHeaderGhost.icon).
 export const FINANCEIRO_SUBNAV_GHOSTS: PageHeaderGhost[] = [
   { key: 'unificado',         label: 'Financeiro',            href: '/financeiro/unificado',    icon: 'banknote' },

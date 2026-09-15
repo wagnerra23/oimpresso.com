@@ -31,7 +31,7 @@ review_triggers:
 
 R8 da sessão Larissa 2026-05-28: `ContactController@getCustomers` devolve **11 campos** no select (`balance`, `selling_price_group_id`, `pay_term_number/type`, `shipping_address`, `address_line_1/2`, etc). Frontend `CustomerSearchResult` lê **5** (`id`, `text`, `mobile`, `city`, `balance`). Drift silencioso: cliente VIP com grupo ATACADO cobrava preço balcão por 15+ dias até Larissa reportar.
 
-Padrão é **AP-12 endpoint reutilizado sem ler payload** catalogado em [`LICOES_F3_FINANCEIRO_REJEITADO.md`](../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md). Mas catálogo é doc passivo — sem ferramenta detectando, drift volta a cada migração F3.
+Padrão é **AP-12 endpoint reutilizado sem ler payload** catalogado em [`LICOES_F3_FINANCEIRO_REJEITADO.md`](../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md). Mas catálogo é doc passivo — sem ferramenta detectando, drift volta a cada migração F3.
 
 Estado-da-arte 2026 ([dossier session](../sessions/2026-05-28-arte-prevencao-bugs-mwart-larissa.md) Frente 2) elenca 3 caminhos:
 
@@ -134,7 +134,7 @@ Endpoints que NÃO vão por Inertia (chamados via fetch direto do client):
 - ADR 0104 — Processo MWART canônico
 - ADR 0106 — Recalibração velocidade fator 10x IA-pair
 - ADR 0208 — Larastan PHPStan baseline ratchet
-- [`prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) — AP-12 catalogado
+- [`memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) — AP-12 catalogado
 - [Laravel blog — Wayfinder end-to-end type safety](https://laravel.com/blog/laravel-wayfinder-end-to-end-type-safety-for-php-and-typescript)
 - [Hafiz.dev — Wayfinder type-safe routes + forms Inertia](https://hafiz.dev/blog/laravel-wayfinder-type-safe-routes-and-forms-with-inertia)
 - [Spatie — TypeScript transformer with laravel-data](https://spatie.be/docs/laravel-data/v4/advanced-usage/typescript)

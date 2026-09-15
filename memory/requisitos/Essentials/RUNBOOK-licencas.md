@@ -16,11 +16,11 @@ owner: W
 
 > **F1 PLAN do MWART** ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)) para
 > o **PR-9** da onda HRM-O7 do
-> [`PEDIDO-CL-hrm.md`](../../../prototipo-ui/design-docs/cowork-inbox/hrm/PEDIDO-CL-hrm.md).
-> Alvo visual medido: [`EXPORT-HRM-2026-09-04.md`](../../../prototipo-ui/design-docs/cowork-inbox/hrm/EXPORT-HRM-2026-09-04.md) §3.
+> `PEDIDO-CL-hrm.md` (`prototipo-ui/design-docs/cowork-inbox/hrm/PEDIDO-CL-hrm.md`, removido do git em 2026-09-11 · #7224 · ADR 0397).
+> Alvo visual medido: `EXPORT-HRM-2026-09-04.md` (`prototipo-ui/design-docs/cowork-inbox/hrm/EXPORT-HRM-2026-09-04.md`, removido do git em 2026-09-11 · #7224 · ADR 0397) §3.
 >
 > **Escopo desta onda:** a tela de **Licenças**. Presença, Folha e Painel do HRM **não** entram —
-> a [emenda de 2026-09-05 do pedido](../../../prototipo-ui/design-docs/cowork-inbox/hrm/PEDIDO-CL-hrm.md)
+> a `emenda de 2026-09-05 do pedido` (`prototipo-ui/design-docs/cowork-inbox/hrm/PEDIDO-CL-hrm.md`, removido do git em 2026-09-11 · #7224 · ADR 0397)
 > registra que D1 passou a jornada para o `Modules/Ponto` e D2 abriu a folha com encargos como
 > projeto próprio. A mesma emenda diz, com todas as letras, que licença **não** é afetada por
 > D1/D2/D3 — por isso esta onda anda sozinha.
@@ -52,7 +52,7 @@ resources/js/Pages/Essentials/Licencas/
 ├── Index.charter.md                                 # a lei
 └── Index.casos.md                                   # o contrato de UC
 
-prototipo-ui/contrato/essentials-licencas.contract.json   # copy literal + ordem das seções
+governance/design/contracts/essentials-licencas.contract.json   # copy literal + ordem das seções
 e2e/essentials-licencas.spec.ts                           # stub Playwright
 ```
 

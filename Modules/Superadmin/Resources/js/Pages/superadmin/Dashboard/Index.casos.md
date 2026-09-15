@@ -5,10 +5,17 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a única tela do ERP cujas queries são cross-tenant POR DESENHO (ADR 0093 §exceções). Sem casos, a próxima sessão "conserta" isso aplicando escopo de tenant e quebra o produto — ou renderiza número inventado onde não há query.
 owner: wagner
-last_run: "2026-08-21"
+last_run: "2026-09-11"
 revalidacao_2026_08_21: "O `.tsx` mudou: entrou `moduleNav` (o dropdown do menu do módulo ao lado do título) e a prop do subtítulo foi corrigida de `subtitle` para `description` — a errada era descartada pelo React, então o subtítulo NUNCA renderizou nesta tela. As duas são de CABEÇALHO: nenhum UC deste arquivo fala do header, e nenhum muda de veredito. O que muda é o pixel, e a baseline vem regerada no mesmo PR."
 last_run_ci: "_pendente_ — o trio nasce nesta onda (SA-O1). O veredito por UC entra no manifesto quando a lane rodar no CI; até lá o Status é 🧪, nunca ✅."
 ---
+
+> ℹ️ **`last_run` 2026-08-21 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
+> O único toque em `Index.tsx` no [#7224](https://github.com/wagnerra23/oimpresso.com/pull/7224) foi **1 linha(s) de COMENTÁRIO** —
+> o path do protótipo (`prototipo-ui/cowork/…` → `prototipo-ui/cowork/Wagner/…`, topologia por dono da ADR 0397).
+> Zero JSX estrutural, zero handler, zero prop, zero copy alterada (verificado: `git diff origin/main...HEAD -- Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx`
+> só tem linhas iniciadas por `//`, `*` ou `{/*`). **Nenhum UC desta tela foi reexecutado nem revalidado**; o bump é o que o campo
+> significa na prática (*trio reconciliado com a tela nesta data*), não afirmação de re-run — mesmo tratamento do #6913.
 
 # Casos de Uso & Aceite — Superadmin · Visão geral (`/superadmin`)
 

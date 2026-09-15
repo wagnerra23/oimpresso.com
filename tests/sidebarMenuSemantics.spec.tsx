@@ -4,7 +4,7 @@
 // ── Por que este arquivo existe ──────────────────────────────────────────────
 //
 // A thread 01 do playbook SINCRONIZAR Sidebar deu ao protótipo Cowork
-// (`prototipo-ui/cowork/sidebar.jsx`) a semântica de menu nos três papéis abaixo.
+// (`prototipo-ui/cowork/Wagner/sidebar.jsx`) a semântica de menu nos três papéis abaixo.
 // Medido no vivo logado em 2026-09-11 (dark, 2560px), o shell do ERP não tinha
 // NENHUM deles — os seis atributos voltavam `null`, e o dropdown de empresa
 // renderizava `<div>` com `onClick`, que leitor de tela não alcança e teclado
@@ -137,6 +137,61 @@ describe('seletor de empresa — anuncia menu e reflete o estado', () => {
     expect(primeiro).toBeDefined();
     primeiro?.focus();
     expect(document.activeElement).toBe(primeiro);
+  });
+
+  // ── "+ Adicionar empresa": a promessa que o item NÃO pode cumprir ──────
+  //
+  // O item nasceu `role="menuitem"` e SEM handler (medido no main em 2026-09-13):
+  // anunciado como acionável, inerte ao clique — LC-15 no eixo a11y, o mesmo
+  // defeito que o assert de `tagName === 'BUTTON'` acima trava por outra porta.
+  //
+  // O destino EXISTE (`/superadmin/business`, com `create`), mas quem pode abri-lo
+  // é decidido pelo middleware `superadmin`, que compara o `username` contra
+  // `config('constants.administrator_usernames')` — regra que NÃO chega ao front
+  // (`props.auth.can` traz só as 5 chaves do Ponto; `superadminItems` filtra LABELS
+  // de outros módulos, cada um com permissão própria). Sem sinal confiável, navegar
+  // daria 403 pra maioria — o honesto é declarar-se desabilitado COM o motivo.
+  //
+  // Os asserts medem COMPORTAMENTO, não presença (LC-11): o 2º caso é o que separa
+  // `aria-disabled` (focável, tooltip vivo) de `disabled` nativo (nem um, nem outro).
+
+  it('o rodapé não promete o que não pode cumprir — declara-se desabilitado e diz por quê', () => {
+    render(<CompanyPicker businesses={EMPRESAS} fallbackNome="Oimpresso" />);
+    fireEvent.click(screen.getByRole('button', { name: /trocar de empresa/i }));
+
+    const adicionar = screen.getByRole('menuitem', { name: /adicionar empresa/i });
+
+    expect(adicionar.getAttribute('aria-disabled')).toBe('true');
+
+    // "Desabilitado" sem porquê é beco sem saída. Não cravo a FRASE — cravo que ela
+    // diz ONDE a ação vive, pra reescrita de copy não reprovar por estar viva.
+    expect(adicionar.getAttribute('title') ?? '').toMatch(/superadmin/i);
+  });
+
+  it('desabilitado por ARIA, não pelo `disabled` do HTML — segue focável', () => {
+    render(<CompanyPicker businesses={EMPRESAS} fallbackNome="Oimpresso" />);
+    fireEvent.click(screen.getByRole('button', { name: /trocar de empresa/i }));
+
+    const adicionar = screen.getByRole('menuitem', { name: /adicionar empresa/i });
+
+    // `disabled` nativo tiraria o item do foco E suprimiria o tooltip do `title`
+    // no Chrome/Firefox — matando justamente o motivo. O padrão ARIA manda manter
+    // menuitem desabilitado alcançável.
+    expect((adicionar as HTMLButtonElement).disabled).toBe(false);
+
+    adicionar.focus();
+    expect(document.activeElement).toBe(adicionar);
+  });
+
+  it('clicar no item desabilitado é inerte — o menu continua aberto', () => {
+    render(<CompanyPicker businesses={EMPRESAS} fallbackNome="Oimpresso" />);
+    fireEvent.click(screen.getByRole('button', { name: /trocar de empresa/i }));
+
+    fireEvent.click(screen.getByRole('menuitem', { name: /adicionar empresa/i }));
+
+    // Se um dia o item ganhar destino, ESTE assert cai primeiro — e cair aqui é o
+    // sinal de revisar o contrato, nunca de apagar o teste.
+    expect(screen.getByRole('menu')).not.toBeNull();
   });
 });
 

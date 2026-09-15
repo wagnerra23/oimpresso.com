@@ -15,7 +15,7 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  * ── O CONTRATO (derivado do charter e do protótipo, NÃO do código) ───────────
  * `Memoria.charter.md` Goals: *"Editar fato inline … com `activitylog` registrando
  * autor/quando/motivo"*; Anti-hooks: *"⛔ Update direto sem `activitylog` — quebra
- * audit trail LGPD Art. 18"*. O protótipo (`JmMemoria`, prototipo-ui/cowork/jana-merge.jsx)
+ * audit trail LGPD Art. 18"*. O protótipo (`JmMemoria`, prototipo-ui/cowork/Wagner/jana-merge.jsx)
  * diz o mesmo na cara do usuário: *"Toda alteração registra autor e motivo no log de
  * auditoria"*, e desabilita o Salvar sem motivo.
  *

@@ -17,7 +17,7 @@ owner: F
 > **F1 PLAN do MWART** ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)).
 > US-MANU-003 (SPEC.md) — terceira onda da família Fabricação, ordem de custo crescente
 > decidida por [M] 2026-09-02. Fonte visual:
-> `prototipo-ui/cowork/manufacturing-producao.jsx::MfgConfig`.
+> `prototipo-ui/cowork/Wagner/manufacturing-producao.jsx::MfgConfig`.
 >
 > **Primeira tela da família que ESCREVE.** Backend não muda: `SettingsController@store`
 > já existe, já escreve as 3 chaves certas (`ref_no_prefix`, `disable_editing_ingredient_qty`,
@@ -53,7 +53,7 @@ owner: F
 | Casos | `resources/js/Pages/Manufacturing/Settings.casos.md` |
 | Controller (GET novo) | `Modules/Manufacturing/Http/Controllers/SettingsController@indexV2` |
 | Controller (POST reusado) | `Modules/Manufacturing/Http/Controllers/SettingsController@store` (sem mudança) |
-| Fonte de design | `prototipo-ui/cowork/manufacturing-producao.jsx::MfgConfig` |
+| Fonte de design | `prototipo-ui/cowork/Wagner/manufacturing-producao.jsx::MfgConfig` |
 | Teste | `Modules/Manufacturing/Tests/Feature/Wave31SettingsInertiaTest.php` |
 
 ## 3. Smoke prod (R1)

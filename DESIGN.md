@@ -32,7 +32,7 @@
 
 ## 2. Workflow padrão de design (Wagner usa hoje)
 
-**Loop formalizado** em [`prototipo-ui/PROTOCOL.md`](prototipo-ui/PROTOCOL.md) ([ADR 0114](memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md)) — 6 papéis + 7 fases (F0 brief → F1 design → F1.5 critique → F2 screenshot Wagner → F3 code → F3.5 a11y → F4 merge) com gates ratchet automatizados.
+**Loop formalizado** em [`memory/reference/prototipo-ui/PROTOCOL.md`](memory/reference/prototipo-ui/PROTOCOL.md) ([ADR 0114](memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md)) — 6 papéis + 7 fases (F0 brief → F1 design → F1.5 critique → F2 screenshot Wagner → F3 code → F3.5 a11y → F4 merge) com gates ratchet automatizados.
 
 ```
 F0 BRIEF       [W]   pedido em COWORK_NOTES.md
@@ -86,7 +86,7 @@ Wagner é o aprovador final em divergências de padrão. Cliente (WR2 Sistemas /
 
 ## 6. Antes de codificar qualquer tela
 
-1. **Leia a voz visual** [`MANUAL-IDENTIDADE.md`](memory/requisitos/_DesignSystem/MANUAL-IDENTIDADE.md) ("Clareza Confiante") + o SSOT [`INDEX-DESIGN-MEMORIAS.md`](memory/requisitos/_DesignSystem/INDEX-DESIGN-MEMORIAS.md). Layout = composição de primitivos [`@/Components/layout`](resources/js/Components/layout/index.ts) ([ADR 0253](memory/decisions/0253-primitivos-layout.md)). _(O antigo "UI Kit `ui_kits/cowork-2026-04-27/`" foi renomeado pra `_BACKUP-NAO-USAR-` e **REMOVIDO em 2026-08-28** — a fonte de design é `prototipo-ui/cowork/`, origem única.)_
+1. **Leia a voz visual** [`MANUAL-IDENTIDADE.md`](memory/requisitos/_DesignSystem/MANUAL-IDENTIDADE.md) ("Clareza Confiante") + o SSOT [`INDEX-DESIGN-MEMORIAS.md`](memory/requisitos/_DesignSystem/INDEX-DESIGN-MEMORIAS.md). Layout = composição de primitivos [`@/Components/layout`](resources/js/Components/layout/index.ts) ([ADR 0253](memory/decisions/0253-primitivos-layout.md)). _(O antigo "UI Kit `ui_kits/cowork-2026-04-27/`" foi renomeado pra `_BACKUP-NAO-USAR-` e **REMOVIDO em 2026-08-28** — a fonte de design é `prototipo-ui/cowork/Wagner/`, origem única.)_
 2. **Canon visual vivo:** [UI-0018](memory/requisitos/_DesignSystem/adr/ui/0018-canon-visual-vivo-ds-v6-manual-identidade.md) (supersede o zip-cowork UI-0010/0012).
 3. **Leia [ADR 0039](memory/decisions/0039-ui-chat-cockpit-padrao.md)** — define layout-mãe "Chat Cockpit" 3-colunas, dual-tab Chat/Menu, painel direito de Apps Vinculados, atalhos J/K/E/A, Tweaks (vibe/densidade/accentHue).
 4. **Leia o session log mais recente em `memory/sessions/`** — pode ter ajuste de design não refletido no ADR ainda.
@@ -388,6 +388,6 @@ Tests automatizados:
 
 > **2026-08-02 — correção de fato errado (§7 item 9 + §15).** O item 9 ensinava *"sidebar light por padrão"* citando UI-0009/UI-0014: estava **dois saltos atrás** do canon (UI-0019 → **UI-0023** dark-fixo preto, `accepted` 2026-07-16) e era instrução ativa pra regressão. §15 dizia que o `visual-regression` era "INFRA-ONLY" quando o job já é **required**. Só fatos foram corrigidos — o papel do documento (porta × manual técnico) segue como estava, é decisão de [W]. ⚠️ **A data abaixo estava errada**: dizia 2026-05-25, mas o arquivo foi tocado em 2026-07-30 (`git log -1 -- DESIGN.md`).
 >
-> **Última atualização:** 2026-05-25 — patch §2/§7/§9/§15 refletindo evolução pós-2026-05-08: ADR UI-0013 Constituição UI v2 (4 camadas — mãe atual em §7) · ADR 0190 primary roxo universal 295 (§9) · ADR 0114 prototipo-ui/PROTOCOL.md loop formalizado (§2) · ADR 0180/0182/0189 PageHeader canon v3 (§7) · pr-ui-judge.yml ligado (§15 gates CI) · PRE-MERGE-UI.md link canônico (§15). Fecha US-_DESIGNSYSTEM-001 (era redundante — este arquivo já existia).
+> **Última atualização:** 2026-05-25 — patch §2/§7/§9/§15 refletindo evolução pós-2026-05-08: ADR UI-0013 Constituição UI v2 (4 camadas — mãe atual em §7) · ADR 0190 primary roxo universal 295 (§9) · ADR 0114 memory/reference/prototipo-ui/PROTOCOL.md loop formalizado (§2) · ADR 0180/0182/0189 PageHeader canon v3 (§7) · pr-ui-judge.yml ligado (§15 gates CI) · PRE-MERGE-UI.md link canônico (§15). Fecha US-_DESIGNSYSTEM-001 (era redundante — este arquivo já existia).
 > **2026-05-08:** §16 adicionada (Cockpit Pattern V2 ADR 0110 consolidado consultivo). Pages canon vivas: Sells/Index, Sells/Create, SaleSheet, governance/Dashboard, Forja/Board/Index.
 > **Próxima revisão sugerida:** quando US-_DESIGNSYSTEM-002 (`/dev/components` Inertia) e US-INFRA-012 (visual-regression strict mode) fecharem.

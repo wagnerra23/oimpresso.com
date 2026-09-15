@@ -107,7 +107,7 @@ F3.5 A11Y      [CA] → a11y-report.md (WCAG 2.1 AA)
 F4 MERGE       [W2] → PR merge
 ```
 
-Critérios de transição em [PROTOCOL.md §3](../../prototipo-ui/PROTOCOL.md).
+Critérios de transição em [PROTOCOL.md §3](../../memory/reference/prototipo-ui/PROTOCOL.md).
 
 ### Override autorizado
 
@@ -128,7 +128,7 @@ Cada uso vira ADR per-tela `lifecycle: historical`.
 ## Skill `mwart-comparative` V4 (delta vs V3)
 
 3 passos novos:
-- **Passo 0:** ler `prototipo-ui/HANDOFF.md` antes de qualquer coisa
+- **Passo 0:** ler `memory/reference/prototipo-ui/HANDOFF.md` antes de qualquer coisa
 - **Passo 12.5:** gravar critique score em `prototipos/<tela>/critique-score.json`
 - **Passo 24:** append em `SYNC_LOG.md` ao terminar
 
@@ -164,7 +164,7 @@ Cada uso vira ADR per-tela `lifecycle: historical`.
    - [x] Criar `prototipo-ui/` com 13 arquivos
    - [x] ADR 0114 (este)
    - [x] Skill `mwart-comparative` V3 → V4
-   - [x] CLAUDE.md aponta pro `prototipo-ui/PROTOCOL.md`
+   - [x] CLAUDE.md aponta pro `memory/reference/prototipo-ui/PROTOCOL.md`
    - [x] 3 perguntas em `COWORK_NOTES.md` pra Claude Design responder
 
 2. **Próxima sessão:**
@@ -190,8 +190,8 @@ Cada uso vira ADR per-tela `lifecycle: historical`.
 - [ADR 0107 — Visual gate F1.5](0107-emendation-0104-visual-comparison-gate-f3.md)
 - [ADR 0109 — Claude Design plugin integrado](0109-claude-design-plugin-integrado-processo-mwart.md) (emendado por este)
 - [ADR 0110 — Cockpit V2 canon](0110-cockpit-pattern-v2-canon-list-detail.md)
-- [prototipo-ui/PROTOCOL.md](../../prototipo-ui/PROTOCOL.md) — protocolo formal
-- [prototipo-ui/README.md](../../prototipo-ui/README.md) — landing
+- [memory/reference/prototipo-ui/PROTOCOL.md](../../memory/reference/prototipo-ui/PROTOCOL.md) — protocolo formal
+- [memory/reference/prototipo-ui/README.md](../../memory/reference/prototipo-ui/README.md) — landing
 
 ---
 

@@ -16,7 +16,7 @@ related_adrs:
 # RUNBOOK — Conector (API)
 
 > **Tipo:** runbook reproduzível · **F1 PLAN** do MWART ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md))
-> **Fonte de design:** `prototipo-ui/cowork/connector-page.jsx` (22 KB, 4 vistas)
+> **Fonte de design:** `prototipo-ui/cowork/Wagner/connector-page.jsx` (22 KB, 4 vistas)
 > **Validado:** _pendente_ — este RUNBOOK é a F1; F2..F5 ainda não rodaram.
 
 ## Estado final esperado
@@ -94,7 +94,7 @@ Pages/Connector/Index.tsx
   PT-01 Lista — 6 slots canônicos
 ```
 
-Destino no sidebar novo (medido em `prototipo-ui/cowork/data.jsx`): **`SUPERADMIN_MENU`**,
+Destino no sidebar novo (medido em `prototipo-ui/cowork/Wagner/data.jsx`): **`SUPERADMIN_MENU`**,
 item `connector`, label **"Conector (API)"**, com 3 ghosts (`conn-docs`, `conn-saude`,
 `conn-modulo`) — que só existirão quando a capacidade nova de §1 for construída.
 

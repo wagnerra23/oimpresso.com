@@ -1,6 +1,6 @@
 // JanaDrillDrawer — "De onde vem esse número" para as análises do Painel (/ia).
 //
-// Âncora de design: prototipo-ui/cowork/jana-merge.jsx :640 (`JmDrillDrawer`).
+// Âncora de design: prototipo-ui/cowork/Wagner/jana-merge.jsx :640 (`JmDrillDrawer`).
 //
 // ⚠️ DIVERGÊNCIA DELIBERADA vs o protótipo, e é o ponto do componente:
 // o protótipo lista fontes FICTÍCIAS (`AnaliseInadimplenciaService`,

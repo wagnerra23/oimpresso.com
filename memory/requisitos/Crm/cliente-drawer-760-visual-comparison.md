@@ -137,7 +137,7 @@ Migração de paradigma: a tela `/cliente` deixa de abrir `Show.tsx` em rota ded
 
 ## 8. Form fields + inputs BR (máscaras + ViaCEP/BrasilAPI) — 5/100 → 90
 
-**Cowork:** máscaras inline CPF `000.000.000-00`, CNPJ `00.000.000/0000-00`, tel `(00) 0 0000-0000`, CEP `00000-000`; validação mod 11 (CPF/CNPJ) inline error; ViaCEP no blur do CEP autopreenche logradouro/bairro/cidade/UF; BrasilAPI no blur do CNPJ autopreenche razão social; autosave on blur por field; radio canal (whatsapp/email/telefone/presencial); multi-select tags (9 valores).
+**Cowork:** máscaras inline CPF `000.000.000-00`, CNPJ `00.000.000/0000-00`, tel `(00) 0 0000-0000`, CEP `00000-000`; validação mod 11 (CPF/CNPJ) inline error; ViaCEP no blur do CEP autopreenche logradouro/bairro/cidade/UF; BrasilAPI no blur do CNPJ autopreenche razão social; autosave on blur por field; radio canal (whatsapp/email/telefone/presencial); multi-select tags (9 valores). <!-- pii-allowlist: placeholders de máscara/CNPJ-exemplo sintético, não é dado real -->
 **Atual:** ZERO no drawer; existe em `/contacts/{id}/edit` Blade legacy (não medido aqui).
 **Gap:** -85. Tudo novo. **Bloqueador crítico:** `Modules/Crm/Services/BrLookupService.php` + `ClienteLookupController` proxies precisam existir ANTES (Wave C) pra evitar rate limit ViaCEP/BrasilAPI quando Larissa biz=4 cadastra 30/dia.
 **Wave fix:** C (5 tabs cadastrais + Lib/br-mask.ts + Lib/br-validate.ts + BrLookupService + endpoints POST autosave 5 tabs).
@@ -243,7 +243,7 @@ Sobreposto com dim 6; reforça que mudança não é só layout — é semântica
 - [ ] Wagner roda `design:accessibility-review` no atual `resources/js/Pages/Cliente/Index.tsx` (pós-Wave B skeleton drawer 760)
 - [ ] Wagner roda `design:ux-copy` nos microcopy do drawer (8 tabs + 2 CTAs header + 4 IA cards + Auditoria LGPD banner)
 - [ ] Wagner aprova **SCREENSHOT** do drawer 760px aberto em prod biz=1 com as 8 tabs renderizando (gate ADR 0107 — NÃO tabela markdown)
-- [ ] Brave smoke prod biz=1 — `oimpresso.com/cliente` clica linha → drawer abre → troca cada uma das 8 tabs → screenshot salvo em `prototipo-ui/SYNC_LOG.md` (R1 do PROTOCOLO)
+- [ ] Brave smoke prod biz=1 — `oimpresso.com/cliente` clica linha → drawer abre → troca cada uma das 8 tabs → screenshot salvo em `memory/reference/prototipo-ui/SYNC_LOG.md` (R1 do PROTOCOLO)
 - [ ] Atualizar este arquivo trocando `status: draft` → `status: approved` + `approved_by: wagner` + notas REAIS pós-merge Wave G+Z (substituir estimativas calibradas por medições)
 
 ## Telas derivadas que herdam aprovação
@@ -271,8 +271,8 @@ Sobreposto com dim 6; reforça que mudança não é só layout — é semântica
 - Charter `Pages/Cliente/Show.charter.md` v2 (Wave A marca `status: superseded` + `superseded_by: Index.charter.md v3`)
 - RUNBOOK `memory/requisitos/Crm/RUNBOOK-cliente-drawer-760px.md` (Wave A cria)
 - HANDOFF `prototipo-ui/prototipos/clientes/HANDOFF_CLIENTES.md` (spec protótipo 9,4/10 KB-9.75 — schema BR completo)
-- PROTOCOL `prototipo-ui/PROTOCOL.md` (Cowork loop)
-- LICOES `prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md` (6 meta-anti-padrões + 15 técnicos — PRÉ-FLIGHT Wave C-F)
+- PROTOCOL `memory/reference/prototipo-ui/PROTOCOL.md` (Cowork loop)
+- LICOES `memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md` (6 meta-anti-padrões + 15 técnicos — PRÉ-FLIGHT Wave C-F)
 - Dossiê `memory/sessions/2026-05-21-understand-cliente-drawer-760px-opcao-A.md` (decodificação completa wagner-understand)
 - Sessão coord `memory/sessions/2026-05-21-coord-cliente-show-paridade-5waves.md` (contexto 5 PRs Wave 5/Final mergeadas)
 - Pointer-redirect `memory/requisitos/Cliente/show-visual-comparison.md` (apontará pra este após sunset Show)

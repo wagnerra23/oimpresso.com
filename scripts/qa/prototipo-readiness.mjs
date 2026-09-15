@@ -4,7 +4,7 @@
  * prototipo-readiness.mjs — "quais telas de protótipo posso aplicar SEM me preocupar?"
  *
  * Responde a pergunta do Wagner 2026-07-06 de forma DERIVADA DA MÁQUINA (determinístico,
- * zero LLM), aposentando a fila manual `prototipo-ui/TELAS_REVIEW_QUEUE.md` (parada desde
+ * zero LLM), aposentando a fila manual `memory/reference/prototipo-ui/TELAS_REVIEW_QUEUE.md` (parada desde
  * 2026-05-18, anterior ao trio/casos/scorecard — media score visual, não blindagem).
  *
  * "Aplicar sem se preocupar" = aplicar o visual do protótipo Cowork sem risco de quebrar

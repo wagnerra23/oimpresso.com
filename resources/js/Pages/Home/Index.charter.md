@@ -14,7 +14,7 @@ related_runbook: memory/requisitos/Dashboard/RUNBOOK-home-index.md
 related_visual_comparison: memory/requisitos/Dashboard/Index-visual-comparison.md
 related_adrs: [93, 94, 101, 104]
 related_us: [US-DASH-001, US-DASH-004, US-DASH-005, US-DASH-006]
-related_prototype: prototipo-ui/cowork/dash-legacy-page.jsx (Cockpit V2 · PT-04 Dashboard)
+related_prototype: prototipo-ui/cowork/Wagner/dash-legacy-page.jsx (Cockpit V2 · PT-04 Dashboard)
 tier: A
 charter_version: 6
 ---
@@ -191,11 +191,11 @@ Responder **"como foi o período"** numa tela só: o usuário escolhe a janela, 
 ## Contrato visual
 
 > Copy literal + ordem das seções. Verificado em CI por
-> `node scripts/contrato-de-tela.mjs --contract prototipo-ui/contrato/dashboard-visao-geral.contract.json --contract-alvo resources/js/Pages/Home`.
+> `node scripts/contrato-de-tela.mjs --contract governance/design/contracts/dashboard-visao-geral.contract.json --contract-alvo resources/js/Pages/Home`.
 > Mudar qualquer string abaixo **quebra o gate de propósito** — copy de tela é decisão, não detalhe.
 >
 > **Derivado da ÂNCORA**, não da tela: cada string abaixo foi medida em
-> `prototipo-ui/cowork/dash-legacy-page.jsx` (render servido localmente + sonda no DOM,
+> `prototipo-ui/cowork/Wagner/dash-legacy-page.jsx` (render servido localmente + sonda no DOM,
 > 2026-08-28). O RUNBOOK §3 manda que o contrato não seja escrito por quem é julgado por ele —
 > por isso a fonte é o protótipo, e a ratificação é de [W] no merge.
 

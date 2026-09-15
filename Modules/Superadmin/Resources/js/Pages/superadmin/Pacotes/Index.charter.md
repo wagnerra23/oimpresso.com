@@ -2,7 +2,7 @@
 id: modules-superadmin-pages-superadmin-pacotes-index-charter
 page: /superadmin/packages
 component: Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.tsx
-related_prototype: prototipo-ui/cowork/superadmin-page.jsx
+related_prototype: prototipo-ui/cowork/Wagner/superadmin-page.jsx
 owner: wagner
 status: draft
 last_validated: "2026-08-20"
@@ -90,7 +90,7 @@ O que a tela entrega **hoje**:
 
 ## Contrato visual
 
-Travado por `prototipo-ui/contrato/superadmin-pacotes.contract.json` (gate `contrato-de-tela`),
+Travado por `governance/design/contracts/superadmin-pacotes.contract.json` (gate `contrato-de-tela`),
 com âncoras `data-contract` no `.tsx`. A copy literal e a ordem das seções são de lá — esta
 seção **aponta**, não repete.
 
@@ -110,5 +110,5 @@ seção **aponta**, não repete.
 
 - Casos: [Index.casos.md](Index.casos.md)
 - RUNBOOK: [RUNBOOK-pacotes.md](../../../../../../../memory/requisitos/Superadmin/RUNBOOK-pacotes.md)
-- Protótipo: `prototipo-ui/cowork/superadmin-page.jsx` → `ViewPacotes()` (L1176)
+- Protótipo: `prototipo-ui/cowork/Wagner/superadmin-page.jsx` → `ViewPacotes()` (L1176)
 - Irmãos: [Assinaturas](../Assinaturas/Index.charter.md) · [Negócios](../Negocios/Index.charter.md)

@@ -2,7 +2,7 @@
 id: resources-js-pages-cliente-ledger-charter
 page: /contacts/ledger
 component: resources/js/Pages/Cliente/Ledger.tsx
-related_prototype: prototipo-ui/cowork/cliente-extrato.jsx
+related_prototype: prototipo-ui/cowork/Wagner/cliente-extrato.jsx
 owner: wagner
 status: live
 last_validated: "2026-06-24"
@@ -11,7 +11,7 @@ related_adrs: [110, 107, 93, 94, 104, 149]
 tier: A
 charter_version: 1
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/cowork/clientes-page.jsx"
+  blueprint_cowork: "prototipo-ui/cowork/Wagner/clientes-page.jsx"
   blueprint_screenshot_approval: "N/A (divergente)"
   derived_screens: [Ledger]
   divergence_from_blueprint: "tabela financeira densa diferente do Index card layout"

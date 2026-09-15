@@ -1,6 +1,6 @@
 // Fidelidade protótipo↔componente — a pílula de STATUS canoniza em <Badge variant="…">
 // (@/Components/ui/badge) e não pode divergir do `.cli-status-pill` do protótipo Cowork
-// (prototipo-ui/cowork/clientes-page.css) NEM regredir o contrato dark-aware.
+// (prototipo-ui/cowork/Wagner/clientes-page.css) NEM regredir o contrato dark-aware.
 //
 // CAUSA que este teste fecha (mesmo vetor do tab-nav 2026-07): a cor de status ser
 // hand-rolada em palette CRU quebra o dark sem alarme. O corolário de cor da ADR

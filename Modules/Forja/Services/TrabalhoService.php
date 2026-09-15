@@ -84,7 +84,7 @@ class TrabalhoService
 
     /**
      * Agrupamentos da Lista — os SEIS do protótipo (`FJ_GROUPS` em
-     * `prototipo-ui/cowork/forja-page.jsx`), na mesma ordem. PARIDADE §11 Onda 4.
+     * `prototipo-ui/cowork/Wagner/forja-page.jsx`), na mesma ordem. PARIDADE §11 Onda 4.
      *
      * Nenhum deles toca a consulta: agrupar é como se OLHA a mesma lista. Viajam
      * na query string pelo mesmo motivo de `visao`/`eixo` — compartilhar o link

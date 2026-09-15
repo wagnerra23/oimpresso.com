@@ -2,7 +2,7 @@
 id: resources-js-pages-essentials-todo-index-charter
 page: /essentials/todo
 component: resources/js/Pages/Essentials/Todo/Index.tsx
-related_prototype: prototipo-ui/cowork/essenciais-page.jsx#Tarefas (:33-231)
+related_prototype: prototipo-ui/cowork/Wagner/essenciais-page.jsx#Tarefas (:33-231)
 bundle_source: essenciais-page.jsx
 owner: wagner
 status: draft
@@ -22,7 +22,7 @@ charter_version: 1
 >
 > **Correção de `related_prototype` (2026-09-09).** Este campo dizia `n/a (herda PT-01 Lista)`
 > — a decisão estava **vencida**: o `essenciais-page.jsx` desceu para o espelho e é carregado
-> pelo shell canônico `prototipo-ui/cowork/oimpresso.com.html` (medido: `grep -oE '(src|href)="[^"]+"'`
+> pelo shell canônico `prototipo-ui/cowork/Wagner/oimpresso.com.html` (medido: `grep -oE '(src|href)="[^"]+"'`
 > lista `essenciais-page.jsx`, `essenciais-page.css`, `essenciais-data.jsx`, `essenciais-extras.jsx`).
 > A tela **tem** fonte visual, e a região dela é `Tarefas` (`:33-231`). O `bundle_source` já
 > apontava para o mesmo arquivo — os dois campos estavam se contradizendo dentro do mesmo

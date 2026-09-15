@@ -5,7 +5,7 @@
 //   module: Forja
 //   adrs: 0388 (réplica primeiro) · 0282 (protocolo v2) · UI-0013 · UI-0029 (protótipo soberano na FORMA)
 //   permissao: herda a da tela (jana.mcp.usage.all)
-//   paridade: forma de `prototipo-ui/cowork/forja-runbook.jsx` (fonte visual)
+//   paridade: forma de `prototipo-ui/cowork/Wagner/forja-runbook.jsx` (fonte visual)
 //   dado: NENHUM — deriva de `trabalhoTokens.ts` (PAPEIS, FASE_HUE), zero query
 //
 // ── POR QUE O CONTEÚDO NÃO É CÓPIA DO PROTÓTIPO ────────────────────────────

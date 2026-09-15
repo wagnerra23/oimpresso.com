@@ -1,7 +1,7 @@
 ---
 id: requisitos-governance-dashboard-gap
 tela: governance/Dashboard (/governance/dashboard)
-prototipo: prototipo-ui/cowork/governance-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/governance-page.jsx
 tela_viva: resources/js/Pages/governance/Dashboard.tsx
 gerado_em: 2026-09-06
 ---
@@ -45,7 +45,7 @@ gerado_em: 2026-09-06
 - `grep -nEi 'ARTIGOS|Art\. [0-9]+ |pleno|parcial' resources/js/Pages/governance/Dashboard.tsx` → 1 (só `:748`, prosa da descrição do header — não é lista por artigo)
 - `grep -nEi 'auto-declarad|declarado' resources/js/Pages/governance/Dashboard.tsx` → 1 (só `:81`, comentário de código — não é selo na UI)
 - `grep -nEi 'no-perm|Esta seção pede' resources/js/Pages/governance/Dashboard.tsx` → 0
-- `grep -nEi 'ActionGate|modo aviso' prototipo-ui/cowork/governance-page.jsx` → 2 (`:98` prosa da régua, `:325` sub de KPI da vista Políticas — nenhum é badge de modo; sustenta "vivo à frente" do header)
-- `grep -cEi 'Atalhos|Documentos canônicos|Trust Tiers' prototipo-ui/cowork/governance-page.jsx` → 0 (ausência no mockup)
-- `grep -cEi 'custom|De.*Até|type="date"' prototipo-ui/cowork/governance-page.jsx` → 0 (ausência no mockup — intervalo custom da seção MCP)
-- `grep -cEi 'ver todos|drill-down|histórico →' prototipo-ui/cowork/governance-page.jsx` → 0 (ausência no mockup — links das 3 listas)
+- `grep -nEi 'ActionGate|modo aviso' prototipo-ui/cowork/Wagner/governance-page.jsx` → 2 (`:98` prosa da régua, `:325` sub de KPI da vista Políticas — nenhum é badge de modo; sustenta "vivo à frente" do header)
+- `grep -cEi 'Atalhos|Documentos canônicos|Trust Tiers' prototipo-ui/cowork/Wagner/governance-page.jsx` → 0 (ausência no mockup)
+- `grep -cEi 'custom|De.*Até|type="date"' prototipo-ui/cowork/Wagner/governance-page.jsx` → 0 (ausência no mockup — intervalo custom da seção MCP)
+- `grep -cEi 'ver todos|drill-down|histórico →' prototipo-ui/cowork/Wagner/governance-page.jsx` → 0 (ausência no mockup — links das 3 listas)

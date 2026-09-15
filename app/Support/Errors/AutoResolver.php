@@ -29,8 +29,8 @@ use Throwable;
  * NUNCA lança em caminho de métrica/promoção — um resolvedor que quebra agrava o
  * próprio erro que tentava absorver.
  *
- * @see prototipo-ui/handoffs/erros-autoresolucao.md
- * @see prototipo-ui/handoffs/erros-fase1-classificacao.md
+ * @see prototipo-ui/cowork/Wagner/handoffs/erros-autoresolucao.md
+ * @see prototipo-ui/cowork/Wagner/handoffs/erros-fase1-classificacao.md
  */
 final class AutoResolver
 {

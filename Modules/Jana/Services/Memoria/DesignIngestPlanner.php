@@ -45,8 +45,17 @@ final class DesignIngestPlanner
                 $glob = (string) ($r['glob'] ?? '');
                 if ($glob !== '' && fnmatch($glob, $base)) {
                     $dest = (string) ($r['to'] ?? '');
-                    // destino diretório (termina em /) → preserva o nome do arquivo
-                    $to = str_ends_with($dest, '/') ? $dest . $base : $dest;
+                    // Destino diretório (termina em /) → preserva o CAMINHO RELATIVO, não só o
+                    // nome. Até 2026-09-13 era `$dest . $base`, e isso ACHATAVA a árvore: o
+                    // pacote de 2026-09-11 tem 338 `.md` em 267 basenames distintos, ou seja
+                    // 20 nomes colidem — `Index.casos.md` 19×, `Index.charter.md` 17×,
+                    // `00-INDICE.md` 13×. 71 arquivos se sobrescreveriam em silêncio, e o plano
+                    // emitido seria errado por construção. Para arquivo da RAIZ do pacote — o
+                    // build flat do Cowork, que é a maioria — `$f === $base` e nada muda.
+                    // Contrato do espelho: ADR 0398 D1 (a árvore da conta é preservada).
+                    // O glob segue casando contra o BASENAME, que é como o map está escrito
+                    // (`vendas-*.jsx`); só o destino deixou de perder o caminho.
+                    $to = str_ends_with($dest, '/') ? $dest . ltrim($f, '/') : $dest;
                     break;
                 }
             }
@@ -191,7 +200,7 @@ final class DesignIngestPlanner
         }
 
         return "# PLANO-MUDANCAS — {$tela}\n\n"
-            . "> **STATUS: PROPOSTA — nada aplicado.** Aplicar = mover os arquivos roteados pra `prototipo-ui/prototipos/{$tela}/` via PR (gate Wagner/CT100).\n\n"
+            . "> **STATUS: PROPOSTA — nada aplicado.** Aplicar = mover os arquivos roteados pra `prototipo-ui/cowork/Wagner/legado/{$tela}/` via PR (gate Wagner/CT100).\n\n"
             . "## Mudanças por arquivo (vs tela commitada)\n\n{$tabela}\n\n"
             . "## Arquivos extras (não-autorizados no map)\n\n{$extrasBloco}\n\n"
             . "## Roteamento (map → destino)\n\n"
