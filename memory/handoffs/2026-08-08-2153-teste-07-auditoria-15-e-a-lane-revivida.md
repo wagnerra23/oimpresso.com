@@ -58,7 +58,7 @@ Rodei a sessão de verdade (pré-flight STATUS + NÚCLEO + `LICOES_CC` → audit
 ## Próximos passos pra retomar
 
 ```
-git fetch origin main && node prototipo-ui/integrity-check.mjs && npm run handoff:check
+git fetch origin main && node scripts/design/integrity-check.mjs && npm run handoff:check
 ```
 
 O `integrity-check` deve sair **0**; o `handoff:check` sai **1** de propósito — são os 3 órfãos do IT8 esperando decisão [W]/[CL]. **Não** rodar `handoff:baseline:write` (§5 barra: congelaria true-positive).

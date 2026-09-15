@@ -35,22 +35,6 @@
       ]
     },
     {
-      "tela": "Forja/Aprovacoes/Index",
-      "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/forja-page.jsx",
-      "falta": [
-        "scorecard"
-      ]
-    },
-    {
-      "tela": "Forja/Trabalho/Index",
-      "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/forja-page.jsx",
-      "falta": [
-        "scorecard"
-      ]
-    },
-    {
       "tela": "Jana/Index",
       "status": "1-ciclo",
       "prototipo": "prototipo-ui/cowork/jana-merge.jsx",
@@ -64,14 +48,6 @@
       "prototipo": "prototipo-ui/cowork/kb-page.jsx",
       "falta": [
         "scorecard"
-      ]
-    },
-    {
-      "tela": "Produto/Unificado/Index",
-      "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/prototipo-ui-patch/prototipos/produto/produto-app.jsx (formalizado 2026-08-10 — o corpo do charter já declarava \"criado a partir de produto-app.jsx\"; o frontmatter dizia n/a e deixava ancora.mjs sem âncora. Segue PT-01 Lista nos 6 slots.)",
-      "falta": [
-        "casos.md-com-UC"
       ]
     },
     {
@@ -89,23 +65,7 @@
       "falta": [
         "scorecard"
       ]
-    },
-    {
-      "tela": "Settings/PaymentGateways/Index",
-      "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/pg-payment-gateways-page.jsx (Cowork \"payment-gateway-ui\" F1+F1.5, aprovado [W] 2026-05-19)",
-      "falta": [
-        "casos.md-com-UC"
-      ]
-    },
-    {
-      "tela": "team-mcp/Forja/Cockpit",
-      "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/forja-page.jsx",
-      "falta": [
-        "scorecard"
-      ]
     }
   ],
-  "total": 20
+  "total": 15
 }

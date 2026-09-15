@@ -23,7 +23,7 @@ Wagner mandou **"importa esse zip do protótipo"** (bundle Cowork ComVis, handof
 
 ## Artefatos gerados
 - **PRs:** #3431, #3432, #3433 (merged) · #3446 (OPEN — correção do mis-anchor).
-- **Máquinas:** `prototipo-ui/detectar-telas.mjs` + `ancora.mjs` leem `bundle_source`+`visual_source` (+ refactor `_lib-charter.mjs` veio de outra sessão no main).
+- **Máquinas:** `scripts/design/detectar-telas.mjs` + `ancora.mjs` leem `bundle_source`+`visual_source` (+ refactor `_lib-charter.mjs` veio de outra sessão no main).
 - **Charters:** `Os/Create` deprecated · `ServiceOrders/Show`+`Board` ganharam `visual_source`+`related_us` · `Repair/ProducaoOficina` mis-anchor removido + `related_us` real.
 - **prod-flags.json:** `ServiceOrders/Show`+`Board` live biz=164 (Martinho).
 - **Inventário:** [`RECONCILIACAO-os-inventario.md`](../requisitos/OficinaAuto/RECONCILIACAO-os-inventario.md) (com ERRATA no topo) + `kanban-producao-gap.md` + `os-drawer-build-map.md`.

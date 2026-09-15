@@ -15,7 +15,7 @@
 //
 // Golden de referência: resources/js/Pages/governance/Dashboard.tsx
 //
-// ÂNCORA DE DESIGN — resolva com `node prototipo-ui/ancora.mjs Jana/Index`, nunca
+// ÂNCORA DE DESIGN — resolva com `node scripts/design/ancora.mjs Jana/Index`, nunca
 // no olho. Ela é `prototipo-ui/cowork/jana-merge.jsx` (declarada em
 // Index.charter.md `related_prototype`). Este bloco dizia `chat-jana.jsx`, o que
 // contradiz o charter e a porta viva. O `chat-jana` NÃO é a âncora — mas é onde

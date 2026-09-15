@@ -118,7 +118,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   só veste de `<code>` o que contém `::`. A fonte vem lida do código real
   (`app/Services/Sells/SellsCockpitAggregator.php`). Mexeu no aggregator, mexe no
   `JANA_DRILL_FONTES` **e na tabela da âncora** no mesmo PR.
-  _Guard: `prototipo-ui/ancora.mjs` acusa símbolo de backend citado na âncora que não exista no
+  _Guard: `scripts/design/ancora.mjs` acusa símbolo de backend citado na âncora que não exista no
   repo — e desde 2026-08-13 enxerga também o formato `Classe::metodo` (antes ficava cego nele)._
 - ⛔ **Prometer no botão do drawer o que a rota não entrega.** `ChatController@novaConversa` não
   aceita pergunta inicial e `Chat.tsx` não lê query param (medido 2026-08-07) — por isso o CTA diz

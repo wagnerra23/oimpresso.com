@@ -19,8 +19,8 @@
 |---|---|---|---|---|
 | Método (raiz) | `prototipo-ui/PROCESSO_MEMORIA_CC.md` | 2 (canon) | bundle, **verbatim** (24.500 B) | ✅ landeado |
 | Lições | `memory/LICOES_CC.md` | 2 (canon) | bundle, **verbatim** (L-01..L-25, 36.661 B) | ✅ landeado |
-| DS-GUARD (§8) | `prototipo-ui/ds-guard.mjs` | — (ferramenta) | **implementado** do §8 (lógica verbatim) | ✅ rodável |
-| Integridade (§15) | `prototipo-ui/integrity-check.mjs` | — (ferramenta) | **implementado** do §15 (IT1–IT7) | ✅ rodável |
+| DS-GUARD (§8) | `scripts/design/ds-guard.mjs` | — (ferramenta) | **implementado** do §8 (lógica verbatim) | ✅ rodável |
+| Integridade (§15) | `scripts/design/integrity-check.mjs` | — (ferramenta) | **implementado** do §15 (IT1–IT7) | ✅ rodável |
 | Espinha | `prototipo-ui/STATUS.md` | **1 (só Cowork)** | bundle, **snapshot read-only** | ⚠️ ver abaixo |
 | Espinha | `prototipo-ui/MEMORY_INDEX.md` | **1 (só Cowork)** | bundle, **snapshot read-only** | ⚠️ ver abaixo |
 
@@ -33,8 +33,8 @@ A §14 marca a espinha como **"— (só Cowork)"**: a fonte viva é o Cowork. Es
 - ✅ **`CLAUDE.md` (raiz)**: passo **4b always-read aplicado** (Opção A) — [W] autorizou explicitamente nesta sessão; entrou no mesmo commit. Tier-0/[W]-only respeitado (autorização registrada). Bloco em `_PROPOSTA-always-read-PROCESSO-MEMORIA.md` mantido como registro (trilha L-22).
 
 ## Verificação (rodada nesta sessão)
-- `node prototipo-ui/integrity-check.mjs` → **IT1–IT7 PASS** (estrutura sã). IT4 = L-01..L-25 contíguo.
-- `node prototipo-ui/ds-guard.mjs --all` → relatório de dívida flaga 4 (compras `--cmp-*(18)` + 3 telas-na-raiz) e passa `oficina-page.css` → **reproduz o TESTE-06** ("separou meu trabalho bom do ruim").
+- `node scripts/design/integrity-check.mjs` → **IT1–IT7 PASS** (estrutura sã). IT4 = L-01..L-25 contíguo.
+- `node scripts/design/ds-guard.mjs --all` → relatório de dívida flaga 4 (compras `--cmp-*(18)` + 3 telas-na-raiz) e passa `oficina-page.css` → **reproduz o TESTE-06** ("separou meu trabalho bom do ruim").
 
 ## NÃO landeado (adjacente — disponível pra "Wave 2" se [W] quiser)
 Estavam no bundle mas ficam **fora do escopo "process install"** (seriam "full sync"). Caminhos no bundle (`project/`):

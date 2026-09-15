@@ -293,7 +293,7 @@ O processo sobrevive só enquanto for **lido, medido e auto-corrigido**. Invaria
 
 > Diferente da Bateria (§9, valida uma *evolução*): aqui valida que a **própria memória** não corrompeu. Rodar no fim de sessão / antes de formalizar.
 >
-> **Rodar:** IT1–IT7 = `node prototipo-ui/integrity-check.mjs` · IT8 = `npm run handoff:check`.
+> **Rodar:** IT1–IT7 = `node scripts/design/integrity-check.mjs` · IT8 = `npm run handoff:check`.
 >
 > ⚠️ **Esta tabela diz O QUE cada IT verifica — nunca quão duro ele é, nem com que limiar.** O dono de "duro × advisory" é o próprio script (a flag `hard` de cada `add()` em `integrity-check.mjs`); quem precisa do nível **lê lá, não aqui**. Motivo medido (2026-08-08): a linha do IT2 dizia "advisory" e apodreceu **no mesmo dia** em que o [#4037](https://github.com/wagnerra23/oimpresso.com/pull/4037) a promoveu a DURO — e seguiu 30 dias mentindo. A única linha que **não** apodreceu foi a do IT8: a única que aponta pro dono em vez de restatear. Ver §5.
 

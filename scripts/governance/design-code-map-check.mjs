@@ -3,7 +3,7 @@
 /**
  * design-code-map-check.mjs — sentinela da ponte design↔código PERSISTENTE (<tela>.map.json).
  *
- * Contraparte de verificação do gerador `prototipo-ui/gerar-map.mjs` (mesma separação
+ * Contraparte de verificação do gerador `scripts/design/gerar-map.mjs` (mesma separação
  * gerar-contrato.mjs × contrato-de-tela.mjs --contract: um DERIVA o esqueleto, o outro VALIDA
  * o artefato preenchido). Sem esta sentinela o `<tela>.map.json` é só um JSON solto que ninguém
  * garante que continua batendo com o disco (RUNBOOK-aplicar-prototipo-orquestracao.md, Fase 1 —
@@ -60,7 +60,7 @@ import { readdir } from 'node:fs/promises';
 import { join, resolve, relative, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { raizesDePages } from '../qa/page-path.mjs';
-import { shaAtualPara, shaIndeterminado } from '../../prototipo-ui/gerar-map.mjs';
+import { shaAtualPara, shaIndeterminado } from '../../scripts/design/gerar-map.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
@@ -223,7 +223,7 @@ async function main() {
   const ancoraveis = totalEstaveis + totalLinhaOnly;
   console.log(`âncora estável (data-contract no vivo): ${totalEstaveis}/${ancoraveis} parte(s) com vivo.arquivo real${totalLinhaOnly ? ` — ${totalLinhaOnly} linha-only (frágil: refactor desloca linhas em silêncio; ancore com data-contract="<id>" + vivo.ancora: true)` : ''}`);
   if (cov.semMap.length) {
-    console.log(`\ngap.md SEM map.json correspondente (candidatos a 'node prototipo-ui/gerar-map.mjs <gap.md>'):`);
+    console.log(`\ngap.md SEM map.json correspondente (candidatos a 'node scripts/design/gerar-map.mjs <gap.md>'):`);
     for (const g of cov.semMap) console.log(`  - ${g}`);
   }
 

@@ -63,7 +63,7 @@ Junto, dois falso-positivos meus barrados por consultar o dono da verdade: `brie
 ## Próximos passos pra retomar
 
 ```
-brief-fetch && node prototipo-ui/integrity-check.mjs && gh pr view 5433 --json mergedAt
+brief-fetch && node scripts/design/integrity-check.mjs && gh pr view 5433 --json mergedAt
 ```
 
 ## Lições catalogadas

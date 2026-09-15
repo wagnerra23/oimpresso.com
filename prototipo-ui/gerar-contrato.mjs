@@ -17,8 +17,8 @@
 // duplicar o anchor-check).
 //
 // Uso:
-//   node prototipo-ui/gerar-contrato.mjs <gap.md|Mod/Tela>   # emite o esqueleto JSON (stdout)
-//   node prototipo-ui/gerar-contrato.mjs --selftest           # fixture hermético
+//   node scripts/design/gerar-contrato.mjs <gap.md|Mod/Tela>   # emite o esqueleto JSON (stdout)
+//   node scripts/design/gerar-contrato.mjs --selftest           # fixture hermético
 //
 // Exit: 0 = ok | 1 = gap.md não-parseável | 2 = uso
 
@@ -147,7 +147,7 @@ if (invokedDirectly) {
   if (argv.includes('--selftest')) selftest();
   else {
     const gapArg = argv.find((a) => !a.startsWith('--'));
-    if (!gapArg) { console.error('uso: node prototipo-ui/gerar-contrato.mjs <gap.md|Mod/Tela> | --selftest'); process.exit(2); }
+    if (!gapArg) { console.error('uso: node scripts/design/gerar-contrato.mjs <gap.md|Mod/Tela> | --selftest'); process.exit(2); }
     const gapPath = resolveGap(gapArg);
     if (!gapPath) { console.error(`gap.md não encontrado pra: ${gapArg}`); process.exit(1); }
     const g = gerar(gapPath);

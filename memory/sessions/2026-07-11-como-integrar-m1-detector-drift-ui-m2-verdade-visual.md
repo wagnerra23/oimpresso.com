@@ -35,10 +35,10 @@
 
 | Peça existente | Arquivo | Cobre a intenção? | Cobertura |
 |---|---|---|---|
-| `design-diff.mjs` (ADR 0299) | `prototipo-ui/design-diff.mjs` | **SIM — É a M2.** Diff MEDIDO computed-style prod×design, split probe(browser)+compare(node), dims D2/D4/D6/D8, determinístico+testável (`--selftest`) | engine pronto; disparo é agente-driven (skill `comparar-design-prod`) |
+| `design-diff.mjs` (ADR 0299) | `scripts/design/design-diff.mjs` | **SIM — É a M2.** Diff MEDIDO computed-style prod×design, split probe(browser)+compare(node), dims D2/D4/D6/D8, determinístico+testável (`--selftest`) | engine pronto; disparo é agente-driven (skill `comparar-design-prod`) |
 | `screen-smoke-after-merge.yml` | workflow | Smoke visual REAL pós-deploy (Playwright+OpenAI vision) | automação pós-deploy, não per-PR |
 | `visual-regression.yml` (Pest 4 Browser) | workflow required | Regressão pixel vs baseline própria — NÃO compara com o .jsx Cowork | required |
-| `ancora.mjs` | `prototipo-ui/ancora.mjs` | Resolve o .jsx legítimo da tela (`--list --json`), nega print de auditoria | — |
+| `ancora.mjs` | `scripts/design/ancora.mjs` | Resolve o .jsx legítimo da tela (`--list --json`), nega print de auditoria | — |
 
 **M2 não tem gap de engine.** O gap é operacional: quais ~11 telas bespoke, quando disparar, e o olho do Wagner como juiz final (isso é intencional, não automatizável).
 
@@ -88,7 +88,7 @@ Observação (sem pegadinha documentada, mas atenção): o diff-base num PR não
 | Peça | Arquivo:linha | Ação (REUSO, não reescrita) |
 |---|---|---|
 | Leitor de frontmatter escalar | `scripts/governance/reconcile-triplet.mjs:68` (`fmScalar`) + `:306` (lê `divergence_from_blueprint`) | Extrair p/ `lib/` ou importar — NÃO reimplementar parser YAML |
-| Resolvedor de protótipo legítimo | `prototipo-ui/ancora.mjs:174` (`--list --json`) + `resolveAncora` | Consumir p/ saber o `related_prototype` de cada tela (P-D) |
+| Resolvedor de protótipo legítimo | `scripts/design/ancora.mjs:174` (`--list --json`) + `resolveAncora` | Consumir p/ saber o `related_prototype` de cada tela (P-D) |
 | Padrão diff-triggered "tsx tocado→irmão tocado?" | `.github/workflows/design-return-gate.yml:47-64` (git diff, filtra Pages/**/*.tsx, checa irmão) | **Espelhar a forma**, trocar eixo: irmão = campo de autorização do charter, não SYNC_LOG. Rodar em `pull_request` (não pós-merge) via `merge-base` |
 | Registro do gate | `scripts/governance/gates-registry.json:workflows` | Adicionar entrada: `terminal: advisory` + `anchor` (dor Wagner + ADR 0336) + `promote_by` (≤14d) — senão memory-health falha (P-E) |
 | Selftest bite/release | `scripts/governance/*.test.mjs` + `governance-script-tests.yml` | Fixture: (a) .tsx muda + `divergence_from_blueprint` novo → SOLTA; (b) .tsx muda + zero sinal → MORDE (ADR 0256 anti-fantasma) |
@@ -100,7 +100,7 @@ Observação (sem pegadinha documentada, mas atenção): o diff-base num PR não
 
 | Peça | Arquivo | Ação |
 |---|---|---|
-| Engine M2 | `prototipo-ui/design-diff.mjs` (pronto) | Nenhuma — já existe |
+| Engine M2 | `scripts/design/design-diff.mjs` (pronto) | Nenhuma — já existe |
 | Lista de telas bespoke | `ancora.mjs --list` → 11 charters com `related_prototype` .jsx/.html real | Wire: skill/checklist que roda `design-diff --probe`→Chrome MCP→`--compare --check` nessas 11 |
 | Disparo | skill `comparar-design-prod` (PROTOCOLO-COMPARACAO-RUNTIME D1-D8) | Já dirige. Gap = quando/quais. Não é engine, é operação. Juiz final = olho do Wagner (intencional) |
 

@@ -10,7 +10,7 @@ prs: [3957]
 
 > **Tipo:** estado-da-arte (pesquisa + nota + roadmap). **NÃO é fix de código.** O sweep de cor que a máquina achou tem chip próprio (`task_73b3a834`).
 > **Data:** 2026-07-08. **Base lida:** `origin/main` fresco (checkout local estava −4909; canon lido via `git show origin/main:`).
-> **Fontes do NOSSO:** [`prototipo-ui/style-fingerprint.mjs`](../../prototipo-ui/style-fingerprint.mjs) (selftest 18/18) + handoff [2026-07-08-1044](../handoffs/2026-07-08-1044-financeiro-fidelidade-fingerprint-furos.md) + session [2026-07-08 fidelidade](2026-07-08-financeiro-fidelidade-fingerprint-protocolo.md).
+> **Fontes do NOSSO:** [`scripts/design/style-fingerprint.mjs`](../../scripts/design/style-fingerprint.mjs) (selftest 18/18) + handoff [2026-07-08-1044](../handoffs/2026-07-08-1044-financeiro-fidelidade-fingerprint-furos.md) + session [2026-07-08 fidelidade](2026-07-08-financeiro-fidelidade-fingerprint-protocolo.md).
 > **Companion:** este doc é o benchmark; a narrativa de como o fingerprint virou mecanismo está na session acima. 1 tema = 1 doc (não dupliquei).
 
 ---

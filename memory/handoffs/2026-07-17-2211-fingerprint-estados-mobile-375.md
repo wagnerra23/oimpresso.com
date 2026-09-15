@@ -30,8 +30,8 @@ Execução do **chip C-F2** (grade design→código 2026-07-17, nota ~7,7 do eix
 
 ## Artefatos gerados
 
-- `prototipo-ui/style-fingerprint.mjs` (+76): `compararEstados`/`diffEstadosPar` + wire no `comparar()` + família 'estado' no `veredictoNL` + 5 asserts herméticos.
-- `prototipo-ui/fingerprint-harness.mjs` (+146): `capturarEstados` (Playwright hover/focus/active) + `--estados`/`--root` + altura viewport-aware + selftest matriz 3vp (incl. 375) × 2 temas com regressão de estado só-mobile.
+- `scripts/design/style-fingerprint.mjs` (+76): `compararEstados`/`diffEstadosPar` + wire no `comparar()` + família 'estado' no `veredictoNL` + 5 asserts herméticos.
+- `scripts/design/fingerprint-harness.mjs` (+146): `capturarEstados` (Playwright hover/focus/active) + `--estados`/`--root` + altura viewport-aware + selftest matriz 3vp (incl. 375) × 2 temas com regressão de estado só-mobile.
 - `.github/workflows/design-memory-gate.yml` (+8): step harness `--selftest`.
 - `prototipo-ui/RUNBOOK-fidelidade-fingerprint.md` (+6): estados mecanizados.
 
@@ -45,7 +45,7 @@ Execução do **chip C-F2** (grade design→código 2026-07-17, nota ~7,7 do eix
 Corrida **LIVE** proto×prod com `--estados` numa tela ancorada (browser real) — é a evidência que falta: o `--selftest` prova **orquestração**, não captura (mesma disciplina honesta da Onda 3a; o PR não alegou end-to-end).
 
 ```
-node prototipo-ui/fingerprint-harness.mjs --proto <url> --prod <url> --estados --viewports 375,1280,1440 --root "<css>"
+node scripts/design/fingerprint-harness.mjs --proto <url> --prod <url> --estados --viewports 375,1280,1440 --root "<css>"
 ```
 
 ## Lições catalogadas
@@ -56,5 +56,5 @@ node prototipo-ui/fingerprint-harness.mjs --proto <url> --prod <url> --estados -
 ## Pointers detalhados
 
 - Roadmap/origem: `memory/sessions/2026-07-08-arte-fingerprint-vs-sota.md` (Onda 3a/3a.2).
-- Comparador: `prototipo-ui/style-fingerprint.mjs` · Driver: `prototipo-ui/fingerprint-harness.mjs` · Processo: `prototipo-ui/RUNBOOK-fidelidade-fingerprint.md`.
+- Comparador: `scripts/design/style-fingerprint.mjs` · Driver: `scripts/design/fingerprint-harness.mjs` · Processo: `prototipo-ui/RUNBOOK-fidelidade-fingerprint.md`.
 - Fronteira: [ADR 0290](../decisions/0290-fidelity-lock-v0-recusado.md) (sem render pareado em CI).

@@ -28,8 +28,8 @@
 // (nunca silêncio).
 //
 // Uso:
-//   node prototipo-ui/detectar-telas.mjs --staging <dir-do-project> [--repo <root>] [--json] [--strict]
-//   node prototipo-ui/detectar-telas.mjs --selftest      # fixture hermético commitado
+//   node scripts/design/detectar-telas.mjs --staging <dir-do-project> [--repo <root>] [--json] [--strict]
+//   node scripts/design/detectar-telas.mjs --selftest      # fixture hermético commitado
 //
 // --strict: ALVO-PENDENTE também falha (default: só ORFAO/AMBIGUO falham).
 

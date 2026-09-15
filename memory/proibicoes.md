@@ -287,7 +287,7 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 ### 2026-06-30 — Guarda de âncora de design por NOME/PASTA (denylist OU allowlist) em vez de proveniência por charter
 
-- **O limite (variante também proibida):** adivinhar "é design legítimo?" por **nome de arquivo ou pasta** (allowlist OU denylist sintática) — é "incompleto por construção" (verificação formal 2026). A proveniência é o que **o charter declara** (`related_prototype`/`ancora.mjs::resolveAncora`), não a string do path. **Âncora de design = computada do charter, nunca escolhida no olho** (rodar `node prototipo-ui/ancora.mjs <Mod/Tela>`). Residual honesto perene: a confiança termina no charter (sem oráculo formal acima); o hook só vê `Read` (Chrome/paste escapam). Detalhe: [session 2026-06-30 + workflow ancora-guard-adversarial-review].
+- **O limite (variante também proibida):** adivinhar "é design legítimo?" por **nome de arquivo ou pasta** (allowlist OU denylist sintática) — é "incompleto por construção" (verificação formal 2026). A proveniência é o que **o charter declara** (`related_prototype`/`ancora.mjs::resolveAncora`), não a string do path. **Âncora de design = computada do charter, nunca escolhida no olho** (rodar `node scripts/design/ancora.mjs <Mod/Tela>`). Residual honesto perene: a confiança termina no charter (sem oráculo formal acima); o hook só vê `Read` (Chrome/paste escapam). Detalhe: [session 2026-06-30 + workflow ancora-guard-adversarial-review].
 
 ### 2026-07-01 — Gate de CI "charter foi tocado no diff" (charter-sync-gate) pra forçar sync código↔charter
 
@@ -681,7 +681,7 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 ### 2026-08-10 — Construir tela derivando do CÓDIGO quando existe FONTE DE DESIGN (e o gerador escrevia `n/a` sozinho)
 
-- **O limite (variante também proibida):** derivar **design** (layout, card, coluna, selo, vocabulário visual) do **código existente** — Service, badges, tela irmã — sem antes resolver a âncora com `node prototipo-ui/ancora.mjs <Mod/Tela>` **e** conferir o `DesignSync` (são **dois** donos do inventário de design; consultar um só é claim de ausência incompleta — §5 2026-08-07). Também proibido: escrever **Non-Goal/anti-padrão em charter** sobre comportamento visual sem citar a fonte que o sustenta — anti-padrão inventado *parece canon* e a próxima sessão obedece. E `n/a` em `related_prototype` só vale como **decisão declarada**, nunca como default silencioso.
+- **O limite (variante também proibida):** derivar **design** (layout, card, coluna, selo, vocabulário visual) do **código existente** — Service, badges, tela irmã — sem antes resolver a âncora com `node scripts/design/ancora.mjs <Mod/Tela>` **e** conferir o `DesignSync` (são **dois** donos do inventário de design; consultar um só é claim de ausência incompleta — §5 2026-08-07). Também proibido: escrever **Non-Goal/anti-padrão em charter** sobre comportamento visual sem citar a fonte que o sustenta — anti-padrão inventado *parece canon* e a próxima sessão obedece. E `n/a` em `related_prototype` só vale como **decisão declarada**, nunca como default silencioso.
 
 ### 2026-08-10 — Catraca que itera o LADO DO PR: deletar o scorecard é fuga silenciosa (a promessa "robusto contra burla" cobre um vetor só)
 

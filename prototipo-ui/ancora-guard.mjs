@@ -11,7 +11,7 @@
 //        _cowork-handoff-staging, Downloads). O único endereço legítimo é prototipo-ui/cowork/.
 //   R2 — ÂNCORA VIVA: todo path prototipo-ui/cowork/<arquivo> citado numa âncora tem que EXISTIR.
 //
-// Uso: node prototipo-ui/ancora-guard.mjs [--selftest]
+// Uso: node scripts/design/ancora-guard.mjs [--selftest]
 // Exit: 0 = ok | 1 = violação | 2 = erro de uso
 
 import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
