@@ -27,8 +27,10 @@ Visão consolidada de OS Repair (KPIs + status + equipe + tendências) num únic
 
 ## Goals — Features (faz)
 
-- KPI `total_repairs` (status únicos)
-- KPI `service_staff_count` (equipe ativa)
+- KPI `pending` (folhas pendentes) + `pending_unassigned` (dessas, sem técnico)
+- KPI `completed` (concluídas)
+- KPI `overdue` (pendentes com entrega vencida) — tom de alerta só quando > 0
+- KPI `trending_devices_chart` (Top aparelhos) — entrega a consulta que o Controller roda
 - Lista "OS por status" (`job_sheets_by_status`)
 - Lista "OS por service staff" (`job_sheets_by_service_staff`)
 - Lista "Top marcas trending" (`trending_brand_chart`)

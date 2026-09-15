@@ -22,8 +22,13 @@ interface ChartRow {
 
 interface PageProps {
   kpis: {
-    total_repairs: number;
-    service_staff_count: number;
+    /** Folhas cujo status nao e de conclusao. */
+    pending: number;
+    /** Dessas, quantas estao sem tecnico atribuido. */
+    pending_unassigned: number;
+    completed: number;
+    /** Pendentes cuja data de entrega ja passou. */
+    overdue: number;
   };
   // Charts deferidos (Inertia::defer) — ausentes no first-paint, chegam em chunk.
   job_sheets_by_status?: ChartRow[];
@@ -45,12 +50,26 @@ export default function DashboardIndex(props: PageProps) {
       />
 
       <KpiGrid cols={2}>
-        <KpiCard label="Status únicos" value={kpis.total_repairs} icon="wrench" tone="info" />
         <KpiCard
-          label="Service staff"
-          value={kpis.service_staff_count}
-          icon="users"
-          tone="default"
+          label="Folhas pendentes"
+          value={kpis.pending}
+          icon="wrench"
+          tone="info"
+          description={`${kpis.pending_unassigned} sem técnico atribuído`}
+        />
+        <KpiCard
+          label="Concluídas"
+          value={kpis.completed}
+          icon="circle-check"
+          tone="success"
+          description="prontas, entregues e devolvidas"
+        />
+        <KpiCard
+          label="Entrega vencida"
+          value={kpis.overdue}
+          icon="clock"
+          tone={kpis.overdue > 0 ? 'danger' : 'default'}
+          description="folha pendente com data no passado"
         />
       </KpiGrid>
 
