@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { parseLicoes, classificar, semGate, threshold, formatBanner, gateJaReprovado,
+import { parseLicoes, classificar, semGate, threshold, formatBanner, gateJaReprovado, malformadas, formatMalformadas,
   parseTombstones, ledgerCitacoesSecao5, computeFrontier, reconcile, formatReconcile } from './licoes-code-two-strikes.mjs';
 
 const HOOK = join(dirname(fileURLToPath(import.meta.url)), 'licoes-code-two-strikes.mjs');
@@ -40,6 +40,64 @@ check('LC-02 (tem gate) fica de fora', !alarme.concat(watch).some((l) => l.id ==
 check('formatBanner cita PROMOVER + LC-01', /PROMOVER A DEFESA MECANICA/.test(formatBanner(alarme, watch, 2)) && /LC-01/.test(formatBanner(alarme, watch, 2)));
 check('formatBanner vazio quando nada', formatBanner([], [], 2) === '');
 
+// ── CONTADOR DERIVADO (2026-09-15) ───────────────────────────────────────────────
+// CONTRATO: `Ocorrências` = `base:<N>` congelada + 1 por linha `- **rec**`. Registrar
+// passa a ser ADICIONAR uma linha, nunca editar uma existente — que era a causa do
+// conflito de merge entre sessoes (2 em ~20min no #7294). LC sem `base:` = legado,
+// le o inteiro escrito (compat: nenhuma LC precisa migrar).
+const MD_DERIVADO = `# Licoes
+## LC-70 - Derivada: base 3 + 2 recibos
+- **Ocorrências:** base:3 + 1 por «rec» abaixo (DERIVADO — nao edite)   (recibo embutido legado)
+  - **rec** (primeiro)
+  - **rec** (segundo)
+- **Gate:** none
+## LC-71 - Derivada com base 0 e nenhum recibo
+- **Ocorrências:** base:0 + 1 por «rec» abaixo (DERIVADO — nao edite)
+- **Gate:** none
+## LC-72 - LEGADO sem base (compat)
+- **Ocorrências:** 9   (recibos em prosa, formato antigo)
+- **Gate:** none
+`;
+const licD = parseLicoes(MD_DERIVADO);
+const byId = (id) => licD.find((l) => l.id === id);
+check('derivado: base 3 + 2 rec = 5', byId('LC-70').ocorr === 5);
+check('derivado: base 0 + 0 rec = 0', byId('LC-71').ocorr === 0);
+check('compat: LC sem base le o inteiro escrito', byId('LC-72').ocorr === 9);
+check('a linha de campo NAO e contada como recibo', byId('LC-70').recs === 2);
+check('o inteiro do recibo embutido NAO vira o contador', byId('LC-70').ocorr !== 3 && byId('LC-70').base === 3);
+// BITE: adicionar 1 recibo sobe o contador SEM tocar a linha de campo
+const MD_MAIS_UM = MD_DERIVADO.replace('  - **rec** (segundo)', '  - **rec** (segundo)\n  - **rec** (terceiro)');
+check('BITE: +1 linha `- **rec**` => contador +1, campo intacto',
+  parseLicoes(MD_MAIS_UM).find((l) => l.id === 'LC-70').ocorr === 6
+  && MD_MAIS_UM.includes('- **Ocorrências:** base:3 +'));
+// CONTROLE NEGATIVO benigno: `base: 3` sem recibo nenhum cai no legado (inteiro escrito).
+check('CONTROLE NEGATIVO: `base: 3` com espaco nao casa => usa inteiro legado',
+  parseLicoes('# L\n## LC-73 - x\n- **Ocorrências:** 7   base: 3\n- **Gate:** none\n')[0].ocorr === 7);
+// ARRANJO PERIGOSO (achado do ciclo-adversary 2026-09-15): `base:` com UM ESPACO **e recibos
+// presentes**. Cai no legado, o 1o inteiro da linha vira o contador e os recibos somem EM
+// SILENCIO — medido no LC-08 real: 158 -> 1, 157 recibos descartados. O controle negativo
+// anterior nao pegava porque tinha ZERO recibos (§5 2026-08-14: fixture cobrindo 1 de 2
+// variacoes). A invariante `base==null && recs>0` tem zero-FP (0 das 32 LCs a violam).
+const MD_PERIGOSO = `# Licoes
+## LC-74 - base com espaco E recibos (o modo que some calado)
+- **Ocorrências:** base: 5 + 1 por «rec» abaixo
+  - **rec** (um)
+  - **rec** (dois)
+- **Gate:** none
+`;
+const licP = parseLicoes(MD_PERIGOSO)[0];
+check('PERIGOSO: `base: 5` com espaco + 2 rec NAO e lido como base', licP.base === null && licP.recs === 2);
+check('PERIGOSO: o mecanismo ACUSA em vez de devolver 5 calado', malformadas([licP]).length === 1);
+check('PERIGOSO: o aviso nomeia a LC, os recibos e o formato certo',
+  /LC-74/.test(formatMalformadas(malformadas([licP])))
+  && /2 linha\(s\)/.test(formatMalformadas(malformadas([licP])))
+  && /sem espaço depois dos dois-pontos/.test(formatMalformadas(malformadas([licP]))));
+// CONTROLE NEGATIVO do proprio aviso: arranjo SAO nao acusa
+check('CONTROLE NEGATIVO: LC bem-formada NAO vira malformada', malformadas(parseLicoes(MD_DERIVADO)).length === 0);
+check('CONTROLE NEGATIVO: LC legada (sem base, sem rec) NAO vira malformada',
+  malformadas(parseLicoes('# L\n## LC-75 - x\n- **Ocorrências:** 9\n- **Gate:** none\n')).length === 0);
+check('formatMalformadas vazio quando nada', formatMalformadas([]) === '');
+
 // ── QUEM FAZ + gate ja reprovado (2026-07-26) ───────────────────────────────────
 // CONTRATO: o banner e' a UNICA instrucao que o agente recebe sobre o ledger. Antes
 // ele dizia so "avise o Wagner e proponha o gate" — treinava a escalar o que o header
@@ -65,7 +123,11 @@ check('BITE: banner marca so a LC reprovada', /LC-90.*JA MEDIDO E REPROVADO/.tes
 check('BITE: com 1 nao-reprovada, ACAO ainda manda propor MEDINDO o FP', /ACAO: proponha .*MEDINDO o FP/.test(bannerMisto));
 const bannerTodoReprovado = formatBanner([lic2[0]], [], 2);
 check('BITE: todas reprovadas → ACAO manda NAO propor', /ACAO: NAO proponha gate novo/.test(bannerTodoReprovado));
-check('QUEM FAZ: banner atribui o ledger a quem consertou', /QUEM FAZ:.*ledger e SEU/s.test(bannerMisto) && /incremente Ocorrencias/.test(bannerMisto));
+// 2026-09-15: a ACAO mudou de "incremente Ocorrencias" para "ADICIONE um `- **rec**`"
+// (contador DERIVADO). O contrato do assert e o mesmo — o banner atribui o ledger a quem
+// consertou E diz a acao certa —, e a acao certa agora e a que NAO conflita entre sessoes.
+check('QUEM FAZ: banner atribui o ledger a quem consertou', /QUEM FAZ:.*ledger e SEU/s.test(bannerMisto) && /ADICIONE uma linha `- \*\*rec\*\*`/.test(bannerMisto));
+check('QUEM FAZ: banner PROIBE editar o numero (causa do conflito entre sessoes)', /DERIVADO: base \+ rec/.test(bannerMisto) && /NAO edite o numero/.test(bannerMisto));
 check('QUEM FAZ: banner limita \[W\] a soberania', /\[W\] decide so o que e/.test(bannerMisto) && /podar capacidade/.test(bannerMisto));
 check('CONTROLE: banner sem alarme nao fala de QUEM FAZ', !/QUEM FAZ/.test(formatBanner([], [{ id: 'LC-92', titulo: 'x', ocorr: 1, gate: 'none', corpo: '' }], 2)));
 

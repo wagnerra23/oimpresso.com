@@ -171,7 +171,7 @@ ledger é SEU"*. [W] decide só o que é soberania: apagar alarme, promover gate
 
 | O que aconteceu | Onde registra | Como |
 |---|---|---|
-| **Você errou** (mediu errado, afirmou sem provar, quebrou escopo) | `memory/LICOES_CODE.md` | ache a `Classe`. Existe? **incrementa `Ocorrências`** e anexa o caso em uma frase. Não existe? cria `LC-NN` com `Ocorrências: 1` |
+| **Você errou** (mediu errado, afirmou sem provar, quebrou escopo) | `memory/LICOES_CODE.md` | ache a `Classe`. Existe? **adicione uma linha `- **rec**`** com o caso em uma frase — o contador é DERIVADO (`base:<N>` + 1 por `rec`), **não edite o número**. Não existe? cria `LC-NN` com `Ocorrências: base:1` |
 | **Uma ideia sua foi medida e reprovada** | `memory/proibicoes.md` §5 | lápide com as 3 partes: *o que foi tentado · por que caiu (com número) · o limite — qual variante parecida também fica proibida* |
 | **[W] corrigiu seu escopo ou entendimento** | **este arquivo** | corrija a própria definição, com a citação textual do [W] e a data. Foi assim que a fronteira *sistema ≠ produto* entrou aqui |
 

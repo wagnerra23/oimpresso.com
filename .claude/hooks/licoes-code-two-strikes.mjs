@@ -74,6 +74,52 @@ export function semGate(g) {
   return false;
 }
 
+/** CONTADOR DERIVADO (2026-09-15) — `Ocorrências` = `base:<N>` congelada + 1 por `- **rec**`.
+ *  POR QUÊ: o número escrito à mão é uma LINHA ÚNICA que toda sessão edita ao registrar,
+ *  então duas sessões no mesmo dia conflitam SEMPRE (medido: 2 conflitos em ~20min no
+ *  #7294, com colisão de numeração 156→157→158). Derivado, registrar = ADICIONAR uma
+ *  linha `- **rec**` e não tocar em nenhuma existente.
+ *  ⚠️ O GANHO, MEDIDO — e NÃO é "acaba o conflito" (simulei merge 3-vias): duas sessões
+ *  apendando no mesmo ponto do bloco AINDA conflitam (rc=1). O ganho é que o status quo
+ *  mergeava LIMPO com número ERRADO (ambas incrementam 158→159 quando o certo era 160 —
+ *  foi a colisão da motivação), e o derivado torna o silencioso-errado IMPOSSÍVEL:
+ *  converte-o em conflito cuja resolução correta é mecânica (manter as duas linhas).
+ *  NÃO é o S1 cortado (`Ocorrências == nº-recibos`, igualdade estrita — ver nota adiante):
+ *  aquele DESCARTAVA o legado — **20 das 32** LCs divergiriam contando **linhas `- **rec**`**
+ *  (LC-11 cairia de 15 para 1), e **23 das 32** sob a régua do extrator de recibos do hook
+ *  (LC-11 15 vs 14) — a régua muda o número, a conclusão sobrevive nas duas (§5 2026-07-17:
+ *  número em canon diz qual régua contou). A `base` PRESERVA por construção
+ *  (`base = campo_atual − nº de rec`), logo `base + rec` reproduz o número de hoje em 32/32,
+ *  com zero base negativa — medido contra `origin/main`: 0 números alterados.
+ *  COMPAT: LC sem `base:` continua lendo o inteiro escrito — nenhuma LC precisa migrar. */
+const RE_BASE = /^\s*-\s*\*\*Ocorr[^:]*:\*\*\s*base:(\d+)/i;
+const RE_REC = /^\s*-\s*\*\*rec\*\*/;
+
+function finalizarLicao(cur) {
+  if (cur && cur.base !== null) cur.ocorr = cur.base + cur.recs;
+  // FAIL-OPEN FECHADO (2026-09-15, achado do ciclo-adversary): `base: 1` com UM ESPAÇO não
+  // casa RE_BASE, cai no fallback legado e o primeiro inteiro da linha vira o contador —
+  // medido no LC-08 real: 158 → 1, com os 157 `- **rec**` descartados EM SILÊNCIO. O parser
+  // tem `recs` na mão nesse instante e precisa falar (§5 "LIGUE A MÁQUINA" item 5: nunca
+  // cair em exit 0 silencioso; família LC-13, número plausível vindo de não-medição).
+  // Zero-FP medido: 0 das 32 LCs violam esta invariante hoje.
+  if (cur && cur.base === null && cur.recs > 0) cur.malformada = true;
+  return cur;
+}
+
+/** LCs com linha `- **rec**` mas SEM `base:` legível — o contador delas está mentindo. */
+export function malformadas(licoes) {
+  return (licoes || []).filter((l) => l.malformada);
+}
+
+/** aviso (stderr) das LCs cujo campo `Ocorrências` não parseia mas têm recibos. */
+export function formatMalformadas(mal) {
+  if (!mal || !mal.length) return '';
+  const l = ['[licoes-code-two-strikes] !! CAMPO `Ocorrências` ILEGÍVEL em ' + mal.length + ' LC(s) — o contador está MENTINDO:'];
+  for (const m of mal) l.push(`   ${m.id}: tem ${m.recs} linha(s) \`- **rec**\` mas nenhum \`base:<N>\` legível (lido: ${m.ocorr}). Formato: \`- **Ocorrências:** base:<N>\` — sem espaço depois dos dois-pontos.`);
+  return l.join('\n');
+}
+
 /** parser PURO do markdown → lista de {id, titulo, ocorr, gate}. */
 export function parseLicoes(text) {
   const licoes = [];
@@ -81,18 +127,21 @@ export function parseLicoes(text) {
   for (const ln of String(text || '').split('\n')) {
     const h = /^##\s+(LC-\S+)\s*[-—]?\s*(.*)$/.exec(ln);
     if (h) {
-      if (cur) licoes.push(cur);
-      cur = { id: h[1], titulo: h[2].trim(), ocorr: 0, gate: '', corpo: '' };
+      if (cur) licoes.push(finalizarLicao(cur));
+      cur = { id: h[1], titulo: h[2].trim(), ocorr: 0, base: null, recs: 0, gate: '', corpo: '' };
       continue;
     }
     if (!cur) continue;
     cur.corpo += ln + '\n';
+    if (RE_REC.test(ln)) cur.recs++;
+    const bs = RE_BASE.exec(ln);
+    if (bs) { cur.base = parseInt(bs[1], 10); continue; }
     const oc = /\*\*Ocorr.*?(\d+)/.exec(ln);
     const gt = /\*\*Gate.*?:\s*(.+?)\s*$/.exec(ln);
     if (oc) cur.ocorr = parseInt(oc[1], 10);
     else if (gt) cur.gate = gt[1].replace(/\*\*/g, '').trim();
   }
-  if (cur) licoes.push(cur);
+  if (cur) licoes.push(finalizarLicao(cur));
   return licoes;
 }
 
@@ -128,7 +177,8 @@ export function formatBanner(alarme, watch, th) {
       ? '  ACAO: NAO proponha gate novo aqui - a forma obvia ja foi medida e reprovada (ver corpo da LC).'
       : '  ACAO: proponha o gate/hook/baseline que mata essa classe - MEDINDO o FP antes (§5).');
     out.push('  QUEM FAZ: consertou um erro dessa classe? o ledger e SEU - escreva a lapide §5 e');
-    out.push('            incremente Ocorrencias (header do LICOES_CODE.md). [W] decide so o que e');
+    out.push('            ADICIONE uma linha `- **rec**` na LC (o contador e DERIVADO: base + rec;');
+    out.push('            NAO edite o numero - foi o que fazia 2 sessoes conflitarem). [W] decide so o que e');
     out.push('            soberania: apagar alarme, promover gate a required, podar capacidade.');
     out.push("  (Quando criar o gate, troque 'Gate: none' pelo nome dele em LICOES_CODE.md - o alarme some.)");
   }
@@ -265,7 +315,11 @@ export function ledgerCitacoesSecao5(text) {
       // 70% do arquivo numa linha só, ilegível por qualquer leitor (humano, `sed`, agente).
       // Os dois formatos são aceitos: `**Ocorr…` (legado, não se reescreve em massa) e `**rec**`
       // (novo, 1 por linha). A CONTAGEM segue só na linha `**Ocorrências:** N` — `**rec**` não
-      // casa `/\*\*Ocorr/`, então não interfere no parser de count acima.
+      // casa `/\*\*Ocorr/`.
+      // ⚠️ ERRATA 2026-09-15: esta linha dizia "então não interfere no parser de count acima".
+      // Virou FALSA no mesmo PR que a deixou intacta — com o contador DERIVADO, `- **rec**` é
+      // exatamente o que DIRIGE a contagem (`base` + 1 por rec). Corrigida aqui em vez de
+      // reescrita: é LC-10 (artefato afirmando em presente algo que a mudança derrubou).
       // A linha `- **rec**` JÁ se autodeclara recibo pelo prefixo — exigir `§5|proibicoes`
       // NELA cegava metade do corpus: medido 2026-08-27, 61 de 124 recibos invisíveis (49,2%),
       // e o frontier travava em 08-25 acusando a lápide 08-26 como "fora do ledger" quando ela
@@ -374,7 +428,11 @@ async function main() {
     if (!existsSync(p)) process.exit(0);
     const text = readFileSync(p, 'utf8');
     const th = threshold();
-    const { alarme, watch } = classificar(parseLicoes(text), th);
+    const licoes = parseLicoes(text);
+    // campo ilegível NÃO fica calado: vai pra stderr (não polui o stdout do SessionStart).
+    const mal = formatMalformadas(malformadas(licoes));
+    if (mal) process.stderr.write(mal + '\n');
+    const { alarme, watch } = classificar(licoes, th);
     const banner = formatBanner(alarme, watch, th);
     if (banner) process.stdout.write(banner + '\n');
     // AUTO-FEED: reconciliação §5↔ledger (surface advisory de recorrência declarada
