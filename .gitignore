@@ -135,6 +135,47 @@ scripts/design-sync/.push-bundle/
 # 2026-09-04: 90 arquivos / 16,7 MB entraram por um `git add -A` no PR #6726.
 visreg-art/
 
+# ── Espelho Cowork (prototipo-ui/cowork/**) — regra "só fontes" ───────────────────────
+# O espelho versiona jsx/tsx/ts/js/css/html/md/json/php/sql; imagens e binários ficam FORA
+# (diff de design limpo + repo leve). Screenshots vivem no Cowork, não aqui.
+# ADR-proposta 2026-06-23-prototipo-ssot-unico-com-historico.
+#
+# POR QUE a regra vive AQUI e não dentro do espelho — as duas formas óbvias são barradas pelo
+# `scripts/governance/cowork-ssot-guard.mjs`, medido em 2026-09-15:
+#   • um `.gitignore` na raiz de `cowork/`  → viola **R2** ("item proibido em cowork/": só os
+#     diretórios dos donos entram);
+#   • uma cópia por dono (`Wagner/` + `Felipe/`) → viola **R4** ("zero conteúdo duplicado em
+#     disco dentro de prototipo-ui/", comparação por bytes).
+# Logo a única fonte possível é este arquivo — mesmo caminho que o #7289 já usou pro `_ds/`
+# legado, logo abaixo. Dono novo em `cowork/` nasce coberto automaticamente.
+#
+# Histórico: até o #7224 havia um `cowork/.gitignore` cobrindo `cowork/**`; o #7224 o moveu pra
+# `cowork/Wagner/` junto com o conteúdo do Wagner e o escopo encolheu pra `cowork/Wagner/**` —
+# o `Felipe/` ficou descoberto (medido: `Felipe/x.png`, `Felipe/assets/`, `Felipe/screenshots/`
+# passavam livres). Referências a `cowork/Wagner/.gitignore:26` em CODE_NOTES/LICOES_CODE/
+# licoes-rejeitadas/ADR UI-0029 são fato datado e ficam intactas.
+prototipo-ui/cowork/**/*.png
+prototipo-ui/cowork/**/*.jpg
+prototipo-ui/cowork/**/*.jpeg
+prototipo-ui/cowork/**/*.gif
+prototipo-ui/cowork/**/*.webp
+prototipo-ui/cowork/**/*.ico
+prototipo-ui/cowork/**/*.thumbnail
+prototipo-ui/cowork/**/*.bak
+prototipo-ui/cowork/**/*.zip
+prototipo-ui/cowork/**/*.mp4
+prototipo-ui/cowork/**/*.mov
+# dirs de arquivo/scratch do bundle — NÃO são design-source (Wagner 2026-07-01 "pode apagar").
+# O importar-bundle.mjs já os exclui do sync (/XD); isto é defesa se algo pousar manual.
+prototipo-ui/cowork/**/_arquivo/
+prototipo-ui/cowork/**/_BACKUP-NAO-USAR/
+prototipo-ui/cowork/**/scraps/
+prototipo-ui/cowork/**/screenshots/
+prototipo-ui/cowork/**/uploads/
+prototipo-ui/cowork/**/assets/
+prototipo-ui/cowork/**/benchmark/
+prototipo-ui/cowork/**/_ds/
+
 # Cache _ds/ no path LEGADO (pré-#7224): o #7224 moveu shell/cache/.gitignore pra cowork/Wagner/,
 # e a regra do espelho passou a cobrir só o path novo — medido 2026-09-15, worktree stale rodando o
 # hook antigo materializou 10 arquivos / 12.423 linhas aqui, visíveis como `??` num branch de main.
