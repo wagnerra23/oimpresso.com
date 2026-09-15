@@ -67,7 +67,15 @@ jobs:
         run: |
           set -euo pipefail
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            base="${{ github.event.pull_request.base.sha }}"
+            # Base VIVA: num merge ref (o que o checkout de `pull_request` materializa), o que o
+            # PR muda é HEAD^1..HEAD — o 1º pai É o tip de main que o merge usou, imune a main
+            # andar. `pull_request.base.sha` é o tip de QUANDO O EVENTO NASCEU e arrasta junto o
+            # que entrou em main no meio. Idioma do visual-regression (#6009); §5 2026-09-15.
+            if [ "$(git rev-list --count --no-walk --merges HEAD)" = "1" ]; then
+              base="$(git rev-parse HEAD^1)"
+            else
+              base="${{ github.event.pull_request.base.sha }}"
+            fi
           else
             base="${{ github.event.before }}"
           fi

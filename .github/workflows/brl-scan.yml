@@ -69,9 +69,28 @@ jobs:
       - name: Selftest do hook (predicado compartilhado)
         run: node .claude/hooks/block-brl-values-in-memory.mjs --selftest
 
+      # Base VIVA do diff, resolvida UMA vez e consumida pelos dois steps abaixo.
+      # `pull_request.base.sha` é o tip de main de QUANDO O EVENTO NASCEU, e o checkout é o
+      # MERGE REF — então o range arrastava junto o que entrou em main no meio, e o scanner
+      # varria linha e commit message de PR alheio. Num merge ref o que o PR muda é
+      # HEAD^1..HEAD: o 1º pai É o tip de main que o merge usou, imune a main andar.
+      # Idioma do visual-regression (#6009); §5 2026-09-15, eixo BASE-DE-PR.
+      - name: Base viva do diff (merge ref → HEAD^1)
+        id: diffbase
+        run: |
+          set -euo pipefail
+          if [ "$(git rev-list --count --no-walk --merges HEAD)" = "1" ]; then
+            sha="$(git rev-parse HEAD^1)"
+            echo "merge ref detectado — base = HEAD^1 ($sha)"
+          else
+            sha="${{ github.event.pull_request.base.sha }}"
+            echo "HEAD não é merge commit — base = pull_request.base.sha ($sha)"
+          fi
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+
       - name: Varre as linhas ADICIONADAS do PR
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          BASE_SHA: ${{ steps.diffbase.outputs.sha }}
         run: node scripts/governance/brl-scan-diff.mjs --base "$BASE_SHA"
 
       # A regra nomeia 4 superfícies (memory/, *.md canon, PR body, commit message).
@@ -92,5 +111,5 @@ jobs:
       # BASE_SHA..HEAD, entao o passivo de main fica intocado (§5 proibicoes 2026-07-12).
       - name: Varre as mensagens INTEIRAS dos commits do PR
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          BASE_SHA: ${{ steps.diffbase.outputs.sha }}
         run: git log --format='%B' "$BASE_SHA"..HEAD | node scripts/governance/brl-scan-diff.mjs --stdin
