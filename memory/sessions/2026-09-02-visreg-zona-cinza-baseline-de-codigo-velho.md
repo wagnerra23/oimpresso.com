@@ -9,6 +9,8 @@ tags: [visual-regression, baseline, gate, ci, medicao]
 
 # Zona cinza do `visual-regression` — não era render não-determinístico
 
+## TL;DR
+
 **Pedido [W]:** *"apenas faça"* — zerar a zona cinza herdada (rebake das determinísticas + quarentena das não-determinísticas).
 
 **Resultado:** o rebake foi feito; **a quarentena não teve população** — nenhuma tela é não-determinística. A premissa que sustentava a quarentena (e a demoção do gate em 2026-08-26) estava invertida, e a medição a derrubou.
