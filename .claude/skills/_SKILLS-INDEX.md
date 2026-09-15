@@ -16,7 +16,7 @@
 | audit-constituicao | C | — | sim | ATIVAR quando user pedir "audit pós-constituição", "/audit-constituicao", "consolidação geral", "revisão geral desde … |
 | audit-to-backlog | B | — | sim | ATIVAR quando user pedir "transformar audit em tasks", "levar audit X pro backlog", "criar tasks do audit", "/audit-t… |
 | automem-pending | B | — | sim | BLOQUEADOR — quando user mencionar tópico/módulo OU Edit/Read em path com auto-mem stale pendente migração (ADR 0061)… |
-| avaliar-modulo | B | — | sim | ATIVAR quando user pedir "nota do módulo X", "avaliar Modules/X", "/avaliar-modulo X", "qual a nota de Y", "module gr… |
+| avaliar-modulo | B | — | **false (dormente)** | ⚰️ APOSENTADA (ADR 0399, 2026-09-15) — NÃO ATIVAR: `php artisan module:grade` não existe mais; para estado de módulo … |
 | brief-first | B | session_start | sim | BLOQUEADOR — antes de qualquer outra tool MCP, Read, Glob, Grep ou ação no projeto Oimpresso, invoque a tool brief-fe… |
 | brief-update | B | — | sim | Use SEMPRE depois de commit/merge de PR que altere capacidades, diferenciais, score Capterra, UX visível, ou gaps de … |
 | charter-first | B | path | sim | BLOQUEADOR — ANTES de editar qualquer .tsx que tenha .charter.md ao lado (ex Index.tsx + Index.charter.md), chame too… |
@@ -53,7 +53,7 @@
 | migrar-modulo | B | — | sim | Use ao mover, renomear, ou extrair controller/módulo Laravel modular existente em `Modules/<X>/` — qualquer `git mv M… |
 | migration-status | B | — | sim | ATIVAR quando user pedir "status migração", "% migrado {módulo}", "tabelas Firebird", "status da migração por tabelas… |
 | module-completeness-audit | B | — | sim | ATIVAR antes de marcar US como `done` (`tasks-update task_id:US-XXX-NNN status:done` ou `tasks-update from:review to:… |
-| module-grades-gate | C | — | sim | ATIVAR quando user pedir "checar grades antes de PR", "rodar gate de notas local", "atualizar baseline module-grade",… |
+| module-grades-gate | C | — | **false (dormente)** | ⚰️ APOSENTADA (ADR 0399, 2026-09-15) — NÃO ATIVAR: o gate, o baseline e o comando `module:grade` foram deletados; apl… |
 | multi-tenant-patterns | A | — | sim | Use ao criar ou alterar Eloquent Model, Controller, Service, Job, Command ou Migration que toca dados de negócio (qua… |
 | mwart-comparative | B | path | sim | Use SEMPRE antes de codar Page Inertia em migração MWART (Blade→React) no oimpresso. Skill Tier B auto-trigger V4 que… |
 | mwart-process | B | path | sim | Use SEMPRE que o trabalho envolva migrar tela Blade legacy → Inertia/React no oimpresso (MWART). Carrega o processo c… |

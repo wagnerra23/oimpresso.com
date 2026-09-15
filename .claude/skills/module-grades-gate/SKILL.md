@@ -1,6 +1,6 @@
 ---
 name: module-grades-gate
-description: ATIVAR quando user pedir "checar grades antes de PR", "rodar gate de notas local", "atualizar baseline module-grade", "como override regressão grades", "adicionar módulo novo gate CI", "reconciliar baseline module-grades", "/module-grades-gate", OU quando o CI `Module Grades Gate (anti-regressão)` falhar num PR (regressão OU módulo novo sem aprovação). Workflow CI bloqueia merge em DOIS cenários (Wave 2 endurecimento): (1) nota de QUALQUER módulo diminuir vs `governance/module-grades-baseline.json`; (2) módulo NOVO entrando na rubrica sem label de aprovação. Skill explica como rodar local, atualizar baseline conscientemente, aplicar override por label, e reconciliar drift de renames (ex `PontoWr2`→`Ponto`). Tier C (slash command).
+description: ⚰️ APOSENTADA (ADR 0399, 2026-09-15) — NÃO ATIVAR: o gate, o baseline e o comando `module:grade` foram deletados; aplicar as labels não destrava nada. Descrição histórica: ATIVAR quando user pedir "checar grades antes de PR", "rodar gate de notas local", "atualizar baseline module-grade", "como override regressão grades", "adicionar módulo novo gate CI", "reconciliar baseline module-grades", "/module-grades-gate", OU quando o CI `Module Grades Gate (anti-regressão)` falhar num PR (regressão OU módulo novo sem aprovação). Workflow CI bloqueia merge em DOIS cenários (Wave 2 endurecimento): (1) nota de QUALQUER módulo diminuir vs `governance/module-grades-baseline.json`; (2) módulo NOVO entrando na rubrica sem label de aprovação. Skill explica como rodar local, atualizar baseline conscientemente, aplicar override por label, e reconciliar drift de renames (ex `PontoWr2`→`Ponto`). Tier C (slash command).
 updated_at: 2026-05-16
 version: 1.1.0
 related_adrs:
@@ -21,9 +21,29 @@ triggers_on:
   - "diagnosticar falha CI module grades"
   - "/module-grades-gate"
 tier: C
+enabled: false
 ---
 
 # Module Grades Gate — anti-regressão da rubrica v3
+
+> ## ⚰️ APOSENTADA em 2026-09-15 — [ADR 0399](../../../memory/decisions/0399-aposentar-rubrica-module-grade-gate-e-baseline.md)
+>
+> **Esta skill opera máquinas que não existem mais.** Verificado em `origin/main` em 2026-09-15:
+> `.github/workflows/module-grades-gate.yml`, `governance/module-grades-baseline.json`, o alias
+> `composer module-grades-check` e o comando `php artisan module:grade` **foram todos deletados**
+> (Ondas 1 e 3 da ADR 0399). Nenhum procedimento abaixo roda.
+>
+> Isso inclui o §Cenário de rename: o passo *"atualizar `governance/module-grades-baseline.json`"*
+> saiu do mundo — a fonte viva de renames de módulo é
+> [`governance/ghost-rename-map.json`](../../../governance/ghost-rename-map.json).
+>
+> As **labels continuam existindo no GitHub** (`module-grades-allowed-regression`,
+> `module-grades-new-module-allowed`), porque **153** PRs históricos distintos as carregam (medido com `--paginate`, deduplicado: a soma dos `total_count` dava 157 e superestimava, porque há PRs com as duas) — mas **nenhum gate
+> as lê**: aplicá-las hoje não destrava nada. Removê-las é decisão [W].
+>
+> Fica como registro de como a catraca operava e por que caiu (4 rebaselines v3.5.1→v3.5.4, piso
+> acima do que o CI alcançava). O `enabled: false` acima marca a skill como **dormente no índice
+> gerado** — não confie nisso como desligamento: a razão para não ativá-la está nesta lápide.
 
 > **ADR 0155 — rubrica module-grade v3** (9 dimensões: D1 multi_tenant · D2 pest_coverage · D3 documentation · D4 architecture · D5 client_real · D6 performance · D7 lgpd · D8 security · D9 observability).
 >
