@@ -1,6 +1,6 @@
 ---
 name: governance-pr-summary
-description: Use ANTES de `gh pr create` em qualquer branch que toque Modules/<X>/. Lê módulos afetados via `git diff --name-only origin/main...HEAD`, infere bucket de cada módulo, executa `php artisan module:grade <X> --json` e INJETA a seção `## Module Grade` na descrição do PR. (O `module:grade-v4` foi REMOVIDO em 2026-07-26 — tinha 0 invocadores em CI/cron; a nota que morde é a do v3, que roda no CI via `module:grade --all` e tem baseline em `governance/module-grades-baseline.json`.) Reduz adoption time de "Wagner precisa abrir 3 dashboards" pra "PR já vem com módulo + nota + bucket + meta + status". APÓS o merge do PR (o tool só atribui custo a PR mergeado), injeta também — LOCAL, porque o CI não enxerga o JSONL — um bloco idempotente `<!-- agent-cost-per-pr -->` com o custo USD estimado DESTE PR via `node scripts/governance/agent-cost-per-pr.mjs --pr <N>` (advisory · RELATO, nunca gate · sem valores em R$). Tier B auto-trigger.
+description: Use ANTES de `gh pr create` em qualquer branch que toque Modules/<X>/. ⚠️ PARCIALMENTE APOSENTADA (ADR 0399, 2026-09-15): os passos 1-6 — inferir bucket, rodar `php artisan module:grade <X> --json` e injetar a seção `## Module Grade` — estão MORTOS, porque o comando, o Service e o baseline foram deletados. **O passo 7 continua vivo e é a razão de a skill existir hoje**: APÓS o merge do PR, injeta LOCALMENTE (o CI não enxerga o JSONL) um bloco idempotente `<!-- agent-cost-per-pr -->` com o custo USD estimado deste PR via `node scripts/governance/agent-cost-per-pr.mjs --pr <N>` — advisory, RELATO, nunca gate, sem valores em R$. Tier B auto-trigger.
 trust_level: L1
 owner: wagner
 parent_mission: meta-skill-roi-erp-autonomo
@@ -9,7 +9,25 @@ tier: B
 parent_adr: 0094
 ---
 
-# Governance PR Summary v2 — auto-injetar Module Grade v4 em descrição de PR
+# Governance PR Summary — custo estimado por PR (o bloco de nota morreu)
+
+> ## ⚰️ METADE APOSENTADA em 2026-09-15 — [ADR 0399](../../../memory/decisions/0399-aposentar-rubrica-module-grade-gate-e-baseline.md)
+>
+> **Passos 1 a 6 estão MORTOS.** Eles montavam a seção `## Module Grade` chamando
+> `php artisan module:grade <X> --json` — comando deletado na Onda 3, `ModuleGradeService`
+> deletado na Onda 4a, `governance/module-grades-baseline.json` deletado na Onda 1. O passo 3
+> ainda cita a tool MCP `module-grade`, que também não tem mais o que servir. Não existe nota de
+> módulo para injetar em PR nenhum.
+>
+> **O passo 7 continua vivo e é a razão de a skill existir hoje:** o bloco
+> `<!-- agent-cost-per-pr -->` de custo USD, via `scripts/governance/agent-cost-per-pr.mjs`
+> (verificado presente em `origin/main` em 2026-09-15). O GUARD do marcador, os anti-patterns
+> Tier 0 e as trigger phrases seguem valendo para ele.
+>
+> Os passos mortos ficam como registro do que a skill fazia — não como instrução. Se algum dia
+> voltar a fazer sentido pôr um sinal de qualidade no corpo do PR, ele nasce de outra fonte
+> (`sdd-scorecard.json`, BRIEFING), nunca desta rubrica.
+
 
 ## Quando ativa
 
@@ -28,7 +46,7 @@ description com módulo + nota"). Detecta:
 > + BRIEFING.md) pra entender o estado do módulo. **PR description é a fonte
 > primária de signal.**
 
-## Como aplicar (7 passos — Wave 27 v2 + custo por PR)
+## Como aplicar (⚰️ passos 1-6 MORTOS · só o 7 roda)
 
 > Passos **1-6** são **PRÉ**-`gh pr create` — compõem o corpo (Module Grade).
 > Passo **7** é **PÓS-merge**: o tool só atribui custo a PR **mergeado**

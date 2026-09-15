@@ -29,7 +29,7 @@ tier: B
 
 # screen-grade — Pré-Flight de Tela + nota de maturidade /100
 
-> **Linhagem:** Método Governance Scorecard ([ADR 0230](../../../memory/decisions/0230-metodo-governance-scorecard.md)) + especialista-por-área ([ADR 0231](../../../memory/decisions/0231-processo-trabalho-canonico-especialista-por-area.md)) + Peso Real ([ADR 0232](../../../memory/decisions/0232-modelo-peso-real-classificacao-por-meta.md)) + `framework-15-dimensoes.md` + DS v4 roxo ([ADR 0235](../../../memory/decisions/0235-ds-v4-accent-roxo-universal.md)). É o [`module-grade`](../avaliar-modulo/SKILL.md) aplicado **por tela**.
+> **Linhagem:** Método Governance Scorecard ([ADR 0230](../../../memory/decisions/0230-metodo-governance-scorecard.md)) + especialista-por-área ([ADR 0231](../../../memory/decisions/0231-processo-trabalho-canonico-especialista-por-area.md)) + Peso Real ([ADR 0232](../../../memory/decisions/0232-modelo-peso-real-classificacao-por-meta.md)) + `framework-15-dimensoes.md` + DS v4 roxo ([ADR 0235](../../../memory/decisions/0235-ds-v4-accent-roxo-universal.md)). Nasceu como o `module-grade` aplicado **por tela** — aquela rubrica foi aposentada em 2026-09-15 ([ADR 0399](../../../memory/decisions/0399-aposentar-rubrica-module-grade-gate-e-baseline.md)) e **esta aqui não**: o `screen-grade` tem catraca própria (`screen-grades-ratchet.mjs`) e segue valendo.
 >
 > **Docs canônicos que esta skill operacionaliza** (leia-os, não reinvente):
 > - [`memory/reference/prototipo-ui/GOLDEN-REFERENCE.md`](../../../prototipo-ui/GOLDEN-REFERENCE.md) — tela-ouro `Sells/Create` + 10 regras binárias
@@ -62,7 +62,7 @@ NOTA = Σ(dim_i × peso_persona_i) / Σ(peso_max) × 100 × modulador_peso_real
 
 16 dimensões (15 do `framework-15-dimensoes.md` + **16. Pré-Flight conformance**: tem charter live? só `@/ui`? tokens v4? zero anti-padrão repetido?). Para cada dimensão fraca: comparar com **≥3 best-of-class** (Linear/Shopify/Stripe/Notion + Bling/Tiny BR) **com o mecanismo** (não basta citar). Níveis: 🥉 Beginner 0-49 · Developing 50-69 · 🥈 Advanced 70-84 · Leader 85-94 · 🏆 Champion 95-100.
 
-**Automação futura (Passo 2 do método — ainda não existe):** `php artisan screen:grade <Mod>/<Tela> --detail` (espelho de `module:grade`, persiste o YAML). Enquanto o command não existe, esta skill roda o método **manualmente** e materializa o scorecard à mão.
+**Automação futura (Passo 2 do método — ainda não existe):** `php artisan screen:grade <Mod>/<Tela> --detail` (persiste o YAML; o espelho `module:grade` que inspirou o desenho foi deletado pela ADR 0399, então este nasceria sozinho). Enquanto o command não existe, esta skill roda o método **manualmente** e materializa o scorecard à mão.
 
 ## Saída score-as-code (sempre gerar)
 

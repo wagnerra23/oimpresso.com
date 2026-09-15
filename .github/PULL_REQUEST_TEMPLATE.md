@@ -1,4 +1,4 @@
-<!-- Template canônico oimpresso (ADR 0094 Constituição v2 + ADR 0155 module-grades-gate). PT-BR. -->
+<!-- Template canônico oimpresso (ADR 0094 Constituição v2). PT-BR. -->
 
 ## Resumo
 
@@ -41,13 +41,13 @@
 - [ ] F4 QA com smoke biz=1 (ADR 0101) — biz=4 só em F5 cutover canary 7d
 - [ ] Sem violação dos 6 meta-anti-padrões / 15 técnicos catalogados em `memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`
 
-## Performance (D6 do module-grade v3 — ADR 0155)
+## Performance
 
 <!-- Preencher se PR altera Controller / Service / página Inertia. -->
 
 - [ ] `Inertia::defer` aplicado em props caras (paginate / count / with eager-load / aggregated / Service-DB / HTTP externo) — skill `inertia-defer-default` Tier B + proibicoes.md §"Sempre fazer"
 - [ ] Sem N+1 introduzido (Controller com `paginate(` tem `->with(` explícito ou justificativa)
-- [ ] OTel span adicionado se Service novo que toca DB/HTTP/LLM (D9.a — ADR 0155)
+- [ ] OTel span adicionado se Service novo que toca DB/HTTP/LLM (ADR 0208 observabilidade)
 
 ## Briefing (regra "mexeu, registra" — proibicoes.md)
 
@@ -84,4 +84,4 @@ URL local: `http://oimpresso.test/...`
 
 ---
 
-_Refs: [ADR 0094 Constituição v2](/memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) · [ADR 0155 module-grade v3 + gate CI](/memory/decisions/0155-module-grade-v3-sub-dimensoes-gate-ci.md) · [ADR 0093 Multi-tenant Tier 0](/memory/decisions/0093-multi-tenant-isolation-tier-0.md) · [ADR 0104 MWART](/memory/decisions/0104-processo-mwart-canonico-unico-caminho.md) · [ADR 0101 Tests biz=1](/memory/decisions/0101-tests-business-id-1-nunca-cliente.md) · [ADR 0070 Tasks MCP](/memory/decisions/0070-jira-style-task-management-current-md-removed.md) · skill [commit-discipline](/.claude/skills/commit-discipline/SKILL.md)_
+_Refs: [ADR 0094 Constituição v2](/memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) · [ADR 0093 Multi-tenant Tier 0](/memory/decisions/0093-multi-tenant-isolation-tier-0.md) · [ADR 0104 MWART](/memory/decisions/0104-processo-mwart-canonico-unico-caminho.md) · [ADR 0101 Tests biz=1](/memory/decisions/0101-tests-business-id-1-nunca-cliente.md) · [ADR 0070 Tasks MCP](/memory/decisions/0070-jira-style-task-management-current-md-removed.md) · skill [commit-discipline](/.claude/skills/commit-discipline/SKILL.md)_
